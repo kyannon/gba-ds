@@ -1,5 +1,7 @@
 # Changelog
 
+## v1.2.2 (not yet released)
+
 ## v1.2.1 (2026-10-19)
 - **Super Mario Advance 2:** the status bar stays on the second screen in castle rooms behind doors and in the boss fights (it switched to the logo and stayed there), and the SNES layout keeps working in those rooms.
 
