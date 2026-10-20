@@ -984,6 +984,32 @@ static const MapProfile profiles[] = {
 		.stillPick = STILL_COVER,
 	},
 	{
+		.codes = { "AVSE" },
+		.title = "Sword of Mana",
+		/* no map: listed, logo on the second screen. Once the Status screen
+		 * (the Start ring's Status, then a character) has been up, it is
+		 * copied to the second screen and stays there through play. */
+		.logoOnly = true,
+		/* title: START past the opening, A past the crystal; the SWORD of MANA
+		 * wordmark is BG0 above the PUSH START line */
+		.logo = { .steps = { { 0, 700 }, { K_START, 4 }, { 0, 200 }, { K_A, 4 }, { 0, 150 } },
+		          .layer = 0, .maxY = 112 },
+		.snap = {
+			/* the Status screen's panels and stat icons (not the portrait) */
+			.show = { { 90, 10, 0x945229 }, { 68, 111, 0xFF3100 }, { 115, 123, 0xFF3100 }, { 150, 46, 0x945229 },
+			          { 150, 148, 0x945229 }, { 197, 120, 0x945229 }, { 121, 148, 0x945229 } },
+			.showMin = 6,
+			/* back to the logo on the title screen */
+			.revert = {
+				{ { 30, 86, 0xF79C31 }, { 31, 84, 0xF79C31 }, { 123, 149, 0x427BD6 }, { 183, 96, 0xFFEFBD },
+				  { 199, 100, 0xFFE7BD } },
+			},
+			.revertMin = { 4 },
+			.stable = 3,
+			.tol = 8,
+		},
+	},
+	{
 		.codes = { "ATHE", "ATHF", "ATHD" },
 		.title = "Tony Hawk's Pro Skater 2",
 		/* no map yet: listed, logo on the second screen */
