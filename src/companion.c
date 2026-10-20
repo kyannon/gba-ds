@@ -38,10 +38,23 @@ static SDL_Texture* tex[2];
 static bool redraw, uploaded[2];
 static unsigned long frame;
 static Uint32 lastTick;
+static Emu* emu;
 static struct {
 	uint8_t *ewram, *iwram;
 	size_t ewramSize, iwramSize;
 } mem;
+
+/* The ROM's bytes, asked for again each time: mGBA swaps the ROM for a copy
+ * (and unmaps the file) when something writes to it (game hardware,
+ * cheats, patches), so a pointer kept from the start can go stale. */
+static void refresh_rom(void) {
+	size_t n = 0;
+	const uint8_t* rom = emu_memory(emu, 8, &n);
+	if (rom && rom != game.rom) {
+		if (game.rom) fprintf(stderr, "companion: the ROM moved in memory (mGBA's copy on write)\n");
+		game.rom = rom;
+	}
+}
 
 static bool bus_read(void* ctx, uint32_t addr, void* out, size_t len) {
 	(void) ctx;
@@ -77,6 +90,7 @@ bool comp_open(Emu* e, const char* path) {
 	}
 	game.rom = rom;
 	game.romSize = romSize;
+	emu = e;
 	mem.ewram = emu_memory(e, 2, &mem.ewramSize);
 	mem.iwram = emu_memory(e, 3, &mem.iwramSize);
 	snprintf(settingsPath, sizeof(settingsPath), "%s", path);
@@ -111,6 +125,9 @@ bool comp_active(void) {
 void comp_frame(Emu* e) {
 	if (!on) return;
 	if (++frame % SNAPSHOT_EVERY == 0 && mem.ewram && mem.iwram) {
+		refresh_rom();
+		mem.ewram = emu_memory(e, 2, &mem.ewramSize);
+		mem.iwram = emu_memory(e, 3, &mem.iwramSize);
 		pd_snapshot_read(&snap, &game, bus_read, NULL);
 		pd_ui_update(&pui, &snap);
 		/* only a change the companion shows is worth a redraw (not the frame counter) */
@@ -129,6 +146,7 @@ void comp_draw(int s, bool hasState, bool ffOn) {
 	redraw |= pd_ui_tick(&pui, now - lastTick);
 	lastTick = now;
 	if (redraw) {
+		refresh_rom();
 		struct pd_host_info host;
 		memset(&host, 0, sizeof(host));
 		host.labels[0] = "EMULATOR";
