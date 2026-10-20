@@ -15,3 +15,4 @@ android/local.properties
 *.jks
 *.keystore
 android/app/src/main/assets/
+tools/statesaver/ss.wasm

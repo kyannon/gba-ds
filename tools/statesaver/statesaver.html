@@ -1,0 +1,809 @@
+<title>State Saver</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Silkscreen&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+/* Layout: a work bench. The handheld screen on the left as the thing you
+   operate; the capture form and the shelf of saved states on the right. */
+:root {
+  --bg: #f2f1f6;
+  --surface: #ffffff;
+  --ink: #1d1a27;
+  --muted: #625d78;
+  --line: #dcd8e6;
+  --accent: #5a3aa6;
+  --accent-ink: #ffffff;
+  --accent-soft: #ebe5f8;
+  --ok: #23704a;
+  --warn: #9a5a00;
+  --bezel: #121019;
+  --bezel-line: #2c2838;
+  --font-display: "Silkscreen", "Courier New", monospace;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121019; --surface: #1b1825; --ink: #ecebf3; --muted: #a29cbb; --line: #2f2a3f;
+    --accent: #a88cf2; --accent-ink: #160f2b; --accent-soft: #2a2242; --ok: #6fd3a0; --warn: #f0b860;
+    --bezel: #07060b; --bezel-line: #2a2638; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121019; --surface: #1b1825; --ink: #ecebf3; --muted: #a29cbb; --line: #2f2a3f;
+  --accent: #a88cf2; --accent-ink: #160f2b; --accent-soft: #2a2242; --ok: #6fd3a0; --warn: #f0b860;
+  --bezel: #07060b; --bezel-line: #2a2638; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.45;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 18px 40px;
+}
+.wrap { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+header.top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; }
+h1 { font-family: var(--font-display); font-weight: 400; font-size: 26px; letter-spacing: 0.02em; margin: 0; }
+.sub { color: var(--muted); font-size: 14px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 12px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); }
+.chip .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+.chip.ok .dot { background: var(--ok); }
+.chip.warn .dot { background: var(--warn); }
+.status { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+
+.bench { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 900px) { .bench { grid-template-columns: minmax(0, 1fr); } }
+
+/* the screen */
+.screen-col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.bezel { background: var(--bezel); border: 1px solid var(--bezel-line); border-radius: 14px; padding: 14px; position: relative; }
+.lcd { position: relative; width: 100%; aspect-ratio: 3 / 2; max-width: 100%; background: #000; border-radius: 4px; overflow: hidden; }
+canvas#lcd { width: 100%; height: 100%; display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+.drop { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; padding: 20px; color: #d9d5e8; border: 2px dashed #4a4460; border-radius: 4px; background: #0d0b14; }
+.drop.over { border-color: #b39cf5; background: #191428; }
+.drop h2 { font-family: var(--font-display); font-weight: 400; font-size: 20px; margin: 0; color: #f1eefb; }
+.drop p { margin: 0; color: #a9a3c2; max-width: 44ch; font-size: 14px; }
+.over-hint { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(13, 11, 20, 0.82); color: #f1eefb; font-family: var(--font-display); font-size: 18px; border: 2px dashed #b39cf5; border-radius: 4px; pointer-events: none; }
+.paused-tag { position: absolute; top: 10px; right: 12px; font-family: var(--font-display); font-size: 12px; color: #f1eefb; background: rgba(0,0,0,.6); padding: 2px 8px; border-radius: 4px; }
+.bezel-foot { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 10px; font-family: var(--font-mono); font-size: 12px; color: #9a94b3; }
+.bezel-foot b { color: #e6e2f3; font-weight: 500; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 8px; }
+button, .btn { font: inherit; font-size: 14px; font-weight: 500; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 7px 13px; cursor: pointer; }
+button:hover { border-color: var(--accent); }
+button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+button:disabled { opacity: .45; cursor: not-allowed; }
+button.danger { color: #b3261e; }
+:root[data-theme="dark"] button.danger { color: #ff8a80; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) button.danger { color: #ff8a80; } }
+
+details.keys { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; }
+details.keys summary { cursor: pointer; font-weight: 500; }
+.keygrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 4px 14px; margin-top: 8px; font-size: 13px; }
+kbd { font-family: var(--font-mono); font-size: 12px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; background: var(--bg); }
+
+/* right column */
+.side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.panel h3 { font-family: var(--font-display); font-weight: 400; font-size: 15px; letter-spacing: 0.04em; margin: 0; }
+.panel .lede { margin: 0; color: var(--muted); font-size: 13.5px; }
+label { font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px; }
+input[type="text"], textarea { width: 100%; font: inherit; font-size: 14px; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+textarea { min-height: 88px; resize: vertical; }
+.field { display: flex; flex-direction: column; }
+.hint { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.msg { font-size: 13px; color: var(--muted); min-height: 1.2em; }
+.msg.err { color: #b3261e; }
+:root[data-theme="dark"] .msg.err { color: #ff8a80; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .msg.err { color: #ff8a80; } }
+.tagpick { display: flex; flex-wrap: wrap; gap: 6px; }
+.tagpick button { font-size: 12px; padding: 2px 9px; border-radius: 999px; font-weight: 500; }
+
+.shelf { display: flex; flex-direction: column; gap: 10px; }
+.shelf-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.shelf-head h3 { margin-right: auto; }
+.item { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 12px; padding: 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
+@media (max-width: 420px) { .item { grid-template-columns: minmax(0, 1fr); } }
+.item img { width: 120px; max-width: 100%; aspect-ratio: 3 / 2; image-rendering: pixelated; border-radius: 4px; background: #000; display: block; }
+.item .body { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.item .name { font-weight: 600; overflow-wrap: anywhere; }
+.item .meta { font-family: var(--font-mono); font-size: 11.5px; color: var(--muted); overflow-wrap: anywhere; }
+.item .notes { font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink); }
+.tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.tag { font-size: 11.5px; padding: 1px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-weight: 500; }
+.item .actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.item .actions button { font-size: 12.5px; padding: 4px 10px; }
+.empty { color: var(--muted); font-size: 14px; border: 1px dashed var(--line); border-radius: 10px; padding: 16px; text-align: center; }
+.edit { display: flex; flex-direction: column; gap: 6px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1>State Saver</h1>
+    <span class="sub">Play a GBA game, save the moments that matter, and hand them to Claude.</span>
+    <div class="status">
+      <span class="chip" id="coreChip"><span class="dot"></span><span id="coreText">Loading the emulator…</span></span>
+      <span class="chip" id="storeChip"><span class="dot"></span><span id="storeText">Checking storage…</span></span>
+    </div>
+  </header>
+
+  <div class="bench">
+    <section class="screen-col" aria-label="Game screen">
+      <div class="bezel">
+        <div class="lcd" id="lcdBox">
+          <canvas id="lcd" width="240" height="160" aria-label="Game screen"></canvas>
+          <div class="drop" id="drop">
+            <h2>Drop a GBA ROM here</h2>
+            <p>A <code>.gba</code> file. Then drop a <code>.sav</code> to start from your save, or a GBA DS <code>.state</code> / <code>.ss</code> to jump to that moment.</p>
+            <div class="row" style="justify-content:center">
+              <button class="primary" id="pickBtn" type="button">Choose a file</button>
+              <button id="resumeBtn" type="button" hidden>Continue last game</button>
+            </div>
+          </div>
+          <div class="over-hint" id="overHint" hidden>Drop to load</div>
+          <div class="paused-tag" id="pausedTag" hidden>Paused</div>
+        </div>
+        <div class="bezel-foot">
+          <span id="gameLine">No game loaded</span>
+          <span id="speedLine"></span>
+        </div>
+      </div>
+      <input type="file" id="fileIn" class="sr" accept=".gba,.sav,.state,.ss,.srm" multiple>
+      <div class="controls">
+        <button id="pauseBtn" type="button" disabled>Pause</button>
+        <button id="ffBtn" type="button" aria-pressed="false" disabled>Fast-forward</button>
+        <button id="muteBtn" type="button" aria-pressed="false">Mute</button>
+        <button id="resetBtn" type="button" disabled>Reset</button>
+        <button id="openBtn" type="button">Open ROM, save or state</button>
+        <button id="savDlBtn" type="button" disabled>Download battery save</button>
+      </div>
+      <details class="keys">
+        <summary>Controls</summary>
+        <div class="keygrid">
+          <span><kbd>X</kbd> A</span><span><kbd>Z</kbd> B</span>
+          <span><kbd>A</kbd> L</span><span><kbd>S</kbd> R</span>
+          <span><kbd>Enter</kbd> Start</span><span><kbd>Backspace</kbd> Select</span>
+          <span><kbd>Arrows</kbd> D-Pad</span><span><kbd>Space</kbd> hold to fast-forward</span>
+          <span><kbd>P</kbd> pause</span><span><kbd>F2</kbd> quick save with the form's text</span>
+          <span>Gamepads work too.</span>
+        </div>
+      </details>
+    </section>
+
+    <aside class="side">
+      <form class="panel" id="saveForm" autocomplete="off">
+        <h3>Save this moment</h3>
+        <p class="lede">The game pauses while you type. Saving keeps the state exactly as GBA DS writes it, with a screenshot and your notes.</p>
+        <div class="field">
+          <label for="nameIn">Name</label>
+          <input type="text" id="nameIn" maxlength="80" placeholder="Battle: unit details open" required>
+        </div>
+        <div class="field">
+          <label for="tagsIn">Tags</label>
+          <input type="text" id="tagsIn" maxlength="200" placeholder="battle, unit info">
+          <div class="tagpick" id="tagPick" aria-label="Common tags"></div>
+          <span class="hint">Separate tags with commas. Tap a suggestion to add it.</span>
+        </div>
+        <div class="field">
+          <label for="notesIn">Notes for Claude</label>
+          <textarea id="notesIn" maxlength="4000" placeholder="What's on screen, what should move to the second screen, what should stay."></textarea>
+        </div>
+        <div class="row">
+          <button class="primary" id="saveBtn" type="submit" disabled>Save state</button>
+          <span class="msg" id="saveMsg" role="status"></span>
+        </div>
+      </form>
+
+      <section class="panel shelf" aria-labelledby="shelfTitle">
+        <div class="shelf-head">
+          <h3 id="shelfTitle">Saved states</h3>
+          <button id="pkgBtn" type="button" disabled>Download all (.zip)</button>
+        </div>
+        <p class="lede" id="shelfLede">Saved states appear here.</p>
+        <span class="msg" id="shelfMsg" role="status"></span>
+        <div class="shelf" id="shelf">
+          <div class="empty" id="shelfEmpty">Nothing saved yet. Load a game, play to a moment you want on the second screen, then save it.</div>
+        </div>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<script>
+(() => {
+"use strict";
+const $ = (id) => document.getElementById(id);
+const FRAME_MS = 1000 / (16777216 / 280896); // the GBA's 59.7275 frames a second
+const KEY = { A: 1, B: 2, SELECT: 4, START: 8, RIGHT: 16, LEFT: 32, UP: 64, DOWN: 128, R: 256, L: 512 };
+const KEYBOARD = {
+  KeyX: KEY.A, KeyZ: KEY.B, KeyA: KEY.L, KeyS: KEY.R, Enter: KEY.START, Backspace: KEY.SELECT, ShiftRight: KEY.SELECT,
+  ArrowUp: KEY.UP, ArrowDown: KEY.DOWN, ArrowLeft: KEY.LEFT, ArrowRight: KEY.RIGHT,
+};
+const TAG_SUGGESTIONS = ["battle", "map", "world map", "menu", "dialogue", "unit info", "status", "shop", "cutscene", "title"];
+
+/* ------------------------------------------------------------ the core */
+let X = null;           // the wasm exports
+let audioPtr = 0;
+const u8 = () => new Uint8Array(X.memory.buffer);
+const cstr = (p) => { const m = u8(); let s = ""; while (m[p]) s += String.fromCharCode(m[p++]); return s; };
+
+function wasiImports() {
+  const ENOSYS = 52, EBADF = 8;
+  const dv = () => new DataView(X.memory.buffer);
+  const dec = new TextDecoder();
+  const imp = {
+    environ_get: () => 0, args_get: () => 0,
+    environ_sizes_get: (c, s) => { dv().setUint32(c, 0, true); dv().setUint32(s, 0, true); return 0; },
+    args_sizes_get: (c, s) => { dv().setUint32(c, 0, true); dv().setUint32(s, 0, true); return 0; },
+    clock_time_get: (id, prec, out) => {
+      const ns = id === 0 ? BigInt(Date.now()) * 1000000n : BigInt(Math.round(performance.now() * 1e6));
+      dv().setBigUint64(out, ns, true); return 0;
+    },
+    fd_write: (fd, iovs, n, nw) => {
+      const d = dv(); let total = 0, text = "";
+      for (let i = 0; i < n; i++) {
+        const p = d.getUint32(iovs + i * 8, true), l = d.getUint32(iovs + i * 8 + 4, true);
+        text += dec.decode(u8().subarray(p, p + l)); total += l;
+      }
+      if (text.trim()) console.log("[core]", text.trim());
+      d.setUint32(nw, total, true); return 0;
+    },
+    fd_prestat_get: () => EBADF, proc_exit: (c) => { throw new Error("core exited " + c); },
+  };
+  return new Proxy(imp, { get: (t, k) => t[k] || (() => ENOSYS) });
+}
+
+async function initCore() {
+  const res = await fetch("ss.wasm");
+  if (!res.ok) throw new Error("ss.wasm: " + res.status);
+  const { instance } = await WebAssembly.instantiate(await res.arrayBuffer(), { wasi_snapshot_preview1: wasiImports() });
+  X = instance.exports;
+  X._initialize();
+  audioPtr = X.ss_alloc(4096 * 4);
+}
+
+function copyIn(bytes) {
+  const p = X.ss_alloc(bytes.length);
+  u8().set(bytes, p);
+  return p;
+}
+
+/* ------------------------------------------------------------ game state */
+const game = { loaded: false, romName: "", romBytes: null, code: "", title: "", frames: 0 };
+let running = false, ff = false, ffHeld = false, muted = false, formFocus = false;
+const held = new Set();
+
+function loadRom(name, bytes, sav) {
+  const romPtr = copyIn(bytes); // taken over by the core
+  const savPtr = sav ? copyIn(sav) : 0;
+  const ok = X.ss_load_rom(romPtr, bytes.length, savPtr, sav ? sav.length : 0);
+  if (savPtr) X.ss_free(savPtr);
+  if (!ok) { flash("saveMsg", "That file didn't load as a GBA game.", true); return false; }
+  Object.assign(game, { loaded: true, romName: name, romBytes: bytes, code: cstr(X.ss_game_code()), title: cstr(X.ss_game_title()).trim(), frames: 0 });
+  $("drop").hidden = true;
+  $("gameLine").innerHTML = "";
+  const b = document.createElement("b"); b.textContent = game.title || name;
+  $("gameLine").append(b, document.createTextNode("  " + game.code + "  ·  " + name));
+  for (const id of ["pauseBtn", "ffBtn", "resetBtn", "saveBtn", "savDlBtn"]) $(id).disabled = false;
+  setRunning(true);
+  rememberRom(name, bytes);
+  renderShelf();
+  return true;
+}
+
+function loadStateBytes(bytes, label) {
+  if (!game.loaded) { flash("shelfMsg", "Load the game first, then the state.", true); return false; }
+  const p = copyIn(bytes);
+  const ok = X.ss_state_load(p, bytes.length);
+  X.ss_free(p);
+  flash("shelfMsg", ok ? "Loaded " + label + "." : "That state didn't load. Is it for this game?", !ok);
+  if (ok) { drawFrame(); setRunning(true); }
+  return ok;
+}
+
+function saveStateBytes() {
+  const n = X.ss_state_save();
+  return n ? u8().slice(X.ss_out(), X.ss_out() + n) : null;
+}
+
+function batteryBytes() {
+  const n = X.ss_save_export();
+  return n ? u8().slice(X.ss_out(), X.ss_out() + n) : null;
+}
+
+/* ------------------------------------------------------------ video, audio, loop */
+const ctx = $("lcd").getContext("2d");
+const img = ctx.createImageData(240, 160);
+const img32 = new Uint32Array(img.data.buffer);
+function drawFrame() {
+  const src = new Uint32Array(X.memory.buffer, X.ss_video(), 240 * 160);
+  for (let i = 0; i < src.length; i++) img32[i] = src[i] | 0xff000000;
+  ctx.putImageData(img, 0, 0);
+}
+
+let actx = null, nextT = 0;
+function ensureAudio() {
+  if (actx) { if (actx.state === "suspended") actx.resume().catch(() => {}); return; }
+  try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { actx = null; }
+}
+function pumpAudio(play) {
+  const n = X.ss_audio(audioPtr, 4096);
+  if (!n || !play || !actx || muted || actx.state !== "running") return;
+  const rate = X.ss_audio_rate();
+  const s = new Int16Array(X.memory.buffer, audioPtr, n * 2);
+  const buf = actx.createBuffer(2, n, rate);
+  const L = buf.getChannelData(0), R = buf.getChannelData(1);
+  for (let i = 0; i < n; i++) { L[i] = s[i * 2] / 32768; R[i] = s[i * 2 + 1] / 32768; }
+  const node = actx.createBufferSource();
+  node.buffer = buf; node.connect(actx.destination);
+  const now = actx.currentTime;
+  if (nextT < now + 0.01 || nextT > now + 0.25) nextT = now + 0.05;
+  node.start(nextT);
+  nextT += n / rate;
+}
+
+function padKeys() {
+  let k = 0;
+  const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+  for (const p of pads) {
+    if (!p) continue;
+    const b = (i) => p.buttons[i] && p.buttons[i].pressed;
+    if (b(1)) k |= KEY.A; if (b(0)) k |= KEY.B; if (b(4)) k |= KEY.L; if (b(5)) k |= KEY.R;
+    if (b(8)) k |= KEY.SELECT; if (b(9)) k |= KEY.START;
+    if (b(12) || p.axes[1] < -0.5) k |= KEY.UP; if (b(13) || p.axes[1] > 0.5) k |= KEY.DOWN;
+    if (b(14) || p.axes[0] < -0.5) k |= KEY.LEFT; if (b(15) || p.axes[0] > 0.5) k |= KEY.RIGHT;
+  }
+  return k;
+}
+
+let last = 0, acc = 0, fpsT = 0, fpsN = 0;
+function tick(t) {
+  requestAnimationFrame(tick);
+  if (!X || !game.loaded || !running) { last = t; return; }
+  let dt = t - last; last = t;
+  if (dt > 120) dt = FRAME_MS;
+  acc += dt;
+  let keys = padKeys();
+  for (const k of held) keys |= k;
+  const speed = (ff || ffHeld) ? 4 : 1;
+  let due = 0;
+  while (acc >= FRAME_MS && due < 4) { acc -= FRAME_MS; due++; }
+  if (acc > FRAME_MS * 4) acc = 0;
+  for (let d = 0; d < due; d++) {
+    for (let s = 0; s < speed; s++) {
+      X.ss_frame(keys);
+      game.frames++;
+      pumpAudio(speed === 1);
+    }
+  }
+  if (due) { drawFrame(); fpsN += due * speed; }
+  if (t - fpsT > 1000) { $("speedLine").textContent = fpsN ? Math.round(fpsN * 1000 / (t - fpsT)) + " fps" + (speed > 1 ? " · fast" : "") : ""; fpsT = t; fpsN = 0; }
+}
+requestAnimationFrame(tick);
+
+function setRunning(on) {
+  running = on && game.loaded;
+  $("pauseBtn").textContent = running ? "Pause" : "Resume";
+  $("pausedTag").hidden = running || !game.loaded;
+  if (running) ensureAudio();
+}
+
+/* ------------------------------------------------------------ files in */
+function extOf(name) { const m = /\.([a-z0-9]+)$/i.exec(name); return m ? m[1].toLowerCase() : ""; }
+async function takeFiles(files) {
+  const list = [...files]; // copied now: the picker's list empties when it's reset
+  ensureAudio();
+  await coreReady;
+  if (!X) { flash("saveMsg", "The emulator didn't load, so games can't run here.", true); return; }
+  // ROMs first, then saves, then states
+  const order = { gba: 0, sav: 1, srm: 1, state: 2, ss: 2 };
+  list.sort((a, b) => (order[extOf(a.name)] ?? 3) - (order[extOf(b.name)] ?? 3));
+  for (const f of list) {
+    const bytes = new Uint8Array(await f.arrayBuffer());
+    const ext = extOf(f.name);
+    if (ext === "gba" || (ext === "" && bytes.length > 0xc0 && bytes[0xb2] === 0x96)) {
+      loadRom(f.name, bytes, null);
+    } else if (ext === "sav" || ext === "srm") {
+      if (!game.loaded) { flash("saveMsg", "Load the game first, then its save.", true); continue; }
+      loadRom(game.romName, game.romBytes, bytes);
+      flash("saveMsg", "Started from " + f.name + ".");
+    } else if (ext === "state" || ext === "ss") {
+      loadStateBytes(bytes, f.name);
+    } else {
+      flash("saveMsg", f.name + ": drop a .gba, .sav or .state file.", true);
+    }
+  }
+}
+const box = $("lcdBox");
+box.addEventListener("dragover", (e) => { e.preventDefault(); $("overHint").hidden = !game.loaded; $("drop").classList.add("over"); });
+box.addEventListener("dragleave", () => { $("overHint").hidden = true; $("drop").classList.remove("over"); });
+box.addEventListener("drop", (e) => { e.preventDefault(); e.stopPropagation(); $("overHint").hidden = true; $("drop").classList.remove("over"); if (e.dataTransfer.files.length) takeFiles(e.dataTransfer.files); });
+document.addEventListener("dragover", (e) => e.preventDefault());
+document.addEventListener("drop", (e) => { e.preventDefault(); if (e.dataTransfer && e.dataTransfer.files.length) takeFiles(e.dataTransfer.files); });
+$("pickBtn").onclick = $("openBtn").onclick = () => $("fileIn").click();
+$("fileIn").onchange = (e) => { if (e.target.files.length) takeFiles(e.target.files); e.target.value = ""; };
+
+/* the last ROM, kept in this browser so the page can pick up where you were */
+function idb() {
+  return new Promise((res, rej) => {
+    let r;
+    try { r = indexedDB.open("state-saver", 2); } catch (e) { rej(e); return; }
+    r.onupgradeneeded = () => {
+      const d = r.result;
+      if (!d.objectStoreNames.contains("rom")) d.createObjectStore("rom");
+      if (!d.objectStoreNames.contains("states")) d.createObjectStore("states", { keyPath: "id" });
+    };
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+}
+async function idbDo(store, mode, fn) {
+  const d = await idb();
+  return new Promise((res, rej) => {
+    const tx = d.transaction(store, mode);
+    const out = fn(tx.objectStore(store));
+    tx.oncomplete = () => res(out && "result" in out ? out.result : undefined);
+    tx.onerror = () => rej(tx.error);
+  });
+}
+async function rememberRom(name, bytes) { try { await idbDo("rom", "readwrite", (s) => s.put({ name, bytes }, "last")); } catch (e) {} }
+async function lastRom() { try { return await idbDo("rom", "readonly", (s) => s.get("last")); } catch (e) { return null; } }
+lastRom().then((r) => {
+  if (r && r.bytes && !game.loaded) {
+    $("resumeBtn").hidden = false;
+    $("resumeBtn").textContent = "Continue " + r.name.replace(/\.gba$/i, "");
+    $("resumeBtn").onclick = () => { ensureAudio(); waitCore().then(() => loadRom(r.name, r.bytes, null)); };
+  }
+});
+let coreReady;
+const waitCore = () => coreReady;
+
+/* ------------------------------------------------------------ controls */
+$("pauseBtn").onclick = () => setRunning(!running);
+$("ffBtn").onclick = () => { ff = !ff; $("ffBtn").setAttribute("aria-pressed", ff); };
+$("muteBtn").onclick = () => { muted = !muted; $("muteBtn").setAttribute("aria-pressed", muted); $("muteBtn").textContent = muted ? "Sound off" : "Mute"; };
+$("resetBtn").onclick = () => { X.ss_reset(); game.frames = 0; setRunning(true); };
+$("savDlBtn").onclick = async () => {
+  const sav = batteryBytes();
+  if (!sav) { flash("saveMsg", "This game has no battery save yet.", true); return; }
+  const base = game.romName.replace(/\.[^.]+$/, "");
+  await offerZip(base + " (battery save).zip", (z) => { z.file(base + ".sav", sav); });
+};
+
+const typing = () => { const a = document.activeElement; return a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA"); };
+document.addEventListener("keydown", (e) => {
+  if (typing()) { if (e.key === "F2") { e.preventDefault(); $("saveForm").requestSubmit(); } return; }
+  if (e.code === "Space") { ffHeld = true; e.preventDefault(); return; }
+  if (e.code === "KeyP") { setRunning(!running); return; }
+  if (e.key === "F2") { e.preventDefault(); $("saveForm").requestSubmit(); return; }
+  const k = KEYBOARD[e.code];
+  if (k) { held.add(k); e.preventDefault(); ensureAudio(); }
+});
+document.addEventListener("keyup", (e) => {
+  if (e.code === "Space") ffHeld = false;
+  const k = KEYBOARD[e.code];
+  if (k) held.delete(k);
+});
+window.addEventListener("blur", () => { held.clear(); ffHeld = false; });
+
+/* typing pauses the game, so the moment you're describing stays put */
+let pausedForForm = false;
+for (const id of ["nameIn", "tagsIn", "notesIn"]) {
+  $(id).addEventListener("focus", () => { if (running) { pausedForForm = true; setRunning(false); } });
+}
+$("saveForm").addEventListener("focusout", () => {
+  setTimeout(() => { if (pausedForForm && !$("saveForm").contains(document.activeElement)) { pausedForForm = false; setRunning(true); } }, 0);
+});
+for (const t of TAG_SUGGESTIONS) {
+  const b = document.createElement("button");
+  b.type = "button"; b.textContent = t;
+  b.onclick = () => {
+    const cur = splitTags($("tagsIn").value);
+    if (!cur.includes(t)) cur.push(t);
+    $("tagsIn").value = cur.join(", ");
+  };
+  $("tagPick").append(b);
+}
+const splitTags = (s) => s.split(",").map((x) => x.trim()).filter(Boolean);
+
+function flash(id, text, err) {
+  const el = $(id);
+  el.textContent = text;
+  el.classList.toggle("err", !!err);
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { if (el.textContent === text) el.textContent = ""; }, 6000);
+}
+
+/* ------------------------------------------------------------ storage */
+// Shared: the page's own storage (states and screenshots as files, an index
+// in its database), readable by Claude. Fallback: this browser only.
+let db = null, assets = null, downloads = null;
+const store = { mode: "loading", items: [] };
+
+const b64 = {
+  enc(bytes) { let s = ""; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(s); },
+  dec(str) { const s = atob(str); const out = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) out[i] = s.charCodeAt(i); return out; },
+};
+const newId = () => Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
+const slug = (s) => (s || "state").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48) || "state";
+const shotBlob = () => {
+  const c = document.createElement("canvas"); c.width = 240; c.height = 160;
+  c.getContext("2d").putImageData(img, 0, 0);
+  return new Promise((res) => c.toBlob(res, "image/png"));
+};
+
+function setStoreChip() {
+  const chip = $("storeChip");
+  chip.classList.remove("ok", "warn");
+  if (store.mode === "shared") {
+    chip.classList.add("ok");
+    $("storeText").textContent = "Saved to this page · Claude can read them";
+    $("shelfLede").textContent = "Saved to this page. Tell Claude in the chat when you've added some.";
+  } else if (store.mode === "local") {
+    chip.classList.add("warn");
+    $("storeText").textContent = "Saved in this browser only";
+    $("shelfLede").textContent = "Saved in this browser only. Download them as a zip to give them to Claude.";
+  }
+}
+
+async function initStorage() {
+  const c = window.claude;
+  if (c && c.use) {
+    [db, assets, downloads] = await Promise.all([c.use("db"), c.use("assets"), c.use("downloads")].map((p) => p.catch(() => null)));
+  }
+  if (db && assets) {
+    store.mode = "shared";
+    db.collection("states").orderBy("createdAt", "desc").onSnapshot((snap) => {
+      store.items = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      renderShelf();
+    }, (e) => { flash("shelfMsg", "Couldn't read the saved states (" + (e.code || "error") + ").", true); });
+  } else {
+    store.mode = "local";
+    await loadLocal();
+  }
+  setStoreChip();
+  renderShelf();
+}
+
+async function loadLocal() {
+  try {
+    const rows = await idbDo("states", "readonly", (s) => s.getAll());
+    store.items = (rows || []).map((r) => ({ ...r.meta, id: r.id, _local: r })).sort((a, b) => b.createdAt - a.createdAt);
+  } catch (e) { store.items = store.items || []; }
+}
+
+async function saveCurrent(meta, stateBytes, shot) {
+  const id = newId();
+  if (store.mode === "shared") {
+    const stateDoc = { format: "gba-ds-state", ...meta, stateBase64: b64.enc(stateBytes) };
+    const st = await assets.upload(new Blob([JSON.stringify(stateDoc)], { type: "application/json" }), { type: "application/json" });
+    const pic = shot ? await assets.upload(shot, { type: "image/png" }) : null;
+    await db.collection("states").doc(id).set({ ...meta, stateAsset: st.id, shotAsset: pic ? pic.id : "" });
+  } else {
+    const row = { id, meta, state: stateBytes, shot };
+    try { await idbDo("states", "readwrite", (s) => s.put(row)); }
+    catch (e) { store.items.unshift({ ...meta, id, _local: row }); renderShelf(); return; }
+    await loadLocal(); renderShelf();
+  }
+}
+
+async function stateOf(item) {
+  if (item._local) return item._local.state;
+  const r = await fetch("/_blob/" + item.stateAsset);
+  if (!r.ok) throw new Error("state file " + r.status);
+  const doc = await r.json();
+  return b64.dec(doc.stateBase64);
+}
+async function shotOf(item) {
+  if (item._local) return item._local.shot || null;
+  if (!item.shotAsset) return null;
+  const r = await fetch("/_blob/" + item.shotAsset);
+  return r.ok ? await r.blob() : null;
+}
+
+async function updateItem(item, patch) {
+  if (store.mode === "shared") { await db.collection("states").doc(item.id).update(patch); return; }
+  const row = { ...item._local, meta: { ...item._local.meta, ...patch } };
+  await idbDo("states", "readwrite", (s) => s.put(row));
+  await loadLocal(); renderShelf();
+}
+async function deleteItem(item) {
+  if (store.mode === "shared") {
+    await db.collection("states").doc(item.id).delete();
+    for (const a of [item.stateAsset, item.shotAsset]) if (a) await assets.delete(a).catch(() => {});
+    return;
+  }
+  await idbDo("states", "readwrite", (s) => s.delete(item.id));
+  await loadLocal(); renderShelf();
+}
+
+/* ------------------------------------------------------------ save form */
+$("saveForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!game.loaded) { flash("saveMsg", "Load a game first.", true); return; }
+  const name = $("nameIn").value.trim();
+  if (!name) { flash("saveMsg", "Give the state a name.", true); $("nameIn").focus(); return; }
+  const bytes = saveStateBytes();
+  if (!bytes) { flash("saveMsg", "The emulator couldn't save a state.", true); return; }
+  const meta = {
+    name, tags: splitTags($("tagsIn").value), notes: $("notesIn").value.trim(),
+    gameCode: game.code, gameTitle: game.title, romName: game.romName, romSize: game.romBytes.length,
+    frame: game.frames, createdAt: Date.now(), stateBytes: bytes.length,
+    core: "mGBA 143adf5, as in GBA DS",
+  };
+  $("saveBtn").disabled = true;
+  flash("saveMsg", "Saving…");
+  try {
+    await saveCurrent(meta, bytes, await shotBlob());
+    flash("saveMsg", "Saved “" + name + "”.");
+    $("nameIn").value = ""; $("notesIn").value = "";
+  } catch (err) {
+    flash("saveMsg", "Couldn't save: " + (err.code || err.message || err) + ".", true);
+  } finally {
+    $("saveBtn").disabled = !game.loaded;
+  }
+});
+
+/* ------------------------------------------------------------ shelf */
+const urlCache = new Map();
+function thumbUrl(item) {
+  if (item._local) {
+    if (!item._local.shot) return "";
+    if (!urlCache.has(item.id)) urlCache.set(item.id, URL.createObjectURL(item._local.shot));
+    return urlCache.get(item.id);
+  }
+  return item.shotAsset ? "/_blob/" + item.shotAsset : "";
+}
+const when = (ms) => new Date(ms).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+
+function renderShelf() {
+  const shelf = $("shelf");
+  shelf.querySelectorAll(".item").forEach((n) => n.remove());
+  $("shelfEmpty").hidden = store.items.length > 0;
+  $("pkgBtn").disabled = !store.items.length;
+  for (const item of store.items) shelf.append(itemView(item));
+}
+
+function itemView(item) {
+  const el = document.createElement("article");
+  el.className = "item";
+  const pic = document.createElement("img");
+  pic.alt = "Screenshot: " + item.name;
+  const src = thumbUrl(item);
+  if (src) pic.src = src;
+  const body = document.createElement("div");
+  body.className = "body";
+  const name = document.createElement("div");
+  name.className = "name"; name.textContent = item.name;
+  const meta = document.createElement("div");
+  meta.className = "meta";
+  meta.textContent = [item.gameTitle || item.romName, item.gameCode, when(item.createdAt), "frame " + item.frame].filter(Boolean).join(" · ");
+  const tags = document.createElement("div");
+  tags.className = "tags";
+  for (const t of item.tags || []) { const s = document.createElement("span"); s.className = "tag"; s.textContent = t; tags.append(s); }
+  const notes = document.createElement("div");
+  notes.className = "notes"; notes.textContent = item.notes || "";
+  const actions = document.createElement("div");
+  actions.className = "actions";
+  const btn = (label, fn, cls) => { const b = document.createElement("button"); b.type = "button"; b.textContent = label; if (cls) b.className = cls; b.onclick = fn; actions.append(b); return b; };
+
+  btn("Load", async () => {
+    if (!game.loaded) { flash("shelfMsg", "Load " + (item.gameTitle || "the game") + " first.", true); return; }
+    if (item.gameCode && game.code && item.gameCode !== game.code) { flash("shelfMsg", "That state is for " + (item.gameTitle || item.gameCode) + " (" + item.gameCode + "). Load that game first.", true); return; }
+    try { loadStateBytes(await stateOf(item), "“" + item.name + "”"); } catch (e) { flash("shelfMsg", "Couldn't fetch that state.", true); }
+  });
+  btn("Download", async () => {
+    try {
+      const bytes = await stateOf(item);
+      const base = (item.romName || "game").replace(/\.[^.]+$/, "");
+      await offerZip(slug(item.name) + ".zip", (z) => {
+        z.file(base + ".state", bytes);
+        z.file("notes.txt", noteText([item]));
+      });
+    } catch (e) { flash("shelfMsg", "Couldn't fetch that state.", true); }
+  });
+  btn("Edit", () => {
+    if (el.querySelector(".edit")) return;
+    const form = document.createElement("div");
+    form.className = "edit";
+    const mk = (tag, val, label) => { const f = document.createElement(tag); f.value = val; f.setAttribute("aria-label", label); if (tag === "input") f.type = "text"; form.append(f); return f; };
+    const n = mk("input", item.name, "Name"), tg = mk("input", (item.tags || []).join(", "), "Tags"), no = mk("textarea", item.notes || "", "Notes");
+    const row = document.createElement("div"); row.className = "row";
+    const ok = document.createElement("button"); ok.type = "button"; ok.className = "primary"; ok.textContent = "Save changes";
+    const cancel = document.createElement("button"); cancel.type = "button"; cancel.textContent = "Cancel";
+    ok.onclick = async () => {
+      try { await updateItem(item, { name: n.value.trim() || item.name, tags: splitTags(tg.value), notes: no.value.trim() }); form.remove(); }
+      catch (e) { flash("shelfMsg", "Couldn't save the changes.", true); }
+    };
+    cancel.onclick = () => form.remove();
+    row.append(ok, cancel); form.append(row);
+    body.append(form); n.focus();
+  });
+  const del = btn("Delete", async () => {
+    if (!del.dataset.armed) { del.dataset.armed = "1"; del.textContent = "Delete for good?"; setTimeout(() => { del.dataset.armed = ""; del.textContent = "Delete"; }, 4000); return; }
+    try { await deleteItem(item); flash("shelfMsg", "Deleted “" + item.name + "”."); } catch (e) { flash("shelfMsg", "Couldn't delete it.", true); }
+  }, "danger");
+
+  body.append(name, meta, tags);
+  if (item.notes) body.append(notes);
+  body.append(actions);
+  el.append(pic, body);
+  return el;
+}
+
+function noteText(items) {
+  return items.map((it) => [
+    "# " + it.name,
+    "Game: " + (it.gameTitle || "") + " (" + it.gameCode + "), ROM file: " + it.romName,
+    "Saved: " + new Date(it.createdAt).toISOString() + ", frame " + it.frame,
+    "Tags: " + (it.tags || []).join(", "),
+    "",
+    it.notes || "(no notes)",
+    "",
+  ].join("\n")).join("\n");
+}
+
+/* ------------------------------------------------------------ downloads */
+async function offerZip(filename, fill) {
+  if (!window.JSZip) { flash("shelfMsg", "The zip library didn't load, so downloads aren't available.", true); return; }
+  if (!downloads) { flash("shelfMsg", "Downloads aren't available in this view.", true); return; }
+  const z = new JSZip();
+  await fill(z);
+  const blob = await z.generateAsync({ type: "blob" });
+  try { await downloads.save({ filename, data: blob }); }
+  catch (e) { if (e.code !== "declined") flash("shelfMsg", "Download failed (" + (e.code || "error") + ").", true); }
+}
+
+$("pkgBtn").onclick = async () => {
+  $("pkgBtn").disabled = true;
+  flash("shelfMsg", "Packing " + store.items.length + " states…");
+  try {
+    await offerZip("state-saver-" + new Date().toISOString().slice(0, 10) + ".zip", async (z) => {
+      const used = new Set();
+      const index = [];
+      for (const it of store.items) {
+        let s = slug(it.name), k = 2;
+        while (used.has(s)) s = slug(it.name) + "-" + k++;
+        used.add(s);
+        z.file("states/" + s + ".state", await stateOf(it));
+        const shot = await shotOf(it);
+        if (shot) z.file("screenshots/" + s + ".png", shot);
+        const { _local, stateAsset, shotAsset, ...meta } = it;
+        index.push({ file: "states/" + s + ".state", screenshot: shot ? "screenshots/" + s + ".png" : null, ...meta });
+      }
+      z.file("states.json", JSON.stringify(index, null, 2));
+      z.file("notes.txt", noteText(store.items));
+      z.file("README.txt", [
+        "State Saver package",
+        "",
+        "states/       GBA DS save states (mGBA 143adf5, the same core as GBA DS).",
+        "screenshots/  the game screen when each state was saved.",
+        "states.json   names, tags, notes and game details for every state.",
+        "",
+        "To load one in GBA DS: rename it to the ROM's file name with .state",
+        "(e.g. \"Advance Wars (USA).state\"), put it in gba-ds/states/, start the",
+        "game and choose Load State in the pause menu.",
+      ].join("\n"));
+    });
+  } finally { $("pkgBtn").disabled = !store.items.length; }
+};
+
+/* ------------------------------------------------------------ start */
+coreReady = initCore().then(() => {
+  $("coreChip").classList.add("ok");
+  $("coreText").textContent = "mGBA 143adf5 · GBA DS states";
+}).catch((e) => {
+  $("coreChip").classList.add("warn");
+  $("coreText").textContent = "The emulator didn't load";
+  console.error(e);
+});
+initStorage().catch(() => { store.mode = "local"; setStoreChip(); loadLocal().then(renderShelf); });
+})();
+</script>
