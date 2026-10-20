@@ -85,3 +85,12 @@ The HUD is moved off the game screen rather than copied: GBA DS draws each frame
 - **After a cup**, the podium's CONGRATULATIONS!, the cup name, your portrait, place, rank and cup table move to the second screen over the game's dimmed logo; the podium, crowd and trophy stay on the game screen.
 - The game's **pause menu** stays on the game screen, with the last HUD below it. In the menus, the second screen shows the logo.
 - With one screen (`layout = single`), the HUD stays where the game draws it.
+
+## Coming soon
+
+These games are in the game list, but their second screens are still being built, after the DS versions of each series. For now the game plays on one screen and the other shows the game's name.
+
+- **Tactics Ogre: The Knight of Lodis** (USA; Japan: Tactics Ogre Gaiden)
+- **Fire Emblem** (USA, Europe, Japan: Rekka no Ken)
+- **Advance Wars** (USA, Europe)
+- **Mega Man Battle Network** (USA, Europe, Japan: Battle Network Rockman EXE)

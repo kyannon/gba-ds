@@ -1576,6 +1576,43 @@ void ui_font_text(int screen, int font, int x, int cy, int capPx, const char* te
 	SDL_RenderCopy(views[s->view].ren, e->tex, NULL, &dst);
 }
 
+void ui_title_block(int screen, SDL_Rect area, const char* text, int capMax, SDL_Color c) {
+	if (!text || !text[0] || area.w <= 0 || area.h <= 0) return;
+	/* one line if it fits at a good size, else the break that leaves the
+	 * longer line shortest ("Tactics Ogre: / The Knight of Lodis") */
+	char one[256], two[2][256];
+	snprintf(one, sizeof(one), "%s", text);
+	int best = -1, bestW = 0;
+	for (int i = 1; one[i]; ++i) {
+		if (one[i] != ' ') continue;
+		snprintf(two[0], sizeof(two[0]), "%.*s", i, one);
+		int w = SDL_max(ui_font_width(TF_BOLD, 100, two[0]), ui_font_width(TF_BOLD, 100, one + i + 1));
+		if (best < 0 || w < bestW) best = i, bestW = w;
+	}
+	/* a subtitle after a colon goes on its own line */
+	const char* colon = strstr(one, ": ");
+	if (colon) {
+		best = (int) (colon - one) + 1;
+		snprintf(two[0], sizeof(two[0]), "%.*s", best, one);
+		bestW = SDL_max(ui_font_width(TF_BOLD, 100, two[0]), ui_font_width(TF_BOLD, 100, one + best + 1));
+	}
+	int oneW = ui_font_width(TF_BOLD, 100, one);
+	/* capitals at most capMax, a line's width at most the area's; two lines
+	 * need 3.2 capitals of height */
+	int capOne = SDL_min(capMax, SDL_min(area.w * 100 / SDL_max(1, oneW), area.h * 10 / 18));
+	int capTwo = best < 0 ? 0 : SDL_min(capMax, SDL_min(area.w * 100 / SDL_max(1, bestW), area.h * 10 / 32));
+	int cx = area.x + area.w / 2, cy = area.y + area.h / 2;
+	if (capOne >= capTwo * 9 / 10 || best < 0) {
+		ui_font_text(screen, TF_BOLD, cx, cy, capOne, one, c, 0);
+		return;
+	}
+	snprintf(two[0], sizeof(two[0]), "%.*s", best, one);
+	snprintf(two[1], sizeof(two[1]), "%s", one + best + 1);
+	int gap = capTwo * 8 / 10;
+	ui_font_text(screen, TF_BOLD, cx, cy - (capTwo + gap) / 2, capTwo, two[0], c, 0);
+	ui_font_text(screen, TF_BOLD, cx, cy + (capTwo + gap) / 2, capTwo, two[1], c, 0);
+}
+
 int ui_label_width(int screen, int capPx, const char* text) {
 	(void) screen;
 	return text_width(TF_BOLD, capPx, text);

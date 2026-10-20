@@ -529,6 +529,30 @@ static const MapProfile profiles[] = {
 			           { 0, 18, 30, 118, 0, 0, 'M', 80 } },
 		},
 	},
+	/* Preliminary: listed, second screen to come (a UI after the DS games);
+	 * no ROMs yet, so no logo extraction: the title stands in for it. */
+	{
+		.codes = { "ATOE", "ATOJ" },
+		.title = "Tactics Ogre: The Knight of Lodis",
+		.logoOnly = true,
+	},
+	{
+		/* USA, Europe (En/Fr/De: AE7X; En/Es/It: AE7Y), Japan (Rekka no Ken) */
+		.codes = { "AE7E", "AE7X", "AE7Y", "AE7J" },
+		.title = "Fire Emblem",
+		.logoOnly = true,
+	},
+	{
+		.codes = { "AWRE", "AWRP" },
+		.title = "Advance Wars",
+		.logoOnly = true,
+	},
+	{
+		/* USA, Europe, Japan (Battle Network Rockman EXE) */
+		.codes = { "AREE", "AREP", "AREJ" },
+		.title = "Mega Man Battle Network",
+		.logoOnly = true,
+	},
 };
 
 /* ---------------------------------------------------------------- regions

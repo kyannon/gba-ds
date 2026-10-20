@@ -1,6 +1,7 @@
 # Changelog
 
 ## v1.2.2 (not yet released)
+- **Four more games in the list, second screens to come:** Tactics Ogre: The Knight of Lodis, Fire Emblem, Advance Wars and Mega Man Battle Network (with their regional releases). Until their second screens are ready, the second screen shows the game's name.
 
 ## v1.2.1 (2026-10-19)
 - **Super Mario Advance 2:** the status bar stays on the second screen in castle rooms behind doors and in the boss fights (it switched to the logo and stayed there), and the SNES layout keeps working in those rooms.

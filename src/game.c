@@ -2040,6 +2040,13 @@ static void draw_game(void) {
 			/* a user's high-resolution logo: fitted to where the picture goes */
 			SDL_Rect area = ui_image_rect(s, GBA_W, GBA_H, cfg->mapScale);
 			ui_image(s, logoTex, logoW, logoH, logoPixel ? "integer" : "fit", &area);
+		} else if (logoOnly) {
+			/* no logo to show (none extracted for this game yet): its name */
+			const MapProfile* tp = profile_find(emu.gameCode);
+			SDL_Rect area = ui_image_rect(s, GBA_W, GBA_H, cfg->mapScale);
+			int in = area.w / 10;
+			area = (SDL_Rect) { area.x + in, area.y + in, area.w - in * 2, area.h - in * 2 };
+			if (tp) ui_title_block(s, area, tp->title, (int) (ui_px(s) * 14), (SDL_Color) { 236, 236, 244, 255 });
 		}
 		if ((hudShown || mapShownIdx >= 0) && (cfg->overlays & OVL_SECONDARY)) { /* the map only, never the logo */
 			draw_overlay(s, 1);

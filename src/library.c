@@ -374,6 +374,11 @@ static void draw_preview(Config* cfg, int scr, int sel) {
 		if (w > maxW) w = maxW, h = logoH * maxW / logoW;
 		SDL_Rect a = { r.w - m - w, m + (gameH - h) / 2, w, h };
 		ui_image(scr, logoTex, logoW, logoH, "stretch", &a);
+	} else if (g->supported) {
+		/* no logo for it yet (or none extracted for this game): its name in its place */
+		const MapProfile* prof = profile_find(g->code);
+		int gameH = headH * 2, maxW = r.w - ourW - m * 3;
+		if (prof && prof->title) ui_title_block(scr, (SDL_Rect) { r.w - m - maxW, m, maxW, gameH }, prof->title, px * 9, C_TEXT);
 	}
 	if (!g->supported) ui_font_text(scr, TF_BODY, m, m + headH + px * 7, px * 4, "No map screen: plays normally", C_DIM, -1);
 

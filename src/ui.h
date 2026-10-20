@@ -124,6 +124,9 @@ void ui_font_text(int screen, int font, int x, int cy, int capPx, const char* te
 int ui_font_width(int font, int capPx, const char* text);
 /* Word-wrapped to width, starting at the top-left x, y; returns the y below. */
 int ui_font_wrap(int screen, int font, int x, int y, int width, int capPx, const char* text, SDL_Color c);
+/* A title fitted into area (bold, centred, at most capMax tall, on one line
+ * or broken in two at a space): a placeholder for a game's logo. */
+void ui_title_block(int screen, SDL_Rect area, const char* text, int capMax, SDL_Color c);
 /* Labels: bold, centred on cx, cy. */
 void ui_label(int screen, int cx, int cy, int capPx, const char* text, SDL_Color c);
 int ui_label_width(int screen, int capPx, const char* text); /* width ui_label draws */
