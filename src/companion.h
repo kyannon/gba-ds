@@ -21,6 +21,9 @@ enum {
 	COMP_TOGGLE_FF,
 };
 
+/* A game code the companion knows (FireRed, LeafGreen, Emerald): listed in
+ * the game list like games with a profile. */
+bool comp_supports(const char* code);
 /* After the game is loaded: true if it's a game the companion supports
  * (it's then on until comp_close). settingsPath: where its settings live. */
 bool comp_open(Emu* e, const char* settingsPath);

@@ -1,4 +1,5 @@
 #include "library.h"
+#include "companion.h"
 #include "android.h"
 #include "paths.h"
 #include "profiles.h"
@@ -198,7 +199,7 @@ static void scan_dir(Config* cfg, const char* d, int depth) {
 		memset(&g, 0, sizeof(g));
 		snprintf(g.path, sizeof(g.path), "%s", full);
 		if (!game_code(g.path, &st, g.code)) continue;
-		g.supported = profile_find(g.code) != NULL;
+		g.supported = profile_find(g.code) != NULL || comp_supports(g.code); /* (the Pokemon companion) */
 		if (!g.supported && !cfg->showAll) continue;
 		int n = (int) (ext - de->d_name);
 		if (n >= (int) sizeof(g.name)) n = sizeof(g.name) - 1;

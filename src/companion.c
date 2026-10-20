@@ -2,6 +2,17 @@
  * part of PokeDaisy's 3DS port (its ctr/main.c) done for GBA DS. */
 #include "companion.h"
 
+#include <string.h>
+
+bool comp_supports(const char* code) {
+#ifdef GBADS_POKEDAISY
+	return !strcmp(code, "BPRE") || !strcmp(code, "BPGE") || !strcmp(code, "BPEE");
+#else
+	(void) code;
+	return false;
+#endif
+}
+
 #ifdef GBADS_POKEDAISY
 
 #include <stdio.h>
