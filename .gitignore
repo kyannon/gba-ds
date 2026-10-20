@@ -16,3 +16,4 @@ android/local.properties
 *.keystore
 android/app/src/main/assets/
 tools/statesaver/ss.wasm
+tools/statesaver/mds.wasm

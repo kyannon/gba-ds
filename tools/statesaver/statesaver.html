@@ -5,8 +5,8 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Silkscreen&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
-/* Layout: a work bench. The handheld screen on the left as the thing you
-   operate; the capture form and the shelf of saved states on the right. */
+/* Layout: a work bench. The handheld's screen(s) on the left as the thing
+   you operate; the capture form and the shelf of saved moments on the right. */
 :root {
   --bg: #f2f1f6;
   --surface: #ffffff;
@@ -18,6 +18,7 @@
   --accent-soft: #ebe5f8;
   --ok: #23704a;
   --warn: #9a5a00;
+  --danger: #b3261e;
   --bezel: #121019;
   --bezel-line: #2c2838;
   --font-display: "Silkscreen", "Courier New", monospace;
@@ -27,13 +28,13 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #121019; --surface: #1b1825; --ink: #ecebf3; --muted: #a29cbb; --line: #2f2a3f;
-    --accent: #a88cf2; --accent-ink: #160f2b; --accent-soft: #2a2242; --ok: #6fd3a0; --warn: #f0b860;
+    --accent: #a88cf2; --accent-ink: #160f2b; --accent-soft: #2a2242; --ok: #6fd3a0; --warn: #f0b860; --danger: #ff8a80;
     --bezel: #07060b; --bezel-line: #2a2638; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #121019; --surface: #1b1825; --ink: #ecebf3; --muted: #a29cbb; --line: #2f2a3f;
-  --accent: #a88cf2; --accent-ink: #160f2b; --accent-soft: #2a2242; --ok: #6fd3a0; --warn: #f0b860;
+  --accent: #a88cf2; --accent-ink: #160f2b; --accent-soft: #2a2242; --ok: #6fd3a0; --warn: #f0b860; --danger: #ff8a80;
   --bezel: #07060b; --bezel-line: #2a2638; color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -44,7 +45,7 @@ body {
   padding-block: 18px 40px;
 }
 .wrap { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
-header.top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; }
+header.top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
 h1 { font-family: var(--font-display); font-weight: 400; font-size: 26px; letter-spacing: 0.02em; margin: 0; }
 .sub { color: var(--muted); font-size: 14px; }
 .chip { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 12px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); }
@@ -53,18 +54,25 @@ h1 { font-family: var(--font-display); font-weight: 400; font-size: 26px; letter
 .chip.warn .dot { background: var(--warn); }
 .status { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
 
+/* GBA / DS switch */
+.system { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; padding: 3px; background: var(--surface); gap: 3px; }
+.system button { border: 0; border-radius: 7px; padding: 5px 14px; font-family: var(--font-display); font-size: 14px; background: transparent; color: var(--muted); }
+.system button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
+
 .bench { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 20px; align-items: start; }
 @media (max-width: 900px) { .bench { grid-template-columns: minmax(0, 1fr); } }
 
-/* the screen */
 .screen-col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
-.bezel { background: var(--bezel); border: 1px solid var(--bezel-line); border-radius: 14px; padding: 14px; position: relative; }
-.lcd { position: relative; width: 100%; aspect-ratio: 3 / 2; max-width: 100%; background: #000; border-radius: 4px; overflow: hidden; }
-canvas#lcd { width: 100%; height: 100%; display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+.bezel { background: var(--bezel); border: 1px solid var(--bezel-line); border-radius: 14px; padding: 14px; }
+.lcd { position: relative; margin: 0 auto; width: 100%; max-width: 100%; aspect-ratio: 3 / 2; background: #000; border-radius: 4px; overflow: hidden; }
+.lcd.ds { aspect-ratio: 2 / 3; width: min(100%, calc(72vh * 2 / 3)); }
+canvas#lcd { width: 100%; height: 100%; display: block; image-rendering: pixelated; image-rendering: crisp-edges; touch-action: none; }
+.lcd.ds canvas#lcd { cursor: crosshair; }
 .drop { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; padding: 20px; color: #d9d5e8; border: 2px dashed #4a4460; border-radius: 4px; background: #0d0b14; }
 .drop.over { border-color: #b39cf5; background: #191428; }
 .drop h2 { font-family: var(--font-display); font-weight: 400; font-size: 20px; margin: 0; color: #f1eefb; }
 .drop p { margin: 0; color: #a9a3c2; max-width: 44ch; font-size: 14px; }
+.drop code { color: #e6e2f3; }
 .over-hint { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(13, 11, 20, 0.82); color: #f1eefb; font-family: var(--font-display); font-size: 18px; border: 2px dashed #b39cf5; border-radius: 4px; pointer-events: none; }
 .paused-tag { position: absolute; top: 10px; right: 12px; font-family: var(--font-display); font-size: 12px; color: #f1eefb; background: rgba(0,0,0,.6); padding: 2px 8px; border-radius: 4px; }
 .bezel-foot { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 10px; font-family: var(--font-mono); font-size: 12px; color: #9a94b3; }
@@ -73,20 +81,17 @@ canvas#lcd { width: 100%; height: 100%; display: block; image-rendering: pixelat
 .controls { display: flex; flex-wrap: wrap; gap: 8px; }
 button, .btn { font: inherit; font-size: 14px; font-weight: 500; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 7px 13px; cursor: pointer; }
 button:hover { border-color: var(--accent); }
-button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
 button:disabled { opacity: .45; cursor: not-allowed; }
-button.danger { color: #b3261e; }
-:root[data-theme="dark"] button.danger { color: #ff8a80; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) button.danger { color: #ff8a80; } }
+button.danger { color: var(--danger); }
 
 details.keys { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; }
 details.keys summary { cursor: pointer; font-weight: 500; }
 .keygrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 4px 14px; margin-top: 8px; font-size: 13px; }
 kbd { font-family: var(--font-mono); font-size: 12px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; background: var(--bg); }
 
-/* right column */
 .side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
 .panel h3 { font-family: var(--font-display); font-weight: 400; font-size: 15px; letter-spacing: 0.04em; margin: 0; }
@@ -98,9 +103,7 @@ textarea { min-height: 88px; resize: vertical; }
 .hint { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
 .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .msg { font-size: 13px; color: var(--muted); min-height: 1.2em; }
-.msg.err { color: #b3261e; }
-:root[data-theme="dark"] .msg.err { color: #ff8a80; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .msg.err { color: #ff8a80; } }
+.msg.err { color: var(--danger); }
 .tagpick { display: flex; flex-wrap: wrap; gap: 6px; }
 .tagpick button { font-size: 12px; padding: 2px 9px; border-radius: 999px; font-weight: 500; }
 
@@ -109,13 +112,15 @@ textarea { min-height: 88px; resize: vertical; }
 .shelf-head h3 { margin-right: auto; }
 .item { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 12px; padding: 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
 @media (max-width: 420px) { .item { grid-template-columns: minmax(0, 1fr); } }
-.item img { width: 120px; max-width: 100%; aspect-ratio: 3 / 2; image-rendering: pixelated; border-radius: 4px; background: #000; display: block; }
+.item img { width: 120px; max-width: 100%; image-rendering: pixelated; border-radius: 4px; background: #000; display: block; }
+.item img.ds { width: 80px; }
 .item .body { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .item .name { font-weight: 600; overflow-wrap: anywhere; }
 .item .meta { font-family: var(--font-mono); font-size: 11.5px; color: var(--muted); overflow-wrap: anywhere; }
 .item .notes { font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink); }
 .tags { display: flex; flex-wrap: wrap; gap: 4px; }
 .tag { font-size: 11.5px; padding: 1px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-weight: 500; }
+.kind { font-family: var(--font-display); font-size: 11px; padding: 1px 7px; border-radius: 4px; border: 1px solid var(--line); color: var(--muted); }
 .item .actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
 .item .actions button { font-size: 12.5px; padding: 4px 10px; }
 .empty { color: var(--muted); font-size: 14px; border: 1px dashed var(--line); border-radius: 10px; padding: 16px; text-align: center; }
@@ -127,7 +132,11 @@ textarea { min-height: 88px; resize: vertical; }
 <div class="wrap">
   <header class="top">
     <h1>State Saver</h1>
-    <span class="sub">Play a GBA game, save the moments that matter, and hand them to Claude.</span>
+    <div class="system" role="tablist" aria-label="System">
+      <button type="button" role="tab" id="tabGba" aria-selected="true">GBA</button>
+      <button type="button" role="tab" id="tabDs" aria-selected="false">DS</button>
+    </div>
+    <span class="sub" id="subLine">Play a game, save the moments that matter, and hand them to Claude.</span>
     <div class="status">
       <span class="chip" id="coreChip"><span class="dot"></span><span id="coreText">Loading the emulator…</span></span>
       <span class="chip" id="storeChip"><span class="dot"></span><span id="storeText">Checking storage…</span></span>
@@ -140,8 +149,8 @@ textarea { min-height: 88px; resize: vertical; }
         <div class="lcd" id="lcdBox">
           <canvas id="lcd" width="240" height="160" aria-label="Game screen"></canvas>
           <div class="drop" id="drop">
-            <h2>Drop a GBA ROM here</h2>
-            <p>A <code>.gba</code> file. Then drop a <code>.sav</code> to start from your save, or a GBA DS <code>.state</code> / <code>.ss</code> to jump to that moment.</p>
+            <h2 id="dropTitle">Drop a GBA ROM here</h2>
+            <p id="dropText"></p>
             <div class="row" style="justify-content:center">
               <button class="primary" id="pickBtn" type="button">Choose a file</button>
               <button id="resumeBtn" type="button" hidden>Continue last game</button>
@@ -155,23 +164,26 @@ textarea { min-height: 88px; resize: vertical; }
           <span id="speedLine"></span>
         </div>
       </div>
-      <input type="file" id="fileIn" class="sr" accept=".gba,.sav,.state,.ss,.srm" multiple>
+      <input type="file" id="fileIn" class="sr" accept=".gba,.nds,.sav,.state,.ss,.srm,.mln,.ml1,.ml2,.ml3,.ml4,.ml5,.ml6,.ml7,.ml8" multiple>
       <div class="controls">
         <button id="pauseBtn" type="button" disabled>Pause</button>
         <button id="ffBtn" type="button" aria-pressed="false" disabled>Fast-forward</button>
         <button id="muteBtn" type="button" aria-pressed="false">Mute</button>
         <button id="resetBtn" type="button" disabled>Reset</button>
+        <button id="shotBtn" type="button" disabled>Screenshot</button>
         <button id="openBtn" type="button">Open ROM, save or state</button>
-        <button id="savDlBtn" type="button" disabled>Download battery save</button>
+        <button id="savDlBtn" type="button" disabled>Download game save</button>
       </div>
       <details class="keys">
         <summary>Controls</summary>
         <div class="keygrid">
           <span><kbd>X</kbd> A</span><span><kbd>Z</kbd> B</span>
-          <span><kbd>A</kbd> L</span><span><kbd>S</kbd> R</span>
+          <span><kbd>S</kbd> X (DS)</span><span><kbd>A</kbd> Y (DS)</span>
+          <span><kbd>Q</kbd> L</span><span><kbd>W</kbd> R</span>
           <span><kbd>Enter</kbd> Start</span><span><kbd>Backspace</kbd> Select</span>
           <span><kbd>Arrows</kbd> D-Pad</span><span><kbd>Space</kbd> hold to fast-forward</span>
-          <span><kbd>P</kbd> pause</span><span><kbd>F2</kbd> quick save with the form's text</span>
+          <span><kbd>P</kbd> pause</span><span><kbd>F2</kbd> save a state</span>
+          <span><kbd>F3</kbd> screenshot</span><span>DS touch: click or drag on the bottom screen</span>
           <span>Gamepads work too.</span>
         </div>
       </details>
@@ -180,10 +192,10 @@ textarea { min-height: 88px; resize: vertical; }
     <aside class="side">
       <form class="panel" id="saveForm" autocomplete="off">
         <h3>Save this moment</h3>
-        <p class="lede">The game pauses while you type. Saving keeps the state exactly as GBA DS writes it, with a screenshot and your notes.</p>
+        <p class="lede" id="formLede">The game pauses while you type. A state can be loaded again later; a screenshot is just the picture. Both keep your notes.</p>
         <div class="field">
           <label for="nameIn">Name</label>
-          <input type="text" id="nameIn" maxlength="80" placeholder="Battle: unit details open" required>
+          <input type="text" id="nameIn" maxlength="80" placeholder="Battle: unit details open">
         </div>
         <div class="field">
           <label for="tagsIn">Tags</label>
@@ -197,19 +209,20 @@ textarea { min-height: 88px; resize: vertical; }
         </div>
         <div class="row">
           <button class="primary" id="saveBtn" type="submit" disabled>Save state</button>
+          <button id="shotBtn2" type="button" disabled>Save screenshot</button>
           <span class="msg" id="saveMsg" role="status"></span>
         </div>
       </form>
 
       <section class="panel shelf" aria-labelledby="shelfTitle">
         <div class="shelf-head">
-          <h3 id="shelfTitle">Saved states</h3>
+          <h3 id="shelfTitle">Saved moments</h3>
           <button id="pkgBtn" type="button" disabled>Download all (.zip)</button>
         </div>
-        <p class="lede" id="shelfLede">Saved states appear here.</p>
+        <p class="lede" id="shelfLede">Saved states and screenshots appear here.</p>
         <span class="msg" id="shelfMsg" role="status"></span>
         <div class="shelf" id="shelf">
-          <div class="empty" id="shelfEmpty">Nothing saved yet. Load a game, play to a moment you want on the second screen, then save it.</div>
+          <div class="empty" id="shelfEmpty">Nothing saved yet. Load a game, play to a moment you want to show Claude, then save a state or a screenshot.</div>
         </div>
       </section>
     </aside>
@@ -220,23 +233,42 @@ textarea { min-height: 88px; resize: vertical; }
 (() => {
 "use strict";
 const $ = (id) => document.getElementById(id);
-const FRAME_MS = 1000 / (16777216 / 280896); // the GBA's 59.7275 frames a second
-const KEY = { A: 1, B: 2, SELECT: 4, START: 8, RIGHT: 16, LEFT: 32, UP: 64, DOWN: 128, R: 256, L: 512 };
+
+/* ------------------------------------------------------------ the two systems */
+// GBA: GBA DS's own mGBA, states identical to GBA DS's. DS: melonDS (free
+// BIOS, generated firmware), states in melonDS's own format.
+const SYSTEMS = {
+  gba: {
+    label: "GBA", wasm: "ss.wasm", p: "ss_", w: 240, h: 160, frameMs: 1000 / (16777216 / 280896),
+    romExt: ["gba"], stateExt: ["state", "ss"], saveExt: ["sav", "srm"],
+    coreName: "mGBA 143adf5 · GBA DS states", stateFormat: "gba-ds-state",
+    dropText: "A <code>.gba</code> file. Then drop a <code>.sav</code> to start from your save, or a GBA DS <code>.state</code> / <code>.ss</code> to jump to that moment.",
+  },
+  ds: {
+    label: "DS", wasm: "mds.wasm", p: "mds_", w: 256, h: 384, frameMs: 1000 / (33513982 / 560190),
+    romExt: ["nds"], stateExt: ["mln", "ml1", "ml2", "ml3", "ml4", "ml5", "ml6", "ml7", "ml8"], saveExt: ["sav", "dsv"],
+    coreName: "melonDS · free BIOS", stateFormat: "melonds-state",
+    dropText: "A <code>.nds</code> file (no BIOS or firmware needed). Then drop a <code>.sav</code> to start from your save, or a melonDS <code>.mln</code> / <code>.ml1</code> state.",
+  },
+};
+const KEY = { A: 1, B: 2, SELECT: 4, START: 8, RIGHT: 16, LEFT: 32, UP: 64, DOWN: 128, R: 256, L: 512, X: 1024, Y: 2048 };
 const KEYBOARD = {
-  KeyX: KEY.A, KeyZ: KEY.B, KeyA: KEY.L, KeyS: KEY.R, Enter: KEY.START, Backspace: KEY.SELECT, ShiftRight: KEY.SELECT,
+  KeyX: KEY.A, KeyZ: KEY.B, KeyS: KEY.X, KeyA: KEY.Y, KeyQ: KEY.L, KeyW: KEY.R,
+  Enter: KEY.START, Backspace: KEY.SELECT, ShiftRight: KEY.SELECT,
   ArrowUp: KEY.UP, ArrowDown: KEY.DOWN, ArrowLeft: KEY.LEFT, ArrowRight: KEY.RIGHT,
 };
 const TAG_SUGGESTIONS = ["battle", "map", "world map", "menu", "dialogue", "unit info", "status", "shop", "cutscene", "title"];
 
-/* ------------------------------------------------------------ the core */
-let X = null;           // the wasm exports
-let audioPtr = 0;
-const u8 = () => new Uint8Array(X.memory.buffer);
-const cstr = (p) => { const m = u8(); let s = ""; while (m[p]) s += String.fromCharCode(m[p++]); return s; };
+let sys = "gba";
+const cores = {}; // per system: { X, audioPtr }
+const C = () => cores[sys];
+const call = (name, ...a) => C().X[SYSTEMS[sys].p + name](...a);
+const mem8 = () => new Uint8Array(C().X.memory.buffer);
+const cstr = (p) => { const m = mem8(); let s = ""; while (m[p]) s += String.fromCharCode(m[p++]); return s; };
 
-function wasiImports() {
-  const ENOSYS = 52, EBADF = 8;
-  const dv = () => new DataView(X.memory.buffer);
+function wasiImports(getX) {
+  const ENOSYS = 52, EBADF = 8, ENOENT = 44;
+  const dv = () => new DataView(getX().memory.buffer);
   const dec = new TextDecoder();
   const imp = {
     environ_get: () => 0, args_get: () => 0,
@@ -250,81 +282,132 @@ function wasiImports() {
       const d = dv(); let total = 0, text = "";
       for (let i = 0; i < n; i++) {
         const p = d.getUint32(iovs + i * 8, true), l = d.getUint32(iovs + i * 8 + 4, true);
-        text += dec.decode(u8().subarray(p, p + l)); total += l;
+        text += dec.decode(new Uint8Array(getX().memory.buffer, p, l)); total += l;
       }
       if (text.trim()) console.log("[core]", text.trim());
       d.setUint32(nw, total, true); return 0;
     },
-    fd_prestat_get: () => EBADF, proc_exit: (c) => { throw new Error("core exited " + c); },
+    fd_prestat_get: () => EBADF, path_open: () => ENOENT,
+    proc_exit: (c) => { throw new Error("core exited " + c); },
   };
   return new Proxy(imp, { get: (t, k) => t[k] || (() => ENOSYS) });
 }
 
-async function initCore() {
-  const res = await fetch("ss.wasm");
-  if (!res.ok) throw new Error("ss.wasm: " + res.status);
-  const { instance } = await WebAssembly.instantiate(await res.arrayBuffer(), { wasi_snapshot_preview1: wasiImports() });
-  X = instance.exports;
-  X._initialize();
-  audioPtr = X.ss_alloc(4096 * 4);
+const coreLoads = {};
+function loadCore(s) {
+  if (!coreLoads[s]) {
+    coreLoads[s] = (async () => {
+      const res = await fetch(SYSTEMS[s].wasm);
+      if (!res.ok) throw new Error(SYSTEMS[s].wasm + ": " + res.status);
+      let X = null;
+      const { instance } = await WebAssembly.instantiate(await res.arrayBuffer(), { wasi_snapshot_preview1: wasiImports(() => X) });
+      X = instance.exports;
+      X._initialize();
+      cores[s] = { X, audioPtr: X[SYSTEMS[s].p + "alloc"](8192 * 4) };
+    })();
+  }
+  return coreLoads[s];
 }
 
 function copyIn(bytes) {
-  const p = X.ss_alloc(bytes.length);
-  u8().set(bytes, p);
+  const p = call("alloc", bytes.length);
+  mem8().set(bytes, p);
   return p;
 }
 
 /* ------------------------------------------------------------ game state */
-const game = { loaded: false, romName: "", romBytes: null, code: "", title: "", frames: 0 };
-let running = false, ff = false, ffHeld = false, muted = false, formFocus = false;
+const game = { loaded: false, sys: "gba", romName: "", romBytes: null, code: "", title: "", frames: 0 };
+let running = false, ff = false, ffHeld = false, muted = false;
 const held = new Set();
+const touch = { down: false, x: 0, y: 0 };
 
-function loadRom(name, bytes, sav) {
-  const romPtr = copyIn(bytes); // taken over by the core
+function setSystem(s, keepGame) {
+  if (s === sys && keepGame) return;
+  if (game.loaded && game.sys !== s && !keepGame) {
+    setRunning(false);
+    game.loaded = false;
+    $("drop").hidden = false;
+    $("gameLine").textContent = "No game loaded";
+    for (const id of ["pauseBtn", "ffBtn", "resetBtn", "saveBtn", "savDlBtn", "shotBtn", "shotBtn2"]) $(id).disabled = true;
+  }
+  sys = s;
+  const S = SYSTEMS[s];
+  $("tabGba").setAttribute("aria-selected", s === "gba");
+  $("tabDs").setAttribute("aria-selected", s === "ds");
+  $("lcdBox").classList.toggle("ds", s === "ds");
+  $("lcd").width = S.w; $("lcd").height = S.h;
+  img = ctx.createImageData(S.w, S.h);
+  img32 = new Uint32Array(img.data.buffer);
+  $("dropTitle").textContent = "Drop a " + S.label + " ROM here";
+  $("dropText").innerHTML = S.dropText;
+  $("coreChip").classList.remove("ok", "warn");
+  $("coreText").textContent = "Loading the " + S.label + " emulator…";
+  loadCore(s).then(() => {
+    if (sys !== s) return;
+    $("coreChip").classList.add("ok"); $("coreText").textContent = S.coreName;
+  }).catch((e) => {
+    if (sys !== s) return;
+    $("coreChip").classList.add("warn"); $("coreText").textContent = "The " + S.label + " emulator didn't load";
+    console.error(e);
+  });
+  showResume();
+}
+$("tabGba").onclick = () => setSystem("gba");
+$("tabDs").onclick = () => setSystem("ds");
+
+async function loadRom(s, name, bytes, sav) {
+  if (s !== sys) setSystem(s);
+  await loadCore(s);
+  const romPtr = copyIn(bytes);
   const savPtr = sav ? copyIn(sav) : 0;
-  const ok = X.ss_load_rom(romPtr, bytes.length, savPtr, sav ? sav.length : 0);
-  if (savPtr) X.ss_free(savPtr);
-  if (!ok) { flash("saveMsg", "That file didn't load as a GBA game.", true); return false; }
-  Object.assign(game, { loaded: true, romName: name, romBytes: bytes, code: cstr(X.ss_game_code()), title: cstr(X.ss_game_title()).trim(), frames: 0 });
+  const ok = call("load_rom", romPtr, bytes.length, savPtr, sav ? sav.length : 0);
+  if (s === "ds") call("free", romPtr); // melonDS copies the ROM; mGBA keeps it
+  if (savPtr) call("free", savPtr);
+  if (!ok) { flash("saveMsg", "That file didn't load as a " + SYSTEMS[s].label + " game.", true); return false; }
+  Object.assign(game, { loaded: true, sys: s, romName: name, romBytes: bytes, code: cstr(call("game_code")), title: cstr(call("game_title")).replace(/\0/g, "").trim(), frames: 0 });
   $("drop").hidden = true;
-  $("gameLine").innerHTML = "";
+  $("gameLine").textContent = "";
   const b = document.createElement("b"); b.textContent = game.title || name;
   $("gameLine").append(b, document.createTextNode("  " + game.code + "  ·  " + name));
-  for (const id of ["pauseBtn", "ffBtn", "resetBtn", "saveBtn", "savDlBtn"]) $(id).disabled = false;
+  for (const id of ["pauseBtn", "ffBtn", "resetBtn", "saveBtn", "savDlBtn", "shotBtn", "shotBtn2"]) $(id).disabled = false;
   setRunning(true);
-  rememberRom(name, bytes);
-  renderShelf();
+  rememberRom(s, name, bytes);
   return true;
 }
 
 function loadStateBytes(bytes, label) {
   if (!game.loaded) { flash("shelfMsg", "Load the game first, then the state.", true); return false; }
   const p = copyIn(bytes);
-  const ok = X.ss_state_load(p, bytes.length);
-  X.ss_free(p);
+  const ok = call("state_load", p, bytes.length);
+  call("free", p);
   flash("shelfMsg", ok ? "Loaded " + label + "." : "That state didn't load. Is it for this game?", !ok);
   if (ok) { drawFrame(); setRunning(true); }
   return ok;
 }
-
 function saveStateBytes() {
-  const n = X.ss_state_save();
-  return n ? u8().slice(X.ss_out(), X.ss_out() + n) : null;
+  const n = call("state_save");
+  return n ? mem8().slice(call("out"), call("out") + n) : null;
 }
-
-function batteryBytes() {
-  const n = X.ss_save_export();
-  return n ? u8().slice(X.ss_out(), X.ss_out() + n) : null;
+function gameSaveBytes() {
+  const n = call("save_export");
+  return n ? mem8().slice(call("out"), call("out") + n) : null;
 }
 
 /* ------------------------------------------------------------ video, audio, loop */
 const ctx = $("lcd").getContext("2d");
-const img = ctx.createImageData(240, 160);
-const img32 = new Uint32Array(img.data.buffer);
+let img = ctx.createImageData(240, 160);
+let img32 = new Uint32Array(img.data.buffer);
 function drawFrame() {
-  const src = new Uint32Array(X.memory.buffer, X.ss_video(), 240 * 160);
-  for (let i = 0; i < src.length; i++) img32[i] = src[i] | 0xff000000;
+  const S = SYSTEMS[sys];
+  const src = new Uint32Array(C().X.memory.buffer, call("video"), S.w * S.h);
+  if (sys === "gba") {
+    for (let i = 0; i < src.length; i++) img32[i] = src[i] | 0xff000000; // R, G, B, x
+  } else {
+    for (let i = 0; i < src.length; i++) { // 0xAARRGGBB
+      const v = src[i];
+      img32[i] = 0xff000000 | ((v & 0xff) << 16) | (v & 0xff00) | ((v >>> 16) & 0xff);
+    }
+  }
   ctx.putImageData(img, 0, 0);
 }
 
@@ -334,10 +417,11 @@ function ensureAudio() {
   try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { actx = null; }
 }
 function pumpAudio(play) {
-  const n = X.ss_audio(audioPtr, 4096);
+  const ptr = C().audioPtr;
+  const n = call("audio", ptr, 8192);
   if (!n || !play || !actx || muted || actx.state !== "running") return;
-  const rate = X.ss_audio_rate();
-  const s = new Int16Array(X.memory.buffer, audioPtr, n * 2);
+  const rate = call("audio_rate");
+  const s = new Int16Array(C().X.memory.buffer, ptr, n * 2);
   const buf = actx.createBuffer(2, n, rate);
   const L = buf.getChannelData(0), R = buf.getChannelData(1);
   for (let i = 0; i < n; i++) { L[i] = s[i * 2] / 32768; R[i] = s[i * 2 + 1] / 32768; }
@@ -355,8 +439,9 @@ function padKeys() {
   for (const p of pads) {
     if (!p) continue;
     const b = (i) => p.buttons[i] && p.buttons[i].pressed;
-    if (b(1)) k |= KEY.A; if (b(0)) k |= KEY.B; if (b(4)) k |= KEY.L; if (b(5)) k |= KEY.R;
-    if (b(8)) k |= KEY.SELECT; if (b(9)) k |= KEY.START;
+    // face buttons by position: right A, bottom B, top X, left Y
+    if (b(1)) k |= KEY.A; if (b(0)) k |= KEY.B; if (b(3)) k |= KEY.X; if (b(2)) k |= KEY.Y;
+    if (b(4)) k |= KEY.L; if (b(5)) k |= KEY.R; if (b(8)) k |= KEY.SELECT; if (b(9)) k |= KEY.START;
     if (b(12) || p.axes[1] < -0.5) k |= KEY.UP; if (b(13) || p.axes[1] > 0.5) k |= KEY.DOWN;
     if (b(14) || p.axes[0] < -0.5) k |= KEY.LEFT; if (b(15) || p.axes[0] > 0.5) k |= KEY.RIGHT;
   }
@@ -366,19 +451,22 @@ function padKeys() {
 let last = 0, acc = 0, fpsT = 0, fpsN = 0;
 function tick(t) {
   requestAnimationFrame(tick);
-  if (!X || !game.loaded || !running) { last = t; return; }
+  if (!game.loaded || !running || !C()) { last = t; return; }
+  const S = SYSTEMS[sys];
   let dt = t - last; last = t;
-  if (dt > 120) dt = FRAME_MS;
+  if (dt > 120) dt = S.frameMs;
   acc += dt;
   let keys = padKeys();
   for (const k of held) keys |= k;
-  const speed = (ff || ffHeld) ? 4 : 1;
+  if (sys === "gba") keys &= 0x3ff;
+  const speed = (ff || ffHeld) ? (sys === "ds" ? 2 : 4) : 1;
   let due = 0;
-  while (acc >= FRAME_MS && due < 4) { acc -= FRAME_MS; due++; }
-  if (acc > FRAME_MS * 4) acc = 0;
+  while (acc >= S.frameMs && due < 3) { acc -= S.frameMs; due++; }
+  if (acc > S.frameMs * 3) acc = 0;
   for (let d = 0; d < due; d++) {
     for (let s = 0; s < speed; s++) {
-      X.ss_frame(keys);
+      if (sys === "gba") call("frame", keys);
+      else call("frame", keys, touch.down ? 1 : 0, touch.x, touch.y);
       game.frames++;
       pumpAudio(speed === 1);
     }
@@ -395,29 +483,62 @@ function setRunning(on) {
   if (running) ensureAudio();
 }
 
+/* DS touch: the bottom screen is the canvas's lower half */
+function touchAt(e) {
+  const r = $("lcd").getBoundingClientRect();
+  const x = Math.floor((e.clientX - r.left) / r.width * 256);
+  const y = Math.floor((e.clientY - r.top) / r.height * 384) - 192;
+  return { x: Math.max(0, Math.min(255, x)), y, inside: y >= 0 && y < 192 };
+}
+$("lcd").addEventListener("pointerdown", (e) => {
+  if (sys !== "ds" || !game.loaded) return;
+  const p = touchAt(e);
+  if (!p.inside) return;
+  ensureAudio();
+  touch.down = true; touch.x = p.x; touch.y = p.y;
+  try { $("lcd").setPointerCapture(e.pointerId); } catch (err) {}
+  e.preventDefault();
+});
+$("lcd").addEventListener("pointermove", (e) => {
+  if (!touch.down) return;
+  const p = touchAt(e);
+  touch.x = p.x; touch.y = Math.max(0, Math.min(191, p.y));
+});
+for (const ev of ["pointerup", "pointercancel"]) $("lcd").addEventListener(ev, () => { touch.down = false; });
+
 /* ------------------------------------------------------------ files in */
 function extOf(name) { const m = /\.([a-z0-9]+)$/i.exec(name); return m ? m[1].toLowerCase() : ""; }
+function systemOfRom(name, bytes) {
+  const ext = extOf(name);
+  if (ext === "nds") return "ds";
+  if (ext === "gba") return "gba";
+  if (bytes.length > 0xc0 && bytes[0xb2] === 0x96) return "gba";
+  return null;
+}
 async function takeFiles(files) {
   const list = [...files]; // copied now: the picker's list empties when it's reset
   ensureAudio();
-  await coreReady;
-  if (!X) { flash("saveMsg", "The emulator didn't load, so games can't run here.", true); return; }
-  // ROMs first, then saves, then states
-  const order = { gba: 0, sav: 1, srm: 1, state: 2, ss: 2 };
-  list.sort((a, b) => (order[extOf(a.name)] ?? 3) - (order[extOf(b.name)] ?? 3));
+  const rank = (f) => { const e = extOf(f.name); return ["gba", "nds"].includes(e) ? 0 : ["sav", "srm", "dsv"].includes(e) ? 1 : 2; };
+  list.sort((a, b) => rank(a) - rank(b));
   for (const f of list) {
     const bytes = new Uint8Array(await f.arrayBuffer());
     const ext = extOf(f.name);
-    if (ext === "gba" || (ext === "" && bytes.length > 0xc0 && bytes[0xb2] === 0x96)) {
-      loadRom(f.name, bytes, null);
-    } else if (ext === "sav" || ext === "srm") {
-      if (!game.loaded) { flash("saveMsg", "Load the game first, then its save.", true); continue; }
-      loadRom(game.romName, game.romBytes, bytes);
-      flash("saveMsg", "Started from " + f.name + ".");
-    } else if (ext === "state" || ext === "ss") {
-      loadStateBytes(bytes, f.name);
-    } else {
-      flash("saveMsg", f.name + ": drop a .gba, .sav or .state file.", true);
+    const romSys = systemOfRom(f.name, bytes);
+    try {
+      if (romSys) {
+        await loadRom(romSys, f.name, bytes, null);
+      } else if (["sav", "srm", "dsv"].includes(ext)) {
+        if (!game.loaded) { flash("saveMsg", "Load the game first, then its save.", true); continue; }
+        await loadRom(game.sys, game.romName, game.romBytes, bytes);
+        flash("saveMsg", "Started from " + f.name + ".");
+      } else if (SYSTEMS.gba.stateExt.includes(ext) || SYSTEMS.ds.stateExt.includes(ext)) {
+        loadStateBytes(bytes, f.name);
+      } else {
+        flash("saveMsg", f.name + ": drop a ROM (.gba, .nds), a save (.sav) or a state.", true);
+      }
+    } catch (e) {
+      flash("saveMsg", "The emulator didn't load, so games can't run here.", true);
+      console.error(e);
     }
   }
 }
@@ -430,7 +551,7 @@ document.addEventListener("drop", (e) => { e.preventDefault(); if (e.dataTransfe
 $("pickBtn").onclick = $("openBtn").onclick = () => $("fileIn").click();
 $("fileIn").onchange = (e) => { if (e.target.files.length) takeFiles(e.target.files); e.target.value = ""; };
 
-/* the last ROM, kept in this browser so the page can pick up where you were */
+/* the last ROM of each system, kept in this browser */
 function idb() {
   return new Promise((res, rej) => {
     let r;
@@ -453,36 +574,39 @@ async function idbDo(store, mode, fn) {
     tx.onerror = () => rej(tx.error);
   });
 }
-async function rememberRom(name, bytes) { try { await idbDo("rom", "readwrite", (s) => s.put({ name, bytes }, "last")); } catch (e) {} }
-async function lastRom() { try { return await idbDo("rom", "readonly", (s) => s.get("last")); } catch (e) { return null; } }
-lastRom().then((r) => {
-  if (r && r.bytes && !game.loaded) {
+async function rememberRom(s, name, bytes) { try { await idbDo("rom", "readwrite", (st) => st.put({ name, bytes }, "last-" + s)); } catch (e) {} }
+async function lastRom(s) { try { return await idbDo("rom", "readonly", (st) => st.get("last-" + s)); } catch (e) { return null; } }
+function showResume() {
+  const s = sys;
+  $("resumeBtn").hidden = true;
+  lastRom(s).then((r) => {
+    if (!r || !r.bytes || game.loaded || sys !== s) return;
     $("resumeBtn").hidden = false;
-    $("resumeBtn").textContent = "Continue " + r.name.replace(/\.gba$/i, "");
-    $("resumeBtn").onclick = () => { ensureAudio(); waitCore().then(() => loadRom(r.name, r.bytes, null)); };
-  }
-});
-let coreReady;
-const waitCore = () => coreReady;
+    $("resumeBtn").textContent = "Continue " + r.name.replace(/\.(gba|nds)$/i, "");
+    $("resumeBtn").onclick = () => { ensureAudio(); loadRom(s, r.name, r.bytes, null).catch(() => flash("saveMsg", "The emulator didn't load.", true)); };
+  });
+}
 
 /* ------------------------------------------------------------ controls */
 $("pauseBtn").onclick = () => setRunning(!running);
 $("ffBtn").onclick = () => { ff = !ff; $("ffBtn").setAttribute("aria-pressed", ff); };
 $("muteBtn").onclick = () => { muted = !muted; $("muteBtn").setAttribute("aria-pressed", muted); $("muteBtn").textContent = muted ? "Sound off" : "Mute"; };
-$("resetBtn").onclick = () => { X.ss_reset(); game.frames = 0; setRunning(true); };
+$("resetBtn").onclick = () => { call("reset"); game.frames = 0; setRunning(true); };
 $("savDlBtn").onclick = async () => {
-  const sav = batteryBytes();
-  if (!sav) { flash("saveMsg", "This game has no battery save yet.", true); return; }
+  const sav = gameSaveBytes();
+  if (!sav) { flash("saveMsg", "This game has no save yet.", true); return; }
   const base = game.romName.replace(/\.[^.]+$/, "");
-  await offerZip(base + " (battery save).zip", (z) => { z.file(base + ".sav", sav); });
+  await offerZip(base + " (game save).zip", (z) => { z.file(base + ".sav", sav); });
 };
+$("shotBtn").onclick = $("shotBtn2").onclick = () => saveMoment("shot");
 
 const typing = () => { const a = document.activeElement; return a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA"); };
 document.addEventListener("keydown", (e) => {
-  if (typing()) { if (e.key === "F2") { e.preventDefault(); $("saveForm").requestSubmit(); } return; }
+  if (e.key === "F2") { e.preventDefault(); saveMoment("state"); return; }
+  if (e.key === "F3") { e.preventDefault(); saveMoment("shot"); return; }
+  if (typing()) return;
   if (e.code === "Space") { ffHeld = true; e.preventDefault(); return; }
   if (e.code === "KeyP") { setRunning(!running); return; }
-  if (e.key === "F2") { e.preventDefault(); $("saveForm").requestSubmit(); return; }
   const k = KEYBOARD[e.code];
   if (k) { held.add(k); e.preventDefault(); ensureAudio(); }
 });
@@ -491,7 +615,7 @@ document.addEventListener("keyup", (e) => {
   const k = KEYBOARD[e.code];
   if (k) held.delete(k);
 });
-window.addEventListener("blur", () => { held.clear(); ffHeld = false; });
+window.addEventListener("blur", () => { held.clear(); ffHeld = false; touch.down = false; });
 
 /* typing pauses the game, so the moment you're describing stays put */
 let pausedForForm = false;
@@ -531,10 +655,12 @@ const b64 = {
   enc(bytes) { let s = ""; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(s); },
   dec(str) { const s = atob(str); const out = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) out[i] = s.charCodeAt(i); return out; },
 };
+const gzip = async (bytes) => new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new CompressionStream("gzip"))).arrayBuffer());
+const gunzip = async (bytes) => new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer());
 const newId = () => Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
-const slug = (s) => (s || "state").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48) || "state";
+const slug = (s) => (s || "moment").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48) || "moment";
 const shotBlob = () => {
-  const c = document.createElement("canvas"); c.width = 240; c.height = 160;
+  const c = document.createElement("canvas"); c.width = img.width; c.height = img.height;
   c.getContext("2d").putImageData(img, 0, 0);
   return new Promise((res) => c.toBlob(res, "image/png"));
 };
@@ -563,7 +689,7 @@ async function initStorage() {
     db.collection("states").orderBy("createdAt", "desc").onSnapshot((snap) => {
       store.items = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       renderShelf();
-    }, (e) => { flash("shelfMsg", "Couldn't read the saved states (" + (e.code || "error") + ").", true); });
+    }, (e) => { flash("shelfMsg", "Couldn't read the saved moments (" + (e.code || "error") + ").", true); });
   } else {
     store.mode = "local";
     await loadLocal();
@@ -579,13 +705,16 @@ async function loadLocal() {
   } catch (e) { store.items = store.items || []; }
 }
 
-async function saveCurrent(meta, stateBytes, shot) {
+async function storeMoment(meta, stateBytes, shot) {
   const id = newId();
   if (store.mode === "shared") {
-    const stateDoc = { format: "gba-ds-state", ...meta, stateBase64: b64.enc(stateBytes) };
-    const st = await assets.upload(new Blob([JSON.stringify(stateDoc)], { type: "application/json" }), { type: "application/json" });
+    let st = null;
+    if (stateBytes) {
+      const doc = { format: SYSTEMS[meta.system].stateFormat, encoding: "gzip", ...meta, stateBase64: b64.enc(await gzip(stateBytes)) };
+      st = await assets.upload(new Blob([JSON.stringify(doc)], { type: "application/json" }), { type: "application/json" });
+    }
     const pic = shot ? await assets.upload(shot, { type: "image/png" }) : null;
-    await db.collection("states").doc(id).set({ ...meta, stateAsset: st.id, shotAsset: pic ? pic.id : "" });
+    await db.collection("states").doc(id).set({ ...meta, stateAsset: st ? st.id : "", shotAsset: pic ? pic.id : "" });
   } else {
     const row = { id, meta, state: stateBytes, shot };
     try { await idbDo("states", "readwrite", (s) => s.put(row)); }
@@ -596,10 +725,12 @@ async function saveCurrent(meta, stateBytes, shot) {
 
 async function stateOf(item) {
   if (item._local) return item._local.state;
+  if (!item.stateAsset) return null;
   const r = await fetch("/_blob/" + item.stateAsset);
   if (!r.ok) throw new Error("state file " + r.status);
   const doc = await r.json();
-  return b64.dec(doc.stateBase64);
+  const bytes = b64.dec(doc.stateBase64);
+  return doc.encoding === "gzip" ? gunzip(bytes) : bytes;
 }
 async function shotOf(item) {
   if (item._local) return item._local.shot || null;
@@ -607,7 +738,6 @@ async function shotOf(item) {
   const r = await fetch("/_blob/" + item.shotAsset);
   return r.ok ? await r.blob() : null;
 }
-
 async function updateItem(item, patch) {
   if (store.mode === "shared") { await db.collection("states").doc(item.id).update(patch); return; }
   const row = { ...item._local, meta: { ...item._local.meta, ...patch } };
@@ -624,32 +754,33 @@ async function deleteItem(item) {
   await loadLocal(); renderShelf();
 }
 
-/* ------------------------------------------------------------ save form */
-$("saveForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
+/* ------------------------------------------------------------ saving a moment */
+let saving = false;
+async function saveMoment(kind) {
+  if (saving) return;
   if (!game.loaded) { flash("saveMsg", "Load a game first.", true); return; }
-  const name = $("nameIn").value.trim();
-  if (!name) { flash("saveMsg", "Give the state a name.", true); $("nameIn").focus(); return; }
-  const bytes = saveStateBytes();
-  if (!bytes) { flash("saveMsg", "The emulator couldn't save a state.", true); return; }
+  let name = $("nameIn").value.trim();
+  if (!name && kind === "state") { flash("saveMsg", "Give the state a name.", true); $("nameIn").focus(); return; }
+  if (!name) name = "Screenshot " + new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  const bytes = kind === "state" ? saveStateBytes() : null;
+  if (kind === "state" && !bytes) { flash("saveMsg", "The emulator couldn't save a state.", true); return; }
   const meta = {
-    name, tags: splitTags($("tagsIn").value), notes: $("notesIn").value.trim(),
+    kind, system: game.sys, name, tags: splitTags($("tagsIn").value), notes: $("notesIn").value.trim(),
     gameCode: game.code, gameTitle: game.title, romName: game.romName, romSize: game.romBytes.length,
-    frame: game.frames, createdAt: Date.now(), stateBytes: bytes.length,
-    core: "mGBA 143adf5, as in GBA DS",
+    frame: game.frames, createdAt: Date.now(), stateBytes: bytes ? bytes.length : 0,
+    width: img.width, height: img.height, core: SYSTEMS[game.sys].coreName,
   };
-  $("saveBtn").disabled = true;
+  saving = true;
   flash("saveMsg", "Saving…");
   try {
-    await saveCurrent(meta, bytes, await shotBlob());
-    flash("saveMsg", "Saved “" + name + "”.");
+    await storeMoment(meta, bytes, await shotBlob());
+    flash("saveMsg", (kind === "state" ? "Saved “" : "Screenshot saved: “") + name + "”.");
     $("nameIn").value = ""; $("notesIn").value = "";
   } catch (err) {
     flash("saveMsg", "Couldn't save: " + (err.code || err.message || err) + ".", true);
-  } finally {
-    $("saveBtn").disabled = !game.loaded;
-  }
-});
+  } finally { saving = false; }
+}
+$("saveForm").addEventListener("submit", (e) => { e.preventDefault(); saveMoment("state"); });
 
 /* ------------------------------------------------------------ shelf */
 const urlCache = new Map();
@@ -662,6 +793,8 @@ function thumbUrl(item) {
   return item.shotAsset ? "/_blob/" + item.shotAsset : "";
 }
 const when = (ms) => new Date(ms).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+const sysOf = (item) => item.system || "gba";
+const kindOf = (item) => item.kind || "state";
 
 function renderShelf() {
   const shelf = $("shelf");
@@ -671,17 +804,28 @@ function renderShelf() {
   for (const item of store.items) shelf.append(itemView(item));
 }
 
+function stateFileName(item) {
+  const base = (item.romName || "game").replace(/\.[^.]+$/, "");
+  return sysOf(item) === "ds" ? base + ".ml1" : base + ".state";
+}
+
 function itemView(item) {
   const el = document.createElement("article");
   el.className = "item";
   const pic = document.createElement("img");
   pic.alt = "Screenshot: " + item.name;
+  if (sysOf(item) === "ds") pic.className = "ds";
   const src = thumbUrl(item);
   if (src) pic.src = src;
   const body = document.createElement("div");
   body.className = "body";
-  const name = document.createElement("div");
+  const head = document.createElement("div");
+  head.className = "row";
+  const name = document.createElement("span");
   name.className = "name"; name.textContent = item.name;
+  const kind = document.createElement("span");
+  kind.className = "kind"; kind.textContent = SYSTEMS[sysOf(item)].label + (kindOf(item) === "shot" ? " · picture" : " · state");
+  head.append(name, kind);
   const meta = document.createElement("div");
   meta.className = "meta";
   meta.textContent = [item.gameTitle || item.romName, item.gameCode, when(item.createdAt), "frame " + item.frame].filter(Boolean).join(" · ");
@@ -694,21 +838,32 @@ function itemView(item) {
   actions.className = "actions";
   const btn = (label, fn, cls) => { const b = document.createElement("button"); b.type = "button"; b.textContent = label; if (cls) b.className = cls; b.onclick = fn; actions.append(b); return b; };
 
-  btn("Load", async () => {
-    if (!game.loaded) { flash("shelfMsg", "Load " + (item.gameTitle || "the game") + " first.", true); return; }
-    if (item.gameCode && game.code && item.gameCode !== game.code) { flash("shelfMsg", "That state is for " + (item.gameTitle || item.gameCode) + " (" + item.gameCode + "). Load that game first.", true); return; }
-    try { loadStateBytes(await stateOf(item), "“" + item.name + "”"); } catch (e) { flash("shelfMsg", "Couldn't fetch that state.", true); }
-  });
-  btn("Download", async () => {
-    try {
-      const bytes = await stateOf(item);
-      const base = (item.romName || "game").replace(/\.[^.]+$/, "");
-      await offerZip(slug(item.name) + ".zip", (z) => {
-        z.file(base + ".state", bytes);
-        z.file("notes.txt", noteText([item]));
-      });
-    } catch (e) { flash("shelfMsg", "Couldn't fetch that state.", true); }
-  });
+  if (kindOf(item) === "state") {
+    btn("Load", async () => {
+      if (!game.loaded || game.sys !== sysOf(item)) { flash("shelfMsg", "Load " + (item.gameTitle || "the game") + " (" + SYSTEMS[sysOf(item)].label + ") first.", true); return; }
+      if (item.gameCode && game.code && item.gameCode !== game.code) { flash("shelfMsg", "That state is for " + (item.gameTitle || item.gameCode) + " (" + item.gameCode + "). Load that game first.", true); return; }
+      try { loadStateBytes(await stateOf(item), "“" + item.name + "”"); } catch (e) { flash("shelfMsg", "Couldn't fetch that state.", true); }
+    });
+    btn("Download", async () => {
+      try {
+        const bytes = await stateOf(item);
+        await offerZip(slug(item.name) + ".zip", async (z) => {
+          z.file(stateFileName(item), bytes);
+          const shot = await shotOf(item);
+          if (shot) z.file(slug(item.name) + ".png", shot);
+          z.file("notes.txt", noteText([item]));
+        });
+      } catch (e) { flash("shelfMsg", "Couldn't fetch that state.", true); }
+    });
+  } else {
+    btn("Download", async () => {
+      const shot = await shotOf(item);
+      if (!shot) { flash("shelfMsg", "Couldn't fetch that screenshot.", true); return; }
+      if (!downloads) { flash("shelfMsg", "Downloads aren't available in this view.", true); return; }
+      try { await downloads.save({ filename: slug(item.name) + ".png", data: shot }); }
+      catch (e) { if (e.code !== "declined") flash("shelfMsg", "Download failed (" + (e.code || "error") + ").", true); }
+    });
+  }
   btn("Edit", () => {
     if (el.querySelector(".edit")) return;
     const form = document.createElement("div");
@@ -731,7 +886,7 @@ function itemView(item) {
     try { await deleteItem(item); flash("shelfMsg", "Deleted “" + item.name + "”."); } catch (e) { flash("shelfMsg", "Couldn't delete it.", true); }
   }, "danger");
 
-  body.append(name, meta, tags);
+  body.append(head, meta, tags);
   if (item.notes) body.append(notes);
   body.append(actions);
   el.append(pic, body);
@@ -740,7 +895,7 @@ function itemView(item) {
 
 function noteText(items) {
   return items.map((it) => [
-    "# " + it.name,
+    "# " + it.name + " (" + SYSTEMS[sysOf(it)].label + (kindOf(it) === "shot" ? " screenshot" : " state") + ")",
     "Game: " + (it.gameTitle || "") + " (" + it.gameCode + "), ROM file: " + it.romName,
     "Saved: " + new Date(it.createdAt).toISOString() + ", frame " + it.frame,
     "Tags: " + (it.tags || []).join(", "),
@@ -756,14 +911,14 @@ async function offerZip(filename, fill) {
   if (!downloads) { flash("shelfMsg", "Downloads aren't available in this view.", true); return; }
   const z = new JSZip();
   await fill(z);
-  const blob = await z.generateAsync({ type: "blob" });
+  const blob = await z.generateAsync({ type: "blob", compression: "DEFLATE" });
   try { await downloads.save({ filename, data: blob }); }
   catch (e) { if (e.code !== "declined") flash("shelfMsg", "Download failed (" + (e.code || "error") + ").", true); }
 }
 
 $("pkgBtn").onclick = async () => {
   $("pkgBtn").disabled = true;
-  flash("shelfMsg", "Packing " + store.items.length + " states…");
+  flash("shelfMsg", "Packing " + store.items.length + " saved moments…");
   try {
     await offerZip("state-saver-" + new Date().toISOString().slice(0, 10) + ".zip", async (z) => {
       const used = new Set();
@@ -772,38 +927,36 @@ $("pkgBtn").onclick = async () => {
         let s = slug(it.name), k = 2;
         while (used.has(s)) s = slug(it.name) + "-" + k++;
         used.add(s);
-        z.file("states/" + s + ".state", await stateOf(it));
+        const ext = sysOf(it) === "ds" ? ".ml1" : ".state";
+        const state = kindOf(it) === "state" ? await stateOf(it) : null;
+        if (state) z.file("states/" + s + ext, state);
         const shot = await shotOf(it);
         if (shot) z.file("screenshots/" + s + ".png", shot);
         const { _local, stateAsset, shotAsset, ...meta } = it;
-        index.push({ file: "states/" + s + ".state", screenshot: shot ? "screenshots/" + s + ".png" : null, ...meta });
+        index.push({ state: state ? "states/" + s + ext : null, screenshot: shot ? "screenshots/" + s + ".png" : null, ...meta });
       }
-      z.file("states.json", JSON.stringify(index, null, 2));
+      z.file("moments.json", JSON.stringify(index, null, 2));
       z.file("notes.txt", noteText(store.items));
       z.file("README.txt", [
         "State Saver package",
         "",
-        "states/       GBA DS save states (mGBA 143adf5, the same core as GBA DS).",
-        "screenshots/  the game screen when each state was saved.",
-        "states.json   names, tags, notes and game details for every state.",
+        "states/       GBA states (.state: GBA DS's own format, mGBA 143adf5) and",
+        "              DS states (.ml1: melonDS savestates).",
+        "screenshots/  the screen(s) when each moment was saved.",
+        "moments.json  names, tags, notes and game details for every moment.",
         "",
-        "To load one in GBA DS: rename it to the ROM's file name with .state",
-        "(e.g. \"Advance Wars (USA).state\"), put it in gba-ds/states/, start the",
-        "game and choose Load State in the pause menu.",
+        "To load a GBA state in GBA DS: rename it to the ROM's file name with",
+        ".state (e.g. \"Advance Wars (USA).state\"), put it in gba-ds/states/,",
+        "start the game and choose Load State in the pause menu.",
+        "To load a DS state in melonDS: rename it to the ROM's file name with",
+        ".ml1, put it beside the ROM and load state slot 1.",
       ].join("\n"));
     });
   } finally { $("pkgBtn").disabled = !store.items.length; }
 };
 
 /* ------------------------------------------------------------ start */
-coreReady = initCore().then(() => {
-  $("coreChip").classList.add("ok");
-  $("coreText").textContent = "mGBA 143adf5 · GBA DS states";
-}).catch((e) => {
-  $("coreChip").classList.add("warn");
-  $("coreText").textContent = "The emulator didn't load";
-  console.error(e);
-});
+setSystem("gba");
 initStorage().catch(() => { store.mode = "local"; setStoreChip(); loadLocal().then(renderShelf); });
 })();
 </script>
