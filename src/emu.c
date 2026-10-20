@@ -368,6 +368,10 @@ uint8_t* emu_memory(Emu* e, int region, size_t* size) {
 	return p;
 }
 
+size_t emu_rom_size(Emu* e) {
+	return e->core ? e->core->romSize(e->core) : 0;
+}
+
 size_t emu_audio_read(Emu* e, int16_t* out, size_t maxFrames) {
 	struct mAudioBuffer* ab = e->core->getAudioBuffer(e->core);
 	if (!ab) {

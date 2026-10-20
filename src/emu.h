@@ -78,6 +78,8 @@ uint8_t* emu_rom_read_all(const char* path, size_t* size);
 /* A memory region of the running game (GBA address >> 24: 2 EWRAM, 3 IWRAM,
  * 0xE save RAM), or NULL. */
 uint8_t* emu_memory(Emu* e, int region, size_t* size);
+/* The loaded ROM's size in bytes (emu_memory(e, 8) is its whole 32 MB window). */
+size_t emu_rom_size(Emu* e);
 uint8_t emu_read8(Emu* e, uint32_t addr);
 uint16_t emu_read16(Emu* e, uint32_t addr);
 uint32_t emu_read32(Emu* e, uint32_t addr);

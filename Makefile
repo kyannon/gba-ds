@@ -30,14 +30,22 @@ CORE_SRC   := src/emu.c src/mapcap.c src/profiles.c src/logo_masks.c
 RC_DIR     := third_party/rcheevos
 RC_SRC     := $(wildcard $(RC_DIR)/src/*.c $(RC_DIR)/src/rapi/*.c $(RC_DIR)/src/rcheevos/*.c) $(RC_DIR)/src/rhash/md5.c
 RC_OBJ     := $(patsubst $(RC_DIR)/src/%.c,$(OUT)/rcheevos/%.o,$(RC_SRC))
+# PokeDaisy's companion core (GPL-3.0, third_party/pokedaisy): Pokemon games' second screen
+PD_DIR     := third_party/pokedaisy/core
+PD_SRC     := $(wildcard $(PD_DIR)/*.c)
+PD_OBJ     := $(patsubst $(PD_DIR)/%.c,$(OUT)/pokedaisy/%.o,$(PD_SRC))
 
-APP_SRC    := src/main.c src/config.c src/font.c src/ui.c src/library.c src/game.c src/paths.c src/image.c src/brand_data.c src/logo.c src/mapframe.c src/cheats.c src/esinteg.c src/textfont.c src/fonts_data.c src/ra.c $(CORE_SRC)
+APP_SRC    := src/main.c src/config.c src/font.c src/ui.c src/library.c src/game.c src/paths.c src/image.c src/brand_data.c src/logo.c src/mapframe.c src/cheats.c src/esinteg.c src/textfont.c src/fonts_data.c src/ra.c src/companion.c $(CORE_SRC)
 
 all: $(OUT)/gba-ds
 
-$(OUT)/gba-ds: $(APP_SRC) src/*.h VERSION $(MGBA_BUILD)/libmgba.a $(RC_OBJ)
+$(OUT)/gba-ds: $(APP_SRC) src/*.h VERSION $(MGBA_BUILD)/libmgba.a $(RC_OBJ) $(PD_OBJ)
 	@mkdir -p $(OUT)
-	$(CC) $(CFLAGS) -DGBADS_RA -I$(RC_DIR)/include -I$(RC_DIR)/src -o $@ $(APP_SRC) $(RC_OBJ) $(LDFLAGS) $(LIBS)
+	$(CC) $(CFLAGS) -DGBADS_RA -DGBADS_POKEDAISY -I$(RC_DIR)/include -I$(RC_DIR)/src -I$(PD_DIR) -o $@ $(APP_SRC) $(RC_OBJ) $(PD_OBJ) $(LDFLAGS) $(LIBS)
+
+$(OUT)/pokedaisy/%.o: $(PD_DIR)/%.c $(wildcard $(PD_DIR)/*.h)
+	@mkdir -p $(dir $@)
+	$(CC) $(OPTFLAGS) -std=c11 -c $< -o $@
 
 $(OUT)/rcheevos/%.o: $(RC_DIR)/src/%.c $(wildcard $(RC_DIR)/include/*.h)
 	@mkdir -p $(dir $@)

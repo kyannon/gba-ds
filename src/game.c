@@ -1,5 +1,6 @@
 /* One play session: the emulator, the second-screen map, and the pause menu. */
 #include "game.h"
+#include "companion.h"
 #include "android.h"
 #include "brand.h"
 #include "emu.h"
@@ -1998,7 +1999,7 @@ static void make_logo_canvas(void) {
 }
 
 static void draw_game(void) {
-	bool mapOn = (mc || logoOnly) && cfg->map; /* logo-only games: the logo stands in for the map */
+	bool mapOn = (mc || logoOnly || comp_active()) && cfg->map; /* logo-only games: the logo stands in for the map */
 	for (int s = 0; s < nScreens; ++s) {
 		bool showGame = nScreens == 1 ? !(singleShowsMap && mapOn) : (s == game_screen() || !mapOn);
 		SDL_Rect r = screens[s].rect;
@@ -2021,7 +2022,9 @@ static void draw_game(void) {
 			continue;
 		}
 		/* the map screen */
-		if (hudShown) {
+		if (comp_active()) {
+			comp_draw(s, file_exists(gp.state), btnNow[B_R2]);
+		} else if (hudShown) {
 			/* the HUD picture is at 2x: a grid cell per GBA pixel */
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
 			ui_image_pixels(s, hudTex, HUD_CW, HUD_CH, cfg->mapScale, cfg->lcdGrid ? 2 : 0);
@@ -2284,6 +2287,12 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		mc = mapcap_create(rom, emu.gameCode, cfg->mapCrop);
 		const MapProfile* lp = profile_find(emu.gameCode);
 		logoOnly = lp && lp->logoOnly;
+		/* Pokemon FireRed / LeafGreen / Emerald: PokeDaisy's companion on the second screen */
+		if (nScreens > 1) {
+			char cpath[1100];
+			snprintf(cpath, sizeof(cpath), "%s/pokedaisy.ini", cfg->stateDir);
+			comp_open(&emu, cpath);
+		}
 		snapProf = logoOnly && lp->snap.showMin ? lp : NULL;
 		/* the HUD moves only when there's another screen to put it on */
 		hudProf = lp && lp->hud.on[0].addr && nScreens > 1 ? lp : NULL;
@@ -2458,6 +2467,8 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		Pointer p;
 		while (ui_next_pointer(&p)) {
 			if (!menuOpen) {
+				/* the companion takes the second screen's taps (HOME opens the menu) */
+				if (comp_active() && nScreens > 1 && p.screen != game_screen() && comp_pointer(p.screen, &p)) continue;
 				if (p.kind == 1 && ctl_tap(p.screen, p.x, p.y)) continue;
 				if (p.kind == 1) {
 					open_menu();
@@ -2537,6 +2548,14 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			}
 		}
 		if (done) break;
+		/* what the companion's SETTINGS asked for */
+		switch (comp_take_action()) {
+		case COMP_SAVE_STATE: ui_osd(state_save(gp.state) ? "State saved" : "Save failed"); break;
+		case COMP_LOAD_STATE: ui_osd(state_load(gp.state) ? "State loaded" : "Load failed"); break;
+		case COMP_LEAVE: open_menu(); break;
+		case COMP_TOGGLE_FF: ui_osd("Hold R2 to fast-forward"); break;
+		default: break;
+		}
 
 		/* ---- the menu combo (menu_combo = select+start; on Android, where HOME
 		 * belongs to the system): pressing both opens the menu. The first of
@@ -2836,6 +2855,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		double emuCpu1 = thread_cpu_ms();
 		emuTicks += emuT1 - emuT0;
 		++frameCount;
+		comp_frame(&emu); /* the Pokemon companion reads the game every few frames */
 		/* the rewind buffer: a state every second emulated frame */
 		if (cfg->rewind && !rewinding && (rewindTick += runs) >= 2) {
 			emu_rewind_append(&emu);
@@ -3041,6 +3061,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	mapcap_destroy(mc);
 	mc = NULL;
 	emu_rewind_deinit();
+	comp_close();
 	emu_close(&emu); /* flushes the battery save */
 	for (int i = 0; i < MAP_MAX_FRAMES; ++i) {
 		free(mapRes.frames[i]);
