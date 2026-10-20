@@ -30,6 +30,22 @@ static void on_signal(int sig) {
 	uiQuit = 1;
 }
 
+#if !defined(__ANDROID__) && defined(__GLIBC__)
+#include <execinfo.h>
+/* A crash: where it happened, into the log (addresses to look up in the
+ * unstripped build), then the default action. */
+static void on_crash(int sig) {
+	void* frames[48];
+	int n = backtrace(frames, 48);
+	static const char msg[] = "\ncrashed; backtrace:\n";
+	ssize_t w = write(2, msg, sizeof(msg) - 1);
+	(void) w;
+	backtrace_symbols_fd(frames, n, 2);
+	signal(sig, SIG_DFL);
+	raise(sig);
+}
+#endif
+
 int main(int argc, char** argv) {
 	for (int i = 1; i < argc; ++i) {
 		if (!strcmp(argv[i], "--version")) {
@@ -105,6 +121,14 @@ int main(int argc, char** argv) {
 	signal(SIGTERM, on_signal);
 	signal(SIGINT, on_signal);
 	signal(SIGHUP, on_signal);
+#if !defined(__ANDROID__) && defined(__GLIBC__)
+	{
+		void* warm[1];
+		backtrace(warm, 1); /* loads libgcc now, not inside the handler */
+		int sigs[] = { SIGSEGV, SIGBUS, SIGILL, SIGFPE, SIGABRT };
+		for (int i = 0; i < 5; ++i) signal(sigs[i], on_crash);
+	}
+#endif
 
 	if (!ui_init(&cfg, true)) return 1;
 	ra_init(&cfg); /* signs in to RetroAchievements in the background */
