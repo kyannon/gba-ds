@@ -102,6 +102,7 @@ static const uint8_t ffta_tag_jp[212] = {
 #define AW_CURSOR 0x030033F0 /* map cursor x, y (stays on a unit while it moves) */
 #define AW_UNITS 0x02019F34  /* + 0x300 * (army - 1) + 12 * id (1-64): type, -, x, y, ... */
 #define AW_LIST_ROW 0x03000E2F
+#define AW_MENU_ROW 0x03000E50 /* the SELECT menu's and its submenus' cursor */
 #define AW_MINIMAP_OPEN 0x03000E2E /* counts 0-12 as the START minimap opens */
 #define AW_LIST_ORDER 0x0201FD38 /* unit ids in list order, 0xFF after the last */
 #define AW_PULSE_PAL 0x050003DE /* the list's highlight colour */
@@ -293,6 +294,11 @@ static void aw_clean(Emu* s, void* tmp, uint32_t* pan, bool list) {
 	emu_state_load(s, tmp);
 }
 
+/* Moves the open menu's cursor to item i (the menus wrap round). */
+static void aw_pick(Emu* s, int i) {
+	for (int tries = 0; tries < 6 && emu_read8(s, AW_MENU_ROW) != i; ++tries) aw_tap(s, K_DOWN, 1);
+}
+
 static const char* aw_panel(Emu* s, const void* state, int* rows) {
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
@@ -303,6 +309,7 @@ static const char* aw_panel(Emu* s, const void* state, int* rows) {
 	aw_tap(s, K_SELECT, 1);
 	aw_run(s, 0, 8);
 	if (unit) {
+		aw_pick(s, 0); /* Unit */
 		aw_tap(s, K_A, 1);
 		if (!aw_settle(s, aw_list_up, 90)) return "unit list did not open";
 		int row = -1;
@@ -321,9 +328,10 @@ static const char* aw_panel(Emu* s, const void* state, int* rows) {
 		if (!aw_settle(s, aw_list_up, 60)) return "unit list did not settle";
 		*rows = GBA_H;
 	} else {
-		aw_tap(s, K_DOWN, 1);
+		aw_pick(s, 1); /* Intel */
 		aw_tap(s, K_A, 1);
 		aw_run(s, 0, 8);
+		aw_pick(s, 0); /* Status (the Intel menu keeps its last choice: CO, Rules) */
 		aw_tap(s, K_A, 1);
 		if (!aw_settle(s, aw_intel_up, 90)) return "battle intel did not open";
 		*rows = 124; /* the panel, not the map below it */
@@ -852,7 +860,9 @@ static const MapProfile profiles[] = {
 			/* (by palette too: a move's arrow is tiles 333-397 in palette 3) */
 			.objs = { { -64, -32, 239, 40, 0, 63, 0, AW_PALS(1) | AW_PALS(7) | AW_PALS(14) }, { -64, -32, 239, 40, 940, 1023, 0, AW_PALS(1) },
 			          { -64, 88, 239, 159, 280, 360, 0, AW_PALS(1) | AW_PALS(2) | AW_PALS(6) | AW_PALS(15) },
-			          { -64, 88, 239, 159, 940, 1023, 0, AW_PALS(1) },
+			          /* (the info's digits only: 976-985; the plate's day is 960-969
+			           * and DAY 992-1016, and the CO screen has a plate down here) */
+			          { -64, 88, 239, 159, 970, 990, 0, AW_PALS(1) },
 			          /* the DAMAGE box over the info while picking a target (its digits
 			           * are tiles 295-313, 0 to 9; % and the box 315-319) */
 			          { -64, 56, 239, 103, 288, 320, 0, 1u << 1 } },
