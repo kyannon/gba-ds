@@ -838,9 +838,9 @@ static const MapProfile profiles[] = {
 		 * bottom right, under the panels; the darkened box behind the
 		 * info (window 0's effect) is left off the game screen */
 		.hud = {
-			/* on the battle map with the cursor free: window 0 only (the
-			 * fights use both windows), WININ as the map has it */
-			.on = { { AW_ARMY, 0xFF, 1, 1, true, 4, true }, { 0x04000000, 0x6000, 0x2000, 2 }, { 0x04000048, 0xFFFF, 0x003F, 2 } },
+			/* in a battle, not in a fight (fights use window 1): the
+			 * enemy's turn too, which has no window (nor terrain info) */
+			.on = { { AW_ARMY, 0xFF, 1, 1, true, 4, true }, { 0x04000000, 0x4000, 0, 2 } },
 			.objs = { { -64, -32, 239, 40, 0, 63, 0 }, { -64, -32, 239, 40, 940, 1023, 0 },
 			          { -64, 88, 239, 159, 280, 360, 0 }, { -64, 88, 239, 159, 940, 1023, 0 } },
 			/* the plate at the bottom in the middle, the info at the
