@@ -183,6 +183,11 @@ static GamePaths gp;
 
 static SDL_Texture* gameTex[2];
 static SDL_Texture* mapTex[2];
+/* profile.combat: in a fight, the second screen is the map's background
+ * with the logo small and dimmed (combatTex, mapW x mapH, made once) */
+static const MapProfile* combatProf;
+static SDL_Texture* combatTex[2];
+static bool combatOn, combatMade;
 static SDL_Texture* hudTex[2]; /* the HUD's second screen (HUD_CW x HUD_CH) */
 static SDL_Texture* logoTex[2];
 /* the logo centred in a GBA-sized picture, so it's scaled (and gridded)
@@ -242,7 +247,8 @@ typedef struct {
 	int w, h;
 	uint32_t px[GBA_W * GBA_H];
 	uint32_t key;
-	int cw, ch, cx, cy, still; /* a latched piece's size and place, and for how long */
+	int cw, ch, cx, cy, still; /* a latched piece's size and place (a settling one's size), and for how long */
+	uint32_t cand[GBA_W * GBA_H]; /* a settling piece's pixels */
 	bool stale; /* a state was loaded: taken again (latched or not) as soon as it holds still */
 	int sx, sy; /* where it was on the game screen (its top left) */
 } Piece;
@@ -1274,13 +1280,17 @@ static unsigned effect_bgs(int pal) {
 static bool hud_take_pieces(const typeof(hudProf->hud)* h) {
 	uint32_t clear = emu_hud_clear();
 	bool changed = false, seen[4] = { false };
+	int found[4][4];
+	if (h->findPieces) h->findPieces(hudPx, clear, found);
 	for (int m = 0; m < 4; ++m) {
 		const HudMove* mv = &h->moves[m];
 		Piece* pc = &pieces[m];
 		if (!mv->how && !mv->vhow) continue;
+		int bx0 = mv->x0, by0 = mv->y0, bx1 = mv->x1, by1 = mv->y1;
+		if (h->findPieces) bx0 = found[m][0], by0 = found[m][1], bx1 = found[m][2], by1 = found[m][3];
 		int lo = GBA_W, hi = -1, top = GBA_H, bot = -1;
-		for (int y = SDL_max(mv->y0, 0); y <= SDL_min(mv->y1, GBA_H - 1); ++y) {
-			for (int x = SDL_max(mv->x0, 0); x <= SDL_min(mv->x1, GBA_W - 1); ++x) {
+		for (int y = SDL_max(by0, 0); y <= SDL_min(by1, GBA_H - 1); ++y) {
+			for (int x = SDL_max(bx0, 0); x <= SDL_min(bx1, GBA_W - 1); ++x) {
 				if ((hudPx[y * GBA_W + x] & 0xFFFFFF) == clear) continue;
 				lo = SDL_min(lo, x), hi = SDL_max(hi, x), top = SDL_min(top, y), bot = SDL_max(bot, y);
 			}
@@ -1289,6 +1299,7 @@ static bool hud_take_pieces(const typeof(hudProf->hud)* h) {
 			/* not there: the last one stays (one that follows another goes
 			 * when that one is there without it) */
 			if (mv->follow && pc->valid && seen[mv->follow - 1]) pc->valid = false, changed = true;
+			if (mv->settle) pc->still = 0;
 			continue;
 		}
 		seen[m] = true;
@@ -1316,6 +1327,12 @@ static bool hud_take_pieces(const typeof(hudProf->hud)* h) {
 			pc->key = key;
 		} else if (pc->valid && pc->w == w && pc->h == hh && !memcmp(pc->px, cut, n)) {
 			continue;
+		} else if (mv->settle) {
+			bool same = pc->cw == w && pc->ch == hh && !memcmp(pc->cand, cut, n);
+			pc->still = same ? pc->still + 1 : 0;
+			pc->cw = w, pc->ch = hh;
+			memcpy(pc->cand, cut, n);
+			if (pc->still < mv->settle) continue;
 		}
 		pc->valid = true;
 		pc->stale = false;
@@ -2146,6 +2163,58 @@ static void make_logo_canvas(void) {
 	}
 }
 
+/* profile.combat's picture: the map's background colour, the logo at half
+ * its size (each output pixel the average of 2x2) in the middle, dimmed. */
+static void make_combat_canvas(void) {
+	combatMade = true;
+	uint32_t* px = malloc((size_t) mapW * mapH * 4);
+	if (!px) return;
+	uint32_t bg = combatProf->hud.mapClear | 0xFF000000;
+	for (int i = 0; i < mapW * mapH; ++i) px[i] = bg;
+	bool pixelArt = false;
+	SDL_Surface* lg = ui_logo_surface(cfg, emu.gameCode, &pixelArt);
+	if (lg) {
+		/* half of what fills the picture's width, whole steps of 2x2 for
+		 * an extracted logo */
+		float sc = SDL_min((float) mapW / lg->w, (float) mapH / lg->h) * 0.5f;
+		if (pixelArt) sc = lg->w > mapW / 2 ? 0.5f : 1.0f;
+		int w = SDL_max(1, (int) (lg->w * sc)), h = SDL_max(1, (int) (lg->h * sc));
+		int x0 = (mapW - w) / 2, y0 = (mapH - h) / 2;
+		SDL_LockSurface(lg);
+		for (int y = 0; y < h; ++y) {
+			for (int x = 0; x < w; ++x) {
+				/* the source pixels under this one, averaged (alpha-weighted) */
+				int sx0 = x * lg->w / w, sx1 = SDL_max(sx0 + 1, (x + 1) * lg->w / w);
+				int sy0 = y * lg->h / h, sy1 = SDL_max(sy0 + 1, (y + 1) * lg->h / h);
+				unsigned acc[4] = { 0 }, n = 0;
+				for (int v = sy0; v < sy1; ++v) {
+					for (int u = sx0; u < sx1; ++u) {
+						const uint8_t* p = (const uint8_t*) lg->pixels + v * lg->pitch + u * 4; /* R, G, B, A */
+						for (int k = 0; k < 3; ++k) acc[k] += p[k] * p[3];
+						acc[3] += p[3];
+						++n;
+					}
+				}
+				if (!acc[3]) continue;
+				float a = (float) acc[3] / (255.0f * n) * 0.35f; /* dimmed */
+				uint32_t* o = &px[(y0 + y) * mapW + x0 + x];
+				uint32_t out = 0xFF000000;
+				for (int k = 0; k < 3; ++k) {
+					float c = (float) acc[k] / acc[3], b = (bg >> (8 * k)) & 0xFF;
+					out |= (uint32_t) (b + (c - b) * a) << (8 * k);
+				}
+				*o = out;
+			}
+		}
+		SDL_UnlockSurface(lg);
+		SDL_FreeSurface(lg);
+	}
+	for (int i = 0; i < nViews; ++i) {
+		if (combatTex[i]) ui_update_texture(combatTex[i], px, mapW * 4);
+	}
+	free(px);
+}
+
 static void draw_game(void) {
 	bool mapOn = (mc || logoOnly) && cfg->map; /* logo-only games: the logo stands in for the map */
 	for (int s = 0; s < nScreens; ++s) {
@@ -2170,7 +2239,10 @@ static void draw_game(void) {
 			continue;
 		}
 		/* the map screen */
-		if (hudShown) {
+		if (combatOn && (combatTex[0] || combatTex[1])) {
+			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
+			ui_image_pixels(s, combatTex, mapW, mapH, cfg->mapScale, cfg->lcdGrid ? 1 : 0);
+		} else if (hudShown) {
 			/* the HUD picture is at 2x: a grid cell per GBA pixel */
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
 			ui_image_pixels(s, hudTex, HUD_CW, HUD_CH, cfg->mapScale, cfg->lcdGrid ? 2 : 0);
@@ -2444,6 +2516,8 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		/* the HUD moves only when there's another screen to put it on */
 		hudProf = lp && lp->hud.on[0].addr && nScreens > 1 ? lp : NULL;
 		emu_hud_game_reg(hudProf ? hudProf->hud.gameReg.addr : 0, hudProf ? hudProf->hud.gameReg.bits : 0);
+		combatProf = mc && lp && lp->combat[0].addr && nScreens > 1 ? lp : NULL;
+		combatOn = combatMade = false;
 		overOn = false;
 		for (int m = 0; m < 4; ++m) pieces[m].valid = false, pieces[m].still = 0;
 		if (hudProf) {
@@ -2484,6 +2558,8 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	for (int i = 0; i < nViews; ++i) {
 		gameTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, GBA_W, GBA_H);
 		mapTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, mapW, mapH);
+		combatTex[i] = combatProf ? SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, mapW, mapH) : NULL;
+		if (combatTex[i]) SDL_SetTextureBlendMode(combatTex[i], SDL_BLENDMODE_NONE);
 		hudTex[i] = hudProf ? SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, HUD_CW, HUD_CH) : NULL;
 		if (hudTex[i]) SDL_SetTextureBlendMode(hudTex[i], SDL_BLENDMODE_NONE);
 		SDL_SetTextureBlendMode(gameTex[i], SDL_BLENDMODE_NONE);
@@ -3076,6 +3152,18 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 
 		if (snapProf) update_snapshot();
 		if (hudProf) update_hud();
+		if (combatProf) {
+			/* a fight: after a few frames of it, not on one odd frame */
+			static int streak;
+			bool c = memprobes_match(combatProf->combat, 2, &emu);
+			streak = c != combatOn ? streak + 1 : 0;
+			if (streak >= 3) {
+				combatOn = c;
+				streak = 0;
+				if (combatOn && !combatMade) make_combat_canvas();
+				if (debug) fprintf(stderr, "frame %llu: fight %s\n", (unsigned long long) frameCount, combatOn ? "on" : "off");
+			}
+		}
 		if (ctl_snes()) snesHere = memprobes_match(ctlProf->controls.snes.when, 3, &emu);
 		if (ctlProf) {
 			/* switch after a few frames in the new state, not on one odd frame */
@@ -3215,6 +3303,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		gameTex[i] = mapTex[i] = hudTex[i] = NULL;
 	}
 	ui_free_image(logoTex);
+	ui_free_image(combatTex);
 	ui_free_image(logoCanvasTex);
 	ui_free_image(overlayTex[0]);
 	ui_free_image(overlayTex[1]);

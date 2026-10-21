@@ -50,6 +50,10 @@ typedef struct {
 	 * everything, the capture's panels too; gone whenever that one is
 	 * taken without it (Advance Wars' DAMAGE box over the info). */
 	int follow;
+	/* hud.overMap: taken only once its pixels have held still this many
+	 * frames (Fire Emblem's windows lose their figures, then their
+	 * pictures, over the frames before they go) */
+	int settle;
 } HudMove;
 
 /* Bytes written into the ROM when the game starts, if the ROM holds `orig`
@@ -268,6 +272,11 @@ typedef struct MapProfile {
 		/* register bits the renderers go without while it's on
 		 * (emu_hud_game_reg) */
 		struct { uint32_t addr; uint16_t bits; } gameReg;
+		/* hud.overMap: where each move's piece is in this frame's HUD
+		 * picture (box[m] = x0, y0, x1, y1; x1 < 0: not there), for HUDs
+		 * whose pieces move round the screen (Fire Emblem's windows),
+		 * instead of the moves' own boxes */
+		void (*findPieces)(const uint32_t* hud, uint32_t clear, int box[4][4]);
 	} hud;
 
 	/* Title-screen logo, pulled out of the running game: boot, wait, optionally
@@ -360,6 +369,10 @@ typedef struct MapProfile {
 	 * the live game's state; NULL on success, else why not (Advance Wars:
 	 * the unit list or the battle intel, with the minimap below). */
 	const char* (*compose)(Emu* s, const void* state, uint32_t* out, int w, int h);
+	/* While every probe matches (a fight), the second screen is the map
+	 * picture's background colour (hud.mapClear) with the game's logo,
+	 * small and dimmed, in the middle. */
+	MemProbe combat[2];
 } MapProfile;
 
 const MapProfile* profile_find(const char* gameCode);

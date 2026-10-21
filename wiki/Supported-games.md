@@ -14,6 +14,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Super Mario Advance 2: Super Mario World | `AA2E` `AA2P` `AA2J` | the SELECT menu on the world map; the status bar in levels; optional SNES layout | — |
 | Final Fantasy Tactics Advance | `AFXE` `AFXP` `AFXJ` | in battles and the scenes on the battle maps: dialogue, menus, unit details | — |
 | Advance Wars (preliminary) | `AWRE` (USA only so far) | in battles: the unit list or the battle intel, with the minimap | — |
+| Fire Emblem (preliminary) | `AE7E` (USA only so far) | on the map: the unit, terrain and goal windows and the minimap | — |
 
 The codes are what `<CODE>` means in logo and overlay file names (see [Playing](Playing#logos) and [[Map screen surrounds and overlays]]).
 
@@ -93,13 +94,22 @@ Preliminary, the USA release only for now (the European release is listed, with 
 
 - **In a battle, on your turn,** the second screen is laid out after Advance Wars: Dual Strike's: the game's **Unit** list with the unit under the cursor highlighted when it's one of yours (it stays highlighted while you move it and pick its action), or else the **Battle Intel** (bases and funds). At the bottom left, the **minimap** from the START button. All of it is brought up in the background from the menus of a silent copy of the game, as the other games' maps are; your game is never paused.
 - The **CO and day plate** and the **terrain and unit info** move from the game screen to the bottom of the second screen (the plate in the middle, the info on the right, on a grey box), so they no longer cover the map; the panels are drawn over them where they meet.
-- On the enemy's turn and in battle animations the last picture stays up. On the title and menus, the second screen shows the logo.
+- The enemy's **CO and day plate** shows on their turn; the panel keeps its last picture.
+- **In a fight,** the second screen is the dark background with the game's logo, small and dimmed, in the middle. On the title and menus, the second screen shows the logo.
+
+## Fire Emblem
+
+Preliminary, the USA release only for now (the European and Japanese releases are listed, with the name on the second screen).
+
+- **On the map,** the windows the game puts in the corners (whichever corners the cursor leaves free) move to fixed places on the second screen: the **unit** under the cursor at the top left, the **terrain** at the top right, the **goal** and enemies left at the bottom left. The **minimap** from the START button is at the bottom right, brought up in the background in a silent copy of the game.
+- While a unit is selected, in menus and in conversations, the second screen keeps what it showed.
+- **In a fight,** the second screen is the dark background with the game's logo, small and dimmed, in the middle.
 
 ## Coming soon
 
 These games are in the game list, but their second screens are still being built, after the DS versions of each series. For now the game plays on one screen and the other shows the game's name.
 
 - **Tactics Ogre: The Knight of Lodis** (USA; Japan: Tactics Ogre Gaiden)
-- **Fire Emblem** (USA, Europe, Japan: Rekka no Ken)
+- **Fire Emblem** (Europe, Japan: Rekka no Ken; the USA release is above)
 - **Advance Wars** (Europe; the USA release is above)
 - **Mega Man Battle Network** (USA, Europe, Japan: Battle Network Rockman EXE)

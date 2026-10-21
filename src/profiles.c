@@ -111,7 +111,8 @@ static const uint8_t ffta_tag_jp[212] = {
 /* the weather's sprites: rain (tiles 169, 171), in OBJ palette 2 */
 #define AW_WEATHER { -512, -256, 511, 255, 160, 191, 0, 1u << 2, 0 }
 #define AW_PALS(n) (1u << (n))
-#define AW_BG 0xFF382418         /* behind the panels: dark navy (bytes R, G, B) */
+#define MAP_BG_NAVY 0xFF382418 /* behind the panels: dark navy (bytes R, G, B) */
+#define AW_BG MAP_BG_NAVY
 
 static void aw_run(Emu* s, uint32_t keys, int n) {
 	for (int i = 0; i < n; ++i) emu_frame(s, keys);
@@ -386,6 +387,167 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 		}
 	}
 	return NULL;
+}
+
+/* ----------------------------------------------------------- Fire Emblem
+ *
+ * The second screen, after the DS games: the minimap (START) at the
+ * bottom right (fe_compose, on the shadow core), with the windows the
+ * game puts in the corners of the map (the hovered unit, the terrain, the
+ * goal) taken off the game screen and kept in corners of their own
+ * (fe_find_pieces tells them apart wherever they are). (USA addresses.) */
+#define FE_PHASE 0x020253A8  /* the player phase's script position */
+#define FE_PHASE_MIN 0x08B93300 /* (on the map: within these) */
+#define FE_PHASE_MAX 0x08B93700
+#define FE_IDLE 0x08B933E4   /* the cursor free */
+#define FE_MINI 0x08B933C4   /* the minimap (and the map menu) */
+#define FE_FIGHT 0x08B93464  /* a fight */
+
+static uint32_t fe_phase(Emu* s) {
+	return emu_read32(s, FE_PHASE);
+}
+
+/* The minimap's box: BG0 (its units) and BG1 (the map) rendered alone,
+ * against nothing at all; it's an opaque box in the middle. */
+static bool fe_minimap(Emu* s, void* tmp, uint32_t* mm, int* mw, int* mh) {
+	static uint32_t none[GBA_W * GBA_H];
+	if (!emu_state_save(s, tmp)) return false;
+	emu_layers(s, 0);
+	emu_state_load(s, tmp);
+	emu_frame(s, 0);
+	memcpy(none, s->fb, sizeof(none));
+	emu_layers(s, 0x03);
+	emu_state_load(s, tmp);
+	emu_frame(s, 0);
+	int x0 = GBA_W, y0 = GBA_H, x1 = -1, y1 = -1;
+	for (int y = 0; y < GBA_H; ++y) {
+		for (int x = 0; x < GBA_W; ++x) {
+			if (s->fb[y * GBA_W + x] == none[y * GBA_W + x]) continue;
+			if (x < x0) x0 = x;
+			if (x > x1) x1 = x;
+			if (y < y0) y0 = y;
+			if (y > y1) y1 = y;
+		}
+	}
+	bool ok = x1 - x0 >= 15 && y1 - y0 >= 15 && abs(x0 + x1 - (GBA_W - 1)) <= 16 && abs(y0 + y1 - (GBA_H - 1)) <= 16;
+	if (ok) {
+		int filled = 0;
+		for (int y = y0; y <= y1; ++y) {
+			for (int x = x0; x <= x1; ++x) filled += s->fb[y * GBA_W + x] != none[y * GBA_W + x];
+		}
+		ok = filled * 100 >= (x1 - x0 + 1) * (y1 - y0 + 1) * 90;
+	}
+	if (ok) {
+		*mw = x1 - x0 + 1;
+		*mh = y1 - y0 + 1;
+		for (int y = 0; y < *mh; ++y) memcpy(&mm[y * *mw], &s->fb[(y0 + y) * GBA_W + x0], *mw * sizeof(uint32_t));
+	}
+	emu_layers(s, 0x1F);
+	emu_state_load(s, tmp);
+	return ok;
+}
+
+static const char* fe_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	static uint32_t mm[GBA_W * GBA_H];
+	int mw = 0, mh = 0;
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	uint32_t ph = fe_phase(s);
+	if (ph < FE_PHASE_MIN || ph >= FE_PHASE_MAX) return "not on the map";
+	/* B until the cursor's free (out of a move, a menu) */
+	for (int i = 0; i < 16 && fe_phase(s) != FE_IDLE; ++i) {
+		aw_tap(s, K_B, 1);
+		aw_run(s, 0, 8);
+	}
+	if (fe_phase(s) != FE_IDLE) return "the cursor isn't free";
+	aw_tap(s, K_START, 1);
+	int f = 0;
+	while (f < 40 && fe_phase(s) != FE_MINI) emu_frame(s, 0), ++f;
+	if (fe_phase(s) != FE_MINI) return "minimap did not open";
+	aw_run(s, 0, 24);
+	void* tmp = malloc(emu_state_size(s));
+	if (!tmp) return "out of memory";
+	bool ok = fe_minimap(s, tmp, mm, &mw, &mh);
+	free(tmp);
+	if (!ok) return "minimap did not open";
+	for (int i = 0; i < w * h; ++i) out[i] = MAP_BG_NAVY;
+	int mx = w - 4 - mw, my = h - 4 - mh;
+	if (mx < 0) mx = 0;
+	if (my < 0) my = 0;
+	for (int y = 0; y < mh && my + y < h; ++y) memcpy(&out[(my + y) * w + mx], &mm[y * mw], mw * sizeof(uint32_t));
+	return NULL;
+}
+
+/* The windows in the HUD picture (BG0 and BG1): groups of 8x8 cells with
+ * something in them, joined where they touch. The terrain's is narrow (and
+ * tall, with its dragon); of the wide ones the goal's is blue inside, the
+ * unit's pale. Moves: 0 the unit, 1 the terrain, 2 the goal. */
+static void fe_find_pieces(const uint32_t* hud, uint32_t clear, int box[4][4]) {
+	enum { CW = GBA_W / 8, CH = GBA_H / 8 };
+	static uint8_t cell[CH][CW];
+	static int stack[CW * CH];
+	for (int m = 0; m < 4; ++m) box[m][0] = box[m][1] = 0, box[m][2] = box[m][3] = -1;
+	int best[4] = { 0 };
+	for (int cy = 0; cy < CH; ++cy) {
+		for (int cx = 0; cx < CW; ++cx) {
+			bool any = false;
+			for (int y = cy * 8; y < cy * 8 + 8 && !any; ++y) {
+				for (int x = cx * 8; x < cx * 8 + 8; ++x) {
+					if ((hud[y * GBA_W + x] & 0xFFFFFF) != clear) {
+						any = true;
+						break;
+					}
+				}
+			}
+			cell[cy][cx] = any;
+		}
+	}
+	for (int cy = 0; cy < CH; ++cy) {
+		for (int cx = 0; cx < CW; ++cx) {
+			if (cell[cy][cx] != 1) continue;
+			/* this group: its cells (marked 2) and box, in cells */
+			int n = 0, gx0 = cx, gy0 = cy, gx1 = cx, gy1 = cy, cells = 0;
+			stack[n++] = cy * CW + cx;
+			cell[cy][cx] = 2;
+			while (n) {
+				int c = stack[--n], x = c % CW, y = c / CW;
+				++cells;
+				gx0 = x < gx0 ? x : gx0, gx1 = x > gx1 ? x : gx1, gy0 = y < gy0 ? y : gy0, gy1 = y > gy1 ? y : gy1;
+				static const int d[4][2] = { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } };
+				for (int k = 0; k < 4; ++k) {
+					int nx = x + d[k][0], ny = y + d[k][1];
+					if (nx < 0 || ny < 0 || nx >= CW || ny >= CH || cell[ny][nx] != 1) continue;
+					cell[ny][nx] = 2;
+					stack[n++] = ny * CW + nx;
+				}
+			}
+			if (cells < 6) continue; /* a stray bit */
+			int x0 = gx0 * 8, y0 = gy0 * 8, x1 = gx1 * 8 + 7, y1 = gy1 * 8 + 7;
+			int which;
+			if (x1 - x0 + 1 < 64) {
+				which = 1;
+			} else {
+				int blue = 0, total = 0;
+				for (int y = y0; y <= y1; ++y) {
+					for (int x = x0; x <= x1; ++x) {
+						uint32_t c = hud[y * GBA_W + x];
+						if ((c & 0xFFFFFF) == clear) continue;
+						int r = c & 0xFF, g = (c >> 8) & 0xFF, b = (c >> 16) & 0xFF;
+						blue += b > r + 40 && b > g + 20;
+						++total;
+					}
+				}
+				which = blue * 4 > total ? 2 : 0;
+			}
+			if (cells <= best[which]) continue;
+			best[which] = cells;
+			box[which][0] = x0, box[which][1] = y0, box[which][2] = x1, box[which][3] = y1;
+		}
+	}
+	/* (cells left at 2: cleared on the next call) */
+	for (int cy = 0; cy < CH; ++cy) {
+		for (int cx = 0; cx < CW; ++cx) cell[cy][cx] = 0;
+	}
 }
 
 static const MapProfile profiles[] = {
@@ -837,8 +999,40 @@ static const MapProfile profiles[] = {
 		.logoOnly = true,
 	},
 	{
-		/* USA, Europe (En/Fr/De: AE7X; En/Es/It: AE7Y), Japan (Rekka no Ken) */
-		.codes = { "AE7E", "AE7X", "AE7Y", "AE7J" },
+		/* USA: the second screen is the minimap (fe_compose) with the map's
+		 * windows moved onto it (fe_find_pieces) */
+		.codes = { "AE7E" },
+		.title = "Fire Emblem",
+		.compose = fe_compose,
+		.crop_w = 320, /* 3x on 1024x768, 2x on 640x480 */
+		.crop_h = 240,
+		.live = { { FE_PHASE, 0xFFFFFFFF, FE_PHASE_MIN, 4, true, FE_PHASE_MAX, true } },
+		/* the windows (BG0 text over BG1 boxes), moved wherever the game
+		 * puts them: the unit's at the top left, the terrain's at the top
+		 * right, the goal at the bottom left; kept while they're hidden
+		 * (a unit selected, menus, talk, fights) */
+		.hud = {
+			.on = { { FE_PHASE, 0xFFFFFFFF, FE_PHASE_MIN, 4, true, FE_PHASE_MAX, true }, { FE_PHASE, 0xFFFFFFFF, FE_IDLE, 4 } },
+			.bgMask = 0x3,
+			/* and the unit's HP figures, sprites (tiles 728-740, palette 8) */
+			.objs = { { -64, -32, 239, 159, 720, 760, 0, 1u << 8 } },
+			.moves = { { 0, 0, 0, 0, 'L', 4, 'T', 4, .settle = 4 }, { 0, 0, 0, 0, 'R', 315, 'T', 4, .settle = 4 },
+			           { 0, 0, 0, 0, 'L', 4, 'B', 235, .settle = 4 } },
+			.findPieces = fe_find_pieces,
+			.overMap = true,
+			.mapClear = MAP_BG_NAVY,
+			/* the boxes are see-through (BG1 blended over the map): opaque there */
+			.gameReg = { 0x50, 0x0002 },
+		},
+		.combat = { { FE_PHASE, 0xFFFFFFFF, FE_FIGHT, 4 } },
+		/* the title's lettering and sword (sprites), its shadow (BG1)
+		 * and axe (BG2), not the copyright line */
+		.logo = { .wait = 300, .pressStart = true, .wait2 = 64, .layers = 0x16, .maxY = 140 },
+	},
+	{
+		/* Europe (En/Fr/De: AE7X; En/Es/It: AE7Y), Japan (Rekka no Ken):
+		 * no ROMs tried yet */
+		.codes = { "AE7X", "AE7Y", "AE7J" },
 		.title = "Fire Emblem",
 		.logoOnly = true,
 	},
@@ -878,6 +1072,8 @@ static const MapProfile profiles[] = {
 			.mapClear = AW_BG,
 			.gameReg = { 0x48, 0x0020 },
 		},
+		/* a fight: both windows on */
+		.combat = { { AW_ARMY, 0xFF, 1, 1, true, 4, true }, { 0x04000000, 0x4000, 0x4000, 2 } },
 		.live = { { AW_ARMY, 0xFF, 1, 1, true, 4, true } },
 		.menu = { { AW_ARMY, 0xFF, 0, 1 }, { 0x03004464, 0xFFFFFFFF, 0, 4 } },
 		.room = { { AW_CURSOR, 0xFFFF, 0, 2 } },
