@@ -242,8 +242,7 @@ typedef struct {
 	int w, h;
 	uint32_t px[GBA_W * GBA_H];
 	uint32_t key;
-	uint32_t cand[GBA_W * GBA_H];
-	int cw, ch, still;
+	int cw, ch, cx, cy, still; /* a latched piece's size and place, and for how long */
 	bool stale; /* a state was loaded: taken again (latched or not) as soon as it holds still */
 	int sx, sy; /* where it was on the game screen (its top left) */
 } Piece;
@@ -1305,13 +1304,14 @@ static bool hud_take_pieces(const typeof(hudProf->hud)* h) {
 		}
 		size_t n = (size_t) w * hh * 4;
 		if (mv->latch) {
-			/* only for a new value, once it's held still for 8 frames */
+			/* only for a new value, once it's held still for 8 frames (in
+			 * the same place, the same size: it may animate, as the CO
+			 * power meter does when it's full) */
 			uint32_t key = emu_read8(&emu, mv->latch);
 			if (pc->valid && key == pc->key && !pc->stale) continue;
-			bool same = pc->cw == w && pc->ch == hh && !memcmp(pc->cand, cut, n);
+			bool same = pc->cw == w && pc->ch == hh && pc->cx == lo && pc->cy == top;
 			pc->still = same ? pc->still + 1 : 0;
-			pc->cw = w, pc->ch = hh;
-			memcpy(pc->cand, cut, n);
+			pc->cw = w, pc->ch = hh, pc->cx = lo, pc->cy = top;
 			if (pc->still < 8) continue;
 			pc->key = key;
 		} else if (pc->valid && pc->w == w && pc->h == hh && !memcmp(pc->px, cut, n)) {

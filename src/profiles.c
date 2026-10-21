@@ -853,8 +853,9 @@ static const MapProfile profiles[] = {
 			.objs = { { -64, -32, 239, 40, 0, 63, 0, AW_PALS(1) | AW_PALS(7) | AW_PALS(14) }, { -64, -32, 239, 40, 940, 1023, 0, AW_PALS(1) },
 			          { -64, 88, 239, 159, 280, 360, 0, AW_PALS(1) | AW_PALS(2) | AW_PALS(6) | AW_PALS(15) },
 			          { -64, 88, 239, 159, 940, 1023, 0, AW_PALS(1) },
-			          /* the DAMAGE box over the info while picking a target */
-			          { -64, 56, 239, 103, 300, 320, 0, 1u << 1 } },
+			          /* the DAMAGE box over the info while picking a target (its digits
+			           * are tiles 295-313, 0 to 9; % and the box 315-319) */
+			          { -64, 56, 239, 103, 288, 320, 0, 1u << 1 } },
 			/* the plate at the bottom in the middle, the info at the
 			 * bottom right on a grey box; 4 pixels up, as the minimap */
 			/* (the plate: taken again only when the turn passes) */
