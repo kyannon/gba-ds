@@ -311,12 +311,14 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 	free(tmp);
 	if (err) return err;
 	for (int i = 0; i < w * h; ++i) out[i] = AW_BG;
-	/* the panel at the top, the minimap at the bottom in the middle, over
-	 * the panel if they meet */
-	int px = (w - GBA_W) / 2;
-	for (int y = 0; y < rows && y < h; ++y) memcpy(&out[y * w + px], &pan[y * GBA_W], GBA_W * sizeof(uint32_t));
-	int my = h - 4 - mh, mx = (w - mw) / 2;
+	/* the panel at the top, the minimap centred in the space below it (over
+	 * the panel's foot if it's too tall for that) */
+	int px = (w - GBA_W) / 2, py = 4;
+	for (int y = 0; y < rows && py + y < h; ++y) memcpy(&out[(py + y) * w + px], &pan[y * GBA_W], GBA_W * sizeof(uint32_t));
+	int top = py + rows + 4, room = h - 4 - top;
+	int my = mh <= room ? top + (room - mh) / 2 : h - 4 - mh;
 	if (my < 0) my = 0;
+	int mx = (w - mw) / 2;
 	for (int y = 0; y < mh && my + y < h; ++y) memcpy(&out[(my + y) * w + mx], &mm[y * mw], mw * sizeof(uint32_t));
 	return NULL;
 }
@@ -780,8 +782,21 @@ static const MapProfile profiles[] = {
 		.codes = { "AWRE" },
 		.title = "Advance Wars",
 		.compose = aw_compose,
-		.crop_w = 256, /* 4x on 1024x768, as the game screen */
-		.crop_h = 192,
+		.crop_w = 320, /* 3x on 1024x768, 2x on 640x480 */
+		.crop_h = 240,
+		/* the CO / day plate (top, either side) and the terrain and unit
+		 * info (bottom right) go to the second screen's bottom left and
+		 * bottom right, under the panels; the darkened box behind the
+		 * info (window 0's effect) is left off the game screen */
+		.hud = {
+			.on = { { AW_ARMY, 0xFF, 1, 1, true, 4, true }, { 0x04000000, 0x2000, 0x2000, 2 } },
+			.objs = { { -64, -32, 239, 40, 0, 63, 0 }, { -64, -32, 239, 40, 940, 1023, 0 },
+			          { -64, 88, 239, 159, 280, 360, 0 }, { -64, 88, 239, 159, 940, 1023, 0 } },
+			.moves = { { 0, 0, 239, 47, 'L', 4, 'B', 235 }, { 0, 80, 239, 159, 'R', 315, 'B', 235 } },
+			.overMap = true,
+			.mapClear = AW_BG,
+			.gameReg = { 0x48, 0x0020 },
+		},
 		.live = { { AW_ARMY, 0xFF, 1, 1, true, 4, true } },
 		.menu = { { AW_ARMY, 0xFF, 0, 1 }, { 0x03004464, 0xFFFFFFFF, 0, 4 } },
 		.room = { { AW_CURSOR, 0xFFFF, 0, 2 } },

@@ -118,6 +118,11 @@ void emu_hud_by_priority(int prioBelow);
 /* While split by priority: these BG layers (bit 0 = BG0) stay out of the
  * HUD whatever their priority (from the next frame). */
 void emu_hud_keep_bgs(unsigned mask);
+/* While split: both renderers see these bits of the video register at
+ * addr (offset from 0x04000000) cleared, the game's register untouched
+ * (Advance Wars: WININ's window 0 effects, the darkened box behind the
+ * terrain info, which moves to the second screen). bits 0: none. */
+void emu_hud_game_reg(uint32_t addr, uint16_t bits);
 /* An I/O register as last written (also the write-only ones: MOSAIC). */
 uint16_t emu_io16(Emu* e, uint32_t offset);
 /* VRAM (96 KB), for reading tile maps. */

@@ -231,6 +231,10 @@ static bool hudAlt; /* the HUD on its other layer (hud.alt: SMA2's boss rooms) *
 static uint32_t hudLogoBack[HUD_CW * HUD_CH];
 static bool hudLogoDone;
 static bool hudShown; /* the second screen shows the HUD picture (hudTex) */
+/* profile hud.overMap: this frame's HUD is drawn into the map picture;
+ * the map picture needs uploading again (the HUD changed) */
+static bool overOn, overDirty;
+static void upload_map_frame(int idx);
 static uint32_t hudLogoBelow[HUD_CW * HUD_CH]; /* profile hud.logoBelow: black, the logo at half size */
 static bool hudLogoBelowDone;
 static int snapShow, snapRevert;   /* consecutive frames matching show / a revert screen */
@@ -1272,7 +1276,18 @@ static void update_hud(void) {
 		else if (h->world.mapCnt && cnt == h->world.mapCnt) mapBg = i, world = true;
 	}
 	if (h->mapCnt && mapBg < 0) race = false;
-	if (hudOn && race) {
+	if (h->overMap) {
+		/* into the map picture: again when the HUD changes, and once
+		 * without it as it goes */
+		static uint32_t last[GBA_W * GBA_H];
+		bool on = hudOn && race;
+		if (on != overOn || (on && memcmp(last, hudPx, sizeof(last)))) {
+			if (on) memcpy(last, hudPx, sizeof(last));
+			overOn = on;
+			overDirty = true;
+			if (mapShownIdx >= 0) upload_map_frame(mapShownIdx);
+		}
+	} else if (hudOn && race) {
 		if (emu_hud_grabbed()) hud_make_backdrop(); /* (that frame drew no HUD: the last one is reused) */
 		hud_compose();
 		for (int i = 0; i < nViews; ++i) ui_update_texture(hudTex[i], hudCanvas, HUD_CW * 4);
@@ -1642,9 +1657,52 @@ static const uint32_t* map_px(int idx) {
 	return idx == STILL_IDX ? (stillValid ? stillPx : NULL) : mapRes.frames[idx];
 }
 
+/* Profile hud.overMap: the map picture with this frame's HUD pieces in it
+ * (where the picture has the profile's mapClear colour). */
+static const uint32_t* hud_over_map(const uint32_t* px) {
+	static uint32_t* over;
+	static int overSize;
+	if (!overOn || !hudProf) return px;
+	const typeof(hudProf->hud)* h = &hudProf->hud;
+	if (overSize != mapW * mapH) {
+		free(over);
+		over = malloc((size_t) mapW * mapH * 4);
+		overSize = over ? mapW * mapH : 0;
+		if (!over) return px;
+	}
+	memcpy(over, px, (size_t) mapW * mapH * 4);
+	uint32_t clear = emu_hud_clear(), mc = h->mapClear & 0xFFFFFF;
+	for (int m = 0; m < 4; ++m) {
+		const HudMove* mv = &h->moves[m];
+		if (!mv->how && !mv->vhow) continue;
+		int lo = GBA_W, hi = -1, top = GBA_H, bot = -1;
+		for (int y = SDL_max(mv->y0, 0); y <= SDL_min(mv->y1, GBA_H - 1); ++y) {
+			for (int x = SDL_max(mv->x0, 0); x <= SDL_min(mv->x1, GBA_W - 1); ++x) {
+				if ((hudPx[y * GBA_W + x] & 0xFFFFFF) == clear) continue;
+				lo = SDL_min(lo, x), hi = SDL_max(hi, x), top = SDL_min(top, y), bot = SDL_max(bot, y);
+			}
+		}
+		if (hi < 0) continue;
+		int dx = mv->how == 'C' ? mv->x - (lo + hi) / 2 : mv->how == 'R' ? mv->x - hi : mv->how == 'L' ? mv->x - lo : 0;
+		int dy = mv->vhow == 'M' ? mv->y - (top + bot) / 2 : mv->vhow == 'B' ? mv->y - bot : mv->vhow == 'T' ? mv->y - top : 0;
+		for (int y = top; y <= bot; ++y) {
+			for (int x = lo; x <= hi; ++x) {
+				uint32_t c = hudPx[y * GBA_W + x];
+				int nx = x + dx, ny = y + dy;
+				if ((c & 0xFFFFFF) == clear || nx < 0 || ny < 0 || nx >= mapW || ny >= mapH) continue;
+				uint32_t* o = &over[ny * mapW + nx];
+				if ((*o & 0xFFFFFF) == mc) *o = c | 0xFF000000;
+			}
+		}
+	}
+	return over;
+}
+
 static void upload_map_frame(int idx) {
 	const uint32_t* px = map_px(idx);
-	if (idx == mapShownIdx || !px) return;
+	if ((idx == mapShownIdx && !overDirty) || !px) return;
+	overDirty = false;
+	px = hud_over_map(px);
 	for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], px, mapW * 4);
 	mapShownIdx = idx;
 	canvasDirty = true;
@@ -2294,6 +2352,8 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		snapProf = logoOnly && lp->snap.showMin ? lp : NULL;
 		/* the HUD moves only when there's another screen to put it on */
 		hudProf = lp && lp->hud.on[0].addr && nScreens > 1 ? lp : NULL;
+		emu_hud_game_reg(hudProf ? hudProf->hud.gameReg.addr : 0, hudProf ? hudProf->hud.gameReg.bits : 0);
+		overOn = false;
 		if (hudProf) {
 			/* the sprites that move; tagged ones only if the tags go in */
 			memcpy(hudObjs, hudProf->hud.objs, sizeof(hudObjs));

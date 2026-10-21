@@ -510,6 +510,9 @@ typedef struct {
 	void (*reset)(struct GBAVideoRenderer*);
 } Split;
 static Split split;
+/* emu_hud_game_reg (kept across installs) */
+static uint32_t gameRegAddr;
+static uint16_t gameRegBits;
 
 static void filtered_draw_scanline(struct GBAVideoRenderer* renderer, int y);
 
@@ -520,8 +523,15 @@ static uint16_t hud_reg(uint32_t a, uint16_t v) {
 	return a == 0x50 ? v & ~0x0020 : v;
 }
 static uint16_t split_reg(struct GBAVideoRenderer* r, uint32_t a, uint16_t v) {
-	uint16_t out = split.writeVideoRegister(r, a, v);
-	split.hud.d.writeVideoRegister(&split.hud.d, a, hud_reg(a, v));
+	uint16_t out;
+	if (split.active && gameRegBits && a == gameRegAddr) {
+		/* both renderers without those bits; the register keeps them */
+		out = split.writeVideoRegister(r, a, v & ~gameRegBits) | (v & gameRegBits);
+		split.hud.d.writeVideoRegister(&split.hud.d, a, hud_reg(a, v & ~gameRegBits));
+	} else {
+		out = split.writeVideoRegister(r, a, v);
+		split.hud.d.writeVideoRegister(&split.hud.d, a, hud_reg(a, v));
+	}
 	return out;
 }
 static void split_vram(struct GBAVideoRenderer* r, uint32_t a) {
@@ -673,7 +683,18 @@ bool emu_hud_split(Emu* e, bool on, unsigned bgMask, const SpriteRule* objs, int
 	for (int i = 0; i < 4; ++i) r->disableBG[i] = on && ((bgMask >> i) & 1);
 	emu_hide_sprites(e, on ? split.objs : NULL, on ? split.nObjs : 0);
 	split.active = on;
+	if (gameRegBits) {
+		/* the register as it is now, with or without those bits */
+		uint16_t v = gba->memory.io[gameRegAddr >> 1];
+		split.writeVideoRegister(r, gameRegAddr, on ? v & ~gameRegBits : v);
+		split.hud.d.writeVideoRegister(&split.hud.d, gameRegAddr, hud_reg(gameRegAddr, on ? v & ~gameRegBits : v));
+	}
 	return true;
+}
+
+void emu_hud_game_reg(uint32_t addr, uint16_t bits) {
+	gameRegAddr = addr;
+	gameRegBits = bits;
 }
 
 uint32_t emu_hud_clear(void) {

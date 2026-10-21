@@ -245,6 +245,16 @@ typedef struct MapProfile {
 		} world;
 		bool backdropGrey;
 		SpriteRule backdropHide[2]; /* sprites left out of that still (rendered again) */
+		/* The HUD goes into the map picture instead of a screen of its own
+		 * (Advance Wars): `moves` place its pieces in the map picture's
+		 * coordinates, drawn only over pixels of colour mapClear
+		 * (framebuffer order, alpha ignored), so the capture's panels stay
+		 * on top of them. */
+		bool overMap;
+		uint32_t mapClear;
+		/* register bits the renderers go without while it's on
+		 * (emu_hud_game_reg) */
+		struct { uint32_t addr; uint16_t bits; } gameReg;
 	} hud;
 
 	/* Title-screen logo, pulled out of the running game: boot, wait, optionally

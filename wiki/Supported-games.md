@@ -92,6 +92,7 @@ The HUD is moved off the game screen rather than copied: GBA DS draws each frame
 Preliminary, the USA release only for now (the European release is listed, with its name on the second screen).
 
 - **In a battle, on your turn,** the second screen is laid out after Advance Wars: Dual Strike's: the game's **Unit** list with the unit under the cursor highlighted when it's one of yours (it stays highlighted while you move it and pick its action), or else the **Battle Intel** (bases and funds). Below it, the **minimap** from the START button. All of it is brought up in the background from the menus of a silent copy of the game, as the other games' maps are; your game is never paused.
+- The **CO and day plate** and the **terrain and unit info** move from the game screen to the second screen's bottom left and bottom right, so they no longer cover the map; the panels are drawn over them where they meet.
 - On the enemy's turn and in battle animations the last picture stays up. On the title and menus, the second screen shows the logo.
 
 ## Coming soon
