@@ -103,6 +103,9 @@ static const uint8_t ffta_tag_jp[212] = {
 #define AW_UNITS 0x02019F34  /* + 0x300 * (army - 1) + 12 * id (1-64): type, -, x, y, ... */
 #define AW_LIST_ROW 0x03000E2F
 #define AW_LIST_ORDER 0x0201FD38 /* unit ids in list order, 0xFF after the last */
+#define AW_PULSE_PAL 0x050003DE /* the list's highlight colour */
+#define AW_PULSE_BUF 0x030022CE /* the game's copy, put in the palette each frame */
+#define AW_PULSE_DARK 0x2A1C    /* its darkest (it pulses up to 0x739F and back) */
 #define AW_BG 0xFF382418         /* behind the panels: dark navy (bytes R, G, B) */
 
 static void aw_run(Emu* s, uint32_t keys, int n) {
@@ -110,9 +113,10 @@ static void aw_run(Emu* s, uint32_t keys, int n) {
 }
 
 static void aw_tap(Emu* s, uint32_t keys, int n) {
+	/* the quickest the game takes presses reliably */
 	for (int i = 0; i < n; ++i) {
-		aw_run(s, keys, 3);
-		aw_run(s, 0, 9);
+		aw_run(s, keys, 2);
+		aw_run(s, 0, 4);
 	}
 }
 
@@ -213,7 +217,7 @@ static int aw_cursor_unit(Emu* s, int army) {
 /* The panel now on screen without the battle map around it: rendered
  * again with BG0 and BG2 (menus and text) and the sprites, less the
  * priority-3 ones (the map's buildings); what that leaves empty is AW_BG. */
-static void aw_clean(Emu* s, void* tmp, uint32_t* pan) {
+static void aw_clean(Emu* s, void* tmp, uint32_t* pan, bool list) {
 	static uint32_t none[GBA_W * GBA_H];
 	static const SpriteRule mapObjs = { -512, -256, 511, 255, 0, 1023, 3, 0, 0 };
 	if (!emu_state_save(s, tmp)) {
@@ -227,6 +231,12 @@ static void aw_clean(Emu* s, void* tmp, uint32_t* pan) {
 	emu_layers(s, 0x15);
 	emu_hide_sprites(s, &mapObjs, 1);
 	emu_state_load(s, tmp);
+	if (list) {
+		/* the highlighted row's pulsing colour (OBJ palette 14, colour 15),
+		 * at its darkest: in the palette and the game's copy of it */
+		emu_write16(s, AW_PULSE_PAL, AW_PULSE_DARK);
+		emu_write16(s, AW_PULSE_BUF, AW_PULSE_DARK);
+	}
 	emu_frame(s, 0);
 	for (int i = 0; i < GBA_W * GBA_H; ++i) pan[i] = s->fb[i] == none[i] ? AW_BG : s->fb[i];
 	emu_hide_sprites(s, NULL, 0);
@@ -273,24 +283,40 @@ static const char* aw_panel(Emu* s, const void* state, int* rows) {
 }
 
 static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
-	static uint32_t mm[GBA_W * GBA_H];
-	int mw = 0, mh = 0, rows = 0;
+	/* the minimap, kept until the units change (it shows them, and their
+	 * captures change the buildings' colours) or every 8th picture */
+	static uint32_t mm[GBA_W * GBA_H], mmKey;
+	static int mw, mh, mmAge;
+	static uint32_t pan[GBA_W * GBA_H];
+	int rows = 0;
+	if (!emu_state_load(s, state)) return "state load failed";
+	uint32_t key = 2166136261u;
+	for (uint32_t a = AW_UNITS; a < AW_UNITS + 4 * 0x300; a += 4) key = (key ^ emu_read32(s, a)) * 16777619u;
+	key = (key ^ emu_read8(s, AW_ARMY)) * 16777619u;
 	void* tmp = malloc(emu_state_size(s));
 	if (!tmp) return "out of memory";
-	static uint32_t pan[GBA_W * GBA_H];
-	const char* err = aw_minimap(s, state, tmp, mm, &mw, &mh) ? aw_panel(s, state, &rows) : "minimap did not open";
-	if (!err) aw_clean(s, tmp, pan);
+	const char* err = NULL;
+	if (!mw || key != mmKey || ++mmAge >= 8) {
+		mw = mh = 0;
+		if (aw_minimap(s, state, tmp, mm, &mw, &mh)) {
+			mmKey = key;
+			mmAge = 0;
+		} else {
+			mw = mh = 0;
+			err = "minimap did not open";
+		}
+	}
+	if (!err) err = aw_panel(s, state, &rows);
+	if (!err) aw_clean(s, tmp, pan, rows == GBA_H);
 	free(tmp);
 	if (err) return err;
 	for (int i = 0; i < w * h; ++i) out[i] = AW_BG;
-	/* the panel at the top, the minimap centred in the space below it (over
-	 * the panel's foot if it's too tall for that) */
-	int px = (w - GBA_W) / 2, py = 4;
-	for (int y = 0; y < rows && py + y < h; ++y) memcpy(&out[(py + y) * w + px], &pan[y * GBA_W], GBA_W * sizeof(uint32_t));
-	int top = py + rows + 4, room = h - 4 - top;
-	int my = mh <= room ? top + (room - mh) / 2 : h - 4 - mh;
+	/* the panel at the top, the minimap at the bottom in the middle, over
+	 * the panel if they meet */
+	int px = (w - GBA_W) / 2;
+	for (int y = 0; y < rows && y < h; ++y) memcpy(&out[y * w + px], &pan[y * GBA_W], GBA_W * sizeof(uint32_t));
+	int my = h - 4 - mh, mx = (w - mw) / 2;
 	if (my < 0) my = 0;
-	int mx = (w - mw) / 2;
 	for (int y = 0; y < mh && my + y < h; ++y) memcpy(&out[(my + y) * w + mx], &mm[y * mw], mw * sizeof(uint32_t));
 	return NULL;
 }
@@ -754,8 +780,8 @@ static const MapProfile profiles[] = {
 		.codes = { "AWRE" },
 		.title = "Advance Wars",
 		.compose = aw_compose,
-		.crop_w = 320, /* 3x on 1024x768, 2x on 640x480 */
-		.crop_h = 240,
+		.crop_w = 256, /* 4x on 1024x768, as the game screen */
+		.crop_h = 192,
 		.live = { { AW_ARMY, 0xFF, 1, 1, true, 4, true } },
 		.menu = { { AW_ARMY, 0xFF, 0, 1 }, { 0x03004464, 0xFFFFFFFF, 0, 4 } },
 		.room = { { AW_CURSOR, 0xFFFF, 0, 2 } },
