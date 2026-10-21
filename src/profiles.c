@@ -396,6 +396,9 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
  * game puts in the corners of the map (the hovered unit, the terrain, the
  * goal) taken off the game screen and kept in corners of their own
  * (fe_find_pieces tells them apart wherever they are). (USA addresses.) */
+#define FE_CHAPTER 0x0202BBF8 /* the chapter's data: 0 off the map (its play time) */
+#define FE_IN_CHAPTER { FE_CHAPTER, 0xFFFFFFFF, 1, 4, true, 0xFFFFFFFF, true }
+#define FE_TURN 0x0202BC07   /* whose turn: 0 yours, 0x40 other, 0x80 the enemy's */
 #define FE_PHASE 0x020253A8  /* the player phase's script position */
 #define FE_PHASE_MIN 0x08B93300 /* (on the map: within these) */
 #define FE_PHASE_MAX 0x08B93700
@@ -1006,25 +1009,30 @@ static const MapProfile profiles[] = {
 		.compose = fe_compose,
 		.crop_w = 320, /* 3x on 1024x768, 2x on 640x480 */
 		.crop_h = 240,
-		.live = { { FE_PHASE, 0xFFFFFFFF, FE_PHASE_MIN, 4, true, FE_PHASE_MAX, true } },
+		.live = { FE_IN_CHAPTER, { FE_TURN, 0xFF, 0, 1 } },
+		.menu = { { FE_CHAPTER, 0xFFFFFFFF, 0, 4 } },
 		/* the windows (BG0 text over BG1 boxes), moved wherever the game
 		 * puts them: the unit's at the top left, the terrain's at the top
 		 * right, the goal at the bottom left; kept while they're hidden
 		 * (a unit selected, menus, talk, fights) */
 		.hud = {
-			.on = { { FE_PHASE, 0xFFFFFFFF, FE_PHASE_MIN, 4, true, FE_PHASE_MAX, true }, { FE_PHASE, 0xFFFFFFFF, FE_IDLE, 4 } },
+			.on = { FE_IN_CHAPTER, { FE_PHASE, 0xFFFFFFFF, FE_IDLE, 4 } },
 			.bgMask = 0x3,
 			/* and the unit's HP figures, sprites (tiles 728-740, palette 8) */
 			.objs = { { -64, -32, 239, 159, 720, 760, 0, 1u << 8 } },
-			.moves = { { 0, 0, 0, 0, 'L', 4, 'T', 4, .settle = 4 }, { 0, 0, 0, 0, 'R', 315, 'T', 4, .settle = 4 },
+			/* (the unit's goes when the cursor's on an empty place) */
+			.moves = { { 0, 0, 0, 0, 'L', 4, 'T', 4, .settle = 4, .dropAfter = 4 }, { 0, 0, 0, 0, 'R', 315, 'T', 4, .settle = 4 },
 			           { 0, 0, 0, 0, 'L', 4, 'B', 235, .settle = 4 } },
 			.findPieces = fe_find_pieces,
 			.overMap = true,
 			.mapClear = MAP_BG_NAVY,
 			/* the boxes are see-through (BG1 blended over the map): opaque there */
 			.gameReg = { 0x50, 0x0002 },
+			.logoUnder = true,
 		},
+		/* fights, and the other armies' turns: the logo alone */
 		.combat = { { FE_PHASE, 0xFFFFFFFF, FE_FIGHT, 4 } },
+		.combatOr = { FE_IN_CHAPTER, { FE_TURN, 0xFF, 0x40, 1, true, 0xFF, true } },
 		/* the title's lettering and sword (sprites), its shadow (BG1)
 		 * and axe (BG2), not the copyright line */
 		.logo = { .wait = 300, .pressStart = true, .wait2 = 64, .layers = 0x16, .maxY = 140 },

@@ -3,7 +3,7 @@
 ## v1.2.2 (not yet released)
 - **Four more games in the list, second screens to come:** Tactics Ogre: The Knight of Lodis, Fire Emblem, Advance Wars and Mega Man Battle Network (with their regional releases). Until their second screens are ready, the second screen shows the game's name.
 - **Advance Wars (USA), preliminary:** in battles, the second screen shows the game's unit list, with the unit under the cursor highlighted (it stays while you move it), or the battle intel when the cursor isn't on one of your units, with the minimap, the CO and day plate and the terrain and unit info along the bottom (the plate and the info move off the game screen). The logo is taken from the title screen.
-- **Fire Emblem (USA), preliminary:** on the map, the windows for the unit under the cursor, the terrain and the goal move off the game screen to fixed corners of the second screen, with the minimap at the bottom right; they stay put while a unit is selected, in menus and in conversations. The logo is taken from the title screen.
+- **Fire Emblem (USA), preliminary:** on the map, the windows for the unit under the cursor, the terrain and the goal move off the game screen to fixed corners of the second screen, with the minimap at the bottom right; they stay put while a unit is selected, in menus and in conversations (the unit's goes when the cursor is on an empty place), over the game's logo, small and dimmed. On the other armies' turns the second screen shows the logo alone. The logo is taken from the title screen.
 - **Advance Wars and Fire Emblem:** during a fight, the second screen shows the game's logo, small and dimmed, on the dark background.
 
 ## v1.2.1 (2026-10-19)

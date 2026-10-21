@@ -102,8 +102,9 @@ Preliminary, the USA release only for now (the European release is listed, with 
 Preliminary, the USA release only for now (the European and Japanese releases are listed, with the name on the second screen).
 
 - **On the map,** the windows the game puts in the corners (whichever corners the cursor leaves free) move to fixed places on the second screen: the **unit** under the cursor at the top left, the **terrain** at the top right, the **goal** and enemies left at the bottom left. The **minimap** from the START button is at the bottom right, brought up in the background in a silent copy of the game.
-- While a unit is selected, in menus and in conversations, the second screen keeps what it showed.
-- **In a fight,** the second screen is the dark background with the game's logo, small and dimmed, in the middle.
+- The unit window goes when the cursor is on an empty place. While a unit is selected, in menus and in conversations, the second screen keeps what it showed.
+- The game's logo, small and dimmed, is always in the middle of the second screen, behind the windows.
+- **In a fight and on the other armies' turns,** the second screen is the dark background with the logo alone.
 
 ## Coming soon
 

@@ -188,6 +188,8 @@ static SDL_Texture* mapTex[2];
 static const MapProfile* combatProf;
 static SDL_Texture* combatTex[2];
 static bool combatOn, combatMade;
+static uint32_t* combatPx; /* its pixels */
+static bool combatInGame; /* (hud.logoUnder) the HUD's first probe matches: in a chapter */
 static SDL_Texture* hudTex[2]; /* the HUD's second screen (HUD_CW x HUD_CH) */
 static SDL_Texture* logoTex[2];
 /* the logo centred in a GBA-sized picture, so it's scaled (and gridded)
@@ -249,11 +251,13 @@ typedef struct {
 	uint32_t key;
 	int cw, ch, cx, cy, still; /* a latched piece's size and place (a settling one's size), and for how long */
 	uint32_t cand[GBA_W * GBA_H]; /* a settling piece's pixels */
+	int gone; /* frames missing while the HUD's on (HudMove.dropAfter) */
 	bool stale; /* a state was loaded: taken again (latched or not) as soon as it holds still */
 	int sx, sy; /* where it was on the game screen (its top left) */
 } Piece;
 static Piece pieces[4];
 static void upload_map_frame(int idx);
+static void make_combat_canvas(void);
 static uint32_t hudLogoBelow[HUD_CW * HUD_CH]; /* profile hud.logoBelow: black, the logo at half size */
 static bool hudLogoBelowDone;
 static int snapShow, snapRevert;   /* consecutive frames matching show / a revert screen */
@@ -1300,9 +1304,11 @@ static bool hud_take_pieces(const typeof(hudProf->hud)* h) {
 			 * when that one is there without it) */
 			if (mv->follow && pc->valid && seen[mv->follow - 1]) pc->valid = false, changed = true;
 			if (mv->settle) pc->still = 0;
+			if (mv->dropAfter && pc->valid && ++pc->gone >= mv->dropAfter) pc->valid = false, changed = true;
 			continue;
 		}
 		seen[m] = true;
+		pc->gone = 0;
 		if (!mv->latch && (pc->sx != lo || pc->sy != top)) changed = true; /* (its followers move) */
 		if (!mv->latch) pc->sx = lo, pc->sy = top;
 		static uint32_t cut[GBA_W * GBA_H];
@@ -1756,8 +1762,9 @@ static const uint32_t* map_px(int idx) {
 static const uint32_t* hud_over_map(const uint32_t* px) {
 	static uint32_t* over;
 	static int overSize;
-	if (!overOn || !hudProf) return px;
+	if (!hudProf || (!overOn && !hudProf->hud.logoUnder)) return px;
 	const typeof(hudProf->hud)* h = &hudProf->hud;
+	if (h->logoUnder && combatProf && !combatMade) make_combat_canvas();
 	if (overSize != mapW * mapH) {
 		free(over);
 		over = malloc((size_t) mapW * mapH * 4);
@@ -1801,6 +1808,12 @@ static const uint32_t* hud_over_map(const uint32_t* px) {
 				uint32_t* o = &over[ny * mapW + nx];
 				if (mv->follow || (*o & 0xFFFFFF) == mc || (*o & 0xFFFFFF) == bc) *o = c;
 			}
+		}
+	}
+	if (h->logoUnder && combatPx) {
+		/* the logo behind: where nothing else is: last */
+		for (int i = 0; i < mapW * mapH; ++i) {
+			if ((over[i] & 0xFFFFFF) == mc) over[i] = combatPx[i];
 		}
 	}
 	return over;
@@ -2212,7 +2225,8 @@ static void make_combat_canvas(void) {
 	for (int i = 0; i < nViews; ++i) {
 		if (combatTex[i]) ui_update_texture(combatTex[i], px, mapW * 4);
 	}
-	free(px);
+	free(combatPx);
+	combatPx = px; /* (hud.logoUnder) */
 }
 
 static void draw_game(void) {
@@ -2239,7 +2253,9 @@ static void draw_game(void) {
 			continue;
 		}
 		/* the map screen */
-		if (combatOn && (combatTex[0] || combatTex[1])) {
+		/* (and with hud.logoUnder, on the map before there's a map picture) */
+		bool logoBack = combatProf && combatProf->hud.logoUnder && mapShownIdx < 0 && combatInGame;
+		if ((combatOn || logoBack) && (combatTex[0] || combatTex[1])) {
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
 			ui_image_pixels(s, combatTex, mapW, mapH, cfg->mapScale, cfg->lcdGrid ? 1 : 0);
 		} else if (hudShown) {
@@ -3155,7 +3171,10 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		if (combatProf) {
 			/* a fight: after a few frames of it, not on one odd frame */
 			static int streak;
-			bool c = memprobes_match(combatProf->combat, 2, &emu);
+			combatInGame = combatProf->hud.on[0].addr && memprobes_match(combatProf->hud.on, 1, &emu);
+			if (combatInGame && combatProf->hud.logoUnder && !combatMade) make_combat_canvas();
+			bool c = memprobes_match(combatProf->combat, 2, &emu) ||
+			         (combatProf->combatOr[0].addr && memprobes_match(combatProf->combatOr, 2, &emu));
 			streak = c != combatOn ? streak + 1 : 0;
 			if (streak >= 3) {
 				combatOn = c;

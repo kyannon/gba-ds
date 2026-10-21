@@ -54,6 +54,10 @@ typedef struct {
 	 * frames (Fire Emblem's windows lose their figures, then their
 	 * pictures, over the frames before they go) */
 	int settle;
+	/* hud.overMap: dropped once it's been missing this many frames while
+	 * the HUD is on (Fire Emblem's unit window: the cursor on an empty
+	 * place); 0: kept */
+	int dropAfter;
 } HudMove;
 
 /* Bytes written into the ROM when the game starts, if the ROM holds `orig`
@@ -277,6 +281,9 @@ typedef struct MapProfile {
 		 * whose pieces move round the screen (Fire Emblem's windows),
 		 * instead of the moves' own boxes */
 		void (*findPieces)(const uint32_t* hud, uint32_t clear, int box[4][4]);
+		/* hud.overMap: the logo, small and dimmed, behind everything in
+		 * the map picture (as in a fight: profile.combat) */
+		bool logoUnder;
 	} hud;
 
 	/* Title-screen logo, pulled out of the running game: boot, wait, optionally
@@ -373,6 +380,7 @@ typedef struct MapProfile {
 	 * picture's background colour (hud.mapClear) with the game's logo,
 	 * small and dimmed, in the middle. */
 	MemProbe combat[2];
+	MemProbe combatOr[2]; /* or while every one of these matches (the enemy's turn) */
 } MapProfile;
 
 const MapProfile* profile_find(const char* gameCode);
