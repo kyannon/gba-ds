@@ -82,6 +82,17 @@ cp "dist/GBA DS.sh" "$ROOT/build/pkg/"
 # EmulationStation artwork for the Ports entry
 mkdir -p "$ROOT/build/pkg/images"
 cp assets/brand/gba-ds-icon.png "$ROOT/build/pkg/images/GBA DS.png"
+# Dev builds carry the web build for State Saver's GBA DS tab (drop the zip
+# there to run this build in a browser). GBADS_WEB_WORK: build-web.sh's WORKDIR.
+if [[ $VERSION == *-dev ]]; then
+	if "$ROOT/scripts/build-web.sh" ${GBADS_WEB_WORK:+"$GBADS_WEB_WORK"} > "$ROOT/build/web.log" 2>&1; then
+		mkdir -p "$PKG/web"
+		cp "$ROOT/build/web/gba-ds.wasm" "$PKG/web/"
+		echo "$VERSION" > "$PKG/web/VERSION"
+	else
+		echo "web build failed (build/web.log): the zip has no web/gba-ds.wasm"
+	fi
+fi
 chmod +x "$PKG"/*.sh "$PKG/gba-ds" "$ROOT/build/pkg/GBA DS.sh"
 rm -f "$ROOT"/dist/gba-ds-*rocknix-aarch64.zip "$ROOT"/dist/gba-ds-*linux-aarch64.zip
 (cd "$ROOT/build/pkg" && zip -qr "$ROOT/dist/$ZIP" gba-ds "GBA DS.sh" images)

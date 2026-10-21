@@ -70,6 +70,8 @@ scripts/build-rocknix.sh            # -> dist/gba-ds-v<VERSION>-linux-aarch64.zi
 
 The script fetches a GCC aarch64 toolchain, mGBA (pinned commit), and SDL2 into `deps/`.
 
+Dev builds (a `-dev` VERSION) also carry `gba-ds/web/gba-ds.wasm`, GBA DS compiled to WebAssembly by `scripts/build-web.sh` (needs clang, wasm-ld and llvm-ar; it builds its own SDL2, libmgba and binaryen's `wasm-opt` the first time). Dropping such a zip on the GBA DS tab of the State Saver tool (`tools/statesaver/`) runs that build in a browser, both screens at default settings, for testing before it goes on a device.
+
 To build for the host so you can develop and test (needs libpng-dev too):
 
 ```sh

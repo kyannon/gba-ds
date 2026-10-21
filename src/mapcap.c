@@ -41,6 +41,7 @@ struct MapCapture {
 
 	/* async machinery */
 	pthread_t thread;
+	bool noThread; /* no threads (the web build): captures run in mapcap_request */
 	pthread_mutex_t lock;
 	pthread_cond_t cond;
 	bool running;
@@ -676,11 +677,14 @@ static void place_rate(MapCapture* mc) {
 	}
 }
 
+static void publish(MapCapture* mc, const char* err);
+
 static void* worker(void* arg) {
 	MapCapture* mc = arg;
-	size_t n = mc->cropPixels;
 	/* the live game (and its audio) gets the CPU first */
+#ifndef __wasi__
 	setpriority(PRIO_PROCESS, (id_t) syscall(SYS_gettid), 10);
+#endif
 #ifdef __ANDROID__
 	android_pin_worker_thread("map capture");
 #endif
@@ -697,24 +701,29 @@ static void* worker(void* arg) {
 		const char* err = do_capture(mc, mc->snapshot);
 
 		pthread_mutex_lock(&mc->lock);
-		mc->lastError = err;
-		mc->failures = err ? mc->failures + 1 : 0;
-		if (!err) {
-			for (int i = 0; i < mc->workFrames; ++i) {
-				memcpy(mc->published[i], mc->work[i], n * sizeof(uint32_t));
-			}
-			mc->pubFrames = mc->workFrames;
-			mc->pubStep = mc->workStep;
-			if (mc->tileValid) {
-				memcpy(mc->pubTile, mc->tile, sizeof(mc->pubTile));
-				mc->pubTileValid = true;
-			}
-			++mc->serial;
-		}
+		publish(mc, err);
 		mc->busy = false;
 	}
 	pthread_mutex_unlock(&mc->lock);
 	return NULL;
+}
+
+/* A capture's result, for mapcap_poll (lock held). */
+static void publish(MapCapture* mc, const char* err) {
+	size_t n = mc->cropPixels;
+	mc->lastError = err;
+	mc->failures = err ? mc->failures + 1 : 0;
+	if (err) return;
+	for (int i = 0; i < mc->workFrames; ++i) {
+		memcpy(mc->published[i], mc->work[i], n * sizeof(uint32_t));
+	}
+	mc->pubFrames = mc->workFrames;
+	mc->pubStep = mc->workStep;
+	if (mc->tileValid) {
+		memcpy(mc->pubTile, mc->tile, sizeof(mc->pubTile));
+		mc->pubTileValid = true;
+	}
+	++mc->serial;
 }
 
 MapCapture* mapcap_create(const char* romPath, const char* gameCode, bool tight) {
@@ -760,9 +769,9 @@ MapCapture* mapcap_create(const char* romPath, const char* gameCode, bool tight)
 }
 
 static void start_thread(MapCapture* mc) {
-	if (!mc->running) {
+	if (!mc->running && !mc->noThread) {
 		mc->running = true;
-		pthread_create(&mc->thread, NULL, worker, mc);
+		if (pthread_create(&mc->thread, NULL, worker, mc) != 0) mc->running = false, mc->noThread = true;
 	}
 }
 
@@ -823,6 +832,12 @@ MapResult mapcap_capture_sync(MapCapture* mc, Emu* live) {
 
 bool mapcap_request(MapCapture* mc, Emu* live) {
 	start_thread(mc);
+	if (mc->noThread) {
+		/* no threads: the capture now, the game waiting for it */
+		if (!emu_state_save(live, mc->snapshot)) return false;
+		publish(mc, do_capture(mc, mc->snapshot));
+		return true;
+	}
 	pthread_mutex_lock(&mc->lock);
 	if (mc->busy || mc->pending) {
 		pthread_mutex_unlock(&mc->lock);

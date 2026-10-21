@@ -114,6 +114,13 @@ static void push_finger(Uint32 type, float x, float y) {
 	SDL_PushEvent(&ev);
 }
 
+#ifdef __wasi__
+/* State Saver's GBA DS tab: a touch on the page (x, y fractions of the window) */
+__attribute__((export_name("web_touch"))) void web_touch(int type, float x, float y) {
+	push_finger(type == 1 ? SDL_FINGERDOWN : type == 2 ? SDL_FINGERUP : SDL_FINGERMOTION, x, y);
+}
+#endif
+
 static void run_script(void) {
 	while (scriptPos < scriptLen && script[scriptPos].tick <= (long) ticks) {
 		ScriptLine* s = &script[scriptPos++];
@@ -195,7 +202,12 @@ bool ui_init(Config* c, bool wantDual) {
 	SDL_SetHint(SDL_HINT_ANDROID_TRAP_BACK_BUTTON, "1"); /* BACK opens the menu instead of closing the app */
 #endif
 	setenv("SDL_VIDEO_WAYLAND_WMCLASS", "gba-ds", 0);
-	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER | SDL_INIT_EVENTS) != 0) {
+#ifdef __wasi__
+	const Uint32 audioInit = 0; /* the web build: no audio (yet) */
+#else
+	const Uint32 audioInit = SDL_INIT_AUDIO;
+#endif
+	if (SDL_Init(SDL_INIT_VIDEO | audioInit | SDL_INIT_GAMECONTROLLER | SDL_INIT_EVENTS) != 0) {
 		fprintf(stderr, "SDL_Init: %s\n", SDL_GetError());
 		return false;
 	}
@@ -852,6 +864,7 @@ double ui_display_hz(int view) {
 	double hz = 0;
 #ifndef __ANDROID__
 	if (cached >= 0) return cached;
+#ifndef __wasi__
 	if (getenv("SWAYSOCK")) {
 		FILE* f = popen("swaymsg -r -t get_outputs 2>/dev/null", "r");
 		if (f) {
@@ -871,6 +884,7 @@ double ui_display_hz(int view) {
 			}
 		}
 	}
+#endif /* __wasi__ */
 #endif
 	if (hz <= 0) {
 		SDL_DisplayMode m;

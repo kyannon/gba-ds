@@ -120,6 +120,13 @@ Android session at the same time. To keep them from colliding:
   `poke ADDR LEN VAL`, `dumpram NAME`, `layershot NAME` (each BG layer and
   OBJ alone), `map NAME` (run a map capture), `logo NAME`.
 - ROMs and save files are not in the repo. The owner attaches them; ask.
+- State Saver (`tools/statesaver/`, published as the owner's artifact) has a
+  GBA DS tab: it runs a dev zip's `gba-ds/web/gba-ds.wasm` (`scripts/build-web.sh`,
+  run by build-rocknix.sh for `-dev` versions; wasm32-wasi, no threads, so map
+  captures and logo extraction run inline; asyncify around `web_sleep`) with
+  `tools/statesaver/gbads-runtime.js` (in-memory WASI files). Republish it with
+  that file beside the page when either changes. `web_*` exports in web/web.c,
+  game.c and ui.c (`#ifdef __wasi__`).
 - Verify visual changes by rendering screenshots and looking at them before
   sending a build.
 

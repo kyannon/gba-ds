@@ -288,10 +288,21 @@ static bool exists(const char* p) {
 	return stat(p, &st) == 0;
 }
 
+static void do_job(Job* j) {
+	if (!exists(j->out)) {
+		if (j->frame) frame_extract(j->rom, j->code, j->out);
+		else logo_extract(j->rom, j->code, j->out);
+	}
+	free(j);
+	__atomic_add_fetch(&generation, 1, __ATOMIC_SEQ_CST);
+}
+
 static void* worker(void* arg) {
 	(void) arg;
 	/* background work: let the game (and its audio) have the CPU first */
+#ifndef __wasi__
 	setpriority(PRIO_PROCESS, (id_t) syscall(SYS_gettid), 19);
+#endif
 #ifdef __ANDROID__
 	android_pin_worker_thread("logo extraction");
 #endif
@@ -304,12 +315,7 @@ static void* worker(void* arg) {
 		}
 		queue = j->next;
 		pthread_mutex_unlock(&qlock);
-		if (!exists(j->out)) {
-			if (j->frame) frame_extract(j->rom, j->code, j->out);
-			else logo_extract(j->rom, j->code, j->out);
-		}
-		free(j);
-		__atomic_add_fetch(&generation, 1, __ATOMIC_SEQ_CST);
+		do_job(j);
 		pthread_mutex_lock(&qlock);
 		--pending;
 		++finished;
@@ -336,9 +342,18 @@ static void enqueue(const char* romPath, const char* gameCode, const char* outPn
 	Job** tail = &queue;
 	while (*tail) tail = &(*tail)->next;
 	*tail = j;
+	if (!running) running = pthread_create(&thread, NULL, worker, NULL) == 0;
 	if (!running) {
-		running = true;
-		pthread_create(&thread, NULL, worker, NULL);
+		/* no threads (the web build): the work now */
+		while (queue) {
+			Job* q = queue;
+			queue = q->next;
+			do_job(q);
+			--pending;
+			++finished;
+		}
+		pthread_mutex_unlock(&qlock);
+		return;
 	}
 	pthread_cond_signal(&qcond);
 	pthread_mutex_unlock(&qlock);

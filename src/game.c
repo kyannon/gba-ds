@@ -1,5 +1,8 @@
 /* One play session: the emulator, the second-screen map, and the pause menu. */
 #include "game.h"
+#ifdef __wasi__
+extern void web_sleep(unsigned ms) __attribute__((import_module("env"), import_name("web_sleep")));
+#endif
 #include "android.h"
 #include "brand.h"
 #include "emu.h"
@@ -38,7 +41,11 @@ static long thread_preemptions(void) {
 }
 static double thread_cpu_ms(void) {
 	struct timespec t;
+#ifdef __wasi__
+	if (clock_gettime(CLOCK_MONOTONIC, &t) != 0) return 0;
+#else
 	if (clock_gettime(CLOCK_THREAD_CPUTIME_ID, &t) != 0) return 0;
+#endif
 	return t.tv_sec * 1000.0 + t.tv_nsec / 1e6;
 }
 static int cpu_mhz(int cpu) {
@@ -1738,6 +1745,17 @@ static bool state_load(const char* path) {
 	return ok;
 }
 
+#ifdef __wasi__
+/* State Saver's GBA DS tab: states saved and loaded from the page, between frames */
+static bool webPlaying;
+__attribute__((export_name("web_save_state"))) int web_save_state(const char* path) {
+	return webPlaying && state_save(path);
+}
+__attribute__((export_name("web_load_state"))) int web_load_state(const char* path) {
+	return webPlaying && state_load(path);
+}
+#endif
+
 static void auto_save(void) {
 	if (!cfg->autoResume) return;
 	if (state_save(gp.autoState)) {
@@ -2509,6 +2527,9 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		return fromLibrary ? GAME_TO_LIBRARY : GAME_QUIT_APP;
 	}
 	fprintf(stderr, "game %s (%s), save %s\n", gp.base, emu.gameCode, gp.sav);
+#ifdef __wasi__
+	webPlaying = true;
+#endif
 	ra_game_start(&emu, rom);
 	cheats_load(&cheats, cfg, rom, emu.gameCode, gp.cheats);
 	if (cheats_on(&cheats)) cheats_apply(&cheats, &emu);
@@ -3319,10 +3340,15 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		android_perf_report((int64_t) ((SDL_GetPerformanceCounter() - workT0) * 1e9 / freq));
 #endif
 		double wait = next - now;
+#ifdef __wasi__
+		/* the web build: back to the page every frame, for the wait or not */
+		web_sleep(wait > 0 ? (unsigned) (wait * 1000) : 0);
+#else
 		if (wait > 0) {
 			struct timespec ts = { 0, (long) (wait * 1e9) };
 			nanosleep(&ts, NULL);
 		}
+#endif
 	}
 
 	ahead_stop(); /* before anything else touches the core */
@@ -3337,6 +3363,9 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	mapcap_destroy(mc);
 	mc = NULL;
 	emu_rewind_deinit();
+#ifdef __wasi__
+	webPlaying = false;
+#endif
 	emu_close(&emu); /* flushes the battery save */
 	for (int i = 0; i < MAP_MAX_FRAMES; ++i) {
 		free(mapRes.frames[i]);
