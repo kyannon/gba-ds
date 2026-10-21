@@ -244,6 +244,7 @@ typedef struct {
 	uint32_t key;
 	uint32_t cand[GBA_W * GBA_H];
 	int cw, ch, still;
+	bool stale; /* a state was loaded: taken again (latched or not) as soon as it holds still */
 } Piece;
 static Piece pieces[4];
 static void upload_map_frame(int idx);
@@ -1297,7 +1298,7 @@ static bool hud_take_pieces(const typeof(hudProf->hud)* h) {
 		if (mv->latch) {
 			/* only for a new value, once it's held still for 8 frames */
 			uint32_t key = emu_read8(&emu, mv->latch);
-			if (pc->valid && key == pc->key) continue;
+			if (pc->valid && key == pc->key && !pc->stale) continue;
 			bool same = pc->cw == w && pc->ch == hh && !memcmp(pc->cand, cut, n);
 			pc->still = same ? pc->still + 1 : 0;
 			pc->cw = w, pc->ch = hh;
@@ -1308,6 +1309,7 @@ static bool hud_take_pieces(const typeof(hudProf->hud)* h) {
 			continue;
 		}
 		pc->valid = true;
+		pc->stale = false;
 		pc->w = w, pc->h = hh;
 		memcpy(pc->px, cut, n);
 		changed = true;
@@ -1681,6 +1683,8 @@ static bool state_save(const char* path) {
 static bool state_load(const char* path) {
 	bool ok = emu_state_load_file(&emu, path);
 	if (ok) ra_state_loaded(path);
+	/* HUD pieces from another moment: taken again from the loaded game */
+	for (int m = 0; ok && m < 4; ++m) pieces[m].stale = true, pieces[m].still = 0;
 	if (ok) aheadReady = false; /* a frame emulated before the load: emulate afresh */
 	return ok;
 }
