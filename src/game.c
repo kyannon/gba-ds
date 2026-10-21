@@ -255,7 +255,7 @@ typedef struct {
 	bool stale; /* a state was loaded: taken again (latched or not) as soon as it holds still */
 	int sx, sy; /* where it was on the game screen (its top left) */
 } Piece;
-static Piece pieces[4];
+static Piece pieces[HUD_MOVES];
 static void upload_map_frame(int idx);
 static void make_combat_canvas(void);
 static uint32_t hudLogoBelow[HUD_CW * HUD_CH]; /* profile hud.logoBelow: black, the logo at half size */
@@ -1283,15 +1283,31 @@ static unsigned effect_bgs(int pal) {
 /* hud.overMap: this frame's HUD pieces into pieces[]; true if one changed. */
 static bool hud_take_pieces(const typeof(hudProf->hud)* h) {
 	uint32_t clear = emu_hud_clear();
-	bool changed = false, seen[4] = { false };
-	int found[4][4];
+	bool changed = false, seen[HUD_MOVES] = { false };
+	int found[HUD_MOVES][4];
 	if (h->findPieces) h->findPieces(hudPx, clear, found);
-	for (int m = 0; m < 4; ++m) {
+	for (int m = 0; m < HUD_MOVES; ++m) {
 		const HudMove* mv = &h->moves[m];
 		Piece* pc = &pieces[m];
-		if (!mv->how && !mv->vhow) continue;
+		if (!mv->how && !mv->vhow && !mv->keepOnGame) continue;
 		int bx0 = mv->x0, by0 = mv->y0, bx1 = mv->x1, by1 = mv->y1;
 		if (h->findPieces) bx0 = found[m][0], by0 = found[m][1], bx1 = found[m][2], by1 = found[m][3];
+		if (mv->keepOnGame) {
+			/* back onto the game picture */
+			for (int y = SDL_max(by0, 0); y <= SDL_min(by1, GBA_H - 1); ++y) {
+				for (int x = SDL_max(bx0, 0); x <= SDL_min(bx1, GBA_W - 1); ++x) {
+					uint32_t c = hudPx[y * GBA_W + x];
+					if ((c & 0xFFFFFF) != clear) emu.fb[y * GBA_W + x] = c;
+				}
+			}
+			continue;
+		}
+		if (bx1 == -2) {
+			/* findPieces: it goes */
+			if (pc->valid) pc->valid = false, changed = true;
+			pc->still = 0;
+			continue;
+		}
 		int lo = GBA_W, hi = -1, top = GBA_H, bot = -1;
 		for (int y = SDL_max(by0, 0); y <= SDL_min(by1, GBA_H - 1); ++y) {
 			for (int x = SDL_max(bx0, 0); x <= SDL_min(bx1, GBA_W - 1); ++x) {
@@ -1374,11 +1390,12 @@ static void update_hud(void) {
 		 * gone off the battle map (the first `on` probe) */
 		bool changed = false;
 		if (!memprobes_match(h->on, 1, &emu)) {
-			for (int m = 0; m < 4; ++m) changed |= pieces[m].valid, pieces[m].valid = false;
+			for (int m = 0; m < HUD_MOVES; ++m) changed |= pieces[m].valid, pieces[m].valid = false;
 		} else if (hudOn && race) {
 			changed = hud_take_pieces(h);
 		}
-		bool any = pieces[0].valid || pieces[1].valid || pieces[2].valid || pieces[3].valid;
+		bool any = false;
+		for (int m = 0; m < HUD_MOVES; ++m) any |= pieces[m].valid;
 		if (changed || any != overOn) {
 			overOn = any;
 			overDirty = true;
@@ -1716,7 +1733,7 @@ static bool state_load(const char* path) {
 	bool ok = emu_state_load_file(&emu, path);
 	if (ok) ra_state_loaded(path);
 	/* HUD pieces from another moment: taken again from the loaded game */
-	for (int m = 0; ok && m < 4; ++m) pieces[m].stale = true, pieces[m].still = 0;
+	for (int m = 0; ok && m < HUD_MOVES; ++m) pieces[m].stale = true, pieces[m].still = 0;
 	if (ok) aheadReady = false; /* a frame emulated before the load: emulate afresh */
 	return ok;
 }
@@ -1773,13 +1790,15 @@ static const uint32_t* hud_over_map(const uint32_t* px) {
 	}
 	memcpy(over, px, (size_t) mapW * mapH * 4);
 	uint32_t mc = h->mapClear & 0xFFFFFF;
-	int px0[4] = { 0 }, py0[4] = { 0 };
-	for (int k = 0; k < 8; ++k) {
-		int m = k & 3;
+	int px0[HUD_MOVES] = { 0 }, py0[HUD_MOVES] = { 0 };
+	unsigned present = 0;
+	for (int m = 0; m < HUD_MOVES; ++m) present |= (unsigned) pieces[m].valid << m;
+	for (int k = 0; k < 2 * HUD_MOVES; ++k) {
+		int m = k % HUD_MOVES;
 		const HudMove* mv = &h->moves[m];
 		const Piece* pc = &pieces[m];
 		/* the pieces, then the ones that follow them (over everything) */
-		if (!pc->valid || (k < 4) == (mv->follow > 0)) continue;
+		if (!pc->valid || (k < HUD_MOVES) == (mv->follow > 0) || (mv->hideWith & present)) continue;
 		int x0 = mv->how == 'C' ? mv->x - (pc->w - 1) / 2 : mv->how == 'R' ? mv->x - pc->w + 1 : mv->x;
 		int y0 = mv->vhow == 'M' ? mv->y - (pc->h - 1) / 2 : mv->vhow == 'B' ? mv->y - pc->h + 1 : mv->y;
 		if (mv->follow) {
@@ -2535,7 +2554,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		combatProf = mc && lp && lp->combat[0].addr && nScreens > 1 ? lp : NULL;
 		combatOn = combatMade = false;
 		overOn = false;
-		for (int m = 0; m < 4; ++m) pieces[m].valid = false, pieces[m].still = 0;
+		for (int m = 0; m < HUD_MOVES; ++m) pieces[m].valid = false, pieces[m].still = 0;
 		if (hudProf) {
 			/* the sprites that move; tagged ones only if the tags go in */
 			memcpy(hudObjs, hudProf->hud.objs, sizeof(hudObjs));
@@ -2696,6 +2715,12 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			if (ui_load_logo(cfg, NULL, emu.gameCode, logoTex, &logoW, &logoH, &logoPixel)) {
 				make_logo_canvas();
 				hudLogoBelowDone = hudLogoDone = false; /* the HUD's pictures with it */
+				if (combatMade) {
+					/* and the fight picture (and the map picture's logo behind) */
+					make_combat_canvas();
+					overDirty = true;
+					if (mapShownIdx >= 0) upload_map_frame(mapShownIdx);
+				}
 			}
 		}
 		if (!ui_events()) {
@@ -3179,6 +3204,11 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			if (streak >= 3) {
 				combatOn = c;
 				streak = 0;
+				if (combatOn && combatProf->combatClears) {
+					/* the HUD's pieces go; they come back as they're seen again */
+					for (int m = 0; m < HUD_MOVES; ++m) pieces[m].valid = false, pieces[m].still = 0;
+					overDirty = true;
+				}
 				if (combatOn && !combatMade) make_combat_canvas();
 				if (debug) fprintf(stderr, "frame %llu: fight %s\n", (unsigned long long) frameCount, combatOn ? "on" : "off");
 			}

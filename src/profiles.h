@@ -58,7 +58,16 @@ typedef struct {
 	 * the HUD is on (Fire Emblem's unit window: the cursor on an empty
 	 * place); 0: kept */
 	int dropAfter;
+	/* hud.overMap: not drawn while any of these pieces is there (bit m:
+	 * move m) */
+	unsigned hideWith;
+	/* hud.overMap: not a piece: what's in its box goes back onto the game
+	 * picture, where it was (Tactics Ogre's strip along the bottom) */
+	bool keepOnGame;
 } HudMove;
+
+/* moves in profile.hud: up to 4 for a split HUD screen, all for hud.overMap */
+#define HUD_MOVES 6
 
 /* Bytes written into the ROM when the game starts, if the ROM holds `orig`
  * there (NULL: the ROM's 0xFF padding), so another revision is left alone. */
@@ -229,7 +238,7 @@ typedef struct MapProfile {
 		/* moves while racing (with the `layout` probes; no layout probes:
 		 * always). A move with toGame and no how / vhow copies its box back
 		 * onto the game picture where it was. */
-		HudMove moves[4];
+		HudMove moves[HUD_MOVES];
 		/* The second screen is the HUD on black with the game's logo below
 		 * it, at half the usual size (Super Mario Advance 2), instead of a
 		 * backdrop. */
@@ -279,8 +288,9 @@ typedef struct MapProfile {
 		/* hud.overMap: where each move's piece is in this frame's HUD
 		 * picture (box[m] = x0, y0, x1, y1; x1 < 0: not there), for HUDs
 		 * whose pieces move round the screen (Fire Emblem's windows),
-		 * instead of the moves' own boxes */
-		void (*findPieces)(const uint32_t* hud, uint32_t clear, int box[4][4]);
+		 * instead of the moves' own boxes; x1 = -2: it goes now) */
+		void (*findPieces)(const uint32_t* hud, uint32_t clear, int box[HUD_MOVES][4]);
+
 		/* hud.overMap: the logo, small and dimmed, behind everything in
 		 * the map picture (as in a fight: profile.combat) */
 		bool logoUnder;
@@ -381,6 +391,7 @@ typedef struct MapProfile {
 	 * small and dimmed, in the middle. */
 	MemProbe combat[2];
 	MemProbe combatOr[2]; /* or while every one of these matches (the enemy's turn) */
+	bool combatClears; /* the HUD's pieces (hud.overMap) go as a fight begins */
 } MapProfile;
 
 const MapProfile* profile_find(const char* gameCode);

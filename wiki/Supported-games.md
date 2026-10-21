@@ -15,6 +15,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Final Fantasy Tactics Advance | `AFXE` `AFXP` `AFXJ` | in battles and the scenes on the battle maps: dialogue, menus, unit details | — |
 | Advance Wars (preliminary) | `AWRE` (USA only so far) | in battles: the unit list or the battle intel, with the minimap | — |
 | Fire Emblem (preliminary) | `AE7E` (USA only so far) | on the map: the unit, terrain and goal windows and the minimap | — |
+| Tactics Ogre: The Knight of Lodis (preliminary) | `ATOE` (USA only so far) | in battles: the unit, terrain and attack windows | — |
 
 The codes are what `<CODE>` means in logo and overlay file names (see [Playing](Playing#logos) and [[Map screen surrounds and overlays]]).
 
@@ -106,11 +107,18 @@ Preliminary, the USA release only for now (the European and Japanese releases ar
 - The game's logo, small and dimmed, is always in the middle of the second screen, behind the windows.
 - **In a fight and on the other armies' turns,** the second screen is the dark background with the logo alone.
 
+## Tactics Ogre: The Knight of Lodis
+
+Preliminary, the USA release only for now (the Japanese release is listed, with its name on the second screen).
+
+- **While you're in control in a battle,** the windows the game draws over the battlefield move to the second screen, over the dark background with the game's logo, small and dimmed: the unit under the cursor at the bottom left (the selected unit's stays there for its turn), the terrain at the bottom right, the selected unit's HP and MP at the top left, the unit you're aiming at at the bottom right (in place of the terrain), and an attack's figures along the top. The selected unit's strip stays along the bottom of the game screen.
+- **In cutscenes, conversations, the other sides' turns and attacks,** the second screen is the dark background with the logo alone.
+
 ## Coming soon
 
 These games are in the game list, but their second screens are still being built, after the DS versions of each series. For now the game plays on one screen and the other shows the game's name.
 
-- **Tactics Ogre: The Knight of Lodis** (USA; Japan: Tactics Ogre Gaiden)
+- **Tactics Ogre: The Knight of Lodis** (Japan: Tactics Ogre Gaiden; the USA release is above)
 - **Fire Emblem** (Europe, Japan: Rekka no Ken; the USA release is above)
 - **Advance Wars** (Europe; the USA release is above)
 - **Mega Man Battle Network** (USA, Europe, Japan: Battle Network Rockman EXE)
