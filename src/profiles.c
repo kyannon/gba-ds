@@ -311,15 +311,19 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 	free(tmp);
 	if (err) return err;
 	for (int i = 0; i < w * h; ++i) out[i] = AW_BG;
-	/* the panel at the top, the minimap centred in the space below it (over
-	 * the panel's foot if it's too tall for that) */
+	/* the panel at the top, the minimap at the bottom left, 4 pixels in
+	 * (the HUD's plate and info go along the bottom too: the profile's
+	 * hud.moves); the panel over it if they meet */
 	int px = (w - GBA_W) / 2, py = 4;
-	for (int y = 0; y < rows && py + y < h; ++y) memcpy(&out[(py + y) * w + px], &pan[y * GBA_W], GBA_W * sizeof(uint32_t));
-	int top = py + rows + 4, room = h - 4 - top;
-	int my = mh <= room ? top + (room - mh) / 2 : h - 4 - mh;
+	int my = h - 4 - mh, mx = 4;
 	if (my < 0) my = 0;
-	int mx = (w - mw) / 2;
 	for (int y = 0; y < mh && my + y < h; ++y) memcpy(&out[(my + y) * w + mx], &mm[y * mw], mw * sizeof(uint32_t));
+	for (int y = 0; y < rows && py + y < h; ++y) {
+		for (int x = 0; x < GBA_W; ++x) {
+			uint32_t c = pan[y * GBA_W + x];
+			if (c != AW_BG) out[(py + y) * w + px + x] = c;
+		}
+	}
 	return NULL;
 }
 
@@ -792,7 +796,10 @@ static const MapProfile profiles[] = {
 			.on = { { AW_ARMY, 0xFF, 1, 1, true, 4, true }, { 0x04000000, 0x2000, 0x2000, 2 } },
 			.objs = { { -64, -32, 239, 40, 0, 63, 0 }, { -64, -32, 239, 40, 940, 1023, 0 },
 			          { -64, 88, 239, 159, 280, 360, 0 }, { -64, 88, 239, 159, 940, 1023, 0 } },
-			.moves = { { 0, 0, 239, 47, 'L', 4, 'B', 235 }, { 0, 80, 239, 159, 'R', 315, 'B', 235 } },
+			/* the plate at the bottom in the middle, the info at the
+			 * bottom right on a grey box; 4 pixels up, as the minimap */
+			.moves = { { 0, 0, 239, 47, 'C', 159, 'B', 235 },
+			           { 0, 80, 239, 159, 'R', 312, 'B', 232, .box = 0x6B7380, .pad = 3 } },
 			.overMap = true,
 			.mapClear = AW_BG,
 			.gameReg = { 0x48, 0x0020 },

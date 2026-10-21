@@ -1685,13 +1685,24 @@ static const uint32_t* hud_over_map(const uint32_t* px) {
 		if (hi < 0) continue;
 		int dx = mv->how == 'C' ? mv->x - (lo + hi) / 2 : mv->how == 'R' ? mv->x - hi : mv->how == 'L' ? mv->x - lo : 0;
 		int dy = mv->vhow == 'M' ? mv->y - (top + bot) / 2 : mv->vhow == 'B' ? mv->y - bot : mv->vhow == 'T' ? mv->y - top : 0;
+		if (mv->box) {
+			/* (placed by the piece's own edges: the box goes round them) */
+			uint32_t bc = 0xFF000000u | (mv->box & 0xFF) << 16 | (mv->box & 0xFF00) | (mv->box >> 16 & 0xFF);
+			for (int y = top - mv->pad + dy; y <= bot + mv->pad + dy; ++y) {
+				for (int x = lo - mv->pad + dx; x <= hi + mv->pad + dx; ++x) {
+					if (x < 0 || y < 0 || x >= mapW || y >= mapH) continue;
+					uint32_t* o = &over[y * mapW + x];
+					if ((*o & 0xFFFFFF) == mc) *o = bc;
+				}
+			}
+		}
 		for (int y = top; y <= bot; ++y) {
 			for (int x = lo; x <= hi; ++x) {
 				uint32_t c = hudPx[y * GBA_W + x];
 				int nx = x + dx, ny = y + dy;
 				if ((c & 0xFFFFFF) == clear || nx < 0 || ny < 0 || nx >= mapW || ny >= mapH) continue;
 				uint32_t* o = &over[ny * mapW + nx];
-				if ((*o & 0xFFFFFF) == mc) *o = c | 0xFF000000;
+				if ((*o & 0xFFFFFF) == mc || (mv->box && (*o & 0xFFFFFF) == (((mv->box & 0xFF) << 16) | (mv->box & 0xFF00) | (mv->box >> 16 & 0xFF)))) *o = c | 0xFF000000;
 			}
 		}
 	}

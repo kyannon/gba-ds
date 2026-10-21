@@ -37,6 +37,10 @@ typedef struct {
 	char how; int x;
 	char vhow; int y;
 	bool toGame;
+	/* hud.overMap: a box of this colour (0xRRGGBB; 0: none) behind the
+	 * piece, `pad` pixels round it */
+	uint32_t box;
+	int pad;
 } HudMove;
 
 /* Bytes written into the ROM when the game starts, if the ROM holds `orig`
