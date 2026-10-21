@@ -245,6 +245,7 @@ typedef struct {
 	uint32_t cand[GBA_W * GBA_H];
 	int cw, ch, still;
 	bool stale; /* a state was loaded: taken again (latched or not) as soon as it holds still */
+	int sx, sy; /* where it was on the game screen (its top left) */
 } Piece;
 static Piece pieces[4];
 static void upload_map_frame(int idx);
@@ -1273,7 +1274,7 @@ static unsigned effect_bgs(int pal) {
 /* hud.overMap: this frame's HUD pieces into pieces[]; true if one changed. */
 static bool hud_take_pieces(const typeof(hudProf->hud)* h) {
 	uint32_t clear = emu_hud_clear();
-	bool changed = false;
+	bool changed = false, seen[4] = { false };
 	for (int m = 0; m < 4; ++m) {
 		const HudMove* mv = &h->moves[m];
 		Piece* pc = &pieces[m];
@@ -1285,7 +1286,15 @@ static bool hud_take_pieces(const typeof(hudProf->hud)* h) {
 				lo = SDL_min(lo, x), hi = SDL_max(hi, x), top = SDL_min(top, y), bot = SDL_max(bot, y);
 			}
 		}
-		if (hi < 0) continue; /* not there: the last one stays */
+		if (hi < 0) {
+			/* not there: the last one stays (one that follows another goes
+			 * when that one is there without it) */
+			if (mv->follow && pc->valid && seen[mv->follow - 1]) pc->valid = false, changed = true;
+			continue;
+		}
+		seen[m] = true;
+		if (!mv->latch && (pc->sx != lo || pc->sy != top)) changed = true; /* (its followers move) */
+		if (!mv->latch) pc->sx = lo, pc->sy = top;
 		static uint32_t cut[GBA_W * GBA_H];
 		int w = hi - lo + 1, hh = bot - top + 1;
 		for (int y = 0; y < hh; ++y) {
@@ -1740,12 +1749,22 @@ static const uint32_t* hud_over_map(const uint32_t* px) {
 	}
 	memcpy(over, px, (size_t) mapW * mapH * 4);
 	uint32_t mc = h->mapClear & 0xFFFFFF;
-	for (int m = 0; m < 4; ++m) {
+	int px0[4] = { 0 }, py0[4] = { 0 };
+	for (int k = 0; k < 8; ++k) {
+		int m = k & 3;
 		const HudMove* mv = &h->moves[m];
 		const Piece* pc = &pieces[m];
-		if (!pc->valid) continue;
+		/* the pieces, then the ones that follow them (over everything) */
+		if (!pc->valid || (k < 4) == (mv->follow > 0)) continue;
 		int x0 = mv->how == 'C' ? mv->x - (pc->w - 1) / 2 : mv->how == 'R' ? mv->x - pc->w + 1 : mv->x;
 		int y0 = mv->vhow == 'M' ? mv->y - (pc->h - 1) / 2 : mv->vhow == 'B' ? mv->y - pc->h + 1 : mv->y;
+		if (mv->follow) {
+			int a = mv->follow - 1;
+			if (!pieces[a].valid) continue;
+			x0 = pc->sx + px0[a] - pieces[a].sx;
+			y0 = pc->sy + py0[a] - pieces[a].sy;
+		}
+		px0[m] = x0, py0[m] = y0;
 		uint32_t bc = mv->box ? (mv->box & 0xFF) << 16 | (mv->box & 0xFF00) | (mv->box >> 16 & 0xFF) : 0x1000000;
 		if (mv->box) {
 			/* the box goes round the piece */
@@ -1763,7 +1782,7 @@ static const uint32_t* hud_over_map(const uint32_t* px) {
 				int nx = x0 + x, ny = y0 + y;
 				if (!c || nx < 0 || ny < 0 || nx >= mapW || ny >= mapH) continue;
 				uint32_t* o = &over[ny * mapW + nx];
-				if ((*o & 0xFFFFFF) == mc || (*o & 0xFFFFFF) == bc) *o = c;
+				if (mv->follow || (*o & 0xFFFFFF) == mc || (*o & 0xFFFFFF) == bc) *o = c;
 			}
 		}
 	}

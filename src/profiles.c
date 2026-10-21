@@ -856,7 +856,9 @@ static const MapProfile profiles[] = {
 			 * bottom right on a grey box; 4 pixels up, as the minimap */
 			/* (the plate: taken again only when the turn passes) */
 			.moves = { { 0, 0, 239, 47, 'C', 159, 'B', 235, .latch = AW_ARMY },
-			           { 0, 56, 239, 159, 'R', 312, 'B', 232, .box = 0x6B7380, .pad = 3 } },
+			           { 0, 88, 239, 159, 'R', 312, 'B', 232, .box = 0x6B7380, .pad = 3 },
+			           /* the DAMAGE box: where it is over the info, over the panels */
+			           { 0, 56, 239, 87, 'L', 0, 'T', 0, .follow = 2 } },
 			.overMap = true,
 			.mapClear = AW_BG,
 			.gameReg = { 0x48, 0x0020 },

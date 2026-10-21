@@ -45,6 +45,11 @@ typedef struct {
 	 * address changes (once it has held still for 8 frames); 0: whenever
 	 * it changes. Pieces stay while the HUD is hidden either way. */
 	uint32_t latch;
+	/* hud.overMap: the piece goes with move number `follow` (1-4): moved as
+	 * far as that one, so it keeps its place beside it; drawn over
+	 * everything, the capture's panels too; gone whenever that one is
+	 * taken without it (Advance Wars' DAMAGE box over the info). */
+	int follow;
 } HudMove;
 
 /* Bytes written into the ROM when the game starts, if the ROM holds `orig`
