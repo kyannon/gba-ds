@@ -332,6 +332,11 @@ typedef struct MapProfile {
 	/* ROM patches applied at the start (all or none), for the HUD split:
 	 * FFTA tags its world sprites (SpriteRule.tagged). */
 	RomPatch romPatch[3];
+	/* Instead of opening a map: the profile builds the second screen's
+	 * picture itself (crop_w x crop_h, into out) on the shadow core from
+	 * the live game's state; NULL on success, else why not (Advance Wars:
+	 * the unit list or the battle intel, with the minimap below). */
+	const char* (*compose)(Emu* s, const void* state, uint32_t* out, int w, int h);
 } MapProfile;
 
 const MapProfile* profile_find(const char* gameCode);

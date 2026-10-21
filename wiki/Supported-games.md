@@ -13,6 +13,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Tony Hawk's Pro Skater 3 | `AT3E` (USA and Europe) `AT3F` `AT3D` | the goal list; optional four-button layout | — |
 | Super Mario Advance 2: Super Mario World | `AA2E` `AA2P` `AA2J` | the SELECT menu on the world map; the status bar in levels; optional SNES layout | — |
 | Final Fantasy Tactics Advance | `AFXE` `AFXP` `AFXJ` | in battles and the scenes on the battle maps: dialogue, menus, unit details | — |
+| Advance Wars (preliminary) | `AWRE` (USA only so far) | in battles: the unit list or the battle intel, with the minimap | — |
 
 The codes are what `<CODE>` means in logo and overlay file names (see [Playing](Playing#logos) and [[Map screen surrounds and overlays]]).
 
@@ -86,11 +87,18 @@ The HUD is moved off the game screen rather than copied: GBA DS draws each frame
 - The game's **pause menu** stays on the game screen, with the last HUD below it. In the menus, the second screen shows the logo.
 - With one screen (`layout = single`), the HUD stays where the game draws it.
 
+## Advance Wars
+
+Preliminary, the USA release only for now (the European release is listed, with its name on the second screen).
+
+- **In a battle, on your turn,** the second screen is laid out after Advance Wars: Dual Strike's: the game's **Unit** list with the unit under the cursor highlighted when it's one of yours (it stays highlighted while you move it and pick its action), or else the **Battle Intel** (bases and funds). Below it, the **minimap** from the START button. All of it is brought up in the background from the menus of a silent copy of the game, as the other games' maps are; your game is never paused.
+- On the enemy's turn and in battle animations the last picture stays up. On the title and menus, the second screen shows the logo.
+
 ## Coming soon
 
 These games are in the game list, but their second screens are still being built, after the DS versions of each series. For now the game plays on one screen and the other shows the game's name.
 
 - **Tactics Ogre: The Knight of Lodis** (USA; Japan: Tactics Ogre Gaiden)
 - **Fire Emblem** (USA, Europe, Japan: Rekka no Ken)
-- **Advance Wars** (USA, Europe)
+- **Advance Wars** (Europe; the USA release is above)
 - **Mega Man Battle Network** (USA, Europe, Japan: Battle Network Rockman EXE)

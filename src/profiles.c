@@ -3,6 +3,7 @@
 #include <mgba/core/core.h>
 
 #include <pthread.h>
+#include <stdlib.h>
 #include <string.h>
 
 /* Values below were found with tools/harness + tools/ramdiff.py against the
@@ -87,6 +88,212 @@ static const uint8_t ffta_tag_jp[212] = {
 	0x01, 0x17, 0x02, 0x08, 0x47, 0x1E, 0x02, 0x08, 0x58, 0x2C, 0x00, 0x03,
 	0x58, 0x2F, 0x00, 0x03, 0xD5, 0x14, 0x00, 0x08,
 };
+
+/* ---------------------------------------------------------- Advance Wars
+ *
+ * The second screen, after Advance Wars: Dual Strike's: the Unit list with
+ * the unit under the cursor (or the one being moved) highlighted, or else
+ * the Battle Intel, and the minimap (START) below. Each is opened on the
+ * shadow core from the live state: B (backs out of a move or an action
+ * menu), then SELECT > Unit (DOWN to the unit's row) or SELECT > Intel >
+ * Status; START for the minimap. On the enemy's turn none of it opens and
+ * the last picture stays. (USA addresses.) */
+#define AW_ARMY 0x030035E8   /* the army whose turn it is, 1-4; 0 off the battle map */
+#define AW_CURSOR 0x030033F0 /* map cursor x, y (stays on a unit while it moves) */
+#define AW_UNITS 0x02019F34  /* + 0x300 * (army - 1) + 12 * id (1-64): type, -, x, y, ... */
+#define AW_LIST_ROW 0x03000E2F
+#define AW_LIST_ORDER 0x0201FD38 /* unit ids in list order, 0xFF after the last */
+#define AW_BG 0xFF382418         /* behind the panels: dark navy (bytes R, G, B) */
+
+static void aw_run(Emu* s, uint32_t keys, int n) {
+	for (int i = 0; i < n; ++i) emu_frame(s, keys);
+}
+
+static void aw_tap(Emu* s, uint32_t keys, int n) {
+	for (int i = 0; i < n; ++i) {
+		aw_run(s, keys, 3);
+		aw_run(s, 0, 9);
+	}
+}
+
+/* pixel (x, y) of the screen is about this colour (0xRRGGBB) */
+static bool aw_px(Emu* s, int x, int y, uint32_t rgb) {
+	uint32_t c = s->fb[y * GBA_W + x];
+	int d[3] = { (int) (c & 0xFF) - (int) (rgb >> 16), (int) ((c >> 8) & 0xFF) - (int) ((rgb >> 8) & 0xFF),
+	             (int) ((c >> 16) & 0xFF) - (int) (rgb & 0xFF) };
+	for (int i = 0; i < 3; ++i) {
+		if (d[i] < -16 || d[i] > 16) return false;
+	}
+	return true;
+}
+
+static bool aw_list_up(Emu* s) {
+	return aw_px(s, 120, 4, 0xFFDEBD) && aw_px(s, 120, 155, 0xFFDEBD);
+}
+
+static bool aw_intel_up(Emu* s) {
+	return aw_px(s, 4, 4, 0xFFE7C6) && aw_px(s, 200, 100, 0xFFE7C6);
+}
+
+/* Runs until `up` holds and the picture stops changing (a few blinking
+ * pixels allowed); false if it never does. */
+static bool aw_settle(Emu* s, bool (*up)(Emu*), int limit) {
+	static uint32_t prev[GBA_W * GBA_H];
+	int stable = 0;
+	bool have = false;
+	for (int f = 0; f < limit; ++f) {
+		emu_frame(s, 0);
+		if (!up(s)) {
+			have = false;
+			stable = 0;
+			continue;
+		}
+		if (have) {
+			int d = 0;
+			for (int i = 0; i < GBA_W * GBA_H && d <= 64; ++i) d += prev[i] != s->fb[i];
+			stable = d <= 64 ? stable + 1 : 0;
+			if (stable >= 3) return true;
+		}
+		memcpy(prev, s->fb, sizeof(prev));
+		have = true;
+	}
+	return false;
+}
+
+/* The minimap (START), alone: rendered with only BG0, where the game draws
+ * it, and cut out by comparing with a render of no layers at all. */
+static bool aw_minimap(Emu* s, const void* state, void* tmp, uint32_t* mm, int* mw, int* mh) {
+	if (!emu_state_load(s, state)) return false;
+	emu_frame(s, 0);
+	aw_tap(s, K_B, 3);
+	aw_tap(s, K_START, 1);
+	aw_run(s, 0, 40);
+	if (!emu_state_save(s, tmp)) return false;
+	static uint32_t none[GBA_W * GBA_H];
+	emu_layers(s, 0);
+	emu_state_load(s, tmp);
+	emu_frame(s, 0);
+	memcpy(none, s->fb, sizeof(none));
+	emu_layers(s, 0x01);
+	emu_state_load(s, tmp);
+	emu_frame(s, 0);
+	int x0 = GBA_W, y0 = GBA_H, x1 = -1, y1 = -1;
+	for (int y = 0; y < GBA_H; ++y) {
+		for (int x = 0; x < GBA_W; ++x) {
+			if (s->fb[y * GBA_W + x] == none[y * GBA_W + x]) continue;
+			if (x < x0) x0 = x;
+			if (x > x1) x1 = x;
+			if (y < y0) y0 = y;
+			if (y > y1) y1 = y;
+		}
+	}
+	bool ok = x1 - x0 >= 15 && y1 - y0 >= 15;
+	if (ok) {
+		*mw = x1 - x0 + 1;
+		*mh = y1 - y0 + 1;
+		for (int y = 0; y < *mh; ++y) memcpy(&mm[y * *mw], &s->fb[(y0 + y) * GBA_W + x0], *mw * sizeof(uint32_t));
+	}
+	emu_layers(s, 0x1F);
+	emu_state_load(s, tmp); /* every layer back on */
+	return ok;
+}
+
+/* The unit under the map cursor, if it's one of the army whose turn it is:
+ * its id (1-64), else 0. */
+static int aw_cursor_unit(Emu* s, int army) {
+	int cx = emu_read8(s, AW_CURSOR), cy = emu_read8(s, AW_CURSOR + 1);
+	uint32_t base = AW_UNITS + 0x300 * (uint32_t) (army - 1);
+	for (int id = 1; id <= 64; ++id) {
+		uint32_t r = base + 12 * (uint32_t) id;
+		if (emu_read8(s, r) && emu_read8(s, r + 2) == cx && emu_read8(s, r + 3) == cy) return id;
+	}
+	return 0;
+}
+
+/* The panel now on screen without the battle map around it: rendered
+ * again with BG0 and BG2 (menus and text) and the sprites, less the
+ * priority-3 ones (the map's buildings); what that leaves empty is AW_BG. */
+static void aw_clean(Emu* s, void* tmp, uint32_t* pan) {
+	static uint32_t none[GBA_W * GBA_H];
+	static const SpriteRule mapObjs = { -512, -256, 511, 255, 0, 1023, 3, 0, 0 };
+	if (!emu_state_save(s, tmp)) {
+		memcpy(pan, s->fb, GBA_W * GBA_H * sizeof(uint32_t));
+		return;
+	}
+	emu_layers(s, 0);
+	emu_state_load(s, tmp);
+	emu_frame(s, 0);
+	memcpy(none, s->fb, sizeof(none));
+	emu_layers(s, 0x15);
+	emu_hide_sprites(s, &mapObjs, 1);
+	emu_state_load(s, tmp);
+	emu_frame(s, 0);
+	for (int i = 0; i < GBA_W * GBA_H; ++i) pan[i] = s->fb[i] == none[i] ? AW_BG : s->fb[i];
+	emu_hide_sprites(s, NULL, 0);
+	emu_layers(s, 0x1F);
+	emu_state_load(s, tmp);
+}
+
+static const char* aw_panel(Emu* s, const void* state, int* rows) {
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	int army = emu_read8(s, AW_ARMY);
+	if (army < 1 || army > 4) return "not on the battle map";
+	aw_tap(s, K_B, 3);
+	int unit = aw_cursor_unit(s, army);
+	aw_tap(s, K_SELECT, 1);
+	aw_run(s, 0, 8);
+	if (unit) {
+		aw_tap(s, K_A, 1);
+		if (!aw_settle(s, aw_list_up, 90)) return "unit list did not open";
+		int row = -1;
+		for (int i = 0; i < 64; ++i) {
+			int id = emu_read8(s, AW_LIST_ORDER + i);
+			if (id == 0xFF) break;
+			if (id == unit) {
+				row = i;
+				break;
+			}
+		}
+		for (int tries = 0; row > 0 && emu_read8(s, AW_LIST_ROW) != row && tries < 70; ++tries) {
+			aw_run(s, K_DOWN, 2);
+			aw_run(s, 0, 4);
+		}
+		if (!aw_settle(s, aw_list_up, 60)) return "unit list did not settle";
+		*rows = GBA_H;
+	} else {
+		aw_tap(s, K_DOWN, 1);
+		aw_tap(s, K_A, 1);
+		aw_run(s, 0, 8);
+		aw_tap(s, K_A, 1);
+		if (!aw_settle(s, aw_intel_up, 90)) return "battle intel did not open";
+		*rows = 124; /* the panel, not the map below it */
+	}
+	return NULL;
+}
+
+static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	static uint32_t mm[GBA_W * GBA_H];
+	int mw = 0, mh = 0, rows = 0;
+	void* tmp = malloc(emu_state_size(s));
+	if (!tmp) return "out of memory";
+	static uint32_t pan[GBA_W * GBA_H];
+	const char* err = aw_minimap(s, state, tmp, mm, &mw, &mh) ? aw_panel(s, state, &rows) : "minimap did not open";
+	if (!err) aw_clean(s, tmp, pan);
+	free(tmp);
+	if (err) return err;
+	for (int i = 0; i < w * h; ++i) out[i] = AW_BG;
+	/* the panel at the top, the minimap centred in the space below it (over
+	 * the panel's foot if it's too tall for that) */
+	int px = (w - GBA_W) / 2, py = 4;
+	for (int y = 0; y < rows && py + y < h; ++y) memcpy(&out[(py + y) * w + px], &pan[y * GBA_W], GBA_W * sizeof(uint32_t));
+	int top = py + rows + 4, room = h - 4 - top;
+	int my = mh <= room ? top + (room - mh) / 2 : h - 4 - mh;
+	if (my < 0) my = 0;
+	int mx = (w - mw) / 2;
+	for (int y = 0; y < mh && my + y < h; ++y) memcpy(&out[(my + y) * w + mx], &mm[y * mw], mw * sizeof(uint32_t));
+	return NULL;
+}
 
 static const MapProfile profiles[] = {
 	{
@@ -543,7 +750,21 @@ static const MapProfile profiles[] = {
 		.logoOnly = true,
 	},
 	{
-		.codes = { "AWRE", "AWRP" },
+		/* USA; the second screen is put together by aw_compose */
+		.codes = { "AWRE" },
+		.title = "Advance Wars",
+		.compose = aw_compose,
+		.crop_w = 320, /* 3x on 1024x768, 2x on 640x480 */
+		.crop_h = 240,
+		.live = { { AW_ARMY, 0xFF, 1, 1, true, 4, true } },
+		.menu = { { AW_ARMY, 0xFF, 0, 1 }, { 0x03004464, 0xFFFFFFFF, 0, 4 } },
+		.room = { { AW_CURSOR, 0xFFFF, 0, 2 } },
+		/* the title's lettering is sprites */
+		.logo = { .wait = 240, .pressStart = true, .wait2 = 100, .layers = 0x10, .maxY = 128 },
+	},
+	{
+		/* Europe: no ROM tried yet */
+		.codes = { "AWRP" },
 		.title = "Advance Wars",
 		.logoOnly = true,
 	},

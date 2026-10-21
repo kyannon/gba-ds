@@ -477,6 +477,12 @@ static const char* do_capture(MapCapture* mc, const void* state) {
 	mc->workFrames = 0;
 	mc->tileValid = false;
 	mc->underValid = false;
+	if (p->compose) {
+		const char* err = p->compose(s, state, mc->work[0], mc->cw, mc->ch);
+		mc->workFrames = err ? 0 : 1;
+		mc->workStep = 1;
+		return err;
+	}
 	if (!emu_state_load(s, state)) {
 		return "state load failed";
 	}
