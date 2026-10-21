@@ -109,6 +109,7 @@ static const uint8_t ffta_tag_jp[212] = {
 #define AW_PULSE_DARK 0x2A1C    /* its darkest (it pulses up to 0x739F and back) */
 /* the weather's sprites: rain (tiles 169, 171), in OBJ palette 2 */
 #define AW_WEATHER { -512, -256, 511, 255, 160, 191, 0, 1u << 2, 0 }
+#define AW_PALS(n) (1u << (n))
 #define AW_BG 0xFF382418         /* behind the panels: dark navy (bytes R, G, B) */
 
 static void aw_run(Emu* s, uint32_t keys, int n) {
@@ -848,8 +849,10 @@ static const MapProfile profiles[] = {
 			/* in a battle, not in a fight (fights use window 1): the
 			 * enemy's turn too, which has no window (nor terrain info) */
 			.on = { { AW_ARMY, 0xFF, 1, 1, true, 4, true }, { 0x04000000, 0x4000, 0, 2 } },
-			.objs = { { -64, -32, 239, 40, 0, 63, 0 }, { -64, -32, 239, 40, 940, 1023, 0 },
-			          { -64, 88, 239, 159, 280, 360, 0 }, { -64, 88, 239, 159, 940, 1023, 0 },
+			/* (by palette too: a move's arrow is tiles 333-397 in palette 3) */
+			.objs = { { -64, -32, 239, 40, 0, 63, 0, AW_PALS(1) | AW_PALS(7) | AW_PALS(14) }, { -64, -32, 239, 40, 940, 1023, 0, AW_PALS(1) },
+			          { -64, 88, 239, 159, 280, 360, 0, AW_PALS(1) | AW_PALS(2) | AW_PALS(6) | AW_PALS(15) },
+			          { -64, 88, 239, 159, 940, 1023, 0, AW_PALS(1) },
 			          /* the DAMAGE box over the info while picking a target */
 			          { -64, 56, 239, 103, 300, 320, 0, 1u << 1 } },
 			/* the plate at the bottom in the middle, the info at the
