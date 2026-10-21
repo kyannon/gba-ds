@@ -851,14 +851,15 @@ static const MapProfile profiles[] = {
 			.objs = { { -64, -32, 239, 40, 0, 63, 0 }, { -64, -32, 239, 40, 940, 1023, 0 },
 			          { -64, 88, 239, 159, 280, 360, 0 }, { -64, 88, 239, 159, 940, 1023, 0 },
 			          /* the DAMAGE box over the info while picking a target */
-			          { -64, 56, 239, 87, 300, 320, 0, 1u << 1 } },
+			          { -64, 56, 239, 103, 300, 320, 0, 1u << 1 } },
 			/* the plate at the bottom in the middle, the info at the
 			 * bottom right on a grey box; 4 pixels up, as the minimap */
 			/* (the plate: taken again only when the turn passes) */
 			.moves = { { 0, 0, 239, 47, 'C', 159, 'B', 235, .latch = AW_ARMY },
-			           { 0, 88, 239, 159, 'R', 312, 'B', 232, .box = 0x6B7380, .pad = 3 },
-			           /* the DAMAGE box: where it is over the info, over the panels */
-			           { 0, 56, 239, 87, 'L', 0, 'T', 0, .follow = 2 } },
+			           { 0, 104, 239, 159, 'R', 312, 'B', 232, .box = 0x6B7380, .pad = 3 },
+			           /* the DAMAGE box (down to row 103; the info starts at 104):
+			            * where it is over the info, over the panels */
+			           { 0, 56, 239, 103, 'L', 0, 'T', 0, .follow = 2 } },
 			.overMap = true,
 			.mapClear = AW_BG,
 			.gameReg = { 0x48, 0x0020 },
