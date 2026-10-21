@@ -41,6 +41,10 @@ typedef struct {
 	 * piece, `pad` pixels round it */
 	uint32_t box;
 	int pad;
+	/* hud.overMap: the piece is taken again only when the byte at this
+	 * address changes (once it has held still for 8 frames); 0: whenever
+	 * it changes. Pieces stay while the HUD is hidden either way. */
+	uint32_t latch;
 } HudMove;
 
 /* Bytes written into the ROM when the game starts, if the ROM holds `orig`

@@ -102,6 +102,7 @@ static const uint8_t ffta_tag_jp[212] = {
 #define AW_CURSOR 0x030033F0 /* map cursor x, y (stays on a unit while it moves) */
 #define AW_UNITS 0x02019F34  /* + 0x300 * (army - 1) + 12 * id (1-64): type, -, x, y, ... */
 #define AW_LIST_ROW 0x03000E2F
+#define AW_MINIMAP_OPEN 0x03000E2E /* counts 0-12 as the START minimap opens */
 #define AW_LIST_ORDER 0x0201FD38 /* unit ids in list order, 0xFF after the last */
 #define AW_PULSE_PAL 0x050003DE /* the list's highlight colour */
 #define AW_PULSE_BUF 0x030022CE /* the game's copy, put in the palette each frame */
@@ -120,6 +121,26 @@ static void aw_tap(Emu* s, uint32_t keys, int n) {
 		aw_run(s, keys, 2);
 		aw_run(s, 0, 4);
 	}
+}
+
+/* The map with the cursor free (the CO plate and terrain info up: window 0
+ * alone, as the map has it), where SELECT and START work. */
+static bool aw_idle(Emu* s) {
+	return (emu_read16(s, 0x04000000) & 0x6000) == 0x2000 && emu_read16(s, 0x04000048) == 0x003F;
+}
+
+/* Backs out of whatever is going on (a move, an action menu, a menu)
+ * with B until the cursor is free; false if it never is (the enemy's
+ * turn, a fight). */
+static bool aw_back(Emu* s) {
+	for (int i = 0; i < 16; ++i) {
+		for (int f = 0; f < 8; ++f) {
+			emu_frame(s, 0);
+			if (aw_idle(s)) return true;
+		}
+		aw_tap(s, K_B, 1);
+	}
+	return false;
 }
 
 /* pixel (x, y) of the screen is about this colour (0xRRGGBB) */
@@ -170,10 +191,19 @@ static bool aw_settle(Emu* s, bool (*up)(Emu*), int limit) {
  * it, and cut out by comparing with a render of no layers at all. */
 static bool aw_minimap(Emu* s, const void* state, void* tmp, uint32_t* mm, int* mw, int* mh) {
 	if (!emu_state_load(s, state)) return false;
-	emu_frame(s, 0);
-	aw_tap(s, K_B, 3);
-	aw_tap(s, K_START, 1);
-	aw_run(s, 0, 40);
+	if (!aw_back(s)) return false;
+	/* START (again if a cancelled move was still going back and took no
+	 * presses), until the minimap's opening count reaches its end */
+	bool open = false;
+	for (int tries = 0; tries < 3 && !open; ++tries) {
+		aw_run(s, K_START, 2);
+		for (int f = 0; f < 30 && !open; ++f) {
+			emu_frame(s, 0);
+			open = emu_read8(s, AW_MINIMAP_OPEN) == 12;
+		}
+	}
+	if (!open) return false;
+	aw_run(s, 0, 2);
 	if (!emu_state_save(s, tmp)) return false;
 	static uint32_t none[GBA_W * GBA_H];
 	emu_layers(s, 0);
@@ -193,7 +223,16 @@ static bool aw_minimap(Emu* s, const void* state, void* tmp, uint32_t* mm, int* 
 			if (y > y1) y1 = y;
 		}
 	}
-	bool ok = x1 - x0 >= 15 && y1 - y0 >= 15;
+	/* the minimap is an opaque box in the middle of the screen; anything
+	 * else on BG0 (START did nothing: an action menu, a move range) isn't */
+	bool ok = x1 - x0 >= 15 && y1 - y0 >= 15 && abs(x0 + x1 - (GBA_W - 1)) <= 4 && abs(y0 + y1 - (GBA_H - 1)) <= 4;
+	if (ok) {
+		int filled = 0;
+		for (int y = y0; y <= y1; ++y) {
+			for (int x = x0; x <= x1; ++x) filled += s->fb[y * GBA_W + x] != none[y * GBA_W + x];
+		}
+		ok = filled * 100 >= (x1 - x0 + 1) * (y1 - y0 + 1) * 97;
+	}
 	if (ok) {
 		*mw = x1 - x0 + 1;
 		*mh = y1 - y0 + 1;
@@ -251,7 +290,7 @@ static const char* aw_panel(Emu* s, const void* state, int* rows) {
 	emu_frame(s, 0);
 	int army = emu_read8(s, AW_ARMY);
 	if (army < 1 || army > 4) return "not on the battle map";
-	aw_tap(s, K_B, 3);
+	if (!aw_back(s)) return "the cursor isn't free";
 	int unit = aw_cursor_unit(s, army);
 	aw_tap(s, K_SELECT, 1);
 	aw_run(s, 0, 8);
@@ -799,12 +838,15 @@ static const MapProfile profiles[] = {
 		 * bottom right, under the panels; the darkened box behind the
 		 * info (window 0's effect) is left off the game screen */
 		.hud = {
-			.on = { { AW_ARMY, 0xFF, 1, 1, true, 4, true }, { 0x04000000, 0x2000, 0x2000, 2 } },
+			/* on the battle map with the cursor free: window 0 only (the
+			 * fights use both windows), WININ as the map has it */
+			.on = { { AW_ARMY, 0xFF, 1, 1, true, 4, true }, { 0x04000000, 0x6000, 0x2000, 2 }, { 0x04000048, 0xFFFF, 0x003F, 2 } },
 			.objs = { { -64, -32, 239, 40, 0, 63, 0 }, { -64, -32, 239, 40, 940, 1023, 0 },
 			          { -64, 88, 239, 159, 280, 360, 0 }, { -64, 88, 239, 159, 940, 1023, 0 } },
 			/* the plate at the bottom in the middle, the info at the
 			 * bottom right on a grey box; 4 pixels up, as the minimap */
-			.moves = { { 0, 0, 239, 47, 'C', 159, 'B', 235 },
+			/* (the plate: taken again only when the turn passes) */
+			.moves = { { 0, 0, 239, 47, 'C', 159, 'B', 235, .latch = AW_ARMY },
 			           { 0, 80, 239, 159, 'R', 312, 'B', 232, .box = 0x6B7380, .pad = 3 } },
 			.overMap = true,
 			.mapClear = AW_BG,

@@ -234,6 +234,18 @@ static bool hudShown; /* the second screen shows the HUD picture (hudTex) */
 /* profile hud.overMap: this frame's HUD is drawn into the map picture;
  * the map picture needs uploading again (the HUD changed) */
 static bool overOn, overDirty;
+/* the HUD's pieces as last seen (hud.overMap): the pixels inside each
+ * move's box, cut to what's there (0: nothing); latched pieces wait for
+ * a new value at their latch address, then for the piece to hold still */
+typedef struct {
+	bool valid;
+	int w, h;
+	uint32_t px[GBA_W * GBA_H];
+	uint32_t key;
+	uint32_t cand[GBA_W * GBA_H];
+	int cw, ch, still;
+} Piece;
+static Piece pieces[4];
 static void upload_map_frame(int idx);
 static uint32_t hudLogoBelow[HUD_CW * HUD_CH]; /* profile hud.logoBelow: black, the logo at half size */
 static bool hudLogoBelowDone;
@@ -1257,6 +1269,52 @@ static unsigned effect_bgs(int pal) {
 	return m;
 }
 
+/* hud.overMap: this frame's HUD pieces into pieces[]; true if one changed. */
+static bool hud_take_pieces(const typeof(hudProf->hud)* h) {
+	uint32_t clear = emu_hud_clear();
+	bool changed = false;
+	for (int m = 0; m < 4; ++m) {
+		const HudMove* mv = &h->moves[m];
+		Piece* pc = &pieces[m];
+		if (!mv->how && !mv->vhow) continue;
+		int lo = GBA_W, hi = -1, top = GBA_H, bot = -1;
+		for (int y = SDL_max(mv->y0, 0); y <= SDL_min(mv->y1, GBA_H - 1); ++y) {
+			for (int x = SDL_max(mv->x0, 0); x <= SDL_min(mv->x1, GBA_W - 1); ++x) {
+				if ((hudPx[y * GBA_W + x] & 0xFFFFFF) == clear) continue;
+				lo = SDL_min(lo, x), hi = SDL_max(hi, x), top = SDL_min(top, y), bot = SDL_max(bot, y);
+			}
+		}
+		if (hi < 0) continue; /* not there: the last one stays */
+		static uint32_t cut[GBA_W * GBA_H];
+		int w = hi - lo + 1, hh = bot - top + 1;
+		for (int y = 0; y < hh; ++y) {
+			for (int x = 0; x < w; ++x) {
+				uint32_t c = hudPx[(top + y) * GBA_W + lo + x];
+				cut[y * w + x] = (c & 0xFFFFFF) == clear ? 0 : c | 0xFF000000;
+			}
+		}
+		size_t n = (size_t) w * hh * 4;
+		if (mv->latch) {
+			/* only for a new value, once it's held still for 8 frames */
+			uint32_t key = emu_read8(&emu, mv->latch);
+			if (pc->valid && key == pc->key) continue;
+			bool same = pc->cw == w && pc->ch == hh && !memcmp(pc->cand, cut, n);
+			pc->still = same ? pc->still + 1 : 0;
+			pc->cw = w, pc->ch = hh;
+			memcpy(pc->cand, cut, n);
+			if (pc->still < 8) continue;
+			pc->key = key;
+		} else if (pc->valid && pc->w == w && pc->h == hh && !memcmp(pc->px, cut, n)) {
+			continue;
+		}
+		pc->valid = true;
+		pc->w = w, pc->h = hh;
+		memcpy(pc->px, cut, n);
+		changed = true;
+	}
+	return changed;
+}
+
 /* After each frame: show the HUD it drew, and decide whether the next
  * one is split. A frame is shown only if it was split and still looks like
  * racing (the first pause-menu frame is split too, and is dropped). */
@@ -1277,13 +1335,18 @@ static void update_hud(void) {
 	}
 	if (h->mapCnt && mapBg < 0) race = false;
 	if (h->overMap) {
-		/* into the map picture: again when the HUD changes, and once
-		 * without it as it goes */
-		static uint32_t last[GBA_W * GBA_H];
-		bool on = hudOn && race;
-		if (on != overOn || (on && memcmp(last, hudPx, sizeof(last)))) {
-			if (on) memcpy(last, hudPx, sizeof(last));
-			overOn = on;
+		/* into the map picture: each piece as last seen, kept while the
+		 * HUD is hidden (menus, moves, fights) until it shows again; all
+		 * gone off the battle map (the first `on` probe) */
+		bool changed = false;
+		if (!memprobes_match(h->on, 1, &emu)) {
+			for (int m = 0; m < 4; ++m) changed |= pieces[m].valid, pieces[m].valid = false;
+		} else if (hudOn && race) {
+			changed = hud_take_pieces(h);
+		}
+		bool any = pieces[0].valid || pieces[1].valid || pieces[2].valid || pieces[3].valid;
+		if (changed || any != overOn) {
+			overOn = any;
 			overDirty = true;
 			if (mapShownIdx >= 0) upload_map_frame(mapShownIdx);
 		}
@@ -1657,8 +1720,9 @@ static const uint32_t* map_px(int idx) {
 	return idx == STILL_IDX ? (stillValid ? stillPx : NULL) : mapRes.frames[idx];
 }
 
-/* Profile hud.overMap: the map picture with this frame's HUD pieces in it
- * (where the picture has the profile's mapClear colour). */
+/* Profile hud.overMap: the map picture with the HUD's pieces in it (where
+ * the picture has the profile's mapClear colour): each piece as last seen
+ * (hud_take_pieces). */
 static const uint32_t* hud_over_map(const uint32_t* px) {
 	static uint32_t* over;
 	static int overSize;
@@ -1671,38 +1735,31 @@ static const uint32_t* hud_over_map(const uint32_t* px) {
 		if (!over) return px;
 	}
 	memcpy(over, px, (size_t) mapW * mapH * 4);
-	uint32_t clear = emu_hud_clear(), mc = h->mapClear & 0xFFFFFF;
+	uint32_t mc = h->mapClear & 0xFFFFFF;
 	for (int m = 0; m < 4; ++m) {
 		const HudMove* mv = &h->moves[m];
-		if (!mv->how && !mv->vhow) continue;
-		int lo = GBA_W, hi = -1, top = GBA_H, bot = -1;
-		for (int y = SDL_max(mv->y0, 0); y <= SDL_min(mv->y1, GBA_H - 1); ++y) {
-			for (int x = SDL_max(mv->x0, 0); x <= SDL_min(mv->x1, GBA_W - 1); ++x) {
-				if ((hudPx[y * GBA_W + x] & 0xFFFFFF) == clear) continue;
-				lo = SDL_min(lo, x), hi = SDL_max(hi, x), top = SDL_min(top, y), bot = SDL_max(bot, y);
-			}
-		}
-		if (hi < 0) continue;
-		int dx = mv->how == 'C' ? mv->x - (lo + hi) / 2 : mv->how == 'R' ? mv->x - hi : mv->how == 'L' ? mv->x - lo : 0;
-		int dy = mv->vhow == 'M' ? mv->y - (top + bot) / 2 : mv->vhow == 'B' ? mv->y - bot : mv->vhow == 'T' ? mv->y - top : 0;
+		const Piece* pc = &pieces[m];
+		if (!pc->valid) continue;
+		int x0 = mv->how == 'C' ? mv->x - (pc->w - 1) / 2 : mv->how == 'R' ? mv->x - pc->w + 1 : mv->x;
+		int y0 = mv->vhow == 'M' ? mv->y - (pc->h - 1) / 2 : mv->vhow == 'B' ? mv->y - pc->h + 1 : mv->y;
+		uint32_t bc = mv->box ? (mv->box & 0xFF) << 16 | (mv->box & 0xFF00) | (mv->box >> 16 & 0xFF) : 0x1000000;
 		if (mv->box) {
-			/* (placed by the piece's own edges: the box goes round them) */
-			uint32_t bc = 0xFF000000u | (mv->box & 0xFF) << 16 | (mv->box & 0xFF00) | (mv->box >> 16 & 0xFF);
-			for (int y = top - mv->pad + dy; y <= bot + mv->pad + dy; ++y) {
-				for (int x = lo - mv->pad + dx; x <= hi + mv->pad + dx; ++x) {
+			/* the box goes round the piece */
+			for (int y = y0 - mv->pad; y < y0 + pc->h + mv->pad; ++y) {
+				for (int x = x0 - mv->pad; x < x0 + pc->w + mv->pad; ++x) {
 					if (x < 0 || y < 0 || x >= mapW || y >= mapH) continue;
 					uint32_t* o = &over[y * mapW + x];
-					if ((*o & 0xFFFFFF) == mc) *o = bc;
+					if ((*o & 0xFFFFFF) == mc) *o = 0xFF000000u | bc;
 				}
 			}
 		}
-		for (int y = top; y <= bot; ++y) {
-			for (int x = lo; x <= hi; ++x) {
-				uint32_t c = hudPx[y * GBA_W + x];
-				int nx = x + dx, ny = y + dy;
-				if ((c & 0xFFFFFF) == clear || nx < 0 || ny < 0 || nx >= mapW || ny >= mapH) continue;
+		for (int y = 0; y < pc->h; ++y) {
+			for (int x = 0; x < pc->w; ++x) {
+				uint32_t c = pc->px[y * pc->w + x];
+				int nx = x0 + x, ny = y0 + y;
+				if (!c || nx < 0 || ny < 0 || nx >= mapW || ny >= mapH) continue;
 				uint32_t* o = &over[ny * mapW + nx];
-				if ((*o & 0xFFFFFF) == mc || (mv->box && (*o & 0xFFFFFF) == (((mv->box & 0xFF) << 16) | (mv->box & 0xFF00) | (mv->box >> 16 & 0xFF)))) *o = c | 0xFF000000;
+				if ((*o & 0xFFFFFF) == mc || (*o & 0xFFFFFF) == bc) *o = c;
 			}
 		}
 	}
@@ -2365,6 +2422,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		hudProf = lp && lp->hud.on[0].addr && nScreens > 1 ? lp : NULL;
 		emu_hud_game_reg(hudProf ? hudProf->hud.gameReg.addr : 0, hudProf ? hudProf->hud.gameReg.bits : 0);
 		overOn = false;
+		for (int m = 0; m < 4; ++m) pieces[m].valid = false, pieces[m].still = 0;
 		if (hudProf) {
 			/* the sprites that move; tagged ones only if the tags go in */
 			memcpy(hudObjs, hudProf->hud.objs, sizeof(hudObjs));
