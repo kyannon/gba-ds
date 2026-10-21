@@ -106,6 +106,8 @@ static const uint8_t ffta_tag_jp[212] = {
 #define AW_PULSE_PAL 0x050003DE /* the list's highlight colour */
 #define AW_PULSE_BUF 0x030022CE /* the game's copy, put in the palette each frame */
 #define AW_PULSE_DARK 0x2A1C    /* its darkest (it pulses up to 0x739F and back) */
+/* the weather's sprites: rain (tiles 169, 171), in OBJ palette 2 */
+#define AW_WEATHER { -512, -256, 511, 255, 160, 191, 0, 1u << 2, 0 }
 #define AW_BG 0xFF382418         /* behind the panels: dark navy (bytes R, G, B) */
 
 static void aw_run(Emu* s, uint32_t keys, int n) {
@@ -219,7 +221,7 @@ static int aw_cursor_unit(Emu* s, int army) {
  * priority-3 ones (the map's buildings); what that leaves empty is AW_BG. */
 static void aw_clean(Emu* s, void* tmp, uint32_t* pan, bool list) {
 	static uint32_t none[GBA_W * GBA_H];
-	static const SpriteRule mapObjs = { -512, -256, 511, 255, 0, 1023, 3, 0, 0 };
+	static const SpriteRule rules[2] = { { -512, -256, 511, 255, 0, 1023, 3, 0, 0 }, AW_WEATHER };
 	if (!emu_state_save(s, tmp)) {
 		memcpy(pan, s->fb, GBA_W * GBA_H * sizeof(uint32_t));
 		return;
@@ -229,7 +231,7 @@ static void aw_clean(Emu* s, void* tmp, uint32_t* pan, bool list) {
 	emu_frame(s, 0);
 	memcpy(none, s->fb, sizeof(none));
 	emu_layers(s, 0x15);
-	emu_hide_sprites(s, &mapObjs, 1);
+	emu_hide_sprites(s, rules, 2);
 	emu_state_load(s, tmp);
 	if (list) {
 		/* the highlighted row's pulsing colour (OBJ palette 14, colour 15),
@@ -239,7 +241,7 @@ static void aw_clean(Emu* s, void* tmp, uint32_t* pan, bool list) {
 	}
 	emu_frame(s, 0);
 	for (int i = 0; i < GBA_W * GBA_H; ++i) pan[i] = s->fb[i] == none[i] ? AW_BG : s->fb[i];
-	emu_hide_sprites(s, NULL, 0);
+	emu_hide_sprites(s, &rules[1], 1);
 	emu_layers(s, 0x1F);
 	emu_state_load(s, tmp);
 }
@@ -289,6 +291,10 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 	static int mw, mh, mmAge;
 	static uint32_t pan[GBA_W * GBA_H];
 	int rows = 0;
+	/* weather (rain falling over the menus) out of every picture: the
+	 * menus settle, and it isn't kept in them */
+	static const SpriteRule weather = AW_WEATHER;
+	emu_hide_sprites(s, &weather, 1);
 	if (!emu_state_load(s, state)) return "state load failed";
 	uint32_t key = 2166136261u;
 	for (uint32_t a = AW_UNITS; a < AW_UNITS + 4 * 0x300; a += 4) key = (key ^ emu_read32(s, a)) * 16777619u;
