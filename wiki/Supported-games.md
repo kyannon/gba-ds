@@ -15,7 +15,6 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Final Fantasy Tactics Advance | `AFXE` `AFXP` `AFXJ` | in battles and the scenes on the battle maps: dialogue, menus, unit details | — |
 | Advance Wars (preliminary) | `AWRE` (USA only so far) | in battles: the unit list or the battle intel, with the minimap | — |
 | Fire Emblem (preliminary) | `AE7E` (USA only so far) | on the map: the unit, terrain and goal windows and the minimap | — |
-| Tactics Ogre: The Knight of Lodis (preliminary) | `ATOE` (USA only so far) | in battles and their scenes: conversations, menus and unit windows; the status page of the unit under the cursor | — |
 
 The codes are what `<CODE>` means in logo and overlay file names (see [Playing](Playing#logos) and [[Map screen surrounds and overlays]]).
 
@@ -107,20 +106,11 @@ Preliminary, the USA release only for now (the European and Japanese releases ar
 - The game's logo, small and dimmed, is always in the middle of the second screen, behind the windows.
 - **In a fight and on the other armies' turns,** the second screen is the dark background with the logo alone.
 
-## Tactics Ogre: The Knight of Lodis
-
-Preliminary, the USA release only for now (the Japanese release is listed, with its name on the second screen).
-
-- **In battles and the scenes on their maps,** everything the game draws over the battlefield moves to the second screen, where it was on the game screen: conversations and their portraits, tutorial messages, the selected unit's HP and MP and its strip along the bottom, the terrain, the unit under the cursor, the action and arms menus with their hand cursors, and an attack's figures and arrow. The cursor on the battlefield (and the one pointing at your target) stays on the game screen.
-- **In the opening,** the name and birthday entry, the fortune teller's words and portrait, and her questions and their answers move to the second screen; the turning globe stays on the game screen. (The game draws the inside of the name and birthday boxes into the scene itself; the game screen shows the scene as it was before they came up.)
-- **While you choose a unit,** the second screen shows the status page of the unit under the cursor (the page B opens), taken from the game a moment after the cursor stops on it.
-- **On the other side's turns,** the windows stay on the game screen and the second screen shows the background alone: the game's logo, large and dimmed on dark grey (behind everything else too).
-
 ## Coming soon
 
 These games are in the game list, but their second screens are still being built, after the DS versions of each series. For now the game plays on one screen and the other shows the game's name.
 
-- **Tactics Ogre: The Knight of Lodis** (Japan: Tactics Ogre Gaiden; the USA release is above)
+- **Tactics Ogre: The Knight of Lodis** (USA; Japan: Tactics Ogre Gaiden)
 - **Fire Emblem** (Europe, Japan: Rekka no Ken; the USA release is above)
 - **Advance Wars** (Europe; the USA release is above)
 - **Mega Man Battle Network** (USA, Europe, Japan: Battle Network Rockman EXE)

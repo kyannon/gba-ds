@@ -209,7 +209,6 @@ static char overlayMode[2][16];
 static int logoW, logoH;
 static bool logoPixel;
 static MapResult mapRes;
-static uint32_t mapReqKey, mapKey; /* the room key at the capture asked for, and at the newest one */
 static int mapW = GBA_W, mapH = GBA_H;
 static int mapShownIdx = -1;
 /* "Map Animations: Off" shows this composed still instead of mapRes.frames[] */
@@ -1022,9 +1021,7 @@ static void hud_make_backdrop(void) {
  * (whole pixels for the extracted one), dimmed like the race backdrop. */
 static void hud_make_logo_back(void) {
 	hudLogoDone = true;
-	/* (hud.logoFull: on dark grey) */
-	uint32_t bg = hudProf->hud.logoFull ? 0xFF242424 : 0xFF1A1010;
-	for (int i = 0; i < HUD_CW * HUD_CH; ++i) hudLogoBack[i] = bg;
+	for (int i = 0; i < HUD_CW * HUD_CH; ++i) hudLogoBack[i] = 0xFF1A1010;
 	bool pixelArt;
 	SDL_Surface* lg = ui_logo_surface(cfg, emu.gameCode, &pixelArt);
 	if (!lg) return;
@@ -1102,7 +1099,6 @@ static int rule_count(const SpriteRule* r, int max) {
 static void hud_compose(void) {
 	const typeof(hudProf->hud)* h = &hudProf->hud;
 	uint32_t clear = emu_hud_clear();
-	if (h->adjust) h->adjust(&emu, hudPx, clear);
 	bool racing = !hudScene && memprobes_match(h->layout, 4, &emu);
 	{
 		static int lastRacing = -1;
@@ -1144,7 +1140,7 @@ static void hud_compose(void) {
 			}
 		}
 	}
-	if (hudScene || h->logoFull) {
+	if (hudScene) {
 		if (!hudLogoDone) hud_make_logo_back();
 		memcpy(hudCanvas, hudLogoBack, sizeof(hudCanvas));
 	} else if (h->logoBelow || h->logoBehind) {
@@ -1192,29 +1188,6 @@ static void hud_compose(void) {
 	} else {
 		uint32_t plain = h->mapCnt ? (hudFadeEff == 2 ? 0xFFFFFFFF : 0xFF000000) : 0xFF1A1010;
 		for (int i = 0; i < HUD_CW * HUD_CH; ++i) hudCanvas[i] = plain;
-	}
-	/* hud.home: the HUD back onto the game screen, the background alone */
-	if ((h->home[0].addr && memprobes_match(h->home, 2, &emu)) || (h->homeOr[0].addr && memprobes_match(h->homeOr, 2, &emu))) {
-		for (int i = 0; i < GBA_W * GBA_H; ++i) {
-			if ((hudPx[i] & 0xFFFFFF) != clear) emu.fb[i] = hudPx[i];
-		}
-		return;
-	}
-	/* hud.showMap: the capture instead, when it's of where the game is now */
-	if (h->showMap && mc && mapShownIdx >= 0 && mapKey && mapKey == mapcap_room_key(mc, &emu) && mapcap_live_ok(mc, &emu) &&
-	    mapRes.w == GBA_W && mapRes.h == GBA_H) {
-		const uint32_t* px = mapRes.frames[0];
-		uint32_t mc0 = h->mapClear & 0xFFFFFF;
-		bool empty = (px[0] & 0xFFFFFF) == mc0 && (px[GBA_W * GBA_H / 2] & 0xFFFFFF) == mc0 && (px[GBA_W * GBA_H - 1] & 0xFFFFFF) == mc0;
-		if (!empty) {
-			for (int y = 0; y < GBA_H; ++y) {
-				for (int x = 0; x < GBA_W; ++x) {
-					uint32_t* o = &hudCanvas[y * 2 * HUD_CW + x * 2];
-					o[0] = o[1] = o[HUD_CW] = o[HUD_CW + 1] = px[y * GBA_W + x] | 0xFF000000;
-				}
-			}
-			return;
-		}
 	}
 	/* moved pieces (the scene's, or racing's): how far each goes this frame */
 	const HudMove* movesIn = hudScene ? h->scene.moves : racing ? h->moves : NULL;
@@ -1388,9 +1361,8 @@ static bool hud_take_pieces(const typeof(hudProf->hud)* h) {
  * racing (the first pause-menu frame is split too, and is dropped). */
 static void update_hud(void) {
 	const typeof(hudProf->hud)* h = &hudProf->hud;
-	/* (the other layer first: its probes may be the narrower ones) */
-	bool altOn = h->alt.on[0].addr && memprobes_match(h->alt.on, 4, &emu);
-	bool main = !altOn && memprobes_match(h->on, 4, &emu);
+	bool main = memprobes_match(h->on, 4, &emu);
+	bool altOn = !main && h->alt.on[0].addr && memprobes_match(h->alt.on, 4, &emu);
 	bool race = main || altOn || (hudOn && h->stay[0].addr && memprobes_match(h->stay, 2, &emu));
 	/* the HUD's other layer (alt): kept while it stays on through a fade */
 	bool alt = main ? false : altOn ? true : hudAlt;
@@ -2308,9 +2280,6 @@ static void draw_game(void) {
 			/* the HUD picture is at 2x: a grid cell per GBA pixel */
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
 			ui_image_pixels(s, hudTex, HUD_CW, HUD_CH, cfg->mapScale, cfg->lcdGrid ? 2 : 0);
-		} else if (mapShownIdx >= 0 && hudProf && hudProf->hud.showMap) {
-			/* (hud.showMap: the capture goes only with the HUD) */
-			if (logoCanvasTex[0] || logoCanvasTex[1]) ui_image_pixels(s, logoCanvasTex, GBA_W, GBA_H, cfg->mapScale, cfg->lcdGrid ? 1 : 0);
 		} else if (mapShownIdx >= 0 && draw_framed_map(s)) {
 			/* map + generated surround */
 		} else if (mapShownIdx >= 0) {
@@ -3170,10 +3139,6 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				if (debug) fprintf(stderr, "frame %llu: back at the menus, map cleared\n", (unsigned long long) frameCount);
 			}
 			uint32_t rk = mapcap_room_key(mc, &emu);
-			if (hudProf && hudProf->hud.showMap && !mapcap_live_ok(mc, &emu)) {
-				/* (hud.showMap) out of the moment it's of: taken afresh when it's back */
-				mapKey = lastRoomKey = 0;
-			}
 			bool roomChanged = rk && rk != lastRoomKey;
 			/* Back off while captures keep failing (e.g. the game says "playing"
 			 * but the map can't open: intro cutscenes, briefings). Each failed
@@ -3203,7 +3168,6 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				if (mapcap_request(mc, &emu)) {
 					sinceMapRequest = 0;
 					lastRoomKey = rk;
-					mapReqKey = rk;
 					forceMap = false;
 				}
 			}
@@ -3212,7 +3176,6 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				/* a capture that finished after quitting to the title: drop it */
 			} else if (fresh) {
 				mapInactive = false;
-				mapKey = mapReqKey;
 				if (mapRes.hasTile) mapframe_set_tile(&mf, mapRes.tile, mapRes.tileK, mapRes.tileX, mapRes.tileY);
 				mapShownIdx = -1;
 				mapAnimStart = frameCount;

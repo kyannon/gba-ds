@@ -237,28 +237,6 @@ typedef struct MapProfile {
 		/* The same, the logo centred and dimmed, behind the HUD (Final
 		 * Fantasy Tactics Advance). */
 		bool logoBehind;
-		/* The background instead: the game's logo as large as fits,
-		 * dimmed, on dark grey (Tactics Ogre). */
-		bool logoFull;
-		/* While the HUD is on and every `home` probe matches, or every
-		 * `homeOr` one: it goes back onto the game screen and the second
-		 * screen is the background alone (Tactics Ogre: the other sides'
-		 * turns, the unit status page). */
-		MemProbe home[2];
-		MemProbe homeOr[2];
-		/* The map capture (profile.compose) whole, in place of the HUD
-		 * picture, while the profile's `live` probes match and it was
-		 * taken where the game is now (its `room` key); a capture all of
-		 * mapClear means there's nothing to show (Tactics Ogre: the
-		 * status page of the unit under the cursor). It's never shown
-		 * without the HUD. */
-		bool showMap;
-		/* Before the second screen is made from this frame's HUD picture:
-		 * the profile moves pixels between it and the game picture (e->fb)
-		 * itself (Tactics Ogre's opening: the box fills drawn on the
-		 * scene's layer go with their boxes, the globe on a text layer
-		 * stays). clear: the HUD picture's "nothing here" colour. */
-		void (*adjust)(Emu* e, uint32_t* hud, uint32_t clear);
 		/* Instead of bgMask: the BG layers drawn at a priority below this
 		 * (BGxCNT bits 0-1), picked line by line as they're drawn. Final Fantasy Tactics
 		 * Advance moves its map and menus between layers, but its menus,
