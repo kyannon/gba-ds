@@ -15,6 +15,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Final Fantasy Tactics Advance | `AFXE` `AFXP` `AFXJ` | in battles and the scenes on the battle maps: dialogue, menus, unit details | — |
 | Advance Wars (preliminary) | `AWRE` (USA only so far) | in battles: the unit list or the battle intel, with the minimap | — |
 | Fire Emblem (preliminary) | `AE7E` (USA only so far) | on the map: the unit, terrain and goal windows and the minimap | — |
+| Mega Man Battle Network (preliminary) | `AREE` (USA only so far) | the START menus; in battles: chip selection and the results | — |
 
 The codes are what `<CODE>` means in logo and overlay file names (see [Playing](Playing#logos) and [[Map screen surrounds and overlays]]).
 
@@ -106,6 +107,14 @@ Preliminary, the USA release only for now (the European and Japanese releases ar
 - The game's logo, small and dimmed, is always in the middle of the second screen, behind the windows.
 - **In a fight and on the other armies' turns,** the second screen is the dark background with the logo alone.
 
+## Mega Man Battle Network
+
+Preliminary, the USA release only for now (the European and Japanese releases are listed, with the name on the second screen).
+
+- **The START menu** and every menu it opens (Folder, Library, MegaMan, Email, Items, Network, Save) appear on the second screen, whole. The game screen keeps the world as it was when you pressed START.
+- **In battles,** the Custom screen's chip selection moves to the second screen, where it was on the game screen, over the game's logo, small and dimmed; Mega Man's HP stays at the top of the battle. When the battle ends, the ENEMY DELETED banner and the results screen are on the second screen, and the game screen holds the battle's last moment.
+- **Everywhere else** (the real world and the net, which have no map in this game), the second screen shows the game's logo, taken from the title screen.
+
 ## Coming soon
 
 These games are in the game list, but their second screens are still being built, after the DS versions of each series. For now the game plays on one screen and the other shows the game's name.
@@ -113,4 +122,4 @@ These games are in the game list, but their second screens are still being built
 - **Tactics Ogre: The Knight of Lodis** (USA; Japan: Tactics Ogre Gaiden)
 - **Fire Emblem** (Europe, Japan: Rekka no Ken; the USA release is above)
 - **Advance Wars** (Europe; the USA release is above)
-- **Mega Man Battle Network** (USA, Europe, Japan: Battle Network Rockman EXE)
+- **Mega Man Battle Network** (Europe, Japan: Battle Network Rockman EXE; the USA release is above)

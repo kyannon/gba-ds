@@ -237,6 +237,12 @@ typedef struct MapProfile {
 		/* The same, the logo centred and dimmed, behind the HUD (Final
 		 * Fantasy Tactics Advance). */
 		bool logoBehind;
+		/* While every `mirror` probe matches, or every `mirrorOr` one: the
+		 * whole game screen goes to the second screen, and the game screen
+		 * holds the last picture from before (Mega Man Battle Network's
+		 * menus over a paused world, a battle's results). */
+		MemProbe mirror[2];
+		MemProbe mirrorOr[2];
 		/* Instead of bgMask: the BG layers drawn at a priority below this
 		 * (BGxCNT bits 0-1), picked line by line as they're drawn. Final Fantasy Tactics
 		 * Advance moves its map and menus between layers, but its menus,

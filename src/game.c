@@ -1359,8 +1359,38 @@ static bool hud_take_pieces(const typeof(hudProf->hud)* h) {
 /* After each frame: show the HUD it drew, and decide whether the next
  * one is split. A frame is shown only if it was split and still looks like
  * racing (the first pause-menu frame is split too, and is dropped). */
+/* hud.mirror: the game screen's last picture from before */
+static uint32_t mirrorHeld[GBA_W * GBA_H];
+static bool mirrorHave, mirrorOn;
+
 static void update_hud(void) {
 	const typeof(hudProf->hud)* h = &hudProf->hud;
+	if (h->mirror[0].addr || h->mirrorOr[0].addr) {
+		bool mir = (h->mirror[0].addr && memprobes_match(h->mirror, 2, &emu)) ||
+		           (h->mirrorOr[0].addr && memprobes_match(h->mirrorOr, 2, &emu));
+		if (mir) {
+			/* the screen over there; here, the picture from before (none
+			 * after loading a state in the middle of it: left as it is;
+			 * shown instead of emu.fb, which can't be written over: the
+			 * renderer redraws only the lines that change) */
+			for (int y = 0; y < GBA_H; ++y) {
+				for (int x = 0; x < GBA_W; ++x) {
+					uint32_t* o = &hudCanvas[y * 2 * HUD_CW + x * 2];
+					o[0] = o[1] = o[HUD_CW] = o[HUD_CW + 1] = emu.fb[y * GBA_W + x] | 0xFF000000;
+				}
+			}
+			for (int i = 0; i < nViews; ++i) ui_update_texture(hudTex[i], hudCanvas, HUD_CW * 4);
+			if (!mirrorOn && debug) fprintf(stderr, "frame %llu: the screen mirrored\n", (unsigned long long) frameCount);
+			mirrorOn = hudShown = true;
+			return;
+		}
+		memcpy(mirrorHeld, emu.fb, sizeof(mirrorHeld));
+		mirrorHave = true;
+		if (mirrorOn) {
+			mirrorOn = hudShown = false;
+			if (debug) fprintf(stderr, "frame %llu: the screen mirrored: off\n", (unsigned long long) frameCount);
+		}
+	}
 	bool main = memprobes_match(h->on, 4, &emu);
 	bool altOn = !main && h->alt.on[0].addr && memprobes_match(h->alt.on, 4, &emu);
 	bool race = main || altOn || (hudOn && h->stay[0].addr && memprobes_match(h->stay, 2, &emu));
@@ -1725,6 +1755,7 @@ static bool state_load(const char* path) {
 	/* HUD pieces from another moment: taken again from the loaded game */
 	for (int m = 0; ok && m < 4; ++m) pieces[m].stale = true, pieces[m].still = 0;
 	if (ok) aheadReady = false; /* a frame emulated before the load: emulate afresh */
+	if (ok) mirrorHave = false; /* (hud.mirror: the picture from before is another moment's) */
 	return ok;
 }
 
@@ -2568,6 +2599,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		}
 		hudOn = false;
 		hudShown = false;
+		mirrorHave = mirrorOn = false;
 		hudScene = false;
 		hudFadeEff = hudFadeIn = 0;
 		memset(hudPalRef, 0, sizeof(hudPalRef));
@@ -3253,6 +3285,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			memcpy(aheadFb, emu.fb, sizeof(aheadFb));
 			if (ahead_start(keys)) aheadInFlight = true, shownFb = aheadFb;
 		}
+		if (mirrorOn && mirrorHave) shownFb = mirrorHeld; /* (hud.mirror: the picture from before) */
 		/* only the view the game is on needs it (all of them right after a swap,
 		 * since the menu draws the game without uploading) */
 		for (int i = 0; i < nViews; ++i) {
