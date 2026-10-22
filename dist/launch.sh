@@ -103,6 +103,57 @@ if [ -d /etc/banana ]; then
 	exec ./gba-ds "${B[@]}" "$@" >> "$LOG" 2>&1
 fi
 
+# Any other system (the RG DS and RG DS Plus's own Linux, ...): neither
+# ROCKNIX's /storage nor BananaOS. GBA DS finds the GBA ROM folder beside the
+# ports folder it was put in (or on either card), keeps its screenshots in
+# its own folder, and reads the touchscreen as the bottom screen's own
+# (a window per screen there: SDL gives touches to the first). What the
+# system is like goes into gba-ds.log, for reports.
+if [ ! -d /storage/roms ]; then
+	LOG="$DIR/gba-ds.log"
+	echo "another system (not ROCKNIX or BananaOS)" > "$LOG"
+	O=()
+	cfgval() { sed -n "s/^$1 *= *//p" "$DIR/gba-ds.cfg" 2>/dev/null | tail -n 1; }
+	if [ "$(cfgval rom_dir)" = /storage/roms/gba ]; then
+		ROMS="$(dirname "$(dirname "$DIR")")"
+		GBA=
+		for r in "$ROMS" /mnt/mmc/Roms /mnt/sdcard/Roms /mnt/mmc/roms /mnt/sdcard/roms /roms /roms2; do
+			for g in GBA gba Gba; do
+				if [ -d "$r/$g" ]; then
+					# (the first with games in it; else the first there is)
+					if ls "$r/$g" 2>/dev/null | grep -qiE '\.(gba|zip|7z)$'; then GBA="$r/$g"; break 2; fi
+					[ -z "$GBA" ] && GBA="$r/$g"
+				fi
+			done
+		done
+		[ -n "$GBA" ] && O+=("--rom-dir=$GBA")
+	fi
+	[ "$(cfgval screenshot_dir)" = /storage/roms/screenshots ] && mkdir -p "$DIR/screenshots" && O+=("--screenshot-dir=$DIR/screenshots")
+	# (with two screens connected: a window each)
+	n=0; for c in /sys/class/drm/card*-*/status; do grep -q '^connected' "$c" 2>/dev/null && n=$((n + 1)); done
+	[ $n -ge 2 ] && case "$(cfgval touch_map)" in window|"") O+=(--touch-map=screen) ;; esac
+	{
+		echo "options: ${O[*]}"
+		echo "--- system"
+		cat /etc/os-release 2>/dev/null | head -n 6
+		uname -a
+		echo "--- folders"
+		echo "this: $DIR"
+		mount | grep -iE 'mmc|sdcard|roms|/dev/sd' | head -n 12
+		ls -d /mnt/*/* /roms* 2>/dev/null | head -n 30
+		echo "--- screens and input"
+		for c in /sys/class/drm/card*-*; do [ -f "$c/status" ] && echo "$(basename "$c"): $(cat "$c/status") $(head -n 1 "$c/modes" 2>/dev/null)"; done
+		grep -E '^N: Name=|^H: Handlers=' /proc/bus/input/devices 2>/dev/null | paste - - | head -n 16
+		echo "--- environment"
+		env | grep -E '^(SDL_|WAYLAND|DISPLAY|XDG_|LD_)' | sort
+		ls -l /usr/lib/libSDL2* /usr/lib/aarch64-linux-gnu/libSDL2* 2>/dev/null | head -n 4
+		echo "--- running"
+		for p in /proc/[0-9]*; do head -c 100 "$p/cmdline" 2>/dev/null | tr '\0\n' '  '; echo; done | grep -v '^$' | sort -u | head -n 30
+		echo "---"
+	} >> "$LOG" 2>&1
+	exec ./gba-ds "${O[@]}" "$@" >> "$LOG" 2>&1
+fi
+
 # Second screen on and in place for the run (stock ROCKNIX keeps it off),
 # put back afterwards; see screens.sh. The trap also covers being killed.
 "$DIR/screens.sh" on > "$DIR/gba-ds.log" 2>&1

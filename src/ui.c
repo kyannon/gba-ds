@@ -262,6 +262,13 @@ bool ui_init(Config* c, bool wantDual) {
 	                  strcmp(driver, "windows") && strcmp(driver, "cocoa") && !getenv("GBADS_WINDOWED");
 	fprintf(stderr, "video driver %s, %d display(s)%s -> %s\n", driver, displays, underSway ? ", sway" : "",
 	        dual && displays >= 2 ? "two windows" : "one window");
+	for (int i = 0; i < displays && i < 4; ++i) {
+		SDL_Rect b = { 0 };
+		SDL_GetDisplayBounds(i, &b);
+		const char* name = SDL_GetDisplayName(i);
+		fprintf(stderr, "  display %d: %s, %dx%d at %d,%d\n", i, name ? name : "?", b.w, b.h, b.x, b.y);
+	}
+	fprintf(stderr, "touch devices: %d\n", SDL_GetNumTouchDevices());
 	if (dual && displays >= 2) {
 		nViews = 2;
 		if (!create_view(&views[0], 0, "GBA DS", true, 720, 480) ||
