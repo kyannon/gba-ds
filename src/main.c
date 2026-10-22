@@ -30,6 +30,22 @@ static void on_signal(int sig) {
 	uiQuit = 1;
 }
 
+#if defined(__linux__) && !defined(__ANDROID__) && defined(__GLIBC__)
+#include <execinfo.h>
+/* A crash: where it was, into the log (for reports from systems we can't
+ * run ourselves); then the default action. */
+static void on_crash(int sig) {
+	char msg[64];
+	int n = snprintf(msg, sizeof(msg), "crashed: signal %d; backtrace:\n", sig);
+	if (write(2, msg, n) < 0) { /* (nothing to do) */ }
+	void* frames[48];
+	int k = backtrace(frames, 48);
+	backtrace_symbols_fd(frames, k, 2);
+	signal(sig, SIG_DFL);
+	raise(sig);
+}
+#endif
+
 int main(int argc, char** argv) {
 	for (int i = 1; i < argc; ++i) {
 		if (!strcmp(argv[i], "--version")) {
@@ -102,6 +118,13 @@ int main(int argc, char** argv) {
 	banana_integration_refresh();
 #endif
 
+#if defined(__linux__) && !defined(__ANDROID__) && defined(__GLIBC__)
+	signal(SIGSEGV, on_crash);
+	signal(SIGBUS, on_crash);
+	signal(SIGILL, on_crash);
+	signal(SIGFPE, on_crash);
+	signal(SIGABRT, on_crash);
+#endif
 	signal(SIGTERM, on_signal);
 	signal(SIGINT, on_signal);
 	signal(SIGHUP, on_signal);
@@ -118,6 +141,7 @@ int main(int argc, char** argv) {
 	} else {
 		char rom[1024];
 		while (!uiQuit && library_run(&cfg, rom, sizeof(rom))) {
+			fprintf(stderr, "starting %s\n", rom);
 			if (game_run(&cfg, rom, true) == GAME_QUIT_APP) break;
 		}
 	}

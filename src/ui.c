@@ -184,7 +184,11 @@ static void open_pads(void) {
 	for (int i = 0; i < SDL_NumJoysticks() && i < 8; ++i) {
 		if (!pads[i] && SDL_IsGameController(i)) {
 			pads[i] = SDL_GameControllerOpen(i);
-			if (pads[i]) fprintf(stderr, "controller: %s\n", SDL_GameControllerName(pads[i]));
+			if (pads[i]) {
+				fprintf(stderr, "controller: %s\n", SDL_GameControllerName(pads[i]));
+				char* map = SDL_GameControllerMapping(pads[i]);
+				if (map) fprintf(stderr, "  mapping: %s\n", map), SDL_free(map);
+			}
 		} else if (!pads[i] && !rawJoys[i]) {
 			rawJoys[i] = SDL_JoystickOpen(i);
 			if (rawJoys[i]) fprintf(stderr, "joystick without mapping: %s\n", SDL_JoystickName(rawJoys[i]));
@@ -495,11 +499,17 @@ bool ui_events(void) {
 			/* buttons outside the standard set (15 L2, 16 R2, 17 C, 18 Z...) */
 			if (!debug && ev.jbutton.button >= 15) fprintf(stderr, "raw joystick button %d\n", ev.jbutton.button);
 #endif
-			if (debug) fprintf(stderr, "raw joystick %d button %d (use home_button = %d to make it HOME)\n",
-			                   (int) ev.jbutton.which, ev.jbutton.button, ev.jbutton.button);
+			{
+				static int rawLogged;
+				if (debug || rawLogged++ < 8) fprintf(stderr, "raw joystick %d button %d (use home_button = %d to make it HOME)\n",
+				                                      (int) ev.jbutton.which, ev.jbutton.button, ev.jbutton.button);
+			}
 			break;
 		case SDL_CONTROLLERBUTTONDOWN:
-			if (debug) fprintf(stderr, "controller button %s\n", SDL_GameControllerGetStringForButton(ev.cbutton.button));
+			{
+				static int padLogged;
+				if (debug || padLogged++ < 8) fprintf(stderr, "controller button %s\n", SDL_GameControllerGetStringForButton(ev.cbutton.button));
+			}
 			break;
 		case SDL_KEYDOWN:
 			if (debug) fprintf(stderr, "key %s\n", SDL_GetKeyName(ev.key.keysym.sym));
@@ -507,7 +517,9 @@ bool ui_events(void) {
 		case SDL_FINGERDOWN:
 		case SDL_FINGERUP:
 		case SDL_FINGERMOTION:
-			if (debug && ev.type != SDL_FINGERMOTION) {
+			static int touchesLogged;
+			if ((debug || touchesLogged < 6) && ev.type != SDL_FINGERMOTION) {
+				++touchesLogged;
 				fprintf(stderr, "finger %s %.3f,%.3f window %u\n", ev.type == SDL_FINGERDOWN ? "down" : "up",
 				        ev.tfinger.x, ev.tfinger.y, ev.tfinger.windowID);
 			}
@@ -515,7 +527,14 @@ bool ui_events(void) {
 			              view_of_window(ev.tfinger.windowID), ev.tfinger.x, ev.tfinger.y, true);
 			break;
 		case SDL_MOUSEBUTTONDOWN:
-		case SDL_MOUSEBUTTONUP:
+		case SDL_MOUSEBUTTONUP: {
+			static int clicksLogged;
+			if (clicksLogged < 6 && ev.type == SDL_MOUSEBUTTONDOWN) {
+				++clicksLogged;
+				fprintf(stderr, "mouse down %d,%d window %u%s\n", ev.button.x, ev.button.y, ev.button.windowID,
+				        ev.button.which == SDL_TOUCH_MOUSEID ? " (from touch)" : "");
+			}
+		}
 			if (ev.button.which == SDL_TOUCH_MOUSEID) break;
 			mouseDown = ev.type == SDL_MOUSEBUTTONDOWN;
 			queue_pointer(mouseDown ? 1 : 2, view_of_window(ev.button.windowID), ev.button.x, ev.button.y, false);
