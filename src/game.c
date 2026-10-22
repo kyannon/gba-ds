@@ -1102,6 +1102,7 @@ static int rule_count(const SpriteRule* r, int max) {
 static void hud_compose(void) {
 	const typeof(hudProf->hud)* h = &hudProf->hud;
 	uint32_t clear = emu_hud_clear();
+	if (h->adjust) h->adjust(&emu, hudPx, clear);
 	bool racing = !hudScene && memprobes_match(h->layout, 4, &emu);
 	{
 		static int lastRacing = -1;
@@ -1387,8 +1388,9 @@ static bool hud_take_pieces(const typeof(hudProf->hud)* h) {
  * racing (the first pause-menu frame is split too, and is dropped). */
 static void update_hud(void) {
 	const typeof(hudProf->hud)* h = &hudProf->hud;
-	bool main = memprobes_match(h->on, 4, &emu);
-	bool altOn = !main && h->alt.on[0].addr && memprobes_match(h->alt.on, 4, &emu);
+	/* (the other layer first: its probes may be the narrower ones) */
+	bool altOn = h->alt.on[0].addr && memprobes_match(h->alt.on, 4, &emu);
+	bool main = !altOn && memprobes_match(h->on, 4, &emu);
 	bool race = main || altOn || (hudOn && h->stay[0].addr && memprobes_match(h->stay, 2, &emu));
 	/* the HUD's other layer (alt): kept while it stays on through a fade */
 	bool alt = main ? false : altOn ? true : hudAlt;

@@ -253,6 +253,12 @@ typedef struct MapProfile {
 		 * status page of the unit under the cursor). It's never shown
 		 * without the HUD. */
 		bool showMap;
+		/* Before the second screen is made from this frame's HUD picture:
+		 * the profile moves pixels between it and the game picture (e->fb)
+		 * itself (Tactics Ogre's opening: the box fills drawn on the
+		 * scene's layer go with their boxes, the globe on a text layer
+		 * stays). clear: the HUD picture's "nothing here" colour. */
+		void (*adjust)(Emu* e, uint32_t* hud, uint32_t clear);
 		/* Instead of bgMask: the BG layers drawn at a priority below this
 		 * (BGxCNT bits 0-1), picked line by line as they're drawn. Final Fantasy Tactics
 		 * Advance moves its map and menus between layers, but its menus,

@@ -112,6 +112,7 @@ Preliminary, the USA release only for now (the European and Japanese releases ar
 Preliminary, the USA release only for now (the Japanese release is listed, with its name on the second screen).
 
 - **In battles and the scenes on their maps,** everything the game draws over the battlefield moves to the second screen, where it was on the game screen: conversations and their portraits, tutorial messages, the selected unit's HP and MP and its strip along the bottom, the terrain, the unit under the cursor, the action and arms menus with their hand cursors, and an attack's figures and arrow. The cursor on the battlefield (and the one pointing at your target) stays on the game screen.
+- **In the opening,** the name and birthday entry, the fortune teller's words and portrait, and her questions and their answers move to the second screen; the turning globe stays on the game screen. (The game draws the inside of the name and birthday boxes into the scene itself, so the place they leave on the game screen is filled in with the wall and table around it.)
 - **While you choose a unit,** the second screen shows the status page of the unit under the cursor (the page B opens), taken from the game a moment after the cursor stops on it.
 - **On the other side's turns,** the windows stay on the game screen and the second screen shows the background alone: the game's logo, large and dimmed on dark grey (behind everything else too).
 
