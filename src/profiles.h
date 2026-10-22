@@ -240,13 +240,11 @@ typedef struct MapProfile {
 		/* While every `mirror` probe matches, or every `mirrorOr` one: the
 		 * whole game screen goes to the second screen, and the game screen
 		 * holds the last picture from before (Mega Man Battle Network's
-		 * menus over a paused world, a battle's results). */
+		 * menus over a paused world, a battle's results). With `mirror`,
+		 * while alt.on matches too, only the split's alt layers go (its
+		 * START menu without the world behind it). */
 		MemProbe mirror[2];
 		MemProbe mirrorOr[2];
-		/* With `mirror` (not mirrorOr): only what differs from the picture
-		 * from before goes over, on the HUD's background (a menu over the
-		 * paused game, without the game behind it). */
-		bool mirrorChanged;
 		/* Instead of bgMask: the BG layers drawn at a priority below this
 		 * (BGxCNT bits 0-1), picked line by line as they're drawn. Final Fantasy Tactics
 		 * Advance moves its map and menus between layers, but its menus,

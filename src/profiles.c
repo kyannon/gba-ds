@@ -1117,8 +1117,13 @@ static const MapProfile profiles[] = {
 			 * results (0x02003710 stays 8 after it, until the next) */
 			.mirror = { { 0x0200ACF4, 0xFF, 1, 1, true, 0xFF, true }, { 0x0200329F, 0xFF, 0, 1 } },
 			.mirrorOr = { { 0x0200329F, 0xFF, 3, 1 }, { 0x02003710, 0xFF, 8, 1 } },
-			/* the menus without the paused world behind them */
-			.mirrorChanged = true,
+			/* the START menu itself (0x02003480 without 0x40, which is
+			 * set in the menus it leads to): its layer alone (BG0), not
+			 * the world behind it */
+			.alt = { .on = { { 0x0200ACF4, 0xFF, 1, 1, true, 0xFF, true }, { 0x0200329F, 0xFF, 0, 1 }, { 0x02003480, 0x40, 0, 1 } },
+			         .bgMask = 0x1 },
+			/* (the HP box's move only in battles) */
+			.layout = { { 0x0200329F, 0xFF, 3, 1 } },
 		},
 		/* the title's lettering (BG3 from power-on), not the grid behind,
 		 * PRESS START or the copyright (sprites) */

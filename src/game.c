@@ -1369,71 +1369,45 @@ static void update_hud(void) {
 		bool mirMain = h->mirror[0].addr && memprobes_match(h->mirror, 2, &emu);
 		bool mir = mirMain || (h->mirrorOr[0].addr && memprobes_match(h->mirrorOr, 2, &emu));
 		if (mir) {
-			/* the screen over there; here, the picture from before (none
-			 * after loading a state in the middle of it: left as it is;
-			 * shown instead of emu.fb, which can't be written over: the
-			 * renderer redraws only the lines that change) */
-			bool changed = mirMain && h->mirrorChanged && mirrorHave;
-			if (changed) {
-				/* only what's new over the game: on the HUD's background */
-				if (h->logoBelow || h->logoBehind) {
-					if (!hudLogoBelowDone) hud_make_logo_below();
-					memcpy(hudCanvas, hudLogoBelow, sizeof(hudCanvas));
-				} else {
-					for (int i = 0; i < HUD_CW * HUD_CH; ++i) hudCanvas[i] = 0xFF000000;
-				}
-			}
-			/* (changed: by 8x8 cells, touching ones together; little ones
-			 * left out: a sprite of the world that moved, not the menu) */
-			enum { CW = GBA_W / 8, CH = GBA_H / 8 };
-			static int cellN[CH][CW], cellG[CH][CW], groupN[CW * CH];
-			static int stack[CW * CH];
-			if (changed) {
-				memset(cellN, 0, sizeof(cellN));
-				for (int y = 0; y < GBA_H; ++y) {
-					for (int x = 0; x < GBA_W; ++x) cellN[y / 8][x / 8] += ((emu.fb[y * GBA_W + x] ^ mirrorHeld[y * GBA_W + x]) & 0xFFFFFF) != 0;
-				}
-				memset(cellG, -1, sizeof(cellG));
-				int ng = 0;
-				for (int cy = 0; cy < CH; ++cy) {
-					for (int cx = 0; cx < CW; ++cx) {
-						if (!cellN[cy][cx] || cellG[cy][cx] >= 0) continue;
-						int sp = 0, total = 0;
-						stack[sp++] = cy * CW + cx;
-						cellG[cy][cx] = ng;
-						while (sp) {
-							int k = stack[--sp], ky = k / CW, kx = k % CW;
-							total += cellN[ky][kx];
-							static const int d[4][2] = { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } };
-							for (int q = 0; q < 4; ++q) {
-								int ny = ky + d[q][1], nx = kx + d[q][0];
-								if (ny < 0 || ny >= CH || nx < 0 || nx >= CW || !cellN[ny][nx] || cellG[ny][nx] >= 0) continue;
-								cellG[ny][nx] = ng;
-								stack[sp++] = ny * CW + nx;
-							}
-						}
-						groupN[ng++] = total;
-					}
-				}
-			}
-			for (int y = 0; y < GBA_H; ++y) {
-				for (int x = 0; x < GBA_W; ++x) {
-					uint32_t c = emu.fb[y * GBA_W + x];
-					if (changed && (((c ^ mirrorHeld[y * GBA_W + x]) & 0xFFFFFF) == 0 || groupN[cellG[y / 8][x / 8]] < 100)) continue;
-					uint32_t* o = &hudCanvas[y * 2 * HUD_CW + x * 2];
-					o[0] = o[1] = o[HUD_CW] = o[HUD_CW + 1] = c | 0xFF000000;
-				}
-			}
-			for (int i = 0; i < nViews; ++i) ui_update_texture(hudTex[i], hudCanvas, HUD_CW * 4);
+			/* here, the picture from before (none after loading a state in
+			 * the middle of it: left as it is; shown instead of emu.fb,
+			 * which can't be written over: the renderer redraws only the
+			 * lines that change) */
 			if (!mirrorOn && debug) fprintf(stderr, "frame %llu: the screen mirrored\n", (unsigned long long) frameCount);
 			mirrorOn = hudShown = true;
-			return;
-		}
-		memcpy(mirrorHeld, emu.fb, sizeof(mirrorHeld));
-		mirrorHave = true;
-		if (mirrorOn) {
-			mirrorOn = hudShown = false;
-			if (debug) fprintf(stderr, "frame %llu: the screen mirrored: off\n", (unsigned long long) frameCount);
+			if (mirMain && h->alt.on[0].addr && memprobes_match(h->alt.on, 4, &emu)) {
+				/* hud.alt's probes too (a menu over the paused world): its
+				 * layers alone, split as usual below; until the split's
+				 * on, the background */
+				if (!hudOn || !hudAlt) {
+					if (h->logoBelow || h->logoBehind) {
+						if (!hudLogoBelowDone) hud_make_logo_below();
+						memcpy(hudCanvas, hudLogoBelow, sizeof(hudCanvas));
+					} else {
+						for (int i = 0; i < HUD_CW * HUD_CH; ++i) hudCanvas[i] = 0xFF000000;
+					}
+					for (int i = 0; i < nViews; ++i) ui_update_texture(hudTex[i], hudCanvas, HUD_CW * 4);
+				}
+			} else {
+				/* the whole screen over there */
+				for (int y = 0; y < GBA_H; ++y) {
+					for (int x = 0; x < GBA_W; ++x) {
+						uint32_t* o = &hudCanvas[y * 2 * HUD_CW + x * 2];
+						o[0] = o[1] = o[HUD_CW] = o[HUD_CW + 1] = emu.fb[y * GBA_W + x] | 0xFF000000;
+					}
+				}
+				for (int i = 0; i < nViews; ++i) ui_update_texture(hudTex[i], hudCanvas, HUD_CW * 4);
+				/* (and the split off, if it was on) */
+				if (hudOn) emu_hud_split(&emu, false, 0, NULL, 0, hudPx), hudOn = false;
+				return;
+			}
+		} else {
+			memcpy(mirrorHeld, emu.fb, sizeof(mirrorHeld));
+			mirrorHave = true;
+			if (mirrorOn) {
+				mirrorOn = hudShown = false;
+				if (debug) fprintf(stderr, "frame %llu: the screen mirrored: off\n", (unsigned long long) frameCount);
+			}
 		}
 	}
 	bool main = memprobes_match(h->on, 4, &emu);
