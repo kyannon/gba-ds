@@ -2664,8 +2664,29 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	 * only when the buffer is a whole number of milliseconds, e.g. 480) */
 	want.samples = getenv("GBADS_AUDIO_SAMPLES") ? atoi(getenv("GBADS_AUDIO_SAMPLES")) : 512;
 	SDL_AudioDeviceID audio = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
-	if (audio) SDL_PauseAudioDevice(audio, 0);
-	else fprintf(stderr, "no audio: %s\n", SDL_GetError());
+#ifndef __wasi__
+	if (!audio) {
+		/* (a player on ROCKNIXDS heard nothing: the driver SDL picked may
+		 * not reach the sound server; the others, in turn) */
+		fprintf(stderr, "no audio with %s: %s\n", SDL_GetCurrentAudioDriver() ? SDL_GetCurrentAudioDriver() : "no driver", SDL_GetError());
+		static const char* const tryDrivers[] = { "pipewire", "pulseaudio", "alsa" };
+		const char* first = SDL_GetCurrentAudioDriver();
+		for (int i = 0; i < 3 && !audio; ++i) {
+			if (first && !strcmp(first, tryDrivers[i])) continue;
+			SDL_AudioQuit();
+			if (SDL_AudioInit(tryDrivers[i]) != 0) continue;
+			audio = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
+			if (!audio) fprintf(stderr, "no audio with %s: %s\n", tryDrivers[i], SDL_GetError());
+		}
+		if (!audio) SDL_AudioQuit(), SDL_AudioInit(NULL);
+	}
+#endif
+	if (audio) {
+		SDL_PauseAudioDevice(audio, 0);
+		fprintf(stderr, "audio: %s, %d Hz, %d channels, %d samples\n", SDL_GetCurrentAudioDriver(), have.freq, have.channels, have.samples);
+	} else {
+		fprintf(stderr, "no audio: %s\n", SDL_GetError());
+	}
 	SDL_AudioStream* audioConv = NULL;
 	int convFrom = 0;
 	const int targetQueued = want.freq * cfg->audioLatency / 1000;

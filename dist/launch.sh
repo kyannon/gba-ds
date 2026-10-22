@@ -28,6 +28,18 @@ if [ -z "$SWAYSOCK" ]; then
 	done
 fi
 
+# Sound: SDL reaches PipeWire through the runtime directory with its socket;
+# when it isn't in the environment (a player on ROCKNIXDS 1.6.4 heard
+# nothing), the one that has it.
+if [ ! -S "${XDG_RUNTIME_DIR:-/nonexistent}/pipewire-0" ]; then
+	for d in /var/run/0-runtime-dir /run/0-runtime-dir /run/user/0; do
+		if [ -S "$d/pipewire-0" ]; then
+			export XDG_RUNTIME_DIR="$d"
+			break
+		fi
+	done
+fi
+
 cd "$DIR"
 
 # First run after upgrading from gbadual (the app's old name): bring over
@@ -94,6 +106,11 @@ fi
 # Second screen on and in place for the run (stock ROCKNIX keeps it off),
 # put back afterwards; see screens.sh. The trap also covers being killed.
 "$DIR/screens.sh" on > "$DIR/gba-ds.log" 2>&1
+# what the sound goes through, for reports of no sound
+{
+	echo "sound: XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-unset} SDL_AUDIODRIVER=${SDL_AUDIODRIVER:-unset} PULSE_SERVER=${PULSE_SERVER:-unset}"
+	command -v wpctl >/dev/null && timeout 2 wpctl status 2>&1 | sed -n '/^Audio/,/^Video/p' | head -n 30
+} >> "$DIR/gba-ds.log" 2>&1
 trap '"$DIR/screens.sh" off >> "$DIR/gba-ds.log" 2>&1' EXIT
 trap 'exit 143' TERM INT HUP
 
