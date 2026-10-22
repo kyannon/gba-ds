@@ -463,7 +463,75 @@ void ui_on_foreground(void (*fn)(void)) {
 	foregroundFn = fn;
 }
 
+#if defined(__linux__) && !defined(__ANDROID__) && !defined(__wasi__)
+#include <fcntl.h>
+#include <linux/input.h>
+#include <sys/ioctl.h>
+/* touch_device: the touchscreen read straight from its input device. One
+ * finger: its position and whether it's down, sent on as SDL's would be. */
+static int evTouchFd = -2; /* -2: not opened yet; -1: none */
+static struct { int min, max; } evAx[2];
+static int evX, evY, evDown, evWasDown, evLogged;
+static bool evMoved;
+
+static void evdev_touch_poll(void) {
+	if (evTouchFd == -2) {
+		evTouchFd = -1;
+		if (!cfg->touchDevice[0]) return;
+		evTouchFd = open(cfg->touchDevice, O_RDONLY | O_NONBLOCK | O_CLOEXEC);
+		if (evTouchFd < 0) {
+			fprintf(stderr, "touch device %s: can't open it\n", cfg->touchDevice);
+			return;
+		}
+		for (int a = 0; a < 2; ++a) {
+			struct input_absinfo ai = { 0 };
+			if (ioctl(evTouchFd, EVIOCGABS(a ? ABS_MT_POSITION_Y : ABS_MT_POSITION_X), &ai) < 0 || ai.maximum <= ai.minimum) {
+				ioctl(evTouchFd, EVIOCGABS(a ? ABS_Y : ABS_X), &ai);
+			}
+			evAx[a].min = ai.minimum, evAx[a].max = ai.maximum;
+		}
+		if (cfg->touchRotate < 0) cfg->touchRotate = evAx[0].max - evAx[0].min >= evAx[1].max - evAx[1].min ? 0 : 90;
+		fprintf(stderr, "touch device %s: x %d..%d, y %d..%d, turned %d degrees\n", cfg->touchDevice, evAx[0].min, evAx[0].max,
+		        evAx[1].min, evAx[1].max, cfg->touchRotate);
+	}
+	if (evTouchFd < 0) return;
+	struct input_event ie[64];
+	ssize_t n;
+	while ((n = read(evTouchFd, ie, sizeof(ie))) > 0) {
+		for (int i = 0; i < (int) (n / sizeof(ie[0])); ++i) {
+			const struct input_event* e = &ie[i];
+			if (e->type == EV_ABS && (e->code == ABS_MT_POSITION_X || e->code == ABS_X)) evX = e->value, evMoved = true;
+			else if (e->type == EV_ABS && (e->code == ABS_MT_POSITION_Y || e->code == ABS_Y)) evY = e->value, evMoved = true;
+			else if (e->type == EV_KEY && e->code == BTN_TOUCH) evDown = e->value != 0;
+			else if (e->type == EV_ABS && e->code == ABS_MT_TRACKING_ID && e->value < 0) evDown = 0;
+			else if (e->type == EV_SYN && e->code == SYN_REPORT) {
+				float fx = (float) (evX - evAx[0].min) / SDL_max(1, evAx[0].max - evAx[0].min);
+				float fy = (float) (evY - evAx[1].min) / SDL_max(1, evAx[1].max - evAx[1].min);
+				float nx = fx, ny = fy;
+				switch (cfg->touchRotate) {
+				case 90: nx = fy, ny = 1 - fx; break;
+				case 180: nx = 1 - fx, ny = 1 - fy; break;
+				case 270: nx = 1 - fy, ny = fx; break;
+				}
+				nx = SDL_clamp(nx, 0.0f, 1.0f), ny = SDL_clamp(ny, 0.0f, 1.0f);
+				int kind = evDown && !evWasDown ? 1 : !evDown && evWasDown ? 2 : evDown && evMoved ? 3 : 0;
+				if (kind && kind != 3 && (debug || evLogged < 6)) {
+					++evLogged;
+					fprintf(stderr, "touch %s: raw %d,%d -> %.3f,%.3f\n", kind == 1 ? "down" : "up", evX, evY, nx, ny);
+				}
+				if (kind) queue_pointer(kind, -1, nx, ny, true);
+				evWasDown = evDown;
+				evMoved = false;
+			}
+		}
+	}
+}
+#else
+static void evdev_touch_poll(void) {}
+#endif
+
 bool ui_events(void) {
+	evdev_touch_poll();
 	SDL_Event ev;
 	while (SDL_PollEvent(&ev)) {
 		switch (ev.type) {
@@ -517,6 +585,9 @@ bool ui_events(void) {
 		case SDL_FINGERDOWN:
 		case SDL_FINGERUP:
 		case SDL_FINGERMOTION:
+#if defined(__linux__) && !defined(__ANDROID__) && !defined(__wasi__)
+			if (evTouchFd >= 0) break; /* (touch_device: read there) */
+#endif
 			static int touchesLogged;
 			if ((debug || touchesLogged < 6) && ev.type != SDL_FINGERMOTION) {
 				++touchesLogged;

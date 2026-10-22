@@ -129,6 +129,12 @@ if [ ! -d /storage/roms ]; then
 		[ -n "$GBA" ] && O+=("--rom-dir=$GBA")
 	fi
 	[ "$(cfgval screenshot_dir)" = /storage/roms/screenshots ] && mkdir -p "$DIR/screenshots" && O+=("--screenshot-dir=$DIR/screenshots")
+	# the touchscreen read straight from its device (weston gives GBA DS no
+	# touches there)
+	if [ -z "$(cfgval touch_device)" ]; then
+		TS=$(awk '/^N: Name=/{n=tolower($0)} /^H: Handlers=/{ if (n ~ /gt9|goodix|touch|ts[0-9_-]|-ts"/) { if (match($0, /event[0-9]+/)) { print substr($0, RSTART, RLENGTH); exit } } }' /proc/bus/input/devices 2>/dev/null)
+		[ -n "$TS" ] && O+=("--touch-device=/dev/input/$TS")
+	fi
 	# (with two screens connected: a window each)
 	n=0; for c in /sys/class/drm/card*-*/status; do grep -q '^connected' "$c" 2>/dev/null && n=$((n + 1)); done
 	[ $n -ge 2 ] && case "$(cfgval touch_map)" in window|"") O+=(--touch-map=screen) ;; esac

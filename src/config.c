@@ -19,6 +19,7 @@ void config_defaults(Config* c) {
 	strcpy(c->libraryView, "list");
 	strcpy(c->touchScreen, "second");
 	strcpy(c->touchMap, "window");
+	c->touchRotate = -1;
 	c->map = true;
 	c->mapCrop = true;
 	c->mapAnim = true;
@@ -105,6 +106,8 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	STR("asset_dir", assetDir)
 	STR("touch_screen", touchScreen)
 	STR("touch_map", touchMap)
+	STR("touch_device", touchDevice)
+	INT("touch_rotate", touchRotate)
 	BOOL("auto_resume", autoResume)
 	BOOL("show_all", showAll)
 	BOOL("name_tags", nameTags)

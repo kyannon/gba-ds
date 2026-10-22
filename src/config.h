@@ -47,6 +47,12 @@ typedef struct Config {
 	char assetDir[512]; /* logos etc.; default: next to the binary */
 	char touchScreen[16]; /* first | second: which screen has the touch panel */
 	char touchMap[16];    /* window | screen: how touch coordinates map */
+	/* Read the touchscreen straight from this input device (/dev/input/eventN)
+	 * instead of SDL's touches (the RG DS Plus's own Linux: weston hands
+	 * GBA DS none); its coordinates are fractions of the touch screen.
+	 * touch_rotate: 0, 90, 180 or 270 degrees; -1: by the panel's shape. */
+	char touchDevice[128];
+	int touchRotate;
 	bool autoResume;      /* save state on exit, load it on launch */
 	bool nameTags;        /* library keeps (USA), (En,Fr) etc. in game names */
 	bool showAll;         /* library lists games without a map profile too */
