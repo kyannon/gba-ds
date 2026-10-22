@@ -111,7 +111,7 @@ Preliminary, the USA release only for now (the European and Japanese releases ar
 
 Preliminary, the USA release only for now (the European and Japanese releases are listed, with the name on the second screen).
 
-- **The START menu** and every menu it opens (Folder, Library, MegaMan, Email, Items, Network, Save) appear on the second screen, whole. The game screen keeps the world as it was when you pressed START.
+- **The START menu** and every menu it opens (Folder, Library, MegaMan, Email, Items, Network, Save) appear on the second screen, without the paused world behind the START menu (over the game's logo, small and dimmed). The game screen keeps the world as it was when you pressed START.
 - **In battles,** the Custom screen's chip selection moves to the second screen, where it was on the game screen, over the game's logo, small and dimmed; Mega Man's HP stays at the top of the battle. When the battle ends, the ENEMY DELETED banner and the results screen are on the second screen, and the game screen holds the battle's last moment.
 - **Everywhere else** (the real world and the net, which have no map in this game), the second screen shows the game's logo, taken from the title screen.
 

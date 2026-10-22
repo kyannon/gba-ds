@@ -1117,6 +1117,8 @@ static const MapProfile profiles[] = {
 			 * results (0x02003710 stays 8 after it, until the next) */
 			.mirror = { { 0x0200ACF4, 0xFF, 1, 1, true, 0xFF, true }, { 0x0200329F, 0xFF, 0, 1 } },
 			.mirrorOr = { { 0x0200329F, 0xFF, 3, 1 }, { 0x02003710, 0xFF, 8, 1 } },
+			/* the menus without the paused world behind them */
+			.mirrorChanged = true,
 		},
 		/* the title's lettering (BG3 from power-on), not the grid behind,
 		 * PRESS START or the copyright (sprites) */
