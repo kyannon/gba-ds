@@ -591,7 +591,8 @@ static void to_adjust(Emu* e, uint32_t* hud, uint32_t clear) {
 	uint32_t t = emu_read32(e, TO_TASK);
 	uint32_t* fb = e->fb;
 	clear &= 0xFFFFFF;
-	/* the scene as last seen without a box over it (it holds still) */
+	/* the scene as seen without a box over it (it holds still; it fades
+	 * in before the first box comes up) */
 	static uint32_t plate[GBA_W * GBA_H];
 	static uint8_t seen[GBA_W * GBA_H];
 	static bool plateOn;
@@ -624,7 +625,12 @@ static void to_adjust(Emu* e, uint32_t* hud, uint32_t clear) {
 			while (x < GBA_W) {
 				int i0 = y * GBA_W + x;
 				if (!fill[i0]) {
-					plate[i0] = row[x], seen[i0] = 1;
+					/* (the brightest: not as it fades in or out) */
+					uint32_t c = row[x], p = plate[i0];
+					unsigned lc = (c & 0xFF) + ((c >> 8) & 0xFF) * 2 + ((c >> 16) & 0xFF);
+					unsigned lp = (p & 0xFF) + ((p >> 8) & 0xFF) * 2 + ((p >> 16) & 0xFF);
+					if (!seen[i0] || lc >= lp) plate[i0] = c;
+					seen[i0] = 1;
 					++x;
 					continue;
 				}
