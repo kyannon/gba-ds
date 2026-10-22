@@ -7,5 +7,6 @@
 # The RG DS Plus's own Linux (ANBERNIC-rk3568-keys): its built-in mapping puts the
 # face buttons by their letters (a is the right button); here by position, as
 # SDL means them (a bottom, b right, x left, y top). Raw buttons: 0 A (right),
-# 1 B (bottom), 2 Y (left), 3 X (top).
-1900b655010000000100000000010000,ANBERNIC-rk3568-keys,a:b1,b:b0,x:b2,y:b3,back:b10,guide:b12,start:b11,leftshoulder:b6,rightshoulder:b7,dpup:h0.1,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,rightx:a1,righty:a2,lefttrigger:a0,righttrigger:a3,crc:55b6,platform:Linux,
+# 1 B (bottom), 2 Y (left), 3 X (top); 8 and 13 the HOME and BACK buttons
+# (13 is guide here, 8 is GBA DS's home_button, set by launch.sh).
+1900b655010000000100000000010000,ANBERNIC-rk3568-keys,a:b1,b:b0,x:b2,y:b3,back:b10,guide:b13,start:b11,leftshoulder:b6,rightshoulder:b7,dpup:h0.1,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,rightx:a1,righty:a2,lefttrigger:a0,righttrigger:a3,crc:55b6,platform:Linux,

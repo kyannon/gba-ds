@@ -491,8 +491,12 @@ static void evdev_touch_poll(void) {
 			evAx[a].min = ai.minimum, evAx[a].max = ai.maximum;
 		}
 		if (cfg->touchRotate < 0) cfg->touchRotate = evAx[0].max - evAx[0].min >= evAx[1].max - evAx[1].min ? 0 : 90;
-		fprintf(stderr, "touch device %s: x %d..%d, y %d..%d, turned %d degrees\n", cfg->touchDevice, evAx[0].min, evAx[0].max,
-		        evAx[1].min, evAx[1].max, cfg->touchRotate);
+		/* ours alone while GBA DS runs (fails if another program holds it) */
+		int grab = ioctl(evTouchFd, EVIOCGRAB, 1);
+		char name[64] = "?";
+		ioctl(evTouchFd, EVIOCGNAME(sizeof(name)), name);
+		fprintf(stderr, "touch device %s (%s): x %d..%d, y %d..%d, turned %d degrees%s\n", cfg->touchDevice, name, evAx[0].min,
+		        evAx[0].max, evAx[1].min, evAx[1].max, cfg->touchRotate, grab < 0 ? ", held by another program" : "");
 	}
 	if (evTouchFd < 0) return;
 	struct input_event ie[64];
@@ -500,10 +504,15 @@ static void evdev_touch_poll(void) {
 	while ((n = read(evTouchFd, ie, sizeof(ie))) > 0) {
 		for (int i = 0; i < (int) (n / sizeof(ie[0])); ++i) {
 			const struct input_event* e = &ie[i];
+			static int rawEv;
+			if (rawEv < 24 && e->type != EV_SYN) {
+				++rawEv;
+				fprintf(stderr, "touch device event: type %d code %d value %d\n", e->type, e->code, e->value);
+			}
 			if (e->type == EV_ABS && (e->code == ABS_MT_POSITION_X || e->code == ABS_X)) evX = e->value, evMoved = true;
 			else if (e->type == EV_ABS && (e->code == ABS_MT_POSITION_Y || e->code == ABS_Y)) evY = e->value, evMoved = true;
 			else if (e->type == EV_KEY && e->code == BTN_TOUCH) evDown = e->value != 0;
-			else if (e->type == EV_ABS && e->code == ABS_MT_TRACKING_ID && e->value < 0) evDown = 0;
+			else if (e->type == EV_ABS && e->code == ABS_MT_TRACKING_ID) evDown = e->value >= 0;
 			else if (e->type == EV_SYN && e->code == SYN_REPORT) {
 				float fx = (float) (evX - evAx[0].min) / SDL_max(1, evAx[0].max - evAx[0].min);
 				float fy = (float) (evY - evAx[1].min) / SDL_max(1, evAx[1].max - evAx[1].min);

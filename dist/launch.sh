@@ -135,6 +135,13 @@ if [ ! -d /storage/roms ]; then
 		TS=$(awk '/^N: Name=/{n=tolower($0)} /^H: Handlers=/{ if (n ~ /gt9|goodix|touch|ts[0-9_-]|-ts"/) { if (match($0, /event[0-9]+/)) { print substr($0, RSTART, RLENGTH); exit } } }' /proc/bus/input/devices 2>/dev/null)
 		[ -n "$TS" ] && O+=("--touch-device=/dev/input/$TS")
 	fi
+	# the RG DS Plus's HOME and BACK buttons (raw 13 and 8) both open the
+	# menu: 13 by gamecontrollerdb.txt, 8 here
+	if grep -q 'ANBERNIC-rk3568-keys' /proc/bus/input/devices 2>/dev/null && [ "$(cfgval home_button)" = -1 ]; then
+		O+=(--home-button=8)
+	fi
+	# (and SELECT + START too, in case those aren't where we think)
+	[ "$(cfgval menu_combo)" = none ] && O+=(--menu-combo=select+start)
 	# (with two screens connected: a window each)
 	n=0; for c in /sys/class/drm/card*-*/status; do grep -q '^connected' "$c" 2>/dev/null && n=$((n + 1)); done
 	[ $n -ge 2 ] && case "$(cfgval touch_map)" in window|"") O+=(--touch-map=screen) ;; esac
