@@ -164,6 +164,24 @@ if [ ! -d /storage/roms ]; then
 		for p in /proc/[0-9]*; do head -c 100 "$p/cmdline" 2>/dev/null | tr '\0\n' '  '; echo; done | grep -v '^$' | sort -u | head -n 30
 		echo "---"
 	} >> "$LOG" 2>&1
+	# what the system's own programs do with the screens and the touchscreen,
+	# copied beside GBA DS for reports (gba-ds/report: small text files only)
+	R="$DIR/report"
+	rm -rf "$R"; mkdir -p "$R"
+	for f in /mnt/vendor/ctrl/* /mnt/mod/ctrl/* /tmp/.next /etc/xdg/weston/weston.ini /etc/weston.ini /etc/init.d/S*weston* \
+	         /etc/udev/rules.d/* /lib/udev/rules.d/*touch* /lib/udev/rules.d/*input* /etc/profile /etc/profile.d/*; do
+		[ -f "$f" ] && [ "$(wc -c < "$f")" -lt 200000 ] && grep -qI . "$f" 2>/dev/null && cp "$f" "$R/$(echo "$f" | tr '/' '_')" 2>/dev/null
+	done
+	{
+		ls -laR /mnt/vendor/subscreen /mnt/vendor/ctrl /mnt/mod/ctrl 2>/dev/null | head -n 200
+		echo "--- gt9xx in sysfs"
+		for d in /sys/bus/i2c/drivers/*gt9* /sys/bus/i2c/drivers/*goodix*; do [ -d "$d" ] && ls -la "$d" "$d"/*/ 2>/dev/null; done | head -n 80
+		ls -la /sys/class/input/event1/device/ 2>/dev/null
+		echo "--- weston.log"
+		tail -n 120 /var/log/weston.log 2>/dev/null
+		echo "--- dmesg (touch)"
+		dmesg 2>/dev/null | grep -iE 'gt9|goodix|touch|ts' | tail -n 40
+	} > "$R/system.txt" 2>&1
 	exec ./gba-ds "${O[@]}" "$@" >> "$LOG" 2>&1
 fi
 
