@@ -165,6 +165,12 @@ int main(int argc, char** argv) {
 				printf(" %02X", emu_read8(&emu, addr + i));
 			}
 			printf("\n");
+		} else if (!strcmp(cmd, "io")) {
+			/* I/O registers as the renderer sees them: io OFFSET COUNT (16-bit) */
+			uint32_t off = strtoul(a1, NULL, 0), n = strtoul(a2, NULL, 0);
+			printf("IO %03X:", off);
+			for (uint32_t i = 0; i < n; ++i) printf(" %04X", emu_io16(&emu, off + i * 2));
+			printf("\n");
 		} else if (!strcmp(cmd, "poke")) {
 			uint32_t addr = strtoul(a1, NULL, 0), len = strtoul(a2, NULL, 0), val = strtoul(a3, NULL, 0);
 			for (uint32_t i = 0; i < len; ++i) emu.core->rawWrite8(emu.core, addr + i, -1, val);

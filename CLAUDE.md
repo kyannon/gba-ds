@@ -117,7 +117,7 @@ Android session at the same time. To keep them from colliding:
   snapshot and control-scheme switches, taps.
 - `build/host/harness ROM OUTDIR SCRIPT` drives the core frame by frame:
   `load/save NAME`, `wait N`, `hold BUTTONS N`, `shot NAME`, `peek ADDR LEN`,
-  `poke ADDR LEN VAL`, `dumpram NAME`, `layershot NAME` (each BG layer and
+  `poke ADDR LEN VAL`, `io OFFSET N` (I/O registers), `dumpram NAME`, `layershot NAME` (each BG layer and
   OBJ alone), `map NAME` (run a map capture), `logo NAME`.
 - ROMs and save files are not in the repo. The owner attaches them; ask.
 - State Saver (`tools/statesaver/`, published as the owner's artifact) has a

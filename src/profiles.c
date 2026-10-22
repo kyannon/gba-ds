@@ -485,11 +485,11 @@ static const char* fe_compose(Emu* s, const void* state, uint32_t* out, int w, i
  * something in them, joined where they touch. The terrain's is narrow (and
  * tall, with its dragon); of the wide ones the goal's is blue inside, the
  * unit's pale. Moves: 0 the unit, 1 the terrain, 2 the goal. */
-static void fe_find_pieces(const uint32_t* hud, uint32_t clear, int box[HUD_MOVES][4]) {
+static void fe_find_pieces(const uint32_t* hud, uint32_t clear, int box[4][4]) {
 	enum { CW = GBA_W / 8, CH = GBA_H / 8 };
 	static uint8_t cell[CH][CW];
 	static int stack[CW * CH];
-	for (int m = 0; m < HUD_MOVES; ++m) box[m][0] = box[m][1] = 0, box[m][2] = box[m][3] = -1;
+	for (int m = 0; m < 4; ++m) box[m][0] = box[m][1] = 0, box[m][2] = box[m][3] = -1;
 	int best[4] = { 0 };
 	for (int cy = 0; cy < CH; ++cy) {
 		for (int cx = 0; cx < CW; ++cx) {
@@ -555,64 +555,56 @@ static void fe_find_pieces(const uint32_t* hud, uint32_t clear, int box[HUD_MOVE
 
 /* ------------------------------------------------------- Tactics Ogre
  *
- * Its second screen is the windows the game puts over the battlefield,
- * each in a place of its own over the dark background and logo; and the
- * logo alone whenever you aren't in control. (USA addresses.) */
-#define TO_MODE 0x030029F4   /* the game's main routine: 0 at the title */
-#define TO_IN_GAME { TO_MODE, 0xFFFFFFFF, 0x02000000, 4, true, 0x0203FFFF, true }
-#define TO_PLAYER 0x0201B48C /* your control (the cursor, menus) */
+ * In battles and the scenes on their maps, everything the game draws over
+ * the battlefield goes to the second screen where it was (its text and
+ * boxes, BG2 and BG3, and the sprites of its portraits, icons and hand
+ * cursors), over the logo, large and dimmed; the unit status page of the
+ * unit under the cursor while you choose one (to_compose); the
+ * battlefield's own HUD stays on the game screen on the other sides'
+ * turns. (USA addresses.) */
+#define TO_TASK 0x030029F4  /* what the game is doing: a task in EWRAM; 0 at the title */
+#define TO_PHASE 0x020021CE /* whose turn: 0 yours, else the enemy's (or a guest's) */
+#define TO_CURSOR 0x0202AB90 /* the cursor's panel: x, y */
+#define TO_CHOOSING 0x0201BBE8 /* choosing a unit (the cursor free) */
+#define TO_STATUS 0x02007C78 /* the unit status page */
+#define TO_EMPTY 0xFF010101 /* to_compose: no unit there */
 
+static uint32_t to_task(Emu* s) {
+	return emu_read32(s, TO_TASK);
+}
+
+/* The status page of the unit under the cursor (B), or all TO_EMPTY when
+ * there's none there. */
 static const char* to_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
-	(void) s, (void) state;
-	for (int i = 0; i < w * h; ++i) out[i] = MAP_BG_NAVY;
+	if (w != GBA_W || h != GBA_H) return "wrong size";
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	for (int i = 0; i < w * h; ++i) out[i] = TO_EMPTY;
+	if (to_task(s) != TO_CHOOSING || emu_read8(s, TO_PHASE)) return NULL;
+	aw_run(s, K_B, 2);
+	int f = 0;
+	while (f < 30 && to_task(s) == TO_CHOOSING) emu_frame(s, 0), ++f;
+	if (to_task(s) == TO_CHOOSING) return NULL; /* (no one there: B did nothing) */
+	while (f < 150 && to_task(s) != TO_STATUS) emu_frame(s, 0), ++f;
+	if (to_task(s) != TO_STATUS) return NULL;
+	/* faded in (the page is pale yellow): bright, then two frames alike */
+	static uint32_t last[GBA_W * GBA_H];
+	bool in = false;
+	for (int i = 0; i < 120 && !in; ++i) {
+		emu_frame(s, 0);
+		long sum = 0;
+		for (int k = 0; k < GBA_W * GBA_H; k += 7) sum += s->fb[k] & 0xFF;
+		in = sum / (GBA_W * GBA_H / 7) > 120;
+	}
+	if (!in) return NULL;
+	memcpy(last, s->fb, sizeof(last));
+	for (int i = 0; i < 30; ++i) {
+		emu_frame(s, 0);
+		if (!memcmp(last, s->fb, sizeof(last))) break;
+		memcpy(last, s->fb, sizeof(last));
+	}
+	memcpy(out, s->fb, sizeof(last));
 	return NULL;
-}
-
-/* Something of the HUD in this box: its bounds (x1 < 0: nothing). */
-static void to_bounds(const uint32_t* hud, uint32_t clear, int x0, int y0, int x1, int y1, int out[4]) {
-	out[0] = out[1] = 0, out[2] = out[3] = -1;
-	int lo = GBA_W, hi = -1, top = GBA_H, bot = -1;
-	for (int y = y0; y <= y1; ++y) {
-		for (int x = x0; x <= x1; ++x) {
-			if ((hud[y * GBA_W + x] & 0xFFFFFF) == clear) continue;
-			lo = x < lo ? x : lo, hi = x > hi ? x : hi, top = y < top ? y : top, bot = y > bot ? y : bot;
-		}
-	}
-	if (hi >= 0) out[0] = lo, out[1] = top, out[2] = hi, out[3] = bot;
-}
-
-/* The windows: the top left (the selected unit's HP and MP, or your side
- * of an attack's figures), the top right (the terrain, narrow, or the
- * other side's figures), the unit's box at the bottom right (above the
- * selected unit's strip when there is one: then it's who you're aiming
- * at, else who's under the cursor), and the strip. Moves: 0 top left,
- * 1 terrain, 2 figures right, 3 unit, 4 aimed at, 5 the strip. */
-static void to_find_pieces(const uint32_t* hud, uint32_t clear, int box[HUD_MOVES][4]) {
-	for (int m = 0; m < HUD_MOVES; ++m) box[m][0] = box[m][1] = 0, box[m][2] = box[m][3] = -1;
-	/* the strip: right across the bottom, left of where the unit's box goes */
-	int strip = 0;
-	for (int x = 0; x < 120; ++x) strip += (hud[155 * GBA_W + x] & 0xFFFFFF) != clear;
-	bool selected = strip > 60;
-	int b[4];
-	to_bounds(hud, clear, 0, 0, 119, 95, b);
-	if (b[2] >= 0) memcpy(box[0], b, sizeof(b));
-	else box[0][2] = -2; /* (none: nothing's selected) */
-	to_bounds(hud, clear, 120, 0, GBA_W - 1, 79, b);
-	if (b[2] >= 0 && b[0] >= 176) memcpy(box[1], b, sizeof(b));
-	if (b[2] >= 0 && b[0] < 176) memcpy(box[2], b, sizeof(b));
-	else box[2][2] = -2;
-	if (selected) {
-		to_bounds(hud, clear, 120, 80, GBA_W - 1, 138, b);
-		if (b[2] >= 0) memcpy(box[4], b, sizeof(b));
-		else box[4][2] = -2;
-		/* (the unit's own box stays) */
-		box[5][0] = 0, box[5][1] = 139, box[5][2] = GBA_W - 1, box[5][3] = GBA_H - 1;
-	} else {
-		to_bounds(hud, clear, 120, 96, GBA_W - 1, GBA_H - 1, b);
-		if (b[2] >= 0) memcpy(box[3], b, sizeof(b));
-		else box[3][2] = -2; /* the cursor's on no one */
-		box[4][2] = -2;
-	}
 }
 
 static const MapProfile profiles[] = {
@@ -1059,37 +1051,31 @@ static const MapProfile profiles[] = {
 	/* Preliminary: listed, second screen to come (a UI after the DS games);
 	 * no ROMs yet, so no logo extraction: the title stands in for it. */
 	{
-		/* USA: the second screen is the windows over the map (to_find_pieces)
-		 * on the dark background with the logo */
+		/* USA: its windows, text and portraits on the second screen
+		 * (where they were), the status page of the unit under the cursor */
 		.codes = { "ATOE" },
 		.title = "Tactics Ogre: The Knight of Lodis",
 		.compose = to_compose,
-		.crop_w = 320, /* 3x on 1024x768, 2x on 640x480 */
-		.crop_h = 240,
-		.live = { TO_IN_GAME, { TO_MODE, 0xFFFFFFFF, TO_PLAYER, 4 } },
-		.menu = { { TO_MODE, 0xFFFFFFFF, 0, 4 } },
-		/* while you have control: the windows (BG2 text and icons over BG3
-		 * boxes) wherever the game puts them, kept in places of their own */
+		.crop_w = GBA_W,
+		.crop_h = GBA_H,
+		.live = { { TO_TASK, 0xFFFFFFFF, TO_CHOOSING, 4 }, { TO_PHASE, 0xFF, 0, 1 } },
+		.room = { { TO_CURSOR, 0, 0, 2 } },
+		.menu = { { TO_TASK, 0xFFFFFFFF, 0, 4 } },
 		.hud = {
-			.on = { TO_IN_GAME, { TO_MODE, 0xFFFFFFFF, TO_PLAYER, 4 } },
+			/* on a map (battles, scenes): BG2 (text, icons) and BG3 (boxes) */
+			.on = { { TO_TASK, 0xFFFFFFFF, 0x02010000, 4, true, 0x0203FFFF, true } },
 			.bgMask = 0xC,
-			.moves = {
-				{ 0, 0, 0, 0, 'L', 4, 'T', 4, .settle = 2 },                   /* the selected unit's HP and MP (or its side of an attack's figures) */
-				{ 0, 0, 0, 0, 'R', 315, 'B', 235, .settle = 2, .hideWith = 1u << 2 | 1u << 4 }, /* the terrain */
-				{ 0, 0, 0, 0, 'R', 315, 'T', 4, .settle = 2 },                 /* the other side of an attack's figures */
-				{ 0, 0, 0, 0, 'L', 4, 'B', 235, .settle = 2 },                 /* the unit under the cursor, or the selected one */
-				{ 0, 0, 0, 0, 'R', 315, 'B', 235, .settle = 2 },               /* the unit you're aiming at */
-				{ .keepOnGame = true },                                        /* the selected unit's strip along the bottom */
-			},
-			.findPieces = to_find_pieces,
-			.overMap = true,
-			.mapClear = MAP_BG_NAVY,
-			.logoUnder = true,
+			/* scroll marks and hand cursors, the attack arrow, the action
+			 * and arms icons, portraits; not the map cursor (302-304) */
+			.objs = { { -64, -64, 255, 191, 256, 299, -1 }, { -64, -64, 255, 191, 316, 330, -1 },
+			          { -64, -64, 255, 191, 464, 535, -1 }, { -64, -64, 255, 191, 768, 1023, -1 } },
+			.logoFull = true,
+			/* the other sides' turns, and the status page when you open it */
+			.home = { { TO_PHASE, 0xFF, 1, 1, true, 0xFF, true } },
+			.homeOr = { { TO_TASK, 0xFFFFFFFF, TO_STATUS, 4 } },
+			.showMap = true,
+			.mapClear = TO_EMPTY,
 		},
-		/* cutscenes, talk, the other sides' turns, attacks: the logo alone */
-		.combat = { { TO_MODE, 0xFFFFFFFF, 0x02000000, 4, true, TO_PLAYER - 1, true } },
-		.combatOr = { { TO_MODE, 0xFFFFFFFF, TO_PLAYER + 1, 4, true, 0x0203FFFF, true } },
-		.combatClears = true,
 		/* the title's lettering (BG2) and The Knight of Lodis (sprites), not
 		 * the emblem behind or OGRE BATTLE SAGA (BG1) */
 		.logo = { .steps = { { 0, 480 }, { K_START, 4 }, { 0, 50 } }, .layers = 0x14, .maxY = 90 },

@@ -209,6 +209,7 @@ static char overlayMode[2][16];
 static int logoW, logoH;
 static bool logoPixel;
 static MapResult mapRes;
+static uint32_t mapReqKey, mapKey; /* the room key at the capture asked for, and at the newest one */
 static int mapW = GBA_W, mapH = GBA_H;
 static int mapShownIdx = -1;
 /* "Map Animations: Off" shows this composed still instead of mapRes.frames[] */
@@ -262,7 +263,7 @@ typedef struct {
 	bool stale; /* a state was loaded: taken again (latched or not) as soon as it holds still */
 	int sx, sy; /* where it was on the game screen (its top left) */
 } Piece;
-static Piece pieces[HUD_MOVES];
+static Piece pieces[4];
 static void upload_map_frame(int idx);
 static void make_combat_canvas(void);
 static uint32_t hudLogoBelow[HUD_CW * HUD_CH]; /* profile hud.logoBelow: black, the logo at half size */
@@ -1021,7 +1022,9 @@ static void hud_make_backdrop(void) {
  * (whole pixels for the extracted one), dimmed like the race backdrop. */
 static void hud_make_logo_back(void) {
 	hudLogoDone = true;
-	for (int i = 0; i < HUD_CW * HUD_CH; ++i) hudLogoBack[i] = 0xFF1A1010;
+	/* (hud.logoFull: on dark grey) */
+	uint32_t bg = hudProf->hud.logoFull ? 0xFF242424 : 0xFF1A1010;
+	for (int i = 0; i < HUD_CW * HUD_CH; ++i) hudLogoBack[i] = bg;
 	bool pixelArt;
 	SDL_Surface* lg = ui_logo_surface(cfg, emu.gameCode, &pixelArt);
 	if (!lg) return;
@@ -1140,7 +1143,7 @@ static void hud_compose(void) {
 			}
 		}
 	}
-	if (hudScene) {
+	if (hudScene || h->logoFull) {
 		if (!hudLogoDone) hud_make_logo_back();
 		memcpy(hudCanvas, hudLogoBack, sizeof(hudCanvas));
 	} else if (h->logoBelow || h->logoBehind) {
@@ -1188,6 +1191,29 @@ static void hud_compose(void) {
 	} else {
 		uint32_t plain = h->mapCnt ? (hudFadeEff == 2 ? 0xFFFFFFFF : 0xFF000000) : 0xFF1A1010;
 		for (int i = 0; i < HUD_CW * HUD_CH; ++i) hudCanvas[i] = plain;
+	}
+	/* hud.home: the HUD back onto the game screen, the background alone */
+	if ((h->home[0].addr && memprobes_match(h->home, 2, &emu)) || (h->homeOr[0].addr && memprobes_match(h->homeOr, 2, &emu))) {
+		for (int i = 0; i < GBA_W * GBA_H; ++i) {
+			if ((hudPx[i] & 0xFFFFFF) != clear) emu.fb[i] = hudPx[i];
+		}
+		return;
+	}
+	/* hud.showMap: the capture instead, when it's of where the game is now */
+	if (h->showMap && mc && mapShownIdx >= 0 && mapKey && mapKey == mapcap_room_key(mc, &emu) && mapcap_live_ok(mc, &emu) &&
+	    mapRes.w == GBA_W && mapRes.h == GBA_H) {
+		const uint32_t* px = mapRes.frames[0];
+		uint32_t mc0 = h->mapClear & 0xFFFFFF;
+		bool empty = (px[0] & 0xFFFFFF) == mc0 && (px[GBA_W * GBA_H / 2] & 0xFFFFFF) == mc0 && (px[GBA_W * GBA_H - 1] & 0xFFFFFF) == mc0;
+		if (!empty) {
+			for (int y = 0; y < GBA_H; ++y) {
+				for (int x = 0; x < GBA_W; ++x) {
+					uint32_t* o = &hudCanvas[y * 2 * HUD_CW + x * 2];
+					o[0] = o[1] = o[HUD_CW] = o[HUD_CW + 1] = px[y * GBA_W + x] | 0xFF000000;
+				}
+			}
+			return;
+		}
 	}
 	/* moved pieces (the scene's, or racing's): how far each goes this frame */
 	const HudMove* movesIn = hudScene ? h->scene.moves : racing ? h->moves : NULL;
@@ -1290,31 +1316,15 @@ static unsigned effect_bgs(int pal) {
 /* hud.overMap: this frame's HUD pieces into pieces[]; true if one changed. */
 static bool hud_take_pieces(const typeof(hudProf->hud)* h) {
 	uint32_t clear = emu_hud_clear();
-	bool changed = false, seen[HUD_MOVES] = { false };
-	int found[HUD_MOVES][4];
+	bool changed = false, seen[4] = { false };
+	int found[4][4];
 	if (h->findPieces) h->findPieces(hudPx, clear, found);
-	for (int m = 0; m < HUD_MOVES; ++m) {
+	for (int m = 0; m < 4; ++m) {
 		const HudMove* mv = &h->moves[m];
 		Piece* pc = &pieces[m];
-		if (!mv->how && !mv->vhow && !mv->keepOnGame) continue;
+		if (!mv->how && !mv->vhow) continue;
 		int bx0 = mv->x0, by0 = mv->y0, bx1 = mv->x1, by1 = mv->y1;
 		if (h->findPieces) bx0 = found[m][0], by0 = found[m][1], bx1 = found[m][2], by1 = found[m][3];
-		if (mv->keepOnGame) {
-			/* back onto the game picture */
-			for (int y = SDL_max(by0, 0); y <= SDL_min(by1, GBA_H - 1); ++y) {
-				for (int x = SDL_max(bx0, 0); x <= SDL_min(bx1, GBA_W - 1); ++x) {
-					uint32_t c = hudPx[y * GBA_W + x];
-					if ((c & 0xFFFFFF) != clear) emu.fb[y * GBA_W + x] = c;
-				}
-			}
-			continue;
-		}
-		if (bx1 == -2) {
-			/* findPieces: it goes */
-			if (pc->valid) pc->valid = false, changed = true;
-			pc->still = 0;
-			continue;
-		}
 		int lo = GBA_W, hi = -1, top = GBA_H, bot = -1;
 		for (int y = SDL_max(by0, 0); y <= SDL_min(by1, GBA_H - 1); ++y) {
 			for (int x = SDL_max(bx0, 0); x <= SDL_min(bx1, GBA_W - 1); ++x) {
@@ -1397,12 +1407,11 @@ static void update_hud(void) {
 		 * gone off the battle map (the first `on` probe) */
 		bool changed = false;
 		if (!memprobes_match(h->on, 1, &emu)) {
-			for (int m = 0; m < HUD_MOVES; ++m) changed |= pieces[m].valid, pieces[m].valid = false;
+			for (int m = 0; m < 4; ++m) changed |= pieces[m].valid, pieces[m].valid = false;
 		} else if (hudOn && race) {
 			changed = hud_take_pieces(h);
 		}
-		bool any = false;
-		for (int m = 0; m < HUD_MOVES; ++m) any |= pieces[m].valid;
+		bool any = pieces[0].valid || pieces[1].valid || pieces[2].valid || pieces[3].valid;
 		if (changed || any != overOn) {
 			overOn = any;
 			overDirty = true;
@@ -1740,7 +1749,7 @@ static bool state_load(const char* path) {
 	bool ok = emu_state_load_file(&emu, path);
 	if (ok) ra_state_loaded(path);
 	/* HUD pieces from another moment: taken again from the loaded game */
-	for (int m = 0; ok && m < HUD_MOVES; ++m) pieces[m].stale = true, pieces[m].still = 0;
+	for (int m = 0; ok && m < 4; ++m) pieces[m].stale = true, pieces[m].still = 0;
 	if (ok) aheadReady = false; /* a frame emulated before the load: emulate afresh */
 	return ok;
 }
@@ -1808,15 +1817,13 @@ static const uint32_t* hud_over_map(const uint32_t* px) {
 	}
 	memcpy(over, px, (size_t) mapW * mapH * 4);
 	uint32_t mc = h->mapClear & 0xFFFFFF;
-	int px0[HUD_MOVES] = { 0 }, py0[HUD_MOVES] = { 0 };
-	unsigned present = 0;
-	for (int m = 0; m < HUD_MOVES; ++m) present |= (unsigned) pieces[m].valid << m;
-	for (int k = 0; k < 2 * HUD_MOVES; ++k) {
-		int m = k % HUD_MOVES;
+	int px0[4] = { 0 }, py0[4] = { 0 };
+	for (int k = 0; k < 8; ++k) {
+		int m = k & 3;
 		const HudMove* mv = &h->moves[m];
 		const Piece* pc = &pieces[m];
 		/* the pieces, then the ones that follow them (over everything) */
-		if (!pc->valid || (k < HUD_MOVES) == (mv->follow > 0) || (mv->hideWith & present)) continue;
+		if (!pc->valid || (k < 4) == (mv->follow > 0)) continue;
 		int x0 = mv->how == 'C' ? mv->x - (pc->w - 1) / 2 : mv->how == 'R' ? mv->x - pc->w + 1 : mv->x;
 		int y0 = mv->vhow == 'M' ? mv->y - (pc->h - 1) / 2 : mv->vhow == 'B' ? mv->y - pc->h + 1 : mv->y;
 		if (mv->follow) {
@@ -2299,6 +2306,9 @@ static void draw_game(void) {
 			/* the HUD picture is at 2x: a grid cell per GBA pixel */
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
 			ui_image_pixels(s, hudTex, HUD_CW, HUD_CH, cfg->mapScale, cfg->lcdGrid ? 2 : 0);
+		} else if (mapShownIdx >= 0 && hudProf && hudProf->hud.showMap) {
+			/* (hud.showMap: the capture goes only with the HUD) */
+			if (logoCanvasTex[0] || logoCanvasTex[1]) ui_image_pixels(s, logoCanvasTex, GBA_W, GBA_H, cfg->mapScale, cfg->lcdGrid ? 1 : 0);
 		} else if (mapShownIdx >= 0 && draw_framed_map(s)) {
 			/* map + generated surround */
 		} else if (mapShownIdx >= 0) {
@@ -2575,7 +2585,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		combatProf = mc && lp && lp->combat[0].addr && nScreens > 1 ? lp : NULL;
 		combatOn = combatMade = false;
 		overOn = false;
-		for (int m = 0; m < HUD_MOVES; ++m) pieces[m].valid = false, pieces[m].still = 0;
+		for (int m = 0; m < 4; ++m) pieces[m].valid = false, pieces[m].still = 0;
 		if (hudProf) {
 			/* the sprites that move; tagged ones only if the tags go in */
 			memcpy(hudObjs, hudProf->hud.objs, sizeof(hudObjs));
@@ -3158,6 +3168,10 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				if (debug) fprintf(stderr, "frame %llu: back at the menus, map cleared\n", (unsigned long long) frameCount);
 			}
 			uint32_t rk = mapcap_room_key(mc, &emu);
+			if (hudProf && hudProf->hud.showMap && !mapcap_live_ok(mc, &emu)) {
+				/* (hud.showMap) out of the moment it's of: taken afresh when it's back */
+				mapKey = lastRoomKey = 0;
+			}
 			bool roomChanged = rk && rk != lastRoomKey;
 			/* Back off while captures keep failing (e.g. the game says "playing"
 			 * but the map can't open: intro cutscenes, briefings). Each failed
@@ -3187,6 +3201,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				if (mapcap_request(mc, &emu)) {
 					sinceMapRequest = 0;
 					lastRoomKey = rk;
+					mapReqKey = rk;
 					forceMap = false;
 				}
 			}
@@ -3195,6 +3210,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				/* a capture that finished after quitting to the title: drop it */
 			} else if (fresh) {
 				mapInactive = false;
+				mapKey = mapReqKey;
 				if (mapRes.hasTile) mapframe_set_tile(&mf, mapRes.tile, mapRes.tileK, mapRes.tileX, mapRes.tileY);
 				mapShownIdx = -1;
 				mapAnimStart = frameCount;
@@ -3225,11 +3241,6 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			if (streak >= 3) {
 				combatOn = c;
 				streak = 0;
-				if (combatOn && combatProf->combatClears) {
-					/* the HUD's pieces go; they come back as they're seen again */
-					for (int m = 0; m < HUD_MOVES; ++m) pieces[m].valid = false, pieces[m].still = 0;
-					overDirty = true;
-				}
 				if (combatOn && !combatMade) make_combat_canvas();
 				if (debug) fprintf(stderr, "frame %llu: fight %s\n", (unsigned long long) frameCount, combatOn ? "on" : "off");
 			}

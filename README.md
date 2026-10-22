@@ -29,7 +29,7 @@ The idea here is "what if the Game Boy Advance had a second screen" -- part of w
 | Final Fantasy Tactics Advance | in battles and their scenes: dialogue, menus and unit details; on the world map: notices, funds and the date |
 | Advance Wars (USA; preliminary) | in battles: the unit list with the unit under the cursor highlighted, or the battle intel, with the minimap below |
 | Fire Emblem (USA; preliminary) | on the map: the unit, terrain and goal windows in fixed corners, and the minimap |
-| Tactics Ogre: The Knight of Lodis (USA; preliminary) | in battles: the unit, terrain and attack windows in places of their own |
+| Tactics Ogre: The Knight of Lodis (USA; preliminary) | in battles and their scenes: conversations, menus and unit windows; the status page of the unit under the cursor |
 
 Any other GBA game also runs; it just plays on one screen. See [Supported games](https://github.com/kyannon/gba-ds/wiki/Supported-games) for what each game does.
 
