@@ -176,6 +176,9 @@ bool ui_next_raw(RawInput* r);
 void ui_mapping_file(char* out, size_t n);
 /* Opens controllers that have a mapping now. */
 void ui_reopen_pads(void);
+/* The controller with this GUID has a mapping made with the button mapper
+ * (by position, so Android's label-based A/B swap doesn't apply to it). */
+void ui_mapped_by_user(const char* guid);
 
 extern volatile int uiQuit; /* set by signals */
 

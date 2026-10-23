@@ -6,6 +6,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#ifdef __ANDROID__
+#include <sys/system_properties.h>
+#endif
 
 static const SDL_Color C_BG = { 14, 14, 26, 255 };
 static const SDL_Color C_ROW = { 22, 22, 38, 255 };
@@ -153,6 +156,14 @@ static void describe_device(char* out, size_t n) {
 		fclose(f);
 	}
 	read_line("/etc/os-release", "PRETTY_NAME=", os, sizeof(os));
+#elif defined(__ANDROID__)
+	char maker[PROP_VALUE_MAX] = "", name[PROP_VALUE_MAX] = "", rel[PROP_VALUE_MAX] = "", build[PROP_VALUE_MAX] = "";
+	__system_property_get("ro.product.manufacturer", maker);
+	__system_property_get("ro.product.model", name);
+	__system_property_get("ro.build.version.release", rel);
+	__system_property_get("ro.build.display.id", build);
+	snprintf(model, sizeof(model), "%s%s%s", maker, maker[0] ? " " : "", name);
+	snprintf(os, sizeof(os), "Android %s (%s)", rel, build);
 #endif
 	snprintf(out, n, "%s, %s", model[0] ? model : "unknown device", os[0] ? os : SDL_GetPlatform());
 }
@@ -302,9 +313,11 @@ void mapper_run(const Config* cfg) {
 			RawInput r;
 			while (ui_next_raw(&r)) {
 			}
+			/* settled: everything had been let go for a moment before this
+			 * frame (a press that closes it is held now, so not "now") */
+			bool settled = releasedAt && now - releasedAt > 150;
 			if (!all_released()) releasedAt = 0;
 			else if (!releasedAt) releasedAt = now;
-			bool settled = releasedAt && now - releasedAt > 150;
 			if (tapped || cancel || (settled && (btn_pressed(B_A) || btn_pressed(B_B) || btn_pressed(B_START)))) finished = true;
 		} else if (cancel) {
 			cancelled = true;
@@ -323,7 +336,7 @@ void mapper_run(const Config* cfg) {
 				const Step* st = &steps[v.step];
 				while (!skip && ui_next_raw(&r)) {
 					if (r.kind == 'k') {
-						if (r.index == SDL_SCANCODE_ESCAPE) {
+						if (r.index == SDL_SCANCODE_ESCAPE || r.index == SDL_SCANCODE_AC_BACK) { /* (Android's BACK) */
 							cancelled = finished = true;
 							break;
 						}
@@ -407,6 +420,7 @@ void mapper_run(const Config* cfg) {
 				snprintf(comment, sizeof(comment), "%s on %s; GBA DS %s button mapper, %s", name, device, GBADS_VERSION, date);
 				ui_mapping_file(path, sizeof(path));
 				if (SDL_GameControllerAddMapping(line) < 0) fprintf(stderr, "button mapper: SDL refused the mapping: %s\n", SDL_GetError());
+				ui_mapped_by_user(guid);
 				ui_reopen_pads();
 				v.saved = save_mapping(path, guid, comment, line);
 				fprintf(stderr, "button mapping (%s):\n%s\n", comment, line);

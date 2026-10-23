@@ -599,8 +599,8 @@ static char settingsMsg[128];
 
 /* Settings: a row of buttons, each with its text below, then Back.
  * Linux: GBA DS in EmulationStation (ROCKNIX) or in BananaOS's list, where
- * there's one; Map Buttons. Android: ROM Folder, RetroAchievements. */
-#define SETTINGS_MAX 2
+ * there's one; Map Buttons. Android: ROM Folder, RetroAchievements, Map Buttons. */
+#define SETTINGS_MAX 3
 static int nRows = 1; /* rows shown (Back is row nRows) */
 #ifndef __ANDROID__
 enum { ROW_BANANA, ROW_ES, ROW_MAP };
@@ -610,7 +610,7 @@ static int rowKind[SETTINGS_MAX];
 static void settings_rows(const Config* cfg) {
 #ifdef __ANDROID__
 	(void) cfg;
-	nRows = 2;
+	nRows = 3;
 #else
 	nRows = 0;
 	if (banana_present()) rowKind[nRows++] = ROW_BANANA;
@@ -630,10 +630,11 @@ static SettingsGeom settings_geom(int scr) {
 	SDL_Rect r = screens[scr].rect;
 	float px = ui_px(scr);
 	g.px = px;
-	int m = px * 6, rowH = px * 18;
+	int m = px * 6, rowH = nRows > 2 ? px * 14 : px * 18;
 	g.panel = (SDL_Rect) { m, m, r.w - m * 2, r.h - m * 2 };
+	int gap = nRows > 2 ? px * 28 : px * 44; /* room for each row's text under it */
 	for (int i = 0; i < nRows; ++i) {
-		g.row[i] = (SDL_Rect) { g.panel.x + px * 6, g.panel.y + px * 26 + i * (rowH + px * 44), g.panel.w - px * 12, rowH };
+		g.row[i] = (SDL_Rect) { g.panel.x + px * 6, g.panel.y + px * 26 + i * (rowH + gap), g.panel.w - px * 12, rowH };
 		g.textY[i] = g.row[i].y + rowH + px * 8;
 	}
 	g.back = (SDL_Rect) { g.panel.x + (g.panel.w - px * 60) / 2, g.panel.y + g.panel.h - rowH - px * 6, px * 60, rowH };
@@ -674,7 +675,7 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 	                      ra == RA_ACCOUNT_BUSY   ? "RetroAchievements: Signing In..." :
 	                      ra == RA_ACCOUNT_OFF    ? "RetroAchievements: Off" :
 	                                                "RetroAchievements: Sign In";
-	const char* labels[SETTINGS_MAX] = { "ROM Folder", raLabel };
+	const char* labels[SETTINGS_MAX] = { "ROM Folder", raLabel, "Map Buttons" };
 	draw_settings_frame(scr, &g, sel, labels);
 	int tx = g.row[0].x + px * 2, tw = g.row[0].w - px * 4;
 	char line[1400];
@@ -706,8 +707,12 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 		         "Earn achievements in casual mode with your retroachievements.org account. GBA DS keeps a sign-in token, "
 		         "not your password.");
 	}
-	int y = draw_wrapped(scr, tx, g.textY[1], tw, px, line, ra == RA_ACCOUNT_FAILED ? C_GOLD : C_DIM);
-	if (settingsMsg[0]) draw_wrapped(scr, tx, y + px * 6, tw, px, settingsMsg, C_GOLD);
+	draw_wrapped(scr, tx, g.textY[1], tw, px, line, ra == RA_ACCOUNT_FAILED ? C_GOLD : C_DIM);
+	int y = draw_wrapped(scr, tx, g.textY[2], tw, px,
+	                     "Sets which of this device's buttons does what: GBA DS asks for each one in turn. "
+	                     "Tap to skip any the device doesn't have.",
+	                     C_DIM);
+	if (settingsMsg[0]) draw_wrapped(scr, tx, y + px * 4, tw, px, settingsMsg, C_GOLD);
 }
 
 static void settings_activate(Config* cfg, int row) {
@@ -716,6 +721,10 @@ static void settings_activate(Config* cfg, int row) {
 	if (row == 0) {
 		if (android_pick_folder()) pickPending = true;
 		else snprintf(settingsMsg, sizeof(settingsMsg), "Couldn't open the file picker.");
+		return;
+	}
+	if (row == 2) {
+		mapper_run(cfg);
 		return;
 	}
 	char user[128], err[256];

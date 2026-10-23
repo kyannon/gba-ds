@@ -56,11 +56,17 @@ SDL.
 - **Map Buttons (from the main session, Oct 22, 2026):** the game list's
   Settings on Linux has a button mapper (`src/mapper.c`, shared; raw input
   from `ui_raw_capture` / `ui_next_raw` in ui.c; mappings kept in
-  `<state_dir>/controllers.txt`, loaded in `ui_init`). It isn't offered on
-  Android yet: adding it means `src/mapper.c` in
-  `android/app/src/main/cpp/CMakeLists.txt`, a third Settings row in
-  library.c's `__ANDROID__` block, and a look at how it fits the A/B swap in
-  `ui_read_buttons` (GammaOS reports the face buttons by label).
+  `<state_dir>/controllers.txt`, loaded in `ui_init`). Now on Android too
+  (Oct 22): mapper.c in CMakeLists, a third Settings row (rows a bit
+  shorter when there are three, so Back fits). The A/B swap for GammaOS's
+  label-based layout and the raw 15/16 L2/R2 buttons now apply per
+  controller, and not to one whose mapping came from controllers.txt
+  (ui.c padUserMapped: the GUIDs in that file, plus `ui_mapped_by_user()`
+  from the mapper), since the mapper records by position. BACK
+  (SDL_SCANCODE_AC_BACK) cancels the mapper like Escape; the mapping's
+  comment names the device from ro.product.* / ro.build.*. Fixed for every
+  system: the done screen couldn't be closed with a button (it checked that
+  everything was released in the same frame as the press).
 ## RetroAchievements
 
 `src/ra.c` and `third_party/rcheevos` are compiled into libmain with
@@ -521,3 +527,6 @@ frontend launch intents.
 Player-facing Android changes since the last release, for the main session
 to move into CHANGELOG.md and the release notes (see CLAUDE.md, "More than
 one session"). Empty after each release.
+
+- **Map Buttons** in the game list's Settings on Android too: set each button by where it sits, for a controller GBA DS doesn't know or a button that does the wrong thing.
+- Map Buttons: its last screen now closes with a button press, not only a tap (all systems).

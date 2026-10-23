@@ -43,6 +43,7 @@ Without All files access, these are kept in the app's own folder (`Android/data/
 **Settings** in the game list (tap it, or **SELECT**) has, on Android:
 - **ROM Folder**: pick the folder GBA DS lists (Android's folder picker); saved in `states/library.cfg`.
 - **RetroAchievements: Sign In / Sign Out**: sign in with your retroachievements.org username and password. GBA DS keeps a sign-in token, not the password, and signs in by itself from then on. See [Playing](Playing#retroachievements).
+- **Map Buttons**: if a button does the wrong thing, or for a controller GBA DS doesn't know, set each button by where it sits (see [Playing](Playing#mapping-the-buttons)). Android keeps HOME (and usually BACK) for itself, so skip **Home** with a tap: SELECT + START or BACK still open the menu. The mapping is kept in `GBA DS/states/controllers.txt`.
 
 ## Starting games from a launcher
 
