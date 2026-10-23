@@ -203,8 +203,21 @@ if ! grep -qi rocknix /etc/os-release 2>/dev/null && [ ! -d /storage/.config/sys
 		echo "--- dmesg (touch)"
 		dmesg 2>/dev/null | grep -iE 'gt9|goodix|touch|ts' | tail -n 40
 	} > "$R/system.txt" 2>&1
+	# whether the touchscreen's chip sees taps at all during the run (its
+	# interrupt count), and what else holds it open
+	touch_diag() {
+		[ -n "$TS" ] || return
+		local i2c; i2c=$(readlink -f "/sys/class/input/$TS/device/device" 2>/dev/null)
+		echo "touchscreen $TS ($1): interrupts: $(grep -iE 'gt9|goodix|i2c-5|5-0014' /proc/interrupts 2>/dev/null | tr -s ' ' | tr '\n' ';')"
+		echo "  i2c device: ${i2c:-?} driver $(basename "$(readlink "$i2c/driver" 2>/dev/null)" 2>/dev/null) power $(cat "$i2c/power/runtime_status" 2>/dev/null), inhibited $(cat "/sys/class/input/$TS/device/inhibited" 2>/dev/null)"
+		echo "  open by: $(for f in /proc/[0-9]*/fd/*; do [ "$(readlink "$f" 2>/dev/null)" = "/dev/input/$TS" ] && { p=${f#/proc/}; p=${p%%/*}; tr '\0' ' ' < "/proc/$p/cmdline" | head -c 60; echo -n '; '; }; done)"
+		[ "$1" = before ] && echo "  i2c device files: $(ls "$i2c" 2>/dev/null | tr '\n' ' ')"
+	}
+	touch_diag before >> "$LOG" 2>&1
 	./gba-ds "${O[@]}" "$@" >> "$LOG" 2>&1
-	exit $?
+	rc=$?
+	touch_diag after >> "$LOG" 2>&1
+	exit $rc
 fi
 
 # Second screen on and in place for the run (stock ROCKNIX keeps it off),

@@ -470,6 +470,7 @@ void ui_on_foreground(void (*fn)(void)) {
 /* touch_device: the touchscreen read straight from its input device. One
  * finger: its position and whether it's down, sent on as SDL's would be. */
 static int evTouchFd = -2; /* -2: not opened yet; -1: none */
+static int evVolFd = -2;   /* the volume keys' device, the same way */
 static struct { int min, max; } evAx[2];
 static int evX, evY, evDown, evWasDown, evLogged;
 static bool evMoved;
@@ -535,12 +536,81 @@ static void evdev_touch_poll(void) {
 		}
 	}
 }
+
+/* The volume keys (launch.sh: GBADS_VOLUME_SCRIPT up|down sets the system
+ * volume and prints the new level). Where the compositor doesn't pass them
+ * on (the RG DS Plus's own Linux), they're read from their input device:
+ * held for GBA DS alone when it has no other keys. */
+
+static void volume_key(bool up) {
+	const char* vs = getenv("GBADS_VOLUME_SCRIPT");
+	if (!vs) return;
+	char cmd[700];
+	snprintf(cmd, sizeof(cmd), "sh '%s' %s 2>/dev/null", vs, up ? "up" : "down");
+	FILE* p = popen(cmd, "r");
+	int level = -1;
+	if (p) {
+		if (fscanf(p, "%d", &level) != 1) level = -1;
+		pclose(p);
+	}
+	static int volLogged;
+	if (debug || volLogged++ < 6) fprintf(stderr, "volume %s: %d%%\n", up ? "up" : "down", level);
+	if (level >= 0) ui_osd("Volume %d%%", level);
+}
+
+#define EVBIT(b, n) ((b)[(n) / 8] & (1 << ((n) % 8)))
+static void evdev_volume_poll(void) {
+	if (evVolFd == -2) {
+		evVolFd = -1;
+		if (!getenv("GBADS_VOLUME_SCRIPT")) return;
+		for (int i = 0; i < 32 && evVolFd < 0; ++i) {
+			char path[32];
+			snprintf(path, sizeof(path), "/dev/input/event%d", i);
+			int fd = open(path, O_RDONLY | O_NONBLOCK | O_CLOEXEC);
+			if (fd < 0) continue;
+			unsigned char keys[KEY_MAX / 8 + 1] = { 0 };
+			unsigned char abs[ABS_MAX / 8 + 1] = { 0 };
+			ioctl(fd, EVIOCGBIT(EV_KEY, sizeof(keys)), keys);
+			ioctl(fd, EVIOCGBIT(EV_ABS, sizeof(abs)), abs);
+			bool other = false, anyAbs = false;
+			for (int k = 0; k < KEY_MAX; ++k) {
+				if (EVBIT(keys, k) && k != KEY_VOLUMEUP && k != KEY_VOLUMEDOWN && k != KEY_MUTE) other = true;
+			}
+			for (int a = 0; a < ABS_MAX; ++a) anyAbs |= EVBIT(abs, a) != 0;
+			if (!EVBIT(keys, KEY_VOLUMEUP) || anyAbs) {
+				close(fd);
+				continue;
+			}
+			char name[64] = "?";
+			ioctl(fd, EVIOCGNAME(sizeof(name)), name);
+			int grab = other ? -1 : ioctl(fd, EVIOCGRAB, 1);
+			fprintf(stderr, "volume keys: %s (%s)%s\n", path, name, grab == 0 ? ", ours alone" : other ? ", shared (it has other keys)" : ", shared (held by another program)");
+			evVolFd = fd;
+		}
+		if (evVolFd < 0) fprintf(stderr, "volume keys: no input device has them\n");
+	}
+	if (evVolFd < 0) return;
+	struct input_event ie[16];
+	ssize_t n;
+	while ((n = read(evVolFd, ie, sizeof(ie))) > 0) {
+		for (int i = 0; i < (int) (n / sizeof(ie[0])); ++i) {
+			/* presses and auto-repeats */
+			if (ie[i].type == EV_KEY && ie[i].value && (ie[i].code == KEY_VOLUMEUP || ie[i].code == KEY_VOLUMEDOWN)) {
+				volume_key(ie[i].code == KEY_VOLUMEUP);
+			}
+		}
+	}
+}
 #else
 static void evdev_touch_poll(void) {}
+static void evdev_volume_poll(void) {}
+static void volume_key(bool up) { (void) up; }
+static const int evVolFd = -1;
 #endif
 
 bool ui_events(void) {
 	evdev_touch_poll();
+	evdev_volume_poll();
 	SDL_Event ev;
 	while (SDL_PollEvent(&ev)) {
 		switch (ev.type) {
@@ -592,21 +662,9 @@ bool ui_events(void) {
 			static int keysLogged;
 			if (debug || keysLogged++ < 6) fprintf(stderr, "key %s\n", SDL_GetKeyName(ev.key.keysym.sym));
 #if defined(__linux__) && !defined(__ANDROID__) && !defined(__wasi__)
-			/* the volume keys, where the system leaves them to us (launch.sh:
-			 * GBADS_VOLUME_SCRIPT up|down prints the new level) */
+			/* the volume keys, where the system leaves them to us */
 			SDL_Scancode sc = ev.key.keysym.scancode;
-			const char* vs = getenv("GBADS_VOLUME_SCRIPT");
-			if (vs && (sc == SDL_SCANCODE_VOLUMEUP || sc == SDL_SCANCODE_VOLUMEDOWN)) {
-				char cmd[700];
-				snprintf(cmd, sizeof(cmd), "sh '%s' %s 2>/dev/null", vs, sc == SDL_SCANCODE_VOLUMEUP ? "up" : "down");
-				FILE* p = popen(cmd, "r");
-				int level = -1;
-				if (p) {
-					if (fscanf(p, "%d", &level) != 1) level = -1;
-					pclose(p);
-				}
-				if (level >= 0) ui_osd("Volume %d%%", level);
-			}
+			if ((sc == SDL_SCANCODE_VOLUMEUP || sc == SDL_SCANCODE_VOLUMEDOWN) && evVolFd < 0) volume_key(sc == SDL_SCANCODE_VOLUMEUP);
 #endif
 			break;
 		}
