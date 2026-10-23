@@ -934,7 +934,8 @@ uint32_t mapcap_room_key(MapCapture* mc, Emu* live) {
 	bool any = false;
 	for (int i = 0; i < 4 && mc->prof->room[i].addr; ++i) {
 		const MemProbe* m = &mc->prof->room[i];
-		uint32_t v = m->size == 4 ? emu_read32(live, m->addr) : m->size == 2 ? emu_read16(live, m->addr) : emu_read8(live, m->addr);
+		uint32_t v = m->addr >= 0xF0000000u ? (memprobe_virtual ? memprobe_virtual(live, m->addr) : 0)
+		           : m->size == 4 ? emu_read32(live, m->addr) : m->size == 2 ? emu_read16(live, m->addr) : emu_read8(live, m->addr);
 		if (m->mask) {
 			v &= m->mask;
 		}

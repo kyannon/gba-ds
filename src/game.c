@@ -1834,7 +1834,7 @@ static const uint32_t* map_px(int idx) {
 
 /* hud.alt.shade: a pixel darkened (to a third) */
 static uint32_t shade_px(uint32_t c) {
-	return (c & 0xFF000000) | ((c >> 2) & 0x3F3F3F) + ((c >> 3) & 0x1F1F1F);
+	return (c & 0xFF000000) | (((c >> 2) & 0x3F3F3F) + ((c >> 3) & 0x1F1F1F));
 }
 
 /* Profile hud.overMap: the map picture with the HUD's pieces in it (where

@@ -416,6 +416,7 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 /* virtual addresses (fe_virt) */
 #define FE_V_PHASE 0xF0000001 /* the player phase's position, 0 if it isn't running */
 #define FE_V_HUD 0xF0000002   /* what goes to the second screen: FE_HUD_* */
+#define FE_V_FREE 0xF0000003  /* 1 while the cursor's free (no unit selected, no menu) */
 enum { FE_HUD_NONE, FE_HUD_IDLE, FE_HUD_TALK, FE_HUD_MENU, FE_HUD_BANNER = 5 };
 
 /* The current position of the process running `start`, 0 if none is. */
@@ -431,7 +432,7 @@ static uint32_t fe_proc(Emu* e, uint32_t start) {
 static bool fe_portrait(Emu* e) {
 	for (int i = 0; i < 128; ++i) {
 		uint16_t a0 = emu_read16(e, 0x07000000 + i * 8), a2 = emu_read16(e, 0x07000004 + i * 8);
-		if ((a0 & 0x0300) == 0x0200 || (a0 & 0xFF) >= 160 && (a0 & 0xFF) < 192) continue;
+		if ((a0 & 0x0300) == 0x0200 || ((a0 & 0xFF) >= 160 && (a0 & 0xFF) < 192)) continue;
 		if ((a2 & 0x3FF) >= 768 && (a2 >> 12 == 6 || a2 >> 12 == 7)) return true;
 	}
 	return false;
@@ -449,6 +450,7 @@ static bool fe_tutorial_box(Emu* e) {
 static uint32_t fe_virt(Emu* e, uint32_t addr) {
 	switch (addr) {
 	case FE_V_PHASE: return fe_proc(e, FE_P_PHASE);
+	case FE_V_FREE: return fe_proc(e, FE_P_PHASE) == FE_IDLE;
 	case FE_V_HUD: {
 		if (fe_proc(e, FE_P_BANNER)) return FE_HUD_BANNER;
 		uint32_t ph = fe_proc(e, FE_P_PHASE);
@@ -503,8 +505,8 @@ static bool fe_minimap(Emu* s, void* tmp, uint32_t* mm, int* mw, int* mh) {
 
 /* The map pictures: the background (the logo goes on it: hud.logoUnder)
  * with, when the cursor is on a unit, that unit's status screen (R) at the
- * top left, a picture for each of its three pages (shown in turn, 5
- * seconds each), and the minimap at the bottom right over them. Both are
+ * top left (not while a unit's selected: its commands take the place), a
+ * picture for each of its three pages (shown in turn, 5 seconds each), and the minimap at the bottom right over them. Both are
  * opened once the cursor is free (B out of whatever's open first), on
  * this copy of the game. When the minimap can't be opened (a
  * conversation, the other armies' turns), the chapter's last one stands
@@ -559,15 +561,16 @@ static const char* fe_compose(Emu* s, const void* state, uint32_t* const* out, i
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
 	int chapter = emu_read8(s, FE_CHAPTER_NO);
+	/* a unit selected (or its menu): no status (its commands take the place) */
+	bool cursorFree = fe_proc(s, FE_P_PHASE) == FE_IDLE;
 	if (chapter != lastChapter) lastW = lastH = 0, lastChapter = chapter, pageKey = 0, pageN = 0;
-	bool ok = false, idleSeen = false;
+	bool ok = false;
 	if (fe_proc(s, FE_P_PHASE)) {
 		for (int i = 0; i < 16 && fe_proc(s, FE_P_PHASE) != FE_IDLE; ++i) {
 			aw_tap(s, K_B, 1);
 			aw_run(s, 0, 8);
 		}
 		if (fe_proc(s, FE_P_PHASE) == FE_IDLE) {
-			idleSeen = true;
 			void* idle = malloc(emu_state_size(s));
 			void* tmp = malloc(emu_state_size(s));
 			if (!idle || !tmp || !emu_state_save(s, idle)) {
@@ -591,7 +594,9 @@ static const char* fe_compose(Emu* s, const void* state, uint32_t* const* out, i
 			for (uint32_t a = FE_UNITS; a < FE_UNITS + FE_UNITS_LEN; a += 4) key = (key ^ emu_read32(s, a)) * 16777619u;
 			key = (key ^ emu_read32(s, FE_CURSOR)) * 16777619u;
 			key = (key ^ (uint32_t) chapter) * 16777619u;
-			if (key == pageKey) {
+			if (!cursorFree) {
+				pages = 0;
+			} else if (key == pageKey) {
 				pages = pageN;
 			} else {
 				aw_tap(s, K_R, 1);
@@ -613,7 +618,6 @@ static const char* fe_compose(Emu* s, const void* state, uint32_t* const* out, i
 			free(tmp);
 		}
 	}
-	if (!pages && !idleSeen) pages = pageN; /* (the cursor can't be freed: the last unit's) */
 	if (ok) {
 		memcpy(last, mm, (size_t) mw * mh * 4);
 		lastW = mw, lastH = mh;
@@ -1197,8 +1201,9 @@ static const MapProfile profiles[] = {
 		.virt = fe_virt,
 		.composePages = fe_compose,
 		.stillPick = STILL_FIRST, /* (Map Animations off: the status's first page) */
-		/* the cursor moved: the next unit's status */
-		.room = { { 0x0202BBCC, 0, 0, 4 } },
+		/* the cursor moved: the next unit's status; a unit selected or
+		 * let go: its status off or on again */
+		.room = { { 0x0202BBCC, 0, 0, 4 }, { FE_V_FREE, 0, 0, 4 } },
 		.crop_w = 320, /* 3x on 1024x768, 2x on 640x480 */
 		.crop_h = 240,
 		.live = { FE_IN_CHAPTER, { FE_TURN, 0xFF, 0, 1 } },
