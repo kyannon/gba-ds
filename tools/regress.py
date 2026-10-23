@@ -349,13 +349,22 @@ def main():
         covered = set()
         for c in load_cases([]):
             covered |= set(c.get("rules", [])) | {ch.get("rule") for ch in c.get("checks", [])}
-        n = 0
+        n, hand = 0, []
         for doc in sorted(glob.glob(os.path.join(ROOT, "docs", "games", "*.md"))):
             for m in re.finditer(r"^\*\*([A-Z0-9]+-\d+)\. ([^*]+)\*\*(.*)$", open(doc).read(), re.M):
-                if m.group(1) not in covered and "retired" not in m.group(3)[:40]:
+                if "retired" in m.group(3)[:40]:
+                    continue
+                by = re.search(r"\*By hand: ([^*]+)\*", m.group(3))
+                if by:
+                    hand.append((m.group(1), m.group(2).rstrip("."), by.group(1)))
+                elif m.group(1) not in covered:
                     print("%-8s %-28s %s" % (m.group(1), m.group(2).rstrip("."), os.path.basename(doc)))
                     n += 1
         print("%d rules without a case" % n)
+        if hand:
+            print("\nChecked by hand (before a release):")
+            for rid, name, why in hand:
+                print("%-8s %-28s %s" % (rid, name, why))
         return
     if not cases:
         sys.exit("no cases match %s" % " ".join(args.only))

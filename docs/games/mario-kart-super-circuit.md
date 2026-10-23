@@ -26,9 +26,3 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 **MK-6. Pause and menus.** The pause menu stays on the game screen with the last HUD below it; in the menus the second screen shows the logo.
 
 **MK-7. One screen.** With `layout = single` the HUD stays where the game draws it.
-
-## Not covered yet
-
-Rules no test case checks yet, and the fixture that would cover each:
-
-- **MK-7:** any race state run with --layout=single (the case format supports config).

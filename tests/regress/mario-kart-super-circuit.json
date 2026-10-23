@@ -96,6 +96,38 @@
    ]
   },
   {
+   "id": "mk-us-single",
+   "rom": "AMKE",
+   "state": "mario-kart-super-circuit/us-lap3.ss",
+   "desc": "racing with layout = single",
+   "rules": [
+    "MK-7"
+   ],
+   "config": {
+    "layout": "single"
+   },
+   "shots": {
+    "start": 60,
+    "end": 300
+   },
+   "checks": [
+    {
+     "rule": "MK-7",
+     "what": "nothing on a second screen",
+     "type": "uniform",
+     "shot": "end",
+     "rect": [
+      0,
+      420,
+      1024,
+      768
+     ],
+     "color": "000000",
+     "frac": 0.99
+    }
+   ]
+  },
+  {
    "id": "mk-logo-amke",
    "kind": "logo",
    "rom": "AMKE",

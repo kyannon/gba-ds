@@ -142,7 +142,8 @@ Android session at the same time. To keep them from colliding:
   touches profiles.c, game.c, mapcap.c, emu.c, logo.c or mapframe.c. For an
   intended change: rule first, then profile, then `--update CASES` after
   looking at every differing picture in build/regress/index.html; commit the
-  goldens in the fixtures repo saying which rule changed. `GBADS_SYNC=1`
+  goldens in the fixtures repo saying which rule changed. Before a release,
+  `--uncovered` lists the rules marked *By hand:* to check on the device. `GBADS_SYNC=1`
   makes captures and logo extraction run inline, so runs are exact.
 
 ## Architecture (src/)

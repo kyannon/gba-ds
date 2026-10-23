@@ -31,7 +31,8 @@
    "state": "castlevania-harmony-of-dissonance/us-play.ss",
    "desc": "the map up, then the game's own pause menu open (no capture can succeed)",
    "rules": [
-    "CVH-3"
+    "CVH-3",
+    "GEN-3"
    ],
    "input": [
     [

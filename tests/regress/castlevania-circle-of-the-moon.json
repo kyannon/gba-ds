@@ -32,7 +32,8 @@
    "state": "castlevania-circle-of-the-moon/us-play-100.ss",
    "desc": "the map up, then the game's own pause menu open (no capture can succeed)",
    "rules": [
-    "CVC-4"
+    "CVC-4",
+    "GEN-3"
    ],
    "input": [
     [

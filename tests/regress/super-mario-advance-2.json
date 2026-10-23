@@ -140,6 +140,57 @@
    ]
   },
   {
+   "id": "sma-us-snes",
+   "rom": "AA2E",
+   "state": "super-mario-advance-2/us-level.ss",
+   "desc": "tapping SNES under Controls on the second screen",
+   "rules": [
+    "SMA-5"
+   ],
+   "input": [
+    [
+     90,
+     "TAP:0.611,0.967"
+    ]
+   ],
+   "shots": {
+    "before": 60,
+    "after": 180
+   },
+   "checks": [
+    {
+     "rule": "SMA-5",
+     "what": "SNES is selected after the tap",
+     "type": "differs",
+     "a": {
+      "shot": "before",
+      "rect": [
+       583,
+       672,
+       670,
+       762
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       583,
+       672,
+       670,
+       762
+      ]
+     },
+     "frac": 0.2
+    },
+    {
+     "rule": "SMA-5",
+     "what": "the layout switched to SNES",
+     "type": "log",
+     "match": "^frame \\d+: controls snes"
+    }
+   ]
+  },
+  {
    "id": "sma-logo-aa2e",
    "kind": "logo",
    "rom": "AA2E",

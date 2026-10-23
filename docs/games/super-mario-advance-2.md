@@ -22,9 +22,3 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 **SMA-4. Through doors and castles.** The status bar stays on the second screen through doors, pipes, castle rooms and boss fights.
 
 **SMA-5. SNES layout.** The Controls button offers the SNES layout.
-
-## Not covered yet
-
-Rules no test case checks yet, and the fixture that would cover each:
-
-- **SMA-5:** a level state with --controls set to SNES.

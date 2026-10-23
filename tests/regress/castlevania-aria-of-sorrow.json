@@ -31,7 +31,8 @@
    "state": "castlevania-aria-of-sorrow/us-play.ss",
    "desc": "the map up, then the game's own pause menu open (no capture can succeed)",
    "rules": [
-    "CVA-3"
+    "CVA-3",
+    "GEN-3"
    ],
    "input": [
     [

@@ -31,6 +31,7 @@
    "state": "metroid-zero-mission/us-play.ss",
    "desc": "the map up, then the game's own pause menu open (no capture can succeed)",
    "rules": [
+    "GEN-3",
     "MZM-4"
    ],
    "input": [

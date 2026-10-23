@@ -28,7 +28,7 @@ tools/regress.py                            # every case (about 5 minutes with 8
 tools/regress.py fire-emblem                # one game
 tools/regress.py 'fe-us-*' som-us-forest    # case ids or globs
 tools/regress.py --list [GAME]              # the cases and the rules they cover
-tools/regress.py --uncovered                # rules no case covers yet
+tools/regress.py --uncovered                # rules no case covers yet, and the ones checked by hand
 tools/regress.py --prune                    # delete goldens no case uses (after removing or renaming shots)
 ```
 
@@ -121,6 +121,13 @@ When a change is meant to alter what a game shows:
 
 A golden that changes without a rule changing is a regression until shown
 otherwise.
+
+## Rules checked by hand
+
+A rule the tests can't reach (a link cable, behaviour that never shows on
+the screens) is marked in its game's file with *By hand:* and what to
+check. `tools/regress.py --uncovered` lists them under "Checked by hand";
+go through that list on the device before a release.
 
 ## Adding fixtures
 
