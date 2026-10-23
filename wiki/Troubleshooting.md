@@ -10,6 +10,16 @@ When there's a problem, the log reports it every 5 seconds: audio underruns, slo
 
 When reporting a bug, attach `gba-ds.log` from a run where it happened, and say which game and region.
 
+## GBA DS closes straight away, with no log
+
+If starting GBA DS from Ports goes straight back to the menu and there's no `gba-ds.log` in the `gba-ds` folder, the launcher couldn't run at all. Usually the files lost their permissions on the way: the zip was unzipped on a computer and the files copied over a network share or MTP. GBA DS handles that itself since v1.2.2 (the log then says "made the files runnable again"). With an older version, copy the zip itself to the device and unzip it there, or over SSH:
+
+```
+chmod +x "/storage/roms/ports/GBA DS.sh" /storage/roms/ports/gba-ds/*.sh /storage/roms/ports/gba-ds/gba-ds
+```
+
+If there's a `gba-ds-error.log` next to `GBA DS.sh` instead, the `gba-ds` folder isn't where it should be: unzip the whole zip into the Ports folder.
+
 ## Screens and touch (ROCKNIX)
 
 **The second screen stays dark, or both pictures are on one screen.** Stock ROCKNIX keeps the bottom panel off. `screens.sh` (run by `launch.sh`) switches it on and places it beside the top one for the run, then puts everything back on exit. Check the first lines of `gba-ds.log` for what it did. If you launched `gba-ds` some other way than `launch.sh` or the Ports entry, the panel isn't switched on. If GBA DS is ever force-killed, the screens can stay in its layout; starting and closing GBA DS again (or rebooting) puts them back.

@@ -42,6 +42,26 @@ fi
 
 cd "$DIR"
 
+# Files that lost their permissions on the way (unzipped on a computer, then
+# copied over a network share or MTP): runnable again. Where the card won't
+# run programs at all (mounted noexec), GBA DS runs from a copy in memory,
+# with GBADS_HOME pointing it back here. The note goes into the log below.
+GBADS=./gba-ds
+EXEC_NOTE=
+for f in ./gba-ds ./*.sh; do [ -f "$f" ] && [ ! -x "$f" ] && chmod +x "$f" 2>/dev/null && EXEC_NOTE="made the files runnable again (they'd lost their permissions)"; done
+if ! ./gba-ds --version >/dev/null 2>&1; then
+	EXEC_NOTE="this folder can't run programs: running a copy of gba-ds from memory"
+	for t in "${XDG_RUNTIME_DIR:-/run}" /tmp /dev/shm; do
+		if [ -d "$t" ] && cp ./gba-ds "$t/gba-ds.bin" 2>/dev/null && chmod +x "$t/gba-ds.bin" && "$t/gba-ds.bin" --version >/dev/null 2>&1; then
+			GBADS="$t/gba-ds.bin"
+			export GBADS_HOME="$DIR"
+			break
+		fi
+		rm -f "$t/gba-ds.bin" 2>/dev/null
+	done
+	[ "$GBADS" = ./gba-ds ] && EXEC_NOTE="gba-ds won't run here, and no copy of it would either: $(./gba-ds --version 2>&1 | head -n 1)"
+fi
+
 # First run after upgrading from gbadual (the app's old name): bring over
 # save states, resume points, menu settings and any custom logos/overlays.
 OLD="$DIR/../gbadual"
@@ -100,7 +120,8 @@ if [ -d /etc/banana ]; then
 	fi
 	mkdir -p /data/screenshots /data/saves 2>/dev/null
 	echo "Banana paths: ${B[*]//--ra-password=*/--ra-password=...}" >> "$LOG"
-	exec ./gba-ds "${B[@]}" "$@" >> "$LOG" 2>&1
+	[ -n "$EXEC_NOTE" ] && echo "$EXEC_NOTE" >> "$LOG"
+	exec "$GBADS" "${B[@]}" "$@" >> "$LOG" 2>&1
 fi
 
 # Any other system (the RG DS and RG DS Plus's own Linux, ...): neither
@@ -190,19 +211,21 @@ if ! grep -qi rocknix /etc/os-release 2>/dev/null && [ ! -d /storage/.config/sys
 			echo "---"
 		} >> "$LOG" 2>&1
 	) &
-	./gba-ds "${O[@]}" "$@" >> "$LOG" 2>&1
+	[ -n "$EXEC_NOTE" ] && echo "$EXEC_NOTE" >> "$LOG"
+	"$GBADS" "${O[@]}" "$@" >> "$LOG" 2>&1
 	exit $?
 fi
 
 # Second screen on and in place for the run (stock ROCKNIX keeps it off),
 # put back afterwards; see screens.sh. The trap also covers being killed.
-"$DIR/screens.sh" on > "$DIR/gba-ds.log" 2>&1
+bash "$DIR/screens.sh" on > "$DIR/gba-ds.log" 2>&1
+[ -n "$EXEC_NOTE" ] && echo "$EXEC_NOTE" >> "$DIR/gba-ds.log"
 # what the sound goes through, for reports of no sound
 {
 	echo "sound: XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-unset} SDL_AUDIODRIVER=${SDL_AUDIODRIVER:-unset} PULSE_SERVER=${PULSE_SERVER:-unset}"
 	command -v wpctl >/dev/null && timeout 2 wpctl status 2>&1 | sed -n '/^Audio/,/^Video/p' | head -n 30
 } >> "$DIR/gba-ds.log" 2>&1
-trap '"$DIR/screens.sh" off >> "$DIR/gba-ds.log" 2>&1' EXIT
+trap 'bash "$DIR/screens.sh" off >> "$DIR/gba-ds.log" 2>&1' EXIT
 trap 'exit 143' TERM INT HUP
 
-./gba-ds "$@" >> "$DIR/gba-ds.log" 2>&1
+"$GBADS" "$@" >> "$DIR/gba-ds.log" 2>&1

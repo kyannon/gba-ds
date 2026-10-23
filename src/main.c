@@ -81,6 +81,9 @@ int main(int argc, char** argv) {
 		exe[n] = 0;
 		snprintf(exeDir, sizeof(exeDir), "%s", dirname(exe));
 	}
+	/* GBADS_HOME: the app's folder when the executable runs from a copy
+	 * elsewhere (launch.sh, where the card won't run programs) */
+	if (getenv("GBADS_HOME") && getenv("GBADS_HOME")[0]) snprintf(exeDir, sizeof(exeDir), "%s", getenv("GBADS_HOME"));
 #ifdef __ANDROID__
 	/* the executable is Android's app_process: use the app's own folder */
 	if (android_home()) snprintf(exeDir, sizeof(exeDir), "%s", android_home());

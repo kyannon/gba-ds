@@ -88,6 +88,10 @@ static bool find_gba_system(const char* xml, const char** start, const char** en
 
 /* This program's own folder (where launch.sh and es-play.sh are). */
 static bool app_dir(char* out, size_t n) {
+	if (getenv("GBADS_HOME") && getenv("GBADS_HOME")[0]) { /* run from a copy (main.c) */
+		snprintf(out, n, "%s", getenv("GBADS_HOME"));
+		return true;
+	}
 	char exe[PATH_MAX];
 	ssize_t len = readlink("/proc/self/exe", exe, sizeof(exe) - 1);
 	if (len <= 0) return false;
