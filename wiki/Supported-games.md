@@ -15,6 +15,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Final Fantasy Tactics Advance | `AFXE` `AFXP` `AFXJ` | in battles and the scenes on the battle maps: dialogue, menus, unit details | — |
 | Advance Wars (preliminary) | `AWRE` `AWRP` (no Japanese release) | in battles: the unit list or the battle intel, with the minimap | — |
 | Fire Emblem (Rekka no Ken in Japan; preliminary) | `AE7E` `AE7X` (English, French, German) `AE7Y` (English, Spanish, Italian) `AE7J` | on the map: the unit, terrain and goal windows and the minimap | — |
+| Sword of Mana (Shinyaku Seiken Densetsu in Japan) | `AVSE` `AVSY` (Spanish, Italian) `AVSJ` | the Status screen | — |
 
 The codes are what `<CODE>` means in logo and overlay file names (see [Playing](Playing#logos) and [[Map screen surrounds and overlays]]).
 
@@ -109,3 +110,10 @@ Preliminary. The USA release, both European ones (English, French and German; En
 - **Conversations** (the speech bubble, its text and the portraits), on the map and before or after a fight, move to the second screen with the portraits standing on its bottom edge, and the **tutorial's** boxes as they are; the windows step aside until they're done. A unit's small speech bubble with no portrait stays on the map, by the unit. Story scenes before and after the battle (a picture or black behind the talk) stay on the game screen, and the second screen goes back to the logo until the battle map is up again.
 - **ENEMY PHASE and PLAYER PHASE**, with their sparkles, go across the second screen instead of the map, while the game screen dims; the windows are cleared, and come back as you take control again.
 - **In a fight and on the other armies' turns,** the second screen is the background with the logo alone.
+
+## Sword of Mana
+
+Profile contributed by LucasAlexandrou.
+
+- **During play,** the second screen shows the character's **Status** screen (the one in START's ring: Status, then Status), with level, HP, MP, experience, stats and the weapon and magic levels. It's opened in the background in a silent copy of the game every map refresh, so it stays up to date without you opening it; your game is never paused. While it can't be opened (a conversation, a scene), the last one stays.
+- **On the title screen,** the second screen shows the logo.

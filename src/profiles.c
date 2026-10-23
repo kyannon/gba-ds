@@ -803,6 +803,105 @@ static void fe_find_pieces(Emu* e, const uint32_t* hud, uint32_t clear, int box[
 	}
 }
 
+/* ---------------------------------------------------------- Sword of Mana
+ *
+ * The second screen: the Status screen (START's ring > Status > Status),
+ * opened on the shadow core from the live state at every capture, so it's
+ * up to date without the player opening it. The open ring's items are a
+ * list of 8-byte entries from SOM_ring - 0x64 (the item first: in the main
+ * ring 1 Items, 2 Weapons, 5 Spirits, 8 Status, as far as the story has
+ * them; in Status's own, 1 Status, 2 NPC Setting...), their number at
+ * - 0x0C and the one turned to at the ring address itself, each ring
+ * starting where it was left. (Each release's address: SomRegion.) */
+#define SOM_MAIN_STATUS 8
+#define SOM_SUB_STATUS 1
+typedef struct {
+	char region;
+	uint32_t ring;
+	/* the title's lettering, where it doesn't shimmer (and isn't the
+	 * clouds drifting behind it): 7 of them on the title screen */
+	Probe title[8];
+} SomRegion;
+#define SOM_TITLE_EN { { 6, 83, 0xFFFFFF }, { 55, 75, 0xFFF7EF }, { 83, 76, 0xFFFFFF }, { 143, 66, 0xFFFFFF }, \
+	                   { 159, 68, 0xF7DED6 }, { 184, 68, 0xFFF7EF }, { 37, 68, 0x737BD6 }, { 234, 93, 0x427BD6 } }
+static const SomRegion somRegions[] = {
+	{ 'E', 0x02013EC4, SOM_TITLE_EN },
+	{ 'Y', 0x02013ED4, SOM_TITLE_EN },
+	{ 'J', 0x02013EC4, { { 54, 67, 0xFFBD6B }, { 79, 82, 0xF7DED6 }, { 171, 91, 0xF79C31 }, { 200, 63, 0xBDCEDE },
+	                     { 112, 77, 0xFFFFFF }, { 137, 56, 0xFFFFFF }, { 34, 57, 0xF7DED6 }, { 222, 52, 0xFFFFFF } } },
+};
+static const SomRegion* som_r(Emu* e) {
+	for (size_t i = 0; i < sizeof(somRegions) / sizeof(*somRegions); ++i) {
+		if (e->gameCode[3] == somRegions[i].region) return &somRegions[i];
+	}
+	return &somRegions[0];
+}
+#define som_ring(e) (som_r(e)->ring)
+#define SOM_V_TITLE 0xF0000001 /* 1 on the title screen */
+
+/* n of the probes are on screen (each channel within tol) */
+static bool som_probes(Emu* e, const Probe* p, int n, int need, int tol) {
+	int hit = 0;
+	for (int i = 0; i < n; ++i) {
+		uint32_t c = e->fb[p[i].y * GBA_W + p[i].x];
+		int d[3] = { (int) (c & 0xFF) - (int) (p[i].rgb >> 16), (int) ((c >> 8) & 0xFF) - (int) ((p[i].rgb >> 8) & 0xFF),
+		             (int) ((c >> 16) & 0xFF) - (int) (p[i].rgb & 0xFF) };
+		hit += abs(d[0]) <= tol && abs(d[1]) <= tol && abs(d[2]) <= tol;
+	}
+	return hit >= need;
+}
+
+/* the Status screen's panels and stat icons (not the portrait) */
+static const Probe somStatus[7] = { { 90, 10, 0x945229 }, { 68, 111, 0xFF3100 }, { 115, 123, 0xFF3100 }, { 150, 46, 0x945229 },
+                                    { 150, 148, 0x945229 }, { 197, 120, 0x945229 }, { 121, 148, 0x945229 } };
+static uint32_t som_virt(Emu* e, uint32_t addr) {
+	return addr == SOM_V_TITLE && som_probes(e, som_r(e)->title, 8, 7, 8);
+}
+
+/* Turns the open ring to item `item` (RIGHT, a step at a time; the first
+ * steps may come while it's still opening). */
+static bool som_turn(Emu* s, int item) {
+	uint32_t ring = som_ring(s);
+	for (int i = 0; i < 8; ++i) {
+		int at = emu_read8(s, ring), n = emu_read8(s, ring - 0x0C);
+		if (n > 0 && n <= 8 && at < n && emu_read16(s, ring - 0x64 + 8 * at) == item) {
+			aw_run(s, 0, 20);
+			return true;
+		}
+		aw_run(s, K_RIGHT, 2);
+		aw_run(s, 0, 22);
+	}
+	return false;
+}
+
+static bool som_status_up(Emu* s) {
+	return som_probes(s, somStatus, 7, 6, 8);
+}
+
+static const char* som_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	aw_run(s, K_START, 2);
+	aw_run(s, 0, 40);
+	if (!som_turn(s, SOM_MAIN_STATUS)) return "the ring did not open";
+	aw_run(s, K_A, 2);
+	aw_run(s, 0, 40);
+	if (!som_turn(s, SOM_SUB_STATUS)) return "the Status ring did not open";
+	/* (the Status ring takes presses once it's done opening: A again if
+	 * the first came too early) */
+	aw_run(s, 0, 30);
+	bool up = false;
+	for (int tries = 0; tries < 3 && !up; ++tries) {
+		aw_run(s, K_A, 2);
+		up = aw_settle(s, som_status_up, 90);
+	}
+	if (!up) return "the Status screen did not open";
+	for (int i = 0; i < w * h; ++i) out[i] = 0xFF000000;
+	int ox = (w - GBA_W) / 2, oy = (h - GBA_H) / 2;
+	for (int y = 0; y < GBA_H && oy + y < h; ++y) memcpy(&out[(oy + y) * w + ox], &s->fb[y * GBA_W], GBA_W * sizeof(uint32_t));
+	return NULL;
+}
+
 static const MapProfile profiles[] = {
 	{
 		.codes = { "A2CE" },
@@ -986,28 +1085,18 @@ static const MapProfile profiles[] = {
 	{
 		.codes = { "AVSE" },
 		.title = "Sword of Mana",
-		/* no map: listed, logo on the second screen. Once the Status screen
-		 * (the Start ring's Status, then a character) has been up, it is
-		 * copied to the second screen and stays there through play. */
-		.logoOnly = true,
+		/* the Status screen, always: see som_compose */
+		.compose = som_compose,
+		.virt = som_virt,
+		.crop_w = 320, /* 3x on 1024x768, 2x on 640x480 */
+		.crop_h = 240,
+		/* the title screen: the logo again (and no captures there) */
+		.menu = { { SOM_V_TITLE, 0xFF, 1, 4 } },
+		.live = { { SOM_V_TITLE, 0xFF, 0, 4 } },
 		/* title: START past the opening, A past the crystal; the SWORD of MANA
 		 * wordmark is BG0 above the PUSH START line */
 		.logo = { .steps = { { 0, 700 }, { K_START, 4 }, { 0, 200 }, { K_A, 4 }, { 0, 150 } },
 		          .layer = 0, .maxY = 112 },
-		.snap = {
-			/* the Status screen's panels and stat icons (not the portrait) */
-			.show = { { 90, 10, 0x945229 }, { 68, 111, 0xFF3100 }, { 115, 123, 0xFF3100 }, { 150, 46, 0x945229 },
-			          { 150, 148, 0x945229 }, { 197, 120, 0x945229 }, { 121, 148, 0x945229 } },
-			.showMin = 6,
-			/* back to the logo on the title screen */
-			.revert = {
-				{ { 30, 86, 0xF79C31 }, { 31, 84, 0xF79C31 }, { 123, 149, 0x427BD6 }, { 183, 96, 0xFFEFBD },
-				  { 199, 100, 0xFFE7BD } },
-			},
-			.revertMin = { 4 },
-			.stable = 3,
-			.tol = 8,
-		},
 	},
 	{
 		.codes = { "ATHE", "ATHF", "ATHD" },
@@ -1416,6 +1505,18 @@ static void fe_jpn(MapProfile* p) {
 	p->logo.maxY = 123;
 }
 
+/* Sword of Mana in Europe: the language menu (it takes A once it's faded
+ * in), then the title comes by itself */
+static void som_eur(MapProfile* p) {
+	static const MacroStep steps[] = { { 0, 150 }, { K_A, 4 }, { 0, 1400 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+}
+/* and in Japan: 新約 over the title is sprites */
+static void som_jpn(MapProfile* p) {
+	p->logo.layers = 0x11;
+}
+
 /* Advance Wars in Europe: its language menu comes up later than the others' */
 static void aw_eur(MapProfile* p) {
 	static const MacroStep lang[] = { { 0, 180 }, { K_A, 4 } };
@@ -1506,6 +1607,9 @@ static const Variant variants[] = {
 	{ "AE7Y", "AE7E", 0, lang_menu },
 	{ "AE7J", "AE7E", 0, fe_jpn },
 	{ "AWRP", "AWRE", 0, aw_eur },
+	/* (Sword of Mana's ring address: SomRegion) */
+	{ "AVSY", "AVSE", 0, som_eur },
+	{ "AVSJ", "AVSE", 0, som_jpn },
 };
 #define N_VARIANTS (sizeof(variants) / sizeof(*variants))
 static MapProfile variantProfiles[N_VARIANTS];
