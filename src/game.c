@@ -1441,6 +1441,12 @@ static void update_hud(void) {
 			for (int m = 0; m < 4; ++m) changed |= pieces[m].valid, pieces[m].valid = false;
 		} else if (hudOn && race) {
 			changed = hud_take_pieces(h);
+		} else {
+			/* the split's off: a piece that goes alone (a conversation)
+			 * isn't up any more */
+			for (int m = 0; m < 4; ++m) {
+				if (h->moves[m].alone && pieces[m].valid) pieces[m].valid = false, changed = true;
+			}
 		}
 		bool any = pieces[0].valid || pieces[1].valid || pieces[2].valid || pieces[3].valid;
 		if (changed || any != overOn) {
