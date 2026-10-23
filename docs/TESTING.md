@@ -80,6 +80,10 @@ app does, and compares it with its golden.
   `saves/`, put beside the ROM.
 - `input` is `[frame, buttons]` pairs as in the app's input scripts (`A`,
   `B+UP`, `-` to release); `config` passes `--key=value` settings.
+  `"LOAD:<game>/<state>.ss"` loads another state at that frame, as a quick
+  load would, with the second screen kept: the way to test a rule about
+  keeping an earlier picture (show it from one state, then load the moment
+  where it must stay).
 - `shots` names the screenshots and their frames. Every shot is compared
   with its golden unless the case lists `golden` (the shots to compare).
   `golden_tol` (per channel) and `golden_frac` (share of pixels) allow
@@ -127,6 +131,6 @@ session turns it into a case, checks the pictures, and moves the rule off the
 game's *Not covered yet* list. A state needs the matching
 ROM in `roms/`. Use the app's own save states or harness `save` states;
 note that a state loads into a fresh run, so a rule about keeping
-something from before (a last picture) needs input in the case that gets
-there first. For a release whose saves the game won't read (most European releases
+something from before (a last picture) needs a case that shows it first:
+input that plays there, or a `LOAD:` of the state from an earlier one. For a release whose saves the game won't read (most European releases
 won't read USA saves), make a state by playing in from a new game.

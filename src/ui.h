@@ -154,6 +154,9 @@ bool ui_load_logo(const Config* cfg, const char* rom, const char* code, SDL_Text
                   bool* pixelArt);
 
 void ui_screenshot(const char* path);
+/* An input script's LOAD:file, once (NULL if none is due): the play session
+ * loads that state as a quick load would, the second screen kept. */
+const char* ui_script_load(void);
 /* The screens as currently drawn (call before ui_present), stacked top to
  * bottom in screen order, saved as PNG. */
 bool ui_screenshot_stacked(const char* pngPath);

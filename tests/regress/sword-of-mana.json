@@ -61,6 +61,84 @@
    ]
   },
   {
+   "id": "som-us-conversation",
+   "rom": "AVSE",
+   "state": "sword-of-mana/us-cell-later.ss",
+   "desc": "play with the Status up, then (LOAD) a conversation with Willy, where the ring can't open",
+   "rules": [
+    "SOM-1",
+    "SOM-2"
+   ],
+   "input": [
+    [
+     150,
+     "LOAD:sword-of-mana/us-conversation.ss"
+    ]
+   ],
+   "shots": {
+    "play": 120,
+    "talk": 400
+   },
+   "checks": [
+    {
+     "rule": "SOM-2",
+     "what": "the Status from before stays through the conversation",
+     "type": "same",
+     "a": {
+      "shot": "play",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "talk",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.001
+    },
+    {
+     "rule": "SOM-2",
+     "what": "the game screen changed to the conversation",
+     "type": "differs",
+     "a": {
+      "shot": "play",
+      "screen": "game",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "talk",
+      "screen": "game",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.05
+    },
+    {
+     "rule": "SOM-2",
+     "what": "captures fail in the conversation",
+     "type": "log",
+     "match": "map capture failed.*Status ring did not open"
+    }
+   ]
+  },
+  {
    "id": "som-us-title",
    "rom": "AVSE",
    "state": "sword-of-mana/us-title.ss",

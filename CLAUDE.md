@@ -117,7 +117,7 @@ Android session at the same time. To keep them from colliding:
   GBADS_WINDOW=1024x1536 build/host/gba-ds --state-dir=DIR [--load-state=X.ss]
   --input-script=SCRIPT ROM`. Script lines: `TICK BUTTONS` (A, B+UP, - for
   none), `TICK SHOT:file.bmp` (both screens), `TICK TAP:x,y` (fractions of
-  the whole window), `TICK QUIT`. `GBADS_DEBUG=1` logs map captures,
+  the whole window), `TICK QUIT`, `TICK LOAD:file.ss` (load a state, the second screen kept). `GBADS_DEBUG=1` logs map captures,
   snapshot and control-scheme switches, taps.
 - `build/host/harness ROM OUTDIR SCRIPT` drives the core frame by frame:
   `load/save NAME`, `wait N`, `hold BUTTONS N`, `shot NAME`, `peek ADDR LEN`,

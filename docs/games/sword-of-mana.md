@@ -20,9 +20,3 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 **SOM-3. HUD trimmed.** On the game screen the HUD's portrait and HP / MP figures are hidden; the charge bar under them stays.
 
 **SOM-4. Title.** On the title screen the second screen shows the logo, and no captures are tried there.
-
-## Not covered yet
-
-Rules no test case checks yet, and the fixture that would cover each:
-
-- **SOM-2:** a state mid-conversation after the Status screen has been shown.

@@ -65,6 +65,7 @@ static uint32_t scriptBtns;
 static long scriptTapUp = -1;
 static float tapX, tapY;
 static char pendingShot[160];
+static char pendingLoad[160]; /* LOAD:file in an input script (regression tests) */
 
 static void script_joy(const char* a);
 static void script_virtual_pad(void);
@@ -99,7 +100,8 @@ void ui_load_script(const char* path) {
 		s->tick = t;
 		s->btns = 0;
 		s->action[0] = 0;
-		if (!strncmp(what, "TAP:", 4) || !strncmp(what, "SHOT:", 5) || !strcmp(what, "QUIT") || !strncmp(what, "JOY", 3)) {
+		if (!strncmp(what, "TAP:", 4) || !strncmp(what, "SHOT:", 5) || !strncmp(what, "LOAD:", 5) || !strcmp(what, "QUIT") ||
+		    !strncmp(what, "JOY", 3)) {
 			snprintf(s->action, sizeof(s->action), "%s", what);
 		} else {
 			s->btns = parse_btns(what);
@@ -107,6 +109,14 @@ void ui_load_script(const char* path) {
 	}
 	fclose(f);
 	script_virtual_pad();
+}
+
+const char* ui_script_load(void) {
+	static char path[160];
+	if (!pendingLoad[0]) return NULL;
+	snprintf(path, sizeof(path), "%s", pendingLoad);
+	pendingLoad[0] = 0;
+	return path;
 }
 
 static void push_finger(Uint32 type, float x, float y) {
@@ -137,6 +147,8 @@ static void run_script(void) {
 			scriptTapUp = (long) ticks + 2;
 		} else if (!strncmp(s->action, "SHOT:", 5)) {
 			snprintf(pendingShot, sizeof(pendingShot), "%s", s->action + 5);
+		} else if (!strncmp(s->action, "LOAD:", 5)) {
+			snprintf(pendingLoad, sizeof(pendingLoad), "%s", s->action + 5);
 		} else if (!strcmp(s->action, "QUIT")) {
 			uiQuit = 1;
 		} else if (!strncmp(s->action, "JOY", 3)) {

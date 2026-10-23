@@ -2896,6 +2896,10 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		}
 		ui_tick();
 		ui_read_buttons();
+		{
+			const char* ld = ui_script_load();
+			if (ld && !state_load(ld)) fprintf(stderr, "could not load %s\n", ld);
+		}
 
 		/* ---- pointer: any tap opens the menu; taps in the menu press buttons */
 		Pointer p;

@@ -105,6 +105,12 @@ def run_app(case, args, workdir):
     shots = case.get("shots", {"end": case.get("frames", 300)})
     lines = []
     for frame, keys in case.get("input", []):
+        if keys.startswith("LOAD:"):  # another state, from the fixtures' states/
+            st = os.path.join(args.fixtures, "states", keys[5:])
+            if not os.path.exists(st):
+                r.error = "missing state fixture states/%s" % keys[5:]
+                return r
+            keys = "LOAD:" + st
         lines.append((frame, keys))
     for name, frame in shots.items():
         lines.append((frame, "SHOT:" + os.path.join(workdir, name + ".bmp")))
