@@ -1089,6 +1089,10 @@ static const MapProfile profiles[] = {
 		/* the GBA's own screen, scaled as the game screen is */
 		.crop_w = GBA_W,
 		.crop_h = GBA_H,
+		/* the HUD's portrait and HP / MP figures go from the game screen
+		 * (the Status screen has them); the charge bar under them stays
+		 * (tile 19, row 144) */
+		.hideSprites = { { 48, 120, 183, 143, 0, 18, -1, 1u << 0 }, { 54, 126, 58, 130, 0, 1023, -1, 1u << 5 } },
 		/* the title screen: the logo again (and no captures there) */
 		.menu = { { SOM_V_TITLE, 0xFF, 1, 4 } },
 		.live = { { SOM_V_TITLE, 0xFF, 0, 4 } },

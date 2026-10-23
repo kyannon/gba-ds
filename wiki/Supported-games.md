@@ -116,4 +116,5 @@ Preliminary. The USA release, both European ones (English, French and German; En
 Profile contributed by LucasAlexandrou.
 
 - **During play,** the second screen shows the character's **Status** screen (the one in START's ring: Status, then Status), with level, HP, MP, experience, stats and the weapon and magic levels. It's opened in the background in a silent copy of the game every map refresh, so it stays up to date without you opening it; your game is never paused. While it can't be opened (a conversation, a scene), the last one stays.
+- **On the game screen,** the HUD's portrait and HP / MP figures are left off, since the Status screen has them; the charge bar stays.
 - **On the title screen,** the second screen shows the logo.
