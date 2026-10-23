@@ -411,9 +411,12 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 #define FE_MINI 0x08B933C4   /* the minimap (and the map menu) */
 #define FE_FIGHT 0x08B93464  /* a fight */
 #define FE_P_EVENT 0x08B90D88 /* the event engine: a conversation, the tutorial */
+#define FE_P_BANNER 0x08B937AC /* ENEMY PHASE / PLAYER PHASE across the map */
+#define FE_MENU 0x08B93444   /* (the player phase's position) a unit's menu: Attack, Wait... */
 /* virtual addresses (fe_virt) */
 #define FE_V_PHASE 0xF0000001 /* the player phase's position, 0 if it isn't running */
-#define FE_V_HUD 0xF0000002   /* 1: the cursor free (the windows), 2: an event (talk), 0 */
+#define FE_V_HUD 0xF0000002   /* what goes to the second screen: FE_HUD_* */
+enum { FE_HUD_NONE, FE_HUD_IDLE, FE_HUD_TALK, FE_HUD_MENU, FE_HUD_BANNER = 5 };
 
 /* The current position of the process running `start`, 0 if none is. */
 static uint32_t fe_proc(Emu* e, uint32_t start) {
@@ -424,12 +427,36 @@ static uint32_t fe_proc(Emu* e, uint32_t start) {
 	return 0;
 }
 
+/* A talking portrait on screen: sprites in palettes 6-7, tiles from 768. */
+static bool fe_portrait(Emu* e) {
+	for (int i = 0; i < 128; ++i) {
+		uint16_t a0 = emu_read16(e, 0x07000000 + i * 8), a2 = emu_read16(e, 0x07000004 + i * 8);
+		if ((a0 & 0x0300) == 0x0200 || (a0 & 0xFF) >= 160 && (a0 & 0xFF) < 192) continue;
+		if ((a2 & 0x3FF) >= 768 && (a2 >> 12 == 6 || a2 >> 12 == 7)) return true;
+	}
+	return false;
+}
+
+/* The tutorial's boxes and a unit's own small speech bubbles (no
+ * portrait: those stay on the map, by the unit) are the same sprites in
+ * palette 5: the tutorial's are parchment yellow (its 5th colour has
+ * little blue), the bubbles white. */
+static bool fe_tutorial_box(Emu* e) {
+	uint16_t c = emu_read16(e, 0x05000200 + 5 * 32 + 4 * 2);
+	return ((c >> 10) & 31) + 6 < ((c >> 5) & 31);
+}
+
 static uint32_t fe_virt(Emu* e, uint32_t addr) {
 	switch (addr) {
 	case FE_V_PHASE: return fe_proc(e, FE_P_PHASE);
-	case FE_V_HUD:
-		if (fe_proc(e, FE_P_EVENT)) return 2;
-		return fe_proc(e, FE_P_PHASE) == FE_IDLE ? 1 : 0;
+	case FE_V_HUD: {
+		if (fe_proc(e, FE_P_BANNER)) return FE_HUD_BANNER;
+		uint32_t ph = fe_proc(e, FE_P_PHASE);
+		if (fe_proc(e, FE_P_EVENT) && (!ph || fe_portrait(e) || fe_tutorial_box(e))) return FE_HUD_TALK;
+		if (ph == FE_IDLE) return FE_HUD_IDLE;
+		if (ph == FE_MENU) return FE_HUD_MENU;
+		return FE_HUD_NONE;
+	}
 	}
 	return 0;
 }
@@ -486,6 +513,42 @@ static bool fe_minimap(Emu* s, void* tmp, uint32_t* mm, int* mw, int* mh) {
 #define FE_CHAPTER_NO 0x0202BC06
 #define FE_P_STATUS 0x08CC1F5C /* a unit's status screen */
 #define FE_PAGES 3
+#define FE_UNITS 0x0202BD50 /* every unit's data (0x48 bytes each) */
+#define FE_UNITS_LEN (0x48 * 144)
+#define FE_CURSOR 0x0202BBCC /* the cursor's x, y (16 bits each) */
+/* where a status page has nothing (its background left out): next to the
+ * background's colour, so the logo isn't drawn there */
+#define FE_STATUS_CLEAR (MAP_BG_NAVY ^ 0x00010000)
+#define FE_PALBUF 0x02022860 /* the palettes as the game copies them in each frame */
+static uint32_t pageKey;
+static int pageN;
+
+/* The status page on screen without its moving background (BG3): drawn
+ * again without that layer over a backdrop of the second screen's own
+ * colour (palette 0 colour 0, in the game's copy too), so the see-through
+ * boxes take its tint;
+ * FE_STATUS_CLEAR where only the backdrop shows. The shadow core is left
+ * as it was. */
+static void fe_status_page(Emu* s, void* tmp, uint32_t* out) {
+	static uint32_t a[GBA_W * GBA_H];
+	emu_state_save(s, tmp);
+	/* MAP_BG_NAVY (bytes R, G, B) as BGR555, then the same nudged, to tell
+	 * the backdrop from anything of its colour */
+	uint16_t navy = (MAP_BG_NAVY & 0xFF) >> 3 | ((MAP_BG_NAVY >> 8) & 0xFF) >> 3 << 5 | ((MAP_BG_NAVY >> 16) & 0xFF) >> 3 << 10;
+	emu_layers(s, 0x17);
+	emu_write16(s, FE_PALBUF, navy);
+	emu_write16(s, 0x05000000, navy);
+	emu_frame(s, 0);
+	memcpy(a, s->fb, sizeof(a));
+	emu_state_load(s, tmp);
+	emu_write16(s, FE_PALBUF, navy ^ 1);
+	emu_write16(s, 0x05000000, navy ^ 1);
+	emu_frame(s, 0);
+	for (int i = 0; i < GBA_W * GBA_H; ++i) out[i] = a[i] == s->fb[i] ? a[i] | 0xFF000000 : FE_STATUS_CLEAR;
+	emu_layers(s, 0x1F);
+	emu_state_load(s, tmp);
+}
+
 static const char* fe_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
 	static uint32_t mm[GBA_W * GBA_H], last[GBA_W * GBA_H], page[FE_PAGES][GBA_W * GBA_H];
 	static int lastW, lastH, lastChapter = -1;
@@ -496,14 +559,15 @@ static const char* fe_compose(Emu* s, const void* state, uint32_t* const* out, i
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
 	int chapter = emu_read8(s, FE_CHAPTER_NO);
-	if (chapter != lastChapter) lastW = lastH = 0, lastChapter = chapter;
-	bool ok = false;
+	if (chapter != lastChapter) lastW = lastH = 0, lastChapter = chapter, pageKey = 0, pageN = 0;
+	bool ok = false, idleSeen = false;
 	if (fe_proc(s, FE_P_PHASE)) {
 		for (int i = 0; i < 16 && fe_proc(s, FE_P_PHASE) != FE_IDLE; ++i) {
 			aw_tap(s, K_B, 1);
 			aw_run(s, 0, 8);
 		}
 		if (fe_proc(s, FE_P_PHASE) == FE_IDLE) {
+			idleSeen = true;
 			void* idle = malloc(emu_state_size(s));
 			void* tmp = malloc(emu_state_size(s));
 			if (!idle || !tmp || !emu_state_save(s, idle)) {
@@ -518,25 +582,38 @@ static const char* fe_compose(Emu* s, const void* state, uint32_t* const* out, i
 				aw_run(s, 0, 24);
 				ok = fe_minimap(s, tmp, mm, &mw, &mh);
 			}
-			/* the status screen of the unit under the cursor, if there's one */
+			/* the status screen of the unit under the cursor, if there's
+			 * one: taken again only when the cursor or a unit changes (so
+			 * it doesn't move between pictures: a blink, a step) */
 			emu_state_load(s, idle);
 			emu_frame(s, 0);
-			aw_tap(s, K_R, 1);
-			aw_run(s, 0, 8);
-			if (fe_proc(s, FE_P_STATUS)) {
-				aw_run(s, 0, 12);
-				for (pages = 0; pages < FE_PAGES && pages < max; ++pages) {
-					if (pages) {
-						aw_tap(s, K_RIGHT, 1);
-						aw_run(s, 0, 24);
+			uint32_t key = 2166136261u;
+			for (uint32_t a = FE_UNITS; a < FE_UNITS + FE_UNITS_LEN; a += 4) key = (key ^ emu_read32(s, a)) * 16777619u;
+			key = (key ^ emu_read32(s, FE_CURSOR)) * 16777619u;
+			key = (key ^ (uint32_t) chapter) * 16777619u;
+			if (key == pageKey) {
+				pages = pageN;
+			} else {
+				aw_tap(s, K_R, 1);
+				aw_run(s, 0, 8);
+				pages = 0;
+				if (fe_proc(s, FE_P_STATUS)) {
+					aw_run(s, 0, 40); /* (past its fade-in, which rewrites the palette) */
+					for (; pages < FE_PAGES && pages < max; ++pages) {
+						if (pages) {
+							aw_tap(s, K_RIGHT, 1);
+							aw_run(s, 0, 24);
+						}
+						fe_status_page(s, tmp, page[pages]);
 					}
-					memcpy(page[pages], s->fb, sizeof(page[pages]));
 				}
+				pageKey = key, pageN = pages;
 			}
 			free(idle);
 			free(tmp);
 		}
 	}
+	if (!pages && !idleSeen) pages = pageN; /* (the cursor can't be freed: the last unit's) */
 	if (ok) {
 		memcpy(last, mm, (size_t) mw * mh * 4);
 		lastW = mw, lastH = mh;
@@ -550,7 +627,7 @@ static const char* fe_compose(Emu* s, const void* state, uint32_t* const* out, i
 		for (int i = 0; i < w * h; ++i) o[i] = MAP_BG_NAVY;
 		if (pages) {
 			for (int y = 0; y < GBA_H && 4 + y < h; ++y) {
-				for (int x = 0; x < GBA_W && 4 + x < w; ++x) o[(4 + y) * w + 4 + x] = page[k][y * GBA_W + x] | 0xFF000000;
+				for (int x = 0; x < GBA_W && 4 + x < w; ++x) o[(4 + y) * w + 4 + x] = page[k][y * GBA_W + x];
 			}
 		}
 		int mx = w - 4 - mw, my = h - 4 - mh;
@@ -572,8 +649,13 @@ static void fe_find_pieces(Emu* e, const uint32_t* hud, uint32_t clear, int box[
 	static uint8_t cell[CH][CW];
 	static int stack[CW * CH];
 	for (int m = 0; m < 4; ++m) box[m][0] = box[m][1] = 0, box[m][2] = box[m][3] = -1;
-	if (fe_virt(e, FE_V_HUD) == 2) {
+	uint32_t mode = fe_virt(e, FE_V_HUD);
+	if (mode == FE_HUD_TALK || mode == FE_HUD_BANNER) {
 		box[3][0] = 0, box[3][1] = 0, box[3][2] = GBA_W - 1, box[3][3] = GBA_H - 1;
+		return;
+	}
+	if (mode == FE_HUD_MENU) {
+		box[0][0] = 0, box[0][1] = 0, box[0][2] = GBA_W - 1, box[0][3] = GBA_H - 1;
 		return;
 	}
 	int best[4] = { 0 };
@@ -643,7 +725,7 @@ static void fe_find_pieces(Emu* e, const uint32_t* hud, uint32_t clear, int box[
 		if (i != pale && (dark < 0 || wideLum[i] < wideLum[dark])) dark = i;
 	}
 	if (nWide == 1 && wideLum[pale] < 145) dark = pale, pale = -1;
-	if (pale >= 0) memcpy(box[0], wide[pale], sizeof(box[0]));
+	/* (the unit's isn't shown: its status is, from fe_compose) */
 	if (dark >= 0) memcpy(box[1], wide[dark], sizeof(box[1]));
 	/* (cells left at 2: cleared on the next call) */
 	for (int cy = 0; cy < CH; ++cy) {
@@ -1125,23 +1207,28 @@ static const MapProfile profiles[] = {
 			/* the cursor free (the windows), or an event (talk, the
 			 * tutorial); the second screen keeps what it showed while a
 			 * unit's selected and in menus */
-			.on = { FE_IN_CHAPTER, { FE_V_HUD, 0xFF, 1, 4, true, 2, true } },
+			.on = { FE_IN_CHAPTER, { FE_V_HUD, 0xFF, FE_HUD_IDLE, 4, true, FE_HUD_MENU, true } },
 			.bgMask = 0x3,
+			/* the phase banner: its lettering (BG0), not the sparkles */
+			.alt = { .on = { FE_IN_CHAPTER, { FE_V_HUD, 0xFF, FE_HUD_BANNER, 4 } }, .bgMask = 0x1 },
 			.objs = {
 				{ -64, -32, 239, 159, 720, 760, 0, 1u << 8 }, /* the unit's HP figures */
 				{ -64, -64, 239, 159, 768, 1023, 2, 3u << 6 }, /* talking portraits */
 				{ -64, -64, 239, 159, 384, 700, 0, 1u << 5 }, /* the tutorial's boxes */
 				{ -8, -8, 239, 159, 4, 4, 0, 1u << 0 }, /* the speech bubble's arrow */
+				{ -16, -16, 239, 159, 0, 1, 0, 1u << 0 }, /* a menu's hand */
 			},
-			/* the unit's at the top left (gone when the cursor's on an
-			 * empty place; under the unit's status when there is one), the
-			 * goal at the top right and the terrain at the bottom left (over
-			 * the status); an event's as it is, alone (a portrait at the
-			 * bottom edge against the second screen's bottom) */
-			.moves = { { 0, 0, 0, 0, 'L', 4, 'T', 4, .settle = 4, .dropAfter = 4 },
-			           { 0, 0, 0, 0, 'R', 315, 'T', 4, .settle = 4, .top = true },
+			/* a unit's menu (Attack, Wait...) with its hand at the top left,
+			 * over its status; the goal at the bottom centre and the terrain
+			 * at the bottom left (over the status); a conversation, the
+			 * tutorial's box or the phase banner as it is, alone (a portrait
+			 * at the game screen's bottom edge against the second screen's
+			 * bottom), clearing the others to be taken again. (The unit's
+			 * own window isn't shown: its status is.) */
+			.moves = { { 0, 0, 0, 0, 'L', 4, 'T', 4, .top = true, .dropAfter = 1 },
+			           { 0, 0, 0, 0, 'C', 160, 'B', 235, .settle = 4, .top = true },
 			           { 0, 0, 0, 0, 'L', 4, 'B', 235, .settle = 4, .top = true },
-			           { 0, 0, 0, 0, 0, 0, 0, 0, .asIs = true, .alone = true, .asIsBottom = true, .dropAfter = 2 } },
+			           { 0, 0, 0, 0, 0, 0, 0, 0, .asIs = true, .alone = true, .asIsBottom = true, .clears = true, .dropAfter = 2 } },
 			.findPieces = fe_find_pieces,
 			.overMap = true,
 			.mapClear = MAP_BG_NAVY,

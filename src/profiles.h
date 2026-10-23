@@ -70,6 +70,9 @@ typedef struct {
 	/* with asIs: a piece that reaches the game screen's bottom edge goes
 	 * against the map picture's bottom (Fire Emblem's portraits) */
 	bool asIsBottom;
+	/* hud.overMap: when it's taken, the other pieces are dropped (taken
+	 * again as they show up): Fire Emblem's phase banner */
+	bool clears;
 } HudMove;
 
 /* Bytes written into the ROM when the game starts, if the ROM holds `orig`

@@ -248,6 +248,7 @@ static bool hudShown; /* the second screen shows the HUD picture (hudTex) */
 /* profile hud.overMap: this frame's HUD is drawn into the map picture;
  * the map picture needs uploading again (the HUD changed) */
 static bool overOn, overDirty;
+static bool overAlone; /* a piece that goes alone is in the map picture (shown even in a fight) */
 /* the HUD's pieces as last seen (hud.overMap): the pixels inside each
  * move's box, cut to what's there (0: nothing); latched pieces wait for
  * a new value at their latch address, then for the piece to hold still */
@@ -1354,6 +1355,11 @@ static bool hud_take_pieces(const typeof(hudProf->hud)* h) {
 		pc->w = w, pc->h = hh;
 		memcpy(pc->px, cut, n);
 		changed = true;
+		if (mv->clears) {
+			for (int o = 0; o < 4; ++o) {
+				if (o != m) pieces[o].valid = false, pieces[o].still = 0;
+			}
+		}
 	}
 	return changed;
 }
@@ -1841,14 +1847,16 @@ static const uint32_t* hud_over_map(const uint32_t* px) {
 		overSize = over ? mapW * mapH : 0;
 		if (!over) return px;
 	}
-	memcpy(over, px, (size_t) mapW * mapH * 4);
 	uint32_t mc = h->mapClear & 0xFFFFFF;
-	int px0[4] = { 0 }, py0[4] = { 0 };
-	/* a piece that goes alone (a conversation): the others wait */
+	/* a piece that goes alone (a conversation): on the plain background,
+	 * the others waiting */
 	int alone = -1;
 	for (int m = 0; m < 4; ++m) {
 		if (h->moves[m].alone && pieces[m].valid) alone = m;
 	}
+	overAlone = alone >= 0;
+	memcpy(over, alone >= 0 && h->logoUnder && combatPx ? combatPx : px, (size_t) mapW * mapH * 4);
+	int px0[4] = { 0 }, py0[4] = { 0 };
 	for (int k = 0; k < 8; ++k) {
 		int m = k & 3;
 		const HudMove* mv = &h->moves[m];
@@ -2335,7 +2343,8 @@ static void draw_game(void) {
 		/* the map screen */
 		/* (and with hud.logoUnder, on the map before there's a map picture) */
 		bool logoBack = combatProf && combatProf->hud.logoUnder && mapShownIdx < 0 && (combatInGame || combatProf->hud.logoAlways);
-		if ((combatOn || logoBack) && (combatTex[0] || combatTex[1])) {
+		if (overAlone && mapShownIdx >= 0) logoBack = false; /* (the phase banner, on the other armies' turn too) */
+		if (((combatOn && !(overAlone && mapShownIdx >= 0)) || logoBack) && (combatTex[0] || combatTex[1])) {
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
 			ui_image_pixels(s, combatTex, mapW, mapH, cfg->mapScale, cfg->lcdGrid ? 1 : 0);
 		} else if (hudShown) {
