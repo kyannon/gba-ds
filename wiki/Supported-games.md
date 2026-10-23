@@ -108,7 +108,7 @@ Preliminary, the USA release only for now (the European and Japanese releases ar
 - **A unit's menu** (Attack, Wait and so on) and its pointing hand move to the second screen's top left.
 - While a unit is selected and in the other menus, the second screen keeps what it showed, and those menus stay on the game screen.
 - **Conversations** (the speech bubble, its text and the portraits) move to the second screen with the portraits standing on its bottom edge, and the **tutorial's** boxes as they are; the windows step aside until they're done. A unit's small speech bubble with no portrait stays on the map, by the unit.
-- **ENEMY PHASE and PLAYER PHASE** go across the second screen instead of the map; the windows are cleared, and come back as you take control again.
+- **ENEMY PHASE and PLAYER PHASE**, with their sparkles, go across the second screen instead of the map, while the game screen dims; the windows are cleared, and come back as you take control again.
 - **In a fight and on the other armies' turns,** the second screen is the background with the logo alone.
 
 ## Mega Man Battle Network

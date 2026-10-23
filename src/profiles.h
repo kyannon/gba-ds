@@ -217,6 +217,14 @@ typedef struct MapProfile {
 		struct {
 			MemProbe on[4];
 			unsigned bgMask;
+			/* hud.overMap: in a piece that goes alone, its pure black
+			 * (stretched from the game screen over the whole picture)
+			 * darkens the second screen instead of being drawn (Fire
+			 * Emblem's phase banner: its sparkles are holes in a black
+			 * layer) */
+			bool shade;
+			/* the game screen dimmed while it's on */
+			bool dimGame;
 		} alt;
 		SpriteRule objs[6]; /* the sprites that move with it */
 		/* While every `layout` probe matches (racing, not the results):

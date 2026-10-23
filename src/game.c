@@ -1832,6 +1832,11 @@ static const uint32_t* map_px(int idx) {
 	return idx == STILL_IDX ? (stillValid ? stillPx : NULL) : mapRes.frames[idx];
 }
 
+/* hud.alt.shade: a pixel darkened (to a third) */
+static uint32_t shade_px(uint32_t c) {
+	return (c & 0xFF000000) | ((c >> 2) & 0x3F3F3F) + ((c >> 3) & 0x1F1F1F);
+}
+
 /* Profile hud.overMap: the map picture with the HUD's pieces in it (where
  * the picture has the profile's mapClear colour): each piece as last seen
  * (hud_take_pieces). */
@@ -1868,7 +1873,7 @@ static const uint32_t* hud_over_map(const uint32_t* px) {
 		int y0 = mv->vhow == 'M' ? mv->y - (pc->h - 1) / 2 : mv->vhow == 'B' ? mv->y - pc->h + 1 : mv->y;
 		if (mv->asIs) {
 			x0 = pc->sx + (mapW - GBA_W) / 2, y0 = pc->sy + (mapH - GBA_H) / 2;
-			if (mv->asIsBottom && pc->atBottom) y0 = mapH - pc->h;
+			if (mv->asIsBottom && pc->atBottom && !hudAlt) y0 = mapH - pc->h;
 		}
 		if (mv->follow) {
 			int a = mv->follow - 1;
@@ -1886,6 +1891,35 @@ static const uint32_t* hud_over_map(const uint32_t* px) {
 					uint32_t* o = &over[y * mapW + x];
 					if ((*o & 0xFFFFFF) == mc) *o = 0xFF000000u | bc;
 				}
+			}
+		}
+		bool shade = mv->alone && hudAlt && h->alt.shade;
+		if (shade) {
+			static uint32_t* orig;
+			static int origSize;
+			if (origSize != mapW * mapH) free(orig), orig = malloc((size_t) mapW * mapH * 4), origSize = orig ? mapW * mapH : 0;
+			if (orig) {
+				/* the black (the game screen's, stretched over the whole
+				 * picture) darkens; the piece's other pixels (the lettering)
+				 * go where it is */
+				memcpy(orig, over, (size_t) mapW * mapH * 4);
+				for (int ny = 0; ny < mapH; ++ny) {
+					int ly = ny * GBA_H / mapH - pc->sy;
+					for (int nx = 0; nx < mapW; ++nx) {
+						int lx = nx * GBA_W / mapW - pc->sx;
+						uint32_t c = lx >= 0 && ly >= 0 && lx < pc->w && ly < pc->h ? pc->px[ly * pc->w + lx] : 0;
+						if (c && (c & 0xFFFFFF) == 0) over[ny * mapW + nx] = shade_px(orig[ny * mapW + nx]);
+					}
+				}
+				for (int y = 0; y < pc->h; ++y) {
+					for (int x = 0; x < pc->w; ++x) {
+						uint32_t c = pc->px[y * pc->w + x];
+						int nx = x0 + x, ny = y0 + y;
+						if (!c || (c & 0xFFFFFF) == 0 || nx < 0 || ny < 0 || nx >= mapW || ny >= mapH) continue;
+						over[ny * mapW + nx] = c;
+					}
+				}
+				continue;
 			}
 		}
 		for (int y = 0; y < pc->h; ++y) {
@@ -2325,6 +2359,11 @@ static void draw_game(void) {
 		if (showGame) {
 			if (nScreens == 2 && !mapOn && s != game_screen()) continue; /* no map: leave other screen black */
 			ui_image_pixels(s, gameTex, GBA_W, GBA_H, cfg->scale, cfg->lcdGrid);
+			if (hudProf && hudOn && hudAlt && hudProf->hud.alt.dimGame) {
+				/* (the phase banner moved to the other screen) */
+				SDL_Rect img = ui_image_rect(s, GBA_W, GBA_H, cfg->scale);
+				ui_fill(s, img, (SDL_Color) { 0, 0, 0, 150 });
+			}
 			if (cfg->overlays & OVL_PRIMARY) draw_overlay(s, 0);
 			if (cfg->showFps) {
 				/* sized to sit in the empty band above the picture */

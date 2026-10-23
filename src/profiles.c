@@ -1209,8 +1209,10 @@ static const MapProfile profiles[] = {
 			 * unit's selected and in menus */
 			.on = { FE_IN_CHAPTER, { FE_V_HUD, 0xFF, FE_HUD_IDLE, 4, true, FE_HUD_MENU, true } },
 			.bgMask = 0x3,
-			/* the phase banner: its lettering (BG0), not the sparkles */
-			.alt = { .on = { FE_IN_CHAPTER, { FE_V_HUD, 0xFF, FE_HUD_BANNER, 4 } }, .bgMask = 0x1 },
+			/* the phase banner: its lettering (BG0) and sparkles (BG1, holes
+			 * in black: shaded over the second screen), the game screen
+			 * dimmed meanwhile */
+			.alt = { .on = { FE_IN_CHAPTER, { FE_V_HUD, 0xFF, FE_HUD_BANNER, 4 } }, .bgMask = 0x3, .shade = true, .dimGame = true },
 			.objs = {
 				{ -64, -32, 239, 159, 720, 760, 0, 1u << 8 }, /* the unit's HP figures */
 				{ -64, -64, 239, 159, 768, 1023, 2, 3u << 6 }, /* talking portraits */
