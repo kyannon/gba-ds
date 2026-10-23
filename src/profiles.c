@@ -474,17 +474,25 @@ static bool fe_minimap(Emu* s, void* tmp, uint32_t* mm, int* mw, int* mh) {
 	return ok;
 }
 
-/* The map picture: the background (the logo goes on it: hud.logoUnder)
- * with the minimap at the bottom right, opened with START once the cursor
- * is free (B out of whatever's open first, on this copy of the game).
- * When it can't be opened (a conversation, the other armies' turns), the
- * chapter's last one stands in, or none: the picture is always made, so
- * the pieces always have somewhere to go. */
+/* The map pictures: the background (the logo goes on it: hud.logoUnder)
+ * with, when the cursor is on a unit, that unit's status screen (R) at the
+ * top left, a picture for each of its three pages (shown in turn, 5
+ * seconds each), and the minimap at the bottom right over them. Both are
+ * opened once the cursor is free (B out of whatever's open first), on
+ * this copy of the game. When the minimap can't be opened (a
+ * conversation, the other armies' turns), the chapter's last one stands
+ * in, or none: the pictures are always made, so the pieces always have
+ * somewhere to go. */
 #define FE_CHAPTER_NO 0x0202BC06
-static const char* fe_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
-	static uint32_t mm[GBA_W * GBA_H], last[GBA_W * GBA_H];
+#define FE_P_STATUS 0x08CC1F5C /* a unit's status screen */
+#define FE_PAGES 3
+static const char* fe_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+	static uint32_t mm[GBA_W * GBA_H], last[GBA_W * GBA_H], page[FE_PAGES][GBA_W * GBA_H];
 	static int lastW, lastH, lastChapter = -1;
-	int mw = 0, mh = 0;
+	int max = *nOut;
+	*nOut = 1;
+	*step = 300; /* 5 seconds a page */
+	int mw = 0, mh = 0, pages = 0;
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
 	int chapter = emu_read8(s, FE_CHAPTER_NO);
@@ -496,16 +504,37 @@ static const char* fe_compose(Emu* s, const void* state, uint32_t* out, int w, i
 			aw_run(s, 0, 8);
 		}
 		if (fe_proc(s, FE_P_PHASE) == FE_IDLE) {
+			void* idle = malloc(emu_state_size(s));
+			void* tmp = malloc(emu_state_size(s));
+			if (!idle || !tmp || !emu_state_save(s, idle)) {
+				free(idle);
+				free(tmp);
+				return "out of memory";
+			}
 			aw_tap(s, K_START, 1);
 			int f = 0;
 			while (f < 40 && fe_proc(s, FE_P_PHASE) != FE_MINI) emu_frame(s, 0), ++f;
 			if (fe_proc(s, FE_P_PHASE) == FE_MINI) {
 				aw_run(s, 0, 24);
-				void* tmp = malloc(emu_state_size(s));
-				if (!tmp) return "out of memory";
 				ok = fe_minimap(s, tmp, mm, &mw, &mh);
-				free(tmp);
 			}
+			/* the status screen of the unit under the cursor, if there's one */
+			emu_state_load(s, idle);
+			emu_frame(s, 0);
+			aw_tap(s, K_R, 1);
+			aw_run(s, 0, 8);
+			if (fe_proc(s, FE_P_STATUS)) {
+				aw_run(s, 0, 12);
+				for (pages = 0; pages < FE_PAGES && pages < max; ++pages) {
+					if (pages) {
+						aw_tap(s, K_RIGHT, 1);
+						aw_run(s, 0, 24);
+					}
+					memcpy(page[pages], s->fb, sizeof(page[pages]));
+				}
+			}
+			free(idle);
+			free(tmp);
 		}
 	}
 	if (ok) {
@@ -515,11 +544,20 @@ static const char* fe_compose(Emu* s, const void* state, uint32_t* out, int w, i
 		memcpy(mm, last, (size_t) lastW * lastH * 4);
 		mw = lastW, mh = lastH;
 	}
-	for (int i = 0; i < w * h; ++i) out[i] = MAP_BG_NAVY;
-	int mx = w - 4 - mw, my = h - 4 - mh;
-	if (mx < 0) mx = 0;
-	if (my < 0) my = 0;
-	for (int y = 0; y < mh && my + y < h; ++y) memcpy(&out[(my + y) * w + mx], &mm[y * mw], mw * sizeof(uint32_t));
+	*nOut = pages ? pages : 1;
+	for (int k = 0; k < *nOut; ++k) {
+		uint32_t* o = out[k];
+		for (int i = 0; i < w * h; ++i) o[i] = MAP_BG_NAVY;
+		if (pages) {
+			for (int y = 0; y < GBA_H && 4 + y < h; ++y) {
+				for (int x = 0; x < GBA_W && 4 + x < w; ++x) o[(4 + y) * w + 4 + x] = page[k][y * GBA_W + x] | 0xFF000000;
+			}
+		}
+		int mx = w - 4 - mw, my = h - 4 - mh;
+		if (mx < 0) mx = 0;
+		if (my < 0) my = 0;
+		for (int y = 0; y < mh && my + y < h; ++y) memcpy(&o[(my + y) * w + mx], &mm[y * mw], mw * sizeof(uint32_t));
+	}
 	return NULL;
 }
 
@@ -1075,7 +1113,10 @@ static const MapProfile profiles[] = {
 		.codes = { "AE7E" },
 		.title = "Fire Emblem",
 		.virt = fe_virt,
-		.compose = fe_compose,
+		.composePages = fe_compose,
+		.stillPick = STILL_FIRST, /* (Map Animations off: the status's first page) */
+		/* the cursor moved: the next unit's status */
+		.room = { { 0x0202BBCC, 0, 0, 4 } },
 		.crop_w = 320, /* 3x on 1024x768, 2x on 640x480 */
 		.crop_h = 240,
 		.live = { FE_IN_CHAPTER, { FE_TURN, 0xFF, 0, 1 } },
@@ -1093,12 +1134,14 @@ static const MapProfile profiles[] = {
 				{ -8, -8, 239, 159, 4, 4, 0, 1u << 0 }, /* the speech bubble's arrow */
 			},
 			/* the unit's at the top left (gone when the cursor's on an
-			 * empty place), the goal at the top right, the terrain at the
-			 * bottom left; an event's as it is, alone */
+			 * empty place; under the unit's status when there is one), the
+			 * goal at the top right and the terrain at the bottom left (over
+			 * the status); an event's as it is, alone (a portrait at the
+			 * bottom edge against the second screen's bottom) */
 			.moves = { { 0, 0, 0, 0, 'L', 4, 'T', 4, .settle = 4, .dropAfter = 4 },
-			           { 0, 0, 0, 0, 'R', 315, 'T', 4, .settle = 4 },
-			           { 0, 0, 0, 0, 'L', 4, 'B', 235, .settle = 4 },
-			           { 0, 0, 0, 0, 0, 0, 0, 0, .asIs = true, .alone = true, .dropAfter = 2 } },
+			           { 0, 0, 0, 0, 'R', 315, 'T', 4, .settle = 4, .top = true },
+			           { 0, 0, 0, 0, 'L', 4, 'B', 235, .settle = 4, .top = true },
+			           { 0, 0, 0, 0, 0, 0, 0, 0, .asIs = true, .alone = true, .asIsBottom = true, .dropAfter = 2 } },
 			.findPieces = fe_find_pieces,
 			.overMap = true,
 			.mapClear = MAP_BG_NAVY,

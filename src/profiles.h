@@ -64,6 +64,12 @@ typedef struct {
 	/* hud.overMap: while it's there, the other pieces aren't drawn, and it
 	 * goes over everything (Fire Emblem's conversations) */
 	bool alone;
+	/* hud.overMap: drawn over the map picture's own pixels too, not only
+	 * where it has mapClear (Fire Emblem's windows over a unit's status) */
+	bool top;
+	/* with asIs: a piece that reaches the game screen's bottom edge goes
+	 * against the map picture's bottom (Fire Emblem's portraits) */
+	bool asIsBottom;
 } HudMove;
 
 /* Bytes written into the ROM when the game starts, if the ROM holds `orig`
@@ -385,7 +391,9 @@ typedef struct MapProfile {
 	/* How the still frame is chosen for each animated spot: the brightest
 	 * state (default), or the state that covers the most pixels (ties: the
 	 * most contrast) for markers whose brightest state isn't the marker. */
-	enum { STILL_BRIGHT, STILL_COVER } stillPick;
+	/* (STILL_FIRST: the first frame, for frames that are pages: Fire
+	 * Emblem's unit status) */
+	enum { STILL_BRIGHT, STILL_COVER, STILL_FIRST } stillPick;
 	/* ROM patches applied at the start (all or none), for the HUD split:
 	 * FFTA tags its world sprites (SpriteRule.tagged). */
 	RomPatch romPatch[3];
@@ -394,6 +402,9 @@ typedef struct MapProfile {
 	 * the live game's state; NULL on success, else why not (Advance Wars:
 	 * the unit list or the battle intel, with the minimap below). */
 	const char* (*compose)(Emu* s, const void* state, uint32_t* out, int w, int h);
+	/* Instead of compose: several pictures (pages shown in turn, `*step`
+	 * emulated frames each); out[0..*n) on return, *n the most on the way in */
+	const char* (*composePages)(Emu* s, const void* state, uint32_t* const* out, int* n, int* step, int w, int h);
 	/* Values computed from the game's memory, read by MemProbes at
 	 * addresses from 0xF0000000 (memprobe_virtual, mapcap.h): Fire
 	 * Emblem's processes, which move between slots. */

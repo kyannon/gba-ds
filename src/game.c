@@ -261,6 +261,7 @@ typedef struct {
 	int gone; /* frames missing while the HUD's on (HudMove.dropAfter) */
 	bool stale; /* a state was loaded: taken again (latched or not) as soon as it holds still */
 	int sx, sy; /* where it was on the game screen (its top left) */
+	bool atBottom; /* it reached the game screen's bottom edge */
 } Piece;
 static Piece pieces[4];
 static void upload_map_frame(int idx);
@@ -1318,6 +1319,7 @@ static bool hud_take_pieces(const typeof(hudProf->hud)* h) {
 		pc->gone = 0;
 		if (!mv->latch && (pc->sx != lo || pc->sy != top)) changed = true; /* (its followers move) */
 		if (!mv->latch) pc->sx = lo, pc->sy = top;
+		if (pc->atBottom != (bot == GBA_H - 1)) pc->atBottom = bot == GBA_H - 1, changed = true;
 		static uint32_t cut[GBA_W * GBA_H];
 		int w = hi - lo + 1, hh = bot - top + 1;
 		for (int y = 0; y < hh; ++y) {
@@ -1856,7 +1858,10 @@ static const uint32_t* hud_over_map(const uint32_t* px) {
 		if (alone >= 0 && m != alone) continue;
 		int x0 = mv->how == 'C' ? mv->x - (pc->w - 1) / 2 : mv->how == 'R' ? mv->x - pc->w + 1 : mv->x;
 		int y0 = mv->vhow == 'M' ? mv->y - (pc->h - 1) / 2 : mv->vhow == 'B' ? mv->y - pc->h + 1 : mv->y;
-		if (mv->asIs) x0 = pc->sx + (mapW - GBA_W) / 2, y0 = pc->sy + (mapH - GBA_H) / 2;
+		if (mv->asIs) {
+			x0 = pc->sx + (mapW - GBA_W) / 2, y0 = pc->sy + (mapH - GBA_H) / 2;
+			if (mv->asIsBottom && pc->atBottom) y0 = mapH - pc->h;
+		}
 		if (mv->follow) {
 			int a = mv->follow - 1;
 			if (!pieces[a].valid) continue;
@@ -1881,7 +1886,7 @@ static const uint32_t* hud_over_map(const uint32_t* px) {
 				int nx = x0 + x, ny = y0 + y;
 				if (!c || nx < 0 || ny < 0 || nx >= mapW || ny >= mapH) continue;
 				uint32_t* o = &over[ny * mapW + nx];
-				if (mv->follow || mv->alone || (*o & 0xFFFFFF) == mc || (*o & 0xFFFFFF) == bc) *o = c;
+				if (mv->follow || mv->alone || mv->top || (*o & 0xFFFFFF) == mc || (*o & 0xFFFFFF) == bc) *o = c;
 			}
 		}
 	}
@@ -1920,7 +1925,7 @@ static void compose_still(const MapResult* r, int pick, uint32_t* out, unsigned 
 	int n = r->nFrames, w = r->w, h = r->h, wh = w * h;
 	memcpy(out, r->frames[0], (size_t) wh * 4);
 	memset(mask, 0, (size_t) wh);
-	if (n < 2) return;
+	if (n < 2 || pick == STILL_FIRST) return;
 	for (int i = 0; i < wh; ++i) {
 		uint32_t p = r->frames[0][i] & 0xFFFFFF;
 		for (int f = 1; f < n && !mask[i]; ++f) mask[i] = (r->frames[f][i] & 0xFFFFFF) != p;
@@ -3276,13 +3281,17 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				mapInactive = false;
 				if (mapRes.hasTile) mapframe_set_tile(&mf, mapRes.tile, mapRes.tileK, mapRes.tileX, mapRes.tileY);
 				mapShownIdx = -1;
-				mapAnimStart = frameCount;
+				/* (pages, a few seconds each: Fire Emblem's unit status; they
+				 * keep turning at their pace through new captures) */
+				bool pages = mapRes.nFrames > 1 && mapRes.frameStep >= 60;
+				if (!pages) mapAnimStart = frameCount;
 				/* the still (each marker frozen) is only shown with map animations
 				 * off, and building it is real work: only then */
 				bool stillChanged = false;
 				stillStale = map_anim();
 				if (!stillStale) stillChanged = update_still();
-				upload_map_frame(map_anim() ? 0 : STILL_IDX);
+				int first = pages ? (int) ((frameCount - mapAnimStart) / mapRes.frameStep) % mapRes.nFrames : 0;
+				upload_map_frame(map_anim() ? first : STILL_IDX);
 				if (debug) fprintf(stderr, "frame %llu: map updated (%d frame(s) %d apart%s)\n", (unsigned long long) frameCount,
 				                   mapRes.nFrames, mapRes.frameStep, stillStale ? "" : stillChanged ? ", still changed" : ", still unchanged");
 			} else if (map_anim() && mapRes.nFrames > 1 && mapShownIdx >= 0) {

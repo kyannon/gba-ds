@@ -104,8 +104,9 @@ Preliminary, the USA release only for now (the European and Japanese releases ar
 
 - **Always,** the second screen is a dark background with the game's logo, small and dimmed, in the middle (on the title screen and in menus too).
 - **On the map,** the windows the game puts in the corners (whichever corners the cursor leaves free) move to fixed places on the second screen: the **unit** under the cursor at the top left, the **goal** and enemies left at the top right, the **terrain** at the bottom left. The **minimap** from the START button is at the bottom right, brought up in the background in a silent copy of the game; when it can't be (in a conversation), the chapter's last one stays.
-- The unit window goes when the cursor is on an empty place. While a unit is selected and in menus, the second screen keeps what it showed, and the menus stay on the game screen.
-- **Conversations** (the speech bubble, its text and the portraits) and the **tutorial's** boxes move to the second screen as they are, where they were on the game screen, with the windows and the minimap out of their way until they're done.
+- **With the cursor on a unit** (yours or the enemy's), that unit's **status screen** (the one R opens) takes the unit window's place at the top left, turning through its three pages (personal data, items, weapon and support levels) every 5 seconds; the goal, terrain and minimap stay on top of it. It's opened in the background in the silent copy of the game, so the game screen isn't touched.
+- The unit window and status go when the cursor is on an empty place. While a unit is selected and in menus, the second screen keeps what it showed, and the menus stay on the game screen.
+- **Conversations** (the speech bubble, its text and the portraits) move to the second screen with the portraits standing on its bottom edge, and the **tutorial's** boxes as they are; the windows step aside until they're done.
 - **In a fight and on the other armies' turns,** the second screen is the background with the logo alone.
 
 ## Mega Man Battle Network
