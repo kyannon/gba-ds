@@ -129,9 +129,18 @@ if ! grep -qi rocknix /etc/os-release 2>/dev/null && [ ! -d /storage/.config/sys
 		[ -n "$GBA" ] && O+=("--rom-dir=$GBA")
 	fi
 	[ "$(cfgval screenshot_dir)" = /storage/roms/screenshots ] && mkdir -p "$DIR/screenshots" && O+=("--screenshot-dir=$DIR/screenshots")
-	# Ports play straight to the sound card there (SDL's ALSA; through
-	# PulseAudio GBA DS was silent), so the volume keys, which the system
-	# leaves to the program running, set GBA DS's own volume, kept here.
+	# Sound: SDL plays through ALSA there. Its default device was silent at
+	# times (one sound card of two, PulseAudio holding the speaker's?), so
+	# ALSA's "pulse" device when PulseAudio is running, which plays wherever
+	# the system's sound goes (GBA DS falls back to the default if it won't
+	# open). The volume keys, which the system leaves to the program running,
+	# set GBA DS's own volume, kept here.
+	if [ -z "$PULSE_SERVER" ]; then
+		for s in /tmp/pulse-socket "$XDG_RUNTIME_DIR/pulse/native" /var/run/pulse/native; do
+			[ -S "$s" ] && export PULSE_SERVER="unix:$s" && break
+		done
+	fi
+	[ -n "$PULSE_SERVER" ] && [ -z "$AUDIODEV" ] && ls /usr/share/alsa/alsa.conf.d/*pulse* >/dev/null 2>&1 && export AUDIODEV=pulse
 	mkdir -p "$DIR/states" && export GBADS_VOLUME="$DIR/states/volume.txt"
 	# the RG DS Plus's volume keys: raw buttons 16 (up) and 15 (down)
 	grep -q 'ANBERNIC-rk3568-keys' /proc/bus/input/devices 2>/dev/null && export GBADS_VOLUME_BUTTONS=16,15
@@ -155,22 +164,32 @@ if ! grep -qi rocknix /etc/os-release 2>/dev/null && [ ! -d /storage/.config/sys
 		trap 'exit 143' TERM INT HUP
 	fi
 	# the RG DS Plus's HOME and BACK buttons (raw 13 and 8) both open the
-	# menu: 13 by gamecontrollerdb.txt, 8 here
+	# menu: 8 by gamecontrollerdb.txt, 13 here
 	if grep -q 'ANBERNIC-rk3568-keys' /proc/bus/input/devices 2>/dev/null && [ "$(cfgval home_button)" = -1 ]; then
-		O+=(--home-button=8)
+		O+=(--home-button=13)
 	fi
-	# (and SELECT + START too, in case those aren't where we think)
-	[ "$(cfgval menu_combo)" = none ] && O+=(--menu-combo=select+start)
 	# (with two screens connected: a window each)
 	n=0; for c in /sys/class/drm/card*-*/status; do grep -q '^connected' "$c" 2>/dev/null && n=$((n + 1)); done
 	[ $n -ge 2 ] && case "$(cfgval touch_map)" in window|"") O+=(--touch-map=screen) ;; esac
 	{
 		echo "system: $(sed -n 's/^PRETTY_NAME=//p' /etc/os-release 2>/dev/null | tr -d '"'), $(uname -r)"
 		echo "options: ${O[*]}"
-		echo "sound: volume $(cat "$GBADS_VOLUME" 2>/dev/null || echo 100)% (buttons ${GBADS_VOLUME_BUTTONS:-none})"
+		echo "sound: ${AUDIODEV:-default device}, volume $(cat "$GBADS_VOLUME" 2>/dev/null || echo 100)% (buttons ${GBADS_VOLUME_BUTTONS:-none})"
 		[ -n "$TS" ] && echo "touchscreen $TS: tpctrl was ${TP_WAS:-none}, now $(cat "$TP" 2>/dev/null)"
 	} >> "$LOG" 2>&1
 	rm -rf "$DIR/report" # (left by test builds)
+	# where the sound goes, once a game is likely playing (for reports of no sound)
+	(
+		sleep 20
+		{
+			echo "--- sound after 20 s"
+			for f in /proc/asound/card*/pcm*p/sub*/status; do echo "$f: $(head -n 2 "$f" 2>/dev/null | tr '\n' ' ')"; done
+			command -v pactl >/dev/null && timeout 3 pactl list short sinks && timeout 3 pactl list short sink-inputs
+			echo "spk_state $(cat /sys/class/anbernic_misc/spk_state 2>/dev/null)"
+			grep -v '^ *#' /etc/asound.conf 2>/dev/null | grep -v '^ *$' | head -n 20
+			echo "---"
+		} >> "$LOG" 2>&1
+	) &
 	./gba-ds "${O[@]}" "$@" >> "$LOG" 2>&1
 	exit $?
 fi

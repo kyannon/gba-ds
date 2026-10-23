@@ -6,14 +6,15 @@ The RG DS Plus ships with Anbernic's own Linux. GBA DS runs on it from its **Por
 2. Unzip it into the `Ports` folder on the games card (on the device: `/mnt/mmc/Ports`). You get a `gba-ds/` folder, a `GBA DS.sh` entry and `images/`.
 3. Keep your Game Boy Advance games in `Roms/GBA` on the same card, where Anbernic's own GBA list finds them too.
 4. Open **Ports** in Anbernic's menu and start **GBA DS**.
-5. **Map the buttons** the first time: open **Settings** in GBA DS's game list (tap it, top right) and choose **Map Buttons** (see [Playing](Playing#mapping-the-buttons)). The zip has a mapping for the built-in controls, but parts of it are still guesses.
+5. The built-in buttons are mapped already. If you use another controller, or a button does the wrong thing, use **Map Buttons** in the game list's **Settings** (tap it, top right; see [Playing](Playing#mapping-the-buttons)).
 
 ## How it fits in
 
 - **ROM folder:** GBA DS looks for a `GBA` folder next to the `Ports` folder (or in `Roms` on either card) and lists the games in the first one it finds. `rom_dir` in `gba-ds.cfg` overrides it.
 - **Touchscreen:** Anbernic's Linux keeps the touchscreen off outside its own DS emulator. GBA DS switches it on while it runs and off again when it closes.
 - **Screenshots** go into `gba-ds/screenshots`.
-- **HOME and BACK** both open the pause menu (BACK is `home_button = 8`, set by `launch.sh`); a tap on the touchscreen does too.
+- **Sound** goes through the system's sound service, so it plays wherever the system's does (speaker or headphones).
+- **HOME and BACK** both open the pause menu, and so does a tap on the touchscreen.
 - **No EmulationStation:** Anbernic's menu isn't EmulationStation, so the game list's Settings don't offer to add GBA DS to it. Start GBA DS from Ports.
 
 ## Known issues

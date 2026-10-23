@@ -2715,6 +2715,17 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	 * only when the buffer is a whole number of milliseconds, e.g. 480) */
 	want.samples = getenv("GBADS_AUDIO_SAMPLES") ? atoi(getenv("GBADS_AUDIO_SAMPLES")) : 512;
 	SDL_AudioDeviceID audio = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
+#if !defined(__wasi__) && !defined(__ANDROID__)
+	if (!audio && getenv("AUDIODEV")) {
+		/* the device launch.sh asked for (Anbernic's Linux: ALSA's pulse)
+		 * won't open: the driver's own default instead */
+		fprintf(stderr, "no audio on %s (%s): the default device instead\n", getenv("AUDIODEV"), SDL_GetError());
+		unsetenv("AUDIODEV");
+		SDL_AudioQuit();
+		SDL_AudioInit(NULL);
+		audio = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
+	}
+#endif
 #ifndef __wasi__
 	if (!audio) {
 		/* (a player on ROCKNIXDS heard nothing: the driver SDL picked may
@@ -2734,7 +2745,8 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 #endif
 	if (audio) {
 		SDL_PauseAudioDevice(audio, 0);
-		fprintf(stderr, "audio: %s, %d Hz, %d channels, %d samples\n", SDL_GetCurrentAudioDriver(), have.freq, have.channels, have.samples);
+		fprintf(stderr, "audio: %s%s%s, %d Hz, %d channels, %d samples\n", SDL_GetCurrentAudioDriver(), getenv("AUDIODEV") ? " on " : "",
+		        getenv("AUDIODEV") ? getenv("AUDIODEV") : "", have.freq, have.channels, have.samples);
 	} else {
 		fprintf(stderr, "no audio: %s\n", SDL_GetError());
 	}
