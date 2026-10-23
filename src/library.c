@@ -7,6 +7,7 @@
 #include "brand.h"
 #include "emu.h"
 #include "esinteg.h"
+#include "mapper.h"
 #include "ra.h"
 
 #include <ctype.h>
@@ -597,16 +598,30 @@ static void draw_list(Config* cfg, int scr, int sel, int scroll) {
 static char settingsMsg[128];
 
 /* Settings: a row of buttons, each with its text below, then Back.
- * ROCKNIX: GBA DS in EmulationStation. Android: ROM Folder, RetroAchievements. */
-#ifdef __ANDROID__
-#define SETTINGS_ROWS 2
-#else
-#define SETTINGS_ROWS 1
+ * Linux: GBA DS in EmulationStation (ROCKNIX) or in BananaOS's list, where
+ * there's one; Map Buttons. Android: ROM Folder, RetroAchievements. */
+#define SETTINGS_MAX 2
+static int nRows = 1; /* rows shown (Back is row nRows) */
+#ifndef __ANDROID__
+enum { ROW_BANANA, ROW_ES, ROW_MAP };
+static int rowKind[SETTINGS_MAX];
 #endif
 
+static void settings_rows(const Config* cfg) {
+#ifdef __ANDROID__
+	(void) cfg;
+	nRows = 2;
+#else
+	nRows = 0;
+	if (banana_present()) rowKind[nRows++] = ROW_BANANA;
+	else if (es_present(cfg)) rowKind[nRows++] = ROW_ES;
+	rowKind[nRows++] = ROW_MAP;
+#endif
+}
+
 typedef struct {
-	SDL_Rect panel, row[SETTINGS_ROWS], back;
-	int textY[SETTINGS_ROWS];
+	SDL_Rect panel, row[SETTINGS_MAX], back;
+	int textY[SETTINGS_MAX];
 	float px;
 } SettingsGeom;
 
@@ -617,7 +632,7 @@ static SettingsGeom settings_geom(int scr) {
 	g.px = px;
 	int m = px * 6, rowH = px * 18;
 	g.panel = (SDL_Rect) { m, m, r.w - m * 2, r.h - m * 2 };
-	for (int i = 0; i < SETTINGS_ROWS; ++i) {
+	for (int i = 0; i < nRows; ++i) {
 		g.row[i] = (SDL_Rect) { g.panel.x + px * 6, g.panel.y + px * 26 + i * (rowH + px * 44), g.panel.w - px * 12, rowH };
 		g.textY[i] = g.row[i].y + rowH + px * 8;
 	}
@@ -630,17 +645,17 @@ static int draw_wrapped(int scr, int x, int y, int width, float px, const char* 
 	return ui_font_wrap(scr, TF_BODY, x, y, width, px * 4, text, c);
 }
 
-/* The panel, its buttons (labels[i] on row i; sel == SETTINGS_ROWS is Back). */
+/* The panel, its buttons (labels[i] on row i; sel == nRows is Back). */
 static void draw_settings_frame(int scr, const SettingsGeom* g, int sel, const char* const* labels) {
 	float px = g->px;
 	ui_dim(scr, 200);
 	ui_fill_round(scr, g->panel, C_HEADER, px * 4);
 	ui_label(scr, g->panel.x + g->panel.w / 2, g->panel.y + px * 12, px * 6, "Settings", C_TEXT);
-	for (int i = 0; i <= SETTINGS_ROWS; ++i) {
-		SDL_Rect b = i < SETTINGS_ROWS ? g->row[i] : g->back;
+	for (int i = 0; i <= nRows; ++i) {
+		SDL_Rect b = i < nRows ? g->row[i] : g->back;
 		if (i == sel) ui_fill_round(scr, (SDL_Rect) { b.x - px, b.y - px, b.w + px * 2, b.h + px * 2 }, C_EDGE, px * 4);
 		ui_fill_round(scr, b, i == sel ? C_SEL : C_ROW, px * 3);
-		ui_label(scr, b.x + b.w / 2, b.y + b.h / 2, px * 5, i < SETTINGS_ROWS ? labels[i] : "Back", C_TEXT);
+		ui_label(scr, b.x + b.w / 2, b.y + b.h / 2, px * 5, i < nRows ? labels[i] : "Back", C_TEXT);
 	}
 }
 
@@ -659,7 +674,7 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 	                      ra == RA_ACCOUNT_BUSY   ? "RetroAchievements: Signing In..." :
 	                      ra == RA_ACCOUNT_OFF    ? "RetroAchievements: Off" :
 	                                                "RetroAchievements: Sign In";
-	const char* labels[SETTINGS_ROWS] = { "ROM Folder", raLabel };
+	const char* labels[SETTINGS_MAX] = { "ROM Folder", raLabel };
 	draw_settings_frame(scr, &g, sel, labels);
 	int tx = g.row[0].x + px * 2, tw = g.row[0].w - px * 4;
 	char line[1400];
@@ -742,37 +757,36 @@ static bool settings_poll(Config* cfg) {
 static void draw_settings(const Config* cfg, int scr, int sel) {
 	SettingsGeom g = settings_geom(scr);
 	float px = g.px;
-	bool banana = banana_present();
-	const char* labels[SETTINGS_ROWS] = { banana ? (banana_integration_on() ? "GBA DS in BananaOS's GBA list: On"
-	                                                                        : "GBA DS in BananaOS's GBA list: Off")
-	                                      : es_integration_on(cfg) ? "GBA DS in EmulationStation: On"
-	                                                               : "GBA DS in EmulationStation: Off" };
+	const char* labels[SETTINGS_MAX];
+	for (int i = 0; i < nRows; ++i) {
+		labels[i] = rowKind[i] == ROW_BANANA ? (banana_integration_on() ? "GBA DS in BananaOS's GBA list: On" : "GBA DS in BananaOS's GBA list: Off")
+		          : rowKind[i] == ROW_ES     ? (es_integration_on(cfg) ? "GBA DS in EmulationStation: On" : "GBA DS in EmulationStation: Off")
+		                                     : "Map Buttons";
+	}
 	draw_settings_frame(scr, &g, sel, labels);
 	int tx = g.row[0].x + px * 2, tw = g.row[0].w - px * 4;
-	if (banana) {
-		int y = draw_wrapped(scr, tx, g.textY[0], tw, px,
-		                     "Games picked in BananaOS's own Game Boy Advance list start in GBA DS when it has "
-		                     "second-screen support for them; every other game plays in RetroArch as before. "
-		                     "BananaOS reads its list when it starts, so restart it after switching this.",
-		                     C_DIM);
-		if (settingsMsg[0]) draw_wrapped(scr, tx, y + px * 6, tw, px, settingsMsg, C_GOLD);
-		return;
+	int y = 0;
+	for (int i = 0; i < nRows; ++i) {
+		const char* text = rowKind[i] == ROW_BANANA
+		                       ? "Games picked in BananaOS's own Game Boy Advance list start in GBA DS when it has "
+		                         "second-screen support for them; every other game plays in RetroArch as before. "
+		                         "BananaOS reads its list when it starts, so restart it after switching this."
+		                   : rowKind[i] == ROW_ES
+		                       ? "Adds GBA DS to the emulators for Game Boy Advance games in EmulationStation. Pick it for one game "
+		                         "(its Advanced Game Options > Emulator) or for all of them (the system's advanced settings). "
+		                         "The other emulators keep working as before."
+		                       : "Sets which of this device's buttons does what: GBA DS asks for each one in turn. "
+		                         "Tap to skip any the device doesn't have.";
+		y = draw_wrapped(scr, tx, g.textY[i], tw, px, text, C_DIM);
 	}
-	int y = draw_wrapped(scr, tx, g.textY[0], tw, px,
-	                     "Adds GBA DS to the emulators for Game Boy Advance games in EmulationStation. Pick it for one game "
-	                     "(its Advanced Game Options > Emulator) or for all of them (the system's advanced settings). "
-	                     "The other emulators keep working as before.",
-	                     C_DIM);
 	if (settingsMsg[0]) draw_wrapped(scr, tx, y + px * 6, tw, px, settingsMsg, C_GOLD);
 }
 
 static void settings_activate(Config* cfg, int row) {
-	(void) row;
-	if (banana_present()) {
-		banana_integration_set(!banana_integration_on(), settingsMsg, sizeof(settingsMsg));
-		return;
-	}
-	es_integration_set(cfg, !es_integration_on(cfg), settingsMsg, sizeof(settingsMsg));
+	settingsMsg[0] = 0;
+	if (rowKind[row] == ROW_BANANA) banana_integration_set(!banana_integration_on(), settingsMsg, sizeof(settingsMsg));
+	else if (rowKind[row] == ROW_ES) es_integration_set(cfg, !es_integration_on(cfg), settingsMsg, sizeof(settingsMsg));
+	else mapper_run(cfg);
 }
 
 static bool settings_poll(Config* cfg) {
@@ -894,10 +908,10 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 				scroll = 0;
 				snprintf(settingsMsg, sizeof(settingsMsg), "%d game%s found.", nGames, nGames == 1 ? "" : "s");
 			}
-			if (btn_pressed(B_DOWN)) settingsSel = (settingsSel + 1) % (SETTINGS_ROWS + 1);
-			if (btn_pressed(B_UP)) settingsSel = (settingsSel + SETTINGS_ROWS) % (SETTINGS_ROWS + 1);
+			if (btn_pressed(B_DOWN)) settingsSel = (settingsSel + 1) % (nRows + 1);
+			if (btn_pressed(B_UP)) settingsSel = (settingsSel + nRows) % (nRows + 1);
 			if (btn_pressed(B_A) || btn_pressed(B_START)) {
-				if (settingsSel < SETTINGS_ROWS) settings_activate(cfg, settingsSel);
+				if (settingsSel < nRows) settings_activate(cfg, settingsSel);
 				else settingsOpen = false;
 			}
 			if (btn_pressed(B_B) || btn_pressed(B_SELECT) || btn_released(B_HOME)) settingsOpen = false;
@@ -907,11 +921,11 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 				SettingsGeom sg = settings_geom(ls);
 				SDL_Point pt = { p.x, p.y };
 				int hit = -1;
-				for (int i = 0; i < SETTINGS_ROWS; ++i) {
+				for (int i = 0; i < nRows; ++i) {
 					if (SDL_PointInRect(&pt, &sg.row[i])) hit = i;
 				}
 				if (hit >= 0) settingsSel = hit, settings_activate(cfg, hit);
-				else if (SDL_PointInRect(&pt, &sg.back) || !SDL_PointInRect(&pt, &sg.panel)) settingsSel = SETTINGS_ROWS, settingsOpen = false;
+				else if (SDL_PointInRect(&pt, &sg.back) || !SDL_PointInRect(&pt, &sg.panel)) settingsSel = nRows, settingsOpen = false;
 			}
 			pressed = false;
 			ui_clear();
@@ -929,6 +943,7 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 		}
 		if (btn_pressed(B_SELECT)) {
 			settingsOpen = true;
+			settings_rows(cfg);
 			settingsSel = 0;
 			settingsMsg[0] = 0;
 			continue;
@@ -971,6 +986,7 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 				}
 				if (SDL_PointInRect(&pt, &sb)) {
 					settingsOpen = true;
+					settings_rows(cfg);
 					settingsSel = 0;
 					settingsMsg[0] = 0;
 					pressed = false;

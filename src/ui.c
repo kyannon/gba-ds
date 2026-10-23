@@ -63,6 +63,9 @@ static long scriptTapUp = -1;
 static float tapX, tapY;
 static char pendingShot[160];
 
+static void script_joy(const char* a);
+static void script_virtual_pad(void);
+
 static uint32_t parse_btns(const char* s) {
 	static const char* names[B_COUNT] = { "A", "B", "X", "Y", "START", "SELECT", "HOME", "L", "R", "L2", "R2", "L3",
 		                                  "UP", "DOWN", "LEFT", "RIGHT" };
@@ -93,13 +96,14 @@ void ui_load_script(const char* path) {
 		s->tick = t;
 		s->btns = 0;
 		s->action[0] = 0;
-		if (!strncmp(what, "TAP:", 4) || !strncmp(what, "SHOT:", 5) || !strcmp(what, "QUIT")) {
+		if (!strncmp(what, "TAP:", 4) || !strncmp(what, "SHOT:", 5) || !strcmp(what, "QUIT") || !strncmp(what, "JOY", 3)) {
 			snprintf(s->action, sizeof(s->action), "%s", what);
 		} else {
 			s->btns = parse_btns(what);
 		}
 	}
 	fclose(f);
+	script_virtual_pad();
 }
 
 static void push_finger(Uint32 type, float x, float y) {
@@ -132,6 +136,8 @@ static void run_script(void) {
 			snprintf(pendingShot, sizeof(pendingShot), "%s", s->action + 5);
 		} else if (!strcmp(s->action, "QUIT")) {
 			uiQuit = 1;
+		} else if (!strncmp(s->action, "JOY", 3)) {
+			script_joy(s->action);
 		} else {
 			scriptBtns = s->btns;
 		}
@@ -180,6 +186,74 @@ static bool create_view(View* v, int display, const char* title, bool fullscreen
 	return true;
 }
 
+static void open_pads(void);
+
+/* ------------------------------------------------------- raw input */
+
+/* The button mapper's view of the controllers: raw buttons, hats and axes
+ * (and keys, which it can't map), queued while capturing. */
+static bool rawCapture;
+static RawInput rawQ[64];
+static int rawHead, rawTail;
+
+void ui_raw_capture(bool on) {
+	rawCapture = on;
+	rawHead = rawTail = 0;
+}
+
+static void raw_push(int kind, SDL_JoystickID which, int index, int value) {
+	if (!rawCapture || (rawTail + 1) % 64 == rawHead) return;
+	rawQ[rawTail] = (RawInput) { kind, which, index, value };
+	rawTail = (rawTail + 1) % 64;
+}
+
+bool ui_next_raw(RawInput* r) {
+	if (rawHead == rawTail) return false;
+	*r = rawQ[rawHead];
+	rawHead = (rawHead + 1) % 64;
+	return true;
+}
+
+void ui_mapping_file(char* out, size_t n) {
+	snprintf(out, n, "%s/controllers.txt", cfg->stateDir);
+}
+
+void ui_reopen_pads(void) {
+	open_pads();
+}
+
+/* Input scripts can press a virtual controller's raw inputs (testing the
+ * mapper): JOYBTN:n, JOYHAT:v, JOYAXIS:n,v; JOYBTN:- lets go of them all. */
+static SDL_Joystick* scriptPad;
+static Sint16 scriptPadRest[6];
+static void script_virtual_pad(void) {
+	bool wanted = false;
+	for (int i = 0; i < scriptLen; ++i) wanted |= !strncmp(script[i].action, "JOY", 3);
+	if (!wanted) return;
+	int idx = SDL_JoystickAttachVirtual(SDL_JOYSTICK_TYPE_GAMECONTROLLER, 6, 20, 1);
+	if (idx >= 0) scriptPad = SDL_JoystickOpen(idx);
+	SDL_JoystickUpdate();
+	for (int i = 0; scriptPad && i < 6; ++i) scriptPadRest[i] = SDL_JoystickGetAxis(scriptPad, i);
+	if (!scriptPad) fprintf(stderr, "no virtual controller: %s\n", SDL_GetError());
+	open_pads();
+}
+
+static void script_joy(const char* a) {
+	if (!scriptPad) return;
+	int n, v;
+	if (!strcmp(a, "JOYBTN:-")) {
+		for (int i = 0; i < 20; ++i) SDL_JoystickSetVirtualButton(scriptPad, i, 0);
+		SDL_JoystickSetVirtualHat(scriptPad, 0, SDL_HAT_CENTERED);
+		for (int i = 0; i < 6; ++i) SDL_JoystickSetVirtualAxis(scriptPad, i, scriptPadRest[i]);
+	} else if (sscanf(a, "JOYBTN:%d", &n) == 1) {
+		SDL_JoystickSetVirtualButton(scriptPad, n, 1);
+	} else if (sscanf(a, "JOYHAT:%d", &v) == 1) {
+		SDL_JoystickSetVirtualHat(scriptPad, 0, (Uint8) v);
+	} else if (sscanf(a, "JOYAXIS:%d,%d", &n, &v) == 2) {
+		SDL_JoystickSetVirtualAxis(scriptPad, n, (Sint16) v);
+	}
+}
+
 static void open_pads(void) {
 	for (int i = 0; i < SDL_NumJoysticks() && i < 8; ++i) {
 		if (!pads[i] && SDL_IsGameController(i)) {
@@ -189,6 +263,12 @@ static void open_pads(void) {
 				char* map = SDL_GameControllerMapping(pads[i]);
 				if (map) fprintf(stderr, "  mapping: %s\n", map), SDL_free(map);
 			}
+		} else if (!pads[i] && rawJoys[i] && SDL_IsGameController(i)) {
+			/* mapped since (the button mapper): a controller now */
+			SDL_JoystickClose(rawJoys[i]);
+			rawJoys[i] = NULL;
+			pads[i] = SDL_GameControllerOpen(i);
+			if (pads[i]) fprintf(stderr, "controller: %s (mapped)\n", SDL_GameControllerName(pads[i]));
 		} else if (!pads[i] && !rawJoys[i]) {
 			rawJoys[i] = SDL_JoystickOpen(i);
 			if (rawJoys[i]) fprintf(stderr, "joystick without mapping: %s\n", SDL_JoystickName(rawJoys[i]));
@@ -220,6 +300,10 @@ bool ui_init(Config* c, bool wantDual) {
 	if (getenv("SDL_GAMECONTROLLERCONFIG_FILE")) {
 		SDL_GameControllerAddMappingsFromFile(getenv("SDL_GAMECONTROLLERCONFIG_FILE"));
 	}
+	/* mappings made with the button mapper on this device (they win) */
+	char mapFile[600];
+	ui_mapping_file(mapFile, sizeof(mapFile));
+	if (SDL_GameControllerAddMappingsFromFile(mapFile) > 0) fprintf(stderr, "button mappings: %s\n", mapFile);
 	open_pads();
 
 #ifdef __ANDROID__
@@ -670,7 +754,14 @@ bool ui_events(void) {
 				ui_layout();
 			}
 			break;
+		case SDL_JOYHATMOTION:
+			if (ev.jhat.value != SDL_HAT_CENTERED) raw_push('h', ev.jhat.which, ev.jhat.hat, ev.jhat.value);
+			break;
+		case SDL_JOYAXISMOTION:
+			raw_push('a', ev.jaxis.which, ev.jaxis.axis, ev.jaxis.value);
+			break;
 		case SDL_JOYBUTTONDOWN:
+			raw_push('b', ev.jbutton.which, ev.jbutton.button, 1);
 #ifdef __ANDROID__
 			/* buttons outside the standard set (15 L2, 16 R2, 17 C, 18 Z...) */
 			if (!debug && ev.jbutton.button >= 15) fprintf(stderr, "raw joystick button %d\n", ev.jbutton.button);
@@ -689,6 +780,7 @@ bool ui_events(void) {
 			}
 			break;
 		case SDL_KEYDOWN: {
+			if (!ev.key.repeat) raw_push('k', -1, ev.key.keysym.scancode, 1);
 			static int keysLogged;
 			if (debug || keysLogged++ < 6) fprintf(stderr, "key %s\n", SDL_GetKeyName(ev.key.keysym.sym));
 #if defined(__linux__) && !defined(__ANDROID__) && !defined(__wasi__)

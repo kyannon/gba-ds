@@ -152,6 +152,14 @@ static char* read_es_systems(const Config* cfg, char* used, size_t usedSize) {
 	return NULL;
 }
 
+bool es_present(const Config* cfg) {
+	if (es_integration_on(cfg)) return true;
+	char used[700];
+	char* xml = read_es_systems(cfg, used, sizeof(used));
+	free(xml);
+	return xml != NULL;
+}
+
 static bool install(const Config* cfg, char* msg, size_t msgSize) {
 	char dir[600];
 	if (!app_dir(dir, sizeof(dir))) {

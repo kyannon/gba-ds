@@ -52,6 +52,15 @@ SDL.
 6. **Launching from frontends** (optional, later): an intent filter so
    frontends like Daijisho / ES-DE can start GBA DS with a ROM path.
 
+
+- **Map Buttons (from the main session, Oct 22, 2026):** the game list's
+  Settings on Linux has a button mapper (`src/mapper.c`, shared; raw input
+  from `ui_raw_capture` / `ui_next_raw` in ui.c; mappings kept in
+  `<state_dir>/controllers.txt`, loaded in `ui_init`). It isn't offered on
+  Android yet: adding it means `src/mapper.c` in
+  `android/app/src/main/cpp/CMakeLists.txt`, a third Settings row in
+  library.c's `__ANDROID__` block, and a look at how it fits the A/B swap in
+  `ui_read_buttons` (GammaOS reports the face buttons by label).
 ## RetroAchievements
 
 `src/ra.c` and `third_party/rcheevos` are compiled into libmain with

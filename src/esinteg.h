@@ -14,6 +14,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+/* EmulationStation is there to add GBA DS to (its es_systems.cfg found). */
+bool es_present(const Config* cfg);
 bool es_integration_on(const Config* cfg);
 /* Turns it on or off; msg gets a short message for the user. */
 bool es_integration_set(const Config* cfg, bool on, char* msg, size_t msgSize);

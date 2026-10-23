@@ -3,6 +3,7 @@
 **Install**
 - [[Install on ROCKNIX]]
 - [[Install on BananaOS]]
+- [[Install on Anbernic Linux]]
 - [[Install on Android]]
 - [[Launching from Android frontends]]
 

@@ -160,6 +160,7 @@ Android session at the same time. To keep them from colliding:
   `--retroachievements=1 --ra-username=tester --ra-password=secret
   --ra-host=http://127.0.0.1:8099`. Hardcore is not allowed before the app
   has been public for 6 months (from Oct 13, 2026).
+- `mapper.c` Settings > Map Buttons (Linux): asks for each button, builds an SDL mapping for that controller, kept in `<state_dir>/controllers.txt` and logged (bake device ones into `dist/gamecontrollerdb.txt`). Input scripts drive it with a virtual pad: `JOYBTN:n`, `JOYHAT:v`, `JOYAXIS:n,v`, `JOYBTN:-`.
 - `library.c` the game list and its Settings screen; `esinteg.c` the
   EmulationStation integration; `cheats.c` RetroArch .cht files;
   `ui.c` SDL windows, input, drawing, the pause-menu text images.
@@ -205,6 +206,14 @@ Android session at the same time. To keep them from colliding:
   0 if a profile exists): GBA DS (banana-perf performance), else the
   original line. Off restores it; the copy is deleted if ours and unchanged.
   banana-ui hands both panels to any run line without "run-retroarch".
+- **Anbernic's own Linux** on the RG DS Plus (Buildroot, weston, two
+  windows): launch.sh's "another system" branch. Ports in `/mnt/mmc/Ports`,
+  ROMs `/mnt/mmc/Roms/GBA`. Touch: `anbernic_misc/tpctrl` 0 (on) for the run
+  (its DS emulator does the same), read straight from the gt9xx device
+  (`touch_device`). Sound: SDL's ALSA (through PulseAudio it was silent);
+  the volume keys are raw buttons 16/15 and set GBA DS's own volume
+  (GBADS_VOLUME file, GBADS_VOLUME_BUTTONS); the menu's volume can't be read.
+  No EmulationStation (Settings hides that row when no es_systems.cfg exists).
 - EmulationStation: `/usr/bin/runemu.sh` launches games; the GBA command is
   `/usr/bin/runemu.sh %ROM% -P%SYSTEM% --core=%CORE% --emulator=%EMULATOR%
   --controllers="%CONTROLLERSCONFIG%"`.

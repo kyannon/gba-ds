@@ -16,7 +16,9 @@ When reporting a bug, attach `gba-ds.log` from a run where it happened, and say 
 
 **Taps land in the wrong place.** Try `touch_map = screen` in `gba-ds.cfg`. If the menu is on the wrong screen, set `touch_screen` to `first` or `second` (see [Settings](Settings#screens)).
 
-**HOME doesn't open the menu.** Turn on the debug log (above), press HOME, and look for "raw joystick ... button N" in the log; put that number in `home_button`. Tapping the touchscreen always opens the menu, and `menu_combo = select+start` adds SELECT + START.
+**Buttons do the wrong thing.** Use **Map Buttons** in the game list's Settings (see [Playing](Playing#mapping-the-buttons)).
+
+**HOME doesn't open the menu.** Map it with **Map Buttons**, or turn on the debug log (above), press HOME, and look for "raw joystick ... button N" in the log; put that number in `home_button`. Tapping the touchscreen always opens the menu, and `menu_combo = select+start` adds SELECT + START.
 
 ## Sound crackles
 

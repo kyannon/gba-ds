@@ -161,6 +161,22 @@ void ui_osd(const char* fmt, ...);
 int ui_volume(void); /* GBA DS's own sound volume, 0-100 (100 unless launch.sh asks for one) */
 const char* ui_osd_text(void); /* NULL when expired */
 
+/* Raw controller input for the button mapper (mapper.c): queued from
+ * ui_events while capturing. kind: 'b' button down, 'h' hat (value: the
+ * SDL_HAT_* direction), 'a' axis motion (value), 'k' a key (index: its
+ * scancode; keys can't be mapped). */
+typedef struct {
+	int kind;
+	SDL_JoystickID which;
+	int index, value;
+} RawInput;
+void ui_raw_capture(bool on);
+bool ui_next_raw(RawInput* r);
+/* Where the mappings made with the button mapper are kept (loaded at start). */
+void ui_mapping_file(char* out, size_t n);
+/* Opens controllers that have a mapping now. */
+void ui_reopen_pads(void);
+
 extern volatile int uiQuit; /* set by signals */
 
 #endif

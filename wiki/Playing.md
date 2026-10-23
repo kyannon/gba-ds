@@ -16,7 +16,7 @@ GBA DS opens on a game list on the touchscreen (the bottom screen on the RG DS P
 | A or Start, or tap a game | Play |
 | Drag | Scroll |
 | X, or tap the button left of Settings | Switch between list and grid |
-| SELECT, or tap **Settings** | Settings (ROCKNIX: GBA DS in EmulationStation; Android: ROM folder, RetroAchievements sign-in) |
+| SELECT, or tap **Settings** | Settings (ROCKNIX: GBA DS in EmulationStation; BananaOS: GBA DS in its GBA list; Linux: Map Buttons; Android: ROM folder, RetroAchievements sign-in) |
 | B or HOME | Back to EmulationStation / the launcher |
 
 ## Resume points
@@ -72,6 +72,19 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 | HOME + Y | Swap screens |
 
 If HOME doesn't open the menu on your device, see `home_button` in [[Settings]]; `menu_combo = select+start` also makes SELECT + START open it.
+
+## Mapping the buttons
+
+If buttons do the wrong thing on your device (or a controller isn't recognised), open **Settings** in the game list (tap it, or SELECT) and choose **Map Buttons** (ROCKNIX, BananaOS and other Linux systems). GBA DS asks for each button in turn, by where it sits on a GBA-style layout:
+
+- the D-pad's four directions;
+- **A** (the right face button), **B** (bottom), **X** (top), **Y** (left);
+- **L**, **R**, **L2**, **R2**, **Select**, **Start**, **Home** (the button you want to open GBA DS's menu), **L3** (pressing the left stick in);
+- the left stick, pushed up and then left.
+
+Press each one when it's asked for. **Tap the touchscreen to skip** a button your device doesn't have (without a touchscreen, each one is skipped after 15 seconds), or tap **Cancel** to stop and keep the old mapping. A button that's already been given to something else isn't taken twice. Volume keys and buttons that arrive as keyboard keys can't be mapped.
+
+The new mapping works straight away and is kept in `states/controllers.txt` for that controller. The log (`gba-ds.log`) has the same line: send it in an issue and it can be built into GBA DS for everyone with that device and system. Running Map Buttons again replaces it; deleting `controllers.txt` goes back to the built-in mappings.
 
 **Four-button layout (Tony Hawk's Pro Skater 2 and 3).** The GBA version uses L and R for two of the console games' four face buttons. Tap a layout under **Controls** at the bottom of the second screen (when it's the touchscreen).:
 - **GBA**: the layout above.
