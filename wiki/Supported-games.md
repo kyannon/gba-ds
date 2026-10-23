@@ -97,6 +97,7 @@ Preliminary. The USA and European releases (the game never came out in Japan).
 - The **CO and day plate** and the **terrain and unit info** move from the game screen to the bottom of the second screen (the plate in the middle, the info on the right, on a grey box), so they no longer cover the map; the panels are drawn over them where they meet.
 - The enemy's **CO and day plate** shows on their turn; the panel keeps its last picture.
 - **In a fight,** the second screen is the dark background with the game's logo, small and dimmed, in the middle. On the title and menus, the second screen shows the logo.
+- **Known issue:** in the **Field Training** missions the second screen may not work: the tutorial blocks the menus it's built from (SELECT and START). It works fully in Campaign and Versus.
 
 ## Fire Emblem
 
