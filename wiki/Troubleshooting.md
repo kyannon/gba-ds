@@ -12,7 +12,7 @@ When reporting a bug, attach `gba-ds.log` from a run where it happened, and say 
 
 ## GBA DS closes straight away, with no log
 
-If starting GBA DS from Ports goes straight back to the menu and there's no `gba-ds.log` in the `gba-ds` folder, the launcher couldn't run at all. Usually the files lost their permissions on the way: the zip was unzipped on a computer and the files copied over a network share or MTP. GBA DS handles that itself since v1.2.2 (the log then says "made the files runnable again"). With an older version, copy the zip itself to the device and unzip it there, or over SSH:
+If starting GBA DS from Ports goes straight back to the menu and there's no `gba-ds.log` in the `gba-ds` folder, the launcher couldn't run at all. Usually the files lost their permissions on the way: the zip was unzipped on a computer and the files copied over a network share or MTP. GBA DS handles that itself since v1.3 (the log then says "made the files runnable again"). With an older version, copy the zip itself to the device and unzip it there, or over SSH:
 
 ```
 chmod +x "/storage/roms/ports/GBA DS.sh" /storage/roms/ports/gba-ds/*.sh /storage/roms/ports/gba-ds/gba-ds
