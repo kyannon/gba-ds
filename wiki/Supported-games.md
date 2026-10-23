@@ -13,8 +13,8 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Tony Hawk's Pro Skater 3 | `AT3E` (USA and Europe) `AT3F` `AT3D` | the goal list; optional four-button layout | — |
 | Super Mario Advance 2: Super Mario World | `AA2E` `AA2P` `AA2J` | the SELECT menu on the world map; the status bar in levels; optional SNES layout | — |
 | Final Fantasy Tactics Advance | `AFXE` `AFXP` `AFXJ` | in battles and the scenes on the battle maps: dialogue, menus, unit details | — |
-| Advance Wars (preliminary) | `AWRE` (USA only so far) | in battles: the unit list or the battle intel, with the minimap | — |
-| Fire Emblem (preliminary) | `AE7E` (USA only so far) | on the map: the unit, terrain and goal windows and the minimap | — |
+| Advance Wars (preliminary) | `AWRE` `AWRP` (no Japanese release) | in battles: the unit list or the battle intel, with the minimap | — |
+| Fire Emblem (Rekka no Ken in Japan; preliminary) | `AE7E` `AE7Y` (English, Spanish, Italian) `AE7J` | on the map: the unit, terrain and goal windows and the minimap | — |
 
 The codes are what `<CODE>` means in logo and overlay file names (see [Playing](Playing#logos) and [[Map screen surrounds and overlays]]).
 
@@ -90,7 +90,7 @@ The HUD is moved off the game screen rather than copied: GBA DS draws each frame
 
 ## Advance Wars
 
-Preliminary, the USA release only for now (the European release is listed, with its name on the second screen).
+Preliminary. The USA and European releases (the game never came out in Japan).
 
 - **In a battle, on your turn,** the second screen is laid out after Advance Wars: Dual Strike's: the game's **Unit** list with the unit under the cursor highlighted when it's one of yours (it stays highlighted while you move it and pick its action), or else the **Battle Intel** (bases and funds). At the bottom left, the **minimap** from the START button. All of it is brought up in the background from the menus of a silent copy of the game, as the other games' maps are; your game is never paused.
 - The **CO and day plate** and the **terrain and unit info** move from the game screen to the bottom of the second screen (the plate in the middle, the info on the right, on a grey box), so they no longer cover the map; the panels are drawn over them where they meet.
@@ -99,7 +99,7 @@ Preliminary, the USA release only for now (the European release is listed, with 
 
 ## Fire Emblem
 
-Preliminary, the USA release only for now (the European and Japanese releases are listed, with the name on the second screen).
+Preliminary. The USA release, the European one in English, Spanish and Italian, and the Japanese one (Rekka no Ken). The European release in English, French and German (`AE7X`) is listed, with its name on the second screen, until it's been tried.
 
 - **Always,** the second screen is a dark background with the game's logo, small and dimmed, in the middle (on the title screen and in menus too).
 - **On the map,** the windows the game puts in the corners (whichever corners the cursor leaves free) move to fixed places on the second screen: the **terrain** at the bottom left and the **goal** and enemies left at the bottom centre. The **minimap** from the START button is at the bottom right, brought up in the background in a silent copy of the game; when it can't be (in a conversation), the chapter's last one stays.
@@ -109,10 +109,3 @@ Preliminary, the USA release only for now (the European and Japanese releases ar
 - **Conversations** (the speech bubble, its text and the portraits), on the map and before or after a fight, move to the second screen with the portraits standing on its bottom edge, and the **tutorial's** boxes as they are; the windows step aside until they're done. A unit's small speech bubble with no portrait stays on the map, by the unit. Story scenes before and after the battle (a picture or black behind the talk) stay on the game screen, and the second screen goes back to the logo until the battle map is up again.
 - **ENEMY PHASE and PLAYER PHASE**, with their sparkles, go across the second screen instead of the map, while the game screen dims; the windows are cleared, and come back as you take control again.
 - **In a fight and on the other armies' turns,** the second screen is the background with the logo alone.
-
-## Coming soon
-
-These games are in the game list, but their second screens are still being built, after the DS versions of each series. For now the game plays on one screen and the other shows the game's name.
-
-- **Fire Emblem** (Europe, Japan: Rekka no Ken; the USA release is above)
-- **Advance Wars** (Europe; the USA release is above)

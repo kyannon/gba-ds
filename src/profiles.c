@@ -397,28 +397,60 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
  * in whichever corners the cursor leaves free (the unit, the goal, the
  * terrain) taken off the game screen and kept in corners of their own
  * (fe_find_pieces); conversations and the tutorial's boxes go there as
- * they are, over everything. (USA addresses.)
+ * they are, over everything. (Each release's addresses: FeRegion.)
  *
  * What the game is doing comes from its processes (the engine's "procs":
  * 64 slots of 0x6C bytes from FE_PROCS, each starting with its script's
  * start and current position), found by script wherever they are. */
-#define FE_CHAPTER 0x0202BBF8 /* the chapter's data: 0 off the map (its play time) */
-#define FE_IN_CHAPTER { FE_CHAPTER, 0xFFFFFFFF, 1, 4, true, 0xFFFFFFFF, true }
-#define FE_TURN 0x0202BC07   /* whose turn: 0 yours, 0x40 other, 0x80 the enemy's */
-#define FE_PROCS 0x02024E28
-#define FE_P_PHASE 0x08B93374 /* the player phase */
-#define FE_IDLE 0x08B933E4   /* (its position) the cursor free */
-#define FE_MINI 0x08B933C4   /* the minimap (and the map menu) */
-#define FE_FIGHT 0x08B93464  /* a fight */
-#define FE_P_EVENT 0x08B90D88 /* the event engine: a conversation, the tutorial */
-#define FE_P_BATTLE 0x08B9A99C /* a fight's battle scene (any army's turn) */
-#define FE_P_BANNER 0x08B937AC /* ENEMY PHASE / PLAYER PHASE across the map */
-#define FE_MENU 0x08B93444   /* (the player phase's position) a unit's menu: Attack, Wait... */
+/* Each release's addresses (USA; Europe, En/Es/It: the same RAM, its own
+ * ROM; Japan: both moved), found by matching the code and the process
+ * scripts that use the USA ones. fe_r is the running game's (fe_region:
+ * the main and the shadow core run the same game). */
+typedef struct {
+	char region; /* the game code's last letter */
+	uint32_t chapter; /* the chapter's data: 0 off the map (its play time) */
+	uint32_t procs; /* the process slots */
+	uint32_t cursor; /* the map cursor's x, y (16 bits each) */
+	uint32_t units; /* every unit's data (0x48 bytes each) */
+	uint32_t phase, event, battle, banner, status, status2; /* process scripts (Europe: a status screen per language) */
+} FeRegion;
+static const FeRegion feRegions[] = {
+	{ 'E', 0x0202BBF8, 0x02024E28, 0x0202BBCC, 0x0202BD50, 0x08B93374, 0x08B90D88, 0x08B9A99C, 0x08B937AC, 0x08CC1F5C },
+	{ 'Y', 0x0202BBF8, 0x02024E28, 0x0202BBCC, 0x0202BD50, 0x08C57730, 0x08C54ECC, 0x08C5ECE8, 0x08C57B8C, 0x08D88F1C, 0x08DC195C },
+	{ 'J', 0x0202BBF4, 0x02024E20, 0x0202BBC8, 0x0202BD4C, 0x08C02630, 0x08BFFF78, 0x08C09CE8, 0x08C02A68, 0x08D8A520 },
+};
+static const FeRegion* fe_r = &feRegions[0];
+static void fe_region(Emu* e) {
+	for (size_t i = 0; i < sizeof(feRegions) / sizeof(*feRegions); ++i) {
+		if (e->gameCode[3] == feRegions[i].region) fe_r = &feRegions[i];
+	}
+}
+#define FE_CHAPTER (fe_r->chapter)
+#define FE_TURN (fe_r->chapter + 0xF) /* whose turn: 0 yours, 0x40 other, 0x80 the enemy's */
+#define FE_PROCS (fe_r->procs)
+#define FE_CURSOR (fe_r->cursor)
+#define FE_P_PHASE (fe_r->phase) /* the player phase */
+/* (its positions, the same in each release) */
+#define FE_AT_MINI 0x50  /* the minimap (and the map menu) */
+#define FE_AT_IDLE 0x70  /* the cursor free */
+#define FE_AT_MENU 0xD0  /* a unit's menu: Attack, Wait... */
+#define FE_AT_FIGHT 0xF0 /* a fight */
+#define FE_IDLE (FE_P_PHASE + FE_AT_IDLE)
+#define FE_MINI (FE_P_PHASE + FE_AT_MINI)
+#define FE_FIGHT (FE_P_PHASE + FE_AT_FIGHT)
+#define FE_MENU (FE_P_PHASE + FE_AT_MENU)
+#define FE_P_EVENT (fe_r->event)   /* the event engine: a conversation, the tutorial */
+#define FE_P_BATTLE (fe_r->battle) /* a fight's battle scene (any army's turn) */
+#define FE_P_BANNER (fe_r->banner) /* ENEMY PHASE / PLAYER PHASE across the map */
 /* virtual addresses (fe_virt) */
-#define FE_V_PHASE 0xF0000001 /* the player phase's position, 0 if it isn't running */
+#define FE_V_PHASE 0xF0000001 /* the player phase's position (FE_AT_*) + 1, 0 if it isn't running */
 #define FE_V_HUD 0xF0000002   /* what goes to the second screen: FE_HUD_* */
 #define FE_V_FREE 0xF0000003  /* 1 while the cursor's free (no unit selected, no menu) */
 #define FE_V_OFFMAP 0xF0000004 /* 1 off the battle map: the title, a story scene */
+#define FE_V_CHAPTER 0xF0000005 /* FE_CHAPTER's word */
+#define FE_V_TURN 0xF0000006   /* FE_TURN's byte */
+#define FE_V_CURSOR 0xF0000007 /* the cursor's x, y */
+#define FE_IN_CHAPTER { FE_V_CHAPTER, 0xFFFFFFFF, 1, 4, true, 0xFFFFFFFF, true }
 enum { FE_HUD_NONE, FE_HUD_IDLE, FE_HUD_TALK, FE_HUD_MENU, FE_HUD_BANNER = 5 };
 
 /* The current position of the process running `start`, 0 if none is. */
@@ -472,8 +504,15 @@ static bool fe_tutorial_box(Emu* e) {
 }
 
 static uint32_t fe_virt(Emu* e, uint32_t addr) {
+	fe_region(e);
 	switch (addr) {
-	case FE_V_PHASE: return fe_proc(e, FE_P_PHASE);
+	case FE_V_PHASE: {
+		uint32_t at = fe_proc(e, FE_P_PHASE);
+		return at ? at - FE_P_PHASE + 1 : 0;
+	}
+	case FE_V_CHAPTER: return emu_read32(e, FE_CHAPTER);
+	case FE_V_TURN: return emu_read8(e, FE_TURN);
+	case FE_V_CURSOR: return emu_read32(e, FE_CURSOR);
 	case FE_V_FREE: return fe_proc(e, FE_P_PHASE) == FE_IDLE;
 	case FE_V_OFFMAP: return fe_off_map(e);
 	case FE_V_HUD: {
@@ -538,12 +577,11 @@ static bool fe_minimap(Emu* s, void* tmp, uint32_t* mm, int* mw, int* mh) {
  * conversation, the other armies' turns), the chapter's last one stands
  * in, or none: the pictures are always made, so the pieces always have
  * somewhere to go. */
-#define FE_CHAPTER_NO 0x0202BC06
-#define FE_P_STATUS 0x08CC1F5C /* a unit's status screen */
+#define FE_CHAPTER_NO (FE_CHAPTER + 0xE)
+#define FE_P_STATUS (fe_r->status) /* a unit's status screen */
 #define FE_PAGES 3
-#define FE_UNITS 0x0202BD50 /* every unit's data (0x48 bytes each) */
+#define FE_UNITS (fe_r->units)
 #define FE_UNITS_LEN (0x48 * 144)
-#define FE_CURSOR 0x0202BBCC /* the cursor's x, y (16 bits each) */
 /* where a status page has nothing (its background left out): next to the
  * background's colour, so the logo isn't drawn there */
 #define FE_STATUS_CLEAR (MAP_BG_NAVY ^ 0x00010000)
@@ -581,6 +619,7 @@ static const char* fe_compose(Emu* s, const void* state, uint32_t* const* out, i
 	static uint32_t mm[GBA_W * GBA_H], last[GBA_W * GBA_H], page[FE_PAGES][GBA_W * GBA_H];
 	static int lastW, lastH, lastChapter = -1;
 	int max = *nOut;
+	fe_region(s);
 	*nOut = 1;
 	*step = 300; /* 5 seconds a page */
 	int mw = 0, mh = 0, pages = 0;
@@ -628,7 +667,7 @@ static const char* fe_compose(Emu* s, const void* state, uint32_t* const* out, i
 				aw_tap(s, K_R, 1);
 				aw_run(s, 0, 8);
 				pages = 0;
-				if (fe_proc(s, FE_P_STATUS)) {
+				if (fe_proc(s, FE_P_STATUS) || (fe_r->status2 && fe_proc(s, fe_r->status2))) {
 					aw_run(s, 0, 40); /* (past its fade-in, which rewrites the palette) */
 					for (; pages < FE_PAGES && pages < max; ++pages) {
 						if (pages) {
@@ -1213,10 +1252,10 @@ static const MapProfile profiles[] = {
 		.stillPick = STILL_FIRST, /* (Map Animations off: the status's first page) */
 		/* the cursor moved: the next unit's status; a unit selected or
 		 * let go: its status off or on again */
-		.room = { { 0x0202BBCC, 0, 0, 4 }, { FE_V_FREE, 0, 0, 4 } },
+		.room = { { FE_V_CURSOR, 0, 0, 4 }, { FE_V_FREE, 0, 0, 4 } },
 		.crop_w = 320, /* 3x on 1024x768, 2x on 640x480 */
 		.crop_h = 240,
-		.live = { FE_IN_CHAPTER, { FE_TURN, 0xFF, 0, 1 } },
+		.live = { FE_IN_CHAPTER, { FE_V_TURN, 0xFF, 0, 1 } },
 		/* off the battle map: the title, a story scene (the second screen's
 		 * the background with the logo) */
 		.menu = { { FE_V_OFFMAP, 0xFF, 1, 4 } },
@@ -1261,16 +1300,15 @@ static const MapProfile profiles[] = {
 			.logoAlways = true,
 		},
 		/* fights, and the other armies' turns: the logo alone */
-		.combat = { { FE_V_PHASE, 0xFFFFFFFF, FE_FIGHT, 4 } },
-		.combatOr = { FE_IN_CHAPTER, { FE_TURN, 0xFF, 0x40, 1, true, 0xFF, true } },
+		.combat = { { FE_V_PHASE, 0xFFFFFFFF, FE_AT_FIGHT + 1, 4 } },
+		.combatOr = { FE_IN_CHAPTER, { FE_V_TURN, 0xFF, 0x40, 1, true, 0xFF, true } },
 		/* the title's lettering and sword (sprites), its shadow (BG1)
 		 * and axe (BG2), not the copyright line */
 		.logo = { .wait = 300, .pressStart = true, .wait2 = 64, .layers = 0x16, .maxY = 140 },
 	},
 	{
-		/* Europe (En/Fr/De: AE7X; En/Es/It: AE7Y), Japan (Rekka no Ken):
-		 * no ROMs tried yet */
-		.codes = { "AE7X", "AE7Y", "AE7J" },
+		/* Europe, En/Fr/De: no ROM tried yet (En/Es/It and Japan: variants) */
+		.codes = { "AE7X" },
 		.title = "Fire Emblem",
 		.logoOnly = true,
 	},
@@ -1318,12 +1356,6 @@ static const MapProfile profiles[] = {
 		/* the title's lettering is sprites */
 		.logo = { .wait = 240, .pressStart = true, .wait2 = 100, .layers = 0x10, .maxY = 128 },
 	},
-	{
-		/* Europe: no ROM tried yet */
-		.codes = { "AWRP" },
-		.title = "Advance Wars",
-		.logoOnly = true,
-	},
 };
 
 /* ---------------------------------------------------------------- regions
@@ -1356,6 +1388,17 @@ static const MacroStep LANGUAGE_A[] = { { 0, 60 }, { K_A, 4 } };
 static void lang_menu(MapProfile* p) {
 	insert_steps(p->logo.steps, 24, 0, LANGUAGE_A, 2);
 	if (p->frame.steps[0].frames) insert_steps(p->frame.steps, 24, 0, LANGUAGE_A, 2);
+}
+
+/* Fire Emblem in Japan: "Press start" comes higher, under the subtitle */
+static void fe_jpn(MapProfile* p) {
+	p->logo.maxY = 123;
+}
+
+/* Advance Wars in Europe: its language menu comes up later than the others' */
+static void aw_eur(MapProfile* p) {
+	static const MacroStep lang[] = { { 0, 180 }, { K_A, 4 } };
+	insert_steps(p->logo.steps, 24, 0, lang, 2);
 }
 
 static void thps2_jpn(MapProfile* p) {
@@ -1437,6 +1480,10 @@ static const Variant variants[] = {
 	{ "AA2J", "AA2E", 0, sma2_jpn },
 	{ "AT3F", "AT3E", 0, thps3_fra },
 	{ "AT3D", "AT3E", 0, thps3_ger },
+	/* (Fire Emblem's addresses: FeRegion) */
+	{ "AE7Y", "AE7E", 0, lang_menu },
+	{ "AE7J", "AE7E", 0, fe_jpn },
+	{ "AWRP", "AWRE", 0, aw_eur },
 };
 #define N_VARIANTS (sizeof(variants) / sizeof(*variants))
 static MapProfile variantProfiles[N_VARIANTS];

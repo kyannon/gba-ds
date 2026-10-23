@@ -27,8 +27,8 @@ The idea here is "what if the Game Boy Advance had a second screen" -- part of w
 | Tony Hawk's Pro Skater 3 (incl. French and German) | the goal list during a run; four-button layout, or Auto (four buttons while skating) |
 | Super Mario Advance 2: Super Mario World | the SELECT menu's level list on the world map; the status bar in levels; optional SNES layout |
 | Final Fantasy Tactics Advance | in battles and their scenes: dialogue, menus and unit details; on the world map: notices, funds and the date |
-| Advance Wars (USA; preliminary) | in battles: the unit list with the unit under the cursor highlighted, or the battle intel, with the minimap below |
-| Fire Emblem (USA; preliminary) | on the map: the unit, terrain and goal windows in fixed corners, and the minimap |
+| Advance Wars (preliminary) | in battles: the unit list with the unit under the cursor highlighted, or the battle intel, with the minimap below |
+| Fire Emblem (preliminary) | on the map: the unit, terrain and goal windows in fixed corners, and the minimap |
 
 Any other GBA game also runs; it just plays on one screen. See [Supported games](https://github.com/kyannon/gba-ds/wiki/Supported-games) for what each game does.
 
