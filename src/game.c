@@ -2717,7 +2717,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	SDL_AudioDeviceID audio = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
 #if !defined(__wasi__) && !defined(__ANDROID__)
 	if (!audio && getenv("AUDIODEV")) {
-		/* the device launch.sh asked for (Anbernic's Linux: ALSA's pulse)
+		/* the device launch.sh asked for (the RG DS Plus's Stock Linux OS: ALSA's pulse)
 		 * won't open: the driver's own default instead */
 		fprintf(stderr, "no audio on %s (%s): the default device instead\n", getenv("AUDIODEV"), SDL_GetError());
 		unsetenv("AUDIODEV");

@@ -623,7 +623,7 @@ static void evdev_touch_poll(void) {
 
 /* GBA DS's own volume, where the system leaves the volume keys to the
  * program running (launch.sh sets GBADS_VOLUME to the file that keeps it:
- * the RG DS Plus's own Linux, whose ports play straight to the sound card).
+ * the RG DS Plus's Stock Linux OS, whose ports play straight to the sound card).
  * The keys come as key events, from their input device, or as raw joystick
  * buttons (GBADS_VOLUME_BUTTONS=up,down). */
 static int softVolume = -1; /* 0-100; -1: not read yet */

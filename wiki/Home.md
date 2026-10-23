@@ -12,7 +12,7 @@
 
 - **[[Install on ROCKNIX]]**: the zip, the Ports entry and its icon, starting games from EmulationStation's Game Boy Advance list, upgrading.
 - **[[Install on BananaOS]]**: the same zip as a port on BananaOS, the light Linux for the RG DS and RG DS Plus.
-- **[[Install on Anbernic Linux]]**: the same zip as a port on the RG DS Plus's own Linux (experimental).
+- **[[Install on Stock Linux OS]]**: the same zip as a port on the RG DS Plus's Stock Linux OS (experimental).
 - **[[Install on Android]]**: the APK, permissions and the `GBA DS` folder.
 - **[[Launching from Android frontends]]**: GammaOS, Daijisho, ES-DE and other launchers, with the intent arguments they need.
 

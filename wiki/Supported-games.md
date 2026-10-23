@@ -117,7 +117,7 @@ Preliminary, the USA release only for now (the European and Japanese releases ar
 
 ## Coming soon
 
-These games are in the game list, but their second screens are still being built, after the DS versions of each series. For now the game plays on one screen and the other shows the game's name.
+These games are in the game list, but their second screens are still being built, after the DS versions of each series. For now the game plays on one screen and the other shows the game's logo (Tactics Ogre, USA: taken from the title screen) or, until it has one, its name.
 
 - **Tactics Ogre: The Knight of Lodis** (USA; Japan: Tactics Ogre Gaiden)
 - **Fire Emblem** (Europe, Japan: Rekka no Ken; the USA release is above)

@@ -206,7 +206,7 @@ Android session at the same time. To keep them from colliding:
   0 if a profile exists): GBA DS (banana-perf performance), else the
   original line. Off restores it; the copy is deleted if ours and unchanged.
   banana-ui hands both panels to any run line without "run-retroarch".
-- **Anbernic's own Linux** on the RG DS Plus (Buildroot, weston, two
+- **The Stock Linux OS** (Anbernic's own) on the RG DS Plus (Buildroot, weston, two
   windows): launch.sh's "another system" branch. Ports in `/mnt/mmc/Ports`,
   ROMs `/mnt/mmc/Roms/GBA`. Touch: `anbernic_misc/tpctrl` 0 (on) for the run
   (its DS emulator does the same), read straight from the gt9xx device

@@ -994,10 +994,19 @@ static const MapProfile profiles[] = {
 			           { 0, 18, 30, 118, 0, 0, 'M', 80 } },
 		},
 	},
-	/* Preliminary: listed, second screen to come (a UI after the DS games);
-	 * no ROMs yet, so no logo extraction: the title stands in for it. */
+	/* Preliminary: listed, second screen to come (a UI after the DS games),
+	 * the logo meanwhile. */
 	{
-		.codes = { "ATOE", "ATOJ" },
+		.codes = { "ATOE" },
+		.title = "Tactics Ogre: The Knight of Lodis",
+		.logoOnly = true,
+		/* the title's lettering (BG2) and The Knight of Lodis (sprites, above
+		 * PUSH START), not the emblem behind or OGRE BATTLE SAGA (BG1) */
+		.logo = { .steps = { { 0, 480 }, { K_START, 4 }, { 0, 50 } }, .layers = 0x14, .maxY = 90 },
+	},
+	{
+		/* Japan (Tactics Ogre Gaiden): no ROM tried yet, so its name stands in */
+		.codes = { "ATOJ" },
 		.title = "Tactics Ogre: The Knight of Lodis",
 		.logoOnly = true,
 	},

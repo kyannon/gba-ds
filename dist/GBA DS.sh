@@ -1,5 +1,5 @@
 #!/bin/bash
-# Ports entry for GBA DS (ROCKNIX, BananaOS, the RG DS's own Linux). Opens the game library, which
+# Ports entry for GBA DS (ROCKNIX, BananaOS, the RG DS Plus's Stock Linux OS). Opens the game library, which
 # lists every .gba in the GBA ROM folder (and its subfolders) each time it starts.
 # launch.sh is run with bash, not started directly, so it works even when
 # the files lost their permissions on the way (unzipped on a computer and

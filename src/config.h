@@ -48,7 +48,7 @@ typedef struct Config {
 	char touchScreen[16]; /* first | second: which screen has the touch panel */
 	char touchMap[16];    /* window | screen: how touch coordinates map */
 	/* Read the touchscreen straight from this input device (/dev/input/eventN)
-	 * instead of SDL's touches (the RG DS Plus's own Linux: weston hands
+	 * instead of SDL's touches (the RG DS Plus's Stock Linux OS: weston hands
 	 * GBA DS none); its coordinates are fractions of the touch screen.
 	 * touch_rotate: 0, 90, 180 or 270 degrees; -1: by the panel's shape. */
 	char touchDevice[128];
