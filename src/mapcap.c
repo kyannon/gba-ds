@@ -101,11 +101,14 @@ static bool screen_matches(const MapProfile* p, const uint32_t* fb) {
 	return true;
 }
 
+uint32_t (*memprobe_virtual)(Emu* e, uint32_t addr);
+
 bool memprobes_match(const MemProbe* list, int n, Emu* e) {
 	for (int i = 0; i < n && list[i].addr; ++i) {
 		const MemProbe* m = &list[i];
 		uint32_t v;
-		switch (m->size) {
+		if (m->addr >= 0xF0000000u) v = memprobe_virtual ? memprobe_virtual(e, m->addr) : 0;
+		else switch (m->size) {
 		case 2: v = emu_read16(e, m->addr); break;
 		case 4: v = emu_read32(e, m->addr); break;
 		default: v = emu_read8(e, m->addr); break;
@@ -733,6 +736,7 @@ MapCapture* mapcap_create(const char* romPath, const char* gameCode, bool tight)
 	}
 	MapCapture* mc = calloc(1, sizeof(*mc));
 	mc->prof = p;
+	memprobe_virtual = p->virt;
 	if (!emu_open(&mc->shadow, romPath, NULL, false)) {
 		free(mc);
 		return NULL;

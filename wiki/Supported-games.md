@@ -102,10 +102,11 @@ Preliminary, the USA release only for now (the European release is listed, with 
 
 Preliminary, the USA release only for now (the European and Japanese releases are listed, with the name on the second screen).
 
-- **On the map,** the windows the game puts in the corners (whichever corners the cursor leaves free) move to fixed places on the second screen: the **unit** under the cursor at the top left, the **terrain** at the top right, the **goal** and enemies left at the bottom left. The **minimap** from the START button is at the bottom right, brought up in the background in a silent copy of the game.
-- The unit window goes when the cursor is on an empty place. While a unit is selected, in menus and in conversations, the second screen keeps what it showed.
-- The game's logo, small and dimmed, is always in the middle of the second screen, behind the windows.
-- **In a fight and on the other armies' turns,** the second screen is the dark background with the logo alone.
+- **Always,** the second screen is a dark background with the game's logo, small and dimmed, in the middle (on the title screen and in menus too).
+- **On the map,** the windows the game puts in the corners (whichever corners the cursor leaves free) move to fixed places on the second screen: the **unit** under the cursor at the top left, the **goal** and enemies left at the top right, the **terrain** at the bottom left. The **minimap** from the START button is at the bottom right, brought up in the background in a silent copy of the game; when it can't be (in a conversation), the chapter's last one stays.
+- The unit window goes when the cursor is on an empty place. While a unit is selected and in menus, the second screen keeps what it showed, and the menus stay on the game screen.
+- **Conversations** (the speech bubble, its text and the portraits) and the **tutorial's** boxes move to the second screen as they are, where they were on the game screen, with the windows and the minimap out of their way until they're done.
+- **In a fight and on the other armies' turns,** the second screen is the background with the logo alone.
 
 ## Mega Man Battle Network
 

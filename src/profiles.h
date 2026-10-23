@@ -58,6 +58,12 @@ typedef struct {
 	 * the HUD is on (Fire Emblem's unit window: the cursor on an empty
 	 * place); 0: kept */
 	int dropAfter;
+	/* hud.overMap: placed where it is on the game screen (the game screen
+	 * centred in the map picture) instead of by how / vhow */
+	bool asIs;
+	/* hud.overMap: while it's there, the other pieces aren't drawn, and it
+	 * goes over everything (Fire Emblem's conversations) */
+	bool alone;
 } HudMove;
 
 /* Bytes written into the ROM when the game starts, if the ROM holds `orig`
@@ -288,10 +294,14 @@ typedef struct MapProfile {
 		 * picture (box[m] = x0, y0, x1, y1; x1 < 0: not there), for HUDs
 		 * whose pieces move round the screen (Fire Emblem's windows),
 		 * instead of the moves' own boxes */
-		void (*findPieces)(const uint32_t* hud, uint32_t clear, int box[4][4]);
+		void (*findPieces)(Emu* e, const uint32_t* hud, uint32_t clear, int box[4][4]);
 		/* hud.overMap: the logo, small and dimmed, behind everything in
 		 * the map picture (as in a fight: profile.combat) */
 		bool logoUnder;
+		/* with logoUnder: that picture (the logo, small and dimmed) also
+		 * stands in for the big logo wherever there's no map picture,
+		 * outside the game's chapters too (Fire Emblem) */
+		bool logoAlways;
 	} hud;
 
 	/* Title-screen logo, pulled out of the running game: boot, wait, optionally
@@ -384,6 +394,10 @@ typedef struct MapProfile {
 	 * the live game's state; NULL on success, else why not (Advance Wars:
 	 * the unit list or the battle intel, with the minimap below). */
 	const char* (*compose)(Emu* s, const void* state, uint32_t* out, int w, int h);
+	/* Values computed from the game's memory, read by MemProbes at
+	 * addresses from 0xF0000000 (memprobe_virtual, mapcap.h): Fire
+	 * Emblem's processes, which move between slots. */
+	uint32_t (*virt)(Emu* e, uint32_t addr);
 	/* While every probe matches (a fight), the second screen is the map
 	 * picture's background colour (hud.mapClear) with the game's logo,
 	 * small and dimmed, in the middle. */
@@ -399,5 +413,8 @@ bool profile_patch_rom(const MapProfile* p, Emu* e);
  * (cheat codes made for other regions would write the wrong addresses). */
 bool profile_ram_moved(const char* gameCode);
 bool memprobes_match(const MemProbe* list, int n, Emu* e);
+/* the profile's virt (set when a game's map capture starts): MemProbe
+ * addresses from 0xF0000000 */
+extern uint32_t (*memprobe_virtual)(Emu* e, uint32_t addr);
 
 #endif

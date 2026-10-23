@@ -1292,11 +1292,11 @@ static bool hud_take_pieces(const typeof(hudProf->hud)* h) {
 	uint32_t clear = emu_hud_clear();
 	bool changed = false, seen[4] = { false };
 	int found[4][4];
-	if (h->findPieces) h->findPieces(hudPx, clear, found);
+	if (h->findPieces) h->findPieces(&emu, hudPx, clear, found);
 	for (int m = 0; m < 4; ++m) {
 		const HudMove* mv = &h->moves[m];
 		Piece* pc = &pieces[m];
-		if (!mv->how && !mv->vhow) continue;
+		if (!mv->how && !mv->vhow && !mv->asIs) continue;
 		int bx0 = mv->x0, by0 = mv->y0, bx1 = mv->x1, by1 = mv->y1;
 		if (h->findPieces) bx0 = found[m][0], by0 = found[m][1], bx1 = found[m][2], by1 = found[m][3];
 		int lo = GBA_W, hi = -1, top = GBA_H, bot = -1;
@@ -1842,14 +1842,21 @@ static const uint32_t* hud_over_map(const uint32_t* px) {
 	memcpy(over, px, (size_t) mapW * mapH * 4);
 	uint32_t mc = h->mapClear & 0xFFFFFF;
 	int px0[4] = { 0 }, py0[4] = { 0 };
+	/* a piece that goes alone (a conversation): the others wait */
+	int alone = -1;
+	for (int m = 0; m < 4; ++m) {
+		if (h->moves[m].alone && pieces[m].valid) alone = m;
+	}
 	for (int k = 0; k < 8; ++k) {
 		int m = k & 3;
 		const HudMove* mv = &h->moves[m];
 		const Piece* pc = &pieces[m];
 		/* the pieces, then the ones that follow them (over everything) */
-		if (!pc->valid || (k < 4) == (mv->follow > 0)) continue;
+		if (!pc->valid || (k < 4) == (mv->follow > 0 || mv->alone)) continue;
+		if (alone >= 0 && m != alone) continue;
 		int x0 = mv->how == 'C' ? mv->x - (pc->w - 1) / 2 : mv->how == 'R' ? mv->x - pc->w + 1 : mv->x;
 		int y0 = mv->vhow == 'M' ? mv->y - (pc->h - 1) / 2 : mv->vhow == 'B' ? mv->y - pc->h + 1 : mv->y;
+		if (mv->asIs) x0 = pc->sx + (mapW - GBA_W) / 2, y0 = pc->sy + (mapH - GBA_H) / 2;
 		if (mv->follow) {
 			int a = mv->follow - 1;
 			if (!pieces[a].valid) continue;
@@ -1874,7 +1881,7 @@ static const uint32_t* hud_over_map(const uint32_t* px) {
 				int nx = x0 + x, ny = y0 + y;
 				if (!c || nx < 0 || ny < 0 || nx >= mapW || ny >= mapH) continue;
 				uint32_t* o = &over[ny * mapW + nx];
-				if (mv->follow || (*o & 0xFFFFFF) == mc || (*o & 0xFFFFFF) == bc) *o = c;
+				if (mv->follow || mv->alone || (*o & 0xFFFFFF) == mc || (*o & 0xFFFFFF) == bc) *o = c;
 			}
 		}
 	}
@@ -2322,7 +2329,7 @@ static void draw_game(void) {
 		}
 		/* the map screen */
 		/* (and with hud.logoUnder, on the map before there's a map picture) */
-		bool logoBack = combatProf && combatProf->hud.logoUnder && mapShownIdx < 0 && combatInGame;
+		bool logoBack = combatProf && combatProf->hud.logoUnder && mapShownIdx < 0 && (combatInGame || combatProf->hud.logoAlways);
 		if ((combatOn || logoBack) && (combatTex[0] || combatTex[1])) {
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
 			ui_image_pixels(s, combatTex, mapW, mapH, cfg->mapScale, cfg->lcdGrid ? 1 : 0);
@@ -2598,6 +2605,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 #endif
 		mc = mapcap_create(rom, emu.gameCode, cfg->mapCrop);
 		const MapProfile* lp = profile_find(emu.gameCode);
+		memprobe_virtual = lp ? lp->virt : NULL;
 		logoOnly = lp && lp->logoOnly;
 		snapProf = logoOnly && lp->snap.showMin ? lp : NULL;
 		/* the HUD moves only when there's another screen to put it on */
@@ -3289,7 +3297,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			/* a fight: after a few frames of it, not on one odd frame */
 			static int streak;
 			combatInGame = combatProf->hud.on[0].addr && memprobes_match(combatProf->hud.on, 1, &emu);
-			if (combatInGame && combatProf->hud.logoUnder && !combatMade) make_combat_canvas();
+			if ((combatInGame || combatProf->hud.logoAlways) && combatProf->hud.logoUnder && !combatMade) make_combat_canvas();
 			bool c = memprobes_match(combatProf->combat, 2, &emu) ||
 			         (combatProf->combatOr[0].addr && memprobes_match(combatProf->combatOr, 2, &emu));
 			streak = c != combatOn ? streak + 1 : 0;

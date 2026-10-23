@@ -391,23 +391,47 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 
 /* ----------------------------------------------------------- Fire Emblem
  *
- * The second screen, after the DS games: the minimap (START) at the
- * bottom right (fe_compose, on the shadow core), with the windows the
- * game puts in the corners of the map (the hovered unit, the terrain, the
- * goal) taken off the game screen and kept in corners of their own
- * (fe_find_pieces tells them apart wherever they are). (USA addresses.) */
+ * The second screen: the game's logo, small and dimmed (hud.logoAlways),
+ * with the minimap (the map menu's, brought up on the shadow core:
+ * fe_compose) at the bottom right; on the map, the windows the game puts
+ * in whichever corners the cursor leaves free (the unit, the goal, the
+ * terrain) taken off the game screen and kept in corners of their own
+ * (fe_find_pieces); conversations and the tutorial's boxes go there as
+ * they are, over everything. (USA addresses.)
+ *
+ * What the game is doing comes from its processes (the engine's "procs":
+ * 64 slots of 0x6C bytes from FE_PROCS, each starting with its script's
+ * start and current position), found by script wherever they are. */
 #define FE_CHAPTER 0x0202BBF8 /* the chapter's data: 0 off the map (its play time) */
 #define FE_IN_CHAPTER { FE_CHAPTER, 0xFFFFFFFF, 1, 4, true, 0xFFFFFFFF, true }
 #define FE_TURN 0x0202BC07   /* whose turn: 0 yours, 0x40 other, 0x80 the enemy's */
-#define FE_PHASE 0x020253A8  /* the player phase's script position */
-#define FE_PHASE_MIN 0x08B93300 /* (on the map: within these) */
-#define FE_PHASE_MAX 0x08B93700
-#define FE_IDLE 0x08B933E4   /* the cursor free */
+#define FE_PROCS 0x02024E28
+#define FE_P_PHASE 0x08B93374 /* the player phase */
+#define FE_IDLE 0x08B933E4   /* (its position) the cursor free */
 #define FE_MINI 0x08B933C4   /* the minimap (and the map menu) */
 #define FE_FIGHT 0x08B93464  /* a fight */
+#define FE_P_EVENT 0x08B90D88 /* the event engine: a conversation, the tutorial */
+/* virtual addresses (fe_virt) */
+#define FE_V_PHASE 0xF0000001 /* the player phase's position, 0 if it isn't running */
+#define FE_V_HUD 0xF0000002   /* 1: the cursor free (the windows), 2: an event (talk), 0 */
 
-static uint32_t fe_phase(Emu* s) {
-	return emu_read32(s, FE_PHASE);
+/* The current position of the process running `start`, 0 if none is. */
+static uint32_t fe_proc(Emu* e, uint32_t start) {
+	for (int i = 0; i < 64; ++i) {
+		uint32_t a = FE_PROCS + i * 0x6C;
+		if (emu_read32(e, a) == start) return emu_read32(e, a + 4);
+	}
+	return 0;
+}
+
+static uint32_t fe_virt(Emu* e, uint32_t addr) {
+	switch (addr) {
+	case FE_V_PHASE: return fe_proc(e, FE_P_PHASE);
+	case FE_V_HUD:
+		if (fe_proc(e, FE_P_EVENT)) return 2;
+		return fe_proc(e, FE_P_PHASE) == FE_IDLE ? 1 : 0;
+	}
+	return 0;
 }
 
 /* The minimap's box: BG0 (its units) and BG1 (the map) rendered alone,
@@ -450,29 +474,47 @@ static bool fe_minimap(Emu* s, void* tmp, uint32_t* mm, int* mw, int* mh) {
 	return ok;
 }
 
+/* The map picture: the background (the logo goes on it: hud.logoUnder)
+ * with the minimap at the bottom right, opened with START once the cursor
+ * is free (B out of whatever's open first, on this copy of the game).
+ * When it can't be opened (a conversation, the other armies' turns), the
+ * chapter's last one stands in, or none: the picture is always made, so
+ * the pieces always have somewhere to go. */
+#define FE_CHAPTER_NO 0x0202BC06
 static const char* fe_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
-	static uint32_t mm[GBA_W * GBA_H];
+	static uint32_t mm[GBA_W * GBA_H], last[GBA_W * GBA_H];
+	static int lastW, lastH, lastChapter = -1;
 	int mw = 0, mh = 0;
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
-	uint32_t ph = fe_phase(s);
-	if (ph < FE_PHASE_MIN || ph >= FE_PHASE_MAX) return "not on the map";
-	/* B until the cursor's free (out of a move, a menu) */
-	for (int i = 0; i < 16 && fe_phase(s) != FE_IDLE; ++i) {
-		aw_tap(s, K_B, 1);
-		aw_run(s, 0, 8);
+	int chapter = emu_read8(s, FE_CHAPTER_NO);
+	if (chapter != lastChapter) lastW = lastH = 0, lastChapter = chapter;
+	bool ok = false;
+	if (fe_proc(s, FE_P_PHASE)) {
+		for (int i = 0; i < 16 && fe_proc(s, FE_P_PHASE) != FE_IDLE; ++i) {
+			aw_tap(s, K_B, 1);
+			aw_run(s, 0, 8);
+		}
+		if (fe_proc(s, FE_P_PHASE) == FE_IDLE) {
+			aw_tap(s, K_START, 1);
+			int f = 0;
+			while (f < 40 && fe_proc(s, FE_P_PHASE) != FE_MINI) emu_frame(s, 0), ++f;
+			if (fe_proc(s, FE_P_PHASE) == FE_MINI) {
+				aw_run(s, 0, 24);
+				void* tmp = malloc(emu_state_size(s));
+				if (!tmp) return "out of memory";
+				ok = fe_minimap(s, tmp, mm, &mw, &mh);
+				free(tmp);
+			}
+		}
 	}
-	if (fe_phase(s) != FE_IDLE) return "the cursor isn't free";
-	aw_tap(s, K_START, 1);
-	int f = 0;
-	while (f < 40 && fe_phase(s) != FE_MINI) emu_frame(s, 0), ++f;
-	if (fe_phase(s) != FE_MINI) return "minimap did not open";
-	aw_run(s, 0, 24);
-	void* tmp = malloc(emu_state_size(s));
-	if (!tmp) return "out of memory";
-	bool ok = fe_minimap(s, tmp, mm, &mw, &mh);
-	free(tmp);
-	if (!ok) return "minimap did not open";
+	if (ok) {
+		memcpy(last, mm, (size_t) mw * mh * 4);
+		lastW = mw, lastH = mh;
+	} else {
+		memcpy(mm, last, (size_t) lastW * lastH * 4);
+		mw = lastW, mh = lastH;
+	}
 	for (int i = 0; i < w * h; ++i) out[i] = MAP_BG_NAVY;
 	int mx = w - 4 - mw, my = h - 4 - mh;
 	if (mx < 0) mx = 0;
@@ -481,16 +523,23 @@ static const char* fe_compose(Emu* s, const void* state, uint32_t* out, int w, i
 	return NULL;
 }
 
-/* The windows in the HUD picture (BG0 and BG1): groups of 8x8 cells with
- * something in them, joined where they touch. The terrain's is narrow (and
- * tall, with its dragon); of the wide ones the goal's is blue inside, the
- * unit's pale. Moves: 0 the unit, 1 the terrain, 2 the goal. */
-static void fe_find_pieces(const uint32_t* hud, uint32_t clear, int box[4][4]) {
+/* The pieces in the HUD picture (BG0, BG1 and the sprites that go with
+ * them). In an event, everything there is one piece (3: a conversation,
+ * a tutorial box), kept where it is. Otherwise the windows: groups of 8x8
+ * cells with something in them, joined where they touch. The terrain's is
+ * narrow (and tall, with its dragon); of the wide ones the unit's is pale
+ * inside, the goal's dark. Moves: 0 the unit, 1 the goal, 2 the terrain. */
+static void fe_find_pieces(Emu* e, const uint32_t* hud, uint32_t clear, int box[4][4]) {
 	enum { CW = GBA_W / 8, CH = GBA_H / 8 };
 	static uint8_t cell[CH][CW];
 	static int stack[CW * CH];
 	for (int m = 0; m < 4; ++m) box[m][0] = box[m][1] = 0, box[m][2] = box[m][3] = -1;
+	if (fe_virt(e, FE_V_HUD) == 2) {
+		box[3][0] = 0, box[3][1] = 0, box[3][2] = GBA_W - 1, box[3][3] = GBA_H - 1;
+		return;
+	}
 	int best[4] = { 0 };
+	int wide[4][4], wideLum[4], nWide = 0;
 	for (int cy = 0; cy < CH; ++cy) {
 		for (int cx = 0; cx < CW; ++cx) {
 			bool any = false;
@@ -526,27 +575,38 @@ static void fe_find_pieces(const uint32_t* hud, uint32_t clear, int box[4][4]) {
 			}
 			if (cells < 6) continue; /* a stray bit */
 			int x0 = gx0 * 8, y0 = gy0 * 8, x1 = gx1 * 8 + 7, y1 = gy1 * 8 + 7;
-			int which;
 			if (x1 - x0 + 1 < 64) {
-				which = 1;
-			} else {
-				int blue = 0, total = 0;
-				for (int y = y0; y <= y1; ++y) {
-					for (int x = x0; x <= x1; ++x) {
-						uint32_t c = hud[y * GBA_W + x];
-						if ((c & 0xFFFFFF) == clear) continue;
-						int r = c & 0xFF, g = (c >> 8) & 0xFF, b = (c >> 16) & 0xFF;
-						blue += b > r + 40 && b > g + 20;
-						++total;
-					}
-				}
-				which = blue * 4 > total ? 2 : 0;
+				/* the terrain's: narrow */
+				if (cells > best[2]) best[2] = cells, box[2][0] = x0, box[2][1] = y0, box[2][2] = x1, box[2][3] = y1;
+				continue;
 			}
-			if (cells <= best[which]) continue;
-			best[which] = cells;
-			box[which][0] = x0, box[which][1] = y0, box[which][2] = x1, box[which][3] = y1;
+			long lum = 0, total = 0;
+			for (int y = y0; y <= y1; ++y) {
+				for (int x = x0; x <= x1; ++x) {
+					uint32_t c = hud[y * GBA_W + x];
+					if ((c & 0xFFFFFF) == clear) continue;
+					lum += (c & 0xFF) + ((c >> 8) & 0xFF) + ((c >> 16) & 0xFF);
+					++total;
+				}
+			}
+			if (nWide < 4) {
+				wide[nWide][0] = x0, wide[nWide][1] = y0, wide[nWide][2] = x1, wide[nWide][3] = y1;
+				wideLum[nWide++] = total ? (int) (lum / total / 3) : 0;
+			}
 		}
 	}
+	/* the wide ones: the unit's box is the paler (with only one, pale
+	 * enough), the goal's the darker */
+	int pale = -1, dark = -1;
+	for (int i = 0; i < nWide; ++i) {
+		if (pale < 0 || wideLum[i] > wideLum[pale]) pale = i;
+	}
+	for (int i = 0; i < nWide; ++i) {
+		if (i != pale && (dark < 0 || wideLum[i] < wideLum[dark])) dark = i;
+	}
+	if (nWide == 1 && wideLum[pale] < 145) dark = pale, pale = -1;
+	if (pale >= 0) memcpy(box[0], wide[pale], sizeof(box[0]));
+	if (dark >= 0) memcpy(box[1], wide[dark], sizeof(box[1]));
 	/* (cells left at 2: cleared on the next call) */
 	for (int cy = 0; cy < CH; ++cy) {
 		for (int cx = 0; cx < CW; ++cx) cell[cy][cx] = 0;
@@ -1011,36 +1071,44 @@ static const MapProfile profiles[] = {
 		.logoOnly = true,
 	},
 	{
-		/* USA: the second screen is the minimap (fe_compose) with the map's
-		 * windows moved onto it (fe_find_pieces) */
+		/* USA: see fe_compose and fe_find_pieces */
 		.codes = { "AE7E" },
 		.title = "Fire Emblem",
+		.virt = fe_virt,
 		.compose = fe_compose,
 		.crop_w = 320, /* 3x on 1024x768, 2x on 640x480 */
 		.crop_h = 240,
 		.live = { FE_IN_CHAPTER, { FE_TURN, 0xFF, 0, 1 } },
 		.menu = { { FE_CHAPTER, 0xFFFFFFFF, 0, 4 } },
-		/* the windows (BG0 text over BG1 boxes), moved wherever the game
-		 * puts them: the unit's at the top left, the terrain's at the top
-		 * right, the goal at the bottom left; kept while they're hidden
-		 * (a unit selected, menus, talk, fights) */
 		.hud = {
-			.on = { FE_IN_CHAPTER, { FE_PHASE, 0xFFFFFFFF, FE_IDLE, 4 } },
+			/* the cursor free (the windows), or an event (talk, the
+			 * tutorial); the second screen keeps what it showed while a
+			 * unit's selected and in menus */
+			.on = { FE_IN_CHAPTER, { FE_V_HUD, 0xFF, 1, 4, true, 2, true } },
 			.bgMask = 0x3,
-			/* and the unit's HP figures, sprites (tiles 728-740, palette 8) */
-			.objs = { { -64, -32, 239, 159, 720, 760, 0, 1u << 8 } },
-			/* (the unit's goes when the cursor's on an empty place) */
-			.moves = { { 0, 0, 0, 0, 'L', 4, 'T', 4, .settle = 4, .dropAfter = 4 }, { 0, 0, 0, 0, 'R', 315, 'T', 4, .settle = 4 },
-			           { 0, 0, 0, 0, 'L', 4, 'B', 235, .settle = 4 } },
+			.objs = {
+				{ -64, -32, 239, 159, 720, 760, 0, 1u << 8 }, /* the unit's HP figures */
+				{ -64, -64, 239, 159, 768, 1023, 2, 3u << 6 }, /* talking portraits */
+				{ -64, -64, 239, 159, 384, 700, 0, 1u << 5 }, /* the tutorial's boxes */
+				{ -8, -8, 239, 159, 4, 4, 0, 1u << 0 }, /* the speech bubble's arrow */
+			},
+			/* the unit's at the top left (gone when the cursor's on an
+			 * empty place), the goal at the top right, the terrain at the
+			 * bottom left; an event's as it is, alone */
+			.moves = { { 0, 0, 0, 0, 'L', 4, 'T', 4, .settle = 4, .dropAfter = 4 },
+			           { 0, 0, 0, 0, 'R', 315, 'T', 4, .settle = 4 },
+			           { 0, 0, 0, 0, 'L', 4, 'B', 235, .settle = 4 },
+			           { 0, 0, 0, 0, 0, 0, 0, 0, .asIs = true, .alone = true, .dropAfter = 2 } },
 			.findPieces = fe_find_pieces,
 			.overMap = true,
 			.mapClear = MAP_BG_NAVY,
 			/* the boxes are see-through (BG1 blended over the map): opaque there */
 			.gameReg = { 0x50, 0x0002 },
 			.logoUnder = true,
+			.logoAlways = true,
 		},
 		/* fights, and the other armies' turns: the logo alone */
-		.combat = { { FE_PHASE, 0xFFFFFFFF, FE_FIGHT, 4 } },
+		.combat = { { FE_V_PHASE, 0xFFFFFFFF, FE_FIGHT, 4 } },
 		.combatOr = { FE_IN_CHAPTER, { FE_TURN, 0xFF, 0x40, 1, true, 0xFF, true } },
 		/* the title's lettering and sword (sprites), its shadow (BG1)
 		 * and axe (BG2), not the copyright line */
