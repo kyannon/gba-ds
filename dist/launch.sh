@@ -129,12 +129,12 @@ if ! grep -qi rocknix /etc/os-release 2>/dev/null && [ ! -d /storage/.config/sys
 		[ -n "$GBA" ] && O+=("--rom-dir=$GBA")
 	fi
 	[ "$(cfgval screenshot_dir)" = /storage/roms/screenshots ] && mkdir -p "$DIR/screenshots" && O+=("--screenshot-dir=$DIR/screenshots")
-	# Sound: SDL plays through ALSA there. Its default device was silent at
-	# times (one sound card of two, PulseAudio holding the speaker's?), so
-	# ALSA's "pulse" device when PulseAudio is running, which plays wherever
-	# the system's sound goes (GBA DS falls back to the default if it won't
-	# open). The volume keys, which the system leaves to the program running,
-	# set GBA DS's own volume, kept here.
+	# Sound: SDL plays through ALSA there, whose default device is
+	# PulseAudio's (/etc/asound.conf); named here too in case that changes.
+	# Twice a run was silent with no error, cause unknown: the log's sound
+	# snapshot (below) shows the sinks and which card is playing. The volume
+	# keys, which the system leaves to the program running, set GBA DS's own
+	# volume, kept here.
 	if [ -z "$PULSE_SERVER" ]; then
 		for s in /tmp/pulse-socket "$XDG_RUNTIME_DIR/pulse/native" /var/run/pulse/native; do
 			[ -S "$s" ] && export PULSE_SERVER="unix:$s" && break

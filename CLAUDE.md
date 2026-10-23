@@ -210,7 +210,7 @@ Android session at the same time. To keep them from colliding:
   windows): launch.sh's "another system" branch. Ports in `/mnt/mmc/Ports`,
   ROMs `/mnt/mmc/Roms/GBA`. Touch: `anbernic_misc/tpctrl` 0 (on) for the run
   (its DS emulator does the same), read straight from the gt9xx device
-  (`touch_device`). Sound: SDL's ALSA (through PulseAudio it was silent);
+  (`touch_device`). Sound: SDL's ALSA, whose default (/etc/asound.conf) is PulseAudio; AUDIODEV=pulse too. Two runs were silent with no error, cause unknown (launch.sh logs the sinks 20 s in);
   the volume keys are raw buttons 16/15 and set GBA DS's own volume
   (GBADS_VOLUME file, GBADS_VOLUME_BUTTONS); the menu's volume can't be read.
   No EmulationStation (Settings hides that row when no es_systems.cfg exists).
