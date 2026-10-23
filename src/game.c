@@ -266,6 +266,7 @@ typedef struct {
 } Piece;
 static Piece pieces[4];
 static void upload_map_frame(int idx);
+static const uint32_t* hud_over_map(const uint32_t* px);
 static void make_combat_canvas(void);
 static uint32_t hudLogoBelow[HUD_CW * HUD_CH]; /* profile hud.logoBelow: black, the logo at half size */
 static bool hudLogoBelowDone;
@@ -1452,7 +1453,18 @@ static void update_hud(void) {
 		if (changed || any != overOn) {
 			overOn = any;
 			overDirty = true;
-			if (mapShownIdx >= 0) upload_map_frame(mapShownIdx);
+			if (mapShownIdx >= 0) {
+				upload_map_frame(mapShownIdx);
+			} else if (h->logoUnder && combatPx && (combatTex[0] || combatTex[1])) {
+				/* no map picture yet (the other armies' turn, after loading
+				 * a state): a piece that goes alone (a conversation) on the
+				 * logo picture itself */
+				const uint32_t* px = hud_over_map(combatPx);
+				if (!overAlone) px = combatPx;
+				for (int i = 0; i < nViews; ++i) {
+					if (combatTex[i]) ui_update_texture(combatTex[i], px, mapW * 4);
+				}
+			}
 		}
 	} else if (hudOn && race) {
 		if (emu_hud_grabbed()) hud_make_backdrop(); /* (that frame drew no HUD: the last one is reused) */

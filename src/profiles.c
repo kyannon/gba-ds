@@ -411,6 +411,7 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 #define FE_MINI 0x08B933C4   /* the minimap (and the map menu) */
 #define FE_FIGHT 0x08B93464  /* a fight */
 #define FE_P_EVENT 0x08B90D88 /* the event engine: a conversation, the tutorial */
+#define FE_P_BATTLE 0x08B9A99C /* a fight's battle scene (any army's turn) */
 #define FE_P_BANNER 0x08B937AC /* ENEMY PHASE / PLAYER PHASE across the map */
 #define FE_MENU 0x08B93444   /* (the player phase's position) a unit's menu: Attack, Wait... */
 /* virtual addresses (fe_virt) */
@@ -458,7 +459,7 @@ static bool fe_units_shown(Emu* e) {
  * no units on screen, outside a fight. */
 static bool fe_off_map(Emu* e) {
 	if (!emu_read32(e, FE_CHAPTER)) return true;
-	return fe_proc(e, FE_P_EVENT) && fe_proc(e, FE_P_PHASE) != FE_FIGHT && !fe_units_shown(e);
+	return fe_proc(e, FE_P_EVENT) && fe_proc(e, FE_P_PHASE) != FE_FIGHT && !fe_proc(e, FE_P_BATTLE) && !fe_units_shown(e);
 }
 
 /* The tutorial's boxes and a unit's own small speech bubbles (no
