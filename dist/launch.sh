@@ -165,68 +165,14 @@ if ! grep -qi rocknix /etc/os-release 2>/dev/null && [ ! -d /storage/.config/sys
 	n=0; for c in /sys/class/drm/card*-*/status; do grep -q '^connected' "$c" 2>/dev/null && n=$((n + 1)); done
 	[ $n -ge 2 ] && case "$(cfgval touch_map)" in window|"") O+=(--touch-map=screen) ;; esac
 	{
+		echo "system: $(sed -n 's/^PRETTY_NAME=//p' /etc/os-release 2>/dev/null | tr -d '"'), $(uname -r)"
 		echo "options: ${O[*]}"
 		echo "sound: volume $(cat "$GBADS_VOLUME" 2>/dev/null || echo 100)% (buttons ${GBADS_VOLUME_BUTTONS:-none})"
-		cat /proc/asound/cards 2>/dev/null
-		ls /etc/asound.conf /usr/share/alsa/alsa.conf.d 2>/dev/null
-		for c in 0 1; do command -v amixer >/dev/null && amixer -c $c scontents 2>/dev/null | grep -E "^Simple|Playback.*%" | head -n 16; done
-		[ -n "$TS" ] && echo "touchscreen $TS: tpctrl was ${TP_WAS:-none}, now $(cat "$TP" 2>/dev/null); inhibited was ${INH_WAS:-?}, now $(cat "$INH" 2>/dev/null)"
-		echo "--- system"
-		cat /etc/os-release 2>/dev/null | head -n 6
-		uname -a
-		echo "--- folders"
-		echo "this: $DIR"
-		mount | grep -iE 'mmc|sdcard|roms|/dev/sd' | head -n 12
-		ls -d /mnt/*/* /roms* 2>/dev/null | head -n 30
-		echo "--- screens and input"
-		for c in /sys/class/drm/card*-*; do [ -f "$c/status" ] && echo "$(basename "$c"): $(cat "$c/status") $(head -n 1 "$c/modes" 2>/dev/null)"; done
-		grep -E '^N: Name=|^H: Handlers=' /proc/bus/input/devices 2>/dev/null | paste - - | head -n 16
-		echo "--- environment"
-		env | grep -E '^(SDL_|WAYLAND|DISPLAY|XDG_|LD_)' | sort
-		ls -l /usr/lib/libSDL2* /usr/lib/aarch64-linux-gnu/libSDL2* 2>/dev/null | head -n 4
-		echo "--- running"
-		for p in /proc/[0-9]*; do head -c 100 "$p/cmdline" 2>/dev/null | tr '\0\n' '  '; echo; done | grep -v '^$' | sort -u | head -n 30
-		echo "---"
+		[ -n "$TS" ] && echo "touchscreen $TS: tpctrl was ${TP_WAS:-none}, now $(cat "$TP" 2>/dev/null)"
 	} >> "$LOG" 2>&1
-	# what the system's own programs do with the screens and the touchscreen,
-	# copied beside GBA DS for reports (gba-ds/report: small text files only)
-	R="$DIR/report"
-	rm -rf "$R"; mkdir -p "$R"
-	for f in /mnt/vendor/deep/drastic64/*.sh /mnt/vendor/deep/drastic64/config/*.cfg /mnt/vendor/ctrl/* /mnt/mod/ctrl/* /tmp/.next /etc/xdg/weston/weston.ini /etc/weston.ini /etc/init.d/S*weston* \
-	         /etc/udev/rules.d/* /lib/udev/rules.d/*touch* /lib/udev/rules.d/*input* /etc/profile /etc/profile.d/*; do
-		[ -f "$f" ] && [ "$(wc -c < "$f")" -lt 200000 ] && grep -qI . "$f" 2>/dev/null && cp "$f" "$R/$(echo "$f" | tr '/' '_')" 2>/dev/null
-	done
-	{
-		ls -laR /mnt/vendor/subscreen /mnt/vendor/ctrl /mnt/mod/ctrl 2>/dev/null | head -n 200
-		echo "--- gt9xx in sysfs"
-		for d in /sys/bus/i2c/drivers/*gt9* /sys/bus/i2c/drivers/*goodix*; do [ -d "$d" ] && ls -la "$d" "$d"/*/ 2>/dev/null; done | head -n 80
-		ls -la /sys/class/input/event1/device/ 2>/dev/null
-		echo "--- weston.log"
-		tail -n 120 /var/log/weston.log 2>/dev/null
-		echo "--- touch switches"
-		for f in /sys/class/anbernic_misc/*; do [ -f "$f" ] && echo "$(basename "$f") = $(head -c 60 "$f" 2>/dev/null | tr '\n' ' ')"; done
-		ls /proc 2>/dev/null | grep -iE 'gt9|goodix|touch|tp' | head
-		for b in /mnt/vendor/bin/ndsCtrl.dge /mnt/mmc/ndsCtrl.dge /mnt/vendor/bin/*.dge /mnt/vendor/deep/drastic64/drastic* /mnt/vendor/deep/drastic64/*.sh /etc/cexpert; do
-			[ -f "$b" ] && grep -aoE '(/sys|/proc|/dev|/tmp)/[A-Za-z0-9_./%-]+' "$b" 2>/dev/null | sort -u | grep -iE 'touch|tp|gt9|goodix|input|event|anbernic|weston|nds' | head -n 30 | sed "s|^|$(basename "$b"): |"
-		done
-		echo "--- dmesg (touch)"
-		dmesg 2>/dev/null | grep -iE 'gt9|goodix|touch|ts' | tail -n 40
-	} > "$R/system.txt" 2>&1
-	# whether the touchscreen's chip sees taps at all during the run (its
-	# interrupt count), and what else holds it open
-	touch_diag() {
-		[ -n "$TS" ] || return
-		local i2c; i2c=$(readlink -f "/sys/class/input/$TS/device/device" 2>/dev/null)
-		echo "touchscreen $TS ($1): interrupts: $(grep -iE 'gt9|goodix|i2c-5|5-0014' /proc/interrupts 2>/dev/null | tr -s ' ' | tr '\n' ';')"
-		echo "  i2c device: ${i2c:-?} driver $(basename "$(readlink "$i2c/driver" 2>/dev/null)" 2>/dev/null) power $(cat "$i2c/power/runtime_status" 2>/dev/null), inhibited $(cat "/sys/class/input/$TS/device/inhibited" 2>/dev/null)"
-		echo "  open by: $(for f in /proc/[0-9]*/fd/*; do [ "$(readlink "$f" 2>/dev/null)" = "/dev/input/$TS" ] && { p=${f#/proc/}; p=${p%%/*}; tr '\0' ' ' < "/proc/$p/cmdline" | head -c 60; echo -n '; '; }; done)"
-		[ "$1" = before ] && echo "  i2c device files: $(ls "$i2c" 2>/dev/null | tr '\n' ' ')"
-	}
-	touch_diag before >> "$LOG" 2>&1
+	rm -rf "$DIR/report" # (left by test builds)
 	./gba-ds "${O[@]}" "$@" >> "$LOG" 2>&1
-	rc=$?
-	touch_diag after >> "$LOG" 2>&1
-	exit $rc
+	exit $?
 fi
 
 # Second screen on and in place for the run (stock ROCKNIX keeps it off),

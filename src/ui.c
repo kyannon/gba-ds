@@ -506,7 +506,7 @@ static void evdev_touch_poll(void) {
 		for (int i = 0; i < (int) (n / sizeof(ie[0])); ++i) {
 			const struct input_event* e = &ie[i];
 			static int rawEv;
-			if (rawEv < 24 && e->type != EV_SYN) {
+			if (debug && rawEv < 24 && e->type != EV_SYN) {
 				++rawEv;
 				fprintf(stderr, "touch device event: type %d code %d value %d\n", e->type, e->code, e->value);
 			}
