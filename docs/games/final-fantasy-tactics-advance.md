@@ -24,9 +24,3 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 **FT-5. World map.** On the world map, notices, an area's info box, clan funds, the date and the L / R prompts move to the second screen over the map in grey; the game screen keeps the map, Marche and the towns.
 
 **FT-6. Logo elsewhere.** Everywhere else (the title, menus) the second screen shows the logo.
-
-## Not covered yet
-
-Rules no test case checks yet, and the fixture that would cover each:
-
-- **FT-4:** a state with a unit's Status screen open in a battle.

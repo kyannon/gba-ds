@@ -112,6 +112,42 @@
    }
   },
   {
+   "id": "ft-us-battle-status",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-battle-status.ss",
+   "desc": "a unit's Status screen open in a battle",
+   "rules": [
+    "FT-4"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "FT-4",
+     "what": "the Status is whole on the game screen",
+     "type": "not_uniform",
+     "screen": "game",
+     "shot": "end",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "000000",
+     "frac": 0.5
+    },
+    {
+     "rule": "FT-4",
+     "what": "none of it on the second screen",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
    "id": "ft-logo-afxe",
    "kind": "logo",
    "rom": "AFXE",
