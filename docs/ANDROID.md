@@ -528,5 +528,3 @@ Player-facing Android changes since the last release, for the main session
 to move into CHANGELOG.md and the release notes (see CLAUDE.md, "More than
 one session"). Empty after each release.
 
-- **Map Buttons** in the game list's Settings on Android too: set each button by where it sits, for a controller GBA DS doesn't know or a button that does the wrong thing.
-- Map Buttons: its last screen now closes with a button press, not only a tap (all systems).
