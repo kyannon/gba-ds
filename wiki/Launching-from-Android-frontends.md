@@ -66,6 +66,18 @@ If the game doesn't start, try the path as an extra instead of the data URI:
 
 Then pick **GBA DS (Standalone)** as the emulator for the GBA system, or for single games, in ES-DE's menus.
 
+## Cocoon
+
+[Cocoon](https://cocoon-shell.com/) picks each platform's emulator from a list of players that comes with the app (its platform files, in Daijisho's format). GBA DS's entry for that list is in each release as `gba-ds-cocoon-player.json`, for Cocoon to add to its Game Boy Advance platform. Once Cocoon lists it, choose it in Cocoon's Settings: scroll to **Game Boy Advance**, then **Default Player** → **GBA DS**, and save.
+
+The entry starts GBA DS the same way as the other launchers here:
+
+| Field | Value |
+|---|---|
+| Name | `GBA DS` |
+| Arguments | `-n io.github.kyannon.gbads/.LauncherActivity -a android.intent.action.VIEW -d {file.uri} --activity-clear-task --activity-clear-top` |
+| Files | `.gba`, `.zip`, `.7z` |
+
 ## Any other launcher
 
 GBA DS accepts the game in any of these ways (it checks them in this order):

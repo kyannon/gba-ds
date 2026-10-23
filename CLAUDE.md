@@ -34,13 +34,17 @@ with photos and screenshots; nothing ships untested on the device.
   user-visible change, written for players (not implementation notes).
 - **Release:** merge `android` into `dev` if it has anything new. Set
   VERSION to `X.Y.Z` and date the changelog section, commit
-  "Release vX.Y.Z", push `dev`, push that commit to `main`. Two files:
+  "Release vX.Y.Z", push `dev`, push that commit to `main`. Three files:
   - the Linux zip, `gba-ds-vX.Y.Z-linux-aarch64.zip` (ROCKNIX and BananaOS),
     built from a fresh clone of the release commit (`scripts/build-rocknix.sh`);
   - the APK, `gba-ds-vX.Y.Z-android.apk`: the artifact of the Android
     workflow run for the release commit on `dev` (built and signed with the
     release key by CI; the owner downloads it from the run page, the zip
     holds the APK). Check that run shows no "debug-signed" warning.
+  - `gba-ds-cocoon-player.json`: `android/cocoon/gba-ds-player.json`, the
+    player entry for Cocoon's (Daijisho-format) Game Boy Advance platform
+    file (inssekt/CocoonFE platforms/GameBoyAdvance.json); keep its launch
+    arguments in step with LauncherActivity.
   Write release notes (What's new / Fixes / Install / upgrade, for both
   platforms, with the SHA-256 of both files; the APK's is the run's "APK
   SHA-256" annotation, readable from the run page or the public API:

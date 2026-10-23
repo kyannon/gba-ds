@@ -9,6 +9,7 @@
 - **GBA DS closing straight back to Ports with no log:** GBA DS now starts even when its files lost their permissions on the way to the device (unzipped on a computer, then copied over a network share or MTP), and on cards that don't let programs run it runs from a copy in memory. Either way the log says so.
 - **Map Buttons (Settings, on Linux):** GBA DS asks for each button in turn (tap to skip ones a device doesn't have) and uses the result straight away, kept for that controller. The log has the mapping, so it can be built into GBA DS for everyone with that device.
 - **Advance Wars and Fire Emblem:** during a fight, the second screen shows the game's logo, small and dimmed, on the dark background.
+- **Android: Cocoon.** Each release has a player entry for the Cocoon launcher's Game Boy Advance list (`gba-ds-cocoon-player.json`), for Cocoon to add to its list; see the wiki's page on launching from Android frontends.
 
 ## v1.2.1 (2026-10-19)
 - **Super Mario Advance 2:** the status bar stays on the second screen in castle rooms behind doors and in the boss fights (it switched to the logo and stayed there), and the SNES layout keeps working in those rooms.
