@@ -417,6 +417,7 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 #define FE_V_PHASE 0xF0000001 /* the player phase's position, 0 if it isn't running */
 #define FE_V_HUD 0xF0000002   /* what goes to the second screen: FE_HUD_* */
 #define FE_V_FREE 0xF0000003  /* 1 while the cursor's free (no unit selected, no menu) */
+#define FE_V_OFFMAP 0xF0000004 /* 1 off the battle map: the title, a story scene */
 enum { FE_HUD_NONE, FE_HUD_IDLE, FE_HUD_TALK, FE_HUD_MENU, FE_HUD_BANNER = 5 };
 
 /* The current position of the process running `start`, 0 if none is. */
@@ -441,6 +442,25 @@ static bool fe_portrait(Emu* e) {
 	return false;
 }
 
+/* Units on the map on screen: sprites in palettes 12-15. A story scene
+ * (a picture behind the talk, or black: before and after the battle) has
+ * none; the battle map nearly always does. */
+static bool fe_units_shown(Emu* e) {
+	for (int i = 0; i < 128; ++i) {
+		uint16_t a0 = emu_read16(e, 0x07000000 + i * 8), a2 = emu_read16(e, 0x07000004 + i * 8);
+		if ((a0 & 0x0300) == 0x0200 || ((a0 & 0xFF) >= 160 && (a0 & 0xFF) < 240)) continue;
+		if (a2 >> 12 >= 12) return true;
+	}
+	return false;
+}
+
+/* Off the battle map: the title and menus (no chapter), or an event with
+ * no units on screen, outside a fight. */
+static bool fe_off_map(Emu* e) {
+	if (!emu_read32(e, FE_CHAPTER)) return true;
+	return fe_proc(e, FE_P_EVENT) && fe_proc(e, FE_P_PHASE) != FE_FIGHT && !fe_units_shown(e);
+}
+
 /* The tutorial's boxes and a unit's own small speech bubbles (no
  * portrait: those stay on the map, by the unit) are the same sprites in
  * palette 5: the tutorial's are parchment yellow (its 5th colour has
@@ -454,10 +474,12 @@ static uint32_t fe_virt(Emu* e, uint32_t addr) {
 	switch (addr) {
 	case FE_V_PHASE: return fe_proc(e, FE_P_PHASE);
 	case FE_V_FREE: return fe_proc(e, FE_P_PHASE) == FE_IDLE;
+	case FE_V_OFFMAP: return fe_off_map(e);
 	case FE_V_HUD: {
 		if (fe_proc(e, FE_P_BANNER)) return FE_HUD_BANNER;
 		uint32_t ph = fe_proc(e, FE_P_PHASE);
-		if (fe_proc(e, FE_P_EVENT) && (!ph || fe_portrait(e) || fe_tutorial_box(e))) return FE_HUD_TALK;
+		/* (a story scene's talk stays on the game screen) */
+		if (fe_proc(e, FE_P_EVENT) && (!ph || fe_portrait(e) || fe_tutorial_box(e))) return fe_off_map(e) ? FE_HUD_NONE : FE_HUD_TALK;
 		if (ph == FE_IDLE) return FE_HUD_IDLE;
 		if (ph == FE_MENU) return FE_HUD_MENU;
 		return FE_HUD_NONE;
@@ -1210,7 +1232,9 @@ static const MapProfile profiles[] = {
 		.crop_w = 320, /* 3x on 1024x768, 2x on 640x480 */
 		.crop_h = 240,
 		.live = { FE_IN_CHAPTER, { FE_TURN, 0xFF, 0, 1 } },
-		.menu = { { FE_CHAPTER, 0xFFFFFFFF, 0, 4 } },
+		/* off the battle map: the title, a story scene (the second screen's
+		 * the background with the logo) */
+		.menu = { { FE_V_OFFMAP, 0xFF, 1, 4 } },
 		.hud = {
 			/* the cursor free (the windows), or an event (talk, the
 			 * tutorial); the second screen keeps what it showed while a
@@ -1225,7 +1249,7 @@ static const MapProfile profiles[] = {
 				{ -64, -32, 239, 159, 720, 760, 0, 1u << 8 }, /* the unit's HP figures */
 				{ -64, -64, 239, 159, 768, 1023, 2, 3u << 6 }, /* talking portraits */
 				{ -64, -64, 239, 159, 64, 159, 2, 1u << 3 }, /* and in a fight's battle scene */
-				{ -64, -64, 239, 159, 384, 700, 0, 1u << 5 }, /* the tutorial's boxes */
+				{ -64, -64, 239, 159, 384, 767, 0, 1u << 5 }, /* the tutorial's boxes */
 				{ -8, -8, 239, 159, 4, 4, 0, 1u << 0 }, /* the speech bubble's arrow */
 				{ -16, -16, 239, 159, 0, 1, 0, 1u << 0 }, /* a menu's hand */
 				{ -8, -16, 239, 159, 76, 79, 0, 1u << 0 }, /* the forecast's weapon-triangle arrows */
