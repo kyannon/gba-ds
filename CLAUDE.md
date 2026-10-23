@@ -133,6 +133,17 @@ Android session at the same time. To keep them from colliding:
   game.c and ui.c (`#ifdef __wasi__`).
 - Verify visual changes by rendering screenshots and looking at them before
   sending a build.
+- **Regression tests:** each game's behaviour is written as numbered rules in
+  `docs/games/<game>.md` (FE-2...), checked by the cases in
+  `tests/regress/<game>.json` with `tools/regress.py` (see docs/TESTING.md).
+  Fixtures (ROMs as `roms/CODE.zip`, states, saves, golden screenshots) are
+  in the private repo kyannon/gba-ds-tests, cloned to `../gba-ds-tests`
+  (attach it with add_repo). Run the suite before sending a build that
+  touches profiles.c, game.c, mapcap.c, emu.c, logo.c or mapframe.c. For an
+  intended change: rule first, then profile, then `--update CASES` after
+  looking at every differing picture in build/regress/index.html; commit the
+  goldens in the fixtures repo saying which rule changed. `GBADS_SYNC=1`
+  makes captures and logo extraction run inline, so runs are exact.
 
 ## Architecture (src/)
 

@@ -1,0 +1,308 @@
+{
+ "game": "Tony Hawk's Pro Skater 2",
+ "rules": "docs/games/tony-hawks-pro-skater-2.md",
+ "cases": [
+  {
+   "id": "th2-us-menu",
+   "rom": "ATHE",
+   "state": "tony-hawks-pro-skater-2/us-menu.ss",
+   "desc": "the main menu",
+   "rules": [
+    "TH2-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "th2-us-run",
+   "rom": "ATHE",
+   "state": "tony-hawks-pro-skater-2/us-menu.ss",
+   "desc": "from the main menu into a Free Skate run (RIGHT, then A through the menus)",
+   "rules": [
+    "TH2-1",
+    "TH2-2",
+    "TH2-4"
+   ],
+   "shots": {
+    "sheet": 600,
+    "later": 1500
+   },
+   "input": [
+    [
+     60,
+     "RIGHT"
+    ],
+    [
+     64,
+     "-"
+    ],
+    [
+     120,
+     "A"
+    ],
+    [
+     124,
+     "-"
+    ],
+    [
+     160,
+     "A"
+    ],
+    [
+     164,
+     "-"
+    ],
+    [
+     200,
+     "A"
+    ],
+    [
+     204,
+     "-"
+    ],
+    [
+     240,
+     "A"
+    ],
+    [
+     244,
+     "-"
+    ],
+    [
+     280,
+     "A"
+    ],
+    [
+     284,
+     "-"
+    ],
+    [
+     320,
+     "A"
+    ],
+    [
+     324,
+     "-"
+    ],
+    [
+     360,
+     "A"
+    ],
+    [
+     364,
+     "-"
+    ],
+    [
+     400,
+     "A"
+    ],
+    [
+     404,
+     "-"
+    ],
+    [
+     440,
+     "A"
+    ],
+    [
+     444,
+     "-"
+    ],
+    [
+     480,
+     "A"
+    ],
+    [
+     484,
+     "-"
+    ],
+    [
+     520,
+     "A"
+    ],
+    [
+     524,
+     "-"
+    ],
+    [
+     560,
+     "A"
+    ],
+    [
+     564,
+     "-"
+    ],
+    [
+     600,
+     "A"
+    ],
+    [
+     604,
+     "-"
+    ],
+    [
+     640,
+     "A"
+    ],
+    [
+     644,
+     "-"
+    ],
+    [
+     680,
+     "A"
+    ],
+    [
+     684,
+     "-"
+    ],
+    [
+     720,
+     "A"
+    ],
+    [
+     724,
+     "-"
+    ],
+    [
+     760,
+     "A"
+    ],
+    [
+     764,
+     "-"
+    ],
+    [
+     800,
+     "A"
+    ],
+    [
+     804,
+     "-"
+    ],
+    [
+     840,
+     "A"
+    ],
+    [
+     844,
+     "-"
+    ],
+    [
+     880,
+     "A"
+    ],
+    [
+     884,
+     "-"
+    ],
+    [
+     920,
+     "A"
+    ],
+    [
+     924,
+     "-"
+    ],
+    [
+     960,
+     "A"
+    ],
+    [
+     964,
+     "-"
+    ],
+    [
+     1000,
+     "A"
+    ],
+    [
+     1004,
+     "-"
+    ],
+    [
+     1040,
+     "A"
+    ],
+    [
+     1044,
+     "-"
+    ],
+    [
+     1080,
+     "A"
+    ],
+    [
+     1084,
+     "-"
+    ],
+    [
+     1120,
+     "A"
+    ],
+    [
+     1124,
+     "-"
+    ],
+    [
+     1160,
+     "A"
+    ],
+    [
+     1164,
+     "-"
+    ]
+   ]
+  },
+  {
+   "id": "th2-logo-athe",
+   "kind": "logo",
+   "rom": "ATHE",
+   "desc": "ATHE logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "th2-logo-athf",
+   "kind": "logo",
+   "rom": "ATHF",
+   "desc": "ATHF logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "th2-logo-athd",
+   "kind": "logo",
+   "rom": "ATHD",
+   "desc": "ATHD logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "th2-logo-athj",
+   "kind": "logo",
+   "rom": "ATHJ",
+   "desc": "ATHJ logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

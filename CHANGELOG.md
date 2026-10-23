@@ -1,6 +1,7 @@
 # Changelog
 
 ## v1.3.1 (not yet released)
+- **Castlevania (all three):** the map's border from the game's menus now shows the first time a game is played, not only from the next start.
 
 ## v1.3 (2026-10-23)
 - **Three more games in the list:** Fire Emblem (USA, Europe, Japan: Rekka no Ken), Advance Wars (USA, Europe) and Sword of Mana (USA, Europe, Japan: Shinyaku Seiken Densetsu), described below for every release.

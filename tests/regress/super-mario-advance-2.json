@@ -1,0 +1,179 @@
+{
+ "game": "Super Mario Advance 2: Super Mario World",
+ "rules": "docs/games/super-mario-advance-2.md",
+ "cases": [
+  {
+   "id": "sma-us-worldmap",
+   "rom": "AA2E",
+   "state": "super-mario-advance-2/us-worldmap.ss",
+   "desc": "Yoshi's House on the world map",
+   "rules": [
+    "SMA-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "SMA-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "sma-us-level",
+   "rom": "AA2E",
+   "state": "super-mario-advance-2/us-level.ss",
+   "desc": "Yoshi's Island 1 (the state leaves the level by itself at about frame 250)",
+   "rules": [
+    "SMA-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 200
+   },
+   "checks": [
+    {
+     "rule": "SMA-2",
+     "what": "the status bar along the top",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      130
+     ],
+     "color": "000000",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "sma-us-message",
+   "rom": "AA2E",
+   "state": "super-mario-advance-2/us-message.ss",
+   "desc": "Yoshi's message box",
+   "rules": [
+    "SMA-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "sma-us-castle-room",
+   "rom": "AA2E",
+   "state": "super-mario-advance-2/us-castle-room.ss",
+   "desc": "a castle room behind a door",
+   "rules": [
+    "SMA-4"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "sma-us-castle-door",
+   "rom": "AA2E",
+   "state": "super-mario-advance-2/us-castle-door.ss",
+   "desc": "Iggy's castle, by a door",
+   "rules": [
+    "SMA-4"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "sma-eu-level",
+   "rom": "AA2P",
+   "state": "super-mario-advance-2/eu-level.ss",
+   "desc": "Yoshi's Island 1, European release (the state leaves the level by itself at about frame 250)",
+   "rules": [
+    "SMA-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 200
+   }
+  },
+  {
+   "id": "sma-jp-level",
+   "rom": "AA2J",
+   "state": "super-mario-advance-2/jp-level.ss",
+   "desc": "Yoshi's Island 1, Japanese release (the state leaves the level by itself at about frame 250)",
+   "rules": [
+    "SMA-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 200
+   }
+  },
+  {
+   "id": "sma-jp-worldmap",
+   "rom": "AA2J",
+   "state": "super-mario-advance-2/jp-worldmap.ss",
+   "desc": "the world map, Japanese release",
+   "rules": [
+    "SMA-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "SMA-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "sma-logo-aa2e",
+   "kind": "logo",
+   "rom": "AA2E",
+   "desc": "AA2E logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "sma-logo-aa2p",
+   "kind": "logo",
+   "rom": "AA2P",
+   "desc": "AA2P logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "sma-logo-aa2j",
+   "kind": "logo",
+   "rom": "AA2J",
+   "desc": "AA2J logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

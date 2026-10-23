@@ -1,0 +1,114 @@
+{
+ "game": "Castlevania: Harmony of Dissonance",
+ "rules": "docs/games/castlevania-harmony-of-dissonance.md",
+ "cases": [
+  {
+   "id": "cvh-us-play",
+   "rom": "ACHE",
+   "state": "castlevania-harmony-of-dissonance/us-play.ss",
+   "desc": "outside the castle walls, new game",
+   "rules": [
+    "CVH-1",
+    "CVH-2",
+    "CVH-5"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "CVH-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "cvh-us-paused",
+   "rom": "ACHE",
+   "state": "castlevania-harmony-of-dissonance/us-play.ss",
+   "desc": "the map up, then the game's own pause menu open (no capture can succeed)",
+   "rules": [
+    "CVH-3"
+   ],
+   "input": [
+    [
+     150,
+     "START"
+    ],
+    [
+     154,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 120,
+    "paused": 600
+   },
+   "checks": [
+    {
+     "rule": "CVH-3",
+     "what": "the map from before stays",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "paused",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.02
+    }
+   ]
+  },
+  {
+   "id": "cvh-logo-ache",
+   "kind": "logo",
+   "rom": "ACHE",
+   "desc": "ACHE logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "cvh-logo-achp",
+   "kind": "logo",
+   "rom": "ACHP",
+   "desc": "ACHP logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "cvh-logo-achj",
+   "kind": "logo",
+   "rom": "ACHJ",
+   "desc": "ACHJ logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

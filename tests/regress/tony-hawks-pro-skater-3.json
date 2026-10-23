@@ -1,0 +1,147 @@
+{
+ "game": "Tony Hawk's Pro Skater 3",
+ "rules": "docs/games/tony-hawks-pro-skater-3.md",
+ "cases": [
+  {
+   "id": "th3-us-menu",
+   "rom": "AT3E",
+   "state": "tony-hawks-pro-skater-3/us-menu.ss",
+   "desc": "the main menu",
+   "rules": [
+    "TH3-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "th3-us-run",
+   "rom": "AT3E",
+   "state": "tony-hawks-pro-skater-3/us-run.ss",
+   "desc": "a run in the Foundry",
+   "rules": [
+    "TH3-1",
+    "TH3-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TH3-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "TH3-1",
+     "what": "the goal list",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      200,
+      200,
+      820,
+      500
+     ],
+     "color": "000000",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "th3-us-pause-goals",
+   "rom": "AT3E",
+   "state": "tony-hawks-pro-skater-3/us-pause-goals.ss",
+   "desc": "View Goals open in the pause menu",
+   "rules": [
+    "TH3-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "th3-fr-run",
+   "rom": "AT3F",
+   "state": "tony-hawks-pro-skater-3/fr-run.ss",
+   "desc": "a run, French release",
+   "rules": [
+    "TH3-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TH3-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "th3-de-run",
+   "rom": "AT3D",
+   "state": "tony-hawks-pro-skater-3/de-run.ss",
+   "desc": "a run, German release",
+   "rules": [
+    "TH3-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TH3-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "th3-logo-at3e",
+   "kind": "logo",
+   "rom": "AT3E",
+   "desc": "AT3E logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "th3-logo-at3f",
+   "kind": "logo",
+   "rom": "AT3F",
+   "desc": "AT3F logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "th3-logo-at3d",
+   "kind": "logo",
+   "rom": "AT3D",
+   "desc": "AT3D logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

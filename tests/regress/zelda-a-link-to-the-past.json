@@ -1,0 +1,98 @@
+{
+ "game": "The Legend of Zelda: A Link to the Past",
+ "rules": "docs/games/zelda-a-link-to-the-past.md",
+ "cases": [
+  {
+   "id": "lttp-us-house",
+   "rom": "AZLE",
+   "state": "zelda-a-link-to-the-past/us-house.ss",
+   "desc": "Link's house at the start: no map yet",
+   "rules": [
+    "LTTP-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "LTTP-3",
+     "what": "no map shown indoors without one",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "lttp-us-outdoors",
+   "rom": "AZLE",
+   "state": "zelda-a-link-to-the-past/us-outdoors.ss",
+   "desc": "outside Link's house in the rain",
+   "rules": [
+    "LTTP-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "LTTP-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "lttp-us-castle",
+   "rom": "AZLE",
+   "state": "zelda-a-link-to-the-past/us-castle.ss",
+   "desc": "a dark room in Hyrule Castle",
+   "rules": [
+    "LTTP-2",
+    "LTTP-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "lttp-logo-azle",
+   "kind": "logo",
+   "rom": "AZLE",
+   "desc": "AZLE logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "lttp-logo-azlp",
+   "kind": "logo",
+   "rom": "AZLP",
+   "desc": "AZLP logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "lttp-logo-azlj",
+   "kind": "logo",
+   "rom": "AZLJ",
+   "desc": "AZLJ logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

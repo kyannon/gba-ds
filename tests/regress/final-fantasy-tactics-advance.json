@@ -1,0 +1,151 @@
+{
+ "game": "Final Fantasy Tactics Advance",
+ "rules": "docs/games/final-fantasy-tactics-advance.md",
+ "cases": [
+  {
+   "id": "ft-us-splash",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-splash.ss",
+   "desc": "the Square Enix splash",
+   "rules": [
+    "FT-6"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "ft-us-snowball-unit",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-snowball-unit.ss",
+   "desc": "the snowball fight: Lita's details and the action prompt",
+   "rules": [
+    "FT-1",
+    "FT-2",
+    "FT-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "ft-us-battle-dialogue",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-battle-dialogue.ss",
+   "desc": "dialogue with a portrait in a battle",
+   "rules": [
+    "FT-1",
+    "FT-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "ft-us-battle-banner",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-battle-banner.ss",
+   "desc": "the BATTLE banner",
+   "rules": [
+    "FT-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "ft-us-battle-confirm",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-battle-confirm.ss",
+   "desc": "a Do it / Cancel prompt",
+   "rules": [
+    "FT-1",
+    "FT-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "ft-us-unit-menu",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-unit-menu.ss",
+   "desc": "Ritz's command menu in the snowball fight",
+   "rules": [
+    "FT-1",
+    "FT-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "ft-us-worldmap",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-worldmap.ss",
+   "desc": "the world map with funds and the date",
+   "rules": [
+    "FT-5"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "ft-us-worldmap-notice",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-worldmap-notice.ss",
+   "desc": "a notice on the world map",
+   "rules": [
+    "FT-5"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "ft-logo-afxe",
+   "kind": "logo",
+   "rom": "AFXE",
+   "desc": "AFXE logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "ft-logo-afxp",
+   "kind": "logo",
+   "rom": "AFXP",
+   "desc": "AFXP logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "ft-logo-afxj",
+   "kind": "logo",
+   "rom": "AFXJ",
+   "desc": "AFXJ logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

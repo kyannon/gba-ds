@@ -1,0 +1,163 @@
+{
+ "game": "Sword of Mana",
+ "rules": "docs/games/sword-of-mana.md",
+ "cases": [
+  {
+   "id": "som-us-forest",
+   "rom": "AVSE",
+   "state": "sword-of-mana/us-forest.ss",
+   "desc": "the opening forest",
+   "rules": [
+    "SOM-1",
+    "SOM-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "SOM-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "SOM-1",
+     "what": "the Status screen on the second screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      100,
+      100,
+      900,
+      650
+     ],
+     "color": "000000",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "som-us-cell",
+   "rom": "AVSE",
+   "state": "sword-of-mana/us-cell.ss",
+   "desc": "the castle cell, two-item ring",
+   "rules": [
+    "SOM-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "SOM-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "som-us-title",
+   "rom": "AVSE",
+   "state": "sword-of-mana/us-title.ss",
+   "desc": "the title screen",
+   "rules": [
+    "SOM-4"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "SOM-4",
+     "what": "no captures on the title",
+     "type": "no_log",
+     "match": "map capture failed"
+    }
+   ]
+  },
+  {
+   "id": "som-eu-play",
+   "rom": "AVSY",
+   "state": "sword-of-mana/eu-play.ss",
+   "desc": "early play, European release",
+   "rules": [
+    "SOM-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "SOM-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "som-jp-play",
+   "rom": "AVSJ",
+   "state": "sword-of-mana/jp-play.ss",
+   "desc": "early play, Japanese release",
+   "rules": [
+    "SOM-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "SOM-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "som-logo-avse",
+   "kind": "logo",
+   "rom": "AVSE",
+   "desc": "AVSE logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "som-logo-avsy",
+   "kind": "logo",
+   "rom": "AVSY",
+   "desc": "AVSY logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "som-logo-avsj",
+   "kind": "logo",
+   "rom": "AVSJ",
+   "desc": "AVSJ logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

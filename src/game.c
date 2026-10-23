@@ -2743,8 +2743,10 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	snprintf(framePath, sizeof(framePath), "%s/frames", cfg->stateDir);
 	mkdirs(framePath);
 	snprintf(framePath, sizeof(framePath), "%s/frames/%.4s.png", cfg->stateDir, emu.gameCode);
-	if (mf.prof && mf.prof->frame.t && !mapframe_load_atlas(&mf, framePath)) frame_request(rom, emu.gameCode, framePath);
+	/* (read before the request: with GBADS_SYNC the extraction is done by
+	 * the time frame_request returns) */
 	uint32_t frameGen = logo_generation();
+	if (mf.prof && mf.prof->frame.t && !mapframe_load_atlas(&mf, framePath)) frame_request(rom, emu.gameCode, framePath);
 
 	memset(pageLen, 0, sizeof(pageLen));
 	pages[0][pageLen[0]++] = M_RESUME;

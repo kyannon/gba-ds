@@ -1,0 +1,116 @@
+{
+ "game": "Castlevania: Circle of the Moon",
+ "rules": "docs/games/castlevania-circle-of-the-moon.md",
+ "cases": [
+  {
+   "id": "cvc-us-play-100",
+   "rom": "AAME",
+   "state": "castlevania-circle-of-the-moon/us-play-100.ss",
+   "desc": "a 100% save in play",
+   "rules": [
+    "CVC-1",
+    "CVC-2",
+    "CVC-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "CVC-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ],
+   "save": "AAME-100-percent.sav"
+  },
+  {
+   "id": "cvc-us-paused",
+   "rom": "AAME",
+   "state": "castlevania-circle-of-the-moon/us-play-100.ss",
+   "desc": "the map up, then the game's own pause menu open (no capture can succeed)",
+   "rules": [
+    "CVC-4"
+   ],
+   "input": [
+    [
+     150,
+     "START"
+    ],
+    [
+     154,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 120,
+    "paused": 600
+   },
+   "checks": [
+    {
+     "rule": "CVC-4",
+     "what": "the map from before stays",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "paused",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.02
+    }
+   ],
+   "save": "AAME-100-percent.sav"
+  },
+  {
+   "id": "cvc-logo-aame",
+   "kind": "logo",
+   "rom": "AAME",
+   "desc": "AAME logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "cvc-logo-aamp",
+   "kind": "logo",
+   "rom": "AAMP",
+   "desc": "AAMP logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "cvc-logo-aamj",
+   "kind": "logo",
+   "rom": "AAMJ",
+   "desc": "AAMJ logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

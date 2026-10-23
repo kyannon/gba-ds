@@ -1,0 +1,103 @@
+{
+ "game": "Mario Kart: Super Circuit",
+ "rules": "docs/games/mario-kart-super-circuit.md",
+ "cases": [
+  {
+   "id": "mk-us-race-start",
+   "rom": "AMKE",
+   "state": "mario-kart-super-circuit/us-race-start.ss",
+   "desc": "the countdown on Peach Circuit",
+   "rules": [
+    "MK-1",
+    "MK-2",
+    "MK-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "mk-us-lap3",
+   "rom": "AMKE",
+   "state": "mario-kart-super-circuit/us-lap3.ss",
+   "desc": "first place on the last lap, then the finish and results",
+   "rules": [
+    "MK-1",
+    "MK-2",
+    "MK-3",
+    "MK-4"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "MK-3",
+     "what": "the HUD on the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      200,
+      200,
+      820,
+      560
+     ],
+     "color": "000000",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "mk-us-podium",
+   "rom": "AMKE",
+   "state": "mario-kart-super-circuit/us-podium.ss",
+   "desc": "the Mushroom Cup podium",
+   "rules": [
+    "MK-5"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "mk-logo-amke",
+   "kind": "logo",
+   "rom": "AMKE",
+   "desc": "AMKE logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "mk-logo-amkp",
+   "kind": "logo",
+   "rom": "AMKP",
+   "desc": "AMKP logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "mk-logo-amkj",
+   "kind": "logo",
+   "rom": "AMKJ",
+   "desc": "AMKJ logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

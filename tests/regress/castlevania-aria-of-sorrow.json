@@ -1,0 +1,114 @@
+{
+ "game": "Castlevania: Aria of Sorrow",
+ "rules": "docs/games/castlevania-aria-of-sorrow.md",
+ "cases": [
+  {
+   "id": "cva-us-play",
+   "rom": "A2CE",
+   "state": "castlevania-aria-of-sorrow/us-play.ss",
+   "desc": "first rooms of the castle, new game",
+   "rules": [
+    "CVA-1",
+    "CVA-2",
+    "CVA-5"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "CVA-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "cva-us-paused",
+   "rom": "A2CE",
+   "state": "castlevania-aria-of-sorrow/us-play.ss",
+   "desc": "the map up, then the game's own pause menu open (no capture can succeed)",
+   "rules": [
+    "CVA-3"
+   ],
+   "input": [
+    [
+     150,
+     "START"
+    ],
+    [
+     154,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 120,
+    "paused": 600
+   },
+   "checks": [
+    {
+     "rule": "CVA-3",
+     "what": "the map from before stays",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "paused",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.02
+    }
+   ]
+  },
+  {
+   "id": "cva-logo-a2ce",
+   "kind": "logo",
+   "rom": "A2CE",
+   "desc": "A2CE logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "cva-logo-a2cp",
+   "kind": "logo",
+   "rom": "A2CP",
+   "desc": "A2CP logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "cva-logo-a2cj",
+   "kind": "logo",
+   "rom": "A2CJ",
+   "desc": "A2CJ logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

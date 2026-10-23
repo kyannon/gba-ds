@@ -1,0 +1,114 @@
+{
+ "game": "Metroid Fusion",
+ "rules": "docs/games/metroid-fusion.md",
+ "cases": [
+  {
+   "id": "mf-us-play",
+   "rom": "AMTE",
+   "state": "metroid-fusion/us-play.ss",
+   "desc": "the docking bay, new game",
+   "rules": [
+    "MF-1",
+    "MF-2",
+    "MF-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "MF-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "mf-us-paused",
+   "rom": "AMTE",
+   "state": "metroid-fusion/us-play.ss",
+   "desc": "the map up, then the game's own pause menu open (no capture can succeed)",
+   "rules": [
+    "MF-4"
+   ],
+   "input": [
+    [
+     150,
+     "START"
+    ],
+    [
+     154,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 120,
+    "paused": 600
+   },
+   "checks": [
+    {
+     "rule": "MF-4",
+     "what": "the map from before stays",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "paused",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.02
+    }
+   ]
+  },
+  {
+   "id": "mf-logo-amte",
+   "kind": "logo",
+   "rom": "AMTE",
+   "desc": "AMTE logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "mf-logo-amtp",
+   "kind": "logo",
+   "rom": "AMTP",
+   "desc": "AMTP logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "mf-logo-amtj",
+   "kind": "logo",
+   "rom": "AMTJ",
+   "desc": "AMTJ logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,114 @@
+{
+ "game": "Metroid: Zero Mission",
+ "rules": "docs/games/metroid-zero-mission.md",
+ "cases": [
+  {
+   "id": "mzm-us-play",
+   "rom": "BMXE",
+   "state": "metroid-zero-mission/us-play.ss",
+   "desc": "Brinstar, start of a new game",
+   "rules": [
+    "MZM-1",
+    "MZM-2",
+    "MZM-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "MZM-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "mzm-us-paused",
+   "rom": "BMXE",
+   "state": "metroid-zero-mission/us-play.ss",
+   "desc": "the map up, then the game's own pause menu open (no capture can succeed)",
+   "rules": [
+    "MZM-4"
+   ],
+   "input": [
+    [
+     150,
+     "START"
+    ],
+    [
+     154,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 120,
+    "paused": 600
+   },
+   "checks": [
+    {
+     "rule": "MZM-4",
+     "what": "the map from before stays",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "paused",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.02
+    }
+   ]
+  },
+  {
+   "id": "mzm-logo-bmxe",
+   "kind": "logo",
+   "rom": "BMXE",
+   "desc": "BMXE logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "mzm-logo-bmxp",
+   "kind": "logo",
+   "rom": "BMXP",
+   "desc": "BMXP logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "mzm-logo-bmxj",
+   "kind": "logo",
+   "rom": "BMXJ",
+   "desc": "BMXJ logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

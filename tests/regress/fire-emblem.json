@@ -1,0 +1,536 @@
+{
+ "game": "Fire Emblem",
+ "rules": "docs/games/fire-emblem.md",
+ "cases": [
+  {
+   "id": "fe-us-hud",
+   "rom": "AE7E",
+   "state": "fire-emblem/us-hud.ss",
+   "desc": "the unit, goal and terrain windows over the map",
+   "rules": [
+    "FE-1",
+    "FE-2",
+    "FE-3"
+   ],
+   "shots": {
+    "start": 60,
+    "page2": 420,
+    "end": 720
+   },
+   "checks": [
+    {
+     "rule": "FE-3",
+     "what": "the status turns to its next page",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "rect": [
+       44,
+       36,
+       560,
+       400
+      ]
+     },
+     "b": {
+      "shot": "page2",
+      "rect": [
+       44,
+       36,
+       560,
+       400
+      ]
+     },
+     "frac": 0.02
+    },
+    {
+     "rule": "FE-1",
+     "what": "navy background at the right",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      800,
+      250,
+      990,
+      420
+     ],
+     "color": "182438",
+     "frac": 0.97
+    },
+    {
+     "rule": "FE-2",
+     "what": "the minimap at the bottom right",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      800,
+      560,
+      990,
+      740
+     ],
+     "color": "182438",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "fe-us-stat",
+   "rom": "AE7E",
+   "state": "fire-emblem/us-stat.ss",
+   "desc": "cursor on a unit: its status pages",
+   "rules": [
+    "FE-3"
+   ],
+   "shots": {
+    "start": 60,
+    "page2": 420,
+    "end": 720
+   }
+  },
+  {
+   "id": "fe-us-mini",
+   "rom": "AE7E",
+   "state": "fire-emblem/us-mini.ss",
+   "desc": "the map menu's minimap",
+   "rules": [
+    "FE-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "fe-us-atk",
+   "rom": "AE7E",
+   "state": "fire-emblem/us-atk.ss",
+   "desc": "a unit's menu with Attack",
+   "rules": [
+    "FE-4"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "FE-4",
+     "what": "the menu at the top centre",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      420,
+      36,
+      600,
+      80
+     ],
+     "color": "182438",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "fe-us-opt",
+   "rom": "AE7E",
+   "state": "fire-emblem/us-opt.ss",
+   "desc": "a unit's menu with Wait",
+   "rules": [
+    "FE-4"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "fe-us-upd",
+   "rom": "AE7E",
+   "state": "fire-emblem/us-upd.ss",
+   "desc": "the menu at the top centre",
+   "rules": [
+    "FE-4"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "fe-us-ind",
+   "rom": "AE7E",
+   "state": "fire-emblem/us-ind.ss",
+   "desc": "the battle forecast with arrows and x2",
+   "rules": [
+    "FE-4"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "FE-4",
+     "what": "the forecast at the top centre",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      420,
+      36,
+      600,
+      200
+     ],
+     "color": "182438",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "fe-us-dlg",
+   "rom": "AE7E",
+   "state": "fire-emblem/us-dlg.ss",
+   "desc": "a conversation on the map",
+   "rules": [
+    "FE-6"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "FE-6",
+     "what": "the portrait at the bottom",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      32,
+      560,
+      600,
+      744
+     ],
+     "color": "182438",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "fe-us-d3",
+   "rom": "AE7E",
+   "state": "fire-emblem/us-d3.ss",
+   "desc": "another conversation",
+   "rules": [
+    "FE-6"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "fe-us-two",
+   "rom": "AE7E",
+   "state": "fire-emblem/us-two.ss",
+   "desc": "two portraits talking",
+   "rules": [
+    "FE-6"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "fe-us-asd",
+   "rom": "AE7E",
+   "state": "fire-emblem/us-asd.ss",
+   "desc": "dialogue before a fight",
+   "rules": [
+    "FE-6"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "fe-us-tut",
+   "rom": "AE7E",
+   "state": "fire-emblem/us-tut.ss",
+   "desc": "a tutorial box",
+   "rules": [
+    "FE-6"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "fe-us-garb",
+   "rom": "AE7E",
+   "state": "fire-emblem/us-garb.ss",
+   "desc": "a tutorial box (once drew garbage sprites)",
+   "rules": [
+    "FE-6"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "fe-us-npd",
+   "rom": "AE7E",
+   "state": "fire-emblem/us-npd.ss",
+   "desc": "a unit's small speech bubble",
+   "rules": [
+    "FE-6"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "FE-6",
+     "what": "the small bubble stays on the map",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      32,
+      40,
+      990,
+      500
+     ],
+     "color": "182438",
+     "frac": 0.9
+    }
+   ]
+  },
+  {
+   "id": "fe-us-nbd",
+   "rom": "AE7E",
+   "state": "fire-emblem/us-nbd.ss",
+   "desc": "a story scene's talk",
+   "rules": [
+    "FE-7"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "FE-7",
+     "what": "no talk on the second screen",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      32,
+      560,
+      500,
+      740
+     ],
+     "color": "182438",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "fe-us-bend",
+   "rom": "AE7E",
+   "state": "fire-emblem/us-bend.ss",
+   "desc": "the battle over: the map cleared",
+   "rules": [
+    "FE-7"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "fe-us-old",
+   "rom": "AE7E",
+   "state": "fire-emblem/us-old.ss",
+   "desc": "dialogue while the battle goes on",
+   "rules": [
+    "FE-5",
+    "FE-6"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "fe-us-phase",
+   "rom": "AE7E",
+   "state": "fire-emblem/us-phase.ss",
+   "desc": "the PLAYER PHASE banner",
+   "rules": [
+    "FE-8"
+   ],
+   "shots": {
+    "banner": 12,
+    "mid": 30,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "FE-8",
+     "what": "the banner across the second screen",
+     "type": "not_uniform",
+     "shot": "banner",
+     "screen": "second",
+     "rect": [
+      100,
+      300,
+      920,
+      420
+     ],
+     "color": "182438",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "fe-us-enemy",
+   "rom": "AE7E",
+   "state": "fire-emblem/us-enemy.ss",
+   "desc": "the enemy's turn",
+   "rules": [
+    "FE-9"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "fe-eu-y-prologue-unit",
+   "rom": "AE7Y",
+   "state": "fire-emblem/eu-y-prologue-unit.ss",
+   "desc": "the prologue, cursor on Lyn (En/Es/It)",
+   "rules": [
+    "FE-2",
+    "FE-3"
+   ],
+   "shots": {
+    "start": 60,
+    "page2": 420,
+    "end": 720
+   }
+  },
+  {
+   "id": "fe-eu-y-phase",
+   "rom": "AE7Y",
+   "state": "fire-emblem/eu-y-phase.ss",
+   "desc": "the PLAYER PHASE banner (En/Es/It)",
+   "rules": [
+    "FE-8"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "fe-eu-x-prologue-unit",
+   "rom": "AE7X",
+   "state": "fire-emblem/eu-x-prologue-unit.ss",
+   "desc": "the prologue, cursor on Lyn (En/Fr/De)",
+   "rules": [
+    "FE-2",
+    "FE-3"
+   ],
+   "shots": {
+    "start": 60,
+    "page2": 420,
+    "end": 720
+   }
+  },
+  {
+   "id": "fe-eu-x-story",
+   "rom": "AE7X",
+   "state": "fire-emblem/eu-x-story.ss",
+   "desc": "the opening story scene (En/Fr/De)",
+   "rules": [
+    "FE-7"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "fe-jp-prologue-unit",
+   "rom": "AE7J",
+   "state": "fire-emblem/jp-prologue-unit.ss",
+   "desc": "the prologue, cursor on Lyn (Japan)",
+   "rules": [
+    "FE-2",
+    "FE-3"
+   ],
+   "shots": {
+    "start": 60,
+    "page2": 420,
+    "end": 720
+   }
+  },
+  {
+   "id": "fe-logo-ae7e",
+   "kind": "logo",
+   "rom": "AE7E",
+   "desc": "AE7E logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "fe-logo-ae7x",
+   "kind": "logo",
+   "rom": "AE7X",
+   "desc": "AE7X logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "fe-logo-ae7y",
+   "kind": "logo",
+   "rom": "AE7Y",
+   "desc": "AE7Y logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "fe-logo-ae7j",
+   "kind": "logo",
+   "rom": "AE7J",
+   "desc": "AE7J logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

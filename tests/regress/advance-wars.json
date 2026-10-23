@@ -1,0 +1,212 @@
+{
+ "game": "Advance Wars",
+ "rules": "docs/games/advance-wars.md",
+ "cases": [
+  {
+   "id": "aw-us-title",
+   "rom": "AWRE",
+   "state": "advance-wars/us-title.ss",
+   "desc": "the title screen",
+   "rules": [
+    "AW-6"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "aw-us-unit-list",
+   "rom": "AWRE",
+   "state": "advance-wars/us-unit-list.ss",
+   "desc": "cursor on one of your units",
+   "rules": [
+    "AW-1",
+    "AW-2",
+    "AW-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "AW-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "AW-1",
+     "what": "a panel at the top",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      100,
+      40,
+      920,
+      300
+     ],
+     "color": "182438",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "aw-us-cursor-empty",
+   "rom": "AWRE",
+   "state": "advance-wars/us-cursor-empty.ss",
+   "desc": "cursor on an empty tile: Battle Intel",
+   "rules": [
+    "AW-1",
+    "AW-2",
+    "AW-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "AW-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "AW-1",
+     "what": "a panel at the top",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      100,
+      40,
+      920,
+      300
+     ],
+     "color": "182438",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "aw-us-move",
+   "rom": "AWRE",
+   "state": "advance-wars/us-move.ss",
+   "desc": "a unit moving",
+   "rules": [
+    "AW-1",
+    "AW-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "aw-us-damage",
+   "rom": "AWRE",
+   "state": "advance-wars/us-damage.ss",
+   "desc": "picking a target, the DAMAGE box",
+   "rules": [
+    "AW-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "aw-us-fight",
+   "rom": "AWRE",
+   "state": "advance-wars/us-fight.ss",
+   "desc": "about to fight (the fight hasn't started by the end shot): the panel stays",
+   "rules": [
+    "AW-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "aw-us-pause-minimap",
+   "rom": "AWRE",
+   "state": "advance-wars/us-pause-minimap.ss",
+   "desc": "the START minimap open",
+   "rules": [
+    "AW-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "aw-us-co-screen",
+   "rom": "AWRE",
+   "state": "advance-wars/us-co-screen.ss",
+   "desc": "the CO dossier open in a battle: the last panel stays",
+   "rules": [
+    "AW-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "aw-us-rain",
+   "rom": "AWRE",
+   "state": "advance-wars/us-rain.ss",
+   "desc": "rain over the battle map",
+   "rules": [
+    "AW-1",
+    "AW-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "aw-eu-field-training",
+   "rom": "AWRP",
+   "state": "advance-wars/eu-field-training.ss",
+   "desc": "Field Training, European release (known issue: no panels)",
+   "rules": [
+    "AW-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "aw-logo-awre",
+   "kind": "logo",
+   "rom": "AWRE",
+   "desc": "AWRE logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "aw-logo-awrp",
+   "kind": "logo",
+   "rom": "AWRP",
+   "desc": "AWRP logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

@@ -342,9 +342,10 @@ static void enqueue(const char* romPath, const char* gameCode, const char* outPn
 	Job** tail = &queue;
 	while (*tail) tail = &(*tail)->next;
 	*tail = j;
-	if (!running) running = pthread_create(&thread, NULL, worker, NULL) == 0;
+	/* (GBADS_SYNC=1, regression tests: inline too, like the web build) */
+	if (!running && !(getenv("GBADS_SYNC") && atoi(getenv("GBADS_SYNC")))) running = pthread_create(&thread, NULL, worker, NULL) == 0;
 	if (!running) {
-		/* no threads (the web build): the work now */
+		/* no threads (the web build), or GBADS_SYNC: the work now */
 		while (queue) {
 			Job* q = queue;
 			queue = q->next;
