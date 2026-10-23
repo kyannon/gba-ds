@@ -588,9 +588,28 @@ bool ui_events(void) {
 				if (debug || padLogged++ < 8) fprintf(stderr, "controller button %s\n", SDL_GameControllerGetStringForButton(ev.cbutton.button));
 			}
 			break;
-		case SDL_KEYDOWN:
-			if (debug) fprintf(stderr, "key %s\n", SDL_GetKeyName(ev.key.keysym.sym));
+		case SDL_KEYDOWN: {
+			static int keysLogged;
+			if (debug || keysLogged++ < 6) fprintf(stderr, "key %s\n", SDL_GetKeyName(ev.key.keysym.sym));
+#if defined(__linux__) && !defined(__ANDROID__) && !defined(__wasi__)
+			/* the volume keys, where the system leaves them to us (launch.sh:
+			 * GBADS_VOLUME_SCRIPT up|down prints the new level) */
+			SDL_Scancode sc = ev.key.keysym.scancode;
+			const char* vs = getenv("GBADS_VOLUME_SCRIPT");
+			if (vs && (sc == SDL_SCANCODE_VOLUMEUP || sc == SDL_SCANCODE_VOLUMEDOWN)) {
+				char cmd[700];
+				snprintf(cmd, sizeof(cmd), "sh '%s' %s 2>/dev/null", vs, sc == SDL_SCANCODE_VOLUMEUP ? "up" : "down");
+				FILE* p = popen(cmd, "r");
+				int level = -1;
+				if (p) {
+					if (fscanf(p, "%d", &level) != 1) level = -1;
+					pclose(p);
+				}
+				if (level >= 0) ui_osd("Volume %d%%", level);
+			}
+#endif
 			break;
+		}
 		case SDL_FINGERDOWN:
 		case SDL_FINGERUP:
 		case SDL_FINGERMOTION:

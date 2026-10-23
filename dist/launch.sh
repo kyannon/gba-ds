@@ -109,7 +109,7 @@ fi
 # its own folder, and reads the touchscreen as the bottom screen's own
 # (a window per screen there: SDL gives touches to the first). What the
 # system is like goes into gba-ds.log, for reports.
-if [ ! -d /storage/roms ]; then
+if ! grep -qi rocknix /etc/os-release 2>/dev/null && [ ! -d /storage/.config/system ]; then
 	LOG="$DIR/gba-ds.log"
 	echo "another system (not ROCKNIX or BananaOS)" > "$LOG"
 	O=()
@@ -129,6 +129,15 @@ if [ ! -d /storage/roms ]; then
 		[ -n "$GBA" ] && O+=("--rom-dir=$GBA")
 	fi
 	[ "$(cfgval screenshot_dir)" = /storage/roms/screenshots ] && mkdir -p "$DIR/screenshots" && O+=("--screenshot-dir=$DIR/screenshots")
+	# Sound through PulseAudio (its volume is the system's): its socket isn't
+	# where SDL looks on the RG DS Plus's own Linux. The volume keys are left
+	# to the program running there: volume.sh.
+	if [ -z "$PULSE_SERVER" ]; then
+		for s in /tmp/pulse-socket "$XDG_RUNTIME_DIR/pulse/native" /var/run/pulse/native; do
+			[ -S "$s" ] && export PULSE_SERVER="unix:$s" && break
+		done
+	fi
+	command -v pactl >/dev/null 2>&1 && export GBADS_VOLUME_SCRIPT="$DIR/volume.sh"
 	# the touchscreen read straight from its device (weston gives GBA DS no
 	# touches there)
 	TS=$(awk '/^N: Name=/{n=tolower($0)} /^H: Handlers=/{ if (n ~ /gt9|goodix|touch|ts[0-9_-]|-ts"/) { if (match($0, /event[0-9]+/)) { print substr($0, RSTART, RLENGTH); exit } } }' /proc/bus/input/devices 2>/dev/null)
@@ -157,6 +166,7 @@ if [ ! -d /storage/roms ]; then
 	[ $n -ge 2 ] && case "$(cfgval touch_map)" in window|"") O+=(--touch-map=screen) ;; esac
 	{
 		echo "options: ${O[*]}"
+		echo "sound: PULSE_SERVER=${PULSE_SERVER:-unset}, volume keys: ${GBADS_VOLUME_SCRIPT:-left to the system}"
 		[ -n "$INH" ] && echo "touchscreen $TS: inhibited was ${INH_WAS:-?}, now $(cat "$INH" 2>/dev/null)"
 		echo "--- system"
 		cat /etc/os-release 2>/dev/null | head -n 6
@@ -194,6 +204,7 @@ if [ ! -d /storage/roms ]; then
 		dmesg 2>/dev/null | grep -iE 'gt9|goodix|touch|ts' | tail -n 40
 	} > "$R/system.txt" 2>&1
 	./gba-ds "${O[@]}" "$@" >> "$LOG" 2>&1
+	exit $?
 fi
 
 # Second screen on and in place for the run (stock ROCKNIX keeps it off),
