@@ -1204,22 +1204,6 @@ static const MapProfile profiles[] = {
 			           { 0, 18, 30, 118, 0, 0, 'M', 80 } },
 		},
 	},
-	/* Preliminary: listed, second screen to come (a UI after the DS games),
-	 * the logo meanwhile. */
-	{
-		.codes = { "ATOE" },
-		.title = "Tactics Ogre: The Knight of Lodis",
-		.logoOnly = true,
-		/* the title's lettering (BG2) and The Knight of Lodis (sprites, above
-		 * PUSH START), not the emblem behind or OGRE BATTLE SAGA (BG1) */
-		.logo = { .steps = { { 0, 480 }, { K_START, 4 }, { 0, 50 } }, .layers = 0x14, .maxY = 90 },
-	},
-	{
-		/* Japan (Tactics Ogre Gaiden): no ROM tried yet, so its name stands in */
-		.codes = { "ATOJ" },
-		.title = "Tactics Ogre: The Knight of Lodis",
-		.logoOnly = true,
-	},
 	{
 		/* USA: see fe_compose and fe_find_pieces */
 		.codes = { "AE7E" },
@@ -1338,47 +1322,6 @@ static const MapProfile profiles[] = {
 		/* Europe: no ROM tried yet */
 		.codes = { "AWRP" },
 		.title = "Advance Wars",
-		.logoOnly = true,
-	},
-	{
-		/* USA: no map in the game, so the logo; its menus and a battle's
-		 * results whole on the second screen (hud.mirror), and the chip
-		 * selection (Custom) screen's window */
-		.codes = { "AREE" },
-		.title = "Mega Man Battle Network",
-		.logoOnly = true,
-		.hud = {
-			/* in a battle (0x0200329F: 3; 0x02003710: 4, 8 its results),
-			 * the Custom screen up (0x02003719: 5; 7 fighting): its window
-			 * (BG3) and the chip cursor (tile 938) */
-			.on = { { 0x0200329F, 0xFF, 3, 1 }, { 0x02003710, 0xFF, 4, 1 }, { 0x02003719, 0xFF, 5, 1 } },
-			.bgMask = 0x8,
-			.objs = { { -64, -64, 255, 191, 930, 950, -1 } },
-			/* Mega Man's HP (BG3 too) stays at the top */
-			.moves = { { 120, 0, 175, 14, 0, 0, 0, 0, true } },
-			.logoBehind = true,
-			/* the START menus (0x0200ACF4: how far the menu has slid in,
-			 * 13 for good, and in the menus it leads to) out in the world
-			 * (0x0200329F: 0; 3 in battles and at the title), a battle's
-			 * results (0x02003710 stays 8 after it, until the next) */
-			.mirror = { { 0x0200ACF4, 0xFF, 1, 1, true, 0xFF, true }, { 0x0200329F, 0xFF, 0, 1 } },
-			.mirrorOr = { { 0x0200329F, 0xFF, 3, 1 }, { 0x02003710, 0xFF, 8, 1 } },
-			/* the START menu itself (0x02003480 without 0x40, which is
-			 * set in the menus it leads to): its layer alone (BG0), not
-			 * the world behind it */
-			.alt = { .on = { { 0x0200ACF4, 0xFF, 1, 1, true, 0xFF, true }, { 0x0200329F, 0xFF, 0, 1 }, { 0x02003480, 0x40, 0, 1 } },
-			         .bgMask = 0x1 },
-			/* (the HP box's move only in battles) */
-			.layout = { { 0x0200329F, 0xFF, 3, 1 } },
-		},
-		/* the title's lettering (BG3 from power-on), not the grid behind,
-		 * PRESS START or the copyright (sprites) */
-		.logo = { .steps = { { 0, 535 } }, .layers = 0x8 },
-	},
-	{
-		/* Europe, Japan (Battle Network Rockman EXE): no ROMs tried yet */
-		.codes = { "AREP", "AREJ" },
-		.title = "Mega Man Battle Network",
 		.logoOnly = true,
 	},
 };

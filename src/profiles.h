@@ -262,8 +262,8 @@ typedef struct MapProfile {
 		bool logoBehind;
 		/* While every `mirror` probe matches, or every `mirrorOr` one: the
 		 * whole game screen goes to the second screen, and the game screen
-		 * holds the last picture from before (Mega Man Battle Network's
-		 * menus over a paused world, a battle's results). With `mirror`,
+		 * holds the last picture from before (menus over a paused world,
+		 * a battle's results; unused since Mega Man Battle Network left). With `mirror`,
 		 * while alt.on matches too, only the split's alt layers go (its
 		 * START menu without the world behind it). */
 		MemProbe mirror[2];
