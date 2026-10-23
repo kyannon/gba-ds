@@ -1,5 +1,7 @@
 # Changelog
 
+## v1.3.1 (not yet released)
+
 ## v1.3 (2026-10-23)
 - **Three more games in the list:** Fire Emblem (USA, Europe, Japan: Rekka no Ken), Advance Wars (USA, Europe) and Sword of Mana (USA, Europe, Japan: Shinyaku Seiken Densetsu), described below for every release.
 - **Advance Wars, preliminary:** in battles, the second screen shows the game's unit list, with the unit under the cursor highlighted (it stays while you move it), or the battle intel when the cursor isn't on one of your units, with the minimap, the CO and day plate and the terrain and unit info along the bottom (the plate and the info move off the game screen). The logo is taken from the title screen.
