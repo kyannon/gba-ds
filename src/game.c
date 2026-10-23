@@ -3177,6 +3177,12 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 							bytes += 4;
 						}
 					}
+					int vol = ui_volume();
+					if (vol < 100) {
+						/* (squared: closer to how loud it sounds) */
+						int gain = vol * vol * 65536 / 10000;
+						for (int k = 0; k < bytes / 2; ++k) conv[k] = (int16_t) (conv[k] * gain >> 16);
+					}
 					SDL_QueueAudio(audio, conv, bytes);
 				}
 			}

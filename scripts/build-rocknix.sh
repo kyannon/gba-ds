@@ -63,7 +63,7 @@ PKG="$ROOT/build/pkg/gba-ds"
 rm -rf "$ROOT/build/pkg"
 mkdir -p "$PKG"
 "${CROSS}strip" -o "$PKG/gba-ds" build/aarch64/gba-ds
-cp dist/launch.sh dist/es-play.sh dist/screens.sh dist/volume.sh dist/gba-ds.cfg dist/gamecontrollerdb.txt dist/banana-play.sh "$PKG/"
+cp dist/launch.sh dist/es-play.sh dist/screens.sh dist/gba-ds.cfg dist/gamecontrollerdb.txt dist/banana-play.sh "$PKG/"
 mkdir -p "$PKG/logos"
 printf "Optional: your own logo images (<CODE>.png or .bmp) override the ones extracted from the games.\n" > "$PKG/logos/README.txt"
 mkdir -p "$PKG/cheats"

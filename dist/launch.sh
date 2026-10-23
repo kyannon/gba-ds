@@ -129,35 +129,30 @@ if ! grep -qi rocknix /etc/os-release 2>/dev/null && [ ! -d /storage/.config/sys
 		[ -n "$GBA" ] && O+=("--rom-dir=$GBA")
 	fi
 	[ "$(cfgval screenshot_dir)" = /storage/roms/screenshots ] && mkdir -p "$DIR/screenshots" && O+=("--screenshot-dir=$DIR/screenshots")
-	# Sound through PulseAudio (its volume is the system's): its socket isn't
-	# where SDL looks on the RG DS Plus's own Linux. The volume keys are left
-	# to the program running there: volume.sh.
-	if [ -z "$PULSE_SERVER" ]; then
-		for s in /tmp/pulse-socket "$XDG_RUNTIME_DIR/pulse/native" /var/run/pulse/native; do
-			[ -S "$s" ] && export PULSE_SERVER="unix:$s" && break
-		done
-	fi
-	command -v pactl >/dev/null 2>&1 && export GBADS_VOLUME_SCRIPT="$DIR/volume.sh"
-	# (SDL picks ALSA there otherwise, around the system's volume; GBA DS
-	# tries the others if PulseAudio won't open)
-	[ -n "$PULSE_SERVER" ] && [ -z "$SDL_AUDIODRIVER" ] && export SDL_AUDIODRIVER=pulseaudio,alsa
+	# Ports play straight to the sound card there (SDL's ALSA; through
+	# PulseAudio GBA DS was silent), so the volume keys, which the system
+	# leaves to the program running, set GBA DS's own volume, kept here.
+	mkdir -p "$DIR/states" && export GBADS_VOLUME="$DIR/states/volume.txt"
 	# the RG DS Plus's volume keys: raw buttons 16 (up) and 15 (down)
 	grep -q 'ANBERNIC-rk3568-keys' /proc/bus/input/devices 2>/dev/null && export GBADS_VOLUME_BUTTONS=16,15
 	# the touchscreen read straight from its device (weston gives GBA DS no
 	# touches there)
 	TS=$(awk '/^N: Name=/{n=tolower($0)} /^H: Handlers=/{ if (n ~ /gt9|goodix|touch|ts[0-9_-]|-ts"/) { if (match($0, /event[0-9]+/)) { print substr($0, RSTART, RLENGTH); exit } } }' /proc/bus/input/devices 2>/dev/null)
 	[ -n "$TS" ] && [ -z "$(cfgval touch_device)" ] && O+=("--touch-device=/dev/input/$TS")
-	# The RG DS Plus's own Linux switches its touchscreen off (inhibited)
-	# outside its own menus: on for the run, put back afterwards.
+	# The RG DS Plus's own Linux keeps its touchscreen off outside its DS
+	# emulator (anbernic_misc/tpctrl 1; the emulator's launch.sh writes 0):
+	# on for the run, put back afterwards. (And the kernel's inhibited
+	# switch, the same way, in case.)
+	TP=/sys/class/anbernic_misc/tpctrl
+	TP_WAS=$(cat "$TP" 2>/dev/null)
 	INH=
-	if [ -n "$TS" ] && [ -w "/sys/class/input/$TS/device/inhibited" ]; then
-		INH="/sys/class/input/$TS/device/inhibited"
-		INH_WAS=$(cat "$INH" 2>/dev/null)
-		if [ "$INH_WAS" = 1 ]; then
-			echo 0 > "$INH" 2>/dev/null
-			trap 'echo 1 > "$INH" 2>/dev/null' EXIT
-			trap 'exit 143' TERM INT HUP
-		fi
+	[ -n "$TS" ] && [ -w "/sys/class/input/$TS/device/inhibited" ] && INH="/sys/class/input/$TS/device/inhibited"
+	INH_WAS=$(cat "$INH" 2>/dev/null)
+	if [ "$TP_WAS" = 1 ] || [ "$INH_WAS" = 1 ]; then
+		[ "$TP_WAS" = 1 ] && echo 0 > "$TP" 2>/dev/null
+		[ "$INH_WAS" = 1 ] && echo 0 > "$INH" 2>/dev/null
+		trap '[ "$TP_WAS" = 1 ] && echo 1 > "$TP" 2>/dev/null; [ "$INH_WAS" = 1 ] && echo 1 > "$INH" 2>/dev/null' EXIT
+		trap 'exit 143' TERM INT HUP
 	fi
 	# the RG DS Plus's HOME and BACK buttons (raw 13 and 8) both open the
 	# menu: 13 by gamecontrollerdb.txt, 8 here
@@ -171,10 +166,11 @@ if ! grep -qi rocknix /etc/os-release 2>/dev/null && [ ! -d /storage/.config/sys
 	[ $n -ge 2 ] && case "$(cfgval touch_map)" in window|"") O+=(--touch-map=screen) ;; esac
 	{
 		echo "options: ${O[*]}"
-		echo "sound: PULSE_SERVER=${PULSE_SERVER:-unset} SDL_AUDIODRIVER=${SDL_AUDIODRIVER:-unset}, volume keys: ${GBADS_VOLUME_SCRIPT:-left to the system} (buttons ${GBADS_VOLUME_BUTTONS:-none})"
-		command -v pactl >/dev/null 2>&1 && { timeout 3 pactl info 2>&1 | grep -iE 'server (string|name)|default sink|connection'; echo "  volume: $(timeout 3 pactl get-sink-volume @DEFAULT_SINK@ 2>&1 | head -n 1)"; }
-		ls -l /usr/lib/libpulse*.so* 2>/dev/null | awk '{print "  " $NF}' | head -n 4
-		[ -n "$INH" ] && echo "touchscreen $TS: inhibited was ${INH_WAS:-?}, now $(cat "$INH" 2>/dev/null)"
+		echo "sound: volume $(cat "$GBADS_VOLUME" 2>/dev/null || echo 100)% (buttons ${GBADS_VOLUME_BUTTONS:-none})"
+		cat /proc/asound/cards 2>/dev/null
+		ls /etc/asound.conf /usr/share/alsa/alsa.conf.d 2>/dev/null
+		for c in 0 1; do command -v amixer >/dev/null && amixer -c $c scontents 2>/dev/null | grep -E "^Simple|Playback.*%" | head -n 16; done
+		[ -n "$TS" ] && echo "touchscreen $TS: tpctrl was ${TP_WAS:-none}, now $(cat "$TP" 2>/dev/null); inhibited was ${INH_WAS:-?}, now $(cat "$INH" 2>/dev/null)"
 		echo "--- system"
 		cat /etc/os-release 2>/dev/null | head -n 6
 		uname -a

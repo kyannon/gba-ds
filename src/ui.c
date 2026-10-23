@@ -537,47 +537,43 @@ static void evdev_touch_poll(void) {
 	}
 }
 
-/* The volume keys (launch.sh: GBADS_VOLUME_SCRIPT up|down sets the system
- * volume and prints the new level). Where the compositor doesn't pass them
- * on (the RG DS Plus's own Linux), they're read from their input device:
- * held for GBA DS alone when it has no other keys. */
+/* GBA DS's own volume, where the system leaves the volume keys to the
+ * program running (launch.sh sets GBADS_VOLUME to the file that keeps it:
+ * the RG DS Plus's own Linux, whose ports play straight to the sound card).
+ * The keys come as key events, from their input device, or as raw joystick
+ * buttons (GBADS_VOLUME_BUTTONS=up,down). */
+static int softVolume = -1; /* 0-100; -1: not read yet */
 
-/* run in a thread (volume.sh waits a moment to see whether the system
- * already changed the volume itself); the level is shown by ui_events */
-static SDL_atomic_t volBusy, volLevel = { -1 };
+static const char* volume_file(void) {
+	return getenv("GBADS_VOLUME");
+}
 
-static int volume_thread(void* arg) {
-	bool up = arg != NULL;
-	char cmd[700];
-	snprintf(cmd, sizeof(cmd), "sh '%s' %s 2>/dev/null", getenv("GBADS_VOLUME_SCRIPT"), up ? "up" : "down");
-	FILE* p = popen(cmd, "r");
-	int level = -1;
-	char how[16] = "";
-	if (p) {
-		if (fscanf(p, "%d %15s", &level, how) < 1) level = -1;
-		pclose(p);
+int ui_volume(void) {
+	if (softVolume < 0) {
+		softVolume = 100;
+		FILE* f = volume_file() ? fopen(volume_file(), "r") : NULL;
+		if (f) {
+			int v;
+			if (fscanf(f, "%d", &v) == 1) softVolume = SDL_clamp(v, 0, 100);
+			fclose(f);
+		}
 	}
-	static int volLogged;
-	if (debug || volLogged++ < 8) fprintf(stderr, "volume %s: %d%% (%s)\n", up ? "up" : "down", level, how[0] ? how : "?");
-	if (level >= 0) SDL_AtomicSet(&volLevel, level);
-	SDL_AtomicSet(&volBusy, 0);
-	return 0;
+	return softVolume;
 }
 
 static void volume_key(bool up) {
-	if (!getenv("GBADS_VOLUME_SCRIPT") || !SDL_AtomicCAS(&volBusy, 0, 1)) return;
-	SDL_Thread* t = SDL_CreateThread(volume_thread, "volume", up ? (void*) 1 : NULL);
-	if (t) SDL_DetachThread(t);
-	else SDL_AtomicSet(&volBusy, 0);
+	if (!volume_file()) return;
+	softVolume = SDL_clamp(ui_volume() + (up ? 5 : -5), 0, 100);
+	FILE* f = fopen(volume_file(), "w");
+	if (f) {
+		fprintf(f, "%d\n", softVolume);
+		fclose(f);
+	}
+	static int volLogged;
+	if (debug || volLogged++ < 8) fprintf(stderr, "volume %s: %d%%\n", up ? "up" : "down", softVolume);
+	ui_osd("Volume %d%%", softVolume);
 }
 
-static void volume_show(void) {
-	int level = SDL_AtomicSet(&volLevel, -1);
-	if (level >= 0) ui_osd("Volume %d%%", level);
-}
-
-/* raw joystick buttons that are the volume keys (GBADS_VOLUME_BUTTONS=up,down;
- * the RG DS Plus's own Linux: 16,15 on its built-in controller) */
 static void volume_button(int button) {
 	static int vb[2] = { -2, -2 };
 	if (vb[0] == -2) {
@@ -593,7 +589,7 @@ static void volume_button(int button) {
 static void evdev_volume_poll(void) {
 	if (evVolFd == -2) {
 		evVolFd = -1;
-		if (!getenv("GBADS_VOLUME_SCRIPT")) return;
+		if (!volume_file()) return;
 		for (int i = 0; i < 32 && evVolFd < 0; ++i) {
 			char path[32];
 			snprintf(path, sizeof(path), "/dev/input/event%d", i);
@@ -636,7 +632,7 @@ static void evdev_volume_poll(void) {
 static void evdev_touch_poll(void) {}
 static void evdev_volume_poll(void) {}
 static void volume_key(bool up) { (void) up; }
-static void volume_show(void) {}
+int ui_volume(void) { return 100; }
 static void volume_button(int button) { (void) button; }
 static const int evVolFd = -1;
 #endif
@@ -644,7 +640,6 @@ static const int evVolFd = -1;
 bool ui_events(void) {
 	evdev_touch_poll();
 	evdev_volume_poll();
-	volume_show();
 	SDL_Event ev;
 	while (SDL_PollEvent(&ev)) {
 		switch (ev.type) {

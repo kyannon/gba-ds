@@ -158,6 +158,7 @@ void ui_screenshot(const char* path);
  * bottom in screen order, saved as PNG. */
 bool ui_screenshot_stacked(const char* pngPath);
 void ui_osd(const char* fmt, ...);
+int ui_volume(void); /* GBA DS's own sound volume, 0-100 (100 unless launch.sh asks for one) */
 const char* ui_osd_text(void); /* NULL when expired */
 
 extern volatile int uiQuit; /* set by signals */
