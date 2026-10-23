@@ -47,7 +47,7 @@ target_include_directories(rcheevos PUBLIC "${RC}/include" PRIVATE "${RC}/src")
 # --- GBA DS ---
 set(S "${GBADS_ROOT}/src")
 add_library(main SHARED
-	${S}/main.c ${S}/config.c ${S}/font.c ${S}/ui.c ${S}/library.c ${S}/game.c ${S}/paths.c ${S}/image.c
+	${S}/main.c ${S}/config.c ${S}/font.c ${S}/ui.c ${S}/library.c ${S}/game.c ${S}/paths.c ${S}/image.c ${S}/mapper.c
 	${S}/brand_data.c ${S}/logo.c ${S}/mapframe.c ${S}/cheats.c ${S}/esinteg.c ${S}/textfont.c ${S}/fonts_data.c
 	${S}/emu.c ${S}/mapcap.c ${S}/profiles.c ${S}/logo_masks.c ${S}/ra.c
 	${S}/android.c)

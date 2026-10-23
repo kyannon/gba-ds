@@ -24,6 +24,9 @@ volatile int uiQuit;
 static Config* cfg;
 static uint64_t ticks;
 static SDL_GameController* pads[8];
+static bool padUserMapped[8]; /* its mapping came from the button mapper (controllers.txt) */
+static char userGuids[16][40]; /* the controllers.txt GUIDs */
+static int nUserGuids;
 static SDL_Joystick* rawJoys[8];
 static bool debug;
 #ifdef __ANDROID__
@@ -218,8 +221,41 @@ void ui_mapping_file(char* out, size_t n) {
 	snprintf(out, n, "%s/controllers.txt", cfg->stateDir);
 }
 
+void ui_mapped_by_user(const char* guid) {
+	for (int i = 0; i < nUserGuids; ++i) {
+		if (!strcmp(userGuids[i], guid)) return;
+	}
+	if (nUserGuids < 16) snprintf(userGuids[nUserGuids++], sizeof(userGuids[0]), "%s", guid);
+}
+
+/* The GUIDs that controllers.txt has mappings for. */
+static void load_user_guids(const char* path) {
+	FILE* f = fopen(path, "r");
+	if (!f) return;
+	char line[1024];
+	while (fgets(line, sizeof(line), f)) {
+		if (line[0] == '#' || line[0] == '\n' || line[0] == '\r') continue;
+		line[strcspn(line, ",")] = 0;
+		if (line[0]) ui_mapped_by_user(line);
+	}
+	fclose(f);
+}
+
+static void update_user_mapped(void) {
+	for (int i = 0; i < 8; ++i) {
+		padUserMapped[i] = false;
+		if (!pads[i]) continue;
+		char guid[40];
+		SDL_JoystickGetGUIDString(SDL_JoystickGetGUID(SDL_GameControllerGetJoystick(pads[i])), guid, sizeof(guid));
+		for (int k = 0; k < nUserGuids; ++k) {
+			if (!strcmp(userGuids[k], guid)) padUserMapped[i] = true;
+		}
+	}
+}
+
 void ui_reopen_pads(void) {
 	open_pads();
+	update_user_mapped(); /* (an open controller's mapping changes in place) */
 }
 
 /* Input scripts can press a virtual controller's raw inputs (testing the
@@ -274,6 +310,7 @@ static void open_pads(void) {
 			if (rawJoys[i]) fprintf(stderr, "joystick without mapping: %s\n", SDL_JoystickName(rawJoys[i]));
 		}
 	}
+	update_user_mapped();
 }
 
 bool ui_init(Config* c, bool wantDual) {
@@ -304,6 +341,7 @@ bool ui_init(Config* c, bool wantDual) {
 	char mapFile[600];
 	ui_mapping_file(mapFile, sizeof(mapFile));
 	if (SDL_GameControllerAddMappingsFromFile(mapFile) > 0) fprintf(stderr, "button mappings: %s\n", mapFile);
+	load_user_guids(mapFile);
 	open_pads();
 
 #ifdef __ANDROID__
@@ -835,8 +873,22 @@ void ui_read_buttons(void) {
 	for (int p = 0; p < 8; ++p) {
 		SDL_GameController* gc = pads[p];
 		if (!gc) continue;
+		bool pb[SDL_CONTROLLER_BUTTON_MAX];
+		for (int b = 0; b < SDL_CONTROLLER_BUTTON_MAX; ++b) pb[b] = SDL_GameControllerGetButton(gc, b);
+#ifdef __ANDROID__
+		if (!padUserMapped[p]) {
+			/* GammaOS reports the face buttons by their printed (Nintendo)
+			 * labels, so SDL's A is the right button and B the bottom one.
+			 * Everything below works by position (as on ROCKNIX: B right, A
+			 * bottom), so swap back. X (top) and Y (left) already match. A
+			 * mapping made with the button mapper is by position already. */
+			bool a = pb[SDL_CONTROLLER_BUTTON_A];
+			pb[SDL_CONTROLLER_BUTTON_A] = pb[SDL_CONTROLLER_BUTTON_B];
+			pb[SDL_CONTROLLER_BUTTON_B] = a;
+		}
+#endif
 		for (int b = 0; b < SDL_CONTROLLER_BUTTON_MAX; ++b) {
-			if (SDL_GameControllerGetButton(gc, b)) phys[b] = true;
+			if (pb[b]) phys[b] = true;
 		}
 		if (SDL_GameControllerGetAxis(gc, SDL_CONTROLLER_AXIS_TRIGGERLEFT) > 16000) l2 = true;
 		if (SDL_GameControllerGetAxis(gc, SDL_CONTROLLER_AXIS_TRIGGERRIGHT) > 16000) r2 = true;
@@ -844,7 +896,7 @@ void ui_read_buttons(void) {
 		/* digital L2 / R2 keys arrive as raw joystick buttons 15 / 16, which
 		 * SDL's Android controller mapping leaves out (it only maps analog
 		 * trigger axes) */
-		SDL_Joystick* js = SDL_GameControllerGetJoystick(gc);
+		SDL_Joystick* js = padUserMapped[p] ? NULL : SDL_GameControllerGetJoystick(gc); /* (mapped: as the mapping says) */
 		if (js && SDL_JoystickGetButton(js, 15)) l2 = true;
 		if (js && SDL_JoystickGetButton(js, 16)) r2 = true;
 #endif
@@ -862,17 +914,6 @@ void ui_read_buttons(void) {
 			if (j && cfg->homeButton < SDL_JoystickNumButtons(j) && SDL_JoystickGetButton(j, cfg->homeButton)) rawHome = true;
 		}
 	}
-#ifdef __ANDROID__
-	{
-		/* GammaOS reports the face buttons by their printed (Nintendo) labels,
-		 * so SDL's A is the right button and B the bottom one. Everything below
-		 * works by position (as on ROCKNIX: B right, A bottom), so swap back.
-		 * X (top) and Y (left) already match. */
-		bool a = phys[SDL_CONTROLLER_BUTTON_A];
-		phys[SDL_CONTROLLER_BUTTON_A] = phys[SDL_CONTROLLER_BUTTON_B];
-		phys[SDL_CONTROLLER_BUTTON_B] = a;
-	}
-#endif
 	/* GBA-style: A is the right face button, B the bottom one */
 	btnNow[B_A] = cfg->abSwap ? phys[SDL_CONTROLLER_BUTTON_A] : phys[SDL_CONTROLLER_BUTTON_B];
 	btnNow[B_B] = cfg->abSwap ? phys[SDL_CONTROLLER_BUTTON_B] : phys[SDL_CONTROLLER_BUTTON_A];
