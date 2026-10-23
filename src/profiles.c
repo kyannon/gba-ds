@@ -429,13 +429,13 @@ static uint32_t fe_proc(Emu* e, uint32_t start) {
 	return 0;
 }
 
-/* A talking portrait on screen: sprites in palettes 6-7, tiles from 768
- * (on the map), or palette 3, tiles 64-159 (before and after a fight). */
+/* A talking portrait on screen: sprites in palettes 6-7, tiles from 640
+ * (on the map: a slot from 640 and one from 768), or palette 3, tiles 64-159 (before and after a fight). */
 static bool fe_portrait(Emu* e) {
 	for (int i = 0; i < 128; ++i) {
 		uint16_t a0 = emu_read16(e, 0x07000000 + i * 8), a2 = emu_read16(e, 0x07000004 + i * 8);
 		if ((a0 & 0x0300) == 0x0200 || ((a0 & 0xFF) >= 160 && (a0 & 0xFF) < 192)) continue;
-		if ((a2 & 0x3FF) >= 768 && (a2 >> 12 == 6 || a2 >> 12 == 7)) return true;
+		if ((a2 & 0x3FF) >= 640 && (a2 >> 12 == 6 || a2 >> 12 == 7)) return true;
 		/* (in a fight's battle scene: palette 3, tiles 64-159) */
 		if ((a2 & 0x3FF) >= 64 && (a2 & 0x3FF) < 160 && a2 >> 12 == 3) return true;
 	}
@@ -1247,7 +1247,7 @@ static const MapProfile profiles[] = {
 			.alt = { .on = { FE_IN_CHAPTER, { FE_V_HUD, 0xFF, FE_HUD_BANNER, 4 } }, .bgMask = 0x3, .shade = true, .dimGame = true },
 			.objs = {
 				{ -64, -32, 239, 159, 720, 760, 0, 1u << 8 }, /* the unit's HP figures */
-				{ -64, -64, 239, 159, 768, 1023, 2, 3u << 6 }, /* talking portraits */
+				{ -64, -64, 239, 159, 640, 1023, 2, 3u << 6 }, /* talking portraits */
 				{ -64, -64, 239, 159, 64, 159, 2, 1u << 3 }, /* and in a fight's battle scene */
 				{ -64, -64, 239, 159, 384, 767, 0, 1u << 5 }, /* the tutorial's boxes */
 				{ -8, -8, 239, 159, 4, 4, 0, 1u << 0 }, /* the speech bubble's arrow */
