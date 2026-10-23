@@ -131,9 +131,19 @@ if [ ! -d /storage/roms ]; then
 	[ "$(cfgval screenshot_dir)" = /storage/roms/screenshots ] && mkdir -p "$DIR/screenshots" && O+=("--screenshot-dir=$DIR/screenshots")
 	# the touchscreen read straight from its device (weston gives GBA DS no
 	# touches there)
-	if [ -z "$(cfgval touch_device)" ]; then
-		TS=$(awk '/^N: Name=/{n=tolower($0)} /^H: Handlers=/{ if (n ~ /gt9|goodix|touch|ts[0-9_-]|-ts"/) { if (match($0, /event[0-9]+/)) { print substr($0, RSTART, RLENGTH); exit } } }' /proc/bus/input/devices 2>/dev/null)
-		[ -n "$TS" ] && O+=("--touch-device=/dev/input/$TS")
+	TS=$(awk '/^N: Name=/{n=tolower($0)} /^H: Handlers=/{ if (n ~ /gt9|goodix|touch|ts[0-9_-]|-ts"/) { if (match($0, /event[0-9]+/)) { print substr($0, RSTART, RLENGTH); exit } } }' /proc/bus/input/devices 2>/dev/null)
+	[ -n "$TS" ] && [ -z "$(cfgval touch_device)" ] && O+=("--touch-device=/dev/input/$TS")
+	# The RG DS Plus's own Linux switches its touchscreen off (inhibited)
+	# outside its own menus: on for the run, put back afterwards.
+	INH=
+	if [ -n "$TS" ] && [ -w "/sys/class/input/$TS/device/inhibited" ]; then
+		INH="/sys/class/input/$TS/device/inhibited"
+		INH_WAS=$(cat "$INH" 2>/dev/null)
+		if [ "$INH_WAS" = 1 ]; then
+			echo 0 > "$INH" 2>/dev/null
+			trap 'echo 1 > "$INH" 2>/dev/null' EXIT
+			trap 'exit 143' TERM INT HUP
+		fi
 	fi
 	# the RG DS Plus's HOME and BACK buttons (raw 13 and 8) both open the
 	# menu: 13 by gamecontrollerdb.txt, 8 here
@@ -147,6 +157,7 @@ if [ ! -d /storage/roms ]; then
 	[ $n -ge 2 ] && case "$(cfgval touch_map)" in window|"") O+=(--touch-map=screen) ;; esac
 	{
 		echo "options: ${O[*]}"
+		[ -n "$INH" ] && echo "touchscreen $TS: inhibited was ${INH_WAS:-?}, now $(cat "$INH" 2>/dev/null)"
 		echo "--- system"
 		cat /etc/os-release 2>/dev/null | head -n 6
 		uname -a
@@ -182,7 +193,7 @@ if [ ! -d /storage/roms ]; then
 		echo "--- dmesg (touch)"
 		dmesg 2>/dev/null | grep -iE 'gt9|goodix|touch|ts' | tail -n 40
 	} > "$R/system.txt" 2>&1
-	exec ./gba-ds "${O[@]}" "$@" >> "$LOG" 2>&1
+	./gba-ds "${O[@]}" "$@" >> "$LOG" 2>&1
 fi
 
 # Second screen on and in place for the run (stock ROCKNIX keeps it off),
