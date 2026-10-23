@@ -75,6 +75,27 @@
    ]
   },
   {
+   "id": "cvh-us-menu",
+   "rom": "ACHE",
+   "state": "castlevania-harmony-of-dissonance/us-menu.ss",
+   "desc": "the title or file menu: the logo, no map",
+   "rules": [
+    "CVH-4"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "type": "no_log",
+     "match": "map updated",
+     "rule": "CVH-4",
+     "what": "no map captured at the menus"
+    }
+   ]
+  },
+  {
    "id": "cvh-logo-ache",
    "kind": "logo",
    "rom": "ACHE",

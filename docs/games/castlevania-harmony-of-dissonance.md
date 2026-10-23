@@ -22,9 +22,3 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 **CVH-4. Logo before the first map.** Until the first map is captured, and at the title and file menus, the second screen shows the logo.
 
 **CVH-5. Game screen untouched.** The game screen is the game as it draws itself.
-
-## Not covered yet
-
-Rules no test case checks yet, and the fixture that would cover each:
-
-- **CVH-4:** a state at the title or file menu.

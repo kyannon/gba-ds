@@ -77,6 +77,27 @@
    "save": "AAME-100-percent.sav"
   },
   {
+   "id": "cvc-us-menu",
+   "rom": "AAME",
+   "state": "castlevania-circle-of-the-moon/us-menu.ss",
+   "desc": "the title or file menu: the logo, no map",
+   "rules": [
+    "CVC-5"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "type": "no_log",
+     "match": "map updated",
+     "rule": "CVC-5",
+     "what": "no map captured at the menus"
+    }
+   ]
+  },
+  {
    "id": "cvc-logo-aame",
    "kind": "logo",
    "rom": "AAME",

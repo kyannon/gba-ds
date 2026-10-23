@@ -22,9 +22,3 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 **CVA-4. Logo before the first map.** Until the first map is captured, and back at the title and file menus, the second screen shows the game's logo.
 
 **CVA-5. Game screen untouched.** The game screen shows the game exactly as it draws itself; nothing is moved or hidden there.
-
-## Not covered yet
-
-Rules no test case checks yet, and the fixture that would cover each:
-
-- **CVA-4:** a state at the title or file menu.

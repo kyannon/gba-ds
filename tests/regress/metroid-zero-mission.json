@@ -75,6 +75,27 @@
    ]
   },
   {
+   "id": "mzm-us-menu",
+   "rom": "BMXE",
+   "state": "metroid-zero-mission/us-menu.ss",
+   "desc": "the title or file menu: the logo, no map",
+   "rules": [
+    "MZM-5"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "type": "no_log",
+     "match": "map updated",
+     "rule": "MZM-5",
+     "what": "no map captured at the menus"
+    }
+   ]
+  },
+  {
    "id": "mzm-logo-bmxe",
    "kind": "logo",
    "rom": "BMXE",

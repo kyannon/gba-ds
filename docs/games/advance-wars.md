@@ -28,10 +28,3 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 ## Known issues
 
 Known issue: in Field Training the tutorial blocks SELECT and START, so the panels can't be brought up; the plate and info still move.
-
-## Not covered yet
-
-Rules no test case checks yet, and the fixture that would cover each:
-
-- **AW-4:** a state on the enemy's turn (Campaign, after End).
-- **AW-5:** a state a few frames before a fight animation starts.

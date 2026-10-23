@@ -31,5 +31,4 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 Rules no test case checks yet, and the fixture that would cover each:
 
-- **MK-6:** a state with the race paused.
 - **MK-7:** any race state run with --layout=single (the case format supports config).

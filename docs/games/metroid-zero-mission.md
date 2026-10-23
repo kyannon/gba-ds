@@ -22,9 +22,3 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 **MZM-4. Last good map stays.** When the map can't be opened, the last good map stays up.
 
 **MZM-5. Logo before the first map.** Until the first map is captured, and at the title and file menus, the second screen shows the logo.
-
-## Not covered yet
-
-Rules no test case checks yet, and the fixture that would cover each:
-
-- **MZM-5:** a state at the title or file menu.

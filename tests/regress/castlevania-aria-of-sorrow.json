@@ -75,6 +75,27 @@
    ]
   },
   {
+   "id": "cva-us-menu",
+   "rom": "A2CE",
+   "state": "castlevania-aria-of-sorrow/us-menu.ss",
+   "desc": "the title or file menu: the logo, no map",
+   "rules": [
+    "CVA-4"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "type": "no_log",
+     "match": "map updated",
+     "rule": "CVA-4",
+     "what": "no map captured at the menus"
+    }
+   ]
+  },
+  {
    "id": "cva-logo-a2ce",
    "kind": "logo",
    "rom": "A2CE",

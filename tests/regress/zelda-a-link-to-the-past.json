@@ -59,6 +59,27 @@
    }
   },
   {
+   "id": "lttp-us-file-select",
+   "rom": "AZLE",
+   "state": "zelda-a-link-to-the-past/us-file-select.ss",
+   "desc": "the file select screen",
+   "rules": [
+    "LTTP-4"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "type": "no_log",
+     "match": "map updated",
+     "rule": "LTTP-4",
+     "what": "no map captured at the file select"
+    }
+   ]
+  },
+  {
    "id": "lttp-logo-azle",
    "kind": "logo",
    "rom": "AZLE",

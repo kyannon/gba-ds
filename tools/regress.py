@@ -10,6 +10,7 @@ and reports which of the games' rules (docs/games/*.md) still hold.
     tools/regress.py --update CASE...  approve the current pictures as the goldens
     tools/regress.py --list            list the cases and the rules they check
     tools/regress.py --uncovered       the rules in docs/games/ no case checks yet
+    tools/regress.py --prune           delete goldens no case uses any more
 
 Options: --fixtures DIR (default $GBADS_TESTS, else ../gba-ds-tests),
 --bin build/host/gba-ds, --harness build/host/harness, --report DIR
@@ -319,10 +320,25 @@ def main():
     ap.add_argument("--update", action="store_true", help="save the current pictures as the goldens")
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--uncovered", action="store_true")
+    ap.add_argument("--prune", action="store_true", help="delete goldens no case uses")
     ap.add_argument("-j", type=int, default=os.cpu_count() or 2)
     ap.add_argument("--timeout", type=int, default=300)
     args = ap.parse_args()
     cases = load_cases(args.only)
+    if args.prune:
+        want = set()
+        for c in load_cases([]):
+            shots = ["logo"] if c.get("kind") == "logo" else c.get("golden", list(c.get("shots", {"end": 0})))
+            want |= {golden_path(args, c, s) for s in shots}
+        gone = [f for f in glob.glob(os.path.join(args.fixtures, "golden", "*", "*", "*.png")) if f not in want]
+        for f in gone:
+            os.remove(f)
+            print("removed", os.path.relpath(f, args.fixtures))
+        for d in glob.glob(os.path.join(args.fixtures, "golden", "*", "*")):
+            if os.path.isdir(d) and not os.listdir(d):
+                os.rmdir(d)
+        print("%d unused goldens removed" % len(gone))
+        return
     if args.uncovered:
         covered = set()
         for c in load_cases([]):

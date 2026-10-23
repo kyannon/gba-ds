@@ -29,6 +29,7 @@ tools/regress.py fire-emblem                # one game
 tools/regress.py 'fe-us-*' som-us-forest    # case ids or globs
 tools/regress.py --list [GAME]              # the cases and the rules they cover
 tools/regress.py --uncovered                # rules no case covers yet
+tools/regress.py --prune                    # delete goldens no case uses (after removing or renaming shots)
 ```
 
 The fixtures are looked for in `../gba-ds-tests`, or `$GBADS_TESTS`, or
@@ -120,7 +121,12 @@ otherwise.
 ## Adding fixtures
 
 New states come from the device or State Saver (named for what they show,
-per game: `states/<game>/<region>-<what>.ss`). A state needs the matching
+per game: `states/<game>/<region>-<what>.ss`). In State Saver, label a state
+with the rule it's for (`AW-4: ...`) and say in the notes what it shows; a
+session turns it into a case, checks the pictures, and moves the rule off the
+game's *Not covered yet* list. A state needs the matching
 ROM in `roms/`. Use the app's own save states or harness `save` states;
-for a release whose saves the game won't read (most European releases
+note that a state loads into a fresh run, so a rule about keeping
+something from before (a last picture) needs input in the case that gets
+there first. For a release whose saves the game won't read (most European releases
 won't read USA saves), make a state by playing in from a new game.

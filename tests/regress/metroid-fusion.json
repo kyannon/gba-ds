@@ -75,6 +75,27 @@
    ]
   },
   {
+   "id": "mf-us-menu",
+   "rom": "AMTE",
+   "state": "metroid-fusion/us-menu.ss",
+   "desc": "the title or file menu: the logo, no map",
+   "rules": [
+    "MF-5"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "type": "no_log",
+     "match": "map updated",
+     "rule": "MF-5",
+     "what": "no map captured at the menus"
+    }
+   ]
+  },
+  {
    "id": "mf-logo-amte",
    "kind": "logo",
    "rom": "AMTE",

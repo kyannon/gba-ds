@@ -27,5 +27,4 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 Rules no test case checks yet, and the fixture that would cover each:
 
-- **LTTP-4:** a state at the file select screen.
 - **LTTP-5:** not testable headless (needs a link cable); checked by hand.

@@ -64,6 +64,38 @@
    }
   },
   {
+   "id": "mk-us-paused",
+   "rom": "AMKE",
+   "state": "mario-kart-super-circuit/us-paused.ss",
+   "desc": "a race paused: Continue, race on, pause again",
+   "rules": [
+    "MK-6"
+   ],
+   "shots": {
+    "paused": 30,
+    "racing": 200,
+    "repaused": 400
+   },
+   "input": [
+    [
+     60,
+     "A"
+    ],
+    [
+     64,
+     "-"
+    ],
+    [
+     240,
+     "START"
+    ],
+    [
+     244,
+     "-"
+    ]
+   ]
+  },
+  {
    "id": "mk-logo-amke",
    "kind": "logo",
    "rom": "AMKE",

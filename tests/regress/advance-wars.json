@@ -185,6 +185,125 @@
    }
   },
   {
+   "id": "aw-us-end-turn",
+   "rom": "AWRE",
+   "state": "advance-wars/us-cursor-empty.ss",
+   "desc": "your turn: Battle Intel up, then End (A, UP, A) and the enemy's turn",
+   "rules": [
+    "AW-4"
+   ],
+   "input": [
+    [
+     150,
+     "A"
+    ],
+    [
+     154,
+     "-"
+    ],
+    [
+     200,
+     "UP"
+    ],
+    [
+     204,
+     "-"
+    ],
+    [
+     260,
+     "A"
+    ],
+    [
+     264,
+     "-"
+    ]
+   ],
+   "shots": {
+    "yours": 120,
+    "enemy": 540
+   },
+   "checks": [
+    {
+     "rule": "AW-4",
+     "what": "the panel keeps its last picture",
+     "type": "same",
+     "a": {
+      "shot": "yours",
+      "rect": [
+       0,
+       0,
+       1024,
+       560
+      ]
+     },
+     "b": {
+      "shot": "enemy",
+      "rect": [
+       0,
+       0,
+       1024,
+       560
+      ]
+     },
+     "frac": 0.01
+    },
+    {
+     "rule": "AW-4",
+     "what": "the enemy's plate replaces yours",
+     "type": "differs",
+     "a": {
+      "shot": "yours",
+      "rect": [
+       384,
+       630,
+       640,
+       740
+      ]
+     },
+     "b": {
+      "shot": "enemy",
+      "rect": [
+       384,
+       630,
+       640,
+       740
+      ]
+     },
+     "frac": 0.1
+    }
+   ]
+  },
+  {
+   "id": "aw-us-enemy-turn",
+   "rom": "AWRE",
+   "state": "advance-wars/us-enemy-turn.ss",
+   "desc": "Versus, End just chosen; loaded fresh, so no panel has been taken yet: the logo through the enemy's turn, the dimmed logo once it attacks",
+   "rules": [
+    "GEN-1",
+    "AW-5"
+   ],
+   "shots": {
+    "start": 30,
+    "enemy": 200,
+    "fight": 600
+   }
+  },
+  {
+   "id": "aw-us-before-fight",
+   "rom": "AWRE",
+   "state": "advance-wars/us-before-fight.ss",
+   "desc": "a few frames before a fight",
+   "rules": [
+    "AW-5"
+   ],
+   "shots": {
+    "start": 10,
+    "t60": 60,
+    "t150": 150,
+    "end": 400
+   }
+  },
+  {
    "id": "aw-logo-awre",
    "kind": "logo",
    "rom": "AWRE",
