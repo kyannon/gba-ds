@@ -14,24 +14,7 @@ The idea here is "what if the Game Boy Advance had a second screen" -- part of w
 
 <sub>Stacked screens, pixel-perfect scaling, LCD grid on.</sub>
 
-| Game (USA, Europe and Japan) | Second screen |
-|---|---|
-| Castlevania: Aria of Sorrow | map |
-| Castlevania: Harmony of Dissonance | map |
-| Castlevania: Circle of the Moon | map, with the completion rate |
-| Metroid: Zero Mission | map |
-| Metroid Fusion | map |
-| The Legend of Zelda: A Link to the Past | world and dungeon maps |
-| Tony Hawk's Pro Skater 2 (incl. SK8, Japan) | the goal sheet for the current run; optional four-button layout |
-| Mario Kart: Super Circuit (incl. Mario Kart Advance, Japan) | the race HUD, with a large course map; results and the cup podium |
-| Tony Hawk's Pro Skater 3 (incl. French and German) | the goal list during a run; four-button layout, or Auto (four buttons while skating) |
-| Super Mario Advance 2: Super Mario World | the SELECT menu's level list on the world map; the status bar in levels; optional SNES layout |
-| Final Fantasy Tactics Advance | in battles and their scenes: dialogue, menus and unit details; on the world map: notices, funds and the date |
-| Advance Wars (preliminary) | in battles: the unit list with the unit under the cursor highlighted, or the battle intel, with the minimap below |
-| Fire Emblem (preliminary) | on the map: the unit, terrain and goal windows in fixed corners, and the minimap |
-| Sword of Mana (incl. Shinyaku Seiken Densetsu, Japan) | the Status screen, kept up to date |
-
-Any other GBA game also runs; it just plays on one screen. See [Supported games](https://github.com/kyannon/gba-ds/wiki/Supported-games) for what each game does.
+GBA DS supports 14 games, with their regional releases: see [Supported games](https://github.com/kyannon/gba-ds/wiki/Supported-games) in the wiki for the list and what each one shows on the second screen. Any other GBA game also runs; it just plays on one screen.
 
 **Documentation is in the [wiki](https://github.com/kyannon/gba-ds/wiki):** [Playing](https://github.com/kyannon/gba-ds/wiki/Playing) · [Supported games](https://github.com/kyannon/gba-ds/wiki/Supported-games) · [Map screen surrounds and overlays](https://github.com/kyannon/gba-ds/wiki/Map-screen-surrounds-and-overlays) · [Settings](https://github.com/kyannon/gba-ds/wiki/Settings) · [Troubleshooting](https://github.com/kyannon/gba-ds/wiki/Troubleshooting) · [Adding second-screen compatibility for a game](https://github.com/kyannon/gba-ds/wiki/Adding-second-screen-compatibility-for-a-game)
 
