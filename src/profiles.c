@@ -402,10 +402,10 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
  * What the game is doing comes from its processes (the engine's "procs":
  * 64 slots of 0x6C bytes from FE_PROCS, each starting with its script's
  * start and current position), found by script wherever they are. */
-/* Each release's addresses (USA; Europe, En/Es/It: the same RAM, its own
- * ROM; Japan: both moved), found by matching the code and the process
- * scripts that use the USA ones. fe_r is the running game's (fe_region:
- * the main and the shadow core run the same game). */
+/* Each release's addresses (USA; Europe, both En/Es/It and En/Fr/De: the
+ * same RAM, their own ROM; Japan: both moved), found by matching the code
+ * and the process scripts that use the USA ones. fe_r is the running
+ * game's (fe_region: the main and the shadow core run the same game). */
 typedef struct {
 	char region; /* the game code's last letter */
 	uint32_t chapter; /* the chapter's data: 0 off the map (its play time) */
@@ -417,6 +417,7 @@ typedef struct {
 static const FeRegion feRegions[] = {
 	{ 'E', 0x0202BBF8, 0x02024E28, 0x0202BBCC, 0x0202BD50, 0x08B93374, 0x08B90D88, 0x08B9A99C, 0x08B937AC, 0x08CC1F5C },
 	{ 'Y', 0x0202BBF8, 0x02024E28, 0x0202BBCC, 0x0202BD50, 0x08C57730, 0x08C54ECC, 0x08C5ECE8, 0x08C57B8C, 0x08D88F1C, 0x08DC195C },
+	{ 'X', 0x0202BBF8, 0x02024E28, 0x0202BBCC, 0x0202BD50, 0x08C8EBA0, 0x08C8C33C, 0x08C96158, 0x08C8EFFC, 0x08DC195C },
 	{ 'J', 0x0202BBF4, 0x02024E20, 0x0202BBC8, 0x0202BD4C, 0x08C02630, 0x08BFFF78, 0x08C09CE8, 0x08C02A68, 0x08D8A520 },
 };
 static const FeRegion* fe_r = &feRegions[0];
@@ -1307,12 +1308,6 @@ static const MapProfile profiles[] = {
 		.logo = { .wait = 300, .pressStart = true, .wait2 = 64, .layers = 0x16, .maxY = 140 },
 	},
 	{
-		/* Europe, En/Fr/De: no ROM tried yet (En/Es/It and Japan: variants) */
-		.codes = { "AE7X" },
-		.title = "Fire Emblem",
-		.logoOnly = true,
-	},
-	{
 		/* USA; the second screen is put together by aw_compose */
 		.codes = { "AWRE" },
 		.title = "Advance Wars",
@@ -1481,6 +1476,7 @@ static const Variant variants[] = {
 	{ "AT3F", "AT3E", 0, thps3_fra },
 	{ "AT3D", "AT3E", 0, thps3_ger },
 	/* (Fire Emblem's addresses: FeRegion) */
+	{ "AE7X", "AE7E", 0, lang_menu },
 	{ "AE7Y", "AE7E", 0, lang_menu },
 	{ "AE7J", "AE7E", 0, fe_jpn },
 	{ "AWRP", "AWRE", 0, aw_eur },

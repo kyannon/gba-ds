@@ -14,7 +14,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Super Mario Advance 2: Super Mario World | `AA2E` `AA2P` `AA2J` | the SELECT menu on the world map; the status bar in levels; optional SNES layout | — |
 | Final Fantasy Tactics Advance | `AFXE` `AFXP` `AFXJ` | in battles and the scenes on the battle maps: dialogue, menus, unit details | — |
 | Advance Wars (preliminary) | `AWRE` `AWRP` (no Japanese release) | in battles: the unit list or the battle intel, with the minimap | — |
-| Fire Emblem (Rekka no Ken in Japan; preliminary) | `AE7E` `AE7Y` (English, Spanish, Italian) `AE7J` | on the map: the unit, terrain and goal windows and the minimap | — |
+| Fire Emblem (Rekka no Ken in Japan; preliminary) | `AE7E` `AE7X` (English, French, German) `AE7Y` (English, Spanish, Italian) `AE7J` | on the map: the unit, terrain and goal windows and the minimap | — |
 
 The codes are what `<CODE>` means in logo and overlay file names (see [Playing](Playing#logos) and [[Map screen surrounds and overlays]]).
 
@@ -99,7 +99,7 @@ Preliminary. The USA and European releases (the game never came out in Japan).
 
 ## Fire Emblem
 
-Preliminary. The USA release, the European one in English, Spanish and Italian, and the Japanese one (Rekka no Ken). The European release in English, French and German (`AE7X`) is listed, with its name on the second screen, until it's been tried.
+Preliminary. The USA release, both European ones (English, French and German; English, Spanish and Italian) and the Japanese one (Rekka no Ken).
 
 - **Always,** the second screen is a dark background with the game's logo, small and dimmed, in the middle (on the title screen and in menus too).
 - **On the map,** the windows the game puts in the corners (whichever corners the cursor leaves free) move to fixed places on the second screen: the **terrain** at the bottom left and the **goal** and enemies left at the bottom centre. The **minimap** from the START button is at the bottom right, brought up in the background in a silent copy of the game; when it can't be (in a conversation), the chapter's last one stays.
