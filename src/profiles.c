@@ -807,7 +807,7 @@ static void fe_find_pieces(Emu* e, const uint32_t* hud, uint32_t clear, int box[
  *
  * The second screen: the Status screen (START's ring > Status > Status),
  * opened on the shadow core from the live state at every capture, so it's
- * up to date without the player opening it. The open ring's items are a
+ * up to date without the player opening it, at the game screen's size. The open ring's items are a
  * list of 8-byte entries from SOM_ring - 0x64 (the item first: in the main
  * ring 1 Items, 2 Weapons, 5 Spirits, 8 Status, as far as the story has
  * them; in Status's own, 1 Status, 2 NPC Setting...), their number at
@@ -896,9 +896,7 @@ static const char* som_compose(Emu* s, const void* state, uint32_t* out, int w, 
 		up = aw_settle(s, som_status_up, 90);
 	}
 	if (!up) return "the Status screen did not open";
-	for (int i = 0; i < w * h; ++i) out[i] = 0xFF000000;
-	int ox = (w - GBA_W) / 2, oy = (h - GBA_H) / 2;
-	for (int y = 0; y < GBA_H && oy + y < h; ++y) memcpy(&out[(oy + y) * w + ox], &s->fb[y * GBA_W], GBA_W * sizeof(uint32_t));
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
 	return NULL;
 }
 
@@ -1088,8 +1086,9 @@ static const MapProfile profiles[] = {
 		/* the Status screen, always: see som_compose */
 		.compose = som_compose,
 		.virt = som_virt,
-		.crop_w = 320, /* 3x on 1024x768, 2x on 640x480 */
-		.crop_h = 240,
+		/* the GBA's own screen, scaled as the game screen is */
+		.crop_w = GBA_W,
+		.crop_h = GBA_H,
 		/* the title screen: the logo again (and no captures there) */
 		.menu = { { SOM_V_TITLE, 0xFF, 1, 4 } },
 		.live = { { SOM_V_TITLE, 0xFF, 0, 4 } },
