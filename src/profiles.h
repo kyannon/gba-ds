@@ -226,7 +226,7 @@ typedef struct MapProfile {
 			/* the game screen dimmed while it's on */
 			bool dimGame;
 		} alt;
-		SpriteRule objs[6]; /* the sprites that move with it */
+		SpriteRule objs[8]; /* the sprites that move with it */
 		/* While every `layout` probe matches (racing, not the results):
 		 * HUD pixels in `sign` stay on the game screen when the HUD has
 		 * nothing else on those rows within 40 pixels either side (Mario

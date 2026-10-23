@@ -1219,15 +1219,18 @@ static const MapProfile profiles[] = {
 				{ -64, -64, 239, 159, 384, 700, 0, 1u << 5 }, /* the tutorial's boxes */
 				{ -8, -8, 239, 159, 4, 4, 0, 1u << 0 }, /* the speech bubble's arrow */
 				{ -16, -16, 239, 159, 0, 1, 0, 1u << 0 }, /* a menu's hand */
+				{ -8, -16, 239, 159, 76, 79, 0, 1u << 0 }, /* the forecast's weapon-triangle arrows */
+				{ -16, -16, 239, 159, 744, 747, 0, 1u << 2 }, /* and its x2 */
 			},
-			/* a unit's menu (Attack, Wait...) with its hand at the top left,
-			 * over its status; the goal at the bottom centre and the terrain
+			/* a unit's menu (Attack, Wait...) with its hand, and the battle
+			 * forecast with its arrows and x2, at the top centre, over the
+			 * status; the goal at the bottom centre and the terrain
 			 * at the bottom left (over the status); a conversation, the
 			 * tutorial's box or the phase banner as it is, alone (a portrait
 			 * at the game screen's bottom edge against the second screen's
 			 * bottom), clearing the others to be taken again. (The unit's
 			 * own window isn't shown: its status is.) */
-			.moves = { { 0, 0, 0, 0, 'L', 4, 'T', 4, .top = true, .dropAfter = 1 },
+			.moves = { { 0, 0, 0, 0, 'C', 160, 'T', 4, .top = true, .dropAfter = 1 },
 			           { 0, 0, 0, 0, 'C', 160, 'B', 235, .settle = 4, .top = true },
 			           { 0, 0, 0, 0, 'L', 4, 'B', 235, .settle = 4, .top = true },
 			           { 0, 0, 0, 0, 0, 0, 0, 0, .asIs = true, .alone = true, .asIsBottom = true, .clears = true, .dropAfter = 2 } },

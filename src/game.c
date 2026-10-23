@@ -235,7 +235,7 @@ static int hudFrames; /* split frames since the race (re)started */
 static int mapX0, mapY0, mapX1, mapY1; /* the map's box on the HUD, measured over the first frames */
 static bool mapFound;
 static SpriteRule hudWorldObjs[4]; /* hud.world.objs, the same way */
-static SpriteRule hudObjs[6]; /* hudProf's hud.objs, as used (see romPatch) */
+static SpriteRule hudObjs[8]; /* hudProf's hud.objs, as used (see romPatch) */
 static int hudFadeEff, hudFadeIn; /* the last full fade (2: white, 3: black); frames to fade the next backdrop in */
 static long hudPalRef[8]; /* bg_pal_levels() as the backdrop was taken */
 static unsigned hudKeep; /* BG layers kept on the game screen (FFTA's spells) */
@@ -1458,7 +1458,7 @@ static void update_hud(void) {
 	bool scene = race && h->scene.when[0].addr && memprobes_match(h->scene.when, 2, &emu);
 	if (race != hudOn || scene != hudScene || world != hudWorld || alt != hudAlt) {
 		const SpriteRule* objs = scene ? h->scene.objs : world ? hudWorldObjs : hudObjs;
-		emu_hud_split(&emu, race, alt ? h->alt.bgMask : h->bgMask, objs, rule_count(objs, scene ? 4 : world ? 4 : 6), hudPx);
+		emu_hud_split(&emu, race, alt ? h->alt.bgMask : h->bgMask, objs, rule_count(objs, scene ? 4 : world ? 4 : 8), hudPx);
 		if (debug && race && alt != hudAlt) fprintf(stderr, "frame %llu: HUD on its other layer%s\n", (unsigned long long) frameCount, alt ? "" : ": off");
 		hudAlt = alt;
 		/* (by priority: the renderer picks the layers line by line) */
@@ -1502,7 +1502,7 @@ static void update_hud(void) {
 				}
 				emu_hud_grab(&emu, m, hudGrab);
 			} else {
-				if (nh) snapshot_hiding_sprites(h->backdropHide, nh, hudObjs, rule_count(hudObjs, 6), hudGrab);
+				if (nh) snapshot_hiding_sprites(h->backdropHide, nh, hudObjs, rule_count(hudObjs, 8), hudGrab);
 				else memcpy(hudGrab, emu.fb, sizeof(hudGrab));
 				hud_make_backdrop();
 			}
@@ -2673,7 +2673,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			memcpy(hudObjs, hudProf->hud.objs, sizeof(hudObjs));
 			bool patched = profile_patch_rom(hudProf, &emu);
 			if (patched) fprintf(stderr, "HUD split: ROM patched\n");
-			for (int i = 0; !patched && i < 6; ++i) hudObjs[i].tagged = 0;
+			for (int i = 0; !patched && i < 8; ++i) hudObjs[i].tagged = 0;
 			memcpy(hudWorldObjs, hudProf->hud.world.objs, sizeof(hudWorldObjs));
 			for (int i = 0; !patched && i < 4; ++i) hudWorldObjs[i].tagged = 0;
 		}
