@@ -138,6 +138,11 @@ if ! grep -qi rocknix /etc/os-release 2>/dev/null && [ ! -d /storage/.config/sys
 		done
 	fi
 	command -v pactl >/dev/null 2>&1 && export GBADS_VOLUME_SCRIPT="$DIR/volume.sh"
+	# (SDL picks ALSA there otherwise, around the system's volume; GBA DS
+	# tries the others if PulseAudio won't open)
+	[ -n "$PULSE_SERVER" ] && [ -z "$SDL_AUDIODRIVER" ] && export SDL_AUDIODRIVER=pulseaudio,alsa
+	# the RG DS Plus's volume keys: raw buttons 16 (up) and 15 (down)
+	grep -q 'ANBERNIC-rk3568-keys' /proc/bus/input/devices 2>/dev/null && export GBADS_VOLUME_BUTTONS=16,15
 	# the touchscreen read straight from its device (weston gives GBA DS no
 	# touches there)
 	TS=$(awk '/^N: Name=/{n=tolower($0)} /^H: Handlers=/{ if (n ~ /gt9|goodix|touch|ts[0-9_-]|-ts"/) { if (match($0, /event[0-9]+/)) { print substr($0, RSTART, RLENGTH); exit } } }' /proc/bus/input/devices 2>/dev/null)
@@ -166,7 +171,9 @@ if ! grep -qi rocknix /etc/os-release 2>/dev/null && [ ! -d /storage/.config/sys
 	[ $n -ge 2 ] && case "$(cfgval touch_map)" in window|"") O+=(--touch-map=screen) ;; esac
 	{
 		echo "options: ${O[*]}"
-		echo "sound: PULSE_SERVER=${PULSE_SERVER:-unset}, volume keys: ${GBADS_VOLUME_SCRIPT:-left to the system}"
+		echo "sound: PULSE_SERVER=${PULSE_SERVER:-unset} SDL_AUDIODRIVER=${SDL_AUDIODRIVER:-unset}, volume keys: ${GBADS_VOLUME_SCRIPT:-left to the system} (buttons ${GBADS_VOLUME_BUTTONS:-none})"
+		command -v pactl >/dev/null 2>&1 && { timeout 3 pactl info 2>&1 | grep -iE 'server (string|name)|default sink|connection'; echo "  volume: $(timeout 3 pactl get-sink-volume @DEFAULT_SINK@ 2>&1 | head -n 1)"; }
+		ls -l /usr/lib/libpulse*.so* 2>/dev/null | awk '{print "  " $NF}' | head -n 4
 		[ -n "$INH" ] && echo "touchscreen $TS: inhibited was ${INH_WAS:-?}, now $(cat "$INH" 2>/dev/null)"
 		echo "--- system"
 		cat /etc/os-release 2>/dev/null | head -n 6
@@ -189,7 +196,7 @@ if ! grep -qi rocknix /etc/os-release 2>/dev/null && [ ! -d /storage/.config/sys
 	# copied beside GBA DS for reports (gba-ds/report: small text files only)
 	R="$DIR/report"
 	rm -rf "$R"; mkdir -p "$R"
-	for f in /mnt/vendor/ctrl/* /mnt/mod/ctrl/* /tmp/.next /etc/xdg/weston/weston.ini /etc/weston.ini /etc/init.d/S*weston* \
+	for f in /mnt/vendor/deep/drastic64/*.sh /mnt/vendor/deep/drastic64/config/*.cfg /mnt/vendor/ctrl/* /mnt/mod/ctrl/* /tmp/.next /etc/xdg/weston/weston.ini /etc/weston.ini /etc/init.d/S*weston* \
 	         /etc/udev/rules.d/* /lib/udev/rules.d/*touch* /lib/udev/rules.d/*input* /etc/profile /etc/profile.d/*; do
 		[ -f "$f" ] && [ "$(wc -c < "$f")" -lt 200000 ] && grep -qI . "$f" 2>/dev/null && cp "$f" "$R/$(echo "$f" | tr '/' '_')" 2>/dev/null
 	done
@@ -200,6 +207,12 @@ if ! grep -qi rocknix /etc/os-release 2>/dev/null && [ ! -d /storage/.config/sys
 		ls -la /sys/class/input/event1/device/ 2>/dev/null
 		echo "--- weston.log"
 		tail -n 120 /var/log/weston.log 2>/dev/null
+		echo "--- touch switches"
+		for f in /sys/class/anbernic_misc/*; do [ -f "$f" ] && echo "$(basename "$f") = $(head -c 60 "$f" 2>/dev/null | tr '\n' ' ')"; done
+		ls /proc 2>/dev/null | grep -iE 'gt9|goodix|touch|tp' | head
+		for b in /mnt/vendor/bin/ndsCtrl.dge /mnt/mmc/ndsCtrl.dge /mnt/vendor/bin/*.dge /mnt/vendor/deep/drastic64/drastic* /mnt/vendor/deep/drastic64/*.sh /etc/cexpert; do
+			[ -f "$b" ] && grep -aoE '(/sys|/proc|/dev|/tmp)/[A-Za-z0-9_./%-]+' "$b" 2>/dev/null | sort -u | grep -iE 'touch|tp|gt9|goodix|input|event|anbernic|weston|nds' | head -n 30 | sed "s|^|$(basename "$b"): |"
+		done
 		echo "--- dmesg (touch)"
 		dmesg 2>/dev/null | grep -iE 'gt9|goodix|touch|ts' | tail -n 40
 	} > "$R/system.txt" 2>&1

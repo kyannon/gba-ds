@@ -542,20 +542,51 @@ static void evdev_touch_poll(void) {
  * on (the RG DS Plus's own Linux), they're read from their input device:
  * held for GBA DS alone when it has no other keys. */
 
-static void volume_key(bool up) {
-	const char* vs = getenv("GBADS_VOLUME_SCRIPT");
-	if (!vs) return;
+/* run in a thread (volume.sh waits a moment to see whether the system
+ * already changed the volume itself); the level is shown by ui_events */
+static SDL_atomic_t volBusy, volLevel = { -1 };
+
+static int volume_thread(void* arg) {
+	bool up = arg != NULL;
 	char cmd[700];
-	snprintf(cmd, sizeof(cmd), "sh '%s' %s 2>/dev/null", vs, up ? "up" : "down");
+	snprintf(cmd, sizeof(cmd), "sh '%s' %s 2>/dev/null", getenv("GBADS_VOLUME_SCRIPT"), up ? "up" : "down");
 	FILE* p = popen(cmd, "r");
 	int level = -1;
+	char how[16] = "";
 	if (p) {
-		if (fscanf(p, "%d", &level) != 1) level = -1;
+		if (fscanf(p, "%d %15s", &level, how) < 1) level = -1;
 		pclose(p);
 	}
 	static int volLogged;
-	if (debug || volLogged++ < 6) fprintf(stderr, "volume %s: %d%%\n", up ? "up" : "down", level);
+	if (debug || volLogged++ < 8) fprintf(stderr, "volume %s: %d%% (%s)\n", up ? "up" : "down", level, how[0] ? how : "?");
+	if (level >= 0) SDL_AtomicSet(&volLevel, level);
+	SDL_AtomicSet(&volBusy, 0);
+	return 0;
+}
+
+static void volume_key(bool up) {
+	if (!getenv("GBADS_VOLUME_SCRIPT") || !SDL_AtomicCAS(&volBusy, 0, 1)) return;
+	SDL_Thread* t = SDL_CreateThread(volume_thread, "volume", up ? (void*) 1 : NULL);
+	if (t) SDL_DetachThread(t);
+	else SDL_AtomicSet(&volBusy, 0);
+}
+
+static void volume_show(void) {
+	int level = SDL_AtomicSet(&volLevel, -1);
 	if (level >= 0) ui_osd("Volume %d%%", level);
+}
+
+/* raw joystick buttons that are the volume keys (GBADS_VOLUME_BUTTONS=up,down;
+ * the RG DS Plus's own Linux: 16,15 on its built-in controller) */
+static void volume_button(int button) {
+	static int vb[2] = { -2, -2 };
+	if (vb[0] == -2) {
+		vb[0] = vb[1] = -1;
+		const char* e = getenv("GBADS_VOLUME_BUTTONS");
+		if (e) sscanf(e, "%d,%d", &vb[0], &vb[1]);
+	}
+	if (button >= 0 && button == vb[0]) volume_key(true);
+	else if (button >= 0 && button == vb[1]) volume_key(false);
 }
 
 #define EVBIT(b, n) ((b)[(n) / 8] & (1 << ((n) % 8)))
@@ -605,12 +636,15 @@ static void evdev_volume_poll(void) {
 static void evdev_touch_poll(void) {}
 static void evdev_volume_poll(void) {}
 static void volume_key(bool up) { (void) up; }
+static void volume_show(void) {}
+static void volume_button(int button) { (void) button; }
 static const int evVolFd = -1;
 #endif
 
 bool ui_events(void) {
 	evdev_touch_poll();
 	evdev_volume_poll();
+	volume_show();
 	SDL_Event ev;
 	while (SDL_PollEvent(&ev)) {
 		switch (ev.type) {
@@ -651,6 +685,7 @@ bool ui_events(void) {
 				if (debug || rawLogged++ < 8) fprintf(stderr, "raw joystick %d button %d (use home_button = %d to make it HOME)\n",
 				                                      (int) ev.jbutton.which, ev.jbutton.button, ev.jbutton.button);
 			}
+			volume_button(ev.jbutton.button);
 			break;
 		case SDL_CONTROLLERBUTTONDOWN:
 			{
