@@ -9,6 +9,7 @@
 #include "esinteg.h"
 #include "mapper.h"
 #include "ra.h"
+#include "update.h"
 
 #include <ctype.h>
 #include <dirent.h>
@@ -18,6 +19,7 @@
 #include <unistd.h>
 #include <strings.h>
 #include <sys/stat.h>
+#include <time.h>
 
 typedef struct {
 	char path[1024];
@@ -596,14 +598,17 @@ static void draw_list(Config* cfg, int scr, int sel, int scroll) {
 /* ------------------------------------------------------------ settings */
 
 static char settingsMsg[128];
+static bool updatesOpen;   /* the Updates panel (Linux), over Settings or the game list */
+static bool updatesNotice; /* opened by an automatic check */
+static int updatesSel;
 
 /* Settings: a row of buttons, each with its text below, then Back.
  * Linux: GBA DS in EmulationStation (ROCKNIX) or in BananaOS's list, where
- * there's one; Map Buttons. Android: ROM Folder, RetroAchievements, Map Buttons. */
+ * there's one; Map Buttons; Updates. Android: ROM Folder, RetroAchievements, Map Buttons. */
 #define SETTINGS_MAX 3
 static int nRows = 1; /* rows shown (Back is row nRows) */
 #ifndef __ANDROID__
-enum { ROW_BANANA, ROW_ES, ROW_MAP };
+enum { ROW_BANANA, ROW_ES, ROW_MAP, ROW_UPDATES };
 static int rowKind[SETTINGS_MAX];
 #endif
 
@@ -616,6 +621,9 @@ static void settings_rows(const Config* cfg) {
 	if (banana_present()) rowKind[nRows++] = ROW_BANANA;
 	else if (es_present(cfg)) rowKind[nRows++] = ROW_ES;
 	rowKind[nRows++] = ROW_MAP;
+#ifdef GBADS_UPDATES
+	rowKind[nRows++] = ROW_UPDATES;
+#endif
 #endif
 }
 
@@ -633,9 +641,15 @@ static SettingsGeom settings_geom(int scr) {
 	int m = px * 6, rowH = nRows > 2 ? px * 14 : px * 18;
 	g.panel = (SDL_Rect) { m, m, r.w - m * 2, r.h - m * 2 };
 	int gap = nRows > 2 ? px * 28 : px * 44; /* room for each row's text under it */
+	int y = g.panel.y + px * 26;
 	for (int i = 0; i < nRows; ++i) {
-		g.row[i] = (SDL_Rect) { g.panel.x + px * 6, g.panel.y + px * 26 + i * (rowH + gap), g.panel.w - px * 12, rowH };
+		g.row[i] = (SDL_Rect) { g.panel.x + px * 6, y, g.panel.w - px * 12, rowH };
 		g.textY[i] = g.row[i].y + rowH + px * 8;
+#ifndef __ANDROID__
+		/* Linux, three rows: room for each one's text (lines of about 8 units) */
+		if (nRows > 2) gap = px * (rowKind[i] == ROW_BANANA || rowKind[i] == ROW_ES ? 38 : rowKind[i] == ROW_MAP ? 30 : 22);
+#endif
+		y += rowH + gap;
 	}
 	g.back = (SDL_Rect) { g.panel.x + (g.panel.w - px * 60) / 2, g.panel.y + g.panel.h - rowH - px * 6, px * 60, rowH };
 	return g;
@@ -770,7 +784,8 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 	for (int i = 0; i < nRows; ++i) {
 		labels[i] = rowKind[i] == ROW_BANANA ? (banana_integration_on() ? "GBA DS in BananaOS's GBA list: On" : "GBA DS in BananaOS's GBA list: Off")
 		          : rowKind[i] == ROW_ES     ? (es_integration_on(cfg) ? "GBA DS in EmulationStation: On" : "GBA DS in EmulationStation: Off")
-		                                     : "Map Buttons";
+		          : rowKind[i] == ROW_MAP    ? "Map Buttons"
+		                                     : "Updates";
 	}
 	draw_settings_frame(scr, &g, sel, labels);
 	int tx = g.row[0].x + px * 2, tw = g.row[0].w - px * 4;
@@ -784,8 +799,10 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 		                       ? "Adds GBA DS to the emulators for Game Boy Advance games in EmulationStation. Pick it for one game "
 		                         "(its Advanced Game Options > Emulator) or for all of them (the system's advanced settings). "
 		                         "The other emulators keep working as before."
-		                       : "Sets which of this device's buttons does what: GBA DS asks for each one in turn. "
-		                         "Tap to skip any the device doesn't have.";
+		                   : rowKind[i] == ROW_MAP
+		                       ? "Sets which of this device's buttons does what: GBA DS asks for each one in turn. "
+		                         "Tap to skip any the device doesn't have."
+		                       : "This is v" GBADS_VERSION ". Look for a new version, and download and install it.";
 		y = draw_wrapped(scr, tx, g.textY[i], tw, px, text, C_DIM);
 	}
 	if (settingsMsg[0]) draw_wrapped(scr, tx, y + px * 6, tw, px, settingsMsg, C_GOLD);
@@ -793,7 +810,8 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 
 static void settings_activate(Config* cfg, int row) {
 	settingsMsg[0] = 0;
-	if (rowKind[row] == ROW_BANANA) banana_integration_set(!banana_integration_on(), settingsMsg, sizeof(settingsMsg));
+	if (rowKind[row] == ROW_UPDATES) updatesOpen = true, updatesNotice = false, updatesSel = 0;
+	else if (rowKind[row] == ROW_BANANA) banana_integration_set(!banana_integration_on(), settingsMsg, sizeof(settingsMsg));
 	else if (rowKind[row] == ROW_ES) es_integration_set(cfg, !es_integration_on(cfg), settingsMsg, sizeof(settingsMsg));
 	else mapper_run(cfg);
 }
@@ -801,6 +819,178 @@ static void settings_activate(Config* cfg, int row) {
 static bool settings_poll(Config* cfg) {
 	(void) cfg;
 	return false;
+}
+#endif
+
+#ifdef GBADS_UPDATES
+/* ------------------------------------------------------------ updates */
+
+enum { UB_CHECK, UB_AUTO, UB_BACK, UB_UPDATE, UB_LATER, UB_SKIP, UB_CANCEL };
+
+/* The buttons for the state, bottom to top order reversed: top first. */
+static int update_buttons(const UpdateInfo* u, int* ids) {
+	int n = 0;
+	switch (u->state) {
+	case UPD_AVAILABLE:
+		ids[n++] = UB_UPDATE, ids[n++] = UB_LATER, ids[n++] = UB_SKIP;
+		break;
+	case UPD_DOWNLOADING:
+		ids[n++] = UB_CANCEL;
+		break;
+	case UPD_INSTALLING:
+	case UPD_DONE:
+		break;
+	case UPD_CHECKING:
+		ids[n++] = UB_BACK;
+		break;
+	default:
+		ids[n++] = UB_CHECK, ids[n++] = UB_AUTO, ids[n++] = UB_BACK;
+	}
+	return n;
+}
+
+typedef struct {
+	SDL_Rect panel, text, bar, btn[4];
+	float px;
+} UpdatesGeom;
+
+static UpdatesGeom updates_geom(int scr, int nb) {
+	UpdatesGeom g;
+	SDL_Rect r = screens[scr].rect;
+	float px = ui_px(scr);
+	g.px = px;
+	int m = px * 6, rowH = px * 15, gap = px * 4;
+	g.panel = (SDL_Rect) { m, m, r.w - m * 2, r.h - m * 2 };
+	int y = g.panel.y + g.panel.h - px * 6;
+	for (int i = nb - 1; i >= 0; --i) {
+		y -= rowH;
+		g.btn[i] = (SDL_Rect) { g.panel.x + px * 6, y, g.panel.w - px * 12, rowH };
+		y -= gap;
+	}
+	int top = g.panel.y + px * 22;
+	g.text = (SDL_Rect) { g.panel.x + px * 8, top, g.panel.w - px * 16, y - top - px * 2 };
+	g.bar = (SDL_Rect) { g.panel.x + px * 12, g.panel.y + g.panel.h / 2 - px * 2, g.panel.w - px * 24, px * 4 };
+	return g;
+}
+
+static void draw_updates(int scr, int sel) {
+	UpdateInfo u;
+	update_info(&u);
+	int ids[4];
+	int nb = update_buttons(&u, ids);
+	UpdatesGeom g = updates_geom(scr, nb);
+	float px = g.px;
+	ui_dim(scr, 200);
+	ui_fill_round(scr, g.panel, C_HEADER, px * 4);
+	ui_label(scr, g.panel.x + g.panel.w / 2, g.panel.y + px * 12, px * 6,
+	         u.state == UPD_AVAILABLE ? "A new version of GBA DS" : "Updates", C_TEXT);
+	for (int i = 0; i < nb; ++i) {
+		SDL_Rect b = g.btn[i];
+		const char* label = ids[i] == UB_CHECK  ? "Check now"
+		                  : ids[i] == UB_AUTO   ? (u.autoOn ? "Automatic checks: On" : "Automatic checks: Off")
+		                  : ids[i] == UB_BACK   ? "Back"
+		                  : ids[i] == UB_UPDATE ? "Update now"
+		                  : ids[i] == UB_LATER  ? "Later"
+		                  : ids[i] == UB_SKIP   ? "Skip this version"
+		                                        : "Cancel";
+		if (i == sel) ui_fill_round(scr, (SDL_Rect) { b.x - px, b.y - px, b.w + px * 2, b.h + px * 2 }, C_EDGE, px * 4);
+		ui_fill_round(scr, b, i == sel ? C_SEL : C_ROW, px * 3);
+		ui_label(scr, b.x + b.w / 2, b.y + b.h / 2, px * 5, label, C_TEXT);
+	}
+	int tx = g.text.x, tw = g.text.w, y = g.text.y;
+	char line[1600];
+	SDL_Rect clip = { screens[scr].rect.x + g.text.x, screens[scr].rect.y + g.text.y, g.text.w, g.text.h };
+	ui_clip(scr, &clip);
+	switch (u.state) {
+	case UPD_AVAILABLE:
+		snprintf(line, sizeof(line), "GBA DS v%s is out (this is v%s). Update now to download it (%.1f MB) and restart "
+		         "into it; your games, saves, states and settings are kept.", u.version, GBADS_VERSION, u.size / 1048576.0);
+		y = draw_wrapped(scr, tx, y, tw, px, line, C_TEXT) + px * 2;
+		/* the release notes: a heading or a bullet point a line */
+		for (const char* p = u.notes; *p;) {
+			size_t len = strcspn(p, "\n");
+			snprintf(line, sizeof(line), "%.*s", (int) len, p);
+			p += len + (p[len] == '\n');
+			bool bullet = !strncmp(line, "\xe2\x80\xa2", 3);
+			bool heading = len && line[len - 1] == ':' && !bullet;
+			y = draw_wrapped(scr, tx + (bullet ? px * 3 : 0), y + (heading ? px * 3 : px), tw - (bullet ? px * 3 : 0), px, line,
+			                 heading ? C_TEXT : C_DIM);
+		}
+		break;
+	case UPD_DOWNLOADING:
+	case UPD_INSTALLING:
+	case UPD_DONE: {
+		const char* what = u.state == UPD_DOWNLOADING ? "Downloading" : u.state == UPD_INSTALLING ? "Installing" : "Installed";
+		snprintf(line, sizeof(line), u.state == UPD_DONE ? "%s v%s. Restarting..." : "%s v%s...", what, u.version);
+		ui_label(scr, g.panel.x + g.panel.w / 2, g.bar.y - px * 10, px * 5, line, C_TEXT);
+		int pc = u.state == UPD_DOWNLOADING ? u.percent : 100;
+		ui_fill(scr, g.bar, C_ROW);
+		ui_fill(scr, (SDL_Rect) { g.bar.x, g.bar.y, g.bar.w * pc / 100, g.bar.h }, C_SEL);
+		if (u.state == UPD_DOWNLOADING) {
+			snprintf(line, sizeof(line), "%d%%", pc);
+			ui_font_text(scr, TF_BODY, g.panel.x + g.panel.w / 2, g.bar.y + px * 12, px * 4, line, C_DIM, 0);
+		}
+		break;
+	}
+	default: {
+		snprintf(line, sizeof(line), "This is GBA DS v%s.", GBADS_VERSION);
+		if (u.state == UPD_CHECKING) snprintf(line + strlen(line), sizeof(line) - strlen(line), " Checking for a new version...");
+		else if (u.state == UPD_LATEST) snprintf(line + strlen(line), sizeof(line) - strlen(line), " It's the newest version.");
+		y = draw_wrapped(scr, tx, y, tw, px, line, C_TEXT);
+		if (u.state == UPD_ERROR) y = draw_wrapped(scr, tx, y + px * 3, tw, px, u.error, C_GOLD);
+		if (u.lastCheck > 0) {
+			time_t t = (time_t) u.lastCheck;
+			char when[64];
+			strftime(when, sizeof(when), "%e %B %Y, %H:%M", localtime(&t));
+			snprintf(line, sizeof(line), "Last checked %s.", when[0] == ' ' ? when + 1 : when);
+			y = draw_wrapped(scr, tx, y + px * 3, tw, px, line, C_DIM);
+		}
+		draw_wrapped(scr, tx, y + px * 3, tw, px,
+		             "With automatic checks on, GBA DS looks for a new version once a day when the game list opens, and asks "
+		             "before downloading anything. Updates come from the releases on github.com/kyannon/gba-ds.",
+		             C_DIM);
+	}
+	}
+	ui_clip(scr, NULL);
+}
+
+/* One step of the Updates panel; false once it's closed. */
+static bool updates_input(int ls) {
+	UpdateInfo u;
+	update_info(&u);
+	int ids[4];
+	int nb = update_buttons(&u, ids);
+	if (updatesSel >= nb) updatesSel = nb ? nb - 1 : 0;
+	int act = -1;
+	if (nb) {
+		if (btn_pressed(B_DOWN)) updatesSel = (updatesSel + 1) % nb;
+		if (btn_pressed(B_UP)) updatesSel = (updatesSel + nb - 1) % nb;
+		if (btn_pressed(B_A) || btn_pressed(B_START)) act = ids[updatesSel];
+	}
+	if (btn_pressed(B_B) || btn_released(B_HOME)) {
+		act = u.state == UPD_DOWNLOADING ? UB_CANCEL : u.state == UPD_AVAILABLE ? UB_LATER
+		    : u.state == UPD_INSTALLING || u.state == UPD_DONE ? -1 : UB_BACK;
+	}
+	Pointer p;
+	while (ui_next_pointer(&p)) {
+		if (p.screen != ls || p.kind != 1) continue;
+		UpdatesGeom g = updates_geom(ls, nb);
+		SDL_Point pt = { p.x, p.y };
+		for (int i = 0; i < nb; ++i) {
+			if (SDL_PointInRect(&pt, &g.btn[i])) updatesSel = i, act = ids[i];
+		}
+	}
+	switch (act) {
+	case UB_CHECK: update_check_now(); updatesSel = 0; break;
+	case UB_AUTO: update_set_auto(!u.autoOn); break;
+	case UB_UPDATE: update_install(); updatesSel = 0; break;
+	case UB_SKIP: update_skip(); return false;
+	case UB_CANCEL: update_cancel(); updatesSel = 0; break;
+	case UB_LATER:
+	case UB_BACK: return false;
+	default: break;
+	}
+	return true;
 }
 #endif
 
@@ -865,6 +1055,11 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 	bool settingsOpen = false;
 	int settingsSel = 0;
 	settingsMsg[0] = 0;
+	updatesOpen = false;
+	update_auto_check(); /* once a day, in the background */
+#ifdef GBADS_UPDATES
+	int restartIn = -1; /* frames until the restart into an installed update */
+#endif
 
 	while (!quit && chosen < 0) {
 		if (logo_generation() != logoGen) { /* a logo finished extracting */
@@ -906,6 +1101,32 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 			continue;
 		}
 
+#ifdef GBADS_UPDATES
+		/* an automatic check found a new version: ask (on the game list) */
+		if (!updatesOpen && !settingsOpen && update_notice_pending()) {
+			update_notice_seen();
+			updatesOpen = true, updatesNotice = true, updatesSel = 0;
+		}
+		if (updatesOpen) {
+			if (!updates_input(ls)) updatesOpen = false;
+			UpdateInfo u;
+			update_info(&u);
+			if (u.state == UPD_DONE && restartIn < 0) restartIn = 90;
+			if (restartIn > 0 && --restartIn == 0) {
+				quit = true; /* main() starts the new version */
+				break;
+			}
+			pressed = false;
+			ui_clear();
+			draw_list(cfg, ls, sel, scroll);
+			if (settingsOpen && updatesOpen) draw_settings(cfg, ls, settingsSel);
+			if (updatesOpen) draw_updates(ls, updatesSel);
+			if (nScreens > 1) draw_preview(cfg, ui_other_screen(), sel);
+			ui_present();
+			SDL_Delay(15);
+			continue;
+		}
+#endif
 		if (settingsOpen) {
 			if (settings_poll(cfg)) {
 				/* a new ROM folder: list it */

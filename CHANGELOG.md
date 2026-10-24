@@ -1,6 +1,7 @@
 # Changelog
 
 ## v1.3.2 (not yet released)
+- **Updates from the game list (ROCKNIX, BananaOS, Stock Linux OS):** once a day, when the game list opens, GBA DS looks for a new release and, if there is one, shows what's new and asks: Update now, Later or Skip this version. Update now downloads it, checks it, installs it (your states, settings and `gba-ds.cfg` are kept) and restarts into it. Settings > Updates checks by hand and switches the automatic checks off (`update_check = 0` in `gba-ds.cfg` does too). Android will follow.
 
 ## v1.3.1 (2026-10-24)
 - **Pause menu:** three pages instead of four. Frame Buffer and Match Display Rate are now under Display, Rewind and Show FPS under Extras, and the Performance page is gone. Map Animations and Map Refresh are no longer in the menu. They're `map_animations` and `map_interval` in `gba-ds.cfg`: on, and a map refresh every second (it was every 1.5 seconds). Choices made in the old menu items no longer apply.

@@ -5,7 +5,7 @@ Three files are read in order, later ones winning:
 2. `states/prefs.cfg`: what you chose in the pause menu (screens swapped, scaling, LCD grid, overlays, the second screen's logo, FPS counter, frame buffer). GBA DS rewrites this file; to change those settings, use the menu, or delete the line from `prefs.cfg`.
 3. `states/library.cfg`: the game list's view (list or grid) and, on Android, the ROM folder.
 
-Upgrading GBA DS on ROCKNIX replaces `gba-ds.cfg`, so keep a copy of your changes.
+Updating from the game list (Settings > Updates, Linux) keeps your `gba-ds.cfg`. Unzipping a new release by hand replaces it, so keep a copy of your changes first.
 
 ## Game list
 
@@ -16,6 +16,7 @@ Upgrading GBA DS on ROCKNIX replaces `gba-ds.cfg`, so keep a copy of your change
 | `name_tags` | `0` | `1` keeps tags like `(USA)` and `(En,Fr,De)` in game names. |
 | `library_view` | `list` | `list` (names) or `grid` (logos). Also switched with X in the list; remembered in `library.cfg`. |
 | `auto_resume` | `1` | Save a state when you leave a game, and pick up from it next time. |
+| `update_check` | `1` | Linux: look for a new release once a day when the game list opens, and ask before downloading it. The **Automatic checks** switch in Settings > Updates overrides this (kept in `states/update.cfg`). See [[Playing#updates-linux]]. |
 
 ## Screens
 

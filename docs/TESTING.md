@@ -141,3 +141,28 @@ note that a state loads into a fresh run, so a rule about keeping
 something from before (a last picture) needs a case that shows it first:
 input that plays there, or a `LOAD:` of the state from an earlier one. For a release whose saves the game won't read (most European releases
 won't read USA saves), make a state by playing in from a new game.
+
+## Updates (Linux)
+
+The updater (`src/update.c`) is tested against `tools/update_mock.py`, a
+stand-in for GitHub's latest-release API serving a zip you give it:
+
+1. Make a fake release zip laid out like the real one (`gba-ds/gba-ds`,
+   `gba-ds/launch.sh`, `gba-ds/gba-ds.cfg`, `GBA DS.sh`, `images/`). A
+   `gba-ds/gba-ds` that's a shell script writing a file shows the restart
+   worked.
+2. Copy `build/host/gba-ds` into an install folder like the device's
+   (`ports/gba-ds/gba-ds`, with an old `launch.sh`, a `gba-ds.cfg` of your
+   own and `ports/GBA DS.sh`).
+3. `python3 tools/update_mock.py --zip release.zip [--slow] [--bad-digest]
+   [--status 404]`, then run that copy headless with
+   `--update-url=http://127.0.0.1:8098/repos/kyannon/gba-ds/releases/latest`
+   (unset `https_proxy`). With no `states/update.cfg` the automatic check
+   runs at once and the notice appears; `auto = 0` in it tests the Settings
+   path (SELECT, DOWN to Updates, A, A to check).
+4. Check: the new files are in place, `gba-ds.cfg` is yours, `GBA DS.sh` is
+   the new one (an `images/` folder that wasn't there isn't created), the
+   restart ran with the same arguments, and `states/update/` is empty.
+   `PATH=/nonexistent` tests the libcurl fallback (BananaOS); running a copy
+   from elsewhere with `GBADS_HOME` set tests launch.sh's copied binary
+   (both copies are replaced).

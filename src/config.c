@@ -33,6 +33,7 @@ void config_defaults(Config* c) {
 	c->ffSpeed = 3;
 	c->pinCores = false; /* tried on the RG DS Plus: no better (docs/ANDROID.md) */
 	c->autoResume = true;
+	c->updateCheck = true;
 	c->showAll = false;
 	c->nameTags = false;
 	strcpy(c->raMode, "auto");
@@ -116,6 +117,8 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	STR("ra_password", raPassword)
 	STR("ra_system_cfg", raSystemCfg)
 	STR("ra_host", raHost)
+	BOOL("update_check", updateCheck)
+	STR("update_url", updateUrl)
 	STR("load_state", loadState)
 	INT("quit_after", quitAfter)
 	STR("es_config_dir", esConfigDir)

@@ -15,6 +15,7 @@
 #include "paths.h"
 #include "ui.h"
 #include "ra.h"
+#include "update.h"
 #include "emu.h"
 #include "profiles.h"
 
@@ -142,6 +143,7 @@ int main(int argc, char** argv) {
 
 	if (!ui_init(&cfg, true)) return 1;
 	ra_init(&cfg); /* signs in to RetroAchievements in the background */
+	update_init(&cfg, exeDir, argc, argv);
 #ifdef __ANDROID__
 	fprintf(stderr, "startup: screens ready\n"); /* logcat's timestamps time the start-up steps */
 #endif
@@ -159,5 +161,6 @@ int main(int argc, char** argv) {
 	logo_shutdown();
 	ra_shutdown();
 	ui_shutdown();
+	update_restart_if_installed(); /* an update was installed: start it */
 	return 0;
 }

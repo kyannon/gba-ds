@@ -177,6 +177,11 @@ Android session at the same time. To keep them from colliding:
   --ra-host=http://127.0.0.1:8099`. Hardcore is not allowed before the app
   has been public for 6 months (from Oct 13, 2026).
 - `mapper.c` Settings > Map Buttons (Linux): asks for each button, builds an SDL mapping for that controller, kept in `<state_dir>/controllers.txt` and logged (bake device ones into `dist/gamecontrollerdb.txt`). Input scripts drive it with a virtual pad: `JOYBTN:n`, `JOYHAT:v`, `JOYAXIS:n,v`, `JOYBTN:-`.
+- `update.c` updates (Linux): GitHub's latest release, the notice and
+  Settings > Updates (library.c), download through `http.c` (curl, or
+  libcurl), SHA-256 check (`sha256.c`), install over the app's folder via
+  `.new` files and rename (gba-ds.cfg kept), then main() execs the new
+  binary. Test offline with `tools/update_mock.py` (docs/TESTING.md).
 - `library.c` the game list and its Settings screen; `esinteg.c` the
   EmulationStation integration; `cheats.c` RetroArch .cht files;
   `ui.c` SDL windows, input, drawing, the pause-menu text images.

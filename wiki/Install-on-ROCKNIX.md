@@ -63,10 +63,12 @@ GBA DS rewrites the copied emulator list each time it starts, so it keeps up wit
 
 ## Upgrading
 
-Unzip the new release over the old one, into `/storage/roms/ports/`.
+The easiest way: in the game list, **Settings** > **Updates** > **Check now**, then **Update now** (GBA DS also offers new versions by itself once a day; see [[Playing#updates-linux]]). That keeps your `gba-ds.cfg` too.
+
+By hand: unzip the new release over the old one, into `/storage/roms/ports/`.
 
 - **Kept:** everything in `gba-ds/states/` (save states, resume points, cheat choices, menu settings, extracted logos, your RetroAchievements sign-in), your own `logos/` and `overlays/`, and the battery saves next to your ROMs.
-- **Replaced:** `gba-ds/gba-ds.cfg`. If you've edited it, keep a copy first and copy your changes back (new versions may add options; see [[Settings]]).
+- **Replaced** (by hand only): `gba-ds/gba-ds.cfg`. If you've edited it, keep a copy first and copy your changes back (new versions may add options; see [[Settings]]).
 - If **GBA DS in EmulationStation** was on, it stays on.
 
 **From gbadual** (this app's old name): unzip as above, then launch **GBA DS** once. On that first run it copies your save states, resume points, menu settings and any custom logos or overlays from the old `gbadual/` folder. Then delete the old `gbadual/` folder and the **GBA Dual Screen** entry (`GBA Dual Screen.sh`) from `/storage/roms/ports/`. Copy any changes you'd made in `gbadual.cfg` into `gba-ds/gba-ds.cfg`.
