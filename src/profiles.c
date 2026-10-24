@@ -92,8 +92,8 @@ static const uint8_t ffta_tag_jp[212] = {
 /* ---------------------------------------------------------- Advance Wars
  *
  * Advance Wars and Advance Wars 2. The second screen, after Advance Wars:
- * Dual Strike's: the unit under the cursor's intel (R) when it's one of
- * yours (or the one being moved), or else the Battle Intel, and the minimap
+ * Dual Strike's: the unit under the cursor's intel (R, with its text box)
+ * when it's one of yours (or the one being moved), or else the Battle Intel, and the minimap
  * (START) below. Each is opened on the shadow core from the live state: B
  * (backs out of a move or an action menu), then R, or SELECT > Intel >
  * Status; START for the minimap. On the enemy's turn none of it opens and
@@ -324,7 +324,8 @@ static void aw_clean(Emu* s, void* tmp, uint32_t* pan, uint32_t* bg2) {
 
 /* The unit intel's panel: the columns where BG2 (the boxes) covers both
  * the top and the bottom of the screen (the text box beside it is only
- * at one or the other); the longest such run. False if there's none. */
+ * at one or the other); the longest such run. False if there's none (the
+ * unit intel isn't what opened). */
 static bool aw_unit_cols(const uint32_t* bg2, int* x0, int* x1) {
 	int best = 0, run = 0;
 	for (int x = 0; x <= GBA_W; ++x) {
@@ -422,11 +423,14 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 	if (!err) aw_clean(s, tmp, pan, unitPanel ? bg2 : NULL);
 	free(tmp);
 	if (err) return err;
-	/* the part of the picture that goes: the unit intel's panel (not its
-	 * text box), or the Battle Intel's panel (not the map below it) */
+	/* the part of the picture that goes: the unit intel (its panel and
+	 * the text box beside it, as the game has them: what's inside BG2's
+	 * boxes, not the cursor or units around them), or the Battle Intel's
+	 * panel (not the map below it) */
 	int x0 = 0, x1 = GBA_W - 1, rows = r->intelRows;
 	if (unitPanel) {
-		if (!aw_unit_cols(bg2, &x0, &x1)) return "unit intel's panel not found";
+		int c0, c1;
+		if (!aw_unit_cols(bg2, &c0, &c1)) return "unit intel's panel not found";
 		rows = GBA_H;
 	}
 	for (int i = 0; i < w * h; ++i) out[i] = AW_BG;
@@ -440,6 +444,7 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 	for (int y = 0; y < rows && py + y < h; ++y) {
 		for (int x = x0; x <= x1; ++x) {
 			uint32_t c = pan[y * GBA_W + x];
+			if (unitPanel && bg2[y * GBA_W + x] == AW_BG) continue;
 			if (c != AW_BG) out[(py + y) * w + px + x] = c;
 		}
 	}

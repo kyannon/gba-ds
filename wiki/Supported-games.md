@@ -95,7 +95,7 @@ The HUD is moved off the game screen rather than copied: GBA DS draws each frame
 
 Preliminary. The USA and European releases of both (neither came out in Japan). The two work the same way.
 
-- **In a battle, on your turn,** the second screen is laid out after Advance Wars: Dual Strike's: at the top, the **intel of the unit under the cursor** (the screen R opens, without its text box) when it's one of yours (it stays while you move it and pick its action), or else the **Battle Intel** (bases and funds). At the bottom left, the **minimap** from the START button. All of it is brought up in the background from the menus of a silent copy of the game, as the other games' maps are; your game is never paused.
+- **In a battle, on your turn,** the second screen is laid out after Advance Wars: Dual Strike's: at the top, the **intel of the unit under the cursor** (the screen R opens, with its text box) when it's one of yours (it stays while you move it and pick its action), or else the **Battle Intel** (bases and funds). At the bottom left, the **minimap** from the START button. All of it is brought up in the background from the menus of a silent copy of the game, as the other games' maps are; your game is never paused.
 - The **CO and day plate** and the **terrain and unit info** move from the game screen to the bottom of the second screen (the plate in the middle, the info on the right, on a grey box), so they no longer cover the map; the panels are drawn over them where they meet.
 - The enemy's **CO and day plate** shows on their turn; the panel keeps its last picture.
 - **In a fight,** the second screen is the dark background with the game's logo, small and dimmed, in the middle. On the title and menus, the second screen shows the logo.
