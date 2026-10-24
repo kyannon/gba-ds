@@ -177,6 +177,7 @@ textarea { min-height: 88px; resize: vertical; }
       <input type="file" id="fileIn" class="sr" accept=".zip,.gba,.nds,.sav,.state,.ss,.srm,.mln,.ml1,.ml2,.ml3,.ml4,.ml5,.ml6,.ml7,.ml8" multiple>
       <div class="controls">
         <button id="pauseBtn" type="button" disabled>Pause</button>
+        <button id="rwBtn" class="core-only" type="button" disabled title="Hold to go back up to 10 seconds (or hold R)">Hold to rewind</button>
         <button id="ffBtn" class="core-only" type="button" aria-pressed="false" disabled>Fast-forward</button>
         <button id="muteBtn" class="core-only" type="button" aria-pressed="false">Mute</button>
         <button id="resetBtn" type="button" disabled>Reset</button>
@@ -206,6 +207,7 @@ textarea { min-height: 88px; resize: vertical; }
           <span><kbd>Q</kbd> L</span><span><kbd>W</kbd> R</span>
           <span><kbd>Enter</kbd> Start</span><span><kbd>Backspace</kbd> Select</span>
           <span><kbd>Arrows</kbd> D-Pad</span><span><kbd>Space</kbd> hold to fast-forward</span>
+          <span><kbd>R</kbd> hold to rewind (up to 10 s)</span>
           <span><kbd>P</kbd> pause</span><span><kbd>F2</kbd> save a state</span>
           <span><kbd>F3</kbd> screenshot</span><span>DS touch: click or drag on the bottom screen</span>
           <span>Gamepads work too.</span>
@@ -245,6 +247,7 @@ textarea { min-height: 88px; resize: vertical; }
       <section class="panel shelf" aria-labelledby="shelfTitle">
         <div class="shelf-head">
           <h3 id="shelfTitle">Saved moments</h3>
+          <button id="allBtn" type="button" aria-pressed="false" hidden>Show all games</button>
           <button id="pkgBtn" type="button" disabled>Download all (.zip)</button>
         </div>
         <p class="lede" id="shelfLede">Saved states and screenshots appear here.</p>
@@ -362,7 +365,7 @@ function setGameLine(title, rest) {
   $("gameLine").append(b, document.createTextNode("  " + rest));
 }
 function setButtons(on) {
-  for (const id of ["pauseBtn", "ffBtn", "resetBtn", "saveBtn", "savDlBtn", "shotBtn", "shotBtn2"]) $(id).disabled = !on;
+  for (const id of ["pauseBtn", "ffBtn", "rwBtn", "resetBtn", "saveBtn", "savDlBtn", "shotBtn", "shotBtn2"]) $(id).disabled = !on;
 }
 function setSystem(s, keepGame) {
   if (s === sys && keepGame) return;
@@ -384,7 +387,7 @@ function setSystem(s, keepGame) {
     game.loaded = false;
     $("drop").hidden = false;
     $("gameLine").textContent = "No game loaded";
-    for (const id of ["pauseBtn", "ffBtn", "resetBtn", "saveBtn", "savDlBtn", "shotBtn", "shotBtn2"]) $(id).disabled = true;
+    for (const id of ["pauseBtn", "ffBtn", "rwBtn", "resetBtn", "saveBtn", "savDlBtn", "shotBtn", "shotBtn2"]) $(id).disabled = true;
   }
   sys = s;
   const S = SYSTEMS[s];
@@ -431,9 +434,11 @@ async function loadRom(s, name, bytes, sav) {
   Object.assign(game, { loaded: true, sys: s, romName: name, romBytes: bytes, code: cstr(call("game_code")), title: cstr(call("game_title")).replace(/\0/g, "").trim(), frames: 0 });
   $("drop").hidden = true;
   setGameLine(game.title || name, game.code + "  ·  " + name);
-  for (const id of ["pauseBtn", "ffBtn", "resetBtn", "saveBtn", "savDlBtn", "shotBtn", "shotBtn2"]) $(id).disabled = false;
+  for (const id of ["pauseBtn", "ffBtn", "rwBtn", "resetBtn", "saveBtn", "savDlBtn", "shotBtn", "shotBtn2"]) $(id).disabled = false;
+  rwClear();
   setRunning(true);
   rememberRom(s, name, bytes);
+  renderShelf();
   return true;
 }
 
@@ -443,7 +448,7 @@ function loadStateBytes(bytes, label) {
   const ok = call("state_load", p, bytes.length);
   call("free", p);
   flash("shelfMsg", ok ? "Loaded " + label + "." : "That state didn't load. Is it for this game?", !ok);
-  if (ok) { drawFrame(); setRunning(true); }
+  if (ok) { rwClear(); drawFrame(); setRunning(true); }
   return ok;
 }
 function saveStateBytes() {
@@ -516,6 +521,7 @@ function tick(t) {
   if (sys === "gbads") { gdTick(t); return; }
   if (!game.loaded || !running || !C()) { last = t; return; }
   const S = SYSTEMS[sys];
+  if (rw.held) { last = t; acc = 0; rwStep(t); return; }
   let dt = t - last; last = t;
   if (dt > 120) dt = S.frameMs;
   acc += dt;
@@ -532,12 +538,57 @@ function tick(t) {
       else call("frame", keys, touch.down ? 1 : 0, touch.x, touch.y);
       game.frames++;
       pumpAudio(speed === 1);
+      rwMaybeSnap();
     }
   }
   if (due) { drawFrame(); fpsN += due * speed; }
   if (t - fpsT > 1000) { $("speedLine").textContent = fpsN ? Math.round(fpsN * 1000 / (t - fpsT)) + " fps" + (speed > 1 ? " · fast" : "") : ""; fpsT = t; fpsN = 0; }
 }
 requestAnimationFrame(tick);
+
+/* rewind: a ring of states taken as the game runs, about 10 seconds' worth
+   (fewer, further apart, when states are big: DS ones), stepped back
+   through while the button or R is held */
+const RW_SECONDS = 10, RW_BUDGET = 96 * 1024 * 1024;
+const rw = { snaps: [], every: 15, max: 40, lastFrame: -1e9, held: false, lastStep: 0 };
+function rwClear() { rw.snaps.length = 0; rw.lastFrame = -1e9; }
+function rwMaybeSnap() {
+  if (game.frames - rw.lastFrame < rw.every) return;
+  const st = saveStateBytes();
+  if (!st) return;
+  rw.lastFrame = game.frames;
+  if (!rw.snaps.length) {
+    // sized from the first state: as many as fit the budget, spread over 10 s
+    const fps = 1000 / SYSTEMS[sys].frameMs;
+    rw.max = Math.max(4, Math.min(40, Math.floor(RW_BUDGET / st.length)));
+    rw.every = Math.max(1, Math.round(RW_SECONDS * fps / rw.max));
+  }
+  rw.snaps.push({ st, frame: game.frames });
+  if (rw.snaps.length > rw.max) rw.snaps.shift();
+}
+function rwStep(t) {
+  if (t - rw.lastStep < 80) return; // about 12 steps a second: 3x speed
+  rw.lastStep = t;
+  const snap = rw.snaps.length > 1 ? rw.snaps.pop() : rw.snaps[0];
+  if (!snap) { $("speedLine").textContent = "Nothing to rewind yet"; return; }
+  const p = copyIn(snap.st);
+  call("state_load", p, snap.st.length);
+  call("free", p);
+  game.frames = snap.frame;
+  rw.lastFrame = snap.frame;
+  drawFrame();
+  call("audio", C().audioPtr, 8192); // (dropped)
+  const left = rw.snaps.length > 1 ? (rw.snaps[rw.snaps.length - 1].frame - rw.snaps[0].frame) * SYSTEMS[sys].frameMs / 1000 : 0;
+  $("speedLine").textContent = "Rewinding · " + left.toFixed(1) + " s more";
+}
+function rwHold(on) {
+  if (on && (!game.loaded || sys === "gbads")) return;
+  rw.held = on;
+  $("rwBtn").setAttribute("aria-pressed", on);
+  if (on && !running) setRunning(true);
+}
+$("rwBtn").addEventListener("pointerdown", (e) => { e.preventDefault(); rwHold(true); try { $("rwBtn").setPointerCapture(e.pointerId); } catch (err) {} });
+for (const ev of ["pointerup", "pointercancel", "lostpointercapture"]) $("rwBtn").addEventListener(ev, () => rwHold(false));
 
 function setRunning(on) {
   running = on && game.loaded;
@@ -656,7 +707,7 @@ function showResume() {
 $("pauseBtn").onclick = () => sys === "gbads" ? gdPause(!gd.paused) : setRunning(!running);
 $("ffBtn").onclick = () => { ff = !ff; $("ffBtn").setAttribute("aria-pressed", ff); };
 $("muteBtn").onclick = () => { muted = !muted; $("muteBtn").setAttribute("aria-pressed", muted); $("muteBtn").textContent = muted ? "Sound off" : "Mute"; };
-$("resetBtn").onclick = () => { if (sys === "gbads") { gdBoot(null); return; } call("reset"); game.frames = 0; setRunning(true); };
+$("resetBtn").onclick = () => { if (sys === "gbads") { gdBoot(null); return; } call("reset"); game.frames = 0; rwClear(); setRunning(true); };
 $("savDlBtn").onclick = async () => {
   if (sys === "gbads") {
     const saves = gd.h ? gd.h.fs.list("/saves").filter((n) => /\.(sav|srm)$/i.test(n)) : [];
@@ -683,6 +734,7 @@ document.addEventListener("keydown", (e) => {
     return;
   }
   if (e.code === "Space") { ffHeld = true; e.preventDefault(); return; }
+  if (e.code === "KeyR") { if (!e.repeat) rwHold(true); e.preventDefault(); return; }
   if (e.code === "KeyP") { setRunning(!running); return; }
   const k = KEYBOARD[e.code];
   if (k) { held.add(k); e.preventDefault(); ensureAudio(); }
@@ -691,11 +743,12 @@ document.addEventListener("keyup", (e) => {
   const sc = GBADS.SCANCODE[e.code];
   if (sc && gd.keys.has(sc)) { gd.keys.delete(sc); if (gd.h) gd.h.key(sc, false); }
   if (e.code === "Space") ffHeld = false;
+  if (e.code === "KeyR" && rw.held) rwHold(false);
   const k = KEYBOARD[e.code];
   if (k) held.delete(k);
 });
 window.addEventListener("blur", () => {
-  held.clear(); ffHeld = false; touch.down = false;
+  held.clear(); ffHeld = false; touch.down = false; if (rw.held) rwHold(false);
   for (const sc of gd.keys) if (gd.h) gd.h.key(sc, false);
   gd.keys.clear();
 });
@@ -866,7 +919,7 @@ async function saveMoment(kind) {
   try {
     await storeMoment(meta, bytes, await shotBlob());
     flash("saveMsg", (kind === "state" ? "Saved “" : "Screenshot saved: “") + name + "”.");
-    $("nameIn").value = ""; $("notesIn").value = "";
+    $("nameIn").value = ""; $("tagsIn").value = ""; $("notesIn").value = "";
   } catch (err) {
     flash("saveMsg", "Couldn't save: " + (err.code || err.message || err) + ".", true);
   } finally { saving = false; }
@@ -887,13 +940,35 @@ const when = (ms) => new Date(ms).toLocaleString(undefined, { month: "short", da
 const sysOf = (item) => item.system || "gba";
 const kindOf = (item) => item.kind || "state";
 
+/* With a game loaded, only its moments (the same release: game code) unless
+   "Show all games" is on. */
+let showAll = false;
+function shelfGame() {
+  if (sys === "gbads") return gd.rom && (gd.h || gd.booting) ? { code: romCode(gd.rom.bytes), title: romTitle(gd.rom.bytes) || gd.rom.name } : null;
+  return game.loaded && game.sys === sys && game.code ? { code: game.code, title: game.title || game.romName } : null;
+}
+function shownItems() {
+  const g = shelfGame();
+  return !g || showAll ? store.items : store.items.filter((it) => it.gameCode === g.code);
+}
 function renderShelf() {
   const shelf = $("shelf");
   shelf.querySelectorAll(".item").forEach((n) => n.remove());
-  $("shelfEmpty").hidden = store.items.length > 0;
-  $("pkgBtn").disabled = !store.items.length;
-  for (const item of store.items) shelf.append(itemView(item));
+  const g = shelfGame(), items = shownItems();
+  const others = store.items.length - store.items.filter((it) => g && it.gameCode === g.code).length;
+  $("allBtn").hidden = !g || (!others && !showAll);
+  $("allBtn").setAttribute("aria-pressed", showAll);
+  $("allBtn").textContent = showAll ? "Only " + g.code : "Show all games (" + store.items.length + ")";
+  $("shelfTitle").textContent = g && !showAll ? "Saved moments · " + g.code : "Saved moments";
+  $("shelfEmpty").hidden = items.length > 0;
+  $("shelfEmpty").textContent = store.items.length && g && !showAll
+    ? "Nothing saved for " + g.title + " (" + g.code + ") yet."
+    : "Nothing saved yet. Load a game, play to a moment you want to show Claude, then save a state or a screenshot.";
+  $("pkgBtn").disabled = !items.length;
+  $("pkgBtn").textContent = items.length === store.items.length ? "Download all (.zip)" : "Download these (.zip)";
+  for (const item of items) shelf.append(itemView(item));
 }
+$("allBtn").onclick = () => { showAll = !showAll; renderShelf(); };
 
 function stateFileName(item) {
   const base = (item.romName || "game").replace(/\.[^.]+$/, "");
@@ -1019,12 +1094,13 @@ async function offerZip(filename, fill) {
 
 $("pkgBtn").onclick = async () => {
   $("pkgBtn").disabled = true;
-  flash("shelfMsg", "Packing " + store.items.length + " saved moments…");
+  const items = shownItems();
+  flash("shelfMsg", "Packing " + items.length + " saved moments…");
   try {
     await offerZip("state-saver-" + new Date().toISOString().slice(0, 10) + ".zip", async (z) => {
       const used = new Set();
       const index = [];
-      for (const it of store.items) {
+      for (const it of items) {
         let s = slug(it.name), k = 2;
         while (used.has(s)) s = slug(it.name) + "-" + k++;
         used.add(s);
@@ -1037,7 +1113,7 @@ $("pkgBtn").onclick = async () => {
         index.push({ state: state ? "states/" + s + ext : null, screenshot: shot ? "screenshots/" + s + ".png" : null, ...meta });
       }
       z.file("moments.json", JSON.stringify(index, null, 2));
-      z.file("notes.txt", noteText(store.items));
+      z.file("notes.txt", noteText(items));
       z.file("README.txt", [
         "State Saver package",
         "",
@@ -1053,7 +1129,7 @@ $("pkgBtn").onclick = async () => {
         ".ml1, put it beside the ROM and load state slot 1.",
       ].join("\n"));
     });
-  } finally { $("pkgBtn").disabled = !store.items.length; }
+  } finally { $("pkgBtn").disabled = !shownItems().length; }
 };
 
 /* ------------------------------------------------------------ GBA DS */
@@ -1248,6 +1324,7 @@ async function gdBoot(stateBytes) {
         if (mine.h && gd.h !== mine.h) return; // an earlier run
         gd.h = null; gd.booting = false;
         setButtons(false);
+        renderShelf();
         if (sys === "gbads") gdGameLine();
         if (sys === "gbads") { $("drop").hidden = false; $("pausedTag").hidden = true; gdShowResume(); }
         if (err) { gdLog("crashed: " + (err.stack || err)); flash("saveMsg", "GBA DS stopped: " + err.message + " (the log has more).", true); console.error(err); }
@@ -1258,6 +1335,7 @@ async function gdBoot(stateBytes) {
     mine.h = h;
     if (h.running) gd.h = h;
     gd.booting = false;
+    renderShelf();
   } catch (e) {
     gd.booting = false;
     flash("saveMsg", "GBA DS didn't start: " + e.message, true);
