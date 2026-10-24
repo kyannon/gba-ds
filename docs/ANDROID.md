@@ -512,7 +512,7 @@ frontend launch intents.
   Always on Android, with GBADS_DEBUG elsewhere.
 
 - Match Display Rate (main session, v1.1.6-dev; shared code, off by
-  default; `match_display`, pause menu → Performance): game.c's
+  default; `match_display`, pause menu → Display): game.c's
   pacing_update runs the loop at ui_display_hz (on Android SDL's whole-number
   refresh_rate) when within 1.5% of 59.73, resamples the sound from
   rate * hz / 59.73, and calls ui_sync_view(game's view), i.e. swap

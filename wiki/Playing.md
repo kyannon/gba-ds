@@ -39,17 +39,15 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 - **LCD Grid**: a pixel grid like a GBA screen's, on both screens. `lcd_strength` sets how dark.
 - **Overlays**: primary / secondary / both / none. See [[Map screen surrounds and overlays]].
 - **No Second Screen: Show Logo / Keep Blank**: what the second screen shows when the game has nothing for it (title screens, menus, before the first map): the game's logo, or nothing.
-
-**Performance** (remembered for next time)
 - **Frame Buffer**: off by default. On, the next frame is prepared while the current one is on screen, which smooths out the odd stutter at the cost of one frame (about 17 ms) of input delay.
 - **Match Display Rate**: off by default. On, the game runs at the screen's refresh rate (60 Hz: 0.5% faster than a GBA, too little to notice, with the sound adjusted to match) and each frame is shown for exactly one refresh. Off, a 60 Hz screen shows one frame twice about every 3.7 seconds: a small, regular stutter.
-- **Rewind**: on by default. Hold **L2** to go back in time, up to 30 seconds (`rewind_seconds`), at double speed and without sound; let go to play on from there. Off saves the little work it takes to keep the buffer.
-- **Show FPS**: frames per second and % of full speed, above the game.
 
-**Extras**
+**Extras** (Rewind and Show FPS are remembered for next time)
 - **Cheats**: see [below](#cheats).
 - **Achievements**: when signed in to RetroAchievements; see [below](#retroachievements).
 - **Take Screenshot**: both screens as they look right now, with your display settings, stacked top to bottom into one PNG in `/storage/roms/screenshots` (Android: `GBA DS/screenshots`); `screenshot_dir` changes the folder.
+- **Rewind**: on by default. Hold **L2** to go back in time, up to 30 seconds (`rewind_seconds`), at double speed and without sound; let go to play on from there. Off saves the little work it takes to keep the buffer.
+- **Show FPS**: frames per second and % of full speed, above the game.
 
 ## Buttons
 

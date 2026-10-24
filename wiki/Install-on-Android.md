@@ -52,4 +52,4 @@ GBA DS can be started straight into a game by GammaOS's own launcher, Daijisho, 
 ## Known limits
 
 - **Coming back from the home screen** (*experimental*): leaving GBA DS saves the game's resume point (Android may close apps in the background). Coming back, the game should be paused with the menu open; GammaOS on the RG DS Plus doesn't switch between apps reliably enough to test this.
-- **Performance:** in testing on the RG DS Plus, games run at full speed (about 60 frames a second) with the occasional single slow frame. **Frame Buffer** (pause menu → Performance) smooths those out at the cost of one frame of input delay. `gba-ds.log` lists slow frames with what took the time.
+- **Performance:** in testing on the RG DS Plus, games run at full speed (about 60 frames a second) with the occasional single slow frame. **Frame Buffer** (pause menu → Display) smooths those out at the cost of one frame of input delay. `gba-ds.log` lists slow frames with what took the time.

@@ -35,15 +35,15 @@ If there's a `gba-ds-error.log` next to `GBA DS.sh` instead, the `gba-ds` folder
 - Raise `audio_latency` (default 64 ms) to 96 or 128.
 - Set `map_interval = 180` in `gba-ds.cfg` (a map refresh every 3 seconds). Each map refresh runs a second copy of the game for a moment; on a slower device very short intervals crackle.
 - On the first run, wait for the game list's thumbnails to finish ("Loading thumbnail...", about a minute) before playing.
-- **Frame Buffer** (pause menu → Performance) smooths out occasional slow frames, at the cost of one frame of input delay.
+- **Frame Buffer** (pause menu → Display) smooths out occasional slow frames, at the cost of one frame of input delay.
 
 The log's every-5-seconds report says whether the sound ran out (underruns) and why.
 
 ## Small stutters
 
-**A tiny hitch about every 3-4 seconds, like clockwork:** the GBA runs at 59.73 frames a second and the screen at 60 Hz, so now and then a frame has to be shown twice. Turn on **Match Display Rate** (pause menu → Performance). The log's `frame pacing:` line, near the start of each game, shows both rates.
+**A tiny hitch about every 3-4 seconds, like clockwork:** the GBA runs at 59.73 frames a second and the screen at 60 Hz, so now and then a frame has to be shown twice. Turn on **Match Display Rate** (pause menu → Display). The log's `frame pacing:` line, near the start of each game, shows both rates.
 
-**Hitches at irregular moments:** the log lists frames that took too long ("slow frames"), each with what took the time (emulating, drawing which screen, the map capture). With the debug log on (see above) it lists every one; send that log with a note of the game and roughly when the stutters happened. **Frame Buffer** (pause menu → Performance) smooths out occasional slow frames at the cost of a frame of input delay.
+**Hitches at irregular moments:** the log lists frames that took too long ("slow frames"), each with what took the time (emulating, drawing which screen, the map capture). With the debug log on (see above) it lists every one; send that log with a note of the game and roughly when the stutters happened. **Frame Buffer** (pause menu → Display) smooths out occasional slow frames at the cost of a frame of input delay.
 
 ## The map
 

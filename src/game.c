@@ -329,7 +329,7 @@ static const char* menuLabels[] = {
 };
 static int menuItems[12], nMenuItems;
 /* two pages, switched with L1/R1 or the tabs */
-#define N_PAGES 4
+#define N_PAGES 3
 static int pages[N_PAGES][12], pageLen[N_PAGES], curPage;
 /* Buttons still held when the menu closes (or after a HOME combo) are kept
  * from the game until released, so e.g. the A that picked "Save state"
@@ -339,7 +339,7 @@ static bool suppress[B_COUNT];
 static void suppress_held(void) {
 	for (int b = 0; b < B_COUNT; ++b) suppress[b] = btnNow[b];
 }
-static const char* pageNames[N_PAGES] = { "Game", "Display", "Performance", "Extras" };
+static const char* pageNames[N_PAGES] = { "Game", "Display", "Extras" };
 static bool restartArmed;
 static bool menuOpen;
 static int menuSel;
@@ -2709,9 +2709,9 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	pages[0][pageLen[0]++] = M_RESTART;
 	pages[0][pageLen[0]++] = M_SAVE;
 	pages[0][pageLen[0]++] = M_LOAD;
-	pages[3][pageLen[3]++] = M_CHEATS;
-	if (ra_enabled()) pages[3][pageLen[3]++] = M_ACH;
-	pages[3][pageLen[3]++] = M_SHOT;
+	pages[2][pageLen[2]++] = M_CHEATS;
+	if (ra_enabled()) pages[2][pageLen[2]++] = M_ACH;
+	pages[2][pageLen[2]++] = M_SHOT;
 	if (fromLibrary) pages[0][pageLen[0]++] = M_LIBRARY;
 	pages[0][pageLen[0]++] = M_EXIT;
 	pages[1][pageLen[1]++] = M_SWAP;
@@ -2719,8 +2719,8 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	pages[1][pageLen[1]++] = M_LCD;
 	pages[1][pageLen[1]++] = M_OVERLAY;
 	pages[1][pageLen[1]++] = M_LOGO;
-	pages[2][pageLen[2]++] = M_FRAMEBUF;
-	pages[2][pageLen[2]++] = M_MATCH;
+	pages[1][pageLen[1]++] = M_FRAMEBUF;
+	pages[1][pageLen[1]++] = M_MATCH;
 	pages[2][pageLen[2]++] = M_REWIND;
 	pages[2][pageLen[2]++] = M_FPS;
 	set_page(0);
