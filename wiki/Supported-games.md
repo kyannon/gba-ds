@@ -45,7 +45,7 @@ You see the game's own map, with everything it shows (explored rooms, save and w
 
 - The cartridge also holds Four Swords, which needs linked GBAs. The game list shows only A Link to the Past, and maps are only captured while it's being played.
 - **L** brings up the world map outdoors: GBA DS shows the zoomed-out whole-world view, which doesn't scroll with Link. In a dungeon, once you have its map, it shows the dungeon map.
-- The map is shown still, with everything that blinks on it (the floor buttons, Link's and the goal's markers) showing at once.
+- The map is shown still, with everything that blinks on it (the floor buttons, Link's and the goal's markers) showing at once; the X marking where to go is shown red.
 - Where L does nothing (houses, caves, dungeons without their map), the last map stays up, dimmed.
 - After Save and Quit, the second screen goes back to the logo.
 

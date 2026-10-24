@@ -1078,10 +1078,9 @@ static const MapProfile profiles[] = {
 		          .layer = 1, .maxY = 130, .blackIsClear = true },
 		/* recorded, but always shown still, each blinking thing (the floor
 		 * buttons, Link's and the goal's markers, which blink at their own
-		 * rates) in its frame where it shows most */
-		.animFrames = 8, .animStep = 4, .mapStill = true,
-		/* the brightest state of the X is a pale flash; the red X covers more */
-		.stillPick = STILL_COVER,
+		 * rates) in its frame where it shows most; the X marking the goal
+		 * fades red to white: at its reddest */
+		.animFrames = 8, .animStep = 4, .mapStill = true, .stillPick = STILL_RED,
 	},
 	{
 		.codes = { "AVSE" },

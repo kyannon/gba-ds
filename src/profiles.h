@@ -404,7 +404,9 @@ typedef struct MapProfile {
 	 * most contrast) for markers whose brightest state isn't the marker. */
 	/* (STILL_FIRST: the first frame, for frames that are pages: Fire
 	 * Emblem's unit status) */
-	enum { STILL_BRIGHT, STILL_COVER, STILL_FIRST } stillPick;
+	/* (STILL_RED: a spot with red in it at its reddest, others at their
+	 * brightest: A Link to the Past's X, which fades red to white) */
+	enum { STILL_BRIGHT, STILL_COVER, STILL_FIRST, STILL_RED } stillPick;
 	/* ROM patches applied at the start (all or none), for the HUD split:
 	 * FFTA tags its world sprites (SpriteRule.tagged). */
 	RomPatch romPatch[3];

@@ -215,6 +215,75 @@
    ]
   },
   {
+   "id": "lttp-us-world-x",
+   "rom": "AZLE",
+   "state": "zelda-a-link-to-the-past/us-world-x.ss",
+   "desc": "outdoors with the X on the world map (it fades red to white)",
+   "rules": [
+    "LTTP-1",
+    "LTTP-6"
+   ],
+   "shots": {
+    "a": 200,
+    "b": 216
+   },
+   "checks": [
+    {
+     "rule": "LTTP-6",
+     "what": "the X at its reddest",
+     "type": "pixels",
+     "shot": "a",
+     "probes": [
+      [
+       732,
+       282,
+       "DE3939"
+      ],
+      [
+       738,
+       286,
+       "DE3939"
+      ],
+      [
+       744,
+       290,
+       "DE3939"
+      ],
+      [
+       750,
+       286,
+       "DE3939"
+      ]
+     ],
+     "tol": 16
+    },
+    {
+     "rule": "LTTP-6",
+     "what": "the map holds still",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "b",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0
+    }
+   ]
+  },
+  {
    "id": "lttp-logo-azle",
    "kind": "logo",
    "rom": "AZLE",

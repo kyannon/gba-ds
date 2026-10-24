@@ -1960,7 +1960,8 @@ static int cmp_u32(const void* a, const void* b) {
  * the pixels that animate in mask. Each animated spot (pixels that change,
  * grouped when they're within a few pixels of each other) is taken from the
  * frame where it is most visible: its brightest state (a marker that blinks
- * on and off, a pulsing glow at its peak), or with STILL_COVER the state that
+ * on and off, a pulsing glow at its peak), with STILL_RED its reddest if it
+ * has red in it, or with STILL_COVER the state that
  * covers the most pixels unlike the spot's surroundings, ties going to the
  * one with the most contrast. */
 static void compose_still(const MapResult* r, int pick, uint32_t* out, unsigned char* mask) {
@@ -2019,12 +2020,23 @@ static void compose_still(const MapResult* r, int pick, uint32_t* out, unsigned 
 		}
 		int best = 0;
 		long bestA = -1, bestB = -1;
+		/* STILL_RED: a spot with real red in any frame is judged by how red it
+		 * is (red above the mean of green and blue, summed); else brightest */
+		bool red = false;
+		for (int f = 0; f < n && pick == STILL_RED && !red; ++f) {
+			for (int i = 0; i < len && !red; ++i) {
+				uint32_t p = r->frames[f][queue[i]];
+				int pr = p & 0xFF, pg = (p >> 8) & 0xFF, pb = (p >> 16) & 0xFF;
+				red = pr - (pg > pb ? pg : pb) > 80;
+			}
+		}
 		for (int f = 0; f < n; ++f) {
 			const uint32_t* fr = r->frames[f];
 			long a = 0, b = 0;
 			for (int i = 0; i < len; ++i) {
 				uint32_t p = fr[queue[i]];
 				if (pick == STILL_COVER) a += (p & 0xFFFFFF) != bg;
+				else if (red) a += SDL_max(0, (int) (p & 0xFF) - (int) (((p >> 8) & 0xFF) + ((p >> 16) & 0xFF)) / 2);
 				else a += (p & 0xFF) + ((p >> 8) & 0xFF) + ((p >> 16) & 0xFF);
 			}
 			if (pick == STILL_COVER) {
