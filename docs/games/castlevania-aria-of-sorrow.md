@@ -13,7 +13,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 ## Rules
 
-**CVA-1. Map during play.** While the game is being played, the second screen shows the game's own pause-screen map, captured on the hidden copy, at the Map Refresh interval and right after each room transition.
+**CVA-1. Map during play.** While the game is being played, the second screen shows the game's own pause-screen map, captured on the hidden copy, every `map_interval` frames (60: every second) and right after each room transition.
 
 **CVA-2. Map surround.** The map is drawn inside a border built from the game's own menu artwork (the generated surround), not on bare black.
 

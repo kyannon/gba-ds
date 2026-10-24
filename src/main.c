@@ -109,7 +109,15 @@ int main(int argc, char** argv) {
 	if (!cfg.stateDir[0]) snprintf(cfg.stateDir, sizeof(cfg.stateDir), "%s/states", exeDir);
 	mkdirs(cfg.stateDir);
 	snprintf(path, sizeof(path), "%s/prefs.cfg", cfg.stateDir);
-	config_load_file(&cfg, path);
+	{
+		/* map_animations and map_interval are no longer in the pause menu:
+		 * gba-ds.cfg decides, whatever an older prefs.cfg says */
+		bool mapAnim = cfg.mapAnim;
+		int mapInterval = cfg.mapInterval;
+		config_load_file(&cfg, path);
+		cfg.mapAnim = mapAnim;
+		cfg.mapInterval = mapInterval;
+	}
 	/* the game list's Settings (Android: the ROM folder) */
 	snprintf(path, sizeof(path), "%s/library.cfg", cfg.stateDir);
 	config_load_file(&cfg, path);

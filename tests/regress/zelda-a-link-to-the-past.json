@@ -29,7 +29,8 @@
    "state": "zelda-a-link-to-the-past/us-outdoors.ss",
    "desc": "outside Link's house in the rain",
    "rules": [
-    "LTTP-1"
+    "LTTP-1",
+    "LTTP-6"
    ],
    "shots": {
     "start": 60,
@@ -51,7 +52,8 @@
    "desc": "a dark room in Hyrule Castle",
    "rules": [
     "LTTP-2",
-    "LTTP-3"
+    "LTTP-3",
+    "LTTP-6"
    ],
    "shots": {
     "start": 60,
@@ -76,6 +78,139 @@
      "match": "map updated",
      "rule": "LTTP-4",
      "what": "no map captured at the file select"
+    }
+   ]
+  },
+  {
+   "id": "lttp-us-dungeon-floors",
+   "rom": "AZLE",
+   "state": "zelda-a-link-to-the-past/us-dungeon-floors.ss",
+   "desc": "Hyrule Castle's basement with Zelda: Continue, then the dungeon map with two floors and markers blinking at different rates",
+   "rules": [
+    "LTTP-2",
+    "LTTP-6"
+   ],
+   "input": [
+    [
+     20,
+     "A"
+    ],
+    [
+     23,
+     "-"
+    ]
+   ],
+   "shots": {
+    "a": 200,
+    "b": 212,
+    "c": 224,
+    "d": 236
+   },
+   "checks": [
+    {
+     "rule": "LTTP-6",
+     "what": "the map holds still",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "b",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "LTTP-6",
+     "what": "the map holds still",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "c",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "LTTP-6",
+     "what": "the map holds still",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "d",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "LTTP-6",
+     "what": "B2F and B3F both lit",
+     "type": "pixels",
+     "shot": "a",
+     "probes": [
+      [
+       172,
+       495,
+       "94D6F7"
+      ],
+      [
+       172,
+       560,
+       "94D6F7"
+      ]
+     ],
+     "tol": 12
+    },
+    {
+     "rule": "LTTP-6",
+     "what": "Link's marker showing",
+     "type": "pixels",
+     "shot": "a",
+     "probes": [
+      [
+       660,
+       195,
+       "F70000"
+      ]
+     ],
+     "tol": 24
     }
    ]
   },

@@ -41,8 +41,6 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 - **No Second Screen: Show Logo / Keep Blank**: what the second screen shows when the game has nothing for it (title screens, menus, before the first map): the game's logo, or nothing.
 
 **Performance** (remembered for next time)
-- **Map Animations**: off shows a still map, without the blinking markers.
-- **Map Refresh**: how often the map updates, every 3, 1.5 (default), 1 or 0.5 seconds. Shorter is more up to date but works the CPU harder.
 - **Frame Buffer**: off by default. On, the next frame is prepared while the current one is on screen, which smooths out the odd stutter at the cost of one frame (about 17 ms) of input delay.
 - **Match Display Rate**: off by default. On, the game runs at the screen's refresh rate (60 Hz: 0.5% faster than a GBA, too little to notice, with the sound adjusted to match) and each frame is shown for exactly one refresh. Off, a 60 Hz screen shows one frame twice about every 3.7 seconds: a small, regular stutter.
 - **Rewind**: on by default. Hold **L2** to go back in time, up to 30 seconds (`rewind_seconds`), at double speed and without sound; let go to play on from there. Off saves the little work it takes to keep the buffer.

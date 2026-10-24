@@ -21,7 +21,7 @@ The codes are what `<CODE>` means in logo and overlay file names (see [Playing](
 
 ## How the maps work
 
-GBA DS runs a second, silent copy of the game next to the one you're playing. About every 1.5 seconds (**Map Refresh** in the pause menu), and right after each room transition, it copies your game's state into the silent copy, presses the map button there, waits for the map screen, and records a short loop of frames so blinking markers still blink. Before showing a map it checks two things: a memory flag that's only set while the map screen is open, and fixed pixels of the map screen itself. Title screens, cutscenes, menus and fades are rejected, and the last good map stays up. Your game is never paused or touched.
+GBA DS runs a second, silent copy of the game next to the one you're playing. About every second (`map_interval` in `gba-ds.cfg`), and right after each room transition, it copies your game's state into the silent copy, presses the map button there, waits for the map screen, and records a short loop of frames so blinking markers still blink. Before showing a map it checks two things: a memory flag that's only set while the map screen is open, and fixed pixels of the map screen itself. Title screens, cutscenes, menus and fades are rejected, and the last good map stays up. Your game is never paused or touched.
 
 You see the game's own map, with everything it shows (explored rooms, save and warp rooms, completion, area names), at sharp 4× scale on the RG DS Plus.
 
@@ -45,6 +45,7 @@ You see the game's own map, with everything it shows (explored rooms, save and w
 
 - The cartridge also holds Four Swords, which needs linked GBAs. The game list shows only A Link to the Past, and maps are only captured while it's being played.
 - **L** brings up the world map outdoors: GBA DS shows the zoomed-out whole-world view, which doesn't scroll with Link. In a dungeon, once you have its map, it shows the dungeon map.
+- The map is shown still, with everything that blinks on it (the floor buttons, Link's and the goal's markers) showing at once.
 - Where L does nothing (houses, caves, dungeons without their map), the last map stays up, dimmed.
 - After Save and Quit, the second screen goes back to the logo.
 

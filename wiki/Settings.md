@@ -2,7 +2,7 @@ Settings live in **`gba-ds.cfg`**: `/storage/roms/ports/gba-ds/gba-ds.cfg` on RO
 
 Three files are read in order, later ones winning:
 1. `gba-ds.cfg`;
-2. `states/prefs.cfg`: what you chose in the pause menu (screens swapped, scaling, LCD grid, overlays, the second screen's logo, map animations, map refresh, FPS counter, frame buffer). GBA DS rewrites this file; to change those settings, use the menu, or delete the line from `prefs.cfg`.
+2. `states/prefs.cfg`: what you chose in the pause menu (screens swapped, scaling, LCD grid, overlays, the second screen's logo, FPS counter, frame buffer). GBA DS rewrites this file; to change those settings, use the menu, or delete the line from `prefs.cfg`.
 3. `states/library.cfg`: the game list's view (list or grid) and, on Android, the ROM folder.
 
 Upgrading GBA DS on ROCKNIX replaces `gba-ds.cfg`, so keep a copy of your changes.
@@ -49,10 +49,10 @@ Upgrading GBA DS on ROCKNIX replaces `gba-ds.cfg`, so keep a copy of your change
 | Option | Default | |
 |---|---|---|
 | `map` | `1` | `0` turns the second screen off: every game plays like an ordinary GBA game (the Metroids' corner mini-map comes back). |
-| `map_interval` | `90` | Frames (60 a second) between map refreshes: 90 is every 1.5 s. The pause menu's Map Refresh offers 180 / 90 / 60 / 30. The map also refreshes right after every room transition. Each refresh runs the hidden copy of the game for a moment on another CPU core, so on a slower device very short intervals can make the sound crackle (the log reports it). |
+| `map_interval` | `60` | Frames (60 a second) between map refreshes: 60 is every second. The map also refreshes right after every room transition. Each refresh runs the hidden copy of the game for a moment on another CPU core, so on a slower device very short intervals can make the sound crackle (the log reports it). |
 | `map_crop` | `1` | The Metroid map screens, tidied (labels erased, prompts and minimap removed; see [[Supported games]]). `0` shows them exactly as the games draw them. |
 | `show_logo` | `1` | The game's logo on the second screen when there's nothing else to show (title screens, menus, before the first map). `0` keeps it blank. The pause menu's **No Second Screen** option. |
-| `map_animations` | `1` | Blinking map markers. `0` shows one still frame, the one where the markers are most visible. |
+| `map_animations` | `1` | Blinking map markers. `0` shows one still frame, with every marker that blinks showing. A Link to the Past's map is always still that way. |
 
 What `map_crop` changes in the Metroid map screens:
 - **Zero Mission** keeps its whole pause screen, frame included, and only the lettering is erased: the L and R key letters, SLEEP, the area name, STATUS, and the A on the button beside the minimap. The keys, plates and button stay; the blank plates (magenta) and L/R keys (orange) are recoloured to the dark grey-green of the curved pieces beside the area name. The corner minimap gives way to the map underneath, and its "SELECT / CHANGE AREAS" prompt is covered by a piece of the bezel.

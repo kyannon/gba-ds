@@ -20,7 +20,7 @@ GBA DS supports 14 games, with their regional releases: see [Supported games](ht
 
 ## How it works
 
-Emulation is [libmgba](https://mgba.io). GBA DS runs a second, silent copy of the emulator next to the real one. About every 1.5 seconds (adjustable: **Map Refresh** in the pause menu), and right after each room transition (detected as a fade to black), it does the following:
+Emulation is [libmgba](https://mgba.io). GBA DS runs a second, silent copy of the emulator next to the real one. About every second (`map_interval` in `gba-ds.cfg`), and right after each room transition (detected as a fade to black), it does the following:
 
 1. It copies the live game's state into the silent copy. The game you're playing is never paused or touched.
 2. It presses the map button there, waits for the map screen to appear and settle, then records a short loop of frames so the blinking or pulsing player marker still animates.

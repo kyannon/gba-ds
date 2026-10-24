@@ -321,10 +321,10 @@ static bool debug;
 
 /* ---------------------------------------------------------------- menu */
 
-enum MenuItem { M_RESUME, M_CHEATS, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_MAPANIM, M_MAPRATE, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND };
+enum MenuItem { M_RESUME, M_CHEATS, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND };
 static const char* menuLabels[] = {
 	/* title case: drawn in Futura from the built-in images (tools/make_brand.py) */
-	[M_RESUME] = "Resume", [M_SWAP] = "Swap Screens", [M_SAVE] = "Save State", [M_SCALE] = "", [M_LCD] = "", [M_FPS] = "", [M_FRAMEBUF] = "", [M_OVERLAY] = "", [M_MAPANIM] = "", [M_LOGO] = "", [M_MATCH] = "", [M_REWIND] = "", [M_MAPRATE] = "", [M_RESTART] = "Restart Game",
+	[M_RESUME] = "Resume", [M_SWAP] = "Swap Screens", [M_SAVE] = "Save State", [M_SCALE] = "", [M_LCD] = "", [M_FPS] = "", [M_FRAMEBUF] = "", [M_OVERLAY] = "", [M_LOGO] = "", [M_MATCH] = "", [M_REWIND] = "", [M_RESTART] = "Restart Game",
 	[M_LOAD] = "Load State", [M_CHEATS] = "Cheats", [M_ACH] = "Achievements", [M_SHOT] = "Take Screenshot", [M_LIBRARY] = "Close Game", [M_EXIT] = "Close GBA DS",
 };
 static int menuItems[12], nMenuItems;
@@ -422,7 +422,6 @@ static MenuGeom menu_geom(int scr) {
 
 static bool item_enabled(int item) {
 	if (item == M_CHEATS) return cheats.n > 0;
-	if (item == M_MAPRATE) return mc != NULL; /* games with a live map */
 	return item != M_LOAD || file_exists(gp.state);
 }
 
@@ -727,21 +726,6 @@ static const char* scale_label(const char* scale) {
 	       !strcmp(scale, "stretch")   ? "Scale: Stretch" : "Scale: Pixel Perfect";
 }
 
-/* Map refresh presets, in frames (60 a second), slowest first; the pause
- * menu steps through them. map_interval in gba-ds.cfg can be anything. */
-static const int mapRates[] = { 180, 90, 60, 30 };
-#define N_MAP_RATES ((int) (sizeof(mapRates) / sizeof(*mapRates)))
-
-static const char* map_rate_label(int frames) {
-	switch (frames) {
-	case 180: return "Map Refresh: Every 3 s";
-	case 90: return "Map Refresh: Every 1.5 s";
-	case 60: return "Map Refresh: Every 1 s";
-	case 30: return "Map Refresh: Every 0.5 s";
-	default: return "Map Refresh: Custom";
-	}
-}
-
 static void draw_menu(void) {
 	static SDL_Texture* shoulderTex[2][2]; /* L1, R1 prompts, per view */
 	static int shoulderW, shoulderH;
@@ -808,11 +792,9 @@ static void draw_menu(void) {
 		bool en = item_enabled(menuItems[i]);
 		const char* label = menuLabels[menuItems[i]];
 		if (menuItems[i] == M_SCALE) label = scale_label(cfg->scale);
-		if (menuItems[i] == M_MAPRATE) label = map_rate_label(cfg->mapInterval);
 		if (menuItems[i] == M_LCD) label = cfg->lcdGrid ? "LCD Grid: On" : "LCD Grid: Off";
 		if (menuItems[i] == M_FPS) label = cfg->showFps ? "Show FPS: On" : "Show FPS: Off";
 		if (menuItems[i] == M_FRAMEBUF) label = cfg->frameBuffer ? "Frame Buffer: On" : "Frame Buffer: Off";
-		if (menuItems[i] == M_MAPANIM) label = cfg->mapAnim ? "Map Animations: On" : "Map Animations: Off";
 		if (menuItems[i] == M_REWIND) label = cfg->rewind ? "Rewind: On (Hold L2)" : "Rewind: Off";
 		if (menuItems[i] == M_MATCH) label = cfg->matchDisplay ? "Match Display Rate: On" : "Match Display Rate: Off";
 		if (menuItems[i] == M_LOGO) label = cfg->showLogo ? "No Second Screen: Show Logo" : "No Second Screen: Keep Blank";
@@ -2188,10 +2170,10 @@ static void save_prefs(void) {
 	FILE* f = fopen(prefs, "w");
 	if (f) {
 		fprintf(f, "# written by gba-ds's pause menu; overrides gba-ds.cfg\n");
-		fprintf(f, "swap = %d\nscale = %s\nmap_scale = %s\nlcd_grid = %d\nshow_fps = %d\noverlays = %s\nmap_animations = %d\nmap_interval = %d\nframe_buffer = %d\nshow_logo = %d\nmatch_display = %d\nrewind = %d\n",
+		fprintf(f, "swap = %d\nscale = %s\nmap_scale = %s\nlcd_grid = %d\nshow_fps = %d\noverlays = %s\nframe_buffer = %d\nshow_logo = %d\nmatch_display = %d\nrewind = %d\n",
 		        cfg->swap ? 1 : 0, cfg->scale, cfg->mapScale, cfg->lcdGrid ? 1 : 0, cfg->showFps ? 1 : 0,
 		        (const char* const[]) { "none", "primary", "secondary", "both" }[cfg->overlays & OVL_BOTH],
-		        cfg->mapAnim ? 1 : 0, cfg->mapInterval, cfg->frameBuffer ? 1 : 0, cfg->showLogo ? 1 : 0, cfg->matchDisplay ? 1 : 0, cfg->rewind ? 1 : 0);
+		        cfg->frameBuffer ? 1 : 0, cfg->showLogo ? 1 : 0, cfg->matchDisplay ? 1 : 0, cfg->rewind ? 1 : 0);
 		fclose(f);
 	}
 }
@@ -2498,19 +2480,6 @@ static bool activate(int item, enum GameExit* exitTo) {
 		save_prefs();
 		break;
 	}
-	case M_MAPRATE: {
-		/* the next preset up the list (a custom map_interval joins it in order) */
-		int next = mapRates[0];
-		for (int i = 0; i < N_MAP_RATES; ++i) {
-			if (mapRates[i] < cfg->mapInterval) {
-				next = mapRates[i];
-				break;
-			}
-		}
-		cfg->mapInterval = next;
-		save_prefs();
-		break;
-	}
 	case M_LCD:
 		cfg->lcdGrid = !cfg->lcdGrid;
 		save_prefs();
@@ -2565,19 +2534,6 @@ static bool activate(int item, enum GameExit* exitTo) {
 		break;
 	case M_LOGO:
 		cfg->showLogo = !cfg->showLogo;
-		save_prefs();
-		break;
-	case M_MAPANIM:
-		cfg->mapAnim = !cfg->mapAnim;
-		if (!map_anim() && stillStale && mapRes.nFrames > 0) {
-			update_still(); /* skipped while animations were on */
-			stillStale = false;
-		}
-		if (mc && mapShownIdx >= 0) {
-			mapAnimStart = frameCount;
-			upload_map_frame(map_anim() ? 0 : STILL_IDX);
-		}
-		if (mc) mapcap_set_still(mc, !map_anim());
 		save_prefs();
 		break;
 	case M_RESTART:
@@ -2763,8 +2719,6 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	pages[1][pageLen[1]++] = M_LCD;
 	pages[1][pageLen[1]++] = M_OVERLAY;
 	pages[1][pageLen[1]++] = M_LOGO;
-	pages[2][pageLen[2]++] = M_MAPANIM;
-	pages[2][pageLen[2]++] = M_MAPRATE;
 	pages[2][pageLen[2]++] = M_FRAMEBUF;
 	pages[2][pageLen[2]++] = M_MATCH;
 	pages[2][pageLen[2]++] = M_REWIND;

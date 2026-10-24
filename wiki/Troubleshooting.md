@@ -33,7 +33,7 @@ If there's a `gba-ds-error.log` next to `GBA DS.sh` instead, the `gba-ds` folder
 ## Sound crackles
 
 - Raise `audio_latency` (default 64 ms) to 96 or 128.
-- Set **Map Refresh** (pause menu → Performance) to every 3 seconds. Each map refresh runs a second copy of the game for a moment; on a slower device very short intervals crackle.
+- Set `map_interval = 180` in `gba-ds.cfg` (a map refresh every 3 seconds). Each map refresh runs a second copy of the game for a moment; on a slower device very short intervals crackle.
 - On the first run, wait for the game list's thumbnails to finish ("Loading thumbnail...", about a minute) before playing.
 - **Frame Buffer** (pause menu → Performance) smooths out occasional slow frames, at the cost of one frame of input delay.
 
@@ -49,7 +49,7 @@ The log's every-5-seconds report says whether the sound ran out (underruns) and 
 
 **The map doesn't appear, or doesn't update.** Maps can't be shown on title screens, cutscenes, menus and during fades; the last good map stays up. In A Link to the Past, the map dims where L does nothing (houses, caves, dungeons without their map). With the debug log on, each capture is logged with the reason it was rejected.
 
-**The map is from an older moment.** Shorten **Map Refresh**, or wait for the next room change, which refreshes it straight away.
+**The map is from an older moment.** Lower `map_interval` in `gba-ds.cfg` (frames between refreshes; 60 by default), or wait for the next room change, which refreshes it straight away.
 
 **A game isn't in the list.** Only supported games are listed by default; check the game's code against [[Supported games]], or set `show_all = 1`. Hacks and translations with a changed header code aren't recognised.
 

@@ -27,7 +27,7 @@ void config_defaults(Config* c) {
 	c->rewind = true;
 	c->rewindSeconds = 30;
 	c->overlays = OVL_BOTH;
-	c->mapInterval = 90;
+	c->mapInterval = 60;
 	c->sway = true;
 	c->audioLatency = 64;
 	c->ffSpeed = 3;

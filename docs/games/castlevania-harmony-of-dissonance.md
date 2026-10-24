@@ -13,7 +13,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 ## Rules
 
-**CVH-1. Map during play.** While the game is being played, the second screen shows the game's pause-screen map, captured on the hidden copy at the Map Refresh interval and after each room transition.
+**CVH-1. Map during play.** While the game is being played, the second screen shows the game's pause-screen map, captured on the hidden copy every `map_interval` frames (60: every second) and after each room transition.
 
 **CVH-2. Map surround.** The map is drawn inside the generated surround built from the game's menu artwork.
 
