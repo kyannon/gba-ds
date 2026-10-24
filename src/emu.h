@@ -123,6 +123,14 @@ void emu_hud_keep_bgs(unsigned mask);
  * (Advance Wars: WININ's window 0 effects, the darkened box behind the
  * terrain info, which moves to the second screen). bits 0: none. */
 void emu_hud_game_reg(uint32_t addr, uint16_t bits);
+/* While split: on the lines where a BG layer's BGxCNT is cnt0 or cnt1 (0:
+ * unused), that layer goes to the HUD too (Advance Wars 2's conversations,
+ * which the game draws on BG0 and BG1 with their own settings on their
+ * lines); with copy, it stays in the game picture as well. Kept across
+ * splits; cnt0 0: off. */
+void emu_hud_band(uint16_t cnt0, uint16_t cnt1, bool copy);
+/* The lines the band was on in the last frame drawn split; false if none. */
+bool emu_hud_band_rows(int* y0, int* y1);
 /* An I/O register as last written (also the write-only ones: MOSAIC). */
 uint16_t emu_io16(Emu* e, uint32_t offset);
 /* VRAM (96 KB), for reading tile maps. */

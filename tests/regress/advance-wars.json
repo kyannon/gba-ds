@@ -54,6 +54,101 @@
    ]
   },
   {
+   "id": "aw-us-r-open",
+   "rom": "AWRE",
+   "state": "advance-wars/us-unit-list.ss",
+   "desc": "R opens the unit intel in the game: the plate and info stay",
+   "rules": [
+    "AW-3"
+   ],
+   "input": [
+    [
+     200,
+     "B"
+    ],
+    [
+     204,
+     "-"
+    ],
+    [
+     240,
+     "R"
+    ],
+    [
+     244,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 230,
+    "end": 460
+   },
+   "checks": [
+    {
+     "rule": "AW-3",
+     "what": "the info unchanged",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "screen": "second",
+      "rect": [
+       860,
+       620,
+       1020,
+       768
+      ]
+     },
+     "b": {
+      "shot": "end",
+      "screen": "second",
+      "rect": [
+       860,
+       620,
+       1020,
+       768
+      ]
+     },
+     "frac": 0.0
+    }
+   ]
+  },
+  {
+   "id": "aw-us-unit-intel-open",
+   "rom": "AWRE",
+   "state": "advance-wars/us-unit-intel-open.ss",
+   "desc": "the unit intel open on an enemy unit: Battle Intel",
+   "rules": [
+    "AW-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "AW-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "AW-1",
+     "what": "a panel at the top",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      300,
+      40,
+      720,
+      300
+     ],
+     "color": "182438",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
    "id": "aw-us-cursor-empty",
    "rom": "AWRE",
    "state": "advance-wars/us-cursor-empty.ss",

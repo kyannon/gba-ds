@@ -498,6 +498,9 @@ typedef struct {
 	/* the HUD's layers by priority, taken as each frame starts (0: bgMask) */
 	int prioBelow;
 	unsigned keepBgs; /* never in the HUD (emu_hud_keep_bgs) */
+	/* emu_hud_band: lines where a BG has one of these BGxCNT values */
+	unsigned lineHud, lineGame; /* this line's HUD layers / layers left out of the game */
+	int bandY0, bandY1;         /* this frame's band lines so far (y1 < y0: none) */
 	struct GBA* gba;
 	bool grabbing, grabbed;
 	uint32_t* hudBuf;
@@ -513,6 +516,10 @@ static Split split;
 /* emu_hud_game_reg (kept across installs) */
 static uint32_t gameRegAddr;
 static uint16_t gameRegBits;
+/* emu_hud_band (kept across installs) */
+static uint16_t bandCnt[2];
+static bool bandCopy;
+static int lastBandY0, lastBandY1 = -1;
 
 static void filtered_draw_scanline(struct GBAVideoRenderer* renderer, int y);
 
@@ -583,11 +590,29 @@ static void split_draw(struct GBAVideoRenderer* r, int y) {
 			split.hud.outputBuffer = (mColor*) split.grabBuf;
 			split_layers(split.grabMask, false);
 		}
+		if (bandCnt[0] && !split.prioBelow) {
+			/* the band's layers on its lines: into the HUD, and out of the
+			 * game unless they're copied */
+			unsigned band = 0;
+			for (int i = 0; i < 2 && bandCnt[i]; ++i) band |= bgs_with_cnt(bandCnt[i]);
+			if (y == 0) split.bandY0 = GBA_H, split.bandY1 = -1;
+			if (band) split.bandY0 = y < split.bandY0 ? y : split.bandY0, split.bandY1 = y;
+			unsigned hud = split.bgMask | band, game = split.bgMask | (bandCopy ? 0 : band);
+			if (game != split.lineGame) {
+				split.lineGame = game;
+				for (int i = 0; i < 4; ++i) r->disableBG[i] = (game >> i) & 1;
+			}
+			if (hud != split.lineHud) {
+				split.lineHud = hud;
+				if (!split.grabbing) split_layers(hud, split.nObjs > 0);
+			}
+		}
 		filtered_draw_scanline(&split.hud.d, y);
 	}
 	split.drawScanline(r, y);
 }
 static void split_finish(struct GBAVideoRenderer* r) {
+	if (split.active && bandCnt[0]) lastBandY0 = split.bandY0, lastBandY1 = split.bandY1;
 	split.finishFrame(r);
 	split.hud.d.finishFrame(&split.hud.d);
 	if (split.grabbing) {
@@ -665,6 +690,8 @@ bool emu_hud_split(Emu* e, bool on, unsigned bgMask, const SpriteRule* objs, int
 		split_resync(e);
 	}
 	split.bgMask = bgMask;
+	split.lineHud = split.lineGame = bgMask;
+	if (!on) lastBandY0 = 0, lastBandY1 = -1;
 	split.nObjs = nObjs < 8 ? nObjs : 8;
 	if (split.nObjs) memcpy(split.objs, objs, sizeof(*objs) * split.nObjs);
 	/* the HUD: those layers and sprites only */
@@ -690,6 +717,17 @@ bool emu_hud_split(Emu* e, bool on, unsigned bgMask, const SpriteRule* objs, int
 		split.hud.d.writeVideoRegister(&split.hud.d, gameRegAddr, hud_reg(gameRegAddr, on ? v & ~gameRegBits : v));
 	}
 	return true;
+}
+
+void emu_hud_band(uint16_t cnt0, uint16_t cnt1, bool copy) {
+	bandCnt[0] = cnt0;
+	bandCnt[1] = cnt1;
+	bandCopy = copy;
+}
+
+bool emu_hud_band_rows(int* y0, int* y1) {
+	*y0 = lastBandY0, *y1 = lastBandY1;
+	return lastBandY1 >= lastBandY0;
 }
 
 void emu_hud_game_reg(uint32_t addr, uint16_t bits) {

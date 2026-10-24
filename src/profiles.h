@@ -73,6 +73,9 @@ typedef struct {
 	/* hud.overMap: when it's taken, the other pieces are dropped (taken
 	 * again as they show up): Fire Emblem's phase banner */
 	bool clears;
+	/* hud.overMap: drawn as wide as the map picture (scaled up by its
+	 * width over the game screen's), at y (Advance Wars 2's conversations) */
+	bool wide;
 } HudMove;
 
 /* Bytes written into the ROM when the game starts, if the ROM holds `orig`
@@ -312,6 +315,10 @@ typedef struct MapProfile {
 		 * whose pieces move round the screen (Fire Emblem's windows),
 		 * instead of the moves' own boxes */
 		void (*findPieces)(Emu* e, const uint32_t* hud, uint32_t clear, int box[4][4]);
+		/* Lines where a BG layer has one of these BGxCNT values: that layer
+		 * goes into the HUD there too (emu_hud_band; copy: and stays on the
+		 * game screen). Advance Wars 2's conversations. */
+		struct { uint16_t cnt[2]; bool copy; } band;
 		/* hud.overMap: the logo, small and dimmed, behind everything in
 		 * the map picture (as in a fight: profile.combat) */
 		bool logoUnder;

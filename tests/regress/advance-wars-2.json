@@ -1,0 +1,331 @@
+{
+ "game": "Advance Wars 2: Black Hole Rising",
+ "rules": "docs/games/advance-wars-2.md",
+ "cases": [
+  {
+   "id": "aw2-us-title",
+   "rom": "AW2E",
+   "state": "advance-wars-2/us-title.ss",
+   "desc": "the title screen",
+   "rules": [
+    "AW2-6"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "aw2-us-unit",
+   "rom": "AW2E",
+   "state": "advance-wars-2/us-unit.ss",
+   "desc": "cursor on one of your units: its intel",
+   "rules": [
+    "AW2-1",
+    "AW2-2",
+    "AW2-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "AW2-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "AW2-1",
+     "what": "a panel at the top",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      300,
+      40,
+      720,
+      300
+     ],
+     "color": "182438",
+     "frac": 0.97
+    },
+    {
+     "rule": "AW2-3",
+     "what": "the info at the bottom right",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      880,
+      640,
+      1010,
+      760
+     ],
+     "color": "182438",
+     "frac": 0.9
+    }
+   ]
+  },
+  {
+   "id": "aw2-us-intel",
+   "rom": "AW2E",
+   "state": "advance-wars-2/us-intel.ss",
+   "desc": "cursor on an empty tile, Battle Intel open in the game",
+   "rules": [
+    "AW2-1",
+    "AW2-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "AW2-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "AW2-1",
+     "what": "a panel at the top",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      300,
+      40,
+      720,
+      300
+     ],
+     "color": "182438",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "aw2-us-minimap",
+   "rom": "AW2E",
+   "state": "advance-wars-2/us-minimap.ss",
+   "desc": "the START minimap open in the game",
+   "rules": [
+    "AW2-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "AW2-2",
+     "what": "the minimap at the bottom left",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      10,
+      620,
+      200,
+      760
+     ],
+     "color": "182438",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "aw2-us-plate",
+   "rom": "AW2E",
+   "state": "advance-wars-2/us-plate.ss",
+   "desc": "the CO plate at the top left",
+   "rules": [
+    "AW2-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "AW2-3",
+     "what": "the plate at the bottom in the middle",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      400,
+      660,
+      620,
+      760
+     ],
+     "color": "182438",
+     "frac": 0.9
+    }
+   ]
+  },
+  {
+   "id": "aw2-us-r-open",
+   "rom": "AW2E",
+   "state": "advance-wars-2/us-unit.ss",
+   "desc": "R opens the unit intel in the game: the plate and info stay",
+   "rules": [
+    "AW2-3"
+   ],
+   "input": [
+    [
+     200,
+     "R"
+    ],
+    [
+     204,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 190,
+    "end": 420
+   },
+   "checks": [
+    {
+     "rule": "AW2-3",
+     "what": "the info unchanged",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "screen": "second",
+      "rect": [
+       860,
+       620,
+       1020,
+       768
+      ]
+     },
+     "b": {
+      "shot": "end",
+      "screen": "second",
+      "rect": [
+       860,
+       620,
+       1020,
+       768
+      ]
+     },
+     "frac": 0.0
+    }
+   ]
+  },
+  {
+   "id": "aw2-us-unit-intel-open",
+   "rom": "AW2E",
+   "state": "advance-wars-2/us-unit-intel-open.ss",
+   "desc": "the unit intel open on an enemy unit: Battle Intel",
+   "rules": [
+    "AW2-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "AW2-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "AW2-1",
+     "what": "a panel at the top",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      300,
+      40,
+      720,
+      300
+     ],
+     "color": "182438",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "aw2-us-dialogue",
+   "rom": "AW2E",
+   "state": "advance-wars-2/us-unit.ss",
+   "desc": "the tutorial's conversation, after a picture",
+   "rules": [
+    "AW2-7"
+   ],
+   "input": [
+    [
+     220,
+     "LOAD:advance-wars-2/us-dialogue.ss"
+    ]
+   ],
+   "shots": {
+    "before": 200,
+    "end": 330
+   },
+   "checks": [
+    {
+     "rule": "AW2-7",
+     "what": "the conversation across the top",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      20,
+      10,
+      1000,
+      150
+     ],
+     "color": "182438",
+     "frac": 0.5
+    },
+    {
+     "rule": "AW2-7",
+     "what": "still on the game screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "game",
+     "rect": [
+      100,
+      20,
+      1000,
+      140
+     ],
+     "color": "000000",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "aw2-logo-aw2e",
+   "kind": "logo",
+   "rom": "AW2E",
+   "desc": "AW2E logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "aw2-logo-aw2p",
+   "kind": "logo",
+   "rom": "AW2P",
+   "desc": "AW2P logo extraction",
+   "rules": [
+    "GEN-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

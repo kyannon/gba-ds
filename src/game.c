@@ -1875,6 +1875,21 @@ static const uint32_t* hud_over_map(const uint32_t* px) {
 			x0 = pc->sx + (mapW - GBA_W) / 2, y0 = pc->sy + (mapH - GBA_H) / 2;
 			if (mv->asIsBottom && pc->atBottom && !hudAlt) y0 = mapH - pc->h;
 		}
+		if (mv->wide) {
+			/* as wide as the picture: each pixel from the piece's, scaled */
+			int sw = pc->w * mapW / GBA_W, sh = pc->h * mapW / GBA_W;
+			x0 = pc->sx * mapW / GBA_W;
+			for (int y = 0; y < sh; ++y) {
+				for (int x = 0; x < sw; ++x) {
+					uint32_t c = pc->px[(y * GBA_W / mapW) * pc->w + x * GBA_W / mapW];
+					int nx = x0 + x, ny = y0 + y;
+					if (!c || nx < 0 || ny < 0 || nx >= mapW || ny >= mapH) continue;
+					over[ny * mapW + nx] = c;
+				}
+			}
+			px0[m] = x0, py0[m] = y0;
+			continue;
+		}
 		if (mv->follow) {
 			int a = mv->follow - 1;
 			if (!pieces[a].valid) continue;
@@ -2650,6 +2665,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		/* the HUD moves only when there's another screen to put it on */
 		hudProf = lp && lp->hud.on[0].addr && nScreens > 1 ? lp : NULL;
 		emu_hud_game_reg(hudProf ? hudProf->hud.gameReg.addr : 0, hudProf ? hudProf->hud.gameReg.bits : 0);
+		emu_hud_band(hudProf ? hudProf->hud.band.cnt[0] : 0, hudProf ? hudProf->hud.band.cnt[1] : 0, hudProf && hudProf->hud.band.copy);
 		combatProf = mc && lp && lp->combat[0].addr && nScreens > 1 ? lp : NULL;
 		combatOn = combatMade = false;
 		overOn = false;

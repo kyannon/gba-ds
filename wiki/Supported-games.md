@@ -13,7 +13,8 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Tony Hawk's Pro Skater 3 | `AT3E` (USA and Europe) `AT3F` `AT3D` | the goal list; optional four-button layout | — |
 | Super Mario Advance 2: Super Mario World | `AA2E` `AA2P` `AA2J` | the SELECT menu on the world map; the status bar in levels; optional SNES layout | — |
 | Final Fantasy Tactics Advance | `AFXE` `AFXP` `AFXJ` | in battles and the scenes on the battle maps: dialogue, menus, unit details | — |
-| Advance Wars (preliminary) | `AWRE` `AWRP` (no Japanese release) | in battles: the unit list or the battle intel, with the minimap | — |
+| Advance Wars (preliminary) | `AWRE` `AWRP` (no Japanese release) | in battles: your unit's intel or the battle intel, with the minimap | — |
+| Advance Wars 2: Black Hole Rising (preliminary) | `AW2E` `AW2P` (no Japanese release) | in battles: your unit's intel or the battle intel, with the minimap | — |
 | Fire Emblem (Rekka no Ken in Japan; preliminary) | `AE7E` `AE7X` (English, French, German) `AE7Y` (English, Spanish, Italian) `AE7J` | on the map: the unit, terrain and goal windows and the minimap | — |
 | Sword of Mana (Shinyaku Seiken Densetsu in Japan) | `AVSE` `AVSY` (Spanish, Italian) `AVSJ` | the Status screen | — |
 
@@ -90,15 +91,18 @@ The HUD is moved off the game screen rather than copied: GBA DS draws each frame
 - The game's **pause menu** stays on the game screen, with the last HUD below it. In the menus, the second screen shows the logo.
 - With one screen (`layout = single`), the HUD stays where the game draws it.
 
-## Advance Wars
+## Advance Wars and Advance Wars 2: Black Hole Rising
 
-Preliminary. The USA and European releases (the game never came out in Japan).
+Preliminary. The USA and European releases of both (neither came out in Japan). The two work the same way.
 
-- **In a battle, on your turn,** the second screen is laid out after Advance Wars: Dual Strike's: the game's **Unit** list with the unit under the cursor highlighted when it's one of yours (it stays highlighted while you move it and pick its action), or else the **Battle Intel** (bases and funds). At the bottom left, the **minimap** from the START button. All of it is brought up in the background from the menus of a silent copy of the game, as the other games' maps are; your game is never paused.
+- **In a battle, on your turn,** the second screen is laid out after Advance Wars: Dual Strike's: at the top, the **intel of the unit under the cursor** (the screen R opens, without its text box) when it's one of yours (it stays while you move it and pick its action), or else the **Battle Intel** (bases and funds). At the bottom left, the **minimap** from the START button. All of it is brought up in the background from the menus of a silent copy of the game, as the other games' maps are; your game is never paused.
 - The **CO and day plate** and the **terrain and unit info** move from the game screen to the bottom of the second screen (the plate in the middle, the info on the right, on a grey box), so they no longer cover the map; the panels are drawn over them where they meet.
 - The enemy's **CO and day plate** shows on their turn; the panel keeps its last picture.
 - **In a fight,** the second screen is the dark background with the game's logo, small and dimmed, in the middle. On the title and menus, the second screen shows the logo.
-- **Known issue:** in the **Field Training** missions the second screen may not work: the tutorial blocks the menus it's built from (SELECT and START). It works fully in Campaign and Versus.
+- **Conversations** in a battle (the tutorials') are copied to the top of the second screen, as wide as the screen; they stay on the game screen too.
+- Opening a unit's intel with R in the game leaves the plate and info on the second screen as they were.
+- **Advance Wars 2:** the **DAMAGE** box (picking a target) stays on the game screen for now.
+- **Known issue:** in Advance Wars' **Field Training** missions the second screen may not work: the tutorial blocks the menus it's built from (SELECT and START). It works fully in Campaign and Versus.
 
 ## Fire Emblem
 

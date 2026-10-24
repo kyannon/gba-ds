@@ -153,9 +153,12 @@ Android session at the same time. To keep them from colliding:
   sprite hiding (SpriteRule), layer toggles, ROM headers (also inside
   .zip / .7z), and the HUD split (`emu_hud_split`: a second software
   renderer fed the same register / palette / OAM writes draws only some
-  layers and sprites into its own buffer; Mario Kart's race HUD). The
-  harness has `split BGMASK PRIO` / `split off` and `hudshot NAME`.
-- `profiles.c/.h` everything game-specific (MapProfile): how to open the
+  layers and sprites into its own buffer; Mario Kart's race HUD; with
+  `emu_hud_band`, also the layers whose BGxCNT has given values on a line:
+  Advance Wars' conversations). The harness has `split BGMASK PRIO` /
+  `split off` and `hudshot NAME`.
+- `profiles.c/.h` everything game-specific (MapProfile; Advance Wars 1 and
+  2 share their code, addresses in `awRegions`): how to open the
   map, screen and memory probes, crops, captureHide/underHide sprite rules,
   logo extraction, regional variants (`variants[]` + patch functions), and
   for logo-only games (Tony Hawk's Pro Skater 2) the `snap` screen copy and

@@ -16,6 +16,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Super Mario Advance 2: Super Mario World](super-mario-advance-2.md) | SMA | `AA2E` + 2 |
 | [Final Fantasy Tactics Advance](final-fantasy-tactics-advance.md) | FT | `AFXE` + 2 |
 | [Advance Wars](advance-wars.md) | AW | `AWRE` + 1 |
+| [Advance Wars 2: Black Hole Rising](advance-wars-2.md) | AW2 | `AW2E` + 1 |
 | [Fire Emblem (Rekka no Ken in Japan)](fire-emblem.md) | FE | `AE7E` + 3 |
 | [Sword of Mana (Shinyaku Seiken Densetsu in Japan)](sword-of-mana.md) | SOM | `AVSE` + 2 |
 

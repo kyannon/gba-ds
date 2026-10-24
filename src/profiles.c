@@ -91,28 +91,48 @@ static const uint8_t ffta_tag_jp[212] = {
 
 /* ---------------------------------------------------------- Advance Wars
  *
- * The second screen, after Advance Wars: Dual Strike's: the Unit list with
- * the unit under the cursor (or the one being moved) highlighted, or else
- * the Battle Intel, and the minimap (START) below. Each is opened on the
- * shadow core from the live state: B (backs out of a move or an action
- * menu), then SELECT > Unit (DOWN to the unit's row) or SELECT > Intel >
+ * Advance Wars and Advance Wars 2. The second screen, after Advance Wars:
+ * Dual Strike's: the unit under the cursor's intel (R) when it's one of
+ * yours (or the one being moved), or else the Battle Intel, and the minimap
+ * (START) below. Each is opened on the shadow core from the live state: B
+ * (backs out of a move or an action menu), then R, or SELECT > Intel >
  * Status; START for the minimap. On the enemy's turn none of it opens and
- * the last picture stays. (USA addresses.) */
+ * the last picture stays. (USA addresses; Advance Wars 2's in AwRegion.) */
 #define AW_ARMY 0x030035E8   /* the army whose turn it is, 1-4; 0 off the battle map */
 #define AW_CURSOR 0x030033F0 /* map cursor x, y (stays on a unit while it moves) */
 #define AW_UNITS 0x02019F34  /* + 0x300 * (army - 1) + 12 * id (1-64): type, -, x, y, ... */
-#define AW_LIST_ROW 0x03000E2F
 #define AW_MENU_ROW 0x03000E50 /* the SELECT menu's and its submenus' cursor */
 #define AW_MINIMAP_OPEN 0x03000E2E /* counts 0-12 as the START minimap opens */
-#define AW_LIST_ORDER 0x0201FD38 /* unit ids in list order, 0xFF after the last */
-#define AW_PULSE_PAL 0x050003DE /* the list's highlight colour */
-#define AW_PULSE_BUF 0x030022CE /* the game's copy, put in the palette each frame */
-#define AW_PULSE_DARK 0x2A1C    /* its darkest (it pulses up to 0x739F and back) */
+/* Advance Wars 2 (USA; Europe the same): found by matching the code that
+ * reads Advance Wars' (the army) and by watching them change */
+#define AW2_ARMY 0x030005D0
+#define AW2_CURSOR 0x03003140
+#define AW2_UNITS 0x02022684
+#define AW2_MENU_ROW 0x030014B2
+#define AW2_MINIMAP_OPEN 0x0300148E
 /* the weather's sprites: rain (tiles 169, 171), in OBJ palette 2 */
 #define AW_WEATHER { -512, -256, 511, 255, 160, 191, 0, 1u << 2, 0 }
 #define AW_PALS(n) (1u << (n))
 #define MAP_BG_NAVY 0xFF382418 /* behind the panels: dark navy (bytes R, G, B) */
 #define AW_BG MAP_BG_NAVY
+
+typedef struct {
+	uint32_t army, cursor, units, menuRow, minimapOpen;
+	int intelItem; /* Intel's row in the SELECT menu */
+	uint32_t intelPx[2][3]; /* the Battle Intel is up: x, y, colour (0xRRGGBB) */
+	int intelRows;          /* the Battle Intel's panel: the rows above the map */
+	uint32_t unitOpen[2];   /* this word holds this value (the screen's routine) while the unit intel (R) is up */
+} AwRegion;
+
+static const AwRegion awRegions[] = {
+	{ AW_ARMY, AW_CURSOR, AW_UNITS, AW_MENU_ROW, AW_MINIMAP_OPEN, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000ED0, 0x082E3FD4 } },
+	/* (its SELECT menu has no Unit item: CO, Intel, Options, Save, End) */
+	{ AW2_ARMY, AW2_CURSOR, AW2_UNITS, AW2_MENU_ROW, AW2_MINIMAP_OPEN, 1, { { 200, 100, 0xFFEFEF }, { 120, 140, 0xFFEFEF } }, 152, { 0x03001530, 0x0849E2C0 } },
+};
+
+static const AwRegion* aw_r(Emu* s) {
+	return &awRegions[s->gameCode[2] == '2' ? 1 : 0];
+}
 
 static void aw_run(Emu* s, uint32_t keys, int n) {
 	for (int i = 0; i < n; ++i) emu_frame(s, keys);
@@ -164,12 +184,16 @@ static bool aw_px(Emu* s, int x, int y, uint32_t rgb) {
 	return true;
 }
 
-static bool aw_list_up(Emu* s) {
-	return aw_px(s, 120, 4, 0xFFDEBD) && aw_px(s, 120, 155, 0xFFDEBD);
+/* the unit intel (R) is up: the CO plate's gone (what's up is checked
+ * afterwards: aw_unit_cols) */
+static bool aw_unit_up(Emu* s) {
+	return !aw_idle(s);
 }
 
 static bool aw_intel_up(Emu* s) {
-	return aw_px(s, 4, 4, 0xFFE7C6) && aw_px(s, 200, 100, 0xFFE7C6);
+	const AwRegion* r = aw_r(s);
+	return aw_px(s, r->intelPx[0][0], r->intelPx[0][1], r->intelPx[0][2]) &&
+	       aw_px(s, r->intelPx[1][0], r->intelPx[1][1], r->intelPx[1][2]);
 }
 
 /* Runs until `up` holds and the picture stops changing (a few blinking
@@ -200,6 +224,7 @@ static bool aw_settle(Emu* s, bool (*up)(Emu*), int limit) {
 /* The minimap (START), alone: rendered with only BG0, where the game draws
  * it, and cut out by comparing with a render of no layers at all. */
 static bool aw_minimap(Emu* s, const void* state, void* tmp, uint32_t* mm, int* mw, int* mh) {
+	const AwRegion* r = aw_r(s);
 	if (!emu_state_load(s, state)) return false;
 	if (!aw_back(s)) return false;
 	/* START (again if a cancelled move was still going back and took no
@@ -209,7 +234,7 @@ static bool aw_minimap(Emu* s, const void* state, void* tmp, uint32_t* mm, int* 
 		aw_run(s, K_START, 2);
 		for (int f = 0; f < 30 && !open; ++f) {
 			emu_frame(s, 0);
-			open = emu_read8(s, AW_MINIMAP_OPEN) == 12;
+			open = emu_read8(s, r->minimapOpen) == 12;
 		}
 	}
 	if (!open) return false;
@@ -256,19 +281,21 @@ static bool aw_minimap(Emu* s, const void* state, void* tmp, uint32_t* mm, int* 
 /* The unit under the map cursor, if it's one of the army whose turn it is:
  * its id (1-64), else 0. */
 static int aw_cursor_unit(Emu* s, int army) {
-	int cx = emu_read8(s, AW_CURSOR), cy = emu_read8(s, AW_CURSOR + 1);
-	uint32_t base = AW_UNITS + 0x300 * (uint32_t) (army - 1);
+	const AwRegion* r = aw_r(s);
+	int cx = emu_read8(s, r->cursor), cy = emu_read8(s, r->cursor + 1);
+	uint32_t base = r->units + 0x300 * (uint32_t) (army - 1);
 	for (int id = 1; id <= 64; ++id) {
-		uint32_t r = base + 12 * (uint32_t) id;
-		if (emu_read8(s, r) && emu_read8(s, r + 2) == cx && emu_read8(s, r + 3) == cy) return id;
+		uint32_t a = base + 12 * (uint32_t) id;
+		if (emu_read8(s, a) && emu_read8(s, a + 2) == cx && emu_read8(s, a + 3) == cy) return id;
 	}
 	return 0;
 }
 
 /* The panel now on screen without the battle map around it: rendered
  * again with BG0 and BG2 (menus and text) and the sprites, less the
- * priority-3 ones (the map's buildings); what that leaves empty is AW_BG. */
-static void aw_clean(Emu* s, void* tmp, uint32_t* pan, bool list) {
+ * priority-3 ones (the map's buildings); what that leaves empty is AW_BG.
+ * bg2: BG2 alone too (the boxes), AW_BG where it has nothing. */
+static void aw_clean(Emu* s, void* tmp, uint32_t* pan, uint32_t* bg2) {
 	static uint32_t none[GBA_W * GBA_H];
 	static const SpriteRule rules[2] = { { -512, -256, 511, 255, 0, 1023, 3, 0, 0 }, AW_WEATHER };
 	if (!emu_state_save(s, tmp)) {
@@ -279,15 +306,15 @@ static void aw_clean(Emu* s, void* tmp, uint32_t* pan, bool list) {
 	emu_state_load(s, tmp);
 	emu_frame(s, 0);
 	memcpy(none, s->fb, sizeof(none));
+	if (bg2) {
+		emu_layers(s, 0x04);
+		emu_state_load(s, tmp);
+		emu_frame(s, 0);
+		for (int i = 0; i < GBA_W * GBA_H; ++i) bg2[i] = s->fb[i] == none[i] ? AW_BG : s->fb[i];
+	}
 	emu_layers(s, 0x15);
 	emu_hide_sprites(s, rules, 2);
 	emu_state_load(s, tmp);
-	if (list) {
-		/* the highlighted row's pulsing colour (OBJ palette 14, colour 15),
-		 * at its darkest: in the palette and the game's copy of it */
-		emu_write16(s, AW_PULSE_PAL, AW_PULSE_DARK);
-		emu_write16(s, AW_PULSE_BUF, AW_PULSE_DARK);
-	}
 	emu_frame(s, 0);
 	for (int i = 0; i < GBA_W * GBA_H; ++i) pan[i] = s->fb[i] == none[i] ? AW_BG : s->fb[i];
 	emu_hide_sprites(s, &rules[1], 1);
@@ -295,66 +322,89 @@ static void aw_clean(Emu* s, void* tmp, uint32_t* pan, bool list) {
 	emu_state_load(s, tmp);
 }
 
-/* Moves the open menu's cursor to item i (the menus wrap round). */
-static void aw_pick(Emu* s, int i) {
-	for (int tries = 0; tries < 6 && emu_read8(s, AW_MENU_ROW) != i; ++tries) aw_tap(s, K_DOWN, 1);
+/* The unit intel's panel: the columns where BG2 (the boxes) covers both
+ * the top and the bottom of the screen (the text box beside it is only
+ * at one or the other); the longest such run. False if there's none. */
+static bool aw_unit_cols(const uint32_t* bg2, int* x0, int* x1) {
+	int best = 0, run = 0;
+	for (int x = 0; x <= GBA_W; ++x) {
+		bool tall = x < GBA_W && bg2[12 * GBA_W + x] != AW_BG && bg2[148 * GBA_W + x] != AW_BG;
+		if (tall) {
+			++run;
+			continue;
+		}
+		if (run > best) best = run, *x0 = x - run, *x1 = x - 1;
+		run = 0;
+	}
+	return best >= 64;
 }
 
-static const char* aw_panel(Emu* s, const void* state, int* rows) {
+/* Moves the open menu's cursor to item i (the menus wrap round). */
+static void aw_pick(Emu* s, int i) {
+	const AwRegion* r = aw_r(s);
+	for (int tries = 0; tries < 6 && emu_read8(s, r->menuRow) != i; ++tries) aw_tap(s, K_DOWN, 1);
+}
+
+static const char* aw_panel(Emu* s, const void* state, bool* unitPanel) {
+	const AwRegion* r = aw_r(s);
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
-	int army = emu_read8(s, AW_ARMY);
+	int army = emu_read8(s, r->army);
 	if (army < 1 || army > 4) return "not on the battle map";
 	if (!aw_back(s)) return "the cursor isn't free";
 	int unit = aw_cursor_unit(s, army);
-	aw_tap(s, K_SELECT, 1);
-	aw_run(s, 0, 8);
+	*unitPanel = unit != 0;
 	if (unit) {
-		aw_pick(s, 0); /* Unit */
-		aw_tap(s, K_A, 1);
-		if (!aw_settle(s, aw_list_up, 90)) return "unit list did not open";
-		int row = -1;
-		for (int i = 0; i < 64; ++i) {
-			int id = emu_read8(s, AW_LIST_ORDER + i);
-			if (id == 0xFF) break;
-			if (id == unit) {
-				row = i;
-				break;
-			}
-		}
-		for (int tries = 0; row > 0 && emu_read8(s, AW_LIST_ROW) != row && tries < 70; ++tries) {
-			aw_run(s, K_DOWN, 2);
-			aw_run(s, 0, 4);
-		}
-		if (!aw_settle(s, aw_list_up, 60)) return "unit list did not settle";
-		*rows = GBA_H;
+		aw_tap(s, K_R, 1);
+		if (!aw_settle(s, aw_unit_up, 90)) return "unit intel did not open";
 	} else {
-		aw_pick(s, 1); /* Intel */
+		aw_tap(s, K_SELECT, 1);
+		aw_run(s, 0, 8);
+		aw_pick(s, r->intelItem); /* Intel */
 		aw_tap(s, K_A, 1);
 		aw_run(s, 0, 8);
 		aw_pick(s, 0); /* Status (the Intel menu keeps its last choice: CO, Rules) */
 		aw_tap(s, K_A, 1);
 		if (!aw_settle(s, aw_intel_up, 90)) return "battle intel did not open";
-		*rows = 124; /* the panel, not the map below it */
 	}
 	return NULL;
 }
 
+/* hud.findPieces: the plate, the info and the DAMAGE box where the moves
+ * have them; while a conversation's on screen (the HUD band's lines), only
+ * the conversation (move 4), the others kept as they were; none while the
+ * unit intel (R) is open. */
+static void aw_find_pieces(Emu* e, const uint32_t* hud, uint32_t clear, int box[4][4]) {
+	(void) hud, (void) clear;
+	static const int rects[3][4] = { { 0, 0, 239, 47 }, { 0, 104, 239, 159 }, { 0, 56, 239, 103 } };
+	int y0, y1;
+	bool talk = emu_hud_band_rows(&y0, &y1) && y1 - y0 >= 15;
+	/* the unit intel (R) open in the game: its sprites aren't the info's */
+	bool unitIntel = emu_read32(e, aw_r(e)->unitOpen[0]) == aw_r(e)->unitOpen[1];
+	for (int m = 0; m < 3; ++m) {
+		if (talk || unitIntel) box[m][0] = box[m][1] = 0, box[m][2] = box[m][3] = -1;
+		else memcpy(box[m], rects[m], sizeof(rects[m]));
+	}
+	box[3][0] = 0, box[3][2] = GBA_W - 1;
+	box[3][1] = talk ? y0 : 0, box[3][3] = talk ? y1 : -1;
+}
+
 static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	const AwRegion* r = aw_r(s);
 	/* the minimap, kept until the units change (it shows them, and their
 	 * captures change the buildings' colours) or every 8th picture */
 	static uint32_t mm[GBA_W * GBA_H], mmKey;
 	static int mw, mh, mmAge;
-	static uint32_t pan[GBA_W * GBA_H];
-	int rows = 0;
+	static uint32_t pan[GBA_W * GBA_H], bg2[GBA_W * GBA_H];
+	bool unitPanel = false;
 	/* weather (rain falling over the menus) out of every picture: the
 	 * menus settle, and it isn't kept in them */
 	static const SpriteRule weather = AW_WEATHER;
 	emu_hide_sprites(s, &weather, 1);
 	if (!emu_state_load(s, state)) return "state load failed";
 	uint32_t key = 2166136261u;
-	for (uint32_t a = AW_UNITS; a < AW_UNITS + 4 * 0x300; a += 4) key = (key ^ emu_read32(s, a)) * 16777619u;
-	key = (key ^ emu_read8(s, AW_ARMY)) * 16777619u;
+	for (uint32_t a = r->units; a < r->units + 4 * 0x300; a += 4) key = (key ^ emu_read32(s, a)) * 16777619u;
+	key = (key ^ emu_read8(s, r->army)) * 16777619u;
 	void* tmp = malloc(emu_state_size(s));
 	if (!tmp) return "out of memory";
 	const char* err = NULL;
@@ -368,20 +418,27 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 			err = "minimap did not open";
 		}
 	}
-	if (!err) err = aw_panel(s, state, &rows);
-	if (!err) aw_clean(s, tmp, pan, rows == GBA_H);
+	if (!err) err = aw_panel(s, state, &unitPanel);
+	if (!err) aw_clean(s, tmp, pan, unitPanel ? bg2 : NULL);
 	free(tmp);
 	if (err) return err;
+	/* the part of the picture that goes: the unit intel's panel (not its
+	 * text box), or the Battle Intel's panel (not the map below it) */
+	int x0 = 0, x1 = GBA_W - 1, rows = r->intelRows;
+	if (unitPanel) {
+		if (!aw_unit_cols(bg2, &x0, &x1)) return "unit intel's panel not found";
+		rows = GBA_H;
+	}
 	for (int i = 0; i < w * h; ++i) out[i] = AW_BG;
-	/* the panel at the top, the minimap at the bottom left, 4 pixels in
-	 * (the HUD's plate and info go along the bottom too: the profile's
-	 * hud.moves); the panel over it if they meet */
-	int px = (w - GBA_W) / 2, py = 4;
+	/* the panel at the top in the middle, the minimap at the bottom left,
+	 * 4 pixels in (the HUD's plate and info go along the bottom too: the
+	 * profile's hud.moves); the panel over it if they meet */
+	int px = (w - (x1 - x0 + 1)) / 2 - x0, py = 4;
 	int my = h - 4 - mh, mx = 4;
 	if (my < 0) my = 0;
 	for (int y = 0; y < mh && my + y < h; ++y) memcpy(&out[(my + y) * w + mx], &mm[y * mw], mw * sizeof(uint32_t));
 	for (int y = 0; y < rows && py + y < h; ++y) {
-		for (int x = 0; x < GBA_W; ++x) {
+		for (int x = x0; x <= x1; ++x) {
 			uint32_t c = pan[y * GBA_W + x];
 			if (c != AW_BG) out[(py + y) * w + px + x] = c;
 		}
@@ -1458,7 +1515,13 @@ static const MapProfile profiles[] = {
 			           { 0, 104, 239, 159, 'R', 312, 'B', 232, .box = 0x6B7380, .pad = 3 },
 			           /* the DAMAGE box (down to row 103; the info starts at 104):
 			            * where it is over the info, over the panels */
-			           { 0, 56, 239, 103, 'L', 0, 'T', 0, .follow = 2 } },
+			           { 0, 56, 239, 103, 'L', 0, 'T', 0, .follow = 2 },
+			           { 0, 0, 239, 159, 'L', 0, 'T', 0, .wide = true, .dropAfter = 2 } },
+			/* a conversation (the tutorial's, Field Training's: its own BG0
+			 * and BG2 settings on its lines), copied to the top of the second
+			 * screen, as wide as it is */
+			.band = { { 0x0C00, 0x0D08 }, true },
+			.findPieces = aw_find_pieces,
 			.overMap = true,
 			.mapClear = AW_BG,
 			.gameReg = { 0x48, 0x0020 },
@@ -1470,6 +1533,56 @@ static const MapProfile profiles[] = {
 		.room = { { AW_CURSOR, 0xFFFF, 0, 2 } },
 		/* the title's lettering is sprites */
 		.logo = { .wait = 240, .pressStart = true, .wait2 = 100, .layers = 0x10, .maxY = 128 },
+	},
+	{
+		/* Advance Wars 2 (USA): as Advance Wars, at its own addresses */
+		.codes = { "AW2E" },
+		.title = "Advance Wars 2: Black Hole Rising",
+		.compose = aw_compose,
+		.crop_w = 320, /* 3x on 1024x768, 2x on 640x480 */
+		.crop_h = 240,
+		/* the CO / day plate (top, either side) and the terrain and unit
+		 * info (bottom right) go to the second screen's bottom left and
+		 * bottom right, under the panels; the darkened box behind the
+		 * info (window 0's effect) is left off the game screen */
+		.hud = {
+			/* in a battle, not in a fight (fights use window 1): the
+			 * enemy's turn too, which has no window (nor terrain info) */
+			.on = { { AW2_ARMY, 0xFF, 1, 1, true, 4, true }, { 0x04000000, 0x4000, 0, 2 } },
+			/* the plate: tile 0 (palette 7), the portrait (58, palette 14), the
+			 * funds' digits (976-985); the info: its labels (458-466), the
+			 * terrain (486, palette 6) and unit (474) pictures, the heart, fuel
+			 * and star (850-864) and digits, not the cursor's corners (869-873,
+			 * palette 1 too). (The DAMAGE box isn't moved: no state to find
+			 * its tiles with yet.) */
+			.objs = { { -64, -32, 239, 40, 0, 63, 0, AW_PALS(1) | AW_PALS(7) | AW_PALS(14) }, { -64, -32, 239, 40, 940, 1023, 0, AW_PALS(1) },
+			          { -64, 88, 239, 159, 440, 520, 0, AW_PALS(1) | AW_PALS(2) | AW_PALS(6) | AW_PALS(15) },
+			          { -64, 88, 239, 159, 840, 866, 0, AW_PALS(1) },
+			          { -64, 88, 239, 159, 970, 990, 0, AW_PALS(1) } },
+			/* the plate at the bottom in the middle, the info at the
+			 * bottom right on a grey box; 4 pixels up, as the minimap */
+			/* (the plate: taken again only when the turn passes) */
+			.moves = { { 0, 0, 239, 47, 'C', 159, 'B', 235, .latch = AW2_ARMY },
+			           { 0, 104, 239, 159, 'R', 312, 'B', 232, .box = 0x6B7380, .pad = 3 },
+			           /* the DAMAGE box (down to row 103; the info starts at 104):
+			            * where it is over the info, over the panels */
+			           { 0, 56, 239, 103, 'L', 0, 'T', 0, .follow = 2 },
+			           { 0, 0, 239, 159, 'L', 0, 'T', 0, .wide = true, .dropAfter = 2 } },
+			/* a conversation (its own BG0 and BG1 settings on its lines),
+			 * copied to the top of the second screen, as wide as it is */
+			.band = { { 0x0D00, 0x1C08 }, true },
+			.findPieces = aw_find_pieces,
+			.overMap = true,
+			.mapClear = AW_BG,
+			.gameReg = { 0x48, 0x0020 },
+		},
+		/* a fight: both windows on */
+		.combat = { { AW2_ARMY, 0xFF, 1, 1, true, 4, true }, { 0x04000000, 0x4000, 0x4000, 2 } },
+		.live = { { AW2_ARMY, 0xFF, 1, 1, true, 4, true } },
+		.menu = { { AW2_ARMY, 0xFF, 0, 1 }, { 0x030040D8, 0xFFFFFFFF, 0, 4 } },
+		.room = { { AW2_CURSOR, 0xFFFF, 0, 2 } },
+		/* the title's lettering is sprites (PRESS START! below it too) */
+		.logo = { .wait = 240, .pressStart = true, .wait2 = 100, .layers = 0x10, .maxY = 92 },
 	},
 };
 
@@ -1522,7 +1635,8 @@ static void som_jpn(MapProfile* p) {
 	p->logo.layers = 0x11;
 }
 
-/* Advance Wars in Europe: its language menu comes up later than the others' */
+/* Advance Wars (1 and 2) in Europe: the language menu comes up later than
+ * the other games' */
 static void aw_eur(MapProfile* p) {
 	static const MacroStep lang[] = { { 0, 180 }, { K_A, 4 } };
 	insert_steps(p->logo.steps, 24, 0, lang, 2);
@@ -1612,6 +1726,8 @@ static const Variant variants[] = {
 	{ "AE7Y", "AE7E", 0, lang_menu },
 	{ "AE7J", "AE7E", 0, fe_jpn },
 	{ "AWRP", "AWRE", 0, aw_eur },
+	/* (the same RAM as the USA release; a language menu first too) */
+	{ "AW2P", "AW2E", 0, aw_eur },
 	/* (Sword of Mana's ring address: SomRegion) */
 	{ "AVSY", "AVSE", 0, som_eur },
 	{ "AVSJ", "AVSE", 0, som_jpn },
