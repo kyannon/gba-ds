@@ -222,7 +222,7 @@ textarea { min-height: 88px; resize: vertical; }
     <aside class="side">
       <form class="panel" id="saveForm" autocomplete="off">
         <h3>Save this moment</h3>
-        <p class="lede" id="formLede">The game pauses while you type. A state can be loaded again later; a screenshot is just the picture. Both keep your notes.</p>
+        <p class="lede" id="formLede">The game pauses while you type. A state can be loaded again later, and keeps the moment about 10 seconds before it too; a screenshot is just the picture. Both keep your notes.</p>
         <div class="field">
           <label for="nameIn">Name</label>
           <input type="text" id="nameIn" maxlength="80" placeholder="Battle: unit details open">
@@ -590,6 +590,28 @@ function rwHold(on) {
 $("rwBtn").addEventListener("pointerdown", (e) => { e.preventDefault(); rwHold(true); try { $("rwBtn").setPointerCapture(e.pointerId); } catch (err) {} });
 for (const ev of ["pointerup", "pointercancel", "lostpointercapture"]) $("rwBtn").addEventListener(ev, () => rwHold(false));
 
+/* every saved state also keeps the moment about 10 seconds before it (the
+   oldest rewind point; GBA DS's tab keeps a ring of its own for this), to
+   show how a quick sequence got there */
+const gdRw = { snaps: [], lastFrame: -1e9 };
+function gdRwClear() { gdRw.snaps.length = 0; gdRw.lastFrame = -1e9; }
+function gdRwMaybeSnap() {
+  if (!gd.h || gd.paused || gd.frames - gdRw.lastFrame < 30) return;
+  const st = gd.h.saveState();
+  if (!st) return;
+  gdRw.lastFrame = gd.frames;
+  gdRw.snaps.push({ st, frame: gd.frames });
+  if (gdRw.snaps.length > 21) gdRw.snaps.shift(); // 10 s at 2 a second
+}
+function leadIn() {
+  const ring = sys === "gbads" ? gdRw.snaps : rw.snaps;
+  const now = sys === "gbads" ? gd.frames : game.frames;
+  const snap = ring[0];
+  if (!snap || now - snap.frame < 30) return null; // under half a second: nothing worth keeping
+  const fps = sys === "ds" ? 1000 / SYSTEMS.ds.frameMs : 1000 / SYSTEMS.gba.frameMs;
+  return { st: snap.st, frame: snap.frame, seconds: Math.round((now - snap.frame) / fps * 10) / 10 };
+}
+
 function setRunning(on) {
   running = on && game.loaded;
   $("pauseBtn").textContent = running ? "Pause" : "Resume";
@@ -848,31 +870,35 @@ async function loadLocal() {
   } catch (e) { store.items = store.items || []; }
 }
 
-async function storeMoment(meta, stateBytes, shot) {
+async function storeMoment(meta, stateBytes, shot, leadBytes) {
   const id = newId();
   if (store.mode === "shared") {
     let st = null;
     if (stateBytes) {
+      // leadIn: the same game about leadInSeconds earlier (frame leadInFrame)
       const doc = { format: SYSTEMS[meta.system].stateFormat, encoding: "gzip", ...meta, stateBase64: b64.enc(await gzip(stateBytes)) };
+      if (leadBytes) doc.leadIn = { frame: meta.leadInFrame, secondsBefore: meta.leadInSeconds, stateBase64: b64.enc(await gzip(leadBytes)) };
       st = await assets.upload(new Blob([JSON.stringify(doc)], { type: "application/json" }), { type: "application/json" });
     }
     const pic = shot ? await assets.upload(shot, { type: "image/png" }) : null;
     await db.collection("states").doc(id).set({ ...meta, stateAsset: st ? st.id : "", shotAsset: pic ? pic.id : "" });
   } else {
-    const row = { id, meta, state: stateBytes, shot };
+    const row = { id, meta, state: stateBytes, shot, lead: leadBytes || null };
     try { await idbDo("states", "readwrite", (s) => s.put(row)); }
     catch (e) { store.items.unshift({ ...meta, id, _local: row }); renderShelf(); return; }
     await loadLocal(); renderShelf();
   }
 }
 
-async function stateOf(item) {
-  if (item._local) return item._local.state;
+async function stateOf(item, before) {
+  if (item._local) return before ? item._local.lead || null : item._local.state;
   if (!item.stateAsset) return null;
   const r = await fetch("/_blob/" + item.stateAsset);
   if (!r.ok) throw new Error("state file " + r.status);
   const doc = await r.json();
-  const bytes = b64.dec(doc.stateBase64);
+  const src = before ? doc.leadIn : doc;
+  if (!src) return null;
+  const bytes = b64.dec(src.stateBase64);
   return doc.encoding === "gzip" ? gunzip(bytes) : bytes;
 }
 async function shotOf(item) {
@@ -908,16 +934,18 @@ async function saveMoment(kind) {
   if (!name) name = "Screenshot " + new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" });
   const bytes = kind !== "state" ? null : sys === "gbads" ? gd.h.saveState() : saveStateBytes();
   if (kind === "state" && !bytes) { flash("saveMsg", "The emulator couldn't save a state.", true); return; }
+  const lead = kind === "state" ? leadIn() : null;
   const meta = {
     kind, system: g.sys, name, tags: splitTags($("tagsIn").value), notes: $("notesIn").value.trim(),
     gameCode: g.code, gameTitle: g.title, romName: g.romName, romSize: g.romBytes.length,
     frame: g.frames, createdAt: Date.now(), stateBytes: bytes ? bytes.length : 0,
     width: img.width, height: img.height, core: g.sys === "gbads" ? "GBA DS " + gd.build.version + " (web build)" : SYSTEMS[g.sys].coreName,
+    leadInSeconds: lead ? lead.seconds : 0, leadInFrame: lead ? lead.frame : 0,
   };
   saving = true;
   flash("saveMsg", "Saving…");
   try {
-    await storeMoment(meta, bytes, await shotBlob());
+    await storeMoment(meta, bytes, await shotBlob(), lead ? lead.st : null);
     flash("saveMsg", (kind === "state" ? "Saved “" : "Screenshot saved: “") + name + "”.");
     $("nameIn").value = ""; $("tagsIn").value = ""; $("notesIn").value = "";
   } catch (err) {
@@ -994,7 +1022,8 @@ function itemView(item) {
   head.append(name, kind);
   const meta = document.createElement("div");
   meta.className = "meta";
-  meta.textContent = [item.gameTitle || item.romName, item.gameCode, when(item.createdAt), "frame " + item.frame].filter(Boolean).join(" · ");
+  meta.textContent = [item.gameTitle || item.romName, item.gameCode, when(item.createdAt), "frame " + item.frame,
+    item.leadInSeconds ? "+ " + item.leadInSeconds + " s before" : ""].filter(Boolean).join(" · ");
   const tags = document.createElement("div");
   tags.className = "tags";
   for (const t of item.tags || []) { const s = document.createElement("span"); s.className = "tag"; s.textContent = t; tags.append(s); }
@@ -1005,17 +1034,20 @@ function itemView(item) {
   const btn = (label, fn, cls) => { const b = document.createElement("button"); b.type = "button"; b.textContent = label; if (cls) b.className = cls; b.onclick = fn; actions.append(b); return b; };
 
   if (kindOf(item) === "state") {
-    btn("Load", async () => {
+    const load = async (before) => {
+      const label = before ? "“" + item.name + "”, " + item.leadInSeconds + " s before" : "“" + item.name + "”";
       if (sys === "gbads") {
         if (sysOf(item) === "ds") { flash("shelfMsg", "That's a DS state: GBA DS runs GBA games.", true); return; }
-        try { await gdLoadState(await stateOf(item), item); } catch (e) { flash("shelfMsg", "Couldn't fetch that state.", true); }
+        try { await gdLoadState(await stateOf(item, before), { ...item, name: before ? item.name + " (" + item.leadInSeconds + " s before)" : item.name }); } catch (e) { flash("shelfMsg", "Couldn't fetch that state.", true); }
         return;
       }
       const want = sysOf(item) === "gbads" ? "gba" : sysOf(item);
       if (!game.loaded || game.sys !== want) { flash("shelfMsg", "Load " + (item.gameTitle || "the game") + " (" + SYSTEMS[sysOf(item)].label + ") first.", true); return; }
       if (item.gameCode && game.code && item.gameCode !== game.code) { flash("shelfMsg", "That state is for " + (item.gameTitle || item.gameCode) + " (" + item.gameCode + "). Load that game first.", true); return; }
-      try { loadStateBytes(await stateOf(item), "“" + item.name + "”"); } catch (e) { flash("shelfMsg", "Couldn't fetch that state.", true); }
-    });
+      try { loadStateBytes(await stateOf(item, before), label); } catch (e) { flash("shelfMsg", "Couldn't fetch that state.", true); }
+    };
+    btn("Load", () => load(false));
+    if (item.leadInSeconds) btn("Load " + Math.round(item.leadInSeconds) + " s before", () => load(true));
     if (sysOf(item) !== "ds" && sys !== "gbads") btn("Run in GBA DS", async () => {
       try { const bytes = await stateOf(item); setSystem("gbads"); await gdReady; await gdLoadState(bytes, item); }
       catch (e) { flash("shelfMsg", "Couldn't fetch that state.", true); }
@@ -1025,6 +1057,8 @@ function itemView(item) {
         const bytes = await stateOf(item);
         await offerZip(slug(item.name) + ".zip", async (z) => {
           z.file(stateFileName(item), bytes);
+          const lead = item.leadInSeconds ? await stateOf(item, true) : null;
+          if (lead) z.file(stateFileName(item).replace(/(\.[^.]+)$/, " (" + item.leadInSeconds + " s before)$1"), lead);
           const shot = await shotOf(item);
           if (shot) z.file(slug(item.name) + ".png", shot);
           z.file("notes.txt", noteText([item]));
@@ -1073,7 +1107,7 @@ function noteText(items) {
   return items.map((it) => [
     "# " + it.name + " (" + SYSTEMS[sysOf(it)].label + (kindOf(it) === "shot" ? " screenshot" : " state") + ")",
     "Game: " + (it.gameTitle || "") + " (" + it.gameCode + "), ROM file: " + it.romName,
-    "Saved: " + new Date(it.createdAt).toISOString() + ", frame " + it.frame,
+    "Saved: " + new Date(it.createdAt).toISOString() + ", frame " + it.frame + (it.leadInSeconds ? " (and " + it.leadInSeconds + " s before, frame " + it.leadInFrame + ")" : ""),
     "Tags: " + (it.tags || []).join(", "),
     "",
     it.notes || "(no notes)",
@@ -1107,10 +1141,12 @@ $("pkgBtn").onclick = async () => {
         const ext = sysOf(it) === "ds" ? ".ml1" : ".state";
         const state = kindOf(it) === "state" ? await stateOf(it) : null;
         if (state) z.file("states/" + s + ext, state);
+        const lead = state && it.leadInSeconds ? await stateOf(it, true) : null;
+        if (lead) z.file("states/" + s + "-before" + ext, lead);
         const shot = await shotOf(it);
         if (shot) z.file("screenshots/" + s + ".png", shot);
         const { _local, stateAsset, shotAsset, ...meta } = it;
-        index.push({ state: state ? "states/" + s + ext : null, screenshot: shot ? "screenshots/" + s + ".png" : null, ...meta });
+        index.push({ state: state ? "states/" + s + ext : null, stateBefore: lead ? "states/" + s + "-before" + ext : null, screenshot: shot ? "screenshots/" + s + ".png" : null, ...meta });
       }
       z.file("moments.json", JSON.stringify(index, null, 2));
       z.file("notes.txt", noteText(items));
@@ -1118,7 +1154,9 @@ $("pkgBtn").onclick = async () => {
         "State Saver package",
         "",
         "states/       GBA states (.state: GBA DS's own format, mGBA 143adf5) and",
-        "              DS states (.ml1: melonDS savestates).",
+        "              DS states (.ml1: melonDS savestates). NAME-before is the",
+        "              same game about 10 seconds earlier (leadInSeconds in",
+        "              moments.json).",
         "screenshots/  the screen(s) when each moment was saved.",
         "moments.json  names, tags, notes and game details for every moment.",
         "",
@@ -1261,6 +1299,7 @@ async function gdLoadState(bytes, item) {
   const label = item ? "“" + item.name + "”" : "the state";
   if (gd.h && (!code || code === gdGame().code)) {
     const ok = gd.h.loadState(bytes);
+    if (ok) gdRwClear();
     flash("shelfMsg", ok ? "Loaded " + label + " in GBA DS." : "That state didn't load. Is it for this game?", !ok);
     if (ok && gd.paused) gdPause(false);
     return;
@@ -1294,6 +1333,7 @@ async function gdBoot(stateBytes) {
   if (stateBytes) { fs.write("/load.ss", stateBytes); args.push("--load-state=/load.ss"); }
   args.push("/roms/" + romName);
   gd.frames = 0; gd.paused = false; gd.log.length = 0;
+  gdRwClear();
   gdLog("$ " + args.join(" "));
   gd.img = null;
   gdShowCanvas();
@@ -1357,6 +1397,7 @@ function gdPause(on) {
 const PAD_KEYS = [[1, 27], [0, 29], [4, 4], [5, 22], [6, 43], [7, 44], [9, 40], [8, 42], [16, 41], [12, 82], [13, 81], [14, 80], [15, 79]];
 function gdTick(t) {
   if (gd.dirty && gd.img) { ctx.putImageData(gd.img, 0, 0); gd.dirty = false; }
+  gdRwMaybeSnap();
   if (gd.h && !gd.paused) {
     const now = new Set();
     for (const p of navigator.getGamepads ? navigator.getGamepads() : []) {
