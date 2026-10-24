@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.3.1 (not yet released)
+## v1.3.1 (2026-10-24)
 - **Pause menu:** three pages instead of four. Frame Buffer and Match Display Rate are now under Display, Rewind and Show FPS under Extras, and the Performance page is gone. Map Animations and Map Refresh are no longer in the menu. They're `map_animations` and `map_interval` in `gba-ds.cfg`: on, and a map refresh every second (it was every 1.5 seconds). Choices made in the old menu items no longer apply.
 - **A Link to the Past:** the map on the second screen is always still, with everything that blinks on it (the floor buttons, Link's and the goal's markers) showing at once, and the X marking where to go in red.
 - **Castlevania (all three):** the map's border from the game's menus now shows the first time a game is played, not only from the next start.
