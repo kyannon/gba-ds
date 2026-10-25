@@ -12,7 +12,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Mario Kart: Super Circuit (Mario Kart Advance in Japan) | `AMKE` `AMKP` `AMKJ` | the race HUD, results and podium | — |
 | Tony Hawk's Pro Skater 3 | `AT3E` (USA and Europe) `AT3F` `AT3D` | the goal list; optional four-button layout | — |
 | Super Mario Advance 2: Super Mario World | `AA2E` `AA2P` `AA2J` | the SELECT menu on the world map; the status bar in levels; optional SNES layout | — |
-| Final Fantasy Tactics Advance (preliminary) | `AFXE` `AFXP` `AFXJ` | in battles: a unit's Status and the turn order | — |
+| Final Fantasy Tactics Advance (preliminary) | `AFXE` `AFXP` `AFXJ` | in battles: a unit's Status, the Mission, the Laws and the turn order | — |
 | Advance Wars (preliminary) | `AWRE` `AWRP` (no Japanese release) | in battles: your unit's intel or the battle intel, with the minimap | — |
 | Advance Wars 2: Black Hole Rising (preliminary) | `AW2E` `AW2P` (no Japanese release) | in battles: your unit's intel or the battle intel, with the minimap | — |
 | Fire Emblem (Rekka no Ken in Japan; preliminary) | `AE7E` `AE7X` (English, French, German) `AE7Y` (English, Spanish, Italian) `AE7J` | on the map: the unit, terrain and goal windows and the minimap | — |
@@ -67,7 +67,8 @@ You see the game's own map, with everything it shows (explored rooms, save and w
 Preliminary: a new second screen in v1.3.2, replacing the earlier one (which moved the game's dialogue and menus there).
 
 - **Always,** the second screen is a dark background with the game's logo, small and dimmed, in the middle (the title, menus and the world map too).
-- **In a battle,** at the bottom left, the **Status** screen of the unit under the cursor (or the active unit's, when the cursor isn't on one), turning between its Equip and Abilities pages every 5 seconds; at the bottom right, the **turn order** (the list L shows). Both are brought up in the background on a silent copy of the game, as the other games' maps are; your game is never paused or touched, and the game screen stays exactly as the game draws it. When they can't be brought up (the enemy's turn, a scene), the last ones stay.
+- **In a battle,** at the top left, the **Status** screen of the unit under the cursor (or the active unit's, when the cursor isn't on one), turning between its Equip and Abilities pages every 5 seconds; at the top right, the **Mission** (what wins and loses the battle); at the bottom left, the **Laws** (forbidden and recommended); at the bottom right, the **turn order** (the list L shows). All are brought up in the background on a silent copy of the game, as the other games' maps are; your game is never paused or touched, and the game screen stays exactly as the game draws it. They're taken again only with the battle map showing: while a unit picks where to move or what to hit, on the enemy's turn and in scenes, the last ones stay.
+- **Known issue:** in the opening snowball fight only the Status and the turn order show.
 
 ## Summon Night: Swordcraft Story
 

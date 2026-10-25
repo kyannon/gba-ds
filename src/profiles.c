@@ -456,16 +456,18 @@ static const char* sn_compose(Emu* s, const void* state, uint32_t* out, int w, i
 
 /* ------------------------------------------ Final Fantasy Tactics Advance
  *
- * In battles the second screen shows, at the bottom left, the Status screen
+ * In battles the second screen shows, at the top left, the Status screen
  * (the whole screen, as the game draws it) of the unit under the cursor (or
  * the active unit's, when the cursor's on no unit), turning between its
- * Equip and Abilities pages every 5 seconds; at the bottom right, the turn
- * order (L's list). Both are brought up on the shadow core: B to back out
- * of whatever's open, then A (twice if the first only puts the cursor on
- * the unit), DOWN to its menu's Status (the last item, highlighted orange),
- * A; RIGHT for the other page. And B again, then L for the list. Behind
- * them, the dark background with the logo (hud.logoUnder). Where they can't
- * be brought up (the enemy's turn, a scene), the last ones stay.
+ * Equip and Abilities pages every 5 seconds; at the top right, the Mission
+ * (Start, SYSTEM > Mission); at the bottom left, the Laws (SYSTEM > Laws);
+ * at the bottom right, the turn order (L's list). All are brought up on
+ * the shadow core: B to back out of whatever's open, then for the Status A
+ * (twice if the first only puts the cursor on the unit), DOWN to its menu's
+ * Status (the last item, highlighted orange), A; RIGHT for the other page.
+ * Behind them, the dark background with the logo (hud.logoUnder). They're
+ * taken only with the map (or a Status) showing: while a unit moves or
+ * acts, on the enemy's turn and in scenes the last ones stay.
  * (The earlier version, which moved the game's menus and dialogue to the
  * second screen with a ROM patch tagging its UI sprites, is on the branch
  * archive/ffta-hud.) */
@@ -475,12 +477,16 @@ static const char* sn_compose(Emu* s, const void* state, uint32_t* out, int w, i
 #define FT_UI 0x0200F5C6     /* 1 with nothing open on the map (0 the active unit's menu,
                               * 2 another unit's, the system menu or a Status, 3 the turn
                               * order...; Japan: 0x30 lower) */
-#define FT_V_BATTLE 0xF0000010 /* 1 on the battle map or a unit's Status */
+#define FT_IN_BATTLE 0x03000E4E /* 1 in a battle (its scenes, moves, menus too), else 0 */
+#define FT_V_BATTLE 0xF0000010 /* 1 in a battle */
+#define FT_V_IDLE 0xF0000011   /* 1 on a battle's map or a unit's Status (not a move or an action) */
 
 static uint32_t ft_virt(Emu* e, uint32_t addr) {
-	if (addr != FT_V_BATTLE) return 0;
+	bool in = emu_read8(e, FT_IN_BATTLE) == 1;
+	if (addr == FT_V_BATTLE) return in;
+	if (addr != FT_V_IDLE) return 0;
 	uint16_t c = emu_read16(e, 0x04000008);
-	return c == FT_MAP_CNT || c == FT_STATUS_CNT;
+	return in && (c == FT_MAP_CNT || c == FT_STATUS_CNT);
 }
 
 static uint32_t ft_cursor(Emu* e) {
@@ -552,42 +558,34 @@ static bool ft_status(Emu* s, const void* state, uint32_t page[2][GBA_W * GBA_H]
 	return ft_bg0(s, FT_STATUS_CNT);
 }
 
-/* The turn order list (L) cut out: BG2 (its lettering and frame) over BG3
- * (its box), without the map; false if it didn't open. */
-static bool ft_list(Emu* s, const void* state, void* tmp, uint32_t* out, int* ow, int* oh) {
-	if (!emu_state_load(s, state)) return false;
-	emu_frame(s, 0);
-	if (!ft_bg0(s, FT_MAP_CNT) && !ft_bg0(s, FT_STATUS_CNT)) return false;
-	if (!ft_back(s)) return false;
-	aw_tap(s, K_L, 1);
-	aw_run(s, 0, 40);
+/* A window the game draws on BG2 (lettering, frame) over BG3 (its box)
+ * cut out of the frame showing now, without the map: the box around
+ * BG2's and BG3's pixels, w x h within the limits given; false if not. */
+static bool ft_cut(Emu* s, void* tmp, uint32_t* out, int* ow, int* oh, int minW, int maxW, int minH, int maxH) {
 	if (!emu_state_save(s, tmp)) return false;
-	static uint32_t none[GBA_W * GBA_H], bg2[GBA_W * GBA_H];
+	static uint32_t none[GBA_W * GBA_H];
 	emu_layers(s, 0);
 	emu_state_load(s, tmp);
 	emu_frame(s, 0);
 	memcpy(none, s->fb, sizeof(none));
-	emu_layers(s, 0x04);
+	emu_layers(s, 0x0C);
 	emu_state_load(s, tmp);
 	emu_frame(s, 0);
-	memcpy(bg2, s->fb, sizeof(bg2));
 	int x0 = GBA_W, y0 = GBA_H, x1 = -1, y1 = -1;
 	for (int y = 0; y < GBA_H; ++y) {
 		for (int x = 0; x < GBA_W; ++x) {
-			if (bg2[y * GBA_W + x] == none[y * GBA_W + x]) continue;
+			if (s->fb[y * GBA_W + x] == none[y * GBA_W + x]) continue;
 			x0 = x < x0 ? x : x0, x1 = x > x1 ? x : x1, y0 = y < y0 ? y : y0, y1 = y > y1 ? y : y1;
 		}
 	}
-	bool ok = x1 - x0 >= 100 && x1 - x0 <= 180 && y1 - y0 >= 100;
+	int w = x1 - x0 + 1, h = y1 - y0 + 1;
+	bool ok = x1 >= 0 && w >= minW && w <= maxW && h >= minH && h <= maxH;
 	if (ok) {
-		emu_layers(s, 0x0C);
-		emu_state_load(s, tmp);
-		emu_frame(s, 0);
-		*ow = x1 - x0 + 1, *oh = y1 - y0 + 1;
-		for (int y = 0; y < *oh; ++y) {
-			for (int x = 0; x < *ow; ++x) {
+		*ow = w, *oh = h;
+		for (int y = 0; y < h; ++y) {
+			for (int x = 0; x < w; ++x) {
 				uint32_t c = s->fb[(y0 + y) * GBA_W + x0 + x];
-				out[y * *ow + x] = c == none[(y0 + y) * GBA_W + x0 + x] ? MAP_BG_NAVY : c;
+				out[y * w + x] = c == none[(y0 + y) * GBA_W + x0 + x] ? MAP_BG_NAVY : c;
 			}
 		}
 	}
@@ -596,47 +594,91 @@ static bool ft_list(Emu* s, const void* state, void* tmp, uint32_t* out, int* ow
 	return ok;
 }
 
+/* The turn order list (L) cut out; false if it didn't open. */
+static bool ft_list(Emu* s, const void* state, void* tmp, uint32_t* out, int* ow, int* oh) {
+	if (!emu_state_load(s, state)) return false;
+	emu_frame(s, 0);
+	if (!ft_bg0(s, FT_MAP_CNT) && !ft_bg0(s, FT_STATUS_CNT)) return false;
+	if (!ft_back(s)) return false;
+	aw_tap(s, K_L, 1);
+	aw_run(s, 0, 40);
+	return ft_cut(s, tmp, out, ow, oh, 100, 180, 100, GBA_H);
+}
+
+/* SYSTEM (Start on the map) > row (1 Mission, 2 Laws) and its window cut
+ * out; false if it didn't open. The menu's rows are 16 lines apart from
+ * line 48, the selected one lettered in orange. */
+static bool ft_system(Emu* s, const void* state, void* tmp, int row, uint32_t* out, int* ow, int* oh) {
+	if (!emu_state_load(s, state)) return false;
+	emu_frame(s, 0);
+	if (!ft_bg0(s, FT_MAP_CNT) && !ft_bg0(s, FT_STATUS_CNT)) return false;
+	if (!ft_back(s)) return false;
+	aw_tap(s, K_START, 1);
+	bool sel = false;
+	for (int i = 0; i < 8 && !sel; ++i) {
+		aw_run(s, 0, 16);
+		int orange = 0;
+		for (int y = 48 + row * 16; y < 64 + row * 16; ++y) {
+			for (int x = 170; x < 236; ++x) {
+				uint32_t c = s->fb[y * GBA_W + x];
+				int r = c & 0xFF, g = (c >> 8) & 0xFF, b = (c >> 16) & 0xFF;
+				if (r > 200 && g > 60 && g < 170 && b < 90) ++orange;
+			}
+		}
+		sel = orange > 40;
+		if (!sel) aw_tap(s, K_DOWN, 1);
+	}
+	if (!sel) return false;
+	aw_tap(s, K_A, 1);
+	aw_run(s, 0, 40);
+	return row == 1 ? ft_cut(s, tmp, out, ow, oh, 150, GBA_W, 100, GBA_H)
+	                : ft_cut(s, tmp, out, ow, oh, 150, GBA_W, 24, 90);
+}
+
+static void ft_put(uint32_t* o, int w, const uint32_t* src, int sw, int sh, int px, int py) {
+	for (int y = 0; y < sh; ++y) memcpy(&o[(py + y) * w + px], &src[y * sw], (size_t) sw * 4);
+}
+
 static const char* ft_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
-	static uint32_t page[2][GBA_W * GBA_H], list[GBA_W * GBA_H];
-	static int pages, lw, lh, age;
+	static uint32_t page[2][GBA_W * GBA_H];
+	static uint32_t win[3][GBA_W * GBA_H]; /* the turn order, Mission, Laws */
+	static int pages, ww[3], wh[3], age;
 	static uint32_t key;
 	int max = *nOut;
 	*nOut = 1;
 	*step = 300; /* 5 seconds a page */
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
-	if (!ft_virt(s, FT_V_BATTLE)) return "not in a battle";
+	if (!ft_virt(s, FT_V_IDLE)) return "not on the battle map";
 	/* taken again when the cursor moves, or every 4th picture (the units
 	 * act, the turn order turns) */
 	uint32_t k = emu_read32(s, ft_cursor(s)) ^ (uint32_t) emu_read16(s, 0x04000008) << 16;
 	bool again = k != key || ++age >= 4 || !pages;
 	void* tmp = malloc(emu_state_size(s));
 	if (!tmp) return "out of memory";
-	bool got = false;
 	if (again) {
-		static uint32_t np[2][GBA_W * GBA_H];
+		bool got = false;
+		static uint32_t np[2][GBA_W * GBA_H], nw[GBA_W * GBA_H];
 		if (ft_status(s, state, np)) memcpy(page, np, sizeof(page)), pages = 2, got = true;
-		static uint32_t nl[GBA_W * GBA_H];
-		int nw, nh;
-		if (ft_list(s, state, tmp, nl, &nw, &nh)) memcpy(list, nl, (size_t) nw * nh * 4), lw = nw, lh = nh, got = true;
+		for (int i = 0; i < 3; ++i) {
+			int a, b;
+			bool ok = i == 0 ? ft_list(s, state, tmp, nw, &a, &b) : ft_system(s, state, tmp, i, nw, &a, &b);
+			if (ok) memcpy(win[i], nw, (size_t) a * b * 4), ww[i] = a, wh[i] = b, got = true;
+		}
 		if (got) key = k, age = 0;
 	}
 	free(tmp);
-	if (!pages && !lw) return "neither the Status nor the list opened";
+	if (!pages && !ww[0] && !ww[1] && !ww[2]) return "nothing opened";
 	*nOut = pages && max >= 2 ? 2 : 1;
 	for (int n = 0; n < *nOut; ++n) {
 		uint32_t* o = out[n];
 		for (int i = 0; i < w * h; ++i) o[i] = MAP_BG_NAVY;
-		/* the Status at the bottom left, the list at the bottom right, 4
-		 * pixels in */
-		if (pages) {
-			int px = 4, py = h - 4 - GBA_H;
-			for (int y = 0; y < GBA_H; ++y) memcpy(&o[(py + y) * w + px], &page[n][y * GBA_W], GBA_W * 4);
-		}
-		if (lw) {
-			int px = w - 4 - lw, py = h - 4 - lh;
-			for (int y = 0; y < lh; ++y) memcpy(&o[(py + y) * w + px], &list[y * lw], (size_t) lw * 4);
-		}
+		/* 4 pixels in from the corners: the Status top left, the Mission
+		 * top right, the Laws bottom left, the turn order bottom right */
+		if (pages) ft_put(o, w, page[n], GBA_W, GBA_H, 4, 4);
+		if (ww[1]) ft_put(o, w, win[1], ww[1], wh[1], w - 4 - ww[1], 4);
+		if (ww[2]) ft_put(o, w, win[2], ww[2], wh[2], 4, h - 4 - wh[2]);
+		if (ww[0]) ft_put(o, w, win[0], ww[0], wh[0], w - 4 - ww[0], h - 4 - wh[0]);
 	}
 	return NULL;
 }
@@ -1519,8 +1561,9 @@ static const MapProfile profiles[] = {
 		.stillPick = STILL_FIRST, /* (Map Animations off: the Status's first page) */
 		.crop_w = 512, /* 2x on 1024x768 */
 		.crop_h = 384,
-		/* in a battle (the map, or a unit's Status open) */
-		.live = { { FT_V_BATTLE, 0xFF, 1, 4 } },
+		/* taken on the battle map (or a unit's Status open); kept while a
+		 * unit moves or acts, and through the battle's scenes */
+		.live = { { FT_V_IDLE, 0xFF, 1, 4 } },
 		.menu = { { FT_V_BATTLE, 0xFF, 0, 4 } },
 		.room = { { FT_CURSOR, 0xFFFF, 0, 2 } },
 		.hud = {
