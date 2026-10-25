@@ -186,7 +186,9 @@ Android session at the same time. To keep them from colliding:
   Advance Wars' conversations). The harness has `split BGMASK PRIO` /
   `split off` and `hudshot NAME`.
 - `profiles.c/.h` everything game-specific (MapProfile; Advance Wars 1 and
-  2 share their code, addresses in `awRegions`): how to open the
+  2 share their code, addresses in `awRegions`; Final Fantasy Tactics
+  Advance's first second screen, with its UI-sprite tagging ROM patch, is
+  kept on the branch `archive/ffta-hud`): how to open the
   map, screen and memory probes, crops, captureHide/underHide sprite rules,
   logo extraction, regional variants (`variants[]` + patch functions), and
   for logo-only games (Tony Hawk's Pro Skater 2) the `snap` screen copy and

@@ -17,78 +17,6 @@
 #define PLATE_TO   { 0xADC6BD, 0xADC6BD, 0xADC6BD, 0xADC6BD, 0xC6DED6, 0xC6DED6, 0xC6DED6, 0xC6DED6, \
                      0xDEF7EF, 0xDEF7EF, 0xDEF7EF, 0xDEF7EF, 0x5A5A5A }
 
-/* FFTA: the routine every sprite list goes through (USA 0x080014C8, Europe
- * 0x08001500, Japan 0x080014C8: a later version) jumps to ffta_tag_* at
- * 0x08FFFF00 (tools/ffta_tag.s, tools/make_ffta_tag.sh), which tags (attr1
- * bit 10) the sprites the game's UI code draws: not the world-drawing
- * systems' (spells and other animations, weapon swings, damage numbers,
- * the world map's cursor, the Monster Bank's monsters),
- * nor units and thrown objects (written by other code). */
-static const uint8_t ffta_core_orig[12] = { 0xF0, 0xB5, 0x57, 0x46, 0x4E, 0x46, 0x45, 0x46, 0xE0, 0xB4, 0x85, 0xB0 };
-static const uint8_t ffta_core_orig_jp[12] = { 0xF0, 0xB5, 0x57, 0x46, 0x4E, 0x46, 0x45, 0x46, 0xE0, 0xB4, 0x89, 0xB0 };
-/* bx pc; nop; (ARM) ldr pc, [pc, #-4]; .word 0x08FFFF00 */
-static const uint8_t ffta_core_jump[12] = { 0x78, 0x47, 0xC0, 0x46, 0x04, 0xF0, 0x1F, 0xE5, 0x00, 0xFF, 0xFF, 0x08 };
-static const uint8_t ffta_tag_us[212] = {
-	0x01, 0xC0, 0x8F, 0xE2, 0x1C, 0xFF, 0x2F, 0xE1, 0xF0, 0xB5, 0x86, 0xB0,
-	0x00, 0x24, 0x0B, 0xAD, 0x2E, 0x59, 0x6D, 0x46, 0x2E, 0x51, 0x04, 0x34,
-	0x18, 0x2C, 0xF8, 0xDB, 0x01, 0x27, 0x0A, 0x9C, 0x25, 0x4D, 0xAC, 0x42,
-	0x02, 0xD0, 0x25, 0x4D, 0xAC, 0x42, 0x10, 0xD1, 0x1A, 0x9C, 0x24, 0x4D,
-	0xAC, 0x42, 0x04, 0xD1, 0x2D, 0x9C, 0x23, 0x4D, 0xAC, 0x42, 0x08, 0xD1,
-	0x38, 0x9C, 0x18, 0xA5, 0x2E, 0x68, 0x00, 0x2E, 0x03, 0xD0, 0x04, 0x35,
-	0xA6, 0x42, 0xF9, 0xD1, 0x00, 0x27, 0x03, 0x9C, 0x05, 0x9D, 0x00, 0xF0,
-	0x1D, 0xF8, 0x00, 0x2F, 0x16, 0xD0, 0x04, 0x26, 0x36, 0x02, 0x1A, 0x4B,
-	0x9C, 0x42, 0x05, 0xD3, 0x19, 0x4B, 0x9C, 0x42, 0x02, 0xD2, 0x02, 0x23,
-	0x1B, 0x02, 0x1E, 0x43, 0x85, 0x42, 0x09, 0xDA, 0xE9, 0x00, 0x09, 0x19,
-	0x0A, 0x88, 0xD3, 0x05, 0x02, 0xD4, 0x4A, 0x88, 0x32, 0x43, 0x4A, 0x80,
-	0x01, 0x35, 0xF3, 0xE7, 0x06, 0xB0, 0xF0, 0xBC, 0x02, 0xBC, 0x08, 0x47,
-	0xF0, 0xB5, 0x57, 0x46, 0x4E, 0x46, 0x45, 0x46, 0xE0, 0xB4, 0x85, 0xB0,
-	0x0C, 0x4C, 0x20, 0x47, 0x1B, 0x31, 0x0D, 0x08, 0xA9, 0xF3, 0x08, 0x08,
-	0xB5, 0x8E, 0x0A, 0x08, 0xD1, 0xC0, 0x04, 0x08, 0xDB, 0xC9, 0x05, 0x08,
-	0x00, 0x00, 0x00, 0x00, 0xC5, 0x1F, 0x00, 0x08, 0x85, 0x1D, 0x00, 0x08,
-	0x45, 0x18, 0x02, 0x08, 0x8B, 0x1F, 0x02, 0x08, 0x58, 0x2C, 0x00, 0x03,
-	0x58, 0x2F, 0x00, 0x03, 0xD5, 0x14, 0x00, 0x08,
-};
-static const uint8_t ffta_tag_eu[212] = {
-	0x01, 0xC0, 0x8F, 0xE2, 0x1C, 0xFF, 0x2F, 0xE1, 0xF0, 0xB5, 0x86, 0xB0,
-	0x00, 0x24, 0x0B, 0xAD, 0x2E, 0x59, 0x6D, 0x46, 0x2E, 0x51, 0x04, 0x34,
-	0x18, 0x2C, 0xF8, 0xDB, 0x01, 0x27, 0x0A, 0x9C, 0x25, 0x4D, 0xAC, 0x42,
-	0x02, 0xD0, 0x25, 0x4D, 0xAC, 0x42, 0x10, 0xD1, 0x1A, 0x9C, 0x24, 0x4D,
-	0xAC, 0x42, 0x04, 0xD1, 0x2D, 0x9C, 0x23, 0x4D, 0xAC, 0x42, 0x08, 0xD1,
-	0x38, 0x9C, 0x18, 0xA5, 0x2E, 0x68, 0x00, 0x2E, 0x03, 0xD0, 0x04, 0x35,
-	0xA6, 0x42, 0xF9, 0xD1, 0x00, 0x27, 0x03, 0x9C, 0x05, 0x9D, 0x00, 0xF0,
-	0x1D, 0xF8, 0x00, 0x2F, 0x16, 0xD0, 0x04, 0x26, 0x36, 0x02, 0x1A, 0x4B,
-	0x9C, 0x42, 0x05, 0xD3, 0x19, 0x4B, 0x9C, 0x42, 0x02, 0xD2, 0x02, 0x23,
-	0x1B, 0x02, 0x1E, 0x43, 0x85, 0x42, 0x09, 0xDA, 0xE9, 0x00, 0x09, 0x19,
-	0x0A, 0x88, 0xD3, 0x05, 0x02, 0xD4, 0x4A, 0x88, 0x32, 0x43, 0x4A, 0x80,
-	0x01, 0x35, 0xF3, 0xE7, 0x06, 0xB0, 0xF0, 0xBC, 0x02, 0xBC, 0x08, 0x47,
-	0xF0, 0xB5, 0x57, 0x46, 0x4E, 0x46, 0x45, 0x46, 0xE0, 0xB4, 0x85, 0xB0,
-	0x0C, 0x4C, 0x20, 0x47, 0x2B, 0x6C, 0x0D, 0x08, 0x45, 0x21, 0x09, 0x08,
-	0x3D, 0xC7, 0x0A, 0x08, 0x91, 0xE0, 0x04, 0x08, 0xFB, 0xEB, 0x05, 0x08,
-	0x00, 0x00, 0x00, 0x00, 0xFD, 0x1F, 0x00, 0x08, 0xBD, 0x1D, 0x00, 0x08,
-	0xB5, 0x29, 0x02, 0x08, 0xFB, 0x30, 0x02, 0x08, 0x58, 0x2C, 0x00, 0x03,
-	0x58, 0x2F, 0x00, 0x03, 0x0D, 0x15, 0x00, 0x08,
-};
-static const uint8_t ffta_tag_jp[212] = {
-	0x01, 0xC0, 0x8F, 0xE2, 0x1C, 0xFF, 0x2F, 0xE1, 0xF0, 0xB5, 0x8A, 0xB0,
-	0x00, 0x24, 0x0F, 0xAD, 0x2E, 0x59, 0x6D, 0x46, 0x2E, 0x51, 0x04, 0x34,
-	0x28, 0x2C, 0xF8, 0xDB, 0x01, 0x27, 0x0E, 0x9C, 0x25, 0x4D, 0xAC, 0x42,
-	0x02, 0xD0, 0x25, 0x4D, 0xAC, 0x42, 0x10, 0xD1, 0x20, 0x9C, 0x24, 0x4D,
-	0xAC, 0x42, 0x04, 0xD1, 0x33, 0x9C, 0x23, 0x4D, 0xAC, 0x42, 0x08, 0xD1,
-	0x3E, 0x9C, 0x18, 0xA5, 0x2E, 0x68, 0x00, 0x2E, 0x03, 0xD0, 0x04, 0x35,
-	0xA6, 0x42, 0xF9, 0xD1, 0x00, 0x27, 0x07, 0x9C, 0x09, 0x9D, 0x00, 0xF0,
-	0x1D, 0xF8, 0x00, 0x2F, 0x16, 0xD0, 0x04, 0x26, 0x36, 0x02, 0x1A, 0x4B,
-	0x9C, 0x42, 0x05, 0xD3, 0x19, 0x4B, 0x9C, 0x42, 0x02, 0xD2, 0x02, 0x23,
-	0x1B, 0x02, 0x1E, 0x43, 0x85, 0x42, 0x09, 0xDA, 0xE9, 0x00, 0x09, 0x19,
-	0x0A, 0x88, 0xD3, 0x05, 0x02, 0xD4, 0x4A, 0x88, 0x32, 0x43, 0x4A, 0x80,
-	0x01, 0x35, 0xF3, 0xE7, 0x0A, 0xB0, 0xF0, 0xBC, 0x02, 0xBC, 0x08, 0x47,
-	0xF0, 0xB5, 0x57, 0x46, 0x4E, 0x46, 0x45, 0x46, 0xE0, 0xB4, 0x89, 0xB0,
-	0x0C, 0x4C, 0x20, 0x47, 0x7B, 0x99, 0x0C, 0x08, 0xC1, 0x6B, 0x08, 0x08,
-	0x29, 0x06, 0x0A, 0x08, 0x91, 0x9F, 0x04, 0x08, 0xFF, 0x96, 0x05, 0x08,
-	0x00, 0x00, 0x00, 0x00, 0x17, 0x20, 0x00, 0x08, 0xF7, 0x1D, 0x00, 0x08,
-	0x01, 0x17, 0x02, 0x08, 0x47, 0x1E, 0x02, 0x08, 0x58, 0x2C, 0x00, 0x03,
-	0x58, 0x2F, 0x00, 0x03, 0xD5, 0x14, 0x00, 0x08,
-};
-
 /* ---------------------------------------------------------- Advance Wars
  *
  * Advance Wars and Advance Wars 2. The second screen, after Advance Wars:
@@ -458,6 +386,193 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 			uint32_t c = pan[y * GBA_W + x];
 			if (unitPanel && bg2[y * GBA_W + x] == AW_BG) continue;
 			if (c != AW_BG) out[(py + y) * w + px + x] = c;
+		}
+	}
+	return NULL;
+}
+
+/* ------------------------------------------ Final Fantasy Tactics Advance
+ *
+ * In battles the second screen shows, at the bottom left, the Status screen
+ * (the whole screen, as the game draws it) of the unit under the cursor (or
+ * the active unit's, when the cursor's on no unit), turning between its
+ * Equip and Abilities pages every 5 seconds; at the bottom right, the turn
+ * order (L's list). Both are brought up on the shadow core: B to back out
+ * of whatever's open, then A (twice if the first only puts the cursor on
+ * the unit), DOWN to its menu's Status (the last item, highlighted orange),
+ * A; RIGHT for the other page. And B again, then L for the list. Behind
+ * them, the dark background with the logo (hud.logoUnder). Where they can't
+ * be brought up (the enemy's turn, a scene), the last ones stay.
+ * (The earlier version, which moved the game's menus and dialogue to the
+ * second screen with a ROM patch tagging its UI sprites, is on the branch
+ * archive/ffta-hud.) */
+#define FT_MAP_CNT 0x4C03    /* BG0CNT on the battle map */
+#define FT_STATUS_CNT 0x8E0B /* BG0CNT on a unit's Status screen */
+#define FT_CURSOR 0x0200F6A4 /* the map cursor's x, y (Japan: 0x30 lower) */
+#define FT_UI 0x0200F5C6     /* 1 with nothing open on the map (0 the active unit's menu,
+                              * 2 another unit's, the system menu or a Status, 3 the turn
+                              * order...; Japan: 0x30 lower) */
+#define FT_V_BATTLE 0xF0000010 /* 1 on the battle map or a unit's Status */
+
+static uint32_t ft_virt(Emu* e, uint32_t addr) {
+	if (addr != FT_V_BATTLE) return 0;
+	uint16_t c = emu_read16(e, 0x04000008);
+	return c == FT_MAP_CNT || c == FT_STATUS_CNT;
+}
+
+static uint32_t ft_cursor(Emu* e) {
+	return FT_CURSOR - (e->gameCode[3] == 'J' ? 0x30 : 0);
+}
+
+/* the bottom row of a unit's menu (always Status) has orange lettering in
+ * it when it's selected (white when not); counts of each */
+static void ft_menu_row(Emu* s, int* orange, int* white) {
+	*orange = *white = 0;
+	for (int y = 128; y < 144; ++y) {
+		for (int x = 180; x < 236; ++x) {
+			uint32_t c = s->fb[y * GBA_W + x];
+			int r = c & 0xFF, g = (c >> 8) & 0xFF, b = (c >> 16) & 0xFF;
+			if (r > 200 && g > 60 && g < 170 && b < 90) ++*orange;
+			else if (r > 220 && g > 220 && b > 220) ++*white;
+		}
+	}
+}
+
+/* B until nothing's open on the map (out of the Status, a menu, a move,
+ * the list), and no more: B with nothing open hides the unit's panel and
+ * then changes the view. False if it never gets there. */
+static bool ft_back(Emu* s) {
+	uint32_t ui = FT_UI - (s->gameCode[3] == 'J' ? 0x30 : 0);
+	for (int i = 0; i < 8; ++i) {
+		aw_run(s, 0, 12);
+		if (emu_read8(s, ui) == 1 && emu_read16(s, 0x04000008) == FT_MAP_CNT) return true;
+		aw_tap(s, K_B, 1);
+	}
+	return false;
+}
+
+static bool ft_bg0(Emu* s, uint16_t cnt) {
+	return emu_read16(s, 0x04000008) == cnt;
+}
+
+/* The Status screen's two pages into page[0], page[1]; false if it
+ * didn't open. */
+static bool ft_status(Emu* s, const void* state, uint32_t page[2][GBA_W * GBA_H]) {
+	if (!emu_state_load(s, state)) return false;
+	emu_frame(s, 0);
+	if (!ft_bg0(s, FT_STATUS_CNT)) {
+		if (!ft_bg0(s, FT_MAP_CNT) || !ft_back(s)) return false;
+		uint32_t ui = FT_UI - (s->gameCode[3] == 'J' ? 0x30 : 0);
+		bool sel = false;
+		for (int i = 0; i < 10 && !sel; ++i) {
+			aw_run(s, 0, 16);
+			int orange, white;
+			ft_menu_row(s, &orange, &white);
+			uint8_t u = emu_read8(s, ui);
+			bool menu = u == 0 || u == 2; /* (the active unit's, another unit's) */
+			sel = menu && orange > 40;
+			if (sel) break;
+			if (menu) aw_tap(s, K_DOWN, 1); /* to Status */
+			else aw_tap(s, K_A, 1);         /* no menu yet */
+		}
+		if (!sel) return false;
+		aw_tap(s, K_A, 1);
+		int f = 0;
+		while (f < 120 && !ft_bg0(s, FT_STATUS_CNT)) emu_frame(s, 0), ++f;
+		if (!ft_bg0(s, FT_STATUS_CNT)) return false;
+	}
+	aw_run(s, 0, 40); /* (past its fade-in) */
+	memcpy(page[0], s->fb, sizeof(page[0]));
+	aw_tap(s, K_RIGHT, 1);
+	aw_run(s, 0, 30);
+	memcpy(page[1], s->fb, sizeof(page[1]));
+	return ft_bg0(s, FT_STATUS_CNT);
+}
+
+/* The turn order list (L) cut out: BG2 (its lettering and frame) over BG3
+ * (its box), without the map; false if it didn't open. */
+static bool ft_list(Emu* s, const void* state, void* tmp, uint32_t* out, int* ow, int* oh) {
+	if (!emu_state_load(s, state)) return false;
+	emu_frame(s, 0);
+	if (!ft_bg0(s, FT_MAP_CNT) && !ft_bg0(s, FT_STATUS_CNT)) return false;
+	if (!ft_back(s)) return false;
+	aw_tap(s, K_L, 1);
+	aw_run(s, 0, 40);
+	if (!emu_state_save(s, tmp)) return false;
+	static uint32_t none[GBA_W * GBA_H], bg2[GBA_W * GBA_H];
+	emu_layers(s, 0);
+	emu_state_load(s, tmp);
+	emu_frame(s, 0);
+	memcpy(none, s->fb, sizeof(none));
+	emu_layers(s, 0x04);
+	emu_state_load(s, tmp);
+	emu_frame(s, 0);
+	memcpy(bg2, s->fb, sizeof(bg2));
+	int x0 = GBA_W, y0 = GBA_H, x1 = -1, y1 = -1;
+	for (int y = 0; y < GBA_H; ++y) {
+		for (int x = 0; x < GBA_W; ++x) {
+			if (bg2[y * GBA_W + x] == none[y * GBA_W + x]) continue;
+			x0 = x < x0 ? x : x0, x1 = x > x1 ? x : x1, y0 = y < y0 ? y : y0, y1 = y > y1 ? y : y1;
+		}
+	}
+	bool ok = x1 - x0 >= 100 && x1 - x0 <= 180 && y1 - y0 >= 100;
+	if (ok) {
+		emu_layers(s, 0x0C);
+		emu_state_load(s, tmp);
+		emu_frame(s, 0);
+		*ow = x1 - x0 + 1, *oh = y1 - y0 + 1;
+		for (int y = 0; y < *oh; ++y) {
+			for (int x = 0; x < *ow; ++x) {
+				uint32_t c = s->fb[(y0 + y) * GBA_W + x0 + x];
+				out[y * *ow + x] = c == none[(y0 + y) * GBA_W + x0 + x] ? MAP_BG_NAVY : c;
+			}
+		}
+	}
+	emu_layers(s, 0x1F);
+	emu_state_load(s, tmp);
+	return ok;
+}
+
+static const char* ft_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+	static uint32_t page[2][GBA_W * GBA_H], list[GBA_W * GBA_H];
+	static int pages, lw, lh, age;
+	static uint32_t key;
+	int max = *nOut;
+	*nOut = 1;
+	*step = 300; /* 5 seconds a page */
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	if (!ft_virt(s, FT_V_BATTLE)) return "not in a battle";
+	/* taken again when the cursor moves, or every 4th picture (the units
+	 * act, the turn order turns) */
+	uint32_t k = emu_read32(s, ft_cursor(s)) ^ (uint32_t) emu_read16(s, 0x04000008) << 16;
+	bool again = k != key || ++age >= 4 || !pages;
+	void* tmp = malloc(emu_state_size(s));
+	if (!tmp) return "out of memory";
+	bool got = false;
+	if (again) {
+		static uint32_t np[2][GBA_W * GBA_H];
+		if (ft_status(s, state, np)) memcpy(page, np, sizeof(page)), pages = 2, got = true;
+		static uint32_t nl[GBA_W * GBA_H];
+		int nw, nh;
+		if (ft_list(s, state, tmp, nl, &nw, &nh)) memcpy(list, nl, (size_t) nw * nh * 4), lw = nw, lh = nh, got = true;
+		if (got) key = k, age = 0;
+	}
+	free(tmp);
+	if (!pages && !lw) return "neither the Status nor the list opened";
+	*nOut = pages && max >= 2 ? 2 : 1;
+	for (int n = 0; n < *nOut; ++n) {
+		uint32_t* o = out[n];
+		for (int i = 0; i < w * h; ++i) o[i] = MAP_BG_NAVY;
+		/* the Status at the bottom left, the list at the bottom right, 4
+		 * pixels in */
+		if (pages) {
+			int px = 4, py = h - 4 - GBA_H;
+			for (int y = 0; y < GBA_H; ++y) memcpy(&o[(py + y) * w + px], &page[n][y * GBA_W], GBA_W * 4);
+		}
+		if (lw) {
+			int px = w - 4 - lw, py = h - 4 - lh;
+			for (int y = 0; y < lh; ++y) memcpy(&o[(py + y) * w + px], &list[y * lw], (size_t) lw * 4);
 		}
 	}
 	return NULL;
@@ -1315,67 +1430,33 @@ static const MapProfile profiles[] = {
 		},
 	},
 	{
+		/* the second screen is put together by ft_compose: a unit's Status
+		 * and the turn order, over the dark background with the logo */
 		.codes = { "AFXE" },
 		.title = "Final Fantasy Tactics Advance",
-		.logoOnly = true,
+		.virt = ft_virt,
+		.composePages = ft_compose,
+		.stillPick = STILL_FIRST, /* (Map Animations off: the Status's first page) */
+		.crop_w = 512, /* 2x on 1024x768 */
+		.crop_h = 384,
+		/* in a battle (the map, or a unit's Status open) */
+		.live = { { FT_V_BATTLE, 0xFF, 1, 4 } },
+		.menu = { { FT_V_BATTLE, 0xFF, 0, 4 } },
+		.room = { { FT_CURSOR, 0xFFFF, 0, 2 } },
+		.hud = {
+			/* nothing moves off the game screen; this is for the background:
+			 * dark, the logo small and dimmed in the middle, always */
+			.on = { { FT_V_BATTLE, 0xFF, 1, 4 } },
+			.overMap = true,
+			.mapClear = MAP_BG_NAVY,
+			.logoUnder = true,
+			.logoAlways = true,
+		},
+		/* (never a fight: this only makes the background with the logo) */
+		.combat = { { FT_V_BATTLE, 0xFF, 2, 4 } },
 		/* Start during the intro: the logo on BG2 with its shadow on BG1 (the
 		 * copyright line below it is cut off by maxY) */
 		.logo = { .wait = 400, .pressStart = true, .wait2 = 200, .layers = 0x6, .maxY = 72 },
-		/* Battles and the scenes on the battle maps: display mode 0 with
-		 * the map on a BG layer (BGxCNT 0x4C03; a unit's Status screen has
-		 * the same display but not the map, and stays whole). The dialogue,
-		 * name entry, menus, unit details and banners go to the second
-		 * screen, over a still of the game screen (map and units, no HUD)
-		 * in grey, dimmed, taken as the HUD comes on. The game moves its
-		 * map and its menus between layers, so the HUD layers are the ones
-		 * at priority 0-1 (the map is 2-3), except, while the animation
-		 * engine runs (`effects`), layers in palettes 0-8: spells draw on
-		 * those layers too. Sprites: a
-		 * ROM patch tags what the game's UI code draws (not its spells and
-		 * other animations, weapon swings, damage numbers, units or thrown
-		 * objects); of those, the portraits, panels, name entry and banners
-		 * (448 and up) move, and (tagged or not) the speech balloon's tail,
-		 * the hand cursor and the menus' orb (288-295, priority 0), and the
-		 * D-pad prompts among the map's markers (296-319, on the overlay
-		 * list: not the direction orbs), and the deployment menu's dimmed
-		 * unit (the units' tiles, below 288, but tagged). The markers on the map (296-319), scene
-		 * objects (320-427) and the height readout ("2h", 428-447) stay. If
-		 * the ROM can't be patched, those tile ranges alone. */
-		.romPatch = { { 0x080014C8, 12, ffta_core_orig, ffta_core_jump },
-		              { 0x08FFFF00, sizeof(ffta_tag_us), NULL, ffta_tag_us } },
-		.hud = {
-			/* (mode 0 with sprites: attacks turn layers off for a moment) */
-			.on = { { 0x04000000, 0x1007, 0x1000, 2 } },
-			.mapCnt = 0x4C03,
-			/* the world map (BG0: the land, BG1: the map, BG2-3: the
-			 * notices, info box, clan funds and date): the priority-0
-			 * sprites move (the notice's arrow 2, the info box's sword 0
-			 * and town 266, the L / R prompts 64-75, the month 94-110),
-			 * but not the feather pen (40-47), a new area's name (76-93)
-			 * and the areas' icons (112-255: a new one drops in at
-			 * priority 0), which stay with Marche and the towns;
-			 * the backdrop is the land and the map, without sprites. */
-			.world = { 0x8A03, { { -512, -256, 511, 255, 0, 39, 0 }, { -512, -256, 511, 255, 48, 75, 0 },
-			                     { -512, -256, 511, 255, 94, 111, 0 }, { -512, -256, 511, 255, 256, 1023, 0 } } },
-			.bgPrioBelow = 2,
-			/* the animation engine's work area (0 when it's not running) */
-			.effects = { { 0x020159C0, 0xFFFFFFFF, 0x02000000, 4, true, 0x0203FFFF, true } },
-			/* (spells: palettes 0 and 6; text boxes and banners 11-14) */
-			.effectsPal = 9,
-			/* (the menus' blinking orb, 295, is drawn with the units: untagged) */
-			/* (the D-pad prompts, 299, among the map's markers 296-319: the
-			 * markers are drawn with the units, the direction orbs as a unit
-			 * is placed, 309-315, on the main list; the prompts on the
-			 * overlay list, tagged bit 9) */
-			.objs = { { -512, -256, 511, 255, 288, 295, 0 }, { -512, -256, 511, 255, 448, 1023, -1, 0, 0x0400 },
-			          { -512, -256, 511, 255, 296, 319, -1, 0, 0x0200 },
-			          /* (a unit's dimmed picture in the deployment menu: the units'
-			           * tiles, but drawn by the menu, tagged) */
-			          { -512, -256, 511, 255, 0, 287, -1, 0, 0x0400 } },
-			.backdropGrey = true,
-			/* the height readout stays on the game screen, not in the still */
-			.backdropHide = { { -512, -256, 511, 255, 428, 447, -1 } },
-		},
 	},
 	{
 		.codes = { "AMKE", "AMKP", "AMKJ" },
@@ -1694,19 +1775,14 @@ static void sma2_jpn(MapProfile* p) {
 	p->controls.snes.pan -= 0x14;
 }
 
-/* Final Fantasy Tactics Advance: the sprite tagging patch and the animation
- * engine's work area, which move in each release */
+/* Final Fantasy Tactics Advance in Europe: a language menu first (its RAM
+ * is the USA release's); in Japan the cursor's 0x30 lower (ft_r) */
 static void ffta_eur(MapProfile* p) {
 	lang_menu(p);
-	p->romPatch[0] = (RomPatch) { 0x08001500, 12, ffta_core_orig, ffta_core_jump };
-	p->romPatch[1] = (RomPatch) { 0x08FFFF00, sizeof(ffta_tag_eu), NULL, ffta_tag_eu };
-	p->hud.effects[0].addr = 0x020159C8;
 }
 
 static void ffta_jpn(MapProfile* p) {
-	p->romPatch[0] = (RomPatch) { 0x080014C8, 12, ffta_core_orig_jp, ffta_core_jump };
-	p->romPatch[1] = (RomPatch) { 0x08FFFF00, sizeof(ffta_tag_jp), NULL, ffta_tag_jp };
-	p->hud.effects[0].addr = 0x02015990;
+	p->room[0].addr -= 0x30;
 }
 
 /* Tony Hawk's Pro Skater 3: the goal list's heading, VOIR OBJ. / ZIELE ZEIGEN */

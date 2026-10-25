@@ -12,7 +12,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Mario Kart: Super Circuit (Mario Kart Advance in Japan) | `AMKE` `AMKP` `AMKJ` | the race HUD, results and podium | — |
 | Tony Hawk's Pro Skater 3 | `AT3E` (USA and Europe) `AT3F` `AT3D` | the goal list; optional four-button layout | — |
 | Super Mario Advance 2: Super Mario World | `AA2E` `AA2P` `AA2J` | the SELECT menu on the world map; the status bar in levels; optional SNES layout | — |
-| Final Fantasy Tactics Advance | `AFXE` `AFXP` `AFXJ` | in battles and the scenes on the battle maps: dialogue, menus, unit details | — |
+| Final Fantasy Tactics Advance (preliminary) | `AFXE` `AFXP` `AFXJ` | in battles: a unit's Status and the turn order | — |
 | Advance Wars (preliminary) | `AWRE` `AWRP` (no Japanese release) | in battles: your unit's intel or the battle intel, with the minimap | — |
 | Advance Wars 2: Black Hole Rising (preliminary) | `AW2E` `AW2P` (no Japanese release) | in battles: your unit's intel or the battle intel, with the minimap | — |
 | Fire Emblem (Rekka no Ken in Japan; preliminary) | `AE7E` `AE7X` (English, French, German) `AE7Y` (English, Spanish, Italian) `AE7J` | on the map: the unit, terrain and goal windows and the minimap | — |
@@ -63,10 +63,10 @@ You see the game's own map, with everything it shows (explored rooms, save and w
 
 ## Final Fantasy Tactics Advance
 
-- **In battles and the scenes played on the battle maps** (the opening snowball fight included), everything the game draws over the map moves to the second screen: dialogue with its portraits, the name entry, banners such as GET READY!, the unit's details and the command menus. Behind them is the scene itself (the map and the units, without the menus or the tile height), in grey and dimmed, as it looked when it began: it doesn't follow the camera, and is taken again only when the game fades to black or white and back (a new scene). It fades to black and white along with the game screen, and a new scene's still fades in. The game screen keeps the map, the units, the markers on the map (the move and target ranges, the arrow over the active unit, the target cursor) and the tile height. Spells, weapon swings, explosions, damage numbers and other effects also stay on the game screen.
-- A unit's **Status** screen stays whole on the game screen.
-- **On the world map,** the notices, an area's info box, your clan funds, the date and the L / R prompts move to the second screen, over the map in grey; the game screen keeps the map, Marche and the towns, and a new area you're placing with its name.
-- Everywhere else (the title, menus), the second screen shows the logo.
+Preliminary: a new second screen in v1.3.2, replacing the earlier one (which moved the game's dialogue and menus there).
+
+- **Always,** the second screen is a dark background with the game's logo, small and dimmed, in the middle (the title, menus and the world map too).
+- **In a battle,** at the bottom left, the **Status** screen of the unit under the cursor (or the active unit's, when the cursor isn't on one), turning between its Equip and Abilities pages every 5 seconds; at the bottom right, the **turn order** (the list L shows). Both are brought up in the background on a silent copy of the game, as the other games' maps are; your game is never paused or touched, and the game screen stays exactly as the game draws it. When they can't be brought up (the enemy's turn, a scene), the last ones stay.
 
 ## Tony Hawk's Pro Skater 3
 

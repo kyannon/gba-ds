@@ -3,121 +3,94 @@
  "rules": "docs/games/final-fantasy-tactics-advance.md",
  "cases": [
   {
-   "id": "ft-us-splash",
+   "id": "ft-us-battle-idle",
    "rom": "AFXE",
-   "state": "final-fantasy-tactics-advance/us-splash.ss",
-   "desc": "the Square Enix splash",
+   "state": "final-fantasy-tactics-advance/us-battle-idle.ss",
+   "desc": "the battle map, the cursor on the active unit",
    "rules": [
-    "FT-6"
+    "FT-7",
+    "FT-8",
+    "FT-9",
+    "FT-10"
    ],
    "shots": {
     "start": 60,
+    "page2": 420,
     "end": 480
-   }
+   },
+   "checks": [
+    {
+     "rule": "FT-8",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FT-8",
+     "what": "a Status at the bottom left",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      20,
+      460,
+      470,
+      750
+     ],
+     "color": "182438",
+     "frac": 0.97
+    },
+    {
+     "rule": "FT-9",
+     "what": "the turn order at the bottom right",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      790,
+      460,
+      1010,
+      750
+     ],
+     "color": "182438",
+     "frac": 0.97
+    },
+    {
+     "rule": "FT-8",
+     "what": "the other page 5 s later",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "screen": "second",
+      "rect": [
+       260,
+       500,
+       480,
+       700
+      ]
+     },
+     "b": {
+      "shot": "page2",
+      "screen": "second",
+      "rect": [
+       260,
+       500,
+       480,
+       700
+      ]
+     },
+     "frac": 0.05
+    }
+   ]
   },
   {
-   "id": "ft-us-snowball-unit",
+   "id": "ft-us-cursor-other-unit",
    "rom": "AFXE",
-   "state": "final-fantasy-tactics-advance/us-snowball-unit.ss",
-   "desc": "the snowball fight: Lita's details and the action prompt",
+   "state": "final-fantasy-tactics-advance/us-cursor-other-unit.ss",
+   "desc": "the cursor on another unit: its Status",
    "rules": [
-    "FT-1",
-    "FT-2",
-    "FT-3"
-   ],
-   "shots": {
-    "start": 60,
-    "end": 480
-   }
-  },
-  {
-   "id": "ft-us-battle-dialogue",
-   "rom": "AFXE",
-   "state": "final-fantasy-tactics-advance/us-battle-dialogue.ss",
-   "desc": "dialogue with a portrait in a battle",
-   "rules": [
-    "FT-1",
-    "FT-2"
-   ],
-   "shots": {
-    "start": 60,
-    "end": 480
-   }
-  },
-  {
-   "id": "ft-us-battle-banner",
-   "rom": "AFXE",
-   "state": "final-fantasy-tactics-advance/us-battle-banner.ss",
-   "desc": "the BATTLE banner",
-   "rules": [
-    "FT-1"
-   ],
-   "shots": {
-    "start": 60,
-    "end": 480
-   }
-  },
-  {
-   "id": "ft-us-battle-confirm",
-   "rom": "AFXE",
-   "state": "final-fantasy-tactics-advance/us-battle-confirm.ss",
-   "desc": "a Do it / Cancel prompt",
-   "rules": [
-    "FT-1",
-    "FT-3"
-   ],
-   "shots": {
-    "start": 60,
-    "end": 480
-   }
-  },
-  {
-   "id": "ft-us-unit-menu",
-   "rom": "AFXE",
-   "state": "final-fantasy-tactics-advance/us-unit-menu.ss",
-   "desc": "Ritz's command menu in the snowball fight",
-   "rules": [
-    "FT-1",
-    "FT-3"
-   ],
-   "shots": {
-    "start": 60,
-    "end": 480
-   }
-  },
-  {
-   "id": "ft-us-worldmap",
-   "rom": "AFXE",
-   "state": "final-fantasy-tactics-advance/us-worldmap.ss",
-   "desc": "the world map with funds and the date",
-   "rules": [
-    "FT-5"
-   ],
-   "shots": {
-    "start": 60,
-    "end": 480
-   }
-  },
-  {
-   "id": "ft-us-worldmap-notice",
-   "rom": "AFXE",
-   "state": "final-fantasy-tactics-advance/us-worldmap-notice.ss",
-   "desc": "a notice on the world map",
-   "rules": [
-    "FT-5"
-   ],
-   "shots": {
-    "start": 60,
-    "end": 480
-   }
-  },
-  {
-   "id": "ft-us-battle-status",
-   "rom": "AFXE",
-   "state": "final-fantasy-tactics-advance/us-battle-status.ss",
-   "desc": "a unit's Status screen open in a battle",
-   "rules": [
-    "FT-4"
+    "FT-8",
+    "FT-9"
    ],
    "shots": {
     "start": 60,
@@ -125,27 +98,340 @@
    },
    "checks": [
     {
-     "rule": "FT-4",
-     "what": "the Status is whole on the game screen",
-     "type": "not_uniform",
-     "screen": "game",
-     "shot": "end",
-     "rect": [
-      32,
-      64,
-      992,
-      704
-     ],
-     "color": "000000",
-     "frac": 0.5
+     "rule": "FT-8",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
     },
     {
-     "rule": "FT-4",
-     "what": "none of it on the second screen",
-     "type": "no_log",
-     "match": "map updated"
+     "rule": "FT-8",
+     "what": "a Status at the bottom left",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      20,
+      460,
+      470,
+      750
+     ],
+     "color": "182438",
+     "frac": 0.97
+    },
+    {
+     "rule": "FT-9",
+     "what": "the turn order at the bottom right",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      790,
+      460,
+      1010,
+      750
+     ],
+     "color": "182438",
+     "frac": 0.97
     }
    ]
+  },
+  {
+   "id": "ft-us-status-open",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-status-open.ss",
+   "desc": "a unit's Status open in the game",
+   "rules": [
+    "FT-8",
+    "FT-9",
+    "FT-10"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "FT-8",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FT-8",
+     "what": "a Status at the bottom left",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      20,
+      460,
+      470,
+      750
+     ],
+     "color": "182438",
+     "frac": 0.97
+    },
+    {
+     "rule": "FT-9",
+     "what": "the turn order at the bottom right",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      790,
+      460,
+      1010,
+      750
+     ],
+     "color": "182438",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "ft-us-turn-order-open",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-turn-order-open.ss",
+   "desc": "the turn order open in the game",
+   "rules": [
+    "FT-8",
+    "FT-9",
+    "FT-10"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "FT-8",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FT-8",
+     "what": "a Status at the bottom left",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      20,
+      460,
+      470,
+      750
+     ],
+     "color": "182438",
+     "frac": 0.97
+    },
+    {
+     "rule": "FT-9",
+     "what": "the turn order at the bottom right",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      790,
+      460,
+      1010,
+      750
+     ],
+     "color": "182438",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "ft-us-splash",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-splash.ss",
+   "desc": "the Square Enix splash",
+   "rules": [
+    "FT-7"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "FT-7",
+     "what": "nothing but the background along the bottom",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      20,
+      620,
+      1000,
+      750
+     ],
+     "color": "182438",
+     "frac": 0.99
+    }
+   ]
+  },
+  {
+   "id": "ft-us-snowball-unit",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-snowball-unit.ss",
+   "desc": "the snowball fight: Lita's details and the action prompt",
+   "rules": [
+    "FT-7",
+    "FT-8",
+    "FT-9",
+    "FT-10"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": []
+  },
+  {
+   "id": "ft-us-battle-dialogue",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-battle-dialogue.ss",
+   "desc": "dialogue with a portrait in a battle",
+   "rules": [
+    "FT-7",
+    "FT-8",
+    "FT-9",
+    "FT-10"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": []
+  },
+  {
+   "id": "ft-us-battle-banner",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-battle-banner.ss",
+   "desc": "the BATTLE banner",
+   "rules": [
+    "FT-7",
+    "FT-8",
+    "FT-9",
+    "FT-10"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": []
+  },
+  {
+   "id": "ft-us-battle-confirm",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-battle-confirm.ss",
+   "desc": "a Do it / Cancel prompt",
+   "rules": [
+    "FT-7",
+    "FT-8",
+    "FT-9",
+    "FT-10"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": []
+  },
+  {
+   "id": "ft-us-unit-menu",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-unit-menu.ss",
+   "desc": "Ritz's command menu in the snowball fight",
+   "rules": [
+    "FT-7",
+    "FT-8",
+    "FT-9",
+    "FT-10"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": []
+  },
+  {
+   "id": "ft-us-worldmap",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-worldmap.ss",
+   "desc": "the world map with funds and the date",
+   "rules": [
+    "FT-7"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "FT-7",
+     "what": "nothing but the background along the bottom",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      20,
+      620,
+      1000,
+      750
+     ],
+     "color": "182438",
+     "frac": 0.99
+    }
+   ]
+  },
+  {
+   "id": "ft-us-worldmap-notice",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-worldmap-notice.ss",
+   "desc": "a notice on the world map",
+   "rules": [
+    "FT-7"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "FT-7",
+     "what": "nothing but the background along the bottom",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      20,
+      620,
+      1000,
+      750
+     ],
+     "color": "182438",
+     "frac": 0.99
+    }
+   ]
+  },
+  {
+   "id": "ft-us-battle-status",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-battle-status.ss",
+   "desc": "a unit's Status screen open in a battle",
+   "rules": [
+    "FT-7",
+    "FT-8",
+    "FT-9",
+    "FT-10"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": []
   },
   {
    "id": "ft-logo-afxe",
