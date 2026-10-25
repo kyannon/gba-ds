@@ -76,6 +76,14 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 	emu_state_load(&e, st);
 	emu_frame(&e, 0);
 	memcpy(fg, e.fb, GBA_W * GBA_H * 4);
+	if (!p->logo.mask && p->logo.layers && p->logo.objMaxY > 0 && p->logo.objMaxY < GBA_H) {
+		/* below objMaxY, the BG layers without the sprites (Summon Night:
+		 * its PRESS START BUTTON is a sprite across the sword's hilt) */
+		layer_set(&e, p->logo.layers & ~0x10u);
+		emu_state_load(&e, st);
+		emu_frame(&e, 0);
+		memcpy(fg + p->logo.objMaxY * GBA_W, e.fb + p->logo.objMaxY * GBA_W, (size_t) (GBA_H - p->logo.objMaxY) * GBA_W * 4);
+	}
 	layers(&e, -2);
 	emu_close(&e);
 	free(st);

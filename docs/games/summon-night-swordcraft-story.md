@@ -15,9 +15,9 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **SN-1. Status.** While playing, the second screen shows the Status screen (START > Status), the whole screen at the game screen's size, brought up on the hidden copy (also when the menu or the Status is open in the game). Where the menu won't open (a scene, a fight), the last picture stays.
 
-**SN-2. Place.** The START menu's Place bar (where you are) is over the bottom of the Status, always.
+**SN-2. Place.** The START menu's Place bar (where you are) is over the bottom of the Status, always: the box with the place's name across the whole width, its PLACE heading only as far as the Status's lines between ATK, DEF... start, so the row under the stats stays clear.
 
-**SN-3. Title.** On the title screen the second screen shows the logo: the sword, the name and its subtitle, without PRESS START BUTTON or the copyright line.
+**SN-3. Title.** On the title screen the second screen shows the logo: the whole sword (down to its pommel), the name and its subtitle, without PRESS START BUTTON or the copyright line.
 
 **SN-4. Game screen untouched.** Nothing leaves the game screen.
 

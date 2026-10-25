@@ -339,6 +339,7 @@ typedef struct MapProfile {
 	struct {
 		int wait, wait2, layer, maxY;
 		unsigned layers; /* instead of layer: several BG layers (bit i: BG i) */
+		int objMaxY; /* with layers: sprites only above this row (0: all rows); below it, the BG layers alone */
 		bool pressStart, blackIsClear;
 		MacroStep steps[24]; /* instead of wait/pressStart: button steps from power-on */
 		int rev; /* bump when extraction changes, so cached logos are made again */

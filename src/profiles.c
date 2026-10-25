@@ -399,7 +399,9 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 /* -------------------------------------------------- Summon Night: Swordcraft Story
  *
  * The second screen is the Status screen (START > Status), the whole
- * screen, with the menu's Place bar (where you are) over its bottom rows.
+ * screen, with the menu's Place bar (where you are) over its bottom rows:
+ * the box with the name across the whole width, its PLACE heading only as
+ * far as the stats' lines start (clear of the item row under the stats).
  * Both are brought up on the shadow core: START (from walking about), DOWN
  * to Status, A; the Place bar is taken from the menu on the way. Where the
  * menu won't open (a scene, a fight), the last picture stays. (The Japanese
@@ -408,6 +410,15 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 #define SN_MENU_ROW 0x03000122 /* the START menu's cursor: Status is 5 */
 #define SN_MENU_DISP 0x3340    /* DISPCNT in the menu and its screens */
 #define SN_PLACE_Y 136         /* the Place bar: the menu's rows 136-159 */
+#define SN_PLACE_HEAD 144      /* its heading (PLACE) above this row, the box with the name below */
+#define SN_STATS_X 80          /* where the Status's lines between ATK, DEF... start */
+#define SN_CAP_X0 233          /* the heading's end piece, columns 233-238 */
+#define SN_CAP_X1 238
+
+
+
+
+
 #define SN_V_TITLE 0xF0000020  /* 1 on the title screen (BG1-3 set up as there) */
 
 static uint32_t sn_virt(Emu* e, uint32_t addr) {
@@ -447,9 +458,21 @@ static const char* sn_compose(Emu* s, const void* state, uint32_t* out, int w, i
 	if (!sn_wait(s, 4, 90)) return "the Status didn't open";
 	aw_run(s, 0, 40); /* (past its fade-in) */
 	memcpy(status, s->fb, sizeof(status));
+	int cw = w < GBA_W ? w : GBA_W;
 	for (int y = 0; y < h && y < GBA_H; ++y) {
-		const uint32_t* src = havePlace && y >= SN_PLACE_Y ? &place[(y - SN_PLACE_Y) * GBA_W] : &status[y * GBA_W];
-		memcpy(&out[y * w], src, (size_t) (w < GBA_W ? w : GBA_W) * 4);
+		uint32_t* o = &out[y * w];
+		memcpy(o, &status[y * GBA_W], (size_t) cw * 4);
+		if (!havePlace || y < SN_PLACE_Y) continue;
+		const uint32_t* pl = &place[(y - SN_PLACE_Y) * GBA_W];
+		if (y >= SN_PLACE_HEAD) {
+			memcpy(o, pl, (size_t) cw * 4); /* the box with the name: the full width */
+			continue;
+		}
+		/* its heading only as far as the stats' lines start, with the
+		 * heading's end piece (columns 233-238) moved there */
+		int cap = SN_CAP_X1 - SN_CAP_X0 + 1, x0 = SN_STATS_X - cap;
+		memcpy(o, pl, (size_t) x0 * 4);
+		memcpy(o + x0, pl + SN_CAP_X0, (size_t) cap * 4);
 	}
 	return NULL;
 }
@@ -1410,9 +1433,11 @@ static const MapProfile profiles[] = {
 		/* the title screen: the logo again (and no captures there) */
 		.menu = { { SN_V_TITLE, 0xFF, 1, 4 } },
 		.live = { { SN_V_TITLE, 0xFF, 0, 4 } },
-		/* the sword (BG2), the name (BG3) and its subtitle (sprites), above
-		 * PRESS START BUTTON (row 128, fading in and out) */
-		.logo = { .wait = 800, .pressStart = true, .wait2 = 200, .layers = 0x1C, .maxY = 124 },
+		/* the sword (BG2), the name (BG3) and its subtitle (sprites): from
+		 * row 124 the sword alone, without PRESS START BUTTON (a sprite
+		 * across its hilt, faded by blending, so still there without the
+		 * sky), above the copyright line (row 147) */
+		.logo = { .wait = 800, .pressStart = true, .wait2 = 200, .layers = 0x1C, .maxY = 146, .objMaxY = 124, .rev = 1 },
 	},
 	{
 		.codes = { "ATHE", "ATHF", "ATHD" },

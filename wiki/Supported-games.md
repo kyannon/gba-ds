@@ -74,8 +74,8 @@ Preliminary: a new second screen in v1.3.2, replacing the earlier one (which mov
 
 Preliminary. The USA release and the Japanese one (Craft Sword Monogatari); there was no European release.
 
-- **While you play,** the second screen shows the **Status** screen from the START menu, at the game screen's size, with the menu's **Place** bar (where you are) over its bottom. Both are brought up in the background on a silent copy of the game; your game is never paused or touched. Where the menu can't be opened (a scene, a fight), the last picture stays.
-- On the title screen, the second screen shows the logo.
+- **While you play,** the second screen shows the **Status** screen from the START menu, at the game screen's size, with the menu's **Place** bar (where you are) over its bottom, its heading short enough to leave the row under the stats in view. Both are brought up in the background on a silent copy of the game; your game is never paused or touched. Where the menu can't be opened (a scene, a fight), the last picture stays.
+- On the title screen, the second screen shows the logo, the whole sword included.
 
 ## Tony Hawk's Pro Skater 3
 
