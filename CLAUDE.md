@@ -131,8 +131,36 @@ Android session at the same time. To keep them from colliding:
   `tools/statesaver/gbads-runtime.js` (in-memory WASI files). Republish it with
   that file beside the page when either changes. `web_*` exports in web/web.c,
   game.c and ui.c (`#ifdef __wasi__`).
+- **The owner's states come from State Saver** (artifact
+  https://claude.ai/artifact/7uEURvSw3FHtXjPHCzEaT4, the owner's own). Its
+  database collection `states` holds one document per saved moment: name,
+  tags, notes (what the owner wants on the second screen: read them as the
+  spec), gameCode, romName, frame, `stateAsset` / `shotAsset` (asset ids).
+  Newest first: ArtifactData query with `order_by createdAt desc`. Fetch
+  each asset with the Artifact tool's read and `path=<asset id>`, one per
+  call (a list of paths fails). A state asset is JSON: `stateBase64`
+  (gzip when `encoding` is "gzip") is the GBA DS / mGBA state, loadable by
+  the app (`--load-state`) and the harness (`load`); `leadIn` (states saved
+  since Oct 24, 2026) is the same game about `secondsBefore` earlier. Tags
+  often name the rule a state is for (AW-4, SOM-2...). The page itself:
+  `tools/statesaver/statesaver.html` (republish with the Artifact tool,
+  url above); test it headless with Playwright (`http.server` in
+  tools/statesaver; route `**/jszip.min.js` to
+  /opt/npm-tools/node_modules/jszip/dist/jszip.min.js, as the CDN may be
+  unreachable). It has no `window.claude` there, so it uses browser storage.
+- **Finding a game's addresses:** `tools/romxref.py FROM.gba TO.gba ADDR...`
+  maps RAM addresses between releases or engine-sharing sequels by matching
+  the code that loads them (Advance Wars 2's from Advance Wars'); harness
+  `dumpram` before / after an input plus `tools/ramdiff.py` (or a few
+  lines of Python over the .ram files) finds the rest (a cursor that moves
+  with RIGHT, a counter that runs as a screen opens); `tools/oam.py ROM
+  STATE` lists the sprites for SpriteRules; `layershot` shows which BG
+  layer holds what. Per-line register changes (dialogue boxes drawn with
+  their own BGxCNT on their lines) don't show in a state's registers: log
+  them from `split_draw` in emu.c temporarily.
 - Verify visual changes by rendering screenshots and looking at them before
-  sending a build.
+  sending a build (contact sheets: a few lines of Pillow, then Read the
+  PNG).
 - **Regression tests:** each game's behaviour is written as numbered rules in
   `docs/games/<game>.md` (FE-2...), checked by the cases in
   `tests/regress/<game>.json` with `tools/regress.py` (see docs/TESTING.md).
@@ -241,6 +269,36 @@ Android session at the same time. To keep them from colliding:
 - EmulationStation: `/usr/bin/runemu.sh` launches games; the GBA command is
   `/usr/bin/runemu.sh %ROM% -P%SYSTEM% --core=%CORE% --emulator=%EMULATOR%
   --controllers="%CONTROLLERSCONFIG%"`.
+
+## Working in these sessions
+
+- **The session's own workspace** (a cloud container) reaches GitHub and the
+  package registries only: not the device, not other websites from the
+  shell. Test builds go to the owner with SendUserFile; they report back.
+- **Build:** `GBADS_WEB_WORK=<scratch dir>/wasm scripts/build-rocknix.sh`
+  (the web build's work folder outside the repo), output in `dist/`.
+- **Git:** fetch with `git fetch -q origin '+refs/heads/*:refs/remotes/origin/*'`;
+  push `git push -q origin dev`, then check `git rev-parse --short dev`
+  against `refs/remotes/origin/dev` (the push prints nothing useful).
+  Write long commit messages to a file and `git commit -F`. Never force-push.
+- **Fixtures repo** (`../gba-ds-tests`, branch `main`): push in small
+  commits (a ROM per commit); a big push prints a harmless "push
+  negotiation failed"; check with `git ls-remote origin main`. ROM zips are
+  named `CODE.zip` holding the ROM under its usual name.
+- Shell safety checks block `rm` with a bare variable: use `"${VAR:?}"` or
+  a literal path. `pkill -f PATTERN` can kill the shell running it (the
+  pattern is in its own command line): keep a PID file instead.
+- **The owner's preferences:** player-facing text in plain sentence case;
+  changelog lines and release notes written for players (What's new /
+  Fixes / Known issues / Install / upgrade, checksums at the end); a test
+  zip after every change, with a short note of what changed and what to
+  check on the device; known limitations said plainly. When a game's
+  behaviour changes, the rule in `docs/games/` changes first.
+- **Open by-hand checks** (`tools/regress.py --uncovered`): Advance Wars 2's
+  enemy turn and fights (AW2-4, AW2-5), Advance Wars' campaign
+  conversations on the second screen (AW-7); Advance Wars 2's DAMAGE box
+  isn't moved yet (no state for it). Updates (v1.3.2) were tested against
+  tools/update_mock.py and the real v1.3.1 release, not yet on the device.
 
 ## Ongoing work
 
