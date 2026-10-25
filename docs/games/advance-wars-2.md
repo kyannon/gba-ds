@@ -17,7 +17,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **AW2-2. Minimap.** The START minimap is at the bottom left of the second screen.
 
-**AW2-3. Plate and info move.** The CO plate (portrait and funds) and the terrain and unit info leave the game screen for the bottom of the second screen (plate centred, info on the right on a grey box); the panels are drawn over them where they meet. The cursor's corners stay on the game screen. While the unit intel (R) is open in the game, they stay as they were.
+**AW2-3. Plate and info move.** The CO plate (portrait and funds) and the terrain and unit info leave the game screen for the bottom of the second screen (plate centred, info on the right on a grey box); the panels are drawn over them where they meet. While picking a target, the DAMAGE box goes above the info. While a conversation is up, they stay as they were (a tutorial that moves the info up the game screen doesn't move it on the second screen). The cursor's corners stay on the game screen. While the unit intel (R) is open in the game, they stay as they were.
 
 **AW2-4. Enemy turn.** On the enemy's turn their plate shows; the panel keeps its last picture. *By hand: no enemy-turn state yet (the first tutorial map won't end the turn early).*
 
@@ -26,7 +26,3 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 **AW2-6. Title and menus.** On the title and menus the second screen shows the logo (the title's lettering, without PRESS START!).
 
 **AW2-7. Conversations.** A conversation during a battle moves to the top of the second screen, as wide as the screen, over the panels, and leaves the game screen (a black strip where it was: the game turns the map off on those lines). Until the second screen has a picture to put it on, it stays on the game screen. While it's up nothing else changes (the panels can't be brought up behind it).
-
-## Known issues
-
-- The DAMAGE box (picking a target) isn't moved yet: no state to find its sprites with.

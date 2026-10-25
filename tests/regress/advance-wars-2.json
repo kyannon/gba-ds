@@ -304,6 +304,84 @@
    ]
   },
   {
+   "id": "aw2-us-damage",
+   "rom": "AW2E",
+   "state": "advance-wars-2/us-damage.ss",
+   "desc": "picking a target: the DAMAGE box over the info",
+   "rules": [
+    "AW2-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 400
+   },
+   "checks": [
+    {
+     "rule": "AW2-3",
+     "what": "the DAMAGE box above the info",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      920,
+      530,
+      1020,
+      630
+     ],
+     "color": "182438",
+     "frac": 0.9
+    }
+   ]
+  },
+  {
+   "id": "aw2-us-tutorial-moved-info",
+   "rom": "AW2E",
+   "state": "advance-wars-2/us-unit.ss",
+   "desc": "a tutorial conversation with the info moved up by the tutorial: the info on the second screen stays as it was",
+   "rules": [
+    "AW2-3",
+    "AW2-7"
+   ],
+   "input": [
+    [
+     220,
+     "LOAD:advance-wars-2/us-tutorial-moved-info.ss"
+    ]
+   ],
+   "shots": {
+    "before": 200,
+    "end": 400
+   },
+   "checks": [
+    {
+     "rule": "AW2-3",
+     "what": "the info unchanged",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "screen": "second",
+      "rect": [
+       860,
+       620,
+       1020,
+       768
+      ]
+     },
+     "b": {
+      "shot": "end",
+      "screen": "second",
+      "rect": [
+       860,
+       620,
+       1020,
+       768
+      ]
+     },
+     "frac": 0.0
+    }
+   ]
+  },
+  {
    "id": "aw2-logo-aw2e",
    "kind": "logo",
    "rom": "AW2E",

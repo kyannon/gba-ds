@@ -296,8 +296,7 @@ Android session at the same time. To keep them from colliding:
   behaviour changes, the rule in `docs/games/` changes first.
 - **Open by-hand checks** (`tools/regress.py --uncovered`): Advance Wars 2's
   enemy turn and fights (AW2-4, AW2-5), Advance Wars' campaign
-  conversations on the second screen (AW-7); Advance Wars 2's DAMAGE box
-  isn't moved yet (no state for it). Updates (v1.3.2) were tested against
+  conversations on the second screen (AW-7). Updates (v1.3.2) were tested against
   tools/update_mock.py and the real v1.3.1 release, not yet on the device.
 
 ## Ongoing work
