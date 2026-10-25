@@ -93,7 +93,8 @@ static const uint8_t ffta_tag_jp[212] = {
  *
  * Advance Wars and Advance Wars 2. The second screen, after Advance Wars:
  * Dual Strike's: the unit under the cursor's intel (R, with its text box)
- * when it's one of yours (or the one being moved), or else the Battle Intel, and the minimap
+ * when there's a unit there, yours or the enemy's (or the one being moved),
+ * or else the Battle Intel (or when R shows nothing: fog), and the minimap
  * (START) below. Each is opened on the shadow core from the live state: B
  * (backs out of a move or an action menu), then R, or SELECT > Intel >
  * Status; START for the minimap. On the enemy's turn none of it opens and
@@ -291,6 +292,14 @@ static int aw_cursor_unit(Emu* s, int army) {
 	return 0;
 }
 
+/* Any army's unit under the cursor (R shows enemies' too); true if one is. */
+static bool aw_cursor_any(Emu* s) {
+	for (int army = 1; army <= 4; ++army) {
+		if (aw_cursor_unit(s, army)) return true;
+	}
+	return false;
+}
+
 /* The panel now on screen without the battle map around it: rendered
  * again with BG0 and BG2 (menus and text) and the sprites, less the
  * priority-3 ones (the map's buildings); what that leaves empty is AW_BG.
@@ -346,16 +355,17 @@ static void aw_pick(Emu* s, int i) {
 	for (int tries = 0; tries < 6 && emu_read8(s, r->menuRow) != i; ++tries) aw_tap(s, K_DOWN, 1);
 }
 
-static const char* aw_panel(Emu* s, const void* state, bool* unitPanel) {
+/* tryUnit: the unit intel (R) if the cursor's on a unit, yours or not
+ * (*unitPanel says which opened); else the Battle Intel. */
+static const char* aw_panel(Emu* s, const void* state, bool tryUnit, bool* unitPanel) {
 	const AwRegion* r = aw_r(s);
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
 	int army = emu_read8(s, r->army);
 	if (army < 1 || army > 4) return "not on the battle map";
 	if (!aw_back(s)) return "the cursor isn't free";
-	int unit = aw_cursor_unit(s, army);
-	*unitPanel = unit != 0;
-	if (unit) {
+	*unitPanel = tryUnit && aw_cursor_any(s);
+	if (*unitPanel) {
 		aw_tap(s, K_R, 1);
 		if (!aw_settle(s, aw_unit_up, 90)) return "unit intel did not open";
 	} else {
@@ -419,8 +429,14 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 			err = "minimap did not open";
 		}
 	}
-	if (!err) err = aw_panel(s, state, &unitPanel);
+	if (!err) err = aw_panel(s, state, true, &unitPanel);
 	if (!err) aw_clean(s, tmp, pan, unitPanel ? bg2 : NULL);
+	int c0, c1;
+	if (!err && unitPanel && !aw_unit_cols(bg2, &c0, &c1)) {
+		/* R showed nothing (a unit hidden in the fog of war): the Battle Intel */
+		err = aw_panel(s, state, false, &unitPanel);
+		if (!err) aw_clean(s, tmp, pan, NULL);
+	}
 	free(tmp);
 	if (err) return err;
 	/* the part of the picture that goes: the unit intel (its panel and
@@ -428,11 +444,7 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 	 * boxes, not the cursor or units around them), or the Battle Intel's
 	 * panel (not the map below it) */
 	int x0 = 0, x1 = GBA_W - 1, rows = r->intelRows;
-	if (unitPanel) {
-		int c0, c1;
-		if (!aw_unit_cols(bg2, &c0, &c1)) return "unit intel's panel not found";
-		rows = GBA_H;
-	}
+	if (unitPanel) rows = GBA_H;
 	for (int i = 0; i < w * h; ++i) out[i] = AW_BG;
 	/* the panel at the top in the middle, the minimap at the bottom left,
 	 * 4 pixels in (the HUD's plate and info go along the bottom too: the

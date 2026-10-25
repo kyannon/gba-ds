@@ -116,7 +116,7 @@
    "id": "aw-us-unit-intel-open",
    "rom": "AWRE",
    "state": "advance-wars/us-unit-intel-open.ss",
-   "desc": "the unit intel open on an enemy unit: Battle Intel",
+   "desc": "the unit intel open on an enemy unit: that unit's intel",
    "rules": [
     "AW-1"
    ],
