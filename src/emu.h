@@ -126,8 +126,10 @@ void emu_hud_game_reg(uint32_t addr, uint16_t bits);
 /* While split: on the lines where sprites are off (and on elsewhere: a box
  * across part of the screen, Advance Wars' conversations), the BG layers
  * set up differently from the other lines (BGxCNT) go to the HUD too;
- * with copy, they stay in the game picture as well. Kept across splits. */
-void emu_hud_band(bool on, bool copy);
+ * with copy, they stay in the game picture as well; with watch, nothing
+ * moves, the band's lines are only found (emu_hud_band_rows). Kept across
+ * splits. */
+void emu_hud_band(bool on, bool copy, bool watch);
 /* The lines the band was on in the last frame drawn split; false if none. */
 bool emu_hud_band_rows(int* y0, int* y1);
 /* An I/O register as last written (also the write-only ones: MOSAIC). */

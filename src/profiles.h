@@ -317,10 +317,13 @@ typedef struct MapProfile {
 		void (*findPieces)(Emu* e, const uint32_t* hud, uint32_t clear, int box[4][4]);
 		/* Boxes drawn across part of the screen with their own layer
 		 * settings and the sprites off on their lines (Advance Wars'
-		 * conversations): those layers go into the HUD there too
-		 * (emu_hud_band), and leave the game screen once the second
-		 * screen has a picture to put them on. */
-		bool band;
+		 * conversations), found by emu_hud_band. BAND_MOVE: those layers
+		 * go into the HUD there too, and leave the game screen once the
+		 * second screen has a picture to put them on; BAND_WATCH: they
+		 * stay on the game screen, only found (Advance Wars 2: the game
+		 * turns the map off behind them, so moving them leaves a black
+		 * strip). */
+		enum { BAND_NONE, BAND_MOVE, BAND_WATCH } band;
 		/* hud.overMap: the logo, small and dimmed, behind everything in
 		 * the map picture (as in a fight: profile.combat) */
 		bool logoUnder;

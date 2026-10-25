@@ -517,7 +517,7 @@ static Split split;
 static uint32_t gameRegAddr;
 static uint16_t gameRegBits;
 /* emu_hud_band (kept across installs) */
-static bool bandOn, bandCopy;
+static bool bandOn, bandCopy, bandWatch;
 static int lastBandY0, lastBandY1 = -1;
 static uint16_t bandNormal[4]; /* each BG's BGxCNT on the lines outside the band (0: not seen yet) */
 
@@ -611,7 +611,7 @@ static void split_draw(struct GBAVideoRenderer* r, int y) {
 			if (!inBand) {
 				for (int i = 0; i < 4; ++i) bandNormal[i] = io[(0x08 >> 1) + i];
 			} else {
-				if (lastBandY1 - lastBandY0 < 100) band = differs;
+				if (lastBandY1 - lastBandY0 < 100 && !bandWatch) band = differs;
 				split.bandY0 = y < split.bandY0 ? y : split.bandY0, split.bandY1 = y;
 			}
 			unsigned hud = split.bgMask | band, game = split.bgMask | (bandCopy ? 0 : band);
@@ -736,10 +736,11 @@ bool emu_hud_split(Emu* e, bool on, unsigned bgMask, const SpriteRule* objs, int
 	return true;
 }
 
-void emu_hud_band(bool on, bool copy) {
+void emu_hud_band(bool on, bool copy, bool watch) {
 	if (on != bandOn) memset(bandNormal, 0, sizeof(bandNormal)), lastBandY0 = 0, lastBandY1 = -1;
 	bandOn = on;
 	bandCopy = copy;
+	bandWatch = watch;
 }
 
 bool emu_hud_band_rows(int* y0, int* y1) {

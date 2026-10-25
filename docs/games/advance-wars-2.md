@@ -25,4 +25,4 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **AW2-6. Title and menus.** On the title and menus the second screen shows the logo (the title's lettering, without PRESS START!).
 
-**AW2-7. Conversations.** A conversation during a battle moves to the top of the second screen, as wide as the screen, over the panels, and leaves the game screen (a black strip where it was: the game turns the map off on those lines). Until the second screen has a picture to put it on, it stays on the game screen. While it's up nothing else changes (the panels can't be brought up behind it).
+**AW2-7. Conversations.** A conversation during a battle stays on the game screen only (the game turns the map off behind it, so moving it would leave a black strip). While it's up, and as it slides in and out, nothing on the second screen changes (the plate and info aren't taken from under it, and the panels can't be brought up behind it). (Until v1.3.2's later test builds it moved to the second screen.)

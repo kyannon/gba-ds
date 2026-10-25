@@ -317,7 +317,12 @@ static void aw_find_pieces(Emu* e, const uint32_t* hud, uint32_t clear, int box[
 	(void) hud, (void) clear;
 	static const int rects[3][4] = { { 0, 0, 239, 47 }, { 0, 104, 239, 159 }, { 0, 56, 239, 103 } };
 	int y0, y1;
-	bool talk = emu_hud_band_rows(&y0, &y1) && y1 - y0 >= 15;
+	/* (any of it, and for a few frames after: a box sliding in or out
+	 * shows on only a few lines) */
+	static int since = 100;
+	bool band = emu_hud_band_rows(&y0, &y1);
+	since = band ? 0 : since < 100 ? since + 1 : since;
+	bool talk = since < 8;
 	/* the unit intel (R) open in the game: its sprites aren't the info's */
 	bool unitIntel = emu_read32(e, aw_r(e)->unitOpen[0]) == aw_r(e)->unitOpen[1];
 	for (int m = 0; m < 3; ++m) {
@@ -325,7 +330,7 @@ static void aw_find_pieces(Emu* e, const uint32_t* hud, uint32_t clear, int box[
 		else memcpy(box[m], rects[m], sizeof(rects[m]));
 	}
 	box[3][0] = 0, box[3][2] = GBA_W - 1;
-	box[3][1] = talk ? y0 : 0, box[3][3] = talk ? y1 : -1;
+	box[3][1] = band ? y0 : 0, box[3][3] = band ? y1 : -1;
 }
 
 static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
@@ -1693,7 +1698,7 @@ static const MapProfile profiles[] = {
 			/* a conversation (its own layer settings on its lines, no
 			 * sprites there): to the top of the second screen, as wide
 			 * as it is */
-			.band = true,
+			.band = BAND_MOVE,
 			.findPieces = aw_find_pieces,
 			.overMap = true,
 			.mapClear = AW_BG,
@@ -1741,12 +1746,12 @@ static const MapProfile profiles[] = {
 			           { 0, 104, 239, 159, 'R', 312, 'B', 232, .box = 0x6B7380, .pad = 3 },
 			           /* the DAMAGE box (down to row 103; the info starts at 104):
 			            * where it is over the info, over the panels */
-			           { 0, 56, 239, 103, 'L', 0, 'T', 0, .follow = 2 },
-			           { 0, 0, 239, 159, 'L', 0, 'T', 0, .wide = true, .dropAfter = 2 } },
+			           { 0, 56, 239, 103, 'L', 0, 'T', 0, .follow = 2 } },
 			/* a conversation (its own layer settings on its lines, no
-			 * sprites there): to the top of the second screen, as wide
-			 * as it is */
-			.band = true,
+			 * sprites there): it stays on the game screen (the map's
+			 * turned off behind it), found so the plate and info aren't
+			 * taken from under it */
+			.band = BAND_WATCH,
 			.findPieces = aw_find_pieces,
 			.overMap = true,
 			.mapClear = AW_BG,

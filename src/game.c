@@ -1358,7 +1358,7 @@ static void update_hud(void) {
 	const typeof(hudProf->hud)* h = &hudProf->hud;
 	/* a conversation leaves the game screen only once there's a picture
 	 * on the second screen to put it on */
-	if (h->band) emu_hud_band(true, mapShownIdx < 0);
+	if (h->band) emu_hud_band(true, mapShownIdx < 0, h->band == BAND_WATCH);
 	if (h->mirror[0].addr || h->mirrorOr[0].addr) {
 		bool mirMain = h->mirror[0].addr && memprobes_match(h->mirror, 2, &emu);
 		bool mir = mirMain || (h->mirrorOr[0].addr && memprobes_match(h->mirrorOr, 2, &emu));
@@ -2668,7 +2668,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		/* the HUD moves only when there's another screen to put it on */
 		hudProf = lp && lp->hud.on[0].addr && nScreens > 1 ? lp : NULL;
 		emu_hud_game_reg(hudProf ? hudProf->hud.gameReg.addr : 0, hudProf ? hudProf->hud.gameReg.bits : 0);
-		emu_hud_band(hudProf && hudProf->hud.band, true);
+		emu_hud_band(hudProf && hudProf->hud.band, true, hudProf && hudProf->hud.band == BAND_WATCH);
 		combatProf = mc && lp && lp->combat[0].addr && nScreens > 1 ? lp : NULL;
 		combatOn = combatMade = false;
 		overOn = false;

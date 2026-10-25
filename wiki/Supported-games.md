@@ -107,7 +107,7 @@ Preliminary. The USA and European releases of both (neither came out in Japan). 
 - The **CO and day plate** and the **terrain and unit info** move from the game screen to the bottom of the second screen (the plate in the middle, the info on the right, on a grey box), so they no longer cover the map; the panels are drawn over them where they meet.
 - The enemy's **CO and day plate** shows on their turn; the panel keeps its last picture.
 - **In a fight,** the second screen is the dark background with the game's logo, small and dimmed, in the middle. On the title and menus, the second screen shows the logo.
-- **Conversations** in a battle move to the top of the second screen, as wide as the screen (in Advance Wars 2 the game screen has a black strip where they were). In the first moments of a battle, before the second screen has a picture, they stay on the game screen.
+- **Conversations** in a battle: in Advance Wars they move to the top of the second screen, as wide as the screen, with the battle showing where they were (in the first moments of a battle, before the second screen has a picture, they stay on the game screen); in Advance Wars 2 they stay on the game screen, as the game turns the map off behind them.
 - Opening a unit's intel with R in the game leaves the plate and info on the second screen as they were.
 - **Known issue:** in Advance Wars' **Field Training** missions the second screen may not work: the tutorial blocks the menus it's built from (SELECT and START). It works fully in Campaign and Versus.
 

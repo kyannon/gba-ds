@@ -256,7 +256,7 @@
    "id": "aw2-us-dialogue",
    "rom": "AW2E",
    "state": "advance-wars-2/us-unit.ss",
-   "desc": "the tutorial's conversation, after a picture",
+   "desc": "the tutorial's conversation, after a picture: it stays on the game screen",
    "rules": [
     "AW2-7"
    ],
@@ -273,23 +273,34 @@
    "checks": [
     {
      "rule": "AW2-7",
-     "what": "the conversation across the top",
-     "type": "not_uniform",
-     "shot": "end",
-     "screen": "second",
-     "rect": [
-      20,
-      10,
-      1000,
-      150
-     ],
-     "color": "182438",
-     "frac": 0.5
+     "what": "not on the second screen: its top as before",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "screen": "second",
+      "rect": [
+       0,
+       0,
+       1024,
+       300
+      ]
+     },
+     "b": {
+      "shot": "end",
+      "screen": "second",
+      "rect": [
+       0,
+       0,
+       1024,
+       300
+      ]
+     },
+     "frac": 0.0
     },
     {
      "rule": "AW2-7",
-     "what": "gone from the game screen",
-     "type": "uniform",
+     "what": "on the game screen",
+     "type": "not_uniform",
      "shot": "end",
      "screen": "game",
      "rect": [
@@ -299,7 +310,7 @@
       140
      ],
      "color": "000000",
-     "frac": 0.95
+     "frac": 0.5
     }
    ]
   },
@@ -374,6 +385,89 @@
        860,
        620,
        1020,
+       768
+      ]
+     },
+     "frac": 0.0
+    }
+   ]
+  },
+  {
+   "id": "aw2-us-box-slides-in",
+   "rom": "AW2E",
+   "state": "advance-wars-2/us-unit.ss",
+   "desc": "a tutorial box slides in after A: the plate and info on the second screen don't change",
+   "rules": [
+    "AW2-3",
+    "AW2-7"
+   ],
+   "input": [
+    [
+     220,
+     "LOAD:advance-wars-2/us-tutorial-box-slides-in.ss"
+    ],
+    [
+     280,
+     "A"
+    ],
+    [
+     284,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 260,
+    "slide": 290,
+    "end": 420
+   },
+   "checks": [
+    {
+     "rule": "AW2-7",
+     "what": "the bottom unchanged as it slides in",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "screen": "second",
+      "rect": [
+       0,
+       600,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "slide",
+      "screen": "second",
+      "rect": [
+       0,
+       600,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "AW2-7",
+     "what": "and once it's up",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "screen": "second",
+      "rect": [
+       0,
+       600,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "end",
+      "screen": "second",
+      "rect": [
+       0,
+       600,
+       1024,
        768
       ]
      },
