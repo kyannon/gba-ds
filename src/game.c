@@ -223,6 +223,13 @@ static bool stillValid;
 static bool mapInactive;
 static bool logoOnly; /* the game has a profile but no map: logo on the second screen */
 static const MapProfile* snapProf; /* logo-only game with screens copied to the second screen */
+static const MapProfile* tallProf; /* logo-only game with a table over both screens (profile.tall) */
+#define TALL_H 1024 /* rows of table kept (the BG scroll's range) */
+#define TALL_W 512  /* and columns */
+static uint32_t tallRows[TALL_W * TALL_H], tallTop[GBA_W * GBA_H], tallBot[GBA_W * GBA_H];
+static uint8_t tallHave[TALL_H];
+static int tallLo, tallHi; /* the rows the camera has shown since the table came up */
+static bool tallOn;        /* the table's up: the screens show it */
 /* Mario Kart: the race HUD on the second screen (profile .hud) */
 static const MapProfile* hudProf;
 static uint32_t hudPx[GBA_W * GBA_H];
@@ -1546,6 +1553,69 @@ static void update_hud(void) {
 	}
 }
 
+/* profile.tall: the table over both screens (see profiles.h). Called after
+ * each frame; while on, the game screen shows tallTop and the second screen
+ * tallBot. */
+static void tall_forget(void) {
+	memset(tallHave, 0, sizeof(tallHave));
+	memset(tallRows, 0, sizeof(tallRows));
+	tallLo = 0, tallHi = tallProf->tall.rows;
+}
+
+static void update_tall(void) {
+	const typeof(tallProf->tall)* t = &tallProf->tall;
+	bool on = nScreens > 1 && memprobes_match(t->on, 2, &emu);
+	if (on != tallOn) {
+		emu_hud_split(&emu, on, t->hudBg, NULL, 0, hudPx);
+		tallOn = on;
+		tall_forget();
+		if (!on) mapShownIdx = -1; /* (the logo) */
+		if (debug) fprintf(stderr, "frame %llu: table %s\n", (unsigned long long) frameCount, on ? "up" : "gone");
+	}
+	if (!on) return;
+	if (frame_is_flat(emu.fb)) tall_forget(); /* a fade: maybe another table next */
+	int v = emu_read16(&emu, 0x04000000 + t->camReg) & 0x3FF;
+	int hx = emu_read16(&emu, 0x04000000 + t->camReg - 2) & 0x1FF;
+	if (v + GBA_H > TALL_H || hx + GBA_W > TALL_W) return;
+	/* the rows on the game screen now (without the score bar: hudBg), where
+	 * they are on the table (it scrolls sideways a little too) */
+	for (int y = 0; y < GBA_H; ++y) memcpy(&tallRows[(v + y) * TALL_W + hx], &emu.fb[y * GBA_W], sizeof(uint32_t) * GBA_W);
+	memset(&tallHave[v], 1, GBA_H);
+	tallLo = SDL_min(tallLo, v), tallHi = SDL_max(tallHi, v + GBA_H);
+	/* the window: from the camera down, but not past the table's bottom */
+	int c = v;
+	if (c + 2 * GBA_H > tallHi) c = SDL_max(tallLo, tallHi - 2 * GBA_H);
+	/* (not while the rows above the camera haven't been seen yet, as after
+	 * loading a state at the bottom of the table: the game's own picture on
+	 * the game screen until they have) */
+	for (int r = c; r < v && c < v; ++r) {
+		if (!tallHave[r]) c = v;
+	}
+	for (int half = 0; half < 2; ++half) {
+		uint32_t* o = half ? tallBot : tallTop;
+		for (int y = 0; y < GBA_H; ++y) {
+			int r = c + half * GBA_H + y;
+			uint32_t* row = &o[y * GBA_W];
+			if (r >= 0 && r < TALL_H && tallHave[r]) {
+				const uint32_t* src = &tallRows[r * TALL_W + hx];
+				for (int x = 0; x < GBA_W; ++x) row[x] = src[x] | 0xFF000000; /* (never seen at this scroll: black) */
+			} else {
+				for (int x = 0; x < GBA_W; ++x) row[x] = 0xFF000000;
+			}
+		}
+	}
+	/* the upper half on the top screen (the game's, unless swapped); the
+	 * score bar where it was on the game screen, over the second screen's */
+	uint32_t* second = cfg->swap ? tallTop : tallBot;
+	uint32_t clear = emu_hud_clear();
+	for (int i = 0; i < GBA_W * GBA_H; ++i) {
+		if ((hudPx[i] & 0xFFFFFF) != clear) second[i] = hudPx[i];
+	}
+	for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], second, GBA_W * 4);
+	if (mapShownIdx < 0 && debug) fprintf(stderr, "frame %llu: table over both screens\n", (unsigned long long) frameCount);
+	mapShownIdx = 0;
+}
+
 static void update_snapshot(void) {
 	const typeof(snapProf->snap)* sn = &snapProf->snap;
 	int tol = sn->tol ? sn->tol : 12;
@@ -2628,6 +2698,8 @@ static void ss_setup(const char* rom, const char* code) {
 	singleShowsMap = false;
 	logoOnly = false;
 	snapProf = NULL;
+	tallProf = NULL;
+	tallOn = false;
 	hudProf = NULL;
 	hudOn = false;
 	{
@@ -2648,6 +2720,7 @@ static void ss_setup(const char* rom, const char* code) {
 		memprobe_virtual = lp ? lp->virt : NULL;
 		logoOnly = lp && lp->logoOnly;
 		snapProf = logoOnly && lp->snap.showMin ? lp : NULL;
+		tallProf = logoOnly && lp->tall.on[0].addr ? lp : NULL;
 		/* the HUD moves only when there's another screen to put it on */
 		hudProf = lp && lp->hud.on[0].addr && nScreens > 1 ? lp : NULL;
 		emu_hud_game_reg(hudProf ? hudProf->hud.gameReg.addr : 0, hudProf ? hudProf->hud.gameReg.bits : 0);
@@ -3410,6 +3483,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		}
 
 		if (snapProf) update_snapshot();
+		if (tallProf) update_tall();
 		if (hudProf) update_hud();
 		if (combatProf) {
 			/* a fight: after a few frames of it, not on one odd frame */
@@ -3449,6 +3523,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			if (ahead_start(keys)) aheadInFlight = true, shownFb = aheadFb;
 		}
 		if (mirrorOn && mirrorHave) shownFb = mirrorHeld; /* (hud.mirror: the picture from before) */
+		if (tallOn && mapShownIdx >= 0) shownFb = cfg->swap ? tallBot : tallTop; /* (profile.tall: the table's half on the game screen) */
 		/* only the view the game is on needs it (all of them right after a swap,
 		 * since the menu draws the game without uploading) */
 		for (int i = 0; i < nViews; ++i) {

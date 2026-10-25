@@ -19,6 +19,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Advance Wars 2: Black Hole Rising](advance-wars-2.md) | AW2 | `AW2E` + 1 |
 | [Game Boy Wars Advance 1+2](game-boy-wars-advance-1-2.md) | GBW | `BGWJ` |
 | [Summon Night: Swordcraft Story](summon-night-swordcraft-story.md) | SN | `AB4E` + 1 |
+| [Pokémon Pinball: Ruby & Sapphire](pokemon-pinball.md) | PP | `BPPE` |
 | [Fire Emblem (Rekka no Ken in Japan)](fire-emblem.md) | FE | `AE7E` + 3 |
 | [Sword of Mana (Shinyaku Seiken Densetsu in Japan)](sword-of-mana.md) | SOM | `AVSE` + 2 |
 

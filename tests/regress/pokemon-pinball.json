@@ -1,0 +1,259 @@
+{
+ "game": "Pokemon Pinball: Ruby & Sapphire",
+ "rules": "docs/games/pokemon-pinball.md",
+ "cases": [
+  {
+   "id": "pp-us-title",
+   "rom": "BPPE",
+   "state": "pokemon-pinball/us-title.ss",
+   "desc": "the title",
+   "rules": [
+    "PP-4"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 300
+   },
+   "checks": [
+    {
+     "rule": "PP-4",
+     "what": "no table",
+     "type": "no_log",
+     "match": "table up"
+    }
+   ]
+  },
+  {
+   "id": "pp-us-field-select",
+   "rom": "BPPE",
+   "state": "pokemon-pinball/us-field-select.ss",
+   "desc": "the field select",
+   "rules": [
+    "PP-4"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 300
+   },
+   "checks": [
+    {
+     "rule": "PP-4",
+     "what": "no table",
+     "type": "no_log",
+     "match": "table up"
+    }
+   ]
+  },
+  {
+   "id": "pp-us-sapphire-start",
+   "rom": "BPPE",
+   "state": "pokemon-pinball/us-sapphire-start.ss",
+   "desc": "Sapphire picked: the table's opening sweep, then the ball at the bottom",
+   "rules": [
+    "PP-1",
+    "PP-2",
+    "PP-3"
+   ],
+   "input": [
+    [
+     5,
+     "A"
+    ],
+    [
+     7,
+     "-"
+    ]
+   ],
+   "shots": {
+    "sweep": 200,
+    "bottom": 420,
+    "end": 900
+   },
+   "checks": [
+    {
+     "rule": "PP-1",
+     "what": "the table came up",
+     "type": "log",
+     "match": "table over both screens"
+    },
+    {
+     "rule": "PP-1",
+     "what": "the upper rows on the game screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "game",
+     "rect": [
+      40,
+      40,
+      980,
+      700
+     ],
+     "color": "000000",
+     "frac": 0.97
+    },
+    {
+     "rule": "PP-1",
+     "what": "the lower rows on the second screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      40,
+      40,
+      980,
+      560
+     ],
+     "color": "000000",
+     "frac": 0.97
+    },
+    {
+     "rule": "PP-3",
+     "what": "the score bar on the second screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      20,
+      660,
+      1000,
+      740
+     ],
+     "color": "000000",
+     "frac": 0.6
+    },
+    {
+     "rule": "PP-2",
+     "what": "rows not drawn yet black, while the camera sweeps down",
+     "type": "uniform",
+     "shot": "sweep",
+     "screen": "second",
+     "rect": [
+      40,
+      40,
+      980,
+      560
+     ],
+     "color": "000000",
+     "frac": 0.95
+    }
+   ]
+  },
+  {
+   "id": "pp-us-ruby-bottom",
+   "rom": "BPPE",
+   "state": "pokemon-pinball/us-ruby-bottom.ss",
+   "desc": "Ruby, a state loaded with the camera at the bottom",
+   "rules": [
+    "PP-2",
+    "PP-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 400
+   },
+   "checks": [
+    {
+     "rule": "PP-2",
+     "what": "the game's own picture on the game screen (the rows above not seen yet)",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "game",
+     "rect": [
+      40,
+      40,
+      980,
+      700
+     ],
+     "color": "000000",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "pp-us-ruby-top",
+   "rom": "BPPE",
+   "state": "pokemon-pinball/us-ruby-top.ss",
+   "desc": "Ruby, the camera at the top, the ball falling to the flippers",
+   "rules": [
+    "PP-1",
+    "PP-2",
+    "PP-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 400
+   },
+   "checks": [
+    {
+     "rule": "PP-1",
+     "what": "the table on the game screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "game",
+     "rect": [
+      40,
+      40,
+      980,
+      700
+     ],
+     "color": "000000",
+     "frac": 0.97
+    },
+    {
+     "rule": "PP-1",
+     "what": "and on the second screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      40,
+      40,
+      980,
+      560
+     ],
+     "color": "000000",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "pp-us-swapped",
+   "rom": "BPPE",
+   "state": "pokemon-pinball/us-sapphire-start.ss",
+   "desc": "swapped screens",
+   "rules": [
+    "PP-5"
+   ],
+   "config": {
+    "swap": "1"
+   },
+   "input": [
+    [
+     5,
+     "A"
+    ],
+    [
+     7,
+     "-"
+    ]
+   ],
+   "shots": {
+    "end": 900
+   },
+   "checks": []
+  },
+  {
+   "id": "pp-logo-bppe",
+   "kind": "logo",
+   "rom": "BPPE",
+   "desc": "BPPE logo extraction",
+   "rules": [
+    "GEN-1",
+    "PP-4"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

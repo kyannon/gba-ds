@@ -1470,6 +1470,23 @@ static const MapProfile profiles[] = {
 		.logo = { .wait = 800, .pressStart = true, .wait2 = 200, .layers = 0x1C, .maxY = 146, .objMaxY = 124, .rev = 1 },
 	},
 	{
+		/* the table over both screens (see profiles.h tall); the score bar
+		 * (BG0) on the second screen */
+		.codes = { "BPPE" },
+		.title = "Pokemon Pinball: Ruby & Sapphire",
+		.logoOnly = true,
+		.tall = {
+			/* on a table: the score bar's BG0 and the table's BG3 set up */
+			.on = { { 0x04000008, 0xFFFF, 0x8404, 2 }, { 0x0400000E, 0xFFFF, 0x804B, 2 } },
+			.camReg = 0x1E, /* BG3VOFS (BG1 and BG2 scroll with it) */
+			.hudBg = 0x01,
+			.rows = 432, /* (Ruby's and Sapphire's: the camera's 0-272) */
+		},
+		/* the title's logo is BG1, on its own white striped background
+		 * (cleared from the edges in), above PRESS START */
+		.logo = { .wait = 1440, .layer = 1, .maxY = 140, .lightEdgeClear = true },
+	},
+	{
 		.codes = { "ATHE", "ATHF", "ATHD" },
 		.title = "Tony Hawk's Pro Skater 2",
 		/* no map yet: listed, logo on the second screen */

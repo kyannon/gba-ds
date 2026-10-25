@@ -19,6 +19,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Fire Emblem (Rekka no Ken in Japan; preliminary) | `AE7E` `AE7X` (English, French, German) `AE7Y` (English, Spanish, Italian) `AE7J` | on the map: the unit, terrain and goal windows and the minimap | — |
 | Sword of Mana (Shinyaku Seiken Densetsu in Japan) | `AVSE` `AVSY` (Spanish, Italian) `AVSJ` | the Status screen | — |
 | Summon Night: Swordcraft Story (Craft Sword Monogatari in Japan; preliminary) | `AB4E` `AB4J` (no European release) | the Status screen, with where you are | — |
+| Pokémon Pinball: Ruby & Sapphire (preliminary) | `BPPE` | the table twice as tall over both screens, with the score bar | — |
 
 The codes are what `<CODE>` means in logo and overlay file names (see [Playing](Playing#logos) and [[Map screen surrounds and overlays]]).
 
@@ -70,6 +71,16 @@ Preliminary: a new second screen in v1.3.2, replacing the earlier one (which mov
 - **Always,** the second screen is a dark background with the game's logo, small and dimmed, in the middle (the title, menus and the world map too).
 - **In a battle,** at the top left, the **Status** screen of the unit under the cursor (or the active unit's, when the cursor isn't on one), turning between its Equip and Abilities pages every 5 seconds; at the top right, the **Mission** (what wins and loses the battle); at the bottom left, the **Laws** (forbidden and recommended); at the bottom right, the **turn order** (the list L shows). All are brought up in the background on a silent copy of the game, as the other games' maps are; your game is never paused or touched, and the game screen stays exactly as the game draws it. They're taken again only with the battle map showing: while a unit picks where to move or what to hit, on the enemy's turn and in scenes, the last ones stay.
 - **Known issue:** in the opening snowball fight only the Status and the turn order show.
+
+## Pokémon Pinball: Ruby & Sapphire
+
+Preliminary. The USA release.
+
+- **On a table,** the two screens together show twice as much of it: the top screen the upper part, the bottom screen the part below it. The view follows the game's camera, so the ball stays on the top screen, except at the bottom of the table, where the view stops: the flippers and the ball are then on the bottom screen.
+- The game itself only draws the part its camera is on, so the rest is shown as the game last drew it: there, animations stand still until the camera comes back. When a table first comes up the camera sweeps over all of it, so it's all there from the start; after loading a state, the parts the camera hasn't been to yet are black (and the top screen shows the game's own picture until the part above has been seen).
+- The **score bar** (score, Pokémon caught, coins, balls) moves from the game screen to the bottom of the second screen.
+- On the title and menus, the second screen shows the logo.
+- **Not tried yet:** the bonus stages.
 
 ## Summon Night: Swordcraft Story
 

@@ -115,8 +115,51 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 			uint32_t c = fg[y * GBA_W + x];
 			bool clear = inMask ? !inMask[y * GBA_W + x] : c == back[y * GBA_W + x];
 			if (p->logo.blackIsClear && (c & 0xFF) < 24 && ((c >> 8) & 0xFF) < 24 && ((c >> 16) & 0xFF) < 24) clear = true;
-			if (clear) continue;
-			opaque[y * GBA_W + x] = 1;
+			if (!clear) opaque[y * GBA_W + x] = 1;
+		}
+	}
+	if (p->logo.lightEdgeClear) {
+		/* the layer's light background (Pokemon Pinball's white, striped):
+		 * light grey to white pixels reached from the picture's edges
+		 * through others like them, not the logo's own white inside it */
+		int* stack = malloc(sizeof(int) * GBA_W * GBA_H);
+		uint8_t* seen = calloc(GBA_W * GBA_H, 1);
+		int n = 0;
+		for (int y = 0; y < maxY; ++y) {
+			for (int x = 0; x < GBA_W; ++x) {
+				if (x == 0 || y == 0 || x == GBA_W - 1 || y == maxY - 1) stack[n++] = y * GBA_W + x, seen[y * GBA_W + x] = 1;
+			}
+		}
+		while (n) {
+			int i = stack[--n], x = i % GBA_W, y = i / GBA_W;
+			uint32_t c = fg[i];
+			int r = c & 0xFF, g = (c >> 8) & 0xFF, b = (c >> 16) & 0xFF;
+			int hi = r > g ? (r > b ? r : b) : (g > b ? g : b), lo = r < g ? (r < b ? r : b) : (g < b ? g : b);
+			if (opaque[i] && !(lo >= 190 && hi - lo <= 40)) continue;
+			opaque[i] = 0;
+			const int nb[4] = { x > 0 ? i - 1 : -1, x < GBA_W - 1 ? i + 1 : -1, y > 0 ? i - GBA_W : -1, y < maxY - 1 ? i + GBA_W : -1 };
+			for (int k = 0; k < 4; ++k) {
+				if (nb[k] >= 0 && !seen[nb[k]]) seen[nb[k]] = 1, stack[n++] = nb[k];
+			}
+		}
+		free(stack);
+		free(seen);
+		/* and its white outline back: two pixels around what's left */
+		for (int pass = 0; pass < 2; ++pass) {
+			memcpy(back, opaque, GBA_W * GBA_H); /* (back's done with: a scratch copy) */
+			const uint8_t* was = (const uint8_t*) back;
+			for (int y = 0; y < maxY; ++y) {
+				for (int x = 0; x < GBA_W; ++x) {
+					int i = y * GBA_W + x;
+					if (was[i]) continue;
+					if ((x > 0 && was[i - 1]) || (x < GBA_W - 1 && was[i + 1]) || (y > 0 && was[i - GBA_W]) || (y < maxY - 1 && was[i + GBA_W])) opaque[i] = 1;
+				}
+			}
+		}
+	}
+	for (int y = 0; y < maxY; ++y) {
+		for (int x = 0; x < GBA_W; ++x) {
+			if (!opaque[y * GBA_W + x]) continue;
 			++count;
 			if (x < x0) x0 = x;
 			if (x > x1) x1 = x;

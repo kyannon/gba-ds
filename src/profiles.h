@@ -124,6 +124,22 @@ typedef struct MapProfile {
 		 * without them): THPS2's CAREER / CASH counters and button prompts */
 		SpriteRule hide[4];
 	} snap;
+	/* Logo-only games: a pinball table twice as tall over both screens
+	 * (Pokemon Pinball). While every `on` probe matches, the two screens
+	 * together show 320 rows of the table, the upper half on the top
+	 * screen: from the game's camera (the BG scroll at I/O offset camReg)
+	 * down, held up where it would run past the lowest row the camera has
+	 * shown (the ball then shows on the bottom screen only at the bottom of
+	 * the table). Rows the game isn't showing now are as it last showed
+	 * them (kept since the table came up; forgotten at a fade). The BG
+	 * layers in hudBg (the score bar) leave the game screen for the second
+	 * screen, where they were on the game's. */
+	struct {
+		MemProbe on[2];
+		uint16_t camReg; /* the vertical scroll; the horizontal one is 2 below it */
+		unsigned hudBg;
+		int rows; /* the table's height (more if the camera goes further) */
+	} tall;
 	/* A second button layout for games ported from four-face-button
 	 * consoles (Tony Hawk's: GBA L / R stand in for two face buttons). The
 	 * four-face layout puts GBA A on the top face button, B on the bottom,
@@ -341,6 +357,7 @@ typedef struct MapProfile {
 		unsigned layers; /* instead of layer: several BG layers (bit i: BG i) */
 		int objMaxY; /* with layers: sprites only above this row (0: all rows); below it, the BG layers alone */
 		bool pressStart, blackIsClear;
+		bool lightEdgeClear; /* light background around the logo, reached from the edges, is clear */
 		MacroStep steps[24]; /* instead of wait/pressStart: button steps from power-on */
 		int rev; /* bump when extraction changes, so cached logos are made again */
 		/* The logo is painted into the whole title picture: render every
