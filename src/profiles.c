@@ -1758,7 +1758,8 @@ static const MapProfile profiles[] = {
 		.menu = { { AW2_ARMY, 0xFF, 0, 1 }, { 0x030040D8, 0xFFFFFFFF, 0, 4 } },
 		.room = { { AW2_CURSOR, 0xFFFF, 0, 2 } },
 		/* the title's lettering is sprites (PRESS START! below it too) */
-		.logo = { .wait = 240, .pressStart = true, .wait2 = 100, .layers = 0x10, .maxY = 92 },
+		.logo = { .wait = 240, .pressStart = true, .wait2 = 100, .layers = 0x10, .maxY = 92,
+		          .rev = 1 /* the first builds saved it with PRESS START! */ },
 	},
 };
 
