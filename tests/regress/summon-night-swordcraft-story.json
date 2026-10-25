@@ -1,0 +1,225 @@
+{
+ "game": "Summon Night: Swordcraft Story",
+ "rules": "docs/games/summon-night-swordcraft-story.md",
+ "cases": [
+  {
+   "id": "sn-us-field",
+   "rom": "AB4E",
+   "state": "summon-night-swordcraft-story/us-field.ss",
+   "desc": "walking about at home",
+   "rules": [
+    "SN-1",
+    "SN-2",
+    "SN-4"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 400
+   },
+   "checks": [
+    {
+     "rule": "SN-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "SN-1",
+     "what": "the Status on the second screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      100,
+      80,
+      920,
+      600
+     ],
+     "color": "000000",
+     "frac": 0.5
+    },
+    {
+     "rule": "SN-2",
+     "what": "the Place bar at the bottom",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      100,
+      620,
+      920,
+      700
+     ],
+     "color": "000000",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "sn-us-menu-open",
+   "rom": "AB4E",
+   "state": "summon-night-swordcraft-story/us-menu-open.ss",
+   "desc": "the START menu open in the game",
+   "rules": [
+    "SN-1",
+    "SN-2",
+    "SN-4"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 400
+   },
+   "checks": [
+    {
+     "rule": "SN-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "SN-1",
+     "what": "the Status on the second screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      100,
+      80,
+      920,
+      600
+     ],
+     "color": "000000",
+     "frac": 0.5
+    },
+    {
+     "rule": "SN-2",
+     "what": "the Place bar at the bottom",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      100,
+      620,
+      920,
+      700
+     ],
+     "color": "000000",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "sn-us-status-open",
+   "rom": "AB4E",
+   "state": "summon-night-swordcraft-story/us-status-open.ss",
+   "desc": "the Status open in the game",
+   "rules": [
+    "SN-1",
+    "SN-2",
+    "SN-4"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 400
+   },
+   "checks": [
+    {
+     "rule": "SN-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "SN-1",
+     "what": "the Status on the second screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      100,
+      80,
+      920,
+      600
+     ],
+     "color": "000000",
+     "frac": 0.5
+    },
+    {
+     "rule": "SN-2",
+     "what": "the Place bar at the bottom",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      100,
+      620,
+      920,
+      700
+     ],
+     "color": "000000",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "sn-us-title",
+   "rom": "AB4E",
+   "state": "summon-night-swordcraft-story/us-title.ss",
+   "desc": "the title screen",
+   "rules": [
+    "SN-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 400
+   },
+   "checks": [
+    {
+     "rule": "SN-3",
+     "what": "no capture on the title",
+     "type": "no_log",
+     "match": "map updated|map capture failed"
+    }
+   ]
+  },
+  {
+   "id": "sn-jp-title",
+   "rom": "AB4J",
+   "state": "summon-night-swordcraft-story/jp-title.ss",
+   "desc": "the Japanese title screen",
+   "rules": [
+    "SN-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 400
+   }
+  },
+  {
+   "id": "sn-logo-ab4e",
+   "kind": "logo",
+   "rom": "AB4E",
+   "desc": "AB4E logo extraction",
+   "rules": [
+    "GEN-1",
+    "SN-3"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "sn-logo-ab4j",
+   "kind": "logo",
+   "rom": "AB4J",
+   "desc": "AB4J logo extraction",
+   "rules": [
+    "GEN-1",
+    "SN-3"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

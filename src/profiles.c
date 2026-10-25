@@ -391,6 +391,64 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 	return NULL;
 }
 
+/* -------------------------------------------------- Summon Night: Swordcraft Story
+ *
+ * The second screen is the Status screen (START > Status), the whole
+ * screen, with the menu's Place bar (where you are) over its bottom rows.
+ * Both are brought up on the shadow core: START (from walking about), DOWN
+ * to Status, A; the Place bar is taken from the menu on the way. Where the
+ * menu won't open (a scene, a fight), the last picture stays. (The Japanese
+ * release, Craft Sword Monogatari, has the same addresses.) */
+#define SN_MENU 0x03000120     /* 0 in the START menu, 4 on its Status screen */
+#define SN_MENU_ROW 0x03000122 /* the START menu's cursor: Status is 5 */
+#define SN_MENU_DISP 0x3340    /* DISPCNT in the menu and its screens */
+#define SN_PLACE_Y 136         /* the Place bar: the menu's rows 136-159 */
+#define SN_V_TITLE 0xF0000020  /* 1 on the title screen (BG1-3 set up as there) */
+
+static uint32_t sn_virt(Emu* e, uint32_t addr) {
+	if (addr != SN_V_TITLE) return 0;
+	return emu_read16(e, 0x0400000A) == 0x1F0B && emu_read16(e, 0x0400000C) == 0x0F06;
+}
+
+static bool sn_in(Emu* s, int menu) {
+	return emu_read16(s, 0x04000000) == SN_MENU_DISP && emu_read8(s, SN_MENU) == menu;
+}
+
+static bool sn_wait(Emu* s, int menu, int frames) {
+	for (int f = 0; f < frames && !sn_in(s, menu); ++f) emu_frame(s, 0);
+	return sn_in(s, menu);
+}
+
+static const char* sn_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	static uint32_t place[GBA_W * (GBA_H - SN_PLACE_Y)];
+	static bool havePlace;
+	static uint32_t status[GBA_W * GBA_H];
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	if (sn_in(s, 4)) {
+		/* the Status open: back to the menu for the Place bar first */
+		aw_tap(s, K_B, 1);
+		if (!sn_wait(s, 0, 90)) return "the menu didn't come back";
+	} else if (!sn_in(s, 0)) {
+		aw_tap(s, K_START, 1);
+		if (!sn_wait(s, 0, 60)) return "the menu didn't open";
+	}
+	aw_run(s, 0, 20); /* (past its fade-in) */
+	memcpy(place, &s->fb[SN_PLACE_Y * GBA_W], sizeof(place));
+	havePlace = true;
+	for (int i = 0; i < 10 && emu_read8(s, SN_MENU_ROW) != 5; ++i) aw_tap(s, K_DOWN, 1);
+	if (emu_read8(s, SN_MENU_ROW) != 5) return "Status not reached in the menu";
+	aw_tap(s, K_A, 1);
+	if (!sn_wait(s, 4, 90)) return "the Status didn't open";
+	aw_run(s, 0, 40); /* (past its fade-in) */
+	memcpy(status, s->fb, sizeof(status));
+	for (int y = 0; y < h && y < GBA_H; ++y) {
+		const uint32_t* src = havePlace && y >= SN_PLACE_Y ? &place[(y - SN_PLACE_Y) * GBA_W] : &status[y * GBA_W];
+		memcpy(&out[y * w], src, (size_t) (w < GBA_W ? w : GBA_W) * 4);
+	}
+	return NULL;
+}
+
 /* ------------------------------------------ Final Fantasy Tactics Advance
  *
  * In battles the second screen shows, at the bottom left, the Status screen
@@ -1291,6 +1349,23 @@ static const MapProfile profiles[] = {
 		 * wordmark is BG0 above the PUSH START line */
 		.logo = { .steps = { { 0, 700 }, { K_START, 4 }, { 0, 200 }, { K_A, 4 }, { 0, 150 } },
 		          .layer = 0, .maxY = 112 },
+	},
+	{
+		/* the Status screen with the menu's Place bar over its bottom:
+		 * see sn_compose */
+		.codes = { "AB4E", "AB4J" },
+		.title = "Summon Night: Swordcraft Story",
+		.compose = sn_compose,
+		.virt = sn_virt,
+		/* the GBA's own screen, scaled as the game screen is */
+		.crop_w = GBA_W,
+		.crop_h = GBA_H,
+		/* the title screen: the logo again (and no captures there) */
+		.menu = { { SN_V_TITLE, 0xFF, 1, 4 } },
+		.live = { { SN_V_TITLE, 0xFF, 0, 4 } },
+		/* the sword (BG2), the name (BG3) and its subtitle (sprites), above
+		 * PRESS START BUTTON (row 128, fading in and out) */
+		.logo = { .wait = 800, .pressStart = true, .wait2 = 200, .layers = 0x1C, .maxY = 124 },
 	},
 	{
 		.codes = { "ATHE", "ATHF", "ATHD" },

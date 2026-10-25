@@ -17,6 +17,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Advance Wars 2: Black Hole Rising (preliminary) | `AW2E` `AW2P` (no Japanese release) | in battles: your unit's intel or the battle intel, with the minimap | — |
 | Fire Emblem (Rekka no Ken in Japan; preliminary) | `AE7E` `AE7X` (English, French, German) `AE7Y` (English, Spanish, Italian) `AE7J` | on the map: the unit, terrain and goal windows and the minimap | — |
 | Sword of Mana (Shinyaku Seiken Densetsu in Japan) | `AVSE` `AVSY` (Spanish, Italian) `AVSJ` | the Status screen | — |
+| Summon Night: Swordcraft Story (Craft Sword Monogatari in Japan; preliminary) | `AB4E` `AB4J` (no European release) | the Status screen, with where you are | — |
 
 The codes are what `<CODE>` means in logo and overlay file names (see [Playing](Playing#logos) and [[Map screen surrounds and overlays]]).
 
@@ -67,6 +68,13 @@ Preliminary: a new second screen in v1.3.2, replacing the earlier one (which mov
 
 - **Always,** the second screen is a dark background with the game's logo, small and dimmed, in the middle (the title, menus and the world map too).
 - **In a battle,** at the bottom left, the **Status** screen of the unit under the cursor (or the active unit's, when the cursor isn't on one), turning between its Equip and Abilities pages every 5 seconds; at the bottom right, the **turn order** (the list L shows). Both are brought up in the background on a silent copy of the game, as the other games' maps are; your game is never paused or touched, and the game screen stays exactly as the game draws it. When they can't be brought up (the enemy's turn, a scene), the last ones stay.
+
+## Summon Night: Swordcraft Story
+
+Preliminary. The USA release and the Japanese one (Craft Sword Monogatari); there was no European release.
+
+- **While you play,** the second screen shows the **Status** screen from the START menu, at the game screen's size, with the menu's **Place** bar (where you are) over its bottom. Both are brought up in the background on a silent copy of the game; your game is never paused or touched. Where the menu can't be opened (a scene, a fight), the last picture stays.
+- On the title screen, the second screen shows the logo.
 
 ## Tony Hawk's Pro Skater 3
 
