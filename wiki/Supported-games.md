@@ -13,8 +13,9 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Tony Hawk's Pro Skater 3 | `AT3E` (USA and Europe) `AT3F` `AT3D` | the goal list; optional four-button layout | — |
 | Super Mario Advance 2: Super Mario World | `AA2E` `AA2P` `AA2J` | the SELECT menu on the world map; the status bar in levels; optional SNES layout | — |
 | Final Fantasy Tactics Advance (preliminary) | `AFXE` `AFXP` `AFXJ` | in battles: a unit's Status, the Mission, the Laws and the turn order | — |
-| Advance Wars (preliminary) | `AWRE` `AWRP` (no Japanese release) | in battles: your unit's intel or the battle intel, with the minimap | — |
-| Advance Wars 2: Black Hole Rising (preliminary) | `AW2E` `AW2P` (no Japanese release) | in battles: your unit's intel or the battle intel, with the minimap | — |
+| Advance Wars (preliminary) | `AWRE` `AWRP` (in Japan, only in Game Boy Wars Advance 1+2) | in battles: your unit's intel or the battle intel, with the minimap | — |
+| Advance Wars 2: Black Hole Rising (preliminary) | `AW2E` `AW2P` (in Japan, only in Game Boy Wars Advance 1+2) | in battles: your unit's intel or the battle intel, with the minimap | — |
+| Game Boy Wars Advance 1+2 (Japan: Advance Wars and Advance Wars 2; preliminary) | `BGWJ` | as Advance Wars and Advance Wars 2, whichever is being played | — |
 | Fire Emblem (Rekka no Ken in Japan; preliminary) | `AE7E` `AE7X` (English, French, German) `AE7Y` (English, Spanish, Italian) `AE7J` | on the map: the unit, terrain and goal windows and the minimap | — |
 | Sword of Mana (Shinyaku Seiken Densetsu in Japan) | `AVSE` `AVSY` (Spanish, Italian) `AVSJ` | the Status screen | — |
 | Summon Night: Swordcraft Story (Craft Sword Monogatari in Japan; preliminary) | `AB4E` `AB4J` (no European release) | the Status screen, with where you are | — |
@@ -102,7 +103,7 @@ The HUD is moved off the game screen rather than copied: GBA DS draws each frame
 
 ## Advance Wars and Advance Wars 2: Black Hole Rising
 
-Preliminary. The USA and European releases of both (neither came out in Japan). The two work the same way.
+Preliminary. The USA and European releases of both, and in Japan Game Boy Wars Advance 1+2, which has both games on one cartridge. The two work the same way.
 
 - **In a battle, on your turn,** the second screen is laid out after Advance Wars: Dual Strike's: at the top, the **intel of the unit under the cursor** (the screen R opens, with its text box), yours or the enemy's (yours stays while you move it and pick its action), or else the **Battle Intel** (bases and funds). At the bottom left, the **minimap** from the START button. All of it is brought up in the background from the menus of a silent copy of the game, as the other games' maps are; your game is never paused.
 - The **CO and day plate** and the **terrain and unit info** move from the game screen to the bottom of the second screen (the plate in the middle, the info on the right, on a grey box), so they no longer cover the map; the panels are drawn over them where they meet.
@@ -111,6 +112,7 @@ Preliminary. The USA and European releases of both (neither came out in Japan). 
 - **Conversations** in a battle: in Advance Wars they move to the top of the second screen, as wide as the screen, with the battle showing where they were (in the first moments of a battle, before the second screen has a picture, they stay on the game screen); in Advance Wars 2 they stay on the game screen, as the game turns the map off behind them.
 - Opening a unit's intel with R in the game leaves the plate and info on the second screen as they were.
 - **Known issue:** in Advance Wars' **Field Training** missions the second screen may not work: the tutorial blocks the menus it's built from (SELECT and START). It works fully in Campaign and Versus.
+- **Game Boy Wars Advance 1+2** (Japan): GBA DS notices which of the two games you pick from the cartridge's menu and sets the second screen up as for that game (Game Boy Wars Advance as Advance Wars, Game Boy Wars Advance 2 as Advance Wars 2). On the cartridge's own title and menu, and on both games' titles, the second screen shows the cartridge's logo. Game Boy Wars Advance has so far been tried only in its first Field Training mission (with the known issue above); its campaign and versus battles are still to be checked.
 
 ## Fire Emblem
 

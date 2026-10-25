@@ -440,6 +440,11 @@ typedef struct MapProfile {
 	 * small and dimmed, in the middle. */
 	MemProbe combat[2];
 	MemProbe combatOr[2]; /* or while every one of these matches (the enemy's turn) */
+	/* A compilation of games with their own RAM (Game Boy Wars Advance 1+2):
+	 * the code of the profile for the game running now (one of the
+	 * variants), NULL while none is (its own menus: this profile). Checked
+	 * on the live game; the second screen is set up again when it changes. */
+	const char* (*pick)(Emu* e);
 } MapProfile;
 
 const MapProfile* profile_find(const char* gameCode);

@@ -186,6 +186,8 @@ static void ahead_stop(void) {
 	ahead.started = false;
 }
 static MapCapture* mc;
+static const MapProfile* pickProf; /* a compilation's profile (pick), or NULL */
+static char subCode[5];          /* the profile in use: the game's code, or what pickProf picked */
 static GamePaths gp;
 
 static SDL_Texture* gameTex[2];
@@ -2613,42 +2615,23 @@ static void take_screenshot(void) {
 
 /* ---------------------------------------------------------------- session */
 
-enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
-	cfg = c;
-	debug = getenv("GBADS_DEBUG") != NULL;
-	game_paths(cfg, rom, &gp);
-	if (!emu_open(&emu, rom, gp.sav, true)) {
-		ui_osd("Couldn't load the game");
-		return fromLibrary ? GAME_TO_LIBRARY : GAME_QUIT_APP;
-	}
-	fprintf(stderr, "game %s (%s), save %s\n", gp.base, emu.gameCode, gp.sav);
-#ifdef __wasi__
-	webPlaying = true;
-#endif
-	ra_game_start(&emu, rom);
-	cheats_load(&cheats, cfg, rom, emu.gameCode, gp.cheats);
-	if (cheats_on(&cheats)) cheats_apply(&cheats, &emu);
-	cheatsOpen = false;
-	ui_on_background(on_background);
-	ui_on_foreground(on_foreground);
-
-	mc = NULL;
-	gameTexAll = true;
+/* The second screen's set-up for the profile with this code (the game's,
+ * or for a compilation the game running in it: subCode): the map capture,
+ * the HUD split, the fights' picture. */
+static void ss_setup(const char* rom, const char* code) {
 	mapW = GBA_W;
 	mapH = GBA_H;
 	memset(&mapRes, 0, sizeof(mapRes));
 	mapShownIdx = -1;
 	stillValid = false;
 	mapInactive = false;
-	frameCount = 0;
 	singleShowsMap = false;
-	menuOpen = false;
 	logoOnly = false;
 	snapProf = NULL;
 	hudProf = NULL;
 	hudOn = false;
 	{
-		const MapProfile* cp = profile_find(emu.gameCode);
+		const MapProfile* cp = profile_find(code);
 		ctlProf = cp && (cp->controls.fourFace || cp->controls.snes.bottom) ? cp : NULL;
 		snesHere = false;
 		if (ctlProf) {
@@ -2660,8 +2643,8 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 #ifdef __ANDROID__
 		android_set_pinning(cfg->pinCores);
 #endif
-		mc = mapcap_create(rom, emu.gameCode, cfg->mapCrop);
-		const MapProfile* lp = profile_find(emu.gameCode);
+		mc = mapcap_create(rom, code, cfg->mapCrop);
+		const MapProfile* lp = profile_find(code);
 		memprobe_virtual = lp ? lp->virt : NULL;
 		logoOnly = lp && lp->logoOnly;
 		snapProf = logoOnly && lp->snap.showMin ? lp : NULL;
@@ -2701,31 +2684,93 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			fprintf(stderr, "map profile: %s\n", mapcap_title(mc));
 			mapcap_size(mc, &mapW, &mapH);
 			/* the full map is always up, so hide the game's own corner mini-map */
-			const MapProfile* prof = profile_find(emu.gameCode);
+			const MapProfile* prof = profile_find(code);
 			int nRules = 0;
 			while (prof && nRules < 4 && prof->hideSprites[nRules].x1) ++nRules;
 			emu_hide_sprites(&emu, prof ? prof->hideSprites : NULL, nRules);
 		} else if (!logoOnly) {
-			fprintf(stderr, "no map profile for %s\n", emu.gameCode);
+			fprintf(stderr, "no map profile for %s\n", code);
 		}
 	}
+}
+
+/* the textures the second screen's set-up needs (again after a switch) */
+static void ss_textures(void) {
 	for (int i = 0; i < nViews; ++i) {
-		gameTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, GBA_W, GBA_H);
+		if (mapTex[i]) SDL_DestroyTexture(mapTex[i]);
+		if (combatTex[i]) SDL_DestroyTexture(combatTex[i]);
+		if (hudTex[i]) SDL_DestroyTexture(hudTex[i]);
 		mapTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, mapW, mapH);
 		combatTex[i] = combatProf ? SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, mapW, mapH) : NULL;
 		if (combatTex[i]) SDL_SetTextureBlendMode(combatTex[i], SDL_BLENDMODE_NONE);
 		hudTex[i] = hudProf ? SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, HUD_CW, HUD_CH) : NULL;
 		if (hudTex[i]) SDL_SetTextureBlendMode(hudTex[i], SDL_BLENDMODE_NONE);
-		SDL_SetTextureBlendMode(gameTex[i], SDL_BLENDMODE_NONE);
 		SDL_SetTextureBlendMode(mapTex[i], SDL_BLENDMODE_NONE);
 	}
+}
 
+/* A compilation (profile.pick): the game running in it changed, so the
+ * second screen is set up again for that game's profile. */
+static void ss_switch(const char* rom, const char* code) {
+	fprintf(stderr, "frame %llu: now %s\n", (unsigned long long) frameCount, code);
+	snprintf(subCode, sizeof(subCode), "%.4s", code);
+	if (hudOn) emu_hud_split(&emu, false, 0, NULL, 0, hudPx); /* (the old game's HUD split off) */
+	emu_hide_sprites(&emu, NULL, 0);
+	mapcap_destroy(mc);
+	mc = NULL;
+	for (int i = 0; i < MAP_MAX_FRAMES; ++i) {
+		free(mapRes.frames[i]);
+		mapRes.frames[i] = NULL;
+	}
+	ss_setup(rom, subCode);
+	ss_textures();
+	mapframe_free(&mf);
+	mapframe_init(&mf, mc ? profile_find(subCode) : NULL, mapW, mapH);
+	canvasTexW = canvasTexH = 0;
+	make_logo_canvas();
+}
+
+enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
+	cfg = c;
+	debug = getenv("GBADS_DEBUG") != NULL;
+	game_paths(cfg, rom, &gp);
+	if (!emu_open(&emu, rom, gp.sav, true)) {
+		ui_osd("Couldn't load the game");
+		return fromLibrary ? GAME_TO_LIBRARY : GAME_QUIT_APP;
+	}
+	fprintf(stderr, "game %s (%s), save %s\n", gp.base, emu.gameCode, gp.sav);
+#ifdef __wasi__
+	webPlaying = true;
+#endif
+	ra_game_start(&emu, rom);
+	cheats_load(&cheats, cfg, rom, emu.gameCode, gp.cheats);
+	if (cheats_on(&cheats)) cheats_apply(&cheats, &emu);
+	cheatsOpen = false;
+	ui_on_background(on_background);
+	ui_on_foreground(on_foreground);
+
+	mc = NULL;
+	gameTexAll = true;
+	frameCount = 0;
+	menuOpen = false;
+	{
+		/* a compilation: the profile of the game running in it (none yet) */
+		const MapProfile* gp = profile_find(emu.gameCode);
+		pickProf = gp && gp->pick ? gp : NULL;
+		snprintf(subCode, sizeof(subCode), "%.4s", emu.gameCode);
+	}
+	ss_setup(rom, subCode);
+	for (int i = 0; i < nViews; ++i) {
+		gameTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, GBA_W, GBA_H);
+		SDL_SetTextureBlendMode(gameTex[i], SDL_BLENDMODE_NONE);
+	}
+	ss_textures();
 	unsigned bc = (unsigned) strtoul(cfg->borderColor, NULL, 16);
 	borderColor = (SDL_Color) { (bc >> 16) & 0xFF, (bc >> 8) & 0xFF, bc & 0xFF, 255 };
 	overlayMode[0][0] = overlayMode[1][0] = 0;
 	uint32_t logoGen = logo_generation();
 	if (ui_load_logo(cfg, rom, emu.gameCode, logoTex, &logoW, &logoH, &logoPixel)) make_logo_canvas();
-	mapframe_init(&mf, mc ? profile_find(emu.gameCode) : NULL, mapW, mapH);
+	mapframe_init(&mf, mc ? profile_find(subCode) : NULL, mapW, mapH);
 	canvasTexW = canvasTexH = 0;
 	snprintf(framePath, sizeof(framePath), "%s/frames", cfg->stateDir);
 	mkdirs(framePath);
@@ -3278,6 +3323,13 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		if (cfg->rewind && !rewinding && (rewindTick += runs) >= 2) {
 			emu_rewind_append(&emu);
 			rewindTick = 0;
+		}
+
+		/* ---- a compilation: the game running in it */
+		if (pickProf && frameCount % 15 == 0) {
+			const char* pc = pickProf->pick(&emu);
+			if (!pc) pc = emu.gameCode;
+			if (strncmp(pc, subCode, 4)) ss_switch(rom, pc);
 		}
 
 		/* ---- map refresh */

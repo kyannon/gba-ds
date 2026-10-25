@@ -39,6 +39,14 @@
 #define AW2_UNITS 0x02022684
 #define AW2_MENU_ROW 0x030014B2
 #define AW2_MINIMAP_OPEN 0x0300148E
+/* Game Boy Wars Advance 1+2 (Japan): game 1 (Advance Wars) and game 2
+ * (Advance Wars 2) */
+#define GBW1_ARMY 0x030033A8
+#define GBW1_CURSOR 0x030031B0
+#define GBW1_UNITS 0x0201A138
+#define GBW2_ARMY 0x030005D8
+#define GBW2_CURSOR 0x03003250
+#define GBW2_UNITS 0x02022574
 /* the weather's sprites: rain (tiles 169, 171), in OBJ palette 2 */
 #define AW_WEATHER { -512, -256, 511, 255, 160, 191, 0, 1u << 2, 0 }
 #define AW_PALS(n) (1u << (n))
@@ -57,9 +65,26 @@ static const AwRegion awRegions[] = {
 	{ AW_ARMY, AW_CURSOR, AW_UNITS, AW_MENU_ROW, AW_MINIMAP_OPEN, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000ED0, 0x082E3FD4 } },
 	/* (its SELECT menu has no Unit item: CO, Intel, Options, Save, End) */
 	{ AW2_ARMY, AW2_CURSOR, AW2_UNITS, AW2_MENU_ROW, AW2_MINIMAP_OPEN, 1, { { 200, 100, 0xFFEFEF }, { 120, 140, 0xFFEFEF } }, 152, { 0x03001530, 0x0849E2C0 } },
+	/* Game Boy Wars Advance 1+2 (Japan): each game at its own addresses
+	 * (game 1's found by the literal pools around its code: 0x240 lower
+	 * than Advance Wars' above 0x03003000, 0x10 lower around 0x03000E00;
+	 * the unit intel's routine by its shape; game 2's by watching them) */
+	{ GBW1_ARMY, GBW1_CURSOR, GBW1_UNITS, 0x03000E40, 0x03000E1E, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000EC0, 0x08DEC9D8 } },
+	{ GBW2_ARMY, GBW2_CURSOR, GBW2_UNITS, AW2_MENU_ROW, AW2_MINIMAP_OPEN, 1, { { 200, 100, 0xFFEFEF }, { 120, 140, 0xFFEFEF } }, 152, { 0x03001530, 0x0881A0A4 } },
 };
 
+/* Game Boy Wars Advance 1+2: which game is running, by where the
+ * interrupt handler is (game 1 runs it from IWRAM, game 2 from the
+ * ROM; the compilation's own menus elsewhere): 1, 2, or 0 */
+#define GBW_IRQ1 0x03000708
+#define GBW_IRQ2 0x083000FC
+static int gbw_game(Emu* s) {
+	uint32_t v = emu_read32(s, 0x03007FFC);
+	return v == GBW_IRQ1 ? 1 : v == GBW_IRQ2 ? 2 : 0;
+}
+
 static const AwRegion* aw_r(Emu* s) {
+	if (!strncmp(s->gameCode, "BGWJ", 4)) return &awRegions[gbw_game(s) == 1 ? 2 : 3];
 	return &awRegions[s->gameCode[2] == '2' ? 1 : 0];
 }
 
@@ -394,6 +419,11 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 		}
 	}
 	return NULL;
+}
+
+static const char* gbw_pick(Emu* e) {
+	int g = gbw_game(e);
+	return g == 1 ? "BGW1" : g == 2 ? "BGW2" : NULL;
 }
 
 /* -------------------------------------------------- Summon Night: Swordcraft Story
@@ -1834,6 +1864,18 @@ static const MapProfile profiles[] = {
 		.logo = { .wait = 240, .pressStart = true, .wait2 = 100, .layers = 0x10, .maxY = 92,
 		          .rev = 1 /* the first builds saved it with PRESS START! */ },
 	},
+	{
+		/* Game Boy Wars Advance 1+2 (Japan): Advance Wars and Advance Wars 2,
+		 * each with its own code and RAM, picked from the compilation's
+		 * menu. Its own menus: the logo; in either game, that game's
+		 * profile (the BGW1 and BGW2 variants), switched to by gbw_pick */
+		.codes = { "BGWJ" },
+		.title = "Game Boy Wars Advance 1+2",
+		.logoOnly = true,
+		.pick = gbw_pick,
+		/* the title's lettering is sprites (PRESS START! below it too) */
+		.logo = { .wait = 640, .layers = 0x10, .maxY = 92 },
+	},
 };
 
 /* ---------------------------------------------------------------- regions
@@ -1890,6 +1932,29 @@ static void som_jpn(MapProfile* p) {
 static void aw_eur(MapProfile* p) {
 	static const MacroStep lang[] = { { 0, 180 }, { K_A, 4 } };
 	insert_steps(p->logo.steps, 24, 0, lang, 2);
+}
+
+/* Game Boy Wars Advance 1+2's two games: as Advance Wars and Advance
+ * Wars 2, at their addresses there (the compose code's: awRegions) */
+static void gbw_set(MapProfile* p, uint32_t army, uint32_t cursor, uint32_t menu) {
+	p->hud.on[0].addr = army;
+	p->combat[0].addr = army;
+	p->live[0].addr = army;
+	p->menu[0].addr = army;
+	p->menu[1].addr = menu;
+	p->room[0].addr = cursor;
+	p->hud.moves[0].latch = army;
+	memset(&p->logo, 0, sizeof(p->logo)); /* (the compilation's: BGWJ) */
+}
+
+static void gbw1(MapProfile* p) {
+	p->title = "Game Boy Wars Advance 1+2: Game Boy Wars Advance";
+	gbw_set(p, GBW1_ARMY, GBW1_CURSOR, 0x03004224);
+}
+
+static void gbw2(MapProfile* p) {
+	p->title = "Game Boy Wars Advance 1+2: Game Boy Wars Advance 2";
+	gbw_set(p, GBW2_ARMY, GBW2_CURSOR, 0x03004248);
 }
 
 static void thps2_jpn(MapProfile* p) {
@@ -1973,6 +2038,9 @@ static const Variant variants[] = {
 	{ "AWRP", "AWRE", 0, aw_eur },
 	/* (the same RAM as the USA release; a language menu first too) */
 	{ "AW2P", "AW2E", 0, aw_eur },
+	/* (the two games in Game Boy Wars Advance 1+2: BGWJ's pick) */
+	{ "BGW1", "AWRE", 0, gbw1 },
+	{ "BGW2", "AW2E", 0, gbw2 },
 	/* (Sword of Mana's ring address: SomRegion) */
 	{ "AVSY", "AVSE", 0, som_eur },
 	{ "AVSJ", "AVSE", 0, som_jpn },

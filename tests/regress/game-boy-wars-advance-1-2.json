@@ -1,0 +1,294 @@
+{
+ "game": "Game Boy Wars Advance 1+2",
+ "rules": "docs/games/game-boy-wars-advance-1-2.md",
+ "cases": [
+  {
+   "id": "gbw-jp-title",
+   "rom": "BGWJ",
+   "state": "game-boy-wars-advance-1-2/jp-title.ss",
+   "desc": "the compilation's title",
+   "rules": [
+    "GBW-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 300
+   },
+   "checks": [
+    {
+     "rule": "GBW-1",
+     "what": "the compilation's own profile",
+     "type": "log",
+     "match": "logo only: Game Boy Wars Advance 1.2"
+    },
+    {
+     "rule": "GBW-1",
+     "what": "no game's profile",
+     "type": "no_log",
+     "match": "now BGW"
+    }
+   ]
+  },
+  {
+   "id": "gbw-jp-pick-game",
+   "rom": "BGWJ",
+   "state": "game-boy-wars-advance-1-2/jp-pick-game.ss",
+   "desc": "picking a game",
+   "rules": [
+    "GBW-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 300
+   },
+   "checks": [
+    {
+     "rule": "GBW-1",
+     "what": "no game's profile",
+     "type": "no_log",
+     "match": "now BGW"
+    }
+   ]
+  },
+  {
+   "id": "gbw-jp-1-field-training",
+   "rom": "BGWJ",
+   "state": "game-boy-wars-advance-1-2/jp-1-field-training.ss",
+   "desc": "game 1's Field Training (known issue: no panels)",
+   "rules": [
+    "GBW-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "GBW-2",
+     "what": "game 1's profile",
+     "type": "log",
+     "match": "now BGW1"
+    }
+   ]
+  },
+  {
+   "id": "gbw-jp-2-cursor-unit",
+   "rom": "BGWJ",
+   "state": "game-boy-wars-advance-1-2/jp-2-cursor-unit.ss",
+   "desc": "game 2: the cursor on your unit",
+   "rules": [
+    "GBW-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "GBW-3",
+     "what": "game 2's profile",
+     "type": "log",
+     "match": "now BGW2"
+    },
+    {
+     "rule": "GBW-3",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "GBW-3",
+     "what": "the unit intel at the top",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      150,
+      20,
+      870,
+      300
+     ],
+     "color": "182438",
+     "frac": 0.97
+    },
+    {
+     "rule": "GBW-3",
+     "what": "the minimap at the bottom left",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      10,
+      640,
+      200,
+      750
+     ],
+     "color": "182438",
+     "frac": 0.9
+    }
+   ]
+  },
+  {
+   "id": "gbw-jp-2-cursor-hq",
+   "rom": "BGWJ",
+   "state": "game-boy-wars-advance-1-2/jp-2-cursor-hq.ss",
+   "desc": "game 2: the cursor on the HQ, no unit (Battle Intel)",
+   "rules": [
+    "GBW-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "GBW-3",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "GBW-3",
+     "what": "the Battle Intel at the top",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      60,
+      20,
+      960,
+      300
+     ],
+     "color": "182438",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "gbw-jp-2-intel-open",
+   "rom": "BGWJ",
+   "state": "game-boy-wars-advance-1-2/jp-2-intel-open.ss",
+   "desc": "game 2: the Battle Intel open in the game",
+   "rules": [
+    "GBW-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "GBW-3",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "gbw-jp-2-conversation",
+   "rom": "BGWJ",
+   "state": "game-boy-wars-advance-1-2/jp-2-conversation.ss",
+   "desc": "game 2: a conversation on the first map (stays on the game screen)",
+   "rules": [
+    "GBW-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": []
+  },
+  {
+   "id": "gbw-jp-switching",
+   "rom": "BGWJ",
+   "state": "game-boy-wars-advance-1-2/jp-title.ss",
+   "desc": "the title, then game 2's battle, then the title again",
+   "rules": [
+    "GBW-4"
+   ],
+   "input": [
+    [
+     150,
+     "LOAD:game-boy-wars-advance-1-2/jp-2-cursor-unit.ss"
+    ],
+    [
+     450,
+     "LOAD:game-boy-wars-advance-1-2/jp-title.ss"
+    ]
+   ],
+   "shots": {
+    "title": 120,
+    "game2": 420,
+    "back": 700
+   },
+   "checks": [
+    {
+     "rule": "GBW-4",
+     "what": "switched to game 2",
+     "type": "log",
+     "match": "now BGW2"
+    },
+    {
+     "rule": "GBW-4",
+     "what": "and back",
+     "type": "log",
+     "match": "now BGWJ"
+    },
+    {
+     "rule": "GBW-4",
+     "what": "game 2's unit intel",
+     "type": "not_uniform",
+     "shot": "game2",
+     "screen": "second",
+     "rect": [
+      150,
+      20,
+      870,
+      300
+     ],
+     "color": "182438",
+     "frac": 0.97
+    },
+    {
+     "rule": "GBW-4",
+     "what": "the logo again, as at first",
+     "type": "same",
+     "a": {
+      "shot": "title",
+      "screen": "second",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "back",
+      "screen": "second",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "gbw-logo-bgwj",
+   "kind": "logo",
+   "rom": "BGWJ",
+   "desc": "BGWJ logo extraction",
+   "rules": [
+    "GEN-1",
+    "GBW-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}
