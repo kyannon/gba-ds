@@ -288,8 +288,8 @@
     },
     {
      "rule": "AW2-7",
-     "what": "still on the game screen",
-     "type": "not_uniform",
+     "what": "gone from the game screen",
+     "type": "uniform",
      "shot": "end",
      "screen": "game",
      "rect": [
@@ -299,7 +299,7 @@
       140
      ],
      "color": "000000",
-     "frac": 0.5
+     "frac": 0.95
     }
    ]
   },

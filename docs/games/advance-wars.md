@@ -25,8 +25,8 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **AW-6. Title and menus.** On the title and menus the second screen shows the logo.
 
-**AW-7. Conversations.** A conversation during a battle (the tutorial's, Field Training's) is copied to the top of the second screen, as wide as the screen, over the panels; it stays on the game screen too. *By hand: the only conversation state (Field Training) never gets a second-screen picture to put it on (see Known issues); check a campaign conversation on the device.*
+**AW-7. Conversations.** A conversation during a battle moves to the top of the second screen, as wide as the screen, over the panels, and leaves the game screen (the map shows where it was). Until the second screen has a picture to put it on (the battle's first moments, Field Training), it stays on the game screen. *By hand: the only conversation state (Field Training) never gets a second-screen picture (see Known issues); check a campaign conversation on the device.*
 
 ## Known issues
 
-Known issue: in Field Training the tutorial blocks SELECT and START, so the panels can't be brought up; the plate and info still move, and its conversations stay on the game screen only.
+Known issue: in Field Training the tutorial blocks SELECT and START, so the panels can't be brought up; the plate and info still move, and its conversations stay on the game screen.

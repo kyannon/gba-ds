@@ -315,10 +315,12 @@ typedef struct MapProfile {
 		 * whose pieces move round the screen (Fire Emblem's windows),
 		 * instead of the moves' own boxes */
 		void (*findPieces)(Emu* e, const uint32_t* hud, uint32_t clear, int box[4][4]);
-		/* Lines where a BG layer has one of these BGxCNT values: that layer
-		 * goes into the HUD there too (emu_hud_band; copy: and stays on the
-		 * game screen). Advance Wars 2's conversations. */
-		struct { uint16_t cnt[2]; bool copy; } band;
+		/* Boxes drawn across part of the screen with their own layer
+		 * settings and the sprites off on their lines (Advance Wars'
+		 * conversations): those layers go into the HUD there too
+		 * (emu_hud_band), and leave the game screen once the second
+		 * screen has a picture to put them on. */
+		bool band;
 		/* hud.overMap: the logo, small and dimmed, behind everything in
 		 * the map picture (as in a fight: profile.combat) */
 		bool logoUnder;

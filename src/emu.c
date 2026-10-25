@@ -517,9 +517,9 @@ static Split split;
 static uint32_t gameRegAddr;
 static uint16_t gameRegBits;
 /* emu_hud_band (kept across installs) */
-static uint16_t bandCnt[2];
-static bool bandCopy;
+static bool bandOn, bandCopy;
 static int lastBandY0, lastBandY1 = -1;
+static uint16_t bandNormal[4]; /* each BG's BGxCNT on the lines outside the band (0: not seen yet) */
 
 static void filtered_draw_scanline(struct GBAVideoRenderer* renderer, int y);
 
@@ -590,13 +590,30 @@ static void split_draw(struct GBAVideoRenderer* r, int y) {
 			split.hud.outputBuffer = (mColor*) split.grabBuf;
 			split_layers(split.grabMask, false);
 		}
-		if (bandCnt[0] && !split.prioBelow) {
-			/* the band's layers on its lines: into the HUD, and out of the
-			 * game unless they're copied */
+		if (bandOn && !split.prioBelow) {
+			/* the band: lines with sprites off (the rest of the screen has
+			 * them on) where layers are set up differently from elsewhere:
+			 * those layers go into the HUD, and out of the game unless
+			 * they're copied. Not when last frame's band was most of the
+			 * screen (a full-screen scene, not a box). */
+			const uint16_t* io = split.gba->memory.io;
 			unsigned band = 0;
-			for (int i = 0; i < 2 && bandCnt[i]; ++i) band |= bgs_with_cnt(bandCnt[i]);
-			if (y == 0) split.bandY0 = GBA_H, split.bandY1 = -1;
-			if (band) split.bandY0 = y < split.bandY0 ? y : split.bandY0, split.bandY1 = y;
+			static bool inBand;
+			static int tail; /* lines of the box with the sprites back on */
+			if (y == 0) split.bandY0 = GBA_H, split.bandY1 = -1, inBand = false;
+			unsigned differs = 0;
+			for (int i = 0; i < 4; ++i) {
+				if (((io[0] >> (8 + i)) & 1) && bandNormal[i] && io[(0x08 >> 1) + i] != bandNormal[i]) differs |= 1u << i;
+			}
+			/* (the box's last few lines can have the sprites back on already) */
+			if (!(io[0] & 0x1000)) inBand = true, tail = 0;
+			else inBand = inBand && differs && ++tail <= 8;
+			if (!inBand) {
+				for (int i = 0; i < 4; ++i) bandNormal[i] = io[(0x08 >> 1) + i];
+			} else {
+				if (lastBandY1 - lastBandY0 < 100) band = differs;
+				split.bandY0 = y < split.bandY0 ? y : split.bandY0, split.bandY1 = y;
+			}
 			unsigned hud = split.bgMask | band, game = split.bgMask | (bandCopy ? 0 : band);
 			if (game != split.lineGame) {
 				split.lineGame = game;
@@ -612,7 +629,7 @@ static void split_draw(struct GBAVideoRenderer* r, int y) {
 	split.drawScanline(r, y);
 }
 static void split_finish(struct GBAVideoRenderer* r) {
-	if (split.active && bandCnt[0]) lastBandY0 = split.bandY0, lastBandY1 = split.bandY1;
+	if (split.active && bandOn) lastBandY0 = split.bandY0, lastBandY1 = split.bandY1;
 	split.finishFrame(r);
 	split.hud.d.finishFrame(&split.hud.d);
 	if (split.grabbing) {
@@ -719,15 +736,16 @@ bool emu_hud_split(Emu* e, bool on, unsigned bgMask, const SpriteRule* objs, int
 	return true;
 }
 
-void emu_hud_band(uint16_t cnt0, uint16_t cnt1, bool copy) {
-	bandCnt[0] = cnt0;
-	bandCnt[1] = cnt1;
+void emu_hud_band(bool on, bool copy) {
+	if (on != bandOn) memset(bandNormal, 0, sizeof(bandNormal)), lastBandY0 = 0, lastBandY1 = -1;
+	bandOn = on;
 	bandCopy = copy;
 }
 
 bool emu_hud_band_rows(int* y0, int* y1) {
 	*y0 = lastBandY0, *y1 = lastBandY1;
-	return lastBandY1 >= lastBandY0;
+	/* (a band that's most of the screen isn't one) */
+	return lastBandY1 >= lastBandY0 && lastBandY1 - lastBandY0 < 100;
 }
 
 void emu_hud_game_reg(uint32_t addr, uint16_t bits) {

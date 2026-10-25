@@ -1534,10 +1534,10 @@ static const MapProfile profiles[] = {
 			            * where it is over the info, over the panels */
 			           { 0, 56, 239, 103, 'L', 0, 'T', 0, .follow = 2 },
 			           { 0, 0, 239, 159, 'L', 0, 'T', 0, .wide = true, .dropAfter = 2 } },
-			/* a conversation (the tutorial's, Field Training's: its own BG0
-			 * and BG2 settings on its lines), copied to the top of the second
-			 * screen, as wide as it is */
-			.band = { { 0x0C00, 0x0D08 }, true },
+			/* a conversation (its own layer settings on its lines, no
+			 * sprites there): to the top of the second screen, as wide
+			 * as it is */
+			.band = true,
 			.findPieces = aw_find_pieces,
 			.overMap = true,
 			.mapClear = AW_BG,
@@ -1585,9 +1585,10 @@ static const MapProfile profiles[] = {
 			            * where it is over the info, over the panels */
 			           { 0, 56, 239, 103, 'L', 0, 'T', 0, .follow = 2 },
 			           { 0, 0, 239, 159, 'L', 0, 'T', 0, .wide = true, .dropAfter = 2 } },
-			/* a conversation (its own BG0 and BG1 settings on its lines),
-			 * copied to the top of the second screen, as wide as it is */
-			.band = { { 0x0D00, 0x1C08 }, true },
+			/* a conversation (its own layer settings on its lines, no
+			 * sprites there): to the top of the second screen, as wide
+			 * as it is */
+			.band = true,
 			.findPieces = aw_find_pieces,
 			.overMap = true,
 			.mapClear = AW_BG,

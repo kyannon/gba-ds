@@ -25,9 +25,8 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **AW2-6. Title and menus.** On the title and menus the second screen shows the logo (the title's lettering, without PRESS START!).
 
-**AW2-7. Conversations.** A conversation during a battle (the tutorial's) is copied to the top of the second screen, as wide as the screen, over the panels; it stays on the game screen too. While it's up nothing else changes (the panels can't be brought up behind it).
+**AW2-7. Conversations.** A conversation during a battle moves to the top of the second screen, as wide as the screen, over the panels, and leaves the game screen (a black strip where it was: the game turns the map off on those lines). Until the second screen has a picture to put it on, it stays on the game screen. While it's up nothing else changes (the panels can't be brought up behind it).
 
 ## Known issues
 
 - The DAMAGE box (picking a target) isn't moved yet: no state to find its sprites with.
-- Conversations are recognised by the layer settings seen at the top of the screen in the tutorial; one at the bottom may use others and stay on the game screen only.
