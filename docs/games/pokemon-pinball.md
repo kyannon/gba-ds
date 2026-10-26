@@ -17,13 +17,15 @@ Unlike the other games, nothing is brought up on a hidden copy: the second scree
 
 **PP-1. The table over both screens.** On a table, the two screens together show 320 rows of it, the upper 160 on the top screen and the next 160 on the bottom one. The view starts at the game's camera and goes down from there, but stops at the table's bottom: so the ball stays on the top screen except near the flippers, when the camera's at the bottom of the table and the ball shows on the bottom screen.
 
-**PP-2. Rows the game isn't drawing.** The rows outside the game's camera are as the game last drew them (their animations stand still until the camera comes back); rows it hasn't drawn since the table came up are black. Until the rows above the camera have been seen (after loading a state at the bottom of the table), the top screen shows the game's own picture. A fade forgets them all (another table may follow).
+**PP-2. Rows the game isn't drawing.** The rows outside the game's camera are as the game last drew them (their animations stand still until the camera comes back), each line where the game drew it (its scroll can change partway down a frame), never one the game had brightened or darkened at the time; rows it hasn't drawn since the table came up are black. Until the rows above the camera have been seen (after loading a state at the bottom of the table), the top screen shows the game's own picture. A fade forgets them all (another table may follow).
 
 **PP-3. Score bar.** The score bar (the score, the Pokémon caught, the coins and the balls) leaves the game screen for the bottom of the second screen, where it was on the game's.
 
 **PP-4. Title and menus.** On the title, the menus and the field select, the second screen shows the logo (the title's, without its white background or PRESS START).
 
 **PP-5. Swapped screens.** With the screens swapped, the upper rows stay on the top screen (the second screen then) and the game screen shows the lower ones, with the score bar on the top screen.
+
+**PP-7. Events.** While the game puts something over the table on the score bar's layer (more than the catch timer: a Pokémon caught, the Pokémon Mart), the game screen shows the game's own picture, as it draws it, and the second screen the table's rows below it as last seen; nothing is kept from those frames. The table over both screens comes back a few frames after it's gone. (Until v1.3.2's later test builds the event was split between the screens.)
 
 **PP-6. One screen.** With one screen, the game plays as it is. *By hand: with `layout = single` on the device.*
 

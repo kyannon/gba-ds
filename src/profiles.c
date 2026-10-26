@@ -1481,6 +1481,7 @@ static const MapProfile profiles[] = {
 			.camReg = 0x1E, /* BG3VOFS (BG1 and BG2 scroll with it) */
 			.hudBg = 0x01,
 			.rows = 432, /* (Ruby's and Sapphire's: the camera's 0-272) */
+			.hudRow = 144,
 		},
 		/* the title's logo is BG1, on its own white striped background
 		 * (cleared from the edges in), above PRESS START */

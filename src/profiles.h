@@ -139,6 +139,9 @@ typedef struct MapProfile {
 		uint16_t camReg; /* the vertical scroll; the horizontal one is 2 below it */
 		unsigned hudBg;
 		int rows; /* the table's height (more if the camera goes further) */
+		/* the score bar's first row: hudBg with more on it above (not just
+		 * a timer) is an event over the table, shown as the game has it */
+		int hudRow;
 	} tall;
 	/* A second button layout for games ported from four-face-button
 	 * consoles (Tony Hawk's: GBA L / R stand in for two face buttons). The

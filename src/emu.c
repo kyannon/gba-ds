@@ -570,7 +570,19 @@ static unsigned bgs_below(int p) {
 	return m;
 }
 
+/* each line's scroll and colour effect as drawn (emu_line_regs) */
+static uint16_t lineVofs[GBA_H], lineHofs[GBA_H];
+static bool lineFx[GBA_H];
+static int lineReg = -1; /* the BGxHOFS offset whose pair is recorded; -1: none */
+
 static void split_draw(struct GBAVideoRenderer* r, int y) {
+	if (lineReg >= 0 && y < GBA_H) {
+		const uint16_t* io = split.gba->memory.io;
+		lineHofs[y] = io[lineReg >> 1], lineVofs[y] = io[(lineReg + 2) >> 1];
+		/* brightness up or down, any amount */
+		int mode = (io[0x50 >> 1] >> 6) & 3;
+		lineFx[y] = (mode == 2 || mode == 3) && (io[0x54 >> 1] & 0x1F);
+	}
 	if (split.active) {
 		if (split.prioBelow) {
 			/* the game moves its map and menus between layers (between
@@ -734,6 +746,23 @@ bool emu_hud_split(Emu* e, bool on, unsigned bgMask, const SpriteRule* objs, int
 		split.hud.d.writeVideoRegister(&split.hud.d, gameRegAddr, hud_reg(gameRegAddr, on ? v & ~gameRegBits : v));
 	}
 	return true;
+}
+
+void emu_hud_copy(Emu* e, bool copy) {
+	struct GBA* gba = e->core->board;
+	struct GBAVideoRenderer* r = gba->video.renderer;
+	if (!r || !split.installed || !split.active) return;
+	for (int i = 0; i < 4; ++i) r->disableBG[i] = !copy && ((split.bgMask >> i) & 1);
+}
+
+void emu_line_regs_watch(int hofsReg) {
+	lineReg = hofsReg;
+}
+
+void emu_line_regs(uint16_t* hofs, uint16_t* vofs, bool* fx) {
+	memcpy(hofs, lineHofs, sizeof(lineHofs));
+	memcpy(vofs, lineVofs, sizeof(lineVofs));
+	memcpy(fx, lineFx, sizeof(lineFx));
 }
 
 void emu_hud_band(bool on, bool copy, bool watch) {

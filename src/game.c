@@ -230,6 +230,7 @@ static uint32_t tallRows[TALL_W * TALL_H], tallTop[GBA_W * GBA_H], tallBot[GBA_W
 static uint8_t tallHave[TALL_H];
 static int tallLo, tallHi; /* the rows the camera has shown since the table came up */
 static bool tallOn;        /* the table's up: the screens show it */
+static bool tallEvent;     /* an event over it: the game screen shows the game's own picture */
 /* Mario Kart: the race HUD on the second screen (profile .hud) */
 static const MapProfile* hudProf;
 static uint32_t hudPx[GBA_W * GBA_H];
@@ -1562,35 +1563,76 @@ static void tall_forget(void) {
 	tallLo = 0, tallHi = tallProf->tall.rows;
 }
 
+/* An event over the table (a Pokemon caught, the Mart): the score bar's
+ * layer (hudBg, drawn alone into hudPx) has more on it above the score bar
+ * (row hudRow) than a timer. */
+static bool tall_event(const typeof(tallProf->tall)* t) {
+	uint32_t clear = emu_hud_clear();
+	int n = 0;
+	for (int i = 0; i < GBA_W * t->hudRow; ++i) n += (hudPx[i] & 0xFFFFFF) != clear;
+	static int dbg = -1;
+	if (dbg < 0) dbg = getenv("GBADS_TALL_DEBUG") != NULL;
+	if (dbg) fprintf(stderr, "frame %llu: %d above the score bar\n", (unsigned long long) frameCount, n);
+	return n > 1500;
+}
+
 static void update_tall(void) {
 	const typeof(tallProf->tall)* t = &tallProf->tall;
 	bool on = nScreens > 1 && memprobes_match(t->on, 2, &emu);
+	static int eventFor, calmFor;
+	static bool event;
 	if (on != tallOn) {
 		emu_hud_split(&emu, on, t->hudBg, NULL, 0, hudPx);
+		emu_line_regs_watch(on ? t->camReg - 2 : -1);
 		tallOn = on;
+		event = false;
+		eventFor = calmFor = 0;
 		tall_forget();
-		if (!on) mapShownIdx = -1; /* (the logo) */
+		mapShownIdx = -1; /* (the logo; the table from the next frame) */
 		if (debug) fprintf(stderr, "frame %llu: table %s\n", (unsigned long long) frameCount, on ? "up" : "gone");
+		return;
 	}
 	if (!on) return;
 	if (frame_is_flat(emu.fb)) tall_forget(); /* a fade: maybe another table next */
-	int v = emu_read16(&emu, 0x04000000 + t->camReg) & 0x3FF;
-	int hx = emu_read16(&emu, 0x04000000 + t->camReg - 2) & 0x1FF;
-	if (v + GBA_H > TALL_H || hx + GBA_W > TALL_W) return;
-	/* the rows on the game screen now (without the score bar: hudBg), where
-	 * they are on the table (it scrolls sideways a little too) */
-	for (int y = 0; y < GBA_H; ++y) memcpy(&tallRows[(v + y) * TALL_W + hx], &emu.fb[y * GBA_W], sizeof(uint32_t) * GBA_W);
-	memset(&tallHave[v], 1, GBA_H);
+	/* an event: the game's own picture (its layers blend), the table below
+	 * it on the second screen, nothing kept */
+	bool ev = tall_event(t);
+	eventFor = ev ? eventFor + 1 : 0, calmFor = ev ? 0 : calmFor + 1;
+	if (!event && eventFor >= 2) {
+		event = true;
+		emu_hud_copy(&emu, true);
+		if (debug) fprintf(stderr, "frame %llu: table event: the game's picture\n", (unsigned long long) frameCount);
+	} else if (event && calmFor >= 4) {
+		event = false;
+		emu_hud_copy(&emu, false);
+		if (debug) fprintf(stderr, "frame %llu: table event over\n", (unsigned long long) frameCount);
+		return; /* (the split's back from the next frame) */
+	}
+	static uint16_t hofs[GBA_H], vofs[GBA_H];
+	static bool fx[GBA_H];
+	emu_line_regs(hofs, vofs, fx);
+	int v = vofs[0] & 0x3FF, hx = hofs[GBA_H / 2] & 0x1FF;
+	if (v + 2 * GBA_H > TALL_H || hx + GBA_W > TALL_W) return;
+	/* each line where it is on the table (the scroll can change partway
+	 * down a frame); not the brightened or darkened ones, nor during an
+	 * event (the score bar's layer is in them then) */
+	for (int y = 0; y < GBA_H && !event; ++y) {
+		int r = (vofs[y] & 0x3FF) + y, x = hofs[y] & 0x1FF;
+		if (fx[y] || r >= TALL_H || x + GBA_W > TALL_W) continue;
+		memcpy(&tallRows[r * TALL_W + x], &emu.fb[y * GBA_W], sizeof(uint32_t) * GBA_W);
+		tallHave[r] = 1;
+	}
 	tallLo = SDL_min(tallLo, v), tallHi = SDL_max(tallHi, v + GBA_H);
 	/* the window: from the camera down, but not past the table's bottom */
 	int c = v;
 	if (c + 2 * GBA_H > tallHi) c = SDL_max(tallLo, tallHi - 2 * GBA_H);
 	/* (not while the rows above the camera haven't been seen yet, as after
-	 * loading a state at the bottom of the table: the game's own picture on
-	 * the game screen until they have) */
+	 * loading a state at the bottom of the table, nor during an event: the
+	 * game's own picture on the game screen) */
 	for (int r = c; r < v && c < v; ++r) {
 		if (!tallHave[r]) c = v;
 	}
+	if (event) c = v;
 	for (int half = 0; half < 2; ++half) {
 		uint32_t* o = half ? tallBot : tallTop;
 		for (int y = 0; y < GBA_H; ++y) {
@@ -1604,11 +1646,18 @@ static void update_tall(void) {
 			}
 		}
 	}
+	/* the lines not kept (brightened, darkened) as the game has them now */
+	for (int y = 0; y < GBA_H && !event; ++y) {
+		int r = (vofs[y] & 0x3FF) + y - c;
+		if (!fx[y] || r < 0 || r >= 2 * GBA_H) continue;
+		memcpy(&(r < GBA_H ? tallTop : tallBot)[(r % GBA_H) * GBA_W], &emu.fb[y * GBA_W], sizeof(uint32_t) * GBA_W);
+	}
+	tallEvent = event;
 	/* the upper half on the top screen (the game's, unless swapped); the
 	 * score bar where it was on the game screen, over the second screen's */
 	uint32_t* second = cfg->swap ? tallTop : tallBot;
 	uint32_t clear = emu_hud_clear();
-	for (int i = 0; i < GBA_W * GBA_H; ++i) {
+	for (int i = 0; i < GBA_W * GBA_H && !event; ++i) {
 		if ((hudPx[i] & 0xFFFFFF) != clear) second[i] = hudPx[i];
 	}
 	for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], second, GBA_W * 4);
@@ -2700,6 +2749,7 @@ static void ss_setup(const char* rom, const char* code) {
 	snapProf = NULL;
 	tallProf = NULL;
 	tallOn = false;
+	tallEvent = false;
 	hudProf = NULL;
 	hudOn = false;
 	{
@@ -3523,7 +3573,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			if (ahead_start(keys)) aheadInFlight = true, shownFb = aheadFb;
 		}
 		if (mirrorOn && mirrorHave) shownFb = mirrorHeld; /* (hud.mirror: the picture from before) */
-		if (tallOn && mapShownIdx >= 0) shownFb = cfg->swap ? tallBot : tallTop; /* (profile.tall: the table's half on the game screen) */
+		if (tallOn && !tallEvent && mapShownIdx >= 0) shownFb = cfg->swap ? tallBot : tallTop; /* (profile.tall: the table's half on the game screen) */
 		/* only the view the game is on needs it (all of them right after a swap,
 		 * since the menu draws the game without uploading) */
 		for (int i = 0; i < nViews; ++i) {

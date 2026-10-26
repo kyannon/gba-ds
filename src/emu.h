@@ -130,6 +130,15 @@ void emu_hud_game_reg(uint32_t addr, uint16_t bits);
  * moves, the band's lines are only found (emu_hud_band_rows). Kept across
  * splits. */
 void emu_hud_band(bool on, bool copy, bool watch);
+/* While the HUD split's renderer is installed: each line's BGxHOFS / VOFS
+ * (hofsReg: the I/O offset of HOFS; -1 stops) as it was drawn, and whether
+ * the screen was brightened or darkened there (Pokemon Pinball's table
+ * rows: emu_line_regs after each frame). */
+void emu_line_regs_watch(int hofsReg);
+/* While split: the HUD's BG layers also stay in the game picture (copy) or
+ * leave it again; the HUD picture is drawn either way. */
+void emu_hud_copy(Emu* e, bool copy);
+void emu_line_regs(uint16_t* hofs, uint16_t* vofs, bool* fx);
 /* The lines the band was on in the last frame drawn split; false if none. */
 bool emu_hud_band_rows(int* y0, int* y1);
 /* An I/O register as last written (also the write-only ones: MOSAIC). */
