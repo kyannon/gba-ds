@@ -1847,13 +1847,13 @@ static const MapProfile profiles[] = {
 			 * terrain (486, palette 6) and unit (474) pictures, the heart, fuel
 			 * and star (850-864) and digits, not the cursor's corners (869-873,
 			 * palette 1 too); the DAMAGE box over the info while picking a
-			 * target (430-456: its lettering and digits; not the target's
+			 * target (420-457: its digits, 422-441, and lettering; not the target's
 			 * corners, 886-890, nor its crosshair, palette 4) */
 			.objs = { { -64, -32, 239, 40, 0, 63, 0, AW_PALS(1) | AW_PALS(7) | AW_PALS(14) }, { -64, -32, 239, 40, 940, 1023, 0, AW_PALS(1) },
 			          { -64, 88, 239, 159, 440, 520, 0, AW_PALS(1) | AW_PALS(2) | AW_PALS(6) | AW_PALS(15) },
 			          { -64, 88, 239, 159, 840, 866, 0, AW_PALS(1) },
 			          { -64, 88, 239, 159, 970, 990, 0, AW_PALS(1) },
-			          { -64, 56, 239, 103, 428, 457, 0, AW_PALS(1) } },
+			          { -64, 56, 239, 103, 420, 457, 0, AW_PALS(1) } },
 			/* the plate at the bottom in the middle, the info at the
 			 * bottom right on a grey box; 4 pixels up, as the minimap */
 			/* (the plate: taken again only when the turn passes) */
