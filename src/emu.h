@@ -135,7 +135,7 @@ void emu_hud_band(bool on, bool copy, bool watch);
  * the screen was brightened or darkened there (Pokemon Pinball's table
  * rows: emu_line_regs after each frame). */
 void emu_line_regs_watch(int hofsReg);
-/* While split: the HUD's BG layers also stay in the game picture (copy) or
+/* While split: the HUD's BG layers and sprites also stay in the game picture (copy) or
  * leave it again; the HUD picture is drawn either way. */
 void emu_hud_copy(Emu* e, bool copy);
 void emu_line_regs(uint16_t* hofs, uint16_t* vofs, bool* fx);

@@ -753,6 +753,7 @@ void emu_hud_copy(Emu* e, bool copy) {
 	struct GBAVideoRenderer* r = gba->video.renderer;
 	if (!r || !split.installed || !split.active) return;
 	for (int i = 0; i < 4; ++i) r->disableBG[i] = !copy && ((split.bgMask >> i) & 1);
+	emu_hide_sprites(e, copy ? NULL : split.objs, copy ? 0 : split.nObjs);
 }
 
 void emu_line_regs_watch(int hofsReg) {

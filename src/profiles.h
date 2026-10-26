@@ -142,6 +142,10 @@ typedef struct MapProfile {
 		/* the score bar's first row: hudBg with more on it above (not just
 		 * a timer) is an event over the table, shown as the game has it */
 		int hudRow;
+		/* the flippers: their sprites (left out of the kept rows), drawn
+		 * wherever they are in the view as last seen up (one of keys held)
+		 * or down, when the game isn't drawing them */
+		struct { SpriteRule obj; uint32_t keys; } flipper[2];
 	} tall;
 	/* A second button layout for games ported from four-face-button
 	 * consoles (Tony Hawk's: GBA L / R stand in for two face buttons). The

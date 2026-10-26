@@ -108,7 +108,10 @@ static const struct MapProfile* ctlProf; /* NULL: no alternate layout for this g
 
 /* One frame of the game with these keys (on the worker too, while the main
  * thread leaves the core alone). */
+static uint32_t frameKeys; /* the GBA keys of the last frame run */
+
 static void run_frame(uint32_t keys) {
+	frameKeys = keys;
 	uint32_t want = keys & (KX_PAN_L | KX_PAN_R);
 	if (want && ctlProf && ctlProf->controls.snes.pan) {
 		const typeof(ctlProf->controls.snes)* sn = &ctlProf->controls.snes;
@@ -1576,13 +1579,81 @@ static bool tall_event(const typeof(tallProf->tall)* t) {
 	return n > 1500;
 }
 
+/* The flippers (profile tall.flipper): left out of the kept rows (the
+ * split draws them into hudPx), drawn into the view where they were last
+ * seen: as the game draws them now when it does, else as they last looked
+ * up (their keys held) or down. */
+static void tall_flippers(const typeof(tallProf->tall)* t, int c, int hx, int v, int h) {
+	static uint32_t look[2][2][32 * 32]; /* [flipper][up] (0: nothing there) */
+	static bool have[2][2], placed[2];
+	static int tx[2], ty[2], held[2], was[2];
+	static const uint8_t sizes[3][4][2] = { { { 8, 8 }, { 16, 16 }, { 32, 32 }, { 64, 64 } },
+	                                        { { 16, 8 }, { 32, 8 }, { 32, 16 }, { 64, 32 } },
+	                                        { { 8, 16 }, { 8, 32 }, { 16, 32 }, { 32, 64 } } };
+	uint32_t clear = emu_hud_clear();
+	for (int k = 0; k < 2; ++k) {
+		const SpriteRule* rule = &t->flipper[k].obj;
+		if (!t->flipper[k].keys) continue;
+		int up = (frameKeys & t->flipper[k].keys) != 0;
+		held[k] = up == was[k] ? held[k] + 1 : 0, was[k] = up;
+		/* the game's sprite, if it's on screen */
+		bool seen = false;
+		int sx = 0, sy = 0, sw = 0, sh = 0;
+		for (int i = 0; i < 128 && !seen; ++i) {
+			uint16_t a0 = emu_read16(&emu, 0x07000000 + i * 8), a1 = emu_read16(&emu, 0x07000002 + i * 8), a2 = emu_read16(&emu, 0x07000004 + i * 8);
+			if ((a0 & 0x0300) == 0x0200 || (a0 >> 14) == 3) continue;
+			int tile = a2 & 0x3FF, pal = a2 >> 12, prio = (a2 >> 10) & 3;
+			if (tile < rule->tileMin || tile > rule->tileMax || (rule->palMask && !((rule->palMask >> pal) & 1)) || (rule->prio >= 0 && prio != rule->prio)) continue;
+			sw = sizes[a0 >> 14][a1 >> 14][0], sh = sizes[a0 >> 14][a1 >> 14][1];
+			if (sw > 32 || sh > 32) continue;
+			sy = a0 & 0xFF, sx = a1 & 0x1FF;
+			if (sy >= GBA_H) sy -= 256;
+			if (sx >= GBA_W) sx -= 512;
+			seen = sy > -sh && sy < GBA_H && sx > -sw && sx < GBA_W;
+		}
+		static uint32_t now[32 * 32];
+		if (seen) {
+			placed[k] = true, tx[k] = sx + h, ty[k] = sy + v;
+			for (int y = 0; y < 32; ++y) {
+				for (int x = 0; x < 32; ++x) {
+					int gx = sx + x, gy = sy + y;
+					uint32_t p = 0;
+					if (x < sw && y < sh && gx >= 0 && gx < GBA_W && gy >= 0 && gy < t->hudRow) {
+						p = hudPx[gy * GBA_W + gx];
+						p = (p & 0xFFFFFF) == clear ? 0 : p | 0xFF000000;
+						hudPx[gy * GBA_W + gx] = clear; /* (not with the score bar's layer) */
+					}
+					now[y * 32 + x] = p;
+				}
+			}
+		}
+		/* all of it on the game screen, above the score bar */
+		bool whole = seen && sx >= 0 && sx + sw <= GBA_W && sy >= 0 && sy + sh <= t->hudRow;
+		/* (how it looks up / down, once it's been so a moment) */
+		if (whole && held[k] >= 8) memcpy(look[k][up], now, sizeof(now)), have[k][up] = true;
+		if (!placed[k] || (!seen && !have[k][up])) continue;
+		const uint32_t* px = whole || !have[k][up] ? now : look[k][up];
+		for (int y = 0; y < 32; ++y) {
+			int r = ty[k] + y - c;
+			if (r < 0 || r >= 2 * GBA_H) continue;
+			uint32_t* row = &(r < GBA_H ? tallTop : tallBot)[(r % GBA_H) * GBA_W];
+			for (int x = 0; x < 32; ++x) {
+				int ox = tx[k] + x - hx;
+				if (px[y * 32 + x] && ox >= 0 && ox < GBA_W) row[ox] = px[y * 32 + x];
+			}
+		}
+	}
+}
+
 static void update_tall(void) {
 	const typeof(tallProf->tall)* t = &tallProf->tall;
 	bool on = nScreens > 1 && memprobes_match(t->on, 2, &emu);
 	static int eventFor, calmFor;
 	static bool event;
+	static SpriteRule flipRules[2];
 	if (on != tallOn) {
-		emu_hud_split(&emu, on, t->hudBg, NULL, 0, hudPx);
+		for (int k = 0; k < 2; ++k) flipRules[k] = t->flipper[k].obj;
+		emu_hud_split(&emu, on, t->hudBg, flipRules, t->flipper[1].keys ? 2 : t->flipper[0].keys ? 1 : 0, hudPx);
 		emu_line_regs_watch(on ? t->camReg - 2 : -1);
 		tallOn = on;
 		event = false;
@@ -1646,12 +1717,25 @@ static void update_tall(void) {
 			}
 		}
 	}
+	/* the rows the game isn't drawing now: dimmed (they may be out of date) */
+	static bool live[2 * GBA_H];
+	memset(live, 0, sizeof(live));
+	for (int y = 0; y < GBA_H; ++y) {
+		int r = (vofs[y] & 0x3FF) + y - c;
+		if (r >= 0 && r < 2 * GBA_H) live[r] = true;
+	}
+	for (int r = 0; r < 2 * GBA_H; ++r) {
+		if (live[r]) continue;
+		uint32_t* row = &(r < GBA_H ? tallTop : tallBot)[(r % GBA_H) * GBA_W];
+		for (int x = 0; x < GBA_W; ++x) row[x] = 0xFF000000 | (row[x] >> 1 & 0x7F7F7F);
+	}
 	/* the lines not kept (brightened, darkened) as the game has them now */
 	for (int y = 0; y < GBA_H && !event; ++y) {
 		int r = (vofs[y] & 0x3FF) + y - c;
 		if (!fx[y] || r < 0 || r >= 2 * GBA_H) continue;
 		memcpy(&(r < GBA_H ? tallTop : tallBot)[(r % GBA_H) * GBA_W], &emu.fb[y * GBA_W], sizeof(uint32_t) * GBA_W);
 	}
+	if (!event) tall_flippers(t, c, hx, vofs[0] & 0x3FF, hofs[0] & 0x1FF);
 	tallEvent = event;
 	/* the upper half on the top screen (the game's, unless swapped); the
 	 * score bar where it was on the game screen, over the second screen's */

@@ -1482,6 +1482,9 @@ static const MapProfile profiles[] = {
 			.hudBg = 0x01,
 			.rows = 432, /* (Ruby's and Sapphire's: the camera's 0-272) */
 			.hudRow = 144,
+			/* left: L or left; right: R or A (32x32 sprites, tiles 0 and 16) */
+			.flipper = { { { -64, -64, 304, 224, 0, 15, 2, 1u << 0, 0 }, K_L | K_LEFT },
+			             { { -64, -64, 304, 224, 16, 31, 2, 1u << 0, 0 }, K_R | K_A } },
 		},
 		/* the title's logo is BG1, on its own white striped background
 		 * (cleared from the edges in), above PRESS START */
