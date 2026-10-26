@@ -23,6 +23,7 @@ typedef struct Config {
 	bool pinCores; /* Android: the game thread on a core of its own, the map capture off it (off by default) */
 	bool map;          /* enable the second-screen map */
 	bool mapCrop;      /* crop map bezels/prompts where the profile knows how */
+	bool tallLive;     /* Pokemon Pinball: a second copy of the game draws the bottom screen live */
 	bool mapAnim;      /* cycle the map's animation frames (off: one still frame) */
 	bool rewind;       /* keep a rewind buffer (hold L2 to rewind) */
 	int rewindSeconds; /* how far back */

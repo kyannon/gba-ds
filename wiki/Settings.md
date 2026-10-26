@@ -54,6 +54,7 @@ Updating from the game list (Settings > Updates, Linux) keeps your `gba-ds.cfg`.
 | `map_crop` | `1` | The Metroid map screens, tidied (labels erased, prompts and minimap removed; see [[Supported games]]). `0` shows them exactly as the games draw them. |
 | `show_logo` | `1` | The game's logo on the second screen when there's nothing else to show (title screens, menus, before the first map). `0` keeps it blank. The pause menu's **No Second Screen** option. |
 | `map_animations` | `1` | Blinking map markers. `0` shows one still frame, with every marker that blinks showing. A Link to the Past's map is always still that way. |
+| `pinball_live` | `1` | Pokémon Pinball: the bottom screen is drawn live by a second copy of the game. `0` shows the rows the game drew earlier instead (dimmed, with the flippers drawn), for slower devices. |
 
 What `map_crop` changes in the Metroid map screens:
 - **Zero Mission** keeps its whole pause screen, frame included, and only the lettering is erased: the L and R key letters, SLEEP, the area name, STATUS, and the A on the button beside the minimap. The keys, plates and button stay; the blank plates (magenta) and L/R keys (orange) are recoloured to the dark grey-green of the curved pieces beside the area name. The corner minimap gives way to the map underneath, and its "SELECT / CHANGE AREAS" prompt is covered by a piece of the bezel.

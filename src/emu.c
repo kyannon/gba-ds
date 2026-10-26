@@ -302,6 +302,9 @@ void emu_write8(Emu* e, uint32_t a, uint8_t v) {
 void emu_write16(Emu* e, uint32_t a, uint16_t v) {
 	e->core->rawWrite16(e->core, a, -1, v);
 }
+void emu_write32(Emu* e, uint32_t a, uint32_t v) {
+	e->core->rawWrite32(e->core, a, -1, v);
+}
 uint16_t emu_read16(Emu* e, uint32_t a) {
 	return e->core->rawRead16(e->core, a, -1);
 }
@@ -390,6 +393,8 @@ typedef struct {
 	SpriteRule rules[8];
 	int n;
 	bool keepOnly; /* hide every sprite that matches none of the rules instead */
+	uint16_t exact[128][3]; /* and sprites exactly like these (emu_hide_exact) */
+	int nExact;
 } HideSlot;
 static HideSlot hideSlots[8];
 static pthread_mutex_t hideLock = PTHREAD_MUTEX_INITIALIZER;
@@ -408,6 +413,9 @@ static bool hidden(const HideSlot* s, const struct GBAObj* obj) {
 	int tile = GBAObjAttributesCGetTile(obj->c);
 	int prio = GBAObjAttributesCGetPriority(obj->c);
 	int pal = GBAObjAttributesCGetPalette(obj->c);
+	for (int i = 0; i < s->nExact; ++i) {
+		if (s->exact[i][0] == obj->a && s->exact[i][1] == obj->b && s->exact[i][2] == obj->c) return true;
+	}
 	for (int i = 0; i < s->n; ++i) {
 		const SpriteRule* r = &s->rules[i];
 		if (x >= r->x0 && x <= r->x1 && y >= r->y0 && y <= r->y1 && tile >= r->tileMin && tile <= r->tileMax &&
@@ -426,7 +434,7 @@ static void filtered_draw_scanline(struct GBAVideoRenderer* renderer, int y) {
 	struct GBAVideoSoftwareRenderer* sw = (struct GBAVideoSoftwareRenderer*) renderer;
 	HideSlot* s = slot_for(renderer);
 	if (!s) return;
-	if ((s->n || s->keepOnly) && sw->oamDirty) {
+	if ((s->n || s->keepOnly || s->nExact) && sw->oamDirty) {
 		int n = GBAVideoRendererCleanOAM(sw->d.oam->obj, sw->sprites, sw->objOffsetY);
 		int kept = 0;
 		for (int i = 0; i < n; ++i) {
@@ -436,6 +444,26 @@ static void filtered_draw_scanline(struct GBAVideoRenderer* renderer, int y) {
 		sw->oamDirty = false;
 	}
 	s->orig(renderer, y);
+}
+
+void emu_hide_exact(Emu* e, const uint16_t (*attrs)[3], int n) {
+	struct GBA* gba = e->core->board;
+	struct GBAVideoRenderer* r = gba->video.renderer;
+	if (!r) return;
+	pthread_mutex_lock(&hideLock);
+	HideSlot* s = slot_for(r);
+	if (!s && (s = slot_for(NULL))) {
+		s->n = 0, s->keepOnly = false;
+		s->orig = r->drawScanline;
+		s->renderer = r;
+		r->drawScanline = filtered_draw_scanline;
+	}
+	if (s) {
+		s->nExact = n > 128 ? 128 : n;
+		if (s->nExact) memcpy(s->exact, attrs, sizeof(*attrs) * s->nExact);
+	}
+	pthread_mutex_unlock(&hideLock);
+	((struct GBAVideoSoftwareRenderer*) r)->oamDirty = true;
 }
 
 void emu_hide_sprites(Emu* e, const SpriteRule* rules, int n) {
@@ -575,7 +603,15 @@ static uint16_t lineVofs[GBA_H], lineHofs[GBA_H];
 static bool lineFx[GBA_H];
 static int lineReg = -1; /* the BGxHOFS offset whose pair is recorded; -1: none */
 
+static int copyAbove; /* emu_hud_copy_above */
+
 static void split_draw(struct GBAVideoRenderer* r, int y) {
+	if (split.active && copyAbove) {
+		bool off = y >= copyAbove;
+		for (int i = 0; i < 4; ++i) {
+			if ((split.bgMask >> i) & 1) r->disableBG[i] = off;
+		}
+	}
 	if (lineReg >= 0 && y < GBA_H) {
 		const uint16_t* io = split.gba->memory.io;
 		lineHofs[y] = io[lineReg >> 1], lineVofs[y] = io[(lineReg + 2) >> 1];
@@ -754,6 +790,10 @@ void emu_hud_copy(Emu* e, bool copy) {
 	if (!r || !split.installed || !split.active) return;
 	for (int i = 0; i < 4; ++i) r->disableBG[i] = !copy && ((split.bgMask >> i) & 1);
 	emu_hide_sprites(e, copy ? NULL : split.objs, copy ? 0 : split.nObjs);
+}
+
+void emu_hud_copy_above(int row) {
+	copyAbove = row;
 }
 
 void emu_line_regs_watch(int hofsReg) {

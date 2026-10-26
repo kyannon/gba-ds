@@ -146,6 +146,25 @@ typedef struct MapProfile {
 		 * wherever they are in the view as last seen up (one of keys held)
 		 * or down, when the game isn't drawing them */
 		struct { SpriteRule obj; uint32_t keys; } flipper[2];
+		/* The live view: a second copy of the game, run in step with this
+		 * one (same keys every frame), its camera held 160 rows below this
+		 * one's, draws the bottom screen. state: the word holding the game's
+		 * state pointer; cam / camRow: offsets there of the camera (24.8
+		 * fixed point) and its row; nop: the camera's stores in the copy's
+		 * code (made no-ops); bound: the game's lowest camera target, set
+		 * from boundFrom to boundTo on this copy so its camera stops 160
+		 * rows above the table's bottom; ball: offset of the ball's pointer
+		 * (x, y words at +0x34, +0x38 there), compared to keep the two in
+		 * step (the copy's taken again from this one when they differ). */
+		struct {
+			uint32_t state;
+			uint16_t cam, camRow;
+			uint32_t nop[2];
+			uint32_t bound;
+			uint16_t boundFrom, boundTo;
+			uint16_t ball;
+			MemProbe idle[2]; /* the bound is only changed while these match (no sweep of the table going on) */
+		} live;
 	} tall;
 	/* A second button layout for games ported from four-face-button
 	 * consoles (Tony Hawk's: GBA L / R stand in for two face buttons). The

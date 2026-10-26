@@ -52,7 +52,100 @@
    "rules": [
     "PP-1",
     "PP-2",
-    "PP-3"
+    "PP-3",
+    "PP-9"
+   ],
+   "input": [
+    [
+     5,
+     "A"
+    ],
+    [
+     7,
+     "-"
+    ]
+   ],
+   "shots": {
+    "sweep": 200,
+    "bottom": 420,
+    "end": 900
+   },
+   "checks": [
+    {
+     "rule": "PP-1",
+     "what": "the table came up",
+     "type": "log",
+     "match": "table over both screens"
+    },
+    {
+     "rule": "PP-1",
+     "what": "the upper rows on the game screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "game",
+     "rect": [
+      40,
+      40,
+      980,
+      700
+     ],
+     "color": "000000",
+     "frac": 0.97
+    },
+    {
+     "rule": "PP-1",
+     "what": "the lower rows on the second screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      40,
+      40,
+      980,
+      560
+     ],
+     "color": "000000",
+     "frac": 0.97
+    },
+    {
+     "rule": "PP-3",
+     "what": "the score bar on the second screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      20,
+      660,
+      1000,
+      740
+     ],
+     "color": "000000",
+     "frac": 0.6
+    },
+    {
+     "rule": "PP-9",
+     "what": "the live view came up",
+     "type": "log",
+     "match": "live view"
+    },
+    {
+     "rule": "PP-9",
+     "what": "and stayed in step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-us-sapphire-kept-rows",
+   "rom": "BPPE",
+   "state": "pokemon-pinball/us-sapphire-start.ss",
+   "desc": "pinball_live = 0: the rows kept from what the game drew",
+   "rules": [
+    "PP-1",
+    "PP-2",
+    "PP-3",
+    "PP-8"
    ],
    "input": [
     [
@@ -123,20 +216,14 @@
     },
     {
      "rule": "PP-2",
-     "what": "rows not drawn yet black, while the camera sweeps down",
-     "type": "uniform",
-     "shot": "sweep",
-     "screen": "second",
-     "rect": [
-      40,
-      40,
-      980,
-      560
-     ],
-     "color": "000000",
-     "frac": 0.95
+     "what": "no live view",
+     "type": "no_log",
+     "match": "live view"
     }
-   ]
+   ],
+   "config": {
+    "pinball_live": "0"
+   }
   },
   {
    "id": "pp-us-ruby-bottom",
@@ -145,7 +232,8 @@
    "desc": "Ruby, a state loaded with the camera at the bottom",
    "rules": [
     "PP-2",
-    "PP-3"
+    "PP-3",
+    "PP-9"
    ],
    "shots": {
     "start": 60,
@@ -153,19 +241,16 @@
    },
    "checks": [
     {
-     "rule": "PP-2",
-     "what": "the game's own picture on the game screen (the rows above not seen yet)",
-     "type": "not_uniform",
-     "shot": "start",
-     "screen": "game",
-     "rect": [
-      40,
-      40,
-      980,
-      700
-     ],
-     "color": "000000",
-     "frac": 0.97
+     "rule": "PP-9",
+     "what": "the live view came up",
+     "type": "log",
+     "match": "live view"
+    },
+    {
+     "rule": "PP-9",
+     "what": "and stayed in step",
+     "type": "no_log",
+     "match": "out of step"
     }
    ]
   },
@@ -177,7 +262,8 @@
    "rules": [
     "PP-1",
     "PP-2",
-    "PP-3"
+    "PP-3",
+    "PP-9"
    ],
    "shots": {
     "start": 60,
@@ -213,6 +299,18 @@
      ],
      "color": "000000",
      "frac": 0.97
+    },
+    {
+     "rule": "PP-9",
+     "what": "the live view came up",
+     "type": "log",
+     "match": "live view"
+    },
+    {
+     "rule": "PP-9",
+     "what": "and stayed in step",
+     "type": "no_log",
+     "match": "out of step"
     }
    ]
   },
@@ -223,7 +321,8 @@
    "desc": "catch mode (state from the device): the timer, then RHYHORN WAS CAUGHT, then the Pokemon Mart",
    "rules": [
     "PP-2",
-    "PP-7"
+    "PP-7",
+    "PP-9"
    ],
    "input": [
     [
@@ -615,7 +714,8 @@
     "catch": 200,
     "caught": 450,
     "mart": 960,
-    "after": 1300
+    "after": 1300,
+    "retaken": 1440
    },
    "checks": [
     {
@@ -629,6 +729,18 @@
      "what": "and over",
      "type": "log",
      "match": "table event over"
+    },
+    {
+     "rule": "PP-9",
+     "what": "the live view came up",
+     "type": "log",
+     "match": "live view"
+    },
+    {
+     "rule": "PP-9",
+     "what": "taken again when out of step (the copies drift here at about 23 s)",
+     "type": "log",
+     "match": "out of step, taken again"
     }
    ]
   },

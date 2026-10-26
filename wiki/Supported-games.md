@@ -76,10 +76,11 @@ Preliminary: a new second screen in v1.3.2, replacing the earlier one (which mov
 
 Preliminary. The USA release.
 
-- **On a table,** the two screens together show twice as much of it: the top screen the upper part, the bottom screen the part below it. The view follows the game's camera, so the ball stays on the top screen, except at the bottom of the table, where the view stops: the flippers and the ball are then on the bottom screen.
-- The game itself only draws the part its camera is on, so the rest is shown as the game last drew it, dimmed: there, animations stand still until the camera comes back. The **flippers** are always drawn, up while their button is held (L or left, R or A), wherever they are. When a table first comes up the camera sweeps over all of it, so it's all there from the start; after loading a state, the parts the camera hasn't been to yet are black (and the top screen shows the game's own picture until the part above has been seen).
-- The **score bar** (score, Pokémon caught, coins, balls) moves from the game screen to the bottom of the second screen.
-- **Events** over the table (a Pokémon caught, the Pokémon Mart) show on the game screen as the game draws them, with the table below them on the second screen; the table over both screens comes back right after.
+- **On a table,** the two screens together show twice as much of it: the top screen what the game's camera is on, the bottom screen the part below it, **live**: GBA DS runs a second copy of the game alongside yours, with the same buttons every frame, and its camera 160 rows lower. The flippers, the Pokémon, the ball and everything else move on both screens. Your game's camera stops 160 rows above the table's bottom, so the flippers and the ball are on the bottom screen when the ball's down there, and on the top screen otherwise.
+- The **score bar** moves to the bottom of the second screen. A message over the table (a Pokémon caught) shows on the screen where its picture is.
+- The two copies are checked against each other every frame. Now and then they drift apart (in testing, about once in 20 seconds of play in catch mode) or you load a state or rewind: the second copy is then taken from your game again and scrolls into place, which takes about a second. Meanwhile, and during the table's opening sweep, the bottom screen shows the table as the game last drew it, dimmed, with the flippers drawn.
+- Known issues: the darkening behind a message covers both screens. The Pokémon Mart's screen is on the top screen, with the dimmed table below it.
+- `pinball_live = 0` in `gba-ds.cfg` turns the second copy off (for slower devices): the bottom screen then always shows the table as the game last drew it.
 - On the title and menus, the second screen shows the logo.
 - **Not tried yet:** the bonus stages.
 

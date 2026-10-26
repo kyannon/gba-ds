@@ -13,7 +13,7 @@
  *   peek ADDR LEN        hex dump memory
  *   watch ADDR LEN       record bytes; 'diff' prints addresses that changed
  *   diff
- *   poke ADDR LEN VAL    fill memory
+ *   poke ADDR LEN VAL    write VAL (little-endian, LEN bytes)
  *   layershot NAME       per-layer renders of the next frame (transparent = magenta)
  *   dumpram NAME         write EWRAM+IWRAM to OUTDIR/NAME.ram
  */
@@ -173,7 +173,8 @@ int main(int argc, char** argv) {
 			printf("\n");
 		} else if (!strcmp(cmd, "poke")) {
 			uint32_t addr = strtoul(a1, NULL, 0), len = strtoul(a2, NULL, 0), val = strtoul(a3, NULL, 0);
-			for (uint32_t i = 0; i < len; ++i) emu.core->rawWrite8(emu.core, addr + i, -1, val);
+			/* (little-endian: len bytes of val) */
+			for (uint32_t i = 0; i < len; ++i) emu.core->rawWrite8(emu.core, addr + i, -1, i < 4 ? (val >> (8 * i)) & 0xFF : 0);
 		} else if (!strcmp(cmd, "frameatlas") || !strcmp(cmd, "logo")) {
 			char path[512];
 			snprintf(path, sizeof(path), "%s/%s.png", outdir, a1);

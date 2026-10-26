@@ -23,6 +23,7 @@ void config_defaults(Config* c) {
 	c->map = true;
 	c->mapCrop = true;
 	c->mapAnim = true;
+	c->tallLive = true;
 	c->showLogo = true;
 	c->rewind = true;
 	c->rewindSeconds = 30;
@@ -86,6 +87,7 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	BOOL("map", map)
 	BOOL("map_crop", mapCrop)
 	BOOL("map_animations", mapAnim)
+	BOOL("pinball_live", tallLive)
 	BOOL("show_logo", showLogo)
 	BOOL("match_display", matchDisplay)
 	BOOL("rewind", rewind)

@@ -83,6 +83,7 @@ uint16_t emu_read16(Emu* e, uint32_t addr);
 uint32_t emu_read32(Emu* e, uint32_t addr);
 void emu_write8(Emu* e, uint32_t addr, uint8_t value);
 void emu_write16(Emu* e, uint32_t addr, uint16_t value);
+void emu_write32(Emu* e, uint32_t addr, uint32_t value);
 
 /* Pull up to maxFrames stereo frames of audio; returns frames read. */
 size_t emu_audio_read(Emu* e, int16_t* out, size_t maxFrames);
@@ -94,6 +95,9 @@ bool write_png(const char* path, const uint32_t* px, int w, int h, int stride);
 /* Hide sprites matching any of the n rules (n = 0 turns it off). Display only:
  * the game's memory and state are untouched. One emulator at a time. */
 void emu_hide_sprites(Emu* e, const SpriteRule* rules, int n);
+/* Also hide the sprites whose attributes 0-2 are exactly one of these
+ * (Pokemon Pinball's live view: what the other copy draws on its screen). */
+void emu_hide_exact(Emu* e, const uint16_t (*attrs)[3], int n);
 /* Which layers are drawn: bits 0-3 BG0-3, bit 4 sprites (0x1F = all). Takes
  * effect when the display registers are next written (e.g. a state load). */
 void emu_layers(Emu* e, unsigned mask);
@@ -138,6 +142,9 @@ void emu_line_regs_watch(int hofsReg);
 /* While split: the HUD's BG layers and sprites also stay in the game picture (copy) or
  * leave it again; the HUD picture is drawn either way. */
 void emu_hud_copy(Emu* e, bool copy);
+/* While split: the HUD's BG layers also stay in the game picture above
+ * this row (0: not at all; from the next line drawn). */
+void emu_hud_copy_above(int row);
 void emu_line_regs(uint16_t* hofs, uint16_t* vofs, bool* fx);
 /* The lines the band was on in the last frame drawn split; false if none. */
 bool emu_hud_band_rows(int* y0, int* y1);
