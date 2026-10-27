@@ -304,7 +304,7 @@ Android session at the same time. To keep them from colliding:
 ## Ongoing work
 
 - Android version: see `docs/ANDROID.md`.
-- Pokémon Pinball's live two-screen view: see `docs/PINBALL.md` (status, facts about the game, the open problem: the copy re-syncing at every flip between screens).
+- Pokémon Pinball's live two-screen view: see `docs/PINBALL.md` (status, facts about the game, the open problem: the copy re-syncing at every flip between screens; the Oct 26 scouting found how to jump the copy's camera at once).
 - Experimental since v1.1 (untestable on the owner's RG DS Plus with GammaOS):
   starting games from Android frontends, and the pause menu on returning to
   the app. Needs a tester with a more capable Android device.

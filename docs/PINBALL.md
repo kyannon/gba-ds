@@ -1,6 +1,6 @@
 # Pokémon Pinball (BPPE): status and handoff
 
-Status as of Oct 26, 2026 (dev `12f6e54` and later). The player-facing rules are in
+Status as of Oct 26, 2026 (dev `12f6e54` and later; scouting notes added the same day). The player-facing rules are in
 `docs/games/pokemon-pinball.md` (PP-1 to PP-10, some retired); this file is
 for the next session: what's built, what was learned, what's still wrong.
 
@@ -22,6 +22,9 @@ Owner's verdicts so far:
   separately) was dropped at the owner's request (PP-2, PP-7, PP-8 retired).
 - Events go on whichever screen keeps transitions fewest. Currently they're
   always on the game's screen, where the ball is.
+- Newer State Saver note ("Pause screen", BPPE, Oct 25): when the game is
+  paused or the screen is otherwise dimmed, that screen should always appear
+  in full on the bottom (second) screen. Not done yet.
 
 ## The open problem (owner's report on the latest build)
 
@@ -36,7 +39,14 @@ rows a frame. That takes 20 frames, and the copy's screen is black where its
 rows aren't in place yet. The ball crosses those rows often, so it's
 constant.
 
-Ideas, none tried yet:
+**Update (Oct 26, scouting session): the copy's camera can jump after all.**
+See "Scouting: a tall renderer, and the instant jump" below. With the tile
+ring refilled from EWRAM and every eased copy of the scroll set, a retake
+puts the copy's rows in place on its first frame instead of after 20. That
+makes the ideas below cheaper (any retake is now nearly invisible) and is
+the recommended next step.
+
+Ideas, from the previous session (none tried yet):
 1. **Don't retake on a flip.** Ramp the copy from +160 to -160 (or back)
    without reloading it. 320 rows at 8 a frame is 40 frames. During the ramp
    the copy's rows land somewhere else on its screen: show what fits, black
@@ -58,6 +68,55 @@ Ideas, none tried yet:
    cost as 2, and it gives the owner's original framing (ball on the bottom
    screen only at the lowest point). The copies drift more because neither
    camera matches the game's.
+
+## Scouting: a tall renderer, and the instant jump (Oct 26)
+
+The owner asked whether a modified mGBA that renders the table 320 rows tall
+from **one** core (no copies, so nothing to resync or drift) could replace
+the second copy. Findings, from `tools/scout/` on `us-ruby-top`,
+`us-ruby-bottom` and `us-ruby-catch`:
+
+1. **Background: easy.** BG1 and BG2 are whole-table and fixed in VRAM.
+   BG3 is streamed into a 22-row ring, but the whole table's BG3 tiles sit
+   in EWRAM all the time, and the slot of any row is a formula. A renderer
+   can draw any of the 432 rows on any frame with no change to the game.
+2. **Raster effects: trivial.** Only BG0's scroll at line 144.
+3. **Sprites: the hard part.** Objects off the game's screen get no OAM
+   entries, and each object writes its own (220 call sites). Showing them
+   in the extra rows means patching table objects one by one, and OAM's
+   8-bit y can't reach rows 256-319 anyway.
+4. **Lights: also gated.** They're drawn into the ring only while
+   `S+0x6A` is in each light's range, so extra rows would show them stale.
+
+**Verdict: the pure tall renderer is a large, risky patching job** (3 and 4
+are where it would go round in circles). The background half alone is no
+better than the copy, which already draws sprites and lights correctly.
+
+**What the scouting found instead: the copy can jump.** Its "8 rows a frame"
+limit was the game's own scroll easing. Before the copy's frame, when its
+camera's tile row is more than 1 from `S+0x64`:
+- refill the ring for rows `T`..`T+21` from EWRAM (`T` = camera row / 8,
+  rows past 55 skipped) and set `S+0x64 = T`;
+- set every eased copy of the scroll to the camera row: `0x0200B3AE`, `B3B2`,
+  `B3B6`, BG1-3VOFS, `S+0x5A`, `S+0x68`, `S+0x6A`, `S+0xCC`, and
+  `0x03007ED8` = row + 16. Missing `S+0x68` (`S+0x6A` is reloaded from it
+  each frame) leaves wrong light tiles in the reused slots for good.
+
+Result (`jump.c`, `us-ruby-bottom`, jumped 160 rows up, against a copy that
+eased there and settled): BG1, BG2 and BG3 identical from the first frame,
+sprites from the second (OAM lags a frame), the whole picture identical
+once animation phase matches. In the app (`GBADS_TWIN_JUMP=1`, an
+experiment in `twin_step`, not committed), the flip at frame 33 of
+`us-ruby-top` shows the copy's rows on the second frame instead of after
+about 20. One stale frame remains (f34: the copy's picture from before the
+retake); blank it, or take the copy from the game's state before its frame.
+
+Next steps, in order:
+1. Make the jump the default retake (no ramp), and fix the stale frame.
+2. With retakes nearly invisible, retake on drift without the black fill
+   (PP-9 changes), and reconsider ideas 2 and 4 above: a copy can now be
+   placed anywhere at once.
+3. Check the lights and sprites at a jump in catch mode and on Sapphire.
 
 ## How it works now (code map)
 
@@ -103,6 +162,15 @@ Ideas, none tried yet:
 | On a table | BG0CNT `0x8404` and BG3CNT `0x804B` |
 | Flippers | sprites tiles 0-15 (left) and 16-31 (right), palette 0, prio 2; left = L or Left, right = R or A |
 | Title logo | BG1 at frame 1440, own white striped background |
+| BG layers on a table | BG0 map `0x2000`, chars `0x4000`; BG1 map `0x3000`, chars `0x8000` (uses `0xD800`+); BG2 map `0x1000`, chars `0x4000`; BG3 map `0x0000`, chars `0x8000` (the ring). BG1-3 are 256x512 |
+| Fixed in VRAM | BG1's and BG2's maps and tiles, and BG3's map: never written on a table |
+| BG3 tile ring | `0x06008000`-`0x0600D7FF`, 22 slots of 1 KB (32 tiles, one tile row). Table tile row R is always in slot `(R + 10) % 22`; BG3's map is laid out to match |
+| BG3 tiles, whole table | in EWRAM, never changed on a table: rows 0-31 at `0x0200FBB0 + R*0x400`, rows 32-55 at `0x020030A0 + (R-32)*0x400` |
+| Streaming | `0x08047030`: one DMA3 a frame when the scroll's tile row changes (vs `S+0x64`); table `0x086B0010` (4 halves a tile row: source and slot going down, source and slot going up). Rows `T`..`T+21` resident for tile row `T` |
+| Eased scroll | the game moves its scroll toward the camera at most 8 rows a frame. Copies: BG1-3 VOFS shadows `0x0200B3AE`, `B3B2`, `B3B6`; `S+0x5A`, `S+0x68` (this frame's), `S+0x6A` (last frame's: the light gates), `S+0xCC`; `0x03007ED8` (+16, the main loop's, on the stack); and the BGxVOFS registers |
+| Lights | small DMAs straight into the ring (`0x0804ECxx`-`0x0804F8xx`), called from `0x0804E814` by ranges of `S+0x6A` (generous margins). 20-40 tiles in view differ from EWRAM on a typical frame |
+| Raster effects | only BG0HOFS/VOFS at line 144 (VCount IRQ, DISPSTAT `0x9029`) for the score bar. DMA1/2 are the sound FIFOs |
+| Sprites | each object writes its own shadow-OAM entries (220 references to `0x03005000` in the ROM). Objects far off the screen are left out (flippers absent with the camera at the top), with a margin below |
 
 ## What was learned (don't redo)
 
@@ -113,10 +181,11 @@ Ideas, none tried yet:
   caused the owner's "catch resets to the reveal" loop. States saved by
   earlier test builds carry the lowered value (186), and `twin_step` puts
   `0x164` back.
-- **The copy's camera can't jump.** The game streams the table's tiles as
-  the camera scrolls, so a 160-row jump draws garbage. Ramping 8 rows a frame
-  works. Loading the game's state into the copy gives it the game's VRAM,
-  hence the ramp from offset 0.
+- **The copy's camera can jump, but only with all of the game's scroll state
+  set** (corrected Oct 26; earlier: "can't jump"). The camera variable is only
+  a target: the game eases its scroll toward it at 8 rows a frame, and streams
+  BG3's tiles and gates the lights by that scroll, not the camera. Setting
+  the camera alone gives the old garbage. See "Scouting" for what to set.
 - **The copy drifts from the game now and then.** Its camera differs, and
   things off its screen behave differently. On plain tables it held a minute
   or more in every test. In the owner's catch state it drifts once at about
@@ -145,12 +214,14 @@ Ideas, none tried yet:
 - ROM: `roms/BPPE.zip`.
 - The owner's State Saver states: "Pinball: Table behavior" 1 and 2, and
   "Logo" (BPPE).
-- Experiment tools from this session lived in a scratch folder and are gone.
-  To rebuild one:
-  - A two-core runner: open two `Emu`s, load the same state, NOP the copy's
-    camera stores, set its camera each frame, compare ball positions, dump
-    PPMs of both. About 80 lines against `src/emu.c`; build like the harness
-    (`Makefile` `tools` target flags plus `-Isrc`).
+- Experiment tools are in `tools/scout/` (not built by the Makefile; usage
+  at the top of each file):
+  - `scout.c`: per-frame VRAM writes with the PCs that made them, mid-frame
+    register writes, the ring against EWRAM, the shadow OAM.
+  - `jump.c`: the two-core runner. A copy with its camera stores NOPed and
+    held at an offset, each layer shot alone; `FILL=1` for the instant jump.
+  - Build either: ``FL=$(make -n tools -B | grep -o -- '-O2.*-D_REENTRANT' | head -1)``,
+    then `gcc $FL -Isrc -o build/host/jump tools/scout/jump.c src/emu.c src/mapcap.c src/profiles.c src/logo_masks.c src/logo.c tools/png.c deps/mgba/build-host/libmgba.a deps/mgba/build-host/zlib/libz.a -lpng -lpthread -lm`.
   - `llvm-objdump --triple=thumbv4t-none-eabi` on the ROM wrapped with
     `objcopy -I binary -O elf32-little --change-section-address .data=0x08000000`
     disassembles it.
