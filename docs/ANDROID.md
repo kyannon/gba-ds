@@ -549,4 +549,3 @@ gives no-op stubs and the Settings panel has no Updates row. To add it:
 Player-facing Android changes since the last release, for the main session
 to move into CHANGELOG.md and the release notes (see CLAUDE.md, "More than
 one session"). Empty after each release.
-

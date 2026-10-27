@@ -375,6 +375,29 @@ static void* worker(void* arg) {
 	return NULL;
 }
 
+/* Outputs already tried this run. A job that couldn't make its file (the
+ * logo not found on the title screen, or the folder not writable) isn't
+ * queued again until the next start: each finished job makes the game list
+ * reload its logos, which asked for the missing one again, so one failure
+ * looped for ever (and "Preparing games" counted up without end). */
+static char (*tried)[1024];
+static int nTried, capTried;
+
+static bool tried_before(const char* out) {
+	for (int i = 0; i < nTried; ++i) {
+		if (!strcmp(tried[i], out)) return true;
+	}
+	if (nTried == capTried) {
+		int cap = capTried ? capTried * 2 : 32;
+		char (*t)[1024] = realloc(tried, sizeof(*tried) * cap);
+		if (!t) return false;
+		tried = t;
+		capTried = cap;
+	}
+	snprintf(tried[nTried++], sizeof(*tried), "%s", out);
+	return false;
+}
+
 static void enqueue(const char* romPath, const char* gameCode, const char* outPng, bool frame) {
 	pthread_mutex_lock(&qlock);
 	for (Job* j = queue; j; j = j->next) {
@@ -382,6 +405,10 @@ static void enqueue(const char* romPath, const char* gameCode, const char* outPn
 			pthread_mutex_unlock(&qlock);
 			return;
 		}
+	}
+	if (tried_before(outPng)) {
+		pthread_mutex_unlock(&qlock);
+		return;
 	}
 	Job* j = calloc(1, sizeof(*j));
 	snprintf(j->rom, sizeof(j->rom), "%s", romPath);
