@@ -38,8 +38,10 @@ static void hook_vram(struct GBAVideoRenderer* r, uint32_t a) {
 	if (i == npcs && npcs < NPC) { pcs[npcs].pc = pc; pcs[npcs].n = 0; pcs[npcs].lo = a; pcs[npcs].hi = a; npcs++; }
 	if (i < npcs) { pcs[i].n++; if (a < pcs[i].lo) pcs[i].lo = a; if (a > pcs[i].hi) pcs[i].hi = a; }
 }
+static int curFrame;
 static uint16_t hook_reg(struct GBAVideoRenderer* r, uint32_t a, uint16_t v) {
 	int vc = gba->video.vcount;
+	if (getenv("SCOUT_BG0") && (a == 0x10 || a == 0x12) && curFrame % 60 == 0) printf("  f%d line %d BG0%cOFS = %d\n", curFrame, vc, a == 0x10 ? 'H' : 'V', v);
 	if (vc > 0 && vc < 160 && a < 0xC0) {
 		midReg[a >> 1]++;
 		if (!midLines[a >> 1][0] || vc < midLines[a >> 1][0]) midLines[a >> 1][0] = vc;
@@ -68,6 +70,7 @@ int main(int argc, char** argv) {
 		seed = seed * 1103515245u + 12345u;
 		uint32_t keys = ((f % 50) < 6) ? (K_L | K_A) : 0;
 		if (((seed >> 16) & 63) == 0) keys = K_L | K_A;
+		curFrame = f;
 		emu_frame(&e, keys);
 		uint32_t S = emu_read32(&e, 0x020314E0);
 		int cam = (int16_t) emu_read16(&e, S + 0x4E);

@@ -1,188 +1,97 @@
 # Pokémon Pinball (BPPE): status and handoff
 
-Status as of Oct 26, 2026 (dev `12f6e54` and later; scouting notes added the same day). The player-facing rules are in
-`docs/games/pokemon-pinball.md` (PP-1 to PP-10, some retired); this file is
+Status as of Oct 27, 2026. The player-facing rules are in
+`docs/games/pokemon-pinball.md` (PP-1 to PP-11, some retired); this file is
 for the next session: what's built, what was learned, what's still wrong.
 
 ## What the owner wants
 
 The table twice as tall over both screens, **live on both**, as if the RG DS
-Plus had one tall screen. The owner's earlier specs (State Saver notes on
-"Pinball: Table behavior" 1 and 2):
+Plus had one tall screen. The owner's specs (State Saver notes on "Pinball:
+Table behavior" 1 and 2, and "Pause screen"):
 - The score bar and the other items at the bottom of the game always on the
   second screen.
 - Two screens' worth of table at all times, moving with the ball.
 - The ball on the lower screen only when the table is at its lowest;
   otherwise the camera keeps the ball on the top screen.
+- When the game is paused or the screen is otherwise dimmed, that screen
+  appears in full on the bottom (second) screen.
 
 Owner's verdicts so far:
-- The live view (a second core) holds full speed on the device and "seems to
-  work great in general".
+- The live view (copies of the game run alongside it) holds full speed on
+  the device with one copy.
 - The kept-rows approach (rows the game drew earlier, dimmed, flippers drawn
   separately) was dropped at the owner's request (PP-2, PP-7, PP-8 retired).
-- Events go on whichever screen keeps transitions fewest. Currently they're
-  always on the game's screen, where the ball is.
-- Newer State Saver note ("Pause screen", BPPE, Oct 25): when the game is
-  paused or the screen is otherwise dimmed, that screen should always appear
-  in full on the bottom (second) screen. Not done yet.
+- Events go on whichever screen keeps transitions fewest.
+- On the build of Oct 26 (one copy, the game flipping between the screens,
+  instant retakes): "the camera still resets and has to scroll back to place
+  basically every time the ball passes between screens"; "sprites disappear
+  on the top screen a lot, and jitter/flash on the bottom screen". Both
+  explained and fixed in the build of Oct 27 (below), not yet seen on the
+  device.
 
-## The blackouts at every flip: fixed in the build of Oct 26 (to check on the device)
+## How it works now (build of Oct 27): two copies, no flip
 
-The owner's report on the build before: **one screen or the other blacked
-out and refilled every time the ball crossed from one screen to the
-other.** The copy was retaken from the game and its camera ramped from 0 to
-±160 rows at 8 a frame: 20 frames with its rows not in place.
+The view's top row is `v = min(u, 112) + shake`, where `u` is the game's
+view row less the screen shake (the game's own pans included) and 112 is
+`tall.rows - 320`. The top screen shows rows `v`..`v+159`, the bottom one
+the 160 below. Nothing ever flips: the view only scrolls (at most ~6 rows a
+frame in the tests), and holds still at 112 once the game's view is further
+down (the whole lower table on the two screens).
 
-What the build of Oct 26 does instead (PP-9 changed):
-- `twin_jump` (profile `tall.live.jump`) puts the copy at its camera at once:
-  the BG3 tile ring refilled from EWRAM, every eased copy of the scroll set
-  (see "Scouting" below). No ramp: `twinOff` is always `twinTarget`.
-- A retake loads the game's state from **before** its frame (`run_frame`
-  saves it into `twinState` when a retake is due, `twinPre`), so the copy
-  runs the same frame at once and its picture is fresh. Its sprites are
-  hidden on that first frame (its OAM is still the game's).
-- A flip asks for the retake first and swaps the screens on the frame the
-  copy is there (`update_tall`: `want` / `need`), so neither screen is ever
-  without its rows.
-- A drift (ball positions differ) asks for a retake and keeps the copy's
-  picture up for that frame, instead of dropping the live view (the logo
-  for a frame). No ball at all still turns the copy off, as before.
-- The copy's BG3VOFS is read as negative when its camera is just above the
-  table's top (it wraps to ~470): only those rows are black, not the whole
-  screen (this blacked the top screen for a frame at each flip up).
-
-Measured on six 50-second games with random flipper presses (Ruby top,
-bottom and catch states): the game's flips identical to the old build (the
-game is never changed); no frame with a screen more than half black,
-against 75 in 82 frames around the events of one game before; the live view
-never dropped, against 1-4 times a game; the copy drifts a little more
-often (10 against 8 retakes over the six games), likely because it's at its
-full offset from the first frame.
-
-Ideas from before the fix, kept for reference (a copy can now be placed
-anywhere at once, which makes 2 and 4 cheaper; 1 is moot):
-1. **Don't retake on a flip.** Ramp the copy from +160 to -160 (or back)
-   without reloading it. 320 rows at 8 a frame is 40 frames. During the ramp
-   the copy's rows land somewhere else on its screen: show what fits, black
-   the rest. It's still a visible transition, but the copy stays in step and
-   costs nothing extra. Try faster steps: 8 was safe and an instant 160-row
-   jump drew garbage, but 16 or 24 a frame were never tested.
-2. **Two copies, one above and one below, both always running.** A flip then
-   just picks which one is shown, with no ramp. That's three cores (the game
-   plus two), roughly 3.5 ms of emulation per frame on the host against 1.2
-   for the game alone. The device held full speed with two cores; three is
-   unknown. Each copy's camera differs from the game's, so both drift now and
-   then (see below).
-3. **Wider hysteresis**, or flip only at the very bottom (camera ≥ ~260) and
-   back only near the top. That means fewer flips but more black rows past
-   the table's end: up to 160 at the extremes. Rows past the end are garbage
-   from the BG wrapping, so they must stay black.
-4. **Don't flip at all; frame both screens from copies.** The game runs
-   unseen, with two copies at `c` and `c+160`, `c = min(game row, 112)`. Same
-   cost as 2, and it gives the owner's original framing (ball on the bottom
-   screen only at the lowest point). The copies drift more because neither
-   camera matches the game's.
-
-## Scouting: a tall renderer, and the instant jump (Oct 26)
-
-The owner asked whether a modified mGBA that renders the table 320 rows tall
-from **one** core (no copies, so nothing to resync or drift) could replace
-the second copy. Findings, from `tools/scout/` on `us-ruby-top`,
-`us-ruby-bottom` and `us-ruby-catch`:
-
-1. **Background: easy.** BG1 and BG2 are whole-table and fixed in VRAM.
-   BG3 is streamed into a 22-row ring, but the whole table's BG3 tiles sit
-   in EWRAM all the time, and the slot of any row is a formula. A renderer
-   can draw any of the 432 rows on any frame with no change to the game.
-2. **Raster effects: trivial.** Only BG0's scroll at line 144.
-3. **Sprites: the hard part.** Objects off the game's screen get no OAM
-   entries, and each object writes its own (220 call sites). Showing them
-   in the extra rows means patching table objects one by one, and OAM's
-   8-bit y can't reach rows 256-319 anyway.
-4. **Lights: also gated.** They're drawn into the ring only while
-   `S+0x6A` is in each light's range, so extra rows would show them stale.
-
-**Verdict: the pure tall renderer is a large, risky patching job** (3 and 4
-are where it would go round in circles). The background half alone is no
-better than the copy, which already draws sprites and lights correctly.
-
-**What the scouting found instead: the copy can jump.** Its "8 rows a frame"
-limit was the game's own scroll easing. Before the copy's frame, when its
-camera's tile row is more than 1 from `S+0x64`:
-- refill the ring for rows `T`..`T+21` from EWRAM (`T` = camera row / 8,
-  rows past 55 skipped) and set `S+0x64 = T`;
-- set every eased copy of the scroll to the camera row: `0x0200B3AE`, `B3B2`,
-  `B3B6`, BG1-3VOFS, `S+0x5A`, `S+0x68`, `S+0x6A`, `S+0xCC`, and
-  `0x03007ED8` = row + 16. Missing `S+0x68` (`S+0x6A` is reloaded from it
-  each frame) leaves wrong light tiles in the reused slots for good.
-
-Result (`jump.c`, `us-ruby-bottom`, jumped 160 rows up, against a copy that
-eased there and settled): BG1, BG2 and BG3 identical from the first frame,
-sprites from the second (OAM lags a frame), the whole picture identical
-once animation phase matches. This is now the app's retake: see "The
-blackouts at every flip" above.
-
-Next steps, in order:
-1. The owner's verdict on the device.
-2. Check the lights and sprites at a jump in catch mode and on Sapphire
-   (the jump is only checked on Ruby's plain table so far).
-3. Reconsider ideas 2 and 4 above: a copy can now be placed anywhere at once.
-
-## How it works now (code map)
-
-- `src/profiles.h` `tall` (on probes, `hudBg`, `rows`, `hudRow`, `live`: the
-  addresses below); the BPPE profile in `src/profiles.c` (logo-only, `tall`,
-  logo with `lightEdgeClear`).
-- `src/game.c`:
-  - `twin_*` near the top. `twin_open`: second `Emu`, camera stores NOPed,
-    BG0 off. `twin_step` runs from `run_frame`, so it also runs on the
-    frame-buffer worker thread: same keys, its camera set to the game's ±
-    `twinOff`, `twin_jump` when its camera's tile row is more than one
-    from its ring's, the ball compared, retaken on a mismatch (from the
-    game's state before the frame, `twinPre`, saved in `run_frame`).
-  - The shadow-OAM hiding is in `run_frame`, before the game's frame:
-    `emu_hide_exact` on the copy.
-  - `update_tall` (before `update_snapshot`): the flip, which picture goes
-    on which screen, the score bar painted from the HUD split onto the bottom
-    screen, black for rows outside the table or not in place.
-  - The main loop's `if (tallLive) shownFb = ...` puts the right picture on
-    the game screen.
-- `src/emu.c`:
-  - `emu_hide_exact` (hides sprites by exact attributes, per renderer).
-  - `emu_hud_copy` and `emu_hud_copy_above`: the HUD split's layers also stay
-    in the game picture (all of them, or only above a row).
-  - `emu_write32`.
-- `src/config.c`: `pinball_live` (default 1). Off means the game on one
-  screen and the logo on the other.
-
-## Facts about the game (USA, BPPE)
-
-| What | Where / value |
-|---|---|
-| State pointer | `0x020314E0` (word) → S |
-| Camera | `S+0x54` (24.8 fixed), row at `S+0x4E` |
-| Camera stores, main routine | `0x0804DCFA` (str), `0x0804DD0A` (strh row) |
-| Camera stores, catch-mode routine | `0x0804DA54`, `0x0804DA64` |
-| Other camera writers, not per frame | `0x0804D728`, `0x0804D888`, `0x08035DA8` (jump-table data, not code) |
-| Camera target limits | `0x02031520`+0x18 (lowest, `0x164` on Ruby and Sapphire = camera row 272), +0x1A (highest) |
-| Camera range | rows 0-272; table 432 rows; BG3 is 256x512 and wraps (rows past 432 or below 0 are garbage) |
-| BG scroll | BG3VOFS (`0x0400001E`); BG1 and BG2 follow it; BG3HOFS moves a little sideways |
-| Score bar | BG0, screen-fixed, from row 144 (`hudRow`); also catch timer, message boxes |
-| Ball | pointer at `S+0x1330`; x, y words at +0x34, +0x38 (24.8) |
-| Shadow OAM | `0x03005000` (copied to OAM at the next vblank: the next frame's sprites) |
-| Opening sweep | `0x020005FB` (byte) / `0x020005FC` (half) non-zero while the table's intro sweep runs |
-| On a table | BG0CNT `0x8404` and BG3CNT `0x804B` |
-| Flippers | sprites tiles 0-15 (left) and 16-31 (right), palette 0, prio 2; left = L or Left, right = R or A |
-| Title logo | BG1 at frame 1440, own white striped background |
-| BG layers on a table | BG0 map `0x2000`, chars `0x4000`; BG1 map `0x3000`, chars `0x8000` (uses `0xD800`+); BG2 map `0x1000`, chars `0x4000`; BG3 map `0x0000`, chars `0x8000` (the ring). BG1-3 are 256x512 |
-| Fixed in VRAM | BG1's and BG2's maps and tiles, and BG3's map: never written on a table |
-| BG3 tile ring | `0x06008000`-`0x0600D7FF`, 22 slots of 1 KB (32 tiles, one tile row). Table tile row R is always in slot `(R + 10) % 22`; BG3's map is laid out to match |
-| BG3 tiles, whole table | in EWRAM, never changed on a table: rows 0-31 at `0x0200FBB0 + R*0x400`, rows 32-55 at `0x020030A0 + (R-32)*0x400` |
-| Streaming | `0x08047030`: one DMA3 a frame when the scroll's tile row changes (vs `S+0x64`); table `0x086B0010` (4 halves a tile row: source and slot going down, source and slot going up). Rows `T`..`T+21` resident for tile row `T` |
-| Eased scroll | the game moves its scroll toward the camera at most 8 rows a frame. Copies: BG1-3 VOFS shadows `0x0200B3AE`, `B3B2`, `B3B6`; `S+0x5A`, `S+0x68` (this frame's), `S+0x6A` (last frame's: the light gates), `S+0xCC`; `0x03007ED8` (+16, the main loop's, on the stack); and the BGxVOFS registers |
-| Lights | small DMAs straight into the ring (`0x0804ECxx`-`0x0804F8xx`), called from `0x0804E814` by ranges of `S+0x6A` (generous margins). 20-40 tiles in view differ from EWRAM on a typical frame |
-| Raster effects | only BG0HOFS/VOFS at line 144 (VCount IRQ, DISPSTAT `0x9029`) for the score bar. DMA1/2 are the sound FIFOs |
-| Sprites | each object writes its own shadow-OAM entries (220 references to `0x03005000` in the ROM). Objects far off the screen are left out (flippers absent with the camera at the top), with a margin below |
+- `twins[0]` is held at row 112 (the lower view's top half), `twins[1]` at
+  `min(u, 112) + 160`. Both run every frame, `twins[0]` on a worker thread
+  (`twin_work_*`) while `twins[1]` runs on the emulation thread. On the host
+  that's 1.9-2.3 ms of emulation a frame against 1.7-1.9 for the game plus
+  one copy run in a row.
+- Top screen: the game's own picture while `u <= 112` (it is those rows),
+  else `twins[0]`'s with the game's screen-fixed things laid over it.
+  Bottom screen: `twins[1]`'s. Each line comes from the first picture that
+  has its row (`tall_line`), placed by the rows each picture really shows
+  (its BG3VOFS), so a copy a row or two off still lines up.
+- **Holding a copy:** the game's view (BG3VOFS shadow `0x0200B3B6` = `S+0x5A`)
+  is its camera's row `S+0x4E` plus the screen shake (signed byte `S+0x121`)
+  plus offsets of its own: the opening sweep (`S+0x5FC`), pans (`S+0xE6`,
+  catch mode's reveal) and in catch mode `S+0x2AC` (routines `0x0804DB60`
+  and `0x0804DF10`; other routines too). The pans depend on where the camera
+  is, so a copy's own pan can differ from the game's. A copy's camera stores
+  are no-ops, and before each frame its camera row is set to
+  `target - (its view - its camera row - its shake) - last frame's pan step`;
+  after the frame its view less its shake is checked against the target:
+  more than 8 rows off, or a different ball position, and it's taken again.
+  (Patching the pans out of the copies' formula was tried: the sprites use
+  `S+0xE6` too, about 40 places, so they'd no longer line up.)
+- **Retake** (`twin_step`): the copy loads the game's state from before
+  this frame (`run_frame` saves it when one is due, `twinPre`), `twin_jump`
+  sets its scroll and BG3 tile ring for its row at once, it runs the frame,
+  and that frame's picture is not used (its sprites and scroll were the
+  game's): the screen keeps its last picture (`Twin.pic`) for one frame. In
+  six 50-second random games: 0 to 6 retakes each.
+- **Sprite filter** (`twin_hide`, from the shadow OAMs before the frame):
+  a copy's sprite alike one of the game's sprites *on the game's screen*
+  (attributes 1, 2 and the high byte of 0) is the same thing on the table if
+  its y is where the table puts it seen from the copy (game y + game view -
+  copy view, mod 256): kept if that's on the copy's screen, hidden if it's
+  only there by wrapping round; or at the same y with the views different:
+  fixed to the screen, hidden. `twins[1]` also hides those found fixed
+  against `twins[0]` (when its view is the game's it can't tell). The old
+  filter matched any y and hid real Pokémon (the owner's "sprites disappear").
+- **Screen-fixed things on the top screen** (lower view, PP-10): the HUD
+  split (a second renderer fed the game's writes) draws BG0 and, via
+  `emu_hud_keep_exact`, exactly the game's sprites found fixed to the screen
+  (banners), on the clear colour; rows above the score bar are laid over the
+  top screen. (Comparing the game's picture with the copies' was tried: the
+  copies' animations aren't always in phase with the game's, e.g. the
+  Makuhita, which left ghosts.)
+- **PP-11:** BLDCNT brightness-down with BLDY > 0 (pause: `0x00CF`/10, the
+  Mart: `0x00CE`/7), or more than 40 tiles of BG0's map (`0x06002000`, rows
+  10-27) not tile `0x1FF` (the timer is 8, a message box 140-240): the
+  bottom screen shows the game's picture plus its score bar; the top screen
+  the table's rows, or, while those would be the game's picture too, the
+  top screen from before it came up (`lastTop`).
+- `GBADS_TALL_TRACE=1` logs a line a frame (the view, each copy's rows,
+  retakes, sprites hidden, pixels laid over); `GBADS_TWIN_DEBUG=1` logs every
+  retake.
 
 ## What was learned (don't redo)
 
@@ -193,56 +102,106 @@ Next steps, in order:
   caused the owner's "catch resets to the reveal" loop. States saved by
   earlier test builds carry the lowered value (186), and `twin_step` puts
   `0x164` back.
-- **The copy's camera can jump, but only with all of the game's scroll state
-  set** (corrected Oct 26; earlier: "can't jump"). The camera variable is only
-  a target: the game eases its scroll toward it at 8 rows a frame, and streams
-  BG3's tiles and gates the lights by that scroll, not the camera. Setting
-  the camera alone gives the old garbage. See "Scouting" for what to set.
-- **The copy drifts from the game now and then.** Its camera differs, and
-  things off its screen behave differently. On plain tables it held a minute
-  or more in every test. In the owner's catch state it drifts once at about
-  23 s (frame ~1411 with the `pp-us-ruby-catch` inputs). Drift is detected by
-  the ball's position.
-- **Screen-fixed things appear in both copies:** BG0 (score bar, timer,
-  messages), banner sprites, and message letters. The letters are placed from
-  the catch hole; on the copy they're 160 rows off screen and the hardware
-  wraps them round. They're all hidden on the copy. BG0 is off, and sprites
-  matching the game's shadow OAM (attributes 1 and 2 equal, size bits equal,
-  any y) are hidden with `emu_hide_exact`. The screen darkening behind a
-  message (BLDCNT brightness) is still on both screens.
-- **Timing:** the copy roughly doubles emulation (1.2 → 2.3 ms a frame on the
-  host). The owner reports full speed on the RG DS Plus.
+- **A flip (the game moving between the screens) can't be made smooth:**
+  the whole picture moves by a screen at each one (the owner's "camera
+  resets"). With the game plus one copy, a continuous view needs the game's
+  160 rows plus 160 next to them, which is only above or below: hence two
+  copies.
+- **A copy can be put anywhere at once** (`twin_jump`): the BG3 ring
+  refilled from the table's tiles in EWRAM, every copy of the scroll set.
+  But only on a retake: jumping a running copy (its camera ahead of the game's
+  eased view) put its rows a few lines off for a frame and its sprites at
+  the old place: the owner's "jitter on the bottom screen".
+- **The copies' cosmetic animations can drift out of phase** with the game's
+  (things off a screen animate differently); the ball and the play stay in
+  step. Don't compare pictures to find what's the game's own.
+- **Timing:** each copy is about one more core's emulation; the second runs
+  on its own thread. The device held full speed with one copy; with two, to
+  be checked.
+- The tall-renderer idea (one core drawing 320 rows) was scouted on Oct 26:
+  the background is easy (BG1/BG2 fixed, BG3's whole table in EWRAM), but
+  objects off the game's screen get no sprites (220 call sites) and the
+  lights are gated by the scroll. Not worth it.
+
+## Facts about the game (USA, BPPE)
+
+| What | Where / value |
+|---|---|
+| State pointer | `0x020314E0` (word) → S (`0x02000000` in every state seen) |
+| Camera | `S+0x54` (24.8 fixed), row at `S+0x4E` |
+| Camera stores, main routine | `0x0804DCFA` (str), `0x0804DD0A` (strh row) |
+| Camera stores, catch-mode routine | `0x0804DA54`, `0x0804DA64` |
+| Camera resets, not per frame | `0x0804D728`, `0x0804D888` (from a table, at a ball's start); `0x08035DA8` is jump-table data, not code |
+| View (BG3VOFS shadow) | `S+0x5A` → `0x0200B3B6`: camera row + shake `S+0x121` (signed byte) + sweep `S+0x5FC` + pan `S+0xE6` (+ `S+0x2AC` in catch mode); `S+0x68` the same less `S+0x2AC`; `S+0x58` the horizontal one (from `S+0x4C`, `S+0x120`, `S+0x2AA`) |
+| Camera target limits | `0x02031520`+0x18 (lowest, `0x164` on Ruby and Sapphire = camera row 272), +0x1A (highest) |
+| Camera range | rows 0-272; table 432 rows; BG3 is 256x512 and wraps (rows past 432 or below 0 are garbage) |
+| BG scroll | BG3VOFS (`0x0400001E`); BG1 and BG2 follow it; BG3HOFS moves a little sideways |
+| Score bar | BG0, screen-fixed, from row 144 (`hudRow`); BG0VOFS 80 above it, 352 below; also the catch timer, message boxes |
+| Ball | pointer at `S+0x1330`; x, y words at +0x34, +0x38 (24.8) |
+| Shadow OAM | `0x03005000` (copied to OAM at the next vblank: the next frame's sprites) |
+| Opening sweep | `0x020005FB` (byte) / `0x020005FC` (half) non-zero while the table's intro sweep runs |
+| On a table | BG0CNT `0x8404` and BG3CNT `0x804B` |
+| Dimmed | BLDCNT `0x00CF` BLDY 10 paused; `0x00CE` BLDY 7 the Mart; `0x00CE` BLDY 0 normal; `0x1E01` with a message box |
+| Message box | BG0 map `0x06002000`, rows 10-27: blank tile `0x1FF`; the timer 8 tiles, a box 140-240 |
+| Flippers | sprites tiles 0-15 (left) and 16-31 (right), palette 0, prio 2; left = L or Left, right = R or A |
+| Title logo | BG1 at frame 1440, own white striped background |
+| BG layers on a table | BG0 map `0x2000`, chars `0x4000`; BG1 map `0x3000`, chars `0x8000` (uses `0xD800`+); BG2 map `0x1000`, chars `0x4000`; BG3 map `0x0000`, chars `0x8000` (the ring). BG1-3 are 256x512 |
+| Fixed in VRAM | BG1's and BG2's maps and tiles, and BG3's map: never written on a table |
+| BG3 tile ring | `0x06008000`-`0x0600D7FF`, 22 slots of 1 KB (32 tiles, one tile row). Table tile row R is always in slot `(R + 10) % 22`; BG3's map is laid out to match |
+| BG3 tiles, whole table | in EWRAM, never changed on a table: rows 0-31 at `0x0200FBB0 + R*0x400`, rows 32-55 at `0x020030A0 + (R-32)*0x400` |
+| Streaming | `0x08047030`: one DMA3 a frame when the view's tile row changes (vs `S+0x64`); table `0x086B0010`. Rows `T`..`T+21` resident for tile row `T` |
+| Scroll copies (for a jump) | BG1-3 VOFS shadows `0x0200B3AE`, `B3B2`, `B3B6`; `S+0x5A`, `S+0x68` (this frame's), `S+0x6A` (last frame's: the light gates), `S+0xCC`; `0x03007ED8` (+16, the main loop's, on the stack); the BGxVOFS registers |
+| Lights | small DMAs straight into the ring (`0x0804ECxx`-`0x0804F8xx`), called from `0x0804E814` by ranges of `S+0x6A` |
+| Raster effects | only BG0HOFS/VOFS at line 144 (VCount IRQ, DISPSTAT `0x9029`) for the score bar. DMA1/2 are the sound FIFOs |
+| Sprites | each object writes its own shadow-OAM entries (220 references to `0x03005000` in the ROM). Objects far off the screen are left out, with a margin |
+
+## Code map
+
+- `src/profiles.h` `tall` (on probes, `hudBg`, `rows`, `hudRow`, `live`:
+  `state`, `cam`, `camRow`, `nop`, `bound`, `ball`, `oam`, `view`, `viewBg`,
+  `shake`, `msg`, `idle`, `jump`); the BPPE profile in `src/profiles.c`.
+- `src/game.c`: `twins[]`, `twin_work_*`, `twin_jump`, `twin_hide`,
+  `twin_step`, `twin_open` / `twin_close` near the top; `run_frame` (the
+  sprite filters, the HUD split's fixed sprites, the pre-frame state for a
+  retake); `update_tall` (`tall_line`, the overlay, PP-11, the score bar).
+- `src/emu.c`: `emu_hide_exact`, `emu_hud_keep_exact` (exact sprites kept
+  by the HUD split's renderer), `emu_hud_copy`, `emu_hud_copy_above`.
+- `src/config.c`: `pinball_live` (default 1). Off means the game on one
+  screen and the logo on the other.
 
 ## Tests and fixtures
 
-- `tests/regress/pokemon-pinball.json`, 10 cases, all passing at `12f6e54`.
-  Fixtures are in `../gba-ds-tests/states/pokemon-pinball/`:
-  - `us-title`, `us-field-select`
-  - `us-ruby-bottom`, `us-ruby-top`
-  - `us-sapphire-start`: picking Sapphire; input A at frame 5 starts the table
-  - `us-ruby-catch`: the owner's catch mode, device
-  - `us-ruby-catch-loop`: the reveal-loop state, device, saved with the limit
-    at 186
-- ROM: `roms/BPPE.zip`.
-- The owner's State Saver states: "Pinball: Table behavior" 1 and 2, and
-  "Logo" (BPPE).
-- Experiment tools are in `tools/scout/` (not built by the Makefile; usage
-  at the top of each file):
-  - `scout.c`: per-frame VRAM writes with the PCs that made them, mid-frame
-    register writes, the ring against EWRAM, the shadow OAM.
-  - `jump.c`: the two-core runner. A copy with its camera stores NOPed and
-    held at an offset, each layer shot alone; `FILL=1` for the instant jump.
-  - Build either: ``FL=$(make -n tools -B | grep -o -- '-O2.*-D_REENTRANT' | head -1)``,
-    then `gcc $FL -Isrc -o build/host/jump tools/scout/jump.c src/emu.c src/mapcap.c src/profiles.c src/logo_masks.c src/logo.c tools/png.c deps/mgba/build-host/libmgba.a deps/mgba/build-host/zlib/libz.a -lpng -lpthread -lm`.
-  - `llvm-objdump --triple=thumbv4t-none-eabi` on the ROM wrapped with
-    `objcopy -I binary -O elf32-little --change-section-address .data=0x08000000`
-    disassembles it.
+- `tests/regress/pokemon-pinball.json`, 11 cases. Fixtures in
+  `../gba-ds-tests/states/pokemon-pinball/`: `us-title`, `us-field-select`,
+  `us-ruby-bottom`, `us-ruby-top`, `us-sapphire-start` (input A at frame 5
+  starts the table), `us-ruby-catch` (device), `us-ruby-catch-loop` (device,
+  saved with the limit at 186), `us-ruby-pause` (the owner's State Saver
+  "Pause screen", saved paused: the copies taken from a paused game have no
+  sprites of their own until it's unpaused). ROM: `roms/BPPE.zip`.
+- Random games for checking by hand: a script of random flipper presses
+  (A, L, A+L for 4-12 frames every 15-70 frames, 3000 frames) from
+  `us-ruby-top`, `us-ruby-bottom`, `us-ruby-catch`, with
+  `GBADS_TALL_TRACE=1`; check the view's step per frame, each copy's rows
+  against where it should be, frames with missing lines, retakes.
+- Experiment tools in `tools/scout/` (not built by the Makefile; usage at the
+  top of each file): `scout.c` (VRAM writes and their PCs, mid-frame
+  registers, the ring, the shadow OAM, BG0's scroll by line), `jump.c` (a
+  copy held at an offset, each layer shot alone), `bench.c` (one, three and
+  threaded cores). Build: ``FL=$(make -n tools -B | grep -o -- '-O2.*-D_REENTRANT' | head -1)``,
+  then `gcc $FL -Isrc -o build/host/jump tools/scout/jump.c src/emu.c src/mapcap.c src/profiles.c src/logo_masks.c src/logo.c tools/png.c deps/mgba/build-host/libmgba.a deps/mgba/build-host/zlib/libz.a -lpng -lpthread -lm`
+  (`bench.c` the same).
+- `llvm-objdump --triple=thumbv4t-none-eabi` on the ROM wrapped with
+  `objcopy -I binary -O elf32-little --change-section-address .data=0x08000000`
+  disassembles it.
 
 ## Not done
 
-- **Bonus stages:** the copy only runs where the lowest camera target is
+- **The owner's verdict on the device**, and speed with two copies there.
+- **Bonus stages:** the copies only run where the lowest camera target is
   `0x164`, so they play on one screen. Their tables and camera limits are
   unknown.
 - **Other events** on the device (evolution, hatching, the bonus-stage
-  entrances): unchecked.
+  entrances): unchecked. The catch reveal's picture differs between the
+  game and a copy now and then (cosmetic).
+- **Sapphire:** only its start is in the tests.
 - **Android:** `twin_*` is shared code; not tried on Android.

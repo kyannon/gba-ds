@@ -140,6 +140,9 @@ void emu_hud_copy(Emu* e, bool copy);
 /* While split: the HUD's BG layers also stay in the game picture above
  * this row (0: not at all; from the next line drawn). */
 void emu_hud_copy_above(int row);
+/* The HUD split also draws the sprites with exactly these attributes 0-2
+ * (the game's picture keeps them); n = 0: none. */
+void emu_hud_keep_exact(const uint16_t (*attrs)[3], int n);
 /* The lines the band was on in the last frame drawn split; false if none. */
 bool emu_hud_band_rows(int* y0, int* y1);
 /* An I/O register as last written (also the write-only ones: MOSAIC). */

@@ -1488,8 +1488,18 @@ static const MapProfile profiles[] = {
 			 * with things off its screen (catch mode drifted with it held up) */
 			.live = { .state = 0x020314E0, .cam = 0x54, .camRow = 0x4E,
 			          .nop = { 0x0804DCFA, 0x0804DD0A, 0x0804DA54, 0x0804DA64 },
-			          .bound = 0x02031538, .boundFrom = 0x164, .flipAt = 176, .flipBack = 112,
+			          .bound = 0x02031538, .boundFrom = 0x164,
 			          .ball = 0x1330, .oam = 0x03005000,
+			          /* (BG3's VOFS shadow: S+0x5A, made by 0x0804DBB8 (catch mode
+			           * 0x0804DF6A) from the camera's row S+0x4E plus the screen shake
+			           * (signed byte S+0x121), the opening sweep's offset (S+0x5FC),
+			           * S+0xE6 (pans: catch mode's reveal) and in catch mode S+0x2AC;
+			           * other routines too, and the sprites follow them. A copy is
+			           * held with its own offsets taken off its camera's row.) */
+			          .view = 0x0200B3B6, .viewBg = 3, .shake = 0x121,
+			          /* (BG0's map; scrolled to row 80 above the score bar: map rows
+			           * 10-27. The catch timer is 8 tiles, a message box 140-240) */
+			          .msg = { .map = 0x06002000, .row0 = 10, .rows = 18, .blank = 0x1FF, .min = 40 },
 			          /* (the table's opening sweep: its offset at 0x020005FC, running
 			           * to 0; the copy waits until it's done) */
 			          .idle = { { 0x020005FB, 0xFF, 0, 1 }, { 0x020005FC, 0xFFFF, 0, 2 } },

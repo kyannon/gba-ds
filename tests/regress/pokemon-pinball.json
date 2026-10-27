@@ -301,11 +301,12 @@
    "id": "pp-us-ruby-catch",
    "rom": "BPPE",
    "state": "pokemon-pinball/us-ruby-catch.ss",
-   "desc": "catch mode (state from the device): the timer, RHYHORN WAS CAUGHT, the Pokemon Mart, all on the game screen",
+   "desc": "catch mode (state from the device): the timer laid over the top screen, RHYHORN WAS CAUGHT with the game's whole screen on the bottom one, the Pokemon Mart",
    "rules": [
     "PP-1",
-    "PP-9",
-    "PP-10"
+    "PP-10",
+    "PP-11",
+    "PP-9"
    ],
    "input": [
     [
@@ -709,15 +710,27 @@
     },
     {
      "rule": "PP-1",
-     "what": "the game moved to the bottom screen",
+     "what": "the lower view: a copy's rows on the top screen",
      "type": "log",
-     "match": "the game to the bottom screen"
+     "match": "top screen: a copy"
     },
     {
      "rule": "PP-9",
      "what": "taken again when out of step (here once, at about 23 s)",
      "type": "log",
      "match": "out of step, taken again"
+    },
+    {
+     "rule": "PP-11",
+     "what": "the message: the game's whole screen on the bottom one",
+     "type": "log",
+     "match": "the game's screen on the bottom one"
+    },
+    {
+     "rule": "PP-11",
+     "what": "and the table on both again after",
+     "type": "log",
+     "match": "the table on both screens again"
     }
    ]
   },
@@ -1134,6 +1147,47 @@
      "what": "in step all through",
      "type": "no_log",
      "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-us-ruby-pause",
+   "rom": "BPPE",
+   "state": "pokemon-pinball/us-ruby-pause.ss",
+   "desc": "paused on Ruby (the owner's State Saver state \"Pause screen\", saved paused): the game's whole screen on the bottom one",
+   "rules": [
+    "PP-11"
+   ],
+   "shots": {
+    "paused": 60
+   },
+   "checks": [
+    {
+     "rule": "PP-1",
+     "what": "the live view came up",
+     "type": "log",
+     "match": "live view"
+    },
+    {
+     "rule": "PP-11",
+     "what": "the game's whole screen on the bottom one",
+     "type": "log",
+     "match": "the game's screen on the bottom one"
+    },
+    {
+     "rule": "PP-11",
+     "what": "with its score bar at the bottom",
+     "type": "not_uniform",
+     "shot": "paused",
+     "screen": "second",
+     "rect": [
+      40,
+      700,
+      980,
+      760
+     ],
+     "color": "000000",
+     "frac": 0.97
     }
    ]
   },

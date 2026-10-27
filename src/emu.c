@@ -395,6 +395,7 @@ typedef struct {
 	bool keepOnly; /* hide every sprite that matches none of the rules instead */
 	uint16_t exact[128][3]; /* and sprites exactly like these (emu_hide_exact) */
 	int nExact;
+	bool exactKeep; /* the exact ones are kept instead (emu_hud_keep_exact) */
 } HideSlot;
 static HideSlot hideSlots[8];
 static pthread_mutex_t hideLock = PTHREAD_MUTEX_INITIALIZER;
@@ -414,7 +415,7 @@ static bool hidden(const HideSlot* s, const struct GBAObj* obj) {
 	int prio = GBAObjAttributesCGetPriority(obj->c);
 	int pal = GBAObjAttributesCGetPalette(obj->c);
 	for (int i = 0; i < s->nExact; ++i) {
-		if (s->exact[i][0] == obj->a && s->exact[i][1] == obj->b && s->exact[i][2] == obj->c) return true;
+		if (s->exact[i][0] == obj->a && s->exact[i][1] == obj->b && s->exact[i][2] == obj->c) return !s->exactKeep;
 	}
 	for (int i = 0; i < s->n; ++i) {
 		const SpriteRule* r = &s->rules[i];
@@ -460,6 +461,7 @@ void emu_hide_exact(Emu* e, const uint16_t (*attrs)[3], int n) {
 	}
 	if (s) {
 		s->nExact = n > 128 ? 128 : n;
+		s->exactKeep = false;
 		if (s->nExact) memcpy(s->exact, attrs, sizeof(*attrs) * s->nExact);
 	}
 	pthread_mutex_unlock(&hideLock);
@@ -519,6 +521,7 @@ typedef struct {
 	unsigned bgMask;
 	SpriteRule objs[8];
 	int nObjs;
+	int nKeep; /* sprites the HUD also draws by their exact attributes (emu_hud_keep_exact) */
 	/* one frame of other layers instead (emu_hud_grab) */
 	uint32_t* grabBuf;
 	unsigned grabMask;
@@ -616,7 +619,7 @@ static void split_draw(struct GBAVideoRenderer* r, int y) {
 			if (m != split.bgMask) {
 				split.bgMask = m;
 				for (int i = 0; i < 4; ++i) r->disableBG[i] = (m >> i) & 1;
-				if (!split.grabbing) split_layers(m, split.nObjs > 0);
+				if (!split.grabbing) split_layers(m, split.nObjs > 0 || split.nKeep > 0);
 			}
 		}
 		if (y == 0 && split.grabBuf) {
@@ -657,7 +660,7 @@ static void split_draw(struct GBAVideoRenderer* r, int y) {
 			}
 			if (hud != split.lineHud) {
 				split.lineHud = hud;
-				if (!split.grabbing) split_layers(hud, split.nObjs > 0);
+				if (!split.grabbing) split_layers(hud, split.nObjs > 0 || split.nKeep > 0);
 			}
 		}
 		filtered_draw_scanline(&split.hud.d, y);
@@ -673,7 +676,7 @@ static void split_finish(struct GBAVideoRenderer* r) {
 		split.grabBuf = NULL;
 		split.grabbed = true;
 		split.hud.outputBuffer = (mColor*) split.hudBuf;
-		split_layers(split.bgMask, split.nObjs > 0);
+		split_layers(split.bgMask, split.nObjs > 0 || split.nKeep > 0);
 	}
 }
 static void split_reset(struct GBAVideoRenderer* r) {
@@ -749,7 +752,7 @@ bool emu_hud_split(Emu* e, bool on, unsigned bgMask, const SpriteRule* objs, int
 	if (split.nObjs) memcpy(split.objs, objs, sizeof(*objs) * split.nObjs);
 	/* the HUD: those layers and sprites only */
 	struct GBAVideoRenderer* h = &split.hud.d;
-	if (!split.grabbing) split_layers(bgMask, split.nObjs > 0);
+	if (!split.grabbing) split_layers(bgMask, split.nObjs > 0 || split.nKeep > 0);
 	pthread_mutex_lock(&hideLock);
 	HideSlot* hs = slot_for(h);
 	if (hs) {
@@ -778,6 +781,22 @@ void emu_hud_copy(Emu* e, bool copy) {
 	if (!r || !split.installed || !split.active) return;
 	for (int i = 0; i < 4; ++i) r->disableBG[i] = !copy && ((split.bgMask >> i) & 1);
 	emu_hide_sprites(e, copy ? NULL : split.objs, copy ? 0 : split.nObjs);
+}
+
+void emu_hud_keep_exact(const uint16_t (*attrs)[3], int n) {
+	if (!split.installed) return;
+	struct GBAVideoRenderer* h = &split.hud.d;
+	n = n > 128 ? 128 : n;
+	pthread_mutex_lock(&hideLock);
+	HideSlot* hs = slot_for(h);
+	if (hs) {
+		hs->nExact = n, hs->exactKeep = true;
+		if (n) memcpy(hs->exact, attrs, sizeof(*attrs) * n);
+	}
+	pthread_mutex_unlock(&hideLock);
+	split.nKeep = hs ? n : 0;
+	if (!split.grabbing) split_layers(split.bgMask, split.nObjs > 0 || split.nKeep > 0);
+	split.hud.oamDirty = true;
 }
 
 void emu_hud_copy_above(int row) {

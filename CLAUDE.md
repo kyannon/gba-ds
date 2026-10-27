@@ -192,7 +192,7 @@ Android session at the same time. To keep them from colliding:
   map, screen and memory probes, crops, captureHide/underHide sprite rules,
   logo extraction, regional variants (`variants[]` + patch functions), and
   for logo-only games (Tony Hawk's Pro Skater 2) the `snap` screen copy and
-  `controls` four-face layout (Super Mario Advance 2: `controls.snes`, with the camera pan poke done in game.c's run_frame), (Mario Kart; Super Mario Advance 2 in levels, beside its map capture) the `hud` split and when it's on. Pokémon Pinball has `tall`: the table over both screens (game.c update_tall): the game untouched (it plays differently with its camera moved: catch mode drifted) on the top screen, or the bottom one past camera row flipAt; a second core (twin_step in run_frame, same keys, its camera stores NOPed) held 160 rows below or above it; resynced from the game when the ball positions differ or the game changes screens; what's fixed to the screen only on the game's (copy's BG0 off, its sprites alike the game's shadow OAM at 0x03005000 hidden, emu_hide_exact). A compilation with its own RAM per game (Game Boy Wars Advance 1+2, `BGWJ`) has `pick`: game.c's ss_switch sets the second screen up again for the variant it names (BGW1, BGW2). Adding a game mostly means a profile.
+  `controls` four-face layout (Super Mario Advance 2: `controls.snes`, with the camera pan poke done in game.c's run_frame), (Mario Kart; Super Mario Advance 2 in levels, beside its map capture) the `hud` split and when it's on. Pokémon Pinball has `tall`: the table over both screens as one tall view (game.c update_tall), its top row min(the game's view, rows - 320): the top screen the game as it is while that's its view, else a copy held at rows - 320 with the game's screen-fixed things laid over it (BG0 and the sprites found fixed, drawn by the HUD split: emu_hud_keep_exact); the bottom screen a second copy held 160 rows below the view's top (twins[], twin_step in run_frame, one copy on a worker thread, same keys, camera stores NOPed, their own pans compensated); taken from the game again (its pre-frame state, twin_jump) when the ball positions differ; sprites alike the game's hidden only when fixed to the screen or wrapped round (twin_hide); paused, the Mart or a message: the game's whole screen on the bottom one (PP-11). See docs/PINBALL.md. A compilation with its own RAM per game (Game Boy Wars Advance 1+2, `BGWJ`) has `pick`: game.c's ss_switch sets the second screen up again for the variant it names (BGW1, BGW2). Adding a game mostly means a profile.
 - `mapcap.c` map capture on a hidden second core in a background thread.
 - `mapframe.c` generated map surrounds; `logo.c` logo / frame extraction.
 - `game.c` a play session: input, the second screen (map, logo, THPS2
@@ -304,7 +304,7 @@ Android session at the same time. To keep them from colliding:
 ## Ongoing work
 
 - Android version: see `docs/ANDROID.md`.
-- Pokémon Pinball's live two-screen view: see `docs/PINBALL.md` (status, facts about the game, the open problem: the copy re-syncing at every flip between screens; the Oct 26 scouting found how to jump the copy's camera at once).
+- Pokémon Pinball's live two-screen view: see `docs/PINBALL.md` (status, facts about the game, the two-copy view of Oct 27, what was learned, what is still to check on the device).
 - Experimental since v1.1 (untestable on the owner's RG DS Plus with GammaOS):
   starting games from Android frontends, and the pause menu on returning to
   the app. Needs a tester with a more capable Android device.

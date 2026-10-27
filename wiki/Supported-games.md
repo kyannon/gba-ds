@@ -19,7 +19,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Fire Emblem (Rekka no Ken in Japan; preliminary) | `AE7E` `AE7X` (English, French, German) `AE7Y` (English, Spanish, Italian) `AE7J` | on the map: the unit, terrain and goal windows and the minimap | — |
 | Sword of Mana (Shinyaku Seiken Densetsu in Japan) | `AVSE` `AVSY` (Spanish, Italian) `AVSJ` | the Status screen | — |
 | Summon Night: Swordcraft Story (Craft Sword Monogatari in Japan; preliminary) | `AB4E` `AB4J` (no European release) | the Status screen, with where you are | — |
-| Pokémon Pinball: Ruby & Sapphire (preliminary) | `BPPE` | the table twice as tall over both screens, with the score bar | — |
+| Pokémon Pinball: Ruby & Sapphire (preliminary) | `BPPE` | the table twice as tall over both screens, live, with the score bar | — |
 
 The codes are what `<CODE>` means in logo and overlay file names (see [Playing](Playing#logos) and [[Map screen surrounds and overlays]]).
 
@@ -76,12 +76,12 @@ Preliminary: a new second screen in v1.3.2, replacing the earlier one (which mov
 
 Preliminary. The USA release.
 
-- **On a table,** the two screens together show twice as much of it, **live**: GBA DS runs a second copy of the game alongside yours, with the same buttons every frame, drawing the part of the table next to your game's view, so the flippers, the Pokémon and everything else move on both screens. Your game itself is never changed.
-- Your game is on the top screen, with the table below it on the bottom screen. When the ball comes down towards the flippers, your game moves to the bottom screen, with the table above it on the top screen, and back up once the ball climbs well up again. The ball is always on your game's screen. Near those points a strip past the table's end can show black.
-- The **score bar** is always at the bottom of the bottom screen.
-- The catch timer, messages (a Pokémon caught), banners (BALL SAVE) and the Pokémon Mart are on your game's screen, where the ball is.
-- The two copies are checked against each other every frame. When they drift apart (now and then in catch mode), when your game changes screens, or after you load a state or rewind, the second copy is taken from your game again: its screen fills in over about a third of a second. During each table's opening sweep the game plays on one screen, with the logo on the other.
-- `pinball_live = 0` in `gba-ds.cfg` turns the second copy off (for slower devices): the game then plays on one screen, with the logo on the other.
+- **On a table,** the two screens together show twice as much of it, **live**, as if they were one tall screen: GBA DS runs two more copies of the game alongside yours, with the same buttons every frame, drawing the parts of the table your game's view doesn't, so the flippers, the Pokémon and everything else move on both screens. Your game itself is never changed.
+- The view scrolls smoothly with the ball and never jumps. While the ball is in the table's upper part, your game is on the top screen with the next part of the table below it. Further down, the two screens show the whole lower table, and the ball is on the bottom screen only when it's down by the flippers.
+- The **score bar** is always at the bottom of the bottom screen. The catch timer and banners (BALL SAVE) stay on the top screen.
+- When the game is **paused**, in the **Pokémon Mart** or showing a **message** (a Pokémon caught), the bottom screen shows its whole screen, with the table on the top screen.
+- The copies are checked against your game every frame. When one drifts apart (now and then in catch mode), or after you load a state or rewind, it's taken from your game again; its screen keeps its last picture for that one frame. During each table's opening sweep the game plays on one screen, with the logo on the other.
+- `pinball_live = 0` in `gba-ds.cfg` turns the copies off (for slower devices): the game then plays on one screen, with the logo on the other.
 - On the title and menus, the second screen shows the logo.
 - **Not tried yet:** the bonus stages (they play on one screen for now).
 

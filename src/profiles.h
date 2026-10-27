@@ -125,12 +125,14 @@ typedef struct MapProfile {
 		SpriteRule hide[4];
 	} snap;
 	/* Logo-only games: a pinball table twice as tall over both screens
-	 * (Pokemon Pinball). While every `on` probe matches, one screen shows
-	 * the game, as it is, and the other a second copy of the game run in
-	 * step with it (the same keys every frame), its camera held 160 rows
-	 * below the game's, or above it while the game is on the bottom screen
-	 * (game.c twin_*, update_tall). The BG layers in hudBg (the score bar)
-	 * go to the bottom screen's bottom (from row hudRow). */
+	 * (Pokemon Pinball). While every `on` probe matches, the two screens
+	 * show 320 rows of the table from row v = min(the game's scroll,
+	 * rows - 320): the top screen the game as it is while v is its scroll,
+	 * else a copy of the game held at row rows - 320; the bottom screen a
+	 * second copy held at v + 160. The copies run in step with the game (the
+	 * same keys every frame; game.c twin_*, update_tall). The BG layers in
+	 * hudBg (the score bar) go to the bottom screen's bottom (from row
+	 * hudRow). */
 	struct {
 		MemProbe on[2];
 		unsigned hudBg;
@@ -140,21 +142,32 @@ typedef struct MapProfile {
 		 * offsets there of the camera (24.8 fixed point) and its row; nop:
 		 * the camera's stores in the copy's code (made no-ops); bound: the
 		 * game's lowest camera target, boundFrom on the tables the copy
-		 * knows; flipAt / flipBack: the game's camera row at which it goes
-		 * to the bottom screen / back to the top; ball: offset of the ball's pointer (x, y words at
-		 * +0x34, +0x38 there), compared to keep the two in step; oam: the
+		 * knows; ball: offset of the ball's pointer (x, y words at
+		 * +0x34, +0x38 there), compared to keep them in step; oam: the
 		 * game's shadow sprite table (what the next frame's sprites are
-		 * copied from); idle: the bound is only changed while these match
-		 * (no sweep of the table going on: the copy waits) */
+		 * copied from); view: the shadow of BG viewBg's VOFS (the table rows
+		 * the next frame shows, from its top line), the register being this
+		 * frame's: the camera's row plus the screen shake and offsets of
+		 * the game's own (pans: they depend on where the camera is, so a
+		 * copy's can differ from the game's); shake: the screen shake (a
+		 * signed byte, S offset), which a copy adds alike to its camera's
+		 * row; idle: the copies only run while these match (no sweep of the
+		 * table going on) */
 		struct {
 			uint32_t state;
 			uint16_t cam, camRow;
 			uint32_t nop[4];
 			uint32_t bound;
 			uint16_t boundFrom;
-			int16_t flipAt, flipBack;
 			uint16_t ball;
 			uint32_t oam;
+			uint32_t view;
+			int viewBg;
+			uint16_t shake;
+			/* a message box up: more than min entries of the tile map at
+			 * map, rows row0 to row0 + rows - 1 (30 columns), not tile
+			 * blank (game.c update_tall, PP-11) */
+			struct { uint32_t map; int row0, rows; uint16_t blank; int min; } msg;
 			MemProbe idle[2];
 			/* Putting the copy's camera anywhere at once (game.c twin_jump):
 			 * the game eases its scroll toward the camera (at most 8 rows a
