@@ -35,6 +35,14 @@ Owner's verdicts so far:
   are the copies' logic falling behind the game's: fixed in the second
   build of Oct 27 (copies taken from the game every frame), the hatching
   not checked (no state).
+- On that build: on Sapphire, hitting the ball into the Wailmer's mouth
+  made "the bottom screen go away entirely for a second, then everything
+  scroll-to-reset" (state attached: now fixture `us-sapphire-whale`). The
+  game sets `0x020005FB` for one frame as it spits the ball out; the
+  copies took it for the opening sweep, stopped, and waited 30 frames, so
+  the second screen showed the logo and the top one the game's own camera
+  running down to the ball. Now only the sweep's offset (`0x020005FC`)
+  stops them, and they're back 2 frames after.
 
 ## How it works now (build of Oct 27): two copies, no flip
 
@@ -154,7 +162,7 @@ down (the whole lower table on the two screens).
 | Score bar | BG0, screen-fixed, from row 144 (`hudRow`); BG0VOFS 80 above it, 352 below; also the catch timer, message boxes |
 | Ball | pointer at `S+0x1330`; x, y words at +0x34, +0x38 (24.8) |
 | Shadow OAM | `0x03005000` (copied to OAM at the next vblank: the next frame's sprites) |
-| Opening sweep | `0x020005FB` (byte) / `0x020005FC` (half) non-zero while the table's intro sweep runs |
+| Opening sweep | `0x020005FC` (half, S+0x5FC) the view's offset, -268 rising to 0 over ~5 s; `0x020005FB` (byte) 1 during it, but also for one frame when Sapphire's Wailmer spits the ball out |
 | On a table | BG0CNT `0x8404` and BG3CNT `0x804B` |
 | Dimmed | BLDCNT `0x00CF` BLDY 10 paused; `0x00CE` BLDY 7 the Mart; `0x00CE` BLDY 0 normal; `0x1E01` with a message box |
 | Message box | BG0 map `0x06002000`, rows 10-27: blank tile `0x1FF`; the timer 8 tiles, a box 140-240 |
@@ -189,7 +197,7 @@ down (the whole lower table on the two screens).
 
 ## Tests and fixtures
 
-- `tests/regress/pokemon-pinball.json`, 12 cases. Fixtures in
+- `tests/regress/pokemon-pinball.json`, 13 cases. Fixtures in
   `../gba-ds-tests/states/pokemon-pinball/`: `us-title`, `us-field-select`,
   `us-ruby-bottom`, `us-ruby-top`, `us-sapphire-start` (input A at frame 5
   starts the table), `us-ruby-catch` (device), `us-ruby-catch-loop` (device,
@@ -197,7 +205,9 @@ down (the whole lower table on the two screens).
   "Pause screen", saved paused: the copies taken from a paused game have no
   sprites of their own until it's unpaused), `us-ruby-portrait` (the
   owner's catch state of Oct 27: `pp-us-ruby-portrait` plays to frame 1523,
-  where a square uncovered off the game's screen shows on the bottom one).
+  where a square uncovered off the game's screen shows on the bottom one),
+  `us-sapphire-whale` (the owner's Sapphire state: the ball in the Wailmer's
+  mouth, the Catch 'em mode message, then spat out; `pp-us-sapphire-whale`).
   ROM: `roms/BPPE.zip`.
 - Random games for checking by hand: a script of random flipper presses
   (A, L, A+L for 4-12 frames every 15-70 frames, 3000 frames) from

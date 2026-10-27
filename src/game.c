@@ -388,7 +388,9 @@ static void twin_step(void) {
 	}
 	twinArmed = memprobes_match(L->idle, 2, &emu) ? twinArmed + 1 : 0;
 	int32_t ax, ay;
-	if (twinArmed < 30 || !twin_ball(&emu, S, &ax, &ay)) return; /* (no ball: the same) */
+	/* (no ball: the same. A couple of frames after the sweep: the copies are
+	 * taken from the game every frame, so there's nothing to wait for) */
+	if (twinArmed < 2 || !twin_ball(&emu, S, &ax, &ay)) return;
 	int k = (int8_t) emu_read8(&emu, S + L->shake);
 	twinShakeNow = twinShakeNext, twinShakeNext = k;
 	int u = (int16_t) emu_read16(&emu, L->view) - k, vmax = twinProf->tall.rows - 2 * GBA_H;

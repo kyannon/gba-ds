@@ -1651,6 +1651,41 @@
    ]
   },
   {
+   "id": "pp-us-sapphire-whale",
+   "rom": "BPPE",
+   "state": "pokemon-pinball/us-sapphire-whale.ss",
+   "desc": "Sapphire (the owner's state from the device): the ball in the Wailmer's mouth, a message, then spat out and down: both screens live all through",
+   "rules": [
+    "PP-1",
+    "PP-9",
+    "PP-11"
+   ],
+   "shots": {
+    "message": 80,
+    "spat": 230
+   },
+   "checks": [
+    {
+     "rule": "PP-1",
+     "what": "the live view came up",
+     "type": "log",
+     "match": "live view"
+    },
+    {
+     "rule": "PP-11",
+     "what": "the message on the bottom screen",
+     "type": "log",
+     "match": "the game's screen on the bottom one"
+    },
+    {
+     "rule": "PP-9",
+     "what": "never off as the ball is spat out",
+     "type": "no_log",
+     "match": "live view off"
+    }
+   ]
+  },
+  {
    "id": "pp-us-ruby-pause",
    "rom": "BPPE",
    "state": "pokemon-pinball/us-ruby-pause.ss",

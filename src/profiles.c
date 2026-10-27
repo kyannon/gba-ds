@@ -1501,8 +1501,10 @@ static const MapProfile profiles[] = {
 			           * 10-27. The catch timer is 8 tiles, a message box 140-240) */
 			          .msg = { .map = 0x06002000, .row0 = 10, .rows = 18, .blank = 0x1FF, .min = 40 },
 			          /* (the table's opening sweep: its offset at 0x020005FC, running
-			           * to 0; the copy waits until it's done) */
-			          .idle = { { 0x020005FB, 0xFF, 0, 1 }, { 0x020005FC, 0xFFFF, 0, 2 } },
+			           * to 0; the copies wait until it's done. Not 0x020005FB, set
+			           * during the sweep but also for a frame when the Wailmer on
+			           * Sapphire spits the ball out) */
+			          .idle = { { 0x020005FC, 0xFFFF, 0, 2 } },
 			          /* BG3's tiles: the whole table stays in EWRAM; 0x08047030
 			           * streams a row a frame (DMA3, table 0x086B0010) into a 22-row
 			           * ring as the scroll's tile row (S+0x64) changes. The scroll:
