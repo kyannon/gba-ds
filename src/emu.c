@@ -598,11 +598,6 @@ static unsigned bgs_below(int p) {
 	return m;
 }
 
-/* each line's scroll and colour effect as drawn (emu_line_regs) */
-static uint16_t lineVofs[GBA_H], lineHofs[GBA_H];
-static bool lineFx[GBA_H];
-static int lineReg = -1; /* the BGxHOFS offset whose pair is recorded; -1: none */
-
 static int copyAbove; /* emu_hud_copy_above */
 
 static void split_draw(struct GBAVideoRenderer* r, int y) {
@@ -611,13 +606,6 @@ static void split_draw(struct GBAVideoRenderer* r, int y) {
 		for (int i = 0; i < 4; ++i) {
 			if ((split.bgMask >> i) & 1) r->disableBG[i] = off;
 		}
-	}
-	if (lineReg >= 0 && y < GBA_H) {
-		const uint16_t* io = split.gba->memory.io;
-		lineHofs[y] = io[lineReg >> 1], lineVofs[y] = io[(lineReg + 2) >> 1];
-		/* brightness up or down, any amount */
-		int mode = (io[0x50 >> 1] >> 6) & 3;
-		lineFx[y] = (mode == 2 || mode == 3) && (io[0x54 >> 1] & 0x1F);
 	}
 	if (split.active) {
 		if (split.prioBelow) {
@@ -794,16 +782,6 @@ void emu_hud_copy(Emu* e, bool copy) {
 
 void emu_hud_copy_above(int row) {
 	copyAbove = row;
-}
-
-void emu_line_regs_watch(int hofsReg) {
-	lineReg = hofsReg;
-}
-
-void emu_line_regs(uint16_t* hofs, uint16_t* vofs, bool* fx) {
-	memcpy(hofs, lineHofs, sizeof(lineHofs));
-	memcpy(vofs, lineVofs, sizeof(lineVofs));
-	memcpy(fx, lineFx, sizeof(lineFx));
 }
 
 void emu_hud_band(bool on, bool copy, bool watch) {

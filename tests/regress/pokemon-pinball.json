@@ -48,10 +48,9 @@
    "id": "pp-us-sapphire-start",
    "rom": "BPPE",
    "state": "pokemon-pinball/us-sapphire-start.ss",
-   "desc": "Sapphire picked: the table's opening sweep, then the ball at the bottom",
+   "desc": "Sapphire picked: the opening sweep (logo below), then the live view",
    "rules": [
     "PP-1",
-    "PP-2",
     "PP-3",
     "PP-9"
    ],
@@ -73,28 +72,34 @@
    "checks": [
     {
      "rule": "PP-1",
-     "what": "the table came up",
+     "what": "the live view came up",
      "type": "log",
-     "match": "table over both screens"
+     "match": "live view"
     },
     {
-     "rule": "PP-1",
-     "what": "the upper rows on the game screen",
-     "type": "not_uniform",
-     "shot": "end",
-     "screen": "game",
+     "rule": "PP-9",
+     "what": "and stayed in step",
+     "type": "no_log",
+     "match": "out of step"
+    },
+    {
+     "rule": "PP-9",
+     "what": "during the sweep, the logo on the second screen (its dark background along the bottom)",
+     "type": "uniform",
+     "shot": "sweep",
+     "screen": "second",
      "rect": [
-      40,
-      40,
-      980,
-      700
+      20,
+      730,
+      1000,
+      764
      ],
      "color": "000000",
-     "frac": 0.97
+     "frac": 0.99
     },
     {
      "rule": "PP-1",
-     "what": "the lower rows on the second screen",
+     "what": "the table live on the second screen",
      "type": "not_uniform",
      "shot": "end",
      "screen": "second",
@@ -121,31 +126,16 @@
      ],
      "color": "000000",
      "frac": 0.6
-    },
-    {
-     "rule": "PP-9",
-     "what": "the live view came up",
-     "type": "log",
-     "match": "live view"
-    },
-    {
-     "rule": "PP-9",
-     "what": "and stayed in step",
-     "type": "no_log",
-     "match": "out of step"
     }
    ]
   },
   {
-   "id": "pp-us-sapphire-kept-rows",
+   "id": "pp-us-no-copy",
    "rom": "BPPE",
    "state": "pokemon-pinball/us-sapphire-start.ss",
-   "desc": "pinball_live = 0: the rows kept from what the game drew",
+   "desc": "pinball_live = 0: one screen, the logo on the other",
    "rules": [
-    "PP-1",
-    "PP-2",
-    "PP-3",
-    "PP-8"
+    "PP-9"
    ],
    "input": [
     [
@@ -164,61 +154,25 @@
    },
    "checks": [
     {
-     "rule": "PP-1",
-     "what": "the table came up",
-     "type": "log",
-     "match": "table over both screens"
+     "rule": "PP-9",
+     "what": "no copy",
+     "type": "no_log",
+     "match": "live view"
     },
     {
-     "rule": "PP-1",
-     "what": "the upper rows on the game screen",
-     "type": "not_uniform",
-     "shot": "end",
-     "screen": "game",
-     "rect": [
-      40,
-      40,
-      980,
-      700
-     ],
-     "color": "000000",
-     "frac": 0.97
-    },
-    {
-     "rule": "PP-1",
-     "what": "the lower rows on the second screen",
-     "type": "not_uniform",
-     "shot": "end",
-     "screen": "second",
-     "rect": [
-      40,
-      40,
-      980,
-      560
-     ],
-     "color": "000000",
-     "frac": 0.97
-    },
-    {
-     "rule": "PP-3",
-     "what": "the score bar on the second screen",
-     "type": "not_uniform",
+     "rule": "PP-9",
+     "what": "the logo's dark background along the bottom",
+     "type": "uniform",
      "shot": "end",
      "screen": "second",
      "rect": [
       20,
-      660,
+      730,
       1000,
-      740
+      764
      ],
      "color": "000000",
-     "frac": 0.6
-    },
-    {
-     "rule": "PP-2",
-     "what": "no live view",
-     "type": "no_log",
-     "match": "live view"
+     "frac": 0.99
     }
    ],
    "config": {
@@ -231,7 +185,7 @@
    "state": "pokemon-pinball/us-ruby-bottom.ss",
    "desc": "Ruby, a state loaded with the camera at the bottom",
    "rules": [
-    "PP-2",
+    "PP-1",
     "PP-3",
     "PP-9"
    ],
@@ -241,7 +195,7 @@
    },
    "checks": [
     {
-     "rule": "PP-9",
+     "rule": "PP-1",
      "what": "the live view came up",
      "type": "log",
      "match": "live view"
@@ -251,25 +205,7 @@
      "what": "and stayed in step",
      "type": "no_log",
      "match": "out of step"
-    }
-   ]
-  },
-  {
-   "id": "pp-us-ruby-top",
-   "rom": "BPPE",
-   "state": "pokemon-pinball/us-ruby-top.ss",
-   "desc": "Ruby, the camera at the top, the ball falling to the flippers",
-   "rules": [
-    "PP-1",
-    "PP-2",
-    "PP-3",
-    "PP-9"
-   ],
-   "shots": {
-    "start": 60,
-    "end": 400
-   },
-   "checks": [
+    },
     {
      "rule": "PP-1",
      "what": "the table on the game screen",
@@ -287,7 +223,7 @@
     },
     {
      "rule": "PP-1",
-     "what": "and on the second screen",
+     "what": "and live on the second screen",
      "type": "not_uniform",
      "shot": "end",
      "screen": "second",
@@ -299,9 +235,26 @@
      ],
      "color": "000000",
      "frac": 0.97
-    },
+    }
+   ]
+  },
+  {
+   "id": "pp-us-ruby-top",
+   "rom": "BPPE",
+   "state": "pokemon-pinball/us-ruby-top.ss",
+   "desc": "Ruby, the camera at the top, the ball falling to the flippers",
+   "rules": [
+    "PP-1",
+    "PP-3",
+    "PP-9"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 400
+   },
+   "checks": [
     {
-     "rule": "PP-9",
+     "rule": "PP-1",
      "what": "the live view came up",
      "type": "log",
      "match": "live view"
@@ -311,6 +264,36 @@
      "what": "and stayed in step",
      "type": "no_log",
      "match": "out of step"
+    },
+    {
+     "rule": "PP-1",
+     "what": "the table on the game screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "game",
+     "rect": [
+      40,
+      40,
+      980,
+      700
+     ],
+     "color": "000000",
+     "frac": 0.97
+    },
+    {
+     "rule": "PP-1",
+     "what": "and live on the second screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      40,
+      40,
+      980,
+      560
+     ],
+     "color": "000000",
+     "frac": 0.97
     }
    ]
   },
@@ -318,11 +301,11 @@
    "id": "pp-us-ruby-catch",
    "rom": "BPPE",
    "state": "pokemon-pinball/us-ruby-catch.ss",
-   "desc": "catch mode (state from the device): the timer, then RHYHORN WAS CAUGHT, then the Pokemon Mart",
+   "desc": "catch mode (state from the device): the timer, RHYHORN WAS CAUGHT by the hole on the bottom screen, the Pokemon Mart on the top one",
    "rules": [
-    "PP-2",
-    "PP-7",
-    "PP-9"
+    "PP-1",
+    "PP-9",
+    "PP-10"
    ],
    "input": [
     [
@@ -719,22 +702,22 @@
    },
    "checks": [
     {
-     "rule": "PP-7",
-     "what": "the caught message as an event",
-     "type": "log",
-     "match": "table event: the game's picture"
-    },
-    {
-     "rule": "PP-7",
-     "what": "and over",
-     "type": "log",
-     "match": "table event over"
-    },
-    {
-     "rule": "PP-9",
+     "rule": "PP-1",
      "what": "the live view came up",
      "type": "log",
      "match": "live view"
+    },
+    {
+     "rule": "PP-10",
+     "what": "the catch timer on the ball's screen",
+     "type": "log",
+     "match": "fixed to the screen: on the top screen"
+    },
+    {
+     "rule": "PP-10",
+     "what": "the message on the ball's screen",
+     "type": "log",
+     "match": "a message.: on the bottom screen"
     },
     {
      "rule": "PP-9",

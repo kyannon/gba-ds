@@ -118,6 +118,8 @@ static int twinOff = -1;   /* its camera's rows below this one's (ramping up to 
 static int twinGood;       /* frames in step at the full offset */
 static void* twinState;
 static const MapProfile* twinProf;
+static bool twinEventBottom; /* what's fixed to the screen (messages, banners) goes on the copy's screen */
+static int twinSame;         /* sprites drawn alike by both this frame (fixed to the screen) */
 
 static bool twin_ball(Emu* e, uint32_t S, int32_t* x, int32_t* y) {
 	uint32_t b = emu_read32(e, S + twinProf->tall.live.ball);
@@ -161,18 +163,6 @@ static void twin_step(uint32_t keys) {
 	int32_t cam = (int32_t) emu_read32(&emu, S + L->cam) + (twinOff << 8);
 	emu_write32(&twin, T + L->cam, (uint32_t) cam);
 	emu_write16(&twin, T + L->camRow, (uint16_t) (cam >> 8));
-	/* (the sprites this one drew, from its sprite table now: the copy's
-	 * renderer leaves out the same ones, by what they are, not their slot:
-	 * the game fills its slots with what's on its screen, in order) */
-	static uint16_t same[128][3];
-	int ns = 0;
-	for (int i = 0; i < 128; ++i) {
-		uint16_t a0 = emu_read16(&emu, 0x07000000 + i * 8);
-		if ((a0 & 0x0300) == 0x0200) continue;
-		same[ns][0] = a0, same[ns][1] = emu_read16(&emu, 0x07000002 + i * 8), same[ns][2] = emu_read16(&emu, 0x07000004 + i * 8);
-		++ns;
-	}
-	emu_hide_exact(&twin, same, ns);
 	emu_frame(&twin, keys & 0x3FF);
 	int32_t ax, ay, bx, by;
 	if (!twin_ball(&emu, S, &ax, &ay) || !twin_ball(&twin, T, &bx, &by) || ax != bx || ay != by) {
@@ -218,6 +208,40 @@ static void run_frame(uint32_t keys) {
 			static bool told; /* (for reports: once) */
 			if (!told) told = true, fprintf(stderr, "camera pan: not now (game mode %02x, paused %02x)\n", emu_read8(&emu, sn->when[0].addr), emu_read8(&emu, sn->when[2].addr));
 		}
+	}
+	if (twinOpen && tallOn && twinOff >= 0) {
+		/* The sprites both will draw alike, from their shadow sprite tables
+		 * (what the next frame's sprites are copied from): fixed to the
+		 * screen, so drawn only on one of them, the screen events go on */
+		static uint16_t same[128][3];
+		int n = 0;
+		uint32_t o = twinProf->tall.live.oam;
+		for (int i = 0; i < 128; ++i) {
+			uint16_t a0 = emu_read16(&emu, o + i * 8);
+			if ((a0 & 0x0300) == 0x0200 || (a0 >> 14) == 3) continue;
+			uint16_t a1 = emu_read16(&emu, o + i * 8 + 2), a2 = emu_read16(&emu, o + i * 8 + 4);
+			/* (on screen: the size, doubled for a double-size rotated one) */
+			static const uint8_t sz[3][4][2] = { { { 8, 8 }, { 16, 16 }, { 32, 32 }, { 64, 64 } },
+			                                     { { 16, 8 }, { 32, 8 }, { 32, 16 }, { 64, 32 } },
+			                                     { { 8, 16 }, { 8, 32 }, { 16, 32 }, { 32, 64 } } };
+			int w = sz[a0 >> 14][a1 >> 14][0], h = sz[a0 >> 14][a1 >> 14][1], dbl = (a0 & 0x0300) == 0x0300 ? 2 : 1;
+			int y = a0 & 0xFF, x = a1 & 0x1FF;
+			if (y >= GBA_H) y -= 256;
+			if (x >= GBA_W) x -= 512;
+			if (y + h * dbl <= 0 || y >= GBA_H || x + w * dbl <= 0 || x >= GBA_W) continue;
+			for (int j = 0; j < 128; ++j) {
+				if (emu_read16(&twin, o + j * 8) == a0 && emu_read16(&twin, o + j * 8 + 2) == a1 && emu_read16(&twin, o + j * 8 + 4) == a2) {
+					same[n][0] = a0, same[n][1] = a1, same[n][2] = a2, ++n;
+					break;
+				}
+			}
+		}
+		twinSame = n;
+		emu_hide_exact(&emu, same, twinEventBottom ? n : 0);
+		emu_hide_exact(&twin, same, twinEventBottom ? 0 : n);
+	} else if (twinOpen) {
+		twinSame = 0;
+		emu_hide_exact(&emu, NULL, 0);
 	}
 	emu_frame(&emu, keys & 0x3FF);
 	if (twinOpen && tallOn) twin_step(keys);
@@ -323,13 +347,8 @@ static bool mapInactive;
 static bool logoOnly; /* the game has a profile but no map: logo on the second screen */
 static const MapProfile* snapProf; /* logo-only game with screens copied to the second screen */
 static const MapProfile* tallProf; /* logo-only game with a table over both screens (profile.tall) */
-#define TALL_H 1024 /* rows of table kept (the BG scroll's range) */
-#define TALL_W 512  /* and columns */
-static uint32_t tallRows[TALL_W * TALL_H], tallTop[GBA_W * GBA_H], tallBot[GBA_W * GBA_H];
-static uint8_t tallHave[TALL_H];
-static int tallLo, tallHi; /* the rows the camera has shown since the table came up */
-static bool tallEvent;     /* an event over it: the game screen shows the game's own picture */
-static bool tallLive;      /* the live view: game screen as the game draws it (less the score bar), the copy below */
+static uint32_t tallTop[GBA_W * GBA_H], tallBot[GBA_W * GBA_H];
+static bool tallLive;      /* the live view: the game's picture (less the score bar) and the copy's below */
 /* Mario Kart: the race HUD on the second screen (profile .hud) */
 static const MapProfile* hudProf;
 static uint32_t hudPx[GBA_W * GBA_H];
@@ -1653,245 +1672,83 @@ static void update_hud(void) {
 	}
 }
 
-/* profile.tall: the table over both screens (see profiles.h). Called after
- * each frame; while on, the game screen shows tallTop and the second screen
- * tallBot. */
-static void tall_forget(void) {
-	memset(tallHave, 0, sizeof(tallHave));
-	memset(tallRows, 0, sizeof(tallRows));
-	tallLo = 0, tallHi = tallProf->tall.rows;
-}
-
-/* An event over the table (a Pokemon caught, the Mart): the score bar's
- * layer (hudBg, drawn alone into hudPx) has more on it above the score bar
- * (row hudRow) than a timer. */
-static bool tall_event(const typeof(tallProf->tall)* t) {
-	uint32_t clear = emu_hud_clear();
-	int n = 0;
-	for (int i = 0; i < GBA_W * t->hudRow; ++i) n += (hudPx[i] & 0xFFFFFF) != clear;
-	static int dbg = -1;
-	if (dbg < 0) dbg = getenv("GBADS_TALL_DEBUG") != NULL;
-	if (dbg) fprintf(stderr, "frame %llu: %d above the score bar\n", (unsigned long long) frameCount, n);
-	return n > 1500;
-}
-
-/* The flippers (profile tall.flipper): left out of the kept rows (the
- * split draws them into hudPx), drawn into the view where they were last
- * seen: as the game draws them now when it does, else as they last looked
- * up (their keys held) or down. */
-static void tall_flippers(const typeof(tallProf->tall)* t, int c, int hx, int v, int h) {
-	static uint32_t look[2][2][32 * 32]; /* [flipper][up] (0: nothing there) */
-	static bool have[2][2], placed[2];
-	static int tx[2], ty[2], held[2], was[2];
-	static const uint8_t sizes[3][4][2] = { { { 8, 8 }, { 16, 16 }, { 32, 32 }, { 64, 64 } },
-	                                        { { 16, 8 }, { 32, 8 }, { 32, 16 }, { 64, 32 } },
-	                                        { { 8, 16 }, { 8, 32 }, { 16, 32 }, { 32, 64 } } };
-	uint32_t clear = emu_hud_clear();
-	for (int k = 0; k < 2; ++k) {
-		const SpriteRule* rule = &t->flipper[k].obj;
-		if (!t->flipper[k].keys) continue;
-		int up = (frameKeys & t->flipper[k].keys) != 0;
-		held[k] = up == was[k] ? held[k] + 1 : 0, was[k] = up;
-		/* the game's sprite, if it's on screen */
-		bool seen = false;
-		int sx = 0, sy = 0, sw = 0, sh = 0;
-		for (int i = 0; i < 128 && !seen; ++i) {
-			uint16_t a0 = emu_read16(&emu, 0x07000000 + i * 8), a1 = emu_read16(&emu, 0x07000002 + i * 8), a2 = emu_read16(&emu, 0x07000004 + i * 8);
-			if ((a0 & 0x0300) == 0x0200 || (a0 >> 14) == 3) continue;
-			int tile = a2 & 0x3FF, pal = a2 >> 12, prio = (a2 >> 10) & 3;
-			if (tile < rule->tileMin || tile > rule->tileMax || (rule->palMask && !((rule->palMask >> pal) & 1)) || (rule->prio >= 0 && prio != rule->prio)) continue;
-			sw = sizes[a0 >> 14][a1 >> 14][0], sh = sizes[a0 >> 14][a1 >> 14][1];
-			if (sw > 32 || sh > 32) continue;
-			sy = a0 & 0xFF, sx = a1 & 0x1FF;
-			if (sy >= GBA_H) sy -= 256;
-			if (sx >= GBA_W) sx -= 512;
-			seen = sy > -sh && sy < GBA_H && sx > -sw && sx < GBA_W;
-		}
-		static uint32_t now[32 * 32];
-		if (seen) {
-			placed[k] = true, tx[k] = sx + h, ty[k] = sy + v;
-			for (int y = 0; y < 32; ++y) {
-				for (int x = 0; x < 32; ++x) {
-					int gx = sx + x, gy = sy + y;
-					uint32_t p = 0;
-					if (x < sw && y < sh && gx >= 0 && gx < GBA_W && gy >= 0 && gy < t->hudRow) {
-						p = hudPx[gy * GBA_W + gx];
-						p = (p & 0xFFFFFF) == clear ? 0 : p | 0xFF000000;
-						hudPx[gy * GBA_W + gx] = clear; /* (not with the score bar's layer) */
-					}
-					now[y * 32 + x] = p;
-				}
-			}
-		}
-		/* all of it on the game screen, above the score bar */
-		bool whole = seen && sx >= 0 && sx + sw <= GBA_W && sy >= 0 && sy + sh <= t->hudRow;
-		/* (how it looks up / down, once it's been so a moment) */
-		if (whole && held[k] >= 8) memcpy(look[k][up], now, sizeof(now)), have[k][up] = true;
-		if (!placed[k] || (!seen && !have[k][up])) continue;
-		const uint32_t* px = whole || !have[k][up] ? now : look[k][up];
-		for (int y = 0; y < 32; ++y) {
-			int r = ty[k] + y - c;
-			if (r < 0 || r >= 2 * GBA_H) continue;
-			uint32_t* row = &(r < GBA_H ? tallTop : tallBot)[(r % GBA_H) * GBA_W];
-			for (int x = 0; x < 32; ++x) {
-				int ox = tx[k] + x - hx;
-				if (px[y * 32 + x] && ox >= 0 && ox < GBA_W) row[ox] = px[y * 32 + x];
-			}
-		}
-	}
-}
-
+/* profile.tall: the table over both screens (see profiles.h), the copy
+ * drawing the lower half (twin_*). Called after each frame. */
 static void update_tall(void) {
 	const typeof(tallProf->tall)* t = &tallProf->tall;
+	const typeof(t->live)* L = &t->live;
 	bool on = nScreens > 1 && memprobes_match(t->on, 2, &emu);
 	static int eventFor, calmFor;
-	static bool event, wasLive;
-	static SpriteRule flipRules[2];
+	static bool event, copied;
 	if (on != tallOn) {
-		for (int k = 0; k < 2; ++k) flipRules[k] = t->flipper[k].obj;
-		emu_hud_split(&emu, on, t->hudBg, flipRules, t->flipper[1].keys ? 2 : t->flipper[0].keys ? 1 : 0, hudPx);
-		emu_line_regs_watch(on ? t->camReg - 2 : -1);
+		emu_hud_split(&emu, on, t->hudBg, NULL, 0, hudPx);
 		emu_hud_copy_above(0);
 		tallOn = on;
-		event = false;
+		event = twinEventBottom = copied = false;
 		eventFor = calmFor = 0;
-		tall_forget();
-		mapShownIdx = -1; /* (the logo; the table from the next frame) */
+		tallLive = false;
+		mapShownIdx = -1;
 		if (debug) fprintf(stderr, "frame %llu: table %s\n", (unsigned long long) frameCount, on ? "up" : "gone");
 		return;
 	}
 	if (!on) return;
-	if (frame_is_flat(emu.fb)) tall_forget(); /* a fade: maybe another table next */
-	/* an event: the game's own picture (its layers blend), the table below
-	 * it on the second screen, nothing kept */
-	bool ev = tall_event(t);
-	eventFor = ev ? eventFor + 1 : 0, calmFor = ev ? 0 : calmFor + 1;
-	if (!event && eventFor >= 2) {
-		event = true;
-		if (!wasLive) emu_hud_copy(&emu, true);
-		if (debug) fprintf(stderr, "frame %llu: table event: the game's picture\n", (unsigned long long) frameCount);
-	} else if (event && calmFor >= 4) {
-		event = false;
-		emu_hud_copy(&emu, false);
-		if (debug) fprintf(stderr, "frame %llu: table event over\n", (unsigned long long) frameCount);
-		if (!wasLive) return; /* (the split's back from the next frame) */
-	}
-	if (twinOpen && twinGood >= 6) {
-		/* live: this game on the game screen, the copy, as it draws it,
-		 * below. The score bar's layer is fixed to the screen in both: this
-		 * one's above the score bar (the catch timer), the score bar on the
-		 * copy's picture. A message box on it goes with the copy that has
-		 * the most sprites over it (the message's: placed where the table
-		 * has the hole it's for, on one copy's screen). */
-		bool twinBg = false;
-		if (ev || event) {
-			uint32_t clear = emu_hud_clear();
-			int y0 = t->hudRow, y1 = -1;
-			for (int y = 0; y < t->hudRow; ++y) {
-				for (int x = 0; x < GBA_W; ++x) {
-					if ((hudPx[y * GBA_W + x] & 0xFFFFFF) != clear) y0 = SDL_min(y0, y), y1 = y;
-				}
-			}
-			int n[2] = { 0, 0 };
-			for (int k = 0; k < 2; ++k) {
-				Emu* e = k ? &twin : &emu;
-				for (int i = 0; i < 128; ++i) {
-					uint16_t a0 = emu_read16(e, 0x07000000 + i * 8);
-					int y = a0 & 0xFF;
-					if ((a0 & 0x0300) == 0x0200 || y >= GBA_H) continue;
-					n[k] += y >= y0 && y <= y1;
-				}
-			}
-			twinBg = n[1] > n[0];
-		}
-		emu_hud_copy_above(twinBg ? 0 : t->hudRow);
-		emu_layers(&twin, twinBg ? 0x1F : 0x1E);
-		memcpy(tallBot, twin.fb, sizeof(tallBot));
-		memcpy(tallTop, emu.fb, sizeof(tallTop));
-		uint32_t clear = emu_hud_clear();
-		for (int i = GBA_W * t->hudRow; i < GBA_W * GBA_H && !twinBg; ++i) {
-			if ((hudPx[i] & 0xFFFFFF) != clear) tallBot[i] = hudPx[i] | 0xFF000000;
-		}
-		tallLive = true;
-		tallEvent = false;
-		uint32_t* second = cfg->swap ? tallTop : tallBot;
-		for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], second, GBA_W * 4);
-		if (!wasLive) fprintf(stderr, "frame %llu: live view\n", (unsigned long long) frameCount);
-		wasLive = true;
-		mapShownIdx = 0;
-		tall_forget();
+	if (!twinOpen || twinOff < 0) {
+		/* the copy isn't running (the table's opening sweep, a table it
+		 * doesn't know): the game as it is, the logo on the second screen */
+		if (!copied) emu_hud_copy(&emu, true), copied = true;
+		emu_hud_copy_above(0);
+		if (tallLive && debug) fprintf(stderr, "frame %llu: live view off\n", (unsigned long long) frameCount);
+		tallLive = false;
+		event = twinEventBottom = false;
+		mapShownIdx = -1;
 		return;
 	}
-	emu_hud_copy_above(0);
-	if (wasLive && debug) fprintf(stderr, "frame %llu: live view off\n", (unsigned long long) frameCount);
-	wasLive = tallLive = false;
-	static uint16_t hofs[GBA_H], vofs[GBA_H];
-	static bool fx[GBA_H];
-	emu_line_regs(hofs, vofs, fx);
-	int v = vofs[0] & 0x3FF, hx = hofs[GBA_H / 2] & 0x1FF;
-	if (v + 2 * GBA_H > TALL_H || hx + GBA_W > TALL_W) return;
-	/* each line where it is on the table (the scroll can change partway
-	 * down a frame); not the brightened or darkened ones, nor during an
-	 * event (the score bar's layer is in them then) */
-	for (int y = 0; y < GBA_H && !event; ++y) {
-		int r = (vofs[y] & 0x3FF) + y, x = hofs[y] & 0x1FF;
-		if (fx[y] || r >= TALL_H || x + GBA_W > TALL_W) continue;
-		memcpy(&tallRows[r * TALL_W + x], &emu.fb[y * GBA_W], sizeof(uint32_t) * GBA_W);
-		tallHave[r] = 1;
+	if (copied) emu_hud_copy(&emu, false), copied = false;
+	/* what's fixed to the screen over the table: the score bar's layer above
+	 * the score bar (the catch timer, messages), sprites drawn alike by
+	 * both (banners, the Mart's items). It goes on the screen the ball is
+	 * on as it appears, and stays there until it's gone. */
+	uint32_t clear = emu_hud_clear();
+	int above = 0;
+	for (int i = 0; i < GBA_W * t->hudRow; ++i) above += (hudPx[i] & 0xFFFFFF) != clear;
+	bool fixed = above > 40 || twinSame > 0;
+	if (getenv("GBADS_TWIN_DEBUG")) fprintf(stderr, "frame %llu: fixed: %d px, %d sprites\n", (unsigned long long) frameCount, above, twinSame);
+	/* (a message box: much more on that layer than the catch timer; it
+	 * goes where the ball is when it appears, even if the timer was put on
+	 * the other screen) */
+	static int bigFor;
+	bigFor = above > 1500 ? bigFor + 1 : 0;
+	eventFor = fixed ? eventFor + 1 : 0, calmFor = fixed ? 0 : calmFor + 1;
+	if ((!event && eventFor >= 2) || bigFor == 2) {
+		event = true;
+		uint32_t S = emu_read32(&emu, L->state);
+		int32_t bx, by;
+		int camRow = (int32_t) emu_read32(&emu, S + L->cam) >> 8;
+		twinEventBottom = twin_ball(&emu, S, &bx, &by) && (by >> 8) >= camRow + GBA_H;
+		if (debug) fprintf(stderr, "frame %llu: fixed to the screen%s: on the %s screen (the ball's)\n", (unsigned long long) frameCount, bigFor ? " (a message)" : "", twinEventBottom ? "bottom" : "top");
+	} else if (event && calmFor >= 8) {
+		event = twinEventBottom = false;
+		if (debug) fprintf(stderr, "frame %llu: nothing fixed to the screen\n", (unsigned long long) frameCount);
 	}
-	tallLo = SDL_min(tallLo, v), tallHi = SDL_max(tallHi, v + GBA_H);
-	/* the window: from the camera down, but not past the table's bottom */
-	int c = v;
-	if (c + 2 * GBA_H > tallHi) c = SDL_max(tallLo, tallHi - 2 * GBA_H);
-	/* (not while the rows above the camera haven't been seen yet, as after
-	 * loading a state at the bottom of the table, nor during an event: the
-	 * game's own picture on the game screen) */
-	for (int r = c; r < v && c < v; ++r) {
-		if (!tallHave[r]) c = v;
-	}
-	if (event) c = v;
-	for (int half = 0; half < 2; ++half) {
-		uint32_t* o = half ? tallBot : tallTop;
-		for (int y = 0; y < GBA_H; ++y) {
-			int r = c + half * GBA_H + y;
-			uint32_t* row = &o[y * GBA_W];
-			if (r >= 0 && r < TALL_H && tallHave[r]) {
-				const uint32_t* src = &tallRows[r * TALL_W + hx];
-				for (int x = 0; x < GBA_W; ++x) row[x] = src[x] | 0xFF000000; /* (never seen at this scroll: black) */
-			} else {
-				for (int x = 0; x < GBA_W; ++x) row[x] = 0xFF000000;
-			}
+	/* (the darkening behind a message on the copy's screen: not on this one's) */
+	bool undark = event && twinEventBottom && bigFor;
+	emu_hud_game_reg(undark ? 0x50 : 0, undark ? 0x00C0 : 0);
+	/* this game: its score bar's layer above the score bar while things go
+	 * on its screen; the copy: that layer only with them (it has the score
+	 * bar then), else the score bar from this one */
+	emu_hud_copy_above(event && !twinEventBottom ? t->hudRow : 0);
+	emu_layers(&twin, twinEventBottom ? 0x1F : 0x1E);
+	memcpy(tallBot, twin.fb, sizeof(tallBot));
+	if (!twinEventBottom) {
+		for (int i = GBA_W * t->hudRow; i < GBA_W * GBA_H; ++i) {
+			if ((hudPx[i] & 0xFFFFFF) != clear) tallBot[i] = hudPx[i] | 0xFF000000;
 		}
 	}
-	/* the rows the game isn't drawing now: dimmed (they may be out of date) */
-	static bool live[2 * GBA_H];
-	memset(live, 0, sizeof(live));
-	for (int y = 0; y < GBA_H; ++y) {
-		int r = (vofs[y] & 0x3FF) + y - c;
-		if (r >= 0 && r < 2 * GBA_H) live[r] = true;
-	}
-	for (int r = 0; r < 2 * GBA_H; ++r) {
-		if (live[r]) continue;
-		uint32_t* row = &(r < GBA_H ? tallTop : tallBot)[(r % GBA_H) * GBA_W];
-		for (int x = 0; x < GBA_W; ++x) row[x] = 0xFF000000 | (row[x] >> 1 & 0x7F7F7F);
-	}
-	/* the lines not kept (brightened, darkened) as the game has them now */
-	for (int y = 0; y < GBA_H && !event; ++y) {
-		int r = (vofs[y] & 0x3FF) + y - c;
-		if (!fx[y] || r < 0 || r >= 2 * GBA_H) continue;
-		memcpy(&(r < GBA_H ? tallTop : tallBot)[(r % GBA_H) * GBA_W], &emu.fb[y * GBA_W], sizeof(uint32_t) * GBA_W);
-	}
-	if (!event) tall_flippers(t, c, hx, vofs[0] & 0x3FF, hofs[0] & 0x1FF);
-	tallEvent = event;
-	/* the upper half on the top screen (the game's, unless swapped); the
-	 * score bar where it was on the game screen, over the second screen's */
+	memcpy(tallTop, emu.fb, sizeof(tallTop));
 	uint32_t* second = cfg->swap ? tallTop : tallBot;
-	uint32_t clear = emu_hud_clear();
-	for (int i = 0; i < GBA_W * GBA_H && !event; ++i) {
-		if ((hudPx[i] & 0xFFFFFF) != clear) second[i] = hudPx[i];
-	}
 	for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], second, GBA_W * 4);
-	if (mapShownIdx < 0 && debug) fprintf(stderr, "frame %llu: table over both screens\n", (unsigned long long) frameCount);
+	if (!tallLive) fprintf(stderr, "frame %llu: live view\n", (unsigned long long) frameCount);
+	tallLive = true;
 	mapShownIdx = 0;
 }
 
@@ -2979,7 +2836,7 @@ static void ss_setup(const char* rom, const char* code) {
 	snapProf = NULL;
 	tallProf = NULL;
 	tallOn = false;
-	tallEvent = false;
+	tallLive = false;
 	hudProf = NULL;
 	hudOn = false;
 	{
@@ -3000,8 +2857,8 @@ static void ss_setup(const char* rom, const char* code) {
 		memprobe_virtual = lp ? lp->virt : NULL;
 		logoOnly = lp && lp->logoOnly;
 		snapProf = logoOnly && lp->snap.showMin ? lp : NULL;
-		tallProf = logoOnly && lp->tall.on[0].addr ? lp : NULL;
-		if (tallProf && nScreens > 1 && cfg->tallLive) twin_open(rom, tallProf);
+		tallProf = logoOnly && lp->tall.on[0].addr && cfg->tallLive ? lp : NULL;
+		if (tallProf && nScreens > 1) twin_open(rom, tallProf);
 		else twin_close();
 		/* the HUD moves only when there's another screen to put it on */
 		hudProf = lp && lp->hud.on[0].addr && nScreens > 1 ? lp : NULL;
@@ -3805,7 +3662,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			if (ahead_start(keys)) aheadInFlight = true, shownFb = aheadFb;
 		}
 		if (mirrorOn && mirrorHave) shownFb = mirrorHeld; /* (hud.mirror: the picture from before) */
-		if (tallOn && !tallEvent && mapShownIdx >= 0) shownFb = tallLive && !cfg->swap ? shownFb : cfg->swap ? tallBot : tallTop; /* (profile.tall: the table's half on the game screen) */
+		if (tallLive && cfg->swap) shownFb = tallBot; /* (profile.tall, swapped: the copy's half on the game screen) */
 		/* only the view the game is on needs it (all of them right after a swap,
 		 * since the menu draws the game without uploading) */
 		for (int i = 0; i < nViews; ++i) {
