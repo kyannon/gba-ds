@@ -301,7 +301,7 @@
    "id": "pp-us-ruby-catch",
    "rom": "BPPE",
    "state": "pokemon-pinball/us-ruby-catch.ss",
-   "desc": "catch mode (state from the device): the timer, RHYHORN WAS CAUGHT by the hole on the bottom screen, the Pokemon Mart on the top one",
+   "desc": "catch mode (state from the device): the timer, RHYHORN WAS CAUGHT, the Pokemon Mart, all on the game screen",
    "rules": [
     "PP-1",
     "PP-9",
@@ -698,7 +698,7 @@
     "caught": 450,
     "mart": 960,
     "after": 1300,
-    "retaken": 1440
+    "retaken": 1420
    },
    "checks": [
     {
@@ -708,22 +708,432 @@
      "match": "live view"
     },
     {
-     "rule": "PP-10",
-     "what": "the catch timer on the ball's screen",
+     "rule": "PP-1",
+     "what": "the game moved to the bottom screen",
      "type": "log",
-     "match": "fixed to the screen: on the top screen"
-    },
-    {
-     "rule": "PP-10",
-     "what": "the message on the ball's screen",
-     "type": "log",
-     "match": "a message.: on the bottom screen"
+     "match": "the game to the bottom screen"
     },
     {
      "rule": "PP-9",
-     "what": "taken again when out of step (the copies drift here at about 23 s)",
+     "what": "taken again when out of step (here once, at about 23 s)",
      "type": "log",
      "match": "out of step, taken again"
+    }
+   ]
+  },
+  {
+   "id": "pp-us-ruby-catch-loop",
+   "rom": "BPPE",
+   "state": "pokemon-pinball/us-ruby-catch-loop.ss",
+   "desc": "catch mode, the Pokemon revealed (state from the device, saved with the camera limit lowered by an earlier build: put right)",
+   "rules": [
+    "PP-1",
+    "PP-9",
+    "PP-10"
+   ],
+   "input": [
+    [
+     1,
+     "L+A"
+    ],
+    [
+     7,
+     "-"
+    ],
+    [
+     31,
+     "L+A"
+    ],
+    [
+     37,
+     "-"
+    ],
+    [
+     61,
+     "L+A"
+    ],
+    [
+     67,
+     "-"
+    ],
+    [
+     91,
+     "L+A"
+    ],
+    [
+     97,
+     "-"
+    ],
+    [
+     121,
+     "L+A"
+    ],
+    [
+     127,
+     "-"
+    ],
+    [
+     151,
+     "L+A"
+    ],
+    [
+     157,
+     "-"
+    ],
+    [
+     181,
+     "L+A"
+    ],
+    [
+     187,
+     "-"
+    ],
+    [
+     211,
+     "L+A"
+    ],
+    [
+     217,
+     "-"
+    ],
+    [
+     241,
+     "L+A"
+    ],
+    [
+     247,
+     "-"
+    ],
+    [
+     271,
+     "L+A"
+    ],
+    [
+     277,
+     "-"
+    ],
+    [
+     301,
+     "L+A"
+    ],
+    [
+     307,
+     "-"
+    ],
+    [
+     331,
+     "L+A"
+    ],
+    [
+     337,
+     "-"
+    ],
+    [
+     361,
+     "L+A"
+    ],
+    [
+     367,
+     "-"
+    ],
+    [
+     391,
+     "L+A"
+    ],
+    [
+     397,
+     "-"
+    ],
+    [
+     421,
+     "L+A"
+    ],
+    [
+     427,
+     "-"
+    ],
+    [
+     451,
+     "L+A"
+    ],
+    [
+     457,
+     "-"
+    ],
+    [
+     481,
+     "L+A"
+    ],
+    [
+     487,
+     "-"
+    ],
+    [
+     511,
+     "L+A"
+    ],
+    [
+     517,
+     "-"
+    ],
+    [
+     541,
+     "L+A"
+    ],
+    [
+     547,
+     "-"
+    ],
+    [
+     571,
+     "L+A"
+    ],
+    [
+     577,
+     "-"
+    ],
+    [
+     601,
+     "L+A"
+    ],
+    [
+     607,
+     "-"
+    ],
+    [
+     631,
+     "L+A"
+    ],
+    [
+     637,
+     "-"
+    ],
+    [
+     661,
+     "L+A"
+    ],
+    [
+     667,
+     "-"
+    ],
+    [
+     691,
+     "L+A"
+    ],
+    [
+     697,
+     "-"
+    ],
+    [
+     721,
+     "L+A"
+    ],
+    [
+     727,
+     "-"
+    ],
+    [
+     751,
+     "L+A"
+    ],
+    [
+     757,
+     "-"
+    ],
+    [
+     781,
+     "L+A"
+    ],
+    [
+     787,
+     "-"
+    ],
+    [
+     811,
+     "L+A"
+    ],
+    [
+     817,
+     "-"
+    ],
+    [
+     841,
+     "L+A"
+    ],
+    [
+     847,
+     "-"
+    ],
+    [
+     871,
+     "L+A"
+    ],
+    [
+     877,
+     "-"
+    ],
+    [
+     901,
+     "L+A"
+    ],
+    [
+     907,
+     "-"
+    ],
+    [
+     931,
+     "L+A"
+    ],
+    [
+     937,
+     "-"
+    ],
+    [
+     961,
+     "L+A"
+    ],
+    [
+     967,
+     "-"
+    ],
+    [
+     991,
+     "L+A"
+    ],
+    [
+     997,
+     "-"
+    ],
+    [
+     1021,
+     "L+A"
+    ],
+    [
+     1027,
+     "-"
+    ],
+    [
+     1051,
+     "L+A"
+    ],
+    [
+     1057,
+     "-"
+    ],
+    [
+     1081,
+     "L+A"
+    ],
+    [
+     1087,
+     "-"
+    ],
+    [
+     1111,
+     "L+A"
+    ],
+    [
+     1117,
+     "-"
+    ],
+    [
+     1141,
+     "L+A"
+    ],
+    [
+     1147,
+     "-"
+    ],
+    [
+     1171,
+     "L+A"
+    ],
+    [
+     1177,
+     "-"
+    ],
+    [
+     1201,
+     "L+A"
+    ],
+    [
+     1207,
+     "-"
+    ],
+    [
+     1231,
+     "L+A"
+    ],
+    [
+     1237,
+     "-"
+    ],
+    [
+     1261,
+     "L+A"
+    ],
+    [
+     1267,
+     "-"
+    ],
+    [
+     1291,
+     "L+A"
+    ],
+    [
+     1297,
+     "-"
+    ],
+    [
+     1321,
+     "L+A"
+    ],
+    [
+     1327,
+     "-"
+    ],
+    [
+     1351,
+     "L+A"
+    ],
+    [
+     1357,
+     "-"
+    ],
+    [
+     1381,
+     "L+A"
+    ],
+    [
+     1387,
+     "-"
+    ],
+    [
+     1411,
+     "L+A"
+    ],
+    [
+     1417,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 60,
+    "mid": 600,
+    "end": 1200
+   },
+   "checks": [
+    {
+     "rule": "PP-1",
+     "what": "the live view came up",
+     "type": "log",
+     "match": "live view"
+    },
+    {
+     "rule": "PP-9",
+     "what": "in step all through",
+     "type": "no_log",
+     "match": "out of step"
     }
    ]
   },

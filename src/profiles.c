@@ -1482,13 +1482,16 @@ static const MapProfile profiles[] = {
 			.rows = 432, /* (Ruby's and Sapphire's: the camera's 0-272) */
 			.hudRow = 144,
 			/* the camera: written each frame by 0x0804DCFA (24.8) and
-			 * 0x0804DD0A (row); its lowest target 0x164 on both tables
-			 * (camera row 272); the camera eases towards its target and stops
-			 * a few rows short, so 186 for row 112 at most */
-			.live = { .state = 0x020314E0, .cam = 0x54, .camRow = 0x4E, .nop = { 0x0804DCFA, 0x0804DD0A },
-			          .bound = 0x02031538, .boundFrom = 0x164, .boundTo = 186, .ball = 0x1330, .oam = 0x03005000,
+			 * 0x0804DD0A (row), in catch mode by 0x0804DA54 and 0x0804DA64;
+			 * its lowest target 0x164 on both tables (camera row 272). The
+			 * game's camera is never changed: the game behaves differently
+			 * with things off its screen (catch mode drifted with it held up) */
+			.live = { .state = 0x020314E0, .cam = 0x54, .camRow = 0x4E,
+			          .nop = { 0x0804DCFA, 0x0804DD0A, 0x0804DA54, 0x0804DA64 },
+			          .bound = 0x02031538, .boundFrom = 0x164, .flipAt = 176, .flipBack = 112,
+			          .ball = 0x1330, .oam = 0x03005000,
 			          /* (the table's opening sweep: its offset at 0x020005FC, running
-			           * to 0; left alone until it's done) */
+			           * to 0; the copy waits until it's done) */
 			          .idle = { { 0x020005FB, 0xFF, 0, 1 }, { 0x020005FC, 0xFFFF, 0, 2 } } },
 		},
 		/* the title's logo is BG1, on its own white striped background

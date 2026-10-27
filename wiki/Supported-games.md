@@ -76,10 +76,11 @@ Preliminary: a new second screen in v1.3.2, replacing the earlier one (which mov
 
 Preliminary. The USA release.
 
-- **On a table,** the two screens together show twice as much of it, **live**: GBA DS runs a second copy of the game alongside yours, with the same buttons every frame, and its camera 160 rows lower, so the flippers, the Pokémon, the ball and everything else move on both screens. Your game's camera stops 160 rows above the table's bottom: the flippers and the ball are on the bottom screen when the ball's down there, and on the top screen otherwise.
-- The **score bar** moves to the bottom of the second screen.
-- What the game puts on the screen rather than on the table (the catch timer, messages such as a Pokémon caught, banners such as BALL SAVE, the Pokémon Mart) shows once, on the screen the ball is on when it appears, and stays there until it's gone.
-- The two copies are checked against each other every frame. Now and then they drift apart (in testing, about once in 20 seconds of play in catch mode), or you load a state or rewind: the second copy is then taken from your game again and scrolls into place, in about a third of a second. During each table's opening sweep the game plays on one screen, with the logo on the other.
+- **On a table,** the two screens together show twice as much of it, **live**: GBA DS runs a second copy of the game alongside yours, with the same buttons every frame, drawing the part of the table next to your game's view, so the flippers, the Pokémon and everything else move on both screens. Your game itself is never changed.
+- Your game is on the top screen, with the table below it on the bottom screen. When the ball comes down towards the flippers, your game moves to the bottom screen, with the table above it on the top screen, and back up once the ball climbs well up again. The ball is always on your game's screen. Near those points a strip past the table's end can show black.
+- The **score bar** is always at the bottom of the bottom screen.
+- The catch timer, messages (a Pokémon caught), banners (BALL SAVE) and the Pokémon Mart are on your game's screen, where the ball is.
+- The two copies are checked against each other every frame. When they drift apart (now and then in catch mode), when your game changes screens, or after you load a state or rewind, the second copy is taken from your game again: its screen fills in over about a third of a second. During each table's opening sweep the game plays on one screen, with the logo on the other.
 - `pinball_live = 0` in `gba-ds.cfg` turns the second copy off (for slower devices): the game then plays on one screen, with the logo on the other.
 - On the title and menus, the second screen shows the logo.
 - **Not tried yet:** the bonus stages (they play on one screen for now).

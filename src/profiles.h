@@ -125,12 +125,12 @@ typedef struct MapProfile {
 		SpriteRule hide[4];
 	} snap;
 	/* Logo-only games: a pinball table twice as tall over both screens
-	 * (Pokemon Pinball). While every `on` probe matches, the game screen
-	 * shows the game, its camera stopped 160 rows short of the table's
-	 * bottom, and the second screen a second copy of the game run in step
-	 * with it (the same keys every frame), its camera held 160 rows lower
-	 * (game.c twin_*). The BG layers in hudBg (the score bar) leave the
-	 * game screen for the second screen's bottom (from row hudRow). */
+	 * (Pokemon Pinball). While every `on` probe matches, one screen shows
+	 * the game, as it is, and the other a second copy of the game run in
+	 * step with it (the same keys every frame), its camera held 160 rows
+	 * below the game's, or above it while the game is on the bottom screen
+	 * (game.c twin_*, update_tall). The BG layers in hudBg (the score bar)
+	 * go to the bottom screen's bottom (from row hudRow). */
 	struct {
 		MemProbe on[2];
 		unsigned hudBg;
@@ -139,18 +139,20 @@ typedef struct MapProfile {
 		/* state: the word holding the game's state pointer; cam / camRow:
 		 * offsets there of the camera (24.8 fixed point) and its row; nop:
 		 * the camera's stores in the copy's code (made no-ops); bound: the
-		 * game's lowest camera target, set from boundFrom to boundTo on
-		 * this copy; ball: offset of the ball's pointer (x, y words at
+		 * game's lowest camera target, boundFrom on the tables the copy
+		 * knows; flipAt / flipBack: the game's camera row at which it goes
+		 * to the bottom screen / back to the top; ball: offset of the ball's pointer (x, y words at
 		 * +0x34, +0x38 there), compared to keep the two in step; oam: the
 		 * game's shadow sprite table (what the next frame's sprites are
 		 * copied from); idle: the bound is only changed while these match
-		 * (no sweep of the table going on) */
+		 * (no sweep of the table going on: the copy waits) */
 		struct {
 			uint32_t state;
 			uint16_t cam, camRow;
-			uint32_t nop[2];
+			uint32_t nop[4];
 			uint32_t bound;
-			uint16_t boundFrom, boundTo;
+			uint16_t boundFrom;
+			int16_t flipAt, flipBack;
 			uint16_t ball;
 			uint32_t oam;
 			MemProbe idle[2];
