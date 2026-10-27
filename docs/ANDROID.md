@@ -549,4 +549,4 @@ gives no-op stubs and the Settings panel has no Updates row. To add it:
 Player-facing Android changes since the last release, for the main session
 to move into CHANGELOG.md and the release notes (see CLAUDE.md, "More than
 one session"). Empty after each release.
-
+- Fixed: "Preparing games" could count up for ever (a Reddit report: 4,500 after five hours with three games) when a game's logo couldn't be pulled from its title screen or saved. GBA DS now tries each logo once per start and goes on without it (all systems).
