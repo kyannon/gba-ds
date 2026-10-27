@@ -114,87 +114,100 @@ static bool tallOn;        /* the table's up: the screens show it */
 /* profile tall.live: two more copies of the game drawing the table's rows
  * the game's camera doesn't (update_tall). twins[0] is held at the top of
  * the lower view (row tall.rows - 320), twins[1] 160 rows below the view's
- * top (the game's scroll, at most rows - 320). Both run in step with the
- * game, the same keys every frame; twins[0] on a worker thread while
- * twins[1] runs here. Their camera stores are no-ops: they're moved by
- * setting their camera, never more than the game's own scroll moves in a
- * frame (8 rows), so they draw their rows as the game would. */
+ * top (the game's view, at most rows - 320). Every frame each copy is
+ * taken from the game's state from before the frame before (run_frame
+ * keeps the last two), held at its row and run that frame with the game's
+ * keys, then this frame, whose picture it shows: its logic is always the
+ * game's, but its picture is of its own rows, with its own sprites and
+ * scroll for them. (A copy left running on its own fell behind the game:
+ * the game counts some things only when they're on its own screen, such as
+ * the bumper hits that uncover catch mode's portrait.) The copies' camera
+ * stores are no-ops: they're moved by setting their camera. The copies run
+ * on two worker threads, the second frame while the game runs its own. */
 #define TWINS 2
 typedef struct {
 	Emu e;
-	bool up;      /* running in step with the game */
-	bool retake;  /* to be taken from the game again before its next frame */
-	bool fresh;   /* just taken: this frame's picture isn't of its rows (pic held) */
-	int good;     /* frames in step */
-	int row;      /* where it's held: its camera's row */
+	bool need;    /* its picture is on a screen next frame (twins[0]: the lower view) */
+	bool up;      /* it ran this frame: pic is this frame's */
+	int row;      /* where it's held for this frame's picture: its view's row less the shake */
+	int panStep;  /* how far its own pans moved its view in its last first frame */
 	int hidden;   /* sprites left out this frame */
 	bool havePic;
 	int picRow;   /* the table row on pic's first line */
-	int panStep;  /* how far its own pans moved its view in its last frame */
-	uint32_t pic[GBA_W * GBA_H]; /* its last picture of its rows */
+	uint32_t pic[GBA_W * GBA_H];
 } Twin;
 static Twin twins[TWINS];
 static bool twinOpen;
-static int twinArmed;      /* frames on a table it knows, with no sweep of the table going on */
-static bool twinPre;       /* twinState holds the game's state from before this frame */
-static void* twinState;
+static bool twinRun;       /* the copies are to run (a table they know, its sweep over, a ball) */
+static int twinArmed;      /* frames on a table they know, with no sweep of the table going on */
+static void* twinStates[2]; /* the game's state from before each of the last two frames */
+static uint32_t twinKeys[2];
+static int twinHave, twinCur; /* how many of them there are; the latest */
 static const MapProfile* twinProf;
-static struct {
-	pthread_t thread;
-	pthread_mutex_t lock;
-	pthread_cond_t cond;
-	bool started, busy, quit;
-	Emu* e;
-	uint32_t keys;
-} twinWork = { .lock = PTHREAD_MUTEX_INITIALIZER, .cond = PTHREAD_COND_INITIALIZER };
 static bool tallTrace; /* GBADS_TALL_TRACE: a line a frame about the live view */
 static int twinShakeNow, twinShakeNext; /* the game's screen shake in this frame's picture / the next's */
 static bool tallMsg, tallGameTop; /* (for the log: PP-11's screen, the top screen's picture) */
 static uint32_t lastTop[GBA_W * GBA_H]; /* the top screen before PP-11's screen came up */
 static bool haveLastTop;
 
+/* a worker thread for each copy: runs fn(arg) when asked */
+static struct {
+	pthread_t thread;
+	pthread_mutex_t lock;
+	pthread_cond_t cond;
+	bool started, busy, quit;
+	void (*fn)(void*);
+	void* arg;
+} twinWork[TWINS] = { { .lock = PTHREAD_MUTEX_INITIALIZER, .cond = PTHREAD_COND_INITIALIZER },
+                      { .lock = PTHREAD_MUTEX_INITIALIZER, .cond = PTHREAD_COND_INITIALIZER } };
+
 static void* twin_worker(void* arg) {
-	(void) arg;
-	pthread_mutex_lock(&twinWork.lock);
+	typeof(twinWork[0])* w = arg;
+	pthread_mutex_lock(&w->lock);
 	for (;;) {
-		while (!twinWork.busy && !twinWork.quit) pthread_cond_wait(&twinWork.cond, &twinWork.lock);
-		if (twinWork.quit) break;
-		Emu* e = twinWork.e;
-		uint32_t keys = twinWork.keys;
-		pthread_mutex_unlock(&twinWork.lock);
-		emu_frame(e, keys);
-		pthread_mutex_lock(&twinWork.lock);
-		twinWork.busy = false;
-		pthread_cond_broadcast(&twinWork.cond);
+		while (!w->busy && !w->quit) pthread_cond_wait(&w->cond, &w->lock);
+		if (w->quit) break;
+		void (*fn)(void*) = w->fn;
+		void* a = w->arg;
+		pthread_mutex_unlock(&w->lock);
+		fn(a);
+		pthread_mutex_lock(&w->lock);
+		w->busy = false;
+		pthread_cond_broadcast(&w->cond);
 	}
-	pthread_mutex_unlock(&twinWork.lock);
+	pthread_mutex_unlock(&w->lock);
 	return NULL;
 }
-/* a frame of e on the worker; false: no thread (run it here instead) */
-static bool twin_work_start(Emu* e, uint32_t keys) {
-	pthread_mutex_lock(&twinWork.lock);
-	if (!twinWork.started) {
-		twinWork.quit = false;
-		twinWork.started = pthread_create(&twinWork.thread, NULL, twin_worker, NULL) == 0;
+/* fn(arg) on worker i; no thread (the web build): here, now */
+static void twin_work_start(int i, void (*fn)(void*), void* arg) {
+	typeof(twinWork[0])* w = &twinWork[i];
+	pthread_mutex_lock(&w->lock);
+	if (!w->started) {
+		w->quit = false;
+		w->started = pthread_create(&w->thread, NULL, twin_worker, w) == 0;
 	}
-	bool ok = twinWork.started;
-	if (ok) twinWork.e = e, twinWork.keys = keys, twinWork.busy = true, pthread_cond_broadcast(&twinWork.cond);
-	pthread_mutex_unlock(&twinWork.lock);
-	return ok;
+	bool ok = w->started;
+	if (ok) w->fn = fn, w->arg = arg, w->busy = true, pthread_cond_broadcast(&w->cond);
+	pthread_mutex_unlock(&w->lock);
+	if (!ok) fn(arg);
 }
-static void twin_work_wait(void) {
-	pthread_mutex_lock(&twinWork.lock);
-	while (twinWork.busy) pthread_cond_wait(&twinWork.cond, &twinWork.lock);
-	pthread_mutex_unlock(&twinWork.lock);
+static void twin_work_wait(int i) {
+	typeof(twinWork[0])* w = &twinWork[i];
+	pthread_mutex_lock(&w->lock);
+	while (w->busy) pthread_cond_wait(&w->cond, &w->lock);
+	pthread_mutex_unlock(&w->lock);
 }
 static void twin_work_stop(void) {
-	pthread_mutex_lock(&twinWork.lock);
-	bool started = twinWork.started;
-	twinWork.quit = true;
-	pthread_cond_broadcast(&twinWork.cond);
-	pthread_mutex_unlock(&twinWork.lock);
-	if (started) pthread_join(twinWork.thread, NULL);
-	twinWork.started = false;
+	for (int i = 0; i < TWINS; ++i) {
+		typeof(twinWork[0])* w = &twinWork[i];
+		pthread_mutex_lock(&w->lock);
+		bool started = w->started;
+		w->quit = true;
+		pthread_cond_broadcast(&w->cond);
+		pthread_mutex_unlock(&w->lock);
+		if (started) pthread_join(w->thread, NULL);
+		w->started = false;
+	}
 }
 
 static bool twin_ball(Emu* e, uint32_t S, int32_t* x, int32_t* y) {
@@ -204,10 +217,6 @@ static bool twin_ball(Emu* e, uint32_t S, int32_t* x, int32_t* y) {
 	return true;
 }
 
-static void twins_down(void) {
-	for (int i = 0; i < TWINS; ++i) twins[i].up = false, twins[i].good = 0;
-}
-
 /* A copy just taken from the game: its scroll and table tiles set for
  * camera row `row` at once, as if it had scrolled there (profile
  * tall.live.jump). */
@@ -215,10 +224,12 @@ static void twin_jump(Emu* e, uint32_t T, int row) {
 	const typeof(twinProf->tall.live.jump)* J = &twinProf->tall.live.jump;
 	if (!J->ring) return;
 	int nt = row >> 3;
+	size_t ewSize;
+	const uint8_t* ew = emu_memory(e, 2, &ewSize); /* (EWRAM, 0x02000000) */
 	for (int R = SDL_max(nt, 0); R < nt + J->slots && R < J->tileRows; ++R) {
 		uint32_t src = R < J->split ? J->src[0] + R * 0x400 : J->src[1] + (R - J->split) * 0x400;
 		uint32_t dst = J->ring + ((R + J->slotOff) % J->slots) * 0x400;
-		for (int k = 0; k < 0x400; k += 4) emu_write32(e, dst + k, emu_read32(e, src + k));
+		if (ew && src - 0x02000000 + 0x400 <= ewSize) emu_vram_write(e, dst - 0x06000000, ew + (src - 0x02000000), 0x400);
 	}
 	emu_write16(e, T + J->last, (uint16_t) nt);
 	for (int i = 0; i < 4; ++i) if (J->scroll[i]) emu_write16(e, T + J->scroll[i], (uint16_t) row);
@@ -241,29 +252,38 @@ static int obj_height(uint16_t a0, uint16_t a1) {
 static uint16_t tallFixed[128][3];
 static int nTallFixed;
 
-/* Before the frame: the sprites each copy leaves out, from the shadow
- * sprite tables (what this frame shows) and the scroll each shows them
- * with (PP-10). A copy's sprite alike one of the game's sprites on the
- * game's screen (attributes 1 and 2, the high byte of 0) is either the
- * same thing on the table, seen from the copy's camera: kept if that puts
- * it on the copy's screen, left out if it's only there because the
- * hardware wraps its position round (a message's letters); or at the same
- * place on the screen whatever the camera (a banner, the Mart's items): left
- * out, the game's picture shows it. */
+static uint8_t gameOam[1024]; /* the game's shadow sprite table and view before this frame (run_frame) */
+static int gameView;
+static void game_oam_take(void) {
+	const typeof(twinProf->tall.live)* L = &twinProf->tall.live;
+	for (int i = 0; i < 1024; i += 2) { uint16_t v = emu_read16(&emu, L->oam + i); gameOam[i] = v & 0xFF, gameOam[i + 1] = v >> 8; }
+	gameView = (int16_t) emu_read16(&emu, L->view);
+}
+#define GAME_OAM16(off) ((uint16_t) (gameOam[(off)] | gameOam[(off) + 1] << 8))
+
+/* The sprites each copy leaves out this frame, from the shadow sprite
+ * tables (what this frame shows) and the views each shows them with
+ * (PP-10). A copy's sprite alike one of the game's sprites on the game's
+ * screen (attributes 1 and 2, the high byte of 0) is either the same thing
+ * on the table, seen from the copy's camera: kept if that puts it on the
+ * copy's screen, left out if it's only there because the hardware wraps its
+ * position round (a message's letters); or at the same place on the screen
+ * whatever the camera (a banner, the Mart's items): left out, the game's
+ * picture shows it. */
 static void twin_hide(Twin* tw) {
 	const typeof(twinProf->tall.live)* L = &twinProf->tall.live;
 	uint32_t o = L->oam;
-	int gs = (int16_t) emu_read16(&emu, L->view), cs = (int16_t) emu_read16(&tw->e, L->view);
+	int gs = gameView, cs = (int16_t) emu_read16(&tw->e, L->view);
 	static uint16_t gA[128][4]; /* the game's sprites on its screen: attributes 0-2, y on its screen + 256 */
 	int ng = 0;
 	for (int i = 0; i < 128; ++i) {
-		uint16_t a0 = emu_read16(&emu, o + i * 8);
+		uint16_t a0 = GAME_OAM16(i * 8);
 		if ((a0 & 0x0300) == 0x0200 || (a0 >> 14) == 3) continue;
-		uint16_t a1 = emu_read16(&emu, o + i * 8 + 2);
+		uint16_t a1 = GAME_OAM16(i * 8 + 2);
 		int y = a0 & 0xFF, h = obj_height(a0, a1);
 		if (y >= GBA_H) y -= 256;
 		if (y >= GBA_H || y + h <= 0) continue; /* (off its screen) */
-		gA[ng][0] = a0, gA[ng][1] = a1, gA[ng][2] = emu_read16(&emu, o + i * 8 + 4), gA[ng][3] = (uint16_t) (y + 256), ++ng;
+		gA[ng][0] = a0, gA[ng][1] = a1, gA[ng][2] = GAME_OAM16(i * 8 + 4), gA[ng][3] = (uint16_t) (y + 256), ++ng;
 	}
 	static uint16_t out[128][3];
 	static bool gFixed[128];
@@ -305,114 +325,106 @@ static void twin_hide(Twin* tw) {
 	}
 }
 
-/* After this frame of the game: the copies', with the same keys, each
- * held at its row for the next frame (the game's scroll for it is known
- * now). A copy to be taken from the game again gets the game's state from
- * before this frame (saved by run_frame), so it runs this same frame, put
- * at its row by twin_jump; that frame's picture isn't of its rows (shown
- * the game's sprites and scroll), so its last one is kept for it. The game
- * itself is never changed. */
-static void twin_step(uint32_t keys) {
+/* A copy's camera held so that its view (less the shake) is `target`: its
+ * view is its camera's row plus the shake and its own pans' offsets, which
+ * depend on where its camera is, so its camera is held that much higher
+ * (as they are now, and as they moved last frame) */
+static uint32_t twin_hold(Twin* tw, int target, int step) {
+	const typeof(twinProf->tall.live)* L = &twinProf->tall.live;
+	uint32_t T = emu_read32(&tw->e, L->state);
+	if (T < 0x02000000 || T >= 0x02040000) return 0;
+	int shake = (int8_t) emu_read8(&tw->e, T + L->shake);
+	int own = (int16_t) emu_read16(&tw->e, L->view) - (int16_t) emu_read16(&tw->e, T + L->camRow) - shake;
+	int row = target - own - step;
+	emu_write32(&tw->e, T + L->cam, (uint32_t) row << 8);
+	emu_write16(&tw->e, T + L->camRow, (uint16_t) row);
+	return T;
+}
+
+/* Before the game's frame: the frame before again, from the game's state
+ * then, held at its row (which gives it this frame's sprites and scroll) */
+static void twin_first(void* arg) {
+	Twin* tw = arg;
+	const typeof(twinProf->tall.live)* L = &twinProf->tall.live;
+	tw->up = false;
+	if (!emu_state_load(&tw->e, twinStates[twinCur])) return;
+	uint32_t T = twin_hold(tw, tw->row, tw->panStep);
+	if (!T) return;
+	twin_jump(&tw->e, T, tw->row + (int8_t) emu_read8(&tw->e, T + L->shake));
+	emu_frame(&tw->e, twinKeys[twinCur] & 0x3FF);
+	/* (how far its pans moved it: put right next frame) */
+	int at = (int16_t) emu_read16(&tw->e, L->view) - (int8_t) emu_read8(&tw->e, T + L->shake);
+	tw->panStep += at - tw->row;
+	if (tw->panStep > 8 || tw->panStep < -8) tw->panStep = 0;
+	tw->up = true;
+}
+/* With the game's frame: this frame, whose picture it shows */
+static uint32_t twinFrameKeys;
+static void twin_second(void* arg) {
+	Twin* tw = arg;
+	const typeof(twinProf->tall.live)* L = &twinProf->tall.live;
+	emu_frame(&tw->e, twinFrameKeys & 0x3FF);
+	memcpy(tw->pic, tw->e.fb, sizeof(tw->pic));
+	tw->picRow = emu_io16(&tw->e, 0x10 + 4 * L->viewBg + 2) & 0x1FF;
+	if (tw->picRow >= twinProf->tall.rows) tw->picRow -= 512;
+	tw->havePic = true;
+}
+
+/* After this frame of the game: whether the copies run next frame, and
+ * where they're held for its picture: twins[0] at rows - 320, twins[1] 160
+ * rows below the game's view (its pans included; less the shake k, which
+ * the copies add alike), or below rows - 320 once the game's is further
+ * down. The game itself is never changed. */
+static void twin_step(void) {
 	const typeof(twinProf->tall.live)* L = &twinProf->tall.live;
 	uint32_t S = emu_read32(&emu, L->state);
+	twinRun = false;
 	/* (states saved by v1.3.2's earlier test builds have the camera limit
 	 * those lowered to 186 for the table: put back) */
 	if (emu_read16(&emu, L->bound) == 186) emu_write16(&emu, L->bound, L->boundFrom);
 	if (S < 0x02000000 || S >= 0x02040000 || emu_read16(&emu, L->bound) != L->boundFrom) {
-		twins_down(), twinArmed = 0; /* not on a table we know */
+		twinArmed = 0; /* not on a table we know */
 		return;
 	}
 	twinArmed = memprobes_match(L->idle, 2, &emu) ? twinArmed + 1 : 0;
 	int32_t ax, ay;
-	if (twinArmed < 30 || !twin_ball(&emu, S, &ax, &ay)) {
-		twins_down(); /* (no ball: the same) */
-		return;
-	}
-	/* Where each copy's view is held for the next frame (its rows less the
-	 * screen shake k, which the copies add alike): twins[0]'s at rows - 320,
-	 * twins[1]'s 160 rows below the game's view (its pans included), or
-	 * below rows - 320 once the game's is further down. A copy's view is
-	 * its camera's row plus the shake and its own pans' offsets, which
-	 * depend on where its camera is: its camera is held that much higher
-	 * (as they are now; they may move a little in its frame) */
+	if (twinArmed < 30 || !twin_ball(&emu, S, &ax, &ay)) return; /* (no ball: the same) */
 	int k = (int8_t) emu_read8(&emu, S + L->shake);
 	twinShakeNow = twinShakeNext, twinShakeNext = k;
 	int u = (int16_t) emu_read16(&emu, L->view) - k, vmax = twinProf->tall.rows - 2 * GBA_H;
 	int want[TWINS] = { vmax, SDL_max(SDL_min(u, vmax), 0) + GBA_H };
-	for (int i = 0; i < TWINS; ++i) twins[i].row = want[i];
-	bool any = false;
-	uint32_t T[TWINS] = { 0 };
 	for (int i = 0; i < TWINS; ++i) {
-		Twin* tw = &twins[i];
-		tw->fresh = false;
-		if (!tw->up || tw->retake) {
-			if (!twinPre || !emu_state_load(&tw->e, twinState)) { tw->up = false; continue; } /* (next frame) */
-			tw->good = 0, tw->retake = false, tw->up = true, tw->fresh = true;
-		}
-		T[i] = emu_read32(&tw->e, L->state);
-		if (T[i] < 0x02000000 || T[i] >= 0x02040000) { tw->up = false; continue; }
-		int own = (int16_t) emu_read16(&tw->e, L->view) - (int16_t) emu_read16(&tw->e, T[i] + L->camRow) - (int8_t) emu_read8(&tw->e, T[i] + L->shake);
-		if (tw->fresh) tw->panStep = 0;
-		int row = tw->row - own - tw->panStep; /* (a pan goes on at the same speed) */
-		emu_write32(&tw->e, T[i] + L->cam, (uint32_t) row << 8);
-		emu_write16(&tw->e, T[i] + L->camRow, (uint16_t) row);
-		if (tw->fresh) twin_jump(&tw->e, T[i], tw->row + (int8_t) emu_read8(&tw->e, T[i] + L->shake));
-		any = true;
+		if (twins[i].row != want[i] && !twins[i].up) twins[i].panStep = 0;
+		twins[i].row = want[i];
 	}
-	if (!any) return;
-	bool bg = twins[0].up && twin_work_start(&twins[0].e, keys & 0x3FF);
-	for (int i = bg ? 1 : 0; i < TWINS; ++i) if (twins[i].up) emu_frame(&twins[i].e, keys & 0x3FF);
-	if (bg) twin_work_wait();
-	static bool dbg, dbgRead;
-	if (!dbgRead) dbg = getenv("GBADS_TWIN_DEBUG") != NULL, dbgRead = true;
-	for (int i = 0; i < TWINS; ++i) {
-		Twin* tw = &twins[i];
-		if (!tw->up) continue;
-		int32_t bx = 0, by = 0;
-		/* (its next frame's rows: where it's held, shaken like the game's?) */
-		int at = (int16_t) emu_read16(&tw->e, L->view) - (int8_t) emu_read8(&tw->e, T[i] + L->shake);
-		bool ball = twin_ball(&tw->e, T[i], &bx, &by) && ax == bx && ay == by;
-		/* (a few rows off: its pan moved in its frame; its picture is placed
-		 * by the rows it shows, and it's put right next frame) */
-		tw->panStep += at - tw->row;
-		if (tw->panStep > 8 || tw->panStep < -8) tw->panStep = 0;
-		if (!ball || at - tw->row > 8 || at - tw->row < -8) {
-			if (tw->good || dbg) fprintf(stderr, "frame %llu: live view copy %d out of step, taken again (row %d, its scroll %d; ball %d,%d / %d,%d)\n", (unsigned long long) frameCount, i, tw->row, at, ax >> 8, ay >> 8, bx >> 8, by >> 8);
-			tw->retake = true, tw->good = 0;
-		} else {
-			tw->good++;
-		}
-		if (!tw->fresh) {
-			/* (a picture of its rows: what it was held at for this frame) */
-			memcpy(tw->pic, tw->e.fb, sizeof(tw->pic));
-			tw->picRow = emu_io16(&tw->e, 0x10 + 4 * L->viewBg + 2) & 0x1FF;
-			if (tw->picRow >= twinProf->tall.rows) tw->picRow -= 512;
-			tw->havePic = true;
-		}
-	}
+	/* (in the table's upper part the game itself is on the top screen:
+	 * twins[0] isn't needed, and since the copies are taken from the game
+	 * every frame, it's back at once when it is) */
+	twins[0].need = u > vmax, twins[1].need = true;
+	twinRun = true;
 }
 
 static void twin_close(void) {
 	twin_work_stop();
 	for (int i = 0; i < TWINS; ++i) {
 		if (twinOpen) emu_close(&twins[i].e);
-		twins[i].up = twins[i].havePic = false, twins[i].good = 0;
+		twins[i].up = twins[i].havePic = false;
 	}
-	twinOpen = false;
-	free(twinState);
-	twinState = NULL;
+	twinOpen = twinRun = false;
+	for (int i = 0; i < 2; ++i) free(twinStates[i]), twinStates[i] = NULL;
+	twinHave = 0;
 }
 
 static void twin_open(const char* rom, const MapProfile* p) {
 	twin_close();
 	if (!p || !p->tall.live.state) return;
-	twinState = malloc(emu_state_size(&emu));
+	size_t sz = emu_state_size(&emu);
+	twinStates[0] = malloc(sz), twinStates[1] = malloc(sz);
 	int opened = 0;
-	while (twinState && opened < TWINS && emu_open(&twins[opened].e, rom, NULL, false)) ++opened;
+	while (twinStates[0] && twinStates[1] && opened < TWINS && emu_open(&twins[opened].e, rom, NULL, false)) ++opened;
 	if (opened < TWINS) {
 		for (int i = 0; i < opened; ++i) emu_close(&twins[i].e);
-		free(twinState);
-		twinState = NULL;
+		for (int i = 0; i < 2; ++i) free(twinStates[i]), twinStates[i] = NULL;
 		return;
 	}
 	for (int k = 0; k < TWINS; ++k) {
@@ -439,27 +451,40 @@ static void run_frame(uint32_t keys) {
 			if (!told) told = true, fprintf(stderr, "camera pan: not now (game mode %02x, paused %02x)\n", emu_read8(&emu, sn->when[0].addr), emu_read8(&emu, sn->when[2].addr));
 		}
 	}
-	bool due = false;
+	bool live = twinOpen && tallOn;
+	bool run = live && twinRun && twinHave > 0;
+	if (!run) for (int i = 0; i < TWINS; ++i) twins[i].up = false;
 	nTallFixed = 0;
-	if (twinOpen && tallOn) {
-		for (int i = 0; i < TWINS; ++i) {
-			if (twins[i].up && !twins[i].retake) twin_hide(&twins[i]);
-			due |= !twins[i].up || twins[i].retake;
-		}
-	}
-	if (twinOpen && tallOn) {
-		/* While a copy's rows are on the top screen this frame (the game's
-		 * camera's row past rows - 320), the HUD split also draws the game's
-		 * sprites fixed to the screen, to be laid over them (update_tall) */
-		uint32_t S = emu_read32(&emu, twinProf->tall.live.state);
-		bool topCopy = S >= 0x02000000 && S < 0x02040000 &&
-		               (int16_t) emu_read16(&emu, twinProf->tall.live.view) - (int8_t) emu_read8(&emu, S + twinProf->tall.live.shake) > twinProf->tall.rows - 2 * GBA_H;
+	if (run) {
+		/* the copies' first frame (the game's frame before again, at their
+		 * own cameras), then which of their sprites to leave out, and the
+		 * game's fixed to the screen, for the HUD split to draw */
+		game_oam_take();
+		for (int i = 0; i < TWINS; ++i) twins[i].up = false;
+		if (twins[0].need) twin_work_start(0, twin_first, &twins[0]);
+		twin_first(&twins[1]);
+		if (twins[0].need) twin_work_wait(0);
+		for (int i = 0; i < TWINS; ++i) if (twins[i].up) twin_hide(&twins[i]);
+		const typeof(twinProf->tall.live)* L = &twinProf->tall.live;
+		uint32_t S = emu_read32(&emu, L->state);
+		/* (only while a copy's rows are on the top screen this frame) */
+		bool topCopy = (int16_t) emu_read16(&emu, L->view) - (int8_t) emu_read8(&emu, S + L->shake) > twinProf->tall.rows - 2 * GBA_H;
 		emu_hud_keep_exact(tallFixed, topCopy ? nTallFixed : 0);
+	} else if (live) {
+		emu_hud_keep_exact(tallFixed, 0);
 	}
-	/* a copy to be taken from the game: from its state before this frame */
-	twinPre = due && twinArmed >= 29 && emu_state_save(&emu, twinState);
+	if (live) {
+		/* the game's state from before this frame, for next frame's copies */
+		twinCur ^= 1;
+		if (emu_state_save(&emu, twinStates[twinCur])) twinKeys[twinCur] = keys, twinHave = 1;
+		else twinHave = 0;
+	}
+	/* the copies' second frame (this one), alongside the game's */
+	twinFrameKeys = keys;
+	for (int i = 0; i < TWINS; ++i) if (twins[i].up) twin_work_start(i, twin_second, &twins[i]);
 	emu_frame(&emu, keys & 0x3FF);
-	if (twinOpen && tallOn) twin_step(keys);
+	for (int i = 0; i < TWINS; ++i) if (twins[i].up) twin_work_wait(i);
+	if (live) twin_step();
 }
 
 static void* ahead_worker(void* arg) {
@@ -1949,7 +1974,7 @@ static void update_tall(void) {
 	int k = twinShakeNow;
 	int v = SDL_max(SDL_min(s - k, vmax), 0) + k;
 	TallSrc game = { emu.fb, s };
-	TallSrc a = { twins[0].havePic ? twins[0].pic : NULL, twins[0].picRow };
+	TallSrc a = { twins[0].up && twins[0].havePic ? twins[0].pic : NULL, twins[0].picRow }; /* (this frame's only) */
 	TallSrc b = { twins[1].pic, twins[1].picRow };
 	TallSrc topSrc[3] = { game, a, b }, botSrc[3] = { b, a, game };
 	bool gameOnTop = s == v;
@@ -1985,9 +2010,8 @@ static void update_tall(void) {
 		 * on the game's: what the HUD split draws above the score bar, its
 		 * BG0 (the catch timer, messages) and the game's sprites at the same
 		 * place on the screen whatever the camera (banners, the Mart's items:
-		 * run_frame). (Drawn on their own: the copies' animations aren't
-		 * always in step with the game's, so their pictures can't be told
-		 * apart from it by comparing.) */
+		 * run_frame). (Drawn on their own: the copies' pictures can differ
+		 * a little from the game's, so it can't be found by comparing.) */
 		uint32_t clear = emu_hud_clear();
 		for (int i = 0; i < GBA_W * t->hudRow; ++i) {
 			if ((hudPx[i] & 0xFFFFFF) != clear) tallTop[i] = hudPx[i] | 0xFF000000, ++laid;
@@ -2003,8 +2027,8 @@ static void update_tall(void) {
 	for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], second, GBA_W * 4);
 	if (tallTrace) {
 		fprintf(stderr, "T %llu s %d v %d top %s a %d%s%s b %d%s%s hid %d/%d missing %d laid %d\n", (unsigned long long) frameCount, s, v,
-		        gameOnTop ? "game" : "copy", twins[0].picRow, twins[0].fresh ? " fresh" : "", twins[0].up ? "" : " down",
-		        twins[1].picRow, twins[1].fresh ? " fresh" : "", twins[1].up ? "" : " down", twins[0].hidden, twins[1].hidden, missing, laid);
+		        gameOnTop ? "game" : "copy", twins[0].picRow, "", twins[0].up ? "" : " down",
+		        twins[1].picRow, "", twins[1].up ? "" : " down", twins[0].hidden, twins[1].hidden, missing, laid);
 	}
 	if (!tallLive) fprintf(stderr, "frame %llu: live view\n", (unsigned long long) frameCount);
 	tallLive = true;

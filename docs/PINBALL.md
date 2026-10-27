@@ -1,6 +1,6 @@
 # Pokémon Pinball (BPPE): status and handoff
 
-Status as of Oct 27, 2026. The player-facing rules are in
+Status as of Oct 27, 2026 (afternoon: copies taken from the game every frame). The player-facing rules are in
 `docs/games/pokemon-pinball.md` (PP-1 to PP-11, some retired); this file is
 for the next session: what's built, what was learned, what's still wrong.
 
@@ -27,8 +27,14 @@ Owner's verdicts so far:
   instant retakes): "the camera still resets and has to scroll back to place
   basically every time the ball passes between screens"; "sprites disappear
   on the top screen a lot, and jitter/flash on the bottom screen". Both
-  explained and fixed in the build of Oct 27 (below), not yet seen on the
-  device.
+  fixed in the first build of Oct 27 (two copies, no flip).
+- On that build: "runs smoothly in normal play", but catch mode's portrait
+  didn't uncover on the bottom screen as the bumpers were hit on the top
+  one (state attached: now fixture `us-ruby-portrait`), and once a hatched
+  Pokémon's sprite vanished from both screens for a while (no state). Both
+  are the copies' logic falling behind the game's: fixed in the second
+  build of Oct 27 (copies taken from the game every frame), the hatching
+  not checked (no state).
 
 ## How it works now (build of Oct 27): two copies, no flip
 
@@ -39,34 +45,42 @@ the 160 below. Nothing ever flips: the view only scrolls (at most ~6 rows a
 frame in the tests), and holds still at 112 once the game's view is further
 down (the whole lower table on the two screens).
 
-- `twins[0]` is held at row 112 (the lower view's top half), `twins[1]` at
-  `min(u, 112) + 160`. Both run every frame, `twins[0]` on a worker thread
-  (`twin_work_*`) while `twins[1]` runs on the emulation thread. On the host
-  that's 1.9-2.3 ms of emulation a frame against 1.7-1.9 for the game plus
-  one copy run in a row.
+- `twins[0]` is held at row 112 (the lower view's top half; only run while
+  shown), `twins[1]` at `min(u, 112) + 160`. **Every frame each copy is taken
+  from the game's state from before the frame before** (`run_frame` keeps
+  the last two, `twinStates`): `twin_first` loads it, holds the copy's
+  camera at its row, `twin_jump`s its scroll and tile ring there, and runs
+  that frame with the game's keys then (which gives it this frame's sprites
+  and scroll for its own camera); then `twin_hide` and the HUD split's fixed
+  sprites; then `twin_second` runs this frame alongside the game's, and its
+  picture is shown. Each copy on its own worker thread (`twin_work_*`).
+  Cost: up to four extra frames of emulation a frame, but on a 4-core device
+  the wall time is about two frames (the copies' first frames side by side,
+  then the game and their second frames side by side). Host (2 cores):
+  2.6 ms a frame against 1.9 for the build before.
+- **Why every frame:** a copy running on its own falls behind the game's
+  logic. The game counts some things only on its own screen: catch mode's
+  bumper hits (`0x02000308`, 0x27 in the game, 0x26 in the copy at the
+  bottom) which uncover the portrait (its six 16x16 sprites, tiles 101-124:
+  a square uncovered is palette 13 instead of 15). The ball stays in step,
+  so comparing balls never caught it. Animations were checked not to freeze
+  in copies taken every frame (the upper table's Pokémon on the top screen
+  move as before).
 - Top screen: the game's own picture while `u <= 112` (it is those rows),
   else `twins[0]`'s with the game's screen-fixed things laid over it.
   Bottom screen: `twins[1]`'s. Each line comes from the first picture that
   has its row (`tall_line`), placed by the rows each picture really shows
   (its BG3VOFS), so a copy a row or two off still lines up.
-- **Holding a copy:** the game's view (BG3VOFS shadow `0x0200B3B6` = `S+0x5A`)
+- **Holding a copy** (`twin_hold`): the game's view (BG3VOFS shadow `0x0200B3B6` = `S+0x5A`)
   is its camera's row `S+0x4E` plus the screen shake (signed byte `S+0x121`)
   plus offsets of its own: the opening sweep (`S+0x5FC`), pans (`S+0xE6`,
   catch mode's reveal) and in catch mode `S+0x2AC` (routines `0x0804DB60`
   and `0x0804DF10`; other routines too). The pans depend on where the camera
   is, so a copy's own pan can differ from the game's. A copy's camera stores
-  are no-ops, and before each frame its camera row is set to
-  `target - (its view - its camera row - its shake) - last frame's pan step`;
-  after the frame its view less its shake is checked against the target:
-  more than 8 rows off, or a different ball position, and it's taken again.
+  are no-ops, and before its first frame its camera row is set to
+  `target - (its view - its camera row - its shake) - last frame's pan step`.
   (Patching the pans out of the copies' formula was tried: the sprites use
   `S+0xE6` too, about 40 places, so they'd no longer line up.)
-- **Retake** (`twin_step`): the copy loads the game's state from before
-  this frame (`run_frame` saves it when one is due, `twinPre`), `twin_jump`
-  sets its scroll and BG3 tile ring for its row at once, it runs the frame,
-  and that frame's picture is not used (its sprites and scroll were the
-  game's): the screen keeps its last picture (`Twin.pic`) for one frame. In
-  six 50-second random games: 0 to 6 retakes each.
 - **Sprite filter** (`twin_hide`, from the shadow OAMs before the frame):
   a copy's sprite alike one of the game's sprites *on the game's screen*
   (attributes 1, 2 and the high byte of 0) is the same thing on the table if
@@ -90,8 +104,7 @@ down (the whole lower table on the two screens).
   the table's rows, or, while those would be the game's picture too, the
   top screen from before it came up (`lastTop`).
 - `GBADS_TALL_TRACE=1` logs a line a frame (the view, each copy's rows,
-  retakes, sprites hidden, pixels laid over); `GBADS_TWIN_DEBUG=1` logs every
-  retake.
+  sprites hidden, pixels laid over).
 
 ## What was learned (don't redo)
 
@@ -109,12 +122,14 @@ down (the whole lower table on the two screens).
   copies.
 - **A copy can be put anywhere at once** (`twin_jump`): the BG3 ring
   refilled from the table's tiles in EWRAM, every copy of the scroll set.
-  But only on a retake: jumping a running copy (its camera ahead of the game's
-  eased view) put its rows a few lines off for a frame and its sprites at
-  the old place: the owner's "jitter on the bottom screen".
-- **The copies' cosmetic animations can drift out of phase** with the game's
-  (things off a screen animate differently); the ball and the play stay in
-  step. Don't compare pictures to find what's the game's own.
+  Its first frame after that has the game's sprites (OAM lags a frame), so
+  it isn't shown: hence the two frames a copy runs every frame. (Jumping a
+  copy and showing that frame was the Oct 26 build's "jitter".)
+- **A copy left running on its own falls behind the game** (see "Why every
+  frame"); comparing ball positions doesn't catch it.
+- **The copies' pictures can still differ from the game's** a little (their
+  last two frames at another camera): the overlay draws the game's own
+  screen-fixed things alone (HUD split), never by comparing pictures.
 - **Timing:** each copy is about one more core's emulation; the second runs
   on its own thread. The device held full speed with one copy; with two, to
   be checked.
@@ -161,9 +176,12 @@ down (the whole lower table on the two screens).
   `state`, `cam`, `camRow`, `nop`, `bound`, `ball`, `oam`, `view`, `viewBg`,
   `shake`, `msg`, `idle`, `jump`); the BPPE profile in `src/profiles.c`.
 - `src/game.c`: `twins[]`, `twin_work_*`, `twin_jump`, `twin_hide`,
-  `twin_step`, `twin_open` / `twin_close` near the top; `run_frame` (the
-  sprite filters, the HUD split's fixed sprites, the pre-frame state for a
-  retake); `update_tall` (`tall_line`, the overlay, PP-11, the score bar).
+  `twin_hold`, `twin_first`, `twin_second`, `twin_step` (where they're held
+  next frame), `twin_open` / `twin_close` near the top; `run_frame` (the
+  copies' two frames, the sprite filters, the HUD split's fixed sprites, the
+  game's pre-frame states); `update_tall` (`tall_line`, the overlay, PP-11,
+  the score bar).
+- `src/emu.c`: `emu_vram_write` (the ring's rows copied at once).
 - `src/emu.c`: `emu_hide_exact`, `emu_hud_keep_exact` (exact sprites kept
   by the HUD split's renderer), `emu_hud_copy`, `emu_hud_copy_above`.
 - `src/config.c`: `pinball_live` (default 1). Off means the game on one
@@ -171,18 +189,21 @@ down (the whole lower table on the two screens).
 
 ## Tests and fixtures
 
-- `tests/regress/pokemon-pinball.json`, 11 cases. Fixtures in
+- `tests/regress/pokemon-pinball.json`, 12 cases. Fixtures in
   `../gba-ds-tests/states/pokemon-pinball/`: `us-title`, `us-field-select`,
   `us-ruby-bottom`, `us-ruby-top`, `us-sapphire-start` (input A at frame 5
   starts the table), `us-ruby-catch` (device), `us-ruby-catch-loop` (device,
   saved with the limit at 186), `us-ruby-pause` (the owner's State Saver
   "Pause screen", saved paused: the copies taken from a paused game have no
-  sprites of their own until it's unpaused). ROM: `roms/BPPE.zip`.
+  sprites of their own until it's unpaused), `us-ruby-portrait` (the
+  owner's catch state of Oct 27: `pp-us-ruby-portrait` plays to frame 1523,
+  where a square uncovered off the game's screen shows on the bottom one).
+  ROM: `roms/BPPE.zip`.
 - Random games for checking by hand: a script of random flipper presses
   (A, L, A+L for 4-12 frames every 15-70 frames, 3000 frames) from
   `us-ruby-top`, `us-ruby-bottom`, `us-ruby-catch`, with
   `GBADS_TALL_TRACE=1`; check the view's step per frame, each copy's rows
-  against where it should be, frames with missing lines, retakes.
+  against where it should be, frames with missing lines.
 - Experiment tools in `tools/scout/` (not built by the Makefile; usage at the
   top of each file): `scout.c` (VRAM writes and their PCs, mid-frame
   registers, the ring, the shadow OAM, BG0's scroll by line), `jump.c` (a
@@ -196,7 +217,11 @@ down (the whole lower table on the two screens).
 
 ## Not done
 
-- **The owner's verdict on the device**, and speed with two copies there.
+- **The owner's verdict on the device**, and speed there with the copies
+  taken every frame.
+- **The hatching glitch** (a hatched Pokémon's sprite gone from both
+  screens for a while): no state yet; likely the copies' logic falling
+  behind, now gone, but unchecked.
 - **Bonus stages:** the copies only run where the lowest camera target is
   `0x164`, so they play on one screen. Their tables and camera limits are
   unknown.

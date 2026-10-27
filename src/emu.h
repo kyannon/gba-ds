@@ -149,6 +149,8 @@ bool emu_hud_band_rows(int* y0, int* y1);
 uint16_t emu_io16(Emu* e, uint32_t offset);
 /* VRAM (96 KB), for reading tile maps. */
 const uint16_t* emu_vram(Emu* e);
+/* n bytes into VRAM at offset off at once (the renderer told once) */
+void emu_vram_write(Emu* e, uint32_t off, const void* src, size_t n);
 bool emu_hud_grabbed(void);
 
 /* Cheats. emu_cheats_clear removes them all; emu_cheats_add adds one set

@@ -838,6 +838,14 @@ uint16_t emu_io16(Emu* e, uint32_t offset) {
 	return ((struct GBA*) e->core->board)->memory.io[(offset & 0x3FE) >> 1];
 }
 
+void emu_vram_write(Emu* e, uint32_t off, const void* src, size_t n) {
+	struct GBA* gba = e->core->board;
+	if (off >= 0x18000 || n > 0x18000 - off) return;
+	memcpy((uint8_t*) gba->video.vram + off, src, n);
+	/* (the software renderer's hook only drops its caches, whatever the address) */
+	gba->video.renderer->writeVRAM(gba->video.renderer, off);
+}
+
 const uint16_t* emu_vram(Emu* e) {
 	return ((struct GBA*) e->core->board)->video.vram;
 }
