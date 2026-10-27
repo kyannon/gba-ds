@@ -1492,7 +1492,20 @@ static const MapProfile profiles[] = {
 			          .ball = 0x1330, .oam = 0x03005000,
 			          /* (the table's opening sweep: its offset at 0x020005FC, running
 			           * to 0; the copy waits until it's done) */
-			          .idle = { { 0x020005FB, 0xFF, 0, 1 }, { 0x020005FC, 0xFFFF, 0, 2 } } },
+			          .idle = { { 0x020005FB, 0xFF, 0, 1 }, { 0x020005FC, 0xFFFF, 0, 2 } },
+			          /* BG3's tiles: the whole table stays in EWRAM; 0x08047030
+			           * streams a row a frame (DMA3, table 0x086B0010) into a 22-row
+			           * ring as the scroll's tile row (S+0x64) changes. The scroll:
+			           * BG1-3 VOFS shadows at 0x0200B3AE/B2/B6 and the registers,
+			           * S+0x68 (this frame's; S+0x6A gets it next frame, and the
+			           * table's lights are drawn by S+0x6A's ranges, 0x0804E814),
+			           * S+0x5A, S+0xCC, and the main loop's row + 16 (on the stack).
+			           * Missing S+0x68 leaves wrong light tiles in the ring. */
+			          .jump = { .ring = 0x06008000, .slots = 22, .slotOff = 10,
+			                    .src = { 0x0200FBB0, 0x020030A0 }, .split = 32, .tileRows = 56,
+			                    .last = 0x64, .scroll = { 0x5A, 0x68, 0x6A, 0xCC },
+			                    .scrollAt = { 0x0200B3AE, 0x0200B3B2, 0x0200B3B6 },
+			                    .scrollVofs = 0x0E, .plus16 = 0x03007ED8 } },
 		},
 		/* the title's logo is BG1, on its own white striped background
 		 * (cleared from the edges in), above PRESS START */

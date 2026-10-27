@@ -156,6 +156,31 @@ typedef struct MapProfile {
 			uint16_t ball;
 			uint32_t oam;
 			MemProbe idle[2];
+			/* Putting the copy's camera anywhere at once (game.c twin_jump):
+			 * the game eases its scroll toward the camera (at most 8 rows a
+			 * frame) and streams one tile row a frame of the table's tiles
+			 * into a ring as the scroll moves. Everything that tracks the
+			 * scroll is set to the camera's row, and the ring filled as if it
+			 * had scrolled there. ring: the ring's VRAM address, slots of 1 KB
+			 * (one tile row; table tile row R in slot (R + slotOff) % slots);
+			 * src: the table's tiles, all of them (rows 0..split-1 from src[0],
+			 * the rest from src[1], 1 KB a row), tileRows of them; last: S
+			 * offset of the tile row the ring was last streamed for (the rows
+			 * from it to it + slots - 1 are in the ring); scroll: S offsets,
+			 * scrollAt: addresses, of copies of the scroll's row (0: none);
+			 * scrollVofs: the BGs whose VOFS registers it is; plus16: an
+			 * address holding the row + 16 */
+			struct {
+				uint32_t ring;
+				int slots, slotOff;
+				uint32_t src[2];
+				int split, tileRows;
+				uint16_t last;
+				uint16_t scroll[4];
+				uint32_t scrollAt[3];
+				unsigned scrollVofs;
+				uint32_t plus16;
+			} jump;
 		} live;
 	} tall;
 	/* A second button layout for games ported from four-face-button

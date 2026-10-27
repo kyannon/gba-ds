@@ -114,9 +114,11 @@ static bool tallOn;        /* the table's up: the screens show it */
 /* profile tall.live: the second copy of the game drawing the bottom screen */
 static Emu twin;
 static bool twinOpen;
-static int twinOff;        /* its camera's rows from this one's (on the way to twinTarget) */
+static int twinOff;        /* its camera's rows from this one's (twinTarget) */
 static bool twinUp;        /* it's running (else it's taken from the game again) */
-static int twinGood;       /* frames in step at the full offset */
+static int twinGood;       /* frames in step */
+static int twinArmed;      /* frames on a table it knows, with no sweep of the table going on */
+static bool twinPre;       /* twinState holds the game's state from before this frame */
 static void* twinState;
 static const MapProfile* twinProf;
 static int twinTarget = 160; /* the copy's camera: this many rows from the game's */
@@ -129,10 +131,31 @@ static bool twin_ball(Emu* e, uint32_t S, int32_t* x, int32_t* y) {
 	return true;
 }
 
+/* The copy's scroll and table tiles set for camera row `row` at once, as if
+ * it had scrolled there (profile tall.live.jump): when its camera's tile
+ * row is more than one from the ring's. */
+static void twin_jump(uint32_t T, int row) {
+	const typeof(twinProf->tall.live.jump)* J = &twinProf->tall.live.jump;
+	if (!J->ring) return;
+	int nt = row >> 3, last = (int16_t) emu_read16(&twin, T + J->last);
+	if (nt - last >= -1 && nt - last <= 1) return;
+	for (int R = SDL_max(nt, 0); R < nt + J->slots && R < J->tileRows; ++R) {
+		uint32_t src = R < J->split ? J->src[0] + R * 0x400 : J->src[1] + (R - J->split) * 0x400;
+		uint32_t dst = J->ring + ((R + J->slotOff) % J->slots) * 0x400;
+		for (int k = 0; k < 0x400; k += 4) emu_write32(&twin, dst + k, emu_read32(&twin, src + k));
+	}
+	emu_write16(&twin, T + J->last, (uint16_t) nt);
+	for (int i = 0; i < 4; ++i) if (J->scroll[i]) emu_write16(&twin, T + J->scroll[i], (uint16_t) row);
+	for (int i = 0; i < 3; ++i) if (J->scrollAt[i]) emu_write16(&twin, J->scrollAt[i], (uint16_t) row);
+	for (int bg = 0; bg < 4; ++bg) if ((J->scrollVofs >> bg) & 1) emu_write16(&twin, 0x04000012 + bg * 4, (uint16_t) row);
+	if (J->plus16) emu_write16(&twin, J->plus16, (uint16_t) (row + 16));
+}
+
 /* After this frame of the game: the copy's, with the same keys. Its camera
  * is the game's moved twinTarget rows (160 below, or 160 above while the
- * game's on the bottom screen), reached 8 rows a frame from the game's own
- * (the game loads the table's tiles as its camera scrolls). The game itself
+ * game's on the bottom screen). When it's taken from the game again, it's
+ * from the game's state before this frame (saved by run_frame), so it runs
+ * this same frame at once, put at its camera by twin_jump. The game itself
  * is never changed. */
 static void twin_step(uint32_t keys) {
 	const typeof(twinProf->tall.live)* L = &twinProf->tall.live;
@@ -141,36 +164,43 @@ static void twin_step(uint32_t keys) {
 	 * those lowered to 186 for the table: put back) */
 	if (emu_read16(&emu, L->bound) == 186) emu_write16(&emu, L->bound, L->boundFrom);
 	if (S < 0x02000000 || S >= 0x02040000 || emu_read16(&emu, L->bound) != L->boundFrom) {
-		twinUp = false, twinGood = 0; /* not on a table we know */
+		twinUp = false, twinGood = 0, twinArmed = 0; /* not on a table we know */
 		return;
 	}
-	static int armed; /* frames with no sweep of the table going on */
-	armed = memprobes_match(L->idle, 2, &emu) ? armed + 1 : 0;
-	if (armed < 30) {
+	twinArmed = memprobes_match(L->idle, 2, &emu) ? twinArmed + 1 : 0;
+	if (twinArmed < 30) {
 		twinUp = false, twinGood = 0;
 		return;
 	}
+	bool fresh = false;
 	if (!twinUp || twinRetake) {
-		/* taken from the game (this frame's end), its camera moved from there */
-		if (!emu_state_save(&emu, twinState) || !emu_state_load(&twin, twinState)) return;
-		twinOff = 0, twinGood = 0, twinRetake = false, twinUp = true;
-		return;
+		if (!twinPre || !emu_state_load(&twin, twinState)) return; /* (next frame) */
+		twinGood = 0, twinRetake = false, twinUp = true, fresh = true;
 	}
-	int step = twinTarget > twinOff ? SDL_min(8, twinTarget - twinOff) : SDL_max(-8, twinTarget - twinOff);
-	twinOff += step;
+	twinOff = twinTarget;
 	uint32_t T = emu_read32(&twin, L->state);
 	if (T < 0x02000000 || T >= 0x02040000) { twinUp = false; return; }
 	int32_t cam = (int32_t) emu_read32(&emu, S + L->cam) + (twinOff << 8);
 	emu_write32(&twin, T + L->cam, (uint32_t) cam);
 	emu_write16(&twin, T + L->camRow, (uint16_t) (cam >> 8));
+	twin_jump(T, cam >> 8);
+	/* (just taken: its sprites are the game's, at the game's camera, until
+	 * this frame's are copied in at its end) */
+	if (fresh) emu_layers(&twin, 0x0E);
 	emu_frame(&twin, keys & 0x3FF);
-	int32_t ax, ay, bx, by;
-	if (!twin_ball(&emu, S, &ax, &ay) || !twin_ball(&twin, T, &bx, &by) || ax != bx || ay != by) {
-		if (twinGood || getenv("GBADS_TWIN_DEBUG")) fprintf(stderr, "frame %llu: live view out of step, taken again (off %d: ball %d,%d / %d,%d)\n", (unsigned long long) frameCount, twinOff, ax >> 8, ay >> 8, bx >> 8, by >> 8);
-		twinUp = false, twinGood = 0;
+	if (fresh) emu_layers(&twin, 0x1E);
+	int32_t ax, ay, bx = 0, by = 0;
+	if (!twin_ball(&emu, S, &ax, &ay)) {
+		twinUp = false, twinGood = 0; /* (no ball: as when it isn't running) */
 		return;
 	}
-	twinGood = twinOff == twinTarget ? twinGood + 1 : 0;
+	if (!twin_ball(&twin, T, &bx, &by) || ax != bx || ay != by) {
+		if (twinGood || getenv("GBADS_TWIN_DEBUG")) fprintf(stderr, "frame %llu: live view out of step, taken again (off %d: ball %d,%d / %d,%d)\n", (unsigned long long) frameCount, twinOff, ax >> 8, ay >> 8, bx >> 8, by >> 8);
+		/* (its picture, a frame out of step, stays up until then) */
+		twinRetake = true, twinGood = 0;
+		return;
+	}
+	twinGood++;
 }
 
 static void twin_close(void) {
@@ -235,6 +265,8 @@ static void run_frame(uint32_t keys) {
 		}
 		emu_hide_exact(&twin, same, n);
 	}
+	/* the copy to be taken from the game: from its state before this frame */
+	twinPre = twinOpen && tallOn && (!twinUp || twinRetake) && twinArmed >= 29 && emu_state_save(&emu, twinState);
 	emu_frame(&emu, keys & 0x3FF);
 	if (twinOpen && tallOn) twin_step(keys);
 }
@@ -1699,9 +1731,15 @@ static void update_tall(void) {
 	}
 	uint32_t S = emu_read32(&emu, L->state);
 	int m = (int32_t) emu_read32(&emu, S + L->cam) >> 8;
-	if (!below && m >= L->flipAt) below = true, twinTarget = -GBA_H, twinRetake = true;
-	else if (below && m <= L->flipBack) below = false, twinTarget = GBA_H, twinRetake = true;
-	if (twinRetake && debug) fprintf(stderr, "frame %llu: the game to the %s screen (camera row %d)\n", (unsigned long long) frameCount, below ? "bottom" : "top", m);
+	/* the copy goes to the other side first (taken again next frame); the
+	 * screens change once it's there, so neither is ever without its rows */
+	bool want = below ? m > L->flipBack : m >= L->flipAt;
+	int need = want ? -GBA_H : GBA_H;
+	if (twinTarget != need) twinTarget = need, twinRetake = true;
+	if (want != below && !twinRetake && twinOff == twinTarget) {
+		below = want;
+		if (debug) fprintf(stderr, "frame %llu: the game to the %s screen (camera row %d)\n", (unsigned long long) frameCount, below ? "bottom" : "top", m);
+	}
 	/* the game: all of its own picture on the bottom screen; on the top
 	 * one, without the score bar (it goes below), with what's over the
 	 * table (the catch timer, messages) */
@@ -1712,8 +1750,9 @@ static void update_tall(void) {
 	memcpy(game, emu.fb, sizeof(tallTop));
 	/* the copy: line y of its picture is table row vofs + y, shown on
 	 * line y + off - target of its screen */
-	int sh = twinOff - twinTarget;
-	int vofs = emu_io16(&twin, 0x1E) & 0x3FF;
+	int sh = twinOff - (below ? -GBA_H : GBA_H); /* (0 but for a frame the copy is on the wrong side) */
+	int vofs = emu_io16(&twin, 0x1E) & 0x1FF;
+	if (vofs >= t->rows) vofs -= 512; /* (above the table's top: its camera just past row 0, the BG wraps) */
 	for (int y = 0; y < GBA_H; ++y) {
 		int src = y - sh, row = vofs + src;
 		uint32_t* o = &other[y * GBA_W];

@@ -26,27 +26,41 @@ Owner's verdicts so far:
   paused or the screen is otherwise dimmed, that screen should always appear
   in full on the bottom (second) screen. Not done yet.
 
-## The open problem (owner's report on the latest build)
+## The blackouts at every flip: fixed in the build of Oct 26 (to check on the device)
 
-**The copy catches up constantly: one screen or the other blacks out and
-refills every time the ball crosses from one screen to the other.** That
-happens by design in the current code, and it's the thing to fix next.
+The owner's report on the build before: **one screen or the other blacked
+out and refilled every time the ball crossed from one screen to the
+other.** The copy was retaken from the game and its camera ramped from 0 to
+±160 rows at 8 a frame: 20 frames with its rows not in place.
 
-When the game's camera passes `flipAt` (176) or `flipBack` (112), the game
-moves screens. `update_tall` then sets `twinRetake`, and `twin_step` reloads
-the copy from the game's state and ramps its camera from 0 to ±160 rows at 8
-rows a frame. That takes 20 frames, and the copy's screen is black where its
-rows aren't in place yet. The ball crosses those rows often, so it's
-constant.
+What the build of Oct 26 does instead (PP-9 changed):
+- `twin_jump` (profile `tall.live.jump`) puts the copy at its camera at once:
+  the BG3 tile ring refilled from EWRAM, every eased copy of the scroll set
+  (see "Scouting" below). No ramp: `twinOff` is always `twinTarget`.
+- A retake loads the game's state from **before** its frame (`run_frame`
+  saves it into `twinState` when a retake is due, `twinPre`), so the copy
+  runs the same frame at once and its picture is fresh. Its sprites are
+  hidden on that first frame (its OAM is still the game's).
+- A flip asks for the retake first and swaps the screens on the frame the
+  copy is there (`update_tall`: `want` / `need`), so neither screen is ever
+  without its rows.
+- A drift (ball positions differ) asks for a retake and keeps the copy's
+  picture up for that frame, instead of dropping the live view (the logo
+  for a frame). No ball at all still turns the copy off, as before.
+- The copy's BG3VOFS is read as negative when its camera is just above the
+  table's top (it wraps to ~470): only those rows are black, not the whole
+  screen (this blacked the top screen for a frame at each flip up).
 
-**Update (Oct 26, scouting session): the copy's camera can jump after all.**
-See "Scouting: a tall renderer, and the instant jump" below. With the tile
-ring refilled from EWRAM and every eased copy of the scroll set, a retake
-puts the copy's rows in place on its first frame instead of after 20. That
-makes the ideas below cheaper (any retake is now nearly invisible) and is
-the recommended next step.
+Measured on six 50-second games with random flipper presses (Ruby top,
+bottom and catch states): the game's flips identical to the old build (the
+game is never changed); no frame with a screen more than half black,
+against 75 in 82 frames around the events of one game before; the live view
+never dropped, against 1-4 times a game; the copy drifts a little more
+often (10 against 8 retakes over the six games), likely because it's at its
+full offset from the first frame.
 
-Ideas, from the previous session (none tried yet):
+Ideas from before the fix, kept for reference (a copy can now be placed
+anywhere at once, which makes 2 and 4 cheaper; 1 is moot):
 1. **Don't retake on a flip.** Ramp the copy from +160 to -160 (or back)
    without reloading it. 320 rows at 8 a frame is 40 frames. During the ramp
    the copy's rows land somewhere else on its screen: show what fits, black
@@ -105,18 +119,14 @@ camera's tile row is more than 1 from `S+0x64`:
 Result (`jump.c`, `us-ruby-bottom`, jumped 160 rows up, against a copy that
 eased there and settled): BG1, BG2 and BG3 identical from the first frame,
 sprites from the second (OAM lags a frame), the whole picture identical
-once animation phase matches. In the app (`GBADS_TWIN_JUMP=1`, an
-experiment in `twin_step`, not committed), the flip at frame 33 of
-`us-ruby-top` shows the copy's rows on the second frame instead of after
-about 20. One stale frame remains (f34: the copy's picture from before the
-retake); blank it, or take the copy from the game's state before its frame.
+once animation phase matches. This is now the app's retake: see "The
+blackouts at every flip" above.
 
 Next steps, in order:
-1. Make the jump the default retake (no ramp), and fix the stale frame.
-2. With retakes nearly invisible, retake on drift without the black fill
-   (PP-9 changes), and reconsider ideas 2 and 4 above: a copy can now be
-   placed anywhere at once.
-3. Check the lights and sprites at a jump in catch mode and on Sapphire.
+1. The owner's verdict on the device.
+2. Check the lights and sprites at a jump in catch mode and on Sapphire
+   (the jump is only checked on Ruby's plain table so far).
+3. Reconsider ideas 2 and 4 above: a copy can now be placed anywhere at once.
 
 ## How it works now (code map)
 
@@ -127,7 +137,9 @@ Next steps, in order:
   - `twin_*` near the top. `twin_open`: second `Emu`, camera stores NOPed,
     BG0 off. `twin_step` runs from `run_frame`, so it also runs on the
     frame-buffer worker thread: same keys, its camera set to the game's ±
-    `twinOff`, the ball compared, retaken on a mismatch.
+    `twinOff`, `twin_jump` when its camera's tile row is more than one
+    from its ring's, the ball compared, retaken on a mismatch (from the
+    game's state before the frame, `twinPre`, saved in `run_frame`).
   - The shadow-OAM hiding is in `run_frame`, before the game's frame:
     `emu_hide_exact` on the copy.
   - `update_tall` (before `update_snapshot`): the flip, which picture goes
