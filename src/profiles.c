@@ -1428,7 +1428,12 @@ static const MapProfile profiles[] = {
 			.alt = { .on = { { 0x03002BC6, 0xFF, 0x24, 1 }, { 0x04000000, 0x0107, 0x0101, 2 },
 			                 { 0x04000008, 0xFFFC, 0xD044, 2 } },
 			         .bgMask = 1 },
-			.moves = { { 104, 0, 135, 15, 0, 0, 0, 0, true }, { 0, 16, 239, 159, 0, 0, 0, 0, true } },
+			.moves = { { 104, 0, 135, 15, 0, 0, 0, 0, true } },
+			/* the status bar's rows; below them BG3 stays in the game, drawn
+			 * by it at its own priority: message and pause boxes in front,
+			 * a cave's scenery behind (until v1.4 those rows were laid
+			 * back over the game's picture: the scenery in front) */
+			.rows = 16,
 			.logoBelow = true,
 			/* the level list's title row (the level's name) above it */
 			.mapTitleRows = 14,

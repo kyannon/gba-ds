@@ -619,10 +619,20 @@ static unsigned bgs_below(int p) {
 }
 
 static int copyAbove; /* emu_hud_copy_above */
+static int splitRows; /* emu_hud_rows */
+static bool splitCopying; /* emu_hud_copy: the HUD's layers left on the game too */
 
 static void split_draw(struct GBAVideoRenderer* r, int y) {
 	if (split.active && copyAbove) {
 		bool off = y >= copyAbove;
+		for (int i = 0; i < 4; ++i) {
+			if ((split.bgMask >> i) & 1) r->disableBG[i] = off;
+		}
+	}
+	if (split.active && splitRows && !splitCopying) {
+		/* the HUD's layers leave the game only on its rows; below, the
+		 * game draws them as it does, behind or in front of the rest */
+		bool off = y < splitRows;
 		for (int i = 0; i < 4; ++i) {
 			if ((split.bgMask >> i) & 1) r->disableBG[i] = off;
 		}
@@ -796,6 +806,7 @@ void emu_hud_copy(Emu* e, bool copy) {
 	struct GBA* gba = e->core->board;
 	struct GBAVideoRenderer* r = gba->video.renderer;
 	if (!r || !split.installed || !split.active) return;
+	splitCopying = copy;
 	for (int i = 0; i < 4; ++i) r->disableBG[i] = !copy && ((split.bgMask >> i) & 1);
 	emu_hide_sprites(e, copy ? NULL : split.objs, copy ? 0 : split.nObjs);
 }
@@ -818,6 +829,10 @@ void emu_hud_keep_exact(const uint16_t (*attrs)[3], int n) {
 
 void emu_hud_copy_above(int row) {
 	copyAbove = row;
+}
+
+void emu_hud_rows(int rows) {
+	splitRows = rows;
 }
 
 void emu_hud_band(bool on, bool copy, bool watch) {

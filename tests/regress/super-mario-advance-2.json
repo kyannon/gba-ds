@@ -135,6 +135,20 @@
    }
   },
   {
+   "id": "sma-us-cave",
+   "rom": "AA2E",
+   "state": "super-mario-advance-2/us-cave.ss",
+   "desc": "a cave level whose scenery is on the status bar's layer, behind the rest (the owner's State Saver save)",
+   "rules": [
+    "SMA-3",
+    "SMA-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 300
+   }
+  },
+  {
    "id": "sma-us-castle-room",
    "rom": "AA2E",
    "state": "super-mario-advance-2/us-castle-room.ss",

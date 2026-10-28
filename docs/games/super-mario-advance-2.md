@@ -17,7 +17,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **SMA-2. Level: status bar.** In a level the status bar (lives, Dragon Coins, time, coins, score) moves to the top of the second screen, with the logo (GEN-1) centred on the screen below it (until v1.3.2's later test builds: half its size, on black); the blue item box stays at the top of the game screen with the reserve item.
 
-**SMA-3. Boxes stay.** Message boxes and the pause box stay on the game screen.
+**SMA-3. Boxes stay.** Message boxes and the pause box stay on the game screen, and so does anything else a level puts on the status bar's layer below the status bar (some levels' scenery, a cave's rocks), drawn by the game as it draws it, in front or behind. (Until v1.4.1 that layer was laid back over the game's picture: a cave's scenery came out in front of everything.)
 
 **SMA-4. Through doors and castles.** The status bar stays on the second screen through doors, pipes, castle rooms and boss fights.
 

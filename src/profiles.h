@@ -344,6 +344,12 @@ typedef struct MapProfile {
 		 * list: its title row with the level's name) kept above the HUD,
 		 * which moves down that far (Super Mario Advance 2, SMA-7) */
 		int mapTitleRows;
+		/* The HUD is only these rows at the top (0: the whole screen):
+		 * its layers stay in the game below them, drawn as the game
+		 * draws them, and are left off the second screen there (Super
+		 * Mario Advance 2: BG3 is the status bar in rows 0-15, and
+		 * message boxes, or in some levels the scenery, below) */
+		int rows;
 		/* The same (unused). */
 		bool logoBehind;
 		/* While every `mirror` probe matches, or every `mirrorOr` one: the

@@ -150,6 +150,11 @@ void emu_hud_copy(Emu* e, bool copy);
 /* While split: the HUD's BG layers also stay in the game picture above
  * this row (0: not at all; from the next line drawn). */
 void emu_hud_copy_above(int row);
+/* The split's layers leave the game only on lines above this row (0: all
+ * lines); below it the game draws them where they are, at their own
+ * priority (profile hud.rows: Super Mario Advance 2's status bar, its
+ * layer the scenery further down in some levels). */
+void emu_hud_rows(int rows);
 /* The HUD split also draws the sprites with exactly these attributes 0-2
  * (the game's picture keeps them); n = 0: none. */
 void emu_hud_keep_exact(const uint16_t (*attrs)[3], int n);

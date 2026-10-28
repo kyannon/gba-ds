@@ -1396,6 +1396,7 @@ static void hud_make_logo_below(void) {
 		const HudMove* mv = &hudProf->hud.moves[m];
 		if (mv->toGame && !mv->how && !mv->vhow && mv->x0 == 0 && mv->x1 >= GBA_W - 1 && mv->y0 > 0) top = mv->y0 * 2;
 	}
+	if (hudProf->hud.rows) top = hudProf->hud.rows * 2;
 	if (hudProf->hud.mapTitleRows && mapTitleN) top += (mapTitleN + 2) * 2; /* (and the level's name above it) */
 	logo_draw(hudLogoBelow, HUD_CW, HUD_CH, HUD_CW / GBA_W, top, 255);
 }
@@ -1562,6 +1563,7 @@ static void hud_compose(void) {
 				emu.fb[ny * GBA_W + nx] = c; /* back onto the game picture */
 				continue;
 			}
+			if (h->rows && y >= h->rows) continue; /* (hud.rows: the game draws the rest) */
 			if (sign && x >= h->sign.x0 && x <= h->sign.x1 && y >= h->sign.y0 && y <= h->sign.y1) continue;
 			if (bigMap && x >= bx0 && x <= bx1 && y >= by0 && y <= by1) continue;
 			ny += titleDy;
@@ -3114,6 +3116,7 @@ static void ss_setup(const char* rom, const char* code) {
 		/* the HUD moves only when there's another screen to put it on */
 		hudProf = lp && lp->hud.on[0].addr && nScreens > 1 ? lp : NULL;
 		emu_hud_game_reg(hudProf ? hudProf->hud.gameReg.addr : 0, hudProf ? hudProf->hud.gameReg.bits : 0);
+		emu_hud_rows(hudProf ? hudProf->hud.rows : 0);
 		emu_hud_band(hudProf && hudProf->hud.band, true, hudProf && hudProf->hud.band == BAND_WATCH);
 		combatProf = mc && lp && lp->combat[0].addr && nScreens > 1 ? lp : NULL;
 		combatOn = combatMade = false;
