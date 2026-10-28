@@ -74,9 +74,13 @@ To add second-screen support for another game, see [Adding second-screen compati
 
 ## Roadmap
 
-- RetroAchievements hardcore mode (RetroAchievements allows it once GBA DS has been public for six months)
-- More games' HUDs on the second screen
-- More games!
+- Better save and load state handling, toggles for auto-save and auto-load
+- "Bug report save" functionality that includes a rewound state, button logs, and custom notes
+- A hideable touch menu on the second screen that gives all games access to performance and other functionality without needing to pause
+- Better aspect ratio and display controls for more devices
+- Hopefully, with dev permissions and as the emulator matures, deeper integration options for the popular RG DS/DS+ operating systems
+- Eventually, potentially, RetroAchievements hardcore support
+- As always: more games!
 
 ## AI Disclosure
 
