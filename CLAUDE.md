@@ -14,12 +14,40 @@ with photos and screenshots; nothing ships untested on the device.
 
 ## Philosophy
 
-`wiki/Philosophy.md` sets out what GBA DS is for and the rules for what
-either screen shows (a GBA with two 240x160 screens; function over form;
-keep it simple; only the game's own graphics; no in-game touch; exceptions
-written down). Read it before changing what a game shows. When a request
-conflicts with it, say which rule it conflicts with and why; if the owner
-still wants it, it's an exception and gets a rule in `docs/games/`.
+`wiki/Philosophy.md` is the player-facing statement of what GBA DS is for
+and what goes on either screen: (1) a GBA with two 240x160 non-touch
+screens, (2) function over form, (3) keep it simple, (4) only the game's
+own graphics, (5) no in-game touch, (6) exceptions allowed when they earn
+their place. Read it before changing what a game shows. Keep it written
+for players (no rule IDs, file paths or session notes); how sessions apply
+it lives here:
+
+- **Check requests against it, and say so.** If a request, or the obvious
+  way to do it, conflicts with a principle, say which one and why, and
+  suggest something that fits. If the owner still wants it, it's an
+  exception: do it, write it as a rule in `docs/games/<game>.md`, and add
+  it to the page's list of exceptions. Don't quietly bend a principle, and
+  don't quietly refuse because of one.
+- **Rule first, then code.** A change to what a game shows starts with its
+  rules in `docs/games/<game>.md`, in the player's terms; then the profile,
+  then the tests. The owner's notes on their State Saver states are what
+  the rules should say. Where the page's principles map to rules: the GBA
+  screen is GEN-5, the untouched game GEN-2, nothing half-drawn GEN-3,
+  quick to follow GEN-6.
+- **Try simple approaches first.** For a game's second screen, in order:
+  a screen the game already draws, opened on the hidden copy and captured;
+  a part of the live screen moved over (a HUD split, a snapshot); the
+  logo. Rebuilding a screen from the game's memory, or drawing anything
+  new (GBA DS's font, panels, icons), is out (principles 3 and 4).
+- **When unsure, show less.** If a situation can't be detected reliably,
+  show the logo or keep the last good picture and list it as a known
+  issue. Don't guess.
+- **Say what you couldn't do.** Known limitations go in the changelog and
+  release notes in plain words. A cut-off status screen that's written
+  down is fine; one left for players to find isn't.
+- **Keep changes small enough to test.** Every change ends with a test
+  build and a short note of what to check on the device; if that note
+  would be long, the change is probably too big for one step.
 
 ## Conventions
 

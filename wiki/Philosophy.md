@@ -1,4 +1,4 @@
-The principles behind what GBA DS does and doesn't do, and how to apply them when adding a game or changing one. They're for anyone working on GBA DS, including Claude sessions, which do most of the coding: read this page before proposing a change to what either screen shows.
+What GBA DS is meant to be, and the principles behind what it does and doesn't do. If you've asked for a feature and the answer was no, or wondered why a game's second screen looks the way it does, this is usually why.
 
 ## 1. It's a Game Boy Advance with two screens.
 
@@ -6,10 +6,10 @@ GBA DS emulates a device with two 240×160 screens, neither of them touchscreens
 
 What this means in practice:
 
-- **The second screen is a GBA screen.** It's a 240×160 picture, scaled up exactly like the game screen, so a pixel is the same size on both screens (rule GEN-5 in [the game rules](https://github.com/kyannon/gba-ds/blob/main/docs/games/README.md)). Whatever goes there is drawn at the game's own size. Before v1.4, some games' second screens were larger pictures, which made everything on them look smaller than the game; that was a departure from this rule.
+- **The second screen is a GBA screen.** It's a 240×160 picture, scaled up exactly like the game screen, so a pixel is the same size on both screens. Whatever goes there is drawn at the game's own size. Before v1.4, some games' second screens were larger pictures, which made everything on them look smaller than the game; that was a departure from this rule.
 - **Ask what the game would have done.** When deciding what goes on the second screen, the question is: if this game had been made for a two-screen GBA, what would its developers have put there? Usually the answer is something the game already has: the map, a status screen, a goal list, the battle intel.
-- **The game itself isn't changed.** The game you're playing runs as it would on a GBA. Its second screen is filled from a hidden second copy of the game, which opens menus there without ever pausing your game, sending it input or changing its memory (GEN-2). The only changes to the live game screen are taking something off it that now has its own screen (a HUD moved to the second screen, a map the game also draws in a corner).
-- **The emulator's own screens are separate.** The game list, pause menu, settings and update screens belong to GBA DS, not to the imagined console. They can look like GBA DS (Jost text, its own colours) and use the touchscreen (rule 5).
+- **The game itself isn't changed.** The game you're playing runs as it would on a GBA. Its second screen is filled from a hidden second copy of the game, which opens menus there without ever pausing your game, sending it input or changing its memory. The only changes to the live game screen are taking something off it that now has its own screen (a HUD moved to the second screen, a map the game also draws in a corner).
+- **The emulator's own screens are separate.** The game list, pause menu, settings and update screens belong to GBA DS, not to the imagined console. They have their own look and use the touchscreen (rule 5).
 
 ## 2. Function over form.
 
@@ -18,8 +18,8 @@ The second screen gives the player information or context they would otherwise h
 What this means in practice:
 
 - **Useful beats pretty.** A status screen with its last rows cut off but showing who acts next (Final Fantasy Tactics Advance's turn order) is better than a nicer-looking screen with less in it, or a slower one.
-- **Show what matters right now.** The second screen follows what the player is doing: the unit under the cursor in Fire Emblem, the level Mario is standing on. Being quick to follow (GEN-6) is part of the function.
-- **When there's nothing useful, say so plainly.** If there's nothing live to show (a title screen, a cutscene, a menu), the second screen shows the game's logo at half strength so it reads as idle, rather than something stale or invented. If a capture can't be confirmed as correct, the last good picture stays up (GEN-3). Better nothing new than something wrong.
+- **Show what matters right now.** The second screen follows what the player is doing: the unit under the cursor in Fire Emblem, the level Mario is standing on. Keeping up quickly is part of the function.
+- **When there's nothing useful, say so plainly.** If there's nothing live to show (a title screen, a cutscene, a menu), the second screen shows the game's logo at half strength so it reads as idle, rather than something stale or invented. If a capture can't be confirmed as correct, the last good picture stays up. Better nothing new than something wrong.
 - **No enhancement for its own sake.** No smoothing, recolouring, upscaled art or animated transitions. Display options (scaling, LCD grid, overlays) are the player's choice, set in the pause menu, and are applied the same way to both screens.
 
 ## 3. Keep it simple.
@@ -30,7 +30,7 @@ What this means in practice:
 
 - **Use what the game already does.** The usual approach is to open the game's own menu on the hidden copy and take a picture of it. That's simple, works in every situation the menu can be opened, and gets the game's own drawing for free. Reading a few memory addresses to know when to do it (a "screen is open" flag, the cursor's unit, the room number) is fine. Rebuilding a screen from the game's data is not.
 - **Fewer, broader checks.** One check that holds everywhere (the menu's open flag plus a few fixed pixels) is better than many special cases. When a game has an odd situation (a tutorial that blocks the menu, a scene played on the battle map), it's often fine to show the logo there and write it down as a known issue, instead of adding a workaround.
-- **Everything must be testable without the device.** Each behaviour is a numbered rule in `docs/games/<game>.md`, checked by a saved state and a screenshot in the regression suite, or marked *By hand:* when only the device can tell. If a behaviour can't be described as a rule and tested, it's probably too complicated.
+- **Everything has to be testable.** Each game's behaviour is written down as a list of plain rules, and checked against saved moments from real play every time something changes. If a behaviour can't be described simply and checked that way, it's probably too complicated.
 - **Know the cost.** The device has to run the game, the hidden copy and the drawing at full speed. Pokémon Pinball's tall view (two extra copies of the game running every frame) is the most expensive thing GBA DS does, and is about as far as this rule bends.
 
 ## 4. Use the original game's aesthetic.
@@ -66,26 +66,10 @@ GBA DS already makes exceptions to the rules above: for example, the four-face-b
 What this means in practice:
 
 - **An exception has to earn its place.** It should make the game clearly more fun or easier to play on the device, and be something the player would recognise (the four-button layouts mirror the console versions of those games). Being technically possible is not enough.
-- **Every exception is written down.** It's a numbered rule in the game's file in `docs/games/` that says what it does, so it's tested like everything else and nobody "fixes" it later by mistake. Current exceptions include:
-  - the four-button and SNES layouts (rules TH2-4, SMA-5);
+- **Every exception is deliberate.** It's written down with the game's other rules and tested like everything else, so it isn't "fixed" later by mistake. Current exceptions include:
+  - the four-button and SNES layouts;
   - Pokémon Pinball's table spread over both screens as one tall view;
-  - Mario Kart's race screen course map, drawn larger than the game's (GEN-5);
+  - Mario Kart's race screen course map, drawn larger than the game's;
   - Super Mario Advance 2's level name moved above its status bar.
 - **Optional where it can be.** Where an exception changes how the game plays or looks, there's a way back to the original: GBA is the default control layout, and `pinball_live = 0` turns off Pinball's tall view.
-- **Scope is a feature.** Every change has to be built, tested on the real device and maintained by one person. A smaller, solid feature beats a bigger, fragile one.
-
-## Working on GBA DS in a Claude session
-
-Most of GBA DS is written in Claude sessions, with the owner testing every build on the device. The repository's `CLAUDE.md` covers how (building, testing, branches, releases). This page covers what to aim for. In practice:
-
-- **Check requests against these rules, and say so.** If a request, or the obvious way to do it, conflicts with one of the rules above, say which rule it conflicts with and why, and suggest something that fits. If it's still wanted, it's an exception: go ahead, and write it down (rule 6). Don't quietly bend a rule, and don't quietly refuse a change because of one.
-- **Rule first, then code.** A change to what a game shows starts with its rules in `docs/games/<game>.md`, written in the player's terms. Then change the profile, then the tests. The rules are the spec; the owner's notes on their saved states (in State Saver) are what the rules should say.
-- **Try simple approaches first.** For a game's second screen, prefer, in this order:
-  1. a screen the game already draws, opened on the hidden copy and captured;
-  2. a part of the live screen moved over (a HUD split, a snapshot);
-  3. the logo.
-
-  Rebuilding a screen from the game's memory, or drawing anything new, is not an option (rules 3 and 4).
-- **When unsure, show less.** If you can't reliably detect a situation, show the logo or keep the last good picture, and list the situation as a known issue. Don't guess.
-- **Say what you couldn't do.** Known limitations go in the changelog and release notes in plain words, for players. A cut-off status screen that's written down is fine. One that's left for players to find isn't.
-- **Keep changes small enough to test.** Every change ends with a test build and a short note of what to check on the device. If that note would be long, the change is probably too big for one step.
+- **Scope is a feature.** Every change has to be built, tested on the real device and maintained by one person. A smaller, solid feature beats a bigger, fragile one, and that's often the honest answer to a feature request: not "never", but "not at the cost of everything else working".

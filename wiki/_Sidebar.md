@@ -13,9 +13,9 @@
 - [[Map screen surrounds and overlays]]
 - [[Settings]]
 - [[Troubleshooting]]
+- [[Philosophy]]
 
 **Develop**
-- [[Philosophy]]
 - [[Adding second-screen compatibility for a game]]
 - [Building (README)](https://github.com/kyannon/gba-ds#building)
 - [Releases](https://github.com/kyannon/gba-ds/releases)
