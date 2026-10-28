@@ -449,17 +449,20 @@ static const char* sn_compose(Emu* s, const void* state, uint32_t* out, int w, i
                               * 2 another unit's, the system menu or a Status, 3 the turn
                               * order...; Japan: 0x30 lower) */
 #define FT_IN_BATTLE 0x03000E4E /* 1 in a battle (its scenes, moves, menus too), else 0 */
-#define FT_OVER 0x0202F254 /* 0 while a battle's fought; a pointer once it's won (its
-                            * closing scene on the battle map, with FT_IN_BATTLE still 1),
-                            * from then to the next battle (USA, Europe; Japan not known:
-                            * not used there). (0x03000E08 looked like it, but stays set
-                            * from the first battle won on.) */
-#define FT_V_BATTLE 0xF0000010 /* 1 in a battle, until it's over */
+#define FT_SCENE 0x0201639C /* 0 while a battle's fought; set while a scene plays on the
+                             * battle map (the camera turning to the last enemy KO'd,
+                             * the talk once it's won, the snowball fight's end), so
+                             * the battle's over for the second screen (USA, Europe;
+                             * Japan not known: not used there). (0x03000E08 stays set
+                             * from the first battle won on; 0x0202F254 is set at the
+                             * snowball fight's end only.) */
+#define FT_V_BATTLE 0xF0000010 /* 1 in a battle, outside its scenes (FT_SCENE) */
 #define FT_V_IDLE 0xF0000011   /* 1 on a battle's map or a unit's Status (not a move or an action) */
 
 static uint32_t ft_virt(Emu* e, uint32_t addr) {
-	/* (a battle that's over is out of it: its closing scene gets the logo) */
-	bool in = emu_read8(e, FT_IN_BATTLE) == 1 && (e->gameCode[3] == 'J' || !emu_read32(e, FT_OVER));
+	/* (a scene on the battle map is out of it: the logo; above all the
+	 * one once the battle's won) */
+	bool in = emu_read8(e, FT_IN_BATTLE) == 1 && (e->gameCode[3] == 'J' || !emu_read32(e, FT_SCENE));
 	if (addr == FT_V_BATTLE) return in;
 	if (addr != FT_V_IDLE) return 0;
 	uint16_t c = emu_read16(e, 0x04000008);

@@ -17,7 +17,7 @@ The first version (v1.2-v1.3.1: the game's dialogue, menus and banners moved to 
 
 **FT-1 to FT-6.** *Retired in v1.3.2* with that version (battle overlays moved, the still behind them, the game screen keeping the battle, the Status kept whole, the world map's overlays, the logo elsewhere).
 
-**FT-7. Logo.** Outside battles (the title, menus, the world map), once a battle is won (its closing scene on the battle map) and in a battle until its first picture, the second screen shows the logo (GEN-1). (Until v1.3.2's later test builds: a dark background with the logo small and dimmed in the middle, behind everything.)
+**FT-7. Logo.** Outside battles (the title, menus, the world map), during a scene on the battle map (above all once a battle is won: the camera turning to the last enemy defeated and the closing talk; any story talk during a battle too) and in a battle until its first picture, the second screen shows the logo (GEN-1). (Until v1.3.2's later test builds: a dark background with the logo small and dimmed in the middle, behind everything.)
 
 **FT-8. Status.** In a battle, with the cursor on a unit (yours, an enemy, a guest) whose Status opens, the second screen is that unit's Status screen, as the game draws it, filling the screen, turning between its two pages (Equip, Abilities) every 5 seconds; also while a Status is open in the game. It's brought up on the hidden copy (A on the unit, Status). (Until v1.3.2's later test builds: at the top left, and the active unit's when the cursor was on no unit or on the judge.)
 
@@ -29,4 +29,4 @@ The first version (v1.2-v1.3.1: the game's dialogue, menus and banners moved to 
 
 **FT-12. Laws.** With the turn order (FT-9), the Laws window (SYSTEM > Laws: FORBIDDEN and RECOMMEND) is at the top of the second screen, centred across, the list right below it.
 
-**FT-13. Kept while a unit moves or acts.** The second screen is taken again only with the battle map (or a Status) showing: when the cursor moves, and every fourth picture. While a unit picks where to move or what to hit, on the enemy's turn, and in the battle's scenes and banners, what it shows stays in place (a Status still turning its pages); only winning or leaving the battle brings the logo back. (Until v1.3.2's later test builds, the last picture stayed through the closing scene.)
+**FT-13. Kept while a unit moves or acts.** The second screen is taken again only with the battle map (or a Status) showing: when the cursor moves, and every fourth picture. While a unit picks where to move or what to hit, on the enemy's turn, and in the battle's scenes and banners, what it shows stays in place (a Status still turning its pages); only a scene (FT-7: winning the battle) or leaving the battle brings the logo back; after a scene in the middle of a battle, the picture is taken again. (Until v1.3.2's later test builds, the last picture stayed through the closing scene.)

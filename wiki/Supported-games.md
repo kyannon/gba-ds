@@ -71,7 +71,7 @@ Preliminary: a new second screen in v1.3.2, replacing the earlier one (which mov
 - **In a battle, with the cursor on a unit** (yours, an enemy or a guest), the second screen is that unit's **Status** screen, as the game draws it, turning between its Equip and Abilities pages every 5 seconds.
 - **With the cursor on no unit** (or on the judge, who has no Status), it shows the **Laws** (forbidden and recommended) at the top and the **turn order** (the list L shows) below them. The list is too long to fit under the Laws, so its last rows are cut off at the bottom; who acts next always shows.
 - All of it is brought up in the background on a silent copy of the game, as the other games' maps are; your game is never paused or touched, and the game screen stays exactly as the game draws it. It's taken again only with the battle map showing: while a unit picks where to move or what to hit, on the enemy's turn and in scenes, the last picture stays.
-- Once a battle is won (its closing scene), and outside battles (the title, menus, the world map), the second screen shows the logo.
+- Once a battle is won (from the last enemy defeated through the closing scene), during story scenes on the battle map, and outside battles (the title, menus, the world map), the second screen shows the logo.
 
 ## Pokémon Pinball: Ruby & Sapphire
 

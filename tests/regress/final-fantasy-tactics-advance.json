@@ -417,6 +417,46 @@
    ]
   },
   {
+   "id": "ft-us-last-hit",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-last-hit.ss",
+   "desc": "Do it on the hit that defeats the last enemy, then the closing talk (the owner's State Saver save)",
+   "rules": [
+    "FT-7"
+   ],
+   "input": [
+    [
+     2,
+     "A"
+    ],
+    [
+     4,
+     "-"
+    ]
+   ],
+   "shots": {
+    "ko": 500,
+    "talk": 1100
+   },
+   "checks": [
+    {
+     "rule": "FT-7",
+     "what": "the closing talk: the logo",
+     "type": "uniform",
+     "shot": "talk",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
    "id": "ft-us-later-battle",
    "rom": "AFXE",
    "state": "final-fantasy-tactics-advance/us-later-battle-menu.ss",
