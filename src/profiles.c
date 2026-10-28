@@ -1668,8 +1668,8 @@ static const MapProfile profiles[] = {
 		.virt = ft_virt,
 		.composePages = ft_compose,
 		.stillPick = STILL_FIRST, /* (Map Animations off: the Status's first page) */
-		.crop_w = 512, /* 2x on 1024x768 */
-		.crop_h = 384,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
 		/* taken on the battle map (or a unit's Status open); kept while a
 		 * unit moves or acts, and through the battle's scenes */
 		.live = { { FT_V_IDLE, 0xFF, 1, 4 } },
@@ -1761,8 +1761,8 @@ static const MapProfile profiles[] = {
 		/* the cursor moved: the next unit's status; a unit selected or
 		 * let go: its status off or on again */
 		.room = { { FE_V_CURSOR, 0, 0, 4 }, { FE_V_FREE, 0, 0, 4 } },
-		.crop_w = 320, /* 3x on 1024x768, 2x on 640x480 */
-		.crop_h = 240,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
 		.live = { FE_IN_CHAPTER, { FE_V_TURN, 0xFF, 0, 1 } },
 		/* off the battle map: the title, a story scene (the second screen's
 		 * the background with the logo) */
@@ -1795,9 +1795,9 @@ static const MapProfile profiles[] = {
 			 * at the game screen's bottom edge against the second screen's
 			 * bottom), clearing the others to be taken again. (The unit's
 			 * own window isn't shown: its status is.) */
-			.moves = { { 0, 0, 0, 0, 'C', 160, 'T', 4, .top = true, .dropAfter = 1 },
-			           { 0, 0, 0, 0, 'C', 160, 'B', 235, .settle = 4, .top = true },
-			           { 0, 0, 0, 0, 'L', 4, 'B', 235, .settle = 4, .top = true },
+			.moves = { { 0, 0, 0, 0, 'C', 120, 'T', 4, .top = true, .dropAfter = 1 },
+			           { 0, 0, 0, 0, 'C', 120, 'B', 155, .settle = 4, .top = true },
+			           { 0, 0, 0, 0, 'L', 4, 'B', 155, .settle = 4, .top = true },
 			           { 0, 0, 0, 0, 0, 0, 0, 0, .asIs = true, .alone = true, .asIsBottom = true, .clears = true, .dropAfter = 2 } },
 			.findPieces = fe_find_pieces,
 			.overMap = true,
@@ -1819,8 +1819,8 @@ static const MapProfile profiles[] = {
 		.codes = { "AWRE" },
 		.title = "Advance Wars",
 		.compose = aw_compose,
-		.crop_w = 320, /* 3x on 1024x768, 2x on 640x480 */
-		.crop_h = 240,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
 		/* the CO / day plate (top, either side) and the terrain and unit
 		 * info (bottom right) go to the second screen's bottom left and
 		 * bottom right, under the panels; the darkened box behind the
@@ -1841,8 +1841,8 @@ static const MapProfile profiles[] = {
 			/* the plate at the bottom in the middle, the info at the
 			 * bottom right on a grey box; 4 pixels up, as the minimap */
 			/* (the plate: taken again only when the turn passes) */
-			.moves = { { 0, 0, 239, 47, 'C', 159, 'B', 235, .latch = AW_ARMY },
-			           { 0, 104, 239, 159, 'R', 312, 'B', 232, .box = 0x6B7380, .pad = 3 },
+			.moves = { { 0, 0, 239, 47, 'C', 119, 'B', 155, .latch = AW_ARMY },
+			           { 0, 104, 239, 159, 'R', 232, 'B', 152, .box = 0x6B7380, .pad = 3 },
 			           /* the DAMAGE box (down to row 103; the info starts at 104):
 			            * where it is over the info, over the panels */
 			           { 0, 56, 239, 103, 'L', 0, 'T', 0, .follow = 2 },
@@ -1869,8 +1869,8 @@ static const MapProfile profiles[] = {
 		.codes = { "AW2E" },
 		.title = "Advance Wars 2: Black Hole Rising",
 		.compose = aw_compose,
-		.crop_w = 320, /* 3x on 1024x768, 2x on 640x480 */
-		.crop_h = 240,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
 		/* the CO / day plate (top, either side) and the terrain and unit
 		 * info (bottom right) go to the second screen's bottom left and
 		 * bottom right, under the panels; the darkened box behind the
@@ -1894,8 +1894,8 @@ static const MapProfile profiles[] = {
 			/* the plate at the bottom in the middle, the info at the
 			 * bottom right on a grey box; 4 pixels up, as the minimap */
 			/* (the plate: taken again only when the turn passes) */
-			.moves = { { 0, 0, 239, 47, 'C', 159, 'B', 235, .latch = AW2_ARMY },
-			           { 0, 104, 239, 159, 'R', 312, 'B', 232, .box = 0x6B7380, .pad = 3 },
+			.moves = { { 0, 0, 239, 47, 'C', 119, 'B', 155, .latch = AW2_ARMY },
+			           { 0, 104, 239, 159, 'R', 232, 'B', 152, .box = 0x6B7380, .pad = 3 },
 			           /* the DAMAGE box (down to row 103; the info starts at 104):
 			            * where it is over the info, over the panels */
 			           { 0, 56, 239, 103, 'L', 0, 'T', 0, .follow = 2 } },
