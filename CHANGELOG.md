@@ -1,6 +1,7 @@
 # Changelog
 
 ## v1.4.1 (not yet released)
+- **Fixed, Super Mario Advance 2:** in some levels (caves, for one) the scenery behind the level was drawn in front of everything, Mario included. It's back where the game puts it.
 
 ## v1.4 (2026-10-28)
 
