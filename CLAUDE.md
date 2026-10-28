@@ -19,6 +19,13 @@ with photos and screenshots; nothing ships untested on the device.
   release time, fast-forwarded to the release commit. The owner creates
   GitHub releases and tags by hand (sessions get HTTP 403 on releases and
   can't push tags).
+  Other branches are kept only as `archive/<name>` (work worth keeping that
+  isn't in `dev`: `archive/ffta-hud`, the first FFTA second screen;
+  `archive/pokedaisy-poc`, the PokeDaisy companion proof of concept); a
+  finished topic branch is deleted once merged. Sessions can create branches
+  but get HTTP 403 deleting them: the owner deletes them on GitHub (the
+  "Block force pushes" ruleset blocks deletion and updates on every branch
+  for everyone but the owner and the Claude app).
 - **Commits:** kyannon is the author and Claude the (signed) committer, so
   GitHub shows "kyannon authored and Claude committed" with a Verified
   badge. Commit with the session's own git identity (Claude
