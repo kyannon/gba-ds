@@ -12,11 +12,11 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Mario Kart: Super Circuit (Mario Kart Advance in Japan) | `AMKE` `AMKP` `AMKJ` | the race HUD, results and podium | — |
 | Tony Hawk's Pro Skater 3 | `AT3E` (USA and Europe) `AT3F` `AT3D` | the goal list; optional four-button layout | — |
 | Super Mario Advance 2: Super Mario World | `AA2E` `AA2P` `AA2J` | the SELECT menu on the world map; the status bar in levels; optional SNES layout | — |
-| Final Fantasy Tactics Advance (preliminary) | `AFXE` `AFXP` `AFXJ` | in battles: a unit's Status, the Mission, the Laws and the turn order | — |
-| Advance Wars (preliminary) | `AWRE` `AWRP` (in Japan, only in Game Boy Wars Advance 1+2) | in battles: your unit's intel or the battle intel, with the minimap | — |
-| Advance Wars 2: Black Hole Rising (preliminary) | `AW2E` `AW2P` (in Japan, only in Game Boy Wars Advance 1+2) | in battles: your unit's intel or the battle intel, with the minimap | — |
+| Final Fantasy Tactics Advance (preliminary) | `AFXE` `AFXP` `AFXJ` | in battles: the Status of the unit under the cursor, or the turn order and Laws | — |
+| Advance Wars (preliminary) | `AWRE` `AWRP` (in Japan, only in Game Boy Wars Advance 1+2) | in battles: the intel of the unit under the cursor, or the battle intel | — |
+| Advance Wars 2: Black Hole Rising (preliminary) | `AW2E` `AW2P` (in Japan, only in Game Boy Wars Advance 1+2) | in battles: the intel of the unit under the cursor, or the battle intel | — |
 | Game Boy Wars Advance 1+2 (Japan: Advance Wars and Advance Wars 2; preliminary) | `BGWJ` | as Advance Wars and Advance Wars 2, whichever is being played | — |
-| Fire Emblem (Rekka no Ken in Japan; preliminary) | `AE7E` `AE7X` (English, French, German) `AE7Y` (English, Spanish, Italian) `AE7J` | on the map: the unit, terrain and goal windows and the minimap | — |
+| Fire Emblem (Rekka no Ken in Japan; preliminary) | `AE7E` `AE7X` (English, French, German) `AE7Y` (English, Spanish, Italian) `AE7J` | on the map: the status of the unit under the cursor | — |
 | Sword of Mana (Shinyaku Seiken Densetsu in Japan) | `AVSE` `AVSY` (Spanish, Italian) `AVSJ` | the Status screen | — |
 | Summon Night: Swordcraft Story (Craft Sword Monogatari in Japan; preliminary) | `AB4E` `AB4J` (no European release) | the Status screen, with where you are | — |
 | Pokémon Pinball: Ruby & Sapphire (preliminary) | `BPPE` | the table twice as tall over both screens, live, with the score bar | — |
@@ -61,16 +61,17 @@ You see the game's own map, with everything it shows (explored rooms, save and w
 ## Super Mario Advance 2: Super Mario World
 
 - **On the world map,** the second screen shows the SELECT menu: the list of levels on the island with your time and score, kept up to date as you move around, held still (Peach's HELP! and the level you're on are shown, not blinking). It's captured in the background like the other games' maps; the game itself is never paused.
-- **In a level,** the status bar (lives, Dragon Coins, time, coins and score) moves to the top of the second screen, with a smaller logo below it. The blue item box stays at the top of the game screen, with your reserve item in it. Message boxes and the pause box stay on the game screen. The status bar stays there through doors and pipes.
+- **In a level,** the status bar (lives, Dragon Coins, time, coins and score) moves to the top of the second screen, with the logo below it. The blue item box stays at the top of the game screen, with your reserve item in it. Message boxes and the pause box stay on the game screen. The status bar stays there through doors and pipes.
 - An optional **SNES layout** is under **Controls** on the second screen: see [Playing](Playing#buttons).
 
 ## Final Fantasy Tactics Advance
 
 Preliminary: a new second screen in v1.3.2, replacing the earlier one (which moved the game's dialogue and menus there).
 
-- **Always,** the second screen is a dark background with the game's logo, small and dimmed, in the middle (the title, menus and the world map too).
-- **In a battle,** at the top left, the **Status** screen of the unit under the cursor (or the active unit's, when the cursor isn't on one), turning between its Equip and Abilities pages every 5 seconds; at the top right, the **Mission** (what wins and loses the battle); at the bottom left, the **Laws** (forbidden and recommended); at the bottom right, the **turn order** (the list L shows). All are brought up in the background on a silent copy of the game, as the other games' maps are; your game is never paused or touched, and the game screen stays exactly as the game draws it. They're taken again only with the battle map showing: while a unit picks where to move or what to hit, on the enemy's turn and in scenes, the last ones stay.
-- **Known issue:** in the opening snowball fight only the Status and the turn order show.
+- **In a battle, with the cursor on a unit** (yours, an enemy or a guest), the second screen is that unit's **Status** screen, as the game draws it, turning between its Equip and Abilities pages every 5 seconds.
+- **With the cursor on no unit** (or on the judge, who has no Status), it shows the **Laws** (forbidden and recommended) at the top and the **turn order** (the list L shows) below them. The list is too long to fit under the Laws, so its last rows are cut off at the bottom; who acts next always shows.
+- All of it is brought up in the background on a silent copy of the game, as the other games' maps are; your game is never paused or touched, and the game screen stays exactly as the game draws it. It's taken again only with the battle map showing: while a unit picks where to move or what to hit, on the enemy's turn and in scenes, the last picture stays.
+- Outside battles (the title, menus, the world map), the second screen shows the logo.
 
 ## Pokémon Pinball: Ruby & Sapphire
 
@@ -111,7 +112,7 @@ The HUD is moved off the game screen rather than copied: GBA DS draws each frame
   - The second screen has the coins, lap and time along the top, the **top-four faces** centred down the left, and the **course map** with every racer's dot, twice as big (1.5× if a course's map wouldn't fit comfortably), in the middle.
   - Behind it all is a dimmed picture of the course's own sky and scenery, captured as each race starts.
 - **After the finish**, the lap times and the results table are shown on the second screen.
-- **After a cup**, the podium's CONGRATULATIONS!, the cup name, your portrait, place, rank and cup table move to the second screen over the game's dimmed logo; the podium, crowd and trophy stay on the game screen.
+- **After a cup**, the podium's CONGRATULATIONS!, the cup name, your portrait, place, rank and cup table move to the second screen, on dark grey; the podium, crowd and trophy stay on the game screen.
 - The game's **pause menu** stays on the game screen, with the last HUD below it. In the menus, the second screen shows the logo.
 - With one screen (`layout = single`), the HUD stays where the game draws it.
 
@@ -119,27 +120,20 @@ The HUD is moved off the game screen rather than copied: GBA DS draws each frame
 
 Preliminary. The USA and European releases of both, and in Japan Game Boy Wars Advance 1+2, which has both games on one cartridge. The two work the same way.
 
-- **In a battle, on your turn,** the second screen is laid out after Advance Wars: Dual Strike's: at the top, the **intel of the unit under the cursor** (the screen R opens, with its text box), yours or the enemy's (yours stays while you move it and pick its action), or else the **Battle Intel** (bases and funds). At the bottom left, the **minimap** from the START button. All of it is brought up in the background from the menus of a silent copy of the game, as the other games' maps are; your game is never paused.
-- The **CO and day plate** and the **terrain and unit info** move from the game screen to the bottom of the second screen (the plate in the middle, the info on the right, on a grey box), so they no longer cover the map; the panels are drawn over them where they meet.
-- The enemy's **CO and day plate** shows on their turn; the panel keeps its last picture.
-- **In a fight,** the second screen is the dark background with the game's logo, small and dimmed, in the middle. On the title and menus, the second screen shows the logo.
-- **Conversations** in a battle: in Advance Wars they move to the top of the second screen, as wide as the screen, with the battle showing where they were (in the first moments of a battle, before the second screen has a picture, they stay on the game screen); in Advance Wars 2 they stay on the game screen, as the game turns the map off behind them.
-- Opening a unit's intel with R in the game leaves the plate and info on the second screen as they were.
-- **Known issue:** in Advance Wars' **Field Training** missions the second screen may not work: the tutorial blocks the menus it's built from (SELECT and START). It works fully in Campaign and Versus.
+- **In a battle, on your turn,** the second screen shows the **intel of the unit under the cursor** (the screen R opens, with its text box, where the game puts them), yours or the enemy's (yours stays while you move it and pick its action), or else the **Battle Intel** (bases and funds) in the middle. Both are brought up in the background from the menus of a silent copy of the game, as the other games' maps are; your game is never paused.
+- Nothing leaves the game screen: the **CO and day plate**, the **terrain and unit info**, the DAMAGE box and **conversations** stay where the game draws them.
+- On the enemy's turn the second screen keeps its last picture.
+- **In a fight,** and on the title and menus, the second screen shows the game's logo.
+- **Known issue:** in Advance Wars' **Field Training** missions the second screen keeps the logo: the tutorial blocks the menus it's built from (SELECT and START). It works fully in Campaign and Versus.
 - **Game Boy Wars Advance 1+2** (Japan): GBA DS notices which of the two games you pick from the cartridge's menu and sets the second screen up as for that game (Game Boy Wars Advance as Advance Wars, Game Boy Wars Advance 2 as Advance Wars 2). On the cartridge's own title and menu, and on both games' titles, the second screen shows the cartridge's logo. Game Boy Wars Advance has so far been tried only in its first Field Training mission (with the known issue above); its campaign and versus battles are still to be checked.
 
 ## Fire Emblem
 
 Preliminary. The USA release, both European ones (English, French and German; English, Spanish and Italian) and the Japanese one (Rekka no Ken).
 
-- **Always,** the second screen is a dark background with the game's logo, small and dimmed, in the middle (on the title screen and in menus too).
-- **On the map,** the windows the game puts in the corners (whichever corners the cursor leaves free) move to fixed places on the second screen: the **terrain** at the bottom left and the **goal** and enemies left at the bottom centre. The **minimap** from the START button is at the bottom right, brought up in the background in a silent copy of the game; when it can't be (in a conversation), the chapter's last one stays.
-- **With the cursor on a unit** (yours or the enemy's), that unit's **status screen** (the one R opens) is at the top left, without its moving background, turning through its three pages (personal data, items, weapon and support levels) every 5 seconds; the goal, terrain and minimap stay on top of it. It's opened in the silent copy too, and taken again only when the cursor or a unit changes, so it holds still between pages. Once a unit is selected, its status goes, and its commands take the place. The game's own small unit window is left off both screens.
-- **A unit's menu** (Attack, Wait and so on) with its pointing hand, and the **battle forecast** with its weapon-triangle arrows and x2, move to the top centre of the second screen.
-- While a unit is selected and in the other menus, the second screen keeps what it showed, and those menus stay on the game screen.
-- **Conversations** (the speech bubble, its text and the portraits), on the map and before or after a fight, move to the second screen with the portraits standing on its bottom edge, and the **tutorial's** boxes as they are; the windows step aside until they're done. A unit's small speech bubble with no portrait stays on the map, by the unit. Story scenes before and after the battle (a picture or black behind the talk) stay on the game screen, and the second screen goes back to the logo until the battle map is up again.
-- **ENEMY PHASE and PLAYER PHASE**, with their sparkles, go across the second screen instead of the map, while the game screen dims; the windows are cleared, and come back as you take control again.
-- **In a fight and on the other armies' turns,** the second screen is the background with the logo alone.
+- **With the cursor on a unit** (yours or another army's), the second screen is that unit's **status screen** (the one R opens), as the game draws it, turning through its three pages (personal data, items, weapon and support levels) every 5 seconds. It's opened in the background in a silent copy of the game, and taken again only when the cursor or a unit changes, so it holds still between pages.
+- **Otherwise** (the cursor on no unit, a unit selected, its menu and the battle forecast, fights, the other armies' turns, story scenes, the title and menus), the second screen shows the game's logo.
+- Nothing leaves the game screen: the unit, terrain and goal windows, menus, the battle forecast, conversations, the tutorial's boxes and the ENEMY PHASE / PLAYER PHASE banners stay where the game draws them.
 
 ## Sword of Mana
 

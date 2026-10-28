@@ -5,6 +5,11 @@
 #include "emu.h"
 #include "logo_masks.h"
 
+/* Behind the logo on the second screen, and around what a game shows
+ * there that doesn't fill it (GEN-1): dark grey, so the GBA screen's
+ * 240x160 shows against the black around it (ABGR8888) */
+#define SCREEN_GREY 0xFF303030u
+
 typedef struct {
 	uint32_t keys;
 	int frames;
@@ -328,12 +333,11 @@ typedef struct MapProfile {
 		 * always). A move with toGame and no how / vhow copies its box back
 		 * onto the game picture where it was. */
 		HudMove moves[4];
-		/* The second screen is the HUD on black with the game's logo below
-		 * it, at half the usual size (Super Mario Advance 2), instead of a
+		/* The second screen is the HUD on dark grey with the game's logo
+		 * below it, at its own size (Super Mario Advance 2), instead of a
 		 * backdrop. */
 		bool logoBelow;
-		/* The same, the logo centred and dimmed, behind the HUD (Final
-		 * Fantasy Tactics Advance). */
+		/* The same (unused). */
 		bool logoBehind;
 		/* While every `mirror` probe matches, or every `mirrorOr` one: the
 		 * whole game screen goes to the second screen, and the game screen
@@ -396,12 +400,12 @@ typedef struct MapProfile {
 		 * turns the map off behind them, so moving them leaves a black
 		 * strip). */
 		enum { BAND_NONE, BAND_MOVE, BAND_WATCH } band;
-		/* hud.overMap: the logo, small and dimmed, behind everything in
-		 * the map picture (as in a fight: profile.combat) */
+		/* hud.overMap: the logo (GEN-1: as on any second screen) wherever
+		 * the map picture has mapClear (as in a fight: profile.combat) */
 		bool logoUnder;
-		/* with logoUnder: that picture (the logo, small and dimmed) also
-		 * stands in for the big logo wherever there's no map picture,
-		 * outside the game's chapters too (Fire Emblem) */
+		/* with logoUnder: that picture also stands in for the logo
+		 * wherever there's no map picture, outside the game's chapters
+		 * too (Fire Emblem) */
 		bool logoAlways;
 	} hud;
 

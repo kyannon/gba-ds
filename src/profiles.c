@@ -22,11 +22,13 @@
  * Advance Wars and Advance Wars 2. The second screen, after Advance Wars:
  * Dual Strike's: the unit under the cursor's intel (R, with its text box)
  * when there's a unit there, yours or the enemy's (or the one being moved),
- * or else the Battle Intel (or when R shows nothing: fog), and the minimap
- * (START) below. Each is opened on the shadow core from the live state: B
- * (backs out of a move or an action menu), then R, or SELECT > Intel >
- * Status; START for the minimap. On the enemy's turn none of it opens and
- * the last picture stays. (USA addresses; Advance Wars 2's in AwRegion.) */
+ * or else the Battle Intel (or when R shows nothing: fog). Each is opened
+ * on the shadow core from the live state: B (backs out of a move or an
+ * action menu), then R, or SELECT > Intel > Status. On the enemy's turn
+ * neither opens and the last picture stays. Nothing leaves the game
+ * screen. (Until v1.3.2's later test builds the minimap was below them,
+ * and the CO plate and the terrain and unit info moved there with a HUD
+ * split: see git history.) (USA addresses; Advance Wars 2's in AwRegion.) */
 #define AW_ARMY 0x030035E8   /* the army whose turn it is, 1-4; 0 off the battle map */
 #define AW_CURSOR 0x030033F0 /* map cursor x, y (stays on a unit while it moves) */
 #define AW_UNITS 0x02019F34  /* + 0x300 * (army - 1) + 12 * id (1-64): type, -, x, y, ... */
@@ -49,12 +51,11 @@
 #define GBW2_UNITS 0x02022574
 /* the weather's sprites: rain (tiles 169, 171), in OBJ palette 2 */
 #define AW_WEATHER { -512, -256, 511, 255, 160, 191, 0, 1u << 2, 0 }
-#define AW_PALS(n) (1u << (n))
 #define MAP_BG_NAVY 0xFF382418 /* behind the panels: dark navy (bytes R, G, B) */
 #define AW_BG MAP_BG_NAVY
 
 typedef struct {
-	uint32_t army, cursor, units, menuRow, minimapOpen;
+	uint32_t army, cursor, units, menuRow, minimapOpen; /* (minimapOpen: unused since the minimap went) */
 	int intelItem; /* Intel's row in the SELECT menu */
 	uint32_t intelPx[2][3]; /* the Battle Intel is up: x, y, colour (0xRRGGBB) */
 	int intelRows;          /* the Battle Intel's panel: the rows above the map */
@@ -175,63 +176,6 @@ static bool aw_settle(Emu* s, bool (*up)(Emu*), int limit) {
 	return false;
 }
 
-/* The minimap (START), alone: rendered with only BG0, where the game draws
- * it, and cut out by comparing with a render of no layers at all. */
-static bool aw_minimap(Emu* s, const void* state, void* tmp, uint32_t* mm, int* mw, int* mh) {
-	const AwRegion* r = aw_r(s);
-	if (!emu_state_load(s, state)) return false;
-	if (!aw_back(s)) return false;
-	/* START (again if a cancelled move was still going back and took no
-	 * presses), until the minimap's opening count reaches its end */
-	bool open = false;
-	for (int tries = 0; tries < 3 && !open; ++tries) {
-		aw_run(s, K_START, 2);
-		for (int f = 0; f < 30 && !open; ++f) {
-			emu_frame(s, 0);
-			open = emu_read8(s, r->minimapOpen) == 12;
-		}
-	}
-	if (!open) return false;
-	aw_run(s, 0, 2);
-	if (!emu_state_save(s, tmp)) return false;
-	static uint32_t none[GBA_W * GBA_H];
-	emu_layers(s, 0);
-	emu_state_load(s, tmp);
-	emu_frame(s, 0);
-	memcpy(none, s->fb, sizeof(none));
-	emu_layers(s, 0x01);
-	emu_state_load(s, tmp);
-	emu_frame(s, 0);
-	int x0 = GBA_W, y0 = GBA_H, x1 = -1, y1 = -1;
-	for (int y = 0; y < GBA_H; ++y) {
-		for (int x = 0; x < GBA_W; ++x) {
-			if (s->fb[y * GBA_W + x] == none[y * GBA_W + x]) continue;
-			if (x < x0) x0 = x;
-			if (x > x1) x1 = x;
-			if (y < y0) y0 = y;
-			if (y > y1) y1 = y;
-		}
-	}
-	/* the minimap is an opaque box in the middle of the screen; anything
-	 * else on BG0 (START did nothing: an action menu, a move range) isn't */
-	bool ok = x1 - x0 >= 15 && y1 - y0 >= 15 && abs(x0 + x1 - (GBA_W - 1)) <= 4 && abs(y0 + y1 - (GBA_H - 1)) <= 4;
-	if (ok) {
-		int filled = 0;
-		for (int y = y0; y <= y1; ++y) {
-			for (int x = x0; x <= x1; ++x) filled += s->fb[y * GBA_W + x] != none[y * GBA_W + x];
-		}
-		ok = filled * 100 >= (x1 - x0 + 1) * (y1 - y0 + 1) * 97;
-	}
-	if (ok) {
-		*mw = x1 - x0 + 1;
-		*mh = y1 - y0 + 1;
-		for (int y = 0; y < *mh; ++y) memcpy(&mm[y * *mw], &s->fb[(y0 + y) * GBA_W + x0], *mw * sizeof(uint32_t));
-	}
-	emu_layers(s, 0x1F);
-	emu_state_load(s, tmp); /* every layer back on */
-	return ok;
-}
-
 /* The unit under the map cursor, if it's one of the army whose turn it is:
  * its id (1-64), else 0. */
 static int aw_cursor_unit(Emu* s, int army) {
@@ -334,36 +278,11 @@ static const char* aw_panel(Emu* s, const void* state, bool tryUnit, bool* unitP
 	return NULL;
 }
 
-/* hud.findPieces: the plate, the info and the DAMAGE box where the moves
- * have them; while a conversation's on screen (the HUD band's lines), only
- * the conversation (move 4), the others kept as they were; none while the
- * unit intel (R) is open. */
-static void aw_find_pieces(Emu* e, const uint32_t* hud, uint32_t clear, int box[4][4]) {
-	(void) hud, (void) clear;
-	static const int rects[3][4] = { { 0, 0, 239, 47 }, { 0, 104, 239, 159 }, { 0, 56, 239, 103 } };
-	int y0, y1;
-	/* (any of it, and for a few frames after: a box sliding in or out
-	 * shows on only a few lines) */
-	static int since = 100;
-	bool band = emu_hud_band_rows(&y0, &y1);
-	since = band ? 0 : since < 100 ? since + 1 : since;
-	bool talk = since < 8;
-	/* the unit intel (R) open in the game: its sprites aren't the info's */
-	bool unitIntel = emu_read32(e, aw_r(e)->unitOpen[0]) == aw_r(e)->unitOpen[1];
-	for (int m = 0; m < 3; ++m) {
-		if (talk || unitIntel) box[m][0] = box[m][1] = 0, box[m][2] = box[m][3] = -1;
-		else memcpy(box[m], rects[m], sizeof(rects[m]));
-	}
-	box[3][0] = 0, box[3][2] = GBA_W - 1;
-	box[3][1] = band ? y0 : 0, box[3][3] = band ? y1 : -1;
-}
-
+/* The second screen (AW-1): the unit intel of the unit under the cursor
+ * (R), where the game puts it, or else the Battle Intel's panel, centred;
+ * on AW_BG. */
 static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
 	const AwRegion* r = aw_r(s);
-	/* the minimap, kept until the units change (it shows them, and their
-	 * captures change the buildings' colours) or every 8th picture */
-	static uint32_t mm[GBA_W * GBA_H], mmKey;
-	static int mw, mh, mmAge;
 	static uint32_t pan[GBA_W * GBA_H], bg2[GBA_W * GBA_H];
 	bool unitPanel = false;
 	/* weather (rain falling over the menus) out of every picture: the
@@ -371,23 +290,9 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 	static const SpriteRule weather = AW_WEATHER;
 	emu_hide_sprites(s, &weather, 1);
 	if (!emu_state_load(s, state)) return "state load failed";
-	uint32_t key = 2166136261u;
-	for (uint32_t a = r->units; a < r->units + 4 * 0x300; a += 4) key = (key ^ emu_read32(s, a)) * 16777619u;
-	key = (key ^ emu_read8(s, r->army)) * 16777619u;
 	void* tmp = malloc(emu_state_size(s));
 	if (!tmp) return "out of memory";
-	const char* err = NULL;
-	if (!mw || key != mmKey || ++mmAge >= 8) {
-		mw = mh = 0;
-		if (aw_minimap(s, state, tmp, mm, &mw, &mh)) {
-			mmKey = key;
-			mmAge = 0;
-		} else {
-			mw = mh = 0;
-			err = "minimap did not open";
-		}
-	}
-	if (!err) err = aw_panel(s, state, true, &unitPanel);
+	const char* err = aw_panel(s, state, true, &unitPanel);
 	if (!err) aw_clean(s, tmp, pan, unitPanel ? bg2 : NULL);
 	int c0, c1;
 	if (!err && unitPanel && !aw_unit_cols(bg2, &c0, &c1)) {
@@ -397,25 +302,28 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 	}
 	free(tmp);
 	if (err) return err;
-	/* the part of the picture that goes: the unit intel (its panel and
-	 * the text box beside it, as the game has them: what's inside BG2's
-	 * boxes, not the cursor or units around them), or the Battle Intel's
-	 * panel (not the map below it) */
-	int x0 = 0, x1 = GBA_W - 1, rows = r->intelRows;
-	if (unitPanel) rows = GBA_H;
 	for (int i = 0; i < w * h; ++i) out[i] = AW_BG;
-	/* the panel at the top in the middle, the minimap at the bottom left,
-	 * 4 pixels in (the HUD's plate and info go along the bottom too: the
-	 * profile's hud.moves); the panel over it if they meet */
-	int px = (w - (x1 - x0 + 1)) / 2 - x0, py = 4;
-	int my = h - 4 - mh, mx = 4;
-	if (my < 0) my = 0;
-	for (int y = 0; y < mh && my + y < h; ++y) memcpy(&out[(my + y) * w + mx], &mm[y * mw], mw * sizeof(uint32_t));
-	for (int y = 0; y < rows && py + y < h; ++y) {
+	/* what goes: the unit intel (its panel and the text box beside it,
+	 * as the game has them: what's inside BG2's boxes, not the cursor or
+	 * units around them) where it is; or the Battle Intel's panel (the
+	 * rows above the map), centred on what it draws */
+	int rows = unitPanel ? GBA_H : r->intelRows;
+	int x0 = GBA_W, x1 = -1, y0 = rows, y1 = -1;
+	for (int y = 0; y < rows; ++y) {
+		for (int x = 0; x < GBA_W; ++x) {
+			if (pan[y * GBA_W + x] == AW_BG || (unitPanel && bg2[y * GBA_W + x] == AW_BG)) continue;
+			x0 = x < x0 ? x : x0, x1 = x > x1 ? x : x1, y0 = y < y0 ? y : y0, y1 = y > y1 ? y : y1;
+		}
+	}
+	if (x1 < 0) return "nothing on the panel";
+	int dx = unitPanel ? (w - GBA_W) / 2 : (w - (x1 - x0 + 1)) / 2 - x0;
+	int dy = unitPanel ? (h - GBA_H) / 2 : (h - (y1 - y0 + 1)) / 2 - y0;
+	for (int y = y0; y <= y1; ++y) {
 		for (int x = x0; x <= x1; ++x) {
 			uint32_t c = pan[y * GBA_W + x];
-			if (unitPanel && bg2[y * GBA_W + x] == AW_BG) continue;
-			if (c != AW_BG) out[(py + y) * w + px + x] = c;
+			int nx = x + dx, ny = y + dy;
+			if (c == AW_BG || (unitPanel && bg2[y * GBA_W + x] == AW_BG)) continue;
+			if (nx >= 0 && ny >= 0 && nx < w && ny < h) out[ny * w + nx] = c;
 		}
 	}
 	return NULL;
@@ -509,24 +417,27 @@ static const char* sn_compose(Emu* s, const void* state, uint32_t* out, int w, i
 
 /* ------------------------------------------ Final Fantasy Tactics Advance
  *
- * In battles the second screen shows, at the top left, the Status screen
- * (the whole screen, as the game draws it) of the unit under the cursor (or
- * the active unit's, when the cursor's on no unit), turning between its
- * Equip and Abilities pages every 5 seconds; at the top right, the Mission
- * (Start, SYSTEM > Mission); at the bottom left, the Laws (SYSTEM > Laws);
- * at the bottom right, the turn order (L's list). All are brought up on
+ * In battles the second screen shows, with the cursor on a unit, that
+ * unit's Status screen (the whole screen, as the game draws it), turning
+ * between its Equip and Abilities pages every 5 seconds; with the cursor
+ * on no unit (or one whose Status won't open), the turn order (L's list)
+ * centred, with the Laws (SYSTEM > Laws) above it. All are brought up on
  * the shadow core: B to back out of whatever's open, then for the Status A
- * (twice if the first only puts the cursor on the unit), DOWN to its menu's
- * Status (the last item, highlighted orange), A; RIGHT for the other page.
- * Behind them, the dark background with the logo (hud.logoUnder). They're
- * taken only with the map (or a Status) showing: while a unit moves or
- * acts, on the enemy's turn and in scenes the last ones stay.
- * (The earlier version, which moved the game's menus and dialogue to the
- * second screen with a ROM patch tagging its UI sprites, is on the branch
- * archive/ffta-hud.) */
+ * (twice if the first only puts the cursor on the unit), DOWN to its
+ * menu's Status (the last item, highlighted orange), A; RIGHT for the
+ * other page. Before the first picture, and outside battles, the logo
+ * (hud.logoUnder, logoAlways). They're taken only with the map (or a
+ * Status) showing: while a unit moves or acts, on the enemy's turn and in
+ * scenes the last ones stay. (The earlier versions: the game's menus and
+ * dialogue moved to the second screen with a ROM patch tagging its UI
+ * sprites, on the branch archive/ffta-hud; the Status, Mission, Laws and
+ * turn order in the corners of a bigger picture, until v1.3.2's later test
+ * builds, in git history.) */
 #define FT_MAP_CNT 0x4C03    /* BG0CNT on the battle map */
 #define FT_STATUS_CNT 0x8E0B /* BG0CNT on a unit's Status screen */
 #define FT_CURSOR 0x0200F6A4 /* the map cursor's x, y (Japan: 0x30 lower) */
+#define FT_AT_UNIT 0x0200F6A0 /* the unit under the cursor (its data), 0 if none, while
+                               * nothing's open on the map (Japan: 0x30 lower) */
 #define FT_UI 0x0200F5C6     /* 1 with nothing open on the map (0 the active unit's menu,
                               * 2 another unit's, the system menu or a Status, 3 the turn
                               * order...; Japan: 0x30 lower) */
@@ -577,13 +488,16 @@ static bool ft_bg0(Emu* s, uint16_t cnt) {
 	return emu_read16(s, 0x04000008) == cnt;
 }
 
-/* The Status screen's two pages into page[0], page[1]; false if it
- * didn't open. */
+/* The Status screen's two pages into page[0], page[1], of the unit under
+ * the cursor (or the one open already); false if there's none there or
+ * it didn't open. */
 static bool ft_status(Emu* s, const void* state, uint32_t page[2][GBA_W * GBA_H]) {
 	if (!emu_state_load(s, state)) return false;
 	emu_frame(s, 0);
 	if (!ft_bg0(s, FT_STATUS_CNT)) {
 		if (!ft_bg0(s, FT_MAP_CNT) || !ft_back(s)) return false;
+		/* no unit under the cursor: no Status (FT-9: the turn order) */
+		if (!emu_read32(s, FT_AT_UNIT - (s->gameCode[3] == 'J' ? 0x30 : 0))) return false;
 		uint32_t ui = FT_UI - (s->gameCode[3] == 'J' ? 0x30 : 0);
 		bool sel = false;
 		for (int i = 0; i < 10 && !sel; ++i) {
@@ -613,7 +527,9 @@ static bool ft_status(Emu* s, const void* state, uint32_t page[2][GBA_W * GBA_H]
 
 /* A window the game draws on BG2 (lettering, frame) over BG3 (its box)
  * cut out of the frame showing now, without the map: the box around
- * BG2's and BG3's pixels, w x h within the limits given; false if not. */
+ * BG2's and BG3's pixels, w x h within the limits given, FT_HOLE where
+ * they have nothing (its corners); false if not. */
+#define FT_HOLE 0x00000001u
 static bool ft_cut(Emu* s, void* tmp, uint32_t* out, int* ow, int* oh, int minW, int maxW, int minH, int maxH) {
 	if (!emu_state_save(s, tmp)) return false;
 	static uint32_t none[GBA_W * GBA_H];
@@ -638,7 +554,7 @@ static bool ft_cut(Emu* s, void* tmp, uint32_t* out, int* ow, int* oh, int minW,
 		for (int y = 0; y < h; ++y) {
 			for (int x = 0; x < w; ++x) {
 				uint32_t c = s->fb[(y0 + y) * GBA_W + x0 + x];
-				out[y * w + x] = c == none[(y0 + y) * GBA_W + x0 + x] ? MAP_BG_NAVY : c;
+				out[y * w + x] = c == none[(y0 + y) * GBA_W + x0 + x] ? FT_HOLE : c | 0xFF000000;
 			}
 		}
 	}
@@ -688,14 +604,20 @@ static bool ft_system(Emu* s, const void* state, void* tmp, int row, uint32_t* o
 	                : ft_cut(s, tmp, out, ow, oh, 150, GBA_W, 24, 90);
 }
 
-static void ft_put(uint32_t* o, int w, const uint32_t* src, int sw, int sh, int px, int py) {
-	for (int y = 0; y < sh; ++y) memcpy(&o[(py + y) * w + px], &src[y * sw], (size_t) sw * 4);
+static void ft_put(uint32_t* o, int w, int h, const uint32_t* src, int sw, int sh, int px, int py) {
+	for (int y = 0; y < sh; ++y) {
+		for (int x = 0; x < sw; ++x) {
+			uint32_t c = src[y * sw + x];
+			int nx = px + x, ny = py + y;
+			if (c != FT_HOLE && nx >= 0 && ny >= 0 && nx < w && ny < h) o[ny * w + nx] = c | 0xFF000000;
+		}
+	}
 }
 
 static const char* ft_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
 	static uint32_t page[2][GBA_W * GBA_H];
-	static uint32_t win[3][GBA_W * GBA_H]; /* the turn order, Mission, Laws */
-	static int pages, ww[3], wh[3], age;
+	static uint32_t win[2][GBA_W * GBA_H]; /* the turn order, the Laws */
+	static int pages, ww[2], wh[2], age;
 	static uint32_t key;
 	int max = *nOut;
 	*nOut = 1;
@@ -706,45 +628,55 @@ static const char* ft_compose(Emu* s, const void* state, uint32_t* const* out, i
 	/* taken again when the cursor moves, or every 4th picture (the units
 	 * act, the turn order turns) */
 	uint32_t k = emu_read32(s, ft_cursor(s)) ^ (uint32_t) emu_read16(s, 0x04000008) << 16;
-	bool again = k != key || ++age >= 4 || !pages;
+	bool again = k != key || ++age >= 4 || (!pages && !ww[0]);
 	void* tmp = malloc(emu_state_size(s));
 	if (!tmp) return "out of memory";
 	if (again) {
-		bool got = false;
 		static uint32_t np[2][GBA_W * GBA_H], nw[GBA_W * GBA_H];
-		if (ft_status(s, state, np)) memcpy(page, np, sizeof(page)), pages = 2, got = true;
-		for (int i = 0; i < 3; ++i) {
-			int a, b;
-			bool ok = i == 0 ? ft_list(s, state, tmp, nw, &a, &b) : ft_system(s, state, tmp, i, nw, &a, &b);
-			if (ok) memcpy(win[i], nw, (size_t) a * b * 4), ww[i] = a, wh[i] = b, got = true;
+		/* a unit under the cursor: its Status (FT-8); else the turn order
+		 * and the Laws (FT-9, FT-12) */
+		if (ft_status(s, state, np)) {
+			memcpy(page, np, sizeof(page)), pages = 2;
+		} else {
+			pages = 0;
+			for (int i = 0; i < 2; ++i) {
+				int a, b;
+				bool ok = i == 0 ? ft_list(s, state, tmp, nw, &a, &b) : ft_system(s, state, tmp, 2, nw, &a, &b);
+				if (ok) memcpy(win[i], nw, (size_t) a * b * 4), ww[i] = a, wh[i] = b;
+			}
 		}
-		if (got) key = k, age = 0;
+		key = k, age = 0;
 	}
 	free(tmp);
-	if (!pages && !ww[0] && !ww[1] && !ww[2]) return "nothing opened";
+	if (!pages && !ww[0] && !ww[1]) return "nothing opened";
 	*nOut = pages && max >= 2 ? 2 : 1;
 	for (int n = 0; n < *nOut; ++n) {
 		uint32_t* o = out[n];
-		for (int i = 0; i < w * h; ++i) o[i] = MAP_BG_NAVY;
-		/* 4 pixels in from the corners: the Status top left, the Mission
-		 * top right, the Laws bottom left, the turn order bottom right */
-		if (pages) ft_put(o, w, page[n], GBA_W, GBA_H, 4, 4);
-		if (ww[1]) ft_put(o, w, win[1], ww[1], wh[1], w - 4 - ww[1], 4);
-		if (ww[2]) ft_put(o, w, win[2], ww[2], wh[2], 4, h - 4 - wh[2]);
-		if (ww[0]) ft_put(o, w, win[0], ww[0], wh[0], w - 4 - ww[0], h - 4 - wh[0]);
+		for (int i = 0; i < w * h; ++i) o[i] = SCREEN_GREY;
+		if (pages) {
+			ft_put(o, w, h, page[n], GBA_W, GBA_H, (w - GBA_W) / 2, (h - GBA_H) / 2);
+			continue;
+		}
+		/* the Laws above the turn order, each centred across, the two
+		 * centred down the screen; where they don't both fit (the list's 8
+		 * rows don't), the Laws at the top and the list's last rows off
+		 * the bottom (its first ones, who acts next, matter most) */
+		int lh = ww[1] ? wh[1] : 0, th = ww[0] ? wh[0] : 0;
+		int y0 = lh + th <= h ? (h - lh - th) / 2 : 0;
+		if (ww[1]) ft_put(o, w, h, win[1], ww[1], wh[1], (w - ww[1]) / 2, y0);
+		if (ww[0]) ft_put(o, w, h, win[0], ww[0], wh[0], (w - ww[0]) / 2, y0 + lh);
 	}
 	return NULL;
 }
 
 /* ----------------------------------------------------------- Fire Emblem
  *
- * The second screen: the game's logo, small and dimmed (hud.logoAlways),
- * with the minimap (the map menu's, brought up on the shadow core:
- * fe_compose) at the bottom right; on the map, the windows the game puts
- * in whichever corners the cursor leaves free (the unit, the goal, the
- * terrain) taken off the game screen and kept in corners of their own
- * (fe_find_pieces); conversations and the tutorial's boxes go there as
- * they are, over everything. (Each release's addresses: FeRegion.)
+ * The second screen: with the cursor free on a unit, its status screen
+ * (brought up on the shadow core: fe_compose); otherwise the game's logo
+ * (hud.logoUnder, hud.logoAlways). Nothing leaves the game screen. (Until
+ * v1.3.2's later test builds the windows, menus, conversations and
+ * banners moved to the second screen, with the minimap: see git history,
+ * fe_find_pieces.) (Each release's addresses: FeRegion.)
  *
  * What the game is doing comes from its processes (the engine's "procs":
  * 64 slots of 0x6C bytes from FE_PROCS, each starting with its script's
@@ -876,278 +808,70 @@ static uint32_t fe_virt(Emu* e, uint32_t addr) {
 	return 0;
 }
 
-/* The minimap's box: BG0 (its units) and BG1 (the map) rendered alone,
- * against nothing at all; it's an opaque box in the middle. */
-static bool fe_minimap(Emu* s, void* tmp, uint32_t* mm, int* mw, int* mh) {
-	static uint32_t none[GBA_W * GBA_H];
-	if (!emu_state_save(s, tmp)) return false;
-	emu_layers(s, 0);
-	emu_state_load(s, tmp);
-	emu_frame(s, 0);
-	memcpy(none, s->fb, sizeof(none));
-	emu_layers(s, 0x03);
-	emu_state_load(s, tmp);
-	emu_frame(s, 0);
-	int x0 = GBA_W, y0 = GBA_H, x1 = -1, y1 = -1;
-	for (int y = 0; y < GBA_H; ++y) {
-		for (int x = 0; x < GBA_W; ++x) {
-			if (s->fb[y * GBA_W + x] == none[y * GBA_W + x]) continue;
-			if (x < x0) x0 = x;
-			if (x > x1) x1 = x;
-			if (y < y0) y0 = y;
-			if (y > y1) y1 = y;
-		}
-	}
-	bool ok = x1 - x0 >= 15 && y1 - y0 >= 15 && abs(x0 + x1 - (GBA_W - 1)) <= 16 && abs(y0 + y1 - (GBA_H - 1)) <= 16;
-	if (ok) {
-		int filled = 0;
-		for (int y = y0; y <= y1; ++y) {
-			for (int x = x0; x <= x1; ++x) filled += s->fb[y * GBA_W + x] != none[y * GBA_W + x];
-		}
-		ok = filled * 100 >= (x1 - x0 + 1) * (y1 - y0 + 1) * 90;
-	}
-	if (ok) {
-		*mw = x1 - x0 + 1;
-		*mh = y1 - y0 + 1;
-		for (int y = 0; y < *mh; ++y) memcpy(&mm[y * *mw], &s->fb[(y0 + y) * GBA_W + x0], *mw * sizeof(uint32_t));
-	}
-	emu_layers(s, 0x1F);
-	emu_state_load(s, tmp);
-	return ok;
-}
-
-/* The map pictures: the background (the logo goes on it: hud.logoUnder)
- * with, when the cursor is on a unit, that unit's status screen (R) at the
- * top left (not while a unit's selected: its commands take the place), a
- * picture for each of its three pages (shown in turn, 5 seconds each), and the minimap at the bottom right over them. Both are
- * opened once the cursor is free (B out of whatever's open first), on
- * this copy of the game. When the minimap can't be opened (a
- * conversation, the other armies' turns), the chapter's last one stands
- * in, or none: the pictures are always made, so the pieces always have
- * somewhere to go. */
+/* The map pictures (FE-3): with the cursor free on a unit, that unit's
+ * status screen (R) as the game draws it, filling the picture, one for
+ * each of its three pages (shown in turn, 5 seconds each); otherwise
+ * (no unit there, or a unit selected: its commands take the place) a
+ * picture of nothing but the background, which hud.logoUnder fills with
+ * the logo (FE-1). The status is opened once the cursor is free (B out of
+ * whatever's open first), on this copy of the game. */
 #define FE_CHAPTER_NO (FE_CHAPTER + 0xE)
 #define FE_P_STATUS (fe_r->status) /* a unit's status screen */
 #define FE_PAGES 3
 #define FE_UNITS (fe_r->units)
 #define FE_UNITS_LEN (0x48 * 144)
-/* where a status page has nothing (its background left out): next to the
- * background's colour, so the logo isn't drawn there */
-#define FE_STATUS_CLEAR (MAP_BG_NAVY ^ 0x00010000)
-#define FE_PALBUF 0x02022860 /* the palettes as the game copies them in each frame */
 static uint32_t pageKey;
 static int pageN;
 
-/* The status page on screen without its moving background (BG3): drawn
- * again without that layer over a backdrop of the second screen's own
- * colour (palette 0 colour 0, in the game's copy too), so the see-through
- * boxes take its tint;
- * FE_STATUS_CLEAR where only the backdrop shows. The shadow core is left
- * as it was. */
-static void fe_status_page(Emu* s, void* tmp, uint32_t* out) {
-	static uint32_t a[GBA_W * GBA_H];
-	emu_state_save(s, tmp);
-	/* MAP_BG_NAVY (bytes R, G, B) as BGR555, then the same nudged, to tell
-	 * the backdrop from anything of its colour */
-	uint16_t navy = (MAP_BG_NAVY & 0xFF) >> 3 | ((MAP_BG_NAVY >> 8) & 0xFF) >> 3 << 5 | ((MAP_BG_NAVY >> 16) & 0xFF) >> 3 << 10;
-	emu_layers(s, 0x17);
-	emu_write16(s, FE_PALBUF, navy);
-	emu_write16(s, 0x05000000, navy);
-	emu_frame(s, 0);
-	memcpy(a, s->fb, sizeof(a));
-	emu_state_load(s, tmp);
-	emu_write16(s, FE_PALBUF, navy ^ 1);
-	emu_write16(s, 0x05000000, navy ^ 1);
-	emu_frame(s, 0);
-	for (int i = 0; i < GBA_W * GBA_H; ++i) out[i] = a[i] == s->fb[i] ? a[i] | 0xFF000000 : FE_STATUS_CLEAR;
-	emu_layers(s, 0x1F);
-	emu_state_load(s, tmp);
-}
-
 static const char* fe_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
-	static uint32_t mm[GBA_W * GBA_H], last[GBA_W * GBA_H], page[FE_PAGES][GBA_W * GBA_H];
-	static int lastW, lastH, lastChapter = -1;
+	static uint32_t page[FE_PAGES][GBA_W * GBA_H];
+	static int lastChapter = -1;
 	int max = *nOut;
 	fe_region(s);
 	*nOut = 1;
 	*step = 300; /* 5 seconds a page */
-	int mw = 0, mh = 0, pages = 0;
+	int pages = 0;
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
 	int chapter = emu_read8(s, FE_CHAPTER_NO);
 	/* a unit selected (or its menu): no status (its commands take the place) */
 	bool cursorFree = fe_proc(s, FE_P_PHASE) == FE_IDLE;
-	if (chapter != lastChapter) lastW = lastH = 0, lastChapter = chapter, pageKey = 0, pageN = 0;
-	bool ok = false;
-	if (fe_proc(s, FE_P_PHASE)) {
-		for (int i = 0; i < 16 && fe_proc(s, FE_P_PHASE) != FE_IDLE; ++i) {
-			aw_tap(s, K_B, 1);
+	if (chapter != lastChapter) lastChapter = chapter, pageKey = 0, pageN = 0;
+	if (cursorFree) {
+		/* the status of the unit under the cursor, if there's one: taken
+		 * again only when the cursor or a unit changes (so it doesn't move
+		 * between pictures: a blink, a step) */
+		uint32_t key = 2166136261u;
+		for (uint32_t a = FE_UNITS; a < FE_UNITS + FE_UNITS_LEN; a += 4) key = (key ^ emu_read32(s, a)) * 16777619u;
+		key = (key ^ emu_read32(s, FE_CURSOR)) * 16777619u;
+		key = (key ^ (uint32_t) chapter) * 16777619u;
+		if (key == pageKey) {
+			pages = pageN;
+		} else {
+			aw_tap(s, K_R, 1);
 			aw_run(s, 0, 8);
-		}
-		if (fe_proc(s, FE_P_PHASE) == FE_IDLE) {
-			void* idle = malloc(emu_state_size(s));
-			void* tmp = malloc(emu_state_size(s));
-			if (!idle || !tmp || !emu_state_save(s, idle)) {
-				free(idle);
-				free(tmp);
-				return "out of memory";
-			}
-			aw_tap(s, K_START, 1);
-			int f = 0;
-			while (f < 40 && fe_proc(s, FE_P_PHASE) != FE_MINI) emu_frame(s, 0), ++f;
-			if (fe_proc(s, FE_P_PHASE) == FE_MINI) {
-				aw_run(s, 0, 24);
-				ok = fe_minimap(s, tmp, mm, &mw, &mh);
-			}
-			/* the status screen of the unit under the cursor, if there's
-			 * one: taken again only when the cursor or a unit changes (so
-			 * it doesn't move between pictures: a blink, a step) */
-			emu_state_load(s, idle);
-			emu_frame(s, 0);
-			uint32_t key = 2166136261u;
-			for (uint32_t a = FE_UNITS; a < FE_UNITS + FE_UNITS_LEN; a += 4) key = (key ^ emu_read32(s, a)) * 16777619u;
-			key = (key ^ emu_read32(s, FE_CURSOR)) * 16777619u;
-			key = (key ^ (uint32_t) chapter) * 16777619u;
-			if (!cursorFree) {
-				pages = 0;
-			} else if (key == pageKey) {
-				pages = pageN;
-			} else {
-				aw_tap(s, K_R, 1);
-				aw_run(s, 0, 8);
-				pages = 0;
-				if (fe_proc(s, FE_P_STATUS) || (fe_r->status2 && fe_proc(s, fe_r->status2))) {
-					aw_run(s, 0, 40); /* (past its fade-in, which rewrites the palette) */
-					for (; pages < FE_PAGES && pages < max; ++pages) {
-						if (pages) {
-							aw_tap(s, K_RIGHT, 1);
-							aw_run(s, 0, 24);
-						}
-						fe_status_page(s, tmp, page[pages]);
+			if (fe_proc(s, FE_P_STATUS) || (fe_r->status2 && fe_proc(s, fe_r->status2))) {
+				aw_run(s, 0, 40); /* (past its fade-in, which rewrites the palette) */
+				for (; pages < FE_PAGES && pages < max; ++pages) {
+					if (pages) {
+						aw_tap(s, K_RIGHT, 1);
+						aw_run(s, 0, 24);
 					}
+					memcpy(page[pages], s->fb, sizeof(page[pages]));
 				}
-				pageKey = key, pageN = pages;
 			}
-			free(idle);
-			free(tmp);
+			pageKey = key, pageN = pages;
 		}
-	}
-	if (ok) {
-		memcpy(last, mm, (size_t) mw * mh * 4);
-		lastW = mw, lastH = mh;
-	} else {
-		memcpy(mm, last, (size_t) lastW * lastH * 4);
-		mw = lastW, mh = lastH;
 	}
 	*nOut = pages ? pages : 1;
 	for (int k = 0; k < *nOut; ++k) {
 		uint32_t* o = out[k];
-		for (int i = 0; i < w * h; ++i) o[i] = MAP_BG_NAVY;
-		if (pages) {
-			for (int y = 0; y < GBA_H && 4 + y < h; ++y) {
-				for (int x = 0; x < GBA_W && 4 + x < w; ++x) o[(4 + y) * w + 4 + x] = page[k][y * GBA_W + x];
-			}
+		for (int i = 0; i < w * h; ++i) o[i] = MAP_BG_NAVY; /* (the logo goes there) */
+		for (int y = 0; pages && y < GBA_H && y < h; ++y) {
+			for (int x = 0; x < GBA_W && x < w; ++x) o[y * w + x] = page[k][y * GBA_W + x] | 0xFF000000;
 		}
-		int mx = w - 4 - mw, my = h - 4 - mh;
-		if (mx < 0) mx = 0;
-		if (my < 0) my = 0;
-		for (int y = 0; y < mh && my + y < h; ++y) memcpy(&o[(my + y) * w + mx], &mm[y * mw], mw * sizeof(uint32_t));
 	}
 	return NULL;
-}
-
-/* The pieces in the HUD picture (BG0, BG1 and the sprites that go with
- * them). In an event, everything there is one piece (3: a conversation,
- * a tutorial box), kept where it is. Otherwise the windows: groups of 8x8
- * cells with something in them, joined where they touch. The terrain's is
- * narrow (and tall, with its dragon); of the wide ones the unit's is pale
- * inside, the goal's dark. Moves: 0 the unit, 1 the goal, 2 the terrain. */
-static void fe_find_pieces(Emu* e, const uint32_t* hud, uint32_t clear, int box[4][4]) {
-	enum { CW = GBA_W / 8, CH = GBA_H / 8 };
-	static uint8_t cell[CH][CW];
-	static int stack[CW * CH];
-	for (int m = 0; m < 4; ++m) box[m][0] = box[m][1] = 0, box[m][2] = box[m][3] = -1;
-	uint32_t mode = fe_virt(e, FE_V_HUD);
-	if (mode == FE_HUD_TALK || mode == FE_HUD_BANNER) {
-		box[3][0] = 0, box[3][1] = 0, box[3][2] = GBA_W - 1, box[3][3] = GBA_H - 1;
-		return;
-	}
-	if (mode == FE_HUD_MENU) {
-		box[0][0] = 0, box[0][1] = 0, box[0][2] = GBA_W - 1, box[0][3] = GBA_H - 1;
-		return;
-	}
-	int best[4] = { 0 };
-	int wide[4][4], wideLum[4], nWide = 0;
-	for (int cy = 0; cy < CH; ++cy) {
-		for (int cx = 0; cx < CW; ++cx) {
-			bool any = false;
-			for (int y = cy * 8; y < cy * 8 + 8 && !any; ++y) {
-				for (int x = cx * 8; x < cx * 8 + 8; ++x) {
-					if ((hud[y * GBA_W + x] & 0xFFFFFF) != clear) {
-						any = true;
-						break;
-					}
-				}
-			}
-			cell[cy][cx] = any;
-		}
-	}
-	for (int cy = 0; cy < CH; ++cy) {
-		for (int cx = 0; cx < CW; ++cx) {
-			if (cell[cy][cx] != 1) continue;
-			/* this group: its cells (marked 2) and box, in cells */
-			int n = 0, gx0 = cx, gy0 = cy, gx1 = cx, gy1 = cy, cells = 0;
-			stack[n++] = cy * CW + cx;
-			cell[cy][cx] = 2;
-			while (n) {
-				int c = stack[--n], x = c % CW, y = c / CW;
-				++cells;
-				gx0 = x < gx0 ? x : gx0, gx1 = x > gx1 ? x : gx1, gy0 = y < gy0 ? y : gy0, gy1 = y > gy1 ? y : gy1;
-				static const int d[4][2] = { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } };
-				for (int k = 0; k < 4; ++k) {
-					int nx = x + d[k][0], ny = y + d[k][1];
-					if (nx < 0 || ny < 0 || nx >= CW || ny >= CH || cell[ny][nx] != 1) continue;
-					cell[ny][nx] = 2;
-					stack[n++] = ny * CW + nx;
-				}
-			}
-			if (cells < 6) continue; /* a stray bit */
-			int x0 = gx0 * 8, y0 = gy0 * 8, x1 = gx1 * 8 + 7, y1 = gy1 * 8 + 7;
-			if (x1 - x0 + 1 < 64) {
-				/* the terrain's: narrow */
-				if (cells > best[2]) best[2] = cells, box[2][0] = x0, box[2][1] = y0, box[2][2] = x1, box[2][3] = y1;
-				continue;
-			}
-			long lum = 0, total = 0;
-			for (int y = y0; y <= y1; ++y) {
-				for (int x = x0; x <= x1; ++x) {
-					uint32_t c = hud[y * GBA_W + x];
-					if ((c & 0xFFFFFF) == clear) continue;
-					lum += (c & 0xFF) + ((c >> 8) & 0xFF) + ((c >> 16) & 0xFF);
-					++total;
-				}
-			}
-			if (nWide < 4) {
-				wide[nWide][0] = x0, wide[nWide][1] = y0, wide[nWide][2] = x1, wide[nWide][3] = y1;
-				wideLum[nWide++] = total ? (int) (lum / total / 3) : 0;
-			}
-		}
-	}
-	/* the wide ones: the unit's box is the paler (with only one, pale
-	 * enough), the goal's the darker */
-	int pale = -1, dark = -1;
-	for (int i = 0; i < nWide; ++i) {
-		if (pale < 0 || wideLum[i] > wideLum[pale]) pale = i;
-	}
-	for (int i = 0; i < nWide; ++i) {
-		if (i != pale && (dark < 0 || wideLum[i] < wideLum[dark])) dark = i;
-	}
-	if (nWide == 1 && wideLum[pale] < 145) dark = pale, pale = -1;
-	/* (the unit's isn't shown: its status is, from fe_compose) */
-	if (dark >= 0) memcpy(box[1], wide[dark], sizeof(box[1]));
-	/* (cells left at 2: cleared on the next call) */
-	for (int cy = 0; cy < CH; ++cy) {
-		for (int cx = 0; cx < CW; ++cx) cell[cy][cx] = 0;
-	}
 }
 
 /* ---------------------------------------------------------- Sword of Mana
@@ -1661,8 +1385,8 @@ static const MapProfile profiles[] = {
 		},
 	},
 	{
-		/* the second screen is put together by ft_compose: a unit's Status
-		 * and the turn order, over the dark background with the logo */
+		/* the second screen is put together by ft_compose: a unit's Status,
+		 * or the turn order with the Laws */
 		.codes = { "AFXE" },
 		.title = "Final Fantasy Tactics Advance",
 		.virt = ft_virt,
@@ -1676,15 +1400,15 @@ static const MapProfile profiles[] = {
 		.menu = { { FT_V_BATTLE, 0xFF, 0, 4 } },
 		.room = { { FT_CURSOR, 0xFFFF, 0, 2 } },
 		.hud = {
-			/* nothing moves off the game screen; this is for the background:
-			 * dark, the logo small and dimmed in the middle, always */
+			/* nothing moves off the game screen (FT-10); this is for the
+			 * logo before the first picture and outside battles (FT-7) */
 			.on = { { FT_V_BATTLE, 0xFF, 1, 4 } },
 			.overMap = true,
 			.mapClear = MAP_BG_NAVY,
 			.logoUnder = true,
 			.logoAlways = true,
 		},
-		/* (never a fight: this only makes the background with the logo) */
+		/* (never a fight: this only makes the logo's picture) */
 		.combat = { { FT_V_BATTLE, 0xFF, 2, 4 } },
 		/* Start during the intro: the logo on BG2 with its shadow on BG1 (the
 		 * copyright line below it is cut off by maxY) */
@@ -1752,7 +1476,7 @@ static const MapProfile profiles[] = {
 		},
 	},
 	{
-		/* USA: see fe_compose and fe_find_pieces */
+		/* USA: see fe_compose */
 		.codes = { "AE7E" },
 		.title = "Fire Emblem",
 		.virt = fe_virt,
@@ -1764,46 +1488,16 @@ static const MapProfile profiles[] = {
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
 		.live = { FE_IN_CHAPTER, { FE_V_TURN, 0xFF, 0, 1 } },
-		/* off the battle map: the title, a story scene (the second screen's
-		 * the background with the logo) */
+		/* off the battle map: the title, a story scene (the logo) */
 		.menu = { { FE_V_OFFMAP, 0xFF, 1, 4 } },
 		.hud = {
-			/* the cursor free (the windows), or an event (talk, the
-			 * tutorial); the second screen keeps what it showed while a
-			 * unit's selected and in menus */
-			.on = { FE_IN_CHAPTER, { FE_V_HUD, 0xFF, FE_HUD_IDLE, 4, true, FE_HUD_MENU, true } },
-			.bgMask = 0x3,
-			/* the phase banner: its lettering (BG0) and sparkles (BG1, holes
-			 * in black: shaded over the second screen), the game screen
-			 * dimmed meanwhile */
-			.alt = { .on = { FE_IN_CHAPTER, { FE_V_HUD, 0xFF, FE_HUD_BANNER, 4 } }, .bgMask = 0x3, .shade = true, .dimGame = true },
-			.objs = {
-				{ -64, -32, 239, 159, 720, 760, 0, 1u << 8 }, /* the unit's HP figures */
-				{ -64, -64, 239, 159, 640, 1023, 2, 3u << 6 }, /* talking portraits */
-				{ -64, -64, 239, 159, 64, 159, 2, 1u << 3 }, /* and in a fight's battle scene */
-				{ -64, -64, 239, 159, 384, 767, 0, 1u << 5 }, /* the tutorial's boxes */
-				{ -8, -8, 239, 159, 4, 4, 0, 1u << 0 }, /* the speech bubble's arrow */
-				{ -16, -16, 239, 159, 0, 1, 0, 1u << 0 }, /* a menu's hand */
-				{ -8, -16, 239, 159, 76, 79, 0, 1u << 0 }, /* the forecast's weapon-triangle arrows */
-				{ -16, -16, 239, 159, 744, 747, 0, 1u << 2 }, /* and its x2 */
-			},
-			/* a unit's menu (Attack, Wait...) with its hand, and the battle
-			 * forecast with its arrows and x2, at the top centre, over the
-			 * status; the goal at the bottom centre and the terrain
-			 * at the bottom left (over the status); a conversation, the
-			 * tutorial's box or the phase banner as it is, alone (a portrait
-			 * at the game screen's bottom edge against the second screen's
-			 * bottom), clearing the others to be taken again. (The unit's
-			 * own window isn't shown: its status is.) */
-			.moves = { { 0, 0, 0, 0, 'C', 120, 'T', 4, .top = true, .dropAfter = 1 },
-			           { 0, 0, 0, 0, 'C', 120, 'B', 155, .settle = 4, .top = true },
-			           { 0, 0, 0, 0, 'L', 4, 'B', 155, .settle = 4, .top = true },
-			           { 0, 0, 0, 0, 0, 0, 0, 0, .asIs = true, .alone = true, .asIsBottom = true, .clears = true, .dropAfter = 2 } },
-			.findPieces = fe_find_pieces,
+			/* nothing moves off the game screen (FE-10); this is for the
+			 * logo wherever there's no status (FE-1): in the map pictures
+			 * (logoUnder), and wherever there's no map picture yet, in
+			 * the game's chapters and outside them (logoAlways) */
+			.on = { FE_IN_CHAPTER },
 			.overMap = true,
 			.mapClear = MAP_BG_NAVY,
-			/* the boxes are see-through (BG1 blended over the map): opaque there */
-			.gameReg = { 0x50, 0x0002 },
 			.logoUnder = true,
 			.logoAlways = true,
 		},
@@ -1821,41 +1515,6 @@ static const MapProfile profiles[] = {
 		.compose = aw_compose,
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
-		/* the CO / day plate (top, either side) and the terrain and unit
-		 * info (bottom right) go to the second screen's bottom left and
-		 * bottom right, under the panels; the darkened box behind the
-		 * info (window 0's effect) is left off the game screen */
-		.hud = {
-			/* in a battle, not in a fight (fights use window 1): the
-			 * enemy's turn too, which has no window (nor terrain info) */
-			.on = { { AW_ARMY, 0xFF, 1, 1, true, 4, true }, { 0x04000000, 0x4000, 0, 2 } },
-			/* (by palette too: a move's arrow is tiles 333-397 in palette 3) */
-			.objs = { { -64, -32, 239, 40, 0, 63, 0, AW_PALS(1) | AW_PALS(7) | AW_PALS(14) }, { -64, -32, 239, 40, 940, 1023, 0, AW_PALS(1) },
-			          { -64, 88, 239, 159, 280, 360, 0, AW_PALS(1) | AW_PALS(2) | AW_PALS(6) | AW_PALS(15) },
-			          /* (the info's digits only: 976-985; the plate's day is 960-969
-			           * and DAY 992-1016, and the CO screen has a plate down here) */
-			          { -64, 88, 239, 159, 970, 990, 0, AW_PALS(1) },
-			          /* the DAMAGE box over the info while picking a target (its digits
-			           * are tiles 295-313, 0 to 9; % and the box 315-319) */
-			          { -64, 56, 239, 103, 288, 320, 0, 1u << 1 } },
-			/* the plate at the bottom in the middle, the info at the
-			 * bottom right on a grey box; 4 pixels up, as the minimap */
-			/* (the plate: taken again only when the turn passes) */
-			.moves = { { 0, 0, 239, 47, 'C', 119, 'B', 155, .latch = AW_ARMY },
-			           { 0, 104, 239, 159, 'R', 232, 'B', 152, .box = 0x6B7380, .pad = 3 },
-			           /* the DAMAGE box (down to row 103; the info starts at 104):
-			            * where it is over the info, over the panels */
-			           { 0, 56, 239, 103, 'L', 0, 'T', 0, .follow = 2 },
-			           { 0, 0, 239, 159, 'L', 0, 'T', 0, .wide = true, .dropAfter = 2 } },
-			/* a conversation (its own layer settings on its lines, no
-			 * sprites there): to the top of the second screen, as wide
-			 * as it is */
-			.band = BAND_MOVE,
-			.findPieces = aw_find_pieces,
-			.overMap = true,
-			.mapClear = AW_BG,
-			.gameReg = { 0x48, 0x0020 },
-		},
 		/* a fight: both windows on */
 		.combat = { { AW_ARMY, 0xFF, 1, 1, true, 4, true }, { 0x04000000, 0x4000, 0x4000, 2 } },
 		.live = { { AW_ARMY, 0xFF, 1, 1, true, 4, true } },
@@ -1871,44 +1530,6 @@ static const MapProfile profiles[] = {
 		.compose = aw_compose,
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
-		/* the CO / day plate (top, either side) and the terrain and unit
-		 * info (bottom right) go to the second screen's bottom left and
-		 * bottom right, under the panels; the darkened box behind the
-		 * info (window 0's effect) is left off the game screen */
-		.hud = {
-			/* in a battle, not in a fight (fights use window 1): the
-			 * enemy's turn too, which has no window (nor terrain info) */
-			.on = { { AW2_ARMY, 0xFF, 1, 1, true, 4, true }, { 0x04000000, 0x4000, 0, 2 } },
-			/* the plate: tile 0 (palette 7), the portrait (58, palette 14), the
-			 * funds' digits (976-985); the info: its labels (458-466), the
-			 * terrain (486, palette 6) and unit (474) pictures, the heart, fuel
-			 * and star (850-864) and digits, not the cursor's corners (869-873,
-			 * palette 1 too); the DAMAGE box over the info while picking a
-			 * target (420-457: its digits, 422-441, and lettering; not the target's
-			 * corners, 886-890, nor its crosshair, palette 4) */
-			.objs = { { -64, -32, 239, 40, 0, 63, 0, AW_PALS(1) | AW_PALS(7) | AW_PALS(14) }, { -64, -32, 239, 40, 940, 1023, 0, AW_PALS(1) },
-			          { -64, 88, 239, 159, 440, 520, 0, AW_PALS(1) | AW_PALS(2) | AW_PALS(6) | AW_PALS(15) },
-			          { -64, 88, 239, 159, 840, 866, 0, AW_PALS(1) },
-			          { -64, 88, 239, 159, 970, 990, 0, AW_PALS(1) },
-			          { -64, 56, 239, 103, 420, 457, 0, AW_PALS(1) } },
-			/* the plate at the bottom in the middle, the info at the
-			 * bottom right on a grey box; 4 pixels up, as the minimap */
-			/* (the plate: taken again only when the turn passes) */
-			.moves = { { 0, 0, 239, 47, 'C', 119, 'B', 155, .latch = AW2_ARMY },
-			           { 0, 104, 239, 159, 'R', 232, 'B', 152, .box = 0x6B7380, .pad = 3 },
-			           /* the DAMAGE box (down to row 103; the info starts at 104):
-			            * where it is over the info, over the panels */
-			           { 0, 56, 239, 103, 'L', 0, 'T', 0, .follow = 2 } },
-			/* a conversation (its own layer settings on its lines, no
-			 * sprites there): it stays on the game screen (the map's
-			 * turned off behind it), found so the plate and info aren't
-			 * taken from under it */
-			.band = BAND_WATCH,
-			.findPieces = aw_find_pieces,
-			.overMap = true,
-			.mapClear = AW_BG,
-			.gameReg = { 0x48, 0x0020 },
-		},
 		/* a fight: both windows on */
 		.combat = { { AW2_ARMY, 0xFF, 1, 1, true, 4, true }, { 0x04000000, 0x4000, 0x4000, 2 } },
 		.live = { { AW2_ARMY, 0xFF, 1, 1, true, 4, true } },
@@ -1991,13 +1612,11 @@ static void aw_eur(MapProfile* p) {
 /* Game Boy Wars Advance 1+2's two games: as Advance Wars and Advance
  * Wars 2, at their addresses there (the compose code's: awRegions) */
 static void gbw_set(MapProfile* p, uint32_t army, uint32_t cursor, uint32_t menu) {
-	p->hud.on[0].addr = army;
 	p->combat[0].addr = army;
 	p->live[0].addr = army;
 	p->menu[0].addr = army;
 	p->menu[1].addr = menu;
 	p->room[0].addr = cursor;
-	p->hud.moves[0].latch = army;
 	memset(&p->logo, 0, sizeof(p->logo)); /* (the compilation's: BGWJ) */
 }
 

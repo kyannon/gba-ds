@@ -6,7 +6,7 @@ There are three kinds of second screen, and a profile can use the parts it needs
 |---|---|---|
 | **Map capture** | Castlevanias, Metroids, A Link to the Past | Opens the game's own map on a hidden copy of the game and shows it. |
 | **Screen snapshot** (`logoOnly` + `snap`) | Tony Hawk's Pro Skater 2 | Copies a screen the game shows (the goal sheet) to the second screen while it's useful. |
-| **HUD split** (`hud`) | Mario Kart: Super Circuit; Super Mario Advance 2 (with a map capture); Fire Emblem; Advance Wars | Draws some layers and sprites on the second screen instead of the game screen. |
+| **HUD split** (`hud`) | Mario Kart: Super Circuit; Super Mario Advance 2 (with a map capture) | Draws some layers and sprites on the second screen instead of the game screen. |
 
 Every profile also gets a **logo** for the game list and the second screen.
 
@@ -67,8 +67,8 @@ For games whose HUD is better on the second screen, logo-only or alongside a map
 - `hud.bgPrioBelow`: instead of `bgMask`, the BG layers below this priority, picked line by line (written for Final Fantasy Tactics Advance's first second screen, which moved its menus between layers; no game uses it now). `hud.effects`: while these match, layers whose tiles mostly use palettes below `hud.effectsPal` stay on the game screen (its spells are drawn on the menu layers, in other palettes than the text boxes).
 - `SpriteRule.tagged` and `romPatch`: when the game draws world and HUD sprites from the same tiles and palettes, a ROM patch can tag the HUD ones (attr1 bits 9-11, unused on sprites that aren't rotated) and the rules take only tagged sprites. Final Fantasy Tactics Advance's first second screen (on the branch `archive/ffta-hud`, with `tools/ffta_tag.s` and `tools/make_ffta_tag.sh`) hooked the routine all its sprite lists go through and tagged what it adds, except for its world-drawing systems (animations, weapon swings, damage numbers), found by tracing which code drew each sprite; units and thrown objects are written by other code and are never tagged. Each patch is checked against the ROM's bytes first; if it doesn't go in, the rules apply without the tags.
 - `hud.mapCnt`: the HUD is on only while a BG layer has this BGxCNT (written for Final Fantasy Tactics Advance's first second screen: its battle maps); the backdrop is then a still of the game screen without the HUD, in grey with `backdropGrey`. `hud.world`: another such layer (its world map) with its own sprite rules (there: priority 0, by tile), the backdrop being the layers below the HUD's alone.
-- `hud.logoBelow`: the second screen is the HUD on black with the logo at half size below it, instead of a backdrop.
-- `hud.scene`: another scene with its own sprites and moves, with the logo as the backdrop (Mario Kart's podium).
+- `hud.logoBelow`: the second screen is the HUD on dark grey with the logo at its own size below it, instead of a backdrop.
+- `hud.scene`: another scene with its own sprites and moves, on dark grey (Mario Kart's podium).
 
 The second screen is a 480×320 canvas (2× GBA pixels), so moved and scaled pieces stay sharp.
 

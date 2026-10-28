@@ -22,8 +22,8 @@
    "desc": "cursor on one of your units",
    "rules": [
     "AW-1",
-    "AW-2",
-    "AW-3"
+    "AW-8",
+    "GEN-5"
    ],
    "shots": {
     "start": 60,
@@ -59,7 +59,7 @@
    "state": "advance-wars/us-unit-list.ss",
    "desc": "R opens the unit intel in the game: the plate and info stay",
    "rules": [
-    "AW-3"
+    "AW-8"
    ],
    "input": [
     [
@@ -82,35 +82,7 @@
    "shots": {
     "before": 230,
     "end": 460
-   },
-   "checks": [
-    {
-     "rule": "AW-3",
-     "what": "the info unchanged",
-     "type": "same",
-     "a": {
-      "shot": "before",
-      "screen": "second",
-      "rect": [
-       860,
-       620,
-       1020,
-       768
-      ]
-     },
-     "b": {
-      "shot": "end",
-      "screen": "second",
-      "rect": [
-       860,
-       620,
-       1020,
-       768
-      ]
-     },
-     "frac": 0.0
-    }
-   ]
+   }
   },
   {
    "id": "aw-us-unit-intel-open",
@@ -155,8 +127,8 @@
    "desc": "cursor on an empty tile: Battle Intel",
    "rules": [
     "AW-1",
-    "AW-2",
-    "AW-3"
+    "AW-8",
+    "GEN-5"
    ],
    "shots": {
     "start": 60,
@@ -171,15 +143,30 @@
     },
     {
      "rule": "AW-1",
-     "what": "a panel at the top",
+     "what": "the Battle Intel in the middle",
      "type": "not_uniform",
-     "shot": "end",
+     "shot": "start",
      "screen": "second",
      "rect": [
-      100,
-      40,
-      920,
-      300
+      200,
+      300,
+      820,
+      460
+     ],
+     "color": "182438",
+     "frac": 0.97
+    },
+    {
+     "rule": "AW-1",
+     "what": "nothing above it",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      90
      ],
      "color": "182438",
      "frac": 0.97
@@ -193,7 +180,7 @@
    "desc": "a unit moving",
    "rules": [
     "AW-1",
-    "AW-3"
+    "AW-8"
    ],
    "shots": {
     "start": 60,
@@ -206,7 +193,7 @@
    "state": "advance-wars/us-damage.ss",
    "desc": "picking a target, the DAMAGE box",
    "rules": [
-    "AW-3"
+    "AW-8"
    ],
    "shots": {
     "start": 60,
@@ -232,7 +219,8 @@
    "state": "advance-wars/us-pause-minimap.ss",
    "desc": "the START minimap open",
    "rules": [
-    "AW-2"
+    "AW-1",
+    "AW-8"
    ],
    "shots": {
     "start": 60,
@@ -259,7 +247,7 @@
    "desc": "rain over the battle map",
    "rules": [
     "AW-1",
-    "AW-3"
+    "AW-8"
    ],
    "shots": {
     "start": 60,
@@ -272,7 +260,8 @@
    "state": "advance-wars/eu-field-training.ss",
    "desc": "Field Training, European release (known issue: no panels)",
    "rules": [
-    "AW-3"
+    "AW-7",
+    "AW-8"
    ],
    "shots": {
     "start": 60,
@@ -341,30 +330,6 @@
       ]
      },
      "frac": 0.01
-    },
-    {
-     "rule": "AW-4",
-     "what": "the enemy's plate replaces yours",
-     "type": "differs",
-     "a": {
-      "shot": "yours",
-      "rect": [
-       384,
-       630,
-       640,
-       740
-      ]
-     },
-     "b": {
-      "shot": "enemy",
-      "rect": [
-       384,
-       630,
-       640,
-       740
-      ]
-     },
-     "frac": 0.1
     }
    ]
   },

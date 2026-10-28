@@ -9,7 +9,7 @@
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list summon-night-swordcraft-story`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.
 
-Every game also follows the [general rules](README.md#general-rules) (GEN-1 to GEN-4).
+Every game also follows the [general rules](README.md#general-rules) (GEN-1 to GEN-5).
 
 ## Rules
 

@@ -638,6 +638,7 @@ static Piece pieces[4];
 static void upload_map_frame(int idx);
 static const uint32_t* hud_over_map(const uint32_t* px);
 static void make_combat_canvas(void);
+static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top);
 static uint32_t hudLogoBelow[HUD_CW * HUD_CH]; /* profile hud.logoBelow: black, the logo at half size */
 static bool hudLogoBelowDone;
 static int snapShow, snapRevert;   /* consecutive frames matching show / a revert screen */
@@ -1372,75 +1373,26 @@ static void hud_make_backdrop(void) {
 	}
 }
 
-/* The scene's backdrop: the game's logo on dark blue, as large as fits
- * (whole pixels for the extracted one), dimmed like the race backdrop. */
+/* The scene's backdrop (Mario Kart's podium): dark grey. (Until v1.3.2's
+ * later test builds the logo was behind it, as large as fitted and
+ * dimmed; at its own size, as GEN-1 has it, it's right behind the place
+ * and the cup table, and they can't be read over it.) */
 static void hud_make_logo_back(void) {
 	hudLogoDone = true;
-	for (int i = 0; i < HUD_CW * HUD_CH; ++i) hudLogoBack[i] = 0xFF1A1010;
-	bool pixelArt;
-	SDL_Surface* lg = ui_logo_surface(cfg, emu.gameCode, &pixelArt);
-	if (!lg) return;
-	int mw = HUD_CW - 40, mh = HUD_CH - 40;
-	int w = lg->w, h = lg->h;
-	if (pixelArt) {
-		int k = SDL_max(1, SDL_min(mw / lg->w, mh / lg->h));
-		w = lg->w * k, h = lg->h * k;
-	} else {
-		float sc = SDL_min((float) mw / lg->w, (float) mh / lg->h);
-		w = SDL_max(1, (int) (lg->w * sc)), h = SDL_max(1, (int) (lg->h * sc));
-	}
-	int x0 = (HUD_CW - w) / 2, y0 = (HUD_CH - h) / 2;
-	for (int y = 0; y < h; ++y) {
-		const uint8_t* row = (const uint8_t*) lg->pixels + (size_t) (y * lg->h / h) * lg->pitch;
-		for (int x = 0; x < w; ++x) {
-			const uint8_t* p = row + (size_t) (x * lg->w / w) * 4;
-			uint32_t* o = &hudLogoBack[(y0 + y) * HUD_CW + x0 + x];
-			uint32_t out = 0xFF000000;
-			for (int c = 0; c < 3; ++c) {
-				int bg = (*o >> (c * 8)) & 0xFF;
-				int v = bg + (int) ((p[c] * 0.32f - bg) * p[3] / 255.0f);
-				out |= (uint32_t) SDL_clamp(v, 0, 255) << (c * 8);
-			}
-			*o = out;
-		}
-	}
-	SDL_FreeSurface(lg);
+	for (int i = 0; i < HUD_CW * HUD_CH; ++i) hudLogoBack[i] = SCREEN_GREY;
 }
 
-/* Profile hud.logoBelow: black, with the game's logo at half the size the
- * second screen shows it otherwise (a pixel of an extracted logo per canvas
- * pixel), centred in the space below the HUD's rows. */
+/* Profile hud.logoBelow: the logo as on any other second screen (GEN-1),
+ * centred, kept below the HUD's rows. */
 static void hud_make_logo_below(void) {
 	hudLogoBelowDone = true;
-	bool behind = hudProf->hud.logoBehind;
-	for (int i = 0; i < HUD_CW * HUD_CH; ++i) hudLogoBelow[i] = 0xFF000000;
-	bool pixelArt;
-	SDL_Surface* lg = ui_logo_surface(cfg, emu.gameCode, &pixelArt);
-	if (!lg) return;
+	for (int i = 0; i < HUD_CW * HUD_CH; ++i) hudLogoBelow[i] = SCREEN_GREY;
 	int top = 0; /* below the HUD: its lowest row on the canvas */
 	for (int m = 0; m < 4; ++m) {
 		const HudMove* mv = &hudProf->hud.moves[m];
 		if (mv->toGame && !mv->how && !mv->vhow && mv->x0 == 0 && mv->x1 >= GBA_W - 1 && mv->y0 > 0) top = mv->y0 * 2;
 	}
-	int mw = GBA_W, mh = SDL_min(GBA_H, HUD_CH - top - 16);
-	int w = lg->w, h = lg->h;
-	if (w > mw || h > mh) {
-		float sc = SDL_min((float) mw / lg->w, (float) mh / lg->h);
-		w = SDL_max(1, (int) (lg->w * sc)), h = SDL_max(1, (int) (lg->h * sc));
-	}
-	int x0 = (HUD_CW - w) / 2, y0 = top + (HUD_CH - top - h) / 2;
-	unsigned dim = behind ? 90 : 255; /* behind the HUD: dimmed well back */
-	SDL_LockSurface(lg);
-	for (int y = 0; y < h; ++y) {
-		const uint8_t* row = (const uint8_t*) lg->pixels + (size_t) (y * lg->h / h) * lg->pitch;
-		for (int x = 0; x < w; ++x) {
-			const uint8_t* p = row + (size_t) (x * lg->w / w) * 4; /* RGBA32 */
-			unsigned a = p[3] * dim / 255;
-			hudLogoBelow[(y0 + y) * HUD_CW + x0 + x] = 0xFF000000u | (p[2] * a / 255) << 16 | (p[1] * a / 255) << 8 | p[0] * a / 255;
-		}
-	}
-	SDL_UnlockSurface(lg);
-	SDL_FreeSurface(lg);
+	logo_draw(hudLogoBelow, HUD_CW, HUD_CH, HUD_CW / GBA_W, top ? top + 8 : 0);
 }
 
 static int rule_count(const SpriteRule* r, int max) {
@@ -1831,7 +1783,15 @@ static void update_hud(void) {
 	bool scene = race && h->scene.when[0].addr && memprobes_match(h->scene.when, 2, &emu);
 	if (race != hudOn || scene != hudScene || world != hudWorld || alt != hudAlt) {
 		const SpriteRule* objs = scene ? h->scene.objs : world ? hudWorldObjs : hudObjs;
-		emu_hud_split(&emu, race, alt ? h->alt.bgMask : h->bgMask, objs, rule_count(objs, scene ? 4 : world ? 4 : 8), hudPx);
+		unsigned mask = alt ? h->alt.bgMask : h->bgMask;
+		int nObjs = rule_count(objs, scene ? 4 : world ? 4 : 8);
+		/* (nothing split off: only the logo behind the map picture, as
+		 * for Fire Emblem and Final Fantasy Tactics Advance; no second
+		 * renderer) */
+		static bool splitting;
+		bool some = mask || nObjs || h->band;
+		if (some || splitting) emu_hud_split(&emu, race && some, mask, objs, nObjs, hudPx);
+		splitting = race && some;
 		if (debug && race && alt != hudAlt) fprintf(stderr, "frame %llu: HUD on its other layer%s\n", (unsigned long long) frameCount, alt ? "" : ": off");
 		hudAlt = alt;
 		/* (by priority: the renderer picks the layers line by line) */
@@ -2785,7 +2745,44 @@ static void draw_osd(void) {
 	ui_font_text(s, TF_BOLD, fx, cy, cap, osd, C_TEXT, -1);
 }
 
-/* The game's logo as a GBA screen would show it: centred on black in a
+/* The game's logo at its own size (GEN-1) onto a cw x ch canvas: k canvas
+ * pixels to a logo pixel (one GBA pixel each for an extracted logo),
+ * centred, blended over what's there; kept below row `top` (a HUD above
+ * it). A user's own logo too big for that is shrunk to fit. False if
+ * there's no logo. */
+static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top) {
+	bool pixelArt = false;
+	SDL_Surface* lg = ui_logo_surface(cfg, emu.gameCode, &pixelArt);
+	if (!lg) return false;
+	int room = ch - top;
+	int w = lg->w * k, h = lg->h * k;
+	if (w > cw || h > room) {
+		float sc = SDL_min((float) cw / lg->w, (float) room / lg->h);
+		w = SDL_max(1, (int) (lg->w * sc)), h = SDL_max(1, (int) (lg->h * sc));
+	}
+	int x0 = (cw - w) / 2, y0 = (ch - h) / 2;
+	if (y0 < top) y0 = top + (room - h) / 2;
+	SDL_LockSurface(lg);
+	for (int y = 0; y < h; ++y) {
+		const uint8_t* row = (const uint8_t*) lg->pixels + (size_t) (y * lg->h / h) * lg->pitch;
+		for (int x = 0; x < w; ++x) {
+			const uint8_t* p = row + (size_t) (x * lg->w / w) * 4; /* RGBA32: bytes R, G, B, A */
+			if (!p[3]) continue;
+			uint32_t* o = &px[(y0 + y) * cw + x0 + x];
+			uint32_t out = 0xFF000000;
+			for (int c = 0; c < 3; ++c) {
+				int bg = (*o >> (c * 8)) & 0xFF;
+				out |= (uint32_t) (bg + (p[c] - bg) * p[3] / 255) << (c * 8); /* ABGR8888 */
+			}
+			*o = out;
+		}
+	}
+	SDL_UnlockSurface(lg);
+	SDL_FreeSurface(lg);
+	return true;
+}
+
+/* The game's logo as a GBA screen would show it: centred on dark grey in a
  * 240x160 picture, drawn with the second screen's scaling and the LCD grid.
  * Logos extracted from the ROM are at GBA resolution; a user's own logo
  * that's bigger stays a high-resolution image (logoCanvasTex NULL). */
@@ -2794,25 +2791,12 @@ static void make_logo_canvas(void) {
 	bool pixelArt = false;
 	SDL_Surface* lg = ui_logo_surface(cfg, emu.gameCode, &pixelArt);
 	if (!lg) return;
-	if (lg->w > GBA_W || lg->h > GBA_H) {
-		SDL_FreeSurface(lg);
-		return;
-	}
-	static uint32_t px[GBA_W * GBA_H];
-	memset(px, 0, sizeof(px));
-	int ox = (GBA_W - lg->w) / 2, oy = (GBA_H - lg->h) / 2;
-	SDL_LockSurface(lg);
-	for (int y = 0; y < lg->h; ++y) {
-		const uint8_t* row = (const uint8_t*) lg->pixels + y * lg->pitch;
-		for (int x = 0; x < lg->w; ++x) {
-			const uint8_t* p = row + x * 4; /* RGBA32: bytes R, G, B, A */
-			unsigned a = p[3];
-			unsigned r = p[0] * a / 255, gc = p[1] * a / 255, b = p[2] * a / 255;
-			px[(oy + y) * GBA_W + ox + x] = 0xFF000000u | b << 16 | gc << 8 | r; /* ABGR8888 */
-		}
-	}
-	SDL_UnlockSurface(lg);
+	bool big = lg->w > GBA_W || lg->h > GBA_H;
 	SDL_FreeSurface(lg);
+	if (big) return;
+	static uint32_t px[GBA_W * GBA_H];
+	for (int i = 0; i < GBA_W * GBA_H; ++i) px[i] = SCREEN_GREY;
+	logo_draw(px, GBA_W, GBA_H, 1, 0);
 	for (int i = 0; i < nViews; ++i) {
 		logoCanvasTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, GBA_W, GBA_H);
 		if (!logoCanvasTex[i]) continue;
@@ -2821,52 +2805,15 @@ static void make_logo_canvas(void) {
 	}
 }
 
-/* profile.combat's picture: the map's background colour, the logo at half
- * its size (each output pixel the average of 2x2) in the middle, dimmed. */
+/* profile.combat's picture (and hud.logoUnder's): the logo as on any
+ * other second screen (GEN-1), at a GBA pixel per GBA pixel of the map
+ * picture. */
 static void make_combat_canvas(void) {
 	combatMade = true;
 	uint32_t* px = malloc((size_t) mapW * mapH * 4);
 	if (!px) return;
-	uint32_t bg = combatProf->hud.mapClear | 0xFF000000;
-	for (int i = 0; i < mapW * mapH; ++i) px[i] = bg;
-	bool pixelArt = false;
-	SDL_Surface* lg = ui_logo_surface(cfg, emu.gameCode, &pixelArt);
-	if (lg) {
-		/* half of what fills the picture's width, whole steps of 2x2 for
-		 * an extracted logo */
-		float sc = SDL_min((float) mapW / lg->w, (float) mapH / lg->h) * 0.5f;
-		if (pixelArt) sc = lg->w > mapW / 2 ? 0.5f : 1.0f;
-		int w = SDL_max(1, (int) (lg->w * sc)), h = SDL_max(1, (int) (lg->h * sc));
-		int x0 = (mapW - w) / 2, y0 = (mapH - h) / 2;
-		SDL_LockSurface(lg);
-		for (int y = 0; y < h; ++y) {
-			for (int x = 0; x < w; ++x) {
-				/* the source pixels under this one, averaged (alpha-weighted) */
-				int sx0 = x * lg->w / w, sx1 = SDL_max(sx0 + 1, (x + 1) * lg->w / w);
-				int sy0 = y * lg->h / h, sy1 = SDL_max(sy0 + 1, (y + 1) * lg->h / h);
-				unsigned acc[4] = { 0 }, n = 0;
-				for (int v = sy0; v < sy1; ++v) {
-					for (int u = sx0; u < sx1; ++u) {
-						const uint8_t* p = (const uint8_t*) lg->pixels + v * lg->pitch + u * 4; /* R, G, B, A */
-						for (int k = 0; k < 3; ++k) acc[k] += p[k] * p[3];
-						acc[3] += p[3];
-						++n;
-					}
-				}
-				if (!acc[3]) continue;
-				float a = (float) acc[3] / (255.0f * n) * 0.35f; /* dimmed */
-				uint32_t* o = &px[(y0 + y) * mapW + x0 + x];
-				uint32_t out = 0xFF000000;
-				for (int k = 0; k < 3; ++k) {
-					float c = (float) acc[k] / acc[3], b = (bg >> (8 * k)) & 0xFF;
-					out |= (uint32_t) (b + (c - b) * a) << (8 * k);
-				}
-				*o = out;
-			}
-		}
-		SDL_UnlockSurface(lg);
-		SDL_FreeSurface(lg);
-	}
+	for (int i = 0; i < mapW * mapH; ++i) px[i] = SCREEN_GREY;
+	logo_draw(px, mapW, mapH, SDL_max(1, mapW / GBA_W), 0);
 	for (int i = 0; i < nViews; ++i) {
 		if (combatTex[i]) ui_update_texture(combatTex[i], px, mapW * 4);
 	}

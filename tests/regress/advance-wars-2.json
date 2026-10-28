@@ -22,8 +22,7 @@
    "desc": "cursor on one of your units: its intel",
    "rules": [
     "AW2-1",
-    "AW2-2",
-    "AW2-3"
+    "AW2-8"
    ],
    "shots": {
     "start": 60,
@@ -50,21 +49,6 @@
      ],
      "color": "182438",
      "frac": 0.97
-    },
-    {
-     "rule": "AW2-3",
-     "what": "the info at the bottom right",
-     "type": "not_uniform",
-     "shot": "end",
-     "screen": "second",
-     "rect": [
-      880,
-      640,
-      1010,
-      760
-     ],
-     "color": "182438",
-     "frac": 0.9
     }
    ]
   },
@@ -74,8 +58,7 @@
    "state": "advance-wars-2/us-intel.ss",
    "desc": "cursor on an empty tile, Battle Intel open in the game",
    "rules": [
-    "AW2-1",
-    "AW2-2"
+    "AW2-1"
    ],
    "shots": {
     "start": 60,
@@ -90,15 +73,30 @@
     },
     {
      "rule": "AW2-1",
-     "what": "a panel at the top",
+     "what": "the Battle Intel in the middle",
      "type": "not_uniform",
-     "shot": "end",
+     "shot": "start",
      "screen": "second",
      "rect": [
+      200,
       300,
-      40,
-      720,
-      300
+      820,
+      460
+     ],
+     "color": "182438",
+     "frac": 0.97
+    },
+    {
+     "rule": "AW2-1",
+     "what": "nothing above it",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      90
      ],
      "color": "182438",
      "frac": 0.97
@@ -111,29 +109,13 @@
    "state": "advance-wars-2/us-minimap.ss",
    "desc": "the START minimap open in the game",
    "rules": [
-    "AW2-2"
+    "AW2-1",
+    "AW2-8"
    ],
    "shots": {
     "start": 60,
     "end": 480
-   },
-   "checks": [
-    {
-     "rule": "AW2-2",
-     "what": "the minimap at the bottom left",
-     "type": "not_uniform",
-     "shot": "end",
-     "screen": "second",
-     "rect": [
-      10,
-      620,
-      200,
-      760
-     ],
-     "color": "182438",
-     "frac": 0.5
-    }
-   ]
+   }
   },
   {
    "id": "aw2-us-plate",
@@ -141,29 +123,12 @@
    "state": "advance-wars-2/us-plate.ss",
    "desc": "the CO plate at the top left",
    "rules": [
-    "AW2-3"
+    "AW2-8"
    ],
    "shots": {
     "start": 60,
     "end": 480
-   },
-   "checks": [
-    {
-     "rule": "AW2-3",
-     "what": "the plate at the bottom in the middle",
-     "type": "not_uniform",
-     "shot": "end",
-     "screen": "second",
-     "rect": [
-      400,
-      660,
-      620,
-      760
-     ],
-     "color": "182438",
-     "frac": 0.9
-    }
-   ]
+   }
   },
   {
    "id": "aw2-us-r-open",
@@ -171,7 +136,7 @@
    "state": "advance-wars-2/us-unit.ss",
    "desc": "R opens the unit intel in the game: the plate and info stay",
    "rules": [
-    "AW2-3"
+    "AW2-8"
    ],
    "input": [
     [
@@ -186,35 +151,7 @@
    "shots": {
     "before": 190,
     "end": 420
-   },
-   "checks": [
-    {
-     "rule": "AW2-3",
-     "what": "the info unchanged",
-     "type": "same",
-     "a": {
-      "shot": "before",
-      "screen": "second",
-      "rect": [
-       860,
-       620,
-       1020,
-       768
-      ]
-     },
-     "b": {
-      "shot": "end",
-      "screen": "second",
-      "rect": [
-       860,
-       620,
-       1020,
-       768
-      ]
-     },
-     "frac": 0.0
-    }
-   ]
+   }
   },
   {
    "id": "aw2-us-unit-intel-open",
@@ -320,29 +257,12 @@
    "state": "advance-wars-2/us-damage.ss",
    "desc": "picking a target: the DAMAGE box over the info",
    "rules": [
-    "AW2-3"
+    "AW2-8"
    ],
    "shots": {
     "start": 60,
     "end": 400
-   },
-   "checks": [
-    {
-     "rule": "AW2-3",
-     "what": "the DAMAGE box above the info",
-     "type": "not_uniform",
-     "shot": "end",
-     "screen": "second",
-     "rect": [
-      920,
-      530,
-      1020,
-      630
-     ],
-     "color": "182438",
-     "frac": 0.9
-    }
-   ]
+   }
   },
   {
    "id": "aw2-us-damage-digit",
@@ -350,7 +270,7 @@
    "state": "advance-wars-2/us-damage-digit.ss",
    "desc": "picking a target: DAMAGE 21%, a 2 drawn from the digits' lowest tiles",
    "rules": [
-    "AW2-3"
+    "AW2-8"
    ],
    "shots": {
     "start": 60,
@@ -364,8 +284,8 @@
    "state": "advance-wars-2/us-unit.ss",
    "desc": "a tutorial conversation with the info moved up by the tutorial: the info on the second screen stays as it was",
    "rules": [
-    "AW2-3",
-    "AW2-7"
+    "AW2-7",
+    "AW2-8"
    ],
    "input": [
     [
@@ -376,35 +296,7 @@
    "shots": {
     "before": 200,
     "end": 400
-   },
-   "checks": [
-    {
-     "rule": "AW2-3",
-     "what": "the info unchanged",
-     "type": "same",
-     "a": {
-      "shot": "before",
-      "screen": "second",
-      "rect": [
-       860,
-       620,
-       1020,
-       768
-      ]
-     },
-     "b": {
-      "shot": "end",
-      "screen": "second",
-      "rect": [
-       860,
-       620,
-       1020,
-       768
-      ]
-     },
-     "frac": 0.0
-    }
-   ]
+   }
   },
   {
    "id": "aw2-us-box-slides-in",
@@ -412,7 +304,6 @@
    "state": "advance-wars-2/us-unit.ss",
    "desc": "a tutorial box slides in after A: the plate and info on the second screen don't change",
    "rules": [
-    "AW2-3",
     "AW2-7"
    ],
    "input": [

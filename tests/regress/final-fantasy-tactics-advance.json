@@ -8,12 +8,10 @@
    "state": "final-fantasy-tactics-advance/us-battle-idle.ss",
    "desc": "the battle map, the cursor on the active unit",
    "rules": [
-    "FT-7",
-    "FT-8",
     "FT-9",
     "FT-10",
-    "FT-11",
-    "FT-12"
+    "FT-12",
+    "GEN-5"
    ],
    "shots": {
     "start": 60,
@@ -22,96 +20,40 @@
    },
    "checks": [
     {
-     "rule": "FT-8",
+     "rule": "FT-9",
      "what": "a capture was shown",
      "type": "log",
      "match": "map updated"
     },
     {
-     "rule": "FT-8",
-     "what": "a Status at the top left",
+     "rule": "FT-12",
+     "what": "the Laws across the top",
      "type": "not_uniform",
-     "shot": "end",
+     "shot": "start",
      "screen": "second",
      "rect": [
-      20,
-      40,
-      470,
-      320
+      100,
+      70,
+      920,
+      90
      ],
-     "color": "182438",
-     "frac": 0.97
+     "color": "303030",
+     "frac": 0.5
     },
     {
      "rule": "FT-9",
-     "what": "the turn order at the bottom right",
+     "what": "the turn order below them, in the middle",
      "type": "not_uniform",
-     "shot": "end",
+     "shot": "start",
      "screen": "second",
      "rect": [
-      790,
-      460,
-      1010,
-      750
+      420,
+      300,
+      600,
+      600
      ],
-     "color": "182438",
-     "frac": 0.97
-    },
-    {
-     "rule": "FT-8",
-     "what": "the other page 5 s later",
-     "type": "differs",
-     "a": {
-      "shot": "start",
-      "screen": "second",
-      "rect": [
-       260,
-       80,
-       480,
-       280
-      ]
-     },
-     "b": {
-      "shot": "page2",
-      "screen": "second",
-      "rect": [
-       260,
-       80,
-       480,
-       280
-      ]
-     },
-     "frac": 0.05
-    },
-    {
-     "rule": "FT-11",
-     "what": "the Mission at the top right",
-     "type": "not_uniform",
-     "shot": "end",
-     "screen": "second",
-     "rect": [
-      620,
-      40,
-      1010,
-      320
-     ],
-     "color": "182438",
-     "frac": 0.97
-    },
-    {
-     "rule": "FT-12",
-     "what": "the Laws at the bottom left",
-     "type": "not_uniform",
-     "shot": "end",
-     "screen": "second",
-     "rect": [
-      20,
-      650,
-      400,
-      750
-     ],
-     "color": "182438",
-     "frac": 0.97
+     "color": "303030",
+     "frac": 0.5
     }
    ]
   },
@@ -122,7 +64,7 @@
    "desc": "the cursor on another unit: its Status",
    "rules": [
     "FT-8",
-    "FT-9"
+    "GEN-5"
    ],
    "shots": {
     "start": 60,
@@ -137,33 +79,18 @@
     },
     {
      "rule": "FT-8",
-     "what": "a Status at the top left",
+     "what": "a Status filling the second screen",
      "type": "not_uniform",
-     "shot": "end",
+     "shot": "start",
      "screen": "second",
      "rect": [
-      20,
-      40,
-      470,
-      320
+      32,
+      64,
+      992,
+      704
      ],
-     "color": "182438",
-     "frac": 0.97
-    },
-    {
-     "rule": "FT-9",
-     "what": "the turn order at the bottom right",
-     "type": "not_uniform",
-     "shot": "end",
-     "screen": "second",
-     "rect": [
-      790,
-      460,
-      1010,
-      750
-     ],
-     "color": "182438",
-     "frac": 0.97
+     "color": "303030",
+     "frac": 0.05
     }
    ]
   },
@@ -174,7 +101,6 @@
    "desc": "a unit's Status open in the game",
    "rules": [
     "FT-8",
-    "FT-9",
     "FT-10"
    ],
    "shots": {
@@ -190,33 +116,18 @@
     },
     {
      "rule": "FT-8",
-     "what": "a Status at the top left",
+     "what": "a Status filling the second screen",
      "type": "not_uniform",
-     "shot": "end",
+     "shot": "start",
      "screen": "second",
      "rect": [
-      20,
-      40,
-      470,
-      320
+      32,
+      64,
+      992,
+      704
      ],
-     "color": "182438",
-     "frac": 0.97
-    },
-    {
-     "rule": "FT-9",
-     "what": "the turn order at the bottom right",
-     "type": "not_uniform",
-     "shot": "end",
-     "screen": "second",
-     "rect": [
-      790,
-      460,
-      1010,
-      750
-     ],
-     "color": "182438",
-     "frac": 0.97
+     "color": "303030",
+     "frac": 0.05
     }
    ]
   },
@@ -227,7 +138,6 @@
    "desc": "the turn order open in the game",
    "rules": [
     "FT-8",
-    "FT-9",
     "FT-10"
    ],
    "shots": {
@@ -243,33 +153,18 @@
     },
     {
      "rule": "FT-8",
-     "what": "a Status at the top left",
+     "what": "a Status filling the second screen",
      "type": "not_uniform",
-     "shot": "end",
+     "shot": "start",
      "screen": "second",
      "rect": [
-      20,
-      40,
-      470,
-      320
+      32,
+      64,
+      992,
+      704
      ],
-     "color": "182438",
-     "frac": 0.97
-    },
-    {
-     "rule": "FT-9",
-     "what": "the turn order at the bottom right",
-     "type": "not_uniform",
-     "shot": "end",
-     "screen": "second",
-     "rect": [
-      790,
-      460,
-      1010,
-      750
-     ],
-     "color": "182438",
-     "frac": 0.97
+     "color": "303030",
+     "frac": 0.05
     }
    ]
   },
@@ -280,8 +175,6 @@
    "desc": "the Mission open in the game",
    "rules": [
     "FT-8",
-    "FT-11",
-    "FT-12",
     "FT-10"
    ],
    "shots": {
@@ -290,40 +183,25 @@
    },
    "checks": [
     {
-     "rule": "FT-11",
+     "rule": "FT-8",
      "what": "a capture was shown",
      "type": "log",
      "match": "map updated"
     },
     {
-     "rule": "FT-11",
-     "what": "the Mission at the top right",
+     "rule": "FT-8",
+     "what": "a Status filling the second screen",
      "type": "not_uniform",
-     "shot": "end",
+     "shot": "start",
      "screen": "second",
      "rect": [
-      620,
-      40,
-      1010,
-      320
+      32,
+      64,
+      992,
+      704
      ],
-     "color": "182438",
-     "frac": 0.97
-    },
-    {
-     "rule": "FT-12",
-     "what": "the Laws at the bottom left",
-     "type": "not_uniform",
-     "shot": "end",
-     "screen": "second",
-     "rect": [
-      20,
-      650,
-      400,
-      750
-     ],
-     "color": "182438",
-     "frac": 0.97
+     "color": "303030",
+     "frac": 0.05
     }
    ]
   },
@@ -334,8 +212,6 @@
    "desc": "the Laws open in the game",
    "rules": [
     "FT-8",
-    "FT-11",
-    "FT-12",
     "FT-10"
    ],
    "shots": {
@@ -344,40 +220,25 @@
    },
    "checks": [
     {
-     "rule": "FT-12",
+     "rule": "FT-8",
      "what": "a capture was shown",
      "type": "log",
      "match": "map updated"
     },
     {
-     "rule": "FT-11",
-     "what": "the Mission at the top right",
+     "rule": "FT-8",
+     "what": "a Status filling the second screen",
      "type": "not_uniform",
-     "shot": "end",
+     "shot": "start",
      "screen": "second",
      "rect": [
-      620,
-      40,
-      1010,
-      320
+      32,
+      64,
+      992,
+      704
      ],
-     "color": "182438",
-     "frac": 0.97
-    },
-    {
-     "rule": "FT-12",
-     "what": "the Laws at the bottom left",
-     "type": "not_uniform",
-     "shot": "end",
-     "screen": "second",
-     "rect": [
-      20,
-      650,
-      400,
-      750
-     ],
-     "color": "182438",
-     "frac": 0.97
+     "color": "303030",
+     "frac": 0.05
     }
    ]
   },
@@ -395,23 +256,23 @@
    },
    "checks": [
     {
-     "rule": "FT-13",
-     "what": "the Status still there",
+     "rule": "FT-9",
+     "what": "the turn order below them, in the middle",
      "type": "not_uniform",
-     "shot": "end",
+     "shot": "before",
      "screen": "second",
      "rect": [
-      20,
-      40,
-      470,
-      320
+      420,
+      300,
+      600,
+      600
      ],
-     "color": "182438",
-     "frac": 0.97
+     "color": "303030",
+     "frac": 0.5
     },
     {
      "rule": "FT-13",
-     "what": "the Mission, Laws and turn order unchanged",
+     "what": "the turn order and Laws unchanged",
      "type": "same",
      "a": {
       "shot": "before",
@@ -457,18 +318,18 @@
    "checks": [
     {
      "rule": "FT-7",
-     "what": "nothing but the background along the bottom",
+     "what": "the logo on dark grey",
      "type": "uniform",
-     "shot": "end",
+     "shot": "start",
      "screen": "second",
      "rect": [
-      20,
-      620,
-      1000,
-      750
+      32,
+      64,
+      992,
+      704
      ],
-     "color": "182438",
-     "frac": 0.99
+     "color": "303030",
+     "frac": 0.5
     }
    ]
   },
@@ -478,9 +339,7 @@
    "state": "final-fantasy-tactics-advance/us-snowball-unit.ss",
    "desc": "the snowball fight: Lita's details and the action prompt",
    "rules": [
-    "FT-7",
     "FT-8",
-    "FT-9",
     "FT-10"
    ],
    "shots": {
@@ -496,8 +355,6 @@
    "desc": "dialogue with a portrait in a battle",
    "rules": [
     "FT-7",
-    "FT-8",
-    "FT-9",
     "FT-10"
    ],
    "shots": {
@@ -513,8 +370,6 @@
    "desc": "the BATTLE banner",
    "rules": [
     "FT-7",
-    "FT-8",
-    "FT-9",
     "FT-10"
    ],
    "shots": {
@@ -530,8 +385,6 @@
    "desc": "a Do it / Cancel prompt",
    "rules": [
     "FT-7",
-    "FT-8",
-    "FT-9",
     "FT-10"
    ],
    "shots": {
@@ -546,9 +399,7 @@
    "state": "final-fantasy-tactics-advance/us-unit-menu.ss",
    "desc": "Ritz's command menu in the snowball fight",
    "rules": [
-    "FT-7",
     "FT-8",
-    "FT-9",
     "FT-10"
    ],
    "shots": {
@@ -572,18 +423,18 @@
    "checks": [
     {
      "rule": "FT-7",
-     "what": "nothing but the background along the bottom",
+     "what": "the logo on dark grey",
      "type": "uniform",
-     "shot": "end",
+     "shot": "start",
      "screen": "second",
      "rect": [
-      20,
-      620,
-      1000,
-      750
+      32,
+      64,
+      992,
+      704
      ],
-     "color": "182438",
-     "frac": 0.99
+     "color": "303030",
+     "frac": 0.5
     }
    ]
   },
@@ -602,18 +453,18 @@
    "checks": [
     {
      "rule": "FT-7",
-     "what": "nothing but the background along the bottom",
+     "what": "the logo on dark grey",
      "type": "uniform",
-     "shot": "end",
+     "shot": "start",
      "screen": "second",
      "rect": [
-      20,
-      620,
-      1000,
-      750
+      32,
+      64,
+      992,
+      704
      ],
-     "color": "182438",
-     "frac": 0.99
+     "color": "303030",
+     "frac": 0.5
     }
    ]
   },
@@ -623,9 +474,7 @@
    "state": "final-fantasy-tactics-advance/us-battle-status.ss",
    "desc": "a unit's Status screen open in a battle",
    "rules": [
-    "FT-7",
     "FT-8",
-    "FT-9",
     "FT-10"
    ],
    "shots": {

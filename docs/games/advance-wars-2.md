@@ -9,20 +9,22 @@
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list advance-wars-2`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.
 
-Every game also follows the [general rules](README.md#general-rules) (GEN-1 to GEN-4). It's set up as [Advance Wars](advance-wars.md) is; the rules are the same.
+Every game also follows the [general rules](README.md#general-rules) (GEN-1 to GEN-5). It's set up as [Advance Wars](advance-wars.md) is; the rules are the same.
 
 ## Rules
 
-**AW2-1. Unit intel or Battle Intel.** In a battle on your turn the second screen shows, at the top in the middle, the intel of the unit under the cursor (the screen R opens: its panel and the text box beside it, as the game lays them out) when there's a unit there, yours or the enemy's, or else the Battle Intel (SELECT > Intel > Status); both are brought up on the hidden copy.
+**AW2-1. Unit intel or Battle Intel.** In a battle on your turn the second screen shows the intel of the unit under the cursor (the screen R opens: its panel and the text box beside it, where the game puts them) when there's a unit there, yours or the enemy's, or else the Battle Intel (SELECT > Intel > Status: the battle's status, its panel centred on the screen); both are brought up on the hidden copy. (Until v1.3.2's later test builds both were at the top, the minimap and the moved plate and info below them.)
 
-**AW2-2. Minimap.** The START minimap is at the bottom left of the second screen.
+**AW2-2.** *Retired in v1.3.2's later test builds:* the START minimap at the second screen's bottom left.
 
-**AW2-3. Plate and info move.** The CO plate (portrait and funds) and the terrain and unit info leave the game screen for the bottom of the second screen (plate centred, info on the right on a grey box); the panels are drawn over them where they meet. While picking a target, the DAMAGE box goes above the info. While a conversation is up, they stay as they were (a tutorial that moves the info up the game screen doesn't move it on the second screen). The cursor's corners stay on the game screen. While the unit intel (R) is open in the game, they stay as they were.
+**AW2-3.** *Retired in v1.3.2's later test builds:* the CO plate and the terrain and unit info (and the DAMAGE box) moved to the bottom of the second screen (they stay on the game screen: AW2-8).
 
-**AW2-4. Enemy turn.** On the enemy's turn their plate shows; the panel keeps its last picture. *By hand: no enemy-turn state yet (the first tutorial map won't end the turn early).*
+**AW2-4. Enemy turn.** On the enemy's turn the second screen keeps its last picture. *By hand: no enemy-turn state yet (the first tutorial map won't end the turn early).*
 
-**AW2-5. Fights.** In a fight the second screen is the dark background with the logo small and dimmed in the middle. *By hand: no fight state yet.*
+**AW2-5. Fights.** In a fight the second screen shows the logo (GEN-1). *By hand: no fight state yet.*
 
 **AW2-6. Title and menus.** On the title and menus the second screen shows the logo (the title's lettering, without PRESS START!).
 
-**AW2-7. Conversations.** A conversation during a battle stays on the game screen only (the game turns the map off behind it, so moving it would leave a black strip). While it's up, and as it slides in and out, nothing on the second screen changes (the plate and info aren't taken from under it, and the panels can't be brought up behind it). (Until v1.3.2's later test builds it moved to the second screen.)
+**AW2-7. Conversations.** A conversation during a battle stays on the game screen. While it's up, and as it slides in and out, nothing on the second screen changes (the panels can't be brought up behind it). (Until v1.3.2's later test builds it moved to the second screen.)
+
+**AW2-8. Game screen untouched.** Nothing leaves the game screen: the CO plate, the terrain and unit info, the DAMAGE box, the cursor and conversations stay where the game draws them, as they would on one screen.

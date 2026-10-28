@@ -9,7 +9,7 @@
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list mario-kart-super-circuit`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.
 
-Every game also follows the [general rules](README.md#general-rules) (GEN-1 to GEN-4).
+Every game also follows the [general rules](README.md#general-rules) (GEN-1 to GEN-5).
 
 ## Rules
 
@@ -21,7 +21,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **MK-4. Results.** After the finish the lap times and the results table are on the second screen.
 
-**MK-5. Podium.** After a cup, CONGRATULATIONS!, the cup name, the portrait, place, rank and cup table are on the second screen over the game's dimmed logo; the podium, crowd and trophy stay on the game screen.
+**MK-5. Podium.** After a cup, CONGRATULATIONS!, the cup name, the portrait, place, rank and cup table are on the second screen on dark grey (until v1.3.2's later test builds over the game's logo, as large as fitted and dimmed: at its own size, GEN-1, the place and cup table couldn't be read over it); the podium, crowd and trophy stay on the game screen.
 
 **MK-6. Pause and menus.** The pause menu stays on the game screen with the last HUD below it; in the menus the second screen shows the logo.
 

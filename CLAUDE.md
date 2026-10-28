@@ -297,8 +297,7 @@ Android session at the same time. To keep them from colliding:
   check on the device; known limitations said plainly. When a game's
   behaviour changes, the rule in `docs/games/` changes first.
 - **Open by-hand checks** (`tools/regress.py --uncovered`): Advance Wars 2's
-  enemy turn and fights (AW2-4, AW2-5), Advance Wars' campaign
-  conversations on the second screen (AW-7). Updates (v1.3.2) were tested against
+  enemy turn and fights (AW2-4, AW2-5). Updates (v1.3.2) were tested against
   tools/update_mock.py and the real v1.3.1 release, not yet on the device.
 
 ## Ongoing work
