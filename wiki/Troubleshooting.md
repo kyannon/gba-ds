@@ -67,6 +67,8 @@ The log's every-5-seconds report says whether the sound ran out (underruns) and 
 
 **A frontend starts GBA DS but not the game, or "no ROM".** Look in `GBA DS/launch.log`: it lists the intent's action, data and extras. See [[Launching from Android frontends]] for the arguments each frontend needs.
 
+**The game list says "Can't save files here".** GBA DS couldn't write to its folder, so save states, screenshots and game logos aren't kept. On Android, check that the storage isn't full and that All files access is on; on Linux, that the card isn't read-only or full.
+
 **GBA DS can't find my ROMs or the `GBA DS` folder.** Check that **All files access** is on for GBA DS (Android Settings → Apps → GBA DS → Permissions). Without it, the files are kept in `Android/data/io.github.kyannon.gbads/files`.
 
 **The second screen is empty.** The device must show its second panel to Android as a second display; GammaOS on the RG DS Plus does.
