@@ -196,7 +196,8 @@
    "rom": "AA2E",
    "desc": "AA2E logo extraction",
    "rules": [
-    "GEN-1"
+    "GEN-1",
+    "SMA-6"
    ],
    "golden": [
     "logo"
@@ -208,7 +209,8 @@
    "rom": "AA2P",
    "desc": "AA2P logo extraction",
    "rules": [
-    "GEN-1"
+    "GEN-1",
+    "SMA-6"
    ],
    "golden": [
     "logo"
@@ -220,7 +222,8 @@
    "rom": "AA2J",
    "desc": "AA2J logo extraction",
    "rules": [
-    "GEN-1"
+    "GEN-1",
+    "SMA-6"
    ],
    "golden": [
     "logo"

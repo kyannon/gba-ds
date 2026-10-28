@@ -110,8 +110,9 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 	/* opaque mask and bounding box above maxY */
 	int x0 = GBA_W, y0 = GBA_H, x1 = -1, y1 = -1, count = 0;
 	int maxY = p->logo.maxY ? p->logo.maxY : GBA_H;
-	for (int y = 0; y < maxY; ++y) {
-		for (int x = 0; x < GBA_W; ++x) {
+	int maxX = p->logo.maxX ? p->logo.maxX : GBA_W;
+	for (int y = p->logo.minY; y < maxY; ++y) {
+		for (int x = p->logo.minX; x < maxX; ++x) {
 			uint32_t c = fg[y * GBA_W + x];
 			bool clear = inMask ? !inMask[y * GBA_W + x] : c == back[y * GBA_W + x];
 			if (p->logo.blackIsClear && (c & 0xFF) < 24 && ((c >> 8) & 0xFF) < 24 && ((c >> 16) & 0xFF) < 24) clear = true;

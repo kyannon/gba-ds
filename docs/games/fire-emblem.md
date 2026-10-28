@@ -17,7 +17,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **FE-2.** *Retired in v1.3.2's later test builds:* the terrain and goal windows moved to the second screen, with the START minimap (they stay on the game screen: FE-10; the minimap isn't shown).
 
-**FE-3. Unit status.** With the cursor free on a unit, yours or another army's, the second screen is that unit's status screen (R), as the game draws it, filling the screen, turning through its three pages every 5 seconds; taken again only when the cursor or a unit changes. Once a unit is selected (moving it, its menu, the forecast) the logo comes back until the cursor is free again. (Until v1.3.2's later test builds it was at the top left, without its moving background, and the game's small unit window was on neither screen.)
+**FE-3. Unit status.** With the cursor free on a unit, yours or another army's, the second screen is that unit's status screen (R), as the game draws it, filling the screen, turning through its three pages every 5 seconds; taken again only when the cursor or a unit changes. (Until v1.3.2's later test builds, a unit's status that didn't open while the cursor was still gliding onto it, often an enemy's, wasn't tried again until the cursor moved.) Once a unit is selected (moving it, its menu, the forecast) the logo comes back until the cursor is free again. (Until v1.3.2's later test builds it was at the top left, without its moving background, and the game's small unit window was on neither screen.)
 
 **FE-4.** *Retired in v1.3.2's later test builds:* a unit's menu and the battle forecast moved to the second screen (FE-10).
 

@@ -418,6 +418,8 @@ typedef struct MapProfile {
 		int objMaxY; /* with layers: sprites only above this row (0: all rows); below it, the BG layers alone */
 		bool pressStart, blackIsClear;
 		bool lightEdgeClear; /* light background around the logo, reached from the edges, is clear */
+		int minY, minX, maxX; /* with maxY: only this box (maxX 0: the whole width); a frame
+		                       * round the logo left out (Super Mario World's) */
 		MacroStep steps[24]; /* instead of wait/pressStart: button steps from power-on */
 		int rev; /* bump when extraction changes, so cached logos are made again */
 		/* The logo is painted into the whole title picture: render every

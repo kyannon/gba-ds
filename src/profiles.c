@@ -442,11 +442,14 @@ static const char* sn_compose(Emu* s, const void* state, uint32_t* out, int w, i
                               * 2 another unit's, the system menu or a Status, 3 the turn
                               * order...; Japan: 0x30 lower) */
 #define FT_IN_BATTLE 0x03000E4E /* 1 in a battle (its scenes, moves, menus too), else 0 */
-#define FT_V_BATTLE 0xF0000010 /* 1 in a battle */
+#define FT_OVER 0x03000E08 /* 0xFF once the battle's won (its closing scene on the battle
+                            * map, with FT_IN_BATTLE still 1), 0 while it's fought */
+#define FT_V_BATTLE 0xF0000010 /* 1 in a battle, until it's over */
 #define FT_V_IDLE 0xF0000011   /* 1 on a battle's map or a unit's Status (not a move or an action) */
 
 static uint32_t ft_virt(Emu* e, uint32_t addr) {
-	bool in = emu_read8(e, FT_IN_BATTLE) == 1;
+	/* (a battle that's over is out of it: its closing scene gets the logo) */
+	bool in = emu_read8(e, FT_IN_BATTLE) == 1 && !emu_read8(e, FT_OVER);
 	if (addr == FT_V_BATTLE) return in;
 	if (addr != FT_V_IDLE) return 0;
 	uint16_t c = emu_read16(e, 0x04000008);
@@ -848,6 +851,9 @@ static const char* fe_compose(Emu* s, const void* state, uint32_t* const* out, i
 		if (key == pageKey) {
 			pages = pageN;
 		} else {
+			/* (the cursor still gliding to its place takes no R: let it
+			 * settle first) */
+			aw_run(s, 0, 12);
 			aw_tap(s, K_R, 1);
 			aw_run(s, 0, 8);
 			if (fe_proc(s, FE_P_STATUS) || (fe_r->status2 && fe_proc(s, fe_r->status2))) {
@@ -860,7 +866,16 @@ static const char* fe_compose(Emu* s, const void* state, uint32_t* const* out, i
 					memcpy(page[pages], s->fb, sizeof(page[pages]));
 				}
 			}
-			pageKey = key, pageN = pages;
+			/* kept for this cursor and these units only when R opened a
+			 * status, or there's no unit under the cursor: a status that
+			 * didn't open for a moment (the cursor still moving) is tried
+			 * again at the next picture */
+			bool unit = false;
+			uint32_t cur = emu_read32(s, FE_CURSOR);
+			for (uint32_t a = FE_UNITS; a < FE_UNITS + FE_UNITS_LEN && !unit; a += 0x48) {
+				unit = emu_read8(s, a + 3) == 8 && emu_read8(s, a + 0x10) == (cur & 0xFF) && emu_read8(s, a + 0x11) == ((cur >> 16) & 0xFF);
+			}
+			pageKey = pages || !unit ? key : 0, pageN = pages;
 		}
 	}
 	*nOut = pages ? pages : 1;
@@ -1323,8 +1338,13 @@ static const MapProfile profiles[] = {
 	{
 		.codes = { "AA2E", "AA2P" },
 		.title = "Super Mario Advance 2: Super Mario World",
-		/* Start during the intro brings up the title: the logo alone on BG2 */
-		.logo = { .wait = 400, .pressStart = true, .wait2 = 200, .layer = 2 },
+		/* Super Mario World's own title (Start during the intro, Start for
+		 * single player, A on Super Mario World): its logo on BG3, inside
+		 * the wooden frame (16 pixels wide, rows 0-16 at the top), above
+		 * the copyright line (the owner's choice over the Super Mario
+		 * Advance 2 one, on BG2 of the first title) */
+		.logo = { .steps = { { 0, 400 }, { K_START, 4 }, { 0, 200 }, { K_START, 4 }, { 0, 120 }, { K_A, 4 }, { 0, 200 } },
+		          .layer = 3, .minY = 17, .maxY = 100, .minX = 16, .maxX = 224, .rev = 1 },
 		/* The game mode (0x03002BC6) is the SNES game's plus 0x10: 0x24 in
 		 * a level (paused too, and the intro), 0x1E on the world map (paused
 		 * too), 0x3D in the SELECT menu, 0x1B-0x23 between them.

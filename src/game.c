@@ -638,7 +638,7 @@ static Piece pieces[4];
 static void upload_map_frame(int idx);
 static const uint32_t* hud_over_map(const uint32_t* px);
 static void make_combat_canvas(void);
-static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top);
+static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha);
 static uint32_t hudLogoBelow[HUD_CW * HUD_CH]; /* profile hud.logoBelow: black, the logo at half size */
 static bool hudLogoBelowDone;
 static int snapShow, snapRevert;   /* consecutive frames matching show / a revert screen */
@@ -1392,7 +1392,7 @@ static void hud_make_logo_below(void) {
 		const HudMove* mv = &hudProf->hud.moves[m];
 		if (mv->toGame && !mv->how && !mv->vhow && mv->x0 == 0 && mv->x1 >= GBA_W - 1 && mv->y0 > 0) top = mv->y0 * 2;
 	}
-	logo_draw(hudLogoBelow, HUD_CW, HUD_CH, HUD_CW / GBA_W, top ? top + 8 : 0);
+	logo_draw(hudLogoBelow, HUD_CW, HUD_CH, HUD_CW / GBA_W, top ? top + 8 : 0, 255);
 }
 
 static int rule_count(const SpriteRule* r, int max) {
@@ -2747,10 +2747,12 @@ static void draw_osd(void) {
 
 /* The game's logo at its own size (GEN-1) onto a cw x ch canvas: k canvas
  * pixels to a logo pixel (one GBA pixel each for an extracted logo),
- * centred, blended over what's there; kept below row `top` (a HUD above
- * it). A user's own logo too big for that is shrunk to fit. False if
- * there's no logo. */
-static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top) {
+ * centred, blended over what's there at `alpha` (255: opaque; the logo
+ * alone, with nothing live to show, at half: LOGO_IDLE); kept below row
+ * `top` (a HUD above it). A user's own logo too big for that is shrunk to
+ * fit. False if there's no logo. */
+#define LOGO_IDLE 128
+static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha) {
 	bool pixelArt = false;
 	SDL_Surface* lg = ui_logo_surface(cfg, emu.gameCode, &pixelArt);
 	if (!lg) return false;
@@ -2767,12 +2769,13 @@ static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top) {
 		const uint8_t* row = (const uint8_t*) lg->pixels + (size_t) (y * lg->h / h) * lg->pitch;
 		for (int x = 0; x < w; ++x) {
 			const uint8_t* p = row + (size_t) (x * lg->w / w) * 4; /* RGBA32: bytes R, G, B, A */
-			if (!p[3]) continue;
+			int a = p[3] * alpha / 255;
+			if (!a) continue;
 			uint32_t* o = &px[(y0 + y) * cw + x0 + x];
 			uint32_t out = 0xFF000000;
 			for (int c = 0; c < 3; ++c) {
 				int bg = (*o >> (c * 8)) & 0xFF;
-				out |= (uint32_t) (bg + (p[c] - bg) * p[3] / 255) << (c * 8); /* ABGR8888 */
+				out |= (uint32_t) (bg + (p[c] - bg) * a / 255) << (c * 8); /* ABGR8888 */
 			}
 			*o = out;
 		}
@@ -2783,7 +2786,7 @@ static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top) {
 }
 
 /* The game's logo as a GBA screen would show it: centred on dark grey in a
- * 240x160 picture, drawn with the second screen's scaling and the LCD grid.
+ * 240x160 picture, at half strength (nothing live to show), drawn with the second screen's scaling and the LCD grid.
  * Logos extracted from the ROM are at GBA resolution; a user's own logo
  * that's bigger stays a high-resolution image (logoCanvasTex NULL). */
 static void make_logo_canvas(void) {
@@ -2796,7 +2799,7 @@ static void make_logo_canvas(void) {
 	if (big) return;
 	static uint32_t px[GBA_W * GBA_H];
 	for (int i = 0; i < GBA_W * GBA_H; ++i) px[i] = SCREEN_GREY;
-	logo_draw(px, GBA_W, GBA_H, 1, 0);
+	logo_draw(px, GBA_W, GBA_H, 1, 0, LOGO_IDLE);
 	for (int i = 0; i < nViews; ++i) {
 		logoCanvasTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, GBA_W, GBA_H);
 		if (!logoCanvasTex[i]) continue;
@@ -2813,7 +2816,7 @@ static void make_combat_canvas(void) {
 	uint32_t* px = malloc((size_t) mapW * mapH * 4);
 	if (!px) return;
 	for (int i = 0; i < mapW * mapH; ++i) px[i] = SCREEN_GREY;
-	logo_draw(px, mapW, mapH, SDL_max(1, mapW / GBA_W), 0);
+	logo_draw(px, mapW, mapH, SDL_max(1, mapW / GBA_W), 0, LOGO_IDLE);
 	for (int i = 0; i < nViews; ++i) {
 		if (combatTex[i]) ui_update_texture(combatTex[i], px, mapW * 4);
 	}

@@ -61,7 +61,7 @@ You see the game's own map, with everything it shows (explored rooms, save and w
 ## Super Mario Advance 2: Super Mario World
 
 - **On the world map,** the second screen shows the SELECT menu: the list of levels on the island with your time and score, kept up to date as you move around, held still (Peach's HELP! and the level you're on are shown, not blinking). It's captured in the background like the other games' maps; the game itself is never paused.
-- **In a level,** the status bar (lives, Dragon Coins, time, coins and score) moves to the top of the second screen, with the logo below it. The blue item box stays at the top of the game screen, with your reserve item in it. Message boxes and the pause box stay on the game screen. The status bar stays there through doors and pipes.
+- **In a level,** the status bar (lives, Dragon Coins, time, coins and score) moves to the top of the second screen, with the logo below it. The logo is Super Mario World's own, from its title screen. The blue item box stays at the top of the game screen, with your reserve item in it. Message boxes and the pause box stay on the game screen. The status bar stays there through doors and pipes.
 - An optional **SNES layout** is under **Controls** on the second screen: see [Playing](Playing#buttons).
 
 ## Final Fantasy Tactics Advance
@@ -71,7 +71,7 @@ Preliminary: a new second screen in v1.3.2, replacing the earlier one (which mov
 - **In a battle, with the cursor on a unit** (yours, an enemy or a guest), the second screen is that unit's **Status** screen, as the game draws it, turning between its Equip and Abilities pages every 5 seconds.
 - **With the cursor on no unit** (or on the judge, who has no Status), it shows the **Laws** (forbidden and recommended) at the top and the **turn order** (the list L shows) below them. The list is too long to fit under the Laws, so its last rows are cut off at the bottom; who acts next always shows.
 - All of it is brought up in the background on a silent copy of the game, as the other games' maps are; your game is never paused or touched, and the game screen stays exactly as the game draws it. It's taken again only with the battle map showing: while a unit picks where to move or what to hit, on the enemy's turn and in scenes, the last picture stays.
-- Outside battles (the title, menus, the world map), the second screen shows the logo.
+- Once a battle is won (its closing scene), and outside battles (the title, menus, the world map), the second screen shows the logo.
 
 ## Pokémon Pinball: Ruby & Sapphire
 
