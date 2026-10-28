@@ -43,6 +43,11 @@ typedef struct Emu {
 	uint32_t* fb; /* GBA_W * GBA_H, mGBA native 32-bit color (XBGR8888, i.e. bytes R,G,B,X) */
 	char gameCode[5];
 	bool audio;
+	unsigned long frames; /* frames run (emu_frame), for timing the captures */
+	/* a hidden copy's capture called off (mapcap_cancel): while it's set,
+	 * frames don't run, so whatever the capture waits for gives up at
+	 * once; emu_cancelled says so, so it keeps nothing of that run */
+	volatile bool* cancel;
 } Emu;
 
 /* savePath may be NULL (no battery save attached). */
@@ -55,6 +60,11 @@ bool emu_is_archive_name(const char* name); /* .zip, .7z */
 bool emu_rom_header(const char* path, uint8_t* out, size_t n);
 void emu_close(Emu* e);
 void emu_frame(Emu* e, uint32_t keys);
+/* The same without drawing it (e->fb keeps the last picture): for waits on
+ * a hidden copy. */
+void emu_frame_blind(Emu* e, uint32_t keys);
+/* true while this core's capture has been called off (Emu.cancel) */
+bool emu_cancelled(const Emu* e);
 void emu_reset(Emu* e);
 
 size_t emu_state_size(Emu* e);

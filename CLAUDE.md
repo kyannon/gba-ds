@@ -122,7 +122,9 @@ Android session at the same time. To keep them from colliding:
 - `build/host/harness ROM OUTDIR SCRIPT` drives the core frame by frame:
   `load/save NAME`, `wait N`, `hold BUTTONS N`, `shot NAME`, `peek ADDR LEN`,
   `poke ADDR LEN VAL`, `io OFFSET N` (I/O registers), `dumpram NAME`, `layershot NAME` (each BG layer and
-  OBJ alone), `map NAME` (run a map capture), `logo NAME`.
+  OBJ alone), `map NAME` (run a map capture), `logo NAME`. It writes the
+  game's battery save beside the ROM (`ROM.sav`): don't run it on the fixtures'
+  ROMs in place, or delete those `.sav` files after (never commit them).
 - ROMs and save files are not in the repo. The owner attaches them; ask.
 - State Saver (`tools/statesaver/`, published as the owner's artifact) has a
   GBA DS tab: it runs a dev zip's `gba-ds/web/gba-ds.wasm` (`scripts/build-web.sh`,
@@ -194,6 +196,11 @@ Android session at the same time. To keep them from colliding:
   for logo-only games (Tony Hawk's Pro Skater 2) the `snap` screen copy and
   `controls` four-face layout (Super Mario Advance 2: `controls.snes`, with the camera pan poke done in game.c's run_frame), (Mario Kart; Super Mario Advance 2 in levels, beside its map capture) the `hud` split and when it's on. Pokémon Pinball has `tall`: the table over both screens as one tall view (game.c update_tall), its top row min(the game's view, rows - 320): the top screen the game as it is while that's its view, else a copy held at rows - 320 with the game's screen-fixed things laid over it (BG0 and the sprites found fixed, drawn by the HUD split: emu_hud_keep_exact); the bottom screen a second copy held 160 rows below the view's top (twins[], run_frame: every frame each copy is taken from the game's state from before the frame before, held at its row (camera stores NOPed, its own pans compensated, twin_jump) and run that frame and this one, on worker threads beside the game: a copy left on its own fell behind the game's logic); sprites alike the game's hidden only when fixed to the screen or wrapped round (twin_hide); paused, the Mart or a message: the game's whole screen on the bottom one (PP-11). See docs/PINBALL.md. A compilation with its own RAM per game (Game Boy Wars Advance 1+2, `BGWJ`) has `pick`: game.c's ss_switch sets the second screen up again for the variant it names (BGW1, BGW2). Adding a game mostly means a profile.
 - `mapcap.c` map capture on a hidden second core in a background thread.
+  A `room` key change starts one once it has held 3 frames (game.c), calling
+  off one still running (`mapcap_cancel`: the shadow's frames stop running,
+  `emu_cancelled`, composers keep nothing); `aw_run` waits draw only their
+  last two frames (`emu_frame_blind`). `GBADS_DEBUG=1` logs each capture's
+  time and frame count ("capture: ... ms, ... frames").
 - `mapframe.c` generated map surrounds; `logo.c` logo / frame extraction.
 - `game.c` a play session: input, the second screen (map, logo, THPS2
   snapshot and Controls picker), pause menu, cheats screen, screenshots.

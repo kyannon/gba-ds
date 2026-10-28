@@ -335,6 +335,37 @@
    ]
   },
   {
+   "id": "ft-us-later-battle",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-later-battle-menu.ss",
+   "desc": "a battle after the snowball fight was won, Marche's menu open (the owner's State Saver save)",
+   "rules": [
+    "FT-8",
+    "FT-7"
+   ],
+   "shots": {
+    "start": 120,
+    "end": 400
+   },
+   "checks": [
+    {
+     "rule": "FT-8",
+     "what": "Marche's Status fills the second screen (not the logo of a battle already won)",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.05
+    }
+   ]
+  },
+  {
    "id": "ft-us-splash",
    "rom": "AFXE",
    "state": "final-fantasy-tactics-advance/us-splash.ss",

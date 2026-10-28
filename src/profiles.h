@@ -106,6 +106,9 @@ typedef struct MapProfile {
 	MacroStep open2[4];
 	int settleMax;     /* frames to wait after the macro for the map to settle */
 	int openWithin;    /* give up if the memory probes don't match within this many frames (0 = settleMax) */
+	int openTries;     /* with openWithin: press `open` again this many times in all before giving
+	                    * up (0, 1: once): a game that ignores it for a while (Super Mario
+	                    * Advance 2 just after Mario reaches a level) */
 	/* Dim the last map while the map can't be brought up (A Link to the
 	 * Past: L does nothing indoors without a dungeon map). Other games keep
 	 * the last map at full brightness: their captures also fail briefly

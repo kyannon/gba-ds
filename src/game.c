@@ -3314,6 +3314,9 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 
 	static int16_t samples[4096 * 2];
 	uint32_t lastRoomKey = 0;
+	/* the room key as it is now, and for how many frames it's held */
+	uint32_t seenRoomKey = 0;
+	int seenRoomFor = 0;
 	int sinceMapRequest = 1 << 20;
 	int lastFails = 0;
 	bool forceMap = true, wasDark = false;
@@ -3798,7 +3801,14 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				if (debug) fprintf(stderr, "frame %llu: back at the menus, map cleared\n", (unsigned long long) frameCount);
 			}
 			uint32_t rk = mapcap_room_key(mc, &emu);
-			bool roomChanged = rk && rk != lastRoomKey;
+			if (rk != seenRoomKey) seenRoomKey = rk, seenRoomFor = 0;
+			else ++seenRoomFor;
+			/* a change counts once it has held for 3 frames (a cursor
+			 * gliding to its place, Mario walking a path: not each step);
+			 * a capture still running for the old one is called off, so
+			 * the new one starts as soon as it has stopped */
+			bool roomChanged = rk && rk != lastRoomKey && seenRoomFor >= 2;
+			if (roomChanged && mapcap_busy(mc)) mapcap_cancel(mc);
 			/* Back off while captures keep failing (e.g. the game says "playing"
 			 * but the map can't open: intro cutscenes, briefings). Each failed
 			 * attempt emulates a few seconds in the background, which starves

@@ -35,6 +35,8 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 
 **GEN-5. A GBA screen.** The second screen is a 240x160 picture like the game screen, scaled up the same way (Settings: Map Scale, as Scale is for the game screen), so with the same settings a GBA pixel is the same size on both screens: whatever a game puts there (a map, a status screen, a window, the logo) is at the game's own size. (Until v1.3.2's later test builds, Fire Emblem's, Final Fantasy Tactics Advance's and the Advance Wars games' second screens were bigger pictures, 320x240 or 512x384, so what they showed was smaller than on the game screen.) Mario Kart's race screen is the exception for now: its course map is drawn larger, and the scenery behind it smoothly scaled.
 
+**GEN-6. Quick to follow.** When what a game's second screen is about changes (its profile's `room` probes: the cursor on another unit, Mario on another level, another room), a capture starts as soon as the change has held for 3 frames, without waiting for the regular refresh; one still running for the old place is called off. The hidden copy doesn't draw the frames it only waits through. *By hand: how soon the second screen follows on the device (the tests run captures inline, at fixed frames).*
+
 ## Writing rules
 
 - One behaviour per rule, in the player's terms, with where (which screen, where on it) and when (which game state).

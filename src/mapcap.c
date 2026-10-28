@@ -8,7 +8,9 @@
 #include <sys/resource.h>
 #include <sys/syscall.h>
 #include <unistd.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <string.h>
 
 struct MapCapture {
@@ -47,6 +49,7 @@ struct MapCapture {
 	bool running;
 	bool pending; /* a snapshot is waiting for the worker */
 	bool busy;
+	volatile bool cancel; /* mapcap_cancel: the capture running is called off */
 	void* snapshot;
 
 	uint32_t* published[MAP_MAX_FRAMES];
@@ -474,7 +477,22 @@ static long frame_luma(const uint32_t* px, size_t n) {
 }
 static void place_rate(MapCapture* mc);
 
+static const char* do_capture_(MapCapture* mc, const void* state);
+/* A capture, timed for GBADS_DEBUG: how long, how many of the shadow
+ * core's frames */
 static const char* do_capture(MapCapture* mc, const void* state) {
+	static int dbg = -1;
+	if (dbg < 0) dbg = getenv("GBADS_DEBUG") != NULL;
+	struct timespec t0, t1;
+	clock_gettime(CLOCK_MONOTONIC, &t0);
+	unsigned long f0 = mc->shadow.frames;
+	const char* err = do_capture_(mc, state);
+	clock_gettime(CLOCK_MONOTONIC, &t1);
+	if (dbg) fprintf(stderr, "capture: %.0f ms, %lu frames%s%s\n", (t1.tv_sec - t0.tv_sec) * 1e3 + (t1.tv_nsec - t0.tv_nsec) / 1e6, mc->shadow.frames - f0,
+	                 mc->cancel ? ", called off" : err ? ": " : "", mc->cancel ? "" : err ? err : "");
+	return err;
+}
+static const char* do_capture_(MapCapture* mc, const void* state) {
 	const MapProfile* p = mc->prof;
 	Emu* s = &mc->shadow;
 	size_t n = mc->cropPixels;
@@ -524,11 +542,19 @@ static const char* do_capture(MapCapture* mc, const void* state) {
 	int stable = 0;
 	bool havePrev = false;
 	bool everUp = false;
-	int f;
+	int f, presses = 1, base = 0;
 	for (f = 0; f < p->settleMax; ++f) {
 		if (p->captureLayers) emu_write16(s, 0x05000000, 0); /* black behind the layers shown */
 		emu_frame(s, 0);
-		if (!everUp && p->openWithin && f >= p->openWithin) {
+		if (!everUp && p->openWithin && f - base >= p->openWithin) {
+			if (presses < p->openTries) {
+				/* ignored for now: press it again */
+				for (int i = 0; i < 8 && p->open[i].frames; ++i) {
+					for (int g = 0; g < p->open[i].frames; ++g) emu_frame(s, p->open[i].keys);
+				}
+				++presses, base = f;
+				continue;
+			}
 			return "map button did nothing"; /* quick: no map available here */
 		}
 		if (!map_up(p, s)) {
@@ -711,7 +737,9 @@ static void* worker(void* arg) {
 		const char* err = do_capture(mc, mc->snapshot);
 
 		pthread_mutex_lock(&mc->lock);
-		publish(mc, err);
+		/* (called off: a newer one's wanted; neither a result nor a failure) */
+		if (!mc->cancel) publish(mc, err);
+		mc->cancel = false;
 		mc->busy = false;
 	}
 	pthread_mutex_unlock(&mc->lock);
@@ -748,6 +776,7 @@ MapCapture* mapcap_create(const char* romPath, const char* gameCode, bool tight)
 		free(mc);
 		return NULL;
 	}
+	mc->shadow.cancel = &mc->cancel;
 	mc->stateSize = emu_state_size(&mc->shadow);
 	mc->snapshot = malloc(mc->stateSize);
 	mc->tight = tight && p->tight_w > 0;
@@ -876,6 +905,12 @@ void mapcap_set_still(MapCapture* mc, bool still) {
 
 const MapProfile* mapcap_profile(MapCapture* mc) {
 	return mc->prof;
+}
+
+void mapcap_cancel(MapCapture* mc) {
+	pthread_mutex_lock(&mc->lock);
+	if (mc->busy) mc->cancel = true;
+	pthread_mutex_unlock(&mc->lock);
 }
 
 bool mapcap_busy(MapCapture* mc) {

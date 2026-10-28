@@ -89,8 +89,14 @@ static const AwRegion* aw_r(Emu* s) {
 	return &awRegions[s->gameCode[2] == '2' ? 1 : 0];
 }
 
+/* n frames with these buttons held; only the last two drawn (what's
+ * looked at next: the second-to-last too, so anything that keeps state
+ * from one drawn frame to the next has it) */
 static void aw_run(Emu* s, uint32_t keys, int n) {
-	for (int i = 0; i < n; ++i) emu_frame(s, keys);
+	for (int i = 0; i < n; ++i) {
+		if (i < n - 2) emu_frame_blind(s, keys);
+		else emu_frame(s, keys);
+	}
 }
 
 static void aw_tap(Emu* s, uint32_t keys, int n) {
@@ -442,14 +448,17 @@ static const char* sn_compose(Emu* s, const void* state, uint32_t* out, int w, i
                               * 2 another unit's, the system menu or a Status, 3 the turn
                               * order...; Japan: 0x30 lower) */
 #define FT_IN_BATTLE 0x03000E4E /* 1 in a battle (its scenes, moves, menus too), else 0 */
-#define FT_OVER 0x03000E08 /* 0xFF once the battle's won (its closing scene on the battle
-                            * map, with FT_IN_BATTLE still 1), 0 while it's fought */
+#define FT_OVER 0x0202F254 /* 0 while a battle's fought; a pointer once it's won (its
+                            * closing scene on the battle map, with FT_IN_BATTLE still 1),
+                            * from then to the next battle (USA, Europe; Japan not known:
+                            * not used there). (0x03000E08 looked like it, but stays set
+                            * from the first battle won on.) */
 #define FT_V_BATTLE 0xF0000010 /* 1 in a battle, until it's over */
 #define FT_V_IDLE 0xF0000011   /* 1 on a battle's map or a unit's Status (not a move or an action) */
 
 static uint32_t ft_virt(Emu* e, uint32_t addr) {
 	/* (a battle that's over is out of it: its closing scene gets the logo) */
-	bool in = emu_read8(e, FT_IN_BATTLE) == 1 && !emu_read8(e, FT_OVER);
+	bool in = emu_read8(e, FT_IN_BATTLE) == 1 && (e->gameCode[3] == 'J' || !emu_read32(e, FT_OVER));
 	if (addr == FT_V_BATTLE) return in;
 	if (addr != FT_V_IDLE) return 0;
 	uint16_t c = emu_read16(e, 0x04000008);
@@ -503,16 +512,19 @@ static bool ft_status(Emu* s, const void* state, uint32_t page[2][GBA_W * GBA_H]
 		if (!emu_read32(s, FT_AT_UNIT - (s->gameCode[3] == 'J' ? 0x30 : 0))) return false;
 		uint32_t ui = FT_UI - (s->gameCode[3] == 'J' ? 0x30 : 0);
 		bool sel = false;
-		for (int i = 0; i < 10 && !sel; ++i) {
-			aw_run(s, 0, 16);
+		int moves = 0;
+		for (int i = 0; i < 14 && !sel; ++i) {
+			aw_run(s, 0, 8);
 			int orange, white;
 			ft_menu_row(s, &orange, &white);
 			uint8_t u = emu_read8(s, ui);
 			bool menu = u == 0 || u == 2; /* (the active unit's, another unit's) */
 			sel = menu && orange > 40;
 			if (sel) break;
-			if (menu) aw_tap(s, K_DOWN, 1); /* to Status */
-			else aw_tap(s, K_A, 1);         /* no menu yet */
+			/* to Status, the last item: UP once (the menu wraps round),
+			 * else DOWN; A while there's no menu yet */
+			if (menu) aw_tap(s, moves++ ? K_DOWN : K_UP, 1);
+			else aw_tap(s, K_A, 1);
 		}
 		if (!sel) return false;
 		aw_tap(s, K_A, 1);
@@ -635,17 +647,25 @@ static const char* ft_compose(Emu* s, const void* state, uint32_t* const* out, i
 	void* tmp = malloc(emu_state_size(s));
 	if (!tmp) return "out of memory";
 	if (again) {
-		static uint32_t np[2][GBA_W * GBA_H], nw[GBA_W * GBA_H];
+		static uint32_t np[2][GBA_W * GBA_H], nw[2][GBA_W * GBA_H];
 		/* a unit under the cursor: its Status (FT-8); else the turn order
-		 * and the Laws (FT-9, FT-12) */
-		if (ft_status(s, state, np)) {
+		 * and the Laws (FT-9, FT-12); kept only if the capture wasn't
+		 * called off on the way (the cursor moved on) */
+		bool st = ft_status(s, state, np), ok[2] = { false, false };
+		int a[2] = { 0 }, b[2] = { 0 };
+		for (int i = 0; !st && i < 2; ++i) {
+			ok[i] = i == 0 ? ft_list(s, state, tmp, nw[i], &a[i], &b[i]) : ft_system(s, state, tmp, 2, nw[i], &a[i], &b[i]);
+		}
+		if (emu_cancelled(s)) {
+			free(tmp);
+			return "called off";
+		}
+		if (st) {
 			memcpy(page, np, sizeof(page)), pages = 2;
 		} else {
 			pages = 0;
 			for (int i = 0; i < 2; ++i) {
-				int a, b;
-				bool ok = i == 0 ? ft_list(s, state, tmp, nw, &a, &b) : ft_system(s, state, tmp, 2, nw, &a, &b);
-				if (ok) memcpy(win[i], nw, (size_t) a * b * 4), ww[i] = a, wh[i] = b;
+				if (ok[i]) memcpy(win[i], nw[i], (size_t) a[i] * b[i] * 4), ww[i] = a[i], wh[i] = b[i];
 			}
 		}
 		key = k, age = 0;
@@ -827,7 +847,7 @@ static uint32_t pageKey;
 static int pageN;
 
 static const char* fe_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
-	static uint32_t page[FE_PAGES][GBA_W * GBA_H];
+	static uint32_t page[FE_PAGES][GBA_W * GBA_H], fresh[FE_PAGES][GBA_W * GBA_H];
 	static int lastChapter = -1;
 	int max = *nOut;
 	fe_region(s);
@@ -863,7 +883,7 @@ static const char* fe_compose(Emu* s, const void* state, uint32_t* const* out, i
 						aw_tap(s, K_RIGHT, 1);
 						aw_run(s, 0, 24);
 					}
-					memcpy(page[pages], s->fb, sizeof(page[pages]));
+					memcpy(fresh[pages], s->fb, sizeof(fresh[pages]));
 				}
 			}
 			/* kept for this cursor and these units only when R opened a
@@ -875,6 +895,8 @@ static const char* fe_compose(Emu* s, const void* state, uint32_t* const* out, i
 			for (uint32_t a = FE_UNITS; a < FE_UNITS + FE_UNITS_LEN && !unit; a += 0x48) {
 				unit = emu_read8(s, a + 3) == 8 && emu_read8(s, a + 0x10) == (cur & 0xFF) && emu_read8(s, a + 0x11) == ((cur >> 16) & 0xFF);
 			}
+			if (emu_cancelled(s)) return "called off";
+			memcpy(page, fresh, sizeof(page[0]) * (size_t) pages);
 			pageKey = pages || !unit ? key : 0, pageN = pages;
 		}
 	}
@@ -1353,13 +1375,19 @@ static const MapProfile profiles[] = {
 		 * yellow frame. Its display settings (0x1700: BG0-2 and sprites) are
 		 * its own. */
 		.open = { { K_SELECT, 4 } },
-		.settleMax = 90, .openWithin = 40, .stableFrames = 3, .maxDiff = 400,
+		.settleMax = 200, .openWithin = 40, .openTries = 4, .stableFrames = 3, .maxDiff = 400,
 		.crop_x = 0, .crop_y = 0, .crop_w = 240, .crop_h = 160,
 		.probes = { { 2, 2, 0xF7DE6B }, { 237, 2, 0xF7DE6B }, { 2, 157, 0xFFFF9C }, { 237, 157, 0xFFFF9C },
 		            { 120, 1, 0xD6BD4A }, { 4, 80, 0xFFFF9C }, { 235, 80, 0xFFFF9C }, { 120, 158, 0xCEDE73 } },
 		.tolerance = 8,
 		.mem = { { 0x04000000, 0xFFFF, 0x1700, 2 } },
 		.live = { { 0x03002BC6, 0xFF, 0x1E, 1 }, { 0x04000000, 0xFFFF, 0x3E00, 2 }, { 0x03002C74, 0xFF, 0x02, 1 } },
+		/* Mario's place on the world map (x, y in pixels: they change as
+		 * he walks a path and hold once he's on a level): the list again
+		 * as soon as he's there, not at the next refresh (USA, Europe).
+		 * The game ignores SELECT for about 50 frames after he gets
+		 * there: pressed again, up to 4 times 40 frames apart */
+		.room = { { 0x030042AC, 0xFFFF, 0, 2 }, { 0x030042B0, 0xFFFF, 0, 2 } },
 		/* the title, game select and file screens: modes 0x00-0x17 (title
 		 * 0x05, game select 0x09, Super Mario World's title 0x13, files 0x15) */
 		.menu = { { 0x03002BC6, 0xFF, 0x00, 1, true, 0x17, true } },
@@ -1671,6 +1699,7 @@ static void zelda_jpn(MapProfile* p) {
  * camera's pan direction 0x14 (the I/O registers don't move);
  * the world map's paused flag isn't where it is in the others (left out) */
 static void sma2_jpn(MapProfile* p) {
+	memset(p->room, 0, sizeof(p->room)); /* (not known in Japan: the refresh alone) */
 	p->live[0].addr -= 0x10;
 	p->live[2] = (MemProbe) { 0 };
 	p->hud.on[0].addr -= 0x10;

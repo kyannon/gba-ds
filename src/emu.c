@@ -210,7 +210,13 @@ void emu_close(Emu* e) {
 	e->fb = NULL;
 }
 
+bool emu_cancelled(const Emu* e) {
+	return e->cancel && *e->cancel;
+}
+
 void emu_frame(Emu* e, uint32_t keys) {
+	if (emu_cancelled(e)) return;
+	++e->frames;
 	e->core->setKeys(e->core, keys);
 	e->core->runFrame(e->core);
 	if (!e->audio) {
@@ -219,6 +225,17 @@ void emu_frame(Emu* e, uint32_t keys) {
 			mAudioBufferClear(ab);
 		}
 	}
+}
+
+/* A frame run without drawing it (the renderer still gets every write to
+ * VRAM, the palettes, OAM and the registers): for the hidden copies'
+ * waits, whose pictures nobody looks at; about half a frame's work saved.
+ * e->fb keeps the last picture drawn. */
+void emu_frame_blind(Emu* e, uint32_t keys) {
+	struct GBA* gba = e->core->board;
+	gba->video.frameskipCounter = 1;
+	emu_frame(e, keys);
+	gba->video.frameskipCounter = 0;
 }
 
 void emu_reset(Emu* e) {

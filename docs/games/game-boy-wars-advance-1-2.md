@@ -9,7 +9,7 @@
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list game-boy-wars-advance-1-2`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.
 
-Every game also follows the [general rules](README.md#general-rules) (GEN-1 to GEN-5).
+Every game also follows the [general rules](README.md#general-rules) (GEN-1 to GEN-6).
 
 The two games each run their own code at their own RAM addresses; which one is running is told by where the interrupt handler is (game 1 runs it from IWRAM, game 2 from the ROM).
 

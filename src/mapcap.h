@@ -45,6 +45,10 @@ MapResult mapcap_capture_sync(MapCapture* mc, Emu* live);
  * internally) and returns true if it is newer than lastSerial. */
 bool mapcap_request(MapCapture* mc, Emu* live);
 bool mapcap_busy(MapCapture* mc);
+/* Calls off the capture running, if any (the game moved on: a newer one's
+ * wanted): it stops at once and publishes nothing; mapcap_busy is false
+ * again as soon as it has. */
+void mapcap_cancel(MapCapture* mc);
 /* "Map Animations: Off": later captures record the profile's whole marker loop. */
 void mapcap_set_still(MapCapture* mc, bool still);
 const struct MapProfile* mapcap_profile(MapCapture* mc);

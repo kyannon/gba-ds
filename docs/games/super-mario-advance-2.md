@@ -9,11 +9,11 @@
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list super-mario-advance-2`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.
 
-Every game also follows the [general rules](README.md#general-rules) (GEN-1 to GEN-5).
+Every game also follows the [general rules](README.md#general-rules) (GEN-1 to GEN-6).
 
 ## Rules
 
-**SMA-1. World map: level list.** On the world map the second screen shows the SELECT menu's list of the island's levels with time and score, captured on the hidden copy, held still (HELP! and the current level shown, not blinking).
+**SMA-1. World map: level list.** On the world map the second screen shows the SELECT menu's list of the island's levels with time and score, captured on the hidden copy, held still (HELP! and the current level shown, not blinking). It's taken again as soon as Mario stops on another level (GEN-6; USA and Europe; in Japan at the next refresh).
 
 **SMA-2. Level: status bar.** In a level the status bar (lives, Dragon Coins, time, coins, score) moves to the top of the second screen, with the logo (GEN-1) centred on the screen below it (until v1.3.2's later test builds: half its size, on black); the blue item box stays at the top of the game screen with the reserve item.
 
