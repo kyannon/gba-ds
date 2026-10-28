@@ -2,6 +2,7 @@ package io.github.kyannon.gbads;
 
 import android.app.Activity;
 import android.app.ActivityOptions;
+import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -99,26 +100,51 @@ public class LauncherActivity extends Activity {
     protected void onResume() {
         super.onResume();
         if (Build.VERSION.SDK_INT >= 30 && !Environment.isExternalStorageManager()) {
-            if (!askedForFiles) {
+            if (!askedForFiles && !getPreferences(MODE_PRIVATE).getBoolean("filesNotNow", false)) {
                 askedForFiles = true;
-                Toast.makeText(this, R.string.need_files, Toast.LENGTH_LONG).show();
-                try {
-                    startActivity(new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
-                            Uri.parse("package:" + getPackageName())));
-                    return;
-                } catch (ActivityNotFoundException e) {
-                    try {
-                        startActivity(new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION));
-                        return;
-                    } catch (ActivityNotFoundException e2) {
-                        Log.w(TAG, "no settings screen for all files access");
-                    }
-                }
+                askForFiles(); /* the game starts from the dialog, or when coming back from the settings */
+                return;
             } else {
                 Log.w(TAG, "all files access not granted; ROM folders may be unreadable");
             }
         }
         startGame();
+    }
+
+    /** Says what All files access is for before Android's settings page opens
+     * (that page alone doesn't say why), then opens it; "Not now" goes on
+     * without it (files then stay in the app's own folder). */
+    private void askForFiles() {
+        new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                .setTitle(R.string.files_title)
+                .setMessage(R.string.files_why)
+                .setCancelable(false)
+                .setPositiveButton(R.string.files_open, (d, w) -> {
+                    if (!openFilesSettings()) startGame();
+                })
+                .setNegativeButton(R.string.files_not_now, (d, w) -> {
+                    /* not asked again at every start (Android's settings can still allow it) */
+                    getPreferences(MODE_PRIVATE).edit().putBoolean("filesNotNow", true).apply();
+                    startGame();
+                })
+                .show();
+    }
+
+    private boolean openFilesSettings() {
+        try {
+            startActivity(new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                    Uri.parse("package:" + getPackageName())));
+            return true;
+        } catch (ActivityNotFoundException e) {
+            try {
+                startActivity(new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION));
+                return true;
+            } catch (ActivityNotFoundException e2) {
+                Log.w(TAG, "no settings screen for all files access");
+                Toast.makeText(this, R.string.need_files, Toast.LENGTH_LONG).show();
+                return false;
+            }
+        }
     }
 
     private void startGame() {

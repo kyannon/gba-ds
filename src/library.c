@@ -505,6 +505,28 @@ static void toggle_view(Config* cfg) {
 	save_library_cfg(cfg);
 }
 
+/* Can GBA DS write where it keeps its files (states, logos, screenshots)?
+ * Checked once a run; when it can't, the game list's header says so
+ * instead of everything failing quietly. */
+static char storageMsg[128];
+static void storage_check(const Config* cfg) {
+	static bool checked;
+	if (checked) return;
+	checked = true;
+	char path[1100];
+	mkdirs(cfg->stateDir);
+	snprintf(path, sizeof(path), "%s/.write-test", cfg->stateDir);
+	FILE* f = fopen(path, "w");
+	bool ok = f && fputs("ok\n", f) >= 0;
+	if (f && fclose(f) != 0) ok = false;
+	remove(path);
+	if (ok) return;
+	fprintf(stderr, "storage: can't write in %s\n", cfg->stateDir);
+	/* (on Android without All files access the app's own folder is used,
+	 * which is always writable: this is something else, so no advice) */
+	snprintf(storageMsg, sizeof(storageMsg), "Can't save files here: no states, logos or screenshots");
+}
+
 static void draw_list(Config* cfg, int scr, int sel, int scroll) {
 	SDL_Rect r = screens[scr].rect;
 	float px = ui_px(scr);
@@ -589,7 +611,13 @@ static void draw_list(Config* cfg, int scr, int sel, int scroll) {
 	/* header drawn last so tiles scroll underneath it */
 	ui_fill(scr, (SDL_Rect) { 0, 0, r.w, g.headerH }, C_HEADER);
 	SDL_Rect sb = settings_button(scr);
-	ui_label(scr, view_button(scr).x / 2, g.headerH / 2, px * 5, "Touch or use the D-Pad to select a game", C_TEXT);
+	if (storageMsg[0]) {
+		char line[300];
+		fit_text(line, sizeof(line), TF_BOLD, px * 4, storageMsg, view_button(scr).x - px * 8);
+		ui_font_text(scr, TF_BOLD, view_button(scr).x / 2, g.headerH / 2, px * 4, line, C_GOLD, 0);
+	} else {
+		ui_label(scr, view_button(scr).x / 2, g.headerH / 2, px * 5, "Touch or use the D-Pad to select a game", C_TEXT);
+	}
 	draw_view_button(scr);
 	ui_fill_round(scr, sb, C_ROW, px * 3);
 	ui_label(scr, sb.x + sb.w / 2, sb.y + sb.h / 2, px * 5, "Settings", C_TEXT);
@@ -1028,6 +1056,7 @@ static int keep_visible(int scr, int sel, int scroll) {
 }
 
 bool library_run(Config* cfg, char* outPath, size_t outSize) {
+	storage_check(cfg);
 	scan(cfg);
 	thumbFor = -2;
 
