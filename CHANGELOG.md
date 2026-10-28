@@ -1,8 +1,5 @@
 # Changelog
 
-## v1.4.1 (not yet released)
-- **Fixed, Super Mario Advance 2:** in some levels (caves, for one) the scenery behind the level was drawn in front of everything, Mario included. It's back where the game puts it.
-
 ## v1.4 (2026-10-28)
 
 ### The second screen
@@ -29,6 +26,7 @@
 - **Can't save files:** the game list says so when GBA DS can't save its files (all systems), instead of logos, states and screenshots quietly not being kept.
 
 ### Fixes
+- **Super Mario Advance 2:** in some levels (caves, for one) the scenery behind the level was drawn in front of everything, Mario included. It's back where the game puts it.
 - **"Preparing games" counting up for ever** (a Reddit report: 4,500 after five hours with three games) when a game's logo couldn't be pulled from its title screen or saved. GBA DS now tries each logo once per start and goes on without it.
 
 ### Known issues
