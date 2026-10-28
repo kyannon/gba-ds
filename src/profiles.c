@@ -1417,6 +1417,8 @@ static const MapProfile profiles[] = {
 			         .bgMask = 1 },
 			.moves = { { 104, 0, 135, 15, 0, 0, 0, 0, true }, { 0, 16, 239, 159, 0, 0, 0, 0, true } },
 			.logoBelow = true,
+			/* the level list's title row (the level's name) above it */
+			.mapTitleRows = 14,
 		},
 		/* SNES layout: B (bottom) jumps (GBA A), Y (left) runs (GBA B), A
 		 * (right) and X (top) spin jump (GBA R); L pans the camera left, R

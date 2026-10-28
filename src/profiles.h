@@ -340,6 +340,10 @@ typedef struct MapProfile {
 		 * below it, at its own size (Super Mario Advance 2), instead of a
 		 * backdrop. */
 		bool logoBelow;
+		/* The top rows of the last map picture (the world map's level
+		 * list: its title row with the level's name) kept above the HUD,
+		 * which moves down that far (Super Mario Advance 2, SMA-7) */
+		int mapTitleRows;
 		/* The same (unused). */
 		bool logoBehind;
 		/* While every `mirror` probe matches, or every `mirrorOr` one: the

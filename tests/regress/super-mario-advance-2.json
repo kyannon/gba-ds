@@ -54,6 +54,74 @@
    ]
   },
   {
+   "id": "sma-us-level-name",
+   "rom": "AA2E",
+   "state": "super-mario-advance-2/us-worldmap-yi4.ss",
+   "desc": "on Yoshi's Island 4 on the world map, then into the level (the owner's State Saver save)",
+   "rules": [
+    "SMA-7",
+    "SMA-1",
+    "SMA-2"
+   ],
+   "input": [
+    [
+     150,
+     "A"
+    ],
+    [
+     154,
+     "-"
+    ]
+   ],
+   "shots": {
+    "map": 120,
+    "level": 600
+   },
+   "checks": [
+    {
+     "rule": "SMA-7",
+     "what": "the level's name across the top",
+     "type": "not_uniform",
+     "shot": "level",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      110
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SMA-7",
+     "what": "the title row as the list had it",
+     "type": "same",
+     "a": {
+      "shot": "map",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       120
+      ]
+     },
+     "b": {
+      "shot": "level",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       120
+      ]
+     },
+     "frac": 0.01
+    }
+   ]
+  },
+  {
    "id": "sma-us-message",
    "rom": "AA2E",
    "state": "super-mario-advance-2/us-message.ss",

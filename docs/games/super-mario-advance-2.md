@@ -24,3 +24,5 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 **SMA-5. SNES layout.** The Controls button offers the SNES layout.
 
 **SMA-6. Logo.** The logo (GEN-1) is Super Mario World's own, SUPER MARIO WORLD alone, taken from its title screen (Start for single player, A on Super Mario World) without the wooden frame round it or the copyright line. (Until v1.3.2's later test builds it was the first title's, with SUPER MARIO ADVANCE 2 under it.)
+
+**SMA-7. Level name.** In a level, the top of the second screen keeps the level list's title row (its name, as the world map's list showed it when Mario last stood still: the level he went into), held there all through the level, through doors and castles too (SMA-4); the status bar (SMA-2) is right below it, and the logo below that. With no list taken yet (a state loaded in a level), the status bar is at the top. *By hand: a level entered quickly, before the list has caught up with where Mario is, shows the level he was on before.*

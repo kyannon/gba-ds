@@ -639,7 +639,11 @@ static void upload_map_frame(int idx);
 static const uint32_t* hud_over_map(const uint32_t* px);
 static void make_combat_canvas(void);
 static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha);
-static uint32_t hudLogoBelow[HUD_CW * HUD_CH]; /* profile hud.logoBelow: black, the logo at half size */
+static uint32_t hudLogoBelow[HUD_CW * HUD_CH]; /* profile hud.logoBelow: dark grey, the logo below the HUD */
+/* profile hud.mapTitleRows: those rows of the last map picture, held over
+ * the HUD (mapTitleN rows; 0: none taken yet) */
+static uint32_t mapTitle[GBA_W * 32];
+static int mapTitleN;
 static bool hudLogoBelowDone;
 static int snapShow, snapRevert;   /* consecutive frames matching show / a revert screen */
 
@@ -1392,6 +1396,7 @@ static void hud_make_logo_below(void) {
 		const HudMove* mv = &hudProf->hud.moves[m];
 		if (mv->toGame && !mv->how && !mv->vhow && mv->x0 == 0 && mv->x1 >= GBA_W - 1 && mv->y0 > 0) top = mv->y0 * 2;
 	}
+	top += hudProf->hud.mapTitleRows * 2; /* (and the level's name above it) */
 	logo_draw(hudLogoBelow, HUD_CW, HUD_CH, HUD_CW / GBA_W, top ? top + 8 : 0, 255);
 }
 
@@ -1512,6 +1517,15 @@ static void hud_compose(void) {
 		}
 		moves = movesM;
 	}
+	/* hud.mapTitleRows: the level's name from the map picture on top, the
+	 * HUD that far down */
+	int titleDy = h->mapTitleRows && mapTitleN ? mapTitleN : 0;
+	for (int y = 0; y < titleDy; ++y) {
+		for (int x = 0; x < GBA_W; ++x) {
+			uint32_t* o = &hudCanvas[y * 2 * HUD_CW + x * 2];
+			o[0] = o[1] = o[HUD_CW] = o[HUD_CW + 1] = mapTitle[y * GBA_W + x];
+		}
+	}
 	int moveDx[4] = { 0 }, moveDy[4] = { 0 };
 	bool moving[4] = { false };
 	for (int m = 0; moves && m < 4; ++m) {
@@ -1550,6 +1564,8 @@ static void hud_compose(void) {
 			}
 			if (sign && x >= h->sign.x0 && x <= h->sign.x1 && y >= h->sign.y0 && y <= h->sign.y1) continue;
 			if (bigMap && x >= bx0 && x <= bx1 && y >= by0 && y <= by1) continue;
+			ny += titleDy;
+			if (ny >= GBA_H) continue;
 			uint32_t* o = &hudCanvas[ny * 2 * HUD_CW + nx * 2];
 			o[0] = o[1] = o[HUD_CW] = o[HUD_CW + 1] = c;
 		}
@@ -3122,6 +3138,7 @@ static void ss_setup(const char* rom, const char* code) {
 		hudAlt = false;
 		hudLogoDone = false;
 		hudLogoBelowDone = false;
+		mapTitleN = 0;
 		hudBackValid = false;
 		hudRegrab = 0;
 		snapShow = snapRevert = 0;
@@ -3845,6 +3862,11 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				/* a capture that finished after quitting to the title: drop it */
 			} else if (fresh) {
 				mapInactive = false;
+				if (hudProf && hudProf->hud.mapTitleRows && mapRes.w == GBA_W && mapRes.frames[0]) {
+					/* the level list's title row (SMA-7), held for the level */
+					mapTitleN = SDL_min(hudProf->hud.mapTitleRows, 32);
+					for (int i = 0; i < GBA_W * mapTitleN; ++i) mapTitle[i] = mapRes.frames[0][i] | 0xFF000000;
+				}
 				if (mapRes.hasTile) mapframe_set_tile(&mf, mapRes.tile, mapRes.tileK, mapRes.tileX, mapRes.tileY);
 				mapShownIdx = -1;
 				/* (pages, a few seconds each: Fire Emblem's unit status; they
