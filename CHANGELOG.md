@@ -1,5 +1,7 @@
 # Changelog
 
+## v1.4.1 (not yet released)
+
 ## v1.4 (2026-10-28)
 
 ### The second screen
