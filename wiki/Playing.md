@@ -21,7 +21,7 @@ GBA DS opens on a game list on the touchscreen (the bottom screen on the RG DS P
 
 ## Resume points
 
-Leaving a game saves its state automatically, and launching it again picks up exactly there; the game list shows where. `auto_resume = 0` turns this off. Battery saves (in-game saves) are written as usual too, so they're never at risk.
+Leaving a game saves its state automatically, and launching it again picks up exactly there; the game list shows where. The pause menu's **Save on Quit** and **Auto-Load** switch each half off (`save_on_quit = 0`, `auto_load = 0` in `gba-ds.cfg`). With Save on Quit off and Auto-Load on, the game picks up from the last resume point that was saved. Battery saves (in-game saves) are written as usual too, so they're never at risk.
 
 ## Updates (Linux)
 
@@ -39,8 +39,9 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 **Game**
 - **Resume**
 - **Restart Game**: tap twice; unsaved progress is lost.
-- **Save State** / **Load State**: one slot per game (Load is greyed out until you've saved). HOME + R1 / L1 do the same during play.
-- **Close Game** (back to the game list) and **Close GBA DS**: both save a resume point first.
+- **Save State** / **Load State**, side by side (LEFT / RIGHT moves between them): one slot per game (Load is greyed out until you've saved). HOME + R1 / L1 do the same during play.
+- **Save on Quit: On / Off** and **Auto-Load: On / Off**, side by side: whether closing the game saves a resume point, and whether starting it picks up from one (see Resume points above). Remembered for next time.
+- **Close Game** (back to the game list) and **Close GBA DS**: both save a resume point first (while Save on Quit is on).
 
 **Display** (remembered for next time)
 - **Swap Screens**: game and second screen trade places (also **L3**, or HOME + Y).

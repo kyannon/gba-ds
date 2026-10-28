@@ -696,13 +696,35 @@ static bool debug;
 
 /* ---------------------------------------------------------------- menu */
 
-enum MenuItem { M_RESUME, M_CHEATS, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND };
+enum MenuItem { M_RESUME, M_CHEATS, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND, M_AUTOSAVE, M_AUTOLOAD };
 static const char* menuLabels[] = {
 	/* title case: drawn in Futura from the built-in images (tools/make_brand.py) */
 	[M_RESUME] = "Resume", [M_SWAP] = "Swap Screens", [M_SAVE] = "Save State", [M_SCALE] = "", [M_LCD] = "", [M_FPS] = "", [M_FRAMEBUF] = "", [M_OVERLAY] = "", [M_LOGO] = "", [M_MATCH] = "", [M_REWIND] = "", [M_RESTART] = "Restart Game",
 	[M_LOAD] = "Load State", [M_CHEATS] = "Cheats", [M_ACH] = "Achievements", [M_SHOT] = "Take Screenshot", [M_LIBRARY] = "Close Game", [M_EXIT] = "Close GBA DS",
+	[M_AUTOSAVE] = "", [M_AUTOLOAD] = "",
 };
 static int menuItems[12], nMenuItems;
+/* Some buttons are half as wide, two to a row (Save State | Load State):
+ * each item's row and side (-1: the whole row, 0 left, 1 right). */
+static int itemRow[12], itemSide[12], nMenuRows;
+static bool half_item(int item) {
+	return item == M_SAVE || item == M_LOAD || item == M_AUTOSAVE || item == M_AUTOLOAD;
+}
+/* rows, sides and the row count for a page's items (two half items in a row share it) */
+static int layout_rows(const int* items, int n, int* row, int* side) {
+	int rows = 0;
+	for (int i = 0; i < n; ++i) {
+		if (half_item(items[i]) && i + 1 < n && half_item(items[i + 1])) {
+			row[i] = row[i + 1] = rows++;
+			side[i] = 0, side[i + 1] = 1;
+			++i;
+		} else {
+			row[i] = rows++;
+			side[i] = -1;
+		}
+	}
+	return rows;
+}
 /* two pages, switched with L1/R1 or the tabs */
 #define N_PAGES 3
 static int pages[N_PAGES][12], pageLen[N_PAGES], curPage;
@@ -745,6 +767,10 @@ static const char* const allLabels[] = {
 	"Frame Buffer: Off", "Match Display Rate: On", "Match Display Rate: Off", "Rewind: On (Hold L2)", "Rewind: Off",
 	"Show FPS: On", "Show FPS: Off",
 };
+/* the labels of the half-width buttons, which fit in half the width */
+static const char* const halfLabels[] = {
+	"Save State", "Load State", "Save on Quit: On", "Save on Quit: Off", "Auto-Load: On", "Auto-Load: Off",
+};
 
 /* The pause menu's layout: buttons across the whole screen (a small margin
  * at the edges), all the same size on every page, as tall as the page with
@@ -763,7 +789,10 @@ static MenuGeom menu_geom(int scr) {
 	static int cw = -1, ch = -1, cn = -1;
 	SDL_Rect r = screens[scr].rect;
 	int n = 1;
-	for (int p = 0; p < N_PAGES; ++p) n = SDL_max(n, pageLen[p]);
+	for (int p = 0; p < N_PAGES; ++p) {
+		int row[12], side[12];
+		n = SDL_max(n, layout_rows(pages[p], pageLen[p], row, side));
+	}
 	if (r.w == cw && r.h == ch && n == cn) return cache;
 	MenuGeom g;
 	float px = ui_px(scr);
@@ -782,6 +811,10 @@ static MenuGeom menu_geom(int scr) {
 	for (size_t i = 0; i < sizeof(allLabels) / sizeof(*allLabels); ++i)
 		widest = SDL_max(widest, ui_label_width(scr, ref, allLabels[i]));
 	g.cap = SDL_min(g.h * 2 / 5, (g.w - g.pad * 2) * ref / widest);
+	widest = 1;
+	for (size_t i = 0; i < sizeof(halfLabels) / sizeof(*halfLabels); ++i)
+		widest = SDL_max(widest, ui_label_width(scr, ref, halfLabels[i]));
+	g.cap = SDL_min(g.cap, ((g.w - g.gap) / 2 - g.pad * 2) * ref / widest);
 	g.noteCap = g.cap * 4 / 5;
 	/* the tabs share the row between the L1 / R1 prompts, each as wide as its name needs */
 	g.prompt = g.h * 9 / 10;
@@ -972,7 +1005,13 @@ static void draw_cheats(int scr) {
 
 static SDL_Rect item_rect(int scr, int i) {
 	MenuGeom g = menu_geom(scr);
-	return (SDL_Rect) { g.margin, g.top + i * (g.h + g.gap), g.w, g.h };
+	SDL_Rect r = { g.margin, g.top + itemRow[i] * (g.h + g.gap), g.w, g.h };
+	if (itemSide[i] >= 0) {
+		int hw = (g.w - g.gap) / 2;
+		r.x += itemSide[i] * (g.w - hw);
+		r.w = hw;
+	}
+	return r;
 }
 
 /* box t of n across the top of the menu: the page tabs (n = N_PAGES), or
@@ -1073,10 +1112,22 @@ static void set_page(int page) {
 	curPage = page;
 	nMenuItems = pageLen[page];
 	memcpy(menuItems, pages[page], sizeof(int) * nMenuItems);
+	nMenuRows = layout_rows(menuItems, nMenuItems, itemRow, itemSide);
 	menuSel = 0;
 	menuPressed = -1;
 	menuNote[0] = 0;
 	restartArmed = false;
+}
+
+/* D-pad up / down: the row above or below (round at the ends), the same side of a split row */
+static void menu_move(int dir) {
+	int row = (itemRow[menuSel] + dir + nMenuRows) % nMenuRows, side = SDL_max(0, itemSide[menuSel]);
+	int to = -1;
+	for (int i = 0; i < nMenuItems; ++i) {
+		if (itemRow[i] != row) continue;
+		if (to < 0 || itemSide[i] == side) to = i;
+	}
+	if (to >= 0) menuSel = to;
 }
 
 static int tab_at(int scr, int x, int y, int n) {
@@ -1168,6 +1219,8 @@ static void draw_menu(void) {
 		const char* label = menuLabels[menuItems[i]];
 		if (menuItems[i] == M_SCALE) label = scale_label(cfg->scale);
 		if (menuItems[i] == M_LCD) label = cfg->lcdGrid ? "LCD Grid: On" : "LCD Grid: Off";
+		if (menuItems[i] == M_AUTOSAVE) label = cfg->autoSave ? "Save on Quit: On" : "Save on Quit: Off";
+		if (menuItems[i] == M_AUTOLOAD) label = cfg->autoLoad ? "Auto-Load: On" : "Auto-Load: Off";
 		if (menuItems[i] == M_FPS) label = cfg->showFps ? "Show FPS: On" : "Show FPS: Off";
 		if (menuItems[i] == M_FRAMEBUF) label = cfg->frameBuffer ? "Frame Buffer: On" : "Frame Buffer: Off";
 		if (menuItems[i] == M_REWIND) label = cfg->rewind ? "Rewind: On (Hold L2)" : "Rewind: Off";
@@ -1183,6 +1236,7 @@ static void draw_menu(void) {
 	if (menuNote[0]) {
 		SDL_Rect last = item_rect(scr, nMenuItems - 1);
 		int nc = SDL_min(mg.noteCap, mg.noteCap * mg.w / SDL_max(1, ui_font_width(TF_BOLD, mg.noteCap, menuNote)));
+		/* (the last item is always a whole row: Close GBA DS, Show FPS...) */
 		ui_font_text(scr, TF_BOLD, screens[scr].rect.w / 2, last.y + last.h + mg.h * 3 / 5, nc, menuNote, C_GOLD, 0);
 	}
 	if (nScreens > 1) {
@@ -2272,7 +2326,7 @@ __attribute__((export_name("web_load_state"))) int web_load_state(const char* pa
 #endif
 
 static void auto_save(void) {
-	if (!cfg->autoResume) return;
+	if (!cfg->autoSave) return;
 	if (state_save(gp.autoState)) {
 		save_thumbs();
 		fprintf(stderr, "auto-saved %s\n", gp.autoState);
@@ -2671,10 +2725,11 @@ static void save_prefs(void) {
 	FILE* f = fopen(prefs, "w");
 	if (f) {
 		fprintf(f, "# written by gba-ds's pause menu; overrides gba-ds.cfg\n");
-		fprintf(f, "swap = %d\nscale = %s\nmap_scale = %s\nlcd_grid = %d\nshow_fps = %d\noverlays = %s\nframe_buffer = %d\nshow_logo = %d\nmatch_display = %d\nrewind = %d\n",
+		fprintf(f, "swap = %d\nscale = %s\nmap_scale = %s\nlcd_grid = %d\nshow_fps = %d\noverlays = %s\nframe_buffer = %d\nshow_logo = %d\nmatch_display = %d\nrewind = %d\nsave_on_quit = %d\nauto_load = %d\n",
 		        cfg->swap ? 1 : 0, cfg->scale, cfg->mapScale, cfg->lcdGrid ? 1 : 0, cfg->showFps ? 1 : 0,
 		        (const char* const[]) { "none", "primary", "secondary", "both" }[cfg->overlays & OVL_BOTH],
-		        cfg->frameBuffer ? 1 : 0, cfg->showLogo ? 1 : 0, cfg->matchDisplay ? 1 : 0, cfg->rewind ? 1 : 0);
+		        cfg->frameBuffer ? 1 : 0, cfg->showLogo ? 1 : 0, cfg->matchDisplay ? 1 : 0, cfg->rewind ? 1 : 0,
+		        cfg->autoSave ? 1 : 0, cfg->autoLoad ? 1 : 0);
 		fclose(f);
 	}
 }
@@ -2994,6 +3049,16 @@ static bool activate(int item, enum GameExit* exitTo) {
 			snprintf(menuNote, sizeof(menuNote), "Load failed");
 		}
 		break;
+	case M_AUTOSAVE:
+		cfg->autoSave = !cfg->autoSave;
+		snprintf(menuNote, sizeof(menuNote), "%s", cfg->autoSave ? "Closing the game saves where you are" : "Closing the game doesn't save a state");
+		save_prefs();
+		break;
+	case M_AUTOLOAD:
+		cfg->autoLoad = !cfg->autoLoad;
+		snprintf(menuNote, sizeof(menuNote), "%s", cfg->autoLoad ? "Starting the game picks up where you closed it" : "The game starts from its title screen");
+		save_prefs();
+		break;
 	case M_OVERLAY:
 		/* PRIMARY -> SECONDARY -> BOTH -> NONE -> PRIMARY */
 		cfg->overlays = cfg->overlays == OVL_PRIMARY ? OVL_SECONDARY : cfg->overlays == OVL_SECONDARY ? OVL_BOTH :
@@ -3252,6 +3317,8 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	pages[0][pageLen[0]++] = M_RESTART;
 	pages[0][pageLen[0]++] = M_SAVE;
 	pages[0][pageLen[0]++] = M_LOAD;
+	pages[0][pageLen[0]++] = M_AUTOSAVE;
+	pages[0][pageLen[0]++] = M_AUTOLOAD;
 	pages[2][pageLen[2]++] = M_CHEATS;
 	if (ra_enabled()) pages[2][pageLen[2]++] = M_ACH;
 	pages[2][pageLen[2]++] = M_SHOT;
@@ -3271,7 +3338,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	if (cfg->loadState[0]) {
 		if (!state_load(cfg->loadState)) fprintf(stderr, "could not load %s\n", cfg->loadState);
 		cfg->loadState[0] = 0;
-	} else if (cfg->autoResume && file_exists(gp.autoState)) {
+	} else if (cfg->autoLoad && file_exists(gp.autoState)) {
 		if (state_load(gp.autoState)) {
 			ui_osd("Resumed. Tap or HOME for the menu");
 		}
@@ -3567,8 +3634,14 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			if (!comboOpened) { /* (START just opened it: not also a close) */
 				if (btn_pressed(B_L) && curPage > 0) set_page(curPage - 1);
 				if (btn_pressed(B_R) && curPage < N_PAGES - 1) set_page(curPage + 1);
-				if (btn_pressed(B_DOWN)) menuSel = (menuSel + 1) % nMenuItems;
-				if (btn_pressed(B_UP)) menuSel = (menuSel + nMenuItems - 1) % nMenuItems;
+				if (btn_pressed(B_DOWN)) menu_move(1);
+				if (btn_pressed(B_UP)) menu_move(-1);
+				if ((btn_pressed(B_LEFT) || btn_pressed(B_RIGHT)) && itemSide[menuSel] >= 0) {
+					/* the other half of the row */
+					int to = btn_pressed(B_LEFT) ? 0 : 1;
+					for (int i = 0; i < nMenuItems; ++i)
+						if (itemRow[i] == itemRow[menuSel] && itemSide[i] == to) menuSel = i;
+				}
 				if (btn_pressed(B_B) || btn_pressed(B_START)) menuOpen = false;
 				else if (btn_pressed(B_A) && activate(menuItems[menuSel], &exitTo)) break;
 			}

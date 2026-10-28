@@ -33,7 +33,8 @@ void config_defaults(Config* c) {
 	c->audioLatency = 64;
 	c->ffSpeed = 3;
 	c->pinCores = false; /* tried on the RG DS Plus: no better (docs/ANDROID.md) */
-	c->autoResume = true;
+	c->autoSave = true;
+	c->autoLoad = true;
 	c->updateCheck = true;
 	c->showAll = false;
 	c->nameTags = false;
@@ -111,7 +112,13 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	STR("touch_map", touchMap)
 	STR("touch_device", touchDevice)
 	INT("touch_rotate", touchRotate)
-	BOOL("auto_resume", autoResume)
+	if (!strcmp(key, "auto_resume")) {
+		/* older configs: both at once */
+		c->autoSave = c->autoLoad = parse_bool(val);
+		return true;
+	}
+	BOOL("save_on_quit", autoSave)
+	BOOL("auto_load", autoLoad)
 	BOOL("show_all", showAll)
 	BOOL("name_tags", nameTags)
 	STR("retroachievements", raMode)
@@ -221,6 +228,7 @@ void config_usage(const char* argv0) {
 	        "  --menu-combo=select+start|none   buttons that open the menu together (none)\n"
 	        "  --home-button=N        raw joystick button that acts as HOME (see GBADS_DEBUG=1 log)\n"
 	        "  --no-auto-resume       don't save on exit / resume on launch\n"
+	        "  --no-save-on-quit      don't save a resume point on quitting (--no-auto-load: don't load it)\n"
 	        "  --show-fps\n"
 	        "  --no-sway              don't ask sway to span both outputs\n"
 	        "  --audio-latency=MS     (64)\n"

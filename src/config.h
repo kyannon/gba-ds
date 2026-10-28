@@ -54,7 +54,8 @@ typedef struct Config {
 	 * touch_rotate: 0, 90, 180 or 270 degrees; -1: by the panel's shape. */
 	char touchDevice[128];
 	int touchRotate;
-	bool autoResume;      /* save state on exit, load it on launch */
+	bool autoSave;        /* save a resume point on quitting the game (save_on_quit) */
+	bool autoLoad;        /* load it on launching the game (auto_load) */
 	bool nameTags;        /* library keeps (USA), (En,Fr) etc. in game names */
 	bool showAll;         /* library lists games without a map profile too */
 	/* RetroAchievements (casual mode): auto = on when ROCKNIX has an account

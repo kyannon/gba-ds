@@ -2,6 +2,9 @@
 
 ## v1.4.1 (not yet released)
 
+### What's new
+- **Pause menu, Game page:** Save State and Load State now sit side by side on one row, and a new row under them has **Save on Quit: On / Off** (whether closing a game saves where you are) and **Auto-Load: On / Off** (whether starting a game picks up from there). Both are remembered; in `gba-ds.cfg` they're `save_on_quit` and `auto_load` (an older `auto_resume = 0` still switches both off).
+
 ## v1.4 (2026-10-28)
 
 ### The second screen

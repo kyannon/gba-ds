@@ -15,7 +15,8 @@ Updating from the game list (Settings > Updates, Linux) keeps your `gba-ds.cfg`.
 | `show_all` | `0` | `1` lists every GBA ROM, not just games with second-screen support. The others play on one screen. |
 | `name_tags` | `0` | `1` keeps tags like `(USA)` and `(En,Fr,De)` in game names. |
 | `library_view` | `list` | `list` (names) or `grid` (logos). Also switched with X in the list; remembered in `library.cfg`. |
-| `auto_resume` | `1` | Save a state when you leave a game, and pick up from it next time. |
+| `save_on_quit` | `1` | Save a state (a resume point) when you leave a game. Also in the pause menu. |
+| `auto_load` | `1` | Pick up from the resume point when you start a game. Also in the pause menu. (`auto_resume`, from older versions, sets both.) |
 | `update_check` | `1` | Linux: look for a new release once a day when the game list opens, and ask before downloading it. The **Automatic checks** switch in Settings > Updates overrides this (kept in `states/update.cfg`). See [[Playing#updates-linux]]. |
 
 ## Screens
