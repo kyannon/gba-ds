@@ -1,4 +1,4 @@
-Every game GBA DS knows is one `MapProfile` entry in [`src/profiles.c`](https://github.com/kyannon/gba-ds/blob/main/src/profiles.c); the fields are documented in [`src/profiles.h`](https://github.com/kyannon/gba-ds/blob/main/src/profiles.h). Adding a game mostly means writing a profile and testing it with the harness. You'll need a host build ([README → Building](https://github.com/kyannon/gba-ds#building)) and the ROM.
+Every game GBA DS knows is one `MapProfile` entry in [`src/profiles.c`](https://github.com/kyannon/gba-ds/blob/main/src/profiles.c); the fields are documented in [`src/profiles.h`](https://github.com/kyannon/gba-ds/blob/main/src/profiles.h). Adding a game mostly means writing a profile and testing it with the harness. Before deciding what a game's second screen should show, read [[Philosophy]]. You'll need a host build ([README → Building](https://github.com/kyannon/gba-ds#building)) and the ROM.
 
 There are three kinds of second screen, and a profile can use the parts it needs:
 

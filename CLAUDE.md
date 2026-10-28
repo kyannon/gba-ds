@@ -12,6 +12,15 @@ README is the overview and build guide; CHANGELOG.md the history.
 The owner (kyannon) tests every build on real hardware and reports back
 with photos and screenshots; nothing ships untested on the device.
 
+## Philosophy
+
+`wiki/Philosophy.md` sets out what GBA DS is for and the rules for what
+either screen shows (a GBA with two 240x160 screens; function over form;
+keep it simple; only the game's own graphics; no in-game touch; exceptions
+written down). Read it before changing what a game shows. When a request
+conflicts with it, say which rule it conflicts with and why; if the owner
+still wants it, it's an exception and gets a rule in `docs/games/`.
+
 ## Conventions
 
 - **Branches:** ROCKNIX and shared work goes to `dev`; Android work to

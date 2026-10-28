@@ -26,6 +26,7 @@
 
 ## For developers
 
+- **[[Philosophy]]**: what GBA DS aims to be, and the rules for what goes on either screen. Read this before changing what a game shows.
 - **[[Adding second-screen compatibility for a game]]**: how a game's profile works, and how to find the values for a new one.
 - Building GBA DS: see the [README](https://github.com/kyannon/gba-ds#building).
 

@@ -16,7 +16,7 @@ The idea here is "what if the Game Boy Advance had a second screen" -- part of w
 
 GBA DS supports 18 games, with their regional releases: see [Supported games](https://github.com/kyannon/gba-ds/wiki/Supported-games) in the wiki for the list and what each one shows on the second screen. Any other GBA game also runs; it just plays on one screen.
 
-**Documentation is in the [wiki](https://github.com/kyannon/gba-ds/wiki):** [Playing](https://github.com/kyannon/gba-ds/wiki/Playing) · [Supported games](https://github.com/kyannon/gba-ds/wiki/Supported-games) · [Map screen surrounds and overlays](https://github.com/kyannon/gba-ds/wiki/Map-screen-surrounds-and-overlays) · [Settings](https://github.com/kyannon/gba-ds/wiki/Settings) · [Troubleshooting](https://github.com/kyannon/gba-ds/wiki/Troubleshooting) · [Adding second-screen compatibility for a game](https://github.com/kyannon/gba-ds/wiki/Adding-second-screen-compatibility-for-a-game)
+**Documentation is in the [wiki](https://github.com/kyannon/gba-ds/wiki):** [Playing](https://github.com/kyannon/gba-ds/wiki/Playing) · [Supported games](https://github.com/kyannon/gba-ds/wiki/Supported-games) · [Map screen surrounds and overlays](https://github.com/kyannon/gba-ds/wiki/Map-screen-surrounds-and-overlays) · [Settings](https://github.com/kyannon/gba-ds/wiki/Settings) · [Troubleshooting](https://github.com/kyannon/gba-ds/wiki/Troubleshooting) · [Adding second-screen compatibility for a game](https://github.com/kyannon/gba-ds/wiki/Adding-second-screen-compatibility-for-a-game) · [Philosophy](https://github.com/kyannon/gba-ds/wiki/Philosophy)
 
 ## How it works
 
@@ -70,7 +70,7 @@ SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=dummy GBADS_WINDOW=640x960 \
   build/host/gba-ds --rom-dir=roms --state-dir=/tmp/st --input-script=test.txt
 ```
 
-To add second-screen support for another game, see [Adding second-screen compatibility for a game](https://github.com/kyannon/gba-ds/wiki/Adding-second-screen-compatibility-for-a-game).
+To add second-screen support for another game, see [Adding second-screen compatibility for a game](https://github.com/kyannon/gba-ds/wiki/Adding-second-screen-compatibility-for-a-game), and [Philosophy](https://github.com/kyannon/gba-ds/wiki/Philosophy) for what should go on the second screen.
 
 ## Roadmap
 
