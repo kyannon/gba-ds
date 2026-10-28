@@ -1396,8 +1396,8 @@ static void hud_make_logo_below(void) {
 		const HudMove* mv = &hudProf->hud.moves[m];
 		if (mv->toGame && !mv->how && !mv->vhow && mv->x0 == 0 && mv->x1 >= GBA_W - 1 && mv->y0 > 0) top = mv->y0 * 2;
 	}
-	top += hudProf->hud.mapTitleRows * 2; /* (and the level's name above it) */
-	logo_draw(hudLogoBelow, HUD_CW, HUD_CH, HUD_CW / GBA_W, top ? top + 8 : 0, 255);
+	if (hudProf->hud.mapTitleRows && mapTitleN) top += (mapTitleN + 2) * 2; /* (and the level's name above it) */
+	logo_draw(hudLogoBelow, HUD_CW, HUD_CH, HUD_CW / GBA_W, top, 255);
 }
 
 static int rule_count(const SpriteRule* r, int max) {
@@ -1519,7 +1519,7 @@ static void hud_compose(void) {
 	}
 	/* hud.mapTitleRows: the level's name from the map picture on top, the
 	 * HUD that far down */
-	int titleDy = h->mapTitleRows && mapTitleN ? mapTitleN : 0;
+	int titleDy = h->mapTitleRows && mapTitleN ? mapTitleN + 2 : 0; /* (2 rows apart) */
 	for (int y = 0; y < titleDy; ++y) {
 		for (int x = 0; x < GBA_W; ++x) {
 			uint32_t* o = &hudCanvas[y * 2 * HUD_CW + x * 2];
@@ -2764,9 +2764,9 @@ static void draw_osd(void) {
 /* The game's logo at its own size (GEN-1) onto a cw x ch canvas: k canvas
  * pixels to a logo pixel (one GBA pixel each for an extracted logo),
  * centred, blended over what's there at `alpha` (255: opaque; the logo
- * alone, with nothing live to show, at half: LOGO_IDLE); kept below row
- * `top` (a HUD above it). A user's own logo too big for that is shrunk to
- * fit. False if there's no logo. */
+ * alone, with nothing live to show, at half: LOGO_IDLE); with `top` (a HUD
+ * above it), centred in the rows below that. A user's own logo too big
+ * for that is shrunk to fit. False if there's no logo. */
 #define LOGO_IDLE 128
 static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha) {
 	bool pixelArt = false;
@@ -2778,8 +2778,8 @@ static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha) {
 		float sc = SDL_min((float) cw / lg->w, (float) room / lg->h);
 		w = SDL_max(1, (int) (lg->w * sc)), h = SDL_max(1, (int) (lg->h * sc));
 	}
-	int x0 = (cw - w) / 2, y0 = (ch - h) / 2;
-	if (y0 < top) y0 = top + (room - h) / 2;
+	/* centred on the canvas, or with a HUD above it in the room below */
+	int x0 = (cw - w) / 2, y0 = top ? top + (room - h) / 2 : (ch - h) / 2;
 	SDL_LockSurface(lg);
 	for (int y = 0; y < h; ++y) {
 		const uint8_t* row = (const uint8_t*) lg->pixels + (size_t) (y * lg->h / h) * lg->pitch;
@@ -3864,6 +3864,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				mapInactive = false;
 				if (hudProf && hudProf->hud.mapTitleRows && mapRes.w == GBA_W && mapRes.frames[0]) {
 					/* the level list's title row (SMA-7), held for the level */
+					if (!mapTitleN) hudLogoBelowDone = false; /* (the logo moves down under it) */
 					mapTitleN = SDL_min(hudProf->hud.mapTitleRows, 32);
 					for (int i = 0; i < GBA_W * mapTitleN; ++i) mapTitle[i] = mapRes.frames[0][i] | 0xFF000000;
 				}

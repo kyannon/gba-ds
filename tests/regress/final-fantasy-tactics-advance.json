@@ -95,6 +95,88 @@
    ]
   },
   {
+   "id": "ft-us-cursor-judge",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-cursor-judge.ss",
+   "desc": "the cursor on the judge, then A (the active unit's menu comes up: the owner's State Saver save)",
+   "rules": [
+    "FT-9",
+    "FT-8"
+   ],
+   "input": [
+    [
+     300,
+     "A"
+    ],
+    [
+     304,
+     "-"
+    ]
+   ],
+   "shots": {
+    "judge": 240,
+    "menu": 600
+   },
+   "checks": [
+    {
+     "rule": "FT-9",
+     "what": "the judge: the Laws and turn order, not a Status",
+     "type": "not_uniform",
+     "shot": "judge",
+     "screen": "second",
+     "rect": [
+      100,
+      70,
+      920,
+      90
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "FT-9",
+     "what": "after A: Marche's Status fills the second screen",
+     "type": "not_uniform",
+     "shot": "menu",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.05
+    },
+    {
+     "rule": "FT-9",
+     "what": "the two differ",
+     "type": "differs",
+     "a": {
+      "shot": "judge",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "menu",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.3
+    }
+   ]
+  },
+  {
    "id": "ft-us-status-open",
    "rom": "AFXE",
    "state": "final-fantasy-tactics-advance/us-status-open.ss",

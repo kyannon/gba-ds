@@ -444,6 +444,7 @@ static const char* sn_compose(Emu* s, const void* state, uint32_t* out, int w, i
 #define FT_CURSOR 0x0200F6A4 /* the map cursor's x, y (Japan: 0x30 lower) */
 #define FT_AT_UNIT 0x0200F6A0 /* the unit under the cursor (its data), 0 if none, while
                                * nothing's open on the map (Japan: 0x30 lower) */
+#define FT_ACTIVE 0x0200F4EC  /* the unit whose turn it is (its data; Japan: 0x30 lower) */
 #define FT_UI 0x0200F5C6     /* 1 with nothing open on the map (0 the active unit's menu,
                               * 2 another unit's, the system menu or a Status, 3 the turn
                               * order...; Japan: 0x30 lower) */
@@ -509,7 +510,12 @@ static bool ft_status(Emu* s, const void* state, uint32_t page[2][GBA_W * GBA_H]
 	if (!ft_bg0(s, FT_STATUS_CNT)) {
 		if (!ft_bg0(s, FT_MAP_CNT) || !ft_back(s)) return false;
 		/* no unit under the cursor: no Status (FT-9: the turn order) */
-		if (!emu_read32(s, FT_AT_UNIT - (s->gameCode[3] == 'J' ? 0x30 : 0))) return false;
+		uint32_t jp = s->gameCode[3] == 'J' ? 0x30 : 0, at = emu_read32(s, FT_AT_UNIT - jp);
+		if (!at) return false;
+		/* another unit than the one whose turn it is: A brings up its own
+		 * menu (2); the judge has none, and A on it brings up the active
+		 * unit's (0) instead: no Status for the judge (FT-9) */
+		bool other = at != emu_read32(s, FT_ACTIVE - jp);
 		uint32_t ui = FT_UI - (s->gameCode[3] == 'J' ? 0x30 : 0);
 		bool sel = false;
 		int moves = 0;
@@ -519,6 +525,7 @@ static bool ft_status(Emu* s, const void* state, uint32_t page[2][GBA_W * GBA_H]
 			ft_menu_row(s, &orange, &white);
 			uint8_t u = emu_read8(s, ui);
 			bool menu = u == 0 || u == 2; /* (the active unit's, another unit's) */
+			if (other && u == 0) return false; /* (the judge: the active unit's menu came up) */
 			sel = menu && orange > 40;
 			if (sel) break;
 			/* to Status, the last item: UP once (the menu wraps round),
@@ -643,6 +650,9 @@ static const char* ft_compose(Emu* s, const void* state, uint32_t* const* out, i
 	/* taken again when the cursor moves, or every 4th picture (the units
 	 * act, the turn order turns) */
 	uint32_t k = emu_read32(s, ft_cursor(s)) ^ (uint32_t) emu_read16(s, 0x04000008) << 16;
+	/* (and what's open: A on the judge brings up the active unit's menu
+	 * with the cursor where it was; that's when its Status shows) */
+	k = (k ^ emu_read8(s, FT_UI - (s->gameCode[3] == 'J' ? 0x30 : 0))) * 16777619u;
 	bool again = k != key || ++age >= 4 || (!pages && !ww[0]);
 	void* tmp = malloc(emu_state_size(s));
 	if (!tmp) return "out of memory";
@@ -1448,7 +1458,7 @@ static const MapProfile profiles[] = {
 		 * unit moves or acts, and through the battle's scenes */
 		.live = { { FT_V_IDLE, 0xFF, 1, 4 } },
 		.menu = { { FT_V_BATTLE, 0xFF, 0, 4 } },
-		.room = { { FT_CURSOR, 0xFFFF, 0, 2 } },
+		.room = { { FT_CURSOR, 0xFFFF, 0, 2 }, { FT_UI, 0xFF, 0, 1 } },
 		.hud = {
 			/* nothing moves off the game screen (FT-10); this is for the
 			 * logo before the first picture and outside battles (FT-7) */
@@ -1721,6 +1731,7 @@ static void ffta_eur(MapProfile* p) {
 
 static void ffta_jpn(MapProfile* p) {
 	p->room[0].addr -= 0x30;
+	p->room[1].addr -= 0x30;
 }
 
 /* Tony Hawk's Pro Skater 3: the goal list's heading, VOIR OBJ. / ZIELE ZEIGEN */
