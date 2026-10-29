@@ -53,8 +53,15 @@ public class GbaDsActivity extends SDLActivity {
             Log.e(TAG, "setenv: " + e);
         }
         Log.i(TAG, "GBA DS " + BuildConfig.VERSION_NAME + ", data in " + home);
+        /* launch.log: the steps up to the native side's own log, so a start
+         * that dies before gba-ds.log exists can still be followed */
+        LauncherActivity.launchLog(this, "starting GBA DS " + BuildConfig.VERSION_NAME + " on " + Build.MANUFACTURER + " "
+                + Build.MODEL + " (" + Build.HARDWARE + "), Android " + Build.VERSION.RELEASE + " (API "
+                + Build.VERSION.SDK_INT + "), ABIs " + java.util.Arrays.toString(Build.SUPPORTED_ABIS)
+                + ", data in " + home);
         super.onCreate(state);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        LauncherActivity.launchLog(this, mBrokenLibraries ? "native libraries didn't load (SDL shows why)" : "native libraries loaded");
         if (!mBrokenLibraries) openSecondScreen();
     }
 

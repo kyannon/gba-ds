@@ -258,6 +258,8 @@ public class LauncherActivity extends Activity {
 
     private static String fromUri(Context c, Uri u) {
         if ("file".equals(u.getScheme())) return u.getPath();
+        /* a bare path (some frontends: data=/storage/.../game.gba) */
+        if (u.getScheme() == null && u.getPath() != null && u.getPath().startsWith("/")) return u.getPath();
         if (!"content".equals(u.getScheme())) return null;
         if ("com.android.externalstorage.documents".equals(u.getAuthority())) {
             /* with All files access, the plain path is readable (and saves can go next to the ROM) */
