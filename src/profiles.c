@@ -1033,13 +1033,31 @@ static const char* som_compose(Emu* s, const void* state, uint32_t* out, int w, 
  *             or its Psynergy / Item screens, 0 on its Status screen
  *   GS_SCREEN 1 while one of the menu's screens (Psynergy, Item, Status)
  *             is up, else 0
- *   GS_TITLE  17 on the title (it lags behind the menu: not used there)
  * The menu's last icon is Status (LEFT from the first wraps to it), so
- * reaching it by LEFT needs no count of the icons (Djinn come later). */
+ * reaching it by LEFT needs no count of the icons (Djinn come later).
+ *
+ * In a battle (GS-7), while the player chooses what to do, the battle's
+ * own Status (the party menu: Fight, Flee, Status) of the one choosing:
+ * B back to the party menu, LEFT to Status, A, R to that character.
+ *   GS_INPUT  5 while the player chooses (the menus, the Status), else 0
+ *   GS_BSCENE 0x5F walking about and on the title; in a battle 3 while
+ *             it plays out, 6 on its Status, 255 in its menus
+ *   GS_BMENU  0 in the party menu, 2 in a character's menu, 3 on the Status
+ *   GS_WHO    the character choosing (0 the first)
+ * The title: its emblem (GS_V_TITLE). */
 #define GS_MODE 0x03001B62
 #define GS_SCREEN 0x02030E64
-#define GS_TITLE 0x020030A0
+#define GS_INPUT 0x0300037A
+#define GS_BSCENE 0x03001812
+#define GS_BMENU 0x030017C3
+#define GS_WHO 0x02030343
 #define GS_PAGES 8
+#define GS_V_TITLE 0xF0000040
+static const Probe gsTitle[8] = { { 150, 50, 0x844A29 }, { 165, 53, 0x945A29 }, { 134, 57, 0x734A29 }, { 149, 57, 0xBD734A },
+                                  { 164, 60, 0xB5734A }, { 64, 63, 0x8C6B4A }, { 79, 63, 0x9C6339 }, { 94, 63, 0x9C6B4A } };
+static uint32_t gs_virt(Emu* e, uint32_t addr) {
+	return addr == GS_V_TITLE && som_probes(e, gsTitle, 8, 7, 8);
+}
 
 static bool gs_walking(Emu* s) {
 	return emu_read8(s, GS_MODE) == 255 && emu_read8(s, GS_SCREEN) == 0;
@@ -1050,6 +1068,17 @@ static bool gs_menu(Emu* s) {
 static bool gs_status(Emu* s) {
 	return emu_read8(s, GS_MODE) == 0 && emu_read8(s, GS_SCREEN) == 1;
 }
+/* a battle's party menu, settled (a character's menu passes through 0
+ * on the way back to the one before) */
+static bool gs_party_menu(Emu* s) {
+	int still = 0;
+	for (int f = 0; f < 60 && still < 16; ++f) {
+		emu_frame_blind(s, 0);
+		still = emu_read8(s, GS_BMENU) == 0 ? still + 1 : 0;
+	}
+	return still >= 16;
+}
+
 /* runs up to n frames (not drawn) until up(s) */
 static bool gs_wait(Emu* s, bool (*up)(Emu*), int n) {
 	for (int f = 0; f < n && !up(s); ++f) emu_frame_blind(s, 0);
@@ -1063,6 +1092,28 @@ static const char* gs_compose(Emu* s, const void* state, uint32_t* const* out, i
 	*step = 300; /* 5 seconds a party member */
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
+	if (emu_read8(s, GS_INPUT) == 5) {
+		/* a battle, the player choosing: the battle's Status of the one choosing (GS-7) */
+		int who = emu_read8(s, GS_WHO);
+		bool wasStatus = emu_read8(s, GS_BSCENE) == 6; /* (back in the menu, its cursor stays on Status) */
+		for (int i = 0; i < 6 && !gs_party_menu(s); ++i) aw_run(s, K_B, 6);
+		if (!gs_party_menu(s)) return "not in the party menu";
+		if (!wasStatus) {
+			aw_run(s, K_LEFT, 6); /* (to its last icon: Status) */
+			aw_run(s, 0, 12);
+		}
+		aw_run(s, K_A, 6);
+		for (int f = 0; f < 60 && emu_read8(s, GS_BSCENE) != 6; ++f) emu_frame_blind(s, 0);
+		if (emu_read8(s, GS_BSCENE) != 6) return "the battle's Status didn't open";
+		aw_run(s, 0, 16);
+		for (int i = 0; i < who && i < 8; ++i) aw_run(s, K_R, 6), aw_run(s, 0, 16);
+		aw_run(s, 0, 10);
+		if (emu_cancelled(s)) return "called off";
+		for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[0][y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+		*nOut = 1;
+		return NULL;
+	}
+	if (emu_read8(s, GS_BSCENE) != 0x5F) return "a battle playing out"; /* (the logo: GS-8) */
 	if (!gs_status(s)) {
 		/* back to walking about first (from the menu or another of its
 		 * screens), then SELECT, LEFT to Status, A */
@@ -1472,9 +1523,14 @@ static const MapProfile profiles[] = {
 		.stillPick = STILL_FIRST, /* (Map Animations off: the first member) */
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
+		.virt = gs_virt,
 		/* the title: the logo again, no captures (GS-4) */
-		.live = { { GS_TITLE, 0xFF, 0, 1, true, 1, true } },
-		.menu = { { GS_TITLE, 0xFF, 17, 1 } },
+		.live = { { GS_V_TITLE, 0xFF, 0, 4 } },
+		.menu = { { GS_V_TITLE, 0xFF, 1, 4 } },
+		/* a battle playing out: the logo (GS-8) */
+		.combat = { { GS_INPUT, 0xFF, 0, 1 }, { GS_BSCENE, 0xFF, 0, 1, true, 0x5E, true } },
+		/* the one choosing in a battle: their Status at once */
+		.room = { { GS_WHO, 0xFF, 0, 1 } },
 		/* the emblem with its TM, BG2 over black (GS-5) */
 		.logo = { .wait = 420, .layer = 2, .maxY = 160, .blackIsClear = true },
 	},
@@ -1486,8 +1542,11 @@ static const MapProfile profiles[] = {
 		.stillPick = STILL_FIRST,
 		.crop_w = GBA_W,
 		.crop_h = GBA_H,
-		.live = { { GS_TITLE, 0xFF, 0, 1, true, 1, true } },
-		.menu = { { GS_TITLE, 0xFF, 17, 1 } },
+		.virt = gs_virt,
+		.live = { { GS_V_TITLE, 0xFF, 0, 4 } },
+		.menu = { { GS_V_TITLE, 0xFF, 1, 4 } },
+		.combat = { { GS_INPUT, 0xFF, 0, 1 }, { GS_BSCENE, 0xFF, 0, 1, true, 0x5E, true } },
+		.room = { { GS_WHO, 0xFF, 0, 1 } },
 		.logo = { .wait = 420, .layer = 2, .maxY = 160, .blackIsClear = true },
 	},
 	{

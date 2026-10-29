@@ -3,7 +3,7 @@
 ## v1.4.2 (not yet released)
 
 ### New games (preliminary)
-- **Golden Sun:** while you walk about, the second screen shows the Status screen, turning through your party every 5 seconds. The USA / Europe release has been tried; the German, French, Italian, Spanish and Japanese releases should work the same way.
+- **Golden Sun:** while you walk about, the second screen shows the Status screen, turning through your party every 5 seconds. In a battle it shows the battle's Status of the character choosing what to do, and the logo while the turn plays out. The USA / Europe release has been tried; the German, French, Italian, Spanish and Japanese releases should work the same way.
 - **Tactics Ogre: The Knight of Lodis (back in the list):** in a battle, the second screen shows the unit list with its cursor on the unit your cursor is on, turning through its pages (level, HP, MP, element...) every 2.5 seconds. The USA release has been tried; the Japanese one (Tactics Ogre Gaiden) should work the same way.
 
 ### Game list

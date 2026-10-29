@@ -123,6 +123,112 @@
    ]
   },
   {
+   "id": "gs-us-battle-party",
+   "rom": "AGSE",
+   "state": "golden-sun/us-battle-party.ss",
+   "desc": "a battle, the party menu (Fight, Flee, Status)",
+   "rules": [
+    "GS-7"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "GS-7",
+     "what": "the battle's Status was shown",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    }
+   ]
+  },
+  {
+   "id": "gs-us-battle-garet",
+   "rom": "AGSE",
+   "state": "golden-sun/us-battle-garet.ss",
+   "desc": "a battle, Garet choosing (Isaac has)",
+   "rules": [
+    "GS-7"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "GS-7",
+     "what": "the battle's Status was shown",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    }
+   ]
+  },
+  {
+   "id": "gs-us-battle-status-open",
+   "rom": "AGSE",
+   "state": "golden-sun/us-battle-status.ss",
+   "desc": "a battle, its Status open in the game (the owner's report)",
+   "rules": [
+    "GS-7"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "GS-7",
+     "what": "the battle's Status was shown",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    }
+   ]
+  },
+  {
+   "id": "gs-us-battle-turn",
+   "rom": "AGSE",
+   "state": "golden-sun/us-battle-garet.ss",
+   "desc": "Garet attacks too, and the turn plays out",
+   "rules": [
+    "GS-7",
+    "GS-8"
+   ],
+   "input": [
+    [
+     150,
+     "A"
+    ],
+    [
+     156,
+     "-"
+    ],
+    [
+     200,
+     "A"
+    ],
+    [
+     206,
+     "-"
+    ]
+   ],
+   "shots": {
+    "choosing": 120,
+    "playing": 330
+   },
+   "checks": [
+    {
+     "rule": "GS-8",
+     "what": "the logo once the turn plays out",
+     "type": "log",
+     "match": "fight on"
+    },
+    {
+     "rule": "GS-8",
+     "what": "captures there stop at once",
+     "type": "log",
+     "match": "map capture failed.*a battle playing out"
+    }
+   ]
+  },
+  {
    "id": "gs-logo-agse",
    "kind": "logo",
    "rom": "AGSE",

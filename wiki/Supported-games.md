@@ -19,7 +19,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Fire Emblem (Rekka no Ken in Japan; preliminary) | `AE7E` `AE7X` (English, French, German) `AE7Y` (English, Spanish, Italian) `AE7J` | on the map: the status of the unit under the cursor | — |
 | Sword of Mana (Shinyaku Seiken Densetsu in Japan) | `AVSE` `AVSY` (Spanish, Italian) `AVSJ` | the Status screen | — |
 | Summon Night: Swordcraft Story (Craft Sword Monogatari in Japan; preliminary) | `AB4E` `AB4J` (no European release) | the Status screen, with where you are | — |
-| Golden Sun (Ougon no Taiyou: Hirakareshi Fuuin in Japan; preliminary) | `AGSE` `AGSD` `AGSF` `AGSI` `AGSS` `AGSJ` | the Status screen, each party member in turn | — |
+| Golden Sun (Ougon no Taiyou: Hirakareshi Fuuin in Japan; preliminary) | `AGSE` `AGSD` `AGSF` `AGSI` `AGSS` `AGSJ` | the Status screen, each party member in turn; in battle, the one choosing | — |
 | Tactics Ogre: The Knight of Lodis (Tactics Ogre Gaiden in Japan; preliminary) | `ATOE` `ATOJ` (no European release) | the battle's unit list, on the unit under your cursor | — |
 | Pokémon Pinball: Ruby & Sapphire (preliminary) | `BPPE` | the table twice as tall over both screens, live, with the score bar | — |
 
@@ -93,7 +93,8 @@ Preliminary. The USA release.
 Preliminary. The USA / Europe (English) release has been tried; the German, French, Italian, Spanish and Japanese releases should work the same way (their logos are checked), and if one doesn't, its second screen keeps the logo.
 
 - **While you walk about,** the second screen shows the **Status** screen (the one in SELECT's menu), at the game screen's size and in your chosen window colour, turning to the next party member every 5 seconds. It's brought up in the background on a silent copy of the game, so it stays up to date without you opening it; your game is never paused or touched.
-- Where the menu can't be opened (a conversation, a scene, a fight), the last pictures stay.
+- **In a battle,** while you choose what to do, the second screen shows the battle's Status screen of the character choosing (the first one in the Fight / Flee / Status menu). While the turn plays out, it shows the logo.
+- Walking about, where the menu can't be opened (a conversation, a scene), the last pictures stay.
 - On the title screen, the second screen shows the logo.
 
 ## Tactics Ogre: The Knight of Lodis
