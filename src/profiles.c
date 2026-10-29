@@ -463,7 +463,8 @@ static const char* sn_compose(Emu* s, const void* state, uint32_t* out, int w, i
                                 * town's menu, 0 a notice */
 #define FT_LOC 0x02001F69      /* the location the clan is at (18 Cyril, 19 Sprohm...), from
                                 * when it gets there */
-#define FT_WM_STILL 0x02002C29 /* 0 while the clan travels, else 24 */
+#define FT_WM_STILL 0x02002C29 /* 0 while the clan travels and in a place's menu, else 24
+                               * (climbing back over ~15 frames as a menu closes) */
 #define FT_WM_CURSOR 0x02002C2A /* the location under the world map's cursor, 0 between
                                  * them. The Laws window shows the laws on the day the
                                  * clan would get there (lettered on blue and red); on the
@@ -492,8 +493,10 @@ static uint32_t ft_virt(Emu* e, uint32_t addr) {
 	}
 	if (addr != FT_V_IDLE) return 0;
 	if (ft_world(e)) {
+		/* (a place's menu, a town's or a mission's: the clan's there; it
+		 * reads FT_WM_STILL 0 too) */
 		uint8_t w = emu_read8(e, FT_WM_STATE);
-		return (w == 255 || w == 1) && emu_read8(e, FT_WM_STILL);
+		return ((w == 255 || w == 1) && emu_read8(e, FT_WM_STILL)) || w == 2;
 	}
 	uint16_t c = emu_read16(e, 0x04000008);
 	return in && (c == FT_MAP_CNT || c == FT_STATUS_CNT);
@@ -679,9 +682,27 @@ static int ftLawsW, ftLawsH;
 static uint32_t ftLawsAt; /* the location it was taken at + 1; 0 none */
 static const char* ft_world_laws(Emu* s, uint32_t* const* out, int w, int h) {
 	uint32_t at = emu_read8(s, FT_LOC) + 1u;
+	/* (a place's menu opening on arrival passes through 4 and 6: let it
+	 * finish) */
+	for (int f = 0; f < 30 && emu_read8(s, FT_WM_STATE) != 1 && emu_read8(s, FT_WM_STATE) != 2 && emu_read8(s, FT_WM_STATE) != 255; ++f) emu_frame_blind(s, 0);
 	uint8_t st = emu_read8(s, FT_WM_STATE);
 	uint8_t cur = emu_read8(s, FT_WM_CURSOR);
 	if ((st == 1 || at != ftLawsAt) && cur && cur + 1u != at) return "the cursor's on another place";
+	if (st == 2 && at != ftLawsAt) {
+		/* just arrived, the place's menu up (a town's, a mission's): B
+		 * closes it */
+		for (int i = 0; i < 4 && emu_read8(s, FT_WM_STATE) == 2; ++i) {
+			aw_tap(s, K_B, 1);
+			for (int f = 0; f < 30 && emu_read8(s, FT_WM_STATE) == 2; ++f) emu_frame_blind(s, 0);
+		}
+		/* (it passes through other values as it closes, and FT_WM_STILL
+		 * climbs back to 24 over about 15 frames) */
+		for (int f = 0; f < 90 && (emu_read8(s, FT_WM_STATE) != 255 || emu_read8(s, FT_WM_STILL) < 24); ++f) emu_frame_blind(s, 0);
+		st = emu_read8(s, FT_WM_STATE);
+		if (st != 255) return "the place's menu didn't close";
+		cur = emu_read8(s, FT_WM_CURSOR);
+		if (cur && cur + 1u != at) return "the cursor's on another place";
+	}
 	if (st != 1 && at != ftLawsAt) {
 		if (st != 255 || !emu_read8(s, FT_WM_STILL)) return "not free on the world map";
 		/* (L does nothing while a town's menu is still closing: again) */

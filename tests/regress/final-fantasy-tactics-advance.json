@@ -676,7 +676,6 @@
    "state": "final-fantasy-tactics-advance/us-worldmap-town-menu.ss",
    "desc": "just arrived at Sprohm (a day on, new laws), its menu up; B closes it",
    "rules": [
-    "FT-7",
     "FT-14"
    ],
    "input": [
@@ -695,25 +694,79 @@
    },
    "checks": [
     {
-     "type": "uniform",
-     "screen": "second",
-     "rect": [
-      32,
-      64,
-      992,
-      704
-     ],
-     "color": "303030",
-     "frac": 0.5,
-     "rule": "FT-7",
-     "what": "the logo in the town menu before any Laws picture",
-     "shot": "menu"
+     "rule": "FT-14",
+     "what": "the new laws with the town's menu still up (before B at frame 90)",
+     "type": "log",
+     "match": "frame [0-8]?[0-9]: map updated"
+    }
+   ]
+  },
+  {
+   "id": "ft-us-worldmap-mission-prompt",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-worldmap-to-giza.ss",
+   "desc": "travelling to Giza Plains, a day on (new laws), where a mission's menu comes up on arrival (a player's bug report)",
+   "rules": [
+    "FT-14"
+   ],
+   "input": [
+    [
+     0,
+     "DOWN+RIGHT"
+    ],
+    [
+     15,
+     "DOWN"
+    ],
+    [
+     16,
+     "-"
+    ],
+    [
+     354,
+     "A"
+    ],
+    [
+     359,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 300,
+    "prompt": 500
+   },
+   "checks": [
+    {
+     "rule": "FT-14",
+     "what": "the new laws while the mission's menu is still up",
+     "type": "differs",
+     "a": {
+      "shot": "before",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "prompt",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.02
     },
     {
      "rule": "FT-14",
-     "what": "the Laws taken as the menu closes",
+     "what": "taken on arrival",
      "type": "log",
-     "match": "frame 9[0-9]: map updated|frame 1[0-4][0-9]: map updated"
+     "match": "frame 4[5-9][0-9]: map updated"
     }
    ]
   },
