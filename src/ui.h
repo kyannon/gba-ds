@@ -54,6 +54,10 @@ typedef struct {
 
 bool ui_init(Config* cfg, bool wantDual);
 void ui_shutdown(void);
+/* a renderer reset since the last call (SDL_RENDER_*_RESET) */
+bool ui_render_reset(void);
+/* ui.c's own textures let go, to be made again (after a wake) */
+void ui_textures_reset(void);
 void ui_layout(void);
 /* Call once per loop iteration: sway fixups, script ticks. */
 void ui_tick(void);

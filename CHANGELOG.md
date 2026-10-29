@@ -16,6 +16,7 @@
 - When a game starts, a hint at the bottom of the touchscreen says "Swipe up for quick menu", then slides away after 3 seconds or as soon as you touch the screen. `quick_bar_hint = 0` in `gba-ds.cfg` turns it off.
 
 ### Fixes
+- Waking the device from sleep in the middle of a game could crash GBA DS (seen once on BananaOS): after any pause of more than 2 seconds, the pictures on both screens are now made again.
 - A touch on the very edge of the touchscreen (its right or bottom edge, or a finger sliding off it) was ignored, so a swipe or tap that ended there didn't count: the quick bar could miss a swipe up from the bottom edge (#9).
 
 ## v1.4.1 (2026-10-28)

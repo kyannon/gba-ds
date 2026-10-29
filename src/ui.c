@@ -463,6 +463,25 @@ bool ui_init(Config* c, bool wantDual) {
 	return true;
 }
 
+static void text_cache_drop(void);
+static void disc_drop(void);
+
+/* After a wake (or a renderer reset): the textures ui.c keeps for itself
+ * (the scaling pipeline's, the text images, the disc) are let go, to be
+ * made again as they're next needed. */
+void ui_textures_reset(void) {
+	for (int v = 0; v < 2; ++v) {
+		for (int i = 0; i < PIPE_CACHE; ++i) {
+			if (pipeTargets[v][i].tex) SDL_DestroyTexture(pipeTargets[v][i].tex);
+			if (pipeGrids[v][i].tex) SDL_DestroyTexture(pipeGrids[v][i].tex);
+			memset(&pipeTargets[v][i], 0, sizeof(pipeTargets[v][i]));
+			memset(&pipeGrids[v][i], 0, sizeof(pipeGrids[v][i]));
+		}
+	}
+	text_cache_drop();
+	disc_drop();
+}
+
 void ui_shutdown(void) {
 	for (int v = 0; v < 2; ++v) {
 		for (int i = 0; i < PIPE_CACHE; ++i) {
@@ -808,6 +827,14 @@ static void volume_button(int button) { (void) button; }
 static const int evVolFd = -1;
 #endif
 
+static bool renderReset; /* the renderer lost its textures (SDL told us) */
+
+bool ui_render_reset(void) {
+	bool r = renderReset;
+	renderReset = false;
+	return r;
+}
+
 bool ui_events(void) {
 	evdev_touch_poll();
 	evdev_volume_poll();
@@ -824,6 +851,11 @@ bool ui_events(void) {
 #ifdef __ANDROID__
 			android_second_restore(); /* SDL puts its own surfaces away for the pause */
 #endif
+			break;
+		case SDL_RENDER_DEVICE_RESET:
+		case SDL_RENDER_TARGETS_RESET:
+			fprintf(stderr, "the renderer was reset (%s)\n", ev.type == SDL_RENDER_DEVICE_RESET ? "device" : "targets");
+			renderReset = true;
 			break;
 		case SDL_APP_DIDENTERFOREGROUND:
 			fprintf(stderr, "back in the foreground\n");
@@ -1845,6 +1877,13 @@ const char* ui_osd_text(void) {
 #define DISC 64
 static SDL_Texture* discTex[2]; /* white anti-aliased disc, per view */
 
+static void disc_drop(void) {
+	for (int v = 0; v < 2; ++v) {
+		if (discTex[v]) SDL_DestroyTexture(discTex[v]);
+		discTex[v] = NULL;
+	}
+}
+
 static SDL_Texture* disc_texture(int view) {
 	if (discTex[view]) return discTex[view];
 	SDL_Surface* s = SDL_CreateRGBSurfaceWithFormat(0, DISC, DISC, 32, SDL_PIXELFORMAT_RGBA32);
@@ -1910,6 +1949,14 @@ typedef struct {
 } TextEntry;
 #define TEXT_CACHE 192
 static TextEntry textCache[TEXT_CACHE];
+
+static void text_cache_drop(void) {
+	for (int i = 0; i < TEXT_CACHE; ++i) {
+		if (textCache[i].tex) SDL_DestroyTexture(textCache[i].tex);
+		free(textCache[i].text);
+		memset(&textCache[i], 0, sizeof(textCache[i]));
+	}
+}
 static uint64_t textUse;
 
 static TextEntry* text_entry(int view, int font, int cap, const char* text) {

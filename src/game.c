@@ -2875,7 +2875,7 @@ static void bug_info(Text* t, const char* date, uint64_t back) {
 	         strcmp(subCode, emu.gameCode) ? subCode : "", prof ? prof->title : "no profile");
 	text_add(t, "Running %.1f minutes (%llu frames), %.1f FPS (%.0f%%) when the report was made\n", SDL_GetTicks() / 60000.0,
 	         (unsigned long long) frameCount, fps, speedPct);
-	text_add(t, "Second screen: %s\n", hudShown ? "HUD" : mapShownIdx >= 0 ? "map / status picture" : logoOnly ? "logo (logo-only game)" : "logo");
+	text_add(t, "Second screen: %s\n", combatOn ? "logo (a fight)" : hudShown ? "HUD" : mapShownIdx >= 0 ? "map / status picture" : logoOnly ? "logo (logo-only game)" : "logo");
 	text_add(t, "Controls: %s. Cheats on: %d. RetroAchievements: %s\n", ctlProf ? ctl_name(ctlMode) : "GBA", cheats_on(&cheats),
 	         ra_enabled() ? "signed in" : "off");
 	text_add(t, "The rewound state is %llu frames before the other\n", (unsigned long long) back);
@@ -3980,6 +3980,34 @@ static void ss_textures(void) {
 	}
 }
 
+/* After the device sleeps (or the renderer is reset), the GPU's copies of
+ * the pictures may be gone: every texture is made again and given its
+ * picture again (the game's comes with the next frame). */
+static const char* romPath;
+static Uint32 lastLoop; /* the last pass of the play loop (SDL_GetTicks) */
+static void rebuild_textures(void) {
+	for (int i = 0; i < nViews; ++i) {
+		if (gameTex[i]) SDL_DestroyTexture(gameTex[i]);
+		gameTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, GBA_W, GBA_H);
+		if (gameTex[i]) SDL_SetTextureBlendMode(gameTex[i], SDL_BLENDMODE_NONE);
+	}
+	ss_textures();
+	if (emu.fb) for (int i = 0; i < nViews; ++i) ui_update_texture(gameTex[i], emu.fb, GBA_W * 4);
+	if (mapShownIdx >= 0) {
+		int idx = mapShownIdx;
+		overDirty = true;
+		upload_map_frame(idx);
+	}
+	if (combatMade) make_combat_canvas();
+	if (hudProf) for (int i = 0; i < nViews; ++i) ui_update_texture(hudTex[i], hudCanvas, HUD_CW * 4);
+	canvasTexW = canvasTexH = 0; /* (the map surround's: made again when next drawn) */
+	canvasDirty = true;
+	ui_free_image(logoTex);
+	if (romPath && ui_load_logo(cfg, romPath, emu.gameCode, logoTex, &logoW, &logoH, &logoPixel)) make_logo_canvas();
+	else make_logo_canvas();
+	ui_textures_reset();
+}
+
 /* A compilation (profile.pick): the game running in it changed, so the
  * second screen is set up again for that game's profile. */
 static void ss_switch(const char* rom, const char* code) {
@@ -4004,6 +4032,7 @@ static void ss_switch(const char* rom, const char* code) {
 enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	cfg = c;
 	debug = getenv("GBADS_DEBUG") != NULL;
+	romPath = rom, lastLoop = 0;
 	game_paths(cfg, rom, &gp);
 	if (!emu_open(&emu, rom, gp.sav, true)) {
 		ui_osd("Couldn't load the game");
@@ -4196,6 +4225,18 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 					if (mapShownIdx >= 0) upload_map_frame(mapShownIdx);
 				}
 			}
+		}
+		{
+			/* back from sleep (frames stopped for over 2 seconds) or the
+			 * renderer reset: the textures again */
+			Uint32 nowT = SDL_GetTicks();
+			bool reset = ui_render_reset();
+			if (reset || (lastLoop && nowT - lastLoop > 2000)) {
+				fprintf(stderr, "frame %llu: %s, pictures rebuilt\n", (unsigned long long) frameCount,
+				        reset ? "renderer reset" : "back after a pause");
+				rebuild_textures();
+			}
+			lastLoop = SDL_GetTicks();
 		}
 		if (!ui_events()) {
 			exitTo = GAME_QUIT_APP;
