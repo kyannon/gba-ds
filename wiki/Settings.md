@@ -40,7 +40,7 @@ Updating from the game list (Settings > Updates, Linux) keeps your `gba-ds.cfg`.
 | `vsync` | `0` | Present frames in step with the display. Off is smoother on these devices. |
 | `overlays` | `both` | `primary`, `secondary`, `both` or `none`: see [[Map screen surrounds and overlays]]. |
 | `border_color` | `000000` | Colour behind the map image where nothing else is drawn (RRGGBB). |
-| `show_fps` | `0` | Frames per second and % of full speed above the game. |
+| `show_fps` | `0` | Frames per second and % of full speed above the game, all the time (also HOME + X). The quick bar shows the frames per second whenever you swipe it up. |
 | `match_display` | `0` | **Match Display Rate**: run the game at the display's refresh rate instead of the GBA's 59.73 frames a second, when the two are within 1.5% (a 60 Hz screen: 0.46% faster, sound resampled to match, which you can't hear), and present each frame in step with the display. The GBA's own rate on a 60 Hz screen shows one frame twice about every 3.7 seconds, a small regular stutter; matched, every frame gets exactly one refresh. Also in the pause menu. |
 | `rewind` | `1` | Keep a rewind buffer: hold **L2** to go back in time. Also in the pause menu (Extras). |
 | `rewind_seconds` | `30` | How far back rewind goes (5-300). The buffer holds the differences between states, about 1 MB a second. |

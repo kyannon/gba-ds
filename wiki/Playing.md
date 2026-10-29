@@ -52,12 +52,28 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 - **Frame Buffer**: off by default. On, the next frame is prepared while the current one is on screen, which smooths out the odd stutter at the cost of one frame (about 17 ms) of input delay.
 - **Match Display Rate**: off by default. On, the game runs at the screen's refresh rate (60 Hz: 0.5% faster than a GBA, too little to notice, with the sound adjusted to match) and each frame is shown for exactly one refresh. Off, a 60 Hz screen shows one frame twice about every 3.7 seconds: a small, regular stutter.
 
-**Extras** (Rewind and Show FPS are remembered for next time)
+**Extras** (Rewind is remembered for next time)
 - **Cheats**: see [below](#cheats).
 - **Achievements**: when signed in to RetroAchievements; see [below](#retroachievements).
 - **Take Screenshot**: both screens as they look right now, with your display settings, stacked top to bottom into one PNG in `/storage/roms/screenshots` (Android: `GBA DS/screenshots`); `screenshot_dir` changes the folder.
 - **Rewind**: on by default. Hold **L2** to go back in time, up to 30 seconds (`rewind_seconds`), at double speed and without sound; let go to play on from there. Off saves the little work it takes to keep the buffer.
-- **Show FPS**: frames per second and % of full speed, above the game.
+
+## The quick bar and bug reports
+
+Swipe up from the bottom edge of the touchscreen for the quick bar. The game keeps running underneath it. From left to right, it shows:
+- the time;
+- the battery level;
+- frames per second (about 59.7 is full speed);
+- a **bug** button.
+
+Swipe down to put the bar away. It also goes when the pause menu opens (a tap anywhere else on the touchscreen, HOME or your menu buttons), and after 5 seconds untouched.
+
+**The bug button** saves a bug report: a `.zip` in the `bug-reports` folder (`gba-ds/bug-reports/`, or `GBA DS/bug-reports/` on Android), named after the game and the date and time. It holds:
+- a save state of the game right then;
+- a save state from 10 seconds earlier (`-rewound`);
+- every button the game got in between (`-keys.txt`): each press and lift, and how long it was held.
+
+From these, what you did can be played back exactly, frame by frame. So when something goes wrong, press the bug button as soon as you can after it, and attach the `.zip` to [an issue on GitHub](https://github.com/kyannon/gba-ds/issues), saying what you expected to happen. The 10 seconds start again after you load a state, rewind or restart the game.
 
 ## Buttons
 
@@ -74,7 +90,7 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 | R2 (hold) | Fast-forward (`ff_speed`, default 3×) |
 | HOME + R1 / L1 | Quick save / load state |
 | HOME + Start | Quit |
-| HOME + X | FPS counter |
+| HOME + X | FPS counter above the game (the quick bar shows it too) |
 | HOME + Y | Swap screens |
 
 If HOME doesn't open the menu on your device, see `home_button` in [[Settings]]; `menu_combo = select+start` also makes SELECT + START open it.
@@ -149,5 +165,6 @@ To use your own art instead, put `<CODE>.png` (or `.bmp`) in `gba-ds/logos/` (An
 | RetroAchievements sign-in and badges | `gba-ds/states/ra/` | `GBA DS/states/ra/` |
 | Your logos and overlays | `gba-ds/logos/`, `gba-ds/overlays/` | `GBA DS/logos/`, `GBA DS/overlays/` |
 | Screenshots | `/storage/roms/screenshots/` | `GBA DS/screenshots/` |
+| Bug reports | `gba-ds/bug-reports/` | `GBA DS/bug-reports/` |
 | Settings | `gba-ds/gba-ds.cfg` | `GBA DS/gba-ds.cfg` (optional) |
 | Log | `gba-ds/gba-ds.log` | `GBA DS/gba-ds.log`, `GBA DS/launch.log` |

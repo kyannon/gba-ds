@@ -3,6 +3,8 @@
 ## v1.4.1 (not yet released)
 
 ### What's new
+- **Quick bar and bug reports:** swipe up from the bottom of the touchscreen for a bar showing the time, the battery and the frames per second, without pausing the game; swipe down (or leave it 5 seconds) to put it away. Its bug button saves a report in `bug-reports`: a save state of that moment, one from 10 seconds before and every button pressed in between, so what happened can be played back exactly. Attach the `.zip` to a GitHub issue.
+- **Show FPS** has left the pause menu, as the quick bar shows the frames per second. HOME + X still puts the counter above the game.
 - **Pause menu, Game page:** Save State and Load State now sit side by side on one row, and a new row under them has **Save on Quit: On / Off** (whether closing a game saves where you are) and **Auto-Load: On / Off** (whether starting a game picks up from there). Both are remembered; in `gba-ds.cfg` they're `save_on_quit` and `auto_load` (an older `auto_resume = 0` still switches both off).
 
 ## v1.4 (2026-10-28)

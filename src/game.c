@@ -18,6 +18,7 @@ extern void web_sleep(unsigned ms) __attribute__((import_module("env"), import_n
 #include "cheats.h"
 
 #include <pthread.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -109,6 +110,24 @@ static const struct MapProfile* ctlProf; /* NULL: no alternate layout for this g
 /* One frame of the game with these keys (on the worker too, while the main
  * thread leaves the core alone). */
 static uint32_t frameKeys; /* the GBA keys of the last frame run */
+/* Bug reports (the quick bar's bug button): the keys of every frame run
+ * and a state a second, kept for the last ~11 seconds, so a report can
+ * hold the game from 10 seconds before and every key since. bugFrame
+ * counts the frames run on the game's core (run_frame, on the worker
+ * too); the states are taken between frames (bug_tick). Loading a state,
+ * rewinding or restarting starts the log again (bug_reset). */
+#define BUG_LOG 2048    /* frames of keys kept (a power of two) */
+#define BUG_SNAPS 12    /* states kept */
+#define BUG_EVERY 60    /* frames between them */
+#define BUG_BACK 600    /* how far back a report goes: 10 seconds */
+static uint64_t bugFrame, bugStart;
+static uint16_t bugKeys[BUG_LOG];
+static uint8_t bugPoke[BUG_LOG]; /* the SNES layout's camera pan written that frame (run_frame), 0 none */
+static struct {
+	void* st;
+	uint64_t frame;
+	bool have;
+} bugSnap[BUG_SNAPS];
 static uint64_t frameCount;
 static bool tallOn;        /* the table's up: the screens show it */
 /* profile tall.live: two more copies of the game drawing the table's rows
@@ -441,11 +460,15 @@ static void twin_open(const char* rom, const MapProfile* p) {
 
 static void run_frame(uint32_t keys) {
 	frameKeys = keys;
+	unsigned bugAt = bugFrame & (BUG_LOG - 1);
+	bugKeys[bugAt] = keys & 0x3FF;
+	bugPoke[bugAt] = 0;
 	uint32_t want = keys & (KX_PAN_L | KX_PAN_R);
 	if (want && ctlProf && ctlProf->controls.snes.pan) {
 		const typeof(ctlProf->controls.snes)* sn = &ctlProf->controls.snes;
 		if (memprobes_match(sn->when, 3, &emu)) {
 			emu_write8(&emu, sn->pan, want & KX_PAN_L ? 2 : 1);
+			bugPoke[bugAt] = want & KX_PAN_L ? 2 : 1;
 			static bool told;
 			if (!told) told = true, fprintf(stderr, "camera pan: first pan (%s, game mode %02x)\n", want & KX_PAN_L ? "left" : "right", emu_read8(&emu, sn->when[0].addr));
 		} else {
@@ -485,8 +508,38 @@ static void run_frame(uint32_t keys) {
 	twinFrameKeys = keys;
 	for (int i = 0; i < TWINS; ++i) if (twins[i].up) twin_work_start(i, twin_second, &twins[i]);
 	emu_frame(&emu, keys & 0x3FF);
+	++bugFrame;
 	for (int i = 0; i < TWINS; ++i) if (twins[i].up) twin_work_wait(i);
 	if (live) twin_step();
+}
+
+/* Start the bug log again from here (the frames before belong to another moment). */
+static void bug_reset(void) {
+	bugStart = bugFrame;
+	for (int i = 0; i < BUG_SNAPS; ++i) bugSnap[i].have = false;
+}
+
+/* Between frames (the worker idle): a state a second for the bug log. */
+static void bug_tick(void) {
+	if (!emu.core) return;
+	int oldest = 0;
+	uint64_t newest = 0;
+	bool any = false;
+	for (int i = 0; i < BUG_SNAPS; ++i) {
+		if (!bugSnap[i].have) {
+			oldest = i;
+			continue;
+		}
+		if (!any || bugSnap[i].frame > newest) newest = bugSnap[i].frame;
+		any = true;
+		if (bugSnap[oldest].have && bugSnap[i].frame < bugSnap[oldest].frame) oldest = i;
+	}
+	if (any && bugFrame < newest + BUG_EVERY) return;
+	if (any && bugFrame == newest) return;
+	if (!bugSnap[oldest].st) bugSnap[oldest].st = malloc(emu_state_size(&emu));
+	if (!bugSnap[oldest].st) return;
+	bugSnap[oldest].have = emu_state_save(&emu, bugSnap[oldest].st);
+	bugSnap[oldest].frame = bugFrame;
 }
 
 static void* ahead_worker(void* arg) {
@@ -765,7 +818,6 @@ static const char* const allLabels[] = {
 	"Map Animations: On", "Map Animations: Off", "Map Refresh: Every 3 s", "Map Refresh: Every 1.5 s",
 	"Map Refresh: Every 1 s", "Map Refresh: Every 0.5 s", "Map Refresh: Custom", "Frame Buffer: On",
 	"Frame Buffer: Off", "Match Display Rate: On", "Match Display Rate: Off", "Rewind: On (Hold L2)", "Rewind: Off",
-	"Show FPS: On", "Show FPS: Off",
 };
 /* the labels of the half-width buttons, which fit in half the width */
 static const char* const halfLabels[] = {
@@ -1106,6 +1158,109 @@ static void draw_battery(void) {
 		snprintf(buf, sizeof(buf), "%d%%", pct);
 		draw_status(buf, 1);
 	}
+}
+
+/* ---------------------------------------------------------------- the quick bar
+ *
+ * Swiping up from the bottom of the touchscreen brings up a bar along its
+ * bottom, over whatever it shows, without pausing: the time, the battery,
+ * the frames a second and a bug button (bug_report). Swiping down, the
+ * pause menu opening or 5 seconds untouched put it away. */
+static bool barOpen;
+static float barShown;          /* 0 hidden .. 1 all the way up (sliding) */
+static Uint32 barSince;         /* last touched */
+static Uint32 barBugAt;         /* the bug button last pressed (it shows gold a moment) */
+enum { G_NONE, G_TRACK, G_DONE, G_BUG };
+static int barGesture = G_NONE;
+static int barGX, barGY;        /* where the finger went down */
+
+static SDL_Rect bar_rect(int s) {
+	SDL_Rect r = screens[s].rect;
+	float px = ui_px(s);
+	int m = px * 4, h = px * 22;
+	int slide = (int) ((1.0f - barShown) * (h + m));
+	return (SDL_Rect) { m, r.h - m - h + slide, r.w - m * 2, h };
+}
+
+/* the bar's four cells, left to right */
+static SDL_Rect bar_cell(int s, int i) {
+	SDL_Rect b = bar_rect(s);
+	int x0 = b.x + b.w * i / 4, x1 = b.x + b.w * (i + 1) / 4;
+	return (SDL_Rect) { x0, b.y, x1 - x0, b.h };
+}
+
+static SDL_Rect bar_bug_button(int s) {
+	SDL_Rect c = bar_cell(s, 3);
+	float px = ui_px(s);
+	int in = px * 3, w = SDL_min(c.w - in * 2, c.h * 2);
+	return (SDL_Rect) { c.x + (c.w - w) / 2, c.y + in, w, c.h - in * 2 };
+}
+
+static void bar_close(void) {
+	barOpen = false;
+	barGesture = G_NONE;
+}
+
+static void draw_bug_icon(int s, int cx, int cy, int size, SDL_Color c) {
+	static const char* const art[] = {
+		"..X.......X..",
+		"...X.....X...",
+		"....XXXXX....",
+		"...XXXXXXX...",
+		".............",
+		"X..XXX.XXX..X",
+		".X.XXX.XXX.X.",
+		"..XXXX.XXXX..",
+		"...XXX.XXX...",
+		"XXXXXX.XXXXXX",
+		"...XXX.XXX...",
+		"..XXXX.XXXX..",
+		".X.XXX.XXX.X.",
+		"X...XX.XX...X",
+	};
+	int rows = (int) SDL_arraysize(art), cols = (int) strlen(art[0]);
+	int u = SDL_max(1, size / rows);
+	int x0 = cx - cols * u / 2, y0 = cy - rows * u / 2;
+	for (int y = 0; y < rows; ++y) {
+		for (int x = 0; x < cols;) {
+			if (art[y][x] != 'X') {
+				++x;
+				continue;
+			}
+			int e = x;
+			while (e < cols && art[y][e] == 'X') ++e;
+			ui_fill(s, (SDL_Rect) { x0 + x * u, y0 + y * u, (e - x) * u, u }, c);
+			x = e;
+		}
+	}
+}
+
+static void draw_bar(void) {
+	barShown = barOpen ? SDL_min(1.0f, barShown + 0.25f) : SDL_max(0.0f, barShown - 0.25f);
+	if (barShown <= 0) return;
+	int s = ui_touch_screen();
+	float px = ui_px(s);
+	SDL_Rect b = bar_rect(s);
+	ui_fill_round(s, (SDL_Rect) { b.x - 1, b.y - 1, b.w + 2, b.h + 2 }, C_BTN_EDGE, px * 4 + 1);
+	ui_fill_round(s, b, (SDL_Color) { 20, 16, 36, 240 }, px * 4);
+	int cap = px * 6;
+	char buf[3][24] = { "", "", "" };
+	time_t now = time(NULL);
+	struct tm tm;
+	if (localtime_r(&now, &tm)) snprintf(buf[0], sizeof(buf[0]), "%02d:%02d", tm.tm_hour, tm.tm_min);
+	int pct = battery_percent();
+	if (pct >= 0) snprintf(buf[1], sizeof(buf[1]), "%d%%", pct);
+	else snprintf(buf[1], sizeof(buf[1]), "Battery ?");
+	snprintf(buf[2], sizeof(buf[2]), "%.1f FPS", fps);
+	for (int i = 0; i < 3; ++i) {
+		SDL_Rect c = bar_cell(s, i);
+		ui_font_text(s, TF_BOLD, c.x + c.w / 2, c.y + c.h / 2, cap, buf[i], C_TEXT, 0);
+	}
+	SDL_Rect bug = bar_bug_button(s);
+	bool lit = barBugAt && SDL_GetTicks() - barBugAt < 1500;
+	bool down = barGesture == G_BUG;
+	ui_fill_round(s, bug, down ? C_BTN_EDGE : C_BTN_SEL, px * 3);
+	draw_bug_icon(s, bug.x + bug.w / 2, bug.y + bug.h / 2, bug.h * 8 / 10, lit ? C_GOLD : C_TEXT);
 }
 
 static void set_page(int page) {
@@ -2307,6 +2462,7 @@ static bool state_save(const char* path) {
 static bool state_load(const char* path) {
 	bool ok = emu_state_load_file(&emu, path);
 	if (ok) ra_state_loaded(path);
+	if (ok) bug_reset();
 	/* HUD pieces from another moment: taken again from the loaded game */
 	for (int m = 0; ok && m < 4; ++m) pieces[m].stale = true, pieces[m].still = 0;
 	if (ok) aheadReady = false; /* a frame emulated before the load: emulate afresh */
@@ -2324,6 +2480,248 @@ __attribute__((export_name("web_load_state"))) int web_load_state(const char* pa
 	return webPlaying && state_load(path);
 }
 #endif
+
+/* ---------------------------------------------------------------- bug reports
+ *
+ * The quick bar's bug button: <asset_dir>/bug-reports/GAME-DATE_TIME.zip
+ * holding the game now (GAME-DATE_TIME.state), 10 seconds before
+ * (...-rewound.state) and every key the game got in between
+ * (...-keys.txt: the presses and lifts to read, then the same as a
+ * harness script that plays it back from the rewound state, exactly). */
+
+static uint32_t crc32_of(const uint8_t* p, size_t n) {
+	static uint32_t table[256];
+	if (!table[1]) {
+		for (uint32_t i = 0; i < 256; ++i) {
+			uint32_t c = i;
+			for (int k = 0; k < 8; ++k) c = c & 1 ? 0xEDB88320u ^ (c >> 1) : c >> 1;
+			table[i] = c;
+		}
+	}
+	uint32_t c = 0xFFFFFFFFu;
+	for (size_t i = 0; i < n; ++i) c = table[(c ^ p[i]) & 0xFF] ^ (c >> 8);
+	return c ^ 0xFFFFFFFFu;
+}
+
+static void put16(FILE* f, unsigned v) {
+	fputc(v & 0xFF, f), fputc((v >> 8) & 0xFF, f);
+}
+static void put32(FILE* f, uint32_t v) {
+	put16(f, v & 0xFFFF), put16(f, v >> 16);
+}
+
+/* A .zip of n files, stored (states don't shrink much, and it needs no zlib). */
+static bool zip_write(const char* path, const char* const* names, uint8_t* const* data, const size_t* sizes, int n) {
+	FILE* f = fopen(path, "wb");
+	if (!f) return false;
+	time_t now = time(NULL);
+	struct tm tm;
+	localtime_r(&now, &tm);
+	unsigned dosTime = (tm.tm_hour << 11) | (tm.tm_min << 5) | (tm.tm_sec / 2);
+	unsigned dosDate = ((tm.tm_year - 80) << 9) | ((tm.tm_mon + 1) << 5) | tm.tm_mday;
+	uint32_t offs[8], crcs[8];
+	for (int i = 0; i < n; ++i) {
+		offs[i] = (uint32_t) ftell(f);
+		crcs[i] = crc32_of(data[i], sizes[i]);
+		put32(f, 0x04034b50), put16(f, 20), put16(f, 0x0800), put16(f, 0), put16(f, dosTime), put16(f, dosDate);
+		put32(f, crcs[i]), put32(f, (uint32_t) sizes[i]), put32(f, (uint32_t) sizes[i]);
+		put16(f, (unsigned) strlen(names[i])), put16(f, 0);
+		fwrite(names[i], 1, strlen(names[i]), f);
+		fwrite(data[i], 1, sizes[i], f);
+	}
+	uint32_t cd = (uint32_t) ftell(f);
+	for (int i = 0; i < n; ++i) {
+		put32(f, 0x02014b50), put16(f, 20), put16(f, 20), put16(f, 0x0800), put16(f, 0), put16(f, dosTime), put16(f, dosDate);
+		put32(f, crcs[i]), put32(f, (uint32_t) sizes[i]), put32(f, (uint32_t) sizes[i]);
+		put16(f, (unsigned) strlen(names[i])), put16(f, 0), put16(f, 0), put16(f, 0), put16(f, 0), put32(f, 0), put32(f, offs[i]);
+		fwrite(names[i], 1, strlen(names[i]), f);
+	}
+	uint32_t cdEnd = (uint32_t) ftell(f);
+	put32(f, 0x06054b50), put16(f, 0), put16(f, 0), put16(f, n), put16(f, n), put32(f, cdEnd - cd), put32(f, cd), put16(f, 0);
+	bool ok = !ferror(f);
+	return fclose(f) == 0 && ok;
+}
+
+static uint8_t* read_whole(const char* path, size_t* size) {
+	FILE* f = fopen(path, "rb");
+	if (!f) return NULL;
+	fseek(f, 0, SEEK_END);
+	long n = ftell(f);
+	fseek(f, 0, SEEK_SET);
+	uint8_t* b = n > 0 ? malloc(n) : NULL;
+	if (b && fread(b, 1, n, f) != (size_t) n) free(b), b = NULL;
+	fclose(f);
+	*size = b ? (size_t) n : 0;
+	return b;
+}
+
+static void keys_name(char* out, size_t size, unsigned k) {
+	static const char* const names[10] = { "A", "B", "SELECT", "START", "RIGHT", "LEFT", "UP", "DOWN", "R", "L" };
+	out[0] = 0;
+	for (int i = 0; i < 10; ++i) {
+		if (k & (1u << i)) snprintf(out + strlen(out), size - strlen(out), "%s%s", out[0] ? "+" : "", names[i]);
+	}
+	if (!out[0]) snprintf(out, size, "-");
+}
+
+typedef struct {
+	char* s;
+	size_t n, cap;
+} Text;
+static void text_add(Text* t, const char* fmt, ...) {
+	va_list ap;
+	va_start(ap, fmt);
+	char line[512];
+	int k = vsnprintf(line, sizeof(line), fmt, ap);
+	va_end(ap);
+	if (k < 0) return;
+	if ((size_t) k >= sizeof(line)) k = sizeof(line) - 1;
+	if (t->n + k + 1 > t->cap) {
+		size_t cap = (t->cap ? t->cap * 2 : 16384) + k;
+		char* s = realloc(t->s, cap);
+		if (!s) return;
+		t->s = s, t->cap = cap;
+	}
+	memcpy(t->s + t->n, line, k + 1);
+	t->n += k;
+}
+
+/* Writes the report; out gets its file name (or why it failed). */
+static bool bug_report(char* out, size_t outSize) {
+	/* the state closest to 10 seconds back (the oldest there is, if the log's younger) */
+	int pick = -1;
+	for (int i = 0; i < BUG_SNAPS; ++i) {
+		if (!bugSnap[i].have) continue;
+		if (pick < 0) {
+			pick = i;
+			continue;
+		}
+		bool fits = bugSnap[i].frame + BUG_BACK <= bugFrame, pickFits = bugSnap[pick].frame + BUG_BACK <= bugFrame;
+		if (fits && (!pickFits || bugSnap[i].frame > bugSnap[pick].frame)) pick = i;
+		else if (!fits && !pickFits && bugSnap[i].frame < bugSnap[pick].frame) pick = i;
+	}
+	if (pick < 0 || bugFrame - bugSnap[pick].frame >= BUG_LOG) {
+		snprintf(out, outSize, "Nothing to report yet");
+		return false;
+	}
+	uint64_t from = bugSnap[pick].frame, to = bugFrame;
+
+	char dir[1100], stamp[32], base[300], name[3][340], tmp[3][1500], zip[1500];
+	snprintf(dir, sizeof(dir), "%s/bug-reports", cfg->assetDir);
+	mkdirs(dir);
+	time_t now = time(NULL);
+	struct tm tm;
+	localtime_r(&now, &tm);
+	strftime(stamp, sizeof(stamp), "%Y-%m-%d_%H-%M-%S", &tm);
+	/* (a name the harness reads as one word: no spaces) */
+	snprintf(base, sizeof(base), "%s-%s", gp.base, stamp);
+	for (char* c = base; *c; ++c) {
+		if (!((*c >= 'a' && *c <= 'z') || (*c >= 'A' && *c <= 'Z') || (*c >= '0' && *c <= '9') || *c == '-' || *c == '_' || *c == '.')) *c = '_';
+	}
+	snprintf(name[0], sizeof(name[0]), "%s.state", base);
+	snprintf(name[1], sizeof(name[1]), "%s-rewound.state", base);
+	snprintf(name[2], sizeof(name[2]), "%s-keys.txt", base);
+	for (int i = 0; i < 3; ++i) snprintf(tmp[i], sizeof(tmp[i]), "%s/%s", dir, name[i]);
+	snprintf(zip, sizeof(zip), "%s/%s.zip", dir, base);
+
+	/* the game now; then the state from back then, written the same way, and the game put back */
+	bool ok = emu_state_save_file(&emu, tmp[0]);
+	size_t sz = emu_state_size(&emu);
+	void* cur = malloc(sz);
+	if (ok && cur && emu_state_save(&emu, cur)) {
+		ok = emu_state_load(&emu, bugSnap[pick].st) && emu_state_save_file(&emu, tmp[1]);
+		emu_state_load(&emu, cur);
+	} else {
+		ok = false;
+	}
+	free(cur);
+
+	/* the keys: presses and lifts to read, then the frames to play back */
+	Text t = { 0 };
+	double fps60 = GBA_FPS;
+	char date[64], k[64];
+	strftime(date, sizeof(date), "%Y-%m-%d %H:%M:%S", &tm);
+#ifdef GBADS_VERSION
+	const char* version = GBADS_VERSION;
+#else
+	const char* version = "?";
+#endif
+	text_add(&t, "# GBA DS bug report, %s\n", date);
+	text_add(&t, "# GBA DS %s, %s (%s%s%s)\n", version, gp.base, emu.gameCode, strcmp(subCode, emu.gameCode) ? ", playing " : "",
+	         strcmp(subCode, emu.gameCode) ? subCode : "");
+	text_add(&t, "# Controls: %s. Cheats on: %d.\n", ctlProf ? ctl_name(ctlMode) : "GBA", cheats_on(&cheats));
+	text_add(&t, "# %s is the game %.1f seconds (%llu frames) before %s.\n", name[1], (to - from) / fps60,
+	         (unsigned long long) (to - from), name[0]);
+	text_add(&t, "# The keys the game got from then on (after GBA DS's button layouts), by frame:\n#\n");
+	text_add(&t, "#  frame    time  event\n");
+	unsigned prev = 0;
+	uint64_t since[10] = { 0 };
+	for (uint64_t f = from; f <= to; ++f) {
+		unsigned cur = f < to ? bugKeys[f & (BUG_LOG - 1)] : prev; /* (at the end: the keys still held) */
+		unsigned on = cur & ~prev, off = prev & ~cur;
+		for (int b = 0; b < 10; ++b) {
+			keys_name(k, sizeof(k), 1u << b);
+			if (off & (1u << b)) {
+				text_add(&t, "# %6llu %6.2fs  lift %s (held %llu frames)\n", (unsigned long long) (f - from), (f - from) / fps60, k,
+				         (unsigned long long) (f - since[b]));
+			}
+		}
+		for (int b = 0; b < 10; ++b) {
+			keys_name(k, sizeof(k), 1u << b);
+			if (on & (1u << b)) {
+				text_add(&t, "# %6llu %6.2fs  %s %s\n", (unsigned long long) (f - from), (f - from) / fps60, f == from ? "already holding" : "press", k);
+				since[b] = f;
+			}
+		}
+		if (f < to && bugPoke[f & (BUG_LOG - 1)]) {
+			text_add(&t, "# %6llu %6.2fs  camera pan %s (SNES layout, L / R)\n", (unsigned long long) (f - from), (f - from) / fps60,
+			         bugPoke[f & (BUG_LOG - 1)] == 2 ? "left" : "right");
+		}
+		prev = cur;
+	}
+	for (int b = 0; b < 10; ++b) {
+		if (prev & (1u << b)) {
+			keys_name(k, sizeof(k), 1u << b);
+			text_add(&t, "# %6llu %6.2fs  still holding %s (for %llu frames)\n", (unsigned long long) (to - from), (to - from) / fps60, k,
+			         (unsigned long long) (to - since[b]));
+		}
+	}
+	text_add(&t, "#\n# To play it back: build/host/harness ROM OUTDIR %s, run in the folder this\n", name[2]);
+	text_add(&t, "# report was unzipped to; it ends where %s is.\n", name[0]);
+	text_add(&t, "load ./%s\n", name[1]);
+	for (uint64_t f = from; f < to;) {
+		unsigned kf = bugKeys[f & (BUG_LOG - 1)];
+		uint64_t e = f + 1;
+		while (e < to && bugKeys[e & (BUG_LOG - 1)] == kf && !bugPoke[e & (BUG_LOG - 1)]) ++e;
+		if (bugPoke[f & (BUG_LOG - 1)] && ctlProf) {
+			text_add(&t, "poke 0x%08X 1 %u\n", (unsigned) ctlProf->controls.snes.pan, bugPoke[f & (BUG_LOG - 1)]);
+		}
+		keys_name(k, sizeof(k), kf);
+		text_add(&t, "hold %s %llu\n", k, (unsigned long long) (e - f));
+		f = e;
+	}
+	if (t.s) {
+		FILE* f = fopen(tmp[2], "wb");
+		if (!f || fwrite(t.s, 1, t.n, f) != t.n) ok = false;
+		if (f) fclose(f);
+	} else {
+		ok = false;
+	}
+	free(t.s);
+
+	/* the three into one .zip */
+	uint8_t* data[3] = { 0 };
+	size_t sizes[3] = { 0 };
+	for (int i = 0; ok && i < 3; ++i) ok = (data[i] = read_whole(tmp[i], &sizes[i])) != NULL;
+	const char* names[3] = { name[0], name[1], name[2] };
+	if (ok) ok = zip_write(zip, names, data, sizes, 3);
+	for (int i = 0; i < 3; ++i) free(data[i]), remove(tmp[i]);
+	if (!ok) remove(zip);
+	fprintf(stderr, "bug report: %s %s (%llu frames back)\n", zip, ok ? "saved" : "failed", (unsigned long long) (to - from));
+	if (ok) snprintf(out, outSize, "bug-reports/%s.zip", base);
+	else snprintf(out, outSize, "Couldn't save the bug report");
+	return ok;
+}
 
 static void auto_save(void) {
 	if (!cfg->autoSave) return;
@@ -2725,8 +3123,8 @@ static void save_prefs(void) {
 	FILE* f = fopen(prefs, "w");
 	if (f) {
 		fprintf(f, "# written by gba-ds's pause menu; overrides gba-ds.cfg\n");
-		fprintf(f, "swap = %d\nscale = %s\nmap_scale = %s\nlcd_grid = %d\nshow_fps = %d\noverlays = %s\nframe_buffer = %d\nshow_logo = %d\nmatch_display = %d\nrewind = %d\nsave_on_quit = %d\nauto_load = %d\n",
-		        cfg->swap ? 1 : 0, cfg->scale, cfg->mapScale, cfg->lcdGrid ? 1 : 0, cfg->showFps ? 1 : 0,
+		fprintf(f, "swap = %d\nscale = %s\nmap_scale = %s\nlcd_grid = %d\noverlays = %s\nframe_buffer = %d\nshow_logo = %d\nmatch_display = %d\nrewind = %d\nsave_on_quit = %d\nauto_load = %d\n",
+		        cfg->swap ? 1 : 0, cfg->scale, cfg->mapScale, cfg->lcdGrid ? 1 : 0,
 		        (const char* const[]) { "none", "primary", "secondary", "both" }[cfg->overlays & OVL_BOTH],
 		        cfg->frameBuffer ? 1 : 0, cfg->showLogo ? 1 : 0, cfg->matchDisplay ? 1 : 0, cfg->rewind ? 1 : 0,
 		        cfg->autoSave ? 1 : 0, cfg->autoLoad ? 1 : 0);
@@ -2983,6 +3381,8 @@ static SDL_Rect ach_area(int scr) {
 }
 
 static void open_menu(void) {
+	bar_close();
+	barShown = 0;
 	cheatsOpen = false;
 	close_ach();
 	set_page(0);
@@ -3100,6 +3500,7 @@ static bool activate(int item, enum GameExit* exitTo) {
 		}
 		emu_reset(&emu);
 		aheadReady = false;
+		bug_reset();
 		ra_reset();
 		mapShownIdx = -1; /* back to the logo until the next map */
 		restartArmed = false;
@@ -3332,7 +3733,6 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	pages[1][pageLen[1]++] = M_FRAMEBUF;
 	pages[1][pageLen[1]++] = M_MATCH;
 	pages[2][pageLen[2]++] = M_REWIND;
-	pages[2][pageLen[2]++] = M_FPS;
 	set_page(0);
 
 	if (cfg->loadState[0]) {
@@ -3437,6 +3837,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 #endif
 	while (!done) {
 		ahead_sync(); /* the core is the loop's again */
+		bug_tick();
 		Uint64 workT0 = SDL_GetPerformanceCounter(); /* this frame's work, without the wait at the end */
 		long preempt0 = thread_preemptions();
 		double cpuMs0 = thread_cpu_ms();
@@ -3472,10 +3873,59 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		Pointer p;
 		while (ui_next_pointer(&p)) {
 			if (!menuOpen) {
-				if (p.kind == 1 && ctl_tap(p.screen, p.x, p.y)) continue;
+				/* the quick bar: up from the bottom edge of the touchscreen
+				 * brings it up, down puts it away; a tap still opens the
+				 * menu (from the bottom edge or with the bar up: once the
+				 * finger lifts without having swiped) */
+				int ts = ui_touch_screen();
+				float u = ui_px(ts);
+				SDL_Point pt = { p.x, p.y };
 				if (p.kind == 1) {
+					barGesture = G_NONE;
+					if (p.screen == ts && barOpen) {
+						SDL_Rect bug = bar_bug_button(ts);
+						barSince = SDL_GetTicks();
+						barGesture = SDL_PointInRect(&pt, &bug) ? G_BUG : G_TRACK;
+						barGX = p.x, barGY = p.y;
+						continue;
+					}
+					if (p.screen == ts && p.y >= screens[ts].rect.h - u * 36) {
+						barGesture = G_TRACK;
+						barGX = p.x, barGY = p.y;
+						continue;
+					}
+					if (ctl_tap(p.screen, p.x, p.y)) continue;
 					open_menu();
 					ignorePointerUp = true;
+				} else if (p.kind == 3 && barGesture == G_TRACK && p.screen == ts) {
+					int dy = p.y - barGY;
+					if (!barOpen && dy <= -u * 10) {
+						barOpen = true;
+						barSince = SDL_GetTicks();
+						barGesture = G_DONE;
+						if (debug) fprintf(stderr, "frame %llu: quick bar up\n", (unsigned long long) frameCount);
+					} else if (barOpen && dy >= u * 10) {
+						bar_close();
+						barGesture = G_DONE;
+					}
+				} else if (p.kind == 2) {
+					int g = barGesture;
+					barGesture = G_NONE;
+					if (g == G_BUG) {
+						SDL_Rect bug = bar_bug_button(ts);
+						if (p.screen == ts && SDL_PointInRect(&pt, &bug)) {
+							char what[200];
+							barBugAt = barSince = SDL_GetTicks();
+							if (bug_report(what, sizeof(what))) ui_osd("Bug report saved in bug-reports");
+							else ui_osd("%s", what);
+						}
+					} else if (g == G_TRACK) {
+						/* a tap, not a swipe */
+						if (barOpen || !ctl_tap(p.screen, barGX, barGY)) {
+							open_menu();
+							ignorePointerUp = false;
+						}
+					}
 				}
 				continue;
 			}
@@ -3786,6 +4236,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			 * double speed; silent, no achievements. At the buffer's start
 			 * the picture stays. */
 			aheadReady = false; /* (a frame emulated ahead belongs to the present) */
+			bug_reset();
 			if (emu_rewind_step(&emu)) {
 				emu_frame(&emu, 0);
 				ui_osd("Rewinding");
@@ -4027,6 +4478,8 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			take_screenshot();
 		}
 		ra_draw(nScreens > 1 ? 1 - game_screen() : 0); /* after the screenshot: not in it */
+		if (barOpen && barGesture == G_NONE && SDL_GetTicks() - barSince > 5000) bar_close();
+		draw_bar();
 		ui_present();
 		Uint64 drawT1 = SDL_GetPerformanceCounter();
 		drawTicks += drawT1 - drawT0;

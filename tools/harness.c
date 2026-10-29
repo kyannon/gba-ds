@@ -8,7 +8,7 @@
  *   tap KEYS [COUNT]     press KEYS 3 frames then release 9 frames, COUNT times
  *   shot NAME            write OUTDIR/NAME.png
  *   seq NAME N STEP      N shots STEP frames apart (no input) NAME_00.png...
- *   save NAME / load NAME   savestate to/from OUTDIR/NAME.ss
+ *   save NAME / load NAME   savestate to/from OUTDIR/NAME.ss (or NAME itself, if it has a '/')
  *   map NAME             run shadow map capture, write OUTDIR/NAME.png
  *   peek ADDR LEN        hex dump memory
  *   watch ADDR LEN       record bytes; 'diff' prints addresses that changed
@@ -138,7 +138,9 @@ int main(int argc, char** argv) {
 			}
 		} else if (!strcmp(cmd, "save") || !strcmp(cmd, "load")) {
 			char path[512];
-			snprintf(path, sizeof(path), "%s/%s.ss", outdir, a1);
+			/* (a path with a '/' as it is: a bug report's states) */
+			if (strchr(a1, '/')) snprintf(path, sizeof(path), "%s", a1);
+			else snprintf(path, sizeof(path), "%s/%s.ss", outdir, a1);
 			bool ok = cmd[0] == 's' ? emu_state_save_file(&emu, path) : emu_state_load_file(&emu, path);
 			if (!ok) fprintf(stderr, "%s %s failed\n", cmd, path);
 		} else if (!strcmp(cmd, "map")) {

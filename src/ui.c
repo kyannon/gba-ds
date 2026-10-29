@@ -64,6 +64,9 @@ static int scriptLen, scriptPos;
 static uint32_t scriptBtns;
 static long scriptTapUp = -1;
 static float tapX, tapY;
+/* SWIPE:x0,y0,x1,y1 (fractions of the window): down, 4 moves a tick apart, up */
+static float swipe[4];
+static int swipeStep = -1;
 static char pendingShot[160];
 static char pendingLoad[160]; /* LOAD:file in an input script (regression tests) */
 
@@ -100,7 +103,7 @@ void ui_load_script(const char* path) {
 		s->tick = t;
 		s->btns = 0;
 		s->action[0] = 0;
-		if (!strncmp(what, "TAP:", 4) || !strncmp(what, "SHOT:", 5) || !strncmp(what, "LOAD:", 5) || !strcmp(what, "QUIT") ||
+		if (!strncmp(what, "TAP:", 4) || !strncmp(what, "SWIPE:", 6) || !strncmp(what, "SHOT:", 5) || !strncmp(what, "LOAD:", 5) || !strcmp(what, "QUIT") ||
 		    !strncmp(what, "JOY", 3)) {
 			snprintf(s->action, sizeof(s->action), "%s", what);
 		} else {
@@ -145,6 +148,11 @@ static void run_script(void) {
 			sscanf(s->action + 4, "%f,%f", &tapX, &tapY);
 			push_finger(SDL_FINGERDOWN, tapX, tapY);
 			scriptTapUp = (long) ticks + 2;
+		} else if (!strncmp(s->action, "SWIPE:", 6)) {
+			if (sscanf(s->action + 6, "%f,%f,%f,%f", &swipe[0], &swipe[1], &swipe[2], &swipe[3]) == 4) {
+				push_finger(SDL_FINGERDOWN, swipe[0], swipe[1]);
+				swipeStep = 0;
+			}
 		} else if (!strncmp(s->action, "SHOT:", 5)) {
 			snprintf(pendingShot, sizeof(pendingShot), "%s", s->action + 5);
 		} else if (!strncmp(s->action, "LOAD:", 5)) {
@@ -156,6 +164,13 @@ static void run_script(void) {
 		} else {
 			scriptBtns = s->btns;
 		}
+	}
+	if (swipeStep >= 0) {
+		float t = ++swipeStep / 4.0f;
+		if (t > 1) t = 1;
+		float x = swipe[0] + (swipe[2] - swipe[0]) * t, y = swipe[1] + (swipe[3] - swipe[1]) * t;
+		push_finger(swipeStep <= 4 ? SDL_FINGERMOTION : SDL_FINGERUP, x, y);
+		if (swipeStep > 4) swipeStep = -1;
 	}
 	if (scriptTapUp >= 0 && (long) ticks >= scriptTapUp) {
 		push_finger(SDL_FINGERUP, tapX, tapY);

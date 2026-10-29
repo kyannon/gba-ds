@@ -161,7 +161,9 @@ Android session at the same time. To keep them from colliding:
   GBADS_WINDOW=1024x1536 build/host/gba-ds --state-dir=DIR [--load-state=X.ss]
   --input-script=SCRIPT ROM`. Script lines: `TICK BUTTONS` (A, B+UP, - for
   none), `TICK SHOT:file.bmp` (both screens), `TICK TAP:x,y` (fractions of
-  the whole window), `TICK QUIT`, `TICK LOAD:file.ss` (load a state, the second screen kept). `GBADS_DEBUG=1` logs map captures,
+  the whole window), `TICK SWIPE:x0,y0,x1,y1` (down, 4 moves, up: the quick
+  bar comes up with `SWIPE:0.5,0.99,0.5,0.85`; its bug button is at
+  `TAP:0.863,0.96` in a 1024x1536 window), `TICK QUIT`, `TICK LOAD:file.ss` (load a state, the second screen kept). `GBADS_DEBUG=1` logs map captures,
   snapshot and control-scheme switches, taps.
 - `build/host/harness ROM OUTDIR SCRIPT` drives the core frame by frame:
   `load/save NAME`, `wait N`, `hold BUTTONS N`, `shot NAME`, `peek ADDR LEN`,
@@ -169,6 +171,16 @@ Android session at the same time. To keep them from colliding:
   OBJ alone), `map NAME` (run a map capture), `logo NAME`. It writes the
   game's battery save beside the ROM (`ROM.sav`): don't run it on the fixtures'
   ROMs in place, or delete those `.sav` files after (never commit them).
+- **Players' bug reports** (the quick bar's bug button, `bug-reports/*.zip`):
+  `GAME-DATE.state` (that moment), `GAME-DATE-rewound.state` (~10 s
+  before) and `GAME-DATE-keys.txt`, the game keys of every frame between,
+  readable as `#` lines and runnable as a harness script that plays them
+  back from the rewound state exactly (`load ./NAME.state`: harness `load`
+  takes a path with a `/` as it is). Unzip, then in that folder
+  `harness ROM OUT GAME-DATE-keys.txt` (add `dumpram` / `shot` lines to
+  look). Checked: the RAM after the replay equals the `.state`'s, frame
+  buffer on or off. Not replayed: cheats (the header says how many were
+  on) and the battery save (the harness has none).
 - ROMs and save files are not in the repo. The owner attaches them; ask.
 - State Saver (`tools/statesaver/`, published as the owner's artifact) has a
   GBA DS tab: it runs a dev zip's `gba-ds/web/gba-ds.wasm` (`scripts/build-web.sh`,
