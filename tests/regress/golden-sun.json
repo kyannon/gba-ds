@@ -295,6 +295,74 @@
    ]
   },
   {
+   "id": "gs-us-battle-start",
+   "rom": "AGSE",
+   "state": "golden-sun/us-field.ss",
+   "desc": "walking about (the Status up), then a battle starting (a player's bug report: the enemies appearing)",
+   "rules": [
+    "GS-8"
+   ],
+   "input": [
+    [
+     400,
+     "LOAD:golden-sun/us-battle-start.ss"
+    ]
+   ],
+   "shots": {
+    "field": 300,
+    "battle": 520
+   },
+   "checks": [
+    {
+     "rule": "GS-8",
+     "what": "the Status while walking about",
+     "type": "log",
+     "match": "map updated \\(2 frame"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "GS-8",
+     "what": "the logo as the battle starts, not the Status from walking about",
+     "shot": "battle"
+    }
+   ]
+  },
+  {
+   "id": "gs-us-battle-first-turn",
+   "rom": "AGSE",
+   "state": "golden-sun/us-battle-first-turn.ss",
+   "desc": "a battle's first turn, the party menu just up (its Status reads differently from later turns)",
+   "rules": [
+    "GS-7"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "GS-7",
+     "what": "the battle's Status was shown",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "GS-7",
+     "what": "it opened",
+     "type": "no_log",
+     "match": "didn't open"
+    }
+   ]
+  },
+  {
    "id": "gs-logo-agse",
    "kind": "logo",
    "rom": "AGSE",
