@@ -7,7 +7,7 @@
 - **Tactics Ogre: The Knight of Lodis (back in the list):** in a battle, the second screen shows the unit list with its cursor on the unit your cursor is on, turning through its pages (level, HP, MP, element...) every 2.5 seconds, without its R SEARCH and START:DATA prompts. The USA release has been tried; the Japanese one (Tactics Ogre Gaiden) should work the same way.
 
 ### Final Fantasy Tactics Advance
-- On the world map, the second screen now shows today's Laws (the window L opens), taken again each time your clan arrives somewhere new. Japanese release: the world map still shows the logo.
+- On the world map, the second screen now shows today's Laws (the window L opens, on its own), taken again each time your clan arrives somewhere new. Japanese release: the world map still shows the logo.
 
 ### Game list
 - Games without second-screen support (listed with `show_all = 1`) are tagged **Single screen only** instead of "No map".

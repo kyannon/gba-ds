@@ -669,11 +669,13 @@ static void ft_put(uint32_t* o, int w, int h, const uint32_t* src, int sw, int s
 	}
 }
 
-/* The world map's Laws (FT-14): the whole screen with the Laws window
- * open (L), taken again when the clan's somewhere new (or the Laws are
+/* The world map's Laws (FT-14): the Laws window (L) cut out (BG2 its
+ * boxes, BG3 its lettering: not the map, the L Law sign or the pointer,
+ * sprites), centred on dark grey; taken again when the clan's somewhere new (or the Laws are
  * open in the game), else the last one again; only with the cursor on the
  * clan or between places (elsewhere it shows another day's laws). */
 static uint32_t ftLaws[GBA_W * GBA_H];
+static int ftLawsW, ftLawsH;
 static uint32_t ftLawsAt; /* the location it was taken at + 1; 0 none */
 static const char* ft_world_laws(Emu* s, uint32_t* const* out, int w, int h) {
 	uint32_t at = emu_read8(s, FT_LOC) + 1u;
@@ -692,11 +694,19 @@ static const char* ft_world_laws(Emu* s, uint32_t* const* out, int w, int h) {
 	if (st == 1 || at != ftLawsAt) {
 		aw_run(s, 0, 40); /* (the window's opening) */
 		if (emu_cancelled(s)) return "called off";
-		memcpy(ftLaws, s->fb, sizeof(ftLaws));
+		void* tmp = malloc(emu_state_size(s));
+		if (!tmp) return "out of memory";
+		static uint32_t cut[GBA_W * GBA_H];
+		int cw, ch;
+		bool ok = ft_cut(s, tmp, cut, &cw, &ch, 150, GBA_W, 100, GBA_H);
+		free(tmp);
+		if (emu_cancelled(s)) return "called off";
+		if (!ok) return "the Laws window wasn't found";
+		memcpy(ftLaws, cut, (size_t) cw * ch * 4), ftLawsW = cw, ftLawsH = ch;
 		ftLawsAt = at;
 	}
 	for (int i = 0; i < w * h; ++i) out[0][i] = SCREEN_GREY;
-	ft_put(out[0], w, h, ftLaws, GBA_W, GBA_H, (w - GBA_W) / 2, (h - GBA_H) / 2);
+	ft_put(out[0], w, h, ftLaws, ftLawsW, ftLawsH, (w - ftLawsW) / 2, (h - ftLawsH) / 2);
 	return NULL;
 }
 
