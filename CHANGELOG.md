@@ -9,6 +9,9 @@
 ### Final Fantasy Tactics Advance
 - On the world map, the second screen now shows today's Laws (the window L opens, on its own), taken again as soon as your clan arrives somewhere new, even with the place's own menu up (a town's, or a mission's). Japanese release: the world map still shows the logo.
 
+### Advance Wars 2
+- On the computer's turn (from ending yours, through its moves) the second screen shows the logo, as the cursor isn't yours to bring up intel with; the intel comes back on your turn. The same in Game Boy Wars Advance 2 (Japan), not yet tried there. Advance Wars (the first game) still keeps its last picture on the computer's turn.
+
 ### Game list
 - Games without second-screen support (listed with `show_all = 1`) are tagged **Single screen only** instead of "No map".
 

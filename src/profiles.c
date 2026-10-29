@@ -37,6 +37,8 @@
 /* Advance Wars 2 (USA; Europe the same): found by matching the code that
  * reads Advance Wars' (the army) and by watching them change */
 #define AW2_ARMY 0x030005D0
+#define AW2_CPU 0x030005C9 /* 1 from the end of the player's turn through the computer's;
+                           * 0 on the player's (moves, menus, conversations too) */
 #define AW2_CURSOR 0x03003140
 #define AW2_UNITS 0x02022684
 #define AW2_MENU_ROW 0x030014B2
@@ -47,6 +49,7 @@
 #define GBW1_CURSOR 0x030031B0
 #define GBW1_UNITS 0x0201A138
 #define GBW2_ARMY 0x030005D8
+#define GBW2_CPU 0x030005D1 /* (AW2_CPU's place, as the army's; 0 on the player's turn seen) */
 #define GBW2_CURSOR 0x03003250
 #define GBW2_UNITS 0x02022574
 /* the weather's sprites: rain (tiles 169, 171), in OBJ palette 2 */
@@ -2058,6 +2061,8 @@ static const MapProfile profiles[] = {
 		.crop_h = GBA_H,
 		/* a fight: both windows on */
 		.combat = { { AW2_ARMY, 0xFF, 1, 1, true, 4, true }, { 0x04000000, 0x4000, 0x4000, 2 } },
+		/* the computer's turn: the logo too (AW2-4) */
+		.combatOr = { { AW2_CPU, 0xFF, 1, 1 } },
 		.live = { { AW2_ARMY, 0xFF, 1, 1, true, 4, true } },
 		.menu = { { AW2_ARMY, 0xFF, 0, 1 }, { 0x030040D8, 0xFFFFFFFF, 0, 4 } },
 		.room = { { AW2_CURSOR, 0xFFFF, 0, 2 } },
@@ -2154,6 +2159,7 @@ static void gbw1(MapProfile* p) {
 static void gbw2(MapProfile* p) {
 	p->title = "Game Boy Wars Advance 1+2: Game Boy Wars Advance 2";
 	gbw_set(p, GBW2_ARMY, GBW2_CURSOR, 0x03004248);
+	p->combatOr[0].addr = GBW2_CPU;
 }
 
 static void thps2_jpn(MapProfile* p) {
