@@ -2876,6 +2876,12 @@ static void bug_info(Text* t, const char* date, uint64_t back) {
 	text_add(t, "Running %.1f minutes (%llu frames), %.1f FPS (%.0f%%) when the report was made\n", SDL_GetTicks() / 60000.0,
 	         (unsigned long long) frameCount, fps, speedPct);
 	text_add(t, "Second screen: %s\n", combatOn ? "logo (a fight)" : hudShown ? "HUD" : mapShownIdx >= 0 ? "map / status picture" : logoOnly ? "logo (logo-only game)" : "logo");
+	if (mc) {
+		const char* why = NULL;
+		int fails = mapcap_failures(mc, &why);
+		if (fails) text_add(t, "Last capture: failed (%d in a row): %s\n", fails, why ? why : "?");
+		else text_add(t, "Last capture: ok\n");
+	}
 	text_add(t, "Controls: %s. Cheats on: %d. RetroAchievements: %s\n", ctlProf ? ctl_name(ctlMode) : "GBA", cheats_on(&cheats),
 	         ra_enabled() ? "signed in" : "off");
 	text_add(t, "The rewound state is %llu frames before the other\n", (unsigned long long) back);
@@ -4760,7 +4766,8 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				mapShownIdx = -1;
 				mapInactive = false;
 				forceMap = true;
-				if (debug) fprintf(stderr, "frame %llu: back at the menus, map cleared\n", (unsigned long long) frameCount);
+				/* (always logged: what sends the second screen back to the logo) */
+				fprintf(stderr, "frame %llu: second screen back to the logo (the profile's menu probes matched)\n", (unsigned long long) frameCount);
 			}
 			uint32_t rk = mapcap_room_key(mc, &emu);
 			if (rk != seenRoomKey) seenRoomKey = rk, seenRoomFor = 0;
@@ -4849,7 +4856,8 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				combatOn = c;
 				streak = 0;
 				if (combatOn && !combatMade) make_combat_canvas();
-				if (debug) fprintf(stderr, "frame %llu: fight %s\n", (unsigned long long) frameCount, combatOn ? "on" : "off");
+				fprintf(stderr, "frame %llu: fight %s (the second screen's logo %s)\n", (unsigned long long) frameCount, combatOn ? "on" : "off",
+				        combatOn ? "up" : "gone");
 			}
 		}
 		if (ctl_snes()) snesHere = memprobes_match(ctlProf->controls.snes.when, 3, &emu);
