@@ -101,6 +101,72 @@
    ]
   },
   {
+   "id": "gs-us-after-battle",
+   "rom": "AGSE",
+   "state": "golden-sun/us-after-battle.ss",
+   "desc": "walking about straight after a battle (from a player's bug report)",
+   "rules": [
+    "GS-1",
+    "GS-2"
+   ],
+   "shots": {
+    "first": 120,
+    "second": 420
+   },
+   "checks": [
+    {
+     "rule": "GS-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated \\(2 frame\\(s\\) 300 apart"
+    },
+    {
+     "rule": "GS-2",
+     "what": "the next party member after 5 seconds",
+     "type": "differs",
+     "a": {
+      "shot": "first",
+      "rect": [
+       64,
+       240,
+       192,
+       368
+      ]
+     },
+     "b": {
+      "shot": "second",
+      "rect": [
+       64,
+       240,
+       192,
+       368
+      ]
+     },
+     "frac": 0.2
+    }
+   ]
+  },
+  {
+   "id": "gs-us-psynergy-open",
+   "rom": "AGSE",
+   "state": "golden-sun/us-psynergy.ss",
+   "desc": "the menu's Psynergy screen open in the game",
+   "rules": [
+    "GS-1"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "GS-1",
+     "what": "the Status was shown (2 pages), not the Psynergy screen",
+     "type": "log",
+     "match": "map updated \\(2 frame\\(s\\) 300 apart"
+    }
+   ]
+  },
+  {
    "id": "gs-us-title",
    "rom": "AGSE",
    "state": "golden-sun/us-title.ss",

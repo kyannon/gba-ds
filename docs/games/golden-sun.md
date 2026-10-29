@@ -13,7 +13,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 ## Rules
 
-**GS-1. Status screen.** Walking about (where SELECT opens the menu), the second screen shows the Status screen (SELECT, the last icon, Status, then A), the whole screen at the game screen's size, as the game draws it (its L-R / A prompt and the hand included). It's opened on the hidden copy at every map refresh, so it stays up to date without the player opening it. With the Status screen open in the game, the same.
+**GS-1. Status screen.** Walking about (where SELECT opens the menu), the second screen shows the Status screen (SELECT, the last icon, Status, then A), the whole screen at the game screen's size, as the game draws it (its L-R / A prompt and the hand included). It's opened on the hidden copy at every map refresh (straight after a battle too), so it stays up to date without the player opening it. With the Status screen, or another of the menu's screens (Psynergy, Item), open in the game, the same: the Status, opened afresh.
 
 **GS-2. Every party member in turn.** The Status screen turns through the party (RIGHT on the hidden copy, as many as there are, back to the first), one every 5 seconds, and keeps turning at that pace through each refresh.
 

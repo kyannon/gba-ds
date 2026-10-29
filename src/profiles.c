@@ -1029,12 +1029,16 @@ static const char* som_compose(Emu* s, const void* state, uint32_t* out, int w, 
  * shown in turn 5 seconds each (GS-1, GS-2). The window colour is the
  * player's choice (the game's settings), so the screens are told apart by
  * memory, not pixels:
- *   GS_MODE   255 walking about (and on the title), 128 in SELECT's menu
- *             or its Psynergy / Item screens, 0 on its Status screen
+ *   GS_FMENU  1 while SELECT's menu or one of its screens is up, else 0
+ *             (walking about, in a battle, on the title)
  *   GS_SCREEN 1 while one of the menu's screens (Psynergy, Item, Status)
  *             is up, else 0
- * The menu's last icon is Status (LEFT from the first wraps to it), so
- * reaching it by LEFT needs no count of the icons (Djinn come later).
+ * The menu always opens on its first icon, and its last is Status (LEFT
+ * from the first wraps to it), so reaching it by LEFT needs no count of
+ * the icons (Djinn come later). Nothing in memory tells the Status from
+ * the Psynergy and Item screens (0x03001B62, read before, is a slot of the
+ * windows' table and reads one window behind after some battles), so a
+ * screen already open is backed out of and the Status opened afresh.
  *
  * In a battle (GS-7), while the player chooses what to do, the battle's
  * own Status (the party menu: Fight, Flee, Status) of the one choosing:
@@ -1045,7 +1049,7 @@ static const char* som_compose(Emu* s, const void* state, uint32_t* out, int w, 
  *   GS_BMENU  0 in the party menu, 2 in a character's menu, 3 on the Status
  *   GS_WHO    the character choosing (0 the first)
  * The title: its emblem (GS_V_TITLE). */
-#define GS_MODE 0x03001B62
+#define GS_FMENU 0x02030172
 #define GS_SCREEN 0x02030E64
 #define GS_INPUT 0x0300037A
 #define GS_BSCENE 0x03001812
@@ -1060,13 +1064,14 @@ static uint32_t gs_virt(Emu* e, uint32_t addr) {
 }
 
 static bool gs_walking(Emu* s) {
-	return emu_read8(s, GS_MODE) == 255 && emu_read8(s, GS_SCREEN) == 0;
+	return emu_read8(s, GS_FMENU) == 0 && emu_read8(s, GS_SCREEN) == 0;
 }
 static bool gs_menu(Emu* s) {
-	return emu_read8(s, GS_MODE) == 128 && emu_read8(s, GS_SCREEN) == 0;
+	return emu_read8(s, GS_FMENU) == 1 && emu_read8(s, GS_SCREEN) == 0;
 }
+/* one of the menu's screens: the Status, when reached by its icon */
 static bool gs_status(Emu* s) {
-	return emu_read8(s, GS_MODE) == 0 && emu_read8(s, GS_SCREEN) == 1;
+	return emu_read8(s, GS_FMENU) == 1 && emu_read8(s, GS_SCREEN) == 1;
 }
 /* a battle's party menu, settled (a character's menu passes through 0
  * on the way back to the one before) */
@@ -1114,22 +1119,20 @@ static const char* gs_compose(Emu* s, const void* state, uint32_t* const* out, i
 		return NULL;
 	}
 	if (emu_read8(s, GS_BSCENE) != 0x5F) return "a battle playing out"; /* (the logo: GS-8) */
-	if (!gs_status(s)) {
-		/* back to walking about first (from the menu or another of its
-		 * screens), then SELECT, LEFT to Status, A */
-		for (int i = 0; i < 4 && !gs_walking(s); ++i) {
-			aw_run(s, K_B, 8);
-			gs_wait(s, gs_walking, 60);
-		}
-		if (!gs_walking(s)) return "not walking about";
-		aw_run(s, K_SELECT, 8);
-		if (!gs_wait(s, gs_menu, 60)) return "the menu didn't open";
-		aw_run(s, 0, 12);
-		aw_run(s, K_LEFT, 6); /* (to the last icon: Status) */
-		aw_run(s, 0, 16);
-		aw_run(s, K_A, 6);
-		if (!gs_wait(s, gs_status, 60)) return "the Status didn't open";
+	/* back to walking about first (from the menu or one of its screens,
+	 * the Status too), then SELECT, LEFT to Status, A */
+	for (int i = 0; i < 4 && !gs_walking(s); ++i) {
+		aw_run(s, K_B, 8);
+		gs_wait(s, gs_walking, 60);
 	}
+	if (!gs_walking(s)) return "not walking about";
+	aw_run(s, K_SELECT, 8);
+	if (!gs_wait(s, gs_menu, 60)) return "the menu didn't open";
+	aw_run(s, 0, 12);
+	aw_run(s, K_LEFT, 6); /* (to the last icon: Status) */
+	aw_run(s, 0, 16);
+	aw_run(s, K_A, 6);
+	if (!gs_wait(s, gs_status, 60)) return "the Status didn't open";
 	aw_run(s, 0, 20);
 	int n = 0;
 	for (; n < max; ++n) {
