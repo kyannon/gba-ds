@@ -383,7 +383,7 @@ static void draw_preview(Config* cfg, int scr, int sel) {
 		int gameH = headH * 2, maxW = r.w - ourW - m * 3;
 		if (prof && prof->title) ui_title_block(scr, (SDL_Rect) { r.w - m - maxW, m, maxW, gameH }, prof->title, px * 9, C_TEXT);
 	}
-	if (!g->supported) ui_font_text(scr, TF_BODY, m, m + headH + px * 7, px * 4, "No map screen: plays normally", C_DIM, -1);
+	if (!g->supported) ui_font_text(scr, TF_BODY, m, m + headH + px * 7, px * 4, "Single screen only: plays normally", C_DIM, -1);
 
 	/* the resume point (the game screen only), or a note that there isn't one,
 	 * with clear space above (below the game's logo) and below (above the hints) */
@@ -550,7 +550,7 @@ static void draw_list(Config* cfg, int scr, int sel, int scroll) {
 		if (on) ui_fill_round(scr, (SDL_Rect) { t.x - px, t.y - px, t.w + px * 2, t.h + px * 2 }, C_EDGE, px * 4);
 		ui_fill_round(scr, t, on ? C_SEL : C_ROW, px * 3);
 		if (listMode) {
-			/* name on the left; region flag and "No map" on the right */
+			/* name on the left; region flag and "Single screen only" on the right */
 			int right = t.x + t.w - px * 5;
 			if (games[i].flag >= 0) {
 				int fh = px * 7;
@@ -559,10 +559,10 @@ static void draw_list(Config* cfg, int scr, int sel, int scroll) {
 				right -= fw + px * 4;
 			}
 			if (!games[i].supported && cfg->showAll) {
-				int tagW = ui_label_width(scr, px * 4, "No map") + px * 6;
+				int tagW = ui_label_width(scr, px * 4, "Single screen only") + px * 6;
 				SDL_Rect tg = { right - tagW, t.y + (t.h - px * 11) / 2, tagW, px * 11 };
 				ui_fill_round(scr, tg, C_TAG, px * 2);
-				ui_label(scr, tg.x + tg.w / 2, tg.y + tg.h / 2, px * 4, "No map", C_TEXT);
+				ui_label(scr, tg.x + tg.w / 2, tg.y + tg.h / 2, px * 4, "Single screen only", C_TEXT);
 				right -= tagW + px * 4;
 			}
 			char line[300];
@@ -602,10 +602,10 @@ static void draw_list(Config* cfg, int scr, int sel, int scroll) {
 			draw_brand(scr, games[i].flag, t.x + t.w - fw - px * 3, t.y + t.h - fh - px * 3, fh);
 		}
 		if (!games[i].supported && cfg->showAll) {
-			int tagW = ui_label_width(scr, px * 4, "No map") + px * 6;
+			int tagW = ui_label_width(scr, px * 4, "Single screen only") + px * 6;
 			SDL_Rect tg = { t.x + t.w - tagW - px * 3, t.y + px * 3, tagW, px * 11 };
 			ui_fill_round(scr, tg, C_TAG, px * 2);
-			ui_label(scr, tg.x + tg.w / 2, tg.y + tg.h / 2, px * 4, "No map", C_TEXT);
+			ui_label(scr, tg.x + tg.w / 2, tg.y + tg.h / 2, px * 4, "Single screen only", C_TEXT);
 		}
 	}
 	/* header drawn last so tiles scroll underneath it */
