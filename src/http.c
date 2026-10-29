@@ -293,3 +293,35 @@ int http_get(const char* url, const char* userAgent, int timeoutSec, const char*
 }
 
 #endif
+
+#ifdef __ANDROID__
+/* Android: no curl; Java's HttpURLConnection (Http.java, through android.c),
+ * which uses the system's certificates. A download is cancelled with
+ * android_http_cancel(); timeoutSec is Java's own (15 s to connect, 30 s
+ * without data). */
+#include "android.h"
+
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+
+int http_get(const char* url, const char* userAgent, int timeoutSec, const char* outPath, char** body, size_t* len,
+             char* err, size_t errSize, volatile bool* cancel) {
+	(void) timeoutSec;
+	char dummy[8];
+	if (!err) err = dummy, errSize = sizeof(dummy);
+	err[0] = 0;
+	if (outPath) android_http_cancel(false);
+	int code = android_http(url, NULL, NULL, userAgent, outPath, body, len);
+	if (outPath && (code / 100 != 2 || (cancel && *cancel))) {
+		char part[1200];
+		snprintf(part, sizeof(part), "%s.part", outPath);
+		unlink(part);
+		unlink(outPath);
+	}
+	if (cancel && *cancel) snprintf(err, errSize, "cancelled");
+	else if (code < 0) snprintf(err, errSize, "no answer from the server (is the device online?)");
+	else if (code / 100 != 2) snprintf(err, errSize, "the server answered %d", code);
+	return code;
+}
+#endif

@@ -2,7 +2,8 @@
 """Stand-in for GitHub's latest-release API, for testing GBA DS's updater
 offline (docs/TESTING.md, "Updates"):
 
-  python3 tools/update_mock.py --zip RELEASE.zip [--version 9.9.9] [--port 8098]
+  python3 tools/update_mock.py --zip RELEASE.zip | --apk APP.apk
+                               [--version 9.9.9] [--port 8098]
                                [--bad-digest] [--slow] [--status 200]
 
 then run GBA DS with
@@ -10,7 +11,9 @@ then run GBA DS with
 
 GET /repos/kyannon/gba-ds/releases/latest answers like GitHub (tag_name,
 body, assets with name / size / digest / browser_download_url); the asset
-is the zip given, served from /download/<name>. --slow sends it in pieces
+is the zip given (the Linux updater's) or the APK (Android's), served
+from /download/<name>; the other platform's asset is listed too, as a
+small stand-in. --slow sends it in pieces
 over a few seconds (to see the progress bar), --bad-digest gives a wrong
 checksum, --status answers the API with that code instead.
 """
@@ -18,7 +21,9 @@ import argparse, hashlib, json, os, time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 ap = argparse.ArgumentParser()
-ap.add_argument("--zip", required=True)
+what = ap.add_mutually_exclusive_group(required=True)
+what.add_argument("--zip")
+what.add_argument("--apk")
 ap.add_argument("--version", default="9.9.9")
 ap.add_argument("--port", type=int, default=8098)
 ap.add_argument("--bad-digest", action="store_true")
@@ -26,8 +31,11 @@ ap.add_argument("--slow", action="store_true")
 ap.add_argument("--status", type=int, default=200)
 args = ap.parse_args()
 
-data = open(args.zip, "rb").read()
-name = f"gba-ds-v{args.version}-linux-aarch64.zip"
+data = open(args.zip or args.apk, "rb").read()
+zipName = f"gba-ds-v{args.version}-linux-aarch64.zip"
+apkName = f"gba-ds-v{args.version}-android.apk"
+name = zipName if args.zip else apkName
+other = apkName if args.zip else zipName
 digest = "sha256:" + ("0" * 64 if args.bad_digest else hashlib.sha256(data).hexdigest())
 host = f"http://127.0.0.1:{args.port}"
 NOTES = f"""## What's new
@@ -71,10 +79,10 @@ class H(BaseHTTPRequestHandler):
                     {"name": "gba-ds-cocoon-player.json", "size": 10, "digest": "sha256:" + "1" * 64,
                      "browser_download_url": host + "/download/gba-ds-cocoon-player.json",
                      "uploader": {"login": "kyannon"}},
-                    {"name": name, "size": len(data), "digest": digest, "content_type": "application/zip",
+                    {"name": name, "size": len(data), "digest": digest, "content_type": "application/octet-stream",
                      "browser_download_url": host + "/download/" + name, "uploader": {"login": "kyannon", "name": "x"}},
-                    {"name": f"gba-ds-v{args.version}-android.apk", "size": 5, "digest": "sha256:" + "2" * 64,
-                     "browser_download_url": host + "/download/apk"},
+                    {"name": other, "size": 5, "digest": "sha256:" + "2" * 64,
+                     "browser_download_url": host + "/download/other"},
                 ],
             }
             return self.reply(200, json.dumps(rel, indent=1))

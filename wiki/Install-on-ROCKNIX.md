@@ -63,7 +63,7 @@ GBA DS rewrites the copied emulator list each time it starts, so it keeps up wit
 
 ## Upgrading
 
-The easiest way: in the game list, **Settings** > **Updates** > **Check now**, then **Update now** (GBA DS also offers new versions by itself once a day; see [[Playing#updates-linux]]). That keeps your `gba-ds.cfg` too.
+The easiest way: in the game list, **Settings** > **Updates** > **Check now**, then **Update now** (GBA DS also offers new versions by itself once a day; see [[Playing#updates]]). That keeps your `gba-ds.cfg` too.
 
 By hand: unzip the new release over the old one, into `/storage/roms/ports/`.
 

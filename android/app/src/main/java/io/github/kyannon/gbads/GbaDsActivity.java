@@ -1,9 +1,13 @@
 package io.github.kyannon.gbads;
 
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.content.ActivityNotFoundException;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.PackageInstaller;
 import android.graphics.Point;
 import android.hardware.display.DisplayManager;
 import android.net.Uri;
@@ -63,6 +67,9 @@ public class GbaDsActivity extends SDLActivity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         LauncherActivity.launchLog(this, mBrokenLibraries ? "native libraries didn't load (SDL shows why)" : "native libraries loaded");
         if (!mBrokenLibraries) openSecondScreen();
+        IntentFilter f = new IntentFilter(INSTALL_STATUS);
+        if (Build.VERSION.SDK_INT >= 33) registerReceiver(installStatus, f, Context.RECEIVER_NOT_EXPORTED);
+        else registerReceiver(installStatus, f);
     }
 
     /**
@@ -268,8 +275,105 @@ public class GbaDsActivity extends SDLActivity {
         }
     }
 
+    /* ------------------------------------------------------------ updates */
+
+    private static final String INSTALL_STATUS = "io.github.kyannon.gbads.INSTALL_STATUS";
+
+    /** 1 asking to confirm, 2 installed, -1 failed, -2 cancelled, -3 another key, -4 no room, -5 older build (android.h). */
+    static native void nativeInstallResult(int state, String message);
+
+    /**
+     * Called by the native side (the update's worker thread): hands a
+     * downloaded APK to Android's package installer, which then asks the
+     * player to confirm (installStatus). Returns "" once it's handed over,
+     * else why it couldn't be.
+     */
+    public String installApk(String path) {
+        PackageInstaller pi = getPackageManager().getPackageInstaller();
+        PackageInstaller.SessionParams params = new PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL);
+        params.setAppPackageName(getPackageName());
+        int id = -1;
+        try {
+            id = pi.createSession(params);
+            File apk = new File(path);
+            try (PackageInstaller.Session s = pi.openSession(id)) {
+                try (InputStream in = new FileInputStream(apk); OutputStream out = s.openWrite("gba-ds.apk", 0, apk.length())) {
+                    byte[] buf = new byte[1 << 16];
+                    for (int n; (n = in.read(buf)) > 0; ) out.write(buf, 0, n);
+                    s.fsync(out);
+                }
+                Intent i = new Intent(INSTALL_STATUS).setPackage(getPackageName());
+                int flags = PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 31 ? PendingIntent.FLAG_MUTABLE : 0);
+                s.commit(PendingIntent.getBroadcast(this, id, i, flags).getIntentSender());
+            }
+            Log.i(TAG, "update: " + path + " handed to the package installer (session " + id + ")");
+            return "";
+        } catch (IOException | RuntimeException e) {
+            Log.e(TAG, "update: installer: " + e);
+            if (id >= 0) {
+                try {
+                    pi.abandonSession(id);
+                } catch (RuntimeException ignored) {
+                }
+            }
+            String m = e.getMessage();
+            return m != null && !m.isEmpty() ? m : e.getClass().getSimpleName();
+        }
+    }
+
+    private final BroadcastReceiver installStatus = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int st = intent.getIntExtra(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE);
+            String msg = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE);
+            Log.i(TAG, "update: install status " + st + (msg != null ? " (" + msg + ")" : ""));
+            if (st != PackageInstaller.STATUS_SUCCESS && msg != null && msg.contains("DOWNGRADE")) {
+                /* the copy installed is a later build (a test APK built after the release) */
+                nativeInstallResult(-5, msg);
+                return;
+            }
+            switch (st) {
+            case PackageInstaller.STATUS_PENDING_USER_ACTION: {
+                @SuppressWarnings("deprecation")
+                Intent confirm = intent.getParcelableExtra(Intent.EXTRA_INTENT);
+                if (confirm == null) {
+                    nativeInstallResult(-1, "Android's installer didn't ask to confirm");
+                    return;
+                }
+                confirm.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                try {
+                    startActivity(confirm);
+                    nativeInstallResult(1, null);
+                } catch (ActivityNotFoundException | SecurityException e) {
+                    nativeInstallResult(-1, "Android's installer couldn't open (" + e.getMessage() + ")");
+                }
+                return;
+            }
+            case PackageInstaller.STATUS_SUCCESS:
+                nativeInstallResult(2, null);
+                return;
+            case PackageInstaller.STATUS_FAILURE_ABORTED:
+                nativeInstallResult(-2, msg);
+                return;
+            case PackageInstaller.STATUS_FAILURE_CONFLICT:
+            case PackageInstaller.STATUS_FAILURE_INCOMPATIBLE:
+                nativeInstallResult(-3, msg);
+                return;
+            case PackageInstaller.STATUS_FAILURE_STORAGE:
+                nativeInstallResult(-4, msg);
+                return;
+            default:
+                nativeInstallResult(-1, msg);
+            }
+        }
+    };
+
     @Override
     protected void onDestroy() {
+        try {
+            unregisterReceiver(installStatus);
+        } catch (IllegalArgumentException ignored) {
+        }
         if (second != null) {
             second.dismiss();
             second = null;

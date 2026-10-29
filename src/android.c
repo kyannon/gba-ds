@@ -251,10 +251,11 @@ void android_perf_report(int64_t workNs) {
 	if (hintSession && workNs > 0) hintReport(hintSession, workNs);
 }
 
-/* ------------------------------------------------------------- HTTP (RetroAchievements) */
+/* ------------------------------------------------------------- HTTP (RetroAchievements, updates) */
 
 static jclass httpClass;
 static jmethodID httpRequest;
+static jfieldID httpCancel;
 
 /* The app's classes are only visible to FindClass from a thread Java
  * started, so Http is looked up here, while Java loads this library. */
@@ -266,12 +267,10 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
 		httpClass = (*env)->NewGlobalRef(env, c);
 		httpRequest = (*env)->GetStaticMethodID(env, c, "request",
 		                                        "(Ljava/lang/String;Ljava/lang/String;[BLjava/lang/String;Ljava/lang/String;[I)[B");
+		if (!(*env)->ExceptionCheck(env)) httpCancel = (*env)->GetStaticFieldID(env, c, "cancelDownloads", "Z");
 		(*env)->DeleteLocalRef(env, c);
 	}
-	if ((*env)->ExceptionCheck(env)) {
-		(*env)->ExceptionClear(env);
-		httpRequest = NULL;
-	}
+	if ((*env)->ExceptionCheck(env)) (*env)->ExceptionClear(env); /* (whichever lookup failed is NULL) */
 	if (!httpRequest) __android_log_write(ANDROID_LOG_ERROR, TAG, "Http.request not found: no RetroAchievements");
 	return JNI_VERSION_1_6;
 }
@@ -319,6 +318,74 @@ int android_http(const char* url, const char* contentType, const char* post, con
 	}
 	(*env)->PopLocalFrame(env, NULL);
 	return code;
+}
+
+void android_http_cancel(bool on) {
+	JNIEnv* env = (JNIEnv*) SDL_AndroidGetJNIEnv();
+	if (!env || !httpClass || !httpCancel) return;
+	(*env)->SetStaticBooleanField(env, httpClass, httpCancel, on ? JNI_TRUE : JNI_FALSE);
+}
+
+/* ------------------------------------------------------------- updates: the package installer */
+
+static pthread_mutex_t installLock = PTHREAD_MUTEX_INITIALIZER;
+static int installState; /* see android_take_install_result */
+static char installMsg[200];
+
+bool android_install_apk(const char* path, char* err, size_t errSize) {
+	if (err && errSize) err[0] = 0;
+	JNIEnv* env = (JNIEnv*) SDL_AndroidGetJNIEnv(); /* (a worker thread: attached here) */
+	jobject activity = (jobject) SDL_AndroidGetActivity();
+	if (!env || !activity) {
+		if (err) snprintf(err, errSize, "the app isn't running");
+		return false;
+	}
+	pthread_mutex_lock(&installLock);
+	installState = 0;
+	pthread_mutex_unlock(&installLock);
+	jclass cls = (*env)->GetObjectClass(env, activity);
+	jmethodID m = (*env)->GetMethodID(env, cls, "installApk", "(Ljava/lang/String;)Ljava/lang/String;");
+	bool ok = false;
+	if (m) {
+		jstring jp = (*env)->NewStringUTF(env, path);
+		jstring res = (jstring) (*env)->CallObjectMethod(env, activity, m, jp);
+		if (!(*env)->ExceptionCheck(env)) {
+			const char* r = res ? (*env)->GetStringUTFChars(env, res, NULL) : NULL;
+			ok = r && !r[0];
+			if (!ok && err) snprintf(err, errSize, "%s", r ? r : "no answer from Android's installer");
+			if (r) (*env)->ReleaseStringUTFChars(env, res, r);
+		}
+		if (res) (*env)->DeleteLocalRef(env, res);
+		(*env)->DeleteLocalRef(env, jp);
+	}
+	if ((*env)->ExceptionCheck(env)) {
+		(*env)->ExceptionClear(env);
+		ok = false;
+		if (err) snprintf(err, errSize, "Android's installer couldn't be reached");
+	}
+	(*env)->DeleteLocalRef(env, cls);
+	(*env)->DeleteLocalRef(env, activity);
+	return ok;
+}
+
+int android_take_install_result(char* msg, size_t size) {
+	pthread_mutex_lock(&installLock);
+	int st = installState;
+	if (st && msg && size) snprintf(msg, size, "%s", installMsg);
+	installState = 0;
+	pthread_mutex_unlock(&installLock);
+	return st;
+}
+
+JNIEXPORT void JNICALL Java_io_github_kyannon_gbads_GbaDsActivity_nativeInstallResult(JNIEnv* env, jclass cls, jint state,
+                                                                                     jstring msg) {
+	const char* m = msg ? (*env)->GetStringUTFChars(env, msg, NULL) : NULL;
+	pthread_mutex_lock(&installLock);
+	installState = state;
+	snprintf(installMsg, sizeof(installMsg), "%s", m ? m : "");
+	pthread_mutex_unlock(&installLock);
+	fprintf(stderr, "update: installer says %d%s%s\n", (int) state, m && *m ? ": " : "", m ? m : "");
+	if (m) (*env)->ReleaseStringUTFChars(env, msg, m);
 }
 
 /* ------------------------------------------------------------- RetroAchievements sign-in dialog */

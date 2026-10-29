@@ -5,7 +5,7 @@ Three files are read in order, later ones winning:
 2. `states/prefs.cfg`: what you chose in the pause menu (screens swapped, scaling, LCD grid, overlays, the second screen's logo, FPS counter, frame buffer). GBA DS rewrites this file; to change those settings, use the menu, or delete the line from `prefs.cfg`.
 3. `states/library.cfg`: the game list's view (list or grid) and, on Android, the ROM folder.
 
-Updating from the game list (Settings > Updates, Linux) keeps your `gba-ds.cfg`. Unzipping a new release by hand replaces it, so keep a copy of your changes first.
+Updating from the game list (Settings > Updates) keeps your `gba-ds.cfg`. Unzipping a new release by hand replaces it, so keep a copy of your changes first.
 
 ## Game list
 
@@ -18,7 +18,7 @@ Updating from the game list (Settings > Updates, Linux) keeps your `gba-ds.cfg`.
 | `save_on_quit` | `1` | Save a state (a resume point) when you leave a game. Also in the pause menu. |
 | `quick_bar_pinned` | `0` | The quick bar stays up, as with its pin (top right of the bar) on; the pin sets this too. |
 | `auto_load` | `1` | Pick up from the resume point when you start a game. Also in the pause menu. (`auto_resume`, from older versions, sets both.) |
-| `update_check` | `1` | Linux: look for a new release once a day when the game list opens, and ask before downloading it. The **Automatic checks** switch in Settings > Updates overrides this (kept in `states/update.cfg`). See [[Playing#updates-linux]]. |
+| `update_check` | `1` | Look for a new release once a day when the game list opens, and ask before downloading it. The **Automatic checks** switch in Settings > Updates overrides this (kept in `states/update.cfg`). See [[Playing#updates]]. |
 
 ## Screens
 

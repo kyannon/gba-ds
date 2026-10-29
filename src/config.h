@@ -65,7 +65,7 @@ typedef struct Config {
 	char raUser[128], raPassword[256]; /* override ROCKNIX's account */
 	char raSystemCfg[512]; /* ROCKNIX's system.cfg (global.retroachievements.*) */
 	char raHost[256];     /* testing: another server */
-	bool updateCheck;     /* look for a new release once a day (Linux; the game list's Settings can switch it) */
+	bool updateCheck;     /* look for a new release once a day (the game list's Settings can switch it) */
 	char updateUrl[256];  /* testing: the release API to ask instead of GitHub's */
 	char rom[512];        /* launch straight into this game (skips the library) */
 

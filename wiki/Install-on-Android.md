@@ -7,7 +7,7 @@ The Android version is made for the **Anbernic RG DS Plus on GammaOS** (Android 
 3. Open **GBA DS**. The first time, it explains why it needs **All files access**; tap **Continue**, switch it on for GBA DS on Android's settings page, and go back. It needs this to read ROMs from any folder, and to keep its files in a folder you can reach. (**Not now** goes on without it and doesn't ask again; you can switch it on later in Android's settings.)
 4. Put your ROMs in **`ROMs/gba`** on the internal storage (subfolders are fine; `.gba`, `.zip` or `.7z`), or pick another folder in the game list's **Settings** (tap it, top right, or press **SELECT**) → **ROM Folder**.
 
-**Updating:** install the new APK over the old one. Everything is kept: release APKs are all signed with the same key.
+**Updating:** in the game list, **Settings** > **Updates** > **Check now**, then **Update now**: GBA DS downloads the new APK and Android asks you to confirm installing it (GBA DS also offers new versions by itself once a day; see [[Playing#updates]]). Or install the new APK over the old one by hand. Everything is kept either way: release APKs are all signed with the same key.
 
 ## Screens and buttons
 

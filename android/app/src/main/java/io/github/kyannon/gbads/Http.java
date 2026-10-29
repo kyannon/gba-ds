@@ -12,12 +12,16 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 /**
- * HTTP for RetroAchievements (src/ra.c through android.c), called from the
- * native side's background thread: Android has no curl, and this way HTTPS
- * uses the system's certificates.
+ * HTTP for RetroAchievements (src/ra.c) and updates (src/update.c through
+ * src/http.c), via android.c, called from the native side's background
+ * threads: Android has no curl, and this way HTTPS uses the system's
+ * certificates.
  */
 final class Http {
     private static final String TAG = "GBADS";
+
+    /** Set from the native side (android_http_cancel): stops a download to a file. */
+    static volatile boolean cancelDownloads;
 
     private Http() {
     }
@@ -53,7 +57,11 @@ final class Http {
                 if (code / 100 != 2 || is == null) return null;
                 File part = new File(outPath + ".part");
                 try (InputStream in = is; OutputStream os = new FileOutputStream(part)) {
-                    copy(in, os);
+                    byte[] buf = new byte[1 << 16];
+                    for (int n; (n = in.read(buf)) > 0; ) {
+                        if (cancelDownloads) throw new IOException("cancelled");
+                        os.write(buf, 0, n);
+                    }
                 }
                 if (!part.renameTo(new File(outPath))) part.delete();
                 return null;
@@ -66,7 +74,7 @@ final class Http {
             return out.toByteArray();
         } catch (IOException | RuntimeException e) {
             /* the host only: never anything a request carries */
-            Log.w(TAG, "ra: no answer from " + hostOf(url) + ": " + e);
+            Log.w(TAG, "http: no answer from " + hostOf(url) + ": " + e);
             status[0] = -1;
             return null;
         } finally {

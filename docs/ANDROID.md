@@ -522,27 +522,45 @@ frontend launch intents.
   chunk. Not tested on Android yet: the AChoreographer idea above would be
   the alternative if interval 1 misbehaves there.
 
-## Updates (for the Android session)
+## Updates (Oct 28, 2026)
 
-v1.3.2 added updates on Linux (`src/update.c`, `src/http.c`, `src/sha256.c`;
-the panel in `library.c`, `#ifdef GBADS_UPDATES`). On Android `update.h`
-gives no-op stubs and the Settings panel has no Updates row. To add it:
+The Linux updater (`src/update.c`, v1.3.2) runs on Android too
+(GBADS_UPDATES is on everywhere but the web build; update.c, http.c and
+sha256.c are in CMakeLists):
 
-- **Check:** the same GitHub call (`releases/latest`, stable only; the
-  asset is `gba-ds-vX.Y.Z-android.apk`, with a `digest` "sha256:..."). The
-  version comparison, JSON reading and notes text in update.c are portable;
-  the HTTP would go through android.c's Java `Http` (as ra.c does) instead
-  of curl.
-- **Install:** download the APK into the app's cache, check its SHA-256,
-  then hand it to the package installer (a FileProvider URI and
-  ACTION_VIEW / PackageInstaller, with REQUEST_INSTALL_PACKAGES in the
-  manifest). Android asks the player to allow installs from GBA DS the
-  first time. The release APK is signed with the release key, so it
-  installs over the old one; a debug-signed APK won't.
-- **UI:** reuse library.c's Updates panel and notice (Update now / Later /
-  Skip this version), states in `<state_dir>/update.cfg`; turn
-  GBADS_UPDATES on for Android once the install step exists, and add an
-  Updates row to Android's Settings (SETTINGS_MAX would become 4).
+- **Check:** the same GitHub call (`releases/latest`, stable only), taking
+  the `-android.apk` asset (`ASSET_END`) with its `digest`. `http_get` on
+  Android (http.c) goes through `android_http` / Http.java; a download is
+  written as `.part` (the progress bar) and stopped with
+  `android_http_cancel()` (Http.cancelDownloads, checked per 64 KB).
+- **Install:** the APK goes to `<state_dir>/update/`, is checked against
+  the size and SHA-256, then `android_install_apk()` calls
+  GbaDsActivity.installApk, which writes it into a PackageInstaller session
+  and commits it (the APK file is deleted after). The session's answers
+  come to a receiver registered in onCreate (RECEIVER_NOT_EXPORTED;
+  mutable PendingIntent to our own package): PENDING_USER_ACTION starts
+  Android's confirm screen (which also asks for "install unknown apps" the
+  first time; the manifest has REQUEST_INSTALL_PACKAGES); the rest go to
+  `nativeInstallResult` and `android_take_install_result()`, which
+  update_info polls (`android_poll`): confirm shown -> UPD_DONE (text and a
+  Back button; no restart, Android closes the app as it installs); the
+  player cancelled -> UPD_AVAILABLE again; another signing key (a
+  debug-signed test build installed) -> an error saying to uninstall and
+  install by hand; an older build than the one installed (versionCode is
+  the CI run number, so a test APK built after a release can't be
+  "updated" to it: Android's message says DOWNGRADE) -> its own error;
+  no room; anything else with Android's message.
+- **UI:** Settings has a fourth row, Updates (SETTINGS_MAX 4; with four
+  rows they're 12 units tall with 24 between, and a message shows in place
+  of its row's text). The notice and panel are Linux's, with Android's
+  wording for Update now and the confirm step.
+- **Tested** on the desktop against `tools/update_mock.py --apk` with the
+  Android code paths and stub glue (download, checksum, hand-off, the
+  confirm / cancelled / another-key answers, Settings at 4 rows). Not yet on
+  a device: the session, the confirm screen, "install unknown apps", and
+  the real install over a release-signed copy can only be tried there (with
+  two release-signed builds: a test APK from CI and a newer one served by
+  the mock, or the next release).
 
 ## ARMv8.0 devices (issue #4, Oct 28, 2026)
 
@@ -582,3 +600,4 @@ before. The software fallback already used the display's own size.
 Player-facing Android changes since the last release, for the main session
 to move into CHANGELOG.md and the release notes (see CLAUDE.md, "More than
 one session"). Empty after each release.
+- GBA DS can now update itself on Android: game list > Settings > Updates, or the offer it makes once a day when a new version is out. It downloads the new APK, checks it and hands it to Android's installer, which asks you to confirm.
