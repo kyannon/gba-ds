@@ -7,7 +7,7 @@
 - **Tactics Ogre: The Knight of Lodis (back in the list):** in a battle, the second screen shows the unit list with its cursor on the unit your cursor is on, turning through its pages (level, HP, MP, element...) every 2.5 seconds, without its R SEARCH and START:DATA prompts. The USA release has been tried; the Japanese one (Tactics Ogre Gaiden) should work the same way.
 
 ### Final Fantasy Tactics Advance
-- On the world map, the second screen now shows today's Laws (the window L opens, on its own), taken again each time your clan arrives somewhere new. Japanese release: the world map still shows the logo.
+- On the world map, the second screen now shows today's Laws (the window L opens, on its own), taken again as soon as your clan arrives somewhere new, even with the place's own menu up (a town's, or a mission's). Japanese release: the world map still shows the logo.
 
 ### Game list
 - Games without second-screen support (listed with `show_all = 1`) are tagged **Single screen only** instead of "No map".
@@ -18,6 +18,9 @@
 ### Fixes
 - Waking the device from sleep in the middle of a game could crash GBA DS (seen once on BananaOS): after any pause of more than 2 seconds, the pictures on both screens are now made again.
 - A touch on the very edge of the touchscreen (its right or bottom edge, or a finger sliding off it) was ignored, so a swipe or tap that ended there didn't count: the quick bar could miss a swipe up from the bottom edge (#9).
+
+### Known issues
+- **Golden Sun:** on one device the Status screen was seen dropping back to the logo for a moment while walking about, and GBA DS closed once as a battle began. Neither has happened again or been reproduced; if you see either, a bug report (quick bar) straight after helps.
 
 ## v1.4.1 (2026-10-28)
 
