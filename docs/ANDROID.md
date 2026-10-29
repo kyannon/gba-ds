@@ -582,6 +582,3 @@ before. The software fallback already used the display's own size.
 Player-facing Android changes since the last release, for the main session
 to move into CHANGELOG.md and the release notes (see CLAUDE.md, "More than
 one session"). Empty after each release.
-- Fixed: GBA DS closed as soon as it started on devices with older 64-bit chips (Retroid Pocket Duo Lite and others with Cortex-A53/A73 cores).
-- Frontends that pass a game as a plain file path (no `file://`) now start that game instead of the game list.
-- Fixed: on devices whose two screens are different sizes (Retroid Pocket Duo Lite), the second screen was cut off.

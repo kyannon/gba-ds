@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.4.1 (not yet released)
+## v1.4.1 (2026-10-28)
 
 ### What's new
 - **Quick bar and bug reports:** swipe up from the bottom of the touchscreen for a bar with the time, the battery and the frames per second, and buttons for Save State, Load State, Settings (the pause menu), Bug Report and Close GBA DS (tap twice), without pausing the game; swipe down, tap off its buttons or leave it 5 seconds to put it away, or tap its pin to keep it up (remembered). Bug Report (also Extras > Submit a Bug Report in the pause menu) saves a report in `bug-reports`: a save state of that moment, one from 10 seconds before, every button pressed in between (so what happened can be played back exactly), and your device, settings and the end of the log. Attach the `.zip` to a GitHub issue.
@@ -8,6 +8,11 @@
 - **Show FPS** has left the pause menu, as the quick bar shows the frames per second. HOME + X still puts the counter above the game.
 - **No Second Screen** has left the pause menu's Display page; `show_logo = 0` in `gba-ds.cfg` still keeps the second screen blank where it would show the logo.
 - **Pause menu, Game page:** Save State and Load State now sit side by side on one row, and a new row under them has **Save on Quit: On / Off** (whether closing a game saves where you are) and **Auto-Load: On / Off** (whether starting a game picks up from there). Both are remembered; in `gba-ds.cfg` they're `save_on_quit` and `auto_load` (an older `auto_resume = 0` still switches both off).
+- **Android:** frontends that pass a game as a plain file path (no `file://`) now start that game instead of the game list.
+
+### Fixes
+- **Android:** GBA DS closed as soon as it started on devices with older 64-bit chips (Retroid Pocket Duo Lite and others with Cortex-A53 / A73 cores).
+- **Android:** on devices whose two screens are different sizes (Retroid Pocket Duo Lite), the second screen was cut off.
 
 ## v1.4 (2026-10-28)
 
