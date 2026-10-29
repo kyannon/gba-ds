@@ -1312,6 +1312,19 @@
    "shots": {
     "status": 300
    }
+  },
+  {
+   "id": "ft-jp-battle-laws",
+   "rom": "AFXJ",
+   "state": "final-fantasy-tactics-advance/jp-battle-laws.ss",
+   "desc": "Japan: a battle with the Laws open and the cursor on no unit (a player's bug report): the Laws (narrower than USA's) above the turn order",
+   "rules": [
+    "FT-9",
+    "FT-12"
+   ],
+   "shots": {
+    "laws": 300
+   }
   }
  ]
 }

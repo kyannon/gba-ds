@@ -8,7 +8,7 @@
 
 ### Final Fantasy Tactics Advance
 - On the world map, the second screen now shows today's Laws (the window L opens, on its own), taken again as soon as your clan arrives somewhere new, even with the place's own menu up (a town's, or a mission's).
-- **Japanese release:** the world map's Laws work there too, and once a battle's won the closing scene now shows the logo rather than the last picture. (In this version's earlier test builds some battles showed only the logo: fixed.)
+- **Japanese release:** the world map's Laws work there too, and once a battle's won the closing scene now shows the logo rather than the last picture. (In this version's earlier test builds some battles showed only the logo: fixed.) In a battle, the Laws now show above the turn order there too.
 
 ### Advance Wars, Advance Wars 2, Game Boy Wars Advance 1+2
 - On the computer's turn (from ending yours, through its moves) the second screen shows the logo, as the cursor isn't yours to bring up intel with; the intel comes back on your turn. Your army is taken to be the first, as in the campaigns.

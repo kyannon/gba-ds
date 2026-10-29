@@ -696,7 +696,7 @@ static bool ft_system(Emu* s, const void* state, void* tmp, int row, uint32_t* o
 	aw_tap(s, K_A, 1);
 	aw_run(s, 0, 40);
 	return row == 1 ? ft_cut(s, tmp, out, ow, oh, 150, GBA_W, 100, GBA_H)
-	                : ft_cut(s, tmp, out, ow, oh, 150, GBA_W, 24, 90);
+	                : ft_cut(s, tmp, out, ow, oh, 90, GBA_W, 24, 90); /* (Japan's Laws: about 104 wide) */
 }
 
 static void ft_put(uint32_t* o, int w, int h, const uint32_t* src, int sw, int sh, int px, int py) {
