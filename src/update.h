@@ -1,6 +1,8 @@
-/* Updates (Linux): asks GitHub for the latest stable release, and on a yes
- * downloads its Linux zip, checks it, installs it over the app's folder and
- * restarts. Android and the web build get no-op stubs. */
+/* Updates: asks GitHub for the latest stable release, and on a yes
+ * downloads it and checks it. Linux: the zip, installed over the app's
+ * folder, then a restart. Android: the APK, handed to Android's package
+ * installer, which asks the player to confirm. The web build gets no-op
+ * stubs. */
 #ifndef GBADS_UPDATE_H
 #define GBADS_UPDATE_H
 
@@ -24,14 +26,14 @@ typedef struct {
 	UpdateState state;
 	char version[32];  /* the newer release's, without the v */
 	char notes[1200];  /* its "What's new", as plain text */
-	char error[200];
+	char error[400];
 	int percent;       /* download progress */
 	long size;         /* the download's, in bytes */
 	long lastCheck;    /* time of the last successful check (0: never) */
 	bool autoOn;
 } UpdateInfo;
 
-#if !defined(__ANDROID__) && !defined(__wasi__)
+#if !defined(__wasi__)
 #define GBADS_UPDATES 1
 /* exeDir: the app's folder; argv: for the restart */
 void update_init(const Config* cfg, const char* exeDir, int argc, char** argv);

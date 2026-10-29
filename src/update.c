@@ -5,6 +5,9 @@
 #include "http.h"
 #include "paths.h"
 #include "sha256.h"
+#ifdef __ANDROID__
+#include "android.h"
+#endif
 
 #include <mgba-util/vfs.h>
 
@@ -21,6 +24,11 @@
 
 #define DEFAULT_URL "https://api.github.com/repos/kyannon/gba-ds/releases/latest"
 #define CHECK_EVERY (24 * 60 * 60)
+#ifdef __ANDROID__
+#define ASSET_END "-android.apk" /* gba-ds-vX.Y.Z-android.apk */
+#else
+#define ASSET_END "-linux-aarch64.zip"
+#endif
 
 static struct {
 	SDL_mutex* lock;
@@ -250,7 +258,7 @@ static int check_thread(void* ud) {
 		const char* p = skip_ws(assets + 1);
 		while (*p == '{') {
 			if (json_string(json_find(p, "name"), name, sizeof(name)) && !strncmp(name, "gba-ds-v", 8) &&
-			    strstr(name, "-linux-aarch64.zip")) {
+			    strstr(name, ASSET_END)) {
 				snprintf(assetName, sizeof(assetName), "%s", name);
 				json_string(json_find(p, "browser_download_url"), asset, sizeof(asset));
 				json_string(json_find(p, "digest"), digest, sizeof(digest));
@@ -315,6 +323,13 @@ static void start_check(bool automatic) {
 
 /* ------------------------------------------------------------ installing */
 
+static bool ends_with(const char* s, const char* end) {
+	size_t a = strlen(s), b = strlen(end);
+	return a >= b && !strcmp(s + a - b, end);
+}
+
+#ifndef __ANDROID__
+
 static bool mkdir_for(const char* path) {
 	char d[1100];
 	snprintf(d, sizeof(d), "%s", path);
@@ -328,11 +343,6 @@ static bool mkdir_for(const char* path) {
 static bool path_exists(const char* p) {
 	struct stat st;
 	return stat(p, &st) == 0;
-}
-
-static bool ends_with(const char* s, const char* end) {
-	size_t a = strlen(s), b = strlen(end);
-	return a >= b && !strcmp(s + a - b, end);
 }
 
 /* Write vf's contents to dest (0755 if exec). */
@@ -452,6 +462,7 @@ static bool install_zip(const char* zip, char* err, size_t errSize) {
 	free(moves);
 	return ok;
 }
+#endif
 
 static int install_thread(void* ud) {
 	(void) ud;
@@ -490,6 +501,17 @@ static int install_thread(void* ud) {
 	SDL_LockMutex(U.lock);
 	U.info.state = UPD_INSTALLING;
 	SDL_UnlockMutex(U.lock);
+#ifdef __ANDROID__
+	/* Android's installer takes a copy and asks the player to confirm; its
+	 * answers come to update_info (android_poll) */
+	bool ok = android_install_apk(zip, err, sizeof(err));
+	unlink(zip);
+	if (!ok) {
+		set_error("Couldn't start installing the update: %s.", err);
+		return 0;
+	}
+	return 0;
+#else
 	bool ok = install_zip(zip, err, sizeof(err));
 	unlink(zip);
 	if (!ok) {
@@ -502,7 +524,39 @@ static int install_thread(void* ud) {
 	if (U.skip[0]) U.skip[0] = 0, save_state_file();
 	SDL_UnlockMutex(U.lock);
 	return 0;
+#endif
 }
+
+#ifdef __ANDROID__
+/* The package installer's answers (U.lock held). */
+static void android_poll(void) {
+	if (U.info.state != UPD_INSTALLING && U.info.state != UPD_DONE) return;
+	char msg[200];
+	int st = android_take_install_result(msg, sizeof(msg));
+	if (!st) return;
+	if (st == 1 || st == 2) { /* (2: we're usually closed by then) */
+		U.info.state = UPD_DONE;
+		return;
+	}
+	U.busy = false;
+	if (st == -2) { /* the player said no: offer it again */
+		U.info.state = UPD_AVAILABLE;
+		return;
+	}
+	U.info.state = UPD_ERROR;
+	if (st == -3) {
+		snprintf(U.info.error, sizeof(U.info.error),
+		         "Android won't install v%s over this copy of GBA DS: it was signed with another key (a test build?). "
+		         "Uninstall GBA DS, then install the new version from github.com/kyannon/gba-ds/releases. Your files in "
+		         "the GBA DS folder are kept.", U.info.version);
+	} else if (st == -4) {
+		snprintf(U.info.error, sizeof(U.info.error), "There isn't enough storage free to install the update.");
+	} else {
+		snprintf(U.info.error, sizeof(U.info.error), "Android couldn't install the update%s%s.", msg[0] ? ": " : "", msg);
+	}
+	fprintf(stderr, "update: %s\n", U.info.error);
+}
+#endif
 
 static void progress(void) {
 	if (U.info.state != UPD_DOWNLOADING || U.assetSize <= 0) return;
@@ -525,8 +579,10 @@ void update_init(const Config* cfg, const char* exeDir, int argc, char** argv) {
 	snprintf(U.stateFile, sizeof(U.stateFile), "%s/update.cfg", cfg->stateDir);
 	snprintf(U.workDir, sizeof(U.workDir), "%s/update", cfg->stateDir);
 	snprintf(U.installDir, sizeof(U.installDir), "%s", exeDir);
+#ifndef __ANDROID__ /* (Android: the installer replaces the app, which the player opens again) */
 	ssize_t n = readlink("/proc/self/exe", U.exePath, sizeof(U.exePath) - 1);
 	U.exePath[n > 0 ? n : 0] = 0;
+#endif
 	load_state_file();
 	U.info.autoOn = U.autoCfg >= 0 ? U.autoCfg : U.autoDefault;
 	/* leftovers of a download cut short */
@@ -535,7 +591,7 @@ void update_init(const Config* cfg, const char* exeDir, int argc, char** argv) {
 		struct VDirEntry* e;
 		while ((e = d->listNext(d))) {
 			const char* nm = e->name(e);
-			if (ends_with(nm, ".part") || ends_with(nm, ".zip")) {
+			if (ends_with(nm, ".part") || ends_with(nm, ".zip") || ends_with(nm, ".apk")) {
 				char p[1400];
 				snprintf(p, sizeof(p), "%s/%s", U.workDir, nm);
 				unlink(p);
@@ -576,6 +632,9 @@ void update_install(void) {
 void update_cancel(void) {
 	fprintf(stderr, "update: cancelling the download\n");
 	U.cancel = true;
+#ifdef __ANDROID__
+	android_http_cancel(true);
+#endif
 }
 
 void update_skip(void) {
@@ -601,6 +660,9 @@ void update_info(UpdateInfo* out) {
 	}
 	SDL_LockMutex(U.lock);
 	progress();
+#ifdef __ANDROID__
+	android_poll();
+#endif
 	*out = U.info;
 	SDL_UnlockMutex(U.lock);
 }

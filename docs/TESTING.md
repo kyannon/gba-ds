@@ -163,6 +163,8 @@ stand-in for GitHub's latest-release API serving a zip you give it:
 4. Check: the new files are in place, `gba-ds.cfg` is yours, `GBA DS.sh` is
    the new one (an `images/` folder that wasn't there isn't created), the
    restart ran with the same arguments, and `states/update/` is empty.
+   `--apk APP.apk` instead of `--zip` serves an Android release (the APK
+   asset); docs/ANDROID.md, "Updates", says how the Android side was tested.
    `PATH=/nonexistent` tests the libcurl fallback (BananaOS); running a copy
    from elsewhere with `GBADS_HOME` set tests launch.sh's copied binary
    (both copies are replaced).

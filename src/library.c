@@ -633,7 +633,7 @@ static int updatesSel;
 /* Settings: a row of buttons, each with its text below, then Back.
  * Linux: GBA DS in EmulationStation (ROCKNIX) or in BananaOS's list, where
  * there's one; Map Buttons; Updates. Android: ROM Folder, RetroAchievements, Map Buttons. */
-#define SETTINGS_MAX 3
+#define SETTINGS_MAX 4
 static int nRows = 1; /* rows shown (Back is row nRows) */
 #ifndef __ANDROID__
 enum { ROW_BANANA, ROW_ES, ROW_MAP, ROW_UPDATES };
@@ -643,7 +643,7 @@ static int rowKind[SETTINGS_MAX];
 static void settings_rows(const Config* cfg) {
 #ifdef __ANDROID__
 	(void) cfg;
-	nRows = 3;
+	nRows = 4; /* ROM Folder, RetroAchievements, Map Buttons, Updates */
 #else
 	nRows = 0;
 	if (banana_present()) rowKind[nRows++] = ROW_BANANA;
@@ -666,10 +666,11 @@ static SettingsGeom settings_geom(int scr) {
 	SDL_Rect r = screens[scr].rect;
 	float px = ui_px(scr);
 	g.px = px;
-	int m = px * 6, rowH = nRows > 2 ? px * 14 : px * 18;
+	/* (four rows: Android's, each with a line or two of text) */
+	int m = px * 6, rowH = nRows > 3 ? px * 12 : nRows > 2 ? px * 14 : px * 18;
 	g.panel = (SDL_Rect) { m, m, r.w - m * 2, r.h - m * 2 };
-	int gap = nRows > 2 ? px * 28 : px * 44; /* room for each row's text under it */
-	int y = g.panel.y + px * 26;
+	int gap = nRows > 3 ? px * 24 : nRows > 2 ? px * 28 : px * 44; /* room for each row's text under it */
+	int y = g.panel.y + (nRows > 3 ? px * 22 : px * 26);
 	for (int i = 0; i < nRows; ++i) {
 		g.row[i] = (SDL_Rect) { g.panel.x + px * 6, y, g.panel.w - px * 12, rowH };
 		g.textY[i] = g.row[i].y + rowH + px * 8;
@@ -707,6 +708,7 @@ static void draw_settings_frame(int scr, const SettingsGeom* g, int sel, const c
  * kept in <state_dir>/library.cfg; the RetroAchievements account, signed in
  * with a dialog (android.c, GbaDsActivity) and kept as a token by ra.c. */
 static bool pickPending, raDialogPending;
+static int settingsMsgRow; /* the row settingsMsg is about: shown in place of its text */
 
 static void draw_settings(const Config* cfg, int scr, int sel) {
 	SettingsGeom g = settings_geom(scr);
@@ -717,7 +719,7 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 	                      ra == RA_ACCOUNT_BUSY   ? "RetroAchievements: Signing In..." :
 	                      ra == RA_ACCOUNT_OFF    ? "RetroAchievements: Off" :
 	                                                "RetroAchievements: Sign In";
-	const char* labels[SETTINGS_MAX] = { "ROM Folder", raLabel, "Map Buttons" };
+	const char* labels[SETTINGS_MAX] = { "ROM Folder", raLabel, "Map Buttons", "Updates" };
 	draw_settings_frame(scr, &g, sel, labels);
 	int tx = g.row[0].x + px * 2, tw = g.row[0].w - px * 4;
 	char line[1400];
@@ -731,7 +733,8 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 		}
 		snprintf(line, sizeof(line), "Games are read from %s (subfolders too).", dirs);
 	}
-	draw_wrapped(scr, tx, g.textY[0], tw, px, line, C_DIM);
+	if (settingsMsg[0] && settingsMsgRow == 0) draw_wrapped(scr, tx, g.textY[0], tw, px, settingsMsg, C_GOLD);
+	else draw_wrapped(scr, tx, g.textY[0], tw, px, line, C_DIM);
 	if (raDialogPending) {
 		snprintf(line, sizeof(line), "Enter your account in the sign-in box...");
 	} else if (ra == RA_ACCOUNT_OK) {
@@ -749,17 +752,20 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 		         "Earn achievements in casual mode with your retroachievements.org account. GBA DS keeps a sign-in token, "
 		         "not your password.");
 	}
-	draw_wrapped(scr, tx, g.textY[1], tw, px, line, ra == RA_ACCOUNT_FAILED ? C_GOLD : C_DIM);
-	int y = draw_wrapped(scr, tx, g.textY[2], tw, px,
-	                     "Sets which of this device's buttons does what: GBA DS asks for each one in turn. "
-	                     "Tap to skip any the device doesn't have.",
-	                     C_DIM);
-	if (settingsMsg[0]) draw_wrapped(scr, tx, y + px * 4, tw, px, settingsMsg, C_GOLD);
+	if (settingsMsg[0] && settingsMsgRow == 1) draw_wrapped(scr, tx, g.textY[1], tw, px, settingsMsg, C_GOLD);
+	else draw_wrapped(scr, tx, g.textY[1], tw, px, line, ra == RA_ACCOUNT_FAILED ? C_GOLD : C_DIM);
+	draw_wrapped(scr, tx, g.textY[2], tw, px,
+	             "Sets which of this device's buttons does what: GBA DS asks for each one in turn. "
+	             "Tap to skip any the device doesn't have.",
+	             C_DIM);
+	draw_wrapped(scr, tx, g.textY[3], tw, px, "This is v" GBADS_VERSION ". Look for a new version, and download and install it.",
+	             C_DIM);
 }
 
 static void settings_activate(Config* cfg, int row) {
 	(void) cfg;
 	settingsMsg[0] = 0;
+	settingsMsgRow = row;
 	if (row == 0) {
 		if (android_pick_folder()) pickPending = true;
 		else snprintf(settingsMsg, sizeof(settingsMsg), "Couldn't open the file picker.");
@@ -767,6 +773,10 @@ static void settings_activate(Config* cfg, int row) {
 	}
 	if (row == 2) {
 		mapper_run(cfg);
+		return;
+	}
+	if (row == 3) {
+		updatesOpen = true, updatesNotice = false, updatesSel = 0;
 		return;
 	}
 	char user[128], err[256];
@@ -784,6 +794,7 @@ static void settings_activate(Config* cfg, int row) {
  * True if the ROM folder changed. */
 static bool settings_poll(Config* cfg) {
 	if (raDialogPending) {
+		settingsMsgRow = 1;
 		char user[128], pass[256];
 		int st = android_take_ra_credentials(user, sizeof(user), pass, sizeof(pass));
 		if (st) raDialogPending = false;
@@ -796,6 +807,7 @@ static bool settings_poll(Config* cfg) {
 	int st = android_take_picked_folder(path, sizeof(path));
 	if (!st) return false;
 	pickPending = false;
+	settingsMsgRow = 0;
 	if (st < 0) {
 		snprintf(settingsMsg, sizeof(settingsMsg), "No folder chosen.");
 		return false;
@@ -866,7 +878,11 @@ static int update_buttons(const UpdateInfo* u, int* ids) {
 		ids[n++] = UB_CANCEL;
 		break;
 	case UPD_INSTALLING:
+		break;
 	case UPD_DONE:
+#ifdef __ANDROID__
+		ids[n++] = UB_BACK; /* (Android's installer is up; it closes GBA DS once it installs) */
+#endif
 		break;
 	case UPD_CHECKING:
 		ids[n++] = UB_BACK;
@@ -931,8 +947,14 @@ static void draw_updates(int scr, int sel) {
 	ui_clip(scr, &clip);
 	switch (u.state) {
 	case UPD_AVAILABLE:
+#ifdef __ANDROID__
+		snprintf(line, sizeof(line), "GBA DS v%s is out (this is v%s). Update now to download it (%.1f MB) and install "
+		         "it: Android asks you to confirm. Your games, saves, states and settings are kept.", u.version,
+		         GBADS_VERSION, u.size / 1048576.0);
+#else
 		snprintf(line, sizeof(line), "GBA DS v%s is out (this is v%s). Update now to download it (%.1f MB) and restart "
 		         "into it; your games, saves, states and settings are kept.", u.version, GBADS_VERSION, u.size / 1048576.0);
+#endif
 		y = draw_wrapped(scr, tx, y, tw, px, line, C_TEXT) + px * 2;
 		/* the release notes: a heading or a bullet point a line */
 		for (const char* p = u.notes; *p;) {
@@ -948,7 +970,19 @@ static void draw_updates(int scr, int sel) {
 	case UPD_DOWNLOADING:
 	case UPD_INSTALLING:
 	case UPD_DONE: {
+#ifdef __ANDROID__
+		if (u.state == UPD_DONE) {
+			/* Android's installer is asking; it closes GBA DS while it installs */
+			snprintf(line, sizeof(line),
+			         "Confirm the update to v%s in Android's installer. Android closes GBA DS while it installs; open it "
+			         "again afterwards. If Android asks first, allow GBA DS to install apps.", u.version);
+			draw_wrapped(scr, tx, y, tw, px, line, C_TEXT);
+			break;
+		}
+		const char* what = u.state == UPD_DOWNLOADING ? "Downloading" : "Installing";
+#else
 		const char* what = u.state == UPD_DOWNLOADING ? "Downloading" : u.state == UPD_INSTALLING ? "Installing" : "Installed";
+#endif
 		snprintf(line, sizeof(line), u.state == UPD_DONE ? "%s v%s. Restarting..." : "%s v%s...", what, u.version);
 		ui_label(scr, g.panel.x + g.panel.w / 2, g.bar.y - px * 10, px * 5, line, C_TEXT);
 		int pc = u.state == UPD_DOWNLOADING ? u.percent : 100;
@@ -997,7 +1031,11 @@ static bool updates_input(int ls) {
 	}
 	if (btn_pressed(B_B) || btn_released(B_HOME)) {
 		act = u.state == UPD_DOWNLOADING ? UB_CANCEL : u.state == UPD_AVAILABLE ? UB_LATER
-		    : u.state == UPD_INSTALLING || u.state == UPD_DONE ? -1 : UB_BACK;
+		    : u.state == UPD_INSTALLING ? -1
+#ifndef __ANDROID__
+		    : u.state == UPD_DONE ? -1
+#endif
+		    : UB_BACK;
 	}
 	Pointer p;
 	while (ui_next_pointer(&p)) {
@@ -1140,7 +1178,9 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 			if (!updates_input(ls)) updatesOpen = false;
 			UpdateInfo u;
 			update_info(&u);
+#ifndef __ANDROID__ /* (Android: its installer replaces the app) */
 			if (u.state == UPD_DONE && restartIn < 0) restartIn = 90;
+#endif
 			if (restartIn > 0 && --restartIn == 0) {
 				quit = true; /* main() starts the new version */
 				break;
