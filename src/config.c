@@ -119,6 +119,7 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	}
 	BOOL("save_on_quit", autoSave)
 	BOOL("auto_load", autoLoad)
+	BOOL("quick_bar_pinned", barPinned)
 	BOOL("show_all", showAll)
 	BOOL("name_tags", nameTags)
 	STR("retroachievements", raMode)
