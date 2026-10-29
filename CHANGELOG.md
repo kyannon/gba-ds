@@ -12,7 +12,7 @@
 
 ### Fixes
 - **Android:** GBA DS closed as soon as it started on devices with older 64-bit chips (Retroid Pocket Duo Lite and others with Cortex-A53 / A73 cores).
-- **Android:** on devices whose two screens are different sizes (Retroid Pocket Duo Lite), the second screen was cut off.
+- **Android:** on devices whose two screens are different sizes (Retroid Pocket Duo Lite), the second screen was cut off. Confirmed fixed on a Duo Lite by the player who reported it.
 
 ## v1.4 (2026-10-28)
 
