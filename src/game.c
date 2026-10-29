@@ -1179,10 +1179,11 @@ static Uint32 barSince;         /* last touched */
 static Uint32 barLitAt;         /* a button's action just done: it shows white a moment */
 static int barLit = -1;
 static Uint32 barExitArmed;     /* Close GBA DS tapped once (a second tap within 3 s closes) */
-enum { G_NONE, G_TRACK, G_DONE, G_BTN };
+enum { G_NONE, G_TRACK, G_DONE, G_BTN, G_PIN };
 static int barGesture = G_NONE;
 static int barBtn = -1;         /* the button under the finger (G_BTN) */
 static int barGX, barGY;        /* where the finger went down */
+static bool barDownOpen;        /* the bar was up when it went down */
 enum { BB_SAVE, BB_LOAD, BB_SETTINGS, BB_BUG, BB_EXIT, BB_COUNT };
 
 static const SDL_Color G_BG = { 22, 22, 22, 238 }, G_EDGE = { 128, 128, 128, 255 }, G_BTN_C = { 60, 60, 60, 255 },
@@ -1295,11 +1296,15 @@ static int bar_buttons_h(int s) {
 static int bar_pick_h(int s) {
 	return ctlProf ? ui_px(s) * 24 : 0;
 }
+/* under the buttons: a line for messages (State saved...) */
+static int bar_msg_h(int s) {
+	return ui_px(s) * 13;
+}
 
 static SDL_Rect bar_rect(int s) {
 	SDL_Rect r = screens[s].rect;
 	float px = ui_px(s);
-	int m = px * 4, h = bar_pick_h(s) + bar_status_h(s) + bar_buttons_h(s);
+	int m = px * 4, h = bar_pick_h(s) + bar_status_h(s) + bar_buttons_h(s) + bar_msg_h(s);
 	int slide = (int) ((1.0f - barShown) * (h + m));
 	return (SDL_Rect) { m, r.h - m - h + slide, r.w - m * 2, h };
 }
@@ -1313,7 +1318,15 @@ static SDL_Rect bar_button(int s, int i) {
 	return (SDL_Rect) { x0, b.y + bar_pick_h(s) + bar_status_h(s), x1 - x0, h };
 }
 
-/* the time, battery and FPS: three cells across the row above the buttons */
+/* the pin, a square in the top right corner */
+static SDL_Rect bar_pin(int s) {
+	SDL_Rect b = bar_rect(s);
+	float px = ui_px(s);
+	int in = px * 2, w = px * 10;
+	return (SDL_Rect) { b.x + b.w - in - w, b.y + in, w, w };
+}
+
+/* the time, FPS and battery: three cells across the row above the buttons */
 static SDL_Rect bar_cell(int s, int i) {
 	SDL_Rect b = bar_rect(s);
 	int x0 = b.x + b.w * i / 3, x1 = b.x + b.w * (i + 1) / 3;
@@ -1331,6 +1344,23 @@ static int bar_button_at(int s, int x, int y) {
 
 static void ctl_draw(int s);
 static bool ctl_tap(int s, int x, int y);
+static void save_prefs(void);
+
+static const char* const icon_pin[] = {
+	"...XXXXXX...",
+	"...XXXXXX...",
+	"....XXXX....",
+	"....XXXX....",
+	"....XXXX....",
+	"...XXXXXX...",
+	"..XXXXXXXX..",
+	"XXXXXXXXXXXX",
+	".....XX.....",
+	".....XX.....",
+	".....XX.....",
+	"......X.....",
+	NULL,
+};
 
 static void bar_close(void) {
 	barOpen = false;
@@ -1373,9 +1403,10 @@ static void draw_bar(void) {
 	struct tm tm;
 	if (localtime_r(&now, &tm)) snprintf(buf[0], sizeof(buf[0]), "%02d:%02d", tm.tm_hour, tm.tm_min);
 	int pct = battery_percent();
-	if (pct >= 0) snprintf(buf[1], sizeof(buf[1]), "%d%%", pct);
-	else snprintf(buf[1], sizeof(buf[1]), "\u2014"); /* (no battery found) */
-	snprintf(buf[2], sizeof(buf[2]), "%.1f FPS", fps);
+	if (fps > 0) snprintf(buf[1], sizeof(buf[1]), "%.1f FPS", fps);
+	else snprintf(buf[1], sizeof(buf[1]), "\u2014 FPS"); /* (the first second) */
+	if (pct >= 0) snprintf(buf[2], sizeof(buf[2]), "%d%%", pct);
+	else snprintf(buf[2], sizeof(buf[2]), "\u2014"); /* (no battery found) */
 	for (int i = 0; i < 3; ++i) {
 		SDL_Rect c = bar_cell(s, i);
 		int w = ui_font_width(TF_BOLD, cap, buf[i]), fc = w > c.w - px * 2 ? cap * (c.w - px * 2) / SDL_max(1, w) : cap;
@@ -1392,6 +1423,19 @@ static void draw_bar(void) {
 		bool done = lit && barLit == i; /* (just saved, loaded or reported) */
 		ui_fill_round(s, r, down || armed || done ? G_BTN_DOWN : G_BTN_C, px * 3);
 		draw_icon(s, art[i], r.x + r.w / 2, r.y + r.h / 2, r.h * 7 / 10, !en ? G_DIS : done || armed ? G_LIT : G_TEXT);
+	}
+	/* the pin: grey, or white while pinned */
+	SDL_Rect pin = bar_pin(s);
+	ui_fill_round(s, pin, cfg->barPinned ? G_BTN_DOWN : G_BTN_C, px * 2);
+	draw_icon(s, icon_pin, pin.x + pin.w / 2, pin.y + pin.h / 2, pin.h * 7 / 10, cfg->barPinned ? G_LIT : G_DIS);
+	/* messages (the OSD's, while the bar covers where it's drawn) */
+	const char* msg = ui_osd_text();
+	if (msg) {
+		SDL_Rect last = bar_button(s, 0);
+		int my = last.y + last.h + bar_msg_h(s) / 2, mc = px * 5;
+		int w = ui_font_width(TF_BOLD, mc, msg);
+		if (w > b.w - px * 8) mc = mc * (b.w - px * 8) / SDL_max(1, w);
+		ui_font_text(s, TF_BOLD, b.x + b.w / 2, my, mc, msg, G_TEXT, 0);
 	}
 }
 
@@ -2798,7 +2842,7 @@ static void bug_info(Text* t, const char* date, uint64_t back) {
 	         cfg->matchDisplay, cfg->vsync, cfg->audioLatency, cfg->rewind, cfg->rewindSeconds, cfg->ffSpeed);
 	text_add(t, "hotkey %s, menu_combo %s, home_button %d, ab_swap %d, touch_map %s, touch_screen %s\n", cfg->hotkey, cfg->menuCombo,
 	         cfg->homeButton, cfg->abSwap, cfg->touchMap, cfg->touchScreen);
-	text_add(t, "save_on_quit %d, auto_load %d\n", cfg->autoSave, cfg->autoLoad);
+	text_add(t, "save_on_quit %d, auto_load %d, quick_bar_pinned %d\n", cfg->autoSave, cfg->autoLoad, cfg->barPinned);
 
 	char lp[1024];
 	log_path(lp, sizeof(lp));
@@ -2833,7 +2877,7 @@ static bool bug_report(char* out, size_t outSize) {
 		else if (!fits && !pickFits && bugSnap[i].frame < bugSnap[pick].frame) pick = i;
 	}
 	if (pick < 0 || bugFrame - bugSnap[pick].frame >= BUG_LOG) {
-		snprintf(out, outSize, "Nothing to report yet");
+		snprintf(out, outSize, "Nothing to report yet.");
 		return false;
 	}
 	uint64_t from = bugSnap[pick].frame, to = bugFrame;
@@ -2960,7 +3004,7 @@ static bool bug_report(char* out, size_t outSize) {
 	if (!ok) remove(zip);
 	fprintf(stderr, "bug report: %s %s (%llu frames back)\n", zip, ok ? "saved" : "failed", (unsigned long long) (to - from));
 	if (ok) snprintf(out, outSize, "bug-reports/%s.zip", base);
-	else snprintf(out, outSize, "Couldn't save the bug report");
+	else snprintf(out, outSize, "Couldn't save the bug report.");
 	return ok;
 }
 
@@ -3364,11 +3408,11 @@ static void save_prefs(void) {
 	FILE* f = fopen(prefs, "w");
 	if (f) {
 		fprintf(f, "# written by gba-ds's pause menu; overrides gba-ds.cfg\n");
-		fprintf(f, "swap = %d\nscale = %s\nmap_scale = %s\nlcd_grid = %d\noverlays = %s\nframe_buffer = %d\nmatch_display = %d\nrewind = %d\nsave_on_quit = %d\nauto_load = %d\n",
+		fprintf(f, "swap = %d\nscale = %s\nmap_scale = %s\nlcd_grid = %d\noverlays = %s\nframe_buffer = %d\nmatch_display = %d\nrewind = %d\nsave_on_quit = %d\nauto_load = %d\nquick_bar_pinned = %d\n",
 		        cfg->swap ? 1 : 0, cfg->scale, cfg->mapScale, cfg->lcdGrid ? 1 : 0,
 		        (const char* const[]) { "none", "primary", "secondary", "both" }[cfg->overlays & OVL_BOTH],
 		        cfg->frameBuffer ? 1 : 0, cfg->matchDisplay ? 1 : 0, cfg->rewind ? 1 : 0,
-		        cfg->autoSave ? 1 : 0, cfg->autoLoad ? 1 : 0);
+		        cfg->autoSave ? 1 : 0, cfg->autoLoad ? 1 : 0, cfg->barPinned ? 1 : 0);
 		fclose(f);
 	}
 }
@@ -3444,7 +3488,7 @@ static bool shotPending; /* Take Screenshot: capture the next frame drawn */
 
 static void draw_osd(void) {
 	const char* osd = ui_osd_text();
-	if (!osd || menuOpen || shotPending) return;
+	if (!osd || menuOpen || shotPending || barShown > 0) return; /* (the quick bar shows it) */
 	int s = ui_touch_screen();
 	SDL_Rect r = screens[s].rect;
 	bool gameHere = nScreens == 1 || s == game_screen() || !((mc || logoOnly) && cfg->map);
@@ -3992,6 +4036,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	} else {
 		ui_osd("Tap the screen or press HOME for the menu");
 	}
+	if (cfg->barPinned) barOpen = true, barSince = SDL_GetTicks(); /* (pinned: up from the start) */
 	rewind_setup();
 
 	/* The device runs at a fixed rate. The GBA's own rate follows the game's
@@ -4128,10 +4173,13 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				float u = ui_px(ts);
 				if (p.kind == 1) {
 					barGesture = G_NONE;
+					barDownOpen = barOpen;
 					if (p.screen == ts && barOpen) {
+						SDL_Rect pin = bar_pin(ts);
+						SDL_Point pt = { p.x, p.y };
 						barSince = SDL_GetTicks();
 						barBtn = bar_button_at(ts, p.x, p.y);
-						barGesture = barBtn >= 0 ? G_BTN : ctl_tap(ts, p.x, p.y) ? G_DONE : G_TRACK;
+						barGesture = barBtn >= 0 ? G_BTN : SDL_PointInRect(&pt, &pin) ? G_PIN : ctl_tap(ts, p.x, p.y) ? G_DONE : G_TRACK;
 						barGX = p.x, barGY = p.y;
 						continue;
 					}
@@ -4142,7 +4190,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 					}
 					open_menu();
 					ignorePointerUp = true;
-				} else if (p.kind == 3 && (barGesture == G_TRACK || barGesture == G_BTN) && p.screen == ts) {
+				} else if (p.kind == 3 && (barGesture == G_TRACK || barGesture == G_BTN || barGesture == G_PIN) && p.screen == ts) {
 					int dy = p.y - barGY;
 					if (!barOpen && dy <= -u * 10) {
 						barOpen = true;
@@ -4162,32 +4210,49 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 						if (bb != BB_EXIT) barExitArmed = 0;
 						if (bb == BB_SAVE) {
 							bool ok = state_save(gp.state);
-							ui_osd(ok ? "State saved" : "Save failed");
+							ui_osd(ok ? "State saved." : "Save failed.");
 							if (ok) barLit = bb, barLitAt = barSince;
 						} else if (bb == BB_LOAD) {
-							if (!file_exists(gp.state)) ui_osd("No saved state yet");
-							else if (state_load(gp.state)) ui_osd("State loaded"), forceMap = true, barLit = bb, barLitAt = barSince;
-							else ui_osd("Load failed");
+							if (!file_exists(gp.state)) ui_osd("No saved state yet.");
+							else if (state_load(gp.state)) ui_osd("State loaded."), forceMap = true, barLit = bb, barLitAt = barSince;
+							else ui_osd("Load failed.");
 						} else if (bb == BB_SETTINGS) {
 							open_menu();
 							ignorePointerUp = false;
 						} else if (bb == BB_BUG) {
 							char what[200];
-							if (bug_report(what, sizeof(what))) ui_osd("Bug report saved in bug-reports"), barLit = bb, barLitAt = barSince;
+							if (bug_report(what, sizeof(what))) ui_osd("Bug report saved in bug-reports."), barLit = bb, barLitAt = barSince;
 							else ui_osd("%s", what);
 						} else if (bb == BB_EXIT) {
 							if (!barExitArmed) {
 								barExitArmed = barSince;
-								ui_osd("Tap again to close GBA DS");
+								ui_osd("Tap again to close GBA DS.");
 							} else {
 								exitTo = GAME_QUIT_APP;
 								done = true;
 							}
 						}
+					} else if (g == G_PIN && p.screen == ts) {
+						SDL_Rect pin = bar_pin(ts);
+						SDL_Point pt = { p.x, p.y };
+						if (SDL_PointInRect(&pt, &pin)) {
+							cfg->barPinned = !cfg->barPinned;
+							barSince = SDL_GetTicks();
+							save_prefs();
+							ui_osd(cfg->barPinned ? "Pinned: the bar stays up." : "Unpinned: the bar hides after 5 seconds.");
+						}
 					} else if (g == G_TRACK) {
-						/* a tap, not a swipe */
-						open_menu();
-						ignorePointerUp = false;
+						/* a tap, not a swipe: with the bar up, it goes away (pinned,
+						 * it stays, and a tap outside it opens the menu);
+						 * otherwise the menu */
+						SDL_Rect b = bar_rect(ts);
+						SDL_Point pt = { barGX, barGY };
+						if (barDownOpen && !cfg->barPinned) {
+							bar_close();
+						} else if (!barDownOpen || !SDL_PointInRect(&pt, &b)) {
+							open_menu();
+							ignorePointerUp = false;
+						}
 					}
 				}
 				continue;
@@ -4365,6 +4430,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		}
 		if (wasMenu && !menuOpen) {
 			suppress_held();
+			if (cfg->barPinned) barOpen = true, barSince = SDL_GetTicks(); /* (pinned: back after the menu) */
 			if (audio) SDL_PauseAudioDevice(audio, 0);
 			next = SDL_GetPerformanceCounter() / freq;
 			fpsT0 = next;
@@ -4741,7 +4807,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			take_screenshot();
 		}
 		ra_draw(nScreens > 1 ? 1 - game_screen() : 0); /* after the screenshot: not in it */
-		if (barOpen && barGesture == G_NONE && SDL_GetTicks() - barSince > 5000) bar_close();
+		if (barOpen && !cfg->barPinned && barGesture == G_NONE && SDL_GetTicks() - barSince > 5000) bar_close();
 		draw_bar();
 		ui_present();
 		Uint64 drawT1 = SDL_GetPerformanceCounter();

@@ -163,9 +163,11 @@ Android session at the same time. To keep them from colliding:
   none), `TICK SHOT:file.bmp` (both screens), `TICK TAP:x,y` (fractions of
   the whole window), `TICK SWIPE:x0,y0,x1,y1` (down, 4 moves, up: the quick
   bar comes up with `SWIPE:0.5,0.99,0.5,0.85`; in a 1024x1536 window its
-  buttons are at y 0.957, x 0.117 save, 0.307 load, 0.5 settings, 0.693
+  buttons are at y 0.923, x 0.117 save, 0.307 load, 0.5 settings, 0.693
   bug, 0.885 close (tapped twice), with or without Controls above
-  (profile `controls`), whose tiles are around y 0.870), `TICK QUIT`, `TICK LOAD:file.ss` (load a state, the second screen kept). `GBADS_DEBUG=1` logs map captures,
+  (profile `controls`), whose tiles are around y 0.836; the pin at
+  0.957,0.880 (0.957,0.818 with Controls); a tap elsewhere puts the bar
+  away (pinned: opens the menu from outside the bar)), `TICK QUIT`, `TICK LOAD:file.ss` (load a state, the second screen kept). `GBADS_DEBUG=1` logs map captures,
   snapshot and control-scheme switches, taps.
 - `build/host/harness ROM OUTDIR SCRIPT` drives the core frame by frame:
   `load/save NAME`, `wait N`, `hold BUTTONS N`, `shot NAME`, `peek ADDR LEN`,

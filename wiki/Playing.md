@@ -60,13 +60,15 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 
 ## The quick bar and bug reports
 
-Swipe up from the bottom edge of the touchscreen for the quick bar. The game keeps running underneath it. In games with another button layout (the Tony Hawk's games, Super Mario Advance 2), **Controls** is at its top: see [Buttons](#buttons). Under that are the time, the battery level and the frames per second (about 59.7 is full speed), and along the bottom five buttons:
+Swipe up from the bottom edge of the touchscreen for the quick bar. The game keeps running underneath it. In games with another button layout (the Tony Hawk's games, Super Mario Advance 2), **Controls** is at its top: see [Buttons](#buttons). Under that are the time, the frames per second (about 59.7 is full speed) and the battery level, then five buttons, and under them a line for messages (State saved. and the like):
 - **Save State** (floppy disk) and **Load State** (folder): the same slot as the pause menu's (greyed out until you've saved).
 - **Settings** (gear): the pause menu.
 - **Bug Report** (bug): see below.
 - **Close GBA DS** (walking out of a door): tap it twice; your resume point is saved as usual.
 
-Swipe down to put the bar away. It also goes when the pause menu opens (a tap anywhere else on the touchscreen, HOME or your menu buttons), and after 5 seconds untouched.
+Swipe down, or tap anywhere off its buttons, to put the bar away (tap again for the pause menu). It also goes when the pause menu opens (HOME or your menu buttons), and after 5 seconds untouched.
+
+**The pin** (top right of the bar) keeps it up: tap it and it turns white. Pinned, the bar doesn't hide by itself, comes back when you leave the pause menu, and is up when you start a game; a tap outside it opens the pause menu. It stays pinned until you tap the pin again (`quick_bar_pinned` in `gba-ds.cfg`).
 
 **Bug Report** (also in the pause menu: Extras > **Submit a Bug Report**) saves a bug report: a `.zip` in the `bug-reports` folder (`gba-ds/bug-reports/`, or `GBA DS/bug-reports/` on Android), named after the game and the date and time. It holds:
 - a save state of the game right then;
