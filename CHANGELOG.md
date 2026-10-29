@@ -9,8 +9,9 @@
 ### Final Fantasy Tactics Advance
 - On the world map, the second screen now shows today's Laws (the window L opens, on its own), taken again as soon as your clan arrives somewhere new, even with the place's own menu up (a town's, or a mission's). Japanese release: the world map still shows the logo.
 
-### Advance Wars 2
-- On the computer's turn (from ending yours, through its moves) the second screen shows the logo, as the cursor isn't yours to bring up intel with; the intel comes back on your turn. The same in Game Boy Wars Advance 2 (Japan), not yet tried there. Advance Wars (the first game) still keeps its last picture on the computer's turn.
+### Advance Wars, Advance Wars 2, Game Boy Wars Advance 1+2
+- On the computer's turn (from ending yours, through its moves) the second screen shows the logo, as the cursor isn't yours to bring up intel with; the intel comes back on your turn. Your army is taken to be the first, as in the campaigns.
+- Once a battle's won or lost, its results pages no longer show the last unit intel: the logo.
 
 ### Game list
 - Games without second-screen support (listed with `show_all = 1`) are tagged **Single screen only** instead of "No map".
@@ -23,6 +24,7 @@
 - A touch on the very edge of the touchscreen (its right or bottom edge, or a finger sliding off it) was ignored, so a swipe or tap that ended there didn't count: the quick bar could miss a swipe up from the bottom edge (#9).
 
 ### Known issues
+- **Advance Wars games:** in Versus, if you play a later army, or two people share the device, those turns show the logo too (the games keep no record GBA DS could find of which armies a person plays). Game Boy Wars Advance 1+2's computer turn hasn't been tried yet.
 - **Golden Sun:** on one device the Status screen was seen dropping back to the logo for a moment while walking about, and GBA DS closed once as a battle began. Neither has happened again or been reproduced; if you see either, a bug report (quick bar) straight after helps.
 
 ## v1.4.1 (2026-10-28)

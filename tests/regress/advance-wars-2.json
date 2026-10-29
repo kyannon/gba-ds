@@ -79,6 +79,96 @@
    ]
   },
   {
+   "id": "aw2-us-victory",
+   "rom": "AW2E",
+   "state": "advance-wars-2/us-unit.ss",
+   "desc": "your turn with a unit's intel up, then a battle won (a player's bug report): the results pages",
+   "rules": [
+    "AW2-6"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:advance-wars-2/us-victory.ss"
+    ],
+    [
+     258,
+     "A"
+    ],
+    [
+     266,
+     "-"
+    ],
+    [
+     283,
+     "A"
+    ],
+    [
+     290,
+     "-"
+    ],
+    [
+     393,
+     "A"
+    ],
+    [
+     401,
+     "-"
+    ],
+    [
+     477,
+     "A"
+    ],
+    [
+     504,
+     "-"
+    ],
+    [
+     547,
+     "A"
+    ],
+    [
+     583,
+     "-"
+    ],
+    [
+     620,
+     "A"
+    ],
+    [
+     629,
+     "-"
+    ]
+   ],
+   "shots": {
+    "yours": 150,
+    "results": 860
+   },
+   "checks": [
+    {
+     "rule": "AW2-6",
+     "what": "the intel on your turn",
+     "type": "log",
+     "match": "frame 1[0-9]?[0-9]: map updated"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "AW2-6",
+     "what": "the logo on the results pages, not the old intel",
+     "shot": "results"
+    }
+   ]
+  },
+  {
    "id": "aw2-us-unit",
    "rom": "AW2E",
    "state": "advance-wars-2/us-unit.ss",

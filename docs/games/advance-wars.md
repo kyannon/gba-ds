@@ -19,11 +19,11 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **AW-3.** *Retired in v1.3.2's later test builds:* the CO and day plate and the terrain and unit info moved to the bottom of the second screen (they stay on the game screen: AW-8).
 
-**AW-4. Enemy turn.** On the enemy's turn the second screen keeps its last picture.
+**AW-4. The computer's turn.** From the moment you end your turn, through the day banner and the computer's moves, the second screen shows the logo: the cursor isn't yours, so there's no unit intel to bring up. On your next turn the pictures come back. (Until v1.4.2's later test builds the last picture stayed.) Your army is taken to be the first (in the campaigns you always are). *Known limitation: in Versus, if you play a later army, or two people share the GBA, those turns show the logo too: the game keeps no record GBA DS could find of which armies a person plays.*
 
 **AW-5. Fights.** In a fight the second screen shows the logo (GEN-1).
 
-**AW-6. Title and menus.** On the title and menus the second screen shows the logo.
+**AW-6. Title and menus.** On the title and menus, and once a battle's over (its results), the second screen shows the logo.
 
 **AW-7. Conversations.** Conversations during a battle stay on the game screen. (Until v1.3.2's later test builds they moved to the top of the second screen.)
 

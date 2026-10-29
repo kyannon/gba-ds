@@ -231,14 +231,31 @@
    "id": "aw-us-co-screen",
    "rom": "AWRE",
    "state": "advance-wars/us-co-screen.ss",
-   "desc": "the CO dossier open in a battle: the last panel stays",
+   "desc": "the CO dossier open on army 2's turn in a two-player Versus game: the logo (AW-4's known limitation: a later army's turn is taken for the computer's)",
    "rules": [
-    "AW-1"
+    "AW-4"
    ],
    "shots": {
     "start": 60,
     "end": 480
-   }
+   },
+   "checks": [
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "AW-4",
+     "what": "the logo (known limitation)",
+     "shot": "start"
+    }
+   ]
   },
   {
    "id": "aw-us-rain",
@@ -272,7 +289,7 @@
    "id": "aw-us-end-turn",
    "rom": "AWRE",
    "state": "advance-wars/us-cursor-empty.ss",
-   "desc": "your turn: Battle Intel up, then End (A, UP, A) and the enemy's turn",
+   "desc": "your turn: Battle Intel up, then End (A, UP, A) and the computer's turn",
    "rules": [
     "AW-4"
    ],
@@ -309,27 +326,24 @@
    "checks": [
     {
      "rule": "AW-4",
-     "what": "the panel keeps its last picture",
-     "type": "same",
-     "a": {
-      "shot": "yours",
-      "rect": [
-       0,
-       0,
-       1024,
-       560
-      ]
-     },
-     "b": {
-      "shot": "enemy",
-      "rect": [
-       0,
-       0,
-       1024,
-       560
-      ]
-     },
-     "frac": 0.01
+     "what": "the Battle Intel on your turn",
+     "type": "log",
+     "match": "frame 1[0-4]?[0-9]: map updated"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "AW-4",
+     "what": "the logo on the computer's turn",
+     "shot": "enemy"
     }
    ]
   },
@@ -337,9 +351,10 @@
    "id": "aw-us-enemy-turn",
    "rom": "AWRE",
    "state": "advance-wars/us-enemy-turn.ss",
-   "desc": "Versus, End just chosen; loaded fresh, so no panel has been taken yet: the logo through the enemy's turn, the dimmed logo once it attacks",
+   "desc": "Versus against the computer, End just chosen: the logo through the computer's turn and its attack",
    "rules": [
     "GEN-1",
+    "AW-4",
     "AW-5"
    ],
    "shots": {

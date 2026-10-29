@@ -37,8 +37,6 @@
 /* Advance Wars 2 (USA; Europe the same): found by matching the code that
  * reads Advance Wars' (the army) and by watching them change */
 #define AW2_ARMY 0x030005D0
-#define AW2_CPU 0x030005C9 /* 1 from the end of the player's turn through the computer's;
-                           * 0 on the player's (moves, menus, conversations too) */
 #define AW2_CURSOR 0x03003140
 #define AW2_UNITS 0x02022684
 #define AW2_MENU_ROW 0x030014B2
@@ -49,7 +47,6 @@
 #define GBW1_CURSOR 0x030031B0
 #define GBW1_UNITS 0x0201A138
 #define GBW2_ARMY 0x030005D8
-#define GBW2_CPU 0x030005D1 /* (AW2_CPU's place, as the army's; 0 on the player's turn seen) */
 #define GBW2_CURSOR 0x03003250
 #define GBW2_UNITS 0x02022574
 /* the weather's sprites: rain (tiles 169, 171), in OBJ palette 2 */
@@ -57,6 +54,14 @@
 #define MAP_BG_NAVY 0xFF382418 /* behind the panels: dark navy (bytes R, G, B) */
 #define AW_BG MAP_BG_NAVY
 
+/* The computer's turn (AW-4, AW2-4): an army after the first. The
+ * player's is the first in the campaigns (and in Versus from the first
+ * slot); nothing found says which armies a person plays (each army's
+ * settings, 0x3C / 0x68 bytes from 0x02023284 + 0x3C / 0x0201AB9C, hold
+ * 1, 2... at +0x1B whoever plays them; a two-player Versus state
+ * (us-co-screen) and two against the computer read alike), so a later
+ * army played by a person shows the logo too (a known limitation). */
+#define AW_V_CPU 0xF0000050 /* 1 on the computer's turn */
 typedef struct {
 	uint32_t army, cursor, units, menuRow, minimapOpen; /* (minimapOpen: unused since the minimap went) */
 	int intelItem; /* Intel's row in the SELECT menu */
@@ -90,6 +95,13 @@ static int gbw_game(Emu* s) {
 static const AwRegion* aw_r(Emu* s) {
 	if (!strncmp(s->gameCode, "BGWJ", 4)) return &awRegions[gbw_game(s) == 1 ? 2 : 3];
 	return &awRegions[s->gameCode[2] == '2' ? 1 : 0];
+}
+
+static uint32_t aw_virt(Emu* e, uint32_t addr) {
+	if (addr != AW_V_CPU) return 0;
+	if (!strncmp(e->gameCode, "BGWJ", 4) && !gbw_game(e)) return 0; /* (the compilation's own menus) */
+	uint8_t army = emu_read8(e, aw_r(e)->army);
+	return army >= 2 && army <= 4;
 }
 
 /* n frames with these buttons held; only the last two drawn (what's
@@ -2046,8 +2058,13 @@ static const MapProfile profiles[] = {
 		.crop_h = GBA_H,
 		/* a fight: both windows on */
 		.combat = { { AW_ARMY, 0xFF, 1, 1, true, 4, true }, { 0x04000000, 0x4000, 0x4000, 2 } },
+		/* the computer's turn: the logo too (AW-4) */
+		.virt = aw_virt,
+		.combatOr = { { AW_V_CPU, 0xFF, 1, 4 } },
 		.live = { { AW_ARMY, 0xFF, 1, 1, true, 4, true } },
-		.menu = { { AW_ARMY, 0xFF, 0, 1 }, { 0x03004464, 0xFFFFFFFF, 0, 4 } },
+		/* off the battle map (the title, menus, a battle's results; between
+		 * turns too, where the logo's up already): the pictures go (AW-6) */
+		.menu = { { AW_ARMY, 0xFF, 0, 1 } },
 		.room = { { AW_CURSOR, 0xFFFF, 0, 2 } },
 		/* the title's lettering is sprites */
 		.logo = { .wait = 240, .pressStart = true, .wait2 = 100, .layers = 0x10, .maxY = 128 },
@@ -2062,9 +2079,11 @@ static const MapProfile profiles[] = {
 		/* a fight: both windows on */
 		.combat = { { AW2_ARMY, 0xFF, 1, 1, true, 4, true }, { 0x04000000, 0x4000, 0x4000, 2 } },
 		/* the computer's turn: the logo too (AW2-4) */
-		.combatOr = { { AW2_CPU, 0xFF, 1, 1 } },
+		.virt = aw_virt,
+		.combatOr = { { AW_V_CPU, 0xFF, 1, 4 } },
 		.live = { { AW2_ARMY, 0xFF, 1, 1, true, 4, true } },
-		.menu = { { AW2_ARMY, 0xFF, 0, 1 }, { 0x030040D8, 0xFFFFFFFF, 0, 4 } },
+		/* off the battle map (as Advance Wars': AW2-6) */
+		.menu = { { AW2_ARMY, 0xFF, 0, 1 } },
 		.room = { { AW2_CURSOR, 0xFFFF, 0, 2 } },
 		/* the title's lettering is sprites (PRESS START! below it too) */
 		.logo = { .wait = 240, .pressStart = true, .wait2 = 100, .layers = 0x10, .maxY = 92,
@@ -2142,24 +2161,22 @@ static void aw_eur(MapProfile* p) {
 
 /* Game Boy Wars Advance 1+2's two games: as Advance Wars and Advance
  * Wars 2, at their addresses there (the compose code's: awRegions) */
-static void gbw_set(MapProfile* p, uint32_t army, uint32_t cursor, uint32_t menu) {
+static void gbw_set(MapProfile* p, uint32_t army, uint32_t cursor) {
 	p->combat[0].addr = army;
 	p->live[0].addr = army;
 	p->menu[0].addr = army;
-	p->menu[1].addr = menu;
 	p->room[0].addr = cursor;
 	memset(&p->logo, 0, sizeof(p->logo)); /* (the compilation's: BGWJ) */
 }
 
 static void gbw1(MapProfile* p) {
 	p->title = "Game Boy Wars Advance 1+2: Game Boy Wars Advance";
-	gbw_set(p, GBW1_ARMY, GBW1_CURSOR, 0x03004224);
+	gbw_set(p, GBW1_ARMY, GBW1_CURSOR);
 }
 
 static void gbw2(MapProfile* p) {
 	p->title = "Game Boy Wars Advance 1+2: Game Boy Wars Advance 2";
-	gbw_set(p, GBW2_ARMY, GBW2_CURSOR, 0x03004248);
-	p->combatOr[0].addr = GBW2_CPU;
+	gbw_set(p, GBW2_ARMY, GBW2_CURSOR);
 }
 
 static void thps2_jpn(MapProfile* p) {

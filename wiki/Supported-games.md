@@ -143,8 +143,8 @@ Preliminary. The USA and European releases of both, and in Japan Game Boy Wars A
 
 - **In a battle, on your turn,** the second screen shows the **intel of the unit under the cursor** (the screen R opens, with its text box, where the game puts them), yours or the enemy's (yours stays while you move it and pick its action), or else the **Battle Intel** (bases and funds) in the middle. Both are brought up in the background from the menus of a silent copy of the game, as the other games' maps are; your game is never paused.
 - Nothing leaves the game screen: the **CO and day plate**, the **terrain and unit info**, the DAMAGE box and **conversations** stay where the game draws them.
-- On the enemy's turn the second screen keeps its last picture.
-- **In a fight,** and on the title and menus, the second screen shows the game's logo.
+- **On the computer's turn** (from the moment you end yours, through its moves) the second screen shows the logo: the cursor isn't yours, so there's no intel to bring up. Your army is taken to be the first, as in the campaigns; in Versus, if you play a later army or two people share the device, those turns show the logo too.
+- **In a fight,** on the title and menus, and on a battle's results pages, the second screen shows the game's logo.
 - **Known issue:** in Advance Wars' **Field Training** missions the second screen keeps the logo: the tutorial blocks the menus it's built from (SELECT and START). It works fully in Campaign and Versus.
 - **Game Boy Wars Advance 1+2** (Japan): GBA DS notices which of the two games you pick from the cartridge's menu and sets the second screen up as for that game (Game Boy Wars Advance as Advance Wars, Game Boy Wars Advance 2 as Advance Wars 2). On the cartridge's own title and menu, and on both games' titles, the second screen shows the cartridge's logo. Game Boy Wars Advance has so far been tried only in its first Field Training mission (with the known issue above); its campaign and versus battles are still to be checked.
 

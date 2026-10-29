@@ -19,11 +19,11 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **AW2-3.** *Retired in v1.3.2's later test builds:* the CO plate and the terrain and unit info (and the DAMAGE box) moved to the bottom of the second screen (they stay on the game screen: AW2-8).
 
-**AW2-4. The computer's turn.** From the moment you end your turn, through the day banner and the computer's moves, the second screen shows the logo: the cursor isn't yours, so there's no unit intel to bring up. On your next turn the pictures come back. (Until v1.4.2's later test builds the last picture stayed.) *By hand: a turn of a second human player (Versus on one GBA) hasn't been tried; it should keep the pictures.*
+**AW2-4. The computer's turn.** From the moment you end your turn, through the day banner and the computer's moves, the second screen shows the logo: the cursor isn't yours, so there's no unit intel to bring up. On your next turn the pictures come back. (Until v1.4.2's later test builds the last picture stayed; the first of those told the computer's turn by its music.) Your army is taken to be the first (in the campaigns you always are). *Known limitation: in Versus, if you play a later army, or two people share the GBA, those turns show the logo too: the game keeps no record GBA DS could find of which armies a person plays.*
 
 **AW2-5. Fights.** In a fight the second screen shows the logo (GEN-1).
 
-**AW2-6. Title and menus.** On the title and menus the second screen shows the logo (the title's lettering, without PRESS START!).
+**AW2-6. Title and menus.** On the title and menus, and once a battle's over (its results), the second screen shows the logo (the title's lettering, without PRESS START!). (Until v1.4.2's later test builds the last intel stayed through the results.)
 
 **AW2-7. Conversations.** A conversation during a battle stays on the game screen. While it's up, and as it slides in and out, nothing on the second screen changes (the panels can't be brought up behind it). (Until v1.3.2's later test builds it moved to the second screen.)
 
