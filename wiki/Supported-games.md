@@ -102,7 +102,7 @@ Preliminary. The USA / Europe (English) release has been tried; the German, Fren
 Preliminary. The USA release has been tried; the Japanese one (Tactics Ogre Gaiden) should work the same way (its logo and title are checked).
 
 - **In a battle,** the second screen shows the battle's unit list (R, View List), with its cursor on the unit your cursor is on in the field, yours or the enemy's (on an empty square, your leader). It follows as soon as your cursor stops on another square.
-- **Its pages** (the ones START turns through: level, HP, MP, element, the bars, side) change every 2.5 seconds.
+- **Its pages** (the ones START turns through: level, HP, MP, element, the bars, side) change every 2.5 seconds. Its R SEARCH and START:DATA prompts are left out, as those buttons don't work there.
 - It's brought up in the background on a silent copy of the game; your game is never paused or touched. While a unit moves or acts, on the enemy's turn and in scenes, the last pictures stay.
 - On the title screen, the second screen shows the logo.
 

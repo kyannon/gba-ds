@@ -13,7 +13,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 ## Rules
 
-**TO-1. Unit list.** In a battle, with the cursor free on the field (where R opens the menu), the second screen shows the battle's unit list (R, View List), the whole screen at the game screen's size, as the game draws it. It's opened on the hidden copy at every map refresh and as soon as the field cursor has stopped on another square, so it stays up to date without the player opening it. With the list open in the game, the list as the player has it.
+**TO-1. Unit list.** In a battle, with the cursor free on the field (where R opens the menu), the second screen shows the battle's unit list (R, View List), the whole screen at the game screen's size, as the game draws it, without its R SEARCH and START:DATA prompts (the buttons don't work there): what's under them in the list shows instead. It's opened on the hidden copy at every map refresh and as soon as the field cursor has stopped on another square, so it stays up to date without the player opening it. With the list open in the game, the list as the player has it.
 
 **TO-2. On the cursor's unit.** The list's cursor is on the unit the field cursor is on, the player's or the enemy's, wherever it is in the list (the list moves its box about: right or left, bottom or top). On a square with no unit, the list as it opens, on the leader.
 

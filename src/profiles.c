@@ -1171,6 +1171,12 @@ static const char* gs_compose(Emu* s, const void* state, uint32_t* const* out, i
 #define TO_BOX_H 48
 #define TO_BOX_OTHER (-112)     /* in the list, the other side's box */
 #define TO_BOX_TOP 4            /* in the list, the box's top on the lower rows */
+/* the prompts, left out (TO-1): START:DATA, two sprites (tiles 1005 and
+ * 1009) at the top or bottom, right or (the other side) left; R SEARCH, BG2 at 0-47 x 144-159, with
+ * the list under it (BG2 off) put in its place */
+static const SpriteRule toHide[1] = { { -64, -16, 239, 159, 1005, 1012, -1 } };
+#define TO_R_X1 47
+#define TO_R_Y0 144
 
 /* the list's background and frames, where no unit, box or START:DATA
  * label is ever drawn (the box and the label move about) */
@@ -1215,6 +1221,7 @@ static const char* to_compose(Emu* s, const void* state, uint32_t* const* out, i
 	int max = *nOut < TO_PAGES ? *nOut : TO_PAGES;
 	*nOut = 1;
 	*step = 150; /* 2.5 seconds a page */
+	emu_hide_sprites(s, toHide, 1);
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
 	if (!to_list_up(s)) {
@@ -1258,6 +1265,22 @@ static const char* to_compose(Emu* s, const void* state, uint32_t* const* out, i
 		}
 	}
 	aw_run(s, 0, 20);
+	/* what's under R SEARCH: the list a frame on without BG2 */
+	static uint32_t under[(GBA_H - TO_R_Y0) * (TO_R_X1 + 1)];
+	{
+		static uint8_t* tmp;
+		static size_t tmpSize;
+		size_t sz = emu_state_size(s);
+		if (sz > tmpSize) free(tmp), tmp = malloc(sz), tmpSize = tmp ? sz : 0;
+		if (!tmp || !emu_state_save(s, tmp)) return "no memory";
+		emu_layers(s, 0x1B);
+		emu_state_load(s, tmp);
+		emu_frame(s, 0);
+		for (int y = TO_R_Y0; y < GBA_H; ++y) memcpy(&under[(y - TO_R_Y0) * (TO_R_X1 + 1)], &s->fb[y * GBA_W], (TO_R_X1 + 1) * 4);
+		emu_layers(s, 0x1F);
+		emu_state_load(s, tmp);
+		emu_frame(s, 0);
+	}
 	/* its pages: START turns to the next (HP, MP, element...), round to the first */
 	int n = 0, first = emu_read8(s, TO_PAGE);
 	for (; n < max; ++n) {
@@ -1269,6 +1292,7 @@ static const char* to_compose(Emu* s, const void* state, uint32_t* const* out, i
 		}
 		if (emu_cancelled(s)) return "called off";
 		memcpy(page[n], s->fb, sizeof(page[n]));
+		for (int y = TO_R_Y0; y < GBA_H; ++y) memcpy(&page[n][y * GBA_W], &under[(y - TO_R_Y0) * (TO_R_X1 + 1)], (TO_R_X1 + 1) * 4);
 	}
 	*nOut = n;
 	for (int k = 0; k < n; ++k) {
