@@ -1,0 +1,204 @@
+{
+ "game": "Golden Sun",
+ "rules": "docs/games/golden-sun.md",
+ "cases": [
+  {
+   "id": "gs-us-field",
+   "rom": "AGSE",
+   "state": "golden-sun/us-field.ss",
+   "desc": "walking about by Isaac's house, two in the party",
+   "rules": [
+    "GS-1",
+    "GS-2",
+    "GS-6"
+   ],
+   "shots": {
+    "first": 120,
+    "second": 420,
+    "third": 720
+   },
+   "checks": [
+    {
+     "rule": "GS-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated \\(2 frame\\(s\\) 300 apart"
+    },
+    {
+     "rule": "GS-2",
+     "what": "the next party member after 5 seconds",
+     "type": "differs",
+     "a": {
+      "shot": "first",
+      "rect": [
+       64,
+       240,
+       192,
+       368
+      ]
+     },
+     "b": {
+      "shot": "second",
+      "rect": [
+       64,
+       240,
+       192,
+       368
+      ]
+     },
+     "frac": 0.2
+    },
+    {
+     "rule": "GS-2",
+     "what": "back to the first after another 5",
+     "type": "same",
+     "a": {
+      "shot": "first",
+      "rect": [
+       64,
+       240,
+       192,
+       368
+      ]
+     },
+     "b": {
+      "shot": "third",
+      "rect": [
+       64,
+       240,
+       192,
+       368
+      ]
+     },
+     "frac": 0.001
+    },
+    {
+     "rule": "GS-6",
+     "what": "the game screen is the game's own (walking about, no menu)",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "gs-us-status-open",
+   "rom": "AGSE",
+   "state": "golden-sun/us-status.ss",
+   "desc": "the Status screen open in the game",
+   "rules": [
+    "GS-1"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "GS-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated \\(2 frame"
+    }
+   ]
+  },
+  {
+   "id": "gs-us-title",
+   "rom": "AGSE",
+   "state": "golden-sun/us-title.ss",
+   "desc": "the title screen (without a battery save it goes on to naming)",
+   "rules": [
+    "GS-3",
+    "GS-4"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 300
+   },
+   "checks": [
+    {
+     "rule": "GS-4",
+     "what": "no captures there",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "gs-logo-agse",
+   "kind": "logo",
+   "rom": "AGSE",
+   "desc": "AGSE logo extraction",
+   "rules": [
+    "GEN-1",
+    "GS-5"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "gs-logo-agsd",
+   "kind": "logo",
+   "rom": "AGSD",
+   "desc": "AGSD logo extraction",
+   "rules": [
+    "GEN-1",
+    "GS-5"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "gs-logo-agsf",
+   "kind": "logo",
+   "rom": "AGSF",
+   "desc": "AGSF logo extraction",
+   "rules": [
+    "GEN-1",
+    "GS-5"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "gs-logo-agsi",
+   "kind": "logo",
+   "rom": "AGSI",
+   "desc": "AGSI logo extraction",
+   "rules": [
+    "GEN-1",
+    "GS-5"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "gs-logo-agss",
+   "kind": "logo",
+   "rom": "AGSS",
+   "desc": "AGSS logo extraction",
+   "rules": [
+    "GEN-1",
+    "GS-5"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "gs-logo-agsj",
+   "kind": "logo",
+   "rom": "AGSJ",
+   "desc": "AGSJ logo extraction",
+   "rules": [
+    "GEN-1",
+    "GS-5"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

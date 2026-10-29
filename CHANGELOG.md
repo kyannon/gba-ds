@@ -2,6 +2,9 @@
 
 ## v1.4.2 (not yet released)
 
+### New games (preliminary)
+- **Golden Sun:** while you walk about, the second screen shows the Status screen, turning through your party every 5 seconds. The USA / Europe release has been tried; the German, French, Italian, Spanish and Japanese releases should work the same way.
+
 ## v1.4.1 (2026-10-28)
 
 ### What's new

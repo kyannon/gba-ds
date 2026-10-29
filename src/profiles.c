@@ -1021,6 +1021,85 @@ static const char* som_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	return NULL;
 }
 
+/* ---------------------------------------------------------- Golden Sun
+ *
+ * The second screen: the Status screen (SELECT's menu, its last icon, A),
+ * opened on the shadow core from the live state at every capture, one
+ * page per party member (RIGHT turns to the next, round to the first),
+ * shown in turn 5 seconds each (GS-1, GS-2). The window colour is the
+ * player's choice (the game's settings), so the screens are told apart by
+ * memory, not pixels:
+ *   GS_MODE   255 walking about (and on the title), 128 in SELECT's menu
+ *             or its Psynergy / Item screens, 0 on its Status screen
+ *   GS_SCREEN 1 while one of the menu's screens (Psynergy, Item, Status)
+ *             is up, else 0
+ *   GS_TITLE  17 on the title (it lags behind the menu: not used there)
+ * The menu's last icon is Status (LEFT from the first wraps to it), so
+ * reaching it by LEFT needs no count of the icons (Djinn come later). */
+#define GS_MODE 0x03001B62
+#define GS_SCREEN 0x02030E64
+#define GS_TITLE 0x020030A0
+#define GS_PAGES 8
+
+static bool gs_walking(Emu* s) {
+	return emu_read8(s, GS_MODE) == 255 && emu_read8(s, GS_SCREEN) == 0;
+}
+static bool gs_menu(Emu* s) {
+	return emu_read8(s, GS_MODE) == 128 && emu_read8(s, GS_SCREEN) == 0;
+}
+static bool gs_status(Emu* s) {
+	return emu_read8(s, GS_MODE) == 0 && emu_read8(s, GS_SCREEN) == 1;
+}
+/* runs up to n frames (not drawn) until up(s) */
+static bool gs_wait(Emu* s, bool (*up)(Emu*), int n) {
+	for (int f = 0; f < n && !up(s); ++f) emu_frame_blind(s, 0);
+	return up(s);
+}
+
+static const char* gs_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+	static uint32_t page[GS_PAGES][GBA_W * GBA_H];
+	int max = *nOut < GS_PAGES ? *nOut : GS_PAGES;
+	*nOut = 1;
+	*step = 300; /* 5 seconds a party member */
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	if (!gs_status(s)) {
+		/* back to walking about first (from the menu or another of its
+		 * screens), then SELECT, LEFT to Status, A */
+		for (int i = 0; i < 4 && !gs_walking(s); ++i) {
+			aw_run(s, K_B, 8);
+			gs_wait(s, gs_walking, 60);
+		}
+		if (!gs_walking(s)) return "not walking about";
+		aw_run(s, K_SELECT, 8);
+		if (!gs_wait(s, gs_menu, 60)) return "the menu didn't open";
+		aw_run(s, 0, 12);
+		aw_run(s, K_LEFT, 6); /* (to the last icon: Status) */
+		aw_run(s, 0, 16);
+		aw_run(s, K_A, 6);
+		if (!gs_wait(s, gs_status, 60)) return "the Status didn't open";
+	}
+	aw_run(s, 0, 20);
+	int n = 0;
+	for (; n < max; ++n) {
+		if (n) {
+			aw_run(s, K_RIGHT, 6);
+			aw_run(s, 0, 16);
+			if (!gs_status(s)) return "the Status closed";
+			/* round to the first again: the stats panel (below the party
+			 * row, whose walking figures move) as on the first page */
+			if (!memcmp(&s->fb[40 * GBA_W], &page[0][40 * GBA_W], sizeof(uint32_t) * GBA_W * (GBA_H - 40))) break;
+		}
+		if (emu_cancelled(s)) return "called off";
+		memcpy(page[n], s->fb, sizeof(page[n]));
+	}
+	*nOut = n;
+	for (int k = 0; k < n; ++k) {
+		for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[k][y * w], &page[k][y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+	}
+	return NULL;
+}
+
 static const MapProfile profiles[] = {
 	{
 		.codes = { "A2CE" },
@@ -1223,6 +1302,33 @@ static const MapProfile profiles[] = {
 		 * wordmark is BG0 above the PUSH START line */
 		.logo = { .steps = { { 0, 700 }, { K_START, 4 }, { 0, 200 }, { K_A, 4 }, { 0, 150 } },
 		          .layer = 0, .maxY = 112 },
+	},
+	{
+		/* the Status screen, a page per party member: see gs_compose
+		 * (the other releases: the same addresses, docs/games/golden-sun.md) */
+		.codes = { "AGSE", "AGSD", "AGSF", "AGSI" },
+		.title = "Golden Sun",
+		.composePages = gs_compose,
+		.stillPick = STILL_FIRST, /* (Map Animations off: the first member) */
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* the title: the logo again, no captures (GS-4) */
+		.live = { { GS_TITLE, 0xFF, 0, 1, true, 1, true } },
+		.menu = { { GS_TITLE, 0xFF, 17, 1 } },
+		/* the emblem with its TM, BG2 over black (GS-5) */
+		.logo = { .wait = 420, .layer = 2, .maxY = 160, .blackIsClear = true },
+	},
+	{
+		/* the same for Spain and Japan (codes: a profile takes 4) */
+		.codes = { "AGSS", "AGSJ" },
+		.title = "Golden Sun",
+		.composePages = gs_compose,
+		.stillPick = STILL_FIRST,
+		.crop_w = GBA_W,
+		.crop_h = GBA_H,
+		.live = { { GS_TITLE, 0xFF, 0, 1, true, 1, true } },
+		.menu = { { GS_TITLE, 0xFF, 17, 1 } },
+		.logo = { .wait = 420, .layer = 2, .maxY = 160, .blackIsClear = true },
 	},
 	{
 		/* the Status screen with the menu's Place bar over its bottom:
