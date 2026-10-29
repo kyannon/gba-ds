@@ -1,5 +1,7 @@
 # Changelog
 
+## v1.4.2 (not yet released)
+
 ## v1.4.1 (2026-10-28)
 
 ### What's new
