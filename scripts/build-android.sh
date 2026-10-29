@@ -24,8 +24,10 @@ fi
 export ANDROID_NDK_HOME="$NDK"
 ABI=arm64-v8a
 API=26
-# tuned for the RG DS's Cortex-A55 cores, as the ROCKNIX build is (runs on any arm64)
-CPU_FLAGS="-mcpu=cortex-a55"
+# Any arm64 (ARMv8.0), tuned for the RG DS's Cortex-A55 cores. Not
+# -mcpu=cortex-a55: that allows ARMv8.2 instructions, and the app died at
+# once on ARMv8.0 chips (Cortex-A73 / A53: Retroid Pocket Duo Lite, issue #4).
+CPU_FLAGS="-march=armv8-a -mtune=cortex-a55"
 
 # --- sources ---------------------------------------------------------------
 if [ ! -d "$DEPS/mgba" ]; then

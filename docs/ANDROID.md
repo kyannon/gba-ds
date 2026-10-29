@@ -544,8 +544,25 @@ gives no-op stubs and the Settings panel has no Updates row. To add it:
   GBADS_UPDATES on for Android once the install step exists, and add an
   Updates row to Android's Settings (SETTINGS_MAX would become 4).
 
+## ARMv8.0 devices (issue #4, Oct 28, 2026)
+
+The Retroid Pocket Duo Lite (Qualcomm QCS6125: Cortex-A73 + A53, ARMv8.0,
+Android 15) closed GBA DS at once, with launch.log showing only the
+launches and no gba-ds.log: the native code was built with
+`-mcpu=cortex-a55`, which lets the compiler use ARMv8.2 instructions, so
+it died on the first one (an illegal instruction, before any log). Now
+`-march=armv8-a -mtune=cortex-a55` (scripts/build-android.sh, for libmgba
+and libmain/SDL alike). GbaDsActivity also writes its first steps to
+launch.log (device, Android version, ABIs, whether the native libraries
+loaded), and a frontend's bare path (`data=/storage/.../x.gba`, no
+`file://`) is taken as the game. The Linux build still uses
+`-mcpu=cortex-a55` (its devices are A55s); worth the same change if a
+Linux handheld with older cores turns up.
+
 ## For the next release
 
 Player-facing Android changes since the last release, for the main session
 to move into CHANGELOG.md and the release notes (see CLAUDE.md, "More than
 one session"). Empty after each release.
+- Fixed: GBA DS closed as soon as it started on devices with older 64-bit chips (Retroid Pocket Duo Lite and others with Cortex-A53/A73 cores).
+- Frontends that pass a game as a plain file path (no `file://`) now start that game instead of the game list.
