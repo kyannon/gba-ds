@@ -8,7 +8,7 @@
 
 ### Final Fantasy Tactics Advance
 - On the world map, the second screen now shows today's Laws (the window L opens, on its own), taken again as soon as your clan arrives somewhere new, even with the place's own menu up (a town's, or a mission's).
-- **Japanese release:** the world map's Laws work there too, and once a battle's won the closing scene now shows the logo rather than the last picture.
+- **Japanese release:** the world map's Laws work there too, and once a battle's won the closing scene now shows the logo rather than the last picture. (In this version's earlier test builds some battles showed only the logo: fixed.)
 
 ### Advance Wars, Advance Wars 2, Game Boy Wars Advance 1+2
 - On the computer's turn (from ending yours, through its moves) the second screen shows the logo, as the cursor isn't yours to bring up intel with; the intel comes back on your turn. Your army is taken to be the first, as in the campaigns.
@@ -25,7 +25,7 @@
 
 ### Fixes
 - **Golden Sun:** the German release showed only the logo; it now shows the Status screen and battles like the others. Walking through a doorway could drop the Status screen to the logo for a moment: no longer.
-- **Advance Wars, Advance Wars 2:** leaving a battle for the mode menu (or the results) kept the last unit intel on the second screen; it's the logo again.
+- **Advance Wars, Advance Wars 2, Game Boy Wars Advance 1+2:** leaving a battle for the mode menu, or winning one (Field Training's results too), kept the last unit intel on the second screen; it's the logo again. In Advance Wars 2's Versus the intel didn't show at all: it does again.
 - **Super Mario Advance 2 (Japanese release):** on the world map the level list took up to a second to follow Mario; it now changes as soon as he stops, as in the other releases.
 - Waking the device from sleep in the middle of a game could crash GBA DS (seen once on BananaOS): after any pause of more than 2 seconds, the pictures on both screens are now made again.
 - A touch on the very edge of the touchscreen (its right or bottom edge, or a finger sliding off it) was ignored, so a swipe or tap that ended there didn't count: the quick bar could miss a swipe up from the bottom edge (#9).

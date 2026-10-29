@@ -1300,6 +1300,18 @@
    "golden": [
     "logo"
    ]
+  },
+  {
+   "id": "ft-jp-battle-cursor",
+   "rom": "AFXJ",
+   "state": "final-fantasy-tactics-advance/jp-battle-cursor.ss",
+   "desc": "Japan: a battle with the cursor on a unit, where the scene's word holds a stray 0x80 (a player's bug report): its Status",
+   "rules": [
+    "FT-8"
+   ],
+   "shots": {
+    "status": 300
+   }
   }
  ]
 }

@@ -62,6 +62,7 @@
  * (us-co-screen) and two against the computer read alike), so a later
  * army played by a person shows the logo too (a known limitation). */
 #define AW_V_CPU 0xF0000050 /* 1 on the computer's turn */
+#define AW_TASK 0x03000000 /* the game's first task: its routine (AwRegion.mapTask) */
 #define AW_V_OFFMAP 0xF0000051 /* 1 off the battle map: the title, menus, a battle's results */
 typedef struct {
 	uint32_t army, cursor, units, menuRow, minimapOpen; /* (minimapOpen: unused since the minimap went) */
@@ -69,20 +70,23 @@ typedef struct {
 	uint32_t intelPx[2][3]; /* the Battle Intel is up: x, y, colour (0xRRGGBB) */
 	int intelRows;          /* the Battle Intel's panel: the rows above the map */
 	uint32_t unitOpen[2];   /* this word holds this value (the screen's routine) while the unit intel (R) is up */
-	uint32_t offMap; /* a byte 0 on the battle map, else not (the title, the mode menu: the army
-	                  * byte keeps the last battle's there); 0 none known (the army 0 alone) */
+	uint32_t mapTask; /* 0x03000000 holds this (a routine) on the battle map, 0 at moments
+	                   * (the computer's turn, fights), anything else elsewhere (a battle's
+	                   * results, the title, the mode menu: the army byte keeps the last
+	                   * battle's there). Found in Field Training's results (AW1), the mode
+	                   * menu and a Versus battle (AW2). */
 } AwRegion;
 
 static const AwRegion awRegions[] = {
-	{ AW_ARMY, AW_CURSOR, AW_UNITS, AW_MENU_ROW, AW_MINIMAP_OPEN, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000ED0, 0x082E3FD4 }, 0x030043C9 },
+	{ AW_ARMY, AW_CURSOR, AW_UNITS, AW_MENU_ROW, AW_MINIMAP_OPEN, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000ED0, 0x082E3FD4 }, 0x0801FA69 },
 	/* (its SELECT menu has no Unit item: CO, Intel, Options, Save, End) */
-	{ AW2_ARMY, AW2_CURSOR, AW2_UNITS, AW2_MENU_ROW, AW2_MINIMAP_OPEN, 1, { { 200, 100, 0xFFEFEF }, { 120, 140, 0xFFEFEF } }, 152, { 0x03001530, 0x0849E2C0 }, 0x03002F0A },
+	{ AW2_ARMY, AW2_CURSOR, AW2_UNITS, AW2_MENU_ROW, AW2_MINIMAP_OPEN, 1, { { 200, 100, 0xFFEFEF }, { 120, 140, 0xFFEFEF } }, 152, { 0x03001530, 0x0849E2C0 }, 0x08022049 },
 	/* Game Boy Wars Advance 1+2 (Japan): each game at its own addresses
 	 * (game 1's found by the literal pools around its code: 0x240 lower
 	 * than Advance Wars' above 0x03003000, 0x10 lower around 0x03000E00;
 	 * the unit intel's routine by its shape; game 2's by watching them) */
-	{ GBW1_ARMY, GBW1_CURSOR, GBW1_UNITS, 0x03000E40, 0x03000E1E, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000EC0, 0x08DEC9D8 }, 0x03004189 },
-	{ GBW2_ARMY, GBW2_CURSOR, GBW2_UNITS, AW2_MENU_ROW, AW2_MINIMAP_OPEN, 1, { { 200, 100, 0xFFEFEF }, { 120, 140, 0xFFEFEF } }, 152, { 0x03001530, 0x0881A0A4 } },
+	{ GBW1_ARMY, GBW1_CURSOR, GBW1_UNITS, 0x03000E40, 0x03000E1E, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000EC0, 0x08DEC9D8 }, 0x08B1FFA1 },
+	{ GBW2_ARMY, GBW2_CURSOR, GBW2_UNITS, AW2_MENU_ROW, AW2_MINIMAP_OPEN, 1, { { 200, 100, 0xFFEFEF }, { 120, 140, 0xFFEFEF } }, 152, { 0x03001530, 0x0881A0A4 }, 0x08322509 },
 };
 
 /* Game Boy Wars Advance 1+2: which game is running, by where the
@@ -104,9 +108,12 @@ static uint32_t aw_virt(Emu* e, uint32_t addr) {
 	if (!strncmp(e->gameCode, "BGWJ", 4) && !gbw_game(e)) return 0; /* (the compilation's own menus) */
 	const AwRegion* r = aw_r(e);
 	uint8_t army = emu_read8(e, r->army);
-	if (addr == AW_V_OFFMAP) return !army || (r->offMap && emu_read8(e, r->offMap));
+	uint32_t task = emu_read32(e, AW_TASK);
+	/* (0 counts as off too: the pictures go and come back once a capture's
+	 * possible again, the computer's turn and fights showing the logo anyway) */
+	if (addr == AW_V_OFFMAP) return !army || task != r->mapTask;
 	if (addr != AW_V_CPU) return 0;
-	return army >= 2 && army <= 4 && !(r->offMap && emu_read8(e, r->offMap));
+	return army >= 2 && army <= 4 && (task == r->mapTask || !task);
 }
 
 /* n frames with these buttons held; only the last two drawn (what's
@@ -511,7 +518,9 @@ static bool ft_world(Emu* e) {
 static uint32_t ft_virt(Emu* e, uint32_t addr) {
 	/* (a scene on the battle map is out of it: the logo; above all the
 	 * one once the battle's won) */
-	bool in = emu_read8(e, FT_IN_BATTLE) == 1 && !emu_read32(e, FT_SCENE_(e));
+	/* (the scene's word is a pointer into EWRAM while one plays; else 0,
+	 * or in some battles a stray byte: Japan's read 0x80 in one) */
+	bool in = emu_read8(e, FT_IN_BATTLE) == 1 && (emu_read32(e, FT_SCENE_(e)) >> 24) != 0x02;
 	if (addr == FT_V_BATTLE) return in;
 	if (addr == FT_V_SHOWN) return in || ft_world(e);
 	if (addr == FT_V_LOC) {
