@@ -67,6 +67,8 @@ Swipe up from the bottom edge of the touchscreen for the quick bar. The game kee
 - **Bug Report** (bug): see below.
 - **Close GBA DS** (walking out of a door): tap it twice; your resume point is saved as usual.
 
+When a game starts, a hint at the bottom of the touchscreen says **Swipe up for quick menu**; it slides away after 3 seconds, or as soon as you touch the screen (`quick_bar_hint = 0` in `gba-ds.cfg` turns it off; with the bar pinned it isn't shown).
+
 Swipe down, or tap anywhere off its buttons, to put the bar away (tap again for the pause menu). It also goes when the pause menu opens (HOME or your menu buttons), and after 5 seconds untouched.
 
 **The pin** (top right of the bar) keeps it up: tap it and it turns white. Pinned, the bar doesn't hide by itself, comes back when you leave the pause menu, and is up when you start a game; a tap outside it opens the pause menu. It stays pinned until you tap the pin again (`quick_bar_pinned` in `gba-ds.cfg`).

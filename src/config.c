@@ -35,6 +35,7 @@ void config_defaults(Config* c) {
 	c->pinCores = false; /* tried on the RG DS Plus: no better (docs/ANDROID.md) */
 	c->autoSave = true;
 	c->autoLoad = true;
+	c->barHint = true;
 	c->updateCheck = true;
 	c->showAll = false;
 	c->nameTags = false;
@@ -120,6 +121,7 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	BOOL("save_on_quit", autoSave)
 	BOOL("auto_load", autoLoad)
 	BOOL("quick_bar_pinned", barPinned)
+	BOOL("quick_bar_hint", barHint)
 	BOOL("show_all", showAll)
 	BOOL("name_tags", nameTags)
 	STR("retroachievements", raMode)

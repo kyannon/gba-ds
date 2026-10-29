@@ -169,7 +169,7 @@ Android session at the same time. To keep them from colliding:
   bug, 0.885 close (tapped twice), with or without Controls above
   (profile `controls`), whose tiles are around y 0.836; the pin at
   0.957,0.880 (0.957,0.818 with Controls); a tap elsewhere puts the bar
-  away (pinned: opens the menu from outside the bar)), `TICK QUIT`, `TICK LOAD:file.ss` (load a state, the second screen kept). `GBADS_DEBUG=1` logs map captures,
+  away (pinned: opens the menu from outside the bar)), `TICK QUIT`, `TICK LOAD:file.ss` (load a state, the second screen kept). The "Swipe up for quick menu" hint is up for the first 3 s (real time), so pass `--quick_bar_hint=0` for exact pictures (regress.py does). `GBADS_DEBUG=1` logs map captures,
   snapshot and control-scheme switches, taps.
 - `build/host/harness ROM OUTDIR SCRIPT` drives the core frame by frame:
   `load/save NAME`, `wait N`, `hold BUTTONS N`, `shot NAME`, `peek ADDR LEN`,

@@ -1388,6 +1388,53 @@ static void draw_icon(int s, const char* const* art, int cx, int cy, int size, S
 	}
 }
 
+/* The hint at a game's start, "Swipe up for quick menu" under an arrow
+ * pointing up, at the bottom of the touchscreen: it slides down and away 3
+ * seconds in, or at the first touch, or as the bar or the menu comes up
+ * (not shown with the bar pinned: it's up already; nor with quick_bar_hint
+ * = 0). */
+static int hintState;     /* 0 not yet shown, 1 up, 2 going */
+static Uint32 hintSince;  /* its first frame */
+static float hintShown;   /* 0 away .. 1 all the way up */
+
+static void hint_dismiss(void) {
+	if (hintState == 1) hintState = 2;
+}
+
+static void draw_hint(void) {
+	if (hintState == 0) {
+		if (cfg->barPinned || !cfg->barHint) {
+			hintState = 2;
+			return;
+		}
+		hintState = 1, hintSince = SDL_GetTicks(), hintShown = 1;
+	}
+	if (menuOpen) hintState = 2, hintShown = 0;
+	if (hintState == 1 && (barOpen || SDL_GetTicks() - hintSince >= 3000)) hintState = 2;
+	if (hintState == 2) hintShown = SDL_max(0.0f, hintShown - 0.12f);
+	if (hintShown <= 0) return;
+	int s = ui_touch_screen();
+	float px = ui_px(s);
+	static const char* text = "Swipe up for quick menu";
+	int cap = px * 7, tw = ui_font_width(TF_BOLD, cap, text);
+	int padX = px * 6, padY = px * 4, aw = px * 7, ah = px * 6, m = px * 6;
+	int w = tw + padX * 2, h = cap + padY * 2;
+	SDL_Rect r = screens[s].rect;
+	int y = r.h - m - h + (int) ((1.0f - hintShown) * (h + ah + m + 1));
+	SDL_Rect b = { (r.w - w) / 2, y, w, h };
+	ui_fill_round(s, (SDL_Rect) { b.x - 1, b.y - 1, b.w + 2, b.h + 2 }, G_EDGE, px * 3 + 1);
+	ui_fill_round(s, b, G_BG, px * 3);
+	/* the arrow on top: the box's edge round it, filled as the box */
+	int cx = r.w / 2;
+	for (int i = 0; i <= ah; ++i) {
+		int half = aw * i / SDL_max(1, ah);
+		ui_fill(s, (SDL_Rect) { cx - half - 1, b.y - ah - 1 + i, half * 2 + 2, 1 }, G_EDGE);
+		if (half * 2 - 2 > 0) ui_fill(s, (SDL_Rect) { cx - half + 1, b.y - ah - 1 + i, half * 2 - 2, 1 }, G_BG);
+	}
+	ui_fill(s, (SDL_Rect) { cx - aw + 1, b.y - 1, aw * 2 - 2, 2 }, G_BG); /* (open into the box) */
+	ui_font_text(s, TF_BOLD, cx, b.y + b.h / 2, cap, text, G_TEXT, 0);
+}
+
 static void draw_bar(void) {
 	barShown = barOpen ? SDL_min(1.0f, barShown + 0.25f) : SDL_max(0.0f, barShown - 0.25f);
 	if (barShown <= 0) return;
@@ -4164,6 +4211,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		/* ---- pointer: any tap opens the menu; taps in the menu press buttons */
 		Pointer p;
 		while (ui_next_pointer(&p)) {
+			if (p.kind == 1) hint_dismiss(); /* (any touch puts the hint away) */
 			if (!menuOpen) {
 				/* the quick bar: up from the bottom edge of the touchscreen
 				 * brings it up, down puts it away; a tap still opens the
@@ -4808,6 +4856,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		}
 		ra_draw(nScreens > 1 ? 1 - game_screen() : 0); /* after the screenshot: not in it */
 		if (barOpen && !cfg->barPinned && barGesture == G_NONE && SDL_GetTicks() - barSince > 5000) bar_close();
+		draw_hint(); /* (under the bar, as it comes up) */
 		draw_bar();
 		ui_present();
 		Uint64 drawT1 = SDL_GetPerformanceCounter();

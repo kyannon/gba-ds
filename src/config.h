@@ -57,6 +57,7 @@ typedef struct Config {
 	bool autoSave;        /* save a resume point on quitting the game (save_on_quit) */
 	bool autoLoad;        /* load it on launching the game (auto_load) */
 	bool barPinned;       /* the quick bar stays up (quick_bar_pinned) */
+	bool barHint;         /* "Swipe up for quick menu" at a game's start (quick_bar_hint) */
 	bool nameTags;        /* library keeps (USA), (En,Fr) etc. in game names */
 	bool showAll;         /* library lists games without a map profile too */
 	/* RetroAchievements (casual mode): auto = on when ROCKNIX has an account

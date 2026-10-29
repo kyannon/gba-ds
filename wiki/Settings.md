@@ -16,6 +16,7 @@ Updating from the game list (Settings > Updates) keeps your `gba-ds.cfg`. Unzipp
 | `name_tags` | `0` | `1` keeps tags like `(USA)` and `(En,Fr,De)` in game names. |
 | `library_view` | `list` | `list` (names) or `grid` (logos). Also switched with X in the list; remembered in `library.cfg`. |
 | `save_on_quit` | `1` | Save a state (a resume point) when you leave a game. Also in the pause menu. |
+| `quick_bar_hint` | `1` | At a game's start, "Swipe up for quick menu" at the bottom of the touchscreen for 3 seconds (or until you touch it); `0` turns it off. |
 | `quick_bar_pinned` | `0` | The quick bar stays up, as with its pin (top right of the bar) on; the pin sets this too. |
 | `auto_load` | `1` | Pick up from the resume point when you start a game. Also in the pause menu. (`auto_resume`, from older versions, sets both.) |
 | `update_check` | `1` | Look for a new release once a day when the game list opens, and ask before downloading it. The **Automatic checks** switch in Settings > Updates overrides this (kept in `states/update.cfg`). See [[Playing#updates]]. |
