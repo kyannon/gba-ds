@@ -563,18 +563,22 @@ static void queue_pointer(int kind, int view, float px, float py, bool normalize
 	Pointer p = { kind, 0, 0, 0 };
 	int ts = ui_touch_screen();
 	if (normalized && !strcmp(cfg->touchMap, "screen")) {
-		/* touch panel coordinates cover just the touch screen */
+		/* touch panel coordinates cover just the touch screen (a finger on
+		 * its right or bottom edge comes as 1.0, or a little past 0-1 as it
+		 * slides off: kept on the screen, so a lift there isn't lost) */
 		p.screen = ts;
-		p.x = (int) (px * screens[ts].rect.w);
-		p.y = (int) (py * screens[ts].rect.h);
+		p.x = SDL_clamp((int) (px * screens[ts].rect.w), 0, screens[ts].rect.w - 1);
+		p.y = SDL_clamp((int) (py * screens[ts].rect.h), 0, screens[ts].rect.h - 1);
 	} else {
 		if (view < 0) view = screens[ts].view;
 		int w, h;
 		view_size(view, &w, &h);
 		int x, y;
 		if (normalized) {
-			x = (int) (px * w);
-			y = (int) (py * h);
+			/* (kept in the view: 1.0 at the right or bottom edge, a little
+			 * past 0-1 sliding off; dropped, a lift there would be lost) */
+			x = SDL_clamp((int) (px * w), 0, w - 1);
+			y = SDL_clamp((int) (py * h), 0, h - 1);
 		} else {
 			int ww, wh;
 			SDL_GetWindowSize(views[view].win, &ww, &wh);

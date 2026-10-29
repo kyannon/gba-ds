@@ -12,6 +12,9 @@
 ### Game list
 - Games without second-screen support (listed with `show_all = 1`) are tagged **Single screen only** instead of "No map".
 
+### Fixes
+- A touch on the very edge of the touchscreen (its right or bottom edge, or a finger sliding off it) was ignored, so a swipe or tap that ended there didn't count: the quick bar could miss a swipe up from the bottom edge (#9).
+
 ## v1.4.1 (2026-10-28)
 
 ### What's new
