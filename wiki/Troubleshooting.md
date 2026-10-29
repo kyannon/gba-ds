@@ -8,7 +8,7 @@ When there's a problem, the log reports it every 5 seconds: audio underruns, slo
 
 **More detail:** on ROCKNIX, add a line `export GBADS_DEBUG=1` near the top of `gba-ds/launch.sh` (after the `#!` line). The log then also records every button, key and touch (with raw joystick button numbers), map captures, control-scheme switches and HUD changes. Remove the line afterwards; the log grows quickly.
 
-When reporting a bug, attach `gba-ds.log` from a run where it happened, and say which game and region. If it happened in a game, a bug report from the quick bar helps most: swipe up from the bottom of the touchscreen right after it happens and press the bug button, then attach the `.zip` from `bug-reports` too (see [Playing](Playing#the-quick-bar-and-bug-reports)).
+When reporting a bug, attach `gba-ds.log` from a run where it happened, and say which game and region. If it happened in a game, a bug report from the quick bar helps most: swipe up from the bottom of the touchscreen right after it happens and press the bug button (or pause and choose Extras > Submit a Bug Report), then attach the `.zip` from `bug-reports` too (see [Playing](Playing#the-quick-bar-and-bug-reports)).
 
 ## GBA DS closes straight away, with no log
 

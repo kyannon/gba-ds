@@ -111,15 +111,17 @@ int main(int argc, char** argv) {
 	mkdirs(cfg.stateDir);
 	snprintf(path, sizeof(path), "%s/prefs.cfg", cfg.stateDir);
 	{
-		/* map_animations, map_interval and show_fps are no longer in the pause menu:
+		/* map_animations, map_interval, show_fps and show_logo are no longer in the pause menu:
 		 * gba-ds.cfg decides, whatever an older prefs.cfg says */
 		bool mapAnim = cfg.mapAnim;
 		int mapInterval = cfg.mapInterval;
 		bool showFps = cfg.showFps; /* (and show_fps, since v1.4.1: the quick bar shows the FPS) */
+		bool showLogo = cfg.showLogo; /* (and show_logo, since v1.4.1) */
 		config_load_file(&cfg, path);
 		cfg.mapAnim = mapAnim;
 		cfg.mapInterval = mapInterval;
 		cfg.showFps = showFps;
+		cfg.showLogo = showLogo;
 	}
 	/* the game list's Settings (Android: the ROM folder) */
 	snprintf(path, sizeof(path), "%s/library.cfg", cfg.stateDir);

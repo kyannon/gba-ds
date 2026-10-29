@@ -162,9 +162,10 @@ Android session at the same time. To keep them from colliding:
   --input-script=SCRIPT ROM`. Script lines: `TICK BUTTONS` (A, B+UP, - for
   none), `TICK SHOT:file.bmp` (both screens), `TICK TAP:x,y` (fractions of
   the whole window), `TICK SWIPE:x0,y0,x1,y1` (down, 4 moves, up: the quick
-  bar comes up with `SWIPE:0.5,0.99,0.5,0.85`; its bug button is at
-  `TAP:0.863,0.96` in a 1024x1536 window, `0.863,0.96` too with Controls
-  above (profile `controls`), whose tiles are around y 0.905), `TICK QUIT`, `TICK LOAD:file.ss` (load a state, the second screen kept). `GBADS_DEBUG=1` logs map captures,
+  bar comes up with `SWIPE:0.5,0.99,0.5,0.85`; in a 1024x1536 window its
+  buttons are at y 0.957, x 0.117 save, 0.307 load, 0.5 settings, 0.693
+  bug, 0.885 close (tapped twice), with or without Controls above
+  (profile `controls`), whose tiles are around y 0.870), `TICK QUIT`, `TICK LOAD:file.ss` (load a state, the second screen kept). `GBADS_DEBUG=1` logs map captures,
   snapshot and control-scheme switches, taps.
 - `build/host/harness ROM OUTDIR SCRIPT` drives the core frame by frame:
   `load/save NAME`, `wait N`, `hold BUTTONS N`, `shot NAME`, `peek ADDR LEN`,
@@ -172,9 +173,11 @@ Android session at the same time. To keep them from colliding:
   OBJ alone), `map NAME` (run a map capture), `logo NAME`. It writes the
   game's battery save beside the ROM (`ROM.sav`): don't run it on the fixtures'
   ROMs in place, or delete those `.sav` files after (never commit them).
-- **Players' bug reports** (the quick bar's bug button, `bug-reports/*.zip`):
-  `GAME-DATE.state` (that moment), `GAME-DATE-rewound.state` (~10 s
-  before) and `GAME-DATE-keys.txt`, the game keys of every frame between,
+- **Players' bug reports** (the quick bar's bug button or Extras > Submit
+  a Bug Report, `bug-reports/*.zip`): `GAME-DATE-info.txt` (device, system,
+  screens, settings, the second screen's state, the last 48 KB of the log
+  without lines mentioning passwords or tokens), `GAME-DATE.state` (that
+  moment), `GAME-DATE-rewound.state` (~10 s before) and `GAME-DATE-keys.txt`, the game keys of every frame between,
   readable as `#` lines and runnable as a harness script that plays them
   back from the rewound state exactly (`load ./NAME.state`: harness `load`
   takes a path with a `/` as it is). Unzip, then in that folder
@@ -260,7 +263,8 @@ Android session at the same time. To keep them from colliding:
   time and frame count ("capture: ... ms, ... frames").
 - `mapframe.c` generated map surrounds; `logo.c` logo / frame extraction.
 - `game.c` a play session: input, the second screen (map, logo, THPS2
-  snapshot and Controls picker), pause menu, cheats screen, screenshots.
+  snapshot), the quick bar (Controls picker, buttons, bug reports), pause
+  menu, cheats screen, screenshots.
 - `ra.c` RetroAchievements (casual only) via rcheevos' rc_client, vendored in
   `third_party/rcheevos` (v12.5.0, trimmed: no hashing beyond md5.c, no
   libretro/RAIntegration). Server calls run the system `curl` in a worker

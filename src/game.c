@@ -24,6 +24,10 @@ extern void web_sleep(unsigned ms) __attribute__((import_module("env"), import_n
 #include <string.h>
 #include <time.h>
 #include <sys/stat.h>
+#include <sys/utsname.h>
+#ifdef __ANDROID__
+#include <sys/system_properties.h>
+#endif
 #ifdef __linux__
 #include <sys/resource.h>
 #include <sys/syscall.h>
@@ -749,12 +753,12 @@ static bool debug;
 
 /* ---------------------------------------------------------------- menu */
 
-enum MenuItem { M_RESUME, M_CHEATS, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND, M_AUTOSAVE, M_AUTOLOAD };
+enum MenuItem { M_RESUME, M_CHEATS, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND, M_AUTOSAVE, M_AUTOLOAD, M_BUG };
 static const char* menuLabels[] = {
 	/* title case: drawn in Futura from the built-in images (tools/make_brand.py) */
 	[M_RESUME] = "Resume", [M_SWAP] = "Swap Screens", [M_SAVE] = "Save State", [M_SCALE] = "", [M_LCD] = "", [M_FPS] = "", [M_FRAMEBUF] = "", [M_OVERLAY] = "", [M_LOGO] = "", [M_MATCH] = "", [M_REWIND] = "", [M_RESTART] = "Restart Game",
 	[M_LOAD] = "Load State", [M_CHEATS] = "Cheats", [M_ACH] = "Achievements", [M_SHOT] = "Take Screenshot", [M_LIBRARY] = "Close Game", [M_EXIT] = "Close GBA DS",
-	[M_AUTOSAVE] = "", [M_AUTOLOAD] = "",
+	[M_AUTOSAVE] = "", [M_AUTOLOAD] = "", [M_BUG] = "Submit a Bug Report",
 };
 static int menuItems[12], nMenuItems;
 /* Some buttons are half as wide, two to a row (Save State | Load State):
@@ -814,7 +818,7 @@ static const char* const allLabels[] = {
 	"Resume", "Restart Game", "Tap Again to Restart", "Save State", "Load State", "Cheats", "Achievements",
 	"Take Screenshot", "Close Game", "Close GBA DS", "Swap Screens", "Scale: Pixel Perfect", "Scale: Full Width",
 	"Scale: Zoom", "Scale: Stretch", "LCD Grid: On", "LCD Grid: Off", "Overlays: None", "Overlays: Primary",
-	"Overlays: Secondary", "Overlays: Both", "No Second Screen: Show Logo", "No Second Screen: Keep Blank",
+	"Overlays: Secondary", "Overlays: Both", "Submit a Bug Report",
 	"Map Animations: On", "Map Animations: Off", "Map Refresh: Every 3 s", "Map Refresh: Every 1.5 s",
 	"Map Refresh: Every 1 s", "Map Refresh: Every 0.5 s", "Map Refresh: Custom", "Frame Buffer: On",
 	"Frame Buffer: Off", "Match Display Rate: On", "Match Display Rate: Off", "Rewind: On (Hold L2)", "Rewind: Off",
@@ -1163,20 +1167,129 @@ static void draw_battery(void) {
 /* ---------------------------------------------------------------- the quick bar
  *
  * Swiping up from the bottom of the touchscreen brings up a bar along its
- * bottom, over whatever it shows, without pausing: the time, the battery,
- * the frames a second and a bug button (bug_report). Swiping down, the
- * pause menu opening or 5 seconds untouched put it away. */
+ * bottom, over whatever it shows, without pausing: the time, the battery
+ * and the frames a second, then icon buttons: Save State, Load State,
+ * Settings (the pause menu), Bug Report (bug_report) and Close GBA DS
+ * (tapped twice). In games with another button layout, Controls above.
+ * Swiping down, the pause menu opening or 5 seconds untouched put it
+ * away. Greys only, to sit over any game's colours. */
 static bool barOpen;
 static float barShown;          /* 0 hidden .. 1 all the way up (sliding) */
 static Uint32 barSince;         /* last touched */
-static Uint32 barBugAt;         /* the bug button last pressed (it shows gold a moment) */
-enum { G_NONE, G_TRACK, G_DONE, G_BUG };
+static Uint32 barLitAt;         /* a button's action just done: it shows white a moment */
+static int barLit = -1;
+static Uint32 barExitArmed;     /* Close GBA DS tapped once (a second tap within 3 s closes) */
+enum { G_NONE, G_TRACK, G_DONE, G_BTN };
 static int barGesture = G_NONE;
+static int barBtn = -1;         /* the button under the finger (G_BTN) */
 static int barGX, barGY;        /* where the finger went down */
+enum { BB_SAVE, BB_LOAD, BB_SETTINGS, BB_BUG, BB_EXIT, BB_COUNT };
 
-/* The status row; in games with another button layout (profile
- * controls), the Controls picker above it, centred. */
+static const SDL_Color G_BG = { 22, 22, 22, 238 }, G_EDGE = { 128, 128, 128, 255 }, G_BTN_C = { 60, 60, 60, 255 },
+                       G_BTN_DOWN = { 120, 120, 120, 255 }, G_TEXT = { 236, 236, 236, 255 }, G_DIS = { 110, 110, 110, 255 },
+                       G_LIT = { 255, 255, 255, 255 };
+
+static const char* const icon_save[] = {
+	"XXXXXXXXXXXXX...",
+	"XX.XXXXXXX.XXX..",
+	"XX.XXXXXXX.XXXX.",
+	"XX.XXXX..X.XXXXX",
+	"XX.XXXX..X.XXXXX",
+	"XX.XXXXXXX.XXXXX",
+	"XX.........XXXXX",
+	"XXXXXXXXXXXXXXXX",
+	"XXXXXXXXXXXXXXXX",
+	"XX............XX",
+	"XX............XX",
+	"XX.XXXXXXXXXX.XX",
+	"XX............XX",
+	"XX.XXXXXXXXXX.XX",
+	"XX............XX",
+	"XXXXXXXXXXXXXXXX",
+	NULL,
+};
+static const char* const icon_load[] = {
+	"................",
+	"XXXXXX..........",
+	"XXXXXXX.........",
+	"XX...XXXXXXXXX..",
+	"XX..........XX..",
+	"XX..........XX..",
+	"XX..XXXXXXXXXXXX",
+	"XX.XXXXXXXXXXXXX",
+	"XX.XX........XX.",
+	"XXXX........XX..",
+	"XXX.........XX..",
+	"XXX........XX...",
+	"XXXXXXXXXXXXX...",
+	"XXXXXXXXXXXX....",
+	"................",
+	"................",
+	NULL,
+};
+static const char* const icon_gear[] = {
+	"......XXXX......",
+	"......XXXX......",
+	"..XX.XXXXXX.XX..",
+	"..XXXXXXXXXXXX..",
+	"...XXXXXXXXXX...",
+	"..XXXX....XXXX..",
+	"XXXXX......XXXXX",
+	"XXXXX......XXXXX",
+	"XXXXX......XXXXX",
+	"XXXXX......XXXXX",
+	"..XXXX....XXXX..",
+	"...XXXXXXXXXX...",
+	"..XXXXXXXXXXXX..",
+	"..XX.XXXXXX.XX..",
+	"......XXXX......",
+	"......XXXX......",
+	NULL,
+};
+static const char* const icon_bug[] = {
+	"..X.......X..",
+	"...X.....X...",
+	"....XXXXX....",
+	"...XXXXXXX...",
+	".............",
+	"X..XXX.XXX..X",
+	".X.XXX.XXX.X.",
+	"..XXXX.XXXX..",
+	"...XXX.XXX...",
+	"XXXXXX.XXXXXX",
+	"...XXX.XXX...",
+	"..XXXX.XXXX..",
+	".X.XXX.XXX.X.",
+	"X...XX.XX...X",
+	NULL,
+};
+static const char* const icon_exit[] = {
+	"XXXXXXX.........",
+	"X.....X.....XX..",
+	"X.....X.....XX..",
+	"X.....X.........",
+	"X.....X....XXX..",
+	"X.....X...XXXXX.",
+	"X.....X..XX.XX.X",
+	"X.....X....XX...",
+	"X.....X....XXX..",
+	"X.....X...XX.XX.",
+	"X.....X..XX...XX",
+	"X.....X.XX......",
+	"X.....X.........",
+	"X.....X.........",
+	"X.....X.........",
+	"XXXXXXX.........",
+	NULL,
+};
+
+/* Top to bottom: in games with another button layout (profile
+ * controls), the Controls picker, centred; the status row (time, battery,
+ * FPS); the buttons, across the whole width. */
 static int bar_status_h(int s) {
+	return ui_px(s) * 14;
+}
+static int bar_buttons_h(int s) {
 	return ui_px(s) * 22;
 }
 static int bar_pick_h(int s) {
@@ -1186,52 +1299,50 @@ static int bar_pick_h(int s) {
 static SDL_Rect bar_rect(int s) {
 	SDL_Rect r = screens[s].rect;
 	float px = ui_px(s);
-	int m = px * 4, h = bar_status_h(s) + bar_pick_h(s);
+	int m = px * 4, h = bar_pick_h(s) + bar_status_h(s) + bar_buttons_h(s);
 	int slide = (int) ((1.0f - barShown) * (h + m));
 	return (SDL_Rect) { m, r.h - m - h + slide, r.w - m * 2, h };
 }
 
-/* the status row's four cells, left to right */
+/* the buttons: the bottom row, sharing its width */
+static SDL_Rect bar_button(int s, int i) {
+	SDL_Rect b = bar_rect(s);
+	float px = ui_px(s);
+	int in = px * 3, gap = px * 3, h = bar_buttons_h(s) - in;
+	int x0 = b.x + in + (b.w - in * 2 + gap) * i / BB_COUNT, x1 = b.x + in + (b.w - in * 2 + gap) * (i + 1) / BB_COUNT - gap;
+	return (SDL_Rect) { x0, b.y + bar_pick_h(s) + bar_status_h(s), x1 - x0, h };
+}
+
+/* the time, battery and FPS: three cells across the row above the buttons */
 static SDL_Rect bar_cell(int s, int i) {
 	SDL_Rect b = bar_rect(s);
-	int x0 = b.x + b.w * i / 4, x1 = b.x + b.w * (i + 1) / 4;
+	int x0 = b.x + b.w * i / 3, x1 = b.x + b.w * (i + 1) / 3;
 	return (SDL_Rect) { x0, b.y + bar_pick_h(s), x1 - x0, bar_status_h(s) };
+}
+
+static int bar_button_at(int s, int x, int y) {
+	SDL_Point pt = { x, y };
+	for (int i = 0; i < BB_COUNT; ++i) {
+		SDL_Rect r = bar_button(s, i);
+		if (SDL_PointInRect(&pt, &r)) return i;
+	}
+	return -1;
 }
 
 static void ctl_draw(int s);
 static bool ctl_tap(int s, int x, int y);
 
-static SDL_Rect bar_bug_button(int s) {
-	SDL_Rect c = bar_cell(s, 3);
-	float px = ui_px(s);
-	int in = px * 3, w = SDL_min(c.w - in * 2, c.h * 2);
-	return (SDL_Rect) { c.x + (c.w - w) / 2, c.y + in, w, c.h - in * 2 };
-}
-
 static void bar_close(void) {
 	barOpen = false;
 	barGesture = G_NONE;
+	barExitArmed = 0;
 }
 
-static void draw_bug_icon(int s, int cx, int cy, int size, SDL_Color c) {
-	static const char* const art[] = {
-		"..X.......X..",
-		"...X.....X...",
-		"....XXXXX....",
-		"...XXXXXXX...",
-		".............",
-		"X..XXX.XXX..X",
-		".X.XXX.XXX.X.",
-		"..XXXX.XXXX..",
-		"...XXX.XXX...",
-		"XXXXXX.XXXXXX",
-		"...XXX.XXX...",
-		"..XXXX.XXXX..",
-		".X.XXX.XXX.X.",
-		"X...XX.XX...X",
-	};
-	int rows = (int) SDL_arraysize(art), cols = (int) strlen(art[0]);
-	int u = SDL_max(1, size / rows);
+/* pixel art ('X' rows, NULL-ended), as big as fits size, centred on cx, cy */
+static void draw_icon(int s, const char* const* art, int cx, int cy, int size, SDL_Color c) {
+	int rows = 0, cols = (int) strlen(art[0]);
+	while (art[rows]) ++rows;
+	int n = SDL_max(rows, cols), u = SDL_max(1, (size + n / 2) / n); /* (rounded: on 640x480 screens 2 rather than 1) */
 	int x0 = cx - cols * u / 2, y0 = cy - rows * u / 2;
 	for (int y = 0; y < rows; ++y) {
 		for (int x = 0; x < cols;) {
@@ -1250,11 +1361,12 @@ static void draw_bug_icon(int s, int cx, int cy, int size, SDL_Color c) {
 static void draw_bar(void) {
 	barShown = barOpen ? SDL_min(1.0f, barShown + 0.25f) : SDL_max(0.0f, barShown - 0.25f);
 	if (barShown <= 0) return;
+	if (barExitArmed && SDL_GetTicks() - barExitArmed > 3000) barExitArmed = 0;
 	int s = ui_touch_screen();
 	float px = ui_px(s);
 	SDL_Rect b = bar_rect(s);
-	ui_fill_round(s, (SDL_Rect) { b.x - 1, b.y - 1, b.w + 2, b.h + 2 }, C_BTN_EDGE, px * 4 + 1);
-	ui_fill_round(s, b, (SDL_Color) { 20, 16, 36, 240 }, px * 4);
+	ui_fill_round(s, (SDL_Rect) { b.x - 1, b.y - 1, b.w + 2, b.h + 2 }, G_EDGE, px * 4 + 1);
+	ui_fill_round(s, b, G_BG, px * 4);
 	int cap = px * 6;
 	char buf[3][24] = { "", "", "" };
 	time_t now = time(NULL);
@@ -1262,18 +1374,25 @@ static void draw_bar(void) {
 	if (localtime_r(&now, &tm)) snprintf(buf[0], sizeof(buf[0]), "%02d:%02d", tm.tm_hour, tm.tm_min);
 	int pct = battery_percent();
 	if (pct >= 0) snprintf(buf[1], sizeof(buf[1]), "%d%%", pct);
-	else snprintf(buf[1], sizeof(buf[1]), "Battery ?");
+	else snprintf(buf[1], sizeof(buf[1]), "\u2014"); /* (no battery found) */
 	snprintf(buf[2], sizeof(buf[2]), "%.1f FPS", fps);
 	for (int i = 0; i < 3; ++i) {
 		SDL_Rect c = bar_cell(s, i);
-		ui_font_text(s, TF_BOLD, c.x + c.w / 2, c.y + c.h / 2, cap, buf[i], C_TEXT, 0);
+		int w = ui_font_width(TF_BOLD, cap, buf[i]), fc = w > c.w - px * 2 ? cap * (c.w - px * 2) / SDL_max(1, w) : cap;
+		ui_font_text(s, TF_BOLD, c.x + c.w / 2, c.y + c.h / 2, fc, buf[i], G_TEXT, 0);
 	}
 	if (ctlProf) ctl_draw(s);
-	SDL_Rect bug = bar_bug_button(s);
-	bool lit = barBugAt && SDL_GetTicks() - barBugAt < 1500;
-	bool down = barGesture == G_BUG;
-	ui_fill_round(s, bug, down ? C_BTN_EDGE : C_BTN_SEL, px * 3);
-	draw_bug_icon(s, bug.x + bug.w / 2, bug.y + bug.h / 2, bug.h * 8 / 10, lit ? C_GOLD : C_TEXT);
+	static const char* const* const art[BB_COUNT] = { icon_save, icon_load, icon_gear, icon_bug, icon_exit };
+	bool lit = barLit >= 0 && SDL_GetTicks() - barLitAt < 1500;
+	for (int i = 0; i < BB_COUNT; ++i) {
+		SDL_Rect r = bar_button(s, i);
+		bool down = barGesture == G_BTN && barBtn == i;
+		bool armed = i == BB_EXIT && barExitArmed;
+		bool en = i != BB_LOAD || file_exists(gp.state);
+		bool done = lit && barLit == i; /* (just saved, loaded or reported) */
+		ui_fill_round(s, r, down || armed || done ? G_BTN_DOWN : G_BTN_C, px * 3);
+		draw_icon(s, art[i], r.x + r.w / 2, r.y + r.h / 2, r.h * 7 / 10, !en ? G_DIS : done || armed ? G_LIT : G_TEXT);
+	}
 }
 
 static void set_page(int page) {
@@ -2396,22 +2515,22 @@ static void ctl_draw(int s) {
 	CtlGeom g = ctl_geom(s);
 	float u = ui_px(s);
 	int active = ctl_four() ? CTL_FOUR : CTL_GBA;
-	ui_label(s, g.labelX, g.labelY, g.cap, "Controls", C_TEXT);
+	ui_label(s, g.labelX, g.labelY, g.cap, "Controls", G_TEXT);
 	for (int i = 0; i < ctl_tiles(); ++i) {
 		SDL_Rect t = g.tile[i];
 		int rad = t.w / 6;
 		bool sel = ctlMode == i;
 		/* chosen: filled; in Auto, the layout in use right now: outlined */
 		if (sel || (ctlMode == CTL_AUTO && i == active)) {
-			ui_fill_round(s, t, C_BTN_EDGE, rad);
+			ui_fill_round(s, t, G_LIT, rad);
 			int e = sel ? u : SDL_max(1, u / 2);
 			t = (SDL_Rect) { t.x + e, t.y + e, t.w - e * 2, t.h - e * 2 };
 		}
-		ui_fill_round(s, t, sel ? C_BTN_SEL : C_BTN, rad);
+		ui_fill_round(s, t, sel ? G_BTN_DOWN : G_BTN_C, rad);
 		t = g.tile[i];
 		int d = t.w * 30 / 100;
 		if (ctl_snes()) {
-			ui_label(s, t.x + t.w / 2, t.y + t.h / 2, g.cap * 4 / 5, i == CTL_GBA ? "GBA" : "SNES", C_TEXT);
+			ui_label(s, t.x + t.w / 2, t.y + t.h / 2, g.cap * 4 / 5, i == CTL_GBA ? "GBA" : "SNES", G_TEXT);
 		} else if (i == CTL_GBA) {
 			ctl_button(s, BRAND_PILL_L, &t, 32, 27, t.w * 34 / 100);
 			ctl_button(s, BRAND_PILL_R, &t, 68, 27, t.w * 34 / 100);
@@ -2425,7 +2544,7 @@ static void ctl_draw(int s) {
 			ctl_button(s, BRAND_BTN_R, &t, 73, 50, d);
 			ctl_button(s, BRAND_BTN_B, &t, 50, 73, d);
 		} else {
-			ui_label(s, t.x + t.w / 2, t.y + t.h / 2, g.cap * 4 / 5, "Auto", C_TEXT);
+			ui_label(s, t.x + t.w / 2, t.y + t.h / 2, g.cap * 4 / 5, "Auto", G_TEXT);
 		}
 	}
 }
@@ -2596,6 +2715,109 @@ static void text_add(Text* t, const char* fmt, ...) {
 	t->n += k;
 }
 
+/* the first line of a small file, or "" */
+static void read_line(const char* path, char* out, size_t size) {
+	out[0] = 0;
+	FILE* f = fopen(path, "r");
+	if (!f) return;
+	if (fgets(out, (int) size, f)) out[strcspn(out, "\r\n")] = 0;
+	fclose(f);
+}
+
+/* where the log (stderr) is being written, or "" */
+static void log_path(char* out, size_t size) {
+	out[0] = 0;
+#ifdef __ANDROID__
+	if (android_home()) snprintf(out, size, "%s/gba-ds.log", android_home());
+#else
+	struct stat st;
+	if (fstat(2, &st) != 0 || !S_ISREG(st.st_mode)) return;
+	ssize_t n = readlink("/proc/self/fd/2", out, size - 1);
+	out[n > 0 ? n : 0] = 0;
+#endif
+}
+
+/* The report's -info.txt: the device and system, GBA DS's settings, the
+ * game and the end of the log (without lines about passwords or tokens). */
+static void bug_info(Text* t, const char* date, uint64_t back) {
+#ifdef GBADS_VERSION
+	text_add(t, "GBA DS %s bug report, %s\n\n", GBADS_VERSION, date);
+#endif
+	text_add(t, "== Device\n");
+	char line[256];
+#ifdef __ANDROID__
+	char v[PROP_VALUE_MAX];
+	__system_property_get("ro.product.manufacturer", v);
+	text_add(t, "Device: %s", v);
+	__system_property_get("ro.product.model", v);
+	text_add(t, " %s\n", v);
+	__system_property_get("ro.build.version.release", v);
+	text_add(t, "Android %s", v);
+	__system_property_get("ro.build.version.sdk", v);
+	text_add(t, " (API %s)\n", v);
+	__system_property_get("ro.build.display.id", v);
+	text_add(t, "Build: %s\n", v);
+#else
+	read_line("/sys/firmware/devicetree/base/model", line, sizeof(line));
+	if (line[0]) text_add(t, "Device: %s\n", line);
+	FILE* f = fopen("/etc/os-release", "r");
+	while (f && fgets(line, sizeof(line), f)) {
+		if (!strncmp(line, "PRETTY_NAME=", 12) || !strncmp(line, "VERSION=", 8) || !strncmp(line, "BUILD_ID=", 9)) text_add(t, "os-release %s", line);
+	}
+	if (f) fclose(f);
+	if (file_exists("/etc/banana")) text_add(t, "BananaOS (/etc/banana)\n");
+#endif
+	struct utsname u;
+	if (uname(&u) == 0) text_add(t, "Kernel: %s %s %s\n", u.sysname, u.release, u.machine);
+	text_add(t, "SDL video %s, audio %s\n", SDL_GetCurrentVideoDriver() ? SDL_GetCurrentVideoDriver() : "?",
+	         SDL_GetCurrentAudioDriver() ? SDL_GetCurrentAudioDriver() : "?");
+	for (int i = 0; i < nScreens; ++i) {
+		text_add(t, "Screen %d: %dx%d%s%s\n", i, screens[i].rect.w, screens[i].rect.h, i == ui_touch_screen() ? ", touch" : "",
+		         i == game_screen() ? ", game" : "");
+	}
+	int pct = battery_percent();
+	if (pct >= 0) text_add(t, "Battery: %d%%\n", pct);
+
+	text_add(t, "\n== Game\n");
+	const MapProfile* prof = profile_find(subCode);
+	text_add(t, "ROM: %s (%s%s%s), %s\n", gp.base, emu.gameCode, strcmp(subCode, emu.gameCode) ? ", playing " : "",
+	         strcmp(subCode, emu.gameCode) ? subCode : "", prof ? prof->title : "no profile");
+	text_add(t, "Running %.1f minutes (%llu frames), %.1f FPS (%.0f%%) when the report was made\n", SDL_GetTicks() / 60000.0,
+	         (unsigned long long) frameCount, fps, speedPct);
+	text_add(t, "Second screen: %s\n", hudShown ? "HUD" : mapShownIdx >= 0 ? "map / status picture" : logoOnly ? "logo (logo-only game)" : "logo");
+	text_add(t, "Controls: %s. Cheats on: %d. RetroAchievements: %s\n", ctlProf ? ctl_name(ctlMode) : "GBA", cheats_on(&cheats),
+	         ra_enabled() ? "signed in" : "off");
+	text_add(t, "The rewound state is %llu frames before the other\n", (unsigned long long) back);
+
+	text_add(t, "\n== Settings\n");
+	text_add(t, "layout %s, swap %d, scale %s, map_scale %s, lcd_grid %d, smooth %d, overlays %d, border_color %s\n", cfg->layout,
+	         cfg->swap, cfg->scale, cfg->mapScale, cfg->lcdGrid, cfg->smooth, cfg->overlays, cfg->borderColor);
+	text_add(t, "map %d, map_animations %d, map_interval %d, show_logo %d, pinball_live %d\n", cfg->map, cfg->mapAnim,
+	         cfg->mapInterval, cfg->showLogo, cfg->tallLive);
+	text_add(t, "frame_buffer %d, match_display %d, vsync %d, audio_latency %d, rewind %d (%d s), ff_speed %d\n", cfg->frameBuffer,
+	         cfg->matchDisplay, cfg->vsync, cfg->audioLatency, cfg->rewind, cfg->rewindSeconds, cfg->ffSpeed);
+	text_add(t, "hotkey %s, menu_combo %s, home_button %d, ab_swap %d, touch_map %s, touch_screen %s\n", cfg->hotkey, cfg->menuCombo,
+	         cfg->homeButton, cfg->abSwap, cfg->touchMap, cfg->touchScreen);
+	text_add(t, "save_on_quit %d, auto_load %d\n", cfg->autoSave, cfg->autoLoad);
+
+	char lp[1024];
+	log_path(lp, sizeof(lp));
+	text_add(t, "\n== The end of the log%s%s\n", lp[0] ? ", " : " (not found)", lp);
+	fflush(stderr);
+	FILE* lf = lp[0] ? fopen(lp, "rb") : NULL;
+	if (!lf) return;
+	fseek(lf, 0, SEEK_END);
+	long n = ftell(lf), keep = 48 * 1024;
+	fseek(lf, n > keep ? n - keep : 0, SEEK_SET);
+	if (n > keep && !fgets(line, sizeof(line), lf)) line[0] = 0; /* (from the next whole line) */
+	char big[1024];
+	while (fgets(big, sizeof(big), lf)) {
+		if (strstr(big, "password") || strstr(big, "token")) continue;
+		text_add(t, "%s", big);
+	}
+	fclose(lf);
+}
+
 /* Writes the report; out gets its file name (or why it failed). */
 static bool bug_report(char* out, size_t outSize) {
 	/* the state closest to 10 seconds back (the oldest there is, if the log's younger) */
@@ -2616,7 +2838,7 @@ static bool bug_report(char* out, size_t outSize) {
 	}
 	uint64_t from = bugSnap[pick].frame, to = bugFrame;
 
-	char dir[1100], stamp[32], base[300], name[3][340], tmp[3][1500], zip[1500];
+	char dir[1100], stamp[32], base[300], name[4][340], tmp[4][1500], zip[1500];
 	snprintf(dir, sizeof(dir), "%s/bug-reports", cfg->assetDir);
 	mkdirs(dir);
 	time_t now = time(NULL);
@@ -2631,7 +2853,8 @@ static bool bug_report(char* out, size_t outSize) {
 	snprintf(name[0], sizeof(name[0]), "%s.state", base);
 	snprintf(name[1], sizeof(name[1]), "%s-rewound.state", base);
 	snprintf(name[2], sizeof(name[2]), "%s-keys.txt", base);
-	for (int i = 0; i < 3; ++i) snprintf(tmp[i], sizeof(tmp[i]), "%s/%s", dir, name[i]);
+	snprintf(name[3], sizeof(name[3]), "%s-info.txt", base);
+	for (int i = 0; i < 4; ++i) snprintf(tmp[i], sizeof(tmp[i]), "%s/%s", dir, name[i]);
 	snprintf(zip, sizeof(zip), "%s/%s.zip", dir, base);
 
 	/* the game now; then the state from back then, written the same way, and the game put back */
@@ -2719,13 +2942,21 @@ static bool bug_report(char* out, size_t outSize) {
 	}
 	free(t.s);
 
-	/* the three into one .zip */
-	uint8_t* data[3] = { 0 };
-	size_t sizes[3] = { 0 };
-	for (int i = 0; ok && i < 3; ++i) ok = (data[i] = read_whole(tmp[i], &sizes[i])) != NULL;
-	const char* names[3] = { name[0], name[1], name[2] };
-	if (ok) ok = zip_write(zip, names, data, sizes, 3);
-	for (int i = 0; i < 3; ++i) free(data[i]), remove(tmp[i]);
+	/* the device, settings and log */
+	Text info = { 0 };
+	bug_info(&info, date, to - from);
+	FILE* inf = info.s ? fopen(tmp[3], "wb") : NULL;
+	if (!inf || fwrite(info.s, 1, info.n, inf) != info.n) ok = false;
+	if (inf) fclose(inf);
+	free(info.s);
+
+	/* the four into one .zip */
+	uint8_t* data[4] = { 0 };
+	size_t sizes[4] = { 0 };
+	for (int i = 0; ok && i < 4; ++i) ok = (data[i] = read_whole(tmp[i], &sizes[i])) != NULL;
+	const char* names[4] = { name[0], name[1], name[2], name[3] };
+	if (ok) ok = zip_write(zip, names, data, sizes, 4);
+	for (int i = 0; i < 4; ++i) free(data[i]), remove(tmp[i]);
 	if (!ok) remove(zip);
 	fprintf(stderr, "bug report: %s %s (%llu frames back)\n", zip, ok ? "saved" : "failed", (unsigned long long) (to - from));
 	if (ok) snprintf(out, outSize, "bug-reports/%s.zip", base);
@@ -3133,10 +3364,10 @@ static void save_prefs(void) {
 	FILE* f = fopen(prefs, "w");
 	if (f) {
 		fprintf(f, "# written by gba-ds's pause menu; overrides gba-ds.cfg\n");
-		fprintf(f, "swap = %d\nscale = %s\nmap_scale = %s\nlcd_grid = %d\noverlays = %s\nframe_buffer = %d\nshow_logo = %d\nmatch_display = %d\nrewind = %d\nsave_on_quit = %d\nauto_load = %d\n",
+		fprintf(f, "swap = %d\nscale = %s\nmap_scale = %s\nlcd_grid = %d\noverlays = %s\nframe_buffer = %d\nmatch_display = %d\nrewind = %d\nsave_on_quit = %d\nauto_load = %d\n",
 		        cfg->swap ? 1 : 0, cfg->scale, cfg->mapScale, cfg->lcdGrid ? 1 : 0,
 		        (const char* const[]) { "none", "primary", "secondary", "both" }[cfg->overlays & OVL_BOTH],
-		        cfg->frameBuffer ? 1 : 0, cfg->showLogo ? 1 : 0, cfg->matchDisplay ? 1 : 0, cfg->rewind ? 1 : 0,
+		        cfg->frameBuffer ? 1 : 0, cfg->matchDisplay ? 1 : 0, cfg->rewind ? 1 : 0,
 		        cfg->autoSave ? 1 : 0, cfg->autoLoad ? 1 : 0);
 		fclose(f);
 	}
@@ -3458,6 +3689,13 @@ static bool activate(int item, enum GameExit* exitTo) {
 			snprintf(menuNote, sizeof(menuNote), "Load failed");
 		}
 		break;
+	case M_BUG: {
+		/* the moment the menu opened, and the 10 seconds before it */
+		char what[200];
+		if (bug_report(what, sizeof(what))) snprintf(menuNote, sizeof(menuNote), "Bug report saved in bug-reports");
+		else snprintf(menuNote, sizeof(menuNote), "%s", what);
+		break;
+	}
 	case M_AUTOSAVE:
 		cfg->autoSave = !cfg->autoSave;
 		snprintf(menuNote, sizeof(menuNote), "%s", cfg->autoSave ? "Closing the game saves where you are" : "Closing the game doesn't save a state");
@@ -3738,10 +3976,10 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	pages[1][pageLen[1]++] = M_SCALE;
 	pages[1][pageLen[1]++] = M_LCD;
 	pages[1][pageLen[1]++] = M_OVERLAY;
-	pages[1][pageLen[1]++] = M_LOGO;
 	pages[1][pageLen[1]++] = M_FRAMEBUF;
 	pages[1][pageLen[1]++] = M_MATCH;
 	pages[2][pageLen[2]++] = M_REWIND;
+	pages[2][pageLen[2]++] = M_BUG;
 	set_page(0);
 
 	if (cfg->loadState[0]) {
@@ -3888,13 +4126,12 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				 * finger lifts without having swiped) */
 				int ts = ui_touch_screen();
 				float u = ui_px(ts);
-				SDL_Point pt = { p.x, p.y };
 				if (p.kind == 1) {
 					barGesture = G_NONE;
 					if (p.screen == ts && barOpen) {
-						SDL_Rect bug = bar_bug_button(ts);
 						barSince = SDL_GetTicks();
-						barGesture = SDL_PointInRect(&pt, &bug) ? G_BUG : ctl_tap(ts, p.x, p.y) ? G_DONE : G_TRACK;
+						barBtn = bar_button_at(ts, p.x, p.y);
+						barGesture = barBtn >= 0 ? G_BTN : ctl_tap(ts, p.x, p.y) ? G_DONE : G_TRACK;
 						barGX = p.x, barGY = p.y;
 						continue;
 					}
@@ -3905,7 +4142,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 					}
 					open_menu();
 					ignorePointerUp = true;
-				} else if (p.kind == 3 && barGesture == G_TRACK && p.screen == ts) {
+				} else if (p.kind == 3 && (barGesture == G_TRACK || barGesture == G_BTN) && p.screen == ts) {
 					int dy = p.y - barGY;
 					if (!barOpen && dy <= -u * 10) {
 						barOpen = true;
@@ -3919,13 +4156,33 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				} else if (p.kind == 2) {
 					int g = barGesture;
 					barGesture = G_NONE;
-					if (g == G_BUG) {
-						SDL_Rect bug = bar_bug_button(ts);
-						if (p.screen == ts && SDL_PointInRect(&pt, &bug)) {
+					if (g == G_BTN && p.screen == ts && bar_button_at(ts, p.x, p.y) == barBtn) {
+						int bb = barBtn;
+						barSince = SDL_GetTicks();
+						if (bb != BB_EXIT) barExitArmed = 0;
+						if (bb == BB_SAVE) {
+							bool ok = state_save(gp.state);
+							ui_osd(ok ? "State saved" : "Save failed");
+							if (ok) barLit = bb, barLitAt = barSince;
+						} else if (bb == BB_LOAD) {
+							if (!file_exists(gp.state)) ui_osd("No saved state yet");
+							else if (state_load(gp.state)) ui_osd("State loaded"), forceMap = true, barLit = bb, barLitAt = barSince;
+							else ui_osd("Load failed");
+						} else if (bb == BB_SETTINGS) {
+							open_menu();
+							ignorePointerUp = false;
+						} else if (bb == BB_BUG) {
 							char what[200];
-							barBugAt = barSince = SDL_GetTicks();
-							if (bug_report(what, sizeof(what))) ui_osd("Bug report saved in bug-reports");
+							if (bug_report(what, sizeof(what))) ui_osd("Bug report saved in bug-reports"), barLit = bb, barLitAt = barSince;
 							else ui_osd("%s", what);
+						} else if (bb == BB_EXIT) {
+							if (!barExitArmed) {
+								barExitArmed = barSince;
+								ui_osd("Tap again to close GBA DS");
+							} else {
+								exitTo = GAME_QUIT_APP;
+								done = true;
+							}
 						}
 					} else if (g == G_TRACK) {
 						/* a tap, not a swipe */

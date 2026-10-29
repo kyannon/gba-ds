@@ -53,7 +53,7 @@ Updating from the game list (Settings > Updates, Linux) keeps your `gba-ds.cfg`.
 | `map` | `1` | `0` turns the second screen off: every game plays like an ordinary GBA game (the Metroids' corner mini-map comes back). |
 | `map_interval` | `60` | Frames (60 a second) between map refreshes: 60 is every second. The map also refreshes right after every room transition. Each refresh runs the hidden copy of the game for a moment on another CPU core, so on a slower device very short intervals can make the sound crackle (the log reports it). |
 | `map_crop` | `1` | The Metroid map screens, tidied (labels erased, prompts and minimap removed; see [[Supported games]]). `0` shows them exactly as the games draw them. |
-| `show_logo` | `1` | The game's logo on the second screen when there's nothing else to show (title screens, menus, before the first map). `0` keeps it blank. The pause menu's **No Second Screen** option. |
+| `show_logo` | `1` | The game's logo on the second screen when there's nothing else to show (title screens, menus, before the first map). `0` keeps it blank. |
 | `map_animations` | `1` | Blinking map markers. `0` shows one still frame, with every marker that blinks showing. A Link to the Past's map is always still that way. |
 | `pinball_live` | `1` | Pokémon Pinball: two more copies of the game draw the rest of the table live on both screens. `0` turns them off (for slower devices): the game plays on one screen, with the logo on the other. |
 

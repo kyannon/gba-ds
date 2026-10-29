@@ -48,7 +48,6 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 - **Scale**: Pixel Perfect (sharp, whole-number scale with a small border), Full Width (fills the width, keeps the shape, stays sharp), Zoom (fills the height, cutting off the left and right edges) or Stretch (fills the whole screen).
 - **LCD Grid**: a pixel grid like a GBA screen's, on both screens. `lcd_strength` sets how dark.
 - **Overlays**: primary / secondary / both / none. See [[Map screen surrounds and overlays]].
-- **No Second Screen: Show Logo / Keep Blank**: what the second screen shows when the game has nothing for it (title screens, menus, before the first map): the game's logo, or nothing.
 - **Frame Buffer**: off by default. On, the next frame is prepared while the current one is on screen, which smooths out the odd stutter at the cost of one frame (about 17 ms) of input delay.
 - **Match Display Rate**: off by default. On, the game runs at the screen's refresh rate (60 Hz: 0.5% faster than a GBA, too little to notice, with the sound adjusted to match) and each frame is shown for exactly one refresh. Off, a 60 Hz screen shows one frame twice about every 3.7 seconds: a small, regular stutter.
 
@@ -56,22 +55,24 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 - **Cheats**: see [below](#cheats).
 - **Achievements**: when signed in to RetroAchievements; see [below](#retroachievements).
 - **Take Screenshot**: both screens as they look right now, with your display settings, stacked top to bottom into one PNG in `/storage/roms/screenshots` (Android: `GBA DS/screenshots`); `screenshot_dir` changes the folder.
+- **Submit a Bug Report**: the same as the quick bar's bug button (see [below](#the-quick-bar-and-bug-reports)), for the moment you opened the menu.
 - **Rewind**: on by default. Hold **L2** to go back in time, up to 30 seconds (`rewind_seconds`), at double speed and without sound; let go to play on from there. Off saves the little work it takes to keep the buffer.
 
 ## The quick bar and bug reports
 
-Swipe up from the bottom edge of the touchscreen for the quick bar. The game keeps running underneath it. In games with another button layout (the Tony Hawk's games, Super Mario Advance 2), **Controls** is at its top: see [Buttons](#buttons). Along its bottom, from left to right, it shows:
-- the time;
-- the battery level;
-- frames per second (about 59.7 is full speed);
-- a **bug** button.
+Swipe up from the bottom edge of the touchscreen for the quick bar. The game keeps running underneath it. In games with another button layout (the Tony Hawk's games, Super Mario Advance 2), **Controls** is at its top: see [Buttons](#buttons). Under that are the time, the battery level and the frames per second (about 59.7 is full speed), and along the bottom five buttons:
+- **Save State** (floppy disk) and **Load State** (folder): the same slot as the pause menu's (greyed out until you've saved).
+- **Settings** (gear): the pause menu.
+- **Bug Report** (bug): see below.
+- **Close GBA DS** (walking out of a door): tap it twice; your resume point is saved as usual.
 
 Swipe down to put the bar away. It also goes when the pause menu opens (a tap anywhere else on the touchscreen, HOME or your menu buttons), and after 5 seconds untouched.
 
-**The bug button** saves a bug report: a `.zip` in the `bug-reports` folder (`gba-ds/bug-reports/`, or `GBA DS/bug-reports/` on Android), named after the game and the date and time. It holds:
+**Bug Report** (also in the pause menu: Extras > **Submit a Bug Report**) saves a bug report: a `.zip` in the `bug-reports` folder (`gba-ds/bug-reports/`, or `GBA DS/bug-reports/` on Android), named after the game and the date and time. It holds:
 - a save state of the game right then;
 - a save state from 10 seconds earlier (`-rewound`);
-- every button the game got in between (`-keys.txt`): each press and lift, and how long it was held.
+- every button the game got in between (`-keys.txt`): each press and lift, and how long it was held;
+- your device and system, GBA DS's settings and the end of the log (`-info.txt`). Lines of the log that mention passwords or tokens are left out.
 
 From these, what you did can be played back exactly, frame by frame. So when something goes wrong, press the bug button as soon as you can after it, and attach the `.zip` to [an issue on GitHub](https://github.com/kyannon/gba-ds/issues), saying what you expected to happen. The 10 seconds start again after you load a state, rewind or restart the game.
 
