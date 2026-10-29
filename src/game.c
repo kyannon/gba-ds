@@ -1600,7 +1600,7 @@ static void draw_menu(void) {
 		if (menuItems[i] == M_AUTOSAVE) label = cfg->autoSave ? "Save on Quit: On" : "Save on Quit: Off";
 		if (menuItems[i] == M_AUTOLOAD) label = cfg->autoLoad ? "Auto-Load: On" : "Auto-Load: Off";
 		if (menuItems[i] == M_FPS) label = cfg->showFps ? "Show FPS: On" : "Show FPS: Off";
-		if (menuItems[i] == M_FRAMEBUF) label = cfg->frameBuffer ? "Frame Buffer: On" : "Frame Buffer: Off";
+		if (menuItems[i] == M_FRAMEBUF) label = tallProf ? "Frame Buffer: Always on here" : cfg->frameBuffer ? "Frame Buffer: On" : "Frame Buffer: Off";
 		if (menuItems[i] == M_REWIND) label = cfg->rewind ? "Rewind: On (Hold L2)" : "Rewind: Off";
 		if (menuItems[i] == M_MATCH) label = cfg->matchDisplay ? "Match Display Rate: On" : "Match Display Rate: Off";
 		if (menuItems[i] == M_LOGO) label = cfg->showLogo ? "No Second Screen: Show Logo" : "No Second Screen: Keep Blank";
@@ -3815,7 +3815,7 @@ static bool activate(int item, enum GameExit* exitTo) {
 		break;
 	case M_FRAMEBUF:
 		cfg->frameBuffer = !cfg->frameBuffer;
-		snprintf(menuNote, sizeof(menuNote), "%s", cfg->frameBuffer ? "Smoother, one frame more input delay" : "Least input delay");
+		snprintf(menuNote, sizeof(menuNote), "%s", tallProf ? "Always on in this game: it needs it for full speed" : cfg->frameBuffer ? "Smoother, one frame more input delay" : "Least input delay");
 		save_prefs();
 		break;
 	case M_REWIND:
@@ -4878,7 +4878,9 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		double drawCpu0 = thread_cpu_ms();
 		/* frame buffer: start the next frame now; this one is drawn from a copy */
 		const uint32_t* shownFb = emu.fb;
-		if (cfg->frameBuffer && !ff && !rewinding) {
+		/* (Pokemon Pinball's tall view always: two copies of the game beside
+		 * it only keep full speed with the frame emulated alongside the drawing) */
+		if ((cfg->frameBuffer || tallProf) && !ff && !rewinding) {
 			memcpy(aheadFb, emu.fb, sizeof(aheadFb));
 			if (ahead_start(keys)) aheadInFlight = true, shownFb = aheadFb;
 		}

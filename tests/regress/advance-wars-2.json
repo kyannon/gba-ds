@@ -169,6 +169,64 @@
    ]
   },
   {
+   "id": "aw2-us-exit-map",
+   "rom": "AW2E",
+   "state": "advance-wars-2/us-unit.ss",
+   "desc": "a unit's intel taken, then a map quit (Options > Exit Map, Yes) to the Select Mode menu",
+   "rules": [
+    "AW2-6"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:advance-wars-2/us-exit-map.ss"
+    ],
+    [
+     210,
+     "LEFT"
+    ],
+    [
+     214,
+     "-"
+    ],
+    [
+     230,
+     "A"
+    ],
+    [
+     234,
+     "-"
+    ]
+   ],
+   "shots": {
+    "yours": 150,
+    "menu": 700
+   },
+   "checks": [
+    {
+     "rule": "AW2-6",
+     "what": "the intel on your turn",
+     "type": "log",
+     "match": "frame 1?[0-9]{1,2}: map updated"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "AW2-6",
+     "what": "the logo on the Select Mode menu, not the last intel",
+     "shot": "menu"
+    }
+   ]
+  },
+  {
    "id": "aw2-us-unit",
    "rom": "AW2E",
    "state": "advance-wars-2/us-unit.ss",

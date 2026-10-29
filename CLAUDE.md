@@ -368,9 +368,15 @@ Android session at the same time. To keep them from colliding:
   zip after every change, with a short note of what changed and what to
   check on the device; known limitations said plainly. When a game's
   behaviour changes, the rule in `docs/games/` changes first.
-- **Open by-hand checks** (`tools/regress.py --uncovered`): Advance Wars 2's
-  enemy turn and fights (AW2-4, AW2-5). Updates (v1.3.2) were tested against
-  tools/update_mock.py and the real v1.3.1 release, not yet on the device.
+- **Open by-hand checks** (`tools/regress.py --uncovered`): none open
+  beyond the list it prints. Checked on the device for v1.4.2: AW2-4/5,
+  LTTP-5, Linux updates (BananaOS), Android's update download (its
+  install is still to try).
+- **Won't fix / not issues** (don't list them as outstanding): Advance Wars
+  and Game Boy Wars' Field Training keeps the logo (won't fix); Mario
+  Kart's course map at 2x is intended; Pokémon Pinball's bonus stages on
+  one screen are intended for now. The Stock Linux OS sound is still a
+  known issue.
 
 ## Ongoing work
 

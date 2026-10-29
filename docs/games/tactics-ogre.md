@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Releases | `ATOE` USA · `ATOJ` Japan (the list's addresses assumed the same, untested beyond the logo; there was no European release) |
+| Releases | `ATOE` USA · `ATOJ` Japan (no European release) |
 | Profile | `src/profiles.c`: the `ATOE` and `ATOJ` entries (to_compose) |
 | Tests | `tests/regress/tactics-ogre.json` (`tools/regress.py tactics-ogre`) |
 | Status | preliminary |
@@ -21,7 +21,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **TO-4. Title.** On the title screen the second screen shows the logo, and no captures are tried there.
 
-**TO-5. Last one stays.** Where R doesn't open the list (a unit moving or acting, the enemy's turn, a scene), the last list pictures stay; before the first, the logo. *By hand: no state of a unit acting or the enemy's turn yet; check on the device that they keep the last pictures.*
+**TO-5. Last one stays.** Where R doesn't open the list (a unit moving or acting, the enemy's turn, a scene), the last list pictures stay; before the first, the logo.
 
 **TO-6. Logo.** The title's TACTICS OGRE lettering with The Knight of Lodis under it (and 外伝 beside it in Japan), without the emblem, OGRE BATTLE SAGA or the copyright lines.
 
@@ -29,4 +29,4 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 ## Not covered yet
 
-- The Japanese release: only its logo and title are checked; its list uses the USA release's addresses (`TO_LIST_IDX`, `TO_PAGE` and the room key in profiles.c). A state from it would settle it; if they differ, the list stays on the leader or the captures fail and the logo stays.
+- The Japanese release's enemy turn and its list on a unit other than the leader (its list is checked in a battle).

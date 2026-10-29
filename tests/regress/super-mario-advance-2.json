@@ -188,6 +188,65 @@
    }
   },
   {
+   "id": "sma-jp-worldmap-walk",
+   "rom": "AA2J",
+   "state": "super-mario-advance-2/jp-worldmap-walk.ss",
+   "desc": "Japan: Mario walking between levels on the world map (a player's bug report): the list as soon as he stops",
+   "rules": [
+    "SMA-1",
+    "GEN-6"
+   ],
+   "input": [
+    [
+     0,
+     "-"
+    ],
+    [
+     205,
+     "LEFT"
+    ],
+    [
+     213,
+     "-"
+    ],
+    [
+     310,
+     "RIGHT"
+    ],
+    [
+     319,
+     "-"
+    ],
+    [
+     418,
+     "RIGHT"
+    ],
+    [
+     426,
+     "-"
+    ],
+    [
+     520,
+     "LEFT"
+    ],
+    [
+     528,
+     "-"
+    ]
+   ],
+   "shots": {
+    "stopped": 250
+   },
+   "checks": [
+    {
+     "rule": "GEN-6",
+     "what": "taken within 20 frames of Mario stopping after LEFT (released at 213, stops ~225)",
+     "type": "log",
+     "match": "frame 2[23][0-9]: map updated"
+    }
+   ]
+  },
+  {
    "id": "sma-jp-level",
    "rom": "AA2J",
    "state": "super-mario-advance-2/jp-level.ss",

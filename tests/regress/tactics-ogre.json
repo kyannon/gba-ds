@@ -57,6 +57,188 @@
    ]
   },
   {
+   "id": "to-us-unit-moving",
+   "rom": "ATOE",
+   "state": "tactics-ogre/us-unit-moving.ss",
+   "desc": "a unit picked, moved and acting (a player's bug report): the list stays",
+   "rules": [
+    "TO-5"
+   ],
+   "input": [
+    [
+     0,
+     "-"
+    ],
+    [
+     41,
+     "A"
+    ],
+    [
+     49,
+     "-"
+    ],
+    [
+     106,
+     "UP"
+    ],
+    [
+     113,
+     "-"
+    ],
+    [
+     118,
+     "UP"
+    ],
+    [
+     124,
+     "-"
+    ],
+    [
+     128,
+     "UP"
+    ],
+    [
+     134,
+     "-"
+    ],
+    [
+     145,
+     "A"
+    ],
+    [
+     150,
+     "-"
+    ],
+    [
+     168,
+     "UP"
+    ],
+    [
+     174,
+     "-"
+    ],
+    [
+     178,
+     "UP"
+    ],
+    [
+     184,
+     "-"
+    ],
+    [
+     189,
+     "UP"
+    ],
+    [
+     194,
+     "-"
+    ],
+    [
+     199,
+     "UP"
+    ],
+    [
+     206,
+     "-"
+    ],
+    [
+     369,
+     "A"
+    ],
+    [
+     374,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 40,
+    "moving": 619
+   },
+   "checks": [
+    {
+     "rule": "TO-5",
+     "what": "a list taken before the unit was picked",
+     "type": "log",
+     "match": "frame [0-9]{1,2}: map updated"
+    },
+    {
+     "rule": "TO-5",
+     "what": "none taken while it moves and acts: the last stays",
+     "type": "no_log",
+     "match": "frame [1-9][0-9]{2,}: map updated"
+    }
+   ]
+  },
+  {
+   "id": "to-us-enemy-turn",
+   "rom": "ATOE",
+   "state": "tactics-ogre/us-field.ss",
+   "desc": "the list taken on your turn, then the enemy's turn and a conversation in the battle (a player's bug report)",
+   "rules": [
+    "TO-5"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:tactics-ogre/us-enemy-turn.ss"
+    ],
+    [
+     249,
+     "A"
+    ],
+    [
+     254,
+     "-"
+    ],
+    [
+     278,
+     "A"
+    ],
+    [
+     284,
+     "-"
+    ]
+   ],
+   "shots": {
+    "yours": 180,
+    "enemy": 800
+   },
+   "checks": [
+    {
+     "rule": "TO-5",
+     "what": "the list taken on your turn",
+     "type": "log",
+     "match": "frame 1?[0-9]{1,2}: map updated"
+    },
+    {
+     "rule": "TO-5",
+     "what": "none taken on the enemy's turn and its conversation: the last stays",
+     "type": "no_log",
+     "match": "frame ([2-9][0-9]{2}|[0-9]{4,}): map updated"
+    }
+   ]
+  },
+  {
+   "id": "to-jp-field",
+   "rom": "ATOJ",
+   "state": "tactics-ogre/jp-field.ss",
+   "desc": "a battle in Tactics Ogre Gaiden (a player's bug report)",
+   "rules": [
+    "TO-1"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "TO-1",
+     "what": "the list",
+     "type": "log",
+     "match": "map updated \\("
+    }
+   ]
+  },
+  {
    "id": "to-us-cursor-moves",
    "rom": "ATOE",
    "state": "tactics-ogre/us-field.ss",

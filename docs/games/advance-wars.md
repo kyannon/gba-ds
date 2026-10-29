@@ -31,4 +31,4 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 ## Known issues
 
-Known issue: in Field Training the tutorial blocks SELECT and START, so the panels can't be brought up: the second screen keeps the logo.
+Known issue (won't fix): in Field Training the tutorial blocks SELECT and START, so the panels can't be brought up: the second screen keeps the logo. That's the game's tutorial doing what it does on one screen, so it stays as it is.

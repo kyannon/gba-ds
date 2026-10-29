@@ -7,7 +7,8 @@
 - **Tactics Ogre: The Knight of Lodis (back in the list):** in a battle, the second screen shows the unit list with its cursor on the unit your cursor is on, turning through its pages (level, HP, MP, element...) every 2.5 seconds, without its R SEARCH and START:DATA prompts. The USA release has been tried; the Japanese one (Tactics Ogre Gaiden) should work the same way.
 
 ### Final Fantasy Tactics Advance
-- On the world map, the second screen now shows today's Laws (the window L opens, on its own), taken again as soon as your clan arrives somewhere new, even with the place's own menu up (a town's, or a mission's). Japanese release: the world map still shows the logo.
+- On the world map, the second screen now shows today's Laws (the window L opens, on its own), taken again as soon as your clan arrives somewhere new, even with the place's own menu up (a town's, or a mission's).
+- **Japanese release:** the world map's Laws work there too, and once a battle's won the closing scene now shows the logo rather than the last picture.
 
 ### Advance Wars, Advance Wars 2, Game Boy Wars Advance 1+2
 - On the computer's turn (from ending yours, through its moves) the second screen shows the logo, as the cursor isn't yours to bring up intel with; the intel comes back on your turn. Your army is taken to be the first, as in the campaigns.
@@ -19,13 +20,20 @@
 ### Quick bar
 - When a game starts, a hint at the bottom of the touchscreen says "Swipe up for quick menu", then slides away after 3 seconds or as soon as you touch the screen. `quick_bar_hint = 0` in `gba-ds.cfg` turns it off.
 
+### Pokémon Pinball
+- The frame buffer is now always on in this game (the pause menu shows it as "Always on here"), as it needs it to run at full speed.
+
 ### Fixes
+- **Golden Sun:** the German release showed only the logo; it now shows the Status screen and battles like the others. Walking through a doorway could drop the Status screen to the logo for a moment: no longer.
+- **Advance Wars, Advance Wars 2:** leaving a battle for the mode menu (or the results) kept the last unit intel on the second screen; it's the logo again.
+- **Super Mario Advance 2 (Japanese release):** on the world map the level list took up to a second to follow Mario; it now changes as soon as he stops, as in the other releases.
 - Waking the device from sleep in the middle of a game could crash GBA DS (seen once on BananaOS): after any pause of more than 2 seconds, the pictures on both screens are now made again.
 - A touch on the very edge of the touchscreen (its right or bottom edge, or a finger sliding off it) was ignored, so a swipe or tap that ended there didn't count: the quick bar could miss a swipe up from the bottom edge (#9).
 
 ### Known issues
 - **Advance Wars games:** in Versus, if you play a later army, or two people share the device, those turns show the logo too (the games keep no record GBA DS could find of which armies a person plays). Game Boy Wars Advance 1+2's computer turn hasn't been tried yet.
-- **Golden Sun:** on one device the Status screen was seen dropping back to the logo for a moment while walking about, and GBA DS closed once as a battle began. Neither has happened again or been reproduced; if you see either, a bug report (quick bar) straight after helps.
+- **Golden Sun:** GBA DS closed once as a battle began, on one device. It hasn't happened again or been reproduced; if you see it, a bug report (quick bar) straight after helps.
+- **Advance Wars, Game Boy Wars Advance 1+2:** in Field Training the tutorial blocks SELECT and START, so the second screen keeps the logo (won't fix: it's the tutorial).
 
 ## v1.4.1 (2026-10-28)
 

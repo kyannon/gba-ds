@@ -46,7 +46,7 @@ Updating from the game list (Settings > Updates) keeps your `gba-ds.cfg`. Unzipp
 | `match_display` | `0` | **Match Display Rate**: run the game at the display's refresh rate instead of the GBA's 59.73 frames a second, when the two are within 1.5% (a 60 Hz screen: 0.46% faster, sound resampled to match, which you can't hear), and present each frame in step with the display. The GBA's own rate on a 60 Hz screen shows one frame twice about every 3.7 seconds, a small regular stutter; matched, every frame gets exactly one refresh. Also in the pause menu. |
 | `rewind` | `1` | Keep a rewind buffer: hold **L2** to go back in time. Also in the pause menu (Extras). |
 | `rewind_seconds` | `30` | How far back rewind goes (5-300). The buffer holds the differences between states, about 1 MB a second. |
-| `frame_buffer` | `0` | Prepare the next frame while the current one is shown: smoother, one frame (about 17 ms) more input delay. Also in the pause menu. |
+| `frame_buffer` | `0` | Prepare the next frame while the current one is shown: smoother, one frame (about 17 ms) more input delay. Also in the pause menu. Always on in Pokémon Pinball, which needs it for full speed. |
 
 ## Second screen
 

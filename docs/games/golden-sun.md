@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| Releases | `AGSE` USA, Europe (English) · `AGSD` Germany · `AGSF` France · `AGSI` Italy · `AGSS` Spain · `AGSJ` Japan (the other releases: the same addresses assumed, untested beyond the logo) |
-| Profile | `src/profiles.c`: the `AGSE` entry (gs_compose) |
+| Releases | `AGSE` USA, Europe (English) · `AGSD` Germany · `AGSF` France · `AGSI` Italy · `AGSS` Spain · `AGSJ` Japan (each tried walking about; battles only in `AGSE`) |
+| Profile | `src/profiles.c`: the `AGSE` entry (gs_compose); variant `AGSD` (its battle bytes 0x10 higher) |
 | Tests | `tests/regress/golden-sun.json` (`tools/regress.py golden-sun`) |
 | Status | preliminary |
 
@@ -17,7 +17,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **GS-2. Every party member in turn.** The Status screen turns through the party (RIGHT on the hidden copy, as many as there are, back to the first), one every 5 seconds, and keeps turning at that pace through each refresh.
 
-**GS-3. Last one stays.** Walking about, where the menu can't be opened (a conversation, a scene), the last Status pictures stay; before the first, the logo. *By hand: no state of a conversation yet; check on the device that it keeps the last Status pictures.*
+**GS-3. Last one stays.** Walking about, where the menu can't be opened (a conversation, a scene), the last Status pictures stay; before the first, the logo.
 
 **GS-4. Title.** On the title screen (told by its emblem) the second screen shows the logo, and no captures are tried there.
 
@@ -31,4 +31,4 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 ## Not covered yet
 
-- The releases other than `AGSE`: only their logos are checked; their Status screen uses the USA release's addresses (`GS_FMENU`, `GS_SCREEN` and the battle's `GS_*` in profiles.c), which may well be the same. A state from one of them would settle it; if they differ, the checks fail and the logo stays.
+- Battles in the releases other than `AGSE`: their Status walking about is checked; in battles they use the USA release's addresses (Germany's battle bytes 0x10 higher, found walking about). A battle state from one of them would settle it; if they differ, the battle shows the logo.

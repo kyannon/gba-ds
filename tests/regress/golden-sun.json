@@ -101,6 +101,250 @@
    ]
   },
   {
+   "id": "gs-us-doorway-talk",
+   "rom": "AGSE",
+   "state": "golden-sun/us-doorway-talk.ss",
+   "desc": "out of a house through its doorway (the battle byte 0xFF for a moment), then a conversation (a player's bug report)",
+   "rules": [
+    "GS-1",
+    "GS-3"
+   ],
+   "input": [
+    [
+     0,
+     "B+RIGHT+UP"
+    ],
+    [
+     3,
+     "B+RIGHT"
+    ],
+    [
+     26,
+     "B+RIGHT+DOWN"
+    ],
+    [
+     81,
+     "B+RIGHT"
+    ],
+    [
+     83,
+     "B+RIGHT+DOWN"
+    ],
+    [
+     84,
+     "B+DOWN"
+    ],
+    [
+     118,
+     "-"
+    ],
+    [
+     179,
+     "RIGHT"
+    ],
+    [
+     193,
+     "B+RIGHT"
+    ],
+    [
+     217,
+     "-"
+    ],
+    [
+     218,
+     "DOWN"
+    ],
+    [
+     230,
+     "-"
+    ],
+    [
+     235,
+     "A"
+    ],
+    [
+     244,
+     "-"
+    ],
+    [
+     423,
+     "A"
+    ],
+    [
+     429,
+     "-"
+    ]
+   ],
+   "shots": {
+    "walking": 100,
+    "talk": 646
+   },
+   "checks": [
+    {
+     "rule": "GS-1",
+     "what": "never back to the logo going through the doorway",
+     "type": "no_log",
+     "match": "back to the logo"
+    },
+    {
+     "rule": "GS-3",
+     "what": "the Status pictures stay through the conversation",
+     "type": "same",
+     "a": {
+      "shot": "walking",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "talk",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.3
+    }
+   ]
+  },
+  {
+   "id": "gs-de-field",
+   "rom": "AGSD",
+   "state": "golden-sun/de-field.ss",
+   "desc": "walking about (AGSD, a player's bug report): its battle bytes 0x10 higher",
+   "rules": [
+    "GS-1"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "GS-1",
+     "what": "the Status",
+     "type": "log",
+     "match": "map updated \\("
+    },
+    {
+     "rule": "GS-1",
+     "what": "not taken for a battle",
+     "type": "no_log",
+     "match": "a battle playing out"
+    }
+   ]
+  },
+  {
+   "id": "gs-fr-field",
+   "rom": "AGSF",
+   "state": "golden-sun/fr-field.ss",
+   "desc": "walking about (AGSF, a player's bug report)",
+   "rules": [
+    "GS-1"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "GS-1",
+     "what": "the Status",
+     "type": "log",
+     "match": "map updated \\("
+    },
+    {
+     "rule": "GS-1",
+     "what": "not taken for a battle",
+     "type": "no_log",
+     "match": "a battle playing out"
+    }
+   ]
+  },
+  {
+   "id": "gs-it-field",
+   "rom": "AGSI",
+   "state": "golden-sun/it-field.ss",
+   "desc": "walking about (AGSI, a player's bug report)",
+   "rules": [
+    "GS-1"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "GS-1",
+     "what": "the Status",
+     "type": "log",
+     "match": "map updated \\("
+    },
+    {
+     "rule": "GS-1",
+     "what": "not taken for a battle",
+     "type": "no_log",
+     "match": "a battle playing out"
+    }
+   ]
+  },
+  {
+   "id": "gs-es-field",
+   "rom": "AGSS",
+   "state": "golden-sun/es-field.ss",
+   "desc": "walking about (AGSS, a player's bug report)",
+   "rules": [
+    "GS-1"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "GS-1",
+     "what": "the Status",
+     "type": "log",
+     "match": "map updated \\("
+    },
+    {
+     "rule": "GS-1",
+     "what": "not taken for a battle",
+     "type": "no_log",
+     "match": "a battle playing out"
+    }
+   ]
+  },
+  {
+   "id": "gs-jp-field",
+   "rom": "AGSJ",
+   "state": "golden-sun/jp-field.ss",
+   "desc": "walking about (AGSJ, a player's bug report)",
+   "rules": [
+    "GS-1"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "GS-1",
+     "what": "the Status",
+     "type": "log",
+     "match": "map updated \\("
+    },
+    {
+     "rule": "GS-1",
+     "what": "not taken for a battle",
+     "type": "no_log",
+     "match": "a battle playing out"
+    }
+   ]
+  },
+  {
    "id": "gs-us-after-battle",
    "rom": "AGSE",
    "state": "golden-sun/us-after-battle.ss",

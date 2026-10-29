@@ -39,4 +39,4 @@ Unlike the other games, both screens show the table itself, live: two more copie
 
 ## Not covered yet
 
-The bonus stages (their own tables: the copy only runs on Ruby's and Sapphire's, whose camera limit it knows).
+Nothing the owner wants changed. The bonus stages play on one screen (their own tables: the copy only runs on Ruby's and Sapphire's, whose camera limit it knows); that's how they're meant to be for now. Events (evolution, hatching, the bonus-stage entrances) were checked on the device for v1.4.2. The game always runs with the frame buffer on (Settings' Frame Buffer is shown as always on here): without it the device doesn't reach full speed.

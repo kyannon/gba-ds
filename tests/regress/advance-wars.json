@@ -348,6 +348,132 @@
    ]
   },
   {
+   "id": "aw-us-exit-map",
+   "rom": "AWRE",
+   "state": "advance-wars/us-cursor-empty.ss",
+   "desc": "the Battle Intel taken, then a map quit (Options > Exit Map) to the mode menu (a player's bug report)",
+   "rules": [
+    "AW-6"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:advance-wars/us-exit-map.ss"
+    ],
+    [
+     202,
+     "-"
+    ],
+    [
+     230,
+     "UP"
+    ],
+    [
+     235,
+     "-"
+    ],
+    [
+     279,
+     "UP"
+    ],
+    [
+     284,
+     "-"
+    ],
+    [
+     291,
+     "A"
+    ],
+    [
+     297,
+     "-"
+    ],
+    [
+     351,
+     "DOWN"
+    ],
+    [
+     355,
+     "-"
+    ],
+    [
+     360,
+     "DOWN"
+    ],
+    [
+     367,
+     "-"
+    ],
+    [
+     371,
+     "DOWN"
+    ],
+    [
+     378,
+     "-"
+    ],
+    [
+     388,
+     "A"
+    ],
+    [
+     395,
+     "-"
+    ],
+    [
+     428,
+     "A"
+    ],
+    [
+     436,
+     "-"
+    ],
+    [
+     463,
+     "LEFT"
+    ],
+    [
+     468,
+     "-"
+    ],
+    [
+     518,
+     "A"
+    ],
+    [
+     525,
+     "-"
+    ]
+   ],
+   "shots": {
+    "yours": 150,
+    "menu": 842
+   },
+   "checks": [
+    {
+     "rule": "AW-6",
+     "what": "the Battle Intel on your turn",
+     "type": "log",
+     "match": "frame 1?[0-9]{1,2}: map updated"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "AW-6",
+     "what": "the logo on the mode menu, not the last intel",
+     "shot": "menu"
+    }
+   ]
+  },
+  {
    "id": "aw-us-enemy-turn",
    "rom": "AWRE",
    "state": "advance-wars/us-enemy-turn.ss",

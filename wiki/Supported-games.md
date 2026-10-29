@@ -73,7 +73,7 @@ Preliminary: a new second screen in v1.3.2, replacing the earlier one (which mov
 - **In a battle, with the cursor on a unit** (yours, an enemy or a guest), the second screen is that unit's **Status** screen, as the game draws it, turning between its Equip and Abilities pages every 5 seconds.
 - **With the cursor on no unit** (or on the judge, who has no Status), it shows the **Laws** (forbidden and recommended) at the top and the **turn order** (the list L shows) below them. The list is too long to fit under the Laws, so its last rows are cut off at the bottom; who acts next always shows.
 - All of it is brought up in the background on a silent copy of the game, as the other games' maps are; your game is never paused or touched, and the game screen stays exactly as the game draws it. It's taken again only with the battle map showing: while a unit picks where to move or what to hit, on the enemy's turn and in scenes, the last picture stays.
-- **On the world map**, it shows the **Laws** window (what L opens there) on its own, as the game draws it but without the map behind it, the L Law sign or the pointer: today's laws, taken again as soon as your clan arrives somewhere new, even with the place's menu up (a town's, or a mission's). The Laws window shows another day's laws while the map's pointer is on another place (the day your clan would get there), so the second screen only takes it with the pointer on your clan or between places; in a notice or while your clan travels, the last picture stays. In the Japanese release the world map keeps the logo for now.
+- **On the world map**, it shows the **Laws** window (what L opens there) on its own, as the game draws it but without the map behind it, the L Law sign or the pointer: today's laws, taken again as soon as your clan arrives somewhere new, even with the place's menu up (a town's, or a mission's). The Laws window shows another day's laws while the map's pointer is on another place (the day your clan would get there), so the second screen only takes it with the pointer on your clan or between places; in a notice or while your clan travels, the last picture stays.
 - Once a battle is won (from the last enemy defeated through the closing scene), during story scenes on the battle map, and outside battles and the world map (the title, menus, a town's Pub or Shop), the second screen shows the logo.
 
 ## Pokémon Pinball: Ruby & Sapphire
@@ -87,7 +87,8 @@ Preliminary. The USA release.
 - The copies are checked against your game every frame. When one drifts apart (now and then in catch mode), or after you load a state or rewind, it's taken from your game again; its screen keeps its last picture for that one frame. During each table's opening sweep the game plays on one screen, with the logo on the other.
 - `pinball_live = 0` in `gba-ds.cfg` turns the copies off (for slower devices): the game then plays on one screen, with the logo on the other.
 - On the title and menus, the second screen shows the logo.
-- **Not tried yet:** the bonus stages (they play on one screen for now).
+- The **bonus stages** play on one screen, with the logo on the other.
+- The frame buffer is always on in this game: it needs it to run at full speed.
 
 ## Golden Sun
 
@@ -145,7 +146,7 @@ Preliminary. The USA and European releases of both, and in Japan Game Boy Wars A
 - Nothing leaves the game screen: the **CO and day plate**, the **terrain and unit info**, the DAMAGE box and **conversations** stay where the game draws them.
 - **On the computer's turn** (from the moment you end yours, through its moves) the second screen shows the logo: the cursor isn't yours, so there's no intel to bring up. Your army is taken to be the first, as in the campaigns; in Versus, if you play a later army or two people share the device, those turns show the logo too.
 - **In a fight,** on the title and menus, and on a battle's results pages, the second screen shows the game's logo.
-- **Known issue:** in Advance Wars' **Field Training** missions the second screen keeps the logo: the tutorial blocks the menus it's built from (SELECT and START). It works fully in Campaign and Versus.
+- **Known issue (won't fix):** in Advance Wars' **Field Training** missions the second screen keeps the logo: the tutorial blocks the menus it's built from (SELECT and START). It works fully in Campaign and Versus.
 - **Game Boy Wars Advance 1+2** (Japan): GBA DS notices which of the two games you pick from the cartridge's menu and sets the second screen up as for that game (Game Boy Wars Advance as Advance Wars, Game Boy Wars Advance 2 as Advance Wars 2). On the cartridge's own title and menu, and on both games' titles, the second screen shows the cartridge's logo. Game Boy Wars Advance has so far been tried only in its first Field Training mission (with the known issue above); its campaign and versus battles are still to be checked.
 
 ## Fire Emblem

@@ -62,23 +62,26 @@
  * (us-co-screen) and two against the computer read alike), so a later
  * army played by a person shows the logo too (a known limitation). */
 #define AW_V_CPU 0xF0000050 /* 1 on the computer's turn */
+#define AW_V_OFFMAP 0xF0000051 /* 1 off the battle map: the title, menus, a battle's results */
 typedef struct {
 	uint32_t army, cursor, units, menuRow, minimapOpen; /* (minimapOpen: unused since the minimap went) */
 	int intelItem; /* Intel's row in the SELECT menu */
 	uint32_t intelPx[2][3]; /* the Battle Intel is up: x, y, colour (0xRRGGBB) */
 	int intelRows;          /* the Battle Intel's panel: the rows above the map */
 	uint32_t unitOpen[2];   /* this word holds this value (the screen's routine) while the unit intel (R) is up */
+	uint32_t offMap; /* a byte 0 on the battle map, else not (the title, the mode menu: the army
+	                  * byte keeps the last battle's there); 0 none known (the army 0 alone) */
 } AwRegion;
 
 static const AwRegion awRegions[] = {
-	{ AW_ARMY, AW_CURSOR, AW_UNITS, AW_MENU_ROW, AW_MINIMAP_OPEN, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000ED0, 0x082E3FD4 } },
+	{ AW_ARMY, AW_CURSOR, AW_UNITS, AW_MENU_ROW, AW_MINIMAP_OPEN, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000ED0, 0x082E3FD4 }, 0x030043C9 },
 	/* (its SELECT menu has no Unit item: CO, Intel, Options, Save, End) */
-	{ AW2_ARMY, AW2_CURSOR, AW2_UNITS, AW2_MENU_ROW, AW2_MINIMAP_OPEN, 1, { { 200, 100, 0xFFEFEF }, { 120, 140, 0xFFEFEF } }, 152, { 0x03001530, 0x0849E2C0 } },
+	{ AW2_ARMY, AW2_CURSOR, AW2_UNITS, AW2_MENU_ROW, AW2_MINIMAP_OPEN, 1, { { 200, 100, 0xFFEFEF }, { 120, 140, 0xFFEFEF } }, 152, { 0x03001530, 0x0849E2C0 }, 0x03002F0A },
 	/* Game Boy Wars Advance 1+2 (Japan): each game at its own addresses
 	 * (game 1's found by the literal pools around its code: 0x240 lower
 	 * than Advance Wars' above 0x03003000, 0x10 lower around 0x03000E00;
 	 * the unit intel's routine by its shape; game 2's by watching them) */
-	{ GBW1_ARMY, GBW1_CURSOR, GBW1_UNITS, 0x03000E40, 0x03000E1E, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000EC0, 0x08DEC9D8 } },
+	{ GBW1_ARMY, GBW1_CURSOR, GBW1_UNITS, 0x03000E40, 0x03000E1E, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000EC0, 0x08DEC9D8 }, 0x03004189 },
 	{ GBW2_ARMY, GBW2_CURSOR, GBW2_UNITS, AW2_MENU_ROW, AW2_MINIMAP_OPEN, 1, { { 200, 100, 0xFFEFEF }, { 120, 140, 0xFFEFEF } }, 152, { 0x03001530, 0x0881A0A4 } },
 };
 
@@ -98,10 +101,12 @@ static const AwRegion* aw_r(Emu* s) {
 }
 
 static uint32_t aw_virt(Emu* e, uint32_t addr) {
-	if (addr != AW_V_CPU) return 0;
 	if (!strncmp(e->gameCode, "BGWJ", 4) && !gbw_game(e)) return 0; /* (the compilation's own menus) */
-	uint8_t army = emu_read8(e, aw_r(e)->army);
-	return army >= 2 && army <= 4;
+	const AwRegion* r = aw_r(e);
+	uint8_t army = emu_read8(e, r->army);
+	if (addr == AW_V_OFFMAP) return !army || (r->offMap && emu_read8(e, r->offMap));
+	if (addr != AW_V_CPU) return 0;
+	return army >= 2 && army <= 4 && !(r->offMap && emu_read8(e, r->offMap));
 }
 
 /* n frames with these buttons held; only the last two drawn (what's
@@ -467,11 +472,11 @@ static const char* sn_compose(Emu* s, const void* state, uint32_t* out, int w, i
 #define FT_SCENE 0x0201639C /* 0 while a battle's fought; set while a scene plays on the
                              * battle map (the camera turning to the last enemy KO'd,
                              * the talk once it's won, the snowball fight's end), so
-                             * the battle's over for the second screen (USA, Europe;
-                             * Japan not known: not used there). (0x03000E08 stays set
+                             * the battle's over for the second screen (Japan's
+                             * FT_SCENE_: 0x30 lower). (0x03000E08 stays set
                              * from the first battle won on; 0x0202F254 is set at the
                              * snowball fight's end only.) */
-/* The world map (FT-14; USA, Europe: Japan's not known, the logo there) */
+/* The world map (FT-14; Japan's addresses: the FT_*_ lookups) */
 #define FT_MODE 0x02002191     /* 3 on the world map (its town menus, Laws and notices too);
                                 * 1 or 2 in a battle, 60 in a town's Pub... */
 #define FT_WM_STATE 0x0200FD2B /* on the world map: 255 free, 1 the Laws (L) open, 2 a
@@ -484,6 +489,14 @@ static const char* sn_compose(Emu* s, const void* state, uint32_t* out, int w, i
                                  * them. The Laws window shows the laws on the day the
                                  * clan would get there (lettered on blue and red); on the
                                  * clan's own place or between places, today's (orange) */
+/* (Japan's: its world map's found by what they do, its scene's 0x30 lower) */
+#define FT_JP(e, usa, jpn) ((e)->gameCode[3] == 'J' ? (uint32_t) (jpn) : (uint32_t) (usa))
+#define FT_MODE_(e) FT_JP(e, FT_MODE, 0x02002221)
+#define FT_WM_STATE_(e) FT_JP(e, FT_WM_STATE, 0x0200FB63)
+#define FT_LOC_(e) FT_JP(e, FT_LOC, 0x02001F59)
+#define FT_WM_CURSOR_(e) FT_JP(e, FT_WM_CURSOR, 0x02002C3A)
+#define FT_WM_STILL_(e) FT_JP(e, FT_WM_STILL, 0x02002C39)
+#define FT_SCENE_(e) FT_JP(e, FT_SCENE, 0x0201636C)
 #define FT_V_BATTLE 0xF0000010 /* 1 in a battle, outside its scenes (FT_SCENE) */
 #define FT_V_IDLE 0xF0000011   /* 1 on a battle's map or a unit's Status (not a move or an
                                 * action), or on the world map with nothing or the Laws open */
@@ -492,26 +505,26 @@ static const char* sn_compose(Emu* s, const void* state, uint32_t* out, int w, i
                                 * << 8 and 1 << 16 with the cursor on it; else 0 */
 
 static bool ft_world(Emu* e) {
-	return e->gameCode[3] != 'J' && emu_read8(e, FT_IN_BATTLE) == 0 && emu_read8(e, FT_MODE) == 3;
+	return emu_read8(e, FT_IN_BATTLE) == 0 && emu_read8(e, FT_MODE_(e)) == 3;
 }
 
 static uint32_t ft_virt(Emu* e, uint32_t addr) {
 	/* (a scene on the battle map is out of it: the logo; above all the
 	 * one once the battle's won) */
-	bool in = emu_read8(e, FT_IN_BATTLE) == 1 && (e->gameCode[3] == 'J' || !emu_read32(e, FT_SCENE));
+	bool in = emu_read8(e, FT_IN_BATTLE) == 1 && !emu_read32(e, FT_SCENE_(e));
 	if (addr == FT_V_BATTLE) return in;
 	if (addr == FT_V_SHOWN) return in || ft_world(e);
 	if (addr == FT_V_LOC) {
 		if (!ft_world(e)) return 0;
-		uint8_t at = emu_read8(e, FT_LOC), cur = emu_read8(e, FT_WM_CURSOR);
-		return (at + 1u) | (uint32_t) emu_read8(e, FT_WM_STATE) << 8 | (cur == at || !cur) << 16;
+		uint8_t at = emu_read8(e, FT_LOC_(e)), cur = emu_read8(e, FT_WM_CURSOR_(e));
+		return (at + 1u) | (uint32_t) emu_read8(e, FT_WM_STATE_(e)) << 8 | (cur == at || !cur) << 16;
 	}
 	if (addr != FT_V_IDLE) return 0;
 	if (ft_world(e)) {
 		/* (a place's menu, a town's or a mission's: the clan's there; it
 		 * reads FT_WM_STILL 0 too) */
-		uint8_t w = emu_read8(e, FT_WM_STATE);
-		return ((w == 255 || w == 1) && emu_read8(e, FT_WM_STILL)) || w == 2;
+		uint8_t w = emu_read8(e, FT_WM_STATE_(e));
+		return ((w == 255 || w == 1) && emu_read8(e, FT_WM_STILL_(e))) || w == 2;
 	}
 	uint16_t c = emu_read16(e, 0x04000008);
 	return in && (c == FT_MAP_CNT || c == FT_STATUS_CNT);
@@ -696,36 +709,36 @@ static uint32_t ftLaws[GBA_W * GBA_H];
 static int ftLawsW, ftLawsH;
 static uint32_t ftLawsAt; /* the location it was taken at + 1; 0 none */
 static const char* ft_world_laws(Emu* s, uint32_t* const* out, int w, int h) {
-	uint32_t at = emu_read8(s, FT_LOC) + 1u;
+	uint32_t at = emu_read8(s, FT_LOC_(s)) + 1u;
 	/* (a place's menu opening on arrival passes through 4 and 6: let it
 	 * finish) */
-	for (int f = 0; f < 30 && emu_read8(s, FT_WM_STATE) != 1 && emu_read8(s, FT_WM_STATE) != 2 && emu_read8(s, FT_WM_STATE) != 255; ++f) emu_frame_blind(s, 0);
-	uint8_t st = emu_read8(s, FT_WM_STATE);
-	uint8_t cur = emu_read8(s, FT_WM_CURSOR);
+	for (int f = 0; f < 30 && emu_read8(s, FT_WM_STATE_(s)) != 1 && emu_read8(s, FT_WM_STATE_(s)) != 2 && emu_read8(s, FT_WM_STATE_(s)) != 255; ++f) emu_frame_blind(s, 0);
+	uint8_t st = emu_read8(s, FT_WM_STATE_(s));
+	uint8_t cur = emu_read8(s, FT_WM_CURSOR_(s));
 	if ((st == 1 || at != ftLawsAt) && cur && cur + 1u != at) return "the cursor's on another place";
 	if (st == 2 && at != ftLawsAt) {
 		/* just arrived, the place's menu up (a town's, a mission's): B
 		 * closes it */
-		for (int i = 0; i < 4 && emu_read8(s, FT_WM_STATE) == 2; ++i) {
+		for (int i = 0; i < 4 && emu_read8(s, FT_WM_STATE_(s)) == 2; ++i) {
 			aw_tap(s, K_B, 1);
-			for (int f = 0; f < 30 && emu_read8(s, FT_WM_STATE) == 2; ++f) emu_frame_blind(s, 0);
+			for (int f = 0; f < 30 && emu_read8(s, FT_WM_STATE_(s)) == 2; ++f) emu_frame_blind(s, 0);
 		}
 		/* (it passes through other values as it closes, and FT_WM_STILL
 		 * climbs back to 24 over about 15 frames) */
-		for (int f = 0; f < 90 && (emu_read8(s, FT_WM_STATE) != 255 || emu_read8(s, FT_WM_STILL) < 24); ++f) emu_frame_blind(s, 0);
-		st = emu_read8(s, FT_WM_STATE);
+		for (int f = 0; f < 90 && (emu_read8(s, FT_WM_STATE_(s)) != 255 || emu_read8(s, FT_WM_STILL_(s)) < 24); ++f) emu_frame_blind(s, 0);
+		st = emu_read8(s, FT_WM_STATE_(s));
 		if (st != 255) return "the place's menu didn't close";
-		cur = emu_read8(s, FT_WM_CURSOR);
+		cur = emu_read8(s, FT_WM_CURSOR_(s));
 		if (cur && cur + 1u != at) return "the cursor's on another place";
 	}
 	if (st != 1 && at != ftLawsAt) {
-		if (st != 255 || !emu_read8(s, FT_WM_STILL)) return "not free on the world map";
+		if (st != 255 || !emu_read8(s, FT_WM_STILL_(s))) return "not free on the world map";
 		/* (L does nothing while a town's menu is still closing: again) */
-		for (int i = 0; i < 6 && emu_read8(s, FT_WM_STATE) != 1; ++i) {
+		for (int i = 0; i < 6 && emu_read8(s, FT_WM_STATE_(s)) != 1; ++i) {
 			aw_tap(s, K_L, 1);
-			for (int f = 0; f < 20 && emu_read8(s, FT_WM_STATE) != 1; ++f) emu_frame_blind(s, 0);
+			for (int f = 0; f < 20 && emu_read8(s, FT_WM_STATE_(s)) != 1; ++f) emu_frame_blind(s, 0);
 		}
-		if (emu_read8(s, FT_WM_STATE) != 1) return "the Laws didn't open";
+		if (emu_read8(s, FT_WM_STATE_(s)) != 1) return "the Laws didn't open";
 	}
 	if (st == 1 || at != ftLawsAt) {
 		aw_run(s, 0, 40); /* (the window's opening) */
@@ -1153,7 +1166,8 @@ static const char* som_compose(Emu* s, const void* state, uint32_t* out, int w, 
  * own Status (the party menu: Fight, Flee, Status) of the one choosing:
  * B back to the party menu, LEFT to Status, A, R to that character.
  *   GS_INPUT  5 while the player chooses (the menus, the Status), else 0
- *   GS_BSCENE 0x5F walking about and on the title; in a battle 3 while
+ *   GS_BSCENE 0x5F walking about and on the title (0xFF for a moment going
+ *             through a doorway); in a battle 3 while
  *             it plays out, 6 on its Status, 255 in its menus
  *   GS_BMENU  0 in the party menu, 2 in a character's menu, 3 on the Status
  *             (GS_BSCENE reads 6 or 7 there: not used for it)
@@ -1164,6 +1178,8 @@ static const char* som_compose(Emu* s, const void* state, uint32_t* out, int w, 
 #define GS_INPUT 0x0300037A
 #define GS_BSCENE 0x03001812
 #define GS_BMENU 0x030017C3
+/* (Germany: those two 0x10 higher, the others where they are) */
+#define GS_GER(e) ((e)->gameCode[3] == 'D' ? 0x10u : 0u)
 #define GS_WHO 0x02030343
 #define GS_PAGES 8
 #define GS_V_TITLE 0xF0000040
@@ -1174,7 +1190,7 @@ static const Probe gsTitle[8] = { { 150, 50, 0x844A29 }, { 165, 53, 0x945A29 }, 
 static uint32_t gs_virt(Emu* e, uint32_t addr) {
 	bool title = som_probes(e, gsTitle, 8, 7, 8);
 	if (addr == GS_V_TITLE) return title;
-	if (addr == GS_V_FORGET) return title || (emu_read8(e, GS_BSCENE) != 0x5F && emu_read8(e, GS_INPUT) != 5);
+	if (addr == GS_V_FORGET) return title || (emu_read8(e, GS_BSCENE + GS_GER(e)) < 0x5F && emu_read8(e, GS_INPUT) != 5); /* (0xFF going through a doorway too: not a battle) */
 	return 0;
 }
 
@@ -1194,7 +1210,7 @@ static bool gs_party_menu(Emu* s) {
 	int still = 0;
 	for (int f = 0; f < 60 && still < 16; ++f) {
 		emu_frame_blind(s, 0);
-		still = emu_read8(s, GS_BMENU) == 0 ? still + 1 : 0;
+		still = emu_read8(s, GS_BMENU + GS_GER(s)) == 0 ? still + 1 : 0;
 	}
 	return still >= 16;
 }
@@ -1215,7 +1231,7 @@ static const char* gs_compose(Emu* s, const void* state, uint32_t* const* out, i
 	if (emu_read8(s, GS_INPUT) == 5) {
 		/* a battle, the player choosing: the battle's Status of the one choosing (GS-7) */
 		int who = emu_read8(s, GS_WHO);
-		bool wasStatus = emu_read8(s, GS_BMENU) == 3; /* (back in the menu, its cursor stays on Status) */
+		bool wasStatus = emu_read8(s, GS_BMENU + GS_GER(s)) == 3; /* (back in the menu, its cursor stays on Status) */
 		for (int i = 0; i < 6 && !gs_party_menu(s); ++i) aw_run(s, K_B, 6);
 		if (!gs_party_menu(s)) return "not in the party menu";
 		if (!wasStatus) {
@@ -1223,8 +1239,8 @@ static const char* gs_compose(Emu* s, const void* state, uint32_t* const* out, i
 			aw_run(s, 0, 12);
 		}
 		aw_run(s, K_A, 6);
-		for (int f = 0; f < 60 && emu_read8(s, GS_BMENU) != 3; ++f) emu_frame_blind(s, 0);
-		if (emu_read8(s, GS_BMENU) != 3) return "the battle's Status didn't open";
+		for (int f = 0; f < 60 && emu_read8(s, GS_BMENU + GS_GER(s)) != 3; ++f) emu_frame_blind(s, 0);
+		if (emu_read8(s, GS_BMENU + GS_GER(s)) != 3) return "the battle's Status didn't open";
 		aw_run(s, 0, 16);
 		for (int i = 0; i < who && i < 8; ++i) aw_run(s, K_R, 6), aw_run(s, 0, 16);
 		aw_run(s, 0, 10);
@@ -1233,7 +1249,7 @@ static const char* gs_compose(Emu* s, const void* state, uint32_t* const* out, i
 		*nOut = 1;
 		return NULL;
 	}
-	if (emu_read8(s, GS_BSCENE) != 0x5F) return "a battle playing out"; /* (the logo: GS-8) */
+	if (emu_read8(s, GS_BSCENE + GS_GER(s)) != 0x5F) return "a battle playing out"; /* (the logo: GS-8) */
 	/* back to walking about first (from the menu or one of its screens,
 	 * the Status too), then SELECT, LEFT to Status, A */
 	for (int i = 0; i < 4 && !gs_walking(s); ++i) {
@@ -1664,7 +1680,7 @@ static const MapProfile profiles[] = {
 	{
 		/* the Status screen, a page per party member: see gs_compose
 		 * (the other releases: the same addresses, docs/games/golden-sun.md) */
-		.codes = { "AGSE", "AGSD", "AGSF", "AGSI" },
+		.codes = { "AGSE", "AGSF", "AGSI" },
 		.title = "Golden Sun",
 		.composePages = gs_compose,
 		.stillPick = STILL_FIRST, /* (Map Animations off: the first member) */
@@ -2064,7 +2080,7 @@ static const MapProfile profiles[] = {
 		.live = { { AW_ARMY, 0xFF, 1, 1, true, 4, true } },
 		/* off the battle map (the title, menus, a battle's results; between
 		 * turns too, where the logo's up already): the pictures go (AW-6) */
-		.menu = { { AW_ARMY, 0xFF, 0, 1 } },
+		.menu = { { AW_V_OFFMAP, 0xFF, 1, 4 } },
 		.room = { { AW_CURSOR, 0xFFFF, 0, 2 } },
 		/* the title's lettering is sprites */
 		.logo = { .wait = 240, .pressStart = true, .wait2 = 100, .layers = 0x10, .maxY = 128 },
@@ -2083,7 +2099,7 @@ static const MapProfile profiles[] = {
 		.combatOr = { { AW_V_CPU, 0xFF, 1, 4 } },
 		.live = { { AW2_ARMY, 0xFF, 1, 1, true, 4, true } },
 		/* off the battle map (as Advance Wars': AW2-6) */
-		.menu = { { AW2_ARMY, 0xFF, 0, 1 } },
+		.menu = { { AW_V_OFFMAP, 0xFF, 1, 4 } },
 		.room = { { AW2_CURSOR, 0xFFFF, 0, 2 } },
 		/* the title's lettering is sprites (PRESS START! below it too) */
 		.logo = { .wait = 240, .pressStart = true, .wait2 = 100, .layers = 0x10, .maxY = 92,
@@ -2164,7 +2180,6 @@ static void aw_eur(MapProfile* p) {
 static void gbw_set(MapProfile* p, uint32_t army, uint32_t cursor) {
 	p->combat[0].addr = army;
 	p->live[0].addr = army;
-	p->menu[0].addr = army;
 	p->room[0].addr = cursor;
 	memset(&p->logo, 0, sizeof(p->logo)); /* (the compilation's: BGWJ) */
 }
@@ -2200,7 +2215,8 @@ static void zelda_jpn(MapProfile* p) {
  * camera's pan direction 0x14 (the I/O registers don't move);
  * the world map's paused flag isn't where it is in the others (left out) */
 static void sma2_jpn(MapProfile* p) {
-	memset(p->room, 0, sizeof(p->room)); /* (not known in Japan: the refresh alone) */
+	p->room[0].addr -= 0x10; /* (Mario's place on the world map, as the others) */
+	p->room[1].addr -= 0x10;
 	p->live[0].addr -= 0x10;
 	p->live[2] = (MemProbe) { 0 };
 	p->hud.on[0].addr -= 0x10;
@@ -2214,6 +2230,11 @@ static void sma2_jpn(MapProfile* p) {
 
 /* Final Fantasy Tactics Advance in Europe: a language menu first (its RAM
  * is the USA release's); in Japan the cursor's 0x30 lower (ft_r) */
+/* Golden Sun in Germany: the battle's bytes 0x10 higher (GS_GER) */
+static void gs_ger(MapProfile* p) {
+	p->combat[1].addr += 0x10;
+}
+
 static void ffta_eur(MapProfile* p) {
 	lang_menu(p);
 }
@@ -2237,6 +2258,7 @@ static void thps3_ger(MapProfile* p) {
 }
 
 static const Variant variants[] = {
+	{ "AGSD", "AGSE", 0, gs_ger },
 	{ "A2CP", "A2CE", 0, lang_menu },
 	{ "A2CJ", "A2CE", -0x30, NULL },
 	{ "ACHP", "ACHE", 0, NULL },

@@ -20,7 +20,3 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 **SN-3. Title.** On the title screen the second screen shows the logo: the whole sword (down to its pommel), the name and its subtitle, without PRESS START BUTTON or the copyright line.
 
 **SN-4. Game screen untouched.** Nothing leaves the game screen.
-
-## Not covered yet
-
-The Japanese release's Status and Place: no Japanese state past the title (it uses the USA release's addresses, found in its code).

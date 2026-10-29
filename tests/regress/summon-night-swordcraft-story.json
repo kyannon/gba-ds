@@ -196,6 +196,27 @@
    }
   },
   {
+   "id": "sn-jp-field",
+   "rom": "AB4J",
+   "state": "summon-night-swordcraft-story/jp-field.ss",
+   "desc": "playing Craft Sword Monogatari (a player's bug report)",
+   "rules": [
+    "SN-1",
+    "SN-2"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "SN-1",
+     "what": "the Status with the Place bar",
+     "type": "log",
+     "match": "map updated \\("
+    }
+   ]
+  },
+  {
    "id": "sn-logo-ab4e",
    "kind": "logo",
    "rom": "AB4E",

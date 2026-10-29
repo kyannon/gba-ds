@@ -227,16 +227,19 @@ down (the whole lower table on the two screens).
 
 ## Not done
 
-- **The owner's verdict on the device**, and speed there with the copies
-  taken every frame.
-- **The hatching glitch** (a hatched Pokémon's sprite gone from both
-  screens for a while): no state yet; likely the copies' logic falling
-  behind, now gone, but unchecked.
-- **Bonus stages:** the copies only run where the lowest camera target is
-  `0x164`, so they play on one screen. Their tables and camera limits are
-  unknown.
-- **Other events** on the device (evolution, hatching, the bonus-stage
-  entrances): unchecked. The catch reveal's picture differs between the
-  game and a copy now and then (cosmetic).
+- **Speed:** full speed on the device only with the frame buffer on, so
+  game.c forces it on for `tall` profiles (v1.4.2; the pause menu shows
+  "Always on here"). That delays the keys by a frame, so the tests' inputs
+  moved a frame earlier (same games, same pictures).
+- **Checked on the device (v1.4.2):** events (evolution, hatching, the
+  bonus-stage entrances) work; the hatching glitch is gone. The catch
+  reveal's picture differs between the game and a copy now and then
+  (cosmetic).
+- **Bonus stages** play on one screen (the copies only run where the lowest
+  camera target is `0x164`): the owner's choice for now, not an issue,
+  unless a player reports it.
+- **Tests that play to events:** states for events come from the owner
+  playing; poking the game's memory to reach them (a hatch, an evolution,
+  a bonus stage) would be preferable, not tried yet.
 - **Sapphire:** only its start is in the tests.
 - **Android:** `twin_*` is shared code; not tried on Android.
