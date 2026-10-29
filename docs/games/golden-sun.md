@@ -31,4 +31,4 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 ## Not covered yet
 
-- The releases other than `AGSE`: only their logos are checked; their Status screen uses the USA release's addresses (`GS_MODE`, `GS_SCREEN` and the battle's `GS_*` in profiles.c), which may well be the same. A state from one of them would settle it; if they differ, the checks fail and the logo stays.
+- The releases other than `AGSE`: only their logos are checked; their Status screen uses the USA release's addresses (`GS_FMENU`, `GS_SCREEN` and the battle's `GS_*` in profiles.c), which may well be the same. A state from one of them would settle it; if they differ, the checks fail and the logo stays.
