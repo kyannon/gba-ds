@@ -705,6 +705,13 @@ static bool hudLogoBelowDone;
 static int snapShow, snapRevert;   /* consecutive frames matching show / a revert screen */
 
 static uint64_t mapAnimStart;
+/* which of the map's frames shows now (they turn every frameStep frames
+ * from mapAnimStart); never out of range, even with mapAnimStart ahead of
+ * frameCount (it once came from the game played before: frames[-1]) */
+static int map_anim_index(void) {
+	if (mapRes.nFrames < 1 || frameCount < mapAnimStart) return 0;
+	return (int) (((frameCount - mapAnimStart) / (uint64_t) SDL_max(1, mapRes.frameStep)) % (uint64_t) mapRes.nFrames);
+}
 static bool singleShowsMap;
 static double fps, speedPct;
 static Uint64 emuTicks, drawTicks; /* time spent emulating / drawing, for the 5 s report */
@@ -4058,6 +4065,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	mc = NULL;
 	gameTexAll = true;
 	frameCount = 0;
+	mapAnimStart = 0; /* (the last game's count was further on) */
 	menuOpen = false;
 	{
 		/* a compilation: the profile of the game running in it (none yet) */
@@ -4831,12 +4839,12 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				bool stillChanged = false;
 				stillStale = map_anim();
 				if (!stillStale) stillChanged = update_still();
-				int first = pages ? (int) ((frameCount - mapAnimStart) / mapRes.frameStep) % mapRes.nFrames : 0;
+				int first = pages ? map_anim_index() : 0;
 				upload_map_frame(map_anim() ? first : STILL_IDX);
 				if (debug) fprintf(stderr, "frame %llu: map updated (%d frame(s) %d apart%s)\n", (unsigned long long) frameCount,
 				                   mapRes.nFrames, mapRes.frameStep, stillStale ? "" : stillChanged ? ", still changed" : ", still unchanged");
 			} else if (map_anim() && mapRes.nFrames > 1 && mapShownIdx >= 0) {
-				int idx = (int) ((frameCount - mapAnimStart) / SDL_max(1, mapRes.frameStep)) % mapRes.nFrames;
+				int idx = map_anim_index();
 				upload_map_frame(idx);
 			}
 		}
