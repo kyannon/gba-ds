@@ -20,6 +20,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Sword of Mana (Shinyaku Seiken Densetsu in Japan) | `AVSE` `AVSY` (Spanish, Italian) `AVSJ` | the Status screen | — |
 | Summon Night: Swordcraft Story (Craft Sword Monogatari in Japan; preliminary) | `AB4E` `AB4J` (no European release) | the Status screen, with where you are | — |
 | Golden Sun (Ougon no Taiyou: Hirakareshi Fuuin in Japan; preliminary) | `AGSE` `AGSD` `AGSF` `AGSI` `AGSS` `AGSJ` | the Status screen, each party member in turn | — |
+| Tactics Ogre: The Knight of Lodis (Tactics Ogre Gaiden in Japan; preliminary) | `ATOE` `ATOJ` (no European release) | the battle's unit list, on the unit under your cursor | — |
 | Pokémon Pinball: Ruby & Sapphire (preliminary) | `BPPE` | the table twice as tall over both screens, live, with the score bar | — |
 
 The codes are what `<CODE>` means in logo and overlay file names (see [Playing](Playing#logos) and [[Map screen surrounds and overlays]]).
@@ -93,6 +94,15 @@ Preliminary. The USA / Europe (English) release has been tried; the German, Fren
 
 - **While you walk about,** the second screen shows the **Status** screen (the one in SELECT's menu), at the game screen's size and in your chosen window colour, turning to the next party member every 5 seconds. It's brought up in the background on a silent copy of the game, so it stays up to date without you opening it; your game is never paused or touched.
 - Where the menu can't be opened (a conversation, a scene, a fight), the last pictures stay.
+- On the title screen, the second screen shows the logo.
+
+## Tactics Ogre: The Knight of Lodis
+
+Preliminary. The USA release has been tried; the Japanese one (Tactics Ogre Gaiden) should work the same way (its logo and title are checked).
+
+- **In a battle,** the second screen shows the battle's unit list (R, View List), with its cursor on the unit your cursor is on in the field, yours or the enemy's (on an empty square, your leader). It follows as soon as your cursor stops on another square.
+- **Its pages** (the ones START turns through: level, HP, MP, element, the bars, side) change every 2.5 seconds.
+- It's brought up in the background on a silent copy of the game; your game is never paused or touched. While a unit moves or acts, on the enemy's turn and in scenes, the last pictures stay.
 - On the title screen, the second screen shows the logo.
 
 ## Summon Night: Swordcraft Story

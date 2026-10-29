@@ -1,0 +1,244 @@
+{
+ "game": "Tactics Ogre: The Knight of Lodis",
+ "rules": "docs/games/tactics-ogre.md",
+ "cases": [
+  {
+   "id": "to-us-field",
+   "rom": "ATOE",
+   "state": "tactics-ogre/us-field.ss",
+   "desc": "the player's turn, the cursor on Orson (a guest)",
+   "rules": [
+    "TO-1",
+    "TO-2",
+    "TO-3",
+    "TO-7"
+   ],
+   "shots": {
+    "first": 120,
+    "second": 270
+   },
+   "checks": [
+    {
+     "rule": "TO-1",
+     "what": "the list was shown, six pages 2.5 s apart",
+     "type": "log",
+     "match": "map updated \\(6 frame\\(s\\) 150 apart"
+    },
+    {
+     "rule": "TO-3",
+     "what": "the next page after 2.5 seconds",
+     "type": "differs",
+     "a": {
+      "shot": "first",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "second",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.01
+    },
+    {
+     "rule": "TO-7",
+     "what": "nothing moved off the game screen",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "to-us-cursor-moves",
+   "rom": "ATOE",
+   "state": "tactics-ogre/us-field.ss",
+   "desc": "the cursor moved up twice, onto Lara",
+   "rules": [
+    "TO-1",
+    "TO-2"
+   ],
+   "input": [
+    [
+     300,
+     "UP"
+    ],
+    [
+     306,
+     "-"
+    ],
+    [
+     330,
+     "UP"
+    ],
+    [
+     336,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 290,
+    "after": 420
+   },
+   "checks": [
+    {
+     "rule": "TO-2",
+     "what": "the list's cursor moved with it",
+     "type": "differs",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.01
+    }
+   ]
+  },
+  {
+   "id": "to-us-enemy",
+   "rom": "ATOE",
+   "state": "tactics-ogre/us-enemy.ss",
+   "desc": "the cursor on Stan, the enemy's leader (the list's box on the left)",
+   "rules": [
+    "TO-2"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "TO-2",
+     "what": "the list was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "to-us-lower-row",
+   "rom": "ATOE",
+   "state": "tactics-ogre/us-lower-row.ss",
+   "desc": "the cursor on Justin, on the list's third row (its box at the top)",
+   "rules": [
+    "TO-2"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "TO-2",
+     "what": "the list was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "to-us-empty-tile",
+   "rom": "ATOE",
+   "state": "tactics-ogre/us-empty-tile.ss",
+   "desc": "the cursor on an empty square: the leader",
+   "rules": [
+    "TO-2"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "TO-2",
+     "what": "the list was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "to-us-list-open",
+   "rom": "ATOE",
+   "state": "tactics-ogre/us-list-open.ss",
+   "desc": "the list open in the game (the owner's bug report)",
+   "rules": [
+    "TO-1"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "TO-1",
+     "what": "the list was shown",
+     "type": "log",
+     "match": "map updated \\(6 frame"
+    }
+   ]
+  },
+  {
+   "id": "to-us-title",
+   "rom": "ATOE",
+   "state": "tactics-ogre/us-title.ss",
+   "desc": "the title screen",
+   "rules": [
+    "TO-4"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "TO-4",
+     "what": "no captures there",
+     "type": "no_log",
+     "match": "map updated|map capture failed"
+    }
+   ]
+  },
+  {
+   "id": "to-logo-atoe",
+   "kind": "logo",
+   "rom": "ATOE",
+   "desc": "ATOE logo extraction",
+   "rules": [
+    "GEN-1",
+    "TO-6"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "to-logo-atoj",
+   "kind": "logo",
+   "rom": "ATOJ",
+   "desc": "ATOJ logo extraction",
+   "rules": [
+    "GEN-1",
+    "TO-6"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

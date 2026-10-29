@@ -1100,6 +1100,132 @@ static const char* gs_compose(Emu* s, const void* state, uint32_t* const* out, i
 	return NULL;
 }
 
+/* ---------------------------------------------------------- Tactics Ogre
+ *
+ * The second screen: the battle's unit list (R's menu, View List), with
+ * its cursor on the unit the player's cursor is on in the field, its
+ * pages (START: HP, MP, element...) taken in turn and shown 2.5 seconds
+ * each (TO-1 to TO-3). The list opens on the leader; the unit under the
+ * field cursor is found by its box (name, level, HP: the same box, the
+ * same pixels, on the field at the right and in the list at the right for
+ * the player's side, 112 pixels further left for the others), stepping
+ * the list's cursor RIGHT along each row (it wraps within the row) and
+ * DOWN to the next (back at the top: not found, the leader). */
+#define TO_LIST_IDX 0x0200A08A /* the list's cursor: row * 4 + column */
+#define TO_PAGE 0x0200AA1C     /* the list's page (START): 0-5 */
+#define TO_PAGES 8
+#define TO_BOX_X 166            /* the unit's box, inside its frame: 166-233 x 108-155 */
+#define TO_BOX_Y 108
+#define TO_BOX_W 68
+#define TO_BOX_H 48
+#define TO_BOX_OTHER (-112)     /* in the list, the other side's box */
+#define TO_BOX_TOP 4            /* in the list, the box's top on the lower rows */
+
+/* the list's background and frames, where no unit, box or START:DATA
+ * label is ever drawn (the box and the label move about) */
+static const Probe toList[7] = { { 103, 0, 0x6F7346 }, { 137, 16, 0x6F7346 }, { 60, 53, 0x807F46 }, { 100, 100, 0x807F46 },
+                                 { 150, 120, 0x807F46 }, { 30, 150, 0x312921 }, { 70, 157, 0x6F7346 } };
+static bool to_list_up(Emu* s) {
+	return som_probes(s, toList, 7, 6, 8);
+}
+
+/* the box at x, top (in the frame) is the field's box f */
+static bool to_box_at(const uint32_t* fb, int x, int top, const uint32_t* f) {
+	int diff = 0;
+	for (int y = 0; y < TO_BOX_H; ++y) {
+		for (int i = 0; i < TO_BOX_W; ++i) diff += (fb[(top + y) * GBA_W + x + i] & 0xFFFFFF) != (f[y * TO_BOX_W + i] & 0xFFFFFF);
+	}
+	return diff <= TO_BOX_W * TO_BOX_H / 100;
+}
+/* the list's box (wherever the list puts it: right or left, bottom or top) is f */
+static bool to_box_is(const uint32_t* fb, const uint32_t* f) {
+	for (int k = 0; k < 4; ++k) {
+		if (to_box_at(fb, TO_BOX_X + (k & 1 ? TO_BOX_OTHER : 0), k & 2 ? TO_BOX_TOP : TO_BOX_Y, f)) return true;
+	}
+	return false;
+}
+
+/* the title's lettering (TACTICS OGRE; the Japanese release's too) */
+#define TO_V_TITLE 0xF0000030
+static const Probe toTitle[8] = { { 169, 13, 0xF7C600 }, { 140, 19, 0xDEAD00 }, { 25, 20, 0xBD7300 }, { 169, 20, 0xFFEF00 },
+                                  { 62, 22, 0xCE8C00 }, { 91, 26, 0xEFBD00 }, { 132, 26, 0xFFFF5A }, { 13, 27, 0xC68400 } };
+static uint32_t to_virt(Emu* e, uint32_t addr) {
+	return addr == TO_V_TITLE && som_probes(e, toTitle, 8, 7, 8);
+}
+
+static bool to_wait_list(Emu* s, int n) {
+	for (int f = 0; f < n && !to_list_up(s); ++f) emu_frame(s, 0);
+	return to_list_up(s);
+}
+
+static const char* to_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+	static uint32_t page[TO_PAGES][GBA_W * GBA_H];
+	static uint32_t field[TO_BOX_W * TO_BOX_H];
+	int max = *nOut < TO_PAGES ? *nOut : TO_PAGES;
+	*nOut = 1;
+	*step = 150; /* 2.5 seconds a page */
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	if (!to_list_up(s)) {
+		/* the field: the box of the unit under the cursor (if any) */
+		for (int y = 0; y < TO_BOX_H; ++y) memcpy(&field[y * TO_BOX_W], &s->fb[(TO_BOX_Y + y) * GBA_W + TO_BOX_X], TO_BOX_W * 4);
+		/* R's menu, View List (its fourth icon), A */
+		aw_run(s, K_R, 6);
+		aw_run(s, 0, 34);
+		for (int i = 0; i < 3; ++i) aw_run(s, K_RIGHT, 6), aw_run(s, 0, 14);
+		aw_run(s, K_A, 6);
+		if (!to_wait_list(s, 90)) return "the list didn't open";
+		aw_run(s, 0, 10);
+		/* to the unit under the field cursor */
+		bool found = false;
+		for (int n = 0; n < 64 && !found; ++n) {
+			if (to_box_is(s->fb, field)) {
+				found = true;
+				break;
+			}
+			int i = emu_read8(s, TO_LIST_IDX);
+			aw_run(s, K_RIGHT, 4);
+			aw_run(s, 0, 8);
+			int j = emu_read8(s, TO_LIST_IDX);
+			if (j <= i) {
+				/* round the row: the next one (back at the top: none) */
+				aw_run(s, K_DOWN, 4);
+				aw_run(s, 0, 8);
+				if (emu_read8(s, TO_LIST_IDX) <= j) break;
+			}
+			if (emu_cancelled(s)) return "called off";
+		}
+		if (!found && emu_read8(s, TO_LIST_IDX) != 0) {
+			/* (none: the list as it opens, on the leader) */
+			if (!emu_state_load(s, state)) return "state load failed";
+			emu_frame(s, 0);
+			aw_run(s, K_R, 6);
+			aw_run(s, 0, 34);
+			for (int i = 0; i < 3; ++i) aw_run(s, K_RIGHT, 6), aw_run(s, 0, 14);
+			aw_run(s, K_A, 6);
+			if (!to_wait_list(s, 90)) return "the list didn't open";
+		}
+	}
+	aw_run(s, 0, 20);
+	/* its pages: START turns to the next (HP, MP, element...), round to the first */
+	int n = 0, first = emu_read8(s, TO_PAGE);
+	for (; n < max; ++n) {
+		if (n) {
+			aw_run(s, K_START, 4);
+			aw_run(s, 0, 14);
+			if (!to_list_up(s)) return "the list closed";
+			if (emu_read8(s, TO_PAGE) == first) break;
+		}
+		if (emu_cancelled(s)) return "called off";
+		memcpy(page[n], s->fb, sizeof(page[n]));
+	}
+	*nOut = n;
+	for (int k = 0; k < n; ++k) {
+		for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[k][y * w], &page[k][y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+	}
+	return NULL;
+}
+
 static const MapProfile profiles[] = {
 	{
 		.codes = { "A2CE" },
@@ -1302,6 +1428,40 @@ static const MapProfile profiles[] = {
 		 * wordmark is BG0 above the PUSH START line */
 		.logo = { .steps = { { 0, 700 }, { K_START, 4 }, { 0, 200 }, { K_A, 4 }, { 0, 150 } },
 		          .layer = 0, .maxY = 112 },
+	},
+	{
+		/* the battle's unit list, on the field cursor's unit: see to_compose */
+		.codes = { "ATOE" },
+		.title = "Tactics Ogre: The Knight of Lodis",
+		.composePages = to_compose,
+		.virt = to_virt,
+		.stillPick = STILL_FIRST, /* (Map Animations off: the first page) */
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* the field cursor moved: the list again, on its unit */
+		.room = { { 0x0202AB90, 0xFFFF, 0, 2 } },
+		/* the title: the logo again, no captures (TO-4) */
+		.menu = { { TO_V_TITLE, 0xFF, 1, 4 } },
+		.live = { { TO_V_TITLE, 0xFF, 0, 4 } },
+		/* the title's lettering (BG2) and The Knight of Lodis (sprites, above
+		 * PUSH START), not the emblem behind or OGRE BATTLE SAGA (BG1) */
+		.logo = { .steps = { { 0, 480 }, { K_START, 4 }, { 0, 50 } }, .layers = 0x14, .maxY = 90 },
+	},
+	{
+		/* Japan (Tactics Ogre Gaiden): the same (its title's lettering is
+		 * the USA one, 外伝 beside it); the list's addresses assumed the
+		 * same, untried (docs/games/tactics-ogre.md) */
+		.codes = { "ATOJ" },
+		.title = "Tactics Ogre: The Knight of Lodis",
+		.composePages = to_compose,
+		.virt = to_virt,
+		.stillPick = STILL_FIRST,
+		.crop_w = GBA_W,
+		.crop_h = GBA_H,
+		.room = { { 0x0202AB90, 0xFFFF, 0, 2 } },
+		.menu = { { TO_V_TITLE, 0xFF, 1, 4 } },
+		.live = { { TO_V_TITLE, 0xFF, 0, 4 } },
+		.logo = { .steps = { { 0, 480 }, { K_START, 4 }, { 0, 50 } }, .layers = 0x14, .maxY = 90 },
 	},
 	{
 		/* the Status screen, a page per party member: see gs_compose
