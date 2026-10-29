@@ -559,6 +559,24 @@ loaded), and a frontend's bare path (`data=/storage/.../x.gba`, no
 `-mcpu=cortex-a55` (its devices are A55s); worth the same change if a
 Linux handheld with older cores turns up.
 
+## Second displays of another size (issue #8, Oct 28, 2026)
+
+The Retroid Pocket Duo Lite's displays differ: 1920x1080 (display 0, the
+game activity) and 1280x960 (the Presentation). The GPU second screen
+shares the game activity's renderer and was laid out, and its window
+buffer sized, at the game activity's size, so the 4:3 display showed a
+crop of it. Now android_second_begin sizes the buffer to the second
+display (dispW x dispH), ui.c lays view 1 out at that size (view_size(),
+also for touches in queue_pointer), and sw_render draws it through a
+viewport {0, windowH - secondH, secondW, secondH}: SDL flips viewport and
+clip y against the game window's height, so that's GL (0, 0, w, h) on the
+second surface. SDL_RenderReadPixels takes its rect in window
+coordinates, so screenshots of view 1 add that offset. Checked on the
+desktop (stub glue with a pbuffer of the second display's size): second
+displays of 1280x960 and 640x480 beside a 1024x768 game window, frames
+and the stacked screenshot both whole; 1024x768 beside 1024x768 as
+before. The software fallback already used the display's own size.
+
 ## For the next release
 
 Player-facing Android changes since the last release, for the main session
@@ -566,3 +584,4 @@ to move into CHANGELOG.md and the release notes (see CLAUDE.md, "More than
 one session"). Empty after each release.
 - Fixed: GBA DS closed as soon as it started on devices with older 64-bit chips (Retroid Pocket Duo Lite and others with Cortex-A53/A73 cores).
 - Frontends that pass a game as a plain file path (no `file://`) now start that game instead of the game list.
+- Fixed: on devices whose two screens are different sizes (Retroid Pocket Duo Lite), the second screen was cut off.

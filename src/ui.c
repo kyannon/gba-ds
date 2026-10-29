@@ -24,6 +24,23 @@ volatile int uiQuit;
 static Config* cfg;
 static uint64_t ticks;
 static SDL_GameController* pads[8];
+#ifdef __ANDROID__
+/* The GPU second screen shares the game activity's renderer, so its size
+ * can't come from SDL: the second display's own (it can differ from the
+ * game activity's: Retroid Pocket Duo Lite, 1920x1080 and 1280x960). */
+static int secondW, secondH, gameW, gameH;
+#endif
+
+/* A view's drawing size. */
+static void view_size(int v, int* w, int* h) {
+#ifdef __ANDROID__
+	if (views[v].offwin && !views[v].surf && secondW > 0) {
+		*w = secondW, *h = secondH;
+		return;
+	}
+#endif
+	SDL_GetRendererOutputSize(views[v].ren, w, h);
+}
 static bool padUserMapped[8]; /* its mapping came from the button mapper (controllers.txt) */
 static char userGuids[16][40]; /* the controllers.txt GUIDs */
 static int nUserGuids;
@@ -388,7 +405,8 @@ bool ui_init(Config* c, bool wantDual) {
 		views[1].ren = views[0].ren;
 		views[1].offwin = views[1].retained = true;
 		nViews = 2;
-		fprintf(stderr, "second screen: GPU\n");
+		secondW = sw, secondH = sh, gameW = w0, gameH = h0;
+		fprintf(stderr, "second screen: GPU, %dx%d (game screen %dx%d)\n", sw, sh, w0, h0);
 	} else if (strcmp(cfg->layout, "single") && android_second_size(&sw, &sh)) {
 		fprintf(stderr, "second screen: software\n");
 		views[1].offwin = views[1].retained = true;
@@ -466,7 +484,7 @@ void ui_layout(void) {
 		nScreens = 2;
 		for (int i = 0; i < 2; ++i) {
 			int w, h;
-			SDL_GetRendererOutputSize(views[i].ren, &w, &h);
+			view_size(i, &w, &h);
 #ifdef __ANDROID__
 			/* screens in physical order as on ROCKNIX (0 top: the game; 1 bottom:
 			 * the touchscreen). The activity, view 0, runs on display 0, which on
@@ -552,7 +570,7 @@ static void queue_pointer(int kind, int view, float px, float py, bool normalize
 	} else {
 		if (view < 0) view = screens[ts].view;
 		int w, h;
-		SDL_GetRendererOutputSize(views[view].ren, &w, &h);
+		view_size(view, &w, &h);
 		int x, y;
 		if (normalized) {
 			x = (int) (px * w);
@@ -1112,11 +1130,20 @@ static bool sw_render(int v) {
 	Uint64 t0 = SDL_GetPerformanceCounter();
 	SDL_Renderer* ren = views[v].ren;
 	bool second = views[v].offwin && !views[v].surf; /* the GPU second screen */
+	int vpY = 0; /* the second screen's viewport's top, in the game window's coordinates */
 	if (second) {
 		if (!android_second_begin()) {
 			rv->state = 2; /* no window yet: try again next frame (lastSig unchanged) */
 			return false;
 		}
+		/* the second display's size, at the bottom left of the surface: SDL
+		 * flips viewport (and clip) y against the game window's height, so
+		 * this is GL's (0, 0, secondW, secondH) there */
+		int ww = gameW, wh = gameH;
+		SDL_GetRendererOutputSize(ren, &ww, &wh); /* (the game window's, now) */
+		vpY = wh - secondH;
+		SDL_Rect vp = { 0, vpY, secondW, secondH };
+		SDL_RenderSetViewport(ren, &vp);
 	} else if (!views[v].surf) {
 		android_second_restore(); /* SDL's own window surface current again */
 	}
@@ -1139,10 +1166,16 @@ static bool sw_render(int v) {
 	}
 	replaying = false;
 	SDL_RenderSetClipRect(ren, NULL);
-	if (swReadDst) swReadOk = SDL_RenderReadPixels(ren, &swReadRect, SDL_PIXELFORMAT_ABGR8888, swReadDst, swReadPitch) == 0;
+	if (swReadDst) {
+		/* (SDL takes this rect in the window's coordinates, not the viewport's) */
+		SDL_Rect rr = swReadRect;
+		rr.y += vpY;
+		swReadOk = SDL_RenderReadPixels(ren, &rr, SDL_PIXELFORMAT_ABGR8888, swReadDst, swReadPitch) == 0;
+	}
 	if (second) {
 		SDL_RenderFlush(ren);
 		android_second_end(); /* stays the current surface until the other view draws */
+		SDL_RenderSetViewport(ren, NULL); /* (queued: applies on the next draw, the game screen's) */
 	} else {
 		SDL_RenderPresent(ren);
 	}
