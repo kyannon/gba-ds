@@ -68,7 +68,7 @@ Then pick **GBA DS (Standalone)** as the emulator for the GBA system, or for sin
 
 ## Cocoon
 
-[Cocoon](https://cocoon-shell.com/) picks each platform's emulator from a list of players that comes with the app (its platform files, in Daijisho's format). GBA DS's entry for that list is in each release as `gba-ds-cocoon-player.json`, for Cocoon to add to its Game Boy Advance platform. Once Cocoon lists it, choose it in Cocoon's Settings: scroll to **Game Boy Advance**, then **Default Player** → **GBA DS**, and save.
+[Cocoon](https://cocoon-shell.com/) picks each platform's emulator from a list of players that comes with the app (its platform files, in Daijisho's format). GBA DS's entry has been offered to Cocoon for its Game Boy Advance platform ([CocoonFE pull request #561](https://github.com/inssekt/CocoonFE/pull/561)). Once Cocoon lists it, choose it in Cocoon's Settings: scroll to **Game Boy Advance**, then **Default Player** → **GBA DS**, and save.
 
 The entry starts GBA DS the same way as the other launchers here:
 
