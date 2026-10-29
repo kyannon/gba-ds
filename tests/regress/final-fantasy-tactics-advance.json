@@ -596,9 +596,9 @@
    "id": "ft-us-worldmap",
    "rom": "AFXE",
    "state": "final-fantasy-tactics-advance/us-worldmap.ss",
-   "desc": "the world map with funds and the date",
+   "desc": "the world map with funds and the date, the pointer between places",
    "rules": [
-    "FT-7"
+    "FT-14"
    ],
    "shots": {
     "start": 60,
@@ -606,19 +606,10 @@
    },
    "checks": [
     {
-     "rule": "FT-7",
-     "what": "the logo on dark grey",
-     "type": "uniform",
-     "shot": "start",
-     "screen": "second",
-     "rect": [
-      32,
-      64,
-      992,
-      704
-     ],
-     "color": "303030",
-     "frac": 0.5
+     "rule": "FT-14",
+     "what": "the Laws were taken (the pointer between places: today's)",
+     "type": "log",
+     "match": "map updated"
     }
    ]
   },
@@ -626,9 +617,10 @@
    "id": "ft-us-worldmap-notice",
    "rom": "AFXE",
    "state": "final-fantasy-tactics-advance/us-worldmap-notice.ss",
-   "desc": "a notice on the world map",
+   "desc": "a notice on the world map (no Laws picture yet)",
    "rules": [
-    "FT-7"
+    "FT-7",
+    "FT-14"
    ],
    "shots": {
     "start": 60,
@@ -649,6 +641,105 @@
      ],
      "color": "303030",
      "frac": 0.5
+    },
+    {
+     "rule": "FT-14",
+     "what": "no capture under a notice",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ft-us-worldmap-laws",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-worldmap-laws.ss",
+   "desc": "the Laws open on the world map (from a player's bug report)",
+   "rules": [
+    "FT-14"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "FT-14",
+     "what": "the Laws were taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ft-us-worldmap-arrive",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-worldmap-town-menu.ss",
+   "desc": "just arrived at Sprohm (a day on, new laws), its menu up; B closes it",
+   "rules": [
+    "FT-7",
+    "FT-14"
+   ],
+   "input": [
+    [
+     90,
+     "B"
+    ],
+    [
+     96,
+     "-"
+    ]
+   ],
+   "shots": {
+    "menu": 60,
+    "closed": 160
+   },
+   "checks": [
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "FT-7",
+     "what": "the logo in the town menu before any Laws picture",
+     "shot": "menu"
+    },
+    {
+     "rule": "FT-14",
+     "what": "the Laws taken as the menu closes",
+     "type": "log",
+     "match": "frame 9[0-9]: map updated|frame 1[0-4][0-9]: map updated"
+    }
+   ]
+  },
+  {
+   "id": "ft-us-worldmap-pointing",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-worldmap-pointing.ss",
+   "desc": "the pointer on another place (the Laws window would show the day the clan got there)",
+   "rules": [
+    "FT-14"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "FT-14",
+     "what": "no Laws taken",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FT-14",
+     "what": "why",
+     "type": "log",
+     "match": "the cursor's on another place"
     }
    ]
   },

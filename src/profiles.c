@@ -456,15 +456,45 @@ static const char* sn_compose(Emu* s, const void* state, uint32_t* out, int w, i
                              * Japan not known: not used there). (0x03000E08 stays set
                              * from the first battle won on; 0x0202F254 is set at the
                              * snowball fight's end only.) */
+/* The world map (FT-14; USA, Europe: Japan's not known, the logo there) */
+#define FT_MODE 0x02002191     /* 3 on the world map (its town menus, Laws and notices too);
+                                * 1 or 2 in a battle, 60 in a town's Pub... */
+#define FT_WM_STATE 0x0200FD2B /* on the world map: 255 free, 1 the Laws (L) open, 2 a
+                                * town's menu, 0 a notice */
+#define FT_LOC 0x02001F69      /* the location the clan is at (18 Cyril, 19 Sprohm...), from
+                                * when it gets there */
+#define FT_WM_STILL 0x02002C29 /* 0 while the clan travels, else 24 */
+#define FT_WM_CURSOR 0x02002C2A /* the location under the world map's cursor, 0 between
+                                 * them. The Laws window shows the laws on the day the
+                                 * clan would get there (lettered on blue and red); on the
+                                 * clan's own place or between places, today's (orange) */
 #define FT_V_BATTLE 0xF0000010 /* 1 in a battle, outside its scenes (FT_SCENE) */
-#define FT_V_IDLE 0xF0000011   /* 1 on a battle's map or a unit's Status (not a move or an action) */
+#define FT_V_IDLE 0xF0000011   /* 1 on a battle's map or a unit's Status (not a move or an
+                                * action), or on the world map with nothing or the Laws open */
+#define FT_V_SHOWN 0xF0000012  /* 1 in a battle (FT_V_BATTLE) or on the world map */
+#define FT_V_LOC 0xF0000013    /* on the world map, the clan's location + 1, FT_WM_STATE
+                                * << 8 and 1 << 16 with the cursor on it; else 0 */
+
+static bool ft_world(Emu* e) {
+	return e->gameCode[3] != 'J' && emu_read8(e, FT_IN_BATTLE) == 0 && emu_read8(e, FT_MODE) == 3;
+}
 
 static uint32_t ft_virt(Emu* e, uint32_t addr) {
 	/* (a scene on the battle map is out of it: the logo; above all the
 	 * one once the battle's won) */
 	bool in = emu_read8(e, FT_IN_BATTLE) == 1 && (e->gameCode[3] == 'J' || !emu_read32(e, FT_SCENE));
 	if (addr == FT_V_BATTLE) return in;
+	if (addr == FT_V_SHOWN) return in || ft_world(e);
+	if (addr == FT_V_LOC) {
+		if (!ft_world(e)) return 0;
+		uint8_t at = emu_read8(e, FT_LOC), cur = emu_read8(e, FT_WM_CURSOR);
+		return (at + 1u) | (uint32_t) emu_read8(e, FT_WM_STATE) << 8 | (cur == at || !cur) << 16;
+	}
 	if (addr != FT_V_IDLE) return 0;
+	if (ft_world(e)) {
+		uint8_t w = emu_read8(e, FT_WM_STATE);
+		return (w == 255 || w == 1) && emu_read8(e, FT_WM_STILL);
+	}
 	uint16_t c = emu_read16(e, 0x04000008);
 	return in && (c == FT_MAP_CNT || c == FT_STATUS_CNT);
 }
@@ -639,6 +669,37 @@ static void ft_put(uint32_t* o, int w, int h, const uint32_t* src, int sw, int s
 	}
 }
 
+/* The world map's Laws (FT-14): the whole screen with the Laws window
+ * open (L), taken again when the clan's somewhere new (or the Laws are
+ * open in the game), else the last one again; only with the cursor on the
+ * clan or between places (elsewhere it shows another day's laws). */
+static uint32_t ftLaws[GBA_W * GBA_H];
+static uint32_t ftLawsAt; /* the location it was taken at + 1; 0 none */
+static const char* ft_world_laws(Emu* s, uint32_t* const* out, int w, int h) {
+	uint32_t at = emu_read8(s, FT_LOC) + 1u;
+	uint8_t st = emu_read8(s, FT_WM_STATE);
+	uint8_t cur = emu_read8(s, FT_WM_CURSOR);
+	if ((st == 1 || at != ftLawsAt) && cur && cur + 1u != at) return "the cursor's on another place";
+	if (st != 1 && at != ftLawsAt) {
+		if (st != 255 || !emu_read8(s, FT_WM_STILL)) return "not free on the world map";
+		/* (L does nothing while a town's menu is still closing: again) */
+		for (int i = 0; i < 6 && emu_read8(s, FT_WM_STATE) != 1; ++i) {
+			aw_tap(s, K_L, 1);
+			for (int f = 0; f < 20 && emu_read8(s, FT_WM_STATE) != 1; ++f) emu_frame_blind(s, 0);
+		}
+		if (emu_read8(s, FT_WM_STATE) != 1) return "the Laws didn't open";
+	}
+	if (st == 1 || at != ftLawsAt) {
+		aw_run(s, 0, 40); /* (the window's opening) */
+		if (emu_cancelled(s)) return "called off";
+		memcpy(ftLaws, s->fb, sizeof(ftLaws));
+		ftLawsAt = at;
+	}
+	for (int i = 0; i < w * h; ++i) out[0][i] = SCREEN_GREY;
+	ft_put(out[0], w, h, ftLaws, GBA_W, GBA_H, (w - GBA_W) / 2, (h - GBA_H) / 2);
+	return NULL;
+}
+
 static const char* ft_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
 	static uint32_t page[2][GBA_W * GBA_H];
 	static uint32_t win[2][GBA_W * GBA_H]; /* the turn order, the Laws */
@@ -649,6 +710,8 @@ static const char* ft_compose(Emu* s, const void* state, uint32_t* const* out, i
 	*step = 300; /* 5 seconds a page */
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
+	if (ft_world(s)) return ft_world_laws(s, out, w, h);
+	ftLawsAt = 0; /* (a battle: opened again on the world map next time) */
 	if (!ft_virt(s, FT_V_IDLE)) return "not on the battle map";
 	/* taken again when the cursor moves, or every 4th picture (the units
 	 * act, the turn order turns) */
@@ -1814,15 +1877,16 @@ static const MapProfile profiles[] = {
 		.stillPick = STILL_FIRST, /* (Map Animations off: the Status's first page) */
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
-		/* taken on the battle map (or a unit's Status open); kept while a
-		 * unit moves or acts, and through the battle's scenes */
+		/* taken on the battle map (or a unit's Status open), or on the
+		 * world map (FT-14); kept while a unit moves or acts, through the
+		 * battle's scenes, and in the world map's town menus and notices */
 		.live = { { FT_V_IDLE, 0xFF, 1, 4 } },
-		.menu = { { FT_V_BATTLE, 0xFF, 0, 4 } },
-		.room = { { FT_CURSOR, 0xFFFF, 0, 2 }, { FT_UI, 0xFF, 0, 1 } },
+		.menu = { { FT_V_SHOWN, 0xFF, 0, 4 } },
+		.room = { { FT_CURSOR, 0xFFFF, 0, 2 }, { FT_UI, 0xFF, 0, 1 }, { FT_V_LOC, 0xFFFFFFFF, 0, 4 } },
 		.hud = {
 			/* nothing moves off the game screen (FT-10); this is for the
-			 * logo before the first picture and outside battles (FT-7) */
-			.on = { { FT_V_BATTLE, 0xFF, 1, 4 } },
+			 * logo before the first picture and elsewhere (FT-7) */
+			.on = { { FT_V_SHOWN, 0xFF, 1, 4 } },
 			.overMap = true,
 			.mapClear = MAP_BG_NAVY,
 			.logoUnder = true,
