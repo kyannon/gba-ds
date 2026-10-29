@@ -40,7 +40,8 @@ void android_http_cancel(bool on);
 bool android_install_apk(const char* path, char* err, size_t errSize);
 /* 0 nothing new; 1 asking the player to confirm; 2 installed; -1 failed
  * (msg says why); -2 the player cancelled; -3 signed with another key (a
- * test build installed); -4 not enough storage. */
+ * test build installed); -4 not enough storage; -5 an older build than
+ * the one installed (a test APK built after the release). */
 int android_take_install_result(char* msg, size_t size);
 /* The sign-in dialog (username prefilled): false if it couldn't open. Its
  * answer comes later: 1 entered (user, password), -1 cancelled, 0 none yet. */

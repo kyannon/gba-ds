@@ -546,7 +546,10 @@ sha256.c are in CMakeLists):
   Back button; no restart, Android closes the app as it installs); the
   player cancelled -> UPD_AVAILABLE again; another signing key (a
   debug-signed test build installed) -> an error saying to uninstall and
-  install by hand; no room; anything else with Android's message.
+  install by hand; an older build than the one installed (versionCode is
+  the CI run number, so a test APK built after a release can't be
+  "updated" to it: Android's message says DOWNGRADE) -> its own error;
+  no room; anything else with Android's message.
 - **UI:** Settings has a fourth row, Updates (SETTINGS_MAX 4; with four
   rows they're 12 units tall with 24 between, and a message shows in place
   of its row's text). The notice and panel are Linux's, with Android's

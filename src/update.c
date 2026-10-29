@@ -549,6 +549,12 @@ static void android_poll(void) {
 		         "Android won't install v%s over this copy of GBA DS: it was signed with another key (a test build?). "
 		         "Uninstall GBA DS, then install the new version from github.com/kyannon/gba-ds/releases. Your files in "
 		         "the GBA DS folder are kept.", U.info.version);
+	} else if (st == -5) {
+		snprintf(U.info.error, sizeof(U.info.error),
+		         "Android won't install v%s over this copy of GBA DS: this copy is a test build made after it, and "
+		         "Android doesn't go back to an earlier build. Keep this one, or uninstall GBA DS and install v%s from "
+		         "github.com/kyannon/gba-ds/releases (your files in the GBA DS folder are kept).", U.info.version,
+		         U.info.version);
 	} else if (st == -4) {
 		snprintf(U.info.error, sizeof(U.info.error), "There isn't enough storage free to install the update.");
 	} else {

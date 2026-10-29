@@ -279,7 +279,7 @@ public class GbaDsActivity extends SDLActivity {
 
     private static final String INSTALL_STATUS = "io.github.kyannon.gbads.INSTALL_STATUS";
 
-    /** 1 asking to confirm, 2 installed, -1 failed, -2 cancelled, -3 another key, -4 no room (android.h). */
+    /** 1 asking to confirm, 2 installed, -1 failed, -2 cancelled, -3 another key, -4 no room, -5 older build (android.h). */
     static native void nativeInstallResult(int state, String message);
 
     /**
@@ -327,6 +327,11 @@ public class GbaDsActivity extends SDLActivity {
             int st = intent.getIntExtra(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE);
             String msg = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE);
             Log.i(TAG, "update: install status " + st + (msg != null ? " (" + msg + ")" : ""));
+            if (st != PackageInstaller.STATUS_SUCCESS && msg != null && msg.contains("DOWNGRADE")) {
+                /* the copy installed is a later build (a test APK built after the release) */
+                nativeInstallResult(-5, msg);
+                return;
+            }
             switch (st) {
             case PackageInstaller.STATUS_PENDING_USER_ACTION: {
                 @SuppressWarnings("deprecation")
