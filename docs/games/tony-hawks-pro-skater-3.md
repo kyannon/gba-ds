@@ -17,4 +17,4 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **TH3-2. Logo at the menus.** Back at the menus the second screen shows the logo.
 
-**TH3-3. Controls picker.** The Controls button offers GBA, Four buttons or Auto (four buttons while skating).
+**TH3-3. Controls picker.** The quick bar's Controls (as TH2-4) offers GBA, Four buttons or Auto (four buttons while skating).

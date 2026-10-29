@@ -1174,20 +1174,32 @@ enum { G_NONE, G_TRACK, G_DONE, G_BUG };
 static int barGesture = G_NONE;
 static int barGX, barGY;        /* where the finger went down */
 
+/* The status row; in games with another button layout (profile
+ * controls), the Controls picker above it, centred. */
+static int bar_status_h(int s) {
+	return ui_px(s) * 22;
+}
+static int bar_pick_h(int s) {
+	return ctlProf ? ui_px(s) * 24 : 0;
+}
+
 static SDL_Rect bar_rect(int s) {
 	SDL_Rect r = screens[s].rect;
 	float px = ui_px(s);
-	int m = px * 4, h = px * 22;
+	int m = px * 4, h = bar_status_h(s) + bar_pick_h(s);
 	int slide = (int) ((1.0f - barShown) * (h + m));
 	return (SDL_Rect) { m, r.h - m - h + slide, r.w - m * 2, h };
 }
 
-/* the bar's four cells, left to right */
+/* the status row's four cells, left to right */
 static SDL_Rect bar_cell(int s, int i) {
 	SDL_Rect b = bar_rect(s);
 	int x0 = b.x + b.w * i / 4, x1 = b.x + b.w * (i + 1) / 4;
-	return (SDL_Rect) { x0, b.y, x1 - x0, b.h };
+	return (SDL_Rect) { x0, b.y + bar_pick_h(s), x1 - x0, bar_status_h(s) };
 }
+
+static void ctl_draw(int s);
+static bool ctl_tap(int s, int x, int y);
 
 static SDL_Rect bar_bug_button(int s) {
 	SDL_Rect c = bar_cell(s, 3);
@@ -1256,6 +1268,7 @@ static void draw_bar(void) {
 		SDL_Rect c = bar_cell(s, i);
 		ui_font_text(s, TF_BOLD, c.x + c.w / 2, c.y + c.h / 2, cap, buf[i], C_TEXT, 0);
 	}
+	if (ctlProf) ctl_draw(s);
 	SDL_Rect bug = bar_bug_button(s);
 	bool lit = barBugAt && SDL_GetTicks() - barBugAt < 1500;
 	bool down = barGesture == G_BUG;
@@ -2337,9 +2350,9 @@ static void ctl_save(void) {
 	fclose(f);
 }
 
-/* the picker is on the second screen, when that's the touchscreen */
+/* the picker is in the quick bar, while it's up */
 static bool ctl_shown(int s) {
-	return ctlProf && cfg->map && nScreens == 2 && s == ui_touch_screen() && s != game_screen();
+	return ctlProf && barOpen && s == ui_touch_screen();
 }
 
 typedef struct {
@@ -2348,21 +2361,19 @@ typedef struct {
 	int labelX, labelY, cap;
 } CtlGeom;
 
-/* A row along the bottom: "Controls" and three square tiles, in the band
- * below the picture when there's room for it, else over the picture. */
+/* The quick bar's top row: "Controls" and two or three square tiles,
+ * centred across the bar. */
 static CtlGeom ctl_geom(int s) {
 	CtlGeom g;
-	SDL_Rect r = screens[s].rect;
+	SDL_Rect b = bar_rect(s);
 	float u = ui_px(s);
-	int t = r.h * 23 / 200, gap = u * 3;
-	g.cap = t / 5;
+	int t = bar_pick_h(s) - u * 4, gap = u * 3;
+	g.cap = u * 6;
 	int lw = ui_label_width(s, g.cap, "Controls");
 	int n = ctl_tiles();
 	int total = lw + gap * 3 + t * n + gap * (n - 1);
-	int x = (r.w - total) / 2;
-	SDL_Rect img = ui_image_rect(s, GBA_W, GBA_H, cfg->mapScale);
-	int below = r.h - (img.y + img.h);
-	int y = below >= t + u * 2 ? img.y + img.h + (below - t) / 2 : r.h - t - u * 2;
+	int x = b.x + (b.w - total) / 2;
+	int y = b.y + u * 4;
 	g.all = (SDL_Rect) { x - gap, y - u, total + gap * 2, t + u * 2 };
 	g.labelX = x + lw / 2;
 	g.labelY = y + t / 2;
@@ -2385,7 +2396,6 @@ static void ctl_draw(int s) {
 	CtlGeom g = ctl_geom(s);
 	float u = ui_px(s);
 	int active = ctl_four() ? CTL_FOUR : CTL_GBA;
-	ui_fill_round(s, g.all, (SDL_Color) { 0, 0, 0, 150 }, u * 4);
 	ui_label(s, g.labelX, g.labelY, g.cap, "Controls", C_TEXT);
 	for (int i = 0; i < ctl_tiles(); ++i) {
 		SDL_Rect t = g.tile[i];
@@ -2401,7 +2411,7 @@ static void ctl_draw(int s) {
 		t = g.tile[i];
 		int d = t.w * 30 / 100;
 		if (ctl_snes()) {
-			ui_label(s, t.x + t.w / 2, t.y + t.h / 2, g.cap, i == CTL_GBA ? "GBA" : "SNES", C_TEXT);
+			ui_label(s, t.x + t.w / 2, t.y + t.h / 2, g.cap * 4 / 5, i == CTL_GBA ? "GBA" : "SNES", C_TEXT);
 		} else if (i == CTL_GBA) {
 			ctl_button(s, BRAND_PILL_L, &t, 32, 27, t.w * 34 / 100);
 			ctl_button(s, BRAND_PILL_R, &t, 68, 27, t.w * 34 / 100);
@@ -2415,12 +2425,12 @@ static void ctl_draw(int s) {
 			ctl_button(s, BRAND_BTN_R, &t, 73, 50, d);
 			ctl_button(s, BRAND_BTN_B, &t, 50, 73, d);
 		} else {
-			ui_label(s, t.x + t.w / 2, t.y + t.h / 2, g.cap, "Auto", C_TEXT);
+			ui_label(s, t.x + t.w / 2, t.y + t.h / 2, g.cap * 4 / 5, "Auto", C_TEXT);
 		}
 	}
 }
 
-/* A tap on the picker: true if it was there (it then doesn't open the menu). */
+/* A tap on the quick bar's picker: true if it was there (it then doesn't open the menu). */
 static bool ctl_tap(int s, int x, int y) {
 	if (!ctl_shown(s)) return false;
 	CtlGeom g = ctl_geom(s);
@@ -3363,7 +3373,6 @@ static void draw_game(void) {
 		if (!hudShown && mapShownIdx >= 0 && mapInactive) {
 			ui_dim(s, 120);
 		}
-		if (ctl_shown(s) && !menuOpen) ctl_draw(s); /* the pause menu covers that screen */
 	}
 	draw_osd();
 }
@@ -3885,7 +3894,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 					if (p.screen == ts && barOpen) {
 						SDL_Rect bug = bar_bug_button(ts);
 						barSince = SDL_GetTicks();
-						barGesture = SDL_PointInRect(&pt, &bug) ? G_BUG : G_TRACK;
+						barGesture = SDL_PointInRect(&pt, &bug) ? G_BUG : ctl_tap(ts, p.x, p.y) ? G_DONE : G_TRACK;
 						barGX = p.x, barGY = p.y;
 						continue;
 					}
@@ -3894,7 +3903,6 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 						barGX = p.x, barGY = p.y;
 						continue;
 					}
-					if (ctl_tap(p.screen, p.x, p.y)) continue;
 					open_menu();
 					ignorePointerUp = true;
 				} else if (p.kind == 3 && barGesture == G_TRACK && p.screen == ts) {
@@ -3921,10 +3929,8 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 						}
 					} else if (g == G_TRACK) {
 						/* a tap, not a swipe */
-						if (barOpen || !ctl_tap(p.screen, barGX, barGY)) {
-							open_menu();
-							ignorePointerUp = false;
-						}
+						open_menu();
+						ignorePointerUp = false;
 					}
 				}
 				continue;

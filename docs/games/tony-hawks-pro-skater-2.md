@@ -19,4 +19,4 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **TH2-3. Logo at the menus.** Back at the menus the second screen shows the logo.
 
-**TH2-4. Controls picker.** The second screen's Controls button offers the four-button layout; GBA is the default.
+**TH2-4. Controls picker.** The quick bar (swiped up from the bottom of the touchscreen) has Controls above its status row, centred, offering the four-button layout; GBA is the default. The second screen itself shows no picker. (Until v1.4.1: a Controls row at the bottom of the second screen.)

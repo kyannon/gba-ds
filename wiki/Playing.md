@@ -60,7 +60,7 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 
 ## The quick bar and bug reports
 
-Swipe up from the bottom edge of the touchscreen for the quick bar. The game keeps running underneath it. From left to right, it shows:
+Swipe up from the bottom edge of the touchscreen for the quick bar. The game keeps running underneath it. In games with another button layout (the Tony Hawk's games, Super Mario Advance 2), **Controls** is at its top: see [Buttons](#buttons). Along its bottom, from left to right, it shows:
 - the time;
 - the battery level;
 - frames per second (about 59.7 is full speed);
@@ -108,12 +108,12 @@ Press each one when it's asked for. **Tap the touchscreen to skip** a button you
 
 The new mapping works straight away and is kept in `states/controllers.txt` for that controller. The log (`gba-ds.log`) has the same line: send it in an issue and it can be built into GBA DS for everyone with that device and system. Running Map Buttons again replaces it; deleting `controllers.txt` goes back to the built-in mappings.
 
-**Four-button layout (Tony Hawk's Pro Skater 2 and 3).** The GBA version uses L and R for two of the console games' four face buttons. Tap a layout under **Controls** at the bottom of the second screen (when it's the touchscreen).:
+**Four-button layout (Tony Hawk's Pro Skater 2 and 3).** The GBA version uses L and R for two of the console games' four face buttons. Swipe up from the bottom of the touchscreen for the [quick bar](#the-quick-bar-and-bug-reports) and tap a layout under **Controls**, at its top:
 - **GBA**: the layout above.
 - **Four buttons**: like the console games. Top = GBA A (grind), bottom = GBA B (ollie), left = GBA L (flip), right = GBA R (grab). L1 / R1 still work as L / R.
 - **Auto**: four buttons while you're skating, the GBA layout everywhere else (menus, pause, goal sheets, results), so A and B confirm and go back as the game expects. The tile for the layout in use right now is outlined.
 
-**SNES layout (Super Mario Advance 2).** Under **Controls**, **SNES** gives Super Mario World the Super Nintendo's buttons in levels:
+**SNES layout (Super Mario Advance 2).** Under **Controls** in the quick bar, **SNES** gives Super Mario World the Super Nintendo's buttons in levels:
 - bottom (B) jumps, left (Y) runs and carries, right (A) and top (X) spin-jump;
 - **L1 pans the camera left and R1 pans it right**, as on the SNES, without moving Mario. (In the GBA version L pans the way Mario faces.)
 

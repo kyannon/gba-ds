@@ -21,7 +21,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **SMA-4. Through doors and castles.** The status bar stays on the second screen through doors, pipes, castle rooms and boss fights.
 
-**SMA-5. SNES layout.** The Controls button offers the SNES layout.
+**SMA-5. SNES layout.** The quick bar (swiped up from the bottom of the touchscreen) has Controls above its status row, centred: GBA or SNES. The second screen itself shows no picker. (Until v1.4.1: a Controls row at the bottom of the second screen.)
 
 **SMA-6. Logo.** The logo (GEN-1) is Super Mario World's own, SUPER MARIO WORLD alone, taken from its title screen (Start for single player, A on Super Mario World) without the wooden frame round it or the copyright line. (Until v1.3.2's later test builds it was the first title's, with SUPER MARIO ADVANCE 2 under it.)
 

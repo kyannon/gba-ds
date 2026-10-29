@@ -56,13 +56,13 @@ You see the game's own map, with everything it shows (explored rooms, save and w
 ## Tony Hawk's Pro Skater 2
 
 - The second screen shows the goal sheet for the current run (Free Skate, Single Session and the career checklist), without the sprites the game draws over it. It stays up through the run, pauses and loading, and goes back to the logo at the menus.
-- An optional four-button layout, like the console games, is under **Controls** on the second screen: see [Playing](Playing#buttons).
+- An optional four-button layout, like the console games, is under **Controls** in the quick bar (swipe up from the bottom of the touchscreen): see [Playing](Playing#buttons).
 
 ## Super Mario Advance 2: Super Mario World
 
 - **On the world map,** the second screen shows the SELECT menu: the list of levels on the island with your time and score, kept up to date as you move around, held still (Peach's HELP! and the level you're on are shown, not blinking). It's captured in the background like the other games' maps; the game itself is never paused.
 - **In a level,** the status bar (lives, Dragon Coins, time, coins and score) moves to the second screen, under the level's name (kept from the world map's list as you went in), with the logo below it. The logo is Super Mario World's own, from its title screen. The blue item box stays at the top of the game screen, with your reserve item in it. Message boxes and the pause box stay on the game screen. The status bar stays there through doors and pipes.
-- An optional **SNES layout** is under **Controls** on the second screen: see [Playing](Playing#buttons).
+- An optional **SNES layout** is under **Controls** in the quick bar (swipe up from the bottom of the touchscreen): see [Playing](Playing#buttons).
 
 ## Final Fantasy Tactics Advance
 
