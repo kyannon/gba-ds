@@ -576,9 +576,12 @@ bool android_second_begin(void) {
 	if (surf2 == EGL_NO_SURFACE) {
 		EGLint fmt = 0;
 		eglGetConfigAttrib(d, gpuConfig, EGL_NATIVE_VISUAL_ID, &fmt);
-		/* the same size as the game screen, so SDL's viewport fits both; the
-		 * compositor scales it to the display if they differ */
-		ANativeWindow_setBuffersGeometry(secondWin, gpuW, gpuH, fmt);
+		/* the second display's own size (ui.c draws it through a viewport of
+		 * that size); before Oct 2026 the game screen's, which a display of
+		 * another size cut off (Retroid Pocket Duo Lite: 1920x1080 and
+		 * 1280x960, issue #8) */
+		int bw = dispW > 0 ? dispW : gpuW, bh = dispH > 0 ? dispH : gpuH;
+		ANativeWindow_setBuffersGeometry(secondWin, bw, bh, fmt);
 		surf2 = eglCreateWindowSurface(d, gpuConfig, secondWin, NULL);
 		if (surf2 == EGL_NO_SURFACE) {
 			static int logged;
@@ -588,7 +591,7 @@ bool android_second_begin(void) {
 		surf2Dpy = d;
 		surf2Interval = false;
 		fresh = true;
-		fprintf(stderr, "second screen: drawing with the GPU (%dx%d)\n", gpuW, gpuH);
+		fprintf(stderr, "second screen: drawing with the GPU (%dx%d)\n", bw, bh);
 	}
 	if (!onSurf2 || fresh) {
 		if (!eglMakeCurrent(d, surf2, surf2, c)) {
