@@ -23,6 +23,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Pokémon Pinball: Ruby & Sapphire | `BPPE` | the table twice as tall over both screens, live, with the score bar |
 | F-Zero: GP Legend (F-Zero: Falcon Densetsu in Japan) | `BFZE` `BFZP` `BFZJ` | the race HUD, with the course map twice as big |
 | River City Ransom EX (Downtown Nekketsu Monogatari EX in Japan) | `BDTE` `BDTJ` (no European release) | the Status screen, with the top bar moved off the game screen |
+| Spider-Man: Mysterio's Menace (Spider-Man: Mysterio no Kyoui in Japan) | `ASEE` (USA and Europe) `ASEJ` | the Select menu: the objective, password, suits, upgrades and web containers |
 
 The codes are what `<CODE>` means in logo and overlay file names (see [Playing](Playing#logos) and [[Map screen surrounds and overlays]]).
 
@@ -161,6 +162,15 @@ The USA release and the Japanese one (Downtown Nekketsu Monogatari EX).
 - At the Story / Manage Data menu, the title card and through a story's opening conversation, the second screen shows the logo.
 - With one screen (`layout = single`), the top bar stays where the game draws it.
 - Shops, restaurants and two players haven't been tried yet.
+
+## Spider-Man: Mysterio's Menace
+
+The USA and European release (one cartridge) and the Japanese one (Spider-Man: Mysterio no Kyoui).
+
+- **In a level,** the second screen shows the **Select menu**, as the game draws it: the level's picture, its objective and password, your suits, upgrades and web containers. It's opened in the background in a silent copy of the game about once a second; your game is never paused.
+- The game's own **pause menu** (START) and **Select menu** (SELECT) stay on the game screen; the second screen keeps its picture meanwhile.
+- At the title, through the intro and the screens between levels (story pictures, the city map with the next mission), the second screen shows the logo.
+- Only the first level has been tried so far.
 
 ## Advance Wars and Advance Wars 2: Black Hole Rising
 

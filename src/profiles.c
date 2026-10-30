@@ -2156,6 +2156,34 @@ static const MapProfile profiles[] = {
 		},
 	},
 	{
+		/* Spider-Man: Mysterio's Menace (USA and Europe; Japan: the ASEJ
+		 * variant). In a level the display is mode 0 with every layer and
+		 * sprites (DISPCNT 0x1F40, the title's too); SELECT brings up the
+		 * Select menu, a mode 4 bitmap with sprite text (0x1444) that fades
+		 * in over some 40 frames (BLDY); START a small pause menu over the
+		 * level (0x1F40 still). The intro, story pictures and the city map
+		 * between levels are mode 4 bitmaps too. The byte at 0x03000228 is
+		 * 0 in a level (its Select menu too), 1 at the title, the intro and
+		 * between levels. */
+		.codes = { "ASEE" },
+		.title = "Spider-Man: Mysterio's Menace",
+		/* the title's lettering: sprites above the menu (SMM-1); START
+		 * skips the intro (both releases' titles are up by then) */
+		.logo = { .steps = { { 0, 560 }, { K_START, 4 }, { 0, 150 } }, .layers = 0x10, .maxY = 70 },
+		/* the Select menu, whole, as the game draws it, once it's faded in
+		 * (SMM-2) */
+		.open = { { K_SELECT, 3 } },
+		.settleMax = 120, .openWithin = 40, .stableFrames = 4, .maxDiff = 40,
+		.crop_x = 0, .crop_y = 0, .crop_w = 240, .crop_h = 160,
+		/* (it opens faded all the way to black, held a few frames: not
+		 * taken until most of it isn't black) */
+		.bgColor = 0x000000, .minForeground = 20000, .tolerance = 8,
+		.mem = { { 0x04000000, 0xFFFF, 0x1444, 2 }, { 0x03000228, 0xFF, 0, 1 } },
+		.live = { { 0x04000000, 0xFFFF, 0x1F40, 2 }, { 0x03000228, 0xFF, 0, 1 } },
+		/* the title, the intro, between levels: the logo (SMM-3) */
+		.menu = { { 0x03000228, 0xFF, 1, 1 } },
+	},
+	{
 		/* River City Ransom EX (USA; in Japan Downtown Nekketsu Monogatari
 		 * EX, with the same RAM and menus). The byte at 0x0300496E is the
 		 * game's screen: 1 the title card, 3 the Story / Manage Data menu,
@@ -2423,6 +2451,14 @@ static void thps3_ger(MapProfile* p) {
 	memcpy(p->probes, show, sizeof(show));
 }
 
+/* Spider-Man: Mysterio's Menace in Japan: its in-a-level byte 0x18 lower
+ * (0x03000210); the display registers are the same */
+static void smm_jpn(MapProfile* p) {
+	p->mem[1].addr -= 0x18;
+	p->live[1].addr -= 0x18;
+	p->menu[0].addr -= 0x18;
+}
+
 static const Variant variants[] = {
 	{ "AGSD", "AGSE", 0, gs_ger },
 	/* F-Zero: GP Legend in Europe: its language menu first (the title
@@ -2446,6 +2482,7 @@ static const Variant variants[] = {
 	{ "AA2J", "AA2E", 0, sma2_jpn },
 	{ "AT3F", "AT3E", 0, thps3_fra },
 	{ "AT3D", "AT3E", 0, thps3_ger },
+	{ "ASEJ", "ASEE", 0, smm_jpn },
 	/* (Fire Emblem's addresses: FeRegion) */
 	{ "AE7X", "AE7E", 0, lang_menu },
 	{ "AE7Y", "AE7E", 0, lang_menu },

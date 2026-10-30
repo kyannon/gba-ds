@@ -1,0 +1,58 @@
+{
+ "game": "Spider-Man: Mysterio's Menace",
+ "rules": "docs/games/spider-man-mysterios-menace.md",
+ "cases": [
+  {
+   "id": "smm-us-intro",
+   "rom": "ASEE",
+   "state": "spider-man-mysterios-menace/us-intro.ss",
+   "desc": "the intro, skipped with START, then the title: the logo (a player's bug report, its keys played back)",
+   "rules": ["SMM-3"],
+   "input": [[0, "-"], [132, "A"], [139, "-"], [168, "START"], [174, "-"]],
+   "shots": {"intro": 100, "title": 590},
+   "checks": [
+    {"rule": "SMM-3", "what": "no Select menu picture", "type": "no_log", "match": "map updated"}
+   ]
+  },
+  {
+   "id": "smm-us-level-start",
+   "rom": "ASEE",
+   "state": "spider-man-mysterios-menace/us-level-start.ss",
+   "desc": "a level's Select menu as it starts, closed, the level, then the Select menu opened in the game (a player's bug report, its keys played back)",
+   "rules": ["SMM-2", "SMM-4"],
+   "input": [[0, "-"], [309, "SELECT"], [316, "-"], [490, "SELECT"], [499, "-"]],
+   "shots": {"menu": 100, "level": 470, "opened": 590},
+   "checks": [
+    {"rule": "SMM-2", "what": "a Select menu picture was shown", "type": "log", "match": "map updated"}
+   ]
+  },
+  {
+   "id": "smm-us-level",
+   "rom": "ASEE",
+   "state": "spider-man-mysterios-menace/us-level.ss",
+   "desc": "in the first level: the Select menu on the second screen",
+   "rules": ["SMM-2"],
+   "shots": {"start": 60, "later": 300},
+   "checks": [
+    {"rule": "SMM-2", "what": "a Select menu picture was shown", "type": "log", "match": "map updated"},
+    {"rule": "SMM-2", "what": "the menu, not black", "type": "not_uniform", "shot": "later", "screen": "second",
+     "rect": [32, 64, 992, 704], "color": "000000", "frac": 0.5}
+   ]
+  },
+  {
+   "id": "smm-jp-level",
+   "rom": "ASEJ",
+   "state": "spider-man-mysterios-menace/jp-level.ss",
+   "desc": "in the first level, Japanese release: the Select menu (ステータス) on the second screen",
+   "rules": ["SMM-2"],
+   "shots": {"start": 60, "later": 300},
+   "checks": [
+    {"rule": "SMM-2", "what": "a Select menu picture was shown", "type": "log", "match": "map updated"},
+    {"rule": "SMM-2", "what": "the menu, not black", "type": "not_uniform", "shot": "later", "screen": "second",
+     "rect": [32, 64, 992, 704], "color": "000000", "frac": 0.5}
+   ]
+  },
+  {"id": "smm-logo-asee", "kind": "logo", "rom": "ASEE", "desc": "ASEE logo extraction", "rules": ["GEN-1", "SMM-1"], "golden": ["logo"]},
+  {"id": "smm-logo-asej", "kind": "logo", "rom": "ASEJ", "desc": "ASEJ logo extraction", "rules": ["GEN-1", "SMM-1"], "golden": ["logo"]}
+ ]
+}
