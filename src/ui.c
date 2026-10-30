@@ -131,6 +131,24 @@ void ui_load_script(const char* path) {
 	script_virtual_pad();
 }
 
+/* GBADS_DRAW_SHOTS_ONLY (tools/regress.py): nothing needs drawing this
+ * frame, as an input script runs with no screenshot due and no touch,
+ * swipe, load or joystick line within 30 ticks (the quick bar's layout and
+ * hit areas are worked out as it's drawn). The game, map and HUD
+ * pictures are still made every frame; only the screens aren't put
+ * together. */
+bool ui_script_quiet(void) {
+	static int on = -1;
+	if (on < 0) on = getenv("GBADS_DRAW_SHOTS_ONLY") != NULL;
+	if (!on || !scriptLen || pendingShot[0] || swipeStep >= 0 || scriptTapUp >= 0) return false;
+	for (int i = 0; i < scriptLen; ++i) {
+		if (!script[i].action[0] || !strncmp(script[i].action, "SHOT:", 5) || !strcmp(script[i].action, "QUIT")) continue;
+		long d = script[i].tick - (long) ticks;
+		if (d > -30 && d < 30) return false;
+	}
+	return true;
+}
+
 const char* ui_script_load(void) {
 	static char path[160];
 	if (!pendingLoad[0]) return NULL;

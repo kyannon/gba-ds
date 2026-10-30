@@ -24,7 +24,7 @@ ROMs and save states never go in this repository.
 ```sh
 make && make tools                          # build/host/gba-ds and harness
 git clone https://github.com/kyannon/gba-ds-tests ../gba-ds-tests
-tools/regress.py                            # every case (about 5 minutes with 8 cores)
+tools/regress.py                            # every case (about 8 minutes with 2 cores)
 tools/regress.py fire-emblem                # one game
 tools/regress.py 'fe-us-*' som-us-forest    # case ids or globs
 tools/regress.py --list [GAME]              # the cases and the rules they cover
@@ -47,7 +47,17 @@ The app runs headless (`SDL_VIDEODRIVER=offscreen`) in a 1024x1536 window
 (both RG DS Plus screens stacked: the game screen on top) with
 `GBADS_SYNC=1`. That switch makes map captures and logo extraction run
 inline at the frame they're asked for instead of on background threads, so
-every run of a case gives exactly the same pictures. Each case gets a
+every run of a case gives exactly the same pictures. The app also runs
+as fast as it can (`GBADS_NOPACE=1`) and draws only the frames that need
+it (`GBADS_DRAW_SHOTS_ONLY=1`: a screenshot's, and those within 30 frames
+of a tap, swipe, state load or joystick line): the game, map and HUD
+pictures are still made every frame, only the screens aren't put
+together, so the pictures are the same as when it draws every frame, in
+under half the time (most of a frame's time went into drawing both
+screens through software OpenGL). `--paced` runs it as players do
+instead, at 60 frames a second and drawing every frame: for a case that
+might depend on something timed in real seconds (the quick bar closes
+itself after 5 s). Each case gets a
 fresh state folder, so it also tests the first-run path (logo and surround
 extraction).
 

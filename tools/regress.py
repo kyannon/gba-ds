@@ -14,7 +14,10 @@ and reports which of the games' rules (docs/games/*.md) still hold.
 
 Options: --fixtures DIR (default $GBADS_TESTS, else ../gba-ds-tests),
 --bin build/host/gba-ds, --harness build/host/harness, --report DIR
-(default build/regress: index.html with each failure's pictures), -j N.
+(default build/regress: index.html with each failure's pictures), -j N
+(default: the CPU count + 1), --paced (at 60 frames a second, drawing
+every frame, as players run it; by default the app runs as fast as it
+can and draws only the frames a screenshot or a touch needs).
 
 Every run is deterministic: GBADS_SYNC=1 makes map captures and logo
 extraction run inline, at the same frames each time, so goldens are
@@ -134,6 +137,10 @@ def run_app(case, args, workdir):
     cmd.append(rom)
     env = dict(os.environ, SDL_VIDEODRIVER="offscreen", SDL_AUDIODRIVER="dummy",
                GBADS_WINDOW="%dx%d" % (SCREEN_W, SCREEN_H * 2), GBADS_SYNC="1", GBADS_DEBUG="1")
+    if not args.paced:
+        # (as fast as it goes, drawing only the frames a screenshot or a
+        # touch needs: the same pictures, in under half the time)
+        env.update(GBADS_NOPACE="1", GBADS_DRAW_SHOTS_ONLY="1")
     try:
         p = subprocess.run(cmd, env=env, capture_output=True, text=True, errors="replace", timeout=args.timeout)
         r.log = p.stdout + p.stderr
@@ -328,7 +335,9 @@ def main():
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--uncovered", action="store_true")
     ap.add_argument("--prune", action="store_true", help="delete goldens no case uses")
-    ap.add_argument("-j", type=int, default=os.cpu_count() or 2)
+    ap.add_argument("-j", type=int, default=(os.cpu_count() or 2) + 1)
+    ap.add_argument("--paced", action="store_true",
+                    help="run the app as players do: at 60 frames a second, drawing every frame")
     ap.add_argument("--timeout", type=int, default=300)
     args = ap.parse_args()
     cases = load_cases(args.only)

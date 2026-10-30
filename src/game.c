@@ -5131,24 +5131,28 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			if (gameTexAll || i == screens[game_screen()].view) ui_update_texture(gameTex[i], shownFb, GBA_W * 4);
 		}
 		gameTexAll = false;
-		ui_sync_view(cfg->vsync || pacedHz > 0 ? screens[game_screen()].view : -1); /* Match Display Rate; vsync: testing (docs/ANDROID.md) */
-		{
-			/* the other screen's redraw waits a frame if this one is past 70% of its time */
-			static double budget = -1;
-			if (budget < 0) budget = getenv("GBADS_DRAW_BUDGET") ? atof(getenv("GBADS_DRAW_BUDGET")) : frameSec * 1000.0 * 0.7;
-			ui_present_budget(ff ? -1 : screens[game_screen()].view, workT0, budget);
+		/* (tests, GBADS_DRAW_SHOTS_ONLY: only the frames a screenshot or a
+		 * touch needs are drawn) */
+		if (!ui_script_quiet()) {
+			ui_sync_view(cfg->vsync || pacedHz > 0 ? screens[game_screen()].view : -1); /* Match Display Rate; vsync: testing (docs/ANDROID.md) */
+			{
+				/* the other screen's redraw waits a frame if this one is past 70% of its time */
+				static double budget = -1;
+				if (budget < 0) budget = getenv("GBADS_DRAW_BUDGET") ? atof(getenv("GBADS_DRAW_BUDGET")) : frameSec * 1000.0 * 0.7;
+				ui_present_budget(ff ? -1 : screens[game_screen()].view, workT0, budget);
+			}
+			ui_clear();
+			draw_game();
+			if (shotPending) {
+				shotPending = false;
+				take_screenshot();
+			}
+			ra_draw(nScreens > 1 ? 1 - game_screen() : 0); /* after the screenshot: not in it */
+			if (barOpen && !cfg->barPinned && barGesture == G_NONE && SDL_GetTicks() - barSince > 5000) bar_close();
+			draw_hint(); /* (under the bar, as it comes up) */
+			draw_bar();
+			ui_present();
 		}
-		ui_clear();
-		draw_game();
-		if (shotPending) {
-			shotPending = false;
-			take_screenshot();
-		}
-		ra_draw(nScreens > 1 ? 1 - game_screen() : 0); /* after the screenshot: not in it */
-		if (barOpen && !cfg->barPinned && barGesture == G_NONE && SDL_GetTicks() - barSince > 5000) bar_close();
-		draw_hint(); /* (under the bar, as it comes up) */
-		draw_bar();
-		ui_present();
 		Uint64 drawT1 = SDL_GetPerformanceCounter();
 		drawTicks += drawT1 - drawT0;
 		{

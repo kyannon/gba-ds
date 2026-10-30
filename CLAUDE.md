@@ -242,7 +242,12 @@ Android session at the same time. To keep them from colliding:
   looking at every differing picture in build/regress/index.html; commit the
   goldens in the fixtures repo saying which rule changed. Before a release,
   `--uncovered` lists the rules marked *By hand:* to check on the device. `GBADS_SYNC=1`
-  makes captures and logo extraction run inline, so runs are exact.
+  makes captures and logo extraction run inline, so runs are exact. By
+  default regress.py also runs the app unpaced (`GBADS_NOPACE=1`) and
+  drawing only screenshot and touch frames (`GBADS_DRAW_SHOTS_ONLY=1`),
+  the CPU count + 1 cases at a time: the full suite takes about 8 minutes
+  on a session's 2 cores (18 drawing every frame). `--paced` runs as
+  players do.
 
 ## Architecture (src/)
 
