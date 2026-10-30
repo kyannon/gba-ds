@@ -5,7 +5,7 @@
 | Releases | `AFXE` USA · `AFXP` Europe (language menu first) · `AFXJ` Japan |
 | Profile | `src/profiles.c`: the `AFXE` entry; variants `AFXP`, `AFXJ` |
 | Tests | `tests/regress/final-fantasy-tactics-advance.json` (`tools/regress.py final-fantasy-tactics-advance`) |
-| Status | preliminary (second screen redone in v1.3.2) |
+| Status | supported (second screen redone in v1.3.2) |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list final-fantasy-tactics-advance`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.
 

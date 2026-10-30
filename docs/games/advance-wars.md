@@ -5,7 +5,7 @@
 | Releases | `AWRE` USA · `AWRP` Europe (its language menu comes later). No Japanese release. |
 | Profile | `src/profiles.c`: the `AWRE` entry; variant `AWRP` |
 | Tests | `tests/regress/advance-wars.json` (`tools/regress.py advance-wars`) |
-| Status | preliminary |
+| Status | supported |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list advance-wars`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.
 

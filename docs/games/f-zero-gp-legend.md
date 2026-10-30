@@ -5,7 +5,7 @@
 | Releases | `BFZE` USA · `BFZP` Europe · `BFZJ` Japan (F-Zero: Falcon Densetsu) |
 | Profile | `src/profiles.c`: the `BFZE` entry (with `BFZP`, `BFZJ`) |
 | Tests | `tests/regress/f-zero-gp-legend.json` (`tools/regress.py f-zero-gp-legend`) |
-| Status | preliminary |
+| Status | supported |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list f-zero-gp-legend`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.
 

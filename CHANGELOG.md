@@ -2,6 +2,9 @@
 
 ## v1.4.4 (not yet released)
 
+### Supported games
+- Final Fantasy Tactics Advance, Advance Wars, Advance Wars 2, Game Boy Wars Advance 1+2, Fire Emblem, Summon Night: Swordcraft Story, Golden Sun, Tactics Ogre, Pokémon Pinball, F-Zero: GP Legend and River City Ransom EX are no longer marked preliminary: they've been tested as much as the other supported games.
+
 ## v1.4.3 (2026-10-30)
 
 ### New games (preliminary)

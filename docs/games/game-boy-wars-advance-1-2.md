@@ -5,7 +5,7 @@
 | Releases | `BGWJ` Japan only: Advance Wars (Game Boy Wars Advance) and Advance Wars 2 (Game Boy Wars Advance 2) on one cartridge, the only Japanese release of either. |
 | Profile | `src/profiles.c`: the `BGWJ` entry (the compilation's own menus) and its `pick`, which switches to the `BGW1` or `BGW2` variant (Advance Wars' and Advance Wars 2's profiles at this cartridge's addresses, in `awRegions`) |
 | Tests | `tests/regress/game-boy-wars-advance-1-2.json` (`tools/regress.py game-boy-wars-advance-1-2`) |
-| Status | preliminary |
+| Status | supported |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list game-boy-wars-advance-1-2`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.
 

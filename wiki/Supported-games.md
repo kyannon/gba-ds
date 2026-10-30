@@ -12,17 +12,17 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Mario Kart: Super Circuit (Mario Kart Advance in Japan) | `AMKE` `AMKP` `AMKJ` | the race HUD, results and podium | — |
 | Tony Hawk's Pro Skater 3 | `AT3E` (USA and Europe) `AT3F` `AT3D` | the goal list; optional four-button layout | — |
 | Super Mario Advance 2: Super Mario World | `AA2E` `AA2P` `AA2J` | the SELECT menu on the world map; the status bar in levels; optional SNES layout | — |
-| Final Fantasy Tactics Advance (preliminary) | `AFXE` `AFXP` `AFXJ` | in battles: the Status of the unit under the cursor, or the turn order and Laws; on the world map: today's Laws | — |
-| Advance Wars (Game Boy Wars Advance in Japan; preliminary) | `AWRE` `AWRP` `BGWJ` (Japan: on Game Boy Wars Advance 1+2, with Advance Wars 2) | in battles: the intel of the unit under the cursor, or the battle intel | — |
-| Advance Wars 2: Black Hole Rising (Game Boy Wars Advance 2 in Japan; preliminary) | `AW2E` `AW2P` `BGWJ` (Japan: on Game Boy Wars Advance 1+2, with Advance Wars) | in battles: the intel of the unit under the cursor, or the battle intel | — |
-| Fire Emblem (Rekka no Ken in Japan; preliminary) | `AE7E` `AE7X` (English, French, German) `AE7Y` (English, Spanish, Italian) `AE7J` | on the map: the status of the unit under the cursor | — |
+| Final Fantasy Tactics Advance | `AFXE` `AFXP` `AFXJ` | in battles: the Status of the unit under the cursor, or the turn order and Laws; on the world map: today's Laws | — |
+| Advance Wars (Game Boy Wars Advance in Japan) | `AWRE` `AWRP` `BGWJ` (Japan: on Game Boy Wars Advance 1+2, with Advance Wars 2) | in battles: the intel of the unit under the cursor, or the battle intel | — |
+| Advance Wars 2: Black Hole Rising (Game Boy Wars Advance 2 in Japan) | `AW2E` `AW2P` `BGWJ` (Japan: on Game Boy Wars Advance 1+2, with Advance Wars) | in battles: the intel of the unit under the cursor, or the battle intel | — |
+| Fire Emblem (Rekka no Ken in Japan) | `AE7E` `AE7X` (English, French, German) `AE7Y` (English, Spanish, Italian) `AE7J` | on the map: the status of the unit under the cursor | — |
 | Sword of Mana (Shinyaku Seiken Densetsu in Japan) | `AVSE` `AVSY` (Spanish, Italian) `AVSJ` | the Status screen | — |
-| Summon Night: Swordcraft Story (Craft Sword Monogatari in Japan; preliminary) | `AB4E` `AB4J` (no European release) | the Status screen, with where you are | — |
-| Golden Sun (Ougon no Taiyou: Hirakareshi Fuuin in Japan; preliminary) | `AGSE` `AGSD` `AGSF` `AGSI` `AGSS` `AGSJ` | the Status screen, each party member in turn; in battle, the one choosing | — |
-| Tactics Ogre: The Knight of Lodis (Tactics Ogre Gaiden in Japan; preliminary) | `ATOE` `ATOJ` (no European release) | the battle's unit list, on the unit under your cursor | — |
-| Pokémon Pinball: Ruby & Sapphire (preliminary) | `BPPE` | the table twice as tall over both screens, live, with the score bar | — |
-| F-Zero: GP Legend (F-Zero: Falcon Densetsu in Japan; preliminary) | `BFZE` `BFZP` `BFZJ` | the race HUD, with the course map twice as big | — |
-| River City Ransom EX (Downtown Nekketsu Monogatari EX in Japan; preliminary) | `BDTE` `BDTJ` (no European release) | the Status screen, with the top bar moved off the game screen | — |
+| Summon Night: Swordcraft Story (Craft Sword Monogatari in Japan) | `AB4E` `AB4J` (no European release) | the Status screen, with where you are | — |
+| Golden Sun (Ougon no Taiyou: Hirakareshi Fuuin in Japan) | `AGSE` `AGSD` `AGSF` `AGSI` `AGSS` `AGSJ` | the Status screen, each party member in turn; in battle, the one choosing | — |
+| Tactics Ogre: The Knight of Lodis (Tactics Ogre Gaiden in Japan) | `ATOE` `ATOJ` (no European release) | the battle's unit list, on the unit under your cursor | — |
+| Pokémon Pinball: Ruby & Sapphire | `BPPE` | the table twice as tall over both screens, live, with the score bar | — |
+| F-Zero: GP Legend (F-Zero: Falcon Densetsu in Japan) | `BFZE` `BFZP` `BFZJ` | the race HUD, with the course map twice as big | — |
+| River City Ransom EX (Downtown Nekketsu Monogatari EX in Japan) | `BDTE` `BDTJ` (no European release) | the Status screen, with the top bar moved off the game screen | — |
 
 The codes are what `<CODE>` means in logo and overlay file names (see [Playing](Playing#logos) and [[Map screen surrounds and overlays]]).
 
@@ -69,7 +69,7 @@ You see the game's own map, with everything it shows (explored rooms, save and w
 
 ## Final Fantasy Tactics Advance
 
-Preliminary: a new second screen in v1.3.2, replacing the earlier one (which moved the game's dialogue and menus there).
+A new second screen since v1.3.2, replacing the earlier one (which moved the game's dialogue and menus there).
 
 - **In a battle, with the cursor on a unit** (yours, an enemy or a guest), the second screen is that unit's **Status** screen, as the game draws it, turning between its Equip and Abilities pages every 5 seconds.
 - **With the cursor on no unit** (or on the judge, who has no Status), it shows the **Laws** (forbidden and recommended) at the top and the **turn order** (the list L shows) below them. The list is too long to fit under the Laws, so its last rows are cut off at the bottom; who acts next always shows.
@@ -79,7 +79,7 @@ Preliminary: a new second screen in v1.3.2, replacing the earlier one (which mov
 
 ## Pokémon Pinball: Ruby & Sapphire
 
-Preliminary. The USA release.
+The USA release.
 
 - **On a table,** the two screens together show twice as much of it, **live**, as if they were one tall screen: GBA DS runs two more copies of the game alongside yours, with the same buttons every frame, drawing the parts of the table your game's view doesn't, so the flippers, the Pokémon and everything else move on both screens. Your game itself is never changed.
 - The view scrolls smoothly with the ball and never jumps. While the ball is in the table's upper part, your game is on the top screen with the next part of the table below it. Further down, the two screens show the whole lower table, and the ball is on the bottom screen only when it's down by the flippers.
@@ -93,7 +93,7 @@ Preliminary. The USA release.
 
 ## Golden Sun
 
-Preliminary. Every release has been tried walking about (USA / Europe, German, French, Italian, Spanish, Japanese), and battles in the USA / Europe and German ones; if a battle in another release doesn't work, its second screen keeps the logo.
+Every release has been tried walking about (USA / Europe, German, French, Italian, Spanish, Japanese), and battles in the USA / Europe and German ones; if a battle in another release doesn't work, its second screen keeps the logo.
 
 - **While you walk about,** the second screen shows the **Status** screen (the one in SELECT's menu), at the game screen's size and in your chosen window colour, turning to the next party member every 5 seconds. It's brought up in the background on a silent copy of the game, so it stays up to date without you opening it; your game is never paused or touched.
 - **In a battle,** while you choose what to do, the second screen shows the battle's Status screen of the character choosing (the first one in the Fight / Flee / Status menu). While the turn plays out, it shows the logo.
@@ -102,7 +102,7 @@ Preliminary. Every release has been tried walking about (USA / Europe, German, F
 
 ## Tactics Ogre: The Knight of Lodis
 
-Preliminary. The USA and Japanese (Tactics Ogre Gaiden) releases have both been tried.
+The USA and Japanese (Tactics Ogre Gaiden) releases have both been tried.
 
 - **In a battle,** the second screen shows the battle's unit list (R, View List), with its cursor on the unit your cursor is on in the field, yours or the enemy's (on an empty square, your leader). It follows as soon as your cursor stops on another square.
 - **Its pages** (the ones START turns through: level, HP, MP, element, the bars, side) change every 2.5 seconds. Its R SEARCH and START:DATA prompts are left out, as those buttons don't work there.
@@ -111,7 +111,7 @@ Preliminary. The USA and Japanese (Tactics Ogre Gaiden) releases have both been 
 
 ## Summon Night: Swordcraft Story
 
-Preliminary. The USA release and the Japanese one (Craft Sword Monogatari); there was no European release.
+The USA release and the Japanese one (Craft Sword Monogatari); there was no European release.
 
 - **While you play,** the second screen shows the **Status** screen from the START menu, at the game screen's size, with the menu's **Place** bar (where you are) over its bottom, its heading short enough to leave the row under the stats in view. Both are brought up in the background on a silent copy of the game; your game is never paused or touched. Where the menu can't be opened (a scene, a fight), the last picture stays.
 - On the title screen, the second screen shows the logo, the whole sword included.
@@ -154,7 +154,7 @@ As with Mario Kart: Super Circuit, the HUD is moved off the game screen rather t
 
 ## River City Ransom EX
 
-Preliminary. The USA release and the Japanese one (Downtown Nekketsu Monogatari EX).
+The USA release and the Japanese one (Downtown Nekketsu Monogatari EX).
 
 - **On the street,** the second screen shows the **Status screen** (pause, Status): your name, stamina bar and money along the top, and your stats, on a plain blue background. Its message box along the bottom is left black. It's opened in the background in a silent copy of the game about once a second; your game is never paused.
 - The **bar along the top of the game screen** (name, stamina, money) isn't drawn, on the street or in the pause menu, so the street shows there instead. The message box along the bottom stays.
@@ -164,7 +164,7 @@ Preliminary. The USA release and the Japanese one (Downtown Nekketsu Monogatari 
 
 ## Advance Wars and Advance Wars 2: Black Hole Rising
 
-Preliminary. The USA and European releases of both, and in Japan Game Boy Wars Advance 1+2, which has both games on one cartridge. The two work the same way.
+The USA and European releases of both, and in Japan Game Boy Wars Advance 1+2, which has both games on one cartridge. The two work the same way.
 
 - **In a battle, on your turn,** the second screen shows the **intel of the unit under the cursor** (the screen R opens, with its text box, where the game puts them), yours or the enemy's (yours stays while you move it and pick its action), or else the **Battle Intel** (bases and funds) in the middle. Both are brought up in the background from the menus of a silent copy of the game, as the other games' maps are; your game is never paused.
 - Nothing leaves the game screen: the **CO and day plate**, the **terrain and unit info**, the DAMAGE box and **conversations** stay where the game draws them.
@@ -175,7 +175,7 @@ Preliminary. The USA and European releases of both, and in Japan Game Boy Wars A
 
 ## Fire Emblem
 
-Preliminary. The USA release, both European ones (English, French and German; English, Spanish and Italian) and the Japanese one (Rekka no Ken).
+The USA release, both European ones (English, French and German; English, Spanish and Italian) and the Japanese one (Rekka no Ken).
 
 - **With the cursor on a unit** (yours or another army's), the second screen is that unit's **status screen** (the one R opens), as the game draws it, turning through its three pages (personal data, items, weapon and support levels) every 5 seconds. It's opened in the background in a silent copy of the game, and taken again only when the cursor or a unit changes, so it holds still between pages.
 - **Otherwise** (the cursor on no unit, a unit selected, its menu and the battle forecast, fights, the other armies' turns, story scenes, the title and menus), the second screen shows the game's logo.

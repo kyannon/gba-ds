@@ -5,7 +5,7 @@
 | Releases | `AW2E` USA · `AW2P` Europe (the same RAM; a language menu first). No Japanese release. |
 | Profile | `src/profiles.c`: the `AW2E` entry (Advance Wars' code, its addresses in `awRegions`); variant `AW2P` |
 | Tests | `tests/regress/advance-wars-2.json` (`tools/regress.py advance-wars-2`) |
-| Status | preliminary |
+| Status | supported |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list advance-wars-2`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.
 

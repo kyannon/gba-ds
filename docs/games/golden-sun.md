@@ -5,7 +5,7 @@
 | Releases | `AGSE` USA, Europe (English) · `AGSD` Germany · `AGSF` France · `AGSI` Italy · `AGSS` Spain · `AGSJ` Japan (each tried walking about; battles only in `AGSE`) |
 | Profile | `src/profiles.c`: the `AGSE` entry (gs_compose); variant `AGSD` (its battle bytes 0x10 higher) |
 | Tests | `tests/regress/golden-sun.json` (`tools/regress.py golden-sun`) |
-| Status | preliminary |
+| Status | supported |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list golden-sun`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.
 
