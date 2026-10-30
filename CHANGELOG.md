@@ -23,6 +23,11 @@
 ### Pokémon Pinball
 - The frame buffer is now always on in this game (the pause menu shows it as "Always on here"), as it needs it to run at full speed.
 
+### Second screen: button prompts left out
+- **Final Fantasy Tactics Advance:** a unit's Status no longer shows the D-pad and arrow at the right of its page bar.
+- **Advance Wars, Advance Wars 2, Game Boy Wars Advance 1+2:** the unit intel no longer has the yellow corners blinking round the unit's picture.
+- **Golden Sun:** the Status from walking about no longer has the box at the top right with "L-R: Rearrange / A: Details" (that corner is left black); the battle's Status no longer shows "Use the L & R buttons to switch between characters."
+
 ### Fixes
 - **Golden Sun:** the German release showed only the logo; it now shows the Status screen and battles like the others. Walking through a doorway could drop the Status screen to the logo for a moment: no longer.
 - **Advance Wars, Advance Wars 2, Game Boy Wars Advance 1+2:** leaving a battle for the mode menu, or winning one (Field Training's results too), kept the last unit intel on the second screen; it's the logo again. In Advance Wars 2's Versus the intel didn't show at all: it does again.

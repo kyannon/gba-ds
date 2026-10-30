@@ -13,7 +13,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 ## Rules
 
-**AW-1. Unit intel or Battle Intel.** In a battle on your turn the second screen shows the intel of the unit under the cursor (the screen R opens: its panel and the text box beside it, where the game puts them) when there's a unit there, yours or the enemy's (still while yours moves and picks an action), or else the Battle Intel (the battle's status panel), centred on the screen; both are brought up on the hidden copy. (Until v1.3.2: the Unit list with the unit highlighted. Until v1.3.2's later test builds both were at the top, the minimap and the moved plate and info below them.)
+**AW-1. Unit intel or Battle Intel.** In a battle on your turn the second screen shows the intel of the unit under the cursor (the screen R opens: its panel and the text box beside it, where the game puts them; the yellow corners blinking round the unit's picture left out, since v1.4.2's later test builds) when there's a unit there, yours or the enemy's (still while yours moves and picks an action), or else the Battle Intel (the battle's status panel), centred on the screen; both are brought up on the hidden copy. (Until v1.3.2: the Unit list with the unit highlighted. Until v1.3.2's later test builds both were at the top, the minimap and the moved plate and info below them.)
 
 **AW-2.** *Retired in v1.3.2's later test builds:* the START minimap at the second screen's bottom left.
 

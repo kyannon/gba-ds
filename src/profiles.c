@@ -70,6 +70,8 @@ typedef struct {
 	uint32_t intelPx[2][3]; /* the Battle Intel is up: x, y, colour (0xRRGGBB) */
 	int intelRows;          /* the Battle Intel's panel: the rows above the map */
 	uint32_t unitOpen[2];   /* this word holds this value (the screen's routine) while the unit intel (R) is up */
+	int cornerTile; /* the yellow corners blinking round the unit intel's picture (AW-1,
+	                 * AW2-1): four 8x8 sprites of this tile (flipped), palette 1, left out */
 	uint32_t mapTask; /* 0x03000000 holds this (a routine) on the battle map, 0 at moments
 	                   * (the computer's turn, fights), anything else elsewhere (a battle's
 	                   * results, the title, the mode menu: the army byte keeps the last
@@ -78,15 +80,15 @@ typedef struct {
 } AwRegion;
 
 static const AwRegion awRegions[] = {
-	{ AW_ARMY, AW_CURSOR, AW_UNITS, AW_MENU_ROW, AW_MINIMAP_OPEN, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000ED0, 0x082E3FD4 }, 0x0801FA69 },
+	{ AW_ARMY, AW_CURSOR, AW_UNITS, AW_MENU_ROW, AW_MINIMAP_OPEN, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000ED0, 0x082E3FD4 }, 876, 0x0801FA69 },
 	/* (its SELECT menu has no Unit item: CO, Intel, Options, Save, End) */
-	{ AW2_ARMY, AW2_CURSOR, AW2_UNITS, AW2_MENU_ROW, AW2_MINIMAP_OPEN, 1, { { 200, 100, 0xFFEFEF }, { 120, 140, 0xFFEFEF } }, 152, { 0x03001530, 0x0849E2C0 }, 0x08022049 },
+	{ AW2_ARMY, AW2_CURSOR, AW2_UNITS, AW2_MENU_ROW, AW2_MINIMAP_OPEN, 1, { { 200, 100, 0xFFEFEF }, { 120, 140, 0xFFEFEF } }, 152, { 0x03001530, 0x0849E2C0 }, 873, 0x08022049 },
 	/* Game Boy Wars Advance 1+2 (Japan): each game at its own addresses
 	 * (game 1's found by the literal pools around its code: 0x240 lower
 	 * than Advance Wars' above 0x03003000, 0x10 lower around 0x03000E00;
 	 * the unit intel's routine by its shape; game 2's by watching them) */
-	{ GBW1_ARMY, GBW1_CURSOR, GBW1_UNITS, 0x03000E40, 0x03000E1E, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000EC0, 0x08DEC9D8 }, 0x08B1FFA1 },
-	{ GBW2_ARMY, GBW2_CURSOR, GBW2_UNITS, AW2_MENU_ROW, AW2_MINIMAP_OPEN, 1, { { 200, 100, 0xFFEFEF }, { 120, 140, 0xFFEFEF } }, 152, { 0x03001530, 0x0881A0A4 }, 0x08322509 },
+	{ GBW1_ARMY, GBW1_CURSOR, GBW1_UNITS, 0x03000E40, 0x03000E1E, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000EC0, 0x08DEC9D8 }, 876, 0x08B1FFA1 },
+	{ GBW2_ARMY, GBW2_CURSOR, GBW2_UNITS, AW2_MENU_ROW, AW2_MINIMAP_OPEN, 1, { { 200, 100, 0xFFEFEF }, { 120, 140, 0xFFEFEF } }, 152, { 0x03001530, 0x0881A0A4 }, 873, 0x08322509 },
 };
 
 /* Game Boy Wars Advance 1+2: which game is running, by where the
@@ -236,7 +238,8 @@ static bool aw_cursor_any(Emu* s) {
  * bg2: BG2 alone too (the boxes), AW_BG where it has nothing. */
 static void aw_clean(Emu* s, void* tmp, uint32_t* pan, uint32_t* bg2) {
 	static uint32_t none[GBA_W * GBA_H];
-	static const SpriteRule rules[2] = { { -512, -256, 511, 255, 0, 1023, 3, 0, 0 }, AW_WEATHER };
+	int ct = aw_r(s)->cornerTile;
+	const SpriteRule rules[3] = { { -512, -256, 511, 255, 0, 1023, 3, 0, 0 }, AW_WEATHER, { -512, -256, 511, 255, ct, ct, 0, 1u << 1, 0 } };
 	if (!emu_state_save(s, tmp)) {
 		memcpy(pan, s->fb, GBA_W * GBA_H * sizeof(uint32_t));
 		return;
@@ -252,11 +255,11 @@ static void aw_clean(Emu* s, void* tmp, uint32_t* pan, uint32_t* bg2) {
 		for (int i = 0; i < GBA_W * GBA_H; ++i) bg2[i] = s->fb[i] == none[i] ? AW_BG : s->fb[i];
 	}
 	emu_layers(s, 0x15);
-	emu_hide_sprites(s, rules, 2);
+	emu_hide_sprites(s, rules, 3);
 	emu_state_load(s, tmp);
 	emu_frame(s, 0);
 	for (int i = 0; i < GBA_W * GBA_H; ++i) pan[i] = s->fb[i] == none[i] ? AW_BG : s->fb[i];
-	emu_hide_sprites(s, &rules[1], 1);
+	emu_hide_sprites(s, &rules[1], 2);
 	emu_layers(s, 0x1F);
 	emu_state_load(s, tmp);
 }
@@ -320,8 +323,9 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 	bool unitPanel = false;
 	/* weather (rain falling over the menus) out of every picture: the
 	 * menus settle, and it isn't kept in them */
-	static const SpriteRule weather = AW_WEATHER;
-	emu_hide_sprites(s, &weather, 1);
+	int ct = r->cornerTile;
+	const SpriteRule weather[2] = { AW_WEATHER, { -512, -256, 511, 255, ct, ct, 0, 1u << 1, 0 } };
+	emu_hide_sprites(s, weather, 2);
 	if (!emu_state_load(s, state)) return "state load failed";
 	void* tmp = malloc(emu_state_size(s));
 	if (!tmp) return "out of memory";
@@ -1230,6 +1234,47 @@ static bool gs_wait(Emu* s, bool (*up)(Emu*), int n) {
 	return up(s);
 }
 
+/* The battle's Status without its help line (GS-7): "Use the L & R
+ * buttons to switch between characters." at 120-152 in the window under
+ * the stats (the character's figure ends above it); its letters (white,
+ * with black shadows) take the window's colour on their row (x 231,
+ * inside its right edge). */
+static void gs_no_help(uint32_t* px, int w) {
+	if (w < GBA_W) return;
+	for (int y = 120; y <= 152; ++y) {
+		uint32_t* row = &px[y * w];
+		uint32_t bg = row[231];
+		if ((bg & 0xFFFFFF) == 0 || (bg & 0xFFFFFF) == 0xFFFFFF) continue;
+		for (int x = 4; x < 231; ++x) {
+			uint32_t c = row[x] & 0xFFFFFF;
+			if (c == 0 || c == 0xFFFFFF) row[x] = bg;
+		}
+	}
+}
+
+/* The Status from walking about without its top-right box (GS-1: the L-R:
+ * Rearrange / A: Details prompt): black, as between the game's windows.
+ * The box is found by its frame (a black column, then dark grey and white)
+ * on line 20 and its bottom (black, then the next box's dark grey) below;
+ * left as it is if not found. */
+static void gs_no_prompt_box(uint32_t* px, int w) {
+	if (w < GBA_W) return;
+	int x0 = -1, y1 = -1;
+	for (int x = 80; x < 160 && x0 < 0; ++x) {
+		uint32_t a = px[20 * w + x - 1] & 0xFFFFFF, b = px[20 * w + x] & 0xFFFFFF, c = px[20 * w + x + 1] & 0xFFFFFF;
+		if (a == 0 && b == 0x525252 && c == 0xFFFFFF) x0 = x;
+	}
+	if (x0 < 0) return;
+	for (int y = 24; y < 60 && y1 < 0; ++y) {
+		uint32_t a = px[y * w + x0 + 20] & 0xFFFFFF, b = px[(y + 1) * w + x0 + 20] & 0xFFFFFF;
+		if (a == 0 && b == 0x525252) y1 = y;
+	}
+	if (y1 < 0) return;
+	for (int y = 0; y <= y1; ++y) {
+		for (int x = x0; x < GBA_W; ++x) px[y * w + x] = 0xFF000000;
+	}
+}
+
 static const char* gs_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
 	static uint32_t page[GS_PAGES][GBA_W * GBA_H];
 	int max = *nOut < GS_PAGES ? *nOut : GS_PAGES;
@@ -1255,6 +1300,7 @@ static const char* gs_compose(Emu* s, const void* state, uint32_t* const* out, i
 		aw_run(s, 0, 10);
 		if (emu_cancelled(s)) return "called off";
 		for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[0][y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+		gs_no_help(out[0], w);
 		*nOut = 1;
 		return NULL;
 	}
@@ -1295,6 +1341,7 @@ static const char* gs_compose(Emu* s, const void* state, uint32_t* const* out, i
 	*nOut = n;
 	for (int k = 0; k < n; ++k) {
 		for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[k][y * w], &page[k][y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+		gs_no_prompt_box(out[k], w);
 	}
 	return NULL;
 }
@@ -1955,6 +2002,9 @@ static const MapProfile profiles[] = {
 		.codes = { "AFXE" },
 		.title = "Final Fantasy Tactics Advance",
 		.virt = ft_virt,
+		/* a Status's page prompt (FT-8): the D-pad and arrow at the right of
+		 * its page bar, one 16x16 sprite (tile 452, wobbling across) */
+		.captureHide = { { 200, 30, 239, 70, 452, 455, 0 } },
 		.composePages = ft_compose,
 		.stillPick = STILL_FIRST, /* (Map Animations off: the Status's first page) */
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */

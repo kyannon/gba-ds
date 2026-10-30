@@ -13,7 +13,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 ## Rules
 
-**GS-1. Status screen.** Walking about (where SELECT opens the menu), the second screen shows the Status screen (SELECT, the last icon, Status, then A), the whole screen at the game screen's size, as the game draws it (its L-R / A prompt and the hand included). It's opened on the hidden copy at every map refresh (straight after a battle too), so it stays up to date without the player opening it. With the Status screen, or another of the menu's screens (Psynergy, Item), open in the game, the same: the Status, opened afresh.
+**GS-1. Status screen.** Walking about (where SELECT opens the menu), the second screen shows the Status screen (SELECT, the last icon, Status, then A), the whole screen at the game screen's size, as the game draws it (the hand included), but for the box at the top right with its L-R: Rearrange / A: Details prompt, left out: black there, as between the game's windows. (Until v1.4.2's later test builds the prompt box showed.) It's opened on the hidden copy at every map refresh (straight after a battle too), so it stays up to date without the player opening it. With the Status screen, or another of the menu's screens (Psynergy, Item), open in the game, the same: the Status, opened afresh.
 
 **GS-2. Every party member in turn.** The Status screen turns through the party (RIGHT on the hidden copy, as many as there are, back to the first), one every 5 seconds, and keeps turning at that pace through each refresh.
 
@@ -25,7 +25,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **GS-6. Game screen untouched.** Nothing leaves the game screen.
 
-**GS-7. A battle, choosing.** In a battle, while the player chooses what to do (the party menu: Fight, Flee, Status; a character's menu; picking a target), the second screen shows the battle's own Status screen of the one choosing (the first in the party menu), as the game draws it: opened on the hidden copy (back to the party menu, Status, A, R to that character), and again as soon as the next character's turn to choose comes, the first turn too. With the battle's Status open in the game, the one choosing's. Until that picture is taken, the logo: never the Status from walking about.
+**GS-7. A battle, choosing.** In a battle, while the player chooses what to do (the party menu: Fight, Flee, Status; a character's menu; picking a target), the second screen shows the battle's own Status screen of the one choosing (the first in the party menu), as the game draws it but for its "Use the L & R buttons to switch between characters." line, left out (the window's own colour there; until v1.4.2's later test builds it showed): opened on the hidden copy (back to the party menu, Status, A, R to that character), and again as soon as the next character's turn to choose comes, the first turn too. With the battle's Status open in the game, the one choosing's. Until that picture is taken, the logo: never the Status from walking about.
 
 **GS-8. A battle playing out.** In a battle, while it plays out (from its start, with the enemies appearing, through the party's and the enemies' moves and its messages), the second screen shows the logo, and the pictures from walking about are dropped: after the battle they're taken again.
 
