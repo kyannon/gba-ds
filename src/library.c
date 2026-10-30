@@ -390,7 +390,9 @@ static void draw_preview(Config* cfg, int scr, int sel) {
 		int gameH = headH * 2, maxW = r.w - ourW - m * 3;
 		if (prof && prof->title) ui_title_block(scr, (SDL_Rect) { r.w - m - maxW, m, maxW, gameH }, prof->title, px * 9, C_TEXT);
 	}
-	if (!g->supported) ui_font_text(scr, TF_BODY, m, m + headH + px * 7, px * 4, "Single screen only: plays normally", C_DIM, -1);
+	/* (a game with no profile has no logo either: the note goes where a
+	 * game's logo would, at the top right, beside ours) */
+	if (!g->supported) ui_font_text(scr, TF_BODY, r.w - m, m + headH / 2, px * 5, "Single screen only: plays normally", C_DIM, 1);
 
 	/* the resume point (the game screen only), or a note that there isn't one,
 	 * with clear space above (below the game's logo) and below (above the hints) */
