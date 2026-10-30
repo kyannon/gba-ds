@@ -79,7 +79,7 @@ Swipe down, or tap anywhere off its buttons, to put the bar away (tap again for 
 - every button the game got in between (`-keys.txt`): each press and lift, and how long it was held;
 - your device and system, GBA DS's settings and the end of the log (`-info.txt`). Lines of the log that mention passwords or tokens are left out.
 
-From these, what you did can be played back exactly, frame by frame. So when something goes wrong, press the bug button as soon as you can after it, and attach the `.zip` to [an issue on GitHub](https://github.com/kyannon/gba-ds/issues), saying what you expected to happen. The 10 seconds start again after you load a state, rewind or restart the game.
+From these, what you did can be played back exactly, frame by frame. So when something goes wrong, press the bug button as soon as you can after it, and attach the `.zip` to [an issue on GitHub](https://github.com/kyannon/gba-ds/issues), saying what you expected to happen. The 10 seconds start again after you load a state, rewind or restart the game. The `bug-reports` folder also has a `README.txt` with these steps and what to write in the issue.
 
 ## Buttons
 

@@ -6,6 +6,12 @@
 - **F-Zero: GP Legend:** in a race (Grand Prix, Story, Time Trial, Training), the HUD moves to the second screen: the POWER meter at the top, your spare machines, laps left, time, lap times and KOs in its corners, and the course map twice as big at the bottom, held steady (the game draws it only every other frame) with every racer's dot moving smoothly on it. The game screen keeps the speedometer and your RANK, moved to the bottom left. Everywhere else the second screen shows the logo. The USA, European and Japanese releases have all been tried.
 - **River City Ransom EX** (Downtown Nekketsu Monogatari EX in Japan): on the street, the second screen shows the Status screen (your name, stamina, money and stats) on a plain blue background, without its message box's text, updated about once a second, and the bar along the top of the game screen is gone, so more of the street shows. At the menus and the title card the second screen shows the logo. Shops and two players haven't been tried yet.
 
+### Game list
+- The GitHub page's address, github.com/kyannon/gba-ds, is shown under the GBA DS logo.
+
+### Bug reports
+- The `bug-reports` folder now has a `README.txt`: how to send a report (attached to a new issue on GitHub) and what to write with it.
+
 ## v1.4.2 (2026-10-29)
 
 ### New games (preliminary)

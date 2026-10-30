@@ -348,6 +348,13 @@ static void draw_preview(Config* cfg, int scr, int sel) {
 	int m = px * 6;
 	int headH = px * 21;
 	int ourW = draw_brand(scr, BRAND_LOGO, m, m, headH);
+	{
+		/* where to find us, under our logo, as the version number is drawn
+		 * (the pixel font's capitals; without https://, so it stays clear
+		 * of a wide game logo on the right) */
+		int vpx = SDL_max(1, px / 2);
+		ui_text(scr, m + px * 2, m + headH + px * 2, vpx, "GITHUB.COM/KYANNON/GBA-DS", C_DIM);
+	}
 
 	/* button hints along the bottom */
 	int ty = r.h - px * 11, d = px * 10, bx = m;

@@ -2870,6 +2870,82 @@ __attribute__((export_name("web_load_state"))) int web_load_state(const char* pa
  * (...-keys.txt: the presses and lifts to read, then the same as a
  * harness script that plays it back from the rewound state, exactly). */
 
+/* README.txt in the bug-reports folder: how to send a report (written with
+ * the first report, if it isn't there; replaced when the text changes) */
+static const char bugReadme[] =
+	"GBA DS bug reports\n"
+	"==================\n"
+	"\n"
+	"Each zip in this folder is one bug report, saved by the quick bar's bug\n"
+	"button or by Submit a Bug Report in the pause menu (Extras). It holds:\n"
+	"\n"
+	"  - GAME-DATE.state           the game at the moment you made the report\n"
+	"  - GAME-DATE-rewound.state   the game about 10 seconds before\n"
+	"  - GAME-DATE-keys.txt        every button you pressed in between\n"
+	"  - GAME-DATE-info.txt        your device, system, screens and settings,\n"
+	"                              and the end of GBA DS's log\n"
+	"\n"
+	"With these, the problem can be played back exactly as it happened.\n"
+	"Your game itself (the ROM) is not in the report, and lines of the log\n"
+	"that mention passwords or tokens are left out.\n"
+	"\n"
+	"\n"
+	"How to send a report\n"
+	"--------------------\n"
+	"\n"
+	"1. Make the report right after the problem shows (it keeps only the\n"
+	"   last 10 seconds or so). If it takes a while to happen, make one\n"
+	"   while it's on the screen. After loading a state, rewinding or\n"
+	"   restarting, play on for 10 seconds before making one.\n"
+	"2. Copy the zip from this folder to a computer or phone.\n"
+	"3. Open a new issue on GitHub:\n"
+	"   https://github.com/kyannon/gba-ds/issues/new\n"
+	"   (you need a free GitHub account).\n"
+	"4. Give it a short title: the game and what's wrong, for example\n"
+	"   \"F-Zero: GP Legend: the course map flickers\".\n"
+	"5. Drag the zip into the description box to attach it.\n"
+	"6. Write what's below, then press Create.\n"
+	"\n"
+	"\n"
+	"What to write\n"
+	"-------------\n"
+	"\n"
+	"  - The game and its release (USA, Europe, Japan...), if it isn't in\n"
+	"    the title.\n"
+	"  - What you were doing: where you were in the game (a level, a race,\n"
+	"    a menu, a battle) and what you pressed.\n"
+	"  - What happened, on which screen (the game screen or the second one).\n"
+	"  - What you expected to see instead. For the second screen, say what\n"
+	"    you'd like it to show there and when.\n"
+	"  - Whether it happens every time, and how to make it happen again.\n"
+	"  - Photos or screenshots of both screens, if it's something you see.\n"
+	"    A photo of the device is fine.\n"
+	"  - Anything you changed in Settings or gba-ds.cfg, and whether cheats\n"
+	"    were on.\n"
+	"\n"
+	"If GBA DS crashes, won't start, or a game won't load (so there's no way\n"
+	"to make a report), attach gba-ds.log instead: it's in the GBA DS folder,\n"
+	"next to this bug-reports folder. Say which system you use (ROCKNIX,\n"
+	"BananaOS, Anbernic's own system, Android) and which device.\n"
+	"\n"
+	"Please don't attach game ROMs or BIOS files.\n";
+
+static void write_bug_readme(const char* dir) {
+	char path[1200];
+	snprintf(path, sizeof(path), "%s/README.txt", dir);
+	FILE* f = fopen(path, "rb");
+	if (f) {
+		static char old[sizeof(bugReadme) + 1];
+		size_t n = fread(old, 1, sizeof(old), f);
+		fclose(f);
+		if (n == sizeof(bugReadme) - 1 && !memcmp(old, bugReadme, n)) return;
+	}
+	f = fopen(path, "wb");
+	if (!f) return;
+	fwrite(bugReadme, 1, sizeof(bugReadme) - 1, f);
+	fclose(f);
+}
+
 static uint32_t crc32_of(const uint8_t* p, size_t n) {
 	static uint32_t table[256];
 	if (!table[1]) {
@@ -3099,6 +3175,7 @@ static bool bug_report(char* out, size_t outSize) {
 	char dir[1100], stamp[32], base[300], name[4][340], tmp[4][1500], zip[1500];
 	snprintf(dir, sizeof(dir), "%s/bug-reports", cfg->assetDir);
 	mkdirs(dir);
+	write_bug_readme(dir);
 	time_t now = time(NULL);
 	struct tm tm;
 	localtime_r(&now, &tm);
