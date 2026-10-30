@@ -2104,6 +2104,54 @@ static const MapProfile profiles[] = {
 		},
 	},
 	{
+		/* F-Zero: GP Legend (docs/games/f-zero-gp-legend.md). The race HUD is
+		 * all sprites, priority 0 (the track and scenery are BG2 / BG3 in
+		 * mode 2): POWER (palette 8, tiles 353-374) top right, SPARE MACHINE,
+		 * RANK and LAST (palettes 12, 13: tiles 379, 680-692, 970-980,
+		 * digits 960-1016; Time Trial's BEST TIME, 711-715, palette 15,
+		 * instead of RANK) top left, the time, lap times and KO count
+		 * (palettes 12, 15: digits, 769) right, the speed (digits, km/h
+		 * 350-352) bottom right, the course map one 64x64 sprite (tile 882,
+		 * palette 10) at -2, 98, drawn every other frame, with the racers'
+		 * dots (tile 679, any palette) on it. The machines, the countdown
+		 * (palette 9), the lap sign (tile 256) and the glow under the machine
+		 * (598, 638) are elsewhere or other tiles. */
+		.codes = { "BFZE", "BFZJ" },
+		.title = "F-Zero: GP Legend",
+		.logoOnly = true,
+		/* the title from frame ~520: the lettering alone on BG1 (FZ-1) */
+		.logo = { .steps = { { 0, 640 } }, .layer = 1 },
+		.hud = {
+			/* racing: mode 2 with BG2, BG3 and sprites (0x3C62), without
+			 * RESULTS (tiles 579-594) over the track as a race ends or is
+			 * given up (FZ-6). (0x0300016D, 0x3C while racing, is still 0
+			 * through the countdown after RETRY.) */
+			.on = { { 0x04000000, 0xFFFF, 0x3C62, 2 } },
+			.offTile = 579,
+			.objs = { { -16, -16, 239, 56, 350, 380, 0, 1u << 8 | 1u << 12 | 1u << 13 | 1u << 15 },
+			          { -16, -16, 239, 56, 670, 720, 0, 1u << 8 | 1u << 12 | 1u << 13 | 1u << 15 },
+			          { -16, -16, 239, 56, 760, 780, 0, 1u << 8 | 1u << 12 | 1u << 13 | 1u << 15 },
+			          { -16, -16, 239, 56, 950, 1023, 0, 1u << 8 | 1u << 12 | 1u << 13 | 1u << 15 },
+			          { -16, 88, 64, 150, 882, 882, 0, 1u << 10 },
+			          { -16, 88, 64, 159, 679, 679, 0 } },
+			/* the map's box (the sprite at -2, 98), twice as big at the
+			 * bottom centre (FZ-4) */
+			.map = { 0, 96, 63, 159 },
+			.mapAt = { 2, 120, 159 },
+			/* the course fly-in: the race's registers, no HUD yet (FZ-6) */
+			.emptyIsOff = true,
+			/* RANK to the game screen's bottom left (FZ-3); POWER to the top
+			 * centre; LAST up into RANK's place; the right-hand column up
+			 * into POWER's (FZ-4). RANK and LAST's move only with RANK's
+			 * label there (tile 379): Time Trial has its best time there
+			 * instead, which stays where it is (FZ-8) */
+			.moves = { { 0, 12, 79, 31, 'L', 4, 'B', 155, true, .ifTile = 379 },
+			           { 150, 0, 239, 17, 'C', 120, 'T', 2 },
+			           { 0, 32, 79, 56, 0, 0, 'T', 14, .ifTile = 379 },
+			           { 150, 18, 239, 80, 0, 0, 'T', 2 } },
+		},
+	},
+	{
 		/* USA: see fe_compose */
 		.codes = { "AE7E" },
 		.title = "Fire Emblem",
@@ -2330,6 +2378,9 @@ static void thps3_ger(MapProfile* p) {
 
 static const Variant variants[] = {
 	{ "AGSD", "AGSE", 0, gs_ger },
+	/* F-Zero: GP Legend in Europe: its language menu first (the title
+	 * comes ~700 frames after A); its races not tried (f-zero-gp-legend.md) */
+	{ "BFZP", "BFZE", 0, lang_menu },
 	{ "A2CP", "A2CE", 0, lang_menu },
 	{ "A2CJ", "A2CE", -0x30, NULL },
 	{ "ACHP", "ACHE", 0, NULL },

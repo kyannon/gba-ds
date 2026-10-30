@@ -1,0 +1,1013 @@
+{
+ "game": "F-Zero: GP Legend",
+ "rules": "docs/games/f-zero-gp-legend.md",
+ "cases": [
+  {
+   "id": "fz-us-title",
+   "rom": "BFZE",
+   "state": "f-zero-gp-legend/us-title.ss",
+   "desc": "the title (a player's bug report, its keys played back): the logo",
+   "rules": [
+    "FZ-6"
+   ],
+   "input": [
+    [
+     0,
+     "-"
+    ],
+    [
+     3,
+     "A"
+    ],
+    [
+     14,
+     "-"
+    ],
+    [
+     142,
+     "START"
+    ],
+    [
+     150,
+     "-"
+    ],
+    [
+     194,
+     "A"
+    ],
+    [
+     204,
+     "-"
+    ],
+    [
+     397,
+     "A"
+    ],
+    [
+     407,
+     "-"
+    ]
+   ],
+   "shots": {
+    "title": 615
+   },
+   "checks": [
+    {
+     "rule": "FZ-6",
+     "what": "no HUD",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "fz-us-gp-start",
+   "rom": "BFZE",
+   "state": "f-zero-gp-legend/us-gp-start.ss",
+   "desc": "Grand Prix: the menus, the course fly-in (the logo), the race's start (a player's bug report, its keys played back)",
+   "rules": [
+    "FZ-2",
+    "FZ-3",
+    "FZ-4",
+    "FZ-6"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ],
+    [
+     5,
+     "-"
+    ],
+    [
+     153,
+     "RIGHT"
+    ],
+    [
+     166,
+     "-"
+    ],
+    [
+     191,
+     "LEFT"
+    ],
+    [
+     201,
+     "-"
+    ],
+    [
+     215,
+     "RIGHT"
+    ],
+    [
+     219,
+     "-"
+    ],
+    [
+     229,
+     "A"
+    ],
+    [
+     236,
+     "-"
+    ],
+    [
+     262,
+     "START"
+    ],
+    [
+     272,
+     "-"
+    ],
+    [
+     399,
+     "START"
+    ],
+    [
+     407,
+     "-"
+    ]
+   ],
+   "shots": {
+    "flyin": 440,
+    "start": 640,
+    "later": 760
+   },
+   "checks": [
+    {
+     "rule": "FZ-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "fz-us-gp-pause",
+   "rom": "BFZE",
+   "state": "f-zero-gp-legend/us-gp-pause.ss",
+   "desc": "Grand Prix: racing, then the pause menu (a player's bug report, its keys played back)",
+   "rules": [
+    "FZ-2",
+    "FZ-3",
+    "FZ-4",
+    "FZ-5"
+   ],
+   "input": [
+    [
+     0,
+     "A+RIGHT"
+    ],
+    [
+     4,
+     "A"
+    ],
+    [
+     15,
+     "A+RIGHT"
+    ],
+    [
+     25,
+     "A"
+    ],
+    [
+     37,
+     "A+LEFT"
+    ],
+    [
+     47,
+     "A"
+    ],
+    [
+     55,
+     "A+RIGHT"
+    ],
+    [
+     62,
+     "A"
+    ],
+    [
+     67,
+     "-"
+    ],
+    [
+     78,
+     "START"
+    ],
+    [
+     88,
+     "-"
+    ]
+   ],
+   "shots": {
+    "racing": 60,
+    "paused": 641
+   },
+   "checks": [
+    {
+     "rule": "FZ-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "fz-us-gp-finish",
+   "rom": "BFZE",
+   "state": "f-zero-gp-legend/us-gp-finish.ss",
+   "desc": "Grand Prix: the last lap and the finish (a player's bug report, its keys played back)",
+   "rules": [
+    "FZ-2",
+    "FZ-3",
+    "FZ-4"
+   ],
+   "input": [
+    [
+     0,
+     "A+LEFT"
+    ],
+    [
+     12,
+     "A"
+    ],
+    [
+     31,
+     "A+LEFT"
+    ],
+    [
+     37,
+     "A"
+    ],
+    [
+     51,
+     "A+RIGHT"
+    ],
+    [
+     59,
+     "A"
+    ],
+    [
+     69,
+     "A+RIGHT"
+    ],
+    [
+     76,
+     "RIGHT"
+    ],
+    [
+     143,
+     "A+RIGHT"
+    ],
+    [
+     152,
+     "A"
+    ],
+    [
+     249,
+     "A+L"
+    ],
+    [
+     250,
+     "A+R+L"
+    ],
+    [
+     258,
+     "A+R"
+    ],
+    [
+     262,
+     "A"
+    ],
+    [
+     327,
+     "A+R"
+    ],
+    [
+     336,
+     "A"
+    ],
+    [
+     414,
+     "A+RIGHT"
+    ],
+    [
+     423,
+     "RIGHT"
+    ],
+    [
+     428,
+     "A+RIGHT"
+    ],
+    [
+     441,
+     "A"
+    ],
+    [
+     481,
+     "A+RIGHT"
+    ],
+    [
+     497,
+     "A"
+    ],
+    [
+     544,
+     "A+RIGHT"
+    ],
+    [
+     551,
+     "A"
+    ],
+    [
+     569,
+     "A+LEFT"
+    ],
+    [
+     574,
+     "A"
+    ],
+    [
+     590,
+     "A+LEFT"
+    ],
+    [
+     597,
+     "A"
+    ],
+    [
+     620,
+     "-"
+    ]
+   ],
+   "shots": {
+    "racing": 60,
+    "finish": 651,
+    "after": 951
+   },
+   "checks": [
+    {
+     "rule": "FZ-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "fz-us-story-objective",
+   "rom": "BFZE",
+   "state": "f-zero-gp-legend/us-story-objective.ss",
+   "desc": "Story: the objective screen before a race (a player's bug report): the logo",
+   "rules": [
+    "FZ-6"
+   ],
+   "input": [
+    [
+     0,
+     "-"
+    ],
+    [
+     9,
+     "A"
+    ],
+    [
+     24,
+     "-"
+    ],
+    [
+     42,
+     "A"
+    ],
+    [
+     57,
+     "-"
+    ],
+    [
+     72,
+     "A"
+    ],
+    [
+     87,
+     "-"
+    ],
+    [
+     102,
+     "A"
+    ],
+    [
+     117,
+     "-"
+    ],
+    [
+     132,
+     "A"
+    ],
+    [
+     150,
+     "-"
+    ],
+    [
+     162,
+     "A"
+    ],
+    [
+     177,
+     "-"
+    ],
+    [
+     219,
+     "A"
+    ],
+    [
+     240,
+     "-"
+    ],
+    [
+     255,
+     "A"
+    ],
+    [
+     273,
+     "-"
+    ],
+    [
+     288,
+     "A"
+    ],
+    [
+     306,
+     "-"
+    ],
+    [
+     318,
+     "A"
+    ],
+    [
+     339,
+     "-"
+    ],
+    [
+     354,
+     "A"
+    ],
+    [
+     369,
+     "-"
+    ]
+   ],
+   "shots": {
+    "objective": 636
+   },
+   "checks": [
+    {
+     "rule": "FZ-6",
+     "what": "no HUD",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "fz-us-story-race",
+   "rom": "BFZE",
+   "state": "f-zero-gp-legend/us-story-race.ss",
+   "desc": "Story: racing (a player's bug report, its keys played back)",
+   "rules": [
+    "FZ-2",
+    "FZ-3",
+    "FZ-4"
+   ],
+   "input": [
+    [
+     0,
+     "-"
+    ],
+    [
+     159,
+     "A"
+    ],
+    [
+     176,
+     "A+RIGHT"
+    ],
+    [
+     184,
+     "A"
+    ],
+    [
+     198,
+     "-"
+    ],
+    [
+     226,
+     "A"
+    ],
+    [
+     345,
+     "A+RIGHT"
+    ],
+    [
+     351,
+     "A"
+    ],
+    [
+     363,
+     "A+LEFT"
+    ],
+    [
+     371,
+     "A"
+    ],
+    [
+     398,
+     "A+RIGHT"
+    ],
+    [
+     401,
+     "A"
+    ],
+    [
+     430,
+     "A+RIGHT"
+    ],
+    [
+     437,
+     "RIGHT"
+    ],
+    [
+     466,
+     "A+RIGHT"
+    ],
+    [
+     473,
+     "A"
+    ],
+    [
+     502,
+     "A+LEFT"
+    ],
+    [
+     510,
+     "A"
+    ],
+    [
+     537,
+     "A+RIGHT"
+    ],
+    [
+     542,
+     "A"
+    ],
+    [
+     556,
+     "A+RIGHT"
+    ],
+    [
+     562,
+     "A"
+    ],
+    [
+     571,
+     "A+RIGHT"
+    ],
+    [
+     578,
+     "A"
+    ],
+    [
+     591,
+     "A+LEFT"
+    ],
+    [
+     596,
+     "A"
+    ],
+    [
+     608,
+     "-"
+    ]
+   ],
+   "shots": {
+    "racing": 563,
+    "later": 623
+   },
+   "checks": [
+    {
+     "rule": "FZ-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "fz-us-story-end",
+   "rom": "BFZE",
+   "state": "f-zero-gp-legend/us-story-end.ss",
+   "desc": "Story: the race's last moments (a player's bug report), then the RESULTS over the track: the logo again",
+   "rules": [
+    "FZ-2",
+    "FZ-6"
+   ],
+   "shots": {
+    "racing": 10,
+    "end": 240,
+    "results": 360
+   },
+   "checks": [
+    {
+     "rule": "FZ-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "FZ-6",
+     "what": "back to the logo",
+     "type": "log",
+     "match": "HUD gone|HUD empty"
+    }
+   ]
+  },
+  {
+   "id": "fz-us-tt-start",
+   "rom": "BFZE",
+   "state": "f-zero-gp-legend/us-tt-start.ss",
+   "desc": "Time Trial: the course name fading in (the logo), then the race (a player's bug report, its keys played back)",
+   "rules": [
+    "FZ-2",
+    "FZ-6",
+    "FZ-8"
+   ],
+   "input": [
+    [
+     0,
+     "-"
+    ]
+   ],
+   "shots": {
+    "fade": 7,
+    "start": 67,
+    "racing": 767
+   },
+   "checks": [
+    {
+     "rule": "FZ-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "fz-us-gp-give-up",
+   "rom": "BFZE",
+   "state": "f-zero-gp-legend/us-gp-give-up.ss",
+   "desc": "Grand Prix: GIVE UP, the RESULTS, the results screen: the logo (a player's bug report, its keys played back); it starts in the countdown after RETRY, where the HUD is already on the second screen.",
+   "rules": [
+    "FZ-2",
+    "FZ-6"
+   ],
+   "input": [
+    [
+     0,
+     "-"
+    ],
+    [
+     2,
+     "A"
+    ],
+    [
+     11,
+     "-"
+    ],
+    [
+     57,
+     "A"
+    ],
+    [
+     112,
+     "-"
+    ],
+    [
+     122,
+     "START"
+    ],
+    [
+     130,
+     "-"
+    ],
+    [
+     167,
+     "DOWN"
+    ],
+    [
+     173,
+     "-"
+    ],
+    [
+     179,
+     "DOWN"
+    ],
+    [
+     186,
+     "-"
+    ],
+    [
+     194,
+     "A"
+    ],
+    [
+     202,
+     "-"
+    ],
+    [
+     316,
+     "A"
+    ],
+    [
+     323,
+     "-"
+    ],
+    [
+     391,
+     "A"
+    ],
+    [
+     397,
+     "-"
+    ],
+    [
+     464,
+     "RIGHT"
+    ],
+    [
+     472,
+     "-"
+    ],
+    [
+     474,
+     "A"
+    ],
+    [
+     481,
+     "-"
+    ]
+   ],
+   "shots": {
+    "racing": 60,
+    "gaveup": 452,
+    "results": 652
+   },
+   "checks": [
+    {
+     "rule": "FZ-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "FZ-6",
+     "what": "back to the logo",
+     "type": "log",
+     "match": "HUD gone|HUD empty"
+    }
+   ]
+  },
+  {
+   "id": "fz-us-training",
+   "rom": "BFZE",
+   "state": "f-zero-gp-legend/us-training.ss",
+   "desc": "Training: the race (a player's bug report, its keys played back)",
+   "rules": [
+    "FZ-2",
+    "FZ-3",
+    "FZ-4"
+   ],
+   "input": [
+    [
+     0,
+     "-"
+    ],
+    [
+     93,
+     "A"
+    ],
+    [
+     102,
+     "-"
+    ],
+    [
+     262,
+     "A"
+    ],
+    [
+     271,
+     "-"
+    ],
+    [
+     290,
+     "A"
+    ],
+    [
+     297,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 652,
+    "later": 852
+   },
+   "checks": [
+    {
+     "rule": "FZ-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "fz-us-single",
+   "rom": "BFZE",
+   "state": "f-zero-gp-legend/us-story-race.ss",
+   "desc": "racing with layout = single",
+   "rules": [
+    "FZ-7"
+   ],
+   "config": {
+    "layout": "single"
+   },
+   "input": [
+    [
+     0,
+     "-"
+    ],
+    [
+     159,
+     "A"
+    ],
+    [
+     176,
+     "A+RIGHT"
+    ],
+    [
+     184,
+     "A"
+    ],
+    [
+     198,
+     "-"
+    ],
+    [
+     226,
+     "A"
+    ],
+    [
+     345,
+     "A+RIGHT"
+    ],
+    [
+     351,
+     "A"
+    ],
+    [
+     363,
+     "A+LEFT"
+    ],
+    [
+     371,
+     "A"
+    ],
+    [
+     398,
+     "A+RIGHT"
+    ],
+    [
+     401,
+     "A"
+    ],
+    [
+     430,
+     "A+RIGHT"
+    ],
+    [
+     437,
+     "RIGHT"
+    ],
+    [
+     466,
+     "A+RIGHT"
+    ],
+    [
+     473,
+     "A"
+    ],
+    [
+     502,
+     "A+LEFT"
+    ],
+    [
+     510,
+     "A"
+    ],
+    [
+     537,
+     "A+RIGHT"
+    ],
+    [
+     542,
+     "A"
+    ],
+    [
+     556,
+     "A+RIGHT"
+    ],
+    [
+     562,
+     "A"
+    ],
+    [
+     571,
+     "A+RIGHT"
+    ],
+    [
+     578,
+     "A"
+    ],
+    [
+     591,
+     "A+LEFT"
+    ],
+    [
+     596,
+     "A"
+    ],
+    [
+     608,
+     "-"
+    ]
+   ],
+   "shots": {
+    "end": 623
+   },
+   "checks": [
+    {
+     "rule": "FZ-7",
+     "what": "nothing on a second screen",
+     "type": "uniform",
+     "shot": "end",
+     "rect": [
+      0,
+      420,
+      1024,
+      768
+     ],
+     "color": "000000",
+     "frac": 0.99
+    }
+   ]
+  },
+  {
+   "id": "fz-logo-bfze",
+   "kind": "logo",
+   "rom": "BFZE",
+   "desc": "BFZE logo extraction",
+   "rules": [
+    "GEN-1",
+    "FZ-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "fz-logo-bfzp",
+   "kind": "logo",
+   "rom": "BFZP",
+   "desc": "BFZP logo extraction",
+   "rules": [
+    "GEN-1",
+    "FZ-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "fz-logo-bfzj",
+   "kind": "logo",
+   "rom": "BFZJ",
+   "desc": "BFZJ logo extraction",
+   "rules": [
+    "GEN-1",
+    "FZ-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

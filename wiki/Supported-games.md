@@ -21,6 +21,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Golden Sun (Ougon no Taiyou: Hirakareshi Fuuin in Japan; preliminary) | `AGSE` `AGSD` `AGSF` `AGSI` `AGSS` `AGSJ` | the Status screen, each party member in turn; in battle, the one choosing | — |
 | Tactics Ogre: The Knight of Lodis (Tactics Ogre Gaiden in Japan; preliminary) | `ATOE` `ATOJ` (no European release) | the battle's unit list, on the unit under your cursor | — |
 | Pokémon Pinball: Ruby & Sapphire (preliminary) | `BPPE` | the table twice as tall over both screens, live, with the score bar | — |
+| F-Zero: GP Legend (F-Zero: Falcon Densetsu in Japan; preliminary) | `BFZE` `BFZP` `BFZJ` | the race HUD, with the course map twice as big | — |
 
 The codes are what `<CODE>` means in logo and overlay file names (see [Playing](Playing#logos) and [[Map screen surrounds and overlays]]).
 
@@ -136,6 +137,19 @@ The HUD is moved off the game screen rather than copied: GBA DS draws each frame
 - **After a cup**, the podium's CONGRATULATIONS!, the cup name, your portrait, place, rank and cup table move to the second screen, on dark grey; the podium, crowd and trophy stay on the game screen.
 - The game's **pause menu** stays on the game screen, with the last HUD below it. In the menus, the second screen shows the logo.
 - With one screen (`layout = single`), the HUD stays where the game draws it.
+
+## F-Zero: GP Legend
+
+As with Mario Kart: Super Circuit, the HUD is moved off the game screen rather than copied, so nothing behind it is lost.
+
+- **Racing** (Grand Prix, Story, Time Trial, Training):
+  - The game screen keeps the **speedometer** where the game draws it (bottom right) and shows your **RANK** in the bottom-left corner, where the course map was.
+  - The second screen has the **POWER** meter at the top centre, SPARE MACHINE and LAST (laps left) in the top-left corner, the time, lap times and KO count in the top-right corner, and the **course map** with every racer's dot, twice as big, at the bottom centre. The map blinks, as on the GBA, where the game draws it every other frame.
+  - In Time Trial there's no RANK: the BEST TIME goes to the second screen's top-left corner instead.
+- The game's **pause menu** stays on the game screen, with the HUD on the second screen.
+- Everywhere else (the menus, a story's objective screen and scenes, the course name as a race fades in, the RESULTS once a race ends or after GIVE UP) the second screen shows the logo.
+- With one screen (`layout = single`), the HUD stays where the game draws it.
+- The European and Japanese releases are expected to work the same way but haven't been tried in a race yet.
 
 ## Advance Wars and Advance Wars 2: Black Hole Rising
 

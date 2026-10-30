@@ -1848,6 +1848,16 @@ static int rule_count(const SpriteRule* r, int max) {
 
 /* The second screen from this frame's HUD (hudPx). While racing, the turn
  * sign goes back onto the game picture and the map is drawn larger. */
+/* A sprite with this tile (the 1D character number) is shown */
+static bool oam_has_tile(int tile) {
+	for (int i = 0; i < 128; ++i) {
+		uint16_t a0 = emu_read16(&emu, 0x07000000 + i * 8);
+		if ((a0 & 0x300) == 0x200) continue; /* hidden */
+		if ((emu_read16(&emu, 0x07000004 + i * 8) & 0x3FF) == tile) return true;
+	}
+	return false;
+}
+
 static void hud_compose(void) {
 	const typeof(hudProf->hud)* h = &hudProf->hud;
 	uint32_t clear = emu_hud_clear();
@@ -1858,7 +1868,7 @@ static void hud_compose(void) {
 		lastRacing = racing;
 	}
 	/* the map's box: grown over the race's first frames, then kept */
-	if (racing && h->map.x1 && hudFrames <= 8) {
+	if (racing && h->map.x1 && (hudFrames <= 8 || h->mapAt.scale)) {
 		for (int y = h->map.y0; y <= h->map.y1; ++y) {
 			for (int x = h->map.x0; x <= h->map.x1; ++x) {
 				if ((hudPx[y * GBA_W + x] & 0xFFFFFF) == clear) continue;
@@ -1871,6 +1881,13 @@ static void hud_compose(void) {
 	bool bigMap = racing && mapFound;
 	int bx0 = SDL_max(mapX0 - 2, h->map.x0), by0 = SDL_max(mapY0 - 2, h->map.y0);
 	int bx1 = SDL_min(mapX1 + 2, h->map.x1), by1 = SDL_min(mapY1 + 2, h->map.y1);
+	if (racing && h->map.x1 && h->mapAt.scale) {
+		/* (hud.mapAt: what the map has drawn so far this race, grown frame
+		 * by frame, as it may blink; the whole box until then) */
+		bigMap = true;
+		if (mapFound) bx0 = mapX0, by0 = mapY0, bx1 = mapX1, by1 = mapY1;
+		else bx0 = h->map.x0, by0 = h->map.y0, bx1 = h->map.x1, by1 = h->map.y1;
+	}
 	/* the sign: only when nothing else of the HUD is on its rows nearby */
 	bool sign = false;
 	if (racing && h->sign.x1) {
@@ -1971,6 +1988,7 @@ static void hud_compose(void) {
 	for (int m = 0; moves && m < 4; ++m) {
 		const HudMove* mv = &moves[m];
 		if (!mv->how && !mv->vhow && !mv->toGame) continue;
+		if (mv->ifTile && !oam_has_tile(mv->ifTile)) continue;
 		int lo = GBA_W, hi = -1, top = GBA_H, bot = -1;
 		for (int y = SDL_max(mv->y0, 0); y <= SDL_min(mv->y1, GBA_H - 1); ++y) {
 			for (int x = SDL_max(mv->x0, 0); x <= SDL_min(mv->x1, GBA_W - 1); ++x) {
@@ -2017,6 +2035,7 @@ static void hud_compose(void) {
 		int w = bx1 - bx0 + 1, hh = by1 - by0 + 1;
 		int q = (w * 2 <= 180 && hh * 2 <= 120) ? 4 : 3; /* canvas pixels per HUD pixel */
 		int cx = 139 * 2, cy = 94 * 2;
+		if (h->mapAt.scale) q = h->mapAt.scale * 2, cx = h->mapAt.cx * 2, cy = h->mapAt.bottom * 2 + 2 - hh * q / 2;
 		int tx = SDL_clamp(cx - w * q / 2, 0, HUD_CW - w * q), ty = SDL_clamp(cy - hh * q / 2, 0, HUD_CH - hh * q);
 		for (int y = by0; y <= by1; ++y) {
 			for (int x = bx0; x <= bx1; ++x) {
@@ -2197,6 +2216,7 @@ static void update_hud(void) {
 		else if (h->world.mapCnt && cnt == h->world.mapCnt) mapBg = i, world = true;
 	}
 	if (h->mapCnt && mapBg < 0) race = false;
+	if (race && h->offTile && oam_has_tile(h->offTile)) race = false;
 	if (h->overMap) {
 		/* into the map picture: each piece as last seen, kept while the
 		 * HUD is hidden (menus, moves, fights) until it shows again; all
@@ -2231,11 +2251,25 @@ static void update_hud(void) {
 			}
 		}
 	} else if (hudOn && race) {
-		if (emu_hud_grabbed()) hud_make_backdrop(); /* (that frame drew no HUD: the last one is reused) */
-		hud_compose();
-		for (int i = 0; i < nViews; ++i) ui_update_texture(hudTex[i], hudCanvas, HUD_CW * 4);
-		if (!hudShown && debug) fprintf(stderr, "frame %llu: HUD on the second screen\n", (unsigned long long) frameCount);
-		hudShown = true;
+		/* hud.emptyIsOff: nothing drawn for 20 frames: the logo */
+		static int emptyFor;
+		bool empty = false;
+		if (h->emptyIsOff) {
+			uint32_t clear = emu_hud_clear();
+			empty = true;
+			for (int i = 0; i < GBA_W * GBA_H && empty; ++i) empty = (hudPx[i] & 0xFFFFFF) == clear;
+			emptyFor = empty ? emptyFor + 1 : 0;
+		}
+		if (h->emptyIsOff && emptyFor >= 20) {
+			if (hudShown && debug) fprintf(stderr, "frame %llu: HUD empty: the logo\n", (unsigned long long) frameCount);
+			hudShown = false;
+		} else if (!(empty && !hudShown)) {
+			if (emu_hud_grabbed()) hud_make_backdrop(); /* (that frame drew no HUD: the last one is reused) */
+			hud_compose();
+			for (int i = 0; i < nViews; ++i) ui_update_texture(hudTex[i], hudCanvas, HUD_CW * 4);
+			if (!hudShown && debug) fprintf(stderr, "frame %llu: HUD on the second screen\n", (unsigned long long) frameCount);
+			hudShown = true;
+		}
 	}
 	bool scene = race && h->scene.when[0].addr && memprobes_match(h->scene.when, 2, &emu);
 	if (race != hudOn || scene != hudScene || world != hudWorld || alt != hudAlt) {

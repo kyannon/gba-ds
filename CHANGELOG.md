@@ -2,6 +2,9 @@
 
 ## v1.4.3 (not yet released)
 
+### New games (preliminary)
+- **F-Zero: GP Legend:** in a race (Grand Prix, Story, Time Trial, Training), the HUD moves to the second screen: the POWER meter at the top, your spare machines, laps left, time, lap times and KOs in its corners, and the course map twice as big at the bottom. The game screen keeps the speedometer and your RANK, moved to the bottom left. Everywhere else the second screen shows the logo. The USA release has been tried; the European and Japanese ones only as far as their logos.
+
 ## v1.4.2 (2026-10-29)
 
 ### New games (preliminary)

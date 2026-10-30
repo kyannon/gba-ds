@@ -69,7 +69,7 @@ What this means in practice:
 - **Every exception is deliberate.** It's written down with the game's other rules and tested like everything else, so it isn't "fixed" later by mistake. Current exceptions include:
   - the four-button and SNES layouts;
   - Pokémon Pinball's table spread over both screens as one tall view;
-  - Mario Kart's race screen course map, drawn larger than the game's;
+  - Mario Kart's and F-Zero: GP Legend's race screen course maps, drawn larger than the game's;
   - Super Mario Advance 2's level name moved above its status bar.
 - **Optional where it can be.** Where an exception changes how the game plays or looks, there's a way back to the original: GBA is the default control layout, and `pinball_live = 0` turns off Pinball's tall view.
 - **Scope is a feature.** Every change has to be built, tested on the real device and maintained by one person. A smaller, solid feature beats a bigger, fragile one, and that's often the honest answer to a feature request: not "never", but "not at the cost of everything else working".

@@ -81,6 +81,9 @@ typedef struct {
 	/* hud.overMap: drawn as wide as the map picture (scaled up by its
 	 * width over the game screen's), at y (Advance Wars 2's conversations) */
 	bool wide;
+	/* racing moves: only while a sprite with this tile is shown (F-Zero:
+	 * GP Legend's RANK, which Time Trial doesn't have); 0: always */
+	int ifTile;
 } HudMove;
 
 /* Bytes written into the ROM when the game starts, if the ROM holds `orig`
@@ -318,6 +321,18 @@ typedef struct MapProfile {
 		 * comfortably) in the middle of the second screen. */
 		MemProbe layout[4];
 		struct { int x0, y0, x1, y1; } sign, map;
+		/* The map's place instead (F-Zero: GP Legend): the `map` box itself
+		 * (not measured), drawn `scale` second-screen pixels per HUD pixel
+		 * (2: twice as big), its centre at cx, its bottom at bottom (GBA
+		 * pixels of the second screen); scale 0: Mario Kart's way */
+		struct { int scale, cx, bottom; } mapAt;
+		/* While `on` matches but the HUD has drawn nothing for a third of a
+		 * second, the logo instead (F-Zero: GP Legend's course fly-in, with
+		 * the race's registers already set) */
+		bool emptyIsOff;
+		/* While a sprite with this tile is shown, not racing (F-Zero: GP
+		 * Legend's RESULTS, over the track as a race ends); 0: none */
+		int offTile;
 		/* BG layers grabbed as each race starts, rows above backdropRows,
 		 * scaled to fill the second screen and dimmed, behind the HUD (0:
 		 * plain dark) */
