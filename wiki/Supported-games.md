@@ -13,9 +13,8 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Tony Hawk's Pro Skater 3 | `AT3E` (USA and Europe) `AT3F` `AT3D` | the goal list; optional four-button layout | — |
 | Super Mario Advance 2: Super Mario World | `AA2E` `AA2P` `AA2J` | the SELECT menu on the world map; the status bar in levels; optional SNES layout | — |
 | Final Fantasy Tactics Advance (preliminary) | `AFXE` `AFXP` `AFXJ` | in battles: the Status of the unit under the cursor, or the turn order and Laws; on the world map: today's Laws | — |
-| Advance Wars (preliminary) | `AWRE` `AWRP` (in Japan, only in Game Boy Wars Advance 1+2) | in battles: the intel of the unit under the cursor, or the battle intel | — |
-| Advance Wars 2: Black Hole Rising (preliminary) | `AW2E` `AW2P` (in Japan, only in Game Boy Wars Advance 1+2) | in battles: the intel of the unit under the cursor, or the battle intel | — |
-| Game Boy Wars Advance 1+2 (Japan: Advance Wars and Advance Wars 2; preliminary) | `BGWJ` | as Advance Wars and Advance Wars 2, whichever is being played | — |
+| Advance Wars (Game Boy Wars Advance in Japan; preliminary) | `AWRE` `AWRP` `BGWJ` (Japan: on Game Boy Wars Advance 1+2, with Advance Wars 2) | in battles: the intel of the unit under the cursor, or the battle intel | — |
+| Advance Wars 2: Black Hole Rising (Game Boy Wars Advance 2 in Japan; preliminary) | `AW2E` `AW2P` `BGWJ` (Japan: on Game Boy Wars Advance 1+2, with Advance Wars) | in battles: the intel of the unit under the cursor, or the battle intel | — |
 | Fire Emblem (Rekka no Ken in Japan; preliminary) | `AE7E` `AE7X` (English, French, German) `AE7Y` (English, Spanish, Italian) `AE7J` | on the map: the status of the unit under the cursor | — |
 | Sword of Mana (Shinyaku Seiken Densetsu in Japan) | `AVSE` `AVSY` (Spanish, Italian) `AVSJ` | the Status screen | — |
 | Summon Night: Swordcraft Story (Craft Sword Monogatari in Japan; preliminary) | `AB4E` `AB4J` (no European release) | the Status screen, with where you are | — |
