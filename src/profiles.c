@@ -519,6 +519,60 @@ static const char* sn_compose(Emu* s, const void* state, uint32_t* const* out, i
 	return NULL;
 }
 
+/* ----------------------------------------- Summon Night: Swordcraft Story 2
+ *
+ * The Status screen (START, UP twice past the page arrow to Status, A),
+ * whole, as the game draws it; with more than one character (SN2-5), R
+ * wipes to the next, one page each, 5 seconds apart, until R changes
+ * nothing (the last: it has only the L icon). No Place bar (no clean place
+ * to take it from). Where the menu won't open, the quick failure, as for
+ * Swordcraft Story (USA and Japan alike). */
+#define SN2_DISP 0x3F40      /* DISPCNT in the menu and the Status */
+#define SN2_SCREEN 0x03000002 /* 0x0434 on the Status, 0x03AC in the menu */
+
+static bool sn2_status(Emu* s) {
+	return emu_read16(s, 0x04000000) == SN2_DISP && emu_read16(s, SN2_SCREEN) == 0x0434;
+}
+
+static const char* sn2_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+	static uint32_t last[GBA_W * GBA_H];
+	int max = *nOut < SN_PAGES ? *nOut : SN_PAGES;
+	*nOut = 1;
+	*step = 300; /* 5 seconds a character */
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	if (emu_read16(s, 0x04000000) != 0x1F40) return "map button did nothing"; /* (not walking about) */
+	aw_tap(s, K_START, 1);
+	int f = 0;
+	while (f < 60 && emu_read16(s, 0x04000000) != SN2_DISP) emu_frame(s, 0), ++f;
+	if (f >= 60) return "map button did nothing";
+	aw_run(s, 0, 36); /* (the menu takes input ~30 frames after START) */
+	aw_tap(s, K_UP, 2);
+	aw_tap(s, K_A, 1);
+	for (f = 0; f < 60 && !sn2_status(s); ++f) emu_frame(s, 0);
+	if (!sn2_status(s)) return "the Status didn't open";
+	if (!sn_settle(s, 120)) return "the Status didn't settle";
+	int cw = w < GBA_W ? w : GBA_W;
+	memcpy(last, s->fb, sizeof(last));
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[0][y * w], &last[y * GBA_W], (size_t) cw * 4);
+	int n = 1;
+	for (int tries = 0; n < max && tries < 3;) {
+		aw_tap(s, K_R, 1);
+		aw_run(s, 0, 10);
+		if (!sn_settle(s, 120)) break;
+		if (!memcmp(last, s->fb, sizeof(last))) {
+			/* (R not taken yet, or the last character) */
+			++tries;
+			continue;
+		}
+		memcpy(last, s->fb, sizeof(last));
+		for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[n][y * w], &last[y * GBA_W], (size_t) cw * 4);
+		++n, tries = 0;
+	}
+	*nOut = n;
+	return NULL;
+}
+
 /* ------------------------------------------ Final Fantasy Tactics Advance
  *
  * In battles the second screen shows, with the cursor on a unit, that
@@ -2233,12 +2287,12 @@ static const MapProfile profiles[] = {
 		/* the title's lettering, BG0 alone (its glow is BG1); START skips
 		 * the intro from frame ~600 (SN2-1) */
 		.logo = { .steps = { { 0, 650 }, { K_START, 4 }, { 0, 250 } }, .layer = 0, .maxY = 110 },
-		/* the Status screen, whole (SN2-2): the menu takes input ~30
-		 * frames after START */
-		.open = { { K_START, 3 }, { 0, 40 }, { K_UP, 3 }, { 0, 4 }, { K_UP, 3 }, { 0, 4 }, { K_A, 3 } },
-		.settleMax = 120, .openWithin = 60, .stableFrames = 4, .maxDiff = 40,
-		.crop_x = 0, .crop_y = 0, .crop_w = 240, .crop_h = 160,
-		.mem = { { 0x04000000, 0xFFFF, 0x3F40, 2 }, { 0x03000002, 0xFFFF, 0x0434, 2 } },
+		/* the Status screen, whole (SN2-2), each character in turn (SN2-5):
+		 * see sn2_compose */
+		.composePages = sn2_compose,
+		.stillPick = STILL_FIRST, /* (Map Animations off: the first character) */
+		.crop_w = GBA_W,
+		.crop_h = GBA_H,
 		.live = { { 0x04000000, 0xFFFF, 0x1F40, 2 } },
 		/* the title: the logo (SN2-3) */
 		.menu = { { 0x04000000, 0xFFFF, 0x3740, 2 }, { 0x0400000C, 0xFFFF, 0x1F0A, 2 } },

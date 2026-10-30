@@ -125,6 +125,7 @@ The USA release and the Japanese one (Craft Sword Monogatari); there was no Euro
 The USA release and the Japanese one (Craft Sword Monogatari 2); there was no European release.
 
 - **While you walk about,** the second screen shows the **Status** screen from the START menu (level, HP, experience, your portrait and your stats with each weapon), as the game draws it. It's opened in the background on a silent copy of the game about once a second; your game is never paused or touched.
+- **With more than one character** on the Status (L / R switch between them in the game), the second screen shows each in turn, 5 seconds each.
 - Where the menu can't be opened (a conversation, a scene, the game's own menus), the last Status picture stays.
 - At the title, and from there until the first Status picture, the second screen shows the logo.
 - Only the start of the story has been tried so far; battles, shops and the forge are still to try.

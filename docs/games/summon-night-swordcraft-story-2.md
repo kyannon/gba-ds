@@ -21,6 +21,8 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **SN2-4. When the Status can't be opened.** In a conversation, a cutscene or the game's own menus, where START doesn't open the menu, the second screen keeps the last Status picture.
 
+**SN2-5. Several characters.** Once the Status has more than one character (its L and R icons in the bottom corners), the second screen turns through each one's Status in the game's order, 5 seconds each, as the game draws it (the L and R icons too: there's no Place bar to cover them, unlike Swordcraft Story's).
+
 ## Not covered yet
 
 - Battles, shops and the forge are untried: they're expected to keep the last Status picture (SN2-4).
