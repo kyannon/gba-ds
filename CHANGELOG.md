@@ -27,6 +27,7 @@
 - **Final Fantasy Tactics Advance:** a unit's Status no longer shows the D-pad and arrow at the right of its page bar.
 - **Advance Wars, Advance Wars 2, Game Boy Wars Advance 1+2:** the unit intel no longer has the yellow corners blinking round the unit's picture.
 - **Golden Sun:** the Status from walking about no longer has the box at the top right with "L-R: Rearrange / A: Details" (that corner is left black); the battle's Status no longer shows "Use the L & R buttons to switch between characters."
+- **Super Mario Advance 2:** the world map's level list no longer has the ◁ ▷ arrows at the screen's edges (shown once there are other worlds' lists to turn to).
 
 ### Fixes
 - **Golden Sun:** the German release showed only the logo; it now shows the Status screen and battles like the others. Walking through a doorway could drop the Status screen to the logo for a moment: no longer.

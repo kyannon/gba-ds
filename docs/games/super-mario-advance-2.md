@@ -13,7 +13,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 ## Rules
 
-**SMA-1. World map: level list.** On the world map the second screen shows the SELECT menu's list of the island's levels with time and score, captured on the hidden copy, held still (HELP! and the current level shown, not blinking). It's taken again as soon as Mario stops on another level (GEN-6; in Japan too since v1.4.2).
+**SMA-1. World map: level list.** On the world map the second screen shows the SELECT menu's list of the island's levels with time and score, captured on the hidden copy, held still (HELP! and the current level shown, not blinking), without the ◁ ▷ arrows at the screen's left and right edges that show once there are other worlds' lists to turn to (left out since v1.4.2's later test builds). It's taken again as soon as Mario stops on another level (GEN-6; in Japan too since v1.4.2).
 
 **SMA-2. Level: status bar.** In a level the status bar (lives, Dragon Coins, time, coins, score) moves to the top of the second screen, with the logo (GEN-1) centred on the screen below it (until v1.3.2's later test builds: half its size, on black); the blue item box stays at the top of the game screen with the reserve item.
 

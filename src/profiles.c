@@ -1932,6 +1932,9 @@ static const MapProfile profiles[] = {
 		 * yellow frame. Its display settings (0x1700: BG0-2 and sprites) are
 		 * its own. */
 		.open = { { K_SELECT, 4 } },
+		/* the list's ◁ ▷ (other worlds' lists: L / R) at the screen's left
+		 * and right edges, about 92-105 down (SMA-1): left out */
+		.captureHide = { { -16, 80, 8, 116, 0, 1023, -1 }, { 222, 80, 255, 116, 0, 1023, -1 } },
 		.settleMax = 200, .openWithin = 40, .openTries = 4, .stableFrames = 3, .maxDiff = 400,
 		.crop_x = 0, .crop_y = 0, .crop_w = 240, .crop_h = 160,
 		.probes = { { 2, 2, 0xF7DE6B }, { 237, 2, 0xF7DE6B }, { 2, 157, 0xFFFF9C }, { 237, 157, 0xFFFF9C },
