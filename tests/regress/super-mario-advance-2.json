@@ -374,6 +374,18 @@
    "golden": [
     "logo"
    ]
+  },
+  {
+   "id": "sma-jp-worldmap-world2",
+   "rom": "AA2J",
+   "state": "super-mario-advance-2/jp-worldmap-world2.ss",
+   "desc": "Japan: the world map in world 2 (a player's bug report): its level list, without the arrows at the edges",
+   "rules": [
+    "SMA-1"
+   ],
+   "shots": {
+    "list": 240
+   }
   }
  ]
 }

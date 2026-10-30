@@ -241,5 +241,5 @@ down (the whole lower table on the two screens).
 - **Tests that play to events:** states for events come from the owner
   playing; poking the game's memory to reach them (a hatch, an evolution,
   a bonus stage) would be preferable, not tried yet.
-- **Sapphire:** only its start is in the tests.
-- **Android:** `twin_*` is shared code; not tried on Android.
+- **Sapphire:** its start and a stretch of play (pp-us-sapphire-play) are in the tests.
+- **Android:** `twin_*` is shared code; tried on Android by the owner (Oct 29, 2026): works.

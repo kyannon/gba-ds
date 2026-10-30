@@ -17,7 +17,7 @@ The two games each run their own code at their own RAM addresses; which one is r
 
 **GBW-1. The compilation's menus.** On the compilation's title and the screen picking a game, the second screen shows the logo (the compilation's title lettering, GAME BOY WARS ADVANCE 1+2, without PRESS START!). Both games use this logo on their own titles and menus too.
 
-**GBW-2. Game 1 is Advance Wars.** Once Game Boy Wars Advance is picked, the second screen follows [Advance Wars' rules](advance-wars.md) (AW-1 to AW-8), with its known issue (won't fix): in Field Training the tutorial blocks SELECT and START, so the panels can't be brought up. *By hand: no state outside Field Training yet (the panels, the unit intel): check a campaign or versus battle on the device.*
+**GBW-2. Game 1 is Advance Wars.** Once Game Boy Wars Advance is picked, the second screen follows [Advance Wars' rules](advance-wars.md) (AW-1 to AW-8), with its known issue (won't fix): in Field Training the tutorial blocks SELECT and START, so the panels can't be brought up.
 
 **GBW-3. Game 2 is Advance Wars 2.** Once Game Boy Wars Advance 2 is picked, the second screen follows [Advance Wars 2's rules](advance-wars-2.md) (AW2-1 to AW2-8): the unit intel or the Battle Intel, with everything else (the CO plate, the terrain and unit info, conversations) left on the game screen, and the logo on the computer's turn (AW2-4; not yet seen in game 2: no state of its computer's turn).
 
@@ -25,4 +25,4 @@ The two games each run their own code at their own RAM addresses; which one is r
 
 ## Not covered yet
 
-Game 1 outside Field Training (GBW-2): a battle in its campaign or versus mode, with the cursor on a unit.
+The computer's turn in either game (AW-4 / AW2-4 there).

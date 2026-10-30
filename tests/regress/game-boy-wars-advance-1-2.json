@@ -289,6 +289,18 @@
    "golden": [
     "logo"
    ]
+  },
+  {
+   "id": "gbw-jp-1-unit-intel",
+   "rom": "BGWJ",
+   "state": "game-boy-wars-advance-1-2/jp-1-unit-intel.ss",
+   "desc": "Game 1 (Game Boy Wars Advance) in a battle outside Field Training, the cursor on a unit (a player's bug report): its unit intel, without the blinking corners",
+   "rules": [
+    "GBW-2"
+   ],
+   "shots": {
+    "intel": 200
+   }
   }
  ]
 }

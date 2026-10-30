@@ -39,7 +39,7 @@
 
 ### Known issues
 - **Advance Wars games:** in Versus, if you play a later army, or two people share the device, those turns show the logo too (the games keep no record GBA DS could find of which armies a person plays). Game Boy Wars Advance 1+2's computer turn hasn't been tried yet.
-- **Golden Sun:** GBA DS closed once as a battle began, on one device. It hasn't happened again or been reproduced; if you see it, a bug report (quick bar) straight after helps.
+- **Golden Sun:** GBA DS closed once as a battle began, on one device. It hasn't happened again or been reproduced, and was most likely the crash fixed above (Golden Sun's Status turns through pages too); if you see it, a bug report (quick bar) straight after helps.
 - **Advance Wars, Game Boy Wars Advance 1+2:** in Field Training the tutorial blocks SELECT and START, so the second screen keeps the logo (won't fix: it's the tutorial).
 
 ## v1.4.1 (2026-10-28)

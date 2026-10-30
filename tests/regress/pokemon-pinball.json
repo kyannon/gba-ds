@@ -1764,6 +1764,35 @@
    "golden": [
     "logo"
    ]
+  },
+  {
+   "id": "pp-us-sapphire-play",
+   "rom": "BPPE",
+   "state": "pokemon-pinball/us-sapphire-play.ss",
+   "desc": "a table past its start (the owner's bug report, its keys played back): the opening sweep, then the table over both screens",
+   "rules": [
+    "PP-1",
+    "PP-9"
+   ],
+   "input": [
+    [
+     0,
+     "-"
+    ]
+   ],
+   "shots": {
+    "sweep": 200,
+    "table": 601,
+    "end": 661
+   },
+   "checks": [
+    {
+     "rule": "PP-9",
+     "what": "never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
   }
  ]
 }

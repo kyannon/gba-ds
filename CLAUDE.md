@@ -370,8 +370,9 @@ Android session at the same time. To keep them from colliding:
   behaviour changes, the rule in `docs/games/` changes first.
 - **Open by-hand checks** (`tools/regress.py --uncovered`): none open
   beyond the list it prints. Checked on the device for v1.4.2: AW2-4/5,
-  LTTP-5, Linux updates (BananaOS), Android's update download (its
-  install is still to try).
+  LTTP-5, GEN-2 (Super Mario World), GEN-6, PP-6, PP-9 (60 fps), Linux
+  updates (BananaOS), Android's update download (its install is still to
+  try), Pinball's two-screen view on Android.
 - **Won't fix / not issues** (don't list them as outstanding): Advance Wars
   and Game Boy Wars' Field Training keeps the logo (won't fix); Mario
   Kart's course map at 2x is intended; Pokémon Pinball's bonus stages on

@@ -421,6 +421,124 @@
    "golden": [
     "logo"
    ]
+  },
+  {
+   "id": "to-us-cursor-units",
+   "rom": "ATOE",
+   "state": "tactics-ogre/us-cursor-units.ss",
+   "desc": "the cursor moved over several units (a player's bug report, its keys played back): the list's cursor follows it onto each, guests and enemies too",
+   "rules": [
+    "TO-2"
+   ],
+   "input": [
+    [
+     0,
+     "-"
+    ],
+    [
+     133,
+     "LEFT"
+    ],
+    [
+     139,
+     "-"
+    ],
+    [
+     143,
+     "LEFT"
+    ],
+    [
+     150,
+     "-"
+    ],
+    [
+     155,
+     "LEFT"
+    ],
+    [
+     161,
+     "-"
+    ],
+    [
+     166,
+     "LEFT"
+    ],
+    [
+     174,
+     "-"
+    ],
+    [
+     179,
+     "DOWN"
+    ],
+    [
+     185,
+     "-"
+    ]
+   ],
+   "shots": {
+    "first": 120,
+    "later": 366
+   }
+  },
+  {
+   "id": "to-us-attack-enemy-phase",
+   "rom": "ATOE",
+   "state": "tactics-ogre/us-attack-enemy-phase.ss",
+   "desc": "an attack picked, the hit and its EXP, then Enemy Phase (a player's bug report, its keys played back): no list can be taken there, so the logo (no list taken yet)",
+   "rules": [
+    "TO-5"
+   ],
+   "input": [
+    [
+     0,
+     "-"
+    ],
+    [
+     111,
+     "A"
+    ],
+    [
+     120,
+     "-"
+    ],
+    [
+     152,
+     "A"
+    ],
+    [
+     159,
+     "-"
+    ],
+    [
+     473,
+     "A"
+    ],
+    [
+     480,
+     "-"
+    ],
+    [
+     496,
+     "A"
+    ],
+    [
+     503,
+     "-"
+    ],
+    [
+     591,
+     "A"
+    ],
+    [
+     597,
+     "-"
+    ]
+   ],
+   "shots": {
+    "attack": 150,
+    "enemy": 652
+   }
   }
  ]
 }

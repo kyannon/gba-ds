@@ -31,4 +31,4 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 ## Not covered yet
 
-- Battles in the releases other than `AGSE`: their Status walking about is checked; in battles they use the USA release's addresses (Germany's battle bytes 0x10 higher, found walking about). A battle state from one of them would settle it; if they differ, the battle shows the logo.
+- Battles in the French, Italian, Spanish and Japanese releases: their Status walking about is checked; in battles they use the USA release's addresses (Germany's, 0x10 higher, are checked: gs-de-battle). A battle state from one of them would settle it; if they differ, the battle shows the logo.

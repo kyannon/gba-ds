@@ -683,6 +683,71 @@
    "golden": [
     "logo"
    ]
+  },
+  {
+   "id": "gs-de-battle",
+   "rom": "AGSD",
+   "state": "golden-sun/de-battle-start.ss",
+   "desc": "Germany: a battle beginning (a player's bug report), A through its messages: the logo, then the battle's Status of Isaac, then Garet, without the help line",
+   "rules": [
+    "GS-7",
+    "GS-8"
+   ],
+   "input": [
+    [
+     60,
+     "A"
+    ],
+    [
+     65,
+     "-"
+    ],
+    [
+     120,
+     "A"
+    ],
+    [
+     125,
+     "-"
+    ],
+    [
+     180,
+     "A"
+    ],
+    [
+     185,
+     "-"
+    ],
+    [
+     240,
+     "A"
+    ],
+    [
+     245,
+     "-"
+    ],
+    [
+     300,
+     "A"
+    ],
+    [
+     305,
+     "-"
+    ],
+    [
+     360,
+     "A"
+    ],
+    [
+     365,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 40,
+    "isaac": 220,
+    "garet": 400
+   }
   }
  ]
 }
