@@ -15,7 +15,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **RCR-1. Logo.** The logo is the title card's lettering (River City Ransom EX; in Japan Downtown Nekketsu Monogatari EX on its red panel), without the copyright lines under it. The title card comes after a story's opening conversation (skipped with START).
 
-**RCR-2. Status screen.** While a story is being played (on the street, not at the Story / Manage Data menu or the title card), the second screen shows the Status screen (pause, Status), opened on the hidden copy and kept up to date about once a second: the name, stamina bar and money along the top, the character's stats, and the "status" line along the bottom, on solid blue, without the street behind it.
+**RCR-2. Status screen.** While a story is being played (on the street, not at the Story / Manage Data menu or the title card), the second screen shows the Status screen (pause, Status), opened on the hidden copy and kept up to date about once a second: the name, stamina bar and money along the top, the character's stats, on solid blue, without the street behind it. Its message box along the bottom (the "status" line and OK / Name) is left black, without its text (with `map_crop` on, the default, as for other games' prompts).
 
 **RCR-3. No HUD on the game screen.** While a story is being played, and in the pause menu and its screens, the bar along the top of the game screen (name, stamina bar, money) isn't drawn: the street shows there instead. The message box along the bottom stays.
 

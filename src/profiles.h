@@ -84,6 +84,12 @@ typedef struct {
 	/* racing moves: only while a sprite with this tile is shown (F-Zero:
 	 * GP Legend's RANK, which Time Trial doesn't have); 0: always */
 	int ifTile;
+	/* racing moves: the piece goes under whatever stays in its corner:
+	 * the HUD pixels above its box, within its columns, outside the
+	 * other moving pieces' boxes; its left edge at their leftmost, its
+	 * top `under` rows below their lowest (F-Zero: GP Legend's LAST under
+	 * SPARE MACHINE or BEST TIME); with none there, by how / vhow */
+	int under;
 } HudMove;
 
 /* Bytes written into the ROM when the game starts, if the ROM holds `orig`
@@ -325,7 +331,15 @@ typedef struct MapProfile {
 		 * (not measured), drawn `scale` second-screen pixels per HUD pixel
 		 * (2: twice as big), its centre at cx, its bottom at bottom (GBA
 		 * pixels of the second screen); scale 0: Mario Kart's way */
-		struct { int scale, cx, bottom; } mapAt;
+		struct {
+			int scale, cx, bottom;
+			/* the map is the sprite with tile holdTile, drawn every other
+			 * frame, the racers' dots (tile dotTile) every frame: the map
+			 * is held between (its pixels from the frames it's drawn in,
+			 * but those under a dot), the dots laid on it as drawn; 0:
+			 * shown as drawn */
+			int holdTile, dotTile;
+		} mapAt;
 		/* While `on` matches but the HUD has drawn nothing for a third of a
 		 * second, the logo instead (F-Zero: GP Legend's course fly-in, with
 		 * the race's registers already set) */

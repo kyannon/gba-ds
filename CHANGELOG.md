@@ -3,8 +3,8 @@
 ## v1.4.3 (not yet released)
 
 ### New games (preliminary)
-- **F-Zero: GP Legend:** in a race (Grand Prix, Story, Time Trial, Training), the HUD moves to the second screen: the POWER meter at the top, your spare machines, laps left, time, lap times and KOs in its corners, and the course map twice as big at the bottom. The game screen keeps the speedometer and your RANK, moved to the bottom left. Everywhere else the second screen shows the logo. The USA release has been tried; the European and Japanese ones only as far as their logos.
-- **River City Ransom EX** (Downtown Nekketsu Monogatari EX in Japan): on the street, the second screen shows the Status screen (your name, stamina, money and stats) on a plain blue background, updated about once a second, and the bar along the top of the game screen is gone, so more of the street shows. At the menus and the title card the second screen shows the logo. Shops and two players haven't been tried yet.
+- **F-Zero: GP Legend:** in a race (Grand Prix, Story, Time Trial, Training), the HUD moves to the second screen: the POWER meter at the top, your spare machines, laps left, time, lap times and KOs in its corners, and the course map twice as big at the bottom, held steady (the game draws it only every other frame) with every racer's dot moving smoothly on it. The game screen keeps the speedometer and your RANK, moved to the bottom left. Everywhere else the second screen shows the logo. The USA, European and Japanese releases have all been tried.
+- **River City Ransom EX** (Downtown Nekketsu Monogatari EX in Japan): on the street, the second screen shows the Status screen (your name, stamina, money and stats) on a plain blue background, without its message box's text, updated about once a second, and the bar along the top of the game screen is gone, so more of the street shows. At the menus and the title card the second screen shows the logo. Shops and two players haven't been tried yet.
 
 ## v1.4.2 (2026-10-29)
 

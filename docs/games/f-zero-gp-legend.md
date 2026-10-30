@@ -19,7 +19,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **FZ-3. Racing: game screen.** The game screen keeps the speedometer where the game draws it (bottom right) and RANK, moved to the bottom left (where the course map was).
 
-**FZ-4. Racing: second screen.** On the second screen (dark, the HUD's pieces on it): the POWER meter at the top centre; the course map at the bottom centre, twice as big, with the racers' dots on it (it blinks as on the GBA, where the game draws it every other frame); every other piece in the top corner of its side, as close up as they go: on the left SPARE MACHINE, then LAST (laps left) moved up into RANK's place; on the right the time, the lap times and the KO count (☠), moved up into POWER's place.
+**FZ-4. Racing: second screen.** On the second screen (dark, the HUD's pieces on it): the POWER meter at the top centre; the course map at the bottom centre, twice as big and whole (its top rows too, on courses whose map sits higher), with the racers' dots on it; the game draws the map every other frame and the dots every frame, so the map is held steady between and the dots move every frame; every other piece in the top corner of its side, as close up as they go: on the left SPARE MACHINE, then LAST (laps left) under whatever stays in that corner (SPARE MACHINE; Time Trial's BEST TIME, FZ-8), two rows below it and lined up with its left edge, or in the corner itself when nothing else is there (Training); on the right the time, the lap times and the KO count (☠), moved up into POWER's place.
 
 **FZ-5. Pause.** The pause menu (CONTINUE, GIVE UP) stays on the game screen; the HUD stays on the second screen.
 
@@ -27,7 +27,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **FZ-7. One screen.** With `layout = single` the HUD stays where the game draws it.
 
-**FZ-8. Time Trial.** Time Trial has no RANK: its BEST TIME (the label and the time under it, where RANK is in other races) goes to the second screen's top left, with LAST below it where the game draws it; nothing moves to the game screen's bottom left.
+**FZ-8. Time Trial.** Time Trial has no RANK: its BEST TIME (the label and the time under it, where RANK is in other races) goes to the second screen's top left, with LAST under it (FZ-4); nothing moves to the game screen's bottom left.
 
 ## Exceptions
 
@@ -35,4 +35,4 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 ## Not covered yet
 
-- The European and Japanese releases are checked for their logo; their races use the USA release's addresses and sprites (not tried).
+- The European release is checked for its logo only (its races tried on the device, Oct 30, 2026); the Japanese release has one race case (a player's bug report: a course whose map sits higher).

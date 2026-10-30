@@ -2134,20 +2134,24 @@ static const MapProfile profiles[] = {
 			          { -16, -16, 239, 56, 950, 1023, 0, 1u << 8 | 1u << 12 | 1u << 13 | 1u << 15 },
 			          { -16, 88, 64, 150, 882, 882, 0, 1u << 10 },
 			          { -16, 88, 64, 159, 679, 679, 0 } },
-			/* the map's box (the sprite at -2, 98), twice as big at the
-			 * bottom centre (FZ-4) */
-			.map = { 0, 96, 63, 159 },
-			.mapAt = { 2, 120, 159 },
+			/* the map's box (the sprite at -2, 98; at -2, 92 on some
+			 * courses: from row 88), twice as big at the bottom centre;
+			 * the game draws it every other frame, the dots (tile 679)
+			 * every frame: held between (FZ-4) */
+			.map = { 0, 88, 63, 159 },
+			.mapAt = { 2, 120, 159, 882, 679 },
 			/* the course fly-in: the race's registers, no HUD yet (FZ-6) */
 			.emptyIsOff = true,
 			/* RANK to the game screen's bottom left (FZ-3); POWER to the top
-			 * centre; LAST up into RANK's place; the right-hand column up
-			 * into POWER's (FZ-4). RANK and LAST's move only with RANK's
-			 * label there (tile 379): Time Trial has its best time there
-			 * instead, which stays where it is (FZ-8) */
+			 * centre; LAST under SPARE MACHINE (or Time Trial's BEST TIME),
+			 * two rows below, lined up with it, or in the corner (Training:
+			 * nothing else there); the right-hand column up into POWER's
+			 * place (FZ-4). RANK moves only with its label there (tile
+			 * 379): Time Trial has its best time there instead, which
+			 * stays where it is (FZ-8) */
 			.moves = { { 0, 12, 79, 31, 'L', 4, 'B', 155, true, .ifTile = 379 },
 			           { 150, 0, 239, 17, 'C', 120, 'T', 2 },
-			           { 0, 32, 79, 56, 0, 0, 'T', 14, .ifTile = 379 },
+			           { 0, 32, 79, 56, 'L', 0, 'T', 2, .under = 2 },
 			           { 150, 18, 239, 80, 0, 0, 'T', 2 } },
 		},
 	},
@@ -2182,6 +2186,9 @@ static const MapProfile profiles[] = {
 		.captureLayers = 0x1,
 		.captureBack = 18 << 10,
 		.captureHide = { { -512, -256, 511, 255, 0, 1023, -1 } },
+		/* the message box along the bottom (rows 128-159: "Alex's
+		 * status", OK, Name) left black, without its text (RCR-2) */
+		.glyphs = { { 0, 128, 240, 32, -1, { 0x000000 } } },
 		.hud = {
 			/* the top bar leaves the game screen on the street and in the
 			 * pause screens (RCR-3); the Status capture shows it */

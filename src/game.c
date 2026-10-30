@@ -1858,6 +1858,95 @@ static bool oam_has_tile(int tile) {
 	return false;
 }
 
+/* hud.mapAt.holdTile: the map as last drawn (HUD pixels; mapHeldOk false:
+ * none yet this race), and the dots among the sprites read after the last
+ * frame */
+static uint32_t mapHeld[GBA_W * GBA_H];
+static bool mapHeldOk;
+static int mapUndrawn; /* frames since the map was last drawn */
+static uint16_t mapDots[32][3];
+static int nMapDots;
+
+/* An OAM entry's pixel (px, py inside it, as on the screen) is opaque */
+static bool obj_opaque(const uint16_t* a, int w, int h, int px, int py) {
+	if (a[1] & 0x1000) px = w - 1 - px; /* (flips) */
+	if (a[1] & 0x2000) py = h - 1 - py;
+	bool b8 = a[0] & 0x2000;
+	bool oneD = emu_read16(&emu, 0x04000000) & 0x40;
+	int tile = a[2] & 0x3FF, step = b8 ? 2 : 1;
+	tile += (py / 8) * (oneD ? (w / 8) * step : 32) + (px / 8) * step;
+	const uint8_t* v = (const uint8_t*) emu_vram(&emu) + 0x10000 + (tile & 0x3FF) * 32;
+	int x = px & 7, y = py & 7;
+	if (b8) return v[y * 8 + x] != 0;
+	uint8_t byte = v[y * 4 + x / 2];
+	return ((x & 1) ? byte >> 4 : byte & 15) != 0;
+}
+
+static void obj_size(const uint16_t* a, int* w, int* h) {
+	static const uint8_t sz[3][4][2] = { { { 8, 8 }, { 16, 16 }, { 32, 32 }, { 64, 64 } },
+	                                     { { 16, 8 }, { 32, 8 }, { 32, 16 }, { 64, 32 } },
+	                                     { { 8, 16 }, { 8, 32 }, { 16, 32 }, { 32, 64 } } };
+	int shape = SDL_min((a[0] >> 14) & 3, 2), size = (a[1] >> 14) & 3;
+	*w = sz[shape][size][0], *h = sz[shape][size][1];
+}
+
+/* marks a sprite's opaque pixels inside the box (x0, y0, w x h) */
+static void obj_mark(const uint16_t* a, uint8_t* mask, int x0, int y0, int bw, int bh) {
+	int w, h;
+	obj_size(a, &w, &h);
+	int ox = a[1] & 0x1FF, oy = a[0] & 0xFF;
+	if (ox >= 256) ox -= 512;
+	if (oy >= 160) oy -= 256;
+	for (int y = SDL_max(oy, y0); y < SDL_min(oy + h, y0 + bh); ++y) {
+		for (int x = SDL_max(ox, x0); x < SDL_min(ox + w, x0 + bw); ++x) {
+			if (obj_opaque(a, w, h, x - ox, y - oy)) mask[(y - y0) * bw + (x - x0)] = 1;
+		}
+	}
+}
+
+/* hud.mapAt.holdTile: after each racing frame. The game writes the sprites
+ * for the next frame after one, so this frame's dots are the ones read
+ * after the last frame; to be safe, those read now are left out too. A
+ * frame with anything else in the map's box drew the map: its pixels
+ * there, but the dots', go into mapHeld. */
+static void map_hold_update(const typeof(hudProf->hud)* h, uint32_t clear) {
+	if (!mapHeldOk) {
+		for (int i = 0; i < GBA_W * GBA_H; ++i) mapHeld[i] = clear;
+		mapHeldOk = true;
+	}
+	int x0 = SDL_max(h->map.x0, 0), y0 = SDL_max(h->map.y0, 0);
+	int bw = SDL_min(h->map.x1, GBA_W - 1) - x0 + 1, bh = SDL_min(h->map.y1, GBA_H - 1) - y0 + 1;
+	if (bw <= 0 || bh <= 0) return;
+	static uint8_t mask[GBA_W * GBA_H];
+	memset(mask, 0, (size_t) bw * bh);
+	for (int d = 0; d < nMapDots; ++d) obj_mark(mapDots[d], mask, x0, y0, bw, bh);
+	nMapDots = 0;
+	for (int i = 0; i < 128; ++i) {
+		uint16_t a[3];
+		for (int k = 0; k < 3; ++k) a[k] = emu_read16(&emu, 0x07000000 + i * 8 + k * 2);
+		if ((a[0] & 0x300) == 0x200 || (a[0] & 0x100)) continue; /* hidden, rotated */
+		if ((a[2] & 0x3FF) != h->mapAt.dotTile || nMapDots >= 32) continue;
+		memcpy(mapDots[nMapDots++], a, sizeof(a));
+		obj_mark(a, mask, x0, y0, bw, bh);
+	}
+	int other = 0;
+	for (int y = 0; y < bh; ++y) {
+		for (int x = 0; x < bw; ++x) {
+			if (!mask[y * bw + x] && (hudPx[(y + y0) * GBA_W + x + x0] & 0xFFFFFF) != clear) ++other;
+		}
+	}
+	if (other < 16) { /* (the dots alone: the map isn't drawn this frame) */
+		++mapUndrawn;
+		return;
+	}
+	mapUndrawn = 0;
+	for (int y = 0; y < bh; ++y) {
+		for (int x = 0; x < bw; ++x) {
+			if (!mask[y * bw + x]) mapHeld[(y + y0) * GBA_W + x + x0] = hudPx[(y + y0) * GBA_W + x + x0];
+		}
+	}
+}
+
 static void hud_compose(void) {
 	const typeof(hudProf->hud)* h = &hudProf->hud;
 	uint32_t clear = emu_hud_clear();
@@ -1888,6 +1977,9 @@ static void hud_compose(void) {
 		if (mapFound) bx0 = mapX0, by0 = mapY0, bx1 = mapX1, by1 = mapY1;
 		else bx0 = h->map.x0, by0 = h->map.y0, bx1 = h->map.x1, by1 = h->map.y1;
 	}
+	/* (hud.mapAt.holdTile: the map held between the frames it's drawn in) */
+	bool hold = bigMap && h->mapAt.holdTile;
+	if (hold) map_hold_update(h, clear);
 	/* the sign: only when nothing else of the HUD is on its rows nearby */
 	bool sign = false;
 	if (racing && h->sign.x1) {
@@ -1985,6 +2077,7 @@ static void hud_compose(void) {
 	}
 	int moveDx[4] = { 0 }, moveDy[4] = { 0 };
 	bool moving[4] = { false };
+	int pieceLo[4] = { 0 }, pieceTop[4] = { 0 };
 	for (int m = 0; moves && m < 4; ++m) {
 		const HudMove* mv = &moves[m];
 		if (!mv->how && !mv->vhow && !mv->toGame) continue;
@@ -2000,6 +2093,26 @@ static void hud_compose(void) {
 		moving[m] = true;
 		moveDx[m] = mv->how == 'C' ? mv->x - (lo + hi) / 2 : mv->how == 'R' ? mv->x - hi : mv->how == 'L' ? mv->x - lo : 0;
 		moveDy[m] = mv->vhow == 'M' ? mv->y - (top + bot) / 2 : mv->vhow == 'B' ? mv->y - bot : mv->vhow == 'T' ? mv->y - top : 0;
+		pieceLo[m] = lo, pieceTop[m] = top;
+	}
+	/* `under`: below whatever stays in its corner (what's above its box in
+	 * its columns, outside the other moving pieces), lined up with it */
+	for (int m = 0; moves && m < 4; ++m) {
+		const HudMove* mv = &moves[m];
+		if (!moving[m] || !mv->under) continue;
+		int ulo = GBA_W, ubot = -1;
+		for (int y = 0; y < SDL_min(mv->y0, GBA_H); ++y) {
+			for (int x = SDL_max(mv->x0, 0); x <= SDL_min(mv->x1, GBA_W - 1); ++x) {
+				if ((hudPx[y * GBA_W + x] & 0xFFFFFF) == clear) continue;
+				bool other = false;
+				for (int k = 0; k < 4 && !other; ++k) {
+					const HudMove* o = &moves[k];
+					other = k != m && moving[k] && x >= o->x0 && x <= o->x1 && y >= o->y0 && y <= o->y1;
+				}
+				if (!other) ulo = SDL_min(ulo, x), ubot = SDL_max(ubot, y);
+			}
+		}
+		if (ubot >= 0) moveDx[m] = ulo - pieceLo[m], moveDy[m] = ubot + 1 + mv->under - pieceTop[m];
 	}
 	for (int y = 0; y < GBA_H; ++y) {
 		for (int x = 0; x < GBA_W; ++x) {
@@ -2040,6 +2153,9 @@ static void hud_compose(void) {
 		for (int y = by0; y <= by1; ++y) {
 			for (int x = bx0; x <= bx1; ++x) {
 				uint32_t c = hudPx[y * GBA_W + x];
+				/* (the dots on the map held; not once the game's stopped
+				 * drawing it, as a Grand Prix ends) */
+				if (hold && mapUndrawn <= 3 && (c & 0xFFFFFF) == clear) c = mapHeld[y * GBA_W + x];
 				if ((c & 0xFFFFFF) == clear) continue;
 				for (int j = 0; j < q; ++j) {
 					uint32_t* o = &hudCanvas[(ty + (y - by0) * q + j) * HUD_CW + tx + (x - bx0) * q];
@@ -2298,6 +2414,7 @@ static void update_hud(void) {
 		hudFrames = 0;
 		hudRegrab = 0;
 		mapFound = false;
+		mapHeldOk = false, nMapDots = 0, mapUndrawn = 0; /* (hud.mapAt.holdTile: none held yet) */
 	}
 	/* a spell or other animation: its effects are on the text box layers,
 	 * in other palettes than the text boxes; those layers stay (from the

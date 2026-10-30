@@ -971,6 +971,125 @@
    ]
   },
   {
+   "id": "fz-jp-high-map",
+   "rom": "BFZJ",
+   "state": "f-zero-gp-legend/jp-race-high-map.ss",
+   "desc": "Japanese release: a Grand Prix start on a course whose map sits higher (a player's bug report, its keys played back): the whole map, held steady on consecutive frames, nothing left of it",
+   "rules": [
+    "FZ-2",
+    "FZ-4"
+   ],
+   "input": [
+    [
+     0,
+     "-"
+    ],
+    [
+     28,
+     "RIGHT"
+    ],
+    [
+     34,
+     "-"
+    ],
+    [
+     37,
+     "A"
+    ],
+    [
+     43,
+     "-"
+    ],
+    [
+     62,
+     "B"
+    ],
+    [
+     69,
+     "-"
+    ],
+    [
+     80,
+     "B"
+    ],
+    [
+     88,
+     "-"
+    ],
+    [
+     103,
+     "START"
+    ],
+    [
+     112,
+     "-"
+    ],
+    [
+     126,
+     "A"
+    ],
+    [
+     134,
+     "-"
+    ],
+    [
+     252,
+     "A"
+    ],
+    [
+     260,
+     "-"
+    ]
+   ],
+   "shots": {
+    "one": 650,
+    "two": 651
+   },
+   "checks": [
+    {
+     "rule": "FZ-4",
+     "what": "the map the same on consecutive frames (held)",
+     "type": "same",
+     "a": {
+      "shot": "one",
+      "screen": "second",
+      "rect": [
+       256,
+       160,
+       768,
+       704
+      ]
+     },
+     "b": {
+      "shot": "two",
+      "screen": "second",
+      "rect": [
+       256,
+       160,
+       768,
+       704
+      ]
+     },
+     "frac": 0.002
+    },
+    {
+     "rule": "FZ-4",
+     "what": "no stray map rows left of the map",
+     "type": "uniform",
+     "shot": "two",
+     "screen": "second",
+     "rect": [
+      40,
+      380,
+      240,
+      470
+     ],
+     "color": "10101A",
+     "frac": 0.999
+    }
+   ]
+  },
+  {
    "id": "fz-logo-bfze",
    "kind": "logo",
    "rom": "BFZE",
