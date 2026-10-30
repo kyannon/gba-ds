@@ -18,6 +18,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Fire Emblem (Rekka no Ken in Japan) | `AE7E` `AE7X` (English, French, German) `AE7Y` (English, Spanish, Italian) `AE7J` | on the map: the status of the unit under the cursor |
 | Sword of Mana (Shinyaku Seiken Densetsu in Japan) | `AVSE` `AVSY` (Spanish, Italian) `AVSJ` | the Status screen |
 | Summon Night: Swordcraft Story (Craft Sword Monogatari in Japan) | `AB4E` `AB4J` (no European release) | the Status screen, with where you are |
+| Summon Night: Swordcraft Story 2 (Craft Sword Monogatari 2 in Japan) | `BSKE` `BSKJ` (no European release) | the Status screen |
 | Golden Sun (Ougon no Taiyou: Hirakareshi Fuuin in Japan) | `AGSE` `AGSD` `AGSF` `AGSI` `AGSS` `AGSJ` | the Status screen, each party member in turn; in battle, the one choosing |
 | Tactics Ogre: The Knight of Lodis (Tactics Ogre Gaiden in Japan) | `ATOE` `ATOJ` (no European release) | the battle's unit list, on the unit under your cursor |
 | Pokémon Pinball: Ruby & Sapphire | `BPPE` | the table twice as tall over both screens, live, with the score bar |
@@ -116,6 +117,15 @@ The USA release and the Japanese one (Craft Sword Monogatari); there was no Euro
 
 - **While you play,** the second screen shows the **Status** screen from the START menu, at the game screen's size, with the menu's **Place** bar (where you are) over its bottom, its heading short enough to leave the row under the stats in view. Both are brought up in the background on a silent copy of the game; your game is never paused or touched. Where the menu can't be opened (a scene, a fight), the last picture stays.
 - On the title screen, the second screen shows the logo, the whole sword included.
+
+## Summon Night: Swordcraft Story 2
+
+The USA release and the Japanese one (Craft Sword Monogatari 2); there was no European release.
+
+- **While you walk about,** the second screen shows the **Status** screen from the START menu (level, HP, experience, your portrait and your stats with each weapon), as the game draws it. It's opened in the background on a silent copy of the game about once a second; your game is never paused or touched.
+- Where the menu can't be opened (a conversation, a scene, the game's own menus), the last Status picture stays.
+- At the title, and from there until the first Status picture, the second screen shows the logo.
+- Only the start of the story has been tried so far; battles, shops and the forge are still to try.
 
 ## Tony Hawk's Pro Skater 3
 

@@ -2156,6 +2156,29 @@ static const MapProfile profiles[] = {
 		},
 	},
 	{
+		/* Summon Night: Swordcraft Story 2 (USA; in Japan Craft Sword
+		 * Monogatari 2, the same RAM and menus). Walking about: DISPCNT
+		 * 0x1F40; START's menu and its Status screen 0x3F40, the Status with
+		 * the halfword at 0x03000002 = 0x0434 (0x03AC in the menu; other
+		 * values in the field). The menu's cursor starts on Equipment each
+		 * time and wraps: UP twice (past the page arrow) is Status. The
+		 * title: DISPCNT 0x3740, BG2CNT 0x1F0A. */
+		.codes = { "BSKE", "BSKJ" },
+		.title = "Summon Night: Swordcraft Story 2",
+		/* the title's lettering, BG0 alone (its glow is BG1); START skips
+		 * the intro from frame ~600 (SN2-1) */
+		.logo = { .steps = { { 0, 650 }, { K_START, 4 }, { 0, 250 } }, .layer = 0, .maxY = 110 },
+		/* the Status screen, whole (SN2-2): the menu takes input ~30
+		 * frames after START */
+		.open = { { K_START, 3 }, { 0, 40 }, { K_UP, 3 }, { 0, 4 }, { K_UP, 3 }, { 0, 4 }, { K_A, 3 } },
+		.settleMax = 120, .openWithin = 60, .stableFrames = 4, .maxDiff = 40,
+		.crop_x = 0, .crop_y = 0, .crop_w = 240, .crop_h = 160,
+		.mem = { { 0x04000000, 0xFFFF, 0x3F40, 2 }, { 0x03000002, 0xFFFF, 0x0434, 2 } },
+		.live = { { 0x04000000, 0xFFFF, 0x1F40, 2 } },
+		/* the title: the logo (SN2-3) */
+		.menu = { { 0x04000000, 0xFFFF, 0x3740, 2 }, { 0x0400000C, 0xFFFF, 0x1F0A, 2 } },
+	},
+	{
 		/* Spider-Man: Mysterio's Menace (USA and Europe; Japan: the ASEJ
 		 * variant). In a level the display is mode 0 with every layer and
 		 * sprites (DISPCNT 0x1F40, the title's too); SELECT brings up the

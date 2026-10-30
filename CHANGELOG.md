@@ -4,6 +4,7 @@
 
 ### New games
 - **Spider-Man: Mysterio's Menace** (Spider-Man: Mysterio no Kyoui in Japan): in a level, the second screen shows the Select menu (the objective, password, suits, upgrades and web containers), updated about once a second. At the title, the intro and between levels it shows the logo. The USA / European and Japanese releases have been tried in the first level.
+- **Summon Night: Swordcraft Story 2** (Craft Sword Monogatari 2 in Japan): while you walk about, the second screen shows the Status screen (level, HP, experience and your stats with each weapon), updated about once a second; in a conversation or the game's own menus the last one stays. At the title it shows the logo. The USA and Japanese releases have been tried at the start of the story.
 
 ### Supported games
 - Final Fantasy Tactics Advance, Advance Wars, Advance Wars 2, Game Boy Wars Advance 1+2, Fire Emblem, Summon Night: Swordcraft Story, Golden Sun, Tactics Ogre, Pokémon Pinball, F-Zero: GP Legend and River City Ransom EX are no longer marked preliminary: they've been tested as much as the other supported games.

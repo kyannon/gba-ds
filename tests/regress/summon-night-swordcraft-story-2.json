@@ -1,0 +1,57 @@
+{
+ "game": "Summon Night: Swordcraft Story 2",
+ "rules": "docs/games/summon-night-swordcraft-story-2.md",
+ "cases": [
+  {
+   "id": "sn2-us-title",
+   "rom": "BSKE",
+   "state": "summon-night-swordcraft-story-2/us-title.ss",
+   "desc": "the title (a player's bug report): the logo",
+   "rules": ["SN2-3"],
+   "shots": {"title": 200},
+   "checks": [
+    {"rule": "SN2-3", "what": "no Status picture", "type": "no_log", "match": "map updated"}
+   ]
+  },
+  {
+   "id": "sn2-us-status-open",
+   "rom": "BSKE",
+   "state": "summon-night-swordcraft-story-2/us-status-open.ss",
+   "desc": "the end of a conversation, walking about, then START's menu and its Status opened in the game (a player's bug report, its keys played back)",
+   "rules": ["SN2-2", "SN2-3", "SN2-4"],
+   "input": [[0, "-"], [6, "A"], [21, "-"], [42, "A"], [63, "-"], [78, "A"], [96, "-"], [117, "A"], [135, "-"], [182, "START"], [197, "-"], [314, "DOWN"], [321, "-"], [325, "DOWN"], [330, "-"], [335, "DOWN"], [340, "-"], [345, "DOWN"], [350, "-"], [355, "DOWN"], [359, "-"], [364, "A"], [374, "-"], [484, "RIGHT"], [494, "-"], [505, "LEFT"], [511, "-"], [526, "DOWN"], [534, "-"]],
+   "shots": {"talk": 60, "field": 178, "menu": 300, "status": 600},
+   "checks": [
+    {"rule": "SN2-2", "what": "a Status picture was shown", "type": "log", "match": "map updated"}
+   ]
+  },
+  {
+   "id": "sn2-us-field",
+   "rom": "BSKE",
+   "state": "summon-night-swordcraft-story-2/us-field.ss",
+   "desc": "walking about: the Status screen on the second screen",
+   "rules": ["SN2-2"],
+   "shots": {"start": 60, "later": 300},
+   "checks": [
+    {"rule": "SN2-2", "what": "a Status picture was shown", "type": "log", "match": "map updated"},
+    {"rule": "SN2-2", "what": "the Status, not black", "type": "not_uniform", "shot": "later", "screen": "second",
+     "rect": [32, 64, 992, 704], "color": "000000", "frac": 0.5}
+   ]
+  },
+  {
+   "id": "sn2-jp-field",
+   "rom": "BSKJ",
+   "state": "summon-night-swordcraft-story-2/jp-field.ss",
+   "desc": "walking about, Japanese release: the Status screen on the second screen",
+   "rules": ["SN2-2"],
+   "shots": {"start": 60, "later": 300},
+   "checks": [
+    {"rule": "SN2-2", "what": "a Status picture was shown", "type": "log", "match": "map updated"},
+    {"rule": "SN2-2", "what": "the Status, not black", "type": "not_uniform", "shot": "later", "screen": "second",
+     "rect": [32, 64, 992, 704], "color": "000000", "frac": 0.5}
+   ]
+  },
+  {"id": "sn2-logo-bske", "kind": "logo", "rom": "BSKE", "desc": "BSKE logo extraction", "rules": ["GEN-1", "SN2-1"], "golden": ["logo"]},
+  {"id": "sn2-logo-bskj", "kind": "logo", "rom": "BSKJ", "desc": "BSKJ logo extraction", "rules": ["GEN-1", "SN2-1"], "golden": ["logo"]}
+ ]
+}
