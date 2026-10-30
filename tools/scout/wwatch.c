@@ -1,7 +1,8 @@
 /* Write watch: logs the PCs that write given addresses, per frame.
  *   wwatch ROM STATE FRAMES ADDR[:LEN]... [-k KEYSFILE]
  * KEYSFILE: a harness keys script (hold BUTTONS N lines; others ignored).
- * Prints "fNNNN ADDR <- VALUE (size) pc PC lr LR" for each write in a range.
+ * Prints "fNNNN ADDR <- VALUE (size) pc PC lr LR" for each write in a range;
+ * -r: reads too ("fNNNN ADDR read (size) pc PC lr LR").
  */
 #include <mgba/flags.h>
 #include <mgba/internal/gba/gba.h>
@@ -17,6 +18,10 @@ static void (*o32)(struct ARMCore*, uint32_t, int32_t, int*);
 static void (*o16)(struct ARMCore*, uint32_t, int16_t, int*);
 static void (*o8)(struct ARMCore*, uint32_t, int8_t, int*);
 static uint32_t (*oMul)(struct ARMCore*, uint32_t, int, enum LSMDirection, int*);
+static uint32_t (*l32)(struct ARMCore*, uint32_t, int*);
+static uint32_t (*l16)(struct ARMCore*, uint32_t, int*);
+static uint32_t (*l8)(struct ARMCore*, uint32_t, int*);
+static int reads;
 static struct { uint32_t lo, hi; } rng[16];
 static int nr, curFrame;
 
@@ -39,6 +44,18 @@ static uint32_t sMul(struct ARMCore* c, uint32_t base, int mask, enum LSMDirecti
 	return oMul(c, base, mask, d, cc);
 }
 
+static void rhit(uint32_t a, int size) {
+	for (int i = 0; i < nr; ++i)
+		if (a + size > rng[i].lo && a < rng[i].hi) {
+			uint32_t pc = cpu->gprs[ARM_PC] - (cpu->executionMode == MODE_THUMB ? 4 : 8);
+			printf("f%04d %08X read (%d) pc %08X lr %08X\n", curFrame, a, size, pc, cpu->gprs[ARM_LR]);
+			return;
+		}
+}
+static uint32_t r32(struct ARMCore* c, uint32_t a, int* cc) { rhit(a & ~3, 4); return l32(c, a, cc); }
+static uint32_t r16(struct ARMCore* c, uint32_t a, int* cc) { rhit(a & ~1, 2); return l16(c, a, cc); }
+static uint32_t r8(struct ARMCore* c, uint32_t a, int* cc) { rhit(a, 1); return l8(c, a, cc); }
+
 static uint32_t parse_keys(const char* s) {
 	uint32_t k = 0;
 	static const char* names[] = {"A", "B", "SELECT", "START", "RIGHT", "LEFT", "UP", "DOWN", "R", "L"};
@@ -56,6 +73,7 @@ int main(int argc, char** argv) {
 	int frames = atoi(argv[3]);
 	static uint32_t keys[100000]; int nk = 0;
 	for (int i = 4; i < argc; ++i) {
+		if (!strcmp(argv[i], "-r")) { reads = 1; continue; }
 		if (!strcmp(argv[i], "-k") && i + 1 < argc) {
 			FILE* f = fopen(argv[++i], "r"); char line[256], b[64]; int n;
 			while (f && fgets(line, sizeof line, f))
@@ -74,6 +92,11 @@ int main(int argc, char** argv) {
 	o16 = cpu->memory.store16; cpu->memory.store16 = s16;
 	o8 = cpu->memory.store8; cpu->memory.store8 = s8;
 	oMul = cpu->memory.storeMultiple; cpu->memory.storeMultiple = sMul;
+	if (reads) {
+		l32 = cpu->memory.load32; cpu->memory.load32 = r32;
+		l16 = cpu->memory.load16; cpu->memory.load16 = r16;
+		l8 = cpu->memory.load8; cpu->memory.load8 = r8;
+	}
 	for (curFrame = 0; curFrame < frames; ++curFrame) emu_frame(&e, curFrame < nk ? keys[curFrame] : 0);
 	return 0;
 }

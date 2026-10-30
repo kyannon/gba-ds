@@ -13,45 +13,320 @@
    "shots": {
     "start": 60,
     "later": 300
-   }
+   },
+   "checks": [
+    {
+     "rule": "SPP-1",
+     "what": "no table view",
+     "type": "no_log",
+     "match": "frame [0-9]+: live view"
+    }
+   ]
   },
   {
    "id": "spp-us-sonic-table",
    "rom": "A3VE",
    "state": "sonic-pinball-party/us-sonic-table.ss",
-   "desc": "Arcade, the Sonic table (a player's bug report): the logo for now",
+   "desc": "Arcade, the Sonic table (a player's bug report): the table over both screens",
    "rules": [
-    "SPP-1"
+    "SPP-2",
+    "SPP-3"
    ],
    "shots": {
     "start": 60,
     "later": 300
-   }
+   },
+   "checks": [
+    {
+     "rule": "SPP-2",
+     "what": "the table over both screens",
+     "type": "log",
+     "match": "frame [0-9]+: live view"
+    }
+   ]
   },
   {
    "id": "spp-us-nights-table",
    "rom": "A3VE",
    "state": "sonic-pinball-party/us-nights-table.ss",
-   "desc": "Arcade, the NiGHTS table (a player's bug report): the logo for now",
+   "desc": "Arcade, the NiGHTS table (a player's bug report): the table over both screens",
    "rules": [
-    "SPP-1"
+    "SPP-2",
+    "SPP-3"
    ],
    "shots": {
     "start": 60,
     "later": 300
-   }
+   },
+   "checks": [
+    {
+     "rule": "SPP-2",
+     "what": "the table over both screens",
+     "type": "log",
+     "match": "frame [0-9]+: live view"
+    }
+   ]
   },
   {
    "id": "spp-us-story-table",
    "rom": "A3VE",
    "state": "sonic-pinball-party/us-story-table.ss",
-   "desc": "Story, the first table (a player's bug report): the logo for now",
+   "desc": "Story, the first table (a player's bug report): the table over both screens",
    "rules": [
-    "SPP-1"
+    "SPP-2",
+    "SPP-3"
    ],
    "shots": {
     "start": 60,
     "later": 300
+   },
+   "checks": [
+    {
+     "rule": "SPP-2",
+     "what": "the table over both screens",
+     "type": "log",
+     "match": "frame [0-9]+: live view"
+    }
+   ]
+  },
+  {
+   "id": "spp-us-sonic-pause",
+   "rom": "A3VE",
+   "state": "sonic-pinball-party/us-sonic-table.ss",
+   "desc": "the Sonic table, START: the pause menu on the top screen, the table's lower rows below",
+   "rules": [
+    "SPP-4"
+   ],
+   "input": [
+    [
+     20,
+     "START"
+    ],
+    [
+     24,
+     "-"
+    ],
+    [
+     90,
+     "DOWN"
+    ],
+    [
+     94,
+     "-"
+    ]
+   ],
+   "shots": {
+    "pause": 80,
+    "quit": 100
+   },
+   "checks": [
+    {
+     "rule": "SPP-4",
+     "what": "the table over both screens",
+     "type": "log",
+     "match": "frame [0-9]+: live view"
+    }
+   ]
+  },
+  {
+   "id": "spp-us-nights-bonus",
+   "rom": "A3VE",
+   "state": "sonic-pinball-party/us-nights-table.ss",
+   "desc": "the NiGHTS table played to its SHOOT BONUS banner (both flippers every 50 frames): the banner and its NiGHTS on the top screen, the game's own rows below",
+   "rules": [
+    "SPP-2",
+    "SPP-4"
+   ],
+   "input": [
+    [
+     50,
+     "L+A"
+    ],
+    [
+     56,
+     "-"
+    ],
+    [
+     100,
+     "L+A"
+    ],
+    [
+     106,
+     "-"
+    ],
+    [
+     150,
+     "L+A"
+    ],
+    [
+     156,
+     "-"
+    ],
+    [
+     200,
+     "L+A"
+    ],
+    [
+     206,
+     "-"
+    ],
+    [
+     250,
+     "L+A"
+    ],
+    [
+     256,
+     "-"
+    ],
+    [
+     300,
+     "L+A"
+    ],
+    [
+     306,
+     "-"
+    ],
+    [
+     350,
+     "L+A"
+    ],
+    [
+     356,
+     "-"
+    ],
+    [
+     400,
+     "L+A"
+    ],
+    [
+     406,
+     "-"
+    ],
+    [
+     450,
+     "L+A"
+    ],
+    [
+     456,
+     "-"
+    ],
+    [
+     500,
+     "L+A"
+    ],
+    [
+     506,
+     "-"
+    ],
+    [
+     550,
+     "L+A"
+    ],
+    [
+     556,
+     "-"
+    ],
+    [
+     600,
+     "L+A"
+    ],
+    [
+     606,
+     "-"
+    ],
+    [
+     650,
+     "L+A"
+    ],
+    [
+     656,
+     "-"
+    ],
+    [
+     700,
+     "L+A"
+    ],
+    [
+     706,
+     "-"
+    ],
+    [
+     750,
+     "L+A"
+    ],
+    [
+     756,
+     "-"
+    ],
+    [
+     800,
+     "L+A"
+    ],
+    [
+     806,
+     "-"
+    ],
+    [
+     850,
+     "L+A"
+    ],
+    [
+     856,
+     "-"
+    ],
+    [
+     900,
+     "L+A"
+    ],
+    [
+     906,
+     "-"
+    ],
+    [
+     950,
+     "L+A"
+    ],
+    [
+     956,
+     "-"
+    ],
+    [
+     1000,
+     "L+A"
+    ],
+    [
+     1006,
+     "-"
+    ],
+    [
+     1050,
+     "L+A"
+    ],
+    [
+     1056,
+     "-"
+    ],
+    [
+     1100,
+     "L+A"
+    ],
+    [
+     1106,
+     "-"
+    ],
+    [
+     1150,
+     "L+A"
+    ],
+    [
+     1156,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 1150,
+    "banner": 1170,
+    "later": 1195
    }
   },
   {

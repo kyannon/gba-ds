@@ -31,7 +31,7 @@ What this means in practice:
 - **Use what the game already does.** The usual approach is to open the game's own menu on the hidden copy and take a picture of it. That's simple, works in every situation the menu can be opened, and gets the game's own drawing for free. Reading a few memory addresses to know when to do it (a "screen is open" flag, the cursor's unit, the room number) is fine. Rebuilding a screen from the game's data is not.
 - **Fewer, broader checks.** One check that holds everywhere (the menu's open flag plus a few fixed pixels) is better than many special cases. When a game has an odd situation (a tutorial that blocks the menu, a scene played on the battle map), it's often fine to show the logo there and write it down as a known issue, instead of adding a workaround.
 - **Everything has to be testable.** Each game's behaviour is written down as a list of plain rules, and checked against saved moments from real play every time something changes. If a behaviour can't be described simply and checked that way, it's probably too complicated.
-- **Know the cost.** The device has to run the game, the hidden copy and the drawing at full speed. Pokémon Pinball's tall view (two extra copies of the game running every frame) is the most expensive thing GBA DS does, and is about as far as this rule bends.
+- **Know the cost.** The device has to run the game, the hidden copy and the drawing at full speed. The pinball games' tall view (two extra copies of the game running every frame) is the most expensive thing GBA DS does, and is about as far as this rule bends.
 
 ## 4. Use the original game's aesthetic.
 
@@ -68,9 +68,9 @@ What this means in practice:
 - **An exception has to earn its place.** It should make the game clearly more fun or easier to play on the device, and be something the player would recognise (the four-button layouts mirror the console versions of those games). Being technically possible is not enough.
 - **Every exception is deliberate.** It's written down with the game's other rules and tested like everything else, so it isn't "fixed" later by mistake. Current exceptions include:
   - the four-button and SNES layouts;
-  - Pokémon Pinball's table spread over both screens as one tall view;
+  - Pokémon Pinball's and Sonic Pinball Party's tables spread over both screens as one tall view;
   - Mario Kart's and F-Zero: GP Legend's race screen course maps, drawn larger than the game's;
   - Super Mario Advance 2's level name moved above its status bar;
   - River City Ransom EX's Status screen on a plain blue background (one of the game's own pause colours) instead of the tinted street behind it.
-- **Optional where it can be.** Where an exception changes how the game plays or looks, there's a way back to the original: GBA is the default control layout, and `pinball_live = 0` turns off Pinball's tall view.
+- **Optional where it can be.** Where an exception changes how the game plays or looks, there's a way back to the original: GBA is the default control layout, and `pinball_live = 0` turns off the pinball games' tall view.
 - **Scope is a feature.** Every change has to be built, tested on the real device and maintained by one person. A smaller, solid feature beats a bigger, fragile one, and that's often the honest answer to a feature request: not "never", but "not at the cost of everything else working".

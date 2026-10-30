@@ -2019,11 +2019,43 @@ static const MapProfile profiles[] = {
 		.logo = { .wait = 1440, .layer = 1, .maxY = 140, .lightEdgeClear = true },
 	},
 	{
-		/* the logo for now; the table over both screens is to come
-		 * (docs/games/sonic-pinball-party.md) */
+		/* the table over both screens, live (see profiles.h tall; the two
+		 * releases differ only in their header): the score bar (BG3, rows
+		 * 0-23) on the top screen, the message line (BG2, rows 150-159) at
+		 * the bottom of the bottom one; BG2's boxes (the pause menu) over
+		 * the top screen */
 		.codes = { "A3VE", "A3VP" },
 		.title = "Sonic Pinball Party",
 		.logoOnly = true,
+		.tall = {
+			/* on a table: the table's BG0 and the rails' BG1 set up */
+			.on = { { 0x04000008, 0xFFFF, 0x8C03, 2 }, { 0x0400000A, 0xFFFF, 0x8E0A, 2 } },
+			.hudBg = 0x0C,
+			.hudRow = 144,
+			/* the camera: a row (0x02031AE4) copied each frame from the game's
+			 * object (+0x9A) by 0x0800A4BE, and walked down by 0x08009FAC as a
+			 * table opens; 0x0801FA30 makes the view from it, clamped to rows
+			 * 8 to the table's height (0x030040E0: 416 Sonic, 432 NiGHTS) -
+			 * 168, plus the shake (0x0203524E), and streams the table's tiles
+			 * into BG0's 22-row ring (VRAM 0x0000-0x57FF, counters
+			 * 0x02031AD4-0x02031AE3) through the vblank queue of 0x0800162C.
+			 * The view's shadows: 0x03000784 (BG0, BG1: the next frame's),
+			 * 0x03002990 (HOFS, VOFS). Shadow sprites at 0x03000E50 */
+			.live = { .nop = { 0x0800A4BE, 0x08009FAC },
+			          .oam = 0x03000E50, .view = 0x03000784, .viewBg = 0,
+			          .carry = { .cam = 0x02031AE4, .camOff = 80, .rowsAt = 0x030040E0, .top = 8, .bottomLess = 8,
+			                     .shakeAt = 0x0203524E, .ringLo = 0x0000, .ringHi = 0x6000,
+			                     .vars = { { 0x02031AD4, 16 }, { 0x03000784, 4 }, { 0x03002990, 4 } },
+			                     .qCount = 0x030004F8, .qEntries = 0x030020B0,
+			                     /* the ball's sprite (0x08029D38) is placed by the camera's
+			                      * own clamp of the ball's row (0x50 in the middle: the camera
+			                      * follows it); in a copy, its row less the copy's view:
+			                      * ldrh r5,[r0] (the ball's row); ldr r0,=cam; ldrh r0,[r0];
+			                      * subs r5,r5,r0; adds r5,#0x50; r5 &= 0xFFFF; b 0x08029D62 */
+			                     .patch = { { 0x08029D3A, 0x4808 }, { 0x08029D3C, 0x8800 }, { 0x08029D3E, 0x1A2D },
+			                                { 0x08029D40, 0x3550 }, { 0x08029D42, 0x0428 }, { 0x08029D44, 0x0C05 },
+			                                { 0x08029D46, 0xE00C }, { 0x08029D5C, 0x1AE4 }, { 0x08029D5E, 0x0203 } } } },
+		},
 		/* the title (A for English at the language menu of a game with no
 		 * save; with one, A only skips some of the intro): the name (BG1)
 		 * on its badge (BG2), above PRESS START

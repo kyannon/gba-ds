@@ -25,7 +25,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | F-Zero: GP Legend (F-Zero: Falcon Densetsu in Japan) | `BFZE` `BFZP` `BFZJ` | the race HUD, with the course map twice as big |
 | River City Ransom EX (Downtown Nekketsu Monogatari EX in Japan) | `BDTE` `BDTJ` (no European release) | the Status screen, with the top bar moved off the game screen |
 | Spider-Man: Mysterio's Menace (Spider-Man: Mysterio no Kyoui in Japan) | `ASEE` (USA and Europe) `ASEJ` | the Select menu: the objective, password, suits, upgrades and web containers |
-| Sonic Pinball Party | `A3VE` `A3VP` | the logo for now (the tables over both screens are being worked on) |
+| Sonic Pinball Party | `A3VE` `A3VP` | the table twice as tall over both screens, live |
 
 The codes are what `<CODE>` means in logo and overlay file names (see [Playing](Playing#logos) and [[Map screen surrounds and overlays]]).
 
@@ -176,6 +176,17 @@ The USA release and the Japanese one (Downtown Nekketsu Monogatari EX).
 - At the Story / Manage Data menu, the title card and through a story's opening conversation, the second screen shows the logo.
 - With one screen (`layout = single`), the top bar stays where the game draws it.
 - Shops, restaurants and two players haven't been tried yet.
+
+## Sonic Pinball Party
+
+The USA and European releases.
+
+- **On a table,** the two screens together show twice as much of it, **live**, as if they were one tall screen, as on Pokémon Pinball: GBA DS runs two more copies of the game alongside yours, drawing the parts of the table your game's view doesn't. Your game itself is never changed.
+- The view scrolls smoothly with the ball. While the ball is in the table's upper part, your game is on the top screen with the next part of the table below it; further down, the two screens show the whole lower table.
+- The **score bar** is at the top of the top screen and the **message line** at the bottom of the bottom screen. The **pause menu** and banners (SHOOT BONUS) appear on the top screen.
+- Tried so far on the Sonic and NiGHTS tables. The Samba de Amigo table, bonus stages and Story mode's conversations haven't been tried yet.
+- `pinball_live = 0` in `gba-ds.cfg` turns the copies off: the game then plays on one screen, with the logo on the other.
+- On the title and menus, the second screen shows the logo.
 
 ## Spider-Man: Mysterio's Menace
 

@@ -211,6 +211,29 @@ typedef struct MapProfile {
 				unsigned scrollVofs;
 				uint32_t plus16;
 			} jump;
+			/* Instead of state/cam/jump (Sonic Pinball Party): the camera is a
+			 * row at `cam` (absolute; view = its row - camOff + the shake, a
+			 * signed half at shakeAt), the table's height a half at rowsAt
+			 * (its visible rows: top to height - bottomLess). A copy can't be
+			 * put anywhere at once: it walks its camera there (8 rows a
+			 * frame) and, every frame it's taken from the game again, keeps
+			 * its own BG tiles (VRAM ringLo..ringHi), its own copies of the
+			 * vars below (the ring's counters, the scroll's shadows) and its
+			 * own entries for the ring in the game's queue of copies made at
+			 * the next vblank (count byte at qCount, 12-byte entries of
+			 * destination, source, size at qEntries) */
+			struct {
+				uint32_t cam;
+				int camOff;
+				uint32_t rowsAt;
+				int top, bottomLess;
+				uint32_t shakeAt;
+				uint32_t ringLo, ringHi;
+				struct { uint32_t addr; int n; } vars[4];
+				uint32_t qCount, qEntries;
+				/* halfwords written over the copies' code (with nop) */
+				struct { uint32_t addr; uint16_t v; } patch[12];
+			} carry;
 		} live;
 	} tall;
 	/* A second button layout for games ported from four-face-button

@@ -158,9 +158,20 @@ typedef struct {
 	bool havePic;
 	int picRow;   /* the table row on pic's first line */
 	uint32_t pic[GBA_W * GBA_H];
+	/* (profile tall.live.carry) its camera's row, walked to where it's held;
+	 * what it keeps of its own from its last first frame (carried): its BG
+	 * tiles, vars and queued copies into them */
+	int cam;
+	bool carried;
+	uint64_t seq; /* the run_frame its first frame last ran in */
+	uint8_t* ring;
+	uint8_t vars[4][32];
+	uint32_t q[64][3];
+	int nq;
 } Twin;
 static Twin twins[TWINS];
 static bool twinOpen;
+static uint64_t twinSeq; /* run_frames; jumps on a load or rewind (bug_reset) */
 static bool twinRun;       /* the copies are to run (a table they know, its sweep over, a ball) */
 static int twinArmed;      /* frames on a table they know, with no sweep of the table going on */
 static void* twinStates[2]; /* the game's state from before each of the last two frames */
@@ -240,6 +251,23 @@ static bool twin_ball(Emu* e, uint32_t S, int32_t* x, int32_t* y) {
 	return true;
 }
 
+/* The table's rows: all of them, or (carry) the visible ones of the table
+ * up now; the view's top row at its highest; the screen shake */
+static bool tall_carry(const MapProfile* p) { return p && p->tall.live.carry.cam; }
+static int tall_rows_of(const MapProfile* p, Emu* e) {
+	const typeof(p->tall.live.carry)* C = &p->tall.live.carry;
+	if (!C->cam) return p->tall.rows;
+	int h = emu_read16(e, C->rowsAt) - C->bottomLess;
+	return h > 2 * GBA_H + C->top && h < 1024 ? h : 2 * GBA_H + C->top;
+}
+static int tall_top_of(const MapProfile* p) { return p->tall.live.carry.cam ? p->tall.live.carry.top : 0; }
+static int tall_shake(const MapProfile* p, Emu* e) {
+	const typeof(p->tall.live)* L = &p->tall.live;
+	if (L->carry.cam) return L->carry.shakeAt ? (int16_t) emu_read16(e, L->carry.shakeAt) : 0;
+	uint32_t S = emu_read32(e, L->state);
+	return S >= 0x02000000 && S < 0x02040000 ? (int8_t) emu_read8(e, S + L->shake) : 0;
+}
+
 /* A copy just taken from the game: its scroll and table tiles set for
  * camera row `row` at once, as if it had scrolled there (profile
  * tall.live.jump). */
@@ -274,6 +302,12 @@ static int obj_height(uint16_t a0, uint16_t a1) {
  * over the top screen) */
 static uint16_t tallFixed[128][3];
 static int nTallFixed;
+/* (carry) the rows where the score bar's layers drew something over the
+ * table last frame (a box, a banner; -1: none): only the fixed sprites
+ * there go to the top screen with it */
+static int tallBandY0 = -1, tallBandY1 = -1;
+static uint16_t tallBandFixed[128][3];
+static int nTallBandFixed;
 
 static uint8_t gameOam[1024]; /* the game's shadow sprite table and view before this frame (run_frame) */
 static int gameView;
@@ -364,10 +398,72 @@ static uint32_t twin_hold(Twin* tw, int target, int step) {
 	return T;
 }
 
+/* (carry) the game's queue of copies at the next vblank: its entries into
+ * the copy's BG tiles left out, the copy's own put in */
+static bool carry_ring(const typeof(twinProf->tall.live.carry)* C, uint32_t d) {
+	return d >= 0x06000000 + C->ringLo && d < 0x06000000 + C->ringHi;
+}
+static void carry_put(Twin* tw) {
+	const typeof(twinProf->tall.live.carry)* C = &twinProf->tall.live.carry;
+	Emu* e = &tw->e;
+	emu_vram_write(e, C->ringLo, tw->ring, C->ringHi - C->ringLo);
+	for (int k = 0; k < 4 && C->vars[k].addr; ++k)
+		for (int j = 0; j < C->vars[k].n; ++j) emu_write8(e, C->vars[k].addr + j, tw->vars[k][j]);
+	if (!C->qCount) return;
+	int n = emu_read8(e, C->qCount), m = 0;
+	for (int i = 0; i < n && i < 64; ++i) {
+		uint32_t at = C->qEntries + i * 12;
+		if (carry_ring(C, emu_read32(e, at))) continue;
+		for (int j = 0; j < 12; j += 4) emu_write32(e, C->qEntries + m * 12 + j, emu_read32(e, at + j));
+		++m;
+	}
+	for (int i = 0; i < tw->nq && m < 64; ++i, ++m)
+		for (int j = 0; j < 3; ++j) emu_write32(e, C->qEntries + m * 12 + j * 4, tw->q[i][j]);
+	emu_write8(e, C->qCount, (uint8_t) m);
+}
+static void carry_take(Twin* tw) {
+	const typeof(twinProf->tall.live.carry)* C = &twinProf->tall.live.carry;
+	Emu* e = &tw->e;
+	memcpy(tw->ring, (const uint8_t*) emu_vram(e) + C->ringLo, C->ringHi - C->ringLo);
+	for (int k = 0; k < 4 && C->vars[k].addr; ++k)
+		for (int j = 0; j < C->vars[k].n; ++j) tw->vars[k][j] = emu_read8(e, C->vars[k].addr + j);
+	tw->nq = 0;
+	int n = C->qCount ? emu_read8(e, C->qCount) : 0;
+	for (int i = 0; i < n && i < 64; ++i) {
+		uint32_t at = C->qEntries + i * 12;
+		if (!carry_ring(C, emu_read32(e, at))) continue;
+		for (int j = 0; j < 3; ++j) tw->q[tw->nq][j] = emu_read32(e, at + j * 4);
+		++tw->nq;
+	}
+	tw->carried = true;
+}
+/* (carry) the copy's first frame: taken from the game, its own tiles kept,
+ * its camera walked toward its row (up to 16 rows a frame: the game
+ * streams two tile rows a frame at most) */
+static void twin_first_carry(Twin* tw) {
+	const typeof(twinProf->tall.live.carry)* C = &twinProf->tall.live.carry;
+	if (!emu_state_load(&tw->e, twinStates[twinCur])) return;
+	if (tw->seq + 1 != twinSeq) tw->carried = false; /* (not run last frame, or a load since: its tiles are stale) */
+	tw->seq = twinSeq;
+	if (tw->carried) carry_put(tw);
+	else tw->cam = emu_read16(&tw->e, C->cam);
+	int want = tw->row + C->camOff;
+	tw->cam = want > tw->cam ? SDL_min(tw->cam + 16, want) : SDL_max(tw->cam - 16, want);
+	emu_write16(&tw->e, C->cam, (uint16_t) tw->cam);
+	emu_frame(&tw->e, twinKeys[twinCur] & 0x3FF);
+	carry_take(tw);
+	tw->up = true;
+}
+
 /* Before the game's frame: the frame before again, from the game's state
  * then, held at its row (which gives it this frame's sprites and scroll) */
 static void twin_first(void* arg) {
 	Twin* tw = arg;
+	if (tall_carry(twinProf)) {
+		tw->up = false;
+		twin_first_carry(tw);
+		return;
+	}
 	const typeof(twinProf->tall.live)* L = &twinProf->tall.live;
 	tw->up = false;
 	if (!emu_state_load(&tw->e, twinStates[twinCur])) return;
@@ -389,8 +485,10 @@ static void twin_second(void* arg) {
 	emu_frame(&tw->e, twinFrameKeys & 0x3FF);
 	memcpy(tw->pic, tw->e.fb, sizeof(tw->pic));
 	tw->picRow = emu_io16(&tw->e, 0x10 + 4 * L->viewBg + 2) & 0x1FF;
-	if (tw->picRow >= twinProf->tall.rows) tw->picRow -= 512;
-	tw->havePic = true;
+	if (tw->picRow >= tall_rows_of(twinProf, &tw->e)) tw->picRow -= 512;
+	/* (carry: a copy still walking to its row isn't shown) */
+	int off = abs(tw->picRow - tall_shake(twinProf, &tw->e) - tw->row);
+	tw->havePic = !tall_carry(twinProf) || off == 0 || (tw->havePic && off <= 16);
 }
 
 /* After this frame of the game: whether the copies run next frame, and
@@ -400,6 +498,18 @@ static void twin_second(void* arg) {
  * down. The game itself is never changed. */
 static void twin_step(void) {
 	const typeof(twinProf->tall.live)* L = &twinProf->tall.live;
+	if (tall_carry(twinProf)) {
+		/* (the same, for a game whose camera is a row and whose table's
+		 * height is known from the game) */
+		int k = tall_shake(twinProf, &emu);
+		twinShakeNow = twinShakeNext, twinShakeNext = k;
+		int top = tall_top_of(twinProf), vmax = tall_rows_of(twinProf, &emu) - 2 * GBA_H;
+		int u = (int16_t) emu_read16(&emu, L->view) - k;
+		twins[0].row = vmax, twins[1].row = SDL_max(SDL_min(u, vmax), top) + GBA_H;
+		twins[0].need = u > vmax, twins[1].need = true;
+		twinRun = true;
+		return;
+	}
 	uint32_t S = emu_read32(&emu, L->state);
 	twinRun = false;
 	/* (states saved by v1.3.2's earlier test builds have the camera limit
@@ -434,6 +544,8 @@ static void twin_close(void) {
 	for (int i = 0; i < TWINS; ++i) {
 		if (twinOpen) emu_close(&twins[i].e);
 		twins[i].up = twins[i].havePic = false;
+		twins[i].carried = false;
+		free(twins[i].ring), twins[i].ring = NULL;
 	}
 	twinOpen = twinRun = false;
 	for (int i = 0; i < 2; ++i) free(twinStates[i]), twinStates[i] = NULL;
@@ -442,7 +554,13 @@ static void twin_close(void) {
 
 static void twin_open(const char* rom, const MapProfile* p) {
 	twin_close();
-	if (!p || !p->tall.live.state) return;
+	if (!p || (!p->tall.live.state && !tall_carry(p))) return;
+	if (tall_carry(p)) {
+		for (int i = 0; i < TWINS; ++i) {
+			twins[i].ring = malloc(p->tall.live.carry.ringHi - p->tall.live.carry.ringLo);
+			if (!twins[i].ring) return;
+		}
+	}
 	size_t sz = emu_state_size(&emu);
 	twinStates[0] = malloc(sz), twinStates[1] = malloc(sz);
 	int opened = 0;
@@ -454,7 +572,8 @@ static void twin_open(const char* rom, const MapProfile* p) {
 	}
 	for (int k = 0; k < TWINS; ++k) {
 		for (int i = 0; i < 4 && p->tall.live.nop[i]; ++i) emu_write16(&twins[k].e, p->tall.live.nop[i], 0x46C0); /* mov r8, r8 */
-		emu_layers(&twins[k].e, 0x1E); /* (its score bar's layer: fixed to the screen, the game's is shown) */
+		for (int i = 0; i < 12 && p->tall.live.carry.patch[i].addr; ++i) emu_write16(&twins[k].e, p->tall.live.carry.patch[i].addr, p->tall.live.carry.patch[i].v);
+		emu_layers(&twins[k].e, 0x1F & ~p->tall.hudBg); /* (its score bar's layers: fixed to the screen, the game's are shown) */
 	}
 	twinProf = p;
 	twinOpen = true;
@@ -482,6 +601,7 @@ static void run_frame(uint32_t keys) {
 	}
 	bool live = twinOpen && tallOn;
 	bool run = live && twinRun && twinHave > 0;
+	++twinSeq;
 	if (!run) for (int i = 0; i < TWINS; ++i) twins[i].up = false;
 	nTallFixed = 0;
 	if (run) {
@@ -495,12 +615,24 @@ static void run_frame(uint32_t keys) {
 		if (twins[0].need) twin_work_wait(0);
 		for (int i = 0; i < TWINS; ++i) if (twins[i].up) twin_hide(&twins[i]);
 		const typeof(twinProf->tall.live)* L = &twinProf->tall.live;
-		uint32_t S = emu_read32(&emu, L->state);
 		/* (only while a copy's rows are on the top screen this frame) */
-		bool topCopy = (int16_t) emu_read16(&emu, L->view) - (int8_t) emu_read8(&emu, S + L->shake) > twinProf->tall.rows - 2 * GBA_H;
+		bool topCopy = (int16_t) emu_read16(&emu, L->view) - tall_shake(twinProf, &emu) > tall_rows_of(twinProf, &emu) - 2 * GBA_H;
 		emu_hud_keep_exact(tallFixed, topCopy ? nTallFixed : 0);
+		/* (carry: and left out of the game's picture, which can be on the
+		 * bottom screen) */
+		if (tall_carry(twinProf)) {
+			nTallBandFixed = 0;
+			for (int i = 0; i < nTallFixed && topCopy; ++i) {
+				int y = tallFixed[i][0] & 0xFF, h = obj_height(tallFixed[i][0], tallFixed[i][1]);
+				if (y >= GBA_H) y -= 256;
+				if (tallBandY0 >= 0 && y < tallBandY1 + 1 && y + h > tallBandY0) memcpy(tallBandFixed[nTallBandFixed++], tallFixed[i], sizeof(tallFixed[i]));
+			}
+			emu_hud_keep_exact(tallBandFixed, nTallBandFixed);
+			emu_hide_exact(&emu, tallBandFixed, nTallBandFixed);
+		}
 	} else if (live) {
 		emu_hud_keep_exact(tallFixed, 0);
+		if (tall_carry(twinProf)) emu_hide_exact(&emu, tallFixed, 0);
 	}
 	if (live) {
 		/* the game's state from before this frame, for next frame's copies */
@@ -520,6 +652,8 @@ static void run_frame(uint32_t keys) {
 /* Start the bug log again from here (the frames before belong to another moment). */
 static void bug_reset(void) {
 	bugStart = bugFrame;
+	/* (the live view's copies: what they kept is from before; profile tall) */
+	twinSeq += 2;
 	for (int i = 0; i < BUG_SNAPS; ++i) bugSnap[i].have = false;
 }
 
@@ -2538,20 +2672,27 @@ static void update_tall(void) {
 	 * kept, the score bar not (it goes below) */
 	bool firstLive = copied; /* (the game's picture has its score bar until the next frame) */
 	if (copied) emu_hud_copy(&emu, false), copied = false;
-	emu_hud_copy_above(t->hudRow);
-	int vmax = t->rows - 2 * GBA_H;
+	/* (carry: the game's picture has none of the score bar's layers on any
+	 * row, so it can go on either screen; they're laid over the top screen
+	 * below) */
+	bool carry = tall_carry(tallProf);
+	emu_hud_copy_above(carry ? 0 : t->hudRow);
+	int rows = tall_rows_of(tallProf, &emu), vmax = rows - 2 * GBA_H, top = tall_top_of(tallProf);
 	int s = emu_io16(&emu, 0x10 + 4 * L->viewBg + 2) & 0x1FF; /* this frame's */
-	if (s >= t->rows) s -= 512;
+	if (s >= rows) s -= 512;
 	/* (the screen shake moves the whole view, as it does the game's screen;
 	 * the copies shake alike, by themselves) */
 	int k = twinShakeNow;
-	int v = SDL_max(SDL_min(s - k, vmax), 0) + k;
+	int v = SDL_max(SDL_min(s - k, vmax), top) + k;
 	TallSrc game = { emu.fb, s };
 	TallSrc a = { twins[0].up && twins[0].havePic ? twins[0].pic : NULL, twins[0].picRow }; /* (this frame's only) */
 	TallSrc b = { twins[1].pic, twins[1].picRow };
 	TallSrc topSrc[3] = { game, a, b }, botSrc[3] = { b, a, game };
 	bool gameOnTop = s == v;
 	if (!gameOnTop) topSrc[0] = a, topSrc[1] = game;
+	/* (carry: wherever the game's own picture has the rows, it's used: the
+	 * copies only draw the rows it doesn't) */
+	if (carry) topSrc[0] = game, topSrc[1] = a, botSrc[0] = game, botSrc[1] = b, botSrc[2] = a;
 	int missing = 0;
 	for (int y = 0; y < GBA_H; ++y) {
 		missing += !tall_line(&tallTop[y * GBA_W], v + y, topSrc, 3);
@@ -2577,7 +2718,7 @@ static void update_tall(void) {
 	if (gameOnTop != tallGameTop && debug) fprintf(stderr, "frame %llu: top screen: %s\n", (unsigned long long) frameCount, gameOnTop ? "the game" : "a copy (the lower view)");
 	tallGameTop = gameOnTop;
 	int laid = 0;
-	if (!gameOnTop && !firstLive && !msg) {
+	if ((!gameOnTop || carry) && !firstLive && !msg) {
 		/* What the game puts on its screen rather than on the table, which
 		 * the copies leave out (PP-10), laid over the top screen where it is
 		 * on the game's: what the HUD split draws above the score bar, its
@@ -2590,6 +2731,17 @@ static void update_tall(void) {
 			if ((hudPx[i] & 0xFFFFFF) != clear) tallTop[i] = hudPx[i] | 0xFF000000, ++laid;
 		}
 	}
+	if (carry) {
+		/* (the rows the score bar's layers drew over the table: below the
+		 * score bar itself, above the message line) */
+		uint32_t cl = emu_hud_clear();
+		tallBandY0 = tallBandY1 = -1;
+		for (int y = 24; y < t->hudRow; ++y) {
+			int n = 0;
+			for (int x = 0; x < GBA_W; ++x) n += (hudPx[y * GBA_W + x] & 0xFFFFFF) != cl;
+			if (n > 8) tallBandY1 = y, tallBandY0 = tallBandY0 < 0 ? y : tallBandY0;
+		}
+	}
 	if (!msg) memcpy(lastTop, tallTop, sizeof(lastTop)), haveLastTop = true;
 	/* the score bar at the bottom of the bottom screen */
 	uint32_t clear = emu_hud_clear();
@@ -2598,7 +2750,14 @@ static void update_tall(void) {
 	}
 	uint32_t* second = cfg->swap ? tallTop : tallBot;
 	for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], second, GBA_W * 4);
+	int same = -1; /* (trace: where a copy shows the game's own rows, how many pixels differ) */
+	if (tallTrace && twins[1].picRow == s) {
+		same = 0;
+		for (int i = GBA_W * 24; i < GBA_W * t->hudRow; ++i) same += (twins[1].pic[i] & 0xFFFFFF) != (emu.fb[i] & 0xFFFFFF);
+	}
 	if (tallTrace) {
+		if (same >= 0) fprintf(stderr, "same %d\n", same);
+		fprintf(stderr, "band %d-%d fixed %d/%d\n", tallBandY0, tallBandY1, nTallBandFixed, nTallFixed);
 		fprintf(stderr, "T %llu s %d v %d top %s a %d%s%s b %d%s%s hid %d/%d missing %d laid %d\n", (unsigned long long) frameCount, s, v,
 		        gameOnTop ? "game" : "copy", twins[0].picRow, "", twins[0].up ? "" : " down",
 		        twins[1].picRow, "", twins[1].up ? "" : " down", twins[0].hidden, twins[1].hidden, missing, laid);
