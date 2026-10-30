@@ -16,6 +16,11 @@ each of (default: all):
                       centre hole: the evolution scene about to play
   sapphire-default    Sapphire, the ball launched and in play
   sapphire-egg-wander, sapphire-egg-catch, sapphire-evolution
+  ruby-travel         Travel mode, a lane hit, the ball in the centre hole:
+                      the confirmation, then (A) the travel scene
+  ruby-jirachi        Jirachi's catch mode (the slot rigged to it), the
+                      ball free: Jirachi flying about
+  ruby-jirachi-catch  ... hit three times: its catch scene
   bonus-dusclops, bonus-kecleon, bonus-kyogre, bonus-groudon,
   bonus-rayquaza, bonus-spheal
                       a bonus field, 4 seconds in (from Ruby's centre
@@ -34,6 +39,12 @@ gCurrentPinballGame, 0x02000000 in every state seen; docs/PINBALL.md):
   - targets: the hatched Pokemon at S+0x1FC / 0x200 (tenths of a pixel,
     hit within 9 px of +12, +14, twice), EVO items at S+0x258 / 0x25A
     (+8, +8), the centre hole at 120, 268;
+  - Travel: the lane hit set (S+0x6BC = 1, left), the ball dropped into
+    the centre hole once (dropping it again starts the hole's catch
+    over), A tapped at the prompt (it takes a fresh press on one frame);
+  - Jirachi: the slot's prize 21; its hits are real collisions (a 48 x 48
+    map from S+0xC4 / 0xC6): the ball dropped just above it, moving down
+    (velocity y +0x32);
   - the slot (S+0x6F8: six prizes) all set to 42 (a bonus stage), A to
     stop it; at the boss hole's prompt (boardState 3, sub-state 4)
     nextBonusField (S+0x284: 2 Dusclops ... 7 Spheal), then A.
@@ -135,6 +146,55 @@ def evolution(g, base, name):
     return g.board(L)[0] == 6 and g.board(L)[1] >= 5
 
 
+def travel(g, base, name):
+    L = ["load ./%s" % base, "wait 2"] + request(7)
+    for _ in range(60):
+        sub = g.board(L)[1]
+        if sub == 1:  # the lanes lit: one hit
+            L += ["poke %#x 1 1" % (S + 0x6BC)] + tp(*HOLD) + ["wait 20"]
+        elif sub == 3:  # the centre hole open: once
+            L += tp(120, 268)
+            for _ in range(30):
+                L += ["wait 10"]
+                if g.board(L)[1] != 3:
+                    break
+        elif sub == 4:
+            L += ["wait 10"]
+        elif sub == 5:  # the confirmation
+            break
+        else:
+            L += tp(*HOLD) + ["wait 20"]
+    L += ["save ./%s.ss" % name]
+    g.run(L)
+    return g.board(L) == (7, 5)
+
+
+def slot_prize(prize):
+    return ["poke %#x 2 %d" % (S + 0x6F8 + 2 * i, prize) for i in range(6)] + \
+           ["poke %#x 2 %d" % (S + 0x6EC, prize | prize << 8), "hold A 4"]
+
+
+def jirachi(g, base, flying, caught):
+    L = ["load ./%s" % base, "wait 2"] + request(2) + ["wait 60"] + tp(120, 268) + ["wait 60"] + slot_prize(21)
+    for _ in range(120):
+        if g.board(L) == (8, 3):  # its hit phase
+            break
+        L += ["wait 20"]
+    for _ in range(30):  # the ball out of the hole
+        if g.run(L, [(S + 0x25, 1)])[0] == 0:
+            break
+        L += ["wait 10"]
+    L += ["wait 30", "save ./%s.ss" % flying]
+    for _ in range(40):
+        cx, cy = g.run(L, [(S + 0xC4, 2), (S + 0xC6, 2)])
+        L += tp(cx + 24, cy - 6) + ["poke %#x 2 300" % (BALL + 0x32), "wait 8"]
+        if g.run(L, [(S + 0x5A4, 1)])[0] == 2:  # its catch scene
+            break
+    L += ["wait 30", "save ./%s.ss" % caught]
+    g.run(L)
+    return g.run(L, [(S + 0x5A4, 1)])[0] == 2
+
+
 def sapphire_default(g, base, name):
     L = ["load ./%s" % base]
     for _ in range(60):
@@ -152,7 +212,7 @@ def sapphire_default(g, base, name):
 
 def bonus(g, base, field, name):
     L = ["load ./%s" % base, "wait 2"] + request(2) + ["wait 60"] + tp(120, 268) + ["wait 60"]
-    L += ["poke %#x 2 42" % (S + 0x6F8 + 2 * i) for i in range(6)] + ["poke %#x 2 0x2A2A" % (S + 0x6EC), "hold A 4"]
+    L += slot_prize(42)
     for _ in range(40):
         L += ["wait 30"]
         if g.board(L) == (3, 4):  # Bonus / Cancel
@@ -181,6 +241,8 @@ def main():
     g = Game(work_rom, out)
     jobs = [("ruby-egg-wander ruby-egg-catch", lambda: egg(g, "us-ruby-top.ss", "ruby-egg-wander", "ruby-egg-catch")),
             ("ruby-evolution", lambda: evolution(g, "us-ruby-top.ss", "ruby-evolution")),
+            ("ruby-travel", lambda: travel(g, "us-ruby-top.ss", "ruby-travel")),
+            ("ruby-jirachi ruby-jirachi-catch", lambda: jirachi(g, "us-ruby-top.ss", "ruby-jirachi", "ruby-jirachi-catch")),
             ("sapphire-default", lambda: sapphire_default(g, "us-sapphire-play.ss", "sapphire-default")),
             ("sapphire-egg-wander sapphire-egg-catch", lambda: egg(g, "sapphire-default.ss", "sapphire-egg-wander", "sapphire-egg-catch")),
             ("sapphire-evolution", lambda: evolution(g, "sapphire-default.ss", "sapphire-evolution"))]

@@ -200,7 +200,9 @@ gCurrentPinballGame (`0x020314E0` → `0x02000000`).
 The tool builds the states from two fixtures (us-ruby-top, us-sapphire-play)
 in about a minute; the game's RAM comes out the same every run. The test
 cases pp-us-*-egg-*, pp-us-*-evolution and pp-us-bonus-* use them (PP-12,
-PP-13). Not reached yet: Travel mode (state 7 starts it), Jirachi (8).
+PP-13). Travel: the lane hit set (`S+0x6BC` = 1), the ball into the centre hole once, A tapped at the prompt. Jirachi: the slot's prize 21; hits are collisions with a 48 x 48 map from `S+0xC4` / `0xC6`, so the ball goes just above it moving down (velocity y `+0x32`).
+
+**Bonus tables' heights** (camera limits at `0x02031520`+0x18 / +0x1A, and the view moved with the ball): the camera travels 27 rows on Dusclops', Kecleon's, Kyogre's, Groudon's and Rayquaza's tables, 43 on Spheal's, against 256 on Ruby's and Sapphire's (432 rows). So a bonus table is about 187 rows (Spheal's about 203): not enough for a second screen.
 
 ## Code map
 
@@ -262,6 +264,6 @@ PP-13). Not reached yet: Travel mode (state 7 starts it), Jirachi (8).
 - **Bonus stages** play on one screen (the copies only run where the lowest
   camera target is `0x164`): the owner's choice for now, not an issue,
   unless a player reports it.
-- **Tests that play to events:** done (tools/pinball_events.py, above); Travel and Jirachi not yet.
+- **Tests that play to events:** done (tools/pinball_events.py, above), Travel and Jirachi included.
 - **Sapphire:** its start and a stretch of play (pp-us-sapphire-play) are in the tests.
 - **Android:** `twin_*` is shared code; tried on Android by the owner (Oct 29, 2026): works.

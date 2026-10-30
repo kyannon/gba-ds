@@ -2067,6 +2067,236 @@
      "match": "^frame \\d+: live view"
     }
    ]
+  },
+  {
+   "id": "pp-us-ruby-travel",
+   "rom": "BPPE",
+   "state": "pokemon-pinball/us-ruby-travel.ss",
+   "desc": "Ruby: Travel mode's confirmation, A, the travel scene to a new area, then play again (tools/pinball_events.py)",
+   "rules": [
+    "PP-13",
+    "PP-11"
+   ],
+   "input": [
+    [
+     10,
+     "A"
+    ],
+    [
+     12,
+     "-"
+    ],
+    [
+     14,
+     "A"
+    ],
+    [
+     16,
+     "-"
+    ],
+    [
+     18,
+     "A"
+    ],
+    [
+     20,
+     "-"
+    ],
+    [
+     22,
+     "A"
+    ],
+    [
+     24,
+     "-"
+    ],
+    [
+     26,
+     "A"
+    ],
+    [
+     28,
+     "-"
+    ],
+    [
+     30,
+     "A"
+    ],
+    [
+     32,
+     "-"
+    ],
+    [
+     34,
+     "A"
+    ],
+    [
+     36,
+     "-"
+    ],
+    [
+     38,
+     "A"
+    ],
+    [
+     40,
+     "-"
+    ],
+    [
+     42,
+     "A"
+    ],
+    [
+     44,
+     "-"
+    ],
+    [
+     46,
+     "A"
+    ],
+    [
+     48,
+     "-"
+    ],
+    [
+     50,
+     "A"
+    ],
+    [
+     52,
+     "-"
+    ],
+    [
+     54,
+     "A"
+    ],
+    [
+     56,
+     "-"
+    ],
+    [
+     58,
+     "A"
+    ],
+    [
+     60,
+     "-"
+    ],
+    [
+     62,
+     "A"
+    ],
+    [
+     64,
+     "-"
+    ],
+    [
+     66,
+     "A"
+    ],
+    [
+     68,
+     "-"
+    ],
+    [
+     70,
+     "A"
+    ],
+    [
+     72,
+     "-"
+    ],
+    [
+     74,
+     "A"
+    ],
+    [
+     76,
+     "-"
+    ],
+    [
+     78,
+     "A"
+    ],
+    [
+     80,
+     "-"
+    ],
+    [
+     82,
+     "A"
+    ],
+    [
+     84,
+     "-"
+    ],
+    [
+     86,
+     "A"
+    ],
+    [
+     88,
+     "-"
+    ]
+   ],
+   "shots": {
+    "confirm": 8,
+    "travelling": 200,
+    "arrived": 600
+   },
+   "checks": [
+    {
+     "rule": "PP-9",
+     "what": "never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-us-ruby-jirachi",
+   "rom": "BPPE",
+   "state": "pokemon-pinball/us-ruby-jirachi.ss",
+   "desc": "Ruby: Jirachi's catch mode (the slot's prize), Jirachi flying about over the table (tools/pinball_events.py)",
+   "rules": [
+    "PP-13",
+    "PP-1"
+   ],
+   "shots": {
+    "flying": 60,
+    "later": 200
+   },
+   "checks": [
+    {
+     "rule": "PP-9",
+     "what": "never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-us-ruby-jirachi-catch",
+   "rom": "BPPE",
+   "state": "pokemon-pinball/us-ruby-jirachi-catch.ss",
+   "desc": "Ruby: Jirachi hit three times: its catch scene, the screen dimmed (PP-11), CATCH! (tools/pinball_events.py)",
+   "rules": [
+    "PP-13",
+    "PP-11"
+   ],
+   "shots": {
+    "catch": 30,
+    "ball": 150,
+    "caught": 450
+   },
+   "checks": [
+    {
+     "rule": "PP-9",
+     "what": "never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
   }
  ]
 }
