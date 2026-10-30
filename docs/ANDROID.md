@@ -600,4 +600,3 @@ before. The software fallback already used the display's own size.
 Player-facing Android changes since the last release, for the main session
 to move into CHANGELOG.md and the release notes (see CLAUDE.md, "More than
 one session"). Empty after each release.
-- GBA DS can now update itself on Android: game list > Settings > Updates, or the offer it makes once a day when a new version is out. It downloads the new APK, checks it and hands it to Android's installer, which asks you to confirm.

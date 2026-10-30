@@ -1,10 +1,10 @@
 # Changelog
 
-## v1.4.2 (not yet released)
+## v1.4.2 (2026-10-29)
 
 ### New games (preliminary)
-- **Golden Sun:** while you walk about, the second screen shows the Status screen, turning through your party every 5 seconds. In a battle it shows the battle's Status of the character choosing what to do, and the logo while the turn plays out. The USA / Europe release has been tried; the German, French, Italian, Spanish and Japanese releases should work the same way.
-- **Tactics Ogre: The Knight of Lodis (back in the list):** in a battle, the second screen shows the unit list with its cursor on the unit your cursor is on, turning through its pages (level, HP, MP, element...) every 2.5 seconds, without its R SEARCH and START:DATA prompts. The USA release has been tried; the Japanese one (Tactics Ogre Gaiden) should work the same way.
+- **Golden Sun:** while you walk about, the second screen shows the Status screen, turning through your party every 5 seconds. In a battle it shows the battle's Status of the character choosing what to do, and the logo while the turn plays out. Walking about has been tried in every release (USA / Europe, German, French, Italian, Spanish, Japanese); battles in the USA / Europe and German ones.
+- **Tactics Ogre: The Knight of Lodis (back in the list):** in a battle, the second screen shows the unit list with its cursor on the unit your cursor is on, turning through its pages (level, HP, MP, element...) every 2.5 seconds, without its R SEARCH and START:DATA prompts. The USA and Japanese (Tactics Ogre Gaiden) releases have both been tried.
 
 ### Final Fantasy Tactics Advance
 - On the world map, the second screen now shows today's Laws (the window L opens, on its own), taken again as soon as your clan arrives somewhere new, even with the place's own menu up (a town's, or a mission's).
@@ -13,6 +13,9 @@
 ### Advance Wars, Advance Wars 2, Game Boy Wars Advance 1+2
 - On the computer's turn (from ending yours, through its moves) the second screen shows the logo, as the cursor isn't yours to bring up intel with; the intel comes back on your turn. Your army is taken to be the first, as in the campaigns.
 - Once a battle's won or lost, its results pages no longer show the last unit intel: the logo.
+
+### Android
+- GBA DS can now update itself: game list > Settings > Updates, or the offer it makes once a day when a new version is out. It downloads the new APK, checks it and hands it to Android's installer, which asks you to confirm. (The download is checked on the device; this release is the first one it can install.)
 
 ### Game list
 - Games without second-screen support (listed with `show_all = 1`) are tagged **Single screen only** instead of "No map".
@@ -43,6 +46,7 @@
 - **Advance Wars games:** in Versus, if you play a later army, or two people share the device, those turns show the logo too (the games keep no record GBA DS could find of which armies a person plays).
 - **Golden Sun:** GBA DS closed once as a battle began, on one device. It hasn't happened again or been reproduced, and was most likely the crash fixed above (Golden Sun's Status turns through pages too); if you see it, a bug report (quick bar) straight after helps.
 - **Advance Wars, Game Boy Wars Advance 1+2:** in Field Training the tutorial blocks SELECT and START, so the second screen keeps the logo (won't fix: it's the tutorial).
+- **The RG DS Plus's Stock Linux OS:** now and then a game starts without sound (the next start has had sound again so far), and the system menu's volume doesn't carry over to GBA DS.
 
 ## v1.4.1 (2026-10-28)
 

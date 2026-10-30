@@ -92,7 +92,7 @@ Preliminary. The USA release.
 
 ## Golden Sun
 
-Preliminary. The USA / Europe (English) release has been tried; the German, French, Italian, Spanish and Japanese releases should work the same way (their logos are checked), and if one doesn't, its second screen keeps the logo.
+Preliminary. Every release has been tried walking about (USA / Europe, German, French, Italian, Spanish, Japanese), and battles in the USA / Europe and German ones; if a battle in another release doesn't work, its second screen keeps the logo.
 
 - **While you walk about,** the second screen shows the **Status** screen (the one in SELECT's menu), at the game screen's size and in your chosen window colour, turning to the next party member every 5 seconds. It's brought up in the background on a silent copy of the game, so it stays up to date without you opening it; your game is never paused or touched.
 - **In a battle,** while you choose what to do, the second screen shows the battle's Status screen of the character choosing (the first one in the Fight / Flee / Status menu). While the turn plays out, it shows the logo.
@@ -101,7 +101,7 @@ Preliminary. The USA / Europe (English) release has been tried; the German, Fren
 
 ## Tactics Ogre: The Knight of Lodis
 
-Preliminary. The USA release has been tried; the Japanese one (Tactics Ogre Gaiden) should work the same way (its logo and title are checked).
+Preliminary. The USA and Japanese (Tactics Ogre Gaiden) releases have both been tried.
 
 - **In a battle,** the second screen shows the battle's unit list (R, View List), with its cursor on the unit your cursor is on in the field, yours or the enemy's (on an empty square, your leader). It follows as soon as your cursor stops on another square.
 - **Its pages** (the ones START turns through: level, HP, MP, element, the bars, side) change every 2.5 seconds. Its R SEARCH and START:DATA prompts are left out, as those buttons don't work there.
