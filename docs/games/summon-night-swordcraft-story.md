@@ -20,3 +20,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 **SN-3. Title.** On the title screen the second screen shows the logo: the whole sword (down to its pommel), the name and its subtitle, without PRESS START BUTTON or the copyright line.
 
 **SN-4. Game screen untouched.** Nothing leaves the game screen.
+
+**SN-5. Several characters.** Once the Status has more than one character (its "LR: Switch Characters" prompt along the bottom), the second screen turns through each one's Status in the game's order, 5 seconds each, every one with the Place bar over its bottom (SN-2), which covers the prompt.
+
+**SN-6. Quick to follow.** The Status is taken again about every half second, and as soon as a new area has faded in; a moment where the menu won't open (a scene, a fade) doesn't hold the next one up.

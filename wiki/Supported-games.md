@@ -116,6 +116,8 @@ The USA and Japanese (Tactics Ogre Gaiden) releases have both been tried.
 The USA release and the Japanese one (Craft Sword Monogatari); there was no European release.
 
 - **While you play,** the second screen shows the **Status** screen from the START menu, at the game screen's size, with the menu's **Place** bar (where you are) over its bottom, its heading short enough to leave the row under the stats in view. Both are brought up in the background on a silent copy of the game; your game is never paused or touched. Where the menu can't be opened (a scene, a fight), the last picture stays.
+- **With more than one character** on the Status (L / R switch between them in the game), the second screen shows each in turn, 5 seconds each, with the Place bar over the button prompt.
+- It's taken again about every half second, and as soon as you arrive in a new area.
 - On the title screen, the second screen shows the logo, the whole sword included.
 
 ## Summon Night: Swordcraft Story 2

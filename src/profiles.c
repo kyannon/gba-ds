@@ -383,8 +383,11 @@ static const char* gbw_pick(Emu* e) {
  * the box with the name across the whole width, its PLACE heading only as
  * far as the stats' lines start (clear of the item row under the stats).
  * Both are brought up on the shadow core: START (from walking about), DOWN
- * to Status, A; the Place bar is taken from the menu on the way. Where the
- * menu won't open (a scene, a fight), the last picture stays. (The Japanese
+ * to Status, A; the Place bar is taken from the menu on the way. With
+ * several characters (SN-5), R turns to each in turn: one page each, shown
+ * 5 seconds. Every half second (SN-6, profile interval), and after a fade
+ * to black (a new area). Where the menu won't open (a scene, a fight), the
+ * last picture stays, and the next try isn't held back. (The Japanese
  * release, Craft Sword Monogatari, has the same addresses.) */
 #define SN_MENU 0x03000120     /* 0 in the START menu, 4 on its Status screen */
 #define SN_MENU_ROW 0x03000122 /* the START menu's cursor: Status is 5 */
@@ -415,34 +418,15 @@ static bool sn_wait(Emu* s, int menu, int frames) {
 	return sn_in(s, menu);
 }
 
-static const char* sn_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
-	static uint32_t place[GBA_W * (GBA_H - SN_PLACE_Y)];
-	static bool havePlace;
-	static uint32_t status[GBA_W * GBA_H];
-	if (!emu_state_load(s, state)) return "state load failed";
-	emu_frame(s, 0);
-	if (sn_in(s, 4)) {
-		/* the Status open: back to the menu for the Place bar first */
-		aw_tap(s, K_B, 1);
-		if (!sn_wait(s, 0, 90)) return "the menu didn't come back";
-	} else if (!sn_in(s, 0)) {
-		aw_tap(s, K_START, 1);
-		if (!sn_wait(s, 0, 60)) return "the menu didn't open";
-	}
-	aw_run(s, 0, 20); /* (past its fade-in) */
-	memcpy(place, &s->fb[SN_PLACE_Y * GBA_W], sizeof(place));
-	havePlace = true;
-	for (int i = 0; i < 10 && emu_read8(s, SN_MENU_ROW) != 5; ++i) aw_tap(s, K_DOWN, 1);
-	if (emu_read8(s, SN_MENU_ROW) != 5) return "Status not reached in the menu";
-	aw_tap(s, K_A, 1);
-	if (!sn_wait(s, 4, 90)) return "the Status didn't open";
-	aw_run(s, 0, 40); /* (past its fade-in) */
-	memcpy(status, s->fb, sizeof(status));
+#define SN_PAGES 6 /* characters on the Status at most (the hero and the guardian beasts) */
+
+/* the Status page in fb, with the menu's Place bar over its bottom (SN-2) */
+static void sn_page(const uint32_t* status, const uint32_t* place, uint32_t* out, int w, int h) {
 	int cw = w < GBA_W ? w : GBA_W;
 	for (int y = 0; y < h && y < GBA_H; ++y) {
 		uint32_t* o = &out[y * w];
 		memcpy(o, &status[y * GBA_W], (size_t) cw * 4);
-		if (!havePlace || y < SN_PLACE_Y) continue;
+		if (y < SN_PLACE_Y) continue;
 		const uint32_t* pl = &place[(y - SN_PLACE_Y) * GBA_W];
 		if (y >= SN_PLACE_HEAD) {
 			memcpy(o, pl, (size_t) cw * 4); /* the box with the name: the full width */
@@ -454,6 +438,84 @@ static const char* sn_compose(Emu* s, const void* state, uint32_t* out, int w, i
 		memcpy(o, pl, (size_t) x0 * 4);
 		memcpy(o + x0, pl + SN_CAP_X0, (size_t) cap * 4);
 	}
+}
+
+/* most of the picture dark (the pause between two characters' pages) */
+static bool sn_dark(const uint32_t* fb) {
+	int dark = 0;
+	for (int i = 0; i < GBA_W * GBA_H; i += 7) {
+		uint32_t c = fb[i];
+		if ((c & 0xFF) + ((c >> 8) & 0xFF) + ((c >> 16) & 0xFF) < 96) ++dark;
+	}
+	return dark * 7 > GBA_W * GBA_H * 3 / 4;
+}
+
+/* runs frames until the picture has held still for 3, not dark (the next
+ * character's page has slid in: the last one slides out, the screen stays
+ * dark ~18 frames, the next slides in, ~47 frames in all); false if it
+ * hasn't within max */
+static bool sn_settle(Emu* s, int max) {
+	static uint32_t prev[GBA_W * GBA_H];
+	int still = 0;
+	for (int f = 0; f < max; ++f) {
+		emu_frame(s, 0);
+		still = f && !memcmp(prev, s->fb, sizeof(prev)) && !sn_dark(s->fb) ? still + 1 : 0;
+		if (still >= 3) return true;
+		memcpy(prev, s->fb, sizeof(prev));
+	}
+	return false;
+}
+
+/* The Status with the Place bar; with several characters (SN-5), one page
+ * each, R turning to the next, until the first comes round again. Where the
+ * menu won't open (a scene, a fade), "map button did nothing": a quick
+ * failure that doesn't hold the next capture back (SN-6). */
+static const char* sn_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+	static uint32_t place[GBA_W * (GBA_H - SN_PLACE_Y)];
+	static uint32_t first[GBA_W * GBA_H];
+	int max = *nOut < SN_PAGES ? *nOut : SN_PAGES;
+	*nOut = 1;
+	*step = 300; /* 5 seconds a character */
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	if (sn_in(s, 4)) {
+		/* the Status open: back to the menu for the Place bar first */
+		aw_tap(s, K_B, 1);
+		if (!sn_wait(s, 0, 90)) return "the menu didn't come back";
+	} else if (!sn_in(s, 0)) {
+		aw_tap(s, K_START, 1);
+		if (!sn_wait(s, 0, 60)) return "map button did nothing";
+	}
+	aw_run(s, 0, 20); /* (past its fade-in) */
+	memcpy(place, &s->fb[SN_PLACE_Y * GBA_W], sizeof(place));
+	for (int i = 0; i < 10 && emu_read8(s, SN_MENU_ROW) != 5; ++i) aw_tap(s, K_DOWN, 1);
+	if (emu_read8(s, SN_MENU_ROW) != 5) return "Status not reached in the menu";
+	aw_tap(s, K_A, 1);
+	if (!sn_wait(s, 4, 90)) return "the Status didn't open";
+	aw_run(s, 0, 40); /* (past its fade-in) */
+	memcpy(first, s->fb, sizeof(first));
+	sn_page(first, place, out[0], w, h);
+	/* the next characters: R, until the first is back (one character: R
+	 * changes nothing) */
+	static uint32_t last[GBA_W * GBA_H];
+	memcpy(last, first, sizeof(last));
+	int n = 1;
+	for (int tries = 0; n < max && tries < 3;) {
+		aw_tap(s, K_R, 1);
+		aw_run(s, 0, 30); /* (the page sliding out, the dark between: not drawn) */
+		if (!sn_settle(s, 90)) break;
+		if (!memcmp(first, s->fb, sizeof(first))) break; /* round to the first again */
+		if (!memcmp(last, s->fb, sizeof(last))) {
+			/* (R not taken yet, just after a page slid in: again; one
+			 * character, R never changes anything) */
+			++tries;
+			continue;
+		}
+		memcpy(last, s->fb, sizeof(last));
+		sn_page(s->fb, place, out[n], w, h);
+		++n, tries = 0;
+	}
+	*nOut = n;
 	return NULL;
 }
 
@@ -1782,7 +1844,10 @@ static const MapProfile profiles[] = {
 		 * see sn_compose */
 		.codes = { "AB4E", "AB4J" },
 		.title = "Summon Night: Swordcraft Story",
-		.compose = sn_compose,
+		.composePages = sn_compose,
+		.stillPick = STILL_FIRST, /* (Map Animations off: the first character) */
+		/* every half second (SN-6) */
+		.interval = 30,
 		.virt = sn_virt,
 		/* the GBA's own screen, scaled as the game screen is */
 		.crop_w = GBA_W,

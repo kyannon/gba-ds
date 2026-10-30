@@ -162,6 +162,61 @@
    ]
   },
   {
+   "id": "sn-us-two-characters",
+   "rom": "AB4E",
+   "state": "summon-night-swordcraft-story/us-two-characters.ss",
+   "desc": "in the Silver Guild with two characters on the Status (Cleru, Zantek; a player's bug report): each in turn, 5 seconds apart, taken every half second",
+   "rules": [
+    "SN-1",
+    "SN-2",
+    "SN-5",
+    "SN-6"
+   ],
+   "shots": {
+    "first": 40,
+    "second": 340
+   },
+   "checks": [
+    {
+     "rule": "SN-5",
+     "what": "two pages, 5 seconds each",
+     "type": "log",
+     "match": "map updated \\(2 frame\\(s\\) 300 apart\\)"
+    },
+    {
+     "rule": "SN-6",
+     "what": "taken again half a second later",
+     "type": "log",
+     "match": "frame 31: map updated"
+    },
+    {
+     "rule": "SN-5",
+     "what": "the second page differs from the first",
+     "type": "differs",
+     "a": {
+      "shot": "first",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       600
+      ]
+     },
+     "b": {
+      "shot": "second",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       600
+      ]
+     }
+    }
+   ]
+  },
+  {
    "id": "sn-us-title",
    "rom": "AB4E",
    "state": "summon-night-swordcraft-story/us-title.ss",

@@ -5036,11 +5036,14 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			/* quick "no map here" failures (A Link to the Past indoors) cost little
 			 * and are expected, so they don't back off */
 			bool cheapFail = why && !strcmp(why, "map button did nothing");
-			int interval = cheapFail ? cfg->mapInterval : cfg->mapInterval << SDL_min(fails, 3);
+			/* (a profile's own interval, when it's quicker: Swordcraft Story) */
+			const MapProfile* ip = mapcap_profile(mc);
+			int every = ip && ip->interval > 0 && ip->interval < cfg->mapInterval ? ip->interval : cfg->mapInterval;
+			int interval = cheapFail ? every : every << SDL_min(fails, 3);
 			/* after failures, a room change still triggers a try, but no more
 			 * often than the normal interval */
 			bool due = sinceMapRequest >= interval ||
-			           ((forceMap || roomChanged) && (!fails || sinceMapRequest >= cfg->mapInterval));
+			           ((forceMap || roomChanged) && (!fails || sinceMapRequest >= every));
 			if (due && !mapcap_busy(mc) && mapcap_live_ok(mc, &emu)) {
 				if (mapcap_request(mc, &emu)) {
 					sinceMapRequest = 0;

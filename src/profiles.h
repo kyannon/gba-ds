@@ -242,6 +242,9 @@ typedef struct MapProfile {
 			MemProbe when[3];
 		} snes;
 	} controls;
+	/* frames between captures instead of map_interval when fewer (0: the
+	 * setting's; Summon Night: Swordcraft Story, a half second) */
+	int interval;
 	int stableFrames;  /* consecutive "quiet" frames required */
 	int maxDiff;       /* pixels allowed to change between quiet frames (blinking markers) */
 	int crop_x, crop_y, crop_w, crop_h;
