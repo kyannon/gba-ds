@@ -221,7 +221,9 @@ Android session at the same time. To keep them from colliding:
   lines of Python over the .ram files) finds the rest (a cursor that moves
   with RIGHT, a counter that runs as a screen opens); `tools/oam.py ROM
   STATE` lists the sprites for SpriteRules; `layershot` shows which BG
-  layer holds what. Per-line register changes (dialogue boxes drawn with
+  layer holds what. `tools/scout/wwatch.c` (built like the other scout
+  tools, docs/PINBALL.md) logs the PCs that write given addresses, frame by
+  frame; `llvm-objdump` disassembles the ROM (same page). Per-line register changes (dialogue boxes drawn with
   their own BGxCNT on their lines) don't show in a state's registers: log
   them from `split_draw` in emu.c temporarily.
 - **Pokémon Pinball's events** (egg hatch, evolution, every bonus stage):

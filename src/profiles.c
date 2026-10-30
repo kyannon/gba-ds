@@ -2019,6 +2019,18 @@ static const MapProfile profiles[] = {
 		.logo = { .wait = 1440, .layer = 1, .maxY = 140, .lightEdgeClear = true },
 	},
 	{
+		/* the logo for now; the table over both screens is to come
+		 * (docs/games/sonic-pinball-party.md) */
+		.codes = { "A3VE", "A3VP" },
+		.title = "Sonic Pinball Party",
+		.logoOnly = true,
+		/* the title (A for English at the language menu of a game with no
+		 * save; with one, A only skips some of the intro): the name (BG1)
+		 * on its badge (BG2), above PRESS START
+		 * (sprites) and the copyright lines (BG1, from row 136) */
+		.logo = { .steps = { { 0, 300 }, { K_A, 6 }, { 0, 1000 } }, .layers = 0x06, .maxY = 121 },
+	},
+	{
 		.codes = { "ATHE", "ATHF", "ATHD" },
 		.title = "Tony Hawk's Pro Skater 2",
 		/* no map yet: listed, logo on the second screen */

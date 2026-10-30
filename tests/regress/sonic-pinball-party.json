@@ -1,0 +1,84 @@
+{
+ "game": "Sonic Pinball Party",
+ "rules": "docs/games/sonic-pinball-party.md",
+ "cases": [
+  {
+   "id": "spp-us-title",
+   "rom": "A3VE",
+   "state": "sonic-pinball-party/us-title.ss",
+   "desc": "the title (a player's bug report): the logo",
+   "rules": [
+    "SPP-1"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   }
+  },
+  {
+   "id": "spp-us-sonic-table",
+   "rom": "A3VE",
+   "state": "sonic-pinball-party/us-sonic-table.ss",
+   "desc": "Arcade, the Sonic table (a player's bug report): the logo for now",
+   "rules": [
+    "SPP-1"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   }
+  },
+  {
+   "id": "spp-us-nights-table",
+   "rom": "A3VE",
+   "state": "sonic-pinball-party/us-nights-table.ss",
+   "desc": "Arcade, the NiGHTS table (a player's bug report): the logo for now",
+   "rules": [
+    "SPP-1"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   }
+  },
+  {
+   "id": "spp-us-story-table",
+   "rom": "A3VE",
+   "state": "sonic-pinball-party/us-story-table.ss",
+   "desc": "Story, the first table (a player's bug report): the logo for now",
+   "rules": [
+    "SPP-1"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   }
+  },
+  {
+   "id": "spp-logo-a3ve",
+   "kind": "logo",
+   "rom": "A3VE",
+   "desc": "A3VE logo extraction",
+   "rules": [
+    "GEN-1",
+    "SPP-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "spp-logo-a3vp",
+   "kind": "logo",
+   "rom": "A3VP",
+   "desc": "A3VP logo extraction",
+   "rules": [
+    "GEN-1",
+    "SPP-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

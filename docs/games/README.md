@@ -28,6 +28,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [River City Ransom EX (Downtown Nekketsu Monogatari EX in Japan)](river-city-ransom-ex.md) | RCR | `BDTE` + 1 |
 | [Spider-Man: Mysterio's Menace (Spider-Man: Mysterio no Kyoui in Japan)](spider-man-mysterios-menace.md) | SMM | `ASEE` + 1 |
 | [Summon Night: Swordcraft Story 2 (Craft Sword Monogatari 2 in Japan)](summon-night-swordcraft-story-2.md) | SN2 | `BSKE` + 1 |
+| [Sonic Pinball Party](sonic-pinball-party.md) | SPP | `A3VE` + 1 |
 
 ## General rules
 
