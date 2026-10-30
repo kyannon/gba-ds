@@ -32,13 +32,15 @@
 ### Fixes
 - **Golden Sun:** the German release showed only the logo; it now shows the Status screen and battles like the others. Walking through a doorway could drop the Status screen to the logo for a moment: no longer.
 - **Advance Wars, Advance Wars 2, Game Boy Wars Advance 1+2:** leaving a battle for the mode menu, or winning one (Field Training's results too), kept the last unit intel on the second screen; it's the logo again. In Advance Wars 2's Versus the intel didn't show at all: it does again.
+- **Tactics Ogre (Japanese release):** the unit list's cursor stayed on the leader and its pages didn't turn, and the list wasn't taken again when the cursor moved: it now follows the cursor's unit and turns its pages, as in the USA release.
+- **Advance Wars, Game Boy Wars Advance:** the unit or Battle Intel stayed up through the day banner after you ended your turn; the logo now comes up as soon as you choose End, as in Advance Wars 2.
 - **Super Mario Advance 2 (Japanese release):** on the world map the level list took up to a second to follow Mario; it now changes as soon as he stops, as in the other releases.
 - Starting a game could crash GBA DS within its first seconds, now and then (seen with Fire Emblem after closing a game and starting one again): a game whose second screen turns through pages (Fire Emblem's unit status, Golden Sun's, Tactics Ogre's...) worked out which page to show from the game played before.
 - Waking the device from sleep in the middle of a game could crash GBA DS (seen once on BananaOS): after any pause of more than 2 seconds, the pictures on both screens are now made again.
 - A touch on the very edge of the touchscreen (its right or bottom edge, or a finger sliding off it) was ignored, so a swipe or tap that ended there didn't count: the quick bar could miss a swipe up from the bottom edge (#9).
 
 ### Known issues
-- **Advance Wars games:** in Versus, if you play a later army, or two people share the device, those turns show the logo too (the games keep no record GBA DS could find of which armies a person plays). Game Boy Wars Advance 1+2's computer turn hasn't been tried yet.
+- **Advance Wars games:** in Versus, if you play a later army, or two people share the device, those turns show the logo too (the games keep no record GBA DS could find of which armies a person plays).
 - **Golden Sun:** GBA DS closed once as a battle began, on one device. It hasn't happened again or been reproduced, and was most likely the crash fixed above (Golden Sun's Status turns through pages too); if you see it, a bug report (quick bar) straight after helps.
 - **Advance Wars, Game Boy Wars Advance 1+2:** in Field Training the tutorial blocks SELECT and START, so the second screen keeps the logo (won't fix: it's the tutorial).
 

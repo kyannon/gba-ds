@@ -29,4 +29,4 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 ## Not covered yet
 
-- The Japanese release's enemy turn and its list on a unit other than the leader (its list is checked in a battle).
+- Nothing known. (The Japanese release's list, its cursor on other units and its pages, and its enemy turn are checked since v1.4.2's last test builds.)

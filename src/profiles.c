@@ -70,6 +70,10 @@ typedef struct {
 	uint32_t intelPx[2][3]; /* the Battle Intel is up: x, y, colour (0xRRGGBB) */
 	int intelRows;          /* the Battle Intel's panel: the rows above the map */
 	uint32_t unitOpen[2];   /* this word holds this value (the screen's routine) while the unit intel (R) is up */
+	uint32_t nextArmy; /* the army whose turn is starting: set as soon as End is chosen,
+	                    * while the army byte keeps the last one's through the day
+	                    * banner (Advance Wars' engine; 0: none, Advance Wars 2's army
+	                    * byte changes at once) */
 	int cornerTile; /* the yellow corners blinking round the unit intel's picture (AW-1,
 	                 * AW2-1): four 8x8 sprites of this tile (flipped), palette 1, left out */
 	uint32_t mapTask; /* 0x03000000 holds this (a routine) on the battle map, 0 at moments
@@ -80,15 +84,15 @@ typedef struct {
 } AwRegion;
 
 static const AwRegion awRegions[] = {
-	{ AW_ARMY, AW_CURSOR, AW_UNITS, AW_MENU_ROW, AW_MINIMAP_OPEN, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000ED0, 0x082E3FD4 }, 876, 0x0801FA69 },
+	{ AW_ARMY, AW_CURSOR, AW_UNITS, AW_MENU_ROW, AW_MINIMAP_OPEN, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000ED0, 0x082E3FD4 }, 0x030036AC, 876, 0x0801FA69 },
 	/* (its SELECT menu has no Unit item: CO, Intel, Options, Save, End) */
-	{ AW2_ARMY, AW2_CURSOR, AW2_UNITS, AW2_MENU_ROW, AW2_MINIMAP_OPEN, 1, { { 200, 100, 0xFFEFEF }, { 120, 140, 0xFFEFEF } }, 152, { 0x03001530, 0x0849E2C0 }, 873, 0x08022049 },
+	{ AW2_ARMY, AW2_CURSOR, AW2_UNITS, AW2_MENU_ROW, AW2_MINIMAP_OPEN, 1, { { 200, 100, 0xFFEFEF }, { 120, 140, 0xFFEFEF } }, 152, { 0x03001530, 0x0849E2C0 }, 0, 873, 0x08022049 },
 	/* Game Boy Wars Advance 1+2 (Japan): each game at its own addresses
 	 * (game 1's found by the literal pools around its code: 0x240 lower
 	 * than Advance Wars' above 0x03003000, 0x10 lower around 0x03000E00;
 	 * the unit intel's routine by its shape; game 2's by watching them) */
-	{ GBW1_ARMY, GBW1_CURSOR, GBW1_UNITS, 0x03000E40, 0x03000E1E, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000EC0, 0x08DEC9D8 }, 876, 0x08B1FFA1 },
-	{ GBW2_ARMY, GBW2_CURSOR, GBW2_UNITS, AW2_MENU_ROW, AW2_MINIMAP_OPEN, 1, { { 200, 100, 0xFFEFEF }, { 120, 140, 0xFFEFEF } }, 152, { 0x03001530, 0x0881A0A4 }, 873, 0x08322509 },
+	{ GBW1_ARMY, GBW1_CURSOR, GBW1_UNITS, 0x03000E40, 0x03000E1E, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000EC0, 0x08DEC9D8 }, 0x0300346C, 876, 0x08B1FFA1 },
+	{ GBW2_ARMY, GBW2_CURSOR, GBW2_UNITS, AW2_MENU_ROW, AW2_MINIMAP_OPEN, 1, { { 200, 100, 0xFFEFEF }, { 120, 140, 0xFFEFEF } }, 152, { 0x03001530, 0x0881A0A4 }, 0, 873, 0x08322509 },
 };
 
 /* Game Boy Wars Advance 1+2: which game is running, by where the
@@ -115,7 +119,8 @@ static uint32_t aw_virt(Emu* e, uint32_t addr) {
 	 * possible again, the computer's turn and fights showing the logo anyway) */
 	if (addr == AW_V_OFFMAP) return !army || task != r->mapTask;
 	if (addr != AW_V_CPU) return 0;
-	return army >= 2 && army <= 4 && (task == r->mapTask || !task);
+	uint8_t next = r->nextArmy ? emu_read8(e, r->nextArmy) : 0;
+	return ((army >= 2 && army <= 4) || (next >= 2 && next <= 4)) && (task == r->mapTask || !task);
 }
 
 /* n frames with these buttons held; only the last two drawn (what's
@@ -1357,8 +1362,12 @@ static const char* gs_compose(Emu* s, const void* state, uint32_t* const* out, i
  * the player's side, 112 pixels further left for the others), stepping
  * the list's cursor RIGHT along each row (it wraps within the row) and
  * DOWN to the next (back at the top: not found, the leader). */
-#define TO_LIST_IDX 0x0200A08A /* the list's cursor: row * 4 + column */
-#define TO_PAGE 0x0200AA1C     /* the list's page (START): 0-5 */
+#define TO_LIST_IDX_ 0x0200A08A /* the list's cursor: row * 4 + column */
+#define TO_PAGE_ 0x0200AA1C     /* the list's page (START): 0-5 */
+/* (Japan's both 0x4D4 lower: found by stepping its list's cursor and pages) */
+#define TO_JP(s) ((s)->gameCode[3] == 'J' ? 0x4D4u : 0u)
+#define TO_LIST_IDX (TO_LIST_IDX_ - TO_JP(s))
+#define TO_PAGE (TO_PAGE_ - TO_JP(s))
 #define TO_PAGES 8
 #define TO_BOX_X 166            /* the unit's box, inside its frame: 166-233 x 108-155 */
 #define TO_BOX_Y 108
@@ -1719,8 +1728,8 @@ static const MapProfile profiles[] = {
 	},
 	{
 		/* Japan (Tactics Ogre Gaiden): the same (its title's lettering is
-		 * the USA one, 外伝 beside it); the list's addresses assumed the
-		 * same, untried (docs/games/tactics-ogre.md) */
+		 * the USA one, 外伝 beside it); the list's cursor and page 0x4D4
+		 * lower (TO_JP), the field cursor's place its own (by romxref) */
 		.codes = { "ATOJ" },
 		.title = "Tactics Ogre: The Knight of Lodis",
 		.composePages = to_compose,
@@ -1728,7 +1737,7 @@ static const MapProfile profiles[] = {
 		.stillPick = STILL_FIRST,
 		.crop_w = GBA_W,
 		.crop_h = GBA_H,
-		.room = { { 0x0202AB90, 0xFFFF, 0, 2 } },
+		.room = { { 0x0202B5C0, 0xFFFF, 0, 2 } },
 		.menu = { { TO_V_TITLE, 0xFF, 1, 4 } },
 		.live = { { TO_V_TITLE, 0xFF, 0, 4 } },
 		.logo = { .steps = { { 0, 480 }, { K_START, 4 }, { 0, 50 } }, .layers = 0x14, .maxY = 90 },
