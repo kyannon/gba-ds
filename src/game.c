@@ -2217,7 +2217,10 @@ static void update_hud(void) {
 	}
 	if (h->mapCnt && mapBg < 0) race = false;
 	if (race && h->offTile && oam_has_tile(h->offTile)) race = false;
-	if (h->overMap) {
+	if (h->drop) {
+		/* (only left out of the game screen: the second screen keeps
+		 * its map picture or logo) */
+	} else if (h->overMap) {
 		/* into the map picture: each piece as last seen, kept while the
 		 * HUD is hidden (menus, moves, fights) until it shows again; all
 		 * gone off the battle map (the first `on` probe) */

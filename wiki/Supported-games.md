@@ -22,6 +22,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Tactics Ogre: The Knight of Lodis (Tactics Ogre Gaiden in Japan; preliminary) | `ATOE` `ATOJ` (no European release) | the battle's unit list, on the unit under your cursor | — |
 | Pokémon Pinball: Ruby & Sapphire (preliminary) | `BPPE` | the table twice as tall over both screens, live, with the score bar | — |
 | F-Zero: GP Legend (F-Zero: Falcon Densetsu in Japan; preliminary) | `BFZE` `BFZP` `BFZJ` | the race HUD, with the course map twice as big | — |
+| River City Ransom EX (Downtown Nekketsu Monogatari EX in Japan; preliminary) | `BDTE` `BDTJ` (no European release) | the Status screen, with the top bar moved off the game screen | — |
 
 The codes are what `<CODE>` means in logo and overlay file names (see [Playing](Playing#logos) and [[Map screen surrounds and overlays]]).
 
@@ -150,6 +151,16 @@ As with Mario Kart: Super Circuit, the HUD is moved off the game screen rather t
 - Everywhere else (the menus, a story's objective screen and scenes, the course name as a race fades in, the RESULTS once a race ends or after GIVE UP) the second screen shows the logo.
 - With one screen (`layout = single`), the HUD stays where the game draws it.
 - The European and Japanese releases are expected to work the same way but haven't been tried in a race yet.
+
+## River City Ransom EX
+
+Preliminary. The USA release and the Japanese one (Downtown Nekketsu Monogatari EX).
+
+- **On the street,** the second screen shows the **Status screen** (pause, Status): your name, stamina bar and money along the top, and your stats, on a plain blue background. It's opened in the background in a silent copy of the game about once a second; your game is never paused.
+- The **bar along the top of the game screen** (name, stamina, money) isn't drawn, on the street or in the pause menu, so the street shows there instead. The message box along the bottom stays.
+- At the Story / Manage Data menu, the title card and through a story's opening conversation, the second screen shows the logo.
+- With one screen (`layout = single`), the top bar stays where the game draws it.
+- Shops, restaurants and two players haven't been tried yet.
 
 ## Advance Wars and Advance Wars 2: Black Hole Rising
 

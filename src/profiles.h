@@ -411,6 +411,10 @@ typedef struct MapProfile {
 		 * on top of them. */
 		bool overMap;
 		uint32_t mapClear;
+		/* The HUD only leaves the game screen: it isn't shown anywhere,
+		 * and the second screen keeps its map picture or logo (River City
+		 * Ransom EX's top bar, which its Status capture shows anyway) */
+		bool drop;
 		/* register bits the renderers go without while it's on
 		 * (emu_hud_game_reg) */
 		struct { uint32_t addr; uint16_t bits; } gameReg;
@@ -493,6 +497,9 @@ typedef struct MapProfile {
 	 * hidden only with map_crop): Tony Hawk's Pro Skater 3's goal list,
 	 * its panel without the scene behind. */
 	unsigned captureLayers;
+	/* with captureLayers: the colour behind them (GBA BGR555; 0: black):
+	 * River City Ransom EX's Status screen on the game's pause blue */
+	uint16_t captureBack;
 	/* Parts of the map capture (screen rects, inclusive) taken from a render
 	 * of only `underLayers` (bits 0-3 BG0-3, bit 4 sprites), made once per
 	 * capture: bezel pieces drawn over the map, like Zero Mission's corner

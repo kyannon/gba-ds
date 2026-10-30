@@ -2152,6 +2152,46 @@ static const MapProfile profiles[] = {
 		},
 	},
 	{
+		/* River City Ransom EX (USA; in Japan Downtown Nekketsu Monogatari
+		 * EX, with the same RAM and menus). The byte at 0x0300496E is the
+		 * game's screen: 1 the title card, 3 the Story / Manage Data menu,
+		 * 5 the street (a story's conversations too), 7 the pause menu, 8
+		 * to 15 its screens (8 Item, 9 Status, 10 Strategy ... 15 Mode; 15
+		 * is also the setup screen before a story, which has no top bar).
+		 * Every one of them is BG0 over the street (BG1-3, sprites), with
+		 * the top bar (name, stamina bar, money) in rows 0-15 and a black
+		 * message box at the bottom. */
+		.codes = { "BDTE", "BDTJ" },
+		.title = "River City Ransom EX",
+		/* the title card's lettering (BG1, on black) above the copyright
+		 * lines; from power-on: Story, OK on the setup screen, START to
+		 * skip the opening conversation (RCR-1) */
+		.logo = { .steps = { { 0, 400 }, { K_A, 4 }, { 0, 140 }, { K_A, 4 }, { 0, 130 }, { K_START, 6 }, { 0, 120 } },
+		          .layer = 1, .maxY = 128, .blackIsClear = true },
+		/* the Status screen (pause, RIGHT to Status, A), on the street;
+		 * the panel and its text (BG0) only, on the pause tint's blue
+		 * (0x000094), without the street or the sprites (RCR-2). The pause
+		 * menu takes RIGHT only some 20 frames after it opens. */
+		.open = { { K_START, 3 }, { 0, 30 }, { K_RIGHT, 3 }, { 0, 8 }, { K_A, 3 } },
+		.settleMax = 90, .openWithin = 60, .stableFrames = 3, .maxDiff = 40,
+		.crop_x = 0, .crop_y = 0, .crop_w = 240, .crop_h = 160,
+		.mem = { { 0x0300496E, 0xFF, 9, 1 } },
+		.live = { { 0x0300496E, 0xFF, 5, 1 } },
+		/* the title card, the Story / Manage Data menu (RCR-4) */
+		.menu = { { 0x0300496E, 0xFF, 1, 1, true, 3, true } },
+		.captureLayers = 0x1,
+		.captureBack = 18 << 10,
+		.captureHide = { { -512, -256, 511, 255, 0, 1023, -1 } },
+		.hud = {
+			/* the top bar leaves the game screen on the street and in the
+			 * pause screens (RCR-3); the Status capture shows it */
+			.on = { { 0x0300496E, 0xFF, 5, 1, true, 15, true } },
+			.bgMask = 0x1,
+			.rows = 16,
+			.drop = true,
+		},
+	},
+	{
 		/* USA: see fe_compose */
 		.codes = { "AE7E" },
 		.title = "Fire Emblem",

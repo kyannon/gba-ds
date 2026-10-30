@@ -544,7 +544,7 @@ static const char* do_capture_(MapCapture* mc, const void* state) {
 	bool everUp = false;
 	int f, presses = 1, base = 0;
 	for (f = 0; f < p->settleMax; ++f) {
-		if (p->captureLayers) emu_write16(s, 0x05000000, 0); /* black behind the layers shown */
+		if (p->captureLayers) emu_write16(s, 0x05000000, p->captureBack); /* black (or the profile's colour) behind the layers shown */
 		emu_frame(s, 0);
 		if (!everUp && p->openWithin && f - base >= p->openWithin) {
 			if (presses < p->openTries) {

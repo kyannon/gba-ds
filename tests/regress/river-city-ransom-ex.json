@@ -1,0 +1,72 @@
+{
+ "game": "River City Ransom EX",
+ "rules": "docs/games/river-city-ransom-ex.md",
+ "cases": [
+  {
+   "id": "rcr-us-street",
+   "rom": "BDTE",
+   "state": "river-city-ransom-ex/us-street.ss",
+   "desc": "on the street: the Status screen on the second screen, no top bar on the game screen",
+   "rules": ["RCR-2", "RCR-3"],
+   "shots": {"start": 60, "later": 400},
+   "checks": [
+    {"rule": "RCR-2", "what": "a Status picture was shown", "type": "log", "match": "map updated"},
+    {"rule": "RCR-2", "what": "the Status screen's blue behind its stats", "type": "pixels", "shot": "later", "screen": "second",
+     "probes": [[514, 134, "000094"], [982, 346, "000094"], [42, 466, "000094"], [434, 570, "000094"]]},
+    {"rule": "RCR-3", "what": "no top bar: the street shows there", "type": "not_uniform", "shot": "later", "screen": "game",
+     "rect": [32, 64, 992, 128], "color": "000000", "frac": 0.8}
+   ]
+  },
+  {
+   "id": "rcr-us-status",
+   "rom": "BDTE",
+   "state": "river-city-ransom-ex/us-status.ss",
+   "desc": "the title card (the logo), onto the street, then the pause menu and its Status screen (a player's bug report, its keys played back)",
+   "rules": ["RCR-2", "RCR-3", "RCR-4"],
+   "input": [[0, "-"], [132, "A"], [139, "-"], [163, "A"], [176, "-"], [188, "RIGHT"], [200, "RIGHT+DOWN"], [201, "DOWN"], [224, "-"], [226, "RIGHT"], [237, "-"], [279, "START"], [288, "-"], [318, "RIGHT"], [326, "-"], [329, "RIGHT"], [337, "-"], [370, "LEFT"], [377, "-"], [381, "A"], [389, "-"]],
+   "shots": {"title": 20, "street": 260, "pause": 310, "status": 600},
+   "checks": [
+    {"rule": "RCR-2", "what": "a Status picture was shown", "type": "log", "match": "map updated"},
+    {"rule": "RCR-3", "what": "no top bar in the pause menu", "type": "not_uniform", "shot": "pause", "screen": "game",
+     "rect": [32, 64, 992, 128], "color": "000000", "frac": 0.8}
+   ]
+  },
+  {
+   "id": "rcr-us-menu-intro",
+   "rom": "BDTE",
+   "state": "river-city-ransom-ex/us-menu-intro.ss",
+   "desc": "the Story / Manage Data menu, the setup screen, a story's opening, the title card (a player's bug report, its keys played back)",
+   "rules": ["RCR-4"],
+   "input": [[0, "-"], [183, "A"], [190, "-"], [324, "A"], [331, "-"], [457, "START"], [467, "-"]],
+   "shots": {"menu": 100, "setup": 260, "opening": 440, "title": 600}
+  },
+  {
+   "id": "rcr-jp-street",
+   "rom": "BDTJ",
+   "state": "river-city-ransom-ex/jp-street.ss",
+   "desc": "on the street, Japanese release: the Status screen, no top bar",
+   "rules": ["RCR-2", "RCR-3"],
+   "shots": {"start": 60, "later": 300},
+   "checks": [
+    {"rule": "RCR-2", "what": "a Status picture was shown", "type": "log", "match": "map updated"},
+    {"rule": "RCR-3", "what": "no top bar: the street shows there", "type": "not_uniform", "shot": "later", "screen": "game",
+     "rect": [32, 64, 992, 128], "color": "000000", "frac": 0.8}
+   ]
+  },
+  {
+   "id": "rcr-us-single",
+   "rom": "BDTE",
+   "state": "river-city-ransom-ex/us-street.ss",
+   "desc": "on the street with layout = single",
+   "rules": ["RCR-5"],
+   "config": {"layout": "single"},
+   "shots": {"end": 120},
+   "checks": [
+    {"rule": "RCR-5", "what": "the top bar where the game draws it", "type": "uniform", "shot": "end", "screen": "game",
+     "rect": [32, 456, 992, 520], "color": "000000", "frac": 0.7}
+   ]
+  },
+  {"id": "rcr-logo-bdte", "kind": "logo", "rom": "BDTE", "desc": "BDTE logo extraction", "rules": ["GEN-1", "RCR-1"], "golden": ["logo"]},
+  {"id": "rcr-logo-bdtj", "kind": "logo", "rom": "BDTJ", "desc": "BDTJ logo extraction", "rules": ["GEN-1", "RCR-1"], "golden": ["logo"]}
+ ]
+}
