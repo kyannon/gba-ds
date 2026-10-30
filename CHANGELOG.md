@@ -4,7 +4,7 @@
 
 ### New games
 - **Spider-Man: Mysterio's Menace** (Spider-Man: Mysterio no Kyoui in Japan): in a level, the second screen shows the Select menu (the objective, password, suits, upgrades and web containers), updated about once a second. At the title, the intro, between levels and on the continue screen after QUIT GAME it shows the logo. The USA / European and Japanese releases have been tried in the first level.
-- **Summon Night: Swordcraft Story 2** (Craft Sword Monogatari 2 in Japan): while you walk about, the second screen shows the Status screen (level, HP, experience and your stats with each weapon), updated about once a second, and with more than one character, each one in turn, 5 seconds each; in a conversation or the game's own menus the last one stays. At the title it shows the logo. The USA and Japanese releases have been tried at the start of the story.
+- **Summon Night: Swordcraft Story 2** (Craft Sword Monogatari 2 in Japan): while you walk about, the second screen shows the Status screen (level, HP, experience and your stats with each weapon), updated about once a second, and with more than one character, each one in turn, 5 seconds each (without the L / R icons); in a conversation or the game's own menus the last one stays. At the title it shows the logo. The USA and Japanese releases have been tried at the start of the story.
 
 ### Summon Night: Swordcraft Story
 - With more than one character on the Status screen, the second screen now shows each one in turn, 5 seconds each, with the place bar covering the L / R prompt.

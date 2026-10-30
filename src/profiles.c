@@ -534,6 +534,44 @@ static bool sn2_status(Emu* s) {
 	return emu_read16(s, 0x04000000) == SN2_DISP && emu_read16(s, SN2_SCREEN) == 0x0434;
 }
 
+/* The L and R icons in the Status's bottom corners (several characters:
+ * R on the first, L on the last, both between), covered: an icon pixel
+ * becomes the clean page's (the last's corner has no R, the first's no L)
+ * where that's the panel's frame, else the nearest pixel further in on its
+ * own row (the portrait or the panel behind). Boxes: L x 0-12, R x 226-238,
+ * rows 148-159 (SN2-5). */
+#define SN2_ICON_Y0 148
+static bool sn2_icon_px(uint32_t c) {
+	c &= 0xFFFFFF;
+	return c == 0x525252 || c == 0xFFFFFF || c == 0xC6C6C6 || c == 0xA5A5A5;
+}
+
+static bool sn2_frame_px(uint32_t c) {
+	/* (the frame's browns, in the framebuffer's R, G, B byte order) */
+	static const uint32_t frame[] = { 0x4284AD, 0x428CAD, 0x398CAD, 0x3984AD, 0x396B84, 0x315A6B, 0x31526B, 0x73ADCE };
+	c &= 0xFFFFFF;
+	for (size_t i = 0; i < sizeof(frame) / sizeof(*frame); ++i) {
+		if (c == frame[i]) return true;
+	}
+	return false;
+}
+
+static void sn2_cover(uint32_t* page, int w, const uint32_t* clean, int x0, int x1, int dir) {
+	for (int y = SN2_ICON_Y0; y < GBA_H; ++y) {
+		for (int x = x0; x <= x1; ++x) {
+			uint32_t* p = &page[y * w + x];
+			if (!sn2_icon_px(*p)) continue;
+			uint32_t c = clean[y * w + x];
+			if (!sn2_frame_px(c)) {
+				int i = x;
+				while (i >= x0 && i <= x1 && sn2_icon_px(page[y * w + i])) i += dir;
+				if (i >= 0 && i < GBA_W) c = page[y * w + i];
+			}
+			*p = c;
+		}
+	}
+}
+
 static const char* sn2_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
 	static uint32_t last[GBA_W * GBA_H];
 	int max = *nOut < SN_PAGES ? *nOut : SN_PAGES;
@@ -570,6 +608,17 @@ static const char* sn2_compose(Emu* s, const void* state, uint32_t* const* out, 
 		++n, tries = 0;
 	}
 	*nOut = n;
+	if (n > 1 && w >= GBA_W && h >= GBA_H) {
+		/* the icons covered on every page, from copies of the first and the
+		 * last as taken */
+		static uint32_t firstC[GBA_W * GBA_H], lastC[GBA_W * GBA_H];
+		memcpy(firstC, out[0], sizeof(firstC));
+		memcpy(lastC, out[n - 1], sizeof(lastC));
+		for (int i = 0; i < n; ++i) {
+			if (i > 0) sn2_cover(out[i], w, firstC, 0, 12, 1);         /* (L: all but the first) */
+			if (i < n - 1) sn2_cover(out[i], w, lastC, 226, 238, -1);  /* (R: all but the last) */
+		}
+	}
 	return NULL;
 }
 
