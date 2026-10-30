@@ -37,6 +37,10 @@ Unlike the other games, both screens show the table itself, live: two more copie
 
 **PP-11. Paused, the Mart, messages.** While the game dims its screen (paused, the Pokémon Mart) or shows a message box (a Pokémon caught), the bottom screen shows your game's whole screen as it is, the score bar included, so the message or menu and the table under it stay together; the top screen goes on showing the table's rows as in PP-1, with nothing laid over it. (The owner's State Saver note "Pause screen".)
 
+**PP-12. Bonus stages.** In a bonus stage (Dusclops, Kecleon, Kyogre, Groudon, Rayquaza, Spheal: their own tables), the game plays on one screen, with the logo on the other; back on Ruby's or Sapphire's table, both screens again. (The copies only run on those two tables, whose camera limit they know. The owner's choice for now, unless a player reports it.)
+
+**PP-13. Events.** The egg hatch (the hatched Pokémon wandering, then caught) and an evolution (the EVOLUTION banners, the evolved Pokémon shown) play on both screens like the rest of the table (PP-1), in step (PP-9); when the game dims its screen for them, PP-11. (Their test states are built by `tools/pinball_events.py`, which steers the game there through its own code: docs/PINBALL.md.)
+
 ## Not covered yet
 
-Nothing the owner wants changed. The bonus stages play on one screen (their own tables: the copy only runs on Ruby's and Sapphire's, whose camera limit it knows); that's how they're meant to be for now. Events (evolution, hatching, the bonus-stage entrances) were checked on the device for v1.4.2. The game always runs with the frame buffer on (Settings' Frame Buffer is shown as always on here): without it the device doesn't reach full speed.
+Nothing the owner wants changed. Events (evolution, hatching, the bonus-stage entrances) were checked on the device for v1.4.2. The catch animation's outline (the Pokémon flashing red as it's caught) shows on your game's screen but not always on a copy's (cosmetic). Travel mode and Jirachi's catch mode have no test state yet (`tools/pinball_events.py` could reach them the same way). The game always runs with the frame buffer on (Settings' Frame Buffer is shown as always on here): without it the device doesn't reach full speed.

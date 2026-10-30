@@ -224,6 +224,10 @@ Android session at the same time. To keep them from colliding:
   layer holds what. Per-line register changes (dialogue boxes drawn with
   their own BGxCNT on their lines) don't show in a state's registers: log
   them from `split_draw` in emu.c temporarily.
+- **Pokémon Pinball's events** (egg hatch, evolution, every bonus stage):
+  `tools/pinball_events.py ROM FIXTURE_STATES_DIR OUTDIR` builds their states
+  by steering the game with the harness (docs/PINBALL.md, "Reaching events";
+  the pret/pokepinballrs decompilation names its RAM).
 - Verify visual changes by rendering screenshots and looking at them before
   sending a build (contact sheets: a few lines of Pillow, then Read the
   PNG).

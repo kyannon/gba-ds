@@ -1793,6 +1793,280 @@
      "match": "out of step"
     }
    ]
+  },
+  {
+   "id": "pp-us-ruby-egg-wander",
+   "rom": "BPPE",
+   "state": "pokemon-pinball/us-ruby-egg-wander.ss",
+   "desc": "Ruby: egg hatch mode, the hatched Pokemon wandering (built by tools/pinball_events.py): the table over both screens",
+   "rules": [
+    "PP-13",
+    "PP-1"
+   ],
+   "shots": {
+    "wander": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "PP-1",
+     "what": "the live view came up",
+     "type": "log",
+     "match": "^frame \\d+: live view"
+    },
+    {
+     "rule": "PP-9",
+     "what": "never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-us-ruby-egg-catch",
+   "rom": "BPPE",
+   "state": "pokemon-pinball/us-ruby-egg-catch.ss",
+   "desc": "Ruby: the hatched Pokemon hit twice: its catch animation, the screen dimmed (PP-11), then the table again (tools/pinball_events.py)",
+   "rules": [
+    "PP-13",
+    "PP-11"
+   ],
+   "shots": {
+    "catch": 60,
+    "caught": 200,
+    "after": 400
+   },
+   "checks": [
+    {
+     "rule": "PP-9",
+     "what": "never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-us-ruby-evolution",
+   "rom": "BPPE",
+   "state": "pokemon-pinball/us-ruby-evolution.ss",
+   "desc": "Ruby: EVO mode's three items collected, the ball in the centre hole: the EVOLUTION banners, then the evolved Pokemon (tools/pinball_events.py)",
+   "rules": [
+    "PP-13",
+    "PP-10"
+   ],
+   "shots": {
+    "banner": 60,
+    "evolving": 200,
+    "evolved": 600
+   },
+   "checks": [
+    {
+     "rule": "PP-9",
+     "what": "never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-us-sapphire-egg-wander",
+   "rom": "BPPE",
+   "state": "pokemon-pinball/us-sapphire-egg-wander.ss",
+   "desc": "Sapphire: egg hatch mode, the hatched Pokemon wandering (built by tools/pinball_events.py): the table over both screens",
+   "rules": [
+    "PP-13",
+    "PP-1"
+   ],
+   "shots": {
+    "wander": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "PP-1",
+     "what": "the live view came up",
+     "type": "log",
+     "match": "^frame \\d+: live view"
+    },
+    {
+     "rule": "PP-9",
+     "what": "never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-us-sapphire-egg-catch",
+   "rom": "BPPE",
+   "state": "pokemon-pinball/us-sapphire-egg-catch.ss",
+   "desc": "Sapphire: the hatched Pokemon hit twice: its catch animation, the screen dimmed (PP-11), then the table again (tools/pinball_events.py)",
+   "rules": [
+    "PP-13",
+    "PP-11"
+   ],
+   "shots": {
+    "catch": 60,
+    "caught": 200,
+    "after": 400
+   },
+   "checks": [
+    {
+     "rule": "PP-9",
+     "what": "never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-us-sapphire-evolution",
+   "rom": "BPPE",
+   "state": "pokemon-pinball/us-sapphire-evolution.ss",
+   "desc": "Sapphire: EVO mode's three items collected, the ball in the centre hole: the EVOLUTION banners, then the evolved Pokemon (tools/pinball_events.py)",
+   "rules": [
+    "PP-13",
+    "PP-10"
+   ],
+   "shots": {
+    "banner": 60,
+    "evolving": 200,
+    "evolved": 600
+   },
+   "checks": [
+    {
+     "rule": "PP-9",
+     "what": "never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-us-bonus-dusclops",
+   "rom": "BPPE",
+   "state": "pokemon-pinball/us-bonus-dusclops.ss",
+   "desc": "the Dusclops bonus stage (reached from Ruby's centre hole by tools/pinball_events.py): one screen, the logo on the other",
+   "rules": [
+    "PP-12"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "PP-12",
+     "what": "no live view on a bonus table",
+     "type": "no_log",
+     "match": "^frame \\d+: live view"
+    }
+   ]
+  },
+  {
+   "id": "pp-us-bonus-kecleon",
+   "rom": "BPPE",
+   "state": "pokemon-pinball/us-bonus-kecleon.ss",
+   "desc": "the Kecleon bonus stage (reached from Ruby's centre hole by tools/pinball_events.py): one screen, the logo on the other",
+   "rules": [
+    "PP-12"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "PP-12",
+     "what": "no live view on a bonus table",
+     "type": "no_log",
+     "match": "^frame \\d+: live view"
+    }
+   ]
+  },
+  {
+   "id": "pp-us-bonus-kyogre",
+   "rom": "BPPE",
+   "state": "pokemon-pinball/us-bonus-kyogre.ss",
+   "desc": "the Kyogre bonus stage (reached from Ruby's centre hole by tools/pinball_events.py): one screen, the logo on the other",
+   "rules": [
+    "PP-12"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 900
+   },
+   "checks": [
+    {
+     "rule": "PP-12",
+     "what": "no live view on a bonus table",
+     "type": "no_log",
+     "match": "^frame \\d+: live view"
+    }
+   ]
+  },
+  {
+   "id": "pp-us-bonus-groudon",
+   "rom": "BPPE",
+   "state": "pokemon-pinball/us-bonus-groudon.ss",
+   "desc": "the Groudon bonus stage (reached from Ruby's centre hole by tools/pinball_events.py): one screen, the logo on the other",
+   "rules": [
+    "PP-12"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 900
+   },
+   "checks": [
+    {
+     "rule": "PP-12",
+     "what": "no live view on a bonus table",
+     "type": "no_log",
+     "match": "^frame \\d+: live view"
+    }
+   ]
+  },
+  {
+   "id": "pp-us-bonus-rayquaza",
+   "rom": "BPPE",
+   "state": "pokemon-pinball/us-bonus-rayquaza.ss",
+   "desc": "the Rayquaza bonus stage (reached from Ruby's centre hole by tools/pinball_events.py): one screen, the logo on the other",
+   "rules": [
+    "PP-12"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "PP-12",
+     "what": "no live view on a bonus table",
+     "type": "no_log",
+     "match": "^frame \\d+: live view"
+    }
+   ]
+  },
+  {
+   "id": "pp-us-bonus-spheal",
+   "rom": "BPPE",
+   "state": "pokemon-pinball/us-bonus-spheal.ss",
+   "desc": "the Spheal bonus stage (reached from Ruby's centre hole by tools/pinball_events.py): one screen, the logo on the other",
+   "rules": [
+    "PP-12"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "PP-12",
+     "what": "no live view on a bonus table",
+     "type": "no_log",
+     "match": "^frame \\d+: live view"
+    }
+   ]
   }
  ]
 }

@@ -178,6 +178,30 @@ down (the whole lower table on the two screens).
 | Raster effects | only BG0HOFS/VOFS at line 144 (VCount IRQ, DISPSTAT `0x9029`) for the score bar. DMA1/2 are the sound FIFOs |
 | Sprites | each object writes its own shadow-OAM entries (220 references to `0x03005000` in the ROM). Objects far off the screen are left out, with a margin |
 
+## Reaching events (tools/pinball_events.py)
+
+The game's events and bonus stages can be reached without playing, by
+steering the game through its own code with the harness. Names and offsets
+come from the pret decompilation (github.com/pret/pokepinballrs:
+`include/global.h` struct PinballGame and BallState,
+`include/constants/board/main_board.h`, `prize_definitions.h`); S is
+gCurrentPinballGame (`0x020314E0` → `0x02000000`).
+
+| What | Where / how |
+|---|---|
+| Board state | `S+0x13` (0 intro: also a ball waiting in the launcher, 1 default, 2 bonus hole open, 3 boss hole (the Bonus / Cancel prompt), 4 Catch 'Em, 5 egg hatch, 6 EVO, 7 travel, 8 Jirachi); sub-state `S+0x17` |
+| Start a mode | as RequestBoardStateTransition: `S+0x14` (nextBoardState) = the state, `S+0x16` = 2 |
+| Move the ball | its struct at `S+0x1334`: whole pixels `+0x10`, half pixels `+0x28` / `+0x2C`, Q24.8 `+0x34` / `+0x3C`, velocity `+0x30` = 0, all together (the game does the same). Not while `S+0x1F` (ballPhysicsState) isn't 0: after a drain the ball saver carries it. Keep it up the table (120, 60) between steps so it doesn't drain |
+| Egg hatch | sub-state 3: the hatched Pokémon at `S+0x1FC`, `S+0x200` (tenths of a pixel); a hit is the ball within 9 px of x/10 + 12, y/10 + 14 (`S+0x5A5` counts them): two hits, its catch (sub-state 5) |
+| EVO | sub-state 2: an item at `S+0x258`, `S+0x25A` (+8, +8); three collected (`S+0x26B`), the centre hole opens (sub-state 4): the ball at (120, 268), the evolution scene (6), the evolved Pokémon (7) |
+| Bonus stage | state 2, the ball into the centre hole: the slot (its six prizes `S+0x6F8`, u16) set to 42 (a bonus stage), A to stop it (Ruby: A or the right flipper starts it slowing); at the prompt (3, 4) `S+0x284` (nextBonusField: 2 Dusclops, 3 Kecleon, 4 Kyogre, 5 Groudon, 6 Rayquaza, 7 Spheal), A. `gMain.selectedField` (`0x0200B0C4`) then reads the field |
+| Debug mode | `0x0200B0CF` (gMain+0xF) = 4 (The Cutting Room Floor): the ball's x, y and the view at the bottom of the screen; L holds the ball, the D-pad moves it. Its text stays up once on: not for tests |
+
+The tool builds the states from two fixtures (us-ruby-top, us-sapphire-play)
+in about a minute; the game's RAM comes out the same every run. The test
+cases pp-us-*-egg-*, pp-us-*-evolution and pp-us-bonus-* use them (PP-12,
+PP-13). Not reached yet: Travel mode (state 7 starts it), Jirachi (8).
+
 ## Code map
 
 - `src/profiles.h` `tall` (on probes, `hudBg`, `rows`, `hudRow`, `live`:
@@ -238,8 +262,6 @@ down (the whole lower table on the two screens).
 - **Bonus stages** play on one screen (the copies only run where the lowest
   camera target is `0x164`): the owner's choice for now, not an issue,
   unless a player reports it.
-- **Tests that play to events:** states for events come from the owner
-  playing; poking the game's memory to reach them (a hatch, an evolution,
-  a bonus stage) would be preferable, not tried yet.
+- **Tests that play to events:** done (tools/pinball_events.py, above); Travel and Jirachi not yet.
 - **Sapphire:** its start and a stretch of play (pp-us-sapphire-play) are in the tests.
 - **Android:** `twin_*` is shared code; tried on Android by the owner (Oct 29, 2026): works.
