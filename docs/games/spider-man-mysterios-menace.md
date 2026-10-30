@@ -17,10 +17,10 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **SMM-2. Select menu.** While playing a level, the second screen shows the Select menu (the level's picture, its objective and password, the suits, upgrades and web containers; in Japan, ステータス with the objective under it), opened on the hidden copy and kept up to date about once a second, as the game draws it.
 
-**SMM-3. Logo elsewhere.** The second screen shows the logo before the first Select menu picture, and again at the title and through the screens between levels (the intro and story pictures, the city map with the next mission).
+**SMM-3. Logo elsewhere.** The second screen shows the logo before the first Select menu picture, and again as soon as a level is left: at the title, through the screens between levels (the intro and story pictures, the city map with the next mission) and on the continue screen ("With great power comes great responsibility...") after QUIT GAME.
 
 **SMM-4. The game's own menus.** The pause menu (START) and the Select menu opened in the game stay on the game screen; the second screen keeps its last picture meanwhile.
 
 ## Not covered yet
 
-- Only the first level has been tried (USA / Europe and Japan); later levels, bosses, a lost life and the game over screen are untried.
+- Only the first level has been tried (USA / Europe and Japan); later levels, bosses, a lost life and the game over screen are untried (losing may well lead to the same continue screen, which shows the logo).

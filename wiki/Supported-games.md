@@ -179,7 +179,7 @@ The USA and European release (one cartridge) and the Japanese one (Spider-Man: M
 
 - **In a level,** the second screen shows the **Select menu**, as the game draws it: the level's picture, its objective and password, your suits, upgrades and web containers. It's opened in the background in a silent copy of the game about once a second; your game is never paused.
 - The game's own **pause menu** (START) and **Select menu** (SELECT) stay on the game screen; the second screen keeps its picture meanwhile.
-- At the title, through the intro and the screens between levels (story pictures, the city map with the next mission), the second screen shows the logo.
+- At the title, through the intro and the screens between levels (story pictures, the city map with the next mission), and on the continue screen after you quit a level, the second screen shows the logo.
 - Only the first level has been tried so far.
 
 ## Advance Wars and Advance Wars 2: Black Hole Rising

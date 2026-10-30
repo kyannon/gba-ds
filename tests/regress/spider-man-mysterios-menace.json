@@ -7,11 +7,42 @@
    "rom": "ASEE",
    "state": "spider-man-mysterios-menace/us-intro.ss",
    "desc": "the intro, skipped with START, then the title: the logo (a player's bug report, its keys played back)",
-   "rules": ["SMM-3"],
-   "input": [[0, "-"], [132, "A"], [139, "-"], [168, "START"], [174, "-"]],
-   "shots": {"intro": 100, "title": 590},
+   "rules": [
+    "SMM-3"
+   ],
+   "input": [
+    [
+     0,
+     "-"
+    ],
+    [
+     132,
+     "A"
+    ],
+    [
+     139,
+     "-"
+    ],
+    [
+     168,
+     "START"
+    ],
+    [
+     174,
+     "-"
+    ]
+   ],
+   "shots": {
+    "intro": 100,
+    "title": 590
+   },
    "checks": [
-    {"rule": "SMM-3", "what": "no Select menu picture", "type": "no_log", "match": "map updated"}
+    {
+     "rule": "SMM-3",
+     "what": "no Select menu picture",
+     "type": "no_log",
+     "match": "map updated"
+    }
    ]
   },
   {
@@ -19,11 +50,44 @@
    "rom": "ASEE",
    "state": "spider-man-mysterios-menace/us-level-start.ss",
    "desc": "a level's Select menu as it starts, closed, the level, then the Select menu opened in the game (a player's bug report, its keys played back)",
-   "rules": ["SMM-2", "SMM-4"],
-   "input": [[0, "-"], [309, "SELECT"], [316, "-"], [490, "SELECT"], [499, "-"]],
-   "shots": {"menu": 100, "level": 470, "opened": 590},
+   "rules": [
+    "SMM-2",
+    "SMM-4"
+   ],
+   "input": [
+    [
+     0,
+     "-"
+    ],
+    [
+     309,
+     "SELECT"
+    ],
+    [
+     316,
+     "-"
+    ],
+    [
+     490,
+     "SELECT"
+    ],
+    [
+     499,
+     "-"
+    ]
+   ],
+   "shots": {
+    "menu": 100,
+    "level": 470,
+    "opened": 590
+   },
    "checks": [
-    {"rule": "SMM-2", "what": "a Select menu picture was shown", "type": "log", "match": "map updated"}
+    {
+     "rule": "SMM-2",
+     "what": "a Select menu picture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
    ]
   },
   {
@@ -31,12 +95,35 @@
    "rom": "ASEE",
    "state": "spider-man-mysterios-menace/us-level.ss",
    "desc": "in the first level: the Select menu on the second screen",
-   "rules": ["SMM-2"],
-   "shots": {"start": 60, "later": 300},
+   "rules": [
+    "SMM-2"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   },
    "checks": [
-    {"rule": "SMM-2", "what": "a Select menu picture was shown", "type": "log", "match": "map updated"},
-    {"rule": "SMM-2", "what": "the menu, not black", "type": "not_uniform", "shot": "later", "screen": "second",
-     "rect": [32, 64, 992, 704], "color": "000000", "frac": 0.5}
+    {
+     "rule": "SMM-2",
+     "what": "a Select menu picture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "SMM-2",
+     "what": "the menu, not black",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "000000",
+     "frac": 0.5
+    }
    ]
   },
   {
@@ -44,15 +131,475 @@
    "rom": "ASEJ",
    "state": "spider-man-mysterios-menace/jp-level.ss",
    "desc": "in the first level, Japanese release: the Select menu (ステータス) on the second screen",
-   "rules": ["SMM-2"],
-   "shots": {"start": 60, "later": 300},
+   "rules": [
+    "SMM-2"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   },
    "checks": [
-    {"rule": "SMM-2", "what": "a Select menu picture was shown", "type": "log", "match": "map updated"},
-    {"rule": "SMM-2", "what": "the menu, not black", "type": "not_uniform", "shot": "later", "screen": "second",
-     "rect": [32, 64, 992, 704], "color": "000000", "frac": 0.5}
+    {
+     "rule": "SMM-2",
+     "what": "a Select menu picture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "SMM-2",
+     "what": "the menu, not black",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "000000",
+     "frac": 0.5
+    }
    ]
   },
-  {"id": "smm-logo-asee", "kind": "logo", "rom": "ASEE", "desc": "ASEE logo extraction", "rules": ["GEN-1", "SMM-1"], "golden": ["logo"]},
-  {"id": "smm-logo-asej", "kind": "logo", "rom": "ASEJ", "desc": "ASEJ logo extraction", "rules": ["GEN-1", "SMM-1"], "golden": ["logo"]}
+  {
+   "id": "smm-us-quit-to-map",
+   "rom": "ASEE",
+   "state": "spider-man-mysterios-menace/us-quit-to-map.ss",
+   "desc": "in a level, QUIT GAME, the continue screen, CONTINUE to the city map: the logo once the level's left (a player's bug report, its keys played back)",
+   "rules": [
+    "SMM-2",
+    "SMM-3"
+   ],
+   "input": [
+    [
+     0,
+     "A+RIGHT"
+    ],
+    [
+     10,
+     "A"
+    ],
+    [
+     11,
+     "-"
+    ],
+    [
+     23,
+     "LEFT"
+    ],
+    [
+     48,
+     "-"
+    ],
+    [
+     111,
+     "RIGHT"
+    ],
+    [
+     116,
+     "-"
+    ],
+    [
+     190,
+     "START"
+    ],
+    [
+     199,
+     "-"
+    ],
+    [
+     209,
+     "UP"
+    ],
+    [
+     216,
+     "-"
+    ],
+    [
+     232,
+     "A"
+    ],
+    [
+     241,
+     "-"
+    ],
+    [
+     268,
+     "DOWN"
+    ],
+    [
+     274,
+     "-"
+    ],
+    [
+     275,
+     "A"
+    ],
+    [
+     282,
+     "-"
+    ],
+    [
+     582,
+     "A"
+    ],
+    [
+     590,
+     "-"
+    ]
+   ],
+   "shots": {
+    "level": 150,
+    "continue": 450,
+    "map": 645
+   },
+   "checks": [
+    {
+     "rule": "SMM-2",
+     "what": "a Select menu picture in the level",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "SMM-3",
+     "what": "back to the logo once the level's left",
+     "type": "log",
+     "match": "second screen back to the logo"
+    }
+   ]
+  },
+  {
+   "id": "smm-us-quit-continue",
+   "rom": "ASEE",
+   "state": "spider-man-mysterios-menace/us-quit-continue.ss",
+   "desc": "in a level, QUIT GAME, the continue screen: the logo (a player's bug report, its keys played back)",
+   "rules": [
+    "SMM-2",
+    "SMM-3"
+   ],
+   "input": [
+    [
+     0,
+     "RIGHT"
+    ],
+    [
+     7,
+     "-"
+    ],
+    [
+     19,
+     "RIGHT"
+    ],
+    [
+     26,
+     "-"
+    ],
+    [
+     39,
+     "LEFT"
+    ],
+    [
+     71,
+     "A+LEFT"
+    ],
+    [
+     73,
+     "A"
+    ],
+    [
+     78,
+     "-"
+    ],
+    [
+     84,
+     "B"
+    ],
+    [
+     91,
+     "-"
+    ],
+    [
+     96,
+     "B"
+    ],
+    [
+     101,
+     "-"
+    ],
+    [
+     102,
+     "LEFT"
+    ],
+    [
+     105,
+     "B+LEFT"
+    ],
+    [
+     112,
+     "LEFT"
+    ],
+    [
+     115,
+     "-"
+    ],
+    [
+     120,
+     "LEFT"
+    ],
+    [
+     128,
+     "-"
+    ],
+    [
+     131,
+     "LEFT"
+    ],
+    [
+     139,
+     "-"
+    ],
+    [
+     142,
+     "LEFT"
+    ],
+    [
+     148,
+     "B+LEFT"
+    ],
+    [
+     150,
+     "B"
+    ],
+    [
+     155,
+     "-"
+    ],
+    [
+     157,
+     "B"
+    ],
+    [
+     164,
+     "-"
+    ],
+    [
+     169,
+     "B+LEFT"
+    ],
+    [
+     174,
+     "LEFT"
+    ],
+    [
+     185,
+     "B+LEFT"
+    ],
+    [
+     192,
+     "LEFT"
+    ],
+    [
+     196,
+     "-"
+    ],
+    [
+     202,
+     "B"
+    ],
+    [
+     211,
+     "-"
+    ],
+    [
+     215,
+     "B"
+    ],
+    [
+     223,
+     "-"
+    ],
+    [
+     227,
+     "B"
+    ],
+    [
+     232,
+     "B+LEFT"
+    ],
+    [
+     233,
+     "LEFT"
+    ],
+    [
+     242,
+     "START+LEFT"
+    ],
+    [
+     245,
+     "START"
+    ],
+    [
+     254,
+     "-"
+    ],
+    [
+     265,
+     "DOWN"
+    ],
+    [
+     273,
+     "-"
+    ],
+    [
+     276,
+     "DOWN"
+    ],
+    [
+     285,
+     "A"
+    ],
+    [
+     291,
+     "-"
+    ],
+    [
+     308,
+     "A"
+    ],
+    [
+     316,
+     "-"
+    ],
+    [
+     341,
+     "A"
+    ],
+    [
+     345,
+     "-"
+    ],
+    [
+     357,
+     "START"
+    ],
+    [
+     368,
+     "-"
+    ],
+    [
+     378,
+     "DOWN"
+    ],
+    [
+     384,
+     "-"
+    ],
+    [
+     388,
+     "DOWN"
+    ],
+    [
+     395,
+     "A"
+    ],
+    [
+     401,
+     "-"
+    ],
+    [
+     416,
+     "UP"
+    ],
+    [
+     420,
+     "-"
+    ],
+    [
+     437,
+     "A"
+    ],
+    [
+     443,
+     "-"
+    ],
+    [
+     519,
+     "DOWN"
+    ],
+    [
+     528,
+     "-"
+    ],
+    [
+     536,
+     "UP"
+    ],
+    [
+     542,
+     "-"
+    ],
+    [
+     555,
+     "DOWN"
+    ],
+    [
+     563,
+     "-"
+    ],
+    [
+     569,
+     "UP"
+    ],
+    [
+     576,
+     "-"
+    ]
+   ],
+   "shots": {
+    "level": 200,
+    "continue": 610
+   },
+   "checks": [
+    {
+     "rule": "SMM-2",
+     "what": "a Select menu picture in the level",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "SMM-3",
+     "what": "back to the logo once the level's left",
+     "type": "log",
+     "match": "second screen back to the logo"
+    }
+   ]
+  },
+  {
+   "id": "smm-logo-asee",
+   "kind": "logo",
+   "rom": "ASEE",
+   "desc": "ASEE logo extraction",
+   "rules": [
+    "GEN-1",
+    "SMM-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "smm-logo-asej",
+   "kind": "logo",
+   "rom": "ASEJ",
+   "desc": "ASEJ logo extraction",
+   "rules": [
+    "GEN-1",
+    "SMM-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
  ]
 }

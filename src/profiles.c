@@ -2185,9 +2185,12 @@ static const MapProfile profiles[] = {
 		 * Select menu, a mode 4 bitmap with sprite text (0x1444) that fades
 		 * in over some 40 frames (BLDY); START a small pause menu over the
 		 * level (0x1F40 still). The intro, story pictures and the city map
-		 * between levels are mode 4 bitmaps too. The byte at 0x03000228 is
-		 * 0 in a level (its Select menu too), 1 at the title, the intro and
-		 * between levels. */
+		 * between levels are mode 4 bitmaps too, with sprites (0x1444) on
+		 * the continue screen and the city map. The halfword at 0x03002170
+		 * (the screen's handler) is 0x612C in a level (its Select menu
+		 * too), 0x420C at the title, the intro, between levels and on the
+		 * continue screen after QUIT GAME. (Not 0x03000228, which stays 0
+		 * after QUIT GAME: the owner's reports of Oct 30.) */
 		.codes = { "ASEE" },
 		.title = "Spider-Man: Mysterio's Menace",
 		/* the title's lettering: sprites above the menu (SMM-1); START
@@ -2201,10 +2204,11 @@ static const MapProfile profiles[] = {
 		/* (it opens faded all the way to black, held a few frames: not
 		 * taken until most of it isn't black) */
 		.bgColor = 0x000000, .minForeground = 20000, .tolerance = 8,
-		.mem = { { 0x04000000, 0xFFFF, 0x1444, 2 }, { 0x03000228, 0xFF, 0, 1 } },
-		.live = { { 0x04000000, 0xFFFF, 0x1F40, 2 }, { 0x03000228, 0xFF, 0, 1 } },
-		/* the title, the intro, between levels: the logo (SMM-3) */
-		.menu = { { 0x03000228, 0xFF, 1, 1 } },
+		.mem = { { 0x04000000, 0xFFFF, 0x1444, 2 }, { 0x03002170, 0xFFFF, 0x612C, 2 } },
+		.live = { { 0x04000000, 0xFFFF, 0x1F40, 2 }, { 0x03002170, 0xFFFF, 0x612C, 2 } },
+		/* the title, the intro, between levels, the continue screen: the
+		 * logo (SMM-3) */
+		.menu = { { 0x03002170, 0xFFFF, 0x420C, 2 } },
 	},
 	{
 		/* River City Ransom EX (USA; in Japan Downtown Nekketsu Monogatari
@@ -2474,12 +2478,13 @@ static void thps3_ger(MapProfile* p) {
 	memcpy(p->probes, show, sizeof(show));
 }
 
-/* Spider-Man: Mysterio's Menace in Japan: its in-a-level byte 0x18 lower
- * (0x03000210); the display registers are the same */
+/* Spider-Man: Mysterio's Menace in Japan: the screen's handler 0x34 lower
+ * (0x0300213C), and its values too (0x60F8 in a level, 0x41D8 elsewhere);
+ * the display registers are the same */
 static void smm_jpn(MapProfile* p) {
-	p->mem[1].addr -= 0x18;
-	p->live[1].addr -= 0x18;
-	p->menu[0].addr -= 0x18;
+	p->mem[1].addr -= 0x34, p->mem[1].value -= 0x34;
+	p->live[1].addr -= 0x34, p->live[1].value -= 0x34;
+	p->menu[0].addr -= 0x34, p->menu[0].value -= 0x34;
 }
 
 static const Variant variants[] = {
