@@ -172,6 +172,7 @@ typedef struct {
 static Twin twins[TWINS];
 static bool twinOpen;
 static uint64_t twinSeq; /* run_frames; jumps on a load or rewind (bug_reset) */
+static bool twinNoObj; /* (carry) the copies draw no sprites (profile carry.noObj, in the game) */
 static bool twinRun;       /* the copies are to run (a table they know, its sweep over, a ball) */
 static int twinArmed;      /* frames on a table they know, with no sweep of the table going on */
 static void* twinStates[2]; /* the game's state from before each of the last two frames */
@@ -403,6 +404,18 @@ static uint32_t twin_hold(Twin* tw, int target, int step) {
 static bool carry_ring(const typeof(twinProf->tall.live.carry)* C, uint32_t d) {
 	return d >= 0x06000000 + C->ringLo && d < 0x06000000 + C->ringHi;
 }
+/* (carry) the game's queue holds more than a row's copy into the ring (the
+ * whole table's tiles loaded afresh) */
+static bool carry_reload(Emu* e) {
+	const typeof(twinProf->tall.live.carry)* C = &twinProf->tall.live.carry;
+	if (!C->qCount) return false;
+	int n = emu_read8(e, C->qCount);
+	for (int i = 0; i < n && i < 64; ++i) {
+		uint32_t at = C->qEntries + i * 12;
+		if (carry_ring(C, emu_read32(e, at)) && emu_read32(e, at + 8) > 0x400) return true;
+	}
+	return false;
+}
 static void carry_put(Twin* tw) {
 	const typeof(twinProf->tall.live.carry)* C = &twinProf->tall.live.carry;
 	Emu* e = &tw->e;
@@ -442,13 +455,28 @@ static void carry_take(Twin* tw) {
  * streams two tile rows a frame at most) */
 static void twin_first_carry(Twin* tw) {
 	const typeof(twinProf->tall.live.carry)* C = &twinProf->tall.live.carry;
+	/* (the layers before the state: a change takes effect as the display
+	 * registers are written, which loading a state does) */
+	emu_layers(&tw->e, (twinNoObj ? 0x0F : 0x1F) & ~twinProf->tall.hudBg);
 	if (!emu_state_load(&tw->e, twinStates[twinCur])) return;
 	if (tw->seq + 1 != twinSeq) tw->carried = false; /* (not run last frame, or a load since: its tiles are stale) */
+	if (tw->carried && carry_reload(&tw->e)) {
+		/* the game is loading its table's tiles afresh (a table or a ball
+		 * starting): what the copy kept is from before; it starts again
+		 * from the game's */
+		tw->carried = false;
+		if (tallTrace) fprintf(stderr, "copy %d: the table's tiles reloaded, starting again\n", (int) (tw - twins));
+	}
 	tw->seq = twinSeq;
 	if (tw->carried) carry_put(tw);
-	else tw->cam = emu_read16(&tw->e, C->cam);
+	/* (from where its view is, not where its camera was put: the game
+	 * moves the view only when its camera code runs, which it doesn't in
+	 * a table's intro, and streams at most two tile rows a frame: a view
+	 * jumping further leaves its tiles behind for good) */
+	int at = (int16_t) emu_read16(&tw->e, twinProf->tall.live.view) - tall_shake(twinProf, &tw->e) + C->camOff;
 	int want = tw->row + C->camOff;
-	tw->cam = want > tw->cam ? SDL_min(tw->cam + 16, want) : SDL_max(tw->cam - 16, want);
+	tw->cam = want > at ? SDL_min(at + 16, want) : SDL_max(at - 16, want);
+
 	emu_write16(&tw->e, C->cam, (uint16_t) tw->cam);
 	emu_frame(&tw->e, twinKeys[twinCur] & 0x3FF);
 	carry_take(tw);
@@ -510,6 +538,7 @@ static void twin_step(void) {
 		 * shown for a few frames, so the top screen's copy is kept at its
 		 * row while the game itself is there too) */
 		twins[0].need = twins[1].need = true;
+		twinNoObj = L->carry.noObj.addr && memprobes_match(&L->carry.noObj, 1, &emu);
 		twinRun = true;
 		return;
 	}
@@ -2632,6 +2661,7 @@ static void update_hud(void) {
  * up). The score bar goes to the bottom of the bottom screen. Called after
  * each frame. */
 typedef struct { const uint32_t* px; int row; } TallSrc;
+int stbi_write_png(char const* filename, int w, int h, int comp, const void* data, int stride_in_bytes);
 static bool tallKeep; /* (carry) a row no picture has keeps what it showed last */
 /* the live view's last 10 seconds, a line a frame, for bug reports
  * (GBADS_TALL_TRACE's lines, kept whether it's set or not) */
@@ -2782,11 +2812,30 @@ static void update_tall(void) {
 		}
 		if (n[0] + n[1] + n[2]) fprintf(stderr, "cmp %d/%d %d/%d %d/%d\n", d[0], n[0], d[1], n[1], d[2], n[2]);
 	}
+	if (getenv("GBADS_TALL_AT") && frameCount == (unsigned long long) atoll(getenv("GBADS_TALL_AT"))) {
+		static uint32_t sh[GBA_W * 3 * GBA_H];
+		for (int y = 0; y < GBA_H; ++y) for (int x = 0; x < GBA_W; ++x) {
+			sh[y * GBA_W * 3 + x] = emu.fb[y * GBA_W + x] | 0xFF000000;
+			sh[y * GBA_W * 3 + GBA_W + x] = twins[0].pic[y * GBA_W + x] | 0xFF000000;
+			sh[y * GBA_W * 3 + 2 * GBA_W + x] = twins[1].pic[y * GBA_W + x] | 0xFF000000;
+		}
+		stbi_write_png(getenv("GBADS_TALL_PNG"), GBA_W * 3, GBA_H, 4, sh, GBA_W * 3 * 4);
+		char sp[1200];
+		snprintf(sp, sizeof sp, "%s.game.ss", getenv("GBADS_TALL_PNG")); emu_state_save_file(&emu, sp);
+		snprintf(sp, sizeof sp, "%s.b.ss", getenv("GBADS_TALL_PNG")); emu_state_save_file(&twins[1].e, sp);
+		FILE* of = fopen(getenv("GBADS_TALL_PNG"), "ab"); if (of) fclose(of);
+		for (int w = 0; w < 2; ++w) {
+			snprintf(sp, sizeof sp, "%s.%s.oam", getenv("GBADS_TALL_PNG"), w ? "b" : "game");
+			FILE* f = fopen(sp, "wb");
+			for (int i = 0; f && i < 512; ++i) { uint16_t v = emu_read16(w ? &twins[1].e : &emu, 0x07000000 + i * 2); fwrite(&v, 2, 1, f); }
+			if (f) fclose(f);
+		}
+	}
 	char* tl = tallLog[tallLogN++ % TALL_LOG];
-	snprintf(tl, sizeof(tallLog[0]), "T %llu s %d v %d top %s a %d%s%s b %d%s%s hid %d/%d missing %d laid %d band %d-%d fixed %d/%d same %d",
+	snprintf(tl, sizeof(tallLog[0]), "T %llu s %d v %d top %s a %d%s%s b %d%s%s hid %d/%d missing %d laid %d band %d-%d fixed %d/%d same %d noobj %d",
 	         (unsigned long long) frameCount, s, v, gameOnTop ? "game" : "copy", twins[0].picRow, twins[0].havePic ? "" : " away",
 	         twins[0].up ? "" : " down", twins[1].picRow, twins[1].havePic ? "" : " away", twins[1].up ? "" : " down", twins[0].hidden,
-	         twins[1].hidden, missing, laid, tallBandY0, tallBandY1, nTallBandFixed, nTallFixed, same);
+	         twins[1].hidden, missing, laid, tallBandY0, tallBandY1, nTallBandFixed, nTallFixed, same, (int) twinNoObj);
 	if (tallTrace) fprintf(stderr, "%s\n", tl);
 	if (!tallLive) fprintf(stderr, "frame %llu: live view\n", (unsigned long long) frameCount);
 	tallLive = true;

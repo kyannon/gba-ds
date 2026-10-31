@@ -2,7 +2,8 @@
  * that made them), video register writes made during visible lines, DMA
  * timing and IRQ setup, and the camera row (docs/PINBALL.md, "Scouting").
  *   scout ROM STATE FRAMES [seed]
- * Input: both flippers for 6 frames in every 50, plus random taps.
+ * Input: both flippers for 6 frames in every 50, plus random taps
+ * (SCOUT_KEYS=file: a harness keys script's hold lines instead).
  * Env: SCOUT_RING=1 compares, each frame, the BG3 tile ring with the EWRAM
  * table for the rows in view; SCOUT_OAM=1 lists the shadow OAM at the end;
  * SCOUT_DUMP=file saves VRAM + EWRAM at the end.
@@ -70,6 +71,22 @@ int main(int argc, char** argv) {
 		seed = seed * 1103515245u + 12345u;
 		uint32_t keys = ((f % 50) < 6) ? (K_L | K_A) : 0;
 		if (((seed >> 16) & 63) == 0) keys = K_L | K_A;
+		/* SCOUT_KEYS: a harness keys script (hold lines) instead */
+		static uint32_t sk[100000]; static int nsk = -1;
+		if (nsk < 0) {
+			nsk = 0;
+			FILE* kf = getenv("SCOUT_KEYS") ? fopen(getenv("SCOUT_KEYS"), "r") : NULL;
+			char line[256], b[64]; int n;
+			static const char* names[] = {"A", "B", "SELECT", "START", "RIGHT", "LEFT", "UP", "DOWN", "R", "L"};
+			while (kf && fgets(line, sizeof line, kf))
+				if (sscanf(line, "hold %63s %d", b, &n) == 2) {
+					uint32_t k = 0;
+					for (char* t = strtok(b, "+"); t; t = strtok(NULL, "+")) for (int i = 0; i < 10; ++i) if (!strcmp(t, names[i])) k |= 1u << i;
+					for (int j = 0; j < n && nsk < 100000; ++j) sk[nsk++] = k;
+				}
+			if (kf) fclose(kf);
+		}
+		if (getenv("SCOUT_KEYS")) keys = f < nsk ? sk[f] : 0;
 		curFrame = f;
 		emu_frame(&e, keys);
 		uint32_t S = emu_read32(&e, 0x020314E0);

@@ -231,6 +231,11 @@ typedef struct MapProfile {
 				uint32_t ringLo, ringHi;
 				struct { uint32_t addr; int n; } vars[4];
 				uint32_t qCount, qEntries;
+				/* while this matches (in the game), the copies draw no sprites:
+				 * the game moves its sprites with the view then instead of
+				 * placing them afresh, so a copy's are the game's (Sonic
+				 * Pinball Party's opening sweep) */
+				MemProbe noObj;
 				/* halfwords written over the copies' code (with nop) */
 				struct { uint32_t addr; uint16_t v; } patch[12];
 			} carry;

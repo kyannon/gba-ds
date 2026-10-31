@@ -2044,9 +2044,11 @@ static const MapProfile profiles[] = {
 			.live = { .nop = { 0x0800A4BE, 0x08009FAC },
 			          .oam = 0x03000E50, .view = 0x03000784, .viewBg = 0,
 			          .carry = { .cam = 0x02031AE4, .camOff = 80, .rowsAt = 0x030040E0, .top = 8, .bottomLess = 8,
-			                     .shakeAt = 0x0203524E, .ringLo = 0x0000, .ringHi = 0x6000,
+			                     .shakeAt = 0x0203524E, .ringLo = 0x0000, .ringHi = 0x8000,
 			                     .vars = { { 0x02031AD4, 16 }, { 0x03000784, 4 }, { 0x03002990, 4 } },
 			                     .qCount = 0x030004F8, .qEntries = 0x030020B0,
+			                     /* (the opening sweep: 0x020319AC is 1) */
+			                     .noObj = { 0x020319AC, 0xFF, 1, 1 },
 			                     /* the ball's sprite (0x08029D38) is placed by the camera's
 			                      * own clamp of the ball's row (0x50 in the middle: the camera
 			                      * follows it); in a copy, its row less the copy's view:

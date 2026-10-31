@@ -330,6 +330,86 @@
    }
   },
   {
+   "id": "spp-us-nights-intro",
+   "rom": "A3VE",
+   "state": "sonic-pinball-party/us-nights-intro.ss",
+   "desc": "NiGHTS: a ball lost, the stage intro (Spring Valley), the table loaded afresh and its opening sweep down (a player's bug report, its keys played back, then nothing pressed): both screens' tiles right after it, and no copy sprites at the game's positions during the sweep",
+   "rules": [
+    "SPP-2"
+   ],
+   "input": [
+    [
+     0,
+     "-"
+    ],
+    [
+     30,
+     "A"
+    ],
+    [
+     39,
+     "-"
+    ],
+    [
+     120,
+     "DOWN"
+    ],
+    [
+     128,
+     "-"
+    ],
+    [
+     195,
+     "A"
+    ],
+    [
+     204,
+     "-"
+    ],
+    [
+     249,
+     "A"
+    ],
+    [
+     258,
+     "-"
+    ],
+    [
+     310,
+     "RIGHT"
+    ],
+    [
+     318,
+     "-"
+    ],
+    [
+     434,
+     "A"
+    ],
+    [
+     444,
+     "-"
+    ],
+    [
+     637,
+     "-"
+    ]
+   ],
+   "shots": {
+    "intro": 697,
+    "sweep": 797,
+    "after": 897
+   },
+   "checks": [
+    {
+     "rule": "SPP-2",
+     "what": "the table over both screens",
+     "type": "log",
+     "match": "frame [0-9]+: live view"
+    }
+   ]
+  },
+  {
    "id": "spp-logo-a3ve",
    "kind": "logo",
    "rom": "A3VE",
