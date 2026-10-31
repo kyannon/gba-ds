@@ -872,6 +872,7 @@ static uint32_t mapTitle[GBA_W * 32];
 static int mapTitleN;
 static bool hudLogoBelowDone;
 static int snapShow, snapRevert;   /* consecutive frames matching show / a revert screen */
+static uint32_t snapShown[GBA_W * GBA_H]; /* the copy on the second screen (kept with save states) */
 
 static uint64_t mapAnimStart;
 /* which of the map's frames shows now (they turn every frameStep frames
@@ -2939,11 +2940,15 @@ static void update_snapshot(void) {
 					int n = 0;
 					while (n < 4 && sn->hide[n].x1) ++n;
 					snapshot_hiding_sprites(sn->hide, n, NULL, 0, clean);
+					memcpy(snapShown, clean, sizeof(snapShown));
 					for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], clean, GBA_W * 4);
 				}
 				px = NULL;
 			}
-			if (px) for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], px, GBA_W * 4);
+			if (px) {
+				memcpy(snapShown, px, sizeof(snapShown));
+				for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], px, GBA_W * 4);
+			}
 			if (mapShownIdx < 0 && debug) fprintf(stderr, "frame %llu: screen copied to the second screen\n", (unsigned long long) frameCount);
 			mapShownIdx = 0;
 		}
@@ -3149,9 +3154,140 @@ static void save_thumbs(void) {
 	}
 }
 
+static void map_show_new(bool fresh);
+
+/* The second screen kept with save states (inside the state file: emu.c
+ * emu_state_file_*_extra): what it holds that the loaded game can't give
+ * back at once. A block "GDS2", version, the game's code, then sections
+ * (a 4-letter tag, a size, the data):
+ *   MAP  the map or status pictures shown (w, h, frames, step, frames' pixels)
+ *   SNAP the screen copied there (THPS2's goal sheet)
+ *   TITL the level name kept above the HUD (Super Mario Advance 2)
+ *   CARD the title card taken (Sonic Advance)
+ * Put back at the next frame after the load (screen_restore_apply), where
+ * the game's code is the same; anything else of the second screen comes
+ * back from the loaded game as usual. */
+typedef struct { uint8_t* p; size_t n, cap; } Blob;
+static void blob_add(Blob* b, const void* d, size_t n) {
+	if (b->n + n > b->cap) {
+		size_t c = SDL_max(b->cap * 2, b->n + n + 4096);
+		uint8_t* q = realloc(b->p, c);
+		if (!q) return;
+		b->p = q, b->cap = c;
+	}
+	memcpy(b->p + b->n, d, n), b->n += n;
+}
+static void blob_u32(Blob* b, uint32_t v) { blob_add(b, &v, 4); }
+static void blob_section(Blob* b, const char* tag, const void* d, size_t n) {
+	blob_add(b, tag, 4), blob_u32(b, (uint32_t) n), blob_add(b, d, n);
+}
+static void* screen_blob(size_t* n) {
+	Blob b = { 0 };
+	blob_add(&b, "GDS2", 4), blob_u32(&b, 1), blob_add(&b, subCode, 4);
+	if (mapShownIdx >= 0 && !snapProf && mapRes.ok && mapRes.frames[0] && mapRes.nFrames > 0 && mapRes.w > 0 && mapRes.h > 0) {
+		Blob m = { 0 };
+		size_t px = (size_t) mapRes.w * mapRes.h * 4;
+		blob_u32(&m, (uint32_t) mapRes.w), blob_u32(&m, (uint32_t) mapRes.h), blob_u32(&m, (uint32_t) mapRes.nFrames), blob_u32(&m, (uint32_t) mapRes.frameStep);
+		for (int i = 0; i < mapRes.nFrames; ++i) blob_add(&m, mapRes.frames[i], px);
+		if (m.p) blob_section(&b, "MAP ", m.p, m.n);
+		free(m.p);
+	}
+	if (snapProf && mapShownIdx >= 0) blob_section(&b, "SNAP", snapShown, sizeof(snapShown));
+	if (mapTitleN > 0) {
+		Blob t = { 0 };
+		blob_u32(&t, (uint32_t) mapTitleN), blob_add(&t, mapTitle, (size_t) GBA_W * mapTitleN * 4);
+		if (t.p) blob_section(&b, "TITL", t.p, t.n);
+		free(t.p);
+	}
+	if (hudProf && hudProf->hud.card.tile && hudBackValid && cardScore >= 0) {
+		Blob c = { 0 };
+		blob_u32(&c, (uint32_t) cardScore), blob_add(&c, cardBest, sizeof(cardBest));
+		if (c.p) blob_section(&b, "CARD", c.p, c.n);
+		free(c.p);
+	}
+	*n = b.n;
+	return b.p;
+}
+static bool state_file_save(const char* path) {
+	if (!emu_state_save_file(&emu, path)) return false;
+	size_t n;
+	void* blob = screen_blob(&n);
+	if (blob && !emu_state_file_put_extra(&emu, path, blob, n)) fprintf(stderr, "save state: the second screen not kept with it\n");
+	free(blob);
+	return true;
+}
+static uint8_t* screenRestore; /* a loaded state's block, put back at the next frame */
+static size_t screenRestoreN;
+static bool screenRestorePending;
+static const uint8_t* blob_find(const uint8_t* b, size_t n, const char* tag, uint32_t* size) {
+	for (size_t at = 12; at + 8 <= n;) {
+		uint32_t sz;
+		memcpy(&sz, b + at + 4, 4);
+		if (at + 8 + sz > n) break;
+		if (!memcmp(b + at, tag, 4)) return *size = sz, b + at + 8;
+		at += 8 + sz;
+	}
+	return NULL;
+}
+static uint32_t rd32(const uint8_t* p) { uint32_t v; memcpy(&v, p, 4); return v; }
+/* (at the start of a frame, everything set up) */
+static void screen_restore_apply(void) {
+	if (!screenRestorePending) return;
+	screenRestorePending = false;
+	const uint8_t* b = screenRestore;
+	size_t n = screenRestoreN;
+	bool ours = b && n >= 12 && !memcmp(b, "GDS2", 4) && rd32(b + 4) == 1 && !memcmp(b + 8, subCode, 4);
+	/* what was kept from before the load is another moment's: the title
+	 * card and the level name go (back from the state, if it has them) */
+	if (hudProf && hudProf->hud.card.tile) hudBackValid = false, cardScore = -1;
+	mapTitleN = 0, hudLogoBelowDone = false;
+	if (!ours) {
+		if (b && debug) fprintf(stderr, "load state: its second screen is for another game or version: not used\n");
+		return;
+	}
+	uint32_t sz;
+	const uint8_t* d;
+	if ((d = blob_find(b, n, "MAP ", &sz)) && sz >= 16) {
+		int w = (int) rd32(d), h = (int) rd32(d + 4), nf = (int) rd32(d + 8), step = (int) rd32(d + 12);
+		size_t px = (size_t) w * h * 4;
+		/* (only at the size this game's captures are: frames are that big) */
+		if (mapRes.frames[0] && w == mapRes.w && h == mapRes.h && nf >= 1 && nf <= MAP_MAX_FRAMES && sz == 16 + px * nf) {
+			for (int i = 0; i < nf; ++i) memcpy(mapRes.frames[i], d + 16 + px * i, px);
+			mapRes.nFrames = nf, mapRes.frameStep = step, mapRes.ok = true, mapRes.pixels = mapRes.frames[0];
+			map_show_new(false);
+		} else if (!mapRes.frames[0] && w > 0 && h > 0 && nf >= 1 && nf <= MAP_MAX_FRAMES && sz == 16 + px * nf) {
+			/* (no capture yet this session: the frames made here, as mapcap_poll does) */
+			for (int i = 0; i < MAP_MAX_FRAMES; ++i) mapRes.frames[i] = malloc(px);
+			bool ok = true;
+			for (int i = 0; i < MAP_MAX_FRAMES; ++i) ok = ok && mapRes.frames[i];
+			if (ok) {
+				for (int i = 0; i < nf; ++i) memcpy(mapRes.frames[i], d + 16 + px * i, px);
+				mapRes.w = w, mapRes.h = h, mapRes.nFrames = nf, mapRes.frameStep = step, mapRes.ok = true, mapRes.pixels = mapRes.frames[0];
+				map_show_new(false);
+			}
+		}
+	}
+	if (snapProf && (d = blob_find(b, n, "SNAP", &sz)) && sz == sizeof(snapShown)) {
+		memcpy(snapShown, d, sz);
+		for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], snapShown, GBA_W * 4);
+		mapShownIdx = 0;
+	}
+	if ((d = blob_find(b, n, "TITL", &sz)) && sz >= 4) {
+		int rows = (int) rd32(d);
+		if (rows > 0 && rows <= 32 && sz == 4 + (size_t) GBA_W * rows * 4) memcpy(mapTitle, d + 4, sz - 4), mapTitleN = rows;
+	}
+	if (hudProf && hudProf->hud.card.tile && (d = blob_find(b, n, "CARD", &sz)) && sz == 4 + sizeof(cardBest)) {
+		cardScore = (int) rd32(d);
+		memcpy(cardBest, d + 4, sizeof(cardBest));
+		card_backdrop();
+	}
+	if (debug) fprintf(stderr, "load state: the second screen from it (%s%s%s%s)\n", blob_find(b, n, "MAP ", &sz) ? " map" : "",
+	                   blob_find(b, n, "SNAP", &sz) ? " copy" : "", blob_find(b, n, "TITL", &sz) ? " title" : "", blob_find(b, n, "CARD", &sz) ? " card" : "");
+}
+
 /* Save states, with the RetroAchievements progress beside them. */
 static bool state_save(const char* path) {
-	bool ok = emu_state_save_file(&emu, path);
+	bool ok = state_file_save(path);
 	if (ok) ra_state_saved(path);
 	return ok;
 }
@@ -3159,6 +3295,12 @@ static bool state_save(const char* path) {
 static bool state_load(const char* path) {
 	bool ok = emu_state_load_file(&emu, path);
 	if (ok) ra_state_loaded(path);
+	/* (the second screen kept with it: put back at the next frame) */
+	if (ok) {
+		free(screenRestore);
+		screenRestore = emu_state_file_get_extra(&emu, path, &screenRestoreN);
+		screenRestorePending = true;
+	}
 	if (ok) bug_reset();
 	/* HUD pieces from another moment: taken again from the loaded game */
 	for (int m = 0; ok && m < 4; ++m) pieces[m].stale = true, pieces[m].still = 0;
@@ -3515,7 +3657,7 @@ static bool bug_report(char* out, size_t outSize) {
 	snprintf(zip, sizeof(zip), "%s/%s.zip", dir, base);
 
 	/* the game now; then the state from back then, written the same way, and the game put back */
-	bool ok = emu_state_save_file(&emu, tmp[0]);
+	bool ok = state_file_save(tmp[0]);
 	size_t sz = emu_state_size(&emu);
 	void* cur = malloc(sz);
 	if (ok && cur && emu_state_save(&emu, cur)) {
@@ -3971,6 +4113,35 @@ static bool update_still(void) {
 	stillPx = px, stillW = w, stillH = h, stillValid = true;
 	return true;
 }
+
+/* A new map picture in mapRes (a capture; or one kept with a save state,
+ * `fresh` false: the level name above the HUD isn't taken from it, it's
+ * kept on its own) */
+static void map_show_new(bool fresh) {
+	mapInactive = false;
+	if (fresh && hudProf && hudProf->hud.mapTitleRows && mapRes.w == GBA_W && mapRes.frames[0]) {
+		/* the level list's title row (SMA-7), held for the level */
+		if (!mapTitleN) hudLogoBelowDone = false; /* (the logo moves down under it) */
+		mapTitleN = SDL_min(hudProf->hud.mapTitleRows, 32);
+		for (int i = 0; i < GBA_W * mapTitleN; ++i) mapTitle[i] = mapRes.frames[0][i] | 0xFF000000;
+	}
+	if (mapRes.hasTile) mapframe_set_tile(&mf, mapRes.tile, mapRes.tileK, mapRes.tileX, mapRes.tileY);
+	mapShownIdx = -1;
+	/* (pages, a few seconds each: Fire Emblem's unit status; they
+	 * keep turning at their pace through new captures) */
+	bool pages = mapRes.nFrames > 1 && mapRes.frameStep >= 60;
+	if (!pages) mapAnimStart = frameCount;
+	/* the still (each marker frozen) is only shown with map animations
+	 * off, and building it is real work: only then */
+	bool stillChanged = false;
+	stillStale = map_anim();
+	if (!stillStale) stillChanged = update_still();
+	int first = pages ? map_anim_index() : 0;
+	upload_map_frame(map_anim() ? first : STILL_IDX);
+	if (debug) fprintf(stderr, "frame %llu: map %s (%d frame(s) %d apart%s)\n", (unsigned long long) frameCount, fresh ? "updated" : "from the save state",
+	                   mapRes.nFrames, mapRes.frameStep, stillStale ? "" : stillChanged ? ", still changed" : ", still unchanged");
+}
+
 
 /* Draws the map with its generated surround; false if there's none to draw. */
 static bool draw_framed_map(int s) {
@@ -4807,6 +4978,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 #endif
 	while (!done) {
 		ahead_sync(); /* the core is the loop's again */
+		screen_restore_apply();
 		bug_tick();
 		Uint64 workT0 = SDL_GetPerformanceCounter(); /* this frame's work, without the wait at the end */
 		long preempt0 = thread_preemptions();
@@ -5412,28 +5584,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			if (fresh && mapcap_in_menu(mc, &emu)) {
 				/* a capture that finished after quitting to the title: drop it */
 			} else if (fresh) {
-				mapInactive = false;
-				if (hudProf && hudProf->hud.mapTitleRows && mapRes.w == GBA_W && mapRes.frames[0]) {
-					/* the level list's title row (SMA-7), held for the level */
-					if (!mapTitleN) hudLogoBelowDone = false; /* (the logo moves down under it) */
-					mapTitleN = SDL_min(hudProf->hud.mapTitleRows, 32);
-					for (int i = 0; i < GBA_W * mapTitleN; ++i) mapTitle[i] = mapRes.frames[0][i] | 0xFF000000;
-				}
-				if (mapRes.hasTile) mapframe_set_tile(&mf, mapRes.tile, mapRes.tileK, mapRes.tileX, mapRes.tileY);
-				mapShownIdx = -1;
-				/* (pages, a few seconds each: Fire Emblem's unit status; they
-				 * keep turning at their pace through new captures) */
-				bool pages = mapRes.nFrames > 1 && mapRes.frameStep >= 60;
-				if (!pages) mapAnimStart = frameCount;
-				/* the still (each marker frozen) is only shown with map animations
-				 * off, and building it is real work: only then */
-				bool stillChanged = false;
-				stillStale = map_anim();
-				if (!stillStale) stillChanged = update_still();
-				int first = pages ? map_anim_index() : 0;
-				upload_map_frame(map_anim() ? first : STILL_IDX);
-				if (debug) fprintf(stderr, "frame %llu: map updated (%d frame(s) %d apart%s)\n", (unsigned long long) frameCount,
-				                   mapRes.nFrames, mapRes.frameStep, stillStale ? "" : stillChanged ? ", still changed" : ", still unchanged");
+				map_show_new(true);
 			} else if (map_anim() && mapRes.nFrames > 1 && mapShownIdx >= 0) {
 				int idx = map_anim_index();
 				upload_map_frame(idx);

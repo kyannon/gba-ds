@@ -82,6 +82,11 @@ size_t emu_rewind_count(void);
 /* Persist full savestates (including battery data) to disk. */
 bool emu_state_save_file(Emu* e, const char* path);
 bool emu_state_load_file(Emu* e, const char* path);
+/* GBA DS's own data kept inside a state file (mGBA's extra data, a tag of
+ * its own: other emulators skip it): written after the state (path saved
+ * just before), read back as a malloc'd copy (NULL: none) */
+bool emu_state_file_put_extra(Emu* e, const char* path, const void* data, size_t n);
+void* emu_state_file_get_extra(Emu* e, const char* path, size_t* n);
 
 /* The whole ROM file (inside a .zip / .7z too), malloc'd; NULL on failure. */
 uint8_t* emu_rom_read_all(const char* path, size_t* size);

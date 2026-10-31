@@ -782,6 +782,42 @@
    "golden": [
     "logo"
    ]
+  },
+  {
+   "id": "fe-us-saved-status",
+   "rom": "AE7E",
+   "state": "fire-emblem/us-saved-status.ss",
+   "desc": "a state saved by GBA DS with Lyn's status on the second screen: there before any capture",
+   "rules": [
+    "GEN-7",
+    "FE-3"
+   ],
+   "shots": {
+    "start": 2
+   },
+   "checks": [
+    {
+     "rule": "GEN-7",
+     "what": "the status from the state",
+     "type": "log",
+     "match": "second screen from it \\( map\\)"
+    },
+    {
+     "rule": "GEN-7",
+     "what": "the status on the first frames",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.05
+    }
+   ]
   }
  ]
 }

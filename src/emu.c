@@ -310,6 +310,48 @@ bool emu_state_load_file(Emu* e, const char* path) {
 	return ok;
 }
 
+/* (in mGBA's subsystem range, which it doesn't use for the GBA) */
+#define EXTDATA_GBADS ((enum mStateExtdataTag) (EXTDATA_SUBSYSTEM_START + 0x3D))
+
+bool emu_state_file_put_extra(Emu* e, const char* path, const void* data, size_t n) {
+	struct VFile* vf = VFileOpen(path, O_RDWR);
+	if (!vf) return false;
+	struct mStateExtdata ext;
+	mStateExtdataInit(&ext);
+	mCoreExtractExtdata(e->core, vf, &ext);
+	void* copy = malloc(n ? n : 1);
+	bool ok = copy != NULL;
+	if (ok) {
+		memcpy(copy, data, n);
+		struct mStateExtdataItem item = { .size = (int32_t) n, .data = copy, .clean = free };
+		mStateExtdataPut(&ext, EXTDATA_GBADS, &item);
+		size_t sz = e->core->stateSize(e->core);
+		vf->truncate(vf, sz);
+		vf->seek(vf, sz, SEEK_SET);
+		ok = mStateExtdataSerialize(&ext, vf);
+	}
+	mStateExtdataDeinit(&ext);
+	vf->close(vf);
+	return ok;
+}
+
+void* emu_state_file_get_extra(Emu* e, const char* path, size_t* n) {
+	*n = 0;
+	struct VFile* vf = VFileOpen(path, O_RDONLY);
+	if (!vf) return NULL;
+	struct mStateExtdata ext;
+	mStateExtdataInit(&ext);
+	void* out = NULL;
+	struct mStateExtdataItem item;
+	if (mCoreExtractExtdata(e->core, vf, &ext) && mStateExtdataGet(&ext, EXTDATA_GBADS, &item) && item.size > 0 && item.data) {
+		out = malloc((size_t) item.size);
+		if (out) memcpy(out, item.data, (size_t) item.size), *n = (size_t) item.size;
+	}
+	mStateExtdataDeinit(&ext);
+	vf->close(vf);
+	return out;
+}
+
 uint8_t emu_read8(Emu* e, uint32_t a) {
 	return e->core->rawRead8(e->core, a, -1);
 }

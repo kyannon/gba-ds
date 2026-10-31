@@ -251,6 +251,73 @@
    "golden": [
     "logo"
    ]
+  },
+  {
+   "id": "sa-us-saved-card",
+   "rom": "ASOE",
+   "state": "sonic-advance/us-saved-card.ss",
+   "desc": "a state saved by GBA DS mid-level, with the card on the second screen; then a state without one loaded over it",
+   "rules": [
+    "GEN-7",
+    "SA-2"
+   ],
+   "input": [
+    [
+     60,
+     "LOAD:sonic-advance/us-title.ss"
+    ]
+   ],
+   "shots": {
+    "start": 2,
+    "after": 90
+   },
+   "checks": [
+    {
+     "rule": "GEN-7",
+     "what": "the card from the state",
+     "type": "log",
+     "match": "second screen from it \\( card\\)"
+    },
+    {
+     "rule": "GEN-7",
+     "what": "the card on the first frames",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      64,
+      100,
+      300,
+      700
+     ],
+     "color": "000000",
+     "frac": 0.2
+    },
+    {
+     "rule": "GEN-7",
+     "what": "the card is gone after an older state",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "rect": [
+       64,
+       100,
+       300,
+       700
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       64,
+       100,
+       300,
+       700
+      ]
+     },
+     "frac": 0.2
+    }
+   ]
   }
  ]
 }
