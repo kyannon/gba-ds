@@ -5,7 +5,7 @@
 | Releases | `ASOE` USA · `ASOP` Europe · `ASOJ` Japan (Rev 1): the same sprites, registers and title steps |
 | Profile | `src/profiles.c`: the `ASOE` entry (logo-only, with `hud` and `hud.card`) |
 | Tests | `tests/regress/sonic-advance.json` (`tools/regress.py sonic-advance`) |
-| Status | preliminary |
+| Status | supported (tested on the device for v1.4.4) |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list sonic-advance`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.
 

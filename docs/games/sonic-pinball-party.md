@@ -5,7 +5,7 @@
 | Releases | `A3VE` USA, `A3VP` Europe (both in six languages) |
 | Profile | `src/profiles.c`: the `A3VE` entry (logo-only, with `tall` and `tall.live.carry`: the table over both screens, game.c `update_tall`) |
 | Tests | `tests/regress/sonic-pinball-party.json` (`tools/regress.py sonic-pinball-party`) |
-| Status | preliminary: the table over both screens, first test build |
+| Status | work in progress (v1.4.4): released with a note that glitches may occur |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list sonic-pinball-party`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.
 
@@ -21,7 +21,7 @@ The tables are twice as tall over both screens, live, as Pokémon Pinball's are 
 
 **SPP-3. Score bar and message line.** The score bar (rings, score, and banners such as BALL SAVED in its place) is at the top of the top screen and the message line ("Aim for the arrow...") at the bottom of the bottom screen, as on one tall screen Something over the table that comes down into the message line's rows from above (the zone card's ribbon down the left edge, a banner sliding up through them) stays in one piece on the top screen; only what starts in those rows, such as the line's own text, goes to the bottom screen. A banner rising from the bottom of the game's screen shows at the bottom of the bottom screen for its first frame or two, until it reaches the rows above.
 
-**SPP-4. Boxes and banners over the table.** What the game lays over the table (the pause menu, banners such as NiGHTS's SHOOT BONUS, with the sprites drawn on them) appears on the top screen where it is on your game's screen, over the table's rows there, with the rest of the table below. (The owner's instructions: "any dialogue or story options that would usually be overlaid on the game screen should appear on the top (primary) screen". Story mode's conversations aren't checked yet: no state of one.)
+**SPP-4. Boxes and banners over the table.** What the game lays over the table (the pause menu, banners such as NiGHTS's SHOOT BONUS, with the sprites drawn on them, such as the pause menu's arrow) appears on the top screen where it is on your game's screen, over the table's rows there, with the rest of the table below, whether the top screen is your game's own picture or a copy's. (The owner's instructions: "any dialogue or story options that would usually be overlaid on the game screen should appear on the top (primary) screen". Story mode's conversations aren't checked yet: no state of one.)
 
 **SPP-5. Swapped screens.** With the screens swapped, the table's upper rows stay on the top screen and the lower ones on the bottom screen.
 

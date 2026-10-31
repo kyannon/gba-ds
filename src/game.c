@@ -677,7 +677,10 @@ static void run_frame(uint32_t keys) {
 		 * bottom screen) */
 		if (tall_carry(twinProf)) {
 			nTallBandFixed = 0;
-			for (int i = 0; i < nTallFixed && topCopy; ++i) {
+			/* (whichever is on the top screen: the game's own picture is
+			 * laid over by the boxes too, which would cover a sprite drawn
+			 * on them, such as the pause menu's arrow) */
+			for (int i = 0; i < nTallFixed; ++i) {
 				int y = tallFixed[i][0] & 0xFF, h = obj_height(tallFixed[i][0], tallFixed[i][1]);
 				if (y >= GBA_H) y -= 256;
 				if (tallBandY0 >= 0 && y < tallBandY1 + 1 && y + h > tallBandY0) memcpy(tallBandFixed[nTallBandFixed++], tallFixed[i], sizeof(tallFixed[i]));

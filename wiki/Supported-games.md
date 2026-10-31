@@ -16,7 +16,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Advance Wars (Game Boy Wars Advance in Japan) | `AWRE` `AWRP` `BGWJ` (Japan: on Game Boy Wars Advance 1+2, with Advance Wars 2) | in battles: the intel of the unit under the cursor, or the battle intel |
 | Advance Wars 2: Black Hole Rising (Game Boy Wars Advance 2 in Japan) | `AW2E` `AW2P` `BGWJ` (Japan: on Game Boy Wars Advance 1+2, with Advance Wars) | in battles: the intel of the unit under the cursor, or the battle intel |
 | Fire Emblem (Rekka no Ken in Japan) | `AE7E` `AE7X` (English, French, German) `AE7Y` (English, Spanish, Italian) `AE7J` | on the map: the status of the unit under the cursor |
-| Fire Emblem: The Sacred Stones (Seima no Kouseki in Japan) | `BE8E` `BE8P` `BE8J` | on the map: the status of the unit under the cursor (preliminary) |
+| Fire Emblem: The Sacred Stones (Seima no Kouseki in Japan) | `BE8E` `BE8P` `BE8J` | on the map: the status of the unit under the cursor |
 | Sword of Mana (Shinyaku Seiken Densetsu in Japan) | `AVSE` `AVSY` (Spanish, Italian) `AVSJ` | the Status screen |
 | Summon Night: Swordcraft Story (Craft Sword Monogatari in Japan) | `AB4E` `AB4J` (no European release) | the Status screen, with where you are |
 | Summon Night: Swordcraft Story 2 (Craft Sword Monogatari 2 in Japan) | `BSKE` `BSKJ` (no European release) | the Status screen |
@@ -26,8 +26,8 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | F-Zero: GP Legend (F-Zero: Falcon Densetsu in Japan) | `BFZE` `BFZP` `BFZJ` | the race HUD, with the course map twice as big |
 | River City Ransom EX (Downtown Nekketsu Monogatari EX in Japan) | `BDTE` `BDTJ` (no European release) | the Status screen, with the top bar moved off the game screen |
 | Spider-Man: Mysterio's Menace (Spider-Man: Mysterio no Kyoui in Japan) | `ASEE` (USA and Europe) `ASEJ` | the Select menu: the objective, password, suits, upgrades and web containers |
-| Sonic Pinball Party | `A3VE` `A3VP` | the table twice as tall over both screens, live |
-| Sonic Advance | `ASOE` `ASOP` `ASOJ` | the zone card, with the rings, score, time and lives (preliminary) |
+| Sonic Pinball Party | `A3VE` `A3VP` | the table twice as tall over both screens, live (work in progress) |
+| Sonic Advance | `ASOE` `ASOP` `ASOJ` | the zone card, with the rings, score, time and lives |
 
 The codes are what `<CODE>` means in logo and overlay file names (see [Playing](Playing#logos) and [[Map screen surrounds and overlays]]).
 
@@ -181,7 +181,7 @@ The USA release and the Japanese one (Downtown Nekketsu Monogatari EX).
 
 ## Sonic Advance
 
-The USA, European and Japanese releases. Preliminary: tried in Neo Green Hill Zone so far.
+The USA, European and Japanese releases, tried in Neo Green Hill Zone so far.
 
 - As each level starts, the second screen keeps the game's **zone card** (the stripe with the character's name, the zone's name and the act), taken as its name passes the middle, on black.
 - In the level, the **rings, score and time** move from the game screen to the top right of the second screen, over the card, with the **lives** just below.
@@ -190,11 +190,11 @@ The USA, European and Japanese releases. Preliminary: tried in Neo Green Hill Zo
 
 ## Sonic Pinball Party
 
-The USA and European releases.
+The USA and European releases. **Work in progress:** glitches may occur on the tables, such as sprites misplaced or flickering for a frame, or part of the table drawn out of step for a moment. If you see one, press the quick bar's bug button right after it and send the report (see [Playing](Playing#the-quick-bar-and-bug-reports)). `pinball_live = 0` in `gba-ds.cfg` plays the game on one screen instead.
 
 - **On a table,** the two screens together show twice as much of it, **live**, as if they were one tall screen, as on Pokémon Pinball: GBA DS runs two more copies of the game alongside yours, drawing the parts of the table your game's view doesn't. Your game itself is never changed.
 - The view scrolls smoothly with the ball. While the ball is in the table's upper part, your game is on the top screen with the next part of the table below it; further down, the two screens show the whole lower table.
-- The **score bar** is at the top of the top screen and the **message line** at the bottom of the bottom screen. The **pause menu** and banners (SHOOT BONUS) appear on the top screen.
+- The **score bar** is at the top of the top screen and the **message line** at the bottom of the bottom screen. The **pause menu** and banners (SHOOT BONUS) appear on the top screen; a banner rising from the bottom shows at the bottom of the bottom screen for its first frame or two.
 - Tried so far on the Sonic and NiGHTS tables. The Samba de Amigo table, bonus stages and Story mode's conversations haven't been tried yet.
 - `pinball_live = 0` in `gba-ds.cfg` turns the copies off: the game then plays on one screen, with the logo on the other.
 - On the title and menus, the second screen shows the logo.
@@ -229,7 +229,7 @@ The USA release, both European ones (English, French and German; English, Spanis
 
 ## Fire Emblem: The Sacred Stones
 
-The USA, European and Japanese (Seima no Kouseki) releases. Preliminary: tried in the prologue so far.
+The USA, European and Japanese (Seima no Kouseki) releases, tried in the prologue so far.
 
 - It works as in **Fire Emblem**: with the cursor on a unit, the second screen is that unit's **status screen**, turning through its three pages every 5 seconds; otherwise (no unit there, a unit selected, fights, the other armies' turns, story scenes, the title and menus) the game's logo.
 - Nothing leaves the game screen.

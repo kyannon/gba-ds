@@ -482,6 +482,61 @@
      "frac": 0.6
     }
    ]
+  },
+  {
+   "id": "spp-us-story-pause",
+   "rom": "A3VE",
+   "state": "sonic-pinball-party/us-story-table.ss",
+   "desc": "paused with the view in the table's upper part (the game itself on the top screen): the pause menu with its arrow on the top screen",
+   "rules": [
+    "SPP-4"
+   ],
+   "input": [
+    [
+     60,
+     "START"
+    ],
+    [
+     64,
+     "-"
+    ]
+   ],
+   "shots": {
+    "pause": 120
+   },
+   "checks": [
+    {
+     "rule": "SPP-4",
+     "what": "the arrow beside CONTINUE",
+     "type": "not_uniform",
+     "shot": "pause",
+     "screen": "game",
+     "rect": [
+      314,
+      318,
+      338,
+      354
+     ],
+     "color": "100000",
+     "frac": 0.7
+    }
+   ]
+  },
+  {
+   "id": "spp-us-swapped",
+   "rom": "A3VE",
+   "state": "sonic-pinball-party/us-nights-table.ss",
+   "desc": "swapped screens: the table's upper rows still on the top screen",
+   "rules": [
+    "SPP-5"
+   ],
+   "config": {
+    "swap": "1"
+   },
+   "shots": {
+    "end": 120
+   },
+   "checks": []
   }
  ]
 }

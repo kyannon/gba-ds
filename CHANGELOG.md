@@ -3,15 +3,11 @@
 ## v1.4.4 (not yet released)
 
 ### New games
-- **Sonic Advance** (USA, Europe and Japan), preliminary: the second screen keeps each level's zone card, with the rings, score and time at its top right and the lives below them (moved off the game screen). Tried in Neo Green Hill Zone so far.
-- **Fire Emblem: The Sacred Stones** (USA, Europe, and Seima no Kouseki in Japan), preliminary: as in Fire Emblem, the second screen shows the status of the unit under the cursor, turning through its three pages, and the logo everywhere else. Tried in the prologue; later chapters and the world map haven't been tried yet.
-- **Sonic Pinball Party** (USA and Europe): the table is twice as tall, over both screens, and live on both, as on Pokémon Pinball: the score bar at the top of the top screen, the message line at the bottom of the bottom screen, and the pause menu and banners on the top screen. Tried on the Sonic and NiGHTS tables (Arcade and Story); the Samba de Amigo table, bonus stages and Story mode's conversations haven't been tried yet. On the title and menus, the second screen shows the logo.
+- **Sonic Advance** (USA, Europe and Japan): the second screen keeps each level's zone card, with the rings, score and time at its top right and the lives below them (moved off the game screen). Tried in Neo Green Hill Zone so far.
+- **Fire Emblem: The Sacred Stones** (USA, Europe, and Seima no Kouseki in Japan): as in Fire Emblem, the second screen shows the status of the unit under the cursor, turning through its three pages, and the logo everywhere else. Tried in the prologue; later chapters and the world map haven't been tried yet.
+- **Sonic Pinball Party** (USA and Europe), work in progress: the table is twice as tall, over both screens, and live on both, as on Pokémon Pinball: the score bar at the top of the top screen, the message line at the bottom of the bottom screen, and the pause menu and banners on the top screen. Tried on the Sonic and NiGHTS tables (Arcade and Story); the Samba de Amigo table, bonus stages and Story mode's conversations haven't been tried yet. On the title and menus, the second screen shows the logo. Glitches may still occur on the tables (see Known issues); `pinball_live = 0` in `gba-ds.cfg` plays it on one screen instead.
 - **Spider-Man: Mysterio's Menace** (Spider-Man: Mysterio no Kyoui in Japan): in a level, the second screen shows the Select menu (the objective, password, suits, upgrades and web containers), updated about once a second. At the title, the intro, between levels and on the continue screen after QUIT GAME it shows the logo. The USA / European and Japanese releases have been tried in the first level.
 - **Summon Night: Swordcraft Story 2** (Craft Sword Monogatari 2 in Japan): while you walk about, the second screen shows the Status screen (level, HP, experience and your stats with each weapon), updated about once a second, and with more than one character, each one in turn, 5 seconds each (without the L / R icons); in a conversation or the game's own menus the last one stays. At the title it shows the logo. The USA and Japanese releases have been tried at the start of the story.
-
-### Sonic Pinball Party
-- The zone card's blue ribbon down the left edge stays whole on the top screen; its end no longer shows at the bottom of the bottom screen. Banners sliding up from the bottom (SHOOT BONUS) stay in one piece on the top screen, after their first frame or two.
-- Sprites on the copies' rows no longer flicker for a frame when the game is busy (the moment the opening sweep ends, a ball launched, a banner coming up): the wrong sprites, placed for the game's own view, are gone.
 
 ### Save states
 - Save states now keep what the second screen was showing (a map or status screen, a copied screen, Super Mario Advance 2's level name, Sonic Advance's zone card), and loading one brings it back on the next frame, instead of the logo or the last picture until the next capture. States saved before this load as before; the pinball games' two-screen views and the moved HUDs are drawn again from the game within a frame or two, as before.
@@ -26,6 +22,9 @@
 ### Game list
 - For a game without second-screen support, "Single screen only: plays normally" is now at the top right, a little bigger, clear of the GitHub address.
 - Bug reports made in the pinball games' two-screen view also hold what both screens showed, the extra copies' own pictures and the view's last 10 seconds, so problems with it can be traced.
+
+### Known issues
+- Sonic Pinball Party's two-screen view is a work in progress: graphics glitches may occur, such as sprites misplaced or flickering for a frame and parts of the table drawn out of step for a moment. A banner rising from the bottom of the screen (SHOOT BONUS) shows at the bottom of the bottom screen for its first frame or two. Bug reports (the quick bar's bug button, right after it happens) help.
 
 ## v1.4.3 (2026-10-30)
 
