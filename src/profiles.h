@@ -392,6 +392,19 @@ typedef struct MapProfile {
 			SpriteRule objs[4];
 			HudMove moves[4];
 		} scene;
+		/* A title card before each level (Sonic Advance's zone card): while
+		 * a sprite with tile `tile` in palette `pal` is shown (and `on`
+		 * matches), the `objs` sprites are drawn on their own (they stay on
+		 * the game screen too), and the picture from the frame where what's
+		 * dark on rows y0..y1 (its scrolling name) is most nearly centred,
+		 * clear of both edges, is kept: the second screen's backdrop from
+		 * then on, at its own size, black where the card has nothing. Till
+		 * there's one (a state loaded in a level), the logo. */
+		struct {
+			int tile, pal;
+			SpriteRule objs[4];
+			int y0, y1;
+		} card;
 		/* moves while racing (with the `layout` probes; no layout probes:
 		 * always). A move with toGame and no how / vhow copies its box back
 		 * onto the game picture where it was. */

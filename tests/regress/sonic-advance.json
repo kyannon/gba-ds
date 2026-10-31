@@ -1,0 +1,256 @@
+{
+ "game": "Sonic Advance",
+ "rules": "docs/games/sonic-advance.md",
+ "cases": [
+  {
+   "id": "sa-us-title",
+   "rom": "ASOE",
+   "state": "sonic-advance/us-title.ss",
+   "desc": "the title (a player's bug report): the logo",
+   "rules": [
+    "SA-1"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "SA-1",
+     "what": "no card",
+     "type": "no_log",
+     "match": "title card"
+    }
+   ]
+  },
+  {
+   "id": "sa-us-card",
+   "rom": "ASOE",
+   "state": "sonic-advance/us-card-lead-in.ss",
+   "desc": "Game Start, Sonic, into Neo Green Hill act 1 (a player's bug report, its keys played back, then nothing pressed): the card on the game screen, then on the second screen with the HUD at its top right, the lives below, gone from the game screen",
+   "rules": [
+    "SA-2",
+    "SA-3"
+   ],
+   "input": [
+    [
+     0,
+     "-"
+    ],
+    [
+     350,
+     "RIGHT"
+    ],
+    [
+     361,
+     "-"
+    ],
+    [
+     427,
+     "LEFT"
+    ],
+    [
+     429,
+     "-"
+    ],
+    [
+     500,
+     "A"
+    ],
+    [
+     507,
+     "-"
+    ],
+    [
+     625,
+     "-"
+    ]
+   ],
+   "shots": {
+    "card": 665,
+    "play": 925
+   },
+   "checks": [
+    {
+     "rule": "SA-2",
+     "what": "the card taken",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA-2",
+     "what": "the card on the second screen",
+     "type": "not_uniform",
+     "shot": "play",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "sa-us-act-end",
+   "rom": "ASOE",
+   "state": "sonic-advance/us-act-end-lead-in.ss",
+   "desc": "the end of Neo Green Hill act 1 (a player's bug report, its keys played back, then nothing pressed): the results on the game screen, then act 2's card taken and shown",
+   "rules": [
+    "SA-2",
+    "SA-3"
+   ],
+   "input": [
+    [
+     0,
+     "RIGHT"
+    ],
+    [
+     188,
+     "DOWN"
+    ],
+    [
+     199,
+     "-"
+    ],
+    [
+     207,
+     "RIGHT"
+    ],
+    [
+     548,
+     "-"
+    ],
+    [
+     653,
+     "-"
+    ]
+   ],
+   "shots": {
+    "results": 643,
+    "act2": 1853
+   },
+   "checks": [
+    {
+     "rule": "SA-2",
+     "what": "the card taken",
+     "type": "log",
+     "match": "title card taken"
+    }
+   ]
+  },
+  {
+   "id": "sa-eu-demo",
+   "rom": "ASOP",
+   "state": "sonic-advance/eu-demo-card.ss",
+   "desc": "the title's demo of Neo Green Hill just before its card (a game played from power-on): the card and the HUD on the second screen",
+   "rules": [
+    "SA-2",
+    "SA-3"
+   ],
+   "shots": {
+    "play": 500
+   },
+   "checks": [
+    {
+     "rule": "SA-2",
+     "what": "the card taken",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA-2",
+     "what": "the card on the second screen",
+     "type": "not_uniform",
+     "shot": "play",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "sa-jp-demo",
+   "rom": "ASOJ",
+   "state": "sonic-advance/jp-demo-card.ss",
+   "desc": "the title's demo of Neo Green Hill just before its card (a game played from power-on): the card and the HUD on the second screen",
+   "rules": [
+    "SA-2",
+    "SA-3"
+   ],
+   "shots": {
+    "play": 500
+   },
+   "checks": [
+    {
+     "rule": "SA-2",
+     "what": "the card taken",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA-2",
+     "what": "the card on the second screen",
+     "type": "not_uniform",
+     "shot": "play",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "sa-logo-asoe",
+   "kind": "logo",
+   "rom": "ASOE",
+   "desc": "ASOE logo extraction",
+   "rules": [
+    "GEN-1",
+    "SA-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "sa-logo-asop",
+   "kind": "logo",
+   "rom": "ASOP",
+   "desc": "ASOP logo extraction",
+   "rules": [
+    "GEN-1",
+    "SA-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "sa-logo-asoj",
+   "kind": "logo",
+   "rom": "ASOJ",
+   "desc": "ASOJ logo extraction",
+   "rules": [
+    "GEN-1",
+    "SA-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

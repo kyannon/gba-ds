@@ -27,6 +27,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | River City Ransom EX (Downtown Nekketsu Monogatari EX in Japan) | `BDTE` `BDTJ` (no European release) | the Status screen, with the top bar moved off the game screen |
 | Spider-Man: Mysterio's Menace (Spider-Man: Mysterio no Kyoui in Japan) | `ASEE` (USA and Europe) `ASEJ` | the Select menu: the objective, password, suits, upgrades and web containers |
 | Sonic Pinball Party | `A3VE` `A3VP` | the table twice as tall over both screens, live |
+| Sonic Advance | `ASOE` `ASOP` `ASOJ` | the zone card, with the rings, score, time and lives (preliminary) |
 
 The codes are what `<CODE>` means in logo and overlay file names (see [Playing](Playing#logos) and [[Map screen surrounds and overlays]]).
 
@@ -177,6 +178,15 @@ The USA release and the Japanese one (Downtown Nekketsu Monogatari EX).
 - At the Story / Manage Data menu, the title card and through a story's opening conversation, the second screen shows the logo.
 - With one screen (`layout = single`), the top bar stays where the game draws it.
 - Shops, restaurants and two players haven't been tried yet.
+
+## Sonic Advance
+
+The USA, European and Japanese releases. Preliminary: tried in Neo Green Hill Zone so far.
+
+- As each level starts, the second screen keeps the game's **zone card** (the stripe with the character's name, the zone's name and the act), taken as its name passes the middle, on black.
+- In the level, the **rings, score and time** move from the game screen to the top right of the second screen, over the card, with the **lives** just below.
+- The act's results stay on the game screen. On the title and menus, the second screen shows the logo.
+- Not tried yet: other zones and characters, bosses, special stages, Time Attack, VS and the Tiny Chao Garden.
 
 ## Sonic Pinball Party
 

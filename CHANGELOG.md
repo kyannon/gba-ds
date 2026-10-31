@@ -3,6 +3,7 @@
 ## v1.4.4 (not yet released)
 
 ### New games
+- **Sonic Advance** (USA, Europe and Japan), preliminary: the second screen keeps each level's zone card, with the rings, score and time at its top right and the lives below them (moved off the game screen). Tried in Neo Green Hill Zone so far.
 - **Fire Emblem: The Sacred Stones** (USA, Europe, and Seima no Kouseki in Japan), preliminary: as in Fire Emblem, the second screen shows the status of the unit under the cursor, turning through its three pages, and the logo everywhere else. Tried in the prologue; later chapters and the world map haven't been tried yet.
 - **Sonic Pinball Party** (USA and Europe): the table is twice as tall, over both screens, and live on both, as on Pokémon Pinball: the score bar at the top of the top screen, the message line at the bottom of the bottom screen, and the pause menu and banners on the top screen. Tried on the Sonic and NiGHTS tables (Arcade and Story); the Samba de Amigo table, bonus stages and Story mode's conversations haven't been tried yet. On the title and menus, the second screen shows the logo.
 - **Spider-Man: Mysterio's Menace** (Spider-Man: Mysterio no Kyoui in Japan): in a level, the second screen shows the Select menu (the objective, password, suits, upgrades and web containers), updated about once a second. At the title, the intro, between levels and on the continue screen after QUIT GAME it shows the logo. The USA / European and Japanese releases have been tried in the first level.

@@ -834,6 +834,9 @@ static long hudPalRef[8]; /* bg_pal_levels() as the backdrop was taken */
 static unsigned hudKeep; /* BG layers kept on the game screen (FFTA's spells) */
 static bool hudWorld; /* FFTA's world map (hud.world) */
 static bool hudScene; /* the profile's other scene (Mario Kart's podium): logo backdrop, its own sprites */
+static bool hudCard; /* hud.card: the title card's sprites are what's split off */
+static int cardScore = -1; /* hud.card: how far off centre the best take so far is (-1: none) */
+static uint32_t cardBest[GBA_W * GBA_H];
 static bool hudAlt; /* the HUD on its other layer (hud.alt: SMA2's boss rooms) */
 static uint32_t hudLogoBack[HUD_CW * HUD_CH];
 static bool hudLogoDone;
@@ -2024,6 +2027,58 @@ static bool oam_has_tile(int tile) {
 	return false;
 }
 
+/* A sprite with this tile in this palette is shown */
+static bool oam_has_tile_pal(int tile, int pal) {
+	for (int i = 0; i < 128; ++i) {
+		uint16_t a0 = emu_read16(&emu, 0x07000000 + i * 8);
+		if ((a0 & 0x300) == 0x200) continue;
+		uint16_t a2 = emu_read16(&emu, 0x07000004 + i * 8);
+		if ((a2 & 0x3FF) == tile && a2 >> 12 == pal) return true;
+	}
+	return false;
+}
+
+/* hud.card: this frame's card (hudPx) as a take: kept if its name (dark
+ * pixels on rows y0..y1) is clear of both edges and nearer the centre
+ * than the best so far. True once it's centred (within a pixel). */
+static bool card_take(void) {
+	const typeof(hudProf->hud.card)* c = &hudProf->hud.card;
+	uint32_t clear = emu_hud_clear();
+	int lo = GBA_W, hi = -1;
+	for (int y = SDL_max(c->y0, 0); y <= SDL_min(c->y1, GBA_H - 1); ++y) {
+		for (int x = 0; x < GBA_W; ++x) {
+			uint32_t p = hudPx[y * GBA_W + x];
+			if ((p & 0xFFFFFF) == clear) continue;
+			int luma = (p & 0xFF) + ((p >> 8) & 0xFF) + ((p >> 16) & 0xFF);
+			if (luma < 3 * 96) lo = SDL_min(lo, x), hi = SDL_max(hi, x);
+		}
+	}
+	if (hi < 0 || lo < 2 || hi > GBA_W - 3) return false;
+	int off = abs(lo - (GBA_W - 1 - hi));
+	if (cardScore < 0 || off < cardScore) {
+		cardScore = off;
+		memcpy(cardBest, hudPx, sizeof(cardBest));
+	}
+	return off <= 1;
+}
+/* hud.card: the best take as the backdrop (at its own size, black where
+ * the card has nothing) */
+static void card_backdrop(void) {
+	uint32_t clear = emu_hud_clear();
+	for (int y = 0; y < GBA_H; ++y) {
+		for (int x = 0; x < GBA_W; ++x) {
+			uint32_t c = cardBest[y * GBA_W + x];
+			c = (c & 0xFFFFFF) == clear ? 0xFF000000 : c | 0xFF000000;
+			uint32_t* o = &hudBack[y * 2 * HUD_CW + x * 2];
+			o[0] = o[1] = o[HUD_CW] = o[HUD_CW + 1] = c;
+		}
+	}
+	hudBackValid = true;
+	hudFadeIn = 0;
+	bg_pal_levels(hudPalRef);
+	if (debug) fprintf(stderr, "frame %llu: title card taken (%d pixels off centre)\n", (unsigned long long) frameCount, cardScore);
+}
+
 /* hud.mapAt.holdTile: the map as last drawn (HUD pixels; mapHeldOk false:
  * none yet this race), and the dots among the sprites read after the last
  * frame */
@@ -2212,6 +2267,15 @@ static void hud_compose(void) {
 				hudCanvas[i] = o;
 			}
 		}
+	} else if (h->card.tile) {
+		/* (hud.card: no card taken yet: the logo, below the HUD's pieces) */
+		static uint32_t cardLogo[HUD_CW * HUD_CH];
+		static bool made;
+		if (!made) {
+			for (int i = 0; i < HUD_CW * HUD_CH; ++i) cardLogo[i] = SCREEN_GREY;
+			made = logo_draw(cardLogo, HUD_CW, HUD_CH, HUD_CW / GBA_W, 48 * 2, 255);
+		}
+		memcpy(hudCanvas, cardLogo, sizeof(hudCanvas));
 	} else {
 		uint32_t plain = h->mapCnt ? (hudFadeEff == 2 ? 0xFFFFFFFF : 0xFF000000) : 0xFF1A1010;
 		for (int i = 0; i < HUD_CW * HUD_CH; ++i) hudCanvas[i] = plain;
@@ -2535,6 +2599,15 @@ static void update_hud(void) {
 				}
 			}
 		}
+	} else if (hudOn && race && hudCard) {
+		/* the title card: a take a frame (once the split draws the card),
+		 * the backdrop once it's centred; on the second screen from then */
+		if (hudFrames >= 2 && cardScore != 0 && card_take() && !hudBackValid) card_backdrop();
+		if (hudBackValid) {
+			memcpy(hudCanvas, hudBack, sizeof(hudCanvas));
+			for (int i = 0; i < nViews; ++i) ui_update_texture(hudTex[i], hudCanvas, HUD_CW * 4);
+			hudShown = true;
+		}
 	} else if (hudOn && race) {
 		/* hud.emptyIsOff: nothing drawn for 20 frames: the logo */
 		static int emptyFor;
@@ -2557,10 +2630,17 @@ static void update_hud(void) {
 		}
 	}
 	bool scene = race && h->scene.when[0].addr && memprobes_match(h->scene.when, 2, &emu);
-	if (race != hudOn || scene != hudScene || world != hudWorld || alt != hudAlt) {
-		const SpriteRule* objs = scene ? h->scene.objs : world ? hudWorldObjs : hudObjs;
+	bool card = race && h->card.tile && oam_has_tile_pal(h->card.tile, h->card.pal);
+	if (card != hudCard) {
+		/* a card coming up: a new take; going: the best one, if not yet */
+		if (card) cardScore = -1, hudBackValid = false;
+		else if (cardScore >= 0 && !hudBackValid) card_backdrop();
+		if (debug) fprintf(stderr, "frame %llu: title card %s\n", (unsigned long long) frameCount, card ? "up" : "gone");
+	}
+	if (race != hudOn || scene != hudScene || world != hudWorld || alt != hudAlt || card != hudCard) {
+		const SpriteRule* objs = card ? h->card.objs : scene ? h->scene.objs : world ? hudWorldObjs : hudObjs;
 		unsigned mask = alt ? h->alt.bgMask : h->bgMask;
-		int nObjs = rule_count(objs, scene ? 4 : world ? 4 : 8);
+		int nObjs = rule_count(objs, card || scene || world ? 4 : 8);
 		/* (nothing split off: only the logo behind the map picture, as
 		 * for Fire Emblem and Final Fantasy Tactics Advance; no second
 		 * renderer) */
@@ -2568,6 +2648,8 @@ static void update_hud(void) {
 		bool some = mask || nObjs || h->band;
 		if (some || splitting) emu_hud_split(&emu, race && some, mask, objs, nObjs, hudPx);
 		splitting = race && some;
+		if (race && some) emu_hud_copy(&emu, card); /* (the card stays on the game screen too) */
+		hudCard = card;
 		if (debug && race && alt != hudAlt) fprintf(stderr, "frame %llu: HUD on its other layer%s\n", (unsigned long long) frameCount, alt ? "" : ": off");
 		hudAlt = alt;
 		/* (by priority: the renderer picks the layers line by line) */
@@ -4457,6 +4539,7 @@ static void ss_setup(const char* rom, const char* code) {
 		hudShown = false;
 		mirrorHave = mirrorOn = false;
 		hudScene = false;
+		hudCard = false, cardScore = -1;
 		hudFadeEff = hudFadeIn = 0;
 		memset(hudPalRef, 0, sizeof(hudPalRef));
 		hudWorld = false;

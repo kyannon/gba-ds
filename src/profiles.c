@@ -2084,6 +2084,43 @@ static const MapProfile profiles[] = {
 		.logo = { .steps = { { 0, 300 }, { K_A, 6 }, { 0, 1000 } }, .layers = 0x06, .maxY = 142, .lowFrom = 122, .lowLayers = 0x04, .rev = 1 },
 	},
 	{
+		/* Sonic Advance (USA, Europe and Japan (Rev 1): the same sprites,
+		 * registers and title steps in each). In a level
+		 * (display mode 0 with BG1-3: the zone card, play, the act's
+		 * results; not the title or menus), everything on top is sprites:
+		 * the zone card (the stripe and SONIC, palette 15; the zone's name
+		 * scrolling along its white band, the act, palette 6 from tile
+		 * 400), the HUD (rings, score and time top left, palette 6 tiles
+		 * 64-127; the lives bottom left, the icon in palette 0, tile 64,
+		 * the count palette 6), the character (palette 0, tile 0) and the
+		 * results' figures (the HUD's tiles, mid-screen) */
+		.codes = { "ASOE", "ASOP", "ASOJ" },
+		.title = "Sonic Advance",
+		.logoOnly = true,
+		/* the title: SONIC ADVANCE (BG2), above the copyright line (A for
+		 * English at the language menu of a game with no save, START past
+		 * the intro) */
+		.logo = { .steps = { { 0, 60 }, { K_A, 4 }, { 0, 900 }, { K_START, 4 }, { 0, 90 } }, .layer = 2, .maxY = 120 },
+		.hud = {
+			.on = { { 0x04000000, 0x0E07, 0x0E00, 2 } },
+			/* the rings, score and time; the lives (icon and count) */
+			.objs = { { -16, -16, 110, 26, 64, 127, -1, 1u << 6 },
+			          { -16, 130, 48, 159, 64, 127, -1, 1u << 0 | 1u << 6 } },
+			/* the zone card (its vertical lettering: tile 64 in palette 15;
+			 * the stripe's tiles move with what else is loaded, such as the
+			 * demo's label): the backdrop, from the frame its name is
+			 * centred (SA-2) */
+			.card = { .tile = 64, .pal = 15,
+			          .objs = { { -64, -64, 255, 175, 0, 1023, -1, 1u << 15 },
+			                    { -64, 110, 255, 175, 400, 1023, -1, 1u << 6 } }, /* (the band: not the demo's DEMO, row 76) */
+			          .y0 = 128, .y1 = 143 },
+			/* the rings, score and time at the top right; the lives below
+			 * them (SA-3) */
+			.moves = { { -16, -16, 110, 40, 'R', 236, 'T', 4 },
+			           { -16, 130, 48, 159, 'R', 236, 'T', 32 } },
+		},
+	},
+	{
 		.codes = { "ATHE", "ATHF", "ATHD" },
 		.title = "Tony Hawk's Pro Skater 2",
 		/* no map yet: listed, logo on the second screen */
