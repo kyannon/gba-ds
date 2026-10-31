@@ -434,6 +434,54 @@
    "golden": [
     "logo"
    ]
+  },
+  {
+   "id": "spp-us-sonic-start",
+   "rom": "A3VE",
+   "state": "sonic-pinball-party/us-sonic-start.ss",
+   "desc": "the Sonic table started (a player's bug report): the zone card's ribbon whole on the top screen, the sweep, then the view at the bottom with the ball in the plunger: the top screen's copy with its own sprites on frames where the game's logic runs long (258, 281), none of them the sweep's left behind (249)",
+   "rules": [
+    "SPP-2",
+    "SPP-3"
+   ],
+   "shots": {
+    "card": 80,
+    "after_sweep": 249,
+    "long_frame": 258,
+    "long_frame2": 281
+   },
+   "checks": [
+    {
+     "rule": "SPP-3",
+     "what": "no ribbon at the bottom left of the bottom screen",
+     "type": "not_uniform",
+     "shot": "card",
+     "screen": "second",
+     "rect": [
+      36,
+      640,
+      76,
+      730
+     ],
+     "color": "0042EF",
+     "frac": 0.3
+    },
+    {
+     "rule": "SPP-3",
+     "what": "the ribbon down the top screen's left edge",
+     "type": "uniform",
+     "shot": "card",
+     "screen": "game",
+     "rect": [
+      36,
+      600,
+      76,
+      700
+     ],
+     "color": "0042EF",
+     "frac": 0.6
+    }
+   ]
   }
  ]
 }

@@ -920,6 +920,19 @@ void emu_vram_write(Emu* e, uint32_t off, const void* src, size_t n) {
 	gba->video.renderer->writeVRAM(gba->video.renderer, off);
 }
 
+void emu_oam_read(Emu* e, uint16_t* out) {
+	struct GBA* gba = e->core->board;
+	memcpy(out, gba->video.oam.raw, sizeof(gba->video.oam.raw));
+}
+void emu_oam_write(Emu* e, const uint16_t* src) {
+	struct GBA* gba = e->core->board;
+	for (int i = 0; i < 512; ++i) {
+		if (gba->video.oam.raw[i] == src[i]) continue;
+		gba->video.oam.raw[i] = src[i];
+		gba->video.renderer->writeOAM(gba->video.renderer, (uint32_t) i);
+	}
+}
+
 const uint16_t* emu_vram(Emu* e) {
 	return ((struct GBA*) e->core->board)->video.vram;
 }

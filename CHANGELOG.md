@@ -9,6 +9,10 @@
 - **Spider-Man: Mysterio's Menace** (Spider-Man: Mysterio no Kyoui in Japan): in a level, the second screen shows the Select menu (the objective, password, suits, upgrades and web containers), updated about once a second. At the title, the intro, between levels and on the continue screen after QUIT GAME it shows the logo. The USA / European and Japanese releases have been tried in the first level.
 - **Summon Night: Swordcraft Story 2** (Craft Sword Monogatari 2 in Japan): while you walk about, the second screen shows the Status screen (level, HP, experience and your stats with each weapon), updated about once a second, and with more than one character, each one in turn, 5 seconds each (without the L / R icons); in a conversation or the game's own menus the last one stays. At the title it shows the logo. The USA and Japanese releases have been tried at the start of the story.
 
+### Sonic Pinball Party
+- The zone card's blue ribbon down the left edge stays whole on the top screen; its end no longer shows at the bottom of the bottom screen. Banners sliding up from the bottom (SHOOT BONUS) stay in one piece on the top screen, after their first frame or two.
+- Sprites on the copies' rows no longer flicker for a frame when the game is busy (the moment the opening sweep ends, a ball launched, a banner coming up): the wrong sprites, placed for the game's own view, are gone.
+
 ### Save states
 - Save states now keep what the second screen was showing (a map or status screen, a copied screen, Super Mario Advance 2's level name, Sonic Advance's zone card), and loading one brings it back on the next frame, instead of the logo or the last picture until the next capture. States saved before this load as before; the pinball games' two-screen views and the moved HUDs are drawn again from the game within a frame or two, as before.
 

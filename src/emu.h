@@ -171,6 +171,9 @@ uint16_t emu_io16(Emu* e, uint32_t offset);
 const uint16_t* emu_vram(Emu* e);
 /* n bytes into VRAM at offset off at once (the renderer told once) */
 void emu_vram_write(Emu* e, uint32_t off, const void* src, size_t n);
+/* The sprite table as drawn (OAM, 1 KB): read, or written with the renderer told */
+void emu_oam_read(Emu* e, uint16_t* out);
+void emu_oam_write(Emu* e, const uint16_t* src);
 bool emu_hud_grabbed(void);
 
 /* Cheats. emu_cheats_clear removes them all; emu_cheats_add adds one set

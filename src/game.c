@@ -168,6 +168,8 @@ typedef struct {
 	uint8_t vars[4][32];
 	uint32_t q[64][3];
 	int nq;
+	uint16_t oam[512];   /* its sprite table as it last drew, and */
+	uint8_t shadow[1024]; /* the game's shadow of it, as the copy left it: its own sprites, for a frame whose logic runs long */
 } Twin;
 static Twin twins[TWINS];
 static bool twinOpen;
@@ -469,6 +471,11 @@ static void twin_first_carry(Twin* tw) {
 	}
 	tw->seq = twinSeq;
 	if (tw->carried) carry_put(tw);
+	/* (its own shadow sprite table: a frame whose logic runs long leaves
+	 * part of it as it was, which would be the game's, placed for the
+	 * game's view, and copied to the sprite table at the vblank all the
+	 * same) */
+	if (tw->carried) for (int i = 0; i < 1024; i += 4) emu_write32(&tw->e, twinProf->tall.live.oam + i, (uint32_t) tw->shadow[i] | tw->shadow[i + 1] << 8 | tw->shadow[i + 2] << 16 | (uint32_t) tw->shadow[i + 3] << 24);
 	/* (from where its view is, not where its camera was put: the game
 	 * moves the view only when its camera code runs, which it doesn't in
 	 * a table's intro, and streams at most two tile rows a frame: a view
@@ -510,8 +517,19 @@ static uint32_t twinFrameKeys;
 static void twin_second(void* arg) {
 	Twin* tw = arg;
 	const typeof(twinProf->tall.live)* L = &twinProf->tall.live;
+	/* (carry: its own sprites as it last drew them, not the game's. The
+	 * game copies its sprites to the sprite table at a vblank only once
+	 * its frame's logic is done; after a frame whose logic ran long it
+	 * shows its last frame's sprites again, and so would a copy, but the
+	 * last ones a copy has (from the game's state) are the game's, placed
+	 * for the game's view) */
+	if (tall_carry(twinProf) && tw->carried) emu_oam_write(&tw->e, tw->oam);
 	emu_frame(&tw->e, twinFrameKeys & 0x3FF);
 	memcpy(tw->pic, tw->e.fb, sizeof(tw->pic));
+	if (tall_carry(twinProf)) {
+		emu_oam_read(&tw->e, tw->oam);
+		for (int i = 0; i < 1024; ++i) tw->shadow[i] = emu_read8(&tw->e, twinProf->tall.live.oam + i);
+	}
 	tw->picRow = emu_io16(&tw->e, 0x10 + 4 * L->viewBg + 2) & 0x1FF;
 	if (tw->picRow >= tall_rows_of(twinProf, &tw->e)) tw->picRow -= 512;
 	/* (carry: a copy still walking to its row isn't shown) */
@@ -538,7 +556,12 @@ static void twin_step(void) {
 		 * shown for a few frames, so the top screen's copy is kept at its
 		 * row while the game itself is there too) */
 		twins[0].need = twins[1].need = true;
-		twinNoObj = L->carry.noObj.addr && memprobes_match(&L->carry.noObj, 1, &emu);
+		/* (and for two frames after: the game's first frame after the sweep
+		 * still shows the sprites where the sweep moved them) */
+		static int noObjHold;
+		if (L->carry.noObj.addr && memprobes_match(&L->carry.noObj, 1, &emu)) noObjHold = 3;
+		twinNoObj = noObjHold > 0;
+		if (noObjHold > 0) --noObjHold;
 		twinRun = true;
 		return;
 	}
@@ -2865,12 +2888,29 @@ static void update_tall(void) {
 			if (n > 8) tallBandY1 = y, tallBandY0 = tallBandY0 < 0 ? y : tallBandY0;
 		}
 	}
-	if (!msg) memcpy(lastTop, tallTop, sizeof(lastTop)), haveLastTop = true;
 	/* the score bar at the bottom of the bottom screen */
 	uint32_t clear = emu_hud_clear();
-	for (int i = GBA_W * t->hudRow; i < GBA_W * GBA_H; ++i) {
-		if ((hudPx[i] & 0xFFFFFF) != clear) tallBot[i] = hudPx[i] | 0xFF000000;
+	/* (carry: but what comes down into its rows from above, part of
+	 * something over the table (the zone card's ribbon down the screen's
+	 * left edge, a banner sliding up through them), stays with the rest of
+	 * it on the top screen: the columns with something in the two rows just
+	 * above, and 8 either side) */
+	static bool down[GBA_W];
+	bool anyDown = false;
+	memset(down, 0, sizeof(down));
+	if (carry && !firstLive && !msg && t->hudRow >= 2) {
+		for (int x = 0; x < GBA_W; ++x) {
+			if ((hudPx[(t->hudRow - 1) * GBA_W + x] & 0xFFFFFF) == clear && (hudPx[(t->hudRow - 2) * GBA_W + x] & 0xFFFFFF) == clear) continue;
+			for (int d = SDL_max(0, x - 8); d <= SDL_min(GBA_W - 1, x + 8); ++d) down[d] = true;
+			anyDown = true;
+		}
 	}
+	for (int i = GBA_W * t->hudRow; i < GBA_W * GBA_H; ++i) {
+		if ((hudPx[i] & 0xFFFFFF) == clear) continue;
+		if (anyDown && down[i % GBA_W]) tallTop[i] = hudPx[i] | 0xFF000000;
+		else tallBot[i] = hudPx[i] | 0xFF000000;
+	}
+	if (!msg) memcpy(lastTop, tallTop, sizeof(lastTop)), haveLastTop = true;
 	uint32_t* second = cfg->swap ? tallTop : tallBot;
 	for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], second, GBA_W * 4);
 	int same = -1; /* (trace: where a copy shows the game's own rows, how many pixels differ) */
