@@ -956,12 +956,12 @@ static bool debug;
 
 /* ---------------------------------------------------------------- menu */
 
-enum MenuItem { M_RESUME, M_CHEATS, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND, M_AUTOSAVE, M_AUTOLOAD, M_BUG };
+enum MenuItem { M_RESUME, M_CHEATS, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND, M_AUTOSAVE, M_AUTOLOAD, M_BUG, M_SLOT };
 static const char* menuLabels[] = {
 	/* title case: drawn in Futura from the built-in images (tools/make_brand.py) */
 	[M_RESUME] = "Resume", [M_SWAP] = "Swap Screens", [M_SAVE] = "Save State", [M_SCALE] = "", [M_LCD] = "", [M_FPS] = "", [M_FRAMEBUF] = "", [M_OVERLAY] = "", [M_LOGO] = "", [M_MATCH] = "", [M_REWIND] = "", [M_RESTART] = "Restart Game",
 	[M_LOAD] = "Load State", [M_CHEATS] = "Cheats", [M_ACH] = "Achievements", [M_SHOT] = "Take Screenshot", [M_LIBRARY] = "Close Game", [M_EXIT] = "Close GBA DS",
-	[M_AUTOSAVE] = "", [M_AUTOLOAD] = "", [M_BUG] = "Submit a Bug Report",
+	[M_AUTOSAVE] = "", [M_AUTOLOAD] = "", [M_BUG] = "Submit a Bug Report", [M_SLOT] = "",
 };
 static int menuItems[12], nMenuItems;
 /* Some buttons are half as wide, two to a row (Save State | Load State):
@@ -1025,6 +1025,7 @@ static const char* const allLabels[] = {
 	"Map Animations: On", "Map Animations: Off", "Map Refresh: Every 3 s", "Map Refresh: Every 1.5 s",
 	"Map Refresh: Every 1 s", "Map Refresh: Every 0.5 s", "Map Refresh: Custom", "Frame Buffer: On",
 	"Frame Buffer: Off", "Match Display Rate: On", "Match Display Rate: Off", "Rewind: On (Hold L2)", "Rewind: Off",
+	"\u2039   Slot 0: Sep 30, 12:59 PM   \u203A", /* (the slot row, with its arrows) */
 };
 /* the labels of the half-width buttons, which fit in half the width */
 static const char* const halfLabels[] = {
@@ -1087,9 +1088,42 @@ static MenuGeom menu_geom(int scr) {
 }
 
 
+/* The pause menu's save slot (0-9): Save State and Load State use it.
+ * At start, the slot saved to last (or 0). */
+static int stateSlot;
+static void slot_pick_newest(void) {
+	time_t best = 0;
+	stateSlot = 0;
+	for (int i = 0; i < 10; ++i) {
+		struct stat st;
+		if (stat(gp.slot[i], &st) == 0 && st.st_mtime > best) best = st.st_mtime, stateSlot = i;
+	}
+}
+/* "Slot 3: Oct 31, 1:45 PM" (when it was saved), or "Slot 3: Empty" */
+static const char* slot_label(void) {
+	static char buf[64];
+	struct stat st;
+	if (stat(gp.slot[stateSlot], &st) != 0) {
+		snprintf(buf, sizeof(buf), "Slot %d: Empty", stateSlot);
+		return buf;
+	}
+	struct tm t, now;
+	time_t n = time(NULL);
+	localtime_r(&st.st_mtime, &t);
+	localtime_r(&n, &now);
+	static const char* const mon[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+	if (t.tm_year != now.tm_year) snprintf(buf, sizeof(buf), "Slot %d: %s %d, %d", stateSlot, mon[t.tm_mon], t.tm_mday, t.tm_year + 1900);
+	else snprintf(buf, sizeof(buf), "Slot %d: %s %d, %d:%02d %s", stateSlot, mon[t.tm_mon], t.tm_mday, (t.tm_hour + 11) % 12 + 1, t.tm_min, t.tm_hour < 12 ? "AM" : "PM");
+	return buf;
+}
+static void slot_step(int d) {
+	stateSlot = (stateSlot + d + 10) % 10;
+	menuNote[0] = 0;
+}
+
 static bool item_enabled(int item) {
 	if (item == M_CHEATS) return cheats.n > 0;
-	return item != M_LOAD || file_exists(gp.state);
+	return item != M_LOAD || file_exists(gp.slot[stateSlot]);
 }
 
 /* ---------------------------------------------------------------- cheats screen
@@ -1669,7 +1703,7 @@ static void draw_bar(void) {
 		SDL_Rect r = bar_button(s, i);
 		bool down = barGesture == G_BTN && barBtn == i;
 		bool armed = i == BB_EXIT && barExitArmed;
-		bool en = i != BB_LOAD || file_exists(gp.state);
+		bool en = i != BB_LOAD || file_exists(gp.quick);
 		bool done = lit && barLit == i; /* (just saved, loaded or reported) */
 		ui_fill_round(s, r, down || armed || done ? G_BTN_DOWN : G_BTN_C, px * 3);
 		draw_icon(s, art[i], r.x + r.w / 2, r.y + r.h / 2, r.h * 7 / 10, !en ? G_DIS : done || armed ? G_LIT : G_TEXT);
@@ -1812,6 +1846,12 @@ static void draw_menu(void) {
 			label = ovl[cfg->overlays & OVL_BOTH];
 		}
 		if (menuItems[i] == M_RESTART && restartArmed) label = "Tap Again to Restart";
+		if (menuItems[i] == M_SLOT) {
+			/* the slot, with arrows at the ends: LEFT / RIGHT, or a tap on an end */
+			label = slot_label();
+			ui_label(scr, r.x + mg.pad, r.y + r.h / 2, cap, "\u2039", sel ? C_TEXT : C_DIS);
+			ui_label(scr, r.x + r.w - mg.pad, r.y + r.h / 2, cap, "\u203A", sel ? C_TEXT : C_DIS);
+		}
 		ui_label(scr, r.x + r.w / 2, r.y + r.h / 2, cap, label, en ? C_TEXT : C_DIS);
 	}
 	if (menuNote[0]) {
@@ -4575,9 +4615,14 @@ static bool activate(int item, enum GameExit* exitTo) {
 		cfg->lcdGrid = !cfg->lcdGrid;
 		save_prefs();
 		break;
+	case M_SLOT:
+		slot_step(1);
+		break;
 	case M_SAVE:
-		if (state_save(gp.state)) {
-			ui_osd("State saved");
+		if (state_save(gp.slot[stateSlot])) {
+			char m[40];
+			snprintf(m, sizeof(m), "State saved to slot %d", stateSlot);
+			ui_osd(m);
 			menuOpen = false;
 		} else {
 			snprintf(menuNote, sizeof(menuNote), "Save failed");
@@ -4585,9 +4630,11 @@ static bool activate(int item, enum GameExit* exitTo) {
 		break;
 	case M_LOAD:
 		if (!item_enabled(M_LOAD)) {
-			snprintf(menuNote, sizeof(menuNote), "No saved state yet");
-		} else if (state_load(gp.state)) {
-			ui_osd("State loaded");
+			snprintf(menuNote, sizeof(menuNote), "Nothing saved in slot %d yet", stateSlot);
+		} else if (state_load(gp.slot[stateSlot])) {
+			char m[40];
+			snprintf(m, sizeof(m), "Slot %d loaded", stateSlot);
+			ui_osd(m);
 			menuOpen = false;
 			return false;
 		} else {
@@ -4901,8 +4948,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	pages[0][pageLen[0]++] = M_RESTART;
 	pages[0][pageLen[0]++] = M_SAVE;
 	pages[0][pageLen[0]++] = M_LOAD;
-	pages[0][pageLen[0]++] = M_AUTOSAVE;
-	pages[0][pageLen[0]++] = M_AUTOLOAD;
+	pages[0][pageLen[0]++] = M_SLOT;
 	pages[2][pageLen[2]++] = M_CHEATS;
 	if (ra_enabled()) pages[2][pageLen[2]++] = M_ACH;
 	pages[2][pageLen[2]++] = M_SHOT;
@@ -4915,8 +4961,11 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	pages[1][pageLen[1]++] = M_FRAMEBUF;
 	pages[1][pageLen[1]++] = M_MATCH;
 	pages[2][pageLen[2]++] = M_REWIND;
+	pages[2][pageLen[2]++] = M_AUTOSAVE;
+	pages[2][pageLen[2]++] = M_AUTOLOAD;
 	pages[2][pageLen[2]++] = M_BUG;
 	set_page(0);
+	slot_pick_newest();
 
 	if (cfg->loadState[0]) {
 		if (!state_load(cfg->loadState)) fprintf(stderr, "could not load %s\n", cfg->loadState);
@@ -5115,12 +5164,12 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 						barSince = SDL_GetTicks();
 						if (bb != BB_EXIT) barExitArmed = 0;
 						if (bb == BB_SAVE) {
-							bool ok = state_save(gp.state);
+							bool ok = state_save(gp.quick);
 							ui_osd(ok ? "State saved." : "Save failed.");
 							if (ok) barLit = bb, barLitAt = barSince;
 						} else if (bb == BB_LOAD) {
-							if (!file_exists(gp.state)) ui_osd("No saved state yet.");
-							else if (state_load(gp.state)) ui_osd("State loaded."), forceMap = true, barLit = bb, barLitAt = barSince;
+							if (!file_exists(gp.quick)) ui_osd("No quick state saved yet.");
+							else if (state_load(gp.quick)) ui_osd("State loaded."), forceMap = true, barLit = bb, barLitAt = barSince;
 							else ui_osd("Load failed.");
 						} else if (bb == BB_SETTINGS) {
 							open_menu();
@@ -5229,7 +5278,11 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			} else if (p.kind == 3 && menuPressed >= 0 && it >= 0) {
 				menuSel = it;
 			} else if (p.kind == 2) {
-				if (!ignorePointerUp && it >= 0 && it == menuPressed && activate(menuItems[it], &exitTo)) done = true;
+				if (!ignorePointerUp && it >= 0 && it == menuPressed && menuItems[it] == M_SLOT) {
+					/* (the slot row: its left third goes back a slot, the rest forward) */
+					SDL_Rect r = item_rect(p.screen, it);
+					slot_step(p.x < r.x + r.w / 3 ? -1 : 1);
+				} else if (!ignorePointerUp && it >= 0 && it == menuPressed && activate(menuItems[it], &exitTo)) done = true;
 				menuPressed = -1;
 				ignorePointerUp = false;
 			}
@@ -5270,8 +5323,9 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		bool mod = btnNow[modBtn];
 		if (mod && !menuOpen) {
 			if (btn_pressed(B_START)) exitTo = GAME_QUIT_APP, done = true, comboUsed = true;
-			if (btn_pressed(B_R)) ui_osd(state_save(gp.state) ? "State saved" : "Save failed"), comboUsed = true;
-			if (btn_pressed(B_L) && file_exists(gp.state)) state_load(gp.state), ui_osd("State loaded"), forceMap = true, comboUsed = true;
+			/* (the quick state, as the quick bar's buttons) */
+			if (btn_pressed(B_R)) ui_osd(state_save(gp.quick) ? "State saved" : "Save failed"), comboUsed = true;
+			if (btn_pressed(B_L) && file_exists(gp.quick)) state_load(gp.quick), ui_osd("State loaded"), forceMap = true, comboUsed = true;
 			if (btn_pressed(B_X)) cfg->showFps = !cfg->showFps, comboUsed = true;
 			if (btn_pressed(B_Y)) swap_screens(), comboUsed = true;
 		}
@@ -5320,6 +5374,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				if (btn_pressed(B_R) && curPage < N_PAGES - 1) set_page(curPage + 1);
 				if (btn_pressed(B_DOWN)) menu_move(1);
 				if (btn_pressed(B_UP)) menu_move(-1);
+				if (menuItems[menuSel] == M_SLOT && (btn_pressed(B_LEFT) || btn_pressed(B_RIGHT))) slot_step(btn_pressed(B_LEFT) ? -1 : 1);
 				if ((btn_pressed(B_LEFT) || btn_pressed(B_RIGHT)) && itemSide[menuSel] >= 0) {
 					/* the other half of the row */
 					int to = btn_pressed(B_LEFT) ? 0 : 1;

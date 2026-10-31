@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <utime.h>
 
 bool file_exists(const char* path) {
 	struct stat st;
@@ -52,7 +53,8 @@ void game_paths(const Config* cfg, const char* rom, GamePaths* o) {
 	mkdirs(saveDir);
 	mkdirs(cfg->stateDir);
 	snprintf(o->sav, sizeof(o->sav), "%s/%s.sav", saveDir, o->base);
-	snprintf(o->state, sizeof(o->state), "%s/%s.state", cfg->stateDir, o->base);
+	snprintf(o->quick, sizeof(o->quick), "%s/%s.quick.state", cfg->stateDir, o->base);
+	for (int i = 0; i < 10; ++i) snprintf(o->slot[i], sizeof(o->slot[i]), "%s/%s.slot%d.state", cfg->stateDir, o->base, i);
 	snprintf(o->autoState, sizeof(o->autoState), "%s/%s.auto.state", cfg->stateDir, o->base);
 	snprintf(o->thumb, sizeof(o->thumb), "%s/%s.game.bmp", cfg->stateDir, o->base);
 	snprintf(o->mapThumb, sizeof(o->mapThumb), "%s/%s.map.bmp", cfg->stateDir, o->base);
@@ -64,10 +66,33 @@ void game_paths(const Config* cfg, const char* rom, GamePaths* o) {
 		snprintf(srm, sizeof(srm), "%s/%s.srm", saveDir, o->base);
 		if (copy_file(srm, o->sav)) fprintf(stderr, "imported %s -> %s\n", srm, o->sav);
 	}
-	/* Older builds (when the app was called gbadual) kept the manual state next to the ROM */
-	if (!file_exists(o->state)) {
-		char old[1100];
-		snprintf(old, sizeof(old), "%s/%s.gbadual.ss0", saveDir, o->base);
-		if (file_exists(old) && rename(old, o->state) != 0) copy_file(old, o->state);
+	/* Before v1.4.5 there was one save state, <game>.state, used by the
+	 * quick bar and the pause menu alike: it becomes the quick state, and
+	 * slot 0 gets a copy, so it's where a player looks either way (with
+	 * its RetroAchievements progress, .ra, beside each) */
+	if (!file_exists(o->quick)) {
+		char old[1100], from[1110], to[1110];
+		snprintf(old, sizeof(old), "%s/%s.state", cfg->stateDir, o->base);
+		if (file_exists(old)) {
+			snprintf(from, sizeof(from), "%s.ra", old);
+			if (!file_exists(o->slot[0])) {
+				/* (with the original's time: the menu shows when a slot was saved) */
+				struct stat st;
+				if (copy_file(old, o->slot[0]) && stat(old, &st) == 0) {
+					struct utimbuf ut = { st.st_atime, st.st_mtime };
+					utime(o->slot[0], &ut);
+				}
+				snprintf(to, sizeof(to), "%s.ra", o->slot[0]);
+				if (file_exists(from)) copy_file(from, to);
+			}
+			if (rename(old, o->quick) != 0 && copy_file(old, o->quick)) remove(old);
+			snprintf(to, sizeof(to), "%s.ra", o->quick);
+			if (file_exists(from) && rename(from, to) != 0 && copy_file(from, to)) remove(from);
+			fprintf(stderr, "save state %s -> %s (and slot 0)\n", old, o->quick);
+		} else {
+			/* older builds (when the app was called gbadual) kept it next to the ROM */
+			snprintf(old, sizeof(old), "%s/%s.gbadual.ss0", saveDir, o->base);
+			if (file_exists(old) && rename(old, o->quick) != 0) copy_file(old, o->quick);
+		}
 	}
 }

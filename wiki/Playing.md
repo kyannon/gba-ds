@@ -21,7 +21,7 @@ GBA DS opens on a game list on the touchscreen (the bottom screen on the RG DS P
 
 ## Resume points
 
-Leaving a game saves its state automatically, and launching it again picks up exactly there; the game list shows where. The pause menu's **Save on Quit** and **Auto-Load** switch each half off (`save_on_quit = 0`, `auto_load = 0` in `gba-ds.cfg`). With Save on Quit off and Auto-Load on, the game picks up from the last resume point that was saved. Battery saves (in-game saves) are written as usual too, so they're never at risk.
+Leaving a game saves its state automatically, and launching it again picks up exactly there; the game list shows where. **Save on Quit** and **Auto-Load** on the pause menu's Extras page switch each half off (`save_on_quit = 0`, `auto_load = 0` in `gba-ds.cfg`). With Save on Quit off and Auto-Load on, the game picks up from the last resume point that was saved. Battery saves (in-game saves) are written as usual too, so they're never at risk.
 
 ## Updates
 
@@ -40,8 +40,9 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 **Game**
 - **Resume**
 - **Restart Game**: tap twice; unsaved progress is lost.
-- **Save State** / **Load State**, side by side (LEFT / RIGHT moves between them): one slot per game (Load is greyed out until you've saved). HOME + R1 / L1 do the same during play. A state also keeps what the second screen was showing (a map, a status screen, Sonic Advance's zone card), so loading it brings that back at once; states saved before v1.4.4 load as before, and the second screen catches up with its next capture.
-- **Save on Quit: On / Off** and **Auto-Load: On / Off**, side by side: whether closing the game saves a resume point, and whether starting it picks up from one (see Resume points above). Remembered for next time.
+- **Save State** / **Load State**, side by side (LEFT / RIGHT moves between them), into and from the slot below them (Load is greyed out while that slot is empty).
+- **‹ Slot 0 ›** to **‹ Slot 9 ›**: ten save slots per game, each showing when it was saved (or Empty). LEFT / RIGHT on it, or a tap on its left or right end, picks another. The menu opens on the slot you saved to last.
+- A state also keeps what the second screen was showing (a map, a status screen, Sonic Advance's zone card), so loading it brings that back at once; states saved before v1.4.4 load as before, and the second screen catches up with its next capture.
 - **Close Game** (back to the game list) and **Close GBA DS**: both save a resume point first (while Save on Quit is on).
 
 **Display** (remembered for next time)
@@ -52,17 +53,18 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 - **Frame Buffer**: off by default. On, the next frame is prepared while the current one is on screen, which smooths out the odd stutter at the cost of one frame (about 17 ms) of input delay.
 - **Match Display Rate**: off by default. On, the game runs at the screen's refresh rate (60 Hz: 0.5% faster than a GBA, too little to notice, with the sound adjusted to match) and each frame is shown for exactly one refresh. Off, a 60 Hz screen shows one frame twice about every 3.7 seconds: a small, regular stutter.
 
-**Extras** (Rewind is remembered for next time)
+**Extras** (Rewind, Save on Quit and Auto-Load are remembered for next time)
 - **Cheats**: see [below](#cheats).
 - **Achievements**: when signed in to RetroAchievements; see [below](#retroachievements).
 - **Take Screenshot**: both screens as they look right now, with your display settings, stacked top to bottom into one PNG in `/storage/roms/screenshots` (Android: `GBA DS/screenshots`); `screenshot_dir` changes the folder.
 - **Submit a Bug Report**: the same as the quick bar's bug button (see [below](#the-quick-bar-and-bug-reports)), for the moment you opened the menu.
 - **Rewind**: on by default. Hold **L2** to go back in time, up to 30 seconds (`rewind_seconds`), at double speed and without sound; let go to play on from there. Off saves the little work it takes to keep the buffer.
+- **Save on Quit: On / Off** and **Auto-Load: On / Off**, side by side: whether closing the game saves a resume point, and whether starting it picks up from one (see Resume points above). Remembered for next time.
 
 ## The quick bar and bug reports
 
 Swipe up from the bottom edge of the touchscreen for the quick bar. The game keeps running underneath it. In games with another button layout (the Tony Hawk's games, Super Mario Advance 2), **Controls** is at its top: see [Buttons](#buttons). Under that are the time, the frames per second (about 59.7 is full speed) and the battery level, then five buttons, and under them a line for messages (State saved. and the like):
-- **Save State** (floppy disk) and **Load State** (folder): the same slot as the pause menu's (greyed out until you've saved).
+- **Save State** (floppy disk) and **Load State** (folder): the quick state, a slot of its own, apart from the pause menu's ten (Load is greyed out until you've saved one). HOME + R1 / L1 save and load it too.
 - **Settings** (gear): the pause menu.
 - **Bug Report** (bug): see below.
 - **Close GBA DS** (walking out of a door): tap it twice; your resume point is saved as usual.
@@ -94,7 +96,7 @@ From these, what you did can be played back exactly, frame by frame. So when som
 | L2 (hold) | Rewind |
 | L3 (press the left stick) | Swap screens |
 | R2 (hold) | Fast-forward (`ff_speed`, default 3×) |
-| HOME + R1 / L1 | Quick save / load state |
+| HOME + R1 / L1 | Quick save / load state (the quick bar's) |
 | HOME + Start | Quit |
 | HOME + X | FPS counter above the game (the quick bar shows it too) |
 | HOME + Y | Swap screens |
@@ -164,7 +166,7 @@ To use your own art instead, put `<CODE>.png` (or `.bmp`) in `gba-ds/logos/` (An
 | What | ROCKNIX | Android |
 |---|---|---|
 | Battery saves (`.sav`) | next to the ROM (`save_dir` changes it). On first launch an existing RetroArch `Game.srm` is copied to `Game.sav`; the `.srm` is left alone. | next to the ROM |
-| Save states, resume points (`.state`, `.auto.state`, with `.ra` beside them) | `/storage/roms/ports/gba-ds/states/` (`state_dir`) | `GBA DS/states/` |
+| Save states (`<game>.quick.state` for the quick bar, `<game>.slot0.state` to `.slot9.state` for the pause menu's slots), resume points (`<game>.auto.state`), with `.ra` beside them | `/storage/roms/ports/gba-ds/states/` (`state_dir`) | `GBA DS/states/` |
 | Menu settings (`prefs.cfg`), game list settings (`library.cfg`) | `gba-ds/states/` | `GBA DS/states/` |
 | Cheat choices (`<game>.cheats`) | `gba-ds/states/` | `GBA DS/states/` |
 | Extracted logos and map borders | `gba-ds/states/logos/`, `gba-ds/states/frames/` | `GBA DS/states/…` |
