@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.4.4 (not yet released)
+## v1.4.4 (2026-10-31)
 
 ### New games
 - **Sonic Advance** (USA, Europe and Japan): the second screen keeps each level's zone card, with the rings, score and time at its top right and the lives below them (moved off the game screen). Tried in Neo Green Hill Zone so far.

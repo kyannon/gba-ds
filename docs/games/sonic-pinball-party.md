@@ -25,7 +25,7 @@ The tables are twice as tall over both screens, live, as Pokémon Pinball's are 
 
 **SPP-5. Swapped screens.** With the screens swapped, the table's upper rows stay on the top screen and the lower ones on the bottom screen.
 
-**SPP-6. One screen.** With one screen, the game plays as it is; `pinball_live = 0` in `gba-ds.cfg` turns the copies off too (one screen, the logo on the other). *By hand: speed on the device (two copies, two frames each every frame, as on Pokémon Pinball).*
+**SPP-6. One screen.** With one screen, the game plays as it is; `pinball_live = 0` in `gba-ds.cfg` turns the copies off too (one screen, the logo on the other). *By hand: speed on the device (two copies, two frames each every frame, as on Pokémon Pinball). (checked on the device for v1.4.4: 60 fps on the RG DS Plus, from the owner's bug reports)*
 
 ## Exceptions
 
