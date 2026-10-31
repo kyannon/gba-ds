@@ -8,6 +8,9 @@
 - **Save on Quit** and **Auto-Load** have moved to the pause menu's Extras page.
 - Your existing save state is kept: it's now the quick state, with a copy in slot 0. The files are `<game>.quick.state`, `<game>.slot0.state` to `<game>.slot9.state` and, as before, `<game>.auto.state` for the resume point.
 
+### Bug reports
+- The bug button (and Extras > Submit a Bug Report) now pauses the game and brings up a keyboard on the touchscreen for an optional note about what happened, saved at the top of the report's info file. Type by touch, or with the D-pad and A; Skip saves the report without one. The report is still of the moment you pressed the button.
+
 ## v1.4.4 (2026-10-31)
 
 ### New games

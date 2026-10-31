@@ -23,6 +23,7 @@ extern void web_sleep(unsigned ms) __attribute__((import_module("env"), import_n
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <limits.h>
 #include <sys/stat.h>
 #include <sys/utsname.h>
 #ifdef __ANDROID__
@@ -1329,6 +1330,168 @@ static SDL_Rect tab_rect(int scr, int t) {
 	return top_box(scr, t, 2);
 }
 
+/* ---------------------------------------------------------------- bug report note
+ *
+ * After the bug button (the quick bar's, or Extras > Submit a Bug Report),
+ * the game paused: a note for the report, typed on a keyboard on the
+ * touchscreen (or with the D-pad and A), written at the top of the
+ * report's info file. Skip, or Done with nothing typed, saves it without
+ * one. The report is the moment the button was pressed: its files are
+ * gathered then (bug_report), and zipped with the note (bug_finish). */
+static bool noteOpen;
+static bool noteFromBar;   /* the quick bar's button: done closes the menu too */
+static char noteText[241];
+static int noteLen;
+static bool noteShift;
+static int noteRow, noteCol; /* the key the D-pad is on */
+static int notePressKey = -1;
+static bool bug_finish(const char* note, char* out, size_t outSize);
+static void note_open(bool fromBar);
+static void note_done(bool keep);
+
+/* the keys: rows of labels, "\x01" Shift, "\x02" Del, "\x03" Space, "\x04" Done */
+#define NOTE_ROWS 5
+static const char* const noteKeys[NOTE_ROWS][11] = {
+	{ "1", "2", "3", "4", "5", "6", "7", "8", "9", "0" },
+	{ "q", "w", "e", "r", "t", "y", "u", "i", "o", "p" },
+	{ "a", "s", "d", "f", "g", "h", "j", "k", "l", "'" },
+	{ "\x01", "z", "x", "c", "v", "b", "n", "m", ",", ".", "\x02" },
+	{ "\x03", "\x04" },
+};
+static const char* const noteShifted[10] = { "!", "?", "\"", "-", ":", ";", "/", "(", ")", "&" };
+static int note_row_len(int r) {
+	int n = 0;
+	while (n < 11 && noteKeys[r][n]) ++n;
+	return n;
+}
+/* a key's width in twelfths of the row: Shift and Del a half wider, Space most of the last row */
+static int note_key_units(int r, int c) {
+	const char* k = noteKeys[r][c];
+	if (k[0] == '\x01' || k[0] == '\x02') return 15;
+	if (k[0] == '\x03') return 80;
+	if (k[0] == '\x04') return 40;
+	return 10;
+}
+typedef struct { SDL_Rect field; int top, rowH, gap; } NoteGeom;
+static NoteGeom note_geom(int scr) {
+	MenuGeom mg = menu_geom(scr);
+	SDL_Rect r = screens[scr].rect;
+	NoteGeom g;
+	g.gap = mg.gap;
+	g.field = (SDL_Rect) { mg.margin, mg.top, mg.w, mg.h * 9 / 4 };
+	g.top = g.field.y + g.field.h + mg.gap * 2;
+	g.rowH = (r.h - mg.margin - g.top - g.gap * (NOTE_ROWS - 1)) / NOTE_ROWS;
+	return g;
+}
+static SDL_Rect note_key_rect(int scr, int r, int c) {
+	MenuGeom mg = menu_geom(scr);
+	NoteGeom g = note_geom(scr);
+	int n = note_row_len(r), units = 0, before = 0;
+	for (int i = 0; i < n; ++i) units += note_key_units(r, i), before += i < c ? note_key_units(r, i) : 0;
+	int avail = mg.w - g.gap * (n - 1);
+	int x0 = mg.margin + before * avail / units + c * g.gap, x1 = mg.margin + (before + note_key_units(r, c)) * avail / units + c * g.gap;
+	return (SDL_Rect) { x0, g.top + r * (g.rowH + g.gap), x1 - x0, g.rowH };
+}
+static const char* note_key_label(int r, int c) {
+	const char* k = noteKeys[r][c];
+	static char up[4];
+	switch (k[0]) {
+	case '\x01': return noteShift ? "ABC" : "abc";
+	case '\x02': return "Del";
+	case '\x03': return "Space";
+	case '\x04': return noteLen ? "Done" : "Done (No Note)";
+	}
+	if (!noteShift) return k;
+	if (r == 0) return noteShifted[c];
+	if (k[0] >= 'a' && k[0] <= 'z') return up[0] = (char) (k[0] - 32), up[1] = 0, up;
+	return k;
+}
+static void note_type(const char* s) {
+	size_t n = strlen(s);
+	if (noteLen + n < sizeof(noteText)) memcpy(noteText + noteLen, s, n), noteLen += (int) n, noteText[noteLen] = 0;
+}
+/* a key pressed (touch or A) */
+static void note_press(int r, int c) {
+	const char* k = noteKeys[r][c];
+	switch (k[0]) {
+	case '\x01': noteShift = !noteShift; return;
+	case '\x02': if (noteLen) noteText[--noteLen] = 0; return;
+	case '\x03': note_type(" "); return;
+	case '\x04': note_done(true); return;
+	}
+	note_type(note_key_label(r, c));
+	noteShift = false; /* (one letter, as on a phone) */
+}
+static bool note_key_at(int scr, int x, int y, int* r, int* c) {
+	for (int i = 0; i < NOTE_ROWS; ++i) {
+		for (int j = 0; j < note_row_len(i); ++j) {
+			SDL_Rect k = note_key_rect(scr, i, j);
+			if (x >= k.x && x < k.x + k.w && y >= k.y && y < k.y + k.h) return *r = i, *c = j, true;
+		}
+	}
+	return false;
+}
+/* the D-pad: across a row (round at the ends), or to the key above / below nearest across */
+static void note_move(int scr, int dr, int dc) {
+	if (dc) {
+		int n = note_row_len(noteRow);
+		noteCol = (noteCol + dc + n) % n;
+		return;
+	}
+	SDL_Rect k = note_key_rect(scr, noteRow, noteCol);
+	int cx = k.x + k.w / 2;
+	noteRow = (noteRow + dr + NOTE_ROWS) % NOTE_ROWS;
+	int best = 0, bd = INT_MAX;
+	for (int j = 0; j < note_row_len(noteRow); ++j) {
+		SDL_Rect o = note_key_rect(scr, noteRow, j);
+		int d = abs(o.x + o.w / 2 - cx);
+		if (d < bd) bd = d, best = j;
+	}
+	noteCol = best;
+}
+static void draw_note(int scr) {
+	MenuGeom mg = menu_geom(scr);
+	NoteGeom g = note_geom(scr);
+	int rad = mg.rad, cap = mg.cap;
+	/* (on a plain backdrop: the game's picture behind the keys made them hard to read) */
+	ui_fill(scr, (SDL_Rect) { 0, 0, screens[scr].rect.w, screens[scr].rect.h }, (SDL_Color) { 12, 10, 22, 255 });
+	SDL_Rect b = tab_rect(scr, 0), t = tab_rect(scr, 1);
+	ui_fill_round(scr, b, C_BTN, rad);
+	ui_label(scr, b.x + b.w / 2, b.y + b.h / 2, cap, "Skip", C_TEXT);
+	ui_fill_round(scr, t, C_BTN_EDGE, rad);
+	ui_label(scr, t.x + t.w / 2, t.y + t.h / 2, cap, "Bug Report", (SDL_Color) { 20, 16, 36, 255 });
+	/* the note so far, with a cursor; the hint while it's empty */
+	ui_fill_round(scr, g.field, (SDL_Color) { 30, 26, 50, 255 }, rad);
+	int tc = SDL_max(4, g.field.h / 6), pad = mg.pad;
+	SDL_Rect clip = { screens[scr].rect.x + g.field.x, screens[scr].rect.y + g.field.y, g.field.w, g.field.h };
+	ui_clip(scr, &clip);
+	if (!noteLen) {
+		ui_font_wrap(scr, TF_BODY, g.field.x + pad, g.field.y + pad / 2, g.field.w - pad * 2, tc,
+		             "Add a note (optional): what happened, and what you expected to happen.", C_DIS);
+	} else {
+		char shown[sizeof(noteText) + 4];
+		snprintf(shown, sizeof(shown), "%s%s", noteText, (SDL_GetTicks() / 500) & 1 ? "|" : "");
+		ui_font_wrap(scr, TF_BODY, g.field.x + pad, g.field.y + pad / 2, g.field.w - pad * 2, tc, shown, C_TEXT);
+	}
+	ui_clip(scr, NULL);
+	/* the keys */
+	int kc = SDL_min(cap, g.rowH * 2 / 5);
+	for (int r = 0; r < NOTE_ROWS; ++r) {
+		for (int c = 0; c < note_row_len(r); ++c) {
+			SDL_Rect k = note_key_rect(scr, r, c);
+			bool sel = r == noteRow && c == noteCol;
+			bool special = noteKeys[r][c][0] < ' ';
+			if (sel) {
+				int e = SDL_max(1, mg.h / 28);
+				ui_fill_round(scr, (SDL_Rect) { k.x - e, k.y - e, k.w + e * 2, k.h + e * 2 }, C_BTN_EDGE, rad + e);
+			}
+			bool lit = noteKeys[r][c][0] == '\x01' && noteShift;
+			ui_fill_round(scr, k, sel ? C_BTN_SEL : lit ? C_BTN_EDGE : special ? (SDL_Color) { 52, 44, 84, 240 } : C_BTN, rad);
+			ui_label(scr, k.x + k.w / 2, k.y + k.h / 2, kc, note_key_label(r, c), lit ? (SDL_Color) { 20, 16, 36, 255 } : C_TEXT);
+		}
+	}
+}
+
 /* The device's battery, 0-100, or -1 if unknown: the battery in
  * /sys/class/power_supply (ROCKNIX), else SDL's (Android). Read at most
  * every 5 seconds. */
@@ -1789,6 +1952,14 @@ static void draw_menu(void) {
 		ui_fill_round(scr, t, C_BTN_EDGE, rad);
 		ui_label(scr, t.x + t.w / 2, t.y + t.h / 2, cap, "Achievements", (SDL_Color) { 20, 16, 36, 255 });
 		ra_list_draw(scr, ach_area(scr));
+		if (nScreens > 1) {
+			int o = ui_other_screen();
+			ui_label(o, screens[o].rect.w / 2, screens[o].rect.h / 2, (ui_px(o) + 1) * 7 * 34 / 35, "Paused", C_GOLD);
+		}
+		return;
+	}
+	if (noteOpen) {
+		draw_note(scr);
 		if (nScreens > 1) {
 			int o = ui_other_screen();
 			ui_label(o, screens[o].rect.w / 2, screens[o].rect.h / 2, (ui_px(o) + 1) * 7 * 34 / 35, "Paused", C_GOLD);
@@ -3425,13 +3596,15 @@ static const char bugReadme[] =
 	"==================\n"
 	"\n"
 	"Each zip in this folder is one bug report, saved by the quick bar's bug\n"
-	"button or by Submit a Bug Report in the pause menu (Extras). It holds:\n"
+	"button or by Submit a Bug Report in the pause menu (Extras), after a\n"
+	"note you can type (or skip) while the game waits. It holds:\n"
 	"\n"
 	"  - GAME-DATE.state           the game at the moment you made the report\n"
 	"  - GAME-DATE-rewound.state   the game about 10 seconds before\n"
 	"  - GAME-DATE-keys.txt        every button you pressed in between\n"
-	"  - GAME-DATE-info.txt        your device, system, screens and settings,\n"
-	"                              and the end of GBA DS's log\n"
+	"  - GAME-DATE-info.txt        your note (if you typed one), your device,\n"
+	"                              system, screens and settings, and the end\n"
+	"                              of GBA DS's log\n"
 	"\n"
 	"In the pinball games' two-screen view, also what both screens showed\n"
 	"(GAME-DATE-tall.png, with the two extra copies' own pictures), the\n"
@@ -3707,7 +3880,19 @@ static void bug_info(Text* t, const char* date, uint64_t back) {
 }
 
 /* Writes the report; out gets its file name (or why it failed). */
+/* a report's files, gathered when the button was pressed, until it's zipped (bug_finish) */
+static struct {
+	bool pending;
+	int nf;
+	uint64_t back;
+	char names[8][340], paths[8][1500], zip[1500], base[300];
+} bugPend;
+
 static bool bug_report(char* out, size_t outSize) {
+	if (bugPend.pending) {
+		char o[200];
+		bug_finish("", o, sizeof(o)); /* (one still waiting for its note: saved as it is) */
+	}
 	/* the state closest to 10 seconds back (the oldest there is, if the log's younger) */
 	int pick = -1;
 	for (int i = 0; i < BUG_SNAPS; ++i) {
@@ -3872,19 +4057,92 @@ static bool bug_report(char* out, size_t outSize) {
 		else for (int i = 0; i < 4; ++i) remove(xtmp[i]);
 	}
 
-	/* into one .zip */
-	uint8_t* data[8] = { 0 };
-	size_t sizes[8] = { 0 };
+	/* kept for bug_finish, which zips them with the player's note */
 	const char* names[8] = { name[0], name[1], name[2], name[3], xname[0], xname[1], xname[2], xname[3] };
 	const char* paths[8] = { tmp[0], tmp[1], tmp[2], tmp[3], xtmp[0], xtmp[1], xtmp[2], xtmp[3] };
-	for (int i = 0; ok && i < nf; ++i) ok = (data[i] = read_whole(paths[i], &sizes[i])) != NULL;
-	if (ok) ok = zip_write(zip, names, data, sizes, nf);
-	for (int i = 0; i < nf; ++i) free(data[i]), remove(paths[i]);
-	if (!ok) remove(zip);
-	fprintf(stderr, "bug report: %s %s (%llu frames back)\n", zip, ok ? "saved" : "failed", (unsigned long long) (to - from));
-	if (ok) snprintf(out, outSize, "bug-reports/%s.zip", base);
+	if (!ok) {
+		for (int i = 0; i < nf; ++i) remove(paths[i]);
+		fprintf(stderr, "bug report: %s failed\n", zip);
+		snprintf(out, outSize, "Couldn't save the bug report.");
+		return false;
+	}
+	bugPend.pending = true;
+	bugPend.nf = nf;
+	bugPend.back = to - from;
+	for (int i = 0; i < nf; ++i) {
+		snprintf(bugPend.names[i], sizeof(bugPend.names[i]), "%s", names[i]);
+		snprintf(bugPend.paths[i], sizeof(bugPend.paths[i]), "%s", paths[i]);
+	}
+	snprintf(bugPend.zip, sizeof(bugPend.zip), "%s", zip);
+	snprintf(bugPend.base, sizeof(bugPend.base), "%s", base);
+	snprintf(out, outSize, "bug-reports/%s.zip", base);
+	return true;
+}
+
+/* The report's files into one .zip, with the player's note (if any) at the
+ * top of its info file. */
+static bool bug_finish(const char* note, char* out, size_t outSize) {
+	if (!bugPend.pending) {
+		snprintf(out, outSize, "Couldn't save the bug report.");
+		return false;
+	}
+	bugPend.pending = false;
+	bool ok = true;
+	uint8_t* data[8] = { 0 };
+	size_t sizes[8] = { 0 };
+	const char* names[8];
+	for (int i = 0; i < bugPend.nf; ++i) {
+		names[i] = bugPend.names[i];
+		ok = ok && (data[i] = read_whole(bugPend.paths[i], &sizes[i])) != NULL;
+	}
+	/* (the info file is the fourth: the note after its first line) */
+	if (ok && note && note[0]) {
+		const char* nl = memchr(data[3], '\n', sizes[3]);
+		size_t head = nl ? (size_t) (nl - (const char*) data[3]) + 1 : 0;
+		Text t = { 0 };
+		text_add(&t, "%.*s\n== Note from the player\n%s\n", (int) head, (const char*) data[3], note);
+		if (t.s) {
+			size_t n = t.n + sizes[3] - head;
+			uint8_t* m = malloc(n);
+			if (m) {
+				memcpy(m, t.s, t.n);
+				memcpy(m + t.n, data[3] + head, sizes[3] - head);
+				free(data[3]), data[3] = m, sizes[3] = n;
+			}
+			free(t.s);
+		}
+	}
+	if (ok) ok = zip_write(bugPend.zip, names, data, sizes, bugPend.nf);
+	for (int i = 0; i < bugPend.nf; ++i) free(data[i]), remove(bugPend.paths[i]);
+	if (!ok) remove(bugPend.zip);
+	fprintf(stderr, "bug report: %s %s (%llu frames back%s)\n", bugPend.zip, ok ? "saved" : "failed", (unsigned long long) bugPend.back,
+	        note && note[0] ? ", with a note" : "");
+	if (ok) snprintf(out, outSize, "bug-reports/%s.zip", bugPend.base);
 	else snprintf(out, outSize, "Couldn't save the bug report.");
 	return ok;
+}
+
+static void note_open(bool fromBar) {
+	noteOpen = true;
+	noteFromBar = fromBar;
+	noteLen = 0, noteText[0] = 0;
+	noteShift = true; /* (a capital first) */
+	noteRow = 1, noteCol = 0;
+	notePressKey = -1;
+	menuNote[0] = 0;
+}
+/* Done (keep: with what's typed) or Skip: the report saved; back to the
+ * menu, or (from the quick bar) to the game */
+static void note_done(bool keep) {
+	char out[200];
+	bool ok = bug_finish(keep ? noteText : "", out, sizeof(out));
+	noteOpen = false;
+	if (noteFromBar) {
+		menuOpen = false;
+		ui_osd(ok ? "Bug report saved in bug-reports." : "%s", out);
+	} else {
+		snprintf(menuNote, sizeof(menuNote), "%s", ok ? "Bug report saved in bug-reports" : out);
+	}
 }
 
 static void auto_save(void) {
@@ -3901,6 +4159,12 @@ static void auto_save(void) {
  * keep a resume point. Called between frames, from ui_events. */
 static void on_background(void) {
 	auto_save();
+	if (bugPend.pending) {
+		/* (Android may kill the app there: a report waiting for its note saved with what's typed) */
+		char out[200];
+		bug_finish(noteOpen ? noteText : "", out, sizeof(out));
+		if (noteOpen) noteOpen = false, menuNote[0] = 0;
+	}
 }
 
 static void open_menu(void);
@@ -4651,7 +4915,7 @@ static bool activate(int item, enum GameExit* exitTo) {
 	case M_BUG: {
 		/* the moment the menu opened, and the 10 seconds before it */
 		char what[200];
-		if (bug_report(what, sizeof(what))) snprintf(menuNote, sizeof(menuNote), "Bug report saved in bug-reports");
+		if (bug_report(what, sizeof(what))) note_open(false); /* (a note, then it's saved) */
 		else snprintf(menuNote, sizeof(menuNote), "%s", what);
 		break;
 	}
@@ -5183,7 +5447,8 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 							ignorePointerUp = false;
 						} else if (bb == BB_BUG) {
 							char what[200];
-							if (bug_report(what, sizeof(what))) ui_osd("Bug report saved in bug-reports."), barLit = bb, barLitAt = barSince;
+							/* the moment now, then the game paused for a note */
+							if (bug_report(what, sizeof(what))) barLit = bb, barLitAt = barSince, open_menu(), note_open(true);
 							else ui_osd("%s", what);
 						} else if (bb == BB_EXIT) {
 							if (!barExitArmed) {
@@ -5234,6 +5499,24 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 					ra_list_set_scroll(p.screen, achPressScroll - (p.y - achPressY));
 				} else if (p.kind == 2) {
 					achPressed = false;
+					ignorePointerUp = false;
+				}
+				continue;
+			}
+			if (noteOpen) {
+				int r, c;
+				if (p.kind == 1) {
+					ignorePointerUp = false;
+					notePressKey = -1;
+					if (tab_at(p.screen, p.x, p.y, 2) == 0) {
+						note_done(false); /* Skip */
+						ignorePointerUp = true;
+						continue;
+					}
+					if (note_key_at(p.screen, p.x, p.y, &r, &c)) notePressKey = r * 16 + c, noteRow = r, noteCol = c;
+				} else if (p.kind == 2) {
+					if (!ignorePointerUp && note_key_at(p.screen, p.x, p.y, &r, &c) && r * 16 + c == notePressKey) note_press(r, c);
+					notePressKey = -1;
 					ignorePointerUp = false;
 				}
 				continue;
@@ -5360,6 +5643,23 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			if (btn_pressed(B_R)) ra_list_scroll(scr, page);
 			if (btn_pressed(B_B)) close_ach();
 			if (btn_pressed(B_START)) close_ach(), menuOpen = false;
+		} else if (menuOpen && noteOpen) {
+			/* D-pad (repeating while held) and A on the keys; B deletes (or,
+			 * with nothing typed, skips), X a space, SELECT Shift, START done */
+			static int held[4];
+			const int dirs[4] = { B_UP, B_DOWN, B_LEFT, B_RIGHT };
+			for (int k = 0; k < 4; ++k) {
+				held[k] = btnNow[dirs[k]] ? held[k] + 1 : 0;
+				if (held[k] == 1 || (held[k] > 20 && held[k] % 4 == 0))
+					note_move(ui_touch_screen(), k == 0 ? -1 : k == 1 ? 1 : 0, k == 2 ? -1 : k == 3 ? 1 : 0);
+			}
+			if (btn_pressed(B_A)) note_press(noteRow, noteCol);
+			else if (btn_pressed(B_B)) {
+				if (noteLen) noteText[--noteLen] = 0;
+				else note_done(false);
+			} else if (btn_pressed(B_X)) note_type(" ");
+			else if (btn_pressed(B_SELECT)) noteShift = !noteShift;
+			else if (btn_pressed(B_START)) note_done(true);
 		} else if (menuOpen && cheatsOpen) {
 			/* D-pad repeats while held */
 			static int held[2];
@@ -5397,6 +5697,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			}
 		}
 		if (wasMenu && !menuOpen) {
+			if (noteOpen) note_done(true); /* (closed some other way: saved with what's typed) */
 			suppress_held();
 			if (cfg->barPinned) barOpen = true, barSince = SDL_GetTicks(); /* (pinned: back after the menu) */
 			if (audio) SDL_PauseAudioDevice(audio, 0);
@@ -5848,6 +6149,12 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	ui_on_foreground(NULL);
 	ui_sync_view(-1);
 	fprintf(stderr, "leaving game after %llu frames\n", (unsigned long long) frameCount);
+	if (bugPend.pending) {
+		/* (a report waiting for its note: saved with what's typed) */
+		char out[200];
+		bug_finish(noteOpen ? noteText : "", out, sizeof(out));
+		noteOpen = false;
+	}
 	auto_save();
 	ra_game_end();
 	if (audio) SDL_CloseAudioDevice(audio);

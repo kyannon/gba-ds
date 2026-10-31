@@ -178,7 +178,7 @@ Android session at the same time. To keep them from colliding:
   game's battery save beside the ROM (`ROM.sav`): don't run it on the fixtures'
   ROMs in place, or delete those `.sav` files after (never commit them).
 - **Players' bug reports** (the quick bar's bug button or Extras > Submit
-  a Bug Report, `bug-reports/*.zip`): `GAME-DATE-info.txt` (device, system,
+  a Bug Report, `bug-reports/*.zip`): `GAME-DATE-info.txt` (the player's note, typed on the keyboard that comes up after the button, if any; device, system,
   screens, settings, the second screen's state, the last 48 KB of the log
   without lines mentioning passwords or tokens), `GAME-DATE.state` (that
   moment), `GAME-DATE-rewound.state` (~10 s before) and `GAME-DATE-keys.txt`, the game keys of every frame between,

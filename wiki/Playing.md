@@ -75,11 +75,11 @@ Swipe down, or tap anywhere off its buttons, to put the bar away (tap again for 
 
 **The pin** (top right of the bar) keeps it up: tap it and it turns white. Pinned, the bar doesn't hide by itself, comes back when you leave the pause menu, and is up when you start a game; a tap outside it opens the pause menu. It stays pinned until you tap the pin again (`quick_bar_pinned` in `gba-ds.cfg`).
 
-**Bug Report** (also in the pause menu: Extras > **Submit a Bug Report**) saves a bug report: a `.zip` in the `bug-reports` folder (`gba-ds/bug-reports/`, or `GBA DS/bug-reports/` on Android), named after the game and the date and time. It holds:
+**Bug Report** (also in the pause menu: Extras > **Submit a Bug Report**) saves a bug report: a `.zip` in the `bug-reports` folder (`gba-ds/bug-reports/`, or `GBA DS/bug-reports/` on Android), named after the game and the date and time. First the game pauses and a keyboard comes up on the touchscreen for an optional note: what happened, and what you expected. Type it by touch, or with the D-pad and A (B deletes, X types a space, SELECT is Shift, START is Done); **Done** saves the report with the note, **Skip** (or B with nothing typed) without one. The report is of the moment you pressed the button, however long the note takes. It holds:
 - a save state of the game right then;
 - a save state from 10 seconds earlier (`-rewound`);
 - every button the game got in between (`-keys.txt`): each press and lift, and how long it was held;
-- your device and system, GBA DS's settings and the end of the log (`-info.txt`). Lines of the log that mention passwords or tokens are left out.
+- your note, if you typed one, then your device and system, GBA DS's settings and the end of the log (`-info.txt`). Lines of the log that mention passwords or tokens are left out.
 
 From these, what you did can be played back exactly, frame by frame. So when something goes wrong, press the bug button as soon as you can after it, and attach the `.zip` to [an issue on GitHub](https://github.com/kyannon/gba-ds/issues), saying what you expected to happen. The 10 seconds start again after you load a state, rewind or restart the game. The `bug-reports` folder also has a `README.txt` with these steps and what to write in the issue.
 
