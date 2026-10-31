@@ -21,6 +21,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Summon Night: Swordcraft Story](summon-night-swordcraft-story.md) | SN | `AB4E` + 1 |
 | [Pokémon Pinball: Ruby & Sapphire](pokemon-pinball.md) | PP | `BPPE` |
 | [Fire Emblem (Rekka no Ken in Japan)](fire-emblem.md) | FE | `AE7E` + 3 |
+| [Fire Emblem: The Sacred Stones (Seima no Kouseki in Japan)](fire-emblem-sacred-stones.md) | FE8 | `BE8E` + 2 |
 | [Sword of Mana (Shinyaku Seiken Densetsu in Japan)](sword-of-mana.md) | SOM | `AVSE` + 2 |
 | [Golden Sun (Ougon no Taiyou in Japan)](golden-sun.md) | GS | `AGSE` + 5 |
 | [Tactics Ogre: The Knight of Lodis (Tactics Ogre Gaiden in Japan)](tactics-ogre.md) | TO | `ATOE` + 1 |

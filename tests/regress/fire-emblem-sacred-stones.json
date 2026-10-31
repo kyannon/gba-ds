@@ -1,0 +1,636 @@
+{
+ "game": "Fire Emblem: The Sacred Stones",
+ "rules": "docs/games/fire-emblem-sacred-stones.md",
+ "cases": [
+  {
+   "id": "fe8-us-title",
+   "rom": "BE8E",
+   "state": "fire-emblem-sacred-stones/us-title.ss",
+   "desc": "the title (a player's bug report): the logo",
+   "rules": [
+    "FE8-1"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "FE8-1",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "fe8-us-status-open",
+   "rom": "BE8E",
+   "state": "fire-emblem-sacred-stones/us-status-open.ss",
+   "desc": "the game's own status screen open (R; a player's bug report): the logo, the game screen as it is",
+   "rules": [
+    "FE8-1",
+    "FE8-5"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "FE8-1",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "fe8-us-map",
+   "rom": "BE8E",
+   "state": "fire-emblem-sacred-stones/us-map.ss",
+   "desc": "the map, the cursor on no unit (a player's bug report): the logo",
+   "rules": [
+    "FE8-1"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "FE8-1",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "fe8-us-moving",
+   "rom": "BE8E",
+   "state": "fire-emblem-sacred-stones/us-moving.ss",
+   "desc": "a unit being moved (a player's bug report): the logo",
+   "rules": [
+    "FE8-1"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "FE8-1",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "fe8-us-cursor-unit",
+   "rom": "BE8E",
+   "state": "fire-emblem-sacred-stones/us-map.ss",
+   "desc": "the cursor moved onto Seth (LEFT 3, UP): his status, its three pages 5 seconds each; then A selects him: the logo",
+   "rules": [
+    "FE8-2",
+    "FE8-1"
+   ],
+   "input": [
+    [
+     10,
+     "LEFT"
+    ],
+    [
+     12,
+     "-"
+    ],
+    [
+     22,
+     "LEFT"
+    ],
+    [
+     24,
+     "-"
+    ],
+    [
+     34,
+     "LEFT"
+    ],
+    [
+     36,
+     "-"
+    ],
+    [
+     46,
+     "UP"
+    ],
+    [
+     48,
+     "-"
+    ],
+    [
+     850,
+     "A"
+    ],
+    [
+     852,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 200,
+    "page2": 520,
+    "page3": 820,
+    "selected": 900
+   },
+   "checks": [
+    {
+     "rule": "FE8-2",
+     "what": "the status fills the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.05
+    },
+    {
+     "rule": "FE8-2",
+     "what": "three pages, 5 seconds each",
+     "type": "log",
+     "match": "map updated \\(3 frame\\(s\\) 300 apart\\)"
+    },
+    {
+     "rule": "FE8-2",
+     "what": "the status turns to its next page",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "page2",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    },
+    {
+     "rule": "FE8-1",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "selected",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "fe8-us-fight",
+   "rom": "BE8E",
+   "state": "fire-emblem-sacred-stones/us-fight.ss",
+   "desc": "the prologue's tutorial forecast, then the fight with the Soldier (A every 32 frames): the logo throughout",
+   "rules": [
+    "FE8-4",
+    "FE8-5"
+   ],
+   "input": [
+    [
+     2,
+     "A"
+    ],
+    [
+     4,
+     "-"
+    ],
+    [
+     34,
+     "A"
+    ],
+    [
+     36,
+     "-"
+    ],
+    [
+     66,
+     "A"
+    ],
+    [
+     68,
+     "-"
+    ],
+    [
+     98,
+     "A"
+    ],
+    [
+     100,
+     "-"
+    ],
+    [
+     130,
+     "A"
+    ],
+    [
+     132,
+     "-"
+    ],
+    [
+     162,
+     "A"
+    ],
+    [
+     164,
+     "-"
+    ],
+    [
+     194,
+     "A"
+    ],
+    [
+     196,
+     "-"
+    ],
+    [
+     226,
+     "A"
+    ],
+    [
+     228,
+     "-"
+    ],
+    [
+     258,
+     "A"
+    ],
+    [
+     260,
+     "-"
+    ],
+    [
+     290,
+     "A"
+    ],
+    [
+     292,
+     "-"
+    ],
+    [
+     322,
+     "A"
+    ],
+    [
+     324,
+     "-"
+    ],
+    [
+     354,
+     "A"
+    ],
+    [
+     356,
+     "-"
+    ],
+    [
+     386,
+     "A"
+    ],
+    [
+     388,
+     "-"
+    ],
+    [
+     418,
+     "A"
+    ],
+    [
+     420,
+     "-"
+    ],
+    [
+     450,
+     "A"
+    ],
+    [
+     452,
+     "-"
+    ],
+    [
+     482,
+     "A"
+    ],
+    [
+     484,
+     "-"
+    ],
+    [
+     514,
+     "A"
+    ],
+    [
+     516,
+     "-"
+    ],
+    [
+     546,
+     "A"
+    ],
+    [
+     548,
+     "-"
+    ],
+    [
+     578,
+     "A"
+    ],
+    [
+     580,
+     "-"
+    ],
+    [
+     610,
+     "A"
+    ],
+    [
+     612,
+     "-"
+    ],
+    [
+     642,
+     "A"
+    ],
+    [
+     644,
+     "-"
+    ],
+    [
+     674,
+     "A"
+    ],
+    [
+     676,
+     "-"
+    ],
+    [
+     706,
+     "A"
+    ],
+    [
+     708,
+     "-"
+    ],
+    [
+     738,
+     "A"
+    ],
+    [
+     740,
+     "-"
+    ],
+    [
+     770,
+     "A"
+    ],
+    [
+     772,
+     "-"
+    ],
+    [
+     802,
+     "A"
+    ],
+    [
+     804,
+     "-"
+    ],
+    [
+     834,
+     "A"
+    ],
+    [
+     836,
+     "-"
+    ],
+    [
+     866,
+     "A"
+    ],
+    [
+     868,
+     "-"
+    ],
+    [
+     898,
+     "A"
+    ],
+    [
+     900,
+     "-"
+    ],
+    [
+     930,
+     "A"
+    ],
+    [
+     932,
+     "-"
+    ]
+   ],
+   "shots": {
+    "forecast": 400,
+    "fight": 1000,
+    "exp": 1300
+   },
+   "checks": [
+    {
+     "rule": "FE8-4",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "forecast",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "FE8-4",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "fight",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "FE8-4",
+     "what": "the fight seen",
+     "type": "log",
+     "match": "fight on"
+    }
+   ]
+  },
+  {
+   "id": "fe8-eu-map",
+   "rom": "BE8P",
+   "state": "fire-emblem-sacred-stones/eu-map.ss",
+   "desc": "Europe, the prologue's map with the cursor on Eirika (a new game played there): her status",
+   "rules": [
+    "FE8-2"
+   ],
+   "shots": {
+    "start": 300
+   },
+   "checks": [
+    {
+     "rule": "FE8-2",
+     "what": "the status fills the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.05
+    }
+   ]
+  },
+  {
+   "id": "fe8-jp-map",
+   "rom": "BE8J",
+   "state": "fire-emblem-sacred-stones/jp-map.ss",
+   "desc": "Japan, the prologue's map with the cursor on Eirika (a new game played there): her status",
+   "rules": [
+    "FE8-2"
+   ],
+   "shots": {
+    "start": 300
+   },
+   "checks": [
+    {
+     "rule": "FE8-2",
+     "what": "the status fills the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.05
+    }
+   ]
+  },
+  {
+   "id": "fe8-logo-be8e",
+   "kind": "logo",
+   "rom": "BE8E",
+   "desc": "BE8E logo extraction",
+   "rules": [
+    "GEN-1",
+    "FE8-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "fe8-logo-be8p",
+   "kind": "logo",
+   "rom": "BE8P",
+   "desc": "BE8P logo extraction",
+   "rules": [
+    "GEN-1",
+    "FE8-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "fe8-logo-be8j",
+   "kind": "logo",
+   "rom": "BE8J",
+   "desc": "BE8J logo extraction",
+   "rules": [
+    "GEN-1",
+    "FE8-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

@@ -1027,23 +1027,39 @@ static const char* ft_compose(Emu* s, const void* state, uint32_t* const* out, i
  * and the process scripts that use the USA ones. fe_r is the running
  * game's (fe_region: the main and the shadow core run the same game). */
 typedef struct {
-	char region; /* the game code's last letter */
+	char game, region; /* the game code's third and last letters (AE7E: '7', 'E'; The Sacred Stones, BE8E: '8', 'E') */
 	uint32_t chapter; /* the chapter's data: 0 off the map (its play time) */
 	uint32_t procs; /* the process slots */
 	uint32_t cursor; /* the map cursor's x, y (16 bits each) */
 	uint32_t units; /* every unit's data (0x48 bytes each) */
 	uint32_t phase, event, battle, banner, status, status2; /* process scripts (Europe: a status screen per language) */
+	/* the player phase's positions: the minimap and map menu, the cursor
+	 * free, a unit's menu, a fight */
+	uint16_t atMini, atIdle, atMenu, atFight;
 } FeRegion;
+#define FE7_AT .atMini = 0x50, .atIdle = 0x70, .atMenu = 0xD0, .atFight = 0xF0
+#define FE8_AT .atMini = 0x60, .atIdle = 0x80, .atMenu = 0xE8, .atFight = 0x108
 static const FeRegion feRegions[] = {
-	{ 'E', 0x0202BBF8, 0x02024E28, 0x0202BBCC, 0x0202BD50, 0x08B93374, 0x08B90D88, 0x08B9A99C, 0x08B937AC, 0x08CC1F5C },
-	{ 'Y', 0x0202BBF8, 0x02024E28, 0x0202BBCC, 0x0202BD50, 0x08C57730, 0x08C54ECC, 0x08C5ECE8, 0x08C57B8C, 0x08D88F1C, 0x08DC195C },
-	{ 'X', 0x0202BBF8, 0x02024E28, 0x0202BBCC, 0x0202BD50, 0x08C8EBA0, 0x08C8C33C, 0x08C96158, 0x08C8EFFC, 0x08DC195C },
-	{ 'J', 0x0202BBF4, 0x02024E20, 0x0202BBC8, 0x0202BD4C, 0x08C02630, 0x08BFFF78, 0x08C09CE8, 0x08C02A68, 0x08D8A520 },
+	{ '7', 'E', 0x0202BBF8, 0x02024E28, 0x0202BBCC, 0x0202BD50, 0x08B93374, 0x08B90D88, 0x08B9A99C, 0x08B937AC, 0x08CC1F5C, 0, FE7_AT },
+	{ '7', 'Y', 0x0202BBF8, 0x02024E28, 0x0202BBCC, 0x0202BD50, 0x08C57730, 0x08C54ECC, 0x08C5ECE8, 0x08C57B8C, 0x08D88F1C, 0x08DC195C, FE7_AT },
+	{ '7', 'X', 0x0202BBF8, 0x02024E28, 0x0202BBCC, 0x0202BD50, 0x08C8EBA0, 0x08C8C33C, 0x08C96158, 0x08C8EFFC, 0x08DC195C, 0, FE7_AT },
+	{ '7', 'J', 0x0202BBF4, 0x02024E20, 0x0202BBC8, 0x0202BD4C, 0x08C02630, 0x08BFFF78, 0x08C09CE8, 0x08C02A68, 0x08D8A520, 0, FE7_AT },
+	/* Fire Emblem: The Sacred Stones (the same engine; its RAM mapped
+	 * from Fire Emblem's by tools/romxref.py, its process scripts found
+	 * running in the owner's states and a new game played through: the
+	 * player phase by its code, the banner by its commands, the event
+	 * engine with the text boxes, the battle scene in a fight, the
+	 * status with R) */
+	{ '8', 'E', 0x0202BCF0, 0x02024E68, 0x0202BCC4, 0x0202BE4C, 0x0859AAD8, 0x08591AC0, 0x085B9358, 0x0859AF80, 0x08A009D8, 0, FE8_AT },
+	/* (Europe: the USA's RAM; Japan: 4 bytes lower but the process slots.
+	 * Their scripts found by the USA ones' commands) */
+	{ '8', 'P', 0x0202BCF0, 0x02024E68, 0x0202BCC4, 0x0202BE4C, 0x087ABDB8, 0x087A2ADC, 0x087DBBCC, 0x087AC29C, 0x08A8EE00, 0, FE8_AT },
+	{ '8', 'J', 0x0202BCEC, 0x02024E68, 0x0202BCC0, 0x0202BE48, 0x085C2F58, 0x085B98A0, 0x085E3538, 0x085C3400, 0x08A72A90, 0, FE8_AT },
 };
 static const FeRegion* fe_r = &feRegions[0];
 static void fe_region(Emu* e) {
 	for (size_t i = 0; i < sizeof(feRegions) / sizeof(*feRegions); ++i) {
-		if (e->gameCode[3] == feRegions[i].region) fe_r = &feRegions[i];
+		if (e->gameCode[2] == feRegions[i].game && e->gameCode[3] == feRegions[i].region) fe_r = &feRegions[i];
 	}
 }
 #define FE_CHAPTER (fe_r->chapter)
@@ -1051,11 +1067,11 @@ static void fe_region(Emu* e) {
 #define FE_PROCS (fe_r->procs)
 #define FE_CURSOR (fe_r->cursor)
 #define FE_P_PHASE (fe_r->phase) /* the player phase */
-/* (its positions, the same in each release) */
-#define FE_AT_MINI 0x50  /* the minimap (and the map menu) */
-#define FE_AT_IDLE 0x70  /* the cursor free */
-#define FE_AT_MENU 0xD0  /* a unit's menu: Attack, Wait... */
-#define FE_AT_FIGHT 0xF0 /* a fight */
+/* (its positions: each game's) */
+#define FE_AT_MINI (fe_r->atMini)   /* the minimap (and the map menu) */
+#define FE_AT_IDLE (fe_r->atIdle)   /* the cursor free */
+#define FE_AT_MENU (fe_r->atMenu)   /* a unit's menu: Attack, Wait... */
+#define FE_AT_FIGHT (fe_r->atFight) /* a fight */
 #define FE_IDLE (FE_P_PHASE + FE_AT_IDLE)
 #define FE_MINI (FE_P_PHASE + FE_AT_MINI)
 #define FE_FIGHT (FE_P_PHASE + FE_AT_FIGHT)
@@ -1071,6 +1087,7 @@ static void fe_region(Emu* e) {
 #define FE_V_CHAPTER 0xF0000005 /* FE_CHAPTER's word */
 #define FE_V_TURN 0xF0000006   /* FE_TURN's byte */
 #define FE_V_CURSOR 0xF0000007 /* the cursor's x, y */
+#define FE_V_FIGHT 0xF0000008  /* 1 in a fight (the player phase at FE_AT_FIGHT) */
 #define FE_IN_CHAPTER { FE_V_CHAPTER, 0xFFFFFFFF, 1, 4, true, 0xFFFFFFFF, true }
 enum { FE_HUD_NONE, FE_HUD_IDLE, FE_HUD_TALK, FE_HUD_MENU, FE_HUD_BANNER = 5 };
 
@@ -1134,6 +1151,7 @@ static uint32_t fe_virt(Emu* e, uint32_t addr) {
 	case FE_V_CHAPTER: return emu_read32(e, FE_CHAPTER);
 	case FE_V_TURN: return emu_read8(e, FE_TURN);
 	case FE_V_CURSOR: return emu_read32(e, FE_CURSOR);
+	case FE_V_FIGHT: return fe_proc(e, FE_P_PHASE) == FE_FIGHT;
 	case FE_V_FREE: return fe_proc(e, FE_P_PHASE) == FE_IDLE;
 	case FE_V_OFFMAP: return fe_off_map(e);
 	case FE_V_HUD: {
@@ -2495,11 +2513,39 @@ static const MapProfile profiles[] = {
 			.logoAlways = true,
 		},
 		/* fights, and the other armies' turns: the logo alone */
-		.combat = { { FE_V_PHASE, 0xFFFFFFFF, FE_AT_FIGHT + 1, 4 } },
+		.combat = { { FE_V_FIGHT, 0xFF, 1, 4 } },
 		.combatOr = { FE_IN_CHAPTER, { FE_V_TURN, 0xFF, 0x40, 1, true, 0xFF, true } },
 		/* the title's lettering and sword (sprites), its shadow (BG1)
 		 * and axe (BG2), not the copyright line */
 		.logo = { .wait = 300, .pressStart = true, .wait2 = 64, .layers = 0x16, .maxY = 140 },
+	},
+	{
+		/* USA: as Fire Emblem (the same engine and second screen: see
+		 * fe_compose; its addresses in feRegions) */
+		.codes = { "BE8E" },
+		.title = "Fire Emblem: The Sacred Stones",
+		.virt = fe_virt,
+		.composePages = fe_compose,
+		.stillPick = STILL_FIRST,
+		.room = { { FE_V_CURSOR, 0, 0, 4 }, { FE_V_FREE, 0, 0, 4 } },
+		.crop_w = GBA_W,
+		.crop_h = GBA_H,
+		.live = { FE_IN_CHAPTER, { FE_V_TURN, 0xFF, 0, 1 } },
+		.menu = { { FE_V_OFFMAP, 0xFF, 1, 4 } },
+		.hud = {
+			.on = { FE_IN_CHAPTER },
+			.overMap = true,
+			.mapClear = MAP_BG_NAVY,
+			.logoUnder = true,
+			.logoAlways = true,
+		},
+		.combat = { { FE_V_FIGHT, 0xFF, 1, 4 } },
+		.combatOr = { FE_IN_CHAPTER, { FE_V_TURN, 0xFF, 0x40, 1, true, 0xFF, true } },
+		/* the title (A past the health and safety screen, START past the
+		 * intro): the dragons (BG0) under the lettering and its ribbon
+		 * (sprites), above Press START and the copyright line (sprites,
+		 * from row 120) */
+		.logo = { .steps = { { 0, 200 }, { K_A, 4 }, { 0, 700 }, { K_START, 4 }, { 0, 90 } }, .layers = 0x11, .maxY = 119 },
 	},
 	{
 		/* USA; the second screen is put together by aw_compose */
@@ -2585,6 +2631,19 @@ static const MacroStep LANGUAGE_A[] = { { 0, 60 }, { K_A, 4 } };
 static void lang_menu(MapProfile* p) {
 	insert_steps(p->logo.steps, 24, 0, LANGUAGE_A, 2);
 	if (p->frame.steps[0].frames) insert_steps(p->frame.steps, 24, 0, LANGUAGE_A, 2);
+}
+
+/* Fire Emblem: The Sacred Stones in Europe: the language menu (A for
+ * English), then as the USA's; in Japan, no health and safety screen */
+static void fe8_eur(MapProfile* p) {
+	static const MacroStep steps[] = { { 0, 100 }, { K_A, 4 }, { 0, 250 }, { K_A, 4 }, { 0, 700 }, { K_START, 4 }, { 0, 90 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+}
+static void fe8_jpn(MapProfile* p) {
+	static const MacroStep steps[] = { { 0, 400 }, { K_START, 4 }, { 0, 90 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
 }
 
 /* Fire Emblem in Japan: "Press start" comes higher, under the subtitle */
@@ -2730,6 +2789,8 @@ static const Variant variants[] = {
 	{ "AE7X", "AE7E", 0, lang_menu },
 	{ "AE7Y", "AE7E", 0, lang_menu },
 	{ "AE7J", "AE7E", 0, fe_jpn },
+	{ "BE8P", "BE8E", 0, fe8_eur },
+	{ "BE8J", "BE8E", 0, fe8_jpn },
 	{ "AWRP", "AWRE", 0, aw_eur },
 	/* (the same RAM as the USA release; a language menu first too) */
 	{ "AW2P", "AW2E", 0, aw_eur },

@@ -16,6 +16,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Advance Wars (Game Boy Wars Advance in Japan) | `AWRE` `AWRP` `BGWJ` (Japan: on Game Boy Wars Advance 1+2, with Advance Wars 2) | in battles: the intel of the unit under the cursor, or the battle intel |
 | Advance Wars 2: Black Hole Rising (Game Boy Wars Advance 2 in Japan) | `AW2E` `AW2P` `BGWJ` (Japan: on Game Boy Wars Advance 1+2, with Advance Wars) | in battles: the intel of the unit under the cursor, or the battle intel |
 | Fire Emblem (Rekka no Ken in Japan) | `AE7E` `AE7X` (English, French, German) `AE7Y` (English, Spanish, Italian) `AE7J` | on the map: the status of the unit under the cursor |
+| Fire Emblem: The Sacred Stones (Seima no Kouseki in Japan) | `BE8E` `BE8P` `BE8J` | on the map: the status of the unit under the cursor (preliminary) |
 | Sword of Mana (Shinyaku Seiken Densetsu in Japan) | `AVSE` `AVSY` (Spanish, Italian) `AVSJ` | the Status screen |
 | Summon Night: Swordcraft Story (Craft Sword Monogatari in Japan) | `AB4E` `AB4J` (no European release) | the Status screen, with where you are |
 | Summon Night: Swordcraft Story 2 (Craft Sword Monogatari 2 in Japan) | `BSKE` `BSKJ` (no European release) | the Status screen |
@@ -215,6 +216,14 @@ The USA release, both European ones (English, French and German; English, Spanis
 - **With the cursor on a unit** (yours or another army's), the second screen is that unit's **status screen** (the one R opens), as the game draws it, turning through its three pages (personal data, items, weapon and support levels) every 5 seconds. It's opened in the background in a silent copy of the game, and taken again only when the cursor or a unit changes, so it holds still between pages.
 - **Otherwise** (the cursor on no unit, a unit selected, its menu and the battle forecast, fights, the other armies' turns, story scenes, the title and menus), the second screen shows the game's logo.
 - Nothing leaves the game screen: the unit, terrain and goal windows, menus, the battle forecast, conversations, the tutorial's boxes and the ENEMY PHASE / PLAYER PHASE banners stay where the game draws them.
+
+## Fire Emblem: The Sacred Stones
+
+The USA, European and Japanese (Seima no Kouseki) releases. Preliminary: tried in the prologue so far.
+
+- It works as in **Fire Emblem**: with the cursor on a unit, the second screen is that unit's **status screen**, turning through its three pages every 5 seconds; otherwise (no unit there, a unit selected, fights, the other armies' turns, story scenes, the title and menus) the game's logo.
+- Nothing leaves the game screen.
+- Not tried yet: later chapters, the world map between chapters (it shows the logo), the Tower of Valni and the creature campaign.
 
 ## Sword of Mana
 
