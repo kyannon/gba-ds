@@ -2058,9 +2058,10 @@ static const MapProfile profiles[] = {
 		},
 		/* the title (A for English at the language menu of a game with no
 		 * save; with one, A only skips some of the intro): the name (BG1)
-		 * on its badge (BG2), above PRESS START
-		 * (sprites) and the copyright lines (BG1, from row 136) */
-		.logo = { .steps = { { 0, 300 }, { K_A, 6 }, { 0, 1000 } }, .layers = 0x06, .maxY = 121 },
+		 * on its badge (BG2, down to row 141), without PRESS START
+		 * (sprites) or the copyright lines (BG1 from row 137: from row 122
+		 * down, the badge alone) */
+		.logo = { .steps = { { 0, 300 }, { K_A, 6 }, { 0, 1000 } }, .layers = 0x06, .maxY = 142, .lowFrom = 122, .lowLayers = 0x04, .rev = 1 },
 	},
 	{
 		.codes = { "ATHE", "ATHF", "ATHD" },

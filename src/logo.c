@@ -84,6 +84,14 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 		emu_frame(&e, 0);
 		memcpy(fg + p->logo.objMaxY * GBA_W, e.fb + p->logo.objMaxY * GBA_W, (size_t) (GBA_H - p->logo.objMaxY) * GBA_W * 4);
 	}
+	if (!p->logo.mask && p->logo.layers && p->logo.lowFrom > 0 && p->logo.lowFrom < GBA_H) {
+		/* from lowFrom down, only lowLayers (Sonic Pinball Party: its
+		 * badge's lowest rows beside the copyright line's) */
+		layer_set(&e, p->logo.lowLayers);
+		emu_state_load(&e, st);
+		emu_frame(&e, 0);
+		memcpy(fg + p->logo.lowFrom * GBA_W, e.fb + p->logo.lowFrom * GBA_W, (size_t) (GBA_H - p->logo.lowFrom) * GBA_W * 4);
+	}
 	layers(&e, -2);
 	emu_close(&e);
 	free(st);

@@ -488,6 +488,7 @@ typedef struct MapProfile {
 		int wait, wait2, layer, maxY;
 		unsigned layers; /* instead of layer: several BG layers (bit i: BG i) */
 		int objMaxY; /* with layers: sprites only above this row (0: all rows); below it, the BG layers alone */
+		int lowFrom; unsigned lowLayers; /* with layers: from this row down, only these layers (0: no change) */
 		bool pressStart, blackIsClear;
 		bool lightEdgeClear; /* light background around the logo, reached from the edges, is clear */
 		int minY, minX, maxX; /* with maxY: only this box (maxX 0: the whole width); a frame

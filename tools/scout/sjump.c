@@ -5,7 +5,7 @@
  * The game runs with a flipper tap every 50 frames. R, a reference copy run
  * on its own from the state, and X, taken from the game's state every
  * frame, are both held with their view at TARGET (walking there 8 rows a
- * frame); X's VRAM 0x0000-0xFFFF and view variables are its own from its
+ * frame; TARGET -1: the game's view + 160, as the app's bottom copy); X's VRAM 0x0000-0xFFFF and view variables are its own from its
  * last frame. Prints, per frame, the views and how many pixels of BG0+BG1
  * differ between R and X; writes PNGs of R, X and the game every 60 frames.
  */
@@ -53,8 +53,8 @@ static int q_put(Emu* e) {
 
 static void hold(Emu* e, int* cur, int target) {
 	int want = target + 80;
-	if (*cur < want) *cur = *cur + 8 < want ? *cur + 8 : want;
-	else if (*cur > want) *cur = *cur - 8 > want ? *cur - 8 : want;
+	if (*cur < want) *cur = *cur + 16 < want ? *cur + 16 : want;
+	else if (*cur > want) *cur = *cur - 16 > want ? *cur - 16 : want;
 	emu_write16(e, CAM, (uint16_t) *cur);
 }
 
@@ -64,6 +64,19 @@ int main(int argc, char** argv) {
 	if (!emu_open(&g, argv[1], NULL, false) || !emu_open(&r, argv[1], NULL, false) || !emu_open(&x, argv[1], NULL, false)) return 1;
 	if (!emu_state_load_file(&g, argv[2]) || !emu_state_load_file(&r, argv[2])) return 1;
 	int frames = atoi(argv[3]), target = atoi(argv[4]);
+	/* optional 6th argument: a harness keys script for the game's keys */
+	static uint32_t kk[100000]; int nk = 0;
+	if (argc > 6) {
+		FILE* kf = fopen(argv[6], "r"); char line[256], b[64]; int n;
+		static const char* names[] = {"A", "B", "SELECT", "START", "RIGHT", "LEFT", "UP", "DOWN", "R", "L"};
+		while (kf && fgets(line, sizeof line, kf))
+			if (sscanf(line, "hold %63s %d", b, &n) == 2) {
+				uint32_t k = 0;
+				for (char* t = strtok(b, "+"); t; t = strtok(NULL, "+")) for (int i = 0; i < 10; ++i) if (!strcmp(t, names[i])) k |= 1u << i;
+				for (int j = 0; j < n && nk < 100000; ++j) kk[nk++] = k;
+			}
+		if (kf) fclose(kf);
+	}
 	const char* out = argv[5];
 	for (unsigned i = 0; i < sizeof nops / sizeof nops[0]; ++i) emu_write16(&r, nops[i], 0x46C0), emu_write16(&x, nops[i], 0x46C0);
 	emu_layers(&r, 0x03); emu_layers(&x, 0x03);
@@ -73,7 +86,7 @@ int main(int argc, char** argv) {
 	int rc = emu_read16(&g, CAM), xc = rc;
 	bool have = false;
 	for (int f = 0; f < frames; ++f) {
-		uint32_t keys = (f % 50) < 6 ? (0x200 | 0x001) : 0;
+		uint32_t keys = f < nk ? kk[f] : ((f % 50) < 6 ? (0x200 | 0x001) : 0);
 		emu_state_save(&g, st);
 		/* X: the game's state, its own tiles and view */
 		emu_state_load(&x, st);
@@ -83,8 +96,10 @@ int main(int argc, char** argv) {
 			for (int k = 0; k < 3; ++k) for (uint32_t j = 0; j < vars[k].n; ++j) emu_write8(&x, vars[k].a + j, xvar[k][j]);
 			q_put(&x);
 		}
-		hold(&x, &xc, target);
-		hold(&r, &rc, target);
+		int tg = target;
+		if (target < 0) { int u = emu_read16(&g, 0x03000784), vmax = emu_read16(&g, 0x030040E0) - 8 - 320; tg = (u < vmax ? (u < 8 ? 8 : u) : vmax) + 160; }
+		hold(&x, &xc, tg);
+		hold(&r, &rc, tg);
 		emu_frame(&x, keys); emu_frame(&r, keys); emu_frame(&g, keys);
 		memcpy(xv, emu_vram(&x), sizeof xv);
 		q_take(&x);
