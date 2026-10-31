@@ -40,7 +40,7 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 **Game**
 - **Resume**
 - **Restart Game**: tap twice; unsaved progress is lost.
-- **Save State** / **Load State**, side by side (LEFT / RIGHT moves between them), into and from the slot below them (Load is greyed out while that slot is empty).
+- **Save State 0** / **Load State 0**, side by side (LEFT / RIGHT moves between them): into and from the slot picked below them, whose number they show (Load is greyed out while that slot is empty).
 - **‹ Slot 0 ›** to **‹ Slot 9 ›**: ten save slots per game, each showing when it was saved (or Empty). LEFT / RIGHT on it, or a tap on its left or right end, picks another. The menu opens on the slot you saved to last.
 - A state also keeps what the second screen was showing (a map, a status screen, Sonic Advance's zone card), so loading it brings that back at once; states saved before v1.4.4 load as before, and the second screen catches up with its next capture.
 - **Close Game** (back to the game list) and **Close GBA DS**: both save a resume point first (while Save on Quit is on).

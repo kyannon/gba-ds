@@ -3,7 +3,7 @@
 ## v1.4.5 (not yet released)
 
 ### Save states
-- Ten save slots per game in the pause menu: under Save State and Load State, **‹ Slot 0 ›** to **‹ Slot 9 ›** picks one (LEFT / RIGHT, or tap an end of it), and shows when it was saved or that it's empty. The menu opens on the slot you saved to last.
+- Ten save slots per game in the pause menu: under Save State and Load State, **‹ Slot 0 ›** to **‹ Slot 9 ›** picks one (LEFT / RIGHT, or tap an end of it), and shows when it was saved or that it's empty; the buttons show the slot they use (Save State 3, Load State 3). The menu opens on the slot you saved to last.
 - The quick bar's Save State and Load State (and HOME + R1 / L1) have a slot of their own, the quick state, apart from the pause menu's ten.
 - **Save on Quit** and **Auto-Load** have moved to the pause menu's Extras page.
 - Your existing save state is kept: it's now the quick state, with a copy in slot 0. The files are `<game>.quick.state`, `<game>.slot0.state` to `<game>.slot9.state` and, as before, `<game>.auto.state` for the resume point.

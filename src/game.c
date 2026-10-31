@@ -1029,7 +1029,7 @@ static const char* const allLabels[] = {
 };
 /* the labels of the half-width buttons, which fit in half the width */
 static const char* const halfLabels[] = {
-	"Save State", "Load State", "Save on Quit: On", "Save on Quit: Off", "Auto-Load: On", "Auto-Load: Off",
+	"Save State", "Load State", "Save State 0", "Load State 0", "Save on Quit: On", "Save on Quit: Off", "Auto-Load: On", "Auto-Load: Off",
 };
 
 /* The pause menu's layout: buttons across the whole screen (a small margin
@@ -1846,6 +1846,13 @@ static void draw_menu(void) {
 			label = ovl[cfg->overlays & OVL_BOTH];
 		}
 		if (menuItems[i] == M_RESTART && restartArmed) label = "Tap Again to Restart";
+		/* (the slot they use: "Save State 3", "Load State 3") */
+		static char slotBtn[2][24];
+		if (menuItems[i] == M_SAVE || menuItems[i] == M_LOAD) {
+			int k = menuItems[i] == M_LOAD;
+			snprintf(slotBtn[k], sizeof(slotBtn[k]), "%s State %d", k ? "Load" : "Save", stateSlot);
+			label = slotBtn[k];
+		}
 		if (menuItems[i] == M_SLOT) {
 			/* the slot, with arrows at the ends: LEFT / RIGHT, or a tap on an end */
 			label = slot_label();
