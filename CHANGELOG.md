@@ -16,6 +16,7 @@
 
 ### Game list
 - For a game without second-screen support, "Single screen only: plays normally" is now at the top right, a little bigger, clear of the GitHub address.
+- Bug reports made in the pinball games' two-screen view also hold what both screens showed, the extra copies' own pictures and the view's last 10 seconds, so problems with it can be traced.
 
 ## v1.4.3 (2026-10-30)
 

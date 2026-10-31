@@ -506,7 +506,10 @@ static void twin_step(void) {
 		int top = tall_top_of(twinProf), vmax = tall_rows_of(twinProf, &emu) - 2 * GBA_H;
 		int u = (int16_t) emu_read16(&emu, L->view) - k;
 		twins[0].row = vmax, twins[1].row = SDL_max(SDL_min(u, vmax), top) + GBA_H;
-		twins[0].need = u > vmax, twins[1].need = true;
+		/* (both always: a copy walking to its row from the game's isn't
+		 * shown for a few frames, so the top screen's copy is kept at its
+		 * row while the game itself is there too) */
+		twins[0].need = twins[1].need = true;
 		twinRun = true;
 		return;
 	}
@@ -2629,6 +2632,12 @@ static void update_hud(void) {
  * up). The score bar goes to the bottom of the bottom screen. Called after
  * each frame. */
 typedef struct { const uint32_t* px; int row; } TallSrc;
+static bool tallKeep; /* (carry) a row no picture has keeps what it showed last */
+/* the live view's last 10 seconds, a line a frame, for bug reports
+ * (GBADS_TALL_TRACE's lines, kept whether it's set or not) */
+#define TALL_LOG 600
+static char tallLog[TALL_LOG][176];
+static unsigned tallLogN;
 static bool tall_line(uint32_t* dst, int row, const TallSrc* src, int n) {
 	for (int i = 0; i < n; ++i) {
 		int y = row - src[i].row;
@@ -2637,7 +2646,7 @@ static bool tall_line(uint32_t* dst, int row, const TallSrc* src, int n) {
 			return true;
 		}
 	}
-	for (int x = 0; x < GBA_W; ++x) dst[x] = 0xFF000000;
+	if (!tallKeep) for (int x = 0; x < GBA_W; ++x) dst[x] = 0xFF000000;
 	return false;
 }
 static void update_tall(void) {
@@ -2693,6 +2702,7 @@ static void update_tall(void) {
 	/* (carry: wherever the game's own picture has the rows, it's used: the
 	 * copies only draw the rows it doesn't) */
 	if (carry) topSrc[0] = game, topSrc[1] = a, botSrc[0] = game, botSrc[1] = b, botSrc[2] = a;
+	tallKeep = carry && tallLive;
 	int missing = 0;
 	for (int y = 0; y < GBA_H; ++y) {
 		missing += !tall_line(&tallTop[y * GBA_W], v + y, topSrc, 3);
@@ -2755,13 +2765,29 @@ static void update_tall(void) {
 		same = 0;
 		for (int i = GBA_W * 24; i < GBA_W * t->hudRow; ++i) same += (twins[1].pic[i] & 0xFFFFFF) != (emu.fb[i] & 0xFFFFFF);
 	}
-	if (tallTrace) {
-		if (same >= 0) fprintf(stderr, "same %d\n", same);
-		fprintf(stderr, "band %d-%d fixed %d/%d\n", tallBandY0, tallBandY1, nTallBandFixed, nTallFixed);
-		fprintf(stderr, "T %llu s %d v %d top %s a %d%s%s b %d%s%s hid %d/%d missing %d laid %d\n", (unsigned long long) frameCount, s, v,
-		        gameOnTop ? "game" : "copy", twins[0].picRow, "", twins[0].up ? "" : " down",
-		        twins[1].picRow, "", twins[1].up ? "" : " down", twins[0].hidden, twins[1].hidden, missing, laid);
+	if (tallTrace && carry) {
+		/* (trace: the game's picture against the copies' at the same table
+		 * rows: under the score bar, the middle, under the message line) */
+		int d[3] = { 0, 0, 0 }, n[3] = { 0, 0, 0 };
+		for (int k = 0; k < 2; ++k) {
+			const Twin* tw = &twins[k];
+			if (!tw->up || !tw->havePic) continue;
+			for (int y = 0; y < GBA_H; ++y) {
+				int cy = s + y - tw->picRow;
+				if (cy < 0 || cy >= GBA_H) continue;
+				int r = y < 24 ? 0 : y < 150 ? 1 : 2;
+				++n[r];
+				for (int x = 0; x < GBA_W; ++x) d[r] += (tw->pic[cy * GBA_W + x] & 0xFFFFFF) != (emu.fb[y * GBA_W + x] & 0xFFFFFF);
+			}
+		}
+		if (n[0] + n[1] + n[2]) fprintf(stderr, "cmp %d/%d %d/%d %d/%d\n", d[0], n[0], d[1], n[1], d[2], n[2]);
 	}
+	char* tl = tallLog[tallLogN++ % TALL_LOG];
+	snprintf(tl, sizeof(tallLog[0]), "T %llu s %d v %d top %s a %d%s%s b %d%s%s hid %d/%d missing %d laid %d band %d-%d fixed %d/%d same %d",
+	         (unsigned long long) frameCount, s, v, gameOnTop ? "game" : "copy", twins[0].picRow, twins[0].havePic ? "" : " away",
+	         twins[0].up ? "" : " down", twins[1].picRow, twins[1].havePic ? "" : " away", twins[1].up ? "" : " down", twins[0].hidden,
+	         twins[1].hidden, missing, laid, tallBandY0, tallBandY1, nTallBandFixed, nTallFixed, same);
+	if (tallTrace) fprintf(stderr, "%s\n", tl);
 	if (!tallLive) fprintf(stderr, "frame %llu: live view\n", (unsigned long long) frameCount);
 	tallLive = true;
 	mapShownIdx = 0;
@@ -3044,6 +3070,11 @@ static const char bugReadme[] =
 	"  - GAME-DATE-info.txt        your device, system, screens and settings,\n"
 	"                              and the end of GBA DS's log\n"
 	"\n"
+	"In the pinball games' two-screen view, also what both screens showed\n"
+	"(GAME-DATE-tall.png, with the two extra copies' own pictures), the\n"
+	"view's last 10 seconds (GAME-DATE-tall.txt) and the copies themselves\n"
+	"(GAME-DATE-copy0.state, -copy1.state).\n"
+	"\n"
 	"With these, the problem can be played back exactly as it happened.\n"
 	"Your game itself (the ROM) is not in the report, and lines of the log\n"
 	"that mention passwords or tokens are left out.\n"
@@ -3127,6 +3158,7 @@ static void put32(FILE* f, uint32_t v) {
 }
 
 /* A .zip of n files, stored (states don't shrink much, and it needs no zlib). */
+int stbi_write_png(char const* filename, int w, int h, int comp, const void* data, int stride_in_bytes);
 static bool zip_write(const char* path, const char* const* names, uint8_t* const* data, const size_t* sizes, int n) {
 	FILE* f = fopen(path, "wb");
 	if (!f) return false;
@@ -3444,13 +3476,47 @@ static bool bug_report(char* out, size_t outSize) {
 	if (inf) fclose(inf);
 	free(info.s);
 
-	/* the four into one .zip */
-	uint8_t* data[4] = { 0 };
-	size_t sizes[4] = { 0 };
-	for (int i = 0; ok && i < 4; ++i) ok = (data[i] = read_whole(tmp[i], &sizes[i])) != NULL;
-	const char* names[4] = { name[0], name[1], name[2], name[3] };
-	if (ok) ok = zip_write(zip, names, data, sizes, 4);
-	for (int i = 0; i < 4; ++i) free(data[i]), remove(tmp[i]);
+	/* the live view (profile tall): the two screens as shown and each
+	 * copy's own picture side by side (-tall.png), its last 10 seconds a
+	 * line a frame (-tall.txt), and the copies now (-copyN.state) */
+	int nf = 4;
+	char xname[4][340], xtmp[4][1500];
+	if (ok && tallLive && twinOpen) {
+		snprintf(xname[0], sizeof(xname[0]), "%s-tall.png", base);
+		snprintf(xname[1], sizeof(xname[1]), "%s-tall.txt", base);
+		snprintf(xname[2], sizeof(xname[2]), "%s-copy0.state", base);
+		snprintf(xname[3], sizeof(xname[3]), "%s-copy1.state", base);
+		for (int i = 0; i < 4; ++i) snprintf(xtmp[i], sizeof(xtmp[i]), "%s/%s", dir, xname[i]);
+		static uint32_t sheet[GBA_W * 3 * GBA_H * 2];
+		for (int y = 0; y < 2 * GBA_H; ++y) {
+			for (int x = 0; x < GBA_W; ++x) {
+				uint32_t* row = &sheet[y * GBA_W * 3];
+				row[x] = (y < GBA_H ? tallTop[y * GBA_W + x] : tallBot[(y - GBA_H) * GBA_W + x]) | 0xFF000000;
+				row[GBA_W + x] = y < GBA_H ? twins[0].pic[y * GBA_W + x] | 0xFF000000 : 0xFF000000;
+				row[2 * GBA_W + x] = y < GBA_H ? twins[1].pic[y * GBA_W + x] | 0xFF000000 : 0xFF000000;
+			}
+		}
+		bool xok = stbi_write_png(xtmp[0], GBA_W * 3, GBA_H * 2, 4, sheet, GBA_W * 3 * 4) != 0;
+		FILE* f = fopen(xtmp[1], "wb");
+		if (f) {
+			fprintf(f, "# GBA DS live view, the last %u frames (top/bottom screen and the copies' rows; game.c update_tall)\n",
+			        tallLogN < TALL_LOG ? tallLogN : TALL_LOG);
+			for (unsigned i = tallLogN > TALL_LOG ? tallLogN - TALL_LOG : 0; i < tallLogN; ++i) fprintf(f, "%s\n", tallLog[i % TALL_LOG]);
+			fclose(f);
+		}
+		xok = xok && f && emu_state_save_file(&twins[0].e, xtmp[2]) && emu_state_save_file(&twins[1].e, xtmp[3]);
+		if (xok) nf = 8;
+		else for (int i = 0; i < 4; ++i) remove(xtmp[i]);
+	}
+
+	/* into one .zip */
+	uint8_t* data[8] = { 0 };
+	size_t sizes[8] = { 0 };
+	const char* names[8] = { name[0], name[1], name[2], name[3], xname[0], xname[1], xname[2], xname[3] };
+	const char* paths[8] = { tmp[0], tmp[1], tmp[2], tmp[3], xtmp[0], xtmp[1], xtmp[2], xtmp[3] };
+	for (int i = 0; ok && i < nf; ++i) ok = (data[i] = read_whole(paths[i], &sizes[i])) != NULL;
+	if (ok) ok = zip_write(zip, names, data, sizes, nf);
+	for (int i = 0; i < nf; ++i) free(data[i]), remove(paths[i]);
 	if (!ok) remove(zip);
 	fprintf(stderr, "bug report: %s %s (%llu frames back)\n", zip, ok ? "saved" : "failed", (unsigned long long) (to - from));
 	if (ok) snprintf(out, outSize, "bug-reports/%s.zip", base);

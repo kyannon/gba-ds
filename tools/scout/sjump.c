@@ -5,8 +5,10 @@
  * The game runs with a flipper tap every 50 frames. R, a reference copy run
  * on its own from the state, and X, taken from the game's state every
  * frame, are both held with their view at TARGET (walking there 8 rows a
- * frame; TARGET -1: the game's view + 160, as the app's bottom copy); X's VRAM 0x0000-0xFFFF and view variables are its own from its
- * last frame. Prints, per frame, the views and how many pixels of BG0+BG1
+ * frame; TARGET -1: the game's view + 160, as the app's bottom copy); X is
+ * run as the app's copies (two frames from the game's state from before the
+ * frame before, its VRAM 0x0000-0xFFFF, view variables and queued ring copies
+ * its own). SJ_LAYERS: the layers drawn (default 0x03, BG0 and BG1). Prints, per frame, the views and how many pixels of BG0+BG1
  * differ between R and X; writes PNGs of R, X and the game every 60 frames.
  */
 #include <mgba/flags.h>
@@ -58,11 +60,12 @@ static void hold(Emu* e, int* cur, int target) {
 	emu_write16(e, CAM, (uint16_t) *cur);
 }
 
+uint8_t sjgv[0x10000];
 int main(int argc, char** argv) {
 	if (argc < 6) { fprintf(stderr, "sjump ROM STATE FRAMES TARGET OUTDIR\n"); return 1; }
 	Emu g = {0}, r = {0}, x = {0};
 	if (!emu_open(&g, argv[1], NULL, false) || !emu_open(&r, argv[1], NULL, false) || !emu_open(&x, argv[1], NULL, false)) return 1;
-	if (!emu_state_load_file(&g, argv[2]) || !emu_state_load_file(&r, argv[2])) return 1;
+	if (!emu_state_load_file(&g, argv[2]) || !emu_state_load_file(&r, argv[2]) || !emu_state_load_file(&x, argv[2])) return 1;
 	int frames = atoi(argv[3]), target = atoi(argv[4]);
 	/* optional 6th argument: a harness keys script for the game's keys */
 	static uint32_t kk[100000]; int nk = 0;
@@ -79,31 +82,48 @@ int main(int argc, char** argv) {
 	}
 	const char* out = argv[5];
 	for (unsigned i = 0; i < sizeof nops / sizeof nops[0]; ++i) emu_write16(&r, nops[i], 0x46C0), emu_write16(&x, nops[i], 0x46C0);
-	emu_layers(&r, 0x03); emu_layers(&x, 0x03);
+	unsigned lm = getenv("SJ_LAYERS") ? (unsigned) strtoul(getenv("SJ_LAYERS"), NULL, 0) : 0x03;
+	emu_layers(&r, lm); emu_layers(&x, lm);
 	size_t sz = emu_state_size(&g);
-	void* st = malloc(sz);
 	static uint8_t xv[0x10000]; static uint8_t xvar[3][0x20];
 	int rc = emu_read16(&g, CAM), xc = rc;
-	bool have = false;
+	bool have = false, havePrev = false;
+	void* prev = malloc(sz); uint32_t prevKeys = 0;
+	/* the copies' patch of the ball's sprite (profiles.c A3VE) */
+	static const uint32_t pa[] = { 0x08029D3A, 0x08029D3C, 0x08029D3E, 0x08029D40, 0x08029D42, 0x08029D44, 0x08029D46, 0x08029D5C, 0x08029D5E };
+	static const uint16_t pv[] = { 0x4808, 0x8800, 0x1A2D, 0x3550, 0x0428, 0x0C05, 0xE00C, 0x1AE4, 0x0203 };
+	for (int i = 0; i < 9; ++i) emu_write16(&r, pa[i], pv[i]), emu_write16(&x, pa[i], pv[i]);
 	for (int f = 0; f < frames; ++f) {
 		uint32_t keys = f < nk ? kk[f] : ((f % 50) < 6 ? (0x200 | 0x001) : 0);
-		emu_state_save(&g, st);
-		/* X: the game's state, its own tiles and view */
-		emu_state_load(&x, st);
-		for (unsigned i = 0; i < sizeof nops / sizeof nops[0]; ++i) emu_write16(&x, nops[i], 0x46C0);
-		if (have) {
-			emu_vram_write(&x, 0, xv, sizeof xv);
-			for (int k = 0; k < 3; ++k) for (uint32_t j = 0; j < vars[k].n; ++j) emu_write8(&x, vars[k].a + j, xvar[k][j]);
-			q_put(&x);
-		}
+		/* X, as the app's copies: the game's state from before the frame
+		 * before, its own tiles and view put in, that frame again (its tiles
+		 * kept after it), then this one */
 		int tg = target;
 		if (target < 0) { int u = emu_read16(&g, 0x03000784), vmax = emu_read16(&g, 0x030040E0) - 8 - 320; tg = (u < vmax ? (u < 8 ? 8 : u) : vmax) + 160; }
-		hold(&x, &xc, tg);
+		bool xr = false;
+		if (havePrev) {
+			if (!emu_state_load(&x, prev)) fprintf(stderr, "load failed f%d\n", f);
+			if (have && !getenv("SJ_NOCARRY")) {
+				emu_vram_write(&x, 0, xv, sizeof xv);
+				for (int k = 0; k < 3; ++k) for (uint32_t j = 0; j < vars[k].n; ++j) emu_write8(&x, vars[k].a + j, xvar[k][j]);
+				q_put(&x);
+			} else xc = emu_read16(&x, CAM);
+			hold(&x, &xc, tg);
+			if (getenv("SJ_DBG")) { extern uint8_t sjgv[0x10000]; const uint8_t* vv = (const uint8_t*) emu_vram(&x); int dd = 0; for (int i = 0; i < 0x10000; ++i) dd += vv[i] != sjgv[i]; fprintf(stderr, "f%d x vs g-at-save %d, x16 %p\n", f, dd, (void*) vv); }
+			if (getenv("SJ_DBG")) { const uint8_t* v = (const uint8_t*) emu_vram(&x); int d = 0, z = 0; for (int i = 0; i < 0x10000; ++i) d += v[i] != xv[i], z += v[0x6000 + (i & 0xFFF)] == 0; fprintf(stderr, "f%d put diff %d mapzeros %d\n", f, d, z / 16); }
+			emu_frame(&x, prevKeys);
+			memcpy(xv, emu_vram(&x), sizeof xv);
+			q_take(&x);
+			for (int k = 0; k < 3; ++k) for (uint32_t j = 0; j < vars[k].n; ++j) xvar[k][j] = emu_read8(&x, vars[k].a + j);
+			have = xr = true;
+		}
+		if (!emu_state_save(&g, prev)) fprintf(stderr, "save failed f%d\n", f);
+		memcpy(sjgv, emu_vram(&g), sizeof sjgv); uint8_t* gv = sjgv;
+		if (getenv("SJ_DBG")) { int z = 0; for (int i = 0x6000; i < 0x7000; ++i) z += !gv[i]; fprintf(stderr, "f%d g map zeros at save %d\n", f, z); }
+		prevKeys = keys; havePrev = true;
 		hold(&r, &rc, tg);
-		emu_frame(&x, keys); emu_frame(&r, keys); emu_frame(&g, keys);
-		memcpy(xv, emu_vram(&x), sizeof xv);
-		q_take(&x);
-		for (int k = 0; k < 3; ++k) for (uint32_t j = 0; j < vars[k].n; ++j) xvar[k][j] = emu_read8(&x, vars[k].a + j);
+		if (xr) emu_frame(&x, keys);
+		emu_frame(&r, keys); emu_frame(&g, keys);
 		have = true;
 		int diff = 0;
 		for (int i = 0; i < 240 * 160; ++i) diff += (x.fb[i] & 0xFFFFFF) != (r.fb[i] & 0xFFFFFF);
