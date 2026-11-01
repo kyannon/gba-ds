@@ -28,6 +28,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Spider-Man: Mysterio's Menace (Spider-Man: Mysterio no Kyoui in Japan) | `ASEE` (USA and Europe) `ASEJ` | the Select menu: the objective, password, suits, upgrades and web containers |
 | Sonic Pinball Party | `A3VE` `A3VP` | the table twice as tall over both screens, live (work in progress) |
 | Sonic Advance | `ASOE` `ASOP` `ASOJ` | the zone card, with the rings, score, time and lives |
+| Dragon Ball Z: The Legacy of Goku | `ALGE` `ALGP` (no Japanese release) | the pause menu, with the HP and Ki bars and SELECT's counter in place of its options (preliminary) |
 
 The codes are what `<CODE>` means in logo and overlay file names (see [Playing](Playing#logos) and [[Map screen surrounds and overlays]]).
 
@@ -198,6 +199,16 @@ The USA and European releases. **Work in progress:** glitches may occur on the t
 - Tried so far on the Sonic and NiGHTS tables. The Samba de Amigo table, bonus stages and Story mode's conversations haven't been tried yet.
 - `pinball_live = 0` in `gba-ds.cfg` turns the copies off: the game then plays on one screen, with the logo on the other.
 - On the title and menus, the second screen shows the logo.
+
+## Dragon Ball Z: The Legacy of Goku
+
+The USA and European releases. Preliminary: tried on the first island so far.
+
+- **Walking about,** the second screen is the game's **pause menu** (START) as it draws it: Level, Experience and To Next Level at the top, HP, Ki and Time at the bottom right. It's opened in the background in a silent copy of the game about once a second; your game is never paused.
+- The pause menu's list of options is left out. In its place go the **HP and Ki bars**, moved off the game screen's top left, and below them the **counter** the game shows while you hold SELECT (holding SELECT still shows it on the game screen too).
+- In the game's own pause menu and its screens, the second screen keeps its picture. On the title and menus it shows the logo.
+- The title screen paints Goku's hair over the Z, so in the logo the Z is drawn again there, in the game's own colours, to the official logo's shape.
+- Not tried yet: conversations, fights, other areas and most of the European release.
 
 ## Spider-Man: Mysterio's Menace
 

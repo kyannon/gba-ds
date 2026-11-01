@@ -2,6 +2,9 @@
 
 ## v1.4.5 (not yet released)
 
+### New games
+- **Dragon Ball Z: The Legacy of Goku** (USA and Europe), preliminary: walking about, the second screen is the pause menu (Level, Experience, HP, Ki and Time), updated about once a second, with its list of options left out; in that empty panel go the HP and Ki bars (moved off the game screen) and, below them, the counter the game shows while SELECT is held. On the title and menus it shows the logo; the title screen paints Goku's hair over the Z, so there the Z is drawn again, in the game's own colours, to the official logo's shape. Tried on the first island.
+
 ### Save states
 - Ten save slots per game in the pause menu: under Save State and Load State, **‹ Slot 0 ›** to **‹ Slot 9 ›** picks one (LEFT / RIGHT, or tap an end of it), and shows when it was saved or that it's empty; the buttons show the slot they use (Save State 3, Load State 3). The menu opens on the slot you saved to last.
 - The quick bar's Save State and Load State (and HOME + R1 / L1) have a slot of their own, the quick state, apart from the pause menu's ten.

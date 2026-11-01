@@ -10,8 +10,9 @@ Masks not named on the command line are kept as they are in
 src/logo_masks.c, so one can be redone without the other games' ROMs.
 
 Only the outline (which pixels are logo) goes into the source; the pixels
-themselves are taken from the ROM when the logo is extracted. Needs Pillow,
-numpy and scipy.
+themselves are taken from the ROM when the logo is extracted, but for any a
+mask draws itself (Dragon Ball Z's rebuilt Z: patchAt / patchRgb, from
+tools/dbz-z.json, made by tools/dbz_fit_z.py). Needs Pillow, numpy and scipy.
 """
 import os
 import sys
@@ -95,7 +96,61 @@ def thps3(a):
     return ndimage.binary_fill_holes(ndimage.binary_closing(m, iterations=1))
 
 
-MASKS = (("THPS2", thps2), ("SK8", sk8), ("THPS3", thps3))
+def dbz_render(polys):
+    """Polygons in frame pixels to a bool mask, even-odd, 4x4 supersampled."""
+    from PIL import ImageDraw
+    im = np.zeros((H * 4, W * 4), bool)
+    for p in polys:
+        layer = Image.new('L', (W * 4, H * 4), 0)
+        ImageDraw.Draw(layer).polygon([(x * 4, y * 4) for x, y in p], fill=255)
+        im ^= np.asarray(layer) > 0
+    return im.reshape(H, 4, W, 4).mean(axis=(1, 3)) >= 0.5
+
+
+def dbz(a):
+    """Dragon Ball Z: The Legacy of Goku (USA, Europe): DRAGON BALL Z and THE
+    LEGACY OF GOKU, without the blue behind them or Goku, whose hair is
+    painted over the Z's lower left (a solid black mass, unlike the letters'
+    thin outlines) and who's below it. Where his hair was, the Z is drawn
+    again (the owner's exception to DBZ-1): its shape from the owner's SVG
+    of the logo, fitted onto the game's Z (tools/dbz_fit_z.py, saved in
+    tools/dbz-z.json), in the game's own red and outline black.
+    Returns the mask and the drawn pixels (0xRRGGBB, -1 elsewhere)."""
+    import json
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    ys, xs = np.mgrid[0:H, 0:W]
+    mx = a.max(axis=2)
+    band = ys < 100
+    dark = mx < 80
+    blue = (b > r + 30) & (b > g + 10) & ~dark
+    core = band & ~blue & ~dark
+    hair = ndimage.binary_dilation(ndimage.binary_opening(dark & band, iterations=2) & (xs >= 148) & (ys >= 45), iterations=1)
+    skin = (r > 180) & (g > 110) & (b > 80) & (r - b < 140) & (xs >= 148) & (ys >= 50)
+    goku = hair | ((xs >= 150) & (ys >= 68)) | ndimage.binary_dilation(skin, iterations=1)
+    core &= ~goku
+    outline = dark & ndimage.binary_dilation(core, iterations=2) & ~goku
+    m = ndimage.binary_fill_holes(core | outline) & ~blue & ~goku & band
+    lab, n = ndimage.label(m, structure=np.ones((3, 3)))
+    sizes = ndimage.sum(m, lab, range(1, n + 1))
+    m = np.isin(lab, [i + 1 for i, s in enumerate(sizes) if s >= 6])
+    # the Z again where Goku covered it
+    z = json.load(open(os.path.join(ROOT, "tools", "dbz-z.json")))
+    zo, zr = dbz_render(z["outline"]), dbz_render(z["red"])
+    seen = zo & m
+    pick = lambda sel: tuple(int(v) for v in np.median(a[sel], axis=0))
+    red = pick(zr & seen & (r > 170) & (g < 90))
+    black = pick(zo & ~zr & seen & (mx < 80))
+    near = np.abs(a - np.array(red)).sum(axis=2) < 90
+    hair3 = ndimage.binary_dilation(ndimage.binary_opening(dark & band, iterations=2) & (xs >= 148) & (ys >= 45), iterations=3)
+    under = (hair3 | ((xs >= 150) & (ys >= 62))) & (xs >= 150) & (ys >= 40)
+    fill = (zo & ~m & (ys >= 40) & (xs >= 150)) | (zr & m & ~near & (ys >= 45) & (xs >= 150)) | (zo & under)
+    m = (m & ~(under & ~zo)) | fill
+    patch = np.full((H, W), -1, np.int64)
+    patch[fill & zr] = red[0] << 16 | red[1] << 8 | red[2]
+    patch[fill & ~zr] = black[0] << 16 | black[1] << 8 | black[2]
+    return m, patch
+
+MASKS = (("THPS2", thps2), ("SK8", sk8), ("THPS3", thps3), ("DBZ", dbz))
 
 
 def runs(mask):
@@ -140,12 +195,29 @@ def main():
     for name, fn in MASKS:
         if name in given:
             a = np.asarray(Image.open(given[name]).convert("RGB")).astype(int)
-            x, y, w, h, r = runs(fn(a))
+            got = fn(a)
+            mask, patch = got if isinstance(got, tuple) else (got, None)
+            x, y, w, h, r = runs(mask)
             block = [f"static const uint16_t runs{name}[{len(r)}] = {{"]
             for i in range(0, len(r), 16):
                 block.append("\t" + ", ".join(str(v) for v in r[i:i + 16]) + ",")
             block.append("};")
-            block.append(f"const LogoMask logoMask{name} = {{ {x}, {y}, {w}, {h}, runs{name}, {len(r)} }};")
+            extra = ""
+            if patch is not None:
+                py, px = np.nonzero(patch >= 0)
+                at = [int(yy) * W + int(xx) for yy, xx in zip(py, px)]
+                rgb = [int(patch[yy, xx]) for yy, xx in zip(py, px)]
+                block.append(f"static const uint16_t patchAt{name}[{len(at)}] = {{")
+                for i in range(0, len(at), 16):
+                    block.append("\t" + ", ".join(str(v) for v in at[i:i + 16]) + ",")
+                block.append("};")
+                block.append(f"static const uint32_t patchRgb{name}[{len(rgb)}] = {{")
+                for i in range(0, len(rgb), 8):
+                    block.append("\t" + ", ".join(f"0x{v:06X}" for v in rgb[i:i + 8]) + ",")
+                block.append("};")
+                extra = f", patchAt{name}, patchRgb{name}, {len(at)}"
+                print(f"{name}: {len(at)} pixels drawn")
+            block.append(f"const LogoMask logoMask{name} = {{ {x}, {y}, {w}, {h}, runs{name}, {len(r)}{extra} }};")
             print(f"{name}: {w}x{h} at {x},{y}, {len(r)} runs")
         elif name in old:
             block = old[name]

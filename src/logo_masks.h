@@ -11,10 +11,16 @@ typedef struct LogoMask {
 	int x, y, w, h;          /* bounding box on the 240x160 frame */
 	const uint16_t* runs;    /* row-major run lengths, alternating out/in, starting with out */
 	int nRuns;
+	/* pixels the mask draws itself, in it (y * 240 + x; 0xRRGGBB): Dragon
+	 * Ball Z's Z where the title paints Goku's hair over it */
+	const uint16_t* patchAt;
+	const uint32_t* patchRgb;
+	int nPatch;
 } LogoMask;
 
 extern const LogoMask logoMaskTHPS2;
 extern const LogoMask logoMaskSK8;
 extern const LogoMask logoMaskTHPS3;
+extern const LogoMask logoMaskDBZ;
 
 #endif

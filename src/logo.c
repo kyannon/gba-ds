@@ -114,6 +114,13 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 				if ((r & 1) && x < GBA_W && y < GBA_H) inMask[y * GBA_W + x] = 1;
 			}
 		}
+		for (int i = 0; i < m->nPatch; ++i) {
+			int at = m->patchAt[i];
+			if (at >= GBA_W * GBA_H) continue;
+			uint32_t c = m->patchRgb[i];
+			inMask[at] = 1;
+			fg[at] = 0xFF000000u | (c & 0xFF) << 16 | (c & 0xFF00) | (c >> 16 & 0xFF);
+		}
 	}
 	/* opaque mask and bounding box above maxY */
 	int x0 = GBA_W, y0 = GBA_H, x1 = -1, y1 = -1, count = 0;

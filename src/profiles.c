@@ -1344,6 +1344,94 @@ static const char* som_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	return NULL;
 }
 
+/* ---------------------------------------------------------- Dragon Ball Z: The Legacy of Goku
+ *
+ * The second screen (DBZ-2 to DBZ-4): the pause menu (START), opened on the
+ * shadow core from the live state at every capture, with its list of
+ * options left out (the panel drawn again from its layers alone: BG2's
+ * panel over BG3's picture, without BG1's text or the cursor sprite), and
+ * in that empty panel, below where the HUD's HP / Ki bars go (hud.moves),
+ * the counter the game shows while SELECT is held (BG0's box and its icon
+ * sprite), taken first from the same state with SELECT held.
+ */
+#define DBZ_FIELD_DISP 0x1F40
+#define DBZ_PAUSE_DISP 0x1F00
+#define DBZ_PAUSE_BG0 0x1C0F
+/* the options panel's inside, and where the counter goes in it (centred
+ * across, its top at y) */
+#define DBZ_PANEL_X0 11
+#define DBZ_PANEL_Y0 84
+#define DBZ_PANEL_X1 147
+#define DBZ_PANEL_Y1 147
+#define DBZ_COUNT_Y 114
+static bool dbz_pause_up(Emu* s) {
+	return emu_io16(s, 0x00) == DBZ_PAUSE_DISP && emu_io16(s, 0x08) == DBZ_PAUSE_BG0;
+}
+static const char* dbz_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	static uint8_t* st;
+	static size_t stSize;
+	size_t sz = emu_state_size(s);
+	if (sz > stSize) {
+		free(st);
+		st = malloc(sz);
+		stSize = st ? sz : 0;
+	}
+	if (!st) return "no memory";
+	/* the counter: SELECT held, BG0 and the sprites alone, against the
+	 * backdrop (what nothing covers: the same with no layers at all) */
+	static uint32_t back[GBA_W * GBA_H], count[GBA_W * GBA_H];
+	emu_layers(s, 0x00);
+	if (!emu_state_load(s, state)) return "state load failed";
+	if (emu_io16(s, 0x00) != DBZ_FIELD_DISP) {
+		emu_layers(s, 0x1F);
+		return "not walking about";
+	}
+	emu_frame(s, 0);
+	memcpy(back, s->fb, sizeof(back));
+	emu_layers(s, 0x11);
+	emu_state_load(s, state);
+	aw_run(s, K_SELECT, 20);
+	memcpy(count, s->fb, sizeof(count));
+	emu_layers(s, 0x1F);
+	/* (its box: what differs from the backdrop in the top left corner) */
+	int cx0 = GBA_W, cy0 = GBA_H, cx1 = -1, cy1 = -1;
+	for (int y = 0; y < 48; ++y) {
+		for (int x = 0; x < 120; ++x) {
+			if ((count[y * GBA_W + x] & 0xFFFFFF) == (back[y * GBA_W + x] & 0xFFFFFF)) continue;
+			cx0 = x < cx0 ? x : cx0, cy0 = y < cy0 ? y : cy0, cx1 = x > cx1 ? x : cx1, cy1 = y > cy1 ? y : cy1;
+		}
+	}
+	/* the pause menu, once it's settled */
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	aw_run(s, K_START, 3);
+	if (!aw_settle(s, dbz_pause_up, 90)) return "the pause menu did not open";
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+	/* the options panel again without its text and cursor */
+	if (!emu_state_save(s, st)) return "state save failed";
+	emu_layers(s, 0x0C);
+	emu_state_load(s, st);
+	emu_frame(s, 0);
+	for (int y = DBZ_PANEL_Y0; y <= DBZ_PANEL_Y1 && y < h; ++y)
+		for (int x = DBZ_PANEL_X0; x <= DBZ_PANEL_X1 && x < w; ++x) out[y * w + x] = s->fb[y * GBA_W + x];
+	emu_layers(s, 0x1F);
+	emu_state_load(s, st);
+	/* the counter in it, centred across */
+	if (cx1 >= 0) {
+		int ox = (DBZ_PANEL_X0 + DBZ_PANEL_X1) / 2 - (cx0 + cx1) / 2, oy = DBZ_COUNT_Y - cy0;
+		for (int y = cy0; y <= cy1; ++y) {
+			for (int x = cx0; x <= cx1; ++x) {
+				uint32_t c = count[y * GBA_W + x];
+				if ((c & 0xFFFFFF) == (back[y * GBA_W + x] & 0xFFFFFF)) continue;
+				int nx = x + ox, ny = y + oy;
+				if (nx < DBZ_PANEL_X0 || ny < DBZ_PANEL_Y0 || nx > DBZ_PANEL_X1 || ny > DBZ_PANEL_Y1) continue;
+				out[ny * w + nx] = c;
+			}
+		}
+	}
+	return NULL;
+}
+
 /* ---------------------------------------------------------- Golden Sun
  *
  * The second screen: the Status screen (SELECT's menu, its last icon, A),
@@ -2481,6 +2569,44 @@ static const MapProfile profiles[] = {
 		.menu = { { 0x03002170, 0xFFFF, 0x420C, 2 } },
 	},
 	{
+		/* Dragon Ball Z: The Legacy of Goku (USA; Europe: the same, ALGP).
+		 * Walking about, the pause menu with the HUD in its empty options
+		 * panel: see dbz_compose (DBZ-2 to DBZ-4) */
+		.codes = { "ALGE" },
+		.title = "Dragon Ball Z: The Legacy of Goku",
+		.compose = dbz_compose,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* walking about: taken (about once a second) */
+		.live = { { 0x04000000, 0xFFFF, DBZ_FIELD_DISP, 2 }, { 0x04000008, 0xFFFF, 0x1C00, 2 } },
+		/* the title (its picture, then Press Start): the logo (DBZ-1) */
+		.menu = { { 0x04000000, 0xFFFF, 0x0404, 2, true, 0x0900 } },
+		.hud = {
+			/* walking about, and in the pause menu (where the bars stay
+			 * on the second screen as last seen) */
+			/* (the first: walking about, the pause menu or the blank frame
+			 * between, not the title: the bars go only there) */
+			.on = { { 0x04000000, 0x0F07, 0x0F00, 2, true, 0x0000 },
+			        { 0x04000000, 0xFFFF, DBZ_FIELD_DISP, 2, true, DBZ_PAUSE_DISP }, { 0x04000008, 0xFFFF, 0x1C00, 2, true, DBZ_PAUSE_BG0 } },
+			/* the HP / Ki bars (sprites 0-3 at the top left, palettes 14
+			 * and 15) leave the game screen for the top of the empty
+			 * options panel, over the picture (DBZ-3) */
+			.objs = { { 4, 6, 90, 10, 1, 20, 1, (1u << 14) | (1u << 15) } }, /* (row 8: not SELECT's icon, at 6,12) */
+			/* (taken again only walking about: kept as they were in the
+			 * pause menu) */
+			.layout = { { 0x04000000, 0xFFFF, DBZ_FIELD_DISP, 2 }, { 0x04000008, 0xFFFF, 0x1C00, 2 } },
+			.overMap = true,
+			.mapClear = 0x000000,
+			/* (taken once it's held still two frames: as SELECT's counter
+			 * comes up, its icon's graphics are in the bars' tiles for a
+			 * frame) */
+			.moves = { { 0, 0, 100, 30, 'C', 79, 'T', 92, .top = true, .settle = 2 } },
+		},
+		/* the title with THE LEGACY OF GOKU, after A skips the intro: the
+		 * lettering inside its mask (DBZ-1) */
+		.logo = { .steps = { { 0, 900 }, { K_A, 9 }, { 0, 150 } }, .mask = &logoMaskDBZ },
+	},
+	{
 		/* River City Ransom EX (USA; in Japan Downtown Nekketsu Monogatari
 		 * EX, with the same RAM and menus). The byte at 0x0300496E is the
 		 * game's screen: 1 the title card, 3 the Story / Manage Data menu,
@@ -2677,6 +2803,13 @@ static void fe8_eur(MapProfile* p) {
 	memset(p->logo.steps, 0, sizeof(p->logo.steps));
 	memcpy(p->logo.steps, steps, sizeof(steps));
 }
+/* Dragon Ball Z: The Legacy of Goku in Europe: a language menu first
+ * (A: English) */
+static void dbz_eur(MapProfile* p) {
+	static const MacroStep steps[] = { { 0, 300 }, { K_A, 6 }, { 0, 700 }, { K_A, 9 }, { 0, 150 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+}
 static void fe8_jpn(MapProfile* p) {
 	static const MacroStep steps[] = { { 0, 400 }, { K_START, 4 }, { 0, 90 } };
 	memset(p->logo.steps, 0, sizeof(p->logo.steps));
@@ -2827,6 +2960,7 @@ static const Variant variants[] = {
 	{ "AE7Y", "AE7E", 0, lang_menu },
 	{ "AE7J", "AE7E", 0, fe_jpn },
 	{ "BE8P", "BE8E", 0, fe8_eur },
+	{ "ALGP", "ALGE", 0, dbz_eur },
 	{ "BE8J", "BE8E", 0, fe8_jpn },
 	{ "AWRP", "AWRE", 0, aw_eur },
 	/* (the same RAM as the USA release; a language menu first too) */

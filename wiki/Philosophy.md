@@ -71,6 +71,7 @@ What this means in practice:
   - Pokémon Pinball's and Sonic Pinball Party's tables spread over both screens as one tall view;
   - Mario Kart's and F-Zero: GP Legend's race screen course maps, drawn larger than the game's;
   - Super Mario Advance 2's level name moved above its status bar;
-  - River City Ransom EX's Status screen on a plain blue background (one of the game's own pause colours) instead of the tinted street behind it.
+  - River City Ransom EX's Status screen on a plain blue background (one of the game's own pause colours) instead of the tinted street behind it;
+  - Dragon Ball Z: The Legacy of Goku's logo, whose Z is drawn again in the game's own colours where the title screen paints Goku's hair over it.
 - **Optional where it can be.** Where an exception changes how the game plays or looks, there's a way back to the original: GBA is the default control layout, and `pinball_live = 0` turns off the pinball games' tall view.
 - **Scope is a feature.** Every change has to be built, tested on the real device and maintained by one person. A smaller, solid feature beats a bigger, fragile one, and that's often the honest answer to a feature request: not "never", but "not at the cost of everything else working".

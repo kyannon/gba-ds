@@ -1,0 +1,158 @@
+{
+ "game": "Dragon Ball Z: The Legacy of Goku",
+ "rules": "docs/games/dragon-ball-z-legacy-of-goku.md",
+ "cases": [
+  {
+   "id": "dbz-us-title",
+   "rom": "ALGE",
+   "state": "dragon-ball-z-legacy-of-goku/us-title.ss",
+   "desc": "the title (a player's bug report): the logo",
+   "rules": [
+    "DBZ-1"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "DBZ-1",
+     "what": "no capture",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "dbz-us-walk",
+   "rom": "ALGE",
+   "state": "dragon-ball-z-legacy-of-goku/us-walk.ss",
+   "desc": "walking about on the first island: the pause menu without its options, the HP / Ki bars and SELECT's counter in its empty panel, the bars off the game screen",
+   "rules": [
+    "DBZ-2",
+    "DBZ-3",
+    "DBZ-4"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 240
+   },
+   "checks": [
+    {
+     "rule": "DBZ-2",
+     "what": "the pause menu taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "DBZ-3",
+     "what": "the bars off the game screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "game",
+     "rect": [
+      34,
+      38,
+      375,
+      115
+     ],
+     "color": "FF0000",
+     "frac": 0.02
+    },
+    {
+     "rule": "DBZ-3",
+     "what": "the bars in the empty panel",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      166,
+      441,
+      508,
+      514
+     ],
+     "color": "FF0000",
+     "frac": 0.03
+    }
+   ]
+  },
+  {
+   "id": "dbz-us-select-pause",
+   "rom": "ALGE",
+   "state": "dragon-ball-z-legacy-of-goku/us-walk.ss",
+   "desc": "SELECT held (the counter on the game screen, the bars unchanged on the second screen), then the game's pause menu (the second screen keeps its picture, bars included)",
+   "rules": [
+    "DBZ-3",
+    "DBZ-4",
+    "DBZ-5"
+   ],
+   "input": [
+    [
+     110,
+     "SELECT"
+    ],
+    [
+     160,
+     "-"
+    ],
+    [
+     200,
+     "START"
+    ],
+    [
+     204,
+     "-"
+    ]
+   ],
+   "shots": {
+    "select": 150,
+    "pause": 280
+   }
+  },
+  {
+   "id": "dbz-us-inventory",
+   "rom": "ALGE",
+   "state": "dragon-ball-z-legacy-of-goku/us-inventory.ss",
+   "desc": "the game's own Inventory screen (a player's bug report): no capture there",
+   "rules": [
+    "DBZ-5"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "DBZ-5",
+     "what": "no capture",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "dbz-logo-alge",
+   "kind": "logo",
+   "rom": "ALGE",
+   "desc": "ALGE logo extraction",
+   "rules": [
+    "GEN-1",
+    "DBZ-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "dbz-logo-algp",
+   "kind": "logo",
+   "rom": "ALGP",
+   "desc": "ALGP logo extraction (a language menu first)",
+   "rules": [
+    "GEN-1",
+    "DBZ-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}
