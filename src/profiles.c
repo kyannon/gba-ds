@@ -1377,9 +1377,11 @@ static const char* dbz_compose(Emu* s, const void* state, uint32_t* out, int w, 
 		stSize = st ? sz : 0;
 	}
 	if (!st) return "no memory";
-	/* the counter: SELECT held, BG0 and the sprites alone, against the
-	 * backdrop (what nothing covers: the same with no layers at all) */
-	static uint32_t back[GBA_W * GBA_H], count[GBA_W * GBA_H];
+	/* the counter: SELECT held, its box (BG0) found alone, then the box
+	 * and its icon (a sprite at its left) with the sprites, against the
+	 * backdrop (what nothing covers: the same with no layers at all); not
+	 * whatever else passes the corner (a ki blast) */
+	static uint32_t back[GBA_W * GBA_H], box[GBA_W * GBA_H], count[GBA_W * GBA_H];
 	emu_layers(s, 0x00);
 	if (!emu_state_load(s, state)) return "state load failed";
 	if (emu_io16(s, 0x00) != DBZ_FIELD_DISP) {
@@ -1388,17 +1390,33 @@ static const char* dbz_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	}
 	emu_frame(s, 0);
 	memcpy(back, s->fb, sizeof(back));
+	emu_layers(s, 0x01);
+	emu_state_load(s, state);
+	aw_run(s, K_SELECT, 20);
+	memcpy(box, s->fb, sizeof(box));
 	emu_layers(s, 0x11);
 	emu_state_load(s, state);
 	aw_run(s, K_SELECT, 20);
 	memcpy(count, s->fb, sizeof(count));
 	emu_layers(s, 0x1F);
-	/* (its box: what differs from the backdrop in the top left corner) */
-	int cx0 = GBA_W, cy0 = GBA_H, cx1 = -1, cy1 = -1;
+	int bx0 = GBA_W, by0 = GBA_H, bx1 = -1, by1 = -1;
 	for (int y = 0; y < 48; ++y) {
 		for (int x = 0; x < 120; ++x) {
-			if ((count[y * GBA_W + x] & 0xFFFFFF) == (back[y * GBA_W + x] & 0xFFFFFF)) continue;
-			cx0 = x < cx0 ? x : cx0, cy0 = y < cy0 ? y : cy0, cx1 = x > cx1 ? x : cx1, cy1 = y > cy1 ? y : cy1;
+			if ((box[y * GBA_W + x] & 0xFFFFFF) == (back[y * GBA_W + x] & 0xFFFFFF)) continue;
+			bx0 = x < bx0 ? x : bx0, by0 = y < by0 ? y : by0, bx1 = x > bx1 ? x : bx1, by1 = y > by1 ? y : by1;
+		}
+	}
+	/* (the icon: up to 24 pixels left of the box, a few rows over its edges) */
+	int cx0 = GBA_W, cy0 = GBA_H, cx1 = -1, cy1 = -1;
+	if (bx1 >= 0) {
+		int lx = bx0 - 24 < 0 ? 0 : bx0 - 24, ty = by0 - 6 < 0 ? 0 : by0 - 6, byy = by1 + 6;
+		for (int y = 0; y < 48; ++y) {
+			for (int x = 0; x < 120; ++x) {
+				bool in = x >= lx && x <= bx1 && y >= ty && y <= byy;
+				if (!in) count[y * GBA_W + x] = back[y * GBA_W + x];
+				if ((count[y * GBA_W + x] & 0xFFFFFF) == (back[y * GBA_W + x] & 0xFFFFFF)) continue;
+				cx0 = x < cx0 ? x : cx0, cy0 = y < cy0 ? y : cy0, cx1 = x > cx1 ? x : cx1, cy1 = y > cy1 ? y : cy1;
+			}
 		}
 	}
 	/* the pause menu, once it's settled */
@@ -2591,7 +2609,10 @@ static const MapProfile profiles[] = {
 			/* the HP / Ki bars (sprites 0-3 at the top left, palettes 14
 			 * and 15) leave the game screen for the top of the empty
 			 * options panel, over the picture (DBZ-3) */
-			.objs = { { 4, 6, 90, 10, 1, 20, 1, (1u << 14) | (1u << 15) } }, /* (row 8: not SELECT's icon, at 6,12) */
+			/* (row 8: not SELECT's icon, at 6,12; any tiles: in a
+			 * conversation the portrait takes the first, and the bars'
+			 * move up) */
+			.objs = { { 4, 6, 90, 10, 0, 1023, 1, (1u << 14) | (1u << 15) } },
 			/* (taken again only walking about: kept as they were in the
 			 * pause menu) */
 			.layout = { { 0x04000000, 0xFFFF, DBZ_FIELD_DISP, 2 }, { 0x04000008, 0xFFFF, 0x1C00, 2 } },

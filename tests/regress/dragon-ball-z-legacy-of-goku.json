@@ -129,6 +129,49 @@
    ]
   },
   {
+   "id": "dbz-us-charging",
+   "rom": "ALGE",
+   "state": "dragon-ball-z-legacy-of-goku/us-charging.ss",
+   "desc": "charging and firing ki (a player's bug report): only SELECT's counter taken with the pause menu, not a ki blast passing the corner",
+   "rules": [
+    "DBZ-4"
+   ],
+   "shots": {
+    "start": 40,
+    "later": 120
+   }
+  },
+  {
+   "id": "dbz-us-conversation",
+   "rom": "ALGE",
+   "state": "dragon-ball-z-legacy-of-goku/us-conversation.ss",
+   "desc": "a conversation (a player's bug report): the bars, in other tiles behind the portrait's, still taken whole",
+   "rules": [
+    "DBZ-3",
+    "DBZ-5"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "DBZ-3",
+     "what": "the bars in the empty panel",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      166,
+      441,
+      508,
+      514
+     ],
+     "color": "FF0000",
+     "frac": 0.03
+    }
+   ]
+  },
+  {
    "id": "dbz-logo-alge",
    "kind": "logo",
    "rom": "ALGE",
