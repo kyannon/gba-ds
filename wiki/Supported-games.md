@@ -28,8 +28,8 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Spider-Man: Mysterio's Menace (Spider-Man: Mysterio no Kyoui in Japan) | `ASEE` (USA and Europe) `ASEJ` | the Select menu: the objective, password, suits, upgrades and web containers |
 | Sonic Pinball Party | `A3VE` `A3VP` | the table twice as tall over both screens, live (work in progress) |
 | Sonic Advance | `ASOE` `ASOP` `ASOJ` | the zone card, with the rings, score, time and lives |
-| Mario & Luigi: Superstar Saga (Mario & Luigi RPG in Japan) | `A88E` `A88P` `A88J` | Bros. Info of the brother you're controlling (preliminary) |
-| Dragon Ball Z: The Legacy of Goku | `ALGE` `ALGP` (no Japanese release) | the pause menu, with the HP and Ki bars and SELECT's counter in place of its options (preliminary) |
+| Mario & Luigi: Superstar Saga (Mario & Luigi RPG in Japan) | `A88E` `A88P` `A88J` | Bros. Info of the brother you're controlling |
+| Dragon Ball Z: The Legacy of Goku | `ALGE` `ALGP` (no Japanese release) | the pause menu, with the HP and Ki bars (or the counter SELECT and flying show) in place of its options |
 
 The codes are what `<CODE>` means in logo and overlay file names (see [Playing](Playing#logos) and [[Map screen surrounds and overlays]]).
 
@@ -203,7 +203,7 @@ The USA and European releases. **Work in progress:** glitches may occur on the t
 
 ## Mario & Luigi: Superstar Saga
 
-The USA, European and Japanese (Mario & Luigi RPG) releases. Preliminary: tried at the start of the story so far.
+The USA, European and Japanese (Mario & Luigi RPG) releases.
 
 - **Walking about,** the second screen is the **Bros. Info** screen (SELECT's menu, the third icon), as the game draws it, filling the screen: the page of the brother you're controlling, the one in front. Swap them with START and the page follows within a moment. It's opened in the background in a silent copy of the game about once a second; your game is never paused.
 - In battles and on the title, the second screen shows the logo; in scenes, conversations and the game's own menus it keeps its picture.
@@ -211,13 +211,13 @@ The USA, European and Japanese (Mario & Luigi RPG) releases. Preliminary: tried 
 
 ## Dragon Ball Z: The Legacy of Goku
 
-The USA and European releases. Preliminary: tried on the first island so far.
+The USA and European releases.
 
 - **Walking about,** the second screen is the game's **pause menu** (START) as it draws it: Level, Experience and To Next Level at the top, HP, Ki and Time at the bottom right. It's opened in the background in a silent copy of the game about once a second; your game is never paused.
-- The pause menu's list of options is left out. In its place go the **HP and Ki bars**, moved off the game screen's top left, and below them the **counter** the game shows while you hold SELECT (holding SELECT still shows it on the game screen too).
+- The pause menu's list of options is left out. In its place goes whatever the game shows at the game screen's top left, moved off it, live: the **HP and Ki bars**, or, while you hold SELECT or fly, the **counter** the game shows in their place.
 - In the game's own pause menu and its screens, the second screen keeps its picture. On the title and menus it shows the logo.
 - The title screen paints Goku's hair over the Z, so in the logo the Z is drawn again there, in the game's own colours, to the official logo's shape.
-- Not tried yet: conversations, fights, other areas and most of the European release.
+- Not tried yet: fights, later areas and most of the European release.
 
 ## Spider-Man: Mysterio's Menace
 
