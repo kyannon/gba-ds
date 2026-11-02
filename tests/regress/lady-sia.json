@@ -1,0 +1,410 @@
+{
+ "game": "Lady Sia",
+ "rules": "docs/games/lady-sia.md",
+ "cases": [
+  {
+   "id": "ls-us-title",
+   "rom": "ALDE",
+   "state": "lady-sia/us-title.ss",
+   "desc": "the title (a player's bug report): the logo, no status picture",
+   "rules": [
+    "LS-3"
+   ],
+   "shots": {
+    "title": 120
+   },
+   "checks": [
+    {
+     "rule": "LS-3",
+     "what": "no status picture",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ls-us-new-game",
+   "rom": "ALDE",
+   "state": "lady-sia/us-new-game.ss",
+   "desc": "New Game chosen, the story text (logo), skipped with START, Please, Wait, then the first level: the status picture",
+   "rules": [
+    "LS-2",
+    "LS-3"
+   ],
+   "input": [
+    [
+     10,
+     "START"
+    ],
+    [
+     14,
+     "-"
+    ],
+    [
+     600,
+     "START"
+    ],
+    [
+     604,
+     "-"
+    ]
+   ],
+   "shots": {
+    "story": 300,
+    "level": 1100
+   },
+   "checks": [
+    {
+     "rule": "LS-2",
+     "what": "a status picture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "LS-2",
+     "what": "the lives, gems and villagers row, not black",
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      0,
+      40,
+      1024,
+      172
+     ],
+     "color": "000000",
+     "frac": 0.98,
+     "shot": "level"
+    },
+    {
+     "rule": "LS-2",
+     "what": "no Pause or menu line: those rows black",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      0,
+      330,
+      1024,
+      545
+     ],
+     "color": "000000",
+     "shot": "level"
+    }
+   ]
+  },
+  {
+   "id": "ls-us-level",
+   "rom": "ALDE",
+   "state": "lady-sia/us-level1.ss",
+   "desc": "in the first level: the pause screen without its menu lines on the second screen",
+   "rules": [
+    "LS-2"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "LS-2",
+     "what": "a status picture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "LS-2",
+     "what": "the lives, gems and villagers row, not black",
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      0,
+      40,
+      1024,
+      172
+     ],
+     "color": "000000",
+     "frac": 0.98,
+     "shot": "later"
+    },
+    {
+     "rule": "LS-2",
+     "what": "no Pause or menu line: those rows black",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      0,
+      330,
+      1024,
+      545
+     ],
+     "color": "000000",
+     "shot": "later"
+    },
+    {
+     "rule": "LS-2",
+     "what": "the time and the ring, not black",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      0,
+      240,
+      1024,
+      300
+     ],
+     "color": "000000",
+     "frac": 0.98
+    }
+   ]
+  },
+  {
+   "id": "ls-us-paused",
+   "rom": "ALDE",
+   "state": "lady-sia/us-paused.ss",
+   "desc": "paused in the game (the logo: no picture yet), back to the level (the status picture), paused again and through its choices (a player's bug report, its keys played back): the status picture stays",
+   "rules": [
+    "LS-2",
+    "LS-4"
+   ],
+   "input": [
+    [
+     73,
+     "START"
+    ],
+    [
+     79,
+     "-"
+    ],
+    [
+     130,
+     "START"
+    ],
+    [
+     136,
+     "-"
+    ],
+    [
+     374,
+     "RIGHT"
+    ],
+    [
+     382,
+     "-"
+    ],
+    [
+     394,
+     "RIGHT"
+    ],
+    [
+     402,
+     "-"
+    ],
+    [
+     420,
+     "LEFT"
+    ],
+    [
+     427,
+     "-"
+    ],
+    [
+     430,
+     "LEFT"
+    ],
+    [
+     438,
+     "-"
+    ]
+   ],
+   "shots": {
+    "paused": 60,
+    "level": 125,
+    "paused-again": 250,
+    "options": 410
+   },
+   "checks": [
+    {
+     "rule": "LS-2",
+     "what": "a status picture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "LS-2",
+     "what": "no Pause or menu line: those rows black",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      0,
+      330,
+      1024,
+      545
+     ],
+     "color": "000000",
+     "shot": "level"
+    },
+    {
+     "rule": "LS-4",
+     "what": "the second screen keeps its picture while paused",
+     "type": "same",
+     "a": {
+      "shot": "level",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "options",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "ls-us-quit",
+   "rom": "ALDE",
+   "state": "lady-sia/us-level1.ss",
+   "desc": "in a level, paused, Quit to the main menu: the logo from the title on",
+   "rules": [
+    "LS-2",
+    "LS-3",
+    "LS-4"
+   ],
+   "input": [
+    [
+     200,
+     "START"
+    ],
+    [
+     204,
+     "-"
+    ],
+    [
+     230,
+     "RIGHT"
+    ],
+    [
+     236,
+     "-"
+    ],
+    [
+     250,
+     "RIGHT"
+    ],
+    [
+     256,
+     "-"
+    ],
+    [
+     280,
+     "A"
+    ],
+    [
+     284,
+     "-"
+    ]
+   ],
+   "shots": {
+    "level": 180,
+    "quit": 270,
+    "title": 500
+   },
+   "checks": [
+    {
+     "rule": "LS-2",
+     "what": "a status picture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "LS-3",
+     "what": "back to the logo after quitting",
+     "type": "log",
+     "match": "second screen back to the logo"
+    }
+   ]
+  },
+  {
+   "id": "ls-eu-level",
+   "rom": "ALDP",
+   "state": "lady-sia/eu-level1.ss",
+   "desc": "in the first level, European release: the pause screen without its menu lines",
+   "rules": [
+    "LS-2"
+   ],
+   "shots": {
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "LS-2",
+     "what": "a status picture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "LS-2",
+     "what": "the lives, gems and villagers row, not black",
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      0,
+      40,
+      1024,
+      172
+     ],
+     "color": "000000",
+     "frac": 0.98,
+     "shot": "later"
+    },
+    {
+     "rule": "LS-2",
+     "what": "no Pause or menu line: those rows black",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      0,
+      330,
+      1024,
+      545
+     ],
+     "color": "000000",
+     "shot": "later"
+    }
+   ]
+  },
+  {
+   "id": "ls-logo-alde",
+   "kind": "logo",
+   "rom": "ALDE",
+   "desc": "ALDE logo extraction",
+   "rules": [
+    "GEN-1",
+    "LS-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "ls-logo-aldp",
+   "kind": "logo",
+   "rom": "ALDP",
+   "desc": "ALDP logo extraction",
+   "rules": [
+    "GEN-1",
+    "LS-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

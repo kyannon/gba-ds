@@ -2642,6 +2642,40 @@ static const MapProfile profiles[] = {
 		.menu = { { 0x03002170, 0xFFFF, 0x420C, 2 } },
 	},
 	{
+		/* Lady Sia (USA; Europe: the ALDP variant, same addresses). The byte
+		 * at 0x03003090 says where the game is: bit 0 set in a level, bit 4
+		 * too while its pause screen is up (0x01 / 0x51; 0x41 / 0x51 after
+		 * some play), 0x03 at the title and in the menus before a game,
+		 * 0x00 on the story text and while the game loads. The pause screen
+		 * (START) is sprites on black, drawn the frame it opens: lives, gems
+		 * and rescued villagers in rows 8-36, the level's time 49-62,
+		 * "Pause" 73-86, its choice with blinking arrows 97-110 (the time,
+		 * Pause and the choice are one block of 64x64 text sprites), the
+		 * ring and heart 126-158 (the ring pulses). */
+		.codes = { "ALDE" },
+		.title = "Lady Sia",
+		/* the title's lettering, once it has slid into place (the language
+		 * list follows at ~1050): at this frame BG2 is the lettering, BG1
+		 * its pink edge and the TM, BG0 the white behind; Press START is a
+		 * sprite (the game moves them between layers from frame to frame:
+		 * another frame needs other layers) (LS-1) */
+		.logo = { .steps = { { 0, 990 } }, .layers = 0x6, .maxY = 106 },
+		/* the pause screen, whole (LS-2) */
+		.open = { { K_START, 3 } },
+		.settleMax = 30, .openWithin = 20, .stableFrames = 2, .maxDiff = 700,
+		.crop_x = 0, .crop_y = 0, .crop_w = 240, .crop_h = 160,
+		.bgColor = 0x000000, .minForeground = 2000, .tolerance = 8,
+		/* map_crop: the rows of Pause and its choice, arrows included, in
+		 * the screen's black (LS-2) */
+		.glyphs = { { 0, 67, 240, 49, -1, { 0x000000 } } },
+		.mem = { { 0x03003090, 0x11, 0x11, 1 } },
+		/* in a level, not paused; paused in the game, the last picture
+		 * stays (LS-4) */
+		.live = { { 0x03003090, 0x13, 0x01, 1 } },
+		/* the title and the menus: the logo (LS-3) */
+		.menu = { { 0x03003090, 0xFF, 0x03, 1 } },
+	},
+	{
 		/* Mario & Luigi: Superstar Saga (USA; Europe and Japan, Mario &
 		 * Luigi RPG: variants). Walking about, the Bros. Info screen, the
 		 * page of the brother in front: see ml_compose (ML-2) */
@@ -3067,6 +3101,7 @@ static const Variant variants[] = {
 	{ "AT3F", "AT3E", 0, thps3_fra },
 	{ "AT3D", "AT3E", 0, thps3_ger },
 	{ "ASEJ", "ASEE", 0, smm_jpn },
+	{ "ALDP", "ALDE", 0, NULL },
 	/* (Fire Emblem's addresses: FeRegion) */
 	{ "AE7X", "AE7E", 0, lang_menu },
 	{ "AE7Y", "AE7E", 0, lang_menu },
