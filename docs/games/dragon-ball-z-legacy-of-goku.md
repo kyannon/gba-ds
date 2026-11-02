@@ -15,11 +15,11 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **DBZ-1. Logo.** On the title, the menus and in the intro, the second screen shows the logo: DRAGON BALL Z and THE LEGACY OF GOKU from the title screen, without Goku, the FUNimation badge or the copyright lines. The title paints Goku's hair over the Z's lower left (the game never draws the Z without it), so there the Z is drawn again, in the game's own red and black, to the shape of the Dragon Ball Z logo's Z (the owner's SVG of it, fitted onto the game's Z): see Exceptions.
 
-**DBZ-2. The pause menu, always.** Walking about, the second screen is the pause menu (START) as the game draws it: Level, Experience and To Next Level at the top, HP, Ki and Time at the bottom right. It's opened in the background on a silent copy of the game about once a second; your game is never paused. Its list of options (Quests to Exit, with the cursor) is left out: the panel is there, empty, for the HUD (DBZ-3, DBZ-4).
+**DBZ-2. The pause menu, always.** Walking about, the second screen is the pause menu (START) as the game draws it: Level, Experience and To Next Level at the top, HP, Ki and Time at the bottom right. It's opened in the background on a silent copy of the game about once a second; your game is never paused. Its list of options (Quests to Exit, with the cursor) is left out: the panel is there, empty, for the HUD (DBZ-3).
 
-**DBZ-3. The HP and Ki bars.** Walking about, the HP and Ki bars leave the game screen's top left for the top of that empty panel, live, whole in a conversation too (where the game's box covers them).
+**DBZ-3. The top-left HUD, as the game has it.** Walking about, whatever the game shows at the game screen's top left leaves it for the middle of that empty panel, live: the HP and Ki bars, whole in a conversation too (where the game's box covers them), or, in their place, the counter (DBZ-4). Only one of them is there at a time, as on the game screen.
 
-**DBZ-4. The counter SELECT shows.** The counter the game shows at the top left while SELECT is held (an icon and a count, such as 00/06) is always on the second screen, below the HP and Ki bars, taken with the pause menu: the counter alone (what holding SELECT adds, and its icon), not whatever else is in that corner then (a ki blast, the twigs of the woods, a squirrel, even one between the icon and the box). On the game screen, holding SELECT shows it as before.
+**DBZ-4. The counter, when the game shows it.** While SELECT is held, or while Goku flies (R, which uses up what the counter counts), the game shows a counter at its top left instead of the bars: an icon and a count, such as 00/06. The second screen shows it in their place, live, and the bars again once the game does; only the counter (its icon sprite and its box), not whatever else is in that corner (a ki blast, a squirrel, even one between the icon and the box). (Until v1.4.5's later test builds, the counter was always on the second screen, below the bars.)
 
 **DBZ-5. Elsewhere.** In the game's own pause menu and its screens, the second screen keeps the last picture. Conversations and anything else over the field stay on the game screen.
 
@@ -42,4 +42,5 @@ Tried in the USA release from the owner's reports (the title, the pause menu, wa
 | Options panel | the bottom-left panel: border at x 9 / 150, y 81 / 150; inside x 11-147, y 84-147 |
 | Title | mode 4 (DISPCNT `0x0404`) with the subtitle, then mode 0 (`0x0900`, BG3 the picture, BG0 Press Start); A skips the intro |
 | HP / Ki bars | four sprites at y 8, x 8-87 (palettes 14, 15, priority 1); tiles 1-16, or 17-32 in a conversation (the portrait takes the first) |
-| SELECT's counter | with SELECT held: an icon sprite (palette 15) at 6,12 and a box on BG0 (which also has bits of the field, such as twigs: the box is what SELECT adds to it) |
+| SELECT's counter | with SELECT held or flying (R): an icon sprite (palette 15) at 6,12 and a box on BG0 (BG0 has nothing else walking about but conversations' boxes); `0x0200384C` bit `0x08` is set while it's shown, the bars back when it clears |
+| The count | `0x030007AD` (what flying uses up; set it to fly in tests: `us-flying.ss` was made by poking it to 6) |

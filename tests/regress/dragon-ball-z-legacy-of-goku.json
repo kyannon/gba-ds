@@ -66,9 +66,9 @@
      "screen": "second",
      "rect": [
       166,
-      441,
+      510,
       508,
-      514
+      595
      ],
      "color": "FF0000",
      "frac": 0.03
@@ -162,9 +162,9 @@
      "screen": "second",
      "rect": [
       166,
-      441,
+      510,
       508,
-      514
+      595
      ],
      "color": "FF0000",
      "frac": 0.03
@@ -175,36 +175,93 @@
    "id": "dbz-us-twigs",
    "rom": "ALGE",
    "state": "dragon-ball-z-legacy-of-goku/us-twigs.ss",
-   "desc": "in the woods (a player's bug report): SELECT's counter alone in the panel, not the twigs BG0 has near it",
+   "desc": "in the woods (a player's bug report): the bars, then with SELECT held the counter alone in the panel, not the twigs BG0 has near it",
    "rules": [
+    "DBZ-3",
     "DBZ-4"
    ],
    "shots": {
-    "start": 60
-   }
+    "start": 20,
+    "select": 80
+   },
+   "input": [
+    [
+     30,
+     "SELECT"
+    ]
+   ]
   },
   {
    "id": "dbz-us-squirrel",
    "rom": "ALGE",
    "state": "dragon-ball-z-legacy-of-goku/us-squirrel.ss",
-   "desc": "a squirrel at the top left (a player's bug report): SELECT's counter alone in the panel, not the squirrel beside its icon",
+   "desc": "a squirrel at the top left (a player's bug report): the bars, then with SELECT held the counter alone in the panel, not the squirrel beside its icon",
    "rules": [
+    "DBZ-3",
     "DBZ-4"
    ],
    "shots": {
-    "start": 20
-   }
+    "start": 20,
+    "select": 80
+   },
+   "input": [
+    [
+     30,
+     "SELECT"
+    ]
+   ]
   },
   {
    "id": "dbz-us-squirrel-2",
    "rom": "ALGE",
    "state": "dragon-ball-z-legacy-of-goku/us-squirrel-2.ss",
-   "desc": "a squirrel between the counter's icon and its box (a player's bug report): the counter alone in the panel",
+   "desc": "a squirrel between the counter's icon and its box (a player's bug report): the bars, then with SELECT held the counter alone in the panel",
    "rules": [
+    "DBZ-3",
     "DBZ-4"
    ],
    "shots": {
-    "start": 20
+    "start": 20,
+    "select": 80
+   },
+   "input": [
+    [
+     30,
+     "SELECT"
+    ]
+   ]
+  },
+  {
+   "id": "dbz-us-flying",
+   "rom": "ALGE",
+   "state": "dragon-ball-z-legacy-of-goku/us-flying.ss",
+   "desc": "on Kame House's beach with the count poked to 06: the bars, the counter while flying (R), the bars again after landing (R)",
+   "rules": [
+    "DBZ-3",
+    "DBZ-4"
+   ],
+   "input": [
+    [
+     70,
+     "R"
+    ],
+    [
+     76,
+     "-"
+    ],
+    [
+     200,
+     "R"
+    ],
+    [
+     206,
+     "-"
+    ]
+   ],
+   "shots": {
+    "walking": 60,
+    "flying": 130,
+    "landed": 240
    }
   },
   {

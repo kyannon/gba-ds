@@ -1346,24 +1346,22 @@ static const char* som_compose(Emu* s, const void* state, uint32_t* out, int w, 
 
 /* ---------------------------------------------------------- Dragon Ball Z: The Legacy of Goku
  *
- * The second screen (DBZ-2 to DBZ-4): the pause menu (START), opened on the
- * shadow core from the live state at every capture, with its list of
- * options left out (the panel drawn again from its layers alone: BG2's
- * panel over BG3's picture, without BG1's text or the cursor sprite), and
- * in that empty panel, below where the HUD's HP / Ki bars go (hud.moves),
- * the counter the game shows while SELECT is held (BG0's box and its icon
- * sprite), taken first from the same state with SELECT held.
+ * The second screen (DBZ-2): the pause menu (START), opened on the shadow
+ * core from the live state at every capture, with its list of options left
+ * out (the panel drawn again from its layers alone: BG2's panel over BG3's
+ * picture, without BG1's text or the cursor sprite). In that empty panel
+ * goes the game's top-left HUD, live (hud: the HP / Ki bars, or SELECT's /
+ * flying's counter, DBZ-3 and DBZ-4).
  */
 #define DBZ_FIELD_DISP 0x1F40
 #define DBZ_PAUSE_DISP 0x1F00
 #define DBZ_PAUSE_BG0 0x1C0F
-/* the options panel's inside, and where the counter goes in it (centred
- * across, its top at y) */
+#define DBZ_COUNTER 0x0200384C /* bit 0x08: the counter at the top left, not the bars */
+/* the options panel's inside */
 #define DBZ_PANEL_X0 11
 #define DBZ_PANEL_Y0 84
 #define DBZ_PANEL_X1 147
 #define DBZ_PANEL_Y1 147
-#define DBZ_COUNT_Y 114
 static bool dbz_pause_up(Emu* s) {
 	return emu_io16(s, 0x00) == DBZ_PAUSE_DISP && emu_io16(s, 0x08) == DBZ_PAUSE_BG0;
 }
@@ -1377,61 +1375,9 @@ static const char* dbz_compose(Emu* s, const void* state, uint32_t* out, int w, 
 		stSize = st ? sz : 0;
 	}
 	if (!st) return "no memory";
-	/* the counter: what holding SELECT adds to BG0 (its box; BG0 also has
-	 * bits of the field, twigs), and its icon, a sprite left of the box
-	 * (its sprite alone: the sprites in its palette, 15, drawn without the
-	 * layers, against the same frame with none); not whatever else passes
-	 * the corner (a ki blast, a squirrel, even between the icon and the box) */
-	static uint32_t plain[GBA_W * GBA_H], box[GBA_W * GBA_H], count[GBA_W * GBA_H], objs[GBA_W * GBA_H];
-	emu_layers(s, 0x01);
 	if (!emu_state_load(s, state)) return "state load failed";
-	if (emu_io16(s, 0x00) != DBZ_FIELD_DISP) {
-		emu_layers(s, 0x1F);
-		return "not walking about";
-	}
-	aw_run(s, 0, 20);
-	memcpy(plain, s->fb, sizeof(plain));
-	emu_state_load(s, state);
-	aw_run(s, K_SELECT, 20);
-	memcpy(box, s->fb, sizeof(box));
-	const SpriteRule notIcon = { -512, -256, 511, 255, 0, 1023, -1, 0x7FFF, 0 }, any = { -512, -256, 511, 255, 0, 1023, -1, 0, 0 };
-	emu_layers(s, 0x10);
-	emu_hide_sprites(s, &any, 1);
-	emu_state_load(s, state);
-	aw_run(s, K_SELECT, 20);
-	memcpy(objs, s->fb, sizeof(objs));
-	emu_hide_sprites(s, &notIcon, 1);
-	emu_state_load(s, state);
-	aw_run(s, K_SELECT, 20);
-	memcpy(count, s->fb, sizeof(count));
-	emu_hide_sprites(s, NULL, 0);
-	emu_layers(s, 0x1F);
-	static uint8_t take[GBA_W * GBA_H];
-	memset(take, 0, sizeof(take));
-	int bx0 = GBA_W, by0 = GBA_H, bx1 = -1, by1 = -1;
-	for (int y = 0; y < 48; ++y) {
-		for (int x = 0; x < 120; ++x) {
-			if (box[y * GBA_W + x] == plain[y * GBA_W + x]) continue;
-			take[y * GBA_W + x] = 1;
-			bx0 = x < bx0 ? x : bx0, by0 = y < by0 ? y : by0, bx1 = x > bx1 ? x : bx1, by1 = y > by1 ? y : by1;
-		}
-	}
-	int cx0 = GBA_W, cy0 = GBA_H, cx1 = -1, cy1 = -1;
-	if (bx1 >= 0) {
-		/* (the icon: up to 24 pixels left of the box, a few rows over its edges) */
-		int lx = bx0 - 24 < 0 ? 0 : bx0 - 24, ty = by0 - 6 < 0 ? 0 : by0 - 6, byy = by1 + 6;
-		for (int y = ty; y <= byy && y < 48; ++y)
-			for (int x = lx; x < bx0 + 8; ++x)
-				if (!take[y * GBA_W + x] && count[y * GBA_W + x] != objs[y * GBA_W + x]) take[y * GBA_W + x] = 2;
-		for (int y = 0; y < 48; ++y) {
-			for (int x = 0; x < 120; ++x) {
-				if (!take[y * GBA_W + x]) continue;
-				cx0 = x < cx0 ? x : cx0, cy0 = y < cy0 ? y : cy0, cx1 = x > cx1 ? x : cx1, cy1 = y > cy1 ? y : cy1;
-			}
-		}
-	}
+	if (emu_io16(s, 0x00) != DBZ_FIELD_DISP) return "not walking about";
 	/* the pause menu, once it's settled */
-	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
 	aw_run(s, K_START, 3);
 	if (!aw_settle(s, dbz_pause_up, 90)) return "the pause menu did not open";
@@ -1445,19 +1391,6 @@ static const char* dbz_compose(Emu* s, const void* state, uint32_t* out, int w, 
 		for (int x = DBZ_PANEL_X0; x <= DBZ_PANEL_X1 && x < w; ++x) out[y * w + x] = s->fb[y * GBA_W + x];
 	emu_layers(s, 0x1F);
 	emu_state_load(s, st);
-	/* the counter in it, centred across */
-	if (cx1 >= 0) {
-		int ox = (DBZ_PANEL_X0 + DBZ_PANEL_X1) / 2 - (cx0 + cx1) / 2, oy = DBZ_COUNT_Y - cy0;
-		for (int y = cy0; y <= cy1; ++y) {
-			for (int x = cx0; x <= cx1; ++x) {
-				if (!take[y * GBA_W + x]) continue;
-				uint32_t c = take[y * GBA_W + x] == 2 ? count[y * GBA_W + x] : box[y * GBA_W + x];
-				int nx = x + ox, ny = y + oy;
-				if (nx < DBZ_PANEL_X0 || ny < DBZ_PANEL_Y0 || nx > DBZ_PANEL_X1 || ny > DBZ_PANEL_Y1) continue;
-				out[ny * w + nx] = c;
-			}
-		}
-	}
 	return NULL;
 }
 
@@ -2730,15 +2663,22 @@ static const MapProfile profiles[] = {
 			 * on the second screen as last seen) */
 			/* (the first: walking about, the pause menu or the blank frame
 			 * between, not the title: the bars go only there) */
+			/* (the last: the bars, not the counter) */
 			.on = { { 0x04000000, 0x0F07, 0x0F00, 2, true, 0x0000 },
-			        { 0x04000000, 0xFFFF, DBZ_FIELD_DISP, 2, true, DBZ_PAUSE_DISP }, { 0x04000008, 0xFFFF, 0x1C00, 2, true, DBZ_PAUSE_BG0 } },
+			        { 0x04000000, 0xFFFF, DBZ_FIELD_DISP, 2, true, DBZ_PAUSE_DISP }, { 0x04000008, 0xFFFF, 0x1C00, 2, true, DBZ_PAUSE_BG0 },
+			        { DBZ_COUNTER, 0x08, 0x00, 1 } },
+			/* SELECT held or flying: the counter instead, its box on BG0
+			 * (which has nothing else walking about) and its icon a sprite
+			 * (DBZ-4) */
+			.alt = { .on = { { 0x04000000, 0xFFFF, DBZ_FIELD_DISP, 2 }, { 0x04000008, 0xFFFF, 0x1C00, 2 }, { DBZ_COUNTER, 0x08, 0x08, 1 } },
+			         .bgMask = 0x01 },
 			/* the HP / Ki bars (sprites 0-3 at the top left, palettes 14
-			 * and 15) leave the game screen for the top of the empty
-			 * options panel, over the picture (DBZ-3) */
-			/* (row 8: not SELECT's icon, at 6,12; any tiles: in a
-			 * conversation the portrait takes the first, and the bars'
-			 * move up) */
-			.objs = { { 4, 6, 90, 10, 0, 1023, 1, (1u << 14) | (1u << 15) } },
+			 * and 15), or the counter's icon (palette 15, at 6,12) leave
+			 * the game screen for the middle of the empty options panel,
+			 * over the picture (DBZ-3) */
+			/* (any tiles: in a conversation the portrait takes the first,
+			 * and the bars' move up) */
+			.objs = { { 4, 6, 90, 12, 0, 1023, 1, (1u << 14) | (1u << 15) } },
 			/* (taken again only walking about: kept as they were in the
 			 * pause menu) */
 			.layout = { { 0x04000000, 0xFFFF, DBZ_FIELD_DISP, 2 }, { 0x04000008, 0xFFFF, 0x1C00, 2 } },
@@ -2747,7 +2687,7 @@ static const MapProfile profiles[] = {
 			/* (taken once it's held still two frames: as SELECT's counter
 			 * comes up, its icon's graphics are in the bars' tiles for a
 			 * frame) */
-			.moves = { { 0, 0, 100, 30, 'C', 79, 'T', 92, .top = true, .settle = 2 } },
+			.moves = { { 0, 0, 100, 34, 'C', 79, 'M', 115, .top = true, .settle = 2 } },
 		},
 		/* the title with THE LEGACY OF GOKU, after A skips the intro: the
 		 * lettering inside its mask (DBZ-1) */
