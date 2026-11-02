@@ -89,6 +89,27 @@
    ]
   },
   {
+   "id": "ml-us-conversation",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-conversation.ss",
+   "desc": "a conversation (a player's bug report, 10 seconds before it): SELECT's menu doesn't open, nothing taken, never the field",
+   "rules": [
+    "ML-2",
+    "ML-3"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "ML-3",
+     "what": "no capture",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
    "id": "ml-logo-a88e",
    "kind": "logo",
    "rom": "A88E",

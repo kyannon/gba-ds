@@ -1377,20 +1377,19 @@ static const char* dbz_compose(Emu* s, const void* state, uint32_t* out, int w, 
 		stSize = st ? sz : 0;
 	}
 	if (!st) return "no memory";
-	/* the counter: SELECT held, its box (BG0) found alone, then the box
-	 * and its icon (a sprite at its left) with the sprites, against the
-	 * backdrop (what nothing covers: the same with no layers at all); not
-	 * whatever else passes the corner (a ki blast) */
-	static uint32_t back[GBA_W * GBA_H], box[GBA_W * GBA_H], count[GBA_W * GBA_H];
-	emu_layers(s, 0x00);
+	/* the counter: what holding SELECT adds to BG0 (its box; BG0 also has
+	 * bits of the field, twigs), and its icon, a sprite left of the box
+	 * (what the sprites add there); not whatever else passes the corner
+	 * (a ki blast, other sprites) */
+	static uint32_t plain[GBA_W * GBA_H], box[GBA_W * GBA_H], count[GBA_W * GBA_H];
+	emu_layers(s, 0x01);
 	if (!emu_state_load(s, state)) return "state load failed";
 	if (emu_io16(s, 0x00) != DBZ_FIELD_DISP) {
 		emu_layers(s, 0x1F);
 		return "not walking about";
 	}
-	emu_frame(s, 0);
-	memcpy(back, s->fb, sizeof(back));
-	emu_layers(s, 0x01);
+	aw_run(s, 0, 20);
+	memcpy(plain, s->fb, sizeof(plain));
 	emu_state_load(s, state);
 	aw_run(s, K_SELECT, 20);
 	memcpy(box, s->fb, sizeof(box));
@@ -1399,22 +1398,26 @@ static const char* dbz_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	aw_run(s, K_SELECT, 20);
 	memcpy(count, s->fb, sizeof(count));
 	emu_layers(s, 0x1F);
+	static uint8_t take[GBA_W * GBA_H];
+	memset(take, 0, sizeof(take));
 	int bx0 = GBA_W, by0 = GBA_H, bx1 = -1, by1 = -1;
 	for (int y = 0; y < 48; ++y) {
 		for (int x = 0; x < 120; ++x) {
-			if ((box[y * GBA_W + x] & 0xFFFFFF) == (back[y * GBA_W + x] & 0xFFFFFF)) continue;
+			if (box[y * GBA_W + x] == plain[y * GBA_W + x]) continue;
+			take[y * GBA_W + x] = 1;
 			bx0 = x < bx0 ? x : bx0, by0 = y < by0 ? y : by0, bx1 = x > bx1 ? x : bx1, by1 = y > by1 ? y : by1;
 		}
 	}
-	/* (the icon: up to 24 pixels left of the box, a few rows over its edges) */
 	int cx0 = GBA_W, cy0 = GBA_H, cx1 = -1, cy1 = -1;
 	if (bx1 >= 0) {
+		/* (the icon: up to 24 pixels left of the box, a few rows over its edges) */
 		int lx = bx0 - 24 < 0 ? 0 : bx0 - 24, ty = by0 - 6 < 0 ? 0 : by0 - 6, byy = by1 + 6;
+		for (int y = ty; y <= byy && y < 48; ++y)
+			for (int x = lx; x < bx0 + 8; ++x)
+				if (count[y * GBA_W + x] != box[y * GBA_W + x]) take[y * GBA_W + x] = 2;
 		for (int y = 0; y < 48; ++y) {
 			for (int x = 0; x < 120; ++x) {
-				bool in = x >= lx && x <= bx1 && y >= ty && y <= byy;
-				if (!in) count[y * GBA_W + x] = back[y * GBA_W + x];
-				if ((count[y * GBA_W + x] & 0xFFFFFF) == (back[y * GBA_W + x] & 0xFFFFFF)) continue;
+				if (!take[y * GBA_W + x]) continue;
 				cx0 = x < cx0 ? x : cx0, cy0 = y < cy0 ? y : cy0, cx1 = x > cx1 ? x : cx1, cy1 = y > cy1 ? y : cy1;
 			}
 		}
@@ -1439,8 +1442,8 @@ static const char* dbz_compose(Emu* s, const void* state, uint32_t* out, int w, 
 		int ox = (DBZ_PANEL_X0 + DBZ_PANEL_X1) / 2 - (cx0 + cx1) / 2, oy = DBZ_COUNT_Y - cy0;
 		for (int y = cy0; y <= cy1; ++y) {
 			for (int x = cx0; x <= cx1; ++x) {
-				uint32_t c = count[y * GBA_W + x];
-				if ((c & 0xFFFFFF) == (back[y * GBA_W + x] & 0xFFFFFF)) continue;
+				if (!take[y * GBA_W + x]) continue;
+				uint32_t c = take[y * GBA_W + x] == 2 ? count[y * GBA_W + x] : box[y * GBA_W + x];
 				int nx = x + ox, ny = y + oy;
 				if (nx < DBZ_PANEL_X0 || ny < DBZ_PANEL_Y0 || nx > DBZ_PANEL_X1 || ny > DBZ_PANEL_Y1) continue;
 				out[ny * w + nx] = c;
@@ -1467,19 +1470,28 @@ static bool ml_wait(Emu* s, int v, int max) {
 	}
 	return false;
 }
-/* runs frames until the picture has held (nearly) still for 3 */
+/* runs frames until the picture has held (nearly) still for 8: the page's
+ * opening and the brothers' turn pause for 2 or 3 frames at a time, and a
+ * sparkle blinks (66 pixels) every 4 */
 static bool ml_settle(Emu* s, int max) {
 	static uint32_t prev[GBA_W * GBA_H];
 	int still = 0;
 	for (int f = 0; f < max; ++f) {
 		emu_frame(s, 0);
 		int d = 0;
-		for (int i = 0; i < GBA_W * GBA_H && d <= 64; ++i) d += prev[i] != s->fb[i];
-		still = f && d <= 64 ? still + 1 : 0;
-		if (still >= 3) return true;
+		for (int i = 0; i < GBA_W * GBA_H && d <= 200; ++i) d += prev[i] != s->fb[i];
+		still = f && d <= 200 ? still + 1 : 0;
+		if (still >= 8) return true;
 		memcpy(prev, s->fb, sizeof(prev));
 	}
 	return false;
+}
+/* Bros. Info's frame, the same on both brothers' pages (its leather edges,
+ * the ring's rim, the plaid, the boxes): not the field or the menu */
+static const Probe mlBrosInfo[8] = { { 10, 150, 0x6B8C73 }, { 4, 80, 0x633921 }, { 235, 80, 0x7B736B }, { 120, 157, 0xBDC6B5 },
+                                     { 60, 5, 0x7B7B73 }, { 200, 4, 0x633921 }, { 20, 100, 0xEFEFE7 }, { 5, 5, 0x7B4231 } };
+static bool ml_bros_info(Emu* s) {
+	return som_probes(s, mlBrosInfo, 8, 7, 8);
 }
 static void ml_page(const uint32_t* fb, uint32_t* out, int w, int h) {
 	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
@@ -1508,7 +1520,8 @@ static const char* ml_compose(Emu* s, const void* state, uint32_t* const* out, i
 	} else if (at != 2) {
 		return "not walking about";
 	}
-	if (!ml_settle(s, 120)) return "Bros. Info didn't settle";
+	if (!ml_settle(s, 150)) return "Bros. Info didn't settle";
+	if (!ml_bros_info(s)) return "not Bros. Info";
 	static uint32_t first[GBA_W * GBA_H];
 	memcpy(first, s->fb, sizeof(first));
 	ml_page(first, out[0], w, h);
@@ -1516,8 +1529,8 @@ static const char* ml_compose(Emu* s, const void* state, uint32_t* const* out, i
 	/* the other brother: R (the portrait turns round), until the page changes */
 	for (int tries = 0; tries < 3; ++tries) {
 		aw_tap(s, K_R, 1);
-		aw_run(s, 0, 20);
-		if (!ml_settle(s, 120)) break;
+		aw_run(s, 0, 20); /* (the turn: 12 frames) */
+		if (!ml_settle(s, 150) || !ml_bros_info(s)) break;
 		if (memcmp(first, s->fb, sizeof(first))) {
 			ml_page(s->fb, out[1], w, h);
 			*nOut = 2;

@@ -19,7 +19,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **DBZ-3. The HP and Ki bars.** Walking about, the HP and Ki bars leave the game screen's top left for the top of that empty panel, live, whole in a conversation too (where the game's box covers them).
 
-**DBZ-4. The counter SELECT shows.** The counter the game shows at the top left while SELECT is held (an icon and a count, such as 00/06) is always on the second screen, below the HP and Ki bars, taken with the pause menu: the counter alone, not whatever else is in that corner then (a ki blast). On the game screen, holding SELECT shows it as before.
+**DBZ-4. The counter SELECT shows.** The counter the game shows at the top left while SELECT is held (an icon and a count, such as 00/06) is always on the second screen, below the HP and Ki bars, taken with the pause menu: the counter alone (what holding SELECT adds, and its icon), not whatever else is in that corner then (a ki blast, the twigs of the woods). On the game screen, holding SELECT shows it as before.
 
 **DBZ-5. Elsewhere.** In the game's own pause menu and its screens, the second screen keeps the last picture. Conversations and anything else over the field stay on the game screen.
 
@@ -42,4 +42,4 @@ Tried in the USA release from the owner's reports (the title, the pause menu, wa
 | Options panel | the bottom-left panel: border at x 9 / 150, y 81 / 150; inside x 11-147, y 84-147 |
 | Title | mode 4 (DISPCNT `0x0404`) with the subtitle, then mode 0 (`0x0900`, BG3 the picture, BG0 Press Start); A skips the intro |
 | HP / Ki bars | four sprites at y 8, x 8-87 (palettes 14, 15, priority 1); tiles 1-16, or 17-32 in a conversation (the portrait takes the first) |
-| SELECT's counter | with SELECT held: an icon sprite (palette 15) at 6,12 and a box on BG0 |
+| SELECT's counter | with SELECT held: an icon sprite (palette 15) at 6,12 and a box on BG0 (which also has bits of the field, such as twigs: the box is what SELECT adds to it) |

@@ -172,6 +172,18 @@
    ]
   },
   {
+   "id": "dbz-us-twigs",
+   "rom": "ALGE",
+   "state": "dragon-ball-z-legacy-of-goku/us-twigs.ss",
+   "desc": "in the woods (a player's bug report): SELECT's counter alone in the panel, not the twigs BG0 has near it",
+   "rules": [
+    "DBZ-4"
+   ],
+   "shots": {
+    "start": 60
+   }
+  },
+  {
    "id": "dbz-logo-alge",
    "kind": "logo",
    "rom": "ALGE",

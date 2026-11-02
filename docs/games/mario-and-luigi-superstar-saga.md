@@ -15,7 +15,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **ML-1. Logo.** On the title, the second screen shows the logo: MARIO & LUIGI and SUPERSTAR SAGA (in Japan マリオ&ルイージRPG), without the sky, PRESS START, the suitcase or the copyright line.
 
-**ML-2. Bros. Info, always.** Walking about, the second screen is the Bros. Info screen (SELECT's menu, its third icon), as the game draws it, filling the screen: Mario's page and Luigi's (R turns between them), each in turn for 5 seconds. It's opened in the background on a silent copy of the game about once a second; your game is never paused.
+**ML-2. Bros. Info, always.** Walking about, the second screen is the Bros. Info screen (SELECT's menu, its third icon), as the game draws it, filling the screen, once it has settled (its opening and the brothers' turn over) and only if it is Bros. Info (its frame checked; never the field or a menu): Mario's page and Luigi's (R turns between them), each in turn for 5 seconds. It's opened in the background on a silent copy of the game about once a second; your game is never paused.
 
 **ML-3. Elsewhere.** In battles, scenes and the game's own menus, the second screen keeps the last picture. Nothing leaves the game screen.
 
@@ -23,7 +23,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 ## Not covered yet
 
-Tried in the USA release from the owner's two reports (the title, walking about at the start of the story, Bros. Info open). Battles, conversations, later areas (more equipment, badges) and Europe and Japan beyond their titles aren't tried yet: their screen and menu bytes are taken to be at the USA's addresses (both read the USA's title value at their titles).
+Tried in the USA release from the owner's reports (the title, walking about at the start of the story, Bros. Info open, a conversation). One report showed the field on the second screen, from before the report's 10 seconds: not reproduced; the frame check keeps anything but Bros. Info off. Battles, conversations, later areas (more equipment, badges) and Europe and Japan beyond their titles aren't tried yet: their screen and menu bytes are taken to be at the USA's addresses (both read the USA's title value at their titles).
 
 ## Facts found so far (for sessions)
 
