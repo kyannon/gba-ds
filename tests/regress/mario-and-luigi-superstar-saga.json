@@ -1,0 +1,131 @@
+{
+ "game": "Mario & Luigi: Superstar Saga",
+ "rules": "docs/games/mario-and-luigi-superstar-saga.md",
+ "cases": [
+  {
+   "id": "ml-us-title",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-title.ss",
+   "desc": "the title (a player's bug report): the logo",
+   "rules": [
+    "ML-1"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "ML-1",
+     "what": "no capture",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-field",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-field.ss",
+   "desc": "walking about at the start of the story: Bros. Info, Mario's page, then Luigi's 5 seconds on, then Mario's",
+   "rules": [
+    "ML-2"
+   ],
+   "shots": {
+    "mario": 100,
+    "luigi": 420,
+    "mario2": 720
+   },
+   "checks": [
+    {
+     "rule": "ML-2",
+     "what": "Bros. Info taken, two pages",
+     "type": "log",
+     "match": "map updated \\(2 frame"
+    },
+    {
+     "rule": "ML-2",
+     "what": "the pages turn",
+     "type": "differs",
+     "a": {
+      "shot": "mario",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "luigi",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.05
+    }
+   ]
+  },
+  {
+   "id": "ml-us-bros-info",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-bros-info.ss",
+   "desc": "the game's own Bros. Info open (a player's bug report): nothing taken there, the logo until there's a picture",
+   "rules": [
+    "ML-3"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": [
+    {
+     "rule": "ML-3",
+     "what": "no capture",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ml-logo-a88e",
+   "kind": "logo",
+   "rom": "A88E",
+   "desc": "A88E logo extraction",
+   "rules": [
+    "GEN-1",
+    "ML-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "ml-logo-a88p",
+   "kind": "logo",
+   "rom": "A88P",
+   "desc": "A88P logo extraction (a language menu first)",
+   "rules": [
+    "GEN-1",
+    "ML-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "ml-logo-a88j",
+   "kind": "logo",
+   "rom": "A88J",
+   "desc": "A88J logo extraction",
+   "rules": [
+    "GEN-1",
+    "ML-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

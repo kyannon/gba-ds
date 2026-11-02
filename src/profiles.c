@@ -1450,6 +1450,83 @@ static const char* dbz_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	return NULL;
 }
 
+/* ---------------------------------------------------------- Mario & Luigi: Superstar Saga
+ *
+ * The second screen (ML-2): the Bros. Info screen, opened on the shadow core
+ * from the live state at every capture (SELECT's menu, its third icon, A),
+ * one page per brother (R turns to the other), shown in turn 5 seconds each.
+ *   ML_SCREEN 1 walking about, 0 SELECT's menu, 2 Bros. Info, 3 the title
+ *   ML_CURSOR the menu's icon (0 Items, 1 Equipment, 2 Bros. Info)
+ */
+#define ML_SCREEN 0x02000C99
+#define ML_CURSOR 0x030040A9
+static bool ml_wait(Emu* s, int v, int max) {
+	for (int f = 0; f < max; ++f) {
+		emu_frame(s, 0);
+		if (emu_read8(s, ML_SCREEN) == v) return true;
+	}
+	return false;
+}
+/* runs frames until the picture has held (nearly) still for 3 */
+static bool ml_settle(Emu* s, int max) {
+	static uint32_t prev[GBA_W * GBA_H];
+	int still = 0;
+	for (int f = 0; f < max; ++f) {
+		emu_frame(s, 0);
+		int d = 0;
+		for (int i = 0; i < GBA_W * GBA_H && d <= 64; ++i) d += prev[i] != s->fb[i];
+		still = f && d <= 64 ? still + 1 : 0;
+		if (still >= 3) return true;
+		memcpy(prev, s->fb, sizeof(prev));
+	}
+	return false;
+}
+static void ml_page(const uint32_t* fb, uint32_t* out, int w, int h) {
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+}
+static const char* ml_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+	int max = *nOut < 2 ? *nOut : 2;
+	*nOut = 1;
+	*step = 300; /* 5 seconds a brother */
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	int at = emu_read8(s, ML_SCREEN);
+	if (at == 1) {
+		aw_tap(s, K_SELECT, 1);
+		if (!ml_wait(s, 0, 60)) return "map button did nothing";
+		at = 0;
+	}
+	if (at == 0) {
+		aw_run(s, 0, 20); /* (past its opening) */
+		for (int i = 0; i < 8 && emu_read8(s, ML_CURSOR) != 2; ++i) {
+			aw_tap(s, emu_read8(s, ML_CURSOR) < 2 ? K_DOWN : K_UP, 1);
+			aw_run(s, 0, 4);
+		}
+		if (emu_read8(s, ML_CURSOR) != 2) return "Bros. Info not reached in the menu";
+		aw_tap(s, K_A, 1);
+		if (!ml_wait(s, 2, 90)) return "Bros. Info didn't open";
+	} else if (at != 2) {
+		return "not walking about";
+	}
+	if (!ml_settle(s, 120)) return "Bros. Info didn't settle";
+	static uint32_t first[GBA_W * GBA_H];
+	memcpy(first, s->fb, sizeof(first));
+	ml_page(first, out[0], w, h);
+	if (max < 2) return NULL;
+	/* the other brother: R (the portrait turns round), until the page changes */
+	for (int tries = 0; tries < 3; ++tries) {
+		aw_tap(s, K_R, 1);
+		aw_run(s, 0, 20);
+		if (!ml_settle(s, 120)) break;
+		if (memcmp(first, s->fb, sizeof(first))) {
+			ml_page(s->fb, out[1], w, h);
+			*nOut = 2;
+			break;
+		}
+	}
+	return NULL;
+}
+
 /* ---------------------------------------------------------- Golden Sun
  *
  * The second screen: the Status screen (SELECT's menu, its last icon, A),
@@ -2587,6 +2664,24 @@ static const MapProfile profiles[] = {
 		.menu = { { 0x03002170, 0xFFFF, 0x420C, 2 } },
 	},
 	{
+		/* Mario & Luigi: Superstar Saga (USA; Europe and Japan, Mario &
+		 * Luigi RPG: variants). Walking about, the Bros. Info screen, a page
+		 * per brother: see ml_compose (ML-2) */
+		.codes = { "A88E" },
+		.title = "Mario & Luigi: Superstar Saga",
+		.composePages = ml_compose,
+		.stillPick = STILL_FIRST, /* (Map Animations off: the first page) */
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* walking about: taken (about once a second); the title: the logo
+		 * (ML-1); elsewhere (battles, scenes) the last picture stays */
+		.live = { { ML_SCREEN, 0xFF, 1, 1 } },
+		.menu = { { ML_SCREEN, 0xFF, 3, 1 } },
+		/* the title's MARIO & LUIGI (BG2) and SUPERSTAR SAGA (sprites),
+		 * above PRESS START and the suitcase */
+		.logo = { .steps = { { 0, 600 }, { K_START, 4 }, { 0, 120 } }, .layers = 0x14, .maxY = 80 },
+	},
+	{
 		/* Dragon Ball Z: The Legacy of Goku (USA; Europe: the same, ALGP).
 		 * Walking about, the pause menu with the HUD in its empty options
 		 * panel: see dbz_compose (DBZ-2 to DBZ-4) */
@@ -2824,6 +2919,13 @@ static void fe8_eur(MapProfile* p) {
 	memset(p->logo.steps, 0, sizeof(p->logo.steps));
 	memcpy(p->logo.steps, steps, sizeof(steps));
 }
+/* Mario & Luigi: Superstar Saga in Europe: a language menu first (A:
+ * English); the title is up by the end */
+static void ml_eur(MapProfile* p) {
+	static const MacroStep steps[] = { { 0, 700 }, { K_A, 8 }, { 0, 600 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+}
 /* Dragon Ball Z: The Legacy of Goku in Europe: a language menu first
  * (A: English) */
 static void dbz_eur(MapProfile* p) {
@@ -2982,6 +3084,8 @@ static const Variant variants[] = {
 	{ "AE7J", "AE7E", 0, fe_jpn },
 	{ "BE8P", "BE8E", 0, fe8_eur },
 	{ "ALGP", "ALGE", 0, dbz_eur },
+	{ "A88P", "A88E", 0, ml_eur },
+	{ "A88J", "A88E", 0, NULL },
 	{ "BE8J", "BE8E", 0, fe8_jpn },
 	{ "AWRP", "AWRE", 0, aw_eur },
 	/* (the same RAM as the USA release; a language menu first too) */
