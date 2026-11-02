@@ -3,7 +3,7 @@
 ## v1.4.5 (not yet released)
 
 ### New games
-- **Mario & Luigi: Superstar Saga** (USA and Europe; Mario & Luigi RPG in Japan), preliminary: walking about, the second screen is the Bros. Info screen of the brother you're controlling (START swaps them, and the page follows), updated about once a second. On the title it shows the logo. Tried at the start of the story; battles and the European and Japanese releases beyond their titles haven't been tried yet.
+- **Mario & Luigi: Superstar Saga** (USA and Europe; Mario & Luigi RPG in Japan), preliminary: walking about, the second screen is the Bros. Info screen of the brother you're controlling (START swaps them, and the page follows), updated about once a second. On the title and in battles it shows the logo. Tried at the start of the story; the European and Japanese releases beyond their titles haven't been tried yet.
 - **Dragon Ball Z: The Legacy of Goku** (USA and Europe), preliminary: walking about, the second screen is the pause menu (Level, Experience, HP, Ki and Time), updated about once a second, with its list of options left out; in that empty panel go the HP and Ki bars (moved off the game screen) and, below them, the counter the game shows while SELECT is held. On the title and menus it shows the logo; the title screen paints Goku's hair over the Z, so there the Z is drawn again, in the game's own colours, to the official logo's shape. Tried on the first island.
 
 ### Save states

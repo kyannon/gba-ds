@@ -1464,6 +1464,7 @@ static const char* dbz_compose(Emu* s, const void* state, uint32_t* out, int w, 
  */
 #define ML_SCREEN 0x02000C99
 #define ML_CURSOR 0x030040A9
+#define ML_STATE 0x02000008 /* 8 walking about (its menus too), 3 a battle, 2 the title */
 #define ML_LEAD 0x02004F4C /* the brother in front: 0 Mario, 1 Luigi (START swaps) */
 static bool ml_wait(Emu* s, int v, int max) {
 	for (int f = 0; f < max; ++f) {
@@ -2689,10 +2690,11 @@ static const MapProfile profiles[] = {
 		.stillPick = STILL_FIRST, /* (Map Animations off: the first page) */
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
-		/* walking about: taken (about once a second); the title: the logo
-		 * (ML-1); elsewhere (battles, scenes) the last picture stays */
-		.live = { { ML_SCREEN, 0xFF, 1, 1 } },
-		.menu = { { ML_SCREEN, 0xFF, 3, 1 } },
+		/* walking about: taken (about once a second); elsewhere (scenes,
+		 * conversations) the last picture stays */
+		.live = { { ML_STATE, 0xFF, 8, 1 }, { ML_SCREEN, 0xFF, 1, 1 } },
+		/* a battle, the title: the logo (ML-1, ML-3) */
+		.menu = { { ML_STATE, 0xFF, 3, 1, true, 2 } },
 		/* the brothers swapped (START): taken again at once */
 		.room = { { ML_LEAD, 0xFF, 0, 1 } },
 		/* the title's MARIO & LUIGI (BG2) and SUPERSTAR SAGA (sprites),

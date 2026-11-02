@@ -206,8 +206,8 @@ The USA and European releases. **Work in progress:** glitches may occur on the t
 The USA, European and Japanese (Mario & Luigi RPG) releases. Preliminary: tried at the start of the story so far.
 
 - **Walking about,** the second screen is the **Bros. Info** screen (SELECT's menu, the third icon), as the game draws it, filling the screen: the page of the brother you're controlling, the one in front. Swap them with START and the page follows within a moment. It's opened in the background in a silent copy of the game about once a second; your game is never paused.
-- In battles, scenes and the game's own menus, the second screen keeps its picture. On the title it shows the logo.
-- Not tried yet: battles, later areas, and the European and Japanese releases beyond their titles.
+- In battles and on the title, the second screen shows the logo; in scenes, conversations and the game's own menus it keeps its picture.
+- Not tried yet: later areas, and the European and Japanese releases beyond their titles.
 
 ## Dragon Ball Z: The Legacy of Goku
 

@@ -151,6 +151,130 @@
    ]
   },
   {
+   "id": "ml-us-battle",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-battle.ss",
+   "desc": "a battle (a player's bug report, its saved second screen Bros. Info): the logo",
+   "rules": [
+    "ML-3"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "ML-3",
+     "what": "no capture",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-into-battle",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-into-battle.ss",
+   "desc": "walking about into a battle (the same report's keys, played back): Bros. Info, then the logo once the battle starts",
+   "rules": [
+    "ML-2",
+    "ML-3"
+   ],
+   "input": [
+    [
+     0,
+     "RIGHT"
+    ],
+    [
+     5,
+     "RIGHT+DOWN"
+    ],
+    [
+     7,
+     "DOWN"
+    ],
+    [
+     17,
+     "A+DOWN"
+    ],
+    [
+     23,
+     "A"
+    ],
+    [
+     27,
+     "-"
+    ],
+    [
+     44,
+     "A"
+    ],
+    [
+     52,
+     "-"
+    ],
+    [
+     73,
+     "A"
+    ],
+    [
+     81,
+     "-"
+    ],
+    [
+     94,
+     "A"
+    ],
+    [
+     104,
+     "-"
+    ],
+    [
+     203,
+     "UP"
+    ],
+    [
+     220,
+     "-"
+    ],
+    [
+     247,
+     "A"
+    ],
+    [
+     266,
+     "-"
+    ],
+    [
+     456,
+     "A"
+    ],
+    [
+     465,
+     "-"
+    ],
+    [
+     479,
+     "A"
+    ],
+    [
+     487,
+     "-"
+    ],
+    [
+     511,
+     "A"
+    ],
+    [
+     518,
+     "-"
+    ]
+   ],
+   "shots": {
+    "walking": 200,
+    "battle": 560
+   }
+  },
+  {
    "id": "ml-logo-a88e",
    "kind": "logo",
    "rom": "A88E",
