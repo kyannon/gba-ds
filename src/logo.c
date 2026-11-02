@@ -173,6 +173,69 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 			}
 		}
 	}
+	if (p->logo.edgeClear[0]) {
+		int* stack = malloc(sizeof(int) * GBA_W * GBA_H);
+		uint8_t* seen = calloc(GBA_W * GBA_H, 1);
+		int n = 0;
+		for (int i = 0; stack && seen && i < GBA_W * maxY; ++i)
+			if (!opaque[i]) stack[n++] = i, seen[i] = 1;
+		while (stack && seen && n) {
+			int i = stack[--n], x = i % GBA_W, y = i / GBA_W;
+			if (opaque[i]) {
+				uint32_t c = fg[i];
+				int r = c & 0xFF, g = (c >> 8) & 0xFF, b = (c >> 16) & 0xFF;
+				bool clearIt = false;
+				for (int k = 0; k < 4 && p->logo.edgeClear[k] && !clearIt; ++k) {
+					uint32_t e = p->logo.edgeClear[k];
+					clearIt = abs(r - (int) (e >> 16 & 0xFF)) + abs(g - (int) (e >> 8 & 0xFF)) + abs(b - (int) (e & 0xFF)) < 20;
+				}
+				if (!clearIt) continue;
+				opaque[i] = 0;
+			}
+			const int nb[4] = { x > 0 ? i - 1 : -1, x < GBA_W - 1 ? i + 1 : -1, y > 0 ? i - GBA_W : -1, y < maxY - 1 ? i + GBA_W : -1 };
+			for (int k = 0; k < 4; ++k) {
+				if (nb[k] >= 0 && !seen[nb[k]]) seen[nb[k]] = 1, stack[n++] = nb[k];
+			}
+		}
+		free(stack);
+		free(seen);
+		/* (and what's left alone: at most one opaque neighbour) */
+		memcpy(back, opaque, GBA_W * GBA_H); /* (back's done with: a scratch copy) */
+		const uint8_t* was = (const uint8_t*) back;
+		for (int y = 0; y < maxY; ++y) {
+			for (int x = 0; x < GBA_W; ++x) {
+				int i = y * GBA_W + x;
+				if (!was[i]) continue;
+				int nb = (x > 0 && was[i - 1]) + (x < GBA_W - 1 && was[i + 1]) + (y > 0 && was[i - GBA_W]) + (y < maxY - 1 && was[i + GBA_W]);
+				if (nb <= 1) opaque[i] = 0;
+			}
+		}
+		/* (and specks: pieces under 16 pixels, 8-connected) */
+		int* q = malloc(sizeof(int) * GBA_W * GBA_H);
+		uint8_t* done = calloc(GBA_W * GBA_H, 1);
+		for (int s0 = 0; q && done && s0 < GBA_W * maxY; ++s0) {
+			if (!opaque[s0] || done[s0]) continue;
+			int head = 0, tail = 0;
+			q[tail++] = s0;
+			done[s0] = 1;
+			while (head < tail) {
+				int i = q[head++], x = i % GBA_W, y = i / GBA_W;
+				for (int dy = -1; dy <= 1; ++dy) {
+					for (int dx = -1; dx <= 1; ++dx) {
+						int nx = x + dx, ny = y + dy, j = ny * GBA_W + nx;
+						if (nx < 0 || nx >= GBA_W || ny < 0 || ny >= maxY || !opaque[j] || done[j]) continue;
+						done[j] = 1;
+						q[tail++] = j;
+					}
+				}
+			}
+			if (tail < 16) {
+				for (int k = 0; k < tail; ++k) opaque[q[k]] = 0;
+			}
+		}
+		free(q);
+		free(done);
+	}
 	for (int y = 0; y < maxY; ++y) {
 		for (int x = 0; x < GBA_W; ++x) {
 			if (!opaque[y * GBA_W + x]) continue;

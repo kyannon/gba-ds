@@ -509,6 +509,11 @@ typedef struct MapProfile {
 		int lowFrom; unsigned lowLayers; /* with layers: from this row down, only these layers (0: no change) */
 		bool pressStart, blackIsClear;
 		bool lightEdgeClear; /* light background around the logo, reached from the edges, is clear */
+		/* pixels of these colours (0xRRGGBB) reached from outside the logo
+		 * through others of them are clear, then any left with at most one
+		 * neighbour: the background showing at the lettering's dithered or
+		 * translucent edge (Mario & Luigi's sky, its shadow's specks) */
+		uint32_t edgeClear[4];
 		int minY, minX, maxX; /* with maxY: only this box (maxX 0: the whole width); a frame
 		                       * round the logo left out (Super Mario World's) */
 		MacroStep steps[24]; /* instead of wait/pressStart: button steps from power-on */

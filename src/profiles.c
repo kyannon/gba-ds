@@ -2699,7 +2699,10 @@ static const MapProfile profiles[] = {
 		.room = { { ML_LEAD, 0xFF, 0, 1 } },
 		/* the title's MARIO & LUIGI (BG2) and SUPERSTAR SAGA (sprites),
 		 * above PRESS START and the suitcase */
-		.logo = { .steps = { { 0, 600 }, { K_START, 4 }, { 0, 120 } }, .layers = 0x14, .maxY = 80 },
+		.logo = { .steps = { { 0, 600 }, { K_START, 4 }, { 0, 120 } }, .layers = 0x14, .maxY = 80,
+		          /* (without the sky at the lettering's edge, and its
+		           * shadow's dithered specks: ML-1) */
+		          .edgeClear = { 0x6BBDD6, 0x635242, 0x73634A }, .rev = 1 },
 	},
 	{
 		/* Dragon Ball Z: The Legacy of Goku (USA; Europe: the same, ALGP).
