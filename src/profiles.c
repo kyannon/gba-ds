@@ -244,7 +244,11 @@ static bool aw_cursor_any(Emu* s) {
 static void aw_clean(Emu* s, void* tmp, uint32_t* pan, uint32_t* bg2) {
 	static uint32_t none[GBA_W * GBA_H];
 	int ct = aw_r(s)->cornerTile;
-	const SpriteRule rules[3] = { { -512, -256, 511, 255, 0, 1023, 3, 0, 0 }, AW_WEATHER, { -512, -256, 511, 255, ct, ct, 0, 1u << 1, 0 } };
+	/* (palette 1 from the corners' tile on: the corners and the map's
+	 * cursors, its targeting pointer too (Advance Wars: 876-928; Advance
+	 * Wars 2: 873-906), which can reach into the text box's edge; the
+	 * panel's own icons in palette 1 are 960 and up) */
+	const SpriteRule rules[3] = { { -512, -256, 511, 255, 0, 1023, 3, 0, 0 }, AW_WEATHER, { -512, -256, 511, 255, ct, ct + 60, 0, 1u << 1, 0 } };
 	if (!emu_state_save(s, tmp)) {
 		memcpy(pan, s->fb, GBA_W * GBA_H * sizeof(uint32_t));
 		return;
@@ -402,11 +406,14 @@ static const char* gbw_pick(Emu* e) {
 
 
 
-#define SN_V_TITLE 0xF0000020  /* 1 on the title screen (BG1-3 set up as there) */
+#define SN_V_TITLE 0xF0000020  /* 1 on the title screen (BG1-3 set up as there) or in a battle: the logo */
+#define SN_SCENE 0x02000400    /* 1 in a battle (walking about 2-4, by area; 0 on the title) */
 
 static uint32_t sn_virt(Emu* e, uint32_t addr) {
 	if (addr != SN_V_TITLE) return 0;
-	return emu_read16(e, 0x0400000A) == 0x1F0B && emu_read16(e, 0x0400000C) == 0x0F06;
+	if (emu_read16(e, 0x0400000A) == 0x1F0B && emu_read16(e, 0x0400000C) == 0x0F06) return 1;
+	/* a battle (SN-7): the scene byte and display mode 1 */
+	return emu_read8(e, SN_SCENE) == 1 && (emu_read16(e, 0x04000000) & 7) == 1;
 }
 
 static bool sn_in(Emu* s, int menu) {
@@ -2114,7 +2121,7 @@ static const MapProfile profiles[] = {
 		/* the GBA's own screen, scaled as the game screen is */
 		.crop_w = GBA_W,
 		.crop_h = GBA_H,
-		/* the title screen: the logo again (and no captures there) */
+		/* the title screen and battles: the logo (SN-3, SN-7; no captures there) */
 		.menu = { { SN_V_TITLE, 0xFF, 1, 4 } },
 		.live = { { SN_V_TITLE, 0xFF, 0, 4 } },
 		/* the sword (BG2), the name (BG3) and its subtitle (sprites): from

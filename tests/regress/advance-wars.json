@@ -862,6 +862,18 @@
     "results": 1000,
     "menu": 1420
    }
+  },
+  {
+   "id": "aw-us-target-pointer",
+   "rom": "AWRE",
+   "state": "advance-wars/us-target-pointer.ss",
+   "desc": "an Artillery unit under the cursor with the targeting pointer beside it (a player's bug report): its unit intel without the pointer's arrows over the text box's edge",
+   "rules": [
+    "AW-1"
+   ],
+   "shots": {
+    "start": 60
+   }
   }
  ]
 }

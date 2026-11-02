@@ -296,6 +296,26 @@
    "golden": [
     "logo"
    ]
+  },
+  {
+   "id": "sn-us-battle",
+   "rom": "AB4E",
+   "state": "summon-night-swordcraft-story/us-battle.ss",
+   "desc": "a battle with two slimes in the Labyrinth (a player's bug report): the logo, not the Status from before",
+   "rules": [
+    "SN-7"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "SN-7",
+     "what": "back to the logo",
+     "type": "log",
+     "match": "second screen back to the logo"
+    }
+   ]
   }
  ]
 }

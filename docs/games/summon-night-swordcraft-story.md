@@ -24,3 +24,11 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 **SN-5. Several characters.** Once the Status has more than one character (its "LR: Switch Characters" prompt along the bottom), the second screen turns through each one's Status in the game's order, 5 seconds each, every one with the Place bar over its bottom (SN-2), which covers the prompt.
 
 **SN-6. Quick to follow.** The Status is taken again about every half second, and as soon as a new area has faded in; a moment where the menu won't open (a scene, a fade) doesn't hold the next one up.
+
+**SN-7. Battles: the logo.** In a battle the second screen shows the logo (as on the title, SN-3) instead of the Status, as the battle comes up (within half a second: the logo's checked twice a second) until it's over; walking about again, the Status comes back with the next capture. (Until v1.4.5's later test builds, the Status from before the battle stayed.)
+
+## Facts found so far (for sessions)
+
+| What | Where / value (USA) |
+|---|---|
+| A battle | `0x02000400` = 1 (walking about it's 2, 3 or 4, by area; 0 on the title) and display mode 1 (DISPCNT `0x1341`, `0x3741`; walking about `0x1F40`) |

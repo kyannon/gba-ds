@@ -19,6 +19,8 @@
 - While you rewind (L2), **Rewinding...** shows in a box in the middle of the second screen, with a rewind sign, in place of the small message it had before; it says **Can't rewind further** once you reach the start of the rewind buffer.
 
 ### Fixes
+- **Summon Night: Swordcraft Story:** in a battle the second screen shows the logo, instead of the Status from before the battle.
+- **Advance Wars, Advance Wars 2:** the map's cursor and targeting pointer no longer leave bits of yellow at the edge of the unit intel's text box on the second screen.
 - **F-Zero: GP Legend:** on Mist Flow: Clip Oval (and any course whose map sits as far left), the course map stayed on the game screen; it's on the second screen with the others now.
 
 ## v1.4.4 (2026-10-31)
