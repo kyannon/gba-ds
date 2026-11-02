@@ -144,6 +144,19 @@
    ]
   },
   {
+   "id": "fz-us-clip-oval",
+   "rom": "BFZE",
+   "state": "f-zero-gp-legend/us-clip-oval.ss",
+   "desc": "Mist Flow: Clip Oval, racing (a player's bug report): its narrow map, at x -27, on the second screen, not the game screen",
+   "rules": [
+    "FZ-4"
+   ],
+   "shots": {
+    "start": 20,
+    "later": 80
+   }
+  },
+  {
    "id": "fz-us-gp-pause",
    "rom": "BFZE",
    "state": "f-zero-gp-legend/us-gp-pause.ss",

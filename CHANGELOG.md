@@ -15,6 +15,9 @@
 ### Bug reports
 - The bug button (and Extras > Submit a Bug Report) now pauses the game and brings up a keyboard on the touchscreen for an optional note about what happened, saved at the top of the report's info file. Type by touch, or with the D-pad and A; Skip saves the report without one. The report is still of the moment you pressed the button.
 
+### Fixes
+- **F-Zero: GP Legend:** on Mist Flow: Clip Oval (and any course whose map sits as far left), the course map stayed on the game screen; it's on the second screen with the others now.
+
 ## v1.4.4 (2026-10-31)
 
 ### New games

@@ -2543,7 +2543,8 @@ static const MapProfile profiles[] = {
 			          { -16, -16, 239, 56, 670, 720, 0, 1u << 8 | 1u << 12 | 1u << 13 | 1u << 15 },
 			          { -16, -16, 239, 56, 760, 780, 0, 1u << 8 | 1u << 12 | 1u << 13 | 1u << 15 },
 			          { -16, -16, 239, 56, 950, 1023, 0, 1u << 8 | 1u << 12 | 1u << 13 | 1u << 15 },
-			          { -16, 88, 64, 150, 882, 882, 0, 1u << 10 },
+			          /* (x from -64: Clip Oval's map, narrow, is at -27) */
+			          { -64, 88, 64, 150, 882, 882, 0, 1u << 10 },
 			          { -16, 88, 64, 159, 679, 679, 0 } },
 			/* the map's box (the sprite at -2, 98; at -2, 92 on some
 			 * courses: from row 88), twice as big at the bottom centre;
