@@ -28,7 +28,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Spider-Man: Mysterio's Menace (Spider-Man: Mysterio no Kyoui in Japan) | `ASEE` (USA and Europe) `ASEJ` | the Select menu: the objective, password, suits, upgrades and web containers |
 | Sonic Pinball Party | `A3VE` `A3VP` | the table twice as tall over both screens, live (work in progress) |
 | Sonic Advance | `ASOE` `ASOP` `ASOJ` | the zone card, with the rings, score, time and lives |
-| Mario & Luigi: Superstar Saga (Mario & Luigi RPG in Japan) | `A88E` `A88P` `A88J` | Bros. Info, Mario's and Luigi's pages in turn (preliminary) |
+| Mario & Luigi: Superstar Saga (Mario & Luigi RPG in Japan) | `A88E` `A88P` `A88J` | Bros. Info of the brother you're controlling (preliminary) |
 | Dragon Ball Z: The Legacy of Goku | `ALGE` `ALGP` (no Japanese release) | the pause menu, with the HP and Ki bars and SELECT's counter in place of its options (preliminary) |
 
 The codes are what `<CODE>` means in logo and overlay file names (see [Playing](Playing#logos) and [[Map screen surrounds and overlays]]).
@@ -205,7 +205,7 @@ The USA and European releases. **Work in progress:** glitches may occur on the t
 
 The USA, European and Japanese (Mario & Luigi RPG) releases. Preliminary: tried at the start of the story so far.
 
-- **Walking about,** the second screen is the **Bros. Info** screen (SELECT's menu, the third icon), as the game draws it, filling the screen: Mario's page and Luigi's in turn, 5 seconds each. It's opened in the background in a silent copy of the game about once a second; your game is never paused.
+- **Walking about,** the second screen is the **Bros. Info** screen (SELECT's menu, the third icon), as the game draws it, filling the screen: the page of the brother you're controlling, the one in front. Swap them with START and the page follows within a moment. It's opened in the background in a silent copy of the game about once a second; your game is never paused.
 - In battles, scenes and the game's own menus, the second screen keeps its picture. On the title it shows the logo.
 - Not tried yet: battles, later areas, and the European and Japanese releases beyond their titles.
 

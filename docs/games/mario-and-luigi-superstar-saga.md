@@ -15,7 +15,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **ML-1. Logo.** On the title, the second screen shows the logo: MARIO & LUIGI and SUPERSTAR SAGA (in Japan マリオ&ルイージRPG), without the sky, PRESS START, the suitcase or the copyright line.
 
-**ML-2. Bros. Info, always.** Walking about, the second screen is the Bros. Info screen (SELECT's menu, its third icon), as the game draws it, filling the screen, once it has settled (its opening and the brothers' turn over) and only if it is Bros. Info (its frame checked; never the field or a menu): Mario's page and Luigi's (R turns between them), each in turn for 5 seconds. It's opened in the background on a silent copy of the game about once a second; your game is never paused.
+**ML-2. Bros. Info, always.** Walking about, the second screen is the Bros. Info screen (SELECT's menu, its third icon), as the game draws it, filling the screen, once it has settled (its opening and the brothers' turn over) and only if it is Bros. Info (its frame checked; never the field or a menu): the page of the brother you're controlling, the one in front (START swaps them; the page follows within a moment). It's opened in the background on a silent copy of the game about once a second; your game is never paused. (Until v1.4.5's later test builds, Mario's and Luigi's pages in turn, 5 seconds each.)
 
 **ML-3. Elsewhere.** In battles, scenes and the game's own menus, the second screen keeps the last picture. Nothing leaves the game screen.
 
@@ -31,5 +31,6 @@ Tried in the USA release from the owner's reports (the title, walking about at t
 |---|---|
 | Screen | `0x02000C99`: 1 walking about, 0 SELECT's menu, 2 Bros. Info, 3 the title |
 | Menu icon | `0x030040A9`: 0 Items, 1 Equipment, 2 Bros. Info |
+| Brother in front | `0x02004F4C`: 0 Mario, 1 Luigi (START swaps); Bros. Info always opens on Mario's page, R turns to Luigi's |
 | Display | walking about DISPCNT `0x1F40` (here), the menu `0x1D40`, Bros. Info `0x7F40`, the title `0x1741` |
 | Title | BG1 the sky, BG2 MARIO & LUIGI, sprites SUPERSTAR SAGA, PRESS START and the suitcase; START past the intro by frame 600. Europe: a language menu first (A at frame 700) |

@@ -26,25 +26,25 @@
    "id": "ml-us-field",
    "rom": "A88E",
    "state": "mario-and-luigi-superstar-saga/us-field.ss",
-   "desc": "walking about at the start of the story: Bros. Info, Mario's page, then Luigi's 5 seconds on, then Mario's",
+   "desc": "walking about at the start of the story, Mario in front: his Bros. Info page; START swaps the brothers and Luigi's page follows; START again, Mario's",
    "rules": [
     "ML-2"
    ],
    "shots": {
     "mario": 100,
-    "luigi": 420,
-    "mario2": 720
+    "luigi": 260,
+    "mario2": 510
    },
    "checks": [
     {
      "rule": "ML-2",
-     "what": "Bros. Info taken, two pages",
+     "what": "Bros. Info taken, one page",
      "type": "log",
-     "match": "map updated \\(2 frame"
+     "match": "map updated \\(1 frame"
     },
     {
      "rule": "ML-2",
-     "what": "the pages turn",
+     "what": "the page follows the brother in front",
      "type": "differs",
      "a": {
       "shot": "mario",
@@ -65,7 +65,48 @@
       ]
      },
      "frac": 0.05
+    },
+    {
+     "rule": "ML-2",
+     "what": "and back",
+     "type": "same",
+     "a": {
+      "shot": "mario",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "mario2",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     }
     }
+   ],
+   "input": [
+    [
+     150,
+     "START"
+    ],
+    [
+     154,
+     "-"
+    ],
+    [
+     400,
+     "START"
+    ],
+    [
+     404,
+     "-"
+    ]
    ]
   },
   {

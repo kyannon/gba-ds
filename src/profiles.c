@@ -1457,12 +1457,14 @@ static const char* dbz_compose(Emu* s, const void* state, uint32_t* out, int w, 
  *
  * The second screen (ML-2): the Bros. Info screen, opened on the shadow core
  * from the live state at every capture (SELECT's menu, its third icon, A),
- * one page per brother (R turns to the other), shown in turn 5 seconds each.
+ * on the page of the brother in front (it opens on Mario's; R turns to
+ * Luigi's).
  *   ML_SCREEN 1 walking about, 0 SELECT's menu, 2 Bros. Info, 3 the title
  *   ML_CURSOR the menu's icon (0 Items, 1 Equipment, 2 Bros. Info)
  */
 #define ML_SCREEN 0x02000C99
 #define ML_CURSOR 0x030040A9
+#define ML_LEAD 0x02004F4C /* the brother in front: 0 Mario, 1 Luigi (START swaps) */
 static bool ml_wait(Emu* s, int v, int max) {
 	for (int f = 0; f < max; ++f) {
 		emu_frame(s, 0);
@@ -1497,11 +1499,11 @@ static void ml_page(const uint32_t* fb, uint32_t* out, int w, int h) {
 	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
 }
 static const char* ml_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
-	int max = *nOut < 2 ? *nOut : 2;
 	*nOut = 1;
-	*step = 300; /* 5 seconds a brother */
+	*step = 300;
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
+	bool luigi = emu_read8(s, ML_LEAD) == 1;
 	int at = emu_read8(s, ML_SCREEN);
 	if (at == 1) {
 		aw_tap(s, K_SELECT, 1);
@@ -1522,22 +1524,23 @@ static const char* ml_compose(Emu* s, const void* state, uint32_t* const* out, i
 	}
 	if (!ml_settle(s, 150)) return "Bros. Info didn't settle";
 	if (!ml_bros_info(s)) return "not Bros. Info";
+	if (!luigi) {
+		ml_page(s->fb, out[0], w, h);
+		return NULL;
+	}
+	/* Luigi in front: R (the portrait turns round), until the page changes */
 	static uint32_t first[GBA_W * GBA_H];
 	memcpy(first, s->fb, sizeof(first));
-	ml_page(first, out[0], w, h);
-	if (max < 2) return NULL;
-	/* the other brother: R (the portrait turns round), until the page changes */
 	for (int tries = 0; tries < 3; ++tries) {
 		aw_tap(s, K_R, 1);
 		aw_run(s, 0, 20); /* (the turn: 12 frames) */
 		if (!ml_settle(s, 150) || !ml_bros_info(s)) break;
 		if (memcmp(first, s->fb, sizeof(first))) {
-			ml_page(s->fb, out[1], w, h);
-			*nOut = 2;
-			break;
+			ml_page(s->fb, out[0], w, h);
+			return NULL;
 		}
 	}
-	return NULL;
+	return "Luigi's page didn't come up";
 }
 
 /* ---------------------------------------------------------- Golden Sun
@@ -2678,8 +2681,8 @@ static const MapProfile profiles[] = {
 	},
 	{
 		/* Mario & Luigi: Superstar Saga (USA; Europe and Japan, Mario &
-		 * Luigi RPG: variants). Walking about, the Bros. Info screen, a page
-		 * per brother: see ml_compose (ML-2) */
+		 * Luigi RPG: variants). Walking about, the Bros. Info screen, the
+		 * page of the brother in front: see ml_compose (ML-2) */
 		.codes = { "A88E" },
 		.title = "Mario & Luigi: Superstar Saga",
 		.composePages = ml_compose,
@@ -2690,6 +2693,8 @@ static const MapProfile profiles[] = {
 		 * (ML-1); elsewhere (battles, scenes) the last picture stays */
 		.live = { { ML_SCREEN, 0xFF, 1, 1 } },
 		.menu = { { ML_SCREEN, 0xFF, 3, 1 } },
+		/* the brothers swapped (START): taken again at once */
+		.room = { { ML_LEAD, 0xFF, 0, 1 } },
 		/* the title's MARIO & LUIGI (BG2) and SUPERSTAR SAGA (sprites),
 		 * above PRESS START and the suitcase */
 		.logo = { .steps = { { 0, 600 }, { K_START, 4 }, { 0, 120 } }, .layers = 0x14, .maxY = 80 },
