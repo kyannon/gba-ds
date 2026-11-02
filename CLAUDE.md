@@ -52,7 +52,8 @@ it lives here:
 ## Conventions
 
 - **Branches:** ROCKNIX and shared work goes to `dev`; Android work to
-  `android` (see "More than one session" below). `main` only moves at
+  `android`; a new game to its own `game/<slug>` branch (see "More than one
+  session" below). `main` only moves at
   release time, fast-forwarded to the release commit. The owner creates
   GitHub releases and tags by hand (sessions get HTTP 403 on releases and
   can't push tags).
@@ -133,6 +134,48 @@ Android session at the same time. To keep them from colliding:
   Never force-push or drop the other session's commits.
 - One session at a time on a given task; when the owner switches sessions,
   read the other session's latest commits on `dev` / `android` first.
+
+### New games on their own branches
+
+Work on a new game (adding it, or a game the owner hands over for more
+compatibility work) happens in its own session on its own branch, merged
+into `dev` once it's in good shape, so that `dev` stays releasable.
+
+- **The branch:** `game/<slug>`, the slug lower-case with dashes, the game's
+  rules-file name without `.md` (`game/golden-sun-2`). The session creates it
+  from the latest `dev` and pushes it (sessions can create branches; only the
+  owner can delete them, after the merge). If it already exists, carry on on
+  it, merging `dev` in first.
+- **Test builds are side builds:** `GBADS_SIDE=<slug>
+  GBADS_WEB_WORK=<scratch dir>/wasm scripts/build-rocknix.sh` gives
+  `dist/gba-ds-vX.Y.Z-dev-<slug>-linux-aarch64.zip`. It unzips into the Ports
+  folder beside the main install: its own folder (`gba-ds-<slug>/`) and its
+  own Ports entry ("GBA DS (<slug>)"), with its own settings, states and
+  logos. The game's battery saves are the system's, shared with the main
+  install. The app's version reads `X.Y.Z-dev+<slug>`, and it has no updates
+  (they'd replace it with the release) and no EmulationStation / BananaOS
+  integration (the system's GBA games would start it). Send that zip after
+  each change, never a plain build from the branch.
+- **Tests on the branch: only the game's own.** Write its rules
+  (`docs/games/<slug>.md`), cases (`tests/regress/<slug>.json`), fixtures and
+  goldens as usual, and run `tools/regress.py <slug>`, not the whole suite.
+  Fixtures go to `gba-ds-tests`' `main` as usual (only this game's cases use
+  them). Keep to the game's profile and its own composer: a change to shared
+  code (`game.c`, `emu.c`, `mapcap.c`, `logo.c`, other games' profiles) is
+  for `dev`. If the game really needs one, keep it small, say so in the
+  commit message, and say at the merge that the full suite has to run.
+- **Don't edit CHANGELOG.md, README.md or the wiki's game list on the
+  branch** (they'd conflict with `dev`). Keep the changelog line and the
+  wiki's section for the game ready in the game's rules file under a
+  "## For the merge" heading.
+- **The merge, when the owner says the game is good:** merge `dev` into the
+  branch, run `tools/regress.py <slug>`, then merge the branch into `dev` in
+  one step. In that same merge, the changelog line goes under the open
+  version, the game into `wiki/Supported-games.md` (table and section) and
+  the README's count, and the "For the merge" heading comes out of the rules
+  file. Then run the full suite on `dev` (the only full run for the game's
+  work), build a normal test zip from `dev` and send it. Tell the owner the
+  branch can be deleted.
 
 ## Building
 

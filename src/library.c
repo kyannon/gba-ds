@@ -655,8 +655,11 @@ static void settings_rows(const Config* cfg) {
 	nRows = 4; /* ROM Folder, RetroAchievements, Map Buttons, Updates */
 #else
 	nRows = 0;
+#ifndef GBADS_SIDE
+	/* (not in a side build: the system's GBA games would start it) */
 	if (banana_present()) rowKind[nRows++] = ROW_BANANA;
 	else if (es_present(cfg)) rowKind[nRows++] = ROW_ES;
+#endif
 	rowKind[nRows++] = ROW_MAP;
 #ifdef GBADS_UPDATES
 	rowKind[nRows++] = ROW_UPDATES;

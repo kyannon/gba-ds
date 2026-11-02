@@ -17,9 +17,17 @@ OUT        ?= build/$(if $(CROSS),$(patsubst %-,%,$(CROSS)),host)
 
 MGBA_DEFS  := $(shell sed -n 's/^C_DEFINES = //p' $(MGBA_BUILD)/CMakeFiles/mgba.dir/flags.make)
 VERSION    := $(shell cat VERSION 2>/dev/null || echo dev)
+# SIDE=name: a side build, installed beside the main one to try a branch's
+# work (scripts/build-rocknix.sh GBADS_SIDE): its version is VERSION+name,
+# with no updates and no EmulationStation / BananaOS integration
+SIDE       ?=
+ifneq ($(SIDE),)
+VERSION    := $(VERSION)+$(SIDE)
+SIDE_DEF   := -DGBADS_SIDE='"$(SIDE)"'
+endif
 OPTFLAGS   ?= -O2 -g
 override CFLAGS := $(OPTFLAGS) -std=gnu11 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers \
-              -DGBADS_VERSION='"$(VERSION)"' $(MGBA_DEFS) -I$(MGBA_SRC)/include -I$(MGBA_BUILD)/include -I$(SDL_PREFIX)/include/SDL2 -D_REENTRANT
+              -DGBADS_VERSION='"$(VERSION)"' $(SIDE_DEF) $(MGBA_DEFS) -I$(MGBA_SRC)/include -I$(MGBA_BUILD)/include -I$(SDL_PREFIX)/include/SDL2 -D_REENTRANT
 LDFLAGS    += -L$(SDL_PREFIX)/lib -Wl,-rpath-link,$(SDL_PREFIX)/lib
 # mGBA's bundled zlib (for .zip ROMs), when it was built with it
 ZLIB_A     := $(wildcard $(MGBA_BUILD)/zlib/libz.a)

@@ -33,7 +33,8 @@ typedef struct {
 	bool autoOn;
 } UpdateInfo;
 
-#if !defined(__wasi__)
+/* (not in a side build, GBADS_SIDE: it would replace itself with the release) */
+#if !defined(__wasi__) && !defined(GBADS_SIDE)
 #define GBADS_UPDATES 1
 /* exeDir: the app's folder; argv: for the restart */
 void update_init(const Config* cfg, const char* exeDir, int argc, char** argv);

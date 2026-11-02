@@ -52,17 +52,29 @@ cmake -S "$DEPS/SDL2" -B "$DEPS/SDL2/build-aarch64" -DCMAKE_TOOLCHAIN_FILE="$ROO
 	-DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$DEPS/sdl-aarch64" -DSDL_STATIC=OFF -DSDL_TEST=OFF
 make -C "$DEPS/SDL2/build-aarch64" -j"$(nproc)" install
 
+# GBADS_SIDE=name: a side build, to try a branch's work beside the main
+# install: the folder gba-ds-name and the Ports entry "GBA DS (name)", its
+# own settings and states, version VERSION+name, no updates and no
+# EmulationStation / BananaOS integration (the Makefile's SIDE)
+SIDE="${GBADS_SIDE:-}"
+if [ -n "$SIDE" ] && ! [[ $SIDE =~ ^[a-z0-9][a-z0-9-]*$ ]]; then
+	echo "GBADS_SIDE: lower-case letters, digits and dashes only (not $SIDE)" >&2
+	exit 1
+fi
+
 # --- gba-ds ---------------------------------------------------------------
 make CROSS="$CROSS" MGBA_SRC="$DEPS/mgba" MGBA_BUILD="$DEPS/mgba/build-aarch64" \
-	SDL_PREFIX="$DEPS/sdl-aarch64" OUT=build/aarch64 OPTFLAGS="-O2 -mcpu=cortex-a55"
+	SDL_PREFIX="$DEPS/sdl-aarch64" OUT=build/aarch64${SIDE:+-$SIDE} OPTFLAGS="-O2 -mcpu=cortex-a55" SIDE="$SIDE"
 
 # --- package ---------------------------------------------------------------
 VERSION=$(cat VERSION)
-ZIP="gba-ds-v$VERSION-linux-aarch64.zip"
-PKG="$ROOT/build/pkg/gba-ds"
+APP=gba-ds${SIDE:+-$SIDE}            # the install folder
+ENTRY="GBA DS${SIDE:+ ($SIDE)}"      # the Ports entry
+ZIP="gba-ds-v$VERSION${SIDE:+-$SIDE}-linux-aarch64.zip"
+PKG="$ROOT/build/pkg/$APP"
 rm -rf "$ROOT/build/pkg"
 mkdir -p "$PKG"
-"${CROSS}strip" -o "$PKG/gba-ds" build/aarch64/gba-ds
+"${CROSS}strip" -o "$PKG/gba-ds" build/aarch64${SIDE:+-$SIDE}/gba-ds
 cp dist/launch.sh dist/es-play.sh dist/screens.sh dist/gba-ds.cfg dist/gamecontrollerdb.txt dist/banana-play.sh "$PKG/"
 mkdir -p "$PKG/logos"
 printf "Optional: your own logo images (<CODE>.png or .bmp) override the ones extracted from the games.\n" > "$PKG/logos/README.txt"
@@ -78,10 +90,10 @@ cp "$DEPS/mgba/LICENSE" "$PKG/licenses/mGBA-LICENSE.txt"
 cp assets/fonts/Jost-OFL.txt "$PKG/licenses/Jost-OFL.txt"
 cp third_party/rcheevos/LICENSE "$PKG/licenses/rcheevos-LICENSE.txt"
 printf "GBA DS %s is free software under the GNU General Public License, version 3 only (GBA-DS-LICENSE.txt).\nIt statically links libmgba (c) Jeffrey Pfau, MPL-2.0.\nmGBA source: https://github.com/mgba-emu/mgba (commit %s)\nIts text is set in Jost (c) The Jost Project Authors, SIL Open Font License 1.1 (Jost-OFL.txt).\nRetroAchievements support: rcheevos (c) RetroAchievements, MIT (rcheevos-LICENSE.txt), %s.\nGBA DS source: https://github.com/kyannon/gba-ds\n" "$VERSION" "$MGBA_COMMIT" "$(tail -1 third_party/rcheevos/VERSION)" > "$PKG/licenses/README.txt"
-cp "dist/GBA DS.sh" "$ROOT/build/pkg/"
+sed "s#/gba-ds/#/$APP/#g; s#gba-ds-error.log#$APP-error.log#" "dist/GBA DS.sh" > "$ROOT/build/pkg/$ENTRY.sh"
 # EmulationStation artwork for the Ports entry
 mkdir -p "$ROOT/build/pkg/images"
-cp assets/brand/gba-ds-icon.png "$ROOT/build/pkg/images/GBA DS.png"
+cp assets/brand/gba-ds-icon.png "$ROOT/build/pkg/images/$ENTRY.png"
 # Dev builds carry the web build for State Saver's GBA DS tab (drop the zip
 # there to run this build in a browser). GBADS_WEB_WORK: build-web.sh's WORKDIR.
 if [[ $VERSION == *-dev ]]; then
@@ -93,7 +105,11 @@ if [[ $VERSION == *-dev ]]; then
 		echo "web build failed (build/web.log): the zip has no web/gba-ds.wasm"
 	fi
 fi
-chmod +x "$PKG"/*.sh "$PKG/gba-ds" "$ROOT/build/pkg/GBA DS.sh"
-rm -f "$ROOT"/dist/gba-ds-*rocknix-aarch64.zip "$ROOT"/dist/gba-ds-*linux-aarch64.zip
-(cd "$ROOT/build/pkg" && zip -qr "$ROOT/dist/$ZIP" gba-ds "GBA DS.sh" images)
+chmod +x "$PKG"/*.sh "$PKG/gba-ds" "$ROOT/build/pkg/$ENTRY.sh"
+if [ -n "$SIDE" ]; then
+	rm -f "$ROOT"/dist/gba-ds-*-"$SIDE"-linux-aarch64.zip
+else
+	rm -f "$ROOT"/dist/gba-ds-*rocknix-aarch64.zip "$ROOT"/dist/gba-ds-v*[0-9]-linux-aarch64.zip "$ROOT"/dist/gba-ds-v*-dev-linux-aarch64.zip
+fi
+(cd "$ROOT/build/pkg" && zip -qr "$ROOT/dist/$ZIP" "$APP" "$ENTRY.sh" images)
 echo "built dist/$ZIP"
