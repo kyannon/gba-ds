@@ -19,7 +19,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **DBZ-3. The HP and Ki bars.** Walking about, the HP and Ki bars leave the game screen's top left for the top of that empty panel, live, whole in a conversation too (where the game's box covers them).
 
-**DBZ-4. The counter SELECT shows.** The counter the game shows at the top left while SELECT is held (an icon and a count, such as 00/06) is always on the second screen, below the HP and Ki bars, taken with the pause menu: the counter alone (what holding SELECT adds, and its icon), not whatever else is in that corner then (a ki blast, the twigs of the woods). On the game screen, holding SELECT shows it as before.
+**DBZ-4. The counter SELECT shows.** The counter the game shows at the top left while SELECT is held (an icon and a count, such as 00/06) is always on the second screen, below the HP and Ki bars, taken with the pause menu: the counter alone (what holding SELECT adds, and its icon), not whatever else is in that corner then (a ki blast, the twigs of the woods, a squirrel). On the game screen, holding SELECT shows it as before.
 
 **DBZ-5. Elsewhere.** In the game's own pause menu and its screens, the second screen keeps the last picture. Conversations and anything else over the field stay on the game screen.
 
