@@ -891,7 +891,7 @@ static Piece pieces[4];
 static void upload_map_frame(int idx);
 static const uint32_t* hud_over_map(const uint32_t* px);
 static void make_combat_canvas(void);
-static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha);
+static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int left, int alpha);
 static uint32_t hudLogoBelow[HUD_CW * HUD_CH]; /* profile hud.logoBelow: dark grey, the logo below the HUD */
 /* profile hud.mapTitleRows: those rows of the last map picture, held over
  * the HUD (mapTitleN rows; 0: none taken yet) */
@@ -2291,7 +2291,7 @@ static void hud_make_logo_below(void) {
 	}
 	if (hudProf->hud.rows) top = hudProf->hud.rows * 2;
 	if (hudProf->hud.mapTitleRows && mapTitleN) top += (mapTitleN + 2) * 2; /* (and the level's name above it) */
-	logo_draw(hudLogoBelow, HUD_CW, HUD_CH, HUD_CW / GBA_W, top, 255);
+	logo_draw(hudLogoBelow, HUD_CW, HUD_CH, HUD_CW / GBA_W, top, 0, 255);
 }
 
 static int rule_count(const SpriteRule* r, int max) {
@@ -2353,7 +2353,7 @@ static void card_backdrop(void) {
 	for (int y = 0; y < GBA_H; ++y) {
 		for (int x = 0; x < GBA_W; ++x) {
 			uint32_t c = cardBest[y * GBA_W + x];
-			c = (c & 0xFFFFFF) == clear ? 0xFF000000 : c | 0xFF000000;
+			c = (c & 0xFFFFFF) == clear && !hudProf->hud.card.whole ? 0xFF000000 : c | 0xFF000000;
 			uint32_t* o = &hudBack[y * 2 * HUD_CW + x * 2];
 			o[0] = o[1] = o[HUD_CW] = o[HUD_CW + 1] = c;
 		}
@@ -2521,9 +2521,13 @@ static void hud_compose(void) {
 		uint16_t bld = emu_read16(&emu, 0x04000050);
 		int fade = SDL_min(emu_read16(&emu, 0x04000054) & 31, 16), eff = (bld >> 6) & 3;
 		if (!((bld & 0x0F) == 0x0F && (eff == 2 || eff == 3) && fade)) fade = 0;
+		/* (not behind a whole-screen card: it stays lit through the act.
+		 * Sonic Advance 2 darkens the level with BLDCNT under the card's
+		 * windows as it wipes off, then brings in the level's palettes) */
+		if (h->card.whole) fade = 0;
 		/* or by scaling its palettes (to black, or white): against how
 		 * bright they were as the backdrop was taken (in 64ths) */
-		int pf = fade ? 0 : bg_pal_fade(hudPalRef);
+		int pf = fade || h->card.whole ? 0 : bg_pal_fade(hudPalRef);
 		if (pf <= -2) eff = 3, fade = -pf;
 		else if (pf >= 2) eff = 2, fade = pf;
 		else fade *= 4;
@@ -2553,12 +2557,15 @@ static void hud_compose(void) {
 			}
 		}
 	} else if (h->card.tile) {
-		/* (hud.card: no card taken yet: the logo, below the HUD's pieces) */
+		/* (hud.card: no card taken yet: the logo, below the HUD's pieces;
+		 * for a whole-screen card, Sonic Advance 2's, centred right of
+		 * the lives counter, above the rest of the HUD along the bottom) */
 		static uint32_t cardLogo[HUD_CW * HUD_CH];
 		static bool made;
 		if (!made) {
 			for (int i = 0; i < HUD_CW * HUD_CH; ++i) cardLogo[i] = SCREEN_GREY;
-			made = logo_draw(cardLogo, HUD_CW, HUD_CH, HUD_CW / GBA_W, 48 * 2, 255);
+			made = h->card.whole ? logo_draw(cardLogo, HUD_CW, HUD_CH, HUD_CW / GBA_W, 0, 40 * 2, 255)
+			                     : logo_draw(cardLogo, HUD_CW, HUD_CH, HUD_CW / GBA_W, 48 * 2, 0, 255);
 		}
 		memcpy(hudCanvas, cardLogo, sizeof(hudCanvas));
 	} else {
@@ -2887,7 +2894,14 @@ static void update_hud(void) {
 	} else if (hudOn && race && hudCard) {
 		/* the title card: a take a frame (once the split draws the card),
 		 * the backdrop once it's centred; on the second screen from then */
-		if (hudFrames >= 2 && cardScore != 0 && card_take() && !hudBackValid) card_backdrop();
+		if (h->card.whole) {
+			/* (the whole game screen, once the card has settled) */
+			if (cardScore < 0 && hudFrames >= SDL_max(2, h->card.at)) {
+				memcpy(cardBest, emu.fb, sizeof(cardBest));
+				cardScore = 0;
+				card_backdrop();
+			}
+		} else if (hudFrames >= 2 && cardScore != 0 && card_take() && !hudBackValid) card_backdrop();
 		if (hudBackValid) {
 			memcpy(hudCanvas, hudBack, sizeof(hudCanvas));
 			for (int i = 0; i < nViews; ++i) ui_update_texture(hudTex[i], hudCanvas, HUD_CW * 4);
@@ -4728,18 +4742,19 @@ static void draw_osd(void) {
  * above it), centred in the rows below that. A user's own logo too big
  * for that is shrunk to fit. False if there's no logo. */
 #define LOGO_IDLE 128
-static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha) {
+static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int left, int alpha) {
 	bool pixelArt = false;
 	SDL_Surface* lg = ui_logo_surface(cfg, emu.gameCode, &pixelArt);
 	if (!lg) return false;
 	int room = ch - top;
 	int w = lg->w * k, h = lg->h * k;
-	if (w > cw || h > room) {
-		float sc = SDL_min((float) cw / lg->w, (float) room / lg->h);
+	if (w > cw - left || h > room) {
+		float sc = SDL_min((float) (cw - left) / lg->w, (float) room / lg->h);
 		w = SDL_max(1, (int) (lg->w * sc)), h = SDL_max(1, (int) (lg->h * sc));
 	}
-	/* centred on the canvas, or with a HUD above it in the room below */
-	int x0 = (cw - w) / 2, y0 = top ? top + (room - h) / 2 : (ch - h) / 2;
+	/* centred on the canvas, or with a HUD above it in the room below, or
+	 * beside it in the room right of `left` */
+	int x0 = left + (cw - left - w) / 2, y0 = top ? top + (room - h) / 2 : (ch - h) / 2;
 	SDL_LockSurface(lg);
 	for (int y = 0; y < h; ++y) {
 		const uint8_t* row = (const uint8_t*) lg->pixels + (size_t) (y * lg->h / h) * lg->pitch;
@@ -4775,7 +4790,7 @@ static void make_logo_canvas(void) {
 	if (big) return;
 	static uint32_t px[GBA_W * GBA_H];
 	for (int i = 0; i < GBA_W * GBA_H; ++i) px[i] = SCREEN_GREY;
-	logo_draw(px, GBA_W, GBA_H, 1, 0, LOGO_IDLE);
+	logo_draw(px, GBA_W, GBA_H, 1, 0, 0, LOGO_IDLE);
 	for (int i = 0; i < nViews; ++i) {
 		logoCanvasTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, GBA_W, GBA_H);
 		if (!logoCanvasTex[i]) continue;
@@ -4792,7 +4807,7 @@ static void make_combat_canvas(void) {
 	uint32_t* px = malloc((size_t) mapW * mapH * 4);
 	if (!px) return;
 	for (int i = 0; i < mapW * mapH; ++i) px[i] = SCREEN_GREY;
-	logo_draw(px, mapW, mapH, SDL_max(1, mapW / GBA_W), 0, LOGO_IDLE);
+	logo_draw(px, mapW, mapH, SDL_max(1, mapW / GBA_W), 0, 0, LOGO_IDLE);
 	for (int i = 0; i < nViews; ++i) {
 		if (combatTex[i]) ui_update_texture(combatTex[i], px, mapW * 4);
 	}

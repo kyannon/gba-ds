@@ -2269,6 +2269,42 @@ static const MapProfile profiles[] = {
 		},
 	},
 	{
+		/* Sonic Advance 2 (USA, Europe and Japan: the same sprites,
+		 * registers and title steps). In a level (display mode 0 with all
+		 * four BG layers: the zone card, play, pause; not the title,
+		 * menus or character select), the zone card fills the screen (BG
+		 * shapes on the blue backdrop, sprites for the emblem, icons and
+		 * name; the swirl by the name: tile 464, palette 8) and the HUD is
+		 * sprites: rings, score and time top left (palette 6 from tile
+		 * 484), the lives bottom left (the face palette 0, tile 508; the
+		 * count palette 6, tile 488). docs/games/sonic-advance-2.md */
+		.codes = { "A2NE", "A2NP", "A2NJ" },
+		.title = "Sonic Advance 2",
+		.logoOnly = true,
+		/* the title: SONIC ADVANCE 2 (BG2 alone; the sky BG1, the
+		 * copyright lines BG0). From power-on with no save: the language
+		 * menu (A), name entry (a letter, START to END, A), the intro */
+		.logo = { .steps = { { 0, 60 }, { K_A, 4 }, { 0, 80 }, { K_DOWN, 5 }, { 0, 9 }, { K_RIGHT, 6 }, { 0, 24 },
+		                     { K_A, 5 }, { 0, 11 }, { K_START, 7 }, { 0, 32 }, { K_A, 8 }, { 0, 1000 } },
+		          .layer = 2, .maxY = 120 },
+		.hud = {
+			.on = { { 0x04000000, 0x0F07, 0x0F00, 2 } },
+			/* the rings, score and time (tiles 484-547: the digits, the
+			 * ring box and icon; palette 7: the count flashing red at no
+			 * rings); the lives (face and count) */
+			.objs = { { -16, -16, 160, 32, 484, 547, -1, 1u << 6 | 1u << 7 },
+			          { -16, 130, 48, 159, 504, 511, -1, 1u << 0 },
+			          { -16, 130, 48, 159, 464, 1023, -1, 1u << 6 } },
+			/* the zone card: the whole screen, once settled, its emblem face on
+			 * with its ring of ticks full (SA2-2) */
+			.card = { .tile = 464, .pal = 8, .whole = true, .at = 61 },
+			/* the rings, score and time along the bottom (SA2-3); the
+			 * lives top left, under the card's emblem (SA2-4) */
+			.moves = { { 0, 0, 239, 40, 0, 0, 'B', 156 },
+			           { 0, 120, 60, 159, 0, 0, 'T', 56 } },
+		},
+	},
+	{
 		.codes = { "ATHE", "ATHF", "ATHD" },
 		.title = "Tony Hawk's Pro Skater 2",
 		/* no map yet: listed, logo on the second screen */
