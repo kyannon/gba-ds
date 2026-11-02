@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.4.5 (not yet released)
+## v1.4.5 (2026-11-02)
 
 ### New games
 - **Mario & Luigi: Superstar Saga** (USA and Europe; Mario & Luigi RPG in Japan), preliminary: walking about, the second screen is the Bros. Info screen of the brother you're controlling (START swaps them, and the page follows), updated about once a second. On the title and in battles it shows the logo. Tried at the start of the story; the European and Japanese releases beyond their titles haven't been tried yet.
