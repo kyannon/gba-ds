@@ -196,6 +196,18 @@
    }
   },
   {
+   "id": "dbz-us-squirrel-2",
+   "rom": "ALGE",
+   "state": "dragon-ball-z-legacy-of-goku/us-squirrel-2.ss",
+   "desc": "a squirrel between the counter's icon and its box (a player's bug report): the counter alone in the panel",
+   "rules": [
+    "DBZ-4"
+   ],
+   "shots": {
+    "start": 20
+   }
+  },
+  {
    "id": "dbz-logo-alge",
    "kind": "logo",
    "rom": "ALGE",

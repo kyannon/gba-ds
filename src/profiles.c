@@ -1379,8 +1379,9 @@ static const char* dbz_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	if (!st) return "no memory";
 	/* the counter: what holding SELECT adds to BG0 (its box; BG0 also has
 	 * bits of the field, twigs), and its icon, a sprite left of the box
-	 * (what holding SELECT adds to the sprites there); not whatever else
-	 * passes the corner (a ki blast, a squirrel) */
+	 * (its sprite alone: the sprites in its palette, 15, drawn without the
+	 * layers, against the same frame with none); not whatever else passes
+	 * the corner (a ki blast, a squirrel, even between the icon and the box) */
 	static uint32_t plain[GBA_W * GBA_H], box[GBA_W * GBA_H], count[GBA_W * GBA_H], objs[GBA_W * GBA_H];
 	emu_layers(s, 0x01);
 	if (!emu_state_load(s, state)) return "state load failed";
@@ -1393,13 +1394,17 @@ static const char* dbz_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	emu_state_load(s, state);
 	aw_run(s, K_SELECT, 20);
 	memcpy(box, s->fb, sizeof(box));
-	emu_layers(s, 0x11);
+	const SpriteRule notIcon = { -512, -256, 511, 255, 0, 1023, -1, 0x7FFF, 0 }, any = { -512, -256, 511, 255, 0, 1023, -1, 0, 0 };
+	emu_layers(s, 0x10);
+	emu_hide_sprites(s, &any, 1);
 	emu_state_load(s, state);
-	aw_run(s, 0, 20);
+	aw_run(s, K_SELECT, 20);
 	memcpy(objs, s->fb, sizeof(objs));
+	emu_hide_sprites(s, &notIcon, 1);
 	emu_state_load(s, state);
 	aw_run(s, K_SELECT, 20);
 	memcpy(count, s->fb, sizeof(count));
+	emu_hide_sprites(s, NULL, 0);
 	emu_layers(s, 0x1F);
 	static uint8_t take[GBA_W * GBA_H];
 	memset(take, 0, sizeof(take));
@@ -1417,7 +1422,7 @@ static const char* dbz_compose(Emu* s, const void* state, uint32_t* out, int w, 
 		int lx = bx0 - 24 < 0 ? 0 : bx0 - 24, ty = by0 - 6 < 0 ? 0 : by0 - 6, byy = by1 + 6;
 		for (int y = ty; y <= byy && y < 48; ++y)
 			for (int x = lx; x < bx0 + 8; ++x)
-				if (!take[y * GBA_W + x] && count[y * GBA_W + x] != box[y * GBA_W + x] && count[y * GBA_W + x] != objs[y * GBA_W + x]) take[y * GBA_W + x] = 2;
+				if (!take[y * GBA_W + x] && count[y * GBA_W + x] != objs[y * GBA_W + x]) take[y * GBA_W + x] = 2;
 		for (int y = 0; y < 48; ++y) {
 			for (int x = 0; x < 120; ++x) {
 				if (!take[y * GBA_W + x]) continue;
