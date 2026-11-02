@@ -2546,10 +2546,22 @@ static const MapProfile profiles[] = {
 			 * through the countdown after RETRY.) */
 			.on = { { 0x04000000, 0xFFFF, 0x3C62, 2 } },
 			.offTile = 579,
+			/* (not a rival's place marker over the track ahead (FZ-4): a
+			 * small digit, 950-989 in palette 12, with leader lines, tiles
+			 * 678 and 688. The HUD never uses those two (its are 680-692
+			 * and 711-715), and its small palette-12 digits are only
+			 * SPARE MACHINE's count (64, 2) and LAST's (32, 34): only
+			 * there; small digits in its other palettes and the tall
+			 * ones (990-1023) anywhere. Found by listing the sprites of
+			 * every test state.) */
 			.objs = { { -16, -16, 239, 56, 350, 380, 0, 1u << 8 | 1u << 12 | 1u << 13 | 1u << 15 },
-			          { -16, -16, 239, 56, 670, 720, 0, 1u << 8 | 1u << 12 | 1u << 13 | 1u << 15 },
+			          { -16, -16, 239, 56, 680, 687, 0, 1u << 8 | 1u << 12 | 1u << 13 | 1u << 15 },
+			          { -16, -16, 239, 56, 689, 720, 0, 1u << 8 | 1u << 12 | 1u << 13 | 1u << 15 },
 			          { -16, -16, 239, 56, 760, 780, 0, 1u << 8 | 1u << 12 | 1u << 13 | 1u << 15 },
-			          { -16, -16, 239, 56, 950, 1023, 0, 1u << 8 | 1u << 12 | 1u << 13 | 1u << 15 },
+			          { -16, -16, 239, 56, 990, 1023, 0, 1u << 8 | 1u << 12 | 1u << 13 | 1u << 15 },
+			          { -16, -16, 239, 56, 950, 989, 0, 1u << 8 | 1u << 13 | 1u << 15 },
+			          { 56, -16, 80, 6, 950, 989, 0, 1u << 12 },
+			          { 24, 30, 48, 38, 950, 989, 0, 1u << 12 },
 			          /* (x from -64: Clip Oval's map, narrow, is at -27) */
 			          { -64, 88, 64, 150, 882, 882, 0, 1u << 10 },
 			          { -16, 88, 64, 159, 679, 679, 0 } },

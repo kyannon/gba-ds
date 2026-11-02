@@ -855,7 +855,7 @@ static int hudFrames; /* split frames since the race (re)started */
 static int mapX0, mapY0, mapX1, mapY1; /* the map's box on the HUD, measured over the first frames */
 static bool mapFound;
 static SpriteRule hudWorldObjs[4]; /* hud.world.objs, the same way */
-static SpriteRule hudObjs[8]; /* hudProf's hud.objs, as used (see romPatch) */
+static SpriteRule hudObjs[12]; /* hudProf's hud.objs, as used (see romPatch) */
 static int hudFadeEff, hudFadeIn; /* the last full fade (2: white, 3: black); frames to fade the next backdrop in */
 static long hudPalRef[8]; /* bg_pal_levels() as the backdrop was taken */
 static unsigned hudKeep; /* BG layers kept on the game screen (FFTA's spells) */
@@ -2116,10 +2116,10 @@ static void snapshot_hiding_sprites(const SpriteRule* hide, int n, const SpriteR
 		return;
 	}
 	memcpy(raw, emu.fb, sizeof(raw));
-	SpriteRule all[8];
+	SpriteRule all[12];
 	int na = 0;
-	for (int i = 0; i < nKept && na < 8; ++i) all[na++] = kept[i];
-	for (int i = 0; i < n && na < 8; ++i) all[na++] = hide[i];
+	for (int i = 0; i < nKept && na < 12; ++i) all[na++] = kept[i];
+	for (int i = 0; i < n && na < 12; ++i) all[na++] = hide[i];
 	emu_hide_sprites(&emu, all, na);
 	emu_state_load(&emu, st);
 	emu_frame(&emu, 0);
@@ -2925,7 +2925,7 @@ static void update_hud(void) {
 	if (race != hudOn || scene != hudScene || world != hudWorld || alt != hudAlt || card != hudCard) {
 		const SpriteRule* objs = card ? h->card.objs : scene ? h->scene.objs : world ? hudWorldObjs : hudObjs;
 		unsigned mask = alt ? h->alt.bgMask : h->bgMask;
-		int nObjs = rule_count(objs, card || scene || world ? 4 : 8);
+		int nObjs = rule_count(objs, card || scene || world ? 4 : 12);
 		/* (nothing split off: only the logo behind the map picture, as
 		 * for Fire Emblem and Final Fantasy Tactics Advance; no second
 		 * renderer) */
@@ -2987,7 +2987,7 @@ static void update_hud(void) {
 				}
 				emu_hud_grab(&emu, m, hudGrab);
 			} else {
-				if (nh) snapshot_hiding_sprites(h->backdropHide, nh, hudObjs, rule_count(hudObjs, 8), hudGrab);
+				if (nh) snapshot_hiding_sprites(h->backdropHide, nh, hudObjs, rule_count(hudObjs, 12), hudGrab);
 				else memcpy(hudGrab, emu.fb, sizeof(hudGrab));
 				hud_make_backdrop();
 			}
@@ -5111,7 +5111,7 @@ static void ss_setup(const char* rom, const char* code) {
 			memcpy(hudObjs, hudProf->hud.objs, sizeof(hudObjs));
 			bool patched = profile_patch_rom(hudProf, &emu);
 			if (patched) fprintf(stderr, "HUD split: ROM patched\n");
-			for (int i = 0; !patched && i < 8; ++i) hudObjs[i].tagged = 0;
+			for (int i = 0; !patched && i < 12; ++i) hudObjs[i].tagged = 0;
 			memcpy(hudWorldObjs, hudProf->hud.world.objs, sizeof(hudWorldObjs));
 			for (int i = 0; !patched && i < 4; ++i) hudWorldObjs[i].tagged = 0;
 		}

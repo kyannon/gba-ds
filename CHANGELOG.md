@@ -22,6 +22,7 @@
 - **Summon Night: Swordcraft Story:** in a battle the second screen shows the logo, instead of the Status from before the battle.
 - **Advance Wars, Advance Wars 2:** the map's cursor and targeting pointer no longer leave bits of yellow at the edge of the unit intel's text box on the second screen.
 - **F-Zero: GP Legend:** on Mist Flow: Clip Oval (and any course whose map sits as far left), the course map stayed on the game screen; it's on the second screen with the others now.
+- **F-Zero: GP Legend:** a rival's place marker (the number over a machine ahead of you) no longer shows up on the second screen; it stays over its machine.
 
 ## v1.4.4 (2026-10-31)
 

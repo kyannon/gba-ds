@@ -449,7 +449,7 @@ unsigned emu_audio_rate(Emu* e) {
 typedef struct {
 	struct GBAVideoRenderer* renderer;
 	void (*orig)(struct GBAVideoRenderer* renderer, int y);
-	SpriteRule rules[8];
+	SpriteRule rules[12];
 	int n;
 	bool keepOnly; /* hide every sprite that matches none of the rules instead */
 	uint16_t exact[128][3]; /* and sprites exactly like these (emu_hide_exact) */
@@ -535,7 +535,7 @@ void emu_hide_sprites(Emu* e, const SpriteRule* rules, int n) {
 	HideSlot* s = slot_for(r);
 	if (!s) s = slot_for(NULL);
 	if (s) {
-		s->n = n > 8 ? 8 : n;
+		s->n = n > 12 ? 12 : n;
 		if (s->n) memcpy(s->rules, rules, sizeof(*rules) * s->n);
 		if (s->renderer != r) {
 			s->orig = r->drawScanline;
@@ -578,7 +578,7 @@ typedef struct {
 	struct GBAVideoRenderer* main;
 	bool installed, active;
 	unsigned bgMask;
-	SpriteRule objs[8];
+	SpriteRule objs[12];
 	int nObjs;
 	int nKeep; /* sprites the HUD also draws by their exact attributes (emu_hud_keep_exact) */
 	/* one frame of other layers instead (emu_hud_grab) */
@@ -850,7 +850,7 @@ bool emu_hud_split(Emu* e, bool on, unsigned bgMask, const SpriteRule* objs, int
 	split.bgMask = split.baseMask = bgMask;
 	split.lineHud = split.lineGame = bgMask;
 	if (!on) lastBandY0 = 0, lastBandY1 = -1;
-	split.nObjs = nObjs < 8 ? nObjs : 8;
+	split.nObjs = nObjs < 12 ? nObjs : 12;
 	if (split.nObjs) memcpy(split.objs, objs, sizeof(*objs) * split.nObjs);
 	/* the HUD: those layers and sprites only */
 	struct GBAVideoRenderer* h = &split.hud.d;

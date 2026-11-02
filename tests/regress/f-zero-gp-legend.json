@@ -157,6 +157,19 @@
    }
   },
   {
+   "id": "fz-us-rival-marker",
+   "rom": "BFZE",
+   "state": "f-zero-gp-legend/us-rival-marker.ss",
+   "desc": "a rival ahead with its place marker (1) over it (a player's bug report): the marker stays on the game screen, not on the second screen",
+   "rules": [
+    "FZ-4"
+   ],
+   "shots": {
+    "start": 2,
+    "later": 30
+   }
+  },
+  {
    "id": "fz-us-gp-pause",
    "rom": "BFZE",
    "state": "f-zero-gp-legend/us-gp-pause.ss",
