@@ -58,7 +58,7 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 - **Achievements**: when signed in to RetroAchievements; see [below](#retroachievements).
 - **Take Screenshot**: both screens as they look right now, with your display settings, stacked top to bottom into one PNG in `/storage/roms/screenshots` (Android: `GBA DS/screenshots`); `screenshot_dir` changes the folder.
 - **Submit a Bug Report**: the same as the quick bar's bug button (see [below](#the-quick-bar-and-bug-reports)), for the moment you opened the menu.
-- **Rewind**: on by default. Hold **L2** to go back in time, up to 30 seconds (`rewind_seconds`), at double speed and without sound; let go to play on from there. Off saves the little work it takes to keep the buffer.
+- **Rewind**: on by default. Hold **L2** to go back in time, up to 30 seconds (`rewind_seconds`), at double speed and without sound, with **Rewinding...** in the middle of the second screen (**Can't rewind further** once you reach the start of the buffer); let go to play on from there. Off saves the little work it takes to keep the buffer.
 - **Save on Quit: On / Off** and **Auto-Load: On / Off**, side by side: whether closing the game saves a resume point, and whether starting it picks up from one (see Resume points above). Remembered for next time.
 
 ## The quick bar and bug reports

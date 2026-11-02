@@ -1835,6 +1835,46 @@ static void draw_hint(void) {
 	ui_font_text(s, TF_BOLD, cx, b.y + b.h / 2, cap, text, G_TEXT, 0);
 }
 
+/* While rewinding (L2): "Rewinding..." after a rewind sign (two arrows
+ * pointing left) in a box like the hint's, larger, in the middle of the
+ * second screen (with one screen, of the game screen); "Can't rewind
+ * further" at the rewind buffer's start. It fades as rewinding stops. */
+static int game_screen(void);
+static int rewindBox;       /* 0 none, 1 rewinding, 2 at the buffer's start (this frame) */
+static float rewindShown;   /* 0 .. 1 */
+static const char* rewindText = "Rewinding...";
+
+static void draw_rewind(void) {
+	if (rewindBox) {
+		rewindShown = 1;
+		rewindText = rewindBox == 2 ? "Can't rewind further" : "Rewinding...";
+	} else {
+		rewindShown = SDL_max(0.0f, rewindShown - 0.15f);
+	}
+	if (rewindShown <= 0) return;
+	int s = nScreens > 1 ? 1 - game_screen() : 0;
+	float px = ui_px(s);
+	int cap = px * 10, tw = ui_font_width(TF_BOLD, cap, rewindText);
+	int padX = px * 8, padY = px * 6, ih = cap * 3 / 2, iw = ih, gap = px * 6;
+	int w = padX + iw + gap + tw + padX, h = SDL_max(cap, ih) + padY * 2;
+	SDL_Rect r = screens[s].rect;
+	SDL_Rect b = { (r.w - w) / 2, (r.h - h) / 2, w, h };
+	SDL_Color bg = G_BG, edge = G_EDGE, fg = G_TEXT;
+	bg.a = (Uint8) (bg.a * rewindShown), edge.a = (Uint8) (edge.a * rewindShown), fg.a = (Uint8) (fg.a * rewindShown);
+	ui_fill_round(s, (SDL_Rect) { b.x - 1, b.y - 1, b.w + 2, b.h + 2 }, edge, px * 4 + 1);
+	ui_fill_round(s, b, bg, px * 4);
+	/* the rewind sign: two triangles pointing left, side by side */
+	int ix = b.x + padX, cy = b.y + b.h / 2, half = ih / 2, tri = iw / 2;
+	for (int t = 0; t < 2; ++t) {
+		int x0 = ix + t * tri;
+		for (int i = 0; i < tri; ++i) {
+			int hh = half * (i + 1) / tri;
+			ui_fill(s, (SDL_Rect) { x0 + i, cy - hh, 1, hh * 2 }, fg);
+		}
+	}
+	ui_font_text(s, TF_BOLD, ix + iw + gap + tw / 2, cy, cap, rewindText, fg, 0);
+}
+
 static void draw_bar(void) {
 	barShown = barOpen ? SDL_min(1.0f, barShown + 0.25f) : SDL_max(0.0f, barShown - 0.25f);
 	if (barShown <= 0) return;
@@ -5837,15 +5877,16 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			bug_reset();
 			if (emu_rewind_step(&emu)) {
 				emu_frame(&emu, 0);
-				ui_osd("Rewinding");
+				rewindBox = 1;
 			} else {
-				ui_osd("Can't rewind further");
+				rewindBox = 2;
 			}
 			while (emu_audio_read(&emu, samples, 4096) > 0) {}
 			rewindTick = 0;
 			wasRewinding = true;
 		} else if (wasRewinding) {
 			wasRewinding = false;
+			rewindBox = 0;
 			forceMap = true; /* the map, as of where the rewind stopped */
 		}
 		for (int i = 0; i < (rewinding ? 0 : runs); ++i) {
@@ -6066,6 +6107,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			}
 			ra_draw(nScreens > 1 ? 1 - game_screen() : 0); /* after the screenshot: not in it */
 			if (barOpen && !cfg->barPinned && barGesture == G_NONE && SDL_GetTicks() - barSince > 5000) bar_close();
+			draw_rewind();
 			draw_hint(); /* (under the bar, as it comes up) */
 			draw_bar();
 			ui_present();
