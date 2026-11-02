@@ -2939,6 +2939,14 @@ static void update_hud(void) {
 		hudAlt = alt;
 		/* (by priority: the renderer picks the layers line by line) */
 		emu_hud_by_priority(h->bgPrioBelow);
+		{
+			uint32_t a[2], m[2], v[2];
+			int sz[2], n = 0;
+			for (; n < 2 && h->memLayers.when[n].addr; ++n) {
+				a[n] = h->memLayers.when[n].addr, m[n] = h->memLayers.when[n].mask, v[n] = h->memLayers.when[n].value, sz[n] = h->memLayers.when[n].size;
+			}
+			emu_hud_mem_layers(a, m, v, sz, race ? n : 0, h->memLayers.bgMask);
+		}
 		hudKeep = 0;
 		if (debug && race && scene != hudScene) fprintf(stderr, "frame %llu: HUD scene %s\n", (unsigned long long) frameCount, scene ? "on" : "off");
 		hudOn = race;

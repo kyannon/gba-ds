@@ -497,6 +497,15 @@ typedef struct MapProfile {
 		 * wherever there's no map picture, outside the game's chapters
 		 * too (Fire Emblem) */
 		bool logoAlways;
+		/* While every `when` probe matches as a frame starts drawing (the
+		 * game's vblank code done), these BG layers go into the HUD too,
+		 * that same frame: what the game draws in the vblank it sets a
+		 * flag (Dragon Ball Z: the counter's box on BG0) never shows on
+		 * the game screen first (emu_hud_mem_layers) */
+		struct {
+			MemProbe when[2];
+			unsigned bgMask;
+		} memLayers;
 	} hud;
 
 	/* Title-screen logo, pulled out of the running game: boot, wait, optionally

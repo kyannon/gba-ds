@@ -588,6 +588,10 @@ typedef struct {
 	/* the HUD's layers by priority, taken as each frame starts (0: bgMask) */
 	int prioBelow;
 	unsigned keepBgs; /* never in the HUD (emu_hud_keep_bgs) */
+	/* emu_hud_mem_layers: memory checked as each frame starts drawing */
+	unsigned baseMask, memLayers;
+	uint32_t memAddr[2], memMask[2], memVal[2];
+	int memSize[2], memN;
 	/* emu_hud_band: lines where a BG has one of these BGxCNT values */
 	unsigned lineHud, lineGame; /* this line's HUD layers / layers left out of the game */
 	int bandY0, bandY1;         /* this frame's band lines so far (y1 < y0: none) */
@@ -660,6 +664,22 @@ static unsigned bgs_below(int p) {
 	return m;
 }
 
+/* a byte, halfword or word of EWRAM, IWRAM or the I/O registers, as the
+ * game has it now (0 elsewhere) */
+static uint32_t split_read(uint32_t a, int size) {
+	const struct GBA* g = split.gba;
+	const uint8_t* p;
+	switch (a >> 24) {
+	case 2: p = (const uint8_t*) g->memory.wram + (a & 0x3FFFF); break;
+	case 3: p = (const uint8_t*) g->memory.iwram + (a & 0x7FFF); break;
+	case 4: p = (const uint8_t*) g->memory.io + (a & 0x3FF); break;
+	default: return 0;
+	}
+	uint32_t v = 0;
+	memcpy(&v, p, size == 1 || size == 2 ? size : 4);
+	return v;
+}
+
 static int copyAbove; /* emu_hud_copy_above */
 static int splitRows; /* emu_hud_rows */
 static bool splitCopying; /* emu_hud_copy: the HUD's layers left on the game too */
@@ -687,6 +707,19 @@ static void split_draw(struct GBAVideoRenderer* r, int y) {
 			unsigned m = bgs_below(split.prioBelow) & ~split.keepBgs;
 			if (m != split.bgMask) {
 				split.bgMask = m;
+				for (int i = 0; i < 4; ++i) r->disableBG[i] = (m >> i) & 1;
+				if (!split.grabbing) split_layers(m, split.nObjs > 0 || split.nKeep > 0);
+			}
+		}
+		if (y == 0 && split.memN) {
+			/* emu_hud_mem_layers: decided as the frame starts drawing, after
+			 * the game's vblank code has run (it sets the flag and draws what
+			 * goes with it in the same vblank) */
+			bool match = true;
+			for (int i = 0; i < split.memN && match; ++i) match = (split_read(split.memAddr[i], split.memSize[i]) & split.memMask[i]) == split.memVal[i];
+			unsigned m = split.baseMask | (match ? split.memLayers : 0);
+			if (m != split.bgMask) {
+				split.bgMask = split.lineHud = split.lineGame = m;
 				for (int i = 0; i < 4; ++i) r->disableBG[i] = (m >> i) & 1;
 				if (!split.grabbing) split_layers(m, split.nObjs > 0 || split.nKeep > 0);
 			}
@@ -814,7 +847,7 @@ bool emu_hud_split(Emu* e, bool on, unsigned bgMask, const SpriteRule* objs, int
 		split.installed = true;
 		split_resync(e);
 	}
-	split.bgMask = bgMask;
+	split.bgMask = split.baseMask = bgMask;
 	split.lineHud = split.lineGame = bgMask;
 	if (!on) lastBandY0 = 0, lastBandY1 = -1;
 	split.nObjs = nObjs < 8 ? nObjs : 8;
@@ -906,6 +939,12 @@ void emu_hud_by_priority(int prioBelow) {
 
 void emu_hud_keep_bgs(unsigned mask) {
 	split.keepBgs = mask;
+}
+
+void emu_hud_mem_layers(const uint32_t addr[2], const uint32_t mask[2], const uint32_t value[2], const int size[2], int n, unsigned layers) {
+	split.memN = n < 0 ? 0 : n > 2 ? 2 : n;
+	for (int i = 0; i < split.memN; ++i) split.memAddr[i] = addr[i], split.memMask[i] = mask[i], split.memVal[i] = value[i], split.memSize[i] = size[i];
+	split.memLayers = layers;
 }
 
 uint16_t emu_io16(Emu* e, uint32_t offset) {

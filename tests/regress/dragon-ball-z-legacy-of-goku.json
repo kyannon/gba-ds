@@ -265,6 +265,41 @@
    }
   },
   {
+   "id": "dbz-us-select-press",
+   "rom": "ALGE",
+   "state": "dragon-ball-z-legacy-of-goku/us-select-press.ss",
+   "desc": "SELECT pressed in the woods (a player's bug report): the counter's box never on the game screen, not even on the frame it comes up; then let go",
+   "rules": [
+    "DBZ-4"
+   ],
+   "input": [
+    [
+     0,
+     "UP"
+    ],
+    [
+     29,
+     "UP+SELECT"
+    ],
+    [
+     31,
+     "SELECT"
+    ],
+    [
+     58,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 28,
+    "press": 29,
+    "press2": 30,
+    "held": 40,
+    "release": 58,
+    "after": 64
+   }
+  },
+  {
    "id": "dbz-logo-alge",
    "kind": "logo",
    "rom": "ALGE",

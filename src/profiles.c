@@ -2671,15 +2671,13 @@ static const MapProfile profiles[] = {
 			 * on the second screen as last seen) */
 			/* (the first: walking about, the pause menu or the blank frame
 			 * between, not the title: the bars go only there) */
-			/* (the last: the bars, not the counter) */
 			.on = { { 0x04000000, 0x0F07, 0x0F00, 2, true, 0x0000 },
-			        { 0x04000000, 0xFFFF, DBZ_FIELD_DISP, 2, true, DBZ_PAUSE_DISP }, { 0x04000008, 0xFFFF, 0x1C00, 2, true, DBZ_PAUSE_BG0 },
-			        { DBZ_COUNTER, 0x08, 0x00, 1 } },
-			/* SELECT held or flying: the counter instead, its box on BG0
-			 * (which has nothing else walking about) and its icon a sprite
-			 * (DBZ-4) */
-			.alt = { .on = { { 0x04000000, 0xFFFF, DBZ_FIELD_DISP, 2 }, { 0x04000008, 0xFFFF, 0x1C00, 2 }, { DBZ_COUNTER, 0x08, 0x08, 1 } },
-			         .bgMask = 0x01 },
+			        { 0x04000000, 0xFFFF, DBZ_FIELD_DISP, 2, true, DBZ_PAUSE_DISP }, { 0x04000008, 0xFFFF, 0x1C00, 2, true, DBZ_PAUSE_BG0 } },
+			/* SELECT held or flying, walking about: the counter instead,
+			 * its box on BG0 (which has nothing else then) and its icon a
+			 * sprite (DBZ-4); decided as each frame starts drawing, since
+			 * the game sets the flag and draws the box in the same vblank */
+			.memLayers = { .when = { { DBZ_COUNTER, 0x08, 0x08, 1 }, { 0x04000000, 0xFFFF, DBZ_FIELD_DISP, 2 } }, .bgMask = 0x01 },
 			/* the HP / Ki bars (sprites 0-3 at the top left, palettes 14
 			 * and 15), or the counter's icon (palette 15, at 6,12) leave
 			 * the game screen for the middle of the empty options panel,

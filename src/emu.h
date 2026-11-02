@@ -137,6 +137,11 @@ void emu_hud_by_priority(int prioBelow);
 /* While split by priority: these BG layers (bit 0 = BG0) stay out of the
  * HUD whatever their priority (from the next frame). */
 void emu_hud_keep_bgs(unsigned mask);
+/* While every one of these (n, up to 2) holds as a frame starts drawing (the
+ * game's vblank code done), these BG layers go into the HUD too, for that
+ * frame (Dragon Ball Z: the counter's box, drawn the same vblank its flag
+ * is set); addresses in EWRAM, IWRAM or the I/O registers. n 0: off. */
+void emu_hud_mem_layers(const uint32_t addr[2], const uint32_t mask[2], const uint32_t value[2], const int size[2], int n, unsigned layers);
 /* While split: both renderers see these bits of the video register at
  * addr (offset from 0x04000000) cleared, the game's register untouched
  * (Advance Wars: WININ's window 0 effects, the darkened box behind the
