@@ -1,0 +1,1083 @@
+{
+ "game": "Kingdom Hearts: Chain of Memories",
+ "rules": "docs/games/kingdom-hearts-chain-of-memories.md",
+ "cases": [
+  {
+   "id": "khc-logo-b8ce",
+   "kind": "logo",
+   "rom": "B8CE",
+   "desc": "B8CE logo extraction",
+   "rules": [
+    "GEN-1",
+    "KHC-5"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "khc-us-title",
+   "rom": "B8CE",
+   "state": "kingdom-hearts-chain-of-memories/us-title.ss",
+   "desc": "the emblem on black before the title, then its flash and the title screen (a player's bug report, 10 seconds before it): the logo, nothing taken",
+   "rules": [
+    "KHC-4",
+    "KHC-5"
+   ],
+   "shots": {
+    "title": 400
+   },
+   "checks": [
+    {
+     "rule": "KHC-4",
+     "what": "no World Map taken",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "KHC-4",
+     "what": "the logo on the title",
+     "shot": "title"
+    }
+   ]
+  },
+  {
+   "id": "khc-us-field",
+   "rom": "B8CE",
+   "state": "kingdom-hearts-chain-of-memories/us-field.ss",
+   "desc": "walking about on Traverse Town's first floor (a player's bug report): the World Map, the hand on Sora's room, without its A bubble; the game screen as it is",
+   "rules": [
+    "KHC-1",
+    "KHC-6"
+   ],
+   "shots": {
+    "map": 200
+   },
+   "checks": [
+    {
+     "rule": "KHC-1",
+     "what": "the World Map taken",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "KHC-1",
+     "what": "not the logo",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "khc-us-world-map",
+   "rom": "B8CE",
+   "state": "kingdom-hearts-chain-of-memories/us-world-map.ss",
+   "desc": "the game's own World Map open (the same report): the menu can't be opened on the hidden copy, nothing taken, the logo until there's a picture",
+   "rules": [
+    "KHC-2"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "KHC-2",
+     "what": "no World Map taken",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "KHC-2",
+     "what": "the logo",
+     "shot": "start"
+    }
+   ]
+  },
+  {
+   "id": "khc-us-menu",
+   "rom": "B8CE",
+   "state": "kingdom-hearts-chain-of-memories/us-menu.ss",
+   "desc": "the game's own menu open: nothing taken",
+   "rules": [
+    "KHC-2"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "KHC-2",
+     "what": "no World Map taken",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "khc-us-conversation",
+   "rom": "B8CE",
+   "state": "kingdom-hearts-chain-of-memories/us-conversation.ss",
+   "desc": "a conversation on a new game's first Traverse Town screen: the menu doesn't open, nothing taken",
+   "rules": [
+    "KHC-2"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "KHC-2",
+     "what": "no World Map taken",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "khc-us-into-battle",
+   "rom": "B8CE",
+   "state": "kingdom-hearts-chain-of-memories/us-into-battle.ss",
+   "desc": "walking about into a Heartless: the World Map, then the logo from the battle's flash (display mode 2) and through the fight (its pointer set)",
+   "rules": [
+    "KHC-1",
+    "KHC-3"
+   ],
+   "input": [
+    [
+     0,
+     "DOWN+LEFT"
+    ],
+    [
+     30,
+     "LEFT"
+    ],
+    [
+     60,
+     "DOWN+RIGHT"
+    ],
+    [
+     90,
+     "DOWN"
+    ],
+    [
+     120,
+     "UP"
+    ],
+    [
+     150,
+     "LEFT"
+    ],
+    [
+     180,
+     "DOWN+LEFT"
+    ],
+    [
+     210,
+     "RIGHT"
+    ],
+    [
+     240,
+     "UP+LEFT"
+    ],
+    [
+     270,
+     "UP+RIGHT"
+    ],
+    [
+     300,
+     "UP+LEFT"
+    ],
+    [
+     330,
+     "UP+RIGHT"
+    ],
+    [
+     360,
+     "RIGHT"
+    ],
+    [
+     368,
+     "A"
+    ],
+    [
+     372,
+     "-"
+    ],
+    [
+     384,
+     "LEFT"
+    ],
+    [
+     392,
+     "A"
+    ],
+    [
+     396,
+     "-"
+    ],
+    [
+     408,
+     "UP"
+    ],
+    [
+     416,
+     "A"
+    ],
+    [
+     420,
+     "-"
+    ],
+    [
+     432,
+     "LEFT"
+    ],
+    [
+     440,
+     "A"
+    ],
+    [
+     444,
+     "-"
+    ],
+    [
+     456,
+     "DOWN"
+    ],
+    [
+     460,
+     "-"
+    ]
+   ],
+   "shots": {
+    "map": 250,
+    "flash": 330,
+    "fight": 420
+   },
+   "checks": [
+    {
+     "rule": "KHC-1",
+     "what": "the World Map walking about",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "KHC-3",
+     "what": "the logo in the flash",
+     "shot": "flash"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "KHC-3",
+     "what": "the logo in the fight",
+     "shot": "fight"
+    },
+    {
+     "rule": "KHC-3",
+     "what": "the fight noticed",
+     "type": "log",
+     "match": "fight on"
+    }
+   ]
+  },
+  {
+   "id": "khc-us-battle-end",
+   "rom": "B8CE",
+   "state": "kingdom-hearts-chain-of-memories/us-field.ss",
+   "desc": "the World Map walking about, then (loaded) a battle near its end, fought through: the logo to the LEVEL UP!, the last World Map on the level-up screen, a fresh one walking about again",
+   "rules": [
+    "KHC-1",
+    "KHC-2",
+    "KHC-3"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:kingdom-hearts-chain-of-memories/us-battle-end.ss"
+    ],
+    [
+     201,
+     "-"
+    ],
+    [
+     209,
+     "RIGHT"
+    ],
+    [
+     217,
+     "A"
+    ],
+    [
+     221,
+     "-"
+    ],
+    [
+     233,
+     "LEFT"
+    ],
+    [
+     241,
+     "A"
+    ],
+    [
+     245,
+     "-"
+    ],
+    [
+     257,
+     "UP"
+    ],
+    [
+     265,
+     "A"
+    ],
+    [
+     269,
+     "-"
+    ],
+    [
+     281,
+     "LEFT"
+    ],
+    [
+     289,
+     "A"
+    ],
+    [
+     293,
+     "-"
+    ],
+    [
+     305,
+     "LEFT"
+    ],
+    [
+     313,
+     "A"
+    ],
+    [
+     317,
+     "-"
+    ],
+    [
+     329,
+     "LEFT"
+    ],
+    [
+     337,
+     "A"
+    ],
+    [
+     341,
+     "-"
+    ],
+    [
+     353,
+     "LEFT"
+    ],
+    [
+     361,
+     "A"
+    ],
+    [
+     365,
+     "-"
+    ],
+    [
+     377,
+     "DOWN"
+    ],
+    [
+     385,
+     "A"
+    ],
+    [
+     389,
+     "-"
+    ],
+    [
+     401,
+     "RIGHT"
+    ],
+    [
+     409,
+     "A"
+    ],
+    [
+     413,
+     "-"
+    ],
+    [
+     425,
+     "DOWN"
+    ],
+    [
+     433,
+     "A"
+    ],
+    [
+     437,
+     "-"
+    ],
+    [
+     449,
+     "LEFT"
+    ],
+    [
+     457,
+     "A"
+    ],
+    [
+     461,
+     "-"
+    ],
+    [
+     473,
+     "RIGHT"
+    ],
+    [
+     481,
+     "A"
+    ],
+    [
+     485,
+     "-"
+    ],
+    [
+     497,
+     "DOWN"
+    ],
+    [
+     505,
+     "A"
+    ],
+    [
+     509,
+     "-"
+    ],
+    [
+     521,
+     "DOWN"
+    ],
+    [
+     529,
+     "A"
+    ],
+    [
+     533,
+     "-"
+    ],
+    [
+     545,
+     "RIGHT"
+    ],
+    [
+     553,
+     "A"
+    ],
+    [
+     557,
+     "-"
+    ],
+    [
+     569,
+     "UP"
+    ],
+    [
+     577,
+     "A"
+    ],
+    [
+     581,
+     "-"
+    ],
+    [
+     593,
+     "RIGHT"
+    ],
+    [
+     601,
+     "A"
+    ],
+    [
+     605,
+     "-"
+    ],
+    [
+     617,
+     "RIGHT"
+    ],
+    [
+     625,
+     "A"
+    ],
+    [
+     629,
+     "-"
+    ],
+    [
+     641,
+     "DOWN"
+    ],
+    [
+     649,
+     "A"
+    ],
+    [
+     653,
+     "-"
+    ],
+    [
+     665,
+     "UP"
+    ],
+    [
+     673,
+     "A"
+    ],
+    [
+     677,
+     "-"
+    ],
+    [
+     689,
+     "LEFT"
+    ],
+    [
+     697,
+     "A"
+    ],
+    [
+     701,
+     "-"
+    ],
+    [
+     713,
+     "DOWN"
+    ],
+    [
+     721,
+     "A"
+    ],
+    [
+     725,
+     "-"
+    ],
+    [
+     737,
+     "LEFT"
+    ],
+    [
+     745,
+     "A"
+    ],
+    [
+     749,
+     "-"
+    ],
+    [
+     761,
+     "RIGHT"
+    ],
+    [
+     769,
+     "A"
+    ],
+    [
+     773,
+     "-"
+    ],
+    [
+     785,
+     "UP"
+    ],
+    [
+     793,
+     "A"
+    ],
+    [
+     797,
+     "-"
+    ],
+    [
+     809,
+     "LEFT"
+    ],
+    [
+     817,
+     "A"
+    ],
+    [
+     821,
+     "-"
+    ],
+    [
+     833,
+     "UP"
+    ],
+    [
+     841,
+     "A"
+    ],
+    [
+     845,
+     "-"
+    ],
+    [
+     857,
+     "DOWN"
+    ],
+    [
+     865,
+     "A"
+    ],
+    [
+     869,
+     "-"
+    ],
+    [
+     881,
+     "RIGHT"
+    ],
+    [
+     889,
+     "A"
+    ],
+    [
+     893,
+     "-"
+    ],
+    [
+     905,
+     "UP"
+    ],
+    [
+     913,
+     "A"
+    ],
+    [
+     917,
+     "-"
+    ],
+    [
+     929,
+     "UP"
+    ],
+    [
+     937,
+     "A"
+    ],
+    [
+     941,
+     "-"
+    ],
+    [
+     953,
+     "DOWN"
+    ],
+    [
+     961,
+     "A"
+    ],
+    [
+     965,
+     "-"
+    ],
+    [
+     977,
+     "DOWN"
+    ],
+    [
+     985,
+     "A"
+    ],
+    [
+     989,
+     "-"
+    ],
+    [
+     1001,
+     "LEFT"
+    ],
+    [
+     1009,
+     "A"
+    ],
+    [
+     1013,
+     "-"
+    ],
+    [
+     1025,
+     "DOWN"
+    ],
+    [
+     1033,
+     "A"
+    ],
+    [
+     1037,
+     "-"
+    ],
+    [
+     1049,
+     "RIGHT"
+    ],
+    [
+     1057,
+     "A"
+    ],
+    [
+     1061,
+     "-"
+    ],
+    [
+     1073,
+     "DOWN"
+    ],
+    [
+     1081,
+     "A"
+    ],
+    [
+     1085,
+     "-"
+    ],
+    [
+     1097,
+     "DOWN"
+    ],
+    [
+     1105,
+     "A"
+    ],
+    [
+     1109,
+     "-"
+    ],
+    [
+     1121,
+     "RIGHT"
+    ],
+    [
+     1129,
+     "A"
+    ],
+    [
+     1133,
+     "-"
+    ],
+    [
+     1145,
+     "UP"
+    ],
+    [
+     1153,
+     "A"
+    ],
+    [
+     1157,
+     "-"
+    ],
+    [
+     1169,
+     "UP"
+    ],
+    [
+     1177,
+     "A"
+    ],
+    [
+     1181,
+     "-"
+    ],
+    [
+     1193,
+     "LEFT"
+    ],
+    [
+     1201,
+     "A"
+    ],
+    [
+     1205,
+     "-"
+    ],
+    [
+     1217,
+     "DOWN"
+    ],
+    [
+     1225,
+     "A"
+    ],
+    [
+     1229,
+     "-"
+    ],
+    [
+     1241,
+     "LEFT"
+    ],
+    [
+     1249,
+     "A"
+    ],
+    [
+     1253,
+     "-"
+    ],
+    [
+     1265,
+     "RIGHT"
+    ],
+    [
+     1273,
+     "A"
+    ],
+    [
+     1277,
+     "-"
+    ],
+    [
+     1289,
+     "DOWN"
+    ],
+    [
+     1297,
+     "A"
+    ],
+    [
+     1301,
+     "-"
+    ],
+    [
+     1313,
+     "UP"
+    ],
+    [
+     1321,
+     "A"
+    ],
+    [
+     1325,
+     "-"
+    ],
+    [
+     1337,
+     "DOWN"
+    ],
+    [
+     1345,
+     "A"
+    ],
+    [
+     1349,
+     "-"
+    ],
+    [
+     1361,
+     "LEFT"
+    ],
+    [
+     1369,
+     "A"
+    ],
+    [
+     1373,
+     "-"
+    ],
+    [
+     1385,
+     "DOWN"
+    ],
+    [
+     1393,
+     "A"
+    ],
+    [
+     1397,
+     "-"
+    ],
+    [
+     1401,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 180,
+    "fight": 260,
+    "levelup": 901,
+    "back": 1381
+   },
+   "checks": [
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "KHC-3",
+     "what": "the logo in the battle, not the map from before",
+     "shot": "fight"
+    },
+    {
+     "rule": "KHC-2",
+     "what": "the last World Map back after the battle",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "levelup",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     }
+    },
+    {
+     "rule": "KHC-1",
+     "what": "a World Map again walking about",
+     "type": "not_uniform",
+     "shot": "back",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "KHC-3",
+     "what": "the fight ends",
+     "type": "log",
+     "match": "fight off"
+    }
+   ]
+  },
+  {
+   "id": "khc-us-tutorial-talk",
+   "rom": "B8CE",
+   "state": "kingdom-hearts-chain-of-memories/us-tutorial-talk.ss",
+   "desc": "the tutorial battle with Marluxia, its conversation boxes up (display mode 1, the battle's pointer set): the logo throughout",
+   "rules": [
+    "KHC-3"
+   ],
+   "shots": {
+    "talk": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "KHC-3",
+     "what": "no World Map taken",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "KHC-3",
+     "what": "the logo",
+     "shot": "talk"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "KHC-3",
+     "what": "still the logo",
+     "shot": "later"
+    }
+   ]
+  }
+ ]
+}

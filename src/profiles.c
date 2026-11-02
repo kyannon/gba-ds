@@ -1437,6 +1437,63 @@ static bool ml_settle(Emu* s, int max) {
 	}
 	return false;
 }
+/* ---------------------------------------------------------- Kingdom Hearts: Chain of Memories
+ *
+ * The second screen (KHC-1): the World Map, opened on the shadow core from
+ * the live state at every capture: START (the menu always opens on Review
+ * Decks), DOWN to World Map, A; taken once its rooms are all in (they
+ * appear over about 70 frames), with the hand's A button bubble left out.
+ * Each step is checked by fixed pixels; if one fails, the last map stays
+ * (KHC-2). */
+#define KHC_BATTLE 0x02039DD4 /* the battle's pointer: 0 outside one */
+/* the menu: its MENU banner, the status panel's frame, the deck box */
+static const Probe khcMenu[6] = { { 4, 4, 0x00298C }, { 40, 5, 0x00298C }, { 60, 8, 0x000000 },
+                                  { 200, 20, 0x73A5AD }, { 236, 40, 0x73A5AD }, { 236, 157, 0x4A6B6B } };
+/* its second button (World Map) lit: red where the others are blue */
+static const Probe khcOnMap[3] = { { 44, 50, 0xFF4221 }, { 60, 50, 0xFF4221 }, { 76, 50, 0xFF4221 } };
+/* the World Map: its banner (WORLD MAP on blue), the floor's badge at the
+ * bottom left, the dark strip along the bottom */
+static const Probe khcMap[8] = { { 4, 4, 0x00298C }, { 20, 6, 0xFFFFFF }, { 40, 5, 0xFFFFFF }, { 60, 8, 0x8C9CD6 },
+                                 { 70, 3, 0x395AB5 }, { 4, 157, 0x087BA5 }, { 236, 157, 0x08184A }, { 120, 157, 0x08184A } };
+/* the A button bubble beside the hand (tile 454, palette 0) */
+static const SpriteRule khcHide[1] = { { -64, -16, 239, 159, 454, 454, -1, 1u << 0 } };
+static bool khc_menu_up(Emu* s) {
+	return som_probes(s, khcMenu, 6, 6, 8);
+}
+static bool khc_map_up(Emu* s) {
+	return som_probes(s, khcMap, 8, 7, 8);
+}
+/* the title (KHC-4): Sora, the emblem and the sky behind, as they stand
+ * once it's up */
+#define KHC_V_TITLE 0xF0000040
+static const Probe khcTitle[8] = { { 129, 0, 0xEFE7DE }, { 165, 6, 0xE7D6AD }, { 84, 18, 0xADADAD }, { 192, 21, 0xA5634A },
+                                   { 15, 33, 0xADADAD }, { 153, 36, 0xCE9C73 }, { 72, 48, 0x52525A }, { 180, 51, 0xF7BD84 } };
+static uint32_t khc_virt(Emu* e, uint32_t addr) {
+	return addr == KHC_V_TITLE && som_probes(e, khcTitle, 8, 7, 8);
+}
+static bool khc_wait(Emu* s, bool (*up)(Emu*), int n) {
+	for (int f = 0; f < n && !up(s); ++f) emu_frame(s, 0);
+	return up(s);
+}
+static const char* khc_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	emu_hide_sprites(s, khcHide, 1);
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	aw_run(s, K_START, 4);
+	if (!khc_wait(s, khc_menu_up, 60)) return "the menu didn't open";
+	aw_run(s, 0, 12);
+	aw_run(s, K_DOWN, 4);
+	aw_run(s, 0, 16);
+	if (!khc_menu_up(s) || !som_probes(s, khcOnMap, 3, 3, 8)) return "World Map isn't lit";
+	aw_run(s, K_A, 4);
+	if (!khc_wait(s, khc_map_up, 90)) return "the World Map didn't open";
+	aw_run(s, 0, 90); /* (its rooms all in) */
+	if (emu_cancelled(s)) return "called off";
+	if (!khc_map_up(s)) return "the World Map closed";
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+	return NULL;
+}
+
 /* Bros. Info's frame, the same on both brothers' pages (its leather edges,
  * the ring's rim, the plaid, the boxes): not the field or the menu */
 static const Probe mlBrosInfo[8] = { { 10, 150, 0x6B8C73 }, { 4, 80, 0x633921 }, { 235, 80, 0x7B736B }, { 120, 157, 0xBDC6B5 },
@@ -2866,6 +2923,28 @@ static const MapProfile profiles[] = {
 		.pick = gbw_pick,
 		/* the title's lettering is sprites (PRESS START! below it too) */
 		.logo = { .wait = 640, .layers = 0x10, .maxY = 92 },
+	},
+	{
+		/* Kingdom Hearts: Chain of Memories (USA). Walking about in a
+		 * world, the World Map: see khc_compose (KHC-1, KHC-2) */
+		.codes = { "B8CE" },
+		.title = "Kingdom Hearts: Chain of Memories",
+		.compose = khc_compose,
+		.virt = khc_virt,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* not in a battle, not on the title: taken (about once a second;
+		 * where the menu doesn't open, nothing: KHC-2) */
+		.live = { { KHC_BATTLE, 0xFFFFFFFF, 0, 4 }, { KHC_V_TITLE, 0xFF, 0, 4 } },
+		/* the title: the logo, the map forgotten (KHC-4) */
+		.menu = { { KHC_V_TITLE, 0xFF, 1, 4 } },
+		/* a battle: its pointer set (the fight, its conversations), or the
+		 * display in mode 2 (its flash, its end): the logo (KHC-3) */
+		.combat = { { KHC_BATTLE + 3, 0xFF, 0x02, 1 } },
+		.combatOr = { { 0x04000000, 0x0007, 2, 2 } },
+		/* the emblem full size on black before the title, faded in, before
+		 * it flashes and shrinks (KHC-5): BG2 alone */
+		.logo = { .wait = 700, .layer = 2, .maxY = 160 },
 	},
 };
 
