@@ -29,7 +29,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 ## Not covered yet
 
-Tried in Leaf Forest act 1 (Sonic) from the owner's USA bug reports, its water from a Japanese one, and on the title in each release. Other zones and acts, other characters (Cream, Tails, Knuckles, Amy), bosses, special stages, Time Attack, multiplayer and the Tiny Chao Garden aren't tried yet: in a level with the same display setup (display mode 0 with BG1-3; BG0 off under water) they get the same treatment, untried; elsewhere (other display setups) the logo.
+Tried in Leaf Forest act 1 (Sonic) in all three releases, from the owner's bug reports (USA: the card, play and the title; Japan: the water; Europe: play into the water and a state saved with the card) and from states played in from power-on (Europe and Japan: the title and the card). Each release is checked for the logo, the title, the card with the HUD moved, pause and one screen; the water is checked in the Japanese and European releases (the USA one has no state there yet: the same check applies). Other zones and acts, other characters (Cream, Tails, Knuckles, Amy), bosses, special stages, Time Attack, multiplayer and the Tiny Chao Garden aren't tried yet: in a level with the same display setup (display mode 0 with BG1-3; BG0 off under water) they get the same treatment, untried; elsewhere (other display setups) the logo.
 
 ## Facts found so far (for sessions)
 
