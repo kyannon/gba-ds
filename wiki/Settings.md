@@ -28,6 +28,7 @@ Updating from the game list (Settings > Updates) keeps your `gba-ds.cfg`. Unzipp
 | `layout` | `auto` | `auto` detects the screens. On ROCKNIX's sway, GBA DS makes its window full screen across both outputs and splits it. `span-h` / `span-v`: one window over two screens side by side / stacked. `dual`: one window per display. `single`: one screen; L3 flips between game and second screen. |
 | `swap` | `0` | `1` puts the second screen first (top) and the game second. The menu's Swap Screens and L3 are remembered in `prefs.cfg` and win over this. |
 | `touch_screen` | `second` | `first` or `second`: the screen with the touch panel. The menu and game list are drawn there. |
+| `top_screen` | `auto` | Android only: which display is the top screen. `auto`: the larger one when they differ in size (the AYN Thor's 1920x1080 screen), else the second display (the RG DS). `app`: the display GBA DS opens on. `second`: the other one. Set it if the game and the second screen come up the wrong way round, or Pokémon Pinball's table is upside down. |
 | `sway` | `1` | On ROCKNIX, ask the sway compositor to make the window full screen across both outputs. `0` leaves the window as it is. |
 | `touch_map` | `window` | How touch coordinates map: across the whole window, or `screen` (just the touch screen). Try `screen` if taps land in the wrong place. |
 

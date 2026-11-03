@@ -5,6 +5,9 @@
 ### New games
 - **Sonic Advance 2** (USA, Europe and Japan): as each act starts, its zone card (the zone's name, emblem and icons, on blue and black) goes to the second screen and stays there through the act, and the rings, score and time move to its bottom left and the lives to its bottom right, so the game screen is clear, under water too. The pause window stays on the game screen; on the title and menus the second screen shows the logo. Tried in Leaf Forest with Sonic; other zones, characters, bosses, special stages, Time Attack and multiplayer haven't been tried yet. After loading a state from before this version (or another emulator's) mid-act, the logo shows above the HUD until the next act's card.
 
+### Fixes
+- **Android, AYN Thor and other devices with a larger top screen:** GBA DS took the second display for the top screen, so on the Thor the game and the second screen were the wrong way up, and Pokémon Pinball's table was upside down across the two screens (Swap Screens didn't help). When the two displays differ in size, the larger one is now the top screen; with two the same size (the RG DS), nothing changes. `top_screen` in `gba-ds.cfg` (`app` or `second`) sets it by hand if a device needs it.
+
 ## v1.4.5 (2026-11-02)
 
 ### New games

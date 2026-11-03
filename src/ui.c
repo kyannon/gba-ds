@@ -519,14 +519,31 @@ void ui_shutdown(void) {
 void ui_layout(void) {
 	if (nViews == 2) {
 		nScreens = 2;
+#ifdef __ANDROID__
+		/* screens in physical order as on ROCKNIX (0 top: the game; 1 bottom:
+		 * the menus). Android doesn't say where its displays are: with two
+		 * of a size, the activity's (view 0, display 0) is the bottom one,
+		 * as on the RG DS; else the larger one is on top, as on the AYN Thor
+		 * (1920x1080 over 1240x1080) and other clamshells. top_screen = app
+		 * / second says which instead. */
+		int w0, h0, w1, h1;
+		view_size(0, &w0, &h0);
+		view_size(1, &w1, &h1);
+		bool appOnTop = !strcmp(cfg->topScreen, "app") ? true
+		                : !strcmp(cfg->topScreen, "second") ? false
+		                : (long) w0 * h0 > (long) w1 * h1 * 11 / 10;
+		static int logged = -1;
+		if (logged != appOnTop) {
+			logged = appOnTop;
+			fprintf(stderr, "screens: %s on top (%dx%d over %dx%d; top_screen = %s)\n", appOnTop ? "the app's display" : "the second display",
+			        appOnTop ? w0 : w1, appOnTop ? h0 : h1, appOnTop ? w1 : w0, appOnTop ? h1 : h0, cfg->topScreen);
+		}
+#endif
 		for (int i = 0; i < 2; ++i) {
 			int w, h;
 			view_size(i, &w, &h);
 #ifdef __ANDROID__
-			/* screens in physical order as on ROCKNIX (0 top: the game; 1 bottom:
-			 * the touchscreen). The activity, view 0, runs on display 0, which on
-			 * the RG DS is the bottom (touch) screen; the top is the second display. */
-			screens[1 - i] = (Screen) { i, { 0, 0, w, h } };
+			screens[appOnTop ? i : 1 - i] = (Screen) { i, { 0, 0, w, h } };
 #else
 			screens[i] = (Screen) { i, { 0, 0, w, h } };
 #endif

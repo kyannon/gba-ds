@@ -26,6 +26,8 @@ If there's a `gba-ds-error.log` next to `GBA DS.sh` instead, the `gba-ds` folder
 
 **Taps land in the wrong place.** Try `touch_map = screen` in `gba-ds.cfg`. If the menu is on the wrong screen, set `touch_screen` to `first` or `second` (see [Settings](Settings#screens)).
 
+**Android: the game and the second screen are the wrong way round** (or Pokémon Pinball's table is upside down across the screens). Android doesn't tell apps which display is on top, so GBA DS guesses: the larger one, or the second display when both are the same size. If it guesses wrong on your device, add `top_screen = app` (the display GBA DS opens on is the top one) or `top_screen = second` to `GBA DS/gba-ds.cfg` (see [Settings](Settings#screens)), and please tell us your device in an issue.
+
 **Buttons do the wrong thing.** Use **Map Buttons** in the game list's Settings (see [Playing](Playing#mapping-the-buttons)).
 
 **HOME doesn't open the menu.** Map it with **Map Buttons**, or turn on the debug log (above), press HOME, and look for "raw joystick ... button N" in the log; put that number in `home_button`. Tapping the touchscreen always opens the menu, and `menu_combo = select+start` adds SELECT + START.

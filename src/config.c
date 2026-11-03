@@ -18,6 +18,7 @@ void config_defaults(Config* c) {
 	strcpy(c->esConfigDir, "/storage/.config/emulationstation");
 	strcpy(c->libraryView, "list");
 	strcpy(c->touchScreen, "second");
+	strcpy(c->topScreen, "auto");
 	strcpy(c->touchMap, "window");
 	c->touchRotate = -1;
 	c->map = true;
@@ -110,6 +111,7 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	STR("screenshot_dir", screenshotDir)
 	STR("asset_dir", assetDir)
 	STR("touch_screen", touchScreen)
+	STR("top_screen", topScreen)
 	STR("touch_map", touchMap)
 	STR("touch_device", touchDevice)
 	INT("touch_rotate", touchRotate)
