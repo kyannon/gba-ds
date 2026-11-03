@@ -5138,7 +5138,7 @@ static void ss_setup(const char* rom, const char* code) {
 			/* the full map is always up, so hide the game's own corner mini-map */
 			const MapProfile* prof = profile_find(code);
 			int nRules = 0;
-			while (prof && nRules < 4 && prof->hideSprites[nRules].x1) ++nRules;
+			while (prof && nRules < (int) (sizeof(prof->hideSprites) / sizeof(prof->hideSprites[0])) && prof->hideSprites[nRules].x1) ++nRules;
 			emu_hide_sprites(&emu, prof ? prof->hideSprites : NULL, nRules);
 		} else if (!logoOnly) {
 			fprintf(stderr, "no map profile for %s\n", code);

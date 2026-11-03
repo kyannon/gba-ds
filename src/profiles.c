@@ -2684,19 +2684,24 @@ static const MapProfile profiles[] = {
 		/* the title and the menus: the logo (LS-3) */
 		.menu = { { 0x03003090, 0xFF, 0x03, 1 } },
 		/* the HUD off the game screen, the status picture having it
-		 * (LS-6): priority-0 sprites, shown for ~3 s as a level starts and
-		 * (the heart) while Sia is hurt. The top row: lives (face palette
-		 * 0 at 2,7), gems (palette 4 at 94,3), villagers (face palette 14
-		 * at 193,1), their counts (palette 4, y 10). The ring: palette 4,
-		 * corners at x 39-76, y 125-153. The heart: palette 14, corners at
-		 * x 165-170, y 131-145. Tile numbers vary (Europe in a level,
-		 * a level's start and the pause screen all differ, and overlap),
-		 * so the game's own pause screen loses them too. Left alone: a
-		 * conversation's text (priority 0, palettes 4 and 6, y 96) and
-		 * everything in the level (priority 1-2). */
-		.hideSprites = { { -16, -16, 239, 20, 0, 1023, 0, (1u << 0) | (1u << 4) | (1u << 14) },
-		                 { 30, 118, 100, 159, 0, 1023, 0, 1u << 4 },
-		                 { 160, 125, 180, 150, 0, 1023, 0, 1u << 14 } },
+		 * (LS-6): shown for ~3 s as a level starts or Sia picks something
+		 * up, the heart while she's hurt. Found by where each piece's
+		 * corner is, nothing else: its palettes, priority and tiles
+		 * change from level to level (the first: priority 0, palettes 0,
+		 * 4, 14; the second: palettes 6, 7, and Sia priority 0 too). The
+		 * top row: lives face 2,7 and count 40,10; gem 94,3 and count
+		 * 135,10; villager face 193,1 and count 223,10 (room for a second
+		 * digit; Sia jumping was seen at 55,10, the menus' 64x64 grid at
+		 * 192,0). The ring bobs: 39-43,125-128; 69-76,126-131; 52,153.
+		 * The heart: 165-170,131-132; 168-169,144-145. The game's own
+		 * pause screen has its pieces in the same places, so it loses
+		 * them too. */
+		.hideSprites = { { 2, 7, 2, 7, 0, 1023, -1 }, { 39, 10, 49, 10, 0, 1023, -1 },
+		                 { 94, 3, 94, 3, 0, 1023, -1 }, { 134, 10, 144, 10, 0, 1023, -1 },
+		                 { 193, 1, 193, 1, 0, 1023, -1 }, { 222, 10, 232, 10, 0, 1023, -1 },
+		                 { 38, 124, 44, 129, 0, 1023, -1 }, { 68, 125, 77, 132, 0, 1023, -1 },
+		                 { 51, 152, 53, 154, 0, 1023, -1 },
+		                 { 164, 130, 171, 133, 0, 1023, -1 }, { 167, 143, 170, 146, 0, 1023, -1 } },
 	},
 	{
 		/* Mario & Luigi: Superstar Saga (USA; Europe and Japan, Mario &

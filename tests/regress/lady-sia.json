@@ -23,6 +23,126 @@
    ]
   },
   {
+   "id": "ls-us-language",
+   "rom": "ALDE",
+   "state": "lady-sia/us-language.ss",
+   "desc": "from the title to the language list (a player's bug report, its keys played back): the list whole on the game screen, the logo on the second",
+   "rules": [
+    "LS-3",
+    "LS-6"
+   ],
+   "input": [
+    [
+     99,
+     "A"
+    ],
+    [
+     126,
+     "-"
+    ],
+    [
+     177,
+     "START"
+    ],
+    [
+     185,
+     "-"
+    ],
+    [
+     227,
+     "A"
+    ],
+    [
+     232,
+     "-"
+    ],
+    [
+     256,
+     "A"
+    ],
+    [
+     259,
+     "-"
+    ],
+    [
+     269,
+     "A"
+    ],
+    [
+     275,
+     "-"
+    ],
+    [
+     280,
+     "A"
+    ],
+    [
+     287,
+     "-"
+    ],
+    [
+     317,
+     "B"
+    ],
+    [
+     324,
+     "-"
+    ],
+    [
+     333,
+     "B"
+    ],
+    [
+     341,
+     "-"
+    ],
+    [
+     346,
+     "B"
+    ],
+    [
+     356,
+     "-"
+    ]
+   ],
+   "shots": {
+    "title": 300,
+    "languages": 600
+   },
+   "checks": [
+    {
+     "rule": "LS-6",
+     "what": "English, the list's first line, on the game screen",
+     "type": "pixels",
+     "shot": "languages",
+     "screen": "game",
+     "probes": [
+      [
+       356,
+       136,
+       "EFEFEF"
+      ],
+      [
+       392,
+       136,
+       "EFEFEF"
+      ],
+      [
+       408,
+       136,
+       "EFEFEF"
+      ]
+     ]
+    },
+    {
+     "rule": "LS-3",
+     "what": "no status picture",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
    "id": "ls-us-new-game",
    "rom": "ALDE",
    "state": "lady-sia/us-new-game.ss",
@@ -689,6 +809,217 @@
       ]
      ],
      "min": 3
+    }
+   ]
+  },
+  {
+   "id": "ls-us-level2-heart",
+   "rom": "ALDE",
+   "state": "lady-sia/us-level2-heart.ss",
+   "desc": "the second level after a conversation, Sia picking up gems and a heart (a player's bug report, its keys played back): the HUD, in this level's own colours, off the game screen",
+   "rules": [
+    "LS-2",
+    "LS-5",
+    "LS-6"
+   ],
+   "input": [
+    [
+     79,
+     "A"
+    ],
+    [
+     86,
+     "-"
+    ],
+    [
+     110,
+     "RIGHT"
+    ],
+    [
+     121,
+     "-"
+    ],
+    [
+     152,
+     "A"
+    ],
+    [
+     159,
+     "-"
+    ],
+    [
+     184,
+     "RIGHT"
+    ],
+    [
+     208,
+     "-"
+    ],
+    [
+     250,
+     "A"
+    ],
+    [
+     257,
+     "-"
+    ],
+    [
+     261,
+     "A"
+    ],
+    [
+     267,
+     "-"
+    ],
+    [
+     278,
+     "B"
+    ],
+    [
+     285,
+     "-"
+    ],
+    [
+     290,
+     "B"
+    ],
+    [
+     296,
+     "-"
+    ],
+    [
+     301,
+     "B"
+    ],
+    [
+     307,
+     "-"
+    ],
+    [
+     311,
+     "B"
+    ],
+    [
+     318,
+     "-"
+    ],
+    [
+     323,
+     "B"
+    ],
+    [
+     330,
+     "-"
+    ],
+    [
+     339,
+     "RIGHT"
+    ],
+    [
+     347,
+     "B"
+    ],
+    [
+     353,
+     "-"
+    ],
+    [
+     359,
+     "B"
+    ],
+    [
+     364,
+     "-"
+    ],
+    [
+     371,
+     "B"
+    ],
+    [
+     376,
+     "B+RIGHT"
+    ],
+    [
+     378,
+     "RIGHT"
+    ],
+    [
+     383,
+     "-"
+    ],
+    [
+     385,
+     "B"
+    ],
+    [
+     392,
+     "-"
+    ],
+    [
+     412,
+     "RIGHT"
+    ],
+    [
+     433,
+     "-"
+    ],
+    [
+     448,
+     "B"
+    ],
+    [
+     454,
+     "-"
+    ],
+    [
+     473,
+     "RIGHT"
+    ],
+    [
+     519,
+     "-"
+    ]
+   ],
+   "shots": {
+    "conversation": 100,
+    "hud": 280,
+    "later": 560
+   },
+   "checks": [
+    {
+     "rule": "LS-6",
+     "what": "no gem or heart of the HUD on the game screen",
+     "type": "not_pixels",
+     "shot": "hud",
+     "screen": "game",
+     "probes": [
+      [
+       450,
+       114,
+       "187B10"
+      ],
+      [
+       454,
+       114,
+       "187B10"
+      ],
+      [
+       710,
+       610,
+       "EF2929"
+      ],
+      [
+       714,
+       610,
+       "EF2929"
+      ]
+     ]
+    },
+    {
+     "rule": "LS-2",
+     "what": "a status picture was shown",
+     "type": "log",
+     "match": "map updated"
     }
    ]
   },

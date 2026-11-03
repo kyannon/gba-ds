@@ -23,11 +23,12 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **LS-5. Conversations.** While someone is talking (a line of text along the bottom with their portrait in the corner, "Follow me, Sia!"), the game doesn't open its pause screen, so there's no new status picture: the second screen keeps its last one, never a picture of the level.
 
-**LS-6. The HUD leaves the game screen.** What the second screen's status picture shows isn't drawn on the game screen when the game puts it up during play: the lives, gems and rescued villagers along the top and the ring in the bottom left (shown for a few seconds as a level starts), and the heart in the bottom right (Sia's health, shown while she's hurt, and as a level starts). The game's own pause screen on the game screen draws them in the same places in the same way, so it loses them too: there it shows only the level's time, Pause and its choice, while the second screen still has the rest. A conversation's text and portrait stay. With `map = 0` (no second screen pictures), the game screen is as the game draws it.
+**LS-6. The HUD leaves the game screen.** What the second screen's status picture shows isn't drawn on the game screen when the game puts it up during play: the lives, gems and rescued villagers along the top and the ring in the bottom left (shown for a few seconds as a level starts, and as Sia picks something up), and the heart in the bottom right (Sia's health, shown while she's hurt or picks up a heart, and as a level starts). They're found by where the game puts each piece, in every level whatever its colours; anything else on the game screen stays, the menus before a game and a conversation's text and portrait included. The game's own pause screen on the game screen draws them in the same places, so it loses them too: there it shows only the level's time, Pause and its choice, while the second screen still has the rest. With `map = 0` (no second screen pictures), the game screen is as the game draws it.
 
 ## Not covered yet
 
-- Only the first level has been tried (USA and Europe); later levels, the screens between levels, losing a life, the game over screen, bosses and the Options menu's own screens are untried. If any of them shows something wrong on the second screen, a state of that moment would show what the game is doing there.
+- A sprite of the level whose corner lands exactly where a HUD piece's does (a few pixels' leeway, for the ring's bob and a second digit) is hidden while it's there; none was seen in the levels tried.
+- Only the first two levels have been tried (the first in Europe); later levels, the screens between levels, losing a life, the game over screen, bosses and the Options menu's own screens are untried. If any of them shows something wrong on the second screen, a state of that moment would show what the game is doing there.
 
 ## For the merge
 
