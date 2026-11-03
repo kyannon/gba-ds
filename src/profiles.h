@@ -404,6 +404,13 @@ typedef struct MapProfile {
 			int tile, pal;
 			SpriteRule objs[4];
 			int y0, y1;
+			/* The card is the game's whole picture instead (Sonic Advance
+			 * 2: BG layers on the game's blue backdrop, and sprites):
+			 * nothing is split off while it's up (objs, y0, y1 unused) and
+			 * the game screen as drawn `at` frames after the card's sprite
+			 * shows is the take. */
+			bool whole;
+			int at;
 		} card;
 		/* moves while racing (with the `layout` probes; no layout probes:
 		 * always). A move with toGame and no how / vhow copies its box back

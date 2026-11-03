@@ -2353,7 +2353,7 @@ static void card_backdrop(void) {
 	for (int y = 0; y < GBA_H; ++y) {
 		for (int x = 0; x < GBA_W; ++x) {
 			uint32_t c = cardBest[y * GBA_W + x];
-			c = (c & 0xFFFFFF) == clear ? 0xFF000000 : c | 0xFF000000;
+			c = (c & 0xFFFFFF) == clear && !hudProf->hud.card.whole ? 0xFF000000 : c | 0xFF000000;
 			uint32_t* o = &hudBack[y * 2 * HUD_CW + x * 2];
 			o[0] = o[1] = o[HUD_CW] = o[HUD_CW + 1] = c;
 		}
@@ -2521,9 +2521,13 @@ static void hud_compose(void) {
 		uint16_t bld = emu_read16(&emu, 0x04000050);
 		int fade = SDL_min(emu_read16(&emu, 0x04000054) & 31, 16), eff = (bld >> 6) & 3;
 		if (!((bld & 0x0F) == 0x0F && (eff == 2 || eff == 3) && fade)) fade = 0;
+		/* (not behind a whole-screen card: it stays lit through the act.
+		 * Sonic Advance 2 darkens the level with BLDCNT under the card's
+		 * windows as it wipes off, then brings in the level's palettes) */
+		if (h->card.whole) fade = 0;
 		/* or by scaling its palettes (to black, or white): against how
 		 * bright they were as the backdrop was taken (in 64ths) */
-		int pf = fade ? 0 : bg_pal_fade(hudPalRef);
+		int pf = fade || h->card.whole ? 0 : bg_pal_fade(hudPalRef);
 		if (pf <= -2) eff = 3, fade = -pf;
 		else if (pf >= 2) eff = 2, fade = pf;
 		else fade *= 4;
@@ -2553,12 +2557,14 @@ static void hud_compose(void) {
 			}
 		}
 	} else if (h->card.tile) {
-		/* (hud.card: no card taken yet: the logo, below the HUD's pieces) */
+		/* (hud.card: no card taken yet: the logo, below the HUD's pieces;
+		 * for a whole-screen card, Sonic Advance 2's, centred, above the
+		 * HUD along the bottom) */
 		static uint32_t cardLogo[HUD_CW * HUD_CH];
 		static bool made;
 		if (!made) {
 			for (int i = 0; i < HUD_CW * HUD_CH; ++i) cardLogo[i] = SCREEN_GREY;
-			made = logo_draw(cardLogo, HUD_CW, HUD_CH, HUD_CW / GBA_W, 48 * 2, 255);
+			made = logo_draw(cardLogo, HUD_CW, HUD_CH, HUD_CW / GBA_W, h->card.whole ? 0 : 48 * 2, 255);
 		}
 		memcpy(hudCanvas, cardLogo, sizeof(hudCanvas));
 	} else {
@@ -2887,7 +2893,14 @@ static void update_hud(void) {
 	} else if (hudOn && race && hudCard) {
 		/* the title card: a take a frame (once the split draws the card),
 		 * the backdrop once it's centred; on the second screen from then */
-		if (hudFrames >= 2 && cardScore != 0 && card_take() && !hudBackValid) card_backdrop();
+		if (h->card.whole) {
+			/* (the whole game screen, once the card has settled) */
+			if (cardScore < 0 && hudFrames >= SDL_max(2, h->card.at)) {
+				memcpy(cardBest, emu.fb, sizeof(cardBest));
+				cardScore = 0;
+				card_backdrop();
+			}
+		} else if (hudFrames >= 2 && cardScore != 0 && card_take() && !hudBackValid) card_backdrop();
 		if (hudBackValid) {
 			memcpy(hudCanvas, hudBack, sizeof(hudCanvas));
 			for (int i = 0; i < nViews; ++i) ui_update_texture(hudTex[i], hudCanvas, HUD_CW * 4);

@@ -28,6 +28,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Spider-Man: Mysterio's Menace (Spider-Man: Mysterio no Kyoui in Japan) | `ASEE` (USA and Europe) `ASEJ` | the Select menu: the objective, password, suits, upgrades and web containers |
 | Sonic Pinball Party | `A3VE` `A3VP` | the table twice as tall over both screens, live (work in progress) |
 | Sonic Advance | `ASOE` `ASOP` `ASOJ` | the zone card, with the rings, score, time and lives |
+| Sonic Advance 2 | `A2NE` `A2NP` `A2NJ` | the zone card, with the rings, score, time and lives |
 | Mario & Luigi: Superstar Saga (Mario & Luigi RPG in Japan) | `A88E` `A88P` `A88J` | Bros. Info of the brother you're controlling |
 | Dragon Ball Z: The Legacy of Goku | `ALGE` `ALGP` (no Japanese release) | the pause menu, with the HP and Ki bars (or the counter SELECT and flying show) in place of its options |
 
@@ -189,6 +190,15 @@ The USA, European and Japanese releases, tried in Neo Green Hill Zone so far.
 - In the level, the **rings, score and time** move from the game screen to the top right of the second screen, over the card, with the **lives** just below.
 - The act's results stay on the game screen. On the title and menus, the second screen shows the logo.
 - Not tried yet: other zones and characters, bosses, special stages, Time Attack, VS and the Tiny Chao Garden.
+
+## Sonic Advance 2
+
+The USA, European and Japanese releases, tried in Leaf Forest so far.
+
+- As each act starts, the second screen keeps the game's **zone card** (the zone's name, its emblem and the row of zone icons, on blue and black), the whole screen as the game draws it, once it has settled.
+- In the level, the **rings, score and time** move from the top of the game screen to the bottom left of the second screen, over the card's blue, and the **lives** from the bottom left to the card's bottom right. They stay there under water.
+- The pause window stays on the game screen. On the title and menus, the second screen shows the logo; after loading a state mid-act that wasn't saved with the card, the logo stays (above the moved HUD) until the next act's card.
+- Not tried yet: other zones and characters, bosses, special stages, Time Attack, multiplayer and the Tiny Chao Garden.
 
 ## Sonic Pinball Party
 

@@ -2,6 +2,9 @@
 
 ## v1.4.6 (not yet released)
 
+### New games
+- **Sonic Advance 2** (USA, Europe and Japan): as each act starts, its zone card (the zone's name, emblem and icons, on blue and black) goes to the second screen and stays there through the act, and the rings, score and time move to its bottom left and the lives to its bottom right, so the game screen is clear, under water too. The pause window stays on the game screen; on the title and menus the second screen shows the logo. Tried in Leaf Forest with Sonic; other zones, characters, bosses, special stages, Time Attack and multiplayer haven't been tried yet. After loading a state from before this version (or another emulator's) mid-act, the logo shows above the HUD until the next act's card.
+
 ## v1.4.5 (2026-11-02)
 
 ### New games
