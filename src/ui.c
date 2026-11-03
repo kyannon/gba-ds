@@ -530,10 +530,31 @@ bool ui_screens_differ(void) {
 	return fabs(a0 - a1) > 0.02 * SDL_max(a0, a1);
 }
 
-float ui_screen_ppi(int screen) {
-	if (screen < 0 || screen >= nScreens) return 0;
-	float top = 0, bottom = 0;
-	if (cfg->screenPpi[0] && sscanf(cfg->screenPpi, "%f,%f", &top, &bottom) == 2 && top > 0 && bottom > 0) return screen ? bottom : top;
+/* Dual-screen handhelds whose screens' sizes we know (docs/devices.csv): the
+ * top and bottom screens' resolutions (either way round) and diagonals in
+ * inches, for their pixels per inch, which what Android reports doesn't
+ * always match. Two with the same resolutions (the Retroid Pocket Duo and
+ * Duo Lite): the one nearer what the system reports, else the first. */
+static const struct {
+	const char* name;
+	int tw, th; float tin;
+	int bw, bh; float bin;
+} knownDevices[] = {
+	{ "AYN Thor", 1920, 1080, 6.0f, 1240, 1080, 3.92f },
+	{ "Retroid Pocket Duo", 1920, 1080, 5.5f, 1280, 960, 4.5f },
+	{ "Retroid Pocket Duo Lite", 1920, 1080, 5.5f, 1280, 960, 4.2f },
+	{ "AYANEO Pocket DS", 1920, 1080, 7.0f, 1024, 768, 5.0f },
+	{ "Anbernic RG DDS", 1200, 720, 4.7f, 960, 720, 4.0f },
+	{ "Anbernic RG DS Plus", 1024, 768, 4.3f, 1024, 768, 4.3f },
+	{ "Anbernic RG DS", 640, 480, 4.0f, 640, 480, 4.0f },
+};
+
+static bool same_res(int w, int h, int kw, int kh) {
+	return (w == kw && h == kh) || (w == kh && h == kw);
+}
+
+/* the system's own figure: Android's DisplayMetrics, or SDL's with a window per display */
+static float reported_ppi(int screen) {
 	int v = screens[screen].view;
 	float ppi = 0;
 #ifdef __ANDROID__
@@ -546,6 +567,31 @@ float ui_screen_ppi(int screen) {
 	}
 #endif
 	return ppi >= 80 && ppi <= 1000 ? ppi : 0; /* (anything else is a made-up value) */
+}
+
+float ui_screen_ppi(int screen) {
+	if (screen < 0 || screen >= nScreens) return 0;
+	float top = 0, bottom = 0;
+	if (cfg->screenPpi[0] && sscanf(cfg->screenPpi, "%f,%f", &top, &bottom) == 2 && top > 0 && bottom > 0) return screen ? bottom : top;
+	if (nScreens == 2) {
+		const SDL_Rect* t = &screens[0].rect;
+		const SDL_Rect* b = &screens[1].rect;
+		int pick = -1;
+		float best = 1e9f, rb = reported_ppi(1);
+		for (int i = 0; i < (int) SDL_arraysize(knownDevices); ++i) {
+			if (!same_res(t->w, t->h, knownDevices[i].tw, knownDevices[i].th) || !same_res(b->w, b->h, knownDevices[i].bw, knownDevices[i].bh)) continue;
+			float bp = hypotf(knownDevices[i].bw, knownDevices[i].bh) / knownDevices[i].bin;
+			float d = rb > 0 ? fabsf(bp - rb) : (pick < 0 ? 0 : 1e9f);
+			if (d < best) best = d, pick = i;
+		}
+		if (pick >= 0) {
+			static int logged = -1;
+			if (logged != pick) logged = pick, fprintf(stderr, "screens: known device, %s\n", knownDevices[pick].name);
+			return screen ? hypotf(knownDevices[pick].bw, knownDevices[pick].bh) / knownDevices[pick].bin
+			              : hypotf(knownDevices[pick].tw, knownDevices[pick].th) / knownDevices[pick].tin;
+		}
+	}
+	return reported_ppi(screen);
 }
 
 /* screen_match (Display: screen shapes; experimental): the wider screen's
