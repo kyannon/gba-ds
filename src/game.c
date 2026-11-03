@@ -1125,6 +1125,7 @@ static void slot_step(int d) {
 static bool item_enabled(int item) {
 	if (item == M_CHEATS) return cheats.n > 0;
 	if (item == M_SHAPES) return ui_screens_differ(); /* (two screens of a shape: nothing to match) */
+	if (item == M_FRAMEBUF) return !tallProf;          /* (always on in the pinball games' two-screen view) */
 	return item != M_LOAD || file_exists(gp.slot[stateSlot]);
 }
 
@@ -5021,8 +5022,13 @@ static bool activate(int item, enum GameExit* exitTo) {
 		save_prefs();
 		break;
 	case M_FRAMEBUF:
+		if (!item_enabled(M_FRAMEBUF)) {
+			/* (greyed out: the setting, for the other games, stays as it is) */
+			snprintf(menuNote, sizeof(menuNote), "Always on in this game: it needs it for full speed");
+			break;
+		}
 		cfg->frameBuffer = !cfg->frameBuffer;
-		snprintf(menuNote, sizeof(menuNote), "%s", tallProf ? "Always on in this game: it needs it for full speed" : cfg->frameBuffer ? "Smoother, one frame more input delay" : "Least input delay");
+		snprintf(menuNote, sizeof(menuNote), "%s", cfg->frameBuffer ? "Smoother, one frame more input delay" : "Least input delay");
 		save_prefs();
 		break;
 	case M_REWIND:
@@ -5032,6 +5038,10 @@ static bool activate(int item, enum GameExit* exitTo) {
 		save_prefs();
 		break;
 	case M_SHAPES: {
+		if (!item_enabled(M_SHAPES)) {
+			snprintf(menuNote, sizeof(menuNote), "Your screens are the same shape: nothing to match");
+			break;
+		}
 		/* keep, aspect, size (experimental: not tried on a widescreen device yet) */
 		const char* next = !strcmp(cfg->screenMatch, "keep") ? "aspect" : !strcmp(cfg->screenMatch, "aspect") ? "size" : "keep";
 		snprintf(cfg->screenMatch, sizeof(cfg->screenMatch), "%s", next);
