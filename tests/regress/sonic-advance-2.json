@@ -26,7 +26,7 @@
    "id": "sa2-us-card",
    "rom": "A2NE",
    "state": "sonic-advance-2/us-card-lead-in.ss",
-   "desc": "character select into Leaf Forest act 1, Sonic (a player's bug report), nothing pressed, then pause: the card on both screens, kept on the second through the wipe; the rings, score and time at its bottom and the lives at its top left, gone from the game screen; the pause window on the game screen",
+   "desc": "character select into Leaf Forest act 1, Sonic (a player's bug report), nothing pressed, then pause: the card on both screens, kept on the second through the wipe; the rings, score and time at its bottom left and the lives at its bottom right, gone from the game screen; the pause window on the game screen",
    "rules": [
     "SA2-2",
     "SA2-3",
@@ -143,24 +143,24 @@
     },
     {
      "rule": "SA2-4",
-     "what": "the lives at the top left of the second screen",
+     "what": "the lives at the bottom right of the second screen",
      "type": "differs",
      "a": {
       "shot": "card",
       "rect": [
-       26,
-       269,
-       154,
-       331
+       862,
+       677,
+       998,
+       749
       ]
      },
      "b": {
       "shot": "play",
       "rect": [
-       26,
-       269,
-       154,
-       331
+       862,
+       677,
+       998,
+       749
       ]
      },
      "frac": 0.05
@@ -220,7 +220,7 @@
    "id": "sa2-us-play",
    "rom": "A2NE",
    "state": "sonic-advance-2/us-play.ss",
-   "desc": "Leaf Forest act 1 just after its card (a player's bug report; the card was before the state): the logo under the moved HUD",
+   "desc": "Leaf Forest act 1 just after its card (a player's bug report; the card was before the state): the logo above the moved HUD",
    "rules": [
     "SA2-2",
     "SA2-3",

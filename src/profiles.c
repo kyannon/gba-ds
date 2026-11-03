@@ -2299,9 +2299,10 @@ static const MapProfile profiles[] = {
 			 * with its ring of ticks full (SA2-2) */
 			.card = { .tile = 464, .pal = 8, .whole = true, .at = 61 },
 			/* the rings, score and time along the bottom (SA2-3); the
-			 * lives top left, under the card's emblem (SA2-4) */
+			 * lives in the bottom right corner, as far in from the right
+			 * as they are from the left on the game screen (SA2-4) */
 			.moves = { { 0, 0, 239, 40, 0, 0, 'B', 156 },
-			           { 0, 120, 60, 159, 0, 0, 'T', 56 } },
+			           { 0, 120, 60, 159, 'R', 233, 0, 0 } },
 		},
 	},
 	{

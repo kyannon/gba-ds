@@ -15,11 +15,11 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **SA2-1. Logo.** On the title and menus (the language and name screens, the title, the main menu, character select), the second screen shows the logo: the title's SONIC ADVANCE 2 badge (ソニック アドバンス 2 in the Japanese release), without PRESS START, the copyright lines or the sky behind it.
 
-**SA2-2. The zone card.** As each act starts, the game fills its screen with the zone's card (the blue strip along the top, the zone's emblem and the row of zone icons, the zone's name on its black band, blue below). Once the card has settled, on the frame its turning emblem shows the zone's symbol face on with its ring of ticks (nearly) full (61 frames after the swirl comes in beside the name), the second screen takes the card as the game draws it, the whole screen, at full brightness, and keeps it through the act, the act's results and the next act's card, until that card is taken in turn. The card still plays on the game screen as usual; the second screen's copy doesn't darken as the game wipes the card off and fades the level in. With no card seen yet (a state loaded in a level), the logo instead, on dark grey, centred in the room right of the lives counter, clear of the rest of the HUD along the bottom.
+**SA2-2. The zone card.** As each act starts, the game fills its screen with the zone's card (the blue strip along the top, the zone's emblem and the row of zone icons, the zone's name on its black band, blue below). Once the card has settled, on the frame its turning emblem shows the zone's symbol face on with its ring of ticks (nearly) full (61 frames after the swirl comes in beside the name), the second screen takes the card as the game draws it, the whole screen, at full brightness, and keeps it through the act, the act's results and the next act's card, until that card is taken in turn. The card still plays on the game screen as usual; the second screen's copy doesn't darken as the game wipes the card off and fades the level in. With no card seen yet (a state loaded in a level), the logo instead, on dark grey, centred, above the HUD along the bottom.
 
 **SA2-3. The rings, score and time.** In a level, the ring counter (flashing red at no rings too), score and time leave the game screen for the bottom of the second screen, over the card's blue, as far from its bottom edge as they were from the game screen's top (three pixels), at the same distance from the left.
 
-**SA2-4. The lives.** In a level, the lives counter (the character's face and the count) leaves the game screen's bottom left for the second screen's top left, below the card's blue strip: under the zone's emblem (whose spot right under the strip it would otherwise cover) and above the swirl beside the zone's name, at its own distance from the left edge.
+**SA2-4. The lives.** In a level, the lives counter (the character's face and the count) leaves the game screen's bottom left for the second screen's bottom right, over the card's blue: at the same height, as far in from the right edge as it was from the left (six pixels), on the same row as the rings, score and time.
 
 **SA2-5. Pause.** The pause window (PAUSE, CONTINUE, QUIT) stays on the game screen; the second screen keeps the card and the moved HUD.
 
@@ -45,7 +45,7 @@ Tried in Leaf Forest act 1 (Sonic) from the owner's USA bug reports, and on the 
 
 Changelog line (under the open version's What's new):
 
-- Sonic Advance 2 (USA, Europe, Japan): each zone's card on the second screen, with the rings, score and time along its bottom and the lives in its top left, off the game screen; the logo on the title and menus. Tried in Leaf Forest; other zones, characters, bosses and special stages untried.
+- Sonic Advance 2 (USA, Europe, Japan): each zone's card on the second screen, with the rings, score and time along its bottom left and the lives in its bottom right, off the game screen; the logo on the title and menus. Tried in Leaf Forest; other zones, characters, bosses and special stages untried.
 
 `wiki/Supported-games.md`, the table row (after Sonic Advance's, or at the end) and the section (after Sonic Advance's):
 
@@ -56,10 +56,10 @@ Changelog line (under the open version's What's new):
 The USA, European and Japanese releases, tried in Leaf Forest so far.
 
 - As each act starts, the second screen keeps the game's **zone card** (the zone's name, its emblem and the row of zone icons, on blue and black), the whole screen as the game draws it, once it has settled.
-- In the level, the **rings, score and time** move from the top of the game screen to the bottom of the second screen, over the card's blue, and the **lives** from the bottom left to the card's top left, under the zone's emblem.
-- The pause window stays on the game screen. On the title and menus, the second screen shows the logo; after loading a state mid-act, the logo stays (beside the moved HUD) until the next act's card.
+- In the level, the **rings, score and time** move from the top of the game screen to the bottom left of the second screen, over the card's blue, and the **lives** from the bottom left to the card's bottom right.
+- The pause window stays on the game screen. On the title and menus, the second screen shows the logo; after loading a state mid-act, the logo stays (above the moved HUD) until the next act's card.
 - Not tried yet: other zones and characters, bosses, special stages, Time Attack, multiplayer and the Tiny Chao Garden.
 
 (When merging, this section goes into the wiki under `## Sonic Advance 2` and comes out of this file with the rest of "For the merge".)
 
-Also at the merge: the README's game count, a row in `docs/games/README.md`'s table (`| [Sonic Advance 2](sonic-advance-2.md) | SA2 | `A2NE` + 2 |`), the Status line above ("supported"), and the full suite (shared code: `hud.card.whole` and `logo_draw`'s `left` in game.c).
+Also at the merge: the README's game count, a row in `docs/games/README.md`'s table (`| [Sonic Advance 2](sonic-advance-2.md) | SA2 | `A2NE` + 2 |`), the Status line above ("supported"), and the full suite (shared code: `hud.card.whole` in game.c and profiles.h).
