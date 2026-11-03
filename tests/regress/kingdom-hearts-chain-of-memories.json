@@ -22,7 +22,7 @@
    "desc": "B8CP logo extraction (after A on the language menu)",
    "rules": [
     "GEN-1",
-    "KHC-7"
+    "KHC-5"
    ],
    "golden": [
     "logo"
@@ -35,7 +35,7 @@
    "desc": "B8CJ logo extraction",
    "rules": [
     "GEN-1",
-    "KHC-7"
+    "KHC-5"
    ],
    "golden": [
     "logo"
@@ -137,22 +137,22 @@
    "id": "khc-us-world-map",
    "rom": "B8CE",
    "state": "kingdom-hearts-chain-of-memories/us-world-map.ss",
-   "desc": "the game's own World Map open (the same report): the menu can't be opened on the hidden copy, nothing taken, the logo until there's a picture",
+   "desc": "the game's own World Map open (a player's bug report): SELECT leaves it up on the hidden copy, so it's taken as it is, without its cursor (the current room caught where its pulse is dark: the map had been open a while)",
    "rules": [
-    "KHC-2"
+    "KHC-1"
    ],
    "shots": {
     "start": 150
    },
    "checks": [
     {
-     "rule": "KHC-2",
-     "what": "no World Map taken",
-     "type": "no_log",
-     "match": "map updated"
+     "rule": "KHC-1",
+     "what": "taken",
+     "type": "log",
+     "match": "map updated \\(1 frame"
     },
     {
-     "type": "uniform",
+     "type": "not_uniform",
      "screen": "second",
      "rect": [
       32,
@@ -162,8 +162,8 @@
      ],
      "color": "303030",
      "frac": 0.5,
-     "rule": "KHC-2",
-     "what": "the logo",
+     "rule": "KHC-1",
+     "what": "not the logo",
      "shot": "start"
     }
    ]
@@ -1126,11 +1126,11 @@
    ]
   },
   {
-   "id": "khc-eu-logo-only",
+   "id": "khc-eu-title",
    "rom": "B8CP",
-   "desc": "Europe from power-on, English chosen, to the title: the logo throughout, nothing taken",
+   "desc": "Europe from power-on, English chosen, to the title: the logo, nothing taken",
    "rules": [
-    "KHC-7"
+    "KHC-4"
    ],
    "input": [
     [
@@ -1147,7 +1147,7 @@
    },
    "checks": [
     {
-     "rule": "KHC-7",
+     "rule": "KHC-4",
      "what": "no capture",
      "type": "no_log",
      "match": "map updated"
@@ -1163,25 +1163,25 @@
      ],
      "color": "303030",
      "frac": 0.5,
-     "rule": "KHC-7",
+     "rule": "KHC-4",
      "what": "the logo",
      "shot": "title"
     }
    ]
   },
   {
-   "id": "khc-jp-logo-only",
+   "id": "khc-jp-title",
    "rom": "B8CJ",
-   "desc": "Japan from power-on to the title: the logo throughout, nothing taken",
+   "desc": "Japan from power-on to the title: the logo, nothing taken",
    "rules": [
-    "KHC-7"
+    "KHC-4"
    ],
    "shots": {
     "title": 900
    },
    "checks": [
     {
-     "rule": "KHC-7",
+     "rule": "KHC-4",
      "what": "no capture",
      "type": "no_log",
      "match": "map updated"
@@ -1197,9 +1197,457 @@
      ],
      "color": "303030",
      "frac": 0.5,
-     "rule": "KHC-7",
+     "rule": "KHC-4",
      "what": "the logo",
      "shot": "title"
+    }
+   ]
+  },
+  {
+   "id": "khc-us-room-synthesis",
+   "rom": "B8CE",
+   "state": "kingdom-hearts-chain-of-memories/us-room-synthesis.ss",
+   "desc": "Room Synthesis at a door (a player's bug report): the World Map doesn't open there, nothing taken",
+   "rules": [
+    "KHC-2"
+   ],
+   "shots": {
+    "door": 150
+   },
+   "checks": [
+    {
+     "rule": "KHC-2",
+     "what": "no capture",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "KHC-2",
+     "what": "the logo",
+     "shot": "door"
+    }
+   ]
+  },
+  {
+   "id": "khc-us-new-room",
+   "rom": "B8CE",
+   "state": "kingdom-hearts-chain-of-memories/us-new-room.ss",
+   "desc": "walking about in the room through that door (the same report's keys, played back to just before its SELECT): the World Map (START's menu, the first way in, wasn't recognised in this room)",
+   "rules": [
+    "KHC-1"
+   ],
+   "shots": {
+    "map": 200
+   },
+   "checks": [
+    {
+     "rule": "KHC-1",
+     "what": "taken",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "KHC-1",
+     "what": "not the logo",
+     "shot": "map"
+    }
+   ]
+  },
+  {
+   "id": "khc-us-map-to-battle",
+   "rom": "B8CE",
+   "state": "kingdom-hearts-chain-of-memories/us-map-to-battle.ss",
+   "desc": "the game's World Map open, closed, walking about, then into a battle (a player's bug report): the World Map, then the logo (the report's keys a frame later: the app's input starts a frame after the state loads, the harness replay's at once)",
+   "rules": [
+    "KHC-1",
+    "KHC-3"
+   ],
+   "input": [
+    [
+     1,
+     "-"
+    ],
+    [
+     46,
+     "B"
+    ],
+    [
+     55,
+     "-"
+    ],
+    [
+     125,
+     "RIGHT"
+    ],
+    [
+     129,
+     "RIGHT+DOWN"
+    ],
+    [
+     194,
+     "RIGHT"
+    ],
+    [
+     196,
+     "-"
+    ],
+    [
+     239,
+     "UP"
+    ],
+    [
+     240,
+     "LEFT+UP"
+    ],
+    [
+     259,
+     "LEFT"
+    ],
+    [
+     266,
+     "A+LEFT"
+    ],
+    [
+     274,
+     "A"
+    ],
+    [
+     275,
+     "-"
+    ],
+    [
+     304,
+     "DOWN"
+    ],
+    [
+     310,
+     "A+DOWN"
+    ],
+    [
+     312,
+     "A"
+    ],
+    [
+     319,
+     "-"
+    ],
+    [
+     493,
+     "-"
+    ]
+   ],
+   "shots": {
+    "walk": 300,
+    "fight": 490
+   },
+   "checks": [
+    {
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "KHC-1",
+     "what": "the World Map walking about",
+     "shot": "walk"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "KHC-3",
+     "what": "the logo in the battle",
+     "shot": "fight"
+    },
+    {
+     "rule": "KHC-3",
+     "what": "the fight noticed",
+     "type": "log",
+     "match": "fight on"
+    }
+   ]
+  },
+  {
+   "id": "khc-eu-map-to-battle",
+   "rom": "B8CP",
+   "state": "kingdom-hearts-chain-of-memories/eu-map-to-battle.ss",
+   "desc": "the game's World Map open, closed, walking about, then into a battle (a player's bug report, European): the World Map, then the logo (the report's keys a frame later: the app's input starts a frame after the state loads, the harness replay's at once)",
+   "rules": [
+    "KHC-1",
+    "KHC-3"
+   ],
+   "input": [
+    [
+     1,
+     "-"
+    ],
+    [
+     21,
+     "B"
+    ],
+    [
+     28,
+     "-"
+    ],
+    [
+     107,
+     "B"
+    ],
+    [
+     113,
+     "-"
+    ],
+    [
+     157,
+     "DOWN"
+    ],
+    [
+     166,
+     "RIGHT+DOWN"
+    ],
+    [
+     187,
+     "RIGHT"
+    ],
+    [
+     200,
+     "-"
+    ],
+    [
+     223,
+     "LEFT"
+    ],
+    [
+     232,
+     "A+LEFT"
+    ],
+    [
+     233,
+     "A"
+    ],
+    [
+     241,
+     "-"
+    ],
+    [
+     269,
+     "UP"
+    ],
+    [
+     273,
+     "A+UP"
+    ],
+    [
+     274,
+     "A"
+    ],
+    [
+     280,
+     "-"
+    ],
+    [
+     326,
+     "A"
+    ],
+    [
+     335,
+     "-"
+    ],
+    [
+     378,
+     "RIGHT"
+    ],
+    [
+     388,
+     "-"
+    ],
+    [
+     427,
+     "-"
+    ]
+   ],
+   "shots": {
+    "walk": 240,
+    "fight": 420
+   },
+   "checks": [
+    {
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "KHC-1",
+     "what": "the World Map walking about",
+     "shot": "walk"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "KHC-3",
+     "what": "the logo in the battle",
+     "shot": "fight"
+    },
+    {
+     "rule": "KHC-3",
+     "what": "the fight noticed",
+     "type": "log",
+     "match": "fight on"
+    }
+   ]
+  },
+  {
+   "id": "khc-jp-map-to-battle",
+   "rom": "B8CJ",
+   "state": "kingdom-hearts-chain-of-memories/jp-map-to-battle.ss",
+   "desc": "the game's World Map open, closed, walking about, then into a battle (a player's bug report, Japanese): the World Map, then the logo (the report's keys a frame later: the app's input starts a frame after the state loads, the harness replay's at once)",
+   "rules": [
+    "KHC-1",
+    "KHC-3"
+   ],
+   "input": [
+    [
+     1,
+     "-"
+    ],
+    [
+     35,
+     "B"
+    ],
+    [
+     43,
+     "-"
+    ],
+    [
+     108,
+     "B"
+    ],
+    [
+     116,
+     "-"
+    ],
+    [
+     163,
+     "DOWN"
+    ],
+    [
+     171,
+     "-"
+    ],
+    [
+     172,
+     "UP"
+    ],
+    [
+     180,
+     "LEFT+UP"
+    ],
+    [
+     185,
+     "A+LEFT+UP"
+    ],
+    [
+     186,
+     "A+LEFT"
+    ],
+    [
+     188,
+     "A"
+    ],
+    [
+     194,
+     "-"
+    ],
+    [
+     346,
+     "-"
+    ]
+   ],
+   "shots": {
+    "walk": 190,
+    "fight": 340
+   },
+   "checks": [
+    {
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "KHC-1",
+     "what": "the World Map walking about",
+     "shot": "walk"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "KHC-3",
+     "what": "the logo in the battle",
+     "shot": "fight"
+    },
+    {
+     "rule": "KHC-3",
+     "what": "the fight noticed",
+     "type": "log",
+     "match": "fight on"
     }
    ]
   }

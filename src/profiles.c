@@ -1440,17 +1440,15 @@ static bool ml_settle(Emu* s, int max) {
 /* ---------------------------------------------------------- Kingdom Hearts: Chain of Memories
  *
  * The second screen (KHC-1): the World Map, opened on the shadow core from
- * the live state at every capture: START (the menu always opens on Review
- * Decks), DOWN to World Map, A; taken once its rooms are all in (they
- * appear over about 70 frames), without its cursor and A button bubble.
- * Each step is checked by fixed pixels; if one fails, the last map stays
- * (KHC-2). */
+ * the live state at every capture with SELECT (straight from walking
+ * about), checked by its fixed pixels and taken once its rooms are in
+ * (they appear over about 70 frames), without its cursor and A button
+ * bubble. If it doesn't open, the last map stays (KHC-2). (START's menu
+ * was the first way in: its top edge is see-through, so its pixels took
+ * the room's colours and the check failed in some rooms.) The European
+ * and Japanese releases: the same, their battle pointer elsewhere
+ * (khc_eur, khc_jpn). */
 #define KHC_BATTLE 0x02039DD4 /* the battle's pointer: 0 outside one */
-/* the menu: its MENU banner, the status panel's frame, the deck box */
-static const Probe khcMenu[6] = { { 4, 4, 0x00298C }, { 40, 5, 0x00298C }, { 60, 8, 0x000000 },
-                                  { 200, 20, 0x73A5AD }, { 236, 40, 0x73A5AD }, { 236, 157, 0x4A6B6B } };
-/* its second button (World Map) lit: red where the others are blue */
-static const Probe khcOnMap[3] = { { 44, 50, 0xFF4221 }, { 60, 50, 0xFF4221 }, { 76, 50, 0xFF4221 } };
 /* the World Map: its banner (WORLD MAP on blue), the floor's badge at the
  * bottom left, the dark strip along the bottom */
 static const Probe khcMap[8] = { { 4, 4, 0x00298C }, { 20, 6, 0xFFFFFF }, { 40, 5, 0xFFFFFF }, { 60, 8, 0x8C9CD6 },
@@ -1459,17 +1457,15 @@ static const Probe khcMap[8] = { { 4, 4, 0x00298C }, { 20, 6, 0xFFFFFF }, { 40, 
  * sprites in palette 0 at priority 0 there (their tiles move with what the
  * game has loaded: the bubble 454 in one room, 450 in another) */
 static const SpriteRule khcHide[1] = { { -64, -16, 239, 159, 0, 1023, 0, 1u << 0 } };
-static bool khc_menu_up(Emu* s) {
-	return som_probes(s, khcMenu, 6, 6, 8);
-}
 static bool khc_map_up(Emu* s) {
 	return som_probes(s, khcMap, 8, 7, 8);
 }
-/* the title (KHC-4): Sora, the emblem and the sky behind, as they stand
- * once it's up */
+/* the title (KHC-4): the emblem and the art at its corner, as they stand
+ * once it's up, the same in all three releases (not the emblem on black
+ * before it) */
 #define KHC_V_TITLE 0xF0000040
-static const Probe khcTitle[8] = { { 129, 0, 0xEFE7DE }, { 165, 6, 0xE7D6AD }, { 84, 18, 0xADADAD }, { 192, 21, 0xA5634A },
-                                   { 15, 33, 0xADADAD }, { 153, 36, 0xCE9C73 }, { 72, 48, 0x52525A }, { 180, 51, 0xF7BD84 } };
+static const Probe khcTitle[8] = { { 128, 0, 0xF7EFE7 }, { 222, 12, 0xBDAD94 }, { 48, 14, 0xADADAD }, { 84, 18, 0xADADAD },
+                                   { 106, 28, 0x7B7B7B }, { 64, 30, 0x7B7B7B }, { 16, 32, 0xB5B5B5 }, { 148, 38, 0xADADAD } };
 static uint32_t khc_virt(Emu* e, uint32_t addr) {
 	return addr == KHC_V_TITLE && som_probes(e, khcTitle, 8, 7, 8);
 }
@@ -1481,13 +1477,7 @@ static const char* khc_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	emu_hide_sprites(s, khcHide, 1);
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
-	aw_run(s, K_START, 4);
-	if (!khc_wait(s, khc_menu_up, 60)) return "the menu didn't open";
-	aw_run(s, 0, 12);
-	aw_run(s, K_DOWN, 4);
-	aw_run(s, 0, 16);
-	if (!khc_menu_up(s) || !som_probes(s, khcOnMap, 3, 3, 8)) return "World Map isn't lit";
-	aw_run(s, K_A, 4);
+	aw_run(s, K_SELECT, 4);
 	if (!khc_wait(s, khc_map_up, 90)) return "the World Map didn't open";
 	aw_run(s, 0, 90); /* (its rooms all in) */
 	if (emu_cancelled(s)) return "called off";
@@ -2927,8 +2917,9 @@ static const MapProfile profiles[] = {
 		.logo = { .wait = 640, .layers = 0x10, .maxY = 92 },
 	},
 	{
-		/* Kingdom Hearts: Chain of Memories (USA). Walking about in a
-		 * world, the World Map: see khc_compose (KHC-1, KHC-2) */
+		/* Kingdom Hearts: Chain of Memories (USA; Europe and Japan:
+		 * khc_eur, khc_jpn). Walking about in a world, the World Map:
+		 * see khc_compose (KHC-1, KHC-2) */
 		.codes = { "B8CE" },
 		.title = "Kingdom Hearts: Chain of Memories",
 		.compose = khc_compose,
@@ -2947,23 +2938,6 @@ static const MapProfile profiles[] = {
 		/* the emblem full size on black before the title, faded in, before
 		 * it flashes and shrinks (KHC-5): BG2 alone */
 		.logo = { .wait = 700, .layer = 2, .maxY = 160 },
-	},
-	{
-		/* Kingdom Hearts: Chain of Memories in Europe: the logo only for
-		 * now (KHC-7), the same emblem: A on its language menu (English),
-		 * then the same sequence as the USA release's */
-		.codes = { "B8CP" },
-		.title = "Kingdom Hearts: Chain of Memories",
-		.logoOnly = true,
-		.logo = { .steps = { { 0, 100 }, { K_A, 4 }, { 0, 746 } }, .layer = 2, .maxY = 160 },
-	},
-	{
-		/* in Japan: the logo only for now (KHC-7); its sequence has no
-		 * licence screen, so the emblem stands 200 frames earlier */
-		.codes = { "B8CJ" },
-		.title = "Kingdom Hearts: Chain of Memories",
-		.logoOnly = true,
-		.logo = { .wait = 500, .layer = 2, .maxY = 160 },
 	},
 };
 
@@ -3141,6 +3115,23 @@ static void smm_jpn(MapProfile* p) {
 	p->menu[0].addr -= 0x34, p->menu[0].value -= 0x34;
 }
 
+/* Kingdom Hearts: Chain of Memories: the battle pointer elsewhere (by
+ * romxref, checked in battles); the logo the same emblem, in Europe after
+ * A on its language menu, in Japan 200 frames sooner (no licence screen) */
+static void khc_eur(MapProfile* p) {
+	p->live[0].addr = 0x0203A3E4;
+	p->combat[0].addr = 0x0203A3E4 + 3;
+	p->logo.wait = 0;
+	p->logo.steps[0] = (MacroStep) { 0, 100 };
+	p->logo.steps[1] = (MacroStep) { K_A, 4 };
+	p->logo.steps[2] = (MacroStep) { 0, 746 };
+}
+static void khc_jpn(MapProfile* p) {
+	p->live[0].addr = 0x02039D44;
+	p->combat[0].addr = 0x02039D44 + 3;
+	p->logo.wait = 500;
+}
+
 static const Variant variants[] = {
 	{ "AGSD", "AGSE", 0, gs_ger },
 	/* F-Zero: GP Legend in Europe: its language menu first (the title
@@ -3183,6 +3174,8 @@ static const Variant variants[] = {
 	/* (Sword of Mana's ring address: SomRegion) */
 	{ "AVSY", "AVSE", 0, som_eur },
 	{ "AVSJ", "AVSE", 0, som_jpn },
+	{ "B8CP", "B8CE", 0, khc_eur },
+	{ "B8CJ", "B8CE", 0, khc_jpn },
 };
 #define N_VARIANTS (sizeof(variants) / sizeof(*variants))
 static MapProfile variantProfiles[N_VARIANTS];
