@@ -7,6 +7,7 @@
 
 ### Screen shapes (experimental)
 - For devices whose two screens are different shapes, such as the AYN Thor and the Retroid Pocket Duo (a widescreen top screen over a narrower bottom one): **Display > Screen shapes** picks **Keep device aspect ratios** (as before), **Match screen aspect ratios** (the wider screen's picture takes the other screen's shape, with black bars at its sides) or **Match screen sizes and aspect ratios** (the same, at the other screen's real size, against the edge nearest it). With Stretch and either match, both screens show the same shape, so Pokémon Pinball's table carries on across them. Greyed out on devices whose screens are the same shape (the RG DS). Also `screen_match` in `gba-ds.cfg`, and `screen_ppi` if your device reports its screens' sizes wrongly.
+- **Swap Screens** has moved to the pause menu's Extras page, to make room on the Display page.
 - Overlays can be made for each: an overlay's name can end in `-aspect` or `-size`, e.g. `primary-stretch-aspect.png` (see the wiki's overlays page).
 
 ### Fixes
