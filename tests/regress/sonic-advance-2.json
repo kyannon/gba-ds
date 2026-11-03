@@ -551,6 +551,125 @@
    ]
   },
   {
+   "id": "sa2-us-water",
+   "rom": "A2NE",
+   "state": "sonic-advance-2/us-water-lead-in.ss",
+   "desc": "Leaf Forest act 1, into the water by the waterfall and out again (a player's bug report, USA, its keys played back): the rings, score, time and lives on the second screen throughout (the logo above them: no card seen yet)",
+   "rules": [
+    "SA2-3",
+    "SA2-4",
+    "SA2-7"
+   ],
+   "input": [
+    [
+     176,
+     "RIGHT"
+    ],
+    [
+     292,
+     "-"
+    ],
+    [
+     314,
+     "LEFT"
+    ],
+    [
+     332,
+     "-"
+    ],
+    [
+     340,
+     "RIGHT"
+    ],
+    [
+     355,
+     "-"
+    ],
+    [
+     360,
+     "LEFT"
+    ],
+    [
+     369,
+     "A+LEFT"
+    ],
+    [
+     383,
+     "LEFT"
+    ],
+    [
+     423,
+     "-"
+    ],
+    [
+     433,
+     "RIGHT"
+    ],
+    [
+     450,
+     "-"
+    ],
+    [
+     488,
+     "RIGHT"
+    ],
+    [
+     504,
+     "-"
+    ],
+    [
+     570,
+     "LEFT"
+    ],
+    [
+     588,
+     "-"
+    ]
+   ],
+   "shots": {
+    "under": 180,
+    "out": 420
+   },
+   "checks": [
+    {
+     "rule": "SA2-3",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "SA2-7",
+     "what": "the HUD still there under water",
+     "type": "not_uniform",
+     "shot": "under",
+     "screen": "second",
+     "rect": [
+      4,
+      624,
+      623,
+      749
+     ],
+     "color": "303030",
+     "frac": 0.9
+    },
+    {
+     "rule": "SA2-7",
+     "what": "the lives still there under water",
+     "type": "not_uniform",
+     "shot": "under",
+     "screen": "second",
+     "rect": [
+      862,
+      677,
+      998,
+      749
+     ],
+     "color": "303030",
+     "frac": 0.9
+    }
+   ]
+  },
+  {
    "id": "sa2-jp-water",
    "rom": "A2NJ",
    "state": "sonic-advance-2/jp-water.ss",
@@ -700,6 +819,73 @@
    ]
   },
   {
+   "id": "sa2-us-saved-card",
+   "rom": "A2NE",
+   "state": "sonic-advance-2/us-saved-card.ss",
+   "desc": "a state saved by GBA DS mid-act (a player's bug report, USA), with Leaf Forest's card on the second screen; then a state without one loaded over it",
+   "rules": [
+    "GEN-7",
+    "SA2-2"
+   ],
+   "input": [
+    [
+     60,
+     "LOAD:sonic-advance-2/us-play.ss"
+    ]
+   ],
+   "shots": {
+    "start": 2,
+    "after": 90
+   },
+   "checks": [
+    {
+     "rule": "GEN-7",
+     "what": "the card from the state",
+     "type": "log",
+     "match": "second screen from it \\( card\\)"
+    },
+    {
+     "rule": "GEN-7",
+     "what": "the card on the first frames",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      560
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "GEN-7",
+     "what": "the card is gone after an older state",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       560
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       32,
+       64,
+       992,
+       560
+      ]
+     },
+     "frac": 0.2
+    }
+   ]
+  },
+  {
    "id": "sa2-eu-saved-card",
    "rom": "A2NP",
    "state": "sonic-advance-2/eu-saved-card.ss",
@@ -712,6 +898,73 @@
     [
      60,
      "LOAD:sonic-advance-2/eu-water-lead-in.ss"
+    ]
+   ],
+   "shots": {
+    "start": 2,
+    "after": 90
+   },
+   "checks": [
+    {
+     "rule": "GEN-7",
+     "what": "the card from the state",
+     "type": "log",
+     "match": "second screen from it \\( card\\)"
+    },
+    {
+     "rule": "GEN-7",
+     "what": "the card on the first frames",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      560
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "GEN-7",
+     "what": "the card is gone after an older state",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       560
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       32,
+       64,
+       992,
+       560
+      ]
+     },
+     "frac": 0.2
+    }
+   ]
+  },
+  {
+   "id": "sa2-jp-saved-card",
+   "rom": "A2NJ",
+   "state": "sonic-advance-2/jp-saved-card.ss",
+   "desc": "a state saved by GBA DS mid-act (a player's bug report, Japan), with Leaf Forest's card on the second screen; then a state without one loaded over it",
+   "rules": [
+    "GEN-7",
+    "SA2-2"
+   ],
+   "input": [
+    [
+     60,
+     "LOAD:sonic-advance-2/jp-water.ss"
     ]
    ],
    "shots": {
