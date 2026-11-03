@@ -153,6 +153,35 @@
      ],
      "color": "000000",
      "frac": 0.98
+    },
+    {
+     "rule": "LS-2",
+     "what": "the ring plain, without its glow",
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       278,
+       578,
+       "000000"
+      ],
+      [
+       202,
+       638,
+       "000000"
+      ],
+      [
+       282,
+       694,
+       "000000"
+      ],
+      [
+       370,
+       682,
+       "000000"
+      ]
+     ],
+     "shot": "later"
     }
    ]
   },
@@ -332,6 +361,134 @@
    ]
   },
   {
+   "id": "ls-us-conversation",
+   "rom": "ALDE",
+   "state": "lady-sia/us-conversation.ss",
+   "desc": "a level starting after its picture, then \"Follow me, Sia!\" (a player's bug report, its keys played back): the status picture in the level, kept through the conversation, never the level",
+   "rules": [
+    "LS-2",
+    "LS-5"
+   ],
+   "input": [
+    [
+     30,
+     "START"
+    ],
+    [
+     39,
+     "-"
+    ],
+    [
+     226,
+     "RIGHT"
+    ],
+    [
+     240,
+     "-"
+    ],
+    [
+     315,
+     "A"
+    ],
+    [
+     340,
+     "-"
+    ],
+    [
+     441,
+     "RIGHT"
+    ],
+    [
+     469,
+     "-"
+    ],
+    [
+     505,
+     "A"
+    ],
+    [
+     513,
+     "-"
+    ]
+   ],
+   "shots": {
+    "level": 420,
+    "conversation": 640
+   },
+   "checks": [
+    {
+     "rule": "LS-2",
+     "what": "a status picture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "LS-5",
+     "what": "the conversation's capture comes to nothing",
+     "type": "log",
+     "match": "map button did nothing"
+    },
+    {
+     "rule": "LS-5",
+     "what": "still the status picture's top row",
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      0,
+      40,
+      1024,
+      172
+     ],
+     "color": "000000",
+     "frac": 0.98,
+     "shot": "conversation"
+    },
+    {
+     "rule": "LS-5",
+     "what": "still the status picture (its black rows), not the level",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      0,
+      330,
+      1024,
+      545
+     ],
+     "color": "000000",
+     "shot": "conversation"
+    },
+    {
+     "rule": "LS-2",
+     "what": "the ring plain, without its glow",
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       278,
+       578,
+       "000000"
+      ],
+      [
+       202,
+       638,
+       "000000"
+      ],
+      [
+       282,
+       694,
+       "000000"
+      ],
+      [
+       370,
+       682,
+       "000000"
+      ]
+     ],
+     "shot": "conversation"
+    }
+   ]
+  },
+  {
    "id": "ls-eu-level",
    "rom": "ALDP",
    "state": "lady-sia/eu-level1.ss",
@@ -376,6 +533,35 @@
       545
      ],
      "color": "000000",
+     "shot": "later"
+    },
+    {
+     "rule": "LS-2",
+     "what": "the ring plain, without its glow",
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       278,
+       578,
+       "000000"
+      ],
+      [
+       202,
+       638,
+       "000000"
+      ],
+      [
+       282,
+       694,
+       "000000"
+      ],
+      [
+       370,
+       682,
+       "000000"
+      ]
+     ],
      "shot": "later"
     }
    ]

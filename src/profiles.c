@@ -2660,10 +2660,19 @@ static const MapProfile profiles[] = {
 		 * sprite (the game moves them between layers from frame to frame:
 		 * another frame needs other layers) (LS-1) */
 		.logo = { .steps = { { 0, 990 } }, .layers = 0x6, .maxY = 106 },
-		/* the pause screen, whole (LS-2) */
+		/* the pause screen, whole (LS-2). Its ring glows in a 40-frame
+		 * cycle: 10 frames plain (x 44-86, y 129-156), then three steps of
+		 * a white outline round it; taken plain (the first probes: black
+		 * just outside the plain ring, lit in every glow step), which it
+		 * is as the screen opens, else within a cycle. The other probes
+		 * are black rows of the pause screen (between the top row and the
+		 * time, above the ring): in a conversation START doesn't open it,
+		 * and the level there must not pass for it (LS-5). */
 		.open = { { K_START, 3 } },
-		.settleMax = 30, .openWithin = 20, .stableFrames = 2, .maxDiff = 700,
+		.settleMax = 60, .openWithin = 45, .stableFrames = 2, .maxDiff = 700,
 		.crop_x = 0, .crop_y = 0, .crop_w = 240, .crop_h = 160,
+		.probes = { { 61, 128, 0x000000 }, { 42, 143, 0x000000 }, { 62, 157, 0x000000 }, { 84, 154, 0x000000 },
+		            { 60, 42, 0x000000 }, { 120, 42, 0x000000 }, { 180, 42, 0x000000 }, { 120, 118, 0x000000 } },
 		.bgColor = 0x000000, .minForeground = 2000, .tolerance = 8,
 		/* map_crop: the rows of Pause and its choice, arrows included, in
 		 * the screen's black (LS-2) */

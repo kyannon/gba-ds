@@ -15,11 +15,13 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **LS-1. Logo.** The logo is the title's lettering (Lady Sia and its ™), without the picture of Sia flying in behind it or "Press START" under it.
 
-**LS-2. Status.** While playing a level, the second screen shows the game's pause screen (START), opened on the hidden copy and kept up to date about once a second, as the game draws it: Sia's lives, the gems and the rescued villagers along the top, the level's time under them, and the ring and heart at the bottom. The pause menu's own lines are left out: the rows of "Pause" and of its choice (Return to the game, Options, Quit to the main menu, with the arrows either side) are the pause screen's black. With `map_crop = 0` (gba-ds.cfg), the whole pause screen is shown, those lines too.
+**LS-2. Status.** While playing a level, the second screen shows the game's pause screen (START), opened on the hidden copy and kept up to date about once a second, as the game draws it: Sia's lives, the gems and the rescued villagers along the top, the level's time under them, and the ring and heart at the bottom. The pause menu's own lines are left out: the rows of "Pause" and of its choice (Return to the game, Options, Quit to the main menu, with the arrows either side) are the pause screen's black. With `map_crop = 0` (gba-ds.cfg), the whole pause screen is shown, those lines too. The ring is taken as it is between its glows, without the white outline the game pulses round it.
 
 **LS-3. Logo elsewhere.** The second screen shows the logo before the first status picture, at the title and in the menus before a game (the language list, the main menu, Play, New Game and the other menus there), on the story text that starts a new game, and again from the title on after Quit to the main menu.
 
 **LS-4. The game's own pause menu.** The pause screen opened in the game stays on the game screen (with its Options); the second screen keeps its last picture meanwhile.
+
+**LS-5. Conversations.** While someone is talking (a line of text along the bottom with their portrait in the corner, "Follow me, Sia!"), the game doesn't open its pause screen, so there's no new status picture: the second screen keeps its last one, never a picture of the level.
 
 ## Not covered yet
 
@@ -39,6 +41,6 @@ Wiki, `wiki/Supported-games.md` (table row and section):
 
 The USA and European releases.
 
-In a level, the second screen shows the game's own pause screen, kept up to date about once a second: Sia's lives, the gems and rescued villagers, the level's time, the ring and the heart. The pause menu's lines (Pause and its choice, with the arrows) are left out, so it reads as a status screen (`map_crop = 0` shows them). At the title, in the menus and on the story text, the second screen shows the logo. Pausing in the game keeps the last picture on the second screen.
+In a level, the second screen shows the game's own pause screen, kept up to date about once a second: Sia's lives, the gems and rescued villagers, the level's time, the ring and the heart. The pause menu's lines (Pause and its choice, with the arrows) are left out, so it reads as a status screen (`map_crop = 0` shows them). At the title, in the menus and on the story text, the second screen shows the logo. Pausing in the game, and conversations, keep the last picture on the second screen.
 
 Known issues: only the first level has been tried so far.
