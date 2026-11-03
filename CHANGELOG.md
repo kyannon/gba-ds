@@ -1,17 +1,23 @@
 # Changelog
 
-## v1.4.6 (not yet released)
+## v1.4.6 (2026-11-03)
 
 ### New games
 - **Sonic Advance 2** (USA, Europe and Japan): as each act starts, its zone card (the zone's name, emblem and icons, on blue and black) goes to the second screen and stays there through the act, and the rings, score and time move to its bottom left and the lives to its bottom right, so the game screen is clear, under water too. The pause window stays on the game screen; on the title and menus the second screen shows the logo. Tried in Leaf Forest with Sonic; other zones, characters, bosses, special stages, Time Attack and multiplayer haven't been tried yet. After loading a state from before this version (or another emulator's) mid-act, the logo shows above the HUD until the next act's card.
 
 ### Screen shapes (experimental)
 - For devices whose two screens are different shapes, such as the AYN Thor and the Retroid Pocket Duo (a widescreen top screen over a narrower bottom one): **Display > Screen shapes** picks **Keep device aspect ratios** (as before), **Match screen aspect ratios** (the wider screen's picture takes the other screen's shape, with black bars at its sides) or **Match screen sizes and aspect ratios** (the same, at the other screen's real size, against the edge nearest it). With Stretch and either match, both screens show the same shape, so Pokémon Pinball's table carries on across them. Greyed out on devices whose screens are the same shape (the RG DS). Also `screen_match` in `gba-ds.cfg`. GBA DS knows the real screen sizes of the AYN Thor, Retroid Pocket Duo and Duo Lite, AYANEO Pocket DS and Anbernic RG DDS; on other devices it goes by what the system reports, and `screen_ppi` sets them if that's wrong.
-- **Swap Screens** has moved to the pause menu's Extras page, to make room on the Display page.
 - Overlays can be made for each: an overlay's name can end in `-aspect` or `-size`, e.g. `primary-stretch-aspect.png` (see the wiki's overlays page).
+
+### Pause menu
+- **Swap Screens** has moved to the Extras page, to make room on the Display page.
+- **Frame Buffer** is greyed out in the pinball games, where it's always on; pressing it there no longer changes the setting for your other games.
 
 ### Fixes
 - **Android, AYN Thor and other devices with a larger top screen:** GBA DS took the second display for the top screen, so on the Thor the game and the second screen were the wrong way up, and Pokémon Pinball's table was upside down across the two screens (Swap Screens didn't help). When the two displays differ in size, the larger one is now the top screen; with two the same size (the RG DS), nothing changes. `top_screen` in `gba-ds.cfg` (`app` or `second`) sets it by hand if a device needs it.
+
+### Known issues
+- **Screen shapes is experimental:** it hasn't been tried on a device with differently shaped screens yet (it was built from the AYN Thor's specifications and tested with its screens' sizes on a computer). If something looks wrong, a bug report or your `gba-ds.log` helps.
 
 ## v1.4.5 (2026-11-02)
 
