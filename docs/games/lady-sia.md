@@ -23,7 +23,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **LS-5. Conversations.** While someone is talking (a line of text along the bottom with their portrait in the corner, "Follow me, Sia!"), the game doesn't open its pause screen, so there's no new status picture: the second screen keeps its last one, never a picture of the level.
 
-**LS-6. The heart leaves the game screen.** The heart in the bottom right of the game screen (Sia's health, which the game shows while she's hurt) isn't drawn there: the second screen's status picture has it. That also leaves it out of the game's own pause screen on the game screen (the same heart, in the same place). With `map = 0` (no second screen pictures), the game screen is as the game draws it.
+**LS-6. The HUD leaves the game screen.** What the second screen's status picture shows isn't drawn on the game screen when the game puts it up during play: the lives, gems and rescued villagers along the top and the ring in the bottom left (shown for a few seconds as a level starts), and the heart in the bottom right (Sia's health, shown while she's hurt, and as a level starts). The game's own pause screen on the game screen draws them in the same places in the same way, so it loses them too: there it shows only the level's time, Pause and its choice, while the second screen still has the rest. A conversation's text and portrait stay. With `map = 0` (no second screen pictures), the game screen is as the game draws it.
 
 ## Not covered yet
 
@@ -33,7 +33,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 Changelog line (under the open version's What's new):
 
-- Lady Sia (USA and Europe) is supported: in a level, the second screen shows the game's pause screen (lives, gems, rescued villagers, the level's time, the ring and heart) without its menu lines, and the heart (health) leaves the game screen; the logo elsewhere.
+- Lady Sia (USA and Europe) is supported: in a level, the second screen shows the game's pause screen (lives, gems, rescued villagers, the level's time, the ring and heart) without its menu lines, and the HUD the game puts up during play (lives, gems, villagers, ring, heart) leaves the game screen; the logo elsewhere.
 
 Wiki, `wiki/Supported-games.md` (table row and section):
 
@@ -43,6 +43,6 @@ Wiki, `wiki/Supported-games.md` (table row and section):
 
 The USA and European releases.
 
-In a level, the second screen shows the game's own pause screen, kept up to date about once a second: Sia's lives, the gems and rescued villagers, the level's time, the ring and the heart. The pause menu's lines (Pause and its choice, with the arrows) are left out, so it reads as a status screen (`map_crop = 0` shows them). At the title, in the menus and on the story text, the second screen shows the logo. Pausing in the game, and conversations, keep the last picture on the second screen. The heart (health) isn't drawn on the game screen, since the second screen shows it; that includes the game's own pause screen.
+In a level, the second screen shows the game's own pause screen, kept up to date about once a second: Sia's lives, the gems and rescued villagers, the level's time, the ring and the heart. The pause menu's lines (Pause and its choice, with the arrows) are left out, so it reads as a status screen (`map_crop = 0` shows them). At the title, in the menus and on the story text, the second screen shows the logo. Pausing in the game, and conversations, keep the last picture on the second screen. The lives, gems, villagers, ring and heart the game puts up during play (as a level starts, or the heart while Sia is hurt) aren't drawn on the game screen, since the second screen shows them; the game's own pause screen loses them too, keeping only the time and its menu.
 
 Known issues: only the first level has been tried so far.

@@ -567,6 +567,132 @@
    ]
   },
   {
+   "id": "ls-us-level-start",
+   "rom": "ALDE",
+   "state": "lady-sia/us-new-game.ss",
+   "desc": "New Game, the story skipped, the first level starting: the lives, gems, villagers and ring the game puts up for a few seconds are left off the game screen",
+   "rules": [
+    "LS-6"
+   ],
+   "input": [
+    [
+     10,
+     "START"
+    ],
+    [
+     14,
+     "-"
+    ],
+    [
+     600,
+     "START"
+    ],
+    [
+     604,
+     "-"
+    ]
+   ],
+   "shots": {
+    "hud": 800
+   },
+   "checks": [
+    {
+     "rule": "LS-6",
+     "what": "no lives, gem, villager count or ring on the game screen",
+     "type": "not_pixels",
+     "shot": "hud",
+     "screen": "game",
+     "probes": [
+      [
+       90,
+       146,
+       "7B2100"
+      ],
+      [
+       454,
+       138,
+       "31D621"
+      ],
+      [
+       862,
+       130,
+       "AD7342"
+      ],
+      [
+       266,
+       650,
+       "EFEFEF"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ls-us-level-start-map-off",
+   "rom": "ALDE",
+   "state": "lady-sia/us-new-game.ss",
+   "desc": "the same with map = 0: the game's HUD stays on the game screen",
+   "rules": [
+    "LS-6"
+   ],
+   "config": {
+    "map": "0"
+   },
+   "input": [
+    [
+     10,
+     "START"
+    ],
+    [
+     14,
+     "-"
+    ],
+    [
+     600,
+     "START"
+    ],
+    [
+     604,
+     "-"
+    ]
+   ],
+   "shots": {
+    "hud": 800
+   },
+   "checks": [
+    {
+     "rule": "LS-6",
+     "what": "the lives, gem and villager count on the game screen (the ring bobs: 3 of 4)",
+     "type": "pixels",
+     "shot": "hud",
+     "screen": "game",
+     "probes": [
+      [
+       90,
+       146,
+       "7B2100"
+      ],
+      [
+       454,
+       138,
+       "31D621"
+      ],
+      [
+       862,
+       130,
+       "AD7342"
+      ],
+      [
+       266,
+       650,
+       "EFEFEF"
+      ]
+     ],
+     "min": 3
+    }
+   ]
+  },
+  {
    "id": "ls-eu-hurt",
    "rom": "ALDP",
    "state": "lady-sia/eu-hurt.ss",

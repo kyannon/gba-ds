@@ -2683,14 +2683,20 @@ static const MapProfile profiles[] = {
 		.live = { { 0x03003090, 0x13, 0x01, 1 } },
 		/* the title and the menus: the logo (LS-3) */
 		.menu = { { 0x03003090, 0xFF, 0x03, 1 } },
-		/* the heart (health) off the game screen, the status picture having
-		 * it (LS-6): three sprites, palette 14, priority 0, corners at
-		 * x 165-170, y 131-145 (tiles 49-55 in a level in Europe, 273-279
-		 * as a level starts, 51-57 on the pause screen, which loses it
-		 * too: they can't be told apart). The conversations' text is
-		 * priority 0 too, at y 96, palettes 4 and 6; the villager count's
-		 * face palette 14 at the top right. */
-		.hideSprites = { { 160, 125, 180, 150, 0, 1023, 0, 1u << 14 } },
+		/* the HUD off the game screen, the status picture having it
+		 * (LS-6): priority-0 sprites, shown for ~3 s as a level starts and
+		 * (the heart) while Sia is hurt. The top row: lives (face palette
+		 * 0 at 2,7), gems (palette 4 at 94,3), villagers (face palette 14
+		 * at 193,1), their counts (palette 4, y 10). The ring: palette 4,
+		 * corners at x 39-76, y 125-153. The heart: palette 14, corners at
+		 * x 165-170, y 131-145. Tile numbers vary (Europe in a level,
+		 * a level's start and the pause screen all differ, and overlap),
+		 * so the game's own pause screen loses them too. Left alone: a
+		 * conversation's text (priority 0, palettes 4 and 6, y 96) and
+		 * everything in the level (priority 1-2). */
+		.hideSprites = { { -16, -16, 239, 20, 0, 1023, 0, (1u << 0) | (1u << 4) | (1u << 14) },
+		                 { 30, 118, 100, 159, 0, 1023, 0, 1u << 4 },
+		                 { 160, 125, 180, 150, 0, 1023, 0, 1u << 14 } },
 	},
 	{
 		/* Mario & Luigi: Superstar Saga (USA; Europe and Japan, Mario &
