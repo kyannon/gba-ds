@@ -52,24 +52,40 @@ cmake -S "$DEPS/SDL2" -B "$DEPS/SDL2/build-aarch64" -DCMAKE_TOOLCHAIN_FILE="$ROO
 	-DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$DEPS/sdl-aarch64" -DSDL_STATIC=OFF -DSDL_TEST=OFF
 make -C "$DEPS/SDL2/build-aarch64" -j"$(nproc)" install
 
-# GBADS_SIDE=name: a side build, to try a branch's work beside the main
-# install: the folder gba-ds-name and the Ports entry "GBA DS (name)", its
-# own settings and states, version VERSION+name, no updates and no
-# EmulationStation / BananaOS integration (the Makefile's SIDE)
+# GBADS_SIDE=slug: a side build of a game branch (game/<slug>), to try it
+# beside the main install: the folder gba-ds-<slug> and the Ports entry
+# "GBA DS <game> testing", its own settings and states, version
+# VERSION+<slug>, no updates and no EmulationStation / BananaOS integration
+# (the Makefile's SIDE), and a game list of only that game's releases. The
+# game's name and codes come from docs/games/<slug>.md (its title and its
+# Releases row); GBADS_SIDE_NAME / GBADS_SIDE_CODES ("A2NE A2NP") override.
 SIDE="${GBADS_SIDE:-}"
-if [ -n "$SIDE" ] && ! [[ $SIDE =~ ^[a-z0-9][a-z0-9-]*$ ]]; then
-	echo "GBADS_SIDE: lower-case letters, digits and dashes only (not $SIDE)" >&2
-	exit 1
+SIDE_NAME="" SIDE_CODES=""
+if [ -n "$SIDE" ]; then
+	if ! [[ $SIDE =~ ^[a-z0-9][a-z0-9-]*$ ]]; then
+		echo "GBADS_SIDE: lower-case letters, digits and dashes only (not $SIDE)" >&2
+		exit 1
+	fi
+	RULES="docs/games/$SIDE.md"
+	SIDE_NAME="${GBADS_SIDE_NAME:-$(sed -n '1s/^# *//p' "$RULES" 2>/dev/null)}"
+	SIDE_CODES="${GBADS_SIDE_CODES:-$(grep -m1 '^| Releases |' "$RULES" 2>/dev/null | grep -o '`[A-Z0-9]\{4\}`' | tr -d '`' | tr '\n' ' ' | sed 's/ *$//')}"
+	if [ -z "$SIDE_NAME" ] || [ -z "$SIDE_CODES" ]; then
+		echo "GBADS_SIDE: $RULES needs its title (# Name) and a Releases row with the codes (\`A2NE\`), or set GBADS_SIDE_NAME and GBADS_SIDE_CODES" >&2
+		exit 1
+	fi
+	# (no characters SD cards' file systems refuse: "Game: Subtitle" -> "Game - Subtitle")
+	SIDE_NAME="$(printf '%s' "$SIDE_NAME" | sed 's/ *: */ - /g; s#[/\\*?"<>|]##g')"
+	echo "side build: $SIDE, \"GBA DS $SIDE_NAME testing\", codes $SIDE_CODES"
 fi
 
 # --- gba-ds ---------------------------------------------------------------
 make CROSS="$CROSS" MGBA_SRC="$DEPS/mgba" MGBA_BUILD="$DEPS/mgba/build-aarch64" \
-	SDL_PREFIX="$DEPS/sdl-aarch64" OUT=build/aarch64${SIDE:+-$SIDE} OPTFLAGS="-O2 -mcpu=cortex-a55" SIDE="$SIDE"
+	SDL_PREFIX="$DEPS/sdl-aarch64" OUT=build/aarch64${SIDE:+-$SIDE} OPTFLAGS="-O2 -mcpu=cortex-a55" SIDE="$SIDE" SIDE_CODES="$SIDE_CODES"
 
 # --- package ---------------------------------------------------------------
 VERSION=$(cat VERSION)
 APP=gba-ds${SIDE:+-$SIDE}            # the install folder
-ENTRY="GBA DS${SIDE:+ ($SIDE)}"      # the Ports entry
+ENTRY="GBA DS${SIDE:+ $SIDE_NAME testing}"   # the Ports entry
 ZIP="gba-ds-v$VERSION${SIDE:+-$SIDE}-linux-aarch64.zip"
 PKG="$ROOT/build/pkg/$APP"
 rm -rf "$ROOT/build/pkg"
