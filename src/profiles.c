@@ -2948,6 +2948,23 @@ static const MapProfile profiles[] = {
 		 * it flashes and shrinks (KHC-5): BG2 alone */
 		.logo = { .wait = 700, .layer = 2, .maxY = 160 },
 	},
+	{
+		/* Kingdom Hearts: Chain of Memories in Europe: the logo only for
+		 * now (KHC-7), the same emblem: A on its language menu (English),
+		 * then the same sequence as the USA release's */
+		.codes = { "B8CP" },
+		.title = "Kingdom Hearts: Chain of Memories",
+		.logoOnly = true,
+		.logo = { .steps = { { 0, 100 }, { K_A, 4 }, { 0, 746 } }, .layer = 2, .maxY = 160 },
+	},
+	{
+		/* in Japan: the logo only for now (KHC-7); its sequence has no
+		 * licence screen, so the emblem stands 200 frames earlier */
+		.codes = { "B8CJ" },
+		.title = "Kingdom Hearts: Chain of Memories",
+		.logoOnly = true,
+		.logo = { .wait = 500, .layer = 2, .maxY = 160 },
+	},
 };
 
 /* ---------------------------------------------------------------- regions

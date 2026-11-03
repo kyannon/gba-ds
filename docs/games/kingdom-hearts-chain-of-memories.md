@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| Releases | `B8CE` USA (Europe, B8CP, and Japan, B8CJ: not handled yet, see Not covered yet) |
-| Profile | `src/profiles.c`: the `B8CE` entry (khc_compose) |
+| Releases | `B8CE` USA · `B8CP` Europe (En/Fr/De/Es/It) · `B8CJ` Japan (Europe and Japan: the logo only for now, KHC-7) |
+| Profile | `src/profiles.c`: the `B8CE` entry (khc_compose); `B8CP` and `B8CJ` logo-only entries |
 | Tests | `tests/regress/kingdom-hearts-chain-of-memories.json` (`tools/regress.py kingdom-hearts-chain-of-memories`) |
 | Status | preliminary (on its own branch, `game/kingdom-hearts-chain-of-memories`) |
 
@@ -25,6 +25,8 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **KHC-6. Game screen untouched.** Nothing leaves the game screen.
 
+**KHC-7. Europe and Japan: the logo only, for now.** The European and Japanese releases are listed and play, with the logo on the second screen throughout (idle, at half strength) and nothing captured: their World Map, menu and battle checks haven't been tried in a world yet. Their logo is the same emblem as the USA release's, taken the same way (KHC-5): in Europe after A on its language menu (English), frame 850 from power-on; in Japan, with no licence screen, frame 500.
+
 ## Facts about the game
 
 - A byte at `0x02034AA4` (USA; `0x02034AC0` Europe, `0x02034A04` Japan) looked like a game mode (0 on the title, 7 walking about, 6 fighting), but it's also 0 on a new game's first Traverse Town screens and 6, 1, 3 through the tutorial battle: not used.
@@ -41,28 +43,28 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 ## Not covered yet
 
-- Europe and Japan: the same rules, with their own addresses (above, found by romxref); not tried in a world yet.
+- Europe and Japan in a world (KHC-7): states walking about, in the menu and in a battle would let them have KHC-1 to KHC-4. A new game doesn't get there quickly: the tutorial battle waits for each of its moves, and the menu doesn't open in Traverse Town's first rooms either (tried on the USA release: the hall, then the first room through a door). Their battle pointers by romxref: `0x0203A3E4` Europe, `0x02039D44` Japan.
 
 ## For the merge
 
 Changelog line (under the open version's "New games"):
 
-- **Kingdom Hearts: Chain of Memories** (USA): walking about in a world, the second screen is the World Map (the menu's World Map, with the room you're in lit, without its cursor), updated about once a second. In battles, and on the title and in the opening, it shows the logo, taken from the full-size emblem before the title. Tried in Traverse Town.
+- **Kingdom Hearts: Chain of Memories** (USA; Europe and Japan with the logo only for now): walking about in a world, the second screen is the World Map (the menu's World Map, with the room you're in lit, without its cursor), updated about once a second. In battles, and on the title and in the opening, it shows the logo, taken from the full-size emblem before the title. Tried in Traverse Town.
 
 `docs/games/README.md` table row:
 
-| [Kingdom Hearts: Chain of Memories](kingdom-hearts-chain-of-memories.md) | KHC | `B8CE` |
+| [Kingdom Hearts: Chain of Memories](kingdom-hearts-chain-of-memories.md) | KHC | `B8CE` + 2 |
 
 Wiki (`wiki/Supported-games.md`) table row:
 
-| Kingdom Hearts: Chain of Memories | `B8CE` `B8CP` `B8CJ` | the World Map; in battles, the logo |
+| Kingdom Hearts: Chain of Memories | `B8CE` `B8CP` `B8CJ` (Europe, Japan: the logo only for now) | the World Map; in battles, the logo |
 
 Wiki section:
 
 ```
 ## Kingdom Hearts: Chain of Memories
 
-Tried in the USA release, in Traverse Town.
+Tried in the USA release, in Traverse Town. The European and Japanese releases play with the logo on the second screen for now.
 
 - **Walking about in a world,** the second screen is the **World Map** (the one in START's menu), as the game draws it, filling the screen: the floor's rooms, the room you're in lit blue with its name, and the floor you're on. It's opened in the background in a silent copy of the game about once a second, so new rooms show up without you opening it; your game is never paused. The map's cursor and its A button bubble are left out.
 - **In battles,** from the flash as one starts until the last enemy falls, the second screen shows the logo; the World Map comes back afterwards.

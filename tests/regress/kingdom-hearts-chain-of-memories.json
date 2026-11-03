@@ -16,6 +16,32 @@
    ]
   },
   {
+   "id": "khc-logo-b8cp",
+   "kind": "logo",
+   "rom": "B8CP",
+   "desc": "B8CP logo extraction (after A on the language menu)",
+   "rules": [
+    "GEN-1",
+    "KHC-7"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "khc-logo-b8cj",
+   "kind": "logo",
+   "rom": "B8CJ",
+   "desc": "B8CJ logo extraction",
+   "rules": [
+    "GEN-1",
+    "KHC-7"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
    "id": "khc-us-title",
    "rom": "B8CE",
    "state": "kingdom-hearts-chain-of-memories/us-title.ss",
@@ -1096,6 +1122,84 @@
      "rule": "KHC-3",
      "what": "still the logo",
      "shot": "later"
+    }
+   ]
+  },
+  {
+   "id": "khc-eu-logo-only",
+   "rom": "B8CP",
+   "desc": "Europe from power-on, English chosen, to the title: the logo throughout, nothing taken",
+   "rules": [
+    "KHC-7"
+   ],
+   "input": [
+    [
+     100,
+     "A"
+    ],
+    [
+     104,
+     "-"
+    ]
+   ],
+   "shots": {
+    "title": 1200
+   },
+   "checks": [
+    {
+     "rule": "KHC-7",
+     "what": "no capture",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "KHC-7",
+     "what": "the logo",
+     "shot": "title"
+    }
+   ]
+  },
+  {
+   "id": "khc-jp-logo-only",
+   "rom": "B8CJ",
+   "desc": "Japan from power-on to the title: the logo throughout, nothing taken",
+   "rules": [
+    "KHC-7"
+   ],
+   "shots": {
+    "title": 900
+   },
+   "checks": [
+    {
+     "rule": "KHC-7",
+     "what": "no capture",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "KHC-7",
+     "what": "the logo",
+     "shot": "title"
     }
    ]
   }
