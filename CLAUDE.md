@@ -150,12 +150,18 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   GBADS_WEB_WORK=<scratch dir>/wasm scripts/build-rocknix.sh` gives
   `dist/gba-ds-vX.Y.Z-dev-<slug>-linux-aarch64.zip`. It unzips into the Ports
   folder beside the main install: its own folder (`gba-ds-<slug>/`) and its
-  own Ports entry ("GBA DS (<slug>)"), with its own settings, states and
-  logos. The game's battery saves are the system's, shared with the main
-  install. The app's version reads `X.Y.Z-dev+<slug>`, and it has no updates
-  (they'd replace it with the release) and no EmulationStation / BananaOS
-  integration (the system's GBA games would start it). Send that zip after
-  each change, never a plain build from the branch.
+  own Ports entry, "GBA DS <game> testing" (the game's name from the first
+  line of `docs/games/<slug>.md`, a colon made " - " for SD cards' file
+  systems), with its own settings, states and logos. Its game list shows
+  only the game's releases: the codes in the rules file's "Releases" row
+  (`GBADS_SIDE_NAME` / `GBADS_SIDE_CODES="A2NE A2NP"` override either), so
+  that row lists every release the profile handles; the build stops if the
+  title or the codes are missing. The game's battery saves are the system's,
+  shared with the main install. The app's version reads `X.Y.Z-dev+<slug>`,
+  and it has no updates (they'd replace it with the release) and no
+  EmulationStation / BananaOS integration (the system's GBA games would
+  start it). Send that zip after each change, never a plain build from the
+  branch.
 - **Tests on the branch: only the game's own.** Write its rules
   (`docs/games/<slug>.md`), cases (`tests/regress/<slug>.json`), fixtures and
   goldens as usual, and run `tools/regress.py <slug>`, not the whole suite.
