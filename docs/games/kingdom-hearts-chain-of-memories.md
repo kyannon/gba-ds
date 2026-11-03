@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Releases | `B8CE` USA · `B8CP` Europe (En/Fr/De/Es/It) · `B8CJ` Japan |
+| Releases | `B8CE` USA (Europe, B8CP, and Japan, B8CJ: not handled yet, see Not covered yet) |
 | Profile | `src/profiles.c`: the `B8CE` entry (khc_compose) |
 | Tests | `tests/regress/kingdom-hearts-chain-of-memories.json` (`tools/regress.py kingdom-hearts-chain-of-memories`) |
 | Status | preliminary (on its own branch, `game/kingdom-hearts-chain-of-memories`) |
