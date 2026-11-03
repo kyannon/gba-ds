@@ -25,6 +25,10 @@ typedef struct {
 typedef struct {
 	int view;
 	SDL_Rect rect;
+	/* where the game's pictures go (ui_image_pixels, ui_image_rect): the
+	 * whole screen, or with screen_match the part matching the other
+	 * screen (local coordinates) */
+	SDL_Rect pic;
 } Screen;
 
 extern View views[2];
@@ -63,6 +67,13 @@ void ui_layout(void);
 void ui_tick(void);
 uint64_t ui_ticks(void);
 
+/* The two screens' shapes differ (by more than 2%): screen_match can do
+ * something. */
+bool ui_screens_differ(void);
+/* Works out the screens' picture areas again (screen_match changed). */
+void ui_layout_pictures(void);
+/* The pixels per inch of each screen, if known (0 if not). */
+float ui_screen_ppi(int screen);
 int ui_touch_screen(void); /* index into screens[] */
 int ui_other_screen(void); /* the non-touch screen, or the touch screen if there's only one */
 

@@ -51,6 +51,7 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 - **LCD Grid**: a pixel grid like a GBA screen's, on both screens. `lcd_strength` sets how dark.
 - **Overlays**: primary / secondary / both / none. See [[Map screen surrounds and overlays]].
 - **Frame Buffer**: off by default. On, the next frame is prepared while the current one is on screen, which smooths out the odd stutter at the cost of one frame (about 17 ms) of input delay.
+- **Screen shapes** (experimental; only on devices whose two screens are different shapes, such as the AYN Thor and the Retroid Pocket Duo, greyed out elsewhere): **Keep device aspect ratios** (each screen's picture as its own shape allows), **Match screen aspect ratios** (the wider screen's picture takes the other screen's shape, with black bars at its sides) or **Match screen sizes and aspect ratios** (the same, at the other screen's real size, against the edge nearest it). With Stretch and either match, both screens show the same shape, so Pokémon Pinball's table carries on across them. Overlays can be made for each: see [[Map screen surrounds and overlays]].
 - **Match Display Rate**: off by default. On, the game runs at the screen's refresh rate (60 Hz: 0.5% faster than a GBA, too little to notice, with the sound adjusted to match) and each frame is shown for exactly one refresh. Off, a 60 Hz screen shows one frame twice about every 3.7 seconds: a small, regular stutter.
 
 **Extras** (Rewind, Save on Quit and Auto-Load are remembered for next time)

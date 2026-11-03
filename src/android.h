@@ -66,6 +66,9 @@ void android_pin_worker_thread(const char* what); /* what: for the log */
 
 /* Size of the second display, if there is one. */
 bool android_second_size(int* w, int* h);
+/* A display's pixels per inch (view 0: the activity's, 1: the second), as
+ * Android reports them; 0 if not known. */
+float android_display_ppi(int view);
 /* Copies a finished frame (ABGR8888, i.e. R,G,B,A bytes) to the second
  * display's surface, if it has one right now. */
 void android_second_present(SDL_Surface* frame);

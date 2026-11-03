@@ -957,7 +957,7 @@ static bool debug;
 
 /* ---------------------------------------------------------------- menu */
 
-enum MenuItem { M_RESUME, M_CHEATS, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND, M_AUTOSAVE, M_AUTOLOAD, M_BUG, M_SLOT };
+enum MenuItem { M_RESUME, M_CHEATS, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND, M_AUTOSAVE, M_AUTOLOAD, M_BUG, M_SLOT, M_SHAPES };
 static const char* menuLabels[] = {
 	/* title case: drawn in Futura from the built-in images (tools/make_brand.py) */
 	[M_RESUME] = "Resume", [M_SWAP] = "Swap Screens", [M_SAVE] = "Save State", [M_SCALE] = "", [M_LCD] = "", [M_FPS] = "", [M_FRAMEBUF] = "", [M_OVERLAY] = "", [M_LOGO] = "", [M_MATCH] = "", [M_REWIND] = "", [M_RESTART] = "Restart Game",
@@ -1124,6 +1124,7 @@ static void slot_step(int d) {
 
 static bool item_enabled(int item) {
 	if (item == M_CHEATS) return cheats.n > 0;
+	if (item == M_SHAPES) return ui_screens_differ(); /* (two screens of a shape: nothing to match) */
 	return item != M_LOAD || file_exists(gp.slot[stateSlot]);
 }
 
@@ -2051,6 +2052,8 @@ static void draw_menu(void) {
 		if (menuItems[i] == M_FRAMEBUF) label = tallProf ? "Frame Buffer: Always on here" : cfg->frameBuffer ? "Frame Buffer: On" : "Frame Buffer: Off";
 		if (menuItems[i] == M_REWIND) label = cfg->rewind ? "Rewind: On (Hold L2)" : "Rewind: Off";
 		if (menuItems[i] == M_MATCH) label = cfg->matchDisplay ? "Match Display Rate: On" : "Match Display Rate: Off";
+		if (menuItems[i] == M_SHAPES) label = !en || !strcmp(cfg->screenMatch, "keep") ? "Keep device aspect ratios" :
+		                                      !strcmp(cfg->screenMatch, "aspect") ? "Match screen aspect ratios" : "Match screen sizes and aspect ratios";
 		if (menuItems[i] == M_LOGO) label = cfg->showLogo ? "No Second Screen: Show Logo" : "No Second Screen: Keep Blank";
 		if (menuItems[i] == M_OVERLAY) {
 			static const char* const ovl[4] = { "Overlays: None", "Overlays: Primary", "Overlays: Secondary", "Overlays: Both" };
@@ -4562,7 +4565,7 @@ static void map_show_new(bool fresh) {
 static bool draw_framed_map(int s) {
 	if (!(cfg->overlays & OVL_SECONDARY) || !mapframe_ready(&mf) || mapShownIdx < 0) return false;
 	if (!strcmp(cfg->mapScale, "zoom")) return false; /* the map fills the height: no room for a surround */
-	SDL_Rect r = screens[s].rect;
+	SDL_Rect r = screens[s].pic; /* (the picture area: screen_match) */
 	if (mapframe_layout(&mf, r.w, r.h, cfg->mapScale) || mf.baseDirty) canvasDirty = true;
 	if (canvasTexW != mf.cw || canvasTexH != mf.ch) {
 		for (int i = 0; i < nViews; ++i) {
@@ -4646,6 +4649,7 @@ static void save_prefs(void) {
 		        (const char* const[]) { "none", "primary", "secondary", "both" }[cfg->overlays & OVL_BOTH],
 		        cfg->frameBuffer ? 1 : 0, cfg->matchDisplay ? 1 : 0, cfg->rewind ? 1 : 0,
 		        cfg->autoSave ? 1 : 0, cfg->autoLoad ? 1 : 0, cfg->barPinned ? 1 : 0);
+		fprintf(f, "screen_match = %s\n", cfg->screenMatch);
 		fclose(f);
 	}
 }
@@ -4669,26 +4673,42 @@ static void swap_screens(void) {
 static SDL_Color borderColor;
 
 /* User overlay PNGs in <asset_dir>/overlays/, drawn over a whole screen
- * (transparent where the picture should show). First found wins:
- *   primary (game screen):  <CODE>-primary-<scale>, <CODE>-primary,
- *                           primary-<scale>, primary
- *   secondary (map screen): <CODE>-secondary-<scale>, <CODE>-secondary,
- *                           <CODE>-<scale>, <CODE>, secondary-<scale>, secondary
- * <scale> is that screen's scaling (integer / fit / stretch). */
+ * (transparent where the picture should show). A name is the parts that
+ * apply, in this order, joined by dashes: the game's code (optional), the
+ * side (primary: the game screen; secondary: the other), the scaling
+ * (integer, fit, zoom, stretch; optional) and the screen shapes (aspect or
+ * size, for screen_match; optional, and only looked for while it's on and
+ * the screens' shapes differ). The most specific found wins:
+ *   <CODE>-<side>-<scale>-<match>, <CODE>-<side>-<match>,
+ *   <CODE>-<side>-<scale>, <CODE>-<side>,
+ *   (secondary only, older names: <CODE>-<scale>, <CODE>)
+ *   <side>-<scale>-<match>, <side>-<match>, <side>-<scale>, <side>
+ * wiki/Map-screen-surrounds-and-overlays.md explains them for players. */
+static void overlays_reload(void) {
+	overlayMode[0][0] = overlayMode[1][0] = 0;
+}
+
 static void load_overlay(int which) {
 	const char* scale = which ? cfg->mapScale : cfg->scale;
-	if (!strcmp(overlayMode[which], scale)) return;
-	snprintf(overlayMode[which], sizeof(overlayMode[which]), "%s", scale);
+	const char* match = strcmp(cfg->screenMatch, "keep") && ui_screens_differ() ? cfg->screenMatch : NULL;
+	char key[16];
+	snprintf(key, sizeof(key), "%s|%s", scale, match ? match : "");
+	if (!strcmp(overlayMode[which], key)) return;
+	snprintf(overlayMode[which], sizeof(overlayMode[which]), "%s", key);
 	ui_free_image(overlayTex[which]);
 	const char* side = which ? "secondary" : "primary";
-	char names[6][64];
+	char names[10][64];
 	int n = 0;
+	if (match) snprintf(names[n++], 64, "%.4s-%s-%s-%s", emu.gameCode, side, scale, match);
+	if (match) snprintf(names[n++], 64, "%.4s-%s-%s", emu.gameCode, side, match);
 	snprintf(names[n++], 64, "%.4s-%s-%s", emu.gameCode, side, scale);
 	snprintf(names[n++], 64, "%.4s-%s", emu.gameCode, side);
 	if (which) {
 		snprintf(names[n++], 64, "%.4s-%s", emu.gameCode, scale); /* older names */
 		snprintf(names[n++], 64, "%.4s", emu.gameCode);
 	}
+	if (match) snprintf(names[n++], 64, "%s-%s-%s", side, scale, match);
+	if (match) snprintf(names[n++], 64, "%s-%s", side, match);
 	snprintf(names[n++], 64, "%s-%s", side, scale);
 	snprintf(names[n++], 64, "%s", side);
 	char path[1200];
@@ -5011,6 +5031,18 @@ static bool activate(int item, enum GameExit* exitTo) {
 		snprintf(menuNote, sizeof(menuNote), "%s", cfg->rewind ? "Hold L2 to go back in time" : "No rewind buffer: a little less work");
 		save_prefs();
 		break;
+	case M_SHAPES: {
+		/* keep, aspect, size (experimental: not tried on a widescreen device yet) */
+		const char* next = !strcmp(cfg->screenMatch, "keep") ? "aspect" : !strcmp(cfg->screenMatch, "aspect") ? "size" : "keep";
+		snprintf(cfg->screenMatch, sizeof(cfg->screenMatch), "%s", next);
+		ui_layout_pictures();
+		overlays_reload(); /* (overlays can be made for each: overlay files) */
+		gameTexAll = true;
+		if (!strcmp(next, "size") && !(ui_screen_ppi(0) > 0 && ui_screen_ppi(1) > 0)) snprintf(menuNote, sizeof(menuNote), "The screens' sizes aren't known here: shapes only");
+		else snprintf(menuNote, sizeof(menuNote), "%s", !strcmp(next, "keep") ? "Each screen as it is" : "Experimental: tell us how it looks on your device");
+		save_prefs();
+		break;
+	}
 	case M_MATCH:
 		cfg->matchDisplay = !cfg->matchDisplay;
 		pacing_update();
@@ -5292,6 +5324,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	pages[1][pageLen[1]++] = M_OVERLAY;
 	pages[1][pageLen[1]++] = M_FRAMEBUF;
 	pages[1][pageLen[1]++] = M_MATCH;
+	pages[1][pageLen[1]++] = M_SHAPES;
 	pages[2][pageLen[2]++] = M_REWIND;
 	pages[2][pageLen[2]++] = M_AUTOSAVE;
 	pages[2][pageLen[2]++] = M_AUTOLOAD;

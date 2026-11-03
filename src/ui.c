@@ -516,7 +516,74 @@ void ui_shutdown(void) {
 	SDL_Quit();
 }
 
+static void layout_screens(void);
+
 void ui_layout(void) {
+	layout_screens();
+	ui_layout_pictures();
+}
+
+bool ui_screens_differ(void) {
+	if (nScreens < 2) return false;
+	double a0 = (double) screens[0].rect.w / SDL_max(1, screens[0].rect.h);
+	double a1 = (double) screens[1].rect.w / SDL_max(1, screens[1].rect.h);
+	return fabs(a0 - a1) > 0.02 * SDL_max(a0, a1);
+}
+
+float ui_screen_ppi(int screen) {
+	if (screen < 0 || screen >= nScreens) return 0;
+	float top = 0, bottom = 0;
+	if (cfg->screenPpi[0] && sscanf(cfg->screenPpi, "%f,%f", &top, &bottom) == 2 && top > 0 && bottom > 0) return screen ? bottom : top;
+	int v = screens[screen].view;
+	float ppi = 0;
+#ifdef __ANDROID__
+	ppi = android_display_ppi(v);
+#else
+	if (nViews == 2) {
+		float d = 0;
+		int di = SDL_GetWindowDisplayIndex(views[v].win);
+		if (di >= 0 && SDL_GetDisplayDPI(di, &d, NULL, NULL) == 0) ppi = d;
+	}
+#endif
+	return ppi >= 80 && ppi <= 1000 ? ppi : 0; /* (anything else is a made-up value) */
+}
+
+/* screen_match (Display: screen shapes; experimental): the wider screen's
+ * pictures keep to the other screen's shape (aspect: the largest such area,
+ * centred), or also its real size (size: by the screens' pixels per inch,
+ * against the edge nearest the other screen: a top screen's bottom), so a
+ * picture that goes on over both (Pokémon Pinball's table) carries on
+ * across. Nothing when the shapes already match. */
+void ui_layout_pictures(void) {
+	for (int i = 0; i < nScreens; ++i) screens[i].pic = (SDL_Rect) { 0, 0, screens[i].rect.w, screens[i].rect.h };
+	bool aspect = !strcmp(cfg->screenMatch, "aspect"), size = !strcmp(cfg->screenMatch, "size");
+	static char logged[64];
+	char note[64] = "";
+	if ((aspect || size) && ui_screens_differ()) {
+		double a0 = (double) screens[0].rect.w / screens[0].rect.h, a1 = (double) screens[1].rect.w / screens[1].rect.h;
+		int wide = a0 > a1 ? 0 : 1, narrow = 1 - wide;
+		const SDL_Rect* W = &screens[wide].rect;
+		const SDL_Rect* N = &screens[narrow].rect;
+		double a = (double) N->w / N->h;
+		int w = W->h * a + 0.5, h = W->h;
+		float pw = ui_screen_ppi(wide), pn = ui_screen_ppi(narrow);
+		if (size && pw > 0 && pn > 0) w = N->w * pw / pn + 0.5, h = N->h * pw / pn + 0.5;
+		else if (size) snprintf(note, sizeof(note), " (sizes not known: shapes only)");
+		if (w > W->w) h = h * W->w / w, w = W->w;
+		if (h > W->h) w = w * W->h / h, h = W->h;
+		int y = size ? (wide == 0 ? W->h - h : 0) : (W->h - h) / 2;
+		screens[wide].pic = (SDL_Rect) { (W->w - w) / 2, y, w, h };
+		snprintf(note + strlen(note), sizeof(note) - strlen(note), " %dx%d on screen %d", w, h, wide);
+	}
+	char line[64];
+	snprintf(line, sizeof(line), "%s%s", cfg->screenMatch, note);
+	if (strcmp(line, logged)) {
+		snprintf(logged, sizeof(logged), "%s", line);
+		fprintf(stderr, "screen shapes: %s (ppi %.0f / %.0f)\n", line, ui_screen_ppi(0), ui_screen_ppi(1));
+	}
+}
+
+static void layout_screens(void) {
 	if (nViews == 2) {
 		nScreens = 2;
 #ifdef __ANDROID__
@@ -552,6 +619,16 @@ void ui_layout(void) {
 	}
 	int w, h;
 	SDL_GetRendererOutputSize(views[0].ren, &w, &h);
+	/* tests: two screens of other sizes stacked in the window (the top one
+	 * first), as on devices whose screens differ: GBADS_SCREENS=1920x1080,1240x1080
+	 * (with GBADS_WINDOW the larger width x the heights together) */
+	int tw0, th0, tw1, th1;
+	if (getenv("GBADS_SCREENS") && sscanf(getenv("GBADS_SCREENS"), "%dx%d,%dx%d", &tw0, &th0, &tw1, &th1) == 4) {
+		nScreens = 2;
+		screens[0] = (Screen) { 0, { (w - tw0) / 2, 0, tw0, th0 } };
+		screens[1] = (Screen) { 0, { (w - tw1) / 2, th0, tw1, th1 } };
+		return;
+	}
 	const char* lay = cfg->layout;
 	if (!strcmp(lay, "auto") || !strcmp(lay, "dual")) {
 		lay = w >= h * 18 / 10 ? "span-h" : h >= w * 12 / 10 ? "span-v" : "single";
@@ -1615,8 +1692,8 @@ void ui_image_pixels(int screen, SDL_Texture* const* texPerView, int w, int h, c
 	int v = s->view;
 	SDL_Renderer* ren = views[v].ren;
 	SDL_Texture* src = texPerView[v];
-	SDL_Rect dst;
-	fit_rect(&s->rect, w, h, mode, &dst);
+	SDL_Rect dst, pic = { s->rect.x + s->pic.x, s->rect.y + s->pic.y, s->pic.w, s->pic.h };
+	fit_rect(&pic, w, h, mode, &dst);
 	/* zoom can be wider than the screen: keep it off the other screen */
 	bool clip = dst.x < s->rect.x || dst.y < s->rect.y || dst.x + dst.w > s->rect.x + s->rect.w ||
 	            dst.y + dst.h > s->rect.y + s->rect.h;
@@ -1691,7 +1768,7 @@ static void draw_pixels(SDL_Renderer* ren, int v, SDL_Texture* src, int w, int h
 }
 
 SDL_Rect ui_image_rect(int screen, int w, int h, const char* mode) {
-	SDL_Rect area = { 0, 0, screens[screen].rect.w, screens[screen].rect.h }, dst;
+	SDL_Rect area = screens[screen].pic, dst;
 	fit_rect(&area, w, h, mode, &dst);
 	return dst;
 }
