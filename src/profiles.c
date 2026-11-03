@@ -2683,6 +2683,14 @@ static const MapProfile profiles[] = {
 		.live = { { 0x03003090, 0x13, 0x01, 1 } },
 		/* the title and the menus: the logo (LS-3) */
 		.menu = { { 0x03003090, 0xFF, 0x03, 1 } },
+		/* the heart (health) off the game screen, the status picture having
+		 * it (LS-6): three sprites, palette 14, priority 0, corners at
+		 * x 165-170, y 131-145 (tiles 49-55 in a level in Europe, 273-279
+		 * as a level starts, 51-57 on the pause screen, which loses it
+		 * too: they can't be told apart). The conversations' text is
+		 * priority 0 too, at y 96, palettes 4 and 6; the villager count's
+		 * face palette 14 at the top right. */
+		.hideSprites = { { 160, 125, 180, 150, 0, 1023, 0, 1u << 14 } },
 	},
 	{
 		/* Mario & Luigi: Superstar Saga (USA; Europe and Japan, Mario &

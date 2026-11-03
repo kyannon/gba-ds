@@ -567,6 +567,103 @@
    ]
   },
   {
+   "id": "ls-eu-hurt",
+   "rom": "ALDP",
+   "state": "lady-sia/eu-hurt.ss",
+   "desc": "Sia hurt in the first level, European release (a player's bug report): the heart the game shows is left off the game screen; the status picture on the second screen",
+   "rules": [
+    "LS-2",
+    "LS-6"
+   ],
+   "shots": {
+    "hurt": 20,
+    "later": 200
+   },
+   "checks": [
+    {
+     "rule": "LS-6",
+     "what": "no heart in the bottom right of the game screen",
+     "type": "not_pixels",
+     "shot": "hurt",
+     "screen": "game",
+     "probes": [
+      [
+       722,
+       638,
+       "EF2929"
+      ],
+      [
+       738,
+       638,
+       "EF2929"
+      ],
+      [
+       718,
+       642,
+       "EF2929"
+      ],
+      [
+       730,
+       646,
+       "EF2929"
+      ]
+     ]
+    },
+    {
+     "rule": "LS-2",
+     "what": "a status picture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ls-eu-hurt-map-off",
+   "rom": "ALDP",
+   "state": "lady-sia/eu-hurt.ss",
+   "desc": "the same with map = 0: the heart stays on the game screen",
+   "rules": [
+    "LS-6"
+   ],
+   "config": {
+    "map": "0"
+   },
+   "shots": {
+    "hurt": 20
+   },
+   "checks": [
+    {
+     "rule": "LS-6",
+     "what": "the heart in the bottom right of the game screen",
+     "type": "pixels",
+     "shot": "hurt",
+     "screen": "game",
+     "probes": [
+      [
+       722,
+       638,
+       "EF2929"
+      ],
+      [
+       738,
+       638,
+       "EF2929"
+      ],
+      [
+       718,
+       642,
+       "EF2929"
+      ],
+      [
+       730,
+       646,
+       "EF2929"
+      ]
+     ]
+    }
+   ]
+  },
+  {
    "id": "ls-logo-alde",
    "kind": "logo",
    "rom": "ALDE",
