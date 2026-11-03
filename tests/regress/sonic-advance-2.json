@@ -343,6 +343,59 @@
    ]
   },
   {
+   "id": "sa2-jp-water",
+   "rom": "A2NJ",
+   "state": "sonic-advance-2/jp-water.ss",
+   "desc": "Leaf Forest act 1 in the water, Sonic under it (a player's bug report, Japan; nothing pressed): the rings, score, time and lives stay on the second screen (the logo above them: no card seen yet)",
+   "rules": [
+    "SA2-7",
+    "SA2-3",
+    "SA2-4"
+   ],
+   "shots": {
+    "under": 100,
+    "later": 420
+   },
+   "checks": [
+    {
+     "rule": "SA2-7",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "SA2-7",
+     "what": "the HUD still there under water",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      4,
+      624,
+      623,
+      749
+     ],
+     "color": "303030",
+     "frac": 0.9
+    },
+    {
+     "rule": "SA2-7",
+     "what": "the lives still there under water",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      862,
+      677,
+      998,
+      749
+     ],
+     "color": "303030",
+     "frac": 0.9
+    }
+   ]
+  },
+  {
    "id": "sa2-logo-a2ne",
    "kind": "logo",
    "rom": "A2NE",

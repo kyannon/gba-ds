@@ -2270,9 +2270,9 @@ static const MapProfile profiles[] = {
 	},
 	{
 		/* Sonic Advance 2 (USA, Europe and Japan: the same sprites,
-		 * registers and title steps). In a level (display mode 0 with all
-		 * four BG layers: the zone card, play, pause; not the title,
-		 * menus or character select), the zone card fills the screen (BG
+		 * registers and title steps). In a level (display mode 0 with
+		 * BG1-3, BG0 too but under water: the zone card, play, pause; not
+		 * the title, menus or character select), the zone card fills the screen (BG
 		 * shapes on the blue backdrop, sprites for the emblem, icons and
 		 * name; the swirl by the name: tile 464, palette 8) and the HUD is
 		 * sprites: rings, score and time top left (palette 6 from tile
@@ -2288,7 +2288,9 @@ static const MapProfile profiles[] = {
 		                     { K_A, 5 }, { 0, 11 }, { K_START, 7 }, { 0, 32 }, { K_A, 8 }, { 0, 1000 } },
 		          .layer = 2, .maxY = 120 },
 		.hud = {
-			.on = { { 0x04000000, 0x0F07, 0x0F00, 2 } },
+			/* in a level: mode 0 with BG1-3 (BG0 goes off with water on
+			 * screen, SA2-7; the language menu has BG0-2, the rest mode 1) */
+			.on = { { 0x04000000, 0x0E07, 0x0E00, 2 } },
 			/* the rings, score and time (tiles 484-547: the digits, the
 			 * ring box and icon; palette 7: the count flashing red at no
 			 * rings); the lives (face and count) */

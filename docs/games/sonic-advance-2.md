@@ -25,15 +25,17 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **SA2-6. One screen.** With one screen, the game plays as it is.
 
+**SA2-7. Water.** With water on the screen, or the character under it, the second screen keeps the card and the moved HUD as in the rest of the level (the game drops one of its layers there; until this build, the second screen went back to the logo and the HUD back to the game screen).
+
 ## Not covered yet
 
-Tried in Leaf Forest act 1 (Sonic) from the owner's USA bug reports, and on the title in each release. Other zones and acts, other characters (Cream, Tails, Knuckles, Amy), bosses, special stages, Time Attack, multiplayer and the Tiny Chao Garden aren't tried yet: in a level with the same display setup (display mode 0 with all four BG layers) they get the same treatment, untried; elsewhere (other display setups) the logo.
+Tried in Leaf Forest act 1 (Sonic) from the owner's USA bug reports, its water from a Japanese one, and on the title in each release. Other zones and acts, other characters (Cream, Tails, Knuckles, Amy), bosses, special stages, Time Attack, multiplayer and the Tiny Chao Garden aren't tried yet: in a level with the same display setup (display mode 0 with BG1-3; BG0 off under water) they get the same treatment, untried; elsewhere (other display setups) the logo.
 
 ## Facts found so far (for sessions)
 
 | What | Where / value (USA; the others the same as far as tried) |
 |---|---|
-| Display | DISPCNT: menus and the title `0x5641` (mode 1), character select `0x3740`, the zone card `0x3F40` (window 0 on), play and pause `0x1F40` |
+| Display | DISPCNT: menus and the title `0x5641` (mode 1), character select `0x3740`, the zone card `0x3F40` (window 0 on), play and pause `0x1F40`; with water on screen `0x1E40` (BG0 off). The language menu is `0x3740` too, name entry `0x5441` / `0x5541`; so a level is mode 0 with BG1-3 on (mask `0x0E07`) |
 | Zone card | the whole screen: BG0-3 black shapes over the blue backdrop, sprites for the emblem, the zone icons and the zone's name. The swirl beside the name (tile 464, palette 8) slides in from the right about frame 48 of the card's sequence, rests at 24,71 from frame 60 to 146; the picture is still (bar the emblem's spin) from frame 73. Blue strip rows 0-15, the emblem x 14-58, y 16-53 |
 | Emblem | turns on a cycle of about 36 frames; face on, ring full, about 58-62 frames after the swirl first shows |
 | After the card | BLDCNT `0x30EF`, BLDY 16 (the level darkened) while window 0 shows the card's panels; then `0x3FCF` with BLDY 16 to 0 (the level fading in). It wipes off (blue panels) and ACT 1 (palette 12 from tile 464, palette 15 from tile 764) flies in over the level; the HUD appears about 90 frames after the card goes |
