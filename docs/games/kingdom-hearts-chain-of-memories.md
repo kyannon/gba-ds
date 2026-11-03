@@ -13,7 +13,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 ## Rules
 
-**KHC-1. World Map.** Walking about in a world (where START opens the menu), the second screen shows the World Map (START, World Map), the whole screen at the game screen's size, as the game draws it once its rooms are all in: the floor's rooms, the hand on the room Sora is in with that room's name at the top right, the floor at the bottom left and the world's emblem. The hand's red A button bubble is left out (the map underneath shows). It's opened on the hidden copy at every map refresh (about once a second), so it keeps up with rooms as they're opened, without the player opening it.
+**KHC-1. World Map.** Walking about in a world (where START opens the menu), the second screen shows the World Map (START, World Map), the whole screen at the game screen's size, as the game draws it once its rooms are all in: the floor's rooms (the one Sora is in lit blue) with that room's name at the top right, the floor at the bottom left and the world's emblem. The map's cursor (the pointing hand) and its red A button bubble are left out, the map underneath showing. (In the first test builds the hand stayed, and the bubble showed in some rooms.) It's opened on the hidden copy at every map refresh (about once a second), so it keeps up with rooms as they're opened, without the player opening it.
 
 **KHC-2. Last one stays.** Where the menu can't be opened on the hidden copy (a conversation, a scene, the menu or one of its screens already open in the game, the level-up screens after a battle), the last World Map stays; before the first, the logo.
 
@@ -31,6 +31,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 - Battle pointer (`0x02039DD4` USA, `0x0203A3E4` Europe, `0x02039D44` Japan): non-zero (an EWRAM address) while a battle is running, its conversations and tutorial boxes included; 0 elsewhere. It's 0 during the battle's opening flash and once the last enemy falls; the display is in mode 2 then (and through the whole battle, but for conversation boxes, which are mode 1). Rooms, the menu and the World Map are mode 0.
 - The menu (START) always opens on Review Decks; World Map is the second entry. Its cursor is `0x020156A9` (USA).
 - The World Map draws its frame at once and its rooms over about 70 frames; after that only the hand and the room under it bob.
+- The hand (tiles 396, 400, 401) and its A bubble are the only sprites in palette 0 at priority 0 on the World Map; their tile numbers move with what the game has loaded (the bubble is 454 in one room, 450 in another), so they're hidden by palette and priority.
 - The release's ROMs: USA `f7b81e3f` (MD5 prefix), Europe `d369f791`, Japan `90cb614e`.
 
 ## Known issues
@@ -46,7 +47,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 Changelog line (under the open version's "New games"):
 
-- **Kingdom Hearts: Chain of Memories** (USA): walking about in a world, the second screen is the World Map (the menu's World Map, with the hand on the room you're in), updated about once a second. In battles, and on the title and in the opening, it shows the logo, taken from the full-size emblem before the title. Tried in Traverse Town.
+- **Kingdom Hearts: Chain of Memories** (USA): walking about in a world, the second screen is the World Map (the menu's World Map, with the room you're in lit, without its cursor), updated about once a second. In battles, and on the title and in the opening, it shows the logo, taken from the full-size emblem before the title. Tried in Traverse Town.
 
 `docs/games/README.md` table row:
 
@@ -63,7 +64,7 @@ Wiki section:
 
 Tried in the USA release, in Traverse Town.
 
-- **Walking about in a world,** the second screen is the **World Map** (the one in START's menu), as the game draws it, filling the screen: the floor's rooms, the hand on the room you're in with its name, and the floor you're on. It's opened in the background in a silent copy of the game about once a second, so new rooms show up without you opening it; your game is never paused. The hand's A button bubble is left out.
+- **Walking about in a world,** the second screen is the **World Map** (the one in START's menu), as the game draws it, filling the screen: the floor's rooms, the room you're in lit blue with its name, and the floor you're on. It's opened in the background in a silent copy of the game about once a second, so new rooms show up without you opening it; your game is never paused. The map's cursor and its A button bubble are left out.
 - **In battles,** from the flash as one starts until the last enemy falls, the second screen shows the logo; the World Map comes back afterwards.
 - On the title, in the opening and in the scenes before the first world, it shows the logo; in conversations, scenes and the game's own menus it keeps its last picture.
 ```

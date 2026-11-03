@@ -1442,7 +1442,7 @@ static bool ml_settle(Emu* s, int max) {
  * The second screen (KHC-1): the World Map, opened on the shadow core from
  * the live state at every capture: START (the menu always opens on Review
  * Decks), DOWN to World Map, A; taken once its rooms are all in (they
- * appear over about 70 frames), with the hand's A button bubble left out.
+ * appear over about 70 frames), without its cursor and A button bubble.
  * Each step is checked by fixed pixels; if one fails, the last map stays
  * (KHC-2). */
 #define KHC_BATTLE 0x02039DD4 /* the battle's pointer: 0 outside one */
@@ -1455,8 +1455,10 @@ static const Probe khcOnMap[3] = { { 44, 50, 0xFF4221 }, { 60, 50, 0xFF4221 }, {
  * bottom left, the dark strip along the bottom */
 static const Probe khcMap[8] = { { 4, 4, 0x00298C }, { 20, 6, 0xFFFFFF }, { 40, 5, 0xFFFFFF }, { 60, 8, 0x8C9CD6 },
                                  { 70, 3, 0x395AB5 }, { 4, 157, 0x087BA5 }, { 236, 157, 0x08184A }, { 120, 157, 0x08184A } };
-/* the A button bubble beside the hand (tile 454, palette 0) */
-static const SpriteRule khcHide[1] = { { -64, -16, 239, 159, 454, 454, -1, 1u << 0 } };
+/* the map's cursor, the pointing hand, and its A button bubble: the only
+ * sprites in palette 0 at priority 0 there (their tiles move with what the
+ * game has loaded: the bubble 454 in one room, 450 in another) */
+static const SpriteRule khcHide[1] = { { -64, -16, 239, 159, 0, 1023, 0, 1u << 0 } };
 static bool khc_menu_up(Emu* s) {
 	return som_probes(s, khcMenu, 6, 6, 8);
 }

@@ -55,7 +55,7 @@
    "id": "khc-us-field",
    "rom": "B8CE",
    "state": "kingdom-hearts-chain-of-memories/us-field.ss",
-   "desc": "walking about on Traverse Town's first floor (a player's bug report): the World Map, the hand on Sora's room, without its A bubble; the game screen as it is",
+   "desc": "walking about on Traverse Town's first floor (a player's bug report): the World Map, Sora's room lit, without the cursor (the hand) or its A bubble; the game screen as it is",
    "rules": [
     "KHC-1",
     "KHC-6"
@@ -84,6 +84,26 @@
      ],
      "color": "303030",
      "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "khc-us-teeming-darkness",
+   "rom": "B8CE",
+   "state": "kingdom-hearts-chain-of-memories/us-teeming-darkness.ss",
+   "desc": "walking about in Teeming Darkness (a player's bug report: the A bubble showed there, its tile 450 instead of 454): the World Map without the cursor or its bubble",
+   "rules": [
+    "KHC-1"
+   ],
+   "shots": {
+    "map": 200
+   },
+   "checks": [
+    {
+     "rule": "KHC-1",
+     "what": "the World Map taken",
+     "type": "log",
+     "match": "map updated \\(1 frame"
     }
    ]
   },
