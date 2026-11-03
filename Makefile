@@ -20,10 +20,16 @@ VERSION    := $(shell cat VERSION 2>/dev/null || echo dev)
 # SIDE=name: a side build, installed beside the main one to try a branch's
 # work (scripts/build-rocknix.sh GBADS_SIDE): its version is VERSION+name,
 # with no updates and no EmulationStation / BananaOS integration
+# SIDE_CODES: the game codes its game list shows (space-separated; the
+# others aren't listed: only the game being worked on and its releases)
 SIDE       ?=
+SIDE_CODES ?=
 ifneq ($(SIDE),)
 VERSION    := $(VERSION)+$(SIDE)
 SIDE_DEF   := -DGBADS_SIDE='"$(SIDE)"'
+ifneq ($(SIDE_CODES),)
+SIDE_DEF   += -DGBADS_SIDE_CODES='"$(SIDE_CODES)"'
+endif
 endif
 OPTFLAGS   ?= -O2 -g
 override CFLAGS := $(OPTFLAGS) -std=gnu11 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers \

@@ -202,6 +202,10 @@ static void scan_dir(Config* cfg, const char* d, int depth) {
 		snprintf(g.path, sizeof(g.path), "%s", full);
 		if (!game_code(g.path, &st, g.code)) continue;
 		g.supported = profile_find(g.code) != NULL;
+#ifdef GBADS_SIDE_CODES
+		/* a side build lists only its game's releases (the Makefile's SIDE_CODES) */
+		if (!strstr(GBADS_SIDE_CODES, g.code)) continue;
+#endif
 		if (!g.supported && !cfg->showAll) continue;
 		int n = (int) (ext - de->d_name);
 		if (n >= (int) sizeof(g.name)) n = sizeof(g.name) - 1;
