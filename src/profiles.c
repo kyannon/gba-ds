@@ -65,7 +65,7 @@
 #define AW_TASK 0x03000000 /* the game's first task: its routine (AwRegion.mapTask) */
 #define AW_V_OFFMAP 0xF0000051 /* 1 off the battle map: the title, menus, a battle's results */
 typedef struct {
-	uint32_t army, cursor, units, menuRow, minimapOpen; /* (minimapOpen: unused since the minimap went) */
+	uint32_t army, cursor, units, menuRow, minimapOpen; /* (minimapOpen: counts to 12 as START's minimap opens) */
 	int intelItem; /* Intel's row in the SELECT menu */
 	uint32_t intelPx[2][3]; /* the Battle Intel is up: x, y, colour (0xRRGGBB) */
 	int intelRows;          /* the Battle Intel's panel: the rows above the map */
@@ -223,6 +223,63 @@ static bool aw_settle(Emu* s, bool (*up)(Emu*), int limit) {
 	return false;
 }
 
+/* The minimap (START), alone: rendered with only BG0, where the game draws
+ * it, and cut out by comparing with a render of no layers at all. */
+static bool aw_minimap(Emu* s, const void* state, void* tmp, uint32_t* mm, int* mw, int* mh) {
+	const AwRegion* r = aw_r(s);
+	if (!emu_state_load(s, state)) return false;
+	if (!aw_back(s)) return false;
+	/* START (again if a cancelled move was still going back and took no
+	 * presses), until the minimap's opening count reaches its end */
+	bool open = false;
+	for (int tries = 0; tries < 3 && !open; ++tries) {
+		aw_run(s, K_START, 2);
+		for (int f = 0; f < 30 && !open; ++f) {
+			emu_frame(s, 0);
+			open = emu_read8(s, r->minimapOpen) == 12;
+		}
+	}
+	if (!open) return false;
+	aw_run(s, 0, 2);
+	if (!emu_state_save(s, tmp)) return false;
+	static uint32_t none[GBA_W * GBA_H];
+	emu_layers(s, 0);
+	emu_state_load(s, tmp);
+	emu_frame(s, 0);
+	memcpy(none, s->fb, sizeof(none));
+	emu_layers(s, 0x01);
+	emu_state_load(s, tmp);
+	emu_frame(s, 0);
+	int x0 = GBA_W, y0 = GBA_H, x1 = -1, y1 = -1;
+	for (int y = 0; y < GBA_H; ++y) {
+		for (int x = 0; x < GBA_W; ++x) {
+			if (s->fb[y * GBA_W + x] == none[y * GBA_W + x]) continue;
+			if (x < x0) x0 = x;
+			if (x > x1) x1 = x;
+			if (y < y0) y0 = y;
+			if (y > y1) y1 = y;
+		}
+	}
+	/* the minimap is an opaque box in the middle of the screen; anything
+	 * else on BG0 (START did nothing: an action menu, a move range) isn't */
+	bool ok = x1 - x0 >= 15 && y1 - y0 >= 15 && abs(x0 + x1 - (GBA_W - 1)) <= 4 && abs(y0 + y1 - (GBA_H - 1)) <= 4;
+	if (ok) {
+		int filled = 0;
+		for (int y = y0; y <= y1; ++y) {
+			for (int x = x0; x <= x1; ++x) filled += s->fb[y * GBA_W + x] != none[y * GBA_W + x];
+		}
+		ok = filled * 100 >= (x1 - x0 + 1) * (y1 - y0 + 1) * 97;
+	}
+	if (ok) {
+		*mw = x1 - x0 + 1;
+		*mh = y1 - y0 + 1;
+		for (int y = 0; y < *mh; ++y) memcpy(&mm[y * *mw], &s->fb[(y0 + y) * GBA_W + x0], *mw * sizeof(uint32_t));
+	}
+	emu_layers(s, 0x1F);
+	emu_state_load(s, tmp); /* every layer back on */
+	return ok;
+}
+
 /* The unit under the map cursor, if it's one of the army whose turn it is:
  * its id (1-64), else 0. */
 static int aw_cursor_unit(Emu* s, int army) {
@@ -353,6 +410,24 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 		err = aw_panel(s, state, false, &unitPanel);
 		if (!err) aw_clean(s, tmp, pan, NULL);
 	}
+	/* with the unit intel, the minimap (AW-1): taken again only when a
+	 * unit or the army whose turn it is changes (a move, a build, a unit
+	 * lost), and every 8th time (a property captured, the fog); a cursor
+	 * moving over the map doesn't change it. If START won't open it,
+	 * the intel goes without. */
+	static uint32_t mm[GBA_W * GBA_H], mmKey;
+	static int mw, mh, mmAge;
+	if (!err && unitPanel) {
+		emu_state_load(s, state);
+		uint32_t key = 2166136261u;
+		for (uint32_t a = r->units; a < r->units + 4 * 0x300; a += 4) key = (key ^ emu_read32(s, a)) * 16777619u;
+		key = (key ^ emu_read8(s, r->army)) * 16777619u;
+		if (!mw || key != mmKey || ++mmAge >= 8) {
+			mw = mh = 0;
+			if (aw_minimap(s, state, tmp, mm, &mw, &mh)) mmKey = key, mmAge = 0;
+			else mw = mh = 0;
+		}
+	}
 	free(tmp);
 	if (err) return err;
 	for (int i = 0; i < w * h; ++i) out[i] = AW_BG;
@@ -373,12 +448,12 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 		/* AW-1: the panel at the right and the text box at the top left,
 		 * wherever the game put them (it moves both away from the cursor),
 		 * each at the game's own distance from the screen's edges */
-		int px0 = GBA_W, px1 = -1, py0 = GBA_H, tx0 = GBA_W, tx1 = -1, ty0 = GBA_H, ty1 = -1;
+		int px0 = GBA_W, px1 = -1, py0 = GBA_H, py1 = -1, tx0 = GBA_W, tx1 = -1, ty0 = GBA_H, ty1 = -1;
 		for (int y = 0; y < GBA_H; ++y) {
 			for (int x = 0; x < GBA_W; ++x) {
 				if (pan[y * GBA_W + x] == AW_BG || bg2[y * GBA_W + x] == AW_BG) continue;
 				if (x >= c0 && x <= c1) {
-					px0 = x < px0 ? x : px0, px1 = x > px1 ? x : px1, py0 = y < py0 ? y : py0;
+					px0 = x < px0 ? x : px0, px1 = x > px1 ? x : px1, py0 = y < py0 ? y : py0, py1 = y > py1 ? y : py1;
 				} else {
 					tx0 = x < tx0 ? x : tx0, tx1 = x > tx1 ? x : tx1, ty0 = y < ty0 ? y : ty0, ty1 = y > ty1 ? y : ty1;
 				}
@@ -396,6 +471,15 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 				bool inPanel = x >= c0 && x <= c1;
 				int nx = x + (inPanel ? pdx : tdx) + ox, ny = y + (inPanel ? 0 : tdy) + oy;
 				if (nx >= 0 && ny >= 0 && nx < w && ny < h) out[ny * w + nx] = c;
+			}
+		}
+		/* the minimap at the bottom left: in line with the text box's left
+		 * edge and the panel's bottom */
+		int mx = (tx1 < 0 ? edge : tx0 + tdx) + ox, my = py1 - mh + 1 + oy;
+		for (int y = 0; y < mh; ++y) {
+			for (int x = 0; x < mw; ++x) {
+				int nx = mx + x, ny = my + y;
+				if (nx >= 0 && ny >= 0 && nx < w && ny < h) out[ny * w + nx] = mm[y * mw + x];
 			}
 		}
 		return NULL;
