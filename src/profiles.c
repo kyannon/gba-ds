@@ -3080,8 +3080,10 @@ static const MapProfile profiles[] = {
 		.title = "Final Fantasy Tactics Advance",
 		.virt = ft_virt,
 		/* a Status's page prompt (FT-8): the D-pad and arrow at the right of
-		 * its page bar, one 16x16 sprite (tile 452, wobbling across) */
-		.captureHide = { { 200, 30, 239, 70, 452, 455, 0 } },
+		 * its page bar, one 16x16 sprite (tile 452, wobbling across); and
+		 * on its Abilities page, the R Info prompt under WT: a 16x16 and
+		 * an 8x16 sprite (tiles 464, 468) at 100 and 116, line 62 */
+		.captureHide = { { 200, 30, 239, 70, 452, 455, 0 }, { 90, 50, 130, 76, 464, 471, 3 } },
 		.composePages = ft_compose,
 		.stillPick = STILL_FIRST, /* (Map Animations off: the Status's first page) */
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
