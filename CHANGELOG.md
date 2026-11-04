@@ -6,6 +6,7 @@
 - **Kingdom Hearts: Chain of Memories** (USA, Europe and Japan): walking about in a world, the second screen is the World Map (the one SELECT opens, with the room you're in lit, without its cursor), updated about once a second. In battles, and on the title and in the opening, it shows the logo, taken from the full-size emblem before the title. Tried in Traverse Town.
 
 ### Fixes
+- **Final Fantasy Tactics Advance:** in a town's Pub, Shop or Prison, the second screen kept the world map's Laws; it shows the logo there now.
 - **Final Fantasy Tactics Advance:** in a scene after a battle, the second screen could bring back the last unit's Status instead of keeping the logo.
 - **Final Fantasy Tactics Advance:** later in the game (from Kingmoon on, in one player's game), the world map's Laws didn't appear on the second screen. The world map is now recognised by its own screen, at any point in the story.
 - **Final Fantasy Tactics Advance:** on one of your units' turns after it has moved, with its menu up, the second screen showed nothing new: no Status, and the turn order wasn't taken. It now shows that unit's Status, and the turn order is taken for the enemy's turns. While a unit picks what to hit, the last picture now stays, as it should, instead of an older turn order coming up.

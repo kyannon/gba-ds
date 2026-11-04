@@ -1721,6 +1721,65 @@
      "match": "map capture failed"
     }
    ]
+  },
+  {
+   "id": "ft-us-pub",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-worldmap-town-menu.ss",
+   "desc": "a town's menu on the world map (its Laws on the second screen), then A: the Pub (it reads as in a battle, FT_MODE 60): the logo",
+   "rules": [
+    "FT-7",
+    "FT-14"
+   ],
+   "input": [
+    [
+     200,
+     "A"
+    ],
+    [
+     203,
+     "-"
+    ]
+   ],
+   "shots": {
+    "menu": 190,
+    "pub": 450
+   },
+   "checks": [
+    {
+     "rule": "FT-7",
+     "what": "the logo in the Pub",
+     "type": "log",
+     "match": "back to the logo"
+    }
+   ]
+  },
+  {
+   "id": "ft-us-pub-kingmoon",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-worldmap-kingmoon.ss",
+   "desc": "later in the story: the world map's Laws (the owner's Kingmoon state), then Cyril's Pub (us-pub-kingmoon: travelled there from it, the Pub entered): the logo",
+   "rules": [
+    "FT-7"
+   ],
+   "input": [
+    [
+     300,
+     "LOAD:final-fantasy-tactics-advance/us-pub-kingmoon.ss"
+    ]
+   ],
+   "shots": {
+    "laws": 290,
+    "pub": 500
+   },
+   "checks": [
+    {
+     "rule": "FT-7",
+     "what": "the logo in the Pub",
+     "type": "log",
+     "match": "back to the logo"
+    }
+   ]
   }
  ]
 }

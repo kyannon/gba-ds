@@ -934,6 +934,8 @@ static const char* sn2_compose(Emu* s, const void* state, uint32_t* const* out, 
                              * from the first battle won on; 0x0202F254 is set at the
                              * snowball fight's end only.) */
 /* The world map (FT-14; Japan's addresses: the FT_*_ lookups) */
+#define FT_MODE_TOWN 60      /* FT_MODE in a town's Pub, Shop and Prison (early on and
+                                * by Kingmoon alike) */
 #define FT_WM_BG01 0x8C028A03u /* BG0CNT, BG1CNT on the world map (its Laws, notices and
                                 * town menus too; Japan the same) */
 #define FT_WM_BG23 0x2F082E09u /* BG2CNT, BG3CNT there */
@@ -988,7 +990,8 @@ static uint32_t ft_virt(Emu* e, uint32_t addr) {
 	 * one once the battle's won) */
 	/* (the scene's word is a pointer into EWRAM while one plays; else 0,
 	 * or in some battles a stray byte: Japan's read 0x80 in one) */
-	bool in = emu_read8(e, FT_IN_BATTLE) == 1 && (emu_read32(e, FT_SCENE_(e)) >> 24) != 0x02;
+	bool in = emu_read8(e, FT_IN_BATTLE) == 1 && (emu_read32(e, FT_SCENE_(e)) >> 24) != 0x02 &&
+	          emu_read8(e, FT_MODE_(e)) != FT_MODE_TOWN; /* (a town's Pub, Shop or Prison reads in a battle too) */
 	if (addr == FT_V_BATTLE) return in;
 	if (addr == FT_V_TURN) return in ? (emu_read32(e, FT_ACTIVE - (e->gameCode[3] == 'J' ? 0x30 : 0)) & 0xFFFF) | ft_virt(e, FT_V_THEIRS) << 16 : 0;
 	if (addr == FT_V_THEIRS) {
