@@ -1082,6 +1082,42 @@
      "shot": "computer"
     }
    ]
+  },
+  {
+   "id": "aw-eu-fr-battle-intel",
+   "rom": "AWRP",
+   "state": "advance-wars/eu-fr-bug-report.ss",
+   "desc": "European release in French, a campaign battle, the cursor on an empty road (a player's bug report, issue #14): the Battle Intel (v1.4.2 to v1.4.6: the logo, 'battle intel did not open')",
+   "rules": [
+    "AW-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 300
+   },
+   "checks": [
+    {
+     "rule": "AW-1",
+     "what": "the Battle Intel opened",
+     "type": "no_log",
+     "match": "did not open"
+    },
+    {
+     "rule": "AW-1",
+     "what": "the Battle Intel in the middle",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      200,
+      300,
+      820,
+      460
+     ],
+     "color": "182438",
+     "frac": 0.97
+    }
+   ]
   }
  ]
 }
