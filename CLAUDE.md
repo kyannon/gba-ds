@@ -247,7 +247,10 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   that file beside the page when either changes. `web_*` exports in web/web.c,
   game.c and ui.c (`#ifdef __wasi__`).
 - **The owner's states come from State Saver** (artifact
-  https://claude.ai/artifact/7uEURvSw3FHtXjPHCzEaT4, the owner's own). Its
+  https://claude.ai/artifact/LGoZRvRDJjagz6ib1h3oxk, the owner's own; started
+  empty on Nov 3, 2026, once the earlier one's states were in the suite: that
+  one, https://claude.ai/artifact/7uEURvSw3FHtXjPHCzEaT4, is kept as an
+  archive). Its
   database collection `states` holds one document per saved moment: name,
   tags, notes (what the owner wants on the second screen: read them as the
   spec), gameCode, romName, frame, `stateAsset` / `shotAsset` (asset ids).
