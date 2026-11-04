@@ -864,6 +864,8 @@ static bool hudScene; /* the profile's other scene (Mario Kart's podium): logo b
 static bool hudCard; /* hud.card: the title card's sprites are what's split off */
 static int cardScore = -1; /* hud.card: how far off centre the best take so far is (-1: none) */
 static uint32_t cardBest[GBA_W * GBA_H];
+static int sideScore = -1; /* hud.card.side: how far off centre its best take is (-1: none) */
+static uint32_t sideBest[GBA_W * GBA_H];
 static bool hudAlt; /* the HUD on its other layer (hud.alt: SMA2's boss rooms) */
 static uint32_t hudLogoBack[HUD_CW * HUD_CH];
 static bool hudLogoDone;
@@ -2350,10 +2352,44 @@ static bool card_take(void) {
 	}
 	return off <= 1;
 }
+/* hud.card.side: this frame's side part (hudPx) as its take: kept if
+ * what's dark in it is clear of its top and bottom and nearer the centre
+ * than the best so far. True if it was kept. */
+static bool side_take(void) {
+	const int* r = hudProf->hud.card.side;
+	uint32_t clear = emu_hud_clear();
+	int top = -1, bot = -1;
+	for (int y = SDL_max(r[1], 0); y <= SDL_min(r[3], GBA_H - 1); ++y) {
+		for (int x = SDL_max(r[0], 0); x <= SDL_min(r[2], GBA_W - 1); ++x) {
+			uint32_t p = hudPx[y * GBA_W + x];
+			if ((p & 0xFFFFFF) == clear) continue;
+			int luma = (p & 0xFF) + ((p >> 8) & 0xFF) + ((p >> 16) & 0xFF);
+			if (luma < 3 * 96) {
+				if (top < 0) top = y;
+				bot = y;
+				break;
+			}
+		}
+	}
+	if (top < 0 || top < r[1] + 2 || bot > r[3] - 2) return false;
+	int off = abs((top - r[1]) - (r[3] - bot));
+	if (sideScore >= 0 && off >= sideScore) return false;
+	sideScore = off;
+	memcpy(sideBest, hudPx, sizeof(sideBest));
+	if (debug) fprintf(stderr, "frame %llu: title card's side part taken (rows %d-%d, %d off centre)\n", (unsigned long long) frameCount, top, bot, off);
+	return true;
+}
+
 /* hud.card: the best take as the backdrop (at its own size, black where
- * the card has nothing) */
+ * the card has nothing), with the side part's best take over it */
 static void card_backdrop(void) {
 	uint32_t clear = emu_hud_clear();
+	const int* r = hudProf->hud.card.side;
+	if (sideScore >= 0) {
+		for (int y = SDL_max(r[1], 0); y <= SDL_min(r[3], GBA_H - 1); ++y) {
+			for (int x = SDL_max(r[0], 0); x <= SDL_min(r[2], GBA_W - 1); ++x) cardBest[y * GBA_W + x] = sideBest[y * GBA_W + x];
+		}
+	}
 	for (int y = 0; y < GBA_H; ++y) {
 		for (int x = 0; x < GBA_W; ++x) {
 			uint32_t c = cardBest[y * GBA_W + x];
@@ -2904,7 +2940,13 @@ static void update_hud(void) {
 				cardScore = 0;
 				card_backdrop();
 			}
-		} else if (hudFrames >= 2 && cardScore != 0 && card_take() && !hudBackValid) card_backdrop();
+		} else {
+			/* (the side part first, so the first backdrop has it if it's
+			 * been seen; a better one later makes the backdrop again) */
+			bool side = h->card.side[2] > h->card.side[0] && hudFrames >= 2 && side_take();
+			if (hudFrames >= 2 && cardScore != 0 && card_take() && !hudBackValid) card_backdrop();
+			else if (side && hudBackValid) card_backdrop();
+		}
 		if (hudBackValid) {
 			memcpy(hudCanvas, hudBack, sizeof(hudCanvas));
 			for (int i = 0; i < nViews; ++i) ui_update_texture(hudTex[i], hudCanvas, HUD_CW * 4);
@@ -2935,7 +2977,7 @@ static void update_hud(void) {
 	bool card = race && h->card.tile && oam_has_tile_pal(h->card.tile, h->card.pal);
 	if (card != hudCard) {
 		/* a card coming up: a new take; going: the best one, if not yet */
-		if (card) cardScore = -1, hudBackValid = false;
+		if (card) cardScore = -1, sideScore = -1, hudBackValid = false;
 		else if (cardScore >= 0 && !hudBackValid) card_backdrop();
 		if (debug) fprintf(stderr, "frame %llu: title card %s\n", (unsigned long long) frameCount, card ? "up" : "gone");
 	}
@@ -3565,7 +3607,7 @@ static void screen_restore_apply(void) {
 	bool ours = b && n >= 12 && !memcmp(b, "GDS2", 4) && rd32(b + 4) == 1 && !memcmp(b + 8, subCode, 4);
 	/* what was kept from before the load is another moment's: the title
 	 * card and the level name go (back from the state, if it has them) */
-	if (hudProf && hudProf->hud.card.tile) hudBackValid = false, cardScore = -1;
+	if (hudProf && hudProf->hud.card.tile) hudBackValid = false, cardScore = -1, sideScore = -1;
 	mapTitleN = 0, hudLogoBelowDone = false;
 	if (!ours) {
 		if (b && debug) fprintf(stderr, "load state: its second screen is for another game or version: not used\n");
@@ -5174,7 +5216,7 @@ static void ss_setup(const char* rom, const char* code) {
 		hudShown = false;
 		mirrorHave = mirrorOn = false;
 		hudScene = false;
-		hudCard = false, cardScore = -1;
+		hudCard = false, cardScore = -1, sideScore = -1;
 		hudFadeEff = hudFadeIn = 0;
 		memset(hudPalRef, 0, sizeof(hudPalRef));
 		hudWorld = false;

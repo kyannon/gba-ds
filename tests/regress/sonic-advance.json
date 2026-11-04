@@ -318,6 +318,32 @@
      "frac": 0.2
     }
    ]
+  },
+  {
+   "id": "sa-us-knuckles-card",
+   "rom": "ASOE",
+   "state": "sonic-advance/us-knuckles-card.ss",
+   "desc": "Knuckles picked, Neo Green Hill act 1's card (issue #15: his name was cut off at the top): the character's name from a frame where it's whole, the zone's name from the frame it's centred",
+   "rules": [
+    "SA-2"
+   ],
+   "shots": {
+    "card": 400
+   },
+   "checks": [
+    {
+     "rule": "SA-2",
+     "what": "the character's name taken on its own",
+     "type": "log",
+     "match": "side part taken"
+    },
+    {
+     "rule": "SA-2",
+     "what": "the card taken",
+     "type": "log",
+     "match": "title card taken"
+    }
+   ]
   }
  ]
 }

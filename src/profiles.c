@@ -2484,7 +2484,10 @@ static const MapProfile profiles[] = {
 			.card = { .tile = 64, .pal = 15,
 			          .objs = { { -64, -64, 255, 175, 0, 1023, -1, 1u << 15 },
 			                    { -64, 110, 255, 175, 400, 1023, -1, 1u << 6 } }, /* (the band: not the demo's DEMO, row 76) */
-			          .y0 = 128, .y1 = 143 },
+			          .y0 = 128, .y1 = 143,
+			          /* the character's name (four 32x32 sprites at x 20, rows
+			           * 0-127, scrolled inside by the game), above the band (SA-2) */
+			          .side = { 20, 0, 51, 125 } },
 			/* the rings, score and time at the top right; the lives below
 			 * them (SA-3) */
 			.moves = { { -16, -16, 110, 40, 'R', 236, 'T', 4 },

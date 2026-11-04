@@ -404,6 +404,12 @@ typedef struct MapProfile {
 			int tile, pal;
 			SpriteRule objs[4];
 			int y0, y1;
+			/* x0, y0, x1, y1: a part taken from its own frame and laid
+			 * over the take (Sonic Advance's character name, which scrolls
+			 * on its own): the frame where what's dark in it is whole,
+			 * clear of its top and bottom, and most nearly centred top to
+			 * bottom (none: x1 <= x0) */
+			int side[4];
 			/* The card is the game's whole picture instead (Sonic Advance
 			 * 2: BG layers on the game's blue backdrop, and sprites):
 			 * nothing is split off while it's up (objs, y0, y1 unused) and
