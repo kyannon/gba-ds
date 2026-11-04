@@ -621,6 +621,7 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 		/* the minimap at the bottom left: in line with the text box's left
 		 * edge and the panel's bottom */
 		int mx = (tx1 < 0 ? edge : tx0 + tdx) + ox, my = py1 - mh + 1 + oy;
+		if (framed) mx = 2 + ox, my = GBA_H - 2 - mh + oy; /* (a pixel in from the frame's edge) */
 		for (int y = 0; y < mh; ++y) {
 			for (int x = 0; x < mw; ++x) {
 				int nx = mx + x, ny = my + y;
