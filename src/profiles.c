@@ -81,6 +81,7 @@ typedef struct {
 	                   * results, the title, the mode menu: the army byte keeps the last
 	                   * battle's there). Found in Field Training's results (AW1), the mode
 	                   * menu and a Versus battle (AW2). */
+	int statusItem;   /* Status's row in the Intel menu (Europe's Advance Wars puts Terms first) */
 } AwRegion;
 
 static const AwRegion awRegions[] = {
@@ -93,6 +94,12 @@ static const AwRegion awRegions[] = {
 	 * the unit intel's routine by its shape; game 2's by watching them) */
 	{ GBW1_ARMY, GBW1_CURSOR, GBW1_UNITS, 0x03000E40, 0x03000E1E, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000EC0, 0x08DEC9D8 }, 0x0300346C, 876, 0x08B1FFA1 },
 	{ GBW2_ARMY, GBW2_CURSOR, GBW2_UNITS, AW2_MENU_ROW, AW2_MINIMAP_OPEN, 1, { { 200, 100, 0xFFEFEF }, { 120, 140, 0xFFEFEF } }, 152, { 0x03001530, 0x0881A0A4 }, 0, 873, 0x08322509 },
+	/* Advance Wars 1 and 2 in Europe (AWRP, AW2P): the USA's RAM, their
+	 * routines elsewhere in the ROM (the map's and the unit intel's,
+	 * read from the owner's campaign states; AW1's Intel menu: Terms,
+	 * Status, CO) */
+	{ AW_ARMY, AW_CURSOR, AW_UNITS, AW_MENU_ROW, AW_MINIMAP_OPEN, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000ED0, 0x083C356C }, 0x030036AC, 876, 0x0801FDD1, 1 },
+	{ AW2_ARMY, AW2_CURSOR, AW2_UNITS, AW2_MENU_ROW, AW2_MINIMAP_OPEN, 1, { { 200, 100, 0xFFEFEF }, { 120, 140, 0xFFEFEF } }, 152, { 0x03001530, 0x08521548 }, 0, 873, 0x080221B5 },
 };
 
 /* Game Boy Wars Advance 1+2: which game is running, by where the
@@ -107,7 +114,7 @@ static int gbw_game(Emu* s) {
 
 static const AwRegion* aw_r(Emu* s) {
 	if (!strncmp(s->gameCode, "BGWJ", 4)) return &awRegions[gbw_game(s) == 1 ? 2 : 3];
-	return &awRegions[s->gameCode[2] == '2' ? 1 : 0];
+	return &awRegions[(s->gameCode[2] == '2' ? 1 : 0) + (s->gameCode[3] == 'P' ? 4 : 0)];
 }
 
 static uint32_t aw_virt(Emu* e, uint32_t addr) {
@@ -316,7 +323,7 @@ static const char* aw_panel(Emu* s, const void* state, bool tryUnit, bool* unitP
 		aw_pick(s, r->intelItem); /* Intel */
 		aw_tap(s, K_A, 1);
 		aw_run(s, 0, 8);
-		aw_pick(s, 0); /* Status (the Intel menu keeps its last choice: CO, Rules) */
+		aw_pick(s, r->statusItem); /* Status (the Intel menu keeps its last choice: CO, Rules) */
 		aw_tap(s, K_A, 1);
 		if (!aw_settle(s, aw_intel_up, 90)) return "battle intel did not open";
 	}

@@ -13,7 +13,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 ## Rules
 
-**AW2-1. Unit intel or Battle Intel.** In a battle on your turn the second screen shows the intel of the unit under the cursor (the screen R opens: its panel and the text box beside it, where the game puts them; the yellow corners blinking round the unit's picture left out, since v1.4.2's later test builds, and the map's cursor and targeting pointer where they reach into the text box, since v1.4.5's) when there's a unit there, yours or the enemy's, or else the Battle Intel (SELECT > Intel > Status: the battle's status, its panel centred on the screen); both are brought up on the hidden copy. (Until v1.3.2's later test builds both were at the top, the minimap and the moved plate and info below them.)
+**AW2-1. Unit intel or Battle Intel.** In a battle on your turn the second screen shows the intel of the unit under the cursor (the screen R opens: its panel and the text box beside it, where the game puts them; the yellow corners blinking round the unit's picture left out, since v1.4.2's later test builds, and the map's cursor and targeting pointer where they reach into the text box, since v1.4.5's) when there's a unit there, yours or the enemy's, or else the Battle Intel (SELECT > Intel > Status: the battle's status, its panel centred on the screen); both are brought up on the hidden copy. (Until v1.3.2's later test builds both were at the top, the minimap and the moved plate and info below them.) The same in the European release. (From v1.4.2 to v1.4.6 it showed only the logo there: the battle map was recognised by a routine at its USA address.)
 
 **AW2-2.** *Retired in v1.3.2's later test builds:* the START minimap at the second screen's bottom left.
 

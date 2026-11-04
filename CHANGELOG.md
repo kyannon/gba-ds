@@ -2,6 +2,9 @@
 
 ## v1.4.7 (not yet released)
 
+### Fixes
+- **Advance Wars and Advance Wars 2, European releases:** since v1.4.2 the second screen showed only the logo in battles. The unit intel and Battle Intel are back, as in the USA releases (#14).
+
 ## v1.4.6 (2026-11-03)
 
 ### New games
