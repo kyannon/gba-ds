@@ -1684,6 +1684,43 @@
      "frac": 0.5
     }
    ]
+  },
+  {
+   "id": "ft-us-worldmap-months",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-worldmap-madmoon.ss",
+   "desc": "the world map later in the game (mode 4) in each month after Kingmoon (the owner's Kingmoon state, its month byte 0x02002FBA set to 2-5, then a day's travel west by the game itself): the Laws in every month",
+   "rules": [
+    "FT-14"
+   ],
+   "input": [
+    [
+     260,
+     "LOAD:final-fantasy-tactics-advance/us-worldmap-sagemoon.ss"
+    ],
+    [
+     510,
+     "LOAD:final-fantasy-tactics-advance/us-worldmap-huntmoon.ss"
+    ],
+    [
+     760,
+     "LOAD:final-fantasy-tactics-advance/us-worldmap-bardmoon.ss"
+    ]
+   ],
+   "shots": {
+    "madmoon": 240,
+    "sagemoon": 490,
+    "huntmoon": 740,
+    "bardmoon": 990
+   },
+   "checks": [
+    {
+     "rule": "FT-14",
+     "what": "no capture failed",
+     "type": "no_log",
+     "match": "map capture failed"
+    }
+   ]
   }
  ]
 }
