@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.4.8 (not yet released)
+## v1.4.8 (2026-11-04)
 
 ### New games
 - **Kingdom Hearts: Chain of Memories** (USA, Europe and Japan): walking about in a world, the second screen is the World Map (the one SELECT opens, with the room you're in lit, without its cursor), updated about once a second. In battles, and on the title and in the opening, it shows the logo, taken from the full-size emblem before the title. Tried in Traverse Town.
@@ -22,6 +22,9 @@
 - **Advance Wars, Advance Wars 2 and Game Boy Wars Advance 1+2:** the unit intel's panel is always at the right of the second screen and its text box at the top left. The game moves both away from the cursor; the second screen no longer follows.
 - **Advance Wars, Advance Wars 2 and Game Boy Wars Advance 1+2:** with a unit's intel up, the battle's minimap (the one START opens) is back on the second screen, at the bottom left under the text box.
 - **Advance Wars, Advance Wars 2 and Game Boy Wars Advance 1+2:** the unit intel, its text and the minimap now share one frame across the whole second screen, made of the game's own window background, with a thin edge in the colour of the panel's outline (red or blue in Advance Wars 2). The panel joins it without its own border or its INTEL label.
+
+### Known issues
+- **Final Fantasy Tactics Advance:** if one of your units gets two turns in a row, the turn order shown on the next enemy turn may be the one from that unit's first turn.
 
 ## v1.4.7 (2026-11-03)
 
