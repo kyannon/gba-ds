@@ -1512,6 +1512,178 @@
      "match": "map updated"
     }
    ]
+  },
+  {
+   "id": "ft-us-scene-after-battle",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-battle-idle.ss",
+   "desc": "the turn order in a battle, then the owner's bug report (Nov 4, 2026): a scene once a battle's won, no unit's turn (FT_ACTIVE 0) and no scene word: the logo, not the last picture drawn again",
+   "rules": [
+    "FT-7",
+    "FT-13"
+   ],
+   "input": [
+    [
+     210,
+     "LOAD:final-fantasy-tactics-advance/us-scene-after-battle.ss"
+    ]
+   ],
+   "shots": {
+    "battle": 200,
+    "scene": 300,
+    "later": 500
+   },
+   "checks": [
+    {
+     "rule": "FT-7",
+     "what": "the logo in the scene",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "shot": "scene"
+    },
+    {
+     "rule": "FT-7",
+     "what": "still the logo",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "shot": "later"
+    }
+   ]
+  },
+  {
+   "id": "ft-us-worldmap-kingmoon",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-worldmap-kingmoon.ss",
+   "desc": "the owner's bug report (Nov 4, 2026): the world map later in the game (Kingmoon, the game's mode 4), the Laws opened and closed (L, B) three times: the Laws on the second screen",
+   "rules": [
+    "FT-14"
+   ],
+   "input": [
+    [
+     10,
+     "-"
+    ],
+    [
+     21,
+     "DOWN"
+    ],
+    [
+     27,
+     "-"
+    ],
+    [
+     116,
+     "L"
+    ],
+    [
+     124,
+     "-"
+    ],
+    [
+     210,
+     "B"
+    ],
+    [
+     219,
+     "-"
+    ],
+    [
+     232,
+     "L"
+    ],
+    [
+     241,
+     "-"
+    ],
+    [
+     378,
+     "B"
+    ],
+    [
+     384,
+     "-"
+    ],
+    [
+     437,
+     "L"
+    ],
+    [
+     444,
+     "-"
+    ],
+    [
+     577,
+     "B"
+    ],
+    [
+     584,
+     "-"
+    ]
+   ],
+   "shots": {
+    "laws": 300,
+    "end": 613
+   },
+   "checks": [
+    {
+     "rule": "FT-14",
+     "what": "the Laws taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ft-us-worldmap-checker",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-battle-idle.ss",
+   "desc": "a battle (the checkerboard taken from a Status), then the world map (us-worldmap.ss loaded): its Laws on the checkerboard",
+   "rules": [
+    "FT-14"
+   ],
+   "input": [
+    [
+     210,
+     "LOAD:final-fantasy-tactics-advance/us-worldmap.ss"
+    ]
+   ],
+   "shots": {
+    "battle": 200,
+    "laws": 400
+   },
+   "checks": [
+    {
+     "rule": "FT-14",
+     "what": "not on dark grey",
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      0,
+      0,
+      40,
+      40
+     ],
+     "color": "303030",
+     "shot": "laws",
+     "frac": 0.5
+    }
+   ]
   }
  ]
 }

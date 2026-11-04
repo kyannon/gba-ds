@@ -934,7 +934,8 @@ static const char* sn2_compose(Emu* s, const void* state, uint32_t* const* out, 
                              * from the first battle won on; 0x0202F254 is set at the
                              * snowball fight's end only.) */
 /* The world map (FT-14; Japan's addresses: the FT_*_ lookups) */
-#define FT_MODE 0x02002191     /* 3 on the world map (its town menus, Laws and notices too);
+#define FT_MODE 0x02002191     /* 3 on the world map (its town menus, Laws and notices too;
+                                * 4 there later in the game: Kingmoon, a player's report);
                                 * 1 or 2 in a battle, 60 in a town's Pub... */
 #define FT_WM_STATE 0x0200FD2B /* on the world map: 255 free, 1 the Laws (L) open, 2 a
                                 * town's menu, 0 a notice */
@@ -970,7 +971,8 @@ static const char* sn2_compose(Emu* s, const void* state, uint32_t* const* out, 
                                 * << 8 and 1 << 16 with the cursor on it; else 0 */
 
 static bool ft_world(Emu* e) {
-	return emu_read8(e, FT_IN_BATTLE) == 0 && emu_read8(e, FT_MODE_(e)) == 3;
+	uint8_t m = emu_read8(e, FT_MODE_(e));
+	return emu_read8(e, FT_IN_BATTLE) == 0 && (m == 3 || m == 4); /* (4 later in the game) */
 }
 
 static uint32_t ft_virt(Emu* e, uint32_t addr) {
@@ -1234,6 +1236,17 @@ static void ft_put(uint32_t* o, int w, int h, const uint32_t* src, int sw, int s
 	}
 }
 
+/* the Status screen's checkerboard as a background (FT-9, FT-14), dark
+ * grey before there's one */
+static void ft_backdrop(uint32_t* o, int w, int h) {
+	for (int y = 0; y < h; ++y) {
+		for (int x = 0; x < w; ++x) {
+			int cx = x - (w - GBA_W) / 2, cy = y - (h - GBA_H) / 2;
+			o[y * w + x] = ftCheckerOk && cx >= 0 && cy >= 0 && cx < GBA_W && cy < GBA_H ? ftChecker[cy * GBA_W + cx] | 0xFF000000 : SCREEN_GREY;
+		}
+	}
+}
+
 /* The world map's Laws (FT-14): the Laws window (L) cut out (BG2 its
  * boxes, BG3 its lettering: not the map, the L Law sign or the pointer,
  * sprites), centred on dark grey; taken again when the clan's somewhere new (or the Laws are
@@ -1288,7 +1301,7 @@ static const char* ft_world_laws(Emu* s, uint32_t* const* out, int w, int h) {
 		memcpy(ftLaws, cut, (size_t) cw * ch * 4), ftLawsW = cw, ftLawsH = ch;
 		ftLawsAt = at;
 	}
-	for (int i = 0; i < w * h; ++i) out[0][i] = SCREEN_GREY;
+	ft_backdrop(out[0], w, h);
 	ft_put(out[0], w, h, ftLaws, ftLawsW, ftLawsH, (w - ftLawsW) / 2, (h - ftLawsH) / 2);
 	return NULL;
 }
@@ -1388,13 +1401,7 @@ static bool ft_turn_layout(uint32_t* o, int w, int h, const uint32_t* lb2, const
 	}
 	int gap = kept ? 4 : 0, top = (h - H - gap - lawsH) / 2;
 	top = top < 0 ? 0 : top;
-	/* the checkerboard (dark grey before there's one) */
-	for (int y = 0; y < h; ++y) {
-		for (int x = 0; x < w; ++x) {
-			int cx = x - (w - GBA_W) / 2, cy = y - (h - GBA_H) / 2;
-			o[y * w + x] = ftCheckerOk && cx >= 0 && cy >= 0 && cx < GBA_W && cy < GBA_H ? ftChecker[cy * GBA_W + cx] | 0xFF000000 : SCREEN_GREY;
-		}
-	}
+	ft_backdrop(o, w, h);
 	/* the list */
 	int eva = ftListBlend & 31, evb = (ftListBlend >> 8) & 31;
 	eva = eva > 16 ? 16 : eva, evb = evb > 16 ? 16 : evb;
@@ -1485,12 +1492,16 @@ static const char* ft_compose(Emu* s, const void* state, uint32_t* const* out, i
 	/* each turn's start (FT-13): between two turns the game has no active
 	 * unit for a few frames; the turn order is taken again in the next of
 	 * your units' turns, whatever's under the cursor */
-	bool between = false;
 	if (ft_virt(s, FT_V_BATTLE)) {
 		uint32_t rec = emu_read32(s, FT_ACTIVE - (s->gameCode[3] == 'J' ? 0x30 : 0));
-		/* (between two turns: nothing taken, the last picture drawn again) */
-		if (rec >> 24 != 0x02) ftTurnRec = 0, between = true;
-		else if (rec != ftTurnRec) ftTurnRec = rec, ftTurnTaken = false;
+		/* (between two turns, or in a scene once the battle's won (no
+		 * unit's turn either): nothing taken, the last picture or the logo
+		 * stays) */
+		if (rec >> 24 != 0x02) {
+			ftTurnRec = 0;
+			return "between turns";
+		}
+		if (rec != ftTurnRec) ftTurnRec = rec, ftTurnTaken = false;
 	}
 	/* not your turn (FT-13): the turn order and the Laws as last taken */
 	if (ft_virt(s, FT_V_THEIRS)) {
@@ -1506,7 +1517,7 @@ static const char* ft_compose(Emu* s, const void* state, uint32_t* const* out, i
 	/* (and what's open: A on the judge brings up the active unit's menu
 	 * with the cursor where it was; that's when its Status shows) */
 	k = (k ^ emu_read8(s, FT_UI - (s->gameCode[3] == 'J' ? 0x30 : 0))) * 16777619u;
-	bool again = !between && (k != key || ++age >= 4 || (!pages && !ww[0]) || !ftTurnTaken);
+	bool again = k != key || ++age >= 4 || (!pages && !ww[0]) || !ftTurnTaken;
 	void* tmp = malloc(emu_state_size(s));
 	if (!tmp) return "out of memory";
 	if (again) {

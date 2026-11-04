@@ -6,11 +6,14 @@
 - **Kingdom Hearts: Chain of Memories** (USA, Europe and Japan): walking about in a world, the second screen is the World Map (the one SELECT opens, with the room you're in lit, without its cursor), updated about once a second. In battles, and on the title and in the opening, it shows the logo, taken from the full-size emblem before the title. Tried in Traverse Town.
 
 ### Fixes
+- **Final Fantasy Tactics Advance:** in a scene after a battle, the second screen could bring back the last unit's Status instead of keeping the logo.
+- **Final Fantasy Tactics Advance:** later in the game (from Kingmoon on, in one player's game), the world map's Laws didn't appear on the second screen.
 - **Final Fantasy Tactics Advance:** on one of your units' turns after it has moved, with its menu up, the second screen showed nothing new: no Status, and the turn order wasn't taken. It now shows that unit's Status, and the turn order is taken for the enemy's turns. While a unit picks what to hit, the last picture now stays, as it should, instead of an older turn order coming up.
 - **Advance Wars and Game Boy Wars Advance (game 1):** in the campaign, with the cursor on an empty tile, the second screen could keep the last unit's intel instead of showing the Battle Intel. The campaign's Intel menu has Terms first, and GBA DS looked for Status in the wrong place.
 - **Sonic Advance:** the zone card on the second screen could show the character's name cut off at the top, as with Knuckles. The card now takes the character's name from a moment it's whole, and the zone's name from the moment it's centred (#15).
 
 ### Changes
+- **Final Fantasy Tactics Advance:** the world map's Laws are shown on the Status screen's checkerboard, as the turn order is in battles (dark grey until a Status has been seen in a battle since GBA DS started).
 - **Final Fantasy Tactics Advance:** a unit's Status on the second screen no longer shows the R Info prompt on its Abilities page (that button does nothing there).
 - **Final Fantasy Tactics Advance:** with the cursor on no unit, the second screen now shows the whole turn order (01 to 08) in two columns under one LIST bar, its blue box see-through over the Status screen's checkerboard as the game has it over the battle, with the Laws below it. Empty laws (a dash) aren't drawn. Before, the list was below the Laws and its last rows were cut off. If the names are too long for two columns on a GBA-sized screen, only the first column (01 to 04) is shown, so no name is cut off.
 - **Final Fantasy Tactics Advance:** while it isn't your turn (an enemy's, the judge's or a guest's), the second screen shows the turn order and Laws instead of the last unit's Status. They're taken again at the start of each of your units' turns, even if you never move the cursor off the unit, so they're as up to date as they can be.
