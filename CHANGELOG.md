@@ -2,6 +2,9 @@
 
 ## v1.4.8 (not yet released)
 
+### Changes
+- **Advance Wars, Advance Wars 2 and Game Boy Wars Advance 1+2:** the unit intel's panel is always at the right of the second screen and its text box at the top left. The game moves both away from the cursor; the second screen no longer follows.
+
 ## v1.4.7 (2026-11-03)
 
 ### Fixes
