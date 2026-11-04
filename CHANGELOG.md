@@ -1,5 +1,7 @@
 # Changelog
 
+## v1.4.8 (not yet released)
+
 ## v1.4.7 (2026-11-03)
 
 ### Fixes
