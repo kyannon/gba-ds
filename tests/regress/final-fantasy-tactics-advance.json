@@ -1371,7 +1371,7 @@
    "id": "ft-us-enemy-turn-first",
    "rom": "AFXE",
    "state": "final-fantasy-tactics-advance/us-cursor-other-unit.ss",
-   "desc": "a unit's Status, then the enemy's turn with no turn order taken yet in the battle: the Status stays",
+   "desc": "your turn with the cursor on another unit (its Status shown, the turn order never shown), then the enemy's turn: the turn order and Laws taken at your turn's start",
    "rules": [
     "FT-13"
    ],
@@ -1388,8 +1388,69 @@
    "checks": [
     {
      "rule": "FT-13",
-     "what": "nothing to show yet",
+     "what": "the enemy's turn shows a picture (the turn order taken at your turn's start)",
+     "type": "no_log",
+     "match": "not your turn"
+    }
+   ]
+  },
+  {
+   "id": "ft-us-turn-change",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-battle-idle.ss",
+   "desc": "Marche's turn, the cursor never off him (his Status), he waits (A, UP to Wait, A, A); the game's gap between turns; Euver's turn and the enemies' moves: the turn order and Laws taken at Marche's turn's start",
+   "rules": [
+    "FT-13"
+   ],
+   "input": [
+    [
+     60,
+     "A"
+    ],
+    [
+     62,
+     "-"
+    ],
+    [
+     100,
+     "UP"
+    ],
+    [
+     102,
+     "-"
+    ],
+    [
+     140,
+     "A"
+    ],
+    [
+     142,
+     "-"
+    ],
+    [
+     200,
+     "A"
+    ],
+    [
+     202,
+     "-"
+    ]
+   ],
+   "shots": {
+    "status": 120,
+    "enemy": 700
+   },
+   "checks": [
+    {
+     "rule": "FT-13",
+     "what": "the gap between two turns seen",
      "type": "log",
+     "match": "between turns"
+    },
+    {
+     "rule": "FT-13",
+     "what": "the enemy's turn shows a picture",
+     "type": "no_log",
      "match": "not your turn"
     }
    ]
