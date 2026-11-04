@@ -2106,6 +2106,51 @@ static const char* khc_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	return NULL;
 }
 
+/* ---------------------------------------------------------- Zoids: Legacy
+ *
+ * The second screen (ZL-1): the map screen (SELECT), whole, taken by the
+ * usual capture once its fixed pixels and its routine say it's up, with the
+ * spinning marker's loop. What the game is doing comes from two places
+ * (zl_virt): a mode byte (0 walking about, and the title; 1 a story scene;
+ * 2 a battle) and the routine running the screen in front, a word in one of
+ * its task slots (the map, the menu, the title, a battle's own screens;
+ * walking about it depends on the place and the story, so it isn't used
+ * for that). Each release's addresses: ZlRegion. */
+typedef struct {
+	char region;
+	uint32_t mode;   /* the mode byte */
+	uint32_t map;    /* ZL_SCREEN on the map screen */
+	uint32_t title;  /* on the title and its menu */
+	uint32_t battle; /* a battle's own menus (and its story conversations) */
+} ZlRegion;
+#define ZL_SCREEN 0x03005B54
+static const ZlRegion zlRegions[] = {
+	{ 'E', 0x02030664, 0x080ED8F8, 0x08102ED0, 0x08106F50 },
+	/* (the mode byte by romxref; the routines found by their tables' shape,
+	 * the map's and the title's checked in its states) */
+	{ 'J', 0x0202FDB0, 0x080BAAE0, 0x080E8330, 0x080EC258 },
+};
+static const ZlRegion* zl_r(Emu* e) {
+	return &zlRegions[e->gameCode[3] == 'J' ? 1 : 0];
+}
+#define ZL_V_FREE 0xF0000060   /* 1 walking about: mode 0, not the title */
+#define ZL_V_MAP 0xF0000061    /* 1 with the map screen up */
+#define ZL_V_TITLE 0xF0000062  /* 1 on the title and its menu */
+#define ZL_V_BATTLE 0xF0000063 /* 1 in a battle: mode 2, or a battle's own screen in front */
+#define ZL_V_PLACE 0xF0000064  /* the byte after the mode's next two: changes with the place (ZL-1's early capture) */
+static uint32_t zl_virt(Emu* e, uint32_t addr) {
+	const ZlRegion* r = zl_r(e);
+	uint32_t screen = emu_read32(e, ZL_SCREEN);
+	switch (addr) {
+	case ZL_V_FREE: return emu_read8(e, r->mode) == 0 && screen != r->title;
+	case ZL_V_MAP: return screen == r->map;
+	case ZL_V_TITLE: return screen == r->title;
+	case ZL_V_BATTLE: return emu_read8(e, r->mode) == 2 || screen == r->battle;
+	case ZL_V_PLACE: return emu_read8(e, r->mode + 3);
+	}
+	return 0;
+}
+
 /* Bros. Info's frame, the same on both brothers' pages (its leather edges,
  * the ring's rim, the plaid, the boxes): not the field or the menu */
 static const Probe mlBrosInfo[8] = { { 10, 150, 0x6B8C73 }, { 4, 80, 0x633921 }, { 235, 80, 0x7B736B }, { 120, 157, 0xBDC6B5 },
@@ -3603,6 +3648,41 @@ static const MapProfile profiles[] = {
 		 * it flashes and shrinks (KHC-5): BG2 alone */
 		.logo = { .wait = 700, .layer = 2, .maxY = 160 },
 	},
+	{
+		/* Zoids: Legacy (USA; Japan, Zoids Saga II: its addresses in
+		 * zlRegions). Walking about, in a town or on the world, the map
+		 * screen (ZL-1); battles the logo (ZL-3); see zl_virt */
+		.codes = { "AZ2E" },
+		.title = "Zoids: Legacy",
+		.virt = zl_virt,
+		.open = { { K_SELECT, 4 } },
+		.settleMax = 120, .stableFrames = 3, .maxDiff = 160,
+		.crop_x = 0, .crop_y = 0, .crop_w = GBA_W, .crop_h = GBA_H,
+		/* the panels' dark edges, the list's and the line's light green at
+		 * their right ends (clear of any town's name), the sea at the map's
+		 * top corners: the same in both releases */
+		.probes = { { 239, 0, 0x424242 }, { 129, 0, 0x424242 }, { 128, 128, 0x424242 }, { 238, 60, 0xE7F7D6 },
+		            { 238, 120, 0xE7F7D6 }, { 235, 140, 0xE7F7D6 }, { 2, 2, 0x004AFF }, { 126, 2, 0x004AFF } },
+		.minProbes = 7, .tolerance = 8,
+		.mem = { { ZL_V_MAP, 0xFF, 1, 4 } },
+		/* walking about, not on the title: taken (where the map won't open,
+		 * nothing: ZL-2) */
+		.live = { { ZL_V_FREE, 0xFF, 1, 4 } },
+		/* the title: the logo, the map forgotten (ZL-4) */
+		.menu = { { ZL_V_TITLE, 0xFF, 1, 4 } },
+		/* a battle: the logo (ZL-3) */
+		.combat = { { ZL_V_BATTLE, 0xFF, 1, 4 } },
+		/* into a town or back out: a capture at once (ZL-1) */
+		.room = { { ZL_V_PLACE, 0xFF, 0, 4 } },
+		/* the town list's cursor (the triangle by the first town: it spins,
+		 * tiles 1012-1022; the map's marker is 936-945) */
+		.captureHide = { { 100, -16, 180, 159, 1012, 1023, -1 } },
+		/* the marker spins (rotated sprites): a loop of 16 frames */
+		.animFrames = 16, .animStep = 3,
+		/* the title's lettering is sprites (PRESS START and the copyright
+		 * line below it left out) */
+		.logo = { .wait = 1300, .layers = 0x10, .maxY = 100 },
+	},
 };
 
 /* ---------------------------------------------------------------- regions
@@ -3840,6 +3920,8 @@ static const Variant variants[] = {
 	{ "AVSJ", "AVSE", 0, som_jpn },
 	{ "B8CP", "B8CE", 0, khc_eur },
 	{ "B8CJ", "B8CE", 0, khc_jpn },
+	/* (Zoids Saga II's addresses: ZlRegion) */
+	{ "AZ2J", "AZ2E", 0, NULL },
 };
 #define N_VARIANTS (sizeof(variants) / sizeof(*variants))
 static MapProfile variantProfiles[N_VARIANTS];
