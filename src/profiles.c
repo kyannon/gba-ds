@@ -331,8 +331,8 @@ static const char* aw_panel(Emu* s, const void* state, bool tryUnit, bool* unitP
 }
 
 /* The second screen (AW-1): the unit intel of the unit under the cursor
- * (R), where the game puts it, or else the Battle Intel's panel, centred;
- * on AW_BG. */
+ * (R), its panel at the right and its text box at the top left, or else
+ * the Battle Intel's panel, centred; on AW_BG. */
 static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
 	const AwRegion* r = aw_r(s);
 	static uint32_t pan[GBA_W * GBA_H], bg2[GBA_W * GBA_H];
@@ -369,6 +369,37 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 		}
 	}
 	if (x1 < 0) return "nothing on the panel";
+	if (unitPanel) {
+		/* AW-1: the panel at the right and the text box at the top left,
+		 * wherever the game put them (it moves both away from the cursor),
+		 * each at the game's own distance from the screen's edges */
+		int px0 = GBA_W, px1 = -1, py0 = GBA_H, tx0 = GBA_W, tx1 = -1, ty0 = GBA_H, ty1 = -1;
+		for (int y = 0; y < GBA_H; ++y) {
+			for (int x = 0; x < GBA_W; ++x) {
+				if (pan[y * GBA_W + x] == AW_BG || bg2[y * GBA_W + x] == AW_BG) continue;
+				if (x >= c0 && x <= c1) {
+					px0 = x < px0 ? x : px0, px1 = x > px1 ? x : px1, py0 = y < py0 ? y : py0;
+				} else {
+					tx0 = x < tx0 ? x : tx0, tx1 = x > tx1 ? x : tx1, ty0 = y < ty0 ? y : ty0, ty1 = y > ty1 ? y : ty1;
+				}
+			}
+		}
+		int edge = px0 < GBA_W - 1 - px1 ? px0 : GBA_W - 1 - px1;
+		int pdx = (GBA_W - 1 - edge) - px1;                                  /* the panel's move */
+		int tdx = tx1 < 0 ? 0 : (tx0 < c0 ? tx0 : GBA_W - 1 - tx1) - tx0;    /* the text box's */
+		int tdy = tx1 < 0 ? 0 : py0 - ty0;
+		int ox = (w - GBA_W) / 2, oy = (h - GBA_H) / 2;
+		for (int y = 0; y < GBA_H; ++y) {
+			for (int x = 0; x < GBA_W; ++x) {
+				uint32_t c = pan[y * GBA_W + x];
+				if (c == AW_BG || bg2[y * GBA_W + x] == AW_BG) continue;
+				bool inPanel = x >= c0 && x <= c1;
+				int nx = x + (inPanel ? pdx : tdx) + ox, ny = y + (inPanel ? 0 : tdy) + oy;
+				if (nx >= 0 && ny >= 0 && nx < w && ny < h) out[ny * w + nx] = c;
+			}
+		}
+		return NULL;
+	}
 	int dx = unitPanel ? (w - GBA_W) / 2 : (w - (x1 - x0 + 1)) / 2 - x0;
 	int dy = unitPanel ? (h - GBA_H) / 2 : (h - (y1 - y0 + 1)) / 2 - y0;
 	for (int y = y0; y <= y1; ++y) {

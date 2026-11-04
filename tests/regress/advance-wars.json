@@ -1118,6 +1118,65 @@
      "frac": 0.97
     }
    ]
+  },
+  {
+   "id": "aw-eu-cursor-right",
+   "rom": "AWRP",
+   "state": "advance-wars/eu-cursor-right.ss",
+   "desc": "European release, the cursor on an enemy A-Air at the map's right (the owner's campaign state, cursor moved there): the game puts the panel at the left, the second screen at the right with the text box at the top left",
+   "rules": [
+    "AW-1"
+   ],
+   "shots": {
+    "end": 300
+   },
+   "checks": [
+    {
+     "rule": "AW-1",
+     "what": "the text box at the top left",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      40,
+      80,
+      480,
+      300
+     ],
+     "color": "182438",
+     "frac": 0.97
+    },
+    {
+     "rule": "AW-1",
+     "what": "the panel at the right",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      560,
+      80,
+      980,
+      680
+     ],
+     "color": "182438",
+     "frac": 0.97
+    },
+    {
+     "rule": "AW-1",
+     "what": "nothing below the text box yet",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      40,
+      400,
+      480,
+      690
+     ],
+     "color": "182438",
+     "frac": 0.97
+    }
+   ]
   }
  ]
 }
