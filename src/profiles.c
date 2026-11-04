@@ -81,24 +81,26 @@ typedef struct {
 	                   * results, the title, the mode menu: the army byte keeps the last
 	                   * battle's there). Found in Field Training's results (AW1), the mode
 	                   * menu and a Versus battle (AW2). */
-	int statusItem;   /* Status's row in the Intel menu (Europe's Advance Wars puts Terms first) */
+	int statusItem;   /* Status's row in the Intel menu tried first (the campaign's: Terms,
+	                   * Status, CO; other modes: Status, CO, Rules; aw_panel tries the others) */
+	int labelTile;    /* the unit intel's label over its panel (INTEL, SPEC): a 32x8 sprite of
+	                   * this tile in palette 6, left out of AW-1's frame (0: none) */
 } AwRegion;
 
 static const AwRegion awRegions[] = {
-	{ AW_ARMY, AW_CURSOR, AW_UNITS, AW_MENU_ROW, AW_MINIMAP_OPEN, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000ED0, 0x082E3FD4 }, 0x030036AC, 876, 0x0801FA69 },
+	{ AW_ARMY, AW_CURSOR, AW_UNITS, AW_MENU_ROW, AW_MINIMAP_OPEN, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000ED0, 0x082E3FD4 }, 0x030036AC, 876, 0x0801FA69, 0, 537 },
 	/* (its SELECT menu has no Unit item: CO, Intel, Options, Save, End) */
 	{ AW2_ARMY, AW2_CURSOR, AW2_UNITS, AW2_MENU_ROW, AW2_MINIMAP_OPEN, 1, { { 200, 100, 0xFFEFEF }, { 120, 140, 0xFFEFEF } }, 152, { 0x03001530, 0x0849E2C0 }, 0, 873, 0x08022049 },
 	/* Game Boy Wars Advance 1+2 (Japan): each game at its own addresses
 	 * (game 1's found by the literal pools around its code: 0x240 lower
 	 * than Advance Wars' above 0x03003000, 0x10 lower around 0x03000E00;
 	 * the unit intel's routine by its shape; game 2's by watching them) */
-	{ GBW1_ARMY, GBW1_CURSOR, GBW1_UNITS, 0x03000E40, 0x03000E1E, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000EC0, 0x08DEC9D8 }, 0x0300346C, 876, 0x08B1FFA1 },
+	{ GBW1_ARMY, GBW1_CURSOR, GBW1_UNITS, 0x03000E40, 0x03000E1E, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000EC0, 0x08DEC9D8 }, 0x0300346C, 876, 0x08B1FFA1, 0, 537 },
 	{ GBW2_ARMY, GBW2_CURSOR, GBW2_UNITS, AW2_MENU_ROW, AW2_MINIMAP_OPEN, 1, { { 200, 100, 0xFFEFEF }, { 120, 140, 0xFFEFEF } }, 152, { 0x03001530, 0x0881A0A4 }, 0, 873, 0x08322509 },
 	/* Advance Wars 1 and 2 in Europe (AWRP, AW2P): the USA's RAM, their
 	 * routines elsewhere in the ROM (the map's and the unit intel's,
-	 * read from the owner's campaign states; AW1's Intel menu: Terms,
-	 * Status, CO) */
-	{ AW_ARMY, AW_CURSOR, AW_UNITS, AW_MENU_ROW, AW_MINIMAP_OPEN, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000ED0, 0x083C356C }, 0x030036AC, 876, 0x0801FDD1, 1 },
+	 * read from the owner's campaign states) */
+	{ AW_ARMY, AW_CURSOR, AW_UNITS, AW_MENU_ROW, AW_MINIMAP_OPEN, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000ED0, 0x083C356C }, 0x030036AC, 876, 0x0801FDD1, 1, 537 },
 	{ AW2_ARMY, AW2_CURSOR, AW2_UNITS, AW2_MENU_ROW, AW2_MINIMAP_OPEN, 1, { { 200, 100, 0xFFEFEF }, { 120, 140, 0xFFEFEF } }, 152, { 0x03001530, 0x08521548 }, 0, 873, 0x080221B5 },
 };
 
@@ -328,7 +330,11 @@ static void aw_clean(Emu* s, void* tmp, uint32_t* pan, uint32_t* bg2) {
 		for (int i = 0; i < GBA_W * GBA_H; ++i) bg2[i] = s->fb[i] == none[i] ? AW_BG : s->fb[i];
 	}
 	emu_layers(s, 0x15);
-	emu_hide_sprites(s, rules, 3);
+	/* (and the unit intel's label, INTEL / SPEC, over its panel: AW-1's
+	 * frame has the panel without its edge) */
+	int lt = aw_r(s)->labelTile;
+	const SpriteRule hide[4] = { rules[0], rules[1], rules[2], { -512, -16, 511, 8, lt, lt, -1, 1u << 6, 0 } };
+	emu_hide_sprites(s, hide, lt ? 4 : 3);
 	emu_state_load(s, tmp);
 	emu_frame(s, 0);
 	for (int i = 0; i < GBA_W * GBA_H; ++i) pan[i] = s->fb[i] == none[i] ? AW_BG : s->fb[i];
@@ -375,14 +381,31 @@ static const char* aw_panel(Emu* s, const void* state, bool tryUnit, bool* unitP
 		aw_tap(s, K_R, 1);
 		if (!aw_settle(s, aw_unit_up, 90)) return "unit intel did not open";
 	} else {
-		aw_tap(s, K_SELECT, 1);
-		aw_run(s, 0, 8);
-		aw_pick(s, r->intelItem); /* Intel */
-		aw_tap(s, K_A, 1);
-		aw_run(s, 0, 8);
-		aw_pick(s, r->statusItem); /* Status (the Intel menu keeps its last choice: CO, Rules) */
-		aw_tap(s, K_A, 1);
-		if (!aw_settle(s, aw_intel_up, 90)) return "battle intel did not open";
+		/* Status: where it was last time, else the region's guess, else
+		 * the other rows (the campaign's menu has Terms first; the menu
+		 * keeps its last choice, so each try picks its row) */
+		static int worked = -1;
+		int rows[4] = { worked, r->statusItem, 0, 1 }, tried = 0;
+		bool up = false;
+		for (int k = 0; k < 4 && !up; ++k) {
+			if (rows[k] < 0 || (tried >> rows[k] & 1)) continue;
+			tried |= 1 << rows[k];
+			if (k && !emu_state_load(s, state)) return "state load failed";
+			if (k) {
+				emu_frame(s, 0);
+				if (!aw_back(s)) return "the cursor isn't free";
+			}
+			aw_tap(s, K_SELECT, 1);
+			aw_run(s, 0, 8);
+			aw_pick(s, r->intelItem); /* Intel */
+			aw_tap(s, K_A, 1);
+			aw_run(s, 0, 8);
+			aw_pick(s, rows[k]);
+			aw_tap(s, K_A, 1);
+			up = aw_settle(s, aw_intel_up, 90);
+			if (up) worked = rows[k];
+		}
+		if (!up) return "battle intel did not open";
 	}
 	return NULL;
 }
@@ -528,6 +551,7 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 		 * text and lines, not its edge) and the panel as the game draws it */
 		uint32_t tile[64], in[2] = { 0, 0 };
 		int ax = 0, ay = 0, tin[4] = { 0, 0, 0, 0 }; /* the text box's edge: left, top, right, bottom */
+		int pin[4] = { 0, 0, 0, 0 };                 /* the panel's */
 		bool framed = tx1 >= 0 && aw_window_tile(bg2, tx0, ty0, tx1, ty1, tile, &ax, &ay, in);
 		if (framed) {
 			/* (each side's edge: the shallowest along all of it but its
@@ -541,17 +565,36 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 				int t = aw_edge_depth(bg2, x, ty0, 0, 1, tile, ax, ay), b = aw_edge_depth(bg2, x, ty1, 0, -1, tile, ax, ay);
 				tin[1] = t >= 0 && t < tin[1] ? t : tin[1], tin[3] = b >= 0 && b < tin[3] ? b : tin[3];
 			}
+			/* the panel's edge the same way: its inside goes in the frame
+			 * too (one window across the screen) */
+			for (int k = 0; k < 4; ++k) pin[k] = 16;
+			for (int y = py0 + 3; y <= py1 - 3; ++y) {
+				int l = aw_edge_depth(bg2, px0, y, 1, 0, tile, ax, ay), r = aw_edge_depth(bg2, px1, y, -1, 0, tile, ax, ay);
+				pin[0] = l >= 0 && l < pin[0] ? l : pin[0], pin[2] = r >= 0 && r < pin[2] ? r : pin[2];
+			}
+			for (int x = px0 + 3; x <= px1 - 3; ++x) {
+				int t = aw_edge_depth(bg2, x, py0, 0, 1, tile, ax, ay), b = aw_edge_depth(bg2, x, py1, 0, -1, tile, ax, ay);
+				pin[1] = t >= 0 && t < pin[1] ? t : pin[1], pin[3] = b >= 0 && b < pin[3] ? b : pin[3];
+			}
+			for (int k = 0; k < 4; ++k) pin[k] = pin[k] == 16 ? 0 : pin[k];
 			/* the edge's colour: the panel's outline, outside in, the first
 			 * colour that's neither its background's nor near black (Advance
 			 * Wars 2's red or blue); else its outermost (Advance Wars' dark edge) */
-			int ym = (py0 + py1) / 2, deep = aw_edge_depth(bg2, px0, ym, 1, 0, tile, ax, ay);
-			uint32_t line = pan[ym * GBA_W + px0];
-			for (int x = px0; x < px0 + (deep > 0 ? deep : 1) && x <= px1; ++x) {
-				uint32_t c = pan[ym * GBA_W + x]; /* (Advance Wars' dark edge isn't BG2's) */
-				if (c == in[0] || c == in[1]) continue;
-				if ((c & 0xFF) + ((c >> 8) & 0xFF) + ((c >> 16) & 0xFF) >= 120) {
-					line = c;
-					break;
+			/* (the commonest such colour down the panel's left edge, its
+			 * depth measured above) */
+			uint32_t line = pan[((py0 + py1) / 2) * GBA_W + px0], seen[8];
+			int counts[8], ns = 0, bestN = 0;
+			for (int y = py0 + 8; y <= py1 - 8; ++y) {
+				for (int x = px0; x < px0 + pin[0] && x <= px1; ++x) {
+					uint32_t c = pan[y * GBA_W + x]; /* (Advance Wars' dark edge isn't BG2's) */
+					if (c == in[0] || c == in[1] || (c & 0xFF) + ((c >> 8) & 0xFF) + ((c >> 16) & 0xFF) < 120) continue;
+					int k = 0;
+					while (k < ns && seen[k] != c) ++k;
+					if (k == ns) {
+						if (ns == 8) continue;
+						seen[ns] = c, counts[ns++] = 0;
+					}
+					if (++counts[k] > bestN) bestN = counts[k], line = c;
 				}
 			}
 			int fx = ((ax + tdx) % 8 + 8) % 8, fy = ((ay + tdy) % 8 + 8) % 8;
@@ -570,6 +613,7 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 				if (c == AW_BG || bg2[y * GBA_W + x] == AW_BG) continue;
 				bool inPanel = x >= c0 && x <= c1;
 				if (framed && !inPanel && (x < tx0 + tin[0] || x > tx1 - tin[2] || y < ty0 + tin[1] || y > ty1 - tin[3])) continue;
+				if (framed && inPanel && (x < px0 + pin[0] || x > px1 - pin[2] || y < py0 + pin[1] || y > py1 - pin[3])) continue;
 				int nx = x + (inPanel ? pdx : tdx) + ox, ny = y + (inPanel ? 0 : tdy) + oy;
 				if (nx >= 0 && ny >= 0 && nx < w && ny < h) out[ny * w + nx] = c;
 			}

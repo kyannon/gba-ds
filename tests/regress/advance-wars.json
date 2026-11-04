@@ -1177,6 +1177,41 @@
      "frac": 0.97
     }
    ]
+  },
+  {
+   "id": "aw-us-campaign-empty-tile",
+   "rom": "AWRE",
+   "state": "advance-wars/us-campaign-empty-tile.ss",
+   "desc": "USA campaign, the cursor on an empty tile (the owner's bug report: the campaign's Intel menu is Terms, Status, CO, and it had last picked CO): the Battle Intel",
+   "rules": [
+    "AW-1"
+   ],
+   "shots": {
+    "end": 200
+   },
+   "checks": [
+    {
+     "rule": "AW-1",
+     "what": "the Battle Intel opened",
+     "type": "no_log",
+     "match": "did not open"
+    },
+    {
+     "rule": "AW-1",
+     "what": "the Battle Intel in the middle",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      200,
+      300,
+      820,
+      460
+     ],
+     "color": "182438",
+     "frac": 0.97
+    }
+   ]
   }
  ]
 }
