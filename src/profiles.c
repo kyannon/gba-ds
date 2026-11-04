@@ -957,6 +957,10 @@ static const char* sn2_compose(Emu* s, const void* state, uint32_t* const* out, 
 #define FT_V_IDLE 0xF0000011   /* 1 on a battle's map or a unit's Status (not a move or an
                                 * action), or on the world map with nothing or the Laws open */
 #define FT_V_SHOWN 0xF0000012  /* 1 in a battle (FT_V_BATTLE) or on the world map */
+#define FT_V_THEIRS 0xF0000014 /* 1 in a battle when it isn't your turn: the active unit
+                               * an enemy, the judge or a guest (its data's flags, +0x29 of
+                               * the unit FT_ACTIVE's record points to: 0x80 an enemy, 0x10
+                               * the judge, 0x20 a guest; 0 a clan member) */
 #define FT_V_LOC 0xF0000013    /* on the world map, the clan's location + 1, FT_WM_STATE
                                 * << 8 and 1 << 16 with the cursor on it; else 0 */
 
@@ -971,6 +975,11 @@ static uint32_t ft_virt(Emu* e, uint32_t addr) {
 	 * or in some battles a stray byte: Japan's read 0x80 in one) */
 	bool in = emu_read8(e, FT_IN_BATTLE) == 1 && (emu_read32(e, FT_SCENE_(e)) >> 24) != 0x02;
 	if (addr == FT_V_BATTLE) return in;
+	if (addr == FT_V_THEIRS) {
+		uint32_t rec = emu_read32(e, FT_ACTIVE - (e->gameCode[3] == 'J' ? 0x30 : 0));
+		uint32_t ch = rec >> 24 == 0x02 ? emu_read32(e, rec) : 0;
+		return in && ch >> 24 == 0x02 && (emu_read8(e, ch + 0x29) & 0xF0) != 0;
+	}
 	if (addr == FT_V_SHOWN) return in || ft_world(e);
 	if (addr == FT_V_LOC) {
 		if (!ft_world(e)) return 0;
@@ -1394,18 +1403,52 @@ static bool ft_turn_layout(uint32_t* o, int w, int h, const uint32_t* lb2, const
 	return true;
 }
 
+/* the turn order and the Laws as last taken: BG2, BG3, w x h */
+static uint32_t ftWin[2][GBA_W * GBA_H], ftWin3[2][GBA_W * GBA_H];
+static int ftWw[2], ftWh[2];
+/* FT-9's screen from the turn order and the Laws as last taken */
+static void ft_draw_turn(uint32_t* o, int w, int h) {
+	uint32_t (*win)[GBA_W * GBA_H] = ftWin, (*win3)[GBA_W * GBA_H] = ftWin3;
+	int *ww = ftWw, *wh = ftWh;
+	for (int i = 0; i < w * h; ++i) o[i] = SCREEN_GREY;
+	if (ww[0] && ft_turn_layout(o, w, h, win[0], win3[0], ww[0], wh[0], ww[1] ? win[1] : NULL, ww[1] ? win3[1] : NULL, ww[1], ww[1] ? wh[1] : 0)) return;
+	/* (else as before: the Laws above the list, its last rows off the
+	 * bottom) */
+	for (int y = 0; y < wh[1] && ww[1]; ++y) {
+		for (int x = 0; x < ww[1]; ++x) if (win[1][y * ww[1] + x] == FT_HOLE) win[1][y * ww[1] + x] = win3[1][y * ww[1] + x];
+	}
+	for (int y = 0; y < wh[0] && ww[0]; ++y) {
+		for (int x = 0; x < ww[0]; ++x) if (win[0][y * ww[0] + x] == FT_HOLE) win[0][y * ww[0] + x] = win3[0][y * ww[0] + x];
+	}
+	int lh = ww[1] ? wh[1] : 0, th = ww[0] ? wh[0] : 0;
+	int y0 = lh + th <= h ? (h - lh - th) / 2 : 0;
+	if (ww[1]) ft_put(o, w, h, win[1], ww[1], wh[1], (w - ww[1]) / 2, y0);
+	if (ww[0]) ft_put(o, w, h, win[0], ww[0], wh[0], (w - ww[0]) / 2, y0 + lh);
+}
+
 static const char* ft_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
 	static uint32_t page[2][GBA_W * GBA_H];
-	static uint32_t win[2][GBA_W * GBA_H], win3[2][GBA_W * GBA_H]; /* the turn order, the Laws: BG2, BG3 */
-	static int pages, ww[2], wh[2], age;
+	uint32_t (*win)[GBA_W * GBA_H] = ftWin, (*win3)[GBA_W * GBA_H] = ftWin3;
+	int *ww = ftWw, *wh = ftWh;
+	static int pages, age;
 	static uint32_t key;
 	int max = *nOut;
 	*nOut = 1;
 	*step = 300; /* 5 seconds a page */
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
-	if (ft_world(s)) return ft_world_laws(s, out, w, h);
+	if (ft_world(s)) {
+		ftWw[0] = ftWw[1] = 0; /* (a battle's turn order isn't the next one's) */
+		return ft_world_laws(s, out, w, h);
+	}
 	ftLawsAt = 0; /* (a battle: opened again on the world map next time) */
+	/* not your turn (FT-13): the turn order and the Laws as last taken */
+	if (ft_virt(s, FT_V_THEIRS)) {
+		if (!ww[0] && !ww[1]) return "not your turn";
+		*nOut = 1;
+		ft_draw_turn(out[0], w, h);
+		return NULL;
+	}
 	if (!ft_virt(s, FT_V_IDLE)) return "not on the battle map";
 	/* taken again when the cursor moves, or every 4th picture (the units
 	 * act, the turn order turns) */
@@ -1465,21 +1508,7 @@ static const char* ft_compose(Emu* s, const void* state, uint32_t* const* out, i
 			ft_put(o, w, h, page[n], GBA_W, GBA_H, (w - GBA_W) / 2, (h - GBA_H) / 2);
 			continue;
 		}
-		/* FT-9: the turn order in two columns over the checkerboard, the
-		 * Laws below */
-		if (ww[0] && ft_turn_layout(o, w, h, win[0], win3[0], ww[0], wh[0], ww[1] ? win[1] : NULL, ww[1] ? win3[1] : NULL, ww[1], ww[1] ? wh[1] : 0)) continue;
-		/* (else as before: the Laws above the list, its last rows off the
-		 * bottom) */
-		for (int y = 0; y < wh[1] && ww[1]; ++y) {
-			for (int x = 0; x < ww[1]; ++x) if (win[1][y * ww[1] + x] == FT_HOLE) win[1][y * ww[1] + x] = win3[1][y * ww[1] + x];
-		}
-		for (int y = 0; y < wh[0] && ww[0]; ++y) {
-			for (int x = 0; x < ww[0]; ++x) if (win[0][y * ww[0] + x] == FT_HOLE) win[0][y * ww[0] + x] = win3[0][y * ww[0] + x];
-		}
-		int lh = ww[1] ? wh[1] : 0, th = ww[0] ? wh[0] : 0;
-		int y0 = lh + th <= h ? (h - lh - th) / 2 : 0;
-		if (ww[1]) ft_put(o, w, h, win[1], ww[1], wh[1], (w - ww[1]) / 2, y0);
-		if (ww[0]) ft_put(o, w, h, win[0], ww[0], wh[0], (w - ww[0]) / 2, y0 + lh);
+		ft_draw_turn(o, w, h);
 	}
 	return NULL;
 }
@@ -3002,7 +3031,7 @@ static const MapProfile profiles[] = {
 		 * battle's scenes, and in the world map's town menus and notices */
 		.live = { { FT_V_IDLE, 0xFF, 1, 4 } },
 		.menu = { { FT_V_SHOWN, 0xFF, 0, 4 } },
-		.room = { { FT_CURSOR, 0xFFFF, 0, 2 }, { FT_UI, 0xFF, 0, 1 }, { FT_V_LOC, 0xFFFFFFFF, 0, 4 } },
+		.room = { { FT_CURSOR, 0xFFFF, 0, 2 }, { FT_UI, 0xFF, 0, 1 }, { FT_V_LOC, 0xFFFFFFFF, 0, 4 }, { FT_V_THEIRS, 0xFF, 0, 1 } },
 		.hud = {
 			/* nothing moves off the game screen (FT-10); this is for the
 			 * logo before the first picture and elsewhere (FT-7) */

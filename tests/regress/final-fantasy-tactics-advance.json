@@ -1325,6 +1325,74 @@
    "shots": {
     "laws": 300
    }
+  },
+  {
+   "id": "ft-us-enemy-turn",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-battle-idle.ss",
+   "desc": "the turn order taken (the cursor moved off Marche), a unit's Status (Montblanc's state loaded), then the enemy's turn (Marche waited, Euver's turn: the owner's battle, steered there): the turn order and the Laws as last taken",
+   "rules": [
+    "FT-13"
+   ],
+   "input": [
+    [
+     40,
+     "RIGHT"
+    ],
+    [
+     43,
+     "-"
+    ],
+    [
+     310,
+     "LOAD:final-fantasy-tactics-advance/us-cursor-other-unit.ss"
+    ],
+    [
+     610,
+     "LOAD:final-fantasy-tactics-advance/us-enemy-turn.ss"
+    ]
+   ],
+   "shots": {
+    "order": 300,
+    "status": 600,
+    "enemy": 700,
+    "later": 900
+   },
+   "checks": [
+    {
+     "rule": "FT-13",
+     "what": "no capture refused on the enemy's turn",
+     "type": "no_log",
+     "match": "not your turn"
+    }
+   ]
+  },
+  {
+   "id": "ft-us-enemy-turn-first",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-cursor-other-unit.ss",
+   "desc": "a unit's Status, then the enemy's turn with no turn order taken yet in the battle: the Status stays",
+   "rules": [
+    "FT-13"
+   ],
+   "input": [
+    [
+     310,
+     "LOAD:final-fantasy-tactics-advance/us-enemy-turn.ss"
+    ]
+   ],
+   "shots": {
+    "status": 300,
+    "enemy": 500
+   },
+   "checks": [
+    {
+     "rule": "FT-13",
+     "what": "nothing to show yet",
+     "type": "log",
+     "match": "not your turn"
+    }
+   ]
   }
  ]
 }
