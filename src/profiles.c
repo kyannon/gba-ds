@@ -1305,8 +1305,11 @@ static bool ft_turn_layout(uint32_t* o, int w, int h, const uint32_t* lb2, const
 			for (int x = 0; x < lw; ++x) if (lb2[y * lw + x] != FT_HOLE && x > right) right = x;
 		}
 	}
-	int colW = right + 1 + 8, maxCol = (w - 8) / 2;
-	colW = colW > maxCol ? maxCol : colW;
+	int colW = right + 1 + 8, lim = w < GBA_W ? w : GBA_W;
+	/* (two columns wider than the GBA's screen: the first alone, 01-04,
+	 * rather than names cut off) */
+	if (nR && 2 * colW > lim) nR = 0, n = nL;
+	colW = colW > lim ? lim : colW;
 	int W = nR ? 2 * colW : colW, bottom = lh - 1 - p1, H = p0 + nL * sh + bottom;
 	/* the Laws: each row of fields (where the cyan field is, down its left
 	 * quarter), each field empty or not (its name a dash, or nothing) */

@@ -1393,6 +1393,36 @@
      "match": "not your turn"
     }
    ]
+  },
+  {
+   "id": "ft-us-long-names",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-long-names.ss",
+   "desc": "every unit's name as wide as the game can draw it (us-battle-idle, each unit's name pointer at ten Ws: wider than any name in the game; eleven hang its Status screen): the turn order's first column alone (01-04), no name cut off",
+   "rules": [
+    "FT-9"
+   ],
+   "input": [
+    [
+     40,
+     "RIGHT"
+    ],
+    [
+     43,
+     "-"
+    ]
+   ],
+   "shots": {
+    "order": 300
+   },
+   "checks": [
+    {
+     "rule": "FT-9",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
   }
  ]
 }
