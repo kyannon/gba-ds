@@ -1660,6 +1660,55 @@ static bool ml_settle(Emu* s, int max) {
 	}
 	return false;
 }
+/* ---------------------------------------------------------- Kingdom Hearts: Chain of Memories
+ *
+ * The second screen (KHC-1): the World Map, opened on the shadow core from
+ * the live state at every capture with SELECT (straight from walking
+ * about), checked by its fixed pixels and taken once its rooms are in
+ * (they appear over about 70 frames), without its cursor and A button
+ * bubble. If it doesn't open, the last map stays (KHC-2). (START's menu
+ * was the first way in: its top edge is see-through, so its pixels took
+ * the room's colours and the check failed in some rooms.) The European
+ * and Japanese releases: the same, their battle pointer elsewhere
+ * (khc_eur, khc_jpn). */
+#define KHC_BATTLE 0x02039DD4 /* the battle's pointer: 0 outside one */
+/* the World Map: its banner (WORLD MAP on blue), the floor's badge at the
+ * bottom left, the dark strip along the bottom */
+static const Probe khcMap[8] = { { 4, 4, 0x00298C }, { 20, 6, 0xFFFFFF }, { 40, 5, 0xFFFFFF }, { 60, 8, 0x8C9CD6 },
+                                 { 70, 3, 0x395AB5 }, { 4, 157, 0x087BA5 }, { 236, 157, 0x08184A }, { 120, 157, 0x08184A } };
+/* the map's cursor, the pointing hand, and its A button bubble: the only
+ * sprites in palette 0 at priority 0 there (their tiles move with what the
+ * game has loaded: the bubble 454 in one room, 450 in another) */
+static const SpriteRule khcHide[1] = { { -64, -16, 239, 159, 0, 1023, 0, 1u << 0 } };
+static bool khc_map_up(Emu* s) {
+	return som_probes(s, khcMap, 8, 7, 8);
+}
+/* the title (KHC-4): the emblem and the art at its corner, as they stand
+ * once it's up, the same in all three releases (not the emblem on black
+ * before it) */
+#define KHC_V_TITLE 0xF0000040
+static const Probe khcTitle[8] = { { 128, 0, 0xF7EFE7 }, { 222, 12, 0xBDAD94 }, { 48, 14, 0xADADAD }, { 84, 18, 0xADADAD },
+                                   { 106, 28, 0x7B7B7B }, { 64, 30, 0x7B7B7B }, { 16, 32, 0xB5B5B5 }, { 148, 38, 0xADADAD } };
+static uint32_t khc_virt(Emu* e, uint32_t addr) {
+	return addr == KHC_V_TITLE && som_probes(e, khcTitle, 8, 7, 8);
+}
+static bool khc_wait(Emu* s, bool (*up)(Emu*), int n) {
+	for (int f = 0; f < n && !up(s); ++f) emu_frame(s, 0);
+	return up(s);
+}
+static const char* khc_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	emu_hide_sprites(s, khcHide, 1);
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	aw_run(s, K_SELECT, 4);
+	if (!khc_wait(s, khc_map_up, 90)) return "the World Map didn't open";
+	aw_run(s, 0, 90); /* (its rooms all in) */
+	if (emu_cancelled(s)) return "called off";
+	if (!khc_map_up(s)) return "the World Map closed";
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+	return NULL;
+}
+
 /* Bros. Info's frame, the same on both brothers' pages (its leather edges,
  * the ring's rim, the plaid, the boxes): not the field or the menu */
 static const Probe mlBrosInfo[8] = { { 10, 150, 0x6B8C73 }, { 4, 80, 0x633921 }, { 235, 80, 0x7B736B }, { 120, 157, 0xBDC6B5 },
@@ -3132,6 +3181,29 @@ static const MapProfile profiles[] = {
 		/* the title's lettering is sprites (PRESS START! below it too) */
 		.logo = { .wait = 640, .layers = 0x10, .maxY = 92 },
 	},
+	{
+		/* Kingdom Hearts: Chain of Memories (USA; Europe and Japan:
+		 * khc_eur, khc_jpn). Walking about in a world, the World Map:
+		 * see khc_compose (KHC-1, KHC-2) */
+		.codes = { "B8CE" },
+		.title = "Kingdom Hearts: Chain of Memories",
+		.compose = khc_compose,
+		.virt = khc_virt,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* not in a battle, not on the title: taken (about once a second;
+		 * where the menu doesn't open, nothing: KHC-2) */
+		.live = { { KHC_BATTLE, 0xFFFFFFFF, 0, 4 }, { KHC_V_TITLE, 0xFF, 0, 4 } },
+		/* the title: the logo, the map forgotten (KHC-4) */
+		.menu = { { KHC_V_TITLE, 0xFF, 1, 4 } },
+		/* a battle: its pointer set (the fight, its conversations), or the
+		 * display in mode 2 (its flash, its end): the logo (KHC-3) */
+		.combat = { { KHC_BATTLE + 3, 0xFF, 0x02, 1 } },
+		.combatOr = { { 0x04000000, 0x0007, 2, 2 } },
+		/* the emblem full size on black before the title, faded in, before
+		 * it flashes and shrinks (KHC-5): BG2 alone */
+		.logo = { .wait = 700, .layer = 2, .maxY = 160 },
+	},
 };
 
 /* ---------------------------------------------------------------- regions
@@ -3308,6 +3380,23 @@ static void smm_jpn(MapProfile* p) {
 	p->menu[0].addr -= 0x34, p->menu[0].value -= 0x34;
 }
 
+/* Kingdom Hearts: Chain of Memories: the battle pointer elsewhere (by
+ * romxref, checked in battles); the logo the same emblem, in Europe after
+ * A on its language menu, in Japan 200 frames sooner (no licence screen) */
+static void khc_eur(MapProfile* p) {
+	p->live[0].addr = 0x0203A3E4;
+	p->combat[0].addr = 0x0203A3E4 + 3;
+	p->logo.wait = 0;
+	p->logo.steps[0] = (MacroStep) { 0, 100 };
+	p->logo.steps[1] = (MacroStep) { K_A, 4 };
+	p->logo.steps[2] = (MacroStep) { 0, 746 };
+}
+static void khc_jpn(MapProfile* p) {
+	p->live[0].addr = 0x02039D44;
+	p->combat[0].addr = 0x02039D44 + 3;
+	p->logo.wait = 500;
+}
+
 static const Variant variants[] = {
 	{ "AGSD", "AGSE", 0, gs_ger },
 	/* F-Zero: GP Legend in Europe: its language menu first (the title
@@ -3350,6 +3439,8 @@ static const Variant variants[] = {
 	/* (Sword of Mana's ring address: SomRegion) */
 	{ "AVSY", "AVSE", 0, som_eur },
 	{ "AVSJ", "AVSE", 0, som_jpn },
+	{ "B8CP", "B8CE", 0, khc_eur },
+	{ "B8CJ", "B8CE", 0, khc_jpn },
 };
 #define N_VARIANTS (sizeof(variants) / sizeof(*variants))
 static MapProfile variantProfiles[N_VARIANTS];

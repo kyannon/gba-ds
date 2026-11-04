@@ -2,6 +2,9 @@
 
 ## v1.4.8 (not yet released)
 
+### New games
+- **Kingdom Hearts: Chain of Memories** (USA, Europe and Japan): walking about in a world, the second screen is the World Map (the one SELECT opens, with the room you're in lit, without its cursor), updated about once a second. In battles, and on the title and in the opening, it shows the logo, taken from the full-size emblem before the title. Tried in Traverse Town.
+
 ### Fixes
 - **Sonic Advance:** the zone card on the second screen could show the character's name cut off at the top, as with Knuckles. The card now takes the character's name from a moment it's whole, and the zone's name from the moment it's centred (#15).
 
