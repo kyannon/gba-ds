@@ -1398,7 +1398,7 @@
    "id": "ft-us-turn-change",
    "rom": "AFXE",
    "state": "final-fantasy-tactics-advance/us-battle-idle.ss",
-   "desc": "Marche's turn, the cursor never off him (his Status), he waits (A, UP to Wait, A, A); the game's gap between turns; Euver's turn and the enemies' moves: the turn order and Laws taken at Marche's turn's start",
+   "desc": "Marche's turn, the cursor never off him (his Status), he waits (A, UP to Wait, A, A); Euver's turn and the enemies' moves: the turn order and Laws taken at Marche's turn's start",
    "rules": [
     "FT-13"
    ],
@@ -1443,15 +1443,43 @@
    "checks": [
     {
      "rule": "FT-13",
-     "what": "the gap between two turns seen",
-     "type": "log",
-     "match": "between turns"
-    },
-    {
-     "rule": "FT-13",
      "what": "the enemy's turn shows a picture",
      "type": "no_log",
      "match": "not your turn"
+    }
+   ]
+  },
+  {
+   "id": "ft-us-moved-unit-menu",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-moved-unit-menu.ss",
+   "desc": "the owner's bug report (Nov 4, 2026): Brean's turn, after his move, his menu up; then an enemy's turn (another battle's state loaded): Brean's Status, then the turn order taken in his turn (01 Brean)",
+   "rules": [
+    "FT-8",
+    "FT-13"
+   ],
+   "input": [
+    [
+     310,
+     "LOAD:final-fantasy-tactics-advance/us-enemy-turn.ss"
+    ]
+   ],
+   "shots": {
+    "status": 300,
+    "enemy": 450
+   },
+   "checks": [
+    {
+     "rule": "FT-8",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FT-8",
+     "what": "nothing failed to open",
+     "type": "no_log",
+     "match": "nothing opened"
     }
    ]
   },

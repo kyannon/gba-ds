@@ -923,7 +923,8 @@ static const char* sn2_compose(Emu* s, const void* state, uint32_t* const* out, 
 #define FT_ACTIVE 0x0200F4EC  /* the unit whose turn it is (its data; Japan: 0x30 lower) */
 #define FT_UI 0x0200F5C6     /* 1 with nothing open on the map (0 the active unit's menu,
                               * 2 another unit's, the system menu or a Status, 3 the turn
-                              * order...; Japan: 0x30 lower) */
+                              * order, 5 the active unit's menu once it's moved...; Japan:
+                              * 0x30 lower) */
 #define FT_IN_BATTLE 0x03000E4E /* 1 in a battle (its scenes, moves, menus too), else 0 */
 #define FT_SCENE 0x0201639C /* 0 while a battle's fought; set while a scene plays on the
                              * battle map (the camera turning to the last enemy KO'd,
@@ -1066,15 +1067,21 @@ static bool ft_status(Emu* s, const void* state, uint32_t page[2][GBA_W * GBA_H]
 	if (!emu_state_load(s, state)) return false;
 	emu_frame(s, 0);
 	if (!ft_bg0(s, FT_STATUS_CNT)) {
-		if (!ft_bg0(s, FT_MAP_CNT) || !ft_back(s)) return false;
-		/* no unit under the cursor: no Status (FT-9: the turn order) */
-		uint32_t jp = s->gameCode[3] == 'J' ? 0x30 : 0, at = emu_read32(s, FT_AT_UNIT - jp);
-		if (!at) return false;
-		/* another unit than the one whose turn it is: A brings up its own
-		 * menu (2); the judge has none, and A on it brings up the active
-		 * unit's (0) instead: no Status for the judge (FT-9) */
-		bool other = at != emu_read32(s, FT_ACTIVE - jp);
-		uint32_t ui = FT_UI - (s->gameCode[3] == 'J' ? 0x30 : 0);
+		uint32_t jp = s->gameCode[3] == 'J' ? 0x30 : 0, ui = FT_UI - jp;
+		/* the active unit's menu up once it's moved (5): its Status from
+		 * there (B on it frees the cursor only for a moment, with the unit
+		 * under it not yet known) */
+		bool other = false;
+		if (!(ft_bg0(s, FT_MAP_CNT) && emu_read8(s, ui) == 5)) {
+			if (!ft_bg0(s, FT_MAP_CNT) || !ft_back(s)) return false;
+			/* no unit under the cursor: no Status (FT-9: the turn order) */
+			uint32_t at = emu_read32(s, FT_AT_UNIT - jp);
+			if (!at) return false;
+			/* another unit than the one whose turn it is: A brings up its own
+			 * menu (2); the judge has none, and A on it brings up the active
+			 * unit's (0) instead: no Status for the judge (FT-9) */
+			other = at != emu_read32(s, FT_ACTIVE - jp);
+		}
 		bool sel = false;
 		int moves = 0;
 		for (int i = 0; i < 14 && !sel; ++i) {
@@ -1082,7 +1089,7 @@ static bool ft_status(Emu* s, const void* state, uint32_t page[2][GBA_W * GBA_H]
 			int orange, white;
 			ft_menu_row(s, &orange, &white);
 			uint8_t u = emu_read8(s, ui);
-			bool menu = u == 0 || u == 2; /* (the active unit's, another unit's) */
+			bool menu = u == 0 || u == 2 || u == 5; /* (the active unit's, another unit's, the active one's once it's moved) */
 			if (other && u == 0) return false; /* (the judge: the active unit's menu came up) */
 			sel = menu && orange > 40;
 			if (sel) break;
@@ -1160,9 +1167,19 @@ static bool ft_list(Emu* s, const void* state, void* tmp, uint32_t* out, uint32_
 	if (!emu_state_load(s, state)) return false;
 	emu_frame(s, 0);
 	if (!ft_bg0(s, FT_MAP_CNT) && !ft_bg0(s, FT_STATUS_CNT)) return false;
+	/* (the active unit's menu once it's moved (5): B on it frees the
+	 * cursor only for a moment, L then brings the menu back (0); B there,
+	 * and L again. Only from that menu: elsewhere, as it comes) */
+	uint32_t ui = FT_UI - (s->gameCode[3] == 'J' ? 0x30 : 0);
+	bool moved = emu_read8(s, ui) == 5;
 	if (!ft_back(s)) return false;
-	aw_tap(s, K_L, 1);
-	aw_run(s, 0, 40);
+	for (int i = 0; i < 3; ++i) {
+		aw_tap(s, K_L, 1);
+		aw_run(s, 0, 40);
+		if (!moved || emu_read8(s, ui) != 0) break;
+		aw_tap(s, K_B, 1);
+		aw_run(s, 0, 12);
+	}
 	ftListBlend = emu_read16(s, 0x04000052);
 	return ft_cut(s, tmp, out, bg3, ow, oh, 100, 180, 100, GBA_H);
 }
@@ -1174,8 +1191,18 @@ static bool ft_system(Emu* s, const void* state, void* tmp, int row, uint32_t* o
 	if (!emu_state_load(s, state)) return false;
 	emu_frame(s, 0);
 	if (!ft_bg0(s, FT_MAP_CNT) && !ft_bg0(s, FT_STATUS_CNT)) return false;
+	/* (as in ft_list: the moved unit's menu coming back, B, START again) */
+	uint32_t ui = FT_UI - (s->gameCode[3] == 'J' ? 0x30 : 0);
+	bool moved = emu_read8(s, ui) == 5;
 	if (!ft_back(s)) return false;
-	aw_tap(s, K_START, 1);
+	for (int i = 0; i < 3; ++i) {
+		aw_tap(s, K_START, 1);
+		if (!moved) break;
+		aw_run(s, 0, 16);
+		if (emu_read8(s, ui) != 0) break;
+		aw_tap(s, K_B, 1);
+		aw_run(s, 0, 12);
+	}
 	bool sel = false;
 	for (int i = 0; i < 8 && !sel; ++i) {
 		aw_run(s, 0, 16);
@@ -1458,13 +1485,12 @@ static const char* ft_compose(Emu* s, const void* state, uint32_t* const* out, i
 	/* each turn's start (FT-13): between two turns the game has no active
 	 * unit for a few frames; the turn order is taken again in the next of
 	 * your units' turns, whatever's under the cursor */
+	bool between = false;
 	if (ft_virt(s, FT_V_BATTLE)) {
 		uint32_t rec = emu_read32(s, FT_ACTIVE - (s->gameCode[3] == 'J' ? 0x30 : 0));
-		if (rec >> 24 != 0x02) {
-			ftTurnRec = 0;
-			return "between turns";
-		}
-		if (rec != ftTurnRec) ftTurnRec = rec, ftTurnTaken = false;
+		/* (between two turns: nothing taken, the last picture drawn again) */
+		if (rec >> 24 != 0x02) ftTurnRec = 0, between = true;
+		else if (rec != ftTurnRec) ftTurnRec = rec, ftTurnTaken = false;
 	}
 	/* not your turn (FT-13): the turn order and the Laws as last taken */
 	if (ft_virt(s, FT_V_THEIRS)) {
@@ -1480,7 +1506,7 @@ static const char* ft_compose(Emu* s, const void* state, uint32_t* const* out, i
 	/* (and what's open: A on the judge brings up the active unit's menu
 	 * with the cursor where it was; that's when its Status shows) */
 	k = (k ^ emu_read8(s, FT_UI - (s->gameCode[3] == 'J' ? 0x30 : 0))) * 16777619u;
-	bool again = k != key || ++age >= 4 || (!pages && !ww[0]) || !ftTurnTaken;
+	bool again = !between && (k != key || ++age >= 4 || (!pages && !ww[0]) || !ftTurnTaken);
 	void* tmp = malloc(emu_state_size(s));
 	if (!tmp) return "out of memory";
 	if (again) {
@@ -1514,6 +1540,13 @@ static const char* ft_compose(Emu* s, const void* state, uint32_t* const* out, i
 		if (emu_cancelled(s)) {
 			free(tmp);
 			return "called off";
+		}
+		/* (neither a Status nor the turn order opened, as while a unit
+		 * picks what to hit: the last picture stays, FT-13) */
+		if (!st && !ok[0]) {
+			key = k, age = 0;
+			free(tmp);
+			return "nothing opened";
 		}
 		if (st) memcpy(page, np, sizeof(page)), pages = 2;
 		else pages = 0;

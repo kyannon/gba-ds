@@ -6,6 +6,7 @@
 - **Kingdom Hearts: Chain of Memories** (USA, Europe and Japan): walking about in a world, the second screen is the World Map (the one SELECT opens, with the room you're in lit, without its cursor), updated about once a second. In battles, and on the title and in the opening, it shows the logo, taken from the full-size emblem before the title. Tried in Traverse Town.
 
 ### Fixes
+- **Final Fantasy Tactics Advance:** on one of your units' turns after it has moved, with its menu up, the second screen showed nothing new: no Status, and the turn order wasn't taken. It now shows that unit's Status, and the turn order is taken for the enemy's turns. While a unit picks what to hit, the last picture now stays, as it should, instead of an older turn order coming up.
 - **Advance Wars and Game Boy Wars Advance (game 1):** in the campaign, with the cursor on an empty tile, the second screen could keep the last unit's intel instead of showing the Battle Intel. The campaign's Intel menu has Terms first, and GBA DS looked for Status in the wrong place.
 - **Sonic Advance:** the zone card on the second screen could show the character's name cut off at the top, as with Knuckles. The card now takes the character's name from a moment it's whole, and the zone's name from the moment it's centred (#15).
 
