@@ -934,8 +934,12 @@ static const char* sn2_compose(Emu* s, const void* state, uint32_t* const* out, 
                              * from the first battle won on; 0x0202F254 is set at the
                              * snowball fight's end only.) */
 /* The world map (FT-14; Japan's addresses: the FT_*_ lookups) */
-#define FT_MODE 0x02002191     /* 3 on the world map (its town menus, Laws and notices too;
-                                * 4 there later in the game: Kingmoon, a player's report);
+#define FT_WM_BG01 0x8C028A03u /* BG0CNT, BG1CNT on the world map (its Laws, notices and
+                                * town menus too; Japan the same) */
+#define FT_WM_BG23 0x2F082E09u /* BG2CNT, BG3CNT there */
+#define FT_MODE 0x02002191     /* not the screen: it follows the story (0x02001F6C, 0 on
+                                * the title, 1, 2, 3 by Kingmoon): that in a battle, one
+                                * more on the world map (3 early on, 4 by Kingmoon);
                                 * 1 or 2 in a battle, 60 in a town's Pub... */
 #define FT_WM_STATE 0x0200FD2B /* on the world map: 255 free, 1 the Laws (L) open, 2 a
                                 * town's menu, 0 a notice */
@@ -971,8 +975,12 @@ static const char* sn2_compose(Emu* s, const void* state, uint32_t* const* out, 
                                 * << 8 and 1 << 16 with the cursor on it; else 0 */
 
 static bool ft_world(Emu* e) {
-	uint8_t m = emu_read8(e, FT_MODE_(e));
-	return emu_read8(e, FT_IN_BATTLE) == 0 && (m == 3 || m == 4); /* (4 later in the game) */
+	/* (the world map's own screen: its four BG layers set up so, with its
+	 * Laws, a notice or a town's menu open too, in Japan as well; FT_MODE
+	 * isn't the world map's: it climbs with the story, 3 there early on,
+	 * 4 by Kingmoon) */
+	return emu_read8(e, FT_IN_BATTLE) == 0 && emu_read32(e, 0x04000008) == FT_WM_BG01 &&
+	       emu_read32(e, 0x0400000C) == FT_WM_BG23;
 }
 
 static uint32_t ft_virt(Emu* e, uint32_t addr) {
