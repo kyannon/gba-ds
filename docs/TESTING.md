@@ -28,7 +28,9 @@ tools/regress.py                            # every case (about 8 minutes with 2
 tools/regress.py fire-emblem                # one game
 tools/regress.py 'fe-us-*' som-us-forest    # case ids or globs
 tools/regress.py --list [GAME]              # the cases and the rules they cover
-tools/regress.py --uncovered                # rules no case covers yet, and the ones checked by hand
+tools/regress.py --changed [BASE]           # only the games a change touches (below)
+tools/regress.py --uncovered                # rules no case covers yet, the ones checked by hand,
+                                            # and the releases tested only on their logo
 tools/regress.py --prune                    # delete goldens no case uses (after removing or renaming shots)
 ```
 
@@ -40,6 +42,41 @@ picture, the golden and a diff side by side.
 The exit status is 0 only when every case passes. Run the suite before
 sending a build that touches `profiles.c`, `game.c`, `mapcap.c`, `emu.c`,
 `logo.c` or `mapframe.c`.
+
+### Only what changed
+
+`--changed [BASE]` (tools/regress_changed.py) runs only the games a change
+touches, the change being BASE (by default where the branch left
+`origin/dev`) against the working tree, uncommitted files included. It
+prints each changed file and what it picked:
+
+- a game's own files (`docs/games/<game>.md`, `tests/regress/<game>.json`):
+  that game;
+- `src/profiles.c`: each changed line goes to the definition it's in (a
+  comment, to the one below it), then to every game whose profile entry
+  uses that definition, directly or through others (`aw_run` reaches a
+  dozen games, `fe_compose` the two Fire Emblems). Regional variants count
+  for their base profile's games. A line in shared machinery (variants,
+  `profile_find`...) runs every game;
+- docs, the wiki, the README, the changelog, Android-only code, State
+  Saver: nothing;
+- anything else (the app's sources, the Makefile, build scripts,
+  regress.py): every game.
+
+A change to the fixtures alone isn't seen: name the game, or run them all.
+
+### On GitHub
+
+`.github/workflows/regress.yml` runs the suite on every push to `dev`,
+`android` and `game/*`: the games `--changed` picks since the push's
+previous commit, split over up to six runners (`--shard I/N`), each
+fetching only the fixtures its cases use (`--fixture-paths`, a sparse
+checkout). A "Release vX.Y.Z" commit, or "Run workflow" with "full"
+ticked, runs every game. The fixtures come in with the repository secret
+`GBA_DS_TESTS_TOKEN` (a fine-grained token, Contents: read-only on
+kyannon/gba-ds-tests). The run's summary lists what was picked and why,
+each share's failures, and the releases tested only on their logo; a
+failing share keeps its report as an artifact for 7 days.
 
 ## How a case runs
 

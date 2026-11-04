@@ -295,7 +295,11 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   intended change: rule first, then profile, then `--update CASES` after
   looking at every differing picture in build/regress/index.html; commit the
   goldens in the fixtures repo saying which rule changed. Before a release,
-  `--uncovered` lists the rules marked *By hand:* to check on the device. `GBADS_SYNC=1`
+  `--uncovered` lists the rules marked *By hand:* to check on the device
+  (and the releases tested only on their logo). `--changed` runs only the
+  games a change touches (docs/TESTING.md); GitHub runs that on every push
+  to dev / android / game/* (`.github/workflows/regress.yml`; the full
+  suite for a "Release vX.Y.Z" commit or "Run workflow" with "full"). `GBADS_SYNC=1`
   makes captures and logo extraction run inline, so runs are exact. By
   default regress.py also runs the app unpaced (`GBADS_NOPACE=1`) and
   drawing only screenshot and touch frames (`GBADS_DRAW_SHOTS_ONLY=1`),

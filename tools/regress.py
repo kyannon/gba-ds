@@ -9,13 +9,18 @@ and reports which of the games' rules (docs/games/*.md) still hold.
     tools/regress.py fire-emblem       one game's cases (or a case id, or a glob: 'fe-us-*')
     tools/regress.py --update CASE...  approve the current pictures as the goldens
     tools/regress.py --list            list the cases and the rules they check
-    tools/regress.py --uncovered       the rules in docs/games/ no case checks yet
+    tools/regress.py --changed [BASE]  only the games a change touches (since BASE: by
+                                       default where this branch left origin/dev, plus
+                                       uncommitted changes); shared code runs them all
+    tools/regress.py --uncovered       the rules in docs/games/ no case checks yet, and
+                                       the releases tested only on their logo
     tools/regress.py --prune           delete goldens no case uses any more
 
 Options: --fixtures DIR (default $GBADS_TESTS, else ../gba-ds-tests),
 --bin build/host/gba-ds, --harness build/host/harness, --report DIR
 (default build/regress: index.html with each failure's pictures), -j N
-(default: the CPU count + 1), --paced (at 60 frames a second, drawing
+(default: the CPU count + 1), --shard I/N (the Ith of N even shares of
+the cases, for running on several machines), --paced (at 60 frames a second, drawing
 every frame, as players run it; by default the app runs as fast as it
 can and draws only the frames a screenshot or a touch needs).
 
@@ -339,8 +344,38 @@ def main():
     ap.add_argument("--paced", action="store_true",
                     help="run the app as players do: at 60 frames a second, drawing every frame")
     ap.add_argument("--timeout", type=int, default=300)
+    ap.add_argument("--changed", nargs="?", const="auto", metavar="BASE",
+                    help="only the games changed since BASE (default: where this branch left origin/dev)")
+    ap.add_argument("--shard", metavar="I/N", help="run the Ith of N shares of the cases (1-based)")
+    ap.add_argument("--fixture-paths", action="store_true",
+                    help="list the fixture files the selected cases need (for a sparse checkout) and stop")
+    ap.add_argument("--games-json", metavar="FILE", help="with --changed: write the games picked (or \"all\") as JSON and stop")
     args = ap.parse_args()
+    if args.changed:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import regress_changed
+        slugs, reasons, base = regress_changed.select(None if args.changed == "auto" else args.changed)
+        print("changed since %s:" % base[:10])
+        for r in reasons:
+            print("  " + r)
+        picked = "all" if slugs is None else slugs
+        print("games: %s\n" % ("all (shared code changed)" if slugs is None else " ".join(slugs) or "none"))
+        if args.games_json:
+            json.dump(picked, open(args.games_json, "w"))
+            return
+        if slugs is not None:
+            if not slugs:
+                print("Nothing to run: no change affects a game.")
+                return
+            args.only = (args.only or []) + slugs
     cases = load_cases(args.only)
+    if args.shard:
+        i, n = (int(v) for v in args.shard.split("/"))
+        # (dealt round-robin by game then case, so each share gets a mix of slow and quick games)
+        cases = sorted(cases, key=lambda c: (c["slug"], c["id"]))[i - 1::n]
+        if not cases:
+            print("Nothing in share %d of %d." % (i, n))
+            return
     if args.prune:
         want = set()
         for c in load_cases([]):
@@ -371,6 +406,23 @@ def main():
                     print("%-8s %-28s %s" % (m.group(1), m.group(2).rstrip("."), os.path.basename(doc)))
                     n += 1
         print("%d rules without a case" % n)
+        # releases whose only case is their logo: everything else they show is
+        # assumed to work as another release's does
+        thin = []
+        for doc in sorted(glob.glob(os.path.join(ROOT, "docs", "games", "*.md"))):
+            slug = os.path.basename(doc)[:-3]
+            row = next((l for l in open(doc) if l.startswith("| Releases")), "")
+            mine = [c for c in load_cases([]) if c["slug"] == slug]
+            for code in re.findall(r"`([A-Z0-9]{4})`", row):
+                cs = [c for c in mine if c.get("rom") == code]
+                if not cs:
+                    thin.append((code, slug, "no case at all"))
+                elif all(c.get("kind") == "logo" for c in cs):
+                    thin.append((code, slug, "only its logo"))
+        if thin:
+            print("\nReleases tested only on their logo (or not at all):")
+            for code, slug, what in thin:
+                print("%-6s %-36s %s" % (code, slug, what))
         if hand:
             print("\nChecked by hand (before a release):")
             for rid, name, why in hand:
@@ -378,6 +430,20 @@ def main():
         return
     if not cases:
         sys.exit("no cases match %s" % " ".join(args.only))
+    if args.fixture_paths:
+        need = set()
+        for c in cases:
+            need.add("roms/%s.zip" % c["rom"])
+            need.add("golden/%s/%s/" % (c["slug"], c["id"]))
+            if c.get("state"):
+                need.add("states/" + c["state"])
+            if c.get("save"):
+                need.add("saves/" + c["save"])
+            for _, keys in c.get("input", []):
+                if keys.startswith("LOAD:"):
+                    need.add("states/" + keys[5:])
+        print("\n".join(sorted(need)))
+        return
     if args.list:
         for c in cases:
             rules = sorted({ch.get("rule", "?") for ch in c.get("checks", [])} | set(c.get("rules", [])))
