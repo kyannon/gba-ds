@@ -1023,6 +1023,28 @@ static bool ft_bg0(Emu* s, uint16_t cnt) {
 	return emu_read16(s, 0x04000008) == cnt;
 }
 
+/* FT-9's background: the Status screen's angled checkerboard (BG0 alone),
+ * from the first Status the hidden copy opens; the same in every battle. */
+static uint32_t ftChecker[GBA_W * GBA_H];
+static bool ftCheckerOk;
+static void ft_take_checker(Emu* s) {
+	if (ftCheckerOk) return;
+	void* t = malloc(emu_state_size(s));
+	if (!t) return;
+	if (emu_state_save(s, t)) {
+		emu_layers(s, 0x01);
+		emu_state_load(s, t);
+		emu_frame(s, 0);
+		memcpy(ftChecker, s->fb, sizeof(ftChecker));
+		int other = 0;
+		for (int i = 1; i < GBA_W * GBA_H; ++i) other += ftChecker[i] != ftChecker[0];
+		ftCheckerOk = other > GBA_W * GBA_H / 8; /* (a pattern, not a blank) */
+		emu_layers(s, 0x1F);
+		emu_state_load(s, t);
+	}
+	free(t);
+}
+
 /* The Status screen's two pages into page[0], page[1], of the unit under
  * the cursor (or the one open already); false if there's none there or
  * it didn't open. */
@@ -1063,6 +1085,7 @@ static bool ft_status(Emu* s, const void* state, uint32_t page[2][GBA_W * GBA_H]
 	}
 	aw_run(s, 0, 40); /* (past its fade-in) */
 	memcpy(page[0], s->fb, sizeof(page[0]));
+	ft_take_checker(s);
 	aw_tap(s, K_RIGHT, 1);
 	aw_run(s, 0, 30);
 	memcpy(page[1], s->fb, sizeof(page[1]));
@@ -1074,20 +1097,28 @@ static bool ft_status(Emu* s, const void* state, uint32_t page[2][GBA_W * GBA_H]
  * BG2's and BG3's pixels, w x h within the limits given, FT_HOLE where
  * they have nothing (its corners); false if not. */
 #define FT_HOLE 0x00000001u
-static bool ft_cut(Emu* s, void* tmp, uint32_t* out, int* ow, int* oh, int minW, int maxW, int minH, int maxH) {
+/* (bg3 given: out gets BG2 alone and bg3 BG3 alone, over the same box) */
+static bool ft_cut(Emu* s, void* tmp, uint32_t* out, uint32_t* bg3, int* ow, int* oh, int minW, int maxW, int minH, int maxH) {
 	if (!emu_state_save(s, tmp)) return false;
-	static uint32_t none[GBA_W * GBA_H];
+	static uint32_t none[GBA_W * GBA_H], only3[GBA_W * GBA_H];
 	emu_layers(s, 0);
 	emu_state_load(s, tmp);
 	emu_frame(s, 0);
 	memcpy(none, s->fb, sizeof(none));
-	emu_layers(s, 0x0C);
+	if (bg3) {
+		emu_layers(s, 0x08);
+		emu_state_load(s, tmp);
+		emu_frame(s, 0);
+		memcpy(only3, s->fb, sizeof(only3));
+	}
+	emu_layers(s, bg3 ? 0x04 : 0x0C);
 	emu_state_load(s, tmp);
 	emu_frame(s, 0);
 	int x0 = GBA_W, y0 = GBA_H, x1 = -1, y1 = -1;
 	for (int y = 0; y < GBA_H; ++y) {
 		for (int x = 0; x < GBA_W; ++x) {
-			if (s->fb[y * GBA_W + x] == none[y * GBA_W + x]) continue;
+			int i = y * GBA_W + x;
+			if (s->fb[i] == none[i] && (!bg3 || only3[i] == none[i])) continue;
 			x0 = x < x0 ? x : x0, x1 = x > x1 ? x : x1, y0 = y < y0 ? y : y0, y1 = y > y1 ? y : y1;
 		}
 	}
@@ -1097,8 +1128,10 @@ static bool ft_cut(Emu* s, void* tmp, uint32_t* out, int* ow, int* oh, int minW,
 		*ow = w, *oh = h;
 		for (int y = 0; y < h; ++y) {
 			for (int x = 0; x < w; ++x) {
-				uint32_t c = s->fb[(y0 + y) * GBA_W + x0 + x];
-				out[y * w + x] = c == none[(y0 + y) * GBA_W + x0 + x] ? FT_HOLE : c | 0xFF000000;
+				int i = (y0 + y) * GBA_W + x0 + x;
+				uint32_t c = s->fb[i];
+				out[y * w + x] = c == none[i] ? FT_HOLE : c | 0xFF000000;
+				if (bg3) bg3[y * w + x] = only3[i] == none[i] ? FT_HOLE : only3[i] | 0xFF000000;
 			}
 		}
 	}
@@ -1108,20 +1141,22 @@ static bool ft_cut(Emu* s, void* tmp, uint32_t* out, int* ow, int* oh, int minW,
 }
 
 /* The turn order list (L) cut out; false if it didn't open. */
-static bool ft_list(Emu* s, const void* state, void* tmp, uint32_t* out, int* ow, int* oh) {
+static uint16_t ftListBlend; /* BLDALPHA with the list up (its box over the battle) */
+static bool ft_list(Emu* s, const void* state, void* tmp, uint32_t* out, uint32_t* bg3, int* ow, int* oh) {
 	if (!emu_state_load(s, state)) return false;
 	emu_frame(s, 0);
 	if (!ft_bg0(s, FT_MAP_CNT) && !ft_bg0(s, FT_STATUS_CNT)) return false;
 	if (!ft_back(s)) return false;
 	aw_tap(s, K_L, 1);
 	aw_run(s, 0, 40);
-	return ft_cut(s, tmp, out, ow, oh, 100, 180, 100, GBA_H);
+	ftListBlend = emu_read16(s, 0x04000052);
+	return ft_cut(s, tmp, out, bg3, ow, oh, 100, 180, 100, GBA_H);
 }
 
 /* SYSTEM (Start on the map) > row (1 Mission, 2 Laws) and its window cut
  * out; false if it didn't open. The menu's rows are 16 lines apart from
  * line 48, the selected one lettered in orange. */
-static bool ft_system(Emu* s, const void* state, void* tmp, int row, uint32_t* out, int* ow, int* oh) {
+static bool ft_system(Emu* s, const void* state, void* tmp, int row, uint32_t* out, uint32_t* bg3, int* ow, int* oh) {
 	if (!emu_state_load(s, state)) return false;
 	emu_frame(s, 0);
 	if (!ft_bg0(s, FT_MAP_CNT) && !ft_bg0(s, FT_STATUS_CNT)) return false;
@@ -1144,8 +1179,8 @@ static bool ft_system(Emu* s, const void* state, void* tmp, int row, uint32_t* o
 	if (!sel) return false;
 	aw_tap(s, K_A, 1);
 	aw_run(s, 0, 40);
-	return row == 1 ? ft_cut(s, tmp, out, ow, oh, 150, GBA_W, 100, GBA_H)
-	                : ft_cut(s, tmp, out, ow, oh, 90, GBA_W, 24, 90); /* (Japan's Laws: about 104 wide) */
+	return row == 1 ? ft_cut(s, tmp, out, bg3, ow, oh, 150, GBA_W, 100, GBA_H)
+	                : ft_cut(s, tmp, out, bg3, ow, oh, 90, GBA_W, 24, 90); /* (Japan's Laws: about 104 wide) */
 }
 
 static void ft_put(uint32_t* o, int w, int h, const uint32_t* src, int sw, int sh, int px, int py) {
@@ -1205,7 +1240,7 @@ static const char* ft_world_laws(Emu* s, uint32_t* const* out, int w, int h) {
 		if (!tmp) return "out of memory";
 		static uint32_t cut[GBA_W * GBA_H];
 		int cw, ch;
-		bool ok = ft_cut(s, tmp, cut, &cw, &ch, 150, GBA_W, 100, GBA_H);
+		bool ok = ft_cut(s, tmp, cut, NULL, &cw, &ch, 150, GBA_W, 100, GBA_H);
 		free(tmp);
 		if (emu_cancelled(s)) return "called off";
 		if (!ok) return "the Laws window wasn't found";
@@ -1217,9 +1252,151 @@ static const char* ft_world_laws(Emu* s, uint32_t* const* out, int w, int h) {
 	return NULL;
 }
 
+/* FT-9 / FT-12's screen: the turn order in two columns under its LIST
+ * bar made wide enough for both, its box see-through over the Status
+ * screen's checkerboard by the list's own blend, the Laws below it
+ * without their empty fields; centred across, together centred down.
+ * lb2/lb3: the list's BG2 (lettering, bar, line) and BG3 (box) cut out,
+ * lw x lh; wb2/wb3 the Laws' (BG2 the laws' names, BG3 the window).
+ * False if the list isn't as expected (then FT-9's old way). */
+static bool ft_is_cyan(uint32_t c) { return c != FT_HOLE && ((c >> 16) & 0xFF) > (c & 0xFF) + 40; }
+static bool ft_is_tan(uint32_t c) { return c != FT_HOLE && (c & 0xFF) > ((c >> 16) & 0xFF) + 40; }
+static uint32_t ft_blend(uint32_t top, uint32_t under, int eva, int evb) {
+	uint32_t o = 0xFF000000;
+	for (int sh = 0; sh < 24; sh += 8) {
+		int v = ((int) ((top >> sh) & 0xFF) * eva + (int) ((under >> sh) & 0xFF) * evb) / 16;
+		o |= (uint32_t) (v > 255 ? 255 : v) << sh;
+	}
+	return o;
+}
+static bool ft_turn_layout(uint32_t* o, int w, int h, const uint32_t* lb2, const uint32_t* lb3, int lw, int lh,
+                           const uint32_t* wb2, const uint32_t* wb3, int aw, int ah) {
+	/* the list: its lettering in bands (the bar, an entry a band, the line) */
+	int bs[12], be[12], nb = 0;
+	for (int y = 0, on = 0; y <= lh; ++y) {
+		bool row = false;
+		for (int x = 0; y < lh && x < lw && !row; ++x) row = lb2[y * lw + x] != FT_HOLE;
+		if (row && !on && nb < 12) bs[nb] = y, on = 1;
+		else if (!row && on) be[nb++] = y - 1, on = 0;
+	}
+	int n = nb - 2, p0 = -1, p1 = -1;
+	for (int y = 0; y < lh; ++y) {
+		for (int x = 0; x < lw; ++x) {
+			if (lb3[y * lw + x] == FT_HOLE) continue;
+			if (p0 < 0) p0 = y;
+			p1 = y;
+		}
+	}
+	if (n < 1 || n > 8 || p0 <= be[0] || p1 >= bs[nb - 1]) return false;
+	int sh = n >= 2 ? (bs[n] - bs[1]) / (n - 1) : p1 - p0 + 1;
+	if (sh < 8 || p0 + n * sh > p1 + 1 + 2) return false;
+	int nL = (n + 1) / 2, nR = n - nL, right = 0;
+	for (int k = 1; k <= n; ++k) {
+		for (int y = bs[k]; y <= be[k]; ++y) {
+			for (int x = 0; x < lw; ++x) if (lb2[y * lw + x] != FT_HOLE && x > right) right = x;
+		}
+	}
+	int colW = right + 1 + 8, maxCol = (w - 8) / 2;
+	colW = colW > maxCol ? maxCol : colW;
+	int W = nR ? 2 * colW : colW, bottom = lh - 1 - p1, H = p0 + nL * sh + bottom;
+	/* the Laws: each row of fields (where the cyan field is, down its left
+	 * quarter), each field empty or not (its name a dash, or nothing) */
+	int rs[4], re[4], nr = 0;
+	for (int y = 0, on = 0; wb3 && y <= ah; ++y) {
+		bool cy = y < ah && ft_is_cyan(wb3[y * aw + aw / 4]);
+		if (cy && !on && nr < 4) rs[nr] = y, on = 1;
+		else if (!cy && on) {
+			on = 0;
+			if (y - rs[nr] >= 8) re[nr] = y - 1, ++nr; /* (a field's rows, not the heading's rim) */
+		}
+	}
+	bool full[4][2], keep[4];
+	int split[GBA_H], lawsH = 0, kept = 0;
+	for (int y = 0; y < ah && y < GBA_H; ++y) {
+		split[y] = aw;
+		for (int x = 0; x < aw; ++x) if (ft_is_tan(wb3[y * aw + x])) { split[y] = x; break; }
+	}
+	for (int r = 0; r < nr; ++r) {
+		for (int c = 0; c < 2; ++c) {
+			int x0 = aw, x1 = -1;
+			for (int y = rs[r]; y <= re[r]; ++y) {
+				for (int x = 0; x < aw; ++x) {
+					if (wb2[y * aw + x] == FT_HOLE || (x < split[(rs[r] + re[r]) / 2]) != (c == 0)) continue;
+					x0 = x < x0 ? x : x0, x1 = x > x1 ? x : x1;
+				}
+			}
+			full[r][c] = x1 - x0 + 1 >= 10; /* (a dash is about 6 wide) */
+		}
+		keep[r] = full[r][0] || full[r][1];
+		kept += keep[r];
+	}
+	/* (the window's rows: its head, each kept row with the line below it,
+	 * its foot) */
+	int rowsOf[GBA_H], nRows = 0;
+	if (kept) {
+		for (int y = 0; y < rs[0]; ++y) rowsOf[nRows++] = y;
+		for (int r = 0; r < nr; ++r) {
+			if (!keep[r]) continue;
+			for (int y = rs[r]; y <= re[r] + 1 && y < ah; ++y) rowsOf[nRows++] = y;
+		}
+		for (int y = re[nr - 1] + 2; y < ah && nRows < GBA_H; ++y) rowsOf[nRows++] = y;
+		lawsH = nRows;
+	}
+	int gap = kept ? 4 : 0, top = (h - H - gap - lawsH) / 2;
+	top = top < 0 ? 0 : top;
+	/* the checkerboard (dark grey before there's one) */
+	for (int y = 0; y < h; ++y) {
+		for (int x = 0; x < w; ++x) {
+			int cx = x - (w - GBA_W) / 2, cy = y - (h - GBA_H) / 2;
+			o[y * w + x] = ftCheckerOk && cx >= 0 && cy >= 0 && cx < GBA_W && cy < GBA_H ? ftChecker[cy * GBA_W + cx] | 0xFF000000 : SCREEN_GREY;
+		}
+	}
+	/* the list */
+	int eva = ftListBlend & 31, evb = (ftListBlend >> 8) & 31;
+	eva = eva > 16 ? 16 : eva, evb = evb > 16 ? 16 : evb;
+	if (!eva && !evb) eva = 16;
+	int ox = (w - W) / 2;
+	for (int y = 0; y < H; ++y) {
+		for (int x = 0; x < W; ++x) {
+			int sx, sy;
+			uint32_t c2 = FT_HOLE, c3 = FT_HOLE;
+			if (y < p0 || y >= p0 + nL * sh) {
+				/* the bar and the line: their left part, then their middle
+				 * repeated, then their end */
+				sx = x >= W - 8 ? lw - 8 + (x - (W - 8)) : x < lw - 8 ? x : lw - 16 + (x - (lw - 8)) % 8;
+				sy = y < p0 ? y : y - (p0 + nL * sh) + p1 + 1;
+				if (sx >= 0 && sx < lw && sy < lh) c2 = lb2[sy * lw + sx], c3 = lb3[sy * lw + sx];
+			} else {
+				int r = y - p0, col = x < colW ? 0 : 1, xx = x - col * colW, k = r / sh + col * nL;
+				if (k < n && xx < lw) c2 = lb2[(p0 + k * sh + r % sh) * lw + xx];
+				/* (the box's colours top to bottom once over the shorter box) */
+				int g = p0 + r * (p1 - p0 + 1) / (nL * sh);
+				c3 = lb3[(g > p1 ? p1 : g) * lw + lw / 2];
+			}
+			uint32_t* d = &o[(top + y) * w + ox + x];
+			if (top + y >= h || ox + x < 0 || ox + x >= w) continue;
+			if (c2 != FT_HOLE) *d = c2 | 0xFF000000;
+			else if (c3 != FT_HOLE) *d = ft_blend(c3, *d, eva, evb);
+		}
+	}
+	/* the Laws, without their empty fields */
+	int lx = (w - aw) / 2, ly = top + H + gap;
+	for (int i = 0; i < nRows; ++i) {
+		int y = rowsOf[i], r = -1;
+		for (int k = 0; k < nr; ++k) if (y >= rs[k] && y <= re[k]) r = k;
+		for (int x = 0; x < aw; ++x) {
+			if (r >= 0 && !full[r][x < split[y] ? 0 : 1]) continue;
+			uint32_t c = wb2[y * aw + x] != FT_HOLE ? wb2[y * aw + x] : wb3[y * aw + x];
+			int dx = lx + x, dy = ly + i;
+			if (c != FT_HOLE && dx >= 0 && dy >= 0 && dx < w && dy < h) o[dy * w + dx] = c | 0xFF000000;
+		}
+	}
+	return true;
+}
+
 static const char* ft_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
 	static uint32_t page[2][GBA_W * GBA_H];
-	static uint32_t win[2][GBA_W * GBA_H]; /* the turn order, the Laws */
+	static uint32_t win[2][GBA_W * GBA_H], win3[2][GBA_W * GBA_H]; /* the turn order, the Laws: BG2, BG3 */
 	static int pages, ww[2], wh[2], age;
 	static uint32_t key;
 	int max = *nOut;
@@ -1240,14 +1417,29 @@ static const char* ft_compose(Emu* s, const void* state, uint32_t* const* out, i
 	void* tmp = malloc(emu_state_size(s));
 	if (!tmp) return "out of memory";
 	if (again) {
-		static uint32_t np[2][GBA_W * GBA_H], nw[2][GBA_W * GBA_H];
+		static uint32_t np[2][GBA_W * GBA_H], nw[2][GBA_W * GBA_H], nw3[2][GBA_W * GBA_H];
 		/* a unit under the cursor: its Status (FT-8); else the turn order
 		 * and the Laws (FT-9, FT-12); kept only if the capture wasn't
 		 * called off on the way (the cursor moved on) */
 		bool st = ft_status(s, state, np), ok[2] = { false, false };
 		int a[2] = { 0 }, b[2] = { 0 };
 		for (int i = 0; !st && i < 2; ++i) {
-			ok[i] = i == 0 ? ft_list(s, state, tmp, nw[i], &a[i], &b[i]) : ft_system(s, state, tmp, 2, nw[i], &a[i], &b[i]);
+			ok[i] = i == 0 ? ft_list(s, state, tmp, nw[i], nw3[i], &a[i], &b[i]) : ft_system(s, state, tmp, 2, nw[i], nw3[i], &a[i], &b[i]);
+		}
+		/* (no checkerboard yet: the first unit's Status, once, by A on the
+		 * list's first: FT-9) */
+		if (!st && !ftCheckerOk && !emu_cancelled(s) && emu_state_load(s, state)) {
+			emu_frame(s, 0);
+			if (ft_back(s)) {
+				aw_tap(s, K_L, 1);
+				aw_run(s, 0, 40);
+				aw_tap(s, K_A, 1);
+				aw_run(s, 0, 30);
+				void* at = malloc(emu_state_size(s));
+				static uint32_t scratch[2][GBA_W * GBA_H];
+				if (at && emu_state_save(s, at)) ft_status(s, at, scratch);
+				free(at);
+			}
 		}
 		if (emu_cancelled(s)) {
 			free(tmp);
@@ -1258,7 +1450,7 @@ static const char* ft_compose(Emu* s, const void* state, uint32_t* const* out, i
 		} else {
 			pages = 0;
 			for (int i = 0; i < 2; ++i) {
-				if (ok[i]) memcpy(win[i], nw[i], (size_t) a[i] * b[i] * 4), ww[i] = a[i], wh[i] = b[i];
+				if (ok[i]) memcpy(win[i], nw[i], (size_t) a[i] * b[i] * 4), memcpy(win3[i], nw3[i], (size_t) a[i] * b[i] * 4), ww[i] = a[i], wh[i] = b[i];
 			}
 		}
 		key = k, age = 0;
@@ -1273,10 +1465,17 @@ static const char* ft_compose(Emu* s, const void* state, uint32_t* const* out, i
 			ft_put(o, w, h, page[n], GBA_W, GBA_H, (w - GBA_W) / 2, (h - GBA_H) / 2);
 			continue;
 		}
-		/* the Laws above the turn order, each centred across, the two
-		 * centred down the screen; where they don't both fit (the list's 8
-		 * rows don't), the Laws at the top and the list's last rows off
-		 * the bottom (its first ones, who acts next, matter most) */
+		/* FT-9: the turn order in two columns over the checkerboard, the
+		 * Laws below */
+		if (ww[0] && ft_turn_layout(o, w, h, win[0], win3[0], ww[0], wh[0], ww[1] ? win[1] : NULL, ww[1] ? win3[1] : NULL, ww[1], ww[1] ? wh[1] : 0)) continue;
+		/* (else as before: the Laws above the list, its last rows off the
+		 * bottom) */
+		for (int y = 0; y < wh[1] && ww[1]; ++y) {
+			for (int x = 0; x < ww[1]; ++x) if (win[1][y * ww[1] + x] == FT_HOLE) win[1][y * ww[1] + x] = win3[1][y * ww[1] + x];
+		}
+		for (int y = 0; y < wh[0] && ww[0]; ++y) {
+			for (int x = 0; x < ww[0]; ++x) if (win[0][y * ww[0] + x] == FT_HOLE) win[0][y * ww[0] + x] = win3[0][y * ww[0] + x];
+		}
 		int lh = ww[1] ? wh[1] : 0, th = ww[0] ? wh[0] : 0;
 		int y0 = lh + th <= h ? (h - lh - th) / 2 : 0;
 		if (ww[1]) ft_put(o, w, h, win[1], ww[1], wh[1], (w - ww[1]) / 2, y0);

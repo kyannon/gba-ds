@@ -10,6 +10,7 @@
 - **Sonic Advance:** the zone card on the second screen could show the character's name cut off at the top, as with Knuckles. The card now takes the character's name from a moment it's whole, and the zone's name from the moment it's centred (#15).
 
 ### Changes
+- **Final Fantasy Tactics Advance:** with the cursor on no unit, the second screen now shows the whole turn order (01 to 08) in two columns under one LIST bar, its blue box see-through over the Status screen's checkerboard as the game has it over the battle, with the Laws below it. Empty laws (a dash) aren't drawn. Before, the list was below the Laws and its last rows were cut off.
 - **Advance Wars, Advance Wars 2 and Game Boy Wars Advance 1+2:** the unit intel's panel is always at the right of the second screen and its text box at the top left. The game moves both away from the cursor; the second screen no longer follows.
 - **Advance Wars, Advance Wars 2 and Game Boy Wars Advance 1+2:** with a unit's intel up, the battle's minimap (the one START opens) is back on the second screen, at the bottom left under the text box.
 - **Advance Wars, Advance Wars 2 and Game Boy Wars Advance 1+2:** the unit intel, its text and the minimap now share one frame across the whole second screen, made of the game's own window background, with a thin edge in the colour of the panel's outline (red or blue in Advance Wars 2). The panel joins it without its own border or its INTEL label.

@@ -192,6 +192,7 @@ def select(base=None):
             src = open(full).read() if os.path.exists(full) else ""
             defs = definitions(src)
             reach = profile_games(src, defs, codes, mentions)
+            reached = set()
             for ln in sorted(changed_lines(base, path)):
                 hit = [d for d in defs if d[1] <= ln <= d[2]]
                 if not hit:  # (a comment or blank line between definitions: the one below it)
@@ -201,8 +202,9 @@ def select(base=None):
                     everything = True
                     reasons.append("%s:%d: %s (shared code)" % (path, ln, hit[0][0] if hit else "outside any definition"))
                     break
-                if games - slugs:
+                if games - reached:
                     reasons.append("%s:%d: %s -> %s" % (path, ln, hit[0][0], " ".join(sorted(games))))
+                reached |= games
                 slugs |= games
             continue
         if path.startswith(NO_EFFECT) or path.startswith("docs/games/README"):
