@@ -516,17 +516,147 @@ void ui_shutdown(void) {
 	SDL_Quit();
 }
 
+static void layout_screens(void);
+
 void ui_layout(void) {
+	layout_screens();
+	ui_layout_pictures();
+}
+
+bool ui_screens_differ(void) {
+	if (nScreens < 2) return false;
+	double a0 = (double) screens[0].rect.w / SDL_max(1, screens[0].rect.h);
+	double a1 = (double) screens[1].rect.w / SDL_max(1, screens[1].rect.h);
+	return fabs(a0 - a1) > 0.02 * SDL_max(a0, a1);
+}
+
+/* Dual-screen handhelds whose screens' sizes we know (docs/devices.csv): the
+ * top and bottom screens' resolutions (either way round) and diagonals in
+ * inches, for their pixels per inch, which what Android reports doesn't
+ * always match. Two with the same resolutions (the Retroid Pocket Duo and
+ * Duo Lite): the one nearer what the system reports, else the first. */
+static const struct {
+	const char* name;
+	int tw, th; float tin;
+	int bw, bh; float bin;
+} knownDevices[] = {
+	{ "AYN Thor", 1920, 1080, 6.0f, 1240, 1080, 3.92f },
+	{ "Retroid Pocket Duo", 1920, 1080, 5.5f, 1280, 960, 4.5f },
+	{ "Retroid Pocket Duo Lite", 1920, 1080, 5.5f, 1280, 960, 4.2f },
+	{ "AYANEO Pocket DS", 1920, 1080, 7.0f, 1024, 768, 5.0f },
+	{ "Anbernic RG DDS", 1200, 720, 4.7f, 960, 720, 4.0f },
+	{ "Anbernic RG DS Plus", 1024, 768, 4.3f, 1024, 768, 4.3f },
+	{ "Anbernic RG DS", 640, 480, 4.0f, 640, 480, 4.0f },
+};
+
+static bool same_res(int w, int h, int kw, int kh) {
+	return (w == kw && h == kh) || (w == kh && h == kw);
+}
+
+/* the system's own figure: Android's DisplayMetrics, or SDL's with a window per display */
+static float reported_ppi(int screen) {
+	int v = screens[screen].view;
+	float ppi = 0;
+#ifdef __ANDROID__
+	ppi = android_display_ppi(v);
+#else
+	if (nViews == 2) {
+		float d = 0;
+		int di = SDL_GetWindowDisplayIndex(views[v].win);
+		if (di >= 0 && SDL_GetDisplayDPI(di, &d, NULL, NULL) == 0) ppi = d;
+	}
+#endif
+	return ppi >= 80 && ppi <= 1000 ? ppi : 0; /* (anything else is a made-up value) */
+}
+
+float ui_screen_ppi(int screen) {
+	if (screen < 0 || screen >= nScreens) return 0;
+	float top = 0, bottom = 0;
+	if (cfg->screenPpi[0] && sscanf(cfg->screenPpi, "%f,%f", &top, &bottom) == 2 && top > 0 && bottom > 0) return screen ? bottom : top;
+	if (nScreens == 2) {
+		const SDL_Rect* t = &screens[0].rect;
+		const SDL_Rect* b = &screens[1].rect;
+		int pick = -1;
+		float best = 1e9f, rb = reported_ppi(1);
+		for (int i = 0; i < (int) SDL_arraysize(knownDevices); ++i) {
+			if (!same_res(t->w, t->h, knownDevices[i].tw, knownDevices[i].th) || !same_res(b->w, b->h, knownDevices[i].bw, knownDevices[i].bh)) continue;
+			float bp = hypotf(knownDevices[i].bw, knownDevices[i].bh) / knownDevices[i].bin;
+			float d = rb > 0 ? fabsf(bp - rb) : (pick < 0 ? 0 : 1e9f);
+			if (d < best) best = d, pick = i;
+		}
+		if (pick >= 0) {
+			static int logged = -1;
+			if (logged != pick) logged = pick, fprintf(stderr, "screens: known device, %s\n", knownDevices[pick].name);
+			return screen ? hypotf(knownDevices[pick].bw, knownDevices[pick].bh) / knownDevices[pick].bin
+			              : hypotf(knownDevices[pick].tw, knownDevices[pick].th) / knownDevices[pick].tin;
+		}
+	}
+	return reported_ppi(screen);
+}
+
+/* screen_match (Display: screen shapes; experimental): the wider screen's
+ * pictures keep to the other screen's shape (aspect: the largest such area,
+ * centred), or also its real size (size: by the screens' pixels per inch,
+ * against the edge nearest the other screen: a top screen's bottom), so a
+ * picture that goes on over both (Pokémon Pinball's table) carries on
+ * across. Nothing when the shapes already match. */
+void ui_layout_pictures(void) {
+	for (int i = 0; i < nScreens; ++i) screens[i].pic = (SDL_Rect) { 0, 0, screens[i].rect.w, screens[i].rect.h };
+	bool aspect = !strcmp(cfg->screenMatch, "aspect"), size = !strcmp(cfg->screenMatch, "size");
+	static char logged[64];
+	char note[64] = "";
+	if ((aspect || size) && ui_screens_differ()) {
+		double a0 = (double) screens[0].rect.w / screens[0].rect.h, a1 = (double) screens[1].rect.w / screens[1].rect.h;
+		int wide = a0 > a1 ? 0 : 1, narrow = 1 - wide;
+		const SDL_Rect* W = &screens[wide].rect;
+		const SDL_Rect* N = &screens[narrow].rect;
+		double a = (double) N->w / N->h;
+		int w = W->h * a + 0.5, h = W->h;
+		float pw = ui_screen_ppi(wide), pn = ui_screen_ppi(narrow);
+		if (size && pw > 0 && pn > 0) w = N->w * pw / pn + 0.5, h = N->h * pw / pn + 0.5;
+		else if (size) snprintf(note, sizeof(note), " (sizes not known: shapes only)");
+		if (w > W->w) h = h * W->w / w, w = W->w;
+		if (h > W->h) w = w * W->h / h, h = W->h;
+		int y = size ? (wide == 0 ? W->h - h : 0) : (W->h - h) / 2;
+		screens[wide].pic = (SDL_Rect) { (W->w - w) / 2, y, w, h };
+		snprintf(note + strlen(note), sizeof(note) - strlen(note), " %dx%d on screen %d", w, h, wide);
+	}
+	char line[64];
+	snprintf(line, sizeof(line), "%s%s", cfg->screenMatch, note);
+	if (strcmp(line, logged)) {
+		snprintf(logged, sizeof(logged), "%s", line);
+		fprintf(stderr, "screen shapes: %s (ppi %.0f / %.0f)\n", line, ui_screen_ppi(0), ui_screen_ppi(1));
+	}
+}
+
+static void layout_screens(void) {
 	if (nViews == 2) {
 		nScreens = 2;
+#ifdef __ANDROID__
+		/* screens in physical order as on ROCKNIX (0 top: the game; 1 bottom:
+		 * the menus). Android doesn't say where its displays are: with two
+		 * of a size, the activity's (view 0, display 0) is the bottom one,
+		 * as on the RG DS; else the larger one is on top, as on the AYN Thor
+		 * (1920x1080 over 1240x1080) and other clamshells. top_screen = app
+		 * / second says which instead. */
+		int w0, h0, w1, h1;
+		view_size(0, &w0, &h0);
+		view_size(1, &w1, &h1);
+		bool appOnTop = !strcmp(cfg->topScreen, "app") ? true
+		                : !strcmp(cfg->topScreen, "second") ? false
+		                : (long) w0 * h0 > (long) w1 * h1 * 11 / 10;
+		static int logged = -1;
+		if (logged != appOnTop) {
+			logged = appOnTop;
+			fprintf(stderr, "screens: %s on top (%dx%d over %dx%d; top_screen = %s)\n", appOnTop ? "the app's display" : "the second display",
+			        appOnTop ? w0 : w1, appOnTop ? h0 : h1, appOnTop ? w1 : w0, appOnTop ? h1 : h0, cfg->topScreen);
+		}
+#endif
 		for (int i = 0; i < 2; ++i) {
 			int w, h;
 			view_size(i, &w, &h);
 #ifdef __ANDROID__
-			/* screens in physical order as on ROCKNIX (0 top: the game; 1 bottom:
-			 * the touchscreen). The activity, view 0, runs on display 0, which on
-			 * the RG DS is the bottom (touch) screen; the top is the second display. */
-			screens[1 - i] = (Screen) { i, { 0, 0, w, h } };
+			screens[appOnTop ? i : 1 - i] = (Screen) { i, { 0, 0, w, h } };
 #else
 			screens[i] = (Screen) { i, { 0, 0, w, h } };
 #endif
@@ -535,6 +665,16 @@ void ui_layout(void) {
 	}
 	int w, h;
 	SDL_GetRendererOutputSize(views[0].ren, &w, &h);
+	/* tests: two screens of other sizes stacked in the window (the top one
+	 * first), as on devices whose screens differ: GBADS_SCREENS=1920x1080,1240x1080
+	 * (with GBADS_WINDOW the larger width x the heights together) */
+	int tw0, th0, tw1, th1;
+	if (getenv("GBADS_SCREENS") && sscanf(getenv("GBADS_SCREENS"), "%dx%d,%dx%d", &tw0, &th0, &tw1, &th1) == 4) {
+		nScreens = 2;
+		screens[0] = (Screen) { 0, { (w - tw0) / 2, 0, tw0, th0 } };
+		screens[1] = (Screen) { 0, { (w - tw1) / 2, th0, tw1, th1 } };
+		return;
+	}
 	const char* lay = cfg->layout;
 	if (!strcmp(lay, "auto") || !strcmp(lay, "dual")) {
 		lay = w >= h * 18 / 10 ? "span-h" : h >= w * 12 / 10 ? "span-v" : "single";
@@ -1598,8 +1738,8 @@ void ui_image_pixels(int screen, SDL_Texture* const* texPerView, int w, int h, c
 	int v = s->view;
 	SDL_Renderer* ren = views[v].ren;
 	SDL_Texture* src = texPerView[v];
-	SDL_Rect dst;
-	fit_rect(&s->rect, w, h, mode, &dst);
+	SDL_Rect dst, pic = { s->rect.x + s->pic.x, s->rect.y + s->pic.y, s->pic.w, s->pic.h };
+	fit_rect(&pic, w, h, mode, &dst);
 	/* zoom can be wider than the screen: keep it off the other screen */
 	bool clip = dst.x < s->rect.x || dst.y < s->rect.y || dst.x + dst.w > s->rect.x + s->rect.w ||
 	            dst.y + dst.h > s->rect.y + s->rect.h;
@@ -1674,7 +1814,7 @@ static void draw_pixels(SDL_Renderer* ren, int v, SDL_Texture* src, int w, int h
 }
 
 SDL_Rect ui_image_rect(int screen, int w, int h, const char* mode) {
-	SDL_Rect area = { 0, 0, screens[screen].rect.w, screens[screen].rect.h }, dst;
+	SDL_Rect area = screens[screen].pic, dst;
 	fit_rect(&area, w, h, mode, &dst);
 	return dst;
 }

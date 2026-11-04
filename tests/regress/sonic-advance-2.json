@@ -1,0 +1,1062 @@
+{
+ "game": "Sonic Advance 2",
+ "rules": "docs/games/sonic-advance-2.md",
+ "cases": [
+  {
+   "id": "sa2-us-title",
+   "rom": "A2NE",
+   "state": "sonic-advance-2/us-title.ss",
+   "desc": "the title, just before PRESS START shows (a player's bug report): the logo",
+   "rules": [
+    "SA2-1"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "SA2-1",
+     "what": "no card, no HUD",
+     "type": "no_log",
+     "match": "title card|HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "sa2-eu-title",
+   "rom": "A2NP",
+   "state": "sonic-advance-2/eu-title.ss",
+   "desc": "the title, just before PRESS START shows (played in from power-on): the logo",
+   "rules": [
+    "SA2-1"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "SA2-1",
+     "what": "no card, no HUD",
+     "type": "no_log",
+     "match": "title card|HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "sa2-jp-title",
+   "rom": "A2NJ",
+   "state": "sonic-advance-2/jp-title.ss",
+   "desc": "the title, just before PRESS START shows (played in from power-on): the logo",
+   "rules": [
+    "SA2-1"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "SA2-1",
+     "what": "no card, no HUD",
+     "type": "no_log",
+     "match": "title card|HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "sa2-us-card",
+   "rom": "A2NE",
+   "state": "sonic-advance-2/us-card-lead-in.ss",
+   "desc": "character select into Leaf Forest act 1, Sonic (a player's bug report), nothing pressed, then pause: the card on both screens, kept on the second through the wipe; the rings, score and time at its bottom left and the lives at its bottom right, gone from the game screen; the pause window on the game screen",
+   "rules": [
+    "SA2-2",
+    "SA2-3",
+    "SA2-4",
+    "SA2-5"
+   ],
+   "input": [
+    [
+     330,
+     "START"
+    ],
+    [
+     335,
+     "-"
+    ]
+   ],
+   "shots": {
+    "card": 120,
+    "wipe": 170,
+    "play": 300,
+    "pause": 370
+   },
+   "checks": [
+    {
+     "rule": "SA2-2",
+     "what": "the card taken",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA2-2",
+     "what": "the card on the second screen, not the logo",
+     "type": "not_uniform",
+     "shot": "card",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SA2-2",
+     "what": "the card kept, at full strength, through the wipe",
+     "type": "same",
+     "a": {
+      "shot": "card",
+      "rect": [
+       200,
+       0,
+       1023,
+       600
+      ]
+     },
+     "b": {
+      "shot": "wipe",
+      "rect": [
+       200,
+       0,
+       1023,
+       600
+      ]
+     }
+    },
+    {
+     "rule": "SA2-2",
+     "what": "the card kept in play",
+     "type": "same",
+     "a": {
+      "shot": "card",
+      "rect": [
+       200,
+       0,
+       1023,
+       600
+      ]
+     },
+     "b": {
+      "shot": "play",
+      "rect": [
+       200,
+       0,
+       1023,
+       600
+      ]
+     }
+    },
+    {
+     "rule": "SA2-3",
+     "what": "the rings, score and time at the bottom of the second screen",
+     "type": "differs",
+     "a": {
+      "shot": "card",
+      "rect": [
+       4,
+       624,
+       623,
+       749
+      ]
+     },
+     "b": {
+      "shot": "play",
+      "rect": [
+       4,
+       624,
+       623,
+       749
+      ]
+     },
+     "frac": 0.05
+    },
+    {
+     "rule": "SA2-4",
+     "what": "the lives at the bottom right of the second screen",
+     "type": "differs",
+     "a": {
+      "shot": "card",
+      "rect": [
+       862,
+       677,
+       998,
+       749
+      ]
+     },
+     "b": {
+      "shot": "play",
+      "rect": [
+       862,
+       677,
+       998,
+       749
+      ]
+     },
+     "frac": 0.05
+    },
+    {
+     "rule": "SA2-5",
+     "what": "the pause window on the game screen",
+     "type": "differs",
+     "a": {
+      "shot": "play",
+      "screen": "game",
+      "rect": [
+       400,
+       300,
+       620,
+       440
+      ]
+     },
+     "b": {
+      "shot": "pause",
+      "screen": "game",
+      "rect": [
+       400,
+       300,
+       620,
+       440
+      ]
+     },
+     "frac": 0.2
+    },
+    {
+     "rule": "SA2-5",
+     "what": "the second screen as it was",
+     "type": "same",
+     "a": {
+      "shot": "play",
+      "rect": [
+       200,
+       0,
+       1023,
+       600
+      ]
+     },
+     "b": {
+      "shot": "pause",
+      "rect": [
+       200,
+       0,
+       1023,
+       600
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "sa2-us-play",
+   "rom": "A2NE",
+   "state": "sonic-advance-2/us-play.ss",
+   "desc": "Leaf Forest act 1 just after its card (a player's bug report; the card was before the state): the logo above the moved HUD",
+   "rules": [
+    "SA2-2",
+    "SA2-3",
+    "SA2-4"
+   ],
+   "shots": {
+    "start": 30,
+    "later": 200
+   },
+   "checks": [
+    {
+     "rule": "SA2-2",
+     "what": "no card taken",
+     "type": "no_log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA2-3",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "sa2-us-single",
+   "rom": "A2NE",
+   "state": "sonic-advance-2/us-card-lead-in.ss",
+   "desc": "the same into Leaf Forest with one screen: the game as it is, HUD and all",
+   "rules": [
+    "SA2-6"
+   ],
+   "config": {
+    "layout": "single"
+   },
+   "shots": {
+    "play": 300
+   },
+   "checks": [
+    {
+     "rule": "SA2-6",
+     "what": "nothing moved",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "sa2-eu-single",
+   "rom": "A2NP",
+   "state": "sonic-advance-2/eu-card-lead-in.ss",
+   "desc": "into Leaf Forest with one screen: the game as it is, HUD and all",
+   "rules": [
+    "SA2-6"
+   ],
+   "config": {
+    "layout": "single"
+   },
+   "shots": {
+    "play": 330
+   },
+   "checks": [
+    {
+     "rule": "SA2-6",
+     "what": "nothing moved",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "sa2-jp-single",
+   "rom": "A2NJ",
+   "state": "sonic-advance-2/jp-card-lead-in.ss",
+   "desc": "into Leaf Forest with one screen: the game as it is, HUD and all",
+   "rules": [
+    "SA2-6"
+   ],
+   "config": {
+    "layout": "single"
+   },
+   "shots": {
+    "play": 330
+   },
+   "checks": [
+    {
+     "rule": "SA2-6",
+     "what": "nothing moved",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "sa2-eu-card",
+   "rom": "A2NP",
+   "state": "sonic-advance-2/eu-card-lead-in.ss",
+   "desc": "Europe: Sonic chosen at character select (a new game from power-on), into Leaf Forest: the card and the HUD on the second screen; then pause, its window on the game screen",
+   "rules": [
+    "SA2-2",
+    "SA2-3",
+    "SA2-4",
+    "SA2-5"
+   ],
+   "shots": {
+    "play": 330,
+    "pause": 380
+   },
+   "checks": [
+    {
+     "rule": "SA2-2",
+     "what": "the card taken",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA2-2",
+     "what": "the card on the second screen",
+     "type": "not_uniform",
+     "shot": "play",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SA2-5",
+     "what": "the pause window on the game screen",
+     "type": "differs",
+     "a": {
+      "shot": "play",
+      "screen": "game",
+      "rect": [
+       400,
+       300,
+       620,
+       440
+      ]
+     },
+     "b": {
+      "shot": "pause",
+      "screen": "game",
+      "rect": [
+       400,
+       300,
+       620,
+       440
+      ]
+     },
+     "frac": 0.2
+    },
+    {
+     "rule": "SA2-5",
+     "what": "the second screen as it was",
+     "type": "same",
+     "a": {
+      "shot": "play",
+      "rect": [
+       200,
+       0,
+       1023,
+       600
+      ]
+     },
+     "b": {
+      "shot": "pause",
+      "rect": [
+       200,
+       0,
+       1023,
+       600
+      ]
+     }
+    }
+   ],
+   "input": [
+    [
+     340,
+     "START"
+    ],
+    [
+     345,
+     "-"
+    ]
+   ]
+  },
+  {
+   "id": "sa2-jp-card",
+   "rom": "A2NJ",
+   "state": "sonic-advance-2/jp-card-lead-in.ss",
+   "desc": "Japan: Sonic chosen at character select (a new game from power-on), into Leaf Forest: the card and the HUD on the second screen; then pause, its window on the game screen",
+   "rules": [
+    "SA2-2",
+    "SA2-3",
+    "SA2-4",
+    "SA2-5"
+   ],
+   "shots": {
+    "play": 330,
+    "pause": 380
+   },
+   "checks": [
+    {
+     "rule": "SA2-2",
+     "what": "the card taken",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA2-2",
+     "what": "the card on the second screen",
+     "type": "not_uniform",
+     "shot": "play",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SA2-5",
+     "what": "the pause window on the game screen",
+     "type": "differs",
+     "a": {
+      "shot": "play",
+      "screen": "game",
+      "rect": [
+       400,
+       300,
+       620,
+       440
+      ]
+     },
+     "b": {
+      "shot": "pause",
+      "screen": "game",
+      "rect": [
+       400,
+       300,
+       620,
+       440
+      ]
+     },
+     "frac": 0.2
+    },
+    {
+     "rule": "SA2-5",
+     "what": "the second screen as it was",
+     "type": "same",
+     "a": {
+      "shot": "play",
+      "rect": [
+       200,
+       0,
+       1023,
+       600
+      ]
+     },
+     "b": {
+      "shot": "pause",
+      "rect": [
+       200,
+       0,
+       1023,
+       600
+      ]
+     }
+    }
+   ],
+   "input": [
+    [
+     340,
+     "START"
+    ],
+    [
+     345,
+     "-"
+    ]
+   ]
+  },
+  {
+   "id": "sa2-us-water",
+   "rom": "A2NE",
+   "state": "sonic-advance-2/us-water-lead-in.ss",
+   "desc": "Leaf Forest act 1, into the water by the waterfall and out again (a player's bug report, USA, its keys played back): the rings, score, time and lives on the second screen throughout (the logo above them: no card seen yet)",
+   "rules": [
+    "SA2-3",
+    "SA2-4",
+    "SA2-7"
+   ],
+   "input": [
+    [
+     176,
+     "RIGHT"
+    ],
+    [
+     292,
+     "-"
+    ],
+    [
+     314,
+     "LEFT"
+    ],
+    [
+     332,
+     "-"
+    ],
+    [
+     340,
+     "RIGHT"
+    ],
+    [
+     355,
+     "-"
+    ],
+    [
+     360,
+     "LEFT"
+    ],
+    [
+     369,
+     "A+LEFT"
+    ],
+    [
+     383,
+     "LEFT"
+    ],
+    [
+     423,
+     "-"
+    ],
+    [
+     433,
+     "RIGHT"
+    ],
+    [
+     450,
+     "-"
+    ],
+    [
+     488,
+     "RIGHT"
+    ],
+    [
+     504,
+     "-"
+    ],
+    [
+     570,
+     "LEFT"
+    ],
+    [
+     588,
+     "-"
+    ]
+   ],
+   "shots": {
+    "under": 180,
+    "out": 420
+   },
+   "checks": [
+    {
+     "rule": "SA2-3",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "SA2-7",
+     "what": "the HUD still there under water",
+     "type": "not_uniform",
+     "shot": "under",
+     "screen": "second",
+     "rect": [
+      4,
+      624,
+      623,
+      749
+     ],
+     "color": "303030",
+     "frac": 0.9
+    },
+    {
+     "rule": "SA2-7",
+     "what": "the lives still there under water",
+     "type": "not_uniform",
+     "shot": "under",
+     "screen": "second",
+     "rect": [
+      862,
+      677,
+      998,
+      749
+     ],
+     "color": "303030",
+     "frac": 0.9
+    }
+   ]
+  },
+  {
+   "id": "sa2-jp-water",
+   "rom": "A2NJ",
+   "state": "sonic-advance-2/jp-water.ss",
+   "desc": "Leaf Forest act 1 in the water, Sonic under it (a player's bug report, Japan; nothing pressed): the rings, score, time and lives stay on the second screen (the logo above them: no card seen yet)",
+   "rules": [
+    "SA2-7",
+    "SA2-3",
+    "SA2-4"
+   ],
+   "shots": {
+    "under": 100,
+    "later": 420
+   },
+   "checks": [
+    {
+     "rule": "SA2-7",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "SA2-7",
+     "what": "the HUD still there under water",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      4,
+      624,
+      623,
+      749
+     ],
+     "color": "303030",
+     "frac": 0.9
+    },
+    {
+     "rule": "SA2-7",
+     "what": "the lives still there under water",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      862,
+      677,
+      998,
+      749
+     ],
+     "color": "303030",
+     "frac": 0.9
+    }
+   ]
+  },
+  {
+   "id": "sa2-eu-water",
+   "rom": "A2NP",
+   "state": "sonic-advance-2/eu-water-lead-in.ss",
+   "desc": "Leaf Forest act 1, running on into the water (a player's bug report, Europe, its keys played back): the rings, score, time and lives on the second screen above and under the water (the logo above them: no card seen yet)",
+   "rules": [
+    "SA2-3",
+    "SA2-4",
+    "SA2-7"
+   ],
+   "input": [
+    [
+     0,
+     "RIGHT"
+    ],
+    [
+     82,
+     "A+RIGHT"
+    ],
+    [
+     93,
+     "RIGHT"
+    ],
+    [
+     278,
+     "-"
+    ],
+    [
+     344,
+     "RIGHT"
+    ],
+    [
+     473,
+     "-"
+    ],
+    [
+     546,
+     "LEFT"
+    ],
+    [
+     551,
+     "-"
+    ],
+    [
+     585,
+     "RIGHT"
+    ],
+    [
+     591,
+     "-"
+    ]
+   ],
+   "shots": {
+    "play": 240,
+    "under": 420,
+    "out": 600
+   },
+   "checks": [
+    {
+     "rule": "SA2-3",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "SA2-7",
+     "what": "the HUD still there under water",
+     "type": "not_uniform",
+     "shot": "under",
+     "screen": "second",
+     "rect": [
+      4,
+      624,
+      623,
+      749
+     ],
+     "color": "303030",
+     "frac": 0.9
+    },
+    {
+     "rule": "SA2-7",
+     "what": "the lives still there under water",
+     "type": "not_uniform",
+     "shot": "under",
+     "screen": "second",
+     "rect": [
+      862,
+      677,
+      998,
+      749
+     ],
+     "color": "303030",
+     "frac": 0.9
+    }
+   ]
+  },
+  {
+   "id": "sa2-us-saved-card",
+   "rom": "A2NE",
+   "state": "sonic-advance-2/us-saved-card.ss",
+   "desc": "a state saved by GBA DS mid-act (a player's bug report, USA), with Leaf Forest's card on the second screen; then a state without one loaded over it",
+   "rules": [
+    "GEN-7",
+    "SA2-2"
+   ],
+   "input": [
+    [
+     60,
+     "LOAD:sonic-advance-2/us-play.ss"
+    ]
+   ],
+   "shots": {
+    "start": 2,
+    "after": 90
+   },
+   "checks": [
+    {
+     "rule": "GEN-7",
+     "what": "the card from the state",
+     "type": "log",
+     "match": "second screen from it \\( card\\)"
+    },
+    {
+     "rule": "GEN-7",
+     "what": "the card on the first frames",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      560
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "GEN-7",
+     "what": "the card is gone after an older state",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       560
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       32,
+       64,
+       992,
+       560
+      ]
+     },
+     "frac": 0.2
+    }
+   ]
+  },
+  {
+   "id": "sa2-eu-saved-card",
+   "rom": "A2NP",
+   "state": "sonic-advance-2/eu-saved-card.ss",
+   "desc": "a state saved by GBA DS mid-act (a player's bug report, Europe), with Leaf Forest's card on the second screen; then a state without one loaded over it",
+   "rules": [
+    "GEN-7",
+    "SA2-2"
+   ],
+   "input": [
+    [
+     60,
+     "LOAD:sonic-advance-2/eu-water-lead-in.ss"
+    ]
+   ],
+   "shots": {
+    "start": 2,
+    "after": 90
+   },
+   "checks": [
+    {
+     "rule": "GEN-7",
+     "what": "the card from the state",
+     "type": "log",
+     "match": "second screen from it \\( card\\)"
+    },
+    {
+     "rule": "GEN-7",
+     "what": "the card on the first frames",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      560
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "GEN-7",
+     "what": "the card is gone after an older state",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       560
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       32,
+       64,
+       992,
+       560
+      ]
+     },
+     "frac": 0.2
+    }
+   ]
+  },
+  {
+   "id": "sa2-jp-saved-card",
+   "rom": "A2NJ",
+   "state": "sonic-advance-2/jp-saved-card.ss",
+   "desc": "a state saved by GBA DS mid-act (a player's bug report, Japan), with Leaf Forest's card on the second screen; then a state without one loaded over it",
+   "rules": [
+    "GEN-7",
+    "SA2-2"
+   ],
+   "input": [
+    [
+     60,
+     "LOAD:sonic-advance-2/jp-water.ss"
+    ]
+   ],
+   "shots": {
+    "start": 2,
+    "after": 90
+   },
+   "checks": [
+    {
+     "rule": "GEN-7",
+     "what": "the card from the state",
+     "type": "log",
+     "match": "second screen from it \\( card\\)"
+    },
+    {
+     "rule": "GEN-7",
+     "what": "the card on the first frames",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      560
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "GEN-7",
+     "what": "the card is gone after an older state",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       560
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       32,
+       64,
+       992,
+       560
+      ]
+     },
+     "frac": 0.2
+    }
+   ]
+  },
+  {
+   "id": "sa2-logo-a2ne",
+   "kind": "logo",
+   "rom": "A2NE",
+   "desc": "A2NE logo extraction",
+   "rules": [
+    "GEN-1",
+    "SA2-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "sa2-logo-a2np",
+   "kind": "logo",
+   "rom": "A2NP",
+   "desc": "A2NP logo extraction",
+   "rules": [
+    "GEN-1",
+    "SA2-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "sa2-logo-a2nj",
+   "kind": "logo",
+   "rom": "A2NJ",
+   "desc": "A2NJ logo extraction",
+   "rules": [
+    "GEN-1",
+    "SA2-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

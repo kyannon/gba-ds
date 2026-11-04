@@ -18,6 +18,7 @@ import android.provider.DocumentsContract;
 import android.system.ErrnoException;
 import android.system.Os;
 import android.text.InputType;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Display;
@@ -170,6 +171,13 @@ public class GbaDsActivity extends SDLActivity {
         Point size = new Point();
         other.getRealSize(size);
         SecondScreen.nativeSetDisplay(size.x, size.y);
+        /* pixels per inch of each (screen_match = size; some devices report
+         * made-up values, which the native side leaves out) */
+        DisplayMetrics mineDm = new DisplayMetrics(), otherDm = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getRealMetrics(mineDm);
+        other.getRealMetrics(otherDm);
+        Log.i(TAG, "display ppi: " + mineDm.xdpi + " x " + mineDm.ydpi + " (game activity), " + otherDm.xdpi + " x " + otherDm.ydpi + " (second)");
+        SecondScreen.nativeSetPpi((mineDm.xdpi + mineDm.ydpi) / 2, (otherDm.xdpi + otherDm.ydpi) / 2);
         second = new SecondScreen(this, other);
         try {
             second.show();

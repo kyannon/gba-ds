@@ -721,6 +721,20 @@ JNIEXPORT void JNICALL Java_io_github_kyannon_gbads_SecondScreen_nativeSetDispla
 	pthread_mutex_unlock(&winLock);
 }
 
+/* the displays' pixels per inch (DisplayMetrics xdpi / ydpi, averaged): the
+ * activity's and the second's, for screen_match = size */
+static float displayPpi[2];
+
+JNIEXPORT void JNICALL Java_io_github_kyannon_gbads_SecondScreen_nativeSetPpi(JNIEnv* env, jclass cls, jfloat app, jfloat second) {
+	displayPpi[0] = app;
+	displayPpi[1] = second;
+	__android_log_print(ANDROID_LOG_INFO, TAG, "display ppi: %.1f (the app's) / %.1f (second)", app, second);
+}
+
+float android_display_ppi(int view) {
+	return view == 0 || view == 1 ? displayPpi[view] : 0;
+}
+
 /* Called on the UI thread; holding the lock means the native side is done
  * with the old surface before Java lets it go. */
 JNIEXPORT void JNICALL Java_io_github_kyannon_gbads_SecondScreen_nativeSetSurface(JNIEnv* env, jclass cls, jobject surface) {

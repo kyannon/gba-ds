@@ -1,5 +1,7 @@
 # GBA DS
 
+<p align="center"><img src="docs/lineup.png" width="100%" alt="GBA DS on three dual-screen handhelds: Metroid: Zero Mission with its map on a DS-style handheld, Pokémon Pinball's table across both screens of one with a wide top screen, and Golden Sun with its menu on another"></p>
+
 A Game Boy Advance emulator for dual-screen handhelds (built for the Anbernic RG DS Plus, on ROCKNIX and on Android with GammaOS). The game runs on one screen, and the game's own map stays up on the other screen and keeps itself current as you explore, the way the DS Castlevanias work.
 
 The idea here is "what if the Game Boy Advance had a second screen" -- part of what this means is that, at least for now, neither screen is treated like a touchscreen. Instead the secondary screen is used similarly to how the DS Castlevania games use it -- displaying maps or other secondary information to make the gameplay experience a little more pleasant on a device with the space to accommodate it. (This whole project was inspired by playing through all the DS Castlevania games and then feeling a little sad about the prospect of going back in time to the GBA games...)
@@ -14,7 +16,7 @@ The idea here is "what if the Game Boy Advance had a second screen" -- part of w
 
 <sub>Stacked screens, pixel-perfect scaling, LCD grid on.</sub>
 
-GBA DS supports 27 games, with their regional releases: see [Supported games](https://github.com/kyannon/gba-ds/wiki/Supported-games) in the wiki for the list and what each one shows on the second screen. Any other GBA game also runs; it just plays on one screen.
+GBA DS supports 28 games, with their regional releases: see [Supported games](https://github.com/kyannon/gba-ds/wiki/Supported-games) in the wiki for the list and what each one shows on the second screen. Any other GBA game also runs; it just plays on one screen.
 
 **Documentation is in the [wiki](https://github.com/kyannon/gba-ds/wiki):** [Playing](https://github.com/kyannon/gba-ds/wiki/Playing) · [Supported games](https://github.com/kyannon/gba-ds/wiki/Supported-games) · [Map screen surrounds and overlays](https://github.com/kyannon/gba-ds/wiki/Map-screen-surrounds-and-overlays) · [Settings](https://github.com/kyannon/gba-ds/wiki/Settings) · [Troubleshooting](https://github.com/kyannon/gba-ds/wiki/Troubleshooting) · [Adding second-screen compatibility for a game](https://github.com/kyannon/gba-ds/wiki/Adding-second-screen-compatibility-for-a-game) · [Philosophy](https://github.com/kyannon/gba-ds/wiki/Philosophy)
 
@@ -98,6 +100,12 @@ GBA DS is written almost entirely by AI. The code is written by Claude, Anthropi
 **What isn't AI-generated:** the game logos, map borders and second-screen art are extracted from your own ROMs while the app runs, not drawn by AI or shipped with the app. Emulation itself is [mGBA](https://mgba.io)'s, a long-established, human-written emulator, which GBA DS builds on.
 
 **What this means for you:** I can't promise there are no bugs, but every feature in a release has been used on the device it was made for. A feature that can't be tested on my hardware is labeled *experimental* (for example, starting games from some Android frontends). If something doesn't work for you, please [open an issue](https://github.com/kyannon/gba-ds/issues); it gets tested on hardware the same way.
+
+## Not affiliated with Nintendo
+
+GBA DS is an independent project. It is not affiliated with, endorsed by or sponsored by Nintendo, or by Anbernic, AYN, Retroid or any other device maker. Game Boy Advance, Nintendo DS and the names of the games are trademarks of their owners, used here only to say what GBA DS runs. The pictures show games running in GBA DS; the handhelds in them are generic drawings, not real products.
+
+GBA DS includes no games, BIOS files or other copyrighted game data. Use your own legally obtained copies of your games.
 
 ## Licence
 

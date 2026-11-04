@@ -65,7 +65,7 @@
 #define AW_TASK 0x03000000 /* the game's first task: its routine (AwRegion.mapTask) */
 #define AW_V_OFFMAP 0xF0000051 /* 1 off the battle map: the title, menus, a battle's results */
 typedef struct {
-	uint32_t army, cursor, units, menuRow, minimapOpen; /* (minimapOpen: unused since the minimap went) */
+	uint32_t army, cursor, units, menuRow, minimapOpen; /* (minimapOpen: counts to 12 as START's minimap opens) */
 	int intelItem; /* Intel's row in the SELECT menu */
 	uint32_t intelPx[2][3]; /* the Battle Intel is up: x, y, colour (0xRRGGBB) */
 	int intelRows;          /* the Battle Intel's panel: the rows above the map */
@@ -81,6 +81,7 @@ typedef struct {
 	                   * results, the title, the mode menu: the army byte keeps the last
 	                   * battle's there). Found in Field Training's results (AW1), the mode
 	                   * menu and a Versus battle (AW2). */
+	int statusItem;   /* Status's row in the Intel menu (Europe's Advance Wars puts Terms first) */
 } AwRegion;
 
 static const AwRegion awRegions[] = {
@@ -93,6 +94,12 @@ static const AwRegion awRegions[] = {
 	 * the unit intel's routine by its shape; game 2's by watching them) */
 	{ GBW1_ARMY, GBW1_CURSOR, GBW1_UNITS, 0x03000E40, 0x03000E1E, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000EC0, 0x08DEC9D8 }, 0x0300346C, 876, 0x08B1FFA1 },
 	{ GBW2_ARMY, GBW2_CURSOR, GBW2_UNITS, AW2_MENU_ROW, AW2_MINIMAP_OPEN, 1, { { 200, 100, 0xFFEFEF }, { 120, 140, 0xFFEFEF } }, 152, { 0x03001530, 0x0881A0A4 }, 0, 873, 0x08322509 },
+	/* Advance Wars 1 and 2 in Europe (AWRP, AW2P): the USA's RAM, their
+	 * routines elsewhere in the ROM (the map's and the unit intel's,
+	 * read from the owner's campaign states; AW1's Intel menu: Terms,
+	 * Status, CO) */
+	{ AW_ARMY, AW_CURSOR, AW_UNITS, AW_MENU_ROW, AW_MINIMAP_OPEN, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000ED0, 0x083C356C }, 0x030036AC, 876, 0x0801FDD1, 1 },
+	{ AW2_ARMY, AW2_CURSOR, AW2_UNITS, AW2_MENU_ROW, AW2_MINIMAP_OPEN, 1, { { 200, 100, 0xFFEFEF }, { 120, 140, 0xFFEFEF } }, 152, { 0x03001530, 0x08521548 }, 0, 873, 0x080221B5 },
 };
 
 /* Game Boy Wars Advance 1+2: which game is running, by where the
@@ -107,7 +114,7 @@ static int gbw_game(Emu* s) {
 
 static const AwRegion* aw_r(Emu* s) {
 	if (!strncmp(s->gameCode, "BGWJ", 4)) return &awRegions[gbw_game(s) == 1 ? 2 : 3];
-	return &awRegions[s->gameCode[2] == '2' ? 1 : 0];
+	return &awRegions[(s->gameCode[2] == '2' ? 1 : 0) + (s->gameCode[3] == 'P' ? 4 : 0)];
 }
 
 static uint32_t aw_virt(Emu* e, uint32_t addr) {
@@ -216,6 +223,63 @@ static bool aw_settle(Emu* s, bool (*up)(Emu*), int limit) {
 	return false;
 }
 
+/* The minimap (START), alone: rendered with only BG0, where the game draws
+ * it, and cut out by comparing with a render of no layers at all. */
+static bool aw_minimap(Emu* s, const void* state, void* tmp, uint32_t* mm, int* mw, int* mh) {
+	const AwRegion* r = aw_r(s);
+	if (!emu_state_load(s, state)) return false;
+	if (!aw_back(s)) return false;
+	/* START (again if a cancelled move was still going back and took no
+	 * presses), until the minimap's opening count reaches its end */
+	bool open = false;
+	for (int tries = 0; tries < 3 && !open; ++tries) {
+		aw_run(s, K_START, 2);
+		for (int f = 0; f < 30 && !open; ++f) {
+			emu_frame(s, 0);
+			open = emu_read8(s, r->minimapOpen) == 12;
+		}
+	}
+	if (!open) return false;
+	aw_run(s, 0, 2);
+	if (!emu_state_save(s, tmp)) return false;
+	static uint32_t none[GBA_W * GBA_H];
+	emu_layers(s, 0);
+	emu_state_load(s, tmp);
+	emu_frame(s, 0);
+	memcpy(none, s->fb, sizeof(none));
+	emu_layers(s, 0x01);
+	emu_state_load(s, tmp);
+	emu_frame(s, 0);
+	int x0 = GBA_W, y0 = GBA_H, x1 = -1, y1 = -1;
+	for (int y = 0; y < GBA_H; ++y) {
+		for (int x = 0; x < GBA_W; ++x) {
+			if (s->fb[y * GBA_W + x] == none[y * GBA_W + x]) continue;
+			if (x < x0) x0 = x;
+			if (x > x1) x1 = x;
+			if (y < y0) y0 = y;
+			if (y > y1) y1 = y;
+		}
+	}
+	/* the minimap is an opaque box in the middle of the screen; anything
+	 * else on BG0 (START did nothing: an action menu, a move range) isn't */
+	bool ok = x1 - x0 >= 15 && y1 - y0 >= 15 && abs(x0 + x1 - (GBA_W - 1)) <= 4 && abs(y0 + y1 - (GBA_H - 1)) <= 4;
+	if (ok) {
+		int filled = 0;
+		for (int y = y0; y <= y1; ++y) {
+			for (int x = x0; x <= x1; ++x) filled += s->fb[y * GBA_W + x] != none[y * GBA_W + x];
+		}
+		ok = filled * 100 >= (x1 - x0 + 1) * (y1 - y0 + 1) * 97;
+	}
+	if (ok) {
+		*mw = x1 - x0 + 1;
+		*mh = y1 - y0 + 1;
+		for (int y = 0; y < *mh; ++y) memcpy(&mm[y * *mw], &s->fb[(y0 + y) * GBA_W + x0], *mw * sizeof(uint32_t));
+	}
+	emu_layers(s, 0x1F);
+	emu_state_load(s, tmp); /* every layer back on */
+	return ok;
+}
+
 /* The unit under the map cursor, if it's one of the army whose turn it is:
  * its id (1-64), else 0. */
 static int aw_cursor_unit(Emu* s, int army) {
@@ -316,16 +380,74 @@ static const char* aw_panel(Emu* s, const void* state, bool tryUnit, bool* unitP
 		aw_pick(s, r->intelItem); /* Intel */
 		aw_tap(s, K_A, 1);
 		aw_run(s, 0, 8);
-		aw_pick(s, 0); /* Status (the Intel menu keeps its last choice: CO, Rules) */
+		aw_pick(s, r->statusItem); /* Status (the Intel menu keeps its last choice: CO, Rules) */
 		aw_tap(s, K_A, 1);
 		if (!aw_settle(s, aw_intel_up, 90)) return "battle intel did not open";
 	}
 	return NULL;
 }
 
+/* The game's window background (AW-1's frame): in BG2 alone, the 8x8
+ * tile repeated most inside the box at x0-x1, y0-y1, among those dithered
+ * in exactly two colours (not the plain lines behind the text), at
+ * whichever of the 64 alignments repeats it most (the game's tile grid).
+ * False if none repeats. *ax, *ay: where a copy of it starts, mod 8;
+ * in[2]: its colours. */
+static bool aw_window_tile(const uint32_t* bg2, int x0, int y0, int x1, int y1, uint32_t tile[64], int* ax, int* ay, uint32_t in[2]) {
+	int best = 0;
+	for (int fy = 0; fy < 8; ++fy) {
+		for (int fx = 0; fx < 8; ++fx) {
+			int sx = x0 + ((fx - x0) % 8 + 8) % 8, sy = y0 + ((fy - y0) % 8 + 8) % 8;
+			for (int ty = sy; ty + 7 <= y1; ty += 8) {
+				for (int tx = sx; tx + 7 <= x1; tx += 8) {
+					uint32_t c0 = bg2[ty * GBA_W + tx], c1 = c0;
+					bool two = true;
+					for (int i = 0; i < 64 && two; ++i) {
+						uint32_t c = bg2[(ty + i / 8) * GBA_W + tx + i % 8];
+						if (c == c0 || c == c1) continue;
+						if (c1 == c0) c1 = c;
+						else two = false;
+					}
+					if (!two || c1 == c0 || c0 == AW_BG || c1 == AW_BG) continue;
+					int same = 0;
+					for (int uy = sy; uy + 7 <= y1; uy += 8) {
+						for (int ux = sx; ux + 7 <= x1; ux += 8) {
+							bool eq = true;
+							for (int i = 0; i < 64 && eq; ++i) eq = bg2[(uy + i / 8) * GBA_W + ux + i % 8] == bg2[(ty + i / 8) * GBA_W + tx + i % 8];
+							same += eq;
+						}
+					}
+					if (same > best) {
+						best = same, *ax = fx, *ay = fy, in[0] = c0, in[1] = c1;
+						for (int i = 0; i < 64; ++i) tile[i] = bg2[(ty + i / 8) * GBA_W + tx + i % 8];
+					}
+				}
+			}
+		}
+	}
+	return best >= 2;
+}
+
+/* How deep a window's edge is, from (x, y) inward by (dx, dy) in BG2 alone:
+ * up to the first of three pixels running as its background's tile has
+ * them there (tile, aligned at ax, ay); -1 if there's no such run within
+ * 16 (a line behind the text). */
+static int aw_edge_depth(const uint32_t* bg2, int x, int y, int dx, int dy, const uint32_t tile[64], int ax, int ay) {
+	for (int k = 0; k < 16; ++k) {
+		bool run = true;
+		for (int j = 0; j < 3 && run; ++j) {
+			int xx = x + (k + j) * dx, yy = y + (k + j) * dy;
+			uint32_t c = xx >= 0 && yy >= 0 && xx < GBA_W && yy < GBA_H ? bg2[yy * GBA_W + xx] : 0;
+			run = c == tile[((yy - ay) & 7) * 8 + ((xx - ax) & 7)];
+		}
+		if (run) return k;
+	}
+	return -1;
+}
+
 /* The second screen (AW-1): the unit intel of the unit under the cursor
- * (R), where the game puts it, or else the Battle Intel's panel, centred;
- * on AW_BG. */
+ * (R), its panel at the right and its text box at the top left, or else
+ * the Battle Intel's panel, centred; on AW_BG. */
 static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
 	const AwRegion* r = aw_r(s);
 	static uint32_t pan[GBA_W * GBA_H], bg2[GBA_W * GBA_H];
@@ -346,6 +468,24 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 		err = aw_panel(s, state, false, &unitPanel);
 		if (!err) aw_clean(s, tmp, pan, NULL);
 	}
+	/* with the unit intel, the minimap (AW-1): taken again only when a
+	 * unit or the army whose turn it is changes (a move, a build, a unit
+	 * lost), and every 8th time (a property captured, the fog); a cursor
+	 * moving over the map doesn't change it. If START won't open it,
+	 * the intel goes without. */
+	static uint32_t mm[GBA_W * GBA_H], mmKey;
+	static int mw, mh, mmAge;
+	if (!err && unitPanel) {
+		emu_state_load(s, state);
+		uint32_t key = 2166136261u;
+		for (uint32_t a = r->units; a < r->units + 4 * 0x300; a += 4) key = (key ^ emu_read32(s, a)) * 16777619u;
+		key = (key ^ emu_read8(s, r->army)) * 16777619u;
+		if (!mw || key != mmKey || ++mmAge >= 8) {
+			mw = mh = 0;
+			if (aw_minimap(s, state, tmp, mm, &mw, &mh)) mmKey = key, mmAge = 0;
+			else mw = mh = 0;
+		}
+	}
 	free(tmp);
 	if (err) return err;
 	for (int i = 0; i < w * h; ++i) out[i] = AW_BG;
@@ -362,6 +502,89 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 		}
 	}
 	if (x1 < 0) return "nothing on the panel";
+	if (unitPanel) {
+		/* AW-1: the panel at the right and the text box at the top left,
+		 * wherever the game put them (it moves both away from the cursor),
+		 * each at the game's own distance from the screen's edges */
+		int px0 = GBA_W, px1 = -1, py0 = GBA_H, py1 = -1, tx0 = GBA_W, tx1 = -1, ty0 = GBA_H, ty1 = -1;
+		for (int y = 0; y < GBA_H; ++y) {
+			for (int x = 0; x < GBA_W; ++x) {
+				if (pan[y * GBA_W + x] == AW_BG || bg2[y * GBA_W + x] == AW_BG) continue;
+				if (x >= c0 && x <= c1) {
+					px0 = x < px0 ? x : px0, px1 = x > px1 ? x : px1, py0 = y < py0 ? y : py0, py1 = y > py1 ? y : py1;
+				} else {
+					tx0 = x < tx0 ? x : tx0, tx1 = x > tx1 ? x : tx1, ty0 = y < ty0 ? y : ty0, ty1 = y > ty1 ? y : ty1;
+				}
+			}
+		}
+		int edge = px0 < GBA_W - 1 - px1 ? px0 : GBA_W - 1 - px1;
+		int pdx = (GBA_W - 1 - edge) - px1;                                  /* the panel's move */
+		int tdx = tx1 < 0 ? 0 : (tx0 < c0 ? tx0 : GBA_W - 1 - tx1) - tx0;    /* the text box's */
+		int tdy = tx1 < 0 ? 0 : py0 - ty0;
+		int ox = (w - GBA_W) / 2, oy = (h - GBA_H) / 2;
+		/* one frame across the screen (AW-1): the game's window background
+		 * (its tile, in line with the text box's), a 1-pixel edge in the
+		 * colour of the panel's outline; on it the text box's inside (its
+		 * text and lines, not its edge) and the panel as the game draws it */
+		uint32_t tile[64], in[2] = { 0, 0 };
+		int ax = 0, ay = 0, tin[4] = { 0, 0, 0, 0 }; /* the text box's edge: left, top, right, bottom */
+		bool framed = tx1 >= 0 && aw_window_tile(bg2, tx0, ty0, tx1, ty1, tile, &ax, &ay, in);
+		if (framed) {
+			/* (each side's edge: the shallowest along all of it but its
+			 * corners, as the lines behind the text run into most) */
+			for (int k = 0; k < 4; ++k) tin[k] = 16;
+			for (int y = ty0 + 3; y <= ty1 - 3; ++y) {
+				int l = aw_edge_depth(bg2, tx0, y, 1, 0, tile, ax, ay), r = aw_edge_depth(bg2, tx1, y, -1, 0, tile, ax, ay);
+				tin[0] = l >= 0 && l < tin[0] ? l : tin[0], tin[2] = r >= 0 && r < tin[2] ? r : tin[2];
+			}
+			for (int x = tx0 + 3; x <= tx1 - 3; ++x) {
+				int t = aw_edge_depth(bg2, x, ty0, 0, 1, tile, ax, ay), b = aw_edge_depth(bg2, x, ty1, 0, -1, tile, ax, ay);
+				tin[1] = t >= 0 && t < tin[1] ? t : tin[1], tin[3] = b >= 0 && b < tin[3] ? b : tin[3];
+			}
+			/* the edge's colour: the panel's outline, outside in, the first
+			 * colour that's neither its background's nor near black (Advance
+			 * Wars 2's red or blue); else its outermost (Advance Wars' dark edge) */
+			int ym = (py0 + py1) / 2, deep = aw_edge_depth(bg2, px0, ym, 1, 0, tile, ax, ay);
+			uint32_t line = pan[ym * GBA_W + px0];
+			for (int x = px0; x < px0 + (deep > 0 ? deep : 1) && x <= px1; ++x) {
+				uint32_t c = pan[ym * GBA_W + x]; /* (Advance Wars' dark edge isn't BG2's) */
+				if (c == in[0] || c == in[1]) continue;
+				if ((c & 0xFF) + ((c >> 8) & 0xFF) + ((c >> 16) & 0xFF) >= 120) {
+					line = c;
+					break;
+				}
+			}
+			int fx = ((ax + tdx) % 8 + 8) % 8, fy = ((ay + tdy) % 8 + 8) % 8;
+			for (int y = 0; y < GBA_H; ++y) {
+				for (int x = 0; x < GBA_W; ++x) {
+					bool rim = x == 0 || y == 0 || x == GBA_W - 1 || y == GBA_H - 1;
+					uint32_t c = rim ? line : tile[((y - fy) % 8 + 8) % 8 * 8 + ((x - fx) % 8 + 8) % 8];
+					int nx = x + ox, ny = y + oy;
+					if (nx >= 0 && ny >= 0 && nx < w && ny < h) out[ny * w + nx] = c;
+				}
+			}
+		}
+		for (int y = 0; y < GBA_H; ++y) {
+			for (int x = 0; x < GBA_W; ++x) {
+				uint32_t c = pan[y * GBA_W + x];
+				if (c == AW_BG || bg2[y * GBA_W + x] == AW_BG) continue;
+				bool inPanel = x >= c0 && x <= c1;
+				if (framed && !inPanel && (x < tx0 + tin[0] || x > tx1 - tin[2] || y < ty0 + tin[1] || y > ty1 - tin[3])) continue;
+				int nx = x + (inPanel ? pdx : tdx) + ox, ny = y + (inPanel ? 0 : tdy) + oy;
+				if (nx >= 0 && ny >= 0 && nx < w && ny < h) out[ny * w + nx] = c;
+			}
+		}
+		/* the minimap at the bottom left: in line with the text box's left
+		 * edge and the panel's bottom */
+		int mx = (tx1 < 0 ? edge : tx0 + tdx) + ox, my = py1 - mh + 1 + oy;
+		for (int y = 0; y < mh; ++y) {
+			for (int x = 0; x < mw; ++x) {
+				int nx = mx + x, ny = my + y;
+				if (nx >= 0 && ny >= 0 && nx < w && ny < h) out[ny * w + nx] = mm[y * mw + x];
+			}
+		}
+		return NULL;
+	}
 	int dx = unitPanel ? (w - GBA_W) / 2 : (w - (x1 - x0 + 1)) / 2 - x0;
 	int dy = unitPanel ? (h - GBA_H) / 2 : (h - (y1 - y0 + 1)) / 2 - y0;
 	for (int y = y0; y <= y1; ++y) {
@@ -2310,11 +2533,53 @@ static const MapProfile profiles[] = {
 			.card = { .tile = 64, .pal = 15,
 			          .objs = { { -64, -64, 255, 175, 0, 1023, -1, 1u << 15 },
 			                    { -64, 110, 255, 175, 400, 1023, -1, 1u << 6 } }, /* (the band: not the demo's DEMO, row 76) */
-			          .y0 = 128, .y1 = 143 },
+			          .y0 = 128, .y1 = 143,
+			          /* the character's name (four 32x32 sprites at x 20, rows
+			           * 0-127, scrolled inside by the game), above the band (SA-2) */
+			          .side = { 20, 0, 51, 125 } },
 			/* the rings, score and time at the top right; the lives below
 			 * them (SA-3) */
 			.moves = { { -16, -16, 110, 40, 'R', 236, 'T', 4 },
 			           { -16, 130, 48, 159, 'R', 236, 'T', 32 } },
+		},
+	},
+	{
+		/* Sonic Advance 2 (USA, Europe and Japan: the same sprites,
+		 * registers and title steps). In a level (display mode 0 with
+		 * BG1-3, BG0 too but under water: the zone card, play, pause; not
+		 * the title, menus or character select), the zone card fills the screen (BG
+		 * shapes on the blue backdrop, sprites for the emblem, icons and
+		 * name; the swirl by the name: tile 464, palette 8) and the HUD is
+		 * sprites: rings, score and time top left (palette 6 from tile
+		 * 484), the lives bottom left (the face palette 0, tile 508; the
+		 * count palette 6, tile 488). docs/games/sonic-advance-2.md */
+		.codes = { "A2NE", "A2NP", "A2NJ" },
+		.title = "Sonic Advance 2",
+		.logoOnly = true,
+		/* the title: SONIC ADVANCE 2 (BG2 alone; the sky BG1, the
+		 * copyright lines BG0). From power-on with no save: the language
+		 * menu (A), name entry (a letter, START to END, A), the intro */
+		.logo = { .steps = { { 0, 60 }, { K_A, 4 }, { 0, 80 }, { K_DOWN, 5 }, { 0, 9 }, { K_RIGHT, 6 }, { 0, 24 },
+		                     { K_A, 5 }, { 0, 11 }, { K_START, 7 }, { 0, 32 }, { K_A, 8 }, { 0, 1000 } },
+		          .layer = 2, .maxY = 120 },
+		.hud = {
+			/* in a level: mode 0 with BG1-3 (BG0 goes off with water on
+			 * screen, SA2-7; the language menu has BG0-2, the rest mode 1) */
+			.on = { { 0x04000000, 0x0E07, 0x0E00, 2 } },
+			/* the rings, score and time (tiles 484-547: the digits, the
+			 * ring box and icon; palette 7: the count flashing red at no
+			 * rings); the lives (face and count) */
+			.objs = { { -16, -16, 160, 32, 484, 547, -1, 1u << 6 | 1u << 7 },
+			          { -16, 130, 48, 159, 504, 511, -1, 1u << 0 },
+			          { -16, 130, 48, 159, 464, 1023, -1, 1u << 6 } },
+			/* the zone card: the whole screen, once settled, its emblem face on
+			 * with its ring of ticks full (SA2-2) */
+			.card = { .tile = 464, .pal = 8, .whole = true, .at = 61 },
+			/* the rings, score and time along the bottom (SA2-3); the
+			 * lives in the bottom right corner, as far in from the right
+			 * as they are from the left on the game screen (SA2-4) */
+			.moves = { { 0, 0, 239, 40, 0, 0, 'B', 156 },
+			           { 0, 120, 60, 159, 'R', 233, 0, 0 } },
 		},
 	},
 	{

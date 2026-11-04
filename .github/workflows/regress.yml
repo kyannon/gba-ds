@@ -1,0 +1,153 @@
+# The regression suite (tools/regress.py, docs/TESTING.md) on GitHub's
+# runners.
+#
+# On a push to dev, android or a game/* branch: only the games the push
+# changes (regress.py --changed: a game's own files, or the part of
+# profiles.c its profile uses; shared code runs every game; docs, the wiki
+# and Android-only code run nothing). A "Release vX.Y.Z" commit, or
+# "Run workflow" from the Actions tab with "full" ticked, runs every game.
+#
+# The fixtures (kyannon/gba-ds-tests: ROMs, states, goldens) are private:
+# the repository secret GBA_DS_TESTS_TOKEN, a fine-grained token with
+# Contents: read-only on that repository alone, clones them. Each runner
+# fetches only the fixtures its cases use. Nothing from them is uploaded:
+# a failing run keeps its report (the screenshots, the checks, the app's
+# log) as an artifact for 7 days.
+#
+# Not run on pull requests: a fork's code would run with the token.
+name: Regression tests
+
+on:
+  push:
+    branches: [dev, android, "game/**"]
+  workflow_dispatch:
+    inputs:
+      full:
+        description: "Every game, not just the ones changed since the last push"
+        type: boolean
+        default: false
+
+concurrency:
+  group: regress-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  select:
+    runs-on: ubuntu-24.04
+    outputs:
+      games: ${{ steps.pick.outputs.games }}
+      shards: ${{ steps.pick.outputs.shards }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Pick the games
+        id: pick
+        env:
+          BEFORE: ${{ github.event.before }}
+          FULL: ${{ github.event_name == 'workflow_dispatch' && inputs.full || startsWith(github.event.head_commit.message, 'Release v') }}
+        run: |
+          pip install --quiet --break-system-packages pillow
+          if [ "$FULL" = "true" ]; then
+            echo '"all"' > games.json
+            echo "Every game (a release, or asked for)." | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            # (the push's previous commit; a new branch, or a manual run: where it left dev)
+            base="$BEFORE"
+            if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$base^{commit}" 2>/dev/null; then
+              base=$(git merge-base HEAD origin/dev)
+            fi
+            python3 tools/regress.py --changed "$base" --games-json games.json | tee selection.txt
+            { echo '### What changed'; echo '```'; cat selection.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          fi
+          games=$(cat games.json)
+          if [ "$games" = '"all"' ]; then sel=""; else sel=$(python3 -c 'import json,sys; print(" ".join(json.load(open("games.json"))))'); fi
+          if [ "$games" != '"all"' ] && [ -z "$sel" ]; then
+            echo "games=" >> "$GITHUB_OUTPUT"; echo "shards=[]" >> "$GITHUB_OUTPUT"
+            echo "Nothing to test: no change affects a game." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          n=$(python3 tools/regress.py $sel --list | wc -l)
+          # about 40 cases a runner, at most 6 runners
+          k=$(( (n + 39) / 40 )); [ $k -gt 6 ] && k=6; [ $k -lt 1 ] && k=1
+          echo "games=$sel" >> "$GITHUB_OUTPUT"
+          echo "shards=$(python3 -c "print(list(range(1, $k + 1)))")" >> "$GITHUB_OUTPUT"
+          echo "$n cases on $k runner(s)." >> "$GITHUB_STEP_SUMMARY"
+          { echo '### Releases tested only on their logo'; echo '```'; python3 tools/regress.py --uncovered | sed -n '/^Releases tested only/,/^$/p' | tail -n +2; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+  test:
+    needs: select
+    if: needs.select.outputs.shards != '[]'
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(needs.select.outputs.shards) }}
+    env:
+      SHARD: ${{ matrix.shard }}/${{ strategy.job-total }}
+      GAMES: ${{ needs.select.outputs.games }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq cmake libpng-dev > /dev/null
+          pip install --quiet --break-system-packages pillow
+
+      # mGBA and SDL2, built once per version of their settings
+      - uses: actions/cache@v4
+        with:
+          path: |
+            deps/mgba
+            deps/SDL2
+            deps/sdl-host
+          key: host-deps-${{ runner.os }}-${{ hashFiles('scripts/mgba-options.sh', 'scripts/setup-host.sh') }}
+
+      - name: Build
+        run: scripts/setup-host.sh > build.log 2>&1 || { tail -n 60 build.log; exit 1; }
+
+      - name: Which fixtures
+        run: |
+          python3 tools/regress.py $GAMES --shard "$SHARD" --fixture-paths > fixtures.txt
+          echo "$(wc -l < fixtures.txt) fixture paths"
+
+      - name: Fixtures
+        env:
+          TOKEN: ${{ secrets.GBA_DS_TESTS_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::error title=No fixtures token::Add the repository secret GBA_DS_TESTS_TOKEN (a fine-grained token with Contents: read-only on kyannon/gba-ds-tests)."
+            exit 1
+          fi
+          git init -q fixtures
+          cd fixtures
+          git remote add origin "https://x-access-token:${TOKEN}@github.com/kyannon/gba-ds-tests.git"
+          git sparse-checkout set --no-cone $(sed 's|^|/|' ../fixtures.txt)
+          git fetch -q --depth 1 --filter=blob:none origin main || {
+            echo "::error title=Fixtures not reachable::Couldn't fetch kyannon/gba-ds-tests: GBA_DS_TESTS_TOKEN may have expired or lost access."; exit 1; }
+          git checkout -q FETCH_HEAD
+          du -sh .
+
+      - name: Run
+        env:
+          LD_LIBRARY_PATH: ${{ github.workspace }}/deps/sdl-host/lib  # (the SDL2 built above: the runner has none)
+        run: |
+          set -o pipefail
+          python3 tools/regress.py $GAMES --shard "$SHARD" --fixtures fixtures -j $(( $(nproc) + 1 )) 2>&1 | tee run.txt
+
+      - name: Summary
+        if: always()
+        run: |
+          [ -f run.txt ] || exit 0
+          { echo "### Share $SHARD"; echo '```'; grep -v '^ok ' run.txt | grep -v 'Report:' ; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          grep '^FAIL' run.txt | while read -r _ id _; do echo "::error title=Failing case::$id (share $SHARD; the run's summary has the checks)"; done
+
+      - name: Report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: regress-report-${{ matrix.shard }}
+          path: build/regress
+          retention-days: 7

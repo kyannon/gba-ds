@@ -218,7 +218,7 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   bug, 0.885 close (tapped twice), with or without Controls above
   (profile `controls`), whose tiles are around y 0.836; the pin at
   0.957,0.880 (0.957,0.818 with Controls); a tap elsewhere puts the bar
-  away (pinned: opens the menu from outside the bar)), `TICK QUIT`, `TICK LOAD:file.ss` (load a state, the second screen kept). The "Swipe up for quick menu" hint is up for the first 3 s (real time), so pass `--quick_bar_hint=0` for exact pictures (regress.py does). `GBADS_DEBUG=1` logs map captures,
+  away (pinned: opens the menu from outside the bar)), `TICK QUIT`, `TICK LOAD:file.ss` (load a state, the second screen kept). `GBADS_SCREENS=1920x1080,1240x1080` (with `GBADS_WINDOW=1920x2160`) splits the window into two screens of those sizes, stacked, as on devices whose screens differ (AYN Thor; add `--screen_ppi=367,419` for `screen_match = size`). The "Swipe up for quick menu" hint is up for the first 3 s (real time), so pass `--quick_bar_hint=0` for exact pictures (regress.py does). `GBADS_DEBUG=1` logs map captures,
   snapshot and control-scheme switches, taps.
 - `build/host/harness ROM OUTDIR SCRIPT` drives the core frame by frame:
   `load/save NAME`, `wait N`, `hold BUTTONS N`, `shot NAME`, `peek ADDR LEN`,
@@ -247,7 +247,10 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   that file beside the page when either changes. `web_*` exports in web/web.c,
   game.c and ui.c (`#ifdef __wasi__`).
 - **The owner's states come from State Saver** (artifact
-  https://claude.ai/artifact/7uEURvSw3FHtXjPHCzEaT4, the owner's own). Its
+  https://claude.ai/artifact/LGoZRvRDJjagz6ib1h3oxk, the owner's own; started
+  empty on Nov 3, 2026, once the earlier one's states were in the suite: that
+  one, https://claude.ai/artifact/7uEURvSw3FHtXjPHCzEaT4, is kept as an
+  archive). Its
   database collection `states` holds one document per saved moment: name,
   tags, notes (what the owner wants on the second screen: read them as the
   spec), gameCode, romName, frame, `stateAsset` / `shotAsset` (asset ids).
@@ -292,7 +295,11 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   intended change: rule first, then profile, then `--update CASES` after
   looking at every differing picture in build/regress/index.html; commit the
   goldens in the fixtures repo saying which rule changed. Before a release,
-  `--uncovered` lists the rules marked *By hand:* to check on the device. `GBADS_SYNC=1`
+  `--uncovered` lists the rules marked *By hand:* to check on the device
+  (and the releases tested only on their logo). `--changed` runs only the
+  games a change touches (docs/TESTING.md); GitHub runs that on every push
+  to dev / android / game/* (`.github/workflows/regress.yml`; the full
+  suite for a "Release vX.Y.Z" commit or "Run workflow" with "full"). `GBADS_SYNC=1`
   makes captures and logo extraction run inline, so runs are exact. By
   default regress.py also runs the app unpaced (`GBADS_NOPACE=1`) and
   drawing only screenshot and touch frames (`GBADS_DRAW_SHOTS_ONLY=1`),

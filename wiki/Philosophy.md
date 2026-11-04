@@ -45,8 +45,9 @@ What this means in practice:
   - cropping to the part that matters;
   - moving a block of the game's own HUD into a free spot (Super Mario Advance 2's level name above its status bar);
   - placing two of the game's own windows together when both help (Final Fantasy Tactics Advance's Laws above its turn order);
+  - one window across the whole screen, made of the game's own window edge and background, where the game split its information into small windows only to leave the battle visible (Advance Wars' unit intel, its text and minimap in one frame). The second screen has no battle to keep clear. Like the map surrounds, it's built from tiles the game draws, never drawn for it;
   - turning through a status screen's pages on a timer (Fire Emblem's three pages, every 5 seconds).
-- **Not allowed:** text in GBA DS's font on the second screen, new icons, panels or frames, redrawn or restyled game art, or a layout so rearranged that it no longer reads as the game's own screen.
+- **Not allowed:** text in GBA DS's font on the second screen, new icons, panels or frames of GBA DS's own design, redrawn or restyled game art, or a layout so rearranged that it no longer reads as the game's own screen.
 - **The exception that proves the rule:** the logo is shown on dark grey rather than black, and at half strength when idle. That's GBA DS signalling where the screen is and that it's idle, kept to a minimum.
 
 ## 5. No in-game touch.
