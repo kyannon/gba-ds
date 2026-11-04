@@ -1780,6 +1780,130 @@
      "match": "back to the logo"
     }
    ]
+  },
+  {
+   "id": "ft-us-worldmap-info",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-worldmap-info.ss",
+   "desc": "the owner's bug report (Nov 4, 2026), replayed: on the world map, R opens Giza Plains' Info window (FT_WM_STATE 1, as the Laws), B, the cursor moved about, L and B: never the Info window on the second screen",
+   "rules": [
+    "FT-14"
+   ],
+   "input": [
+    [
+     10,
+     "RIGHT+DOWN"
+    ],
+    [
+     11,
+     "DOWN"
+    ],
+    [
+     24,
+     "-"
+    ],
+    [
+     98,
+     "RIGHT"
+    ],
+    [
+     106,
+     "-"
+    ],
+    [
+     193,
+     "R"
+    ],
+    [
+     204,
+     "-"
+    ],
+    [
+     253,
+     "B"
+    ],
+    [
+     262,
+     "-"
+    ],
+    [
+     312,
+     "UP"
+    ],
+    [
+     335,
+     "-"
+    ],
+    [
+     352,
+     "R"
+    ],
+    [
+     363,
+     "-"
+    ],
+    [
+     387,
+     "LEFT"
+    ],
+    [
+     408,
+     "-"
+    ],
+    [
+     422,
+     "UP"
+    ],
+    [
+     429,
+     "-"
+    ],
+    [
+     437,
+     "L"
+    ],
+    [
+     446,
+     "-"
+    ],
+    [
+     528,
+     "B"
+    ],
+    [
+     539,
+     "-"
+    ],
+    [
+     556,
+     "DOWN"
+    ],
+    [
+     582,
+     "-"
+    ],
+    [
+     583,
+     "RIGHT"
+    ],
+    [
+     603,
+     "-"
+    ]
+   ],
+   "shots": {
+    "info": 240,
+    "after": 300,
+    "end": 666
+   },
+   "checks": [
+    {
+     "rule": "FT-14",
+     "what": "the Info window not taken for the Laws",
+     "type": "log",
+     "match": "not the Laws"
+    }
+   ]
   }
  ]
 }

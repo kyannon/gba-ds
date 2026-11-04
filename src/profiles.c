@@ -1258,6 +1258,8 @@ static void ft_backdrop(uint32_t* o, int w, int h) {
 	}
 }
 
+static bool ft_is_cyan(uint32_t c);
+
 /* The world map's Laws (FT-14): the Laws window (L) cut out (BG2 its
  * boxes, BG3 its lettering: not the map, the L Law sign or the pointer,
  * sprites), centred on dark grey; taken again when the clan's somewhere new (or the Laws are
@@ -1309,6 +1311,13 @@ static const char* ft_world_laws(Emu* s, uint32_t* const* out, int w, int h) {
 		free(tmp);
 		if (emu_cancelled(s)) return "called off";
 		if (!ok) return "the Laws window wasn't found";
+		/* (R on the world map opens a place's Info window, with the same
+		 * FT_WM_STATE as the Laws: the Laws have their cyan fields, the
+		 * Info window none) */
+		int cyan = 0;
+		for (int i = 0; i < cw * ch; ++i) cyan += ft_is_cyan(cut[i]);
+		if (getenv("GBADS_DEBUG")) fprintf(stderr, "ft laws: %d cyan of %dx%d\n", cyan, cw, ch);
+		if (cyan < cw * ch / 10) return "not the Laws (a place's Info?)";
 		memcpy(ftLaws, cut, (size_t) cw * ch * 4), ftLawsW = cw, ftLawsH = ch;
 		ftLawsAt = at;
 	}
@@ -1497,6 +1506,22 @@ static const char* ft_compose(Emu* s, const void* state, uint32_t* const* out, i
 	if (ft_world(s)) {
 		ftWw[0] = ftWw[1] = 0; /* (a battle's turn order isn't the next one's) */
 		ftTurnRec = 0;
+		/* no checkerboard yet (FT-14): START, Party (the menu's first
+		 * row) on the hidden copy: the party's screen has it on BG0, as a
+		 * Status has; a few tries at most */
+		static int partyTries;
+		if (!ftCheckerOk && partyTries < 3 && emu_read8(s, FT_WM_STATE_(s)) == 255 && emu_read8(s, FT_WM_STILL_(s))) {
+			++partyTries;
+			aw_tap(s, K_START, 1);
+			aw_run(s, 0, 30);
+			aw_tap(s, K_A, 1);
+			for (int f = 0; f < 90 && !ft_bg0(s, FT_STATUS_CNT); ++f) emu_frame_blind(s, 0);
+			aw_run(s, 0, 20);
+			if (ft_bg0(s, FT_STATUS_CNT)) ft_take_checker(s);
+			if (emu_cancelled(s)) return "called off";
+			if (!emu_state_load(s, state)) return "state load failed";
+			emu_frame(s, 0);
+		}
 		return ft_world_laws(s, out, w, h);
 	}
 	ftLawsAt = 0; /* (a battle: opened again on the world map next time) */
