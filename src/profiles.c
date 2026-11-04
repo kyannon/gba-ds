@@ -1260,6 +1260,28 @@ static void ft_backdrop(uint32_t* o, int w, int h) {
 
 static bool ft_is_cyan(uint32_t c);
 
+/* The checkerboard from the Party screen (FT-14): what's open on the
+ * world map closed (B: the Laws, a place's menu or Info), then START,
+ * Party (the menu's first row): the party's screen has it on BG0, as a
+ * Status has. True if it got as far as START (a try), false if the map
+ * never came free (a notice, travelling). Leaves the copy where it got. */
+static bool ft_party_checker(Emu* s) {
+	for (int i = 0; i < 6 && emu_read8(s, FT_WM_STATE_(s)) != 255; ++i) {
+		aw_tap(s, K_B, 1);
+		for (int f = 0; f < 30 && emu_read8(s, FT_WM_STATE_(s)) != 255; ++f) emu_frame_blind(s, 0);
+	}
+	for (int f = 0; f < 90 && (emu_read8(s, FT_WM_STATE_(s)) != 255 || emu_read8(s, FT_WM_STILL_(s)) < 24); ++f) emu_frame_blind(s, 0);
+	if (emu_read8(s, FT_WM_STATE_(s)) != 255 || !emu_read8(s, FT_WM_STILL_(s))) return false;
+	aw_run(s, 0, 15); /* (START just after a window closes does nothing) */
+	aw_tap(s, K_START, 1);
+	aw_run(s, 0, 30);
+	aw_tap(s, K_A, 1);
+	for (int f = 0; f < 90 && !ft_bg0(s, FT_STATUS_CNT); ++f) emu_frame_blind(s, 0);
+	aw_run(s, 0, 40); /* (past its fade-in) */
+	if (ft_bg0(s, FT_STATUS_CNT)) ft_take_checker(s);
+	return true;
+}
+
 /* The world map's Laws (FT-14): the Laws window (L) cut out (BG2 its
  * boxes, BG3 its lettering: not the map, the L Law sign or the pointer,
  * sprites), centred on dark grey; taken again when the clan's somewhere new (or the Laws are
@@ -1506,21 +1528,16 @@ static const char* ft_compose(Emu* s, const void* state, uint32_t* const* out, i
 	if (ft_world(s)) {
 		ftWw[0] = ftWw[1] = 0; /* (a battle's turn order isn't the next one's) */
 		ftTurnRec = 0;
-		/* no checkerboard yet (FT-14): START, Party (the menu's first
-		 * row) on the hidden copy: the party's screen has it on BG0, as a
-		 * Status has; a few tries at most */
+		/* no checkerboard yet (FT-14): taken from the Party screen; the
+		 * Laws aren't drawn until it is (the logo or the last picture
+		 * stays), three tries at most, then on dark grey */
 		static int partyTries;
-		if (!ftCheckerOk && partyTries < 3 && emu_read8(s, FT_WM_STATE_(s)) == 255 && emu_read8(s, FT_WM_STILL_(s))) {
-			++partyTries;
-			aw_tap(s, K_START, 1);
-			aw_run(s, 0, 30);
-			aw_tap(s, K_A, 1);
-			for (int f = 0; f < 90 && !ft_bg0(s, FT_STATUS_CNT); ++f) emu_frame_blind(s, 0);
-			aw_run(s, 0, 20);
-			if (ft_bg0(s, FT_STATUS_CNT)) ft_take_checker(s);
+		if (!ftCheckerOk && partyTries < 3) {
+			if (ft_party_checker(s)) ++partyTries;
 			if (emu_cancelled(s)) return "called off";
 			if (!emu_state_load(s, state)) return "state load failed";
 			emu_frame(s, 0);
+			if (!ftCheckerOk && partyTries < 3) return "no checkerboard yet";
 		}
 		return ft_world_laws(s, out, w, h);
 	}

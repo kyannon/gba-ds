@@ -15,7 +15,7 @@
 - **Sonic Advance:** the zone card on the second screen could show the character's name cut off at the top, as with Knuckles. The card now takes the character's name from a moment it's whole, and the zone's name from the moment it's centred (#15).
 
 ### Changes
-- **Final Fantasy Tactics Advance:** the world map's Laws are shown on the Status screen's checkerboard, as the turn order is in battles (taken from the Party screen when there hasn't been a battle yet).
+- **Final Fantasy Tactics Advance:** the world map's Laws are shown on the Status screen's checkerboard, as the turn order is in battles (taken from the Party screen when there hasn't been a battle yet; the Laws wait for it, so they never come up on a plain background first).
 - **Final Fantasy Tactics Advance:** a unit's Status on the second screen no longer shows the R Info prompt on its Abilities page (that button does nothing there).
 - **Final Fantasy Tactics Advance:** with the cursor on no unit, the second screen now shows the whole turn order (01 to 08) in two columns under one LIST bar, its blue box see-through over the Status screen's checkerboard as the game has it over the battle, with the Laws below it. Empty laws (a dash) aren't drawn. Before, the list was below the Laws and its last rows were cut off. If the names are too long for two columns on a GBA-sized screen, only the first column (01 to 04) is shown, so no name is cut off.
 - **Final Fantasy Tactics Advance:** while it isn't your turn (an enemy's, the judge's or a guest's), the second screen shows the turn order and Laws instead of the last unit's Status. They're taken again at the start of each of your units' turns, even if you never move the cursor off the unit, so they're as up to date as they can be.
