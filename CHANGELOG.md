@@ -5,6 +5,7 @@
 ### Changes
 - **Advance Wars, Advance Wars 2 and Game Boy Wars Advance 1+2:** the unit intel's panel is always at the right of the second screen and its text box at the top left. The game moves both away from the cursor; the second screen no longer follows.
 - **Advance Wars, Advance Wars 2 and Game Boy Wars Advance 1+2:** with a unit's intel up, the battle's minimap (the one START opens) is back on the second screen, at the bottom left under the text box.
+- **Advance Wars, Advance Wars 2 and Game Boy Wars Advance 1+2:** the unit intel, its text and the minimap now share one frame across the whole second screen, made of the game's own window background, with a thin edge in the colour of the panel's outline (red or blue in Advance Wars 2). The panel itself is as the game draws it.
 
 ## v1.4.7 (2026-11-03)
 

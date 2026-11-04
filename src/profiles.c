@@ -387,6 +387,64 @@ static const char* aw_panel(Emu* s, const void* state, bool tryUnit, bool* unitP
 	return NULL;
 }
 
+/* The game's window background (AW-1's frame): in BG2 alone, the 8x8
+ * tile repeated most inside the box at x0-x1, y0-y1, among those dithered
+ * in exactly two colours (not the plain lines behind the text), at
+ * whichever of the 64 alignments repeats it most (the game's tile grid).
+ * False if none repeats. *ax, *ay: where a copy of it starts, mod 8;
+ * in[2]: its colours. */
+static bool aw_window_tile(const uint32_t* bg2, int x0, int y0, int x1, int y1, uint32_t tile[64], int* ax, int* ay, uint32_t in[2]) {
+	int best = 0;
+	for (int fy = 0; fy < 8; ++fy) {
+		for (int fx = 0; fx < 8; ++fx) {
+			int sx = x0 + ((fx - x0) % 8 + 8) % 8, sy = y0 + ((fy - y0) % 8 + 8) % 8;
+			for (int ty = sy; ty + 7 <= y1; ty += 8) {
+				for (int tx = sx; tx + 7 <= x1; tx += 8) {
+					uint32_t c0 = bg2[ty * GBA_W + tx], c1 = c0;
+					bool two = true;
+					for (int i = 0; i < 64 && two; ++i) {
+						uint32_t c = bg2[(ty + i / 8) * GBA_W + tx + i % 8];
+						if (c == c0 || c == c1) continue;
+						if (c1 == c0) c1 = c;
+						else two = false;
+					}
+					if (!two || c1 == c0 || c0 == AW_BG || c1 == AW_BG) continue;
+					int same = 0;
+					for (int uy = sy; uy + 7 <= y1; uy += 8) {
+						for (int ux = sx; ux + 7 <= x1; ux += 8) {
+							bool eq = true;
+							for (int i = 0; i < 64 && eq; ++i) eq = bg2[(uy + i / 8) * GBA_W + ux + i % 8] == bg2[(ty + i / 8) * GBA_W + tx + i % 8];
+							same += eq;
+						}
+					}
+					if (same > best) {
+						best = same, *ax = fx, *ay = fy, in[0] = c0, in[1] = c1;
+						for (int i = 0; i < 64; ++i) tile[i] = bg2[(ty + i / 8) * GBA_W + tx + i % 8];
+					}
+				}
+			}
+		}
+	}
+	return best >= 2;
+}
+
+/* How deep a window's edge is, from (x, y) inward by (dx, dy) in BG2 alone:
+ * up to the first of three pixels running as its background's tile has
+ * them there (tile, aligned at ax, ay); -1 if there's no such run within
+ * 16 (a line behind the text). */
+static int aw_edge_depth(const uint32_t* bg2, int x, int y, int dx, int dy, const uint32_t tile[64], int ax, int ay) {
+	for (int k = 0; k < 16; ++k) {
+		bool run = true;
+		for (int j = 0; j < 3 && run; ++j) {
+			int xx = x + (k + j) * dx, yy = y + (k + j) * dy;
+			uint32_t c = xx >= 0 && yy >= 0 && xx < GBA_W && yy < GBA_H ? bg2[yy * GBA_W + xx] : 0;
+			run = c == tile[((yy - ay) & 7) * 8 + ((xx - ax) & 7)];
+		}
+		if (run) return k;
+	}
+	return -1;
+}
+
 /* The second screen (AW-1): the unit intel of the unit under the cursor
  * (R), its panel at the right and its text box at the top left, or else
  * the Battle Intel's panel, centred; on AW_BG. */
@@ -464,11 +522,54 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 		int tdx = tx1 < 0 ? 0 : (tx0 < c0 ? tx0 : GBA_W - 1 - tx1) - tx0;    /* the text box's */
 		int tdy = tx1 < 0 ? 0 : py0 - ty0;
 		int ox = (w - GBA_W) / 2, oy = (h - GBA_H) / 2;
+		/* one frame across the screen (AW-1): the game's window background
+		 * (its tile, in line with the text box's), a 1-pixel edge in the
+		 * colour of the panel's outline; on it the text box's inside (its
+		 * text and lines, not its edge) and the panel as the game draws it */
+		uint32_t tile[64], in[2] = { 0, 0 };
+		int ax = 0, ay = 0, tin[4] = { 0, 0, 0, 0 }; /* the text box's edge: left, top, right, bottom */
+		bool framed = tx1 >= 0 && aw_window_tile(bg2, tx0, ty0, tx1, ty1, tile, &ax, &ay, in);
+		if (framed) {
+			/* (each side's edge: the shallowest along all of it but its
+			 * corners, as the lines behind the text run into most) */
+			for (int k = 0; k < 4; ++k) tin[k] = 16;
+			for (int y = ty0 + 3; y <= ty1 - 3; ++y) {
+				int l = aw_edge_depth(bg2, tx0, y, 1, 0, tile, ax, ay), r = aw_edge_depth(bg2, tx1, y, -1, 0, tile, ax, ay);
+				tin[0] = l >= 0 && l < tin[0] ? l : tin[0], tin[2] = r >= 0 && r < tin[2] ? r : tin[2];
+			}
+			for (int x = tx0 + 3; x <= tx1 - 3; ++x) {
+				int t = aw_edge_depth(bg2, x, ty0, 0, 1, tile, ax, ay), b = aw_edge_depth(bg2, x, ty1, 0, -1, tile, ax, ay);
+				tin[1] = t >= 0 && t < tin[1] ? t : tin[1], tin[3] = b >= 0 && b < tin[3] ? b : tin[3];
+			}
+			/* the edge's colour: the panel's outline, outside in, the first
+			 * colour that's neither its background's nor near black (Advance
+			 * Wars 2's red or blue); else its outermost (Advance Wars' dark edge) */
+			int ym = (py0 + py1) / 2, deep = aw_edge_depth(bg2, px0, ym, 1, 0, tile, ax, ay);
+			uint32_t line = pan[ym * GBA_W + px0];
+			for (int x = px0; x < px0 + (deep > 0 ? deep : 1) && x <= px1; ++x) {
+				uint32_t c = pan[ym * GBA_W + x]; /* (Advance Wars' dark edge isn't BG2's) */
+				if (c == in[0] || c == in[1]) continue;
+				if ((c & 0xFF) + ((c >> 8) & 0xFF) + ((c >> 16) & 0xFF) >= 120) {
+					line = c;
+					break;
+				}
+			}
+			int fx = ((ax + tdx) % 8 + 8) % 8, fy = ((ay + tdy) % 8 + 8) % 8;
+			for (int y = 0; y < GBA_H; ++y) {
+				for (int x = 0; x < GBA_W; ++x) {
+					bool rim = x == 0 || y == 0 || x == GBA_W - 1 || y == GBA_H - 1;
+					uint32_t c = rim ? line : tile[((y - fy) % 8 + 8) % 8 * 8 + ((x - fx) % 8 + 8) % 8];
+					int nx = x + ox, ny = y + oy;
+					if (nx >= 0 && ny >= 0 && nx < w && ny < h) out[ny * w + nx] = c;
+				}
+			}
+		}
 		for (int y = 0; y < GBA_H; ++y) {
 			for (int x = 0; x < GBA_W; ++x) {
 				uint32_t c = pan[y * GBA_W + x];
 				if (c == AW_BG || bg2[y * GBA_W + x] == AW_BG) continue;
 				bool inPanel = x >= c0 && x <= c1;
+				if (framed && !inPanel && (x < tx0 + tin[0] || x > tx1 - tin[2] || y < ty0 + tin[1] || y > ty1 - tin[3])) continue;
 				int nx = x + (inPanel ? pdx : tdx) + ox, ny = y + (inPanel ? 0 : tdy) + oy;
 				if (nx >= 0 && ny >= 0 && nx < w && ny < h) out[ny * w + nx] = c;
 			}
