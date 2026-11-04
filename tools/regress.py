@@ -155,7 +155,9 @@ def run_app(case, args, workdir):
     for name in shots:
         path = os.path.join(workdir, name + ".bmp")
         if not os.path.exists(path):
-            r.error = "no screenshot %s (the app exited early?)" % name
+            tail = [l for l in r.log.strip().splitlines() if l.strip()][-2:]
+            r.error = "no screenshot %s (the app exited early, status %s%s)" % (
+                name, p.returncode, ": " + " / ".join(tail) if tail else "")
             return r
         r.shots[name] = Image.open(path).convert("RGB")
     return r

@@ -131,6 +131,8 @@ jobs:
           du -sh .
 
       - name: Run
+        env:
+          LD_LIBRARY_PATH: ${{ github.workspace }}/deps/sdl-host/lib  # (the SDL2 built above: the runner has none)
         run: |
           set -o pipefail
           python3 tools/regress.py $GAMES --shard "$SHARD" --fixtures fixtures -j $(( $(nproc) + 1 )) 2>&1 | tee run.txt
