@@ -351,6 +351,7 @@ def main():
                     help="list the fixture files the selected cases need (for a sparse checkout) and stop")
     ap.add_argument("--games-json", metavar="FILE", help="with --changed: write the games picked (or \"all\") as JSON and stop")
     args = ap.parse_args()
+    args.fixtures = os.path.abspath(args.fixtures)  # (cases run in their own folders)
     if args.changed:
         sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
         import regress_changed
