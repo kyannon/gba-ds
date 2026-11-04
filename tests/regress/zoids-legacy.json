@@ -582,6 +582,92 @@
      "shot": "title"
     }
    ]
+  },
+  {
+   "id": "zl-jp-world",
+   "rom": "AZ2J",
+   "state": "zoids-legacy/jp-world.ss",
+   "desc": "Zoids Saga II: just out of Cebu Town on the world: the map screen",
+   "rules": [
+    "ZL-1"
+   ],
+   "shots": {
+    "map": 200
+   },
+   "checks": [
+    {
+     "rule": "ZL-1",
+     "what": "the map taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "ZL-1",
+     "what": "not the logo",
+     "shot": "map"
+    }
+   ]
+  },
+  {
+   "id": "zl-jp-battle",
+   "rom": "AZ2J",
+   "state": "zoids-legacy/jp-town.ss",
+   "desc": "Zoids Saga II: the map taken in Cebu Town, then the first battle's opening menu loaded: the logo, not the last map",
+   "rules": [
+    "ZL-3"
+   ],
+   "input": [
+    [
+     250,
+     "LOAD:zoids-legacy/jp-battle.ss"
+    ]
+   ],
+   "shots": {
+    "map": 200,
+    "battle": 400
+   },
+   "checks": [
+    {
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "ZL-1",
+     "what": "not the logo",
+     "shot": "map"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "ZL-3",
+     "what": "the logo in the battle",
+     "shot": "battle"
+    }
+   ]
   }
  ]
 }
