@@ -83,7 +83,7 @@
    "id": "sm4-us-house",
    "rom": "AX4E",
    "state": "super-mario-advance-4/us-worldmap-toad-house.ss",
-   "desc": "28 items, Mario on a Toad House: the inventory, kept inside the house",
+   "desc": "28 items, Mario on a Toad House: the inventory, kept inside the house below its status bar",
    "rules": [
     "SM4-1",
     "SM4-4",
@@ -181,6 +181,20 @@
      ],
      "color": "303030",
      "frac": 0.5
+    },
+    {
+     "rule": "SM4-4",
+     "what": "the status bar at the top of the second screen",
+     "type": "not_uniform",
+     "shot": "house",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030",
+     "frac": 0.5
     }
    ]
   },
@@ -188,13 +202,85 @@
    "id": "sm4-us-house-fresh",
    "rom": "AX4E",
    "state": "super-mario-advance-4/us-toad-house.ss",
-   "desc": "a state loaded in a Toad House: the logo",
+   "desc": "a state loaded in a Toad House: its status bar above the logo",
    "rules": [
     "SM4-4"
    ],
    "shots": {
     "start": 60
-   }
+   },
+   "checks": [
+    {
+     "rule": "SM4-4",
+     "what": "the status bar at the top of the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "sm4-us-kings-room",
+   "rom": "AX4E",
+   "state": "super-mario-advance-4/us-kings-room.ss",
+   "desc": "World 1's king's room (a state loaded there: its status bar above the logo)",
+   "rules": [
+    "SM4-4"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "SM4-4",
+     "what": "the status bar at the top of the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "sm4-us-spade",
+   "rom": "AX4E",
+   "state": "super-mario-advance-4/us-spade.ss",
+   "desc": "a Spade panel game",
+   "rules": [
+    "SM4-4"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "SM4-4",
+     "what": "the status bar at the top of the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
   },
   {
    "id": "sm4-us-level",

@@ -2,9 +2,9 @@
 
 | | |
 |---|---|
-| Releases | `AX4E` USA · `AX4P` Europe · `AX4J` Japan (where Mario is, 4 bytes lower in Europe and Japan) |
+| Releases | `AX4E` USA · `AX4P` Europe · `AX4J` Japan (where Mario is, 4 bytes lower in Europe, Japan and the USA's Rev 1: variant AX4R, picked by the ROM's version byte) |
 | Dumps | `AX4E` cartridge `a44ba79f` (tested), Rev 1 `88dab27f`, Rev 1, Switch Online `22e12d0e`, Rev 1, Virtual Console `d4c13ac3` · `AX4P` cartridge `37141f32` (tested), Rev 1 `8d84acfc`, Rev 1, Switch Online `e3847e32`, Rev 1, Virtual Console `d4f45b01` · `AX4J` cartridge `f3c87306` (tested), Rev 1 `5a676424`, Rev 2 `7b1a4c22`, Rev 2, Switch Online `aa312980`, Rev 2, Virtual Console `4aee9c77` |
-| Profile | `src/profiles.c`: the `AX4E` entry; variants `AX4P`, `AX4J` (`sma4_eur`, `sma4_jpn`) |
+| Profile | `src/profiles.c`: the `AX4E` entry (its `pick`, `sma4_pick`, switches a later USA revision to AX4R); variants `AX4P` (`sma4_eur`), `AX4J` and AX4R (`sma4_moved`) |
 | Tests | `tests/regress/super-mario-advance-4.json` (`tools/regress.py super-mario-advance-4`) |
 | Status | testing (branch `game/super-mario-advance-4`) |
 
@@ -22,15 +22,17 @@ Modelled on Super Mario Advance 2 ([SMA rules](super-mario-advance-2.md)): somet
 
 **SM4-3. What stays in a level.** The goal's LEVEL CLEARED! and the card won (on the status bar's layer, between the status bar and the P meter) stay on the game screen, and so do the three card slots shown at the start and end of a level (sprites).
 
-**SM4-4. Houses and castles keep the inventory.** In a Toad House, a Spade panel game or a king's room the game screen is as the game draws it (with the world map's status bar along its bottom), and the second screen keeps the last inventory picture (SM4-1); with none yet (a state loaded there), the logo at half strength.
+**SM4-4. Houses and castles: like the world map.** In a Toad House, a Spade panel game or a king's room the status bar along the bottom of the game screen (the world map's, with the cards) goes to the top of the second screen, as on the world map (SM4-6), above the last inventory picture (SM4-1); with none yet (a state loaded there), the logo at full strength below it. The rest of the game screen is as the game draws it. (Until the third test build the status bar stayed on the game screen there and the second screen had the inventory alone.)
 
 **SM4-5. Logo.** The logo (GEN-1) is Super Mario Bros. 3's own, SUPER MARIO BROS. 3 alone, taken from its title screen (Super Mario Bros. 3 picked on the Super Mario Advance 4 title, START through the curtain), without the copyright line. On the title, game select and file screens the second screen shows it at half strength.
 
-**SM4-6. World map: status bar on top.** On the world map the status bar along the bottom of the game screen (world, lives, coins, score and the three cards) leaves the game screen, which then shows the map under it, and goes to the top of the second screen, above the inventory (SM4-1), as it is on the game screen, updated as it changes. With no inventory picture yet, the logo below it. While the inventory, the START menu or the e-Reader menu is open on the game screen, the status bar there is the game's own and the second screen keeps its last picture. In Toad Houses and other rooms the status bar is the game's own (SM4-4).
+**SM4-6. World map: status bar on top.** On the world map the status bar along the bottom of the game screen (world, lives, coins, score and the three cards) leaves the game screen, which then shows the map under it, and goes to the top of the second screen, above the inventory (SM4-1), as it is on the game screen, updated as it changes. With no inventory picture yet, the logo below it. While the inventory, the START menu or the e-Reader menu is open on the game screen, the status bar there is the game's own and the second screen keeps its last picture. The same goes in Toad Houses, Spade games and kings' rooms (SM4-4).
+
+**SM4-7. Every revision.** The later revisions behave as the first cartridges do: the USA's Rev 1 (and the Virtual Console and Switch Online dumps made from it), whose RAM is laid out as Europe's and Japan's, Europe's Rev 1 and Japan's Rev 1 and 2. The logo comes out the same from each (the start is left to play by itself up to the opening, as each revision takes a different time to get there). *By hand: the tests run only the first cartridge dumps (the fixtures); checked in the harness and headless app on Nov 5, 2026 with the USA's Rev 1, Europe's Rev 1 Wii U Virtual Console dump and Japan's Rev 2 (world map, a level, the logo), not yet on the device.*
 
 ## Known issues
 
-- Only the first cartridge dumps are tested. The later revisions (Rev 1 in the USA and Europe, Rev 1 and 2 in Japan, and the Virtual Console and Switch Online dumps, all made from them) may keep their RAM elsewhere; if so, the second screen stays on the logo there.
+- Not tried: Europe's Rev 1 cartridge and Switch Online dumps, the USA's Virtual Console and Switch Online dumps, Japan's Rev 1 and its Virtual Console and Switch Online dumps. Each is expected to behave as the revision it's made from (SM4-7).
 - During a fade (through a pipe or door, at the goal) the status bar fades with the game, so it shows as dark shapes for a moment.
 - Checked at the start of every level of worlds 1 to 6 and 8 that the warp zone reaches (underwater, desert, giant, sky, ice, cave and fortress levels): the status bar is always the same layer. Not tried yet: airships, fortresses' boss rooms, Kuribo's shoe, World 8's tanks and Bowser, World-e (e-Reader levels), Luigi's turns in Mario & Luigi mode, the Wii U Virtual Console dump.
 
@@ -45,4 +47,4 @@ Modelled on Super Mario Advance 2 ([SMA rules](super-mario-advance-2.md)): somet
 
   - **World map:** the status bar moves to the top of the second screen, above your item inventory (what L opens), kept up to date as you move, win items and use them.
   - **Levels:** the status bar (world, lives, time, coins, score) and the P meter move to the second screen, with the logo between them, so the game screen shows the whole level.
-  - **Toad Houses and other rooms:** the second screen keeps your inventory.
+  - **Toad Houses, Spade games and kings' rooms:** as on the world map, the status bar moves to the top of the second screen, above your inventory.

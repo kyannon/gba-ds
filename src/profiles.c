@@ -648,6 +648,12 @@ static const char* gbw_pick(Emu* e) {
 	return g == 1 ? "BGW1" : g == 2 ? "BGW2" : NULL;
 }
 
+/* Super Mario Advance 4 (USA): a revision after the first (the ROM
+ * header's version byte) keeps its RAM as Europe and Japan do: AX4R */
+static const char* sma4_pick(Emu* e) {
+	return emu_read8(e, 0x080000BC) ? "AX4R" : NULL;
+}
+
 /* -------------------------------------------------- Summon Night: Swordcraft Story
  *
  * The second screen is the Status screen (START > Status), the whole
@@ -3383,9 +3389,17 @@ static const MapProfile profiles[] = {
 		 * the Super Mario Advance 4 title, Super Mario Bros. 3 picked, START
 		 * through its curtain): SUPER MARIO BROS. 3 alone on BG1, the
 		 * copyright line below it a sprite (SM4-5) */
-		.logo = { .steps = { { 0, 700 }, { K_START, 4 }, { 0, 120 }, { K_START, 4 }, { 0, 120 }, { K_A, 4 }, { 0, 120 },
-		                     { K_A, 4 }, { 0, 120 }, { K_A, 4 }, { 0, 300 }, { K_START, 4 }, { 0, 150 } },
+		.logo = { .steps = { { 0, 1600 }, { K_START, 4 }, { 0, 150 }, { K_A, 4 }, { 0, 150 }, { K_A, 4 }, { 0, 300 },
+		                     { K_START, 4 }, { 0, 150 } },
 		          .layer = 1, .maxY = 120 },
+		/* (the start, up to the opening's airship, left to play by
+		 * itself: each release and revision formats its save and shows
+		 * its notices for a different time, and takes buttons there
+		 * differently; by 1600 frames all are in the opening) */
+		/* USA Rev 1 (and the Virtual Console and Switch Online dumps made
+		 * from it) keeps where Mario is 4 bytes lower, as in Europe and
+		 * Japan: its own variant, AX4R, picked by the ROM's version */
+		.pick = sma4_pick,
 		/* On the world map, L opens the item inventory: a blue panel (BG0)
 		 * over the map's lower part (rows 56-157), the items in it as
 		 * outlines with the chosen one a sprite in colour. 0x03003CAA is
@@ -3434,19 +3448,20 @@ static const MapProfile profiles[] = {
 			 * has between (LEVEL CLEARED! and the card won, at the
 			 * goal) stays on the game screen (SM4-3) */
 			.moves = { { 0, 8, 239, 149, 0, 0, 0, 0, true }, { 0, 150, 239, 159, 'C', 120, 0, 0 } },
-			/* On the world map (inventory closed) the status bar along the
-			 * bottom (BG0 0xD600, rows 139-157: world, lives, coins,
-			 * score, cards) goes to the top of the second screen, over
-			 * the inventory picture (SM4-6); anything else on BG0 there
-			 * stays */
-			.alt = { .on = { { 0x03003DE2, 0xFF, 0x41, 1 }, { 0x03003CAA, 0xFF, 0, 1 },
-			                 { 0x04000008, 0xFFFC, 0xD600, 2 }, { 0x04000000, 0x0100, 0x0100, 2 } },
+			/* On the world map (inventory closed; 0x41) and in Toad
+			 * Houses, Spade games and kings' rooms (0x08-0x09) the status
+			 * bar along the bottom (BG0, rows 139-159: world, lives,
+			 * coins, score, cards) goes to the top of the second screen,
+			 * over the inventory picture (SM4-6, SM4-4); anything else on
+			 * BG0 there stays. (0x40, a level, is the main HUD's.) */
+			.alt = { .on = { { 0x03003DE2, 0xFE, 0x40, 1, true, 0x08 }, { 0x03003CAA, 0xFF, 0, 1 },
+			                 { 0x04000000, 0x0100, 0x0100, 2 } },
 			         .bgMask = 1,
 			         .moves = { { 0, 0, 239, 131, 0, 0, 0, 0, true }, { 0, 132, 239, 159, 0, 0, 'T', 0 } },
 			         .mapBelow = true },
 			/* the inventory, the START menu or the e-Reader menu open
-			 * there: the last picture stays */
-			.keep = { { 0x03003DE2, 0xFF, 0x41, 1 } },
+			 * there, or a house's own menu: the last picture stays */
+			.keep = { { 0x03003DE2, 0xFE, 0x40, 1, true, 0x08 } },
 		},
 	},
 	{
@@ -4138,12 +4153,14 @@ static void sma2_jpn(MapProfile* p) {
 	p->controls.snes.pan -= 0x14;
 }
 
-/* Super Mario Advance 4 in Europe and Japan: where Mario is (his place
- * on the world map, whether he's taking input there) 4 bytes lower; the rest as in the USA. Europe
- * asks for a language first; Japan's start says the save was formatted
- * and has no curtain to skip (its title comes after the file screens'
- * curtain, A). */
+/* Super Mario Advance 4 in Europe and Japan, and the USA's Rev 1 (AX4R):
+ * where Mario is (his place on the world map, whether he's taking input
+ * there) 4 bytes lower; the rest as in the USA's first release. Every
+ * revision of Europe's and Japan's tried (Europe's Rev 1 Wii U Virtual
+ * Console, Japan's Rev 2) is like its first. Europe asks for a language
+ * first. */
 static void sma4_moved(MapProfile* p) {
+	p->pick = NULL;
 	p->live[0].addr -= 4;
 	p->live[3].addr -= 4;
 	p->room[0].addr -= 4;
@@ -4155,16 +4172,9 @@ static void sma4_moved(MapProfile* p) {
 }
 static void sma4_eur(MapProfile* p) {
 	sma4_moved(p);
-	static const MacroStep steps[] = { { 0, 300 }, { K_A, 4 }, { 0, 900 }, { K_START, 4 }, { 0, 120 }, { K_START, 4 }, { 0, 120 },
-	                                   { K_A, 4 }, { 0, 120 }, { K_A, 4 }, { 0, 300 }, { K_START, 4 }, { 0, 150 } };
-	memset(p->logo.steps, 0, sizeof(p->logo.steps));
-	memcpy(p->logo.steps, steps, sizeof(steps));
-}
-static void sma4_jpn(MapProfile* p) {
-	sma4_moved(p);
-	static const MacroStep steps[] = { { 0, 300 }, { K_A, 4 }, { 0, 300 }, { K_START, 4 }, { 0, 120 }, { K_START, 4 }, { 0, 120 },
-	                                   { K_A, 4 }, { 0, 120 }, { K_A, 4 }, { 0, 300 }, { K_START, 4 }, { 0, 150 },
-	                                   { K_A, 4 }, { 0, 120 }, { K_A, 4 }, { 0, 120 }, { K_A, 4 }, { 0, 400 } };
+	/* (A on the language menu first) */
+	static const MacroStep steps[] = { { 0, 300 }, { K_A, 4 }, { 0, 1600 }, { K_START, 4 }, { 0, 150 }, { K_A, 4 }, { 0, 150 },
+	                                   { K_A, 4 }, { 0, 300 }, { K_START, 4 }, { 0, 150 } };
 	memset(p->logo.steps, 0, sizeof(p->logo.steps));
 	memcpy(p->logo.steps, steps, sizeof(steps));
 }
@@ -4271,7 +4281,8 @@ static const Variant variants[] = {
 	{ "AFXJ", "AFXE", 0, ffta_jpn },
 	{ "AA2J", "AA2E", 0, sma2_jpn },
 	{ "AX4P", "AX4E", 0, sma4_eur },
-	{ "AX4J", "AX4E", 0, sma4_jpn },
+	{ "AX4J", "AX4E", 0, sma4_moved },
+	{ "AX4R", "AX4E", 0, sma4_moved },
 	{ "AT3F", "AT3E", 0, thps3_fra },
 	{ "AT3D", "AT3E", 0, thps3_ger },
 	{ "ASEJ", "ASEE", 0, smm_jpn },
