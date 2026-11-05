@@ -3391,7 +3391,10 @@ static const MapProfile profiles[] = {
 		 * copyright line below it a sprite (SM4-5) */
 		.logo = { .steps = { { 0, 1600 }, { K_START, 4 }, { 0, 150 }, { K_A, 4 }, { 0, 150 }, { K_A, 4 }, { 0, 300 },
 		                     { K_START, 4 }, { 0, 150 } },
-		          .layer = 1, .maxY = 120 },
+		          .layer = 1, .maxY = 120,
+		          /* its orange shadow's rim along the letters' upper and
+		           * left sides left out (in the game's other colours too) */
+		          .shadow = { 0xF7A54A, 0xEF9431 }, .shadowReach = 3, .rev = 1 },
 		/* (the start, up to the opening's airship, left to play by
 		 * itself: each release and revision formats its save and shows
 		 * its notices for a different time, and takes buttons there

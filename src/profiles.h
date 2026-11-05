@@ -544,6 +544,14 @@ typedef struct MapProfile {
 		 * neighbour: the background showing at the lettering's dithered or
 		 * translucent edge (Mario & Luigi's sky, its shadow's specks) */
 		uint32_t edgeClear[4];
+		/* a drop shadow of this colour (0xRRGGBB; either of a game's two
+		 * colour sets) stays only below and right of the lettering:
+		 * where there's lettering (or shadow kept) up to shadowReach rows
+		 * above it, as far left as that; the rest of it (a rim of that
+		 * colour along the lettering's upper and left sides, which the
+		 * title's light background hides) is clear (Super Mario Bros. 3) */
+		uint32_t shadow[2];
+		int shadowReach;
 		int minY, minX, maxX; /* with maxY: only this box (maxX 0: the whole width); a frame
 		                       * round the logo left out (Super Mario World's) */
 		MacroStep steps[24]; /* instead of wait/pressStart: button steps from power-on */
