@@ -522,9 +522,11 @@ static const char* do_capture_(MapCapture* mc, const void* state) {
 	if (map_up(p, s)) {
 		return "screen already looks like the map";
 	}
-	for (int i = 0; i < 8 && p->open[i].frames; ++i) {
-		for (int f = 0; f < p->open[i].frames; ++f) {
-			emu_frame(s, p->open[i].keys);
+	/* (openAlt: the game's other way to the map, from where it's asked for) */
+	const MacroStep* open = p->openAlt[0].frames && memprobes_match(p->openAltIf, 2, s) ? p->openAlt : p->open;
+	for (int i = 0; i < 8 && open[i].frames; ++i) {
+		for (int f = 0; f < open[i].frames; ++f) {
+			emu_frame(s, open[i].keys);
 		}
 	}
 	if (p->open2[0].frames) {
@@ -549,8 +551,8 @@ static const char* do_capture_(MapCapture* mc, const void* state) {
 		if (!everUp && p->openWithin && f - base >= p->openWithin) {
 			if (presses < p->openTries) {
 				/* ignored for now: press it again */
-				for (int i = 0; i < 8 && p->open[i].frames; ++i) {
-					for (int g = 0; g < p->open[i].frames; ++g) emu_frame(s, p->open[i].keys);
+				for (int i = 0; i < 8 && open[i].frames; ++i) {
+					for (int g = 0; g < open[i].frames; ++g) emu_frame(s, open[i].keys);
 				}
 				++presses, base = f;
 				continue;

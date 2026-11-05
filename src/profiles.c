@@ -3632,6 +3632,12 @@ static const MapProfile profiles[] = {
 		 * panel alone (BG0 and its sprite) is the "map", where the game
 		 * draws it, on dark grey (SM4-1). */
 		.open = { { K_L, 4 } },
+		/* World-e's map with Mario on a level's spot: its info box takes
+		 * no L (nor START); B opens the Level Card list and B again goes
+		 * back to the map without the box, where L works, as a player
+		 * does it (0x03003851 is 1 while the box is up) */
+		.openAltIf = { { 0x03003851, 0xFF, 1, 1 }, { 0x0400000C, 0xFFFF, 0xDC00, 2 } },
+		.openAlt = { { K_B, 4 }, { 0, 60 }, { K_B, 4 }, { 0, 40 }, { K_L, 4 } },
 		.settleMax = 60, .openWithin = 40, .openTries = 3, .stableFrames = 3, .maxDiff = 400,
 		.crop_x = 0, .crop_y = 0, .crop_w = 240, .crop_h = 160,
 		/* its white and black edges only: the game has two sets of
