@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `AW2E` USA · `AW2P` Europe (the same RAM; a language menu first). No Japanese release. |
+| Dumps | `AW2E` cartridge `5ad0e571` (tested), Virtual Console `b6ffdde0` · `AW2P` cartridge `5a09aae6` (tested), Virtual Console `bf33782f` |
 | Profile | `src/profiles.c`: the `AW2E` entry (Advance Wars' code, its addresses in `awRegions`); variant `AW2P` |
 | Tests | `tests/regress/advance-wars-2.json` (`tools/regress.py advance-wars-2`) |
 | Status | supported |

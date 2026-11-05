@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `AZLE` USA · `AZLP` Europe (language menu after the title) · `AZLJ` Japan |
+| Dumps | `AZLE` cartridge `8e91cd13` (tested) · `AZLP` cartridge `5a164321` (tested) · `AZLJ` cartridge `81e42bee` (tested) |
 | Profile | `src/profiles.c`: the `AZLE` entry; variants `AZLP`, `AZLJ` |
 | Tests | `tests/regress/zelda-a-link-to-the-past.json` (`tools/regress.py zelda-a-link-to-the-past`) |
 | Status | supported |

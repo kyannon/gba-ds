@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `ATHE` USA and Europe · `ATHF` France · `ATHD` Germany · `ATHJ` Japan (SK8: its own badge and a later title) |
+| Dumps | `ATHE` cartridge `812dc57a` (tested) · `ATHF` cartridge `f0efc9d8` (tested) · `ATHD` cartridge `6d236181` (tested) · `ATHJ` cartridge `91f93500` (tested) |
 | Profile | `src/profiles.c`: the `ATHE` entry (with `ATHF`, `ATHD`); variant `ATHJ` |
 | Tests | `tests/regress/tony-hawks-pro-skater-2.json` (`tools/regress.py tony-hawks-pro-skater-2`) |
 | Status | supported |

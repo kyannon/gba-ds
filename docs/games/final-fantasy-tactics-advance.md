@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `AFXE` USA · `AFXP` Europe (language menu first) · `AFXJ` Japan |
+| Dumps | `AFXE` cartridge `5645e56c` (tested), Virtual Console `5964df89` · `AFXP` cartridge `ba5de047` (tested), Virtual Console `4a8d2c39` · `AFXJ` cartridge `a57b0034` (tested), Virtual Console `ee31422a` |
 | Profile | `src/profiles.c`: the `AFXE` entry; variants `AFXP`, `AFXJ` |
 | Tests | `tests/regress/final-fantasy-tactics-advance.json` (`tools/regress.py final-fantasy-tactics-advance`) |
 | Status | supported (second screen redone in v1.3.2) |

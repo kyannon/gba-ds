@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `BPPE` USA |
+| Dumps | `BPPE` cartridge `b992a3c0` (tested) |
 | Profile | `src/profiles.c`: the `BPPE` entry (logo-only, with `tall`: the table over both screens, game.c `update_tall`) |
 | Tests | `tests/regress/pokemon-pinball.json` (`tools/regress.py pokemon-pinball`) |
 | Status | supported |

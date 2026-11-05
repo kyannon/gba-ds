@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `ACHE` USA · `ACHP` Europe · `ACHJ` Japan (RAM 0x30 lower) |
+| Dumps | `ACHE` cartridge `88c1b562` (tested), Castlevania Advance Collection `3a1e789a` · `ACHP` cartridge `521b3091` (tested), Castlevania Advance Collection `e0c4fd69` · `ACHJ` cartridge `379b3248` (tested), Castlevania Advance Collection `247eeb20` |
 | Profile | `src/profiles.c`: the `ACHE` entry; variants `ACHP`, `ACHJ` |
 | Tests | `tests/regress/castlevania-harmony-of-dissonance.json` (`tools/regress.py castlevania-harmony-of-dissonance`) |
 | Status | supported |

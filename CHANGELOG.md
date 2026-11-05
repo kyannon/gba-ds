@@ -2,6 +2,9 @@
 
 ## v1.4.9 (not yet released)
 
+### Changes
+- Bug reports now say whether the game's ROM is an unchanged copy of the game or has been patched or modified (from its checksum). Romhacks and patched ROMs are the next step for GBA DS (#17); this helps tell which problems come from them.
+
 ## v1.4.8 (2026-11-04)
 
 ### New games

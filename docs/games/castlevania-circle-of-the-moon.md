@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `AAME` USA · `AAMP` Europe · `AAMJ` Japan |
+| Dumps | `AAME` cartridge `1cc059a4` (tested), Castlevania Advance Collection `14c1ab7c`, Virtual Console `d5412e91` · `AAMP` cartridge `611535dc` (tested), Castlevania Advance Collection `050e2164`, Virtual Console `dba05255` · `AAMJ` cartridge `f3e41d73`, Castlevania Advance Collection `1e60ec88` (tested), Virtual Console `2c56982d` |
 | Profile | `src/profiles.c`: the `AAME` entry; variants `AAMP`, `AAMJ` |
 | Tests | `tests/regress/castlevania-circle-of-the-moon.json` (`tools/regress.py castlevania-circle-of-the-moon`) |
 | Status | supported |

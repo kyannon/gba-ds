@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `AGSE` USA, Europe (English) · `AGSD` Germany · `AGSF` France · `AGSI` Italy · `AGSS` Spain · `AGSJ` Japan (each tried walking about; battles only in `AGSE`) |
+| Dumps | `AGSE` cartridge `e1fb68e8` (tested) · `AGSD` cartridge `1053dce4` (tested) · `AGSF` cartridge `f6521161` (tested) · `AGSI` cartridge `f3128812` (tested) · `AGSS` cartridge `c63008d6` (tested) · `AGSJ` cartridge `fb96d9de` (tested) |
 | Profile | `src/profiles.c`: the `AGSE` entry (gs_compose); variant `AGSD` (its battle bytes 0x10 higher) |
 | Tests | `tests/regress/golden-sun.json` (`tools/regress.py golden-sun`) |
 | Status | supported |
