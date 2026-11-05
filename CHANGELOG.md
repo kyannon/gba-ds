@@ -1,14 +1,20 @@
 # Changelog
 
-## v1.4.9 (not yet released)
+## v1.4.9 (2026-11-05)
 
 ### New games
-- **Golden Sun: The Lost Age** (USA / Europe, German, French, Italian, Spanish and Japanese releases), with Golden Sun's second screen: while you walk about, the Status screen, turning through your party every 5 seconds (all eight, the ones in the back too); in a battle, the battle's Status of the character choosing what to do, and the logo while the turn plays out. The logo is the title screen's emblem. Every release has been tried walking about and in a battle; sailing on Piers's ship hasn't been tried yet.
-- **Lady Sia** (USA and Europe): in a level, the second screen shows the game's own pause screen as a status screen: Sia's lives, the gems and rescued villagers, the level's time, the ring and the heart (her health), kept up to date about once a second, without the pause menu's lines. The lives, gems, villagers, ring and heart the game puts up during play (as a level starts, as Sia picks something up, the heart while she's hurt) are left off the game screen, since the second screen has them; the game's own pause screen is drawn whole. The logo is the title's lettering, shown at the title, in the menus and story scenes, on the maps between levels, in the jail and in the credits. Every level has been tried; the spells and the bonus levels haven't been yet.
-- **Zoids: Legacy** (USA; Zoids Saga II in Japan): walking about, in towns, out on the world and in dungeons, the second screen shows the game's own map screen (the one SELECT or R opens), without its prompt line, kept up to date without opening it. In battles, it shows the Status of the Zoid choosing its move (the screen R opens there), and the logo while the battle plays out. In the past, where the game has no map, it shows the game's own message saying so. The logo is the title's lettering. Known issue: from a random battle's turn menu, the Status has a light strip across its middle, left by the game itself (the game screen shows it too).
+- **Golden Sun: The Lost Age** (USA / Europe, German, French, Italian, Spanish and Japanese releases), with Golden Sun's second screen: while you walk about, the Status screen, turning through your party every 5 seconds (all eight, the ones in the back too); in a battle, the battle's Status of the character choosing what to do, and the logo while the turn plays out. The logo is the title screen's emblem. Every release has been tried walking about and in a battle.
+- **Lady Sia** (USA and Europe): in a level, the second screen shows the game's own pause screen as a status screen: Sia's lives, the gems and rescued villagers, the level's time, the ring and the heart (her health), kept up to date about once a second, without the pause menu's lines. The lives, gems, villagers, ring and heart the game puts up during play (as a level starts, as Sia picks something up, the heart while she's hurt) are left off the game screen, since the second screen has them; the game's own pause screen is drawn whole. The logo is the title's lettering, shown at the title, in the menus and story scenes, on the maps between levels, in the jail and in the credits. Every level has been tried.
+- **Zoids: Legacy** (USA; Zoids Saga II in Japan): walking about, in towns, out on the world and in dungeons, the second screen shows the game's own map screen (the one SELECT or R opens), without its prompt line, kept up to date without opening it. In battles, it shows the Status of the Zoid choosing its move (the screen R opens there), and the logo while the battle plays out. In the past, where the game has no map, it shows the game's own message saying so. The logo is the title's lettering.
 
 ### Changes
 - Bug reports now say whether the game's ROM is an unchanged copy of the game or has been patched or modified (from its checksum). Romhacks and patched ROMs are the next step for GBA DS (#17); this helps tell which problems come from them.
+
+### Known issues
+- **Golden Sun: The Lost Age:** sailing on Piers's ship hasn't been tried yet.
+- **Lady Sia:** the spells and the bonus levels haven't been tried yet.
+- **Zoids: Legacy:** from a random battle's turn menu, the Status has a light strip across its middle, left by the game itself (the game screen shows it too).
+- **Final Fantasy Tactics Advance:** if one of your units gets two turns in a row, the turn order shown on the next enemy turn may be the one from that unit's first turn (since v1.4.8).
 
 ## v1.4.8 (2026-11-04)
 
