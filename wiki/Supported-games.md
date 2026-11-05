@@ -28,8 +28,10 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Spider-Man: Mysterio's Menace (Spider-Man: Mysterio no Kyoui in Japan) | `ASEE` (USA and Europe) `ASEJ` | the Select menu: the objective, password, suits, upgrades and web containers |
 | Sonic Pinball Party | `A3VE` `A3VP` | the table twice as tall over both screens, live (work in progress) |
 | Sonic Advance | `ASOE` `ASOP` `ASOJ` | the zone card, with the rings, score, time and lives |
+| Sonic Advance 2 | `A2NE` `A2NP` `A2NJ` | the zone card, with the rings, score, time and lives |
 | Mario & Luigi: Superstar Saga (Mario & Luigi RPG in Japan) | `A88E` `A88P` `A88J` | Bros. Info of the brother you're controlling |
 | Dragon Ball Z: The Legacy of Goku | `ALGE` `ALGP` (no Japanese release) | the pause menu, with the HP and Ki bars (or the counter SELECT and flying show) in place of its options |
+| Kingdom Hearts: Chain of Memories | `B8CE` `B8CP` `B8CJ` | the World Map; in battles, the logo |
 
 The codes are what `<CODE>` means in logo and overlay file names (see [Playing](Playing#logos) and [[Map screen surrounds and overlays]]).
 
@@ -190,6 +192,15 @@ The USA, European and Japanese releases, tried in Neo Green Hill Zone so far.
 - The act's results stay on the game screen. On the title and menus, the second screen shows the logo.
 - Not tried yet: other zones and characters, bosses, special stages, Time Attack, VS and the Tiny Chao Garden.
 
+## Sonic Advance 2
+
+The USA, European and Japanese releases, tried in Leaf Forest so far.
+
+- As each act starts, the second screen keeps the game's **zone card** (the zone's name, its emblem and the row of zone icons, on blue and black), the whole screen as the game draws it, once it has settled.
+- In the level, the **rings, score and time** move from the top of the game screen to the bottom left of the second screen, over the card's blue, and the **lives** from the bottom left to the card's bottom right. They stay there under water.
+- The pause window stays on the game screen. On the title and menus, the second screen shows the logo; after loading a state mid-act that wasn't saved with the card, the logo stays (above the moved HUD) until the next act's card.
+- Not tried yet: other zones and characters, bosses, special stages, Time Attack, multiplayer and the Tiny Chao Garden.
+
 ## Sonic Pinball Party
 
 The USA and European releases. **Work in progress:** glitches may occur on the tables, such as sprites misplaced or flickering for a frame, or part of the table drawn out of step for a moment. If you see one, press the quick bar's bug button right after it and send the report (see [Playing](Playing#the-quick-bar-and-bug-reports)). `pinball_live = 0` in `gba-ds.cfg` plays the game on one screen instead.
@@ -262,3 +273,11 @@ Profile contributed by LucasAlexandrou.
 - **During play,** the second screen shows the character's **Status** screen (the one in START's ring: Status, then Status), with level, HP, MP, experience, stats and the weapon and magic levels. It's opened in the background in a silent copy of the game every map refresh, so it stays up to date without you opening it; your game is never paused. While it can't be opened (a conversation, a scene), the last one stays.
 - **On the game screen,** the HUD's portrait and HP / MP figures are left off, since the Status screen has them; the charge bar stays.
 - **On the title screen,** the second screen shows the logo.
+
+## Kingdom Hearts: Chain of Memories
+
+The USA, European and Japanese releases, tried in Traverse Town.
+
+- **Walking about in a world,** the second screen is the **World Map** (the one SELECT opens), as the game draws it, filling the screen: the floor's rooms, the room you're in lit blue with its name, and the floor you're on. It's opened in the background in a silent copy of the game about once a second, so new rooms show up without you opening it; your game is never paused. The map's cursor and its A button bubble are left out.
+- **In battles,** from the flash as one starts until the last enemy falls, the second screen shows the logo; the World Map comes back afterwards.
+- On the title, in the opening and in the scenes before the first world, it shows the logo; in conversations, scenes, at doors and in the game's own menus it keeps its last picture.

@@ -1,0 +1,8 @@
+Manufacturer,Device,Primary Screen,Top Screen Resolution,Top Screen Size (in),Top Screen Aspect Ratio,Bottom Screen Resolution,Bottom Screen Size (in),Bottom Screen Aspect Ratio,Default OS,Primary Screen Source
+Ayn,Thor,Top,1920 x 1080,6,16:9,1080 x 1240,3.92,3.4:3,Android,issue #13: the app opens on the 1920x1080 display; touches came from the second (1240x1080)
+Retroid Pocket,Duo,Top,1920 x 1080,5.5,16:9,1280 x 960,4.5,4:3,Android,assumed as the Duo Lite (same screens' resolutions); unconfirmed
+Retroid Pocket,Duo Lite,Top,1920 x 1080,5.5,16:9,1280 x 960,4.2,4:3,Android,issue #8: the second screen (4:3) was drawn at the app's display's size; menus showed on the top screen
+Anbernic,RG DS,Bottom,640 x 480,4,4:3,640 x 480,4,4:3,Android,docs/ANDROID.md: apps open on display 0, the bottom touchscreen
+Anbernic,RG DS Plus,Top,1024 x 768,4.3,4:3,1024 x 768,4.3,4:3,Linux,ROCKNIX's main output is the top panel (DSI-2); GBA DS spans both with one window. Its Android (GammaOS) opens apps on the bottom one
+Anbernic,RG DDS,unreleased,1200 x 720,4.7,5:3,960 x 720,4,4:3,Android,
+AYANEO,Pocket DS,Top,1920 x 1080,7,16:9,1024 x 768,5,4:3,Android,the owner's table

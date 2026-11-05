@@ -65,7 +65,7 @@
 #define AW_TASK 0x03000000 /* the game's first task: its routine (AwRegion.mapTask) */
 #define AW_V_OFFMAP 0xF0000051 /* 1 off the battle map: the title, menus, a battle's results */
 typedef struct {
-	uint32_t army, cursor, units, menuRow, minimapOpen; /* (minimapOpen: unused since the minimap went) */
+	uint32_t army, cursor, units, menuRow, minimapOpen; /* (minimapOpen: counts to 12 as START's minimap opens) */
 	int intelItem; /* Intel's row in the SELECT menu */
 	uint32_t intelPx[2][3]; /* the Battle Intel is up: x, y, colour (0xRRGGBB) */
 	int intelRows;          /* the Battle Intel's panel: the rows above the map */
@@ -81,18 +81,27 @@ typedef struct {
 	                   * results, the title, the mode menu: the army byte keeps the last
 	                   * battle's there). Found in Field Training's results (AW1), the mode
 	                   * menu and a Versus battle (AW2). */
+	int statusItem;   /* Status's row in the Intel menu tried first (the campaign's: Terms,
+	                   * Status, CO; other modes: Status, CO, Rules; aw_panel tries the others) */
+	int labelTile;    /* the unit intel's label over its panel (INTEL, SPEC): a 32x8 sprite of
+	                   * this tile in palette 6, left out of AW-1's frame (0: none) */
 } AwRegion;
 
 static const AwRegion awRegions[] = {
-	{ AW_ARMY, AW_CURSOR, AW_UNITS, AW_MENU_ROW, AW_MINIMAP_OPEN, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000ED0, 0x082E3FD4 }, 0x030036AC, 876, 0x0801FA69 },
+	{ AW_ARMY, AW_CURSOR, AW_UNITS, AW_MENU_ROW, AW_MINIMAP_OPEN, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000ED0, 0x082E3FD4 }, 0x030036AC, 876, 0x0801FA69, 0, 537 },
 	/* (its SELECT menu has no Unit item: CO, Intel, Options, Save, End) */
 	{ AW2_ARMY, AW2_CURSOR, AW2_UNITS, AW2_MENU_ROW, AW2_MINIMAP_OPEN, 1, { { 200, 100, 0xFFEFEF }, { 120, 140, 0xFFEFEF } }, 152, { 0x03001530, 0x0849E2C0 }, 0, 873, 0x08022049 },
 	/* Game Boy Wars Advance 1+2 (Japan): each game at its own addresses
 	 * (game 1's found by the literal pools around its code: 0x240 lower
 	 * than Advance Wars' above 0x03003000, 0x10 lower around 0x03000E00;
 	 * the unit intel's routine by its shape; game 2's by watching them) */
-	{ GBW1_ARMY, GBW1_CURSOR, GBW1_UNITS, 0x03000E40, 0x03000E1E, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000EC0, 0x08DEC9D8 }, 0x0300346C, 876, 0x08B1FFA1 },
+	{ GBW1_ARMY, GBW1_CURSOR, GBW1_UNITS, 0x03000E40, 0x03000E1E, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000EC0, 0x08DEC9D8 }, 0x0300346C, 876, 0x08B1FFA1, 0, 537 },
 	{ GBW2_ARMY, GBW2_CURSOR, GBW2_UNITS, AW2_MENU_ROW, AW2_MINIMAP_OPEN, 1, { { 200, 100, 0xFFEFEF }, { 120, 140, 0xFFEFEF } }, 152, { 0x03001530, 0x0881A0A4 }, 0, 873, 0x08322509 },
+	/* Advance Wars 1 and 2 in Europe (AWRP, AW2P): the USA's RAM, their
+	 * routines elsewhere in the ROM (the map's and the unit intel's,
+	 * read from the owner's campaign states) */
+	{ AW_ARMY, AW_CURSOR, AW_UNITS, AW_MENU_ROW, AW_MINIMAP_OPEN, 1, { { 4, 4, 0xFFE7C6 }, { 200, 100, 0xFFE7C6 } }, 124, { 0x03000ED0, 0x083C356C }, 0x030036AC, 876, 0x0801FDD1, 1, 537 },
+	{ AW2_ARMY, AW2_CURSOR, AW2_UNITS, AW2_MENU_ROW, AW2_MINIMAP_OPEN, 1, { { 200, 100, 0xFFEFEF }, { 120, 140, 0xFFEFEF } }, 152, { 0x03001530, 0x08521548 }, 0, 873, 0x080221B5 },
 };
 
 /* Game Boy Wars Advance 1+2: which game is running, by where the
@@ -107,7 +116,7 @@ static int gbw_game(Emu* s) {
 
 static const AwRegion* aw_r(Emu* s) {
 	if (!strncmp(s->gameCode, "BGWJ", 4)) return &awRegions[gbw_game(s) == 1 ? 2 : 3];
-	return &awRegions[s->gameCode[2] == '2' ? 1 : 0];
+	return &awRegions[(s->gameCode[2] == '2' ? 1 : 0) + (s->gameCode[3] == 'P' ? 4 : 0)];
 }
 
 static uint32_t aw_virt(Emu* e, uint32_t addr) {
@@ -216,6 +225,63 @@ static bool aw_settle(Emu* s, bool (*up)(Emu*), int limit) {
 	return false;
 }
 
+/* The minimap (START), alone: rendered with only BG0, where the game draws
+ * it, and cut out by comparing with a render of no layers at all. */
+static bool aw_minimap(Emu* s, const void* state, void* tmp, uint32_t* mm, int* mw, int* mh) {
+	const AwRegion* r = aw_r(s);
+	if (!emu_state_load(s, state)) return false;
+	if (!aw_back(s)) return false;
+	/* START (again if a cancelled move was still going back and took no
+	 * presses), until the minimap's opening count reaches its end */
+	bool open = false;
+	for (int tries = 0; tries < 3 && !open; ++tries) {
+		aw_run(s, K_START, 2);
+		for (int f = 0; f < 30 && !open; ++f) {
+			emu_frame(s, 0);
+			open = emu_read8(s, r->minimapOpen) == 12;
+		}
+	}
+	if (!open) return false;
+	aw_run(s, 0, 2);
+	if (!emu_state_save(s, tmp)) return false;
+	static uint32_t none[GBA_W * GBA_H];
+	emu_layers(s, 0);
+	emu_state_load(s, tmp);
+	emu_frame(s, 0);
+	memcpy(none, s->fb, sizeof(none));
+	emu_layers(s, 0x01);
+	emu_state_load(s, tmp);
+	emu_frame(s, 0);
+	int x0 = GBA_W, y0 = GBA_H, x1 = -1, y1 = -1;
+	for (int y = 0; y < GBA_H; ++y) {
+		for (int x = 0; x < GBA_W; ++x) {
+			if (s->fb[y * GBA_W + x] == none[y * GBA_W + x]) continue;
+			if (x < x0) x0 = x;
+			if (x > x1) x1 = x;
+			if (y < y0) y0 = y;
+			if (y > y1) y1 = y;
+		}
+	}
+	/* the minimap is an opaque box in the middle of the screen; anything
+	 * else on BG0 (START did nothing: an action menu, a move range) isn't */
+	bool ok = x1 - x0 >= 15 && y1 - y0 >= 15 && abs(x0 + x1 - (GBA_W - 1)) <= 4 && abs(y0 + y1 - (GBA_H - 1)) <= 4;
+	if (ok) {
+		int filled = 0;
+		for (int y = y0; y <= y1; ++y) {
+			for (int x = x0; x <= x1; ++x) filled += s->fb[y * GBA_W + x] != none[y * GBA_W + x];
+		}
+		ok = filled * 100 >= (x1 - x0 + 1) * (y1 - y0 + 1) * 97;
+	}
+	if (ok) {
+		*mw = x1 - x0 + 1;
+		*mh = y1 - y0 + 1;
+		for (int y = 0; y < *mh; ++y) memcpy(&mm[y * *mw], &s->fb[(y0 + y) * GBA_W + x0], *mw * sizeof(uint32_t));
+	}
+	emu_layers(s, 0x1F);
+	emu_state_load(s, tmp); /* every layer back on */
+	return ok;
+}
+
 /* The unit under the map cursor, if it's one of the army whose turn it is:
  * its id (1-64), else 0. */
 static int aw_cursor_unit(Emu* s, int army) {
@@ -264,7 +330,11 @@ static void aw_clean(Emu* s, void* tmp, uint32_t* pan, uint32_t* bg2) {
 		for (int i = 0; i < GBA_W * GBA_H; ++i) bg2[i] = s->fb[i] == none[i] ? AW_BG : s->fb[i];
 	}
 	emu_layers(s, 0x15);
-	emu_hide_sprites(s, rules, 3);
+	/* (and the unit intel's label, INTEL / SPEC, over its panel: AW-1's
+	 * frame has the panel without its edge) */
+	int lt = aw_r(s)->labelTile;
+	const SpriteRule hide[4] = { rules[0], rules[1], rules[2], { -512, -16, 511, 8, lt, lt, -1, 1u << 6, 0 } };
+	emu_hide_sprites(s, hide, lt ? 4 : 3);
 	emu_state_load(s, tmp);
 	emu_frame(s, 0);
 	for (int i = 0; i < GBA_W * GBA_H; ++i) pan[i] = s->fb[i] == none[i] ? AW_BG : s->fb[i];
@@ -311,21 +381,96 @@ static const char* aw_panel(Emu* s, const void* state, bool tryUnit, bool* unitP
 		aw_tap(s, K_R, 1);
 		if (!aw_settle(s, aw_unit_up, 90)) return "unit intel did not open";
 	} else {
-		aw_tap(s, K_SELECT, 1);
-		aw_run(s, 0, 8);
-		aw_pick(s, r->intelItem); /* Intel */
-		aw_tap(s, K_A, 1);
-		aw_run(s, 0, 8);
-		aw_pick(s, 0); /* Status (the Intel menu keeps its last choice: CO, Rules) */
-		aw_tap(s, K_A, 1);
-		if (!aw_settle(s, aw_intel_up, 90)) return "battle intel did not open";
+		/* Status: where it was last time, else the region's guess, else
+		 * the other rows (the campaign's menu has Terms first; the menu
+		 * keeps its last choice, so each try picks its row) */
+		static int worked = -1;
+		int rows[4] = { worked, r->statusItem, 0, 1 }, tried = 0;
+		bool up = false;
+		for (int k = 0; k < 4 && !up; ++k) {
+			if (rows[k] < 0 || (tried >> rows[k] & 1)) continue;
+			tried |= 1 << rows[k];
+			if (k && !emu_state_load(s, state)) return "state load failed";
+			if (k) {
+				emu_frame(s, 0);
+				if (!aw_back(s)) return "the cursor isn't free";
+			}
+			aw_tap(s, K_SELECT, 1);
+			aw_run(s, 0, 8);
+			aw_pick(s, r->intelItem); /* Intel */
+			aw_tap(s, K_A, 1);
+			aw_run(s, 0, 8);
+			aw_pick(s, rows[k]);
+			aw_tap(s, K_A, 1);
+			up = aw_settle(s, aw_intel_up, 90);
+			if (up) worked = rows[k];
+		}
+		if (!up) return "battle intel did not open";
 	}
 	return NULL;
 }
 
+/* The game's window background (AW-1's frame): in BG2 alone, the 8x8
+ * tile repeated most inside the box at x0-x1, y0-y1, among those dithered
+ * in exactly two colours (not the plain lines behind the text), at
+ * whichever of the 64 alignments repeats it most (the game's tile grid).
+ * False if none repeats. *ax, *ay: where a copy of it starts, mod 8;
+ * in[2]: its colours. */
+static bool aw_window_tile(const uint32_t* bg2, int x0, int y0, int x1, int y1, uint32_t tile[64], int* ax, int* ay, uint32_t in[2]) {
+	int best = 0;
+	for (int fy = 0; fy < 8; ++fy) {
+		for (int fx = 0; fx < 8; ++fx) {
+			int sx = x0 + ((fx - x0) % 8 + 8) % 8, sy = y0 + ((fy - y0) % 8 + 8) % 8;
+			for (int ty = sy; ty + 7 <= y1; ty += 8) {
+				for (int tx = sx; tx + 7 <= x1; tx += 8) {
+					uint32_t c0 = bg2[ty * GBA_W + tx], c1 = c0;
+					bool two = true;
+					for (int i = 0; i < 64 && two; ++i) {
+						uint32_t c = bg2[(ty + i / 8) * GBA_W + tx + i % 8];
+						if (c == c0 || c == c1) continue;
+						if (c1 == c0) c1 = c;
+						else two = false;
+					}
+					if (!two || c1 == c0 || c0 == AW_BG || c1 == AW_BG) continue;
+					int same = 0;
+					for (int uy = sy; uy + 7 <= y1; uy += 8) {
+						for (int ux = sx; ux + 7 <= x1; ux += 8) {
+							bool eq = true;
+							for (int i = 0; i < 64 && eq; ++i) eq = bg2[(uy + i / 8) * GBA_W + ux + i % 8] == bg2[(ty + i / 8) * GBA_W + tx + i % 8];
+							same += eq;
+						}
+					}
+					if (same > best) {
+						best = same, *ax = fx, *ay = fy, in[0] = c0, in[1] = c1;
+						for (int i = 0; i < 64; ++i) tile[i] = bg2[(ty + i / 8) * GBA_W + tx + i % 8];
+					}
+				}
+			}
+		}
+	}
+	return best >= 2;
+}
+
+/* How deep a window's edge is, from (x, y) inward by (dx, dy) in BG2 alone:
+ * up to the first of three pixels running as its background's tile has
+ * them there (tile, aligned at ax, ay); -1 if there's no such run within
+ * 16 (a line behind the text). */
+static int aw_edge_depth(const uint32_t* bg2, int x, int y, int dx, int dy, const uint32_t tile[64], int ax, int ay) {
+	for (int k = 0; k < 16; ++k) {
+		bool run = true;
+		for (int j = 0; j < 3 && run; ++j) {
+			int xx = x + (k + j) * dx, yy = y + (k + j) * dy;
+			uint32_t c = xx >= 0 && yy >= 0 && xx < GBA_W && yy < GBA_H ? bg2[yy * GBA_W + xx] : 0;
+			run = c == tile[((yy - ay) & 7) * 8 + ((xx - ax) & 7)];
+		}
+		if (run) return k;
+	}
+	return -1;
+}
+
 /* The second screen (AW-1): the unit intel of the unit under the cursor
- * (R), where the game puts it, or else the Battle Intel's panel, centred;
- * on AW_BG. */
+ * (R), its panel at the right and its text box at the top left, or else
+ * the Battle Intel's panel, centred; on AW_BG. */
 static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
 	const AwRegion* r = aw_r(s);
 	static uint32_t pan[GBA_W * GBA_H], bg2[GBA_W * GBA_H];
@@ -346,6 +491,24 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 		err = aw_panel(s, state, false, &unitPanel);
 		if (!err) aw_clean(s, tmp, pan, NULL);
 	}
+	/* with the unit intel, the minimap (AW-1): taken again only when a
+	 * unit or the army whose turn it is changes (a move, a build, a unit
+	 * lost), and every 8th time (a property captured, the fog); a cursor
+	 * moving over the map doesn't change it. If START won't open it,
+	 * the intel goes without. */
+	static uint32_t mm[GBA_W * GBA_H], mmKey;
+	static int mw, mh, mmAge;
+	if (!err && unitPanel) {
+		emu_state_load(s, state);
+		uint32_t key = 2166136261u;
+		for (uint32_t a = r->units; a < r->units + 4 * 0x300; a += 4) key = (key ^ emu_read32(s, a)) * 16777619u;
+		key = (key ^ emu_read8(s, r->army)) * 16777619u;
+		if (!mw || key != mmKey || ++mmAge >= 8) {
+			mw = mh = 0;
+			if (aw_minimap(s, state, tmp, mm, &mw, &mh)) mmKey = key, mmAge = 0;
+			else mw = mh = 0;
+		}
+	}
 	free(tmp);
 	if (err) return err;
 	for (int i = 0; i < w * h; ++i) out[i] = AW_BG;
@@ -362,6 +525,111 @@ static const char* aw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 		}
 	}
 	if (x1 < 0) return "nothing on the panel";
+	if (unitPanel) {
+		/* AW-1: the panel at the right and the text box at the top left,
+		 * wherever the game put them (it moves both away from the cursor),
+		 * each at the game's own distance from the screen's edges */
+		int px0 = GBA_W, px1 = -1, py0 = GBA_H, py1 = -1, tx0 = GBA_W, tx1 = -1, ty0 = GBA_H, ty1 = -1;
+		for (int y = 0; y < GBA_H; ++y) {
+			for (int x = 0; x < GBA_W; ++x) {
+				if (pan[y * GBA_W + x] == AW_BG || bg2[y * GBA_W + x] == AW_BG) continue;
+				if (x >= c0 && x <= c1) {
+					px0 = x < px0 ? x : px0, px1 = x > px1 ? x : px1, py0 = y < py0 ? y : py0, py1 = y > py1 ? y : py1;
+				} else {
+					tx0 = x < tx0 ? x : tx0, tx1 = x > tx1 ? x : tx1, ty0 = y < ty0 ? y : ty0, ty1 = y > ty1 ? y : ty1;
+				}
+			}
+		}
+		int edge = px0 < GBA_W - 1 - px1 ? px0 : GBA_W - 1 - px1;
+		int pdx = (GBA_W - 1 - edge) - px1;                                  /* the panel's move */
+		int tdx = tx1 < 0 ? 0 : (tx0 < c0 ? tx0 : GBA_W - 1 - tx1) - tx0;    /* the text box's */
+		int tdy = tx1 < 0 ? 0 : py0 - ty0;
+		int ox = (w - GBA_W) / 2, oy = (h - GBA_H) / 2;
+		/* one frame across the screen (AW-1): the game's window background
+		 * (its tile, in line with the text box's), a 1-pixel edge in the
+		 * colour of the panel's outline; on it the text box's inside (its
+		 * text and lines, not its edge) and the panel as the game draws it */
+		uint32_t tile[64], in[2] = { 0, 0 };
+		int ax = 0, ay = 0, tin[4] = { 0, 0, 0, 0 }; /* the text box's edge: left, top, right, bottom */
+		int pin[4] = { 0, 0, 0, 0 };                 /* the panel's */
+		bool framed = tx1 >= 0 && aw_window_tile(bg2, tx0, ty0, tx1, ty1, tile, &ax, &ay, in);
+		if (framed) {
+			/* (each side's edge: the shallowest along all of it but its
+			 * corners, as the lines behind the text run into most) */
+			for (int k = 0; k < 4; ++k) tin[k] = 16;
+			for (int y = ty0 + 3; y <= ty1 - 3; ++y) {
+				int l = aw_edge_depth(bg2, tx0, y, 1, 0, tile, ax, ay), r = aw_edge_depth(bg2, tx1, y, -1, 0, tile, ax, ay);
+				tin[0] = l >= 0 && l < tin[0] ? l : tin[0], tin[2] = r >= 0 && r < tin[2] ? r : tin[2];
+			}
+			for (int x = tx0 + 3; x <= tx1 - 3; ++x) {
+				int t = aw_edge_depth(bg2, x, ty0, 0, 1, tile, ax, ay), b = aw_edge_depth(bg2, x, ty1, 0, -1, tile, ax, ay);
+				tin[1] = t >= 0 && t < tin[1] ? t : tin[1], tin[3] = b >= 0 && b < tin[3] ? b : tin[3];
+			}
+			/* the panel's edge the same way: its inside goes in the frame
+			 * too (one window across the screen) */
+			for (int k = 0; k < 4; ++k) pin[k] = 16;
+			for (int y = py0 + 3; y <= py1 - 3; ++y) {
+				int l = aw_edge_depth(bg2, px0, y, 1, 0, tile, ax, ay), r = aw_edge_depth(bg2, px1, y, -1, 0, tile, ax, ay);
+				pin[0] = l >= 0 && l < pin[0] ? l : pin[0], pin[2] = r >= 0 && r < pin[2] ? r : pin[2];
+			}
+			for (int x = px0 + 3; x <= px1 - 3; ++x) {
+				int t = aw_edge_depth(bg2, x, py0, 0, 1, tile, ax, ay), b = aw_edge_depth(bg2, x, py1, 0, -1, tile, ax, ay);
+				pin[1] = t >= 0 && t < pin[1] ? t : pin[1], pin[3] = b >= 0 && b < pin[3] ? b : pin[3];
+			}
+			for (int k = 0; k < 4; ++k) pin[k] = pin[k] == 16 ? 0 : pin[k];
+			/* the edge's colour: the panel's outline, outside in, the first
+			 * colour that's neither its background's nor near black (Advance
+			 * Wars 2's red or blue); else its outermost (Advance Wars' dark edge) */
+			/* (the commonest such colour down the panel's left edge, its
+			 * depth measured above) */
+			uint32_t line = pan[((py0 + py1) / 2) * GBA_W + px0], seen[8];
+			int counts[8], ns = 0, bestN = 0;
+			for (int y = py0 + 8; y <= py1 - 8; ++y) {
+				for (int x = px0; x < px0 + pin[0] && x <= px1; ++x) {
+					uint32_t c = pan[y * GBA_W + x]; /* (Advance Wars' dark edge isn't BG2's) */
+					if (c == in[0] || c == in[1] || (c & 0xFF) + ((c >> 8) & 0xFF) + ((c >> 16) & 0xFF) < 120) continue;
+					int k = 0;
+					while (k < ns && seen[k] != c) ++k;
+					if (k == ns) {
+						if (ns == 8) continue;
+						seen[ns] = c, counts[ns++] = 0;
+					}
+					if (++counts[k] > bestN) bestN = counts[k], line = c;
+				}
+			}
+			int fx = ((ax + tdx) % 8 + 8) % 8, fy = ((ay + tdy) % 8 + 8) % 8;
+			for (int y = 0; y < GBA_H; ++y) {
+				for (int x = 0; x < GBA_W; ++x) {
+					bool rim = x == 0 || y == 0 || x == GBA_W - 1 || y == GBA_H - 1;
+					uint32_t c = rim ? line : tile[((y - fy) % 8 + 8) % 8 * 8 + ((x - fx) % 8 + 8) % 8];
+					int nx = x + ox, ny = y + oy;
+					if (nx >= 0 && ny >= 0 && nx < w && ny < h) out[ny * w + nx] = c;
+				}
+			}
+		}
+		for (int y = 0; y < GBA_H; ++y) {
+			for (int x = 0; x < GBA_W; ++x) {
+				uint32_t c = pan[y * GBA_W + x];
+				if (c == AW_BG || bg2[y * GBA_W + x] == AW_BG) continue;
+				bool inPanel = x >= c0 && x <= c1;
+				if (framed && !inPanel && (x < tx0 + tin[0] || x > tx1 - tin[2] || y < ty0 + tin[1] || y > ty1 - tin[3])) continue;
+				if (framed && inPanel && (x < px0 + pin[0] || x > px1 - pin[2] || y < py0 + pin[1] || y > py1 - pin[3])) continue;
+				int nx = x + (inPanel ? pdx : tdx) + ox, ny = y + (inPanel ? 0 : tdy) + oy;
+				if (nx >= 0 && ny >= 0 && nx < w && ny < h) out[ny * w + nx] = c;
+			}
+		}
+		/* the minimap at the bottom left: in line with the text box's left
+		 * edge and the panel's bottom */
+		int mx = (tx1 < 0 ? edge : tx0 + tdx) + ox, my = py1 - mh + 1 + oy;
+		if (framed) mx = 2 + ox, my = GBA_H - 2 - mh + oy; /* (a pixel in from the frame's edge) */
+		for (int y = 0; y < mh; ++y) {
+			for (int x = 0; x < mw; ++x) {
+				int nx = mx + x, ny = my + y;
+				if (nx >= 0 && ny >= 0 && nx < w && ny < h) out[ny * w + nx] = mm[y * mw + x];
+			}
+		}
+		return NULL;
+	}
 	int dx = unitPanel ? (w - GBA_W) / 2 : (w - (x1 - x0 + 1)) / 2 - x0;
 	int dy = unitPanel ? (h - GBA_H) / 2 : (h - (y1 - y0 + 1)) / 2 - y0;
 	for (int y = y0; y <= y1; ++y) {
@@ -655,7 +923,8 @@ static const char* sn2_compose(Emu* s, const void* state, uint32_t* const* out, 
 #define FT_ACTIVE 0x0200F4EC  /* the unit whose turn it is (its data; Japan: 0x30 lower) */
 #define FT_UI 0x0200F5C6     /* 1 with nothing open on the map (0 the active unit's menu,
                               * 2 another unit's, the system menu or a Status, 3 the turn
-                              * order...; Japan: 0x30 lower) */
+                              * order, 5 the active unit's menu once it's moved...; Japan:
+                              * 0x30 lower) */
 #define FT_IN_BATTLE 0x03000E4E /* 1 in a battle (its scenes, moves, menus too), else 0 */
 #define FT_SCENE 0x0201639C /* 0 while a battle's fought; set while a scene plays on the
                              * battle map (the camera turning to the last enemy KO'd,
@@ -665,7 +934,14 @@ static const char* sn2_compose(Emu* s, const void* state, uint32_t* const* out, 
                              * from the first battle won on; 0x0202F254 is set at the
                              * snowball fight's end only.) */
 /* The world map (FT-14; Japan's addresses: the FT_*_ lookups) */
-#define FT_MODE 0x02002191     /* 3 on the world map (its town menus, Laws and notices too);
+#define FT_MODE_TOWN 60      /* FT_MODE in a town's Pub, Shop and Prison (early on and
+                                * by Kingmoon alike) */
+#define FT_WM_BG01 0x8C028A03u /* BG0CNT, BG1CNT on the world map (its Laws, notices and
+                                * town menus too; Japan the same) */
+#define FT_WM_BG23 0x2F082E09u /* BG2CNT, BG3CNT there */
+#define FT_MODE 0x02002191     /* not the screen: it follows the story (0x02001F6C, 0 on
+                                * the title, 1, 2, 3 by Kingmoon): that in a battle, one
+                                * more on the world map (3 early on, 4 by Kingmoon);
                                 * 1 or 2 in a battle, 60 in a town's Pub... */
 #define FT_WM_STATE 0x0200FD2B /* on the world map: 255 free, 1 the Laws (L) open, 2 a
                                 * town's menu, 0 a notice */
@@ -689,11 +965,24 @@ static const char* sn2_compose(Emu* s, const void* state, uint32_t* const* out, 
 #define FT_V_IDLE 0xF0000011   /* 1 on a battle's map or a unit's Status (not a move or an
                                 * action), or on the world map with nothing or the Laws open */
 #define FT_V_SHOWN 0xF0000012  /* 1 in a battle (FT_V_BATTLE) or on the world map */
+#define FT_V_TURN 0xF0000015   /* in a battle, the active unit's data (its low 16 bits),
+                                * + 0x10000 if it isn't yours (FT_V_THEIRS); 0 for a few
+                                * frames between two turns, even one unit's two in a
+                                * row: each turn's start a change (FT-13) */
+#define FT_V_THEIRS 0xF0000014 /* 1 in a battle when it isn't your turn: the active unit
+                               * an enemy, the judge or a guest (its data's flags, +0x29 of
+                               * the unit FT_ACTIVE's record points to: 0x80 an enemy, 0x10
+                               * the judge, 0x20 a guest; 0 a clan member) */
 #define FT_V_LOC 0xF0000013    /* on the world map, the clan's location + 1, FT_WM_STATE
                                 * << 8 and 1 << 16 with the cursor on it; else 0 */
 
 static bool ft_world(Emu* e) {
-	return emu_read8(e, FT_IN_BATTLE) == 0 && emu_read8(e, FT_MODE_(e)) == 3;
+	/* (the world map's own screen: its four BG layers set up so, with its
+	 * Laws, a notice or a town's menu open too, in Japan as well; FT_MODE
+	 * isn't the world map's: it climbs with the story, 3 there early on,
+	 * 4 by Kingmoon) */
+	return emu_read8(e, FT_IN_BATTLE) == 0 && emu_read32(e, 0x04000008) == FT_WM_BG01 &&
+	       emu_read32(e, 0x0400000C) == FT_WM_BG23;
 }
 
 static uint32_t ft_virt(Emu* e, uint32_t addr) {
@@ -701,8 +990,15 @@ static uint32_t ft_virt(Emu* e, uint32_t addr) {
 	 * one once the battle's won) */
 	/* (the scene's word is a pointer into EWRAM while one plays; else 0,
 	 * or in some battles a stray byte: Japan's read 0x80 in one) */
-	bool in = emu_read8(e, FT_IN_BATTLE) == 1 && (emu_read32(e, FT_SCENE_(e)) >> 24) != 0x02;
+	bool in = emu_read8(e, FT_IN_BATTLE) == 1 && (emu_read32(e, FT_SCENE_(e)) >> 24) != 0x02 &&
+	          emu_read8(e, FT_MODE_(e)) != FT_MODE_TOWN; /* (a town's Pub, Shop or Prison reads in a battle too) */
 	if (addr == FT_V_BATTLE) return in;
+	if (addr == FT_V_TURN) return in ? (emu_read32(e, FT_ACTIVE - (e->gameCode[3] == 'J' ? 0x30 : 0)) & 0xFFFF) | ft_virt(e, FT_V_THEIRS) << 16 : 0;
+	if (addr == FT_V_THEIRS) {
+		uint32_t rec = emu_read32(e, FT_ACTIVE - (e->gameCode[3] == 'J' ? 0x30 : 0));
+		uint32_t ch = rec >> 24 == 0x02 ? emu_read32(e, rec) : 0;
+		return in && ch >> 24 == 0x02 && (emu_read8(e, ch + 0x29) & 0xF0) != 0;
+	}
 	if (addr == FT_V_SHOWN) return in || ft_world(e);
 	if (addr == FT_V_LOC) {
 		if (!ft_world(e)) return 0;
@@ -755,6 +1051,28 @@ static bool ft_bg0(Emu* s, uint16_t cnt) {
 	return emu_read16(s, 0x04000008) == cnt;
 }
 
+/* FT-9's background: the Status screen's angled checkerboard (BG0 alone),
+ * from the first Status the hidden copy opens; the same in every battle. */
+static uint32_t ftChecker[GBA_W * GBA_H];
+static bool ftCheckerOk;
+static void ft_take_checker(Emu* s) {
+	if (ftCheckerOk) return;
+	void* t = malloc(emu_state_size(s));
+	if (!t) return;
+	if (emu_state_save(s, t)) {
+		emu_layers(s, 0x01);
+		emu_state_load(s, t);
+		emu_frame(s, 0);
+		memcpy(ftChecker, s->fb, sizeof(ftChecker));
+		int other = 0;
+		for (int i = 1; i < GBA_W * GBA_H; ++i) other += ftChecker[i] != ftChecker[0];
+		ftCheckerOk = other > GBA_W * GBA_H / 8; /* (a pattern, not a blank) */
+		emu_layers(s, 0x1F);
+		emu_state_load(s, t);
+	}
+	free(t);
+}
+
 /* The Status screen's two pages into page[0], page[1], of the unit under
  * the cursor (or the one open already); false if there's none there or
  * it didn't open. */
@@ -762,15 +1080,21 @@ static bool ft_status(Emu* s, const void* state, uint32_t page[2][GBA_W * GBA_H]
 	if (!emu_state_load(s, state)) return false;
 	emu_frame(s, 0);
 	if (!ft_bg0(s, FT_STATUS_CNT)) {
-		if (!ft_bg0(s, FT_MAP_CNT) || !ft_back(s)) return false;
-		/* no unit under the cursor: no Status (FT-9: the turn order) */
-		uint32_t jp = s->gameCode[3] == 'J' ? 0x30 : 0, at = emu_read32(s, FT_AT_UNIT - jp);
-		if (!at) return false;
-		/* another unit than the one whose turn it is: A brings up its own
-		 * menu (2); the judge has none, and A on it brings up the active
-		 * unit's (0) instead: no Status for the judge (FT-9) */
-		bool other = at != emu_read32(s, FT_ACTIVE - jp);
-		uint32_t ui = FT_UI - (s->gameCode[3] == 'J' ? 0x30 : 0);
+		uint32_t jp = s->gameCode[3] == 'J' ? 0x30 : 0, ui = FT_UI - jp;
+		/* the active unit's menu up once it's moved (5): its Status from
+		 * there (B on it frees the cursor only for a moment, with the unit
+		 * under it not yet known) */
+		bool other = false;
+		if (!(ft_bg0(s, FT_MAP_CNT) && emu_read8(s, ui) == 5)) {
+			if (!ft_bg0(s, FT_MAP_CNT) || !ft_back(s)) return false;
+			/* no unit under the cursor: no Status (FT-9: the turn order) */
+			uint32_t at = emu_read32(s, FT_AT_UNIT - jp);
+			if (!at) return false;
+			/* another unit than the one whose turn it is: A brings up its own
+			 * menu (2); the judge has none, and A on it brings up the active
+			 * unit's (0) instead: no Status for the judge (FT-9) */
+			other = at != emu_read32(s, FT_ACTIVE - jp);
+		}
 		bool sel = false;
 		int moves = 0;
 		for (int i = 0; i < 14 && !sel; ++i) {
@@ -778,7 +1102,7 @@ static bool ft_status(Emu* s, const void* state, uint32_t page[2][GBA_W * GBA_H]
 			int orange, white;
 			ft_menu_row(s, &orange, &white);
 			uint8_t u = emu_read8(s, ui);
-			bool menu = u == 0 || u == 2; /* (the active unit's, another unit's) */
+			bool menu = u == 0 || u == 2 || u == 5; /* (the active unit's, another unit's, the active one's once it's moved) */
 			if (other && u == 0) return false; /* (the judge: the active unit's menu came up) */
 			sel = menu && orange > 40;
 			if (sel) break;
@@ -795,6 +1119,7 @@ static bool ft_status(Emu* s, const void* state, uint32_t page[2][GBA_W * GBA_H]
 	}
 	aw_run(s, 0, 40); /* (past its fade-in) */
 	memcpy(page[0], s->fb, sizeof(page[0]));
+	ft_take_checker(s);
 	aw_tap(s, K_RIGHT, 1);
 	aw_run(s, 0, 30);
 	memcpy(page[1], s->fb, sizeof(page[1]));
@@ -806,20 +1131,28 @@ static bool ft_status(Emu* s, const void* state, uint32_t page[2][GBA_W * GBA_H]
  * BG2's and BG3's pixels, w x h within the limits given, FT_HOLE where
  * they have nothing (its corners); false if not. */
 #define FT_HOLE 0x00000001u
-static bool ft_cut(Emu* s, void* tmp, uint32_t* out, int* ow, int* oh, int minW, int maxW, int minH, int maxH) {
+/* (bg3 given: out gets BG2 alone and bg3 BG3 alone, over the same box) */
+static bool ft_cut(Emu* s, void* tmp, uint32_t* out, uint32_t* bg3, int* ow, int* oh, int minW, int maxW, int minH, int maxH) {
 	if (!emu_state_save(s, tmp)) return false;
-	static uint32_t none[GBA_W * GBA_H];
+	static uint32_t none[GBA_W * GBA_H], only3[GBA_W * GBA_H];
 	emu_layers(s, 0);
 	emu_state_load(s, tmp);
 	emu_frame(s, 0);
 	memcpy(none, s->fb, sizeof(none));
-	emu_layers(s, 0x0C);
+	if (bg3) {
+		emu_layers(s, 0x08);
+		emu_state_load(s, tmp);
+		emu_frame(s, 0);
+		memcpy(only3, s->fb, sizeof(only3));
+	}
+	emu_layers(s, bg3 ? 0x04 : 0x0C);
 	emu_state_load(s, tmp);
 	emu_frame(s, 0);
 	int x0 = GBA_W, y0 = GBA_H, x1 = -1, y1 = -1;
 	for (int y = 0; y < GBA_H; ++y) {
 		for (int x = 0; x < GBA_W; ++x) {
-			if (s->fb[y * GBA_W + x] == none[y * GBA_W + x]) continue;
+			int i = y * GBA_W + x;
+			if (s->fb[i] == none[i] && (!bg3 || only3[i] == none[i])) continue;
 			x0 = x < x0 ? x : x0, x1 = x > x1 ? x : x1, y0 = y < y0 ? y : y0, y1 = y > y1 ? y : y1;
 		}
 	}
@@ -829,8 +1162,10 @@ static bool ft_cut(Emu* s, void* tmp, uint32_t* out, int* ow, int* oh, int minW,
 		*ow = w, *oh = h;
 		for (int y = 0; y < h; ++y) {
 			for (int x = 0; x < w; ++x) {
-				uint32_t c = s->fb[(y0 + y) * GBA_W + x0 + x];
-				out[y * w + x] = c == none[(y0 + y) * GBA_W + x0 + x] ? FT_HOLE : c | 0xFF000000;
+				int i = (y0 + y) * GBA_W + x0 + x;
+				uint32_t c = s->fb[i];
+				out[y * w + x] = c == none[i] ? FT_HOLE : c | 0xFF000000;
+				if (bg3) bg3[y * w + x] = only3[i] == none[i] ? FT_HOLE : only3[i] | 0xFF000000;
 			}
 		}
 	}
@@ -840,25 +1175,47 @@ static bool ft_cut(Emu* s, void* tmp, uint32_t* out, int* ow, int* oh, int minW,
 }
 
 /* The turn order list (L) cut out; false if it didn't open. */
-static bool ft_list(Emu* s, const void* state, void* tmp, uint32_t* out, int* ow, int* oh) {
+static uint16_t ftListBlend; /* BLDALPHA with the list up (its box over the battle) */
+static bool ft_list(Emu* s, const void* state, void* tmp, uint32_t* out, uint32_t* bg3, int* ow, int* oh) {
 	if (!emu_state_load(s, state)) return false;
 	emu_frame(s, 0);
 	if (!ft_bg0(s, FT_MAP_CNT) && !ft_bg0(s, FT_STATUS_CNT)) return false;
+	/* (the active unit's menu once it's moved (5): B on it frees the
+	 * cursor only for a moment, L then brings the menu back (0); B there,
+	 * and L again. Only from that menu: elsewhere, as it comes) */
+	uint32_t ui = FT_UI - (s->gameCode[3] == 'J' ? 0x30 : 0);
+	bool moved = emu_read8(s, ui) == 5;
 	if (!ft_back(s)) return false;
-	aw_tap(s, K_L, 1);
-	aw_run(s, 0, 40);
-	return ft_cut(s, tmp, out, ow, oh, 100, 180, 100, GBA_H);
+	for (int i = 0; i < 3; ++i) {
+		aw_tap(s, K_L, 1);
+		aw_run(s, 0, 40);
+		if (!moved || emu_read8(s, ui) != 0) break;
+		aw_tap(s, K_B, 1);
+		aw_run(s, 0, 12);
+	}
+	ftListBlend = emu_read16(s, 0x04000052);
+	return ft_cut(s, tmp, out, bg3, ow, oh, 100, 180, 100, GBA_H);
 }
 
 /* SYSTEM (Start on the map) > row (1 Mission, 2 Laws) and its window cut
  * out; false if it didn't open. The menu's rows are 16 lines apart from
  * line 48, the selected one lettered in orange. */
-static bool ft_system(Emu* s, const void* state, void* tmp, int row, uint32_t* out, int* ow, int* oh) {
+static bool ft_system(Emu* s, const void* state, void* tmp, int row, uint32_t* out, uint32_t* bg3, int* ow, int* oh) {
 	if (!emu_state_load(s, state)) return false;
 	emu_frame(s, 0);
 	if (!ft_bg0(s, FT_MAP_CNT) && !ft_bg0(s, FT_STATUS_CNT)) return false;
+	/* (as in ft_list: the moved unit's menu coming back, B, START again) */
+	uint32_t ui = FT_UI - (s->gameCode[3] == 'J' ? 0x30 : 0);
+	bool moved = emu_read8(s, ui) == 5;
 	if (!ft_back(s)) return false;
-	aw_tap(s, K_START, 1);
+	for (int i = 0; i < 3; ++i) {
+		aw_tap(s, K_START, 1);
+		if (!moved) break;
+		aw_run(s, 0, 16);
+		if (emu_read8(s, ui) != 0) break;
+		aw_tap(s, K_B, 1);
+		aw_run(s, 0, 12);
+	}
 	bool sel = false;
 	for (int i = 0; i < 8 && !sel; ++i) {
 		aw_run(s, 0, 16);
@@ -876,8 +1233,8 @@ static bool ft_system(Emu* s, const void* state, void* tmp, int row, uint32_t* o
 	if (!sel) return false;
 	aw_tap(s, K_A, 1);
 	aw_run(s, 0, 40);
-	return row == 1 ? ft_cut(s, tmp, out, ow, oh, 150, GBA_W, 100, GBA_H)
-	                : ft_cut(s, tmp, out, ow, oh, 90, GBA_W, 24, 90); /* (Japan's Laws: about 104 wide) */
+	return row == 1 ? ft_cut(s, tmp, out, bg3, ow, oh, 150, GBA_W, 100, GBA_H)
+	                : ft_cut(s, tmp, out, bg3, ow, oh, 90, GBA_W, 24, 90); /* (Japan's Laws: about 104 wide) */
 }
 
 static void ft_put(uint32_t* o, int w, int h, const uint32_t* src, int sw, int sh, int px, int py) {
@@ -888,6 +1245,41 @@ static void ft_put(uint32_t* o, int w, int h, const uint32_t* src, int sw, int s
 			if (c != FT_HOLE && nx >= 0 && ny >= 0 && nx < w && ny < h) o[ny * w + nx] = c | 0xFF000000;
 		}
 	}
+}
+
+/* the Status screen's checkerboard as a background (FT-9, FT-14), dark
+ * grey before there's one */
+static void ft_backdrop(uint32_t* o, int w, int h) {
+	for (int y = 0; y < h; ++y) {
+		for (int x = 0; x < w; ++x) {
+			int cx = x - (w - GBA_W) / 2, cy = y - (h - GBA_H) / 2;
+			o[y * w + x] = ftCheckerOk && cx >= 0 && cy >= 0 && cx < GBA_W && cy < GBA_H ? ftChecker[cy * GBA_W + cx] | 0xFF000000 : SCREEN_GREY;
+		}
+	}
+}
+
+static bool ft_is_cyan(uint32_t c);
+
+/* The checkerboard from the Party screen (FT-14): what's open on the
+ * world map closed (B: the Laws, a place's menu or Info), then START,
+ * Party (the menu's first row): the party's screen has it on BG0, as a
+ * Status has. True if it got as far as START (a try), false if the map
+ * never came free (a notice, travelling). Leaves the copy where it got. */
+static bool ft_party_checker(Emu* s) {
+	for (int i = 0; i < 6 && emu_read8(s, FT_WM_STATE_(s)) != 255; ++i) {
+		aw_tap(s, K_B, 1);
+		for (int f = 0; f < 30 && emu_read8(s, FT_WM_STATE_(s)) != 255; ++f) emu_frame_blind(s, 0);
+	}
+	for (int f = 0; f < 90 && (emu_read8(s, FT_WM_STATE_(s)) != 255 || emu_read8(s, FT_WM_STILL_(s)) < 24); ++f) emu_frame_blind(s, 0);
+	if (emu_read8(s, FT_WM_STATE_(s)) != 255 || !emu_read8(s, FT_WM_STILL_(s))) return false;
+	aw_run(s, 0, 15); /* (START just after a window closes does nothing) */
+	aw_tap(s, K_START, 1);
+	aw_run(s, 0, 30);
+	aw_tap(s, K_A, 1);
+	for (int f = 0; f < 90 && !ft_bg0(s, FT_STATUS_CNT); ++f) emu_frame_blind(s, 0);
+	aw_run(s, 0, 40); /* (past its fade-in) */
+	if (ft_bg0(s, FT_STATUS_CNT)) ft_take_checker(s);
+	return true;
 }
 
 /* The world map's Laws (FT-14): the Laws window (L) cut out (BG2 its
@@ -937,30 +1329,240 @@ static const char* ft_world_laws(Emu* s, uint32_t* const* out, int w, int h) {
 		if (!tmp) return "out of memory";
 		static uint32_t cut[GBA_W * GBA_H];
 		int cw, ch;
-		bool ok = ft_cut(s, tmp, cut, &cw, &ch, 150, GBA_W, 100, GBA_H);
+		bool ok = ft_cut(s, tmp, cut, NULL, &cw, &ch, 150, GBA_W, 100, GBA_H);
 		free(tmp);
 		if (emu_cancelled(s)) return "called off";
 		if (!ok) return "the Laws window wasn't found";
+		/* (R on the world map opens a place's Info window, with the same
+		 * FT_WM_STATE as the Laws: the Laws have their cyan fields, the
+		 * Info window none) */
+		int cyan = 0;
+		for (int i = 0; i < cw * ch; ++i) cyan += ft_is_cyan(cut[i]);
+		if (getenv("GBADS_DEBUG")) fprintf(stderr, "ft laws: %d cyan of %dx%d\n", cyan, cw, ch);
+		if (cyan < cw * ch / 10) return "not the Laws (a place's Info?)";
 		memcpy(ftLaws, cut, (size_t) cw * ch * 4), ftLawsW = cw, ftLawsH = ch;
 		ftLawsAt = at;
 	}
-	for (int i = 0; i < w * h; ++i) out[0][i] = SCREEN_GREY;
+	ft_backdrop(out[0], w, h);
 	ft_put(out[0], w, h, ftLaws, ftLawsW, ftLawsH, (w - ftLawsW) / 2, (h - ftLawsH) / 2);
 	return NULL;
 }
 
+/* FT-9 / FT-12's screen: the turn order in two columns under its LIST
+ * bar made wide enough for both, its box see-through over the Status
+ * screen's checkerboard by the list's own blend, the Laws below it
+ * without their empty fields; centred across, together centred down.
+ * lb2/lb3: the list's BG2 (lettering, bar, line) and BG3 (box) cut out,
+ * lw x lh; wb2/wb3 the Laws' (BG2 the laws' names, BG3 the window).
+ * False if the list isn't as expected (then FT-9's old way). */
+static bool ft_is_cyan(uint32_t c) { return c != FT_HOLE && ((c >> 16) & 0xFF) > (c & 0xFF) + 40; }
+static bool ft_is_tan(uint32_t c) { return c != FT_HOLE && (c & 0xFF) > ((c >> 16) & 0xFF) + 40; }
+static uint32_t ft_blend(uint32_t top, uint32_t under, int eva, int evb) {
+	uint32_t o = 0xFF000000;
+	for (int sh = 0; sh < 24; sh += 8) {
+		int v = ((int) ((top >> sh) & 0xFF) * eva + (int) ((under >> sh) & 0xFF) * evb) / 16;
+		o |= (uint32_t) (v > 255 ? 255 : v) << sh;
+	}
+	return o;
+}
+static bool ft_turn_layout(uint32_t* o, int w, int h, const uint32_t* lb2, const uint32_t* lb3, int lw, int lh,
+                           const uint32_t* wb2, const uint32_t* wb3, int aw, int ah) {
+	/* the list: its lettering in bands (the bar, an entry a band, the line) */
+	int bs[12], be[12], nb = 0;
+	for (int y = 0, on = 0; y <= lh; ++y) {
+		bool row = false;
+		for (int x = 0; y < lh && x < lw && !row; ++x) row = lb2[y * lw + x] != FT_HOLE;
+		if (row && !on && nb < 12) bs[nb] = y, on = 1;
+		else if (!row && on) be[nb++] = y - 1, on = 0;
+	}
+	int n = nb - 2, p0 = -1, p1 = -1;
+	for (int y = 0; y < lh; ++y) {
+		for (int x = 0; x < lw; ++x) {
+			if (lb3[y * lw + x] == FT_HOLE) continue;
+			if (p0 < 0) p0 = y;
+			p1 = y;
+		}
+	}
+	if (n < 1 || n > 8 || p0 <= be[0] || p1 >= bs[nb - 1]) return false;
+	int sh = n >= 2 ? (bs[n] - bs[1]) / (n - 1) : p1 - p0 + 1;
+	if (sh < 8 || p0 + n * sh > p1 + 1 + 2) return false;
+	int nL = (n + 1) / 2, nR = n - nL, right = 0;
+	for (int k = 1; k <= n; ++k) {
+		for (int y = bs[k]; y <= be[k]; ++y) {
+			for (int x = 0; x < lw; ++x) if (lb2[y * lw + x] != FT_HOLE && x > right) right = x;
+		}
+	}
+	int colW = right + 1 + 8, lim = w < GBA_W ? w : GBA_W;
+	/* (two columns wider than the GBA's screen: the first alone, 01-04,
+	 * rather than names cut off) */
+	if (nR && 2 * colW > lim) nR = 0, n = nL;
+	colW = colW > lim ? lim : colW;
+	int W = nR ? 2 * colW : colW, bottom = lh - 1 - p1, H = p0 + nL * sh + bottom;
+	/* the Laws: each row of fields (where the cyan field is, down its left
+	 * quarter), each field empty or not (its name a dash, or nothing) */
+	int rs[4], re[4], nr = 0;
+	for (int y = 0, on = 0; wb3 && y <= ah; ++y) {
+		bool cy = y < ah && ft_is_cyan(wb3[y * aw + aw / 4]);
+		if (cy && !on && nr < 4) rs[nr] = y, on = 1;
+		else if (!cy && on) {
+			on = 0;
+			if (y - rs[nr] >= 8) re[nr] = y - 1, ++nr; /* (a field's rows, not the heading's rim) */
+		}
+	}
+	bool full[4][2], keep[4];
+	int split[GBA_H], lawsH = 0, kept = 0;
+	for (int y = 0; y < ah && y < GBA_H; ++y) {
+		split[y] = aw;
+		for (int x = 0; x < aw; ++x) if (ft_is_tan(wb3[y * aw + x])) { split[y] = x; break; }
+	}
+	for (int r = 0; r < nr; ++r) {
+		for (int c = 0; c < 2; ++c) {
+			int x0 = aw, x1 = -1;
+			for (int y = rs[r]; y <= re[r]; ++y) {
+				for (int x = 0; x < aw; ++x) {
+					if (wb2[y * aw + x] == FT_HOLE || (x < split[(rs[r] + re[r]) / 2]) != (c == 0)) continue;
+					x0 = x < x0 ? x : x0, x1 = x > x1 ? x : x1;
+				}
+			}
+			full[r][c] = x1 - x0 + 1 >= 10; /* (a dash is about 6 wide) */
+		}
+		keep[r] = full[r][0] || full[r][1];
+		kept += keep[r];
+	}
+	/* (the window's rows: its head, each kept row with the line below it,
+	 * its foot) */
+	int rowsOf[GBA_H], nRows = 0;
+	if (kept) {
+		for (int y = 0; y < rs[0]; ++y) rowsOf[nRows++] = y;
+		for (int r = 0; r < nr; ++r) {
+			if (!keep[r]) continue;
+			for (int y = rs[r]; y <= re[r] + 1 && y < ah; ++y) rowsOf[nRows++] = y;
+		}
+		for (int y = re[nr - 1] + 2; y < ah && nRows < GBA_H; ++y) rowsOf[nRows++] = y;
+		lawsH = nRows;
+	}
+	int gap = kept ? 4 : 0, top = (h - H - gap - lawsH) / 2;
+	top = top < 0 ? 0 : top;
+	ft_backdrop(o, w, h);
+	/* the list */
+	int eva = ftListBlend & 31, evb = (ftListBlend >> 8) & 31;
+	eva = eva > 16 ? 16 : eva, evb = evb > 16 ? 16 : evb;
+	if (!eva && !evb) eva = 16;
+	int ox = (w - W) / 2;
+	for (int y = 0; y < H; ++y) {
+		for (int x = 0; x < W; ++x) {
+			int sx, sy;
+			uint32_t c2 = FT_HOLE, c3 = FT_HOLE;
+			if (y < p0 || y >= p0 + nL * sh) {
+				/* the bar and the line: their left part, then their middle
+				 * repeated, then their end */
+				sx = x >= W - 8 ? lw - 8 + (x - (W - 8)) : x < lw - 8 ? x : lw - 16 + (x - (lw - 8)) % 8;
+				sy = y < p0 ? y : y - (p0 + nL * sh) + p1 + 1;
+				if (sx >= 0 && sx < lw && sy < lh) c2 = lb2[sy * lw + sx], c3 = lb3[sy * lw + sx];
+			} else {
+				int r = y - p0, col = x < colW ? 0 : 1, xx = x - col * colW, k = r / sh + col * nL;
+				if (k < n && xx < lw) c2 = lb2[(p0 + k * sh + r % sh) * lw + xx];
+				/* (the box's colours top to bottom once over the shorter box) */
+				int g = p0 + r * (p1 - p0 + 1) / (nL * sh);
+				c3 = lb3[(g > p1 ? p1 : g) * lw + lw / 2];
+			}
+			uint32_t* d = &o[(top + y) * w + ox + x];
+			if (top + y >= h || ox + x < 0 || ox + x >= w) continue;
+			if (c2 != FT_HOLE) *d = c2 | 0xFF000000;
+			else if (c3 != FT_HOLE) *d = ft_blend(c3, *d, eva, evb);
+		}
+	}
+	/* the Laws, without their empty fields */
+	int lx = (w - aw) / 2, ly = top + H + gap;
+	for (int i = 0; i < nRows; ++i) {
+		int y = rowsOf[i], r = -1;
+		for (int k = 0; k < nr; ++k) if (y >= rs[k] && y <= re[k]) r = k;
+		for (int x = 0; x < aw; ++x) {
+			if (r >= 0 && !full[r][x < split[y] ? 0 : 1]) continue;
+			uint32_t c = wb2[y * aw + x] != FT_HOLE ? wb2[y * aw + x] : wb3[y * aw + x];
+			int dx = lx + x, dy = ly + i;
+			if (c != FT_HOLE && dx >= 0 && dy >= 0 && dx < w && dy < h) o[dy * w + dx] = c | 0xFF000000;
+		}
+	}
+	return true;
+}
+
+/* the turn order and the Laws as last taken: BG2, BG3, w x h */
+static uint32_t ftWin[2][GBA_W * GBA_H], ftWin3[2][GBA_W * GBA_H];
+static int ftWw[2], ftWh[2];
+/* the active unit whose turn the turn order was last checked for, and
+ * whether it's been taken in that turn (FT-13) */
+static uint32_t ftTurnRec;
+static bool ftTurnTaken;
+/* FT-9's screen from the turn order and the Laws as last taken */
+static void ft_draw_turn(uint32_t* o, int w, int h) {
+	uint32_t (*win)[GBA_W * GBA_H] = ftWin, (*win3)[GBA_W * GBA_H] = ftWin3;
+	int *ww = ftWw, *wh = ftWh;
+	for (int i = 0; i < w * h; ++i) o[i] = SCREEN_GREY;
+	if (ww[0] && ft_turn_layout(o, w, h, win[0], win3[0], ww[0], wh[0], ww[1] ? win[1] : NULL, ww[1] ? win3[1] : NULL, ww[1], ww[1] ? wh[1] : 0)) return;
+	/* (else as before: the Laws above the list, its last rows off the
+	 * bottom) */
+	for (int y = 0; y < wh[1] && ww[1]; ++y) {
+		for (int x = 0; x < ww[1]; ++x) if (win[1][y * ww[1] + x] == FT_HOLE) win[1][y * ww[1] + x] = win3[1][y * ww[1] + x];
+	}
+	for (int y = 0; y < wh[0] && ww[0]; ++y) {
+		for (int x = 0; x < ww[0]; ++x) if (win[0][y * ww[0] + x] == FT_HOLE) win[0][y * ww[0] + x] = win3[0][y * ww[0] + x];
+	}
+	int lh = ww[1] ? wh[1] : 0, th = ww[0] ? wh[0] : 0;
+	int y0 = lh + th <= h ? (h - lh - th) / 2 : 0;
+	if (ww[1]) ft_put(o, w, h, win[1], ww[1], wh[1], (w - ww[1]) / 2, y0);
+	if (ww[0]) ft_put(o, w, h, win[0], ww[0], wh[0], (w - ww[0]) / 2, y0 + lh);
+}
+
 static const char* ft_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
 	static uint32_t page[2][GBA_W * GBA_H];
-	static uint32_t win[2][GBA_W * GBA_H]; /* the turn order, the Laws */
-	static int pages, ww[2], wh[2], age;
+	uint32_t (*win)[GBA_W * GBA_H] = ftWin, (*win3)[GBA_W * GBA_H] = ftWin3;
+	int *ww = ftWw, *wh = ftWh;
+	static int pages, age;
 	static uint32_t key;
 	int max = *nOut;
 	*nOut = 1;
 	*step = 300; /* 5 seconds a page */
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
-	if (ft_world(s)) return ft_world_laws(s, out, w, h);
+	if (ft_world(s)) {
+		ftWw[0] = ftWw[1] = 0; /* (a battle's turn order isn't the next one's) */
+		ftTurnRec = 0;
+		/* no checkerboard yet (FT-14): taken from the Party screen; the
+		 * Laws aren't drawn until it is (the logo or the last picture
+		 * stays), three tries at most, then on dark grey */
+		static int partyTries;
+		if (!ftCheckerOk && partyTries < 3) {
+			if (ft_party_checker(s)) ++partyTries;
+			if (emu_cancelled(s)) return "called off";
+			if (!emu_state_load(s, state)) return "state load failed";
+			emu_frame(s, 0);
+			if (!ftCheckerOk && partyTries < 3) return "no checkerboard yet";
+		}
+		return ft_world_laws(s, out, w, h);
+	}
 	ftLawsAt = 0; /* (a battle: opened again on the world map next time) */
+	/* each turn's start (FT-13): between two turns the game has no active
+	 * unit for a few frames; the turn order is taken again in the next of
+	 * your units' turns, whatever's under the cursor */
+	if (ft_virt(s, FT_V_BATTLE)) {
+		uint32_t rec = emu_read32(s, FT_ACTIVE - (s->gameCode[3] == 'J' ? 0x30 : 0));
+		/* (between two turns, or in a scene once the battle's won (no
+		 * unit's turn either): nothing taken, the last picture or the logo
+		 * stays) */
+		if (rec >> 24 != 0x02) {
+			ftTurnRec = 0;
+			return "between turns";
+		}
+		if (rec != ftTurnRec) ftTurnRec = rec, ftTurnTaken = false;
+	}
+	/* not your turn (FT-13): the turn order and the Laws as last taken */
+	if (ft_virt(s, FT_V_THEIRS)) {
+		if (!ww[0] && !ww[1]) return "not your turn";
+		*nOut = 1;
+		ft_draw_turn(out[0], w, h);
+		return NULL;
+	}
 	if (!ft_virt(s, FT_V_IDLE)) return "not on the battle map";
 	/* taken again when the cursor moves, or every 4th picture (the units
 	 * act, the turn order turns) */
@@ -968,29 +1570,54 @@ static const char* ft_compose(Emu* s, const void* state, uint32_t* const* out, i
 	/* (and what's open: A on the judge brings up the active unit's menu
 	 * with the cursor where it was; that's when its Status shows) */
 	k = (k ^ emu_read8(s, FT_UI - (s->gameCode[3] == 'J' ? 0x30 : 0))) * 16777619u;
-	bool again = k != key || ++age >= 4 || (!pages && !ww[0]);
+	bool again = k != key || ++age >= 4 || (!pages && !ww[0]) || !ftTurnTaken;
 	void* tmp = malloc(emu_state_size(s));
 	if (!tmp) return "out of memory";
 	if (again) {
-		static uint32_t np[2][GBA_W * GBA_H], nw[2][GBA_W * GBA_H];
+		static uint32_t np[2][GBA_W * GBA_H], nw[2][GBA_W * GBA_H], nw3[2][GBA_W * GBA_H];
 		/* a unit under the cursor: its Status (FT-8); else the turn order
 		 * and the Laws (FT-9, FT-12); kept only if the capture wasn't
 		 * called off on the way (the cursor moved on) */
 		bool st = ft_status(s, state, np), ok[2] = { false, false };
 		int a[2] = { 0 }, b[2] = { 0 };
-		for (int i = 0; !st && i < 2; ++i) {
-			ok[i] = i == 0 ? ft_list(s, state, tmp, nw[i], &a[i], &b[i]) : ft_system(s, state, tmp, 2, nw[i], &a[i], &b[i]);
+		/* (your unit's turn just begun: the turn order too, beside its
+		 * Status; kept for the enemy's turns, not shown now) */
+		bool turn = st && !ftTurnTaken && !emu_cancelled(s);
+		for (int i = 0; (!st || turn) && i < 2; ++i) {
+			ok[i] = i == 0 ? ft_list(s, state, tmp, nw[i], nw3[i], &a[i], &b[i]) : ft_system(s, state, tmp, 2, nw[i], nw3[i], &a[i], &b[i]);
+		}
+		/* (no checkerboard yet: the first unit's Status, once, by A on the
+		 * list's first: FT-9) */
+		if (!st && !ftCheckerOk && !emu_cancelled(s) && emu_state_load(s, state)) {
+			emu_frame(s, 0);
+			if (ft_back(s)) {
+				aw_tap(s, K_L, 1);
+				aw_run(s, 0, 40);
+				aw_tap(s, K_A, 1);
+				aw_run(s, 0, 30);
+				void* at = malloc(emu_state_size(s));
+				static uint32_t scratch[2][GBA_W * GBA_H];
+				if (at && emu_state_save(s, at)) ft_status(s, at, scratch);
+				free(at);
+			}
 		}
 		if (emu_cancelled(s)) {
 			free(tmp);
 			return "called off";
 		}
-		if (st) {
-			memcpy(page, np, sizeof(page)), pages = 2;
-		} else {
-			pages = 0;
+		/* (neither a Status nor the turn order opened, as while a unit
+		 * picks what to hit: the last picture stays, FT-13) */
+		if (!st && !ok[0]) {
+			key = k, age = 0;
+			free(tmp);
+			return "nothing opened";
+		}
+		if (st) memcpy(page, np, sizeof(page)), pages = 2;
+		else pages = 0;
+		if (!st || turn) {
+			if (ok[0]) ftTurnTaken = true;
 			for (int i = 0; i < 2; ++i) {
-				if (ok[i]) memcpy(win[i], nw[i], (size_t) a[i] * b[i] * 4), ww[i] = a[i], wh[i] = b[i];
+				if (ok[i]) memcpy(win[i], nw[i], (size_t) a[i] * b[i] * 4), memcpy(win3[i], nw3[i], (size_t) a[i] * b[i] * 4), ww[i] = a[i], wh[i] = b[i];
 			}
 		}
 		key = k, age = 0;
@@ -1005,14 +1632,7 @@ static const char* ft_compose(Emu* s, const void* state, uint32_t* const* out, i
 			ft_put(o, w, h, page[n], GBA_W, GBA_H, (w - GBA_W) / 2, (h - GBA_H) / 2);
 			continue;
 		}
-		/* the Laws above the turn order, each centred across, the two
-		 * centred down the screen; where they don't both fit (the list's 8
-		 * rows don't), the Laws at the top and the list's last rows off
-		 * the bottom (its first ones, who acts next, matter most) */
-		int lh = ww[1] ? wh[1] : 0, th = ww[0] ? wh[0] : 0;
-		int y0 = lh + th <= h ? (h - lh - th) / 2 : 0;
-		if (ww[1]) ft_put(o, w, h, win[1], ww[1], wh[1], (w - ww[1]) / 2, y0);
-		if (ww[0]) ft_put(o, w, h, win[0], ww[0], wh[0], (w - ww[0]) / 2, y0 + lh);
+		ft_draw_turn(o, w, h);
 	}
 	return NULL;
 }
@@ -1437,6 +2057,55 @@ static bool ml_settle(Emu* s, int max) {
 	}
 	return false;
 }
+/* ---------------------------------------------------------- Kingdom Hearts: Chain of Memories
+ *
+ * The second screen (KHC-1): the World Map, opened on the shadow core from
+ * the live state at every capture with SELECT (straight from walking
+ * about), checked by its fixed pixels and taken once its rooms are in
+ * (they appear over about 70 frames), without its cursor and A button
+ * bubble. If it doesn't open, the last map stays (KHC-2). (START's menu
+ * was the first way in: its top edge is see-through, so its pixels took
+ * the room's colours and the check failed in some rooms.) The European
+ * and Japanese releases: the same, their battle pointer elsewhere
+ * (khc_eur, khc_jpn). */
+#define KHC_BATTLE 0x02039DD4 /* the battle's pointer: 0 outside one */
+/* the World Map: its banner (WORLD MAP on blue), the floor's badge at the
+ * bottom left, the dark strip along the bottom */
+static const Probe khcMap[8] = { { 4, 4, 0x00298C }, { 20, 6, 0xFFFFFF }, { 40, 5, 0xFFFFFF }, { 60, 8, 0x8C9CD6 },
+                                 { 70, 3, 0x395AB5 }, { 4, 157, 0x087BA5 }, { 236, 157, 0x08184A }, { 120, 157, 0x08184A } };
+/* the map's cursor, the pointing hand, and its A button bubble: the only
+ * sprites in palette 0 at priority 0 there (their tiles move with what the
+ * game has loaded: the bubble 454 in one room, 450 in another) */
+static const SpriteRule khcHide[1] = { { -64, -16, 239, 159, 0, 1023, 0, 1u << 0 } };
+static bool khc_map_up(Emu* s) {
+	return som_probes(s, khcMap, 8, 7, 8);
+}
+/* the title (KHC-4): the emblem and the art at its corner, as they stand
+ * once it's up, the same in all three releases (not the emblem on black
+ * before it) */
+#define KHC_V_TITLE 0xF0000040
+static const Probe khcTitle[8] = { { 128, 0, 0xF7EFE7 }, { 222, 12, 0xBDAD94 }, { 48, 14, 0xADADAD }, { 84, 18, 0xADADAD },
+                                   { 106, 28, 0x7B7B7B }, { 64, 30, 0x7B7B7B }, { 16, 32, 0xB5B5B5 }, { 148, 38, 0xADADAD } };
+static uint32_t khc_virt(Emu* e, uint32_t addr) {
+	return addr == KHC_V_TITLE && som_probes(e, khcTitle, 8, 7, 8);
+}
+static bool khc_wait(Emu* s, bool (*up)(Emu*), int n) {
+	for (int f = 0; f < n && !up(s); ++f) emu_frame(s, 0);
+	return up(s);
+}
+static const char* khc_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	emu_hide_sprites(s, khcHide, 1);
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	aw_run(s, K_SELECT, 4);
+	if (!khc_wait(s, khc_map_up, 90)) return "the World Map didn't open";
+	aw_run(s, 0, 90); /* (its rooms all in) */
+	if (emu_cancelled(s)) return "called off";
+	if (!khc_map_up(s)) return "the World Map closed";
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+	return NULL;
+}
+
 /* Bros. Info's frame, the same on both brothers' pages (its leather edges,
  * the ring's rim, the plaid, the boxes): not the field or the menu */
 static const Probe mlBrosInfo[8] = { { 10, 150, 0x6B8C73 }, { 4, 80, 0x633921 }, { 235, 80, 0x7B736B }, { 120, 157, 0xBDC6B5 },
@@ -2279,11 +2948,53 @@ static const MapProfile profiles[] = {
 			.card = { .tile = 64, .pal = 15,
 			          .objs = { { -64, -64, 255, 175, 0, 1023, -1, 1u << 15 },
 			                    { -64, 110, 255, 175, 400, 1023, -1, 1u << 6 } }, /* (the band: not the demo's DEMO, row 76) */
-			          .y0 = 128, .y1 = 143 },
+			          .y0 = 128, .y1 = 143,
+			          /* the character's name (four 32x32 sprites at x 20, rows
+			           * 0-127, scrolled inside by the game), above the band (SA-2) */
+			          .side = { 20, 0, 51, 125 } },
 			/* the rings, score and time at the top right; the lives below
 			 * them (SA-3) */
 			.moves = { { -16, -16, 110, 40, 'R', 236, 'T', 4 },
 			           { -16, 130, 48, 159, 'R', 236, 'T', 32 } },
+		},
+	},
+	{
+		/* Sonic Advance 2 (USA, Europe and Japan: the same sprites,
+		 * registers and title steps). In a level (display mode 0 with
+		 * BG1-3, BG0 too but under water: the zone card, play, pause; not
+		 * the title, menus or character select), the zone card fills the screen (BG
+		 * shapes on the blue backdrop, sprites for the emblem, icons and
+		 * name; the swirl by the name: tile 464, palette 8) and the HUD is
+		 * sprites: rings, score and time top left (palette 6 from tile
+		 * 484), the lives bottom left (the face palette 0, tile 508; the
+		 * count palette 6, tile 488). docs/games/sonic-advance-2.md */
+		.codes = { "A2NE", "A2NP", "A2NJ" },
+		.title = "Sonic Advance 2",
+		.logoOnly = true,
+		/* the title: SONIC ADVANCE 2 (BG2 alone; the sky BG1, the
+		 * copyright lines BG0). From power-on with no save: the language
+		 * menu (A), name entry (a letter, START to END, A), the intro */
+		.logo = { .steps = { { 0, 60 }, { K_A, 4 }, { 0, 80 }, { K_DOWN, 5 }, { 0, 9 }, { K_RIGHT, 6 }, { 0, 24 },
+		                     { K_A, 5 }, { 0, 11 }, { K_START, 7 }, { 0, 32 }, { K_A, 8 }, { 0, 1000 } },
+		          .layer = 2, .maxY = 120 },
+		.hud = {
+			/* in a level: mode 0 with BG1-3 (BG0 goes off with water on
+			 * screen, SA2-7; the language menu has BG0-2, the rest mode 1) */
+			.on = { { 0x04000000, 0x0E07, 0x0E00, 2 } },
+			/* the rings, score and time (tiles 484-547: the digits, the
+			 * ring box and icon; palette 7: the count flashing red at no
+			 * rings); the lives (face and count) */
+			.objs = { { -16, -16, 160, 32, 484, 547, -1, 1u << 6 | 1u << 7 },
+			          { -16, 130, 48, 159, 504, 511, -1, 1u << 0 },
+			          { -16, 130, 48, 159, 464, 1023, -1, 1u << 6 } },
+			/* the zone card: the whole screen, once settled, its emblem face on
+			 * with its ring of ticks full (SA2-2) */
+			.card = { .tile = 464, .pal = 8, .whole = true, .at = 61 },
+			/* the rings, score and time along the bottom (SA2-3); the
+			 * lives in the bottom right corner, as far in from the right
+			 * as they are from the left on the game screen (SA2-4) */
+			.moves = { { 0, 0, 239, 40, 0, 0, 'B', 156 },
+			           { 0, 120, 60, 159, 'R', 233, 0, 0 } },
 		},
 	},
 	{
@@ -2451,8 +3162,10 @@ static const MapProfile profiles[] = {
 		.title = "Final Fantasy Tactics Advance",
 		.virt = ft_virt,
 		/* a Status's page prompt (FT-8): the D-pad and arrow at the right of
-		 * its page bar, one 16x16 sprite (tile 452, wobbling across) */
-		.captureHide = { { 200, 30, 239, 70, 452, 455, 0 } },
+		 * its page bar, one 16x16 sprite (tile 452, wobbling across); and
+		 * on its Abilities page, the R Info prompt under WT: a 16x16 and
+		 * an 8x16 sprite (tiles 464, 468) at 100 and 116, line 62 */
+		.captureHide = { { 200, 30, 239, 70, 452, 455, 0 }, { 90, 50, 130, 76, 464, 471, 3 } },
 		.composePages = ft_compose,
 		.stillPick = STILL_FIRST, /* (Map Animations off: the Status's first page) */
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
@@ -2462,7 +3175,7 @@ static const MapProfile profiles[] = {
 		 * battle's scenes, and in the world map's town menus and notices */
 		.live = { { FT_V_IDLE, 0xFF, 1, 4 } },
 		.menu = { { FT_V_SHOWN, 0xFF, 0, 4 } },
-		.room = { { FT_CURSOR, 0xFFFF, 0, 2 }, { FT_UI, 0xFF, 0, 1 }, { FT_V_LOC, 0xFFFFFFFF, 0, 4 } },
+		.room = { { FT_CURSOR, 0xFFFF, 0, 2 }, { FT_UI, 0xFF, 0, 1 }, { FT_V_LOC, 0xFFFFFFFF, 0, 4 }, { FT_V_TURN, 0xFFFFFFFF, 0, 4 } },
 		.hud = {
 			/* nothing moves off the game screen (FT-10); this is for the
 			 * logo before the first picture and elsewhere (FT-7) */
@@ -2966,6 +3679,29 @@ static const MapProfile profiles[] = {
 		/* the title's lettering is sprites (PRESS START! below it too) */
 		.logo = { .wait = 640, .layers = 0x10, .maxY = 92 },
 	},
+	{
+		/* Kingdom Hearts: Chain of Memories (USA; Europe and Japan:
+		 * khc_eur, khc_jpn). Walking about in a world, the World Map:
+		 * see khc_compose (KHC-1, KHC-2) */
+		.codes = { "B8CE" },
+		.title = "Kingdom Hearts: Chain of Memories",
+		.compose = khc_compose,
+		.virt = khc_virt,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* not in a battle, not on the title: taken (about once a second;
+		 * where the menu doesn't open, nothing: KHC-2) */
+		.live = { { KHC_BATTLE, 0xFFFFFFFF, 0, 4 }, { KHC_V_TITLE, 0xFF, 0, 4 } },
+		/* the title: the logo, the map forgotten (KHC-4) */
+		.menu = { { KHC_V_TITLE, 0xFF, 1, 4 } },
+		/* a battle: its pointer set (the fight, its conversations), or the
+		 * display in mode 2 (its flash, its end): the logo (KHC-3) */
+		.combat = { { KHC_BATTLE + 3, 0xFF, 0x02, 1 } },
+		.combatOr = { { 0x04000000, 0x0007, 2, 2 } },
+		/* the emblem full size on black before the title, faded in, before
+		 * it flashes and shrinks (KHC-5): BG2 alone */
+		.logo = { .wait = 700, .layer = 2, .maxY = 160 },
+	},
 };
 
 /* ---------------------------------------------------------------- regions
@@ -3142,6 +3878,23 @@ static void smm_jpn(MapProfile* p) {
 	p->menu[0].addr -= 0x34, p->menu[0].value -= 0x34;
 }
 
+/* Kingdom Hearts: Chain of Memories: the battle pointer elsewhere (by
+ * romxref, checked in battles); the logo the same emblem, in Europe after
+ * A on its language menu, in Japan 200 frames sooner (no licence screen) */
+static void khc_eur(MapProfile* p) {
+	p->live[0].addr = 0x0203A3E4;
+	p->combat[0].addr = 0x0203A3E4 + 3;
+	p->logo.wait = 0;
+	p->logo.steps[0] = (MacroStep) { 0, 100 };
+	p->logo.steps[1] = (MacroStep) { K_A, 4 };
+	p->logo.steps[2] = (MacroStep) { 0, 746 };
+}
+static void khc_jpn(MapProfile* p) {
+	p->live[0].addr = 0x02039D44;
+	p->combat[0].addr = 0x02039D44 + 3;
+	p->logo.wait = 500;
+}
+
 static const Variant variants[] = {
 	{ "AGSD", "AGSE", 0, gs_ger },
 	/* F-Zero: GP Legend in Europe: its language menu first (the title
@@ -3185,6 +3938,8 @@ static const Variant variants[] = {
 	/* (Sword of Mana's ring address: SomRegion) */
 	{ "AVSY", "AVSE", 0, som_eur },
 	{ "AVSJ", "AVSE", 0, som_jpn },
+	{ "B8CP", "B8CE", 0, khc_eur },
+	{ "B8CJ", "B8CE", 0, khc_jpn },
 };
 #define N_VARIANTS (sizeof(variants) / sizeof(*variants))
 static MapProfile variantProfiles[N_VARIANTS];

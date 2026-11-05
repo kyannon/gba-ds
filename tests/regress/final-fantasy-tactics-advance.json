@@ -1325,6 +1325,585 @@
    "shots": {
     "laws": 300
    }
+  },
+  {
+   "id": "ft-us-enemy-turn",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-battle-idle.ss",
+   "desc": "the turn order taken (the cursor moved off Marche), a unit's Status (Montblanc's state loaded), then the enemy's turn (Marche waited, Euver's turn: the owner's battle, steered there): the turn order and the Laws as last taken",
+   "rules": [
+    "FT-13"
+   ],
+   "input": [
+    [
+     40,
+     "RIGHT"
+    ],
+    [
+     43,
+     "-"
+    ],
+    [
+     310,
+     "LOAD:final-fantasy-tactics-advance/us-cursor-other-unit.ss"
+    ],
+    [
+     610,
+     "LOAD:final-fantasy-tactics-advance/us-enemy-turn.ss"
+    ]
+   ],
+   "shots": {
+    "order": 300,
+    "status": 600,
+    "enemy": 700,
+    "later": 900
+   },
+   "checks": [
+    {
+     "rule": "FT-13",
+     "what": "no capture refused on the enemy's turn",
+     "type": "no_log",
+     "match": "not your turn"
+    }
+   ]
+  },
+  {
+   "id": "ft-us-enemy-turn-first",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-cursor-other-unit.ss",
+   "desc": "your turn with the cursor on another unit (its Status shown, the turn order never shown), then the enemy's turn: the turn order and Laws taken at your turn's start",
+   "rules": [
+    "FT-13"
+   ],
+   "input": [
+    [
+     310,
+     "LOAD:final-fantasy-tactics-advance/us-enemy-turn.ss"
+    ]
+   ],
+   "shots": {
+    "status": 300,
+    "enemy": 500
+   },
+   "checks": [
+    {
+     "rule": "FT-13",
+     "what": "the enemy's turn shows a picture (the turn order taken at your turn's start)",
+     "type": "no_log",
+     "match": "not your turn"
+    }
+   ]
+  },
+  {
+   "id": "ft-us-turn-change",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-battle-idle.ss",
+   "desc": "Marche's turn, the cursor never off him (his Status), he waits (A, UP to Wait, A, A); Euver's turn and the enemies' moves: the turn order and Laws taken at Marche's turn's start",
+   "rules": [
+    "FT-13"
+   ],
+   "input": [
+    [
+     60,
+     "A"
+    ],
+    [
+     62,
+     "-"
+    ],
+    [
+     100,
+     "UP"
+    ],
+    [
+     102,
+     "-"
+    ],
+    [
+     140,
+     "A"
+    ],
+    [
+     142,
+     "-"
+    ],
+    [
+     200,
+     "A"
+    ],
+    [
+     202,
+     "-"
+    ]
+   ],
+   "shots": {
+    "status": 120,
+    "enemy": 700
+   },
+   "checks": [
+    {
+     "rule": "FT-13",
+     "what": "the enemy's turn shows a picture",
+     "type": "no_log",
+     "match": "not your turn"
+    }
+   ]
+  },
+  {
+   "id": "ft-us-moved-unit-menu",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-moved-unit-menu.ss",
+   "desc": "the owner's bug report (Nov 4, 2026): Brean's turn, after his move, his menu up; then an enemy's turn (another battle's state loaded): Brean's Status, then the turn order taken in his turn (01 Brean)",
+   "rules": [
+    "FT-8",
+    "FT-13"
+   ],
+   "input": [
+    [
+     310,
+     "LOAD:final-fantasy-tactics-advance/us-enemy-turn.ss"
+    ]
+   ],
+   "shots": {
+    "status": 300,
+    "enemy": 450
+   },
+   "checks": [
+    {
+     "rule": "FT-8",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FT-8",
+     "what": "nothing failed to open",
+     "type": "no_log",
+     "match": "nothing opened"
+    }
+   ]
+  },
+  {
+   "id": "ft-us-long-names",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-long-names.ss",
+   "desc": "every unit's name as wide as the game can draw it (us-battle-idle, each unit's name pointer at ten Ws: wider than any name in the game; eleven hang its Status screen): the turn order's first column alone (01-04), no name cut off",
+   "rules": [
+    "FT-9"
+   ],
+   "input": [
+    [
+     40,
+     "RIGHT"
+    ],
+    [
+     43,
+     "-"
+    ]
+   ],
+   "shots": {
+    "order": 300
+   },
+   "checks": [
+    {
+     "rule": "FT-9",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ft-us-scene-after-battle",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-battle-idle.ss",
+   "desc": "the turn order in a battle, then the owner's bug report (Nov 4, 2026): a scene once a battle's won, no unit's turn (FT_ACTIVE 0) and no scene word: the logo, not the last picture drawn again",
+   "rules": [
+    "FT-7",
+    "FT-13"
+   ],
+   "input": [
+    [
+     210,
+     "LOAD:final-fantasy-tactics-advance/us-scene-after-battle.ss"
+    ]
+   ],
+   "shots": {
+    "battle": 200,
+    "scene": 300,
+    "later": 500
+   },
+   "checks": [
+    {
+     "rule": "FT-7",
+     "what": "the logo in the scene",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "shot": "scene"
+    },
+    {
+     "rule": "FT-7",
+     "what": "still the logo",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "shot": "later"
+    }
+   ]
+  },
+  {
+   "id": "ft-us-worldmap-kingmoon",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-worldmap-kingmoon.ss",
+   "desc": "the owner's bug report (Nov 4, 2026): the world map later in the game (Kingmoon, the game's mode 4), the Laws opened and closed (L, B) three times: the Laws on the second screen",
+   "rules": [
+    "FT-14"
+   ],
+   "input": [
+    [
+     10,
+     "-"
+    ],
+    [
+     21,
+     "DOWN"
+    ],
+    [
+     27,
+     "-"
+    ],
+    [
+     116,
+     "L"
+    ],
+    [
+     124,
+     "-"
+    ],
+    [
+     210,
+     "B"
+    ],
+    [
+     219,
+     "-"
+    ],
+    [
+     232,
+     "L"
+    ],
+    [
+     241,
+     "-"
+    ],
+    [
+     378,
+     "B"
+    ],
+    [
+     384,
+     "-"
+    ],
+    [
+     437,
+     "L"
+    ],
+    [
+     444,
+     "-"
+    ],
+    [
+     577,
+     "B"
+    ],
+    [
+     584,
+     "-"
+    ]
+   ],
+   "shots": {
+    "laws": 300,
+    "end": 613
+   },
+   "checks": [
+    {
+     "rule": "FT-14",
+     "what": "the Laws taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ft-us-worldmap-checker",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-battle-idle.ss",
+   "desc": "a battle (the checkerboard taken from a Status), then the world map (us-worldmap.ss loaded): its Laws on the checkerboard",
+   "rules": [
+    "FT-14"
+   ],
+   "input": [
+    [
+     210,
+     "LOAD:final-fantasy-tactics-advance/us-worldmap.ss"
+    ]
+   ],
+   "shots": {
+    "battle": 200,
+    "laws": 400
+   },
+   "checks": [
+    {
+     "rule": "FT-14",
+     "what": "not on dark grey",
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      0,
+      0,
+      40,
+      40
+     ],
+     "color": "303030",
+     "shot": "laws",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "ft-us-worldmap-months",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-worldmap-madmoon.ss",
+   "desc": "the world map later in the game (mode 4) in each month after Kingmoon (the owner's Kingmoon state, its month byte 0x02002FBA set to 2-5, then a day's travel west by the game itself): the Laws in every month",
+   "rules": [
+    "FT-14"
+   ],
+   "input": [
+    [
+     260,
+     "LOAD:final-fantasy-tactics-advance/us-worldmap-sagemoon.ss"
+    ],
+    [
+     510,
+     "LOAD:final-fantasy-tactics-advance/us-worldmap-huntmoon.ss"
+    ],
+    [
+     760,
+     "LOAD:final-fantasy-tactics-advance/us-worldmap-bardmoon.ss"
+    ]
+   ],
+   "shots": {
+    "madmoon": 240,
+    "sagemoon": 490,
+    "huntmoon": 740,
+    "bardmoon": 990
+   },
+   "checks": [
+    {
+     "rule": "FT-14",
+     "what": "no capture failed",
+     "type": "no_log",
+     "match": "map capture failed"
+    }
+   ]
+  },
+  {
+   "id": "ft-us-pub",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-worldmap-town-menu.ss",
+   "desc": "a town's menu on the world map (its Laws on the second screen), then A: the Pub (it reads as in a battle, FT_MODE 60): the logo",
+   "rules": [
+    "FT-7",
+    "FT-14"
+   ],
+   "input": [
+    [
+     200,
+     "A"
+    ],
+    [
+     203,
+     "-"
+    ]
+   ],
+   "shots": {
+    "menu": 190,
+    "pub": 450
+   },
+   "checks": [
+    {
+     "rule": "FT-7",
+     "what": "the logo in the Pub",
+     "type": "log",
+     "match": "back to the logo"
+    }
+   ]
+  },
+  {
+   "id": "ft-us-pub-kingmoon",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-worldmap-kingmoon.ss",
+   "desc": "later in the story: the world map's Laws (the owner's Kingmoon state), then Cyril's Pub (us-pub-kingmoon: travelled there from it, the Pub entered): the logo",
+   "rules": [
+    "FT-7"
+   ],
+   "input": [
+    [
+     300,
+     "LOAD:final-fantasy-tactics-advance/us-pub-kingmoon.ss"
+    ]
+   ],
+   "shots": {
+    "laws": 290,
+    "pub": 500
+   },
+   "checks": [
+    {
+     "rule": "FT-7",
+     "what": "the logo in the Pub",
+     "type": "log",
+     "match": "back to the logo"
+    }
+   ]
+  },
+  {
+   "id": "ft-us-worldmap-info",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-worldmap-info.ss",
+   "desc": "the owner's bug report (Nov 4, 2026), replayed: on the world map, R opens Giza Plains' Info window (FT_WM_STATE 1, as the Laws), B, the cursor moved about, L and B: never the Info window on the second screen",
+   "rules": [
+    "FT-14"
+   ],
+   "input": [
+    [
+     10,
+     "RIGHT+DOWN"
+    ],
+    [
+     11,
+     "DOWN"
+    ],
+    [
+     24,
+     "-"
+    ],
+    [
+     98,
+     "RIGHT"
+    ],
+    [
+     106,
+     "-"
+    ],
+    [
+     193,
+     "R"
+    ],
+    [
+     204,
+     "-"
+    ],
+    [
+     253,
+     "B"
+    ],
+    [
+     262,
+     "-"
+    ],
+    [
+     312,
+     "UP"
+    ],
+    [
+     335,
+     "-"
+    ],
+    [
+     352,
+     "R"
+    ],
+    [
+     363,
+     "-"
+    ],
+    [
+     387,
+     "LEFT"
+    ],
+    [
+     408,
+     "-"
+    ],
+    [
+     422,
+     "UP"
+    ],
+    [
+     429,
+     "-"
+    ],
+    [
+     437,
+     "L"
+    ],
+    [
+     446,
+     "-"
+    ],
+    [
+     528,
+     "B"
+    ],
+    [
+     539,
+     "-"
+    ],
+    [
+     556,
+     "DOWN"
+    ],
+    [
+     582,
+     "-"
+    ],
+    [
+     583,
+     "RIGHT"
+    ],
+    [
+     603,
+     "-"
+    ]
+   ],
+   "shots": {
+    "info": 240,
+    "after": 300,
+    "end": 666
+   },
+   "checks": [
+    {
+     "rule": "FT-14",
+     "what": "the Info window not taken for the Laws",
+     "type": "log",
+     "match": "not the Laws"
+    }
+   ]
   }
  ]
 }

@@ -26,6 +26,8 @@ public class SecondScreen extends Presentation implements SurfaceHolder.Callback
     private SurfaceView view;
 
     static native void nativeSetDisplay(int width, int height);
+    /* the displays' pixels per inch: the activity's and this one's */
+    static native void nativeSetPpi(float app, float second);
     static native void nativeSetSurface(Surface surface);
     static native void nativeTouch(int kind, float x, float y);
 

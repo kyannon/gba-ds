@@ -263,7 +263,11 @@ After the first milestone:
 - Screens in physical order (ui_layout): screen 0 = top = the second
   display (view 1), screen 1 = bottom = the activity's display 0 (view 0,
   the touchscreen), so the defaults match ROCKNIX: game on top, menus on
-  the bottom.
+  the bottom. (Since v1.4.6: that's for two displays of a size; when they
+  differ, the larger is the top screen, as on the AYN Thor, where the
+  activity's 1920x1080 display is on top of the 1240x1080 second one;
+  issue #13. `top_screen = app / second` overrides; logged as "screens:
+  ... on top".)
 - L2 / R2 (screen swap, fast-forward) didn't work: the triggers send
   digital KEYCODE_BUTTON_L2 / R2, which SDL turns into raw joystick
   buttons 15 / 16 that its Android controller mapping leaves out (it only

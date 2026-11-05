@@ -1,5 +1,57 @@
 # Changelog
 
+## v1.4.9 (not yet released)
+
+## v1.4.8 (2026-11-04)
+
+### New games
+- **Kingdom Hearts: Chain of Memories** (USA, Europe and Japan): walking about in a world, the second screen is the World Map (the one SELECT opens, with the room you're in lit, without its cursor), updated about once a second. In battles, and on the title and in the opening, it shows the logo, taken from the full-size emblem before the title. Tried in Traverse Town.
+
+### Fixes
+- **Final Fantasy Tactics Advance:** a place's Info window on the world map (R) could be taken for the Laws and stay on the second screen.
+- **Final Fantasy Tactics Advance:** in a town's Pub, Shop or Prison, the second screen kept the world map's Laws; it shows the logo there now.
+- **Final Fantasy Tactics Advance:** in a scene after a battle, the second screen could bring back the last unit's Status instead of keeping the logo.
+- **Final Fantasy Tactics Advance:** later in the game (from Kingmoon on, in one player's game), the world map's Laws didn't appear on the second screen. The world map is now recognised by its own screen, at any point in the story.
+- **Final Fantasy Tactics Advance:** on one of your units' turns after it has moved, with its menu up, the second screen showed nothing new: no Status, and the turn order wasn't taken. It now shows that unit's Status, and the turn order is taken for the enemy's turns. While a unit picks what to hit, the last picture now stays, as it should, instead of an older turn order coming up.
+- **Advance Wars and Game Boy Wars Advance (game 1):** in the campaign, with the cursor on an empty tile, the second screen could keep the last unit's intel instead of showing the Battle Intel. The campaign's Intel menu has Terms first, and GBA DS looked for Status in the wrong place.
+- **Sonic Advance:** the zone card on the second screen could show the character's name cut off at the top, as with Knuckles. The card now takes the character's name from a moment it's whole, and the zone's name from the moment it's centred (#15).
+
+### Changes
+- **Final Fantasy Tactics Advance:** the world map's Laws are shown on the Status screen's checkerboard, as the turn order is in battles (taken from the Party screen when there hasn't been a battle yet; the Laws wait for it, so they never come up on a plain background first).
+- **Final Fantasy Tactics Advance:** a unit's Status on the second screen no longer shows the R Info prompt on its Abilities page (that button does nothing there).
+- **Final Fantasy Tactics Advance:** with the cursor on no unit, the second screen now shows the whole turn order (01 to 08) in two columns under one LIST bar, its blue box see-through over the Status screen's checkerboard as the game has it over the battle, with the Laws below it. Empty laws (a dash) aren't drawn. Before, the list was below the Laws and its last rows were cut off. If the names are too long for two columns on a GBA-sized screen, only the first column (01 to 04) is shown, so no name is cut off.
+- **Final Fantasy Tactics Advance:** while it isn't your turn (an enemy's, the judge's or a guest's), the second screen shows the turn order and Laws instead of the last unit's Status. They're taken again at the start of each of your units' turns, even if you never move the cursor off the unit, so they're as up to date as they can be.
+- **Advance Wars, Advance Wars 2 and Game Boy Wars Advance 1+2:** the unit intel's panel is always at the right of the second screen and its text box at the top left. The game moves both away from the cursor; the second screen no longer follows.
+- **Advance Wars, Advance Wars 2 and Game Boy Wars Advance 1+2:** with a unit's intel up, the battle's minimap (the one START opens) is back on the second screen, at the bottom left under the text box.
+- **Advance Wars, Advance Wars 2 and Game Boy Wars Advance 1+2:** the unit intel, its text and the minimap now share one frame across the whole second screen, made of the game's own window background, with a thin edge in the colour of the panel's outline (red or blue in Advance Wars 2). The panel joins it without its own border or its INTEL label.
+
+### Known issues
+- **Final Fantasy Tactics Advance:** if one of your units gets two turns in a row, the turn order shown on the next enemy turn may be the one from that unit's first turn.
+
+## v1.4.7 (2026-11-03)
+
+### Fixes
+- **Advance Wars and Advance Wars 2, European releases:** since v1.4.2 the second screen showed only the logo in battles. The unit intel and Battle Intel are back, as in the USA releases (#14).
+
+## v1.4.6 (2026-11-03)
+
+### New games
+- **Sonic Advance 2** (USA, Europe and Japan): as each act starts, its zone card (the zone's name, emblem and icons, on blue and black) goes to the second screen and stays there through the act, and the rings, score and time move to its bottom left and the lives to its bottom right, so the game screen is clear, under water too. The pause window stays on the game screen; on the title and menus the second screen shows the logo. Tried in Leaf Forest with Sonic; other zones, characters, bosses, special stages, Time Attack and multiplayer haven't been tried yet. After loading a state from before this version (or another emulator's) mid-act, the logo shows above the HUD until the next act's card.
+
+### Screen shapes (experimental)
+- For devices whose two screens are different shapes, such as the AYN Thor and the Retroid Pocket Duo (a widescreen top screen over a narrower bottom one): **Display > Screen shapes** picks **Keep device aspect ratios** (as before), **Match screen aspect ratios** (the wider screen's picture takes the other screen's shape, with black bars at its sides) or **Match screen sizes and aspect ratios** (the same, at the other screen's real size, against the edge nearest it). With Stretch and either match, both screens show the same shape, so Pokémon Pinball's table carries on across them. Greyed out on devices whose screens are the same shape (the RG DS). Also `screen_match` in `gba-ds.cfg`. GBA DS knows the real screen sizes of the AYN Thor, Retroid Pocket Duo and Duo Lite, AYANEO Pocket DS and Anbernic RG DDS; on other devices it goes by what the system reports, and `screen_ppi` sets them if that's wrong.
+- Overlays can be made for each: an overlay's name can end in `-aspect` or `-size`, e.g. `primary-stretch-aspect.png` (see the wiki's overlays page).
+
+### Pause menu
+- **Swap Screens** has moved to the Extras page, to make room on the Display page.
+- **Frame Buffer** is greyed out in the pinball games, where it's always on; pressing it there no longer changes the setting for your other games.
+
+### Fixes
+- **Android, AYN Thor and other devices with a larger top screen:** GBA DS took the second display for the top screen, so on the Thor the game and the second screen were the wrong way up, and Pokémon Pinball's table was upside down across the two screens (Swap Screens didn't help). When the two displays differ in size, the larger one is now the top screen; with two the same size (the RG DS), nothing changes. `top_screen` in `gba-ds.cfg` (`app` or `second`) sets it by hand if a device needs it.
+
+### Known issues
+- **Screen shapes is experimental:** it hasn't been tried on a device with differently shaped screens yet (it was built from the AYN Thor's specifications and tested with its screens' sizes on a computer). If something looks wrong, a bug report or your `gba-ds.log` helps.
+
 ## v1.4.5 (2026-11-02)
 
 ### New games

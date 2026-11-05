@@ -626,6 +626,111 @@
    "shots": {
     "intel": 200
    }
+  },
+  {
+   "id": "aw2-eu-unit",
+   "rom": "AW2P",
+   "state": "advance-wars-2/eu-campaign.ss",
+   "desc": "European release, a campaign battle (the owner's state, issue #14): cursor on one of your units, its intel (only the logo from v1.4.2 to v1.4.6)",
+   "rules": [
+    "AW2-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "AW2-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      300,
+      40,
+      720,
+      300
+     ],
+     "color": "182438",
+     "frac": 0.97,
+     "rule": "AW2-1",
+     "what": "a panel at the top",
+     "shot": "end"
+    }
+   ]
+  },
+  {
+   "id": "aw2-eu-cursor-empty",
+   "rom": "AW2P",
+   "state": "advance-wars-2/eu-campaign.ss",
+   "desc": "European release, a campaign battle: the cursor moved to an empty tile, the Battle Intel",
+   "rules": [
+    "AW2-1"
+   ],
+   "input": [
+    [
+     60,
+     "RIGHT"
+    ],
+    [
+     66,
+     "-"
+    ],
+    [
+     80,
+     "RIGHT"
+    ],
+    [
+     86,
+     "-"
+    ],
+    [
+     100,
+     "RIGHT"
+    ],
+    [
+     106,
+     "-"
+    ],
+    [
+     120,
+     "RIGHT"
+    ],
+    [
+     126,
+     "-"
+    ]
+   ],
+   "shots": {
+    "empty": 400
+   },
+   "checks": [
+    {
+     "rule": "AW2-1",
+     "what": "the Battle Intel opened",
+     "type": "no_log",
+     "match": "did not open"
+    },
+    {
+     "rule": "AW2-1",
+     "what": "the Battle Intel in the middle",
+     "type": "not_uniform",
+     "shot": "empty",
+     "screen": "second",
+     "rect": [
+      200,
+      300,
+      820,
+      460
+     ],
+     "color": "182438",
+     "frac": 0.97
+    }
+   ]
   }
  ]
 }

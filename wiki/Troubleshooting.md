@@ -65,6 +65,8 @@ The log's every-5-seconds report says whether the sound ran out (underruns) and 
 
 ## Android
 
+**The game and the second screen are the wrong way round** (or Pokémon Pinball's table is upside down across the screens). Android doesn't tell apps which display is on top, so GBA DS guesses: the larger one, or the second display when both are the same size. If it guesses wrong on your device, add `top_screen = app` (the display GBA DS opens on is the top one) or `top_screen = second` to `GBA DS/gba-ds.cfg` (see [Settings](Settings#screens)), and please tell us your device in an issue.
+
 **A frontend starts GBA DS but not the game, or "no ROM".** Look in `GBA DS/launch.log`: it lists the intent's action, data and extras. See [[Launching from Android frontends]] for the arguments each frontend needs.
 
 **The game list says "Can't save files here".** GBA DS couldn't write to its folder, so save states, screenshots and game logos aren't kept. On Android, check that the storage isn't full and that All files access is on; on Linux, that the card isn't read-only or full.

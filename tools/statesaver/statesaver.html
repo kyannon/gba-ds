@@ -69,7 +69,7 @@ h1 { font-family: var(--font-display); font-weight: 400; font-size: 26px; letter
 .lcd.ds { aspect-ratio: 2 / 3; width: min(100%, calc(72vh * 2 / 3)); }
 canvas#lcd { width: 100%; height: 100%; display: block; image-rendering: pixelated; image-rendering: crisp-edges; touch-action: none; }
 .lcd.ds canvas#lcd { cursor: crosshair; }
-.lcd.gbads { aspect-ratio: 2 / 3; width: min(100%, calc(82vh * 2 / 3)); }
+.lcd.gbads { aspect-ratio: var(--gd-ar, 2 / 3); width: min(100%, calc(82vh * var(--gd-ar, 2 / 3))); }
 .lcd.gbads canvas#lcd { cursor: crosshair; image-rendering: auto; }
 body:not([data-sys="gbads"]) .gd-only, body[data-sys="gbads"] .core-only { display: none !important; }
 select { font: inherit; font-size: 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 6px 8px; }
@@ -183,10 +183,7 @@ textarea { min-height: 88px; resize: vertical; }
         <button id="resetBtn" type="button" disabled>Reset</button>
         <button id="shotBtn" type="button" disabled>Screenshot</button>
         <button id="openBtn" type="button">Open ROM, save or state</button>
-        <select id="gdSize" class="gd-only" aria-label="Screens">
-          <option value="1024x1536">RG DS Plus · 1024×768 ×2</option>
-          <option value="640x960">RG DS · 640×480 ×2</option>
-        </select>
+        <select id="gdSize" class="gd-only" aria-label="Device"></select>
         <button id="savDlBtn" type="button" disabled>Download game save</button>
       </div>
       <details class="keys">
@@ -1225,8 +1222,43 @@ function gdStatus() {
   $("gdHave").textContent = parts.filter(Boolean).join("  ·  ");
 }
 
+// the devices GBA DS knows (src/ui.c knownDevices): each screen's pixels and
+// size in inches; the two screens stacked in one window, the top one first,
+// each centred across it (GBADS_SCREENS), as on the device
+const GD_DEVICES = [
+  { id: "rgdsplus", name: "Anbernic RG DS Plus", top: [1024, 768, 4.3], bottom: [1024, 768, 4.3] },
+  { id: "rgds", name: "Anbernic RG DS", top: [640, 480, 4.0], bottom: [640, 480, 4.0] },
+  { id: "thor", name: "AYN Thor", top: [1920, 1080, 6.0], bottom: [1240, 1080, 3.92] },
+  { id: "duo", name: "Retroid Pocket Duo", top: [1920, 1080, 5.5], bottom: [1280, 960, 4.5] },
+  { id: "duolite", name: "Retroid Pocket Duo Lite", top: [1920, 1080, 5.5], bottom: [1280, 960, 4.2] },
+  { id: "pocketds", name: "AYANEO Pocket DS", top: [1920, 1080, 7.0], bottom: [1024, 768, 5.0] },
+  { id: "rgdds", name: "Anbernic RG DDS", top: [1200, 720, 4.7], bottom: [960, 720, 4.0] },
+];
+for (const d of GD_DEVICES) {
+  const [tw, th] = d.top, [bw, bh] = d.bottom;
+  const o = document.createElement("option");
+  o.value = d.id;
+  o.textContent = d.name + " · " + (tw === bw && th === bh ? tw + "×" + th + " ×2" : tw + "×" + th + " + " + bw + "×" + bh);
+  $("gdSize").appendChild(o);
+}
+try { const v = localStorage.getItem("gdDevice"); if (v && GD_DEVICES.some((d) => d.id === v)) $("gdSize").value = v; } catch (e) {}
+function gdDevice() { return GD_DEVICES.find((d) => d.id === $("gdSize").value) || GD_DEVICES[0]; }
+// the window GBA DS gets, the screens in it and their pixels per inch
+function gdWindow() {
+  const d = gdDevice(), [tw, th, ti] = d.top, [bw, bh, bi] = d.bottom;
+  const same = tw === bw && th === bh;
+  const ppi = (w, h, inch) => (Math.hypot(w, h) / inch).toFixed(1);
+  return {
+    w: Math.max(tw, bw), h: th + bh,
+    env: same ? {} : { GBADS_SCREENS: tw + "x" + th + "," + bw + "x" + bh },
+    args: same ? [] : ["--screen_ppi=" + ppi(tw, th, ti) + "," + ppi(bw, bh, bi)],
+  };
+}
+
 function gdShowCanvas() {
-  const W = gd.img ? gd.img.width : +$("gdSize").value.split("x")[0], H = gd.img ? gd.img.height : +$("gdSize").value.split("x")[1];
+  const win = gdWindow();
+  const W = gd.img ? gd.img.width : win.w, H = gd.img ? gd.img.height : win.h;
+  $("lcdBox").style.setProperty("--gd-ar", W + " / " + H);
   if ($("lcd").width !== W || $("lcd").height !== H) { $("lcd").width = W; $("lcd").height = H; }
   if (gd.img) { img = gd.img; img32 = gd.img32; ctx.putImageData(gd.img, 0, 0); }
   else { img = ctx.createImageData(W, H); img32 = new Uint32Array(img.data.buffer); }
@@ -1329,7 +1361,8 @@ async function gdBoot(stateBytes) {
   const base = romName.replace(/\.[^.]+$/, "");
   fs.write("/roms/" + romName, gd.rom.bytes);
   if (gd.sav) { fs.write("/saves/" + base + ".sav", gd.sav); gd.sav = null; }
-  const args = ["/gba-ds/gba-ds", "--asset-dir=/gba-ds", "--state-dir=/states", "--save-dir=/saves", "--screenshot-dir=/shots"];
+  const win = gdWindow();
+  const args = ["/gba-ds/gba-ds", "--asset-dir=/gba-ds", "--state-dir=/states", "--save-dir=/saves", "--screenshot-dir=/shots", ...win.args];
   if (stateBytes) { fs.write("/load.ss", stateBytes); args.push("--load-state=/load.ss"); }
   args.push("/roms/" + romName);
   gd.frames = 0; gd.paused = false; gd.log.length = 0;
@@ -1346,7 +1379,7 @@ async function gdBoot(stateBytes) {
   try {
     const h = await GBADS.start({
       wasm: gd.build.module, fs, args,
-      env: { GBADS_CONFIG: "/gba-ds/gba-ds.cfg", GBADS_WINDOW: $("gdSize").value, HOME: "/home" },
+      env: { GBADS_CONFIG: "/gba-ds/gba-ds.cfg", GBADS_WINDOW: win.w + "x" + win.h, HOME: "/home", ...win.env },
       log: gdLog,
       onFrame: (px, w, hh, pitch) => {
         if (!gd.img || gd.img.width !== w || gd.img.height !== hh) {
@@ -1429,7 +1462,10 @@ $("lcd").addEventListener("pointermove", (e) => { if (sys === "gbads" && gd.poin
 for (const ev of ["pointerup", "pointercancel"]) $("lcd").addEventListener(ev, (e) => {
   if (sys === "gbads" && gd.pointer) { gd.pointer = false; if (gd.h) gd.h.touch(2, ...gdAt(e)); }
 });
-$("gdSize").onchange = () => { if (gd.h) gdBoot(gd.h.saveState()); else { gd.img = null; gdShowCanvas(); } };
+$("gdSize").onchange = () => {
+  try { localStorage.setItem("gdDevice", $("gdSize").value); } catch (e) {}
+  if (gd.h) gdBoot(gd.h.saveState()); else { gd.img = null; gdShowCanvas(); }
+};
 
 /* ------------------------------------------------------------ start */
 setSystem("gba");

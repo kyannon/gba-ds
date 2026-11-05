@@ -864,6 +864,8 @@ static bool hudScene; /* the profile's other scene (Mario Kart's podium): logo b
 static bool hudCard; /* hud.card: the title card's sprites are what's split off */
 static int cardScore = -1; /* hud.card: how far off centre the best take so far is (-1: none) */
 static uint32_t cardBest[GBA_W * GBA_H];
+static int sideScore = -1; /* hud.card.side: how far off centre its best take is (-1: none) */
+static uint32_t sideBest[GBA_W * GBA_H];
 static bool hudAlt; /* the HUD on its other layer (hud.alt: SMA2's boss rooms) */
 static uint32_t hudLogoBack[HUD_CW * HUD_CH];
 static bool hudLogoDone;
@@ -957,7 +959,7 @@ static bool debug;
 
 /* ---------------------------------------------------------------- menu */
 
-enum MenuItem { M_RESUME, M_CHEATS, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND, M_AUTOSAVE, M_AUTOLOAD, M_BUG, M_SLOT };
+enum MenuItem { M_RESUME, M_CHEATS, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND, M_AUTOSAVE, M_AUTOLOAD, M_BUG, M_SLOT, M_SHAPES };
 static const char* menuLabels[] = {
 	/* title case: drawn in Futura from the built-in images (tools/make_brand.py) */
 	[M_RESUME] = "Resume", [M_SWAP] = "Swap Screens", [M_SAVE] = "Save State", [M_SCALE] = "", [M_LCD] = "", [M_FPS] = "", [M_FRAMEBUF] = "", [M_OVERLAY] = "", [M_LOGO] = "", [M_MATCH] = "", [M_REWIND] = "", [M_RESTART] = "Restart Game",
@@ -1124,6 +1126,8 @@ static void slot_step(int d) {
 
 static bool item_enabled(int item) {
 	if (item == M_CHEATS) return cheats.n > 0;
+	if (item == M_SHAPES) return ui_screens_differ(); /* (two screens of a shape: nothing to match) */
+	if (item == M_FRAMEBUF) return !tallProf;          /* (always on in the pinball games' two-screen view) */
 	return item != M_LOAD || file_exists(gp.slot[stateSlot]);
 }
 
@@ -2051,6 +2055,8 @@ static void draw_menu(void) {
 		if (menuItems[i] == M_FRAMEBUF) label = tallProf ? "Frame Buffer: Always on here" : cfg->frameBuffer ? "Frame Buffer: On" : "Frame Buffer: Off";
 		if (menuItems[i] == M_REWIND) label = cfg->rewind ? "Rewind: On (Hold L2)" : "Rewind: Off";
 		if (menuItems[i] == M_MATCH) label = cfg->matchDisplay ? "Match Display Rate: On" : "Match Display Rate: Off";
+		if (menuItems[i] == M_SHAPES) label = !en || !strcmp(cfg->screenMatch, "keep") ? "Keep device aspect ratios" :
+		                                      !strcmp(cfg->screenMatch, "aspect") ? "Match screen aspect ratios" : "Match screen sizes and aspect ratios";
 		if (menuItems[i] == M_LOGO) label = cfg->showLogo ? "No Second Screen: Show Logo" : "No Second Screen: Keep Blank";
 		if (menuItems[i] == M_OVERLAY) {
 			static const char* const ovl[4] = { "Overlays: None", "Overlays: Primary", "Overlays: Secondary", "Overlays: Both" };
@@ -2346,14 +2352,48 @@ static bool card_take(void) {
 	}
 	return off <= 1;
 }
+/* hud.card.side: this frame's side part (hudPx) as its take: kept if
+ * what's dark in it is clear of its top and bottom and nearer the centre
+ * than the best so far. True if it was kept. */
+static bool side_take(void) {
+	const int* r = hudProf->hud.card.side;
+	uint32_t clear = emu_hud_clear();
+	int top = -1, bot = -1;
+	for (int y = SDL_max(r[1], 0); y <= SDL_min(r[3], GBA_H - 1); ++y) {
+		for (int x = SDL_max(r[0], 0); x <= SDL_min(r[2], GBA_W - 1); ++x) {
+			uint32_t p = hudPx[y * GBA_W + x];
+			if ((p & 0xFFFFFF) == clear) continue;
+			int luma = (p & 0xFF) + ((p >> 8) & 0xFF) + ((p >> 16) & 0xFF);
+			if (luma < 3 * 96) {
+				if (top < 0) top = y;
+				bot = y;
+				break;
+			}
+		}
+	}
+	if (top < 0 || top < r[1] + 2 || bot > r[3] - 2) return false;
+	int off = abs((top - r[1]) - (r[3] - bot));
+	if (sideScore >= 0 && off >= sideScore) return false;
+	sideScore = off;
+	memcpy(sideBest, hudPx, sizeof(sideBest));
+	if (debug) fprintf(stderr, "frame %llu: title card's side part taken (rows %d-%d, %d off centre)\n", (unsigned long long) frameCount, top, bot, off);
+	return true;
+}
+
 /* hud.card: the best take as the backdrop (at its own size, black where
- * the card has nothing) */
+ * the card has nothing), with the side part's best take over it */
 static void card_backdrop(void) {
 	uint32_t clear = emu_hud_clear();
+	const int* r = hudProf->hud.card.side;
+	if (sideScore >= 0) {
+		for (int y = SDL_max(r[1], 0); y <= SDL_min(r[3], GBA_H - 1); ++y) {
+			for (int x = SDL_max(r[0], 0); x <= SDL_min(r[2], GBA_W - 1); ++x) cardBest[y * GBA_W + x] = sideBest[y * GBA_W + x];
+		}
+	}
 	for (int y = 0; y < GBA_H; ++y) {
 		for (int x = 0; x < GBA_W; ++x) {
 			uint32_t c = cardBest[y * GBA_W + x];
-			c = (c & 0xFFFFFF) == clear ? 0xFF000000 : c | 0xFF000000;
+			c = (c & 0xFFFFFF) == clear && !hudProf->hud.card.whole ? 0xFF000000 : c | 0xFF000000;
 			uint32_t* o = &hudBack[y * 2 * HUD_CW + x * 2];
 			o[0] = o[1] = o[HUD_CW] = o[HUD_CW + 1] = c;
 		}
@@ -2521,9 +2561,13 @@ static void hud_compose(void) {
 		uint16_t bld = emu_read16(&emu, 0x04000050);
 		int fade = SDL_min(emu_read16(&emu, 0x04000054) & 31, 16), eff = (bld >> 6) & 3;
 		if (!((bld & 0x0F) == 0x0F && (eff == 2 || eff == 3) && fade)) fade = 0;
+		/* (not behind a whole-screen card: it stays lit through the act.
+		 * Sonic Advance 2 darkens the level with BLDCNT under the card's
+		 * windows as it wipes off, then brings in the level's palettes) */
+		if (h->card.whole) fade = 0;
 		/* or by scaling its palettes (to black, or white): against how
 		 * bright they were as the backdrop was taken (in 64ths) */
-		int pf = fade ? 0 : bg_pal_fade(hudPalRef);
+		int pf = fade || h->card.whole ? 0 : bg_pal_fade(hudPalRef);
 		if (pf <= -2) eff = 3, fade = -pf;
 		else if (pf >= 2) eff = 2, fade = pf;
 		else fade *= 4;
@@ -2553,12 +2597,14 @@ static void hud_compose(void) {
 			}
 		}
 	} else if (h->card.tile) {
-		/* (hud.card: no card taken yet: the logo, below the HUD's pieces) */
+		/* (hud.card: no card taken yet: the logo, below the HUD's pieces;
+		 * for a whole-screen card, Sonic Advance 2's, centred, above the
+		 * HUD along the bottom) */
 		static uint32_t cardLogo[HUD_CW * HUD_CH];
 		static bool made;
 		if (!made) {
 			for (int i = 0; i < HUD_CW * HUD_CH; ++i) cardLogo[i] = SCREEN_GREY;
-			made = logo_draw(cardLogo, HUD_CW, HUD_CH, HUD_CW / GBA_W, 48 * 2, 255);
+			made = logo_draw(cardLogo, HUD_CW, HUD_CH, HUD_CW / GBA_W, h->card.whole ? 0 : 48 * 2, 255);
 		}
 		memcpy(hudCanvas, cardLogo, sizeof(hudCanvas));
 	} else {
@@ -2887,7 +2933,20 @@ static void update_hud(void) {
 	} else if (hudOn && race && hudCard) {
 		/* the title card: a take a frame (once the split draws the card),
 		 * the backdrop once it's centred; on the second screen from then */
-		if (hudFrames >= 2 && cardScore != 0 && card_take() && !hudBackValid) card_backdrop();
+		if (h->card.whole) {
+			/* (the whole game screen, once the card has settled) */
+			if (cardScore < 0 && hudFrames >= SDL_max(2, h->card.at)) {
+				memcpy(cardBest, emu.fb, sizeof(cardBest));
+				cardScore = 0;
+				card_backdrop();
+			}
+		} else {
+			/* (the side part first, so the first backdrop has it if it's
+			 * been seen; a better one later makes the backdrop again) */
+			bool side = h->card.side[2] > h->card.side[0] && hudFrames >= 2 && side_take();
+			if (hudFrames >= 2 && cardScore != 0 && card_take() && !hudBackValid) card_backdrop();
+			else if (side && hudBackValid) card_backdrop();
+		}
 		if (hudBackValid) {
 			memcpy(hudCanvas, hudBack, sizeof(hudCanvas));
 			for (int i = 0; i < nViews; ++i) ui_update_texture(hudTex[i], hudCanvas, HUD_CW * 4);
@@ -2918,7 +2977,7 @@ static void update_hud(void) {
 	bool card = race && h->card.tile && oam_has_tile_pal(h->card.tile, h->card.pal);
 	if (card != hudCard) {
 		/* a card coming up: a new take; going: the best one, if not yet */
-		if (card) cardScore = -1, hudBackValid = false;
+		if (card) cardScore = -1, sideScore = -1, hudBackValid = false;
 		else if (cardScore >= 0 && !hudBackValid) card_backdrop();
 		if (debug) fprintf(stderr, "frame %llu: title card %s\n", (unsigned long long) frameCount, card ? "up" : "gone");
 	}
@@ -3548,7 +3607,7 @@ static void screen_restore_apply(void) {
 	bool ours = b && n >= 12 && !memcmp(b, "GDS2", 4) && rd32(b + 4) == 1 && !memcmp(b + 8, subCode, 4);
 	/* what was kept from before the load is another moment's: the title
 	 * card and the level name go (back from the state, if it has them) */
-	if (hudProf && hudProf->hud.card.tile) hudBackValid = false, cardScore = -1;
+	if (hudProf && hudProf->hud.card.tile) hudBackValid = false, cardScore = -1, sideScore = -1;
 	mapTitleN = 0, hudLogoBelowDone = false;
 	if (!ours) {
 		if (b && debug) fprintf(stderr, "load state: its second screen is for another game or version: not used\n");
@@ -4549,7 +4608,7 @@ static void map_show_new(bool fresh) {
 static bool draw_framed_map(int s) {
 	if (!(cfg->overlays & OVL_SECONDARY) || !mapframe_ready(&mf) || mapShownIdx < 0) return false;
 	if (!strcmp(cfg->mapScale, "zoom")) return false; /* the map fills the height: no room for a surround */
-	SDL_Rect r = screens[s].rect;
+	SDL_Rect r = screens[s].pic; /* (the picture area: screen_match) */
 	if (mapframe_layout(&mf, r.w, r.h, cfg->mapScale) || mf.baseDirty) canvasDirty = true;
 	if (canvasTexW != mf.cw || canvasTexH != mf.ch) {
 		for (int i = 0; i < nViews; ++i) {
@@ -4633,6 +4692,7 @@ static void save_prefs(void) {
 		        (const char* const[]) { "none", "primary", "secondary", "both" }[cfg->overlays & OVL_BOTH],
 		        cfg->frameBuffer ? 1 : 0, cfg->matchDisplay ? 1 : 0, cfg->rewind ? 1 : 0,
 		        cfg->autoSave ? 1 : 0, cfg->autoLoad ? 1 : 0, cfg->barPinned ? 1 : 0);
+		fprintf(f, "screen_match = %s\n", cfg->screenMatch);
 		fclose(f);
 	}
 }
@@ -4656,26 +4716,42 @@ static void swap_screens(void) {
 static SDL_Color borderColor;
 
 /* User overlay PNGs in <asset_dir>/overlays/, drawn over a whole screen
- * (transparent where the picture should show). First found wins:
- *   primary (game screen):  <CODE>-primary-<scale>, <CODE>-primary,
- *                           primary-<scale>, primary
- *   secondary (map screen): <CODE>-secondary-<scale>, <CODE>-secondary,
- *                           <CODE>-<scale>, <CODE>, secondary-<scale>, secondary
- * <scale> is that screen's scaling (integer / fit / stretch). */
+ * (transparent where the picture should show). A name is the parts that
+ * apply, in this order, joined by dashes: the game's code (optional), the
+ * side (primary: the game screen; secondary: the other), the scaling
+ * (integer, fit, zoom, stretch; optional) and the screen shapes (aspect or
+ * size, for screen_match; optional, and only looked for while it's on and
+ * the screens' shapes differ). The most specific found wins:
+ *   <CODE>-<side>-<scale>-<match>, <CODE>-<side>-<match>,
+ *   <CODE>-<side>-<scale>, <CODE>-<side>,
+ *   (secondary only, older names: <CODE>-<scale>, <CODE>)
+ *   <side>-<scale>-<match>, <side>-<match>, <side>-<scale>, <side>
+ * wiki/Map-screen-surrounds-and-overlays.md explains them for players. */
+static void overlays_reload(void) {
+	overlayMode[0][0] = overlayMode[1][0] = 0;
+}
+
 static void load_overlay(int which) {
 	const char* scale = which ? cfg->mapScale : cfg->scale;
-	if (!strcmp(overlayMode[which], scale)) return;
-	snprintf(overlayMode[which], sizeof(overlayMode[which]), "%s", scale);
+	const char* match = strcmp(cfg->screenMatch, "keep") && ui_screens_differ() ? cfg->screenMatch : NULL;
+	char key[16];
+	snprintf(key, sizeof(key), "%s|%s", scale, match ? match : "");
+	if (!strcmp(overlayMode[which], key)) return;
+	snprintf(overlayMode[which], sizeof(overlayMode[which]), "%s", key);
 	ui_free_image(overlayTex[which]);
 	const char* side = which ? "secondary" : "primary";
-	char names[6][64];
+	char names[10][64];
 	int n = 0;
+	if (match) snprintf(names[n++], 64, "%.4s-%s-%s-%s", emu.gameCode, side, scale, match);
+	if (match) snprintf(names[n++], 64, "%.4s-%s-%s", emu.gameCode, side, match);
 	snprintf(names[n++], 64, "%.4s-%s-%s", emu.gameCode, side, scale);
 	snprintf(names[n++], 64, "%.4s-%s", emu.gameCode, side);
 	if (which) {
 		snprintf(names[n++], 64, "%.4s-%s", emu.gameCode, scale); /* older names */
 		snprintf(names[n++], 64, "%.4s", emu.gameCode);
 	}
+	if (match) snprintf(names[n++], 64, "%s-%s-%s", side, scale, match);
+	if (match) snprintf(names[n++], 64, "%s-%s", side, match);
 	snprintf(names[n++], 64, "%s-%s", side, scale);
 	snprintf(names[n++], 64, "%s", side);
 	char path[1200];
@@ -4988,8 +5064,13 @@ static bool activate(int item, enum GameExit* exitTo) {
 		save_prefs();
 		break;
 	case M_FRAMEBUF:
+		if (!item_enabled(M_FRAMEBUF)) {
+			/* (greyed out: the setting, for the other games, stays as it is) */
+			snprintf(menuNote, sizeof(menuNote), "Always on in this game: it needs it for full speed");
+			break;
+		}
 		cfg->frameBuffer = !cfg->frameBuffer;
-		snprintf(menuNote, sizeof(menuNote), "%s", tallProf ? "Always on in this game: it needs it for full speed" : cfg->frameBuffer ? "Smoother, one frame more input delay" : "Least input delay");
+		snprintf(menuNote, sizeof(menuNote), "%s", cfg->frameBuffer ? "Smoother, one frame more input delay" : "Least input delay");
 		save_prefs();
 		break;
 	case M_REWIND:
@@ -4998,6 +5079,22 @@ static bool activate(int item, enum GameExit* exitTo) {
 		snprintf(menuNote, sizeof(menuNote), "%s", cfg->rewind ? "Hold L2 to go back in time" : "No rewind buffer: a little less work");
 		save_prefs();
 		break;
+	case M_SHAPES: {
+		if (!item_enabled(M_SHAPES)) {
+			snprintf(menuNote, sizeof(menuNote), "Your screens are the same shape: nothing to match");
+			break;
+		}
+		/* keep, aspect, size (experimental: not tried on a widescreen device yet) */
+		const char* next = !strcmp(cfg->screenMatch, "keep") ? "aspect" : !strcmp(cfg->screenMatch, "aspect") ? "size" : "keep";
+		snprintf(cfg->screenMatch, sizeof(cfg->screenMatch), "%s", next);
+		ui_layout_pictures();
+		overlays_reload(); /* (overlays can be made for each: overlay files) */
+		gameTexAll = true;
+		if (!strcmp(next, "size") && !(ui_screen_ppi(0) > 0 && ui_screen_ppi(1) > 0)) snprintf(menuNote, sizeof(menuNote), "The screens' sizes aren't known here: shapes only");
+		else snprintf(menuNote, sizeof(menuNote), "%s", !strcmp(next, "keep") ? "Each screen as it is" : "Experimental: tell us how it looks on your device");
+		save_prefs();
+		break;
+	}
 	case M_MATCH:
 		cfg->matchDisplay = !cfg->matchDisplay;
 		pacing_update();
@@ -5119,7 +5216,7 @@ static void ss_setup(const char* rom, const char* code) {
 		hudShown = false;
 		mirrorHave = mirrorOn = false;
 		hudScene = false;
-		hudCard = false, cardScore = -1;
+		hudCard = false, cardScore = -1, sideScore = -1;
 		hudFadeEff = hudFadeIn = 0;
 		memset(hudPalRef, 0, sizeof(hudPalRef));
 		hudWorld = false;
@@ -5268,17 +5365,18 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	pages[0][pageLen[0]++] = M_SAVE;
 	pages[0][pageLen[0]++] = M_LOAD;
 	pages[0][pageLen[0]++] = M_SLOT;
+	pages[2][pageLen[2]++] = M_SWAP; /* (on Extras since v1.4.6: Display has Screen shapes) */
 	pages[2][pageLen[2]++] = M_CHEATS;
 	if (ra_enabled()) pages[2][pageLen[2]++] = M_ACH;
 	pages[2][pageLen[2]++] = M_SHOT;
 	if (fromLibrary) pages[0][pageLen[0]++] = M_LIBRARY;
 	pages[0][pageLen[0]++] = M_EXIT;
-	pages[1][pageLen[1]++] = M_SWAP;
 	pages[1][pageLen[1]++] = M_SCALE;
 	pages[1][pageLen[1]++] = M_LCD;
 	pages[1][pageLen[1]++] = M_OVERLAY;
 	pages[1][pageLen[1]++] = M_FRAMEBUF;
 	pages[1][pageLen[1]++] = M_MATCH;
+	pages[1][pageLen[1]++] = M_SHAPES;
 	pages[2][pageLen[2]++] = M_REWIND;
 	pages[2][pageLen[2]++] = M_AUTOSAVE;
 	pages[2][pageLen[2]++] = M_AUTOLOAD;

@@ -47,6 +47,9 @@ typedef struct Config {
 	char esConfigDir[512]; /* EmulationStation's config folder (Settings: GBA DS in EmulationStation) */
 	char assetDir[512]; /* logos etc.; default: next to the binary */
 	char touchScreen[16]; /* first | second: which screen has the touch panel */
+	char topScreen[16];   /* Android: auto | app | second: which display is the top screen */
+	char screenMatch[8];  /* keep | aspect | size: the wider screen's picture area (ui.c layout_pictures) */
+	char screenPpi[32];   /* "top,bottom": the screens' pixels per inch, instead of what the system says */
 	char touchMap[16];    /* window | screen: how touch coordinates map */
 	/* Read the touchscreen straight from this input device (/dev/input/eventN)
 	 * instead of SDL's touches (the RG DS Plus's Stock Linux OS: weston hands

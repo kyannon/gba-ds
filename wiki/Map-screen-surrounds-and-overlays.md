@@ -18,19 +18,33 @@ The surround is assembled in the game's own pixel space and scaled together with
 
 Put PNGs in `gba-ds/overlays/` (Android: `GBA DS/overlays/`). Each one is drawn over the whole screen, stretched to its size, so make it the screen's size (**1024×768** on the RG DS Plus, **640×480** on the RG DS) and leave it transparent where the picture should show. The primary (game screen) overlay is a good place for a console bezel.
 
-For each screen the first file found is used, so a game's own overlay beats a global one:
+A file's name is made of these parts, in this order, joined by dashes; only `<side>` is needed:
+
+`<CODE>` - `<side>` - `<scale>` - `<shapes>` `.png`
+
+- `<CODE>`: the game's code, e.g. `A2CE` (Aria of Sorrow, USA), for an overlay for that game only. Each region has its own code: see the table in [[Supported games]].
+- `<side>`: `primary` (the game screen) or `secondary` (the second screen).
+- `<scale>`: that screen's scaling, for an overlay for that scaling only: `integer` (Pixel Perfect), `fit` (Full Width), `zoom` or `stretch`.
+- `<shapes>`: **Screen shapes** (pause menu → Display; experimental), for an overlay for that setting only: `aspect` (Match screen aspect ratios) or `size` (Match screen sizes and aspect ratios). Only looked for while that setting is on and your two screens' shapes differ. With **Keep device aspect ratios**, or two screens of a shape (the RG DS), names with a `<shapes>` part are left alone, so the overlays you have keep working as they are.
+
+For each screen the most specific file found is used, so a game's own overlay beats a global one, and one made for your scaling and screen shapes beats one without them:
 
 | | Primary (game screen) | Secondary (second screen) |
 |---|---|---|
+| this game, this scaling and screen shapes | `<CODE>-primary-<scale>-<shapes>.png` | `<CODE>-secondary-<scale>-<shapes>.png` |
+| this game, these screen shapes | `<CODE>-primary-<shapes>.png` | `<CODE>-secondary-<shapes>.png` |
 | this game, this scaling | `<CODE>-primary-<scale>.png` | `<CODE>-secondary-<scale>.png` |
 | this game | `<CODE>-primary.png` | `<CODE>-secondary.png` |
+| every game, this scaling and screen shapes | `primary-<scale>-<shapes>.png` | `secondary-<scale>-<shapes>.png` |
+| every game, these screen shapes | `primary-<shapes>.png` | `secondary-<shapes>.png` |
 | every game, this scaling | `primary-<scale>.png` | `secondary-<scale>.png` |
 | every game | `primary.png` | `secondary.png` |
 
-- `<CODE>` is the game's code, e.g. `A2CE` (Aria of Sorrow, USA). Each region has its own code: see the table in [[Supported games]].
-- `<scale>` is that screen's scaling: `integer` (Pixel Perfect), `fit` (Full Width), `zoom` or `stretch`.
+For example, on an AYN Thor with the game on the top screen, Stretch and **Match screen aspect ratios**: `primary-stretch-aspect.png` is used if you have it, then `primary-aspect.png`, then `primary-stretch.png`, then `primary.png`.
+
 - Map overlays named the old way (`<CODE>-<scale>.png`, `<CODE>.png`) still work, ahead of the global ones.
 - The secondary overlay is only drawn while a map (or HUD) is showing, not over the logo.
+- An overlay is always drawn over its whole screen, whatever the screen shapes setting: make it the screen's own size (1920×1080 for the Thor's top screen), transparent where the picture goes.
 
 Areas to keep transparent, where the game or map picture is (the same for every game, since everything is shown at full GBA size):
 
@@ -39,5 +53,12 @@ Areas to keep transparent, where the game or map picture is (the same for every 
 | Pixel Perfect (`integer`) | x=32, y=64, 960×640 | x=80, y=80, 480×320 |
 | Full Width (`fit`) | x=0, y=43, 1024×682 | x=0, y=27, 640×427 |
 | Zoom, Stretch | the whole screen | the whole screen |
+
+**With Screen shapes on** (screens of different shapes, such as the AYN Thor's 1920×1080 top screen over its 1240×1080 bottom one), the wider screen's picture goes in a smaller area first, and its scaling then works inside that area as it would on a whole screen:
+
+- **Match screen aspect ratios** (`aspect`): the largest area of the other screen's shape, centred. On the Thor's top screen: x=340, y=0, 1240×1080 (with Stretch, the picture fills it).
+- **Match screen sizes and aspect ratios** (`size`): the other screen's real size, worked out from the two screens' pixels per inch as the system reports them, against the edge nearest the other screen (a top screen's bottom edge), centred across. On the Thor's top screen, with the sizes Android gives (about 367 and 419 pixels per inch): x=417, y=134, 1086×946.
+
+Since the size area depends on what your device reports, check it in `gba-ds.log`: the line `screen shapes: size 1086x946 on screen 0` gives the area's size (screen 0 is the top screen); it's centred across, and at the bottom of a top screen. `screen_ppi` in `gba-ds.cfg` (see [[Settings]]) sets the pixels per inch yourself if they're wrong.
 
 `dist/gba-ds-overlay-templates-preview.png` in the repository shows the areas.
