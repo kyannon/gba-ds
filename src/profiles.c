@@ -2351,6 +2351,188 @@ static const char* gs_compose(Emu* s, const void* state, uint32_t* const* out, i
 	return NULL;
 }
 
+/* ---------------------------------------- Golden Sun: The Lost Age
+ *
+ * Golden Sun's second screen (docs/games/golden-sun-2.md): walking about,
+ * the Status screen, a page per party member (up to eight); in a battle,
+ * while the player chooses, the battle's Status of the one choosing; the
+ * logo while a battle plays out and on the title. The menus work as in
+ * Golden Sun, the addresses are the game's own:
+ *   GS2_MAP    (half) the map: 0 on the title, the naming screens, the
+ *              opening's text and the credits; 510 in a battle
+ *   GS2_FMENU  1 while SELECT's menu or one of its screens is up
+ *   GS2_SCREEN 1 while one of its screens (Psynergy, Djinn, Item, Status)
+ *   GS2_INPUT  5 while the player chooses in a battle
+ *   GS2_WHO    the character choosing (a character number; 0xFF in the
+ *              party menu and on its Status)
+ *   GS2_HILITE x of the party menu's highlight (the first sprite in the
+ *              game's copy of the sprite table; Fight, Switch, Flee, Status
+ *              a row of icons ending at GS2_PSTATUS, Switch left out with
+ *              one in the party): the menu's cursor moves round a window
+ *              whose memory isn't at a fixed place
+ *   GS2_BSTAT  1 while the battle's Status is up
+ *   GS2_ORDER  the party's order (8 character numbers; four fight)
+ * The other releases: the same layout, their addresses in gs2Addr. */
+typedef struct {
+	char region;
+	uint32_t map, fmenu, screen, input, who, hilite, bstat, order;
+} Gs2Addr;
+static const Gs2Addr gs2Addr[] = {
+	{ 'E', 0x02000420, 0x0203015A, 0x020036E0, 0x02030012, 0x02035EFC, 0x03001382, 0x02035E64, 0x02000458 },
+	/* (Germany, France, Italy, Spain: the USA / Europe release's) */
+	{ 'J', 0x02000420, 0x0203015A, 0x020036E0, 0x02030012, 0x02035CFC, 0x03001382, 0x02035C64, 0x02000458 },
+};
+#define GS2_PSTATUS 121
+#define GS2_BATTLE 510
+#define GS2_V_TITLE 0xF0000050
+#define GS2_V_FORGET 0xF0000051 /* the title, or a battle not at the player's choice:
+                                 * the pictures from before go (GS2-4, GS2-8) */
+/* Sprites left out of the pictures: the walking Status's scroll arrows (the
+ * party row's right edge, up 264, down 268, bobbing), the battle Status's
+ * hand (tile 20, by the name) */
+static const SpriteRule gs2Arrows = { 80, -16, 120, 40, 264, 271, -1 };
+static const SpriteRule gs2Hand = { 0, -16, 100, 40, 20, 23, -1 };
+/* The windows' corner pixels, see-through in the game (the map or battle
+ * behind shows there), black (GS2-1, GS2-7): the walking Status's three
+ * windows (the party row, the prompt box, the stats) and the battle
+ * Status's one; the same places in every release */
+static void gs2_black_corners(uint32_t* px, int w, bool walking) {
+	static const uint8_t walk[][2] = { { 0, 0 }, { 103, 0 }, { 104, 0 }, { 239, 0 }, { 0, 39 }, { 103, 39 },
+	                                   { 104, 39 }, { 239, 39 }, { 0, 40 }, { 239, 40 }, { 0, 159 }, { 239, 159 } };
+	static const uint8_t battle[][2] = { { 0, 0 }, { 239, 0 }, { 0, 159 }, { 239, 159 } };
+	if (w < GBA_W) return;
+	int n = walking ? 12 : 4;
+	for (int i = 0; i < n; ++i) {
+		const uint8_t* c = walking ? walk[i] : battle[i];
+		px[c[1] * w + c[0]] = 0xFF000000;
+	}
+}
+
+/* the logo's copy: the save check's veneer (ldr r4, [pc]; bx r4) made
+ * to answer one save (GS2-5) */
+static const uint8_t gs2SaveCheck[4] = { 0x00, 0x4C, 0x20, 0x47 };
+static const uint8_t gs2SaveOne[4] = { 0x01, 0x20, 0x70, 0x47 };
+static const Gs2Addr* gs2_addr(Emu* e) {
+	for (size_t i = 0; i < sizeof(gs2Addr) / sizeof(gs2Addr[0]); ++i) {
+		if (gs2Addr[i].region == e->gameCode[3]) return &gs2Addr[i];
+	}
+	return &gs2Addr[0];
+}
+static uint32_t gs2_virt(Emu* e, uint32_t addr) {
+	const Gs2Addr* a = gs2_addr(e);
+	uint16_t map = emu_read16(e, a->map);
+	if (addr == GS2_V_TITLE) return map == 0;
+	if (addr == GS2_V_FORGET) return map == 0 || (map == GS2_BATTLE && emu_read8(e, a->input) != 5);
+	return 0;
+}
+
+static bool gs2_walking(Emu* s) {
+	const Gs2Addr* a = gs2_addr(s);
+	return emu_read8(s, a->fmenu) == 0 && emu_read8(s, a->screen) == 0;
+}
+static bool gs2_menu(Emu* s) {
+	const Gs2Addr* a = gs2_addr(s);
+	return emu_read8(s, a->fmenu) == 1 && emu_read8(s, a->screen) == 0;
+}
+static bool gs2_status(Emu* s) {
+	const Gs2Addr* a = gs2_addr(s);
+	return emu_read8(s, a->fmenu) == 1 && emu_read8(s, a->screen) == 1;
+}
+/* a battle's party menu, settled (a character's menu passes through it
+ * on the way back to the one before) */
+static bool gs2_party_menu(Emu* s) {
+	const Gs2Addr* a = gs2_addr(s);
+	int still = 0;
+	for (int f = 0; f < 60 && still < 16; ++f) {
+		emu_frame_blind(s, 0);
+		bool up = emu_read8(s, a->input) == 5 && emu_read8(s, a->who) == 0xFF && emu_read8(s, a->bstat) == 0;
+		still = up ? still + 1 : 0;
+	}
+	return still >= 16;
+}
+
+static const char* gs2_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+	static uint32_t page[GS_PAGES][GBA_W * GBA_H];
+	const Gs2Addr* a = gs2_addr(s);
+	int max = *nOut < GS_PAGES ? *nOut : GS_PAGES;
+	*nOut = 1;
+	*step = 300; /* 5 seconds a party member */
+	emu_hide_sprites(s, NULL, 0); /* (what the last picture left out) */
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	uint16_t map = emu_read16(s, a->map);
+	if (map == 0) return "the title";
+	if (map == GS2_BATTLE) {
+		if (emu_read8(s, a->input) != 5) return "a battle playing out"; /* (the logo: GS2-8) */
+		/* the player choosing: the battle's Status of the one choosing (GS2-7),
+		 * R as many times as their place in the party */
+		int who = emu_read8(s, a->who), slot = 0;
+		for (int i = 0; i < 8; ++i) {
+			if (emu_read8(s, a->order + i) == who) slot = i;
+		}
+		if (who == 0xFF || slot > 3) slot = 0;
+		for (int i = 0; i < 6 && !gs2_party_menu(s); ++i) aw_run(s, K_B, 6);
+		if (!gs2_party_menu(s)) return "not in the party menu";
+		for (int i = 0; i < 4 && (emu_read16(s, a->hilite) & 0x1FF) != GS2_PSTATUS; ++i) {
+			aw_run(s, K_LEFT, 6); /* (round to its last icon: Status) */
+			aw_run(s, 0, 12);
+		}
+		if ((emu_read16(s, a->hilite) & 0x1FF) != GS2_PSTATUS) return "the party menu's cursor isn't on Status";
+		aw_run(s, K_A, 6);
+		for (int f = 0; f < 60 && emu_read8(s, a->bstat) != 1; ++f) emu_frame_blind(s, 0);
+		if (emu_read8(s, a->bstat) != 1) return "the battle's Status didn't open";
+		aw_run(s, 0, 16);
+		for (int i = 0; i < slot; ++i) aw_run(s, K_R, 6), aw_run(s, 0, 16);
+		emu_hide_sprites(s, &gs2Hand, 1); /* (GS2-7) */
+		aw_run(s, 0, 10);
+		if (emu_cancelled(s)) return "called off";
+		if (emu_read8(s, a->bstat) != 1) return "the battle's Status closed";
+		for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[0][y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+		gs_no_help(out[0], w);
+		gs2_black_corners(out[0], w, false);
+		*nOut = 1;
+		return NULL;
+	}
+	/* back to walking about first (from the menu or one of its screens,
+	 * the Status too), then SELECT, LEFT to Status, A */
+	for (int i = 0; i < 4 && !gs2_walking(s); ++i) {
+		aw_run(s, K_B, 8);
+		gs_wait(s, gs2_walking, 60);
+	}
+	if (!gs2_walking(s)) return "not walking about";
+	aw_run(s, K_SELECT, 8);
+	if (!gs_wait(s, gs2_menu, 60)) return "the menu didn't open";
+	aw_run(s, 0, 12);
+	aw_run(s, K_LEFT, 6); /* (to the last icon: Status) */
+	aw_run(s, 0, 16);
+	aw_run(s, K_A, 6);
+	if (!gs_wait(s, gs2_status, 60)) return "the Status didn't open";
+	emu_hide_sprites(s, &gs2Arrows, 1); /* (GS2-1) */
+	aw_run(s, 0, 20);
+	int n = 0;
+	for (; n < max; ++n) {
+		if (n) {
+			aw_run(s, K_RIGHT, 6);
+			aw_run(s, 0, 16);
+			if (!gs2_status(s)) return "the Status closed";
+			/* round to the first again: the stats panel as on the first
+			 * page, but for a few pixels (as in Golden Sun) */
+			int diff = 0;
+			for (int i = 40 * GBA_W; i < GBA_W * GBA_H; ++i) diff += (s->fb[i] & 0xFFFFFF) != (page[0][i] & 0xFFFFFF);
+			if (diff < 100) break;
+		}
+		if (emu_cancelled(s)) return "called off";
+		memcpy(page[n], s->fb, sizeof(page[n]));
+	}
+	*nOut = n;
+	for (int k = 0; k < n; ++k) {
+		for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[k][y * w], &page[k][y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+		gs_no_prompt_box(out[k], w);
+		gs2_black_corners(out[k], w, true);
+	}
+	return NULL;
+}
+
 /* ---------------------------------------------------------- Tactics Ogre
  *
  * The second screen: the battle's unit list (R's menu, View List), with
@@ -2776,6 +2958,30 @@ static const MapProfile profiles[] = {
 		.combat = { { GS_INPUT, 0xFF, 0, 1 }, { GS_BSCENE, 0xFF, 0, 1, true, 0x5E, true } },
 		.room = { { GS_WHO, 0xFF, 0, 1 }, { GS_INPUT, 0xFF, 0, 1 } }, /* (the one choosing; a turn to choose) */
 		.logo = { .wait = 420, .layer = 2, .maxY = 160, .blackIsClear = true },
+	},
+	{
+		/* Golden Sun: The Lost Age: Golden Sun's Status screens, a page
+		 * per party member: see gs2_compose */
+		.codes = { "AGFE" },
+		.title = "Golden Sun: The Lost Age",
+		.composePages = gs2_compose,
+		.stillPick = STILL_FIRST,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		.virt = gs2_virt,
+		/* the title: the logo again, no captures (GS2-4) */
+		.live = { { GS2_V_TITLE, 0xFF, 0, 4 } },
+		.menu = { { GS2_V_FORGET, 0xFF, 1, 4 } }, /* (GS2-4, GS2-8) */
+		/* a battle playing out: the logo (GS2-8) */
+		.combat = { { 0x02030012, 0xFF, 0, 1 }, { 0x02000420, 0xFFFF, GS2_BATTLE, 2 } },
+		/* the one choosing in a battle: their Status at once */
+		.room = { { 0x02035EFC, 0xFF, 0, 1 }, { 0x02030012, 0xFF, 0, 1 } }, /* (the one choosing; a turn to choose) */
+		/* the title's emblem, cut out of its picture of the lighthouse
+		 * (GS2-5); the title only comes with a save, so the copy the logo
+		 * is taken from has its save check answer "one" (the veneer every
+		 * release has at 0x080382F0: movs r0, #1; bx lr) */
+		.logo = { .steps = { { 0, 600 }, { K_START, 4 }, { 0, 120 } }, .mask = &logoMaskGS2E,
+		          .patch = { { 0x080382F0, 4, gs2SaveCheck, gs2SaveOne } }, .rev = 3 /* (the test builds' logos made again) */ },
 	},
 	{
 		/* the Status screen with the menu's Place bar over its bottom:
@@ -3743,6 +3949,25 @@ static void sma2_jpn(MapProfile* p) {
 
 /* Final Fantasy Tactics Advance in Europe: a language menu first (its RAM
  * is the USA release's); in Japan the cursor's 0x30 lower (ft_r) */
+/* Golden Sun: The Lost Age elsewhere: each release's logo (its emblem
+ * sits a little differently in each title picture); in Japan, the one choosing 0x200 lower (gs2Addr) */
+static void gs2_ger(MapProfile* p) {
+	p->logo.mask = &logoMaskGS2D;
+}
+static void gs2_fra(MapProfile* p) {
+	p->logo.mask = &logoMaskGS2F;
+}
+static void gs2_ita(MapProfile* p) {
+	p->logo.mask = &logoMaskGS2I;
+}
+static void gs2_spa(MapProfile* p) {
+	p->logo.mask = &logoMaskGS2S;
+}
+static void gs2_jpn(MapProfile* p) {
+	p->room[0].addr -= 0x200;
+	p->logo.mask = &logoMaskGS2J;
+}
+
 /* Golden Sun in Germany: the battle's bytes 0x10 higher (GS_GER) */
 static void gs_ger(MapProfile* p) {
 	p->combat[1].addr += 0x10;
@@ -3798,6 +4023,12 @@ static void khc_jpn(MapProfile* p) {
 
 static const Variant variants[] = {
 	{ "AGSD", "AGSE", 0, gs_ger },
+	/* Golden Sun: The Lost Age's other releases */
+	{ "AGFD", "AGFE", 0, gs2_ger },
+	{ "AGFF", "AGFE", 0, gs2_fra },
+	{ "AGFI", "AGFE", 0, gs2_ita },
+	{ "AGFS", "AGFE", 0, gs2_spa },
+	{ "AGFJ", "AGFE", 0, gs2_jpn },
 	/* F-Zero: GP Legend in Europe: its language menu first (the title
 	 * comes ~700 frames after A); its races not tried (f-zero-gp-legend.md) */
 	{ "BFZP", "BFZE", 0, lang_menu },

@@ -543,6 +543,11 @@ typedef struct MapProfile {
 		/* The logo is painted into the whole title picture: render every
 		 * layer and keep the pixels inside this mask (THPS2). */
 		const LogoMask* mask;
+		/* Bytes written into the ROM of the copy the logo is taken from
+		 * (never the game played), if it holds `orig` there: Golden Sun:
+		 * The Lost Age shows its title only with a save, so its save check
+		 * answers "one" there */
+		RomPatch patch[2];
 	} logo;
 
 	/* Border for the map screen, taken from one of the game's own menu screens
