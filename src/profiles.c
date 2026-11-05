@@ -3640,13 +3640,16 @@ static const MapProfile profiles[] = {
 		.probes = { { 120, 56, 0xFFFFFF }, { 120, 57, 0xFFFFFF }, { 120, 58, 0x000000 }, { 3, 100, 0xFFFFFF },
 		            { 236, 100, 0xFFFFFF }, { 4, 100, 0x000000 }, { 120, 157, 0xFFFFFF }, { 120, 155, 0x000000 } },
 		.tolerance = 8,
-		.mem = { { 0x03003CAA, 0xFF, 5, 1 } },
-		/* (0x03003E4A is 0xFF while Mario stands on the map taking
-		 * input: not walking, nor arriving back from a level, when L
-		 * does nothing) */
-		.live = { { 0x03003DE2, 0xFF, 0x41, 1 }, { 0x03003781, 0xFF, 3, 1 }, { 0x03003CAA, 0xFF, 0, 1 },
-		          { 0x03003E4A, 0xFF, 0xFF, 1 } },
-		.captureLayers = 0x1,
+		/* (5: open; World-e keeps it at 0, its panel told by the probes) */
+		.mem = { { 0x03003CAA, 0xFF, 5, 1, true, 0 } },
+		/* World-e's map (the e-Reader levels) is another engine: where
+		 * Mario is reads 0x09 (as in a Toad House), 0x03003781 is 4 with
+		 * no menu open (a house's is 0 or 0x42), its inventory is open
+		 * while 0x03003759 is 1, and its panel and status bar are BG2
+		 * (0xDC00), the same size and place */
+		.live = { { 0x03003DE2, 0xFF, 0x41, 1, true, 0x09 }, { 0x03003781, 0xFF, 3, 1, true, 4 },
+		          { 0x03003CAA, 0xFF, 0, 1 }, { 0x03003759, 0xFF, 0, 1 } },
+		.captureLayers = 0x5,
 		.captureBack = 6 | 6 << 5 | 6 << 10, /* (dark grey, SCREEN_GREY) */
 		/* the L and R signs at the top corners, and the map's sprites
 		 * (Mario, HELP!, the Hammer Bros.: priority 1-3; the chosen item
@@ -3654,8 +3657,11 @@ static const MapProfile profiles[] = {
 		.captureHide = { { -512, -256, 511, 47, 0, 1023, -1 }, { -512, -256, 511, 255, 0, 1023, 1 },
 		                 { -512, -256, 511, 255, 0, 1023, 2 }, { -512, -256, 511, 255, 0, 1023, 3 } },
 		/* Mario's place on the world map (y, x in pixels: they change as
-		 * he walks and hold once he stops): the inventory again at once */
-		.room = { { 0x03003DE4, 0xFF, 0, 1 }, { 0x03003DE8, 0xFF, 0, 1 } },
+		 * he walks and hold once he stops), and 0x03003E4A, 0xFF while he
+		 * stands there taking input (0 walking, arriving back from a level
+		 * or with a menu open, when L does nothing): the inventory again
+		 * at once. (World-e's map: every second.) */
+		.room = { { 0x03003DE4, 0xFF, 0, 1 }, { 0x03003DE8, 0xFF, 0, 1 }, { 0x03003E4A, 0xFF, 0, 1 } },
 		/* the title, game select and file screens */
 		.menu = { { 0x03003DE2, 0x80, 0x80, 1 } },
 		/* In a level the status bar along the top (world, lives, time,
@@ -3673,10 +3679,11 @@ static const MapProfile profiles[] = {
 			        { 0x04000000, 0x0100, 0x0100, 2 }, { 0x04000012, 0x01FF, 0, 2 } },
 			.bgMask = 1,
 			.logoBelow = true,
-			/* the status bar is rows 0-7, the P meter 150-157: what BG0
-			 * has between (LEVEL CLEARED! and the card won, at the
-			 * goal) stays on the game screen (SM4-3) */
-			.moves = { { 0, 8, 239, 149, 0, 0, 0, 0, true }, { 0, 150, 239, 159, 'C', 120, 0, 0 } },
+			/* the status bar is rows 0-7 (and World-e's coin count below
+			 * it, 8-15), the P meter 150-157: what BG0 has between (LEVEL
+			 * CLEARED! and the card won, at the goal, from row 27) stays
+			 * on the game screen (SM4-3) */
+			.moves = { { 0, 16, 239, 149, 0, 0, 0, 0, true }, { 0, 150, 239, 159, 'C', 120, 0, 0 } },
 			/* On the world map (inventory closed; 0x41) and in Toad
 			 * Houses, Spade games and kings' rooms (0x08-0x09) the status
 			 * bar along the bottom (BG0, rows 139-159: world, lives,
@@ -3684,13 +3691,18 @@ static const MapProfile profiles[] = {
 			 * over the inventory picture (SM4-6, SM4-4); anything else on
 			 * BG0 there stays. (0x40, a level, is the main HUD's.) */
 			.alt = { .on = { { 0x03003DE2, 0xFE, 0x40, 1, true, 0x08 }, { 0x03003CAA, 0xFF, 0, 1 },
-			                 { 0x04000000, 0x0100, 0x0100, 2 } },
+			                 { 0x04000000, 0x0100, 0x0100, 2 }, { 0x03003759, 0xFF, 0, 1 } },
 			         .bgMask = 1,
-			         .moves = { { 0, 0, 239, 131, 0, 0, 0, 0, true }, { 0, 132, 239, 159, 0, 0, 'T', 0 } },
+			         .moves = { { 0, 0, 239, 127, 0, 0, 0, 0, true }, { 0, 128, 239, 159, 0, 0, 'T', 0 } },
 			         .mapBelow = true },
 			/* the inventory, the START menu or the e-Reader menu open
 			 * there, or a house's own menu: the last picture stays */
 			.keep = { { 0x03003DE2, 0xFE, 0x40, 1, true, 0x08 } },
+			/* World-e's map: its two-row status bar is BG2 (0xDC00; in
+			 * levels and houses BG2 is the background, never 0xDC00), at
+			 * rest (vertical scroll 0: the inventory panel, on the same
+			 * layer, slides in with it and stays on the game screen) */
+			.memLayers = { .when = { { 0x0400000C, 0xFFFF, 0xDC00, 2 }, { 0x0400001A, 0x01FF, 0, 2 } }, .bgMask = 0x4 },
 		},
 	},
 	{
@@ -4422,9 +4434,9 @@ static void sma2_jpn(MapProfile* p) {
 static void sma4_moved(MapProfile* p) {
 	p->pick = NULL;
 	p->live[0].addr -= 4;
-	p->live[3].addr -= 4;
 	p->room[0].addr -= 4;
 	p->room[1].addr -= 4;
+	p->room[2].addr -= 4;
 	p->menu[0].addr -= 4;
 	p->hud.on[0].addr -= 4;
 	p->hud.alt.on[0].addr -= 4;
