@@ -34,7 +34,7 @@ If there's a `gba-ds-error.log` next to `GBA DS.sh` instead, the `gba-ds` folder
 
 - Raise `audio_latency` (default 64 ms) to 96 or 128.
 - Set `map_interval = 180` in `gba-ds.cfg` (a map refresh every 3 seconds). Each map refresh runs a second copy of the game for a moment; on a slower device very short intervals crackle.
-- On the first run, wait for the game list's thumbnails to finish ("Loading thumbnail...", about a minute) before playing.
+- On the first run, the game list's thumbnails are still being made ("Loading thumbnail..."); starting a game waits only for its own, and the rest carry on when you're back in the game list.
 - **Frame Buffer** (pause menu → Display) smooths out occasional slow frames, at the cost of one frame of input delay.
 
 The log's every-5-seconds report says whether the sound ran out (underruns) and why.

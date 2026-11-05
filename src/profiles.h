@@ -107,6 +107,11 @@ typedef struct MapProfile {
 	const char* listName; /* name in the game list instead of the file name */
 
 	MacroStep open[8]; /* button sequence that brings up the map */
+	/* Another sequence used instead when every openAltIf probe matches as
+	 * the capture starts (Super Mario Advance 4's World-e: on a level's
+	 * spot its info box takes no L; B twice, back to the map, first) */
+	MemProbe openAltIf[2];
+	MacroStep openAlt[8];
 	/* Optional second step: once the map is up (mem probes), if open2If
 	 * matches, wait open2Delay frames and press open2 (A Link to the Past:
 	 * L again on the world map zooms out to the whole world). */
@@ -348,6 +353,14 @@ typedef struct MapProfile {
 			bool shade;
 			/* the game screen dimmed while it's on */
 			bool dimGame;
+			/* moves used instead of the HUD's own while it's on this
+			 * layer (none: the same moves): Super Mario Advance 4's world
+			 * map status bar, from the bottom to the top */
+			HudMove moves[4];
+			/* the second screen's picture behind it is the last map
+			 * picture (a full GBA screen) instead of the logo (Super
+			 * Mario Advance 4: its status bar over the inventory) */
+			bool mapBelow;
 		} alt;
 		SpriteRule objs[12]; /* the sprites that move with it */
 		/* While every `layout` probe matches (racing, not the results):
@@ -536,6 +549,14 @@ typedef struct MapProfile {
 		 * neighbour: the background showing at the lettering's dithered or
 		 * translucent edge (Mario & Luigi's sky, its shadow's specks) */
 		uint32_t edgeClear[4];
+		/* a drop shadow of this colour (0xRRGGBB; either of a game's two
+		 * colour sets) stays only below and right of the lettering:
+		 * where there's lettering (or shadow kept) up to shadowReach rows
+		 * above it, as far left as that; the rest of it (a rim of that
+		 * colour along the lettering's upper and left sides, which the
+		 * title's light background hides) is clear (Super Mario Bros. 3) */
+		uint32_t shadow[2];
+		int shadowReach;
 		int minY, minX, maxX; /* with maxY: only this box (maxX 0: the whole width); a frame
 		                       * round the logo left out (Super Mario World's) */
 		MacroStep steps[24]; /* instead of wait/pressStart: button steps from power-on */
