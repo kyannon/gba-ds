@@ -3395,8 +3395,11 @@ static const MapProfile profiles[] = {
 		.open = { { K_L, 4 } },
 		.settleMax = 60, .openWithin = 40, .openTries = 3, .stableFrames = 3, .maxDiff = 400,
 		.crop_x = 0, .crop_y = 0, .crop_w = 240, .crop_h = 160,
-		.probes = { { 120, 56, 0xFFFFFF }, { 120, 57, 0xFFFFFF }, { 3, 100, 0xFFFFFF }, { 236, 100, 0xFFFFFF },
-		            { 120, 157, 0xFFFFFF }, { 120, 59, 0x187BBD }, { 8, 100, 0x42ADF7 }, { 8, 140, 0x42ADF7 } },
+		/* its white and black edges only: the game has two sets of
+		 * colours (a colour patch players use picks the other one), and
+		 * the blues differ between them */
+		.probes = { { 120, 56, 0xFFFFFF }, { 120, 57, 0xFFFFFF }, { 120, 58, 0x000000 }, { 3, 100, 0xFFFFFF },
+		            { 236, 100, 0xFFFFFF }, { 4, 100, 0x000000 }, { 120, 157, 0xFFFFFF }, { 120, 155, 0x000000 } },
 		.tolerance = 8,
 		.mem = { { 0x03003CAA, 0xFF, 5, 1 } },
 		/* (0x03003E4A is 0xFF while Mario stands on the map taking
@@ -3418,9 +3421,10 @@ static const MapProfile profiles[] = {
 		.menu = { { 0x03003DE2, 0x80, 0x80, 1 } },
 		/* In a level the status bar along the top (world, lives, time,
 		 * coins, score) and the P meter at the bottom left are BG0
-		 * (0x9400): the whole layer goes to the second screen, where the
-		 * game draws it, with the logo between (SM4-2). The item cards
-		 * shown at the start and end of a level are sprites and stay. */
+		 * (0x9400): the whole layer goes to the second screen, the status
+		 * bar where the game draws it, the P meter centred along the
+		 * bottom, with the logo between (SM4-2). The item cards shown at
+		 * the start and end of a level are sprites and stay. */
 		.hud = {
 			.on = { { 0x03003DE2, 0xF0, 0x40, 1 }, { 0x04000008, 0xFFFC, 0x9400, 2 },
 			        { 0x04000000, 0x0100, 0x0100, 2 } },
@@ -3429,7 +3433,20 @@ static const MapProfile profiles[] = {
 			/* the status bar is rows 0-7, the P meter 150-157: what BG0
 			 * has between (LEVEL CLEARED! and the card won, at the
 			 * goal) stays on the game screen (SM4-3) */
-			.moves = { { 0, 8, 239, 149, 0, 0, 0, 0, true } },
+			.moves = { { 0, 8, 239, 149, 0, 0, 0, 0, true }, { 0, 150, 239, 159, 'C', 120, 0, 0 } },
+			/* On the world map (inventory closed) the status bar along the
+			 * bottom (BG0 0xD600, rows 139-157: world, lives, coins,
+			 * score, cards) goes to the top of the second screen, over
+			 * the inventory picture (SM4-6); anything else on BG0 there
+			 * stays */
+			.alt = { .on = { { 0x03003DE2, 0xFF, 0x41, 1 }, { 0x03003CAA, 0xFF, 0, 1 },
+			                 { 0x04000008, 0xFFFC, 0xD600, 2 }, { 0x04000000, 0x0100, 0x0100, 2 } },
+			         .bgMask = 1,
+			         .moves = { { 0, 0, 239, 131, 0, 0, 0, 0, true }, { 0, 132, 239, 159, 0, 0, 'T', 0 } },
+			         .mapBelow = true },
+			/* the inventory, the START menu or the e-Reader menu open
+			 * there: the last picture stays */
+			.keep = { { 0x03003DE2, 0xFF, 0x41, 1 } },
 		},
 	},
 	{
@@ -4133,6 +4150,8 @@ static void sma4_moved(MapProfile* p) {
 	p->room[1].addr -= 4;
 	p->menu[0].addr -= 4;
 	p->hud.on[0].addr -= 4;
+	p->hud.alt.on[0].addr -= 4;
+	p->hud.keep[0].addr -= 4;
 }
 static void sma4_eur(MapProfile* p) {
 	sma4_moved(p);

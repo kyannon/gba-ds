@@ -16,9 +16,9 @@ Modelled on Super Mario Advance 2 ([SMA rules](super-mario-advance-2.md)): somet
 
 ## Rules
 
-**SM4-1. World map: the item inventory.** On the world map the second screen shows the item inventory (the blue panel L opens), captured on the hidden copy: the panel alone, where the game draws it (its lower 100 rows), on dark grey, with the items as the game shows them (outlines, the first one in colour, as the game's cursor starts there). Nothing of the map, Mario or the L and R signs comes with it. It's taken again as soon as Mario stops on another spot (GEN-6), and every second while he stands still, so an item won in a Toad House or used from the inventory shows within a second of being back on the map. While the inventory, the START menu or the e-Reader menu (R) is open on the game screen, or Mario is walking, the last picture stays.
+**SM4-1. World map: the item inventory.** On the world map the second screen shows the item inventory (the blue panel L opens), captured on the hidden copy: the panel alone, where the game draws it (its lower 100 rows), on dark grey, with the items as the game shows them (outlines, the first one in colour, as the game's cursor starts there). Nothing of the map, Mario or the L and R signs comes with it. The game has two sets of colours (a colour patch players use picks the other one, with its darker blues): the inventory is found and shown the same in either. It's taken again as soon as Mario stops on another spot (GEN-6), and every second while he stands still, so an item won in a Toad House or used from the inventory shows within a second of being back on the map. While the inventory, the START menu or the e-Reader menu (R) is open on the game screen, or Mario is walking, the last picture stays.
 
-**SM4-2. Level: status bar.** In a level the status bar along the top (world, lives, time, coins, score) and the P meter at the bottom left leave the game screen and go to the second screen, where the game draws them (the status bar at the top, the P meter at the bottom), with the logo (GEN-1) at full strength centred between. They stay there through pipes, doors and bonus rooms, and fade with the game as it fades out and in.
+**SM4-2. Level: status bar.** In a level the status bar along the top (world, lives, time, coins, score) and the P meter at the bottom left leave the game screen and go to the second screen: the status bar where the game draws it, at the top, the P meter centred along the bottom, with the logo (GEN-1) at full strength centred between. (In the first test build the P meter stayed at the left, where the game draws it.) They stay there through pipes, doors and bonus rooms, and fade with the game as it fades out and in.
 
 **SM4-3. What stays in a level.** The goal's LEVEL CLEARED! and the card won (on the status bar's layer, between the status bar and the P meter) stay on the game screen, and so do the three card slots shown at the start and end of a level (sprites).
 
@@ -26,22 +26,23 @@ Modelled on Super Mario Advance 2 ([SMA rules](super-mario-advance-2.md)): somet
 
 **SM4-5. Logo.** The logo (GEN-1) is Super Mario Bros. 3's own, SUPER MARIO BROS. 3 alone, taken from its title screen (Super Mario Bros. 3 picked on the Super Mario Advance 4 title, START through the curtain), without the copyright line. On the title, game select and file screens the second screen shows it at half strength.
 
+**SM4-6. World map: status bar on top.** On the world map the status bar along the bottom of the game screen (world, lives, coins, score and the three cards) leaves the game screen, which then shows the map under it, and goes to the top of the second screen, above the inventory (SM4-1), as it is on the game screen, updated as it changes. With no inventory picture yet, the logo below it. While the inventory, the START menu or the e-Reader menu is open on the game screen, the status bar there is the game's own and the second screen keeps its last picture. In Toad Houses and other rooms the status bar is the game's own (SM4-4).
+
 ## Known issues
 
-- The inventory's empty space above the panel is plain dark grey (the panel covers the lower 100 rows of the screen, and the logo doesn't fit above it at its own size).
 - Only the first cartridge dumps are tested. The later revisions (Rev 1 in the USA and Europe, Rev 1 and 2 in Japan, and the Virtual Console and Switch Online dumps, all made from them) may keep their RAM elsewhere; if so, the second screen stays on the logo there.
 - During a fade (through a pipe or door, at the goal) the status bar fades with the game, so it shows as dark shapes for a moment.
-- Not tried yet: airships, fortresses' boss rooms, the Hammer Bros. fights, Kuribo's shoe, World 8's tanks and Bowser, World-e (e-Reader levels), Luigi's turns in Mario & Luigi mode, the Wii U Virtual Console dump.
+- Checked at the start of every level of worlds 1 to 6 and 8 that the warp zone reaches (underwater, desert, giant, sky, ice, cave and fortress levels): the status bar is always the same layer. Not tried yet: airships, fortresses' boss rooms, Kuribo's shoe, World 8's tanks and Bowser, World-e (e-Reader levels), Luigi's turns in Mario & Luigi mode, the Wii U Virtual Console dump.
 
 ## For the merge
 
-- Changelog (What's new): "Super Mario Advance 4: Super Mario Bros. 3 is supported: on the world map the second screen shows your item inventory, and in a level the status bar and P meter move to the second screen."
+- Changelog (What's new): "Super Mario Advance 4: Super Mario Bros. 3 is supported: on the world map the second screen shows the status bar and your item inventory, and in a level the status bar and P meter move to the second screen."
 - Wiki (`Supported-games.md`), section:
 
   ### Super Mario Advance 4: Super Mario Bros. 3
 
   USA, Europe and Japan.
 
-  - **World map:** the second screen shows your item inventory (what L opens), kept up to date as you move, win items and use them.
+  - **World map:** the status bar moves to the top of the second screen, above your item inventory (what L opens), kept up to date as you move, win items and use them.
   - **Levels:** the status bar (world, lives, time, coins, score) and the P meter move to the second screen, with the logo between them, so the game screen shows the whole level.
   - **Toad Houses and other rooms:** the second screen keeps your inventory.
