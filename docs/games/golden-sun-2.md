@@ -13,7 +13,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 ## Rules
 
-**GS2-1. Status screen.** Walking about (where SELECT opens the menu), on foot or at sea, the second screen shows the Status screen (SELECT, the last icon, Status, then A), the whole screen at the game screen's size, as the game draws it (the hand and the party row included), but for the box at the top right with its L-R: Rearrange / A: Details prompt, left out: black there, as between the game's windows. It's opened on the hidden copy at every map refresh (straight after a battle too), so it stays up to date without the player opening it. With the Status screen, or another of the menu's screens (Psynergy, Djinn, Item), open in the game, the same: the Status, opened afresh.
+**GS2-1. Status screen.** Walking about (where SELECT opens the menu), the second screen shows the Status screen (SELECT, the last icon, Status, then A), the whole screen at the game screen's size, as the game draws it (the hand and the party row included), but for the box at the top right with its L-R: Rearrange / A: Details prompt, left out: black there, as between the game's windows. It's opened on the hidden copy at every map refresh (straight after a battle too), so it stays up to date without the player opening it. With the Status screen, or another of the menu's screens (Psynergy, Djinn, Item), open in the game, the same: the Status, opened afresh.
 
 **GS2-2. Every party member in turn.** The Status screen turns through the whole party in the game's order (RIGHT on the hidden copy, as many as there are, up to eight, back to the first), one every 5 seconds, members in the back included, and keeps turning at that pace through each refresh.
 
@@ -28,6 +28,11 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 **GS2-7. A battle, choosing.** In a battle, while the player chooses what to do (the party menu: Fight, Switch, Flee, Status; a character's menu; picking a target), the second screen shows the battle's own Status screen of the one choosing (the party's first in the party menu), as the game draws it but for its "Use the L & R Buttons to switch between characters." line, left out (the window's own colour there): opened on the hidden copy (back to the party menu, Status, A, R to that character: as many as the character's place in the party), and again as soon as the next character's turn to choose comes, the first turn too. With the battle's Status open in the game, the party's first. Until that picture is taken, the logo: never the Status from walking about.
 
 **GS2-8. A battle playing out.** In a battle, while it plays out (from its start, with the enemies appearing, through the party's and the enemies' moves and its messages, to the experience and coins at its end), the second screen shows the logo, and the pictures from walking about are dropped: after the battle they're taken again.
+
+## Not covered yet
+
+- At sea on Piers's ship: its states are past the test states' story (they're made from the game's first steps). If SELECT's menu works the same there, so does the second screen; a state at sea would settle it.
+- Switch's menu (the party menu's second icon) open in the game during a battle: the hidden copy backs out of it to the party menu, as from a character's menu; not tried.
 
 ## Facts about the game
 
@@ -46,7 +51,7 @@ For sessions working on the profile (the USA / Europe release's addresses, also 
 
 Changelog line (under the open version's What's new):
 
-- Golden Sun: The Lost Age is supported (USA / Europe, German, French, Italian, Spanish and Japanese releases), with Golden Sun's second screen: while you walk about or sail, the Status screen, turning through your party (all eight, the ones in the back too) every 5 seconds; in a battle, the battle's Status of the character choosing what to do, and the logo while the turn plays out.
+- Golden Sun: The Lost Age is supported (USA / Europe, German, French, Italian, Spanish and Japanese releases), with Golden Sun's second screen: while you walk about, the Status screen, turning through your party (all eight, the ones in the back too) every 5 seconds; in a battle, the battle's Status of the character choosing what to do, and the logo while the turn plays out.
 
 Rules index, `docs/games/README.md` (table row, after Golden Sun):
 
@@ -58,9 +63,9 @@ Wiki, `wiki/Supported-games.md` (table row and section):
 
 ### Golden Sun: The Lost Age
 
-Every release has been tried walking about and in a battle (USA / Europe, German, French, Italian, Spanish, Japanese).
+Every release has been tried walking about and in a battle (USA / Europe, German, French, Italian, Spanish, Japanese); sailing on Piers's ship hasn't been tried yet.
 
-- **While you walk about** (or sail), the second screen shows the **Status** screen (the one in SELECT's menu), at the game screen's size and in your chosen window colour, turning to the next party member every 5 seconds: all of them, up to eight, the ones in the back too. It's brought up in the background on a silent copy of the game, so it stays up to date without you opening it; your game is never paused or touched.
+- **While you walk about,** the second screen shows the **Status** screen (the one in SELECT's menu), at the game screen's size and in your chosen window colour, turning to the next party member every 5 seconds: all of them, up to eight, the ones in the back too. It's brought up in the background on a silent copy of the game, so it stays up to date without you opening it; your game is never paused or touched.
 - **In a battle,** while you choose what to do, the second screen shows the battle's Status screen of the character choosing (the party's first in the Fight / Flee / Status menu). While the turn plays out, it shows the logo.
 - Walking about, where the menu can't be opened (a conversation, a scene, the START menu), the last pictures stay.
 - On the title screen, the naming screens and the opening's story text, the second screen shows the logo.
