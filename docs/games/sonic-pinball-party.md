@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `A3VE` USA, `A3VP` Europe (both in six languages) |
+| Dumps | `A3VE` cartridge `08794743` (tested) · `A3VP` cartridge `4435917e` (tested) |
 | Profile | `src/profiles.c`: the `A3VE` entry (logo-only, with `tall` and `tall.live.carry`: the table over both screens, game.c `update_tall`) |
 | Tests | `tests/regress/sonic-pinball-party.json` (`tools/regress.py sonic-pinball-party`) |
 | Status | work in progress (v1.4.4): released with a note that glitches may occur |

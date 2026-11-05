@@ -659,6 +659,16 @@ bool profile_patch_rom(const MapProfile* p, Emu* e);
 /* True for a regional release whose RAM layout differs from the USA one
  * (cheat codes made for other regions would write the wrong addresses). */
 bool profile_ram_moved(const char* gameCode);
+/* What a ROM is, by its CRC32 (emu.romCrc) against every known dump of its
+ * release (the rules files' Dumps rows, src/dumps_data.h): */
+typedef enum {
+	DUMP_UNLISTED, /* a release with no list of dumps (no profile): not checked */
+	DUMP_TESTED, /* the dump the regression tests run on */
+	DUMP_OFFICIAL, /* another official dump (a revision, Virtual Console...), untested */
+	DUMP_MODIFIED, /* none of them: patched, hacked, trimmed or a bad dump */
+} DumpKind;
+/* name: No-Intro's name of the dump (NULL unless tested or official) */
+DumpKind profile_dump(const char* gameCode, uint32_t crc, const char** name);
 bool memprobes_match(const MemProbe* list, int n, Emu* e);
 /* the profile's virt (set when a game's map capture starts): MemProbe
  * addresses from 0xF0000000 */

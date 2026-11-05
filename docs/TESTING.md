@@ -183,7 +183,11 @@ per game: `states/<game>/<region>-<what>.ss`). In State Saver, label a state
 with the rule it's for (`AW-4: ...`) and say in the notes what it shows; a
 session turns it into a case, checks the pictures, and moves the rule off the
 game's *Not covered yet* list. A state needs the matching
-ROM in `roms/`. Use the app's own save states or harness `save` states;
+ROM in `roms/`: a clean dump, one that's in No-Intro's list (check its CRC32
+against the game's Dumps row; a ROM that isn't there, such as one with a
+colour or QoL patch, makes its cases fail). A new release's ROM goes in, then
+`tools/make_dumps.py --dat DAT` marks it tested (docs/games/README.md,
+"Releases and dumps"). Use the app's own save states or harness `save` states;
 note that a state loads into a fresh run, so a rule about keeping
 something from before (a last picture) needs a case that shows it first:
 input that plays there, or a `LOAD:` of the state from an earlier one. For a release whose saves the game won't read (most European releases

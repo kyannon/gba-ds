@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `A2CE` USA · `A2CP` Europe (language menu first) · `A2CJ` Japan (RAM 0x30 lower) |
+| Dumps | `A2CE` cartridge `35536183` (tested), Castlevania Advance Collection `ca9b82dd`, Virtual Console `28baa30e` · `A2CP` cartridge `d0c91f74` (tested), Castlevania Advance Collection `e8156354`, Virtual Console `d97dbfec` · `A2CJ` cartridge `284e3092` (tested), Castlevania Advance Collection `f5c8d8e8`, Virtual Console `93b6599e` |
 | Profile | `src/profiles.c`: the `A2CE` entry; variants `A2CP`, `A2CJ` |
 | Tests | `tests/regress/castlevania-aria-of-sorrow.json` (`tools/regress.py castlevania-aria-of-sorrow`) |
 | Status | supported |

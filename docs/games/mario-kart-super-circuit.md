@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `AMKE` USA · `AMKP` Europe · `AMKJ` Japan (Mario Kart Advance) |
+| Dumps | `AMKE` cartridge `ed316e37` (tested), Virtual Console `c0e1cf38` · `AMKP` cartridge `20025842` (tested), Virtual Console `0dd2f94d` · `AMKJ` cartridge `30e99fcd` (tested), Virtual Console `3bd8a4f0` |
 | Profile | `src/profiles.c`: the `AMKE` entry (with `AMKP`, `AMKJ`) |
 | Tests | `tests/regress/mario-kart-super-circuit.json` (`tools/regress.py mario-kart-super-circuit`) |
 | Status | supported |

@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `BSKE` USA · `BSKJ` Japan (Summon Night: Craft Sword Monogatari 2) |
+| Dumps | `BSKE` cartridge `1eac1f48` (tested) · `BSKJ` cartridge `8cd98f6f` (tested) |
 | Profile | `src/profiles.c`: the `BSKE` entry (with `BSKJ`) |
 | Tests | `tests/regress/summon-night-swordcraft-story-2.json` (`tools/regress.py summon-night-swordcraft-story-2`) |
 | Status | supported |

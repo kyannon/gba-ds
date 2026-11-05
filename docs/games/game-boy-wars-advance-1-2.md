@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `BGWJ` Japan only: Advance Wars (Game Boy Wars Advance) and Advance Wars 2 (Game Boy Wars Advance 2) on one cartridge, the only Japanese release of either. |
+| Dumps | `BGWJ` cartridge `49ee1fdd` (tested), Virtual Console `f8d3b3c6` |
 | Profile | `src/profiles.c`: the `BGWJ` entry (the compilation's own menus) and its `pick`, which switches to the `BGW1` or `BGW2` variant (Advance Wars' and Advance Wars 2's profiles at this cartridge's addresses, in `awRegions`) |
 | Tests | `tests/regress/game-boy-wars-advance-1-2.json` (`tools/regress.py game-boy-wars-advance-1-2`) |
 | Status | supported |
