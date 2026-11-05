@@ -2106,6 +2106,143 @@ static const char* khc_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	return NULL;
 }
 
+/* ---------------------------------------------------------- Yu-Gi-Oh! The Eternal Duelist Soul
+ *
+ * The second screen (EDS-1 to EDS-4): the Card View of the card under the
+ * player's cursor, the game's own full-screen page for a card (its picture,
+ * name, type and text), opened on the shadow core from the live state at
+ * every capture: on the duel field and in Deck Edit A (its command icons,
+ * Card View first and chosen) then A; in a card list (a Graveyard, the cards
+ * won after a duel) A alone. With Card View already open in the game, it's
+ * taken as it is. It's checked by its fixed pixels (the blue name bar, the
+ * black around the card and its text) and taken once it has faded in.
+ *
+ * Which screen is up is told by the display registers, BG0CNT and BG1CNT
+ * (each screen sets them once and keeps them):
+ *   field  0x0007 0x8106    a duel's field (its animations and banners too)
+ *   dlist  0x0004 0x0104    a pile's card list in a duel (Graveyard...)
+ *   view   0x0044 0x0186    Card View, wherever it's opened from
+ *   deck   0x1800 0x1A01    Deck Edit's lists (Card Trading's card choice too)
+ *   nlist  0x0004 0x0105    the cards won after a duel (DISPCNT 0x1F40:
+ *                           Card Trading and Password have the same two
+ *                           with other DISPCNTs)
+ *   EDS_DUEL   7 while a duel is set up, 6 while it's under way, 4 after it
+ *              (until the next), 0 before the first since power-on
+ *   EDS_SIDE / EDS_ZONE / EDS_COL  the field cursor: its side (0 the
+ *              player's), its zone (0 monsters, 5 Magic & Trap, 0x0B the
+ *              hand; 0x0A, 0x0C to 0x0F the piles round the field: the
+ *              Field card, Fusion Deck, Deck, Graveyard, Removed Cards) and
+ *              column (the opponent's mirrored)
+ *   EDS_FREE   bit 3 set while the player moves the field cursor freely
+ *              (not in the opponent's turn, a phase change, an animation
+ *              or the card's commands)
+ *   EDS_LIST   a card list's cursor; EDS_DECKI / EDS_DECKL Deck Edit's
+ *              cursor and list (0 Trunk, 1 Deck, 2 Side Deck) */
+#define EDS_DUEL 0x0201D7E0
+#define EDS_SIDE 0x0201D7D4
+#define EDS_ZONE 0x0201D7D8
+#define EDS_COL 0x0201D7DC
+#define EDS_FREE 0x0201D7B8
+#define EDS_LIST 0x02015274
+#define EDS_DECKI 0x0201E140
+#define EDS_DECKL 0x0201F73C
+#define EDS_V_LIVE 0xF0000040 /* a card's under a cursor (or in Card View): taken */
+#define EDS_V_IDLE 0xF0000041 /* out of the duels and the card screens: the logo */
+#define EDS_V_ROOM 0xF0000042 /* the screen and where its cursor is */
+enum { EDS_NONE, EDS_FIELD, EDS_DLIST, EDS_VIEW, EDS_DECK, EDS_NLIST };
+static int eds_screen(Emu* e) {
+	uint16_t bg0 = emu_io16(e, 0x08), bg1 = emu_io16(e, 0x0A);
+	if (bg0 == 0x0007 && bg1 == 0x8106) return EDS_FIELD;
+	if (bg0 == 0x0004 && bg1 == 0x0104) return EDS_DLIST;
+	if (bg0 == 0x0044 && bg1 == 0x0186) return EDS_VIEW;
+	if (bg0 == 0x1800 && bg1 == 0x1A01) return EDS_DECK;
+	if (bg0 == 0x0004 && bg1 == 0x0105 && emu_io16(e, 0x00) == 0x1F40) return EDS_NLIST;
+	return EDS_NONE;
+}
+/* Card View: the blue name bar's end (the name never reaches it), the
+ * darker bar under it, the black left of and under the card and between
+ * the card and its text */
+static const Probe edsView[8] = { { 239, 0, 0x0000FF }, { 239, 12, 0x0000FF }, { 239, 22, 0x000084 }, { 1, 20, 0x000000 },
+                                  { 102, 60, 0x000000 }, { 102, 140, 0x000000 }, { 1, 159, 0x000000 }, { 60, 159, 0x000000 } };
+static bool eds_view(Emu* s) {
+	return eds_screen(s) == EDS_VIEW && som_probes(s, edsView, 8, 8, 8);
+}
+/* the field's info bar (its bottom rows) names a card: white lettering
+ * on navy (a pile's is cyan; an empty zone and the opponent's face-down
+ * cards leave it empty) */
+static bool eds_named(Emu* e) {
+	int n = 0;
+	for (int y = 151; y < 159; ++y)
+		for (int x = 2; x < 120; ++x) n += (e->fb[y * GBA_W + x] & 0xFFFFFF) == 0xFFFFFF;
+	return n >= 12;
+}
+static uint32_t eds_virt(Emu* e, uint32_t addr) {
+	int sc = eds_screen(e);
+	uint8_t duel = emu_read8(e, EDS_DUEL);
+	uint8_t side = emu_read8(e, EDS_SIDE), zone = emu_read8(e, EDS_ZONE), col = emu_read8(e, EDS_COL);
+	if (addr == EDS_V_LIVE) {
+		/* on the field: a monster, a Magic or Trap card or a card in the
+		 * hand (not the opponent's hand); not a pile (A opens its list, or
+		 * draws, or offers to give up) */
+		if (sc == EDS_FIELD)
+			return duel == 6 && (emu_read8(e, EDS_FREE) & 0x08) && (zone == 0 || zone == 5 || (zone == 0x0B && side == 0)) && eds_named(e);
+		return sc != EDS_NONE;
+	}
+	if (addr == EDS_V_IDLE) return sc == EDS_NONE && duel != 6 && duel != 7;
+	if (addr == EDS_V_ROOM) {
+		uint32_t k = (uint32_t) sc << 24;
+		if (sc == EDS_FIELD) k |= side << 16 | zone << 8 | col;
+		else if (sc == EDS_DLIST || sc == EDS_NLIST) k |= emu_read8(e, EDS_LIST);
+		else if (sc == EDS_DECK) k |= emu_read8(e, EDS_DECKL) << 16 | emu_read16(e, EDS_DECKI);
+		return k;
+	}
+	return 0;
+}
+/* runs frames until Card View is up and has held still for 3 (its fade-in
+ * done) */
+static bool eds_wait_view(Emu* s, int max) {
+	static uint32_t prev[GBA_W * GBA_H];
+	int still = 0;
+	for (int f = 0; f < max; ++f) {
+		emu_frame(s, 0);
+		if (!eds_view(s)) {
+			still = 0;
+			continue;
+		}
+		still = still && !memcmp(prev, s->fb, sizeof(prev)) ? still + 1 : 1;
+		if (still >= 3) return true;
+		memcpy(prev, s->fb, sizeof(prev));
+	}
+	return false;
+}
+static const char* eds_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	int sc = eds_screen(s);
+	if (sc == EDS_NONE) return "not a card screen";
+	if (sc != EDS_VIEW) {
+		/* the field and Deck Edit: A brings up the card's commands, Card
+		 * View first and chosen; a list: A opens Card View. (After a
+		 * moment: the cursor glides to its place, and A on the way does
+		 * nothing.) */
+		aw_run(s, 0, 12);
+		/* (the info bar names the cursor's card once it's there: none, an
+		 * empty zone or a face-down card of the opponent's; nothing taken,
+		 * and no slowing down of the next tries) */
+		if (sc == EDS_FIELD && !eds_named(s)) return "map button did nothing";
+		aw_tap(s, K_A, 1);
+		if (sc == EDS_FIELD || sc == EDS_DECK) {
+			aw_run(s, 0, 8);
+			if (eds_screen(s) != sc) return "A did something else";
+			aw_tap(s, K_A, 1);
+		}
+	}
+	if (!eds_wait_view(s, 60)) return "Card View didn't open";
+	if (emu_cancelled(s)) return "called off";
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+	return NULL;
+}
+
 /* Bros. Info's frame, the same on both brothers' pages (its leather edges,
  * the ring's rim, the plaid, the boxes): not the field or the menu */
 static const Probe mlBrosInfo[8] = { { 10, 150, 0x6B8C73 }, { 4, 80, 0x633921 }, { 235, 80, 0x7B736B }, { 120, 157, 0xBDC6B5 },
@@ -3809,6 +3946,24 @@ static const MapProfile profiles[] = {
 		 * it flashes and shrinks (KHC-5): BG2 alone */
 		.logo = { .wait = 700, .layer = 2, .maxY = 160 },
 	},
+	{
+		/* Yu-Gi-Oh! The Eternal Duelist Soul (USA): the Card View of the
+		 * card under the cursor, see eds_compose (EDS-1 to EDS-5) */
+		.codes = { "AY5E" },
+		.title = "Yu-Gi-Oh! The Eternal Duelist Soul",
+		.compose = eds_compose,
+		.virt = eds_virt,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		.live = { { EDS_V_LIVE, 0xFF, 1, 4 } },
+		/* out of the duels and the card screens: the logo, the card
+		 * forgotten (EDS-6) */
+		.menu = { { EDS_V_IDLE, 0xFF, 1, 4 } },
+		.room = { { EDS_V_ROOM, 0, 0, 4 } },
+		/* the title's lettering (BG0), flame (BG1) and disc (BG2), above
+		 * New Game and the copyright line (EDS-7) */
+		.logo = { .wait = 900, .layers = 0x07, .maxY = 100 },
+	},
 };
 
 /* ---------------------------------------------------------------- regions
@@ -4021,6 +4176,20 @@ static void khc_jpn(MapProfile* p) {
 	p->logo.wait = 500;
 }
 
+/* Yu-Gi-Oh! Duel Monsters 5 Expert 1 (Japan), The Eternal Duelist Soul's
+ * original: its screens are drawn differently (Card View, the Deck screen),
+ * so for now only its logo (EDS-9): the title's lettering (BG1), above the
+ * copyright lines, after START past the opening */
+static void eds_jpn(MapProfile* p) {
+	p->logoOnly = true;
+	p->compose = NULL;
+	p->virt = NULL;
+	memset(p->live, 0, sizeof(p->live));
+	memset(p->menu, 0, sizeof(p->menu));
+	memset(p->room, 0, sizeof(p->room));
+	p->logo = (typeof(p->logo)) { .steps = { { 0, 1440 }, { K_START, 4 }, { 0, 120 } }, .layer = 1, .maxY = 120 };
+}
+
 static const Variant variants[] = {
 	{ "AGSD", "AGSE", 0, gs_ger },
 	/* Golden Sun: The Lost Age's other releases */
@@ -4071,6 +4240,7 @@ static const Variant variants[] = {
 	{ "AVSJ", "AVSE", 0, som_jpn },
 	{ "B8CP", "B8CE", 0, khc_eur },
 	{ "B8CJ", "B8CE", 0, khc_jpn },
+	{ "AY5J", "AY5E", 0, eds_jpn },
 };
 #define N_VARIANTS (sizeof(variants) / sizeof(*variants))
 static MapProfile variantProfiles[N_VARIANTS];

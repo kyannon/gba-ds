@@ -113,6 +113,8 @@ static const KnownDump knownDumps[] = {
 	{ "AWRE", 0xdbef116c, true, "Advance Wars (USA)" },
 	{ "AWRP", 0x66fb29e9, true, "Advance Wars (Europe) (En,Fr,De,Es)" },
 	{ "AWRP", 0x8400759c, false, "Advance Wars (Europe) (En,Fr,De,Es) (Virtual Console)" },
+	{ "AY5E", 0xdfd07a36, true, "Yu-Gi-Oh! - The Eternal Duelist Soul (USA)" },
+	{ "AY5J", 0xf3041e7e, true, "Yu-Gi-Oh! Duel Monsters 5 Expert 1 (Japan)" },
 	{ "AZLE", 0x8e91cd13, true, "Legend of Zelda, The - A Link to the Past & Four Swords (USA)" },
 	{ "AZLJ", 0x81e42bee, true, "Zelda no Densetsu - Kamigami no Triforce & 4tsu no Tsurugi (Japan)" },
 	{ "AZLP", 0x5a164321, true, "Legend of Zelda, The - A Link to the Past & Four Swords (Europe) (En,Fr,De,Es,It)" },

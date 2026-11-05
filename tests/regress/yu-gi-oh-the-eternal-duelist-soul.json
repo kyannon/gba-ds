@@ -1,0 +1,883 @@
+{
+ "game": "Yu-Gi-Oh! The Eternal Duelist Soul",
+ "rules": "docs/games/yu-gi-oh-the-eternal-duelist-soul.md",
+ "cases": [
+  {
+   "id": "eds-logo-ay5e",
+   "kind": "logo",
+   "rom": "AY5E",
+   "desc": "AY5E logo extraction",
+   "rules": [
+    "GEN-1",
+    "EDS-7"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "eds-logo-ay5j",
+   "kind": "logo",
+   "rom": "AY5J",
+   "desc": "AY5J logo extraction",
+   "rules": [
+    "GEN-1",
+    "EDS-9"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "eds-us-hand",
+   "rom": "AY5E",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/us-hand.ss",
+   "desc": "the player's main phase, the cursor on Snatch Steal in the hand: its Card View; LEFT to Wretched Ghost of the Attic: its Card View; UP to an empty Magic & Trap zone: Wretched Ghost stays; the game screen as it is",
+   "rules": [
+    "EDS-1",
+    "EDS-5",
+    "EDS-8"
+   ],
+   "input": [
+    [
+     150,
+     "LEFT"
+    ],
+    [
+     154,
+     "-"
+    ],
+    [
+     300,
+     "UP"
+    ],
+    [
+     304,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 90,
+    "left": 250,
+    "empty": 420
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       66,
+       "0000FF"
+      ],
+      [
+       990,
+       114,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-1",
+     "shot": "start",
+     "what": "Snatch Steal's Card View"
+    },
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       66,
+       "0000FF"
+      ],
+      [
+       990,
+       114,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-1",
+     "shot": "left",
+     "what": "Wretched Ghost's Card View"
+    },
+    {
+     "rule": "EDS-1",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "left",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "another card"
+    },
+    {
+     "rule": "EDS-5",
+     "type": "same",
+     "a": {
+      "shot": "left",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "empty",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "the last card stays on an empty zone"
+    },
+    {
+     "rule": "EDS-1",
+     "what": "no capture tried on the empty zone",
+     "type": "no_log",
+     "match": "frame (3[0-9][0-9]|4[01][0-9]): map capture failed.*Card View"
+    }
+   ]
+  },
+  {
+   "id": "eds-us-opponent-monster",
+   "rom": "AY5E",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/us-opponent-monster.ss",
+   "desc": "the cursor on the opponent's face-up Battle Steer: its Card View; RIGHT to an empty zone of the opponent's: it stays",
+   "rules": [
+    "EDS-1",
+    "EDS-5"
+   ],
+   "input": [
+    [
+     150,
+     "RIGHT"
+    ],
+    [
+     154,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 90,
+    "empty": 260
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       66,
+       "0000FF"
+      ],
+      [
+       990,
+       114,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-1",
+     "shot": "start",
+     "what": "Battle Steer's Card View"
+    },
+    {
+     "rule": "EDS-5",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "empty",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "stays on the empty zone"
+    }
+   ]
+  },
+  {
+   "id": "eds-us-set-card",
+   "rom": "AY5E",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/us-set-card.ss",
+   "desc": "the cursor on the player's own face-down Magic Jammer (just set): its Card View",
+   "rules": [
+    "EDS-1"
+   ],
+   "shots": {
+    "start": 90
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       66,
+       "0000FF"
+      ],
+      [
+       990,
+       114,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-1",
+     "shot": "start",
+     "what": "Magic Jammer's Card View"
+    }
+   ]
+  },
+  {
+   "id": "eds-us-opponent-turn",
+   "rom": "AY5E",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/us-hand.ss",
+   "desc": "a card shown, then the opponent attacking in their turn (loaded): the card stays, nothing taken; then the opponent's Red Medicine asking whether to chain: still the card",
+   "rules": [
+    "EDS-5"
+   ],
+   "input": [
+    [
+     120,
+     "LOAD:yu-gi-oh-the-eternal-duelist-soul/us-opponent-attack.ss"
+    ],
+    [
+     350,
+     "LOAD:yu-gi-oh-the-eternal-duelist-soul/us-chain-prompt.ss"
+    ]
+   ],
+   "shots": {
+    "start": 90,
+    "attack": 300,
+    "chain": 500
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       66,
+       "0000FF"
+      ],
+      [
+       990,
+       114,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-1",
+     "shot": "start",
+     "what": "the hand's card"
+    },
+    {
+     "rule": "EDS-5",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "attack",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "the card stays in the opponent's attack"
+    },
+    {
+     "rule": "EDS-5",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "chain",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "and at the chain prompt"
+    },
+    {
+     "rule": "EDS-5",
+     "what": "nothing taken in the opponent's turn",
+     "type": "no_log",
+     "match": "frame ([2-9][0-9][0-9]): map updated"
+    }
+   ]
+  },
+  {
+   "id": "eds-us-graveyard",
+   "rom": "AY5E",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/us-graveyard.ss",
+   "desc": "the opponent's Graveyard list (Gazelle the King of Mythical Beasts): its Card View",
+   "rules": [
+    "EDS-2"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       66,
+       "0000FF"
+      ],
+      [
+       990,
+       114,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-2",
+     "shot": "start",
+     "what": "Gazelle's Card View"
+    }
+   ]
+  },
+  {
+   "id": "eds-us-card-view-open",
+   "rom": "AY5E",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/us-graveyard-card-view.ss",
+   "desc": "Card View already open in the game (Gazelle, from the Graveyard): taken as it is, the same picture on both screens",
+   "rules": [
+    "EDS-1"
+   ],
+   "shots": {
+    "start": 90
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       66,
+       "0000FF"
+      ],
+      [
+       990,
+       114,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-1",
+     "shot": "start",
+     "what": "Card View"
+    },
+    {
+     "rule": "EDS-1",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "game"
+     },
+     "what": "the same as the game screen"
+    }
+   ]
+  },
+  {
+   "id": "eds-us-deck-edit",
+   "rom": "AY5E",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/us-deck-edit.ss",
+   "desc": "Deck Edit's Trunk, the cursor on Air Marmot of Nefariousness: its Card View; DOWN to Hitodenchak: its",
+   "rules": [
+    "EDS-3"
+   ],
+   "input": [
+    [
+     180,
+     "DOWN"
+    ],
+    [
+     184,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 120,
+    "down": 300
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       66,
+       "0000FF"
+      ],
+      [
+       990,
+       114,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-3",
+     "shot": "start",
+     "what": "Air Marmot's Card View"
+    },
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       66,
+       "0000FF"
+      ],
+      [
+       990,
+       114,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-3",
+     "shot": "down",
+     "what": "Hitodenchak's"
+    },
+    {
+     "rule": "EDS-3",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "down",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "another card"
+    }
+   ]
+  },
+  {
+   "id": "eds-us-card-trading",
+   "rom": "AY5E",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/us-card-trading.ss",
+   "desc": "Card Trading's choice of a card from the Trunk (Deck Edit's screen), on Hitodenchak: its Card View",
+   "rules": [
+    "EDS-3"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       66,
+       "0000FF"
+      ],
+      [
+       990,
+       114,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-3",
+     "shot": "start",
+     "what": "Hitodenchak's Card View"
+    }
+   ]
+  },
+  {
+   "id": "eds-us-cards-won",
+   "rom": "AY5E",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/us-cards-won.ss",
+   "desc": "the cards won after a duel, on Hitodenchak: its Card View; DOWN to The Drdek: its; B to the main menu: the logo, the card forgotten",
+   "rules": [
+    "EDS-4",
+    "EDS-6"
+   ],
+   "input": [
+    [
+     180,
+     "DOWN"
+    ],
+    [
+     184,
+     "-"
+    ],
+    [
+     330,
+     "B"
+    ],
+    [
+     334,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 120,
+    "down": 300,
+    "menu": 520
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       66,
+       "0000FF"
+      ],
+      [
+       990,
+       114,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-4",
+     "shot": "start",
+     "what": "Hitodenchak's Card View"
+    },
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       66,
+       "0000FF"
+      ],
+      [
+       990,
+       114,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-4",
+     "shot": "down",
+     "what": "The Drdek's"
+    },
+    {
+     "rule": "EDS-4",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "down",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "another card"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "EDS-6",
+     "shot": "menu",
+     "what": "the logo on the main menu"
+    }
+   ]
+  },
+  {
+   "id": "eds-us-main-menu",
+   "rom": "AY5E",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/us-main-menu.ss",
+   "desc": "the main menu: the logo, nothing tried",
+   "rules": [
+    "EDS-6"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "EDS-6",
+     "shot": "start",
+     "what": "the logo"
+    },
+    {
+     "rule": "EDS-6",
+     "what": "nothing tried",
+     "type": "no_log",
+     "match": "map (updated|capture failed)"
+    }
+   ]
+  },
+  {
+   "id": "eds-us-campaign",
+   "rom": "AY5E",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/us-campaign.ss",
+   "desc": "the Campaign's choice of duelist (after a duel): the logo",
+   "rules": [
+    "EDS-6"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "EDS-6",
+     "shot": "start",
+     "what": "the logo"
+    },
+    {
+     "rule": "EDS-6",
+     "what": "nothing tried",
+     "type": "no_log",
+     "match": "map (updated|capture failed)"
+    }
+   ]
+  },
+  {
+   "id": "eds-us-conversation",
+   "rom": "AY5E",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/us-conversation.ss",
+   "desc": "Yugi's conversation before the second duel: the logo",
+   "rules": [
+    "EDS-6"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "EDS-6",
+     "shot": "start",
+     "what": "the logo"
+    },
+    {
+     "rule": "EDS-6",
+     "what": "nothing tried",
+     "type": "no_log",
+     "match": "map (updated|capture failed)"
+    }
+   ]
+  },
+  {
+   "id": "eds-jp-deck",
+   "rom": "AY5J",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/jp-deck.ss",
+   "desc": "Japan: the Deck screen just after the starter deck: the logo (EDS-9)",
+   "rules": [
+    "EDS-9"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "EDS-9",
+     "shot": "start",
+     "what": "the logo"
+    },
+    {
+     "rule": "EDS-9",
+     "what": "nothing tried",
+     "type": "no_log",
+     "match": "map (updated|capture failed)"
+    }
+   ]
+  }
+ ]
+}
