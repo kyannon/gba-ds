@@ -128,6 +128,8 @@ static const KnownDump knownDumps[] = {
 	{ "AX4P", 0x8d84acfc, false, "Super Mario Advance 4 - Super Mario Bros. 3 (Europe) (En,Fr,De,Es,It) (Rev 1)" },
 	{ "AX4P", 0xd4f45b01, false, "Super Mario Advance 4 - Super Mario Bros. 3 (Europe) (En,Fr,De,Es,It) (Rev 1) (Virtual Console)" },
 	{ "AX4P", 0xe3847e32, false, "Super Mario Advance 4 - Super Mario Bros. 3 (Europe) (En,Fr,De,Es,It) (Rev 1) (Switch Online)" },
+	{ "AZ2E", 0x302e75f3, true, "Zoids - Legacy (USA)" },
+	{ "AZ2J", 0x0c039503, true, "Zoids Saga II (Japan)" },
 	{ "AZLE", 0x8e91cd13, true, "Legend of Zelda, The - A Link to the Past & Four Swords (USA)" },
 	{ "AZLJ", 0x81e42bee, true, "Zelda no Densetsu - Kamigami no Triforce & 4tsu no Tsurugi (Japan)" },
 	{ "AZLP", 0x5a164321, true, "Legend of Zelda, The - A Link to the Past & Four Swords (Europe) (En,Fr,De,Es,It)" },

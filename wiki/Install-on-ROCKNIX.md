@@ -12,7 +12,7 @@ GBA DS runs on stock [ROCKNIX](https://rocknix.org) and on ROCKNIXDS, on the Anb
    - saves and states are named after the file, so `Game.zip` and an unzipped `Game.gba` share them.
 4. In EmulationStation, update the game lists (Start → Game settings → Update gamelists, or restart EmulationStation) and launch **GBA DS** from **Ports**.
 
-The first time the game list opens, GBA DS pulls each game's logo (and, for the Castlevanias, its map border art) out of the ROMs in the background. That takes about a minute on the RG DS Plus, once; tiles say "Loading thumbnail..." until their logo is ready. See [[Playing]] for the game list itself.
+The first time the game list opens, GBA DS pulls each game's logo (and, for the Castlevanias, its map border art) out of the ROMs in the background. The selected game and the ones on screen go first, and you can start a game as soon as its own logo is ready; the rest carry on while you're in the game list. Tiles say "Loading thumbnail..." until their logo is ready. See [[Playing]] for the game list itself.
 
 ## The two screens on stock ROCKNIX
 

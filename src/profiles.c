@@ -2112,6 +2112,228 @@ static const char* khc_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	return NULL;
 }
 
+/* ---------------------------------------------------------- Zoids: Legacy
+ *
+ * The second screen, from zl_compose on the hidden copy:
+ *  - walking about (ZL-1): the map screen (SELECT), whole, its marker's
+ *    spin a loop of 16 frames, without the line in the box under it (the
+ *    game's prompt) or the town list's cursor (captureHide);
+ *  - in the past (ZL-7), where SELECT says the map can't be seen: that
+ *    message's text box alone (BG3), once it's written out, in the middle
+ *    on dark grey;
+ *  - a Zoid choosing in a battle (ZL-8): its Status (R), whole.
+ * While a battle plays out (ZL-3) the logo (combat), and what was shown
+ * before is forgotten (menu). What the game is doing comes from zl_virt:
+ * a mode byte (2 in the story's battles, 1 its scenes) and the place byte
+ * 3 after it (0 on the title), a word that's the battle's task list in
+ * every battle, the menu window up (0x03005E00) and the map Zeru is on;
+ * the map screen is told by its pixels. (The routine in front, a word in
+ * one of the game's task slots, isn't used: after RESUME A GAME that slot
+ * keeps the title's.) Each release's addresses: ZlRegion. */
+typedef struct {
+	char region;
+	uint32_t mode;   /* the mode byte; the place 3 after it */
+	uint32_t battle; /* holds ZL_BATTLE_ON through every battle */
+	uint32_t mapNo;  /* the map Zeru is on (a halfword) */
+	uint8_t zoidW;   /* a Zoid's menu's width (its window at 00 11) */
+} ZlRegion;
+#define ZL_WINDOW 0x03005E00 /* the menu window up: x, y, 00 06, width, height (16 bits) */
+#define ZL_BATTLE_ON 0x03005B74
+static const ZlRegion zlRegions[] = {
+	{ 'E', 0x02030664, 0x02032E8C, 0x0202ECF4, 10 },
+	/* (the mode byte and the map number by romxref; the battle's word near
+	 * the USA's, checked in its battles) */
+	{ 'J', 0x0202FDB0, 0x02032584, 0x0202E4C0, 8 },
+};
+static const ZlRegion* zl_r(Emu* e) {
+	return &zlRegions[e->gameCode[3] == 'J' ? 1 : 0];
+}
+#define ZL_V_LIVE 0xF0000060   /* 1 where a picture is taken: walking about (ZL_V_FREE) or a Zoid choosing */
+#define ZL_V_MAP 0xF0000061    /* 1 with the map screen up */
+#define ZL_V_FORGET 0xF0000062 /* 1 on the title, or a battle playing out: what was shown goes (ZL-3, ZL-4) */
+#define ZL_V_PLAYOUT 0xF0000063 /* 1 in a battle, no Zoid choosing: the logo (ZL-3) */
+#define ZL_V_PLACE 0xF0000064  /* the byte 3 after the mode: changes with the place (ZL-1's early capture) */
+#define ZL_V_MAPNO 0xF0000065  /* the map Zeru is on (ZL-7's early capture) */
+#define ZL_V_CHOOSE 0xF0000066 /* 1 with a Zoid choosing (ZL-8) */
+/* the past (ZL-7), where the game has no map: the Past Overworld (map 64)
+ * and the Empire Capital there (58 to 62: its streets and buildings; the
+ * same numbers in both releases) */
+static bool zl_past(Emu* e) {
+	uint16_t m = emu_read16(e, zl_r(e)->mapNo);
+	return m == 64 || (m >= 58 && m <= 62);
+}
+static bool zl_battle(Emu* e) {
+	const ZlRegion* r = zl_r(e);
+	return emu_read32(e, r->battle) == ZL_BATTLE_ON || emu_read8(e, r->mode) == 2;
+}
+/* the window up is one of choosing a Zoid's move (ZL-8): its menu, or the
+ * turn's own in random battles (both at 00 11; so is the story's battles'
+ * opening menu, in Japan as wide as a Zoid's: a byte, 1 at every opening
+ * menu, 0 at the others, tells it apart), the turn's menu in the story's,
+ * the weapons, Decide/Cancel, the Status */
+#define ZL_OPENING 0x0300567E
+static bool zl_choose_window(Emu* e) {
+	uint8_t x = emu_read8(e, ZL_WINDOW), y = emu_read8(e, ZL_WINDOW + 1);
+	return (x == 0x00 && y == 0x11 && emu_read8(e, ZL_OPENING) == 0) || (x == 0x40 && y == 0x11) || (x == 0x42 && y == 0x1A) ||
+	       (x == 0x42 && y == 0x18) || (x == 0x16 && y == 0x19) || (x == 0x1E && y == 0x13);
+}
+static bool zl_choosing(Emu* e) {
+	return zl_battle(e) && zl_choose_window(e);
+}
+/* the title and its menu: no battle, the mode and the place 0 (walking
+ * about the place is set; name entry and the opening are scenes, mode 1) */
+static bool zl_title(Emu* e) {
+	const ZlRegion* r = zl_r(e);
+	return !zl_battle(e) && emu_read8(e, r->mode) == 0 && emu_read8(e, r->mode + 3) == 0;
+}
+/* walking about: no battle, no story scene, not the title */
+static bool zl_free(Emu* e) {
+	return !zl_battle(e) && emu_read8(e, zl_r(e)->mode) == 0 && !zl_title(e);
+}
+static bool zl_map_up(Emu* s);
+static uint32_t zl_virt(Emu* e, uint32_t addr) {
+	const ZlRegion* r = zl_r(e);
+	switch (addr) {
+	case ZL_V_LIVE: return zl_free(e) || zl_choosing(e);
+	case ZL_V_MAP: return zl_map_up(e);
+	case ZL_V_FORGET: return zl_title(e) || (zl_battle(e) && !zl_choosing(e));
+	case ZL_V_PLAYOUT: return zl_battle(e) && !zl_choosing(e);
+	case ZL_V_PLACE: return emu_read8(e, r->mode + 3);
+	case ZL_V_MAPNO: return emu_read16(e, r->mapNo);
+	case ZL_V_CHOOSE: return zl_choosing(e);
+	}
+	return 0;
+}
+
+/* the map screen's fixed pixels (ZL-1): the panels' dark edges, the list's
+ * and the box's light green at their right ends (clear of any town's
+ * name), the sea at the map's top corners: the same in both releases */
+static const Probe zlMap[8] = { { 239, 0, 0x424242 }, { 129, 0, 0x424242 }, { 128, 128, 0x424242 }, { 238, 60, 0xE7F7D6 },
+                                { 238, 120, 0xE7F7D6 }, { 235, 140, 0xE7F7D6 }, { 2, 2, 0x004AFF }, { 126, 2, 0x004AFF } };
+#define ZL_BOX_FILL 0xE7F7D6 /* the boxes' light green */
+static bool zl_map_up(Emu* s) {
+	return som_probes(s, zlMap, 8, 7, 8);
+}
+static void zl_copy(Emu* s, uint32_t* out, int w, int h) {
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+}
+/* (0xRRGGBB to the frame buffer's bytes R, G, B) */
+static uint32_t zl_px(uint32_t rgb) {
+	return 0xFF000000u | (rgb >> 16 & 0xFF) | (rgb & 0xFF00) | (rgb & 0xFF) << 16;
+}
+
+/* ZL-1: the map, 16 frames 3 apart (the marker's spin), the box under the
+ * list emptied: inside its edges (x 2-237, rows 131-158) the light green */
+static const char* zl_map(Emu* s, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+	if (zl_map_up(s)) return "screen already looks like the map"; /* (open in the game: ZL-2) */
+	aw_run(s, K_SELECT, 4);
+	int f = 0;
+	while (f < 60 && !zl_map_up(s)) emu_frame(s, 0), ++f;
+	if (!zl_map_up(s)) return "map screen did not appear";
+	aw_run(s, 0, 6); /* (drawn at once; a few frames for the sprites) */
+	if (emu_cancelled(s)) return "called off";
+	int n = *nOut < 16 ? *nOut : 16;
+	for (int i = 0; i < n; ++i) {
+		if (i) aw_run(s, 0, 3);
+		if (!zl_map_up(s)) return "the map closed";
+		zl_copy(s, out[i], w, h);
+		for (int y = 131; y <= 158 && y < h; ++y)
+			for (int x = 2; x <= 237 && x < w; ++x) out[i][y * w + x] = zl_px(ZL_BOX_FILL);
+	}
+	*nOut = n;
+	*step = 3;
+	return NULL;
+}
+
+/* the arrow at the end of a written-out message: a sprite, tile 1001 */
+static bool zl_arrow(Emu* s) {
+	for (int i = 0; i < 128; ++i) {
+		uint16_t a0 = emu_read16(s, 0x07000000 + i * 8), a2 = emu_read16(s, 0x07000004 + i * 8);
+		if ((a0 & 0x0300) != 0x0200 && (a0 & 0xFF) < 160 && (a2 & 0x3FF) == 1001) return true;
+	}
+	return false;
+}
+/* ZL-7: SELECT in the past brings up the game's message; once it's written
+ * out (its arrow up), its box (BG3, rows 96-159, the whole width; the
+ * arrow a sprite) alone, in the middle on dark grey */
+#define ZL_MSG_Y 96
+#define ZL_MSG_H 64
+static const char* zl_message(Emu* s, uint32_t* out, int w, int h) {
+	aw_run(s, K_SELECT, 4);
+	int f = 0;
+	while (f < 300 && !zl_arrow(s)) emu_frame_blind(s, 0), ++f;
+	if (!zl_arrow(s)) return "the message didn't come up";
+	if (emu_cancelled(s)) return "called off";
+	/* (its frame's edges: dark grey at the top rows, then grey, then the
+	 * light green) */
+	void* st = malloc(emu_state_size(s));
+	if (!st) return "out of memory";
+	if (!emu_state_save(s, st)) {
+		free(st);
+		return "state save failed";
+	}
+	emu_layers(s, 0x08);
+	emu_state_load(s, st);
+	emu_frame(s, 0);
+	static const Probe box[4] = { { 120, ZL_MSG_Y, 0x424242 }, { 120, ZL_MSG_Y + 2, 0x8C8C84 }, { 120, ZL_MSG_Y + 3, 0xE7F7D6 },
+	                              { 238, ZL_MSG_Y + 40, 0xE7F7D6 } };
+	bool ok = som_probes(s, box, 4, 4, 8);
+	for (int i = 0; i < w * h; ++i) out[i] = SCREEN_GREY;
+	int y0 = (h - ZL_MSG_H) / 2, x0 = (w - GBA_W) / 2;
+	for (int y = 0; ok && y < ZL_MSG_H; ++y) {
+		if (y0 + y < 0 || y0 + y >= h) continue;
+		for (int x = 0; x < GBA_W; ++x)
+			if (x0 + x >= 0 && x0 + x < w) out[(y0 + y) * w + x0 + x] = s->fb[(ZL_MSG_Y + y) * GBA_W + x] | 0xFF000000;
+	}
+	emu_layers(s, 0x1F);
+	emu_state_load(s, st);
+	free(st);
+	return ok ? NULL : "not the message box";
+}
+
+/* ZL-8: the Status (R) of the Zoid choosing. The window at ZL_WINDOW is the
+ * last one opened, not the one up: B from the Status back to the Zoid's menu
+ * leaves it 1E 13 (and B from Decide leaves 16 19). The Status is up when
+ * that's 1E 13 and BG0 is scrolled to its rows (BG0VOFS 0x181; 0x68 at the
+ * menus). So: R; if no Status comes up (in the weapons or Decide), B and R
+ * again, a few times; B at a Zoid's menu does nothing */
+#define ZL_STATUS_VOFS 0x181
+static bool zl_status_up(Emu* s) {
+	return emu_read8(s, ZL_WINDOW) == 0x1E && emu_read8(s, ZL_WINDOW + 1) == 0x13 &&
+	       (emu_io16(s, 0x12) & 0x1FF) == ZL_STATUS_VOFS;
+}
+static const char* zl_status(Emu* s, uint32_t* out, int w, int h) {
+	for (int i = 0; i < 5 && !zl_status_up(s); ++i) {
+		if (i) {
+			aw_tap(s, K_B, 1);
+			aw_run(s, 0, 12);
+		}
+		aw_run(s, K_R, 4);
+		int f = 0;
+		while (f < 14 && !zl_status_up(s)) emu_frame_blind(s, 0), ++f;
+		if (emu_cancelled(s)) return "called off";
+	}
+	if (!zl_status_up(s)) return "R didn't bring up a Status";
+	aw_run(s, 0, 16); /* (its numbers and the Zoid drawn) */
+	if (emu_cancelled(s)) return "called off";
+	if (!zl_status_up(s)) return "the Status closed";
+	zl_copy(s, out, w, h);
+	return NULL;
+}
+
+static const char* zl_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+	int max = *nOut;
+	*nOut = 1;
+	*step = 1;
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	if (zl_battle(s)) return zl_choosing(s) ? zl_status(s, out[0], w, h) : "the battle playing out";
+	if (!zl_free(s)) return "not walking about";
+	if (zl_past(s)) return zl_message(s, out[0], w, h);
+	*nOut = max;
+	return zl_map(s, out, nOut, step, w, h);
+}
+
 /* Bros. Info's frame, the same on both brothers' pages (its leather edges,
  * the ring's rim, the plaid, the boxes): not the field or the menu */
 static const Probe mlBrosInfo[8] = { { 10, 150, 0x6B8C73 }, { 4, 80, 0x633921 }, { 235, 80, 0x7B736B }, { 120, 157, 0xBDC6B5 },
@@ -4018,6 +4240,37 @@ static const MapProfile profiles[] = {
 		 * it flashes and shrinks (KHC-5): BG2 alone */
 		.logo = { .wait = 700, .layer = 2, .maxY = 160 },
 	},
+	{
+		/* Zoids: Legacy (USA; Japan, Zoids Saga II: its addresses in
+		 * zlRegions). Walking about, in a town, on the world or in a
+		 * dungeon, the map screen (ZL-1); battles and the past the logo
+		 * (ZL-3, ZL-7); see zl_virt */
+		.codes = { "AZ2E" },
+		.title = "Zoids: Legacy",
+		.virt = zl_virt,
+		/* the map, the past's message, a Zoid's Status: zl_compose
+		 * (ZL-1, ZL-7, ZL-8) */
+		.composePages = zl_compose,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* walking about, or a Zoid choosing: taken (where nothing opens,
+		 * nothing: ZL-2) */
+		.live = { { ZL_V_LIVE, 0xFF, 1, 4 } },
+		/* the title, or a battle playing out: what was shown goes (ZL-3,
+		 * ZL-4) */
+		.menu = { { ZL_V_FORGET, 0xFF, 1, 4 } },
+		/* a battle playing out: the logo (ZL-3) */
+		.combat = { { ZL_V_PLAYOUT, 0xFF, 1, 4 } },
+		/* into a town, a dungeon or the past, out again, or a Zoid's menu
+		 * coming up: a capture at once (ZL-1, ZL-7, ZL-8) */
+		.room = { { ZL_V_PLACE, 0xFF, 0, 4 }, { ZL_V_MAPNO, 0xFFFF, 0, 4 }, { ZL_V_CHOOSE, 0xFF, 0, 4 } },
+		/* the town list's cursor (the triangle by the first town: it spins,
+		 * tiles 1012-1022; the map's marker is 936-945) */
+		.captureHide = { { 100, -16, 180, 159, 1012, 1023, -1 } },
+		/* the title's lettering is sprites (PRESS START and the copyright
+		 * line below it left out) */
+		.logo = { .wait = 1300, .layers = 0x10, .maxY = 100 },
+	},
 };
 
 /* ---------------------------------------------------------------- regions
@@ -4310,6 +4563,8 @@ static const Variant variants[] = {
 	{ "AVSJ", "AVSE", 0, som_jpn },
 	{ "B8CP", "B8CE", 0, khc_eur },
 	{ "B8CJ", "B8CE", 0, khc_jpn },
+	/* (Zoids Saga II's addresses: ZlRegion) */
+	{ "AZ2J", "AZ2E", 0, NULL },
 };
 #define N_VARIANTS (sizeof(variants) / sizeof(*variants))
 static MapProfile variantProfiles[N_VARIANTS];

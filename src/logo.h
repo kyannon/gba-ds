@@ -27,6 +27,15 @@ uint32_t logo_generation(void);
 /* Background work done / total (queued + running + done) since the queue was
  * last idle; done == total when there's nothing left to do. */
 void logo_progress(int* done, int* total);
+/* A game's jobs (its logo, its map border) to the front of the queue, in
+ * the order of the calls' reverse (the last call's first); urgent: they run
+ * even while the queue's paused (the game about to start). */
+void logo_front(const char* gameCode, bool urgent);
+/* A job for this game queued or running; NULL: any job running. */
+bool logo_busy(const char* gameCode);
+/* While a game's played: only urgent jobs run (the game's own, asked for
+ * while paused), the rest wait for the game list. */
+void logo_pause(bool on);
 void logo_shutdown(void);
 
 #endif
