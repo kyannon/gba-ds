@@ -34,6 +34,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Sonic Advance](sonic-advance.md) | SA | `ASOE` + 2 |
 | [Sonic Advance 2](sonic-advance-2.md) | SA2 | `A2NE` + 2 |
 | [Kingdom Hearts: Chain of Memories](kingdom-hearts-chain-of-memories.md) | KHC | `B8CE` + 2 |
+| [Lady Sia](lady-sia.md) | LS | `ALDE` + 1 |
 
 ## General rules
 

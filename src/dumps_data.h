@@ -71,6 +71,8 @@ static const KnownDump knownDumps[] = {
 	{ "AGSI", 0xf3128812, true, "Golden Sun (Italy)" },
 	{ "AGSJ", 0xfb96d9de, true, "Ougon no Taiyou - Hirakareshi Fuuin (Japan)" },
 	{ "AGSS", 0xc63008d6, true, "Golden Sun (Spain)" },
+	{ "ALDE", 0x139e95bd, true, "Lady Sia (USA) (En,Fr,De,Es,It,Nl)" },
+	{ "ALDP", 0x958097d2, true, "Lady Sia (Europe) (En,Fr,De,Es,It,Nl)" },
 	{ "ALGE", 0xd47ccff4, true, "Dragon Ball Z - The Legacy of Goku (USA)" },
 	{ "ALGP", 0xca6e149c, true, "Dragon Ball Z - The Legacy of Goku (Europe) (En,Fr,De,Es,It)" },
 	{ "AMKE", 0xc0e1cf38, false, "Mario Kart - Super Circuit (USA) (Virtual Console)" },
