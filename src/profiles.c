@@ -2161,6 +2161,86 @@ static const char* ml_compose(Emu* s, const void* state, uint32_t* const* out, i
 	return "Luigi's page didn't come up";
 }
 
+/* ---------------------------------------------------------- Harvest Moon: Friends of Mineral Town
+ *
+ * The second screen (HM-1, HM-2): the town map (L+START), opened on the
+ * shadow core from the live state at every capture, its pointing glove
+ * moved onto the player's head (so the text box under the map says which
+ * part of the valley that is) and then left out of the picture. Where L+START
+ * opens nothing (a conversation, an event, a menu), the capture fails and the
+ * last map stays (HM-3).
+ *
+ * HM_MODE is the game's mode (0x78 from the opening through the title and
+ * the naming screens, 0 at power-on; walking about 0x37, other values in
+ * scenes). The game's own data (the clock, money, the area number) sits
+ * 0x2834 higher once a battery save has been loaded, so nothing here reads
+ * it. The map's sprites: the glove tile 200 in palette 5, the player's head
+ * tile 204 in palette 6 (16x16 both; every release). */
+#define HM_MODE 0x02000012
+#define HM_MODE_TITLE 0x78
+#define HM_V_TITLE 0xF0000001 /* 1 on the title, its opening, the naming screens */
+#define HM_GLOVE_TILE 200
+#define HM_GLOVE_PAL 5
+#define HM_HEAD_TILE 204
+#define HM_HEAD_PAL 6
+static uint32_t hm_virt(Emu* e, uint32_t addr) {
+	if (addr != HM_V_TITLE) return 0;
+	uint8_t m = emu_read8(e, HM_MODE);
+	return m == HM_MODE_TITLE || m == 0;
+}
+
+/* the town map is up: its display (window 1 on) and BG3, the map picture */
+static bool hm_map_up(Emu* s) {
+	return emu_io16(s, 0x00) == 0x7F40 && emu_io16(s, 0x0E) == 0x1E40;
+}
+
+/* the first shown sprite with this tile and palette: its x, y */
+static bool hm_find(Emu* s, int tile, int pal, int* x, int* y) {
+	static uint16_t oam[512];
+	emu_oam_read(s, oam);
+	for (int i = 0; i < 128; ++i) {
+		uint16_t a0 = oam[i * 4], a1 = oam[i * 4 + 1], a2 = oam[i * 4 + 2];
+		if ((a0 & 0x0300) == 0x0200 || (a2 & 0x3FF) != tile || (a2 >> 12) != pal) continue;
+		*x = a1 & 0x1FF, *y = a0 & 0xFF;
+		if (*x >= 256) *x -= 512;
+		if (*y >= 160) *y -= 256;
+		return true;
+	}
+	return false;
+}
+
+static const char* hm_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	/* (open in the game already: as it is, the glove moved back) */
+	if (!hm_map_up(s)) {
+		aw_run(s, K_L, 2);
+		aw_run(s, K_L | K_START, 2);
+		aw_run(s, 0, 2);
+	}
+	/* (a mosaic, then the map: about 75 frames) */
+	if (!aw_settle(s, hm_map_up, 150)) return "map screen did not appear";
+	/* the glove's fingertip (its right end, 5 rows down) onto the middle
+	 * of the head: the glove moves 2 pixels a frame while held */
+	int gx, gy, hx, hy;
+	if (!hm_find(s, HM_HEAD_TILE, HM_HEAD_PAL, &hx, &hy)) return "no head on the map";
+	for (int f = 0; f < 200; ++f) {
+		if (!hm_find(s, HM_GLOVE_TILE, HM_GLOVE_PAL, &gx, &gy)) return "no glove on the map";
+		int dx = hx - 8 - gx, dy = hy + 2 - gy;
+		if (dx >= -1 && dx <= 1 && dy >= -1 && dy <= 1) break;
+		uint32_t k = (dx < -1 ? K_LEFT : dx > 1 ? K_RIGHT : 0) | (dy < -1 ? K_UP : dy > 1 ? K_DOWN : 0);
+		emu_frame(s, k);
+	}
+	/* the text box redrawn for the new place; the glove left out */
+	const SpriteRule glove[1] = { { -512, -256, 511, 255, HM_GLOVE_TILE, HM_GLOVE_TILE + 3, -1, 1u << HM_GLOVE_PAL, 0 } };
+	emu_hide_sprites(s, glove, 1);
+	bool up = aw_settle(s, hm_map_up, 60);
+	emu_hide_sprites(s, NULL, 0);
+	if (!up) return "the map went away";
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+	return NULL;
+}
+
 /* ---------------------------------------------------------- Golden Sun
  *
  * The second screen: the Status screen (SELECT's menu, its last icon, A),
@@ -3809,6 +3889,25 @@ static const MapProfile profiles[] = {
 		 * it flashes and shrinks (KHC-5): BG2 alone */
 		.logo = { .wait = 700, .layer = 2, .maxY = 160 },
 	},
+	{
+		/* Harvest Moon: Friends of Mineral Town (USA, Europe; Japan:
+		 * hm_jpn). Walking about: the town map, see hm_compose (HM-1 to
+		 * HM-3) */
+		.codes = { "A4NE", "A4NP" },
+		.title = "Harvest Moon: Friends of Mineral Town",
+		.compose = hm_compose,
+		.virt = hm_virt,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* not on the title: taken about once a second (the head and the
+		 * clock keep moving); where L+START opens nothing, nothing (HM-3) */
+		.live = { { HM_V_TITLE, 0xFF, 0, 4 } },
+		/* the title: the logo, the map forgotten (HM-4) */
+		.menu = { { HM_V_TITLE, 0xFF, 1, 4 } },
+		/* the title's sign (sprites), without the rider at its left and
+		 * what's below it (HM-5) */
+		.logo = { .wait = 1000, .layer = 4, .minX = 46, .maxY = 96 },
+	},
 };
 
 /* ---------------------------------------------------------------- regions
@@ -4021,6 +4120,14 @@ static void khc_jpn(MapProfile* p) {
 	p->logo.wait = 500;
 }
 
+/* Harvest Moon: Friends of Mineral Town in Japan (Bokujou Monogatari:
+ * Mineral Town no Nakama-tachi): its own title sign, wider and lower, with
+ * no rider beside it */
+static void hm_jpn(MapProfile* p) {
+	p->logo.minX = 0;
+	p->logo.maxY = 113;
+}
+
 static const Variant variants[] = {
 	{ "AGSD", "AGSE", 0, gs_ger },
 	/* Golden Sun: The Lost Age's other releases */
@@ -4071,6 +4178,7 @@ static const Variant variants[] = {
 	{ "AVSJ", "AVSE", 0, som_jpn },
 	{ "B8CP", "B8CE", 0, khc_eur },
 	{ "B8CJ", "B8CE", 0, khc_jpn },
+	{ "A4NJ", "A4NE", 0, hm_jpn },
 };
 #define N_VARIANTS (sizeof(variants) / sizeof(*variants))
 static MapProfile variantProfiles[N_VARIANTS];

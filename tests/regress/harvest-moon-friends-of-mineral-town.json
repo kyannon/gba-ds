@@ -1,0 +1,805 @@
+{
+ "game": "Harvest Moon: Friends of Mineral Town",
+ "rules": "docs/games/harvest-moon-friends-of-mineral-town.md",
+ "cases": [
+  {
+   "id": "hm-logo-a4ne",
+   "kind": "logo",
+   "rom": "A4NE",
+   "desc": "A4NE logo extraction (USA)",
+   "rules": [
+    "GEN-1",
+    "HM-5"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "hm-logo-a4np",
+   "kind": "logo",
+   "rom": "A4NP",
+   "desc": "A4NP logo extraction (Europe)",
+   "rules": [
+    "GEN-1",
+    "HM-5"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "hm-logo-a4nj",
+   "kind": "logo",
+   "rom": "A4NJ",
+   "desc": "A4NJ logo extraction (Japan: its own sign, 牧場物語 with its banner)",
+   "rules": [
+    "GEN-1",
+    "HM-5"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "hm-us-farm",
+   "rom": "A4NE",
+   "state": "harvest-moon-friends-of-mineral-town/us-farm.ss",
+   "desc": "a new game's first morning, on the farm in front of the house (Spring 2, 6:00): the town map, the head on the farm, the text box saying AAA Farm: This is your house, no glove; the game screen as it is",
+   "rules": [
+    "HM-1",
+    "HM-2",
+    "HM-6"
+   ],
+   "shots": {
+    "map": 200
+   },
+   "checks": [
+    {
+     "rule": "HM-1",
+     "what": "the town map taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "HM-1",
+     "what": "the town map, not the logo",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "hm-us-house",
+   "rom": "A4NE",
+   "state": "harvest-moon-friends-of-mineral-town/us-house.ss",
+   "desc": "in the house (a new game's first minutes): the town map, the head on the farm",
+   "rules": [
+    "HM-1",
+    "HM-2"
+   ],
+   "shots": {
+    "map": 200
+   },
+   "checks": [
+    {
+     "rule": "HM-1",
+     "what": "the town map taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "HM-1",
+     "what": "the town map, not the logo",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "hm-us-walk",
+   "rom": "A4NE",
+   "state": "harvest-moon-friends-of-mineral-town/us-farm.ss",
+   "desc": "walking right across the farm: the town map follows (the head moves, the clock goes on)",
+   "rules": [
+    "HM-1"
+   ],
+   "input": [
+    [
+     10,
+     "RIGHT"
+    ],
+    [
+     400,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 100,
+    "after": 460
+   },
+   "checks": [
+    {
+     "rule": "HM-1",
+     "what": "the town map taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "HM-1",
+     "what": "the map changed with the walk (the head a few pixels on, the clock)",
+     "type": "differs",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0005
+    }
+   ]
+  },
+  {
+   "id": "hm-us-town-saved",
+   "rom": "A4NE",
+   "state": "harvest-moon-friends-of-mineral-town/us-town-saved.ss",
+   "desc": "on the road into town's north side, in a game continued from a battery save (the game's data 0x2834 higher): the town map, North Side of Mineral Town",
+   "rules": [
+    "HM-1",
+    "HM-2"
+   ],
+   "shots": {
+    "map": 200
+   },
+   "checks": [
+    {
+     "rule": "HM-1",
+     "what": "the town map taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "HM-1",
+     "what": "the town map, not the logo",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "hm-eu-town-saved",
+   "rom": "A4NP",
+   "state": "harvest-moon-friends-of-mineral-town/eu-town-saved.ss",
+   "desc": "Europe, the same place (the USA save loaded): the town map",
+   "rules": [
+    "HM-1",
+    "HM-2"
+   ],
+   "shots": {
+    "map": 200
+   },
+   "checks": [
+    {
+     "rule": "HM-1",
+     "what": "the town map taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "HM-1",
+     "what": "the town map, not the logo",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "hm-jp-town-saved",
+   "rom": "A4NJ",
+   "state": "harvest-moon-friends-of-mineral-town/jp-town-saved.ss",
+   "desc": "Japan, the same place (the USA save loaded): the town map, ミネラルタウン北側",
+   "rules": [
+    "HM-1",
+    "HM-2"
+   ],
+   "shots": {
+    "map": 200
+   },
+   "checks": [
+    {
+     "rule": "HM-1",
+     "what": "the town map taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "HM-1",
+     "what": "the town map, not the logo",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "hm-us-map-open",
+   "rom": "A4NE",
+   "state": "harvest-moon-friends-of-mineral-town/us-map-open.ss",
+   "desc": "the town map open in the game, its glove moved up the map: taken from it, the glove moved back onto the head and left out",
+   "rules": [
+    "HM-1",
+    "HM-2"
+   ],
+   "shots": {
+    "map": 200
+   },
+   "checks": [
+    {
+     "rule": "HM-1",
+     "what": "the town map taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "HM-1",
+     "what": "the town map, not the logo",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "hm-us-thomas",
+   "rom": "A4NE",
+   "state": "harvest-moon-friends-of-mineral-town/us-thomas.ss",
+   "desc": "Thomas's welcome outside the house (an event): the map doesn't open, nothing taken; the logo",
+   "rules": [
+    "HM-3"
+   ],
+   "shots": {
+    "talk": 200
+   },
+   "checks": [
+    {
+     "rule": "HM-3",
+     "what": "nothing taken",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "rule": "HM-3",
+     "what": "the logo",
+     "type": "uniform",
+     "shot": "talk",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "hm-us-mary",
+   "rom": "A4NE",
+   "state": "harvest-moon-friends-of-mineral-town/us-mary.ss",
+   "desc": "Mary's introduction on the road (a game continued from a save): nothing taken; the logo",
+   "rules": [
+    "HM-3"
+   ],
+   "shots": {
+    "talk": 200
+   },
+   "checks": [
+    {
+     "rule": "HM-3",
+     "what": "nothing taken",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "rule": "HM-3",
+     "what": "the logo",
+     "type": "uniform",
+     "shot": "talk",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "hm-us-status-keeps",
+   "rom": "A4NE",
+   "state": "harvest-moon-friends-of-mineral-town/us-farm.ss",
+   "desc": "the town map on the farm, then (loaded) the status pages open (SELECT): the last town map stays",
+   "rules": [
+    "HM-3"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:harvest-moon-friends-of-mineral-town/us-status.ss"
+    ],
+    [
+     201,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 190,
+    "status": 400
+   },
+   "checks": [
+    {
+     "rule": "HM-3",
+     "what": "the same town map",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "status",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "hm-us-toolbar-keeps",
+   "rom": "A4NE",
+   "state": "harvest-moon-friends-of-mineral-town/us-farm.ss",
+   "desc": "the town map on the farm, then (loaded) the START toolbar open: the last town map stays",
+   "rules": [
+    "HM-3"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:harvest-moon-friends-of-mineral-town/us-toolbar.ss"
+    ],
+    [
+     201,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 190,
+    "toolbar": 400
+   },
+   "checks": [
+    {
+     "rule": "HM-3",
+     "what": "the same town map",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "toolbar",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "hm-us-farm-map-keeps",
+   "rom": "A4NE",
+   "state": "harvest-moon-friends-of-mineral-town/us-farm.ss",
+   "desc": "the town map on the farm, then (loaded) the farm map open (L+SELECT): the last town map stays",
+   "rules": [
+    "HM-3"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:harvest-moon-friends-of-mineral-town/us-farm-map.ss"
+    ],
+    [
+     201,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 190,
+    "farmmap": 400
+   },
+   "checks": [
+    {
+     "rule": "HM-3",
+     "what": "the same town map",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "farmmap",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "hm-us-asleep-keeps",
+   "rom": "A4NE",
+   "state": "harvest-moon-friends-of-mineral-town/us-house.ss",
+   "desc": "the town map in the house, then (loaded) gone to bed, the screen black for the night, into the next morning: the last town map stays through the night; the next morning's within a few seconds (the night's failed tries back the captures off to every 8 seconds)",
+   "rules": [
+    "HM-1",
+    "HM-3"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:harvest-moon-friends-of-mineral-town/us-asleep.ss"
+    ],
+    [
+     201,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 190,
+    "night": 400,
+    "morning": 1500
+   },
+   "checks": [
+    {
+     "rule": "HM-3",
+     "what": "the same town map overnight",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "night",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     }
+    },
+    {
+     "rule": "HM-1",
+     "what": "a fresh one in the morning (the date)",
+     "type": "differs",
+     "a": {
+      "shot": "night",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "morning",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.001
+    }
+   ]
+  },
+  {
+   "id": "hm-us-title",
+   "rom": "A4NE",
+   "state": "harvest-moon-friends-of-mineral-town/us-title.ss",
+   "desc": "the title screen: the logo, nothing taken",
+   "rules": [
+    "HM-4",
+    "HM-5"
+   ],
+   "shots": {
+    "title": 200
+   },
+   "checks": [
+    {
+     "rule": "HM-4",
+     "what": "nothing taken",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "rule": "HM-4",
+     "what": "the logo",
+     "type": "uniform",
+     "shot": "title",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "hm-us-naming",
+   "rom": "A4NE",
+   "state": "harvest-moon-friends-of-mineral-town/us-naming.ss",
+   "desc": "a new game's naming screens (the birthday): the logo, nothing taken",
+   "rules": [
+    "HM-4"
+   ],
+   "shots": {
+    "naming": 200
+   },
+   "checks": [
+    {
+     "rule": "HM-4",
+     "what": "nothing taken",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "rule": "HM-4",
+     "what": "the logo",
+     "type": "uniform",
+     "shot": "naming",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "hm-us-back-to-title",
+   "rom": "A4NE",
+   "state": "harvest-moon-friends-of-mineral-town/us-farm.ss",
+   "desc": "the town map on the farm, then (loaded) the title: back to the logo, the map forgotten",
+   "rules": [
+    "HM-4"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:harvest-moon-friends-of-mineral-town/us-title.ss"
+    ],
+    [
+     201,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 190,
+    "title": 400
+   },
+   "checks": [
+    {
+     "rule": "HM-1",
+     "what": "the town map, not the logo",
+     "type": "not_uniform",
+     "shot": "before",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "HM-4",
+     "what": "the logo",
+     "type": "uniform",
+     "shot": "title",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "HM-4",
+     "what": "back to the logo",
+     "type": "log",
+     "match": "back to the logo"
+    }
+   ]
+  },
+  {
+   "id": "hm-eu-title",
+   "rom": "A4NP",
+   "desc": "Europe from power-on to the title: the logo, nothing taken",
+   "rules": [
+    "HM-4"
+   ],
+   "shots": {
+    "title": 1100
+   },
+   "checks": [
+    {
+     "rule": "HM-4",
+     "what": "nothing taken",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "rule": "HM-4",
+     "what": "the logo",
+     "type": "uniform",
+     "shot": "title",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "hm-jp-title",
+   "rom": "A4NJ",
+   "desc": "Japan from power-on to the title: the logo, nothing taken",
+   "rules": [
+    "HM-4"
+   ],
+   "shots": {
+    "title": 1100
+   },
+   "checks": [
+    {
+     "rule": "HM-4",
+     "what": "nothing taken",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "rule": "HM-4",
+     "what": "the logo",
+     "type": "uniform",
+     "shot": "title",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  }
+ ]
+}
