@@ -87,7 +87,7 @@
    "id": "sa3-us-card",
    "rom": "B3SE",
    "state": "sonic-advance-3/us-card-lead-in.ss",
-   "desc": "Route 99 act 1 starting (USA, Sonic and Tails), nothing pressed, then pause: the logo alone, then the card (black, the zone's name on its white band) on the second screen while the game shows it with its HUD; once it goes, the rings, time and lives on the second screen over the card, off the game screen; PAUSE on the game screen",
+   "desc": "Route 99 act 1 starting (USA, Sonic and Tails), nothing pressed, then pause: the logo alone, then the card as it settles at the bottom (SONIC & TAILS, ROUTE 99, ACT 01 on the white band, on black) on the second screen while the game shows it over the level with its HUD; once it goes, the rings, time and lives on the second screen over the card, off the game screen; PAUSE on the game screen",
    "rules": [
     "SA3-2",
     "SA3-3",
@@ -105,8 +105,7 @@
    ],
    "shots": {
     "logo": 40,
-    "card": 120,
-    "slide": 170,
+    "card": 200,
     "play": 300,
     "pause": 370
    },
@@ -133,19 +132,19 @@
     },
     {
      "rule": "SA3-2",
-     "what": "the card's white band and black on the second screen",
+     "what": "the card's white band at the bottom, black above",
      "type": "pixels",
      "shot": "card",
      "screen": "second",
      "probes": [
       [
        48,
-       340,
+       580,
        "FFFFFF"
       ],
       [
        976,
-       340,
+       580,
        "FFFFFF"
       ],
       [
@@ -155,10 +154,25 @@
       ],
       [
        512,
-       560,
+       400,
        "000000"
       ]
      ]
+    },
+    {
+     "rule": "SA3-2",
+     "what": "the team and the act with the zone's name",
+     "type": "not_uniform",
+     "shot": "card",
+     "screen": "second",
+     "rect": [
+      600,
+      500,
+      992,
+      540
+     ],
+     "color": "000000",
+     "frac": 0.98
     },
     {
      "rule": "SA3-2",
@@ -190,47 +204,24 @@
     },
     {
      "rule": "SA3-2",
-     "what": "the card kept as the band slides",
-     "type": "same",
-     "a": {
-      "shot": "card",
-      "rect": [
-       32,
-       330,
-       992,
-       440
-      ]
-     },
-     "b": {
-      "shot": "slide",
-      "rect": [
-       32,
-       330,
-       992,
-       440
-      ]
-     }
-    },
-    {
-     "rule": "SA3-2",
      "what": "the card kept in play",
      "type": "same",
      "a": {
       "shot": "card",
       "rect": [
-       32,
-       330,
+       400,
+       540,
        992,
-       440
+       660
       ]
      },
      "b": {
       "shot": "play",
       "rect": [
-       32,
-       330,
+       400,
+       540,
        992,
-       440
+       660
       ]
      }
     },
@@ -296,7 +287,7 @@
       "shot": "play",
       "rect": [
        32,
-       330,
+       180,
        992,
        690
       ]
@@ -305,7 +296,7 @@
       "shot": "pause",
       "rect": [
        32,
-       330,
+       180,
        992,
        690
       ]
@@ -317,7 +308,7 @@
    "id": "sa3-eu-card",
    "rom": "B3SP",
    "state": "sonic-advance-3/eu-card-lead-in.ss",
-   "desc": "Route 99 act 1 starting (Europe, Sonic and Tails), nothing pressed, then pause: the card (black, the zone's name on its white band) on the second screen while the game shows it with its HUD; once it goes, the rings, time and lives on the second screen over the card, off the game screen; PAUSE on the game screen",
+   "desc": "Route 99 act 1 starting (Europe, Sonic and Tails), nothing pressed, then pause: the card as it settles at the bottom (the team, the zone, the act on the white band, on black) on the second screen while the game shows it over the level with its HUD; once it goes, the rings, time and lives on the second screen over the card, off the game screen; PAUSE on the game screen",
    "rules": [
     "SA3-2",
     "SA3-3",
@@ -334,7 +325,7 @@
     ]
    ],
    "shots": {
-    "card": 120,
+    "card": 200,
     "play": 300,
     "pause": 370
    },
@@ -347,19 +338,19 @@
     },
     {
      "rule": "SA3-2",
-     "what": "the card's white band and black on the second screen",
+     "what": "the card's white band at the bottom, black above",
      "type": "pixels",
      "shot": "card",
      "screen": "second",
      "probes": [
       [
        48,
-       340,
+       580,
        "FFFFFF"
       ],
       [
        976,
-       340,
+       580,
        "FFFFFF"
       ],
       [
@@ -369,7 +360,7 @@
       ],
       [
        512,
-       560,
+       400,
        "000000"
       ]
      ]
@@ -387,6 +378,21 @@
       164
      ],
      "color": "000000"
+    },
+    {
+     "rule": "SA3-2",
+     "what": "the team and the act with the zone's name",
+     "type": "not_uniform",
+     "shot": "card",
+     "screen": "second",
+     "rect": [
+      600,
+      500,
+      992,
+      540
+     ],
+     "color": "000000",
+     "frac": 0.98
     },
     {
      "rule": "SA3-2",
@@ -409,19 +415,19 @@
      "a": {
       "shot": "card",
       "rect": [
-       32,
-       330,
+       400,
+       540,
        992,
-       440
+       660
       ]
      },
      "b": {
       "shot": "play",
       "rect": [
-       32,
-       330,
+       400,
+       540,
        992,
-       440
+       660
       ]
      }
     },
@@ -487,7 +493,7 @@
       "shot": "play",
       "rect": [
        32,
-       330,
+       180,
        992,
        690
       ]
@@ -496,7 +502,7 @@
       "shot": "pause",
       "rect": [
        32,
-       330,
+       180,
        992,
        690
       ]
@@ -508,7 +514,7 @@
    "id": "sa3-jp-card",
    "rom": "B3SJ",
    "state": "sonic-advance-3/jp-card-lead-in.ss",
-   "desc": "Route 99 act 1 starting (Japan, Sonic and Tails), nothing pressed, then pause: the card (black, the zone's name on its white band) on the second screen while the game shows it with its HUD; once it goes, the rings, time and lives on the second screen over the card, off the game screen; PAUSE on the game screen",
+   "desc": "Route 99 act 1 starting (Japan, Sonic and Tails), nothing pressed, then pause: the card as it settles at the bottom (the team, the zone, the act on the white band, on black) on the second screen while the game shows it over the level with its HUD; once it goes, the rings, time and lives on the second screen over the card, off the game screen; PAUSE on the game screen",
    "rules": [
     "SA3-2",
     "SA3-3",
@@ -525,7 +531,7 @@
     ]
    ],
    "shots": {
-    "card": 120,
+    "card": 200,
     "play": 300,
     "pause": 370
    },
@@ -538,19 +544,19 @@
     },
     {
      "rule": "SA3-2",
-     "what": "the card's white band and black on the second screen",
+     "what": "the card's white band at the bottom, black above",
      "type": "pixels",
      "shot": "card",
      "screen": "second",
      "probes": [
       [
        48,
-       340,
+       580,
        "FFFFFF"
       ],
       [
        976,
-       340,
+       580,
        "FFFFFF"
       ],
       [
@@ -560,7 +566,7 @@
       ],
       [
        512,
-       560,
+       400,
        "000000"
       ]
      ]
@@ -578,6 +584,21 @@
       164
      ],
      "color": "000000"
+    },
+    {
+     "rule": "SA3-2",
+     "what": "the team and the act with the zone's name",
+     "type": "not_uniform",
+     "shot": "card",
+     "screen": "second",
+     "rect": [
+      600,
+      500,
+      992,
+      540
+     ],
+     "color": "000000",
+     "frac": 0.98
     },
     {
      "rule": "SA3-2",
@@ -600,19 +621,19 @@
      "a": {
       "shot": "card",
       "rect": [
-       32,
-       330,
+       400,
+       540,
        992,
-       440
+       660
       ]
      },
      "b": {
       "shot": "play",
       "rect": [
-       32,
-       330,
+       400,
+       540,
        992,
-       440
+       660
       ]
      }
     },
@@ -678,7 +699,7 @@
       "shot": "play",
       "rect": [
        32,
-       330,
+       180,
        992,
        690
       ]
@@ -687,7 +708,7 @@
       "shot": "pause",
       "rect": [
        32,
-       330,
+       180,
        992,
        690
       ]
@@ -699,7 +720,7 @@
    "id": "sa3-us-boss",
    "rom": "B3SE",
    "state": "sonic-advance-3/us-boss-lead-in.ss",
-   "desc": "Route 99's boss starting (display mode 1): its card (ROUTE 99, VS BOSS on the band) taken, then the HUD on the second screen",
+   "desc": "Route 99's boss starting (display mode 1): its card (SONIC & TAILS, ROUTE 99, VS BOSS on the band) taken, then the HUD on the second screen",
    "rules": [
     "SA3-2",
     "SA3-3"
@@ -724,7 +745,7 @@
      "probes": [
       [
        48,
-       340,
+       580,
        "FFFFFF"
       ],
       [
@@ -794,7 +815,7 @@
      "probes": [
       [
        48,
-       340,
+       580,
        "FFFFFF"
       ],
       [
@@ -1065,19 +1086,19 @@
      "a": {
       "shot": "play",
       "rect": [
-       32,
-       330,
+       400,
+       540,
        992,
-       440
+       660
       ]
      },
      "b": {
       "shot": "results",
       "rect": [
-       32,
-       330,
+       400,
+       540,
        992,
-       440
+       660
       ]
      }
     },
@@ -1088,19 +1109,19 @@
      "a": {
       "shot": "play",
       "rect": [
-       32,
-       330,
+       400,
+       540,
        992,
-       440
+       660
       ]
      },
      "b": {
       "shot": "fade",
       "rect": [
-       32,
-       330,
+       400,
+       540,
        992,
-       440
+       660
       ]
      }
     },
@@ -1159,12 +1180,12 @@
      "probes": [
       [
        48,
-       340,
+       580,
        "FFFFFF"
       ],
       [
        976,
-       340,
+       580,
        "FFFFFF"
       ]
      ]
@@ -1289,7 +1310,7 @@
      "probes": [
       [
        48,
-       340,
+       580,
        "FFFFFF"
       ],
       [
@@ -1309,7 +1330,7 @@
        32,
        180,
        992,
-       560
+       660
       ]
      },
      "b": {
@@ -1318,7 +1339,7 @@
        32,
        180,
        992,
-       560
+       660
       ]
      },
      "frac": 0.2
@@ -1360,7 +1381,7 @@
      "probes": [
       [
        48,
-       340,
+       580,
        "FFFFFF"
       ],
       [
@@ -1380,7 +1401,7 @@
        32,
        180,
        992,
-       560
+       660
       ]
      },
      "b": {
@@ -1389,7 +1410,7 @@
        32,
        180,
        992,
-       560
+       660
       ]
      },
      "frac": 0.2
@@ -1431,7 +1452,7 @@
      "probes": [
       [
        48,
-       340,
+       580,
        "FFFFFF"
       ],
       [
@@ -1451,7 +1472,7 @@
        32,
        180,
        992,
-       560
+       660
       ]
      },
      "b": {
@@ -1460,7 +1481,7 @@
        32,
        180,
        992,
-       560
+       660
       ]
      },
      "frac": 0.2

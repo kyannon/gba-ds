@@ -3476,12 +3476,21 @@ static const MapProfile profiles[] = {
 			 * label */
 			.objs = { { -64, -64, 255, 175, 448, 511, 0, 1u << 6 | 1u << 7 },
 			          { -64, -64, 255, 175, 600, 711, 0, 1u << 6 } },
-			/* the act's card: the whole screen (the HUD left out of the
-			 * take) once its band has settled (SA3-2); none in a hub or
-			 * the factory (SA3-4) */
-			.card = { .tile = 620, .tileMax = 623, .pal = 9, .whole = true, .at = 60,
-			          .drop = { { 0x030008AA, 0xFF, 1, 1, true, 2, true } } },
-			.backdropHide = { { -64, -64, 255, 175, 448, 511, 0, 1u << 6 | 1u << 7 } },
+			/* the act's card once the band has settled at the bottom with
+			 * the team and the act (SA3-2): drawn again with the BLDY
+			 * shadow (gBldRegs + 4) at 16, black but for the band (window
+			 * 0), as in the card's first moments, without the other
+			 * sprites (priority 1-2; the HUD; at priority 3 all but
+			 * palette 9; at priority 0 all but palettes 6, 7 and 9). None
+			 * in a hub or the factory (SA3-4) */
+			.card = { .tile = 620, .tileMax = 623, .pal = 9, .whole = true, .at = 165,
+			          .drop = { { 0x030008AA, 0xFF, 1, 1, true, 2, true } },
+			          .hide = { { -64, -64, 255, 175, 0, 1023, 1, 0 },
+			                    { -64, -64, 255, 175, 0, 1023, 2, 0 },
+			                    { -64, -64, 255, 175, 0, 711, 0, 1u << 6 | 1u << 7 },
+			                    { -64, -64, 255, 175, 0, 1023, 3, 0xFFFFu & ~(1u << 9) },
+			                    { -64, -64, 255, 175, 0, 1023, 0, 0xFFFFu & ~(1u << 6 | 1u << 7 | 1u << 9) } },
+			          .poke = { 0x03002BFC, 16 } },
 		},
 	},
 	{

@@ -2127,7 +2127,13 @@ static int probes_hit(const uint32_t* fb, const Probe* p, int tol) {
 /* Renders the current frame again without these sprites (on top of the
  * ones already hidden: `kept`, put back afterwards) into out, then puts the
  * game back exactly as it was (state, picture, sound). */
+static void snapshot_hiding_sprites_poke(const SpriteRule* hide, int n, const SpriteRule* kept, int nKept, uint32_t* out, uint32_t pokeAt, uint16_t pokeV);
 static void snapshot_hiding_sprites(const SpriteRule* hide, int n, const SpriteRule* kept, int nKept, uint32_t* out) {
+	snapshot_hiding_sprites_poke(hide, n, kept, nKept, out, 0, 0);
+}
+/* The same with a halfword written into the game's memory first (pokeAt 0:
+ * none), for that one frame */
+static void snapshot_hiding_sprites_poke(const SpriteRule* hide, int n, const SpriteRule* kept, int nKept, uint32_t* out, uint32_t pokeAt, uint16_t pokeV) {
 	static void* st;
 	static size_t stSize;
 	static uint32_t raw[GBA_W * GBA_H];
@@ -2148,6 +2154,7 @@ static void snapshot_hiding_sprites(const SpriteRule* hide, int n, const SpriteR
 	for (int i = 0; i < n && na < 12; ++i) all[na++] = hide[i];
 	emu_hide_sprites(&emu, all, na);
 	emu_state_load(&emu, st);
+	if (pokeAt) emu_write16(&emu, pokeAt, pokeV);
 	emu_frame(&emu, 0);
 	memcpy(out, emu.fb, sizeof(raw));
 	emu_hide_sprites(&emu, nKept ? kept : NULL, nKept);
@@ -2973,10 +2980,10 @@ static void update_hud(void) {
 		if (h->card.whole) {
 			/* (the whole game screen, once the card has settled) */
 			if (cardScore < 0 && hudFrames >= SDL_max(2, h->card.at)) {
-				/* (without backdropHide's sprites, rendered again: Sonic
-				 * Advance 3's HUD, drawn over its card) */
-				int nh = rule_count(h->backdropHide, 2);
-				if (nh) snapshot_hiding_sprites(h->backdropHide, nh, NULL, 0, cardBest);
+				/* (card.hide / card.poke: drawn again, Sonic Advance 3's
+				 * band on black without the HUD and the characters) */
+				int nh = rule_count(h->card.hide, 6);
+				if (nh || h->card.poke.addr) snapshot_hiding_sprites_poke(h->card.hide, nh, NULL, 0, cardBest, h->card.poke.addr, h->card.poke.value);
 				else memcpy(cardBest, emu.fb, sizeof(cardBest));
 				cardScore = 0;
 				card_backdrop();

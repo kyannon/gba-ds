@@ -432,6 +432,12 @@ typedef struct MapProfile {
 			 * and the logo is behind the HUD (Sonic Advance 3's hubs, which
 			 * have no card of their own and lead to other zones) */
 			MemProbe drop[2];
+			/* with whole: the take is the frame drawn again with these
+			 * sprites left out and this halfword written first (Sonic
+			 * Advance 3: its brightness shadow, so all but the card's band
+			 * goes black, as in the card's first moments); none: as drawn */
+			SpriteRule hide[6];
+			struct { uint32_t addr; uint16_t value; } poke;
 		} card;
 		/* moves while racing (with the `layout` probes; no layout probes:
 		 * always). A move with toGame and no how / vhow copies its box back
