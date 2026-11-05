@@ -3635,8 +3635,9 @@ static const MapProfile profiles[] = {
 		/* World-e's map with Mario on a level's spot: its info box takes
 		 * no L (nor START); B opens the Level Card list and B again goes
 		 * back to the map without the box, where L works, as a player
-		 * does it (0x03003851 is 1 while the box is up) */
-		.openAltIf = { { 0x03003851, 0xFF, 1, 1 }, { 0x0400000C, 0xFFFF, 0xDC00, 2 } },
+		 * does it (0x03004FC8 is World-e's map's own state: 2 free, 10
+		 * with the box up, 16-18 with the inventory) */
+		.openAltIf = { { 0x03004FC8, 0xFF, 10, 1 }, { 0x0400000C, 0xFFFF, 0xDC00, 2 } },
 		.openAlt = { { K_B, 4 }, { 0, 60 }, { K_B, 4 }, { 0, 40 }, { K_L, 4 } },
 		.settleMax = 60, .openWithin = 40, .openTries = 3, .stableFrames = 3, .maxDiff = 400,
 		.crop_x = 0, .crop_y = 0, .crop_w = 240, .crop_h = 160,
@@ -3649,11 +3650,12 @@ static const MapProfile profiles[] = {
 		/* (5: open; World-e keeps it at 0, its panel told by the probes) */
 		.mem = { { 0x03003CAA, 0xFF, 5, 1, true, 0 } },
 		/* World-e's map (the e-Reader levels) is another engine: where
-		 * Mario is reads 0x09 (as in a Toad House), 0x03003781 is 4 with
-		 * no menu open (a house's is 0 or 0x42), its inventory is open
+		 * Mario is reads 0x09 (as in a Toad House), 0x03003781 is 4 or 5
+		 * with no menu open (3-7 taken: menus make it 8 or more, a
+		 * house's is 0 or 0x42), its inventory is open
 		 * while 0x03003759 is 1, and its panel and status bar are BG2
 		 * (0xDC00), the same size and place */
-		.live = { { 0x03003DE2, 0xFF, 0x41, 1, true, 0x09 }, { 0x03003781, 0xFF, 3, 1, true, 4 },
+		.live = { { 0x03003DE2, 0xFF, 0x41, 1, true, 0x09 }, { 0x03003781, 0xFF, 3, 1, true, 7, true },
 		          { 0x03003CAA, 0xFF, 0, 1 }, { 0x03003759, 0xFF, 0, 1 } },
 		.captureLayers = 0x5,
 		.captureBack = 6 | 6 << 5 | 6 << 10, /* (dark grey, SCREEN_GREY) */
