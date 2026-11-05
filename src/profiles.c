@@ -2392,6 +2392,22 @@ static const Gs2Addr gs2Addr[] = {
  * hand (tile 20, by the name) */
 static const SpriteRule gs2Arrows = { 80, -16, 120, 40, 264, 271, -1 };
 static const SpriteRule gs2Hand = { 0, -16, 100, 40, 20, 23, -1 };
+/* The windows' corner pixels, see-through in the game (the map or battle
+ * behind shows there), black (GS2-1, GS2-7): the walking Status's three
+ * windows (the party row, the prompt box, the stats) and the battle
+ * Status's one; the same places in every release */
+static void gs2_black_corners(uint32_t* px, int w, bool walking) {
+	static const uint8_t walk[][2] = { { 0, 0 }, { 103, 0 }, { 104, 0 }, { 239, 0 }, { 0, 39 }, { 103, 39 },
+	                                   { 104, 39 }, { 239, 39 }, { 0, 40 }, { 239, 40 }, { 0, 159 }, { 239, 159 } };
+	static const uint8_t battle[][2] = { { 0, 0 }, { 239, 0 }, { 0, 159 }, { 239, 159 } };
+	if (w < GBA_W) return;
+	int n = walking ? 12 : 4;
+	for (int i = 0; i < n; ++i) {
+		const uint8_t* c = walking ? walk[i] : battle[i];
+		px[c[1] * w + c[0]] = 0xFF000000;
+	}
+}
+
 static const Gs2Addr* gs2_addr(Emu* e) {
 	for (size_t i = 0; i < sizeof(gs2Addr) / sizeof(gs2Addr[0]); ++i) {
 		if (gs2Addr[i].region == e->gameCode[3]) return &gs2Addr[i];
@@ -2469,6 +2485,7 @@ static const char* gs2_compose(Emu* s, const void* state, uint32_t* const* out, 
 		if (emu_read8(s, a->bstat) != 1) return "the battle's Status closed";
 		for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[0][y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
 		gs_no_help(out[0], w);
+		gs2_black_corners(out[0], w, false);
 		*nOut = 1;
 		return NULL;
 	}
@@ -2507,6 +2524,7 @@ static const char* gs2_compose(Emu* s, const void* state, uint32_t* const* out, 
 	for (int k = 0; k < n; ++k) {
 		for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[k][y * w], &page[k][y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
 		gs_no_prompt_box(out[k], w);
+		gs2_black_corners(out[k], w, true);
 	}
 	return NULL;
 }
