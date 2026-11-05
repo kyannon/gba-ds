@@ -1,0 +1,1366 @@
+{
+ "game": "Sonic Advance 3",
+ "rules": "docs/games/sonic-advance-3.md",
+ "cases": [
+  {
+   "id": "sa3-us-title",
+   "rom": "B3SE",
+   "state": "sonic-advance-3/us-title.ss",
+   "desc": "the title (USA, played in from power-on): the logo",
+   "rules": [
+    "SA3-1"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "SA3-1",
+     "what": "no card, no HUD",
+     "type": "no_log",
+     "match": "title card|HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "sa3-eu-title",
+   "rom": "B3SP",
+   "state": "sonic-advance-3/eu-title.ss",
+   "desc": "the title (Europe, played in from power-on): the logo",
+   "rules": [
+    "SA3-1"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "SA3-1",
+     "what": "no card, no HUD",
+     "type": "no_log",
+     "match": "title card|HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "sa3-jp-title",
+   "rom": "B3SJ",
+   "state": "sonic-advance-3/jp-title.ss",
+   "desc": "the title (Japan, played in from power-on): the logo",
+   "rules": [
+    "SA3-1"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "SA3-1",
+     "what": "no card, no HUD",
+     "type": "no_log",
+     "match": "title card|HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "sa3-us-demo",
+   "rom": "B3SE",
+   "state": "sonic-advance-3/us-demo.ss",
+   "desc": "the demo of Route 99 after the title, with its card: the logo",
+   "rules": [
+    "SA3-1"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "SA3-1",
+     "what": "no card, no HUD",
+     "type": "no_log",
+     "match": "title card|HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "sa3-us-card",
+   "rom": "B3SE",
+   "state": "sonic-advance-3/us-card-lead-in.ss",
+   "desc": "Route 99 act 1 starting (USA, Sonic and Tails), nothing pressed, then pause: the logo alone, then the card (black, the zone's name on its white band) on the second screen while the game shows it with its HUD; once it goes, the rings, time and lives on the second screen over the card, off the game screen; PAUSE on the game screen",
+   "rules": [
+    "SA3-2",
+    "SA3-3",
+    "SA3-5"
+   ],
+   "input": [
+    [
+     330,
+     "START"
+    ],
+    [
+     335,
+     "-"
+    ]
+   ],
+   "shots": {
+    "logo": 40,
+    "card": 120,
+    "slide": 170,
+    "play": 300,
+    "pause": 370
+   },
+   "checks": [
+    {
+     "rule": "SA3-2",
+     "what": "the card taken",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA3-2",
+     "what": "the logo before the take, without the HUD (it's on the game's card)",
+     "type": "uniform",
+     "shot": "logo",
+     "screen": "second",
+     "rect": [
+      52,
+      64,
+      712,
+      164
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "SA3-2",
+     "what": "the card's white band and black on the second screen",
+     "type": "pixels",
+     "shot": "card",
+     "screen": "second",
+     "probes": [
+      [
+       48,
+       340,
+       "FFFFFF"
+      ],
+      [
+       976,
+       340,
+       "FFFFFF"
+      ],
+      [
+       512,
+       200,
+       "000000"
+      ],
+      [
+       512,
+       560,
+       "000000"
+      ]
+     ]
+    },
+    {
+     "rule": "SA3-2",
+     "what": "the card without the HUD",
+     "type": "uniform",
+     "shot": "card",
+     "screen": "second",
+     "rect": [
+      52,
+      64,
+      712,
+      164
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "SA3-2",
+     "what": "the HUD still on the game's card",
+     "type": "not_uniform",
+     "shot": "card",
+     "screen": "game",
+     "rect": [
+      52,
+      64,
+      712,
+      164
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "SA3-2",
+     "what": "the card kept as the band slides",
+     "type": "same",
+     "a": {
+      "shot": "card",
+      "rect": [
+       32,
+       330,
+       992,
+       440
+      ]
+     },
+     "b": {
+      "shot": "slide",
+      "rect": [
+       32,
+       330,
+       992,
+       440
+      ]
+     }
+    },
+    {
+     "rule": "SA3-2",
+     "what": "the card kept in play",
+     "type": "same",
+     "a": {
+      "shot": "card",
+      "rect": [
+       32,
+       330,
+       992,
+       440
+      ]
+     },
+     "b": {
+      "shot": "play",
+      "rect": [
+       32,
+       330,
+       992,
+       440
+      ]
+     }
+    },
+    {
+     "rule": "SA3-3",
+     "what": "the rings and time on the second screen",
+     "type": "not_uniform",
+     "shot": "play",
+     "screen": "second",
+     "rect": [
+      52,
+      64,
+      712,
+      164
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "SA3-3",
+     "what": "the lives on the second screen",
+     "type": "not_uniform",
+     "shot": "play",
+     "screen": "second",
+     "rect": [
+      52,
+      624,
+      192,
+      690
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "SA3-5",
+     "what": "PAUSE on the game screen",
+     "type": "differs",
+     "a": {
+      "shot": "play",
+      "screen": "game",
+      "rect": [
+       384,
+       352,
+       632,
+       416
+      ]
+     },
+     "b": {
+      "shot": "pause",
+      "screen": "game",
+      "rect": [
+       384,
+       352,
+       632,
+       416
+      ]
+     },
+     "frac": 0.2
+    },
+    {
+     "rule": "SA3-5",
+     "what": "the card and lives as they were",
+     "type": "same",
+     "a": {
+      "shot": "play",
+      "rect": [
+       32,
+       330,
+       992,
+       690
+      ]
+     },
+     "b": {
+      "shot": "pause",
+      "rect": [
+       32,
+       330,
+       992,
+       690
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "sa3-eu-card",
+   "rom": "B3SP",
+   "state": "sonic-advance-3/eu-card-lead-in.ss",
+   "desc": "Route 99 act 1 starting (Europe, Sonic and Tails), nothing pressed, then pause: the card (black, the zone's name on its white band) on the second screen while the game shows it with its HUD; once it goes, the rings, time and lives on the second screen over the card, off the game screen; PAUSE on the game screen",
+   "rules": [
+    "SA3-2",
+    "SA3-3",
+    "SA3-5"
+   ],
+   "input": [
+    [
+     330,
+     "START"
+    ],
+    [
+     335,
+     "-"
+    ]
+   ],
+   "shots": {
+    "card": 120,
+    "play": 300,
+    "pause": 370
+   },
+   "checks": [
+    {
+     "rule": "SA3-2",
+     "what": "the card taken",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA3-2",
+     "what": "the card's white band and black on the second screen",
+     "type": "pixels",
+     "shot": "card",
+     "screen": "second",
+     "probes": [
+      [
+       48,
+       340,
+       "FFFFFF"
+      ],
+      [
+       976,
+       340,
+       "FFFFFF"
+      ],
+      [
+       512,
+       200,
+       "000000"
+      ],
+      [
+       512,
+       560,
+       "000000"
+      ]
+     ]
+    },
+    {
+     "rule": "SA3-2",
+     "what": "the card without the HUD",
+     "type": "uniform",
+     "shot": "card",
+     "screen": "second",
+     "rect": [
+      52,
+      64,
+      712,
+      164
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "SA3-2",
+     "what": "the HUD still on the game's card",
+     "type": "not_uniform",
+     "shot": "card",
+     "screen": "game",
+     "rect": [
+      52,
+      64,
+      712,
+      164
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "SA3-2",
+     "what": "the card kept in play",
+     "type": "same",
+     "a": {
+      "shot": "card",
+      "rect": [
+       32,
+       330,
+       992,
+       440
+      ]
+     },
+     "b": {
+      "shot": "play",
+      "rect": [
+       32,
+       330,
+       992,
+       440
+      ]
+     }
+    },
+    {
+     "rule": "SA3-3",
+     "what": "the rings and time on the second screen",
+     "type": "not_uniform",
+     "shot": "play",
+     "screen": "second",
+     "rect": [
+      52,
+      64,
+      712,
+      164
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "SA3-3",
+     "what": "the lives on the second screen",
+     "type": "not_uniform",
+     "shot": "play",
+     "screen": "second",
+     "rect": [
+      52,
+      624,
+      192,
+      690
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "SA3-5",
+     "what": "PAUSE on the game screen",
+     "type": "differs",
+     "a": {
+      "shot": "play",
+      "screen": "game",
+      "rect": [
+       384,
+       352,
+       632,
+       416
+      ]
+     },
+     "b": {
+      "shot": "pause",
+      "screen": "game",
+      "rect": [
+       384,
+       352,
+       632,
+       416
+      ]
+     },
+     "frac": 0.2
+    },
+    {
+     "rule": "SA3-5",
+     "what": "the card and lives as they were",
+     "type": "same",
+     "a": {
+      "shot": "play",
+      "rect": [
+       32,
+       330,
+       992,
+       690
+      ]
+     },
+     "b": {
+      "shot": "pause",
+      "rect": [
+       32,
+       330,
+       992,
+       690
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "sa3-jp-card",
+   "rom": "B3SJ",
+   "state": "sonic-advance-3/jp-card-lead-in.ss",
+   "desc": "Route 99 act 1 starting (Japan, Sonic and Tails), nothing pressed, then pause: the card (black, the zone's name on its white band) on the second screen while the game shows it with its HUD; once it goes, the rings, time and lives on the second screen over the card, off the game screen; PAUSE on the game screen",
+   "rules": [
+    "SA3-2",
+    "SA3-3",
+    "SA3-5"
+   ],
+   "input": [
+    [
+     330,
+     "START"
+    ],
+    [
+     335,
+     "-"
+    ]
+   ],
+   "shots": {
+    "card": 120,
+    "play": 300,
+    "pause": 370
+   },
+   "checks": [
+    {
+     "rule": "SA3-2",
+     "what": "the card taken",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA3-2",
+     "what": "the card's white band and black on the second screen",
+     "type": "pixels",
+     "shot": "card",
+     "screen": "second",
+     "probes": [
+      [
+       48,
+       340,
+       "FFFFFF"
+      ],
+      [
+       976,
+       340,
+       "FFFFFF"
+      ],
+      [
+       512,
+       200,
+       "000000"
+      ],
+      [
+       512,
+       560,
+       "000000"
+      ]
+     ]
+    },
+    {
+     "rule": "SA3-2",
+     "what": "the card without the HUD",
+     "type": "uniform",
+     "shot": "card",
+     "screen": "second",
+     "rect": [
+      52,
+      64,
+      712,
+      164
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "SA3-2",
+     "what": "the HUD still on the game's card",
+     "type": "not_uniform",
+     "shot": "card",
+     "screen": "game",
+     "rect": [
+      52,
+      64,
+      712,
+      164
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "SA3-2",
+     "what": "the card kept in play",
+     "type": "same",
+     "a": {
+      "shot": "card",
+      "rect": [
+       32,
+       330,
+       992,
+       440
+      ]
+     },
+     "b": {
+      "shot": "play",
+      "rect": [
+       32,
+       330,
+       992,
+       440
+      ]
+     }
+    },
+    {
+     "rule": "SA3-3",
+     "what": "the rings and time on the second screen",
+     "type": "not_uniform",
+     "shot": "play",
+     "screen": "second",
+     "rect": [
+      52,
+      64,
+      712,
+      164
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "SA3-3",
+     "what": "the lives on the second screen",
+     "type": "not_uniform",
+     "shot": "play",
+     "screen": "second",
+     "rect": [
+      52,
+      624,
+      192,
+      690
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "SA3-5",
+     "what": "PAUSE on the game screen",
+     "type": "differs",
+     "a": {
+      "shot": "play",
+      "screen": "game",
+      "rect": [
+       384,
+       352,
+       632,
+       416
+      ]
+     },
+     "b": {
+      "shot": "pause",
+      "screen": "game",
+      "rect": [
+       384,
+       352,
+       632,
+       416
+      ]
+     },
+     "frac": 0.2
+    },
+    {
+     "rule": "SA3-5",
+     "what": "the card and lives as they were",
+     "type": "same",
+     "a": {
+      "shot": "play",
+      "rect": [
+       32,
+       330,
+       992,
+       690
+      ]
+     },
+     "b": {
+      "shot": "pause",
+      "rect": [
+       32,
+       330,
+       992,
+       690
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "sa3-us-boss",
+   "rom": "B3SE",
+   "state": "sonic-advance-3/us-boss-lead-in.ss",
+   "desc": "Route 99's boss starting (display mode 1): its card (ROUTE 99, VS BOSS on the band) taken, then the HUD on the second screen",
+   "rules": [
+    "SA3-2",
+    "SA3-3"
+   ],
+   "shots": {
+    "card": 120,
+    "play": 400
+   },
+   "checks": [
+    {
+     "rule": "SA3-2",
+     "what": "the card taken",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA3-2",
+     "what": "the card's band",
+     "type": "pixels",
+     "shot": "play",
+     "screen": "second",
+     "probes": [
+      [
+       48,
+       340,
+       "FFFFFF"
+      ],
+      [
+       512,
+       200,
+       "000000"
+      ]
+     ]
+    },
+    {
+     "rule": "SA3-3",
+     "what": "the rings and time on the second screen",
+     "type": "not_uniform",
+     "shot": "play",
+     "screen": "second",
+     "rect": [
+      52,
+      64,
+      712,
+      164
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "sa3-us-death",
+   "rom": "B3SE",
+   "state": "sonic-advance-3/us-death-lead-in.ss",
+   "desc": "falling to a lost life in Route 99 act 1 (no card seen yet): the logo with the HUD, then the act's card again, taken",
+   "rules": [
+    "SA3-2",
+    "SA3-3"
+   ],
+   "shots": {
+    "falling": 60,
+    "card": 220,
+    "play": 400
+   },
+   "checks": [
+    {
+     "rule": "SA3-2",
+     "what": "the logo with the HUD before any card",
+     "type": "not_uniform",
+     "shot": "falling",
+     "screen": "second",
+     "rect": [
+      200,
+      200,
+      824,
+      500
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "SA3-2",
+     "what": "the card taken after the lost life",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA3-2",
+     "what": "the card's band",
+     "type": "pixels",
+     "shot": "play",
+     "screen": "second",
+     "probes": [
+      [
+       48,
+       340,
+       "FFFFFF"
+      ],
+      [
+       512,
+       200,
+       "000000"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sa3-us-play",
+   "rom": "B3SE",
+   "state": "sonic-advance-3/us-play.ss",
+   "desc": "a state in Route 99 act 1 after its card: no card taken, the logo with the HUD over it",
+   "rules": [
+    "SA3-2",
+    "SA3-3"
+   ],
+   "shots": {
+    "start": 30,
+    "later": 200
+   },
+   "checks": [
+    {
+     "rule": "SA3-2",
+     "what": "no card taken",
+     "type": "no_log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA3-3",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "SA3-3",
+     "what": "the rings and time over the logo's grey",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      52,
+      64,
+      712,
+      164
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "sa3-us-hub",
+   "rom": "B3SE",
+   "state": "sonic-advance-3/us-hub.ss",
+   "desc": "Route 99's hub (USA, played in from power-on): the logo, with the hub's icon and key count, lives and zone label moved there",
+   "rules": [
+    "SA3-4"
+   ],
+   "shots": {
+    "start": 30,
+    "later": 200
+   },
+   "checks": [
+    {
+     "rule": "SA3-4",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "SA3-4",
+     "what": "no card",
+     "type": "no_log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA3-4",
+     "what": "the key count top left",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      76,
+      160,
+      200,
+      196
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "SA3-4",
+     "what": "the zone label bottom right",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      608,
+      636,
+      992,
+      676
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "sa3-eu-hub",
+   "rom": "B3SP",
+   "state": "sonic-advance-3/eu-hub.ss",
+   "desc": "Route 99's hub (Europe, played in from power-on): the logo, with the hub's icon and key count, lives and zone label moved there",
+   "rules": [
+    "SA3-4"
+   ],
+   "shots": {
+    "start": 30,
+    "later": 200
+   },
+   "checks": [
+    {
+     "rule": "SA3-4",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "SA3-4",
+     "what": "no card",
+     "type": "no_log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA3-4",
+     "what": "the key count top left",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      76,
+      160,
+      200,
+      196
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "SA3-4",
+     "what": "the zone label bottom right",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      608,
+      636,
+      992,
+      676
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "sa3-jp-hub",
+   "rom": "B3SJ",
+   "state": "sonic-advance-3/jp-hub.ss",
+   "desc": "Route 99's hub (Japan, played in from power-on): the logo, with the hub's icon and key count, lives and zone label moved there",
+   "rules": [
+    "SA3-4"
+   ],
+   "shots": {
+    "start": 30,
+    "later": 200
+   },
+   "checks": [
+    {
+     "rule": "SA3-4",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "SA3-4",
+     "what": "no card",
+     "type": "no_log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA3-4",
+     "what": "the key count top left",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      76,
+      160,
+      200,
+      196
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "SA3-4",
+     "what": "the zone label bottom right",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      608,
+      636,
+      992,
+      676
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "sa3-us-zone2-hub",
+   "rom": "B3SE",
+   "state": "sonic-advance-3/us-zone2-hub.ss",
+   "desc": "Sunset Hill's hub: the logo with ZONE 2: SUNSET HILL",
+   "rules": [
+    "SA3-4"
+   ],
+   "shots": {
+    "later": 120
+   },
+   "checks": [
+    {
+     "rule": "SA3-4",
+     "what": "the zone label bottom right",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      608,
+      636,
+      992,
+      676
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "sa3-us-single",
+   "rom": "B3SE",
+   "state": "sonic-advance-3/us-card-lead-in.ss",
+   "desc": "Route 99 act 1 with one screen: the game as it is, HUD and all",
+   "rules": [
+    "SA3-6"
+   ],
+   "config": {
+    "layout": "single"
+   },
+   "shots": {
+    "play": 300
+   },
+   "checks": [
+    {
+     "rule": "SA3-6",
+     "what": "nothing moved",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "sa3-eu-single",
+   "rom": "B3SP",
+   "state": "sonic-advance-3/eu-card-lead-in.ss",
+   "desc": "Route 99 act 1 with one screen: the game as it is, HUD and all",
+   "rules": [
+    "SA3-6"
+   ],
+   "config": {
+    "layout": "single"
+   },
+   "shots": {
+    "play": 300
+   },
+   "checks": [
+    {
+     "rule": "SA3-6",
+     "what": "nothing moved",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "sa3-jp-single",
+   "rom": "B3SJ",
+   "state": "sonic-advance-3/jp-card-lead-in.ss",
+   "desc": "Route 99 act 1 with one screen: the game as it is, HUD and all",
+   "rules": [
+    "SA3-6"
+   ],
+   "config": {
+    "layout": "single"
+   },
+   "shots": {
+    "play": 300
+   },
+   "checks": [
+    {
+     "rule": "SA3-6",
+     "what": "nothing moved",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "sa3-us-saved-card",
+   "rom": "B3SE",
+   "state": "sonic-advance-3/us-saved-card.ss",
+   "desc": "a state saved by GBA DS in Route 99 act 1 (USA), with its card on the second screen; then a state without one loaded over it",
+   "rules": [
+    "GEN-7",
+    "SA3-2"
+   ],
+   "input": [
+    [
+     60,
+     "LOAD:sonic-advance-3/us-play.ss"
+    ]
+   ],
+   "shots": {
+    "start": 2,
+    "after": 90
+   },
+   "checks": [
+    {
+     "rule": "GEN-7",
+     "what": "the card from the state",
+     "type": "log",
+     "match": "second screen from it \\( card\\)"
+    },
+    {
+     "rule": "GEN-7",
+     "what": "the card on the first frames",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       48,
+       340,
+       "FFFFFF"
+      ],
+      [
+       512,
+       200,
+       "000000"
+      ]
+     ]
+    },
+    {
+     "rule": "GEN-7",
+     "what": "the card is gone after an older state",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       180,
+       992,
+       560
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       32,
+       180,
+       992,
+       560
+      ]
+     },
+     "frac": 0.2
+    }
+   ]
+  },
+  {
+   "id": "sa3-eu-saved-card",
+   "rom": "B3SP",
+   "state": "sonic-advance-3/eu-saved-card.ss",
+   "desc": "a state saved by GBA DS in Route 99 act 1 (Europe), with its card on the second screen; then a state without one loaded over it",
+   "rules": [
+    "GEN-7",
+    "SA3-2"
+   ],
+   "input": [
+    [
+     60,
+     "LOAD:sonic-advance-3/eu-hub.ss"
+    ]
+   ],
+   "shots": {
+    "start": 2,
+    "after": 90
+   },
+   "checks": [
+    {
+     "rule": "GEN-7",
+     "what": "the card from the state",
+     "type": "log",
+     "match": "second screen from it \\( card\\)"
+    },
+    {
+     "rule": "GEN-7",
+     "what": "the card on the first frames",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       48,
+       340,
+       "FFFFFF"
+      ],
+      [
+       512,
+       200,
+       "000000"
+      ]
+     ]
+    },
+    {
+     "rule": "GEN-7",
+     "what": "the card is gone after an older state",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       180,
+       992,
+       560
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       32,
+       180,
+       992,
+       560
+      ]
+     },
+     "frac": 0.2
+    }
+   ]
+  },
+  {
+   "id": "sa3-jp-saved-card",
+   "rom": "B3SJ",
+   "state": "sonic-advance-3/jp-saved-card.ss",
+   "desc": "a state saved by GBA DS in Route 99 act 1 (Japan), with its card on the second screen; then a state without one loaded over it",
+   "rules": [
+    "GEN-7",
+    "SA3-2"
+   ],
+   "input": [
+    [
+     60,
+     "LOAD:sonic-advance-3/jp-hub.ss"
+    ]
+   ],
+   "shots": {
+    "start": 2,
+    "after": 90
+   },
+   "checks": [
+    {
+     "rule": "GEN-7",
+     "what": "the card from the state",
+     "type": "log",
+     "match": "second screen from it \\( card\\)"
+    },
+    {
+     "rule": "GEN-7",
+     "what": "the card on the first frames",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       48,
+       340,
+       "FFFFFF"
+      ],
+      [
+       512,
+       200,
+       "000000"
+      ]
+     ]
+    },
+    {
+     "rule": "GEN-7",
+     "what": "the card is gone after an older state",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       180,
+       992,
+       560
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       32,
+       180,
+       992,
+       560
+      ]
+     },
+     "frac": 0.2
+    }
+   ]
+  },
+  {
+   "id": "sa3-logo-b3se",
+   "kind": "logo",
+   "rom": "B3SE",
+   "desc": "B3SE logo extraction",
+   "rules": [
+    "GEN-1",
+    "SA3-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "sa3-logo-b3sp",
+   "kind": "logo",
+   "rom": "B3SP",
+   "desc": "B3SP logo extraction",
+   "rules": [
+    "GEN-1",
+    "SA3-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "sa3-logo-b3sj",
+   "kind": "logo",
+   "rom": "B3SJ",
+   "desc": "B3SJ logo extraction",
+   "rules": [
+    "GEN-1",
+    "SA3-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}
