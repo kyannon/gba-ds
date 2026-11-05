@@ -73,4 +73,4 @@ The USA, European and Japanese releases, tried in every zone's first act and the
 
 (When merging, this section goes into the wiki under `## Sonic Advance 3` and comes out of this file with the rest of "For the merge".)
 
-Also at the merge: the README's game count, a row in `docs/games/README.md`'s table (`| [Sonic Advance 3](sonic-advance-3.md) | SA3 | `B3SE` + 2 |`), the Status line above ("supported"), `tools/make_dumps.py` again, and the full suite (shared code: `hud.card.tileMax`, `hud.card.drop`, `hud.card.poke` and `hud.card.hide` (the whole card's take drawn again with a value written and sprites left out) in game.c and profiles.h).
+Also at the merge: the README's game count, a row in `docs/games/README.md`'s table (`| [Sonic Advance 3](sonic-advance-3.md) | SA3 | `B3SE` + 2 |`), the Status line above ("supported"), `tools/make_dumps.py` again, and the full suite (shared code: `hud.card.tileMax`, `hud.card.drop`, `hud.card.prio1`, `hud.card.poke` and `hud.card.hide` (the whole card's take drawn again with a value written and sprites left out) in game.c and profiles.h).
