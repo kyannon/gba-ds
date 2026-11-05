@@ -3754,6 +3754,71 @@ static const MapProfile profiles[] = {
 		},
 	},
 	{
+		/* F-Zero: Maximum Velocity (docs/games/f-zero-maximum-velocity.md),
+		 * GP Legend's engine before it. The race HUD is all sprites,
+		 * priority 0, on the track's BG2 / BG3 in mode 2 (DISPCNT 0x3C42,
+		 * the menus' too): SPARE MACHINES (tiles 676-687, palettes 12, 13)
+		 * top left, RANK under it (label 399; the place 750-770, the limit
+		 * 394-405, palette 14 when outside it), LAST (734-745) under that;
+		 * POW (376-393, palettes 12, 15) top right, the speed (366-374,
+		 * 952-961) under it and the time (962-986, palettes 12, 15; a lap's
+		 * time under it as it ends) under that; BOOST (406-408) bottom
+		 * right; the course map one 64x64 sprite (tile 884, palette 15) at
+		 * 0, 96, drawn every other frame, with the player's dot (675) on
+		 * it. Not the HUD: the number over a rival ahead and its line
+		 * (688-698, anywhere over the track's top half, the RANK corner
+		 * too), the signs over the track (256-280: READY, the laps left,
+		 * TURN BACK, the place at the finish; 592-660), CHECK (412) under a
+		 * machine close behind, the machines (rotated, palette 0) and
+		 * their glow (667) and sparks (456-536, 700). Found by listing the
+		 * sprites of whole races (Grand Prix, Training, all three
+		 * releases). */
+		.codes = { "AFZE", "AFZJ" },
+		.title = "F-Zero: Maximum Velocity",
+		.logoOnly = true,
+		/* the title's sprites alone: the lettering above PRESS START (row
+		 * 123) and the copyright line (FZM-1) */
+		.logo = { .steps = { { 0, 900 } }, .layers = 0x10, .maxY = 115 },
+		.hud = {
+			/* racing: the game's mode (0x03000BFB: the handler table at
+			 * 0x080513D0's index) the countdown (3), the race (5) or its
+			 * finish (6), with the HUD's flag up (0x030005F8 = 0x80: set two
+			 * frames before the HUD shows, 0x83 two frames before it goes
+			 * at the finish or as the machine's destroyed, 0 in the
+			 * course's fly-in; pausing keeps it) (FZM-2, FZM-6) */
+			.on = { { 0x03000BFB, 0xFF, 3, 1, true, 6, true }, { 0x030005F8, 0xFF, 0x80, 1 } },
+			.objs = { /* POW */
+			          { 130, -8, 239, 12, 376, 393, 0 },
+			          /* SPARE MACHINES */
+			          { -8, -8, 72, 9, 676, 687, 0 },
+			          /* RANK: label, place, limit */
+			          { -8, 8, 50, 34, 399, 399, 0 },
+			          { -8, 8, 50, 34, 750, 770, 0 },
+			          { -8, 8, 50, 34, 394, 405, 0 },
+			          /* LAST */
+			          { -8, 33, 50, 44, 734, 745, 0 },
+			          /* the time and the lap's time */
+			          { 150, 18, 250, 56, 962, 986, 0, 1u << 12 | 1u << 15 },
+			          /* the map (x from -16: a narrow course's further left)
+			           * and the dot */
+			          { -16, 88, 64, 159, 884, 884, 0, 1u << 15 },
+			          { -16, 84, 72, 159, 675, 675, 0 } },
+			/* the map's box (the sprite at 0, 96; the dot reaches row 92),
+			 * twice as big at the bottom centre; the game draws it every
+			 * other frame, the dot every frame: held between (FZM-4) */
+			.map = { 0, 90, 63, 159 },
+			.mapAt = { 2, 120, 159, 884, 675 },
+			/* RANK to the game screen's bottom left (FZM-3), only with its
+			 * label (Training has none); POW to the top centre; LAST under
+			 * SPARE MACHINES, two rows below, lined up with it, or in the
+			 * corner (Training); the time up into the speed's place (FZM-4) */
+			.moves = { { 0, 10, 50, 34, 'L', 4, 'B', 155, true, .ifTile = 399 },
+			           { 130, 0, 239, 13, 'C', 120, 'T', 2 },
+			           { 0, 35, 50, 45, 'L', 2, 'T', 2, .under = 2 },
+			           { 150, 18, 250, 56, 0, 0, 'T', 2 } },
+		},
+	},
+	{
 		/* Summon Night: Swordcraft Story 2 (USA; in Japan Craft Sword
 		 * Monogatari 2, the same RAM and menus). Walking about: DISPCNT
 		 * 0x1F40; START's menu and its Status screen 0x3F40, the Status with
@@ -4359,6 +4424,16 @@ static void thps3_ger(MapProfile* p) {
 	memcpy(p->probes, show, sizeof(show));
 }
 
+/* F-Zero: Maximum Velocity in China: the mode byte 0x20 higher
+ * (0x03000C1B), the HUD's flag 0x18 (0x03000610: the fourth of a table of
+ * four, at 0x08054BC0 in the US release, 0x0805BC68 here); its title shows
+ * ~200 frames later */
+static void fzm_chn(MapProfile* p) {
+	p->hud.on[0].addr += 0x20;
+	p->hud.on[1].addr += 0x18;
+	p->logo.steps[0].frames = 1100;
+}
+
 /* Spider-Man: Mysterio's Menace in Japan: the screen's handler 0x34 lower
  * (0x0300213C), and its values too (0x60F8 in a level, 0x41D8 elsewhere);
  * the display registers are the same */
@@ -4396,6 +4471,7 @@ static const Variant variants[] = {
 	/* F-Zero: GP Legend in Europe: its language menu first (the title
 	 * comes ~700 frames after A); its races not tried (f-zero-gp-legend.md) */
 	{ "BFZP", "BFZE", 0, lang_menu },
+	{ "AFZC", "AFZE", 0, fzm_chn },
 	{ "A2CP", "A2CE", 0, lang_menu },
 	{ "A2CJ", "A2CE", -0x30, NULL },
 	{ "ACHP", "ACHE", 0, NULL },
