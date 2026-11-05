@@ -3880,11 +3880,16 @@ static const MapProfile profiles[] = {
 		.hud = {
 			/* racing: the game's mode (0x03000BFB: the handler table at
 			 * 0x080513D0's index) the countdown (3), the race (5) or its
-			 * finish (6), with the HUD's flag up (0x030005F8 = 0x80: set two
-			 * frames before the HUD shows, 0x83 two frames before it goes
-			 * at the finish or as the machine's destroyed, 0 in the
-			 * course's fly-in; pausing keeps it) (FZM-2, FZM-6) */
-			.on = { { 0x03000BFB, 0xFF, 3, 1, true, 6, true }, { 0x030005F8, 0xFF, 0x80, 1 } },
+			 * finish (6 with the machine on AUTO, 0x10 driven: the owner's
+			 * report of Nov 5), with the HUD's flag up (0x030005F8 = 0x80:
+			 * set two frames before the HUD shows, 0x83 two frames before
+			 * it goes at the finish or as the machine's destroyed, 0 in the
+			 * course's fly-in; pausing keeps it). 3 to 6 and 0x10 only: the
+			 * range, and the low four bits 0 to 6 (not 7, the results after
+			 * GIVE UP and A, whose flag stays 0x80; not 9, 10: YOU LOST,
+			 * alt below) (FZM-2, FZM-6) */
+			.on = { { 0x03000BFB, 0xFF, 3, 1, true, 0x10, true }, { 0x03000BFB, 0x0F, 0, 1, true, 6, true },
+			        { 0x030005F8, 0xFF, 0x80, 1 } },
 			/* YOU LOST (GIVE UP: mode 9; the machine destroyed: 10), till
 			 * A takes it to the results (0x03001084 goes 0 -> 2 as A is
 			 * pressed, two frames before the HUD goes; the mode changes 30
@@ -4572,7 +4577,8 @@ static void thps3_ger(MapProfile* p) {
  * ~200 frames later */
 static void fzm_chn(MapProfile* p) {
 	p->hud.on[0].addr += 0x20;
-	p->hud.on[1].addr += 0x18;
+	p->hud.on[1].addr += 0x20;
+	p->hud.on[2].addr += 0x18;
 	p->hud.alt.on[0].addr += 0x20;
 	p->hud.alt.on[1].addr += 0x20; /* (0x030010A4) */
 	p->hud.stay[0].addr += 0x20;
