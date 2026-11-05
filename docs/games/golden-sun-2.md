@@ -21,7 +21,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **GS2-4. Title.** On the title screen, the file menu, the naming screens, the opening's story text and the credits (the game on no map), the second screen shows the logo, and no captures are tried there.
 
-**GS2-5. Logo.** The logo is the title screen's emblem (the one behind PRESS START: GOLDEN SUN, 黄金の太陽 in Japan, with its dial, the subtitle in the release's language and its ™, ® in Japan), cut out of the picture of the lighthouse it's painted on: the gold and its dark outline, the subtitle's red (the Japanese one white with its shadow) and the ™ (the European releases' white one with its black outline filled in); nothing of the sky or the mountains. The game only shows that title with a save, so the hidden copy the logo is taken from (never the game played) has its save check answer "one save", from power-on: START through the opening, the title 120 frames later. The subtitles keep only their red letters: their edges, blended into the sky, are left out, so they read thinner than on the title. (Until the third test build, the small emblem a game with no save shows before naming Felix, whose dial and subtitle are drawn dark.)
+**GS2-5. Logo.** The logo is the title screen's emblem (the one behind PRESS START: GOLDEN SUN, 黄金の太陽 in Japan, with its dial), cut out of the picture of the lighthouse it's painted on: the gold and its dark outline, nothing of the sky or the mountains. The subtitle (The Lost Age, Die Vergessene Epoche, 失われし時代...) and the ™ (® in Japan) are left out in every release, as are a few loose specks of the dial's ornament: drawn thin over the sky, they couldn't be cut out cleanly (until the fifth test build the subtitle and ™ were kept, thin and broken up). The game only shows that title with a save, so the hidden copy the logo is taken from (never the game played) has its save check answer "one save", from power-on: START through the opening, the title 120 frames later. (Until the fourth test build, the small emblem a game with no save shows before naming Felix, whose dial and subtitle are drawn dark.)
 
 **GS2-6. Game screen untouched.** Nothing leaves the game screen.
 
@@ -50,7 +50,7 @@ For sessions working on the profile (the USA / Europe release's addresses, also 
 
 ## For the merge
 
-Shared code changed on this branch, so the merge runs the full suite: `src/logo.c` and `src/profiles.h` (a logo profile's `patch`: ROM bytes written into the copy the logo is taken from only), `src/logo_masks.c` / `.h` and `tools/make_logo_masks.py` (the six GS2 masks; the other masks kept as they were). Whoever merges regenerates `src/logo_masks.c` if `dev` changed it too.
+Shared code changed on this branch, so the merge runs the full suite: `src/logo.c` and `src/profiles.h` (a logo profile's `patch`: ROM bytes written into the copy the logo is taken from only), `src/logo_masks.c` / `.h` and `tools/make_logo_masks.py` (the six GS2 masks: the emblem without its subtitle and ™; the other masks kept as they were). Whoever merges regenerates `src/logo_masks.c` if `dev` changed it too.
 
 Changelog line (under the open version's What's new):
 

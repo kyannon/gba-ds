@@ -2981,7 +2981,7 @@ static const MapProfile profiles[] = {
 		 * is taken from has its save check answer "one" (the veneer every
 		 * release has at 0x080382F0: movs r0, #1; bx lr) */
 		.logo = { .steps = { { 0, 600 }, { K_START, 4 }, { 0, 120 } }, .mask = &logoMaskGS2E,
-		          .patch = { { 0x080382F0, 4, gs2SaveCheck, gs2SaveOne } }, .rev = 1 /* (the test builds' small emblem made again) */ },
+		          .patch = { { 0x080382F0, 4, gs2SaveCheck, gs2SaveOne } }, .rev = 2 /* (the test builds' logos made again) */ },
 	},
 	{
 		/* the Status screen with the menu's Place bar over its bottom:
@@ -3949,8 +3949,8 @@ static void sma2_jpn(MapProfile* p) {
 
 /* Final Fantasy Tactics Advance in Europe: a language menu first (its RAM
  * is the USA release's); in Japan the cursor's 0x30 lower (ft_r) */
-/* Golden Sun: The Lost Age elsewhere: each release's logo (its title's
- * subtitle and TM); in Japan, the one choosing 0x200 lower (gs2Addr) */
+/* Golden Sun: The Lost Age elsewhere: each release's logo (its emblem
+ * sits a little differently in each title picture); in Japan, the one choosing 0x200 lower (gs2Addr) */
 static void gs2_ger(MapProfile* p) {
 	p->logo.mask = &logoMaskGS2D;
 }
