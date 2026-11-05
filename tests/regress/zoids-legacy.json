@@ -67,7 +67,7 @@
    "id": "zl-us-town",
    "rom": "AZ2E",
    "state": "zoids-legacy/us-town.ss",
-   "desc": "walking about in Cebu Town on a new game: the map screen, its list's cursor left out; the game screen as it is",
+   "desc": "walking about in Cebu Town on a new game: the map screen, its box's prompt line left out, its list's cursor left out; the game screen as it is",
    "rules": [
     "ZL-1",
     "ZL-6"
@@ -103,7 +103,7 @@
    "id": "zl-us-world",
    "rom": "AZ2E",
    "state": "zoids-legacy/us-world.ss",
-   "desc": "just out of Cebu Town on the world: the map screen",
+   "desc": "just out of Cebu Town on the world: the map screen, its box's prompt line left out",
    "rules": [
     "ZL-1"
    ],
@@ -274,7 +274,7 @@
    "id": "zl-us-battle",
    "rom": "AZ2E",
    "state": "zoids-legacy/us-battle.ss",
-   "desc": "the first battle's opening menu (Start a Battle, Form a Team, Create Commands): the logo, nothing taken",
+   "desc": "the first battle's opening menu (Start a Battle, Form a Team, Create Commands; R does nothing there): the logo, nothing taken",
    "rules": [
     "ZL-3"
    ],
@@ -360,7 +360,7 @@
    "id": "zl-us-after-battle",
    "rom": "AZ2E",
    "state": "zoids-legacy/us-after-battle.ss",
-   "desc": "walking about on the world after the first battles (the screen's routine word reads differently from before them): the map screen",
+   "desc": "walking about on the world after the first battles (the screen's routine word reads differently from before them): the map screen, its box's prompt line left out",
    "rules": [
     "ZL-1"
    ],
@@ -517,7 +517,7 @@
    "id": "zl-jp-town",
    "rom": "AZ2J",
    "state": "zoids-legacy/jp-town.ss",
-   "desc": "Zoids Saga II: walking about in Cebu Town on a new game: the map screen",
+   "desc": "Zoids Saga II: walking about in Cebu Town on a new game: the map screen, its box's prompt line left out",
    "rules": [
     "ZL-1"
    ],
@@ -587,7 +587,7 @@
    "id": "zl-jp-world",
    "rom": "AZ2J",
    "state": "zoids-legacy/jp-world.ss",
-   "desc": "Zoids Saga II: just out of Cebu Town on the world: the map screen",
+   "desc": "Zoids Saga II: just out of Cebu Town on the world: the map screen, its box's prompt line left out",
    "rules": [
     "ZL-1"
    ],
@@ -673,7 +673,7 @@
    "id": "zl-us-dungeon",
    "rom": "AZ2E",
    "state": "zoids-legacy/us-dungeon.ss",
-   "desc": "the E. Sea Ruins' first floor (reached by changing the map in the game's save): the map screen, the ruins named under Cebu Town",
+   "desc": "the E. Sea Ruins' first floor (reached by changing the map in the game's save): the map screen, its box's prompt line left out, the ruins named under Cebu Town",
    "rules": [
     "ZL-1"
    ],
@@ -708,7 +708,7 @@
    "id": "zl-us-past",
    "rom": "AZ2E",
    "state": "zoids-legacy/us-past.ss",
-   "desc": "the Past Overworld (reached by changing the map in the game's save), where the game's map can't be seen: the logo, nothing taken",
+   "desc": "the Past Overworld (reached by changing the map in the game's save), where SELECT says the map can't be seen: that message's box alone, written out, without its arrow, in the middle on dark grey",
    "rules": [
     "ZL-7"
    ],
@@ -718,9 +718,24 @@
    "checks": [
     {
      "rule": "ZL-7",
-     "what": "no map taken",
-     "type": "no_log",
+     "what": "the message taken",
+     "type": "log",
      "match": "map updated"
+    },
+    {
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      256,
+      992,
+      512
+     ],
+     "color": "303030",
+     "frac": 0.9,
+     "rule": "ZL-7",
+     "what": "the message, not the logo",
+     "shot": "past"
     },
     {
      "type": "uniform",
@@ -729,12 +744,12 @@
       32,
       64,
       992,
-      704
+      240
      ],
      "color": "303030",
-     "frac": 0.5,
+     "frac": 0.99,
      "rule": "ZL-7",
-     "what": "the logo in the past",
+     "what": "dark grey above the box",
      "shot": "past"
     }
    ]
@@ -743,7 +758,7 @@
    "id": "zl-us-past-after-map",
    "rom": "AZ2E",
    "state": "zoids-legacy/us-town.ss",
-   "desc": "the map taken in Cebu Town, then the Past Overworld loaded: the map forgotten, the logo",
+   "desc": "the map taken in Cebu Town, then the Past Overworld loaded: the message replaces the present's map",
    "rules": [
     "ZL-7"
    ],
@@ -774,18 +789,33 @@
      "shot": "map"
     },
     {
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      256,
+      992,
+      512
+     ],
+     "color": "303030",
+     "frac": 0.9,
+     "rule": "ZL-7",
+     "what": "the message",
+     "shot": "past"
+    },
+    {
      "type": "uniform",
      "screen": "second",
      "rect": [
       32,
       64,
       992,
-      704
+      240
      ],
      "color": "303030",
-     "frac": 0.5,
+     "frac": 0.99,
      "rule": "ZL-7",
-     "what": "the logo in the past, not the present's map",
+     "what": "dark grey above the box",
      "shot": "past"
     }
    ]
@@ -794,7 +824,7 @@
    "id": "zl-us-past-capital",
    "rom": "AZ2E",
    "state": "zoids-legacy/us-town.ss",
-   "desc": "the map taken in Cebu Town, then the Empire Capital in the past loaded (its streets): the map forgotten, the logo",
+   "desc": "the map taken in Cebu Town, then the Empire Capital in the past loaded (its streets): the message replaces the map",
    "rules": [
     "ZL-7"
    ],
@@ -825,18 +855,33 @@
      "shot": "map"
     },
     {
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      256,
+      992,
+      512
+     ],
+     "color": "303030",
+     "frac": 0.9,
+     "rule": "ZL-7",
+     "what": "the message",
+     "shot": "past"
+    },
+    {
      "type": "uniform",
      "screen": "second",
      "rect": [
       32,
       64,
       992,
-      704
+      240
      ],
      "color": "303030",
-     "frac": 0.5,
+     "frac": 0.99,
      "rule": "ZL-7",
-     "what": "the logo in the past's Empire Capital",
+     "what": "dark grey above the box",
      "shot": "past"
     }
    ]
@@ -845,7 +890,7 @@
    "id": "zl-us-back-from-past",
    "rom": "AZ2E",
    "state": "zoids-legacy/us-past.ss",
-   "desc": "the Past Overworld (the logo), then the world after the first battles loaded: a fresh map",
+   "desc": "the Past Overworld (the message), then the world after the first battles loaded: a fresh map",
    "rules": [
     "ZL-7"
    ],
@@ -861,18 +906,18 @@
    },
    "checks": [
     {
-     "type": "uniform",
+     "type": "not_uniform",
      "screen": "second",
      "rect": [
       32,
-      64,
+      256,
       992,
-      704
+      512
      ],
      "color": "303030",
-     "frac": 0.5,
+     "frac": 0.9,
      "rule": "ZL-7",
-     "what": "the logo in the past",
+     "what": "the message",
      "shot": "past"
     },
     {
@@ -880,12 +925,12 @@
      "screen": "second",
      "rect": [
       32,
-      64,
+      256,
       992,
-      704
+      512
      ],
      "color": "303030",
-     "frac": 0.5,
+     "frac": 0.9,
      "rule": "ZL-7",
      "what": "a fresh map back in the present",
      "shot": "back"
@@ -896,7 +941,7 @@
    "id": "zl-jp-dungeon",
    "rom": "AZ2J",
    "state": "zoids-legacy/jp-dungeon.ss",
-   "desc": "Zoids Saga II: the E. Sea Ruins' first floor: the map screen",
+   "desc": "Zoids Saga II: the E. Sea Ruins' first floor: the map screen, its box's prompt line left out",
    "rules": [
     "ZL-1"
    ],
@@ -931,7 +976,7 @@
    "id": "zl-jp-past",
    "rom": "AZ2J",
    "state": "zoids-legacy/jp-town.ss",
-   "desc": "Zoids Saga II: the map taken in Cebu Town, then the Past Overworld loaded: the logo",
+   "desc": "Zoids Saga II: the map taken in Cebu Town, then the Past Overworld loaded: its message (in Japanese) replaces the map",
    "rules": [
     "ZL-7"
    ],
@@ -962,6 +1007,177 @@
      "shot": "map"
     },
     {
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      256,
+      992,
+      512
+     ],
+     "color": "303030",
+     "frac": 0.9,
+     "rule": "ZL-7",
+     "what": "the message",
+     "shot": "past"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      240
+     ],
+     "color": "303030",
+     "frac": 0.99,
+     "rule": "ZL-7",
+     "what": "dark grey above the box",
+     "shot": "past"
+    }
+   ]
+  },
+  {
+   "id": "zl-us-zoid-menu",
+   "rom": "AZ2E",
+   "state": "zoids-legacy/us-zoid-menu.ss",
+   "desc": "the first battle, Saberlion's menu (Attack, Waiting, Item): its Status (R on the hidden copy)",
+   "rules": [
+    "ZL-8"
+   ],
+   "shots": {
+    "status": 200
+   },
+   "checks": [
+    {
+     "rule": "ZL-8",
+     "what": "the Status taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "ZL-8",
+     "what": "not the logo",
+     "shot": "status"
+    }
+   ]
+  },
+  {
+   "id": "zl-us-decide",
+   "rom": "AZ2E",
+   "state": "zoids-legacy/us-decide.ss",
+   "desc": "the first battle, Decide/Cancel after a weapon and a target: backed out to the Zoid's menu on the hidden copy, its Status",
+   "rules": [
+    "ZL-8"
+   ],
+   "shots": {
+    "status": 200
+   },
+   "checks": [
+    {
+     "rule": "ZL-8",
+     "what": "the Status taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "ZL-8",
+     "what": "not the logo",
+     "shot": "status"
+    }
+   ]
+  },
+  {
+   "id": "zl-us-gun-tiger",
+   "rom": "AZ2E",
+   "state": "zoids-legacy/us-zoid-menu.ss",
+   "desc": "Saberlion's Status in the first battle, then the second battle loaded with Gun Tiger choosing: Gun Tiger's Status (the Mystery Warrior its pilot)",
+   "rules": [
+    "ZL-8"
+   ],
+   "input": [
+    [
+     250,
+     "LOAD:zoids-legacy/us-gun-tiger.ss"
+    ]
+   ],
+   "shots": {
+    "saberlion": 200,
+    "gun_tiger": 400
+   },
+   "checks": [
+    {
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "ZL-8",
+     "what": "not the logo",
+     "shot": "saberlion"
+    },
+    {
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "ZL-8",
+     "what": "not the logo",
+     "shot": "gun_tiger"
+    }
+   ]
+  },
+  {
+   "id": "zl-us-random-start",
+   "rom": "AZ2E",
+   "state": "zoids-legacy/us-random-start.ss",
+   "desc": "a random battle north of Cebu Town (the mode byte stays 0 in one), its opening menu with Retreat: the logo, nothing taken",
+   "rules": [
+    "ZL-3"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "rule": "ZL-3",
+     "what": "nothing taken",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
      "type": "uniform",
      "screen": "second",
      "rect": [
@@ -972,9 +1188,166 @@
      ],
      "color": "303030",
      "frac": 0.5,
-     "rule": "ZL-7",
-     "what": "the logo in the past",
-     "shot": "past"
+     "rule": "ZL-3",
+     "what": "the logo at a random battle's start",
+     "shot": "start"
+    }
+   ]
+  },
+  {
+   "id": "zl-us-random-turn",
+   "rom": "AZ2E",
+   "state": "zoids-legacy/us-random-turn.ss",
+   "desc": "a random battle, the turn's menu (Start a Combat, Commands, Retreat): the first Zoid's Status, as R shows it there (with the turn menu's left-over strip beside the battle, as the game draws it)",
+   "rules": [
+    "ZL-8"
+   ],
+   "shots": {
+    "status": 200
+   },
+   "checks": [
+    {
+     "rule": "ZL-8",
+     "what": "the Status taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "ZL-8",
+     "what": "not the logo",
+     "shot": "status"
+    }
+   ]
+  },
+  {
+   "id": "zl-us-random-playing",
+   "rom": "AZ2E",
+   "state": "zoids-legacy/us-zoid-menu.ss",
+   "desc": "a Zoid's Status, then a random battle playing out loaded (an enemy's attack): the logo, the Status forgotten",
+   "rules": [
+    "ZL-3"
+   ],
+   "input": [
+    [
+     250,
+     "LOAD:zoids-legacy/us-random-playing.ss"
+    ]
+   ],
+   "shots": {
+    "status": 200,
+    "playing": 400
+   },
+   "checks": [
+    {
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "ZL-8",
+     "what": "not the logo",
+     "shot": "status"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "ZL-3",
+     "what": "the logo while the battle plays out",
+     "shot": "playing"
+    }
+   ]
+  },
+  {
+   "id": "zl-jp-zoid-menu",
+   "rom": "AZ2J",
+   "state": "zoids-legacy/jp-zoid-menu.ss",
+   "desc": "Zoids Saga II: the first battle, Saberlion's menu: its Status",
+   "rules": [
+    "ZL-8"
+   ],
+   "shots": {
+    "status": 200
+   },
+   "checks": [
+    {
+     "rule": "ZL-8",
+     "what": "the Status taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "ZL-8",
+     "what": "not the logo",
+     "shot": "status"
+    }
+   ]
+  },
+  {
+   "id": "zl-jp-battle-start",
+   "rom": "AZ2J",
+   "state": "zoids-legacy/jp-battle-start.ss",
+   "desc": "Zoids Saga II: the first battle's opening menu (its window like a Zoid's menu, but R brings up no Status there): the logo, nothing taken",
+   "rules": [
+    "ZL-3",
+    "ZL-8"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "rule": "ZL-8",
+     "what": "nothing taken",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "ZL-3",
+     "what": "the logo at the battle's start",
+     "shot": "start"
     }
    ]
   }
