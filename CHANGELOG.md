@@ -2,8 +2,14 @@
 
 ## v1.4.10 (not yet released)
 
+### New games
+- **Super Mario Advance 4: Super Mario Bros. 3** (USA, Europe and Japan, every revision): on the world map, the status bar (world, lives, coins, score and your cards) moves to the top of the second screen, above your item inventory (what L opens), kept up to date as you walk about, win items and use them; Toad Houses, Spade games and the kings' rooms do the same. In a level, the status bar moves to the top of the second screen and the P meter to its bottom, with the logo between, so the game screen shows the whole level. The logo is Super Mario Bros. 3's own title. The game's other colours (which some colour patches pick) work too. Every level the warp zone reaches has been tried, underwater, desert, giant, sky, ice and fortress levels among them.
+
 ### Changes
 - **The first run is much quicker to get going:** the game list makes the selected game's logo first, then the others on screen, and starting a game waits only for that game's own logo (and map border), not for every game's. The rest are made while you're in the game list, and wait while you play.
+
+### Known issues
+- **Super Mario Advance 4:** airships, boss rooms, Kuribo's Shoe, World 8's tanks and Bowser, and World-e (the e-Reader levels) haven't been tried yet. Going through a pipe or door, the status bar on the second screen fades out and back with the game.
 
 ## v1.4.9 (2026-11-05)
 

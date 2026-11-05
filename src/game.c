@@ -910,6 +910,7 @@ typedef struct {
 } Piece;
 static Piece pieces[4];
 static void upload_map_frame(int idx);
+static const uint32_t* map_px(int idx);
 static const uint32_t* hud_over_map(const uint32_t* px);
 static void make_combat_canvas(void);
 static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha);
@@ -2569,6 +2570,15 @@ static void hud_compose(void) {
 	if (hudScene) {
 		if (!hudLogoDone) hud_make_logo_back();
 		memcpy(hudCanvas, hudLogoBack, sizeof(hudCanvas));
+	} else if (hudAlt && h->alt.mapBelow && mapShownIdx >= 0 && mapW == GBA_W && mapH == GBA_H && map_px(mapShownIdx)) {
+		/* (hud.alt.mapBelow: the map picture behind, at the game's size) */
+		const uint32_t* mp = map_px(mapShownIdx);
+		for (int y = 0; y < GBA_H; ++y) {
+			for (int x = 0; x < GBA_W; ++x) {
+				uint32_t* o = &hudCanvas[y * 2 * HUD_CW + x * 2];
+				o[0] = o[1] = o[HUD_CW] = o[HUD_CW + 1] = mp[y * GBA_W + x] | 0xFF000000;
+			}
+		}
 	} else if (h->logoBelow || h->logoBehind) {
 		if (!hudLogoBelowDone) hud_make_logo_below();
 		memcpy(hudCanvas, hudLogoBelow, sizeof(hudCanvas));
@@ -2632,6 +2642,8 @@ static void hud_compose(void) {
 	}
 	/* moved pieces (the scene's, or racing's): how far each goes this frame */
 	const HudMove* movesIn = hudScene ? h->scene.moves : racing ? h->moves : NULL;
+	/* (hud.alt.moves: its own, on the other layer) */
+	if (movesIn == h->moves && hudAlt && (h->alt.moves[0].how || h->alt.moves[0].vhow || h->alt.moves[0].toGame)) movesIn = h->alt.moves;
 	/* with a BG mosaic on (fading out through a pipe), the boxes' top and
 	 * bottom go to the blocks' edges: a block across a box's edge is drawn
 	 * from its first row, so it goes with the box above */

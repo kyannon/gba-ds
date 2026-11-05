@@ -1,0 +1,1214 @@
+{
+ "game": "Super Mario Advance 4: Super Mario Bros. 3",
+ "rules": "docs/games/super-mario-advance-4.md",
+ "cases": [
+  {
+   "id": "sm4-us-worldmap",
+   "rom": "AX4E",
+   "state": "super-mario-advance-4/us-worldmap-item.ss",
+   "desc": "on the world map with a fire flower won in a Toad House",
+   "rules": [
+    "SM4-1",
+    "SM4-6"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 300
+   },
+   "checks": [
+    {
+     "rule": "SM4-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "SM4-1",
+     "what": "the inventory panel at the bottom",
+     "type": "pixels",
+     "probes": [
+      [
+       512,
+       292,
+       "FFFFFF"
+      ],
+      [
+       64,
+       464,
+       "42ADF7"
+      ],
+      [
+       976,
+       464,
+       "FFFFFF"
+      ],
+      [
+       512,
+       692,
+       "FFFFFF"
+      ]
+     ],
+     "shot": "start"
+    },
+    {
+     "rule": "SM4-1",
+     "what": "nothing of the map between the status bar and the inventory",
+     "type": "uniform",
+     "rect": [
+      32,
+      160,
+      988,
+      264
+     ],
+     "color": "303030",
+     "shot": "start"
+    },
+    {
+     "rule": "SM4-6",
+     "what": "the world map's status bar at the top",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "sm4-us-house",
+   "rom": "AX4E",
+   "state": "super-mario-advance-4/us-worldmap-toad-house.ss",
+   "desc": "28 items, Mario on a Toad House: the inventory, kept inside the house below its status bar",
+   "rules": [
+    "SM4-1",
+    "SM4-4",
+    "SM4-6"
+   ],
+   "input": [
+    [
+     100,
+     "A"
+    ],
+    [
+     104,
+     "-"
+    ]
+   ],
+   "shots": {
+    "map": 60,
+    "house": 400
+   },
+   "checks": [
+    {
+     "rule": "SM4-1",
+     "what": "the inventory panel at the bottom",
+     "type": "pixels",
+     "probes": [
+      [
+       512,
+       292,
+       "FFFFFF"
+      ],
+      [
+       64,
+       464,
+       "42ADF7"
+      ],
+      [
+       976,
+       464,
+       "FFFFFF"
+      ],
+      [
+       512,
+       692,
+       "FFFFFF"
+      ]
+     ],
+     "shot": "map"
+    },
+    {
+     "rule": "SM4-1",
+     "what": "nothing of the map between the status bar and the inventory",
+     "type": "uniform",
+     "rect": [
+      32,
+      160,
+      988,
+      264
+     ],
+     "color": "303030",
+     "shot": "map"
+    },
+    {
+     "rule": "SM4-4",
+     "what": "the inventory kept in the house",
+     "type": "same",
+     "a": {
+      "shot": "map",
+      "rect": [
+       32,
+       224,
+       988,
+       700
+      ]
+     },
+     "b": {
+      "shot": "house",
+      "rect": [
+       32,
+       224,
+       988,
+       700
+      ]
+     }
+    },
+    {
+     "rule": "SM4-6",
+     "what": "the world map's status bar at the top",
+     "type": "not_uniform",
+     "shot": "map",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SM4-4",
+     "what": "the status bar at the top of the second screen",
+     "type": "not_uniform",
+     "shot": "house",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "sm4-us-house-fresh",
+   "rom": "AX4E",
+   "state": "super-mario-advance-4/us-toad-house.ss",
+   "desc": "a state loaded in a Toad House: its status bar above the logo",
+   "rules": [
+    "SM4-4"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "SM4-4",
+     "what": "the status bar at the top of the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "sm4-us-kings-room",
+   "rom": "AX4E",
+   "state": "super-mario-advance-4/us-kings-room.ss",
+   "desc": "World 1's king's room (a state loaded there: its status bar above the logo)",
+   "rules": [
+    "SM4-4"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "SM4-4",
+     "what": "the status bar at the top of the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "sm4-us-spade",
+   "rom": "AX4E",
+   "state": "super-mario-advance-4/us-spade.ss",
+   "desc": "a Spade panel game",
+   "rules": [
+    "SM4-4"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "SM4-4",
+     "what": "the status bar at the top of the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "sm4-us-level",
+   "rom": "AX4E",
+   "state": "super-mario-advance-4/us-level.ss",
+   "desc": "World 1-3",
+   "rules": [
+    "SM4-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 200
+   },
+   "checks": [
+    {
+     "rule": "SM4-2",
+     "what": "the status bar along the top",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      32,
+      64,
+      988,
+      92
+     ],
+     "color": "303030",
+     "frac": 0.97
+    },
+    {
+     "rule": "SM4-2",
+     "what": "the P meter centred along the bottom",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      432,
+      664,
+      592,
+      692
+     ],
+     "color": "303030",
+     "frac": 0.97
+    },
+    {
+     "rule": "SM4-2",
+     "what": "nothing at the bottom left",
+     "type": "uniform",
+     "shot": "start",
+     "rect": [
+      48,
+      664,
+      272,
+      692
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "sm4-us-enter",
+   "rom": "AX4E",
+   "state": "super-mario-advance-4/us-worldmap-level1.ss",
+   "desc": "on World 1-1 on the world map, then into the level",
+   "rules": [
+    "SM4-1",
+    "SM4-2",
+    "SM4-6"
+   ],
+   "input": [
+    [
+     100,
+     "A"
+    ],
+    [
+     104,
+     "-"
+    ]
+   ],
+   "shots": {
+    "map": 60,
+    "level": 400
+   },
+   "checks": [
+    {
+     "rule": "SM4-1",
+     "what": "the inventory panel at the bottom",
+     "type": "pixels",
+     "probes": [
+      [
+       512,
+       292,
+       "FFFFFF"
+      ],
+      [
+       64,
+       464,
+       "42ADF7"
+      ],
+      [
+       976,
+       464,
+       "FFFFFF"
+      ],
+      [
+       512,
+       692,
+       "FFFFFF"
+      ]
+     ],
+     "shot": "map"
+    },
+    {
+     "rule": "SM4-1",
+     "what": "nothing of the map between the status bar and the inventory",
+     "type": "uniform",
+     "rect": [
+      32,
+      160,
+      988,
+      264
+     ],
+     "color": "303030",
+     "shot": "map"
+    },
+    {
+     "rule": "SM4-2",
+     "what": "the status bar along the top",
+     "type": "not_uniform",
+     "shot": "level",
+     "rect": [
+      32,
+      64,
+      988,
+      92
+     ],
+     "color": "303030",
+     "frac": 0.97
+    },
+    {
+     "rule": "SM4-2",
+     "what": "the P meter centred along the bottom",
+     "type": "not_uniform",
+     "shot": "level",
+     "rect": [
+      432,
+      664,
+      592,
+      692
+     ],
+     "color": "303030",
+     "frac": 0.97
+    },
+    {
+     "rule": "SM4-6",
+     "what": "the world map's status bar at the top",
+     "type": "not_uniform",
+     "shot": "map",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SM4-2",
+     "what": "nothing at the bottom left",
+     "type": "uniform",
+     "shot": "level",
+     "rect": [
+      48,
+      664,
+      272,
+      692
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "sm4-us-pipe",
+   "rom": "AX4E",
+   "state": "super-mario-advance-4/us-sky-pipe.ss",
+   "desc": "down the pipe at the end of World 1-1's sky (P-Wing), into the coin room",
+   "rules": [
+    "SM4-2"
+   ],
+   "input": [
+    [
+     1,
+     "LEFT"
+    ],
+    [
+     11,
+     "-"
+    ],
+    [
+     71,
+     "DOWN"
+    ],
+    [
+     200,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 60,
+    "fade": 150,
+    "room": 300
+   },
+   "checks": [
+    {
+     "rule": "SM4-2",
+     "what": "the status bar along the top",
+     "type": "not_uniform",
+     "shot": "room",
+     "rect": [
+      32,
+      64,
+      988,
+      92
+     ],
+     "color": "303030",
+     "frac": 0.97
+    },
+    {
+     "rule": "SM4-2",
+     "what": "the P meter centred along the bottom",
+     "type": "not_uniform",
+     "shot": "room",
+     "rect": [
+      432,
+      664,
+      592,
+      692
+     ],
+     "color": "303030",
+     "frac": 0.97
+    },
+    {
+     "rule": "SM4-2",
+     "what": "nothing at the bottom left",
+     "type": "uniform",
+     "shot": "room",
+     "rect": [
+      48,
+      664,
+      272,
+      692
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "sm4-us-goal",
+   "rom": "AX4E",
+   "state": "super-mario-advance-4/us-goal.ss",
+   "desc": "World 1-1's goal: LEVEL CLEARED! and the card, then back on the world map",
+   "rules": [
+    "SM4-3",
+    "SM4-2",
+    "SM4-1",
+    "SM4-6"
+   ],
+   "shots": {
+    "cleared": 300,
+    "map": 700
+   },
+   "checks": [
+    {
+     "rule": "SM4-2",
+     "what": "the status bar along the top",
+     "type": "not_uniform",
+     "shot": "cleared",
+     "rect": [
+      32,
+      64,
+      988,
+      92
+     ],
+     "color": "303030",
+     "frac": 0.97
+    },
+    {
+     "rule": "SM4-2",
+     "what": "the P meter centred along the bottom",
+     "type": "not_uniform",
+     "shot": "cleared",
+     "rect": [
+      432,
+      664,
+      592,
+      692
+     ],
+     "color": "303030",
+     "frac": 0.97
+    },
+    {
+     "rule": "SM4-1",
+     "what": "the inventory panel at the bottom",
+     "type": "pixels",
+     "probes": [
+      [
+       512,
+       292,
+       "FFFFFF"
+      ],
+      [
+       64,
+       464,
+       "42ADF7"
+      ],
+      [
+       976,
+       464,
+       "FFFFFF"
+      ],
+      [
+       512,
+       692,
+       "FFFFFF"
+      ]
+     ],
+     "shot": "map"
+    },
+    {
+     "rule": "SM4-1",
+     "what": "nothing of the map between the status bar and the inventory",
+     "type": "uniform",
+     "rect": [
+      32,
+      160,
+      988,
+      264
+     ],
+     "color": "303030",
+     "shot": "map"
+    },
+    {
+     "rule": "SM4-2",
+     "what": "nothing at the bottom left",
+     "type": "uniform",
+     "shot": "cleared",
+     "rect": [
+      48,
+      664,
+      272,
+      692
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "SM4-6",
+     "what": "the world map's status bar at the top",
+     "type": "not_uniform",
+     "shot": "map",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "sm4-us-menu",
+   "rom": "AX4E",
+   "state": "super-mario-advance-4/us-game-select.ss",
+   "desc": "the game select screen: the logo",
+   "rules": [
+    "SM4-5"
+   ],
+   "shots": {
+    "start": 60
+   }
+  },
+  {
+   "id": "sm4-eu-worldmap",
+   "rom": "AX4P",
+   "state": "super-mario-advance-4/eu-worldmap.ss",
+   "desc": "the world map, European release",
+   "rules": [
+    "SM4-1",
+    "SM4-6"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": [
+    {
+     "rule": "SM4-1",
+     "what": "the inventory panel at the bottom",
+     "type": "pixels",
+     "probes": [
+      [
+       512,
+       292,
+       "FFFFFF"
+      ],
+      [
+       64,
+       464,
+       "42ADF7"
+      ],
+      [
+       976,
+       464,
+       "FFFFFF"
+      ],
+      [
+       512,
+       692,
+       "FFFFFF"
+      ]
+     ],
+     "shot": "start"
+    },
+    {
+     "rule": "SM4-1",
+     "what": "nothing of the map between the status bar and the inventory",
+     "type": "uniform",
+     "rect": [
+      32,
+      160,
+      988,
+      264
+     ],
+     "color": "303030",
+     "shot": "start"
+    },
+    {
+     "rule": "SM4-6",
+     "what": "the world map's status bar at the top",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "sm4-eu-level",
+   "rom": "AX4P",
+   "state": "super-mario-advance-4/eu-level.ss",
+   "desc": "World 1-1, European release",
+   "rules": [
+    "SM4-2"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "SM4-2",
+     "what": "the status bar along the top",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      32,
+      64,
+      988,
+      92
+     ],
+     "color": "303030",
+     "frac": 0.97
+    },
+    {
+     "rule": "SM4-2",
+     "what": "the P meter centred along the bottom",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      432,
+      664,
+      592,
+      692
+     ],
+     "color": "303030",
+     "frac": 0.97
+    },
+    {
+     "rule": "SM4-2",
+     "what": "nothing at the bottom left",
+     "type": "uniform",
+     "shot": "start",
+     "rect": [
+      48,
+      664,
+      272,
+      692
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "sm4-jp-worldmap",
+   "rom": "AX4J",
+   "state": "super-mario-advance-4/jp-worldmap.ss",
+   "desc": "the world map, Japanese release",
+   "rules": [
+    "SM4-1",
+    "SM4-6"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": [
+    {
+     "rule": "SM4-1",
+     "what": "the inventory panel at the bottom",
+     "type": "pixels",
+     "probes": [
+      [
+       512,
+       292,
+       "FFFFFF"
+      ],
+      [
+       64,
+       464,
+       "42ADF7"
+      ],
+      [
+       976,
+       464,
+       "FFFFFF"
+      ],
+      [
+       512,
+       692,
+       "FFFFFF"
+      ]
+     ],
+     "shot": "start"
+    },
+    {
+     "rule": "SM4-1",
+     "what": "nothing of the map between the status bar and the inventory",
+     "type": "uniform",
+     "rect": [
+      32,
+      160,
+      988,
+      264
+     ],
+     "color": "303030",
+     "shot": "start"
+    },
+    {
+     "rule": "SM4-6",
+     "what": "the world map's status bar at the top",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "sm4-jp-level",
+   "rom": "AX4J",
+   "state": "super-mario-advance-4/jp-level.ss",
+   "desc": "World 1-1, Japanese release",
+   "rules": [
+    "SM4-2"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "SM4-2",
+     "what": "the status bar along the top",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      32,
+      64,
+      988,
+      92
+     ],
+     "color": "303030",
+     "frac": 0.97
+    },
+    {
+     "rule": "SM4-2",
+     "what": "the P meter centred along the bottom",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      432,
+      664,
+      592,
+      692
+     ],
+     "color": "303030",
+     "frac": 0.97
+    },
+    {
+     "rule": "SM4-2",
+     "what": "nothing at the bottom left",
+     "type": "uniform",
+     "shot": "start",
+     "rect": [
+      48,
+      664,
+      272,
+      692
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "sm4-us-other-colours",
+   "rom": "AX4E",
+   "state": "super-mario-advance-4/us-worldmap-other-colours.ss",
+   "desc": "the world map in the game's other colours (saved with the owner's colour patch, which picks them at start; the state keeps them)",
+   "rules": [
+    "SM4-1",
+    "SM4-6"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": [
+    {
+     "rule": "SM4-1",
+     "what": "the inventory panel at the bottom",
+     "type": "pixels",
+     "probes": [
+      [
+       512,
+       292,
+       "FFFFFF"
+      ],
+      [
+       48,
+       464,
+       "000000"
+      ],
+      [
+       976,
+       464,
+       "FFFFFF"
+      ],
+      [
+       512,
+       692,
+       "FFFFFF"
+      ]
+     ],
+     "shot": "start"
+    },
+    {
+     "rule": "SM4-6",
+     "what": "the world map's status bar at the top",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SM4-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "sm4-us-warp-zone",
+   "rom": "AX4E",
+   "state": "super-mario-advance-4/us-warp-zone.ss",
+   "desc": "the warp zone's map (its WORLD 9 WARP ZONE! banner)",
+   "rules": [
+    "SM4-1",
+    "SM4-6"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": [
+    {
+     "rule": "SM4-1",
+     "what": "the inventory panel at the bottom",
+     "type": "pixels",
+     "probes": [
+      [
+       512,
+       292,
+       "FFFFFF"
+      ],
+      [
+       48,
+       464,
+       "000000"
+      ],
+      [
+       976,
+       464,
+       "FFFFFF"
+      ],
+      [
+       512,
+       692,
+       "FFFFFF"
+      ]
+     ],
+     "shot": "start"
+    },
+    {
+     "rule": "SM4-6",
+     "what": "the world map's status bar at the top",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "sm4-us-underwater",
+   "rom": "AX4E",
+   "state": "super-mario-advance-4/us-w3-underwater.ss",
+   "desc": "an underwater level in World 3",
+   "rules": [
+    "SM4-2"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "SM4-2",
+     "what": "the status bar along the top",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      32,
+      64,
+      988,
+      92
+     ],
+     "color": "303030",
+     "frac": 0.97
+    },
+    {
+     "rule": "SM4-2",
+     "what": "the P meter centred along the bottom",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      432,
+      664,
+      592,
+      692
+     ],
+     "color": "303030",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "sm4-us-fortress",
+   "rom": "AX4E",
+   "state": "super-mario-advance-4/us-w3-fortress.ss",
+   "desc": "World 3's fortress",
+   "rules": [
+    "SM4-2"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "SM4-2",
+     "what": "the status bar along the top",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      32,
+      64,
+      988,
+      92
+     ],
+     "color": "303030",
+     "frac": 0.97
+    },
+    {
+     "rule": "SM4-2",
+     "what": "the P meter centred along the bottom",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      432,
+      664,
+      592,
+      692
+     ],
+     "color": "303030",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "sm4-us-ice",
+   "rom": "AX4E",
+   "state": "super-mario-advance-4/us-w6-ice.ss",
+   "desc": "an ice level in World 6",
+   "rules": [
+    "SM4-2"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "SM4-2",
+     "what": "the status bar along the top",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      32,
+      64,
+      988,
+      92
+     ],
+     "color": "303030",
+     "frac": 0.97
+    },
+    {
+     "rule": "SM4-2",
+     "what": "the P meter centred along the bottom",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      432,
+      664,
+      592,
+      692
+     ],
+     "color": "303030",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "sm4-us-w8",
+   "rom": "AX4E",
+   "state": "super-mario-advance-4/us-w8-level.ss",
+   "desc": "a World 8 level",
+   "rules": [
+    "SM4-2"
+   ],
+   "shots": {
+    "start": 60
+   }
+  },
+  {
+   "id": "sm4-logo-ax4e",
+   "kind": "logo",
+   "rom": "AX4E",
+   "desc": "AX4E logo extraction",
+   "rules": [
+    "GEN-1",
+    "SM4-5"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "sm4-logo-ax4p",
+   "kind": "logo",
+   "rom": "AX4P",
+   "desc": "AX4P logo extraction",
+   "rules": [
+    "GEN-1",
+    "SM4-5"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "sm4-logo-ax4j",
+   "kind": "logo",
+   "rom": "AX4J",
+   "desc": "AX4J logo extraction",
+   "rules": [
+    "GEN-1",
+    "SM4-5"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

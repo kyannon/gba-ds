@@ -247,6 +247,36 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 		free(q);
 		free(done);
 	}
+	if (p->logo.shadow[0] && p->logo.shadowReach > 0) {
+		/* (logo.shadow: row by row, each shadow pixel kept or not) */
+		int reach = p->logo.shadowReach;
+		uint8_t* shade = calloc(GBA_W * GBA_H, 1); /* 1 shadow, 2 shadow kept */
+		for (int i = 0; shade && i < GBA_W * maxY; ++i) {
+			if (!opaque[i]) continue;
+			uint32_t c = fg[i];
+			int r = c & 0xFF, g = (c >> 8) & 0xFF, b = (c >> 16) & 0xFF;
+			for (int k = 0; k < 2 && p->logo.shadow[k]; ++k) {
+				uint32_t e = p->logo.shadow[k];
+				if (abs(r - (int) (e >> 16 & 0xFF)) + abs(g - (int) (e >> 8 & 0xFF)) + abs(b - (int) (e & 0xFF)) < 12) shade[i] = 1;
+			}
+		}
+		for (int y = 0; shade && y < maxY; ++y) {
+			for (int x = 0; x < GBA_W; ++x) {
+				int i = y * GBA_W + x;
+				if (shade[i] != 1) continue;
+				bool keep = false;
+				for (int dy = 1; dy <= reach && !keep; ++dy) {
+					for (int dx = 0; dx <= reach && !keep; ++dx) {
+						int X = x - dx, Y = y - dy, j = Y * GBA_W + X;
+						if (X >= 0 && Y >= 0 && opaque[j] && shade[j] != 1) keep = true;
+					}
+				}
+				if (keep) shade[i] = 2;
+				else opaque[i] = 0;
+			}
+		}
+		free(shade);
+	}
 	for (int y = 0; y < maxY; ++y) {
 		for (int x = 0; x < GBA_W; ++x) {
 			if (!opaque[y * GBA_W + x]) continue;
