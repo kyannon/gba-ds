@@ -3665,8 +3665,12 @@ static const MapProfile profiles[] = {
 		 * bottom, with the logo between (SM4-2). The item cards shown at
 		 * the start and end of a level are sprites and stay. */
 		.hud = {
-			.on = { { 0x03003DE2, 0xF0, 0x40, 1 }, { 0x04000008, 0xFFFC, 0x9400, 2 },
-			        { 0x04000000, 0x0100, 0x0100, 2 } },
+			/* (where Mario is: 0x40 a level, 0x08-0x09 an airship too,
+			 * as well as the houses; their status bar is the map's,
+			 * along the bottom, by BG0's vertical scroll, 0 in levels
+			 * and airships) */
+			.on = { { 0x03003DE2, 0xFF, 0x00, 1, true, 0x40, true }, { 0x04000008, 0xFFFC, 0x9400, 2 },
+			        { 0x04000000, 0x0100, 0x0100, 2 }, { 0x04000012, 0x01FF, 0, 2 } },
 			.bgMask = 1,
 			.logoBelow = true,
 			/* the status bar is rows 0-7, the P meter 150-157: what BG0
