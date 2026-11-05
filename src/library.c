@@ -1077,20 +1077,31 @@ static bool updates_input(int ls) {
 #endif
 
 /* "Preparing games" over a dimmed screen, with a progress bar. */
-static void draw_wait(int scr, int done, int total) {
+/* Starting a game whose logo (or map border) isn't ready yet: only its
+ * own are made first (and the one already under way finished), the rest
+ * wait until the game list is back. */
+static void draw_wait(int scr, const char* name) {
 	SDL_Rect r = screens[scr].rect;
 	float px = ui_px(scr);
 	ui_dim(scr, 235);
 	int cy = r.h / 2;
-	ui_label(scr, r.w / 2, cy - px * 14, px * 6, "Preparing games...", C_TEXT);
-	int bw = r.w / 2, bh = px * 4;
-	SDL_Rect bar = { (r.w - bw) / 2, cy - bh / 2, bw, bh };
-	ui_fill(scr, bar, C_ROW);
-	if (total > 0) ui_fill(scr, (SDL_Rect) { bar.x, bar.y, bw * done / total, bh }, C_SEL);
-	char line[64];
-	snprintf(line, sizeof(line), "%d of %d", done, total);
-	ui_font_text(scr, TF_BODY, r.w / 2, cy + px * 11, px * 4, line, C_DIM, 0);
-	ui_font_text(scr, TF_BODY, r.w / 2, cy + px * 22, px * 4, "First run only. B: back", C_DIM, 0);
+	ui_label(scr, r.w / 2, cy - px * 14, px * 6, "Preparing the game...", C_TEXT);
+	char line[200];
+	fit_text(line, sizeof(line), TF_BODY, px * 4, name, r.w - px * 16);
+	ui_font_text(scr, TF_BODY, r.w / 2, cy + px * 2, px * 4, line, C_DIM, 0);
+	ui_font_text(scr, TF_BODY, r.w / 2, cy + px * 14, px * 4, "First run only. B: back", C_DIM, 0);
+}
+
+/* The logos (and map borders) still to make, in the order they'll be seen:
+ * the selected game's first, then the others on screen, top to bottom */
+static void prioritise(int scr, int sel, int scroll) {
+	ListGeom g = list_geom(scr);
+	SDL_Rect r = screens[scr].rect;
+	for (int i = nGames - 1; i >= 0; --i) {
+		SDL_Rect t = tile_rect(&g, i, scroll);
+		if (i != sel && t.y + t.h > g.headerH && t.y < r.h) logo_front(games[i].code, false);
+	}
+	if (sel >= 0 && sel < nGames) logo_front(games[sel].code, false);
 }
 
 static int clamp_scroll(int scr, int scroll) {
@@ -1132,7 +1143,9 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 	bool dragging = false, pressed = false;
 	int pressY = 0, pressScroll = 0;
 	int chosen = -1;
-	int waiting = -1; /* chosen, but the background extraction isn't done yet */
+	int waiting = -1; /* chosen, but its logo or map border isn't made yet */
+	int prioSel = -2, prioScroll = -1; /* the queue last ordered for these */
+	logo_pause(false); /* (back from a game: the rest of the logos) */
 	bool quit = false;
 	int repeat = 0;
 	bool settingsOpen = false;
@@ -1161,24 +1174,28 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 		ListGeom g = list_geom(ls);
 
 		/* The first time games are listed, their logos and map borders are
-		 * pulled out of the ROMs in the background. Wait for that before
-		 * starting a game so the game doesn't compete with it for the CPU
-		 * (which made the audio crackle on the first launch). */
+		 * pulled out of the ROMs in the background, the ones on screen
+		 * first. A game started before its own are ready waits for them
+		 * (and for the one under way, so the game doesn't compete with it
+		 * for the CPU: that made the audio crackle); the rest wait for the
+		 * game list (logo_pause). */
+		if (sel != prioSel || scroll != prioScroll) {
+			prioritise(ls, sel, scroll);
+			prioSel = sel, prioScroll = scroll;
+		}
 		if (waiting >= 0) {
-			int done, total;
-			logo_progress(&done, &total);
-			if (done >= total) {
+			if (!logo_busy(games[waiting].code) && !logo_busy(NULL)) {
 				chosen = waiting;
 				break;
 			}
 			Pointer p;
 			while (ui_next_pointer(&p)) {
 			}
-			if (btn_pressed(B_B) || btn_released(B_HOME)) waiting = -1;
+			if (btn_pressed(B_B) || btn_released(B_HOME)) waiting = -1, logo_pause(false);
 			ui_clear();
 			draw_list(cfg, ls, sel, scroll);
 			if (nScreens > 1) draw_preview(cfg, ui_other_screen(), sel);
-			for (int s = 0; s < nScreens; ++s) draw_wait(s, done, total);
+			for (int s = 0; s < nScreens && waiting >= 0; ++s) draw_wait(s, games[waiting].name);
 			ui_present();
 			SDL_Delay(15);
 			continue;
@@ -1330,9 +1347,10 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 		}
 
 		if (chosen >= 0) {
-			int done, total;
-			logo_progress(&done, &total);
-			if (done < total) waiting = chosen, chosen = -1;
+			/* (its own jobs first, and nothing else started meanwhile) */
+			logo_pause(true);
+			logo_front(games[chosen].code, true);
+			if (logo_busy(games[chosen].code) || logo_busy(NULL)) waiting = chosen, chosen = -1;
 		}
 
 		ui_clear();

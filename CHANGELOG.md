@@ -2,6 +2,9 @@
 
 ## v1.4.10 (not yet released)
 
+### Changes
+- **The first run is much quicker to get going:** the game list makes the selected game's logo first, then the others on screen, and starting a game waits only for that game's own logo (and map border), not for every game's. The rest are made while you're in the game list, and wait while you play.
+
 ## v1.4.9 (2026-11-05)
 
 ### New games

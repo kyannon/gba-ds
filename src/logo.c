@@ -413,6 +413,7 @@ bool frame_extract(const char* romPath, const char* gameCode, const char* outPng
 typedef struct Job {
 	char rom[1024], code[5], out[1024];
 	bool frame;
+	bool urgent; /* runs while the queue's paused: the game being started or played */
 	struct Job* next;
 } Job;
 
@@ -423,6 +424,8 @@ static bool running, stopping;
 static pthread_t thread;
 static volatile uint32_t generation;
 static int pending, finished; /* jobs queued or running / done since the queue last went idle */
+static bool paused; /* a game's playing: only urgent jobs run */
+static char current[5]; /* the code of the job running, "" if none */
 
 static bool exists(const char* p) {
 	struct stat st;
@@ -449,17 +452,23 @@ static void* worker(void* arg) {
 #endif
 	pthread_mutex_lock(&qlock);
 	while (!stopping) {
-		Job* j = queue;
+		/* the first job, or while paused the first urgent one */
+		Job** at = &queue;
+		while (*at && paused && !(*at)->urgent) at = &(*at)->next;
+		Job* j = *at;
 		if (!j) {
 			pthread_cond_wait(&qcond, &qlock);
 			continue;
 		}
-		queue = j->next;
+		*at = j->next;
+		snprintf(current, sizeof(current), "%s", j->code);
 		pthread_mutex_unlock(&qlock);
 		do_job(j);
 		pthread_mutex_lock(&qlock);
+		current[0] = 0;
 		--pending;
 		++finished;
+		pthread_cond_broadcast(&qcond);
 	}
 	pthread_mutex_unlock(&qlock);
 	return NULL;
@@ -505,10 +514,16 @@ static void enqueue(const char* romPath, const char* gameCode, const char* outPn
 	snprintf(j->code, sizeof(j->code), "%.4s", gameCode);
 	snprintf(j->out, sizeof(j->out), "%s", outPng);
 	j->frame = frame;
+	j->urgent = paused; /* (asked for by the game being played: its own logo) */
 	if (!pending) finished = 0;
 	++pending;
 	Job** tail = &queue;
-	while (*tail) tail = &(*tail)->next;
+	if (j->urgent) {
+		while (*tail && (*tail)->urgent) tail = &(*tail)->next; /* (after the other urgent ones) */
+		j->next = *tail;
+	} else {
+		while (*tail) tail = &(*tail)->next;
+	}
 	*tail = j;
 	/* (GBADS_SYNC=1, regression tests: inline too, like the web build) */
 	if (!running && !(getenv("GBADS_SYNC") && atoi(getenv("GBADS_SYNC")))) running = pthread_create(&thread, NULL, worker, NULL) == 0;
@@ -540,6 +555,43 @@ void frame_request(const char* romPath, const char* gameCode, const char* outPng
 	const MapProfile* p = profile_find(gameCode);
 	if (!p || !p->frame.t) return;
 	enqueue(romPath, gameCode, outPng, true);
+}
+
+void logo_front(const char* gameCode, bool urgent) {
+	pthread_mutex_lock(&qlock);
+	Job *mine = NULL, **mineTail = &mine;
+	for (Job** at = &queue; *at;) {
+		Job* j = *at;
+		if (!strncmp(j->code, gameCode, 4)) {
+			*at = j->next;
+			j->next = NULL;
+			j->urgent |= urgent;
+			*mineTail = j, mineTail = &j->next;
+		} else {
+			at = &j->next;
+		}
+	}
+	if (mine) {
+		*mineTail = queue;
+		queue = mine;
+		pthread_cond_signal(&qcond);
+	}
+	pthread_mutex_unlock(&qlock);
+}
+
+bool logo_busy(const char* gameCode) {
+	pthread_mutex_lock(&qlock);
+	bool busy = (gameCode && !strncmp(current, gameCode, 4)) || (!gameCode && current[0]);
+	for (Job* j = queue; j && gameCode && !busy; j = j->next) busy = !strncmp(j->code, gameCode, 4);
+	pthread_mutex_unlock(&qlock);
+	return busy;
+}
+
+void logo_pause(bool on) {
+	pthread_mutex_lock(&qlock);
+	paused = on;
+	pthread_cond_signal(&qcond);
+	pthread_mutex_unlock(&qlock);
 }
 
 void logo_progress(int* done, int* total) {
