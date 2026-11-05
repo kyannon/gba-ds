@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `AGFE` USA, Europe (English) · `AGFD` Germany · `AGFF` France · `AGFI` Italy · `AGFS` Spain · `AGFJ` Japan (each tried walking about and in a battle) |
+| Dumps | `AGFE` cartridge `606a1c4d` (tested), Virtual Console `726bb764` · `AGFD` cartridge `d981d889` (tested) · `AGFF` cartridge `1090bd33` (tested) · `AGFI` cartridge `a3e49743` (tested) · `AGFS` cartridge `ee38ba94` (tested) · `AGFJ` cartridge `830b795f` (tested), Virtual Console `8c9ec3da` |
 | Profile | `src/profiles.c`: the `AGFE` entry (gs2_compose; the releases' addresses in gs2Addr); variants `AGFS` (as `AGFE`), `AGFJ` (the one choosing 0x200 lower) |
 | Tests | `tests/regress/golden-sun-2.json` (`tools/regress.py golden-sun-2`) |
 | Status | testing (branch `game/golden-sun-2`) |
