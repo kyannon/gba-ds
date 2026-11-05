@@ -22,15 +22,17 @@ The model is Sonic Advance 2: the game's own act card kept on the second screen,
 
 **SA3-3. The rings, time and lives.** Once the card has gone, the rings and time (top left) and the lives (bottom left) leave the game screen for the same places on the second screen, over the card: where the game drew them on its card. The ring count flashing red at no rings flashes there too.
 
-**SA3-4. The hubs.** In a zone's hub (where the acts' rings are) and in the Sonic Factory, there is no card: the second screen shows the logo, centred on dark grey, and the hub's HUD leaves the game screen for the same places there: the icon and key count top left, the lives bottom left, the zone's label (ZONE 1: ROUTE 99) bottom right. The last act's card isn't kept there, as a hub leads on to other zones. *By hand: finish an act and check the hub shows the logo, not the act's card; the tests reach a hub only by loading a state, which never keeps a card.*
+**SA3-4. The hubs.** In a zone's hub (where the acts' rings are) and in the Sonic Factory, there is no card: the second screen shows the logo, centred on dark grey, and the hub's HUD leaves the game screen for the same places there: the icon and key count top left, the lives bottom left, the zone's label (ZONE 1: ROUTE 99) bottom right. The last act's card isn't kept there, as a hub leads on to other zones.
 
 **SA3-5. Pause.** PAUSE stays on the game screen; the second screen keeps the card and the moved HUD.
 
 **SA3-6. One screen.** With one screen, the game plays as it is.
 
+**SA3-7. The act's results.** At the goal the game takes its HUD away and shows the results on the game screen (SONIC & TAILS, ACT 01 CLEAR!!, CLEAR TIME): they stay there. The second screen keeps the card, without the HUD, through the results and the fade to white, until the hub (SA3-4).
+
 ## Not covered yet
 
-Tried in every zone's first act (Route 99, Sunset Hill, Ocean Base, Toy Kingdom, Twinkle Snow, Cyber Track, Chaos Angel), Route 99's other acts and boss, Sunset Hill's boss, and the hubs of Route 99, Sunset Hill and Ocean Base, with Sonic and Tails, from states played in from power-on and moved between levels by changing the level number in RAM as an act ring would (all three releases alike: the logo, the card, the hub). Not tried yet: the act's results (GOT THROUGH), bonus games after the goal (left out: the logo), special stages, the boss fights' later moments, water (Ocean Base), Altar Emerald and the ending, other teams, Time Attack and multiplayer (left out: the logo), and the Chao Playground. In an act or hub with the same display setup they get the same treatment, untried; elsewhere the logo.
+Tried in every zone's first act (Route 99, Sunset Hill, Ocean Base, Toy Kingdom, Twinkle Snow, Cyber Track, Chaos Angel), Route 99's other acts, its boss and act 1's goal and results back to the hub, Sunset Hill's boss, and the hubs of Route 99, Sunset Hill and Ocean Base, with Sonic and Tails, from states played in from power-on and moved between levels by changing the level number in RAM as an act ring would (all three releases alike: the logo, the card, the hub). Not tried yet: the results' later moments (a special key's, a bonus game's capsule), bonus games after the goal (left out: the logo), special stages, the boss fights' later moments, water (Ocean Base), Altar Emerald and the ending, other teams, Time Attack and multiplayer (left out: the logo), and the Chao Playground. In an act or hub with the same display setup they get the same treatment, untried; elsewhere the logo.
 
 Known: for about 6 frames as an act starts (the screen still black, before the card's name comes in), the HUD is off the game screen.
 
@@ -44,6 +46,7 @@ Known: for about 6 frames as an act starts (the screen still black, before the c
 | Card | black by BLDCNT (`0x3FEF`, BLDY 16) outside window 1; the band is the backdrop through it. The zone's name: sprites in palette 9, priority 3, from tile 620 (622 in some zones), at y 72 while centred; from about frame 13 of the act to 224. The band then slides down (y 128) with the team (palette 6, tile 728) and ACT 01 / VS BOSS (palette 9, tiles 712-726) |
 | HUD | sprites of priority 0: the ring icon (palette 7, tiles 488-496, at 8,0), the ring count (palettes 6-7, tile 448, from 36,2), TIME and the time (palette 6, tiles 448-497, from 88,1); the lives: the faces (palette 7, tiles 472-478) at 5,140, the count (palette 6, tile 452) at 32,140. In a hub: the key (palette 6, tile 484) and count at 11-40,24, and the zone's label (palette 6, from tile 620) at 144,144. PAUSE: palette 15, from tile 620, at 88,72 |
 | Boot | a language menu (A: the highlighted language, English or Japanese), name entry (A a letter, START to END, A), SEGA and Sonic Team, the intro, the title about 2500 frames after the name (START skips the intro); MAIN GAME, SINGLE PLAYER, the character and partner (A each), the story text (START skips it), Route 99's hub |
+| Goal | the goal ring is interactable 55 in the level's list (decompressed into EWRAM: a word, then the regions across and down (51 and 13 in Route 99 act 1), an offset for each region from the second word, then 8-byte entries: x, y (8-pixel units in the region), the index, 5 bytes of data; 0xFF ends a region). Route 99 act 1's at 12864,1408: putting the player there finishes the act |
 | Moving between levels | in a hub, touch a ring (the Sonic Factory's, above Route 99's hub's left end: x 50, y 599), and 99 frames later, as the level changes to 1, set the zone, act, entrance (0) and level: the game loads that one instead, with its card |
 | Logo | BG1 alone on the title (the copyright lines are sprites) |
 
@@ -51,7 +54,7 @@ Known: for about 6 frames as an act starts (the screen still black, before the c
 
 Changelog line (under the open version's What's new):
 
-- Sonic Advance 3 (USA, Europe, Japan): each act's card on the second screen (the zone's name on its white band), with the rings, time and lives moved over it where the game draws them on the card, off the game screen; in the hubs, the logo with the hub's keys, lives and zone label. Tried in every zone's first act and the hubs; results, special stages, bonus games, water, Time Attack and multiplayer untried.
+- Sonic Advance 3 (USA, Europe, Japan): each act's card on the second screen (the zone's name on its white band), with the rings, time and lives moved over it where the game draws them on the card, off the game screen; in the hubs, the logo with the hub's keys, lives and zone label. Tried in every zone's first act, Route 99's results and the hubs; special stages, bonus games, water, Time Attack and multiplayer untried.
 
 `wiki/Supported-games.md`, the table row (after Sonic Advance 2's) and the section (after Sonic Advance 2's):
 
@@ -64,8 +67,8 @@ The USA, European and Japanese releases, tried in every zone's first act and the
 - As each act or boss starts, the second screen keeps the game's **act card** (the zone's name on its white band across black), as the game draws it, once the band has settled.
 - In the act, the **rings, time and lives** move from the game screen to the same places on the second screen, over the card.
 - In a zone's **hub**, there's no card: the second screen shows the logo, with the hub's **key count, lives and zone label** moved there.
-- PAUSE stays on the game screen. On the title, menus and the demo, the second screen shows the logo; after loading a state mid-act that wasn't saved with the card, the logo stays (with the moved HUD) until the next act's card.
-- Not tried yet: the act's results, bonus games, special stages, water, other teams, Altar Emerald, Time Attack and multiplayer.
+- PAUSE and the act's results stay on the game screen. On the title, menus and the demo, the second screen shows the logo; after loading a state mid-act that wasn't saved with the card, the logo stays (with the moved HUD) until the next act's card.
+- Not tried yet: bonus games, special stages, water, other teams, Altar Emerald, Time Attack and multiplayer.
 
 (When merging, this section goes into the wiki under `## Sonic Advance 3` and comes out of this file with the rest of "For the merge".)
 

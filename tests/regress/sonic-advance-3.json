@@ -1042,6 +1042,150 @@
    ]
   },
   {
+   "id": "sa3-us-goal",
+   "rom": "B3SE",
+   "state": "sonic-advance-3/us-goal-card.ss",
+   "desc": "Route 99 act 1's goal just touched, in a state with the act's card on the second screen (the card from a state saved by GBA DS, laid onto a harness state): the HUD goes, the results on the game screen, the card kept through them and the fade; then the hub, with the logo and the hub's HUD",
+   "rules": [
+    "SA3-7",
+    "SA3-4",
+    "SA3-2"
+   ],
+   "shots": {
+    "play": 2,
+    "results": 400,
+    "fade": 560,
+    "hub": 700
+   },
+   "checks": [
+    {
+     "rule": "SA3-7",
+     "what": "the card kept through the results",
+     "type": "same",
+     "a": {
+      "shot": "play",
+      "rect": [
+       32,
+       330,
+       992,
+       440
+      ]
+     },
+     "b": {
+      "shot": "results",
+      "rect": [
+       32,
+       330,
+       992,
+       440
+      ]
+     }
+    },
+    {
+     "rule": "SA3-7",
+     "what": "the card at full strength through the fade",
+     "type": "same",
+     "a": {
+      "shot": "play",
+      "rect": [
+       32,
+       330,
+       992,
+       440
+      ]
+     },
+     "b": {
+      "shot": "fade",
+      "rect": [
+       32,
+       330,
+       992,
+       440
+      ]
+     }
+    },
+    {
+     "rule": "SA3-7",
+     "what": "no HUD left on the second screen in the results",
+     "type": "uniform",
+     "shot": "results",
+     "screen": "second",
+     "rect": [
+      52,
+      64,
+      712,
+      164
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "SA3-7",
+     "what": "the results on the game screen",
+     "type": "differs",
+     "a": {
+      "shot": "play",
+      "screen": "game",
+      "rect": [
+       32,
+       180,
+       992,
+       400
+      ]
+     },
+     "b": {
+      "shot": "results",
+      "screen": "game",
+      "rect": [
+       32,
+       180,
+       992,
+       400
+      ]
+     },
+     "frac": 0.2
+    },
+    {
+     "rule": "SA3-4",
+     "what": "the card dropped in the hub",
+     "type": "log",
+     "match": "title card dropped"
+    },
+    {
+     "rule": "SA3-4",
+     "what": "the logo in the hub, not the card",
+     "type": "not_pixels",
+     "shot": "hub",
+     "screen": "second",
+     "probes": [
+      [
+       48,
+       340,
+       "FFFFFF"
+      ],
+      [
+       976,
+       340,
+       "FFFFFF"
+      ]
+     ]
+    },
+    {
+     "rule": "SA3-4",
+     "what": "the zone label bottom right",
+     "type": "not_uniform",
+     "shot": "hub",
+     "screen": "second",
+     "rect": [
+      608,
+      636,
+      992,
+      676
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
    "id": "sa3-us-single",
    "rom": "B3SE",
    "state": "sonic-advance-3/us-card-lead-in.ss",
