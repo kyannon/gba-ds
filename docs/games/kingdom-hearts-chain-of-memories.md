@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `B8CE` USA · `B8CP` Europe (En/Fr/De/Es/It) · `B8CJ` Japan |
+| Dumps | `B8CE` cartridge `d031ce67` (tested) · `B8CP` cartridge `772d97fb` (tested) · `B8CJ` cartridge `8d5a0d84` (tested) |
 | Profile | `src/profiles.c`: the `B8CE` entry (khc_compose); variants `B8CP`, `B8CJ` (their battle pointer and logo, khc_eur / khc_jpn) |
 | Tests | `tests/regress/kingdom-hearts-chain-of-memories.json` (`tools/regress.py kingdom-hearts-chain-of-memories`) |
 | Status | supported (new in v1.4.8) |

@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `AB4E` USA · `AB4J` Japan (Craft Sword Monogatari; the same addresses). No European release. |
+| Dumps | `AB4E` cartridge `3ea860c2` (tested) · `AB4J` cartridge `a5d38236` (tested) |
 | Profile | `src/profiles.c`: the `AB4E` / `AB4J` entry (`sn_compose`) |
 | Tests | `tests/regress/summon-night-swordcraft-story.json` (`tools/regress.py summon-night-swordcraft-story`) |
 | Status | supported |

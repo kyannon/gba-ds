@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `A2NE` USA · `A2NP` Europe · `A2NJ` Japan: the same sprites, registers and title steps (the Japanese title has its own katakana logo) |
+| Dumps | `A2NE` cartridge `7efee7f7` (tested) · `A2NP` cartridge `89509891` (tested) · `A2NJ` cartridge `513804ff` (tested), Virtual Console `6c6c65a3` |
 | Profile | `src/profiles.c`: the `A2NE` entry (logo-only, with `hud` and a whole-screen `hud.card`) |
 | Tests | `tests/regress/sonic-advance-2.json` (`tools/regress.py sonic-advance-2`) |
 | Status | supported (new in v1.4.6) |

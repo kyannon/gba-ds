@@ -204,7 +204,14 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
 - Generated sources: `src/fonts_data.c` (above), `src/brand_data.c` (artwork
   only: the logo, button prompts and flags; `tools/make_brand.py` needs the
   Futura Bold Italic and Gamecuben fonts, which aren't in the repo: ask the
-  owner for them) and `src/logo_masks.c` (`tools/make_logo_masks.py`).
+  owner for them), `src/logo_masks.c` (`tools/make_logo_masks.py`) and
+  `src/dumps_data.h` with the rules files' Dumps rows (`tools/make_dumps.py
+  --dat DAT`: every official dump of each release by CRC32, from No-Intro's
+  list in libretro-database (fetched with git, see the tool), the fixtures'
+  marked tested; re-run it when a Releases row changes or a game is added,
+  including at a game branch's merge). At start the app logs `ROM: CRC32 ...`
+  (the tested dump, another official one, or modified), and bug reports'
+  info.txt has it as `ROM dump:` (`profile_dump`).
 
 ## Testing without the device
 

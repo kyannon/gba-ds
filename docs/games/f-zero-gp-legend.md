@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `BFZE` USA · `BFZP` Europe · `BFZJ` Japan (F-Zero: Falcon Densetsu) |
+| Dumps | `BFZE` cartridge `781aab58` (tested), Virtual Console `9075c6fd` · `BFZP` cartridge `f1d5601b` (tested), Virtual Console `d9b2d53d` · `BFZJ` cartridge `2446b920` (tested), Virtual Console `7978b706` |
 | Profile | `src/profiles.c`: the `BFZE` entry (with `BFZP`, `BFZJ`) |
 | Tests | `tests/regress/f-zero-gp-legend.json` (`tools/regress.py f-zero-gp-legend`) |
 | Status | supported |

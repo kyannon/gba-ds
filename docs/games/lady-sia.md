@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `ALDE` USA · `ALDP` Europe (both in English, French, German, Spanish, Italian and Dutch) |
+| Dumps | `ALDE` cartridge `139e95bd` (tested) · `ALDP` cartridge `958097d2` (tested) |
 | Profile | `src/profiles.c`: the `ALDE` entry; variant `ALDP` |
 | Tests | `tests/regress/lady-sia.json` (`tools/regress.py lady-sia`) |
 | Status | supported |

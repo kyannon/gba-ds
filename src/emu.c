@@ -189,6 +189,7 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	e->core->getGameInfo(e->core, &info);
 	memcpy(e->gameCode, info.code, 4);
 	e->gameCode[4] = 0;
+	e->core->checksum(e->core, &e->romCrc, mCHECKSUM_CRC32); /* (worked out by mGBA as it loaded the ROM) */
 	return true;
 }
 

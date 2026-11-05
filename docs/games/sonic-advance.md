@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `ASOE` USA · `ASOP` Europe · `ASOJ` Japan (Rev 1): the same sprites, registers and title steps |
+| Dumps | `ASOE` cartridge `63f70fd8` (tested) · `ASOP` cartridge `6232839b` (tested) · `ASOJ` cartridge `5f512223`, Rev 1 `85957a24` (tested), Rev 1, Virtual Console `431e55ac` |
 | Profile | `src/profiles.c`: the `ASOE` entry (logo-only, with `hud` and `hud.card`) |
 | Tests | `tests/regress/sonic-advance.json` (`tools/regress.py sonic-advance`) |
 | Status | supported (tested on the device for v1.4.4) |

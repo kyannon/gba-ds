@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `AT3E` USA and Europe · `AT3F` France · `AT3D` Germany (each with its own View Goals heading) |
+| Dumps | `AT3E` cartridge `f669a368` (tested) · `AT3F` cartridge `8d132067` (tested) · `AT3D` cartridge `74174675` (tested) |
 | Profile | `src/profiles.c`: the `AT3E` entry; variants `AT3F`, `AT3D` |
 | Tests | `tests/regress/tony-hawks-pro-skater-3.json` (`tools/regress.py tony-hawks-pro-skater-3`) |
 | Status | supported |

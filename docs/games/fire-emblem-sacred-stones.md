@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `BE8E` USA · `BE8P` Europe (En/Fr/De/Es/It) · `BE8J` Japan. Addresses per release in `feRegions` (shared with Fire Emblem). |
+| Dumps | `BE8E` cartridge `a47246ae` (tested), Virtual Console `dea3b767` · `BE8P` cartridge `b3005195` (tested), Virtual Console `2653401a` · `BE8J` cartridge `9d76826f` (tested), Virtual Console `d2b431f8` |
 | Profile | `src/profiles.c`: the `BE8E` entry (Fire Emblem's `fe_virt` / `fe_compose`); variants `BE8P`, `BE8J` |
 | Tests | `tests/regress/fire-emblem-sacred-stones.json` (`tools/regress.py fire-emblem-sacred-stones`) |
 | Status | supported (tested on the device for v1.4.4) |

@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `BDTE` USA · `BDTJ` Japan (Downtown Nekketsu Monogatari EX) |
+| Dumps | `BDTE` cartridge `8686436e` (tested) · `BDTJ` cartridge `32e9a0bd` (tested) |
 | Profile | `src/profiles.c`: the `BDTE` entry (with `BDTJ`) |
 | Tests | `tests/regress/river-city-ransom-ex.json` (`tools/regress.py river-city-ransom-ex`) |
 | Status | supported |

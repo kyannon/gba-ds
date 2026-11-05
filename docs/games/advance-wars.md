@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `AWRE` USA · `AWRP` Europe (its language menu comes later). No Japanese release. |
+| Dumps | `AWRE` cartridge `dbef116c` (tested), Rev 1 `26fd0fc9`, Virtual Console `bde36f98` · `AWRP` cartridge `66fb29e9` (tested), Virtual Console `8400759c` |
 | Profile | `src/profiles.c`: the `AWRE` entry; variant `AWRP` |
 | Tests | `tests/regress/advance-wars.json` (`tools/regress.py advance-wars`) |
 | Status | supported |

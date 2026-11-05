@@ -4019,3 +4019,25 @@ bool profile_patch_rom(const MapProfile* p, Emu* e) {
 	}
 	return true;
 }
+
+/* ---------------------------------------------------------- known dumps */
+typedef struct {
+	char code[5];
+	uint32_t crc;
+	bool tested;
+	const char* name;
+} KnownDump;
+#include "dumps_data.h"
+
+DumpKind profile_dump(const char* gameCode, uint32_t crc, const char** name) {
+	bool listed = false;
+	if (name) *name = NULL;
+	for (size_t i = 0; i < sizeof(knownDumps) / sizeof(knownDumps[0]); ++i) {
+		if (strncmp(knownDumps[i].code, gameCode, 4)) continue;
+		listed = true;
+		if (knownDumps[i].crc != crc) continue;
+		if (name) *name = knownDumps[i].name;
+		return knownDumps[i].tested ? DUMP_TESTED : DUMP_OFFICIAL;
+	}
+	return listed ? DUMP_MODIFIED : DUMP_UNLISTED;
+}

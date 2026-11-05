@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `ATOE` USA · `ATOJ` Japan (no European release) |
+| Dumps | `ATOE` cartridge `6649d2ce` (tested) · `ATOJ` cartridge `0167a878` (tested) |
 | Profile | `src/profiles.c`: the `ATOE` and `ATOJ` entries (to_compose) |
 | Tests | `tests/regress/tactics-ogre.json` (`tools/regress.py tactics-ogre`) |
 | Status | supported |

@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `ASEE` USA and Europe · `ASEJ` Japan (Spider-Man: Mysterio no Kyoui) |
+| Dumps | `ASEE` cartridge `6e135b4d` (tested) · `ASEJ` cartridge `f8125c4b` (tested) |
 | Profile | `src/profiles.c`: the `ASEE` entry; variant `ASEJ` |
 | Tests | `tests/regress/spider-man-mysterios-menace.json` (`tools/regress.py spider-man-mysterios-menace`) |
 | Status | supported |

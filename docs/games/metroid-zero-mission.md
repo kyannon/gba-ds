@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `BMXE` USA · `BMXP` Europe (language menu first) · `BMXJ` Japan |
+| Dumps | `BMXE` cartridge `5c61a844` (tested), Virtual Console `8825294a` · `BMXP` cartridge `f1d92e63` (tested), Virtual Console `3ab66d36` · `BMXJ` cartridge `44b79e2b` (tested), Virtual Console `220b68f5` |
 | Profile | `src/profiles.c`: the `BMXE` entry; variants `BMXP`, `BMXJ` |
 | Tests | `tests/regress/metroid-zero-mission.json` (`tools/regress.py metroid-zero-mission`) |
 | Status | supported |

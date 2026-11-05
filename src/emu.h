@@ -46,6 +46,7 @@ typedef struct Emu {
 	struct mCore* core;
 	uint32_t* fb; /* GBA_W * GBA_H, mGBA native 32-bit color (XBGR8888, i.e. bytes R,G,B,X) */
 	char gameCode[5];
+	uint32_t romCrc; /* the ROM file's CRC32, as loaded (profile_dump) */
 	bool audio;
 	unsigned long frames; /* frames run (emu_frame), for timing the captures */
 	/* a hidden copy's capture called off (mapcap_cancel): while it's set,

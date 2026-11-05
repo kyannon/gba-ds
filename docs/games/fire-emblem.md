@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `AE7E` USA · `AE7X` Europe (En/Fr/De) · `AE7Y` Europe (En/Es/It) · `AE7J` Japan. Addresses per release in FeRegion. |
+| Dumps | `AE7E` cartridge `2a524221` (tested), Virtual Console `1b8713c7` · `AE7X` cartridge `4a805ed1` (tested), Virtual Console `335c5855` · `AE7Y` cartridge `9decc754` (tested), Virtual Console `93d3b218` · `AE7J` cartridge `f0c10e72` (tested), Virtual Console `0ba2fd1f` |
 | Profile | `src/profiles.c`: the `AE7E` entry; variants `AE7X`, `AE7Y`, `AE7J` |
 | Tests | `tests/regress/fire-emblem.json` (`tools/regress.py fire-emblem`) |
 | Status | supported |

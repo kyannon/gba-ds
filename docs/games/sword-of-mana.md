@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `AVSE` USA · `AVSY` Europe (Es/It: ring 16 bytes up, language menu, later title) · `AVSJ` Japan (logo includes the 新約 sprites) |
+| Dumps | `AVSE` cartridge `7f1eac75` (tested) · `AVSY` cartridge `11a0af49` (tested) · `AVSJ` cartridge `31b220e5` (tested) |
 | Profile | `src/profiles.c`: the `AVSE` entry; variants `AVSY`, `AVSJ` |
 | Tests | `tests/regress/sword-of-mana.json` (`tools/regress.py sword-of-mana`) |
 | Status | supported |
