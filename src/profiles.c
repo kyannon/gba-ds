@@ -1836,6 +1836,24 @@ static const char* to_compose(Emu* s, const void* state, uint32_t* const* out, i
 	return NULL;
 }
 
+/* Lady Sia: the level the game is in or loading, the byte at 0x03000B50
+ * (tcrf.net/Lady_Sia: held before a stage loads, it picks the stage):
+ * 0x10-0x33 the levels (0x2E and 0x33 unused), below the title, the
+ * menus and story scenes, from 0x34 the maps between levels and the
+ * ending's scenes */
+#define LS_LEVEL 0x03000B50
+#define LS_PAUSE 0x03001545 /* 5 with the pause screen up, 3 in a level or the menus */
+#define LS_V_OFFLEVEL 0xF0000060 /* 1 outside the levels: the logo (LS-3) */
+/* a SpriteRule's shapes bit: GBA sprite shape (0 square, 1 wide, 2 tall) and size */
+#define LS_SHAPE(shape, size) (1u << ((shape) * 4 + (size)))
+static uint32_t ls_virt(Emu* e, uint32_t addr) {
+	if (addr == LS_V_OFFLEVEL) {
+		uint8_t l = emu_read8(e, LS_LEVEL);
+		return l < 0x10 || l > 0x33;
+	}
+	return 0;
+}
+
 static const MapProfile profiles[] = {
 	{
 		.codes = { "A2CE" },
@@ -2642,11 +2660,12 @@ static const MapProfile profiles[] = {
 		.menu = { { 0x03002170, 0xFFFF, 0x420C, 2 } },
 	},
 	{
-		/* Lady Sia (USA; Europe: the ALDP variant, same addresses). The byte
-		 * at 0x03003090 says where the game is: bit 0 set in a level, bit 4
-		 * too while its pause screen is up (0x01 / 0x51; 0x41 / 0x51 after
-		 * some play), 0x03 at the title and in the menus before a game,
-		 * 0x00 on the story text and while the game loads. The pause screen
+		/* Lady Sia (USA; Europe: the ALDP variant, same addresses). Where
+		 * the game is: LS_LEVEL (the level, 0x10-0x33; ls_virt) and
+		 * LS_PAUSE (the pause screen up). (0x03003090 looked like it at
+		 * first, but its bits go on and off in conversations, boss fights
+		 * and some levels: every level was loaded through LS_LEVEL and
+		 * checked.) The pause screen
 		 * (START) is sprites on black, drawn the frame it opens: lives, gems
 		 * and rescued villagers in rows 8-36, the level's time 49-62,
 		 * "Pause" 73-86, its choice with blinking arrows 97-110 (the time,
@@ -2677,12 +2696,21 @@ static const MapProfile profiles[] = {
 		/* map_crop: the rows of Pause and its choice, arrows included, in
 		 * the screen's black (LS-2) */
 		.glyphs = { { 0, 67, 240, 49, -1, { 0x000000 } } },
-		.mem = { { 0x03003090, 0x11, 0x11, 1 } },
-		/* in a level, not paused; paused in the game, the last picture
-		 * stays (LS-4) */
-		.live = { { 0x03003090, 0x13, 0x01, 1 } },
-		/* the title and the menus: the logo (LS-3) */
-		.menu = { { 0x03003090, 0xFF, 0x03, 1 } },
+		/* the pause screen up: 0x03001545 is 5 there, 3 in a level
+		 * (0x03003090's bit 4, which also goes on as it opens in the
+		 * first levels, stays off in some and comes on elsewhere) */
+		.mem = { { LS_PAUSE, 0xFF, 5, 1 } },
+		/* in a level (whatever else 0x03003090 says: bit 1 goes on in its
+		 * conversations and some boss fights, bit 0 flickers in some
+		 * levels), not paused (the unused level 0x2E has 0 there, so it
+		 * gets no pictures); paused in the game, the last picture stays
+		 * (LS-4). A conversation that doesn't let the pause screen open
+		 * fails the probes (LS-5). */
+		.live = { { LS_LEVEL, 0xFF, 0x10, 1, true, 0x33, true }, { LS_PAUSE, 0xFF, 3, 1 } },
+		/* the title, the menus, the story, the maps between levels: the
+		 * logo (LS-3) */
+		.menu = { { LS_V_OFFLEVEL, 0, 1, 1 } },
+		.virt = ls_virt,
 		/* the HUD off the game screen, the status picture having it
 		 * (LS-6): shown for ~3 s as a level starts or Sia picks something
 		 * up, the heart while she's hurt. Found by where each piece's
@@ -2693,15 +2721,24 @@ static const MapProfile profiles[] = {
 		 * 135,10; villager face 193,1 and count 223,10 (room for a second
 		 * digit; Sia jumping was seen at 55,10, the menus' 64x64 grid at
 		 * 192,0). The ring bobs: 39-43,125-128; 69-76,126-131; 52,153.
-		 * The heart: 165-170,131-132; 168-169,144-145. The game's own
+		 * The heart: 165-170,131-132; 168-169,144-145. Each also by its
+		 * shape and size (the faces, gem and ring 32x32, the counts 8x16,
+		 * ...): a level's things pass the same places (level 0x28's
+		 * pedestal, 32x32 at 169,130; a log's 8x8 pieces by the ring in
+		 * 0x2D), seen across every level's start (LS-6). The game's own
 		 * pause screen has its pieces in the same places, so it loses
 		 * them too. */
-		.hideSprites = { { 2, 7, 2, 7, 0, 1023, -1 }, { 39, 10, 49, 10, 0, 1023, -1 },
-		                 { 94, 3, 94, 3, 0, 1023, -1 }, { 134, 10, 144, 10, 0, 1023, -1 },
-		                 { 193, 1, 193, 1, 0, 1023, -1 }, { 222, 10, 232, 10, 0, 1023, -1 },
-		                 { 38, 124, 44, 129, 0, 1023, -1 }, { 68, 125, 77, 132, 0, 1023, -1 },
-		                 { 51, 152, 53, 154, 0, 1023, -1 },
-		                 { 164, 130, 171, 133, 0, 1023, -1 }, { 167, 143, 170, 146, 0, 1023, -1 } },
+		.hideSprites = { { 2, 7, 2, 7, 0, 1023, -1, 0, 0, LS_SHAPE(0, 2) },
+		                 { 39, 10, 49, 10, 0, 1023, -1, 0, 0, LS_SHAPE(2, 0) },
+		                 { 94, 3, 94, 3, 0, 1023, -1, 0, 0, LS_SHAPE(0, 2) },
+		                 { 134, 10, 144, 10, 0, 1023, -1, 0, 0, LS_SHAPE(2, 0) },
+		                 { 193, 1, 193, 1, 0, 1023, -1, 0, 0, LS_SHAPE(0, 2) },
+		                 { 222, 10, 232, 10, 0, 1023, -1, 0, 0, LS_SHAPE(2, 0) },
+		                 { 38, 124, 44, 129, 0, 1023, -1, 0, 0, LS_SHAPE(0, 2) },
+		                 { 68, 125, 77, 132, 0, 1023, -1, 0, 0, LS_SHAPE(2, 2) | LS_SHAPE(2, 1) },
+		                 { 51, 152, 53, 154, 0, 1023, -1, 0, 0, LS_SHAPE(1, 1) },
+		                 { 164, 130, 171, 133, 0, 1023, -1, 0, 0, LS_SHAPE(0, 1) | LS_SHAPE(2, 0) },
+		                 { 167, 143, 170, 146, 0, 1023, -1, 0, 0, LS_SHAPE(1, 0) | LS_SHAPE(0, 1) } },
 	},
 	{
 		/* Mario & Luigi: Superstar Saga (USA; Europe and Japan, Mario &

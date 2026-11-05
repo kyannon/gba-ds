@@ -36,6 +36,10 @@ typedef struct SpriteRule {
 	unsigned tagged; /* only sprites (not rotated ones) with one of these
 	                  * attr1 bits (9-11, unused there) set: tags a ROM patch
 	                  * adds (profiles.h romPatch) */
+	unsigned shapes; /* the shapes and sizes it applies to (bit shape * 4 +
+	                  * size, as in the sprite's attributes: bit 2 is 32x32,
+	                  * bit 8 8x16); 0: any (Lady Sia: its HUD pieces, not
+	                  * the level's things that pass the same places) */
 } SpriteRule;
 
 typedef struct Emu {

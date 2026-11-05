@@ -1024,6 +1024,155 @@
    ]
   },
   {
+   "id": "ls-us-walrus-boss",
+   "rom": "ALDE",
+   "state": "lady-sia/us-walrus-boss.ss",
+   "desc": "level 0x24, the walrus boss, after its conversation (loaded through the level byte): the status picture, though the game's state byte reads 0x07 there",
+   "rules": [
+    "LS-2"
+   ],
+   "shots": {
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "LS-2",
+     "what": "a status picture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "LS-2",
+     "what": "the lives, gems and villagers row, not black",
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      0,
+      40,
+      1024,
+      172
+     ],
+     "color": "000000",
+     "frac": 0.98,
+     "shot": "later"
+    }
+   ]
+  },
+  {
+   "id": "ls-us-bird-ride",
+   "rom": "ALDE",
+   "state": "lady-sia/us-bird-ride.ss",
+   "desc": "level 0x21, riding the bird (its state byte 0x42): the status picture",
+   "rules": [
+    "LS-2"
+   ],
+   "shots": {
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "LS-2",
+     "what": "a status picture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "LS-2",
+     "what": "the lives, gems and villagers row, not black",
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      0,
+      40,
+      1024,
+      172
+     ],
+     "color": "000000",
+     "frac": 0.98,
+     "shot": "later"
+    }
+   ]
+  },
+  {
+   "id": "ls-us-pedestal",
+   "rom": "ALDE",
+   "state": "lady-sia/us-pedestal.ss",
+   "desc": "level 0x28, a 32x32 pedestal beside the heart's place: it stays on the game screen (only the HUD's own shapes are hidden)",
+   "rules": [
+    "LS-6"
+   ],
+   "shots": {
+    "pedestal": 30
+   },
+   "checks": [
+    {
+     "rule": "LS-6",
+     "what": "the pedestal on the game screen",
+     "type": "pixels",
+     "shot": "pedestal",
+     "screen": "game",
+     "probes": [
+      [
+       774,
+       646,
+       "6B4A63"
+      ],
+      [
+       754,
+       666,
+       "522931"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ls-us-log",
+   "rom": "ALDE",
+   "state": "lady-sia/us-log.ss",
+   "desc": "level 0x2D, a log's small pieces by the ring's place: they stay on the game screen",
+   "rules": [
+    "LS-6"
+   ],
+   "shots": {
+    "log": 30
+   }
+  },
+  {
+   "id": "ls-us-jail",
+   "rom": "ALDE",
+   "state": "lady-sia/us-level-0x31.ss",
+   "desc": "a status picture in level 0x31, then (a quick load, the second screen kept) the jail's Continue? countdown after the last life: the logo",
+   "rules": [
+    "LS-2",
+    "LS-3"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:lady-sia/us-jail.ss"
+    ]
+   ],
+   "shots": {
+    "level": 150,
+    "jail": 320
+   },
+   "checks": [
+    {
+     "rule": "LS-2",
+     "what": "a status picture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "LS-3",
+     "what": "back to the logo in the jail",
+     "type": "log",
+     "match": "second screen back to the logo"
+    }
+   ]
+  },
+  {
    "id": "ls-eu-hurt",
    "rom": "ALDP",
    "state": "lady-sia/eu-hurt.ss",
