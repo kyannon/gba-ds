@@ -32,6 +32,11 @@ typedef struct {
 	bool range; /* with hasAlt: anything from value to alt */
 } MemProbe;
 
+/* How many pieces a split-off HUD can move (hud.moves, alt.moves,
+ * scene.moves). hud.overMap's pieces are the first 4 only. (6 since F-Zero:
+ * Maximum Velocity: BOOST under POW as well as GP Legend's four.) */
+#define HUD_MOVES 6
+
 /* A piece of a split-off HUD moved on the way to the screen: what's inside
  * the box (inclusive, HUD pixels), measured each frame, is placed by its
  * left edge / centre / right edge at x ('L' 'C' 'R'; 0 stays) and its top /
@@ -351,7 +356,7 @@ typedef struct MapProfile {
 			/* moves used instead of the HUD's own while it's on this
 			 * layer (none: the same moves): Super Mario Advance 4's world
 			 * map status bar, from the bottom to the top */
-			HudMove moves[4];
+			HudMove moves[HUD_MOVES];
 			/* the second screen's picture behind it is the last map
 			 * picture (a full GBA screen) instead of the logo (Super
 			 * Mario Advance 4: its status bar over the inventory) */
@@ -398,7 +403,7 @@ typedef struct MapProfile {
 		struct {
 			MemProbe when[2];
 			SpriteRule objs[4];
-			HudMove moves[4];
+			HudMove moves[HUD_MOVES];
 		} scene;
 		/* A title card before each level (Sonic Advance's zone card): while
 		 * a sprite with tile `tile` in palette `pal` is shown (and `on`
@@ -429,7 +434,7 @@ typedef struct MapProfile {
 		/* moves while racing (with the `layout` probes; no layout probes:
 		 * always). A move with toGame and no how / vhow copies its box back
 		 * onto the game picture where it was. */
-		HudMove moves[4];
+		HudMove moves[HUD_MOVES];
 		/* The second screen is the HUD on dark grey with the game's logo
 		 * below it, at its own size (Super Mario Advance 2), instead of a
 		 * backdrop. */

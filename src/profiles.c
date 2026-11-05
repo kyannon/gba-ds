@@ -3885,6 +3885,19 @@ static const MapProfile profiles[] = {
 			 * at the finish or as the machine's destroyed, 0 in the
 			 * course's fly-in; pausing keeps it) (FZM-2, FZM-6) */
 			.on = { { 0x03000BFB, 0xFF, 3, 1, true, 6, true }, { 0x030005F8, 0xFF, 0x80, 1 } },
+			/* YOU LOST (GIVE UP: mode 9; the machine destroyed: 10), till
+			 * A takes it to the results (0x03001084 goes 0 -> 2 as A is
+			 * pressed, two frames before the HUD goes; the mode changes 30
+			 * frames later): the same HUD, no BG layers (FZM-8). Destroyed,
+			 * the game hides its HUD while the camera circles the wreck:
+			 * the logo then (emptyIsOff), the HUD back with YOU LOST */
+			.alt = { .on = { { 0x03000BFB, 0xFF, 9, 1, true, 10, true }, { 0x03001084, 0xFF, 0, 1 } } },
+			/* (0x03001084 is also 2 for the half second after GIVE UP is
+			 * chosen, YOU LOST up with the HUD: kept on while the fade-out
+			 * counter 0x03001088, 0xF0 down to 0 from the frame after A, is
+			 * still 0) */
+			.stay = { { 0x03000BFB, 0xFF, 9, 1, true, 10, true }, { 0x03001088, 0xFF, 0, 1 } },
+			.emptyIsOff = true,
 			.objs = { /* POW */
 			          { 130, -8, 239, 12, 376, 393, 0 },
 			          /* SPARE MACHINES */
@@ -3895,6 +3908,8 @@ static const MapProfile profiles[] = {
 			          { -8, 8, 50, 34, 394, 405, 0 },
 			          /* LAST */
 			          { -8, 33, 50, 44, 734, 745, 0 },
+			          /* BOOST and its three marks */
+			          { 170, 140, 240, 159, 406, 408, 0 },
 			          /* the time and the lap's time */
 			          { 150, 18, 250, 56, 962, 986, 0, 1u << 12 | 1u << 15 },
 			          /* the map (x from -16: a narrow course's further left)
@@ -3909,11 +3924,14 @@ static const MapProfile profiles[] = {
 			/* RANK to the game screen's bottom left (FZM-3), only with its
 			 * label (Training has none); POW to the top centre; LAST under
 			 * SPARE MACHINES, two rows below, lined up with it, or in the
-			 * corner (Training); the time up into the speed's place (FZM-4) */
+			 * corner (Training); the time up into the speed's place; BOOST
+			 * under POW (FZM-4) */
 			.moves = { { 0, 10, 50, 34, 'L', 4, 'B', 155, true, .ifTile = 399 },
 			           { 130, 0, 239, 13, 'C', 120, 'T', 2 },
 			           { 0, 35, 50, 45, 'L', 2, 'T', 2, .under = 2 },
-			           { 150, 18, 250, 56, 0, 0, 'T', 2 } },
+			           { 150, 18, 250, 56, 0, 0, 'T', 2 },
+			           /* BOOST centred under POW (FZM-4) */
+			           { 170, 140, 239, 159, 'C', 120, 'T', 12 } },
 		},
 	},
 	{
@@ -4548,13 +4566,17 @@ static void thps3_ger(MapProfile* p) {
 	memcpy(p->probes, show, sizeof(show));
 }
 
-/* F-Zero: Maximum Velocity in China: the mode byte 0x20 higher
- * (0x03000C1B), the HUD's flag 0x18 (0x03000610: the fourth of a table of
+/* F-Zero: Maximum Velocity in China: the mode byte and YOU LOST's bytes
+ * 0x20 higher (0x03000C1B, 0x030010A4, 0x030010A8), the HUD's flag 0x18 (0x03000610: the fourth of a table of
  * four, at 0x08054BC0 in the US release, 0x0805BC68 here); its title shows
  * ~200 frames later */
 static void fzm_chn(MapProfile* p) {
 	p->hud.on[0].addr += 0x20;
 	p->hud.on[1].addr += 0x18;
+	p->hud.alt.on[0].addr += 0x20;
+	p->hud.alt.on[1].addr += 0x20; /* (0x030010A4) */
+	p->hud.stay[0].addr += 0x20;
+	p->hud.stay[1].addr += 0x20; /* (0x030010A8) */
 	p->logo.steps[0].frames = 1100;
 }
 
