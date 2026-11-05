@@ -2981,7 +2981,7 @@ static const MapProfile profiles[] = {
 		 * is taken from has its save check answer "one" (the veneer every
 		 * release has at 0x080382F0: movs r0, #1; bx lr) */
 		.logo = { .steps = { { 0, 600 }, { K_START, 4 }, { 0, 120 } }, .mask = &logoMaskGS2E,
-		          .patch = { { 0x080382F0, 4, gs2SaveCheck, gs2SaveOne } }, .rev = 2 /* (the test builds' logos made again) */ },
+		          .patch = { { 0x080382F0, 4, gs2SaveCheck, gs2SaveOne } }, .rev = 3 /* (the test builds' logos made again) */ },
 	},
 	{
 		/* the Status screen with the menu's Place bar over its bottom:
