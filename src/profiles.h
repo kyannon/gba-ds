@@ -430,6 +430,23 @@ typedef struct MapProfile {
 			 * shows is the take. */
 			bool whole;
 			int at;
+			/* any tile from `tile` to this one (0: `tile` alone): Sonic
+			 * Advance 3's zone name starts at one of two tiles */
+			int tileMax;
+			/* the sprite's priority + 1 (0: any): Sonic Advance 3's zone
+			 * name is at 3, the points for an enemy in the same tile and
+			 * palette at 0 */
+			int prio1;
+			/* While these match (with `on`), no card: the take is forgotten
+			 * and the logo is behind the HUD (Sonic Advance 3's hubs, which
+			 * have no card of their own and lead to other zones) */
+			MemProbe drop[2];
+			/* with whole: the take is the frame drawn again with these
+			 * sprites left out and this halfword written first (Sonic
+			 * Advance 3: its brightness shadow, so all but the card's band
+			 * goes black, as in the card's first moments); none: as drawn */
+			SpriteRule hide[6];
+			struct { uint32_t addr; uint16_t value; } poke;
 		} card;
 		/* moves while racing (with the `layout` probes; no layout probes:
 		 * always). A move with toGame and no how / vhow copies its box back

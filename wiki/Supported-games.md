@@ -25,6 +25,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | River City Ransom EX (Downtown Nekketsu Monogatari EX in Japan) | `BDTE` `BDTJ` (no European release) | the Status screen, with the top bar moved off the game screen |
 | Sonic Advance | `ASOE` `ASOP` `ASOJ` | the zone card, with the rings, score, time and lives |
 | Sonic Advance 2 | `A2NE` `A2NP` `A2NJ` | the zone card, with the rings, score, time and lives |
+| Sonic Advance 3 | `B3SE` `B3SP` `B3SJ` | the act card, with the rings, time and lives; the hubs' keys and zone label |
 | Sonic Pinball Party | `A3VE` `A3VP` | the table twice as tall over both screens, live (work in progress) |
 | Spider-Man: Mysterio's Menace (Spider-Man: Mysterio no Kyoui in Japan) | `ASEE` (USA and Europe) `ASEJ` | the Select menu: the objective, password, suits, upgrades and web containers |
 | Summon Night: Swordcraft Story (Craft Sword Monogatari in Japan) | `AB4E` `AB4J` (no European release) | the Status screen, with where you are |
@@ -231,6 +232,16 @@ The USA, European and Japanese releases, tried in Leaf Forest so far.
 - In the level, the **rings, score and time** move from the top of the game screen to the bottom left of the second screen, over the card's blue, and the **lives** from the bottom left to the card's bottom right. They stay there under water.
 - The pause window stays on the game screen. On the title and menus, the second screen shows the logo; after loading a state mid-act that wasn't saved with the card, the logo stays (above the moved HUD) until the next act's card.
 - Not tried yet: other zones and characters, bosses, special stages, Time Attack, multiplayer and the Tiny Chao Garden.
+
+## Sonic Advance 3
+
+The USA, European and Japanese releases, tried in every zone's first act and the hubs so far.
+
+- As each act or boss starts, the second screen keeps the game's **act card**: its white band with the zone's name, the team and the act, as it settles at the bottom of the screen, on black.
+- In the act, the **rings, time and lives** move from the game screen to the same places on the second screen, over the card.
+- In a zone's **hub**, there's no card: the second screen shows the logo, with the hub's **key count, lives and zone label** moved there.
+- PAUSE and the act's results stay on the game screen. On the title, menus and the demo, the second screen shows the logo; after loading a state mid-act that wasn't saved with the card, the logo stays (with the moved HUD) until the next act's card.
+- Not tried yet: bonus games, special stages, water, other teams, Altar Emerald, Time Attack and multiplayer.
 
 ## Sonic Pinball Party
 

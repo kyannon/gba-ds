@@ -3440,6 +3440,62 @@ static const MapProfile profiles[] = {
 		},
 	},
 	{
+		/* Sonic Advance 3 (USA, Europe and Japan: the same sprites,
+		 * registers, RAM and title steps). gStageData (the SAT-R/sa3
+		 * decompilation's name) at 0x030008A0: +3 the game mode (0 the
+		 * main game), +9 the zone, +0xA the act (1 Sonic Factory, 2 the
+		 * zone's hub, 3-5 acts 1-3, 7 the boss, 8-9 bonus games), +0xE the
+		 * level. Acts and hubs: display mode 0 with BG1-3 (acts and the
+		 * factory with window 1 too); bosses mode 1 with BG0-1 and windows
+		 * 0-1. The HUD is sprites of priority 0, palettes 6-7, tiles
+		 * 448-511 (rings and time top left, the lives bottom left; in a
+		 * hub, the keys), plus a hub's zone label (palette 6, tiles from
+		 * 620) bottom right. The act's card: black, the zone's name
+		 * (palette 9, priority 3, from tile 620 or 622) on a white band
+		 * across the middle, with the HUD over it.
+		 * docs/games/sonic-advance-3.md */
+		.codes = { "B3SE", "B3SP", "B3SJ" },
+		.title = "Sonic Advance 3",
+		.logoOnly = true,
+		/* the title: SONIC ADVANCE 3 (BG1 alone; the copyright lines are
+		 * sprites). From power-on with no save: the language menu (A),
+		 * name entry (a letter, START to END, A), the intro */
+		.logo = { .steps = { { 0, 60 }, { K_A, 3 }, { 0, 69 }, { K_A, 3 }, { 0, 29 }, { K_START, 3 }, { 0, 29 },
+		                     { K_A, 3 }, { 0, 2650 } },
+		          .layer = 1, .maxY = 110 },
+		.hud = {
+			/* the main game (not the demo, Time Attack or multiplayer), in
+			 * an act, a boss, a hub or the factory (not a bonus game), the
+			 * display a level's: mode 0 with BG1-3, or mode 1 with BG1 (a
+			 * boss; not the title: BG3 or window 1 on too) */
+			.on = { { 0x04000000, 0x0E07, 0x0E00, 2, true, 0x0201 },
+			        { 0x04000000, 0x4800, 0x0800, 2, true, 0x4800, true },
+			        { 0x030008A3, 0xFF, 0, 1 },
+			        { 0x030008AA, 0xFF, 1, 1, true, 7, true } },
+			/* the rings, time and lives (and a hub's keys); a hub's zone
+			 * label */
+			.objs = { { -64, -64, 255, 175, 448, 511, 0, 1u << 6 | 1u << 7 },
+			          { -64, -64, 255, 175, 600, 711, 0, 1u << 6 } },
+			/* the act's card once the band has settled at the bottom with
+			 * the team and the act (SA3-2): drawn again with the BLDY
+			 * shadow (gBldRegs + 4) at 16, black but for the band (window
+			 * 0), as in the card's first moments, without the other
+			 * sprites (priority 1-2; the HUD; at priority 3 all but
+			 * palette 9; at priority 0 all but palettes 6, 7 and 9). The
+			 * name's sprite at priority 3: an enemy's points are the same
+			 * tile and palette at priority 0. None in a hub or the factory
+			 * (SA3-4) */
+			.card = { .tile = 620, .tileMax = 623, .pal = 9, .prio1 = 3 + 1, .whole = true, .at = 165,
+			          .drop = { { 0x030008AA, 0xFF, 1, 1, true, 2, true } },
+			          .hide = { { -64, -64, 255, 175, 0, 1023, 1, 0 },
+			                    { -64, -64, 255, 175, 0, 1023, 2, 0 },
+			                    { -64, -64, 255, 175, 0, 711, 0, 1u << 6 | 1u << 7 },
+			                    { -64, -64, 255, 175, 0, 1023, 3, 0xFFFFu & ~(1u << 9) },
+			                    { -64, -64, 255, 175, 0, 1023, 0, 0xFFFFu & ~(1u << 6 | 1u << 7 | 1u << 9) } },
+			          .poke = { 0x03002BFC, 16 } },
+		},
+	},
+	{
 		.codes = { "ATHE", "ATHF", "ATHD" },
 		.title = "Tony Hawk's Pro Skater 2",
 		/* no map yet: listed, logo on the second screen */
