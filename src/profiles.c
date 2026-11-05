@@ -2387,6 +2387,11 @@ static const Gs2Addr gs2Addr[] = {
 #define GS2_V_TITLE 0xF0000050
 #define GS2_V_FORGET 0xF0000051 /* the title, or a battle not at the player's choice:
                                  * the pictures from before go (GS2-4, GS2-8) */
+/* Sprites left out of the pictures: the walking Status's scroll arrows (the
+ * party row's right edge, up 264, down 268, bobbing), the battle Status's
+ * hand (tile 20, by the name) */
+static const SpriteRule gs2Arrows = { 80, -16, 120, 40, 264, 271, -1 };
+static const SpriteRule gs2Hand = { 0, -16, 100, 40, 20, 23, -1 };
 static const Gs2Addr* gs2_addr(Emu* e) {
 	for (size_t i = 0; i < sizeof(gs2Addr) / sizeof(gs2Addr[0]); ++i) {
 		if (gs2Addr[i].region == e->gameCode[3]) return &gs2Addr[i];
@@ -2432,6 +2437,7 @@ static const char* gs2_compose(Emu* s, const void* state, uint32_t* const* out, 
 	int max = *nOut < GS_PAGES ? *nOut : GS_PAGES;
 	*nOut = 1;
 	*step = 300; /* 5 seconds a party member */
+	emu_hide_sprites(s, NULL, 0); /* (what the last picture left out) */
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
 	uint16_t map = emu_read16(s, a->map);
@@ -2457,6 +2463,7 @@ static const char* gs2_compose(Emu* s, const void* state, uint32_t* const* out, 
 		if (emu_read8(s, a->bstat) != 1) return "the battle's Status didn't open";
 		aw_run(s, 0, 16);
 		for (int i = 0; i < slot; ++i) aw_run(s, K_R, 6), aw_run(s, 0, 16);
+		emu_hide_sprites(s, &gs2Hand, 1); /* (GS2-7) */
 		aw_run(s, 0, 10);
 		if (emu_cancelled(s)) return "called off";
 		if (emu_read8(s, a->bstat) != 1) return "the battle's Status closed";
@@ -2479,6 +2486,7 @@ static const char* gs2_compose(Emu* s, const void* state, uint32_t* const* out, 
 	aw_run(s, 0, 16);
 	aw_run(s, K_A, 6);
 	if (!gs_wait(s, gs2_status, 60)) return "the Status didn't open";
+	emu_hide_sprites(s, &gs2Arrows, 1); /* (GS2-1) */
 	aw_run(s, 0, 20);
 	int n = 0;
 	for (; n < max; ++n) {
