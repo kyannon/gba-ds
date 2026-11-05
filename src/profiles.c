@@ -3370,6 +3370,69 @@ static const MapProfile profiles[] = {
 		},
 	},
 	{
+		/* Super Mario Advance 4: Super Mario Bros. 3 (USA; Europe and Japan
+		 * in sma4_eur / sma4_jpn). The byte at 0x03003DE2 says where Mario
+		 * is: 0x41 the world map, 0x40 a level, 0x08-0x09 a Toad House,
+		 * a Spade panel game or a king's room (the level engine, with the
+		 * world map's status bar along the bottom), bit 7 set on the title,
+		 * game select and file screens. 0x03003781 is 3 on the world map
+		 * with no menu open (START's 15, R's e-Reader menu 14). */
+		.codes = { "AX4E" },
+		.title = "Super Mario Advance 4: Super Mario Bros. 3",
+		/* Super Mario Bros. 3's own title (from power-on: the save formatted,
+		 * the Super Mario Advance 4 title, Super Mario Bros. 3 picked, START
+		 * through its curtain): SUPER MARIO BROS. 3 alone on BG1, the
+		 * copyright line below it a sprite (SM4-5) */
+		.logo = { .steps = { { 0, 700 }, { K_START, 4 }, { 0, 120 }, { K_START, 4 }, { 0, 120 }, { K_A, 4 }, { 0, 120 },
+		                     { K_A, 4 }, { 0, 120 }, { K_A, 4 }, { 0, 300 }, { K_START, 4 }, { 0, 150 } },
+		          .layer = 1, .maxY = 120 },
+		/* On the world map, L opens the item inventory: a blue panel (BG0)
+		 * over the map's lower part (rows 56-157), the items in it as
+		 * outlines with the chosen one a sprite in colour. 0x03003CAA is
+		 * the panel: 0 closed, 1-4 opening, 5 open, 6-8 closing. The
+		 * panel alone (BG0 and its sprite) is the "map", where the game
+		 * draws it, on dark grey (SM4-1). */
+		.open = { { K_L, 4 } },
+		.settleMax = 60, .openWithin = 40, .openTries = 3, .stableFrames = 3, .maxDiff = 400,
+		.crop_x = 0, .crop_y = 0, .crop_w = 240, .crop_h = 160,
+		.probes = { { 120, 56, 0xFFFFFF }, { 120, 57, 0xFFFFFF }, { 3, 100, 0xFFFFFF }, { 236, 100, 0xFFFFFF },
+		            { 120, 157, 0xFFFFFF }, { 120, 59, 0x187BBD }, { 8, 100, 0x42ADF7 }, { 8, 140, 0x42ADF7 } },
+		.tolerance = 8,
+		.mem = { { 0x03003CAA, 0xFF, 5, 1 } },
+		/* (0x03003E4A is 0xFF while Mario stands on the map taking
+		 * input: not walking, nor arriving back from a level, when L
+		 * does nothing) */
+		.live = { { 0x03003DE2, 0xFF, 0x41, 1 }, { 0x03003781, 0xFF, 3, 1 }, { 0x03003CAA, 0xFF, 0, 1 },
+		          { 0x03003E4A, 0xFF, 0xFF, 1 } },
+		.captureLayers = 0x1,
+		.captureBack = 6 | 6 << 5 | 6 << 10, /* (dark grey, SCREEN_GREY) */
+		/* the L and R signs at the top corners, and the map's sprites
+		 * (Mario, HELP!, the Hammer Bros.: priority 1-3; the chosen item
+		 * is priority 0) */
+		.captureHide = { { -512, -256, 511, 47, 0, 1023, -1 }, { -512, -256, 511, 255, 0, 1023, 1 },
+		                 { -512, -256, 511, 255, 0, 1023, 2 }, { -512, -256, 511, 255, 0, 1023, 3 } },
+		/* Mario's place on the world map (y, x in pixels: they change as
+		 * he walks and hold once he stops): the inventory again at once */
+		.room = { { 0x03003DE4, 0xFF, 0, 1 }, { 0x03003DE8, 0xFF, 0, 1 } },
+		/* the title, game select and file screens */
+		.menu = { { 0x03003DE2, 0x80, 0x80, 1 } },
+		/* In a level the status bar along the top (world, lives, time,
+		 * coins, score) and the P meter at the bottom left are BG0
+		 * (0x9400): the whole layer goes to the second screen, where the
+		 * game draws it, with the logo between (SM4-2). The item cards
+		 * shown at the start and end of a level are sprites and stay. */
+		.hud = {
+			.on = { { 0x03003DE2, 0xF0, 0x40, 1 }, { 0x04000008, 0xFFFC, 0x9400, 2 },
+			        { 0x04000000, 0x0100, 0x0100, 2 } },
+			.bgMask = 1,
+			.logoBelow = true,
+			/* the status bar is rows 0-7, the P meter 150-157: what BG0
+			 * has between (LEVEL CLEARED! and the card won, at the
+			 * goal) stays on the game screen (SM4-3) */
+			.moves = { { 0, 8, 239, 149, 0, 0, 0, 0, true } },
+		},
+	},
+	{
 		/* the second screen is put together by ft_compose: a unit's Status,
 		 * or the turn order with the Laws */
 		.codes = { "AFXE" },
@@ -4058,6 +4121,35 @@ static void sma2_jpn(MapProfile* p) {
 	p->controls.snes.pan -= 0x14;
 }
 
+/* Super Mario Advance 4 in Europe and Japan: where Mario is (his place
+ * on the world map, whether he's taking input there) 4 bytes lower; the rest as in the USA. Europe
+ * asks for a language first; Japan's start says the save was formatted
+ * and has no curtain to skip (its title comes after the file screens'
+ * curtain, A). */
+static void sma4_moved(MapProfile* p) {
+	p->live[0].addr -= 4;
+	p->live[3].addr -= 4;
+	p->room[0].addr -= 4;
+	p->room[1].addr -= 4;
+	p->menu[0].addr -= 4;
+	p->hud.on[0].addr -= 4;
+}
+static void sma4_eur(MapProfile* p) {
+	sma4_moved(p);
+	static const MacroStep steps[] = { { 0, 300 }, { K_A, 4 }, { 0, 900 }, { K_START, 4 }, { 0, 120 }, { K_START, 4 }, { 0, 120 },
+	                                   { K_A, 4 }, { 0, 120 }, { K_A, 4 }, { 0, 300 }, { K_START, 4 }, { 0, 150 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+}
+static void sma4_jpn(MapProfile* p) {
+	sma4_moved(p);
+	static const MacroStep steps[] = { { 0, 300 }, { K_A, 4 }, { 0, 300 }, { K_START, 4 }, { 0, 120 }, { K_START, 4 }, { 0, 120 },
+	                                   { K_A, 4 }, { 0, 120 }, { K_A, 4 }, { 0, 300 }, { K_START, 4 }, { 0, 150 },
+	                                   { K_A, 4 }, { 0, 120 }, { K_A, 4 }, { 0, 120 }, { K_A, 4 }, { 0, 400 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+}
+
 /* Final Fantasy Tactics Advance in Europe: a language menu first (its RAM
  * is the USA release's); in Japan the cursor's 0x30 lower (ft_r) */
 /* Golden Sun: The Lost Age elsewhere: each release's logo (its emblem
@@ -4159,6 +4251,8 @@ static const Variant variants[] = {
 	{ "AFXP", "AFXE", 0, ffta_eur },
 	{ "AFXJ", "AFXE", 0, ffta_jpn },
 	{ "AA2J", "AA2E", 0, sma2_jpn },
+	{ "AX4P", "AX4E", 0, sma4_eur },
+	{ "AX4J", "AX4E", 0, sma4_jpn },
 	{ "AT3F", "AT3E", 0, thps3_fra },
 	{ "AT3D", "AT3E", 0, thps3_ger },
 	{ "ASEJ", "ASEE", 0, smm_jpn },
