@@ -668,6 +668,315 @@
      "shot": "battle"
     }
    ]
+  },
+  {
+   "id": "zl-us-dungeon",
+   "rom": "AZ2E",
+   "state": "zoids-legacy/us-dungeon.ss",
+   "desc": "the E. Sea Ruins' first floor (reached by changing the map in the game's save): the map screen, the ruins named under Cebu Town",
+   "rules": [
+    "ZL-1"
+   ],
+   "shots": {
+    "map": 200
+   },
+   "checks": [
+    {
+     "rule": "ZL-1",
+     "what": "the map taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "ZL-1",
+     "what": "not the logo",
+     "shot": "map"
+    }
+   ]
+  },
+  {
+   "id": "zl-us-past",
+   "rom": "AZ2E",
+   "state": "zoids-legacy/us-past.ss",
+   "desc": "the Past Overworld (reached by changing the map in the game's save), where the game's map can't be seen: the logo, nothing taken",
+   "rules": [
+    "ZL-7"
+   ],
+   "shots": {
+    "past": 200
+   },
+   "checks": [
+    {
+     "rule": "ZL-7",
+     "what": "no map taken",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "ZL-7",
+     "what": "the logo in the past",
+     "shot": "past"
+    }
+   ]
+  },
+  {
+   "id": "zl-us-past-after-map",
+   "rom": "AZ2E",
+   "state": "zoids-legacy/us-town.ss",
+   "desc": "the map taken in Cebu Town, then the Past Overworld loaded: the map forgotten, the logo",
+   "rules": [
+    "ZL-7"
+   ],
+   "input": [
+    [
+     250,
+     "LOAD:zoids-legacy/us-past.ss"
+    ]
+   ],
+   "shots": {
+    "map": 200,
+    "past": 400
+   },
+   "checks": [
+    {
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "ZL-1",
+     "what": "not the logo",
+     "shot": "map"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "ZL-7",
+     "what": "the logo in the past, not the present's map",
+     "shot": "past"
+    }
+   ]
+  },
+  {
+   "id": "zl-us-past-capital",
+   "rom": "AZ2E",
+   "state": "zoids-legacy/us-town.ss",
+   "desc": "the map taken in Cebu Town, then the Empire Capital in the past loaded (its streets): the map forgotten, the logo",
+   "rules": [
+    "ZL-7"
+   ],
+   "input": [
+    [
+     250,
+     "LOAD:zoids-legacy/us-past-capital.ss"
+    ]
+   ],
+   "shots": {
+    "map": 200,
+    "past": 400
+   },
+   "checks": [
+    {
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "ZL-1",
+     "what": "not the logo",
+     "shot": "map"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "ZL-7",
+     "what": "the logo in the past's Empire Capital",
+     "shot": "past"
+    }
+   ]
+  },
+  {
+   "id": "zl-us-back-from-past",
+   "rom": "AZ2E",
+   "state": "zoids-legacy/us-past.ss",
+   "desc": "the Past Overworld (the logo), then the world after the first battles loaded: a fresh map",
+   "rules": [
+    "ZL-7"
+   ],
+   "input": [
+    [
+     250,
+     "LOAD:zoids-legacy/us-after-battle.ss"
+    ]
+   ],
+   "shots": {
+    "past": 200,
+    "back": 500
+   },
+   "checks": [
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "ZL-7",
+     "what": "the logo in the past",
+     "shot": "past"
+    },
+    {
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "ZL-7",
+     "what": "a fresh map back in the present",
+     "shot": "back"
+    }
+   ]
+  },
+  {
+   "id": "zl-jp-dungeon",
+   "rom": "AZ2J",
+   "state": "zoids-legacy/jp-dungeon.ss",
+   "desc": "Zoids Saga II: the E. Sea Ruins' first floor: the map screen",
+   "rules": [
+    "ZL-1"
+   ],
+   "shots": {
+    "map": 200
+   },
+   "checks": [
+    {
+     "rule": "ZL-1",
+     "what": "the map taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "ZL-1",
+     "what": "not the logo",
+     "shot": "map"
+    }
+   ]
+  },
+  {
+   "id": "zl-jp-past",
+   "rom": "AZ2J",
+   "state": "zoids-legacy/jp-town.ss",
+   "desc": "Zoids Saga II: the map taken in Cebu Town, then the Past Overworld loaded: the logo",
+   "rules": [
+    "ZL-7"
+   ],
+   "input": [
+    [
+     250,
+     "LOAD:zoids-legacy/jp-past.ss"
+    ]
+   ],
+   "shots": {
+    "map": 200,
+    "past": 400
+   },
+   "checks": [
+    {
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "ZL-1",
+     "what": "not the logo",
+     "shot": "map"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "ZL-7",
+     "what": "the logo in the past",
+     "shot": "past"
+    }
+   ]
   }
  ]
 }

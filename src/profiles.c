@@ -2122,29 +2122,37 @@ typedef struct {
 	uint32_t map;    /* ZL_SCREEN on the map screen */
 	uint32_t title;  /* on the title and its menu */
 	uint32_t battle; /* a battle's own menus (and its story conversations) */
+	uint32_t mapNo;  /* the map Zeru is on (a halfword) */
 } ZlRegion;
 #define ZL_SCREEN 0x03005B54
 static const ZlRegion zlRegions[] = {
-	{ 'E', 0x02030664, 0x080ED8F8, 0x08102ED0, 0x08106F50 },
+	{ 'E', 0x02030664, 0x080ED8F8, 0x08102ED0, 0x08106F50, 0x0202ECF4 },
 	/* (the mode byte by romxref; the routines found by their tables' shape,
 	 * the map's and the title's checked in its states) */
-	{ 'J', 0x0202FDB0, 0x080BAAE0, 0x080E8330, 0x080EC258 },
+	{ 'J', 0x0202FDB0, 0x080BAAE0, 0x080E8330, 0x080EC258, 0x0202E4C0 },
 };
 static const ZlRegion* zl_r(Emu* e) {
 	return &zlRegions[e->gameCode[3] == 'J' ? 1 : 0];
 }
-#define ZL_V_FREE 0xF0000060   /* 1 walking about: mode 0, not the title */
+#define ZL_V_FREE 0xF0000060   /* 1 walking about: mode 0, not the title, not in the past */
 #define ZL_V_MAP 0xF0000061    /* 1 with the map screen up */
-#define ZL_V_TITLE 0xF0000062  /* 1 on the title and its menu */
+#define ZL_V_FORGET 0xF0000062 /* 1 on the title and its menu, or in the past: the logo (ZL-4, ZL-7) */
 #define ZL_V_BATTLE 0xF0000063 /* 1 in a battle: mode 2, or a battle's own screen in front */
 #define ZL_V_PLACE 0xF0000064  /* the byte after the mode's next two: changes with the place (ZL-1's early capture) */
+/* the past (ZL-7), where the game has no map: the Past Overworld (map 64)
+ * and the Empire Capital there (58 to 62: its streets and buildings; the
+ * same numbers in both releases) */
+static bool zl_past(Emu* e, const ZlRegion* r) {
+	uint16_t m = emu_read16(e, r->mapNo);
+	return m == 64 || (m >= 58 && m <= 62);
+}
 static uint32_t zl_virt(Emu* e, uint32_t addr) {
 	const ZlRegion* r = zl_r(e);
 	uint32_t screen = emu_read32(e, ZL_SCREEN);
 	switch (addr) {
-	case ZL_V_FREE: return emu_read8(e, r->mode) == 0 && screen != r->title;
+	case ZL_V_FREE: return emu_read8(e, r->mode) == 0 && screen != r->title && !zl_past(e, r);
 	case ZL_V_MAP: return screen == r->map;
-	case ZL_V_TITLE: return screen == r->title;
+	case ZL_V_FORGET: return screen == r->title || zl_past(e, r);
 	case ZL_V_BATTLE: return emu_read8(e, r->mode) == 2 || screen == r->battle;
 	case ZL_V_PLACE: return emu_read8(e, r->mode + 3);
 	}
@@ -3650,8 +3658,9 @@ static const MapProfile profiles[] = {
 	},
 	{
 		/* Zoids: Legacy (USA; Japan, Zoids Saga II: its addresses in
-		 * zlRegions). Walking about, in a town or on the world, the map
-		 * screen (ZL-1); battles the logo (ZL-3); see zl_virt */
+		 * zlRegions). Walking about, in a town, on the world or in a
+		 * dungeon, the map screen (ZL-1); battles and the past the logo
+		 * (ZL-3, ZL-7); see zl_virt */
 		.codes = { "AZ2E" },
 		.title = "Zoids: Legacy",
 		.virt = zl_virt,
@@ -3668,8 +3677,8 @@ static const MapProfile profiles[] = {
 		/* walking about, not on the title: taken (where the map won't open,
 		 * nothing: ZL-2) */
 		.live = { { ZL_V_FREE, 0xFF, 1, 4 } },
-		/* the title: the logo, the map forgotten (ZL-4) */
-		.menu = { { ZL_V_TITLE, 0xFF, 1, 4 } },
+		/* the title, or the past: the logo, the map forgotten (ZL-4, ZL-7) */
+		.menu = { { ZL_V_FORGET, 0xFF, 1, 4 } },
 		/* a battle: the logo (ZL-3) */
 		.combat = { { ZL_V_BATTLE, 0xFF, 1, 4 } },
 		/* into a town or back out: a capture at once (ZL-1) */
