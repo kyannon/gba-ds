@@ -870,6 +870,68 @@
    ]
   },
   {
+   "id": "sa3-us-points",
+   "rom": "B3SE",
+   "state": "sonic-advance-3/us-points-lead-in.ss",
+   "desc": "a player's bug report: Sonic jumping on an enemy mid-act (its 100 points use the card's tile and palette), replayed: the HUD stays on the second screen",
+   "rules": [
+    "SA3-3"
+   ],
+   "input": [
+    [
+     125,
+     "RIGHT"
+    ],
+    [
+     129,
+     "A+RIGHT"
+    ],
+    [
+     144,
+     "RIGHT"
+    ],
+    [
+     152,
+     "-"
+    ],
+    [
+     158,
+     "LEFT"
+    ],
+    [
+     164,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 120,
+    "points": 180,
+    "after": 200
+   },
+   "checks": [
+    {
+     "rule": "SA3-3",
+     "what": "the points are no card",
+     "type": "no_log",
+     "match": "title card up"
+    },
+    {
+     "rule": "SA3-3",
+     "what": "the rings and time still on the second screen at the points",
+     "type": "not_uniform",
+     "shot": "points",
+     "screen": "second",
+     "rect": [
+      52,
+      64,
+      712,
+      164
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
    "id": "sa3-us-hub",
    "rom": "B3SE",
    "state": "sonic-advance-3/us-hub.ss",

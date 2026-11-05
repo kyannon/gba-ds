@@ -2347,13 +2347,14 @@ static bool oam_has_tile(int tile) {
 
 /* A sprite with a tile from tile to tileMax (0: tile alone) in this
  * palette is shown */
-static bool oam_has_tile_pal(int tile, int tileMax, int pal) {
+static bool oam_has_tile_pal(int tile, int tileMax, int pal, int prio1) {
 	if (tileMax < tile) tileMax = tile;
 	for (int i = 0; i < 128; ++i) {
 		uint16_t a0 = emu_read16(&emu, 0x07000000 + i * 8);
 		if ((a0 & 0x300) == 0x200) continue;
 		uint16_t a2 = emu_read16(&emu, 0x07000004 + i * 8);
-		if ((a2 & 0x3FF) >= tile && (a2 & 0x3FF) <= tileMax && a2 >> 12 == pal) return true;
+		if ((a2 & 0x3FF) >= tile && (a2 & 0x3FF) <= tileMax && a2 >> 12 == pal
+		    && (!prio1 || ((a2 >> 10) & 3) == prio1 - 1)) return true;
 	}
 	return false;
 }
@@ -3029,7 +3030,7 @@ static void update_hud(void) {
 		}
 	}
 	bool scene = race && h->scene.when[0].addr && memprobes_match(h->scene.when, 2, &emu);
-	bool card = race && h->card.tile && oam_has_tile_pal(h->card.tile, h->card.tileMax, h->card.pal);
+	bool card = race && h->card.tile && oam_has_tile_pal(h->card.tile, h->card.tileMax, h->card.pal, h->card.prio1);
 	/* hud.card.drop: no card here (Sonic Advance 3's hubs): the take is
 	 * forgotten, the logo behind the HUD */
 	if (race && h->card.drop[0].addr && (hudBackValid || cardScore >= 0) && memprobes_match(h->card.drop, 2, &emu)) {

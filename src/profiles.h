@@ -428,6 +428,10 @@ typedef struct MapProfile {
 			/* any tile from `tile` to this one (0: `tile` alone): Sonic
 			 * Advance 3's zone name starts at one of two tiles */
 			int tileMax;
+			/* the sprite's priority + 1 (0: any): Sonic Advance 3's zone
+			 * name is at 3, the points for an enemy in the same tile and
+			 * palette at 0 */
+			int prio1;
 			/* While these match (with `on`), no card: the take is forgotten
 			 * and the logo is behind the HUD (Sonic Advance 3's hubs, which
 			 * have no card of their own and lead to other zones) */

@@ -3481,9 +3481,11 @@ static const MapProfile profiles[] = {
 			 * shadow (gBldRegs + 4) at 16, black but for the band (window
 			 * 0), as in the card's first moments, without the other
 			 * sprites (priority 1-2; the HUD; at priority 3 all but
-			 * palette 9; at priority 0 all but palettes 6, 7 and 9). None
-			 * in a hub or the factory (SA3-4) */
-			.card = { .tile = 620, .tileMax = 623, .pal = 9, .whole = true, .at = 165,
+			 * palette 9; at priority 0 all but palettes 6, 7 and 9). The
+			 * name's sprite at priority 3: an enemy's points are the same
+			 * tile and palette at priority 0. None in a hub or the factory
+			 * (SA3-4) */
+			.card = { .tile = 620, .tileMax = 623, .pal = 9, .prio1 = 3 + 1, .whole = true, .at = 165,
 			          .drop = { { 0x030008AA, 0xFF, 1, 1, true, 2, true } },
 			          .hide = { { -64, -64, 255, 175, 0, 1023, 1, 0 },
 			                    { -64, -64, 255, 175, 0, 1023, 2, 0 },
