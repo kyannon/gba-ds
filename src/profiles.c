@@ -2408,6 +2408,10 @@ static void gs2_black_corners(uint32_t* px, int w, bool walking) {
 	}
 }
 
+/* the logo's copy: the save check's veneer (ldr r4, [pc]; bx r4) made
+ * to answer one save (GS2-5) */
+static const uint8_t gs2SaveCheck[4] = { 0x00, 0x4C, 0x20, 0x47 };
+static const uint8_t gs2SaveOne[4] = { 0x01, 0x20, 0x70, 0x47 };
 static const Gs2Addr* gs2_addr(Emu* e) {
 	for (size_t i = 0; i < sizeof(gs2Addr) / sizeof(gs2Addr[0]); ++i) {
 		if (gs2Addr[i].region == e->gameCode[3]) return &gs2Addr[i];
@@ -2958,7 +2962,7 @@ static const MapProfile profiles[] = {
 	{
 		/* Golden Sun: The Lost Age: Golden Sun's Status screens, a page
 		 * per party member: see gs2_compose */
-		.codes = { "AGFE", "AGFD", "AGFF", "AGFI" },
+		.codes = { "AGFE" },
 		.title = "Golden Sun: The Lost Age",
 		.composePages = gs2_compose,
 		.stillPick = STILL_FIRST,
@@ -2972,8 +2976,12 @@ static const MapProfile profiles[] = {
 		.combat = { { 0x02030012, 0xFF, 0, 1 }, { 0x02000420, 0xFFFF, GS2_BATTLE, 2 } },
 		/* the one choosing in a battle: their Status at once */
 		.room = { { 0x02035EFC, 0xFF, 0, 1 }, { 0x02030012, 0xFF, 0, 1 } }, /* (the one choosing; a turn to choose) */
-		/* the emblem with The Lost Age and its TM, BG2 over black (GS2-5) */
-		.logo = { .wait = 480, .layer = 2, .maxY = 116, .blackIsClear = true },
+		/* the title's emblem, cut out of its picture of the lighthouse
+		 * (GS2-5); the title only comes with a save, so the copy the logo
+		 * is taken from has its save check answer "one" (the veneer every
+		 * release has at 0x080382F0: movs r0, #1; bx lr) */
+		.logo = { .steps = { { 0, 600 }, { K_START, 4 }, { 0, 120 } }, .mask = &logoMaskGS2E,
+		          .patch = { { 0x080382F0, 4, gs2SaveCheck, gs2SaveOne } }, .rev = 1 /* (the test builds' small emblem made again) */ },
 	},
 	{
 		/* the Status screen with the menu's Place bar over its bottom:
@@ -3941,9 +3949,23 @@ static void sma2_jpn(MapProfile* p) {
 
 /* Final Fantasy Tactics Advance in Europe: a language menu first (its RAM
  * is the USA release's); in Japan the cursor's 0x30 lower (ft_r) */
-/* Golden Sun: The Lost Age in Japan: the one choosing 0x200 lower (gs2Addr) */
+/* Golden Sun: The Lost Age elsewhere: each release's logo (its title's
+ * subtitle and TM); in Japan, the one choosing 0x200 lower (gs2Addr) */
+static void gs2_ger(MapProfile* p) {
+	p->logo.mask = &logoMaskGS2D;
+}
+static void gs2_fra(MapProfile* p) {
+	p->logo.mask = &logoMaskGS2F;
+}
+static void gs2_ita(MapProfile* p) {
+	p->logo.mask = &logoMaskGS2I;
+}
+static void gs2_spa(MapProfile* p) {
+	p->logo.mask = &logoMaskGS2S;
+}
 static void gs2_jpn(MapProfile* p) {
 	p->room[0].addr -= 0x200;
+	p->logo.mask = &logoMaskGS2J;
 }
 
 /* Golden Sun in Germany: the battle's bytes 0x10 higher (GS_GER) */
@@ -4001,8 +4023,11 @@ static void khc_jpn(MapProfile* p) {
 
 static const Variant variants[] = {
 	{ "AGSD", "AGSE", 0, gs_ger },
-	/* Golden Sun: The Lost Age in Spain (codes: a profile takes 4) and Japan */
-	{ "AGFS", "AGFE", 0, NULL },
+	/* Golden Sun: The Lost Age's other releases */
+	{ "AGFD", "AGFE", 0, gs2_ger },
+	{ "AGFF", "AGFE", 0, gs2_fra },
+	{ "AGFI", "AGFE", 0, gs2_ita },
+	{ "AGFS", "AGFE", 0, gs2_spa },
 	{ "AGFJ", "AGFE", 0, gs2_jpn },
 	/* F-Zero: GP Legend in Europe: its language menu first (the title
 	 * comes ~700 frames after A); its races not tried (f-zero-gp-legend.md) */

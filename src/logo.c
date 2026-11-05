@@ -43,6 +43,17 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 	if (!p || (!p->logo.wait && !p->logo.steps[0].frames)) return false;
 	Emu e;
 	if (!emu_open(&e, romPath, NULL, false)) return false;
+	/* the profile's patches for this copy only, all or none (another
+	 * revision of the ROM is left alone) */
+	bool patchOk = true;
+	for (int k = 0; k < 2 && p->logo.patch[k].addr; ++k) {
+		const RomPatch* r = &p->logo.patch[k];
+		for (int i = 0; i < r->len; ++i) patchOk &= emu_read8(&e, r->addr + i) == (r->orig ? r->orig[i] : 0xFF);
+	}
+	for (int k = 0; k < 2 && patchOk && p->logo.patch[k].addr; ++k) {
+		const RomPatch* r = &p->logo.patch[k];
+		for (int i = 0; i < r->len; ++i) e.core->rawWrite8(e.core, r->addr + i, -1, r->bytes[i]);
+	}
 
 	for (int i = 0; i < 24 && p->logo.steps[i].frames && !cancelAll; ++i) {
 		for (int f = 0; f < p->logo.steps[i].frames && !cancelAll; ++f) emu_frame(&e, p->logo.steps[i].keys);

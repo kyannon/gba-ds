@@ -21,7 +21,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **GS2-4. Title.** On the title screen, the file menu, the naming screens, the opening's story text and the credits (the game on no map), the second screen shows the logo, and no captures are tried there.
 
-**GS2-5. Logo.** The logo is the GOLDEN SUN emblem (黄金の太陽 in Japan) with its dial, its ™ (® in Japan) and the subtitle, as a game with no save shows it before the naming screen (BG2 above the copyright line, from power-on, frame 480; the black around it clear). The game draws the dial and the subtitle (The Lost Age, Die Vergessene Epoche...) in dark colours, so they show faintly, as on the game's own screen. (The title screen proper, with its larger emblem painted into a picture of the lighthouse, only comes with a save.)
+**GS2-5. Logo.** The logo is the title screen's emblem (the one behind PRESS START: GOLDEN SUN, 黄金の太陽 in Japan, with its dial, the subtitle in the release's language and its ™, ® in Japan), cut out of the picture of the lighthouse it's painted on: the gold and its dark outline, the subtitle's red (the Japanese one white with its shadow) and the ™ (the European releases' white one with its black outline filled in); nothing of the sky or the mountains. The game only shows that title with a save, so the hidden copy the logo is taken from (never the game played) has its save check answer "one save", from power-on: START through the opening, the title 120 frames later. The subtitles keep only their red letters: their edges, blended into the sky, are left out, so they read thinner than on the title. (Until the third test build, the small emblem a game with no save shows before naming Felix, whose dial and subtitle are drawn dark.)
 
 **GS2-6. Game screen untouched.** Nothing leaves the game screen.
 
@@ -43,11 +43,14 @@ For sessions working on the profile (the USA / Europe release's addresses, also 
 - Walking about: `0x0203015A` 1 while SELECT's menu or one of its screens is up; `0x020036E0` 1 while one of its screens (Psynergy, Djinn, Item, Status) is.
 - In a battle: `0x02030012` 5 while the player chooses; `0x02035EFC` the character choosing (a character number; 0xFF in the party menu and on the Status); `0x03001382` the x of the party menu's highlight (the first sprite in the game's copy of the sprite table: 49 Fight, 73 Switch, 97 Flee, 121 Status; with one in the party there's no Switch and Fight is at 73; the cursor itself is in a window whose place in memory changes); `0x02035E64` 1 while the battle's Status is up.
 - In Japan, the one choosing and the battle's Status flag are 0x200 lower (`0x02035CFC`, `0x02035C64`); the rest as above.
+- The title screen (its emblem over a picture of the lighthouse, BG2, one 8-bit picture) only comes with a save: the boot code (copied to `0x02008000`) calls the save count through the veneer at `0x080382F0` (every release; the function behind it moves) and goes to naming Felix with none. Made to answer 1 there, a game with no save plays the opening and the title. The masks: `tools/make_logo_masks.py` (`gs2`), from that frame (`GBADS_LOGO_DEBUG=1`, the logo's `.fg.png`).
 - Battle messages wait for A (the default message speed).
 - A new game with no save goes from the power-on emblem straight to naming Felix, then "Transfer data from Golden Sun?" (No: RIGHT, A), naming Isaac, the story text (START skips it, A doesn't) and some 10 minutes of A through the scene at the top of Venus Lighthouse, where Jenna can first walk (map 5, entrance 9). A battery save (any release's: the releases share the save's layout) continues on the title's file menu with A.
 - How the test states were made: the party set by its bits and order, battles by walking on the world map, the world map reached by holding the map at 2 while walking through a doorway (the room loaded is then the world map), the other releases from a USA save made with all eight in the party.
 
 ## For the merge
+
+Shared code changed on this branch, so the merge runs the full suite: `src/logo.c` and `src/profiles.h` (a logo profile's `patch`: ROM bytes written into the copy the logo is taken from only), `src/logo_masks.c` / `.h` and `tools/make_logo_masks.py` (the six GS2 masks; the other masks kept as they were). Whoever merges regenerates `src/logo_masks.c` if `dev` changed it too.
 
 Changelog line (under the open version's What's new):
 

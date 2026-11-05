@@ -150,7 +150,41 @@ def dbz(a):
     patch[fill & ~zr] = black[0] << 16 | black[1] << 8 | black[2]
     return m, patch
 
-MASKS = (("THPS2", thps2), ("SK8", sk8), ("THPS3", thps3), ("DBZ", dbz))
+def gs2(a, japan=False):
+    """Golden Sun: The Lost Age (every release; its title only comes with a
+    save, so the logo profile patches the save check): the emblem painted
+    over a picture of the lighthouse. The gold (redder than blue) and the
+    dark outline beside it; the subtitle's red with its pinkish edge; the
+    Europeans' TM, white in a black outline (filled in); Japan's subtitle,
+    white with a dark shadow over the mountains. Nothing from the copyright
+    line down."""
+    def comps(m, mn):
+        lab, n = ndimage.label(m)
+        if not n:
+            return m
+        s = ndimage.sum(m, lab, range(1, n + 1))
+        return np.isin(lab, [i + 1 for i, v in enumerate(s) if v >= mn])
+    R, G, B = a[..., 0], a[..., 1], a[..., 2]
+    warm = comps(R > B + 24, 4)
+    near = ndimage.distance_transform_edt(~warm) <= 5
+    m = warm | ((a.max(axis=2) < 0x50) & near)
+    red = comps((R > G + 40) & (R > B + 16), 3)
+    m |= red
+    m |= (ndimage.distance_transform_edt(~red) <= 1) & (R >= B + 8) & (R > G + 8)
+    if japan:
+        x0, y0, x1, y1 = 50, 82, 132, 98
+        box = a[y0:y1, x0:x1]
+        m[y0:y1, x0:x1] |= comps((box.min(axis=2) > 0xC8) | (box.max(axis=2) < 0x60), 3)
+    else:
+        x0, y0, x1, y1 = 206, 36, 240, 56
+        m[y0:y1, x0:x1] |= ndimage.binary_fill_holes(a[y0:y1, x0:x1].max(axis=2) < 0x50)
+    m[118:] = False
+    return m
+
+
+MASKS = (("THPS2", thps2), ("SK8", sk8), ("THPS3", thps3), ("DBZ", dbz),
+         ("GS2E", gs2), ("GS2D", gs2), ("GS2F", gs2), ("GS2I", gs2), ("GS2S", gs2),
+         ("GS2J", lambda a: gs2(a, True)))
 
 
 def runs(mask):

@@ -22,5 +22,7 @@ extern const LogoMask logoMaskTHPS2;
 extern const LogoMask logoMaskSK8;
 extern const LogoMask logoMaskTHPS3;
 extern const LogoMask logoMaskDBZ;
+/* Golden Sun: The Lost Age, each release's */
+extern const LogoMask logoMaskGS2E, logoMaskGS2D, logoMaskGS2F, logoMaskGS2I, logoMaskGS2S, logoMaskGS2J;
 
 #endif
