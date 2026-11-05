@@ -30,11 +30,11 @@ The second screen follows [F-Zero: GP Legend](f-zero-gp-legend.md)'s: the race H
 
 **FZM-7. One screen.** With `layout = single` the HUD stays where the game draws it.
 
-**FZM-8. YOU LOST.** After GIVE UP, or once a destroyed machine's wreck has been circled, YOU LOST is shown over the track with the HUD: the HUD stays on the second screen, as while racing, until A takes the game on to the results. (Until v1.4.10's second test build of this game the second screen showed the logo there, and the HUD came back onto the game screen beside YOU LOST.)
+**FZM-8. YOU LOST.** After GIVE UP, after RANK OUT (still outside the race's limit as a lap ends, the last lap included: finishing below third place), or once a destroyed machine's wreck has been circled, YOU LOST is shown over the track with the HUD: the HUD stays on the second screen, as while racing, until A takes the game on to the results. (Until v1.4.10's second test build of this game the second screen showed the logo there, and the HUD came back onto the game screen beside YOU LOST; RANK OUT until the fourth.)
 
 ## Known issues
 
-- As a race ends, and as A is pressed on YOU LOST, the HUD shows again on the game screen for 2 frames (a thirtieth of a second) before the game takes it down: the game lowers the flag GBA DS goes by two frames before its sprites go, and no byte of its memory marks those two frames. Hiding them would need another change to shared code (keeping a split on while a given sprite tile is still shown); left for now. (A machine destroyed has no such flash: the split carries on into FZM-8's.)
+- As the game takes its HUD down (after the finish, as A is pressed on YOU LOST, as a machine is destroyed), the HUD shows again on the game screen for 1 frame (a sixtieth of a second): the game's HUD state, which GBA DS goes by, changes a frame before its sprites go. Hiding it would need another change to shared code (keeping a split on while a given sprite tile is still shown); left for now.
 
 ## Not covered yet
 
@@ -68,5 +68,5 @@ Wiki, `wiki/Supported-games.md` (table row and section):
 Grand Prix and Training races have been tried in every release (USA / Europe, Japanese, Chinese); the link-cable modes haven't.
 
 - **While racing,** the HUD moves to the second screen: POW at the top with BOOST under it, SPARE MACHINES and LAST at the top left, the time and lap times at the top right, and the course map at the bottom, twice as big. The game screen keeps the track clear, with RANK (and the race's limit) at the bottom left and your speed at the top right.
-- Paused, and on YOU LOST (after GIVE UP, or a destroyed machine), the HUD stays on the second screen until the results.
+- Paused, and on YOU LOST (after GIVE UP, RANK OUT or a destroyed machine), the HUD stays on the second screen until the results.
 - On the title, the menus, the course name before a race, after a race (once the HUD's gone), while the camera circles a destroyed machine, and the results, the second screen shows the logo.

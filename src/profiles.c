@@ -3878,31 +3878,22 @@ static const MapProfile profiles[] = {
 		 * 123) and the copyright line (FZM-1) */
 		.logo = { .steps = { { 0, 900 } }, .layers = 0x10, .maxY = 115 },
 		.hud = {
-			/* racing: the game's mode (0x03000BFB: the handler table at
-			 * 0x080513D0's index) the countdown (3), the race (5) or its
-			 * finish (6 with the machine on AUTO, 0x10 driven: the owner's
-			 * report of Nov 5), with the HUD's flag up (0x030005F8 = 0x80:
-			 * set two frames before the HUD shows, 0x83 two frames before
-			 * it goes at the finish or as the machine's destroyed, 0 in the
-			 * course's fly-in; pausing keeps it). 3 to 6 and 0x10 only: the
-			 * range, and the low four bits 0 to 6 (not 7, the results after
-			 * GIVE UP and A, whose flag stays 0x80; not 9, 10: YOU LOST,
-			 * alt below) (FZM-2, FZM-6) */
-			.on = { { 0x03000BFB, 0xFF, 3, 1, true, 0x10, true }, { 0x03000BFB, 0x0F, 0, 1, true, 6, true },
-			        { 0x030005F8, 0xFF, 0x80, 1 } },
-			/* YOU LOST (GIVE UP: mode 9; the machine destroyed: 10), till
-			 * A takes it to the results (0x03001084 goes 0 -> 2 as A is
-			 * pressed, two frames before the HUD goes; the mode changes 30
-			 * frames later): the same HUD, no BG layers (FZM-8). Destroyed,
-			 * the game hides its HUD while the camera circles the wreck:
-			 * the logo then (emptyIsOff), the HUD back with YOU LOST */
-			.alt = { .on = { { 0x03000BFB, 0xFF, 9, 1, true, 10, true }, { 0x03001084, 0xFF, 0, 1 } } },
-			/* (0x03001084 is also 2 for the half second after GIVE UP is
-			 * chosen, YOU LOST up with the HUD: kept on while the fade-out
-			 * counter 0x03001088, 0xF0 down to 0 from the frame after A, is
-			 * still 0) */
-			.stay = { { 0x03000BFB, 0xFF, 9, 1, true, 10, true }, { 0x03001088, 0xFF, 0, 1 } },
-			.emptyIsOff = true,
+			/* the race HUD is up: the game's mode (0x03000BFB: the handler
+			 * table at 0x080513D0's index) one with a race on screen, and
+			 * the HUD's own state (0x020168C9: 0x63 shown, 0x64 paused,
+			 * 0x61 gone; it changes a frame before the HUD's sprites do).
+			 * The modes: the countdown (3), the race (5), the finish (6 and
+			 * 0x10 seen: second place on the debug AUTO, first driven),
+			 * RANK OUT (8), YOU LOST after GIVE UP (9), the machine
+			 * destroyed (10): 3 to 0x10 with the low three bits 0 to 6, so
+			 * not 7, the results, where the state byte holds other things.
+			 * The HUD stays through YOU LOST till A is pressed (0x61 then);
+			 * the camera circling a wreck has none (0x61). Before the
+			 * owner's reports of Nov 5 (a driven finish: mode 0x10; RANK
+			 * OUT: mode 8) this went by the modes alone and the flag
+			 * 0x030005F8, which drops at the finish (FZM-2, FZM-6, FZM-8) */
+			.on = { { 0x03000BFB, 0xFF, 3, 1, true, 0x10, true }, { 0x03000BFB, 0x07, 0, 1, true, 6, true },
+			        { 0x020168C9, 0xFF, 0x63, 1, true, 0x64, true } },
 			.objs = { /* POW */
 			          { 130, -8, 239, 12, 376, 393, 0 },
 			          /* SPARE MACHINES */
@@ -4571,18 +4562,14 @@ static void thps3_ger(MapProfile* p) {
 	memcpy(p->probes, show, sizeof(show));
 }
 
-/* F-Zero: Maximum Velocity in China: the mode byte and YOU LOST's bytes
- * 0x20 higher (0x03000C1B, 0x030010A4, 0x030010A8), the HUD's flag 0x18 (0x03000610: the fourth of a table of
- * four, at 0x08054BC0 in the US release, 0x0805BC68 here); its title shows
- * ~200 frames later */
+/* F-Zero: Maximum Velocity in China: the mode byte 0x20 higher
+ * (0x03000C1B), the HUD's state 0x40 lower (0x02016889: the EWRAM block's
+ * literals, 0x020167B0... here 0x02016770...); its title shows ~200 frames
+ * later */
 static void fzm_chn(MapProfile* p) {
 	p->hud.on[0].addr += 0x20;
 	p->hud.on[1].addr += 0x20;
-	p->hud.on[2].addr += 0x18;
-	p->hud.alt.on[0].addr += 0x20;
-	p->hud.alt.on[1].addr += 0x20; /* (0x030010A4) */
-	p->hud.stay[0].addr += 0x20;
-	p->hud.stay[1].addr += 0x20; /* (0x030010A8) */
+	p->hud.on[2].addr -= 0x40;
 	p->logo.steps[0].frames = 1100;
 }
 

@@ -101,7 +101,7 @@
      "rule": "FZM-6",
      "what": "the logo while the camera circles the wreck",
      "type": "log",
-     "match": "HUD empty: the logo"
+     "match": "frame 24[0-9][0-9]: HUD gone"
     },
     {
      "rule": "FZM-8",
@@ -276,6 +276,73 @@
     {
      "rule": "FZM-6",
      "what": "the logo once the HUD's gone",
+     "type": "log",
+     "match": "HUD gone"
+    }
+   ]
+  },
+  {
+   "id": "fzm-us-gp-rank-out",
+   "rom": "AFZE",
+   "state": "f-zero-maximum-velocity/us-gp-rank-out.ss",
+   "desc": "Grand Prix, the owner's report of Nov 5: the last lap ends in fourth, outside the limit of 3 (RANK OUT, the game's mode 8): YOU LOST with the HUD on the second screen, then A: the results",
+   "rules": [
+    "FZM-2",
+    "FZM-6",
+    "FZM-8"
+   ],
+   "input": [
+    [
+     0,
+     "-"
+    ],
+    [
+     86,
+     "B"
+    ],
+    [
+     137,
+     "-"
+    ],
+    [
+     217,
+     "A"
+    ],
+    [
+     238,
+     "-"
+    ],
+    [
+     620,
+     "A"
+    ],
+    [
+     626,
+     "-"
+    ]
+   ],
+   "shots": {
+    "racing": 100,
+    "rank-out": 300,
+    "lost": 600,
+    "results": 800
+   },
+   "checks": [
+    {
+     "rule": "FZM-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "FZM-8",
+     "what": "the HUD stays through YOU LOST till A",
+     "type": "no_log",
+     "match": "frame ([0-9]|[0-9][0-9]|[0-5][0-9][0-9]|6[01][0-9]): HUD gone"
+    },
+    {
+     "rule": "FZM-6",
+     "what": "the logo at the results",
      "type": "log",
      "match": "HUD gone"
     }
