@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `AZ2E` USA · `AZ2J` Japan |
+| Dumps | `AZ2E` cartridge `302e75f3` (tested) · `AZ2J` cartridge `0c039503` (tested) |
 | Profile | `src/profiles.c`: the `AZ2E` entry (zl_virt); variant `AZ2J` (its RAM and routines elsewhere: zlRegions) |
 | Tests | `tests/regress/zoids-legacy.json` (`tools/regress.py zoids-legacy`) |
 | Status | supported |
