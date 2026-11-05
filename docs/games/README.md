@@ -24,6 +24,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Fire Emblem: The Sacred Stones (Seima no Kouseki in Japan)](fire-emblem-sacred-stones.md) | FE8 | `BE8E` + 2 |
 | [Sword of Mana (Shinyaku Seiken Densetsu in Japan)](sword-of-mana.md) | SOM | `AVSE` + 2 |
 | [Golden Sun (Ougon no Taiyou in Japan)](golden-sun.md) | GS | `AGSE` + 5 |
+| [Golden Sun: The Lost Age (Ougon no Taiyou: Ushinawareshi Toki in Japan)](golden-sun-2.md) | GS2 | `AGFE` + 5 |
 | [Tactics Ogre: The Knight of Lodis (Tactics Ogre Gaiden in Japan)](tactics-ogre.md) | TO | `ATOE` + 1 |
 | [F-Zero: GP Legend (F-Zero: Falcon Densetsu in Japan)](f-zero-gp-legend.md) | FZ | `BFZE` + 2 |
 | [River City Ransom EX (Downtown Nekketsu Monogatari EX in Japan)](river-city-ransom-ex.md) | RCR | `BDTE` + 1 |

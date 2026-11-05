@@ -1,0 +1,1115 @@
+{
+ "game": "Golden Sun: The Lost Age",
+ "rules": "docs/games/golden-sun-2.md",
+ "cases": [
+  {
+   "id": "gs2-us-aerie",
+   "rom": "AGFE",
+   "state": "golden-sun-2/us-aerie.ss",
+   "desc": "walking about at the top of Venus Lighthouse, Jenna alone in the party (the game's first steps)",
+   "rules": [
+    "GS2-1",
+    "GS2-6"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "GS2-1",
+     "what": "the Status, one page",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "GS2-6",
+     "what": "the game screen is the game's own",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "gs2-us-field",
+   "rom": "AGFE",
+   "state": "golden-sun-2/us-field.ss",
+   "desc": "walking about on the world map, all eight in the party (Felix's four, then Isaac's in the back)",
+   "rules": [
+    "GS2-1",
+    "GS2-2",
+    "GS2-6"
+   ],
+   "shots": {
+    "felix": 120,
+    "jenna": 420,
+    "mia": 2220,
+    "round": 2520
+   },
+   "checks": [
+    {
+     "rule": "GS2-2",
+     "what": "eight pages",
+     "type": "log",
+     "match": "map updated \\(8 frame\\(s\\) 300 apart"
+    },
+    {
+     "rule": "GS2-2",
+     "what": "the next party member after 5 seconds",
+     "type": "differs",
+     "a": {
+      "shot": "felix",
+      "rect": [
+       64,
+       240,
+       192,
+       368
+      ]
+     },
+     "b": {
+      "shot": "jenna",
+      "rect": [
+       64,
+       240,
+       192,
+       368
+      ]
+     },
+     "frac": 0.2
+    },
+    {
+     "rule": "GS2-2",
+     "what": "the eighth after 35",
+     "type": "differs",
+     "a": {
+      "shot": "felix",
+      "rect": [
+       64,
+       240,
+       192,
+       368
+      ]
+     },
+     "b": {
+      "shot": "mia",
+      "rect": [
+       64,
+       240,
+       192,
+       368
+      ]
+     },
+     "frac": 0.2
+    },
+    {
+     "rule": "GS2-2",
+     "what": "back to the first after 40",
+     "type": "same",
+     "a": {
+      "shot": "felix",
+      "rect": [
+       64,
+       240,
+       192,
+       368
+      ]
+     },
+     "b": {
+      "shot": "round",
+      "rect": [
+       64,
+       240,
+       192,
+       368
+      ]
+     },
+     "frac": 0.001
+    },
+    {
+     "rule": "GS2-6",
+     "what": "the game screen is the game's own",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "gs2-us-status-open",
+   "rom": "AGFE",
+   "state": "golden-sun-2/us-status.ss",
+   "desc": "the Status screen open in the game (on Jenna)",
+   "rules": [
+    "GS2-1"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "GS2-1",
+     "what": "the Status, from the first",
+     "type": "log",
+     "match": "map updated \\(8 frame"
+    }
+   ]
+  },
+  {
+   "id": "gs2-us-djinn-open",
+   "rom": "AGFE",
+   "state": "golden-sun-2/us-djinn.ss",
+   "desc": "the menu's Djinn screen open in the game",
+   "rules": [
+    "GS2-1"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "GS2-1",
+     "what": "the Status was shown, not the Djinn screen",
+     "type": "log",
+     "match": "map updated \\(8 frame"
+    }
+   ]
+  },
+  {
+   "id": "gs2-us-pause",
+   "rom": "AGFE",
+   "state": "golden-sun-2/us-field.ss",
+   "desc": "walking about, then the START menu (Pause) open",
+   "rules": [
+    "GS2-3"
+   ],
+   "input": [
+    [
+     400,
+     "LOAD:golden-sun-2/us-pause.ss"
+    ]
+   ],
+   "shots": {
+    "field": 300,
+    "pause": 700
+   },
+   "checks": [
+    {
+     "rule": "GS2-3",
+     "what": "the Status pictures stay",
+     "type": "same",
+     "a": {
+      "shot": "field",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "pause",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.3
+    },
+    {
+     "rule": "GS2-3",
+     "what": "not back to the logo",
+     "type": "no_log",
+     "match": "back to the logo"
+    }
+   ]
+  },
+  {
+   "id": "gs2-us-message",
+   "rom": "AGFE",
+   "state": "golden-sun-2/us-field.ss",
+   "desc": "walking about, then a message up (Retreat's)",
+   "rules": [
+    "GS2-3"
+   ],
+   "input": [
+    [
+     400,
+     "LOAD:golden-sun-2/us-message.ss"
+    ]
+   ],
+   "shots": {
+    "field": 300,
+    "message": 700
+   },
+   "checks": [
+    {
+     "rule": "GS2-3",
+     "what": "the Status pictures stay",
+     "type": "same",
+     "a": {
+      "shot": "field",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "message",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.3
+    },
+    {
+     "rule": "GS2-3",
+     "what": "not back to the logo",
+     "type": "no_log",
+     "match": "back to the logo"
+    }
+   ]
+  },
+  {
+   "id": "gs2-us-title",
+   "rom": "AGFE",
+   "state": "golden-sun-2/us-title.ss",
+   "desc": "the title screen (with a battery save)",
+   "rules": [
+    "GS2-4"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 300
+   },
+   "checks": [
+    {
+     "rule": "GS2-4",
+     "what": "no captures there",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "GS2-4",
+     "what": "the logo",
+     "shot": "end"
+    }
+   ]
+  },
+  {
+   "id": "gs2-us-naming",
+   "rom": "AGFE",
+   "state": "golden-sun-2/us-naming.ss",
+   "desc": "a new game: the question about Golden Sun's data after naming Felix",
+   "rules": [
+    "GS2-4"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 300
+   },
+   "checks": [
+    {
+     "rule": "GS2-4",
+     "what": "no captures there",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "GS2-4",
+     "what": "the logo",
+     "shot": "end"
+    }
+   ]
+  },
+  {
+   "id": "gs2-us-title-again",
+   "rom": "AGFE",
+   "state": "golden-sun-2/us-field.ss",
+   "desc": "walking about, then the opening's story text of a new game",
+   "rules": [
+    "GS2-4"
+   ],
+   "input": [
+    [
+     400,
+     "LOAD:golden-sun-2/us-prologue.ss"
+    ]
+   ],
+   "shots": {
+    "field": 300,
+    "story": 600
+   },
+   "checks": [
+    {
+     "rule": "GS2-4",
+     "what": "the pictures go",
+     "type": "log",
+     "match": "back to the logo"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "GS2-4",
+     "what": "the logo",
+     "shot": "story"
+    }
+   ]
+  },
+  {
+   "id": "gs2-us-battle-party",
+   "rom": "AGFE",
+   "state": "golden-sun-2/us-battle-party.ss",
+   "desc": "a battle, the party menu (Fight, Switch, Flee, Status): Isaac first",
+   "rules": [
+    "GS2-7"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "GS2-7",
+     "what": "the battle's Status was shown",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "GS2-7",
+     "what": "it opened",
+     "type": "no_log",
+     "match": "didn't open"
+    }
+   ]
+  },
+  {
+   "id": "gs2-us-battle-ivan",
+   "rom": "AGFE",
+   "state": "golden-sun-2/us-battle-ivan.ss",
+   "desc": "a battle, Ivan choosing (Isaac and Garet have)",
+   "rules": [
+    "GS2-7"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "GS2-7",
+     "what": "the battle's Status was shown",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    }
+   ]
+  },
+  {
+   "id": "gs2-us-battle-jenna",
+   "rom": "AGFE",
+   "state": "golden-sun-2/us-battle-jenna.ss",
+   "desc": "a battle with Felix's party in front, Jenna choosing (Felix has): her place in the party, not her character number",
+   "rules": [
+    "GS2-7"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "GS2-7",
+     "what": "the battle's Status was shown",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    }
+   ]
+  },
+  {
+   "id": "gs2-us-battle-status-open",
+   "rom": "AGFE",
+   "state": "golden-sun-2/us-battle-status.ss",
+   "desc": "a battle, its Status open in the game",
+   "rules": [
+    "GS2-7"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "GS2-7",
+     "what": "the battle's Status was shown",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    }
+   ]
+  },
+  {
+   "id": "gs2-us-battle-alone",
+   "rom": "AGFE",
+   "state": "golden-sun-2/us-battle-alone.ss",
+   "desc": "a battle with Jenna alone: the party menu without Switch",
+   "rules": [
+    "GS2-7"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "GS2-7",
+     "what": "the battle's Status was shown",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    }
+   ]
+  },
+  {
+   "id": "gs2-us-battle-start",
+   "rom": "AGFE",
+   "state": "golden-sun-2/us-field.ss",
+   "desc": "walking about (the Status up), then a battle starting (the enemies appearing)",
+   "rules": [
+    "GS2-8"
+   ],
+   "input": [
+    [
+     400,
+     "LOAD:golden-sun-2/us-battle-start.ss"
+    ]
+   ],
+   "shots": {
+    "field": 300,
+    "battle": 520
+   },
+   "checks": [
+    {
+     "rule": "GS2-8",
+     "what": "the Status while walking about",
+     "type": "log",
+     "match": "map updated \\(8 frame"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "GS2-8",
+     "what": "the logo as the battle starts, not the Status from walking about",
+     "shot": "battle"
+    }
+   ]
+  },
+  {
+   "id": "gs2-us-battle-turn",
+   "rom": "AGFE",
+   "state": "golden-sun-2/us-battle-mia.ss",
+   "desc": "Mia attacks too, and the turn plays out",
+   "rules": [
+    "GS2-7",
+    "GS2-8"
+   ],
+   "input": [
+    [
+     150,
+     "A"
+    ],
+    [
+     156,
+     "-"
+    ],
+    [
+     200,
+     "A"
+    ],
+    [
+     206,
+     "-"
+    ]
+   ],
+   "shots": {
+    "choosing": 120,
+    "playing": 330
+   },
+   "checks": [
+    {
+     "rule": "GS2-7",
+     "what": "Mia's Status while she chooses",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "GS2-8",
+     "what": "the logo once the turn plays out",
+     "type": "log",
+     "match": "fight on"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "GS2-8",
+     "what": "the logo",
+     "shot": "playing"
+    }
+   ]
+  },
+  {
+   "id": "gs2-us-after-battle",
+   "rom": "AGFE",
+   "state": "golden-sun-2/us-after-battle.ss",
+   "desc": "walking about straight after a battle (Isaac's party in front)",
+   "rules": [
+    "GS2-1",
+    "GS2-2"
+   ],
+   "shots": {
+    "first": 120,
+    "second": 420
+   },
+   "checks": [
+    {
+     "rule": "GS2-1",
+     "what": "eight pages",
+     "type": "log",
+     "match": "map updated \\(8 frame\\(s\\) 300 apart"
+    },
+    {
+     "rule": "GS2-2",
+     "what": "the next party member after 5 seconds",
+     "type": "differs",
+     "a": {
+      "shot": "first",
+      "rect": [
+       64,
+       240,
+       192,
+       368
+      ]
+     },
+     "b": {
+      "shot": "second",
+      "rect": [
+       64,
+       240,
+       192,
+       368
+      ]
+     },
+     "frac": 0.2
+    }
+   ]
+  },
+  {
+   "id": "gs2-de-field",
+   "rom": "AGFD",
+   "state": "golden-sun-2/de-field.ss",
+   "desc": "walking about on the world map, all eight in the party (AGFD)",
+   "rules": [
+    "GS2-1",
+    "GS2-2"
+   ],
+   "shots": {
+    "first": 120,
+    "second": 420
+   },
+   "checks": [
+    {
+     "rule": "GS2-1",
+     "what": "the Status, eight pages",
+     "type": "log",
+     "match": "map updated \\(8 frame\\(s\\) 300 apart"
+    },
+    {
+     "rule": "GS2-2",
+     "what": "the next party member after 5 seconds",
+     "type": "differs",
+     "a": {
+      "shot": "first",
+      "rect": [
+       64,
+       240,
+       192,
+       368
+      ]
+     },
+     "b": {
+      "shot": "second",
+      "rect": [
+       64,
+       240,
+       192,
+       368
+      ]
+     },
+     "frac": 0.2
+    },
+    {
+     "rule": "GS2-1",
+     "what": "not taken for a battle",
+     "type": "no_log",
+     "match": "a battle playing out"
+    }
+   ]
+  },
+  {
+   "id": "gs2-de-battle",
+   "rom": "AGFD",
+   "state": "golden-sun-2/de-battle-garet.ss",
+   "desc": "a battle, Garet choosing (AGFD)",
+   "rules": [
+    "GS2-7"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "GS2-7",
+     "what": "the battle's Status was shown",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "GS2-7",
+     "what": "it opened",
+     "type": "no_log",
+     "match": "didn't open"
+    }
+   ]
+  },
+  {
+   "id": "gs2-fr-field",
+   "rom": "AGFF",
+   "state": "golden-sun-2/fr-field.ss",
+   "desc": "walking about on the world map, all eight in the party (AGFF)",
+   "rules": [
+    "GS2-1",
+    "GS2-2"
+   ],
+   "shots": {
+    "first": 120,
+    "second": 420
+   },
+   "checks": [
+    {
+     "rule": "GS2-1",
+     "what": "the Status, eight pages",
+     "type": "log",
+     "match": "map updated \\(8 frame\\(s\\) 300 apart"
+    },
+    {
+     "rule": "GS2-2",
+     "what": "the next party member after 5 seconds",
+     "type": "differs",
+     "a": {
+      "shot": "first",
+      "rect": [
+       64,
+       240,
+       192,
+       368
+      ]
+     },
+     "b": {
+      "shot": "second",
+      "rect": [
+       64,
+       240,
+       192,
+       368
+      ]
+     },
+     "frac": 0.2
+    },
+    {
+     "rule": "GS2-1",
+     "what": "not taken for a battle",
+     "type": "no_log",
+     "match": "a battle playing out"
+    }
+   ]
+  },
+  {
+   "id": "gs2-fr-battle",
+   "rom": "AGFF",
+   "state": "golden-sun-2/fr-battle-garet.ss",
+   "desc": "a battle, Garet choosing (AGFF)",
+   "rules": [
+    "GS2-7"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "GS2-7",
+     "what": "the battle's Status was shown",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "GS2-7",
+     "what": "it opened",
+     "type": "no_log",
+     "match": "didn't open"
+    }
+   ]
+  },
+  {
+   "id": "gs2-it-field",
+   "rom": "AGFI",
+   "state": "golden-sun-2/it-field.ss",
+   "desc": "walking about on the world map, all eight in the party (AGFI)",
+   "rules": [
+    "GS2-1",
+    "GS2-2"
+   ],
+   "shots": {
+    "first": 120,
+    "second": 420
+   },
+   "checks": [
+    {
+     "rule": "GS2-1",
+     "what": "the Status, eight pages",
+     "type": "log",
+     "match": "map updated \\(8 frame\\(s\\) 300 apart"
+    },
+    {
+     "rule": "GS2-2",
+     "what": "the next party member after 5 seconds",
+     "type": "differs",
+     "a": {
+      "shot": "first",
+      "rect": [
+       64,
+       240,
+       192,
+       368
+      ]
+     },
+     "b": {
+      "shot": "second",
+      "rect": [
+       64,
+       240,
+       192,
+       368
+      ]
+     },
+     "frac": 0.2
+    },
+    {
+     "rule": "GS2-1",
+     "what": "not taken for a battle",
+     "type": "no_log",
+     "match": "a battle playing out"
+    }
+   ]
+  },
+  {
+   "id": "gs2-it-battle",
+   "rom": "AGFI",
+   "state": "golden-sun-2/it-battle-garet.ss",
+   "desc": "a battle, Garet choosing (AGFI)",
+   "rules": [
+    "GS2-7"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "GS2-7",
+     "what": "the battle's Status was shown",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "GS2-7",
+     "what": "it opened",
+     "type": "no_log",
+     "match": "didn't open"
+    }
+   ]
+  },
+  {
+   "id": "gs2-es-field",
+   "rom": "AGFS",
+   "state": "golden-sun-2/es-field.ss",
+   "desc": "walking about on the world map, all eight in the party (AGFS)",
+   "rules": [
+    "GS2-1",
+    "GS2-2"
+   ],
+   "shots": {
+    "first": 120,
+    "second": 420
+   },
+   "checks": [
+    {
+     "rule": "GS2-1",
+     "what": "the Status, eight pages",
+     "type": "log",
+     "match": "map updated \\(8 frame\\(s\\) 300 apart"
+    },
+    {
+     "rule": "GS2-2",
+     "what": "the next party member after 5 seconds",
+     "type": "differs",
+     "a": {
+      "shot": "first",
+      "rect": [
+       64,
+       240,
+       192,
+       368
+      ]
+     },
+     "b": {
+      "shot": "second",
+      "rect": [
+       64,
+       240,
+       192,
+       368
+      ]
+     },
+     "frac": 0.2
+    },
+    {
+     "rule": "GS2-1",
+     "what": "not taken for a battle",
+     "type": "no_log",
+     "match": "a battle playing out"
+    }
+   ]
+  },
+  {
+   "id": "gs2-es-battle",
+   "rom": "AGFS",
+   "state": "golden-sun-2/es-battle-garet.ss",
+   "desc": "a battle, Garet choosing (AGFS)",
+   "rules": [
+    "GS2-7"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "GS2-7",
+     "what": "the battle's Status was shown",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "GS2-7",
+     "what": "it opened",
+     "type": "no_log",
+     "match": "didn't open"
+    }
+   ]
+  },
+  {
+   "id": "gs2-jp-field",
+   "rom": "AGFJ",
+   "state": "golden-sun-2/jp-field.ss",
+   "desc": "walking about on the world map, all eight in the party (AGFJ)",
+   "rules": [
+    "GS2-1",
+    "GS2-2"
+   ],
+   "shots": {
+    "first": 120,
+    "second": 420
+   },
+   "checks": [
+    {
+     "rule": "GS2-1",
+     "what": "the Status, eight pages",
+     "type": "log",
+     "match": "map updated \\(8 frame\\(s\\) 300 apart"
+    },
+    {
+     "rule": "GS2-2",
+     "what": "the next party member after 5 seconds",
+     "type": "differs",
+     "a": {
+      "shot": "first",
+      "rect": [
+       64,
+       240,
+       192,
+       368
+      ]
+     },
+     "b": {
+      "shot": "second",
+      "rect": [
+       64,
+       240,
+       192,
+       368
+      ]
+     },
+     "frac": 0.2
+    },
+    {
+     "rule": "GS2-1",
+     "what": "not taken for a battle",
+     "type": "no_log",
+     "match": "a battle playing out"
+    }
+   ]
+  },
+  {
+   "id": "gs2-jp-battle",
+   "rom": "AGFJ",
+   "state": "golden-sun-2/jp-battle-garet.ss",
+   "desc": "a battle, Garet choosing (AGFJ)",
+   "rules": [
+    "GS2-7"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "GS2-7",
+     "what": "the battle's Status was shown",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "GS2-7",
+     "what": "it opened",
+     "type": "no_log",
+     "match": "didn't open"
+    }
+   ]
+  },
+  {
+   "id": "gs2-logo-agfe",
+   "kind": "logo",
+   "rom": "AGFE",
+   "desc": "AGFE logo extraction",
+   "rules": [
+    "GEN-1",
+    "GS2-5"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "gs2-logo-agfd",
+   "kind": "logo",
+   "rom": "AGFD",
+   "desc": "AGFD logo extraction",
+   "rules": [
+    "GEN-1",
+    "GS2-5"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "gs2-logo-agff",
+   "kind": "logo",
+   "rom": "AGFF",
+   "desc": "AGFF logo extraction",
+   "rules": [
+    "GEN-1",
+    "GS2-5"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "gs2-logo-agfi",
+   "kind": "logo",
+   "rom": "AGFI",
+   "desc": "AGFI logo extraction",
+   "rules": [
+    "GEN-1",
+    "GS2-5"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "gs2-logo-agfs",
+   "kind": "logo",
+   "rom": "AGFS",
+   "desc": "AGFS logo extraction",
+   "rules": [
+    "GEN-1",
+    "GS2-5"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "gs2-logo-agfj",
+   "kind": "logo",
+   "rom": "AGFJ",
+   "desc": "AGFJ logo extraction",
+   "rules": [
+    "GEN-1",
+    "GS2-5"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

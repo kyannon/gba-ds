@@ -2,6 +2,9 @@
 
 ## v1.4.9 (not yet released)
 
+### New games
+- **Golden Sun: The Lost Age** (USA / Europe, German, French, Italian, Spanish and Japanese releases), with Golden Sun's second screen: while you walk about, the Status screen, turning through your party every 5 seconds (all eight, the ones in the back too); in a battle, the battle's Status of the character choosing what to do, and the logo while the turn plays out. The logo is the title screen's emblem. Every release has been tried walking about and in a battle; sailing on Piers's ship hasn't been tried yet.
+
 ### Changes
 - Bug reports now say whether the game's ROM is an unchanged copy of the game or has been patched or modified (from its checksum). Romhacks and patched ROMs are the next step for GBA DS (#17); this helps tell which problems come from them.
 
