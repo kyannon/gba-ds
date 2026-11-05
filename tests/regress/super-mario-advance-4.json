@@ -1172,6 +1172,217 @@
    }
   },
   {
+   "id": "sm4-us-airship",
+   "rom": "AX4E",
+   "state": "super-mario-advance-4/us-airship.ss",
+   "desc": "World 1's airship, just after the king's room (with a P-Wing)",
+   "rules": [
+    "SM4-2"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "SM4-2",
+     "what": "the status bar along the top",
+     "type": "not_uniform",
+     "shot": "later",
+     "rect": [
+      32,
+      64,
+      988,
+      92
+     ],
+     "color": "303030",
+     "frac": 0.97
+    },
+    {
+     "rule": "SM4-2",
+     "what": "the P meter centred along the bottom",
+     "type": "not_uniform",
+     "shot": "later",
+     "rect": [
+      432,
+      664,
+      592,
+      692
+     ],
+     "color": "303030",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "sm4-us-boss-room",
+   "rom": "AX4E",
+   "state": "super-mario-advance-4/us-boss-room.ss",
+   "desc": "Larry's room at the end of World 1's airship",
+   "rules": [
+    "SM4-2"
+   ],
+   "shots": {
+    "start": 20
+   },
+   "checks": [
+    {
+     "rule": "SM4-2",
+     "what": "the status bar along the top",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      32,
+      64,
+      988,
+      92
+     ],
+     "color": "303030",
+     "frac": 0.97
+    },
+    {
+     "rule": "SM4-2",
+     "what": "the P meter centred along the bottom",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      432,
+      664,
+      592,
+      692
+     ],
+     "color": "303030",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "sm4-us-kuribo",
+   "rom": "AX4E",
+   "state": "super-mario-advance-4/us-kuribo.ss",
+   "desc": "World 5-3, by Kuribo's Shoe",
+   "rules": [
+    "SM4-2"
+   ],
+   "shots": {
+    "start": 20
+   },
+   "checks": [
+    {
+     "rule": "SM4-2",
+     "what": "the status bar along the top",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      32,
+      64,
+      988,
+      92
+     ],
+     "color": "303030",
+     "frac": 0.97
+    },
+    {
+     "rule": "SM4-2",
+     "what": "the P meter centred along the bottom",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      432,
+      664,
+      592,
+      692
+     ],
+     "color": "303030",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "sm4-us-w8-tank",
+   "rom": "AX4E",
+   "state": "super-mario-advance-4/us-w8-tank.ss",
+   "desc": "World 8's first tank level",
+   "rules": [
+    "SM4-2"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "SM4-2",
+     "what": "the status bar along the top",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      32,
+      64,
+      988,
+      92
+     ],
+     "color": "303030",
+     "frac": 0.97
+    },
+    {
+     "rule": "SM4-2",
+     "what": "the P meter centred along the bottom",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      432,
+      664,
+      592,
+      692
+     ],
+     "color": "303030",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "sm4-us-bowser",
+   "rom": "AX4E",
+   "state": "super-mario-advance-4/us-bowser-castle.ss",
+   "desc": "Bowser's castle",
+   "rules": [
+    "SM4-2"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "SM4-2",
+     "what": "the status bar along the top",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      32,
+      64,
+      988,
+      92
+     ],
+     "color": "303030",
+     "frac": 0.97
+    },
+    {
+     "rule": "SM4-2",
+     "what": "the P meter centred along the bottom",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      432,
+      664,
+      592,
+      692
+     ],
+     "color": "303030",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
    "id": "sm4-logo-ax4e",
    "kind": "logo",
    "rom": "AX4E",

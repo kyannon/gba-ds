@@ -280,11 +280,10 @@ The USA release and the Japanese one (Craft Sword Monogatari 2); there was no Eu
 ## Super Mario Advance 4: Super Mario Bros. 3
 
 - **On the world map,** the status bar (world, lives, coins, score and your three cards) moves from the bottom of the game screen to the top of the second screen, so the whole map shows. Below it is your item inventory, the panel L opens, as the game draws it, kept up to date as you walk about, win items in Toad Houses and use them. It's captured in the background like the other games' maps; the game itself is never paused.
-- **In Toad Houses, Spade games and the kings' rooms,** the status bar moves the same way, above your inventory.
-- **In a level,** the status bar (world, lives, time, coins and score) moves to the top of the second screen and the P meter to the middle of its bottom, with the logo between them. LEVEL CLEARED! and the card you win stay on the game screen. The status bar stays there through pipes, doors and bonus rooms.
+- **In Toad Houses, Spade games and the kings' rooms,** the status bar moves the same way, above your inventory. So it does on World-e's map (the e-Reader levels); with its inventory open there, the second screen shows the inventory without the status bar.
+- **In a level** (airships, boss rooms, World 8's tanks and Bowser's castle too), the status bar (world, lives, time, coins and score; in World-e's levels the coin count too) moves to the top of the second screen and the P meter to the middle of its bottom, with the logo between them. LEVEL CLEARED! and the card you win stay on the game screen. The status bar stays there through pipes, doors and bonus rooms.
 - The logo is Super Mario Bros. 3's own, from its title screen.
 - Every revision works (USA, Europe and Japan, the Virtual Console and Switch Online dumps), and so does the game's other set of colours, which some colour patches pick.
-- Not tried yet: airships, boss rooms, Kuribo's Shoe, World 8's tanks and Bowser, and World-e.
 
 ## Sword of Mana
 
