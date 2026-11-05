@@ -36,12 +36,17 @@ typedef struct SpriteRule {
 	unsigned tagged; /* only sprites (not rotated ones) with one of these
 	                  * attr1 bits (9-11, unused there) set: tags a ROM patch
 	                  * adds (profiles.h romPatch) */
+	unsigned shapes; /* the shapes and sizes it applies to (bit shape * 4 +
+	                  * size, as in the sprite's attributes: bit 2 is 32x32,
+	                  * bit 8 8x16); 0: any (Lady Sia: its HUD pieces, not
+	                  * the level's things that pass the same places) */
 } SpriteRule;
 
 typedef struct Emu {
 	struct mCore* core;
 	uint32_t* fb; /* GBA_W * GBA_H, mGBA native 32-bit color (XBGR8888, i.e. bytes R,G,B,X) */
 	char gameCode[5];
+	uint32_t romCrc; /* the ROM file's CRC32, as loaded (profile_dump) */
 	bool audio;
 	unsigned long frames; /* frames run (emu_frame), for timing the captures */
 	/* a hidden copy's capture called off (mapcap_cancel): while it's set,

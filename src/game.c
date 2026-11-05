@@ -637,6 +637,11 @@ static void twin_open(const char* rom, const MapProfile* p) {
 	fprintf(stderr, "live view: two more copies of the game for the table's other rows\n");
 }
 
+/* a profile's hideSprites switched by its hideWhen (NULL: none, or always on) */
+static const MapProfile* hideWhenProf;
+static int hideWhenN;
+static bool hideWhenOn;
+
 static void run_frame(uint32_t keys) {
 	frameKeys = keys;
 	unsigned bugAt = bugFrame & (BUG_LOG - 1);
@@ -803,6 +808,20 @@ static void ahead_stop(void) {
 static MapCapture* mc;
 static const MapProfile* pickProf; /* a compilation's profile (pick), or NULL */
 static char subCode[5];          /* the profile in use: the game's code, or what pickProf picked */
+/* what the ROM is, by its CRC32 (the log, bug reports) */
+static const char* dump_text(char* buf, size_t n) {
+	const char* name;
+	switch (profile_dump(emu.gameCode, emu.romCrc, &name)) {
+	case DUMP_TESTED: snprintf(buf, n, "CRC32 %08x, the dump GBA DS is tested on (%s)", emu.romCrc, name); break;
+	case DUMP_OFFICIAL: snprintf(buf, n, "CRC32 %08x, an official dump GBA DS isn't tested on (%s)", emu.romCrc, name); break;
+	case DUMP_MODIFIED:
+		snprintf(buf, n, "CRC32 %08x, not a known dump of %.4s: modified (a patch or hack), trimmed or a bad dump", emu.romCrc,
+		         emu.gameCode);
+		break;
+	default: snprintf(buf, n, "CRC32 %08x, not checked (no list of %.4s's dumps)", emu.romCrc, emu.gameCode); break;
+	}
+	return buf;
+}
 static GamePaths gp;
 
 static SDL_Texture* gameTex[2];
@@ -3944,6 +3963,10 @@ static void bug_info(Text* t, const char* date, uint64_t back) {
 	const MapProfile* prof = profile_find(subCode);
 	text_add(t, "ROM: %s (%s%s%s), %s\n", gp.base, emu.gameCode, strcmp(subCode, emu.gameCode) ? ", playing " : "",
 	         strcmp(subCode, emu.gameCode) ? subCode : "", prof ? prof->title : "no profile");
+	{
+		char d[256];
+		text_add(t, "ROM dump: %s\n", dump_text(d, sizeof(d)));
+	}
 	text_add(t, "Running %.1f minutes (%llu frames), %.1f FPS (%.0f%%) when the report was made\n", SDL_GetTicks() / 60000.0,
 	         (unsigned long long) frameCount, fps, speedPct);
 	text_add(t, "Second screen: %s\n", combatOn ? "logo (a fight)" : hudShown ? "HUD" : mapShownIdx >= 0 ? "map / status picture" : logoOnly ? "logo (logo-only game)" : "logo");
@@ -5229,14 +5252,18 @@ static void ss_setup(const char* rom, const char* code) {
 		snapShow = snapRevert = 0;
 		if (mc) mapcap_set_still(mc, !map_anim());
 		if (logoOnly) fprintf(stderr, "logo only: %s\n", lp->title);
+		hideWhenProf = NULL;
 		if (mc) {
 			fprintf(stderr, "map profile: %s\n", mapcap_title(mc));
 			mapcap_size(mc, &mapW, &mapH);
 			/* the full map is always up, so hide the game's own corner mini-map */
 			const MapProfile* prof = profile_find(code);
 			int nRules = 0;
-			while (prof && nRules < 4 && prof->hideSprites[nRules].x1) ++nRules;
-			emu_hide_sprites(&emu, prof ? prof->hideSprites : NULL, nRules);
+			while (prof && nRules < (int) (sizeof(prof->hideSprites) / sizeof(prof->hideSprites[0])) && prof->hideSprites[nRules].x1) ++nRules;
+			/* (with hideWhen: off until the frame loop finds it matching) */
+			hideWhenProf = prof && nRules && prof->hideWhen[0].addr ? prof : NULL;
+			hideWhenN = nRules, hideWhenOn = false;
+			emu_hide_sprites(&emu, prof && !hideWhenProf ? prof->hideSprites : NULL, hideWhenProf ? 0 : nRules);
 		} else if (!logoOnly) {
 			fprintf(stderr, "no map profile for %s\n", code);
 		}
@@ -5293,6 +5320,7 @@ static void ss_switch(const char* rom, const char* code) {
 	snprintf(subCode, sizeof(subCode), "%.4s", code);
 	if (hudOn) emu_hud_split(&emu, false, 0, NULL, 0, hudPx); /* (the old game's HUD split off) */
 	emu_hide_sprites(&emu, NULL, 0);
+	hideWhenProf = NULL;
 	mapcap_destroy(mc);
 	mc = NULL;
 	for (int i = 0; i < MAP_MAX_FRAMES; ++i) {
@@ -5317,6 +5345,10 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		return fromLibrary ? GAME_TO_LIBRARY : GAME_QUIT_APP;
 	}
 	fprintf(stderr, "game %s (%s), save %s\n", gp.base, emu.gameCode, gp.sav);
+	{
+		char d[256];
+		fprintf(stderr, "ROM: %s\n", dump_text(d, sizeof(d)));
+	}
 #ifdef __wasi__
 	webPlaying = true;
 #endif
@@ -6074,6 +6106,14 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		/* ---- map refresh */
 		if (mc) {
 			++sinceMapRequest;
+			/* the profile's sprite hiding, where it's only for some moments
+			 * (hideWhen: Lady Sia's HUD in play, not its credits or pause
+			 * screen); from the next frame drawn */
+			if (hideWhenProf && memprobes_match(hideWhenProf->hideWhen, 2, &emu) != hideWhenOn) {
+				hideWhenOn = !hideWhenOn;
+				emu_hide_sprites(&emu, hideWhenOn ? hideWhenProf->hideSprites : NULL, hideWhenOn ? hideWhenN : 0);
+				if (debug) fprintf(stderr, "frame %llu: sprite hiding %s\n", (unsigned long long) frameCount, hideWhenOn ? "on" : "off");
+			}
 			bool dark = frame_is_dark(emu.fb);
 			if (wasDark && !dark) refreshAt = (long) frameCount + 6;
 			wasDark = dark;

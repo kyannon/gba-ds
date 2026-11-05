@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `AMTE` USA · `AMTP` Europe (language menu first) · `AMTJ` Japan (RAM 0x34 higher) |
+| Dumps | `AMTE` cartridge `6c75479c` (tested), Virtual Console `162a46b8` · `AMTP` cartridge `974e46ab` (tested), Virtual Console `eee01b78` · `AMTJ` cartridge `817a7e9e` (tested), Virtual Console `6e06bed9` |
 | Profile | `src/profiles.c`: the `AMTE` entry; variants `AMTP`, `AMTJ` |
 | Tests | `tests/regress/metroid-fusion.json` (`tools/regress.py metroid-fusion`) |
 | Status | supported |

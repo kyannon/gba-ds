@@ -21,6 +21,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Summon Night: Swordcraft Story (Craft Sword Monogatari in Japan) | `AB4E` `AB4J` (no European release) | the Status screen, with where you are |
 | Summon Night: Swordcraft Story 2 (Craft Sword Monogatari 2 in Japan) | `BSKE` `BSKJ` (no European release) | the Status screen |
 | Golden Sun (Ougon no Taiyou: Hirakareshi Fuuin in Japan) | `AGSE` `AGSD` `AGSF` `AGSI` `AGSS` `AGSJ` | the Status screen, each party member in turn; in battle, the one choosing |
+| Golden Sun: The Lost Age (Ougon no Taiyou: Ushinawareshi Toki in Japan) | `AGFE` `AGFD` `AGFF` `AGFI` `AGFS` `AGFJ` | the Status screen, each party member in turn; in battle, the one choosing |
 | Tactics Ogre: The Knight of Lodis (Tactics Ogre Gaiden in Japan) | `ATOE` `ATOJ` (no European release) | the battle's unit list, on the unit under your cursor |
 | Pokémon Pinball: Ruby & Sapphire | `BPPE` | the table twice as tall over both screens, live, with the score bar |
 | F-Zero: GP Legend (F-Zero: Falcon Densetsu in Japan) | `BFZE` `BFZP` `BFZJ` | the race HUD, with the course map twice as big |
@@ -32,6 +33,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Mario & Luigi: Superstar Saga (Mario & Luigi RPG in Japan) | `A88E` `A88P` `A88J` | Bros. Info of the brother you're controlling |
 | Dragon Ball Z: The Legacy of Goku | `ALGE` `ALGP` (no Japanese release) | the pause menu, with the HP and Ki bars (or the counter SELECT and flying show) in place of its options |
 | Kingdom Hearts: Chain of Memories | `B8CE` `B8CP` `B8CJ` | the World Map; in battles, the logo |
+| Lady Sia | `ALDE` `ALDP` (no Japanese release) | the pause screen as a status screen: lives, gems, villagers, the time, the ring and heart; the HUD off the game screen |
 
 The codes are what `<CODE>` means in logo and overlay file names (see [Playing](Playing#logos) and [[Map screen surrounds and overlays]]).
 
@@ -108,6 +110,15 @@ Every release has been tried walking about (USA / Europe, German, French, Italia
 - **In a battle,** while you choose what to do, the second screen shows the battle's Status screen of the character choosing (the first one in the Fight / Flee / Status menu). While the turn plays out, it shows the logo.
 - Walking about, where the menu can't be opened (a conversation, a scene), the last pictures stay.
 - On the title screen, the second screen shows the logo.
+
+## Golden Sun: The Lost Age
+
+Every release has been tried walking about and in a battle (USA / Europe, German, French, Italian, Spanish, Japanese); sailing on Piers's ship hasn't been tried yet.
+
+- **While you walk about,** the second screen shows the **Status** screen (the one in SELECT's menu), at the game screen's size and in your chosen window colour, turning to the next party member every 5 seconds: all of them, up to eight, the ones in the back too. It's brought up in the background on a silent copy of the game, so it stays up to date without you opening it; your game is never paused or touched.
+- **In a battle,** while you choose what to do, the second screen shows the battle's Status screen of the character choosing (the party's first in the Fight / Switch / Flee / Status menu). While the turn plays out, it shows the logo.
+- Walking about, where the menu can't be opened (a conversation, a scene, the START menu), the last pictures stay.
+- On the title screen, the naming screens and the opening's story text, the second screen shows the logo: the title screen's emblem, without its subtitle and ™.
 
 ## Tactics Ogre: The Knight of Lodis
 
@@ -281,3 +292,12 @@ The USA, European and Japanese releases, tried in Traverse Town.
 - **Walking about in a world,** the second screen is the **World Map** (the one SELECT opens), as the game draws it, filling the screen: the floor's rooms, the room you're in lit blue with its name, and the floor you're on. It's opened in the background in a silent copy of the game about once a second, so new rooms show up without you opening it; your game is never paused. The map's cursor and its A button bubble are left out.
 - **In battles,** from the flash as one starts until the last enemy falls, the second screen shows the logo; the World Map comes back afterwards.
 - On the title, in the opening and in the scenes before the first world, it shows the logo; in conversations, scenes, at doors and in the game's own menus it keeps its last picture.
+
+## Lady Sia
+
+The USA and European releases (one each, in English, French, German, Spanish, Italian and Dutch). Every level has been tried; the spells (water, fire and air) and the bonus levels haven't been yet.
+
+- **In a level,** the second screen shows the game's own **pause screen** (START) as a status screen: Sia's lives, the gems and the rescued villagers, the level's time, the ring and the heart (her health). It's opened in the background on a silent copy of the game about once a second; your game is never paused. The pause menu's lines (Pause and its choice, with the arrows) are left out (`map_crop = 0` shows them), and the ring is shown without the glow the game pulses round it.
+- **The HUD leaves the game screen:** the lives, gems, villagers, ring and heart the game puts up during play (for a few seconds as a level starts, as Sia picks something up, the heart while she's hurt) aren't drawn on the game screen, since the second screen has them. Only while you play: the game's own pause screen, the menus, the scenes and the credits are drawn whole.
+- Pausing in the game, and conversations that don't let the pause screen open, keep the last picture on the second screen.
+- At the title, in the menus and story scenes, on the maps between levels, in the jail ("Continue?") and in the credits, the second screen shows the logo: the title's lettering.

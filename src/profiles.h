@@ -543,6 +543,11 @@ typedef struct MapProfile {
 		/* The logo is painted into the whole title picture: render every
 		 * layer and keep the pixels inside this mask (THPS2). */
 		const LogoMask* mask;
+		/* Bytes written into the ROM of the copy the logo is taken from
+		 * (never the game played), if it holds `orig` there: Golden Sun:
+		 * The Lost Age shows its title only with a save, so its save check
+		 * answers "one" there */
+		RomPatch patch[2];
 	} logo;
 
 	/* Border for the map screen, taken from one of the game's own menu screens
@@ -572,8 +577,13 @@ typedef struct MapProfile {
 	} rate;
 
 	/* HUD sprites to hide on the game screen while the map is shown (the
-	 * Metroids' corner mini-map). */
-	SpriteRule hideSprites[4];
+	 * Metroids' corner mini-map; Lady Sia's HUD, piece by piece). At most
+	 * 12, emu_hide_sprites' limit. */
+	SpriteRule hideSprites[12];
+	/* hideSprites only while these all match, checked every frame (none:
+	 * always): Lady Sia's HUD only in play, so its menus, credits and
+	 * own pause screen are drawn whole */
+	MemProbe hideWhen[2];
 	/* Sprites left out of the map capture (when map_crop is on): prompts the
 	 * game draws over the map as sprites (Fusion's "A OBJECTIVE"), so the map
 	 * underneath shows instead. */
@@ -654,6 +664,16 @@ bool profile_patch_rom(const MapProfile* p, Emu* e);
 /* True for a regional release whose RAM layout differs from the USA one
  * (cheat codes made for other regions would write the wrong addresses). */
 bool profile_ram_moved(const char* gameCode);
+/* What a ROM is, by its CRC32 (emu.romCrc) against every known dump of its
+ * release (the rules files' Dumps rows, src/dumps_data.h): */
+typedef enum {
+	DUMP_UNLISTED, /* a release with no list of dumps (no profile): not checked */
+	DUMP_TESTED, /* the dump the regression tests run on */
+	DUMP_OFFICIAL, /* another official dump (a revision, Virtual Console...), untested */
+	DUMP_MODIFIED, /* none of them: patched, hacked, trimmed or a bad dump */
+} DumpKind;
+/* name: No-Intro's name of the dump (NULL unless tested or official) */
+DumpKind profile_dump(const char* gameCode, uint32_t crc, const char** name);
 bool memprobes_match(const MemProbe* list, int n, Emu* e);
 /* the profile's virt (set when a game's map capture starts): MemProbe
  * addresses from 0xF0000000 */

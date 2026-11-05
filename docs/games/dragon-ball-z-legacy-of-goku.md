@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `ALGE` USA · `ALGP` Europe (English, French, German, Spanish, Italian) |
+| Dumps | `ALGE` cartridge `d47ccff4` (tested) · `ALGP` cartridge `ca6e149c` (tested) |
 | Profile | `src/profiles.c`: the `ALGE` entry (`dbz_compose`, the `hud` with `overMap`, a logo mask with the Z drawn again); Europe the `ALGP` variant (its language menu) |
 | Tests | `tests/regress/dragon-ball-z-legacy-of-goku.json` (`tools/regress.py dragon-ball-z-legacy-of-goku`) |
 | Status | supported |

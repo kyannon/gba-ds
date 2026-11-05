@@ -3,6 +3,7 @@
 | | |
 |---|---|
 | Releases | `AA2E` USA · `AA2P` Europe · `AA2J` Japan (game mode 0x10 lower) |
+| Dumps | `AA2E` cartridge `5206880a` (tested) · `AA2P` cartridge `fcfef343` (tested) · `AA2J` cartridge `901ce373` (tested) |
 | Profile | `src/profiles.c`: the `AA2E` entry (with `AA2P`); variant `AA2J` |
 | Tests | `tests/regress/super-mario-advance-2.json` (`tools/regress.py super-mario-advance-2`) |
 | Status | supported |

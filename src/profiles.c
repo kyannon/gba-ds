@@ -2573,6 +2573,188 @@ static const char* gs_compose(Emu* s, const void* state, uint32_t* const* out, i
 	return NULL;
 }
 
+/* ---------------------------------------- Golden Sun: The Lost Age
+ *
+ * Golden Sun's second screen (docs/games/golden-sun-2.md): walking about,
+ * the Status screen, a page per party member (up to eight); in a battle,
+ * while the player chooses, the battle's Status of the one choosing; the
+ * logo while a battle plays out and on the title. The menus work as in
+ * Golden Sun, the addresses are the game's own:
+ *   GS2_MAP    (half) the map: 0 on the title, the naming screens, the
+ *              opening's text and the credits; 510 in a battle
+ *   GS2_FMENU  1 while SELECT's menu or one of its screens is up
+ *   GS2_SCREEN 1 while one of its screens (Psynergy, Djinn, Item, Status)
+ *   GS2_INPUT  5 while the player chooses in a battle
+ *   GS2_WHO    the character choosing (a character number; 0xFF in the
+ *              party menu and on its Status)
+ *   GS2_HILITE x of the party menu's highlight (the first sprite in the
+ *              game's copy of the sprite table; Fight, Switch, Flee, Status
+ *              a row of icons ending at GS2_PSTATUS, Switch left out with
+ *              one in the party): the menu's cursor moves round a window
+ *              whose memory isn't at a fixed place
+ *   GS2_BSTAT  1 while the battle's Status is up
+ *   GS2_ORDER  the party's order (8 character numbers; four fight)
+ * The other releases: the same layout, their addresses in gs2Addr. */
+typedef struct {
+	char region;
+	uint32_t map, fmenu, screen, input, who, hilite, bstat, order;
+} Gs2Addr;
+static const Gs2Addr gs2Addr[] = {
+	{ 'E', 0x02000420, 0x0203015A, 0x020036E0, 0x02030012, 0x02035EFC, 0x03001382, 0x02035E64, 0x02000458 },
+	/* (Germany, France, Italy, Spain: the USA / Europe release's) */
+	{ 'J', 0x02000420, 0x0203015A, 0x020036E0, 0x02030012, 0x02035CFC, 0x03001382, 0x02035C64, 0x02000458 },
+};
+#define GS2_PSTATUS 121
+#define GS2_BATTLE 510
+#define GS2_V_TITLE 0xF0000050
+#define GS2_V_FORGET 0xF0000051 /* the title, or a battle not at the player's choice:
+                                 * the pictures from before go (GS2-4, GS2-8) */
+/* Sprites left out of the pictures: the walking Status's scroll arrows (the
+ * party row's right edge, up 264, down 268, bobbing), the battle Status's
+ * hand (tile 20, by the name) */
+static const SpriteRule gs2Arrows = { 80, -16, 120, 40, 264, 271, -1 };
+static const SpriteRule gs2Hand = { 0, -16, 100, 40, 20, 23, -1 };
+/* The windows' corner pixels, see-through in the game (the map or battle
+ * behind shows there), black (GS2-1, GS2-7): the walking Status's three
+ * windows (the party row, the prompt box, the stats) and the battle
+ * Status's one; the same places in every release */
+static void gs2_black_corners(uint32_t* px, int w, bool walking) {
+	static const uint8_t walk[][2] = { { 0, 0 }, { 103, 0 }, { 104, 0 }, { 239, 0 }, { 0, 39 }, { 103, 39 },
+	                                   { 104, 39 }, { 239, 39 }, { 0, 40 }, { 239, 40 }, { 0, 159 }, { 239, 159 } };
+	static const uint8_t battle[][2] = { { 0, 0 }, { 239, 0 }, { 0, 159 }, { 239, 159 } };
+	if (w < GBA_W) return;
+	int n = walking ? 12 : 4;
+	for (int i = 0; i < n; ++i) {
+		const uint8_t* c = walking ? walk[i] : battle[i];
+		px[c[1] * w + c[0]] = 0xFF000000;
+	}
+}
+
+/* the logo's copy: the save check's veneer (ldr r4, [pc]; bx r4) made
+ * to answer one save (GS2-5) */
+static const uint8_t gs2SaveCheck[4] = { 0x00, 0x4C, 0x20, 0x47 };
+static const uint8_t gs2SaveOne[4] = { 0x01, 0x20, 0x70, 0x47 };
+static const Gs2Addr* gs2_addr(Emu* e) {
+	for (size_t i = 0; i < sizeof(gs2Addr) / sizeof(gs2Addr[0]); ++i) {
+		if (gs2Addr[i].region == e->gameCode[3]) return &gs2Addr[i];
+	}
+	return &gs2Addr[0];
+}
+static uint32_t gs2_virt(Emu* e, uint32_t addr) {
+	const Gs2Addr* a = gs2_addr(e);
+	uint16_t map = emu_read16(e, a->map);
+	if (addr == GS2_V_TITLE) return map == 0;
+	if (addr == GS2_V_FORGET) return map == 0 || (map == GS2_BATTLE && emu_read8(e, a->input) != 5);
+	return 0;
+}
+
+static bool gs2_walking(Emu* s) {
+	const Gs2Addr* a = gs2_addr(s);
+	return emu_read8(s, a->fmenu) == 0 && emu_read8(s, a->screen) == 0;
+}
+static bool gs2_menu(Emu* s) {
+	const Gs2Addr* a = gs2_addr(s);
+	return emu_read8(s, a->fmenu) == 1 && emu_read8(s, a->screen) == 0;
+}
+static bool gs2_status(Emu* s) {
+	const Gs2Addr* a = gs2_addr(s);
+	return emu_read8(s, a->fmenu) == 1 && emu_read8(s, a->screen) == 1;
+}
+/* a battle's party menu, settled (a character's menu passes through it
+ * on the way back to the one before) */
+static bool gs2_party_menu(Emu* s) {
+	const Gs2Addr* a = gs2_addr(s);
+	int still = 0;
+	for (int f = 0; f < 60 && still < 16; ++f) {
+		emu_frame_blind(s, 0);
+		bool up = emu_read8(s, a->input) == 5 && emu_read8(s, a->who) == 0xFF && emu_read8(s, a->bstat) == 0;
+		still = up ? still + 1 : 0;
+	}
+	return still >= 16;
+}
+
+static const char* gs2_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+	static uint32_t page[GS_PAGES][GBA_W * GBA_H];
+	const Gs2Addr* a = gs2_addr(s);
+	int max = *nOut < GS_PAGES ? *nOut : GS_PAGES;
+	*nOut = 1;
+	*step = 300; /* 5 seconds a party member */
+	emu_hide_sprites(s, NULL, 0); /* (what the last picture left out) */
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	uint16_t map = emu_read16(s, a->map);
+	if (map == 0) return "the title";
+	if (map == GS2_BATTLE) {
+		if (emu_read8(s, a->input) != 5) return "a battle playing out"; /* (the logo: GS2-8) */
+		/* the player choosing: the battle's Status of the one choosing (GS2-7),
+		 * R as many times as their place in the party */
+		int who = emu_read8(s, a->who), slot = 0;
+		for (int i = 0; i < 8; ++i) {
+			if (emu_read8(s, a->order + i) == who) slot = i;
+		}
+		if (who == 0xFF || slot > 3) slot = 0;
+		for (int i = 0; i < 6 && !gs2_party_menu(s); ++i) aw_run(s, K_B, 6);
+		if (!gs2_party_menu(s)) return "not in the party menu";
+		for (int i = 0; i < 4 && (emu_read16(s, a->hilite) & 0x1FF) != GS2_PSTATUS; ++i) {
+			aw_run(s, K_LEFT, 6); /* (round to its last icon: Status) */
+			aw_run(s, 0, 12);
+		}
+		if ((emu_read16(s, a->hilite) & 0x1FF) != GS2_PSTATUS) return "the party menu's cursor isn't on Status";
+		aw_run(s, K_A, 6);
+		for (int f = 0; f < 60 && emu_read8(s, a->bstat) != 1; ++f) emu_frame_blind(s, 0);
+		if (emu_read8(s, a->bstat) != 1) return "the battle's Status didn't open";
+		aw_run(s, 0, 16);
+		for (int i = 0; i < slot; ++i) aw_run(s, K_R, 6), aw_run(s, 0, 16);
+		emu_hide_sprites(s, &gs2Hand, 1); /* (GS2-7) */
+		aw_run(s, 0, 10);
+		if (emu_cancelled(s)) return "called off";
+		if (emu_read8(s, a->bstat) != 1) return "the battle's Status closed";
+		for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[0][y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+		gs_no_help(out[0], w);
+		gs2_black_corners(out[0], w, false);
+		*nOut = 1;
+		return NULL;
+	}
+	/* back to walking about first (from the menu or one of its screens,
+	 * the Status too), then SELECT, LEFT to Status, A */
+	for (int i = 0; i < 4 && !gs2_walking(s); ++i) {
+		aw_run(s, K_B, 8);
+		gs_wait(s, gs2_walking, 60);
+	}
+	if (!gs2_walking(s)) return "not walking about";
+	aw_run(s, K_SELECT, 8);
+	if (!gs_wait(s, gs2_menu, 60)) return "the menu didn't open";
+	aw_run(s, 0, 12);
+	aw_run(s, K_LEFT, 6); /* (to the last icon: Status) */
+	aw_run(s, 0, 16);
+	aw_run(s, K_A, 6);
+	if (!gs_wait(s, gs2_status, 60)) return "the Status didn't open";
+	emu_hide_sprites(s, &gs2Arrows, 1); /* (GS2-1) */
+	aw_run(s, 0, 20);
+	int n = 0;
+	for (; n < max; ++n) {
+		if (n) {
+			aw_run(s, K_RIGHT, 6);
+			aw_run(s, 0, 16);
+			if (!gs2_status(s)) return "the Status closed";
+			/* round to the first again: the stats panel as on the first
+			 * page, but for a few pixels (as in Golden Sun) */
+			int diff = 0;
+			for (int i = 40 * GBA_W; i < GBA_W * GBA_H; ++i) diff += (s->fb[i] & 0xFFFFFF) != (page[0][i] & 0xFFFFFF);
+			if (diff < 100) break;
+		}
+		if (emu_cancelled(s)) return "called off";
+		memcpy(page[n], s->fb, sizeof(page[n]));
+	}
+	*nOut = n;
+	for (int k = 0; k < n; ++k) {
+		for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[k][y * w], &page[k][y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+		gs_no_prompt_box(out[k], w);
+		gs2_black_corners(out[k], w, true);
+	}
+	return NULL;
+}
+
 /* ---------------------------------------------------------- Tactics Ogre
  *
  * The second screen: the battle's unit list (R's menu, View List), with
@@ -2725,6 +2907,32 @@ static const char* to_compose(Emu* s, const void* state, uint32_t* const* out, i
 		for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[k][y * w], &page[k][y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
 	}
 	return NULL;
+}
+
+/* Lady Sia: the level the game is in or loading, the byte at 0x03000B50
+ * (tcrf.net/Lady_Sia: held before a stage loads, it picks the stage):
+ * 0x10-0x33 the levels (0x2E and 0x33 unused), below the title, the
+ * menus and story scenes, from 0x34 the maps between levels and the
+ * ending's scenes */
+#define LS_LEVEL 0x03000B50
+#define LS_PAUSE 0x03001545 /* 5 with the pause screen up, 3 in a level or the menus */
+#define LS_V_OFFLEVEL 0xF0000060 /* 1 outside the levels: the logo (LS-3) */
+#define LS_V_PLAY 0xF0000061 /* 1 in play: in a level (or the jail's ID, which comes
+                              * while a level's last life is still being lost,
+                              * the lives up), not paused: the HUD hidden (LS-6) */
+#define LS_JAIL 0x3B
+/* a SpriteRule's shapes bit: GBA sprite shape (0 square, 1 wide, 2 tall) and size */
+#define LS_SHAPE(shape, size) (1u << ((shape) * 4 + (size)))
+static uint32_t ls_virt(Emu* e, uint32_t addr) {
+	if (addr == LS_V_OFFLEVEL) {
+		uint8_t l = emu_read8(e, LS_LEVEL);
+		return l < 0x10 || l > 0x33;
+	}
+	if (addr == LS_V_PLAY) {
+		uint8_t l = emu_read8(e, LS_LEVEL);
+		return ((l >= 0x10 && l <= 0x33) || l == LS_JAIL) && emu_read8(e, LS_PAUSE) == 3;
+	}
+	return 0;
 }
 
 static const MapProfile profiles[] = {
@@ -2998,6 +3206,30 @@ static const MapProfile profiles[] = {
 		.combat = { { GS_INPUT, 0xFF, 0, 1 }, { GS_BSCENE, 0xFF, 0, 1, true, 0x5E, true } },
 		.room = { { GS_WHO, 0xFF, 0, 1 }, { GS_INPUT, 0xFF, 0, 1 } }, /* (the one choosing; a turn to choose) */
 		.logo = { .wait = 420, .layer = 2, .maxY = 160, .blackIsClear = true },
+	},
+	{
+		/* Golden Sun: The Lost Age: Golden Sun's Status screens, a page
+		 * per party member: see gs2_compose */
+		.codes = { "AGFE" },
+		.title = "Golden Sun: The Lost Age",
+		.composePages = gs2_compose,
+		.stillPick = STILL_FIRST,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		.virt = gs2_virt,
+		/* the title: the logo again, no captures (GS2-4) */
+		.live = { { GS2_V_TITLE, 0xFF, 0, 4 } },
+		.menu = { { GS2_V_FORGET, 0xFF, 1, 4 } }, /* (GS2-4, GS2-8) */
+		/* a battle playing out: the logo (GS2-8) */
+		.combat = { { 0x02030012, 0xFF, 0, 1 }, { 0x02000420, 0xFFFF, GS2_BATTLE, 2 } },
+		/* the one choosing in a battle: their Status at once */
+		.room = { { 0x02035EFC, 0xFF, 0, 1 }, { 0x02030012, 0xFF, 0, 1 } }, /* (the one choosing; a turn to choose) */
+		/* the title's emblem, cut out of its picture of the lighthouse
+		 * (GS2-5); the title only comes with a save, so the copy the logo
+		 * is taken from has its save check answer "one" (the veneer every
+		 * release has at 0x080382F0: movs r0, #1; bx lr) */
+		.logo = { .steps = { { 0, 600 }, { K_START, 4 }, { 0, 120 } }, .mask = &logoMaskGS2E,
+		          .patch = { { 0x080382F0, 4, gs2SaveCheck, gs2SaveOne } }, .rev = 3 /* (the test builds' logos made again) */ },
 	},
 	{
 		/* the Status screen with the menu's Place bar over its bottom:
@@ -3577,6 +3809,91 @@ static const MapProfile profiles[] = {
 		.menu = { { 0x03002170, 0xFFFF, 0x420C, 2 } },
 	},
 	{
+		/* Lady Sia (USA; Europe: the ALDP variant, same addresses). Where
+		 * the game is: LS_LEVEL (the level, 0x10-0x33; ls_virt) and
+		 * LS_PAUSE (the pause screen up). (0x03003090 looked like it at
+		 * first, but its bits go on and off in conversations, boss fights
+		 * and some levels: every level was loaded through LS_LEVEL and
+		 * checked.) The pause screen
+		 * (START) is sprites on black, drawn the frame it opens: lives, gems
+		 * and rescued villagers in rows 8-36, the level's time 49-62,
+		 * "Pause" 73-86, its choice with blinking arrows 97-110 (the time,
+		 * Pause and the choice are one block of 64x64 text sprites), the
+		 * ring and heart 126-158 (the ring pulses). */
+		.codes = { "ALDE" },
+		.title = "Lady Sia",
+		/* the title's lettering, once it has slid into place (the language
+		 * list follows at ~1050): at this frame BG2 is the lettering, BG1
+		 * its pink edge and the TM, BG0 the white behind; Press START is a
+		 * sprite (the game moves them between layers from frame to frame:
+		 * another frame needs other layers) (LS-1) */
+		.logo = { .steps = { { 0, 990 } }, .layers = 0x6, .maxY = 106 },
+		/* the pause screen, whole (LS-2). Its ring glows in a 40-frame
+		 * cycle: 10 frames plain (x 44-86, y 129-156), then three steps of
+		 * a white outline round it; taken plain (the first probes: black
+		 * just outside the plain ring, lit in every glow step), which it
+		 * is as the screen opens, else within a cycle. The other probes
+		 * are black rows of the pause screen (between the top row and the
+		 * time, above the ring): in a conversation START doesn't open it,
+		 * and the level there must not pass for it (LS-5). */
+		.open = { { K_START, 3 } },
+		.settleMax = 60, .openWithin = 45, .stableFrames = 2, .maxDiff = 700,
+		.crop_x = 0, .crop_y = 0, .crop_w = 240, .crop_h = 160,
+		.probes = { { 61, 128, 0x000000 }, { 42, 143, 0x000000 }, { 62, 157, 0x000000 }, { 84, 154, 0x000000 },
+		            { 60, 42, 0x000000 }, { 120, 42, 0x000000 }, { 180, 42, 0x000000 }, { 120, 118, 0x000000 } },
+		.bgColor = 0x000000, .minForeground = 2000, .tolerance = 8,
+		/* map_crop: the rows of Pause and its choice, arrows included, in
+		 * the screen's black (LS-2) */
+		.glyphs = { { 0, 67, 240, 49, -1, { 0x000000 } } },
+		/* the pause screen up: 0x03001545 is 5 there, 3 in a level
+		 * (0x03003090's bit 4, which also goes on as it opens in the
+		 * first levels, stays off in some and comes on elsewhere) */
+		.mem = { { LS_PAUSE, 0xFF, 5, 1 } },
+		/* in a level (whatever else 0x03003090 says: bit 1 goes on in its
+		 * conversations and some boss fights, bit 0 flickers in some
+		 * levels), not paused (the unused level 0x2E has 0 there, so it
+		 * gets no pictures); paused in the game, the last picture stays
+		 * (LS-4). A conversation that doesn't let the pause screen open
+		 * fails the probes (LS-5). */
+		.live = { { LS_LEVEL, 0xFF, 0x10, 1, true, 0x33, true }, { LS_PAUSE, 0xFF, 3, 1 } },
+		/* the title, the menus, the story, the maps between levels: the
+		 * logo (LS-3) */
+		.menu = { { LS_V_OFFLEVEL, 0, 1, 1 } },
+		.virt = ls_virt,
+		/* the HUD off the game screen, the status picture having it
+		 * (LS-6): shown for ~3 s as a level starts or Sia picks something
+		 * up, the heart while she's hurt. Found by where each piece's
+		 * corner is, nothing else: its palettes, priority and tiles
+		 * change from level to level (the first: priority 0, palettes 0,
+		 * 4, 14; the second: palettes 6, 7, and Sia priority 0 too). The
+		 * top row: lives face 2,7 and count 40,10; gem 94,3 and count
+		 * 135,10; villager face 193,1 and count 223,10 (room for a second
+		 * digit; Sia jumping was seen at 55,10, the menus' 64x64 grid at
+		 * 192,0). The ring bobs: 39-43,125-128; 69-76,126-131; 52,153.
+		 * The heart: 165-170,131-132; 168-169,144-145. Each also by its
+		 * shape and size (the faces, gem and ring 32x32, the counts 8x16,
+		 * ...): a level's things pass the same places (level 0x28's
+		 * pedestal, 32x32 at 169,130; a log's 8x8 pieces by the ring in
+		 * 0x2D), seen across every level's start (LS-6). The game's own
+		 * pause screen has its pieces in the same places: the hiding is
+		 * off while it's up (hideWhen), so it keeps them. */
+		.hideSprites = { { 2, 7, 2, 7, 0, 1023, -1, 0, 0, LS_SHAPE(0, 2) },
+		                 { 39, 10, 49, 10, 0, 1023, -1, 0, 0, LS_SHAPE(2, 0) },
+		                 { 94, 3, 94, 3, 0, 1023, -1, 0, 0, LS_SHAPE(0, 2) },
+		                 { 134, 10, 144, 10, 0, 1023, -1, 0, 0, LS_SHAPE(2, 0) },
+		                 { 193, 1, 193, 1, 0, 1023, -1, 0, 0, LS_SHAPE(0, 2) },
+		                 { 222, 10, 232, 10, 0, 1023, -1, 0, 0, LS_SHAPE(2, 0) },
+		                 { 38, 124, 44, 129, 0, 1023, -1, 0, 0, LS_SHAPE(0, 2) },
+		                 { 68, 125, 77, 132, 0, 1023, -1, 0, 0, LS_SHAPE(2, 2) | LS_SHAPE(2, 1) },
+		                 { 51, 152, 53, 154, 0, 1023, -1, 0, 0, LS_SHAPE(1, 1) },
+		                 { 164, 130, 171, 133, 0, 1023, -1, 0, 0, LS_SHAPE(0, 1) | LS_SHAPE(2, 0) },
+		                 { 167, 143, 170, 146, 0, 1023, -1, 0, 0, LS_SHAPE(1, 0) | LS_SHAPE(0, 1) } },
+		/* only in play: the menus, the story scenes, the credits (items
+		 * floating past the HUD's places) and the game's own pause screen
+		 * are drawn whole (LS-6) */
+		.hideWhen = { { LS_V_PLAY, 0, 1, 1 } },
+	},
+	{
 		/* Mario & Luigi: Superstar Saga (USA; Europe and Japan, Mario &
 		 * Luigi RPG: variants). Walking about, the Bros. Info screen, the
 		 * page of the brother in front: see ml_compose (ML-2) */
@@ -3996,6 +4313,25 @@ static void sma2_jpn(MapProfile* p) {
 
 /* Final Fantasy Tactics Advance in Europe: a language menu first (its RAM
  * is the USA release's); in Japan the cursor's 0x30 lower (ft_r) */
+/* Golden Sun: The Lost Age elsewhere: each release's logo (its emblem
+ * sits a little differently in each title picture); in Japan, the one choosing 0x200 lower (gs2Addr) */
+static void gs2_ger(MapProfile* p) {
+	p->logo.mask = &logoMaskGS2D;
+}
+static void gs2_fra(MapProfile* p) {
+	p->logo.mask = &logoMaskGS2F;
+}
+static void gs2_ita(MapProfile* p) {
+	p->logo.mask = &logoMaskGS2I;
+}
+static void gs2_spa(MapProfile* p) {
+	p->logo.mask = &logoMaskGS2S;
+}
+static void gs2_jpn(MapProfile* p) {
+	p->room[0].addr -= 0x200;
+	p->logo.mask = &logoMaskGS2J;
+}
+
 /* Golden Sun in Germany: the battle's bytes 0x10 higher (GS_GER) */
 static void gs_ger(MapProfile* p) {
 	p->combat[1].addr += 0x10;
@@ -4051,6 +4387,12 @@ static void khc_jpn(MapProfile* p) {
 
 static const Variant variants[] = {
 	{ "AGSD", "AGSE", 0, gs_ger },
+	/* Golden Sun: The Lost Age's other releases */
+	{ "AGFD", "AGFE", 0, gs2_ger },
+	{ "AGFF", "AGFE", 0, gs2_fra },
+	{ "AGFI", "AGFE", 0, gs2_ita },
+	{ "AGFS", "AGFE", 0, gs2_spa },
+	{ "AGFJ", "AGFE", 0, gs2_jpn },
 	/* F-Zero: GP Legend in Europe: its language menu first (the title
 	 * comes ~700 frames after A); its races not tried (f-zero-gp-legend.md) */
 	{ "BFZP", "BFZE", 0, lang_menu },
@@ -4073,6 +4415,7 @@ static const Variant variants[] = {
 	{ "AT3F", "AT3E", 0, thps3_fra },
 	{ "AT3D", "AT3E", 0, thps3_ger },
 	{ "ASEJ", "ASEE", 0, smm_jpn },
+	{ "ALDP", "ALDE", 0, NULL },
 	/* (Fire Emblem's addresses: FeRegion) */
 	{ "AE7X", "AE7E", 0, lang_menu },
 	{ "AE7Y", "AE7E", 0, lang_menu },
@@ -4161,4 +4504,26 @@ bool profile_patch_rom(const MapProfile* p, Emu* e) {
 		}
 	}
 	return true;
+}
+
+/* ---------------------------------------------------------- known dumps */
+typedef struct {
+	char code[5];
+	uint32_t crc;
+	bool tested;
+	const char* name;
+} KnownDump;
+#include "dumps_data.h"
+
+DumpKind profile_dump(const char* gameCode, uint32_t crc, const char** name) {
+	bool listed = false;
+	if (name) *name = NULL;
+	for (size_t i = 0; i < sizeof(knownDumps) / sizeof(knownDumps[0]); ++i) {
+		if (strncmp(knownDumps[i].code, gameCode, 4)) continue;
+		listed = true;
+		if (knownDumps[i].crc != crc) continue;
+		if (name) *name = knownDumps[i].name;
+		return knownDumps[i].tested ? DUMP_TESTED : DUMP_OFFICIAL;
+	}
+	return listed ? DUMP_MODIFIED : DUMP_UNLISTED;
 }

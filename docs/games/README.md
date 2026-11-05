@@ -24,6 +24,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Fire Emblem: The Sacred Stones (Seima no Kouseki in Japan)](fire-emblem-sacred-stones.md) | FE8 | `BE8E` + 2 |
 | [Sword of Mana (Shinyaku Seiken Densetsu in Japan)](sword-of-mana.md) | SOM | `AVSE` + 2 |
 | [Golden Sun (Ougon no Taiyou in Japan)](golden-sun.md) | GS | `AGSE` + 5 |
+| [Golden Sun: The Lost Age (Ougon no Taiyou: Ushinawareshi Toki in Japan)](golden-sun-2.md) | GS2 | `AGFE` + 5 |
 | [Tactics Ogre: The Knight of Lodis (Tactics Ogre Gaiden in Japan)](tactics-ogre.md) | TO | `ATOE` + 1 |
 | [F-Zero: GP Legend (F-Zero: Falcon Densetsu in Japan)](f-zero-gp-legend.md) | FZ | `BFZE` + 2 |
 | [River City Ransom EX (Downtown Nekketsu Monogatari EX in Japan)](river-city-ransom-ex.md) | RCR | `BDTE` + 1 |
@@ -33,6 +34,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Sonic Advance](sonic-advance.md) | SA | `ASOE` + 2 |
 | [Sonic Advance 2](sonic-advance-2.md) | SA2 | `A2NE` + 2 |
 | [Kingdom Hearts: Chain of Memories](kingdom-hearts-chain-of-memories.md) | KHC | `B8CE` + 2 |
+| [Lady Sia](lady-sia.md) | LS | `ALDE` + 1 |
 
 ## General rules
 
@@ -48,6 +50,10 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 
 **GEN-6. Quick to follow.** When what a game's second screen is about changes (its profile's `room` probes: the cursor on another unit, Mario on another level, another room), a capture starts as soon as the change has held for 3 frames, without waiting for the regular refresh; one still running for the old place is called off. The hidden copy doesn't draw the frames it only waits through. *By hand: how soon the second screen follows on the device (the tests run captures inline, at fixed frames). (checked on the device for v1.4.2)*
 **GEN-7. Saved with the state.** A state saved by GBA DS keeps what the second screen was showing (a capture with its pages, a copied screen, a level's name, Sonic Advance's zone card); loading it puts that back on the next frame, so the second screen matches the moment at once instead of waiting for the next capture or showing the logo. The game's own rules still decide whether it's shown (a state saved on the logo loads on the logo), and the next capture replaces it as usual. A state from before this (or from another emulator, or saved in another release of the game) loads as before, and whatever was kept from the last moment that only that moment can show (a zone card, a level's name) goes. Pinball's two-screen views and HUD pieces aren't kept: they're drawn again from the game within a frame or two.
+
+## Releases and dumps
+
+Each game's file starts with a table. Its **Releases** row lists the game codes the profile handles (the 4 letters in the ROM's header). Its **Dumps** row lists, per release, every official dump of it known to No-Intro by CRC32: the cartridge, later revisions, Virtual Console and collection dumps (not prototypes, betas or demos). The one marked *tested* is the fixture the regression tests run on (`roms/CODE.zip`); the others are expected to behave the same but aren't tested. GBA DS checks the ROM a player loads against this list: the tested dump, another official one, or none of them, which means the ROM has been changed (a patch or a hack, or trimmed) or is a bad dump. It says which in its log and in bug reports. The Dumps row and `src/dumps_data.h` are written by `tools/make_dumps.py` from No-Intro's list and the fixtures: re-run it when a Releases row changes or a game is added, never edit them by hand. `tools/regress.py` won't run a case whose fixture ROM isn't the dump marked tested, so a patched ROM can't become a fixture by mistake.
 
 ## Writing rules
 

@@ -28,7 +28,7 @@ Every run is deterministic: GBADS_SYNC=1 makes map captures and logo
 extraction run inline, at the same frames each time, so goldens are
 compared exactly (a case can allow a tolerance). See docs/TESTING.md.
 """
-import argparse, fnmatch, glob, html, json, os, re, shutil, subprocess, sys, tempfile, time
+import argparse, fnmatch, glob, html, json, os, re, shutil, subprocess, sys, tempfile, time, zipfile
 from concurrent.futures import ThreadPoolExecutor
 
 try:
@@ -50,6 +50,7 @@ def load_cases(pattern_list):
             c = dict(c)
             c["slug"] = slug
             c["game"] = spec["game"]
+            c["rulesFile"] = spec.get("rules")
             cases.append(c)
     if not pattern_list:
         return cases
@@ -90,11 +91,45 @@ class Run:
         return img.crop((0, y, SCREEN_W, y + SCREEN_H))
 
 
+_testedDumps = {}
+
+
+def dump_error(case, rom):
+    """An error if the fixture ROM isn't the dump its rules file's Dumps row
+    marks tested (a patched or other dump in the fixtures); None if it is, or
+    the rules have no Dumps row yet (tools/make_dumps.py writes them)."""
+    rules = case.get("rulesFile")
+    if not rules:
+        return None
+    if rules not in _testedDumps:
+        tested = None
+        for line in open(os.path.join(ROOT, rules), encoding="utf-8"):
+            if line.startswith("| Dumps |"):
+                tested = {}
+                for part in line.split(" · "):
+                    m = re.search(r"`([A-Z0-9]{4})`", part)
+                    if m:
+                        tested[m.group(1)] = set(re.findall(r"`([0-9a-f]{8})` \(tested\)", part))
+        _testedDumps[rules] = tested
+    tested = _testedDumps[rules]
+    if tested is None:
+        return None
+    with zipfile.ZipFile(rom) as z:
+        crcs = ["%08x" % i.CRC for i in z.infolist() if i.filename.lower().endswith(".gba")]
+    if crcs and crcs[0] in tested.get(case["rom"], set()):
+        return None
+    return "fixture roms/%s.zip (CRC32 %s) isn't the tested dump in %s's Dumps row (a patched ROM? tools/make_dumps.py)" % (
+        case["rom"], crcs[0] if crcs else "?", rules)
+
+
 def run_app(case, args, workdir):
     r = Run(case, workdir)
     rom = os.path.join(args.fixtures, "roms", case["rom"] + ".zip")
     if not os.path.exists(rom):
         r.error = "missing ROM fixture roms/%s.zip" % case["rom"]
+        return r
+    r.error = dump_error(case, rom)
+    if r.error:
         return r
     statedir = os.path.join(workdir, "state")
     os.makedirs(statedir)
@@ -169,6 +204,9 @@ def run_logo(case, args, workdir):
     rom = os.path.join(args.fixtures, "roms", case["rom"] + ".zip")
     if not os.path.exists(rom):
         r.error = "missing ROM fixture roms/%s.zip" % case["rom"]
+        return r
+    r.error = dump_error(case, rom)
+    if r.error:
         return r
     os.makedirs(os.path.join(workdir, "rom"))
     os.symlink(rom, os.path.join(workdir, "rom", case["rom"] + ".zip"))

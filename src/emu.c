@@ -189,6 +189,7 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	e->core->getGameInfo(e->core, &info);
 	memcpy(e->gameCode, info.code, 4);
 	e->gameCode[4] = 0;
+	e->core->checksum(e->core, &e->romCrc, mCHECKSUM_CRC32); /* (worked out by mGBA as it loaded the ROM) */
 	return true;
 }
 
@@ -480,7 +481,8 @@ static bool hidden(const HideSlot* s, const struct GBAObj* obj) {
 		const SpriteRule* r = &s->rules[i];
 		if (x >= r->x0 && x <= r->x1 && y >= r->y0 && y <= r->y1 && tile >= r->tileMin && tile <= r->tileMax &&
 		    (r->prio < 0 || prio == r->prio) && (!r->palMask || (r->palMask >> pal & 1)) &&
-		    (!r->tagged || (!GBAObjAttributesAIsTransformed(obj->a) && (obj->b & r->tagged)))) {
+		    (!r->tagged || (!GBAObjAttributesAIsTransformed(obj->a) && (obj->b & r->tagged))) &&
+		    (!r->shapes || (r->shapes >> (GBAObjAttributesAGetShape(obj->a) * 4 + GBAObjAttributesBGetSize(obj->b)) & 1))) {
 			return !s->keepOnly;
 		}
 	}
