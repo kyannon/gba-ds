@@ -413,6 +413,21 @@
        768
       ]
      }
+    },
+    {
+     "rule": "LS-6",
+     "what": "the game's own pause screen keeps its lives face (no hiding while paused)",
+     "type": "not_uniform",
+     "shot": "paused-again",
+     "screen": "game",
+     "rect": [
+      32,
+      90,
+      160,
+      180
+     ],
+     "color": "000000",
+     "frac": 0.98
     }
    ]
   },
@@ -1169,6 +1184,52 @@
      "what": "back to the logo in the jail",
      "type": "log",
      "match": "second screen back to the logo"
+    }
+   ]
+  },
+  {
+   "id": "ls-us-credits",
+   "rom": "ALDE",
+   "state": "lady-sia/us-credits.ss",
+   "desc": "the ending's credits, a gem falling through the ring's place: drawn (no hiding outside play)",
+   "rules": [
+    "LS-3",
+    "LS-6"
+   ],
+   "shots": {
+    "gem": 30
+   },
+   "checks": [
+    {
+     "rule": "LS-6",
+     "what": "the gem on the game screen",
+     "type": "pixels",
+     "shot": "gem",
+     "screen": "game",
+     "min": 2,
+     "probes": [
+      [
+       238,
+       618,
+       "31D621"
+      ],
+      [
+       262,
+       618,
+       "31D621"
+      ],
+      [
+       274,
+       618,
+       "31D621"
+      ]
+     ]
+    },
+    {
+     "rule": "LS-6",
+     "what": "no hiding in the credits",
+     "type": "no_log",
+     "match": "sprite hiding on"
     }
    ]
   },

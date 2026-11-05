@@ -2513,12 +2513,20 @@ static const char* to_compose(Emu* s, const void* state, uint32_t* const* out, i
 #define LS_LEVEL 0x03000B50
 #define LS_PAUSE 0x03001545 /* 5 with the pause screen up, 3 in a level or the menus */
 #define LS_V_OFFLEVEL 0xF0000060 /* 1 outside the levels: the logo (LS-3) */
+#define LS_V_PLAY 0xF0000061 /* 1 in play: in a level (or the jail's ID, which comes
+                              * while a level's last life is still being lost,
+                              * the lives up), not paused: the HUD hidden (LS-6) */
+#define LS_JAIL 0x3B
 /* a SpriteRule's shapes bit: GBA sprite shape (0 square, 1 wide, 2 tall) and size */
 #define LS_SHAPE(shape, size) (1u << ((shape) * 4 + (size)))
 static uint32_t ls_virt(Emu* e, uint32_t addr) {
 	if (addr == LS_V_OFFLEVEL) {
 		uint8_t l = emu_read8(e, LS_LEVEL);
 		return l < 0x10 || l > 0x33;
+	}
+	if (addr == LS_V_PLAY) {
+		uint8_t l = emu_read8(e, LS_LEVEL);
+		return ((l >= 0x10 && l <= 0x33) || l == LS_JAIL) && emu_read8(e, LS_PAUSE) == 3;
 	}
 	return 0;
 }
@@ -3439,8 +3447,8 @@ static const MapProfile profiles[] = {
 		 * ...): a level's things pass the same places (level 0x28's
 		 * pedestal, 32x32 at 169,130; a log's 8x8 pieces by the ring in
 		 * 0x2D), seen across every level's start (LS-6). The game's own
-		 * pause screen has its pieces in the same places, so it loses
-		 * them too. */
+		 * pause screen has its pieces in the same places: the hiding is
+		 * off while it's up (hideWhen), so it keeps them. */
 		.hideSprites = { { 2, 7, 2, 7, 0, 1023, -1, 0, 0, LS_SHAPE(0, 2) },
 		                 { 39, 10, 49, 10, 0, 1023, -1, 0, 0, LS_SHAPE(2, 0) },
 		                 { 94, 3, 94, 3, 0, 1023, -1, 0, 0, LS_SHAPE(0, 2) },
@@ -3452,6 +3460,10 @@ static const MapProfile profiles[] = {
 		                 { 51, 152, 53, 154, 0, 1023, -1, 0, 0, LS_SHAPE(1, 1) },
 		                 { 164, 130, 171, 133, 0, 1023, -1, 0, 0, LS_SHAPE(0, 1) | LS_SHAPE(2, 0) },
 		                 { 167, 143, 170, 146, 0, 1023, -1, 0, 0, LS_SHAPE(1, 0) | LS_SHAPE(0, 1) } },
+		/* only in play: the menus, the story scenes, the credits (items
+		 * floating past the HUD's places) and the game's own pause screen
+		 * are drawn whole (LS-6) */
+		.hideWhen = { { LS_V_PLAY, 0, 1, 1 } },
 	},
 	{
 		/* Mario & Luigi: Superstar Saga (USA; Europe and Japan, Mario &

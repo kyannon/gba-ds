@@ -637,6 +637,11 @@ static void twin_open(const char* rom, const MapProfile* p) {
 	fprintf(stderr, "live view: two more copies of the game for the table's other rows\n");
 }
 
+/* a profile's hideSprites switched by its hideWhen (NULL: none, or always on) */
+static const MapProfile* hideWhenProf;
+static int hideWhenN;
+static bool hideWhenOn;
+
 static void run_frame(uint32_t keys) {
 	frameKeys = keys;
 	unsigned bugAt = bugFrame & (BUG_LOG - 1);
@@ -5229,6 +5234,7 @@ static void ss_setup(const char* rom, const char* code) {
 		snapShow = snapRevert = 0;
 		if (mc) mapcap_set_still(mc, !map_anim());
 		if (logoOnly) fprintf(stderr, "logo only: %s\n", lp->title);
+		hideWhenProf = NULL;
 		if (mc) {
 			fprintf(stderr, "map profile: %s\n", mapcap_title(mc));
 			mapcap_size(mc, &mapW, &mapH);
@@ -5236,7 +5242,10 @@ static void ss_setup(const char* rom, const char* code) {
 			const MapProfile* prof = profile_find(code);
 			int nRules = 0;
 			while (prof && nRules < (int) (sizeof(prof->hideSprites) / sizeof(prof->hideSprites[0])) && prof->hideSprites[nRules].x1) ++nRules;
-			emu_hide_sprites(&emu, prof ? prof->hideSprites : NULL, nRules);
+			/* (with hideWhen: off until the frame loop finds it matching) */
+			hideWhenProf = prof && nRules && prof->hideWhen[0].addr ? prof : NULL;
+			hideWhenN = nRules, hideWhenOn = false;
+			emu_hide_sprites(&emu, prof && !hideWhenProf ? prof->hideSprites : NULL, hideWhenProf ? 0 : nRules);
 		} else if (!logoOnly) {
 			fprintf(stderr, "no map profile for %s\n", code);
 		}
@@ -5293,6 +5302,7 @@ static void ss_switch(const char* rom, const char* code) {
 	snprintf(subCode, sizeof(subCode), "%.4s", code);
 	if (hudOn) emu_hud_split(&emu, false, 0, NULL, 0, hudPx); /* (the old game's HUD split off) */
 	emu_hide_sprites(&emu, NULL, 0);
+	hideWhenProf = NULL;
 	mapcap_destroy(mc);
 	mc = NULL;
 	for (int i = 0; i < MAP_MAX_FRAMES; ++i) {
@@ -6074,6 +6084,14 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		/* ---- map refresh */
 		if (mc) {
 			++sinceMapRequest;
+			/* the profile's sprite hiding, where it's only for some moments
+			 * (hideWhen: Lady Sia's HUD in play, not its credits or pause
+			 * screen); from the next frame drawn */
+			if (hideWhenProf && memprobes_match(hideWhenProf->hideWhen, 2, &emu) != hideWhenOn) {
+				hideWhenOn = !hideWhenOn;
+				emu_hide_sprites(&emu, hideWhenOn ? hideWhenProf->hideSprites : NULL, hideWhenOn ? hideWhenN : 0);
+				if (debug) fprintf(stderr, "frame %llu: sprite hiding %s\n", (unsigned long long) frameCount, hideWhenOn ? "on" : "off");
+			}
 			bool dark = frame_is_dark(emu.fb);
 			if (wasDark && !dark) refreshAt = (long) frameCount + 6;
 			wasDark = dark;
