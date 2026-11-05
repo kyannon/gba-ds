@@ -33,6 +33,8 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Mario & Luigi: Superstar Saga (Mario & Luigi RPG in Japan) | `A88E` `A88P` `A88J` | Bros. Info of the brother you're controlling |
 | Dragon Ball Z: The Legacy of Goku | `ALGE` `ALGP` (no Japanese release) | the pause menu, with the HP and Ki bars (or the counter SELECT and flying show) in place of its options |
 | Kingdom Hearts: Chain of Memories | `B8CE` `B8CP` `B8CJ` | the World Map; in battles, the logo |
+| Lady Sia | `ALDE` `ALDP` (no Japanese release) | the pause screen as a status screen: lives, gems, villagers, the time, the ring and heart; the HUD off the game screen |
+| Zoids: Legacy (Zoids Saga II in Japan) | `AZ2E` `AZ2J` (no European release) | the map screen; in battles, the Status of the Zoid choosing |
 
 The codes are what `<CODE>` means in logo and overlay file names (see [Playing](Playing#logos) and [[Map screen surrounds and overlays]]).
 
@@ -291,3 +293,23 @@ The USA, European and Japanese releases, tried in Traverse Town.
 - **Walking about in a world,** the second screen is the **World Map** (the one SELECT opens), as the game draws it, filling the screen: the floor's rooms, the room you're in lit blue with its name, and the floor you're on. It's opened in the background in a silent copy of the game about once a second, so new rooms show up without you opening it; your game is never paused. The map's cursor and its A button bubble are left out.
 - **In battles,** from the flash as one starts until the last enemy falls, the second screen shows the logo; the World Map comes back afterwards.
 - On the title, in the opening and in the scenes before the first world, it shows the logo; in conversations, scenes, at doors and in the game's own menus it keeps its last picture.
+
+## Lady Sia
+
+The USA and European releases (one each, in English, French, German, Spanish, Italian and Dutch). Every level has been tried; the spells (water, fire and air) and the bonus levels haven't been yet.
+
+- **In a level,** the second screen shows the game's own **pause screen** (START) as a status screen: Sia's lives, the gems and the rescued villagers, the level's time, the ring and the heart (her health). It's opened in the background on a silent copy of the game about once a second; your game is never paused. The pause menu's lines (Pause and its choice, with the arrows) are left out (`map_crop = 0` shows them), and the ring is shown without the glow the game pulses round it.
+- **The HUD leaves the game screen:** the lives, gems, villagers, ring and heart the game puts up during play (for a few seconds as a level starts, as Sia picks something up, the heart while she's hurt) aren't drawn on the game screen, since the second screen has them. Only while you play: the game's own pause screen, the menus, the scenes and the credits are drawn whole.
+- Pausing in the game, and conversations that don't let the pause screen open, keep the last picture on the second screen.
+- At the title, in the menus and story scenes, on the maps between levels, in the jail ("Continue?") and in the credits, the second screen shows the logo: the title's lettering.
+
+## Zoids: Legacy
+
+The USA release and the Japanese one (Zoids Saga II). Tried in towns, on the world, in dungeons, in the past and in the story's and random battles.
+
+- **Walking about,** in a town, out on the world or on a dungeon's floor, the second screen shows the game's own **map screen** (the one SELECT or R opens): where Zeru's carrier is, with the towns visited listed beside it (in a dungeon, its name too). The box under them is left empty (its "Select town/verify location" line is for the game's own map), and the list's cursor is left out. It's opened in the background on a silent copy of the game about every second and a half, and whenever Zeru enters or leaves a town or a dungeon.
+- **In a battle,** while you choose what a Zoid does (its menu, its weapons and targets, the turn's own menu), the second screen shows that Zoid's **Status**, as R shows it there (at the turn's menu, the first Zoid's). While the battle plays out (the opening menu, the attacks, the enemies' turns, the money and experience after it), it shows the logo.
+- **In the past** (the Past Overworld and the Empire Capital as it is there), where the game has no map, the second screen shows the game's own message saying so, on its own.
+- In conversations, story scenes, the pause menu and shops, the last map stays.
+- At the title, the second screen shows the logo: the title's lettering (ZOIDS SAGA II in Japan).
+- Known issues: from a random battle's turn menu, the Status has a light strip across its middle, left on its layer by the game (the game screen shows it too). The Miletos Fortress, in the past, shows the logo in its battle and isn't told apart from the other maps.

@@ -577,8 +577,13 @@ typedef struct MapProfile {
 	} rate;
 
 	/* HUD sprites to hide on the game screen while the map is shown (the
-	 * Metroids' corner mini-map). */
-	SpriteRule hideSprites[4];
+	 * Metroids' corner mini-map; Lady Sia's HUD, piece by piece). At most
+	 * 12, emu_hide_sprites' limit. */
+	SpriteRule hideSprites[12];
+	/* hideSprites only while these all match, checked every frame (none:
+	 * always): Lady Sia's HUD only in play, so its menus, credits and
+	 * own pause screen are drawn whole */
+	MemProbe hideWhen[2];
 	/* Sprites left out of the map capture (when map_crop is on): prompts the
 	 * game draws over the map as sprites (Fusion's "A OBJECTIVE"), so the map
 	 * underneath shows instead. */

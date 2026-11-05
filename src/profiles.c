@@ -2106,6 +2106,228 @@ static const char* khc_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	return NULL;
 }
 
+/* ---------------------------------------------------------- Zoids: Legacy
+ *
+ * The second screen, from zl_compose on the hidden copy:
+ *  - walking about (ZL-1): the map screen (SELECT), whole, its marker's
+ *    spin a loop of 16 frames, without the line in the box under it (the
+ *    game's prompt) or the town list's cursor (captureHide);
+ *  - in the past (ZL-7), where SELECT says the map can't be seen: that
+ *    message's text box alone (BG3), once it's written out, in the middle
+ *    on dark grey;
+ *  - a Zoid choosing in a battle (ZL-8): its Status (R), whole.
+ * While a battle plays out (ZL-3) the logo (combat), and what was shown
+ * before is forgotten (menu). What the game is doing comes from zl_virt:
+ * a mode byte (2 in the story's battles, 1 its scenes) and the place byte
+ * 3 after it (0 on the title), a word that's the battle's task list in
+ * every battle, the menu window up (0x03005E00) and the map Zeru is on;
+ * the map screen is told by its pixels. (The routine in front, a word in
+ * one of the game's task slots, isn't used: after RESUME A GAME that slot
+ * keeps the title's.) Each release's addresses: ZlRegion. */
+typedef struct {
+	char region;
+	uint32_t mode;   /* the mode byte; the place 3 after it */
+	uint32_t battle; /* holds ZL_BATTLE_ON through every battle */
+	uint32_t mapNo;  /* the map Zeru is on (a halfword) */
+	uint8_t zoidW;   /* a Zoid's menu's width (its window at 00 11) */
+} ZlRegion;
+#define ZL_WINDOW 0x03005E00 /* the menu window up: x, y, 00 06, width, height (16 bits) */
+#define ZL_BATTLE_ON 0x03005B74
+static const ZlRegion zlRegions[] = {
+	{ 'E', 0x02030664, 0x02032E8C, 0x0202ECF4, 10 },
+	/* (the mode byte and the map number by romxref; the battle's word near
+	 * the USA's, checked in its battles) */
+	{ 'J', 0x0202FDB0, 0x02032584, 0x0202E4C0, 8 },
+};
+static const ZlRegion* zl_r(Emu* e) {
+	return &zlRegions[e->gameCode[3] == 'J' ? 1 : 0];
+}
+#define ZL_V_LIVE 0xF0000060   /* 1 where a picture is taken: walking about (ZL_V_FREE) or a Zoid choosing */
+#define ZL_V_MAP 0xF0000061    /* 1 with the map screen up */
+#define ZL_V_FORGET 0xF0000062 /* 1 on the title, or a battle playing out: what was shown goes (ZL-3, ZL-4) */
+#define ZL_V_PLAYOUT 0xF0000063 /* 1 in a battle, no Zoid choosing: the logo (ZL-3) */
+#define ZL_V_PLACE 0xF0000064  /* the byte 3 after the mode: changes with the place (ZL-1's early capture) */
+#define ZL_V_MAPNO 0xF0000065  /* the map Zeru is on (ZL-7's early capture) */
+#define ZL_V_CHOOSE 0xF0000066 /* 1 with a Zoid choosing (ZL-8) */
+/* the past (ZL-7), where the game has no map: the Past Overworld (map 64)
+ * and the Empire Capital there (58 to 62: its streets and buildings; the
+ * same numbers in both releases) */
+static bool zl_past(Emu* e) {
+	uint16_t m = emu_read16(e, zl_r(e)->mapNo);
+	return m == 64 || (m >= 58 && m <= 62);
+}
+static bool zl_battle(Emu* e) {
+	const ZlRegion* r = zl_r(e);
+	return emu_read32(e, r->battle) == ZL_BATTLE_ON || emu_read8(e, r->mode) == 2;
+}
+/* the window up is one of choosing a Zoid's move (ZL-8): its menu, or the
+ * turn's own in random battles (both at 00 11; so is the story's battles'
+ * opening menu, in Japan as wide as a Zoid's: a byte, 1 at every opening
+ * menu, 0 at the others, tells it apart), the turn's menu in the story's,
+ * the weapons, Decide/Cancel, the Status */
+#define ZL_OPENING 0x0300567E
+static bool zl_choose_window(Emu* e) {
+	uint8_t x = emu_read8(e, ZL_WINDOW), y = emu_read8(e, ZL_WINDOW + 1);
+	return (x == 0x00 && y == 0x11 && emu_read8(e, ZL_OPENING) == 0) || (x == 0x40 && y == 0x11) || (x == 0x42 && y == 0x1A) ||
+	       (x == 0x42 && y == 0x18) || (x == 0x16 && y == 0x19) || (x == 0x1E && y == 0x13);
+}
+static bool zl_choosing(Emu* e) {
+	return zl_battle(e) && zl_choose_window(e);
+}
+/* the title and its menu: no battle, the mode and the place 0 (walking
+ * about the place is set; name entry and the opening are scenes, mode 1) */
+static bool zl_title(Emu* e) {
+	const ZlRegion* r = zl_r(e);
+	return !zl_battle(e) && emu_read8(e, r->mode) == 0 && emu_read8(e, r->mode + 3) == 0;
+}
+/* walking about: no battle, no story scene, not the title */
+static bool zl_free(Emu* e) {
+	return !zl_battle(e) && emu_read8(e, zl_r(e)->mode) == 0 && !zl_title(e);
+}
+static bool zl_map_up(Emu* s);
+static uint32_t zl_virt(Emu* e, uint32_t addr) {
+	const ZlRegion* r = zl_r(e);
+	switch (addr) {
+	case ZL_V_LIVE: return zl_free(e) || zl_choosing(e);
+	case ZL_V_MAP: return zl_map_up(e);
+	case ZL_V_FORGET: return zl_title(e) || (zl_battle(e) && !zl_choosing(e));
+	case ZL_V_PLAYOUT: return zl_battle(e) && !zl_choosing(e);
+	case ZL_V_PLACE: return emu_read8(e, r->mode + 3);
+	case ZL_V_MAPNO: return emu_read16(e, r->mapNo);
+	case ZL_V_CHOOSE: return zl_choosing(e);
+	}
+	return 0;
+}
+
+/* the map screen's fixed pixels (ZL-1): the panels' dark edges, the list's
+ * and the box's light green at their right ends (clear of any town's
+ * name), the sea at the map's top corners: the same in both releases */
+static const Probe zlMap[8] = { { 239, 0, 0x424242 }, { 129, 0, 0x424242 }, { 128, 128, 0x424242 }, { 238, 60, 0xE7F7D6 },
+                                { 238, 120, 0xE7F7D6 }, { 235, 140, 0xE7F7D6 }, { 2, 2, 0x004AFF }, { 126, 2, 0x004AFF } };
+#define ZL_BOX_FILL 0xE7F7D6 /* the boxes' light green */
+static bool zl_map_up(Emu* s) {
+	return som_probes(s, zlMap, 8, 7, 8);
+}
+static void zl_copy(Emu* s, uint32_t* out, int w, int h) {
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+}
+/* (0xRRGGBB to the frame buffer's bytes R, G, B) */
+static uint32_t zl_px(uint32_t rgb) {
+	return 0xFF000000u | (rgb >> 16 & 0xFF) | (rgb & 0xFF00) | (rgb & 0xFF) << 16;
+}
+
+/* ZL-1: the map, 16 frames 3 apart (the marker's spin), the box under the
+ * list emptied: inside its edges (x 2-237, rows 131-158) the light green */
+static const char* zl_map(Emu* s, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+	if (zl_map_up(s)) return "screen already looks like the map"; /* (open in the game: ZL-2) */
+	aw_run(s, K_SELECT, 4);
+	int f = 0;
+	while (f < 60 && !zl_map_up(s)) emu_frame(s, 0), ++f;
+	if (!zl_map_up(s)) return "map screen did not appear";
+	aw_run(s, 0, 6); /* (drawn at once; a few frames for the sprites) */
+	if (emu_cancelled(s)) return "called off";
+	int n = *nOut < 16 ? *nOut : 16;
+	for (int i = 0; i < n; ++i) {
+		if (i) aw_run(s, 0, 3);
+		if (!zl_map_up(s)) return "the map closed";
+		zl_copy(s, out[i], w, h);
+		for (int y = 131; y <= 158 && y < h; ++y)
+			for (int x = 2; x <= 237 && x < w; ++x) out[i][y * w + x] = zl_px(ZL_BOX_FILL);
+	}
+	*nOut = n;
+	*step = 3;
+	return NULL;
+}
+
+/* the arrow at the end of a written-out message: a sprite, tile 1001 */
+static bool zl_arrow(Emu* s) {
+	for (int i = 0; i < 128; ++i) {
+		uint16_t a0 = emu_read16(s, 0x07000000 + i * 8), a2 = emu_read16(s, 0x07000004 + i * 8);
+		if ((a0 & 0x0300) != 0x0200 && (a0 & 0xFF) < 160 && (a2 & 0x3FF) == 1001) return true;
+	}
+	return false;
+}
+/* ZL-7: SELECT in the past brings up the game's message; once it's written
+ * out (its arrow up), its box (BG3, rows 96-159, the whole width; the
+ * arrow a sprite) alone, in the middle on dark grey */
+#define ZL_MSG_Y 96
+#define ZL_MSG_H 64
+static const char* zl_message(Emu* s, uint32_t* out, int w, int h) {
+	aw_run(s, K_SELECT, 4);
+	int f = 0;
+	while (f < 300 && !zl_arrow(s)) emu_frame_blind(s, 0), ++f;
+	if (!zl_arrow(s)) return "the message didn't come up";
+	if (emu_cancelled(s)) return "called off";
+	/* (its frame's edges: dark grey at the top rows, then grey, then the
+	 * light green) */
+	void* st = malloc(emu_state_size(s));
+	if (!st) return "out of memory";
+	if (!emu_state_save(s, st)) {
+		free(st);
+		return "state save failed";
+	}
+	emu_layers(s, 0x08);
+	emu_state_load(s, st);
+	emu_frame(s, 0);
+	static const Probe box[4] = { { 120, ZL_MSG_Y, 0x424242 }, { 120, ZL_MSG_Y + 2, 0x8C8C84 }, { 120, ZL_MSG_Y + 3, 0xE7F7D6 },
+	                              { 238, ZL_MSG_Y + 40, 0xE7F7D6 } };
+	bool ok = som_probes(s, box, 4, 4, 8);
+	for (int i = 0; i < w * h; ++i) out[i] = SCREEN_GREY;
+	int y0 = (h - ZL_MSG_H) / 2, x0 = (w - GBA_W) / 2;
+	for (int y = 0; ok && y < ZL_MSG_H; ++y) {
+		if (y0 + y < 0 || y0 + y >= h) continue;
+		for (int x = 0; x < GBA_W; ++x)
+			if (x0 + x >= 0 && x0 + x < w) out[(y0 + y) * w + x0 + x] = s->fb[(ZL_MSG_Y + y) * GBA_W + x] | 0xFF000000;
+	}
+	emu_layers(s, 0x1F);
+	emu_state_load(s, st);
+	free(st);
+	return ok ? NULL : "not the message box";
+}
+
+/* ZL-8: the Status (R) of the Zoid choosing. The window at ZL_WINDOW is the
+ * last one opened, not the one up: B from the Status back to the Zoid's menu
+ * leaves it 1E 13 (and B from Decide leaves 16 19). The Status is up when
+ * that's 1E 13 and BG0 is scrolled to its rows (BG0VOFS 0x181; 0x68 at the
+ * menus). So: R; if no Status comes up (in the weapons or Decide), B and R
+ * again, a few times; B at a Zoid's menu does nothing */
+#define ZL_STATUS_VOFS 0x181
+static bool zl_status_up(Emu* s) {
+	return emu_read8(s, ZL_WINDOW) == 0x1E && emu_read8(s, ZL_WINDOW + 1) == 0x13 &&
+	       (emu_io16(s, 0x12) & 0x1FF) == ZL_STATUS_VOFS;
+}
+static const char* zl_status(Emu* s, uint32_t* out, int w, int h) {
+	for (int i = 0; i < 5 && !zl_status_up(s); ++i) {
+		if (i) {
+			aw_tap(s, K_B, 1);
+			aw_run(s, 0, 12);
+		}
+		aw_run(s, K_R, 4);
+		int f = 0;
+		while (f < 14 && !zl_status_up(s)) emu_frame_blind(s, 0), ++f;
+		if (emu_cancelled(s)) return "called off";
+	}
+	if (!zl_status_up(s)) return "R didn't bring up a Status";
+	aw_run(s, 0, 16); /* (its numbers and the Zoid drawn) */
+	if (emu_cancelled(s)) return "called off";
+	if (!zl_status_up(s)) return "the Status closed";
+	zl_copy(s, out, w, h);
+	return NULL;
+}
+
+static const char* zl_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+	int max = *nOut;
+	*nOut = 1;
+	*step = 1;
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	if (zl_battle(s)) return zl_choosing(s) ? zl_status(s, out[0], w, h) : "the battle playing out";
+	if (!zl_free(s)) return "not walking about";
+	if (zl_past(s)) return zl_message(s, out[0], w, h);
+	*nOut = max;
+	return zl_map(s, out, nOut, step, w, h);
+}
+
 /* Bros. Info's frame, the same on both brothers' pages (its leather edges,
  * the ring's rim, the plaid, the boxes): not the field or the menu */
 static const Probe mlBrosInfo[8] = { { 10, 150, 0x6B8C73 }, { 4, 80, 0x633921 }, { 235, 80, 0x7B736B }, { 120, 157, 0xBDC6B5 },
@@ -2765,6 +2987,32 @@ static const char* to_compose(Emu* s, const void* state, uint32_t* const* out, i
 		for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[k][y * w], &page[k][y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
 	}
 	return NULL;
+}
+
+/* Lady Sia: the level the game is in or loading, the byte at 0x03000B50
+ * (tcrf.net/Lady_Sia: held before a stage loads, it picks the stage):
+ * 0x10-0x33 the levels (0x2E and 0x33 unused), below the title, the
+ * menus and story scenes, from 0x34 the maps between levels and the
+ * ending's scenes */
+#define LS_LEVEL 0x03000B50
+#define LS_PAUSE 0x03001545 /* 5 with the pause screen up, 3 in a level or the menus */
+#define LS_V_OFFLEVEL 0xF0000060 /* 1 outside the levels: the logo (LS-3) */
+#define LS_V_PLAY 0xF0000061 /* 1 in play: in a level (or the jail's ID, which comes
+                              * while a level's last life is still being lost,
+                              * the lives up), not paused: the HUD hidden (LS-6) */
+#define LS_JAIL 0x3B
+/* a SpriteRule's shapes bit: GBA sprite shape (0 square, 1 wide, 2 tall) and size */
+#define LS_SHAPE(shape, size) (1u << ((shape) * 4 + (size)))
+static uint32_t ls_virt(Emu* e, uint32_t addr) {
+	if (addr == LS_V_OFFLEVEL) {
+		uint8_t l = emu_read8(e, LS_LEVEL);
+		return l < 0x10 || l > 0x33;
+	}
+	if (addr == LS_V_PLAY) {
+		uint8_t l = emu_read8(e, LS_LEVEL);
+		return ((l >= 0x10 && l <= 0x33) || l == LS_JAIL) && emu_read8(e, LS_PAUSE) == 3;
+	}
+	return 0;
 }
 
 static const MapProfile profiles[] = {
@@ -3641,6 +3889,91 @@ static const MapProfile profiles[] = {
 		.menu = { { 0x03002170, 0xFFFF, 0x420C, 2 } },
 	},
 	{
+		/* Lady Sia (USA; Europe: the ALDP variant, same addresses). Where
+		 * the game is: LS_LEVEL (the level, 0x10-0x33; ls_virt) and
+		 * LS_PAUSE (the pause screen up). (0x03003090 looked like it at
+		 * first, but its bits go on and off in conversations, boss fights
+		 * and some levels: every level was loaded through LS_LEVEL and
+		 * checked.) The pause screen
+		 * (START) is sprites on black, drawn the frame it opens: lives, gems
+		 * and rescued villagers in rows 8-36, the level's time 49-62,
+		 * "Pause" 73-86, its choice with blinking arrows 97-110 (the time,
+		 * Pause and the choice are one block of 64x64 text sprites), the
+		 * ring and heart 126-158 (the ring pulses). */
+		.codes = { "ALDE" },
+		.title = "Lady Sia",
+		/* the title's lettering, once it has slid into place (the language
+		 * list follows at ~1050): at this frame BG2 is the lettering, BG1
+		 * its pink edge and the TM, BG0 the white behind; Press START is a
+		 * sprite (the game moves them between layers from frame to frame:
+		 * another frame needs other layers) (LS-1) */
+		.logo = { .steps = { { 0, 990 } }, .layers = 0x6, .maxY = 106 },
+		/* the pause screen, whole (LS-2). Its ring glows in a 40-frame
+		 * cycle: 10 frames plain (x 44-86, y 129-156), then three steps of
+		 * a white outline round it; taken plain (the first probes: black
+		 * just outside the plain ring, lit in every glow step), which it
+		 * is as the screen opens, else within a cycle. The other probes
+		 * are black rows of the pause screen (between the top row and the
+		 * time, above the ring): in a conversation START doesn't open it,
+		 * and the level there must not pass for it (LS-5). */
+		.open = { { K_START, 3 } },
+		.settleMax = 60, .openWithin = 45, .stableFrames = 2, .maxDiff = 700,
+		.crop_x = 0, .crop_y = 0, .crop_w = 240, .crop_h = 160,
+		.probes = { { 61, 128, 0x000000 }, { 42, 143, 0x000000 }, { 62, 157, 0x000000 }, { 84, 154, 0x000000 },
+		            { 60, 42, 0x000000 }, { 120, 42, 0x000000 }, { 180, 42, 0x000000 }, { 120, 118, 0x000000 } },
+		.bgColor = 0x000000, .minForeground = 2000, .tolerance = 8,
+		/* map_crop: the rows of Pause and its choice, arrows included, in
+		 * the screen's black (LS-2) */
+		.glyphs = { { 0, 67, 240, 49, -1, { 0x000000 } } },
+		/* the pause screen up: 0x03001545 is 5 there, 3 in a level
+		 * (0x03003090's bit 4, which also goes on as it opens in the
+		 * first levels, stays off in some and comes on elsewhere) */
+		.mem = { { LS_PAUSE, 0xFF, 5, 1 } },
+		/* in a level (whatever else 0x03003090 says: bit 1 goes on in its
+		 * conversations and some boss fights, bit 0 flickers in some
+		 * levels), not paused (the unused level 0x2E has 0 there, so it
+		 * gets no pictures); paused in the game, the last picture stays
+		 * (LS-4). A conversation that doesn't let the pause screen open
+		 * fails the probes (LS-5). */
+		.live = { { LS_LEVEL, 0xFF, 0x10, 1, true, 0x33, true }, { LS_PAUSE, 0xFF, 3, 1 } },
+		/* the title, the menus, the story, the maps between levels: the
+		 * logo (LS-3) */
+		.menu = { { LS_V_OFFLEVEL, 0, 1, 1 } },
+		.virt = ls_virt,
+		/* the HUD off the game screen, the status picture having it
+		 * (LS-6): shown for ~3 s as a level starts or Sia picks something
+		 * up, the heart while she's hurt. Found by where each piece's
+		 * corner is, nothing else: its palettes, priority and tiles
+		 * change from level to level (the first: priority 0, palettes 0,
+		 * 4, 14; the second: palettes 6, 7, and Sia priority 0 too). The
+		 * top row: lives face 2,7 and count 40,10; gem 94,3 and count
+		 * 135,10; villager face 193,1 and count 223,10 (room for a second
+		 * digit; Sia jumping was seen at 55,10, the menus' 64x64 grid at
+		 * 192,0). The ring bobs: 39-43,125-128; 69-76,126-131; 52,153.
+		 * The heart: 165-170,131-132; 168-169,144-145. Each also by its
+		 * shape and size (the faces, gem and ring 32x32, the counts 8x16,
+		 * ...): a level's things pass the same places (level 0x28's
+		 * pedestal, 32x32 at 169,130; a log's 8x8 pieces by the ring in
+		 * 0x2D), seen across every level's start (LS-6). The game's own
+		 * pause screen has its pieces in the same places: the hiding is
+		 * off while it's up (hideWhen), so it keeps them. */
+		.hideSprites = { { 2, 7, 2, 7, 0, 1023, -1, 0, 0, LS_SHAPE(0, 2) },
+		                 { 39, 10, 49, 10, 0, 1023, -1, 0, 0, LS_SHAPE(2, 0) },
+		                 { 94, 3, 94, 3, 0, 1023, -1, 0, 0, LS_SHAPE(0, 2) },
+		                 { 134, 10, 144, 10, 0, 1023, -1, 0, 0, LS_SHAPE(2, 0) },
+		                 { 193, 1, 193, 1, 0, 1023, -1, 0, 0, LS_SHAPE(0, 2) },
+		                 { 222, 10, 232, 10, 0, 1023, -1, 0, 0, LS_SHAPE(2, 0) },
+		                 { 38, 124, 44, 129, 0, 1023, -1, 0, 0, LS_SHAPE(0, 2) },
+		                 { 68, 125, 77, 132, 0, 1023, -1, 0, 0, LS_SHAPE(2, 2) | LS_SHAPE(2, 1) },
+		                 { 51, 152, 53, 154, 0, 1023, -1, 0, 0, LS_SHAPE(1, 1) },
+		                 { 164, 130, 171, 133, 0, 1023, -1, 0, 0, LS_SHAPE(0, 1) | LS_SHAPE(2, 0) },
+		                 { 167, 143, 170, 146, 0, 1023, -1, 0, 0, LS_SHAPE(1, 0) | LS_SHAPE(0, 1) } },
+		/* only in play: the menus, the story scenes, the credits (items
+		 * floating past the HUD's places) and the game's own pause screen
+		 * are drawn whole (LS-6) */
+		.hideWhen = { { LS_V_PLAY, 0, 1, 1 } },
+	},
+	{
 		/* Mario & Luigi: Superstar Saga (USA; Europe and Japan, Mario &
 		 * Luigi RPG: variants). Walking about, the Bros. Info screen, the
 		 * page of the brother in front: see ml_compose (ML-2) */
@@ -3888,6 +4221,37 @@ static const MapProfile profiles[] = {
 		/* the emblem full size on black before the title, faded in, before
 		 * it flashes and shrinks (KHC-5): BG2 alone */
 		.logo = { .wait = 700, .layer = 2, .maxY = 160 },
+	},
+	{
+		/* Zoids: Legacy (USA; Japan, Zoids Saga II: its addresses in
+		 * zlRegions). Walking about, in a town, on the world or in a
+		 * dungeon, the map screen (ZL-1); battles and the past the logo
+		 * (ZL-3, ZL-7); see zl_virt */
+		.codes = { "AZ2E" },
+		.title = "Zoids: Legacy",
+		.virt = zl_virt,
+		/* the map, the past's message, a Zoid's Status: zl_compose
+		 * (ZL-1, ZL-7, ZL-8) */
+		.composePages = zl_compose,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* walking about, or a Zoid choosing: taken (where nothing opens,
+		 * nothing: ZL-2) */
+		.live = { { ZL_V_LIVE, 0xFF, 1, 4 } },
+		/* the title, or a battle playing out: what was shown goes (ZL-3,
+		 * ZL-4) */
+		.menu = { { ZL_V_FORGET, 0xFF, 1, 4 } },
+		/* a battle playing out: the logo (ZL-3) */
+		.combat = { { ZL_V_PLAYOUT, 0xFF, 1, 4 } },
+		/* into a town, a dungeon or the past, out again, or a Zoid's menu
+		 * coming up: a capture at once (ZL-1, ZL-7, ZL-8) */
+		.room = { { ZL_V_PLACE, 0xFF, 0, 4 }, { ZL_V_MAPNO, 0xFFFF, 0, 4 }, { ZL_V_CHOOSE, 0xFF, 0, 4 } },
+		/* the town list's cursor (the triangle by the first town: it spins,
+		 * tiles 1012-1022; the map's marker is 936-945) */
+		.captureHide = { { 100, -16, 180, 159, 1012, 1023, -1 } },
+		/* the title's lettering is sprites (PRESS START and the copyright
+		 * line below it left out) */
+		.logo = { .wait = 1300, .layers = 0x10, .maxY = 100 },
 	},
 	{
 		/* Harvest Moon: Friends of Mineral Town (USA, Europe; Japan:
@@ -4158,6 +4522,7 @@ static const Variant variants[] = {
 	{ "AT3F", "AT3E", 0, thps3_fra },
 	{ "AT3D", "AT3E", 0, thps3_ger },
 	{ "ASEJ", "ASEE", 0, smm_jpn },
+	{ "ALDP", "ALDE", 0, NULL },
 	/* (Fire Emblem's addresses: FeRegion) */
 	{ "AE7X", "AE7E", 0, lang_menu },
 	{ "AE7Y", "AE7E", 0, lang_menu },
@@ -4178,6 +4543,8 @@ static const Variant variants[] = {
 	{ "AVSJ", "AVSE", 0, som_jpn },
 	{ "B8CP", "B8CE", 0, khc_eur },
 	{ "B8CJ", "B8CE", 0, khc_jpn },
+	/* (Zoids Saga II's addresses: ZlRegion) */
+	{ "AZ2J", "AZ2E", 0, NULL },
 	{ "A4NJ", "A4NE", 0, hm_jpn },
 };
 #define N_VARIANTS (sizeof(variants) / sizeof(*variants))
