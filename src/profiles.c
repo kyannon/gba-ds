@@ -2411,6 +2411,7 @@ static const char* ml_compose(Emu* s, const void* state, uint32_t* const* out, i
 #define HM_GLOVE_PAL 5
 #define HM_HEAD_TILE 204
 #define HM_HEAD_PAL 6
+#define HM_DRAWN 3 /* the frames drawn at the end of a capture */
 static uint32_t hm_virt(Emu* e, uint32_t addr) {
 	if (addr != HM_V_TITLE) return 0;
 	uint8_t m = emu_read8(e, HM_MODE);
@@ -2437,32 +2438,66 @@ static bool hm_find(Emu* s, int tile, int pal, int* x, int* y) {
 	return false;
 }
 
+/* the glove's fingertip, 24.8 x then y, is kept in a word pair whose place
+ * isn't fixed (0x02005B68 in a new game, 0x02002620 in one continued from
+ * a save): found by its value, the fingertip under the glove sprite */
+static uint32_t hm_glove_var(Emu* s, int gx, int gy) {
+	size_t n = 0;
+	const uint8_t* ram = emu_memory(s, 2, &n);
+	if (!ram) return 0;
+	uint32_t want_x = (uint32_t)(gx + 15) << 8, want_y = (uint32_t)(gy + 5) << 8;
+	for (size_t i = 0; i + 8 <= n; i += 4) {
+		uint32_t x, y;
+		memcpy(&x, ram + i, 4);
+		if (x != want_x) continue;
+		memcpy(&y, ram + i + 4, 4);
+		if (y == want_y) return 0x02000000u + (uint32_t)i;
+	}
+	return 0;
+}
+
 static const char* hm_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
 	if (!emu_state_load(s, state)) return "state load failed";
-	emu_frame(s, 0);
+	emu_frame_blind(s, 0);
 	/* (open in the game already: as it is, the glove moved back) */
 	if (!hm_map_up(s)) {
-		aw_run(s, K_L, 2);
-		aw_run(s, K_L | K_START, 2);
-		aw_run(s, 0, 2);
+		emu_frame_blind(s, K_L);
+		emu_frame_blind(s, K_L);
+		emu_frame_blind(s, K_L | K_START);
+		emu_frame_blind(s, K_L | K_START);
 	}
-	/* (a mosaic, then the map: about 75 frames) */
-	if (!aw_settle(s, hm_map_up, 150)) return "map screen did not appear";
+	/* a mosaic out, the map built, a mosaic in (about 70 frames), undrawn:
+	 * the glove takes no input before the mosaic's end */
+	int f = 0;
+	while (f < 150 && !(hm_map_up(s) && emu_io16(s, 0x4C) == 0)) emu_frame_blind(s, 0), ++f;
+	if (f >= 150) return "map screen did not appear";
+	emu_frame_blind(s, 0);
 	/* the glove's fingertip (its right end, 5 rows down) onto the middle
-	 * of the head: the glove moves 2 pixels a frame while held */
+	 * of the head: put there, 2 pixels short, then RIGHT for a frame (the
+	 * text box follows the glove only when it's moved); if its place in
+	 * RAM isn't found, steered there (2 pixels a frame) */
 	int gx, gy, hx, hy;
 	if (!hm_find(s, HM_HEAD_TILE, HM_HEAD_PAL, &hx, &hy)) return "no head on the map";
-	for (int f = 0; f < 200; ++f) {
-		if (!hm_find(s, HM_GLOVE_TILE, HM_GLOVE_PAL, &gx, &gy)) return "no glove on the map";
-		int dx = hx - 8 - gx, dy = hy + 2 - gy;
-		if (dx >= -1 && dx <= 1 && dy >= -1 && dy <= 1) break;
-		uint32_t k = (dx < -1 ? K_LEFT : dx > 1 ? K_RIGHT : 0) | (dy < -1 ? K_UP : dy > 1 ? K_DOWN : 0);
-		emu_frame(s, k);
+	if (!hm_find(s, HM_GLOVE_TILE, HM_GLOVE_PAL, &gx, &gy)) return "no glove on the map";
+	uint32_t var = hm_glove_var(s, gx, gy);
+	if (var) {
+		emu_write32(s, var, (uint32_t)(hx + 5) << 8);
+		emu_write32(s, var + 4, (uint32_t)(hy + 7) << 8);
+		emu_frame_blind(s, K_RIGHT);
+	} else {
+		for (f = 0; f < 200; ++f) {
+			if (!hm_find(s, HM_GLOVE_TILE, HM_GLOVE_PAL, &gx, &gy)) return "no glove on the map";
+			int dx = hx - 8 - gx, dy = hy + 2 - gy;
+			if (dx >= -1 && dx <= 1 && dy >= -1 && dy <= 1) break;
+			uint32_t k = (dx < -1 ? K_LEFT : dx > 1 ? K_RIGHT : 0) | (dy < -1 ? K_UP : dy > 1 ? K_DOWN : 0);
+			emu_frame_blind(s, k);
+		}
 	}
-	/* the text box redrawn for the new place; the glove left out */
+	/* the text box redrawn for the new place (2 frames); the glove left out */
 	const SpriteRule glove[1] = { { -512, -256, 511, 255, HM_GLOVE_TILE, HM_GLOVE_TILE + 3, -1, 1u << HM_GLOVE_PAL, 0 } };
 	emu_hide_sprites(s, glove, 1);
-	bool up = aw_settle(s, hm_map_up, 60);
+	for (int i = 0; i < HM_DRAWN; ++i) emu_frame(s, 0);
+	bool up = hm_map_up(s);
 	emu_hide_sprites(s, NULL, 0);
 	if (!up) return "the map went away";
 	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
@@ -4379,15 +4414,16 @@ static const MapProfile profiles[] = {
 		/* Harvest Moon: Friends of Mineral Town (USA, Europe; Japan:
 		 * hm_jpn). Walking about: the town map, see hm_compose (HM-1 to
 		 * HM-3) */
-		.codes = { "A4NE", "A4NP" },
+		.codes = { "A4NE", "A4NP", "A4ND" },
 		.title = "Harvest Moon: Friends of Mineral Town",
 		.compose = hm_compose,
 		.virt = hm_virt,
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
-		/* not on the title: taken about once a second (the head and the
-		 * clock keep moving); where L+START opens nothing, nothing (HM-3) */
+		/* not on the title: taken twice a second (the head and the clock
+		 * keep moving: HM-1); where L+START opens nothing, nothing (HM-3) */
 		.live = { { HM_V_TITLE, 0xFF, 0, 4 } },
+		.interval = 30,
 		/* the title: the logo, the map forgotten (HM-4) */
 		.menu = { { HM_V_TITLE, 0xFF, 1, 4 } },
 		/* the title's sign (sprites), without the rider at its left and

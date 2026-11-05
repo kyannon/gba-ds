@@ -29,6 +29,19 @@
    ]
   },
   {
+   "id": "hm-logo-a4nd",
+   "kind": "logo",
+   "rom": "A4ND",
+   "desc": "A4ND logo extraction (Germany: the same sign)",
+   "rules": [
+    "GEN-1",
+    "HM-5"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
    "id": "hm-logo-a4nj",
    "kind": "logo",
    "rom": "A4NJ",
@@ -118,7 +131,7 @@
    "id": "hm-us-walk",
    "rom": "A4NE",
    "state": "harvest-moon-friends-of-mineral-town/us-farm.ss",
-   "desc": "walking right across the farm: the town map follows (the head moves, the clock goes on)",
+   "desc": "walking right across the farm: the town map follows twice a second (the head moves, the clock goes on)",
    "rules": [
     "HM-1"
    ],
@@ -210,6 +223,42 @@
    "rom": "A4NP",
    "state": "harvest-moon-friends-of-mineral-town/eu-town-saved.ss",
    "desc": "Europe, the same place (the USA save loaded): the town map",
+   "rules": [
+    "HM-1",
+    "HM-2"
+   ],
+   "shots": {
+    "map": 200
+   },
+   "checks": [
+    {
+     "rule": "HM-1",
+     "what": "the town map taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "HM-1",
+     "what": "the town map, not the logo",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "hm-de-town-saved",
+   "rom": "A4ND",
+   "state": "harvest-moon-friends-of-mineral-town/de-town-saved.ss",
+   "desc": "Germany, the same place (the USA save loaded): the town map, Nordteil von Mineralstadt",
    "rules": [
     "HM-1",
     "HM-2"
