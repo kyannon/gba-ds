@@ -2285,25 +2285,29 @@ static const char* zl_message(Emu* s, uint32_t* out, int w, int h) {
 	return ok ? NULL : "not the message box";
 }
 
-/* ZL-8: the Status (R) of the Zoid choosing: B out of Decide/Cancel and the
- * weapons to its menu (00 11) or the turn's (40 11), then R; taken once
- * its window (1E 13) is up and it has drawn */
+/* ZL-8: the Status (R) of the Zoid choosing. The window at ZL_WINDOW is the
+ * last one opened, not the one up: B from the Status back to the Zoid's menu
+ * leaves it 1E 13 (and B from Decide leaves 16 19). The Status is up when
+ * that's 1E 13 and BG0 is scrolled to its rows (BG0VOFS 0x181; 0x68 at the
+ * menus). So: R; if no Status comes up (in the weapons or Decide), B and R
+ * again, a few times; B at a Zoid's menu does nothing */
+#define ZL_STATUS_VOFS 0x181
 static bool zl_status_up(Emu* s) {
-	return emu_read8(s, ZL_WINDOW) == 0x1E && emu_read8(s, ZL_WINDOW + 1) == 0x13;
+	return emu_read8(s, ZL_WINDOW) == 0x1E && emu_read8(s, ZL_WINDOW + 1) == 0x13 &&
+	       (emu_io16(s, 0x12) & 0x1FF) == ZL_STATUS_VOFS;
 }
 static const char* zl_status(Emu* s, uint32_t* out, int w, int h) {
-	if (!zl_status_up(s)) {
-		for (int i = 0; i < 4; ++i) {
-			uint8_t x = emu_read8(s, ZL_WINDOW), y = emu_read8(s, ZL_WINDOW + 1);
-			if (y == 0x11 && (x == 0x00 || x == 0x40)) break;
+	for (int i = 0; i < 5 && !zl_status_up(s); ++i) {
+		if (i) {
 			aw_tap(s, K_B, 1);
 			aw_run(s, 0, 12);
 		}
 		aw_run(s, K_R, 4);
 		int f = 0;
-		while (f < 30 && !zl_status_up(s)) emu_frame_blind(s, 0), ++f;
-		if (!zl_status_up(s)) return "R didn't bring up a Status";
+		while (f < 14 && !zl_status_up(s)) emu_frame_blind(s, 0), ++f;
+		if (emu_cancelled(s)) return "called off";
 	}
+	if (!zl_status_up(s)) return "R didn't bring up a Status";
 	aw_run(s, 0, 16); /* (its numbers and the Zoid drawn) */
 	if (emu_cancelled(s)) return "called off";
 	if (!zl_status_up(s)) return "the Status closed";

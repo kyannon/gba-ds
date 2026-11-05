@@ -1074,6 +1074,156 @@
    ]
   },
   {
+   "id": "zl-us-status-back",
+   "rom": "AZ2E",
+   "state": "zoids-legacy/us-status-back.ss",
+   "desc": "the first battle: R, then B back to Saberlion's menu (the window bytes still say Status): its Status, not a copy of the menu (the player's bug report)",
+   "rules": [
+    "ZL-8"
+   ],
+   "shots": {
+    "status": 200
+   },
+   "checks": [
+    {
+     "rule": "ZL-8",
+     "what": "the Status taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "ZL-8",
+     "what": "not the logo",
+     "shot": "status"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      312,
+      560,
+      504,
+      624
+     ],
+     "color": "E7F7D6",
+     "frac": 0.98,
+     "rule": "ZL-8",
+     "what": "the Status's panel, not the Zoid's menu (the menu's box edge would be there)",
+     "shot": "status"
+    }
+   ]
+  },
+  {
+   "id": "zl-us-status-open",
+   "rom": "AZ2E",
+   "state": "zoids-legacy/us-status-open.ss",
+   "desc": "the first battle with the game's own Status open (R): that Status",
+   "rules": [
+    "ZL-8"
+   ],
+   "shots": {
+    "status": 200
+   },
+   "checks": [
+    {
+     "rule": "ZL-8",
+     "what": "the Status taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "ZL-8",
+     "what": "not the logo",
+     "shot": "status"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      312,
+      560,
+      504,
+      624
+     ],
+     "color": "E7F7D6",
+     "frac": 0.98,
+     "rule": "ZL-8",
+     "what": "the Status's panel, not the Zoid's menu (the menu's box edge would be there)",
+     "shot": "status"
+    }
+   ]
+  },
+  {
+   "id": "zl-jp-status-back",
+   "rom": "AZ2J",
+   "state": "zoids-legacy/jp-status-back.ss",
+   "desc": "Japan: R, then B back to the Zoid's menu: its Status, not the menu",
+   "rules": [
+    "ZL-8"
+   ],
+   "shots": {
+    "status": 200
+   },
+   "checks": [
+    {
+     "rule": "ZL-8",
+     "what": "the Status taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "ZL-8",
+     "what": "not the logo",
+     "shot": "status"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      312,
+      560,
+      504,
+      624
+     ],
+     "color": "E7F7D6",
+     "frac": 0.98,
+     "rule": "ZL-8",
+     "what": "the Status's panel, not the Zoid's menu (the menu's box edge would be there)",
+     "shot": "status"
+    }
+   ]
+  },
+  {
    "id": "zl-us-decide",
    "rom": "AZ2E",
    "state": "zoids-legacy/us-decide.ss",
