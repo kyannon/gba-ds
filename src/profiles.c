@@ -2033,10 +2033,16 @@ static const char* dbz_compose(Emu* s, const void* state, uint32_t* out, int w, 
  * from the live state at every capture (SELECT's menu, its third icon, A),
  * on the page of the brother in front (it opens on Mario's; R turns to
  * Luigi's).
- *   ML_SCREEN 1 walking about, 0 SELECT's menu, 2 Bros. Info, 3 the title
+ *   ML_SCREEN 0 walking about (the title, battles too), 1 SELECT's menu, 2 Bros. Info
+ *     (until v1.4.11's test builds 0x02000C99, a scratch byte that held 1
+ *     walking about on the first maps and flickered 0 / 1 on others, after
+ *     a battle: the capture then took the field for the menu and failed)
  *   ML_CURSOR the menu's icon (0 Items, 1 Equipment, 2 Bros. Info)
  */
-#define ML_SCREEN 0x02000C99
+#define ML_SCREEN_FIELD 0
+#define ML_SCREEN_MENU 1
+#define ML_SCREEN_BROS 2
+#define ML_SCREEN 0x02000CDD
 #define ML_CURSOR 0x030040A9
 #define ML_STATE 0x02000008 /* 8 walking about (its menus too), 3 a battle, 2 the title */
 #define ML_LEAD 0x02004F4C /* the brother in front: 0 Mario, 1 Luigi (START swaps) */
@@ -2569,21 +2575,22 @@ static const char* ml_compose(Emu* s, const void* state, uint32_t* const* out, i
 	emu_frame(s, 0);
 	bool luigi = emu_read8(s, ML_LEAD) == 1;
 	int at = emu_read8(s, ML_SCREEN);
-	if (at == 1) {
+	if (at == ML_SCREEN_FIELD) {
 		aw_tap(s, K_SELECT, 1);
-		if (!ml_wait(s, 0, 60)) return "map button did nothing";
-		at = 0;
+		/* (the menu's byte turns 1 some 50 frames on, as the suitcase opens) */
+		if (!ml_wait(s, ML_SCREEN_MENU, 90)) return "map button did nothing";
+		at = ML_SCREEN_MENU;
 	}
-	if (at == 0) {
-		aw_run(s, 0, 20); /* (past its opening) */
+	if (at == ML_SCREEN_MENU) {
+		aw_run(s, 0, 20); /* (past its opening: DOWN is taken 15 frames on) */
 		for (int i = 0; i < 8 && emu_read8(s, ML_CURSOR) != 2; ++i) {
 			aw_tap(s, emu_read8(s, ML_CURSOR) < 2 ? K_DOWN : K_UP, 1);
 			aw_run(s, 0, 4);
 		}
 		if (emu_read8(s, ML_CURSOR) != 2) return "Bros. Info not reached in the menu";
 		aw_tap(s, K_A, 1);
-		if (!ml_wait(s, 2, 90)) return "Bros. Info didn't open";
-	} else if (at != 2) {
+		if (!ml_wait(s, ML_SCREEN_BROS, 90)) return "Bros. Info didn't open";
+	} else if (at != ML_SCREEN_BROS) {
 		return "not walking about";
 	}
 	if (!ml_settle(s, 150)) return "Bros. Info didn't settle";
@@ -4517,7 +4524,7 @@ static const MapProfile profiles[] = {
 		.crop_h = GBA_H,
 		/* walking about: taken (about once a second); elsewhere (scenes,
 		 * conversations) the last picture stays */
-		.live = { { ML_STATE, 0xFF, 8, 1 }, { ML_SCREEN, 0xFF, 1, 1 } },
+		.live = { { ML_STATE, 0xFF, 8, 1 }, { ML_SCREEN, 0xFF, ML_SCREEN_FIELD, 1 } },
 		/* a battle, the title: the logo (ML-1, ML-3) */
 		.menu = { { ML_STATE, 0xFF, 3, 1, true, 2 } },
 		/* the brothers swapped (START): taken again at once */

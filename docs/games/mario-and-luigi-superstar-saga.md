@@ -40,7 +40,7 @@ Tried in the USA release from the owner's reports (the title, walking about at t
 
 | What | Where / value (USA) |
 |---|---|
-| Screen | `0x02000C99`: 1 walking about, 0 SELECT's menu, 2 Bros. Info, 3 the title |
+| Screen | `0x02000CDD`: 0 walking about (also on the title and in battles), 1 SELECT's menu (some 50 frames after SELECT, as the suitcase opens; DOWN is taken 15 frames after that), 2 Bros. Info. (Until v1.4.11's test builds `0x02000C99`: a scratch byte that read 1 walking about on the first maps, but flickers 0 / 1 elsewhere, as after a player's battle in Stardust Fields: every capture failed there) |
 | Menu icon | `0x030040A9`: 0 Items, 1 Equipment, 2 Bros. Info |
 | Game state | `0x02000008`: 8 walking about (its menus, Bros. Info, the star into a battle too), 3 in a battle, 2 the title |
 | Brother in front | `0x02004F4C`: 0 Mario, 1 Luigi (START swaps); Bros. Info always opens on Mario's page, R turns to Luigi's |

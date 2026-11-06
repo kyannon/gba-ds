@@ -576,6 +576,38 @@
    ]
   },
   {
+   "id": "ml-us-after-battle",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-battle-victory.ss",
+   "desc": "a battle's results (a player's bug report), A, back to walking about on a map where the old screen byte flickered: Bros. Info comes back (Mario's page, level 2 now) within a few seconds",
+   "rules": [
+    "ML-2",
+    "ML-3"
+   ],
+   "input": [
+    [
+     20,
+     "A"
+    ],
+    [
+     24,
+     "-"
+    ]
+   ],
+   "shots": {
+    "results": 10,
+    "walking": 400
+   },
+   "checks": [
+    {
+     "rule": "ML-2",
+     "what": "Bros. Info taken after the battle",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
    "id": "ml-logo-a88e",
    "kind": "logo",
    "rom": "A88E",
