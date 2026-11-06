@@ -1,0 +1,606 @@
+{
+ "game": "Wario Land 4",
+ "rules": "docs/games/wario-land-4.md",
+ "cases": [
+  {
+   "id": "wl4-logo-awae",
+   "kind": "logo",
+   "rom": "AWAE",
+   "desc": "AWAE logo extraction",
+   "rules": [
+    "GEN-1",
+    "WL4-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "wl4-logo-awaj",
+   "kind": "logo",
+   "rom": "AWAJ",
+   "desc": "AWAJ logo extraction",
+   "rules": [
+    "GEN-1",
+    "WL4-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "wl4-us-title",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-title.ss",
+   "desc": "the title: the logo at half strength, no pause-screen picture",
+   "rules": [
+    "WL4-7"
+   ],
+   "shots": {
+    "title": 90
+   },
+   "checks": [
+    {
+     "rule": "WL4-7",
+     "what": "no pause-screen picture",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-file",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-file.ss",
+   "desc": "the file screen: the logo",
+   "rules": [
+    "WL4-7"
+   ],
+   "shots": {
+    "file": 90
+   },
+   "checks": [
+    {
+     "rule": "WL4-7",
+     "what": "no pause-screen picture",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-hub",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-hub.ss",
+   "desc": "the passage select (the hub): the logo",
+   "rules": [
+    "WL4-7"
+   ],
+   "shots": {
+    "hub": 90
+   },
+   "checks": [
+    {
+     "rule": "WL4-7",
+     "what": "no pause-screen picture",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-levelselect",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-levelselect.ss",
+   "desc": "the Entry Passage's level select, then A into the Hall of Hieroglyphs: the logo through the vortex, the pause screen once Wario is in the level",
+   "rules": [
+    "WL4-2",
+    "WL4-7"
+   ],
+   "input": [
+    [
+     100,
+     "A"
+    ],
+    [
+     104,
+     "-"
+    ]
+   ],
+   "shots": {
+    "select": 60,
+    "vortex": 200,
+    "level": 700
+   },
+   "checks": [
+    {
+     "rule": "WL4-2",
+     "what": "a pause-screen picture is taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "WL4-2",
+     "what": "the menu row left out: dark grey above the picture",
+     "type": "uniform",
+     "shot": "level",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      980,
+      106
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-hall",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-hall.ss",
+   "desc": "in the Hall of Hieroglyphs: the pause screen without its menu, centred; the game screen as the game draws it (hearts and coins)",
+   "rules": [
+    "WL4-2",
+    "WL4-4"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 200
+   },
+   "checks": [
+    {
+     "rule": "WL4-2",
+     "what": "a pause-screen picture is taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "WL4-2",
+     "what": "the menu row left out: dark grey above the picture",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      980,
+      106
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-hall-crop0",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-hall.ss",
+   "desc": "map_crop = 0: the whole pause screen, its menu too",
+   "rules": [
+    "WL4-2"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "WL4-2",
+     "what": "the menu's frames at the top",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       272,
+       137,
+       "5AFFFF"
+      ],
+      [
+       512,
+       137,
+       "5AFFFF"
+      ],
+      [
+       832,
+       137,
+       "5AFFFF"
+      ]
+     ]
+    }
+   ],
+   "config": {
+    "map_crop": "0"
+   }
+  },
+  {
+   "id": "wl4-us-paused",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-hall.ss",
+   "desc": "START in the level: the game's pause screen on the game screen, the second screen keeps its last picture",
+   "rules": [
+    "WL4-6"
+   ],
+   "input": [
+    [
+     100,
+     "START"
+    ],
+    [
+     104,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 60,
+    "paused": 200
+   },
+   "checks": [
+    {
+     "rule": "WL4-6",
+     "what": "the second screen unchanged while paused",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "paused",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-pieces",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-hall.ss",
+   "desc": "two gem pieces and the Keyzer found (the state with them loaded over the level): a new picture at once with them on the wall",
+   "rules": [
+    "WL4-2",
+    "WL4-3"
+   ],
+   "input": [
+    [
+     100,
+     "LOAD:wario-land-4/us-hall-pieces.ss"
+    ]
+   ],
+   "shots": {
+    "before": 60,
+    "found": 110
+   },
+   "checks": [
+    {
+     "rule": "WL4-3",
+     "what": "the picture changed within a few frames",
+     "type": "differs",
+     "a": {
+      "shot": "before",
+      "screen": "second",
+      "rect": [
+       32,
+       112,
+       992,
+       656
+      ]
+     },
+     "b": {
+      "shot": "found",
+      "screen": "second",
+      "rect": [
+       32,
+       112,
+       992,
+       656
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-escape",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-escape.ss",
+   "desc": "the escape in the Hall of Hieroglyphs: the countdown stays on the game screen, the pause screen on the second",
+   "rules": [
+    "WL4-4",
+    "WL4-5"
+   ],
+   "shots": {
+    "escape": 60
+   },
+   "checks": [
+    {
+     "rule": "WL4-5",
+     "what": "a pause-screen picture is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-palm-tree-paradise",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-palm-tree-paradise.ss",
+   "desc": "Emerald Passage, Palm Tree Paradise, two gem pieces and the CD: the green wall with them",
+   "rules": [
+    "WL4-2",
+    "WL4-8"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "WL4-8",
+     "what": "a pause-screen picture is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-pinball-zone",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-pinball-zone.ss",
+   "desc": "Ruby Passage, Pinball Zone: the red wall",
+   "rules": [
+    "WL4-8"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "WL4-8",
+     "what": "a pause-screen picture is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-big-board",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-big-board.ss",
+   "desc": "Topaz Passage, The Big Board: the brown wall",
+   "rules": [
+    "WL4-8"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "WL4-8",
+     "what": "a pause-screen picture is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-arabian-night",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-arabian-night.ss",
+   "desc": "Sapphire Passage, Arabian Night, everything found: the blue wall with the whole jewel, the Keyzer and the CD",
+   "rules": [
+    "WL4-2",
+    "WL4-8"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "WL4-8",
+     "what": "a pause-screen picture is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-golden-passage",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-golden-passage.ss",
+   "desc": "the Golden Passage, its countdown running from the start: the yellow wall, no CD hole",
+   "rules": [
+    "WL4-5",
+    "WL4-8"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "WL4-8",
+     "what": "a pause-screen picture is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-boss-corridor",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-boss-corridor.ss",
+   "desc": "Emerald's boss corridor (the Item Shop's door): the logo, as the game's pause there is a plain PAUSE",
+   "rules": [
+    "WL4-7"
+   ],
+   "shots": {
+    "corridor": 90
+   },
+   "checks": [
+    {
+     "rule": "WL4-7",
+     "what": "no pause-screen picture",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-clear",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-hall.ss",
+   "desc": "in the level, then the level cleared (the moment loaded over it): the last picture stays while the screen waves, the logo from the vortex and tally on",
+   "rules": [
+    "WL4-6",
+    "WL4-7"
+   ],
+   "shots": {
+    "level": 60,
+    "wavy": 115,
+    "tally": 500
+   },
+   "input": [
+    [
+     100,
+     "LOAD:wario-land-4/us-clear.ss"
+    ]
+   ],
+   "checks": [
+    {
+     "rule": "WL4-6",
+     "what": "the last picture kept while the screen waves",
+     "type": "same",
+     "a": {
+      "shot": "level",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "wavy",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    },
+    {
+     "rule": "WL4-7",
+     "what": "the logo by the tally: the second screen changed",
+     "type": "differs",
+     "a": {
+      "shot": "level",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "tally",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "wl4-jp-title",
+   "rom": "AWAJ",
+   "state": "wario-land-4/jp-title.ss",
+   "desc": "Japan: the title, the logo",
+   "rules": [
+    "WL4-1",
+    "WL4-7"
+   ],
+   "shots": {
+    "title": 90
+   },
+   "checks": [
+    {
+     "rule": "WL4-7",
+     "what": "no pause-screen picture",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "wl4-jp-hub",
+   "rom": "AWAJ",
+   "state": "wario-land-4/jp-hub.ss",
+   "desc": "Japan: the hub, the logo",
+   "rules": [
+    "WL4-7"
+   ],
+   "shots": {
+    "hub": 90
+   },
+   "checks": [
+    {
+     "rule": "WL4-7",
+     "what": "no pause-screen picture",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "wl4-jp-hall",
+   "rom": "AWAJ",
+   "state": "wario-land-4/jp-hall.ss",
+   "desc": "Japan: in the first level, the pause screen without its menu",
+   "rules": [
+    "WL4-2",
+    "WL4-8"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "WL4-2",
+     "what": "a pause-screen picture is taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "WL4-2",
+     "what": "the menu row left out: dark grey above the picture",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      980,
+      106
+     ],
+     "color": "303030"
+    }
+   ]
+  }
+ ]
+}

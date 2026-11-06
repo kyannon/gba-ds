@@ -3278,6 +3278,24 @@ static uint32_t ls_virt(Emu* e, uint32_t addr) {
 	return 0;
 }
 
+/* Wario Land 4 (both releases): the screen the game is on, 0x03000C3A
+ * (0 scenes, 1 the hub, a passage's level select, the vortex and tally,
+ * 2 in a level, 4 the pause screen up, 9 the file screen), what it's
+ * doing there, 0x03000C3C (2 playing), and the level, 0x03000003 (0-3;
+ * 4 a boss's corridor and fight, whose pause is a plain PAUSE) */
+#define WL4_SCREEN 0x03000C3A
+#define WL4_SUB 0x03000C3C
+#define WL4_LEVEL 0x03000003
+#define WL4_V_OFFLEVEL 0xF0000067 /* 1 outside the levels: the logo (WL4-7) */
+static uint32_t wl4_virt(Emu* e, uint32_t addr) {
+	if (addr == WL4_V_OFFLEVEL) {
+		uint16_t s = emu_read16(e, WL4_SCREEN);
+		if (s != 2 && s != 4) return 1;
+		return emu_read8(e, WL4_LEVEL) > 3;
+	}
+	return 0;
+}
+
 static const MapProfile profiles[] = {
 	{
 		.codes = { "A2CE" },
@@ -4501,6 +4519,44 @@ static const MapProfile profiles[] = {
 		.hideWhen = { { LS_V_PLAY, 0, 1, 1 } },
 	},
 	{
+		/* Wario Land 4 (USA and Europe; Japan: the AWAJ variant, same
+		 * addresses and screens). The pause screen (START) slides down
+		 * from the top over some 40 frames: its menu in rows 0-23 (BG0
+		 * words, BG1 frames, the hand a sprite), the status bar, the wall
+		 * with the jewel, Keyzer and CD (BG2, in 8-row courses from row
+		 * 24) and the level's name plate (rows 141-158). */
+		.codes = { "AWAE" },
+		.title = "Wario Land 4",
+		/* the title's lettering and its TM: BG0 alone (PUSH START, the
+		 * car and the copyright line are sprites), up once START has
+		 * skipped the intro (WL4-1) */
+		.logo = { .steps = { { 0, 900 }, { K_START, 4 }, { 0, 240 } }, .layers = 0x1, .maxY = 160 },
+		/* the pause screen, once it has slid into place: the menu's three
+		 * frames (cyan along row 18, black while it slides) and the name
+		 * plate's edge and inside, the same in every passage and both
+		 * releases (WL4-2, WL4-8) */
+		.open = { { K_START, 3 } },
+		.settleMax = 90, .openWithin = 30, .stableFrames = 3, .maxDiff = 200,
+		.crop_x = 0, .crop_y = 0, .crop_w = 240, .crop_h = 160,
+		/* map_crop: the menu's rows (down to the wall's first row of
+		 * bricks) dark grey, the rest where the game draws it (WL4-2) */
+		.glyphs = { { 0, 0, 240, 24, -1, { 0x303030 } } },
+		.probes = { { 60, 18, 0x5AFFFF }, { 120, 18, 0x5AFFFF }, { 200, 18, 0x5AFFFF },
+		            { 10, 150, 0x218484 }, { 220, 150, 0x000000 } },
+		.bgColor = 0x000000, .minForeground = 2000, .tolerance = 8,
+		.mem = { { WL4_SCREEN, 0xFFFF, 4, 2 } },
+		/* in a level's play (not a boss's: level 4), not paused or going
+		 * through a door; elsewhere the last picture stays (WL4-6) */
+		.live = { { WL4_SCREEN, 0xFFFF, 2, 2 }, { WL4_SUB, 0xFF, 2, 1 }, { WL4_LEVEL, 0xFF, 0, 1, true, 3, true } },
+		/* the title, the hub, the level select, the vortex, a boss: the
+		 * logo (WL4-7) */
+		.menu = { { WL4_V_OFFLEVEL, 0, 1, 1 } },
+		.virt = wl4_virt,
+		/* another level, or a gem piece, the CD or the Keyzer found:
+		 * taken again at once (WL4-3) */
+		.room = { { 0x03000002, 0, 0, 2 }, { 0x03000C07, 0, 0, 4 }, { 0x03000C0B, 0, 0, 2 } },
+	},
+	{
 		/* Mario & Luigi: Superstar Saga (USA; Europe and Japan, Mario &
 		 * Luigi RPG: variants). Walking about, the Bros. Info screen, the
 		 * page of the brother in front: see ml_compose (ML-2) */
@@ -5120,6 +5176,7 @@ static const Variant variants[] = {
 	{ "AT3D", "AT3E", 0, thps3_ger },
 	{ "ASEJ", "ASEE", 0, smm_jpn },
 	{ "ALDP", "ALDE", 0, NULL },
+	{ "AWAJ", "AWAE", 0, NULL },
 	/* (Fire Emblem's addresses: FeRegion) */
 	{ "AE7X", "AE7E", 0, lang_menu },
 	{ "AE7Y", "AE7E", 0, lang_menu },
