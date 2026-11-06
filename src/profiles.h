@@ -348,7 +348,7 @@ typedef struct MapProfile {
 		 * not matching): Super Mario Advance 2's boss rooms, in display
 		 * mode 1, have the status bar on BG0. Same sprites and moves. */
 		struct {
-			MemProbe on[4];
+			MemProbe on[5];
 			unsigned bgMask;
 			/* hud.overMap: in a piece that goes alone, its pure black
 			 * (stretched from the game screen over the whole picture)

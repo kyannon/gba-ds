@@ -1420,6 +1420,79 @@
    "golden": [
     "logo"
    ]
+  },
+  {
+   "id": "sm4-us-opening",
+   "rom": "AX4E",
+   "state": "super-mario-advance-4/us-opening.ss",
+   "desc": "a player's bug report: Super Mario Bros. 3 picked on the title, into its opening (clouds in a checkered frame), where the game says Mario is on the world map: the frame whole on the game screen, nothing of it on the second, the logo at half strength",
+   "rules": [
+    "SM4-9"
+   ],
+   "input": [
+    [
+     40,
+     "A"
+    ],
+    [
+     47,
+     "-"
+    ],
+    [
+     59,
+     "START"
+    ],
+    [
+     70,
+     "-"
+    ],
+    [
+     183,
+     "A"
+    ],
+    [
+     210,
+     "-"
+    ]
+   ],
+   "shots": {
+    "opening": 440
+   },
+   "checks": [
+    {
+     "rule": "SM4-9",
+     "what": "the world map's status bar never goes to the second screen",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "SM4-9",
+     "what": "the frame's bottom edge on the game screen",
+     "type": "pixels",
+     "shot": "opening",
+     "screen": "game",
+     "probes": [
+      [
+       100,
+       700,
+       "FFFFEF"
+      ]
+     ]
+    },
+    {
+     "rule": "SM4-9",
+     "what": "nothing of the frame at the top of the second screen",
+     "type": "uniform",
+     "shot": "opening",
+     "rect": [
+      32,
+      64,
+      992,
+      184
+     ],
+     "color": "303030"
+    }
+   ]
   }
  ]
 }

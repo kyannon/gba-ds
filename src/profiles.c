@@ -4099,8 +4099,12 @@ static const MapProfile profiles[] = {
 			 * coins, score, cards) goes to the top of the second screen,
 			 * over the inventory picture (SM4-6, SM4-4); anything else on
 			 * BG0 there stays. (0x40, a level, is the main HUD's.) */
+			/* (not in the opening after Super Mario Bros. 3 is picked,
+			 * where Mario reads 0x41 too: BG2's tiles at character block
+			 * 2 there, 0 on every map and in the houses (SM4-9)) */
 			.alt = { .on = { { 0x03003DE2, 0xFE, 0x40, 1, true, 0x08 }, { 0x03003CAA, 0xFF, 0, 1 },
-			                 { 0x04000000, 0x0100, 0x0100, 2 }, { 0x03003759, 0xFF, 0, 1 } },
+			                 { 0x04000000, 0x0100, 0x0100, 2 }, { 0x03003759, 0xFF, 0, 1 },
+			                 { 0x0400000C, 0x000C, 0, 2 } },
 			         .bgMask = 1,
 			         .moves = { { 0, 0, 239, 127, 0, 0, 0, 0, true }, { 0, 128, 239, 159, 0, 0, 'T', 0 } },
 			         .mapBelow = true },

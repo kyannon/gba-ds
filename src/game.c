@@ -2889,7 +2889,7 @@ static void update_hud(void) {
 			 * lines that change) */
 			if (!mirrorOn && debug) fprintf(stderr, "frame %llu: the screen mirrored\n", (unsigned long long) frameCount);
 			mirrorOn = hudShown = true;
-			if (mirMain && h->alt.on[0].addr && memprobes_match(h->alt.on, 4, &emu)) {
+			if (mirMain && h->alt.on[0].addr && memprobes_match(h->alt.on, (int) (sizeof h->alt.on / sizeof h->alt.on[0]), &emu)) {
 				/* hud.alt's probes too (a menu over the paused world): its
 				 * layers alone, split as usual below; until the split's
 				 * on, the background */
@@ -2925,7 +2925,7 @@ static void update_hud(void) {
 		}
 	}
 	bool main = memprobes_match(h->on, 4, &emu);
-	bool altOn = !main && h->alt.on[0].addr && memprobes_match(h->alt.on, 4, &emu);
+	bool altOn = !main && h->alt.on[0].addr && memprobes_match(h->alt.on, (int) (sizeof h->alt.on / sizeof h->alt.on[0]), &emu);
 	bool race = main || altOn || (hudOn && h->stay[0].addr && memprobes_match(h->stay, 2, &emu));
 	/* the HUD's other layer (alt): kept while it stays on through a fade */
 	bool alt = main ? false : altOn ? true : hudAlt;
