@@ -347,13 +347,28 @@ static bool banana_on(char* msg, size_t msgSize) {
 	while (*v == ' ' || *v == '\t') ++v;
 	size_t vlen = (size_t) (b - v);
 	while (vlen && (v[vlen - 1] == '\n' || v[vlen - 1] == '\r' || v[vlen - 1] == ' ')) --vlen;
-	size_t n = strlen(t) + 2 * vlen + 2 * strlen(dir) + 512;
+	/* (the fallback: the original with every launcher's "run-" written run''-:
+	 * the same command to the shell, but banana-ui gives a line that names
+	 * run-retroarch (run-ps1, run-bananafront, run-pico8) one panel, keeping
+	 * the other for its own: GBA DS needs both) */
+	char* fallback = malloc(vlen * 3 + 1);
+	size_t fl = 0;
+	for (size_t i = 0; i < vlen; ++i) {
+		if (!strncmp(v + i, "run-", 4) && (i == 0 || v[i - 1] == '/' || v[i - 1] == ' ')) {
+			memcpy(fallback + fl, "run''-", 6), fl += 6, i += 3;
+			continue;
+		}
+		fallback[fl++] = v[i];
+	}
+	fallback[fl] = 0;
+	size_t n = strlen(t) + vlen + fl + 2 * strlen(dir) + 512;
 	char* out = malloc(n);
-	snprintf(out, n, "%s%.*s" BANANA_MARK "%.*s\nrun = if [ -f '%s/banana-play.sh' ]; then bash '%s/banana-play.sh' %%ROM%%; else %.*s; fi\n%s",
+	snprintf(out, n, "%s%.*s" BANANA_MARK "%.*s\nrun = if [ -f '%s/banana-play.sh' ]; then bash '%s/banana-play.sh' %%ROM%%; else %s; fi\n%s",
 	         copy ? BANANA_HEADER " (game list > Settings: GBA DS in BananaOS's GBA list).\n"
 	                "# Switching that off puts the Game Boy Advance line back, and deletes this copy\n"
 	                "# if nothing else in it was changed.\n" : "",
-	         (int) (a - t), t, (int) vlen, v, dir, dir, (int) vlen, v, b);
+	         (int) (a - t), t, (int) vlen, v, dir, dir, fallback, b);
+	free(fallback);
 	bool ok = write_file(BANANA_USER, out, 0644);
 	free(out);
 	free(t);
@@ -425,7 +440,11 @@ void banana_integration_refresh(void) {
 	if (!app_dir(dir, sizeof(dir))) return;
 	snprintf(want, sizeof(want), "if [ -f '%s/banana-play.sh' ]", dir);
 	char* t = read_file(BANANA_USER);
-	bool current = t && strstr(t, want);
+	const char *ra, *rb;
+	/* (current: its folder, and no "run-retroarch" in it, which a test build's
+	 * line had: banana-ui gave GBA DS one panel then) */
+	bool current = t && gba_run_line(t, &ra, &rb) && strstr(t, want) && strstr(t, want) < rb &&
+	               !memmem(ra, (size_t) (rb - ra), "run-retroarch", 13);
 	free(t);
 	if (current) return;
 	char msg[160];

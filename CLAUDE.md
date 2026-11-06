@@ -412,8 +412,13 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   banana-ui runs the line through a shell (%ROM% quoted), and ours is
   `if [ -f '<dir>/banana-play.sh' ]; then bash ... %ROM%; else ORIG; fi`, so
   the list still starts its games once GBA DS is removed
-  (banana_integration_refresh upgrades older lines).
-  banana-ui hands both panels to any run line without "run-retroarch".
+  (banana_integration_refresh upgrades older lines). banana-ui hands both
+  panels to a run line without "run-retroarch" (run-ps1, run-bananafront,
+  run-pico8) and keeps one for its own second screen otherwise (main.cpp,
+  `bool ra`), deciding from the line before the game starts: so ORIG goes in
+  with each launcher's `run-` written `run''-` (the same to the shell), and
+  the games GBA DS doesn't support play without Banana's panel (a known
+  issue; a per-game hook was asked of Banana's developers).
 - **The Stock Linux OS** (Anbernic's own) on the RG DS Plus (Buildroot, weston, two
   windows): launch.sh's "another system" branch. Ports in `/mnt/mmc/Ports`,
   ROMs `/mnt/mmc/Roms/GBA`. Touch: `anbernic_misc/tpctrl` 0 (on) for the run

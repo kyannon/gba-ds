@@ -20,6 +20,7 @@
 - **Sonic Advance 2:** with Cream or Tails, the zone card now shows on the second screen (it stayed on the logo). In boss fights, the card and the rings, score, time and lives stay on the second screen (a frozen picture of the fight came up there, and the HUD went back to the game screen); the countdown's START!! stays whole on the game screen. Every zone's first act, XX, the results and Leaf Forest's boss have now been tried, with each character.
 
 ### Known issues
+- **BananaOS:** with GBA DS in BananaOS's GBA list switched on, the GBA games GBA DS doesn't support play in RetroArch without BananaOS's own second screen (its game panel and companions): BananaOS decides how to share the screens before it knows which game it is. The Settings row and the wiki say so; a fix needs BananaOS's help, and has been asked for.
 - **Sonic Advance 3:** for a moment as each act starts (while the screen is still black), the rings, time and lives are off the game screen.
 - **F-Zero: Maximum Velocity:** as the game takes its HUD down (after the finish, on pressing A at YOU LOST, as a machine is destroyed), the HUD shows on the game screen for a single frame.
 - **Super Mario Advance 4:** with the inventory open on World-e's map, the second screen shows the inventory without the status bar. Going through a pipe or door, the status bar on the second screen fades out and back with the game.

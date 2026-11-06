@@ -692,7 +692,7 @@ static SettingsGeom settings_geom(int scr) {
 		g.textY[i] = g.row[i].y + rowH + px * 8;
 #ifndef __ANDROID__
 		/* Linux, three rows: room for each one's text (lines of about 8 units) */
-		if (nRows > 2) gap = px * (rowKind[i] == ROW_BANANA || rowKind[i] == ROW_ES ? 38 : rowKind[i] == ROW_MAP ? 30 : 22);
+		if (nRows > 2) gap = px * (rowKind[i] == ROW_BANANA ? 44 : rowKind[i] == ROW_ES ? 38 : rowKind[i] == ROW_MAP ? 30 : 22);
 #endif
 		y += rowH + gap;
 	}
@@ -849,8 +849,9 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 	for (int i = 0; i < nRows; ++i) {
 		const char* text = rowKind[i] == ROW_BANANA
 		                       ? "Games picked in BananaOS's own Game Boy Advance list start in GBA DS when it has "
-		                         "second-screen support for them; every other game plays in RetroArch as before. "
-		                         "BananaOS reads its list when it starts, so restart it after switching this."
+		                         "second-screen support for them. Every other game plays in RetroArch, but without "
+		                         "BananaOS's own second screen (its game panel and companions). Restart BananaOS after "
+		                         "switching this."
 		                   : rowKind[i] == ROW_ES
 		                       ? "Adds GBA DS to the emulators for Game Boy Advance games in EmulationStation. Pick it for one game "
 		                         "(its Advanced Game Options > Emulator) or for all of them (the system's advanced settings). "
