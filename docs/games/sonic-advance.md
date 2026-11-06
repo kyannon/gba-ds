@@ -24,7 +24,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **SA-5. Pause and bosses.** The pause screen (PAUSE) stays on the game screen; the second screen keeps the card and the moved HUD. In a boss fight (at the end of a zone's act 2) the second screen keeps the act's card and the moved HUD as in the rest of the act.
 
-**SA-6. Every character and zone.** The card and the moved HUD are the same with Sonic, Tails, Knuckles and Amy (the stripe in the character's colour, the character's name in it), and in every zone. In Secret Base Zone, where the game darkens the level outside its searchlights, the HUD on the second screen is darkened as the game draws it, and so is the card's picture there, though the game shows its card at full brightness (known issue).
+**SA-6. Every character and zone.** The card and the moved HUD are the same with Sonic, Tails, Knuckles and Amy (the stripe in the character's colour, the character's name in it), and in every zone. In Secret Base Zone, where the game darkens the level outside its searchlights, the card and the HUD on the second screen are darkened with it, and light up with the level later on, when the searchlights go: the effect mirrored on the second screen, as intended.
 
 ## Not covered yet
 
@@ -46,6 +46,6 @@ Tried in Neo Green Hill Zone (both acts, Sonic) from the owner's USA states, and
 
 Changelog line (under the open version's Changes):
 
-- **Sonic Advance:** tried in every zone, with every character, in the act's results, pause and the bosses (the European release): no changes needed. Known issue: in Secret Base Zone the card on the second screen is darker than the game shows it.
+- **Sonic Advance:** tried in every zone, with every character, in the act's results, pause and the bosses (the European release): no changes needed.
 
-`wiki/Supported-games.md`, the Sonic Advance section's "tried" line and its not-tried list: tried in every zone and with every character; not tried yet: special stages, the Moon Zone, Time Attack, VS and the Tiny Chao Garden. Add: "In Secret Base Zone the card on the second screen is darker than the game shows it."
+`wiki/Supported-games.md`, the Sonic Advance section's "tried" line and its not-tried list: tried in every zone and with every character; not tried yet: special stages, the Moon Zone, Time Attack, VS and the Tiny Chao Garden.
