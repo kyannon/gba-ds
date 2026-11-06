@@ -252,7 +252,12 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   captures and logo extraction run inline; asyncify around `web_sleep`) with
   `tools/statesaver/gbads-runtime.js` (in-memory WASI files). Republish it with
   that file beside the page when either changes. `web_*` exports in web/web.c,
-  game.c and ui.c (`#ifdef __wasi__`).
+  game.c and ui.c (`#ifdef __wasi__`), and web/sdl_audio_web.c (sound, pulled
+  by the page: `web_audio_pull`).
+- **The web player** (`web/player/`, `scripts/build-web-player.sh`: one .html
+  or a folder zip in `build/web-player/`, `--build` to carry a build) runs the
+  same web build in a worker with WebGL2, sound, remappable keys and
+  controllers, for any known device's screens. See docs/WEB-PLAYER.md.
 - **The owner's states come from State Saver** (artifact
   https://claude.ai/artifact/LGoZRvRDJjagz6ib1h3oxk, the owner's own; started
   empty on Nov 3, 2026, once the earlier one's states were in the suite: that
