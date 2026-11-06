@@ -4469,8 +4469,9 @@ static const MapProfile profiles[] = {
 		 * change from level to level (the first: priority 0, palettes 0,
 		 * 4, 14; the second: palettes 6, 7, and Sia priority 0 too). The
 		 * top row: lives face 2,7 and count 40,10; gem 94,3 and count
-		 * 135,10; villager face 193,1 and count 223,10 (room for a second
-		 * digit; Sia jumping was seen at 55,10, the menus' 64x64 grid at
+		 * 135,10; villager face 193,1 and count 223,10; from 10 on, each
+		 * count's tens 8 to the left (32, 127, 215: a player's bug report,
+		 * the tenth gem; the game draws two digits at most; Sia jumping was seen at 55,10, the menus' 64x64 grid at
 		 * 192,0). The ring bobs: 39-43,125-128; 69-76,126-131; 52,153.
 		 * The heart: 165-170,131-132; 168-169,144-145. Each also by its
 		 * shape and size (the faces, gem and ring 32x32, the counts 8x16,
@@ -4480,11 +4481,11 @@ static const MapProfile profiles[] = {
 		 * pause screen has its pieces in the same places: the hiding is
 		 * off while it's up (hideWhen), so it keeps them. */
 		.hideSprites = { { 2, 7, 2, 7, 0, 1023, -1, 0, 0, LS_SHAPE(0, 2) },
-		                 { 39, 10, 49, 10, 0, 1023, -1, 0, 0, LS_SHAPE(2, 0) },
+		                 { 31, 10, 49, 10, 0, 1023, -1, 0, 0, LS_SHAPE(2, 0) },
 		                 { 94, 3, 94, 3, 0, 1023, -1, 0, 0, LS_SHAPE(0, 2) },
-		                 { 134, 10, 144, 10, 0, 1023, -1, 0, 0, LS_SHAPE(2, 0) },
+		                 { 126, 10, 144, 10, 0, 1023, -1, 0, 0, LS_SHAPE(2, 0) },
 		                 { 193, 1, 193, 1, 0, 1023, -1, 0, 0, LS_SHAPE(0, 2) },
-		                 { 222, 10, 232, 10, 0, 1023, -1, 0, 0, LS_SHAPE(2, 0) },
+		                 { 214, 10, 232, 10, 0, 1023, -1, 0, 0, LS_SHAPE(2, 0) },
 		                 { 38, 124, 44, 129, 0, 1023, -1, 0, 0, LS_SHAPE(0, 2) },
 		                 { 68, 125, 77, 132, 0, 1023, -1, 0, 0, LS_SHAPE(2, 2) | LS_SHAPE(2, 1) },
 		                 { 51, 152, 53, 154, 0, 1023, -1, 0, 0, LS_SHAPE(1, 1) },

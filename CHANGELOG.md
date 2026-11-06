@@ -17,6 +17,7 @@
 ### Fixes
 - **BananaOS:** GBA DS now uses the Game Boy Advance list's own battery saves (`saves/gba`, `.srm`), so a game goes on from the same save in GBA DS and in BananaOS's emulators. Saves GBA DS made before are carried over the first time you start each game; if both have one, the newer is used and the other is kept as a backup.
 - **BananaOS:** with GBA DS in BananaOS's GBA list switched on, removing GBA DS left the Game Boy Advance list unable to start its games. They now start in BananaOS's own emulator when GBA DS is gone (start this version once to fix the setting from an older one).
+- **Lady Sia:** from 10 gems on (and 10 lives or villagers), the count's first digit stayed on the game screen as the HUD left it.
 - **Sonic Advance 2:** with Cream or Tails, the zone card now shows on the second screen (it stayed on the logo). In boss fights, the card and the rings, score, time and lives stay on the second screen (a frozen picture of the fight came up there, and the HUD went back to the game screen); the countdown's START!! stays whole on the game screen. Every zone's first act, XX, the results and Leaf Forest's boss have now been tried, with each character.
 
 ### Known issues
