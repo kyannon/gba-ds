@@ -79,6 +79,14 @@ typedef struct {
 static ScriptLine* script;
 static int scriptLen, scriptPos;
 static uint32_t scriptBtns;
+#ifdef __wasi__
+/* The web player's buttons, held now: bit i is button i of ui.h's list
+ * (B_A, B_B, B_X...), whatever key or controller the player mapped to it */
+static uint32_t webBtns;
+__attribute__((export_name("web_buttons"))) void web_buttons(uint32_t held) {
+	webBtns = held;
+}
+#endif
 static long scriptTapUp = -1;
 static float tapX, tapY;
 /* SWIPE:x0,y0,x1,y1 (fractions of the window): down, 4 moves a tick apart, up */
@@ -385,12 +393,8 @@ bool ui_init(Config* c, bool wantDual) {
 	SDL_SetHint(SDL_HINT_ANDROID_TRAP_BACK_BUTTON, "1"); /* BACK opens the menu instead of closing the app */
 #endif
 	setenv("SDL_VIDEO_WAYLAND_WMCLASS", "gba-ds", 0);
-#ifdef __wasi__
-	const Uint32 audioInit = 0; /* the web build: no audio (yet) */
-#else
-	const Uint32 audioInit = SDL_INIT_AUDIO;
-#endif
-	if (SDL_Init(SDL_INIT_VIDEO | audioInit | SDL_INIT_GAMECONTROLLER | SDL_INIT_EVENTS) != 0) {
+	/* (the web build's sound: web/sdl_audio_web.c, pulled by the page) */
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER | SDL_INIT_EVENTS) != 0) {
 		fprintf(stderr, "SDL_Init: %s\n", SDL_GetError());
 		return false;
 	}
@@ -1196,6 +1200,9 @@ void ui_read_buttons(void) {
 
 	for (int i = 0; i < B_COUNT; ++i) {
 		if (scriptBtns & (1u << i)) btnNow[i] = true;
+#ifdef __wasi__
+		if (webBtns & (1u << i)) btnNow[i] = true;
+#endif
 	}
 }
 

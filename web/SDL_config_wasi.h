@@ -1,7 +1,8 @@
 /* SDL2 configuration for GBA DS's web build (wasm32-wasi, no threads):
  * the offscreen video driver drawn with the software renderer, whose
  * window framebuffer the page copies to its canvas; keyboard input pushed
- * in by the page (web/web.c); no audio, no real controllers. SDL's own C
+ * in by the page (web/web.c); sound the page pulls (web/sdl_audio_web.c,
+ * in the Emscripten driver's slot); no real controllers. SDL's own C
  * library stands in (no HAVE_LIBC), timing comes from web/sdl_timer_web.c. */
 #ifndef SDL_config_wasi_h_
 #define SDL_config_wasi_h_
@@ -14,7 +15,7 @@
 #define HAVE_STDINT_H 1
 #define HAVE_GCC_SYNC_LOCK_TEST_AND_SET 1
 
-#define SDL_AUDIO_DISABLED 1
+#define SDL_AUDIO_DRIVER_EMSCRIPTEN 1 /* web/sdl_audio_web.c's */
 #define SDL_JOYSTICK_DUMMY 1
 #define SDL_HAPTIC_DISABLED 1
 #define SDL_HIDAPI_DISABLED 1
