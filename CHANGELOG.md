@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.4.10 (not yet released)
+## v1.4.10 (2026-11-06)
 
 ### New games
 - **Super Mario Advance 4: Super Mario Bros. 3** (USA, Europe and Japan, every revision): on the world map, the status bar (world, lives, coins, score and your cards) moves to the top of the second screen, above your item inventory (what L opens), kept up to date as you walk about, win items and use them; Toad Houses, Spade games, the kings' rooms and World-e's map (the e-Reader levels) do the same. In a level (airships, boss rooms and World 8's tanks too), the status bar moves to the top of the second screen and the P meter to its bottom, with the logo between, so the game screen shows the whole level; in World-e's levels the coin count goes with the status bar. The logo is Super Mario Bros. 3's own title. The game's other colours (which some colour patches pick) work too. Every level the warp zone reaches has been tried, underwater, desert, giant, sky, ice and fortress levels among them, as have airships and their bosses' rooms, Kuribo's Shoe, World 8's tanks, Bowser's castle and World-e.
@@ -10,9 +10,9 @@
 - **Yu-Gi-Oh! The Eternal Duelist Soul** (USA; Yu-Gi-Oh! Duel Monsters 5 Expert 1 in Japan, the original): the second screen shows the game's own **Card View** of the card under your cursor (its picture, name, type and text), in duels (your hand, your cards and the opponent's face-up ones), the Graveyard and other card lists, Deck Edit (Japan: the Deck screen), Card Trading's choice of a card and the cards you win after a duel. Where there's nothing to look at (an empty zone, a pile, a face-down card of the opponent's, the opponent's turn), the last card stays; on the title, menus and conversations, the logo. Link Battle hasn't been tried.
 
 ### Changes
+- **The first run is much quicker to get going:** the game list makes the selected game's logo first, then the others on screen, and starting a game waits only for that game's own logo (and map border), not for every game's. The rest are made while you're in the game list, and wait while you play.
 - **BananaOS:** GBA DS's folder now carries its icon (`gba-ds/images/icon.png`, on a see-through background), so BananaOS's Store can show it on GBA DS's tile in Apps.
 - **Sonic Advance:** tried in every zone, with every character, in the act's results, pause and the bosses (the European release): no changes needed.
-- **The first run is much quicker to get going:** the game list makes the selected game's logo first, then the others on screen, and starting a game waits only for that game's own logo (and map border), not for every game's. The rest are made while you're in the game list, and wait while you play.
 
 ### Fixes
 - **BananaOS:** GBA DS now uses the Game Boy Advance list's own battery saves (`saves/gba`, `.srm`), so a game goes on from the same save in GBA DS and in BananaOS's emulators. Saves GBA DS made before are carried over the first time you start each game; if both have one, the newer is used and the other is kept as a backup.
