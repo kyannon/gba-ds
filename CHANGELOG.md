@@ -11,6 +11,9 @@
 - **Sonic Advance:** tried in every zone, with every character, in the act's results, pause and the bosses (the European release): no changes needed.
 - **The first run is much quicker to get going:** the game list makes the selected game's logo first, then the others on screen, and starting a game waits only for that game's own logo (and map border), not for every game's. The rest are made while you're in the game list, and wait while you play.
 
+### Fixes
+- **Sonic Advance 2:** with Cream or Tails, the zone card now shows on the second screen (it stayed on the logo). In boss fights, the card and the rings, score, time and lives stay on the second screen (a frozen picture of the fight came up there, and the HUD went back to the game screen); the countdown's START!! stays whole on the game screen. Every zone's first act, XX, the results and Leaf Forest's boss have now been tried, with each character.
+
 ### Known issues
 - **Sonic Advance 3:** for a moment as each act starts (while the screen is still black), the rings, time and lives are off the game screen.
 - **F-Zero: Maximum Velocity:** as the game takes its HUD down (after the finish, on pressing A at YOU LOST, as a machine is destroyed), the HUD shows on the game screen for a single frame.

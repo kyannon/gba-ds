@@ -242,12 +242,12 @@ The USA, European and Japanese releases, tried in every zone and with every char
 
 ## Sonic Advance 2
 
-The USA, European and Japanese releases, tried in Leaf Forest so far.
+The USA, European and Japanese releases, tried in every zone and with every character.
 
-- As each act starts, the second screen keeps the game's **zone card** (the zone's name, its emblem and the row of zone icons, on blue and black), the whole screen as the game draws it, once it has settled.
-- In the level, the **rings, score and time** move from the top of the game screen to the bottom left of the second screen, over the card's blue, and the **lives** from the bottom left to the card's bottom right. They stay there under water.
-- The pause window stays on the game screen. On the title and menus, the second screen shows the logo; after loading a state mid-act that wasn't saved with the card, the logo stays (above the moved HUD) until the next act's card.
-- Not tried yet: other zones and characters, bosses, special stages, Time Attack, multiplayer and the Tiny Chao Garden.
+- As each act or boss starts, the second screen keeps the game's **zone card** (the zone's name, its emblem and the row of zone icons, on the character's colour and black), the whole screen as the game draws it, once it has settled.
+- In the level, the **rings, score and time** move from the top of the game screen to the bottom left of the second screen, over the card's colour, and the **lives** from the bottom left to the card's bottom right. They stay there under water, through the act's results and in boss fights.
+- The pause window and the act's results stay on the game screen. On the title, menus and the zone map, the second screen shows the logo; after loading a state mid-act that wasn't saved with the card, the logo stays (above the moved HUD) until the next act's card.
+- Not tried yet: special stages, True Area 53, Time Attack, multiplayer and the Tiny Chao Garden.
 
 ## Sonic Advance 3
 

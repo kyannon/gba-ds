@@ -3423,15 +3423,23 @@ static const MapProfile profiles[] = {
 			/* in a level: mode 0 with BG1-3 (BG0 goes off with water on
 			 * screen, SA2-7; the language menu has BG0-2, the rest mode 1) */
 			.on = { { 0x04000000, 0x0E07, 0x0E00, 2 } },
-			/* the rings, score and time (tiles 484-547: the digits, the
-			 * ring box and icon; palette 7: the count flashing red at no
-			 * rings); the lives (face and count) */
-			.objs = { { -16, -16, 160, 32, 484, 547, -1, 1u << 6 | 1u << 7 },
-			          { -16, 130, 48, 159, 504, 511, -1, 1u << 0 },
+			/* the rings, score and time (in an act tiles 484-547 with
+			 * Sonic, Knuckles and Amy, 500-563 with Cream and Tails: the
+			 * digits, the ring box and icon; in a boss fight 704-783, not
+			 * 64x64: the countdown's START!! is from tile 740;
+			 * palette 7: the count flashing red at no rings); the lives
+			 * (the face, palette 0: 508, 524 or 728; the count). The
+			 * character is palette 0 from tile 0; all at priority 0 (not the
+			 * rings' sparkles, palette 7 from tile 760 at priority 1) */
+			.objs = { { -16, -16, 160, 32, 480, 563, 0, 1u << 6 | 1u << 7 },
+			          { -16, -16, 160, 32, 704, 783, 0, 1u << 6 | 1u << 7, 0, 0xFFFFu & ~(1u << 3) },
+			          { -16, 130, 48, 159, 464, 767, 0, 1u << 0 },
 			          { -16, 130, 48, 159, 464, 1023, -1, 1u << 6 } },
 			/* the zone card: the whole screen, once settled, its emblem face on
 			 * with its ring of ticks full (SA2-2) */
-			.card = { .tile = 464, .pal = 8, .whole = true, .at = 61 },
+			/* the swirl: tile 464 (480 with Cream and Tails), priority 0
+			 * (the bosses use palette 8 from tile 464 at priority 2) */
+			.card = { .tile = 464, .tileMax = 480, .pal = 8, .prio1 = 0 + 1, .whole = true, .at = 61 },
 			/* the rings, score and time along the bottom (SA2-3); the
 			 * lives in the bottom right corner, as far in from the right
 			 * as they are from the left on the game screen (SA2-4) */
