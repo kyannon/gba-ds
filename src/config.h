@@ -39,6 +39,8 @@ typedef struct Config {
 	int audioLatency;  /* ms */
 	int ffSpeed;       /* fast-forward multiplier */
 	char saveDir[512]; /* battery saves; default: next to the ROM */
+	char saveExt[8];   /* their extension: sav, or srm (RetroArch's: BananaOS's GBA saves, shared) */
+	char saveFrom[512]; /* where GBA DS kept them before (<game>.sav), carried over: BananaOS */
 	char stateDir[512]; /* save states, thumbnails, prefs; default: <app>/states */
 	char romDir[1024]; /* library folders, ':'-separated */
 	char screenshotDir[512]; /* "Take Screenshot" saves here */

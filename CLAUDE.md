@@ -392,8 +392,12 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   DS Plus. GBADS_BANANA_VIDEO=evdev / offscreen use Banana's SDL patch
   (SDL_BANANA_PANELS=side, one window over both panels, copied each frame:
   24-30 / under 5 fps). It passes Banana's paths (`/data/roms/gba`,
-  `/data/saves`, `/data/screenshots`, `/data/retroarch/cheats`) for settings
-  still at ROCKNIX's defaults, plus the RA account from
+  `/data/screenshots`, `/data/retroarch/cheats`) for settings
+  still at ROCKNIX's defaults, and battery saves in the GBA list's own
+  `/data/saves/gba/<game>.srm` (save_ext srm, shared with run-retroarch's
+  every GBA core: gpSP pads it to 128 KB, mGBA reads the part it needs;
+  save_from /data/saves carries GBA DS's older `.sav` over, the newer
+  winning, the other kept as `.srm.bak`), plus the RA account from
   `/data/banana/accounts.conf`; ra.c falls back to libcurl (SDL_LoadObject)
   when there's no curl program. `gamecontrollerdb.txt` in the zip maps
   retrogame_joypad (Banana ships no SDL mapping). Cheats: `gba-ds/cheats`
@@ -401,10 +405,14 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   Banana's own GBA list (esinteg.c banana_*; the game list's Settings row on
   Banana): writes /data/banana/systems.conf (a copy of /etc/banana's, which
   banana-ui-session uses instead at the menu's next start), [gba] run line
-  -> `bash '<dir>/banana-play.sh' %ROM%`, the original kept as
+  -> GBA DS's (below), the original kept as
   `# gba-ds: run = ...`. banana-play.sh runs `gba-ds --supported ROM` (exit
   0 if a profile exists): GBA DS (banana-perf performance), else the
   original line. Off restores it; the copy is deleted if ours and unchanged.
+  banana-ui runs the line through a shell (%ROM% quoted), and ours is
+  `if [ -f '<dir>/banana-play.sh' ]; then bash ... %ROM%; else ORIG; fi`, so
+  the list still starts its games once GBA DS is removed
+  (banana_integration_refresh upgrades older lines).
   banana-ui hands both panels to any run line without "run-retroarch".
 - **The Stock Linux OS** (Anbernic's own) on the RG DS Plus (Buildroot, weston, two
   windows): launch.sh's "another system" branch. Ports in `/mnt/mmc/Ports`,

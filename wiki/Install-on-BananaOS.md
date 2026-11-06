@@ -16,7 +16,7 @@
 | | |
 |---|---|
 | Games | `/data/roms/gba` |
-| Battery saves (`.sav`) | `/data/saves`, beside RetroArch's: a game's RetroArch save (`.srm`, from Banana's gpSP) is carried over the first time you start it in GBA DS |
+| Battery saves (`.srm`) | `/data/saves/gba`: the same file BananaOS's own Game Boy Advance list uses, so a game goes on from where you left it in either. GBA DS's saves from before v1.4.10 (`/data/saves/<game>.sav`) are carried over the first time you start each game; if both have a save, the newer one is used and the other is kept as `.srm.bak`. |
 | Screenshots | `/data/screenshots` |
 | Cheats | `roms/ports/gba-ds/cheats` (RetroArch `.cht` files; subfolders are fine), and RetroArch's `/data/retroarch/cheats` |
 | Save states, settings from the menu, logos | `roms/ports/gba-ds/states/` |
@@ -38,6 +38,8 @@ Then a game picked in Banana's Game Boy Advance list starts in GBA DS when GBA D
 How it works: Banana reads its systems from `banana/systems.conf` on the card when there is one, instead of its built-in list. Switching this on makes that copy (or edits yours) so the Game Boy Advance entry runs `gba-ds/banana-play.sh`, keeping the original line as a comment (`# gba-ds: run = ...`), which `banana-play.sh` uses for the games GBA DS doesn't support. Switching it off puts the line back, and deletes the copy if GBA DS made it and nothing else in it changed.
 
 While the copy is there, systems added by later BananaOS updates don't appear in Banana's menu until you switch this off (Banana's own list is always in `banana/systems.conf.default`, to compare). If GBA DS's folder moves, it updates the line the next time it starts.
+
+If GBA DS is removed while this is on, the Game Boy Advance list still works: its games start in Banana's own emulator again (since v1.4.10; before, they didn't start at all until the line was put back, and starting GBA DS v1.4.10 once fixes a line from an older version). To tidy up, switch it off before removing GBA DS, or delete `banana/systems.conf` if nothing else in it was changed.
 
 ## If something's wrong
 

@@ -8,6 +8,7 @@
 void config_defaults(Config* c) {
 	memset(c, 0, sizeof(*c));
 	strcpy(c->layout, "auto");
+	strcpy(c->saveExt, "sav");
 	strcpy(c->scale, "integer");
 	strcpy(c->mapScale, "integer");
 	strcpy(c->hotkey, "guide");
@@ -106,6 +107,8 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	INT("audio_latency", audioLatency)
 	INT("ff_speed", ffSpeed)
 	STR("save_dir", saveDir)
+	STR("save_ext", saveExt)
+	STR("save_from", saveFrom)
 	STR("state_dir", stateDir)
 	STR("rom_dir", romDir)
 	STR("cheat_dir", cheatDir)

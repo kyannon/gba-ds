@@ -40,6 +40,21 @@ bool copy_file(const char* from, const char* to) {
 	return true;
 }
 
+/* two files with the same bytes */
+static bool same_file_data(const char* a, const char* b) {
+	FILE *fa = fopen(a, "rb"), *fb = fopen(b, "rb");
+	bool same = fa && fb;
+	char ba[8192], bb[8192];
+	while (same) {
+		size_t na = fread(ba, 1, sizeof(ba), fa), nb = fread(bb, 1, sizeof(bb), fb);
+		if (na != nb || memcmp(ba, bb, na)) same = false;
+		if (!na) break;
+	}
+	if (fa) fclose(fa);
+	if (fb) fclose(fb);
+	return same;
+}
+
 void game_paths(const Config* cfg, const char* rom, GamePaths* o) {
 	char a[1024], b[1024];
 	snprintf(a, sizeof(a), "%s", rom);
@@ -52,7 +67,8 @@ void game_paths(const Config* cfg, const char* rom, GamePaths* o) {
 	const char* saveDir = cfg->saveDir[0] ? cfg->saveDir : romDir;
 	mkdirs(saveDir);
 	mkdirs(cfg->stateDir);
-	snprintf(o->sav, sizeof(o->sav), "%s/%s.sav", saveDir, o->base);
+	const char* ext = cfg->saveExt[0] ? cfg->saveExt : "sav";
+	snprintf(o->sav, sizeof(o->sav), "%s/%s.%s", saveDir, o->base, ext);
 	snprintf(o->quick, sizeof(o->quick), "%s/%s.quick.state", cfg->stateDir, o->base);
 	for (int i = 0; i < 10; ++i) snprintf(o->slot[i], sizeof(o->slot[i]), "%s/%s.slot%d.state", cfg->stateDir, o->base, i);
 	snprintf(o->autoState, sizeof(o->autoState), "%s/%s.auto.state", cfg->stateDir, o->base);
@@ -60,11 +76,31 @@ void game_paths(const Config* cfg, const char* rom, GamePaths* o) {
 	snprintf(o->mapThumb, sizeof(o->mapThumb), "%s/%s.map.bmp", cfg->stateDir, o->base);
 	snprintf(o->cheats, sizeof(o->cheats), "%s/%s.cheats", cfg->stateDir, o->base);
 
-	/* First run: carry over a RetroArch battery save (.srm) */
+	/* GBA DS's own save from where it kept them before (save_from: on
+	 * BananaOS, /data/saves/<game>.sav, now the GBA list's own
+	 * /data/saves/gba/<game>.srm, shared with its emulators): carried over
+	 * if there's no save yet, or if it's newer than the one there (that one
+	 * kept as .bak, as BananaOS does). Left where it was. */
+	if (cfg->saveFrom[0]) {
+		char old[1100], bak[1110];
+		snprintf(old, sizeof(old), "%s/%s.sav", cfg->saveFrom, o->base);
+		struct stat so, sn;
+		if (strcmp(old, o->sav) && stat(old, &so) == 0 && so.st_size > 0) {
+			if (stat(o->sav, &sn) != 0) {
+				if (copy_file(old, o->sav)) fprintf(stderr, "save carried over: %s -> %s\n", old, o->sav);
+			} else if (so.st_mtime > sn.st_mtime && !same_file_data(old, o->sav)) {
+				snprintf(bak, sizeof(bak), "%s.bak", o->sav);
+				if (copy_file(o->sav, bak) && copy_file(old, o->sav))
+					fprintf(stderr, "save carried over (newer): %s -> %s, the one there kept as %s\n", old, o->sav, bak);
+			}
+		}
+	}
+	/* First run: carry over a battery save in the other form beside it
+	 * (RetroArch's .srm for a .sav, or the other way round) */
 	if (!file_exists(o->sav)) {
-		char srm[1100];
-		snprintf(srm, sizeof(srm), "%s/%s.srm", saveDir, o->base);
-		if (copy_file(srm, o->sav)) fprintf(stderr, "imported %s -> %s\n", srm, o->sav);
+		char other[1100];
+		snprintf(other, sizeof(other), "%s/%s.%s", saveDir, o->base, strcmp(ext, "srm") ? "srm" : "sav");
+		if (copy_file(other, o->sav)) fprintf(stderr, "imported %s -> %s\n", other, o->sav);
 	}
 	/* Before v1.4.5 there was one save state, <game>.state, used by the
 	 * quick bar and the pause menu alike: it becomes the quick state, and

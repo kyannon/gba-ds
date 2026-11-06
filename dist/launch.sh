@@ -109,8 +109,11 @@ if [ -d /etc/banana ]; then
 	[ "$(cfgval rom_dir)" = /storage/roms/gba ] && B+=(--rom-dir=/data/roms/gba)
 	[ "$(cfgval screenshot_dir)" = /storage/roms/screenshots ] && B+=(--screenshot-dir=/data/screenshots)
 	case "$(cfgval cheat_dir)" in /config/retroarch/cheats*) B+=(--cheat-dir=/data/retroarch/cheats) ;; esac
-	# battery saves beside RetroArch's (a gpSP .srm is carried over on a game's first start)
-	[ -z "$(cfgval save_dir)" ] && B+=(--save-dir=/data/saves)
+	# battery saves: the Game Boy Advance list's own, /data/saves/gba/<game>.srm,
+	# the one file every GBA emulator there uses (run-retroarch): a game goes on
+	# from the same save in either. GBA DS's saves before v1.4.10
+	# (/data/saves/<game>.sav) are carried over on a game's first start.
+	[ -z "$(cfgval save_dir)" ] && B+=(--save-dir=/data/saves/gba --save-ext=srm --save-from=/data/saves)
 	# RetroAchievements: the account from Banana's first-time setup
 	A=/data/banana/accounts.conf
 	if [ -z "$(cfgval ra_username)" ] && [ -f $A ]; then
@@ -118,7 +121,7 @@ if [ -d /etc/banana ]; then
 		w=$(sed -n 's/^ra_password=//p' $A | head -n 1)
 		[ -n "$u" ] && B+=("--ra-username=$u" "--ra-password=$w")
 	fi
-	mkdir -p /data/screenshots /data/saves 2>/dev/null
+	mkdir -p /data/screenshots /data/saves/gba 2>/dev/null
 	echo "Banana paths: ${B[*]//--ra-password=*/--ra-password=...}" >> "$LOG"
 	[ -n "$EXEC_NOTE" ] && echo "$EXEC_NOTE" >> "$LOG"
 	exec "$GBADS" "${B[@]}" "$@" >> "$LOG" 2>&1
