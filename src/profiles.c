@@ -3440,6 +3440,62 @@ static const MapProfile profiles[] = {
 		},
 	},
 	{
+		/* Sonic Advance 3 (USA, Europe and Japan: the same sprites,
+		 * registers, RAM and title steps). gStageData (the SAT-R/sa3
+		 * decompilation's name) at 0x030008A0: +3 the game mode (0 the
+		 * main game), +9 the zone, +0xA the act (1 Sonic Factory, 2 the
+		 * zone's hub, 3-5 acts 1-3, 7 the boss, 8-9 bonus games), +0xE the
+		 * level. Acts and hubs: display mode 0 with BG1-3 (acts and the
+		 * factory with window 1 too); bosses mode 1 with BG0-1 and windows
+		 * 0-1. The HUD is sprites of priority 0, palettes 6-7, tiles
+		 * 448-511 (rings and time top left, the lives bottom left; in a
+		 * hub, the keys), plus a hub's zone label (palette 6, tiles from
+		 * 620) bottom right. The act's card: black, the zone's name
+		 * (palette 9, priority 3, from tile 620 or 622) on a white band
+		 * across the middle, with the HUD over it.
+		 * docs/games/sonic-advance-3.md */
+		.codes = { "B3SE", "B3SP", "B3SJ" },
+		.title = "Sonic Advance 3",
+		.logoOnly = true,
+		/* the title: SONIC ADVANCE 3 (BG1 alone; the copyright lines are
+		 * sprites). From power-on with no save: the language menu (A),
+		 * name entry (a letter, START to END, A), the intro */
+		.logo = { .steps = { { 0, 60 }, { K_A, 3 }, { 0, 69 }, { K_A, 3 }, { 0, 29 }, { K_START, 3 }, { 0, 29 },
+		                     { K_A, 3 }, { 0, 2650 } },
+		          .layer = 1, .maxY = 110 },
+		.hud = {
+			/* the main game (not the demo, Time Attack or multiplayer), in
+			 * an act, a boss, a hub or the factory (not a bonus game), the
+			 * display a level's: mode 0 with BG1-3, or mode 1 with BG1 (a
+			 * boss; not the title: BG3 or window 1 on too) */
+			.on = { { 0x04000000, 0x0E07, 0x0E00, 2, true, 0x0201 },
+			        { 0x04000000, 0x4800, 0x0800, 2, true, 0x4800, true },
+			        { 0x030008A3, 0xFF, 0, 1 },
+			        { 0x030008AA, 0xFF, 1, 1, true, 7, true } },
+			/* the rings, time and lives (and a hub's keys); a hub's zone
+			 * label */
+			.objs = { { -64, -64, 255, 175, 448, 511, 0, 1u << 6 | 1u << 7 },
+			          { -64, -64, 255, 175, 600, 711, 0, 1u << 6 } },
+			/* the act's card once the band has settled at the bottom with
+			 * the team and the act (SA3-2): drawn again with the BLDY
+			 * shadow (gBldRegs + 4) at 16, black but for the band (window
+			 * 0), as in the card's first moments, without the other
+			 * sprites (priority 1-2; the HUD; at priority 3 all but
+			 * palette 9; at priority 0 all but palettes 6, 7 and 9). The
+			 * name's sprite at priority 3: an enemy's points are the same
+			 * tile and palette at priority 0. None in a hub or the factory
+			 * (SA3-4) */
+			.card = { .tile = 620, .tileMax = 623, .pal = 9, .prio1 = 3 + 1, .whole = true, .at = 165,
+			          .drop = { { 0x030008AA, 0xFF, 1, 1, true, 2, true } },
+			          .hide = { { -64, -64, 255, 175, 0, 1023, 1, 0 },
+			                    { -64, -64, 255, 175, 0, 1023, 2, 0 },
+			                    { -64, -64, 255, 175, 0, 711, 0, 1u << 6 | 1u << 7 },
+			                    { -64, -64, 255, 175, 0, 1023, 3, 0xFFFFu & ~(1u << 9) },
+			                    { -64, -64, 255, 175, 0, 1023, 0, 0xFFFFu & ~(1u << 6 | 1u << 7 | 1u << 9) } },
+			          .poke = { 0x03002BFC, 16 } },
+		},
+	},
+	{
 		.codes = { "ATHE", "ATHF", "ATHD" },
 		.title = "Tony Hawk's Pro Skater 2",
 		/* no map yet: listed, logo on the second screen */
@@ -3632,6 +3688,13 @@ static const MapProfile profiles[] = {
 		 * panel alone (BG0 and its sprite) is the "map", where the game
 		 * draws it, on dark grey (SM4-1). */
 		.open = { { K_L, 4 } },
+		/* World-e's map with Mario on a level's spot: its info box takes
+		 * no L (nor START); B opens the Level Card list and B again goes
+		 * back to the map without the box, where L works, as a player
+		 * does it (0x03004FC8 is World-e's map's own state: 2 free, 10
+		 * with the box up, 16-18 with the inventory) */
+		.openAltIf = { { 0x03004FC8, 0xFF, 10, 1 }, { 0x0400000C, 0xFFFF, 0xDC00, 2 } },
+		.openAlt = { { K_B, 4 }, { 0, 60 }, { K_B, 4 }, { 0, 40 }, { K_L, 4 } },
 		.settleMax = 60, .openWithin = 40, .openTries = 3, .stableFrames = 3, .maxDiff = 400,
 		.crop_x = 0, .crop_y = 0, .crop_w = 240, .crop_h = 160,
 		/* its white and black edges only: the game has two sets of
@@ -3640,13 +3703,17 @@ static const MapProfile profiles[] = {
 		.probes = { { 120, 56, 0xFFFFFF }, { 120, 57, 0xFFFFFF }, { 120, 58, 0x000000 }, { 3, 100, 0xFFFFFF },
 		            { 236, 100, 0xFFFFFF }, { 4, 100, 0x000000 }, { 120, 157, 0xFFFFFF }, { 120, 155, 0x000000 } },
 		.tolerance = 8,
-		.mem = { { 0x03003CAA, 0xFF, 5, 1 } },
-		/* (0x03003E4A is 0xFF while Mario stands on the map taking
-		 * input: not walking, nor arriving back from a level, when L
-		 * does nothing) */
-		.live = { { 0x03003DE2, 0xFF, 0x41, 1 }, { 0x03003781, 0xFF, 3, 1 }, { 0x03003CAA, 0xFF, 0, 1 },
-		          { 0x03003E4A, 0xFF, 0xFF, 1 } },
-		.captureLayers = 0x1,
+		/* (5: open; World-e keeps it at 0, its panel told by the probes) */
+		.mem = { { 0x03003CAA, 0xFF, 5, 1, true, 0 } },
+		/* World-e's map (the e-Reader levels) is another engine: where
+		 * Mario is reads 0x09 (as in a Toad House), 0x03003781 is 4 or 5
+		 * with no menu open (3-7 taken: menus make it 8 or more, a
+		 * house's is 0 or 0x42), its inventory is open
+		 * while 0x03003759 is 1, and its panel and status bar are BG2
+		 * (0xDC00), the same size and place */
+		.live = { { 0x03003DE2, 0xFF, 0x41, 1, true, 0x09 }, { 0x03003781, 0xFF, 3, 1, true, 7, true },
+		          { 0x03003CAA, 0xFF, 0, 1 }, { 0x03003759, 0xFF, 0, 1 } },
+		.captureLayers = 0x5,
 		.captureBack = 6 | 6 << 5 | 6 << 10, /* (dark grey, SCREEN_GREY) */
 		/* the L and R signs at the top corners, and the map's sprites
 		 * (Mario, HELP!, the Hammer Bros.: priority 1-3; the chosen item
@@ -3654,8 +3721,11 @@ static const MapProfile profiles[] = {
 		.captureHide = { { -512, -256, 511, 47, 0, 1023, -1 }, { -512, -256, 511, 255, 0, 1023, 1 },
 		                 { -512, -256, 511, 255, 0, 1023, 2 }, { -512, -256, 511, 255, 0, 1023, 3 } },
 		/* Mario's place on the world map (y, x in pixels: they change as
-		 * he walks and hold once he stops): the inventory again at once */
-		.room = { { 0x03003DE4, 0xFF, 0, 1 }, { 0x03003DE8, 0xFF, 0, 1 } },
+		 * he walks and hold once he stops), and 0x03003E4A, 0xFF while he
+		 * stands there taking input (0 walking, arriving back from a level
+		 * or with a menu open, when L does nothing): the inventory again
+		 * at once. (World-e's map: every second.) */
+		.room = { { 0x03003DE4, 0xFF, 0, 1 }, { 0x03003DE8, 0xFF, 0, 1 }, { 0x03003E4A, 0xFF, 0, 1 } },
 		/* the title, game select and file screens */
 		.menu = { { 0x03003DE2, 0x80, 0x80, 1 } },
 		/* In a level the status bar along the top (world, lives, time,
@@ -3665,14 +3735,19 @@ static const MapProfile profiles[] = {
 		 * bottom, with the logo between (SM4-2). The item cards shown at
 		 * the start and end of a level are sprites and stay. */
 		.hud = {
-			.on = { { 0x03003DE2, 0xF0, 0x40, 1 }, { 0x04000008, 0xFFFC, 0x9400, 2 },
-			        { 0x04000000, 0x0100, 0x0100, 2 } },
+			/* (where Mario is: 0x40 a level, 0x08-0x09 an airship too,
+			 * as well as the houses; their status bar is the map's,
+			 * along the bottom, by BG0's vertical scroll, 0 in levels
+			 * and airships) */
+			.on = { { 0x03003DE2, 0xFF, 0x00, 1, true, 0x40, true }, { 0x04000008, 0xFFFC, 0x9400, 2 },
+			        { 0x04000000, 0x0100, 0x0100, 2 }, { 0x04000012, 0x01FF, 0, 2 } },
 			.bgMask = 1,
 			.logoBelow = true,
-			/* the status bar is rows 0-7, the P meter 150-157: what BG0
-			 * has between (LEVEL CLEARED! and the card won, at the
-			 * goal) stays on the game screen (SM4-3) */
-			.moves = { { 0, 8, 239, 149, 0, 0, 0, 0, true }, { 0, 150, 239, 159, 'C', 120, 0, 0 } },
+			/* the status bar is rows 0-7 (and World-e's coin count below
+			 * it, 8-15), the P meter 150-157: what BG0 has between (LEVEL
+			 * CLEARED! and the card won, at the goal, from row 27) stays
+			 * on the game screen (SM4-3) */
+			.moves = { { 0, 16, 239, 149, 0, 0, 0, 0, true }, { 0, 150, 239, 159, 'C', 120, 0, 0 } },
 			/* On the world map (inventory closed; 0x41) and in Toad
 			 * Houses, Spade games and kings' rooms (0x08-0x09) the status
 			 * bar along the bottom (BG0, rows 139-159: world, lives,
@@ -3680,13 +3755,18 @@ static const MapProfile profiles[] = {
 			 * over the inventory picture (SM4-6, SM4-4); anything else on
 			 * BG0 there stays. (0x40, a level, is the main HUD's.) */
 			.alt = { .on = { { 0x03003DE2, 0xFE, 0x40, 1, true, 0x08 }, { 0x03003CAA, 0xFF, 0, 1 },
-			                 { 0x04000000, 0x0100, 0x0100, 2 } },
+			                 { 0x04000000, 0x0100, 0x0100, 2 }, { 0x03003759, 0xFF, 0, 1 } },
 			         .bgMask = 1,
-			         .moves = { { 0, 0, 239, 131, 0, 0, 0, 0, true }, { 0, 132, 239, 159, 0, 0, 'T', 0 } },
+			         .moves = { { 0, 0, 239, 127, 0, 0, 0, 0, true }, { 0, 128, 239, 159, 0, 0, 'T', 0 } },
 			         .mapBelow = true },
 			/* the inventory, the START menu or the e-Reader menu open
 			 * there, or a house's own menu: the last picture stays */
 			.keep = { { 0x03003DE2, 0xFE, 0x40, 1, true, 0x08 } },
+			/* World-e's map: its two-row status bar is BG2 (0xDC00; in
+			 * levels and houses BG2 is the background, never 0xDC00), at
+			 * rest (vertical scroll 0: the inventory panel, on the same
+			 * layer, slides in with it and stays on the game screen) */
+			.memLayers = { .when = { { 0x0400000C, 0xFFFF, 0xDC00, 2 }, { 0x0400001A, 0x01FF, 0, 2 } }, .bgMask = 0x4 },
 		},
 	},
 	{
@@ -4497,9 +4577,9 @@ static void sma2_jpn(MapProfile* p) {
 static void sma4_moved(MapProfile* p) {
 	p->pick = NULL;
 	p->live[0].addr -= 4;
-	p->live[3].addr -= 4;
 	p->room[0].addr -= 4;
 	p->room[1].addr -= 4;
+	p->room[2].addr -= 4;
 	p->menu[0].addr -= 4;
 	p->hud.on[0].addr -= 4;
 	p->hud.alt.on[0].addr -= 4;
