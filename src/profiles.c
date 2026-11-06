@@ -2049,7 +2049,12 @@ static const char* dbz_compose(Emu* s, const void* state, uint32_t* out, int w, 
 #define ML_WALKING 0x1508 /* ML_STATE and ML_MODE as a halfword, walking about */
 #define ML_CURSOR 0x030040A9
 #define ML_LEAD 0x02004F4C /* the brother in front: 0 Mario, 1 Luigi (START swaps) */
-#define ML_RESULTS 0x02036EB0 /* in a battle: 0 until its results (then a pointer, 0x0203xxxx) */
+/* BG3's tile map entry inside the results' red EXP panel (row 7, column 9):
+ * empty through a battle, set from the results' first frame (no battle box
+ * reaches it). (Until v1.4.11's test builds 0x02036EB0, a word that was 0
+ * in the first battles and a pointer in their results, but holds other
+ * things in later ones: their boxes stayed on the game screen) */
+#define ML_RESULTS 0x0600F9D2
 /* BG3's tile map entries at the top right box's right edge (row 1,
  * column 29) and the bottom box's (row 18): palette 8 while a box is there */
 #define ML_BOX_TOP 0x0600F87A
@@ -4548,7 +4553,7 @@ static const MapProfile profiles[] = {
 		.hud = {
 			/* in a battle, before its results (ML-5): those stay on the
 			 * game screen whole, the logo alone on the second screen */
-			.on = { { ML_STATE, 0xFF, 3, 1 }, { ML_RESULTS, 0xFFFFFFFF, 0, 4 } },
+			.on = { { ML_STATE, 0xFF, 3, 1 }, { ML_RESULTS, 0xFFFF, 0, 2 } },
 			/* the boxes' frames (BG3: only ever the boxes; empty in a
 			 * conversation, and between the boxes) */
 			.bgMask = 0x8,

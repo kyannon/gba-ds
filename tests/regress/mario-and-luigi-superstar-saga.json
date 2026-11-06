@@ -468,6 +468,197 @@
    ]
   },
   {
+   "id": "ml-us-endgame-battle-16b",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-endgame-battle-16b.ss",
+   "desc": "a level 38 battle (room 0x16B, from an endgame save) choosing a block, where the old results word held something else mid-battle: the boxes and the three-digit meters on the second screen, then the item list (the endgame's, scrolling)",
+   "rules": [
+    "ML-5"
+   ],
+   "input": [
+    [
+     240,
+     "LEFT"
+    ],
+    [
+     244,
+     "-"
+    ],
+    [
+     300,
+     "A"
+    ],
+    [
+     304,
+     "-"
+    ]
+   ],
+   "shots": {
+    "blocks": 20,
+    "items": 400
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "the meters at the top left of the second screen",
+     "type": "not_uniform",
+     "shot": "blocks",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "the top right box on the second screen",
+     "type": "not_uniform",
+     "shot": "blocks",
+     "rect": [
+      472,
+      76,
+      975,
+      131
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "the item list's left edge on the second screen",
+     "type": "not_uniform",
+     "shot": "items",
+     "rect": [
+      472,
+      176,
+      531,
+      387
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-endgame-battle-bros",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-endgame-battle-076.ss",
+   "desc": "a level 38 battle (room 0x076, from an endgame save): BROS, then its list (Splash, Chopper, Fire Bros.) on the second screen with its cursor and the attack's level marks",
+   "rules": [
+    "ML-5"
+   ],
+   "input": [
+    [
+     30,
+     "RIGHT"
+    ],
+    [
+     34,
+     "-"
+    ],
+    [
+     80,
+     "A"
+    ],
+    [
+     84,
+     "-"
+    ],
+    [
+     160,
+     "DOWN"
+    ],
+    [
+     164,
+     "-"
+    ]
+   ],
+   "shots": {
+    "bros": 70,
+    "list": 150,
+    "list2": 190
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "the Bros. list on the second screen",
+     "type": "not_uniform",
+     "shot": "list",
+     "rect": [
+      472,
+      176,
+      975,
+      267
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-endgame-battle-results",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-endgame-battle-16b-last-blow.ss",
+   "desc": "a level 38 battle's last blow (room 0x16B), then its results: the EXP, coins and items panels stay on the game screen whole, the logo alone on the second screen",
+   "rules": [
+    "ML-5"
+   ],
+   "input": [
+    [
+     2,
+     "A"
+    ],
+    [
+     4,
+     "-"
+    ]
+   ],
+   "shots": {
+    "results": 40
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "the results on the game screen",
+     "type": "not_uniform",
+     "shot": "results",
+     "screen": "game",
+     "rect": [
+      272,
+      244,
+      475,
+      567
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "ML-5",
+     "what": "nothing moved to the second screen's top left",
+     "type": "uniform",
+     "shot": "results",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "nothing moved to the second screen's right",
+     "type": "uniform",
+     "shot": "results",
+     "rect": [
+      512,
+      144,
+      975,
+      227
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
    "id": "ml-us-battle-damage",
    "rom": "A88E",
    "state": "mario-and-luigi-superstar-saga/us-battle-damage.ss",
