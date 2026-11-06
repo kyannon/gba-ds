@@ -14,7 +14,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 ## Rules
 
-**SA-1. Logo.** On the title and menus, the second screen shows the logo (the title's SONIC ADVANCE, without the copyright line or Sonic behind it).
+**SA-1. Logo.** On the title and menus (character select and the course select too), the second screen shows the logo (the title's SONIC ADVANCE, without the copyright line or Sonic behind it).
 
 **SA-2. The zone card.** As a level starts, the game shows its card on the game screen (the coloured stripe with the character's name, the zone's name scrolling along a white band, the act). The second screen keeps that card, as the game draws it, on black, without the level behind it, put together from two moments: the zone's name from the frame where it's most nearly centred across the band, and the character's name in the stripe (KNUCKLES with THE ECHIDNA beside it...) from the frame where it's whole and most nearly centred top to bottom. The game scrolls the two separately, and the zone's name is often best centred as the card leaves, when the character's name is already sliding away (until v1.4.8 the card was that one frame, so a long name such as Knuckles' could be cut off at the top: issue #15); it stays there through the level and the act's results, until the next level's card. While a card is up the game screen shows it as usual, and the second screen keeps the last level's card (the logo the first time) until the new one is taken. With no card seen yet (a state loaded in a level), the logo instead, below the HUD.
 
@@ -22,9 +22,13 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **SA-4. One screen.** With one screen, the game plays as it is.
 
+**SA-5. Pause and bosses.** The pause screen (PAUSE) stays on the game screen; the second screen keeps the card and the moved HUD. In a boss fight (at the end of a zone's act 2) the second screen keeps the act's card and the moved HUD as in the rest of the act.
+
+**SA-6. Every character and zone.** The card and the moved HUD are the same with Sonic, Tails, Knuckles and Amy (the stripe in the character's colour, the character's name in it), and in every zone. In Secret Base Zone, where the game darkens the level outside its searchlights, the card and the HUD on the second screen are darkened with it, and light up with the level later on, when the searchlights go: the effect mirrored on the second screen, as intended.
+
 ## Not covered yet
 
-Tried in Neo Green Hill Zone (both acts, Sonic) from the owner's USA states, and in the demo in each release. Other zones, other characters, bosses, special stages, the pause screen, Time Attack, VS and the Tiny Chao Garden aren't tried yet: in a level that keeps the same display setup they get the same treatment, untried.
+Tried in Neo Green Hill Zone (both acts, Sonic) from the owner's USA states, and in the demo in each release. In the European release also: every zone's first act (Neo Green Hill, Secret Base, Casino Paradise, Ice Mountain, Angel Island, Egg Rocket), Cosmic Angel's act 2, the X Zone, Neo Green Hill act 1's results and act 2's boss, pause, and Neo Green Hill act 1 with Tails, Knuckles and Amy; the course select. Not tried yet: special stages, the Moon Zone, Time Attack, VS and the Tiny Chao Garden: in a level that keeps the same display setup they get the same treatment, untried.
 
 ## Facts found so far (for sessions)
 
@@ -34,4 +38,6 @@ Tried in Neo Green Hill Zone (both acts, Sonic) from the owner's USA states, and
 | Zone card | sprites: the stripe and the vertical name in palette 15 (the name from tile 64; the stripe's tiles move: 400/416 in a level, 452/468 in the demo), the band, scrolling name (rows 128-143), Japanese name (row 114) and act (row 144) in palette 6 from tile 400 |
 | HUD | sprites in palette 6, tiles 64-127: the ring icon (68) at -2,-1, the score and time from 9,5 to 81,27; the lives: the icon (palette 0, tile 64) at 2,144, the count (palette 6) at 22,143. The act's results use the same tiles mid-screen |
 | The character | palette 0, tile 0 |
+| RAM (Europe) | from the SAT-R/sa1 decompilation (it builds the European ROM) and its literal pools: gCurrentLevel 0x0300514C (zone * 2 + act; 12 the X Zone), gSelectedCharacter 0x03005084, gGameMode 0x0300505C, gPlayer 0x03005A20 (+0 x, +4 y, 24.8), gCamera 0x030059D0 (x, y: halfwords), gRingCount 0x03004FEC, gNumLives 0x03005024, gCourseTime 0x03005034, the save (gLoadedSaveGame, a struct) 0x03005160: +8 unlockedLevels (4 halfwords) |
+| Reaching places | with unlockedLevels 13 written on the title, GAME START and a character open the course select (DOWN steps act by act). The goal: interactable 0 in the act's list in EWRAM (7-byte entries; a column of them across the goal, Neo Green Hill act 1's at x 12184); putting the player and the camera 120 pixels before it and holding RIGHT runs into it. Act 2's boss: put 700 pixels before that column (Neo Green Hill's at 10864) and hold RIGHT |
 | Boot | a language menu (A: English) on a game with no save; START skips the intro; the title waits for START, then plays a demo of Neo Green Hill (with its card and DEMO label) |

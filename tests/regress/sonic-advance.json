@@ -344,6 +344,530 @@
      "match": "title card taken"
     }
    ]
+  },
+  {
+   "id": "sa-eu-course-select",
+   "rom": "ASOP",
+   "state": "sonic-advance/eu-course-select.ss",
+   "desc": "the course select (every act opened in RAM): the logo",
+   "rules": [
+    "SA-1"
+   ],
+   "shots": {
+    "start": 30
+   },
+   "checks": [
+    {
+     "rule": "SA-1",
+     "what": "no card, no HUD",
+     "type": "no_log",
+     "match": "title card|HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "sa-eu-neo-green-hill",
+   "rom": "ASOP",
+   "state": "sonic-advance/eu-neo-green-hill-card-lead-in.ss",
+   "desc": "Neo Green Hill act 1 (Sonic, Europe), picked on the course select, nothing pressed: its card taken, the HUD at its top right; then pause: PAUSE on the game screen, the card and HUD kept",
+   "rules": [
+    "SA-6",
+    "SA-2",
+    "SA-3",
+    "SA-5"
+   ],
+   "shots": {
+    "card": 250,
+    "play": 500,
+    "pause": 560
+   },
+   "checks": [
+    {
+     "rule": "SA-2",
+     "what": "the card taken",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA-3",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "SA-5",
+     "what": "the card kept in pause",
+     "type": "same",
+     "a": {
+      "shot": "play",
+      "rect": [
+       32,
+       400,
+       992,
+       700
+      ]
+     },
+     "b": {
+      "shot": "pause",
+      "rect": [
+       32,
+       400,
+       992,
+       700
+      ]
+     }
+    }
+   ],
+   "input": [
+    [
+     520,
+     "START"
+    ],
+    [
+     525,
+     "-"
+    ]
+   ]
+  },
+  {
+   "id": "sa-eu-secret-base",
+   "rom": "ASOP",
+   "state": "sonic-advance/eu-secret-base-card-lead-in.ss",
+   "desc": "Secret Base act 1 (Sonic, Europe), picked on the course select, nothing pressed: its card taken, the HUD at its top right",
+   "rules": [
+    "SA-6",
+    "SA-2",
+    "SA-3"
+   ],
+   "shots": {
+    "card": 250,
+    "play": 500
+   },
+   "checks": [
+    {
+     "rule": "SA-2",
+     "what": "the card taken",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA-3",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "sa-eu-casino-paradise",
+   "rom": "ASOP",
+   "state": "sonic-advance/eu-casino-paradise-card-lead-in.ss",
+   "desc": "Casino Paradise act 1 (Sonic, Europe), picked on the course select, nothing pressed: its card taken, the HUD at its top right",
+   "rules": [
+    "SA-6",
+    "SA-2",
+    "SA-3"
+   ],
+   "shots": {
+    "card": 250,
+    "play": 500
+   },
+   "checks": [
+    {
+     "rule": "SA-2",
+     "what": "the card taken",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA-3",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "sa-eu-ice-mountain",
+   "rom": "ASOP",
+   "state": "sonic-advance/eu-ice-mountain-card-lead-in.ss",
+   "desc": "Ice Mountain act 1 (Sonic, Europe), picked on the course select, nothing pressed: its card taken, the HUD at its top right",
+   "rules": [
+    "SA-6",
+    "SA-2",
+    "SA-3"
+   ],
+   "shots": {
+    "card": 250,
+    "play": 500
+   },
+   "checks": [
+    {
+     "rule": "SA-2",
+     "what": "the card taken",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA-3",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "sa-eu-angel-island",
+   "rom": "ASOP",
+   "state": "sonic-advance/eu-angel-island-card-lead-in.ss",
+   "desc": "Angel Island act 1 (Sonic, Europe), picked on the course select, nothing pressed: its card taken, the HUD at its top right",
+   "rules": [
+    "SA-6",
+    "SA-2",
+    "SA-3"
+   ],
+   "shots": {
+    "card": 250,
+    "play": 500
+   },
+   "checks": [
+    {
+     "rule": "SA-2",
+     "what": "the card taken",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA-3",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "sa-eu-egg-rocket",
+   "rom": "ASOP",
+   "state": "sonic-advance/eu-egg-rocket-card-lead-in.ss",
+   "desc": "Egg Rocket (Sonic, Europe), picked on the course select, nothing pressed: its card taken, the HUD at its top right",
+   "rules": [
+    "SA-6",
+    "SA-2",
+    "SA-3"
+   ],
+   "shots": {
+    "card": 250,
+    "play": 500
+   },
+   "checks": [
+    {
+     "rule": "SA-2",
+     "what": "the card taken",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA-3",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "sa-eu-cosmic-angel-2",
+   "rom": "ASOP",
+   "state": "sonic-advance/eu-cosmic-angel-2-card-lead-in.ss",
+   "desc": "Cosmic Angel act 2 (Sonic, Europe), picked on the course select, nothing pressed: its card taken, the HUD at its top right",
+   "rules": [
+    "SA-6",
+    "SA-2",
+    "SA-3"
+   ],
+   "shots": {
+    "card": 250,
+    "play": 500
+   },
+   "checks": [
+    {
+     "rule": "SA-2",
+     "what": "the card taken",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA-3",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "sa-eu-x-zone",
+   "rom": "ASOP",
+   "state": "sonic-advance/eu-x-zone-card-lead-in.ss",
+   "desc": "the X Zone (Sonic, Europe), picked on the course select, nothing pressed: its card taken, the HUD at its top right",
+   "rules": [
+    "SA-6",
+    "SA-2",
+    "SA-3"
+   ],
+   "shots": {
+    "card": 250,
+    "play": 500
+   },
+   "checks": [
+    {
+     "rule": "SA-2",
+     "what": "the card taken",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA-3",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "sa-eu-tails",
+   "rom": "ASOP",
+   "state": "sonic-advance/eu-tails-card-lead-in.ss",
+   "desc": "Neo Green Hill act 1 with Tails (Europe): the card in Tails's colours taken, the HUD with Tails's icon",
+   "rules": [
+    "SA-6",
+    "SA-2",
+    "SA-3"
+   ],
+   "shots": {
+    "card": 250,
+    "play": 500
+   },
+   "checks": [
+    {
+     "rule": "SA-2",
+     "what": "the card taken",
+     "type": "log",
+     "match": "title card taken"
+    }
+   ]
+  },
+  {
+   "id": "sa-eu-knuckles",
+   "rom": "ASOP",
+   "state": "sonic-advance/eu-knuckles-card-lead-in.ss",
+   "desc": "Neo Green Hill act 1 with Knuckles (Europe): the card in Knuckles's colours taken, the HUD with Knuckles's icon",
+   "rules": [
+    "SA-6",
+    "SA-2",
+    "SA-3"
+   ],
+   "shots": {
+    "card": 250,
+    "play": 500
+   },
+   "checks": [
+    {
+     "rule": "SA-2",
+     "what": "the card taken",
+     "type": "log",
+     "match": "title card taken"
+    }
+   ]
+  },
+  {
+   "id": "sa-eu-amy",
+   "rom": "ASOP",
+   "state": "sonic-advance/eu-amy-card-lead-in.ss",
+   "desc": "Neo Green Hill act 1 with Amy (Europe): the card in Amy's colours taken, the HUD with Amy's icon",
+   "rules": [
+    "SA-6",
+    "SA-2",
+    "SA-3"
+   ],
+   "shots": {
+    "card": 250,
+    "play": 500
+   },
+   "checks": [
+    {
+     "rule": "SA-2",
+     "what": "the card taken",
+     "type": "log",
+     "match": "title card taken"
+    }
+   ]
+  },
+  {
+   "id": "sa-eu-goal",
+   "rom": "ASOP",
+   "state": "sonic-advance/eu-goal-card.ss",
+   "desc": "Neo Green Hill act 1 running into the goal, in a state with the card on the second screen (from a state saved by GBA DS, laid onto a harness state by the goal): the results on the game screen, the card and the HUD on the second",
+   "rules": [
+    "SA-3",
+    "SA-2"
+   ],
+   "input": [
+    [
+     1,
+     "RIGHT"
+    ],
+    [
+     150,
+     "-"
+    ]
+   ],
+   "shots": {
+    "run": 60,
+    "results": 400,
+    "later": 600
+   },
+   "checks": [
+    {
+     "rule": "SA-2",
+     "what": "the card from the state",
+     "type": "log",
+     "match": "second screen from it \\( card\\)"
+    },
+    {
+     "rule": "SA-3",
+     "what": "the card kept through the results",
+     "type": "same",
+     "a": {
+      "shot": "run",
+      "rect": [
+       32,
+       400,
+       992,
+       700
+      ]
+     },
+     "b": {
+      "shot": "results",
+      "rect": [
+       32,
+       400,
+       992,
+       700
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "sa-eu-boss",
+   "rom": "ASOP",
+   "state": "sonic-advance/eu-boss-card.ss",
+   "desc": "Neo Green Hill act 2, running into its boss (the Egg Hammer Car), in a state with the card on the second screen: the card and the HUD kept on the second screen through the fight",
+   "rules": [
+    "SA-5"
+   ],
+   "input": [
+    [
+     1,
+     "RIGHT"
+    ],
+    [
+     400,
+     "-"
+    ]
+   ],
+   "shots": {
+    "run": 100,
+    "fight": 600
+   },
+   "checks": [
+    {
+     "rule": "SA-5",
+     "what": "the card from the state",
+     "type": "log",
+     "match": "second screen from it \\( card\\)"
+    },
+    {
+     "rule": "SA-5",
+     "what": "nothing taken for a card in the fight",
+     "type": "no_log",
+     "match": "title card up"
+    },
+    {
+     "rule": "SA-5",
+     "what": "the card kept through the fight",
+     "type": "same",
+     "a": {
+      "shot": "run",
+      "rect": [
+       32,
+       400,
+       992,
+       700
+      ]
+     },
+     "b": {
+      "shot": "fight",
+      "rect": [
+       32,
+       400,
+       992,
+       700
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "sa-eu-saved-card",
+   "rom": "ASOP",
+   "state": "sonic-advance/eu-saved-card.ss",
+   "desc": "a state saved by GBA DS in Neo Green Hill act 1 (Europe), with the card on the second screen; then a state without one loaded over it",
+   "rules": [
+    "GEN-7",
+    "SA-2"
+   ],
+   "input": [
+    [
+     60,
+     "LOAD:sonic-advance/eu-neo-green-hill-card-lead-in.ss"
+    ]
+   ],
+   "shots": {
+    "start": 2,
+    "after": 90
+   },
+   "checks": [
+    {
+     "rule": "GEN-7",
+     "what": "the card from the state",
+     "type": "log",
+     "match": "second screen from it \\( card\\)"
+    },
+    {
+     "rule": "GEN-7",
+     "what": "the card is gone after an older state",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       400,
+       992,
+       700
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       32,
+       400,
+       992,
+       700
+      ]
+     },
+     "frac": 0.2
+    }
+   ]
   }
  ]
 }

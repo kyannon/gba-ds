@@ -8,6 +8,7 @@
 - **F-Zero: Maximum Velocity** (USA / Europe; F-Zero for Game Boy Advance in Japan; Jisu F-Zero Weilai Saiche in China), with F-Zero: GP Legend's second screen: while racing, the HUD moves to the second screen (POW with BOOST under it, spare machines and laps left, the time and lap times, and the course map twice as big, held steady), leaving the track clear, with your rank and speed on the game screen. Paused, and on YOU LOST (after GIVE UP, RANK OUT or a destroyed machine), the HUD stays on the second screen until the results. The logo is the title's lettering. Grand Prix and Training have been tried in every release; the link-cable modes haven't.
 
 ### Changes
+- **Sonic Advance:** tried in every zone, with every character, in the act's results, pause and the bosses (the European release): no changes needed.
 - **The first run is much quicker to get going:** the game list makes the selected game's logo first, then the others on screen, and starting a game waits only for that game's own logo (and map border), not for every game's. The rest are made while you're in the game list, and wait while you play.
 
 ### Known issues

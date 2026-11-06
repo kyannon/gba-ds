@@ -232,12 +232,13 @@ The USA release and the Japanese one (Downtown Nekketsu Monogatari EX).
 
 ## Sonic Advance
 
-The USA, European and Japanese releases, tried in Neo Green Hill Zone so far.
+The USA, European and Japanese releases, tried in every zone and with every character.
 
 - As each level starts, the second screen keeps the game's **zone card** (the stripe with the character's name, the zone's name and the act), taken as its name passes the middle, on black.
 - In the level, the **rings, score and time** move from the game screen to the top right of the second screen, over the card, with the **lives** just below.
 - The act's results stay on the game screen. On the title and menus, the second screen shows the logo.
-- Not tried yet: other zones and characters, bosses, special stages, Time Attack, VS and the Tiny Chao Garden.
+- Pause and boss fights keep the card and the moved HUD on the second screen. In Secret Base Zone the card and HUD there are darkened with the level, and light up with it.
+- Not tried yet: special stages, the Moon Zone, Time Attack, VS and the Tiny Chao Garden.
 
 ## Sonic Advance 2
 
