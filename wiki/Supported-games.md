@@ -15,6 +15,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Fire Emblem: The Sacred Stones (Seima no Kouseki in Japan) | `BE8E` `BE8P` `BE8J` | on the map: the status of the unit under the cursor |
 | Golden Sun (Ougon no Taiyou: Hirakareshi Fuuin in Japan) | `AGSE` `AGSD` `AGSF` `AGSI` `AGSS` `AGSJ` | the Status screen, each party member in turn; in battle, the one choosing |
 | Golden Sun: The Lost Age (Ougon no Taiyou: Ushinawareshi Toki in Japan) | `AGFE` `AGFD` `AGFF` `AGFI` `AGFS` `AGFJ` | the Status screen, each party member in turn; in battle, the one choosing |
+| Harvest Moon: Friends of Mineral Town (Bokujou Monogatari: Mineral Town no Nakama-tachi in Japan) | `A4NE` `A4NP` `A4ND` `A4NJ` | the town map, with where you are |
 | Kingdom Hearts: Chain of Memories | `B8CE` `B8CP` `B8CJ` | the World Map; in battles, the logo |
 | Lady Sia | `ALDE` `ALDP` (no Japanese release) | the pause screen as a status screen: lives, gems, villagers, the time, the ring and heart; the HUD off the game screen |
 | The Legend of Zelda: A Link to the Past & Four Swords | `AZLE` `AZLP` `AZLJ` | world and dungeon maps |
@@ -144,6 +145,13 @@ Every release has been tried walking about and in a battle (USA / Europe, German
 - **In a battle,** while you choose what to do, the second screen shows the battle's Status screen of the character choosing (the party's first in the Fight / Switch / Flee / Status menu). While the turn plays out, it shows the logo.
 - Walking about, where the menu can't be opened (a conversation, a scene, the START menu), the last pictures stay.
 - On the title screen, the naming screens and the opening's story text, the second screen shows the logo: the title screen's emblem, without its subtitle and ™.
+
+## Harvest Moon: Friends of Mineral Town
+
+The USA, European, German and Japanese releases, tried on the farm and in town.
+
+- **Walking about,** the second screen is the **town map** (the one L+START opens), as the game draws it: your head where you are, your dog's head where your dog is, the clock with the season, day, time and weather, and the text under the map describing the part of the valley you're in. It's opened in the background in a silent copy of the game twice a second, so it follows you without you opening it; your game is never paused. The map's pointing glove is left out.
+- In conversations, events and the game's own menus, and overnight, it keeps its last picture; on the title and the naming screens, the logo.
 
 ## Kingdom Hearts: Chain of Memories
 

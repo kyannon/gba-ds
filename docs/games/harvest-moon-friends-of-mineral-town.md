@@ -1,0 +1,51 @@
+# Harvest Moon: Friends of Mineral Town (Bokujou Monogatari: Mineral Town no Nakama-tachi in Japan)
+
+| | |
+|---|---|
+| Releases | `A4NE` USA · `A4NP` Europe (English) · `A4ND` Germany · `A4NJ` Japan (each tried walking about; the USA from a new game and from a battery save, the others from a battery save) |
+| Dumps | `A4NE` cartridge `8e923168` (tested) · `A4NP` cartridge `f50f82ad` (tested) · `A4ND` cartridge `c11757d7` (tested) · `A4NJ` cartridge `09185657` (tested) |
+| Profile | `src/profiles.c`: the `A4NE` entry (hm_compose; `A4NP` and `A4ND` the same); variant `A4NJ` (its own logo, hm_jpn) |
+| Tests | `tests/regress/harvest-moon-friends-of-mineral-town.json` (`tools/regress.py harvest-moon-friends-of-mineral-town`) |
+| Status | supported (new in v1.4.10) |
+
+What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list harvest-moon-friends-of-mineral-town`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.
+
+Every game also follows the [general rules](README.md#general-rules) (GEN-1 to GEN-7).
+
+Why the town map: the game has three screens of its own that a second screen could hold, the town map (L+START), the farm map (L+SELECT) and the status pages (SELECT: the farm's money and animals, the Harvest Sprites, the earnings, the tools' levels). The town map is the one that follows the player everywhere: where they are, where the dog is, what the place they're in has, with the time, date and weather beside it. It's the game's map, the thing GBA DS puts on its second screen first. The farm map (only part of the farm at a time, and only on the farm) and the status pages (they change once a day, when the produce is sold) were left for later.
+
+## Rules
+
+**HM-1. Town map.** Walking about (on the farm, in town, in the buildings: wherever L+START opens the town map), the second screen shows the town map, the game's whole screen as it draws it, at the game screen's size: the valley with the player's head where the player is and the dog's head where the dog is, the clock box (season, day, time and today's weather) and the text box under the map. It's opened on the hidden copy twice a second (whatever the map refresh setting, unless that's quicker), so the head, the dog and the clock keep up as the player goes about, without the player opening it. With the town map already open in the game, the same, taken from it. Going from one area to the next (the road onto the farm, a door), the map is the new place's within half a second of the new area coming in, walking or running.
+
+**HM-2. Where you are.** The text box under the map describes the part of the valley the player is in (AAA Farm: This is your house; North Side of Mineral Town: Lots of shops and homes...): on the hidden copy the map's pointing glove is moved onto the player's head before the picture is taken, and the glove itself is left out of the picture (the map underneath showing).
+
+**HM-3. Last one stays.** Where the town map can't be opened (a conversation, an event, the START menu, the status pages, the farm map, the Diary, a shop, the night's black screen after going to bed), the last town map stays; before the first, the logo. These tries fail at once and are retried at the usual interval (twice a second), so the map comes back within half a second of the conversation, menu or night ending.
+
+**HM-4. Title.** On the title screen, the opening before it and the naming screens of a new game (the game's mode 0x78), the second screen shows the logo, any town map is forgotten, and no captures are tried there.
+
+**HM-5. Logo.** The logo is the title screen's wooden sign (sprites): HARVEST MOON with its Friends of Mineral Town board and posts, without the farmer on his horse at its left, the start prompt and the villagers. In Japan, 牧場物語 with its furigana and the ミネラルタウンのなかまたち banner. Frame 1000 from power-on.
+
+**HM-6. Game screen untouched.** Nothing leaves the game screen.
+
+## Not covered yet
+
+- The mine, the Goddess spring, the beach and the other places beyond the farm, the road and the town's north side: the test states don't reach them. If L+START opens the town map there, HM-1 holds; if not, HM-3.
+- Festivals (the first, the Spring Thanksgiving Festival, on Spring 14), the horse once owned (its head on the map), rain, snow and the other seasons' clocks.
+- *Harvest Moon: More Friends of Mineral Town* (`BFGE`, the girl's version) is another game, not handled.
+
+## Facts about the game
+
+For sessions working on the profile (every release's addresses are the same):
+
+- `0x02000012` (byte) the game's mode: 0 at power-on, 0x78 (120) from the opening through the title and a new game's naming screens, 0x37 walking about (the town map, the menus and going to bed too), other values in scenes (0x64 the opening's flashback, 0x3B Thomas's tutorial).
+- The game's own data (time, weather, money, the area number) sits at the addresses in Data Crystal's RAM map (money `0x02004080`, the time `0x020025EA`: hour in its low 5 bits, minutes in the next 6) until a battery save is loaded; from then on 0x2834 higher (money `0x020068B4`). The area number is `0x02005CF8` (the farm 2, the road north of it 7, the house 29) in a new game. The profile reads none of them: the town map is taken every refresh anyway, and the player's head moves within an area too.
+- The town map: L held, then START. It comes in through a mosaic, fully up about 70 frames later (a mosaic out, about 36 frames, the map built, a mosaic back in, MOSAIC 0 at the end), with the display at 0x7F40 (window 1 on) and BG3CNT 0x1E40 (in play 0x3F40 and 0x1C43). BG3 the valley, BG2 the buildings, BG0 the text box, sprites the heads, the glove, the clock box and the text. The glove is tile 200 in palette 5 (16x16, pointing right, its fingertip 15 across and 5 down); the player's head tile 204 in palette 6, the dog's tile 208 in palette 7. The glove starts at the same place every time (South Side of Mineral Town) and moves 2 pixels a frame while the D-pad is held, only once the mosaic is over; the text box describes what's under its fingertip, and changes only when the D-pad moves the glove. The fingertip's position is a pair of 24.8 words (x, then y; 120, 50 at the start) whose place in RAM isn't fixed (0x02005B68 in a new game, 0x02002620 in one continued from a save): hm_compose finds it by its value, puts the fingertip 2 pixels left of the head's middle, then holds RIGHT a frame, so the text follows; 2 frames later it's drawn. Writing it during the mosaic does nothing (the map resets it). The heads bob a pixel; the glove sways.
+- The farm map (L, then SELECT) is the farm at half size, scrolling with the D-pad. SELECT alone: the status pages (Property: the farm's money, the player, the dog, the animals; Harvest Sprites; Earnings Report; Tool Level List; LEFT / RIGHT turns them). START: the toolbar along the game screen's bottom (Diary, Rucksack...). The Diary saves and has options: Buttons 1 / 2, Clock (the game screen's clock box), Face, Name.
+- `0x03007874` holds the address of the game's data block (0x020025E8 in a new game, 0x02004E1C once a save is loaded). The area number isn't at the same place in that block in both (block + 0x3710 in a new game only), so there's no `room` key: an area change shows at the next capture. An area change: a mosaic out (about 30 frames), the backgrounds off (display 0x3040, about 46 frames) while the next area loads, a mosaic in (about 30 frames); the mode reads 0 for a frame in the middle. A capture started in there fails at once ("map button did nothing": game.c doesn't back off for it); so does one where L+START starts no mosaic within 6 frames (the map's starts 2 frames after it). Before, those ran 150 frames and backed off (up to 8 times the interval: 4 seconds), which the owner saw as the map taking up to five seconds after walking into another area.
+- A capture: about 100 frames (a failed one, 1 to 10), all but the last 3 undrawn (27 ms on a desktop, about half what drawing every frame took).
+- Time: a game minute every 20 frames; the clock box shows ten-minute steps. It stops in conversations and events.
+- The title comes about 900 frames from power-on (Natsume / licence screens, the villagers' opening). Its sign is sprites: HARVEST MOON rows 0-95 from x 42, the farmer on his horse x 21-45 rows 65-88; Japan's sign x 5-234, rows 0-112, the はじめから prompt from row 113.
+- A new game with no save: START on the title, then the naming screens (UP from the letters jumps to End): the player, the birthday, the farm, the dog, then a check (A: Yes). Then about 120 A presses through Thomas's welcome and the flashback to the house on Spring 2 at 6:00. Leaving the house starts Thomas's talk (DOWN, A at "Do you want to hear even more instruction?" skips the tutorial) and Zack's.
+- A battery save from the USA release loads in the European, German and Japanese ones too (the Diary, Load, Data 1).
+- How the test states were made: a new game played from power-on in the harness (USA); a USA battery save, written by the app from the Diary, loaded in each release (the European, German and Japanese ones too) by the app (its quick state), then Mary's introduction on the road north of the farm played through in the harness.

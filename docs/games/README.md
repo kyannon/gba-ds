@@ -39,6 +39,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Kingdom Hearts: Chain of Memories](kingdom-hearts-chain-of-memories.md) | KHC | `B8CE` + 2 |
 | [Lady Sia](lady-sia.md) | LS | `ALDE` + 1 |
 | [Zoids: Legacy (Zoids Saga II in Japan)](zoids-legacy.md) | ZL | `AZ2E` + 1 |
+| [Harvest Moon: Friends of Mineral Town (Bokujou Monogatari: Mineral Town no Nakama-tachi in Japan)](harvest-moon-friends-of-mineral-town.md) | HM | `A4NE` + 3 |
 
 ## General rules
 
