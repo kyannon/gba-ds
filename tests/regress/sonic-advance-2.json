@@ -862,7 +862,7 @@
    "id": "sa2-us-cream",
    "rom": "A2NE",
    "state": "sonic-advance-2/us-cream-card-lead-in.ss",
-   "desc": "Leaf Forest act 1 with Cream (all characters unlocked in RAM, picked at character select): the card taken (its colours Cream's), the HUD with Cream's face moved under it",
+   "desc": "Leaf Forest act 1 with Cream (all characters unlocked in RAM, picked at character select): the card taken (its colours Cream's), the HUD with Cream's face moved under it; the countdown's START!! on the game screen",
    "rules": [
     "SA2-2",
     "SA2-3",
@@ -870,7 +870,9 @@
    ],
    "shots": {
     "card": 120,
-    "play": 400
+    "play": 400,
+    "count": 520,
+    "start": 545
    },
    "checks": [
     {
@@ -884,6 +886,56 @@
      "what": "the HUD on the second screen",
      "type": "log",
      "match": "HUD on the second screen"
+    },
+    {
+     "rule": "SA2-3",
+     "what": "START!! on the game screen",
+     "type": "differs",
+     "a": {
+      "shot": "count",
+      "screen": "game",
+      "rect": [
+       96,
+       64,
+       640,
+       300
+      ]
+     },
+     "b": {
+      "shot": "start",
+      "screen": "game",
+      "rect": [
+       96,
+       64,
+       640,
+       300
+      ]
+     },
+     "frac": 0.05
+    },
+    {
+     "rule": "SA2-3",
+     "what": "no part of START!! moved",
+     "type": "same",
+     "a": {
+      "shot": "count",
+      "rect": [
+       32,
+       400,
+       992,
+       560
+      ]
+     },
+     "b": {
+      "shot": "start",
+      "rect": [
+       32,
+       400,
+       992,
+       560
+      ]
+     },
+     "frac": 0.01
     }
    ]
   },
@@ -891,7 +943,7 @@
    "id": "sa2-us-tails",
    "rom": "A2NE",
    "state": "sonic-advance-2/us-tails-card-lead-in.ss",
-   "desc": "Leaf Forest act 1 with Tails (all characters unlocked in RAM, picked at character select): the card taken (its colours Tails's), the HUD with Tails's face moved under it",
+   "desc": "Leaf Forest act 1 with Tails (all characters unlocked in RAM, picked at character select): the card taken (its colours Tails's), the HUD with Tails's face moved under it; the countdown's START!! on the game screen",
    "rules": [
     "SA2-2",
     "SA2-3",
@@ -899,7 +951,9 @@
    ],
    "shots": {
     "card": 120,
-    "play": 400
+    "play": 400,
+    "count": 520,
+    "start": 545
    },
    "checks": [
     {
@@ -913,6 +967,56 @@
      "what": "the HUD on the second screen",
      "type": "log",
      "match": "HUD on the second screen"
+    },
+    {
+     "rule": "SA2-3",
+     "what": "START!! on the game screen",
+     "type": "differs",
+     "a": {
+      "shot": "count",
+      "screen": "game",
+      "rect": [
+       96,
+       64,
+       640,
+       300
+      ]
+     },
+     "b": {
+      "shot": "start",
+      "screen": "game",
+      "rect": [
+       96,
+       64,
+       640,
+       300
+      ]
+     },
+     "frac": 0.05
+    },
+    {
+     "rule": "SA2-3",
+     "what": "no part of START!! moved",
+     "type": "same",
+     "a": {
+      "shot": "count",
+      "rect": [
+       32,
+       400,
+       992,
+       560
+      ]
+     },
+     "b": {
+      "shot": "start",
+      "rect": [
+       32,
+       400,
+       992,
+       560
+      ]
+     },
+     "frac": 0.01
     }
    ]
   },
@@ -920,7 +1024,7 @@
    "id": "sa2-us-knuckles",
    "rom": "A2NE",
    "state": "sonic-advance-2/us-knuckles-card-lead-in.ss",
-   "desc": "Leaf Forest act 1 with Knuckles (all characters unlocked in RAM, picked at character select): the card taken (its colours Knuckles's), the HUD with Knuckles's face moved under it",
+   "desc": "Leaf Forest act 1 with Knuckles (all characters unlocked in RAM, picked at character select): the card taken (its colours Knuckles's), the HUD with Knuckles's face moved under it; the countdown's START!! on the game screen",
    "rules": [
     "SA2-2",
     "SA2-3",
@@ -928,7 +1032,9 @@
    ],
    "shots": {
     "card": 120,
-    "play": 400
+    "play": 400,
+    "count": 520,
+    "start": 545
    },
    "checks": [
     {
@@ -942,6 +1048,56 @@
      "what": "the HUD on the second screen",
      "type": "log",
      "match": "HUD on the second screen"
+    },
+    {
+     "rule": "SA2-3",
+     "what": "START!! on the game screen",
+     "type": "differs",
+     "a": {
+      "shot": "count",
+      "screen": "game",
+      "rect": [
+       96,
+       64,
+       640,
+       300
+      ]
+     },
+     "b": {
+      "shot": "start",
+      "screen": "game",
+      "rect": [
+       96,
+       64,
+       640,
+       300
+      ]
+     },
+     "frac": 0.05
+    },
+    {
+     "rule": "SA2-3",
+     "what": "no part of START!! moved",
+     "type": "same",
+     "a": {
+      "shot": "count",
+      "rect": [
+       32,
+       400,
+       992,
+       560
+      ]
+     },
+     "b": {
+      "shot": "start",
+      "rect": [
+       32,
+       400,
+       992,
+       560
+      ]
+     },
+     "frac": 0.01
     }
    ]
   },

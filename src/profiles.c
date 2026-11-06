@@ -3425,13 +3425,14 @@ static const MapProfile profiles[] = {
 			.on = { { 0x04000000, 0x0E07, 0x0E00, 2 } },
 			/* the rings, score and time (in an act tiles 484-547 with
 			 * Sonic, Knuckles and Amy, 500-563 with Cream and Tails: the
-			 * digits, the ring box and icon; in a boss fight 704-767;
+			 * digits, the ring box and icon; in a boss fight 704-783, not
+			 * 64x64: the countdown's START!! is from tile 740;
 			 * palette 7: the count flashing red at no rings); the lives
 			 * (the face, palette 0: 508, 524 or 728; the count). The
 			 * character is palette 0 from tile 0; all at priority 0 (not the
 			 * rings' sparkles, palette 7 from tile 760 at priority 1) */
 			.objs = { { -16, -16, 160, 32, 480, 563, 0, 1u << 6 | 1u << 7 },
-			          { -16, -16, 160, 32, 704, 767, 0, 1u << 6 | 1u << 7 },
+			          { -16, -16, 160, 32, 704, 783, 0, 1u << 6 | 1u << 7, 0, 0xFFFFu & ~(1u << 3) },
 			          { -16, 130, 48, 159, 464, 767, 0, 1u << 0 },
 			          { -16, 130, 48, 159, 464, 1023, -1, 1u << 6 } },
 			/* the zone card: the whole screen, once settled, its emblem face on
