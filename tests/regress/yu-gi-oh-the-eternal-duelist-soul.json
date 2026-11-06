@@ -845,12 +845,813 @@
    ]
   },
   {
+   "id": "eds-jp-hand",
+   "rom": "AY5J",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/jp-hand.ss",
+   "desc": "Japan, the player's main phase, the cursor on ヘラクレス・ビートル in the hand (two of the hand's cards made ひのこ and ひじゅつのしょ, Magic cards, by poking the hand): its Card View; LEFT: デーモン・ビーバー; LEFT: ものかげのきょうりょくしゃ; UP to an empty zone: it stays",
+   "rules": [
+    "EDS-10",
+    "EDS-5"
+   ],
+   "input": [
+    [
+     100,
+     "LEFT"
+    ],
+    [
+     104,
+     "-"
+    ],
+    [
+     240,
+     "LEFT"
+    ],
+    [
+     244,
+     "-"
+    ],
+    [
+     380,
+     "UP"
+    ],
+    [
+     384,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 90,
+    "left": 200,
+    "left2": 340,
+    "empty": 480
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       34,
+       384,
+       "000000"
+      ],
+      [
+       42,
+       224,
+       "212121"
+      ],
+      [
+       464,
+       544,
+       "ADC6CE"
+      ],
+      [
+       472,
+       224,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-10",
+     "shot": "start",
+     "what": "ヘラクレス・ビートル's Card View"
+    },
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       34,
+       384,
+       "000000"
+      ],
+      [
+       42,
+       224,
+       "212121"
+      ],
+      [
+       464,
+       544,
+       "ADC6CE"
+      ],
+      [
+       472,
+       224,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-10",
+     "shot": "left",
+     "what": "デーモン・ビーバー's"
+    },
+    {
+     "rule": "EDS-10",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "left",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "another card"
+    },
+    {
+     "rule": "EDS-10",
+     "type": "differs",
+     "a": {
+      "shot": "left",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "left2",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "another card"
+    },
+    {
+     "rule": "EDS-5",
+     "type": "same",
+     "a": {
+      "shot": "left2",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "empty",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "the last card stays on an empty zone"
+    }
+   ]
+  },
+  {
+   "id": "eds-jp-magic-card",
+   "rom": "AY5J",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/jp-hand.ss",
+   "desc": "Japan, the cursor moved onto ひのこ, a Magic card (its info bar has no LV. line): its Card View",
+   "rules": [
+    "EDS-10"
+   ],
+   "input": [
+    [
+     60,
+     "LEFT"
+    ],
+    [
+     64,
+     "-"
+    ],
+    [
+     110,
+     "LEFT"
+    ],
+    [
+     114,
+     "-"
+    ],
+    [
+     160,
+     "LEFT"
+    ],
+    [
+     164,
+     "-"
+    ],
+    [
+     210,
+     "LEFT"
+    ],
+    [
+     214,
+     "-"
+    ],
+    [
+     260,
+     "LEFT"
+    ],
+    [
+     264,
+     "-"
+    ]
+   ],
+   "shots": {
+    "spell": 420
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       34,
+       384,
+       "000000"
+      ],
+      [
+       42,
+       224,
+       "212121"
+      ],
+      [
+       464,
+       544,
+       "ADC6CE"
+      ],
+      [
+       472,
+       224,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-10",
+     "shot": "spell",
+     "what": "ひのこ's Card View (green)"
+    },
+    {
+     "rule": "EDS-10",
+     "type": "pixels",
+     "screen": "second",
+     "shot": "spell",
+     "what": "a Magic card's green",
+     "probes": [
+      [
+       72,
+       184,
+       "39D67B"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "eds-jp-field-monster",
+   "rom": "AY5J",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/jp-field-monster.ss",
+   "desc": "Japan, the cursor on the player's デビル・ドラゴン just summoned: its Card View",
+   "rules": [
+    "EDS-10"
+   ],
+   "shots": {
+    "start": 90
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       34,
+       384,
+       "000000"
+      ],
+      [
+       42,
+       224,
+       "212121"
+      ],
+      [
+       464,
+       544,
+       "ADC6CE"
+      ],
+      [
+       472,
+       224,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-10",
+     "shot": "start",
+     "what": "デビル・ドラゴン's Card View"
+    }
+   ]
+  },
+  {
+   "id": "eds-jp-pile",
+   "rom": "AY5J",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/jp-hand.ss",
+   "desc": "Japan, a card shown, then the cursor on the opponent's Graveyard (loaded): the card stays, nothing taken (a pile)",
+   "rules": [
+    "EDS-5",
+    "EDS-10"
+   ],
+   "input": [
+    [
+     150,
+     "LOAD:yu-gi-oh-the-eternal-duelist-soul/jp-pile.ss"
+    ]
+   ],
+   "shots": {
+    "start": 90,
+    "pile": 300
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       34,
+       384,
+       "000000"
+      ],
+      [
+       42,
+       224,
+       "212121"
+      ],
+      [
+       464,
+       544,
+       "ADC6CE"
+      ],
+      [
+       472,
+       224,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-10",
+     "shot": "start",
+     "what": "the hand's card"
+    },
+    {
+     "rule": "EDS-5",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "pile",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "stays on the pile"
+    },
+    {
+     "rule": "EDS-5",
+     "what": "nothing taken on the pile",
+     "type": "no_log",
+     "match": "frame ([2-9][0-9][0-9]): map updated"
+    }
+   ]
+  },
+  {
+   "id": "eds-jp-opponent-turn",
+   "rom": "AY5J",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/jp-hand.ss",
+   "desc": "Japan, a card shown, then the opponent's turn (loaded): the card stays, nothing taken",
+   "rules": [
+    "EDS-5"
+   ],
+   "input": [
+    [
+     150,
+     "LOAD:yu-gi-oh-the-eternal-duelist-soul/jp-opponent-turn.ss"
+    ]
+   ],
+   "shots": {
+    "start": 90,
+    "opp": 300
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       34,
+       384,
+       "000000"
+      ],
+      [
+       42,
+       224,
+       "212121"
+      ],
+      [
+       464,
+       544,
+       "ADC6CE"
+      ],
+      [
+       472,
+       224,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-10",
+     "shot": "start",
+     "what": "the hand's card"
+    },
+    {
+     "rule": "EDS-5",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "opp",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "stays"
+    },
+    {
+     "rule": "EDS-5",
+     "what": "nothing taken",
+     "type": "no_log",
+     "match": "frame ([2-9][0-9][0-9]): map updated"
+    }
+   ]
+  },
+  {
+   "id": "eds-jp-graveyard",
+   "rom": "AY5J",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/jp-graveyard.ss",
+   "desc": "Japan, the opponent's Graveyard list (けんじゅうおうガゼル): its Card View",
+   "rules": [
+    "EDS-10"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       34,
+       384,
+       "000000"
+      ],
+      [
+       42,
+       224,
+       "212121"
+      ],
+      [
+       464,
+       544,
+       "ADC6CE"
+      ],
+      [
+       472,
+       224,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-10",
+     "shot": "start",
+     "what": "Card View"
+    }
+   ]
+  },
+  {
    "id": "eds-jp-deck",
    "rom": "AY5J",
    "state": "yu-gi-oh-the-eternal-duelist-soul/jp-deck.ss",
-   "desc": "Japan: the Deck screen just after the starter deck: the logo (EDS-9)",
+   "desc": "Japan, the Deck screen on アーマー・リザード: its Card View (A, then 詳細); DOWN to アーメイル: its",
    "rules": [
-    "EDS-9"
+    "EDS-10"
+   ],
+   "input": [
+    [
+     180,
+     "DOWN"
+    ],
+    [
+     184,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 120,
+    "down": 300
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       34,
+       384,
+       "000000"
+      ],
+      [
+       42,
+       224,
+       "212121"
+      ],
+      [
+       464,
+       544,
+       "ADC6CE"
+      ],
+      [
+       472,
+       224,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-10",
+     "shot": "start",
+     "what": "アーマー・リザード's Card View"
+    },
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       34,
+       384,
+       "000000"
+      ],
+      [
+       42,
+       224,
+       "212121"
+      ],
+      [
+       464,
+       544,
+       "ADC6CE"
+      ],
+      [
+       472,
+       224,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-10",
+     "shot": "down",
+     "what": "アーメイル's"
+    },
+    {
+     "rule": "EDS-10",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "down",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "another card"
+    }
+   ]
+  },
+  {
+   "id": "eds-jp-deck-card-view",
+   "rom": "AY5J",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/jp-deck-card-view.ss",
+   "desc": "Japan, Card View already open from the Deck screen: taken as it is",
+   "rules": [
+    "EDS-10"
+   ],
+   "shots": {
+    "start": 90
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       34,
+       384,
+       "000000"
+      ],
+      [
+       42,
+       224,
+       "212121"
+      ],
+      [
+       464,
+       544,
+       "ADC6CE"
+      ],
+      [
+       472,
+       224,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-10",
+     "shot": "start",
+     "what": "Card View"
+    },
+    {
+     "rule": "EDS-10",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "game"
+     },
+     "what": "the same as the game screen"
+    }
+   ]
+  },
+  {
+   "id": "eds-jp-cards-won",
+   "rom": "AY5J",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/jp-cards-won.ss",
+   "desc": "Japan, the cards won after a duel, on ひのこ: its Card View; DOWN to プチテンシ: its",
+   "rules": [
+    "EDS-10"
+   ],
+   "input": [
+    [
+     180,
+     "DOWN"
+    ],
+    [
+     184,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 120,
+    "down": 300
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       34,
+       384,
+       "000000"
+      ],
+      [
+       42,
+       224,
+       "212121"
+      ],
+      [
+       464,
+       544,
+       "ADC6CE"
+      ],
+      [
+       472,
+       224,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-10",
+     "shot": "start",
+     "what": "ひのこ's Card View"
+    },
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       34,
+       384,
+       "000000"
+      ],
+      [
+       42,
+       224,
+       "212121"
+      ],
+      [
+       464,
+       544,
+       "ADC6CE"
+      ],
+      [
+       472,
+       224,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-10",
+     "shot": "down",
+     "what": "プチテンシ's"
+    },
+    {
+     "rule": "EDS-10",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "down",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "another card"
+    }
+   ]
+  },
+  {
+   "id": "eds-jp-conversation",
+   "rom": "AY5J",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/jp-conversation.ss",
+   "desc": "Japan, Anzu's conversation after the Deck screen: the logo",
+   "rules": [
+    "EDS-6"
    ],
    "shots": {
     "start": 120
@@ -867,12 +1668,47 @@
      ],
      "color": "303030",
      "frac": 0.5,
-     "rule": "EDS-9",
+     "rule": "EDS-6",
      "shot": "start",
      "what": "the logo"
     },
     {
-     "rule": "EDS-9",
+     "rule": "EDS-6",
+     "what": "nothing tried",
+     "type": "no_log",
+     "match": "map (updated|capture failed)"
+    }
+   ]
+  },
+  {
+   "id": "eds-jp-rock-paper-scissors",
+   "rom": "AY5J",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/jp-rock-paper-scissors.ss",
+   "desc": "Japan, rock-paper-scissors before the first duel: the logo",
+   "rules": [
+    "EDS-6"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "EDS-6",
+     "shot": "start",
+     "what": "the logo"
+    },
+    {
+     "rule": "EDS-6",
      "what": "nothing tried",
      "type": "no_log",
      "match": "map (updated|capture failed)"

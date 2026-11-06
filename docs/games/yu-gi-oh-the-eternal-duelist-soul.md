@@ -2,9 +2,9 @@
 
 | | |
 |---|---|
-| Releases | `AY5E` USA · `AY5J` Japan (logo only for now) |
+| Releases | `AY5E` USA · `AY5J` Japan |
 | Dumps | `AY5E` cartridge `dfd07a36` (tested) · `AY5J` cartridge `f3041e7e` (tested) |
-| Profile | `src/profiles.c`: the `AY5E` entry (eds_compose, eds_virt); variant `AY5J` (eds_jpn: logo only) |
+| Profile | `src/profiles.c`: the `AY5E` entry (eds_compose, eds_virt); variant `AY5J` (eds_jpn: the Japanese release's table, edsJP) |
 | Tests | `tests/regress/yu-gi-oh-the-eternal-duelist-soul.json` (`tools/regress.py yu-gi-oh-the-eternal-duelist-soul`) |
 | Status | in testing (branch `game/yu-gi-oh-the-eternal-duelist-soul`) |
 
@@ -32,7 +32,9 @@ The game is played through its cards, and on a GBA most of what a card does is a
 
 **EDS-8. Game screen untouched.** Nothing leaves the game screen.
 
-**EDS-9. Japan: the logo.** Duel Monsters 5 Expert 1 draws its Card View, Deck screens and menus differently, so for now it shows only its logo: the title's 遊戯王 デュエルモンスターズ5 エキスパート1 lettering (BG1), above PRESS START and the copyright lines, START having skipped the opening (1440 frames from power-on, START, 120 frames).
+**EDS-9. Japan's logo.** Duel Monsters 5 Expert 1 (the Japanese original; The Eternal Duelist Soul is its English remake) has its own title: its logo is the title's 遊戯王 デュエルモンスターズ5 エキスパート1 lettering (BG1), above PRESS START and the copyright lines, START having skipped the opening (1440 frames from power-on, START, 120 frames).
+
+**EDS-10. Japan: the same, on its own screens.** Duel Monsters 5 Expert 1 draws its screens differently (the field with the life points at the left, a Card View with a yellow, green or pink card and a parchment panel, a Deck screen instead of Deck Edit), but the second screen follows the same rules: EDS-1 (A, then 詳細表示, the first command), EDS-2 (its pile lists open Card View with A alone), EDS-3 for its Deck screen (Kaban, Deck and Side Deck tabs; A, then 詳細 on the command bar), EDS-4, EDS-5 and EDS-6. Card View is shown at the page it opens on (the card's text); with it already open in the game, at the page the player has it on. Where the field's piles can't be told from their place, the info bar tells them: a pile's starts with 自分の or 相手の in green.
 
 ## Facts about the game
 
@@ -43,14 +45,15 @@ The game is played through its cards, and on a GBA most of what a card does is a
 - Card lists' cursor `0x02015274` (the cards won; the duel's lists checked with one card so far); Deck Edit's cursor `0x0201E140`, its list `0x0201F73C` (0 Trunk, 1 Deck, 2 Side Deck; L and R switch).
 - A on a card: on the field and in Deck Edit, its commands (Card View first and chosen); in a list, Card View straight away (after a fade of about 24 frames). A on the cursor while it glides to a new place does nothing, so the hidden copy waits 12 frames first. Card View is fully drawn the frame its fade-in ends.
 - The duel's life points: `0x020192E4` (the player's), `0x0201A048` (the opponent's); the player's hand `0x02019968` (words), the Deck from `0x02018DE0`. Setting the opponent's to 0 and changing phase ends the duel won (how the cards-won states were made).
-- The Japanese release (`AY5J`) has another title (PRESS START, D-Tactics), a name entry, a Deck screen with a card list and the card's picture on one screen, and its own Card View (no blue bar): none of the USA's checks hold there.
+- The Japanese release (`AY5J`): BG0CNT and BG1CNT are `0x0087` `0x8186` on the field, `0x0005` `0x0187` in Card View, `0x0004` `0x0185` with DISPCNT `0x1F40` in the Deck screen and a pile's list (its conversations have the same two with DISPCNT `0x1F04`), the cards won `0x0004` `0x0105` as in the USA. The opponent's life points `0x02007908` (cleared to 0 when a duel ends: 0 out of a duel), the player's `0x020078F0`; the hand `0x02007920` (a card number and a word of flags per card), the player's monsters from `0x020079A0`. The field cursor's place on the screen `0x02008490` (x) and `0x02008492` (y; the field scrolls), `0x02008482`, and `0x02008483` bit 7 while the player moves it freely (clear while the commands are open, in the opponent's turn, a phase banner). The Deck screen's and a pile list's cursor `0x02005F36` (its row), `0x02005F3A`; the cards won's `0x02009D02`. START ends the turn, R moves on a phase (asking first), L hides the life points. Card View has two pages (the card's text; who owns it): A turns them.
+- The Japanese info bar: a monster's on two lines (LV. in green above, the number and name in white below, ATK and DEF at the right), a Magic or Trap card's on the lower line only, a pile's on the lower line, starting in pure green (自分の, 相手の) with its name in pale blue and its count in white.
 
 ## Known issues
 
 - The duel's card lists were only tried with one card in them; if their cursor isn't `0x02015274`, moving through a longer list changes the second screen at the next refresh (about a second) instead of at once.
 - A card that changes under a cursor that hasn't moved (the hand closing up after a summon, a card flipped face-up) shows at the next refresh, about a second later.
 - Link Battle hasn't been tried (it needs a second GBA).
-- The Japanese release shows only its logo (EDS-9).
+- Japan: the hand's Magic card in the regression cases was made by poking the hand (the starter deck's first draws had none); the duel's other states are from play.
 
 ## Not covered yet
 
@@ -62,7 +65,7 @@ No shared code changed on this branch (the profile and its variant only).
 
 Changelog line (under the open version's What's new):
 
-- Yu-Gi-Oh! The Eternal Duelist Soul is supported: the second screen shows the Card View of the card under your cursor (its picture and text) in duels, their Graveyard and other card lists, Deck Edit and the cards you win; the logo elsewhere. The Japanese release (Duel Monsters 5 Expert 1) shows its logo for now.
+- Yu-Gi-Oh! The Eternal Duelist Soul is supported: the second screen shows the Card View of the card under your cursor (its picture and text) in duels, their Graveyard and other card lists, Deck Edit and the cards you win; the logo elsewhere. The Japanese release (Duel Monsters 5 Expert 1) too.
 
 Rules index, `docs/games/README.md` (table row, at the end):
 
@@ -70,7 +73,7 @@ Rules index, `docs/games/README.md` (table row, at the end):
 
 Wiki, `wiki/Supported-games.md` (table row and section):
 
-| Yu-Gi-Oh! The Eternal Duelist Soul (Yu-Gi-Oh! Duel Monsters 5 Expert 1 in Japan) | `AY5E` `AY5J` | Card View of the card under the cursor (Japan: logo) |
+| Yu-Gi-Oh! The Eternal Duelist Soul (Yu-Gi-Oh! Duel Monsters 5 Expert 1 in Japan) | `AY5E` `AY5J` | Card View of the card under the cursor |
 
 ### Yu-Gi-Oh! The Eternal Duelist Soul
 
@@ -78,4 +81,4 @@ Wiki, `wiki/Supported-games.md` (table row and section):
 - **In the Graveyard and other card lists, Deck Edit and the list of cards you've won,** the same: the card under the cursor.
 - Where there's nothing to look at (an empty zone, a face-down card of the opponent's, the opponent's turn), the last card stays.
 - On the title screen, the menus, the conversations and the other screens, the second screen shows the logo.
-- The Japanese release (Duel Monsters 5 Expert 1) shows only its logo for now.
+- The same in the Japanese release (Duel Monsters 5 Expert 1), with its own screens.

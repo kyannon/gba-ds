@@ -2108,104 +2108,160 @@ static const char* khc_compose(Emu* s, const void* state, uint32_t* out, int w, 
 
 /* ---------------------------------------------------------- Yu-Gi-Oh! The Eternal Duelist Soul
  *
- * The second screen (EDS-1 to EDS-4): the Card View of the card under the
- * player's cursor, the game's own full-screen page for a card (its picture,
- * name, type and text), opened on the shadow core from the live state at
- * every capture: on the duel field and in Deck Edit A (its command icons,
- * Card View first and chosen) then A; in a card list (a Graveyard, the cards
- * won after a duel) A alone. With Card View already open in the game, it's
- * taken as it is. It's checked by its fixed pixels (the blue name bar, the
- * black around the card and its text) and taken once it has faded in.
+ * The second screen (EDS-1 to EDS-4, EDS-10): the Card View of the card
+ * under the player's cursor, the game's own full-screen page for a card
+ * (its picture, name, type and text), opened on the shadow core from the
+ * live state at every capture: on the duel field A (the card's commands,
+ * Card View first and chosen) then A; in a card list A alone, or A then A
+ * where A brings up a command bar (Deck Edit; Japan's Deck screen). With
+ * Card View already open in the game, it's taken as it is. It's checked by
+ * its fixed pixels and taken once it has faded in and held still.
  *
- * Which screen is up is told by the display registers, BG0CNT and BG1CNT
- * (each screen sets them once and keeps them):
- *   field  0x0007 0x8106    a duel's field (its animations and banners too)
- *   dlist  0x0004 0x0104    a pile's card list in a duel (Graveyard...)
- *   view   0x0044 0x0186    Card View, wherever it's opened from
- *   deck   0x1800 0x1A01    Deck Edit's lists (Card Trading's card choice too)
- *   nlist  0x0004 0x0105    the cards won after a duel (DISPCNT 0x1F40:
- *                           Card Trading and Password have the same two
- *                           with other DISPCNTs)
- *   EDS_DUEL   7 while a duel is set up, 6 while it's under way, 4 after it
- *              (until the next), 0 before the first since power-on
- *   EDS_SIDE / EDS_ZONE / EDS_COL  the field cursor: its side (0 the
- *              player's), its zone (0 monsters, 5 Magic & Trap, 0x0B the
- *              hand; 0x0A, 0x0C to 0x0F the piles round the field: the
- *              Field card, Fusion Deck, Deck, Graveyard, Removed Cards) and
- *              column (the opponent's mirrored)
- *   EDS_FREE   bit 3 set while the player moves the field cursor freely
- *              (not in the opponent's turn, a phase change, an animation
- *              or the card's commands)
- *   EDS_LIST   a card list's cursor; EDS_DECKI / EDS_DECKL Deck Edit's
- *              cursor and list (0 Trunk, 1 Deck, 2 Side Deck) */
-#define EDS_DUEL 0x0201D7E0
-#define EDS_SIDE 0x0201D7D4
-#define EDS_ZONE 0x0201D7D8
-#define EDS_COL 0x0201D7DC
-#define EDS_FREE 0x0201D7B8
-#define EDS_LIST 0x02015274
-#define EDS_DECKI 0x0201E140
-#define EDS_DECKL 0x0201F73C
+ * Both releases work alike but draw their screens differently (Duel
+ * Monsters 5 Expert 1 is the original; The Eternal Duelist Soul its
+ * English remake), so each has a table of its registers, pixels and
+ * addresses (edsUS, edsJP; the variant AY5J picks the second).
+ *
+ * Which screen is up is told by BG0CNT and BG1CNT (each screen sets them
+ * once and keeps them; DISPCNT where two share them):
+ *              USA                       Japan
+ *   field      0x0007 0x8106             0x0087 0x8186
+ *   view       0x0044 0x0186             0x0005 0x0187     Card View
+ *   list       0x0004 0x0104             0x0004 0x0185 +   a pile's list in a
+ *                                        DISPCNT 0x1F40    duel (Japan: also
+ *                                                          the Deck screen;
+ *                                                          its conversations
+ *                                                          have DISPCNT 0x1F04)
+ *   deck       0x1800 0x1A01             -                 Deck Edit (Card
+ *                                                          Trading's choice)
+ *   won        0x0004 0x0105 + DISPCNT 0x1F40 (both)       the cards won
+ *   (USA: Card Trading and Password share won's two, with other DISPCNTs)
+ *
+ * USA addresses: 0x0201D7E0 7 while a duel is set up, 6 while it's under
+ * way, 4 after it, 0 before the first; the field cursor 0x0201D7D4 its side,
+ * 0x0201D7D8 its zone (0 monsters, 5 Magic & Trap, 0x0B the hand; 0x0A,
+ * 0x0C to 0x0F the piles round the field), 0x0201D7DC its column;
+ * 0x0201D7B8 bit 3 while the player moves it freely; a list's cursor
+ * 0x02015274; Deck Edit's 0x0201E140, its list 0x0201F73C.
+ * Japan: the opponent's life points 0x02007908 (0 out of a duel: cleared
+ * when one ends); the field cursor's place on the screen 0x02008490 (x),
+ * 0x02008492 (y) and its spot 0x02008482, 0x02008483 bit 7 while the
+ * player moves it freely; the Deck screen's and a pile list's cursor
+ * 0x02005F36 (its row) and 0x02005F3A; the cards won's 0x02009D02.
+ *
+ * The field's info bar (its bottom rows) names the card under the cursor
+ * in white. USA: a pile's count is cyan, an empty zone and the opponent's
+ * face-down cards leave it empty. Japan: a pile's name starts in pure green
+ * (自分の, 相手の); a monster's LV. is green too, but on the line above. */
 #define EDS_V_LIVE 0xF0000040 /* a card's under a cursor (or in Card View): taken */
 #define EDS_V_IDLE 0xF0000041 /* out of the duels and the card screens: the logo */
 #define EDS_V_ROOM 0xF0000042 /* the screen and where its cursor is */
-enum { EDS_NONE, EDS_FIELD, EDS_DLIST, EDS_VIEW, EDS_DECK, EDS_NLIST };
-static int eds_screen(Emu* e) {
-	uint16_t bg0 = emu_io16(e, 0x08), bg1 = emu_io16(e, 0x0A);
-	if (bg0 == 0x0007 && bg1 == 0x8106) return EDS_FIELD;
-	if (bg0 == 0x0004 && bg1 == 0x0104) return EDS_DLIST;
-	if (bg0 == 0x0044 && bg1 == 0x0186) return EDS_VIEW;
-	if (bg0 == 0x1800 && bg1 == 0x1A01) return EDS_DECK;
-	if (bg0 == 0x0004 && bg1 == 0x0105 && emu_io16(e, 0x00) == 0x1F40) return EDS_NLIST;
+enum { EDS_NONE, EDS_FIELD, EDS_LIST, EDS_VIEW, EDS_DECK, EDS_WON };
+typedef struct {
+	uint16_t field[2], view[2], list[2], listDisp, deck[2];
+	Probe viewProbes[8];
+	bool jp;
+} EdsRelease;
+static const EdsRelease edsUS = {
+	{ 0x0007, 0x8106 }, { 0x0044, 0x0186 }, { 0x0004, 0x0104 }, 0, { 0x1800, 0x1A01 },
+	/* the blue name bar's end (the name never reaches it), the darker bar
+	 * under it, the black left of and under the card and between the card
+	 * and its text */
+	{ { 239, 0, 0x0000FF }, { 239, 12, 0x0000FF }, { 239, 22, 0x000084 }, { 1, 20, 0x000000 },
+	  { 102, 60, 0x000000 }, { 102, 140, 0x000000 }, { 1, 159, 0x000000 }, { 60, 159, 0x000000 } },
+	false
+};
+static const EdsRelease edsJP = {
+	{ 0x0087, 0x8186 }, { 0x0005, 0x0187 }, { 0x0004, 0x0185 }, 0x1F40, { 0xFFFF, 0xFFFF },
+	/* the card's dark grey edge (left, bottom), its pale silver right edge,
+	 * the black at the left and between the card and its text panel: the
+	 * same for every kind of card */
+	{ { 0, 80, 0x000000 }, { 2, 40, 0x212121 }, { 2, 120, 0x212121 }, { 50, 159, 0x212121 },
+	  { 108, 60, 0x94A5AD }, { 108, 130, 0xCEDEE7 }, { 110, 40, 0x000000 }, { 110, 140, 0x000000 } },
+	true
+};
+static int eds_screen(const EdsRelease* r, Emu* e) {
+	uint16_t bg0 = emu_io16(e, 0x08), bg1 = emu_io16(e, 0x0A), disp = emu_io16(e, 0x00);
+	if (bg0 == r->field[0] && bg1 == r->field[1]) return EDS_FIELD;
+	if (bg0 == r->view[0] && bg1 == r->view[1]) return EDS_VIEW;
+	if (bg0 == r->list[0] && bg1 == r->list[1] && (!r->listDisp || disp == r->listDisp)) return EDS_LIST;
+	if (bg0 == r->deck[0] && bg1 == r->deck[1]) return EDS_DECK;
+	if (bg0 == 0x0004 && bg1 == 0x0105 && disp == 0x1F40) return EDS_WON;
 	return EDS_NONE;
 }
-/* Card View: the blue name bar's end (the name never reaches it), the
- * darker bar under it, the black left of and under the card and between
- * the card and its text */
-static const Probe edsView[8] = { { 239, 0, 0x0000FF }, { 239, 12, 0x0000FF }, { 239, 22, 0x000084 }, { 1, 20, 0x000000 },
-                                  { 102, 60, 0x000000 }, { 102, 140, 0x000000 }, { 1, 159, 0x000000 }, { 60, 159, 0x000000 } };
-static bool eds_view(Emu* s) {
-	return eds_screen(s) == EDS_VIEW && som_probes(s, edsView, 8, 8, 8);
+static bool eds_view(const EdsRelease* r, Emu* s) {
+	return eds_screen(r, s) == EDS_VIEW && som_probes(s, r->viewProbes, 8, 8, 8);
 }
-/* the field's info bar (its bottom rows) names a card: white lettering
- * on navy (a pile's is cyan; an empty zone and the opponent's face-down
- * cards leave it empty) */
-static bool eds_named(Emu* e) {
-	int n = 0;
-	for (int y = 151; y < 159; ++y)
-		for (int x = 2; x < 120; ++x) n += (e->fb[y * GBA_W + x] & 0xFFFFFF) == 0xFFFFFF;
-	return n >= 12;
-}
-static uint32_t eds_virt(Emu* e, uint32_t addr) {
-	int sc = eds_screen(e);
-	uint8_t duel = emu_read8(e, EDS_DUEL);
-	uint8_t side = emu_read8(e, EDS_SIDE), zone = emu_read8(e, EDS_ZONE), col = emu_read8(e, EDS_COL);
-	if (addr == EDS_V_LIVE) {
-		/* on the field: a monster, a Magic or Trap card or a card in the
-		 * hand (not the opponent's hand); not a pile (A opens its list, or
-		 * draws, or offers to give up) */
-		if (sc == EDS_FIELD)
-			return duel == 6 && (emu_read8(e, EDS_FREE) & 0x08) && (zone == 0 || zone == 5 || (zone == 0x0B && side == 0)) && eds_named(e);
-		return sc != EDS_NONE;
+/* the field's info bar names a card (see above) */
+static bool eds_named(const EdsRelease* r, Emu* e) {
+	int white = 0, green = 0;
+	if (!r->jp) {
+		for (int y = 151; y < 159; ++y)
+			for (int x = 2; x < 120; ++x) white += (e->fb[y * GBA_W + x] & 0xFFFFFF) == 0xFFFFFF;
+		return white >= 12;
 	}
-	if (addr == EDS_V_IDLE) return sc == EDS_NONE && duel != 6 && duel != 7;
+	for (int y = 152; y < 160; ++y)
+		for (int x = 0; x < GBA_W; ++x) {
+			uint32_t c = e->fb[y * GBA_W + x] & 0xFFFFFF;
+			white += c == 0xFFFFFF;
+			green += c == 0x00FF00;
+		}
+	return white >= 30 && !green;
+}
+/* the player moves the field cursor freely, in a duel */
+static bool eds_free(const EdsRelease* r, Emu* e) {
+	if (r->jp) return emu_read16(e, 0x02007908) && (emu_read8(e, 0x02008483) & 0x80);
+	return emu_read8(e, 0x0201D7E0) == 6 && (emu_read8(e, 0x0201D7B8) & 0x08);
+}
+static bool eds_in_duel(const EdsRelease* r, Emu* e) {
+	if (r->jp) return emu_read16(e, 0x02007908) != 0;
+	uint8_t d = emu_read8(e, 0x0201D7E0);
+	return d == 6 || d == 7;
+}
+static uint32_t eds_virt_for(const EdsRelease* r, Emu* e, uint32_t addr) {
+	int sc = eds_screen(r, e);
+	if (addr == EDS_V_LIVE) {
+		if (sc != EDS_FIELD) return sc != EDS_NONE;
+		if (!eds_free(r, e) || !eds_named(r, e)) return 0;
+		if (r->jp) return 1;
+		/* USA: a monster, a Magic or Trap card or a card in the hand (not
+		 * the opponent's hand); not a pile (A opens its list, or draws, or
+		 * offers to give up) */
+		uint8_t side = emu_read8(e, 0x0201D7D4), zone = emu_read8(e, 0x0201D7D8);
+		return zone == 0 || zone == 5 || (zone == 0x0B && side == 0);
+	}
+	if (addr == EDS_V_IDLE) return sc == EDS_NONE && !eds_in_duel(r, e);
 	if (addr == EDS_V_ROOM) {
-		uint32_t k = (uint32_t) sc << 24;
-		if (sc == EDS_FIELD) k |= side << 16 | zone << 8 | col;
-		else if (sc == EDS_DLIST || sc == EDS_NLIST) k |= emu_read8(e, EDS_LIST);
-		else if (sc == EDS_DECK) k |= emu_read8(e, EDS_DECKL) << 16 | emu_read16(e, EDS_DECKI);
+		uint32_t k = (uint32_t) sc << 28;
+		if (r->jp) {
+			if (sc == EDS_FIELD)
+				k |= (uint32_t) emu_read8(e, 0x02008490) << 16 | emu_read8(e, 0x02008492) << 8 | emu_read8(e, 0x02008482);
+			else if (sc == EDS_LIST) k |= emu_read8(e, 0x02005F36) << 8 | emu_read8(e, 0x02005F3A);
+			else if (sc == EDS_WON) k |= emu_read8(e, 0x02009D02);
+			return k;
+		}
+		if (sc == EDS_FIELD)
+			k |= (uint32_t) emu_read8(e, 0x0201D7D4) << 16 | emu_read8(e, 0x0201D7D8) << 8 | emu_read8(e, 0x0201D7DC);
+		else if (sc == EDS_LIST || sc == EDS_WON) k |= emu_read8(e, 0x02015274);
+		else if (sc == EDS_DECK) k |= emu_read8(e, 0x0201F73C) << 16 | emu_read16(e, 0x0201E140);
 		return k;
 	}
 	return 0;
 }
+static uint32_t eds_virt(Emu* e, uint32_t addr) {
+	return eds_virt_for(&edsUS, e, addr);
+}
+static uint32_t eds_virt_jp(Emu* e, uint32_t addr) {
+	return eds_virt_for(&edsJP, e, addr);
+}
 /* runs frames until Card View is up and has held still for 3 (its fade-in
  * done) */
-static bool eds_wait_view(Emu* s, int max) {
+static bool eds_wait_view(const EdsRelease* r, Emu* s, int max) {
 	static uint32_t prev[GBA_W * GBA_H];
 	int still = 0;
-	for (int f = 0; f < max; ++f) {
+	for (int f = 0; f < max && !emu_cancelled(s); ++f) {
 		emu_frame(s, 0);
-		if (!eds_view(s)) {
+		if (!eds_view(r, s)) {
 			still = 0;
 			continue;
 		}
@@ -2215,32 +2271,52 @@ static bool eds_wait_view(Emu* s, int max) {
 	}
 	return false;
 }
-static const char* eds_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+static const char* eds_compose_for(const EdsRelease* r, Emu* s, const void* state, uint32_t* out, int w, int h) {
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
-	int sc = eds_screen(s);
+	int sc = eds_screen(r, s);
 	if (sc == EDS_NONE) return "not a card screen";
 	if (sc != EDS_VIEW) {
-		/* the field and Deck Edit: A brings up the card's commands, Card
-		 * View first and chosen; a list: A opens Card View. (After a
-		 * moment: the cursor glides to its place, and A on the way does
-		 * nothing.) */
+		/* (after a moment: the cursor glides to its place, and A on the
+		 * way does nothing) */
 		aw_run(s, 0, 12);
-		/* (the info bar names the cursor's card once it's there: none, an
-		 * empty zone or a face-down card of the opponent's; nothing taken,
-		 * and no slowing down of the next tries) */
-		if (sc == EDS_FIELD && !eds_named(s)) return "map button did nothing";
-		aw_tap(s, K_A, 1);
-		if (sc == EDS_FIELD || sc == EDS_DECK) {
-			aw_run(s, 0, 8);
-			if (eds_screen(s) != sc) return "A did something else";
+		if (sc == EDS_FIELD) {
+			/* the info bar names the cursor's card once it's there: none, an
+			 * empty zone, a pile or a face-down card of the opponent's;
+			 * nothing taken, and no slowing down of the next tries */
+			if (!eds_named(r, s)) return "map button did nothing";
+			/* A: the card's commands, Card View first and chosen (the cursor
+			 * no longer free); anything else (Japan: a pile's list) isn't a
+			 * card */
 			aw_tap(s, K_A, 1);
+			aw_run(s, 0, 8);
+			if (eds_screen(r, s) != EDS_FIELD || (r->jp && eds_free(r, s))) return "map button did nothing";
+			aw_tap(s, K_A, 1);
+		} else if (sc == EDS_DECK) {
+			aw_tap(s, K_A, 1);
+			aw_run(s, 0, 8);
+			if (eds_screen(r, s) != sc) return "A did something else";
+			aw_tap(s, K_A, 1);
+		} else {
+			/* a list: A opens Card View, or (Japan's Deck screen) a command
+			 * bar, 詳細 (details) chosen, then A */
+			aw_tap(s, K_A, 1);
+			if (r->jp && sc == EDS_LIST && !eds_wait_view(r, s, 40)) {
+				if (eds_screen(r, s) != EDS_LIST) return "A did something else";
+				aw_tap(s, K_A, 1);
+			}
 		}
 	}
-	if (!eds_wait_view(s, 60)) return "Card View didn't open";
+	if (!eds_view(r, s) && !eds_wait_view(r, s, 60)) return "Card View didn't open";
 	if (emu_cancelled(s)) return "called off";
 	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
 	return NULL;
+}
+static const char* eds_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	return eds_compose_for(&edsUS, s, state, out, w, h);
+}
+static const char* eds_compose_jp(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	return eds_compose_for(&edsJP, s, state, out, w, h);
 }
 
 /* Bros. Info's frame, the same on both brothers' pages (its leather edges,
@@ -4177,16 +4253,12 @@ static void khc_jpn(MapProfile* p) {
 }
 
 /* Yu-Gi-Oh! Duel Monsters 5 Expert 1 (Japan), The Eternal Duelist Soul's
- * original: its screens are drawn differently (Card View, the Deck screen),
- * so for now only its logo (EDS-9): the title's lettering (BG1), above the
- * copyright lines, after START past the opening */
+ * original: the same second screen with its own screens' registers, pixels
+ * and addresses (edsJP, EDS-10); its logo the title's lettering (BG1), above
+ * the copyright lines, after START past the opening (EDS-9) */
 static void eds_jpn(MapProfile* p) {
-	p->logoOnly = true;
-	p->compose = NULL;
-	p->virt = NULL;
-	memset(p->live, 0, sizeof(p->live));
-	memset(p->menu, 0, sizeof(p->menu));
-	memset(p->room, 0, sizeof(p->room));
+	p->compose = eds_compose_jp;
+	p->virt = eds_virt_jp;
 	p->logo = (typeof(p->logo)) { .steps = { { 0, 1440 }, { K_START, 4 }, { 0, 120 } }, .layer = 1, .maxY = 120 };
 }
 
