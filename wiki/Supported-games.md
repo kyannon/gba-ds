@@ -9,6 +9,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Castlevania: Harmony of Dissonance | `ACHE` `ACHP` `ACHJ` | map |
 | Dragon Ball Z: The Legacy of Goku | `ALGE` `ALGP` (no Japanese release) | the pause menu, with the HP and Ki bars (or the counter SELECT and flying show) in place of its options |
 | F-Zero: GP Legend (F-Zero: Falcon Densetsu in Japan) | `BFZE` `BFZP` `BFZJ` | the race HUD, with the course map twice as big |
+| F-Zero: Maximum Velocity (F-Zero for Game Boy Advance in Japan) | `AFZE` (USA and Europe) `AFZJ` (China: `AFZC`) | the race HUD, with the course map twice as big |
 | Final Fantasy Tactics Advance | `AFXE` `AFXP` `AFXJ` | in battles: the Status of the unit under the cursor, or the turn order and Laws; on the world map: today's Laws |
 | Fire Emblem (Rekka no Ken in Japan) | `AE7E` `AE7X` (English, French, German) `AE7Y` (English, Spanish, Italian) `AE7J` | on the map: the status of the unit under the cursor |
 | Fire Emblem: The Sacred Stones (Seima no Kouseki in Japan) | `BE8E` `BE8P` `BE8J` | on the map: the status of the unit under the cursor |
@@ -85,6 +86,20 @@ As with Mario Kart: Super Circuit, the HUD is moved off the game screen rather t
 - Everywhere else (the menus, a story's objective screen and scenes, the course name as a race fades in, the RESULTS once a race ends or after GIVE UP) the second screen shows the logo.
 - With one screen (`layout = single`), the HUD stays where the game draws it.
 - The USA, European and Japanese releases have all been tried.
+
+## F-Zero: Maximum Velocity
+
+The same second screen as F-Zero: GP Legend's: the HUD is moved off the game screen rather than copied, so nothing behind it is lost.
+
+- **Racing** (Grand Prix and Training):
+  - The game screen keeps your **speed** where the game draws it (top right), the CHECK sign under a machine close behind, and your **RANK** with the race's limit (1/15, then /10, /7, /5, red when you're outside it) in the bottom-left corner, where the course map was.
+  - The second screen has the **POW** meter at the top centre with **BOOST** and its three marks just under it, SPARE MACHINES and LAST (laps left) in the top-left corner (in Training, LAST alone in the corner), the time with each lap's time under it in the top-right corner, and the **course map**, twice as big, at the bottom centre. The game draws the map only every other frame, so it blinks on the GBA; here it's held steady, with your dot moving every frame.
+- The game's **pause menu** stays on the game screen, with the HUD on the second screen.
+- On **YOU LOST** (after GIVE UP, after RANK OUT, or once a destroyed machine's wreck has been circled), the HUD stays on the second screen until A takes the game on to the results.
+- Everywhere else (the title and menus, the course name as a race fades in, the end of a race once the HUD's gone, while the camera circles a destroyed machine, the results) the second screen shows the logo, the title's lettering.
+- With one screen (`layout = single`), the HUD stays where the game draws it.
+- The USA / Europe, Japanese and Chinese releases have all been tried in Grand Prix and Training; the link-cable modes haven't.
+- As the game takes its HUD down, the HUD shows on the game screen for a single frame.
 
 ## Final Fantasy Tactics Advance
 

@@ -2318,7 +2318,7 @@ static void hud_make_logo_below(void) {
 	hudLogoBelowDone = true;
 	for (int i = 0; i < HUD_CW * HUD_CH; ++i) hudLogoBelow[i] = SCREEN_GREY;
 	int top = 0; /* below the HUD: its lowest row on the canvas */
-	for (int m = 0; m < 4; ++m) {
+	for (int m = 0; m < HUD_MOVES; ++m) {
 		const HudMove* mv = &hudProf->hud.moves[m];
 		if (mv->toGame && !mv->how && !mv->vhow && mv->x0 == 0 && mv->x1 >= GBA_W - 1 && mv->y0 > 0) top = mv->y0 * 2;
 	}
@@ -2661,11 +2661,11 @@ static void hud_compose(void) {
 	/* with a BG mosaic on (fading out through a pipe), the boxes' top and
 	 * bottom go to the blocks' edges: a block across a box's edge is drawn
 	 * from its first row, so it goes with the box above */
-	HudMove movesM[4];
+	HudMove movesM[HUD_MOVES];
 	const HudMove* moves = movesIn;
 	int mosV = ((emu_io16(&emu, 0x4C) >> 4) & 15) + 1;
 	if (movesIn && mosV > 1) {
-		for (int m = 0; m < 4; ++m) {
+		for (int m = 0; m < HUD_MOVES; ++m) {
 			movesM[m] = movesIn[m];
 			if (movesM[m].y0 > 0) movesM[m].y0 = (movesM[m].y0 + mosV - 1) / mosV * mosV;
 			if (movesM[m].y1 < GBA_H - 1) movesM[m].y1 = (movesM[m].y1 + mosV) / mosV * mosV - 1;
@@ -2681,10 +2681,10 @@ static void hud_compose(void) {
 			o[0] = o[1] = o[HUD_CW] = o[HUD_CW + 1] = mapTitle[y * GBA_W + x];
 		}
 	}
-	int moveDx[4] = { 0 }, moveDy[4] = { 0 };
-	bool moving[4] = { false };
-	int pieceLo[4] = { 0 }, pieceTop[4] = { 0 };
-	for (int m = 0; moves && m < 4; ++m) {
+	int moveDx[HUD_MOVES] = { 0 }, moveDy[HUD_MOVES] = { 0 };
+	bool moving[HUD_MOVES] = { false };
+	int pieceLo[HUD_MOVES] = { 0 }, pieceTop[HUD_MOVES] = { 0 };
+	for (int m = 0; moves && m < HUD_MOVES; ++m) {
 		const HudMove* mv = &moves[m];
 		if (!mv->how && !mv->vhow && !mv->toGame) continue;
 		if (mv->ifTile && !oam_has_tile(mv->ifTile)) continue;
@@ -2703,7 +2703,7 @@ static void hud_compose(void) {
 	}
 	/* `under`: below whatever stays in its corner (what's above its box in
 	 * its columns, outside the other moving pieces), lined up with it */
-	for (int m = 0; moves && m < 4; ++m) {
+	for (int m = 0; moves && m < HUD_MOVES; ++m) {
 		const HudMove* mv = &moves[m];
 		if (!moving[m] || !mv->under) continue;
 		int ulo = GBA_W, ubot = -1;
@@ -2711,7 +2711,7 @@ static void hud_compose(void) {
 			for (int x = SDL_max(mv->x0, 0); x <= SDL_min(mv->x1, GBA_W - 1); ++x) {
 				if ((hudPx[y * GBA_W + x] & 0xFFFFFF) == clear) continue;
 				bool other = false;
-				for (int k = 0; k < 4 && !other; ++k) {
+				for (int k = 0; k < HUD_MOVES && !other; ++k) {
 					const HudMove* o = &moves[k];
 					other = k != m && moving[k] && x >= o->x0 && x <= o->x1 && y >= o->y0 && y <= o->y1;
 				}
@@ -2726,7 +2726,7 @@ static void hud_compose(void) {
 			if ((c & 0xFFFFFF) == clear) continue;
 			int nx = x, ny = y;
 			bool toGame = false;
-			for (int m = 0; m < 4; ++m) {
+			for (int m = 0; m < HUD_MOVES; ++m) {
 				const HudMove* mv = &moves[m];
 				if (moving[m] && x >= mv->x0 && x <= mv->x1 && y >= mv->y0 && y <= mv->y1) {
 					nx = x + moveDx[m], ny = y + moveDy[m];
