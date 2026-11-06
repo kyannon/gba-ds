@@ -2033,28 +2033,38 @@ static const char* dbz_compose(Emu* s, const void* state, uint32_t* out, int w, 
  * from the live state at every capture (SELECT's menu, its third icon, A),
  * on the page of the brother in front (it opens on Mario's; R turns to
  * Luigi's).
- *   ML_SCREEN 0 walking about (the title, battles too), 1 SELECT's menu, 2 Bros. Info
- *     (until v1.4.11's test builds 0x02000C99, a scratch byte that held 1
- *     walking about on the first maps and flickered 0 / 1 on others, after
- *     a battle: the capture then took the field for the menu and failed)
+ *   ML_STATE, ML_MODE and the pairs after them: the game's screen and the
+ *     stack of scenes it's in, written only as they change (by the game's
+ *     scene code, the same on every map: walking about is set by the one
+ *     room setup, 0x08022FCC, with constants). ML_PAGE: the top scene.
+ *     (Until v1.4.11's test builds 0x02000C99: a DMA queue entry's transfer
+ *     count, which held 1 walking about on the first maps and flickered 0 /
+ *     1 on others, after a battle: the capture took the field for the menu
+ *     and failed there)
  *   ML_CURSOR the menu's icon (0 Items, 1 Equipment, 2 Bros. Info)
  */
-#define ML_SCREEN_FIELD 0
-#define ML_SCREEN_MENU 1
-#define ML_SCREEN_BROS 2
-#define ML_SCREEN 0x02000CDD
-#define ML_CURSOR 0x030040A9
 #define ML_STATE 0x02000008 /* 8 walking about (its menus too), 3 a battle, 2 the title */
+#define ML_MODE 0x02000009 /* with state 8: 21 walking about, 10 SELECT's menu opening, 26 the menus */
+#define ML_PAGE 0x0200000D /* in the menus: 9 SELECT's menu, 12 Bros. Info (Mario's page), 14 Luigi's */
+#define ML_WALKING 0x1508 /* ML_STATE and ML_MODE as a halfword, walking about */
+#define ML_CURSOR 0x030040A9
 #define ML_LEAD 0x02004F4C /* the brother in front: 0 Mario, 1 Luigi (START swaps) */
 #define ML_RESULTS 0x02036EB0 /* in a battle: 0 until its results (then a pointer, 0x0203xxxx) */
 /* BG3's tile map entries at the top right box's right edge (row 1,
  * column 29) and the bottom box's (row 18): palette 8 while a box is there */
 #define ML_BOX_TOP 0x0600F87A
 #define ML_BOX_BOTTOM 0x0600FC7A
+enum { ML_OTHER, ML_FIELD, ML_MENU, ML_BROS };
+static int ml_screen(Emu* s) {
+	if (emu_read16(s, ML_STATE) == ML_WALKING) return ML_FIELD;
+	if (emu_read8(s, ML_STATE) != 8 || emu_read8(s, ML_MODE) != 26) return ML_OTHER;
+	int page = emu_read8(s, ML_PAGE);
+	return page == 9 ? ML_MENU : page == 12 || page == 14 ? ML_BROS : ML_OTHER;
+}
 static bool ml_wait(Emu* s, int v, int max) {
 	for (int f = 0; f < max; ++f) {
 		emu_frame(s, 0);
-		if (emu_read8(s, ML_SCREEN) == v) return true;
+		if (ml_screen(s) == v) return true;
 	}
 	return false;
 }
@@ -2574,23 +2584,23 @@ static const char* ml_compose(Emu* s, const void* state, uint32_t* const* out, i
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
 	bool luigi = emu_read8(s, ML_LEAD) == 1;
-	int at = emu_read8(s, ML_SCREEN);
-	if (at == ML_SCREEN_FIELD) {
+	int at = ml_screen(s);
+	if (at == ML_FIELD) {
 		aw_tap(s, K_SELECT, 1);
-		/* (the menu's byte turns 1 some 50 frames on, as the suitcase opens) */
-		if (!ml_wait(s, ML_SCREEN_MENU, 90)) return "map button did nothing";
-		at = ML_SCREEN_MENU;
+		/* (the menu's scene some 50 frames on, as the suitcase opens) */
+		if (!ml_wait(s, ML_MENU, 90)) return "map button did nothing";
+		at = ML_MENU;
 	}
-	if (at == ML_SCREEN_MENU) {
-		aw_run(s, 0, 20); /* (past its opening: DOWN is taken 15 frames on) */
+	if (at == ML_MENU) {
+		aw_run(s, 0, 20); /* (past its opening: DOWN is taken 10 to 15 frames on) */
 		for (int i = 0; i < 8 && emu_read8(s, ML_CURSOR) != 2; ++i) {
 			aw_tap(s, emu_read8(s, ML_CURSOR) < 2 ? K_DOWN : K_UP, 1);
 			aw_run(s, 0, 4);
 		}
 		if (emu_read8(s, ML_CURSOR) != 2) return "Bros. Info not reached in the menu";
 		aw_tap(s, K_A, 1);
-		if (!ml_wait(s, ML_SCREEN_BROS, 90)) return "Bros. Info didn't open";
-	} else if (at != ML_SCREEN_BROS) {
+		if (!ml_wait(s, ML_BROS, 90)) return "Bros. Info didn't open";
+	} else if (at != ML_BROS) {
 		return "not walking about";
 	}
 	if (!ml_settle(s, 150)) return "Bros. Info didn't settle";
@@ -4524,7 +4534,7 @@ static const MapProfile profiles[] = {
 		.crop_h = GBA_H,
 		/* walking about: taken (about once a second); elsewhere (scenes,
 		 * conversations) the last picture stays */
-		.live = { { ML_STATE, 0xFF, 8, 1 }, { ML_SCREEN, 0xFF, ML_SCREEN_FIELD, 1 } },
+		.live = { { ML_STATE, 0xFFFF, ML_WALKING, 2 } },
 		/* a battle, the title: the logo (ML-1, ML-3) */
 		.menu = { { ML_STATE, 0xFF, 3, 1, true, 2 } },
 		/* the brothers swapped (START): taken again at once */

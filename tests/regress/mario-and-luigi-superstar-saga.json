@@ -608,6 +608,58 @@
    ]
   },
   {
+   "id": "ml-us-cruiser-deck",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-cruiser-deck.ss",
+   "desc": "walking about in another room of the Koopa Cruiser (room 0x13A, through the opening room's exit): Bros. Info taken",
+   "rules": [
+    "ML-2"
+   ],
+   "shots": {
+    "walking": 300
+   },
+   "checks": [
+    {
+     "rule": "ML-2",
+     "what": "Bros. Info taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ML-2",
+     "what": "no failed capture",
+     "type": "no_log",
+     "match": "capture failed"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-stardust-2",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-stardust-2.ss",
+   "desc": "walking about in another room of Stardust Fields (room 0x15, through an exit from the after-battle room): Bros. Info taken",
+   "rules": [
+    "ML-2"
+   ],
+   "shots": {
+    "walking": 300
+   },
+   "checks": [
+    {
+     "rule": "ML-2",
+     "what": "Bros. Info taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ML-2",
+     "what": "no failed capture",
+     "type": "no_log",
+     "match": "capture failed"
+    }
+   ]
+  },
+  {
    "id": "ml-logo-a88e",
    "kind": "logo",
    "rom": "A88E",
