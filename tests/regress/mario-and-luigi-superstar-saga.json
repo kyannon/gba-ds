@@ -522,6 +522,60 @@
    ]
   },
   {
+   "id": "ml-us-battle-damage-9870",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-battle-damage-9870.ss",
+   "desc": "Mario's jump on a Fighter Fly with the damage made 9870 (the game's damage value, 0x02009382, poked as it's worked out): all four digits stay on the game screen over the enemy",
+   "rules": [
+    "ML-5"
+   ],
+   "shots": {
+    "damage": 14
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "the meters at the top left of the second screen",
+     "type": "not_uniform",
+     "shot": "damage",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-battle-hit-luigi-6543",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-battle-hit-luigi-6543.ss",
+   "desc": "a Fighter Fly hitting Luigi with the damage made 6543 (0x02009AA2, poked as it's worked out): the four digits stay on the game screen by him, running off its left edge",
+   "rules": [
+    "ML-5"
+   ],
+   "shots": {
+    "hit": 22
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "no damage number at Luigi's place on the second screen",
+     "type": "uniform",
+     "shot": "hit",
+     "rect": [
+      32,
+      444,
+      131,
+      539
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
    "id": "ml-logo-a88e",
    "kind": "logo",
    "rom": "A88E",
