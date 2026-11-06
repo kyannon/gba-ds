@@ -183,6 +183,47 @@
    ]
   },
   {
+   "id": "hm-us-walk-to-road",
+   "rom": "A4NE",
+   "state": "harvest-moon-friends-of-mineral-town/us-farm.ss",
+   "desc": "walking from the farm up onto the road north of it (an area change at frames 300-380): the tries in the change fail at once, not backing off, and the road's map is up by frame 420",
+   "rules": [
+    "HM-1",
+    "HM-3"
+   ],
+   "input": [
+    [
+     10,
+     "RIGHT"
+    ],
+    [
+     160,
+     "UP"
+    ],
+    [
+     900,
+     "-"
+    ]
+   ],
+   "shots": {
+    "road": 420
+   },
+   "checks": [
+    {
+     "rule": "HM-1",
+     "what": "the transition's tries quick, no long failures",
+     "type": "no_log",
+     "match": "map screen did not appear"
+    },
+    {
+     "rule": "HM-1",
+     "what": "a map taken after the change",
+     "type": "log",
+     "match": "frame 3[89][0-9]: map updated"
+    }
+   ]
+  },
+  {
    "id": "hm-us-town-saved",
    "rom": "A4NE",
    "state": "harvest-moon-friends-of-mineral-town/us-town-saved.ss",
@@ -580,7 +621,7 @@
    "id": "hm-us-asleep-keeps",
    "rom": "A4NE",
    "state": "harvest-moon-friends-of-mineral-town/us-house.ss",
-   "desc": "the town map in the house, then (loaded) gone to bed, the screen black for the night, into the next morning: the last town map stays through the night; the next morning's within a few seconds (the night's failed tries back the captures off to every 8 seconds)",
+   "desc": "the town map in the house, then (loaded) gone to bed, the screen black for the night, into the next morning: the last town map stays through the night; the next morning's within half a second of the morning coming in (the night's tries fail at once, no backing off)",
    "rules": [
     "HM-1",
     "HM-3"
@@ -598,7 +639,7 @@
    "shots": {
     "before": 190,
     "night": 400,
-    "morning": 1500
+    "morning": 800
    },
    "checks": [
     {

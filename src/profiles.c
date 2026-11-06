@@ -2406,7 +2406,8 @@ static const char* ml_compose(Emu* s, const void* state, uint32_t* const* out, i
  * tile 204 in palette 6 (16x16 both; every release). */
 #define HM_MODE 0x02000012
 #define HM_MODE_TITLE 0x78
-#define HM_V_TITLE 0xF0000001 /* 1 on the title, its opening, the naming screens */
+#define HM_V_TITLE 0xF0000001 /* 1 on the title, its opening, the naming screens (mode 0x78; not 0,
+                                 * which an area change passes through for a frame) */
 #define HM_GLOVE_TILE 200
 #define HM_GLOVE_PAL 5
 #define HM_HEAD_TILE 204
@@ -2414,8 +2415,7 @@ static const char* ml_compose(Emu* s, const void* state, uint32_t* const* out, i
 #define HM_DRAWN 3 /* the frames drawn at the end of a capture */
 static uint32_t hm_virt(Emu* e, uint32_t addr) {
 	if (addr != HM_V_TITLE) return 0;
-	uint8_t m = emu_read8(e, HM_MODE);
-	return m == HM_MODE_TITLE || m == 0;
+	return emu_read8(e, HM_MODE) == HM_MODE_TITLE;
 }
 
 /* the town map is up: its display (window 1 on) and BG3, the map picture */
@@ -2461,10 +2461,19 @@ static const char* hm_compose(Emu* s, const void* state, uint32_t* out, int w, i
 	emu_frame_blind(s, 0);
 	/* (open in the game already: as it is, the glove moved back) */
 	if (!hm_map_up(s)) {
+		/* going from one area to the next (a mosaic out, the backgrounds
+		 * off while the next loads, a mosaic in: nearly 2 seconds walking)
+		 * the map won't open: a quick failure, which game.c retries at the
+		 * usual interval rather than backing off (HM-1) */
+		if (emu_io16(s, 0x4C) != 0 || !(emu_io16(s, 0x00) & 0x0F00)) return "map button did nothing";
 		emu_frame_blind(s, K_L);
 		emu_frame_blind(s, K_L);
 		emu_frame_blind(s, K_L | K_START);
 		emu_frame_blind(s, K_L | K_START);
+		/* the map's mosaic starts 2 frames after L+START; nothing by 6 is
+		 * a conversation, an event, a menu: quick, as above (HM-3) */
+		for (int i = 0; i < 6 && emu_io16(s, 0x4C) == 0 && !hm_map_up(s); ++i) emu_frame_blind(s, 0);
+		if (emu_io16(s, 0x4C) == 0 && !hm_map_up(s)) return "map button did nothing";
 	}
 	/* a mosaic out, the map built, a mosaic in (about 70 frames), undrawn:
 	 * the glove takes no input before the mosaic's end */
