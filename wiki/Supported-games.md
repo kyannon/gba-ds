@@ -38,6 +38,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Tactics Ogre: The Knight of Lodis (Tactics Ogre Gaiden in Japan) | `ATOE` `ATOJ` (no European release) | the battle's unit list, on the unit under your cursor |
 | Tony Hawk's Pro Skater 2 (SK8 in Japan) | `ATHE` (USA and Europe) `ATHF` `ATHD` `ATHJ` | the goal sheet for the current run |
 | Tony Hawk's Pro Skater 3 | `AT3E` (USA and Europe) `AT3F` `AT3D` | the goal list; optional four-button layout |
+| Yu-Gi-Oh! The Eternal Duelist Soul (Yu-Gi-Oh! Duel Monsters 5 Expert 1 in Japan) | `AY5E` `AY5J` | Card View of the card under the cursor |
 | Zoids: Legacy (Zoids Saga II in Japan) | `AZ2E` `AZ2J` (no European release) | the map screen; in battles, the Status of the Zoid choosing |
 
 The codes are what `<CODE>` means in logo and overlay file names (see [Playing](Playing#logos) and [[Map screen surrounds and overlays]]).
@@ -346,6 +347,15 @@ The USA and Japanese (Tactics Ogre Gaiden) releases have both been tried.
 
 - **During a run** the second screen shows the level's goal list (the pause menu's View Goals), on black, brought up in the background like the other games' maps and kept up to date as you go; the game is never paused. Back at the menus, it shows the logo again.
 - The four-button layout under **Controls**: GBA, Four buttons, or Auto (four buttons while skating), as for Tony Hawk's Pro Skater 2.
+
+## Yu-Gi-Oh! The Eternal Duelist Soul
+
+The USA release and the Japanese original (Yu-Gi-Oh! Duel Monsters 5 Expert 1, which draws its screens differently). Tried in Campaign duels, Deck Edit, Card Trading and the cards won after a duel; Link Battle hasn't been tried.
+
+- **In a duel,** the second screen shows the **Card View** of the card under your cursor: its picture, name, type and text, as the game shows it when you choose Card View. Your hand, your cards on the field and the opponent's face-up cards; it follows the cursor as you move it. It's brought up in the background on a silent copy of the game; your game is never paused or touched.
+- **In the Graveyard and other card lists, Deck Edit (the Deck screen in Japan), Card Trading's choice of a card and the list of cards you've won,** the same: the card under the cursor.
+- Where there's nothing to look at (an empty zone, a pile, a face-down card of the opponent's, the opponent's turn), the last card stays.
+- On the title screen, the menus, the conversations and the other screens, the second screen shows the logo.
 
 ## Zoids: Legacy
 

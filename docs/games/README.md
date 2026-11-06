@@ -40,6 +40,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Lady Sia](lady-sia.md) | LS | `ALDE` + 1 |
 | [Zoids: Legacy (Zoids Saga II in Japan)](zoids-legacy.md) | ZL | `AZ2E` + 1 |
 | [Harvest Moon: Friends of Mineral Town (Bokujou Monogatari: Mineral Town no Nakama-tachi in Japan)](harvest-moon-friends-of-mineral-town.md) | HM | `A4NE` + 3 |
+| [Yu-Gi-Oh! The Eternal Duelist Soul (Yu-Gi-Oh! Duel Monsters 5 Expert 1 in Japan)](yu-gi-oh-the-eternal-duelist-soul.md) | EDS | `AY5E` + 1 |
 
 ## General rules
 
