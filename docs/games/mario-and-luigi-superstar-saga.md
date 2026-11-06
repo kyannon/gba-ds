@@ -4,6 +4,7 @@
 |---|---|
 | Releases | `A88E` USA · `A88P` Europe (English, French, German, Spanish, Italian) · `A88J` Japan (Mario & Luigi RPG) |
 | Dumps | `A88E` cartridge `e718d850` (tested), Virtual Console `f87ea3c3` · `A88P` cartridge `170cc574` (tested), Virtual Console `6a5bd4f0` · `A88J` cartridge `4ef93d41` (tested), Virtual Console `bee3055a` |
+| Mods | `A88E` Superstar Saga+ v1.5 (100%) `ba4791f4` (tested), Superstar Saga+ v1.5 (80%) `10edf89c`, Superstar Saga+ v1.5 (60%) `e9f4ab5e` |
 | Profile | `src/profiles.c`: the `A88E` entry (`ml_compose`); variants `A88P` (its language menu), `A88J` |
 | Tests | `tests/regress/mario-and-luigi-superstar-saga.json` (`tools/regress.py mario-and-luigi-superstar-saga`) |
 | Status | supported |
@@ -21,6 +22,8 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 **ML-3. Elsewhere.** In a battle, the second screen shows the logo (Bros. Info again once you're walking about after it). In scenes, conversations and the game's own menus it keeps the last picture. Nothing leaves the game screen.
 
 **ML-4. One screen.** With one screen, the game plays as it is.
+
+**ML-5. Superstar Saga+.** Superstar Saga+ (v1.5 by its 100%, 80% and 60% patches for the USA release, from GameBanana) plays the same as the game: ML-1 to ML-4 hold, with the mod's own names and numbers on Bros. Info (its items renamed, its experience). A save state made on the unchanged game shouldn't be loaded into the mod, or the other way round: the mod's text has moved, so a conversation in progress comes out garbled. Battery saves aren't affected.
 
 ## Not covered yet
 

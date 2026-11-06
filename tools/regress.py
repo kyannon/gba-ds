@@ -104,19 +104,19 @@ def dump_error(case, rom):
     if rules not in _testedDumps:
         tested = None
         for line in open(os.path.join(ROOT, rules), encoding="utf-8"):
-            if line.startswith("| Dumps |"):
-                tested = {}
+            if line.startswith("| Dumps |") or line.startswith("| Mods |"):
+                tested = tested if tested is not None else {}
                 for part in line.split(" · "):
                     m = re.search(r"`([A-Z0-9]{4})`", part)
                     if m:
-                        tested[m.group(1)] = set(re.findall(r"`([0-9a-f]{8})` \(tested\)", part))
+                        tested.setdefault(m.group(1), set()).update(re.findall(r"`([0-9a-f]{8})` \(tested\)", part))
         _testedDumps[rules] = tested
     tested = _testedDumps[rules]
     if tested is None:
         return None
     with zipfile.ZipFile(rom) as z:
         crcs = ["%08x" % i.CRC for i in z.infolist() if i.filename.lower().endswith(".gba")]
-    if crcs and crcs[0] in tested.get(case["rom"], set()):
+    if crcs and crcs[0] in tested.get(case["rom"][:4], set()):  # (a mod's: CODE+mod)
         return None
     return "fixture roms/%s.zip (CRC32 %s) isn't the tested dump in %s's Dumps row (a patched ROM? tools/make_dumps.py)" % (
         case["rom"], crcs[0] if crcs else "?", rules)

@@ -203,6 +203,7 @@ The USA, European and Japanese (Mario & Luigi RPG) releases.
 - **Walking about,** the second screen is the **Bros. Info** screen (SELECT's menu, the third icon), as the game draws it, filling the screen: the page of the brother you're controlling, the one in front. Swap them with START and the page follows within a moment. It's opened in the background in a silent copy of the game about once a second; your game is never paused.
 - In battles and on the title, the second screen shows the logo; in scenes, conversations and the game's own menus it keeps its picture.
 - Not tried yet: later areas, and the European and Japanese releases beyond their titles.
+- **Superstar Saga+** (the romhack, v1.5: its 100%, 80% and 60% patches for the USA release) works the same, with the mod's own item names and numbers on Bros. Info. Don't load a save state made on the unchanged game into the mod, or the other way round: a conversation in progress comes out garbled. Battery saves are fine.
 
 ## Metroid: Zero Mission and Metroid Fusion
 

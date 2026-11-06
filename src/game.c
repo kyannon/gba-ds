@@ -814,6 +814,8 @@ static const char* dump_text(char* buf, size_t n) {
 	switch (profile_dump(emu.gameCode, emu.romCrc, &name)) {
 	case DUMP_TESTED: snprintf(buf, n, "CRC32 %08x, the dump GBA DS is tested on (%s)", emu.romCrc, name); break;
 	case DUMP_OFFICIAL: snprintf(buf, n, "CRC32 %08x, an official dump GBA DS isn't tested on (%s)", emu.romCrc, name); break;
+	case DUMP_MOD_TESTED: snprintf(buf, n, "CRC32 %08x, a mod GBA DS is tested on (%s)", emu.romCrc, name); break;
+	case DUMP_MOD: snprintf(buf, n, "CRC32 %08x, a known mod GBA DS isn't tested on (%s)", emu.romCrc, name); break;
 	case DUMP_MODIFIED:
 		snprintf(buf, n, "CRC32 %08x, not a known dump of %.4s: modified (a patch or hack), trimmed or a bad dump", emu.romCrc,
 		         emu.gameCode);

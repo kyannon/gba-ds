@@ -312,6 +312,240 @@
    "golden": [
     "logo"
    ]
+  },
+  {
+   "id": "mlp-us-title",
+   "rom": "A88E+mlssplus-100",
+   "state": "mario-and-luigi-superstar-saga/us-title.ss",
+   "desc": "Superstar Saga+ (100%), the title: the logo (the game's own state, loaded into the mod)",
+   "rules": [
+    "ML-1",
+    "ML-5"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "ML-1",
+     "what": "no capture",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ML-5",
+     "what": "GBA DS knows the mod",
+     "type": "log",
+     "match": "ROM: CRC32 ba4791f4, a mod GBA DS is tested on \\(Superstar Saga\\+ v1\\.5 \\(100%\\)\\)"
+    }
+   ]
+  },
+  {
+   "id": "mlp-us-field",
+   "rom": "A88E+mlssplus-100",
+   "state": "mario-and-luigi-superstar-saga/us-field.ss",
+   "desc": "Superstar Saga+ (100%), walking about: Bros. Info with the mod's names and numbers, following the brother in front (the game's own state, loaded into the mod)",
+   "rules": [
+    "ML-2",
+    "ML-5"
+   ],
+   "shots": {
+    "mario": 100,
+    "luigi": 260,
+    "mario2": 510
+   },
+   "checks": [
+    {
+     "rule": "ML-2",
+     "what": "Bros. Info taken, one page",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "ML-2",
+     "what": "the page follows the brother in front",
+     "type": "differs",
+     "a": {
+      "shot": "mario",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "luigi",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.05
+    },
+    {
+     "rule": "ML-2",
+     "what": "and back",
+     "type": "same",
+     "a": {
+      "shot": "mario",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "mario2",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     }
+    }
+   ],
+   "input": [
+    [
+     150,
+     "START"
+    ],
+    [
+     154,
+     "-"
+    ],
+    [
+     400,
+     "START"
+    ],
+    [
+     404,
+     "-"
+    ]
+   ]
+  },
+  {
+   "id": "mlp-us-into-battle",
+   "rom": "A88E+mlssplus-100",
+   "state": "mario-and-luigi-superstar-saga/us-into-battle.ss",
+   "desc": "Superstar Saga+ (100%), walking about into a battle: Bros. Info, then the logo (the game's own state, loaded into the mod)",
+   "rules": [
+    "ML-2",
+    "ML-3",
+    "ML-5"
+   ],
+   "input": [
+    [
+     0,
+     "RIGHT"
+    ],
+    [
+     5,
+     "RIGHT+DOWN"
+    ],
+    [
+     7,
+     "DOWN"
+    ],
+    [
+     17,
+     "A+DOWN"
+    ],
+    [
+     23,
+     "A"
+    ],
+    [
+     27,
+     "-"
+    ],
+    [
+     44,
+     "A"
+    ],
+    [
+     52,
+     "-"
+    ],
+    [
+     73,
+     "A"
+    ],
+    [
+     81,
+     "-"
+    ],
+    [
+     94,
+     "A"
+    ],
+    [
+     104,
+     "-"
+    ],
+    [
+     203,
+     "UP"
+    ],
+    [
+     220,
+     "-"
+    ],
+    [
+     247,
+     "A"
+    ],
+    [
+     266,
+     "-"
+    ],
+    [
+     456,
+     "A"
+    ],
+    [
+     465,
+     "-"
+    ],
+    [
+     479,
+     "A"
+    ],
+    [
+     487,
+     "-"
+    ],
+    [
+     511,
+     "A"
+    ],
+    [
+     518,
+     "-"
+    ]
+   ],
+   "shots": {
+    "walking": 200,
+    "battle": 560
+   }
+  },
+  {
+   "id": "mlp-logo",
+   "kind": "logo",
+   "rom": "A88E+mlssplus-100",
+   "desc": "Superstar Saga+ (100%) logo extraction",
+   "rules": [
+    "GEN-1",
+    "ML-1",
+    "ML-5"
+   ],
+   "golden": [
+    "logo"
+   ]
   }
  ]
 }

@@ -713,9 +713,11 @@ typedef enum {
 	DUMP_UNLISTED, /* a release with no list of dumps (no profile): not checked */
 	DUMP_TESTED, /* the dump the regression tests run on */
 	DUMP_OFFICIAL, /* another official dump (a revision, Virtual Console...), untested */
+	DUMP_MOD_TESTED, /* a mod the tests run on (the rules files' Mods rows) */
+	DUMP_MOD, /* another known mod, untested */
 	DUMP_MODIFIED, /* none of them: patched, hacked, trimmed or a bad dump */
 } DumpKind;
-/* name: No-Intro's name of the dump (NULL unless tested or official) */
+/* name: No-Intro's name of the dump, or the mod's (NULL when not known) */
 DumpKind profile_dump(const char* gameCode, uint32_t crc, const char** name);
 bool memprobes_match(const MemProbe* list, int n, Emu* e);
 /* the profile's virt (set when a game's map capture starts): MemProbe

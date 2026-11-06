@@ -9,6 +9,7 @@
 - **Harvest Moon: Friends of Mineral Town** (USA, Europe, Germany and Japan): walking about, the second screen is the town map (the one L+START opens), updated twice a second: your head where you are, your dog's, the clock with the date and weather, and the text under the map saying which part of the valley you're in. In conversations, events and the game's menus it keeps its last picture; on the title, the logo, the title's wooden sign. Tried on the farm, the road north of it and in town; the mine and festivals haven't been tried yet.
 
 ### Changes
+- **Mario & Luigi: Superstar Saga+** (v1.5 of the romhack, its 100%, 80% and 60% versions, patched onto the USA release) works as the game does: Bros. Info walking about, with the mod's own item names and numbers, and the logo on the title and in battles. GBA DS knows it as that mod (bug reports say so). Save states don't carry between the unchanged game and the mod: a conversation in progress comes out garbled.
 - **Sonic Advance:** tried in every zone, with every character, in the act's results, pause and the bosses (the European release): no changes needed.
 - **The first run is much quicker to get going:** the game list makes the selected game's logo first, then the others on screen, and starting a game waits only for that game's own logo (and map border), not for every game's. The rest are made while you're in the game list, and wait while you play.
 

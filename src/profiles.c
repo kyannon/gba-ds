@@ -4970,6 +4970,7 @@ typedef struct {
 	char code[5];
 	uint32_t crc;
 	bool tested;
+	bool mod; /* a romhack or patch (a Mods row), not one of No-Intro's dumps */
 	const char* name;
 } KnownDump;
 #include "dumps_data.h"
@@ -4982,6 +4983,7 @@ DumpKind profile_dump(const char* gameCode, uint32_t crc, const char** name) {
 		listed = true;
 		if (knownDumps[i].crc != crc) continue;
 		if (name) *name = knownDumps[i].name;
+		if (knownDumps[i].mod) return knownDumps[i].tested ? DUMP_MOD_TESTED : DUMP_MOD;
 		return knownDumps[i].tested ? DUMP_TESTED : DUMP_OFFICIAL;
 	}
 	return listed ? DUMP_MODIFIED : DUMP_UNLISTED;

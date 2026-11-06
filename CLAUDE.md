@@ -209,9 +209,13 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   --dat DAT`: every official dump of each release by CRC32, from No-Intro's
   list in libretro-database (fetched with git, see the tool), the fixtures'
   marked tested; re-run it when a Releases row changes or a game is added,
-  including at a game branch's merge). At start the app logs `ROM: CRC32 ...`
-  (the tested dump, another official one, or modified), and bug reports'
-  info.txt has it as `ROM dump:` (`profile_dump`).
+  including at a game branch's merge; a rules file's hand-written Mods row,
+  romhacks known to work, goes into the table too). At start the app logs
+  `ROM: CRC32 ...` (the tested dump, another official one, a known mod, or
+  modified), and bug reports' info.txt has it as `ROM dump:`
+  (`profile_dump`). Romhack support (issue #17) is worked on in the branch
+  `patch-support`; a mod's fixture is `roms/CODE+mod.zip`
+  (docs/games/README.md, "Releases and dumps").
 
 ## Testing without the device
 
