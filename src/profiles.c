@@ -648,6 +648,12 @@ static const char* gbw_pick(Emu* e) {
 	return g == 1 ? "BGW1" : g == 2 ? "BGW2" : NULL;
 }
 
+/* Super Mario Advance 4 (USA): a revision after the first (the ROM
+ * header's version byte) keeps its RAM as Europe and Japan do: AX4R */
+static const char* sma4_pick(Emu* e) {
+	return emu_read8(e, 0x080000BC) ? "AX4R" : NULL;
+}
+
 /* -------------------------------------------------- Summon Night: Swordcraft Story
  *
  * The second screen is the Status screen (START > Status), the whole
@@ -2319,6 +2325,228 @@ static const char* eds_compose_jp(Emu* s, const void* state, uint32_t* out, int 
 	return eds_compose_for(&edsJP, s, state, out, w, h);
 }
 
+/* ---------------------------------------------------------- Zoids: Legacy
+ *
+ * The second screen, from zl_compose on the hidden copy:
+ *  - walking about (ZL-1): the map screen (SELECT), whole, its marker's
+ *    spin a loop of 16 frames, without the line in the box under it (the
+ *    game's prompt) or the town list's cursor (captureHide);
+ *  - in the past (ZL-7), where SELECT says the map can't be seen: that
+ *    message's text box alone (BG3), once it's written out, in the middle
+ *    on dark grey;
+ *  - a Zoid choosing in a battle (ZL-8): its Status (R), whole.
+ * While a battle plays out (ZL-3) the logo (combat), and what was shown
+ * before is forgotten (menu). What the game is doing comes from zl_virt:
+ * a mode byte (2 in the story's battles, 1 its scenes) and the place byte
+ * 3 after it (0 on the title), a word that's the battle's task list in
+ * every battle, the menu window up (0x03005E00) and the map Zeru is on;
+ * the map screen is told by its pixels. (The routine in front, a word in
+ * one of the game's task slots, isn't used: after RESUME A GAME that slot
+ * keeps the title's.) Each release's addresses: ZlRegion. */
+typedef struct {
+	char region;
+	uint32_t mode;   /* the mode byte; the place 3 after it */
+	uint32_t battle; /* holds ZL_BATTLE_ON through every battle */
+	uint32_t mapNo;  /* the map Zeru is on (a halfword) */
+	uint8_t zoidW;   /* a Zoid's menu's width (its window at 00 11) */
+} ZlRegion;
+#define ZL_WINDOW 0x03005E00 /* the menu window up: x, y, 00 06, width, height (16 bits) */
+#define ZL_BATTLE_ON 0x03005B74
+static const ZlRegion zlRegions[] = {
+	{ 'E', 0x02030664, 0x02032E8C, 0x0202ECF4, 10 },
+	/* (the mode byte and the map number by romxref; the battle's word near
+	 * the USA's, checked in its battles) */
+	{ 'J', 0x0202FDB0, 0x02032584, 0x0202E4C0, 8 },
+};
+static const ZlRegion* zl_r(Emu* e) {
+	return &zlRegions[e->gameCode[3] == 'J' ? 1 : 0];
+}
+#define ZL_V_LIVE 0xF0000060   /* 1 where a picture is taken: walking about (ZL_V_FREE) or a Zoid choosing */
+#define ZL_V_MAP 0xF0000061    /* 1 with the map screen up */
+#define ZL_V_FORGET 0xF0000062 /* 1 on the title, or a battle playing out: what was shown goes (ZL-3, ZL-4) */
+#define ZL_V_PLAYOUT 0xF0000063 /* 1 in a battle, no Zoid choosing: the logo (ZL-3) */
+#define ZL_V_PLACE 0xF0000064  /* the byte 3 after the mode: changes with the place (ZL-1's early capture) */
+#define ZL_V_MAPNO 0xF0000065  /* the map Zeru is on (ZL-7's early capture) */
+#define ZL_V_CHOOSE 0xF0000066 /* 1 with a Zoid choosing (ZL-8) */
+/* the past (ZL-7), where the game has no map: the Past Overworld (map 64)
+ * and the Empire Capital there (58 to 62: its streets and buildings; the
+ * same numbers in both releases) */
+static bool zl_past(Emu* e) {
+	uint16_t m = emu_read16(e, zl_r(e)->mapNo);
+	return m == 64 || (m >= 58 && m <= 62);
+}
+static bool zl_battle(Emu* e) {
+	const ZlRegion* r = zl_r(e);
+	return emu_read32(e, r->battle) == ZL_BATTLE_ON || emu_read8(e, r->mode) == 2;
+}
+/* the window up is one of choosing a Zoid's move (ZL-8): its menu, or the
+ * turn's own in random battles (both at 00 11; so is the story's battles'
+ * opening menu, in Japan as wide as a Zoid's: a byte, 1 at every opening
+ * menu, 0 at the others, tells it apart), the turn's menu in the story's,
+ * the weapons, Decide/Cancel, the Status */
+#define ZL_OPENING 0x0300567E
+static bool zl_choose_window(Emu* e) {
+	uint8_t x = emu_read8(e, ZL_WINDOW), y = emu_read8(e, ZL_WINDOW + 1);
+	return (x == 0x00 && y == 0x11 && emu_read8(e, ZL_OPENING) == 0) || (x == 0x40 && y == 0x11) || (x == 0x42 && y == 0x1A) ||
+	       (x == 0x42 && y == 0x18) || (x == 0x16 && y == 0x19) || (x == 0x1E && y == 0x13);
+}
+static bool zl_choosing(Emu* e) {
+	return zl_battle(e) && zl_choose_window(e);
+}
+/* the title and its menu: no battle, the mode and the place 0 (walking
+ * about the place is set; name entry and the opening are scenes, mode 1) */
+static bool zl_title(Emu* e) {
+	const ZlRegion* r = zl_r(e);
+	return !zl_battle(e) && emu_read8(e, r->mode) == 0 && emu_read8(e, r->mode + 3) == 0;
+}
+/* walking about: no battle, no story scene, not the title */
+static bool zl_free(Emu* e) {
+	return !zl_battle(e) && emu_read8(e, zl_r(e)->mode) == 0 && !zl_title(e);
+}
+static bool zl_map_up(Emu* s);
+static uint32_t zl_virt(Emu* e, uint32_t addr) {
+	const ZlRegion* r = zl_r(e);
+	switch (addr) {
+	case ZL_V_LIVE: return zl_free(e) || zl_choosing(e);
+	case ZL_V_MAP: return zl_map_up(e);
+	case ZL_V_FORGET: return zl_title(e) || (zl_battle(e) && !zl_choosing(e));
+	case ZL_V_PLAYOUT: return zl_battle(e) && !zl_choosing(e);
+	case ZL_V_PLACE: return emu_read8(e, r->mode + 3);
+	case ZL_V_MAPNO: return emu_read16(e, r->mapNo);
+	case ZL_V_CHOOSE: return zl_choosing(e);
+	}
+	return 0;
+}
+
+/* the map screen's fixed pixels (ZL-1): the panels' dark edges, the list's
+ * and the box's light green at their right ends (clear of any town's
+ * name), the sea at the map's top corners: the same in both releases */
+static const Probe zlMap[8] = { { 239, 0, 0x424242 }, { 129, 0, 0x424242 }, { 128, 128, 0x424242 }, { 238, 60, 0xE7F7D6 },
+                                { 238, 120, 0xE7F7D6 }, { 235, 140, 0xE7F7D6 }, { 2, 2, 0x004AFF }, { 126, 2, 0x004AFF } };
+#define ZL_BOX_FILL 0xE7F7D6 /* the boxes' light green */
+static bool zl_map_up(Emu* s) {
+	return som_probes(s, zlMap, 8, 7, 8);
+}
+static void zl_copy(Emu* s, uint32_t* out, int w, int h) {
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+}
+/* (0xRRGGBB to the frame buffer's bytes R, G, B) */
+static uint32_t zl_px(uint32_t rgb) {
+	return 0xFF000000u | (rgb >> 16 & 0xFF) | (rgb & 0xFF00) | (rgb & 0xFF) << 16;
+}
+
+/* ZL-1: the map, 16 frames 3 apart (the marker's spin), the box under the
+ * list emptied: inside its edges (x 2-237, rows 131-158) the light green */
+static const char* zl_map(Emu* s, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+	if (zl_map_up(s)) return "screen already looks like the map"; /* (open in the game: ZL-2) */
+	aw_run(s, K_SELECT, 4);
+	int f = 0;
+	while (f < 60 && !zl_map_up(s)) emu_frame(s, 0), ++f;
+	if (!zl_map_up(s)) return "map screen did not appear";
+	aw_run(s, 0, 6); /* (drawn at once; a few frames for the sprites) */
+	if (emu_cancelled(s)) return "called off";
+	int n = *nOut < 16 ? *nOut : 16;
+	for (int i = 0; i < n; ++i) {
+		if (i) aw_run(s, 0, 3);
+		if (!zl_map_up(s)) return "the map closed";
+		zl_copy(s, out[i], w, h);
+		for (int y = 131; y <= 158 && y < h; ++y)
+			for (int x = 2; x <= 237 && x < w; ++x) out[i][y * w + x] = zl_px(ZL_BOX_FILL);
+	}
+	*nOut = n;
+	*step = 3;
+	return NULL;
+}
+
+/* the arrow at the end of a written-out message: a sprite, tile 1001 */
+static bool zl_arrow(Emu* s) {
+	for (int i = 0; i < 128; ++i) {
+		uint16_t a0 = emu_read16(s, 0x07000000 + i * 8), a2 = emu_read16(s, 0x07000004 + i * 8);
+		if ((a0 & 0x0300) != 0x0200 && (a0 & 0xFF) < 160 && (a2 & 0x3FF) == 1001) return true;
+	}
+	return false;
+}
+/* ZL-7: SELECT in the past brings up the game's message; once it's written
+ * out (its arrow up), its box (BG3, rows 96-159, the whole width; the
+ * arrow a sprite) alone, in the middle on dark grey */
+#define ZL_MSG_Y 96
+#define ZL_MSG_H 64
+static const char* zl_message(Emu* s, uint32_t* out, int w, int h) {
+	aw_run(s, K_SELECT, 4);
+	int f = 0;
+	while (f < 300 && !zl_arrow(s)) emu_frame_blind(s, 0), ++f;
+	if (!zl_arrow(s)) return "the message didn't come up";
+	if (emu_cancelled(s)) return "called off";
+	/* (its frame's edges: dark grey at the top rows, then grey, then the
+	 * light green) */
+	void* st = malloc(emu_state_size(s));
+	if (!st) return "out of memory";
+	if (!emu_state_save(s, st)) {
+		free(st);
+		return "state save failed";
+	}
+	emu_layers(s, 0x08);
+	emu_state_load(s, st);
+	emu_frame(s, 0);
+	static const Probe box[4] = { { 120, ZL_MSG_Y, 0x424242 }, { 120, ZL_MSG_Y + 2, 0x8C8C84 }, { 120, ZL_MSG_Y + 3, 0xE7F7D6 },
+	                              { 238, ZL_MSG_Y + 40, 0xE7F7D6 } };
+	bool ok = som_probes(s, box, 4, 4, 8);
+	for (int i = 0; i < w * h; ++i) out[i] = SCREEN_GREY;
+	int y0 = (h - ZL_MSG_H) / 2, x0 = (w - GBA_W) / 2;
+	for (int y = 0; ok && y < ZL_MSG_H; ++y) {
+		if (y0 + y < 0 || y0 + y >= h) continue;
+		for (int x = 0; x < GBA_W; ++x)
+			if (x0 + x >= 0 && x0 + x < w) out[(y0 + y) * w + x0 + x] = s->fb[(ZL_MSG_Y + y) * GBA_W + x] | 0xFF000000;
+	}
+	emu_layers(s, 0x1F);
+	emu_state_load(s, st);
+	free(st);
+	return ok ? NULL : "not the message box";
+}
+
+/* ZL-8: the Status (R) of the Zoid choosing. The window at ZL_WINDOW is the
+ * last one opened, not the one up: B from the Status back to the Zoid's menu
+ * leaves it 1E 13 (and B from Decide leaves 16 19). The Status is up when
+ * that's 1E 13 and BG0 is scrolled to its rows (BG0VOFS 0x181; 0x68 at the
+ * menus). So: R; if no Status comes up (in the weapons or Decide), B and R
+ * again, a few times; B at a Zoid's menu does nothing */
+#define ZL_STATUS_VOFS 0x181
+static bool zl_status_up(Emu* s) {
+	return emu_read8(s, ZL_WINDOW) == 0x1E && emu_read8(s, ZL_WINDOW + 1) == 0x13 &&
+	       (emu_io16(s, 0x12) & 0x1FF) == ZL_STATUS_VOFS;
+}
+static const char* zl_status(Emu* s, uint32_t* out, int w, int h) {
+	for (int i = 0; i < 5 && !zl_status_up(s); ++i) {
+		if (i) {
+			aw_tap(s, K_B, 1);
+			aw_run(s, 0, 12);
+		}
+		aw_run(s, K_R, 4);
+		int f = 0;
+		while (f < 14 && !zl_status_up(s)) emu_frame_blind(s, 0), ++f;
+		if (emu_cancelled(s)) return "called off";
+	}
+	if (!zl_status_up(s)) return "R didn't bring up a Status";
+	aw_run(s, 0, 16); /* (its numbers and the Zoid drawn) */
+	if (emu_cancelled(s)) return "called off";
+	if (!zl_status_up(s)) return "the Status closed";
+	zl_copy(s, out, w, h);
+	return NULL;
+}
+
+static const char* zl_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+	int max = *nOut;
+	*nOut = 1;
+	*step = 1;
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	if (zl_battle(s)) return zl_choosing(s) ? zl_status(s, out[0], w, h) : "the battle playing out";
+	if (!zl_free(s)) return "not walking about";
+	if (zl_past(s)) return zl_message(s, out[0], w, h);
+	*nOut = max;
+	return zl_map(s, out, nOut, step, w, h);
+}
+
 /* Bros. Info's frame, the same on both brothers' pages (its leather edges,
  * the ring's rim, the plaid, the boxes): not the field or the menu */
 static const Probe mlBrosInfo[8] = { { 10, 150, 0x6B8C73 }, { 4, 80, 0x633921 }, { 235, 80, 0x7B736B }, { 120, 157, 0xBDC6B5 },
@@ -2372,6 +2600,130 @@ static const char* ml_compose(Emu* s, const void* state, uint32_t* const* out, i
 		}
 	}
 	return "Luigi's page didn't come up";
+}
+
+/* ---------------------------------------------------------- Harvest Moon: Friends of Mineral Town
+ *
+ * The second screen (HM-1, HM-2): the town map (L+START), opened on the
+ * shadow core from the live state at every capture, its pointing glove
+ * moved onto the player's head (so the text box under the map says which
+ * part of the valley that is) and then left out of the picture. Where L+START
+ * opens nothing (a conversation, an event, a menu), the capture fails and the
+ * last map stays (HM-3).
+ *
+ * HM_MODE is the game's mode (0x78 from the opening through the title and
+ * the naming screens, 0 at power-on; walking about 0x37, other values in
+ * scenes). The game's own data (the clock, money, the area number) sits
+ * 0x2834 higher once a battery save has been loaded, so nothing here reads
+ * it. The map's sprites: the glove tile 200 in palette 5, the player's head
+ * tile 204 in palette 6 (16x16 both; every release). */
+#define HM_MODE 0x02000012
+#define HM_MODE_TITLE 0x78
+#define HM_V_TITLE 0xF0000001 /* 1 on the title, its opening, the naming screens (mode 0x78; not 0,
+                                 * which an area change passes through for a frame) */
+#define HM_GLOVE_TILE 200
+#define HM_GLOVE_PAL 5
+#define HM_HEAD_TILE 204
+#define HM_HEAD_PAL 6
+#define HM_DRAWN 3 /* the frames drawn at the end of a capture */
+static uint32_t hm_virt(Emu* e, uint32_t addr) {
+	if (addr != HM_V_TITLE) return 0;
+	return emu_read8(e, HM_MODE) == HM_MODE_TITLE;
+}
+
+/* the town map is up: its display (window 1 on) and BG3, the map picture */
+static bool hm_map_up(Emu* s) {
+	return emu_io16(s, 0x00) == 0x7F40 && emu_io16(s, 0x0E) == 0x1E40;
+}
+
+/* the first shown sprite with this tile and palette: its x, y */
+static bool hm_find(Emu* s, int tile, int pal, int* x, int* y) {
+	static uint16_t oam[512];
+	emu_oam_read(s, oam);
+	for (int i = 0; i < 128; ++i) {
+		uint16_t a0 = oam[i * 4], a1 = oam[i * 4 + 1], a2 = oam[i * 4 + 2];
+		if ((a0 & 0x0300) == 0x0200 || (a2 & 0x3FF) != tile || (a2 >> 12) != pal) continue;
+		*x = a1 & 0x1FF, *y = a0 & 0xFF;
+		if (*x >= 256) *x -= 512;
+		if (*y >= 160) *y -= 256;
+		return true;
+	}
+	return false;
+}
+
+/* the glove's fingertip, 24.8 x then y, is kept in a word pair whose place
+ * isn't fixed (0x02005B68 in a new game, 0x02002620 in one continued from
+ * a save): found by its value, the fingertip under the glove sprite */
+static uint32_t hm_glove_var(Emu* s, int gx, int gy) {
+	size_t n = 0;
+	const uint8_t* ram = emu_memory(s, 2, &n);
+	if (!ram) return 0;
+	uint32_t want_x = (uint32_t)(gx + 15) << 8, want_y = (uint32_t)(gy + 5) << 8;
+	for (size_t i = 0; i + 8 <= n; i += 4) {
+		uint32_t x, y;
+		memcpy(&x, ram + i, 4);
+		if (x != want_x) continue;
+		memcpy(&y, ram + i + 4, 4);
+		if (y == want_y) return 0x02000000u + (uint32_t)i;
+	}
+	return 0;
+}
+
+static const char* hm_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame_blind(s, 0);
+	/* (open in the game already: as it is, the glove moved back) */
+	if (!hm_map_up(s)) {
+		/* going from one area to the next (a mosaic out, the backgrounds
+		 * off while the next loads, a mosaic in: nearly 2 seconds walking)
+		 * the map won't open: a quick failure, which game.c retries at the
+		 * usual interval rather than backing off (HM-1) */
+		if (emu_io16(s, 0x4C) != 0 || !(emu_io16(s, 0x00) & 0x0F00)) return "map button did nothing";
+		emu_frame_blind(s, K_L);
+		emu_frame_blind(s, K_L);
+		emu_frame_blind(s, K_L | K_START);
+		emu_frame_blind(s, K_L | K_START);
+		/* the map's mosaic starts 2 frames after L+START; nothing by 6 is
+		 * a conversation, an event, a menu: quick, as above (HM-3) */
+		for (int i = 0; i < 6 && emu_io16(s, 0x4C) == 0 && !hm_map_up(s); ++i) emu_frame_blind(s, 0);
+		if (emu_io16(s, 0x4C) == 0 && !hm_map_up(s)) return "map button did nothing";
+	}
+	/* a mosaic out, the map built, a mosaic in (about 70 frames), undrawn:
+	 * the glove takes no input before the mosaic's end */
+	int f = 0;
+	while (f < 150 && !(hm_map_up(s) && emu_io16(s, 0x4C) == 0)) emu_frame_blind(s, 0), ++f;
+	if (f >= 150) return "map screen did not appear";
+	emu_frame_blind(s, 0);
+	/* the glove's fingertip (its right end, 5 rows down) onto the middle
+	 * of the head: put there, 2 pixels short, then RIGHT for a frame (the
+	 * text box follows the glove only when it's moved); if its place in
+	 * RAM isn't found, steered there (2 pixels a frame) */
+	int gx, gy, hx, hy;
+	if (!hm_find(s, HM_HEAD_TILE, HM_HEAD_PAL, &hx, &hy)) return "no head on the map";
+	if (!hm_find(s, HM_GLOVE_TILE, HM_GLOVE_PAL, &gx, &gy)) return "no glove on the map";
+	uint32_t var = hm_glove_var(s, gx, gy);
+	if (var) {
+		emu_write32(s, var, (uint32_t)(hx + 5) << 8);
+		emu_write32(s, var + 4, (uint32_t)(hy + 7) << 8);
+		emu_frame_blind(s, K_RIGHT);
+	} else {
+		for (f = 0; f < 200; ++f) {
+			if (!hm_find(s, HM_GLOVE_TILE, HM_GLOVE_PAL, &gx, &gy)) return "no glove on the map";
+			int dx = hx - 8 - gx, dy = hy + 2 - gy;
+			if (dx >= -1 && dx <= 1 && dy >= -1 && dy <= 1) break;
+			uint32_t k = (dx < -1 ? K_LEFT : dx > 1 ? K_RIGHT : 0) | (dy < -1 ? K_UP : dy > 1 ? K_DOWN : 0);
+			emu_frame_blind(s, k);
+		}
+	}
+	/* the text box redrawn for the new place (2 frames); the glove left out */
+	const SpriteRule glove[1] = { { -512, -256, 511, 255, HM_GLOVE_TILE, HM_GLOVE_TILE + 3, -1, 1u << HM_GLOVE_PAL, 0 } };
+	emu_hide_sprites(s, glove, 1);
+	for (int i = 0; i < HM_DRAWN; ++i) emu_frame(s, 0);
+	bool up = hm_map_up(s);
+	emu_hide_sprites(s, NULL, 0);
+	if (!up) return "the map went away";
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+	return NULL;
 }
 
 /* ---------------------------------------------------------- Golden Sun
@@ -2900,6 +3252,32 @@ static const char* to_compose(Emu* s, const void* state, uint32_t* const* out, i
 	return NULL;
 }
 
+/* Lady Sia: the level the game is in or loading, the byte at 0x03000B50
+ * (tcrf.net/Lady_Sia: held before a stage loads, it picks the stage):
+ * 0x10-0x33 the levels (0x2E and 0x33 unused), below the title, the
+ * menus and story scenes, from 0x34 the maps between levels and the
+ * ending's scenes */
+#define LS_LEVEL 0x03000B50
+#define LS_PAUSE 0x03001545 /* 5 with the pause screen up, 3 in a level or the menus */
+#define LS_V_OFFLEVEL 0xF0000060 /* 1 outside the levels: the logo (LS-3) */
+#define LS_V_PLAY 0xF0000061 /* 1 in play: in a level (or the jail's ID, which comes
+                              * while a level's last life is still being lost,
+                              * the lives up), not paused: the HUD hidden (LS-6) */
+#define LS_JAIL 0x3B
+/* a SpriteRule's shapes bit: GBA sprite shape (0 square, 1 wide, 2 tall) and size */
+#define LS_SHAPE(shape, size) (1u << ((shape) * 4 + (size)))
+static uint32_t ls_virt(Emu* e, uint32_t addr) {
+	if (addr == LS_V_OFFLEVEL) {
+		uint8_t l = emu_read8(e, LS_LEVEL);
+		return l < 0x10 || l > 0x33;
+	}
+	if (addr == LS_V_PLAY) {
+		uint8_t l = emu_read8(e, LS_LEVEL);
+		return ((l >= 0x10 && l <= 0x33) || l == LS_JAIL) && emu_read8(e, LS_PAUSE) == 3;
+	}
+	return 0;
+}
+
 static const MapProfile profiles[] = {
 	{
 		.codes = { "A2CE" },
@@ -3382,20 +3760,84 @@ static const MapProfile profiles[] = {
 			/* in a level: mode 0 with BG1-3 (BG0 goes off with water on
 			 * screen, SA2-7; the language menu has BG0-2, the rest mode 1) */
 			.on = { { 0x04000000, 0x0E07, 0x0E00, 2 } },
-			/* the rings, score and time (tiles 484-547: the digits, the
-			 * ring box and icon; palette 7: the count flashing red at no
-			 * rings); the lives (face and count) */
-			.objs = { { -16, -16, 160, 32, 484, 547, -1, 1u << 6 | 1u << 7 },
-			          { -16, 130, 48, 159, 504, 511, -1, 1u << 0 },
+			/* the rings, score and time (in an act tiles 484-547 with
+			 * Sonic, Knuckles and Amy, 500-563 with Cream and Tails: the
+			 * digits, the ring box and icon; in a boss fight 704-783, not
+			 * 64x64: the countdown's START!! is from tile 740;
+			 * palette 7: the count flashing red at no rings); the lives
+			 * (the face, palette 0: 508, 524 or 728; the count). The
+			 * character is palette 0 from tile 0; all at priority 0 (not the
+			 * rings' sparkles, palette 7 from tile 760 at priority 1) */
+			.objs = { { -16, -16, 160, 32, 480, 563, 0, 1u << 6 | 1u << 7 },
+			          { -16, -16, 160, 32, 704, 783, 0, 1u << 6 | 1u << 7, 0, 0xFFFFu & ~(1u << 3) },
+			          { -16, 130, 48, 159, 464, 767, 0, 1u << 0 },
 			          { -16, 130, 48, 159, 464, 1023, -1, 1u << 6 } },
 			/* the zone card: the whole screen, once settled, its emblem face on
 			 * with its ring of ticks full (SA2-2) */
-			.card = { .tile = 464, .pal = 8, .whole = true, .at = 61 },
+			/* the swirl: tile 464 (480 with Cream and Tails), priority 0
+			 * (the bosses use palette 8 from tile 464 at priority 2) */
+			.card = { .tile = 464, .tileMax = 480, .pal = 8, .prio1 = 0 + 1, .whole = true, .at = 61 },
 			/* the rings, score and time along the bottom (SA2-3); the
 			 * lives in the bottom right corner, as far in from the right
 			 * as they are from the left on the game screen (SA2-4) */
 			.moves = { { 0, 0, 239, 40, 0, 0, 'B', 156 },
 			           { 0, 120, 60, 159, 'R', 233, 0, 0 } },
+		},
+	},
+	{
+		/* Sonic Advance 3 (USA, Europe and Japan: the same sprites,
+		 * registers, RAM and title steps). gStageData (the SAT-R/sa3
+		 * decompilation's name) at 0x030008A0: +3 the game mode (0 the
+		 * main game), +9 the zone, +0xA the act (1 Sonic Factory, 2 the
+		 * zone's hub, 3-5 acts 1-3, 7 the boss, 8-9 bonus games), +0xE the
+		 * level. Acts and hubs: display mode 0 with BG1-3 (acts and the
+		 * factory with window 1 too); bosses mode 1 with BG0-1 and windows
+		 * 0-1. The HUD is sprites of priority 0, palettes 6-7, tiles
+		 * 448-511 (rings and time top left, the lives bottom left; in a
+		 * hub, the keys), plus a hub's zone label (palette 6, tiles from
+		 * 620) bottom right. The act's card: black, the zone's name
+		 * (palette 9, priority 3, from tile 620 or 622) on a white band
+		 * across the middle, with the HUD over it.
+		 * docs/games/sonic-advance-3.md */
+		.codes = { "B3SE", "B3SP", "B3SJ" },
+		.title = "Sonic Advance 3",
+		.logoOnly = true,
+		/* the title: SONIC ADVANCE 3 (BG1 alone; the copyright lines are
+		 * sprites). From power-on with no save: the language menu (A),
+		 * name entry (a letter, START to END, A), the intro */
+		.logo = { .steps = { { 0, 60 }, { K_A, 3 }, { 0, 69 }, { K_A, 3 }, { 0, 29 }, { K_START, 3 }, { 0, 29 },
+		                     { K_A, 3 }, { 0, 2650 } },
+		          .layer = 1, .maxY = 110 },
+		.hud = {
+			/* the main game (not the demo, Time Attack or multiplayer), in
+			 * an act, a boss, a hub or the factory (not a bonus game), the
+			 * display a level's: mode 0 with BG1-3, or mode 1 with BG1 (a
+			 * boss; not the title: BG3 or window 1 on too) */
+			.on = { { 0x04000000, 0x0E07, 0x0E00, 2, true, 0x0201 },
+			        { 0x04000000, 0x4800, 0x0800, 2, true, 0x4800, true },
+			        { 0x030008A3, 0xFF, 0, 1 },
+			        { 0x030008AA, 0xFF, 1, 1, true, 7, true } },
+			/* the rings, time and lives (and a hub's keys); a hub's zone
+			 * label */
+			.objs = { { -64, -64, 255, 175, 448, 511, 0, 1u << 6 | 1u << 7 },
+			          { -64, -64, 255, 175, 600, 711, 0, 1u << 6 } },
+			/* the act's card once the band has settled at the bottom with
+			 * the team and the act (SA3-2): drawn again with the BLDY
+			 * shadow (gBldRegs + 4) at 16, black but for the band (window
+			 * 0), as in the card's first moments, without the other
+			 * sprites (priority 1-2; the HUD; at priority 3 all but
+			 * palette 9; at priority 0 all but palettes 6, 7 and 9). The
+			 * name's sprite at priority 3: an enemy's points are the same
+			 * tile and palette at priority 0. None in a hub or the factory
+			 * (SA3-4) */
+			.card = { .tile = 620, .tileMax = 623, .pal = 9, .prio1 = 3 + 1, .whole = true, .at = 165,
+			          .drop = { { 0x030008AA, 0xFF, 1, 1, true, 2, true } },
+			          .hide = { { -64, -64, 255, 175, 0, 1023, 1, 0 },
+			                    { -64, -64, 255, 175, 0, 1023, 2, 0 },
+			                    { -64, -64, 255, 175, 0, 711, 0, 1u << 6 | 1u << 7 },
+			                    { -64, -64, 255, 175, 0, 1023, 3, 0xFFFFu & ~(1u << 9) },
+			                    { -64, -64, 255, 175, 0, 1023, 0, 0xFFFFu & ~(1u << 6 | 1u << 7 | 1u << 9) } },
+			          .poke = { 0x03002BFC, 16 } },
 		},
 	},
 	{
@@ -3554,6 +3996,122 @@ static const MapProfile profiles[] = {
 			          .pan = 0x03004005,
 			          .when = { { 0x03002BC6, 0xFF, 0x24, 1 }, { 0x0400000E, 0xFFFC, 0xDC44, 2 },
 			                    { 0x03002BC3, 0xFF, 0x00, 1 } } },
+		},
+	},
+	{
+		/* Super Mario Advance 4: Super Mario Bros. 3 (USA; Europe and Japan
+		 * in sma4_eur / sma4_jpn). The byte at 0x03003DE2 says where Mario
+		 * is: 0x41 the world map, 0x40 a level, 0x08-0x09 a Toad House,
+		 * a Spade panel game or a king's room (the level engine, with the
+		 * world map's status bar along the bottom), bit 7 set on the title,
+		 * game select and file screens. 0x03003781 is 3 on the world map
+		 * with no menu open (START's 15, R's e-Reader menu 14). */
+		.codes = { "AX4E" },
+		.title = "Super Mario Advance 4: Super Mario Bros. 3",
+		/* Super Mario Bros. 3's own title (from power-on: the save formatted,
+		 * the Super Mario Advance 4 title, Super Mario Bros. 3 picked, START
+		 * through its curtain): SUPER MARIO BROS. 3 alone on BG1, the
+		 * copyright line below it a sprite (SM4-5) */
+		.logo = { .steps = { { 0, 1600 }, { K_START, 4 }, { 0, 150 }, { K_A, 4 }, { 0, 150 }, { K_A, 4 }, { 0, 300 },
+		                     { K_START, 4 }, { 0, 150 } },
+		          .layer = 1, .maxY = 120,
+		          /* its orange shadow's rim along the letters' upper and
+		           * left sides left out (in the game's other colours too) */
+		          .shadow = { 0xF7A54A, 0xEF9431 }, .shadowReach = 3, .rev = 1 },
+		/* (the start, up to the opening's airship, left to play by
+		 * itself: each release and revision formats its save and shows
+		 * its notices for a different time, and takes buttons there
+		 * differently; by 1600 frames all are in the opening) */
+		/* USA Rev 1 (and the Virtual Console and Switch Online dumps made
+		 * from it) keeps where Mario is 4 bytes lower, as in Europe and
+		 * Japan: its own variant, AX4R, picked by the ROM's version */
+		.pick = sma4_pick,
+		/* On the world map, L opens the item inventory: a blue panel (BG0)
+		 * over the map's lower part (rows 56-157), the items in it as
+		 * outlines with the chosen one a sprite in colour. 0x03003CAA is
+		 * the panel: 0 closed, 1-4 opening, 5 open, 6-8 closing. The
+		 * panel alone (BG0 and its sprite) is the "map", where the game
+		 * draws it, on dark grey (SM4-1). */
+		.open = { { K_L, 4 } },
+		/* World-e's map with Mario on a level's spot: its info box takes
+		 * no L (nor START); B opens the Level Card list and B again goes
+		 * back to the map without the box, where L works, as a player
+		 * does it (0x03004FC8 is World-e's map's own state: 2 free, 10
+		 * with the box up, 16-18 with the inventory) */
+		.openAltIf = { { 0x03004FC8, 0xFF, 10, 1 }, { 0x0400000C, 0xFFFF, 0xDC00, 2 } },
+		.openAlt = { { K_B, 4 }, { 0, 60 }, { K_B, 4 }, { 0, 40 }, { K_L, 4 } },
+		.settleMax = 60, .openWithin = 40, .openTries = 3, .stableFrames = 3, .maxDiff = 400,
+		.crop_x = 0, .crop_y = 0, .crop_w = 240, .crop_h = 160,
+		/* its white and black edges only: the game has two sets of
+		 * colours (a colour patch players use picks the other one), and
+		 * the blues differ between them */
+		.probes = { { 120, 56, 0xFFFFFF }, { 120, 57, 0xFFFFFF }, { 120, 58, 0x000000 }, { 3, 100, 0xFFFFFF },
+		            { 236, 100, 0xFFFFFF }, { 4, 100, 0x000000 }, { 120, 157, 0xFFFFFF }, { 120, 155, 0x000000 } },
+		.tolerance = 8,
+		/* (5: open; World-e keeps it at 0, its panel told by the probes) */
+		.mem = { { 0x03003CAA, 0xFF, 5, 1, true, 0 } },
+		/* World-e's map (the e-Reader levels) is another engine: where
+		 * Mario is reads 0x09 (as in a Toad House), 0x03003781 is 4 or 5
+		 * with no menu open (3-7 taken: menus make it 8 or more, a
+		 * house's is 0 or 0x42), its inventory is open
+		 * while 0x03003759 is 1, and its panel and status bar are BG2
+		 * (0xDC00), the same size and place */
+		.live = { { 0x03003DE2, 0xFF, 0x41, 1, true, 0x09 }, { 0x03003781, 0xFF, 3, 1, true, 7, true },
+		          { 0x03003CAA, 0xFF, 0, 1 }, { 0x03003759, 0xFF, 0, 1 } },
+		.captureLayers = 0x5,
+		.captureBack = 6 | 6 << 5 | 6 << 10, /* (dark grey, SCREEN_GREY) */
+		/* the L and R signs at the top corners, and the map's sprites
+		 * (Mario, HELP!, the Hammer Bros.: priority 1-3; the chosen item
+		 * is priority 0) */
+		.captureHide = { { -512, -256, 511, 47, 0, 1023, -1 }, { -512, -256, 511, 255, 0, 1023, 1 },
+		                 { -512, -256, 511, 255, 0, 1023, 2 }, { -512, -256, 511, 255, 0, 1023, 3 } },
+		/* Mario's place on the world map (y, x in pixels: they change as
+		 * he walks and hold once he stops), and 0x03003E4A, 0xFF while he
+		 * stands there taking input (0 walking, arriving back from a level
+		 * or with a menu open, when L does nothing): the inventory again
+		 * at once. (World-e's map: every second.) */
+		.room = { { 0x03003DE4, 0xFF, 0, 1 }, { 0x03003DE8, 0xFF, 0, 1 }, { 0x03003E4A, 0xFF, 0, 1 } },
+		/* the title, game select and file screens */
+		.menu = { { 0x03003DE2, 0x80, 0x80, 1 } },
+		/* In a level the status bar along the top (world, lives, time,
+		 * coins, score) and the P meter at the bottom left are BG0
+		 * (0x9400): the whole layer goes to the second screen, the status
+		 * bar where the game draws it, the P meter centred along the
+		 * bottom, with the logo between (SM4-2). The item cards shown at
+		 * the start and end of a level are sprites and stay. */
+		.hud = {
+			/* (where Mario is: 0x40 a level, 0x08-0x09 an airship too,
+			 * as well as the houses; their status bar is the map's,
+			 * along the bottom, by BG0's vertical scroll, 0 in levels
+			 * and airships) */
+			.on = { { 0x03003DE2, 0xFF, 0x00, 1, true, 0x40, true }, { 0x04000008, 0xFFFC, 0x9400, 2 },
+			        { 0x04000000, 0x0100, 0x0100, 2 }, { 0x04000012, 0x01FF, 0, 2 } },
+			.bgMask = 1,
+			.logoBelow = true,
+			/* the status bar is rows 0-7 (and World-e's coin count below
+			 * it, 8-15), the P meter 150-157: what BG0 has between (LEVEL
+			 * CLEARED! and the card won, at the goal, from row 27) stays
+			 * on the game screen (SM4-3) */
+			.moves = { { 0, 16, 239, 149, 0, 0, 0, 0, true }, { 0, 150, 239, 159, 'C', 120, 0, 0 } },
+			/* On the world map (inventory closed; 0x41) and in Toad
+			 * Houses, Spade games and kings' rooms (0x08-0x09) the status
+			 * bar along the bottom (BG0, rows 139-159: world, lives,
+			 * coins, score, cards) goes to the top of the second screen,
+			 * over the inventory picture (SM4-6, SM4-4); anything else on
+			 * BG0 there stays. (0x40, a level, is the main HUD's.) */
+			.alt = { .on = { { 0x03003DE2, 0xFE, 0x40, 1, true, 0x08 }, { 0x03003CAA, 0xFF, 0, 1 },
+			                 { 0x04000000, 0x0100, 0x0100, 2 }, { 0x03003759, 0xFF, 0, 1 } },
+			         .bgMask = 1,
+			         .moves = { { 0, 0, 239, 127, 0, 0, 0, 0, true }, { 0, 128, 239, 159, 0, 0, 'T', 0 } },
+			         .mapBelow = true },
+			/* the inventory, the START menu or the e-Reader menu open
+			 * there, or a house's own menu: the last picture stays */
+			.keep = { { 0x03003DE2, 0xFE, 0x40, 1, true, 0x08 } },
+			/* World-e's map: its two-row status bar is BG2 (0xDC00; in
+			 * levels and houses BG2 is the background, never 0xDC00), at
+			 * rest (vertical scroll 0: the inventory panel, on the same
+			 * layer, slides in with it and stays on the game screen) */
+			.memLayers = { .when = { { 0x0400000C, 0xFFFF, 0xDC00, 2 }, { 0x0400001A, 0x01FF, 0, 2 } }, .bgMask = 0x4 },
 		},
 	},
 	{
@@ -3719,6 +4277,85 @@ static const MapProfile profiles[] = {
 		},
 	},
 	{
+		/* F-Zero: Maximum Velocity (docs/games/f-zero-maximum-velocity.md),
+		 * GP Legend's engine before it. The race HUD is all sprites,
+		 * priority 0, on the track's BG2 / BG3 in mode 2 (DISPCNT 0x3C42,
+		 * the menus' too): SPARE MACHINES (tiles 676-687, palettes 12, 13)
+		 * top left, RANK under it (label 399; the place 750-770, the limit
+		 * 394-405, palette 14 when outside it), LAST (734-745) under that;
+		 * POW (376-393, palettes 12, 15) top right, the speed (366-374,
+		 * 952-961) under it and the time (962-986, palettes 12, 15; a lap's
+		 * time under it as it ends) under that; BOOST (406-408) bottom
+		 * right; the course map one 64x64 sprite (tile 884, palette 15) at
+		 * 0, 96, drawn every other frame, with the player's dot (675) on
+		 * it. Not the HUD: the number over a rival ahead and its line
+		 * (688-698, anywhere over the track's top half, the RANK corner
+		 * too), the signs over the track (256-280: READY, the laps left,
+		 * TURN BACK, the place at the finish; 592-660), CHECK (412) under a
+		 * machine close behind, the machines (rotated, palette 0) and
+		 * their glow (667) and sparks (456-536, 700). Found by listing the
+		 * sprites of whole races (Grand Prix, Training, all three
+		 * releases). */
+		.codes = { "AFZE", "AFZJ" },
+		.title = "F-Zero: Maximum Velocity",
+		.logoOnly = true,
+		/* the title's sprites alone: the lettering above PRESS START (row
+		 * 123) and the copyright line (FZM-1) */
+		.logo = { .steps = { { 0, 900 } }, .layers = 0x10, .maxY = 115 },
+		.hud = {
+			/* the race HUD is up: the game's mode (0x03000BFB: the handler
+			 * table at 0x080513D0's index) one with a race on screen, and
+			 * the HUD's own state (0x020168C9: 0x63 shown, 0x64 paused,
+			 * 0x61 gone; it changes a frame before the HUD's sprites do).
+			 * The modes: the countdown (3), the race (5), the finish (6 and
+			 * 0x10 seen: second place on the debug AUTO, first driven),
+			 * RANK OUT (8), YOU LOST after GIVE UP (9), the machine
+			 * destroyed (10): 3 to 0x10 with the low three bits 0 to 6, so
+			 * not 7, the results, where the state byte holds other things.
+			 * The HUD stays through YOU LOST till A is pressed (0x61 then);
+			 * the camera circling a wreck has none (0x61). Before the
+			 * owner's reports of Nov 5 (a driven finish: mode 0x10; RANK
+			 * OUT: mode 8) this went by the modes alone and the flag
+			 * 0x030005F8, which drops at the finish (FZM-2, FZM-6, FZM-8) */
+			.on = { { 0x03000BFB, 0xFF, 3, 1, true, 0x10, true }, { 0x03000BFB, 0x07, 0, 1, true, 6, true },
+			        { 0x020168C9, 0xFF, 0x63, 1, true, 0x64, true } },
+			.objs = { /* POW */
+			          { 130, -8, 239, 12, 376, 393, 0 },
+			          /* SPARE MACHINES */
+			          { -8, -8, 72, 9, 676, 687, 0 },
+			          /* RANK: label, place, limit */
+			          { -8, 8, 50, 34, 399, 399, 0 },
+			          { -8, 8, 50, 34, 750, 770, 0 },
+			          { -8, 8, 50, 34, 394, 405, 0 },
+			          /* LAST */
+			          { -8, 33, 50, 44, 734, 745, 0 },
+			          /* BOOST and its three marks */
+			          { 170, 140, 240, 159, 406, 408, 0 },
+			          /* the time and the lap's time */
+			          { 150, 18, 250, 56, 962, 986, 0, 1u << 12 | 1u << 15 },
+			          /* the map (x from -16: a narrow course's further left)
+			           * and the dot */
+			          { -16, 88, 64, 159, 884, 884, 0, 1u << 15 },
+			          { -16, 84, 72, 159, 675, 675, 0 } },
+			/* the map's box (the sprite at 0, 96; the dot reaches row 92),
+			 * twice as big at the bottom centre; the game draws it every
+			 * other frame, the dot every frame: held between (FZM-4) */
+			.map = { 0, 90, 63, 159 },
+			.mapAt = { 2, 120, 159, 884, 675 },
+			/* RANK to the game screen's bottom left (FZM-3), only with its
+			 * label (Training has none); POW to the top centre; LAST under
+			 * SPARE MACHINES, two rows below, lined up with it, or in the
+			 * corner (Training); the time up into the speed's place; BOOST
+			 * under POW (FZM-4) */
+			.moves = { { 0, 10, 50, 34, 'L', 4, 'B', 155, true, .ifTile = 399 },
+			           { 130, 0, 239, 13, 'C', 120, 'T', 2 },
+			           { 0, 35, 50, 45, 'L', 2, 'T', 2, .under = 2 },
+			           { 150, 18, 250, 56, 0, 0, 'T', 2 },
+			           /* BOOST centred under POW (FZM-4) */
+			           { 170, 140, 239, 159, 'C', 120, 'T', 12 } },
+		},
+	},
+	{
 		/* Summon Night: Swordcraft Story 2 (USA; in Japan Craft Sword
 		 * Monogatari 2, the same RAM and menus). Walking about: DISPCNT
 		 * 0x1F40; START's menu and its Status screen 0x3F40, the Status with
@@ -3772,6 +4409,91 @@ static const MapProfile profiles[] = {
 		/* the title, the intro, between levels, the continue screen: the
 		 * logo (SMM-3) */
 		.menu = { { 0x03002170, 0xFFFF, 0x420C, 2 } },
+	},
+	{
+		/* Lady Sia (USA; Europe: the ALDP variant, same addresses). Where
+		 * the game is: LS_LEVEL (the level, 0x10-0x33; ls_virt) and
+		 * LS_PAUSE (the pause screen up). (0x03003090 looked like it at
+		 * first, but its bits go on and off in conversations, boss fights
+		 * and some levels: every level was loaded through LS_LEVEL and
+		 * checked.) The pause screen
+		 * (START) is sprites on black, drawn the frame it opens: lives, gems
+		 * and rescued villagers in rows 8-36, the level's time 49-62,
+		 * "Pause" 73-86, its choice with blinking arrows 97-110 (the time,
+		 * Pause and the choice are one block of 64x64 text sprites), the
+		 * ring and heart 126-158 (the ring pulses). */
+		.codes = { "ALDE" },
+		.title = "Lady Sia",
+		/* the title's lettering, once it has slid into place (the language
+		 * list follows at ~1050): at this frame BG2 is the lettering, BG1
+		 * its pink edge and the TM, BG0 the white behind; Press START is a
+		 * sprite (the game moves them between layers from frame to frame:
+		 * another frame needs other layers) (LS-1) */
+		.logo = { .steps = { { 0, 990 } }, .layers = 0x6, .maxY = 106 },
+		/* the pause screen, whole (LS-2). Its ring glows in a 40-frame
+		 * cycle: 10 frames plain (x 44-86, y 129-156), then three steps of
+		 * a white outline round it; taken plain (the first probes: black
+		 * just outside the plain ring, lit in every glow step), which it
+		 * is as the screen opens, else within a cycle. The other probes
+		 * are black rows of the pause screen (between the top row and the
+		 * time, above the ring): in a conversation START doesn't open it,
+		 * and the level there must not pass for it (LS-5). */
+		.open = { { K_START, 3 } },
+		.settleMax = 60, .openWithin = 45, .stableFrames = 2, .maxDiff = 700,
+		.crop_x = 0, .crop_y = 0, .crop_w = 240, .crop_h = 160,
+		.probes = { { 61, 128, 0x000000 }, { 42, 143, 0x000000 }, { 62, 157, 0x000000 }, { 84, 154, 0x000000 },
+		            { 60, 42, 0x000000 }, { 120, 42, 0x000000 }, { 180, 42, 0x000000 }, { 120, 118, 0x000000 } },
+		.bgColor = 0x000000, .minForeground = 2000, .tolerance = 8,
+		/* map_crop: the rows of Pause and its choice, arrows included, in
+		 * the screen's black (LS-2) */
+		.glyphs = { { 0, 67, 240, 49, -1, { 0x000000 } } },
+		/* the pause screen up: 0x03001545 is 5 there, 3 in a level
+		 * (0x03003090's bit 4, which also goes on as it opens in the
+		 * first levels, stays off in some and comes on elsewhere) */
+		.mem = { { LS_PAUSE, 0xFF, 5, 1 } },
+		/* in a level (whatever else 0x03003090 says: bit 1 goes on in its
+		 * conversations and some boss fights, bit 0 flickers in some
+		 * levels), not paused (the unused level 0x2E has 0 there, so it
+		 * gets no pictures); paused in the game, the last picture stays
+		 * (LS-4). A conversation that doesn't let the pause screen open
+		 * fails the probes (LS-5). */
+		.live = { { LS_LEVEL, 0xFF, 0x10, 1, true, 0x33, true }, { LS_PAUSE, 0xFF, 3, 1 } },
+		/* the title, the menus, the story, the maps between levels: the
+		 * logo (LS-3) */
+		.menu = { { LS_V_OFFLEVEL, 0, 1, 1 } },
+		.virt = ls_virt,
+		/* the HUD off the game screen, the status picture having it
+		 * (LS-6): shown for ~3 s as a level starts or Sia picks something
+		 * up, the heart while she's hurt. Found by where each piece's
+		 * corner is, nothing else: its palettes, priority and tiles
+		 * change from level to level (the first: priority 0, palettes 0,
+		 * 4, 14; the second: palettes 6, 7, and Sia priority 0 too). The
+		 * top row: lives face 2,7 and count 40,10; gem 94,3 and count
+		 * 135,10; villager face 193,1 and count 223,10 (room for a second
+		 * digit; Sia jumping was seen at 55,10, the menus' 64x64 grid at
+		 * 192,0). The ring bobs: 39-43,125-128; 69-76,126-131; 52,153.
+		 * The heart: 165-170,131-132; 168-169,144-145. Each also by its
+		 * shape and size (the faces, gem and ring 32x32, the counts 8x16,
+		 * ...): a level's things pass the same places (level 0x28's
+		 * pedestal, 32x32 at 169,130; a log's 8x8 pieces by the ring in
+		 * 0x2D), seen across every level's start (LS-6). The game's own
+		 * pause screen has its pieces in the same places: the hiding is
+		 * off while it's up (hideWhen), so it keeps them. */
+		.hideSprites = { { 2, 7, 2, 7, 0, 1023, -1, 0, 0, LS_SHAPE(0, 2) },
+		                 { 39, 10, 49, 10, 0, 1023, -1, 0, 0, LS_SHAPE(2, 0) },
+		                 { 94, 3, 94, 3, 0, 1023, -1, 0, 0, LS_SHAPE(0, 2) },
+		                 { 134, 10, 144, 10, 0, 1023, -1, 0, 0, LS_SHAPE(2, 0) },
+		                 { 193, 1, 193, 1, 0, 1023, -1, 0, 0, LS_SHAPE(0, 2) },
+		                 { 222, 10, 232, 10, 0, 1023, -1, 0, 0, LS_SHAPE(2, 0) },
+		                 { 38, 124, 44, 129, 0, 1023, -1, 0, 0, LS_SHAPE(0, 2) },
+		                 { 68, 125, 77, 132, 0, 1023, -1, 0, 0, LS_SHAPE(2, 2) | LS_SHAPE(2, 1) },
+		                 { 51, 152, 53, 154, 0, 1023, -1, 0, 0, LS_SHAPE(1, 1) },
+		                 { 164, 130, 171, 133, 0, 1023, -1, 0, 0, LS_SHAPE(0, 1) | LS_SHAPE(2, 0) },
+		                 { 167, 143, 170, 146, 0, 1023, -1, 0, 0, LS_SHAPE(1, 0) | LS_SHAPE(0, 1) } },
+		/* only in play: the menus, the story scenes, the credits (items
+		 * floating past the HUD's places) and the game's own pause screen
+		 * are drawn whole (LS-6) */
+		.hideWhen = { { LS_V_PLAY, 0, 1, 1 } },
 	},
 	{
 		/* Mario & Luigi: Superstar Saga (USA; Europe and Japan, Mario &
@@ -4040,6 +4762,57 @@ static const MapProfile profiles[] = {
 		 * New Game and the copyright line (EDS-7) */
 		.logo = { .wait = 900, .layers = 0x07, .maxY = 100 },
 	},
+	{
+		/* Zoids: Legacy (USA; Japan, Zoids Saga II: its addresses in
+		 * zlRegions). Walking about, in a town, on the world or in a
+		 * dungeon, the map screen (ZL-1); battles and the past the logo
+		 * (ZL-3, ZL-7); see zl_virt */
+		.codes = { "AZ2E" },
+		.title = "Zoids: Legacy",
+		.virt = zl_virt,
+		/* the map, the past's message, a Zoid's Status: zl_compose
+		 * (ZL-1, ZL-7, ZL-8) */
+		.composePages = zl_compose,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* walking about, or a Zoid choosing: taken (where nothing opens,
+		 * nothing: ZL-2) */
+		.live = { { ZL_V_LIVE, 0xFF, 1, 4 } },
+		/* the title, or a battle playing out: what was shown goes (ZL-3,
+		 * ZL-4) */
+		.menu = { { ZL_V_FORGET, 0xFF, 1, 4 } },
+		/* a battle playing out: the logo (ZL-3) */
+		.combat = { { ZL_V_PLAYOUT, 0xFF, 1, 4 } },
+		/* into a town, a dungeon or the past, out again, or a Zoid's menu
+		 * coming up: a capture at once (ZL-1, ZL-7, ZL-8) */
+		.room = { { ZL_V_PLACE, 0xFF, 0, 4 }, { ZL_V_MAPNO, 0xFFFF, 0, 4 }, { ZL_V_CHOOSE, 0xFF, 0, 4 } },
+		/* the town list's cursor (the triangle by the first town: it spins,
+		 * tiles 1012-1022; the map's marker is 936-945) */
+		.captureHide = { { 100, -16, 180, 159, 1012, 1023, -1 } },
+		/* the title's lettering is sprites (PRESS START and the copyright
+		 * line below it left out) */
+		.logo = { .wait = 1300, .layers = 0x10, .maxY = 100 },
+	},
+	{
+		/* Harvest Moon: Friends of Mineral Town (USA, Europe; Japan:
+		 * hm_jpn). Walking about: the town map, see hm_compose (HM-1 to
+		 * HM-3) */
+		.codes = { "A4NE", "A4NP", "A4ND" },
+		.title = "Harvest Moon: Friends of Mineral Town",
+		.compose = hm_compose,
+		.virt = hm_virt,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* not on the title: taken twice a second (the head and the clock
+		 * keep moving: HM-1); where L+START opens nothing, nothing (HM-3) */
+		.live = { { HM_V_TITLE, 0xFF, 0, 4 } },
+		.interval = 30,
+		/* the title: the logo, the map forgotten (HM-4) */
+		.menu = { { HM_V_TITLE, 0xFF, 1, 4 } },
+		/* the title's sign (sprites), without the rider at its left and
+		 * what's below it (HM-5) */
+		.logo = { .wait = 1000, .layer = 4, .minX = 46, .maxY = 96 },
+	},
 };
 
 /* ---------------------------------------------------------------- regions
@@ -4178,6 +4951,32 @@ static void sma2_jpn(MapProfile* p) {
 	p->controls.snes.pan -= 0x14;
 }
 
+/* Super Mario Advance 4 in Europe and Japan, and the USA's Rev 1 (AX4R):
+ * where Mario is (his place on the world map, whether he's taking input
+ * there) 4 bytes lower; the rest as in the USA's first release. Every
+ * revision of Europe's and Japan's tried (Europe's Rev 1 Wii U Virtual
+ * Console, Japan's Rev 2) is like its first. Europe asks for a language
+ * first. */
+static void sma4_moved(MapProfile* p) {
+	p->pick = NULL;
+	p->live[0].addr -= 4;
+	p->room[0].addr -= 4;
+	p->room[1].addr -= 4;
+	p->room[2].addr -= 4;
+	p->menu[0].addr -= 4;
+	p->hud.on[0].addr -= 4;
+	p->hud.alt.on[0].addr -= 4;
+	p->hud.keep[0].addr -= 4;
+}
+static void sma4_eur(MapProfile* p) {
+	sma4_moved(p);
+	/* (A on the language menu first) */
+	static const MacroStep steps[] = { { 0, 300 }, { K_A, 4 }, { 0, 1600 }, { K_START, 4 }, { 0, 150 }, { K_A, 4 }, { 0, 150 },
+	                                   { K_A, 4 }, { 0, 300 }, { K_START, 4 }, { 0, 150 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+}
+
 /* Final Fantasy Tactics Advance in Europe: a language menu first (its RAM
  * is the USA release's); in Japan the cursor's 0x30 lower (ft_r) */
 /* Golden Sun: The Lost Age elsewhere: each release's logo (its emblem
@@ -4226,6 +5025,17 @@ static void thps3_ger(MapProfile* p) {
 	memcpy(p->probes, show, sizeof(show));
 }
 
+/* F-Zero: Maximum Velocity in China: the mode byte 0x20 higher
+ * (0x03000C1B), the HUD's state 0x40 lower (0x02016889: the EWRAM block's
+ * literals, 0x020167B0... here 0x02016770...); its title shows ~200 frames
+ * later */
+static void fzm_chn(MapProfile* p) {
+	p->hud.on[0].addr += 0x20;
+	p->hud.on[1].addr += 0x20;
+	p->hud.on[2].addr -= 0x40;
+	p->logo.steps[0].frames = 1100;
+}
+
 /* Spider-Man: Mysterio's Menace in Japan: the screen's handler 0x34 lower
  * (0x0300213C), and its values too (0x60F8 in a level, 0x41D8 elsewhere);
  * the display registers are the same */
@@ -4262,6 +5072,14 @@ static void eds_jpn(MapProfile* p) {
 	p->logo = (typeof(p->logo)) { .steps = { { 0, 1440 }, { K_START, 4 }, { 0, 120 } }, .layer = 1, .maxY = 120 };
 }
 
+/* Harvest Moon: Friends of Mineral Town in Japan (Bokujou Monogatari:
+ * Mineral Town no Nakama-tachi): its own title sign, wider and lower, with
+ * no rider beside it */
+static void hm_jpn(MapProfile* p) {
+	p->logo.minX = 0;
+	p->logo.maxY = 113;
+}
+
 static const Variant variants[] = {
 	{ "AGSD", "AGSE", 0, gs_ger },
 	/* Golden Sun: The Lost Age's other releases */
@@ -4273,6 +5091,7 @@ static const Variant variants[] = {
 	/* F-Zero: GP Legend in Europe: its language menu first (the title
 	 * comes ~700 frames after A); its races not tried (f-zero-gp-legend.md) */
 	{ "BFZP", "BFZE", 0, lang_menu },
+	{ "AFZC", "AFZE", 0, fzm_chn },
 	{ "A2CP", "A2CE", 0, lang_menu },
 	{ "A2CJ", "A2CE", -0x30, NULL },
 	{ "ACHP", "ACHE", 0, NULL },
@@ -4289,9 +5108,13 @@ static const Variant variants[] = {
 	{ "AFXP", "AFXE", 0, ffta_eur },
 	{ "AFXJ", "AFXE", 0, ffta_jpn },
 	{ "AA2J", "AA2E", 0, sma2_jpn },
+	{ "AX4P", "AX4E", 0, sma4_eur },
+	{ "AX4J", "AX4E", 0, sma4_moved },
+	{ "AX4R", "AX4E", 0, sma4_moved },
 	{ "AT3F", "AT3E", 0, thps3_fra },
 	{ "AT3D", "AT3E", 0, thps3_ger },
 	{ "ASEJ", "ASEE", 0, smm_jpn },
+	{ "ALDP", "ALDE", 0, NULL },
 	/* (Fire Emblem's addresses: FeRegion) */
 	{ "AE7X", "AE7E", 0, lang_menu },
 	{ "AE7Y", "AE7E", 0, lang_menu },
@@ -4313,6 +5136,9 @@ static const Variant variants[] = {
 	{ "B8CP", "B8CE", 0, khc_eur },
 	{ "B8CJ", "B8CE", 0, khc_jpn },
 	{ "AY5J", "AY5E", 0, eds_jpn },
+	/* (Zoids Saga II's addresses: ZlRegion) */
+	{ "AZ2J", "AZ2E", 0, NULL },
+	{ "A4NJ", "A4NE", 0, hm_jpn },
 };
 #define N_VARIANTS (sizeof(variants) / sizeof(*variants))
 static MapProfile variantProfiles[N_VARIANTS];

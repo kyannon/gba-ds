@@ -1,0 +1,512 @@
+{
+ "game": "F-Zero: Maximum Velocity",
+ "rules": "docs/games/f-zero-maximum-velocity.md",
+ "cases": [
+  {
+   "id": "fzm-us-gp-start",
+   "rom": "AFZE",
+   "state": "f-zero-maximum-velocity/us-gp-select.ss",
+   "desc": "Grand Prix: the last menu, the course name and fly-in (the logo), READY and the start",
+   "rules": [
+    "FZM-2",
+    "FZM-3",
+    "FZM-4",
+    "FZM-6"
+   ],
+   "input": [
+    [
+     0,
+     "-"
+    ],
+    [
+     1,
+     "A"
+    ],
+    [
+     5,
+     "-"
+    ],
+    [
+     560,
+     "A"
+    ]
+   ],
+   "shots": {
+    "intro": 250,
+    "flyin": 440,
+    "ready": 560,
+    "racing": 700
+   },
+   "checks": [
+    {
+     "rule": "FZM-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "FZM-6",
+     "what": "no HUD before the countdown",
+     "type": "no_log",
+     "match": "frame ([0-9]|[0-9][0-9]|[0-3][0-9][0-9]|4[0-4][0-9]): HUD on"
+    }
+   ]
+  },
+  {
+   "id": "fzm-us-gp-race",
+   "rom": "AFZE",
+   "state": "f-zero-maximum-velocity/us-gp-race.ss",
+   "desc": "Grand Prix, driving badly: a two-digit rank outside the limit (red), TURN BACK, POW running out, the machine destroyed (the logo while the camera circles it), YOU LOST with the HUD, then A: the results",
+   "rules": [
+    "FZM-2",
+    "FZM-3",
+    "FZM-4",
+    "FZM-6",
+    "FZM-8"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ],
+    [
+     2950,
+     "-"
+    ],
+    [
+     2960,
+     "A"
+    ],
+    [
+     2966,
+     "-"
+    ]
+   ],
+   "shots": {
+    "racing": 400,
+    "turnback": 1700,
+    "lowpower": 2300,
+    "destroyed": 2500,
+    "lost": 2900,
+    "results": 3100
+   },
+   "checks": [
+    {
+     "rule": "FZM-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "FZM-6",
+     "what": "the logo while the camera circles the wreck",
+     "type": "log",
+     "match": "frame 24[0-9][0-9]: HUD gone"
+    },
+    {
+     "rule": "FZM-8",
+     "what": "the HUD back with YOU LOST",
+     "type": "log",
+     "match": "frame 27[0-9][0-9]: HUD on the second screen"
+    },
+    {
+     "rule": "FZM-6",
+     "what": "the logo at the results",
+     "type": "log",
+     "match": "HUD gone"
+    }
+   ]
+  },
+  {
+   "id": "fzm-us-gp-pause",
+   "rom": "AFZE",
+   "state": "f-zero-maximum-velocity/us-gp-pause.ss",
+   "desc": "Grand Prix: paused, GIVE UP, YOU LOST with the HUD on the second screen, then A: the results",
+   "rules": [
+    "FZM-4",
+    "FZM-5",
+    "FZM-6",
+    "FZM-8"
+   ],
+   "input": [
+    [
+     0,
+     "-"
+    ],
+    [
+     30,
+     "DOWN"
+    ],
+    [
+     36,
+     "-"
+    ],
+    [
+     90,
+     "START"
+    ],
+    [
+     96,
+     "-"
+    ],
+    [
+     300,
+     "A"
+    ],
+    [
+     306,
+     "-"
+    ]
+   ],
+   "shots": {
+    "paused": 20,
+    "giveup": 60,
+    "chosen": 110,
+    "lost": 250,
+    "results": 400
+   },
+   "checks": [
+    {
+     "rule": "FZM-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "FZM-8",
+     "what": "YOU LOST: the HUD stays on (not gone before A)",
+     "type": "no_log",
+     "match": "frame (9[0-9]|[12][0-9][0-9]|2[0-9][0-9]): HUD gone"
+    },
+    {
+     "rule": "FZM-6",
+     "what": "the logo once A takes it to the results",
+     "type": "log",
+     "match": "HUD gone"
+    }
+   ]
+  },
+  {
+   "id": "fzm-us-gp-finish",
+   "rom": "AFZE",
+   "state": "f-zero-maximum-velocity/us-gp-last-lap.ss",
+   "desc": "Grand Prix: the final lap's end, the place over the finish line with the HUD still up, then the results",
+   "rules": [
+    "FZM-2",
+    "FZM-4",
+    "FZM-6"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ]
+   ],
+   "shots": {
+    "line": 40,
+    "finished": 250,
+    "results": 600
+   },
+   "checks": [
+    {
+     "rule": "FZM-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "FZM-6",
+     "what": "the logo once the HUD's gone",
+     "type": "log",
+     "match": "HUD gone"
+    }
+   ]
+  },
+  {
+   "id": "fzm-us-gp-finish-driven",
+   "rom": "AFZE",
+   "state": "f-zero-maximum-velocity/us-gp-finish-driven.ss",
+   "desc": "Grand Prix, the owner's report of Nov 5: finishing first, driven (the game's mode 0x10 at the line, not AUTO's 6): the HUD stays on the second screen with the place up, then the results",
+   "rules": [
+    "FZM-2",
+    "FZM-4",
+    "FZM-6"
+   ],
+   "input": [
+    [
+     0,
+     "A+RIGHT"
+    ],
+    [
+     3,
+     "A"
+    ],
+    [
+     28,
+     "A+LEFT"
+    ],
+    [
+     31,
+     "A"
+    ],
+    [
+     70,
+     "-"
+    ]
+   ],
+   "shots": {
+    "racing": 40,
+    "place": 200,
+    "place-late": 470,
+    "results": 600
+   },
+   "checks": [
+    {
+     "rule": "FZM-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "FZM-2",
+     "what": "the HUD stays while the place is up",
+     "type": "no_log",
+     "match": "frame ([0-9]|[0-9][0-9]|[0-3][0-9][0-9]|4[0-6][0-9]): HUD gone"
+    },
+    {
+     "rule": "FZM-6",
+     "what": "the logo once the HUD's gone",
+     "type": "log",
+     "match": "HUD gone"
+    }
+   ]
+  },
+  {
+   "id": "fzm-us-gp-rank-out",
+   "rom": "AFZE",
+   "state": "f-zero-maximum-velocity/us-gp-rank-out.ss",
+   "desc": "Grand Prix, the owner's report of Nov 5: the last lap ends in fourth, outside the limit of 3 (RANK OUT, the game's mode 8): YOU LOST with the HUD on the second screen, then A: the results",
+   "rules": [
+    "FZM-2",
+    "FZM-6",
+    "FZM-8"
+   ],
+   "input": [
+    [
+     0,
+     "-"
+    ],
+    [
+     86,
+     "B"
+    ],
+    [
+     137,
+     "-"
+    ],
+    [
+     217,
+     "A"
+    ],
+    [
+     238,
+     "-"
+    ],
+    [
+     620,
+     "A"
+    ],
+    [
+     626,
+     "-"
+    ]
+   ],
+   "shots": {
+    "racing": 100,
+    "rank-out": 300,
+    "lost": 600,
+    "results": 800
+   },
+   "checks": [
+    {
+     "rule": "FZM-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "FZM-8",
+     "what": "the HUD stays through YOU LOST till A",
+     "type": "no_log",
+     "match": "frame ([0-9]|[0-9][0-9]|[0-5][0-9][0-9]|6[01][0-9]): HUD gone"
+    },
+    {
+     "rule": "FZM-6",
+     "what": "the logo at the results",
+     "type": "log",
+     "match": "HUD gone"
+    }
+   ]
+  },
+  {
+   "id": "fzm-us-training",
+   "rom": "AFZE",
+   "state": "f-zero-maximum-velocity/us-training.ss",
+   "desc": "Training: no SPARE MACHINES or RANK; LAST in the corner",
+   "rules": [
+    "FZM-2",
+    "FZM-3",
+    "FZM-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ]
+   ],
+   "shots": {
+    "racing": 200
+   },
+   "checks": [
+    {
+     "rule": "FZM-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "fzm-jp-gp-race",
+   "rom": "AFZJ",
+   "state": "f-zero-maximum-velocity/jp-gp-race.ss",
+   "desc": "Japan: Grand Prix racing (SPARE MACHINE, two pixels further left)",
+   "rules": [
+    "FZM-2",
+    "FZM-3",
+    "FZM-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ]
+   ],
+   "shots": {
+    "racing": 200
+   },
+   "checks": [
+    {
+     "rule": "FZM-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "fzm-cn-gp-race",
+   "rom": "AFZC",
+   "state": "f-zero-maximum-velocity/cn-gp-race.ss",
+   "desc": "China: Grand Prix racing (the mode and the HUD's flag at other addresses)",
+   "rules": [
+    "FZM-2",
+    "FZM-3",
+    "FZM-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ]
+   ],
+   "shots": {
+    "racing": 200
+   },
+   "checks": [
+    {
+     "rule": "FZM-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "fzm-us-single",
+   "rom": "AFZE",
+   "state": "f-zero-maximum-velocity/us-gp-race.ss",
+   "desc": "racing with layout = single",
+   "rules": [
+    "FZM-7"
+   ],
+   "config": {
+    "layout": "single"
+   },
+   "input": [
+    [
+     0,
+     "A"
+    ]
+   ],
+   "shots": {
+    "end": 400
+   },
+   "checks": [
+    {
+     "rule": "FZM-7",
+     "what": "nothing on a second screen",
+     "type": "uniform",
+     "shot": "end",
+     "rect": [
+      0,
+      420,
+      1024,
+      768
+     ],
+     "color": "000000",
+     "frac": 0.99
+    }
+   ]
+  },
+  {
+   "id": "fzm-logo-afze",
+   "kind": "logo",
+   "rom": "AFZE",
+   "desc": "AFZE logo extraction",
+   "rules": [
+    "GEN-1",
+    "FZM-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "fzm-logo-afzj",
+   "kind": "logo",
+   "rom": "AFZJ",
+   "desc": "AFZJ logo extraction",
+   "rules": [
+    "GEN-1",
+    "FZM-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "fzm-logo-afzc",
+   "kind": "logo",
+   "rom": "AFZC",
+   "desc": "AFZC logo extraction",
+   "rules": [
+    "GEN-1",
+    "FZM-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

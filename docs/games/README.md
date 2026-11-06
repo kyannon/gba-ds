@@ -14,6 +14,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Mario Kart: Super Circuit](mario-kart-super-circuit.md) | MK | `AMKE` + 2 |
 | [Tony Hawk's Pro Skater 3](tony-hawks-pro-skater-3.md) | TH3 | `AT3E` + 2 |
 | [Super Mario Advance 2: Super Mario World](super-mario-advance-2.md) | SMA | `AA2E` + 2 |
+| [Super Mario Advance 4: Super Mario Bros. 3](super-mario-advance-4.md) | SM4 | `AX4E` + 2 |
 | [Final Fantasy Tactics Advance](final-fantasy-tactics-advance.md) | FT | `AFXE` + 2 |
 | [Advance Wars](advance-wars.md) | AW | `AWRE` + 1 |
 | [Advance Wars 2: Black Hole Rising](advance-wars-2.md) | AW2 | `AW2E` + 1 |
@@ -27,13 +28,18 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Golden Sun: The Lost Age (Ougon no Taiyou: Ushinawareshi Toki in Japan)](golden-sun-2.md) | GS2 | `AGFE` + 5 |
 | [Tactics Ogre: The Knight of Lodis (Tactics Ogre Gaiden in Japan)](tactics-ogre.md) | TO | `ATOE` + 1 |
 | [F-Zero: GP Legend (F-Zero: Falcon Densetsu in Japan)](f-zero-gp-legend.md) | FZ | `BFZE` + 2 |
+| [F-Zero: Maximum Velocity (F-Zero for Game Boy Advance in Japan)](f-zero-maximum-velocity.md) | FZM | `AFZE` + 2 |
 | [River City Ransom EX (Downtown Nekketsu Monogatari EX in Japan)](river-city-ransom-ex.md) | RCR | `BDTE` + 1 |
 | [Spider-Man: Mysterio's Menace (Spider-Man: Mysterio no Kyoui in Japan)](spider-man-mysterios-menace.md) | SMM | `ASEE` + 1 |
 | [Summon Night: Swordcraft Story 2 (Craft Sword Monogatari 2 in Japan)](summon-night-swordcraft-story-2.md) | SN2 | `BSKE` + 1 |
 | [Sonic Pinball Party](sonic-pinball-party.md) | SPP | `A3VE` + 1 |
 | [Sonic Advance](sonic-advance.md) | SA | `ASOE` + 2 |
 | [Sonic Advance 2](sonic-advance-2.md) | SA2 | `A2NE` + 2 |
+| [Sonic Advance 3](sonic-advance-3.md) | SA3 | `B3SE` + 2 |
 | [Kingdom Hearts: Chain of Memories](kingdom-hearts-chain-of-memories.md) | KHC | `B8CE` + 2 |
+| [Lady Sia](lady-sia.md) | LS | `ALDE` + 1 |
+| [Zoids: Legacy (Zoids Saga II in Japan)](zoids-legacy.md) | ZL | `AZ2E` + 1 |
+| [Harvest Moon: Friends of Mineral Town (Bokujou Monogatari: Mineral Town no Nakama-tachi in Japan)](harvest-moon-friends-of-mineral-town.md) | HM | `A4NE` + 3 |
 
 ## General rules
 

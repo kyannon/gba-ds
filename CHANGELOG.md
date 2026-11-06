@@ -1,12 +1,40 @@
 # Changelog
 
-## v1.4.9 (not yet released)
+## v1.4.10 (not yet released)
 
 ### New games
-- **Golden Sun: The Lost Age** (USA / Europe, German, French, Italian, Spanish and Japanese releases), with Golden Sun's second screen: while you walk about, the Status screen, turning through your party every 5 seconds (all eight, the ones in the back too); in a battle, the battle's Status of the character choosing what to do, and the logo while the turn plays out. The logo is the title screen's emblem. Every release has been tried walking about and in a battle; sailing on Piers's ship hasn't been tried yet.
+- **Super Mario Advance 4: Super Mario Bros. 3** (USA, Europe and Japan, every revision): on the world map, the status bar (world, lives, coins, score and your cards) moves to the top of the second screen, above your item inventory (what L opens), kept up to date as you walk about, win items and use them; Toad Houses, Spade games, the kings' rooms and World-e's map (the e-Reader levels) do the same. In a level (airships, boss rooms and World 8's tanks too), the status bar moves to the top of the second screen and the P meter to its bottom, with the logo between, so the game screen shows the whole level; in World-e's levels the coin count goes with the status bar. The logo is Super Mario Bros. 3's own title. The game's other colours (which some colour patches pick) work too. Every level the warp zone reaches has been tried, underwater, desert, giant, sky, ice and fortress levels among them, as have airships and their bosses' rooms, Kuribo's Shoe, World 8's tanks, Bowser's castle and World-e.
+- **Sonic Advance 3** (USA, Europe, Japan): each act's card on the second screen (the zone's name on its white band, with the team and the act), with the rings, time and lives moved over it where the game draws them on the card, off the game screen; in the hubs, the logo with the hub's keys, lives and zone label. Tried in every zone's first act, Route 99's results and the hubs; special stages, bonus games, water, Time Attack and multiplayer untried.
+- **F-Zero: Maximum Velocity** (USA / Europe; F-Zero for Game Boy Advance in Japan; Jisu F-Zero Weilai Saiche in China), with F-Zero: GP Legend's second screen: while racing, the HUD moves to the second screen (POW with BOOST under it, spare machines and laps left, the time and lap times, and the course map twice as big, held steady), leaving the track clear, with your rank and speed on the game screen. Paused, and on YOU LOST (after GIVE UP, RANK OUT or a destroyed machine), the HUD stays on the second screen until the results. The logo is the title's lettering. Grand Prix and Training have been tried in every release; the link-cable modes haven't.
+- **Harvest Moon: Friends of Mineral Town** (USA, Europe, Germany and Japan): walking about, the second screen is the town map (the one L+START opens), updated twice a second: your head where you are, your dog's, the clock with the date and weather, and the text under the map saying which part of the valley you're in. In conversations, events and the game's menus it keeps its last picture; on the title, the logo, the title's wooden sign. Tried on the farm, the road north of it and in town; the mine and festivals haven't been tried yet.
+
+### Changes
+- **Sonic Advance:** tried in every zone, with every character, in the act's results, pause and the bosses (the European release): no changes needed.
+- **The first run is much quicker to get going:** the game list makes the selected game's logo first, then the others on screen, and starting a game waits only for that game's own logo (and map border), not for every game's. The rest are made while you're in the game list, and wait while you play.
+
+### Fixes
+- **Sonic Advance 2:** with Cream or Tails, the zone card now shows on the second screen (it stayed on the logo). In boss fights, the card and the rings, score, time and lives stay on the second screen (a frozen picture of the fight came up there, and the HUD went back to the game screen); the countdown's START!! stays whole on the game screen. Every zone's first act, XX, the results and Leaf Forest's boss have now been tried, with each character.
+
+### Known issues
+- **Sonic Advance 3:** for a moment as each act starts (while the screen is still black), the rings, time and lives are off the game screen.
+- **F-Zero: Maximum Velocity:** as the game takes its HUD down (after the finish, on pressing A at YOU LOST, as a machine is destroyed), the HUD shows on the game screen for a single frame.
+- **Super Mario Advance 4:** with the inventory open on World-e's map, the second screen shows the inventory without the status bar. Going through a pipe or door, the status bar on the second screen fades out and back with the game.
+
+## v1.4.9 (2026-11-05)
+
+### New games
+- **Golden Sun: The Lost Age** (USA / Europe, German, French, Italian, Spanish and Japanese releases), with Golden Sun's second screen: while you walk about, the Status screen, turning through your party every 5 seconds (all eight, the ones in the back too); in a battle, the battle's Status of the character choosing what to do, and the logo while the turn plays out. The logo is the title screen's emblem. Every release has been tried walking about and in a battle.
+- **Lady Sia** (USA and Europe): in a level, the second screen shows the game's own pause screen as a status screen: Sia's lives, the gems and rescued villagers, the level's time, the ring and the heart (her health), kept up to date about once a second, without the pause menu's lines. The lives, gems, villagers, ring and heart the game puts up during play (as a level starts, as Sia picks something up, the heart while she's hurt) are left off the game screen, since the second screen has them; the game's own pause screen is drawn whole. The logo is the title's lettering, shown at the title, in the menus and story scenes, on the maps between levels, in the jail and in the credits. Every level has been tried.
+- **Zoids: Legacy** (USA; Zoids Saga II in Japan): walking about, in towns, out on the world and in dungeons, the second screen shows the game's own map screen (the one SELECT or R opens), without its prompt line, kept up to date without opening it. In battles, it shows the Status of the Zoid choosing its move (the screen R opens there), and the logo while the battle plays out. In the past, where the game has no map, it shows the game's own message saying so. The logo is the title's lettering.
 
 ### Changes
 - Bug reports now say whether the game's ROM is an unchanged copy of the game or has been patched or modified (from its checksum). Romhacks and patched ROMs are the next step for GBA DS (#17); this helps tell which problems come from them.
+
+### Known issues
+- **Golden Sun: The Lost Age:** sailing on Piers's ship hasn't been tried yet.
+- **Lady Sia:** the spells and the bonus levels haven't been tried yet.
+- **Zoids: Legacy:** from a random battle's turn menu, the Status has a light strip across its middle, left by the game itself (the game screen shows it too).
+- **Final Fantasy Tactics Advance:** if one of your units gets two turns in a row, the turn order shown on the next enemy turn may be the one from that unit's first turn (since v1.4.8).
 
 ## v1.4.8 (2026-11-04)
 

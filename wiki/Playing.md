@@ -7,7 +7,7 @@ GBA DS opens on a game list on the touchscreen (the bottom screen on the RG DS P
 - **Which games:** only games with second-screen support are listed (see [[Supported games]]). `show_all = 1` lists every GBA ROM; the others play normally on one screen.
 - **The other screen** shows the selected game's logo, and the picture where it will resume once you've played it.
 - The list is rebuilt from the ROM folder each time it opens, so games you add or remove show up with nothing to re-run.
-- **First run:** each game's logo (and the Castlevanias' map border art) is pulled out of the ROM in the background, about a minute on the RG DS Plus, once. Tiles say "Loading thumbnail..." until their logo is ready. If you start a game before that's done, a "Preparing games" screen waits for it (B goes back), so the game doesn't start with crackling sound.
+- **First run:** each game's logo (and the Castlevanias' map border art) is pulled out of the ROM in the background, once. The selected game and the ones on screen go first. Tiles say "Loading thumbnail..." until their logo is ready. You don't have to wait for all of them: if you start a game before its own logo is ready, a "Preparing the game" screen waits for just that one (a few seconds; B goes back). While you play, the rest wait, so the game doesn't start with crackling sound; they carry on when you're back in the game list.
 
 | Input | Action |
 |---|---|

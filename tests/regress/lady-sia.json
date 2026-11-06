@@ -1,0 +1,1360 @@
+{
+ "game": "Lady Sia",
+ "rules": "docs/games/lady-sia.md",
+ "cases": [
+  {
+   "id": "ls-us-title",
+   "rom": "ALDE",
+   "state": "lady-sia/us-title.ss",
+   "desc": "the title (a player's bug report): the logo, no status picture",
+   "rules": [
+    "LS-3"
+   ],
+   "shots": {
+    "title": 120
+   },
+   "checks": [
+    {
+     "rule": "LS-3",
+     "what": "no status picture",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ls-us-language",
+   "rom": "ALDE",
+   "state": "lady-sia/us-language.ss",
+   "desc": "from the title to the language list (a player's bug report, its keys played back): the list whole on the game screen, the logo on the second",
+   "rules": [
+    "LS-3",
+    "LS-6"
+   ],
+   "input": [
+    [
+     99,
+     "A"
+    ],
+    [
+     126,
+     "-"
+    ],
+    [
+     177,
+     "START"
+    ],
+    [
+     185,
+     "-"
+    ],
+    [
+     227,
+     "A"
+    ],
+    [
+     232,
+     "-"
+    ],
+    [
+     256,
+     "A"
+    ],
+    [
+     259,
+     "-"
+    ],
+    [
+     269,
+     "A"
+    ],
+    [
+     275,
+     "-"
+    ],
+    [
+     280,
+     "A"
+    ],
+    [
+     287,
+     "-"
+    ],
+    [
+     317,
+     "B"
+    ],
+    [
+     324,
+     "-"
+    ],
+    [
+     333,
+     "B"
+    ],
+    [
+     341,
+     "-"
+    ],
+    [
+     346,
+     "B"
+    ],
+    [
+     356,
+     "-"
+    ]
+   ],
+   "shots": {
+    "title": 300,
+    "languages": 600
+   },
+   "checks": [
+    {
+     "rule": "LS-6",
+     "what": "English, the list's first line, on the game screen",
+     "type": "pixels",
+     "shot": "languages",
+     "screen": "game",
+     "probes": [
+      [
+       356,
+       136,
+       "EFEFEF"
+      ],
+      [
+       392,
+       136,
+       "EFEFEF"
+      ],
+      [
+       408,
+       136,
+       "EFEFEF"
+      ]
+     ]
+    },
+    {
+     "rule": "LS-3",
+     "what": "no status picture",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ls-us-new-game",
+   "rom": "ALDE",
+   "state": "lady-sia/us-new-game.ss",
+   "desc": "New Game chosen, the story text (logo), skipped with START, Please, Wait, then the first level: the status picture",
+   "rules": [
+    "LS-2",
+    "LS-3"
+   ],
+   "input": [
+    [
+     10,
+     "START"
+    ],
+    [
+     14,
+     "-"
+    ],
+    [
+     600,
+     "START"
+    ],
+    [
+     604,
+     "-"
+    ]
+   ],
+   "shots": {
+    "story": 300,
+    "level": 1100
+   },
+   "checks": [
+    {
+     "rule": "LS-2",
+     "what": "a status picture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "LS-2",
+     "what": "the lives, gems and villagers row, not black",
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      0,
+      40,
+      1024,
+      172
+     ],
+     "color": "000000",
+     "frac": 0.98,
+     "shot": "level"
+    },
+    {
+     "rule": "LS-2",
+     "what": "no Pause or menu line: those rows black",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      0,
+      330,
+      1024,
+      545
+     ],
+     "color": "000000",
+     "shot": "level"
+    }
+   ]
+  },
+  {
+   "id": "ls-us-level",
+   "rom": "ALDE",
+   "state": "lady-sia/us-level1.ss",
+   "desc": "in the first level: the pause screen without its menu lines on the second screen",
+   "rules": [
+    "LS-2"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "LS-2",
+     "what": "a status picture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "LS-2",
+     "what": "the lives, gems and villagers row, not black",
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      0,
+      40,
+      1024,
+      172
+     ],
+     "color": "000000",
+     "frac": 0.98,
+     "shot": "later"
+    },
+    {
+     "rule": "LS-2",
+     "what": "no Pause or menu line: those rows black",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      0,
+      330,
+      1024,
+      545
+     ],
+     "color": "000000",
+     "shot": "later"
+    },
+    {
+     "rule": "LS-2",
+     "what": "the time and the ring, not black",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      0,
+      240,
+      1024,
+      300
+     ],
+     "color": "000000",
+     "frac": 0.98
+    },
+    {
+     "rule": "LS-2",
+     "what": "the ring plain, without its glow",
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       278,
+       578,
+       "000000"
+      ],
+      [
+       202,
+       638,
+       "000000"
+      ],
+      [
+       282,
+       694,
+       "000000"
+      ],
+      [
+       370,
+       682,
+       "000000"
+      ]
+     ],
+     "shot": "later"
+    }
+   ]
+  },
+  {
+   "id": "ls-us-paused",
+   "rom": "ALDE",
+   "state": "lady-sia/us-paused.ss",
+   "desc": "paused in the game (the logo: no picture yet), back to the level (the status picture), paused again and through its choices (a player's bug report, its keys played back): the status picture stays",
+   "rules": [
+    "LS-2",
+    "LS-4"
+   ],
+   "input": [
+    [
+     73,
+     "START"
+    ],
+    [
+     79,
+     "-"
+    ],
+    [
+     130,
+     "START"
+    ],
+    [
+     136,
+     "-"
+    ],
+    [
+     374,
+     "RIGHT"
+    ],
+    [
+     382,
+     "-"
+    ],
+    [
+     394,
+     "RIGHT"
+    ],
+    [
+     402,
+     "-"
+    ],
+    [
+     420,
+     "LEFT"
+    ],
+    [
+     427,
+     "-"
+    ],
+    [
+     430,
+     "LEFT"
+    ],
+    [
+     438,
+     "-"
+    ]
+   ],
+   "shots": {
+    "paused": 60,
+    "level": 125,
+    "paused-again": 250,
+    "options": 410
+   },
+   "checks": [
+    {
+     "rule": "LS-2",
+     "what": "a status picture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "LS-2",
+     "what": "no Pause or menu line: those rows black",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      0,
+      330,
+      1024,
+      545
+     ],
+     "color": "000000",
+     "shot": "level"
+    },
+    {
+     "rule": "LS-4",
+     "what": "the second screen keeps its picture while paused",
+     "type": "same",
+     "a": {
+      "shot": "level",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "options",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     }
+    },
+    {
+     "rule": "LS-6",
+     "what": "the game's own pause screen keeps its lives face (no hiding while paused)",
+     "type": "not_uniform",
+     "shot": "paused-again",
+     "screen": "game",
+     "rect": [
+      32,
+      90,
+      160,
+      180
+     ],
+     "color": "000000",
+     "frac": 0.98
+    }
+   ]
+  },
+  {
+   "id": "ls-us-quit",
+   "rom": "ALDE",
+   "state": "lady-sia/us-level1.ss",
+   "desc": "in a level, paused, Quit to the main menu: the logo from the title on",
+   "rules": [
+    "LS-2",
+    "LS-3",
+    "LS-4"
+   ],
+   "input": [
+    [
+     200,
+     "START"
+    ],
+    [
+     204,
+     "-"
+    ],
+    [
+     230,
+     "RIGHT"
+    ],
+    [
+     236,
+     "-"
+    ],
+    [
+     250,
+     "RIGHT"
+    ],
+    [
+     256,
+     "-"
+    ],
+    [
+     280,
+     "A"
+    ],
+    [
+     284,
+     "-"
+    ]
+   ],
+   "shots": {
+    "level": 180,
+    "quit": 270,
+    "title": 500
+   },
+   "checks": [
+    {
+     "rule": "LS-2",
+     "what": "a status picture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "LS-3",
+     "what": "back to the logo after quitting",
+     "type": "log",
+     "match": "second screen back to the logo"
+    }
+   ]
+  },
+  {
+   "id": "ls-us-conversation",
+   "rom": "ALDE",
+   "state": "lady-sia/us-conversation.ss",
+   "desc": "a level starting after its picture, then \"Follow me, Sia!\" (a player's bug report, its keys played back): the status picture in the level, kept through the conversation, never the level",
+   "rules": [
+    "LS-2",
+    "LS-5"
+   ],
+   "input": [
+    [
+     30,
+     "START"
+    ],
+    [
+     39,
+     "-"
+    ],
+    [
+     226,
+     "RIGHT"
+    ],
+    [
+     240,
+     "-"
+    ],
+    [
+     315,
+     "A"
+    ],
+    [
+     340,
+     "-"
+    ],
+    [
+     441,
+     "RIGHT"
+    ],
+    [
+     469,
+     "-"
+    ],
+    [
+     505,
+     "A"
+    ],
+    [
+     513,
+     "-"
+    ]
+   ],
+   "shots": {
+    "level": 420,
+    "conversation": 640
+   },
+   "checks": [
+    {
+     "rule": "LS-2",
+     "what": "a status picture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "LS-5",
+     "what": "the conversation's capture comes to nothing",
+     "type": "log",
+     "match": "map button did nothing"
+    },
+    {
+     "rule": "LS-5",
+     "what": "still the status picture's top row",
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      0,
+      40,
+      1024,
+      172
+     ],
+     "color": "000000",
+     "frac": 0.98,
+     "shot": "conversation"
+    },
+    {
+     "rule": "LS-5",
+     "what": "still the status picture (its black rows), not the level",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      0,
+      330,
+      1024,
+      545
+     ],
+     "color": "000000",
+     "shot": "conversation"
+    },
+    {
+     "rule": "LS-2",
+     "what": "the ring plain, without its glow",
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       278,
+       578,
+       "000000"
+      ],
+      [
+       202,
+       638,
+       "000000"
+      ],
+      [
+       282,
+       694,
+       "000000"
+      ],
+      [
+       370,
+       682,
+       "000000"
+      ]
+     ],
+     "shot": "conversation"
+    }
+   ]
+  },
+  {
+   "id": "ls-eu-level",
+   "rom": "ALDP",
+   "state": "lady-sia/eu-level1.ss",
+   "desc": "in the first level, European release: the pause screen without its menu lines",
+   "rules": [
+    "LS-2"
+   ],
+   "shots": {
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "LS-2",
+     "what": "a status picture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "LS-2",
+     "what": "the lives, gems and villagers row, not black",
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      0,
+      40,
+      1024,
+      172
+     ],
+     "color": "000000",
+     "frac": 0.98,
+     "shot": "later"
+    },
+    {
+     "rule": "LS-2",
+     "what": "no Pause or menu line: those rows black",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      0,
+      330,
+      1024,
+      545
+     ],
+     "color": "000000",
+     "shot": "later"
+    },
+    {
+     "rule": "LS-2",
+     "what": "the ring plain, without its glow",
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       278,
+       578,
+       "000000"
+      ],
+      [
+       202,
+       638,
+       "000000"
+      ],
+      [
+       282,
+       694,
+       "000000"
+      ],
+      [
+       370,
+       682,
+       "000000"
+      ]
+     ],
+     "shot": "later"
+    }
+   ]
+  },
+  {
+   "id": "ls-us-level-start",
+   "rom": "ALDE",
+   "state": "lady-sia/us-new-game.ss",
+   "desc": "New Game, the story skipped, the first level starting: the lives, gems, villagers and ring the game puts up for a few seconds are left off the game screen",
+   "rules": [
+    "LS-6"
+   ],
+   "input": [
+    [
+     10,
+     "START"
+    ],
+    [
+     14,
+     "-"
+    ],
+    [
+     600,
+     "START"
+    ],
+    [
+     604,
+     "-"
+    ]
+   ],
+   "shots": {
+    "hud": 800
+   },
+   "checks": [
+    {
+     "rule": "LS-6",
+     "what": "no lives, gem, villager count or ring on the game screen",
+     "type": "not_pixels",
+     "shot": "hud",
+     "screen": "game",
+     "probes": [
+      [
+       90,
+       146,
+       "7B2100"
+      ],
+      [
+       454,
+       138,
+       "31D621"
+      ],
+      [
+       862,
+       130,
+       "AD7342"
+      ],
+      [
+       266,
+       650,
+       "EFEFEF"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ls-us-level-start-map-off",
+   "rom": "ALDE",
+   "state": "lady-sia/us-new-game.ss",
+   "desc": "the same with map = 0: the game's HUD stays on the game screen",
+   "rules": [
+    "LS-6"
+   ],
+   "config": {
+    "map": "0"
+   },
+   "input": [
+    [
+     10,
+     "START"
+    ],
+    [
+     14,
+     "-"
+    ],
+    [
+     600,
+     "START"
+    ],
+    [
+     604,
+     "-"
+    ]
+   ],
+   "shots": {
+    "hud": 800
+   },
+   "checks": [
+    {
+     "rule": "LS-6",
+     "what": "the lives, gem and villager count on the game screen (the ring bobs: 3 of 4)",
+     "type": "pixels",
+     "shot": "hud",
+     "screen": "game",
+     "probes": [
+      [
+       90,
+       146,
+       "7B2100"
+      ],
+      [
+       454,
+       138,
+       "31D621"
+      ],
+      [
+       862,
+       130,
+       "AD7342"
+      ],
+      [
+       266,
+       650,
+       "EFEFEF"
+      ]
+     ],
+     "min": 3
+    }
+   ]
+  },
+  {
+   "id": "ls-us-level2-heart",
+   "rom": "ALDE",
+   "state": "lady-sia/us-level2-heart.ss",
+   "desc": "the second level after a conversation, Sia picking up gems and a heart (a player's bug report, its keys played back): the HUD, in this level's own colours, off the game screen",
+   "rules": [
+    "LS-2",
+    "LS-5",
+    "LS-6"
+   ],
+   "input": [
+    [
+     79,
+     "A"
+    ],
+    [
+     86,
+     "-"
+    ],
+    [
+     110,
+     "RIGHT"
+    ],
+    [
+     121,
+     "-"
+    ],
+    [
+     152,
+     "A"
+    ],
+    [
+     159,
+     "-"
+    ],
+    [
+     184,
+     "RIGHT"
+    ],
+    [
+     208,
+     "-"
+    ],
+    [
+     250,
+     "A"
+    ],
+    [
+     257,
+     "-"
+    ],
+    [
+     261,
+     "A"
+    ],
+    [
+     267,
+     "-"
+    ],
+    [
+     278,
+     "B"
+    ],
+    [
+     285,
+     "-"
+    ],
+    [
+     290,
+     "B"
+    ],
+    [
+     296,
+     "-"
+    ],
+    [
+     301,
+     "B"
+    ],
+    [
+     307,
+     "-"
+    ],
+    [
+     311,
+     "B"
+    ],
+    [
+     318,
+     "-"
+    ],
+    [
+     323,
+     "B"
+    ],
+    [
+     330,
+     "-"
+    ],
+    [
+     339,
+     "RIGHT"
+    ],
+    [
+     347,
+     "B"
+    ],
+    [
+     353,
+     "-"
+    ],
+    [
+     359,
+     "B"
+    ],
+    [
+     364,
+     "-"
+    ],
+    [
+     371,
+     "B"
+    ],
+    [
+     376,
+     "B+RIGHT"
+    ],
+    [
+     378,
+     "RIGHT"
+    ],
+    [
+     383,
+     "-"
+    ],
+    [
+     385,
+     "B"
+    ],
+    [
+     392,
+     "-"
+    ],
+    [
+     412,
+     "RIGHT"
+    ],
+    [
+     433,
+     "-"
+    ],
+    [
+     448,
+     "B"
+    ],
+    [
+     454,
+     "-"
+    ],
+    [
+     473,
+     "RIGHT"
+    ],
+    [
+     519,
+     "-"
+    ]
+   ],
+   "shots": {
+    "conversation": 100,
+    "hud": 280,
+    "later": 560
+   },
+   "checks": [
+    {
+     "rule": "LS-6",
+     "what": "no gem or heart of the HUD on the game screen",
+     "type": "not_pixels",
+     "shot": "hud",
+     "screen": "game",
+     "probes": [
+      [
+       450,
+       114,
+       "187B10"
+      ],
+      [
+       454,
+       114,
+       "187B10"
+      ],
+      [
+       710,
+       610,
+       "EF2929"
+      ],
+      [
+       714,
+       610,
+       "EF2929"
+      ]
+     ]
+    },
+    {
+     "rule": "LS-2",
+     "what": "a status picture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ls-us-walrus-boss",
+   "rom": "ALDE",
+   "state": "lady-sia/us-walrus-boss.ss",
+   "desc": "level 0x24, the walrus boss, after its conversation (loaded through the level byte): the status picture, though the game's state byte reads 0x07 there",
+   "rules": [
+    "LS-2"
+   ],
+   "shots": {
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "LS-2",
+     "what": "a status picture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "LS-2",
+     "what": "the lives, gems and villagers row, not black",
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      0,
+      40,
+      1024,
+      172
+     ],
+     "color": "000000",
+     "frac": 0.98,
+     "shot": "later"
+    }
+   ]
+  },
+  {
+   "id": "ls-us-bird-ride",
+   "rom": "ALDE",
+   "state": "lady-sia/us-bird-ride.ss",
+   "desc": "level 0x21, riding the bird (its state byte 0x42): the status picture",
+   "rules": [
+    "LS-2"
+   ],
+   "shots": {
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "LS-2",
+     "what": "a status picture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "LS-2",
+     "what": "the lives, gems and villagers row, not black",
+     "type": "not_uniform",
+     "screen": "second",
+     "rect": [
+      0,
+      40,
+      1024,
+      172
+     ],
+     "color": "000000",
+     "frac": 0.98,
+     "shot": "later"
+    }
+   ]
+  },
+  {
+   "id": "ls-us-pedestal",
+   "rom": "ALDE",
+   "state": "lady-sia/us-pedestal.ss",
+   "desc": "level 0x28, a 32x32 pedestal beside the heart's place: it stays on the game screen (only the HUD's own shapes are hidden)",
+   "rules": [
+    "LS-6"
+   ],
+   "shots": {
+    "pedestal": 30
+   },
+   "checks": [
+    {
+     "rule": "LS-6",
+     "what": "the pedestal on the game screen",
+     "type": "pixels",
+     "shot": "pedestal",
+     "screen": "game",
+     "probes": [
+      [
+       774,
+       646,
+       "6B4A63"
+      ],
+      [
+       754,
+       666,
+       "522931"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ls-us-log",
+   "rom": "ALDE",
+   "state": "lady-sia/us-log.ss",
+   "desc": "level 0x2D, a log's small pieces by the ring's place: they stay on the game screen",
+   "rules": [
+    "LS-6"
+   ],
+   "shots": {
+    "log": 30
+   }
+  },
+  {
+   "id": "ls-us-jail",
+   "rom": "ALDE",
+   "state": "lady-sia/us-level-0x31.ss",
+   "desc": "a status picture in level 0x31, then (a quick load, the second screen kept) the jail's Continue? countdown after the last life: the logo",
+   "rules": [
+    "LS-2",
+    "LS-3"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:lady-sia/us-jail.ss"
+    ]
+   ],
+   "shots": {
+    "level": 150,
+    "jail": 320
+   },
+   "checks": [
+    {
+     "rule": "LS-2",
+     "what": "a status picture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "LS-3",
+     "what": "back to the logo in the jail",
+     "type": "log",
+     "match": "second screen back to the logo"
+    }
+   ]
+  },
+  {
+   "id": "ls-us-credits",
+   "rom": "ALDE",
+   "state": "lady-sia/us-credits.ss",
+   "desc": "the ending's credits, a gem falling through the ring's place: drawn (no hiding outside play)",
+   "rules": [
+    "LS-3",
+    "LS-6"
+   ],
+   "shots": {
+    "gem": 30
+   },
+   "checks": [
+    {
+     "rule": "LS-6",
+     "what": "the gem on the game screen",
+     "type": "pixels",
+     "shot": "gem",
+     "screen": "game",
+     "min": 2,
+     "probes": [
+      [
+       238,
+       618,
+       "31D621"
+      ],
+      [
+       262,
+       618,
+       "31D621"
+      ],
+      [
+       274,
+       618,
+       "31D621"
+      ]
+     ]
+    },
+    {
+     "rule": "LS-6",
+     "what": "no hiding in the credits",
+     "type": "no_log",
+     "match": "sprite hiding on"
+    }
+   ]
+  },
+  {
+   "id": "ls-eu-hurt",
+   "rom": "ALDP",
+   "state": "lady-sia/eu-hurt.ss",
+   "desc": "Sia hurt in the first level, European release (a player's bug report): the heart the game shows is left off the game screen; the status picture on the second screen",
+   "rules": [
+    "LS-2",
+    "LS-6"
+   ],
+   "shots": {
+    "hurt": 20,
+    "later": 200
+   },
+   "checks": [
+    {
+     "rule": "LS-6",
+     "what": "no heart in the bottom right of the game screen",
+     "type": "not_pixels",
+     "shot": "hurt",
+     "screen": "game",
+     "probes": [
+      [
+       722,
+       638,
+       "EF2929"
+      ],
+      [
+       738,
+       638,
+       "EF2929"
+      ],
+      [
+       718,
+       642,
+       "EF2929"
+      ],
+      [
+       730,
+       646,
+       "EF2929"
+      ]
+     ]
+    },
+    {
+     "rule": "LS-2",
+     "what": "a status picture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ls-eu-hurt-map-off",
+   "rom": "ALDP",
+   "state": "lady-sia/eu-hurt.ss",
+   "desc": "the same with map = 0: the heart stays on the game screen",
+   "rules": [
+    "LS-6"
+   ],
+   "config": {
+    "map": "0"
+   },
+   "shots": {
+    "hurt": 20
+   },
+   "checks": [
+    {
+     "rule": "LS-6",
+     "what": "the heart in the bottom right of the game screen",
+     "type": "pixels",
+     "shot": "hurt",
+     "screen": "game",
+     "probes": [
+      [
+       722,
+       638,
+       "EF2929"
+      ],
+      [
+       738,
+       638,
+       "EF2929"
+      ],
+      [
+       718,
+       642,
+       "EF2929"
+      ],
+      [
+       730,
+       646,
+       "EF2929"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ls-logo-alde",
+   "kind": "logo",
+   "rom": "ALDE",
+   "desc": "ALDE logo extraction",
+   "rules": [
+    "GEN-1",
+    "LS-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "ls-logo-aldp",
+   "kind": "logo",
+   "rom": "ALDP",
+   "desc": "ALDP logo extraction",
+   "rules": [
+    "GEN-1",
+    "LS-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}
