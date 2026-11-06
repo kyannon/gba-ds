@@ -246,6 +246,12 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   buffer on or off. Not replayed: cheats (the header says how many were
   on) and the battery save (the harness has none).
 - ROMs and save files are not in the repo. The owner attaches them; ask.
+  GameShark / Action Replay saves (`.sps`, `.gsv`, as on GameFAQs) convert
+  with `tools/sharkport.py IN.sps OUT.sav --magic BYTES` (BYTES: what the
+  game's save starts with, so EEPROM saves come out in mGBA's byte order).
+  The harness runs without a battery save: start the game in the app with
+  `--save_dir`, save a state there (the state carries the save), and go on
+  in the harness from it.
 - State Saver (`tools/statesaver/`, published as the owner's artifact) has a
   GBA DS tab: it runs a dev zip's `gba-ds/web/gba-ds.wasm` (`scripts/build-web.sh`,
   run by build-rocknix.sh for `-dev` versions; wasm32-wasi, no threads, so map

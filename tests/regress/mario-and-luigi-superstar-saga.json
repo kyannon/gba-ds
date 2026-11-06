@@ -660,6 +660,234 @@
    ]
   },
   {
+   "id": "ml-us-endgame-scene",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-endgame-room-00a-scene-cafe.ss",
+   "desc": "a scene room (0x00A, a conversation: \"What's your order?\"), reached from an endgame save (a GameShark save from GameFAQs, the file's room changed at the file screen): the game takes no SELECT there, so nothing is taken and the logo stays",
+   "rules": [
+    "ML-3"
+   ],
+   "shots": {
+    "scene": 300
+   },
+   "checks": [
+    {
+     "rule": "ML-3",
+     "what": "no capture",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-endgame-02b",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-endgame-room-02b-town.ss",
+   "desc": "walking about in a town (room 0x02B), from an endgame save (a GameShark save from GameFAQs, the file's room changed at the file screen): Bros. Info taken, the brothers at level 38",
+   "rules": [
+    "ML-2"
+   ],
+   "shots": {
+    "walking": 300
+   },
+   "checks": [
+    {
+     "rule": "ML-2",
+     "what": "Bros. Info taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ML-2",
+     "what": "no failed capture",
+     "type": "no_log",
+     "match": "capture failed"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-endgame-05b",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-endgame-room-05b-castle-outside.ss",
+   "desc": "walking about in outside Beanbean Castle (room 0x05B), from an endgame save (a GameShark save from GameFAQs, the file's room changed at the file screen): Bros. Info taken, the brothers at level 38",
+   "rules": [
+    "ML-2"
+   ],
+   "shots": {
+    "walking": 300
+   },
+   "checks": [
+    {
+     "rule": "ML-2",
+     "what": "Bros. Info taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ML-2",
+     "what": "no failed capture",
+     "type": "no_log",
+     "match": "capture failed"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-endgame-094",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-endgame-room-094-jungle.ss",
+   "desc": "walking about in a jungle (room 0x094), from an endgame save (a GameShark save from GameFAQs, the file's room changed at the file screen): Bros. Info taken, the brothers at level 38",
+   "rules": [
+    "ML-2"
+   ],
+   "shots": {
+    "walking": 300
+   },
+   "checks": [
+    {
+     "rule": "ML-2",
+     "what": "Bros. Info taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ML-2",
+     "what": "no failed capture",
+     "type": "no_log",
+     "match": "capture failed"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-endgame-0c7",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-endgame-room-0c7-cave.ss",
+   "desc": "walking about in a blue cave (room 0x0C7), from an endgame save (a GameShark save from GameFAQs, the file's room changed at the file screen): Bros. Info taken, the brothers at level 38",
+   "rules": [
+    "ML-2"
+   ],
+   "shots": {
+    "walking": 300
+   },
+   "checks": [
+    {
+     "rule": "ML-2",
+     "what": "Bros. Info taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ML-2",
+     "what": "no failed capture",
+     "type": "no_log",
+     "match": "capture failed"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-endgame-120",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-endgame-room-120-desert.ss",
+   "desc": "walking about in a desert (room 0x120), from an endgame save (a GameShark save from GameFAQs, the file's room changed at the file screen): Bros. Info taken, the brothers at level 38",
+   "rules": [
+    "ML-2"
+   ],
+   "shots": {
+    "walking": 300
+   },
+   "checks": [
+    {
+     "rule": "ML-2",
+     "what": "Bros. Info taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ML-2",
+     "what": "no failed capture",
+     "type": "no_log",
+     "match": "capture failed"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-endgame-159",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-endgame-room-159-ice.ss",
+   "desc": "walking about in an ice area (room 0x159), from an endgame save (a GameShark save from GameFAQs, the file's room changed at the file screen): Bros. Info taken, the brothers at level 38",
+   "rules": [
+    "ML-2"
+   ],
+   "shots": {
+    "walking": 300
+   },
+   "checks": [
+    {
+     "rule": "ML-2",
+     "what": "Bros. Info taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ML-2",
+     "what": "no failed capture",
+     "type": "no_log",
+     "match": "capture failed"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-endgame-1a2",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-endgame-room-1a2-bowsers-castle-lava.ss",
+   "desc": "walking about in Bowser's Castle's lava (room 0x1A2), from an endgame save (a GameShark save from GameFAQs, the file's room changed at the file screen): Bros. Info taken, the brothers at level 38",
+   "rules": [
+    "ML-2"
+   ],
+   "shots": {
+    "walking": 300
+   },
+   "checks": [
+    {
+     "rule": "ML-2",
+     "what": "Bros. Info taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ML-2",
+     "what": "no failed capture",
+     "type": "no_log",
+     "match": "capture failed"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-endgame-1e7",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-endgame-room-1e7-late-town.ss",
+   "desc": "walking about in a later town (room 0x1E7), from an endgame save (a GameShark save from GameFAQs, the file's room changed at the file screen): Bros. Info taken, the brothers at level 38",
+   "rules": [
+    "ML-2"
+   ],
+   "shots": {
+    "walking": 300
+   },
+   "checks": [
+    {
+     "rule": "ML-2",
+     "what": "Bros. Info taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ML-2",
+     "what": "no failed capture",
+     "type": "no_log",
+     "match": "capture failed"
+    }
+   ]
+  },
+  {
    "id": "ml-logo-a88e",
    "kind": "logo",
    "rom": "A88E",
