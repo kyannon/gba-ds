@@ -110,6 +110,10 @@ sed "s#/gba-ds/#/$APP/#g; s#gba-ds-error.log#$APP-error.log#" "dist/GBA DS.sh" >
 # EmulationStation artwork for the Ports entry
 mkdir -p "$ROOT/build/pkg/images"
 cp assets/brand/gba-ds-icon.png "$ROOT/build/pkg/images/$ENTRY.png"
+# and inside the app's folder, for menus that install the folder alone (BananaOS's
+# Store: its catalog entry's "menu" > "media" > "image" names images/icon.png)
+mkdir -p "$PKG/images"
+cp assets/brand/gba-ds-icon-transparent.png "$PKG/images/icon.png"
 # Dev builds carry the web build for State Saver's GBA DS tab (drop the zip
 # there to run this build in a browser). GBADS_WEB_WORK: build-web.sh's WORKDIR.
 if [[ $VERSION == *-dev ]]; then
