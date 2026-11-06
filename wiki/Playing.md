@@ -39,11 +39,11 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 
 **Game**
 - **Resume**
-- **Restart Game**: tap twice; unsaved progress is lost.
+- **Restart Game**: asks first (**Are You Sure?**; choose it again to restart); unsaved progress is lost.
 - **Save State 0** / **Load State 0**, side by side (LEFT / RIGHT moves between them): into and from the slot picked below them, whose number they show (Load is greyed out while that slot is empty).
 - **‹ Slot 0 ›** to **‹ Slot 9 ›**: ten save slots per game, each showing when it was saved (or Empty). LEFT / RIGHT on it, or a tap on its left or right end, picks another. The menu opens on the slot you saved to last.
 - A state also keeps what the second screen was showing (a map, a status screen, Sonic Advance's zone card), so loading it brings that back at once; states saved before v1.4.4 load as before, and the second screen catches up with its next capture.
-- **Close Game** (back to the game list) and **Close GBA DS**: both save a resume point first (while Save on Quit is on).
+- **Close Game** (back to the game list) and **Close GBA DS**: both ask first, like Restart Game, and save a resume point before closing (while Save on Quit is on). Moving to another button calls the question off.
 
 **Display** (remembered for next time)
 - **Scale**: Pixel Perfect (sharp, whole-number scale with a small border), Full Width (fills the width, keeps the shape, stays sharp), Zoom (fills the height, cutting off the left and right edges) or Stretch (fills the whole screen).
@@ -53,13 +53,15 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 - **Match Display Rate**: off by default. On, the game runs at the screen's refresh rate (60 Hz: 0.5% faster than a GBA, too little to notice, with the sound adjusted to match) and each frame is shown for exactly one refresh. Off, a 60 Hz screen shows one frame twice about every 3.7 seconds: a small, regular stutter.
 - **Screen shapes** (experimental; only on devices whose two screens are different shapes, such as the AYN Thor and the Retroid Pocket Duo, greyed out elsewhere): **Keep device aspect ratios** (each screen's picture as its own shape allows), **Match screen aspect ratios** (the wider screen's picture takes the other screen's shape, with black bars at its sides) or **Match screen sizes and aspect ratios** (the same, at the other screen's real size, against the edge nearest it). With Stretch and either match, both screens show the same shape, so Pokémon Pinball's table carries on across them. Overlays can be made for each: see [[Map screen surrounds and overlays]].
 
-**Extras** (Swap Screens, Rewind, Save on Quit and Auto-Load are remembered for next time)
+**Extras** (Swap Screens, Rewind, Fast Forward, Save on Quit and Auto-Load are remembered for next time)
 - **Swap Screens**: game and second screen trade places (also **L3**, or HOME + Y).
 - **Cheats**: see [below](#cheats).
 - **Achievements**: when signed in to RetroAchievements; see [below](#retroachievements).
 - **Take Screenshot**: both screens as they look right now, with your display settings, stacked top to bottom into one PNG in `/storage/roms/screenshots` (Android: `GBA DS/screenshots`); `screenshot_dir` changes the folder.
 - **Submit a Bug Report**: the same as the quick bar's bug button (see [below](#the-quick-bar-and-bug-reports)), for the moment you opened the menu.
+- **Rewind: On / Off** and **Fast Forward: On / Off**, side by side.
 - **Rewind**: on by default. Hold **L2** to go back in time, up to 30 seconds (`rewind_seconds`), at double speed and without sound, with **Rewinding...** in the middle of the second screen (**Can't rewind further** once you reach the start of the buffer); let go to play on from there. Off saves the little work it takes to keep the buffer.
+- **Fast Forward**: on by default. Hold **R2** to play 3 times as fast (`ff_speed`), with **Fast forwarding...** in the middle of the second screen. Off, R2 does nothing, so a trigger pressed by accident can't skip you ahead.
 - **Save on Quit: On / Off** and **Auto-Load: On / Off**, side by side: whether closing the game saves a resume point, and whether starting it picks up from one (see Resume points above). Remembered for next time.
 
 ## The quick bar and bug reports
@@ -96,7 +98,7 @@ From these, what you did can be played back exactly, frame by frame. So when som
 | HOME, or tap the touchscreen | Pause menu (Android: SELECT + START, or BACK) |
 | L2 (hold) | Rewind |
 | L3 (press the left stick) | Swap screens |
-| R2 (hold) | Fast-forward (`ff_speed`, default 3×) |
+| R2 (hold) | Fast-forward (`ff_speed`, default 3×; Fast Forward in Extras turns it off) |
 | HOME + R1 / L1 | Quick save / load state (the quick bar's) |
 | HOME + Start | Quit |
 | HOME + X | FPS counter above the game (the quick bar shows it too) |

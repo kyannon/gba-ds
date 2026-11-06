@@ -74,6 +74,7 @@ What `map_crop` changes in the Metroid map screens:
 | `hotkey` | `guide` | The button that opens the menu and is the modifier for the HOME + button shortcuts: `guide` (HOME) or `back` (SELECT; then SELECT alone still reaches the game when tapped). |
 | `home_button` | `-1` | If HOME does nothing: launch once with `GBADS_DEBUG=1` (see [[Troubleshooting]]), press HOME, and put the "raw joystick ... button N" number from `gba-ds.log` here. |
 | `menu_combo` | `none` (Android: `select+start`) | `select+start`: SELECT and START pressed together also open the menu. The game doesn't see the pair; either button alone still reaches the game. |
+| `fast_forward` | `1` | Hold **R2** to fast-forward. `0`: R2 does nothing. Also in the pause menu (Extras). |
 | `ff_speed` | `3` | Fast-forward speed (hold R2). |
 
 ## Files and folders

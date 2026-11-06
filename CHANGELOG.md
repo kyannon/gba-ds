@@ -2,6 +2,11 @@
 
 ## v1.4.11 (not yet released)
 
+### Changes
+- **Fast Forward: On / Off** in the pause menu's Extras, beside Rewind (now **Rewind: On / Off**, the two side by side). On by default, as before; off, R2 does nothing, so a trigger pressed by accident can't skip you ahead. Remembered for next time (`fast_forward` in gba-ds.cfg).
+- While you hold R2, **Fast forwarding...** shows in the middle of the second screen, after two arrows pointing right, like Rewinding... when you hold L2.
+- **Restart Game**, **Close Game** and **Close GBA DS** in the pause menu ask first: the button says **Are You Sure?**, with what will happen under the buttons; choose it again to go ahead. Moving to another button calls it off. (The quick bar's Close GBA DS already asks for a second tap.)
+
 ## v1.4.10 (2026-11-06)
 
 ### New games
