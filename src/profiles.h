@@ -553,6 +553,10 @@ typedef struct MapProfile {
 		struct {
 			MemProbe when[2];
 			unsigned bgMask;
+			/* while any one `when` probe matches, instead of every one;
+			 * probes may be in VRAM too (Mario & Luigi: BG2's text goes
+			 * while either box's frame is on BG3, ML-5) */
+			bool any;
 		} memLayers;
 	} hud;
 

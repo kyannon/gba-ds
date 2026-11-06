@@ -2040,6 +2040,11 @@ static const char* dbz_compose(Emu* s, const void* state, uint32_t* out, int w, 
 #define ML_CURSOR 0x030040A9
 #define ML_STATE 0x02000008 /* 8 walking about (its menus too), 3 a battle, 2 the title */
 #define ML_LEAD 0x02004F4C /* the brother in front: 0 Mario, 1 Luigi (START swaps) */
+#define ML_RESULTS 0x02036EB0 /* in a battle: 0 until its results (then a pointer, 0x0203xxxx) */
+/* BG3's tile map entries at the top right box's right edge (row 1,
+ * column 29) and the bottom box's (row 18): palette 8 while a box is there */
+#define ML_BOX_TOP 0x0600F87A
+#define ML_BOX_BOTTOM 0x0600FC7A
 static bool ml_wait(Emu* s, int v, int max) {
 	for (int f = 0; f < max; ++f) {
 		emu_frame(s, 0);
@@ -4523,6 +4528,28 @@ static const MapProfile profiles[] = {
 		          /* (without the sky at the lettering's edge, and its
 		           * shadow's dithered specks: ML-1) */
 		          .edgeClear = { 0x6BBDD6, 0x635242, 0x73634A }, .rev = 1 },
+		.hud = {
+			/* in a battle, before its results (ML-5): those stay on the
+			 * game screen whole, the logo alone on the second screen */
+			.on = { { ML_STATE, 0xFF, 3, 1 }, { ML_RESULTS, 0xFFFFFFFF, 0, 4 } },
+			/* the boxes' frames (BG3: only ever the boxes; empty in a
+			 * conversation, and between the boxes) */
+			.bgMask = 0x8,
+			/* their text (BG2) only while a box is up: BG2 is also the
+			 * tutorials' speech balloons, which stay by the speaker */
+			.memLayers = { .when = { { ML_BOX_TOP, 0xF000, 0x8000, 2 }, { ML_BOX_BOTTOM, 0xF000, 0x8000, 2 } }, .bgMask = 0x4, .any = true },
+			/* priority 0: the meters, the menus' cursor and icons (the
+			 * blocks, the A over the brother's head and the rest are 2);
+			 * not palette 15: a speech balloon's marker and edges */
+			.objs = { { -256, -96, 255, 159, 0, 1023, 0, 0x7FFF } },
+			/* the meters (bottom left; the bottom box starts at 120) to
+			 * the top left corner, against the top right box (from
+			 * column 104) and above the item list's cursor (from row 29);
+			 * the name box of the enemy aimed at (columns 0-103, rows
+			 * 1-21) stays on the game screen, out of their way */
+			.moves = { { 0, 120, 117, 159, 'L', 0, 'T', 0 }, { 0, 0, 103, 22, 0, 0, 0, 0, true } },
+			.logoBelow = true,
+		},
 	},
 	{
 		/* Dragon Ball Z: The Legacy of Goku (USA; Europe: the same, ALGP).

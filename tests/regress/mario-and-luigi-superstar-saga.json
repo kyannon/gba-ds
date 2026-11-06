@@ -154,9 +154,10 @@
    "id": "ml-us-battle",
    "rom": "A88E",
    "state": "mario-and-luigi-superstar-saga/us-battle.ss",
-   "desc": "a battle (a player's bug report, its saved second screen Bros. Info): the logo",
+   "desc": "a battle (a player's bug report, its saved second screen Bros. Info) in its tutorial's conversation: the balloon stays on the game screen, the logo (at full strength: the battle's second screen is live) on the second screen",
    "rules": [
-    "ML-3"
+    "ML-3",
+    "ML-5"
    ],
    "shots": {
     "start": 60
@@ -174,10 +175,11 @@
    "id": "ml-us-into-battle",
    "rom": "A88E",
    "state": "mario-and-luigi-superstar-saga/us-into-battle.ss",
-   "desc": "walking about into a battle (the same report's keys, played back): Bros. Info, then the logo once the battle starts",
+   "desc": "walking about into a battle (the same report's keys, played back): Bros. Info, then the logo once the battle starts, its tutorial's balloons staying on the game screen",
    "rules": [
     "ML-2",
-    "ML-3"
+    "ML-3",
+    "ML-5"
    ],
    "input": [
     [
@@ -273,6 +275,197 @@
     "walking": 200,
     "battle": 560
    }
+  },
+  {
+   "id": "ml-us-battle-boxes",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-battle-blocks.ss",
+   "desc": "a battle, choosing Mario's block (a player's bug report): the boxes at the top and bottom right and the meters at the top left of the second screen, the blocks and the A prompt on the game screen; then ITEM's list on the second screen with its cursor; then aiming SOLO at an enemy, the enemy's name box staying on the game screen",
+   "rules": [
+    "ML-1",
+    "ML-5"
+   ],
+   "input": [
+    [
+     32,
+     "A"
+    ],
+    [
+     34,
+     "-"
+    ],
+    [
+     82,
+     "DOWN"
+    ],
+    [
+     84,
+     "-"
+    ],
+    [
+     102,
+     "B"
+    ],
+    [
+     104,
+     "-"
+    ],
+    [
+     130,
+     "RIGHT"
+    ],
+    [
+     134,
+     "-"
+    ],
+    [
+     160,
+     "A"
+    ],
+    [
+     162,
+     "-"
+    ]
+   ],
+   "shots": {
+    "blocks": 30,
+    "item": 80,
+    "item2": 100,
+    "aim": 210
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "the meters at the top left of the second screen",
+     "type": "not_uniform",
+     "shot": "blocks",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "the top right box on the second screen",
+     "type": "not_uniform",
+     "shot": "blocks",
+     "rect": [
+      472,
+      76,
+      975,
+      131
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "the bottom box on the second screen",
+     "type": "not_uniform",
+     "shot": "blocks",
+     "rect": [
+      532,
+      624,
+      975,
+      687
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "the item list on the second screen",
+     "type": "not_uniform",
+     "shot": "item",
+     "rect": [
+      472,
+      176,
+      975,
+      387
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "aiming: the meters at the top left of the second screen, the name box not there",
+     "type": "not_uniform",
+     "shot": "aim",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-battle-results",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-battle-pre-results.ss",
+   "desc": "a battle's last blow, then its results: EXP, coins and items won stay on the game screen whole, the logo alone on the second screen",
+   "rules": [
+    "ML-3",
+    "ML-5"
+   ],
+   "input": [
+    [
+     20,
+     "A"
+    ],
+    [
+     22,
+     "-"
+    ]
+   ],
+   "shots": {
+    "blow": 40,
+    "results": 140
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "the results on the game screen",
+     "type": "not_uniform",
+     "shot": "results",
+     "screen": "game",
+     "rect": [
+      272,
+      244,
+      475,
+      567
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "ML-5",
+     "what": "nothing moved to the second screen's top left",
+     "type": "uniform",
+     "shot": "results",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "nothing moved to the second screen's right",
+     "type": "uniform",
+     "shot": "results",
+     "rect": [
+      512,
+      144,
+      975,
+      227
+     ],
+     "color": "303030"
+    }
+   ]
   },
   {
    "id": "ml-logo-a88e",

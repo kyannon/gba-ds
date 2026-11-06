@@ -14,15 +14,25 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 ## Rules
 
-**ML-1. Logo.** On the title and in battles (ML-3), the second screen shows the logo: MARIO & LUIGI and SUPERSTAR SAGA (in Japan マリオ&ルイージRPG), without the sky, PRESS START, the suitcase or the copyright line: no sky blue at the lettering's edge, no specks of the background around its shadow, no stray dots in its corners.
+**ML-1. Logo.** On the title and in battles (ML-3, behind the battle's boxes and meters: ML-5), the second screen shows the logo: MARIO & LUIGI and SUPERSTAR SAGA (in Japan マリオ&ルイージRPG), without the sky, PRESS START, the suitcase or the copyright line: no sky blue at the lettering's edge, no specks of the background around its shadow, no stray dots in its corners.
 
 **ML-2. Bros. Info, always.** Walking about, the second screen is the Bros. Info screen (SELECT's menu, its third icon), as the game draws it, filling the screen, once it has settled (its opening and the brothers' turn over) and only if it is Bros. Info (its frame checked; never the field or a menu): the page of the brother you're controlling, the one in front (START swaps them; the page follows within a moment). It's opened in the background on a silent copy of the game about once a second; your game is never paused. (Until v1.4.5's later test builds, Mario's and Luigi's pages in turn, 5 seconds each.)
 
-**ML-3. Elsewhere.** In a battle, the second screen shows the logo (Bros. Info again once you're walking about after it). In scenes, conversations and the game's own menus it keeps the last picture. Nothing leaves the game screen.
+**ML-3. Elsewhere.** In a battle, the second screen shows the logo, with the battle's boxes and meters over it (ML-5); Bros. Info again once you're walking about after it. In scenes, conversations and the game's own menus it keeps the last picture. Nothing else leaves the game screen.
 
 **ML-4. One screen.** With one screen, the game plays as it is.
 
+**ML-5. Battles: the boxes and meters on the second screen.** In a battle, from its first frame to the results:
+- Mario's and Luigi's meters (HP and BP, bottom left on the game screen) go to the top left corner of the second screen, beside the top right box and above the item list's cursor.
+- The information boxes at the top right (what the block does: "Use an Item", "Solo Attack") and the bottom right (the buttons) go to the same places on the second screen, with their text. So do the menus that open on the right side (the item list), with their cursor and icons.
+- The box at the top left while you aim (the enemy's name) stays on the game screen, by the enemies, where the meters would be on the second screen.
+- The command blocks (RUN, ITEM, SOLO...) and the A button prompt stay on the game screen, over the brother whose turn it is, and so does everything else: the brothers, the enemies, the attacks and their action command prompts.
+- A conversation in a battle (the tutorials' speech balloons) stays on the game screen, by whoever is speaking.
+- The results (EXP, coins, items won) stay on the game screen as the game draws them, with the logo alone on the second screen, until you're walking about again.
+
 ## Not covered yet
+
+Battles (ML-5): tried in the first battles of the story (the Koopa Cruiser's Goombas, with its tutorial, and the Fighter Flies of Stardust Fields): choosing a block, the item list, aiming at an enemy, attacks and dodging, the results. Bros. Attacks and their list, boss battles, and battles with more than a few items haven't been tried; what the boxes and meters do there is to be checked.
 
 Tried in the USA release from the owner's reports (the title, walking about at the start of the story, Bros. Info open, a conversation). One report showed the field on the second screen, from before the report's 10 seconds: not reproduced; the frame check keeps anything but Bros. Info off. Conversations, later areas (more equipment, badges) and Europe and Japan beyond their titles aren't tried yet: their screen and menu bytes are taken to be at the USA's addresses (both read the USA's title value at their titles).
 
@@ -35,4 +45,18 @@ Tried in the USA release from the owner's reports (the title, walking about at t
 | Game state | `0x02000008`: 8 walking about (its menus, Bros. Info, the star into a battle too), 3 in a battle, 2 the title |
 | Brother in front | `0x02004F4C`: 0 Mario, 1 Luigi (START swaps); Bros. Info always opens on Mario's page, R turns to Luigi's |
 | Display | walking about DISPCNT `0x1F40` (here), the menu `0x1D40`, Bros. Info `0x7F40`, the title `0x1741` |
+| Results | `0x02036EB0` (4 bytes): 0 in a battle until its results come up (as the screen dims, after the meters have gone), then a pointer (`0x0203xxxx`) on into walking about. (`0x0200086C` is 0 in a battle, 12 in the tutorial one, and 15, 21 or 7 in the results, depending on the path: not used) |
+| Battle layers | DISPCNT `0x7F40`: BG0 the sky, BG1 the battlefield, BG2 the text (the boxes' and the tutorials' balloons), BG3 the boxes' frames (screenblock 31, `0x0600F800`, palette 8; drawn as they slide in, cleared as they go; empty in a conversation). Sprites: priority 0 only for the meters (palettes 11, 12, tiles 73-111), the menus' cursor and icons (palette 11, tiles 168-171, 240-244), a speech balloon's marker and edges (palette 15, tiles 4-17) and the results' pieces; everything else priority 2 |
+| Boxes up | BG3's map entry at row 1, column 29 (`0x0600F87A`: the top right box's right edge) or row 18, column 29 (`0x0600FC7A`: the bottom box's), palette 8 (`0x8xxx`) while there |
 | Title | BG1 the sky, BG2 MARIO & LUIGI, sprites SUPERSTAR SAGA, PRESS START and the suitcase; START past the intro by frame 600. Europe: a language menu first (A at frame 700) |
+
+## For the merge
+
+Changelog (under the open version, "Changes" or "New"):
+
+- **Mario & Luigi: Superstar Saga:** in battles, the information boxes (what the block does, the buttons) and the menus that open on the right (the item list, with its cursor) move to the same places on the second screen, and Mario's and Luigi's HP and BP meters to its top left corner, over the logo. The command blocks and the A prompt stay over the brother whose turn it is, and so does the name of the enemy you're aiming at; the tutorials' speech balloons and the results after a battle stay on the game screen. Tried in the first battles of the story; Bros. Attacks and boss battles haven't been tried yet.
+
+wiki/Supported-games.md, the game's section (replacing its battles line), and its table row ("Bros. Info of the brother you're controlling; in battles, the boxes and meters"):
+
+- **In battles,** the second screen has the battle's boxes and meters, over the logo: Mario's and Luigi's HP and BP at the top left, what the highlighted block does at the top right, the buttons at the bottom right, and the menus that open on the right side (the item list) where they are on the game screen. The game screen keeps the command blocks and the A prompt over the brother whose turn it is, the enemy's name while you aim, and everything else. Speech balloons in a battle and the results after it stay on the game screen. Not tried yet: Bros. Attacks and their list, boss battles.
+- On the title, the second screen shows the logo; in scenes, conversations and the game's own menus it keeps its picture.
