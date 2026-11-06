@@ -28,12 +28,14 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Golden Sun: The Lost Age (Ougon no Taiyou: Ushinawareshi Toki in Japan)](golden-sun-2.md) | GS2 | `AGFE` + 5 |
 | [Tactics Ogre: The Knight of Lodis (Tactics Ogre Gaiden in Japan)](tactics-ogre.md) | TO | `ATOE` + 1 |
 | [F-Zero: GP Legend (F-Zero: Falcon Densetsu in Japan)](f-zero-gp-legend.md) | FZ | `BFZE` + 2 |
+| [F-Zero: Maximum Velocity (F-Zero for Game Boy Advance in Japan)](f-zero-maximum-velocity.md) | FZM | `AFZE` + 2 |
 | [River City Ransom EX (Downtown Nekketsu Monogatari EX in Japan)](river-city-ransom-ex.md) | RCR | `BDTE` + 1 |
 | [Spider-Man: Mysterio's Menace (Spider-Man: Mysterio no Kyoui in Japan)](spider-man-mysterios-menace.md) | SMM | `ASEE` + 1 |
 | [Summon Night: Swordcraft Story 2 (Craft Sword Monogatari 2 in Japan)](summon-night-swordcraft-story-2.md) | SN2 | `BSKE` + 1 |
 | [Sonic Pinball Party](sonic-pinball-party.md) | SPP | `A3VE` + 1 |
 | [Sonic Advance](sonic-advance.md) | SA | `ASOE` + 2 |
 | [Sonic Advance 2](sonic-advance-2.md) | SA2 | `A2NE` + 2 |
+| [Sonic Advance 3](sonic-advance-3.md) | SA3 | `B3SE` + 2 |
 | [Kingdom Hearts: Chain of Memories](kingdom-hearts-chain-of-memories.md) | KHC | `B8CE` + 2 |
 | [Lady Sia](lady-sia.md) | LS | `ALDE` + 1 |
 | [Zoids: Legacy (Zoids Saga II in Japan)](zoids-legacy.md) | ZL | `AZ2E` + 1 |

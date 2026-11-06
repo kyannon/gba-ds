@@ -63,6 +63,26 @@
    ]
   },
   {
+   "id": "sa2-us-course-select",
+   "rom": "A2NE",
+   "state": "sonic-advance-2/us-course-select.ss",
+   "desc": "the course select (the zone map), all zones open: the logo",
+   "rules": [
+    "SA2-1"
+   ],
+   "shots": {
+    "start": 30
+   },
+   "checks": [
+    {
+     "rule": "SA2-1",
+     "what": "no card, no HUD",
+     "type": "no_log",
+     "match": "title card|HUD on the second screen"
+    }
+   ]
+  },
+  {
    "id": "sa2-us-card",
    "rom": "A2NE",
    "state": "sonic-advance-2/us-card-lead-in.ss",
@@ -551,6 +571,566 @@
    ]
   },
   {
+   "id": "sa2-us-lf-act2",
+   "rom": "A2NE",
+   "state": "sonic-advance-2/us-lf-act2-card-lead-in.ss",
+   "desc": "Leaf Forest act 2 (Sonic), picked on the course select, nothing pressed: its card taken, the HUD moved under it",
+   "rules": [
+    "SA2-2",
+    "SA2-3",
+    "SA2-4"
+   ],
+   "shots": {
+    "card": 120,
+    "play": 400
+   },
+   "checks": [
+    {
+     "rule": "SA2-2",
+     "what": "the card taken",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA2-2",
+     "what": "nothing else taken for a card",
+     "type": "no_log",
+     "match": "frame ([4-9][0-9][0-9]|[0-9]{4}): title card up"
+    },
+    {
+     "rule": "SA2-3",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "sa2-us-hot-crater",
+   "rom": "A2NE",
+   "state": "sonic-advance-2/us-hot-crater-card-lead-in.ss",
+   "desc": "Hot Crater act 1 (Sonic), picked on the course select, nothing pressed: its card taken, the HUD moved under it",
+   "rules": [
+    "SA2-2",
+    "SA2-3",
+    "SA2-4"
+   ],
+   "shots": {
+    "card": 120,
+    "play": 400
+   },
+   "checks": [
+    {
+     "rule": "SA2-2",
+     "what": "the card taken",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA2-2",
+     "what": "nothing else taken for a card",
+     "type": "no_log",
+     "match": "frame ([4-9][0-9][0-9]|[0-9]{4}): title card up"
+    },
+    {
+     "rule": "SA2-3",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "sa2-us-music-plant",
+   "rom": "A2NE",
+   "state": "sonic-advance-2/us-music-plant-card-lead-in.ss",
+   "desc": "Music Plant act 1 (Sonic), picked on the course select, nothing pressed: its card taken, the HUD moved under it",
+   "rules": [
+    "SA2-2",
+    "SA2-3",
+    "SA2-4"
+   ],
+   "shots": {
+    "card": 120,
+    "play": 400
+   },
+   "checks": [
+    {
+     "rule": "SA2-2",
+     "what": "the card taken",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA2-2",
+     "what": "nothing else taken for a card",
+     "type": "no_log",
+     "match": "frame ([4-9][0-9][0-9]|[0-9]{4}): title card up"
+    },
+    {
+     "rule": "SA2-3",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "sa2-us-ice-paradise",
+   "rom": "A2NE",
+   "state": "sonic-advance-2/us-ice-paradise-card-lead-in.ss",
+   "desc": "Ice Paradise act 1 (Sonic), picked on the course select, nothing pressed: its card taken, the HUD moved under it",
+   "rules": [
+    "SA2-2",
+    "SA2-3",
+    "SA2-4"
+   ],
+   "shots": {
+    "card": 120,
+    "play": 400
+   },
+   "checks": [
+    {
+     "rule": "SA2-2",
+     "what": "the card taken",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA2-2",
+     "what": "nothing else taken for a card",
+     "type": "no_log",
+     "match": "frame ([4-9][0-9][0-9]|[0-9]{4}): title card up"
+    },
+    {
+     "rule": "SA2-3",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "sa2-us-sky-canyon",
+   "rom": "A2NE",
+   "state": "sonic-advance-2/us-sky-canyon-card-lead-in.ss",
+   "desc": "Sky Canyon act 1 (Sonic), picked on the course select, nothing pressed: its card taken, the HUD moved under it",
+   "rules": [
+    "SA2-2",
+    "SA2-3",
+    "SA2-4"
+   ],
+   "shots": {
+    "card": 120,
+    "play": 400
+   },
+   "checks": [
+    {
+     "rule": "SA2-2",
+     "what": "the card taken",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA2-2",
+     "what": "nothing else taken for a card",
+     "type": "no_log",
+     "match": "frame ([4-9][0-9][0-9]|[0-9]{4}): title card up"
+    },
+    {
+     "rule": "SA2-3",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "sa2-us-techno-base",
+   "rom": "A2NE",
+   "state": "sonic-advance-2/us-techno-base-card-lead-in.ss",
+   "desc": "Techno Base act 1 (Sonic), picked on the course select, nothing pressed: its card taken, the HUD moved under it",
+   "rules": [
+    "SA2-2",
+    "SA2-3",
+    "SA2-4"
+   ],
+   "shots": {
+    "card": 120,
+    "play": 400
+   },
+   "checks": [
+    {
+     "rule": "SA2-2",
+     "what": "the card taken",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA2-2",
+     "what": "nothing else taken for a card",
+     "type": "no_log",
+     "match": "frame ([4-9][0-9][0-9]|[0-9]{4}): title card up"
+    },
+    {
+     "rule": "SA2-3",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "sa2-us-egg-utopia",
+   "rom": "A2NE",
+   "state": "sonic-advance-2/us-egg-utopia-card-lead-in.ss",
+   "desc": "Egg Utopia act 1 (Sonic), picked on the course select, nothing pressed: its card taken, the HUD moved under it",
+   "rules": [
+    "SA2-2",
+    "SA2-3",
+    "SA2-4"
+   ],
+   "shots": {
+    "card": 120,
+    "play": 400
+   },
+   "checks": [
+    {
+     "rule": "SA2-2",
+     "what": "the card taken",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA2-2",
+     "what": "nothing else taken for a card",
+     "type": "no_log",
+     "match": "frame ([4-9][0-9][0-9]|[0-9]{4}): title card up"
+    },
+    {
+     "rule": "SA2-3",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "sa2-us-xx",
+   "rom": "A2NE",
+   "state": "sonic-advance-2/us-xx-card-lead-in.ss",
+   "desc": "XX (Sonic), picked on the course select: its card taken; then the first boss (palette 8 like the card's swirl, at another priority) is no card",
+   "rules": [
+    "SA2-2",
+    "SA2-9"
+   ],
+   "shots": {
+    "card": 130,
+    "boss": 600
+   },
+   "checks": [
+    {
+     "rule": "SA2-2",
+     "what": "the card taken",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA2-9",
+     "what": "the boss is no card",
+     "type": "no_log",
+     "match": "frame ([4-9][0-9][0-9]|[0-9]{4}): title card up"
+    },
+    {
+     "rule": "SA2-9",
+     "what": "the HUD off the game screen in the fight",
+     "type": "uniform",
+     "shot": "boss",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      96
+     ],
+     "color": "0000F8",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "sa2-us-cream",
+   "rom": "A2NE",
+   "state": "sonic-advance-2/us-cream-card-lead-in.ss",
+   "desc": "Leaf Forest act 1 with Cream (all characters unlocked in RAM, picked at character select): the card taken (its colours Cream's), the HUD with Cream's face moved under it; the countdown's START!! on the game screen",
+   "rules": [
+    "SA2-2",
+    "SA2-3",
+    "SA2-4"
+   ],
+   "shots": {
+    "card": 120,
+    "play": 400,
+    "count": 520,
+    "start": 545
+   },
+   "checks": [
+    {
+     "rule": "SA2-2",
+     "what": "Cream's card taken",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA2-3",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "SA2-3",
+     "what": "START!! on the game screen",
+     "type": "differs",
+     "a": {
+      "shot": "count",
+      "screen": "game",
+      "rect": [
+       96,
+       64,
+       640,
+       300
+      ]
+     },
+     "b": {
+      "shot": "start",
+      "screen": "game",
+      "rect": [
+       96,
+       64,
+       640,
+       300
+      ]
+     },
+     "frac": 0.05
+    },
+    {
+     "rule": "SA2-3",
+     "what": "no part of START!! moved",
+     "type": "same",
+     "a": {
+      "shot": "count",
+      "rect": [
+       32,
+       400,
+       992,
+       560
+      ]
+     },
+     "b": {
+      "shot": "start",
+      "rect": [
+       32,
+       400,
+       992,
+       560
+      ]
+     },
+     "frac": 0.01
+    }
+   ]
+  },
+  {
+   "id": "sa2-us-tails",
+   "rom": "A2NE",
+   "state": "sonic-advance-2/us-tails-card-lead-in.ss",
+   "desc": "Leaf Forest act 1 with Tails (all characters unlocked in RAM, picked at character select): the card taken (its colours Tails's), the HUD with Tails's face moved under it; the countdown's START!! on the game screen",
+   "rules": [
+    "SA2-2",
+    "SA2-3",
+    "SA2-4"
+   ],
+   "shots": {
+    "card": 120,
+    "play": 400,
+    "count": 520,
+    "start": 545
+   },
+   "checks": [
+    {
+     "rule": "SA2-2",
+     "what": "Tails's card taken",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA2-3",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "SA2-3",
+     "what": "START!! on the game screen",
+     "type": "differs",
+     "a": {
+      "shot": "count",
+      "screen": "game",
+      "rect": [
+       96,
+       64,
+       640,
+       300
+      ]
+     },
+     "b": {
+      "shot": "start",
+      "screen": "game",
+      "rect": [
+       96,
+       64,
+       640,
+       300
+      ]
+     },
+     "frac": 0.05
+    },
+    {
+     "rule": "SA2-3",
+     "what": "no part of START!! moved",
+     "type": "same",
+     "a": {
+      "shot": "count",
+      "rect": [
+       32,
+       400,
+       992,
+       560
+      ]
+     },
+     "b": {
+      "shot": "start",
+      "rect": [
+       32,
+       400,
+       992,
+       560
+      ]
+     },
+     "frac": 0.01
+    }
+   ]
+  },
+  {
+   "id": "sa2-us-knuckles",
+   "rom": "A2NE",
+   "state": "sonic-advance-2/us-knuckles-card-lead-in.ss",
+   "desc": "Leaf Forest act 1 with Knuckles (all characters unlocked in RAM, picked at character select): the card taken (its colours Knuckles's), the HUD with Knuckles's face moved under it; the countdown's START!! on the game screen",
+   "rules": [
+    "SA2-2",
+    "SA2-3",
+    "SA2-4"
+   ],
+   "shots": {
+    "card": 120,
+    "play": 400,
+    "count": 520,
+    "start": 545
+   },
+   "checks": [
+    {
+     "rule": "SA2-2",
+     "what": "Knuckles's card taken",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA2-3",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "SA2-3",
+     "what": "START!! on the game screen",
+     "type": "differs",
+     "a": {
+      "shot": "count",
+      "screen": "game",
+      "rect": [
+       96,
+       64,
+       640,
+       300
+      ]
+     },
+     "b": {
+      "shot": "start",
+      "screen": "game",
+      "rect": [
+       96,
+       64,
+       640,
+       300
+      ]
+     },
+     "frac": 0.05
+    },
+    {
+     "rule": "SA2-3",
+     "what": "no part of START!! moved",
+     "type": "same",
+     "a": {
+      "shot": "count",
+      "rect": [
+       32,
+       400,
+       992,
+       560
+      ]
+     },
+     "b": {
+      "shot": "start",
+      "rect": [
+       32,
+       400,
+       992,
+       560
+      ]
+     },
+     "frac": 0.01
+    }
+   ]
+  },
+  {
+   "id": "sa2-us-amy",
+   "rom": "A2NE",
+   "state": "sonic-advance-2/us-amy-card-lead-in.ss",
+   "desc": "Leaf Forest act 1 with Amy (all characters unlocked in RAM, picked at character select): the card taken (its colours Amy's), the HUD with Amy's face moved under it",
+   "rules": [
+    "SA2-2",
+    "SA2-3",
+    "SA2-4"
+   ],
+   "shots": {
+    "card": 120,
+    "play": 400
+   },
+   "checks": [
+    {
+     "rule": "SA2-2",
+     "what": "Amy's card taken",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA2-3",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
    "id": "sa2-us-water",
    "rom": "A2NE",
    "state": "sonic-advance-2/us-water-lead-in.ss",
@@ -719,6 +1299,145 @@
      ],
      "color": "303030",
      "frac": 0.9
+    }
+   ]
+  },
+  {
+   "id": "sa2-us-goal",
+   "rom": "A2NE",
+   "state": "sonic-advance-2/us-goal-card.ss",
+   "desc": "Leaf Forest act 1, running into the goal, in a state with the card on the second screen (the card from a state saved by GBA DS, laid onto a harness state by the goal): the results on the game screen, the card and the HUD (the score counting up) on the second; then act 2's card taken",
+   "rules": [
+    "SA2-8",
+    "SA2-2"
+   ],
+   "input": [
+    [
+     1,
+     "RIGHT"
+    ],
+    [
+     150,
+     "-"
+    ]
+   ],
+   "shots": {
+    "run": 100,
+    "results": 500,
+    "tally": 800,
+    "act2": 2000
+   },
+   "checks": [
+    {
+     "rule": "SA2-8",
+     "what": "the card from the state",
+     "type": "log",
+     "match": "second screen from it \\( card\\)"
+    },
+    {
+     "rule": "SA2-8",
+     "what": "the card kept through the results",
+     "type": "same",
+     "a": {
+      "shot": "run",
+      "rect": [
+       32,
+       64,
+       992,
+       560
+      ]
+     },
+     "b": {
+      "shot": "results",
+      "rect": [
+       32,
+       64,
+       992,
+       560
+      ]
+     }
+    },
+    {
+     "rule": "SA2-8",
+     "what": "the score counting up on the second screen",
+     "type": "differs",
+     "a": {
+      "shot": "results",
+      "rect": [
+       32,
+       600,
+       600,
+       704
+      ]
+     },
+     "b": {
+      "shot": "tally",
+      "rect": [
+       32,
+       600,
+       600,
+       704
+      ]
+     },
+     "frac": 0.002
+    },
+    {
+     "rule": "SA2-2",
+     "what": "act 2's card taken",
+     "type": "log",
+     "match": "frame [1-9][0-9]+: title card taken"
+    }
+   ]
+  },
+  {
+   "id": "sa2-us-boss",
+   "rom": "A2NE",
+   "state": "sonic-advance-2/us-boss-lead-in.ss",
+   "desc": "Leaf Forest act 2's results into its boss (Sonic): BOSS ATTACK!'s card taken; through the fight (the Egg Hammer Tank, in palette 8 like the card's swirl) the card and the moved HUD stay on the second screen",
+   "rules": [
+    "SA2-9",
+    "SA2-8"
+   ],
+   "shots": {
+    "card": 440,
+    "fight": 700,
+    "later": 1000
+   },
+   "checks": [
+    {
+     "rule": "SA2-9",
+     "what": "the boss's card taken",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA2-9",
+     "what": "the boss is no card",
+     "type": "no_log",
+     "match": "frame ([5-9][0-9][0-9]|[0-9]{4}): title card up"
+    },
+    {
+     "rule": "SA2-9",
+     "what": "the card kept through the fight",
+     "type": "same",
+     "a": {
+      "shot": "fight",
+      "rect": [
+       32,
+       64,
+       992,
+       560
+      ]
+     },
+     "b": {
+      "shot": "later",
+      "rect": [
+       32,
+       64,
+       992,
+       560
+      ]
+     }
     }
    ]
   },

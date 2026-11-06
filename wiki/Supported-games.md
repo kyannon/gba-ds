@@ -9,6 +9,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Castlevania: Harmony of Dissonance | `ACHE` `ACHP` `ACHJ` | map |
 | Dragon Ball Z: The Legacy of Goku | `ALGE` `ALGP` (no Japanese release) | the pause menu, with the HP and Ki bars (or the counter SELECT and flying show) in place of its options |
 | F-Zero: GP Legend (F-Zero: Falcon Densetsu in Japan) | `BFZE` `BFZP` `BFZJ` | the race HUD, with the course map twice as big |
+| F-Zero: Maximum Velocity (F-Zero for Game Boy Advance in Japan) | `AFZE` (USA and Europe) `AFZJ` (China: `AFZC`) | the race HUD, with the course map twice as big |
 | Final Fantasy Tactics Advance | `AFXE` `AFXP` `AFXJ` | in battles: the Status of the unit under the cursor, or the turn order and Laws; on the world map: today's Laws |
 | Fire Emblem (Rekka no Ken in Japan) | `AE7E` `AE7X` (English, French, German) `AE7Y` (English, Spanish, Italian) `AE7J` | on the map: the status of the unit under the cursor |
 | Fire Emblem: The Sacred Stones (Seima no Kouseki in Japan) | `BE8E` `BE8P` `BE8J` | on the map: the status of the unit under the cursor |
@@ -25,6 +26,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | River City Ransom EX (Downtown Nekketsu Monogatari EX in Japan) | `BDTE` `BDTJ` (no European release) | the Status screen, with the top bar moved off the game screen |
 | Sonic Advance | `ASOE` `ASOP` `ASOJ` | the zone card, with the rings, score, time and lives |
 | Sonic Advance 2 | `A2NE` `A2NP` `A2NJ` | the zone card, with the rings, score, time and lives |
+| Sonic Advance 3 | `B3SE` `B3SP` `B3SJ` | the act card, with the rings, time and lives; the hubs' keys and zone label |
 | Sonic Pinball Party | `A3VE` `A3VP` | the table twice as tall over both screens, live (work in progress) |
 | Spider-Man: Mysterio's Menace (Spider-Man: Mysterio no Kyoui in Japan) | `ASEE` (USA and Europe) `ASEJ` | the Select menu: the objective, password, suits, upgrades and web containers |
 | Summon Night: Swordcraft Story (Craft Sword Monogatari in Japan) | `AB4E` `AB4J` (no European release) | the Status screen, with where you are |
@@ -84,6 +86,20 @@ As with Mario Kart: Super Circuit, the HUD is moved off the game screen rather t
 - Everywhere else (the menus, a story's objective screen and scenes, the course name as a race fades in, the RESULTS once a race ends or after GIVE UP) the second screen shows the logo.
 - With one screen (`layout = single`), the HUD stays where the game draws it.
 - The USA, European and Japanese releases have all been tried.
+
+## F-Zero: Maximum Velocity
+
+The same second screen as F-Zero: GP Legend's: the HUD is moved off the game screen rather than copied, so nothing behind it is lost.
+
+- **Racing** (Grand Prix and Training):
+  - The game screen keeps your **speed** where the game draws it (top right), the CHECK sign under a machine close behind, and your **RANK** with the race's limit (1/15, then /10, /7, /5, red when you're outside it) in the bottom-left corner, where the course map was.
+  - The second screen has the **POW** meter at the top centre with **BOOST** and its three marks just under it, SPARE MACHINES and LAST (laps left) in the top-left corner (in Training, LAST alone in the corner), the time with each lap's time under it in the top-right corner, and the **course map**, twice as big, at the bottom centre. The game draws the map only every other frame, so it blinks on the GBA; here it's held steady, with your dot moving every frame.
+- The game's **pause menu** stays on the game screen, with the HUD on the second screen.
+- On **YOU LOST** (after GIVE UP, after RANK OUT, or once a destroyed machine's wreck has been circled), the HUD stays on the second screen until A takes the game on to the results.
+- Everywhere else (the title and menus, the course name as a race fades in, the end of a race once the HUD's gone, while the camera circles a destroyed machine, the results) the second screen shows the logo, the title's lettering.
+- With one screen (`layout = single`), the HUD stays where the game draws it.
+- The USA / Europe, Japanese and Chinese releases have all been tried in Grand Prix and Training; the link-cable modes haven't.
+- As the game takes its HUD down, the HUD shows on the game screen for a single frame.
 
 ## Final Fantasy Tactics Advance
 
@@ -216,21 +232,32 @@ The USA release and the Japanese one (Downtown Nekketsu Monogatari EX).
 
 ## Sonic Advance
 
-The USA, European and Japanese releases, tried in Neo Green Hill Zone so far.
+The USA, European and Japanese releases, tried in every zone and with every character.
 
 - As each level starts, the second screen keeps the game's **zone card** (the stripe with the character's name, the zone's name and the act), taken as its name passes the middle, on black.
 - In the level, the **rings, score and time** move from the game screen to the top right of the second screen, over the card, with the **lives** just below.
 - The act's results stay on the game screen. On the title and menus, the second screen shows the logo.
-- Not tried yet: other zones and characters, bosses, special stages, Time Attack, VS and the Tiny Chao Garden.
+- Pause and boss fights keep the card and the moved HUD on the second screen. In Secret Base Zone the card and HUD there are darkened with the level, and light up with it.
+- Not tried yet: special stages, the Moon Zone, Time Attack, VS and the Tiny Chao Garden.
 
 ## Sonic Advance 2
 
-The USA, European and Japanese releases, tried in Leaf Forest so far.
+The USA, European and Japanese releases, tried in every zone and with every character.
 
-- As each act starts, the second screen keeps the game's **zone card** (the zone's name, its emblem and the row of zone icons, on blue and black), the whole screen as the game draws it, once it has settled.
-- In the level, the **rings, score and time** move from the top of the game screen to the bottom left of the second screen, over the card's blue, and the **lives** from the bottom left to the card's bottom right. They stay there under water.
-- The pause window stays on the game screen. On the title and menus, the second screen shows the logo; after loading a state mid-act that wasn't saved with the card, the logo stays (above the moved HUD) until the next act's card.
-- Not tried yet: other zones and characters, bosses, special stages, Time Attack, multiplayer and the Tiny Chao Garden.
+- As each act or boss starts, the second screen keeps the game's **zone card** (the zone's name, its emblem and the row of zone icons, on the character's colour and black), the whole screen as the game draws it, once it has settled.
+- In the level, the **rings, score and time** move from the top of the game screen to the bottom left of the second screen, over the card's colour, and the **lives** from the bottom left to the card's bottom right. They stay there under water, through the act's results and in boss fights.
+- The pause window and the act's results stay on the game screen. On the title, menus and the zone map, the second screen shows the logo; after loading a state mid-act that wasn't saved with the card, the logo stays (above the moved HUD) until the next act's card.
+- Not tried yet: special stages, True Area 53, Time Attack, multiplayer and the Tiny Chao Garden.
+
+## Sonic Advance 3
+
+The USA, European and Japanese releases, tried in every zone's first act and the hubs so far.
+
+- As each act or boss starts, the second screen keeps the game's **act card**: its white band with the zone's name, the team and the act, as it settles at the bottom of the screen, on black.
+- In the act, the **rings, time and lives** move from the game screen to the same places on the second screen, over the card.
+- In a zone's **hub**, there's no card: the second screen shows the logo, with the hub's **key count, lives and zone label** moved there.
+- PAUSE and the act's results stay on the game screen. On the title, menus and the demo, the second screen shows the logo; after loading a state mid-act that wasn't saved with the card, the logo stays (with the moved HUD) until the next act's card.
+- Not tried yet: bonus games, special stages, water, other teams, Altar Emerald, Time Attack and multiplayer.
 
 ## Sonic Pinball Party
 

@@ -3547,20 +3547,84 @@ static const MapProfile profiles[] = {
 			/* in a level: mode 0 with BG1-3 (BG0 goes off with water on
 			 * screen, SA2-7; the language menu has BG0-2, the rest mode 1) */
 			.on = { { 0x04000000, 0x0E07, 0x0E00, 2 } },
-			/* the rings, score and time (tiles 484-547: the digits, the
-			 * ring box and icon; palette 7: the count flashing red at no
-			 * rings); the lives (face and count) */
-			.objs = { { -16, -16, 160, 32, 484, 547, -1, 1u << 6 | 1u << 7 },
-			          { -16, 130, 48, 159, 504, 511, -1, 1u << 0 },
+			/* the rings, score and time (in an act tiles 484-547 with
+			 * Sonic, Knuckles and Amy, 500-563 with Cream and Tails: the
+			 * digits, the ring box and icon; in a boss fight 704-783, not
+			 * 64x64: the countdown's START!! is from tile 740;
+			 * palette 7: the count flashing red at no rings); the lives
+			 * (the face, palette 0: 508, 524 or 728; the count). The
+			 * character is palette 0 from tile 0; all at priority 0 (not the
+			 * rings' sparkles, palette 7 from tile 760 at priority 1) */
+			.objs = { { -16, -16, 160, 32, 480, 563, 0, 1u << 6 | 1u << 7 },
+			          { -16, -16, 160, 32, 704, 783, 0, 1u << 6 | 1u << 7, 0, 0xFFFFu & ~(1u << 3) },
+			          { -16, 130, 48, 159, 464, 767, 0, 1u << 0 },
 			          { -16, 130, 48, 159, 464, 1023, -1, 1u << 6 } },
 			/* the zone card: the whole screen, once settled, its emblem face on
 			 * with its ring of ticks full (SA2-2) */
-			.card = { .tile = 464, .pal = 8, .whole = true, .at = 61 },
+			/* the swirl: tile 464 (480 with Cream and Tails), priority 0
+			 * (the bosses use palette 8 from tile 464 at priority 2) */
+			.card = { .tile = 464, .tileMax = 480, .pal = 8, .prio1 = 0 + 1, .whole = true, .at = 61 },
 			/* the rings, score and time along the bottom (SA2-3); the
 			 * lives in the bottom right corner, as far in from the right
 			 * as they are from the left on the game screen (SA2-4) */
 			.moves = { { 0, 0, 239, 40, 0, 0, 'B', 156 },
 			           { 0, 120, 60, 159, 'R', 233, 0, 0 } },
+		},
+	},
+	{
+		/* Sonic Advance 3 (USA, Europe and Japan: the same sprites,
+		 * registers, RAM and title steps). gStageData (the SAT-R/sa3
+		 * decompilation's name) at 0x030008A0: +3 the game mode (0 the
+		 * main game), +9 the zone, +0xA the act (1 Sonic Factory, 2 the
+		 * zone's hub, 3-5 acts 1-3, 7 the boss, 8-9 bonus games), +0xE the
+		 * level. Acts and hubs: display mode 0 with BG1-3 (acts and the
+		 * factory with window 1 too); bosses mode 1 with BG0-1 and windows
+		 * 0-1. The HUD is sprites of priority 0, palettes 6-7, tiles
+		 * 448-511 (rings and time top left, the lives bottom left; in a
+		 * hub, the keys), plus a hub's zone label (palette 6, tiles from
+		 * 620) bottom right. The act's card: black, the zone's name
+		 * (palette 9, priority 3, from tile 620 or 622) on a white band
+		 * across the middle, with the HUD over it.
+		 * docs/games/sonic-advance-3.md */
+		.codes = { "B3SE", "B3SP", "B3SJ" },
+		.title = "Sonic Advance 3",
+		.logoOnly = true,
+		/* the title: SONIC ADVANCE 3 (BG1 alone; the copyright lines are
+		 * sprites). From power-on with no save: the language menu (A),
+		 * name entry (a letter, START to END, A), the intro */
+		.logo = { .steps = { { 0, 60 }, { K_A, 3 }, { 0, 69 }, { K_A, 3 }, { 0, 29 }, { K_START, 3 }, { 0, 29 },
+		                     { K_A, 3 }, { 0, 2650 } },
+		          .layer = 1, .maxY = 110 },
+		.hud = {
+			/* the main game (not the demo, Time Attack or multiplayer), in
+			 * an act, a boss, a hub or the factory (not a bonus game), the
+			 * display a level's: mode 0 with BG1-3, or mode 1 with BG1 (a
+			 * boss; not the title: BG3 or window 1 on too) */
+			.on = { { 0x04000000, 0x0E07, 0x0E00, 2, true, 0x0201 },
+			        { 0x04000000, 0x4800, 0x0800, 2, true, 0x4800, true },
+			        { 0x030008A3, 0xFF, 0, 1 },
+			        { 0x030008AA, 0xFF, 1, 1, true, 7, true } },
+			/* the rings, time and lives (and a hub's keys); a hub's zone
+			 * label */
+			.objs = { { -64, -64, 255, 175, 448, 511, 0, 1u << 6 | 1u << 7 },
+			          { -64, -64, 255, 175, 600, 711, 0, 1u << 6 } },
+			/* the act's card once the band has settled at the bottom with
+			 * the team and the act (SA3-2): drawn again with the BLDY
+			 * shadow (gBldRegs + 4) at 16, black but for the band (window
+			 * 0), as in the card's first moments, without the other
+			 * sprites (priority 1-2; the HUD; at priority 3 all but
+			 * palette 9; at priority 0 all but palettes 6, 7 and 9). The
+			 * name's sprite at priority 3: an enemy's points are the same
+			 * tile and palette at priority 0. None in a hub or the factory
+			 * (SA3-4) */
+			.card = { .tile = 620, .tileMax = 623, .pal = 9, .prio1 = 3 + 1, .whole = true, .at = 165,
+			          .drop = { { 0x030008AA, 0xFF, 1, 1, true, 2, true } },
+			          .hide = { { -64, -64, 255, 175, 0, 1023, 1, 0 },
+			                    { -64, -64, 255, 175, 0, 1023, 2, 0 },
+			                    { -64, -64, 255, 175, 0, 711, 0, 1u << 6 | 1u << 7 },
+			                    { -64, -64, 255, 175, 0, 1023, 3, 0xFFFFu & ~(1u << 9) },
+			                    { -64, -64, 255, 175, 0, 1023, 0, 0xFFFFu & ~(1u << 6 | 1u << 7 | 1u << 9) } },
+			          .poke = { 0x03002BFC, 16 } },
 		},
 	},
 	{
@@ -3997,6 +4061,85 @@ static const MapProfile profiles[] = {
 			           { 150, 0, 239, 17, 'C', 120, 'T', 2 },
 			           { 0, 32, 79, 56, 'L', 0, 'T', 2, .under = 2 },
 			           { 150, 18, 239, 80, 0, 0, 'T', 2 } },
+		},
+	},
+	{
+		/* F-Zero: Maximum Velocity (docs/games/f-zero-maximum-velocity.md),
+		 * GP Legend's engine before it. The race HUD is all sprites,
+		 * priority 0, on the track's BG2 / BG3 in mode 2 (DISPCNT 0x3C42,
+		 * the menus' too): SPARE MACHINES (tiles 676-687, palettes 12, 13)
+		 * top left, RANK under it (label 399; the place 750-770, the limit
+		 * 394-405, palette 14 when outside it), LAST (734-745) under that;
+		 * POW (376-393, palettes 12, 15) top right, the speed (366-374,
+		 * 952-961) under it and the time (962-986, palettes 12, 15; a lap's
+		 * time under it as it ends) under that; BOOST (406-408) bottom
+		 * right; the course map one 64x64 sprite (tile 884, palette 15) at
+		 * 0, 96, drawn every other frame, with the player's dot (675) on
+		 * it. Not the HUD: the number over a rival ahead and its line
+		 * (688-698, anywhere over the track's top half, the RANK corner
+		 * too), the signs over the track (256-280: READY, the laps left,
+		 * TURN BACK, the place at the finish; 592-660), CHECK (412) under a
+		 * machine close behind, the machines (rotated, palette 0) and
+		 * their glow (667) and sparks (456-536, 700). Found by listing the
+		 * sprites of whole races (Grand Prix, Training, all three
+		 * releases). */
+		.codes = { "AFZE", "AFZJ" },
+		.title = "F-Zero: Maximum Velocity",
+		.logoOnly = true,
+		/* the title's sprites alone: the lettering above PRESS START (row
+		 * 123) and the copyright line (FZM-1) */
+		.logo = { .steps = { { 0, 900 } }, .layers = 0x10, .maxY = 115 },
+		.hud = {
+			/* the race HUD is up: the game's mode (0x03000BFB: the handler
+			 * table at 0x080513D0's index) one with a race on screen, and
+			 * the HUD's own state (0x020168C9: 0x63 shown, 0x64 paused,
+			 * 0x61 gone; it changes a frame before the HUD's sprites do).
+			 * The modes: the countdown (3), the race (5), the finish (6 and
+			 * 0x10 seen: second place on the debug AUTO, first driven),
+			 * RANK OUT (8), YOU LOST after GIVE UP (9), the machine
+			 * destroyed (10): 3 to 0x10 with the low three bits 0 to 6, so
+			 * not 7, the results, where the state byte holds other things.
+			 * The HUD stays through YOU LOST till A is pressed (0x61 then);
+			 * the camera circling a wreck has none (0x61). Before the
+			 * owner's reports of Nov 5 (a driven finish: mode 0x10; RANK
+			 * OUT: mode 8) this went by the modes alone and the flag
+			 * 0x030005F8, which drops at the finish (FZM-2, FZM-6, FZM-8) */
+			.on = { { 0x03000BFB, 0xFF, 3, 1, true, 0x10, true }, { 0x03000BFB, 0x07, 0, 1, true, 6, true },
+			        { 0x020168C9, 0xFF, 0x63, 1, true, 0x64, true } },
+			.objs = { /* POW */
+			          { 130, -8, 239, 12, 376, 393, 0 },
+			          /* SPARE MACHINES */
+			          { -8, -8, 72, 9, 676, 687, 0 },
+			          /* RANK: label, place, limit */
+			          { -8, 8, 50, 34, 399, 399, 0 },
+			          { -8, 8, 50, 34, 750, 770, 0 },
+			          { -8, 8, 50, 34, 394, 405, 0 },
+			          /* LAST */
+			          { -8, 33, 50, 44, 734, 745, 0 },
+			          /* BOOST and its three marks */
+			          { 170, 140, 240, 159, 406, 408, 0 },
+			          /* the time and the lap's time */
+			          { 150, 18, 250, 56, 962, 986, 0, 1u << 12 | 1u << 15 },
+			          /* the map (x from -16: a narrow course's further left)
+			           * and the dot */
+			          { -16, 88, 64, 159, 884, 884, 0, 1u << 15 },
+			          { -16, 84, 72, 159, 675, 675, 0 } },
+			/* the map's box (the sprite at 0, 96; the dot reaches row 92),
+			 * twice as big at the bottom centre; the game draws it every
+			 * other frame, the dot every frame: held between (FZM-4) */
+			.map = { 0, 90, 63, 159 },
+			.mapAt = { 2, 120, 159, 884, 675 },
+			/* RANK to the game screen's bottom left (FZM-3), only with its
+			 * label (Training has none); POW to the top centre; LAST under
+			 * SPARE MACHINES, two rows below, lined up with it, or in the
+			 * corner (Training); the time up into the speed's place; BOOST
+			 * under POW (FZM-4) */
+			.moves = { { 0, 10, 50, 34, 'L', 4, 'B', 155, true, .ifTile = 399 },
+			           { 130, 0, 239, 13, 'C', 120, 'T', 2 },
+			           { 0, 35, 50, 45, 'L', 2, 'T', 2, .under = 2 },
+			           { 150, 18, 250, 56, 0, 0, 'T', 2 },
+			           /* BOOST centred under POW (FZM-4) */
+			           { 170, 140, 239, 159, 'C', 120, 'T', 12 } },
 		},
 	},
 	{
@@ -4651,6 +4794,17 @@ static void thps3_ger(MapProfile* p) {
 	memcpy(p->probes, show, sizeof(show));
 }
 
+/* F-Zero: Maximum Velocity in China: the mode byte 0x20 higher
+ * (0x03000C1B), the HUD's state 0x40 lower (0x02016889: the EWRAM block's
+ * literals, 0x020167B0... here 0x02016770...); its title shows ~200 frames
+ * later */
+static void fzm_chn(MapProfile* p) {
+	p->hud.on[0].addr += 0x20;
+	p->hud.on[1].addr += 0x20;
+	p->hud.on[2].addr -= 0x40;
+	p->logo.steps[0].frames = 1100;
+}
+
 /* Spider-Man: Mysterio's Menace in Japan: the screen's handler 0x34 lower
  * (0x0300213C), and its values too (0x60F8 in a level, 0x41D8 elsewhere);
  * the display registers are the same */
@@ -4696,6 +4850,7 @@ static const Variant variants[] = {
 	/* F-Zero: GP Legend in Europe: its language menu first (the title
 	 * comes ~700 frames after A); its races not tried (f-zero-gp-legend.md) */
 	{ "BFZP", "BFZE", 0, lang_menu },
+	{ "AFZC", "AFZE", 0, fzm_chn },
 	{ "A2CP", "A2CE", 0, lang_menu },
 	{ "A2CJ", "A2CE", -0x30, NULL },
 	{ "ACHP", "ACHE", 0, NULL },

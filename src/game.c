@@ -2127,7 +2127,13 @@ static int probes_hit(const uint32_t* fb, const Probe* p, int tol) {
 /* Renders the current frame again without these sprites (on top of the
  * ones already hidden: `kept`, put back afterwards) into out, then puts the
  * game back exactly as it was (state, picture, sound). */
+static void snapshot_hiding_sprites_poke(const SpriteRule* hide, int n, const SpriteRule* kept, int nKept, uint32_t* out, uint32_t pokeAt, uint16_t pokeV);
 static void snapshot_hiding_sprites(const SpriteRule* hide, int n, const SpriteRule* kept, int nKept, uint32_t* out) {
+	snapshot_hiding_sprites_poke(hide, n, kept, nKept, out, 0, 0);
+}
+/* The same with a halfword written into the game's memory first (pokeAt 0:
+ * none), for that one frame */
+static void snapshot_hiding_sprites_poke(const SpriteRule* hide, int n, const SpriteRule* kept, int nKept, uint32_t* out, uint32_t pokeAt, uint16_t pokeV) {
 	static void* st;
 	static size_t stSize;
 	static uint32_t raw[GBA_W * GBA_H];
@@ -2148,6 +2154,7 @@ static void snapshot_hiding_sprites(const SpriteRule* hide, int n, const SpriteR
 	for (int i = 0; i < n && na < 12; ++i) all[na++] = hide[i];
 	emu_hide_sprites(&emu, all, na);
 	emu_state_load(&emu, st);
+	if (pokeAt) emu_write16(&emu, pokeAt, pokeV);
 	emu_frame(&emu, 0);
 	memcpy(out, emu.fb, sizeof(raw));
 	emu_hide_sprites(&emu, nKept ? kept : NULL, nKept);
@@ -2311,7 +2318,7 @@ static void hud_make_logo_below(void) {
 	hudLogoBelowDone = true;
 	for (int i = 0; i < HUD_CW * HUD_CH; ++i) hudLogoBelow[i] = SCREEN_GREY;
 	int top = 0; /* below the HUD: its lowest row on the canvas */
-	for (int m = 0; m < 4; ++m) {
+	for (int m = 0; m < HUD_MOVES; ++m) {
 		const HudMove* mv = &hudProf->hud.moves[m];
 		if (mv->toGame && !mv->how && !mv->vhow && mv->x0 == 0 && mv->x1 >= GBA_W - 1 && mv->y0 > 0) top = mv->y0 * 2;
 	}
@@ -2338,13 +2345,16 @@ static bool oam_has_tile(int tile) {
 	return false;
 }
 
-/* A sprite with this tile in this palette is shown */
-static bool oam_has_tile_pal(int tile, int pal) {
+/* A sprite with a tile from tile to tileMax (0: tile alone) in this
+ * palette is shown */
+static bool oam_has_tile_pal(int tile, int tileMax, int pal, int prio1) {
+	if (tileMax < tile) tileMax = tile;
 	for (int i = 0; i < 128; ++i) {
 		uint16_t a0 = emu_read16(&emu, 0x07000000 + i * 8);
 		if ((a0 & 0x300) == 0x200) continue;
 		uint16_t a2 = emu_read16(&emu, 0x07000004 + i * 8);
-		if ((a2 & 0x3FF) == tile && a2 >> 12 == pal) return true;
+		if ((a2 & 0x3FF) >= tile && (a2 & 0x3FF) <= tileMax && a2 >> 12 == pal
+		    && (!prio1 || ((a2 >> 10) & 3) == prio1 - 1)) return true;
 	}
 	return false;
 }
@@ -2422,6 +2432,19 @@ static void card_backdrop(void) {
 	hudFadeIn = 0;
 	bg_pal_levels(hudPalRef);
 	if (debug) fprintf(stderr, "frame %llu: title card taken (%d pixels off centre)\n", (unsigned long long) frameCount, cardScore);
+}
+
+/* hud.card: no card taken yet: the logo, below the HUD's pieces; for a
+ * whole-screen card, Sonic Advance 2's, centred, above the HUD along the
+ * bottom */
+static const uint32_t* card_logo(void) {
+	static uint32_t cardLogo[HUD_CW * HUD_CH];
+	static bool made;
+	if (!made) {
+		for (int i = 0; i < HUD_CW * HUD_CH; ++i) cardLogo[i] = SCREEN_GREY;
+		made = logo_draw(cardLogo, HUD_CW, HUD_CH, HUD_CW / GBA_W, hudProf->hud.card.whole ? 0 : 48 * 2, 255);
+	}
+	return cardLogo;
 }
 
 /* hud.mapAt.holdTile: the map as last drawn (HUD pixels; mapHeldOk false:
@@ -2626,16 +2649,7 @@ static void hud_compose(void) {
 			}
 		}
 	} else if (h->card.tile) {
-		/* (hud.card: no card taken yet: the logo, below the HUD's pieces;
-		 * for a whole-screen card, Sonic Advance 2's, centred, above the
-		 * HUD along the bottom) */
-		static uint32_t cardLogo[HUD_CW * HUD_CH];
-		static bool made;
-		if (!made) {
-			for (int i = 0; i < HUD_CW * HUD_CH; ++i) cardLogo[i] = SCREEN_GREY;
-			made = logo_draw(cardLogo, HUD_CW, HUD_CH, HUD_CW / GBA_W, h->card.whole ? 0 : 48 * 2, 255);
-		}
-		memcpy(hudCanvas, cardLogo, sizeof(hudCanvas));
+		memcpy(hudCanvas, card_logo(), sizeof(hudCanvas));
 	} else {
 		uint32_t plain = h->mapCnt ? (hudFadeEff == 2 ? 0xFFFFFFFF : 0xFF000000) : 0xFF1A1010;
 		for (int i = 0; i < HUD_CW * HUD_CH; ++i) hudCanvas[i] = plain;
@@ -2647,11 +2661,11 @@ static void hud_compose(void) {
 	/* with a BG mosaic on (fading out through a pipe), the boxes' top and
 	 * bottom go to the blocks' edges: a block across a box's edge is drawn
 	 * from its first row, so it goes with the box above */
-	HudMove movesM[4];
+	HudMove movesM[HUD_MOVES];
 	const HudMove* moves = movesIn;
 	int mosV = ((emu_io16(&emu, 0x4C) >> 4) & 15) + 1;
 	if (movesIn && mosV > 1) {
-		for (int m = 0; m < 4; ++m) {
+		for (int m = 0; m < HUD_MOVES; ++m) {
 			movesM[m] = movesIn[m];
 			if (movesM[m].y0 > 0) movesM[m].y0 = (movesM[m].y0 + mosV - 1) / mosV * mosV;
 			if (movesM[m].y1 < GBA_H - 1) movesM[m].y1 = (movesM[m].y1 + mosV) / mosV * mosV - 1;
@@ -2667,10 +2681,10 @@ static void hud_compose(void) {
 			o[0] = o[1] = o[HUD_CW] = o[HUD_CW + 1] = mapTitle[y * GBA_W + x];
 		}
 	}
-	int moveDx[4] = { 0 }, moveDy[4] = { 0 };
-	bool moving[4] = { false };
-	int pieceLo[4] = { 0 }, pieceTop[4] = { 0 };
-	for (int m = 0; moves && m < 4; ++m) {
+	int moveDx[HUD_MOVES] = { 0 }, moveDy[HUD_MOVES] = { 0 };
+	bool moving[HUD_MOVES] = { false };
+	int pieceLo[HUD_MOVES] = { 0 }, pieceTop[HUD_MOVES] = { 0 };
+	for (int m = 0; moves && m < HUD_MOVES; ++m) {
 		const HudMove* mv = &moves[m];
 		if (!mv->how && !mv->vhow && !mv->toGame) continue;
 		if (mv->ifTile && !oam_has_tile(mv->ifTile)) continue;
@@ -2689,7 +2703,7 @@ static void hud_compose(void) {
 	}
 	/* `under`: below whatever stays in its corner (what's above its box in
 	 * its columns, outside the other moving pieces), lined up with it */
-	for (int m = 0; moves && m < 4; ++m) {
+	for (int m = 0; moves && m < HUD_MOVES; ++m) {
 		const HudMove* mv = &moves[m];
 		if (!moving[m] || !mv->under) continue;
 		int ulo = GBA_W, ubot = -1;
@@ -2697,7 +2711,7 @@ static void hud_compose(void) {
 			for (int x = SDL_max(mv->x0, 0); x <= SDL_min(mv->x1, GBA_W - 1); ++x) {
 				if ((hudPx[y * GBA_W + x] & 0xFFFFFF) == clear) continue;
 				bool other = false;
-				for (int k = 0; k < 4 && !other; ++k) {
+				for (int k = 0; k < HUD_MOVES && !other; ++k) {
 					const HudMove* o = &moves[k];
 					other = k != m && moving[k] && x >= o->x0 && x <= o->x1 && y >= o->y0 && y <= o->y1;
 				}
@@ -2712,7 +2726,7 @@ static void hud_compose(void) {
 			if ((c & 0xFFFFFF) == clear) continue;
 			int nx = x, ny = y;
 			bool toGame = false;
-			for (int m = 0; m < 4; ++m) {
+			for (int m = 0; m < HUD_MOVES; ++m) {
 				const HudMove* mv = &moves[m];
 				if (moving[m] && x >= mv->x0 && x <= mv->x1 && y >= mv->y0 && y <= mv->y1) {
 					nx = x + moveDx[m], ny = y + moveDy[m];
@@ -2967,7 +2981,11 @@ static void update_hud(void) {
 		if (h->card.whole) {
 			/* (the whole game screen, once the card has settled) */
 			if (cardScore < 0 && hudFrames >= SDL_max(2, h->card.at)) {
-				memcpy(cardBest, emu.fb, sizeof(cardBest));
+				/* (card.hide / card.poke: drawn again, Sonic Advance 3's
+				 * band on black without the HUD and the characters) */
+				int nh = rule_count(h->card.hide, 6);
+				if (nh || h->card.poke.addr) snapshot_hiding_sprites_poke(h->card.hide, nh, NULL, 0, cardBest, h->card.poke.addr, h->card.poke.value);
+				else memcpy(cardBest, emu.fb, sizeof(cardBest));
 				cardScore = 0;
 				card_backdrop();
 			}
@@ -2980,6 +2998,13 @@ static void update_hud(void) {
 		}
 		if (hudBackValid) {
 			memcpy(hudCanvas, hudBack, sizeof(hudCanvas));
+			for (int i = 0; i < nViews; ++i) ui_update_texture(hudTex[i], hudCanvas, HUD_CW * 4);
+			hudShown = true;
+		} else if (h->card.drop[0].addr && hudFrames == 1) {
+			/* (hud.card.drop, Sonic Advance 3, no take yet: its HUD stays
+			 * on the game screen over the card, so not on the second
+			 * screen too till the take: the logo alone) */
+			memcpy(hudCanvas, card_logo(), sizeof(hudCanvas));
 			for (int i = 0; i < nViews; ++i) ui_update_texture(hudTex[i], hudCanvas, HUD_CW * 4);
 			hudShown = true;
 		}
@@ -3005,10 +3030,18 @@ static void update_hud(void) {
 		}
 	}
 	bool scene = race && h->scene.when[0].addr && memprobes_match(h->scene.when, 2, &emu);
-	bool card = race && h->card.tile && oam_has_tile_pal(h->card.tile, h->card.pal);
+	bool card = race && h->card.tile && oam_has_tile_pal(h->card.tile, h->card.tileMax, h->card.pal, h->card.prio1);
+	/* hud.card.drop: no card here (Sonic Advance 3's hubs): the take is
+	 * forgotten, the logo behind the HUD */
+	if (race && h->card.drop[0].addr && (hudBackValid || cardScore >= 0) && memprobes_match(h->card.drop, 2, &emu)) {
+		hudBackValid = false, cardScore = -1, sideScore = -1;
+		if (debug) fprintf(stderr, "frame %llu: title card dropped\n", (unsigned long long) frameCount);
+	}
 	if (card != hudCard) {
 		/* a card coming up: a new take; going: the best one, if not yet */
-		if (card) cardScore = -1, sideScore = -1, hudBackValid = false;
+		/* (hud.card.drop, Sonic Advance 3: the last take stays till the
+		 * new one, without the HUD, which stays on the game's card) */
+		if (card) cardScore = -1, sideScore = -1, hudBackValid = hudBackValid && h->card.drop[0].addr;
 		else if (cardScore >= 0 && !hudBackValid) card_backdrop();
 		if (debug) fprintf(stderr, "frame %llu: title card %s\n", (unsigned long long) frameCount, card ? "up" : "gone");
 	}
