@@ -468,6 +468,60 @@
    ]
   },
   {
+   "id": "ml-us-battle-damage",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-battle-damage.ss",
+   "desc": "Mario's jump landing on a Fighter Fly (a player's bug report): the damage number over the enemy stays on the game screen; only the meters are on the second screen",
+   "rules": [
+    "ML-5"
+   ],
+   "shots": {
+    "damage": 45
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "the meters at the top left of the second screen",
+     "type": "not_uniform",
+     "shot": "damage",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-battle-hit-luigi",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-battle-hit-luigi.ss",
+   "desc": "a Fighter Fly hitting Luigi, at the bottom left (the same battle played on): his damage number stays on the game screen, by him, not on the second screen",
+   "rules": [
+    "ML-5"
+   ],
+   "shots": {
+    "hit": 45
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "no damage number at Luigi's place on the second screen",
+     "type": "uniform",
+     "shot": "hit",
+     "rect": [
+      48,
+      444,
+      131,
+      539
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
    "id": "ml-logo-a88e",
    "kind": "logo",
    "rom": "A88E",

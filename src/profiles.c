@@ -4540,8 +4540,11 @@ static const MapProfile profiles[] = {
 			.memLayers = { .when = { { ML_BOX_TOP, 0xF000, 0x8000, 2 }, { ML_BOX_BOTTOM, 0xF000, 0x8000, 2 } }, .bgMask = 0x4, .any = true },
 			/* priority 0: the meters, the menus' cursor and icons (the
 			 * blocks, the A over the brother's head and the rest are 2);
-			 * not palette 15: a speech balloon's marker and edges */
-			.objs = { { -256, -96, 255, 159, 0, 1023, 0, 0x7FFF } },
+			 * not palette 15: a speech balloon's marker and edges. The
+			 * meters' digits and backing (tiles 0-111) only in their
+			 * corner (x 4-93, rows 130-142 seen): the damage numbers over
+			 * an enemy or a brother are the same digits, and stay */
+			.objs = { { -16, 120, 110, 159, 0, 111, 0, 0x7FFF }, { -256, -96, 255, 159, 112, 1023, 0, 0x7FFF } },
 			/* the meters (bottom left; the bottom box starts at 120) to
 			 * the top left corner, against the top right box (from
 			 * column 104) and above the item list's cursor (from row 29);
