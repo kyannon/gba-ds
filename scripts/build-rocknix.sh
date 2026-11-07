@@ -95,9 +95,9 @@ cp dist/launch.sh dist/es-play.sh dist/screens.sh dist/gba-ds.cfg dist/gamecontr
 mkdir -p "$PKG/logos"
 printf "Optional: your own logo images (<CODE>.png or .bmp) override the ones extracted from the games.\n" > "$PKG/logos/README.txt"
 mkdir -p "$PKG/cheats"
-printf "RetroArch cheat files (.cht) for GBA DS, in this folder or subfolders: picked by name, as RetroArch does (Game (USA).gba -> Game (USA) (Code Breaker).cht).\nRetroArch's own cheat folders are searched too (cheat_dir in gba-ds.cfg).\n" > "$PKG/cheats/README.txt"
+printf "RetroArch cheat files (.cht) for GBA DS, in this folder or subfolders: picked by name, as RetroArch does (Game (USA).gba -> Game (USA) (Code Breaker).cht).\nRetroArch's own cheat folders are searched too (cheat_dir in gba-ds.cfg).\nSwitch cheats on in the pause menu: Extras > Cheats. More in the wiki: https://github.com/kyannon/gba-ds/wiki/Playing#cheats\n" > "$PKG/cheats/README.txt"
 mkdir -p "$PKG/overlays"
-printf "Overlay PNGs (1024x768, transparent where the picture shows): primary.png (game screen) / secondary.png (map screen) for every game,\n<CODE>-primary.png / <CODE>-secondary.png for one game, optionally with -integer / -fit / -stretch. See README.\n" > "$PKG/overlays/README.txt"
+printf "Overlay PNGs (the screen's size, 1024x768 on the RG DS Plus, transparent where the picture shows): primary.png (game screen) / secondary.png (second screen) for every game,\n<CODE>-primary.png / <CODE>-secondary.png for one game. Names for one scaling or screen shape, and more, in the wiki:\nhttps://github.com/kyannon/gba-ds/wiki/Map-screen-surrounds-and-overlays\n" > "$PKG/overlays/README.txt"
 cp README.md "$PKG/README.md"
 # mGBA is statically linked (MPL-2.0): ship its licence and where to get its source
 mkdir -p "$PKG/licenses"

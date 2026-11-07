@@ -5115,7 +5115,7 @@ static bool activate(int item, enum GameExit* exitTo) {
 		achPressed = false;
 		break;
 	case M_CHEATS:
-		if (!cheats.n) snprintf(menuNote, sizeof(menuNote), "No cheats found (see the README)");
+		if (!cheats.n) snprintf(menuNote, sizeof(menuNote), "No cheats found (see Cheats in the wiki)");
 		else open_cheats();
 		break;
 	case M_SWAP:

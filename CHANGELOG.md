@@ -13,6 +13,7 @@
 - **A live second screen is black:** wherever the second screen shows something live over the logo (a status bar or other HUD, Mario Kart's podium, Super Mario Advance 4's inventory), it's now on black instead of dark grey, with the logo at full strength. Dark grey, with the logo at half strength, now always means there's nothing live to show, and the game's own fades to black (through a pipe or door) blend into the second screen.
 
 ### Fixes
+- With no cheat files for a game, the pause menu's Cheats now points you to the Cheats section of the wiki instead of the README, which no longer covers them. The notes in the cheats and overlays folders (and the overlays comment in gba-ds.cfg) point to the wiki too, and on Android the cheats note now says Extras > Cheats, where the menu has them.
 - **Sonic Advance 3:** as each act or boss starts, the rings, time and lives no longer sit on the game's card and then jump to the second screen: they're on neither screen until the second screen has the new card, then they're there over it. (The moment before the card's name came in, when they were off the game screen, is gone with it.)
 - **Final Fantasy Tactics Advance:** when one of your units gets two turns in a row, the turn order is now taken again at the start of its second turn, so the turn order shown on the next enemy turn is the one from its second turn, not its first. (If every other unit is stopped or knocked out, the second turn still isn't noticed.)
 ## v1.4.10 (2026-11-06)
