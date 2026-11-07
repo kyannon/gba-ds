@@ -2269,6 +2269,16 @@ static bool eds_in_duel(const EdsRelease* r, Emu* e) {
 	if (r->jp) return emu_read16(e, 0x02007908) && emu_read16(e, 0x020078F0);
 	return emu_read8(e, 0x0201ADAC) == 0 && emu_read8(e, 0x0201D7E0) != 0;
 }
+/* in a duel, the player's turn over (EDS-11). USA: the duel's step
+ * 0x02015EE8 6 from Complete your turn, 7 handing over, 8 the opponent's
+ * turn; or 0x0201ADF2 (the turn count) bit 1, the opponent's turn. Japan:
+ * 0x0200831A bit 0, the opponent's turn (from its Draw Phase) */
+static bool eds_turn_over(const EdsRelease* r, Emu* e) {
+	if (!eds_in_duel(r, e)) return false;
+	if (r->jp) return emu_read8(e, 0x0200831A) & 1;
+	uint8_t step = emu_read8(e, 0x02015EE8);
+	return (step >= 6 && step <= 8) || (emu_read8(e, 0x0201ADF2) & 2);
+}
 /* the player moves the field cursor freely, in a duel (any phase of their
  * turn) */
 static bool eds_free(const EdsRelease* r, Emu* e) {
@@ -2288,8 +2298,10 @@ static uint32_t eds_virt_for(const EdsRelease* r, Emu* e, uint32_t addr) {
 		return zone == 0 || zone == 5 || (zone == 0x0B && side == 0);
 	}
 	/* (the field too, once its duel is decided: the winner's last line,
-	 * over the field: EDS-6) */
-	if (addr == EDS_V_IDLE) return (sc == EDS_NONE || sc == EDS_FIELD) && !eds_in_duel(r, e);
+	 * over the field: EDS-6); and from the end of the player's turn on
+	 * anything but a Card View opened in it (EDS-11) */
+	if (addr == EDS_V_IDLE)
+		return ((sc == EDS_NONE || sc == EDS_FIELD) && !eds_in_duel(r, e)) || (sc != EDS_VIEW && eds_turn_over(r, e));
 	if (addr == EDS_V_ROOM) {
 		uint32_t k = (uint32_t) sc << 28;
 		if (r->jp) {

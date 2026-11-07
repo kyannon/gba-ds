@@ -715,8 +715,9 @@
    "id": "eds-us-designation",
    "rom": "AY5E",
    "state": "yu-gi-oh-the-eternal-duelist-soul/us-hand.ss",
-   "desc": "a card shown, then a Designation list (loaded: a card effect's choice of a monster from the Deck, where A chooses it): the card stays, the tries take nothing, no failed captures",
+   "desc": "a card shown, then a Designation list in the opponent's turn (loaded: a card effect's choice of a monster from the player's Deck, where A chooses it): the logo (EDS-11), no failed captures",
    "rules": [
+    "EDS-11",
     "EDS-5"
    ],
    "input": [
@@ -750,39 +751,24 @@
        "000000"
       ]
      ],
-     "rule": "EDS-5",
+     "rule": "EDS-1",
      "shot": "card",
      "what": "Snatch Steal's Card View"
     },
     {
-     "rule": "EDS-5",
-     "type": "same",
-     "a": {
-      "shot": "card",
-      "rect": [
-       32,
-       64,
-       992,
-       704
-      ]
-     },
-     "b": {
-      "shot": "list",
-      "rect": [
-       32,
-       64,
-       992,
-       704
-      ],
-      "screen": "second"
-     },
-     "what": "the card stays"
-    },
-    {
-     "rule": "EDS-5",
-     "type": "log",
-     "match": "capture: .*map button did nothing",
-     "what": "the tries take nothing"
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "EDS-11",
+     "shot": "list",
+     "what": "the logo: the opponent's turn, no card to show"
     },
     {
      "rule": "EDS-5",
@@ -796,9 +782,10 @@
    "id": "eds-us-opponent-turn",
    "rom": "AY5E",
    "state": "yu-gi-oh-the-eternal-duelist-soul/us-hand.ss",
-   "desc": "a card shown, then the opponent attacking in their turn (loaded): the card stays, nothing taken; then the opponent's Red Medicine asking whether to chain: still the card",
+   "desc": "a card shown, then the opponent attacking in their turn (loaded): the logo, the card forgotten; then the opponent's Red Medicine asking whether to chain: still the logo",
    "rules": [
-    "EDS-5"
+    "EDS-1",
+    "EDS-11"
    ],
    "input": [
     [
@@ -841,58 +828,150 @@
      "what": "the hand's card"
     },
     {
-     "rule": "EDS-5",
-     "type": "same",
-     "a": {
-      "shot": "start",
-      "rect": [
-       32,
-       64,
-       992,
-       704
-      ]
-     },
-     "b": {
-      "shot": "attack",
-      "rect": [
-       32,
-       64,
-       992,
-       704
-      ],
-      "screen": "second"
-     },
-     "what": "the card stays in the opponent's attack"
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "EDS-11",
+     "shot": "attack",
+     "what": "the logo in the opponent's attack"
     },
     {
-     "rule": "EDS-5",
-     "type": "same",
-     "a": {
-      "shot": "start",
-      "rect": [
-       32,
-       64,
-       992,
-       704
-      ]
-     },
-     "b": {
-      "shot": "chain",
-      "rect": [
-       32,
-       64,
-       992,
-       704
-      ],
-      "screen": "second"
-     },
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "EDS-11",
+     "shot": "chain",
      "what": "and at the chain prompt"
     },
     {
-     "rule": "EDS-5",
+     "rule": "EDS-11",
      "what": "nothing taken in the opponent's turn",
      "type": "no_log",
      "match": "frame ([2-9][0-9][0-9]): map updated"
+    }
+   ]
+  },
+  {
+   "id": "eds-us-end-turn",
+   "rom": "AY5E",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/us-hand.ss",
+   "desc": "a card shown, then (loaded, the owner's state from the web player, with its own second screen: Two-Headed King Rex's Card View) the Battle Phase's menu on Complete your turn: that Card View stays; A: the turn ended, the logo within about a second (0x02015EE8 6), through the opponent's turn",
+   "rules": [
+    "EDS-11",
+    "EDS-5"
+   ],
+   "input": [
+    [
+     150,
+     "LOAD:yu-gi-oh-the-eternal-duelist-soul/us-end-turn.ss"
+    ],
+    [
+     240,
+     "A"
+    ],
+    [
+     249,
+     "-"
+    ]
+   ],
+   "shots": {
+    "card": 90,
+    "menu": 220,
+    "ended": 330,
+    "opponent": 700
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       66,
+       "0000FF"
+      ],
+      [
+       990,
+       114,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-1",
+     "shot": "card",
+     "what": "Snatch Steal's Card View"
+    },
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       66,
+       "0000FF"
+      ],
+      [
+       990,
+       114,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-5",
+     "shot": "menu",
+     "what": "a Card View stays with the menu open"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "EDS-11",
+     "shot": "ended",
+     "what": "the logo as the turn ends"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "EDS-11",
+     "shot": "opponent",
+     "what": "the logo in the opponent's turn"
     }
    ]
   },
@@ -1965,9 +2044,10 @@
    "id": "eds-jp-opponent-turn",
    "rom": "AY5J",
    "state": "yu-gi-oh-the-eternal-duelist-soul/jp-hand.ss",
-   "desc": "Japan, a card shown, then the opponent's turn (loaded): the card stays, nothing taken",
+   "desc": "Japan, a card shown, then the opponent's turn (loaded): the logo, the card forgotten",
    "rules": [
-    "EDS-5"
+    "EDS-10",
+    "EDS-11"
    ],
    "input": [
     [
@@ -2010,34 +2090,103 @@
      "what": "the hand's card"
     },
     {
-     "rule": "EDS-5",
-     "type": "same",
-     "a": {
-      "shot": "start",
-      "rect": [
-       32,
-       64,
-       992,
-       704
-      ]
-     },
-     "b": {
-      "shot": "opp",
-      "rect": [
-       32,
-       64,
-       992,
-       704
-      ],
-      "screen": "second"
-     },
-     "what": "stays"
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "EDS-11",
+     "shot": "opp",
+     "what": "the logo"
     },
     {
-     "rule": "EDS-5",
+     "rule": "EDS-11",
      "what": "nothing taken",
      "type": "no_log",
      "match": "frame ([2-9][0-9][0-9]): map updated"
+    }
+   ]
+  },
+  {
+   "id": "eds-jp-end-turn",
+   "rom": "AY5J",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/jp-main-summoned.ss",
+   "desc": "Japan, the Main Phase: LEFT onto ものかげのきょうりょくしゃ: its Card View; START ends the turn: the logo once the opponent's turn begins",
+   "rules": [
+    "EDS-10",
+    "EDS-11"
+   ],
+   "input": [
+    [
+     60,
+     "LEFT"
+    ],
+    [
+     64,
+     "-"
+    ],
+    [
+     240,
+     "START"
+    ],
+    [
+     244,
+     "-"
+    ]
+   ],
+   "shots": {
+    "card": 200,
+    "opponent": 600
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       34,
+       384,
+       "000000"
+      ],
+      [
+       42,
+       224,
+       "212121"
+      ],
+      [
+       464,
+       544,
+       "ADC6CE"
+      ],
+      [
+       472,
+       224,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-10",
+     "shot": "card",
+     "what": "ものかげのきょうりょくしゃ's Card View"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "EDS-11",
+     "shot": "opponent",
+     "what": "the logo"
     }
    ]
   },
