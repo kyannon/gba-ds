@@ -2206,6 +2206,11 @@ typedef struct {
 	uint16_t field[2], view[2], list[2], listDisp, deck[2];
 	Probe viewProbes[8];
 	bool jp;
+	/* the card's commands on the field: the magnifier's tile (Card View, the
+	 * first), the chosen command's name's tile, and how far right of its
+	 * icon the name is (eds_wait_commands) */
+	uint16_t cmdGlass, cmdName;
+	int cmdDx;
 } EdsRelease;
 static const EdsRelease edsUS = {
 	{ 0x0007, 0x8106 }, { 0x0044, 0x0186 }, { 0x0004, 0x0104 }, 0, { 0x1800, 0x1A01 },
@@ -2214,7 +2219,7 @@ static const EdsRelease edsUS = {
 	 * and its text */
 	{ { 239, 0, 0x0000FF }, { 239, 12, 0x0000FF }, { 239, 22, 0x000084 }, { 1, 20, 0x000000 },
 	  { 102, 60, 0x000000 }, { 102, 140, 0x000000 }, { 1, 159, 0x000000 }, { 60, 159, 0x000000 } },
-	false
+	false, 548, 612, 0
 };
 static const EdsRelease edsJP = {
 	{ 0x0087, 0x8186 }, { 0x0005, 0x0187 }, { 0x0004, 0x0185 }, 0x1F40, { 0xFFFF, 0xFFFF },
@@ -2223,7 +2228,7 @@ static const EdsRelease edsJP = {
 	 * same for every kind of card */
 	{ { 0, 80, 0x000000 }, { 2, 40, 0x212121 }, { 2, 120, 0x212121 }, { 50, 159, 0x212121 },
 	  { 108, 60, 0x94A5AD }, { 108, 130, 0xCEDEE7 }, { 110, 40, 0x000000 }, { 110, 140, 0x000000 } },
-	true
+	true, 436, 468, 2
 };
 static int eds_screen(const EdsRelease* r, Emu* e) {
 	uint16_t bg0 = emu_io16(e, 0x08), bg1 = emu_io16(e, 0x0A), disp = emu_io16(e, 0x00);
@@ -2299,11 +2304,12 @@ static uint32_t eds_virt(Emu* e, uint32_t addr) {
 static uint32_t eds_virt_jp(Emu* e, uint32_t addr) {
 	return eds_virt_for(&edsJP, e, addr);
 }
-/* USA, on the field: runs frames until the card's commands are up with Card
- * View chosen (its magnifier, tile 548, with the chosen command's name,
- * tile 612, under it); false if they don't come (A chose a target: an
- * attack's, Snatch Steal's) */
-static bool eds_wait_commands(Emu* s, int max) {
+/* On the field: runs frames until the card's commands are up with Card View
+ * chosen (its magnifier with the chosen command's name under it: USA tiles
+ * 548 and 612, Japan 436 and 468, 2 pixels right of the icon); false if
+ * they don't come (A chose a target: an attack's, Snatch Steal's; Japan's
+ * Battle Phase: A on the player's monster chooses it to attack) */
+static bool eds_wait_commands(const EdsRelease* r, Emu* s, int max) {
 	for (int f = 0; f < max && !emu_cancelled(s); ++f) {
 		emu_frame(s, 0);
 		int glass = -1, name = -2;
@@ -2311,10 +2317,10 @@ static bool eds_wait_commands(Emu* s, int max) {
 			uint16_t a0 = emu_read16(s, 0x07000000 + i * 8), a1 = emu_read16(s, 0x07000002 + i * 8),
 			         a2 = emu_read16(s, 0x07000004 + i * 8);
 			if ((a0 & 0x0300) == 0x0200) continue; /* hidden */
-			if ((a2 & 0x3FF) == 548) glass = a1 & 0x1FF;
-			else if ((a2 & 0x3FF) == 612) name = a1 & 0x1FF;
+			if ((a2 & 0x3FF) == r->cmdGlass) glass = a1 & 0x1FF;
+			else if ((a2 & 0x3FF) == r->cmdName) name = a1 & 0x1FF;
 		}
-		if (glass == name) return true;
+		if (glass >= 0 && name - glass == r->cmdDx) return true;
 	}
 	return false;
 }
@@ -2349,18 +2355,14 @@ static const char* eds_compose_for(const EdsRelease* r, Emu* s, const void* stat
 			 * empty zone, a pile or a face-down card of the opponent's;
 			 * nothing taken, and no slowing down of the next tries */
 			if (!eds_named(r, s)) return "map button did nothing";
-			/* A: the card's commands, Card View first and chosen (the cursor
-			 * no longer free); anything else (Japan: a pile's list) isn't a
-			 * card. USA: their sprites, so that where A chose a target (an
-			 * attack's, a card effect's: the cursor counts as free there)
-			 * nothing is taken, cheaply (EDS-5) */
+			/* A: the card's commands, Card View first and chosen, told by
+			 * their sprites; anything else isn't a card (Japan: a pile's
+			 * list) or A chose a target (an attack's, a card effect's: the
+			 * cursor counts as free there; Japan's Battle Phase: A on the
+			 * player's monster chooses it to attack): nothing taken,
+			 * cheaply (EDS-5, EDS-10) */
 			aw_tap(s, K_A, 1);
-			if (!r->jp) {
-				if (!eds_wait_commands(s, 20)) return "map button did nothing";
-			} else {
-				aw_run(s, 0, 8);
-				if (eds_screen(r, s) != EDS_FIELD || eds_free(r, s)) return "map button did nothing";
-			}
+			if (!eds_wait_commands(r, s, 20)) return "map button did nothing";
 			aw_tap(s, K_A, 1);
 		} else if (sc == EDS_DECK) {
 			aw_tap(s, K_A, 1);
