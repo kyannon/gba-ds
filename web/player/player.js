@@ -156,6 +156,18 @@ const P = {
   rects: null,       // the screens on the page (CSS px): [{ x, y, w, h }]
 };
 
+// what a build's web version can do, from what it exports
+function buildCaps(module) {
+  const names = new Set(WebAssembly.Module.exports(module).map((e) => e.name));
+  return { hasAudio: names.has("web_audio_pull"), hasButtons: names.has("web_buttons") };
+}
+const NO_SOUND = "No sound: this build's web version was made without it (it's on the web-player branch, not yet in dev).";
+const NO_BUTTONS = "Keyboard only: X and Y can't be pressed with this build.";
+function warnCaps(b) {
+  if (!b.caps.hasAudio) toast(NO_SOUND, true);
+  else if (!b.caps.hasButtons) toast(NO_BUTTONS, true);
+}
+
 async function takeBuild(name, bytes, opts) {
   let entries;
   try { entries = GBAZip.open(bytes); } catch (e) { toast(name + ": " + e.message, true); return false; }
@@ -178,7 +190,7 @@ async function takeBuildEntries(name, entries, bytes, opts) {
   let module;
   try { module = await WebAssembly.compile(await w.read()); }
   catch (e) { toast("That build's web/gba-ds.wasm didn't compile: " + e.message, true); return false; }
-  P.build = { name, version, module, files, bundled: !!opts.bundled };
+  P.build = { name, version, module, files, bundled: !!opts.bundled, caps: buildCaps(module) };
   if (opts.remember) kvSet("build", { name, bytes });
   showSlots();
   return true;
@@ -186,7 +198,7 @@ async function takeBuildEntries(name, entries, bytes, opts) {
 async function takeBareWasm(name, bytes) {
   let module;
   try { module = await WebAssembly.compile(bytes); } catch (e) { toast(name + " didn't compile: " + e.message, true); return false; }
-  P.build = { name, version: "local", module, files: [], bundled: false };
+  P.build = { name, version: "local", module, files: [], bundled: false, caps: buildCaps(module) };
   showSlots();
   return true;
 }
@@ -216,7 +228,7 @@ async function takeFiles(list) {
     try {
       if (GBAZip.isZip(it.bytes)) {
         const entries = GBAZip.open(it.bytes);
-        if (await takeBuildEntries(it.name, entries, it.bytes, { remember: true })) { newBuild = true; toast("Build " + P.build.version + " loaded."); continue; }
+        if (await takeBuildEntries(it.name, entries, it.bytes, { remember: true })) { newBuild = true; toast("Build " + P.build.version + " loaded."); warnCaps(P.build); continue; }
         const st = entries.find((e) => /\.state$/i.test(e.name) && !/-rewound\.state$/i.test(e.name));
         if (st && entries.some((e) => /-info\.txt$/i.test(e.name))) {
           newState = { name: st.name.split("/").pop(), bytes: await st.read() };
@@ -227,7 +239,7 @@ async function takeFiles(list) {
         if (romE) { const b = await romE.read(); if (looksLikeRom(b)) { takeRom(romE.name.split("/").pop(), b); newGame = true; continue; } }
         toast(it.name + ": no GBA DS build, game or bug report inside.", true);
       } else if (ext === "wasm") {
-        if (await takeBareWasm(it.name, it.bytes)) { newBuild = true; toast("Web build loaded (no settings file with it: GBA DS's defaults)."); }
+        if (await takeBareWasm(it.name, it.bytes)) { newBuild = true; toast("Web build loaded (no settings file with it: GBA DS's defaults)."); warnCaps(P.build); }
       } else if (["gba", "agb", "bin"].includes(ext) || looksLikeRom(it.bytes)) {
         takeRom(it.name, it.bytes); newGame = true;
       } else if (["sav", "srm"].includes(ext)) {
@@ -360,9 +372,9 @@ function linkSound() {
   P.worker.postMessage({ t: "audio", port: ch.port2 }, [ch.port2]);
 }
 function showSound() {
-  const off = S.muted || !A.ctx || A.ctx.state !== "running";
+  const off = S.muted || !A.ctx || A.ctx.state !== "running" || !!(P.build && !P.build.caps.hasAudio);
   $("soundBtn").classList.toggle("on", off);
-  $("soundBtn").title = S.muted ? "Sound is off" : !A.ctx || A.ctx.state !== "running" ? "Click anywhere for sound" : "Sound on";
+  $("soundBtn").title = P.build && !P.build.caps.hasAudio ? "This build has no sound" : S.muted ? "Sound is off" : !A.ctx || A.ctx.state !== "running" ? "Click anywhere for sound" : "Sound on";
   if (A.gain) A.gain.gain.setTargetAtTime(soundGain(), A.ctx.currentTime, 0.02);
 }
 for (const ev of ["pointerdown", "keydown", "drop"]) window.addEventListener(ev, () => { ensureSound().then(showSound); }, { capture: true });
@@ -458,8 +470,6 @@ function onWorker(worker, m) {
     case "fps": $("fps").textContent = Math.round(m.fps) + " fps"; break;
     case "started":
       P.caps = m;
-      if (!m.hasAudio) toast("This build has no sound in the browser (builds from v1.4.12-dev on do).");
-      if (!m.hasButtons) toast("This build takes keyboard keys only: X and Y can't be pressed (builds from v1.4.12-dev on take every button).");
       break;
     case "files": keepFiles(m.files, m.deleted); if (m.id && P.reqs.has(m.id)) { P.reqs.get(m.id)(m); P.reqs.delete(m.id); } break;
     case "reply": if (P.reqs.has(m.id)) { P.reqs.get(m.id)(m); P.reqs.delete(m.id); } break;
@@ -521,7 +531,8 @@ function showSlots() {
   const b = P.build, r = P.rom;
   $("slotBuild").classList.toggle("have", !!b);
   $("buildName").textContent = b ? "GBA DS " + b.version : "No build yet";
-  $("buildHint").textContent = b ? (b.bundled ? "Comes with this player · drop a dev build to use another" : b.name) : "A GBA DS dev build (.zip) with a web build inside";
+  $("buildHint").textContent = b ? (!b.caps.hasAudio ? "No sound in this build's web version" : !b.caps.hasButtons ? "Keyboard only: no X or Y" : b.bundled ? "Comes with this player · drop a dev build to use another" : b.name) : "A GBA DS dev build (.zip) with a web build inside";
+  $("buildHint").classList.toggle("warn", !!b && !(b.caps.hasAudio && b.caps.hasButtons));
   $("slotGame").classList.toggle("have", !!r);
   $("gameName").textContent = r ? r.title : "No game yet";
   $("gameHint").textContent = r ? r.code + " · " + r.name : "A GBA game (.gba, or zipped)";

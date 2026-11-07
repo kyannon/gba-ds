@@ -75,6 +75,7 @@ body.playing #screen.touch { cursor: crosshair; }
 .slot.have .slot-k::after { content: " ✓"; color: var(--ok); }
 .slot-v { font-weight: 600; font-size: 15px; overflow-wrap: anywhere; }
 .slot-h { color: var(--muted); font-size: 12.5px; }
+.slot-h.warn { color: var(--warn); }
 .go { display: flex; gap: 10px; margin: 18px 0 6px; align-items: center; flex-wrap: wrap; }
 .primary { border: 0; border-radius: 10px; padding: 10px 26px; font-weight: 700; background: var(--text); color: var(--brand); font-size: 15px; }
 .primary:hover:not(:disabled) { background: #fff; }
