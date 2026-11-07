@@ -292,6 +292,11 @@ def compare_golden(run, args, shot):
     have = run.shots[shot]
     if want.size != have.size:
         return False, "size %s, golden %s" % (have.size, want.size)
+    if case.get("golden_mask"):  # rects [x0, y0, x1, y1] left out (the app's version number...)
+        want, have = want.copy(), have.copy()
+        for box in case["golden_mask"]:
+            for im in (want, have):
+                im.paste((0,) * len(im.getbands()), tuple(box))
     diff = ImageChops.difference(have, want)
     tol = case.get("golden_tol", 0)
     n = sum(1 for p in pixels(diff) if max(p) > tol)

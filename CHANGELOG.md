@@ -2,6 +2,10 @@
 
 ## v1.4.12 (not yet released)
 
+### Changes
+- **Mario & Luigi: Superstar Saga+** (v1.5 of the romhack, its 100%, 80% and 60% versions, patched onto the USA release) works as the game does: Bros. Info walking about and the battle boxes on the second screen, with the mod's own names and numbers, and the logo on the title. GBA DS knows it as that mod (bug reports say so). It's the first tested romhack: the wiki's Supported games page lists tested romhacks under the game they're made from, and says what to expect from other patched ROMs. Save states don't carry between the unchanged game and the mod: a conversation in progress comes out garbled.
+- **Romhacks and patched ROMs in the game list:** under the selected game's logo, GBA DS says when its ROM is a romhack it knows ("Romhack: Superstar Saga+ v1.5 (100%)", "untested" for a version it isn't tested on) or a ROM it doesn't know ("Modified ROM: the second screen may not work"), once it has read the ROM the first time you select it (half a second or so).
+
 ## v1.4.11 (2026-11-07)
 
 ### New games
@@ -38,8 +42,6 @@
 - **Yu-Gi-Oh! The Eternal Duelist Soul** (USA; Yu-Gi-Oh! Duel Monsters 5 Expert 1 in Japan, the original): the second screen shows the game's own **Card View** of the card under your cursor (its picture, name, type and text), in duels (your hand, your cards and the opponent's face-up ones), the Graveyard and other card lists, Deck Edit (Japan: the Deck screen), Card Trading's choice of a card and the cards you win after a duel. Where there's nothing to look at (an empty zone, a pile, a face-down card of the opponent's, the opponent's turn), the last card stays; on the title, menus and conversations, the logo. Link Battle hasn't been tried.
 
 ### Changes
-- **Mario & Luigi: Superstar Saga+** (v1.5 of the romhack, its 100%, 80% and 60% versions, patched onto the USA release) works as the game does: Bros. Info walking about and the battle boxes on the second screen, with the mod's own names and numbers, and the logo on the title. GBA DS knows it as that mod (bug reports say so). It's the first tested romhack: the wiki's Supported games page lists tested romhacks under the game they're made from, and says what to expect from other patched ROMs. Save states don't carry between the unchanged game and the mod: a conversation in progress comes out garbled.
-- **Romhacks and patched ROMs in the game list:** under the selected game's logo, GBA DS says when its ROM is a romhack it knows ("Romhack: Superstar Saga+ v1.5 (100%)", "untested" for a version it isn't tested on) or a ROM it doesn't know ("Modified ROM: the second screen may not work"), once it has read the ROM the first time you select it (half a second or so).
 - **The first run is much quicker to get going:** the game list makes the selected game's logo first, then the others on screen, and starting a game waits only for that game's own logo (and map border), not for every game's. The rest are made while you're in the game list, and wait while you play.
 - **BananaOS:** GBA DS's folder now carries its icon (`gba-ds/images/icon.png`, on a see-through background), so BananaOS's Store can show it on GBA DS's tile in Apps.
 - **Sonic Advance:** tried in every zone, with every character, in the act's results, pause and the bosses (the European release): no changes needed.
