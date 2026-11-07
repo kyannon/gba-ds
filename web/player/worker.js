@@ -184,7 +184,13 @@ async function screenshot() {
 /* ------------------------------------------------------------ captures in a worker of their own */
 // The live game: its map captures go to the page (which runs them in the
 // capture worker, a second copy of the app) and come back to it, between frames.
-const cap = { want: false, info: 0, inbox: [], off: false };
+// The buffers that carry snapshots and pictures go round and come back
+// (stateSpare here, outSpare in the capture worker), so updates make no
+// garbage for the browser to collect (a collection pauses the game).
+const cap = { want: false, info: 0, inbox: [], off: false, stateSpare: null };
+// ?debug: slow frames logged with what came before them
+const dbg = { on: false, last: 0, resumed: 0, ev: [] };
+const mark = (e) => { if (dbg.on) dbg.ev.push(e); };
 const cstr = (mem, p) => { const b = new Uint8Array(mem.buffer, p); let n = 0; while (b[n]) n++; return new TextDecoder().decode(b.slice(0, n)); };
 function pumpCaptures() {
   // (GBADS_CAPTURE_OFFLOAD=1 had captures handed over from the start)
@@ -193,20 +199,30 @@ function pumpCaptures() {
   if (!cap.info) cap.info = h.call("web_alloc", 32);
   while (cap.inbox.length) {
     const r = cap.inbox.shift();
-    const ptr = h.call("web_capture_inbox", r.buf.byteLength);
-    if (!ptr) continue;
-    new Uint8Array(h.memory.buffer, ptr, r.buf.byteLength).set(new Uint8Array(r.buf));
-    h.call("web_capture_deliver", r.job, r.frames, r.step, r.tileValid, r.failed);
+    if (r.state) cap.stateSpare = r.state;
+    const t0 = performance.now();
+    const ptr = h.call("web_capture_inbox", r.len);
+    if (ptr) {
+      new Uint8Array(h.memory.buffer, ptr, r.len).set(new Uint8Array(r.buf, 0, r.len));
+      h.call("web_capture_deliver", r.job, r.frames, r.step, r.tileValid, r.failed);
+    }
+    mark("update in " + (performance.now() - t0).toFixed(1) + " ms");
+    post({ t: "capreturn", buf: r.buf }, [r.buf]);
   }
   const job = h.call("web_capture_job", cap.info);
   if (!job) return;
   const i = new Uint32Array(h.memory.buffer, cap.info, 6);
-  const state = h.memory.buffer.slice(i[0], i[0] + i[1]);
+  const t0 = performance.now();
+  let state = cap.stateSpare;
+  cap.stateSpare = null;
+  if (!state || state.byteLength !== i[1]) state = new ArrayBuffer(i[1]);
+  new Uint8Array(state).set(new Uint8Array(h.memory.buffer, i[0], i[1]));
+  mark("request in " + (performance.now() - t0).toFixed(1) + " ms");
   post({ t: "capjob", job, state, still: i[2], rom: cstr(h.memory, i[3]), code: cstr(h.memory, i[4]), tight: !!i[5] }, [state]);
 }
 
 // The capture worker: a job's snapshot in, run, its pictures out.
-const serve = { h: null, job: null, info: 0, timer: 0 };
+const serve = { h: null, job: null, info: 0, timer: 0, outSpare: null, stateBack: null };
 function serveTick() {
   const sh = serve.h;
   if (!sh) return;
@@ -217,9 +233,11 @@ function serveTick() {
     if (ptr && size === serve.job.state.byteLength) {
       new Uint8Array(sh.memory.buffer, ptr, size).set(new Uint8Array(serve.job.state));
       sh.call("web_serve_job", serve.job.job, serve.job.still);
+      serve.stateBack = serve.job.state;
       serve.job = null;
     } else if (ptr && size) {
-      post({ t: "capresult", job: serve.job.job, frames: 0, step: 1, tileValid: 0, failed: 1, buf: new TextEncoder().encode("\0".repeat(1024) + "the snapshot isn't this game's").buffer });
+      const b = new TextEncoder().encode("\0".repeat(1024) + "the snapshot isn't this game's\0");
+      post({ t: "capresult", job: serve.job.job, frames: 0, step: 1, tileValid: 0, failed: 1, buf: b.buffer, len: b.length });
       serve.job = null;
     }
   }
@@ -228,11 +246,17 @@ function serveTick() {
   const mem = sh.memory.buffer, i = new Uint32Array(mem, serve.info, 22);
   const frames = i[0], n = i[4], err = i[5] ? cstr(sh.memory, i[5]) : "";
   const errB = new TextEncoder().encode(err + "\0");
-  const out = new Uint8Array((n * frames + 256) * 4 + errB.length);
+  const len = (n * frames + 256) * 4 + errB.length;
+  // (room for the most frames a capture has, so the one buffer always does)
+  if (!serve.outSpare || serve.outSpare.byteLength < len) serve.outSpare = new ArrayBuffer(Math.max(len, (n * 16 + 256) * 4 + 256));
+  const out = new Uint8Array(serve.outSpare);
+  serve.outSpare = null;
   for (let f = 0; f < frames; f++) out.set(new Uint8Array(mem, i[6 + f], n * 4), n * 4 * f);
   out.set(new Uint8Array(mem, i[3], 1024), n * 4 * frames);
   out.set(errB, (n * frames + 256) * 4);
-  post({ t: "capresult", job: done, frames, step: i[1], tileValid: i[2], failed: err ? 1 : 0, buf: out.buffer }, [out.buffer]);
+  const state = serve.stateBack;
+  serve.stateBack = null;
+  post({ t: "capresult", job: done, frames, step: i[1], tileValid: i[2], failed: err ? 1 : 0, buf: out.buffer, len, state }, state ? [out.buffer, state] : [out.buffer]);
 }
 async function bootCapture(m) {
   const fs = new GBADS.MemFS();
@@ -266,11 +290,17 @@ async function boot(m) {
   for (const d of ["/states", "/saves", "/shots", "/home", "/roms"]) fs.mkdirs(d);
   log("$ " + m.args.join(" "));
   cap.want = !!m.captureWorker;
+  dbg.on = !!m.debug;
   fpsT = performance.now(); snd.wall = fpsT;
   try {
     h = await GBADS.start({
       wasm: m.wasm, fs, args: m.args, env: m.env, log,
       onFrame: (px, w, fh, pitch) => {
+        if (dbg.on) {
+          const n = performance.now(), gap = n - dbg.last;
+          if (dbg.last && gap > 40) log("slow frame: " + gap.toFixed(0) + " ms since the last (the game's own work " + (n - dbg.resumed).toFixed(0) + " ms)" + (dbg.ev.length ? "; before it: " + dbg.ev.join(", ") : ""));
+          dbg.ev.length = 0; dbg.last = n;
+        }
         frame = { ptr: px.byteOffset, buf: px.buffer, w, h: fh, pitch };
         frames++; fpsN++;
         glDraw(true);
@@ -285,7 +315,7 @@ async function boot(m) {
         post({ t: "exit", code, error: err ? String(err.stack || err) : null });
         h = null;
       },
-      schedule,
+      schedule: (fn, ms) => schedule(() => { dbg.resumed = performance.now(); fn(); }, ms),
     });
     if (h) {
       post({ t: "started", hasAudio: h.hasAudio, hasButtons: h.hasButtons });
@@ -304,6 +334,7 @@ onmessage = async (e) => {
     case "capjob": serve.job = m; serveTick(); break;
     case "capresult": cap.inbox.push(m); if (paused) pumpCaptures(); break;
     case "capoff": cap.off = true; pumpCaptures(); break;
+    case "capreturn": serve.outSpare = m.buf; break;
     case "layout": setLayout(m.layout); break;
     case "buttons": if (!paused) setButtons(m.mask); break;
     case "touch": if (h && !paused) h.touch(m.type, m.x, m.y); break;

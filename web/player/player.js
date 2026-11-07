@@ -464,7 +464,7 @@ async function boot(opts) {
   showNow(opts.library);
   relayout();
   const stage = $("stage"), dpr = window.devicePixelRatio || 1;
-  worker.postMessage({ t: "boot", wasm: P.build.module, files, args, env, canvas, captureWorker: capWorker,
+  worker.postMessage({ t: "boot", wasm: P.build.module, files, args, env, canvas, captureWorker: capWorker, debug,
     layout: { cw: Math.round(stage.clientWidth * dpr), ch: Math.round(stage.clientHeight * dpr), smooth: !!S.smooth, rects: [] } }, [canvas]);
   relayout();
   if (A.node) linkSound();
@@ -502,7 +502,7 @@ function onCapture(w, m) {
     case "log": addLog("[capture] " + m.line); break;
     case "capresult":
       CAP.results = (CAP.results || 0) + 1;
-      if (P.worker) P.worker.postMessage(m, [m.buf]);
+      if (P.worker) P.worker.postMessage(m, m.state ? [m.buf, m.state] : [m.buf]);
       CAP.busy = false;
       if (CAP.next) { const n = CAP.next; CAP.next = null; captureJob(n); }
       break;
@@ -521,6 +521,8 @@ function onWorker(worker, m) {
   if (worker !== P.worker) return;
   switch (m.t) {
     case "capjob": CAP.jobs = (CAP.jobs || 0) + 1; captureJob(m); break;
+    // (the pictures' buffer, back to the capture worker to be used again)
+    case "capreturn": if (CAP.w) CAP.w.postMessage(m, [m.buf]); break;
     case "log": addLog(m.line); break;
     case "fps": $("fps").textContent = Math.round(m.fps) + " fps"; break;
     case "started":

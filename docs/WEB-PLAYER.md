@@ -73,6 +73,12 @@ in `-with-VERSION`. Only `web/gba-ds.wasm`, `web/VERSION`, `gba-ds.cfg` and
   puts captures back in the game. All of it is inside `#ifdef __wasi__`:
   Linux and Android compile exactly the same code as before (checked by
   comparing `cc -E -P` of mapcap.c, main.c and game.c before and after).
+  The buffers carrying snapshots and pictures go round and come back
+  (`stateSpare`, `outSpare`), so an update makes no garbage for the browser
+  to collect. With `?debug`, the live worker logs each frame more than
+  40 ms after the last, with the game's own work in it and what came
+  before ("request", "update"): a slow frame whose own work is small was
+  waiting for the CPU or the browser, not the game.
   State Saver's tab doesn't ask for it, so it runs captures in the game as
   before. Captures arriving a moment later is as on a device.
 - **Buttons**: the page sends a mask of ui.h's buttons (`web_buttons`, in
