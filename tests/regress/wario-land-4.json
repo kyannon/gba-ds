@@ -118,20 +118,6 @@
      "what": "a pause-screen picture is taken",
      "type": "log",
      "match": "map updated"
-    },
-    {
-     "rule": "WL4-2",
-     "what": "the menu row left out: dark grey above the picture",
-     "type": "uniform",
-     "shot": "level",
-     "screen": "second",
-     "rect": [
-      40,
-      70,
-      980,
-      106
-     ],
-     "color": "303030"
     }
    ]
   },
@@ -139,7 +125,7 @@
    "id": "wl4-us-hall",
    "rom": "AWAE",
    "state": "wario-land-4/us-hall.ss",
-   "desc": "in the Hall of Hieroglyphs: the pause screen without its menu, centred; the game screen as the game draws it (hearts and coins)",
+   "desc": "in the Hall of Hieroglyphs: the pause screen with the wall's bricks in place of its menu; the game screen without the hearts, heart meter and coins",
    "rules": [
     "WL4-2",
     "WL4-4"
@@ -154,20 +140,6 @@
      "what": "a pause-screen picture is taken",
      "type": "log",
      "match": "map updated"
-    },
-    {
-     "rule": "WL4-2",
-     "what": "the menu row left out: dark grey above the picture",
-     "type": "uniform",
-     "shot": "start",
-     "screen": "second",
-     "rect": [
-      40,
-      70,
-      980,
-      106
-     ],
-     "color": "303030"
     }
    ]
   },
@@ -313,7 +285,7 @@
    "id": "wl4-us-escape",
    "rom": "AWAE",
    "state": "wario-land-4/us-escape.ss",
-   "desc": "the escape in the Hall of Hieroglyphs: the countdown stays on the game screen, the pause screen on the second",
+   "desc": "the escape in the Hall of Hieroglyphs: the stopwatch and countdown stay on the game screen (the hearts and coins don't), the pause screen on the second",
    "rules": [
     "WL4-4",
     "WL4-5"
@@ -437,9 +409,10 @@
    "id": "wl4-us-boss-corridor",
    "rom": "AWAE",
    "state": "wario-land-4/us-boss-corridor.ss",
-   "desc": "Emerald's boss corridor (the Item Shop's door): the logo, as the game's pause there is a plain PAUSE",
+   "desc": "Emerald's boss corridor (the Item Shop's door): no HUD there, the logo at half strength",
    "rules": [
-    "WL4-7"
+    "WL4-7",
+    "WL4-9"
    ],
    "shots": {
     "corridor": 90
@@ -585,20 +558,100 @@
      "what": "a pause-screen picture is taken",
      "type": "log",
      "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-hurt",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-hall.ss",
+   "desc": "a heart lost (the state with 2 hearts loaded over the level): a new picture at once with the hearts down",
+   "rules": [
+    "WL4-3"
+   ],
+   "input": [
+    [
+     100,
+     "LOAD:wario-land-4/us-hall-hurt.ss"
+    ]
+   ],
+   "shots": {
+    "before": 60,
+    "hurt": 110
+   },
+   "checks": [
+    {
+     "rule": "WL4-3",
+     "what": "the hearts on the second screen changed within a few frames",
+     "type": "differs",
+     "a": {
+      "shot": "before",
+      "screen": "second",
+      "rect": [
+       64,
+       164,
+       360,
+       260
+      ]
+     },
+     "b": {
+      "shot": "hurt",
+      "screen": "second",
+      "rect": [
+       64,
+       164,
+       360,
+       260
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-boss",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-boss.ss",
+   "desc": "the Entry Passage's boss fight (the owner's report): the HUD (hearts, stopwatch and countdown, the boss's bar) at the top of the second screen, the logo below it; the game screen without it",
+   "rules": [
+    "WL4-9"
+   ],
+   "shots": {
+    "fight": 30,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "WL4-9",
+     "what": "the HUD goes to the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
     },
     {
-     "rule": "WL4-2",
-     "what": "the menu row left out: dark grey above the picture",
-     "type": "uniform",
-     "shot": "start",
-     "screen": "second",
-     "rect": [
-      40,
-      70,
-      980,
-      106
-     ],
-     "color": "303030"
+     "rule": "WL4-9",
+     "what": "no pause-screen picture",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-boss-timeup",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-boss-timeup.ss",
+   "desc": "the boss fight's countdown running out: TIME UP!! on the game screen, the HUD's rest on the second",
+   "rules": [
+    "WL4-9"
+   ],
+   "shots": {
+    "ending": 30,
+    "timeup": 300
+   },
+   "checks": [
+    {
+     "rule": "WL4-9",
+     "what": "the HUD goes to the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
     }
    ]
   }

@@ -4539,8 +4539,9 @@ static const MapProfile profiles[] = {
 		.settleMax = 90, .openWithin = 30, .stableFrames = 3, .maxDiff = 200,
 		.crop_x = 0, .crop_y = 0, .crop_w = 240, .crop_h = 160,
 		/* map_crop: the menu's rows (down to the wall's first row of
-		 * bricks) dark grey, the rest where the game draws it (WL4-2) */
-		.glyphs = { { 0, 0, 240, 24, -1, { 0x303030 } } },
+		 * bricks) from a render of BG2 alone, the wall the game draws
+		 * behind the menu, without its words, frames or hand (WL4-2) */
+		.underRect = { { 0, 0, 239, 23 } }, .underLayers = 0x4,
 		.probes = { { 60, 18, 0x5AFFFF }, { 120, 18, 0x5AFFFF }, { 200, 18, 0x5AFFFF },
 		            { 10, 150, 0x218484 }, { 220, 150, 0x000000 } },
 		.bgColor = 0x000000, .minForeground = 2000, .tolerance = 8,
@@ -4552,9 +4553,32 @@ static const MapProfile profiles[] = {
 		 * logo (WL4-7) */
 		.menu = { { WL4_V_OFFLEVEL, 0, 1, 1 } },
 		.virt = wl4_virt,
-		/* another level, or a gem piece, the CD or the Keyzer found:
-		 * taken again at once (WL4-3) */
-		.room = { { 0x03000002, 0, 0, 2 }, { 0x03000C07, 0, 0, 4 }, { 0x03000C0B, 0, 0, 2 } },
+		/* another level, a gem piece, the CD or the Keyzer found, or a
+		 * heart gained or lost (0x03001910): taken again at once (WL4-3) */
+		.room = { { 0x03000002, 0, 0, 2 }, { 0x03000C07, 0, 0, 4 }, { 0x03000C0B, 0, 0, 2 },
+		          { 0x03001910, 0, 0, 1 } },
+		/* In a level's play, the hearts and heart meter (palette 7, top
+		 * left) and the coins (the coin palette 6, its figures 4, top
+		 * right) leave the game screen: the pause screen has them. The
+		 * escape's stopwatch and countdown (palette 4, x 80-128) stay
+		 * (WL4-4). All priority 0, in the top 16 rows; the level's own
+		 * sprites are priority 1-2. */
+		.hideSprites = { { 0, -8, 79, 15, 0, 1023, 0, 1 << 7 },
+		                 { 160, -8, 239, 15, 0, 1023, 0, 1 << 6 | 1 << 4 } },
+		.hideWhen = { { WL4_SCREEN, 0xFFFF, 2, 2 }, { WL4_LEVEL, 0xFF, 0, 1, true, 3, true } },
+		/* A boss fight (a level's number 4, playing): its HUD, all
+		 * priority-0 sprites in the top rows (the hearts in palette 7,
+		 * the stopwatch and countdown in 4, the boss's bar in 14), goes
+		 * to the top of the second screen, on grey with the logo below.
+		 * TIME UP!! (palette 2, from row 32) stays. The corridor before
+		 * it has no HUD: the logo (WL4-9, WL4-7). */
+		.hud = {
+			.on = { { WL4_SCREEN, 0xFFFF, 2, 2 }, { WL4_LEVEL, 0xFF, 4, 1 } },
+			.objs = { { 0, -8, 239, 23, 0, 1023, 0, 1 << 4 | 1 << 7 | 1 << 14 } },
+			.rows = 24,
+			.logoBelow = true,
+			.emptyIsOff = true,
+		},
 	},
 	{
 		/* Mario & Luigi: Superstar Saga (USA; Europe and Japan, Mario &

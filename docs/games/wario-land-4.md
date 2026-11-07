@@ -12,29 +12,31 @@ What GBA DS does with this game. Each rule is a promise the profile keeps; the r
 
 Every game also follows the [general rules](README.md#general-rules) (GEN-1 to GEN-7).
 
-Modelled on Lady Sia ([LS rules](lady-sia.md)): the game's own pause screen, opened on the hidden copy and kept up to date while Wario is in a level, its menu left out. The game has no map; its pause screen is the one place that shows what's still to find in a level, which is what the player would otherwise pause to check.
+Modelled on Lady Sia ([LS rules](lady-sia.md)): the game's own pause screen, opened on the hidden copy and kept up to date while Wario is in a level, its menu left out, and the HUD taken off the game screen as it's on the second. In the boss fights, which have no such pause screen, the HUD moves over as in Super Mario Advance 2 ([SMA rules](super-mario-advance-2.md)). The game has no map; its pause screen is the one place that shows what's still to find in a level, which is what the player would otherwise pause to check.
 
 ## Rules
 
 **WL4-1. Logo.** The logo (GEN-1) is the title's lettering with its ™: WARIO LAND 4 in the USA and Europe, ワリオランドアドバンス (Wario Land Advance) in Japan, without PUSH START, the desert, Wario's car or the copyright line.
 
-**WL4-2. In a level: the pause screen.** While Wario is in a level (any of the Entry, Emerald, Ruby, Topaz, Sapphire and Golden passages' levels, the Hall of Hieroglyphs too), the second screen shows the game's pause screen (START), opened on the hidden copy and taken again about once a second, as the game draws it once it has slid fully into place: the bar with Wario's hearts and heart meter, the money he carries and the level's coins against its best, the wall below it with the jewel (each of the four gem pieces found so far in its place), the Keyzer once he has it and the CD once he has it (in the passages that have one: not the Hall of Hieroglyphs or the Golden Passage), and the plate with the level's name. The menu along the top (RETURN, QUIT, GIVE UP and the pointing hand) is left out: its rows, down to the wall's first row of bricks, are dark grey, and the rest is where the game draws it. With `map_crop = 0` (gba-ds.cfg) the whole pause screen is shown, the menu too.
+**WL4-2. In a level: the pause screen.** While Wario is in a level (any of the Entry, Emerald, Ruby, Topaz, Sapphire and Golden passages' levels, the Hall of Hieroglyphs too), the second screen shows the game's pause screen (START), opened on the hidden copy and taken again about once a second, as the game draws it once it has slid fully into place: the bar with Wario's hearts and heart meter, the money he carries and the level's coins against its best, the wall below it with the jewel (each of the four gem pieces found so far in its place), the Keyzer once he has it and the CD once he has it (in the passages that have one: not the Hall of Hieroglyphs or the Golden Passage), and the plate with the level's name. The menu along the top (RETURN, QUIT, GIVE UP and the pointing hand) is left out: the wall's bricks, which the game draws behind it, show there instead, so the wall runs from the top of the screen; the rest is where the game draws it. With `map_crop = 0` (gba-ds.cfg) the whole pause screen is shown, the menu too.
 
-**WL4-3. Found treasure shows at once.** When Wario opens a chest for a gem piece, takes the Keyzer or finds the CD, or goes into another level, a new picture is taken as soon as the pause screen can be opened (GEN-6), without waiting for the next second.
+**WL4-3. Finds and hits show at once.** When Wario opens a chest for a gem piece, takes the Keyzer or finds the CD, gains or loses a heart, or goes into another level, a new picture is taken as soon as the pause screen can be opened (GEN-6), without waiting for the next second.
 
-**WL4-4. The game screen is the game's.** The game screen is as the game draws it: the hearts and heart meter, the coins and, once the Frog Switch is hit, the countdown stay there. (The pause screen has no countdown, so it has nowhere else to go.)
+**WL4-4. In a level, the game screen without the hearts and coins.** While Wario is in a level, the hearts and heart meter (top left) and the coins (top right) are left off the game screen: they're on the second screen's pause screen (WL4-2). The coins there are at most a second behind; the hearts change at once (WL4-3). Once the Frog Switch is hit, the countdown stays on the game screen (the pause screen has none). Everything else is as the game draws it; in the game's own pause screen, its menus and everywhere outside a level the HUD is drawn as usual, and with the second screen off (Map: Off) it's back on the game screen.
 
 **WL4-5. The escape.** After the Frog Switch, while the countdown runs, the second screen shows the pause screen as in the rest of the level (WL4-2), taken from the hidden copy as the countdown goes on.
 
 **WL4-6. The game's own pause.** The pause screen opened in the game stays on the game screen (its QUIT and GIVE UP questions too); the second screen keeps its last picture meanwhile. Wherever else in a level the pause screen can't be opened (going through a door or pipe, the wavy screen as a level is left), the last picture stays.
 
-**WL4-7. Logo elsewhere.** The second screen shows the logo at half strength before the first pause-screen picture and whenever Wario isn't in a level: the title, the opening, the file screen, the passage select (the hub), a passage's level select, the vortex and the tally as a level is entered or left, the boss's corridor (the Item Shop and the mini-games) and the boss fights (where the game's pause screen is just PAUSE on black), and the ending.
+**WL4-7. Logo elsewhere.** The second screen shows the logo at half strength before the first pause-screen picture and whenever Wario isn't in a level: the title, the opening, the file screen, the passage select (the hub), a passage's level select, the vortex and the tally as a level is entered or left, the boss's corridor (the Item Shop and the mini-games, where the game's pause screen is just PAUSE on black), and the ending. (The boss fights: WL4-9.)
 
 **WL4-8. Every passage.** The pause screen is taken the same way in every passage, whose wall has its own colour (purple in the Entry Passage, green in Emerald, red in Ruby, brown in Topaz, blue in Sapphire, yellow in the Golden Passage), and in either release.
 
+**WL4-9. Boss fights: the HUD on the second screen.** In a boss fight, where the game's pause screen is just PAUSE on black, the HUD moves from the top of the game screen to the top of the second screen, where the game draws it: Wario's hearts and heart meter, the stopwatch and the countdown, and the boss's health bar, on dark grey with the logo below at its own size. TIME UP!!, when the countdown runs out, stays on the game screen. The boss's corridor before the fight has no HUD: the logo there (WL4-7).
+
 ## How it was checked
 
-Every level of every passage was loaded in both releases (on a passage's level select, the passage at 0x03000002 and the level at 0x03000003 set, then A) and its pause screen opened; the gem pieces, Keyzer and CD were set in memory (0x03000C07-0x03000C0A, 0x03000C0C, 0x03000C0B) and the pause screen shows them; the escape was started by putting Wario over the Frog Switch. A boss's corridor was reached by setting its passage's level records to cleared (0x03000A68 + 24 × passage + 4 × level; 0x2F for a cleared level, 0x08 for the boss door). The Normal difficulty of a new game was used throughout.
+Every level of every passage was loaded in both releases (on a passage's level select, the passage at 0x03000002 and the level at 0x03000003 set, then A) and its pause screen opened; the gem pieces, Keyzer and CD were set in memory (0x03000C07-0x03000C0A, 0x03000C0C, 0x03000C0B) and the pause screen shows them; the escape was started by putting Wario over the Frog Switch. A boss's corridor was reached by setting its passage's level records to cleared (0x03000A68 + 24 × passage + 4 × level; 0x2F for a cleared level, 0x08 for the boss door). Wario's hearts are at 0x03001910. The boss fights were checked from the owner's bug report (Spoiled Rotten, the Entry Passage's boss), its countdown run out for TIME UP!!. The Normal difficulty of a new game was used throughout.
 
 ## Not covered yet
 
@@ -52,16 +54,19 @@ Every level of every passage was loaded in both releases (on a passage's level s
 | This run's finds | 0x03000C07-0x03000C0A the four gem pieces, 0x03000C0B the CD, 0x03000C0C the Keyzer (nonzero once found) |
 | Level records | 0x03000A68: 4 bytes per level, 6 per passage (bits 0-3 the pieces, 4 the CD, 5 the Keyzer; the boss slot 0x08 opens its door) |
 | Pause screen | slides down from the top over about 40 frames; rows 0-23 its menu (BG0 words, BG1 frames, the hand a sprite), the wall (BG2) in 8-row courses from row 24; the plate 141-158 |
+| Hearts | 0x03001910 (the full hearts, 0-8) |
+| HUD | all priority-0 sprites in the top rows. In a level: the hearts and heart meter palette 7 (x 9-72), the coin palette 6 and its figures 4 (x 179-240), the escape's stopwatch and countdown palette 4 (x 80-128). In a boss fight: the hearts 7, the stopwatch and countdown 4, the boss's bar 14 (x 161-240); TIME UP!! palette 2 from row 32. The level's own sprites are priority 1-2 |
 | Debug | 0x03000C3C = 8 in a level: free movement (tcrf.net); L+UP there clears the level with all four pieces and the Keyzer |
 | Title | the lettering is BG0 alone, up about 240 frames after START skips the intro (START at frame 900) |
 
 ## For the merge
 
-- Changelog: "Wario Land 4 (USA, Europe and Japan): the second screen shows the game's pause screen while you're in a level: your hearts and money, the level's coins against its best, and the gem pieces, Keyzer and CD you've found so far."
+- Changelog: "Wario Land 4 (USA, Europe and Japan): in a level, the second screen shows the game's pause screen, kept up to date: your hearts and money, the level's coins against its best, and the gem pieces, Keyzer and CD you've found so far, with the hearts and coins taken off the game screen. In boss fights, the hearts, the countdown and the boss's health bar are on the second screen instead."
 - Wiki (Supported-games.md):
 
   ### Wario Land 4
 
   Releases: USA and Europe, Japan (Wario Land Advance).
 
-  In a level, the second screen shows the game's pause screen, kept up to date about once a second: your hearts, the money you carry, the level's coins against its best, the jewel with the gem pieces you've found, the Keyzer and the CD, and the level's name. A piece shows as soon as you find it. The menu along the top of the pause screen is left out. Everywhere else (the title, the hub, the level select, boss fights) it shows the game's logo.
+  In a level, the second screen shows the game's pause screen, kept up to date about once a second: your hearts, the money you carry, the level's coins against its best, the jewel with the gem pieces you've found, the Keyzer and the CD, and the level's name. A piece or a lost heart shows as soon as it happens. The pause screen's menu is left out, and the hearts and coins are taken off the game screen while they're on the second one; the escape's countdown stays on the game screen. In boss fights, the hearts, the countdown and the boss's health bar move to the top of the second screen; TIME UP stays on the game screen. Everywhere else (the title, the hub, the level select) it shows the game's logo.
+- The game in the table of docs/games/README.md.
