@@ -17,6 +17,7 @@ typedef struct Config {
 	char borderColor[16]; /* RRGGBB behind the map screen (outside the map image) */
 	int overlays;      /* OVL_PRIMARY | OVL_SECONDARY: game-screen / map-screen overlays */
 	bool lcdGrid;      /* draw an LCD pixel grid over game and map */
+	bool colorCorrection; /* the GBA's screen colours (mGBA's GBA Color shader) */
 	int lcdStrength;   /* grid darkness, 0..100 */
 	bool vsync;
 	bool frameBuffer; /* emulate a frame ahead on a second thread: smoother, a frame more input delay */

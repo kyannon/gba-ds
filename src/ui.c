@@ -1223,8 +1223,75 @@ static uint32_t tex_version(SDL_Texture* t) {
 	return 0;
 }
 
+/* Colour correction: mGBA's GBA Color shader (res/shaders/gba-color.shader,
+ * by Pokefan531 and hunterk), as mGBA runs it by default (color_mode 1,
+ * sRGB; darken_screen 0.5): each channel to the power 2.5 (target gamma 2.0
+ * + 0.5), times the luminance 0.93, clamped, through the colour matrix
+ * (GLSL's mat4 is filled column by column: these are its rows), to the
+ * power 1 / 2.0 (display gamma). The GBA has 32768 colours: a table, by the
+ * 5-bit colour each 8-bit one came from (mGBA: c << 3 | c >> 2). */
+static uint32_t* ccLut;
+static bool ccOn;
+static void cc_build(void) {
+	static const double m[3][3] = {
+		{ 0.80, 0.275, -0.075 },
+		{ 0.135, 0.64, 0.225 },
+		{ 0.195, 0.155, 0.65 },
+	};
+	ccLut = malloc(32768 * sizeof(uint32_t));
+	if (!ccLut) return;
+	for (int c = 0; c < 32768; ++c) {
+		double in[3];
+		for (int k = 0; k < 3; ++k) {
+			int v5 = c >> (k * 5) & 31;
+			double v = ((v5 << 3) | (v5 >> 2)) / 255.0;
+			v = pow(v, 2.0 + 0.5) * 0.93;
+			in[k] = v < 0 ? 0 : v > 1 ? 1 : v;
+		}
+		uint32_t out = 0;
+		for (int k = 0; k < 3; ++k) {
+			double v = m[k][0] * in[0] + m[k][1] * in[1] + m[k][2] * in[2];
+			v = v < 0 ? 0 : v > 1 ? 1 : v;
+			int b = (int) (pow(v, 1.0 / 2.0) * 255.0 + 0.5);
+			out |= (uint32_t) (b > 255 ? 255 : b) << (k * 8);
+		}
+		ccLut[c] = out;
+	}
+}
+void ui_color_correction(bool on) {
+	if (on && !ccLut) cc_build();
+	ccOn = on && ccLut;
+}
+uint32_t ui_color_correct(uint32_t p) {
+	if (!ccLut) cc_build();
+	if (!ccLut) return p;
+	unsigned key = (p >> 3 & 31) | (p >> 11 & 31) << 5 | (p >> 19 & 31) << 10;
+	return ccLut[key] | (p & 0xFF000000u);
+}
+
 void ui_update_texture(SDL_Texture* t, const void* px, int pitch) {
 	if (!t) return;
+	if (ccOn) {
+		/* (through the colour correction's table, alpha kept) */
+		static uint32_t* buf;
+		static size_t bufN;
+		int w, h;
+		if (SDL_QueryTexture(t, NULL, NULL, &w, &h) == 0 && pitch >= w * 4) {
+			size_t n = (size_t) (pitch / 4) * h;
+			if (n > bufN) {
+				uint32_t* nb = realloc(buf, n * sizeof(uint32_t));
+				if (nb) buf = nb, bufN = n;
+			}
+			if (n <= bufN) {
+				const uint32_t* src = px;
+				for (size_t i = 0; i < n; ++i) {
+					uint32_t p = src[i];
+					buf[i] = ccLut[(p >> 3 & 31) | (p >> 11 & 31) << 5 | (p >> 19 & 31) << 10] | (p & 0xFF000000u);
+				}
+				px = buf;
+			}
+		}
+	}
 	SDL_UpdateTexture(t, NULL, px, pitch);
 	int slot = -1;
 	for (int i = 0; i < TEXVER_N && slot < 0; ++i) {

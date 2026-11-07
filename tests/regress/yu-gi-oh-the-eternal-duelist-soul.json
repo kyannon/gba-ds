@@ -279,12 +279,513 @@
    ]
   },
   {
+   "id": "eds-us-attack-target",
+   "rom": "AY5E",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/us-battle-phase.ss",
+   "desc": "turn 2's Battle Phase, the cursor on the player's Armored Lizard: its Card View; A, Attack, A past the prompt: choosing the monster to attack, the cursor on the opponent's Gazelle the King of Mythical Beasts: Gazelle's Card View (the hidden copy backs out with B and goes to it); no failed captures",
+   "rules": [
+    "EDS-1"
+   ],
+   "input": [
+    [
+     120,
+     "A"
+    ],
+    [
+     124,
+     "-"
+    ],
+    [
+     150,
+     "RIGHT"
+    ],
+    [
+     154,
+     "-"
+    ],
+    [
+     170,
+     "A"
+    ],
+    [
+     174,
+     "-"
+    ],
+    [
+     320,
+     "A"
+    ],
+    [
+     324,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 90,
+    "prompt": 300,
+    "target": 560
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       66,
+       "0000FF"
+      ],
+      [
+       990,
+       114,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-1",
+     "shot": "start",
+     "what": "Armored Lizard's Card View"
+    },
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       66,
+       "0000FF"
+      ],
+      [
+       990,
+       114,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-1",
+     "shot": "target",
+     "what": "Gazelle's Card View, choosing the target"
+    },
+    {
+     "rule": "EDS-1",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "target",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "the target's card, not the attacker's"
+    },
+    {
+     "rule": "EDS-1",
+     "type": "no_log",
+     "match": "Card View didn't open",
+     "what": "no failed captures"
+    }
+   ]
+  },
+  {
+   "id": "eds-us-snatch-steal-target",
+   "rom": "AY5E",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/us-snatch-steal-target.ss",
+   "desc": "Snatch Steal activated, choosing the opponent's monster to take, the cursor on Gazelle the King of Mythical Beasts: the second screen as it was (the logo: no Card View yet in this duel); the hidden copy's tries find no commands (A takes the monster, B doesn't back out to a monster of the player's): nothing taken, no failed captures",
+   "rules": [
+    "EDS-5"
+   ],
+   "shots": {
+    "start": 90,
+    "later": 400
+   },
+   "checks": [
+    {
+     "rule": "EDS-5",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "later",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "the second screen stays"
+    },
+    {
+     "rule": "EDS-5",
+     "type": "no_log",
+     "match": "Card View didn't open",
+     "what": "no failed captures"
+    },
+    {
+     "rule": "EDS-5",
+     "type": "log",
+     "match": "capture: .*map button did nothing",
+     "what": "the tries take nothing"
+    }
+   ]
+  },
+  {
+   "id": "eds-us-draw-phase",
+   "rom": "AY5E",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/us-draw-phase.ss",
+   "desc": "turn 2's Draw Phase before drawing, the cursor on the Deck (0x0201D7E0 is 2 here): LEFT, DOWN onto the hand's first card: its Card View",
+   "rules": [
+    "EDS-1"
+   ],
+   "input": [
+    [
+     60,
+     "LEFT"
+    ],
+    [
+     64,
+     "-"
+    ],
+    [
+     110,
+     "DOWN"
+    ],
+    [
+     114,
+     "-"
+    ]
+   ],
+   "shots": {
+    "hand": 300
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       66,
+       "0000FF"
+      ],
+      [
+       990,
+       114,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-1",
+     "shot": "hand",
+     "what": "the hand card's Card View"
+    }
+   ]
+  },
+  {
+   "id": "eds-us-quickplay-question",
+   "rom": "AY5E",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/us-quickplay-question.ss",
+   "desc": "issue #26's bug report: a direct attack's 1600 damage, the question whether to activate a Quick-play Magic or Trap card up; A (NO), then the cursor between the player's Two-Headed King Rex and Red Archery Girl in the Battle Phase, with the player's own timing (0x0201D7E0 stays 4 to the end of the turn): each one's Card View in turn",
+   "rules": [
+    "EDS-1"
+   ],
+   "input": [
+    [
+     100,
+     "A"
+    ],
+    [
+     109,
+     "-"
+    ],
+    [
+     162,
+     "RIGHT"
+    ],
+    [
+     173,
+     "-"
+    ],
+    [
+     205,
+     "LEFT"
+    ],
+    [
+     213,
+     "-"
+    ]
+   ],
+   "shots": {
+    "rex": 150,
+    "girl": 200,
+    "rex-again": 245
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       66,
+       "0000FF"
+      ],
+      [
+       990,
+       114,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-1",
+     "shot": "rex",
+     "what": "Two-Headed King Rex's Card View"
+    },
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       66,
+       "0000FF"
+      ],
+      [
+       990,
+       114,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-1",
+     "shot": "girl",
+     "what": "Red Archery Girl's Card View"
+    },
+    {
+     "rule": "EDS-1",
+     "type": "differs",
+     "a": {
+      "shot": "rex",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "girl",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "the next card"
+    },
+    {
+     "rule": "EDS-1",
+     "type": "same",
+     "a": {
+      "shot": "rex",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "rex-again",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "back to Two-Headed King Rex"
+    }
+   ]
+  },
+  {
+   "id": "eds-us-duel-lost",
+   "rom": "AY5E",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/us-hand.ss",
+   "desc": "a card shown, then a duel lost (loaded: the player's life points 0, Yugi's \"Whee! I win!\"; 0x0201D7E0 still 6): the logo, the card forgotten",
+   "rules": [
+    "EDS-6"
+   ],
+   "input": [
+    [
+     150,
+     "LOAD:yu-gi-oh-the-eternal-duelist-soul/us-duel-lost.ss"
+    ]
+   ],
+   "shots": {
+    "card": 90,
+    "lost": 400
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       66,
+       "0000FF"
+      ],
+      [
+       990,
+       114,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-1",
+     "shot": "card",
+     "what": "Snatch Steal's Card View"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "EDS-6",
+     "shot": "lost",
+     "what": "the logo"
+    }
+   ]
+  },
+  {
+   "id": "eds-us-designation",
+   "rom": "AY5E",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/us-hand.ss",
+   "desc": "a card shown, then a Designation list in the opponent's turn (loaded: a card effect's choice of a monster from the player's Deck, where A chooses it): the logo (EDS-11), no failed captures",
+   "rules": [
+    "EDS-11",
+    "EDS-5"
+   ],
+   "input": [
+    [
+     150,
+     "LOAD:yu-gi-oh-the-eternal-duelist-soul/us-designation.ss"
+    ]
+   ],
+   "shots": {
+    "card": 90,
+    "list": 450
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       66,
+       "0000FF"
+      ],
+      [
+       990,
+       114,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-1",
+     "shot": "card",
+     "what": "Snatch Steal's Card View"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "EDS-11",
+     "shot": "list",
+     "what": "the logo: the opponent's turn, no card to show"
+    },
+    {
+     "rule": "EDS-5",
+     "type": "no_log",
+     "match": "Card View didn't open",
+     "what": "no failed captures"
+    }
+   ]
+  },
+  {
    "id": "eds-us-opponent-turn",
    "rom": "AY5E",
    "state": "yu-gi-oh-the-eternal-duelist-soul/us-hand.ss",
-   "desc": "a card shown, then the opponent attacking in their turn (loaded): the card stays, nothing taken; then the opponent's Red Medicine asking whether to chain: still the card",
+   "desc": "a card shown, then the opponent attacking in their turn (loaded): the logo, the card forgotten; then the opponent's Red Medicine asking whether to chain: still the logo",
    "rules": [
-    "EDS-5"
+    "EDS-1",
+    "EDS-11"
    ],
    "input": [
     [
@@ -327,58 +828,150 @@
      "what": "the hand's card"
     },
     {
-     "rule": "EDS-5",
-     "type": "same",
-     "a": {
-      "shot": "start",
-      "rect": [
-       32,
-       64,
-       992,
-       704
-      ]
-     },
-     "b": {
-      "shot": "attack",
-      "rect": [
-       32,
-       64,
-       992,
-       704
-      ],
-      "screen": "second"
-     },
-     "what": "the card stays in the opponent's attack"
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "EDS-11",
+     "shot": "attack",
+     "what": "the logo in the opponent's attack"
     },
     {
-     "rule": "EDS-5",
-     "type": "same",
-     "a": {
-      "shot": "start",
-      "rect": [
-       32,
-       64,
-       992,
-       704
-      ]
-     },
-     "b": {
-      "shot": "chain",
-      "rect": [
-       32,
-       64,
-       992,
-       704
-      ],
-      "screen": "second"
-     },
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "EDS-11",
+     "shot": "chain",
      "what": "and at the chain prompt"
     },
     {
-     "rule": "EDS-5",
+     "rule": "EDS-11",
      "what": "nothing taken in the opponent's turn",
      "type": "no_log",
      "match": "frame ([2-9][0-9][0-9]): map updated"
+    }
+   ]
+  },
+  {
+   "id": "eds-us-end-turn",
+   "rom": "AY5E",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/us-hand.ss",
+   "desc": "a card shown, then (loaded, the owner's state from the web player, with its own second screen: Two-Headed King Rex's Card View) the Battle Phase's menu on Complete your turn: that Card View stays; A: the turn ended, the logo within about a second (0x02015EE8 6), through the opponent's turn",
+   "rules": [
+    "EDS-11",
+    "EDS-5"
+   ],
+   "input": [
+    [
+     150,
+     "LOAD:yu-gi-oh-the-eternal-duelist-soul/us-end-turn.ss"
+    ],
+    [
+     240,
+     "A"
+    ],
+    [
+     249,
+     "-"
+    ]
+   ],
+   "shots": {
+    "card": 90,
+    "menu": 220,
+    "ended": 330,
+    "opponent": 700
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       66,
+       "0000FF"
+      ],
+      [
+       990,
+       114,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-1",
+     "shot": "card",
+     "what": "Snatch Steal's Card View"
+    },
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       66,
+       "0000FF"
+      ],
+      [
+       990,
+       114,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-5",
+     "shot": "menu",
+     "what": "a Card View stays with the menu open"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "EDS-11",
+     "shot": "ended",
+     "what": "the logo as the turn ends"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "EDS-11",
+     "shot": "opponent",
+     "what": "the logo in the opponent's turn"
     }
    ]
   },
@@ -1161,6 +1754,212 @@
    ]
   },
   {
+   "id": "eds-jp-battle-phase",
+   "rom": "AY5J",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/jp-main-summoned.ss",
+   "desc": "Japan, turn 2's Main Phase with two monsters out: LEFT onto ものかげのきょうりょくしゃ: its Card View; B, A: the Battle Phase, the cursor on it (A there would choose it to attack: the hidden copy's tries find no commands): it stays; A: choosing the monster to attack, the cursor on the opponent's face-down monster: it still stays; no failed captures",
+   "rules": [
+    "EDS-10",
+    "EDS-5"
+   ],
+   "input": [
+    [
+     60,
+     "LEFT"
+    ],
+    [
+     64,
+     "-"
+    ],
+    [
+     240,
+     "B"
+    ],
+    [
+     244,
+     "-"
+    ],
+    [
+     290,
+     "A"
+    ],
+    [
+     294,
+     "-"
+    ],
+    [
+     640,
+     "A"
+    ],
+    [
+     644,
+     "-"
+    ]
+   ],
+   "shots": {
+    "main": 200,
+    "battle": 600,
+    "target": 900
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       34,
+       384,
+       "000000"
+      ],
+      [
+       42,
+       224,
+       "212121"
+      ],
+      [
+       464,
+       544,
+       "ADC6CE"
+      ],
+      [
+       472,
+       224,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-10",
+     "shot": "main",
+     "what": "ものかげのきょうりょくしゃ's Card View"
+    },
+    {
+     "rule": "EDS-10",
+     "type": "same",
+     "a": {
+      "shot": "main",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "battle",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "it stays with the cursor on the player's monster in the Battle Phase"
+    },
+    {
+     "rule": "EDS-5",
+     "type": "same",
+     "a": {
+      "shot": "main",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "target",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "it stays while choosing the target"
+    },
+    {
+     "rule": "EDS-10",
+     "type": "log",
+     "match": "capture: .*map button did nothing",
+     "what": "the tries found no commands"
+    },
+    {
+     "rule": "EDS-5",
+     "type": "no_log",
+     "match": "Card View didn't open",
+     "what": "no failed captures"
+    }
+   ]
+  },
+  {
+   "id": "eds-jp-duel-lost",
+   "rom": "AY5J",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/jp-hand.ss",
+   "desc": "Japan, a card shown, then a duel lost (loaded: made by setting the player's life points to 0 and changing phase; Yugi's conversation after YOU LOSE, the opponent's life points still 8000): the logo, the card forgotten",
+   "rules": [
+    "EDS-10",
+    "EDS-6"
+   ],
+   "input": [
+    [
+     150,
+     "LOAD:yu-gi-oh-the-eternal-duelist-soul/jp-duel-lost.ss"
+    ]
+   ],
+   "shots": {
+    "card": 90,
+    "lost": 400
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       34,
+       384,
+       "000000"
+      ],
+      [
+       42,
+       224,
+       "212121"
+      ],
+      [
+       464,
+       544,
+       "ADC6CE"
+      ],
+      [
+       472,
+       224,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-10",
+     "shot": "card",
+     "what": "ヘラクレス・ビートル's Card View"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "EDS-6",
+     "shot": "lost",
+     "what": "the logo"
+    }
+   ]
+  },
+  {
    "id": "eds-jp-pile",
    "rom": "AY5J",
    "state": "yu-gi-oh-the-eternal-duelist-soul/jp-hand.ss",
@@ -1245,9 +2044,10 @@
    "id": "eds-jp-opponent-turn",
    "rom": "AY5J",
    "state": "yu-gi-oh-the-eternal-duelist-soul/jp-hand.ss",
-   "desc": "Japan, a card shown, then the opponent's turn (loaded): the card stays, nothing taken",
+   "desc": "Japan, a card shown, then the opponent's turn (loaded): the logo, the card forgotten",
    "rules": [
-    "EDS-5"
+    "EDS-10",
+    "EDS-11"
    ],
    "input": [
     [
@@ -1290,34 +2090,103 @@
      "what": "the hand's card"
     },
     {
-     "rule": "EDS-5",
-     "type": "same",
-     "a": {
-      "shot": "start",
-      "rect": [
-       32,
-       64,
-       992,
-       704
-      ]
-     },
-     "b": {
-      "shot": "opp",
-      "rect": [
-       32,
-       64,
-       992,
-       704
-      ],
-      "screen": "second"
-     },
-     "what": "stays"
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "EDS-11",
+     "shot": "opp",
+     "what": "the logo"
     },
     {
-     "rule": "EDS-5",
+     "rule": "EDS-11",
      "what": "nothing taken",
      "type": "no_log",
      "match": "frame ([2-9][0-9][0-9]): map updated"
+    }
+   ]
+  },
+  {
+   "id": "eds-jp-end-turn",
+   "rom": "AY5J",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/jp-main-summoned.ss",
+   "desc": "Japan, the Main Phase: LEFT onto ものかげのきょうりょくしゃ: its Card View; START ends the turn: the logo once the opponent's turn begins",
+   "rules": [
+    "EDS-10",
+    "EDS-11"
+   ],
+   "input": [
+    [
+     60,
+     "LEFT"
+    ],
+    [
+     64,
+     "-"
+    ],
+    [
+     240,
+     "START"
+    ],
+    [
+     244,
+     "-"
+    ]
+   ],
+   "shots": {
+    "card": 200,
+    "opponent": 600
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       34,
+       384,
+       "000000"
+      ],
+      [
+       42,
+       224,
+       "212121"
+      ],
+      [
+       464,
+       544,
+       "ADC6CE"
+      ],
+      [
+       472,
+       224,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-10",
+     "shot": "card",
+     "what": "ものかげのきょうりょくしゃ's Card View"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "EDS-11",
+     "shot": "opponent",
+     "what": "the logo"
     }
    ]
   },

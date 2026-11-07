@@ -9,6 +9,9 @@
  * there that doesn't fill it (GEN-1): dark grey, so the GBA screen's
  * 240x160 shows against the black around it (ABGR8888) */
 #define SCREEN_GREY 0xFF303030u
+/* behind something live on the second screen (a HUD, a card's pieces, the
+ * podium): black, the idle logo's dark grey being for idle (GEN-1) */
+#define SCREEN_LIVE 0xFF000000u
 
 typedef struct {
 	uint32_t keys;
@@ -324,6 +327,12 @@ typedef struct MapProfile {
 	/* Back on the title / file menus (all must match): forget the map and
 	 * show the logo again until the next capture. */
 	MemProbe menu[2];
+	/* While every one of these matches, the second screen shows the logo
+	 * (as with no map yet), its map picture and HUD kept for when they
+	 * stop matching: Super Mario Advance 4's World-e castle hall, which
+	 * has no status bar (SM4-11) */
+	MemProbe logoIf[2];
+	MemProbe logoIfOr[2]; /* or while every one of these matches */
 
 	/* Values that change when the player enters a new room; a change
 	 * triggers an early capture. Only addr/size are used. */
@@ -452,6 +461,14 @@ typedef struct MapProfile {
 			 * goes black, as in the card's first moments); none: as drawn */
 			SpriteRule hide[6];
 			struct { uint32_t addr; uint16_t value; } poke;
+			/* The HUD on neither screen from the card's start (its sprite,
+			 * or `pre` matching a little before it) until its take, then
+			 * on the second screen over the new take while the game's card
+			 * is still up (Sonic Advance 3, SA3-3). `pre`: what shows the
+			 * card is coming before its sprite does (its darkening); it
+			 * counts for at most 30 frames without the sprite */
+			bool hideTillTake;
+			MemProbe pre[2];
 		} card;
 		/* moves while racing (with the `layout` probes; no layout probes:
 		 * always). A move with toGame and no how / vhow copies its box back
@@ -461,6 +478,11 @@ typedef struct MapProfile {
 		 * below it, at its own size (Super Mario Advance 2), instead of a
 		 * backdrop. */
 		bool logoBelow;
+		/* While every one of these matches, the HUD picture on the second
+		 * screen isn't drawn again: the last one stays (Super Mario
+		 * Advance 4: World-e's status bar sliding off and back as the
+		 * inventory opens and closes, SM4-8) */
+		MemProbe freeze[2];
 		/* The top rows of the last map picture (the world map's level
 		 * list: its title row with the level's name) kept above the HUD,
 		 * which moves down that far (Super Mario Advance 2, SMA-7) */
@@ -553,6 +575,10 @@ typedef struct MapProfile {
 		struct {
 			MemProbe when[2];
 			unsigned bgMask;
+			/* while any one `when` probe matches, instead of every one;
+			 * probes may be in VRAM too (Mario & Luigi: BG2's text goes
+			 * while either box's frame is on BG3, ML-5) */
+			bool any;
 		} memLayers;
 	} hud;
 
