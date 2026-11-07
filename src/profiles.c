@@ -4079,6 +4079,14 @@ static const MapProfile profiles[] = {
 		.room = { { 0x03003DE4, 0xFF, 0, 1 }, { 0x03003DE8, 0xFF, 0, 1 }, { 0x03003E4A, 0xFF, 0, 1 } },
 		/* the title, game select and file screens */
 		.menu = { { 0x03003DE2, 0x80, 0x80, 1 } },
+		/* World-e's castle hall (its doors lead to the e-Reader levels):
+		 * where Mario is reads 0x08-0x09 as in a Toad House, but BG0, the
+		 * status bar's layer, is off: no status bar, the logo; and from
+		 * the moment Mario goes into it, or into a level, from World-e's
+		 * map (its state 0x03004FC8 12, while the map closes in a circle),
+		 * SM4-11 */
+		.logoIf = { { 0x03003DE2, 0xFE, 0x08, 1 }, { 0x04000000, 0x0100, 0, 2 } },
+		.logoIfOr = { { 0x03004FC8, 0xFF, 0x0C, 1 }, { 0x0400000C, 0xFFFF, 0xDC00, 2 } },
 		/* In a level the status bar along the top (world, lives, time,
 		 * coins, score) and the P meter at the bottom left are BG0
 		 * (0x9400): the whole layer goes to the second screen, the status
@@ -4121,10 +4129,17 @@ static const MapProfile profiles[] = {
 			 * there, or a house's own menu: the last picture stays */
 			.keep = { { 0x03003DE2, 0xFE, 0x40, 1, true, 0x08 } },
 			/* World-e's map: its two-row status bar is BG2 (0xDC00; in
-			 * levels and houses BG2 is the background, never 0xDC00), at
-			 * rest (vertical scroll 0: the inventory panel, on the same
-			 * layer, slides in with it and stays on the game screen) */
-			.memLayers = { .when = { { 0x0400000C, 0xFFFF, 0xDC00, 2 }, { 0x0400001A, 0x01FF, 0, 2 } }, .bgMask = 0x4 },
+			 * levels and houses BG2 is the background, never 0xDC00),
+			 * while the inventory isn't open (0x03003759 0: the bar at
+			 * rest or sliding; the inventory panel, on the same layer,
+			 * stays on the game screen) */
+			.memLayers = { .when = { { 0x0400000C, 0xFFFF, 0xDC00, 2 }, { 0x03003759, 0xFF, 0, 1 } }, .bgMask = 0x4 },
+			/* World-e's status bar sliding off as the inventory opens
+			 * (0x03003759 still 0), and back as it closes: BG2 scrolled
+			 * up to 32 rows down (0x1E0-0x1FF). It's off the game screen
+			 * (memLayers) and held still on the second screen as it was
+			 * at rest, through the inventory too (keep), SM4-8 */
+			.freeze = { { 0x0400000C, 0xFFFF, 0xDC00, 2 }, { 0x0400001A, 0x01FF, 0x1E0, 2, true, 0x1FF, true } },
 		},
 	},
 	{
@@ -4981,6 +4996,7 @@ static void sma4_moved(MapProfile* p) {
 	p->hud.on[0].addr -= 4;
 	p->hud.alt.on[0].addr -= 4;
 	p->hud.keep[0].addr -= 4;
+	p->logoIf[0].addr -= 4;
 }
 static void sma4_eur(MapProfile* p) {
 	sma4_moved(p);

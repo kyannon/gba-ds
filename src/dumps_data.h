@@ -135,7 +135,7 @@ static const KnownDump knownDumps[] = {
 	{ "AX4J", 0xf3c87306, true, "Super Mario Advance 4 - Super Mario 3 + Mario Brothers (Japan)" },
 	{ "AX4P", 0x37141f32, true, "Super Mario Advance 4 - Super Mario Bros. 3 (Europe) (En,Fr,De,Es,It)" },
 	{ "AX4P", 0x8d84acfc, false, "Super Mario Advance 4 - Super Mario Bros. 3 (Europe) (En,Fr,De,Es,It) (Rev 1)" },
-	{ "AX4P", 0xd4f45b01, false, "Super Mario Advance 4 - Super Mario Bros. 3 (Europe) (En,Fr,De,Es,It) (Rev 1) (Virtual Console)" },
+	{ "AX4P", 0xd4f45b01, true, "Super Mario Advance 4 - Super Mario Bros. 3 (Europe) (En,Fr,De,Es,It) (Rev 1) (Virtual Console)" },
 	{ "AX4P", 0xe3847e32, false, "Super Mario Advance 4 - Super Mario Bros. 3 (Europe) (En,Fr,De,Es,It) (Rev 1) (Switch Online)" },
 	{ "AY5E", 0xdfd07a36, true, "Yu-Gi-Oh! - The Eternal Duelist Soul (USA)" },
 	{ "AY5J", 0xf3041e7e, true, "Yu-Gi-Oh! Duel Monsters 5 Expert 1 (Japan)" },
