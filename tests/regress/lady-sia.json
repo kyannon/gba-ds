@@ -1355,6 +1355,54 @@
    "golden": [
     "logo"
    ]
+  },
+  {
+   "id": "ls-us-tenth-gem",
+   "rom": "ALDE",
+   "state": "lady-sia/us-tenth-gem.ss",
+   "desc": "a player's bug report: Sia jumps to her tenth gem; the count's two digits (the 1 and the 0) are both left off the game screen",
+   "rules": [
+    "LS-6"
+   ],
+   "input": [
+    [
+     10,
+     "A"
+    ],
+    [
+     30,
+     "-"
+    ]
+   ],
+   "shots": {
+    "ten": 90
+   },
+   "checks": [
+    {
+     "rule": "LS-6",
+     "what": "neither digit of the gem count's 10 on the game screen",
+     "type": "not_pixels",
+     "shot": "ten",
+     "screen": "game",
+     "probes": [
+      [
+       554,
+       138,
+       "EFEFEF"
+      ],
+      [
+       554,
+       134,
+       "EFEFEF"
+      ],
+      [
+       598,
+       134,
+       "EFEFEF"
+      ]
+     ]
+    }
+   ]
   }
  ]
 }

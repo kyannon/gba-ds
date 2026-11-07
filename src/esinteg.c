@@ -338,19 +338,37 @@ static bool banana_on(char* msg, size_t msgSize) {
 		snprintf(msg, msgSize, "BananaOS's systems list has no Game Boy Advance entry.");
 		return false;
 	}
-	/* the original run line, kept as a comment, then GBA DS's */
+	/* the original run line, kept as a comment, then GBA DS's: its script
+	 * while it's there, else the original (GBA DS removed without
+	 * switching this off: the list's games still start, in its emulator).
+	 * banana-ui runs the line through a shell, %ROM% quoted. */
 	const char* v = strchr(a, '=');
 	v = v && v < b ? v + 1 : b;
 	while (*v == ' ' || *v == '\t') ++v;
 	size_t vlen = (size_t) (b - v);
 	while (vlen && (v[vlen - 1] == '\n' || v[vlen - 1] == '\r' || v[vlen - 1] == ' ')) --vlen;
-	size_t n = strlen(t) + vlen + strlen(dir) + 512;
+	/* (the fallback: the original with every launcher's "run-" written run''-:
+	 * the same command to the shell, but banana-ui gives a line that names
+	 * run-retroarch (run-ps1, run-bananafront, run-pico8) one panel, keeping
+	 * the other for its own: GBA DS needs both) */
+	char* fallback = malloc(vlen * 3 + 1);
+	size_t fl = 0;
+	for (size_t i = 0; i < vlen; ++i) {
+		if (!strncmp(v + i, "run-", 4) && (i == 0 || v[i - 1] == '/' || v[i - 1] == ' ')) {
+			memcpy(fallback + fl, "run''-", 6), fl += 6, i += 3;
+			continue;
+		}
+		fallback[fl++] = v[i];
+	}
+	fallback[fl] = 0;
+	size_t n = strlen(t) + vlen + fl + 2 * strlen(dir) + 512;
 	char* out = malloc(n);
-	snprintf(out, n, "%s%.*s" BANANA_MARK "%.*s\nrun = bash '%s/banana-play.sh' %%ROM%%\n%s",
+	snprintf(out, n, "%s%.*s" BANANA_MARK "%.*s\nrun = if [ -f '%s/banana-play.sh' ]; then bash '%s/banana-play.sh' %%ROM%%; else %s; fi\n%s",
 	         copy ? BANANA_HEADER " (game list > Settings: GBA DS in BananaOS's GBA list).\n"
 	                "# Switching that off puts the Game Boy Advance line back, and deletes this copy\n"
 	                "# if nothing else in it was changed.\n" : "",
-	         (int) (a - t), t, (int) vlen, v, dir, b);
+	         (int) (a - t), t, (int) vlen, v, dir, dir, fallback, b);
+	free(fallback);
 	bool ok = write_file(BANANA_USER, out, 0644);
 	free(out);
 	free(t);
@@ -414,13 +432,19 @@ bool banana_integration_set(bool on, char* msg, size_t msgSize) {
 }
 
 void banana_integration_refresh(void) {
-	/* GBA DS moved since it was switched on: point the line at its new folder */
+	/* GBA DS moved since it was switched on: point the line at its new
+	 * folder; or the line's from before v1.4.10, with no way back to the
+	 * list's emulator once GBA DS is gone: the line as it's written now */
 	if (!banana_present() || !banana_integration_on()) return;
 	char dir[600], want[700];
 	if (!app_dir(dir, sizeof(dir))) return;
-	snprintf(want, sizeof(want), "'%s/banana-play.sh'", dir);
+	snprintf(want, sizeof(want), "if [ -f '%s/banana-play.sh' ]", dir);
 	char* t = read_file(BANANA_USER);
-	bool current = t && strstr(t, want);
+	const char *ra, *rb;
+	/* (current: its folder, and no "run-retroarch" in it, which a test build's
+	 * line had: banana-ui gave GBA DS one panel then) */
+	bool current = t && gba_run_line(t, &ra, &rb) && strstr(t, want) && strstr(t, want) < rb &&
+	               !memmem(ra, (size_t) (rb - ra), "run-retroarch", 13);
 	free(t);
 	if (current) return;
 	char msg[160];

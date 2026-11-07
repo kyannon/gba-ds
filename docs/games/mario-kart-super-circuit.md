@@ -22,7 +22,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **MK-4. Results.** After the finish the lap times and the results table are on the second screen.
 
-**MK-5. Podium.** After a cup, CONGRATULATIONS!, the cup name, the portrait, place, rank and cup table are on the second screen on dark grey (until v1.3.2's later test builds over the game's logo, as large as fitted and dimmed: at its own size, GEN-1, the place and cup table couldn't be read over it); the podium, crowd and trophy stay on the game screen.
+**MK-5. Podium.** After a cup, CONGRATULATIONS!, the cup name, the portrait, place, rank and cup table are on the second screen on black (GEN-1; until v1.4.11's later test builds on dark grey, and until v1.3.2's later test builds over the game's logo, as large as fitted and dimmed: at its own size, GEN-1, the place and cup table couldn't be read over it); the podium, crowd and trophy stay on the game screen.
 
 **MK-6. Pause and menus.** The pause menu stays on the game screen with the last HUD below it; in the menus the second screen shows the logo.
 

@@ -692,7 +692,7 @@ static SettingsGeom settings_geom(int scr) {
 		g.textY[i] = g.row[i].y + rowH + px * 8;
 #ifndef __ANDROID__
 		/* Linux, three rows: room for each one's text (lines of about 8 units) */
-		if (nRows > 2) gap = px * (rowKind[i] == ROW_BANANA || rowKind[i] == ROW_ES ? 38 : rowKind[i] == ROW_MAP ? 30 : 22);
+		if (nRows > 2) gap = px * (rowKind[i] == ROW_BANANA ? 46 : rowKind[i] == ROW_ES ? 38 : rowKind[i] == ROW_MAP ? 27 : 22);
 #endif
 		y += rowH + gap;
 	}
@@ -833,6 +833,8 @@ static bool settings_poll(Config* cfg) {
 	return true;
 }
 #else
+static int settingsMsgRow; /* the row settingsMsg is about: shown in place of its text */
+
 static void draw_settings(const Config* cfg, int scr, int sel) {
 	SettingsGeom g = settings_geom(scr);
 	float px = g.px;
@@ -849,8 +851,7 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 	for (int i = 0; i < nRows; ++i) {
 		const char* text = rowKind[i] == ROW_BANANA
 		                       ? "Games picked in BananaOS's own Game Boy Advance list start in GBA DS when it has "
-		                         "second-screen support for them; every other game plays in RetroArch as before. "
-		                         "BananaOS reads its list when it starts, so restart it after switching this."
+		                         "second-screen support for them. Restart BananaOS after switching this."
 		                   : rowKind[i] == ROW_ES
 		                       ? "Adds GBA DS to the emulators for Game Boy Advance games in EmulationStation. Pick it for one game "
 		                         "(its Advanced Game Options > Emulator) or for all of them (the system's advanced settings). "
@@ -859,13 +860,23 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 		                       ? "Sets which of this device's buttons does what: GBA DS asks for each one in turn. "
 		                         "Tap to skip any the device doesn't have."
 		                       : "This is v" GBADS_VERSION ". Look for a new version, and download and install it.";
-		y = draw_wrapped(scr, tx, g.textY[i], tw, px, text, C_DIM);
+		/* a message from switching a row (settings_activate): in place of
+		 * its text, where there's room for it */
+		if (settingsMsg[0] && settingsMsgRow == i) text = settingsMsg;
+		y = draw_wrapped(scr, tx, g.textY[i], tw, px, text, text == settingsMsg ? C_GOLD : C_DIM);
+		/* the trade-off, set apart and in bold so it isn't missed */
+		if (rowKind[i] == ROW_BANANA)
+			y = ui_font_wrap(scr, TF_BOLD, tx, y + px * 3, tw, px * 4,
+			                 "NOTE: Unsupported games will play in RetroArch, but without BananaOS's own "
+			                 "second screen (its game panel and companions).",
+			                 C_TEXT);
 	}
-	if (settingsMsg[0]) draw_wrapped(scr, tx, y + px * 6, tw, px, settingsMsg, C_GOLD);
+	(void) y;
 }
 
 static void settings_activate(Config* cfg, int row) {
 	settingsMsg[0] = 0;
+	settingsMsgRow = row;
 	if (rowKind[row] == ROW_UPDATES) updatesOpen = true, updatesNotice = false, updatesSel = 0;
 	else if (rowKind[row] == ROW_BANANA) banana_integration_set(!banana_integration_on(), settingsMsg, sizeof(settingsMsg));
 	else if (rowKind[row] == ROW_ES) es_integration_set(cfg, !es_integration_on(cfg), settingsMsg, sizeof(settingsMsg));

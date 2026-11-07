@@ -116,7 +116,7 @@ def dump_error(case, rom):
         return None
     with zipfile.ZipFile(rom) as z:
         crcs = ["%08x" % i.CRC for i in z.infolist() if i.filename.lower().endswith(".gba")]
-    if crcs and crcs[0] in tested.get(case["rom"][:4], set()):  # (a mod's: CODE+mod)
+    if crcs and crcs[0] in tested.get(case["rom"][:4], set()):  # (CODE+name: a mod, or another dump of it)
         return None
     return "fixture roms/%s.zip (CRC32 %s) isn't the tested dump in %s's Dumps row (a patched ROM? tools/make_dumps.py)" % (
         case["rom"], crcs[0] if crcs else "?", rules)

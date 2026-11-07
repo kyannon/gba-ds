@@ -884,6 +884,10 @@ static bool hudWorld; /* FFTA's world map (hud.world) */
 static bool hudScene; /* the profile's other scene (Mario Kart's podium): logo backdrop, its own sprites */
 static bool hudCard; /* hud.card: the title card's sprites are what's split off */
 static int cardScore = -1; /* hud.card: how far off centre the best take so far is (-1: none) */
+/* hud.card.hideTillTake: this card's take is made (the HUD over it from
+ * then), and how long its start has been seen / not seen */
+static bool cardTaken;
+static int cardPreFor, cardAway = 1000;
 static uint32_t cardBest[GBA_W * GBA_H];
 static int sideScore = -1; /* hud.card.side: how far off centre its best take is (-1: none) */
 static uint32_t sideBest[GBA_W * GBA_H];
@@ -891,6 +895,12 @@ static bool hudAlt; /* the HUD on its other layer (hud.alt: SMA2's boss rooms) *
 static uint32_t hudLogoBack[HUD_CW * HUD_CH];
 static bool hudLogoDone;
 static bool hudShown; /* the second screen shows the HUD picture (hudTex) */
+/* the profile's logoIf probes match: the logo, the map picture and HUD kept */
+static bool logoForced;
+/* logoIf just stopped matching: the logo still, until the second screen has
+ * a new picture to show (a HUD picture drawn, a map picture taken), at
+ * most a second; not the last picture from before for a frame (SM4-11) */
+static int logoHolding;
 /* profile hud.overMap: this frame's HUD is drawn into the map picture;
  * the map picture needs uploading again (the HUD changed) */
 static bool overOn, overDirty;
@@ -981,19 +991,19 @@ static bool debug;
 
 /* ---------------------------------------------------------------- menu */
 
-enum MenuItem { M_RESUME, M_CHEATS, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND, M_AUTOSAVE, M_AUTOLOAD, M_BUG, M_SLOT, M_SHAPES };
+enum MenuItem { M_RESUME, M_CHEATS, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND, M_AUTOSAVE, M_AUTOLOAD, M_BUG, M_SLOT, M_SHAPES, M_FF, M_COLOR };
 static const char* menuLabels[] = {
 	/* title case: drawn in Futura from the built-in images (tools/make_brand.py) */
 	[M_RESUME] = "Resume", [M_SWAP] = "Swap Screens", [M_SAVE] = "Save State", [M_SCALE] = "", [M_LCD] = "", [M_FPS] = "", [M_FRAMEBUF] = "", [M_OVERLAY] = "", [M_LOGO] = "", [M_MATCH] = "", [M_REWIND] = "", [M_RESTART] = "Restart Game",
 	[M_LOAD] = "Load State", [M_CHEATS] = "Cheats", [M_ACH] = "Achievements", [M_SHOT] = "Take Screenshot", [M_LIBRARY] = "Close Game", [M_EXIT] = "Close GBA DS",
-	[M_AUTOSAVE] = "", [M_AUTOLOAD] = "", [M_BUG] = "Submit a Bug Report", [M_SLOT] = "",
+	[M_AUTOSAVE] = "", [M_AUTOLOAD] = "", [M_BUG] = "Submit a Bug Report", [M_SLOT] = "", [M_FF] = "", [M_COLOR] = "",
 };
 static int menuItems[12], nMenuItems;
 /* Some buttons are half as wide, two to a row (Save State | Load State):
  * each item's row and side (-1: the whole row, 0 left, 1 right). */
 static int itemRow[12], itemSide[12], nMenuRows;
 static bool half_item(int item) {
-	return item == M_SAVE || item == M_LOAD || item == M_AUTOSAVE || item == M_AUTOLOAD;
+	return item == M_SAVE || item == M_LOAD || item == M_AUTOSAVE || item == M_AUTOLOAD || item == M_REWIND || item == M_FF;
 }
 /* rows, sides and the row count for a page's items (two half items in a row share it) */
 static int layout_rows(const int* items, int n, int* row, int* side) {
@@ -1022,7 +1032,14 @@ static void suppress_held(void) {
 	for (int b = 0; b < B_COUNT; ++b) suppress[b] = btnNow[b];
 }
 static const char* pageNames[N_PAGES] = { "Game", "Display", "Extras" };
-static bool restartArmed;
+/* Restart Game, Close Game and Close GBA DS ask first: chosen once, the
+ * button says "Are You Sure?" (and the note what happens); chosen again,
+ * it's done. Another page, another button or closing the menu calls it off. */
+static int armedItem = -1;
+static void rebuild_textures(void);
+static bool confirm_item(int item) {
+	return item == M_RESTART || item == M_LIBRARY || item == M_EXIT;
+}
 static bool menuOpen;
 static int menuSel;
 static int menuPressed = -1;      /* item under a finger that went down in the menu */
@@ -1043,18 +1060,19 @@ static SDL_Rect ach_area(int scr);
 /* Every label a pause-menu button can show, for sizing the text so the
  * widest fits (item_label gives the current one). */
 static const char* const allLabels[] = {
-	"Resume", "Restart Game", "Tap Again to Restart", "Save State", "Load State", "Cheats", "Achievements",
+	"Resume", "Restart Game", "Are You Sure?", "Save State", "Load State", "Cheats", "Achievements",
 	"Take Screenshot", "Close Game", "Close GBA DS", "Swap Screens", "Scale: Pixel Perfect", "Scale: Full Width",
 	"Scale: Zoom", "Scale: Stretch", "LCD Grid: On", "LCD Grid: Off", "Overlays: None", "Overlays: Primary",
 	"Overlays: Secondary", "Overlays: Both", "Submit a Bug Report",
 	"Map Animations: On", "Map Animations: Off", "Map Refresh: Every 3 s", "Map Refresh: Every 1.5 s",
 	"Map Refresh: Every 1 s", "Map Refresh: Every 0.5 s", "Map Refresh: Custom", "Frame Buffer: On",
-	"Frame Buffer: Off", "Match Display Rate: On", "Match Display Rate: Off", "Rewind: On (Hold L2)", "Rewind: Off",
+	"Frame Buffer: Off", "Match Display Rate: On", "Match Display Rate: Off",
 	"\u2039   Slot 0: Sep 30, 12:59 PM   \u203A", /* (the slot row, with its arrows) */
 };
 /* the labels of the half-width buttons, which fit in half the width */
 static const char* const halfLabels[] = {
 	"Save State", "Load State", "Save State 0", "Load State 0", "Save on Quit: On", "Save on Quit: Off", "Auto-Load: On", "Auto-Load: Off",
+	"Rewind: On", "Rewind: Off", "Fast Forward: On", "Fast Forward: Off",
 };
 
 /* The pause menu's layout: buttons across the whole screen (a small margin
@@ -1864,16 +1882,25 @@ static void draw_hint(void) {
 /* While rewinding (L2): "Rewinding..." after a rewind sign (two arrows
  * pointing left) in a box like the hint's, larger, in the middle of the
  * second screen (with one screen, of the game screen); "Can't rewind
- * further" at the rewind buffer's start. It fades as rewinding stops. */
+ * further" at the rewind buffer's start. While fast-forwarding (R2) the
+ * same box says "Fast forwarding..." after two arrows pointing right. It
+ * fades as rewinding or fast-forwarding stops. */
 static int game_screen(void);
 static int rewindBox;       /* 0 none, 1 rewinding, 2 at the buffer's start (this frame) */
+static bool ffBox;          /* fast-forwarding (this frame) */
 static float rewindShown;   /* 0 .. 1 */
+static bool rewindRight;    /* the sign shown points right (fast-forward) */
 static const char* rewindText = "Rewinding...";
 
 static void draw_rewind(void) {
 	if (rewindBox) {
 		rewindShown = 1;
+		rewindRight = false;
 		rewindText = rewindBox == 2 ? "Can't rewind further" : "Rewinding...";
+	} else if (ffBox) {
+		rewindShown = 1;
+		rewindRight = true;
+		rewindText = "Fast forwarding...";
 	} else {
 		rewindShown = SDL_max(0.0f, rewindShown - 0.15f);
 	}
@@ -1889,13 +1916,14 @@ static void draw_rewind(void) {
 	bg.a = (Uint8) (bg.a * rewindShown), edge.a = (Uint8) (edge.a * rewindShown), fg.a = (Uint8) (fg.a * rewindShown);
 	ui_fill_round(s, (SDL_Rect) { b.x - 1, b.y - 1, b.w + 2, b.h + 2 }, edge, px * 4 + 1);
 	ui_fill_round(s, b, bg, px * 4);
-	/* the rewind sign: two triangles pointing left, side by side */
+	/* the sign: two triangles side by side, pointing left (rewind) or right (fast-forward) */
 	int ix = b.x + padX, cy = b.y + b.h / 2, half = ih / 2, tri = iw / 2;
 	for (int t = 0; t < 2; ++t) {
 		int x0 = ix + t * tri;
 		for (int i = 0; i < tri; ++i) {
 			int hh = half * (i + 1) / tri;
-			ui_fill(s, (SDL_Rect) { x0 + i, cy - hh, 1, hh * 2 }, fg);
+			int x = rewindRight ? x0 + tri - 1 - i : x0 + i;
+			ui_fill(s, (SDL_Rect) { x, cy - hh, 1, hh * 2 }, fg);
 		}
 	}
 	ui_font_text(s, TF_BOLD, ix + iw + gap + tw / 2, cy, cap, rewindText, fg, 0);
@@ -1960,7 +1988,7 @@ static void set_page(int page) {
 	menuSel = 0;
 	menuPressed = -1;
 	menuNote[0] = 0;
-	restartArmed = false;
+	armedItem = -1;
 }
 
 /* D-pad up / down: the row above or below (round at the ends), the same side of a split row */
@@ -2040,6 +2068,8 @@ static void draw_menu(void) {
 		}
 		return;
 	}
+	/* (moved off the button that asked: called off, by the D-pad or a finger) */
+	if (armedItem >= 0 && menuItems[menuSel] != armedItem) armedItem = -1, menuNote[0] = 0;
 	MenuGeom mg = menu_geom(scr);
 	cap = mg.cap;
 	rad = mg.rad;
@@ -2071,11 +2101,13 @@ static void draw_menu(void) {
 		const char* label = menuLabels[menuItems[i]];
 		if (menuItems[i] == M_SCALE) label = scale_label(cfg->scale);
 		if (menuItems[i] == M_LCD) label = cfg->lcdGrid ? "LCD Grid: On" : "LCD Grid: Off";
+		if (menuItems[i] == M_COLOR) label = cfg->colorCorrection ? "Color Correction: On" : "Color Correction: Off";
 		if (menuItems[i] == M_AUTOSAVE) label = cfg->autoSave ? "Save on Quit: On" : "Save on Quit: Off";
 		if (menuItems[i] == M_AUTOLOAD) label = cfg->autoLoad ? "Auto-Load: On" : "Auto-Load: Off";
 		if (menuItems[i] == M_FPS) label = cfg->showFps ? "Show FPS: On" : "Show FPS: Off";
 		if (menuItems[i] == M_FRAMEBUF) label = tallProf ? "Frame Buffer: Always on here" : cfg->frameBuffer ? "Frame Buffer: On" : "Frame Buffer: Off";
-		if (menuItems[i] == M_REWIND) label = cfg->rewind ? "Rewind: On (Hold L2)" : "Rewind: Off";
+		if (menuItems[i] == M_REWIND) label = cfg->rewind ? "Rewind: On" : "Rewind: Off";
+		if (menuItems[i] == M_FF) label = cfg->fastForward ? "Fast Forward: On" : "Fast Forward: Off";
 		if (menuItems[i] == M_MATCH) label = cfg->matchDisplay ? "Match Display Rate: On" : "Match Display Rate: Off";
 		if (menuItems[i] == M_SHAPES) label = !en || !strcmp(cfg->screenMatch, "keep") ? "Keep device aspect ratios" :
 		                                      !strcmp(cfg->screenMatch, "aspect") ? "Match screen aspect ratios" : "Match screen sizes and aspect ratios";
@@ -2084,7 +2116,7 @@ static void draw_menu(void) {
 			static const char* const ovl[4] = { "Overlays: None", "Overlays: Primary", "Overlays: Secondary", "Overlays: Both" };
 			label = ovl[cfg->overlays & OVL_BOTH];
 		}
-		if (menuItems[i] == M_RESTART && restartArmed) label = "Tap Again to Restart";
+		if (menuItems[i] == armedItem) label = "Are You Sure?";
 		/* (the slot they use: "Save State 3", "Load State 3") */
 		static char slotBtn[2][24];
 		if (menuItems[i] == M_SAVE || menuItems[i] == M_LOAD) {
@@ -2305,20 +2337,21 @@ static void hud_make_backdrop(void) {
 	}
 }
 
-/* The scene's backdrop (Mario Kart's podium): dark grey. (Until v1.3.2's
+/* The scene's backdrop (Mario Kart's podium): black (GEN-1; until v1.4.11
+ * dark grey). (Until v1.3.2's
  * later test builds the logo was behind it, as large as fitted and
  * dimmed; at its own size, as GEN-1 has it, it's right behind the place
  * and the cup table, and they can't be read over it.) */
 static void hud_make_logo_back(void) {
 	hudLogoDone = true;
-	for (int i = 0; i < HUD_CW * HUD_CH; ++i) hudLogoBack[i] = SCREEN_GREY;
+	for (int i = 0; i < HUD_CW * HUD_CH; ++i) hudLogoBack[i] = SCREEN_LIVE;
 }
 
 /* Profile hud.logoBelow: the logo as on any other second screen (GEN-1),
  * centred, kept below the HUD's rows. */
 static void hud_make_logo_below(void) {
 	hudLogoBelowDone = true;
-	for (int i = 0; i < HUD_CW * HUD_CH; ++i) hudLogoBelow[i] = SCREEN_GREY;
+	for (int i = 0; i < HUD_CW * HUD_CH; ++i) hudLogoBelow[i] = SCREEN_LIVE; /* (under the HUD: GEN-1) */
 	int top = 0; /* below the HUD: its lowest row on the canvas */
 	for (int m = 0; m < HUD_MOVES; ++m) {
 		const HudMove* mv = &hudProf->hud.moves[m];
@@ -2443,7 +2476,7 @@ static const uint32_t* card_logo(void) {
 	static uint32_t cardLogo[HUD_CW * HUD_CH];
 	static bool made;
 	if (!made) {
-		for (int i = 0; i < HUD_CW * HUD_CH; ++i) cardLogo[i] = SCREEN_GREY;
+		for (int i = 0; i < HUD_CW * HUD_CH; ++i) cardLogo[i] = SCREEN_LIVE; /* (under the HUD: GEN-1) */
 		made = logo_draw(cardLogo, HUD_CW, HUD_CH, HUD_CW / GBA_W, hudProf->hud.card.whole ? 0 : 48 * 2, 255);
 	}
 	return cardLogo;
@@ -2891,7 +2924,7 @@ static void update_hud(void) {
 			 * lines that change) */
 			if (!mirrorOn && debug) fprintf(stderr, "frame %llu: the screen mirrored\n", (unsigned long long) frameCount);
 			mirrorOn = hudShown = true;
-			if (mirMain && h->alt.on[0].addr && memprobes_match(h->alt.on, 4, &emu)) {
+			if (mirMain && h->alt.on[0].addr && memprobes_match(h->alt.on, (int) (sizeof h->alt.on / sizeof h->alt.on[0]), &emu)) {
 				/* hud.alt's probes too (a menu over the paused world): its
 				 * layers alone, split as usual below; until the split's
 				 * on, the background */
@@ -2927,7 +2960,7 @@ static void update_hud(void) {
 		}
 	}
 	bool main = memprobes_match(h->on, 4, &emu);
-	bool altOn = !main && h->alt.on[0].addr && memprobes_match(h->alt.on, 4, &emu);
+	bool altOn = !main && h->alt.on[0].addr && memprobes_match(h->alt.on, (int) (sizeof h->alt.on / sizeof h->alt.on[0]), &emu);
 	bool race = main || altOn || (hudOn && h->stay[0].addr && memprobes_match(h->stay, 2, &emu));
 	/* the HUD's other layer (alt): kept while it stays on through a fade */
 	bool alt = main ? false : altOn ? true : hudAlt;
@@ -2990,6 +3023,7 @@ static void update_hud(void) {
 				else memcpy(cardBest, emu.fb, sizeof(cardBest));
 				cardScore = 0;
 				card_backdrop();
+				cardTaken = h->card.hideTillTake; /* (the HUD over it from the next frame) */
 			}
 		} else {
 			/* (the side part first, so the first backdrop has it if it's
@@ -3023,16 +3057,36 @@ static void update_hud(void) {
 		if (h->emptyIsOff && emptyFor >= 20) {
 			if (hudShown && debug) fprintf(stderr, "frame %llu: HUD empty: the logo\n", (unsigned long long) frameCount);
 			hudShown = false;
+		} else if (h->freeze[0].addr && memprobes_match(h->freeze, 2, &emu)) {
+			/* hud.freeze: the picture as it was (World-e's status bar
+			 * sliding away as the inventory opens, and back, SM4-8) */
 		} else if (!(empty && !hudShown)) {
 			if (emu_hud_grabbed()) hud_make_backdrop(); /* (that frame drew no HUD: the last one is reused) */
 			hud_compose();
 			for (int i = 0; i < nViews; ++i) ui_update_texture(hudTex[i], hudCanvas, HUD_CW * 4);
+			if (logoForced && !(hudProf->logoIf[0].addr && memprobes_match(hudProf->logoIf, 2, &emu)) &&
+			    !(hudProf->logoIfOr[0].addr && memprobes_match(hudProf->logoIfOr, 2, &emu))) {
+				/* (a new HUD picture: the logo's hold is over) */
+				logoForced = false, logoHolding = 0;
+				if (debug) fprintf(stderr, "frame %llu: logo only off: a new HUD picture\n", (unsigned long long) frameCount);
+			}
 			if (!hudShown && debug) fprintf(stderr, "frame %llu: HUD on the second screen\n", (unsigned long long) frameCount);
 			hudShown = true;
 		}
 	}
 	bool scene = race && h->scene.when[0].addr && memprobes_match(h->scene.when, 2, &emu);
 	bool card = race && h->card.tile && oam_has_tile_pal(h->card.tile, h->card.tileMax, h->card.pal, h->card.prio1);
+	if (h->card.hideTillTake) {
+		/* (Sonic Advance 3, SA3-3: the card's start, its sprite or a
+		 * little before it, until the take; a start seen again within 10
+		 * frames is the same card) */
+		bool pre = race && h->card.pre[0].addr && memprobes_match(h->card.pre, 2, &emu);
+		cardPreFor = pre && !card ? cardPreFor + 1 : 0;
+		bool starting = card || (pre && cardPreFor <= 30);
+		if (starting && cardAway >= 10) cardTaken = false;
+		cardAway = starting ? 0 : cardAway + 1;
+		card = starting && !cardTaken;
+	}
 	/* hud.card.drop: no card here (Sonic Advance 3's hubs): the take is
 	 * forgotten, the logo behind the HUD */
 	if (race && h->card.drop[0].addr && (hudBackValid || cardScore >= 0) && memprobes_match(h->card.drop, 2, &emu)) {
@@ -3044,13 +3098,24 @@ static void update_hud(void) {
 		/* (hud.card.drop, Sonic Advance 3: the last take stays till the
 		 * new one, without the HUD, which stays on the game's card) */
 		if (card) cardScore = -1, sideScore = -1, hudBackValid = hudBackValid && h->card.drop[0].addr;
+		if (card && h->card.hideTillTake) {
+			/* (this frame was drawn before the split was on: drawn again
+			 * without the HUD, so it isn't on the game screen for a frame,
+			 * SA3-3) */
+			static uint32_t noHud[GBA_W * GBA_H];
+			snapshot_hiding_sprites(hudObjs, rule_count(hudObjs, 12), NULL, 0, noHud);
+			memcpy(emu.fb, noHud, sizeof(noHud));
+		}
 		else if (cardScore >= 0 && !hudBackValid) card_backdrop();
 		if (debug) fprintf(stderr, "frame %llu: title card %s\n", (unsigned long long) frameCount, card ? "up" : "gone");
 	}
 	if (race != hudOn || scene != hudScene || world != hudWorld || alt != hudAlt || card != hudCard) {
-		const SpriteRule* objs = card ? h->card.objs : scene ? h->scene.objs : world ? hudWorldObjs : hudObjs;
+		/* (hud.card.hideTillTake: the HUD split off as usual, but not shown
+		 * till the take) */
+		bool cardObjs = card && !h->card.hideTillTake;
+		const SpriteRule* objs = cardObjs ? h->card.objs : scene ? h->scene.objs : world ? hudWorldObjs : hudObjs;
 		unsigned mask = alt ? h->alt.bgMask : h->bgMask;
-		int nObjs = rule_count(objs, card || scene || world ? 4 : 12);
+		int nObjs = rule_count(objs, cardObjs || scene || world ? 4 : 12);
 		/* (nothing split off: only the logo behind the map picture, as
 		 * for Fire Emblem and Final Fantasy Tactics Advance; no second
 		 * renderer) */
@@ -3058,7 +3123,7 @@ static void update_hud(void) {
 		bool some = mask || nObjs || h->band;
 		if (some || splitting) emu_hud_split(&emu, race && some, mask, objs, nObjs, hudPx);
 		splitting = race && some;
-		if (race && some) emu_hud_copy(&emu, card); /* (the card stays on the game screen too) */
+		if (race && some) emu_hud_copy(&emu, cardObjs); /* (the card stays on the game screen too) */
 		hudCard = card;
 		if (debug && race && alt != hudAlt) fprintf(stderr, "frame %llu: HUD on its other layer%s\n", (unsigned long long) frameCount, alt ? "" : ": off");
 		hudAlt = alt;
@@ -3070,7 +3135,7 @@ static void update_hud(void) {
 			for (; n < 2 && h->memLayers.when[n].addr; ++n) {
 				a[n] = h->memLayers.when[n].addr, m[n] = h->memLayers.when[n].mask, v[n] = h->memLayers.when[n].value, sz[n] = h->memLayers.when[n].size;
 			}
-			emu_hud_mem_layers(a, m, v, sz, race ? n : 0, h->memLayers.bgMask);
+			emu_hud_mem_layers(a, m, v, sz, race ? n : 0, h->memLayers.any, h->memLayers.bgMask);
 		}
 		hudKeep = 0;
 		if (debug && race && scene != hudScene) fprintf(stderr, "frame %llu: HUD scene %s\n", (unsigned long long) frameCount, scene ? "on" : "off");
@@ -3675,6 +3740,7 @@ static void screen_restore_apply(void) {
 	 * card and the level name go (back from the state, if it has them) */
 	if (hudProf && hudProf->hud.card.tile) hudBackValid = false, cardScore = -1, sideScore = -1;
 	mapTitleN = 0, hudLogoBelowDone = false;
+	logoForced = false, logoHolding = 0;
 	if (!ours) {
 		if (b && debug) fprintf(stderr, "load state: its second screen is for another game or version: not used\n");
 		return;
@@ -4028,12 +4094,12 @@ static void bug_info(Text* t, const char* date, uint64_t back) {
 	text_add(t, "The rewound state is %llu frames before the other\n", (unsigned long long) back);
 
 	text_add(t, "\n== Settings\n");
-	text_add(t, "layout %s, swap %d, scale %s, map_scale %s, lcd_grid %d, smooth %d, overlays %d, border_color %s\n", cfg->layout,
-	         cfg->swap, cfg->scale, cfg->mapScale, cfg->lcdGrid, cfg->smooth, cfg->overlays, cfg->borderColor);
+	text_add(t, "layout %s, swap %d, scale %s, map_scale %s, lcd_grid %d, color_correction %d, smooth %d, overlays %d, border_color %s\n", cfg->layout,
+	         cfg->swap, cfg->scale, cfg->mapScale, cfg->lcdGrid, cfg->colorCorrection, cfg->smooth, cfg->overlays, cfg->borderColor);
 	text_add(t, "map %d, map_animations %d, map_interval %d, show_logo %d, pinball_live %d\n", cfg->map, cfg->mapAnim,
 	         cfg->mapInterval, cfg->showLogo, cfg->tallLive);
-	text_add(t, "frame_buffer %d, match_display %d, vsync %d, audio_latency %d, rewind %d (%d s), ff_speed %d\n", cfg->frameBuffer,
-	         cfg->matchDisplay, cfg->vsync, cfg->audioLatency, cfg->rewind, cfg->rewindSeconds, cfg->ffSpeed);
+	text_add(t, "frame_buffer %d, match_display %d, vsync %d, audio_latency %d, rewind %d (%d s), fast_forward %d, ff_speed %d\n", cfg->frameBuffer,
+	         cfg->matchDisplay, cfg->vsync, cfg->audioLatency, cfg->rewind, cfg->rewindSeconds, cfg->fastForward, cfg->ffSpeed);
 	text_add(t, "hotkey %s, menu_combo %s, home_button %d, ab_swap %d, touch_map %s, touch_screen %s\n", cfg->hotkey, cfg->menuCombo,
 	         cfg->homeButton, cfg->abSwap, cfg->touchMap, cfg->touchScreen);
 	text_add(t, "save_on_quit %d, auto_load %d, quick_bar_pinned %d\n", cfg->autoSave, cfg->autoLoad, cfg->barPinned);
@@ -4757,10 +4823,10 @@ static void save_prefs(void) {
 	FILE* f = fopen(prefs, "w");
 	if (f) {
 		fprintf(f, "# written by gba-ds's pause menu; overrides gba-ds.cfg\n");
-		fprintf(f, "swap = %d\nscale = %s\nmap_scale = %s\nlcd_grid = %d\noverlays = %s\nframe_buffer = %d\nmatch_display = %d\nrewind = %d\nsave_on_quit = %d\nauto_load = %d\nquick_bar_pinned = %d\n",
-		        cfg->swap ? 1 : 0, cfg->scale, cfg->mapScale, cfg->lcdGrid ? 1 : 0,
+		fprintf(f, "swap = %d\nscale = %s\nmap_scale = %s\nlcd_grid = %d\ncolor_correction = %d\noverlays = %s\nframe_buffer = %d\nmatch_display = %d\nrewind = %d\nfast_forward = %d\nsave_on_quit = %d\nauto_load = %d\nquick_bar_pinned = %d\n",
+		        cfg->swap ? 1 : 0, cfg->scale, cfg->mapScale, cfg->lcdGrid ? 1 : 0, cfg->colorCorrection ? 1 : 0,
 		        (const char* const[]) { "none", "primary", "secondary", "both" }[cfg->overlays & OVL_BOTH],
-		        cfg->frameBuffer ? 1 : 0, cfg->matchDisplay ? 1 : 0, cfg->rewind ? 1 : 0,
+		        cfg->frameBuffer ? 1 : 0, cfg->matchDisplay ? 1 : 0, cfg->rewind ? 1 : 0, cfg->fastForward ? 1 : 0,
 		        cfg->autoSave ? 1 : 0, cfg->autoLoad ? 1 : 0, cfg->barPinned ? 1 : 0);
 		fprintf(f, "screen_match = %s\n", cfg->screenMatch);
 		fclose(f);
@@ -4981,13 +5047,13 @@ static void draw_game(void) {
 		if (((combatOn && !(overAlone && mapShownIdx >= 0)) || logoBack) && (combatTex[0] || combatTex[1])) {
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
 			ui_image_pixels(s, combatTex, mapW, mapH, cfg->mapScale, cfg->lcdGrid ? 1 : 0);
-		} else if (hudShown) {
+		} else if (hudShown && !logoForced) {
 			/* the HUD picture is at 2x: a grid cell per GBA pixel */
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
 			ui_image_pixels(s, hudTex, HUD_CW, HUD_CH, cfg->mapScale, cfg->lcdGrid ? 2 : 0);
-		} else if (mapShownIdx >= 0 && draw_framed_map(s)) {
+		} else if (mapShownIdx >= 0 && !logoForced && draw_framed_map(s)) {
 			/* map + generated surround */
-		} else if (mapShownIdx >= 0) {
+		} else if (mapShownIdx >= 0 && !logoForced) {
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
 			ui_image_pixels(s, mapTex, mapW, mapH, cfg->mapScale, cfg->lcdGrid ? 1 : 0);
 		} else if (!cfg->showLogo) {
@@ -5008,10 +5074,10 @@ static void draw_game(void) {
 			area = (SDL_Rect) { area.x + in, area.y + in, area.w - in * 2, area.h - in * 2 };
 			if (tp) ui_title_block(s, area, tp->title, (int) (ui_px(s) * 14), (SDL_Color) { 236, 236, 244, 255 });
 		}
-		if ((hudShown || mapShownIdx >= 0) && (cfg->overlays & OVL_SECONDARY)) { /* the map only, never the logo */
+		if ((hudShown || mapShownIdx >= 0) && !logoForced && (cfg->overlays & OVL_SECONDARY)) { /* the map only, never the logo */
 			draw_overlay(s, 1);
 		}
-		if (!hudShown && mapShownIdx >= 0 && mapInactive) {
+		if (!hudShown && mapShownIdx >= 0 && mapInactive && !logoForced) {
 			ui_dim(s, 120);
 		}
 	}
@@ -5040,12 +5106,19 @@ static void open_menu(void) {
 	menuSel = 0;
 	menuPressed = -1;
 	menuNote[0] = 0;
-	restartArmed = false;
+	armedItem = -1;
 }
 
 /* Returns true if the session should end (*exitTo set). */
 static bool activate(int item, enum GameExit* exitTo) {
-	if (item != M_RESTART) restartArmed = false;
+	if (confirm_item(item) && armedItem != item) {
+		armedItem = item;
+		const char* lost = cfg->autoSave ? "your place is saved" : "unsaved progress is lost";
+		if (item == M_RESTART) snprintf(menuNote, sizeof(menuNote), "Choose it again to restart: unsaved progress is lost");
+		else snprintf(menuNote, sizeof(menuNote), "Choose it again to close %s: %s", item == M_EXIT ? "GBA DS" : "the game", lost);
+		return false;
+	}
+	armedItem = -1;
 	switch (item) {
 	case M_RESUME:
 		menuOpen = false;
@@ -5060,7 +5133,7 @@ static bool activate(int item, enum GameExit* exitTo) {
 		achPressed = false;
 		break;
 	case M_CHEATS:
-		if (!cheats.n) snprintf(menuNote, sizeof(menuNote), "No cheats found (see the README)");
+		if (!cheats.n) snprintf(menuNote, sizeof(menuNote), "No cheats found (see Cheats in the wiki)");
 		else open_cheats();
 		break;
 	case M_SWAP:
@@ -5078,6 +5151,13 @@ static bool activate(int item, enum GameExit* exitTo) {
 	}
 	case M_LCD:
 		cfg->lcdGrid = !cfg->lcdGrid;
+		save_prefs();
+		break;
+	case M_COLOR:
+		cfg->colorCorrection = !cfg->colorCorrection;
+		ui_color_correction(cfg->colorCorrection);
+		rebuild_textures(); /* (every picture given again, through it or not) */
+		snprintf(menuNote, sizeof(menuNote), "%s", cfg->colorCorrection ? "Colors as on a Game Boy Advance's screen" : "The game's colors as they are");
 		save_prefs();
 		break;
 	case M_SLOT:
@@ -5149,6 +5229,12 @@ static bool activate(int item, enum GameExit* exitTo) {
 		snprintf(menuNote, sizeof(menuNote), "%s", cfg->rewind ? "Hold L2 to go back in time" : "No rewind buffer: a little less work");
 		save_prefs();
 		break;
+	case M_FF:
+		cfg->fastForward = !cfg->fastForward;
+		if (cfg->fastForward) snprintf(menuNote, sizeof(menuNote), "Hold R2 to play %dx as fast", SDL_max(1, cfg->ffSpeed));
+		else snprintf(menuNote, sizeof(menuNote), "R2 does nothing: no skipping ahead by mistake");
+		save_prefs();
+		break;
 	case M_SHAPES: {
 		if (!item_enabled(M_SHAPES)) {
 			snprintf(menuNote, sizeof(menuNote), "Your screens are the same shape: nothing to match");
@@ -5178,17 +5264,11 @@ static bool activate(int item, enum GameExit* exitTo) {
 		save_prefs();
 		break;
 	case M_RESTART:
-		if (!restartArmed) {
-			restartArmed = true;
-			snprintf(menuNote, sizeof(menuNote), "Unsaved progress will be lost");
-			break;
-		}
 		emu_reset(&emu);
 		aheadReady = false;
 		bug_reset();
 		ra_reset();
 		mapShownIdx = -1; /* back to the logo until the next map */
-		restartArmed = false;
 		menuOpen = false;
 		ui_osd("Game restarted");
 		break;
@@ -5450,13 +5530,16 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	pages[2][pageLen[2]++] = M_SHOT;
 	if (fromLibrary) pages[0][pageLen[0]++] = M_LIBRARY;
 	pages[0][pageLen[0]++] = M_EXIT;
+	ui_color_correction(cfg->colorCorrection); /* (Display > Color Correction, for this session's pictures) */
 	pages[1][pageLen[1]++] = M_SCALE;
 	pages[1][pageLen[1]++] = M_LCD;
+	pages[1][pageLen[1]++] = M_COLOR;
 	pages[1][pageLen[1]++] = M_OVERLAY;
 	pages[1][pageLen[1]++] = M_FRAMEBUF;
 	pages[1][pageLen[1]++] = M_MATCH;
 	pages[1][pageLen[1]++] = M_SHAPES;
 	pages[2][pageLen[2]++] = M_REWIND;
+	pages[2][pageLen[2]++] = M_FF;
 	pages[2][pageLen[2]++] = M_AUTOSAVE;
 	pages[2][pageLen[2]++] = M_AUTOLOAD;
 	pages[2][pageLen[2]++] = M_BUG;
@@ -6009,7 +6092,8 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		}
 
 		bool rewinding = cfg->rewind && btnNow[B_L2];
-		bool ff = btnNow[B_R2] && !rewinding;
+		bool ff = cfg->fastForward && btnNow[B_R2] && !rewinding;
+		ffBox = ff;
 		int runs = ff ? SDL_max(1, cfg->ffSpeed) : 1;
 		/* Audio keeps flowing during fast-forward: every runs-th sample is kept,
 		 * so the device gets real-time worth of (sped-up) sound. Starving it
@@ -6160,6 +6244,17 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				hideWhenOn = !hideWhenOn;
 				emu_hide_sprites(&emu, hideWhenOn ? hideWhenProf->hideSprites : NULL, hideWhenOn ? hideWhenN : 0);
 				if (debug) fprintf(stderr, "frame %llu: sprite hiding %s\n", (unsigned long long) frameCount, hideWhenOn ? "on" : "off");
+			}
+			{
+				/* (logoIf: the logo for now, SM4-11) */
+				const MapProfile* lp = mapcap_profile(mc);
+				bool lf = lp && ((lp->logoIf[0].addr && memprobes_match(lp->logoIf, 2, &emu)) ||
+				                 (lp->logoIfOr[0].addr && memprobes_match(lp->logoIfOr, 2, &emu)));
+				if (lf) logoHolding = 60;
+				else if (logoHolding > 0) --logoHolding;
+				lf = lf || logoHolding > 0;
+				if (debug && lf != logoForced) fprintf(stderr, "frame %llu: logo only %s\n", (unsigned long long) frameCount, lf ? "on" : "off");
+				logoForced = lf;
 			}
 			bool dark = frame_is_dark(emu.fb);
 			if (wasDark && !dark) refreshAt = (long) frameCount + 6;

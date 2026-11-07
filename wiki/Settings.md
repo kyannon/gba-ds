@@ -2,7 +2,7 @@ Settings live in **`gba-ds.cfg`**: `/storage/roms/ports/gba-ds/gba-ds.cfg` on RO
 
 Three files are read in order, later ones winning:
 1. `gba-ds.cfg`;
-2. `states/prefs.cfg`: what you chose in the pause menu (screens swapped, scaling, LCD grid, overlays, the second screen's logo, FPS counter, frame buffer). GBA DS rewrites this file; to change those settings, use the menu, or delete the line from `prefs.cfg`.
+2. `states/prefs.cfg`: what you chose in the pause menu (screens swapped, scaling, LCD grid, color correction, overlays, the second screen's logo, FPS counter, frame buffer). GBA DS rewrites this file; to change those settings, use the menu, or delete the line from `prefs.cfg`.
 3. `states/library.cfg`: the game list's view (list or grid) and, on Android, the ROM folder.
 
 Updating from the game list (Settings > Updates) keeps your `gba-ds.cfg`. Unzipping a new release by hand replaces it, so keep a copy of your changes first.
@@ -41,6 +41,7 @@ Updating from the game list (Settings > Updates) keeps your `gba-ds.cfg`. Unzipp
 | `scale` / `map_scale` | `integer` | Game screen / second screen: `integer` (pixel perfect: sharp, whole-number scale, 4× on the RG DS Plus, with a small border), `fit` (full width, keeps the shape, stays sharp: scaled up by a whole number on the GPU, then filtered down), `zoom` (fills the height, the left and right edges are cut off), `stretch` (fills the screen, distorts the shape). |
 | `lcd_grid` | `0` | A pixel grid like a GBA screen's, on both screens. Drawn on the GPU, so it costs almost nothing. It adapts to the screen: with 3 or more screen pixels per GBA pixel (the RG DS Plus) each line is one screen pixel; with fewer (2× on the RG DS) the lines are drawn finer, at the screen's own resolution, so the picture stays sharp. |
 | `lcd_strength` | `35` | How dark the grid lines are, 0-100. |
+| `color_correction` | `0` | `1`: the game's colours as a Game Boy Advance's screen showed them (mGBA's GBA Color shader, sRGB, Darken Screen 0.5), on both screens. Also in the pause menu (Display). |
 | `smooth` | `0` | Plain bilinear filtering instead of sharp scaling (blurry; usually leave off). |
 | `vsync` | `0` | Present frames in step with the display. Off is smoother on these devices. |
 | `overlays` | `both` | `primary`, `secondary`, `both` or `none`: see [[Map screen surrounds and overlays]]. |
@@ -74,6 +75,7 @@ What `map_crop` changes in the Metroid map screens:
 | `hotkey` | `guide` | The button that opens the menu and is the modifier for the HOME + button shortcuts: `guide` (HOME) or `back` (SELECT; then SELECT alone still reaches the game when tapped). |
 | `home_button` | `-1` | If HOME does nothing: launch once with `GBADS_DEBUG=1` (see [[Troubleshooting]]), press HOME, and put the "raw joystick ... button N" number from `gba-ds.log` here. |
 | `menu_combo` | `none` (Android: `select+start`) | `select+start`: SELECT and START pressed together also open the menu. The game doesn't see the pair; either button alone still reaches the game. |
+| `fast_forward` | `1` | Hold **R2** to fast-forward. `0`: R2 does nothing. Also in the pause menu (Extras). |
 | `ff_speed` | `3` | Fast-forward speed (hold R2). |
 
 ## Files and folders
@@ -81,6 +83,8 @@ What `map_crop` changes in the Metroid map screens:
 | Option | Default | |
 |---|---|---|
 | `save_dir` | empty | Battery saves (`.sav`). Empty: next to the ROM. An existing RetroArch `.srm` is copied to `.sav` the first time you play a game. |
+| `save_ext` | `sav` | The battery saves' extension: `sav`, or `srm` to use RetroArch's own save files in `save_dir` (BananaOS: `srm` in `/data/saves/gba`, set by GBA DS's launcher). An existing save in the other form is copied the first time you play a game. |
+| `save_from` | empty | A folder where GBA DS kept its `.sav` saves before (BananaOS: `/data/saves`). A game's save there is carried over the first time you start it, or when it's newer than the one in `save_dir` (that one kept as `.bak`). |
 | `state_dir` | empty | Save states, resume points, menu settings and extracted art. Empty: `gba-ds/states`. |
 | `screenshot_dir` | `/storage/roms/screenshots` | Where Take Screenshot saves its PNGs. |
 | `cheat_dir` | RetroArch's cheat folders | RetroArch's `.cht` folders, searched two levels deep, `:`-separated. GBA DS's own `cheats` folder (`gba-ds/cheats`) is always searched first. |

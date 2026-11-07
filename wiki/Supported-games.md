@@ -1,46 +1,57 @@
 The USA, European and Japanese releases are all supported. Any other GBA game also runs (set `show_all = 1` to list them); it just plays on one screen, with the second screen dark.
 
-| Game | Codes (USA / Europe / Japan) | Second screen |
-|---|---|---|
-| Advance Wars (Game Boy Wars Advance in Japan) | `AWRE` `AWRP` `BGWJ` (Japan: on Game Boy Wars Advance 1+2, with Advance Wars 2) | in battles: the intel of the unit under the cursor, or the battle intel |
-| Advance Wars 2: Black Hole Rising (Game Boy Wars Advance 2 in Japan) | `AW2E` `AW2P` `BGWJ` (Japan: on Game Boy Wars Advance 1+2, with Advance Wars) | in battles: the intel of the unit under the cursor, or the battle intel |
-| Castlevania: Aria of Sorrow | `A2CE` `A2CP` `A2CJ` | map |
-| Castlevania: Circle of the Moon | `AAME` `AAMP` `AAMJ` | map, with the completion rate |
-| Castlevania: Harmony of Dissonance | `ACHE` `ACHP` `ACHJ` | map |
-| Dragon Ball Z: The Legacy of Goku | `ALGE` `ALGP` (no Japanese release) | the pause menu, with the HP and Ki bars (or the counter SELECT and flying show) in place of its options |
-| F-Zero: GP Legend (F-Zero: Falcon Densetsu in Japan) | `BFZE` `BFZP` `BFZJ` | the race HUD, with the course map twice as big |
-| F-Zero: Maximum Velocity (F-Zero for Game Boy Advance in Japan) | `AFZE` (USA and Europe) `AFZJ` (China: `AFZC`) | the race HUD, with the course map twice as big |
-| Final Fantasy Tactics Advance | `AFXE` `AFXP` `AFXJ` | in battles: the Status of the unit under the cursor, or the turn order and Laws; on the world map: today's Laws |
-| Fire Emblem (Rekka no Ken in Japan) | `AE7E` `AE7X` (English, French, German) `AE7Y` (English, Spanish, Italian) `AE7J` | on the map: the status of the unit under the cursor |
-| Fire Emblem: The Sacred Stones (Seima no Kouseki in Japan) | `BE8E` `BE8P` `BE8J` | on the map: the status of the unit under the cursor |
-| Golden Sun (Ougon no Taiyou: Hirakareshi Fuuin in Japan) | `AGSE` `AGSD` `AGSF` `AGSI` `AGSS` `AGSJ` | the Status screen, each party member in turn; in battle, the one choosing |
-| Golden Sun: The Lost Age (Ougon no Taiyou: Ushinawareshi Toki in Japan) | `AGFE` `AGFD` `AGFF` `AGFI` `AGFS` `AGFJ` | the Status screen, each party member in turn; in battle, the one choosing |
-| Harvest Moon: Friends of Mineral Town (Bokujou Monogatari: Mineral Town no Nakama-tachi in Japan) | `A4NE` `A4NP` `A4ND` `A4NJ` | the town map, with where you are |
-| Kingdom Hearts: Chain of Memories | `B8CE` `B8CP` `B8CJ` | the World Map; in battles, the logo |
-| Lady Sia | `ALDE` `ALDP` (no Japanese release) | the pause screen as a status screen: lives, gems, villagers, the time, the ring and heart; the HUD off the game screen |
-| The Legend of Zelda: A Link to the Past & Four Swords | `AZLE` `AZLP` `AZLJ` | world and dungeon maps |
-| Mario Kart: Super Circuit (Mario Kart Advance in Japan) | `AMKE` `AMKP` `AMKJ` | the race HUD, results and podium |
-| Mario & Luigi: Superstar Saga (Mario & Luigi RPG in Japan) | `A88E` `A88P` `A88J` | Bros. Info of the brother you're controlling |
-| Metroid Fusion | `AMTE` `AMTP` `AMTJ` | map |
-| Metroid: Zero Mission | `BMXE` `BMXP` `BMXJ` | map |
-| Pokémon Pinball: Ruby & Sapphire | `BPPE` | the table twice as tall over both screens, live, with the score bar |
-| River City Ransom EX (Downtown Nekketsu Monogatari EX in Japan) | `BDTE` `BDTJ` (no European release) | the Status screen, with the top bar moved off the game screen |
-| Sonic Advance | `ASOE` `ASOP` `ASOJ` | the zone card, with the rings, score, time and lives |
-| Sonic Advance 2 | `A2NE` `A2NP` `A2NJ` | the zone card, with the rings, score, time and lives |
-| Sonic Advance 3 | `B3SE` `B3SP` `B3SJ` | the act card, with the rings, time and lives; the hubs' keys and zone label |
-| Sonic Pinball Party | `A3VE` `A3VP` | the table twice as tall over both screens, live (work in progress) |
-| Spider-Man: Mysterio's Menace (Spider-Man: Mysterio no Kyoui in Japan) | `ASEE` (USA and Europe) `ASEJ` | the Select menu: the objective, password, suits, upgrades and web containers |
-| Summon Night: Swordcraft Story (Craft Sword Monogatari in Japan) | `AB4E` `AB4J` (no European release) | the Status screen, with where you are |
-| Summon Night: Swordcraft Story 2 (Craft Sword Monogatari 2 in Japan) | `BSKE` `BSKJ` (no European release) | the Status screen |
-| Super Mario Advance 2: Super Mario World | `AA2E` `AA2P` `AA2J` | the SELECT menu on the world map; the status bar in levels; optional SNES layout |
-| Super Mario Advance 4: Super Mario Bros. 3 | `AX4E` `AX4P` `AX4J` | the item inventory and status bar on the world map; the status bar and P meter in levels |
-| Sword of Mana (Shinyaku Seiken Densetsu in Japan) | `AVSE` `AVSY` (Spanish, Italian) `AVSJ` | the Status screen |
-| Tactics Ogre: The Knight of Lodis (Tactics Ogre Gaiden in Japan) | `ATOE` `ATOJ` (no European release) | the battle's unit list, on the unit under your cursor |
-| Tony Hawk's Pro Skater 2 (SK8 in Japan) | `ATHE` (USA and Europe) `ATHF` `ATHD` `ATHJ` | the goal sheet for the current run |
-| Tony Hawk's Pro Skater 3 | `AT3E` (USA and Europe) `AT3F` `AT3D` | the goal list; optional four-button layout |
-| Zoids: Legacy (Zoids Saga II in Japan) | `AZ2E` `AZ2J` (no European release) | the map screen; in battles, the Status of the Zoid choosing |
+| Game | Codes (USA / Europe / Japan) | Second screen | Romhacks tested |
+|---|---|---|---|
+| Advance Wars (Game Boy Wars Advance in Japan) | `AWRE` `AWRP` `BGWJ` (Japan: on Game Boy Wars Advance 1+2, with Advance Wars 2) | in battles: the intel of the unit under the cursor, or the battle intel | |
+| Advance Wars 2: Black Hole Rising (Game Boy Wars Advance 2 in Japan) | `AW2E` `AW2P` `BGWJ` (Japan: on Game Boy Wars Advance 1+2, with Advance Wars) | in battles: the intel of the unit under the cursor, or the battle intel | |
+| Castlevania: Aria of Sorrow | `A2CE` `A2CP` `A2CJ` | map | |
+| Castlevania: Circle of the Moon | `AAME` `AAMP` `AAMJ` | map, with the completion rate | |
+| Castlevania: Harmony of Dissonance | `ACHE` `ACHP` `ACHJ` | map | |
+| Dragon Ball Z: The Legacy of Goku | `ALGE` `ALGP` (no Japanese release) | the pause menu, with the HP and Ki bars (or the counter SELECT and flying show) in place of its options | |
+| F-Zero: GP Legend (F-Zero: Falcon Densetsu in Japan) | `BFZE` `BFZP` `BFZJ` | the race HUD, with the course map twice as big | |
+| F-Zero: Maximum Velocity (F-Zero for Game Boy Advance in Japan) | `AFZE` (USA and Europe) `AFZJ` (China: `AFZC`) | the race HUD, with the course map twice as big | |
+| Final Fantasy Tactics Advance | `AFXE` `AFXP` `AFXJ` | in battles: the Status of the unit under the cursor, or the turn order and Laws; on the world map: today's Laws | |
+| Fire Emblem (Rekka no Ken in Japan) | `AE7E` `AE7X` (English, French, German) `AE7Y` (English, Spanish, Italian) `AE7J` | on the map: the status of the unit under the cursor | |
+| Fire Emblem: The Sacred Stones (Seima no Kouseki in Japan) | `BE8E` `BE8P` `BE8J` | on the map: the status of the unit under the cursor | |
+| Golden Sun (Ougon no Taiyou: Hirakareshi Fuuin in Japan) | `AGSE` `AGSD` `AGSF` `AGSI` `AGSS` `AGSJ` | the Status screen, each party member in turn; in battle, the one choosing | |
+| Golden Sun: The Lost Age (Ougon no Taiyou: Ushinawareshi Toki in Japan) | `AGFE` `AGFD` `AGFF` `AGFI` `AGFS` `AGFJ` | the Status screen, each party member in turn; in battle, the one choosing | |
+| Harvest Moon: Friends of Mineral Town (Bokujou Monogatari: Mineral Town no Nakama-tachi in Japan) | `A4NE` `A4NP` `A4ND` `A4NJ` | the town map, with where you are | |
+| Kingdom Hearts: Chain of Memories | `B8CE` `B8CP` `B8CJ` | the World Map; in battles, the logo | |
+| Lady Sia | `ALDE` `ALDP` (no Japanese release) | the pause screen as a status screen: lives, gems, villagers, the time, the ring and heart; the HUD off the game screen | |
+| The Legend of Zelda: A Link to the Past & Four Swords | `AZLE` `AZLP` `AZLJ` | world and dungeon maps | |
+| Mario Kart: Super Circuit (Mario Kart Advance in Japan) | `AMKE` `AMKP` `AMKJ` | the race HUD, results and podium | |
+| Mario & Luigi: Superstar Saga (Mario & Luigi RPG in Japan) | `A88E` `A88P` `A88J` | Bros. Info of the brother you're controlling; in battles, the boxes and meters | [Superstar Saga+](#mario--luigi-superstar-saga) v1.5 (100%, 80%, 60%) |
+| Metroid Fusion | `AMTE` `AMTP` `AMTJ` | map | |
+| Metroid: Zero Mission | `BMXE` `BMXP` `BMXJ` | map | |
+| Pokémon Pinball: Ruby & Sapphire | `BPPE` | the table twice as tall over both screens, live, with the score bar | |
+| River City Ransom EX (Downtown Nekketsu Monogatari EX in Japan) | `BDTE` `BDTJ` (no European release) | the Status screen, with the top bar moved off the game screen | |
+| Sonic Advance | `ASOE` `ASOP` `ASOJ` | the zone card, with the rings, score, time and lives | |
+| Sonic Advance 2 | `A2NE` `A2NP` `A2NJ` | the zone card, with the rings, score, time and lives | |
+| Sonic Advance 3 | `B3SE` `B3SP` `B3SJ` | the act card, with the rings, time and lives; the hubs' keys and zone label | |
+| Sonic Pinball Party | `A3VE` `A3VP` | the table twice as tall over both screens, live (work in progress) | |
+| Spider-Man: Mysterio's Menace (Spider-Man: Mysterio no Kyoui in Japan) | `ASEE` (USA and Europe) `ASEJ` | the Select menu: the objective, password, suits, upgrades and web containers | |
+| Summon Night: Swordcraft Story (Craft Sword Monogatari in Japan) | `AB4E` `AB4J` (no European release) | the Status screen, with where you are | |
+| Summon Night: Swordcraft Story 2 (Craft Sword Monogatari 2 in Japan) | `BSKE` `BSKJ` (no European release) | the Status screen | |
+| Super Mario Advance 2: Super Mario World | `AA2E` `AA2P` `AA2J` | the SELECT menu on the world map; the status bar in levels; optional SNES layout | |
+| Super Mario Advance 4: Super Mario Bros. 3 | `AX4E` `AX4P` `AX4J` | the item inventory and status bar on the world map; the status bar and P meter in levels | |
+| Sword of Mana (Shinyaku Seiken Densetsu in Japan) | `AVSE` `AVSY` (Spanish, Italian) `AVSJ` | the Status screen | |
+| Tactics Ogre: The Knight of Lodis (Tactics Ogre Gaiden in Japan) | `ATOE` `ATOJ` (no European release) | the battle's unit list, on the unit under your cursor | |
+| Tony Hawk's Pro Skater 2 (SK8 in Japan) | `ATHE` (USA and Europe) `ATHF` `ATHD` `ATHJ` | the goal sheet for the current run | |
+| Tony Hawk's Pro Skater 3 | `AT3E` (USA and Europe) `AT3F` `AT3D` | the goal list; optional four-button layout | |
+| Wario Land 4 (Wario Land Advance in Japan) | `AWAE` (USA and Europe) `AWAJ` | in levels: the pause screen, with the hearts, money, coins and the treasures found; in boss fights: the HUD | |
+| Yu-Gi-Oh! The Eternal Duelist Soul (Yu-Gi-Oh! Duel Monsters 5 Expert 1 in Japan) | `AY5E` `AY5J` | Card View of the card under the cursor | |
+| Zoids: Legacy (Zoids Saga II in Japan) | `AZ2E` `AZ2J` (no European release) | the map screen; in battles, the Status of the Zoid choosing | |
 
 The codes are what `<CODE>` means in logo and overlay file names (see [Playing](Playing#logos) and [[Map screen surrounds and overlays]]).
+
+## Romhacks and patched ROMs
+
+GBA DS knows a game by its code, which romhacks and patches of a supported game usually keep, so they start with the game's second screen. Whether it works depends on what the mod changes: new text, items, stats and colours are usually fine, while a mod that changes the screens GBA DS shows (a redrawn menu or map) can leave the second screen wrong or blank.
+
+- **Tested romhacks** are in the table's last column, under the game they're made from, with what's different in the game's section. GBA DS knows them by their checksum, and they're tested like the games. They aren't counted as games of their own.
+- **Any other patched or modified ROM** runs with the game's second screen, untested. Bug reports say whether your ROM is the unchanged game, a known romhack or something else, so if the second screen goes wrong in a mod, send one. To ask for a romhack to be supported, open an issue with a link to it.
+- Patch the ROM before putting it in your games folder: GBA DS doesn't apply patch files (`.ips`, `.ups`, `.bps`) yet.
+- Save states made on the unchanged game shouldn't be loaded into a mod of it, or the other way round.
 
 ## How the maps work
 
@@ -192,7 +203,7 @@ The HUD is moved off the game screen rather than copied: GBA DS draws each frame
   - The second screen has the coins, lap and time along the top, the **top-four faces** centred down the left, and the **course map** with every racer's dot, twice as big (1.5× if a course's map wouldn't fit comfortably), in the middle.
   - Behind it all is a dimmed picture of the course's own sky and scenery, captured as each race starts.
 - **After the finish**, the lap times and the results table are shown on the second screen.
-- **After a cup**, the podium's CONGRATULATIONS!, the cup name, your portrait, place, rank and cup table move to the second screen, on dark grey; the podium, crowd and trophy stay on the game screen.
+- **After a cup**, the podium's CONGRATULATIONS!, the cup name, your portrait, place, rank and cup table move to the second screen, on black; the podium, crowd and trophy stay on the game screen.
 - The game's **pause menu** stays on the game screen, with the last HUD below it. In the menus, the second screen shows the logo.
 - With one screen (`layout = single`), the HUD stays where the game draws it.
 
@@ -201,9 +212,10 @@ The HUD is moved off the game screen rather than copied: GBA DS draws each frame
 The USA, European and Japanese (Mario & Luigi RPG) releases.
 
 - **Walking about,** the second screen is the **Bros. Info** screen (SELECT's menu, the third icon), as the game draws it, filling the screen: the page of the brother you're controlling, the one in front. Swap them with START and the page follows within a moment. It's opened in the background in a silent copy of the game about once a second; your game is never paused.
-- In battles and on the title, the second screen shows the logo; in scenes, conversations and the game's own menus it keeps its picture.
-- Not tried yet: later areas, and the European and Japanese releases beyond their titles.
-- **Superstar Saga+** (the romhack, v1.5: its 100%, 80% and 60% patches for the USA release) works the same, with the mod's own item names and numbers on Bros. Info. Don't load a save state made on the unchanged game into the mod, or the other way round: a conversation in progress comes out garbled. Battery saves are fine.
+- **In battles,** the second screen has the battle's boxes and meters, over the logo: Mario's and Luigi's HP and BP at the top left, what the highlighted block does at the top right, the buttons at the bottom right, and the menus that open on the right side (the item list, the Bros. Attacks list) where they are on the game screen. The game screen keeps the command blocks and the A prompt over the brother whose turn it is, the damage numbers, the enemy's name while you aim, and everything else. Speech balloons in a battle, a boss's own messages and the results after it stay on the game screen. Tried in the story's first battles, late battles and boss battles.
+- On the title, the second screen shows the logo; in scenes, conversations and the game's own menus it keeps its picture.
+- Not tried yet: the European and Japanese releases beyond their titles.
+- **Superstar Saga+** (the romhack, v1.5: its 100%, 80% and 60% patches for the USA release) works the same, with the mod's own names and numbers on Bros. Info and in the battle boxes (its items, its attacks' BP). Don't load a save state made on the unchanged game into the mod, or the other way round: a conversation in progress comes out garbled. Battery saves are fine.
 
 ## Metroid: Zero Mission and Metroid Fusion
 
@@ -316,7 +328,7 @@ The USA release and the Japanese one (Craft Sword Monogatari 2); there was no Eu
 ## Super Mario Advance 4: Super Mario Bros. 3
 
 - **On the world map,** the status bar (world, lives, coins, score and your three cards) moves from the bottom of the game screen to the top of the second screen, so the whole map shows. Below it is your item inventory, the panel L opens, as the game draws it, kept up to date as you walk about, win items in Toad Houses and use them. It's captured in the background like the other games' maps; the game itself is never paused.
-- **In Toad Houses, Spade games and the kings' rooms,** the status bar moves the same way, above your inventory. So it does on World-e's map (the e-Reader levels); with its inventory open there, the second screen shows the inventory without the status bar.
+- **In Toad Houses, Spade games and the kings' rooms,** the status bar moves the same way, above your inventory. So it does on World-e's map (the e-Reader levels), where the status bar stays put on the second screen while the inventory opens and closes; in World-e's castle hall, which has no status bar, the logo.
 - **In a level** (airships, boss rooms, World 8's tanks and Bowser's castle too), the status bar (world, lives, time, coins and score; in World-e's levels the coin count too) moves to the top of the second screen and the P meter to the middle of its bottom, with the logo between them. LEVEL CLEARED! and the card you win stay on the game screen. The status bar stays there through pipes, doors and bonus rooms.
 - The logo is Super Mario Bros. 3's own, from its title screen.
 - Every revision works (USA, Europe and Japan, the Virtual Console and Switch Online dumps), and so does the game's other set of colours, which some colour patches pick.
@@ -347,6 +359,25 @@ The USA and Japanese (Tactics Ogre Gaiden) releases have both been tried.
 
 - **During a run** the second screen shows the level's goal list (the pause menu's View Goals), on black, brought up in the background like the other games' maps and kept up to date as you go; the game is never paused. Back at the menus, it shows the logo again.
 - The four-button layout under **Controls**: GBA, Four buttons, or Auto (four buttons while skating), as for Tony Hawk's Pro Skater 2.
+
+## Wario Land 4
+
+The USA and European release and the Japanese one (Wario Land Advance), tried in every passage, every boss, all of Wario's forms and on Super Hard.
+
+- **In a level,** the second screen shows the game's own **pause screen**, kept up to date about once a second: your hearts, the money you carry, the level's coins against its best, the jewel with the gem pieces you've found, the Keyzer, the CD and the level's name. The pause screen's menu is left out (the wall runs up to the top). A gem piece, the Keyzer or the CD found, or a heart gained or lost, shows at once.
+- In a level, the **hearts and coins** are taken off the game screen, as the second screen has them; the escape's **countdown** stays on the game screen. The game's own pause screen (START) shows them as usual.
+- In **boss fights,** the fight's opening plays on the game screen; once the countdown has settled at the top, the **hearts, the countdown and the boss's health bar** move to the top of the second screen, above the logo, until CLEAR!. TIME UP!! stays on the game screen.
+- On the title, the hub, a passage's level select, the Item Shop, the mini-games and the Sound Room, and from the moment Wario loses his last heart, the second screen shows the logo.
+- Not tried yet: Hard difficulty and the ending.
+
+## Yu-Gi-Oh! The Eternal Duelist Soul
+
+The USA release and the Japanese original (Yu-Gi-Oh! Duel Monsters 5 Expert 1, which draws its screens differently). Tried in Campaign duels, Deck Edit, Card Trading and the cards won after a duel; Link Battle hasn't been tried.
+
+- **In a duel,** the second screen shows the **Card View** of the card under your cursor: its picture, name, type and text, as the game shows it when you choose Card View. Your hand, your cards on the field and the opponent's face-up cards; it follows the cursor as you move it. It's brought up in the background on a silent copy of the game; your game is never paused or touched.
+- **In the Graveyard and other card lists, Deck Edit (the Deck screen in Japan), Card Trading's choice of a card and the list of cards you've won,** the same: the card under the cursor.
+- Where there's nothing to look at (an empty zone, a pile, a face-down card of the opponent's, the opponent's turn), the last card stays.
+- On the title screen, the menus, the conversations and the other screens, the second screen shows the logo.
 
 ## Zoids: Legacy
 

@@ -8,6 +8,7 @@
 void config_defaults(Config* c) {
 	memset(c, 0, sizeof(*c));
 	strcpy(c->layout, "auto");
+	strcpy(c->saveExt, "sav");
 	strcpy(c->scale, "integer");
 	strcpy(c->mapScale, "integer");
 	strcpy(c->hotkey, "guide");
@@ -34,6 +35,7 @@ void config_defaults(Config* c) {
 	c->sway = true;
 	c->audioLatency = 64;
 	c->ffSpeed = 3;
+	c->fastForward = true;
 	c->pinCores = false; /* tried on the RG DS Plus: no better (docs/ANDROID.md) */
 	c->autoSave = true;
 	c->autoLoad = true;
@@ -74,6 +76,7 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	STR("map_scale", mapScale)
 	BOOL("smooth", smooth)
 	BOOL("lcd_grid", lcdGrid)
+	BOOL("color_correction", colorCorrection)
 	if (!strcmp(key, "overlays")) {
 		/* none / primary / secondary / both (older configs: 0 / 1, top / bottom) */
 		c->overlays = !strcmp(val, "primary") || !strcmp(val, "top")      ? OVL_PRIMARY :
@@ -105,7 +108,10 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	BOOL("sway", sway)
 	INT("audio_latency", audioLatency)
 	INT("ff_speed", ffSpeed)
+	BOOL("fast_forward", fastForward)
 	STR("save_dir", saveDir)
+	STR("save_ext", saveExt)
+	STR("save_from", saveFrom)
 	STR("state_dir", stateDir)
 	STR("rom_dir", romDir)
 	STR("cheat_dir", cheatDir)

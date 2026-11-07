@@ -92,10 +92,12 @@ void android_config_defaults(Config* c) {
 		} folders[] = {
 			{ "cheats", "Put RetroArch cheat files (.cht) here, subfolders are fine.\n"
 			            "A file goes with the ROM of the same name: Metroid Fusion (World) (Code Breaker).cht\n"
-			            "with Metroid Fusion (USA).gba. Switch cheats on in the pause menu: Game > Cheats.\n" },
+			            "with Metroid Fusion (USA).gba. Switch cheats on in the pause menu: Extras > Cheats.\n"
+			            "More in the wiki: https://github.com/kyannon/gba-ds/wiki/Playing#cheats\n" },
 			{ "overlays", "Overlay PNGs (1024x768, transparent where the picture shows): primary.png (game screen) /\n"
 			              "secondary.png (map screen) for every game, <CODE>-primary.png / <CODE>-secondary.png for\n"
-			              "one game, optionally with -integer / -fit / -stretch. See the README.\n" },
+			              "one game. Names for one scaling or screen shape, and more, in the wiki:\n"
+			              "https://github.com/kyannon/gba-ds/wiki/Map-screen-surrounds-and-overlays\n" },
 			{ "logos", "Optional: your own logo images (<CODE>.png or .bmp) override the ones extracted from the games.\n" },
 			{ "screenshots", NULL },
 		};

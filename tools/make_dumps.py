@@ -121,6 +121,12 @@ def main():
                         os.path.basename(path), code, crc, code), file=sys.stderr)
                 elif crc:
                     tested.add(crc)
+                # (roms/CODE+name.zip: another official dump the tests run too,
+                # such as a Virtual Console one; a patched ROM isn't one)
+                for z in sorted(glob.glob(os.path.join(a.fixtures, "roms", glob.escape(code) + "+*.zip"))):
+                    c = fixture_crc(a.fixtures, os.path.basename(z)[:-4])
+                    if c and c in {k for k, _ in by.get(code, [])}:
+                        tested.add(c)
         if not haveFixtures:
             tested = old_tested(lines[dumpsAt] if dumpsAt is not None else "")
         new = row(codes, by, tested)

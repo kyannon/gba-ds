@@ -250,6 +250,12 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   buffer on or off. Not replayed: cheats (the header says how many were
   on) and the battery save (the harness has none).
 - ROMs and save files are not in the repo. The owner attaches them; ask.
+  GameShark / Action Replay saves (`.sps`, `.gsv`, as on GameFAQs) convert
+  with `tools/sharkport.py IN.sps OUT.sav --magic BYTES` (BYTES: what the
+  game's save starts with, so EEPROM saves come out in mGBA's byte order).
+  The harness runs without a battery save: start the game in the app with
+  `--save_dir`, save a state there (the state carries the save), and go on
+  in the harness from it.
 - State Saver (`tools/statesaver/`, published as the owner's artifact) has a
   GBA DS tab: it runs a dev zip's `gba-ds/web/gba-ds.wasm` (`scripts/build-web.sh`,
   run by build-rocknix.sh for `-dev` versions; wasm32-wasi, no threads, so map
@@ -396,8 +402,12 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   DS Plus. GBADS_BANANA_VIDEO=evdev / offscreen use Banana's SDL patch
   (SDL_BANANA_PANELS=side, one window over both panels, copied each frame:
   24-30 / under 5 fps). It passes Banana's paths (`/data/roms/gba`,
-  `/data/saves`, `/data/screenshots`, `/data/retroarch/cheats`) for settings
-  still at ROCKNIX's defaults, plus the RA account from
+  `/data/screenshots`, `/data/retroarch/cheats`) for settings
+  still at ROCKNIX's defaults, and battery saves in the GBA list's own
+  `/data/saves/gba/<game>.srm` (save_ext srm, shared with run-retroarch's
+  every GBA core: gpSP pads it to 128 KB, mGBA reads the part it needs;
+  save_from /data/saves carries GBA DS's older `.sav` over, the newer
+  winning, the other kept as `.srm.bak`), plus the RA account from
   `/data/banana/accounts.conf`; ra.c falls back to libcurl (SDL_LoadObject)
   when there's no curl program. `gamecontrollerdb.txt` in the zip maps
   retrogame_joypad (Banana ships no SDL mapping). Cheats: `gba-ds/cheats`
@@ -405,11 +415,20 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   Banana's own GBA list (esinteg.c banana_*; the game list's Settings row on
   Banana): writes /data/banana/systems.conf (a copy of /etc/banana's, which
   banana-ui-session uses instead at the menu's next start), [gba] run line
-  -> `bash '<dir>/banana-play.sh' %ROM%`, the original kept as
+  -> GBA DS's (below), the original kept as
   `# gba-ds: run = ...`. banana-play.sh runs `gba-ds --supported ROM` (exit
   0 if a profile exists): GBA DS (banana-perf performance), else the
   original line. Off restores it; the copy is deleted if ours and unchanged.
-  banana-ui hands both panels to any run line without "run-retroarch".
+  banana-ui runs the line through a shell (%ROM% quoted), and ours is
+  `if [ -f '<dir>/banana-play.sh' ]; then bash ... %ROM%; else ORIG; fi`, so
+  the list still starts its games once GBA DS is removed
+  (banana_integration_refresh upgrades older lines). banana-ui hands both
+  panels to a run line without "run-retroarch" (run-ps1, run-bananafront,
+  run-pico8) and keeps one for its own second screen otherwise (main.cpp,
+  `bool ra`), deciding from the line before the game starts: so ORIG goes in
+  with each launcher's `run-` written `run''-` (the same to the shell), and
+  the games GBA DS doesn't support play without Banana's panel (a known
+  issue; a per-game hook was asked of Banana's developers).
 - **The Stock Linux OS** (Anbernic's own) on the RG DS Plus (Buildroot, weston, two
   windows): launch.sh's "another system" branch. Ports in `/mnt/mmc/Ports`,
   ROMs `/mnt/mmc/Roms/GBA`. Touch: `anbernic_misc/tpctrl` 0 (on) for the run

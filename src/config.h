@@ -17,6 +17,7 @@ typedef struct Config {
 	char borderColor[16]; /* RRGGBB behind the map screen (outside the map image) */
 	int overlays;      /* OVL_PRIMARY | OVL_SECONDARY: game-screen / map-screen overlays */
 	bool lcdGrid;      /* draw an LCD pixel grid over game and map */
+	bool colorCorrection; /* the GBA's screen colours (mGBA's GBA Color shader) */
 	int lcdStrength;   /* grid darkness, 0..100 */
 	bool vsync;
 	bool frameBuffer; /* emulate a frame ahead on a second thread: smoother, a frame more input delay */
@@ -27,6 +28,7 @@ typedef struct Config {
 	bool mapAnim;      /* cycle the map's animation frames (off: one still frame) */
 	bool rewind;       /* keep a rewind buffer (hold L2 to rewind) */
 	int rewindSeconds; /* how far back */
+	bool fastForward;  /* hold R2 to fast-forward */
 	bool matchDisplay; /* run at the display's refresh rate (if close to the GBA's) instead of 59.73 Hz */
 	bool showLogo;     /* the game's logo on the second screen when it has nothing else (off: blank) */
 	int mapInterval;   /* frames between periodic map refreshes */
@@ -39,6 +41,8 @@ typedef struct Config {
 	int audioLatency;  /* ms */
 	int ffSpeed;       /* fast-forward multiplier */
 	char saveDir[512]; /* battery saves; default: next to the ROM */
+	char saveExt[8];   /* their extension: sav, or srm (RetroArch's: BananaOS's GBA saves, shared) */
+	char saveFrom[512]; /* where GBA DS kept them before (<game>.sav), carried over: BananaOS */
 	char stateDir[512]; /* save states, thumbnails, prefs; default: <app>/states */
 	char romDir[1024]; /* library folders, ':'-separated */
 	char screenshotDir[512]; /* "Take Screenshot" saves here */
