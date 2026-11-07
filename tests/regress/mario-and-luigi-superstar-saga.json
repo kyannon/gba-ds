@@ -154,9 +154,10 @@
    "id": "ml-us-battle",
    "rom": "A88E",
    "state": "mario-and-luigi-superstar-saga/us-battle.ss",
-   "desc": "a battle (a player's bug report, its saved second screen Bros. Info): the logo",
+   "desc": "a battle (a player's bug report, its saved second screen Bros. Info) in its tutorial's conversation: the balloon stays on the game screen, the logo (at full strength: the battle's second screen is live) on the second screen",
    "rules": [
-    "ML-3"
+    "ML-3",
+    "ML-5"
    ],
    "shots": {
     "start": 60
@@ -174,10 +175,11 @@
    "id": "ml-us-into-battle",
    "rom": "A88E",
    "state": "mario-and-luigi-superstar-saga/us-into-battle.ss",
-   "desc": "walking about into a battle (the same report's keys, played back): Bros. Info, then the logo once the battle starts",
+   "desc": "walking about into a battle (the same report's keys, played back): Bros. Info, then the logo once the battle starts, its tutorial's balloons staying on the game screen",
    "rules": [
     "ML-2",
-    "ML-3"
+    "ML-3",
+    "ML-5"
    ],
    "input": [
     [
@@ -273,6 +275,1210 @@
     "walking": 200,
     "battle": 560
    }
+  },
+  {
+   "id": "ml-us-battle-boxes",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-battle-blocks.ss",
+   "desc": "a battle, choosing Mario's block (a player's bug report): the boxes at the top and bottom right and the meters at the top left of the second screen, the blocks and the A prompt on the game screen; then ITEM's list on the second screen with its cursor; then aiming SOLO at an enemy, the enemy's name box staying on the game screen",
+   "rules": [
+    "ML-1",
+    "ML-5"
+   ],
+   "input": [
+    [
+     32,
+     "A"
+    ],
+    [
+     34,
+     "-"
+    ],
+    [
+     82,
+     "DOWN"
+    ],
+    [
+     84,
+     "-"
+    ],
+    [
+     102,
+     "B"
+    ],
+    [
+     104,
+     "-"
+    ],
+    [
+     130,
+     "RIGHT"
+    ],
+    [
+     134,
+     "-"
+    ],
+    [
+     160,
+     "A"
+    ],
+    [
+     162,
+     "-"
+    ]
+   ],
+   "shots": {
+    "blocks": 30,
+    "item": 80,
+    "item2": 100,
+    "aim": 210
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "the meters at the top left of the second screen",
+     "type": "not_uniform",
+     "shot": "blocks",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "the top right box on the second screen",
+     "type": "not_uniform",
+     "shot": "blocks",
+     "rect": [
+      472,
+      76,
+      975,
+      131
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "the bottom box on the second screen",
+     "type": "not_uniform",
+     "shot": "blocks",
+     "rect": [
+      532,
+      624,
+      975,
+      687
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "the item list on the second screen",
+     "type": "not_uniform",
+     "shot": "item",
+     "rect": [
+      472,
+      176,
+      975,
+      387
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "aiming: the meters at the top left of the second screen, the name box not there",
+     "type": "not_uniform",
+     "shot": "aim",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-battle-results",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-battle-pre-results.ss",
+   "desc": "a battle's last blow, then its results: EXP, coins and items won stay on the game screen whole, the logo alone on the second screen",
+   "rules": [
+    "ML-3",
+    "ML-5"
+   ],
+   "input": [
+    [
+     20,
+     "A"
+    ],
+    [
+     22,
+     "-"
+    ]
+   ],
+   "shots": {
+    "blow": 40,
+    "results": 140
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "the results on the game screen",
+     "type": "not_uniform",
+     "shot": "results",
+     "screen": "game",
+     "rect": [
+      272,
+      244,
+      475,
+      567
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "ML-5",
+     "what": "nothing moved to the second screen's top left",
+     "type": "uniform",
+     "shot": "results",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "nothing moved to the second screen's right",
+     "type": "uniform",
+     "shot": "results",
+     "rect": [
+      512,
+      144,
+      975,
+      227
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-endgame-battle-16b",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-endgame-battle-16b.ss",
+   "desc": "a level 38 battle (room 0x16B, from an endgame save) choosing a block, where the old results word held something else mid-battle: the boxes and the three-digit meters on the second screen, then the item list (the endgame's, scrolling)",
+   "rules": [
+    "ML-5"
+   ],
+   "input": [
+    [
+     240,
+     "LEFT"
+    ],
+    [
+     244,
+     "-"
+    ],
+    [
+     300,
+     "A"
+    ],
+    [
+     304,
+     "-"
+    ]
+   ],
+   "shots": {
+    "blocks": 20,
+    "items": 400
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "the meters at the top left of the second screen",
+     "type": "not_uniform",
+     "shot": "blocks",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "the top right box on the second screen",
+     "type": "not_uniform",
+     "shot": "blocks",
+     "rect": [
+      472,
+      76,
+      975,
+      131
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "the item list's left edge on the second screen",
+     "type": "not_uniform",
+     "shot": "items",
+     "rect": [
+      472,
+      176,
+      531,
+      387
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-endgame-battle-bros",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-endgame-battle-076.ss",
+   "desc": "a level 38 battle (room 0x076, from an endgame save): BROS, then its list (Splash, Chopper, Fire Bros.) on the second screen with its cursor and the attack's level marks",
+   "rules": [
+    "ML-5"
+   ],
+   "input": [
+    [
+     30,
+     "RIGHT"
+    ],
+    [
+     34,
+     "-"
+    ],
+    [
+     80,
+     "A"
+    ],
+    [
+     84,
+     "-"
+    ],
+    [
+     160,
+     "DOWN"
+    ],
+    [
+     164,
+     "-"
+    ]
+   ],
+   "shots": {
+    "bros": 70,
+    "list": 150,
+    "list2": 190
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "the Bros. list on the second screen",
+     "type": "not_uniform",
+     "shot": "list",
+     "rect": [
+      472,
+      176,
+      975,
+      267
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-endgame-battle-results",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-endgame-battle-16b-last-blow.ss",
+   "desc": "a level 38 battle's last blow (room 0x16B), then its results: the EXP, coins and items panels stay on the game screen whole, the logo alone on the second screen",
+   "rules": [
+    "ML-5"
+   ],
+   "input": [
+    [
+     2,
+     "A"
+    ],
+    [
+     4,
+     "-"
+    ]
+   ],
+   "shots": {
+    "results": 40
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "the results on the game screen",
+     "type": "not_uniform",
+     "shot": "results",
+     "screen": "game",
+     "rect": [
+      272,
+      244,
+      475,
+      567
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "ML-5",
+     "what": "nothing moved to the second screen's top left",
+     "type": "uniform",
+     "shot": "results",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "nothing moved to the second screen's right",
+     "type": "uniform",
+     "shot": "results",
+     "rect": [
+      512,
+      144,
+      975,
+      227
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-boss-bowser",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-boss-bowser.ss",
+   "desc": "Bowser's battle on the Koopa Cruiser, choosing a block (level 38: the endgame file started in room 0x076, and the battle that starts there made this boss's by writing its formation, 0x030024B8, as the encounter is set): the boxes and meters on the second screen",
+   "rules": [
+    "ML-5"
+   ],
+   "shots": {
+    "blocks": 10
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "the meters at the top left of the second screen",
+     "type": "not_uniform",
+     "shot": "blocks",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "the top right box on the second screen",
+     "type": "not_uniform",
+     "shot": "blocks",
+     "rect": [
+      472,
+      76,
+      975,
+      131
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-boss-queen-bean",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-boss-queen-bean.ss",
+   "desc": "Queen Bean's battle (level 38: the endgame file started in room 0x076, and the battle that starts there made this boss's by writing its formation, 0x030024B8, as the encounter is set), played to aiming a solo attack: her name box stays on the game screen, the meters on the second screen",
+   "rules": [
+    "ML-5"
+   ],
+   "input": [
+    [
+     20,
+     "A"
+    ],
+    [
+     22,
+     "-"
+    ],
+    [
+     30,
+     "A"
+    ],
+    [
+     32,
+     "-"
+    ],
+    [
+     40,
+     "A"
+    ],
+    [
+     42,
+     "-"
+    ],
+    [
+     50,
+     "B"
+    ],
+    [
+     52,
+     "-"
+    ],
+    [
+     60,
+     "A"
+    ],
+    [
+     62,
+     "-"
+    ],
+    [
+     70,
+     "A"
+    ],
+    [
+     72,
+     "-"
+    ],
+    [
+     80,
+     "A"
+    ],
+    [
+     82,
+     "-"
+    ],
+    [
+     90,
+     "B"
+    ],
+    [
+     92,
+     "-"
+    ],
+    [
+     100,
+     "A"
+    ],
+    [
+     102,
+     "-"
+    ],
+    [
+     110,
+     "A"
+    ],
+    [
+     112,
+     "-"
+    ],
+    [
+     120,
+     "A"
+    ],
+    [
+     122,
+     "-"
+    ],
+    [
+     130,
+     "B"
+    ],
+    [
+     132,
+     "-"
+    ],
+    [
+     140,
+     "A"
+    ],
+    [
+     142,
+     "-"
+    ],
+    [
+     150,
+     "A"
+    ],
+    [
+     152,
+     "-"
+    ],
+    [
+     160,
+     "A"
+    ],
+    [
+     162,
+     "-"
+    ],
+    [
+     170,
+     "B"
+    ],
+    [
+     172,
+     "-"
+    ],
+    [
+     180,
+     "A"
+    ],
+    [
+     182,
+     "-"
+    ],
+    [
+     190,
+     "A"
+    ],
+    [
+     192,
+     "-"
+    ],
+    [
+     200,
+     "A"
+    ],
+    [
+     202,
+     "-"
+    ],
+    [
+     210,
+     "B"
+    ],
+    [
+     212,
+     "-"
+    ],
+    [
+     220,
+     "A"
+    ],
+    [
+     222,
+     "-"
+    ],
+    [
+     230,
+     "A"
+    ],
+    [
+     232,
+     "-"
+    ],
+    [
+     240,
+     "A"
+    ],
+    [
+     242,
+     "-"
+    ],
+    [
+     250,
+     "B"
+    ],
+    [
+     252,
+     "-"
+    ],
+    [
+     260,
+     "A"
+    ],
+    [
+     262,
+     "-"
+    ],
+    [
+     270,
+     "A"
+    ],
+    [
+     272,
+     "-"
+    ],
+    [
+     280,
+     "A"
+    ],
+    [
+     282,
+     "-"
+    ],
+    [
+     290,
+     "B"
+    ],
+    [
+     292,
+     "-"
+    ]
+   ],
+   "shots": {
+    "blocks": 10,
+    "aim": 300
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "the meters at the top left of the second screen",
+     "type": "not_uniform",
+     "shot": "blocks",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "aiming: the meters at the top left of the second screen",
+     "type": "not_uniform",
+     "shot": "aim",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "aiming: the name box on the game screen",
+     "type": "not_uniform",
+     "shot": "aim",
+     "screen": "game",
+     "rect": [
+      48,
+      76,
+      275,
+      115
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-boss-time-bomb",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-boss-time-bomb.ss",
+   "desc": "Roy's battle (formation 0x096) opening with the Time Bob-omb's message (level 38: the endgame file started in room 0x076, and the battle that starts there made this boss's by writing its formation, 0x030024B8, as the encounter is set): the message, the game's own box at the top, stays on the game screen like a conversation, and nothing goes to the second screen while it's up (the game hides the meters)",
+   "rules": [
+    "ML-5"
+   ],
+   "shots": {
+    "message": 10
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "the message on the game screen",
+     "type": "not_uniform",
+     "shot": "message",
+     "screen": "game",
+     "rect": [
+      112,
+      96,
+      915,
+      187
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "ML-5",
+     "what": "nothing at the second screen's top",
+     "type": "uniform",
+     "shot": "message",
+     "rect": [
+      472,
+      76,
+      975,
+      187
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-boss-cackletta",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-boss-cackletta.ss",
+   "desc": "the purple ghost boss of formation 0x0B3 (the final battle's look) (level 38: the endgame file started in room 0x076, and the battle that starts there made this boss's by writing its formation, 0x030024B8, as the encounter is set): the boxes and meters on the second screen",
+   "rules": [
+    "ML-5"
+   ],
+   "shots": {
+    "blocks": 10
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "the meters at the top left of the second screen",
+     "type": "not_uniform",
+     "shot": "blocks",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "the top right box on the second screen",
+     "type": "not_uniform",
+     "shot": "blocks",
+     "rect": [
+      472,
+      76,
+      975,
+      131
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-battle-damage",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-battle-damage.ss",
+   "desc": "Mario's jump landing on a Fighter Fly (a player's bug report): the damage number over the enemy stays on the game screen; only the meters are on the second screen",
+   "rules": [
+    "ML-5"
+   ],
+   "shots": {
+    "damage": 45
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "the meters at the top left of the second screen",
+     "type": "not_uniform",
+     "shot": "damage",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-battle-hit-luigi",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-battle-hit-luigi.ss",
+   "desc": "a Fighter Fly hitting Luigi, at the bottom left (the same battle played on): his damage number stays on the game screen, by him, not on the second screen",
+   "rules": [
+    "ML-5"
+   ],
+   "shots": {
+    "hit": 45
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "no damage number at Luigi's place on the second screen",
+     "type": "uniform",
+     "shot": "hit",
+     "rect": [
+      48,
+      444,
+      131,
+      539
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-battle-damage-9870",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-battle-damage-9870.ss",
+   "desc": "Mario's jump on a Fighter Fly with the damage made 9870 (the game's damage value, 0x02009382, poked as it's worked out): all four digits stay on the game screen over the enemy",
+   "rules": [
+    "ML-5"
+   ],
+   "shots": {
+    "damage": 14
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "the meters at the top left of the second screen",
+     "type": "not_uniform",
+     "shot": "damage",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-battle-hit-luigi-6543",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-battle-hit-luigi-6543.ss",
+   "desc": "a Fighter Fly hitting Luigi with the damage made 6543 (0x02009AA2, poked as it's worked out): the four digits stay on the game screen by him, running off its left edge",
+   "rules": [
+    "ML-5"
+   ],
+   "shots": {
+    "hit": 22
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "no damage number at Luigi's place on the second screen",
+     "type": "uniform",
+     "shot": "hit",
+     "rect": [
+      32,
+      444,
+      131,
+      539
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-after-battle",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-battle-victory.ss",
+   "desc": "a battle's results (a player's bug report), A, back to walking about on a map where the old screen byte flickered: Bros. Info comes back (Mario's page, level 2 now) within a few seconds",
+   "rules": [
+    "ML-2",
+    "ML-3"
+   ],
+   "input": [
+    [
+     20,
+     "A"
+    ],
+    [
+     24,
+     "-"
+    ]
+   ],
+   "shots": {
+    "results": 10,
+    "walking": 400
+   },
+   "checks": [
+    {
+     "rule": "ML-2",
+     "what": "Bros. Info taken after the battle",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-cruiser-deck",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-cruiser-deck.ss",
+   "desc": "walking about in another room of the Koopa Cruiser (room 0x13A, through the opening room's exit): Bros. Info taken",
+   "rules": [
+    "ML-2"
+   ],
+   "shots": {
+    "walking": 300
+   },
+   "checks": [
+    {
+     "rule": "ML-2",
+     "what": "Bros. Info taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ML-2",
+     "what": "no failed capture",
+     "type": "no_log",
+     "match": "capture failed"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-stardust-2",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-stardust-2.ss",
+   "desc": "walking about in another room of Stardust Fields (room 0x15, through an exit from the after-battle room): Bros. Info taken",
+   "rules": [
+    "ML-2"
+   ],
+   "shots": {
+    "walking": 300
+   },
+   "checks": [
+    {
+     "rule": "ML-2",
+     "what": "Bros. Info taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ML-2",
+     "what": "no failed capture",
+     "type": "no_log",
+     "match": "capture failed"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-endgame-scene",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-endgame-room-00a-scene-cafe.ss",
+   "desc": "a scene room (0x00A, a conversation: \"What's your order?\"), reached from an endgame save (a GameShark save from GameFAQs, the file's room changed at the file screen): the game takes no SELECT there, so nothing is taken and the logo stays",
+   "rules": [
+    "ML-3"
+   ],
+   "shots": {
+    "scene": 300
+   },
+   "checks": [
+    {
+     "rule": "ML-3",
+     "what": "no capture",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-endgame-02b",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-endgame-room-02b-town.ss",
+   "desc": "walking about in a town (room 0x02B), from an endgame save (a GameShark save from GameFAQs, the file's room changed at the file screen): Bros. Info taken, the brothers at level 38",
+   "rules": [
+    "ML-2"
+   ],
+   "shots": {
+    "walking": 300
+   },
+   "checks": [
+    {
+     "rule": "ML-2",
+     "what": "Bros. Info taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ML-2",
+     "what": "no failed capture",
+     "type": "no_log",
+     "match": "capture failed"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-endgame-05b",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-endgame-room-05b-castle-outside.ss",
+   "desc": "walking about in outside Beanbean Castle (room 0x05B), from an endgame save (a GameShark save from GameFAQs, the file's room changed at the file screen): Bros. Info taken, the brothers at level 38",
+   "rules": [
+    "ML-2"
+   ],
+   "shots": {
+    "walking": 300
+   },
+   "checks": [
+    {
+     "rule": "ML-2",
+     "what": "Bros. Info taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ML-2",
+     "what": "no failed capture",
+     "type": "no_log",
+     "match": "capture failed"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-endgame-094",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-endgame-room-094-jungle.ss",
+   "desc": "walking about in a jungle (room 0x094), from an endgame save (a GameShark save from GameFAQs, the file's room changed at the file screen): Bros. Info taken, the brothers at level 38",
+   "rules": [
+    "ML-2"
+   ],
+   "shots": {
+    "walking": 300
+   },
+   "checks": [
+    {
+     "rule": "ML-2",
+     "what": "Bros. Info taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ML-2",
+     "what": "no failed capture",
+     "type": "no_log",
+     "match": "capture failed"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-endgame-0c7",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-endgame-room-0c7-cave.ss",
+   "desc": "walking about in a blue cave (room 0x0C7), from an endgame save (a GameShark save from GameFAQs, the file's room changed at the file screen): Bros. Info taken, the brothers at level 38",
+   "rules": [
+    "ML-2"
+   ],
+   "shots": {
+    "walking": 300
+   },
+   "checks": [
+    {
+     "rule": "ML-2",
+     "what": "Bros. Info taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ML-2",
+     "what": "no failed capture",
+     "type": "no_log",
+     "match": "capture failed"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-endgame-120",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-endgame-room-120-desert.ss",
+   "desc": "walking about in a desert (room 0x120), from an endgame save (a GameShark save from GameFAQs, the file's room changed at the file screen): Bros. Info taken, the brothers at level 38",
+   "rules": [
+    "ML-2"
+   ],
+   "shots": {
+    "walking": 300
+   },
+   "checks": [
+    {
+     "rule": "ML-2",
+     "what": "Bros. Info taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ML-2",
+     "what": "no failed capture",
+     "type": "no_log",
+     "match": "capture failed"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-endgame-159",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-endgame-room-159-ice.ss",
+   "desc": "walking about in an ice area (room 0x159), from an endgame save (a GameShark save from GameFAQs, the file's room changed at the file screen): Bros. Info taken, the brothers at level 38",
+   "rules": [
+    "ML-2"
+   ],
+   "shots": {
+    "walking": 300
+   },
+   "checks": [
+    {
+     "rule": "ML-2",
+     "what": "Bros. Info taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ML-2",
+     "what": "no failed capture",
+     "type": "no_log",
+     "match": "capture failed"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-endgame-1a2",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-endgame-room-1a2-bowsers-castle-lava.ss",
+   "desc": "walking about in Bowser's Castle's lava (room 0x1A2), from an endgame save (a GameShark save from GameFAQs, the file's room changed at the file screen): Bros. Info taken, the brothers at level 38",
+   "rules": [
+    "ML-2"
+   ],
+   "shots": {
+    "walking": 300
+   },
+   "checks": [
+    {
+     "rule": "ML-2",
+     "what": "Bros. Info taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ML-2",
+     "what": "no failed capture",
+     "type": "no_log",
+     "match": "capture failed"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-endgame-1e7",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-endgame-room-1e7-late-town.ss",
+   "desc": "walking about in a later town (room 0x1E7), from an endgame save (a GameShark save from GameFAQs, the file's room changed at the file screen): Bros. Info taken, the brothers at level 38",
+   "rules": [
+    "ML-2"
+   ],
+   "shots": {
+    "walking": 300
+   },
+   "checks": [
+    {
+     "rule": "ML-2",
+     "what": "Bros. Info taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ML-2",
+     "what": "no failed capture",
+     "type": "no_log",
+     "match": "capture failed"
+    }
+   ]
   },
   {
    "id": "ml-logo-a88e",

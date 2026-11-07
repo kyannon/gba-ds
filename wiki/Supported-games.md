@@ -20,7 +20,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Lady Sia | `ALDE` `ALDP` (no Japanese release) | the pause screen as a status screen: lives, gems, villagers, the time, the ring and heart; the HUD off the game screen |
 | The Legend of Zelda: A Link to the Past & Four Swords | `AZLE` `AZLP` `AZLJ` | world and dungeon maps |
 | Mario Kart: Super Circuit (Mario Kart Advance in Japan) | `AMKE` `AMKP` `AMKJ` | the race HUD, results and podium |
-| Mario & Luigi: Superstar Saga (Mario & Luigi RPG in Japan) | `A88E` `A88P` `A88J` | Bros. Info of the brother you're controlling |
+| Mario & Luigi: Superstar Saga (Mario & Luigi RPG in Japan) | `A88E` `A88P` `A88J` | Bros. Info of the brother you're controlling; in battles, the boxes and meters |
 | Metroid Fusion | `AMTE` `AMTP` `AMTJ` | map |
 | Metroid: Zero Mission | `BMXE` `BMXP` `BMXJ` | map |
 | Pokémon Pinball: Ruby & Sapphire | `BPPE` | the table twice as tall over both screens, live, with the score bar |
@@ -102,7 +102,6 @@ The same second screen as F-Zero: GP Legend's: the HUD is moved off the game scr
 - Everywhere else (the title and menus, the course name as a race fades in, the end of a race once the HUD's gone, while the camera circles a destroyed machine, the results) the second screen shows the logo, the title's lettering.
 - With one screen (`layout = single`), the HUD stays where the game draws it.
 - The USA / Europe, Japanese and Chinese releases have all been tried in Grand Prix and Training; the link-cable modes haven't.
-- As the game takes its HUD down, the HUD shows on the game screen for a single frame.
 
 ## Final Fantasy Tactics Advance
 
@@ -203,8 +202,9 @@ The HUD is moved off the game screen rather than copied: GBA DS draws each frame
 The USA, European and Japanese (Mario & Luigi RPG) releases.
 
 - **Walking about,** the second screen is the **Bros. Info** screen (SELECT's menu, the third icon), as the game draws it, filling the screen: the page of the brother you're controlling, the one in front. Swap them with START and the page follows within a moment. It's opened in the background in a silent copy of the game about once a second; your game is never paused.
-- In battles and on the title, the second screen shows the logo; in scenes, conversations and the game's own menus it keeps its picture.
-- Not tried yet: later areas, and the European and Japanese releases beyond their titles.
+- **In battles,** the second screen has the battle's boxes and meters, over the logo: Mario's and Luigi's HP and BP at the top left, what the highlighted block does at the top right, the buttons at the bottom right, and the menus that open on the right side (the item list, the Bros. Attacks list) where they are on the game screen. The game screen keeps the command blocks and the A prompt over the brother whose turn it is, the damage numbers, the enemy's name while you aim, and everything else. Speech balloons in a battle, a boss's own messages and the results after it stay on the game screen. Tried in the story's first battles, late battles and boss battles.
+- On the title, the second screen shows the logo; in scenes, conversations and the game's own menus it keeps its picture.
+- Not tried yet: the European and Japanese releases beyond their titles.
 
 ## Metroid: Zero Mission and Metroid Fusion
 
@@ -317,7 +317,7 @@ The USA release and the Japanese one (Craft Sword Monogatari 2); there was no Eu
 ## Super Mario Advance 4: Super Mario Bros. 3
 
 - **On the world map,** the status bar (world, lives, coins, score and your three cards) moves from the bottom of the game screen to the top of the second screen, so the whole map shows. Below it is your item inventory, the panel L opens, as the game draws it, kept up to date as you walk about, win items in Toad Houses and use them. It's captured in the background like the other games' maps; the game itself is never paused.
-- **In Toad Houses, Spade games and the kings' rooms,** the status bar moves the same way, above your inventory. So it does on World-e's map (the e-Reader levels); with its inventory open there, the second screen shows the inventory without the status bar.
+- **In Toad Houses, Spade games and the kings' rooms,** the status bar moves the same way, above your inventory. So it does on World-e's map (the e-Reader levels), where the status bar stays put on the second screen while the inventory opens and closes; in World-e's castle hall, which has no status bar, the logo.
 - **In a level** (airships, boss rooms, World 8's tanks and Bowser's castle too), the status bar (world, lives, time, coins and score; in World-e's levels the coin count too) moves to the top of the second screen and the P meter to the middle of its bottom, with the logo between them. LEVEL CLEARED! and the card you win stay on the game screen. The status bar stays there through pipes, doors and bonus rooms.
 - The logo is Super Mario Bros. 3's own, from its title screen.
 - Every revision works (USA, Europe and Japan, the Virtual Console and Switch Online dumps), and so does the game's other set of colours, which some colour patches pick.

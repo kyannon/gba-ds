@@ -594,6 +594,7 @@ typedef struct {
 	unsigned baseMask, memLayers;
 	uint32_t memAddr[2], memMask[2], memVal[2];
 	int memSize[2], memN;
+	bool memAny; /* any one of them holds, instead of every one */
 	/* emu_hud_band: lines where a BG has one of these BGxCNT values */
 	unsigned lineHud, lineGame; /* this line's HUD layers / layers left out of the game */
 	int bandY0, bandY1;         /* this frame's band lines so far (y1 < y0: none) */
@@ -675,6 +676,7 @@ static uint32_t split_read(uint32_t a, int size) {
 	case 2: p = (const uint8_t*) g->memory.wram + (a & 0x3FFFF); break;
 	case 3: p = (const uint8_t*) g->memory.iwram + (a & 0x7FFF); break;
 	case 4: p = (const uint8_t*) g->memory.io + (a & 0x3FF); break;
+	case 6: p = (const uint8_t*) g->video.vram + ((a & 0x1FFFF) < 0x18000 ? a & 0x1FFFF : (a & 0x1FFFF) - 0x8000); break; /* (the tile maps: Mario & Luigi's boxes) */
 	default: return 0;
 	}
 	uint32_t v = 0;
@@ -717,8 +719,8 @@ static void split_draw(struct GBAVideoRenderer* r, int y) {
 			/* emu_hud_mem_layers: decided as the frame starts drawing, after
 			 * the game's vblank code has run (it sets the flag and draws what
 			 * goes with it in the same vblank) */
-			bool match = true;
-			for (int i = 0; i < split.memN && match; ++i) match = (split_read(split.memAddr[i], split.memSize[i]) & split.memMask[i]) == split.memVal[i];
+			bool match = !split.memAny;
+			for (int i = 0; i < split.memN && match != split.memAny; ++i) match = (split_read(split.memAddr[i], split.memSize[i]) & split.memMask[i]) == split.memVal[i];
 			unsigned m = split.baseMask | (match ? split.memLayers : 0);
 			if (m != split.bgMask) {
 				split.bgMask = split.lineHud = split.lineGame = m;
@@ -943,8 +945,9 @@ void emu_hud_keep_bgs(unsigned mask) {
 	split.keepBgs = mask;
 }
 
-void emu_hud_mem_layers(const uint32_t addr[2], const uint32_t mask[2], const uint32_t value[2], const int size[2], int n, unsigned layers) {
+void emu_hud_mem_layers(const uint32_t addr[2], const uint32_t mask[2], const uint32_t value[2], const int size[2], int n, bool any, unsigned layers) {
 	split.memN = n < 0 ? 0 : n > 2 ? 2 : n;
+	split.memAny = any;
 	for (int i = 0; i < split.memN; ++i) split.memAddr[i] = addr[i], split.memMask[i] = mask[i], split.memVal[i] = value[i], split.memSize[i] = size[i];
 	split.memLayers = layers;
 }

@@ -327,6 +327,12 @@ typedef struct MapProfile {
 	/* Back on the title / file menus (all must match): forget the map and
 	 * show the logo again until the next capture. */
 	MemProbe menu[2];
+	/* While every one of these matches, the second screen shows the logo
+	 * (as with no map yet), its map picture and HUD kept for when they
+	 * stop matching: Super Mario Advance 4's World-e castle hall, which
+	 * has no status bar (SM4-11) */
+	MemProbe logoIf[2];
+	MemProbe logoIfOr[2]; /* or while every one of these matches */
 
 	/* Values that change when the player enters a new room; a change
 	 * triggers an early capture. Only addr/size are used. */
@@ -472,6 +478,11 @@ typedef struct MapProfile {
 		 * below it, at its own size (Super Mario Advance 2), instead of a
 		 * backdrop. */
 		bool logoBelow;
+		/* While every one of these matches, the HUD picture on the second
+		 * screen isn't drawn again: the last one stays (Super Mario
+		 * Advance 4: World-e's status bar sliding off and back as the
+		 * inventory opens and closes, SM4-8) */
+		MemProbe freeze[2];
 		/* The top rows of the last map picture (the world map's level
 		 * list: its title row with the level's name) kept above the HUD,
 		 * which moves down that far (Super Mario Advance 2, SMA-7) */
@@ -564,6 +575,10 @@ typedef struct MapProfile {
 		struct {
 			MemProbe when[2];
 			unsigned bgMask;
+			/* while any one `when` probe matches, instead of every one;
+			 * probes may be in VRAM too (Mario & Luigi: BG2's text goes
+			 * while either box's frame is on BG3, ML-5) */
+			bool any;
 		} memLayers;
 	} hud;
 

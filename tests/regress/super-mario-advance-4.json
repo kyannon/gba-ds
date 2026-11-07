@@ -1493,6 +1493,411 @@
      "color": "303030"
     }
    ]
+  },
+  {
+   "id": "sm4-eu-language",
+   "rom": "AX4P",
+   "desc": "Europe from power-on (no save) to its Choose a Language menu: drawn whole on the game screen, the top of its checkered frame too, the logo on the second screen (a player's bug report: the frame's top went to the second screen)",
+   "rules": [
+    "SM4-10"
+   ],
+   "shots": {
+    "language": 400
+   },
+   "checks": [
+    {
+     "rule": "SM4-10",
+     "what": "the status bar's layer not taken",
+     "type": "no_log",
+     "match": "HUD on its other layer"
+    },
+    {
+     "rule": "SM4-10",
+     "what": "nothing at the top of the second screen",
+     "type": "uniform",
+     "shot": "language",
+     "screen": "second",
+     "rect": [
+      52,
+      64,
+      972,
+      120
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "SM4-10",
+     "what": "the frame's top on the game screen",
+     "type": "not_uniform",
+     "shot": "language",
+     "screen": "game",
+     "rect": [
+      32,
+      64,
+      992,
+      96
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "sm4-eu-vc-language",
+   "rom": "AX4P+vc",
+   "desc": "Europe's Rev 1 Virtual Console dump from power-on (no save) to its Choose a Language menu: drawn whole on the game screen, the top of its checkered frame too, the logo on the second screen (a player's bug report: the frame's top went to the second screen) (on the Virtual Console dump too: a player's report)",
+   "rules": [
+    "SM4-10"
+   ],
+   "shots": {
+    "language": 400
+   },
+   "checks": [
+    {
+     "rule": "SM4-10",
+     "what": "the status bar's layer not taken",
+     "type": "no_log",
+     "match": "HUD on its other layer"
+    },
+    {
+     "rule": "SM4-10",
+     "what": "nothing at the top of the second screen",
+     "type": "uniform",
+     "shot": "language",
+     "screen": "second",
+     "rect": [
+      52,
+      64,
+      972,
+      120
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "SM4-10",
+     "what": "the frame's top on the game screen",
+     "type": "not_uniform",
+     "shot": "language",
+     "screen": "game",
+     "rect": [
+      32,
+      64,
+      992,
+      96
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "sm4-eu-vc-worlde-inventory",
+   "rom": "AX4P+vc",
+   "state": "super-mario-advance-4/eu-vc-worlde-map.ss",
+   "desc": "World-e's map (Europe's Rev 1 Virtual Console): L opens the inventory, L again closes it; the status bar held still on the second screen",
+   "rules": [
+    "SM4-8"
+   ],
+   "input": [
+    [
+     60,
+     "L"
+    ],
+    [
+     64,
+     "-"
+    ],
+    [
+     160,
+     "L"
+    ],
+    [
+     164,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 50,
+    "sliding-off": 64,
+    "open": 130,
+    "sliding-back": 186,
+    "back": 230
+   },
+   "checks": [
+    {
+     "rule": "SM4-8",
+     "what": "the status bar at the top (sliding-off)",
+     "type": "not_uniform",
+     "shot": "sliding-off",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SM4-8",
+     "what": "the status bar at the top (open)",
+     "type": "not_uniform",
+     "shot": "open",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SM4-8",
+     "what": "the status bar at the top (sliding-back)",
+     "type": "not_uniform",
+     "shot": "sliding-back",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SM4-8",
+     "what": "the status bar at the top (back)",
+     "type": "not_uniform",
+     "shot": "back",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "sm4-eu-vc-worlde-castle",
+   "rom": "AX4P+vc",
+   "state": "super-mario-advance-4/eu-vc-worlde-castle.ss",
+   "desc": "World-e's castle hall (a player's bug report): the logo; out to World-e's map: the status bar and inventory",
+   "rules": [
+    "SM4-11",
+    "SM4-8"
+   ],
+   "input": [
+    [
+     43,
+     "B"
+    ],
+    [
+     51,
+     "-"
+    ],
+    [
+     140,
+     "LEFT"
+    ],
+    [
+     146,
+     "-"
+    ],
+    [
+     177,
+     "LEFT"
+    ],
+    [
+     184,
+     "-"
+    ]
+   ],
+   "shots": {
+    "hall": 20,
+    "map": 250
+   },
+   "checks": [
+    {
+     "rule": "SM4-11",
+     "what": "no status bar in the hall",
+     "type": "uniform",
+     "shot": "hall",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "SM4-8",
+     "what": "the status bar on World-e's map",
+     "type": "not_uniform",
+     "shot": "map",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "sm4-eu-vc-worlde-into-castle",
+   "rom": "AX4P+vc",
+   "state": "super-mario-advance-4/eu-vc-worlde-map.ss",
+   "desc": "World-e's map: Mario walks to the castle and goes in; the logo from the map's closing circle on",
+   "rules": [
+    "SM4-11"
+   ],
+   "input": [
+    [
+     20,
+     "RIGHT"
+    ],
+    [
+     24,
+     "-"
+    ],
+    [
+     80,
+     "RIGHT"
+    ],
+    [
+     84,
+     "-"
+    ],
+    [
+     140,
+     "RIGHT"
+    ],
+    [
+     144,
+     "-"
+    ],
+    [
+     200,
+     "RIGHT"
+    ],
+    [
+     204,
+     "-"
+    ],
+    [
+     260,
+     "A"
+    ],
+    [
+     264,
+     "-"
+    ]
+   ],
+   "shots": {
+    "closing": 290,
+    "hall": 450
+   },
+   "checks": [
+    {
+     "rule": "SM4-11",
+     "what": "no status bar as the map closes",
+     "type": "uniform",
+     "shot": "closing",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "SM4-11",
+     "what": "no status bar in the hall",
+     "type": "uniform",
+     "shot": "hall",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "sm4-eu-vc-worlde-into-level",
+   "rom": "AX4P+vc",
+   "state": "super-mario-advance-4/eu-vc-worlde-level-spot.ss",
+   "desc": "World-e's map, Mario on Classic World 1-1's spot (a player's bug report): A into the level; the logo, then the level's status bar, not the inventory for a frame between",
+   "rules": [
+    "SM4-11",
+    "SM4-2"
+   ],
+   "input": [
+    [
+     20,
+     "A"
+    ],
+    [
+     24,
+     "-"
+    ]
+   ],
+   "shots": {
+    "closing": 60,
+    "last-of-logo": 167,
+    "level": 400
+   },
+   "checks": [
+    {
+     "rule": "SM4-11",
+     "what": "no status bar as the map closes",
+     "type": "uniform",
+     "shot": "closing",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "SM4-11",
+     "what": "no status bar, nor the inventory, on the frame before the level's",
+     "type": "uniform",
+     "shot": "last-of-logo",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "SM4-2",
+     "what": "the level's status bar",
+     "type": "not_uniform",
+     "shot": "level",
+     "rect": [
+      32,
+      64,
+      988,
+      92
+     ],
+     "color": "303030",
+     "frac": 0.97
+    }
+   ]
   }
  ]
 }

@@ -2072,17 +2072,43 @@ static const char* dbz_compose(Emu* s, const void* state, uint32_t* out, int w, 
  * from the live state at every capture (SELECT's menu, its third icon, A),
  * on the page of the brother in front (it opens on Mario's; R turns to
  * Luigi's).
- *   ML_SCREEN 1 walking about, 0 SELECT's menu, 2 Bros. Info, 3 the title
+ *   ML_STATE, ML_MODE and the pairs after them: the game's screen and the
+ *     stack of scenes it's in, written only as they change (by the game's
+ *     scene code, the same on every map: walking about is set by the one
+ *     room setup, 0x08022FCC, with constants). ML_PAGE: the top scene.
+ *     (Until v1.4.11's test builds 0x02000C99: a DMA queue entry's transfer
+ *     count, which held 1 walking about on the first maps and flickered 0 /
+ *     1 on others, after a battle: the capture took the field for the menu
+ *     and failed there)
  *   ML_CURSOR the menu's icon (0 Items, 1 Equipment, 2 Bros. Info)
  */
-#define ML_SCREEN 0x02000C99
-#define ML_CURSOR 0x030040A9
 #define ML_STATE 0x02000008 /* 8 walking about (its menus too), 3 a battle, 2 the title */
+#define ML_MODE 0x02000009 /* with state 8: 21 walking about, 10 SELECT's menu opening, 26 the menus */
+#define ML_PAGE 0x0200000D /* in the menus: 9 SELECT's menu, 12 Bros. Info (Mario's page), 14 Luigi's */
+#define ML_WALKING 0x1508 /* ML_STATE and ML_MODE as a halfword, walking about */
+#define ML_CURSOR 0x030040A9
 #define ML_LEAD 0x02004F4C /* the brother in front: 0 Mario, 1 Luigi (START swaps) */
+/* BG3's tile map entry inside the results' red EXP panel (row 7, column 9):
+ * empty through a battle, set from the results' first frame (no battle box
+ * reaches it). (Until v1.4.11's test builds 0x02036EB0, a word that was 0
+ * in the first battles and a pointer in their results, but holds other
+ * things in later ones: their boxes stayed on the game screen) */
+#define ML_RESULTS 0x0600F9D2
+/* BG3's tile map entries at the top right box's right edge (row 1,
+ * column 29) and the bottom box's (row 18): palette 8 while a box is there */
+#define ML_BOX_TOP 0x0600F87A
+#define ML_BOX_BOTTOM 0x0600FC7A
+enum { ML_OTHER, ML_FIELD, ML_MENU, ML_BROS };
+static int ml_screen(Emu* s) {
+	if (emu_read16(s, ML_STATE) == ML_WALKING) return ML_FIELD;
+	if (emu_read8(s, ML_STATE) != 8 || emu_read8(s, ML_MODE) != 26) return ML_OTHER;
+	int page = emu_read8(s, ML_PAGE);
+	return page == 9 ? ML_MENU : page == 12 || page == 14 ? ML_BROS : ML_OTHER;
+}
 static bool ml_wait(Emu* s, int v, int max) {
 	for (int f = 0; f < max; ++f) {
 		emu_frame(s, 0);
-		if (emu_read8(s, ML_SCREEN) == v) return true;
+		if (ml_screen(s) == v) return true;
 	}
 	return false;
 }
@@ -2711,22 +2737,23 @@ static const char* ml_compose(Emu* s, const void* state, uint32_t* const* out, i
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
 	bool luigi = emu_read8(s, ML_LEAD) == 1;
-	int at = emu_read8(s, ML_SCREEN);
-	if (at == 1) {
+	int at = ml_screen(s);
+	if (at == ML_FIELD) {
 		aw_tap(s, K_SELECT, 1);
-		if (!ml_wait(s, 0, 60)) return "map button did nothing";
-		at = 0;
+		/* (the menu's scene some 50 frames on, as the suitcase opens) */
+		if (!ml_wait(s, ML_MENU, 90)) return "map button did nothing";
+		at = ML_MENU;
 	}
-	if (at == 0) {
-		aw_run(s, 0, 20); /* (past its opening) */
+	if (at == ML_MENU) {
+		aw_run(s, 0, 20); /* (past its opening: DOWN is taken 10 to 15 frames on) */
 		for (int i = 0; i < 8 && emu_read8(s, ML_CURSOR) != 2; ++i) {
 			aw_tap(s, emu_read8(s, ML_CURSOR) < 2 ? K_DOWN : K_UP, 1);
 			aw_run(s, 0, 4);
 		}
 		if (emu_read8(s, ML_CURSOR) != 2) return "Bros. Info not reached in the menu";
 		aw_tap(s, K_A, 1);
-		if (!ml_wait(s, 2, 90)) return "Bros. Info didn't open";
-	} else if (at != 2) {
+		if (!ml_wait(s, ML_BROS, 90)) return "Bros. Info didn't open";
+	} else if (at != ML_BROS) {
 		return "not walking about";
 	}
 	if (!ml_settle(s, 150)) return "Bros. Info didn't settle";
@@ -4268,6 +4295,14 @@ static const MapProfile profiles[] = {
 		.room = { { 0x03003DE4, 0xFF, 0, 1 }, { 0x03003DE8, 0xFF, 0, 1 }, { 0x03003E4A, 0xFF, 0, 1 } },
 		/* the title, game select and file screens */
 		.menu = { { 0x03003DE2, 0x80, 0x80, 1 } },
+		/* World-e's castle hall (its doors lead to the e-Reader levels):
+		 * where Mario is reads 0x08-0x09 as in a Toad House, but BG0, the
+		 * status bar's layer, is off: no status bar, the logo; and from
+		 * the moment Mario goes into it, or into a level, from World-e's
+		 * map (its state 0x03004FC8 12, while the map closes in a circle),
+		 * SM4-11 */
+		.logoIf = { { 0x03003DE2, 0xFE, 0x08, 1 }, { 0x04000000, 0x0100, 0, 2 } },
+		.logoIfOr = { { 0x03004FC8, 0xFF, 0x0C, 1 }, { 0x0400000C, 0xFFFF, 0xDC00, 2 } },
 		/* In a level the status bar along the top (world, lives, time,
 		 * coins, score) and the P meter at the bottom left are BG0
 		 * (0x9400): the whole layer goes to the second screen, the status
@@ -4296,9 +4331,12 @@ static const MapProfile profiles[] = {
 			 * BG0 there stays. (0x40, a level, is the main HUD's.) */
 			/* (not in the opening after Super Mario Bros. 3 is picked,
 			 * where Mario reads 0x41 too: BG2's tiles at character block
-			 * 2 there, 0 on every map and in the houses (SM4-9)) */
+			 * 2 there, 0 on every map and in the houses (SM4-9); nor on
+			 * Europe's language menu, which leaves BG1 off (0x1900), shown
+			 * on every map and in the houses (0x1300, 0x1B00, 0x1F00),
+			 * SM4-10) */
 			.alt = { .on = { { 0x03003DE2, 0xFE, 0x40, 1, true, 0x08 }, { 0x03003CAA, 0xFF, 0, 1 },
-			                 { 0x04000000, 0x0100, 0x0100, 2 }, { 0x03003759, 0xFF, 0, 1 },
+			                 { 0x04000000, 0x0300, 0x0300, 2 }, { 0x03003759, 0xFF, 0, 1 },
 			                 { 0x0400000C, 0x000C, 0, 2 } },
 			         .bgMask = 1,
 			         .moves = { { 0, 0, 239, 127, 0, 0, 0, 0, true }, { 0, 128, 239, 159, 0, 0, 'T', 0 } },
@@ -4307,10 +4345,17 @@ static const MapProfile profiles[] = {
 			 * there, or a house's own menu: the last picture stays */
 			.keep = { { 0x03003DE2, 0xFE, 0x40, 1, true, 0x08 } },
 			/* World-e's map: its two-row status bar is BG2 (0xDC00; in
-			 * levels and houses BG2 is the background, never 0xDC00), at
-			 * rest (vertical scroll 0: the inventory panel, on the same
-			 * layer, slides in with it and stays on the game screen) */
-			.memLayers = { .when = { { 0x0400000C, 0xFFFF, 0xDC00, 2 }, { 0x0400001A, 0x01FF, 0, 2 } }, .bgMask = 0x4 },
+			 * levels and houses BG2 is the background, never 0xDC00),
+			 * while the inventory isn't open (0x03003759 0: the bar at
+			 * rest or sliding; the inventory panel, on the same layer,
+			 * stays on the game screen) */
+			.memLayers = { .when = { { 0x0400000C, 0xFFFF, 0xDC00, 2 }, { 0x03003759, 0xFF, 0, 1 } }, .bgMask = 0x4 },
+			/* World-e's status bar sliding off as the inventory opens
+			 * (0x03003759 still 0), and back as it closes: BG2 scrolled
+			 * up to 32 rows down (0x1E0-0x1FF). It's off the game screen
+			 * (memLayers) and held still on the second screen as it was
+			 * at rest, through the inventory too (keep), SM4-8 */
+			.freeze = { { 0x0400000C, 0xFFFF, 0xDC00, 2 }, { 0x0400001A, 0x01FF, 0x1E0, 2, true, 0x1FF, true } },
 		},
 	},
 	{
@@ -4515,9 +4560,15 @@ static const MapProfile profiles[] = {
 			 * the camera circling a wreck has none (0x61). Before the
 			 * owner's reports of Nov 5 (a driven finish: mode 0x10; RANK
 			 * OUT: mode 8) this went by the modes alone and the flag
-			 * 0x030005F8, which drops at the finish (FZM-2, FZM-6, FZM-8) */
+			 * 0x030005F8, which drops at the finish (FZM-2, FZM-6, FZM-8).
+			 * The display in mode 2 too (the track, 0x3C42 in every race
+			 * moment seen): the menus are mode 0 (0x1240, 0x1440, 0x1740),
+			 * and after a race their mode byte (3, 9) and the state byte
+			 * (0x61-0x64, which the menus use too) read as a race's: the
+			 * second screen went black there (the owner's reports of Nov 6,
+			 * FZM-6) */
 			.on = { { 0x03000BFB, 0xFF, 3, 1, true, 0x10, true }, { 0x03000BFB, 0x07, 0, 1, true, 6, true },
-			        { 0x020168C9, 0xFF, 0x63, 1, true, 0x64, true } },
+			        { 0x020168C9, 0xFF, 0x63, 1, true, 0x64, true }, { 0x04000000, 0x0007, 2, 2 } },
 			.objs = { /* POW */
 			          { 130, -8, 239, 12, 376, 393, 0 },
 			          /* SPARE MACHINES */
@@ -4775,7 +4826,7 @@ static const MapProfile profiles[] = {
 		.crop_h = GBA_H,
 		/* walking about: taken (about once a second); elsewhere (scenes,
 		 * conversations) the last picture stays */
-		.live = { { ML_STATE, 0xFF, 8, 1 }, { ML_SCREEN, 0xFF, 1, 1 } },
+		.live = { { ML_STATE, 0xFFFF, ML_WALKING, 2 } },
 		/* a battle, the title: the logo (ML-1, ML-3) */
 		.menu = { { ML_STATE, 0xFF, 3, 1, true, 2 } },
 		/* the brothers swapped (START): taken again at once */
@@ -4786,6 +4837,31 @@ static const MapProfile profiles[] = {
 		          /* (without the sky at the lettering's edge, and its
 		           * shadow's dithered specks: ML-1) */
 		          .edgeClear = { 0x6BBDD6, 0x635242, 0x73634A }, .rev = 1 },
+		.hud = {
+			/* in a battle, before its results (ML-5): those stay on the
+			 * game screen whole, the logo alone on the second screen */
+			.on = { { ML_STATE, 0xFF, 3, 1 }, { ML_RESULTS, 0xFFFF, 0, 2 } },
+			/* the boxes' frames (BG3: only ever the boxes; empty in a
+			 * conversation, and between the boxes) */
+			.bgMask = 0x8,
+			/* their text (BG2) only while a box is up: BG2 is also the
+			 * tutorials' speech balloons, which stay by the speaker */
+			.memLayers = { .when = { { ML_BOX_TOP, 0xF000, 0x8000, 2 }, { ML_BOX_BOTTOM, 0xF000, 0x8000, 2 } }, .bgMask = 0x4, .any = true },
+			/* priority 0: the meters, the menus' cursor and icons (the
+			 * blocks, the A over the brother's head and the rest are 2);
+			 * not palette 15: a speech balloon's marker and edges. The
+			 * meters' digits and backing (tiles 0-111) only in their
+			 * corner (x 4-93, rows 130-142 seen): the damage numbers over
+			 * an enemy or a brother are the same digits, and stay */
+			.objs = { { -16, 120, 110, 159, 0, 111, 0, 0x7FFF }, { -256, -96, 255, 159, 112, 1023, 0, 0x7FFF } },
+			/* the meters (bottom left; the bottom box starts at 120) to
+			 * the top left corner, against the top right box (from
+			 * column 104) and above the item list's cursor (from row 29);
+			 * the name box of the enemy aimed at (columns 0-103, rows
+			 * 1-21) stays on the game screen, out of their way */
+			.moves = { { 0, 120, 117, 159, 'L', 0, 'T', 0 }, { 0, 0, 103, 22, 0, 0, 0, 0, true } },
+			.logoBelow = true,
+		},
 	},
 	{
 		/* Dragon Ball Z: The Legacy of Goku (USA; Europe: the same, ALGP).
@@ -5235,6 +5311,7 @@ static void sma4_moved(MapProfile* p) {
 	p->hud.on[0].addr -= 4;
 	p->hud.alt.on[0].addr -= 4;
 	p->hud.keep[0].addr -= 4;
+	p->logoIf[0].addr -= 4;
 }
 static void sma4_eur(MapProfile* p) {
 	sma4_moved(p);
