@@ -13,6 +13,7 @@
 
 ### Fixes
 - **Sonic Advance 3:** as each act or boss starts, the rings, time and lives no longer sit on the game's card and then jump to the second screen: they're on neither screen until the second screen has the new card, then they're there over it. (The moment before the card's name came in, when they were off the game screen, is gone with it.)
+- **Final Fantasy Tactics Advance:** when one of your units gets two turns in a row, the turn order is now taken again at the start of its second turn, so the turn order shown on the next enemy turn is the one from its second turn, not its first. (If every other unit is stopped or knocked out, the second turn still isn't noticed.)
 ## v1.4.10 (2026-11-06)
 
 ### New games

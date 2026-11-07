@@ -1904,6 +1904,67 @@
      "match": "not the Laws"
     }
    ]
+  },
+  {
+   "id": "ft-us-second-turn",
+   "rom": "AFXE",
+   "state": "final-fantasy-tactics-advance/us-double-turn.ss",
+   "desc": "Marche's turn, every other unit's turn counter set to 0 (the harness's pokes on us-battle-idle.ss), so that he gets the next turn too; he waits (A, DOWN held to Wait, A, A), and his second turn in a row begins: the turn order and Laws taken again then",
+   "rules": [
+    "FT-13"
+   ],
+   "input": [
+    [
+     100,
+     "A"
+    ],
+    [
+     104,
+     "-"
+    ],
+    [
+     140,
+     "DOWN"
+    ],
+    [
+     168,
+     "-"
+    ],
+    [
+     200,
+     "A"
+    ],
+    [
+     204,
+     "-"
+    ],
+    [
+     260,
+     "A"
+    ],
+    [
+     264,
+     "-"
+    ]
+   ],
+   "shots": {
+    "first": 90,
+    "second": 480
+   },
+   "checks": [
+    {
+     "rule": "FT-13",
+     "what": "the turn order taken at his first turn's start",
+     "type": "log",
+     "match": "ft turn 1 \\(unit 255c\\): turn order taken"
+    },
+    {
+     "rule": "FT-13",
+     "what": "and again at his second turn's start (the same unit, the other units' turn counters moved on)",
+     "type": "log",
+     "match": "ft turn 2 \\(unit 255c\\): turn order taken"
+    }
+   ]
   }
  ]
 }

@@ -972,9 +972,11 @@ static const char* sn2_compose(Emu* s, const void* state, uint32_t* const* out, 
                                 * action), or on the world map with nothing or the Laws open */
 #define FT_V_SHOWN 0xF0000012  /* 1 in a battle (FT_V_BATTLE) or on the world map */
 #define FT_V_TURN 0xF0000015   /* in a battle, the active unit's data (its low 16 bits),
-                                * + 0x10000 if it isn't yours (FT_V_THEIRS); 0 for a few
-                                * frames between two turns, even one unit's two in a
-                                * row: each turn's start a change (FT-13) */
+                                * + 0x10000 if it isn't yours (FT_V_THEIRS), its top
+                                * bits from the other units' turn counters
+                                * (ft_turn_sig); 0 for a few frames between two turns:
+                                * each turn's start a change, one unit's second in a
+                                * row too (FT-13) */
 #define FT_V_THEIRS 0xF0000014 /* 1 in a battle when it isn't your turn: the active unit
                                * an enemy, the judge or a guest (its data's flags, +0x29 of
                                * the unit FT_ACTIVE's record points to: 0x80 an enemy, 0x10
@@ -991,6 +993,31 @@ static bool ft_world(Emu* e) {
 	       emu_read32(e, 0x0400000C) == FT_WM_BG23;
 }
 
+/* A unit's second turn in a row (FT-13): the other units' turn counters
+ * (CT, 16 bits at +0xD0 of each unit's data; whoever reaches 1000 gets the
+ * turn), hashed. They stay put all through a turn and all move on in the
+ * gap between two turns, the same unit's next one too, which reads the
+ * same active record and its CT 1000 again. The units are a table of
+ * 0x90-byte records, each starting with a pointer to its unit's data
+ * (0x020223AC in the USA's battles, Japan's 0x30 lower), the active one
+ * (FT_ACTIVE) among them; the words either side of the table aren't EWRAM
+ * pointers, so it's walked out from the active record. With no other
+ * unit's counter moving (all stopped or KO'd), a second turn still goes
+ * unnoticed. (The game keeps no count of turns and no previous unit; the
+ * gap alone was missed: game.c's back-off after the facing prompt's
+ * failed captures covers it.) */
+static uint32_t ft_turn_sig(Emu* e, uint32_t rec) {
+	uint32_t h = 2166136261u, lo = rec, hi = rec;
+	while (emu_read32(e, lo - 0x90) >> 24 == 0x02 && rec - lo < 0x90 * 16) lo -= 0x90;
+	while (emu_read32(e, hi + 0x90) >> 24 == 0x02 && hi - rec < 0x90 * 16) hi += 0x90;
+	for (uint32_t r = lo; r <= hi; r += 0x90) {
+		uint32_t ch = emu_read32(e, r);
+		if (r == rec || ch >> 24 != 0x02) continue;
+		h = (h ^ emu_read16(e, ch + 0xD0)) * 16777619u;
+	}
+	return h;
+}
+
 static uint32_t ft_virt(Emu* e, uint32_t addr) {
 	/* (a scene on the battle map is out of it: the logo; above all the
 	 * one once the battle's won) */
@@ -999,7 +1026,14 @@ static uint32_t ft_virt(Emu* e, uint32_t addr) {
 	bool in = emu_read8(e, FT_IN_BATTLE) == 1 && (emu_read32(e, FT_SCENE_(e)) >> 24) != 0x02 &&
 	          emu_read8(e, FT_MODE_(e)) != FT_MODE_TOWN; /* (a town's Pub, Shop or Prison reads in a battle too) */
 	if (addr == FT_V_BATTLE) return in;
-	if (addr == FT_V_TURN) return in ? (emu_read32(e, FT_ACTIVE - (e->gameCode[3] == 'J' ? 0x30 : 0)) & 0xFFFF) | ft_virt(e, FT_V_THEIRS) << 16 : 0;
+	if (addr == FT_V_TURN) {
+		if (!in) return 0;
+		uint32_t rec = emu_read32(e, FT_ACTIVE - (e->gameCode[3] == 'J' ? 0x30 : 0));
+		if (rec >> 24 != 0x02) return 0;
+		/* (the other units' counters in its top bits: the key stays changed
+		 * after a unit's second turn has begun, not only for the gap) */
+		return ((rec & 0xFFFF) | ft_virt(e, FT_V_THEIRS) << 16) ^ (ft_turn_sig(e, rec) & 0xFFFE0000u);
+	}
 	if (addr == FT_V_THEIRS) {
 		uint32_t rec = emu_read32(e, FT_ACTIVE - (e->gameCode[3] == 'J' ? 0x30 : 0));
 		uint32_t ch = rec >> 24 == 0x02 ? emu_read32(e, rec) : 0;
@@ -1498,8 +1532,9 @@ static uint32_t ftWin[2][GBA_W * GBA_H], ftWin3[2][GBA_W * GBA_H];
 static int ftWw[2], ftWh[2];
 /* the active unit whose turn the turn order was last checked for, and
  * whether it's been taken in that turn (FT-13) */
-static uint32_t ftTurnRec;
+static uint32_t ftTurnRec, ftTurnSig;
 static bool ftTurnTaken;
+static unsigned ftTurnN; /* (turns noticed since the world map, for GBADS_DEBUG) */
 /* FT-9's screen from the turn order and the Laws as last taken */
 static void ft_draw_turn(uint32_t* o, int w, int h) {
 	uint32_t (*win)[GBA_W * GBA_H] = ftWin, (*win3)[GBA_W * GBA_H] = ftWin3;
@@ -1533,7 +1568,7 @@ static const char* ft_compose(Emu* s, const void* state, uint32_t* const* out, i
 	emu_frame(s, 0);
 	if (ft_world(s)) {
 		ftWw[0] = ftWw[1] = 0; /* (a battle's turn order isn't the next one's) */
-		ftTurnRec = 0;
+		ftTurnRec = 0, ftTurnN = 0;
 		/* no checkerboard yet (FT-14): taken from the Party screen; the
 		 * Laws aren't drawn until it is (the logo or the last picture
 		 * stays), three tries at most, then on dark grey */
@@ -1560,7 +1595,10 @@ static const char* ft_compose(Emu* s, const void* state, uint32_t* const* out, i
 			ftTurnRec = 0;
 			return "between turns";
 		}
-		if (rec != ftTurnRec) ftTurnRec = rec, ftTurnTaken = false;
+		/* (the same unit again, its second turn in a row: the other units'
+		 * counters have moved on) */
+		uint32_t sig = ft_turn_sig(s, rec);
+		if (rec != ftTurnRec || sig != ftTurnSig) ftTurnRec = rec, ftTurnSig = sig, ftTurnTaken = false, ++ftTurnN;
 	}
 	/* not your turn (FT-13): the turn order and the Laws as last taken */
 	if (ft_virt(s, FT_V_THEIRS)) {
@@ -1621,6 +1659,7 @@ static const char* ft_compose(Emu* s, const void* state, uint32_t* const* out, i
 		if (st) memcpy(page, np, sizeof(page)), pages = 2;
 		else pages = 0;
 		if (!st || turn) {
+			if (ok[0] && !ftTurnTaken && getenv("GBADS_DEBUG")) fprintf(stderr, "ft turn %u (unit %04x): turn order taken\n", ftTurnN, (unsigned) (ftTurnRec & 0xFFFF));
 			if (ok[0]) ftTurnTaken = true;
 			for (int i = 0; i < 2; ++i) {
 				if (ok[i]) memcpy(win[i], nw[i], (size_t) a[i] * b[i] * 4), memcpy(win3[i], nw3[i], (size_t) a[i] * b[i] * 4), ww[i] = a[i], wh[i] = b[i];
