@@ -2072,17 +2072,43 @@ static const char* dbz_compose(Emu* s, const void* state, uint32_t* out, int w, 
  * from the live state at every capture (SELECT's menu, its third icon, A),
  * on the page of the brother in front (it opens on Mario's; R turns to
  * Luigi's).
- *   ML_SCREEN 1 walking about, 0 SELECT's menu, 2 Bros. Info, 3 the title
+ *   ML_STATE, ML_MODE and the pairs after them: the game's screen and the
+ *     stack of scenes it's in, written only as they change (by the game's
+ *     scene code, the same on every map: walking about is set by the one
+ *     room setup, 0x08022FCC, with constants). ML_PAGE: the top scene.
+ *     (Until v1.4.11's test builds 0x02000C99: a DMA queue entry's transfer
+ *     count, which held 1 walking about on the first maps and flickered 0 /
+ *     1 on others, after a battle: the capture took the field for the menu
+ *     and failed there)
  *   ML_CURSOR the menu's icon (0 Items, 1 Equipment, 2 Bros. Info)
  */
-#define ML_SCREEN 0x02000C99
-#define ML_CURSOR 0x030040A9
 #define ML_STATE 0x02000008 /* 8 walking about (its menus too), 3 a battle, 2 the title */
+#define ML_MODE 0x02000009 /* with state 8: 21 walking about, 10 SELECT's menu opening, 26 the menus */
+#define ML_PAGE 0x0200000D /* in the menus: 9 SELECT's menu, 12 Bros. Info (Mario's page), 14 Luigi's */
+#define ML_WALKING 0x1508 /* ML_STATE and ML_MODE as a halfword, walking about */
+#define ML_CURSOR 0x030040A9
 #define ML_LEAD 0x02004F4C /* the brother in front: 0 Mario, 1 Luigi (START swaps) */
+/* BG3's tile map entry inside the results' red EXP panel (row 7, column 9):
+ * empty through a battle, set from the results' first frame (no battle box
+ * reaches it). (Until v1.4.11's test builds 0x02036EB0, a word that was 0
+ * in the first battles and a pointer in their results, but holds other
+ * things in later ones: their boxes stayed on the game screen) */
+#define ML_RESULTS 0x0600F9D2
+/* BG3's tile map entries at the top right box's right edge (row 1,
+ * column 29) and the bottom box's (row 18): palette 8 while a box is there */
+#define ML_BOX_TOP 0x0600F87A
+#define ML_BOX_BOTTOM 0x0600FC7A
+enum { ML_OTHER, ML_FIELD, ML_MENU, ML_BROS };
+static int ml_screen(Emu* s) {
+	if (emu_read16(s, ML_STATE) == ML_WALKING) return ML_FIELD;
+	if (emu_read8(s, ML_STATE) != 8 || emu_read8(s, ML_MODE) != 26) return ML_OTHER;
+	int page = emu_read8(s, ML_PAGE);
+	return page == 9 ? ML_MENU : page == 12 || page == 14 ? ML_BROS : ML_OTHER;
+}
 static bool ml_wait(Emu* s, int v, int max) {
 	for (int f = 0; f < max; ++f) {
 		emu_frame(s, 0);
-		if (emu_read8(s, ML_SCREEN) == v) return true;
+		if (ml_screen(s) == v) return true;
 	}
 	return false;
 }
@@ -2602,22 +2628,23 @@ static const char* ml_compose(Emu* s, const void* state, uint32_t* const* out, i
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
 	bool luigi = emu_read8(s, ML_LEAD) == 1;
-	int at = emu_read8(s, ML_SCREEN);
-	if (at == 1) {
+	int at = ml_screen(s);
+	if (at == ML_FIELD) {
 		aw_tap(s, K_SELECT, 1);
-		if (!ml_wait(s, 0, 60)) return "map button did nothing";
-		at = 0;
+		/* (the menu's scene some 50 frames on, as the suitcase opens) */
+		if (!ml_wait(s, ML_MENU, 90)) return "map button did nothing";
+		at = ML_MENU;
 	}
-	if (at == 0) {
-		aw_run(s, 0, 20); /* (past its opening) */
+	if (at == ML_MENU) {
+		aw_run(s, 0, 20); /* (past its opening: DOWN is taken 10 to 15 frames on) */
 		for (int i = 0; i < 8 && emu_read8(s, ML_CURSOR) != 2; ++i) {
 			aw_tap(s, emu_read8(s, ML_CURSOR) < 2 ? K_DOWN : K_UP, 1);
 			aw_run(s, 0, 4);
 		}
 		if (emu_read8(s, ML_CURSOR) != 2) return "Bros. Info not reached in the menu";
 		aw_tap(s, K_A, 1);
-		if (!ml_wait(s, 2, 90)) return "Bros. Info didn't open";
-	} else if (at != 2) {
+		if (!ml_wait(s, ML_BROS, 90)) return "Bros. Info didn't open";
+	} else if (at != ML_BROS) {
 		return "not walking about";
 	}
 	if (!ml_settle(s, 150)) return "Bros. Info didn't settle";
@@ -4684,7 +4711,7 @@ static const MapProfile profiles[] = {
 		.crop_h = GBA_H,
 		/* walking about: taken (about once a second); elsewhere (scenes,
 		 * conversations) the last picture stays */
-		.live = { { ML_STATE, 0xFF, 8, 1 }, { ML_SCREEN, 0xFF, 1, 1 } },
+		.live = { { ML_STATE, 0xFFFF, ML_WALKING, 2 } },
 		/* a battle, the title: the logo (ML-1, ML-3) */
 		.menu = { { ML_STATE, 0xFF, 3, 1, true, 2 } },
 		/* the brothers swapped (START): taken again at once */
@@ -4695,6 +4722,31 @@ static const MapProfile profiles[] = {
 		          /* (without the sky at the lettering's edge, and its
 		           * shadow's dithered specks: ML-1) */
 		          .edgeClear = { 0x6BBDD6, 0x635242, 0x73634A }, .rev = 1 },
+		.hud = {
+			/* in a battle, before its results (ML-5): those stay on the
+			 * game screen whole, the logo alone on the second screen */
+			.on = { { ML_STATE, 0xFF, 3, 1 }, { ML_RESULTS, 0xFFFF, 0, 2 } },
+			/* the boxes' frames (BG3: only ever the boxes; empty in a
+			 * conversation, and between the boxes) */
+			.bgMask = 0x8,
+			/* their text (BG2) only while a box is up: BG2 is also the
+			 * tutorials' speech balloons, which stay by the speaker */
+			.memLayers = { .when = { { ML_BOX_TOP, 0xF000, 0x8000, 2 }, { ML_BOX_BOTTOM, 0xF000, 0x8000, 2 } }, .bgMask = 0x4, .any = true },
+			/* priority 0: the meters, the menus' cursor and icons (the
+			 * blocks, the A over the brother's head and the rest are 2);
+			 * not palette 15: a speech balloon's marker and edges. The
+			 * meters' digits and backing (tiles 0-111) only in their
+			 * corner (x 4-93, rows 130-142 seen): the damage numbers over
+			 * an enemy or a brother are the same digits, and stay */
+			.objs = { { -16, 120, 110, 159, 0, 111, 0, 0x7FFF }, { -256, -96, 255, 159, 112, 1023, 0, 0x7FFF } },
+			/* the meters (bottom left; the bottom box starts at 120) to
+			 * the top left corner, against the top right box (from
+			 * column 104) and above the item list's cursor (from row 29);
+			 * the name box of the enemy aimed at (columns 0-103, rows
+			 * 1-21) stays on the game screen, out of their way */
+			.moves = { { 0, 120, 117, 159, 'L', 0, 'T', 0 }, { 0, 0, 103, 22, 0, 0, 0, 0, true } },
+			.logoBelow = true,
+		},
 	},
 	{
 		/* Dragon Ball Z: The Legacy of Goku (USA; Europe: the same, ALGP).

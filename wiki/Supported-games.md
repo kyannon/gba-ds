@@ -20,7 +20,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Lady Sia | `ALDE` `ALDP` (no Japanese release) | the pause screen as a status screen: lives, gems, villagers, the time, the ring and heart; the HUD off the game screen |
 | The Legend of Zelda: A Link to the Past & Four Swords | `AZLE` `AZLP` `AZLJ` | world and dungeon maps |
 | Mario Kart: Super Circuit (Mario Kart Advance in Japan) | `AMKE` `AMKP` `AMKJ` | the race HUD, results and podium |
-| Mario & Luigi: Superstar Saga (Mario & Luigi RPG in Japan) | `A88E` `A88P` `A88J` | Bros. Info of the brother you're controlling |
+| Mario & Luigi: Superstar Saga (Mario & Luigi RPG in Japan) | `A88E` `A88P` `A88J` | Bros. Info of the brother you're controlling; in battles, the boxes and meters |
 | Metroid Fusion | `AMTE` `AMTP` `AMTJ` | map |
 | Metroid: Zero Mission | `BMXE` `BMXP` `BMXJ` | map |
 | Pokémon Pinball: Ruby & Sapphire | `BPPE` | the table twice as tall over both screens, live, with the score bar |
@@ -203,8 +203,9 @@ The HUD is moved off the game screen rather than copied: GBA DS draws each frame
 The USA, European and Japanese (Mario & Luigi RPG) releases.
 
 - **Walking about,** the second screen is the **Bros. Info** screen (SELECT's menu, the third icon), as the game draws it, filling the screen: the page of the brother you're controlling, the one in front. Swap them with START and the page follows within a moment. It's opened in the background in a silent copy of the game about once a second; your game is never paused.
-- In battles and on the title, the second screen shows the logo; in scenes, conversations and the game's own menus it keeps its picture.
-- Not tried yet: later areas, and the European and Japanese releases beyond their titles.
+- **In battles,** the second screen has the battle's boxes and meters, over the logo: Mario's and Luigi's HP and BP at the top left, what the highlighted block does at the top right, the buttons at the bottom right, and the menus that open on the right side (the item list, the Bros. Attacks list) where they are on the game screen. The game screen keeps the command blocks and the A prompt over the brother whose turn it is, the damage numbers, the enemy's name while you aim, and everything else. Speech balloons in a battle, a boss's own messages and the results after it stay on the game screen. Tried in the story's first battles, late battles and boss battles.
+- On the title, the second screen shows the logo; in scenes, conversations and the game's own menus it keeps its picture.
+- Not tried yet: the European and Japanese releases beyond their titles.
 
 ## Metroid: Zero Mission and Metroid Fusion
 
