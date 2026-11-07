@@ -102,7 +102,6 @@ The same second screen as F-Zero: GP Legend's: the HUD is moved off the game scr
 - Everywhere else (the title and menus, the course name as a race fades in, the end of a race once the HUD's gone, while the camera circles a destroyed machine, the results) the second screen shows the logo, the title's lettering.
 - With one screen (`layout = single`), the HUD stays where the game draws it.
 - The USA / Europe, Japanese and Chinese releases have all been tried in Grand Prix and Training; the link-cable modes haven't.
-- As the game takes its HUD down, the HUD shows on the game screen for a single frame.
 
 ## Final Fantasy Tactics Advance
 
