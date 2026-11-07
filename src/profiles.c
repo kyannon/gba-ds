@@ -3278,6 +3278,47 @@ static uint32_t ls_virt(Emu* e, uint32_t addr) {
 	return 0;
 }
 
+/* Wario Land 4 (both releases): the screen the game is on, 0x03000C3A
+ * (0 scenes, 1 the hub, a passage's level select, the vortex and tally,
+ * 2 in a level, 4 the pause screen up, 9 the file screen), what it's
+ * doing there, 0x03000C3C (2 playing), and the level, 0x03000003 (0-3;
+ * 4 a boss's corridor and fight, whose pause is a plain PAUSE) */
+#define WL4_SCREEN 0x03000C3A
+#define WL4_SUB 0x03000C3C
+#define WL4_LEVEL 0x03000003
+#define WL4_HEARTS 0x03001910
+/* 1 outside the levels, or once Wario has lost his last heart: the logo
+ * (WL4-7) */
+#define WL4_V_OFFLEVEL 0xF0000067
+/* 1 while the HUD is left off the game screen: in a level's play, Wario
+ * alive (WL4-4) */
+#define WL4_V_HUDOFF 0xF0000069
+/* 1 while a boss fight's countdown is in its place: its figures, the
+ * sprite with tile 128 in palette 4, at (96, 2). The fight opens with them
+ * big in the middle of the room and the stopwatch bouncing about, then
+ * slides them up to there (WL4-9). */
+#define WL4_V_CLOCKSET 0xF0000068
+static uint32_t wl4_virt(Emu* e, uint32_t addr) {
+	if (addr == WL4_V_CLOCKSET) {
+		for (int i = 0; i < 128; ++i) {
+			uint16_t a0 = emu_read16(e, 0x07000000 + i * 8);
+			uint16_t a1 = emu_read16(e, 0x07000000 + i * 8 + 2);
+			uint16_t a2 = emu_read16(e, 0x07000000 + i * 8 + 4);
+			if ((a0 & 0x0300) == 0x0200) continue; /* (not drawn) */
+			if ((a2 & 0x3FF) == 128 && a2 >> 12 == 4 && (a0 & 0xFF) == 2 && (a1 & 0x1FF) == 96) return 1;
+		}
+		return 0;
+	}
+	if (addr == WL4_V_OFFLEVEL) {
+		uint16_t s = emu_read16(e, WL4_SCREEN);
+		if (s != 2 && s != 4) return 1;
+		return emu_read8(e, WL4_LEVEL) > 3 || emu_read8(e, WL4_HEARTS) == 0;
+	}
+	if (addr == WL4_V_HUDOFF)
+		return emu_read16(e, WL4_SCREEN) == 2 && emu_read8(e, WL4_LEVEL) <= 3 && emu_read8(e, WL4_HEARTS) != 0;
+	return 0;
+}
+
 static const MapProfile profiles[] = {
 	{
 		.codes = { "A2CE" },
@@ -4507,6 +4548,74 @@ static const MapProfile profiles[] = {
 		.hideWhen = { { LS_V_PLAY, 0, 1, 1 } },
 	},
 	{
+		/* Wario Land 4 (USA and Europe; Japan: the AWAJ variant, same
+		 * addresses and screens). The pause screen (START) slides down
+		 * from the top over some 40 frames: its menu in rows 0-23 (BG0
+		 * words, BG1 frames, the hand a sprite), the status bar, the wall
+		 * with the jewel, Keyzer and CD (BG2, in 8-row courses from row
+		 * 24) and the level's name plate (rows 141-158). */
+		.codes = { "AWAE" },
+		.title = "Wario Land 4",
+		/* the title's lettering and its TM: BG0 alone (PUSH START, the
+		 * car and the copyright line are sprites), up once START has
+		 * skipped the intro (WL4-1) */
+		.logo = { .steps = { { 0, 900 }, { K_START, 4 }, { 0, 240 } }, .layers = 0x1, .maxY = 160 },
+		/* the pause screen, once it has slid into place: the menu's three
+		 * frames (cyan along row 18, black while it slides) and the name
+		 * plate's edge and inside, the same in every passage and both
+		 * releases (WL4-2, WL4-8) */
+		.open = { { K_START, 3 } },
+		.settleMax = 90, .openWithin = 30, .stableFrames = 3, .maxDiff = 200,
+		.crop_x = 0, .crop_y = 0, .crop_w = 240, .crop_h = 160,
+		/* map_crop: the menu's rows (down to the wall's first row of
+		 * bricks) from a render of BG2 alone, the wall the game draws
+		 * behind the menu, without its words, frames or hand (WL4-2) */
+		.underRect = { { 0, 0, 239, 23 } }, .underLayers = 0x4,
+		.probes = { { 60, 18, 0x5AFFFF }, { 120, 18, 0x5AFFFF }, { 200, 18, 0x5AFFFF },
+		            { 10, 150, 0x218484 }, { 220, 150, 0x000000 } },
+		.bgColor = 0x000000, .minForeground = 2000, .tolerance = 8,
+		.mem = { { WL4_SCREEN, 0xFFFF, 4, 2 } },
+		/* in a level's play (not a boss's: level 4), not paused or going
+		 * through a door; elsewhere the last picture stays (WL4-6) */
+		.live = { { WL4_SCREEN, 0xFFFF, 2, 2 }, { WL4_SUB, 0xFF, 2, 1 }, { WL4_LEVEL, 0xFF, 0, 1, true, 3, true } },
+		/* the title, the hub, the level select, the vortex, a boss: the
+		 * logo (WL4-7) */
+		.menu = { { WL4_V_OFFLEVEL, 0, 1, 1 } },
+		.virt = wl4_virt,
+		/* another level, a gem piece, the CD or the Keyzer found, or a
+		 * heart gained or lost: taken again at once (WL4-3) */
+		.room = { { 0x03000002, 0, 0, 2 }, { 0x03000C07, 0, 0, 4 }, { 0x03000C0B, 0, 0, 2 },
+		          { WL4_HEARTS, 0, 0, 1 } },
+		/* In a level's play, the hearts and heart meter (palette 7, top
+		 * left) and the coins (the coin palette 6, its figures 4, top
+		 * right) leave the game screen: the pause screen has them. The
+		 * escape's stopwatch and countdown (palette 4, x 80-128) stay
+		 * (WL4-4). All priority 0, in the top 16 rows; the level's own
+		 * sprites are priority 1-2. */
+		.hideSprites = { { 0, -8, 79, 15, 0, 1023, 0, 1 << 7 },
+		                 { 160, -8, 239, 15, 0, 1023, 0, 1 << 6 | 1 << 4 } },
+		.hideWhen = { { WL4_V_HUDOFF, 0, 1, 1 } },
+		/* A boss fight (a level's number 4, playing): its HUD, all
+		 * priority-0 sprites in the top rows (the hearts in palette 7,
+		 * the stopwatch and countdown in 4, the boss's bar in 14), goes
+		 * to the top of the second screen, on grey with the logo below.
+		 * TIME UP!! (palette 2, from row 32) stays. The corridor before
+		 * it has no HUD: the logo (WL4-9, WL4-7). Only once the fight's
+		 * opening is over (the countdown in its place, WL4_V_CLOCKSET),
+		 * then to the fight's end, TIME UP too (stay). The countdown's
+		 * big figures reach row 35. */
+		.hud = {
+			.on = { { WL4_SCREEN, 0xFFFF, 2, 2 }, { WL4_LEVEL, 0xFF, 4, 1 }, { WL4_V_CLOCKSET, 0, 1, 1 } },
+			/* (the level byte goes 4 to 6 as the boss is beaten: the room
+			 * fades with Wario and his hearts, then CLEAR!, screen 1) */
+			.stay = { { WL4_SCREEN, 0xFFFF, 2, 2 }, { WL4_LEVEL, 0xFF, 4, 1, true, 6, true } },
+			.objs = { { 0, -8, 239, 23, 0, 1023, 0, 1 << 4 | 1 << 7 | 1 << 14 } },
+			.rows = 40,
+			.logoBelow = true,
+			.emptyIsOff = true,
+		},
+	},
+	{
 		/* Mario & Luigi: Superstar Saga (USA; Europe and Japan, Mario &
 		 * Luigi RPG: variants). Walking about, the Bros. Info screen, the
 		 * page of the brother in front: see ml_compose (ML-2) */
@@ -5126,6 +5235,7 @@ static const Variant variants[] = {
 	{ "AT3D", "AT3E", 0, thps3_ger },
 	{ "ASEJ", "ASEE", 0, smm_jpn },
 	{ "ALDP", "ALDE", 0, NULL },
+	{ "AWAJ", "AWAE", 0, NULL },
 	/* (Fire Emblem's addresses: FeRegion) */
 	{ "AE7X", "AE7E", 0, lang_menu },
 	{ "AE7Y", "AE7E", 0, lang_menu },
