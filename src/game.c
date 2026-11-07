@@ -882,6 +882,10 @@ static bool hudWorld; /* FFTA's world map (hud.world) */
 static bool hudScene; /* the profile's other scene (Mario Kart's podium): logo backdrop, its own sprites */
 static bool hudCard; /* hud.card: the title card's sprites are what's split off */
 static int cardScore = -1; /* hud.card: how far off centre the best take so far is (-1: none) */
+/* hud.card.hideTillTake: this card's take is made (the HUD over it from
+ * then), and how long its start has been seen / not seen */
+static bool cardTaken;
+static int cardPreFor, cardAway = 1000;
 static uint32_t cardBest[GBA_W * GBA_H];
 static int sideScore = -1; /* hud.card.side: how far off centre its best take is (-1: none) */
 static uint32_t sideBest[GBA_W * GBA_H];
@@ -889,6 +893,12 @@ static bool hudAlt; /* the HUD on its other layer (hud.alt: SMA2's boss rooms) *
 static uint32_t hudLogoBack[HUD_CW * HUD_CH];
 static bool hudLogoDone;
 static bool hudShown; /* the second screen shows the HUD picture (hudTex) */
+/* the profile's logoIf probes match: the logo, the map picture and HUD kept */
+static bool logoForced;
+/* logoIf just stopped matching: the logo still, until the second screen has
+ * a new picture to show (a HUD picture drawn, a map picture taken), at
+ * most a second; not the last picture from before for a frame (SM4-11) */
+static int logoHolding;
 /* profile hud.overMap: this frame's HUD is drawn into the map picture;
  * the map picture needs uploading again (the HUD changed) */
 static bool overOn, overDirty;
@@ -979,12 +989,12 @@ static bool debug;
 
 /* ---------------------------------------------------------------- menu */
 
-enum MenuItem { M_RESUME, M_CHEATS, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND, M_AUTOSAVE, M_AUTOLOAD, M_BUG, M_SLOT, M_SHAPES, M_FF };
+enum MenuItem { M_RESUME, M_CHEATS, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND, M_AUTOSAVE, M_AUTOLOAD, M_BUG, M_SLOT, M_SHAPES, M_FF, M_COLOR };
 static const char* menuLabels[] = {
 	/* title case: drawn in Futura from the built-in images (tools/make_brand.py) */
 	[M_RESUME] = "Resume", [M_SWAP] = "Swap Screens", [M_SAVE] = "Save State", [M_SCALE] = "", [M_LCD] = "", [M_FPS] = "", [M_FRAMEBUF] = "", [M_OVERLAY] = "", [M_LOGO] = "", [M_MATCH] = "", [M_REWIND] = "", [M_RESTART] = "Restart Game",
 	[M_LOAD] = "Load State", [M_CHEATS] = "Cheats", [M_ACH] = "Achievements", [M_SHOT] = "Take Screenshot", [M_LIBRARY] = "Close Game", [M_EXIT] = "Close GBA DS",
-	[M_AUTOSAVE] = "", [M_AUTOLOAD] = "", [M_BUG] = "Submit a Bug Report", [M_SLOT] = "", [M_FF] = "",
+	[M_AUTOSAVE] = "", [M_AUTOLOAD] = "", [M_BUG] = "Submit a Bug Report", [M_SLOT] = "", [M_FF] = "", [M_COLOR] = "",
 };
 static int menuItems[12], nMenuItems;
 /* Some buttons are half as wide, two to a row (Save State | Load State):
@@ -1024,6 +1034,7 @@ static const char* pageNames[N_PAGES] = { "Game", "Display", "Extras" };
  * button says "Are You Sure?" (and the note what happens); chosen again,
  * it's done. Another page, another button or closing the menu calls it off. */
 static int armedItem = -1;
+static void rebuild_textures(void);
 static bool confirm_item(int item) {
 	return item == M_RESTART || item == M_LIBRARY || item == M_EXIT;
 }
@@ -2088,6 +2099,7 @@ static void draw_menu(void) {
 		const char* label = menuLabels[menuItems[i]];
 		if (menuItems[i] == M_SCALE) label = scale_label(cfg->scale);
 		if (menuItems[i] == M_LCD) label = cfg->lcdGrid ? "LCD Grid: On" : "LCD Grid: Off";
+		if (menuItems[i] == M_COLOR) label = cfg->colorCorrection ? "Color Correction: On" : "Color Correction: Off";
 		if (menuItems[i] == M_AUTOSAVE) label = cfg->autoSave ? "Save on Quit: On" : "Save on Quit: Off";
 		if (menuItems[i] == M_AUTOLOAD) label = cfg->autoLoad ? "Auto-Load: On" : "Auto-Load: Off";
 		if (menuItems[i] == M_FPS) label = cfg->showFps ? "Show FPS: On" : "Show FPS: Off";
@@ -2323,20 +2335,21 @@ static void hud_make_backdrop(void) {
 	}
 }
 
-/* The scene's backdrop (Mario Kart's podium): dark grey. (Until v1.3.2's
+/* The scene's backdrop (Mario Kart's podium): black (GEN-1; until v1.4.11
+ * dark grey). (Until v1.3.2's
  * later test builds the logo was behind it, as large as fitted and
  * dimmed; at its own size, as GEN-1 has it, it's right behind the place
  * and the cup table, and they can't be read over it.) */
 static void hud_make_logo_back(void) {
 	hudLogoDone = true;
-	for (int i = 0; i < HUD_CW * HUD_CH; ++i) hudLogoBack[i] = SCREEN_GREY;
+	for (int i = 0; i < HUD_CW * HUD_CH; ++i) hudLogoBack[i] = SCREEN_LIVE;
 }
 
 /* Profile hud.logoBelow: the logo as on any other second screen (GEN-1),
  * centred, kept below the HUD's rows. */
 static void hud_make_logo_below(void) {
 	hudLogoBelowDone = true;
-	for (int i = 0; i < HUD_CW * HUD_CH; ++i) hudLogoBelow[i] = SCREEN_GREY;
+	for (int i = 0; i < HUD_CW * HUD_CH; ++i) hudLogoBelow[i] = SCREEN_LIVE; /* (under the HUD: GEN-1) */
 	int top = 0; /* below the HUD: its lowest row on the canvas */
 	for (int m = 0; m < HUD_MOVES; ++m) {
 		const HudMove* mv = &hudProf->hud.moves[m];
@@ -2461,7 +2474,7 @@ static const uint32_t* card_logo(void) {
 	static uint32_t cardLogo[HUD_CW * HUD_CH];
 	static bool made;
 	if (!made) {
-		for (int i = 0; i < HUD_CW * HUD_CH; ++i) cardLogo[i] = SCREEN_GREY;
+		for (int i = 0; i < HUD_CW * HUD_CH; ++i) cardLogo[i] = SCREEN_LIVE; /* (under the HUD: GEN-1) */
 		made = logo_draw(cardLogo, HUD_CW, HUD_CH, HUD_CW / GBA_W, hudProf->hud.card.whole ? 0 : 48 * 2, 255);
 	}
 	return cardLogo;
@@ -3008,6 +3021,7 @@ static void update_hud(void) {
 				else memcpy(cardBest, emu.fb, sizeof(cardBest));
 				cardScore = 0;
 				card_backdrop();
+				cardTaken = h->card.hideTillTake; /* (the HUD over it from the next frame) */
 			}
 		} else {
 			/* (the side part first, so the first backdrop has it if it's
@@ -3041,16 +3055,36 @@ static void update_hud(void) {
 		if (h->emptyIsOff && emptyFor >= 20) {
 			if (hudShown && debug) fprintf(stderr, "frame %llu: HUD empty: the logo\n", (unsigned long long) frameCount);
 			hudShown = false;
+		} else if (h->freeze[0].addr && memprobes_match(h->freeze, 2, &emu)) {
+			/* hud.freeze: the picture as it was (World-e's status bar
+			 * sliding away as the inventory opens, and back, SM4-8) */
 		} else if (!(empty && !hudShown)) {
 			if (emu_hud_grabbed()) hud_make_backdrop(); /* (that frame drew no HUD: the last one is reused) */
 			hud_compose();
 			for (int i = 0; i < nViews; ++i) ui_update_texture(hudTex[i], hudCanvas, HUD_CW * 4);
+			if (logoForced && !(hudProf->logoIf[0].addr && memprobes_match(hudProf->logoIf, 2, &emu)) &&
+			    !(hudProf->logoIfOr[0].addr && memprobes_match(hudProf->logoIfOr, 2, &emu))) {
+				/* (a new HUD picture: the logo's hold is over) */
+				logoForced = false, logoHolding = 0;
+				if (debug) fprintf(stderr, "frame %llu: logo only off: a new HUD picture\n", (unsigned long long) frameCount);
+			}
 			if (!hudShown && debug) fprintf(stderr, "frame %llu: HUD on the second screen\n", (unsigned long long) frameCount);
 			hudShown = true;
 		}
 	}
 	bool scene = race && h->scene.when[0].addr && memprobes_match(h->scene.when, 2, &emu);
 	bool card = race && h->card.tile && oam_has_tile_pal(h->card.tile, h->card.tileMax, h->card.pal, h->card.prio1);
+	if (h->card.hideTillTake) {
+		/* (Sonic Advance 3, SA3-3: the card's start, its sprite or a
+		 * little before it, until the take; a start seen again within 10
+		 * frames is the same card) */
+		bool pre = race && h->card.pre[0].addr && memprobes_match(h->card.pre, 2, &emu);
+		cardPreFor = pre && !card ? cardPreFor + 1 : 0;
+		bool starting = card || (pre && cardPreFor <= 30);
+		if (starting && cardAway >= 10) cardTaken = false;
+		cardAway = starting ? 0 : cardAway + 1;
+		card = starting && !cardTaken;
+	}
 	/* hud.card.drop: no card here (Sonic Advance 3's hubs): the take is
 	 * forgotten, the logo behind the HUD */
 	if (race && h->card.drop[0].addr && (hudBackValid || cardScore >= 0) && memprobes_match(h->card.drop, 2, &emu)) {
@@ -3062,13 +3096,24 @@ static void update_hud(void) {
 		/* (hud.card.drop, Sonic Advance 3: the last take stays till the
 		 * new one, without the HUD, which stays on the game's card) */
 		if (card) cardScore = -1, sideScore = -1, hudBackValid = hudBackValid && h->card.drop[0].addr;
+		if (card && h->card.hideTillTake) {
+			/* (this frame was drawn before the split was on: drawn again
+			 * without the HUD, so it isn't on the game screen for a frame,
+			 * SA3-3) */
+			static uint32_t noHud[GBA_W * GBA_H];
+			snapshot_hiding_sprites(hudObjs, rule_count(hudObjs, 12), NULL, 0, noHud);
+			memcpy(emu.fb, noHud, sizeof(noHud));
+		}
 		else if (cardScore >= 0 && !hudBackValid) card_backdrop();
 		if (debug) fprintf(stderr, "frame %llu: title card %s\n", (unsigned long long) frameCount, card ? "up" : "gone");
 	}
 	if (race != hudOn || scene != hudScene || world != hudWorld || alt != hudAlt || card != hudCard) {
-		const SpriteRule* objs = card ? h->card.objs : scene ? h->scene.objs : world ? hudWorldObjs : hudObjs;
+		/* (hud.card.hideTillTake: the HUD split off as usual, but not shown
+		 * till the take) */
+		bool cardObjs = card && !h->card.hideTillTake;
+		const SpriteRule* objs = cardObjs ? h->card.objs : scene ? h->scene.objs : world ? hudWorldObjs : hudObjs;
 		unsigned mask = alt ? h->alt.bgMask : h->bgMask;
-		int nObjs = rule_count(objs, card || scene || world ? 4 : 12);
+		int nObjs = rule_count(objs, cardObjs || scene || world ? 4 : 12);
 		/* (nothing split off: only the logo behind the map picture, as
 		 * for Fire Emblem and Final Fantasy Tactics Advance; no second
 		 * renderer) */
@@ -3076,7 +3121,7 @@ static void update_hud(void) {
 		bool some = mask || nObjs || h->band;
 		if (some || splitting) emu_hud_split(&emu, race && some, mask, objs, nObjs, hudPx);
 		splitting = race && some;
-		if (race && some) emu_hud_copy(&emu, card); /* (the card stays on the game screen too) */
+		if (race && some) emu_hud_copy(&emu, cardObjs); /* (the card stays on the game screen too) */
 		hudCard = card;
 		if (debug && race && alt != hudAlt) fprintf(stderr, "frame %llu: HUD on its other layer%s\n", (unsigned long long) frameCount, alt ? "" : ": off");
 		hudAlt = alt;
@@ -3693,6 +3738,7 @@ static void screen_restore_apply(void) {
 	 * card and the level name go (back from the state, if it has them) */
 	if (hudProf && hudProf->hud.card.tile) hudBackValid = false, cardScore = -1, sideScore = -1;
 	mapTitleN = 0, hudLogoBelowDone = false;
+	logoForced = false, logoHolding = 0;
 	if (!ours) {
 		if (b && debug) fprintf(stderr, "load state: its second screen is for another game or version: not used\n");
 		return;
@@ -4046,8 +4092,8 @@ static void bug_info(Text* t, const char* date, uint64_t back) {
 	text_add(t, "The rewound state is %llu frames before the other\n", (unsigned long long) back);
 
 	text_add(t, "\n== Settings\n");
-	text_add(t, "layout %s, swap %d, scale %s, map_scale %s, lcd_grid %d, smooth %d, overlays %d, border_color %s\n", cfg->layout,
-	         cfg->swap, cfg->scale, cfg->mapScale, cfg->lcdGrid, cfg->smooth, cfg->overlays, cfg->borderColor);
+	text_add(t, "layout %s, swap %d, scale %s, map_scale %s, lcd_grid %d, color_correction %d, smooth %d, overlays %d, border_color %s\n", cfg->layout,
+	         cfg->swap, cfg->scale, cfg->mapScale, cfg->lcdGrid, cfg->colorCorrection, cfg->smooth, cfg->overlays, cfg->borderColor);
 	text_add(t, "map %d, map_animations %d, map_interval %d, show_logo %d, pinball_live %d\n", cfg->map, cfg->mapAnim,
 	         cfg->mapInterval, cfg->showLogo, cfg->tallLive);
 	text_add(t, "frame_buffer %d, match_display %d, vsync %d, audio_latency %d, rewind %d (%d s), fast_forward %d, ff_speed %d\n", cfg->frameBuffer,
@@ -4775,8 +4821,8 @@ static void save_prefs(void) {
 	FILE* f = fopen(prefs, "w");
 	if (f) {
 		fprintf(f, "# written by gba-ds's pause menu; overrides gba-ds.cfg\n");
-		fprintf(f, "swap = %d\nscale = %s\nmap_scale = %s\nlcd_grid = %d\noverlays = %s\nframe_buffer = %d\nmatch_display = %d\nrewind = %d\nfast_forward = %d\nsave_on_quit = %d\nauto_load = %d\nquick_bar_pinned = %d\n",
-		        cfg->swap ? 1 : 0, cfg->scale, cfg->mapScale, cfg->lcdGrid ? 1 : 0,
+		fprintf(f, "swap = %d\nscale = %s\nmap_scale = %s\nlcd_grid = %d\ncolor_correction = %d\noverlays = %s\nframe_buffer = %d\nmatch_display = %d\nrewind = %d\nfast_forward = %d\nsave_on_quit = %d\nauto_load = %d\nquick_bar_pinned = %d\n",
+		        cfg->swap ? 1 : 0, cfg->scale, cfg->mapScale, cfg->lcdGrid ? 1 : 0, cfg->colorCorrection ? 1 : 0,
 		        (const char* const[]) { "none", "primary", "secondary", "both" }[cfg->overlays & OVL_BOTH],
 		        cfg->frameBuffer ? 1 : 0, cfg->matchDisplay ? 1 : 0, cfg->rewind ? 1 : 0, cfg->fastForward ? 1 : 0,
 		        cfg->autoSave ? 1 : 0, cfg->autoLoad ? 1 : 0, cfg->barPinned ? 1 : 0);
@@ -4999,13 +5045,13 @@ static void draw_game(void) {
 		if (((combatOn && !(overAlone && mapShownIdx >= 0)) || logoBack) && (combatTex[0] || combatTex[1])) {
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
 			ui_image_pixels(s, combatTex, mapW, mapH, cfg->mapScale, cfg->lcdGrid ? 1 : 0);
-		} else if (hudShown) {
+		} else if (hudShown && !logoForced) {
 			/* the HUD picture is at 2x: a grid cell per GBA pixel */
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
 			ui_image_pixels(s, hudTex, HUD_CW, HUD_CH, cfg->mapScale, cfg->lcdGrid ? 2 : 0);
-		} else if (mapShownIdx >= 0 && draw_framed_map(s)) {
+		} else if (mapShownIdx >= 0 && !logoForced && draw_framed_map(s)) {
 			/* map + generated surround */
-		} else if (mapShownIdx >= 0) {
+		} else if (mapShownIdx >= 0 && !logoForced) {
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
 			ui_image_pixels(s, mapTex, mapW, mapH, cfg->mapScale, cfg->lcdGrid ? 1 : 0);
 		} else if (!cfg->showLogo) {
@@ -5026,10 +5072,10 @@ static void draw_game(void) {
 			area = (SDL_Rect) { area.x + in, area.y + in, area.w - in * 2, area.h - in * 2 };
 			if (tp) ui_title_block(s, area, tp->title, (int) (ui_px(s) * 14), (SDL_Color) { 236, 236, 244, 255 });
 		}
-		if ((hudShown || mapShownIdx >= 0) && (cfg->overlays & OVL_SECONDARY)) { /* the map only, never the logo */
+		if ((hudShown || mapShownIdx >= 0) && !logoForced && (cfg->overlays & OVL_SECONDARY)) { /* the map only, never the logo */
 			draw_overlay(s, 1);
 		}
-		if (!hudShown && mapShownIdx >= 0 && mapInactive) {
+		if (!hudShown && mapShownIdx >= 0 && mapInactive && !logoForced) {
 			ui_dim(s, 120);
 		}
 	}
@@ -5085,7 +5131,7 @@ static bool activate(int item, enum GameExit* exitTo) {
 		achPressed = false;
 		break;
 	case M_CHEATS:
-		if (!cheats.n) snprintf(menuNote, sizeof(menuNote), "No cheats found (see the README)");
+		if (!cheats.n) snprintf(menuNote, sizeof(menuNote), "No cheats found (see Cheats in the wiki)");
 		else open_cheats();
 		break;
 	case M_SWAP:
@@ -5103,6 +5149,13 @@ static bool activate(int item, enum GameExit* exitTo) {
 	}
 	case M_LCD:
 		cfg->lcdGrid = !cfg->lcdGrid;
+		save_prefs();
+		break;
+	case M_COLOR:
+		cfg->colorCorrection = !cfg->colorCorrection;
+		ui_color_correction(cfg->colorCorrection);
+		rebuild_textures(); /* (every picture given again, through it or not) */
+		snprintf(menuNote, sizeof(menuNote), "%s", cfg->colorCorrection ? "Colors as on a Game Boy Advance's screen" : "The game's colors as they are");
 		save_prefs();
 		break;
 	case M_SLOT:
@@ -5475,8 +5528,10 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	pages[2][pageLen[2]++] = M_SHOT;
 	if (fromLibrary) pages[0][pageLen[0]++] = M_LIBRARY;
 	pages[0][pageLen[0]++] = M_EXIT;
+	ui_color_correction(cfg->colorCorrection); /* (Display > Color Correction, for this session's pictures) */
 	pages[1][pageLen[1]++] = M_SCALE;
 	pages[1][pageLen[1]++] = M_LCD;
+	pages[1][pageLen[1]++] = M_COLOR;
 	pages[1][pageLen[1]++] = M_OVERLAY;
 	pages[1][pageLen[1]++] = M_FRAMEBUF;
 	pages[1][pageLen[1]++] = M_MATCH;
@@ -6187,6 +6242,17 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				hideWhenOn = !hideWhenOn;
 				emu_hide_sprites(&emu, hideWhenOn ? hideWhenProf->hideSprites : NULL, hideWhenOn ? hideWhenN : 0);
 				if (debug) fprintf(stderr, "frame %llu: sprite hiding %s\n", (unsigned long long) frameCount, hideWhenOn ? "on" : "off");
+			}
+			{
+				/* (logoIf: the logo for now, SM4-11) */
+				const MapProfile* lp = mapcap_profile(mc);
+				bool lf = lp && ((lp->logoIf[0].addr && memprobes_match(lp->logoIf, 2, &emu)) ||
+				                 (lp->logoIfOr[0].addr && memprobes_match(lp->logoIfOr, 2, &emu)));
+				if (lf) logoHolding = 60;
+				else if (logoHolding > 0) --logoHolding;
+				lf = lf || logoHolding > 0;
+				if (debug && lf != logoForced) fprintf(stderr, "frame %llu: logo only %s\n", (unsigned long long) frameCount, lf ? "on" : "off");
+				logoForced = lf;
 			}
 			bool dark = frame_is_dark(emu.fb);
 			if (wasDark && !dark) refreshAt = (long) frameCount + 6;

@@ -48,6 +48,7 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 **Display** (remembered for next time)
 - **Scale**: Pixel Perfect (sharp, whole-number scale with a small border), Full Width (fills the width, keeps the shape, stays sharp), Zoom (fills the height, cutting off the left and right edges) or Stretch (fills the whole screen).
 - **LCD Grid**: a pixel grid like a GBA screen's, on both screens. `lcd_strength` sets how dark.
+- **Color Correction**: off by default. On, the game's colours are shown as a Game Boy Advance's own screen showed them: darker and less saturated, as mGBA's GBA Color shader draws them (its sRGB profile, Darken Screen at its usual 0.5). On both screens: the game, and the maps, logos and status screens taken from it. Remembered for next time.
 - **Overlays**: primary / secondary / both / none. See [[Map screen surrounds and overlays]].
 - **Frame Buffer**: off by default. On, the next frame is prepared while the current one is on screen, which smooths out the odd stutter at the cost of one frame (about 17 ms) of input delay. In the pinball games it's always on, needed for full speed, so it's greyed out there.
 - **Match Display Rate**: off by default. On, the game runs at the screen's refresh rate (60 Hz: 0.5% faster than a GBA, too little to notice, with the sound adjusted to match) and each frame is shown for exactly one refresh. Off, a 60 Hz screen shows one frame twice about every 3.7 seconds: a small, regular stutter.

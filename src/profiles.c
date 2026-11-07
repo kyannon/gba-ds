@@ -972,9 +972,11 @@ static const char* sn2_compose(Emu* s, const void* state, uint32_t* const* out, 
                                 * action), or on the world map with nothing or the Laws open */
 #define FT_V_SHOWN 0xF0000012  /* 1 in a battle (FT_V_BATTLE) or on the world map */
 #define FT_V_TURN 0xF0000015   /* in a battle, the active unit's data (its low 16 bits),
-                                * + 0x10000 if it isn't yours (FT_V_THEIRS); 0 for a few
-                                * frames between two turns, even one unit's two in a
-                                * row: each turn's start a change (FT-13) */
+                                * + 0x10000 if it isn't yours (FT_V_THEIRS), its top
+                                * bits from the other units' turn counters
+                                * (ft_turn_sig); 0 for a few frames between two turns:
+                                * each turn's start a change, one unit's second in a
+                                * row too (FT-13) */
 #define FT_V_THEIRS 0xF0000014 /* 1 in a battle when it isn't your turn: the active unit
                                * an enemy, the judge or a guest (its data's flags, +0x29 of
                                * the unit FT_ACTIVE's record points to: 0x80 an enemy, 0x10
@@ -991,6 +993,31 @@ static bool ft_world(Emu* e) {
 	       emu_read32(e, 0x0400000C) == FT_WM_BG23;
 }
 
+/* A unit's second turn in a row (FT-13): the other units' turn counters
+ * (CT, 16 bits at +0xD0 of each unit's data; whoever reaches 1000 gets the
+ * turn), hashed. They stay put all through a turn and all move on in the
+ * gap between two turns, the same unit's next one too, which reads the
+ * same active record and its CT 1000 again. The units are a table of
+ * 0x90-byte records, each starting with a pointer to its unit's data
+ * (0x020223AC in the USA's battles, Japan's 0x30 lower), the active one
+ * (FT_ACTIVE) among them; the words either side of the table aren't EWRAM
+ * pointers, so it's walked out from the active record. With no other
+ * unit's counter moving (all stopped or KO'd), a second turn still goes
+ * unnoticed. (The game keeps no count of turns and no previous unit; the
+ * gap alone was missed: game.c's back-off after the facing prompt's
+ * failed captures covers it.) */
+static uint32_t ft_turn_sig(Emu* e, uint32_t rec) {
+	uint32_t h = 2166136261u, lo = rec, hi = rec;
+	while (emu_read32(e, lo - 0x90) >> 24 == 0x02 && rec - lo < 0x90 * 16) lo -= 0x90;
+	while (emu_read32(e, hi + 0x90) >> 24 == 0x02 && hi - rec < 0x90 * 16) hi += 0x90;
+	for (uint32_t r = lo; r <= hi; r += 0x90) {
+		uint32_t ch = emu_read32(e, r);
+		if (r == rec || ch >> 24 != 0x02) continue;
+		h = (h ^ emu_read16(e, ch + 0xD0)) * 16777619u;
+	}
+	return h;
+}
+
 static uint32_t ft_virt(Emu* e, uint32_t addr) {
 	/* (a scene on the battle map is out of it: the logo; above all the
 	 * one once the battle's won) */
@@ -999,7 +1026,14 @@ static uint32_t ft_virt(Emu* e, uint32_t addr) {
 	bool in = emu_read8(e, FT_IN_BATTLE) == 1 && (emu_read32(e, FT_SCENE_(e)) >> 24) != 0x02 &&
 	          emu_read8(e, FT_MODE_(e)) != FT_MODE_TOWN; /* (a town's Pub, Shop or Prison reads in a battle too) */
 	if (addr == FT_V_BATTLE) return in;
-	if (addr == FT_V_TURN) return in ? (emu_read32(e, FT_ACTIVE - (e->gameCode[3] == 'J' ? 0x30 : 0)) & 0xFFFF) | ft_virt(e, FT_V_THEIRS) << 16 : 0;
+	if (addr == FT_V_TURN) {
+		if (!in) return 0;
+		uint32_t rec = emu_read32(e, FT_ACTIVE - (e->gameCode[3] == 'J' ? 0x30 : 0));
+		if (rec >> 24 != 0x02) return 0;
+		/* (the other units' counters in its top bits: the key stays changed
+		 * after a unit's second turn has begun, not only for the gap) */
+		return ((rec & 0xFFFF) | ft_virt(e, FT_V_THEIRS) << 16) ^ (ft_turn_sig(e, rec) & 0xFFFE0000u);
+	}
 	if (addr == FT_V_THEIRS) {
 		uint32_t rec = emu_read32(e, FT_ACTIVE - (e->gameCode[3] == 'J' ? 0x30 : 0));
 		uint32_t ch = rec >> 24 == 0x02 ? emu_read32(e, rec) : 0;
@@ -1498,8 +1532,9 @@ static uint32_t ftWin[2][GBA_W * GBA_H], ftWin3[2][GBA_W * GBA_H];
 static int ftWw[2], ftWh[2];
 /* the active unit whose turn the turn order was last checked for, and
  * whether it's been taken in that turn (FT-13) */
-static uint32_t ftTurnRec;
+static uint32_t ftTurnRec, ftTurnSig;
 static bool ftTurnTaken;
+static unsigned ftTurnN; /* (turns noticed since the world map, for GBADS_DEBUG) */
 /* FT-9's screen from the turn order and the Laws as last taken */
 static void ft_draw_turn(uint32_t* o, int w, int h) {
 	uint32_t (*win)[GBA_W * GBA_H] = ftWin, (*win3)[GBA_W * GBA_H] = ftWin3;
@@ -1533,7 +1568,7 @@ static const char* ft_compose(Emu* s, const void* state, uint32_t* const* out, i
 	emu_frame(s, 0);
 	if (ft_world(s)) {
 		ftWw[0] = ftWw[1] = 0; /* (a battle's turn order isn't the next one's) */
-		ftTurnRec = 0;
+		ftTurnRec = 0, ftTurnN = 0;
 		/* no checkerboard yet (FT-14): taken from the Party screen; the
 		 * Laws aren't drawn until it is (the logo or the last picture
 		 * stays), three tries at most, then on dark grey */
@@ -1560,7 +1595,10 @@ static const char* ft_compose(Emu* s, const void* state, uint32_t* const* out, i
 			ftTurnRec = 0;
 			return "between turns";
 		}
-		if (rec != ftTurnRec) ftTurnRec = rec, ftTurnTaken = false;
+		/* (the same unit again, its second turn in a row: the other units'
+		 * counters have moved on) */
+		uint32_t sig = ft_turn_sig(s, rec);
+		if (rec != ftTurnRec || sig != ftTurnSig) ftTurnRec = rec, ftTurnSig = sig, ftTurnTaken = false, ++ftTurnN;
 	}
 	/* not your turn (FT-13): the turn order and the Laws as last taken */
 	if (ft_virt(s, FT_V_THEIRS)) {
@@ -1621,6 +1659,7 @@ static const char* ft_compose(Emu* s, const void* state, uint32_t* const* out, i
 		if (st) memcpy(page, np, sizeof(page)), pages = 2;
 		else pages = 0;
 		if (!st || turn) {
+			if (ok[0] && !ftTurnTaken && getenv("GBADS_DEBUG")) fprintf(stderr, "ft turn %u (unit %04x): turn order taken\n", ftTurnN, (unsigned) (ftTurnRec & 0xFFFF));
 			if (ok[0]) ftTurnTaken = true;
 			for (int i = 0; i < 2; ++i) {
 				if (ok[i]) memcpy(win[i], nw[i], (size_t) a[i] * b[i] * 4), memcpy(win3[i], nw3[i], (size_t) a[i] * b[i] * 4), ww[i] = a[i], wh[i] = b[i];
@@ -3305,6 +3344,47 @@ static uint32_t ls_virt(Emu* e, uint32_t addr) {
 	return 0;
 }
 
+/* Wario Land 4 (both releases): the screen the game is on, 0x03000C3A
+ * (0 scenes, 1 the hub, a passage's level select, the vortex and tally,
+ * 2 in a level, 4 the pause screen up, 9 the file screen), what it's
+ * doing there, 0x03000C3C (2 playing), and the level, 0x03000003 (0-3;
+ * 4 a boss's corridor and fight, whose pause is a plain PAUSE) */
+#define WL4_SCREEN 0x03000C3A
+#define WL4_SUB 0x03000C3C
+#define WL4_LEVEL 0x03000003
+#define WL4_HEARTS 0x03001910
+/* 1 outside the levels, or once Wario has lost his last heart: the logo
+ * (WL4-7) */
+#define WL4_V_OFFLEVEL 0xF0000067
+/* 1 while the HUD is left off the game screen: in a level's play, Wario
+ * alive (WL4-4) */
+#define WL4_V_HUDOFF 0xF0000069
+/* 1 while a boss fight's countdown is in its place: its figures, the
+ * sprite with tile 128 in palette 4, at (96, 2). The fight opens with them
+ * big in the middle of the room and the stopwatch bouncing about, then
+ * slides them up to there (WL4-9). */
+#define WL4_V_CLOCKSET 0xF0000068
+static uint32_t wl4_virt(Emu* e, uint32_t addr) {
+	if (addr == WL4_V_CLOCKSET) {
+		for (int i = 0; i < 128; ++i) {
+			uint16_t a0 = emu_read16(e, 0x07000000 + i * 8);
+			uint16_t a1 = emu_read16(e, 0x07000000 + i * 8 + 2);
+			uint16_t a2 = emu_read16(e, 0x07000000 + i * 8 + 4);
+			if ((a0 & 0x0300) == 0x0200) continue; /* (not drawn) */
+			if ((a2 & 0x3FF) == 128 && a2 >> 12 == 4 && (a0 & 0xFF) == 2 && (a1 & 0x1FF) == 96) return 1;
+		}
+		return 0;
+	}
+	if (addr == WL4_V_OFFLEVEL) {
+		uint16_t s = emu_read16(e, WL4_SCREEN);
+		if (s != 2 && s != 4) return 1;
+		return emu_read8(e, WL4_LEVEL) > 3 || emu_read8(e, WL4_HEARTS) == 0;
+	}
+	if (addr == WL4_V_HUDOFF)
+		return emu_read16(e, WL4_SCREEN) == 2 && emu_read8(e, WL4_LEVEL) <= 3 && emu_read8(e, WL4_HEARTS) != 0;
+	return 0;
+}
+
 static const MapProfile profiles[] = {
 	{
 		.codes = { "A2CE" },
@@ -3864,7 +3944,13 @@ static const MapProfile profiles[] = {
 			                    { -64, -64, 255, 175, 0, 711, 0, 1u << 6 | 1u << 7 },
 			                    { -64, -64, 255, 175, 0, 1023, 3, 0xFFFFu & ~(1u << 9) },
 			                    { -64, -64, 255, 175, 0, 1023, 0, 0xFFFFu & ~(1u << 6 | 1u << 7 | 1u << 9) } },
-			          .poke = { 0x03002BFC, 16 } },
+			          .poke = { 0x03002BFC, 16 },
+			          /* the HUD on neither screen from the card's start until
+			           * the take, then over it on the second screen (SA3-3):
+			           * its start, the darkening (gBldRegs: BLDCNT 0x3FEF, BLDY
+			           * 16), 7 frames before the name's sprite */
+			          .hideTillTake = true,
+			          .pre = { { 0x03002BF8, 0xFFFF, 0x3FEF, 2 }, { 0x03002BFC, 0x1F, 16, 2 } } },
 		},
 	},
 	{
@@ -4086,7 +4172,7 @@ static const MapProfile profiles[] = {
 		.live = { { 0x03003DE2, 0xFF, 0x41, 1, true, 0x09 }, { 0x03003781, 0xFF, 3, 1, true, 7, true },
 		          { 0x03003CAA, 0xFF, 0, 1 }, { 0x03003759, 0xFF, 0, 1 } },
 		.captureLayers = 0x5,
-		.captureBack = 6 | 6 << 5 | 6 << 10, /* (dark grey, SCREEN_GREY) */
+		/* (captureBack 0: black, as a live second screen is, GEN-1) */
 		/* the L and R signs at the top corners, and the map's sprites
 		 * (Mario, HELP!, the Hammer Bros.: priority 1-3; the chosen item
 		 * is priority 0) */
@@ -4100,6 +4186,14 @@ static const MapProfile profiles[] = {
 		.room = { { 0x03003DE4, 0xFF, 0, 1 }, { 0x03003DE8, 0xFF, 0, 1 }, { 0x03003E4A, 0xFF, 0, 1 } },
 		/* the title, game select and file screens */
 		.menu = { { 0x03003DE2, 0x80, 0x80, 1 } },
+		/* World-e's castle hall (its doors lead to the e-Reader levels):
+		 * where Mario is reads 0x08-0x09 as in a Toad House, but BG0, the
+		 * status bar's layer, is off: no status bar, the logo; and from
+		 * the moment Mario goes into it, or into a level, from World-e's
+		 * map (its state 0x03004FC8 12, while the map closes in a circle),
+		 * SM4-11 */
+		.logoIf = { { 0x03003DE2, 0xFE, 0x08, 1 }, { 0x04000000, 0x0100, 0, 2 } },
+		.logoIfOr = { { 0x03004FC8, 0xFF, 0x0C, 1 }, { 0x0400000C, 0xFFFF, 0xDC00, 2 } },
 		/* In a level the status bar along the top (world, lives, time,
 		 * coins, score) and the P meter at the bottom left are BG0
 		 * (0x9400): the whole layer goes to the second screen, the status
@@ -4128,9 +4222,12 @@ static const MapProfile profiles[] = {
 			 * BG0 there stays. (0x40, a level, is the main HUD's.) */
 			/* (not in the opening after Super Mario Bros. 3 is picked,
 			 * where Mario reads 0x41 too: BG2's tiles at character block
-			 * 2 there, 0 on every map and in the houses (SM4-9)) */
+			 * 2 there, 0 on every map and in the houses (SM4-9); nor on
+			 * Europe's language menu, which leaves BG1 off (0x1900), shown
+			 * on every map and in the houses (0x1300, 0x1B00, 0x1F00),
+			 * SM4-10) */
 			.alt = { .on = { { 0x03003DE2, 0xFE, 0x40, 1, true, 0x08 }, { 0x03003CAA, 0xFF, 0, 1 },
-			                 { 0x04000000, 0x0100, 0x0100, 2 }, { 0x03003759, 0xFF, 0, 1 },
+			                 { 0x04000000, 0x0300, 0x0300, 2 }, { 0x03003759, 0xFF, 0, 1 },
 			                 { 0x0400000C, 0x000C, 0, 2 } },
 			         .bgMask = 1,
 			         .moves = { { 0, 0, 239, 127, 0, 0, 0, 0, true }, { 0, 128, 239, 159, 0, 0, 'T', 0 } },
@@ -4139,10 +4236,17 @@ static const MapProfile profiles[] = {
 			 * there, or a house's own menu: the last picture stays */
 			.keep = { { 0x03003DE2, 0xFE, 0x40, 1, true, 0x08 } },
 			/* World-e's map: its two-row status bar is BG2 (0xDC00; in
-			 * levels and houses BG2 is the background, never 0xDC00), at
-			 * rest (vertical scroll 0: the inventory panel, on the same
-			 * layer, slides in with it and stays on the game screen) */
-			.memLayers = { .when = { { 0x0400000C, 0xFFFF, 0xDC00, 2 }, { 0x0400001A, 0x01FF, 0, 2 } }, .bgMask = 0x4 },
+			 * levels and houses BG2 is the background, never 0xDC00),
+			 * while the inventory isn't open (0x03003759 0: the bar at
+			 * rest or sliding; the inventory panel, on the same layer,
+			 * stays on the game screen) */
+			.memLayers = { .when = { { 0x0400000C, 0xFFFF, 0xDC00, 2 }, { 0x03003759, 0xFF, 0, 1 } }, .bgMask = 0x4 },
+			/* World-e's status bar sliding off as the inventory opens
+			 * (0x03003759 still 0), and back as it closes: BG2 scrolled
+			 * up to 32 rows down (0x1E0-0x1FF). It's off the game screen
+			 * (memLayers) and held still on the second screen as it was
+			 * at rest, through the inventory too (keep), SM4-8 */
+			.freeze = { { 0x0400000C, 0xFFFF, 0xDC00, 2 }, { 0x0400001A, 0x01FF, 0x1E0, 2, true, 0x1FF, true } },
 		},
 	},
 	{
@@ -4526,6 +4630,74 @@ static const MapProfile profiles[] = {
 		 * floating past the HUD's places) and the game's own pause screen
 		 * are drawn whole (LS-6) */
 		.hideWhen = { { LS_V_PLAY, 0, 1, 1 } },
+	},
+	{
+		/* Wario Land 4 (USA and Europe; Japan: the AWAJ variant, same
+		 * addresses and screens). The pause screen (START) slides down
+		 * from the top over some 40 frames: its menu in rows 0-23 (BG0
+		 * words, BG1 frames, the hand a sprite), the status bar, the wall
+		 * with the jewel, Keyzer and CD (BG2, in 8-row courses from row
+		 * 24) and the level's name plate (rows 141-158). */
+		.codes = { "AWAE" },
+		.title = "Wario Land 4",
+		/* the title's lettering and its TM: BG0 alone (PUSH START, the
+		 * car and the copyright line are sprites), up once START has
+		 * skipped the intro (WL4-1) */
+		.logo = { .steps = { { 0, 900 }, { K_START, 4 }, { 0, 240 } }, .layers = 0x1, .maxY = 160 },
+		/* the pause screen, once it has slid into place: the menu's three
+		 * frames (cyan along row 18, black while it slides) and the name
+		 * plate's edge and inside, the same in every passage and both
+		 * releases (WL4-2, WL4-8) */
+		.open = { { K_START, 3 } },
+		.settleMax = 90, .openWithin = 30, .stableFrames = 3, .maxDiff = 200,
+		.crop_x = 0, .crop_y = 0, .crop_w = 240, .crop_h = 160,
+		/* map_crop: the menu's rows (down to the wall's first row of
+		 * bricks) from a render of BG2 alone, the wall the game draws
+		 * behind the menu, without its words, frames or hand (WL4-2) */
+		.underRect = { { 0, 0, 239, 23 } }, .underLayers = 0x4,
+		.probes = { { 60, 18, 0x5AFFFF }, { 120, 18, 0x5AFFFF }, { 200, 18, 0x5AFFFF },
+		            { 10, 150, 0x218484 }, { 220, 150, 0x000000 } },
+		.bgColor = 0x000000, .minForeground = 2000, .tolerance = 8,
+		.mem = { { WL4_SCREEN, 0xFFFF, 4, 2 } },
+		/* in a level's play (not a boss's: level 4), not paused or going
+		 * through a door; elsewhere the last picture stays (WL4-6) */
+		.live = { { WL4_SCREEN, 0xFFFF, 2, 2 }, { WL4_SUB, 0xFF, 2, 1 }, { WL4_LEVEL, 0xFF, 0, 1, true, 3, true } },
+		/* the title, the hub, the level select, the vortex, a boss: the
+		 * logo (WL4-7) */
+		.menu = { { WL4_V_OFFLEVEL, 0, 1, 1 } },
+		.virt = wl4_virt,
+		/* another level, a gem piece, the CD or the Keyzer found, or a
+		 * heart gained or lost: taken again at once (WL4-3) */
+		.room = { { 0x03000002, 0, 0, 2 }, { 0x03000C07, 0, 0, 4 }, { 0x03000C0B, 0, 0, 2 },
+		          { WL4_HEARTS, 0, 0, 1 } },
+		/* In a level's play, the hearts and heart meter (palette 7, top
+		 * left) and the coins (the coin palette 6, its figures 4, top
+		 * right) leave the game screen: the pause screen has them. The
+		 * escape's stopwatch and countdown (palette 4, x 80-128) stay
+		 * (WL4-4). All priority 0, in the top 16 rows; the level's own
+		 * sprites are priority 1-2. */
+		.hideSprites = { { 0, -8, 79, 15, 0, 1023, 0, 1 << 7 },
+		                 { 160, -8, 239, 15, 0, 1023, 0, 1 << 6 | 1 << 4 } },
+		.hideWhen = { { WL4_V_HUDOFF, 0, 1, 1 } },
+		/* A boss fight (a level's number 4, playing): its HUD, all
+		 * priority-0 sprites in the top rows (the hearts in palette 7,
+		 * the stopwatch and countdown in 4, the boss's bar in 14), goes
+		 * to the top of the second screen, on grey with the logo below.
+		 * TIME UP!! (palette 2, from row 32) stays. The corridor before
+		 * it has no HUD: the logo (WL4-9, WL4-7). Only once the fight's
+		 * opening is over (the countdown in its place, WL4_V_CLOCKSET),
+		 * then to the fight's end, TIME UP too (stay). The countdown's
+		 * big figures reach row 35. */
+		.hud = {
+			.on = { { WL4_SCREEN, 0xFFFF, 2, 2 }, { WL4_LEVEL, 0xFF, 4, 1 }, { WL4_V_CLOCKSET, 0, 1, 1 } },
+			/* (the level byte goes 4 to 6 as the boss is beaten: the room
+			 * fades with Wario and his hearts, then CLEAR!, screen 1) */
+			.stay = { { WL4_SCREEN, 0xFFFF, 2, 2 }, { WL4_LEVEL, 0xFF, 4, 1, true, 6, true } },
+			.objs = { { 0, -8, 239, 23, 0, 1023, 0, 1 << 4 | 1 << 7 | 1 << 14 } },
+			.rows = 40,
+			.logoBelow = true,
+			.emptyIsOff = true,
+		},
 	},
 	{
 		/* Mario & Luigi: Superstar Saga (USA; Europe and Japan, Mario &
@@ -5024,6 +5196,7 @@ static void sma4_moved(MapProfile* p) {
 	p->hud.on[0].addr -= 4;
 	p->hud.alt.on[0].addr -= 4;
 	p->hud.keep[0].addr -= 4;
+	p->logoIf[0].addr -= 4;
 }
 static void sma4_eur(MapProfile* p) {
 	sma4_moved(p);
@@ -5172,6 +5345,7 @@ static const Variant variants[] = {
 	{ "AT3D", "AT3E", 0, thps3_ger },
 	{ "ASEJ", "ASEE", 0, smm_jpn },
 	{ "ALDP", "ALDE", 0, NULL },
+	{ "AWAJ", "AWAE", 0, NULL },
 	/* (Fire Emblem's addresses: FeRegion) */
 	{ "AE7X", "AE7E", 0, lang_menu },
 	{ "AE7Y", "AE7E", 0, lang_menu },

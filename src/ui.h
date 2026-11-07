@@ -131,6 +131,12 @@ void ui_clip(int screen, const SDL_Rect* clip);
 /* SDL_UpdateTexture (whole texture) that ui.c notices: use it for anything
  * drawn on the screens, so the second screen on Android redraws. */
 void ui_update_texture(SDL_Texture* t, const void* px, int pitch);
+/* Colour correction for everything given to ui_update_texture (the game's
+ * pictures, ABGR8888): the GBA's own screen, as mGBA's GBA Color shader
+ * (sRGB profile, Darken Screen 0.5) draws it. */
+void ui_color_correction(bool on);
+/* One colour through it (for tests and the second screen's own grey) */
+uint32_t ui_color_correct(uint32_t abgr);
 /* Filled box with rounded corners (radius in pixels). */
 void ui_fill_round(int screen, SDL_Rect local, SDL_Color c, int radius);
 /* Text in Jost (textfont.h: TF_BOLD for labels and headings, TF_BODY for
