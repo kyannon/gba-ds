@@ -4145,7 +4145,7 @@ static const MapProfile profiles[] = {
 		.live = { { 0x03003DE2, 0xFF, 0x41, 1, true, 0x09 }, { 0x03003781, 0xFF, 3, 1, true, 7, true },
 		          { 0x03003CAA, 0xFF, 0, 1 }, { 0x03003759, 0xFF, 0, 1 } },
 		.captureLayers = 0x5,
-		.captureBack = 6 | 6 << 5 | 6 << 10, /* (dark grey, SCREEN_GREY) */
+		/* (captureBack 0: black, as a live second screen is, GEN-1) */
 		/* the L and R signs at the top corners, and the map's sprites
 		 * (Mario, HELP!, the Hammer Bros.: priority 1-3; the chosen item
 		 * is priority 0) */
