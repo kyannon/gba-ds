@@ -54,6 +54,27 @@ in `-with-VERSION`. Only `web/gba-ds.wasm`, `web/VERSION`, `gba-ds.cfg` and
   playing worklet (no click on the page yet), the worker drains by the clock.
   Chrome won't load a worklet for a page opened from disk, so there the same
   ring (`GbadsRing`) plays in a ScriptProcessorNode.
+- **Map captures in a worker of their own**: the web build has no threads,
+  so a capture (hundreds of frames on a hidden copy of the game: Tactics
+  Ogre's unit list takes 350-590) used to stop the game until it was done.
+  The player runs them in a second worker instead, a second copy of the
+  same build started in capture-only mode (main.c:
+  `GBADS_CAPTURE_SERVE=CODE`, the ROM last, `GBADS_CAPTURE_TIGHT`;
+  `mapcap_web_serve`), as a device runs them on a thread beside the game.
+  The live game is started with `GBADS_CAPTURE_OFFLOAD=1` (a game can want
+  its first capture before its first frame): `mapcap_request` then leaves
+  the snapshot for the page (`web_capture_job`), the page hands it to the
+  capture worker (started on the first job, again if the game's ROM, code
+  or crop changes), and the pictures come back (`web_capture_inbox`,
+  `web_capture_deliver`) into the capture as a thread's would be.
+  `mapcap_cancel` only forgets the job (the worker can't be interrupted:
+  it finishes, its result let go). One job at a time; a newer one waiting
+  replaces an older. If the capture worker fails, `web_capture_offload(0)`
+  puts captures back in the game. All of it is inside `#ifdef __wasi__`:
+  Linux and Android compile exactly the same code as before (checked by
+  comparing `cc -E -P` of mapcap.c, main.c and game.c before and after).
+  State Saver's tab doesn't ask for it, so it runs captures in the game as
+  before. Captures arriving a moment later is as on a device.
 - **Buttons**: the page sends a mask of ui.h's buttons (`web_buttons`, in
   ui.c, OR-ed into `btnNow` like an input script's). Builds before it get
   ui.c's keyboard keys instead (X and Y have none).
@@ -67,13 +88,21 @@ in `-with-VERSION`. Only `web/gba-ds.wasm`, `web/VERSION`, `gba-ds.cfg` and
   app's Map Buttons. Kept in localStorage (`gbadsPlayer.controls`).
 - Touches: the bottom screen only, as fractions of the app's window
   (`web_touch`). Pause when hidden (on by default) pauses the run.
-- `window.gbadsPlayer` (`P`, `S`, `sound`, `currentMask()`) is there for
-  tests and the console.
+- `window.gbadsPlayer` (`P`, `S`, `sound`, `capture` (with `jobs` /
+  `results` counts), `currentMask()`) is there for tests and the console.
+  Page addresses: `?debug` runs both copies with `GBADS_DEBUG=1` (capture
+  times in the log, the capture worker's lines marked `[capture]`);
+  `?nocapw` runs captures in the game, to compare.
 
 Needs WebAssembly, WebGL2, OffscreenCanvas and AudioWorklet: Firefox 105,
 Chrome 69, Safari 17 and later.
 
 ## Testing it
+
+Games' ROMs and states are in the fixtures repo (`../gba-ds-tests`):
+`tactics-ogre/us-field.ss` with `ATOE.zip`'s ROM given to `#fileInput`
+together starts on the battle field; moving the cursor every 1.5 s keeps
+the unit list capturing.
 
 Headless Chromium with Playwright (Firefox isn't installed in sessions):
 `file://` for the one file, `python3 -m http.server` in the unzipped folder
@@ -87,6 +116,11 @@ of ARM assembled with clang (`--target=armv4t-none-eabi`) and linked at
 0x08000000 make a test ROM (colour bars, a tone, red while A is held).
 
 ## Known limitations
+
+- The capture worker needs a free CPU core to help: on a computer with
+  only two (a session's container), the game and it share them, so games
+  that capture often (Tactics Ogre) still run below 60 fps there (33-38
+  fps against 10-13 with captures in the game, measured Nov 7, 2026).
 
 - Map captures and logo extraction run inline (the web build has no
   threads), so a capture can make a frame late, as in State Saver's tab.

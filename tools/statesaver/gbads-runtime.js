@@ -376,6 +376,11 @@ const GBADS = (() => {
       key(scancode, down) { if (!stopped && state !== "unwinding" && state !== "rewinding") X.web_key(scancode, down ? 1 : 0); },
       // what this build can do beyond the first web builds' (keys, touch, states)
       get memory() { return X.memory; }, // (frames from onFrame point into it)
+      // one of the app's own web_* exports, while it's between frames (else undefined);
+      // `has` says whether this build has it
+      has(name) { return typeof X[name] === "function"; },
+      get idle() { return idle(); },
+      call(name, ...args) { return typeof X[name] === "function" && idle() ? X[name](...args) : undefined; },
       get hasAudio() { return !!X.web_audio_pull; },
       get hasButtons() { return !!X.web_buttons; },
       // the buttons held now, as a mask of ui.h's list (B_A = 1, B_B = 2, B_X = 4...)

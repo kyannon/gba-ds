@@ -159,7 +159,7 @@ const P = {
 // what a build's web version can do, from what it exports
 function buildCaps(module) {
   const names = new Set(WebAssembly.Module.exports(module).map((e) => e.name));
-  return { hasAudio: names.has("web_audio_pull"), hasButtons: names.has("web_buttons") };
+  return { hasAudio: names.has("web_audio_pull"), hasButtons: names.has("web_buttons"), hasCaptureWorker: names.has("web_capture_job") };
 }
 const NO_SOUND = "No sound: this build's web version was made without it (it's on the web-player branch, not yet in dev).";
 const NO_BUTTONS = "Keyboard only: X and Y can't be pressed with this build.";
@@ -395,6 +395,7 @@ function addLog(line) {
   if ($("logDlg").open) { const el = $("logText"), end = el.scrollTop + el.clientHeight >= el.scrollHeight - 4; el.textContent = P.log.join("\n"); if (end) el.scrollTop = el.scrollHeight; }
 }
 async function stopRun() {
+  stopCapture();
   if (!P.worker) return;
   await request({ t: "stop" });
   P.worker.terminate();
@@ -439,7 +440,14 @@ async function boot(opts) {
     if (state) { files.push(["/load.ss", state]); args.push("--load-state=/load.ss"); }
     args.push("/roms/" + romName);
   }
+  const debug = /[?&]debug\b/.test(location.search);
   const env = { GBADS_CONFIG: "/gba-ds/gba-ds.cfg", GBADS_WINDOW: win.w + "x" + win.h, HOME: "/home", ...win.env };
+  if (debug) env.GBADS_DEBUG = "1";
+  // map captures in a worker of their own, from the start (?nocapw: in the game, to compare)
+  const capWorker = !!P.build.caps.hasCaptureWorker && !/[?&]nocapw\b/.test(location.search);
+  if (capWorker) env.GBADS_CAPTURE_OFFLOAD = "1";
+  P.capFiles = files.filter(([p]) => p.startsWith("/gba-ds/") || p.startsWith("/roms/"));
+  P.capEnv = { GBADS_CONFIG: env.GBADS_CONFIG, HOME: "/home", ...(debug ? { GBADS_DEBUG: "1" } : {}) };
   P.log.length = 0;
   let worker;
   try { worker = new Worker(sourceURL("worker", ["runtime"])); }
@@ -456,16 +464,63 @@ async function boot(opts) {
   showNow(opts.library);
   relayout();
   const stage = $("stage"), dpr = window.devicePixelRatio || 1;
-  worker.postMessage({ t: "boot", wasm: P.build.module, files, args, env, canvas,
+  worker.postMessage({ t: "boot", wasm: P.build.module, files, args, env, canvas, captureWorker: capWorker,
     layout: { cw: Math.round(stage.clientWidth * dpr), ch: Math.round(stage.clientHeight * dpr), smooth: !!S.smooth, rects: [] } }, [canvas]);
   relayout();
   if (A.node) linkSound();
   P.booting = false;
   lastMask = -1;
 }
+/* ---- map captures in a worker of their own (a second copy of the app) */
+const CAP = { w: null, key: "", busy: false, next: null, dead: false };
+function stopCapture() {
+  if (CAP.w) CAP.w.terminate();
+  Object.assign(CAP, { w: null, key: "", busy: false, next: null, dead: false });
+}
+function captureJob(m) {
+  if (CAP.dead) return;
+  const key = m.rom + "|" + m.code + "|" + m.tight;
+  if (!CAP.w || CAP.key !== key) {
+    if (CAP.w) CAP.w.terminate();
+    let w;
+    try { w = new Worker(sourceURL("worker", ["runtime"])); }
+    catch (e) { captureFailed("the capture worker didn't start: " + e.message); return; }
+    Object.assign(CAP, { w, key, busy: false, next: null });
+    w.onmessage = (e) => onCapture(w, e.data);
+    w.onerror = (e) => { if (CAP.w === w) captureFailed(e.message); };
+    const env = Object.assign({}, P.capEnv, { GBADS_CAPTURE_SERVE: m.code, GBADS_CAPTURE_TIGHT: m.tight ? "1" : "0" });
+    w.postMessage({ t: "bootCapture", wasm: P.build.module, files: P.capFiles, args: ["/gba-ds/gba-ds", "--asset-dir=/gba-ds", m.rom], env });
+  }
+  // (one at a time: a newer job waiting replaces an older one)
+  if (CAP.busy) { CAP.next = m; return; }
+  CAP.busy = true;
+  CAP.w.postMessage({ t: "capjob", job: m.job, state: m.state, still: m.still }, [m.state]);
+}
+function onCapture(w, m) {
+  if (w !== CAP.w) return;
+  switch (m.t) {
+    case "log": addLog("[capture] " + m.line); break;
+    case "capresult":
+      CAP.results = (CAP.results || 0) + 1;
+      if (P.worker) P.worker.postMessage(m, [m.buf]);
+      CAP.busy = false;
+      if (CAP.next) { const n = CAP.next; CAP.next = null; captureJob(n); }
+      break;
+    case "exit": captureFailed(m.error || "it closed (" + m.code + ")"); break;
+  }
+}
+// captures go back to running in the game (slower, but the second screen keeps working)
+function captureFailed(why) {
+  addLog("capture worker stopped: " + why + "; captures run in the game from now on");
+  if (CAP.w) CAP.w.terminate();
+  Object.assign(CAP, { w: null, busy: false, next: null, dead: true });
+  if (P.worker) P.worker.postMessage({ t: "capoff" });
+}
+
 function onWorker(worker, m) {
   if (worker !== P.worker) return;
   switch (m.t) {
+    case "capjob": CAP.jobs = (CAP.jobs || 0) + 1; captureJob(m); break;
     case "log": addLog(m.line); break;
     case "fps": $("fps").textContent = Math.round(m.fps) + " fps"; break;
     case "started":
@@ -482,6 +537,7 @@ function onWorker(worker, m) {
 }
 function endRun(worker) {
   if (worker !== P.worker) return;
+  stopCapture();
   setTimeout(() => worker.terminate(), 200);
   P.worker = null;
   showStopped();
@@ -938,7 +994,7 @@ $("logBtn").onclick = () => { $("logText").textContent = P.log.join("\n") || "(n
 $("logCopy").onclick = () => navigator.clipboard.writeText(P.log.join("\n")).then(() => toast("Log copied."), () => toast("Couldn't copy.", true));
 
 // for tests and the console: what's loaded and running (read it, don't change it)
-window.gbadsPlayer = { P, S, sound: A, currentMask: () => currentMask() };
+window.gbadsPlayer = { P, S, sound: A, capture: CAP, currentMask: () => currentMask() };
 
 /* ================================================================ start */
 // a build that comes with the player: inline (script#bundled-build, base64) or build/gba-ds-web.zip beside the page

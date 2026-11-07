@@ -181,6 +181,74 @@ async function screenshot() {
   return c.convertToBlob({ type: "image/png" });
 }
 
+/* ------------------------------------------------------------ captures in a worker of their own */
+// The live game: its map captures go to the page (which runs them in the
+// capture worker, a second copy of the app) and come back to it, between frames.
+const cap = { want: false, info: 0, inbox: [], off: false };
+const cstr = (mem, p) => { const b = new Uint8Array(mem.buffer, p); let n = 0; while (b[n]) n++; return new TextDecoder().decode(b.slice(0, n)); };
+function pumpCaptures() {
+  // (GBADS_CAPTURE_OFFLOAD=1 had captures handed over from the start)
+  if (!h || !cap.want || !h.has("web_capture_job") || !h.idle) return;
+  if (cap.off) { h.call("web_capture_offload", 0); cap.want = cap.off = false; cap.inbox.length = 0; return; }
+  if (!cap.info) cap.info = h.call("web_alloc", 32);
+  while (cap.inbox.length) {
+    const r = cap.inbox.shift();
+    const ptr = h.call("web_capture_inbox", r.buf.byteLength);
+    if (!ptr) continue;
+    new Uint8Array(h.memory.buffer, ptr, r.buf.byteLength).set(new Uint8Array(r.buf));
+    h.call("web_capture_deliver", r.job, r.frames, r.step, r.tileValid, r.failed);
+  }
+  const job = h.call("web_capture_job", cap.info);
+  if (!job) return;
+  const i = new Uint32Array(h.memory.buffer, cap.info, 6);
+  const state = h.memory.buffer.slice(i[0], i[0] + i[1]);
+  post({ t: "capjob", job, state, still: i[2], rom: cstr(h.memory, i[3]), code: cstr(h.memory, i[4]), tight: !!i[5] }, [state]);
+}
+
+// The capture worker: a job's snapshot in, run, its pictures out.
+const serve = { h: null, job: null, info: 0, timer: 0 };
+function serveTick() {
+  const sh = serve.h;
+  if (!sh) return;
+  if (!sh.idle) return;
+  if (!serve.info) serve.info = sh.call("web_alloc", 128);
+  if (serve.job) {
+    const ptr = sh.call("web_serve_snapshot"), size = sh.call("web_serve_snapshot_size");
+    if (ptr && size === serve.job.state.byteLength) {
+      new Uint8Array(sh.memory.buffer, ptr, size).set(new Uint8Array(serve.job.state));
+      sh.call("web_serve_job", serve.job.job, serve.job.still);
+      serve.job = null;
+    } else if (ptr && size) {
+      post({ t: "capresult", job: serve.job.job, frames: 0, step: 1, tileValid: 0, failed: 1, buf: new TextEncoder().encode("\0".repeat(1024) + "the snapshot isn't this game's").buffer });
+      serve.job = null;
+    }
+  }
+  const done = sh.call("web_serve_result", serve.info);
+  if (!done) return;
+  const mem = sh.memory.buffer, i = new Uint32Array(mem, serve.info, 22);
+  const frames = i[0], n = i[4], err = i[5] ? cstr(sh.memory, i[5]) : "";
+  const errB = new TextEncoder().encode(err + "\0");
+  const out = new Uint8Array((n * frames + 256) * 4 + errB.length);
+  for (let f = 0; f < frames; f++) out.set(new Uint8Array(mem, i[6 + f], n * 4), n * 4 * f);
+  out.set(new Uint8Array(mem, i[3], 1024), n * 4 * frames);
+  out.set(errB, (n * frames + 256) * 4);
+  post({ t: "capresult", job: done, frames, step: i[1], tileValid: i[2], failed: err ? 1 : 0, buf: out.buffer }, [out.buffer]);
+}
+async function bootCapture(m) {
+  const fs = new GBADS.MemFS();
+  for (const [p, b] of m.files) fs.write(p, b);
+  log("$ " + Object.entries(m.env).filter(([k]) => /CAPTURE/.test(k)).map(([k, v]) => k + "=" + v).join(" ") + " " + m.args.join(" "));
+  try {
+    serve.h = await GBADS.start({
+      wasm: m.wasm, fs, args: m.args, env: m.env, log, onFrame: () => {}, schedule,
+      onExit: (code, err) => { post({ t: "exit", code, error: err ? String(err.stack || err) : null }); serve.h = null; },
+    });
+    serve.timer = setInterval(serveTick, 2);
+  } catch (e) {
+    post({ t: "exit", code: -1, error: "The capture worker didn't start: " + (e.message || e) });
+  }
+}
+
 /* ------------------------------------------------------------ the run */
 // waits shorter than a millisecond go through a message, not setTimeout (which
 // browsers stretch to 4 ms once timeouts nest)
@@ -197,6 +265,7 @@ async function boot(m) {
   for (const [p] of m.files) if (KEEP.test(p)) { const n = fs.nodes.get(p); seen.set(p, n.size + ":" + (n.mtime || 0)); }
   for (const d of ["/states", "/saves", "/shots", "/home", "/roms"]) fs.mkdirs(d);
   log("$ " + m.args.join(" "));
+  cap.want = !!m.captureWorker;
   fpsT = performance.now(); snd.wall = fpsT;
   try {
     h = await GBADS.start({
@@ -207,6 +276,7 @@ async function boot(m) {
         glDraw(true);
         // (the sound is pulled once the app has handed control back: not from inside its frame)
         queueMicrotask(pumpAudio);
+        if (cap.want) queueMicrotask(pumpCaptures);
         const now = performance.now();
         if (now - fpsT >= 1000) { post({ t: "fps", fps: fpsN * 1000 / (now - fpsT), frames }); fpsN = 0; fpsT = now; }
       },
@@ -230,6 +300,10 @@ onmessage = async (e) => {
   const m = e.data;
   switch (m.t) {
     case "boot": await boot(m); break;
+    case "bootCapture": await bootCapture(m); break;
+    case "capjob": serve.job = m; serveTick(); break;
+    case "capresult": cap.inbox.push(m); if (paused) pumpCaptures(); break;
+    case "capoff": cap.off = true; pumpCaptures(); break;
     case "layout": setLayout(m.layout); break;
     case "buttons": if (!paused) setButtons(m.mask); break;
     case "touch": if (h && !paused) h.touch(m.type, m.x, m.y); break;
