@@ -2347,9 +2347,24 @@ static void hud_make_logo_back(void) {
 
 /* Profile hud.logoBelow: the logo as on any other second screen (GEN-1),
  * centred, kept below the HUD's rows. */
+/* hud.held: the picture kept from the game screen (heldN rows: none) */
+static uint32_t heldPic[GBA_W * GBA_H];
+static int heldN;
+static bool heldArmed = true; /* (taken once each time it's shown) */
 static void hud_make_logo_below(void) {
 	hudLogoBelowDone = true;
 	for (int i = 0; i < HUD_CW * HUD_CH; ++i) hudLogoBelow[i] = SCREEN_LIVE; /* (under the HUD: GEN-1) */
+	const typeof(hudProf->hud.held)* hp = &hudProf->hud.held;
+	if (hp->y1 && heldN > 0) {
+		/* (hud.held: the kept picture instead of the logo, at its own size) */
+		for (int y = 0; y < heldN && hp->at + y < GBA_H; ++y) {
+			for (int x = 0; x < GBA_W; ++x) {
+				uint32_t* o = &hudLogoBelow[(hp->at + y) * 2 * HUD_CW + x * 2];
+				o[0] = o[1] = o[HUD_CW] = o[HUD_CW + 1] = heldPic[y * GBA_W + x] | 0xFF000000;
+			}
+		}
+		return;
+	}
 	int top = 0; /* below the HUD: its lowest row on the canvas */
 	for (int m = 0; m < HUD_MOVES; ++m) {
 		const HudMove* mv = &hudProf->hud.moves[m];
@@ -2909,6 +2924,22 @@ static bool mirrorHave, mirrorOn;
 
 static void update_hud(void) {
 	const typeof(hudProf->hud)* h = &hudProf->hud;
+	/* hud.held: taken from the game screen the first frame it's shown in place */
+	if (h->held.y1) {
+		if (!memprobes_match(h->held.when, 3, &emu)) {
+			heldArmed = true;
+		} else if (heldArmed) {
+			int n = 0;
+			while (n < 8 && (h->held.probes[n].x || h->held.probes[n].y || h->held.probes[n].rgb)) ++n;
+			if (probes_hit(emu.fb, h->held.probes, h->held.tol) >= (h->held.min ? h->held.min : n)) {
+				heldArmed = false;
+				heldN = SDL_min(h->held.y1, GBA_H - 1) - h->held.y0 + 1;
+				memcpy(heldPic, emu.fb + h->held.y0 * GBA_W, (size_t) heldN * GBA_W * 4);
+				hudLogoBelowDone = false;
+				if (debug) fprintf(stderr, "frame %llu: picture kept for under the HUD\n", (unsigned long long) frameCount);
+			}
+		}
+	}
 	/* a conversation leaves the game screen only once there's a picture
 	 * on the second screen to put it on */
 	if (h->band) emu_hud_band(true, mapShownIdx < 0, h->band == BAND_WATCH);
@@ -3696,6 +3727,12 @@ static void* screen_blob(size_t* n) {
 		if (t.p) blob_section(&b, "TITL", t.p, t.n);
 		free(t.p);
 	}
+	if (hudProf && hudProf->hud.held.y1 && heldN > 0) {
+		Blob t = { 0 };
+		blob_u32(&t, (uint32_t) heldN), blob_add(&t, heldPic, (size_t) GBA_W * heldN * 4);
+		if (t.p) blob_section(&b, "HELD", t.p, t.n);
+		free(t.p);
+	}
 	if (hudProf && hudProf->hud.card.tile && hudBackValid && cardScore >= 0) {
 		Blob c = { 0 };
 		blob_u32(&c, (uint32_t) cardScore), blob_add(&c, cardBest, sizeof(cardBest));
@@ -3738,6 +3775,7 @@ static void screen_restore_apply(void) {
 	 * card and the level name go (back from the state, if it has them) */
 	if (hudProf && hudProf->hud.card.tile) hudBackValid = false, cardScore = -1, sideScore = -1;
 	mapTitleN = 0, hudLogoBelowDone = false;
+	heldN = 0, heldArmed = true;
 	logoForced = false, logoHolding = 0;
 	if (!ours) {
 		if (b && debug) fprintf(stderr, "load state: its second screen is for another game or version: not used\n");
@@ -3774,13 +3812,18 @@ static void screen_restore_apply(void) {
 		int rows = (int) rd32(d);
 		if (rows > 0 && rows <= 32 && sz == 4 + (size_t) GBA_W * rows * 4) memcpy(mapTitle, d + 4, sz - 4), mapTitleN = rows;
 	}
+	if (hudProf && hudProf->hud.held.y1 && (d = blob_find(b, n, "HELD", &sz)) && sz >= 4) {
+		int rows = (int) rd32(d);
+		if (rows > 0 && rows <= GBA_H && sz == 4 + (size_t) GBA_W * rows * 4) memcpy(heldPic, d + 4, sz - 4), heldN = rows;
+	}
 	if (hudProf && hudProf->hud.card.tile && (d = blob_find(b, n, "CARD", &sz)) && sz == 4 + sizeof(cardBest)) {
 		cardScore = (int) rd32(d);
 		memcpy(cardBest, d + 4, sizeof(cardBest));
 		card_backdrop();
 	}
-	if (debug) fprintf(stderr, "load state: the second screen from it (%s%s%s%s)\n", blob_find(b, n, "MAP ", &sz) ? " map" : "",
-	                   blob_find(b, n, "SNAP", &sz) ? " copy" : "", blob_find(b, n, "TITL", &sz) ? " title" : "", blob_find(b, n, "CARD", &sz) ? " card" : "");
+	if (debug) fprintf(stderr, "load state: the second screen from it (%s%s%s%s%s)\n", blob_find(b, n, "MAP ", &sz) ? " map" : "",
+	                   blob_find(b, n, "SNAP", &sz) ? " copy" : "", blob_find(b, n, "TITL", &sz) ? " title" : "", blob_find(b, n, "CARD", &sz) ? " card" : "",
+	                   blob_find(b, n, "HELD", &sz) ? " held" : "");
 }
 
 /* Save states, with the RetroAchievements progress beside them. */

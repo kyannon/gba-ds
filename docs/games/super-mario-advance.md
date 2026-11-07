@@ -12,11 +12,11 @@ What GBA DS does with this game. Each rule is a promise the profile keeps; the r
 
 Every game also follows the [general rules](README.md#general-rules) (GEN-1 to GEN-7).
 
-Modelled on Super Mario Advance 2 and 4 ([SMA rules](super-mario-advance-2.md), [SM4 rules](super-mario-advance-4.md)): in a level the status bar leaves the game screen for the top of the second screen, with the logo below it. Super Mario Bros. 2 has no world map and no menu that opens from a level with anything worth a second screen (its pause box holds only the overall Ace Coin percentage and four choices), so there's no capture on the hidden copy.
+Modelled on Super Mario Advance 2 and 4 ([SMA rules](super-mario-advance-2.md), [SM4 rules](super-mario-advance-4.md)): in a level the status bar leaves the game screen for the top of the second screen. Super Mario Bros. 2 has no world map and no menu that opens from a level with anything worth a second screen (its pause box holds only the overall Ace Coin percentage and four choices), so there's no capture on the hidden copy. Its nearest thing to a map is the course board the game shows before each level, kept from the game screen as it's shown and put under the status bar (SMB2-8).
 
 ## Rules
 
-**SMB2-1. Level: status bar.** In a level of Super Mario Bros. 2 the status bar along the top of the game screen (WORLD and the level's number, the level's Ace Coins, lives, SCORE: rows 0-15) goes to the top of the second screen, where the game draws it, with the logo (GEN-1) at full strength centred in the room below it, on black. The game screen shows the level there instead. The life meter (the hearts down the left side) stays on the game screen, by Mario, as the game draws it. The Yoshi Challenge's levels are the same.
+**SMB2-1. Level: status bar.** In a level of Super Mario Bros. 2 the status bar along the top of the game screen (WORLD and the level's number, the level's Ace Coins, lives, SCORE: rows 0-15) goes to the top of the second screen, where the game draws it, with the course board below it (SMB2-8), on black; with no board kept yet, the logo (GEN-1) at full strength centred in the room below it. The game screen shows the level there instead. The life meter (the hearts down the left side) stays on the game screen, by Mario, as the game draws it. The Yoshi Challenge's levels are the same.
 
 **SMB2-2. What stays in a level.** The pause box (START: PAUSE, the Ace Coin percentage, Continue, Save and Continue, Save and Quit, Try Again), drawn on the status bar's layer below it, stays on the game screen; the status bar stays on the second screen while it's open.
 
@@ -30,6 +30,8 @@ Modelled on Super Mario Advance 2 and 4 ([SMA rules](super-mario-advance-2.md), 
 
 **SMB2-7. Both releases.** The USA and Europe cartridge and the Japanese one behave the same (their levels use the same display settings, so there's no variant).
 
+**SMB2-8. Level: the course board under the status bar.** The course board the game shows before each level (World 1 to 7, each level's box, starred once its five Ace Coins are found, and the Ace Coin percentage) is kept from the game screen, from its first moment in place there, and in the level that follows it's on the second screen under the status bar, one row below it: its panel from the top of its frame down to its grass (rows 8-150 of the 160; the rest of the board's background, above and below, left off so it fits). It's the board as it was before the level: Ace Coins found during the level show on the status bar and on the next board. The Yoshi Challenge's board (orange background, cyan frame) is kept the same way. It stays through doors, pausing and everything in SMB2-3, and is kept with a state saved by GBA DS (GEN-7); a state from before this, or from another emulator, loaded in a level has the logo there until the next board. While the board itself is on the game screen, the second screen shows the logo (SMB2-4). *Philosophy: an exception to be decided by the owner on the device (cropped from the game's whole screen and held from before the level).*
+
 ## Not covered yet
 
 - SMB2-3 needs states in Subspace, in a jar and in boss rooms (Birdo, Mouser, Tryclyde, Fry Guy, Clawgrip, Robirdo, Wart); the tests so far run level starts. *By hand on the device till then.*
@@ -41,12 +43,12 @@ Modelled on Super Mario Advance 2 and 4 ([SMA rules](super-mario-advance-2.md), 
 
 ## For the merge
 
-- Changelog (under the open version, What's new): "Super Mario Advance: in Super Mario Bros. 2's levels the status bar (world, Ace Coins, lives, score) moves to the top of the second screen, with the logo below; the title, menus, the screens between levels and Mario Bros. show the logo."
-- `wiki/Supported-games.md` table row: Super Mario Advance | status bar on the second screen in levels | USA/Europe, Japan.
+- Changelog (under the open version, What's new): "Super Mario Advance: in Super Mario Bros. 2's levels the status bar (world, Ace Coins, lives, score) moves to the top of the second screen, with the course board shown before the level (every level's Ace Coins) below it; the title, menus, the screens between levels and Mario Bros. show the logo."
+- `wiki/Supported-games.md` table row: Super Mario Advance | status bar and course board on the second screen in levels | USA/Europe, Japan.
 - `wiki/Supported-games.md` section:
 
   ### Super Mario Advance
 
-  In Super Mario Bros. 2's levels (the Yoshi Challenge too), the status bar along the top (world and level, the level's Ace Coins, lives and score) moves to the top of the second screen, with the game's logo below it; the hearts stay by Mario on the game screen, and so does the pause box. Everywhere else (the title and menus, choosing a player, the course board and level card before each level, the Bonus Chance, and the Mario Bros. arcade game) the second screen shows the logo.
+  In Super Mario Bros. 2's levels (the Yoshi Challenge too), the status bar along the top (world and level, the level's Ace Coins, lives and score) moves to the top of the second screen, with the course board the game showed before the level (every level and its Ace Coins) below it; the hearts stay by Mario on the game screen, and so does the pause box. Everywhere else (the title and menus, choosing a player, the course board and level card before each level, the Bonus Chance, and the Mario Bros. arcade game) the second screen shows the logo.
 - README: one more supported game in the count.
 - `docs/games/README.md` table row: Super Mario Advance | SMB2 | `AMAE` + 1.

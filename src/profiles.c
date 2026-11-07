@@ -5185,6 +5185,18 @@ static const MapProfile profiles[] = {
 			.bgMask = 8,
 			.rows = 16,
 			.logoBelow = true,
+			/* The course board before each level (all 20 levels and their
+			 * Ace Coins, BG0 in mode 1, 0x1101, at BG0HOFS 0x10 once in
+			 * place; it fades in from white): kept from its first frame
+			 * in place, its panel (rows 8-150: the frame's top edge to the
+			 * grass) below the status bar from row 17, instead of the logo
+			 * (SMB2-8). Probes on the panel's cream and its black and
+			 * green bottom edge: the same on the Yoshi Challenge's board
+			 * (whose frame is cyan, not orange), not on the level card. */
+			.held = { .when = { { 0x04000000, 0xFFFF, 0x1101, 2 }, { 0x04000010, 0x01FF, 0x0010, 2 } },
+			          .probes = { { 120, 12, 0xFFF7BD }, { 60, 80, 0xFFF7BD }, { 180, 80, 0xFFF7BD },
+			                      { 120, 144, 0x000000 }, { 120, 148, 0x7BC610 } },
+			          .tol = 8, .y0 = 8, .y1 = 150, .at = 17 },
 		},
 	},
 };

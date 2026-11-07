@@ -495,6 +495,21 @@ typedef struct MapProfile {
 		int rows;
 		/* The same (unused). */
 		bool logoBehind;
+		/* With logoBelow: a picture the game shows on its own screen
+		 * elsewhere, kept from the game screen and shown below the HUD
+		 * instead of the logo (Super Mario Advance's course board, shown
+		 * before each level). Taken from the first frame where every
+		 * `when` probe matches and at least `min` of `probes` do (game
+		 * screen pixels, within tol per channel; min 0: all), once each
+		 * time it's shown; its rows y0..y1 go to the second screen from
+		 * row `at`, on black. Until one is taken (a state loaded in a
+		 * level, made before this), the logo. Kept with saved states. */
+		struct {
+			MemProbe when[3];
+			Probe probes[8];
+			int min, tol;
+			int y0, y1, at;
+		} held;
 		/* While every `mirror` probe matches, or every `mirrorOr` one: the
 		 * whole game screen goes to the second screen, and the game screen
 		 * holds the last picture from before (menus over a paused world,

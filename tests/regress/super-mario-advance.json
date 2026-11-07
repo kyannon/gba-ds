@@ -29,6 +29,21 @@
      ],
      "color": "000000",
      "frac": 0.97
+    },
+    {
+     "rule": "SMB2-1",
+     "what": "no board kept yet: the logo below the status bar, nothing of a board",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      256,
+      400,
+      768,
+      440
+     ],
+     "color": "FFF7BD",
+     "frac": 0.9
     }
    ]
   },
@@ -131,7 +146,8 @@
    "desc": "choosing Mario, the course board, the level card, then World 1-1",
    "rules": [
     "SMB2-4",
-    "SMB2-1"
+    "SMB2-1",
+    "SMB2-8"
    ],
    "input": [
     [
@@ -209,6 +225,139 @@
      ],
      "color": "000000",
      "frac": 0.97
+    },
+    {
+     "rule": "SMB2-8",
+     "what": "the course board's panel under the status bar",
+     "type": "pixels",
+     "shot": "level",
+     "screen": "second",
+     "probes": [
+      [
+       256,
+       422,
+       "FFF7BD"
+      ],
+      [
+       768,
+       422,
+       "FFF7BD"
+      ],
+      [
+       512,
+       150,
+       "FFF7BD"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "smb2-us-yoshi-challenge-board",
+   "rom": "AMAE",
+   "state": "super-mario-advance/us-yoshi-challenge-board.ss",
+   "desc": "the Yoshi Challenge's course board (the 100% save), then World 1-1",
+   "rules": [
+    "SMB2-8",
+    "SMB2-1"
+   ],
+   "shots": {
+    "board": 40,
+    "level": 700
+   },
+   "checks": [
+    {
+     "rule": "SMB2-4",
+     "what": "the board on the game screen: the logo",
+     "type": "uniform",
+     "shot": "board",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      110
+     ],
+     "color": "303030",
+     "frac": 0.9
+    },
+    {
+     "rule": "SMB2-1",
+     "what": "the status bar along the top of the second screen",
+     "type": "not_uniform",
+     "shot": "level",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      110
+     ],
+     "color": "000000",
+     "frac": 0.97
+    },
+    {
+     "rule": "SMB2-8",
+     "what": "the course board's panel under the status bar",
+     "type": "pixels",
+     "shot": "level",
+     "screen": "second",
+     "probes": [
+      [
+       256,
+       422,
+       "FFF7BD"
+      ],
+      [
+       768,
+       422,
+       "FFF7BD"
+      ],
+      [
+       512,
+       150,
+       "FFF7BD"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "smb2-us-board-kept",
+   "rom": "AMAE",
+   "state": "super-mario-advance/us-level-board-kept.ss",
+   "desc": "World 1-1, a state saved by GBA DS with the course board kept, loaded afresh",
+   "rules": [
+    "SMB2-8",
+    "GEN-7"
+   ],
+   "shots": {
+    "start": 30
+   },
+   "checks": [
+    {
+     "rule": "GEN-7",
+     "what": "the course board's panel under the status bar",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       256,
+       422,
+       "FFF7BD"
+      ],
+      [
+       768,
+       422,
+       "FFF7BD"
+      ],
+      [
+       512,
+       150,
+       "FFF7BD"
+      ]
+     ]
     }
    ]
   },
