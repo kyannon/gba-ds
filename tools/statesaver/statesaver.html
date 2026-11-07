@@ -1431,7 +1431,7 @@ const PAD_KEYS = [[1, 27], [0, 29], [4, 4], [5, 22], [6, 43], [7, 44], [9, 40], 
 function gdTick(t) {
   if (gd.dirty && gd.img) { ctx.putImageData(gd.img, 0, 0); gd.dirty = false; }
   gdRwMaybeSnap();
-  // builds with sound (v1.4.11-dev on) queue it for the page: this tab doesn't play it,
+  // builds with sound (v1.4.12-dev on) queue it for the page: this tab doesn't play it,
   // so it's drained by the clock (a full queue would slow the game's pacing)
   if (gd.h && gd.h.hasAudio && !gd.paused) {
     const rate = gd.h.audioRate();

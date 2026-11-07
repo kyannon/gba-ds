@@ -458,8 +458,8 @@ function onWorker(worker, m) {
     case "fps": $("fps").textContent = Math.round(m.fps) + " fps"; break;
     case "started":
       P.caps = m;
-      if (!m.hasAudio) toast("This build has no sound in the browser (builds from v1.4.11-dev on do).");
-      if (!m.hasButtons) toast("This build takes keyboard keys only: X and Y can't be pressed (builds from v1.4.11-dev take every button).");
+      if (!m.hasAudio) toast("This build has no sound in the browser (builds from v1.4.12-dev on do).");
+      if (!m.hasButtons) toast("This build takes keyboard keys only: X and Y can't be pressed (builds from v1.4.12-dev on take every button).");
       break;
     case "files": keepFiles(m.files, m.deleted); if (m.id && P.reqs.has(m.id)) { P.reqs.get(m.id)(m); P.reqs.delete(m.id); } break;
     case "reply": if (P.reqs.has(m.id)) { P.reqs.get(m.id)(m); P.reqs.delete(m.id); } break;
