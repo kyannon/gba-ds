@@ -893,6 +893,12 @@ static bool hudAlt; /* the HUD on its other layer (hud.alt: SMA2's boss rooms) *
 static uint32_t hudLogoBack[HUD_CW * HUD_CH];
 static bool hudLogoDone;
 static bool hudShown; /* the second screen shows the HUD picture (hudTex) */
+/* the profile's logoIf probes match: the logo, the map picture and HUD kept */
+static bool logoForced;
+/* logoIf just stopped matching: the logo still, until the second screen has
+ * a new picture to show (a HUD picture drawn, a map picture taken), at
+ * most a second; not the last picture from before for a frame (SM4-11) */
+static int logoHolding;
 /* profile hud.overMap: this frame's HUD is drawn into the map picture;
  * the map picture needs uploading again (the HUD changed) */
 static bool overOn, overDirty;
@@ -3049,10 +3055,19 @@ static void update_hud(void) {
 		if (h->emptyIsOff && emptyFor >= 20) {
 			if (hudShown && debug) fprintf(stderr, "frame %llu: HUD empty: the logo\n", (unsigned long long) frameCount);
 			hudShown = false;
+		} else if (h->freeze[0].addr && memprobes_match(h->freeze, 2, &emu)) {
+			/* hud.freeze: the picture as it was (World-e's status bar
+			 * sliding away as the inventory opens, and back, SM4-8) */
 		} else if (!(empty && !hudShown)) {
 			if (emu_hud_grabbed()) hud_make_backdrop(); /* (that frame drew no HUD: the last one is reused) */
 			hud_compose();
 			for (int i = 0; i < nViews; ++i) ui_update_texture(hudTex[i], hudCanvas, HUD_CW * 4);
+			if (logoForced && !(hudProf->logoIf[0].addr && memprobes_match(hudProf->logoIf, 2, &emu)) &&
+			    !(hudProf->logoIfOr[0].addr && memprobes_match(hudProf->logoIfOr, 2, &emu))) {
+				/* (a new HUD picture: the logo's hold is over) */
+				logoForced = false, logoHolding = 0;
+				if (debug) fprintf(stderr, "frame %llu: logo only off: a new HUD picture\n", (unsigned long long) frameCount);
+			}
 			if (!hudShown && debug) fprintf(stderr, "frame %llu: HUD on the second screen\n", (unsigned long long) frameCount);
 			hudShown = true;
 		}
@@ -3723,6 +3738,7 @@ static void screen_restore_apply(void) {
 	 * card and the level name go (back from the state, if it has them) */
 	if (hudProf && hudProf->hud.card.tile) hudBackValid = false, cardScore = -1, sideScore = -1;
 	mapTitleN = 0, hudLogoBelowDone = false;
+	logoForced = false, logoHolding = 0;
 	if (!ours) {
 		if (b && debug) fprintf(stderr, "load state: its second screen is for another game or version: not used\n");
 		return;
@@ -5029,13 +5045,13 @@ static void draw_game(void) {
 		if (((combatOn && !(overAlone && mapShownIdx >= 0)) || logoBack) && (combatTex[0] || combatTex[1])) {
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
 			ui_image_pixels(s, combatTex, mapW, mapH, cfg->mapScale, cfg->lcdGrid ? 1 : 0);
-		} else if (hudShown) {
+		} else if (hudShown && !logoForced) {
 			/* the HUD picture is at 2x: a grid cell per GBA pixel */
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
 			ui_image_pixels(s, hudTex, HUD_CW, HUD_CH, cfg->mapScale, cfg->lcdGrid ? 2 : 0);
-		} else if (mapShownIdx >= 0 && draw_framed_map(s)) {
+		} else if (mapShownIdx >= 0 && !logoForced && draw_framed_map(s)) {
 			/* map + generated surround */
-		} else if (mapShownIdx >= 0) {
+		} else if (mapShownIdx >= 0 && !logoForced) {
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
 			ui_image_pixels(s, mapTex, mapW, mapH, cfg->mapScale, cfg->lcdGrid ? 1 : 0);
 		} else if (!cfg->showLogo) {
@@ -5056,10 +5072,10 @@ static void draw_game(void) {
 			area = (SDL_Rect) { area.x + in, area.y + in, area.w - in * 2, area.h - in * 2 };
 			if (tp) ui_title_block(s, area, tp->title, (int) (ui_px(s) * 14), (SDL_Color) { 236, 236, 244, 255 });
 		}
-		if ((hudShown || mapShownIdx >= 0) && (cfg->overlays & OVL_SECONDARY)) { /* the map only, never the logo */
+		if ((hudShown || mapShownIdx >= 0) && !logoForced && (cfg->overlays & OVL_SECONDARY)) { /* the map only, never the logo */
 			draw_overlay(s, 1);
 		}
-		if (!hudShown && mapShownIdx >= 0 && mapInactive) {
+		if (!hudShown && mapShownIdx >= 0 && mapInactive && !logoForced) {
 			ui_dim(s, 120);
 		}
 	}
@@ -6226,6 +6242,17 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				hideWhenOn = !hideWhenOn;
 				emu_hide_sprites(&emu, hideWhenOn ? hideWhenProf->hideSprites : NULL, hideWhenOn ? hideWhenN : 0);
 				if (debug) fprintf(stderr, "frame %llu: sprite hiding %s\n", (unsigned long long) frameCount, hideWhenOn ? "on" : "off");
+			}
+			{
+				/* (logoIf: the logo for now, SM4-11) */
+				const MapProfile* lp = mapcap_profile(mc);
+				bool lf = lp && ((lp->logoIf[0].addr && memprobes_match(lp->logoIf, 2, &emu)) ||
+				                 (lp->logoIfOr[0].addr && memprobes_match(lp->logoIfOr, 2, &emu)));
+				if (lf) logoHolding = 60;
+				else if (logoHolding > 0) --logoHolding;
+				lf = lf || logoHolding > 0;
+				if (debug && lf != logoForced) fprintf(stderr, "frame %llu: logo only %s\n", (unsigned long long) frameCount, lf ? "on" : "off");
+				logoForced = lf;
 			}
 			bool dark = frame_is_dark(emu.fb);
 			if (wasDark && !dark) refreshAt = (long) frameCount + 6;
