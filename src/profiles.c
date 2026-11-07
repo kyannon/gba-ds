@@ -3307,7 +3307,11 @@ static const char* gs2_compose(Emu* s, const void* state, uint32_t* const* out, 
  * the list under it (BG2 off) put in its place */
 /* (and on the unit's details (TO-8) the arrows that blink in its bottom
  * corners, tile 762 at 0 and 232 x 152; the list never uses it) */
-static const SpriteRule toHide[2] = { { -64, -16, 239, 159, 1005, 1012, -1 }, { -8, 144, 239, 159, 762, 762, -1 } };
+/* (on an empty square's pages (TO-2): the conditions' R and L buttons,
+ * tiles 516 and 512 at the bottom right, and the supply list's pointing
+ * hand, tile 280 down its left) */
+static const SpriteRule toHide[4] = { { -64, -16, 239, 159, 1005, 1012, -1 }, { -8, 144, 239, 159, 762, 762, -1 },
+                                      { 128, 120, 239, 159, 512, 519, -1 }, { 24, 8, 63, 151, 280, 283, -1 } };
 #define TO_R_X1 47
 #define TO_R_Y0 144
 
@@ -3320,6 +3324,27 @@ static const Probe toList[7] = { { 103, 0, 0x6F7346 }, { 137, 16, 0x6F7346 }, { 
 static bool to_list_up(Emu* s) {
 	return som_probes(s, toList, 7, 6, 8);
 }
+
+/* the Winning (or Losing) Condition: its box at the top and the place's
+ * at the bottom left, over the field (both pages, both releases, wherever
+ * the camera is) */
+static const Probe toAims[8] = { { 12, 24, 0xFFFF8C }, { 228, 24, 0xFFFF8C }, { 120, 10, 0x525231 }, { 60, 34, 0xDEE78C },
+                                 { 200, 34, 0xDEE78C }, { 14, 140, 0xDEE78C }, { 103, 128, 0x394252 }, { 60, 147, 0x525231 } };
+static bool to_aims_up(Emu* s) {
+	return som_probes(s, toAims, 8, 7, 8);
+}
+/* the supply list (Expendables): its box's edges */
+static const Probe toSupply[8] = { { 56, 26, 0x101818 }, { 160, 26, 0x525231 }, { 56, 134, 0x101818 }, { 160, 134, 0xA5AD63 },
+                                   { 56, 80, 0x101818 }, { 162, 80, 0xFFFF8C }, { 100, 26, 0x525231 }, { 100, 134, 0xA5AD63 } };
+static bool to_supply_up(Emu* s) {
+	return som_probes(s, toSupply, 8, 7, 8);
+}
+/* the conditions' prompt (LOSING CONDITION or WINNING CONDITION, BG2,
+ * beside the R or L button), at the bottom right: the place's box ends at
+ * x 100 */
+#define TO_AIM_X0 104
+#define TO_AIM_Y0 126
+#define TO_AIM_Y1 147
 
 /* the box at x, top (in the frame) is the field's box f */
 static bool to_box_at(const uint32_t* fb, int x, int top, const uint32_t* f) {
@@ -3388,13 +3413,86 @@ static bool to_details_up(const uint32_t* fb) {
 	       (fb[120 * GBA_W + 180] & 0xFFFFFF) != c;
 }
 
+/* pg's x0-x1 x y0-y1 from the frame after, BG2 off (what's under a prompt) */
+static bool to_paste_under(Emu* s, uint32_t* pg, int x0, int y0, int x1, int y1) {
+	static uint8_t* tmp;
+	static size_t tmpSize;
+	size_t sz = emu_state_size(s);
+	if (sz > tmpSize) free(tmp), tmp = malloc(sz), tmpSize = tmp ? sz : 0;
+	if (!tmp || !emu_state_save(s, tmp)) return false;
+	emu_layers(s, 0x1B);
+	emu_state_load(s, tmp);
+	emu_frame(s, 0);
+	for (int y = y0; y <= y1; ++y) memcpy(&pg[y * GBA_W + x0], &s->fb[y * GBA_W + x0], (x1 - x0 + 1) * 4);
+	emu_layers(s, 0x1F);
+	emu_state_load(s, tmp);
+	emu_frame(s, 0);
+	return true;
+}
+
+/* R's menu open on the field: 2 (0 with R pressed anywhere else: a unit
+ * picked or acting, the details or the list open, the enemy's turn);
+ * Japan's by the same RAM, the 5 after it too */
+#define TO_MENU_UP(s) ((s)->gameCode[3] == 'J' ? 0x0202A733u : 0x02029D63u)
+
+/* R's menu, its icon k (from the first), A; false if R's menu didn't
+ * open (only from the free field: TO-5) */
+static bool to_menu_pick(Emu* s, int k) {
+	aw_run(s, K_R, 6);
+	aw_run(s, 0, 34);
+	if (emu_read8(s, TO_MENU_UP(s)) != 2) return false;
+	for (int i = 0; i < k; ++i) aw_run(s, K_RIGHT, 6), aw_run(s, 0, 14);
+	aw_run(s, K_A, 6);
+	return true;
+}
+
+/* an empty square (TO-2): the Winning Condition (R's second icon), the
+ * Losing Condition (R on it), then the supply list (its third); in
+ * Training, whose menu has no Winning Condition, the second icon is the
+ * supply list: that alone. The camera pans to each condition's unit in
+ * ~12 frames. */
+static const char* to_aims(Emu* s, const void* state, uint32_t (*page)[GBA_W * GBA_H], int max, int* nOut) {
+	int n = 0;
+	bool aims = false, supply = false;
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	if (!to_menu_pick(s, 1)) return "R's menu didn't open";
+	for (int f = 0; f < 90 && !(aims = to_aims_up(s)) && !(supply = to_supply_up(s)); ++f) emu_frame(s, 0);
+	if (aims) {
+		for (int k = 0; k < 2 && n < max; ++k) {
+			if (k) aw_run(s, K_R, 6);
+			aw_run(s, 0, k ? 40 : 30);
+			if (!to_aims_up(s)) return "the conditions closed";
+			if (emu_cancelled(s)) return "called off";
+			memcpy(page[n], s->fb, sizeof(page[n]));
+			if (!to_paste_under(s, page[n], TO_AIM_X0, TO_AIM_Y0, GBA_W - 1, TO_AIM_Y1)) return "no memory";
+			++n;
+		}
+		if (n < max) {
+			if (!emu_state_load(s, state)) return "state load failed";
+			emu_frame(s, 0);
+			if (!to_menu_pick(s, 2)) return "R's menu didn't open";
+			for (int f = 0; f < 90 && !(supply = to_supply_up(s)); ++f) emu_frame(s, 0);
+		}
+	}
+	if (supply && n < max) {
+		aw_run(s, 0, 20);
+		if (!to_supply_up(s)) return "the supply list closed";
+		memcpy(page[n++], s->fb, sizeof(page[0]));
+	}
+	if (emu_cancelled(s)) return "called off";
+	if (!n) return "neither the conditions nor the supply list opened";
+	*nOut = n;
+	return NULL;
+}
+
 static const char* to_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
 	static uint32_t page[TO_PAGES][GBA_W * GBA_H];
 	static uint32_t field[TO_BOX_W * TO_BOX_H];
 	int max = *nOut < TO_PAGES ? *nOut : TO_PAGES;
 	*nOut = 1;
 	*step = 150; /* 2.5 seconds a page */
-	emu_hide_sprites(s, toHide, 2);
+	emu_hide_sprites(s, toHide, 4);
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
 	/* the field cursor on a unit (its box found in the list): its details
@@ -3410,10 +3508,16 @@ static const char* to_compose(Emu* s, const void* state, uint32_t* const* out, i
 		aw_run(s, 0, 4);
 		/* the field: the box of the unit under the cursor (if any) */
 		for (int y = 0; y < TO_BOX_H; ++y) memcpy(&field[y * TO_BOX_W], &s->fb[(TO_BOX_Y + y) * GBA_W + TO_BOX_X], TO_BOX_W * 4);
+		/* none (its frame's white left edge, x 164, 44 of rows 110-155
+		 * on every unit's box, none on an empty square): the empty
+		 * square's pages, without looking through the list (TO-2) */
+		int edge = 0;
+		for (int y = 110; y < 156; ++y) edge += (s->fb[y * GBA_W + 164] & 0xFFFFFF) == 0xEFFFFF; /* (XBGR: FFFFEF) */
+		bool found = false;
+		if (edge < 40) goto empty;
 		if (!to_open_list(s)) return "the list didn't open";
 		aw_run(s, 0, 10);
 		/* to the unit under the field cursor */
-		bool found = false;
 		for (int n = 0; n < 64 && !found; ++n) {
 			if (to_box_is(s->fb, field)) {
 				found = true;
@@ -3433,11 +3537,18 @@ static const char* to_compose(Emu* s, const void* state, uint32_t* const* out, i
 			}
 			if (emu_cancelled(s)) return "called off";
 		}
-		if (!found && to_list_pos(s) != 0) {
-			/* (none: the list as it opens, on the leader) */
-			if (!emu_state_load(s, state)) return "state load failed";
-			emu_frame(s, 0);
-			if (!to_open_list(s)) return "the list didn't open";
+	empty:
+		if (!found) {
+			/* (none: an empty square, nothing about a unit, TO-2; or a
+			 * box the list doesn't have) */
+			int n = 0;
+			const char* err = to_aims(s, state, page, max, &n);
+			if (err) return err;
+			*nOut = n;
+			for (int k = 0; k < n; ++k) {
+				for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[k][y * w], &page[k][y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+			}
+			return NULL;
 		}
 		onUnit = found;
 	}

@@ -475,32 +475,75 @@
    "id": "to-us-empty-tile",
    "rom": "ATOE",
    "state": "tactics-ogre/us-empty-tile.ss",
-   "desc": "the cursor on an empty square: the list alone, on the leader (no details)",
+   "desc": "the cursor on an empty square: the Winning Condition, the Losing Condition, the supply list (no list on the leader)",
    "rules": [
-    "TO-2",
-    "TO-8"
+    "TO-9"
    ],
    "shots": {
-    "start": 120
+    "start": 120,
+    "losing": 270,
+    "supply": 420
    },
    "checks": [
     {
-     "rule": "TO-2",
-     "what": "the list was shown",
+     "rule": "TO-9",
+     "what": "three pages: the two conditions and the supply list",
      "type": "log",
-     "match": "map updated"
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
     },
     {
-     "rule": "TO-8",
-     "what": "no details: the list's six pages",
-     "type": "log",
-     "match": "map updated \\(6 frame\\(s\\)"
-    },
-    {
-     "rule": "TO-8",
-     "what": "never seven",
+     "rule": "TO-9",
+     "what": "never the list or the details",
      "type": "no_log",
-     "match": "map updated \\(7 frame"
+     "match": "map updated \\((6|7) frame"
+    },
+    {
+     "rule": "TO-9",
+     "what": "the next page after 2.5 seconds",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "losing",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.01
+    },
+    {
+     "rule": "TO-9",
+     "what": "and the next",
+     "type": "differs",
+     "a": {
+      "shot": "losing",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "supply",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.01
     }
    ]
   },
@@ -941,7 +984,8 @@
    "desc": "the player opens Orson's details (B) in the game and closes them again: the last pictures stay meanwhile; once the field is back, the list on Orson again, not on the leader while the field fades in",
    "rules": [
     "TO-5",
-    "TO-8"
+    "TO-8",
+    "TO-9"
    ],
    "input": [
     [
@@ -968,9 +1012,9 @@
    "checks": [
     {
      "rule": "TO-5",
-     "what": "none taken with the details open",
+     "what": "none taken with the details open (R's menu doesn't open there)",
      "type": "log",
-     "match": "map capture failed .*the list didn't open"
+     "match": "map capture failed .*R's menu didn't open"
     },
     {
      "rule": "TO-5",
@@ -1227,6 +1271,157 @@
      ],
      "color": "101818",
      "frac": 0.95
+    }
+   ]
+  },
+  {
+   "id": "to-training-empty",
+   "rom": "ATOE",
+   "state": "tactics-ogre/training-empty.ss",
+   "desc": "Training, the cursor on an empty square: no conditions in Training, so the supply list alone",
+   "rules": [
+    "TO-9"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "TO-9",
+     "what": "one page, the supply list",
+     "type": "log",
+     "match": "map updated \\(1 frame\\(s\\)"
+    }
+   ]
+  },
+  {
+   "id": "to-jp-empty-tile",
+   "rom": "ATOJ",
+   "state": "tactics-ogre/jp-empty-tile.ss",
+   "desc": "Japan: the cursor moved off the leader to an empty square (from jp-field.ss): the two conditions (TACTICAL AIM, DEFEAT CONDITION) and the supply list",
+   "rules": [
+    "TO-9"
+   ],
+   "shots": {
+    "start": 120,
+    "losing": 270,
+    "supply": 420
+   },
+   "checks": [
+    {
+     "rule": "TO-9",
+     "what": "three pages",
+     "type": "log",
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
+    }
+   ]
+  },
+  {
+   "id": "to-us-empty-still",
+   "rom": "ATOE",
+   "state": "tactics-ogre/us-empty-tile.ss",
+   "desc": "Map Animations off, an empty square: the Winning Condition stays",
+   "rules": [
+    "TO-9"
+   ],
+   "config": {
+    "map_animations": 0
+   },
+   "shots": {
+    "first": 120,
+    "later": 400
+   },
+   "checks": [
+    {
+     "rule": "TO-9",
+     "what": "the same page 4.7 seconds on (but the rain: each refresh takes it again)",
+     "type": "same",
+     "a": {
+      "shot": "first",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "later",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.03
+    }
+   ]
+  },
+  {
+   "id": "to-us-organize",
+   "rom": "ATOE",
+   "state": "tactics-ogre/organize.ss",
+   "desc": "Organize, from the world map (the owner's GameShark save, 13 units): its roster is the battle's list, so its pages turn as with the list open in a battle",
+   "rules": [
+    "TO-1",
+    "TO-3"
+   ],
+   "shots": {
+    "first": 100,
+    "second": 250
+   },
+   "checks": [
+    {
+     "rule": "TO-1",
+     "what": "the roster's pages",
+     "type": "log",
+     "match": "map updated \\(5 frame\\(s\\) 150 apart"
+    },
+    {
+     "rule": "TO-3",
+     "what": "the next page after 2.5 seconds",
+     "type": "differs",
+     "a": {
+      "shot": "first",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "second",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.01
+    }
+   ]
+  },
+  {
+   "id": "to-us-world-map",
+   "rom": "ATOE",
+   "state": "tactics-ogre/world-map.ss",
+   "desc": "the world map (the owner's GameShark save, at Formido): nothing taken there, so the logo (none taken before)",
+   "rules": [
+    "TO-4",
+    "TO-5"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "rule": "TO-5",
+     "what": "none taken",
+     "type": "no_log",
+     "match": "map updated"
     }
    ]
   }
