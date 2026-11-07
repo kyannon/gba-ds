@@ -26,15 +26,15 @@ The second screen follows [F-Zero: GP Legend](f-zero-gp-legend.md)'s: the race H
 
 **FZM-5. Pause.** The pause menu (CONTINUE, GIVE UP) stays on the game screen; the HUD stays on the second screen.
 
-**FZM-6. Logo elsewhere.** Wherever the race HUD is gone the second screen shows the logo: the title and menus, the course name as a race fades in, the end of a race once the game takes its HUD down (the place sign over the finish line keeps it till then), the results (once A is pressed on YOU LOST, FZM-8), and while the camera circles a destroyed machine (the game's HUD is gone then too).
+**FZM-6. Logo elsewhere.** Wherever the race HUD is gone the second screen shows the logo: the title and menus (the main menu, Grand Prix's and Training's choices, the machine and course choices, RANKING and its records, OPTIONS; until v1.4.11 some of them showed a black second screen instead, after a race, the game's mode and state bytes reading as a race's), the course name as a race fades in, the end of a race once the game takes its HUD down (the place sign over the finish line keeps it till then), the results (once A is pressed on YOU LOST, FZM-8), and while the camera circles a destroyed machine (the game's HUD is gone then too).
 
 **FZM-7. One screen.** With `layout = single` the HUD stays where the game draws it.
 
 **FZM-8. YOU LOST.** After GIVE UP, after RANK OUT (still outside the race's limit as a lap ends, the last lap included: finishing below third place), or once a destroyed machine's wreck has been circled, YOU LOST is shown over the track with the HUD: the HUD stays on the second screen, as while racing, until A takes the game on to the results. (Until v1.4.10's second test build of this game the second screen showed the logo there, and the HUD came back onto the game screen beside YOU LOST; RANK OUT until the fourth.)
 
-## Known issues
+## Accepted (not listed as a known issue)
 
-- As the game takes its HUD down (after the finish, as A is pressed on YOU LOST, as a machine is destroyed), the HUD shows again on the game screen for 1 frame (a sixtieth of a second): the game's HUD state, which GBA DS goes by, changes a frame before its sprites go. Hiding it would need another change to shared code (keeping a split on while a given sprite tile is still shown); left for now.
+- As the game takes its HUD down (after the finish, as A is pressed on YOU LOST, as a machine is destroyed), the HUD shows again on the game screen for 1 frame (a sixtieth of a second): the game's HUD state, which GBA DS goes by, changes a frame before its sprites go. The owner found it unnoticeable on the device (Nov 6, 2026): not raised in the changelog or release notes. Hiding it would need another change to shared code (keeping a split on while a given sprite tile is still shown).
 
 ## Not covered yet
 
@@ -44,3 +44,11 @@ The second screen follows [F-Zero: GP Legend](f-zero-gp-legend.md)'s: the race H
 ## Exceptions
 
 - The course map drawn twice as big (as F-Zero: GP Legend's and Mario Kart's): a GBA pixel per 2x2 of the second screen's GBA screen, so still the game's own picture at its own resolution.
+
+## For the merge
+
+Changelog (under the open version, "Fixes"):
+
+- **F-Zero: Maximum Velocity:** after a race, some menus (the file screen, RANKING and others) showed a black second screen instead of the logo.
+
+Release notes: the one-frame HUD flash as the game takes its HUD down is no longer listed under Known issues (see "Accepted" above).

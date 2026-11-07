@@ -4326,9 +4326,15 @@ static const MapProfile profiles[] = {
 			 * the camera circling a wreck has none (0x61). Before the
 			 * owner's reports of Nov 5 (a driven finish: mode 0x10; RANK
 			 * OUT: mode 8) this went by the modes alone and the flag
-			 * 0x030005F8, which drops at the finish (FZM-2, FZM-6, FZM-8) */
+			 * 0x030005F8, which drops at the finish (FZM-2, FZM-6, FZM-8).
+			 * The display in mode 2 too (the track, 0x3C42 in every race
+			 * moment seen): the menus are mode 0 (0x1240, 0x1440, 0x1740),
+			 * and after a race their mode byte (3, 9) and the state byte
+			 * (0x61-0x64, which the menus use too) read as a race's: the
+			 * second screen went black there (the owner's reports of Nov 6,
+			 * FZM-6) */
 			.on = { { 0x03000BFB, 0xFF, 3, 1, true, 0x10, true }, { 0x03000BFB, 0x07, 0, 1, true, 6, true },
-			        { 0x020168C9, 0xFF, 0x63, 1, true, 0x64, true } },
+			        { 0x020168C9, 0xFF, 0x63, 1, true, 0x64, true }, { 0x04000000, 0x0007, 2, 2 } },
 			.objs = { /* POW */
 			          { 130, -8, 239, 12, 376, 393, 0 },
 			          /* SPARE MACHINES */

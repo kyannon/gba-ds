@@ -507,6 +507,184 @@
    "golden": [
     "logo"
    ]
+  },
+  {
+   "id": "fzm-us-menus-after-race",
+   "rom": "AFZE",
+   "state": "f-zero-maximum-velocity/us-menus-after-race.ss",
+   "desc": "the menus after a race (a player's bug report, the Virtual Console dump; its keys played back on the cartridge's): the player file screen (ENTRY, CLEAR), then a course's RANKING with its records; the game's mode and state bytes read as a race's there, and the second screen went black: the logo throughout",
+   "rules": [
+    "FZM-6"
+   ],
+   "input": [
+    [
+     0,
+     "-"
+    ],
+    [
+     8,
+     "B"
+    ],
+    [
+     16,
+     "-"
+    ],
+    [
+     132,
+     "A"
+    ],
+    [
+     139,
+     "-"
+    ],
+    [
+     201,
+     "DOWN"
+    ],
+    [
+     209,
+     "-"
+    ],
+    [
+     222,
+     "A"
+    ],
+    [
+     229,
+     "-"
+    ],
+    [
+     252,
+     "DOWN"
+    ],
+    [
+     259,
+     "-"
+    ],
+    [
+     270,
+     "UP"
+    ],
+    [
+     275,
+     "-"
+    ],
+    [
+     276,
+     "A"
+    ],
+    [
+     283,
+     "-"
+    ],
+    [
+     308,
+     "DOWN"
+    ],
+    [
+     315,
+     "-"
+    ],
+    [
+     324,
+     "UP"
+    ],
+    [
+     329,
+     "A+UP"
+    ],
+    [
+     330,
+     "A"
+    ],
+    [
+     336,
+     "-"
+    ],
+    [
+     379,
+     "DOWN"
+    ],
+    [
+     388,
+     "-"
+    ],
+    [
+     407,
+     "DOWN"
+    ],
+    [
+     487,
+     "-"
+    ],
+    [
+     498,
+     "UP"
+    ],
+    [
+     569,
+     "-"
+    ],
+    [
+     624,
+     "-"
+    ]
+   ],
+   "shots": {
+    "menu": 60,
+    "menu2": 130,
+    "ranking": 450
+   },
+   "checks": [
+    {
+     "rule": "FZM-6",
+     "what": "the logo on the file screen",
+     "type": "not_uniform",
+     "shot": "menu",
+     "screen": "second",
+     "rect": [
+      200,
+      250,
+      824,
+      500
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "FZM-6",
+     "what": "the logo on the file screen",
+     "type": "not_uniform",
+     "shot": "menu2",
+     "screen": "second",
+     "rect": [
+      200,
+      250,
+      824,
+      500
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "FZM-6",
+     "what": "the logo on RANKING",
+     "type": "not_uniform",
+     "shot": "ranking",
+     "screen": "second",
+     "rect": [
+      200,
+      250,
+      824,
+      500
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "FZM-6",
+     "what": "no race HUD",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
   }
  ]
 }
