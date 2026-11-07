@@ -1935,6 +1935,31 @@
      "color": "303030"
     }
    ]
+  },
+  {
+   "id": "ml-library",
+   "kind": "library",
+   "rom": "A88E",
+   "desc": "the game list with the USA release: its logo, and nothing said about the ROM (an official dump)",
+   "rules": [
+    "GEN-8"
+   ],
+   "shots": {
+    "list": 40
+   }
+  },
+  {
+   "id": "mlp-library",
+   "kind": "library",
+   "rom": "A88E+mlssplus-100",
+   "desc": "the game list with Superstar Saga+ (100%): \"Romhack: Superstar Saga+ v1.5 (100%)\" under the game's logo",
+   "rules": [
+    "GEN-8",
+    "ML-6"
+   ],
+   "shots": {
+    "list": 40
+   }
   }
  ]
 }

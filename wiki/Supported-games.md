@@ -49,7 +49,7 @@ The codes are what `<CODE>` means in logo and overlay file names (see [Playing](
 GBA DS knows a game by its code, which romhacks and patches of a supported game usually keep, so they start with the game's second screen. Whether it works depends on what the mod changes: new text, items, stats and colours are usually fine, while a mod that changes the screens GBA DS shows (a redrawn menu or map) can leave the second screen wrong or blank.
 
 - **Tested romhacks** are in the table's last column, on the row of the game they're made from, with what's different in the game's section. GBA DS knows them by their checksum, and they're tested like the games. They aren't counted as games of their own.
-- **Any other patched or modified ROM** runs with the game's second screen, untested. Bug reports say whether your ROM is the unchanged game, a known romhack or something else, so if the second screen goes wrong in a mod, send one. To ask for a romhack to be supported, open an issue with a link to it.
+- **Any other patched or modified ROM** runs with the game's second screen, untested. The game list says so under the game's logo ("Romhack: ..." for one GBA DS knows, "Modified ROM" for any other), once it has read the ROM the first time you select it, and bug reports say the same, so if the second screen goes wrong in a mod, send one. To ask for a romhack to be supported, open an issue with a link to it.
 - Patch the ROM before putting it in your games folder: GBA DS doesn't apply patch files (`.ips`, `.ups`, `.bps`) yet.
 - Save states made on the unchanged game shouldn't be loaded into a mod of it, or the other way round.
 

@@ -11,8 +11,11 @@
 #include "ra.h"
 #include "update.h"
 
+#include <mgba-util/crc32.h>
+
 #include <ctype.h>
 #include <dirent.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,6 +23,10 @@
 #include <strings.h>
 #include <sys/stat.h>
 #include <time.h>
+#ifndef __wasi__
+#include <sys/resource.h>
+#include <sys/syscall.h>
+#endif
 
 typedef struct {
 	char path[1024];
@@ -27,6 +34,7 @@ typedef struct {
 	char code[5];
 	bool supported;
 	int flag; /* BRAND_FLAG_* shown on the tile, or -1 (only one region of this game) */
+	long long size, mtime; /* the file's, from the scan (its ROM checksum's cache key) */
 } GameEntry;
 
 static GameEntry* games;
@@ -202,6 +210,8 @@ static void scan_dir(Config* cfg, const char* d, int depth) {
 		snprintf(g.path, sizeof(g.path), "%s", full);
 		if (!game_code(g.path, &st, g.code)) continue;
 		g.supported = profile_find(g.code) != NULL;
+		g.size = (long long) st.st_size;
+		g.mtime = (long long) st.st_mtime;
 #ifdef GBADS_SIDE_CODES
 		/* a side build lists only its game's releases (the Makefile's SIDE_CODES) */
 		if (!strstr(GBADS_SIDE_CODES, g.code)) continue;
@@ -233,6 +243,147 @@ static int region_flag(char c) {
 	return -1;
 }
 
+/* ------------------------------------------- ROM checksums (GEN-8) */
+/* Is the selected game's ROM the game as released, a romhack GBA DS knows,
+ * or modified? Its CRC32 against the known dumps and mods (profile_dump).
+ * Reading a whole ROM takes a moment, so it's done once per file, for the
+ * selected game only, on a worker thread (inline with GBADS_SYNC=1 and in
+ * the web build, which has no threads), and remembered in
+ * <state_dir>/roms.cache, lines "size mtime crc32 path" (crc32 0: unreadable). */
+typedef struct {
+	long long size, mtime;
+	uint32_t crc;
+	char path[1024];
+} RomCrc;
+static RomCrc* romCrcs;
+static int nRomCrcs;
+static bool romCrcsDirty;
+static pthread_mutex_t crcLock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t crcWake = PTHREAD_COND_INITIALIZER;
+static RomCrc crcWant; /* the next file to read (path "": none) */
+static bool crcThread;
+static unsigned crcGen; /* bumped as a checksum is worked out (crcLock) */
+
+/* (crcLock held) */
+static RomCrc* rom_crc_find(const char* path, long long size, long long mtime) {
+	for (int i = 0; i < nRomCrcs; ++i) {
+		if (romCrcs[i].size == size && romCrcs[i].mtime == mtime && !strcmp(romCrcs[i].path, path)) return &romCrcs[i];
+	}
+	return NULL;
+}
+
+/* (crcLock held) */
+static void rom_crc_put(const RomCrc* c) {
+	RomCrc* old = rom_crc_find(c->path, c->size, c->mtime);
+	if (old) {
+		*old = *c;
+	} else {
+		romCrcs = realloc(romCrcs, sizeof(*romCrcs) * (nRomCrcs + 1));
+		romCrcs[nRomCrcs++] = *c;
+	}
+	romCrcsDirty = true;
+	++crcGen;
+}
+
+static uint32_t rom_crc_read(const char* path) {
+	size_t n = 0;
+	uint8_t* buf = emu_rom_read_all(path, &n);
+	uint32_t crc = buf ? doCrc32(buf, n) : 0;
+	free(buf);
+	return crc;
+}
+
+static void* rom_crc_worker(void* arg) {
+	(void) arg;
+#ifndef __wasi__
+	setpriority(PRIO_PROCESS, (id_t) syscall(SYS_gettid), 19); /* (background work: the game first) */
+#endif
+	pthread_mutex_lock(&crcLock);
+	for (;;) {
+		while (!crcWant.path[0]) pthread_cond_wait(&crcWake, &crcLock);
+		RomCrc c = crcWant;
+		crcWant.path[0] = 0;
+		pthread_mutex_unlock(&crcLock);
+		c.crc = rom_crc_read(c.path);
+		pthread_mutex_lock(&crcLock);
+		rom_crc_put(&c);
+	}
+	return NULL;
+}
+
+static void rom_crc_load(const Config* cfg) {
+	pthread_mutex_lock(&crcLock);
+	if (!romCrcs) {
+		char path[1100];
+		snprintf(path, sizeof(path), "%s/roms.cache", cfg->stateDir);
+		FILE* f = fopen(path, "r");
+		RomCrc c;
+		while (f && fscanf(f, "%lld %lld %x %1023[^\n]", &c.size, &c.mtime, &c.crc, c.path) == 4) {
+			romCrcs = realloc(romCrcs, sizeof(*romCrcs) * (nRomCrcs + 1));
+			romCrcs[nRomCrcs++] = c;
+		}
+		if (f) fclose(f);
+	}
+	pthread_mutex_unlock(&crcLock);
+}
+
+static void rom_crc_save(const Config* cfg) {
+	pthread_mutex_lock(&crcLock);
+	if (romCrcsDirty) {
+		char path[1100];
+		snprintf(path, sizeof(path), "%s/roms.cache", cfg->stateDir);
+		FILE* f = fopen(path, "w");
+		if (f) {
+			for (int i = 0; i < nRomCrcs; ++i)
+				fprintf(f, "%lld %lld %08x %s\n", romCrcs[i].size, romCrcs[i].mtime, romCrcs[i].crc, romCrcs[i].path);
+			fclose(f);
+			romCrcsDirty = false;
+		}
+	}
+	pthread_mutex_unlock(&crcLock);
+}
+
+/* The game's ROM checksum if it's known; if not, asks for it (only supported
+ * games: the others have no list of dumps to check it against). */
+static bool game_crc(const GameEntry* g, uint32_t* crc) {
+	if (!g->supported) return false;
+	pthread_mutex_lock(&crcLock);
+	RomCrc* c = rom_crc_find(g->path, g->size, g->mtime);
+	bool have = c != NULL;
+	if (have) *crc = c->crc;
+	else if (strcmp(crcWant.path, g->path)) {
+		crcWant.size = g->size;
+		crcWant.mtime = g->mtime;
+		snprintf(crcWant.path, sizeof(crcWant.path), "%s", g->path);
+		if (!crcThread && !(getenv("GBADS_SYNC") && atoi(getenv("GBADS_SYNC")))) {
+			pthread_t t;
+			crcThread = pthread_create(&t, NULL, rom_crc_worker, NULL) == 0;
+			if (crcThread) pthread_detach(t);
+		}
+		if (crcThread) {
+			pthread_cond_signal(&crcWake);
+		} else { /* (no threads, or GBADS_SYNC: now) */
+			RomCrc w = crcWant;
+			crcWant.path[0] = 0;
+			pthread_mutex_unlock(&crcLock);
+			w.crc = rom_crc_read(w.path);
+			pthread_mutex_lock(&crcLock);
+			rom_crc_put(&w);
+			*crc = w.crc;
+			have = true;
+		}
+	}
+	pthread_mutex_unlock(&crcLock);
+	return have && *crc;
+}
+
+static unsigned rom_crc_generation(void) {
+	pthread_mutex_lock(&crcLock);
+	unsigned g = crcGen;
+	pthread_mutex_unlock(&crcLock);
+	return g;
+}
+
 static void scan(Config* cfg) {
 	free(games);
 	games = NULL;
@@ -242,6 +393,7 @@ static void scan(Config* cfg) {
 	char* save;
 	nSeenDirs = 0;
 	code_cache_load(cfg);
+	rom_crc_load(cfg);
 	for (char* d = strtok_r(dirs, ":", &save); d; d = strtok_r(NULL, ":", &save)) scan_dir(cfg, d, 0);
 	code_cache_save(cfg);
 	qsort(games, nGames, sizeof(*games), cmp_games);
@@ -397,6 +549,19 @@ static void draw_preview(Config* cfg, int scr, int sel) {
 	/* (a game with no profile has no logo either: the note goes where a
 	 * game's logo would, at the top right, beside ours) */
 	if (!g->supported) ui_font_text(scr, TF_BODY, r.w - m, m + headH / 2, px * 5, "Single screen only: plays normally", C_DIM, 1);
+	/* a romhack, or a modified ROM, under the game's logo (GEN-8) */
+	uint32_t crc;
+	if (game_crc(g, &crc)) {
+		const char* name;
+		char line[200] = "";
+		switch (profile_dump(g->code, crc, &name)) {
+		case DUMP_MOD_TESTED: snprintf(line, sizeof(line), "Romhack: %s", name); break;
+		case DUMP_MOD: snprintf(line, sizeof(line), "Romhack: %s, untested", name); break;
+		case DUMP_MODIFIED: snprintf(line, sizeof(line), "Modified ROM: the second screen may not work"); break;
+		default: break;
+		}
+		if (line[0]) ui_font_text(scr, TF_BODY, r.w - m, m + headH * 2 + px * 7, px * 4, line, C_DIM, 1);
+	}
 
 	/* the resume point (the game screen only), or a note that there isn't one,
 	 * with clear space above (below the game's logo) and below (above the hints) */
@@ -1169,6 +1334,14 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 #endif
 
 	while (!quit && chosen < 0) {
+		{
+			static unsigned crcSeen;
+			unsigned cg = rom_crc_generation();
+			if (cg != crcSeen) { /* a ROM's checksum worked out (GEN-8) */
+				crcSeen = cg;
+				rom_crc_save(cfg);
+			}
+		}
 		if (logo_generation() != logoGen) { /* a logo finished extracting */
 			logoGen = logo_generation();
 			thumbFor = -2;

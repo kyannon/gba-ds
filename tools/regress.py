@@ -174,7 +174,10 @@ def run_app(case, args, workdir):
             r.error = "missing state fixture states/%s" % case["state"]
             return r
         cmd.append("--load-state=" + st)
-    cmd.append(rom)
+    if case.get("kind") == "library":  # the game list, with the case's ROM in it
+        cmd.append("--rom_dir=" + romdir)
+    else:
+        cmd.append(rom)
     env = dict(os.environ, SDL_VIDEODRIVER="offscreen", SDL_AUDIODRIVER="dummy",
                GBADS_WINDOW="%dx%d" % (SCREEN_W, SCREEN_H * 2), GBADS_SYNC="1", GBADS_DEBUG="1")
     if not args.paced:

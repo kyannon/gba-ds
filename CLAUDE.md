@@ -371,7 +371,10 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   libcurl), SHA-256 check (`sha256.c`), install over the app's folder via
   `.new` files and rename (gba-ds.cfg kept), then main() execs the new
   binary. Test offline with `tools/update_mock.py` (docs/TESTING.md).
-- `library.c` the game list and its Settings screen; `esinteg.c` the
+- `library.c` the game list and its Settings screen (and the selected
+  game's ROM checksum, read once per file on a worker thread and kept in
+  `<state_dir>/roms.cache`: "Romhack: ..." / "Modified ROM" under its logo,
+  GEN-8; regress.py's `"kind": "library"` cases); `esinteg.c` the
   EmulationStation integration; `cheats.c` RetroArch .cht files;
   `ui.c` SDL windows, input, drawing, the pause-menu text images.
 

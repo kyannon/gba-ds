@@ -101,6 +101,11 @@ extraction).
 A **logo** case (`"kind": "logo"`) extracts one release's logo the way the
 app does, and compares it with its golden.
 
+A **library** case (`"kind": "library"`) starts the app on the game list
+instead of the game, with the case's ROM the only one in it (`--rom_dir`),
+and takes its shots and input as an app case does (GEN-8: what the panel
+says about the ROM).
+
 ## Writing a case
 
 ```json
