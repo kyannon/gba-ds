@@ -882,6 +882,10 @@ static bool hudWorld; /* FFTA's world map (hud.world) */
 static bool hudScene; /* the profile's other scene (Mario Kart's podium): logo backdrop, its own sprites */
 static bool hudCard; /* hud.card: the title card's sprites are what's split off */
 static int cardScore = -1; /* hud.card: how far off centre the best take so far is (-1: none) */
+/* hud.card.hideTillTake: this card's take is made (the HUD over it from
+ * then), and how long its start has been seen / not seen */
+static bool cardTaken;
+static int cardPreFor, cardAway = 1000;
 static uint32_t cardBest[GBA_W * GBA_H];
 static int sideScore = -1; /* hud.card.side: how far off centre its best take is (-1: none) */
 static uint32_t sideBest[GBA_W * GBA_H];
@@ -3010,6 +3014,7 @@ static void update_hud(void) {
 				else memcpy(cardBest, emu.fb, sizeof(cardBest));
 				cardScore = 0;
 				card_backdrop();
+				cardTaken = h->card.hideTillTake; /* (the HUD over it from the next frame) */
 			}
 		} else {
 			/* (the side part first, so the first backdrop has it if it's
@@ -3053,6 +3058,17 @@ static void update_hud(void) {
 	}
 	bool scene = race && h->scene.when[0].addr && memprobes_match(h->scene.when, 2, &emu);
 	bool card = race && h->card.tile && oam_has_tile_pal(h->card.tile, h->card.tileMax, h->card.pal, h->card.prio1);
+	if (h->card.hideTillTake) {
+		/* (Sonic Advance 3, SA3-3: the card's start, its sprite or a
+		 * little before it, until the take; a start seen again within 10
+		 * frames is the same card) */
+		bool pre = race && h->card.pre[0].addr && memprobes_match(h->card.pre, 2, &emu);
+		cardPreFor = pre && !card ? cardPreFor + 1 : 0;
+		bool starting = card || (pre && cardPreFor <= 30);
+		if (starting && cardAway >= 10) cardTaken = false;
+		cardAway = starting ? 0 : cardAway + 1;
+		card = starting && !cardTaken;
+	}
 	/* hud.card.drop: no card here (Sonic Advance 3's hubs): the take is
 	 * forgotten, the logo behind the HUD */
 	if (race && h->card.drop[0].addr && (hudBackValid || cardScore >= 0) && memprobes_match(h->card.drop, 2, &emu)) {
@@ -3064,13 +3080,24 @@ static void update_hud(void) {
 		/* (hud.card.drop, Sonic Advance 3: the last take stays till the
 		 * new one, without the HUD, which stays on the game's card) */
 		if (card) cardScore = -1, sideScore = -1, hudBackValid = hudBackValid && h->card.drop[0].addr;
+		if (card && h->card.hideTillTake) {
+			/* (this frame was drawn before the split was on: drawn again
+			 * without the HUD, so it isn't on the game screen for a frame,
+			 * SA3-3) */
+			static uint32_t noHud[GBA_W * GBA_H];
+			snapshot_hiding_sprites(hudObjs, rule_count(hudObjs, 12), NULL, 0, noHud);
+			memcpy(emu.fb, noHud, sizeof(noHud));
+		}
 		else if (cardScore >= 0 && !hudBackValid) card_backdrop();
 		if (debug) fprintf(stderr, "frame %llu: title card %s\n", (unsigned long long) frameCount, card ? "up" : "gone");
 	}
 	if (race != hudOn || scene != hudScene || world != hudWorld || alt != hudAlt || card != hudCard) {
-		const SpriteRule* objs = card ? h->card.objs : scene ? h->scene.objs : world ? hudWorldObjs : hudObjs;
+		/* (hud.card.hideTillTake: the HUD split off as usual, but not shown
+		 * till the take) */
+		bool cardObjs = card && !h->card.hideTillTake;
+		const SpriteRule* objs = cardObjs ? h->card.objs : scene ? h->scene.objs : world ? hudWorldObjs : hudObjs;
 		unsigned mask = alt ? h->alt.bgMask : h->bgMask;
-		int nObjs = rule_count(objs, card || scene || world ? 4 : 12);
+		int nObjs = rule_count(objs, cardObjs || scene || world ? 4 : 12);
 		/* (nothing split off: only the logo behind the map picture, as
 		 * for Fire Emblem and Final Fantasy Tactics Advance; no second
 		 * renderer) */
@@ -3078,7 +3105,7 @@ static void update_hud(void) {
 		bool some = mask || nObjs || h->band;
 		if (some || splitting) emu_hud_split(&emu, race && some, mask, objs, nObjs, hudPx);
 		splitting = race && some;
-		if (race && some) emu_hud_copy(&emu, card); /* (the card stays on the game screen too) */
+		if (race && some) emu_hud_copy(&emu, cardObjs); /* (the card stays on the game screen too) */
 		hudCard = card;
 		if (debug && race && alt != hudAlt) fprintf(stderr, "frame %llu: HUD on its other layer%s\n", (unsigned long long) frameCount, alt ? "" : ": off");
 		hudAlt = alt;
