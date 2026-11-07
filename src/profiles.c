@@ -5157,6 +5157,36 @@ static const MapProfile profiles[] = {
 		 * what's below it (HM-5) */
 		.logo = { .wait = 1000, .layer = 4, .minX = 46, .maxY = 96 },
 	},
+	{
+		/* Super Mario Advance (USA and Europe; Japan, Super Mario USA +
+		 * Mario Brothers, the same: its levels use the same display
+		 * settings). Super Mario Bros. 2 has no map and its pause box only
+		 * the overall Ace Coin percentage: no capture, the logo, and in a
+		 * level the status bar on the second screen (SMB2-1). */
+		.codes = { "AMAE", "AMAJ" },
+		.title = "Super Mario Advance",
+		.logoOnly = true,
+		/* the title (START through the intro): SUPER MARIO ADVANCE with
+		 * Mario and Birdo round it, BG1 (mode 1); the choices and the
+		 * copyright line are sprites, the trees and hills BG0, the sky
+		 * BG2 (SMB2-6) */
+		.logo = { .steps = { { 0, 600 }, { K_START, 4 }, { 0, 150 } }, .layer = 1, .maxY = 140 },
+		/* In a level (both releases): mode 0 with BG3 on, BG3 the status
+		 * bar (0x1900, priority 0): rows 0-15 (WORLD, the level's Ace
+		 * Coins, lives, SCORE), the pause box below them on the same
+		 * layer. Elsewhere BG3 is 0x1C03 (character select, course board,
+		 * level card), 0x3E03 (title, menus) or 0xD603 (Mario Bros.). The
+		 * hearts are sprites and stay (SMB2-1, SMB2-2). */
+		.hud = {
+			.on = { { 0x0400000E, 0xFFFC, 0x1900, 2 }, { 0x04000000, 0x0807, 0x0800, 2 } },
+			/* the screen blanked between rooms (BG3 still 0x1900): the
+			 * last picture stays (SMB2-3) */
+			.keep = { { 0x0400000E, 0xFFFC, 0x1900, 2 } },
+			.bgMask = 8,
+			.rows = 16,
+			.logoBelow = true,
+		},
+	},
 };
 
 /* ---------------------------------------------------------------- regions

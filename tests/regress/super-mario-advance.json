@@ -1,0 +1,330 @@
+{
+ "game": "Super Mario Advance",
+ "rules": "docs/games/super-mario-advance.md",
+ "cases": [
+  {
+   "id": "smb2-us-level",
+   "rom": "AMAE",
+   "state": "super-mario-advance/us-level.ss",
+   "desc": "World 1-1, a new file, Mario just landed",
+   "rules": [
+    "SMB2-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 240
+   },
+   "checks": [
+    {
+     "rule": "SMB2-1",
+     "what": "the status bar along the top of the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      110
+     ],
+     "color": "000000",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "smb2-us-yoshi-challenge",
+   "rom": "AMAE",
+   "state": "super-mario-advance/us-yoshi-challenge-3-1.ss",
+   "desc": "World 3-1 in the Yoshi Challenge (the 100% save)",
+   "rules": [
+    "SMB2-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 240
+   },
+   "checks": [
+    {
+     "rule": "SMB2-1",
+     "what": "the status bar along the top of the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      110
+     ],
+     "color": "000000",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "smb2-us-paused",
+   "rom": "AMAE",
+   "state": "super-mario-advance/us-paused.ss",
+   "desc": "World 1-1 paused: the pause box on the game screen",
+   "rules": [
+    "SMB2-2",
+    "SMB2-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 240
+   },
+   "checks": [
+    {
+     "rule": "SMB2-1",
+     "what": "the status bar along the top of the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      110
+     ],
+     "color": "000000",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "smb2-jp-level",
+   "rom": "AMAJ",
+   "state": "super-mario-advance/jp-level.ss",
+   "desc": "World 1-1, Japanese release",
+   "rules": [
+    "SMB2-7",
+    "SMB2-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 240
+   },
+   "checks": [
+    {
+     "rule": "SMB2-1",
+     "what": "the status bar along the top of the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      110
+     ],
+     "color": "000000",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "smb2-us-into-level",
+   "rom": "AMAE",
+   "state": "super-mario-advance/us-charsel.ss",
+   "desc": "choosing Mario, the course board, the level card, then World 1-1",
+   "rules": [
+    "SMB2-4",
+    "SMB2-1"
+   ],
+   "input": [
+    [
+     30,
+     "A"
+    ],
+    [
+     34,
+     "-"
+    ]
+   ],
+   "shots": {
+    "charsel": 20,
+    "board": 200,
+    "card": 420,
+    "level": 700
+   },
+   "checks": [
+    {
+     "rule": "SMB2-4",
+     "what": "the logo at half strength on dark grey: nothing of a status bar at the top",
+     "type": "uniform",
+     "shot": "charsel",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      110
+     ],
+     "color": "303030",
+     "frac": 0.9
+    },
+    {
+     "rule": "SMB2-4",
+     "what": "the logo at half strength on dark grey: nothing of a status bar at the top",
+     "type": "uniform",
+     "shot": "board",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      110
+     ],
+     "color": "303030",
+     "frac": 0.9
+    },
+    {
+     "rule": "SMB2-4",
+     "what": "the logo at half strength on dark grey: nothing of a status bar at the top",
+     "type": "uniform",
+     "shot": "card",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      110
+     ],
+     "color": "303030",
+     "frac": 0.9
+    },
+    {
+     "rule": "SMB2-1",
+     "what": "the status bar along the top of the second screen",
+     "type": "not_uniform",
+     "shot": "level",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      110
+     ],
+     "color": "000000",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "smb2-us-board",
+   "rom": "AMAE",
+   "state": "super-mario-advance/us-board.ss",
+   "desc": "the course board before World 1-1",
+   "rules": [
+    "SMB2-4"
+   ],
+   "shots": {
+    "start": 30
+   },
+   "checks": [
+    {
+     "rule": "SMB2-4",
+     "what": "the logo at half strength on dark grey: nothing of a status bar at the top",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      110
+     ],
+     "color": "303030",
+     "frac": 0.9
+    }
+   ]
+  },
+  {
+   "id": "smb2-us-files",
+   "rom": "AMAE",
+   "state": "super-mario-advance/us-files.ss",
+   "desc": "the file select (the 100% save's file A)",
+   "rules": [
+    "SMB2-5"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "SMB2-5",
+     "what": "the logo at half strength on dark grey: nothing of a status bar at the top",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      110
+     ],
+     "color": "303030",
+     "frac": 0.9
+    }
+   ]
+  },
+  {
+   "id": "smb2-us-mario-bros",
+   "rom": "AMAE",
+   "state": "super-mario-advance/us-mario-bros.ss",
+   "desc": "Mario Bros., its first phase",
+   "rules": [
+    "SMB2-5"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 240
+   },
+   "checks": [
+    {
+     "rule": "SMB2-5",
+     "what": "the logo at half strength on dark grey: nothing of a status bar at the top",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      110
+     ],
+     "color": "303030",
+     "frac": 0.9
+    }
+   ]
+  },
+  {
+   "id": "smb2-logo-amae",
+   "kind": "logo",
+   "rom": "AMAE",
+   "desc": "AMAE logo extraction",
+   "rules": [
+    "GEN-1",
+    "SMB2-6"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "smb2-logo-amaj",
+   "kind": "logo",
+   "rom": "AMAJ",
+   "desc": "AMAJ logo extraction",
+   "rules": [
+    "GEN-1",
+    "SMB2-6"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}
