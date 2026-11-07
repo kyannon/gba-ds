@@ -1493,6 +1493,53 @@
      "color": "303030"
     }
    ]
+  },
+  {
+   "id": "sm4-eu-language",
+   "rom": "AX4P",
+   "desc": "Europe from power-on (no save) to its Choose a Language menu: drawn whole on the game screen, the top of its checkered frame too, the logo on the second screen (a player's bug report: the frame's top went to the second screen)",
+   "rules": [
+    "SM4-10"
+   ],
+   "shots": {
+    "language": 400
+   },
+   "checks": [
+    {
+     "rule": "SM4-10",
+     "what": "the status bar's layer not taken",
+     "type": "no_log",
+     "match": "HUD on its other layer"
+    },
+    {
+     "rule": "SM4-10",
+     "what": "nothing at the top of the second screen",
+     "type": "uniform",
+     "shot": "language",
+     "screen": "second",
+     "rect": [
+      52,
+      64,
+      972,
+      120
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "SM4-10",
+     "what": "the frame's top on the game screen",
+     "type": "not_uniform",
+     "shot": "language",
+     "screen": "game",
+     "rect": [
+      32,
+      64,
+      992,
+      96
+     ],
+     "color": "000000"
+    }
+   ]
   }
  ]
 }

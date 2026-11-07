@@ -34,9 +34,17 @@ Modelled on Super Mario Advance 2 ([SMA rules](super-mario-advance-2.md)): somet
 
 **SM4-9. The opening.** The opening after Super Mario Bros. 3 is picked (the clouds inside the checkered frame, before the curtain and the title) is drawn whole on the game screen, its frame too: none of it is taken for the world map's status bar. The second screen shows the logo at half strength, as on the title. (The game says Mario is on the world map there; it's told apart by BG2, whose tiles start at character block 2 in the opening and at block 0 on the world map, World-e's map, in Toad Houses, Spade games and kings' rooms. Found from a player's bug report, v1.4.10-dev.)
 
+**SM4-10. The language menu (Europe).** The European release's Choose a Language menu, before the title, is drawn whole on the game screen, its checkered frame too: none of it is taken for the world map's status bar. The second screen shows the logo. (It's told apart by BG1, which the menu leaves off, while the world map, World-e's map, Toad Houses, Spade games and kings' rooms all show it. Until v1.4.11 the frame's top strip went to the top of the second screen and was missing from the game screen: a player's bug report, Europe's Rev 1 on the Wii U Virtual Console.)
+
 ## Known issues
 
 - Not tried: Europe's Rev 1 cartridge and Switch Online dumps, the USA's Virtual Console and Switch Online dumps, Japan's Rev 1 and its Virtual Console and Switch Online dumps. Each is expected to behave as the revision it's made from (SM4-7).
 - During a fade (through a pipe or door, at the goal) the status bar fades with the game, so it shows as dark shapes for a moment.
 - Checked at the start of every level of worlds 1 to 6 and 8 that the warp zone reaches (underwater, desert, giant, sky, ice, cave and fortress levels), in World 1's airship and Larry's room, World 5-3 with Kuribo's Shoe, World 8's tank and Bowser's castle: the status bar is always the same layer. Not tried yet: Luigi's turns in Mario & Luigi mode.
 - World-e (SM4-8) is tried only with Europe's Rev 1 Virtual Console dump; the USA's and Japan's World-e (with the cards scanned) aren't.
+
+## For the merge
+
+Changelog (under the open version, "Fixes"):
+
+- **Super Mario Advance 4** (Europe): on the Choose a Language menu, the top of its checkered frame was taken for the world map's status bar: it showed on the second screen and was missing from the game screen. The menu is now drawn whole, with the logo on the second screen.
