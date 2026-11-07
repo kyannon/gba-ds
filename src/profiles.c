@@ -2299,6 +2299,25 @@ static uint32_t eds_virt(Emu* e, uint32_t addr) {
 static uint32_t eds_virt_jp(Emu* e, uint32_t addr) {
 	return eds_virt_for(&edsJP, e, addr);
 }
+/* USA, on the field: runs frames until the card's commands are up with Card
+ * View chosen (its magnifier, tile 548, with the chosen command's name,
+ * tile 612, under it); false if they don't come (A chose a target: an
+ * attack's, Snatch Steal's) */
+static bool eds_wait_commands(Emu* s, int max) {
+	for (int f = 0; f < max && !emu_cancelled(s); ++f) {
+		emu_frame(s, 0);
+		int glass = -1, name = -2;
+		for (int i = 0; i < 128; ++i) {
+			uint16_t a0 = emu_read16(s, 0x07000000 + i * 8), a1 = emu_read16(s, 0x07000002 + i * 8),
+			         a2 = emu_read16(s, 0x07000004 + i * 8);
+			if ((a0 & 0x0300) == 0x0200) continue; /* hidden */
+			if ((a2 & 0x3FF) == 548) glass = a1 & 0x1FF;
+			else if ((a2 & 0x3FF) == 612) name = a1 & 0x1FF;
+		}
+		if (glass == name) return true;
+	}
+	return false;
+}
 /* runs frames until Card View is up and has held still for 3 (its fade-in
  * done) */
 static bool eds_wait_view(const EdsRelease* r, Emu* s, int max) {
@@ -2332,10 +2351,16 @@ static const char* eds_compose_for(const EdsRelease* r, Emu* s, const void* stat
 			if (!eds_named(r, s)) return "map button did nothing";
 			/* A: the card's commands, Card View first and chosen (the cursor
 			 * no longer free); anything else (Japan: a pile's list) isn't a
-			 * card */
+			 * card. USA: their sprites, so that where A chose a target (an
+			 * attack's, a card effect's: the cursor counts as free there)
+			 * nothing is taken, cheaply (EDS-5) */
 			aw_tap(s, K_A, 1);
-			aw_run(s, 0, 8);
-			if (eds_screen(r, s) != EDS_FIELD || (r->jp && eds_free(r, s))) return "map button did nothing";
+			if (!r->jp) {
+				if (!eds_wait_commands(s, 20)) return "map button did nothing";
+			} else {
+				aw_run(s, 0, 8);
+				if (eds_screen(r, s) != EDS_FIELD || eds_free(r, s)) return "map button did nothing";
+			}
 			aw_tap(s, K_A, 1);
 		} else if (sc == EDS_DECK) {
 			aw_tap(s, K_A, 1);

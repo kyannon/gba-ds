@@ -279,6 +279,162 @@
    ]
   },
   {
+   "id": "eds-us-attack-target",
+   "rom": "AY5E",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/us-battle-phase.ss",
+   "desc": "turn 2's Battle Phase, the cursor on the player's Armored Lizard: its Card View; A, Attack, A past the prompt: choosing the monster to attack, the cursor on the opponent's Gazelle the King of Mythical Beasts (counted as free): Armored Lizard stays, and the hidden copy's tries find no commands (nothing taken, no failed captures)",
+   "rules": [
+    "EDS-1",
+    "EDS-5"
+   ],
+   "input": [
+    [
+     120,
+     "A"
+    ],
+    [
+     124,
+     "-"
+    ],
+    [
+     150,
+     "RIGHT"
+    ],
+    [
+     154,
+     "-"
+    ],
+    [
+     170,
+     "A"
+    ],
+    [
+     174,
+     "-"
+    ],
+    [
+     320,
+     "A"
+    ],
+    [
+     324,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 90,
+    "prompt": 300,
+    "target": 560
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       66,
+       "0000FF"
+      ],
+      [
+       990,
+       114,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-1",
+     "shot": "start",
+     "what": "Armored Lizard's Card View"
+    },
+    {
+     "rule": "EDS-5",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "target",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "Armored Lizard stays while choosing the target"
+    },
+    {
+     "rule": "EDS-5",
+     "type": "log",
+     "match": "capture: .*map button did nothing",
+     "what": "a try while choosing the target found no commands"
+    },
+    {
+     "rule": "EDS-5",
+     "type": "no_log",
+     "match": "Card View didn't open",
+     "what": "no failed captures"
+    }
+   ]
+  },
+  {
+   "id": "eds-us-snatch-steal-target",
+   "rom": "AY5E",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/us-snatch-steal-target.ss",
+   "desc": "Snatch Steal activated, choosing the opponent's monster to take, the cursor on Gazelle the King of Mythical Beasts: the second screen as it was (the logo: no Card View yet in this duel), nothing taken, no failed captures (a card's effect playing out: 0x0201D7E0 is 4, so no tries)",
+   "rules": [
+    "EDS-5"
+   ],
+   "shots": {
+    "start": 90,
+    "later": 400
+   },
+   "checks": [
+    {
+     "rule": "EDS-5",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "later",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "the second screen stays"
+    },
+    {
+     "rule": "EDS-5",
+     "type": "no_log",
+     "match": "Card View didn't open",
+     "what": "no failed captures"
+    }
+   ]
+  },
+  {
    "id": "eds-us-opponent-turn",
    "rom": "AY5E",
    "state": "yu-gi-oh-the-eternal-duelist-soul/us-hand.ss",
