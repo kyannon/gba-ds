@@ -659,6 +659,408 @@
    ]
   },
   {
+   "id": "ml-us-boss-bowser",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-boss-bowser.ss",
+   "desc": "Bowser's battle on the Koopa Cruiser, choosing a block (level 38: the endgame file started in room 0x076, and the battle that starts there made this boss's by writing its formation, 0x030024B8, as the encounter is set): the boxes and meters on the second screen",
+   "rules": [
+    "ML-5"
+   ],
+   "shots": {
+    "blocks": 10
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "the meters at the top left of the second screen",
+     "type": "not_uniform",
+     "shot": "blocks",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "the top right box on the second screen",
+     "type": "not_uniform",
+     "shot": "blocks",
+     "rect": [
+      472,
+      76,
+      975,
+      131
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-boss-queen-bean",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-boss-queen-bean.ss",
+   "desc": "Queen Bean's battle (level 38: the endgame file started in room 0x076, and the battle that starts there made this boss's by writing its formation, 0x030024B8, as the encounter is set), played to aiming a solo attack: her name box stays on the game screen, the meters on the second screen",
+   "rules": [
+    "ML-5"
+   ],
+   "input": [
+    [
+     20,
+     "A"
+    ],
+    [
+     22,
+     "-"
+    ],
+    [
+     30,
+     "A"
+    ],
+    [
+     32,
+     "-"
+    ],
+    [
+     40,
+     "A"
+    ],
+    [
+     42,
+     "-"
+    ],
+    [
+     50,
+     "B"
+    ],
+    [
+     52,
+     "-"
+    ],
+    [
+     60,
+     "A"
+    ],
+    [
+     62,
+     "-"
+    ],
+    [
+     70,
+     "A"
+    ],
+    [
+     72,
+     "-"
+    ],
+    [
+     80,
+     "A"
+    ],
+    [
+     82,
+     "-"
+    ],
+    [
+     90,
+     "B"
+    ],
+    [
+     92,
+     "-"
+    ],
+    [
+     100,
+     "A"
+    ],
+    [
+     102,
+     "-"
+    ],
+    [
+     110,
+     "A"
+    ],
+    [
+     112,
+     "-"
+    ],
+    [
+     120,
+     "A"
+    ],
+    [
+     122,
+     "-"
+    ],
+    [
+     130,
+     "B"
+    ],
+    [
+     132,
+     "-"
+    ],
+    [
+     140,
+     "A"
+    ],
+    [
+     142,
+     "-"
+    ],
+    [
+     150,
+     "A"
+    ],
+    [
+     152,
+     "-"
+    ],
+    [
+     160,
+     "A"
+    ],
+    [
+     162,
+     "-"
+    ],
+    [
+     170,
+     "B"
+    ],
+    [
+     172,
+     "-"
+    ],
+    [
+     180,
+     "A"
+    ],
+    [
+     182,
+     "-"
+    ],
+    [
+     190,
+     "A"
+    ],
+    [
+     192,
+     "-"
+    ],
+    [
+     200,
+     "A"
+    ],
+    [
+     202,
+     "-"
+    ],
+    [
+     210,
+     "B"
+    ],
+    [
+     212,
+     "-"
+    ],
+    [
+     220,
+     "A"
+    ],
+    [
+     222,
+     "-"
+    ],
+    [
+     230,
+     "A"
+    ],
+    [
+     232,
+     "-"
+    ],
+    [
+     240,
+     "A"
+    ],
+    [
+     242,
+     "-"
+    ],
+    [
+     250,
+     "B"
+    ],
+    [
+     252,
+     "-"
+    ],
+    [
+     260,
+     "A"
+    ],
+    [
+     262,
+     "-"
+    ],
+    [
+     270,
+     "A"
+    ],
+    [
+     272,
+     "-"
+    ],
+    [
+     280,
+     "A"
+    ],
+    [
+     282,
+     "-"
+    ],
+    [
+     290,
+     "B"
+    ],
+    [
+     292,
+     "-"
+    ]
+   ],
+   "shots": {
+    "blocks": 10,
+    "aim": 300
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "the meters at the top left of the second screen",
+     "type": "not_uniform",
+     "shot": "blocks",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "aiming: the meters at the top left of the second screen",
+     "type": "not_uniform",
+     "shot": "aim",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "aiming: the name box on the game screen",
+     "type": "not_uniform",
+     "shot": "aim",
+     "screen": "game",
+     "rect": [
+      48,
+      76,
+      275,
+      115
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-boss-time-bomb",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-boss-time-bomb.ss",
+   "desc": "Roy's battle (formation 0x096) opening with the Time Bob-omb's message (level 38: the endgame file started in room 0x076, and the battle that starts there made this boss's by writing its formation, 0x030024B8, as the encounter is set): the message, the game's own box at the top, stays on the game screen like a conversation, and nothing goes to the second screen while it's up (the game hides the meters)",
+   "rules": [
+    "ML-5"
+   ],
+   "shots": {
+    "message": 10
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "the message on the game screen",
+     "type": "not_uniform",
+     "shot": "message",
+     "screen": "game",
+     "rect": [
+      112,
+      96,
+      915,
+      187
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "ML-5",
+     "what": "nothing at the second screen's top",
+     "type": "uniform",
+     "shot": "message",
+     "rect": [
+      472,
+      76,
+      975,
+      187
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-boss-cackletta",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-boss-cackletta.ss",
+   "desc": "the purple ghost boss of formation 0x0B3 (the final battle's look) (level 38: the endgame file started in room 0x076, and the battle that starts there made this boss's by writing its formation, 0x030024B8, as the encounter is set): the boxes and meters on the second screen",
+   "rules": [
+    "ML-5"
+   ],
+   "shots": {
+    "blocks": 10
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "the meters at the top left of the second screen",
+     "type": "not_uniform",
+     "shot": "blocks",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "the top right box on the second screen",
+     "type": "not_uniform",
+     "shot": "blocks",
+     "rect": [
+      472,
+      76,
+      975,
+      131
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
    "id": "ml-us-battle-damage",
    "rom": "A88E",
    "state": "mario-and-luigi-superstar-saga/us-battle-damage.ss",
