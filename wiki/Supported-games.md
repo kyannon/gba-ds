@@ -111,7 +111,6 @@ The same second screen as F-Zero: GP Legend's: the HUD is moved off the game scr
 - Everywhere else (the title and menus, the course name as a race fades in, the end of a race once the HUD's gone, while the camera circles a destroyed machine, the results) the second screen shows the logo, the title's lettering.
 - With one screen (`layout = single`), the HUD stays where the game draws it.
 - The USA / Europe, Japanese and Chinese releases have all been tried in Grand Prix and Training; the link-cable modes haven't.
-- As the game takes its HUD down, the HUD shows on the game screen for a single frame.
 
 ## Final Fantasy Tactics Advance
 
@@ -374,10 +373,11 @@ The USA and European release and the Japanese one (Wario Land Advance), tried in
 
 The USA release and the Japanese original (Yu-Gi-Oh! Duel Monsters 5 Expert 1, which draws its screens differently). Tried in Campaign duels, Deck Edit, Card Trading and the cards won after a duel; Link Battle hasn't been tried.
 
-- **In a duel,** the second screen shows the **Card View** of the card under your cursor: its picture, name, type and text, as the game shows it when you choose Card View. Your hand, your cards on the field and the opponent's face-up cards; it follows the cursor as you move it. It's brought up in the background on a silent copy of the game; your game is never paused or touched.
+- **In a duel,** the second screen shows the **Card View** of the card under your cursor: its picture, name, type and text, as the game shows it when you choose Card View. Your hand, your cards on the field and the opponent's face-up cards; it follows the cursor as you move it, in every phase of your turn. While you choose which monster to attack, it shows the one you're aiming at (in the Japanese release, the last card stays). It's brought up in the background on a silent copy of the game; your game is never paused or touched.
 - **In the Graveyard and other card lists, Deck Edit (the Deck screen in Japan), Card Trading's choice of a card and the list of cards you've won,** the same: the card under the cursor.
-- Where there's nothing to look at (an empty zone, a pile, a face-down card of the opponent's, the opponent's turn), the last card stays.
-- On the title screen, the menus, the conversations and the other screens, the second screen shows the logo.
+- Where there's nothing to look at (an empty zone, a pile, a face-down card of the opponent's, a card a Magic or Trap card asks you to choose), the last card stays.
+- **When you end your turn,** the second screen shows the logo, through the opponent's turn, until your cursor is on a card again.
+- On the title screen, the menus, the conversations and the other screens, and from the moment a duel is won or lost, the second screen shows the logo.
 
 ## Zoids: Legacy
 

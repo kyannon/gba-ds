@@ -1,6 +1,8 @@
 # Changelog
 
-## v1.4.11 (not yet released)
+## v1.4.12 (not yet released)
+
+## v1.4.11 (2026-11-07)
 
 ### New games
 - **Wario Land 4** (USA and Europe; Wario Land Advance in Japan): in a level, the second screen shows the game's own pause screen without its menu, kept up to date: your hearts, the money you carry, the level's coins against its best, and the gem pieces, Keyzer and CD you've found so far, with the hearts and coins taken off the game screen. A find or a lost heart shows at once; the escape's countdown stays on the game screen. In boss fights, once the countdown has settled at the top, the hearts, the countdown and the boss's health bar move to the top of the second screen; TIME UP!! stays on the game screen. Elsewhere (the title, the hub, the level select, the Item Shop, the mini-games, and from the moment Wario loses his last heart), the logo. Tried in every passage, every boss, all of Wario's forms and on Super Hard; Hard hasn't been tried.
@@ -12,13 +14,19 @@
 - **Restart Game**, **Close Game** and **Close GBA DS** in the pause menu ask first: the button says **Are You Sure?**, with what will happen under the buttons; choose it again to go ahead. Moving to another button calls it off. (The quick bar's Close GBA DS already asks for a second tap.)
 - **A live second screen is black:** wherever the second screen shows something live over the logo (a status bar or other HUD, Mario Kart's podium, Super Mario Advance 4's inventory), it's now on black instead of dark grey, with the logo at full strength. Dark grey, with the logo at half strength, now always means there's nothing live to show, and the game's own fades to black (through a pipe or door) blend into the second screen.
 - **Mario & Luigi: Superstar Saga:** in battles, the information boxes (what the block does, the buttons) and the menus that open on the right (the item list and the Bros. Attacks list, with their cursor) move to the same places on the second screen, and Mario's and Luigi's HP and BP meters to its top left corner, over the logo. The command blocks and the A prompt stay over the brother whose turn it is, and so do the damage numbers and the name of the enemy you're aiming at; the tutorials' speech balloons, a boss's own messages and the results after a battle stay on the game screen. Tried through the story's first battles, in late battles with Bros. Attacks and in boss battles (Bowser, Queen Bean, Wiggler, Roy with the Time Bob-omb, Fawful's dome).
+- **Yu-Gi-Oh! The Eternal Duelist Soul:** when you end your turn, the second screen goes back to the logo and stays there through the opponent's turn, until your cursor is on a card again in your next turn. While you choose which monster to attack, it shows the Card View of the monster you're aiming at (in the Japanese release, Duel Monsters 5 Expert 1, the last card stays there).
 
 ### Fixes
 - With no cheat files for a game, the pause menu's Cheats now points you to the Cheats section of the wiki instead of the README, which no longer covers them. The notes in the cheats and overlays folders (and the overlays comment in gba-ds.cfg) point to the wiki too, and on Android the cheats note now says Extras > Cheats, where the menu has them.
 - **Sonic Advance 3:** as each act or boss starts, the rings, time and lives no longer sit on the game's card and then jump to the second screen: they're on neither screen until the second screen has the new card, then they're there over it. (The moment before the card's name came in, when they were off the game screen, is gone with it.)
 - **Final Fantasy Tactics Advance:** when one of your units gets two turns in a row, the turn order is now taken again at the start of its second turn, so the turn order shown on the next enemy turn is the one from its second turn, not its first.
+- **F-Zero: Maximum Velocity:** after a race, some menus (the file screen, RANKING and others) showed a black second screen instead of the logo.
 - **Super Mario Advance 4** (Europe): on the Choose a Language menu, the top of its checkered frame was taken for the world map's status bar: it showed on the second screen and was missing from the game screen. The menu is now drawn whole, with the logo on the second screen.
 - **Super Mario Advance 4** (World-e): opening the inventory no longer takes the status bar off the second screen: it stays there, still, while the inventory opens, is open and closes. In World-e's castle hall the second screen shows the logo, instead of the inventory without the status bar.
+- **Yu-Gi-Oh! The Eternal Duelist Soul:** after an attack that dealt damage (and the question whether to activate a Quick-play Magic or Trap card), the second screen stopped following your cursor for the rest of that turn, so a card could stay up until the turn or the duel ended (issue #26). It now follows the cursor in every phase of your turn, the Draw Phase before you draw included. After a duel you lost, the last card stayed over the conversation and the menus: it's the logo now, as after a win. In card lists, moving to Exit or opening an empty one no longer makes the second screen hesitate.
+
+### Known issues
+- **BananaOS:** with GBA DS in BananaOS's GBA list switched on, the GBA games GBA DS doesn't support play in RetroArch without BananaOS's own second screen (its game panel and companions): BananaOS decides how to share the screens before it knows which game it is. The Settings row and the wiki say so; a fix needs BananaOS's help, and has been asked for.
 
 ## v1.4.10 (2026-11-06)
 
