@@ -2,6 +2,9 @@
 
 ## v1.4.11 (not yet released)
 
+### New games
+- **Wario Land 4** (USA and Europe; Wario Land Advance in Japan): in a level, the second screen shows the game's own pause screen without its menu, kept up to date: your hearts, the money you carry, the level's coins against its best, and the gem pieces, Keyzer and CD you've found so far, with the hearts and coins taken off the game screen. A find or a lost heart shows at once; the escape's countdown stays on the game screen. In boss fights, once the countdown has settled at the top, the hearts, the countdown and the boss's health bar move to the top of the second screen; TIME UP!! stays on the game screen. Elsewhere (the title, the hub, the level select, the Item Shop, the mini-games, and from the moment Wario loses his last heart), the logo. Tried in every passage, every boss, all of Wario's forms and on Super Hard; Hard hasn't been tried.
+
 ### Changes
 - **Color Correction** in the pause menu's Display, between LCD Grid and Overlays: off by default; on, the game's colours are shown as a Game Boy Advance's own screen showed them, darker and less saturated, the same as mGBA's GBA Color shader (its sRGB profile and usual darkening). On both screens, and remembered for next time (`color_correction` in gba-ds.cfg).
 - **Fast Forward: On / Off** in the pause menu's Extras, beside Rewind (now **Rewind: On / Off**, the two side by side). On by default, as before; off, R2 does nothing, so a trigger pressed by accident can't skip you ahead. Remembered for next time (`fast_forward` in gba-ds.cfg).

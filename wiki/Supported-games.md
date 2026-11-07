@@ -38,6 +38,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Tactics Ogre: The Knight of Lodis (Tactics Ogre Gaiden in Japan) | `ATOE` `ATOJ` (no European release) | the battle's unit list, on the unit under your cursor |
 | Tony Hawk's Pro Skater 2 (SK8 in Japan) | `ATHE` (USA and Europe) `ATHF` `ATHD` `ATHJ` | the goal sheet for the current run |
 | Tony Hawk's Pro Skater 3 | `AT3E` (USA and Europe) `AT3F` `AT3D` | the goal list; optional four-button layout |
+| Wario Land 4 (Wario Land Advance in Japan) | `AWAE` (USA and Europe) `AWAJ` | in levels: the pause screen, with the hearts, money, coins and the treasures found; in boss fights: the HUD |
 | Yu-Gi-Oh! The Eternal Duelist Soul (Yu-Gi-Oh! Duel Monsters 5 Expert 1 in Japan) | `AY5E` `AY5J` | Card View of the card under the cursor |
 | Zoids: Legacy (Zoids Saga II in Japan) | `AZ2E` `AZ2J` (no European release) | the map screen; in battles, the Status of the Zoid choosing |
 
@@ -347,6 +348,16 @@ The USA and Japanese (Tactics Ogre Gaiden) releases have both been tried.
 
 - **During a run** the second screen shows the level's goal list (the pause menu's View Goals), on black, brought up in the background like the other games' maps and kept up to date as you go; the game is never paused. Back at the menus, it shows the logo again.
 - The four-button layout under **Controls**: GBA, Four buttons, or Auto (four buttons while skating), as for Tony Hawk's Pro Skater 2.
+
+## Wario Land 4
+
+The USA and European release and the Japanese one (Wario Land Advance), tried in every passage, every boss, all of Wario's forms and on Super Hard.
+
+- **In a level,** the second screen shows the game's own **pause screen**, kept up to date about once a second: your hearts, the money you carry, the level's coins against its best, the jewel with the gem pieces you've found, the Keyzer, the CD and the level's name. The pause screen's menu is left out (the wall runs up to the top). A gem piece, the Keyzer or the CD found, or a heart gained or lost, shows at once.
+- In a level, the **hearts and coins** are taken off the game screen, as the second screen has them; the escape's **countdown** stays on the game screen. The game's own pause screen (START) shows them as usual.
+- In **boss fights,** the fight's opening plays on the game screen; once the countdown has settled at the top, the **hearts, the countdown and the boss's health bar** move to the top of the second screen, above the logo, until CLEAR!. TIME UP!! stays on the game screen.
+- On the title, the hub, a passage's level select, the Item Shop, the mini-games and the Sound Room, and from the moment Wario loses his last heart, the second screen shows the logo.
+- Not tried yet: Hard difficulty and the ending.
 
 ## Yu-Gi-Oh! The Eternal Duelist Soul
 
