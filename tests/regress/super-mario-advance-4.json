@@ -467,7 +467,8 @@
    "state": "super-mario-advance-4/us-sky-pipe.ss",
    "desc": "down the pipe at the end of World 1-1's sky (P-Wing), into the coin room",
    "rules": [
-    "SM4-2"
+    "SM4-2",
+    "SM4-11"
    ],
    "input": [
     [
@@ -489,8 +490,9 @@
    ],
    "shots": {
     "before": 60,
-    "fade": 150,
-    "room": 300
+    "fading": 150,
+    "room": 300,
+    "dark": 190
    },
    "checks": [
     {
@@ -533,6 +535,58 @@
       692
      ],
      "color": "303030"
+    },
+    {
+     "rule": "SM4-11",
+     "what": "no status bar while fading (fading)",
+     "type": "uniform",
+     "shot": "fading",
+     "rect": [
+      32,
+      64,
+      988,
+      92
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "SM4-11",
+     "what": "no P meter while fading (fading)",
+     "type": "uniform",
+     "shot": "fading",
+     "rect": [
+      432,
+      664,
+      592,
+      692
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "SM4-11",
+     "what": "no status bar while fading (dark)",
+     "type": "uniform",
+     "shot": "dark",
+     "rect": [
+      32,
+      64,
+      988,
+      92
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "SM4-11",
+     "what": "no P meter while fading (dark)",
+     "type": "uniform",
+     "shot": "dark",
+     "rect": [
+      432,
+      664,
+      592,
+      692
+     ],
+     "color": "303030"
     }
    ]
   },
@@ -545,11 +599,13 @@
     "SM4-3",
     "SM4-2",
     "SM4-1",
-    "SM4-6"
+    "SM4-6",
+    "SM4-11"
    ],
    "shots": {
     "cleared": 300,
-    "map": 700
+    "map": 700,
+    "fading": 470
    },
    "checks": [
     {
@@ -647,6 +703,19 @@
      ],
      "color": "303030",
      "frac": 0.5
+    },
+    {
+     "rule": "SM4-11",
+     "what": "no status bar while fading out to the map",
+     "type": "uniform",
+     "shot": "fading",
+     "rect": [
+      32,
+      64,
+      988,
+      92
+     ],
+     "color": "303030"
     }
    ]
   },

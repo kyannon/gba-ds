@@ -4094,6 +4094,12 @@ static const MapProfile profiles[] = {
 			        { 0x04000000, 0x0100, 0x0100, 2 }, { 0x04000012, 0x01FF, 0, 2 } },
 			.bgMask = 1,
 			.logoBelow = true,
+			/* fading out (pipes, doors, the goal): the logo alone (SM4-11).
+			 * The game first steps its palettes down (0x03003783 counts
+			 * 1-7, 0 otherwise; the same address in every release), then
+			 * darkens everything with BLDCNT till the next room's drawn */
+			.fadeLogo = true,
+			.fadeIf = { { 0x03003783, 0xFF, 1, 1, true, 0xFF, true } },
 			/* the status bar is rows 0-7 (and World-e's coin count below
 			 * it, 8-15), the P meter 150-157: what BG0 has between (LEVEL
 			 * CLEARED! and the card won, at the goal, from row 27) stays
