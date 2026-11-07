@@ -20,7 +20,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Lady Sia | `ALDE` `ALDP` (no Japanese release) | the pause screen as a status screen: lives, gems, villagers, the time, the ring and heart; the HUD off the game screen |
 | The Legend of Zelda: A Link to the Past & Four Swords | `AZLE` `AZLP` `AZLJ` | world and dungeon maps |
 | Mario Kart: Super Circuit (Mario Kart Advance in Japan) | `AMKE` `AMKP` `AMKJ` | the race HUD, results and podium |
-| Mario & Luigi: Superstar Saga (Mario & Luigi RPG in Japan) | `A88E` `A88P` `A88J` | Bros. Info of the brother you're controlling |
+| Mario & Luigi: Superstar Saga (Mario & Luigi RPG in Japan) | `A88E` `A88P` `A88J` | Bros. Info of the brother you're controlling; in battles, the boxes and meters |
 | Metroid Fusion | `AMTE` `AMTP` `AMTJ` | map |
 | Metroid: Zero Mission | `BMXE` `BMXP` `BMXJ` | map |
 | Pokémon Pinball: Ruby & Sapphire | `BPPE` | the table twice as tall over both screens, live, with the score bar |
@@ -38,6 +38,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Tactics Ogre: The Knight of Lodis (Tactics Ogre Gaiden in Japan) | `ATOE` `ATOJ` (no European release) | the battle's unit list, on the unit under your cursor |
 | Tony Hawk's Pro Skater 2 (SK8 in Japan) | `ATHE` (USA and Europe) `ATHF` `ATHD` `ATHJ` | the goal sheet for the current run |
 | Tony Hawk's Pro Skater 3 | `AT3E` (USA and Europe) `AT3F` `AT3D` | the goal list; optional four-button layout |
+| Wario Land 4 (Wario Land Advance in Japan) | `AWAE` (USA and Europe) `AWAJ` | in levels: the pause screen, with the hearts, money, coins and the treasures found; in boss fights: the HUD |
 | Yu-Gi-Oh! The Eternal Duelist Soul (Yu-Gi-Oh! Duel Monsters 5 Expert 1 in Japan) | `AY5E` `AY5J` | Card View of the card under the cursor |
 | Zoids: Legacy (Zoids Saga II in Japan) | `AZ2E` `AZ2J` (no European release) | the map screen; in battles, the Status of the Zoid choosing |
 
@@ -193,7 +194,7 @@ The HUD is moved off the game screen rather than copied: GBA DS draws each frame
   - The second screen has the coins, lap and time along the top, the **top-four faces** centred down the left, and the **course map** with every racer's dot, twice as big (1.5× if a course's map wouldn't fit comfortably), in the middle.
   - Behind it all is a dimmed picture of the course's own sky and scenery, captured as each race starts.
 - **After the finish**, the lap times and the results table are shown on the second screen.
-- **After a cup**, the podium's CONGRATULATIONS!, the cup name, your portrait, place, rank and cup table move to the second screen, on dark grey; the podium, crowd and trophy stay on the game screen.
+- **After a cup**, the podium's CONGRATULATIONS!, the cup name, your portrait, place, rank and cup table move to the second screen, on black; the podium, crowd and trophy stay on the game screen.
 - The game's **pause menu** stays on the game screen, with the last HUD below it. In the menus, the second screen shows the logo.
 - With one screen (`layout = single`), the HUD stays where the game draws it.
 
@@ -202,8 +203,9 @@ The HUD is moved off the game screen rather than copied: GBA DS draws each frame
 The USA, European and Japanese (Mario & Luigi RPG) releases.
 
 - **Walking about,** the second screen is the **Bros. Info** screen (SELECT's menu, the third icon), as the game draws it, filling the screen: the page of the brother you're controlling, the one in front. Swap them with START and the page follows within a moment. It's opened in the background in a silent copy of the game about once a second; your game is never paused.
-- In battles and on the title, the second screen shows the logo; in scenes, conversations and the game's own menus it keeps its picture.
-- Not tried yet: later areas, and the European and Japanese releases beyond their titles.
+- **In battles,** the second screen has the battle's boxes and meters, over the logo: Mario's and Luigi's HP and BP at the top left, what the highlighted block does at the top right, the buttons at the bottom right, and the menus that open on the right side (the item list, the Bros. Attacks list) where they are on the game screen. The game screen keeps the command blocks and the A prompt over the brother whose turn it is, the damage numbers, the enemy's name while you aim, and everything else. Speech balloons in a battle, a boss's own messages and the results after it stay on the game screen. Tried in the story's first battles, late battles and boss battles.
+- On the title, the second screen shows the logo; in scenes, conversations and the game's own menus it keeps its picture.
+- Not tried yet: the European and Japanese releases beyond their titles.
 
 ## Metroid: Zero Mission and Metroid Fusion
 
@@ -316,7 +318,7 @@ The USA release and the Japanese one (Craft Sword Monogatari 2); there was no Eu
 ## Super Mario Advance 4: Super Mario Bros. 3
 
 - **On the world map,** the status bar (world, lives, coins, score and your three cards) moves from the bottom of the game screen to the top of the second screen, so the whole map shows. Below it is your item inventory, the panel L opens, as the game draws it, kept up to date as you walk about, win items in Toad Houses and use them. It's captured in the background like the other games' maps; the game itself is never paused.
-- **In Toad Houses, Spade games and the kings' rooms,** the status bar moves the same way, above your inventory. So it does on World-e's map (the e-Reader levels); with its inventory open there, the second screen shows the inventory without the status bar.
+- **In Toad Houses, Spade games and the kings' rooms,** the status bar moves the same way, above your inventory. So it does on World-e's map (the e-Reader levels), where the status bar stays put on the second screen while the inventory opens and closes; in World-e's castle hall, which has no status bar, the logo.
 - **In a level** (airships, boss rooms, World 8's tanks and Bowser's castle too), the status bar (world, lives, time, coins and score; in World-e's levels the coin count too) moves to the top of the second screen and the P meter to the middle of its bottom, with the logo between them. LEVEL CLEARED! and the card you win stay on the game screen. The status bar stays there through pipes, doors and bonus rooms.
 - The logo is Super Mario Bros. 3's own, from its title screen.
 - Every revision works (USA, Europe and Japan, the Virtual Console and Switch Online dumps), and so does the game's other set of colours, which some colour patches pick.
@@ -347,6 +349,16 @@ The USA and Japanese (Tactics Ogre Gaiden) releases have both been tried.
 
 - **During a run** the second screen shows the level's goal list (the pause menu's View Goals), on black, brought up in the background like the other games' maps and kept up to date as you go; the game is never paused. Back at the menus, it shows the logo again.
 - The four-button layout under **Controls**: GBA, Four buttons, or Auto (four buttons while skating), as for Tony Hawk's Pro Skater 2.
+
+## Wario Land 4
+
+The USA and European release and the Japanese one (Wario Land Advance), tried in every passage, every boss, all of Wario's forms and on Super Hard.
+
+- **In a level,** the second screen shows the game's own **pause screen**, kept up to date about once a second: your hearts, the money you carry, the level's coins against its best, the jewel with the gem pieces you've found, the Keyzer, the CD and the level's name. The pause screen's menu is left out (the wall runs up to the top). A gem piece, the Keyzer or the CD found, or a heart gained or lost, shows at once.
+- In a level, the **hearts and coins** are taken off the game screen, as the second screen has them; the escape's **countdown** stays on the game screen. The game's own pause screen (START) shows them as usual.
+- In **boss fights,** the fight's opening plays on the game screen; once the countdown has settled at the top, the **hearts, the countdown and the boss's health bar** move to the top of the second screen, above the logo, until CLEAR!. TIME UP!! stays on the game screen.
+- On the title, the hub, a passage's level select, the Item Shop, the mini-games and the Sound Room, and from the moment Wario loses his last heart, the second screen shows the logo.
+- Not tried yet: Hard difficulty and the ending.
 
 ## Yu-Gi-Oh! The Eternal Duelist Soul
 

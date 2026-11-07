@@ -2,14 +2,24 @@
 
 ## v1.4.11 (not yet released)
 
+### New games
+- **Wario Land 4** (USA and Europe; Wario Land Advance in Japan): in a level, the second screen shows the game's own pause screen without its menu, kept up to date: your hearts, the money you carry, the level's coins against its best, and the gem pieces, Keyzer and CD you've found so far, with the hearts and coins taken off the game screen. A find or a lost heart shows at once; the escape's countdown stays on the game screen. In boss fights, once the countdown has settled at the top, the hearts, the countdown and the boss's health bar move to the top of the second screen; TIME UP!! stays on the game screen. Elsewhere (the title, the hub, the level select, the Item Shop, the mini-games, and from the moment Wario loses his last heart), the logo. Tried in every passage, every boss, all of Wario's forms and on Super Hard; Hard hasn't been tried.
+
 ### Changes
 - **Color Correction** in the pause menu's Display, between LCD Grid and Overlays: off by default; on, the game's colours are shown as a Game Boy Advance's own screen showed them, darker and less saturated, the same as mGBA's GBA Color shader (its sRGB profile and usual darkening). On both screens, and remembered for next time (`color_correction` in gba-ds.cfg).
 - **Fast Forward: On / Off** in the pause menu's Extras, beside Rewind (now **Rewind: On / Off**, the two side by side). On by default, as before; off, R2 does nothing, so a trigger pressed by accident can't skip you ahead. Remembered for next time (`fast_forward` in gba-ds.cfg).
 - While you hold R2, **Fast forwarding...** shows in the middle of the second screen, after two arrows pointing right, like Rewinding... when you hold L2.
 - **Restart Game**, **Close Game** and **Close GBA DS** in the pause menu ask first: the button says **Are You Sure?**, with what will happen under the buttons; choose it again to go ahead. Moving to another button calls it off. (The quick bar's Close GBA DS already asks for a second tap.)
+- **A live second screen is black:** wherever the second screen shows something live over the logo (a status bar or other HUD, Mario Kart's podium, Super Mario Advance 4's inventory), it's now on black instead of dark grey, with the logo at full strength. Dark grey, with the logo at half strength, now always means there's nothing live to show, and the game's own fades to black (through a pipe or door) blend into the second screen.
+- **Mario & Luigi: Superstar Saga:** in battles, the information boxes (what the block does, the buttons) and the menus that open on the right (the item list and the Bros. Attacks list, with their cursor) move to the same places on the second screen, and Mario's and Luigi's HP and BP meters to its top left corner, over the logo. The command blocks and the A prompt stay over the brother whose turn it is, and so do the damage numbers and the name of the enemy you're aiming at; the tutorials' speech balloons, a boss's own messages and the results after a battle stay on the game screen. Tried through the story's first battles, in late battles with Bros. Attacks and in boss battles (Bowser, Queen Bean, Wiggler, Roy with the Time Bob-omb, Fawful's dome).
 
 ### Fixes
+- With no cheat files for a game, the pause menu's Cheats now points you to the Cheats section of the wiki instead of the README, which no longer covers them. The notes in the cheats and overlays folders (and the overlays comment in gba-ds.cfg) point to the wiki too, and on Android the cheats note now says Extras > Cheats, where the menu has them.
 - **Sonic Advance 3:** as each act or boss starts, the rings, time and lives no longer sit on the game's card and then jump to the second screen: they're on neither screen until the second screen has the new card, then they're there over it. (The moment before the card's name came in, when they were off the game screen, is gone with it.)
+- **Final Fantasy Tactics Advance:** when one of your units gets two turns in a row, the turn order is now taken again at the start of its second turn, so the turn order shown on the next enemy turn is the one from its second turn, not its first.
+- **Super Mario Advance 4** (Europe): on the Choose a Language menu, the top of its checkered frame was taken for the world map's status bar: it showed on the second screen and was missing from the game screen. The menu is now drawn whole, with the logo on the second screen.
+- **Super Mario Advance 4** (World-e): opening the inventory no longer takes the status bar off the second screen: it stays there, still, while the inventory opens, is open and closes. In World-e's castle hall the second screen shows the logo, instead of the inventory without the status bar.
+
 ## v1.4.10 (2026-11-06)
 
 ### New games
