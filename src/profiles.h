@@ -452,6 +452,14 @@ typedef struct MapProfile {
 			 * goes black, as in the card's first moments); none: as drawn */
 			SpriteRule hide[6];
 			struct { uint32_t addr; uint16_t value; } poke;
+			/* The HUD on neither screen from the card's start (its sprite,
+			 * or `pre` matching a little before it) until its take, then
+			 * on the second screen over the new take while the game's card
+			 * is still up (Sonic Advance 3, SA3-3). `pre`: what shows the
+			 * card is coming before its sprite does (its darkening); it
+			 * counts for at most 30 frames without the sprite */
+			bool hideTillTake;
+			MemProbe pre[2];
 		} card;
 		/* moves while racing (with the `layout` probes; no layout probes:
 		 * always). A move with toGame and no how / vhow copies its box back
