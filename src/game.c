@@ -2351,6 +2351,9 @@ static void hud_make_logo_back(void) {
 static uint32_t heldPic[GBA_W * GBA_H];
 static int heldN;
 static bool heldArmed = true; /* (taken once each time it's shown) */
+/* hud.held.over: the number from the last capture since then (w 0: none) */
+static uint32_t heldNum[GBA_W * GBA_H];
+static int heldNumW, heldNumH;
 static void hud_make_logo_below(void) {
 	hudLogoBelowDone = true;
 	for (int i = 0; i < HUD_CW * HUD_CH; ++i) hudLogoBelow[i] = SCREEN_LIVE; /* (under the HUD: GEN-1) */
@@ -2361,6 +2364,24 @@ static void hud_make_logo_below(void) {
 			for (int x = 0; x < GBA_W; ++x) {
 				uint32_t* o = &hudLogoBelow[(hp->at + y) * 2 * HUD_CW + x * 2];
 				o[0] = o[1] = o[HUD_CW] = o[HUD_CW + 1] = heldPic[y * GBA_W + x] | 0xFF000000;
+			}
+		}
+		/* (hud.held.over: the number from the capture over its own) */
+		const typeof(hp->over)* ov = &hp->over;
+		if (ov->x1 && heldNumW > 0) {
+			uint32_t fill = 0xFF000000 | (ov->fill >> 16 & 0xFF) | (ov->fill & 0xFF00) | (ov->fill & 0xFF) << 16;
+			uint32_t key = (ov->key >> 16 & 0xFF) | (ov->key & 0xFF00) | (ov->key & 0xFF) << 16;
+			for (int gy = ov->y0; gy <= ov->y1; ++gy) {
+				for (int gx = ov->x0; gx <= ov->x1; ++gx) {
+					int y = gy - hp->y0 + hp->at;
+					if (gy < hp->y0 || y < 0 || y >= GBA_H || gx < 0 || gx >= GBA_W) continue;
+					uint32_t c = fill;
+					int sx = gx - (ov->x1 - heldNumW + 1), sy = gy - ov->y0;
+					if (sx >= 0 && sx < heldNumW && sy >= 0 && sy < heldNumH && (heldNum[sy * heldNumW + sx] & 0xFFFFFF) != key)
+						c = heldNum[sy * heldNumW + sx] | 0xFF000000;
+					uint32_t* o = &hudLogoBelow[y * 2 * HUD_CW + gx * 2];
+					o[0] = o[1] = o[HUD_CW] = o[HUD_CW + 1] = c;
+				}
 			}
 		}
 		return;
@@ -2935,6 +2956,7 @@ static void update_hud(void) {
 				heldArmed = false;
 				heldN = SDL_min(h->held.y1, GBA_H - 1) - h->held.y0 + 1;
 				memcpy(heldPic, emu.fb + h->held.y0 * GBA_W, (size_t) heldN * GBA_W * 4);
+				heldNumW = 0; /* (its own number is the latest till the next capture) */
 				hudLogoBelowDone = false;
 				if (debug) fprintf(stderr, "frame %llu: picture kept for under the HUD\n", (unsigned long long) frameCount);
 			}
@@ -3732,6 +3754,12 @@ static void* screen_blob(size_t* n) {
 		blob_u32(&t, (uint32_t) heldN), blob_add(&t, heldPic, (size_t) GBA_W * heldN * 4);
 		if (t.p) blob_section(&b, "HELD", t.p, t.n);
 		free(t.p);
+		if (heldNumW > 0) {
+			Blob u = { 0 };
+			blob_u32(&u, (uint32_t) heldNumW), blob_u32(&u, (uint32_t) heldNumH), blob_add(&u, heldNum, (size_t) heldNumW * heldNumH * 4);
+			if (u.p) blob_section(&b, "HNUM", u.p, u.n);
+			free(u.p);
+		}
 	}
 	if (hudProf && hudProf->hud.card.tile && hudBackValid && cardScore >= 0) {
 		Blob c = { 0 };
@@ -3775,7 +3803,7 @@ static void screen_restore_apply(void) {
 	 * card and the level name go (back from the state, if it has them) */
 	if (hudProf && hudProf->hud.card.tile) hudBackValid = false, cardScore = -1, sideScore = -1;
 	mapTitleN = 0, hudLogoBelowDone = false;
-	heldN = 0, heldArmed = true;
+	heldN = 0, heldNumW = 0, heldArmed = true;
 	logoForced = false, logoHolding = 0;
 	if (!ours) {
 		if (b && debug) fprintf(stderr, "load state: its second screen is for another game or version: not used\n");
@@ -3815,6 +3843,10 @@ static void screen_restore_apply(void) {
 	if (hudProf && hudProf->hud.held.y1 && (d = blob_find(b, n, "HELD", &sz)) && sz >= 4) {
 		int rows = (int) rd32(d);
 		if (rows > 0 && rows <= GBA_H && sz == 4 + (size_t) GBA_W * rows * 4) memcpy(heldPic, d + 4, sz - 4), heldN = rows;
+	}
+	if (hudProf && hudProf->hud.held.over.x1 && (d = blob_find(b, n, "HNUM", &sz)) && sz >= 8) {
+		int w = (int) rd32(d), hh = (int) rd32(d + 4);
+		if (w > 0 && hh > 0 && w * hh <= GBA_W * GBA_H && sz == 8 + (size_t) w * hh * 4) memcpy(heldNum, d + 8, sz - 8), heldNumW = w, heldNumH = hh;
 	}
 	if (hudProf && hudProf->hud.card.tile && (d = blob_find(b, n, "CARD", &sz)) && sz == 4 + sizeof(cardBest)) {
 		cardScore = (int) rd32(d);
@@ -4757,6 +4789,12 @@ static bool update_still(void) {
  * kept on its own) */
 static void map_show_new(bool fresh) {
 	mapInactive = false;
+	if (fresh && hudProf && hudProf->hud.held.over.x1 && mapRes.frames[0] && mapRes.w * mapRes.h <= GBA_W * GBA_H) {
+		/* hud.held.over: the number, laid over the held picture */
+		heldNumW = mapRes.w, heldNumH = mapRes.h;
+		memcpy(heldNum, mapRes.frames[0], (size_t) mapRes.w * mapRes.h * 4);
+		hudLogoBelowDone = false;
+	}
 	if (fresh && hudProf && hudProf->hud.mapTitleRows && mapRes.w == GBA_W && mapRes.frames[0]) {
 		/* the level list's title row (SMA-7), held for the level */
 		if (!mapTitleN) hudLogoBelowDone = false; /* (the logo moves down under it) */

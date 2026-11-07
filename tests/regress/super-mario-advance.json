@@ -362,6 +362,47 @@
    ]
   },
   {
+   "id": "smb2-us-board-kept-coin",
+   "rom": "AMAE",
+   "state": "super-mario-advance/us-level-board-kept-coin.ss",
+   "desc": "World 1-1 with the board kept (0% on it) and one Ace Coin found (poked in): the pause box's 1% over the board's 0%",
+   "rules": [
+    "SMB2-9",
+    "GEN-7"
+   ],
+   "shots": {
+    "start": 30,
+    "later": 120
+   },
+   "checks": [
+    {
+     "rule": "SMB2-9",
+     "what": "a capture of the pause box's percentage",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "SMB2-9",
+     "what": "the pause box's 1 there, the board's own 0 cleared",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       812,
+       640,
+       "FF9C39"
+      ],
+      [
+       800,
+       640,
+       "FFF7BD"
+      ]
+     ]
+    }
+   ]
+  },
+  {
    "id": "smb2-us-board",
    "rom": "AMAE",
    "state": "super-mario-advance/us-board.ss",

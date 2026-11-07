@@ -509,6 +509,17 @@ typedef struct MapProfile {
 			Probe probes[8];
 			int min, tol;
 			int y0, y1, at;
+			/* A number taken from another screen of the game laid over
+			 * it (Super Mario Advance: the pause box's Ace Coin
+			 * percentage, which counts the coins found in this level,
+			 * over the board's, from before it): the map capture (its
+			 * crop: that number alone) goes in place of the held
+			 * picture's rect x0..x1, y0..y1 (game screen coordinates),
+			 * which is first filled with `fill` (0xRRGGBB); the capture's
+			 * pixels of colour `key` (its background) are left out, and
+			 * its right edge goes at x1, its top at y0. Until there's a
+			 * capture since the picture was taken, the picture's own. */
+			struct { int x0, y0, x1, y1; uint32_t fill, key; } over;
 		} held;
 		/* While every `mirror` probe matches, or every `mirrorOr` one: the
 		 * whole game screen goes to the second screen, and the game screen
