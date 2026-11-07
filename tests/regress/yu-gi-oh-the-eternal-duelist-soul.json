@@ -282,10 +282,9 @@
    "id": "eds-us-attack-target",
    "rom": "AY5E",
    "state": "yu-gi-oh-the-eternal-duelist-soul/us-battle-phase.ss",
-   "desc": "turn 2's Battle Phase, the cursor on the player's Armored Lizard: its Card View; A, Attack, A past the prompt: choosing the monster to attack, the cursor on the opponent's Gazelle the King of Mythical Beasts (counted as free): Armored Lizard stays, and the hidden copy's tries find no commands (nothing taken, no failed captures)",
+   "desc": "turn 2's Battle Phase, the cursor on the player's Armored Lizard: its Card View; A, Attack, A past the prompt: choosing the monster to attack, the cursor on the opponent's Gazelle the King of Mythical Beasts: Gazelle's Card View (the hidden copy backs out with B and goes to it); no failed captures",
    "rules": [
-    "EDS-1",
-    "EDS-5"
+    "EDS-1"
    ],
    "input": [
     [
@@ -352,8 +351,32 @@
      "what": "Armored Lizard's Card View"
     },
     {
-     "rule": "EDS-5",
-     "type": "same",
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       66,
+       "0000FF"
+      ],
+      [
+       990,
+       114,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-1",
+     "shot": "target",
+     "what": "Gazelle's Card View, choosing the target"
+    },
+    {
+     "rule": "EDS-1",
+     "type": "differs",
      "a": {
       "shot": "start",
       "rect": [
@@ -373,16 +396,10 @@
       ],
       "screen": "second"
      },
-     "what": "Armored Lizard stays while choosing the target"
+     "what": "the target's card, not the attacker's"
     },
     {
-     "rule": "EDS-5",
-     "type": "log",
-     "match": "capture: .*map button did nothing",
-     "what": "a try while choosing the target found no commands"
-    },
-    {
-     "rule": "EDS-5",
+     "rule": "EDS-1",
      "type": "no_log",
      "match": "Card View didn't open",
      "what": "no failed captures"
@@ -393,7 +410,7 @@
    "id": "eds-us-snatch-steal-target",
    "rom": "AY5E",
    "state": "yu-gi-oh-the-eternal-duelist-soul/us-snatch-steal-target.ss",
-   "desc": "Snatch Steal activated, choosing the opponent's monster to take, the cursor on Gazelle the King of Mythical Beasts: the second screen as it was (the logo: no Card View yet in this duel), nothing taken, no failed captures (a card's effect playing out: 0x0201D7E0 is 4, so no tries)",
+   "desc": "Snatch Steal activated, choosing the opponent's monster to take, the cursor on Gazelle the King of Mythical Beasts: the second screen as it was (the logo: no Card View yet in this duel); the hidden copy's tries find no commands (A takes the monster, B doesn't back out to a monster of the player's): nothing taken, no failed captures",
    "rules": [
     "EDS-5"
    ],
@@ -425,6 +442,347 @@
       "screen": "second"
      },
      "what": "the second screen stays"
+    },
+    {
+     "rule": "EDS-5",
+     "type": "no_log",
+     "match": "Card View didn't open",
+     "what": "no failed captures"
+    },
+    {
+     "rule": "EDS-5",
+     "type": "log",
+     "match": "capture: .*map button did nothing",
+     "what": "the tries take nothing"
+    }
+   ]
+  },
+  {
+   "id": "eds-us-draw-phase",
+   "rom": "AY5E",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/us-draw-phase.ss",
+   "desc": "turn 2's Draw Phase before drawing, the cursor on the Deck (0x0201D7E0 is 2 here): LEFT, DOWN onto the hand's first card: its Card View",
+   "rules": [
+    "EDS-1"
+   ],
+   "input": [
+    [
+     60,
+     "LEFT"
+    ],
+    [
+     64,
+     "-"
+    ],
+    [
+     110,
+     "DOWN"
+    ],
+    [
+     114,
+     "-"
+    ]
+   ],
+   "shots": {
+    "hand": 300
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       66,
+       "0000FF"
+      ],
+      [
+       990,
+       114,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-1",
+     "shot": "hand",
+     "what": "the hand card's Card View"
+    }
+   ]
+  },
+  {
+   "id": "eds-us-quickplay-question",
+   "rom": "AY5E",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/us-quickplay-question.ss",
+   "desc": "issue #26's bug report: a direct attack's 1600 damage, the question whether to activate a Quick-play Magic or Trap card up; A (NO), then the cursor between the player's Two-Headed King Rex and Red Archery Girl in the Battle Phase, with the player's own timing (0x0201D7E0 stays 4 to the end of the turn): each one's Card View in turn",
+   "rules": [
+    "EDS-1"
+   ],
+   "input": [
+    [
+     100,
+     "A"
+    ],
+    [
+     109,
+     "-"
+    ],
+    [
+     162,
+     "RIGHT"
+    ],
+    [
+     173,
+     "-"
+    ],
+    [
+     205,
+     "LEFT"
+    ],
+    [
+     213,
+     "-"
+    ]
+   ],
+   "shots": {
+    "rex": 150,
+    "girl": 200,
+    "rex-again": 245
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       66,
+       "0000FF"
+      ],
+      [
+       990,
+       114,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-1",
+     "shot": "rex",
+     "what": "Two-Headed King Rex's Card View"
+    },
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       66,
+       "0000FF"
+      ],
+      [
+       990,
+       114,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-1",
+     "shot": "girl",
+     "what": "Red Archery Girl's Card View"
+    },
+    {
+     "rule": "EDS-1",
+     "type": "differs",
+     "a": {
+      "shot": "rex",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "girl",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "the next card"
+    },
+    {
+     "rule": "EDS-1",
+     "type": "same",
+     "a": {
+      "shot": "rex",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "rex-again",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "back to Two-Headed King Rex"
+    }
+   ]
+  },
+  {
+   "id": "eds-us-duel-lost",
+   "rom": "AY5E",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/us-hand.ss",
+   "desc": "a card shown, then a duel lost (loaded: the player's life points 0, Yugi's \"Whee! I win!\"; 0x0201D7E0 still 6): the logo, the card forgotten",
+   "rules": [
+    "EDS-6"
+   ],
+   "input": [
+    [
+     150,
+     "LOAD:yu-gi-oh-the-eternal-duelist-soul/us-duel-lost.ss"
+    ]
+   ],
+   "shots": {
+    "card": 90,
+    "lost": 400
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       66,
+       "0000FF"
+      ],
+      [
+       990,
+       114,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-1",
+     "shot": "card",
+     "what": "Snatch Steal's Card View"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "EDS-6",
+     "shot": "lost",
+     "what": "the logo"
+    }
+   ]
+  },
+  {
+   "id": "eds-us-designation",
+   "rom": "AY5E",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/us-hand.ss",
+   "desc": "a card shown, then a Designation list (loaded: a card effect's choice of a monster from the Deck, where A chooses it): the card stays, the tries take nothing, no failed captures",
+   "rules": [
+    "EDS-5"
+   ],
+   "input": [
+    [
+     150,
+     "LOAD:yu-gi-oh-the-eternal-duelist-soul/us-designation.ss"
+    ]
+   ],
+   "shots": {
+    "card": 90,
+    "list": 450
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       66,
+       "0000FF"
+      ],
+      [
+       990,
+       114,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-5",
+     "shot": "card",
+     "what": "Snatch Steal's Card View"
+    },
+    {
+     "rule": "EDS-5",
+     "type": "same",
+     "a": {
+      "shot": "card",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "list",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "the card stays"
+    },
+    {
+     "rule": "EDS-5",
+     "type": "log",
+     "match": "capture: .*map button did nothing",
+     "what": "the tries take nothing"
     },
     {
      "rule": "EDS-5",
@@ -1453,6 +1811,72 @@
      "type": "no_log",
      "match": "Card View didn't open",
      "what": "no failed captures"
+    }
+   ]
+  },
+  {
+   "id": "eds-jp-duel-lost",
+   "rom": "AY5J",
+   "state": "yu-gi-oh-the-eternal-duelist-soul/jp-hand.ss",
+   "desc": "Japan, a card shown, then a duel lost (loaded: made by setting the player's life points to 0 and changing phase; Yugi's conversation after YOU LOSE, the opponent's life points still 8000): the logo, the card forgotten",
+   "rules": [
+    "EDS-10",
+    "EDS-6"
+   ],
+   "input": [
+    [
+     150,
+     "LOAD:yu-gi-oh-the-eternal-duelist-soul/jp-duel-lost.ss"
+    ]
+   ],
+   "shots": {
+    "card": 90,
+    "lost": 400
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       34,
+       384,
+       "000000"
+      ],
+      [
+       42,
+       224,
+       "212121"
+      ],
+      [
+       464,
+       544,
+       "ADC6CE"
+      ],
+      [
+       472,
+       224,
+       "000000"
+      ]
+     ],
+     "rule": "EDS-10",
+     "shot": "card",
+     "what": "ヘラクレス・ビートル's Card View"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "EDS-6",
+     "shot": "lost",
+     "what": "the logo"
     }
    ]
   },
