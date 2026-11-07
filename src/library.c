@@ -11,7 +11,6 @@
 #include "ra.h"
 #include "update.h"
 
-#include <mgba-util/crc32.h>
 
 #include <ctype.h>
 #include <dirent.h>
@@ -284,6 +283,10 @@ static void rom_crc_put(const RomCrc* c) {
 	romCrcsDirty = true;
 	++crcGen;
 }
+
+/* (libmgba's; its header, mgba-util/crc32.h, wants zlib.h, which isn't on
+ * every build's include path) */
+uint32_t doCrc32(const void* buf, size_t size);
 
 static uint32_t rom_crc_read(const char* path) {
 	size_t n = 0;
