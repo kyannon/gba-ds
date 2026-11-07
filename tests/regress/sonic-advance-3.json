@@ -84,10 +84,180 @@
    ]
   },
   {
+   "id": "sa3-us-hub-to-act",
+   "rom": "B3SE",
+   "state": "sonic-advance-3/us-hub-to-act.ss",
+   "desc": "from Route 99's hub into act 1 through its ring (a player's bug report): the hub's HUD on the second screen; then from the card's first frame (the darkening) to its take, the HUD on neither screen; then over the card on the second screen while the game's card is still up",
+   "rules": [
+    "SA3-2",
+    "SA3-3",
+    "SA3-4"
+   ],
+   "input": [
+    [
+     73,
+     "LEFT"
+    ],
+    [
+     86,
+     "A+LEFT"
+    ],
+    [
+     111,
+     "A"
+    ],
+    [
+     113,
+     "-"
+    ]
+   ],
+   "shots": {
+    "hub": 100,
+    "start": 222,
+    "start2": 226,
+    "card": 300,
+    "taken": 400
+   },
+   "checks": [
+    {
+     "rule": "SA3-4",
+     "what": "the hub's HUD on the second screen",
+     "type": "not_uniform",
+     "shot": "hub",
+     "screen": "second",
+     "rect": [
+      52,
+      64,
+      200,
+      164
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "SA3-3",
+     "what": "the card's first frame: no HUD on the game screen",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "game",
+     "rect": [
+      52,
+      64,
+      712,
+      164
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "SA3-3",
+     "what": "the card's first frame: no lives on the game screen",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "game",
+     "rect": [
+      52,
+      624,
+      192,
+      690
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "SA3-3",
+     "what": "the card's start: no HUD on the game screen",
+     "type": "uniform",
+     "shot": "start2",
+     "screen": "game",
+     "rect": [
+      52,
+      64,
+      712,
+      164
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "SA3-3",
+     "what": "the card's start: no HUD on the second screen",
+     "type": "uniform",
+     "shot": "start2",
+     "screen": "second",
+     "rect": [
+      52,
+      64,
+      712,
+      164
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "SA3-3",
+     "what": "the card: no HUD on the game screen",
+     "type": "uniform",
+     "shot": "card",
+     "screen": "game",
+     "rect": [
+      52,
+      64,
+      712,
+      164
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "SA3-3",
+     "what": "the card: no lives on the second screen",
+     "type": "uniform",
+     "shot": "card",
+     "screen": "second",
+     "rect": [
+      52,
+      624,
+      192,
+      690
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "SA3-2",
+     "what": "the card taken",
+     "type": "log",
+     "match": "title card taken"
+    },
+    {
+     "rule": "SA3-3",
+     "what": "once taken: the rings and time over the card on the second screen",
+     "type": "not_uniform",
+     "shot": "taken",
+     "screen": "second",
+     "rect": [
+      52,
+      64,
+      712,
+      164
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "SA3-3",
+     "what": "once taken: the lives on the second screen",
+     "type": "not_uniform",
+     "shot": "taken",
+     "screen": "second",
+     "rect": [
+      52,
+      624,
+      192,
+      690
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
    "id": "sa3-us-card",
    "rom": "B3SE",
    "state": "sonic-advance-3/us-card-lead-in.ss",
-   "desc": "Route 99 act 1 starting (USA, Sonic and Tails), nothing pressed, then pause: the logo alone, then the card as it settles at the bottom (SONIC & TAILS, ROUTE 99, ACT 01 on the white band, on black) on the second screen while the game shows it over the level with its HUD; once it goes, the rings, time and lives on the second screen over the card, off the game screen; PAUSE on the game screen",
+   "desc": "Route 99 act 1 starting (USA, Sonic and Tails), nothing pressed, then pause: the logo alone, then the card as it settles at the bottom (SONIC & TAILS, ROUTE 99, ACT 01 on the white band, on black) on the second screen, the HUD over it once it's taken, while the game shows it over the level with its HUD; once it goes, the rings, time and lives on the second screen over the card, off the game screen; PAUSE on the game screen",
    "rules": [
     "SA3-2",
     "SA3-3",
@@ -117,8 +287,8 @@
      "match": "title card taken"
     },
     {
-     "rule": "SA3-2",
-     "what": "the logo before the take, without the HUD (it's on the game's card)",
+     "rule": "SA3-3",
+     "what": "the logo before the take, without the HUD",
      "type": "uniform",
      "shot": "logo",
      "screen": "second",
@@ -129,6 +299,20 @@
       164
      ],
      "color": "303030"
+    },
+    {
+     "rule": "SA3-3",
+     "what": "the HUD not on the game's card before the take",
+     "type": "uniform",
+     "shot": "logo",
+     "screen": "game",
+     "rect": [
+      52,
+      64,
+      712,
+      164
+     ],
+     "color": "000000"
     },
     {
      "rule": "SA3-2",
@@ -175,25 +359,11 @@
      "frac": 0.98
     },
     {
-     "rule": "SA3-2",
-     "what": "the card without the HUD",
-     "type": "uniform",
-     "shot": "card",
-     "screen": "second",
-     "rect": [
-      52,
-      64,
-      712,
-      164
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "SA3-2",
-     "what": "the HUD still on the game's card",
+     "rule": "SA3-3",
+     "what": "the rings and time over the card on the second screen once it's taken",
      "type": "not_uniform",
      "shot": "card",
-     "screen": "game",
+     "screen": "second",
      "rect": [
       52,
       64,
@@ -308,7 +478,7 @@
    "id": "sa3-eu-card",
    "rom": "B3SP",
    "state": "sonic-advance-3/eu-card-lead-in.ss",
-   "desc": "Route 99 act 1 starting (Europe, Sonic and Tails), nothing pressed, then pause: the card as it settles at the bottom (the team, the zone, the act on the white band, on black) on the second screen while the game shows it over the level with its HUD; once it goes, the rings, time and lives on the second screen over the card, off the game screen; PAUSE on the game screen",
+   "desc": "Route 99 act 1 starting (Europe, Sonic and Tails), nothing pressed, then pause: the card as it settles at the bottom (the team, the zone, the act on the white band, on black) on the second screen, the HUD over it once it's taken, while the game shows it over the level with its HUD; once it goes, the rings, time and lives on the second screen over the card, off the game screen; PAUSE on the game screen",
    "rules": [
     "SA3-2",
     "SA3-3",
@@ -366,9 +536,9 @@
      ]
     },
     {
-     "rule": "SA3-2",
-     "what": "the card without the HUD",
-     "type": "uniform",
+     "rule": "SA3-3",
+     "what": "the rings and time over the card on the second screen once it's taken",
+     "type": "not_uniform",
      "shot": "card",
      "screen": "second",
      "rect": [
@@ -393,20 +563,6 @@
      ],
      "color": "000000",
      "frac": 0.98
-    },
-    {
-     "rule": "SA3-2",
-     "what": "the HUD still on the game's card",
-     "type": "not_uniform",
-     "shot": "card",
-     "screen": "game",
-     "rect": [
-      52,
-      64,
-      712,
-      164
-     ],
-     "color": "000000"
     },
     {
      "rule": "SA3-2",
@@ -514,7 +670,7 @@
    "id": "sa3-jp-card",
    "rom": "B3SJ",
    "state": "sonic-advance-3/jp-card-lead-in.ss",
-   "desc": "Route 99 act 1 starting (Japan, Sonic and Tails), nothing pressed, then pause: the card as it settles at the bottom (the team, the zone, the act on the white band, on black) on the second screen while the game shows it over the level with its HUD; once it goes, the rings, time and lives on the second screen over the card, off the game screen; PAUSE on the game screen",
+   "desc": "Route 99 act 1 starting (Japan, Sonic and Tails), nothing pressed, then pause: the card as it settles at the bottom (the team, the zone, the act on the white band, on black) on the second screen, the HUD over it once it's taken, while the game shows it over the level with its HUD; once it goes, the rings, time and lives on the second screen over the card, off the game screen; PAUSE on the game screen",
    "rules": [
     "SA3-2",
     "SA3-3",
@@ -572,9 +728,9 @@
      ]
     },
     {
-     "rule": "SA3-2",
-     "what": "the card without the HUD",
-     "type": "uniform",
+     "rule": "SA3-3",
+     "what": "the rings and time over the card on the second screen once it's taken",
+     "type": "not_uniform",
      "shot": "card",
      "screen": "second",
      "rect": [
@@ -599,20 +755,6 @@
      ],
      "color": "000000",
      "frac": 0.98
-    },
-    {
-     "rule": "SA3-2",
-     "what": "the HUD still on the game's card",
-     "type": "not_uniform",
-     "shot": "card",
-     "screen": "game",
-     "rect": [
-      52,
-      64,
-      712,
-      164
-     ],
-     "color": "000000"
     },
     {
      "rule": "SA3-2",

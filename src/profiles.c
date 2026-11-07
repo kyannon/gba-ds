@@ -3878,7 +3878,13 @@ static const MapProfile profiles[] = {
 			                    { -64, -64, 255, 175, 0, 711, 0, 1u << 6 | 1u << 7 },
 			                    { -64, -64, 255, 175, 0, 1023, 3, 0xFFFFu & ~(1u << 9) },
 			                    { -64, -64, 255, 175, 0, 1023, 0, 0xFFFFu & ~(1u << 6 | 1u << 7 | 1u << 9) } },
-			          .poke = { 0x03002BFC, 16 } },
+			          .poke = { 0x03002BFC, 16 },
+			          /* the HUD on neither screen from the card's start until
+			           * the take, then over it on the second screen (SA3-3):
+			           * its start, the darkening (gBldRegs: BLDCNT 0x3FEF, BLDY
+			           * 16), 7 frames before the name's sprite */
+			          .hideTillTake = true,
+			          .pre = { { 0x03002BF8, 0xFFFF, 0x3FEF, 2 }, { 0x03002BFC, 0x1F, 16, 2 } } },
 		},
 	},
 	{
