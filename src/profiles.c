@@ -3362,11 +3362,25 @@ static bool to_box_is(const uint32_t* fb, const uint32_t* f) {
 	return false;
 }
 
+/* a unit's box on the field (its frame's white left edge, x 164, 44 of
+ * rows 110-155 on every unit's box, none on an empty square) */
+static bool to_unit_box(const uint32_t* fb) {
+	int edge = 0;
+	for (int y = 110; y < 156; ++y) edge += (fb[y * GBA_W + 164] & 0xFFFFFF) == 0xEFFFFF; /* (XBGR: FFFFEF) */
+	return edge >= 40;
+}
+
 /* the title's lettering (TACTICS OGRE; the Japanese release's too) */
 #define TO_V_TITLE 0xF0000030
+/* 1: Training's empty square, as its last capture found it (the logo, TO-9) */
+#define TO_V_NOAIMS 0xF0000031
+static volatile uint32_t toNoAimsAt;
+#define TO_FIELD_CURSOR(s) ((s)->gameCode[3] == 'J' ? 0x0202B5C0u : 0x0202AB90u)
 static const Probe toTitle[8] = { { 169, 13, 0xF7C600 }, { 140, 19, 0xDEAD00 }, { 25, 20, 0xBD7300 }, { 169, 20, 0xFFEF00 },
                                   { 62, 22, 0xCE8C00 }, { 91, 26, 0xEFBD00 }, { 132, 26, 0xFFFF5A }, { 13, 27, 0xC68400 } };
 static uint32_t to_virt(Emu* e, uint32_t addr) {
+	if (addr == TO_V_NOAIMS)
+		return toNoAimsAt == (0x10000u | emu_read16(e, TO_FIELD_CURSOR(e))) && emu_read8(e, 0x02004453) != 17 && !to_unit_box(e->fb);
 	return addr == TO_V_TITLE && som_probes(e, toTitle, 8, 7, 8);
 }
 
@@ -3413,23 +3427,6 @@ static bool to_details_up(const uint32_t* fb) {
 	       (fb[120 * GBA_W + 180] & 0xFFFFFF) != c;
 }
 
-/* pg's x0-x1 x y0-y1 from the frame after, BG2 off (what's under a prompt) */
-static bool to_paste_under(Emu* s, uint32_t* pg, int x0, int y0, int x1, int y1) {
-	static uint8_t* tmp;
-	static size_t tmpSize;
-	size_t sz = emu_state_size(s);
-	if (sz > tmpSize) free(tmp), tmp = malloc(sz), tmpSize = tmp ? sz : 0;
-	if (!tmp || !emu_state_save(s, tmp)) return false;
-	emu_layers(s, 0x1B);
-	emu_state_load(s, tmp);
-	emu_frame(s, 0);
-	for (int y = y0; y <= y1; ++y) memcpy(&pg[y * GBA_W + x0], &s->fb[y * GBA_W + x0], (x1 - x0 + 1) * 4);
-	emu_layers(s, 0x1F);
-	emu_state_load(s, tmp);
-	emu_frame(s, 0);
-	return true;
-}
-
 /* R's menu open on the field: 2 (0 with R pressed anywhere else: a unit
  * picked or acting, the details or the list open, the enemy's turn);
  * Japan's by the same RAM, the 5 after it too */
@@ -3446,47 +3443,207 @@ static bool to_menu_pick(Emu* s, int k) {
 	return true;
 }
 
-/* an empty square (TO-2): the Winning Condition (R's second icon), the
- * Losing Condition (R on it), then the supply list (its third); in
- * Training, whose menu has no Winning Condition, the second icon is the
- * supply list: that alone. The camera pans to each condition's unit in
- * ~12 frames. */
-static const char* to_aims(Emu* s, const void* state, uint32_t (*page)[GBA_W * GBA_H], int max, int* nOut) {
-	int n = 0;
+/* bounding box of the pixels of colour c in x0-x1 x y0-y1 of fb */
+static bool to_bbox(const uint32_t* fb, uint32_t c, int x0, int y0, int x1, int y1, int r[4]) {
+	r[0] = GBA_W, r[1] = GBA_H, r[2] = -1, r[3] = -1;
+	for (int y = y0; y <= y1; ++y) {
+		for (int x = x0; x <= x1; ++x) {
+			if ((fb[y * GBA_W + x] & 0xFFFFFF) != c) continue;
+			if (x < r[0]) r[0] = x;
+			if (x > r[2]) r[2] = x;
+			if (y < r[1]) r[1] = y;
+			if (y > r[3]) r[3] = y;
+		}
+	}
+	return r[2] >= 0;
+}
+
+/* The conditions' boxes alone (TO-9): BG3 draws the boxes, outlined in
+ * 101818, and BG2 their text and labels, inside them, over the field (BG0,
+ * BG1, sprites; windows darken it, so its backdrop isn't one colour). From
+ * the frame after with BG3 alone, the outlines' extent: the condition's
+ * box at the top (8-231 x 8-39), the place's at the bottom left (x 0-119:
+ * the prompt at the bottom right has no box); then BG2 and BG3 drawn,
+ * into out. */
+static bool to_cut_boxes(Emu* s, uint32_t* out, int r[2][4]) {
+	static uint8_t* tmp;
+	static size_t tmpSize;
+	size_t sz = emu_state_size(s);
+	if (sz > tmpSize) free(tmp), tmp = malloc(sz), tmpSize = tmp ? sz : 0;
+	if (!tmp || !emu_state_save(s, tmp)) return false;
+	emu_layers(s, 0x08);
+	emu_state_load(s, tmp);
+	emu_frame(s, 0);
+	bool ok = to_bbox(s->fb, 0x181810, 0, 0, GBA_W - 1, 79, r[0]) && to_bbox(s->fb, 0x181810, 0, 100, 119, GBA_H - 1, r[1]); /* (XBGR) */
+	emu_layers(s, 0x0C);
+	emu_state_load(s, tmp);
+	emu_frame(s, 0);
+	if (ok) memcpy(out, s->fb, GBA_W * GBA_H * 4);
+	emu_layers(s, 0x1F);
+	emu_state_load(s, tmp);
+	emu_frame(s, 0);
+	return ok;
+}
+
+/* Training's empty squares: no conditions, the logo (TO-9). The capture
+ * that finds it notes the field cursor's square; the live game's
+ * TO_V_NOAIMS reads 1 while the cursor stays there on no unit. */
+
+/* an empty square (TO-2, TO-9): one page, the Winning Condition's box at
+ * the top, the Losing Condition's at the bottom, the place's in the
+ * middle, on black. R's second icon is the Winning Condition (R on it:
+ * the Losing Condition); in Training, which has none, it's the supply
+ * list: the logo. */
+static const char* to_aims(Emu* s, const void* state, uint32_t* page, int* nOut) {
+	static uint32_t win[GBA_W * GBA_H], lose[GBA_W * GBA_H];
+	int rw[2][4], rl[2][4];
 	bool aims = false, supply = false;
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
+	uint32_t at = emu_read16(s, TO_FIELD_CURSOR(s));
 	if (!to_menu_pick(s, 1)) return "R's menu didn't open";
 	for (int f = 0; f < 90 && !(aims = to_aims_up(s)) && !(supply = to_supply_up(s)); ++f) emu_frame(s, 0);
-	if (aims) {
-		for (int k = 0; k < 2 && n < max; ++k) {
-			if (k) aw_run(s, K_R, 6);
-			aw_run(s, 0, k ? 40 : 30);
-			if (!to_aims_up(s)) return "the conditions closed";
-			if (emu_cancelled(s)) return "called off";
-			memcpy(page[n], s->fb, sizeof(page[n]));
-			if (!to_paste_under(s, page[n], TO_AIM_X0, TO_AIM_Y0, GBA_W - 1, TO_AIM_Y1)) return "no memory";
-			++n;
-		}
-		if (n < max) {
-			if (!emu_state_load(s, state)) return "state load failed";
-			emu_frame(s, 0);
-			if (!to_menu_pick(s, 2)) return "R's menu didn't open";
-			for (int f = 0; f < 90 && !(supply = to_supply_up(s)); ++f) emu_frame(s, 0);
-		}
+	if (emu_cancelled(s)) return "called off";
+	if (supply) {
+		toNoAimsAt = 0x10000u | at;
+		return "no conditions here (Training): the logo";
 	}
-	if (supply && n < max) {
-		aw_run(s, 0, 20);
-		if (!to_supply_up(s)) return "the supply list closed";
-		memcpy(page[n++], s->fb, sizeof(page[0]));
+	if (!aims) return "the conditions didn't open";
+	aw_run(s, 0, 30);
+	if (!to_aims_up(s)) return "the conditions closed";
+	if (!to_cut_boxes(s, win, rw)) return "the conditions' boxes weren't found";
+	aw_run(s, K_R, 6);
+	aw_run(s, 0, 40);
+	if (!to_aims_up(s)) return "the losing condition didn't open";
+	if (!to_cut_boxes(s, lose, rl)) return "the conditions' boxes weren't found";
+	if (emu_cancelled(s)) return "called off";
+	/* the page: the winning box where the game has it, the losing box as
+	 * far from the bottom, the place centred */
+	memset(page, 0, GBA_W * GBA_H * 4);
+	int m = rw[0][1];
+	for (int y = rw[0][1]; y <= rw[0][3]; ++y)
+		memcpy(&page[y * GBA_W + rw[0][0]], &win[y * GBA_W + rw[0][0]], (rw[0][2] - rw[0][0] + 1) * 4);
+	int dy = GBA_H - 1 - m - rl[0][3];
+	for (int y = rl[0][1]; y <= rl[0][3]; ++y)
+		memcpy(&page[(y + dy) * GBA_W + rl[0][0]], &lose[y * GBA_W + rl[0][0]], (rl[0][2] - rl[0][0] + 1) * 4);
+	int pw = rw[1][2] - rw[1][0] + 1, ph = rw[1][3] - rw[1][1] + 1;
+	int px = (GBA_W - pw) / 2, py = (GBA_H - ph) / 2;
+	for (int y = 0; y < ph; ++y) memcpy(&page[(py + y) * GBA_W + px], &win[(rw[1][1] + y) * GBA_W + rw[1][0]], pw * 4);
+	*nOut = 1;
+	return NULL;
+}
+
+/* ------------------------------------------------- out of battle (TO-10, TO-11)
+ * 0x02004453: 17 on the world map and in its menus (Organize...), 0 in a
+ * battle (Training's too), whether or not a battle came before (USA:
+ * Japan's isn't known, so its world map and Organize are left as they
+ * were) */
+#define TO_WORLD 0x02004453u
+static bool to_world(Emu* s) {
+	return s->gameCode[3] == 'E' && emu_read8(s, TO_WORLD) == 17;
+}
+/* the world map's cursor (x, y: where it points), the location it's on
+ * (0xFF: none) */
+#define TO_WM_CURSOR 0x03000ECEu
+#define TO_WM_HOVER 0x03000EC2u
+/* the HELP box SELECT opens on a location: 8-231 x 16-63, its outline */
+#define TO_HELP_X0 8
+#define TO_HELP_Y0 16
+#define TO_HELP_X1 231
+#define TO_HELP_Y1 63
+static bool to_help_up(const uint32_t* fb) {
+	int n = 0, all = 0;
+	for (int x = TO_HELP_X0; x <= TO_HELP_X1; ++x) {
+		n += (fb[TO_HELP_Y0 * GBA_W + x] & 0xFFFFFF) == 0x181810; /* (XBGR: 101818) */
+		n += (fb[TO_HELP_Y1 * GBA_W + x] & 0xFFFFFF) == 0x181810;
+		all += 2;
+	}
+	for (int y = TO_HELP_Y0; y <= TO_HELP_Y1; ++y) {
+		n += (fb[y * GBA_W + TO_HELP_X0] & 0xFFFFFF) == 0x181810;
+		n += (fb[y * GBA_W + TO_HELP_X1] & 0xFFFFFF) == 0x181810;
+		all += 2;
+	}
+	return n * 10 >= all * 9 && (fb[30 * GBA_W + 120] & 0xFFFFFF) != 0x181810;
+}
+
+/* the world map (TO-10): the HELP box of the location the cursor is on,
+ * or (on none) of the player's own: the cursor put on the army's flag
+ * (sprite tiles 528-536, palette 2), 9 right of it and 23 down, where the
+ * map opens it; SELECT; the box alone, in the middle, on black */
+static const char* to_world_map(Emu* s, uint32_t* page, int* nOut) {
+	if (!to_help_up(s->fb)) {
+		if (emu_read8(s, TO_WM_HOVER) == 0xFF) {
+			uint16_t oam[512];
+			emu_oam_read(s, oam);
+			int fx = -1, fy = -1;
+			for (int i = 0; i < 128; ++i) {
+				uint16_t a0 = oam[i * 4], a1 = oam[i * 4 + 1], a2 = oam[i * 4 + 2];
+				if ((a0 & 0x300) == 0x200) continue; /* (hidden) */
+				int tile = a2 & 0x3FF, pal = a2 >> 12;
+				if (tile >= 528 && tile <= 536 && pal == 2) {
+					fx = a1 & 0x1FF, fy = a0 & 0xFF;
+					break;
+				}
+			}
+			if (fx < 0 || fx > 239 - 9 || fy > 159 - 23) return "not on a location, and no flag";
+			emu_write8(s, TO_WM_CURSOR, fx + 9);
+			emu_write8(s, TO_WM_CURSOR + 1, fy + 23);
+			aw_run(s, 0, 10);
+			if (emu_read8(s, TO_WM_HOVER) == 0xFF) return "the flag's location wasn't found";
+		}
+		aw_run(s, K_SELECT, 6);
+		for (int f = 0; f < 60 && !to_help_up(s->fb); ++f) emu_frame(s, 0);
+		aw_run(s, 0, 10);
+		if (!to_help_up(s->fb)) return "no HELP box";
 	}
 	if (emu_cancelled(s)) return "called off";
-	if (!n) return "neither the conditions nor the supply list opened";
+	memset(page, 0, GBA_W * GBA_H * 4);
+	int h = TO_HELP_Y1 - TO_HELP_Y0 + 1, y0 = (GBA_H - h) / 2;
+	for (int y = 0; y < h; ++y)
+		memcpy(&page[(y0 + y) * GBA_W + TO_HELP_X0], &s->fb[(TO_HELP_Y0 + y) * GBA_W + TO_HELP_X0], (TO_HELP_X1 - TO_HELP_X0 + 1) * 4);
+	*nOut = 1;
+	return NULL;
+}
+
+/* Organize (TO-11): the details of the unit the roster's cursor is on (A),
+ * its three pages: the first, START (the talents' MP costs), RIGHT (the
+ * Emblems). Opened in the game: back (B) to the roster and in again, so
+ * they start on the first. */
+static const char* to_organize(Emu* s, uint32_t (*page)[GBA_W * GBA_H], int max, int* nOut) {
+	if (to_details_up(s->fb)) {
+		aw_run(s, K_B, 6);
+		if (!to_wait_list(s, 90)) return "the roster didn't come back";
+		aw_run(s, 0, 10);
+	}
+	aw_run(s, K_A, 6);
+	bool up = false;
+	for (int f = 0; f < 90 && !(up = to_details_up(s->fb)); ++f) emu_frame(s, 0);
+	if (!up) return "the details didn't open";
+	aw_run(s, 0, 20);
+	static const int keys[3] = { 0, K_START, K_RIGHT };
+	int n = 0;
+	for (; n < 3 && n < max; ++n) {
+		if (keys[n]) {
+			if (n == 2) aw_run(s, K_START, 4), aw_run(s, 0, 14); /* (back to POW: the Emblems take the right half only) */
+			aw_run(s, keys[n], 4);
+			aw_run(s, 0, n == 2 ? 50 : 20); /* (the Emblems slide in) */
+		}
+		if (!to_details_up(s->fb) && n < 2) return "the details closed";
+		if (emu_cancelled(s)) return "called off";
+		memcpy(page[n], s->fb, sizeof(page[n]));
+	}
 	*nOut = n;
 	return NULL;
 }
 
+static const char* to_compose_(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h);
+/* (a picture taken: Training's logo is over, TO_V_NOAIMS) */
 static const char* to_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+	const char* err = to_compose_(s, state, out, nOut, step, w, h);
+	if (!err) toNoAimsAt = 0;
+	return err;
+}
+static const char* to_compose_(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
 	static uint32_t page[TO_PAGES][GBA_W * GBA_H];
 	static uint32_t field[TO_BOX_W * TO_BOX_H];
 	int max = *nOut < TO_PAGES ? *nOut : TO_PAGES;
@@ -3495,6 +3652,18 @@ static const char* to_compose(Emu* s, const void* state, uint32_t* const* out, i
 	emu_hide_sprites(s, toHide, 4);
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
+	if (to_world(s)) {
+		/* out of battle: Organize (its roster, or a unit's details open),
+		 * else the world map */
+		int n = 0;
+		const char* err = to_list_up(s) || to_details_up(s->fb) ? to_organize(s, page, max, &n) : to_world_map(s, page[0], &n);
+		if (err) return err;
+		*nOut = n;
+		for (int k = 0; k < n; ++k) {
+			for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[k][y * w], &page[k][y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+		}
+		return NULL;
+	}
 	/* the field cursor on a unit (its box found in the list): its details
 	 * first (TO-8), page 0, taken once the list's pages are */
 	bool onUnit = false;
@@ -3511,10 +3680,8 @@ static const char* to_compose(Emu* s, const void* state, uint32_t* const* out, i
 		/* none (its frame's white left edge, x 164, 44 of rows 110-155
 		 * on every unit's box, none on an empty square): the empty
 		 * square's pages, without looking through the list (TO-2) */
-		int edge = 0;
-		for (int y = 110; y < 156; ++y) edge += (s->fb[y * GBA_W + 164] & 0xFFFFFF) == 0xEFFFFF; /* (XBGR: FFFFEF) */
 		bool found = false;
-		if (edge < 40) goto empty;
+		if (!to_unit_box(s->fb)) goto empty;
 		if (!to_open_list(s)) return "the list didn't open";
 		aw_run(s, 0, 10);
 		/* to the unit under the field cursor */
@@ -3542,7 +3709,7 @@ static const char* to_compose(Emu* s, const void* state, uint32_t* const* out, i
 			/* (none: an empty square, nothing about a unit, TO-2; or a
 			 * box the list doesn't have) */
 			int n = 0;
-			const char* err = to_aims(s, state, page, max, &n);
+			const char* err = to_aims(s, state, page[0], &n);
 			if (err) return err;
 			*nOut = n;
 			for (int k = 0; k < n; ++k) {
@@ -3888,10 +4055,14 @@ static const MapProfile profiles[] = {
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
 		/* the field cursor moved: the list again, on its unit */
-		.room = { { 0x0202AB90, 0xFFFF, 0, 2 } },
+		/* (and the world map's location under the cursor, Organize's roster
+		 * cursor and its scroll: TO-10, TO-11) */
+		.room = { { 0x0202AB90, 0xFFFF, 0, 2 }, { TO_WM_HOVER, 0xFF, 0, 1 }, { TO_LIST_IDX_, 0xFF, 0, 1 }, { TO_LIST_TOP_, 0xFF, 0, 1 } },
 		/* the title: the logo again, no captures (TO-4) */
 		.menu = { { TO_V_TITLE, 0xFF, 1, 4 } },
 		.live = { { TO_V_TITLE, 0xFF, 0, 4 } },
+		/* Training's empty square: the logo (TO-9) */
+		.logoIf = { { TO_V_NOAIMS, 0xFF, 1, 4 } },
 		/* the title's lettering (BG2) and The Knight of Lodis (sprites, above
 		 * PUSH START), not the emblem behind or OGRE BATTLE SAGA (BG1) */
 		.logo = { .steps = { { 0, 480 }, { K_START, 4 }, { 0, 50 } }, .layers = 0x14, .maxY = 90 },

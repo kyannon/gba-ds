@@ -475,21 +475,20 @@
    "id": "to-us-empty-tile",
    "rom": "ATOE",
    "state": "tactics-ogre/us-empty-tile.ss",
-   "desc": "the cursor on an empty square: the Winning Condition, the Losing Condition, the supply list (no list on the leader)",
+   "desc": "the cursor on an empty square: one page, the Winning Condition's box at the top, the Losing Condition's at the bottom, the place's in the middle, on black",
    "rules": [
     "TO-9"
    ],
    "shots": {
     "start": 120,
-    "losing": 270,
-    "supply": 420
+    "later": 270
    },
    "checks": [
     {
      "rule": "TO-9",
-     "what": "three pages: the two conditions and the supply list",
+     "what": "one page",
      "type": "log",
-     "match": "map updated \\(3 frame\\(s\\) 150 apart"
+     "match": "map updated \\(1 frame\\(s\\)"
     },
     {
      "rule": "TO-9",
@@ -499,51 +498,45 @@
     },
     {
      "rule": "TO-9",
-     "what": "the next page after 2.5 seconds",
-     "type": "differs",
-     "a": {
-      "shot": "start",
-      "rect": [
-       0,
-       0,
-       1024,
-       768
-      ]
-     },
-     "b": {
-      "shot": "losing",
-      "rect": [
-       0,
-       0,
-       1024,
-       768
-      ]
-     },
-     "frac": 0.01
+     "what": "black between the top box and the place",
+     "type": "uniform",
+     "shot": "start",
+     "rect": [
+      0,
+      232,
+      1024,
+      326
+     ],
+     "color": "000000",
+     "frac": 0.99
     },
     {
      "rule": "TO-9",
-     "what": "and the next",
-     "type": "differs",
-     "a": {
-      "shot": "losing",
-      "rect": [
-       0,
-       0,
-       1024,
-       768
-      ]
-     },
-     "b": {
-      "shot": "supply",
-      "rect": [
-       0,
-       0,
-       1024,
-       768
-      ]
-     },
-     "frac": 0.01
+     "what": "black between the place and the bottom box",
+     "type": "uniform",
+     "shot": "start",
+     "rect": [
+      0,
+      442,
+      1024,
+      538
+     ],
+     "color": "000000",
+     "frac": 0.99
+    },
+    {
+     "rule": "TO-9",
+     "what": "the place's box in the middle",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      384,
+      370,
+      640,
+      400
+     ],
+     "color": "000000",
+     "frac": 0.5
     }
    ]
   },
@@ -1278,7 +1271,7 @@
    "id": "to-training-empty",
    "rom": "ATOE",
    "state": "tactics-ogre/training-empty.ss",
-   "desc": "Training, the cursor on an empty square: no conditions in Training, so the supply list alone",
+   "desc": "Training, the cursor on an empty square: no conditions in Training, so the logo",
    "rules": [
     "TO-9"
    ],
@@ -1288,9 +1281,15 @@
    "checks": [
     {
      "rule": "TO-9",
-     "what": "one page, the supply list",
+     "what": "the logo",
      "type": "log",
-     "match": "map updated \\(1 frame\\(s\\)"
+     "match": "logo only on"
+    },
+    {
+     "rule": "TO-9",
+     "what": "no page taken",
+     "type": "no_log",
+     "match": "map updated"
     }
    ]
   },
@@ -1298,63 +1297,19 @@
    "id": "to-jp-empty-tile",
    "rom": "ATOJ",
    "state": "tactics-ogre/jp-empty-tile.ss",
-   "desc": "Japan: the cursor moved off the leader to an empty square (from jp-field.ss): the two conditions (TACTICAL AIM, DEFEAT CONDITION) and the supply list",
+   "desc": "Japan: the cursor moved off the leader to an empty square (from jp-field.ss): TACTICAL AIM at the top, DEFEAT CONDITION at the bottom, the place in the middle",
    "rules": [
     "TO-9"
    ],
    "shots": {
-    "start": 120,
-    "losing": 270,
-    "supply": 420
+    "start": 120
    },
    "checks": [
     {
      "rule": "TO-9",
-     "what": "three pages",
+     "what": "one page",
      "type": "log",
-     "match": "map updated \\(3 frame\\(s\\) 150 apart"
-    }
-   ]
-  },
-  {
-   "id": "to-us-empty-still",
-   "rom": "ATOE",
-   "state": "tactics-ogre/us-empty-tile.ss",
-   "desc": "Map Animations off, an empty square: the Winning Condition stays",
-   "rules": [
-    "TO-9"
-   ],
-   "config": {
-    "map_animations": 0
-   },
-   "shots": {
-    "first": 120,
-    "later": 400
-   },
-   "checks": [
-    {
-     "rule": "TO-9",
-     "what": "the same page 4.7 seconds on (but the rain: each refresh takes it again)",
-     "type": "same",
-     "a": {
-      "shot": "first",
-      "rect": [
-       0,
-       0,
-       1024,
-       768
-      ]
-     },
-     "b": {
-      "shot": "later",
-      "rect": [
-       0,
-       0,
-       1024,
-       768
-      ]
-     },
-     "frac": 0.03
+     "match": "map updated \\(1 frame\\(s\\)"
     }
    ]
   },
@@ -1362,25 +1317,25 @@
    "id": "to-us-organize",
    "rom": "ATOE",
    "state": "tactics-ogre/organize.ss",
-   "desc": "Organize, from the world map (the owner's GameShark save, 13 units): its roster is the battle's list, so its pages turn as with the list open in a battle",
+   "desc": "Organize, from the world map (the owner's GameShark save): the details of Fermin, under the roster's cursor, their three pages (POW, MP, Emblems)",
    "rules": [
-    "TO-1",
-    "TO-3"
+    "TO-11"
    ],
    "shots": {
     "first": 100,
-    "second": 250
+    "second": 250,
+    "third": 400
    },
    "checks": [
     {
-     "rule": "TO-1",
-     "what": "the roster's pages",
+     "rule": "TO-11",
+     "what": "three pages",
      "type": "log",
-     "match": "map updated \\(5 frame\\(s\\) 150 apart"
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
     },
     {
-     "rule": "TO-3",
-     "what": "the next page after 2.5 seconds",
+     "rule": "TO-11",
+     "what": "the next page (Fermin has no talents: only the heading, POW to MP, changes)",
      "type": "differs",
      "a": {
       "shot": "first",
@@ -1400,7 +1355,31 @@
        768
       ]
      },
-     "frac": 0.01
+     "frac": 0.0005
+    },
+    {
+     "rule": "TO-11",
+     "what": "and the Emblems",
+     "type": "differs",
+     "a": {
+      "shot": "second",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "third",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.05
     }
    ]
   },
@@ -1408,20 +1387,172 @@
    "id": "to-us-world-map",
    "rom": "ATOE",
    "state": "tactics-ogre/world-map.ss",
-   "desc": "the world map (the owner's GameShark save, at Formido): nothing taken there, so the logo (none taken before)",
+   "desc": "the world map at Formido (the owner's GameShark save), the cursor on it: its HELP box in the middle, on black",
    "rules": [
-    "TO-4",
-    "TO-5"
+    "TO-10"
    ],
    "shots": {
     "start": 200
    },
    "checks": [
     {
-     "rule": "TO-5",
-     "what": "none taken",
-     "type": "no_log",
-     "match": "map updated"
+     "rule": "TO-10",
+     "what": "the HELP box",
+     "type": "log",
+     "match": "map updated \\(1 frame\\(s\\)"
+    },
+    {
+     "rule": "TO-10",
+     "what": "black above",
+     "type": "uniform",
+     "shot": "start",
+     "rect": [
+      0,
+      0,
+      1024,
+      200
+     ],
+     "color": "000000",
+     "frac": 0.99
+    },
+    {
+     "rule": "TO-10",
+     "what": "black below",
+     "type": "uniform",
+     "shot": "start",
+     "rect": [
+      0,
+      570,
+      1024,
+      768
+     ],
+     "color": "000000",
+     "frac": 0.99
+    }
+   ]
+  },
+  {
+   "id": "to-us-world-map-between",
+   "rom": "ATOE",
+   "state": "tactics-ogre/world-map-between.ss",
+   "desc": "the world map, the cursor between locations (above Formido): the HELP of the player's own location, Formido (the cursor put on the army's flag on the hidden copy)",
+   "rules": [
+    "TO-10"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "rule": "TO-10",
+     "what": "the HELP box",
+     "type": "log",
+     "match": "map updated \\(1 frame\\(s\\)"
+    }
+   ]
+  },
+  {
+   "id": "to-us-world-map-after-training",
+   "rom": "ATOE",
+   "state": "tactics-ogre/world-map-after-training.ss",
+   "desc": "the world map after Training was ended (a battle's memory left behind): still the world map, Formido's HELP",
+   "rules": [
+    "TO-10"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "rule": "TO-10",
+     "what": "the HELP box",
+     "type": "log",
+     "match": "map updated \\(1 frame\\(s\\)"
+    }
+   ]
+  },
+  {
+   "id": "to-us-world-map-moves",
+   "rom": "ATOE",
+   "state": "tactics-ogre/world-map.ss",
+   "desc": "the world map, the cursor moved from Formido to Aquila: Aquila's HELP",
+   "rules": [
+    "TO-10"
+   ],
+   "input": [
+    [
+     150,
+     "RIGHT"
+    ],
+    [
+     156,
+     "-"
+    ],
+    [
+     180,
+     "RIGHT"
+    ],
+    [
+     186,
+     "-"
+    ],
+    [
+     210,
+     "DOWN"
+    ],
+    [
+     216,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 140,
+    "after": 400
+   },
+   "checks": [
+    {
+     "rule": "TO-10",
+     "what": "another location's HELP",
+     "type": "differs",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.01
+    }
+   ]
+  },
+  {
+   "id": "to-us-organize-details",
+   "rom": "ATOE",
+   "state": "tactics-ogre/organize-details.ss",
+   "desc": "Organize with Fermin's details open in the game: the same three pages, from the first",
+   "rules": [
+    "TO-11"
+   ],
+   "shots": {
+    "first": 100
+   },
+   "checks": [
+    {
+     "rule": "TO-11",
+     "what": "three pages",
+     "type": "log",
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
     }
    ]
   }
