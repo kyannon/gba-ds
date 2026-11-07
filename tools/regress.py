@@ -20,7 +20,9 @@ Options: --fixtures DIR (default $GBADS_TESTS, else ../gba-ds-tests),
 --bin build/host/gba-ds, --harness build/host/harness, --report DIR
 (default build/regress: index.html with each failure's pictures), -j N
 (default: the CPU count + 1), --shard I/N (the Ith of N even shares of
-the cases, for running on several machines), --paced (at 60 frames a second, drawing
+the cases, for running on several machines), --json FILE (each case's results, for tools/romhack.py), --any-rom (run
+cases on fixture ROMs that aren't the tested dumps: tools/romhack.py's patched
+ROMs), --paced (at 60 frames a second, drawing
 every frame, as players run it; by default the app runs as fast as it
 can and draws only the frames a screenshot or a touch needs).
 
@@ -92,6 +94,7 @@ class Run:
 
 
 _testedDumps = {}
+ANY_ROM = False  # --any-rom (tools/romhack.py: a patched ROM in the fixtures on purpose)
 
 
 def dump_error(case, rom):
@@ -99,7 +102,7 @@ def dump_error(case, rom):
     marks tested (a patched or other dump in the fixtures); None if it is, or
     the rules have no Dumps row yet (tools/make_dumps.py writes them)."""
     rules = case.get("rulesFile")
-    if not rules:
+    if not rules or ANY_ROM:
         return None
     if rules not in _testedDumps:
         tested = None
@@ -393,7 +396,12 @@ def main():
     ap.add_argument("--fixture-paths", action="store_true",
                     help="list the fixture files the selected cases need (for a sparse checkout) and stop")
     ap.add_argument("--games-json", metavar="FILE", help="with --changed: write the games picked (or \"all\") as JSON and stop")
+    ap.add_argument("--json", metavar="FILE", help="also write each case's results as JSON (tools/romhack.py reads it)")
+    ap.add_argument("--any-rom", action="store_true",
+                    help="run cases whose fixture ROM isn't the tested dump (tools/romhack.py's patched ROMs)")
     args = ap.parse_args()
+    global ANY_ROM
+    ANY_ROM = args.any_rom
     args.fixtures = os.path.abspath(args.fixtures)  # (cases run in their own folders)
     if args.changed:
         sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -504,6 +512,11 @@ def main():
     with ThreadPoolExecutor(max_workers=args.j) as pool:
         results = list(pool.map(lambda c: evaluate(c, args), cases))
     write_report(results, args.report)
+    if args.json:
+        json.dump([{"id": r["case"]["id"], "rom": r["case"]["rom"], "rules": r["case"].get("rules", []), "ok": r["ok"],
+                    "error": r["error"], "checks": [{"rule": a, "what": b, "ok": c, "seen": d} for a, b, c, d in r["checks"]],
+                    "goldens": [{"shot": a, "ok": b, "seen": c} for a, b, c in r["goldens"]]} for r in results],
+                  open(args.json, "w"), indent=1)
     fails = [r for r in results if not r["ok"]]
     for r in results:
         c = r["case"]

@@ -215,7 +215,11 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   modified), and bug reports' info.txt has it as `ROM dump:`
   (`profile_dump`). Romhack support (issue #17) is worked on in the branch
   `patch-support`; a mod's fixture is `roms/CODE+mod.zip`
-  (docs/games/README.md, "Releases and dumps").
+  (docs/games/README.md, "Releases and dumps"). A mod someone asks for:
+  `tools/romhack.py PATCH [--base CODE]` (IPS, UPS, BPS or a patched ROM)
+  applies it, says what it changes, runs the release's cases on it
+  (regress.py `--any-rom --json`) and writes `build/romhack/<name>/`
+  (report.md, the patched ROM, the regress report).
 
 ## Testing without the device
 
