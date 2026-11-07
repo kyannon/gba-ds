@@ -3286,7 +3286,13 @@ static uint32_t ls_virt(Emu* e, uint32_t addr) {
 #define WL4_SCREEN 0x03000C3A
 #define WL4_SUB 0x03000C3C
 #define WL4_LEVEL 0x03000003
-#define WL4_V_OFFLEVEL 0xF0000067 /* 1 outside the levels: the logo (WL4-7) */
+#define WL4_HEARTS 0x03001910
+/* 1 outside the levels, or once Wario has lost his last heart: the logo
+ * (WL4-7) */
+#define WL4_V_OFFLEVEL 0xF0000067
+/* 1 while the HUD is left off the game screen: in a level's play, Wario
+ * alive (WL4-4) */
+#define WL4_V_HUDOFF 0xF0000069
 /* 1 while a boss fight's countdown is in its place: its figures, the
  * sprite with tile 128 in palette 4, at (96, 2). The fight opens with them
  * big in the middle of the room and the stopwatch bouncing about, then
@@ -3306,8 +3312,10 @@ static uint32_t wl4_virt(Emu* e, uint32_t addr) {
 	if (addr == WL4_V_OFFLEVEL) {
 		uint16_t s = emu_read16(e, WL4_SCREEN);
 		if (s != 2 && s != 4) return 1;
-		return emu_read8(e, WL4_LEVEL) > 3;
+		return emu_read8(e, WL4_LEVEL) > 3 || emu_read8(e, WL4_HEARTS) == 0;
 	}
+	if (addr == WL4_V_HUDOFF)
+		return emu_read16(e, WL4_SCREEN) == 2 && emu_read8(e, WL4_LEVEL) <= 3 && emu_read8(e, WL4_HEARTS) != 0;
 	return 0;
 }
 
@@ -4569,9 +4577,9 @@ static const MapProfile profiles[] = {
 		.menu = { { WL4_V_OFFLEVEL, 0, 1, 1 } },
 		.virt = wl4_virt,
 		/* another level, a gem piece, the CD or the Keyzer found, or a
-		 * heart gained or lost (0x03001910): taken again at once (WL4-3) */
+		 * heart gained or lost: taken again at once (WL4-3) */
 		.room = { { 0x03000002, 0, 0, 2 }, { 0x03000C07, 0, 0, 4 }, { 0x03000C0B, 0, 0, 2 },
-		          { 0x03001910, 0, 0, 1 } },
+		          { WL4_HEARTS, 0, 0, 1 } },
 		/* In a level's play, the hearts and heart meter (palette 7, top
 		 * left) and the coins (the coin palette 6, its figures 4, top
 		 * right) leave the game screen: the pause screen has them. The
@@ -4580,7 +4588,7 @@ static const MapProfile profiles[] = {
 		 * sprites are priority 1-2. */
 		.hideSprites = { { 0, -8, 79, 15, 0, 1023, 0, 1 << 7 },
 		                 { 160, -8, 239, 15, 0, 1023, 0, 1 << 6 | 1 << 4 } },
-		.hideWhen = { { WL4_SCREEN, 0xFFFF, 2, 2 }, { WL4_LEVEL, 0xFF, 0, 1, true, 3, true } },
+		.hideWhen = { { WL4_V_HUDOFF, 0, 1, 1 } },
 		/* A boss fight (a level's number 4, playing): its HUD, all
 		 * priority-0 sprites in the top rows (the hearts in palette 7,
 		 * the stopwatch and countdown in 4, the boss's bar in 14), goes
@@ -4592,7 +4600,9 @@ static const MapProfile profiles[] = {
 		 * big figures reach row 35. */
 		.hud = {
 			.on = { { WL4_SCREEN, 0xFFFF, 2, 2 }, { WL4_LEVEL, 0xFF, 4, 1 }, { WL4_V_CLOCKSET, 0, 1, 1 } },
-			.stay = { { WL4_SCREEN, 0xFFFF, 2, 2 }, { WL4_LEVEL, 0xFF, 4, 1 } },
+			/* (the level byte goes 4 to 6 as the boss is beaten: the room
+			 * fades with Wario and his hearts, then CLEAR!, screen 1) */
+			.stay = { { WL4_SCREEN, 0xFFFF, 2, 2 }, { WL4_LEVEL, 0xFF, 4, 1, true, 6, true } },
 			.objs = { { 0, -8, 239, 23, 0, 1023, 0, 1 << 4 | 1 << 7 | 1 << 14 } },
 			.rows = 40,
 			.logoBelow = true,
