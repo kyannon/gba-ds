@@ -895,6 +895,10 @@ static bool hudLogoDone;
 static bool hudShown; /* the second screen shows the HUD picture (hudTex) */
 /* the profile's logoIf probes match: the logo, the map picture and HUD kept */
 static bool logoForced;
+/* logoIf just stopped matching: the logo still, until the second screen has
+ * a new picture to show (a HUD picture drawn, a map picture taken), at
+ * most a second; not the last picture from before for a frame (SM4-11) */
+static int logoHolding;
 /* profile hud.overMap: this frame's HUD is drawn into the map picture;
  * the map picture needs uploading again (the HUD changed) */
 static bool overOn, overDirty;
@@ -3057,6 +3061,12 @@ static void update_hud(void) {
 			if (emu_hud_grabbed()) hud_make_backdrop(); /* (that frame drew no HUD: the last one is reused) */
 			hud_compose();
 			for (int i = 0; i < nViews; ++i) ui_update_texture(hudTex[i], hudCanvas, HUD_CW * 4);
+			if (logoForced && !(hudProf->logoIf[0].addr && memprobes_match(hudProf->logoIf, 2, &emu)) &&
+			    !(hudProf->logoIfOr[0].addr && memprobes_match(hudProf->logoIfOr, 2, &emu))) {
+				/* (a new HUD picture: the logo's hold is over) */
+				logoForced = false, logoHolding = 0;
+				if (debug) fprintf(stderr, "frame %llu: logo only off: a new HUD picture\n", (unsigned long long) frameCount);
+			}
 			if (!hudShown && debug) fprintf(stderr, "frame %llu: HUD on the second screen\n", (unsigned long long) frameCount);
 			hudShown = true;
 		}
@@ -3727,7 +3737,7 @@ static void screen_restore_apply(void) {
 	 * card and the level name go (back from the state, if it has them) */
 	if (hudProf && hudProf->hud.card.tile) hudBackValid = false, cardScore = -1, sideScore = -1;
 	mapTitleN = 0, hudLogoBelowDone = false;
-	logoForced = false;
+	logoForced = false, logoHolding = 0;
 	if (!ours) {
 		if (b && debug) fprintf(stderr, "load state: its second screen is for another game or version: not used\n");
 		return;
@@ -6237,6 +6247,9 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				const MapProfile* lp = mapcap_profile(mc);
 				bool lf = lp && ((lp->logoIf[0].addr && memprobes_match(lp->logoIf, 2, &emu)) ||
 				                 (lp->logoIfOr[0].addr && memprobes_match(lp->logoIfOr, 2, &emu)));
+				if (lf) logoHolding = 60;
+				else if (logoHolding > 0) --logoHolding;
+				lf = lf || logoHolding > 0;
 				if (debug && lf != logoForced) fprintf(stderr, "frame %llu: logo only %s\n", (unsigned long long) frameCount, lf ? "on" : "off");
 				logoForced = lf;
 			}

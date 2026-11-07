@@ -1784,6 +1784,73 @@
      "color": "303030"
     }
    ]
+  },
+  {
+   "id": "sm4-eu-vc-worlde-into-level",
+   "rom": "AX4P+vc",
+   "state": "super-mario-advance-4/eu-vc-worlde-level-spot.ss",
+   "desc": "World-e's map, Mario on Classic World 1-1's spot (a player's bug report): A into the level; the logo, then the level's status bar, not the inventory for a frame between",
+   "rules": [
+    "SM4-11",
+    "SM4-2"
+   ],
+   "input": [
+    [
+     20,
+     "A"
+    ],
+    [
+     24,
+     "-"
+    ]
+   ],
+   "shots": {
+    "closing": 60,
+    "last-of-logo": 167,
+    "level": 400
+   },
+   "checks": [
+    {
+     "rule": "SM4-11",
+     "what": "no status bar as the map closes",
+     "type": "uniform",
+     "shot": "closing",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "SM4-11",
+     "what": "no status bar, nor the inventory, on the frame before the level's",
+     "type": "uniform",
+     "shot": "last-of-logo",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "SM4-2",
+     "what": "the level's status bar",
+     "type": "not_uniform",
+     "shot": "level",
+     "rect": [
+      32,
+      64,
+      988,
+      92
+     ],
+     "color": "303030",
+     "frac": 0.97
+    }
+   ]
   }
  ]
 }
