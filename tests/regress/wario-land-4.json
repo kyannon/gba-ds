@@ -843,6 +843,349 @@
      "match": "map updated"
     }
    ]
+  },
+  {
+   "id": "wl4-us-form-swimming",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-hall-swimming.ss",
+   "desc": "Wario swimming in the Hall of Hieroglyphs (his form set at 0x03001898): the pause screen as usual, the hearts and coins off the game screen",
+   "rules": [
+    "WL4-2",
+    "WL4-4"
+   ],
+   "shots": {
+    "form": 60
+   },
+   "checks": [
+    {
+     "rule": "WL4-2",
+     "what": "a pause-screen picture is taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "WL4-2",
+     "what": "no capture fails",
+     "type": "no_log",
+     "match": "map capture failed"
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-form-on-fire",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-hall-on-fire.ss",
+   "desc": "Wario on fire in the Hall of Hieroglyphs (his form set at 0x03001898): the pause screen as usual, the hearts and coins off the game screen",
+   "rules": [
+    "WL4-2",
+    "WL4-4"
+   ],
+   "shots": {
+    "form": 60
+   },
+   "checks": [
+    {
+     "rule": "WL4-2",
+     "what": "a pause-screen picture is taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "WL4-2",
+     "what": "no capture fails",
+     "type": "no_log",
+     "match": "map capture failed"
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-form-fat",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-hall-fat.ss",
+   "desc": "Wario fat in the Hall of Hieroglyphs (his form set at 0x03001898): the pause screen as usual, the hearts and coins off the game screen",
+   "rules": [
+    "WL4-2",
+    "WL4-4"
+   ],
+   "shots": {
+    "form": 60
+   },
+   "checks": [
+    {
+     "rule": "WL4-2",
+     "what": "a pause-screen picture is taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "WL4-2",
+     "what": "no capture fails",
+     "type": "no_log",
+     "match": "map capture failed"
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-form-frozen",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-hall-frozen.ss",
+   "desc": "Wario frozen in the Hall of Hieroglyphs (his form set at 0x03001898): the pause screen as usual, the hearts and coins off the game screen",
+   "rules": [
+    "WL4-2",
+    "WL4-4"
+   ],
+   "shots": {
+    "form": 60
+   },
+   "checks": [
+    {
+     "rule": "WL4-2",
+     "what": "a pause-screen picture is taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "WL4-2",
+     "what": "no capture fails",
+     "type": "no_log",
+     "match": "map capture failed"
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-form-zombie",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-hall-zombie.ss",
+   "desc": "Wario zombie in the Hall of Hieroglyphs (his form set at 0x03001898): the pause screen as usual, the hearts and coins off the game screen",
+   "rules": [
+    "WL4-2",
+    "WL4-4"
+   ],
+   "shots": {
+    "form": 60
+   },
+   "checks": [
+    {
+     "rule": "WL4-2",
+     "what": "a pause-screen picture is taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "WL4-2",
+     "what": "no capture fails",
+     "type": "no_log",
+     "match": "map capture failed"
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-form-snowball",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-hall-snowball.ss",
+   "desc": "Wario snowball in the Hall of Hieroglyphs (his form set at 0x03001898): the pause screen as usual, the hearts and coins off the game screen",
+   "rules": [
+    "WL4-2",
+    "WL4-4"
+   ],
+   "shots": {
+    "form": 60
+   },
+   "checks": [
+    {
+     "rule": "WL4-2",
+     "what": "a pause-screen picture is taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "WL4-2",
+     "what": "no capture fails",
+     "type": "no_log",
+     "match": "map capture failed"
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-form-bouncy",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-hall-bouncy.ss",
+   "desc": "Wario bouncy in the Hall of Hieroglyphs (his form set at 0x03001898): the pause screen as usual, the hearts and coins off the game screen",
+   "rules": [
+    "WL4-2",
+    "WL4-4"
+   ],
+   "shots": {
+    "form": 60
+   },
+   "checks": [
+    {
+     "rule": "WL4-2",
+     "what": "a pause-screen picture is taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "WL4-2",
+     "what": "no capture fails",
+     "type": "no_log",
+     "match": "map capture failed"
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-form-puffy",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-hall-puffy.ss",
+   "desc": "Wario puffy in the Hall of Hieroglyphs (his form set at 0x03001898): the pause screen as usual, the hearts and coins off the game screen",
+   "rules": [
+    "WL4-2",
+    "WL4-4"
+   ],
+   "shots": {
+    "form": 60
+   },
+   "checks": [
+    {
+     "rule": "WL4-2",
+     "what": "a pause-screen picture is taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "WL4-2",
+     "what": "no capture fails",
+     "type": "no_log",
+     "match": "map capture failed"
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-form-bat",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-hall-bat.ss",
+   "desc": "Wario bat in the Hall of Hieroglyphs (his form set at 0x03001898): the pause screen as usual, the hearts and coins off the game screen",
+   "rules": [
+    "WL4-2",
+    "WL4-4"
+   ],
+   "shots": {
+    "form": 60
+   },
+   "checks": [
+    {
+     "rule": "WL4-2",
+     "what": "a pause-screen picture is taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "WL4-2",
+     "what": "no capture fails",
+     "type": "no_log",
+     "match": "map capture failed"
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-form-flattened",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-hall-flattened.ss",
+   "desc": "Wario flattened in the Hall of Hieroglyphs (his form set at 0x03001898): the pause screen as usual, the hearts and coins off the game screen",
+   "rules": [
+    "WL4-2",
+    "WL4-4"
+   ],
+   "shots": {
+    "form": 60
+   },
+   "checks": [
+    {
+     "rule": "WL4-2",
+     "what": "a pause-screen picture is taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "WL4-2",
+     "what": "no capture fails",
+     "type": "no_log",
+     "match": "map capture failed"
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-dying",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-hall.ss",
+   "desc": "Wario loses his last heart (the moment loaded over the level): the last picture while he falls and the screen fades, the logo with the level select after",
+   "rules": [
+    "WL4-6",
+    "WL4-7"
+   ],
+   "input": [
+    [
+     100,
+     "LOAD:wario-land-4/us-hall-dying.ss"
+    ]
+   ],
+   "shots": {
+    "level": 60,
+    "falling": 250,
+    "select": 900
+   },
+   "checks": [
+    {
+     "rule": "WL4-6",
+     "what": "the last picture kept while he falls",
+     "type": "same",
+     "a": {
+      "shot": "level",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "falling",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    },
+    {
+     "rule": "WL4-7",
+     "what": "the logo with the level select",
+     "type": "differs",
+     "a": {
+      "shot": "level",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "select",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    }
+   ]
   }
  ]
 }
