@@ -3,6 +3,7 @@
 ## v1.4.11 (not yet released)
 
 ### Changes
+- **Color Correction** in the pause menu's Display, between LCD Grid and Overlays: off by default; on, the game's colours are shown as a Game Boy Advance's own screen showed them, darker and less saturated, the same as mGBA's GBA Color shader (its sRGB profile and usual darkening). On both screens, and remembered for next time (`color_correction` in gba-ds.cfg).
 - **Fast Forward: On / Off** in the pause menu's Extras, beside Rewind (now **Rewind: On / Off**, the two side by side). On by default, as before; off, R2 does nothing, so a trigger pressed by accident can't skip you ahead. Remembered for next time (`fast_forward` in gba-ds.cfg).
 - While you hold R2, **Fast forwarding...** shows in the middle of the second screen, after two arrows pointing right, like Rewinding... when you hold L2.
 - **Restart Game**, **Close Game** and **Close GBA DS** in the pause menu ask first: the button says **Are You Sure?**, with what will happen under the buttons; choose it again to go ahead. Moving to another button calls it off. (The quick bar's Close GBA DS already asks for a second tap.)

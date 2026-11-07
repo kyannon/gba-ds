@@ -76,6 +76,7 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	STR("map_scale", mapScale)
 	BOOL("smooth", smooth)
 	BOOL("lcd_grid", lcdGrid)
+	BOOL("color_correction", colorCorrection)
 	if (!strcmp(key, "overlays")) {
 		/* none / primary / secondary / both (older configs: 0 / 1, top / bottom) */
 		c->overlays = !strcmp(val, "primary") || !strcmp(val, "top")      ? OVL_PRIMARY :
