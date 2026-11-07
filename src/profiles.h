@@ -9,6 +9,9 @@
  * there that doesn't fill it (GEN-1): dark grey, so the GBA screen's
  * 240x160 shows against the black around it (ABGR8888) */
 #define SCREEN_GREY 0xFF303030u
+/* behind something live on the second screen (a HUD, a card's pieces, the
+ * podium): black, the idle logo's dark grey being for idle (GEN-1) */
+#define SCREEN_LIVE 0xFF000000u
 
 typedef struct {
 	uint32_t keys;
