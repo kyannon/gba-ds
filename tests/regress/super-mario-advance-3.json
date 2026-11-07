@@ -121,6 +121,58 @@
    ]
   },
   {
+   "id": "sm3-us-opening-level",
+   "rom": "A3AE",
+   "state": "super-mario-advance-3/us-opening-level.ss",
+   "desc": "the opening level (World 0, no items): the status screen in its colours, the star and the star count included, whatever colour the item cursor is at the time",
+   "rules": [
+    "SM3-1",
+    "SM3-2"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 160
+   },
+   "checks": [
+    {
+     "rule": "SM3-2",
+     "what": "the star by STARS and the yellow star count kept (the cursor's yellow phase blackened them)",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       98,
+       338,
+       "FFFF00"
+      ],
+      [
+       454,
+       654,
+       "FFFF00"
+      ]
+     ]
+    },
+    {
+     "rule": "SM3-2",
+     "what": "the star by STARS and the yellow star count kept (the cursor's yellow phase blackened them)",
+     "type": "pixels",
+     "shot": "later",
+     "probes": [
+      [
+       98,
+       338,
+       "FFFF00"
+      ],
+      [
+       454,
+       654,
+       "FFFF00"
+      ]
+     ]
+    }
+   ]
+  },
+  {
    "id": "sm3-us-level-status-open",
    "rom": "A3AE",
    "state": "super-mario-advance-3/us-level-6-7.ss",

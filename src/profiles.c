@@ -3522,6 +3522,9 @@ static uint32_t wl4_virt(Emu* e, uint32_t addr) {
 /* the item cursor's colour (BG palette 1, colour 14), cycled by the game;
  * where it's drawn, round an item slot, is black otherwise */
 #define SM3_CURSOR_PAL 0x0500003C
+#define SM3_CURSOR_MAGENTA 0x7C1F
+/* the item row, the only place it's drawn */
+#define SM3_ITEMS_Y0 124
 /* the score page: the panel (BG0, BG1; the cards on BG2 show through its
  * holes) and the total bar under it, x 8-231 */
 #define SM3_PANEL_Y0 8
@@ -3602,6 +3605,15 @@ static const char* sm3_status_page(Emu* s, uint32_t* out, int w, int h) {
 		still = same && last[2] ? still + 1 : 0;
 	}
 	if (still < 4) return "the status screen never settled";
+	/* The cursor cycles blue, magenta, red, yellow, green and back, 8
+	 * frames each: the picture is taken while it's magenta, which nothing
+	 * else on the screen is (in its yellow, the star, the flower and the
+	 * figures would go black with it) */
+	for (f = 0; f < 72 && emu_read16(s, SM3_CURSOR_PAL) != SM3_CURSOR_MAGENTA; ++f) {
+		emu_frame_blind(s, 0);
+		if (!sm3_status(s)) return "the status screen closed";
+	}
+	if (emu_read16(s, SM3_CURSOR_PAL) != SM3_CURSOR_MAGENTA) return "the status screen's cursor never turned magenta";
 	/* The game sets the cursor's colour in its vblank, before drawing:
 	 * the frame is drawn twice from the same moment, BG3 alone and
 	 * whole, and where BG3 alone has the cursor's colour and the whole
@@ -3612,22 +3624,25 @@ static const char* sm3_status_page(Emu* s, uint32_t* out, int w, int h) {
 		free(st);
 		return "out of memory";
 	}
-	static uint32_t bg3[GBA_W * GBA_H];
+	/* (the whole picture from the frame as the game runs on: drawn again
+	 * from a loaded state, its sprites can be missing, depending on the
+	 * moment) */
+	static uint32_t bg3[GBA_W * GBA_H], whole[GBA_W * GBA_H];
+	emu_frame(s, 0);
+	memcpy(whole, s->fb, sizeof(whole));
+	uint16_t c = emu_read16(s, SM3_CURSOR_PAL);
 	emu_layers(s, 0x08);
 	emu_state_load(s, st);
 	emu_frame(s, 0);
 	memcpy(bg3, s->fb, sizeof(bg3));
 	emu_layers(s, 0x1F);
-	emu_state_load(s, st);
-	emu_frame(s, 0);
 	free(st);
-	uint16_t c = emu_read16(s, SM3_CURSOR_PAL);
 	uint32_t r = c & 31, g = (c >> 5) & 31, b = (c >> 10) & 31;
 	uint32_t rgb = ((r << 3 | r >> 2) << 16) | ((g << 3 | g >> 2) << 8) | (b << 3 | b >> 2);
 	for (int y = 0; y < h && y < GBA_H; ++y) {
 		for (int x = 0; x < w && x < GBA_W; ++x) {
-			uint32_t px = s->fb[y * GBA_W + x];
-			if (sm3_rgb(bg3, x, y, rgb) && sm3_rgb(s->fb, x, y, rgb)) px = (px & 0xFF000000u) | 0;
+			uint32_t px = whole[y * GBA_W + x];
+			if (y >= SM3_ITEMS_Y0 && sm3_rgb(bg3, x, y, rgb) && sm3_rgb(whole, x, y, rgb)) px = (px & 0xFF000000u) | 0;
 			out[y * w + x] = px;
 		}
 	}
