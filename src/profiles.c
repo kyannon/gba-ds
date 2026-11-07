@@ -3375,10 +3375,16 @@ static bool to_unit_box(const uint32_t* fb) {
 /* 1: Training's empty square, as its last capture found it (the logo, TO-9) */
 #define TO_V_NOAIMS 0xF0000031
 static volatile uint32_t toNoAimsAt;
+/* 1: out of battle, nothing to take any more (the logo until a picture
+ * is taken again, TO-12): a capture failed after the last picture came
+ * from the world map or Organize */
+#define TO_V_STALE 0xF0000032
+static volatile int toStale, toLastWorld, toWasWorld;
 #define TO_FIELD_CURSOR(s) ((s)->gameCode[3] == 'J' ? 0x0202B5C0u : 0x0202AB90u)
 static const Probe toTitle[8] = { { 169, 13, 0xF7C600 }, { 140, 19, 0xDEAD00 }, { 25, 20, 0xBD7300 }, { 169, 20, 0xFFEF00 },
                                   { 62, 22, 0xCE8C00 }, { 91, 26, 0xEFBD00 }, { 132, 26, 0xFFFF5A }, { 13, 27, 0xC68400 } };
 static uint32_t to_virt(Emu* e, uint32_t addr) {
+	if (addr == TO_V_STALE) return toStale;
 	if (addr == TO_V_NOAIMS)
 		return toNoAimsAt == (0x10000u | emu_read16(e, TO_FIELD_CURSOR(e))) && emu_read8(e, 0x02004453) != 17 && !to_unit_box(e->fb);
 	return addr == TO_V_TITLE && som_probes(e, toTitle, 8, 7, 8);
@@ -3639,8 +3645,10 @@ static const char* to_organize(Emu* s, uint32_t (*page)[GBA_W * GBA_H], int max,
 static const char* to_compose_(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h);
 /* (a picture taken: Training's logo is over, TO_V_NOAIMS) */
 static const char* to_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+	toWasWorld = 0;
 	const char* err = to_compose_(s, state, out, nOut, step, w, h);
-	if (!err) toNoAimsAt = 0;
+	if (!err) toNoAimsAt = 0, toStale = 0, toLastWorld = toWasWorld;
+	else if ((toWasWorld || toLastWorld) && !emu_cancelled(s)) toStale = 1;
 	return err;
 }
 static const char* to_compose_(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
@@ -3653,6 +3661,7 @@ static const char* to_compose_(Emu* s, const void* state, uint32_t* const* out, 
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
 	if (to_world(s)) {
+		toWasWorld = 1;
 		/* out of battle: Organize (its roster, or a unit's details open),
 		 * else the world map */
 		int n = 0;
@@ -4061,8 +4070,10 @@ static const MapProfile profiles[] = {
 		/* the title: the logo again, no captures (TO-4) */
 		.menu = { { TO_V_TITLE, 0xFF, 1, 4 } },
 		.live = { { TO_V_TITLE, 0xFF, 0, 4 } },
-		/* Training's empty square: the logo (TO-9) */
+		/* Training's empty square: the logo (TO-9); out of battle with
+		 * nothing to take: the logo (TO-12) */
 		.logoIf = { { TO_V_NOAIMS, 0xFF, 1, 4 } },
+		.logoIfOr = { { TO_V_STALE, 0xFF, 1, 4 } },
 		/* the title's lettering (BG2) and The Knight of Lodis (sprites, above
 		 * PUSH START), not the emblem behind or OGRE BATTLE SAGA (BG1) */
 		.logo = { .steps = { { 0, 480 }, { K_START, 4 }, { 0, 50 } }, .layers = 0x14, .maxY = 90 },

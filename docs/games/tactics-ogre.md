@@ -36,6 +36,8 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **TO-11. Organize: the unit's details.** In Organize (USA), the details of the unit the roster's cursor is on (A on it), as the game draws them, their three pages in turn, 2.5 seconds each: the first (equipment, talents and their POW), the talents' MP costs (START), the Emblems (RIGHT); without their START:DATA label. Not the roster's pages. Taken again as the roster's cursor moves; with a unit's details open in the game, that unit's, from the first page.
 
+**TO-12. Out of battle, nothing stale.** Once the last picture came from the world map or Organize (TO-10, TO-11), wherever there's nothing to take (the world map's command bar after Organize, its other menus, a town, Training's setup until its units are placed), the logo, not the last picture, until a picture is taken again: on the free world map, in Organize, or in a battle. (In a battle, TO-5: the last pictures stay.) The logo can stay up to a second after the new picture is taken.
+
 ## Not covered yet
 
 - Nothing known. (The Japanese release's list, its cursor on other units and its pages, and its enemy turn are checked since v1.4.2's last test builds.)
@@ -56,3 +58,4 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
   - "**On an empty square,** nothing about a unit: the battle's Winning Condition at the top, its Losing Condition at the bottom and the place's name in the middle, on black. Training has no conditions, so there it's the logo."
   - "**On the world map** (USA), the HELP text SELECT opens on the location under your cursor, or on where your army is when the cursor is between locations, in the middle of a black screen."
   - "**In Organize** (USA), the details of the unit under your cursor, their three pages in turn: equipment and talents, the talents' MP costs, the Emblems."
+  - "Out of battle, where there's nothing to show (the world map's command bar, its other menus), the logo."
