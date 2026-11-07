@@ -3045,30 +3045,7 @@ static void update_hud(void) {
 			for (int i = 0; i < GBA_W * GBA_H && empty; ++i) empty = (hudPx[i] & 0xFFFFFF) == clear;
 			emptyFor = empty ? emptyFor + 1 : 0;
 		}
-		/* hud.fadeLogo: the game fading the HUD's layers out: the logo
-		 * alone till it's over (SM4-11) */
-		bool fading = false;
-		if (h->fadeLogo) {
-			uint16_t bld = emu_read16(&emu, 0x04000050);
-			int eff = (bld >> 6) & 3;
-			unsigned layers = hudAlt ? h->alt.bgMask : h->bgMask;
-			fading = (eff == 2 || eff == 3) && (bld & layers) && (emu_read16(&emu, 0x04000054) & 31);
-			if (h->fadeIf[0].addr && memprobes_match(h->fadeIf, 2, &emu)) fading = true;
-			/* (and 2 frames after: Super Mario Advance 4 ends its palette
-			 * steps a frame before its BLDCNT darkening starts) */
-			static int fadeHold;
-			fadeHold = fading ? 2 : SDL_max(fadeHold - 1, 0);
-			if (fadeHold && !fading) fading = true;
-			static bool wasFading;
-			if (debug && fading != wasFading) fprintf(stderr, "frame %llu: HUD fading: %s\n", (unsigned long long) frameCount, fading ? "the logo alone" : "back");
-			wasFading = fading;
-		}
-		if (fading) {
-			if (!hudLogoBelowDone) hud_make_logo_below();
-			memcpy(hudCanvas, hudLogoBelow, sizeof(hudCanvas));
-			for (int i = 0; i < nViews; ++i) ui_update_texture(hudTex[i], hudCanvas, HUD_CW * 4);
-			hudShown = true;
-		} else if (h->emptyIsOff && emptyFor >= 20) {
+		if (h->emptyIsOff && emptyFor >= 20) {
 			if (hudShown && debug) fprintf(stderr, "frame %llu: HUD empty: the logo\n", (unsigned long long) frameCount);
 			hudShown = false;
 		} else if (!(empty && !hudShown)) {

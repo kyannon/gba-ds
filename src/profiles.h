@@ -469,14 +469,6 @@ typedef struct MapProfile {
 		 * below it, at its own size (Super Mario Advance 2), instead of a
 		 * backdrop. */
 		bool logoBelow;
-		/* While the game fades its HUD layers out with BLDCNT (darken or
-		 * brighten, on bgMask's or alt.bgMask's layers, BLDY above 0), the
-		 * second screen shows the logo alone (logoBelow's picture without
-		 * the HUD) until the fade's over (Super Mario Advance 4, SM4-11:
-		 * pipes, doors, the goal, into and out of a level), or while
-		 * every fadeIf probe matches (the game fading its palettes first) */
-		bool fadeLogo;
-		MemProbe fadeIf[2];
 		/* The top rows of the last map picture (the world map's level
 		 * list: its title row with the level's name) kept above the HUD,
 		 * which moves down that far (Super Mario Advance 2, SMA-7) */
