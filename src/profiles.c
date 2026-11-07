@@ -2232,6 +2232,11 @@ typedef struct {
 	uint16_t field[2], view[2], list[2], listDisp, deck[2];
 	Probe viewProbes[8];
 	bool jp;
+	/* the card's commands on the field: the magnifier's tile (Card View, the
+	 * first), the chosen command's name's tile, and how far right of its
+	 * icon the name is (eds_wait_commands) */
+	uint16_t cmdGlass, cmdName;
+	int cmdDx;
 } EdsRelease;
 static const EdsRelease edsUS = {
 	{ 0x0007, 0x8106 }, { 0x0044, 0x0186 }, { 0x0004, 0x0104 }, 0, { 0x1800, 0x1A01 },
@@ -2240,7 +2245,7 @@ static const EdsRelease edsUS = {
 	 * and its text */
 	{ { 239, 0, 0x0000FF }, { 239, 12, 0x0000FF }, { 239, 22, 0x000084 }, { 1, 20, 0x000000 },
 	  { 102, 60, 0x000000 }, { 102, 140, 0x000000 }, { 1, 159, 0x000000 }, { 60, 159, 0x000000 } },
-	false
+	false, 548, 612, 0
 };
 static const EdsRelease edsJP = {
 	{ 0x0087, 0x8186 }, { 0x0005, 0x0187 }, { 0x0004, 0x0185 }, 0x1F40, { 0xFFFF, 0xFFFF },
@@ -2249,7 +2254,7 @@ static const EdsRelease edsJP = {
 	 * same for every kind of card */
 	{ { 0, 80, 0x000000 }, { 2, 40, 0x212121 }, { 2, 120, 0x212121 }, { 50, 159, 0x212121 },
 	  { 108, 60, 0x94A5AD }, { 108, 130, 0xCEDEE7 }, { 110, 40, 0x000000 }, { 110, 140, 0x000000 } },
-	true
+	true, 436, 468, 2
 };
 static int eds_screen(const EdsRelease* r, Emu* e) {
 	uint16_t bg0 = emu_io16(e, 0x08), bg1 = emu_io16(e, 0x0A), disp = emu_io16(e, 0x00);
@@ -2279,15 +2284,32 @@ static bool eds_named(const EdsRelease* r, Emu* e) {
 		}
 	return white >= 30 && !green;
 }
-/* the player moves the field cursor freely, in a duel */
-static bool eds_free(const EdsRelease* r, Emu* e) {
-	if (r->jp) return emu_read16(e, 0x02007908) && (emu_read8(e, 0x02008483) & 0x80);
-	return emu_read8(e, 0x0201D7E0) == 6 && (emu_read8(e, 0x0201D7B8) & 0x08);
-}
+/* in a duel. USA: 0x0201ADAC is 0 from a duel's set-up until it's won or
+ * lost (0x10 after), and before the first since power-on, where
+ * 0x0201D7E0 is 0 too. (0x0201D7E0 alone isn't the duel's state: 4 from a
+ * battle's Quick-play question to the end of the turn, still 6 after a
+ * lost duel: issue #26.) */
 static bool eds_in_duel(const EdsRelease* r, Emu* e) {
-	if (r->jp) return emu_read16(e, 0x02007908) != 0;
-	uint8_t d = emu_read8(e, 0x0201D7E0);
-	return d == 6 || d == 7;
+	/* Japan: both players' life points (the opponent's 0 after a duel won,
+	 * the player's after one lost, both before the first) */
+	if (r->jp) return emu_read16(e, 0x02007908) && emu_read16(e, 0x020078F0);
+	return emu_read8(e, 0x0201ADAC) == 0 && emu_read8(e, 0x0201D7E0) != 0;
+}
+/* in a duel, the player's turn over (EDS-11). USA: the duel's step
+ * 0x02015EE8 6 from Complete your turn, 7 handing over, 8 the opponent's
+ * turn; or 0x0201ADF2 (the turn count) bit 1, the opponent's turn. Japan:
+ * 0x0200831A bit 0, the opponent's turn (from its Draw Phase) */
+static bool eds_turn_over(const EdsRelease* r, Emu* e) {
+	if (!eds_in_duel(r, e)) return false;
+	if (r->jp) return emu_read8(e, 0x0200831A) & 1;
+	uint8_t step = emu_read8(e, 0x02015EE8);
+	return (step >= 6 && step <= 8) || (emu_read8(e, 0x0201ADF2) & 2);
+}
+/* the player moves the field cursor freely, in a duel (any phase of their
+ * turn) */
+static bool eds_free(const EdsRelease* r, Emu* e) {
+	if (r->jp) return eds_in_duel(r, e) && (emu_read8(e, 0x02008483) & 0x80);
+	return eds_in_duel(r, e) && (emu_read8(e, 0x0201D7B8) & 0x08);
 }
 static uint32_t eds_virt_for(const EdsRelease* r, Emu* e, uint32_t addr) {
 	int sc = eds_screen(r, e);
@@ -2301,7 +2323,11 @@ static uint32_t eds_virt_for(const EdsRelease* r, Emu* e, uint32_t addr) {
 		uint8_t side = emu_read8(e, 0x0201D7D4), zone = emu_read8(e, 0x0201D7D8);
 		return zone == 0 || zone == 5 || (zone == 0x0B && side == 0);
 	}
-	if (addr == EDS_V_IDLE) return sc == EDS_NONE && !eds_in_duel(r, e);
+	/* (the field too, once its duel is decided: the winner's last line,
+	 * over the field: EDS-6); and from the end of the player's turn on
+	 * anything but a Card View opened in it (EDS-11) */
+	if (addr == EDS_V_IDLE)
+		return ((sc == EDS_NONE || sc == EDS_FIELD) && !eds_in_duel(r, e)) || (sc != EDS_VIEW && eds_turn_over(r, e));
 	if (addr == EDS_V_ROOM) {
 		uint32_t k = (uint32_t) sc << 28;
 		if (r->jp) {
@@ -2325,6 +2351,26 @@ static uint32_t eds_virt(Emu* e, uint32_t addr) {
 static uint32_t eds_virt_jp(Emu* e, uint32_t addr) {
 	return eds_virt_for(&edsJP, e, addr);
 }
+/* On the field: runs frames until the card's commands are up with Card View
+ * chosen (its magnifier with the chosen command's name under it: USA tiles
+ * 548 and 612, Japan 436 and 468, 2 pixels right of the icon); false if
+ * they don't come (A chose a target: an attack's, Snatch Steal's; Japan's
+ * Battle Phase: A on the player's monster chooses it to attack) */
+static bool eds_wait_commands(const EdsRelease* r, Emu* s, int max) {
+	for (int f = 0; f < max && !emu_cancelled(s); ++f) {
+		emu_frame(s, 0);
+		int glass = -1, name = -2;
+		for (int i = 0; i < 128; ++i) {
+			uint16_t a0 = emu_read16(s, 0x07000000 + i * 8), a1 = emu_read16(s, 0x07000002 + i * 8),
+			         a2 = emu_read16(s, 0x07000004 + i * 8);
+			if ((a0 & 0x0300) == 0x0200) continue; /* hidden */
+			if ((a2 & 0x3FF) == r->cmdGlass) glass = a1 & 0x1FF;
+			else if ((a2 & 0x3FF) == r->cmdName) name = a1 & 0x1FF;
+		}
+		if (glass >= 0 && name - glass == r->cmdDx) return true;
+	}
+	return false;
+}
 /* runs frames until Card View is up and has held still for 3 (its fade-in
  * done) */
 static bool eds_wait_view(const EdsRelease* r, Emu* s, int max) {
@@ -2342,6 +2388,60 @@ static bool eds_wait_view(const EdsRelease* r, Emu* s, int max) {
 	}
 	return false;
 }
+/* a list after A: runs frames until its screen gives way to another it
+ * knows; true if to Card View (false: elsewhere, A chose the card or the
+ * list's Exit; or still the list after max frames, an empty one). The
+ * frames between, blanked for the fade (Japan's cards won: DISPCNT
+ * 0x0140), aren't a screen yet. */
+static bool eds_wait_leave(const EdsRelease* r, Emu* s, int sc, int max) {
+	for (int f = 0; f < max && !emu_cancelled(s); ++f) {
+		emu_frame_blind(s, 0);
+		int now = eds_screen(r, s);
+		if (now != sc && now != EDS_NONE) return now == EDS_VIEW;
+	}
+	return false;
+}
+/* USA, the field cursor (0x0201D7D4 its side, 0x0201D7D8 its zone,
+ * 0x0201D7DC its column) after a press: runs frames until it has glided to
+ * its place */
+static void eds_settle(Emu* s) {
+	aw_run(s, 0, 12);
+}
+/* USA: the field's cursor choosing the monster to attack (A brought up no
+ * commands there): from the state again, B backs out of the choice to the
+ * attacking monster, the cursor free (EDS-1); UP takes it to the
+ * opponent's monster above (the opponent's columns run the other way:
+ * 4 - col), LEFT and RIGHT to the one that was chosen (the same name in
+ * the info bar, or nothing: the choice's cursor stops only on monsters it
+ * can attack, the free one on every place); then A, its commands. True with them up, Card View chosen. Anything else (a card
+ * effect's choice: B doesn't back out to a monster of the player's): false */
+static bool eds_target_commands(const EdsRelease* r, Emu* s, const void* state) {
+	if (r->jp || !emu_state_load(s, state)) return false;
+	emu_frame(s, 0);
+	eds_settle(s);
+	uint8_t side = emu_read8(s, 0x0201D7D4), zone = emu_read8(s, 0x0201D7D8), col = emu_read8(s, 0x0201D7DC);
+	if (side != 1 || zone != 0 || col > 4) return false;
+	/* the name in the info bar, to check the same card's reached */
+	static uint32_t bar[8 * 118];
+	for (int y = 0; y < 8; ++y) memcpy(&bar[y * 118], &s->fb[(151 + y) * GBA_W + 2], 118 * sizeof(uint32_t));
+	aw_tap(s, K_B, 1);
+	eds_settle(s);
+	if (!(emu_read8(s, 0x0201D7B8) & 0x08) || emu_read8(s, 0x0201D7D4) != 0 || emu_read8(s, 0x0201D7D8) != 0) return false;
+	aw_tap(s, K_UP, 1);
+	eds_settle(s);
+	for (int i = 0; i < 5 && !emu_cancelled(s); ++i) {
+		if (emu_read8(s, 0x0201D7D4) != 1 || emu_read8(s, 0x0201D7D8) != 0) return false;
+		int at = emu_read8(s, 0x0201D7DC);
+		if (at == col) break;
+		aw_tap(s, at > col ? K_RIGHT : K_LEFT, 1);
+		eds_settle(s);
+	}
+	if (emu_read8(s, 0x0201D7DC) != col || emu_read8(s, 0x0201D7D4) != 1 || !eds_named(r, s)) return false;
+	for (int y = 0; y < 8; ++y)
+		if (memcmp(&bar[y * 118], &s->fb[(151 + y) * GBA_W + 2], 118 * sizeof(uint32_t))) return false;
+	aw_tap(s, K_A, 1);
+	return eds_wait_commands(r, s, 20);
+}
 static const char* eds_compose_for(const EdsRelease* r, Emu* s, const void* state, uint32_t* out, int w, int h) {
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
@@ -2356,26 +2456,35 @@ static const char* eds_compose_for(const EdsRelease* r, Emu* s, const void* stat
 			 * empty zone, a pile or a face-down card of the opponent's;
 			 * nothing taken, and no slowing down of the next tries */
 			if (!eds_named(r, s)) return "map button did nothing";
-			/* A: the card's commands, Card View first and chosen (the cursor
-			 * no longer free); anything else (Japan: a pile's list) isn't a
-			 * card */
+			/* A: the card's commands, Card View first and chosen, told by
+			 * their sprites. Where none come, A chose a target (the cursor
+			 * counts as free there): an attack's, its monster's Card View
+			 * all the same (USA, EDS-1); a card effect's, or Japan's (in
+			 * its Battle Phase A on the player's monster chooses it to
+			 * attack): nothing taken, cheaply (EDS-5, EDS-10). Or it isn't
+			 * a card (Japan: a pile's list): the same. */
 			aw_tap(s, K_A, 1);
-			aw_run(s, 0, 8);
-			if (eds_screen(r, s) != EDS_FIELD || (r->jp && eds_free(r, s))) return "map button did nothing";
+			if (!eds_wait_commands(r, s, 20) && !eds_target_commands(r, s, state)) return "map button did nothing";
 			aw_tap(s, K_A, 1);
 		} else if (sc == EDS_DECK) {
 			aw_tap(s, K_A, 1);
 			aw_run(s, 0, 8);
 			if (eds_screen(r, s) != sc) return "A did something else";
 			aw_tap(s, K_A, 1);
-		} else {
-			/* a list: A opens Card View, or (Japan's Deck screen) a command
-			 * bar, 詳細 (details) chosen, then A */
+		} else if (r->jp && sc == EDS_LIST) {
+			/* Japan's Deck screen and pile lists: A opens Card View, or (the
+			 * Deck screen) a command bar, 詳細 (details) chosen, then A */
 			aw_tap(s, K_A, 1);
-			if (r->jp && sc == EDS_LIST && !eds_wait_view(r, s, 40)) {
+			if (!eds_wait_view(r, s, 40)) {
 				if (eds_screen(r, s) != EDS_LIST) return "A did something else";
 				aw_tap(s, K_A, 1);
 			}
+		} else {
+			/* a list: A opens Card View; where it doesn't (the list's Exit
+			 * chosen, an empty list, a Designation list: A chose the
+			 * card), nothing taken, cheaply (EDS-5) */
+			aw_tap(s, K_A, 1);
+			if (!eds_wait_leave(r, s, sc, 48)) return "map button did nothing";
 		}
 	}
 	if (!eds_view(r, s) && !eds_wait_view(r, s, 60)) return "Card View didn't open";
