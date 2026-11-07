@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.4.11 (not yet released)
+## v1.4.11 (2026-11-07)
 
 ### New games
 - **Wario Land 4** (USA and Europe; Wario Land Advance in Japan): in a level, the second screen shows the game's own pause screen without its menu, kept up to date: your hearts, the money you carry, the level's coins against its best, and the gem pieces, Keyzer and CD you've found so far, with the hearts and coins taken off the game screen. A find or a lost heart shows at once; the escape's countdown stays on the game screen. In boss fights, once the countdown has settled at the top, the hearts, the countdown and the boss's health bar move to the top of the second screen; TIME UP!! stays on the game screen. Elsewhere (the title, the hub, the level select, the Item Shop, the mini-games, and from the moment Wario loses his last heart), the logo. Tried in every passage, every boss, all of Wario's forms and on Super Hard; Hard hasn't been tried.
@@ -22,6 +22,9 @@
 - **Super Mario Advance 4** (Europe): on the Choose a Language menu, the top of its checkered frame was taken for the world map's status bar: it showed on the second screen and was missing from the game screen. The menu is now drawn whole, with the logo on the second screen.
 - **Super Mario Advance 4** (World-e): opening the inventory no longer takes the status bar off the second screen: it stays there, still, while the inventory opens, is open and closes. In World-e's castle hall the second screen shows the logo, instead of the inventory without the status bar.
 - **Yu-Gi-Oh! The Eternal Duelist Soul:** after an attack that dealt damage (and the question whether to activate a Quick-play Magic or Trap card), the second screen stopped following your cursor for the rest of that turn, so a card could stay up until the turn or the duel ended (issue #26). It now follows the cursor in every phase of your turn, the Draw Phase before you draw included. After a duel you lost, the last card stayed over the conversation and the menus: it's the logo now, as after a win. In card lists, moving to Exit or opening an empty one no longer makes the second screen hesitate.
+
+### Known issues
+- **BananaOS:** with GBA DS in BananaOS's GBA list switched on, the GBA games GBA DS doesn't support play in RetroArch without BananaOS's own second screen (its game panel and companions): BananaOS decides how to share the screens before it knows which game it is. The Settings row and the wiki say so; a fix needs BananaOS's help, and has been asked for.
 
 ## v1.4.10 (2026-11-06)
 
