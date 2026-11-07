@@ -654,6 +654,195 @@
      "match": "HUD on the second screen"
     }
    ]
+  },
+  {
+   "id": "wl4-us-boss-opening",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-boss-opening.ss",
+   "desc": "Spoiled Rotten's opening (the owner's second report): the big countdown in the middle and the stopwatch bouncing about on the game screen with the whole HUD, the logo on the second; the HUD goes over as the countdown reaches the top (about frame 322), its big figures whole",
+   "rules": [
+    "WL4-9"
+   ],
+   "shots": {
+    "countdown": 250,
+    "landing": 316,
+    "over": 400
+   },
+   "checks": [
+    {
+     "rule": "WL4-9",
+     "what": "the HUD goes to the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-cractus",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-cractus.ss",
+   "desc": "Cractus (Emerald), walked into from a save of the owner's: the HUD on the game screen through the opening, on the second screen once the countdown is in place",
+   "rules": [
+    "WL4-9"
+   ],
+   "shots": {
+    "opening": 100,
+    "fight": 900
+   },
+   "checks": [
+    {
+     "rule": "WL4-9",
+     "what": "the HUD goes to the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-cuckoo-condor",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-cuckoo-condor.ss",
+   "desc": "Cuckoo Condor (Ruby), walked into from a save of the owner's: the HUD on the game screen through the opening, on the second screen once the countdown is in place",
+   "rules": [
+    "WL4-9"
+   ],
+   "shots": {
+    "opening": 100,
+    "fight": 900
+   },
+   "checks": [
+    {
+     "rule": "WL4-9",
+     "what": "the HUD goes to the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-aerodent",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-aerodent.ss",
+   "desc": "Aerodent (Topaz), walked into from a save of the owner's: the HUD on the game screen through the opening, on the second screen once the countdown is in place",
+   "rules": [
+    "WL4-9"
+   ],
+   "shots": {
+    "opening": 100,
+    "fight": 900
+   },
+   "checks": [
+    {
+     "rule": "WL4-9",
+     "what": "the HUD goes to the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-catbat",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-catbat.ss",
+   "desc": "Catbat (Sapphire), walked into from a save of the owner's: the HUD on the game screen through the opening, on the second screen once the countdown is in place",
+   "rules": [
+    "WL4-9"
+   ],
+   "shots": {
+    "opening": 100,
+    "fight": 900
+   },
+   "checks": [
+    {
+     "rule": "WL4-9",
+     "what": "the HUD goes to the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-golden-diva",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-golden-diva.ss",
+   "desc": "the Golden Diva (her countdown comes some 35 seconds in), walked into from a save of the owner's: the HUD on the game screen through the opening, on the second screen once the countdown is in place",
+   "rules": [
+    "WL4-9"
+   ],
+   "shots": {
+    "opening": 100,
+    "fight": 2300
+   },
+   "checks": [
+    {
+     "rule": "WL4-9",
+     "what": "the HUD goes to the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "wl4-jp-cractus",
+   "rom": "AWAJ",
+   "state": "wario-land-4/jp-cractus.ss",
+   "desc": "Japan: Cractus, the HUD on the second screen once the countdown is in place",
+   "rules": [
+    "WL4-9"
+   ],
+   "shots": {
+    "opening": 100,
+    "fight": 900
+   },
+   "checks": [
+    {
+     "rule": "WL4-9",
+     "what": "the HUD goes to the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-super-hard",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-super-hard-doodle-woods.ss",
+   "desc": "Super Hard (a save of the owner's), Doodle Woods with everything found before: one heart, the whole jewel, the Keyzer and the CD on the pause screen",
+   "rules": [
+    "WL4-2",
+    "WL4-4"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": [
+    {
+     "rule": "WL4-2",
+     "what": "a pause-screen picture is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "wl4-us-item-shop",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-item-shop.ss",
+   "desc": "the Item Shop in a boss corridor: the logo",
+   "rules": [
+    "WL4-7"
+   ],
+   "shots": {
+    "shop": 100
+   },
+   "checks": [
+    {
+     "rule": "WL4-7",
+     "what": "no pause-screen picture",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
   }
  ]
 }

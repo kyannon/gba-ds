@@ -3287,7 +3287,22 @@ static uint32_t ls_virt(Emu* e, uint32_t addr) {
 #define WL4_SUB 0x03000C3C
 #define WL4_LEVEL 0x03000003
 #define WL4_V_OFFLEVEL 0xF0000067 /* 1 outside the levels: the logo (WL4-7) */
+/* 1 while a boss fight's countdown is in its place: its figures, the
+ * sprite with tile 128 in palette 4, at (96, 2). The fight opens with them
+ * big in the middle of the room and the stopwatch bouncing about, then
+ * slides them up to there (WL4-9). */
+#define WL4_V_CLOCKSET 0xF0000068
 static uint32_t wl4_virt(Emu* e, uint32_t addr) {
+	if (addr == WL4_V_CLOCKSET) {
+		for (int i = 0; i < 128; ++i) {
+			uint16_t a0 = emu_read16(e, 0x07000000 + i * 8);
+			uint16_t a1 = emu_read16(e, 0x07000000 + i * 8 + 2);
+			uint16_t a2 = emu_read16(e, 0x07000000 + i * 8 + 4);
+			if ((a0 & 0x0300) == 0x0200) continue; /* (not drawn) */
+			if ((a2 & 0x3FF) == 128 && a2 >> 12 == 4 && (a0 & 0xFF) == 2 && (a1 & 0x1FF) == 96) return 1;
+		}
+		return 0;
+	}
 	if (addr == WL4_V_OFFLEVEL) {
 		uint16_t s = emu_read16(e, WL4_SCREEN);
 		if (s != 2 && s != 4) return 1;
@@ -4571,11 +4586,15 @@ static const MapProfile profiles[] = {
 		 * the stopwatch and countdown in 4, the boss's bar in 14), goes
 		 * to the top of the second screen, on grey with the logo below.
 		 * TIME UP!! (palette 2, from row 32) stays. The corridor before
-		 * it has no HUD: the logo (WL4-9, WL4-7). */
+		 * it has no HUD: the logo (WL4-9, WL4-7). Only once the fight's
+		 * opening is over (the countdown in its place, WL4_V_CLOCKSET),
+		 * then to the fight's end, TIME UP too (stay). The countdown's
+		 * big figures reach row 35. */
 		.hud = {
-			.on = { { WL4_SCREEN, 0xFFFF, 2, 2 }, { WL4_LEVEL, 0xFF, 4, 1 } },
+			.on = { { WL4_SCREEN, 0xFFFF, 2, 2 }, { WL4_LEVEL, 0xFF, 4, 1 }, { WL4_V_CLOCKSET, 0, 1, 1 } },
+			.stay = { { WL4_SCREEN, 0xFFFF, 2, 2 }, { WL4_LEVEL, 0xFF, 4, 1 } },
 			.objs = { { 0, -8, 239, 23, 0, 1023, 0, 1 << 4 | 1 << 7 | 1 << 14 } },
-			.rows = 24,
+			.rows = 40,
 			.logoBelow = true,
 			.emptyIsOff = true,
 		},

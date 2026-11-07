@@ -32,17 +32,20 @@ Modelled on Lady Sia ([LS rules](lady-sia.md)): the game's own pause screen, ope
 
 **WL4-8. Every passage.** The pause screen is taken the same way in every passage, whose wall has its own colour (purple in the Entry Passage, green in Emerald, red in Ruby, brown in Topaz, blue in Sapphire, yellow in the Golden Passage), and in either release.
 
-**WL4-9. Boss fights: the HUD on the second screen.** In a boss fight, where the game's pause screen is just PAUSE on black, the HUD moves from the top of the game screen to the top of the second screen, where the game draws it: Wario's hearts and heart meter, the stopwatch and the countdown, and the boss's health bar, on dark grey with the logo below at its own size. TIME UP!!, when the countdown runs out, stays on the game screen. The boss's corridor before the fight has no HUD: the logo there (WL4-7).
+**WL4-9. Boss fights: the HUD on the second screen.** In a boss fight, where the game's pause screen is just PAUSE on black, the HUD moves from the top of the game screen to the top of the second screen, where the game draws it: Wario's hearts and heart meter, the stopwatch and the countdown, and the boss's health bar, on dark grey with the logo below at its own size, whole (the countdown's big figures too). It moves once the fight's opening is over: the big countdown shown in the middle of the room and the stopwatch bouncing about play on the game screen, with the hearts and the boss's bar, and the HUD goes over as the countdown reaches its place at the top. From then on it stays on the second screen to the end of the fight. TIME UP!!, when the countdown runs out, stays on the game screen. (The Golden Diva's countdown comes later in the fight: the HUD stays on the game screen till then.) The boss's corridor before the fight has no HUD: the logo there (WL4-7).
 
 ## How it was checked
 
-Every level of every passage was loaded in both releases (on a passage's level select, the passage at 0x03000002 and the level at 0x03000003 set, then A) and its pause screen opened; the gem pieces, Keyzer and CD were set in memory (0x03000C07-0x03000C0A, 0x03000C0C, 0x03000C0B) and the pause screen shows them; the escape was started by putting Wario over the Frog Switch. A boss's corridor was reached by setting its passage's level records to cleared (0x03000A68 + 24 × passage + 4 × level; 0x2F for a cleared level, 0x08 for the boss door). Wario's hearts are at 0x03001910. The boss fights were checked from the owner's bug report (Spoiled Rotten, the Entry Passage's boss), its countdown run out for TIME UP!!. The Normal difficulty of a new game was used throughout.
+Every level of every passage was loaded in both releases (on a passage's level select, the passage at 0x03000002 and the level at 0x03000003 set, then A) and its pause screen opened; the gem pieces, Keyzer and CD were set in memory (0x03000C07-0x03000C0A, 0x03000C0C, 0x03000C0B) and the pause screen shows them; the escape was started by putting Wario over the Frog Switch. A boss's corridor was reached by setting its passage's level records to cleared (0x03000A68 + 24 × passage + 4 × level; 0x2F for a cleared level, 0x08 for the boss door). Wario's hearts are at 0x03001910. The boss fights were checked from the owner's bug reports (Spoiled Rotten, the Entry Passage's boss: its opening, and its countdown run out for TIME UP!!) and, for the others, from the owner's GameShark saves (converted with tools/sharkport.py, on the Mario & Luigi branch): on a Normal file with every passage cleared, a beaten boss's record set back to 0x08 (its door open, not beaten), then from the corridor RIGHT for 440 frames, LEFT for 30 and UP at the boss door: Cractus, Cuckoo Condor, Aerodent, Catbat and the Golden Diva, and Cractus in the Japanese release. A Super Hard file's level and the Item Shop (screen 7) were checked from the same saves. The Normal difficulty of a new game was used throughout.
 
 ## Not covered yet
 
 - Wario's transformations (Puffy, Zombie, Fat, Flaming...), the bonus rooms behind the pipes and the moment a gem chest opens: the pause screen is expected to open as usual there, or the last picture to stay; not tried.
 - Losing every heart (Wario thrown out of the level): expected to go to the logo with the level select.
-- Hard and Super Hard difficulty.
+- Hard difficulty (Super Hard was checked; the screens are the same).
+- A boss beaten: the treasure and the way out (the HUD is expected to stay on the second screen until Wario leaves the room).
+- Items from the Item Shop used in a fight (expected to stay on the game screen: they're not in the HUD's palettes).
+- The mini-games, the Mini-Game Shop and the Sound Room (expected: the logo).
 - The ending and the Sound Room.
 
 ## Facts found so far (for sessions)
@@ -56,6 +59,7 @@ Every level of every passage was loaded in both releases (on a passage's level s
 | Pause screen | slides down from the top over about 40 frames; rows 0-23 its menu (BG0 words, BG1 frames, the hand a sprite), the wall (BG2) in 8-row courses from row 24; the plate 141-158 |
 | Hearts | 0x03001910 (the full hearts, 0-8) |
 | HUD | all priority-0 sprites in the top rows. In a level: the hearts and heart meter palette 7 (x 9-72), the coin palette 6 and its figures 4 (x 179-240), the escape's stopwatch and countdown palette 4 (x 80-128). In a boss fight: the hearts 7, the stopwatch and countdown 4, the boss's bar 14 (x 161-240); TIME UP!! palette 2 from row 32. The level's own sprites are priority 1-2 |
+| Boss fights | the countdown's figures: tile 128, palette 4, at (96, 2) once in place (WL4_V_CLOCKSET); it slides up from row 50 over the frames before. A beaten boss's record: 0x3F (0x08 opens the door again) |
 | Debug | 0x03000C3C = 8 in a level: free movement (tcrf.net); L+UP there clears the level with all four pieces and the Keyzer |
 | Title | the lettering is BG0 alone, up about 240 frames after START skips the intro (START at frame 900) |
 
