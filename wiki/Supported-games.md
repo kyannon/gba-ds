@@ -7,6 +7,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Castlevania: Aria of Sorrow | `A2CE` `A2CP` `A2CJ` | map |
 | Castlevania: Circle of the Moon | `AAME` `AAMP` `AAMJ` | map, with the completion rate |
 | Castlevania: Harmony of Dissonance | `ACHE` `ACHP` `ACHJ` | map |
+| Crash Nitro Kart (Crash Bandicoot Bakusou! Nitro Cart in Japan) | `BCNE` `BCNP` `BCNJ` | the race HUD: time, wumpa fruit, lap, the leaders and the course map twice as big; the race rankings |
 | Dragon Ball Z: The Legacy of Goku | `ALGE` `ALGP` (no Japanese release) | the pause menu, with the HP and Ki bars (or the counter SELECT and flying show) in place of its options |
 | F-Zero: GP Legend (F-Zero: Falcon Densetsu in Japan) | `BFZE` `BFZP` `BFZJ` | the race HUD, with the course map twice as big |
 | F-Zero: Maximum Velocity (F-Zero for Game Boy Advance in Japan) | `AFZE` (USA and Europe) `AFZJ` (China: `AFZC`) | the race HUD, with the course map twice as big |
@@ -67,6 +68,19 @@ The USA and European releases of both, and in Japan Game Boy Wars Advance 1+2, w
 - The map is shown with a border taken from the game's own menus (see [[Map screen surrounds and overlays]]).
 - **Circle of the Moon**'s map screen has no completion rate, so GBA DS copies the percentage shown after "RATE" on the game's pause screen onto the map: in the top-right corner, which stays clear of rooms even on a fully explored castle (the bottom-right corner is the fallback).
 - The Japanese Aria of Sorrow and Harmony of Dissonance keep their data at different addresses; GBA DS knows both.
+
+## Crash Nitro Kart
+
+The HUD is moved off the game screen rather than copied, as in Mario Kart: Super Circuit.
+
+- **Driving** (races, Time Trial and the Adventure hub):
+  - The game screen shows the track and the karts, with the **item** you hold (top centre) and your **place** (bottom left) where the game draws them, and the turn signs and the countdown.
+  - The second screen has the time, wumpa fruit and lap along the top (on the hub, your trophies and keys), the **top-four faces** with their places down the left, and the **course map** with every racer's dot, twice as big on every course.
+  - Behind it all is a dimmed picture of the course's own sky and scenery, captured once each race has faded in. (On the hub, whose sky is a plain colour, it's mostly dark.)
+- **After the finish**, RACE RANKINGS is shown on the second screen while the karts drive on, until you press A.
+- The game's **pause menu** stays on the game screen, with the last HUD on the second screen. TRY AGAIN, the title and the menus show the logo.
+- With one screen (`layout = single`), the HUD stays where the game draws it.
+- Not tried yet: Adventure's boss races, CNK challenges, relic races and crystal arenas, Time Trial's results, and link play.
 
 ## Dragon Ball Z: The Legacy of Goku
 

@@ -4606,6 +4606,74 @@ static const MapProfile profiles[] = {
 		},
 	},
 	{
+		/* Crash Nitro Kart (docs/games/crash-nitro-kart.md), Mario Kart's
+		 * second screen. Driving (races, Time Trial, the Adventure hub),
+		 * the end-of-race menus and the pause all use display mode 1 with
+		 * BG0-2 and sprites (DISPCNT 0x1741), the HUD on BG0 (BG0CNT 0x1800,
+		 * map at 0x0600C000). BG0's tiles are handed out as each screen is
+		 * built (from 0x300), so no tile number is fixed: what the map
+		 * holds tells the screens apart. The course map is an 8x8 block of
+		 * cells (rows 12-19, columns 22-29), filled while driving whatever
+		 * the course's shape: cell (16, 26). RACE RANKINGS has the faces'
+		 * column (cell (3, 0)) but no map; TRY AGAIN? neither; the pause
+		 * takes the HUD off BG0. Sprite tiles are handed out the same way:
+		 * the HUD's sprites are told by priority 0, place and size. */
+		.codes = { "BCNE", "BCNP" },
+		.title = "Crash Nitro Kart",
+		.logoOnly = true,
+		/* the title is one bitmap (mode 4) from frame ~880: the tyre and
+		 * lettering inside the mask, the swirl behind left out (CNK-1) */
+		.logo = { .wait = 950, .mask = &logoMaskCNK },
+		.hud = {
+			/* driving: the course map's cell filled (CNK-2), and the game's
+			 * fade-in done (0x03002A5B: 0xB0-0xF0 as a race fades in through
+			 * its palettes, the HUD already up; 0xFF from then on, all
+			 * through a race): the scenery behind the map is taken then,
+			 * not half faded in */
+			.on = { { 0x04000000, 0xFFFF, 0x1741, 2 }, { 0x04000008, 0xFFFF, 0x1800, 2 },
+			        { 0x0600C434, 0x03FF, 1, 2, true, 0x3FF, true }, { 0x03002A5B, 0xFF, 0xFF, 1 } },
+			/* paused: the player's pause byte (0x030045A1, 1 from START until
+			 * the HUD is back after RESUME): the last HUD stays (CNK-6) */
+			.keep = { { 0x030045A1, 0xFF, 1, 1 } },
+			/* RACE RANKINGS: the map's cell blank, the faces' column filled:
+			 * the table as it is (no moves, no map), CNK-5 */
+			.alt = { .on = { { 0x04000000, 0xFFFF, 0x1741, 2 }, { 0x04000008, 0xFFFF, 0x1800, 2 },
+			                 { 0x0600C434, 0x03FF, 0, 2 }, { 0x0600C0C0, 0x03FF, 1, 2, true, 0x3FF, true } },
+			         .bgMask = 1 },
+			.bgMask = 1,
+			/* priority 0: the place numbers by the faces (8x8 at x 26), the
+			 * wumpa icon (32x32 at x 128), the hub's trophy and key (tall
+			 * shapes, top: the key spins, 8x32 edge-on), the racers' dots on
+			 * the map (8x8, bottom right). Not the
+			 * item you hold (32x32 at x 96: it stays on the game screen,
+			 * CNK-3), the countdown's lights (16x16 at row 47; at GO they fly
+			 * up past the top as 32x32s) or its letters (row 86) */
+			.objs = { { 16, -8, 40, 127, 0, 1023, 0, 0, 0, 1u << 0 },
+			          { 126, -2, 130, 3, 0, 1023, 0, 0, 0, 1u << 2 },
+			          { 64, 4, 80, 13, 0, 1023, 0, 0, 0, 0xFu << 8 },
+			          { 146, 4, 164, 13, 0, 1023, 0, 0, 0, 0xFu << 8 },
+			          { 150, 80, 239, 159, 0, 1023, 0, 0, 0, 1u << 0 } },
+			.layout = { { 0x0600C434, 0x03FF, 1, 2, true, 0x3FF, true } },
+			/* the course map (the hub's too) in the bottom-right corner,
+			 * twice as big on every course (CNK-4): up to 62x62 (Velo's
+			 * Challenge), taller than Mario Kart's way allows at 2x (60 with
+			 * its margin), so at a fixed place: right of the faces, its
+			 * bottom at row 156 (the tallest from row 33, below the top
+			 * row's time and wumpa icon) */
+			.map = { 176, 90, 239, 159 },
+			.mapAt = { 2, 139, 156 },
+			/* the sky (BG3) and the scenery (BG1, BG2 above the horizon) */
+			.backdrop = 0xE,
+			.backdropRows = 70,
+			/* back onto the game screen where the game draws them (CNK-3):
+			 * the place (bottom left), the middle (turn signs; below the
+			 * hub's trophy count, rows 21-32), the bottom centre (the hub's
+			 * place names) */
+			.moves = { { 0, 128, 60, 159, 0, 0, 0, 0, true }, { 50, 36, 175, 127, 0, 0, 0, 0, true },
+			           { 61, 128, 175, 159, 0, 0, 0, 0, true } },
+		},
+	},
+	{
 		/* Summon Night: Swordcraft Story 2 (USA; in Japan Craft Sword
 		 * Monogatari 2, the same RAM and menus). Walking about: DISPCNT
 		 * 0x1F40; START's menu and its Status screen 0x3F40, the Status with
@@ -5452,6 +5520,16 @@ static void fzm_chn(MapProfile* p) {
 	p->logo.steps[0].frames = 1100;
 }
 
+/* Crash Nitro Kart in Japan: the player's block 0x30 higher (its pause byte
+ * 0x030045D1), the BG0 cells and registers the same; its own title, shown
+ * from frame ~1050 to ~1170 before its menu comes up by itself */
+static void cnk_jpn(MapProfile* p) {
+	p->hud.on[3].addr += 0x10; /* (the fade byte: 0x03002A6B) */
+	p->hud.keep[0].addr += 0x30;
+	p->logo.wait = 1110;
+	p->logo.mask = &logoMaskCNKJ;
+}
+
 /* Spider-Man: Mysterio's Menace in Japan: the screen's handler 0x34 lower
  * (0x0300213C), and its values too (0x60F8 in a level, 0x41D8 elsewhere);
  * the display registers are the same */
@@ -5508,6 +5586,7 @@ static const Variant variants[] = {
 	 * comes ~700 frames after A); its races not tried (f-zero-gp-legend.md) */
 	{ "BFZP", "BFZE", 0, lang_menu },
 	{ "AFZC", "AFZE", 0, fzm_chn },
+	{ "BCNJ", "BCNE", 0, cnk_jpn },
 	{ "A2CP", "A2CE", 0, lang_menu },
 	{ "A2CJ", "A2CE", -0x30, NULL },
 	{ "ACHP", "ACHE", 0, NULL },
