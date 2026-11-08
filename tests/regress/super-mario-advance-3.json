@@ -1,0 +1,1290 @@
+{
+ "game": "Super Mario Advance 3: Yoshi's Island",
+ "rules": "docs/games/super-mario-advance-3.md",
+ "cases": [
+  {
+   "id": "sm3-logo-a3ae",
+   "kind": "logo",
+   "rom": "A3AE",
+   "desc": "A3AE logo extraction",
+   "rules": [
+    "GEN-1",
+    "SM3-5"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "sm3-logo-a3ap",
+   "kind": "logo",
+   "rom": "A3AP",
+   "desc": "A3AP logo extraction (the language menu first)",
+   "rules": [
+    "GEN-1",
+    "SM3-5"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "sm3-logo-a3aj",
+   "kind": "logo",
+   "rom": "A3AJ",
+   "desc": "A3AJ logo extraction",
+   "rules": [
+    "GEN-1",
+    "SM3-5"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "sm3-us-level",
+   "rom": "A3AE",
+   "state": "super-mario-advance-3/us-level-6-7.ss",
+   "desc": "in 6-7: the status screen, without the item cursor; the game screen as it is",
+   "rules": [
+    "SM3-1",
+    "SM3-2",
+    "SM3-6"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 200
+   },
+   "checks": [
+    {
+     "rule": "SM3-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "SM3-1",
+     "what": "the status screen's lines (world, high score, stars, coins, flowers, points)",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      64,
+      80,
+      959,
+      547
+     ],
+     "color": "000000",
+     "frac": 0.96
+    },
+    {
+     "rule": "SM3-1",
+     "what": "the item row along the bottom (its pink and white border)",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       38,
+       698,
+       "DE31AD"
+      ],
+      [
+       554,
+       698,
+       "DE31AD"
+      ]
+     ],
+     "min": 1
+    },
+    {
+     "rule": "SM3-2",
+     "what": "no item cursor round the first slot",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       562,
+       626,
+       "000000"
+      ],
+      [
+       570,
+       642,
+       "000000"
+      ],
+      [
+       594,
+       594,
+       "000000"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sm3-us-opening-level",
+   "rom": "A3AE",
+   "state": "super-mario-advance-3/us-opening-level.ss",
+   "desc": "the opening level (World 0, no items): the status screen in its colours, the star and the star count included, whatever colour the item cursor is at the time",
+   "rules": [
+    "SM3-1",
+    "SM3-2"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 160
+   },
+   "checks": [
+    {
+     "rule": "SM3-2",
+     "what": "the star by STARS and the yellow star count kept (the cursor's yellow phase blackened them)",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       98,
+       338,
+       "FFFF00"
+      ],
+      [
+       454,
+       654,
+       "FFFF00"
+      ]
+     ]
+    },
+    {
+     "rule": "SM3-2",
+     "what": "the star by STARS and the yellow star count kept (the cursor's yellow phase blackened them)",
+     "type": "pixels",
+     "shot": "later",
+     "probes": [
+      [
+       98,
+       338,
+       "FFFF00"
+      ],
+      [
+       454,
+       654,
+       "FFFF00"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sm3-us-level-status-open",
+   "rom": "A3AE",
+   "state": "super-mario-advance-3/us-level-6-7.ss",
+   "desc": "the status screen opened on the game screen: the last picture stays",
+   "rules": [
+    "SM3-1"
+   ],
+   "input": [
+    [
+     100,
+     "LOAD:super-mario-advance-3/us-level-status.ss"
+    ]
+   ],
+   "shots": {
+    "before": 90,
+    "open": 220
+   },
+   "golden": [
+    "open"
+   ],
+   "checks": [
+    {
+     "rule": "SM3-1",
+     "what": "the second screen unchanged",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       32,
+       64,
+       991,
+       703
+      ],
+      "screen": "second"
+     },
+     "b": {
+      "shot": "open",
+      "rect": [
+       32,
+       64,
+       991,
+       703
+      ],
+      "screen": "second"
+     }
+    }
+   ]
+  },
+  {
+   "id": "sm3-us-level-paused",
+   "rom": "A3AE",
+   "state": "super-mario-advance-3/us-level-6-7.ss",
+   "desc": "paused: the last picture stays",
+   "rules": [
+    "SM3-1"
+   ],
+   "input": [
+    [
+     100,
+     "LOAD:super-mario-advance-3/us-level-paused.ss"
+    ]
+   ],
+   "shots": {
+    "before": 90,
+    "paused": 220
+   },
+   "golden": [
+    "paused"
+   ],
+   "checks": [
+    {
+     "rule": "SM3-1",
+     "what": "the second screen unchanged",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       32,
+       64,
+       991,
+       703
+      ],
+      "screen": "second"
+     },
+     "b": {
+      "shot": "paused",
+      "rect": [
+       32,
+       64,
+       991,
+       703
+      ],
+      "screen": "second"
+     }
+    }
+   ]
+  },
+  {
+   "id": "sm3-us-panel",
+   "rom": "A3AE",
+   "state": "super-mario-advance-3/us-panel-w6.ss",
+   "desc": "World 6's panel: its score page over the map's scenery, without the map's sprites or the #1 box",
+   "rules": [
+    "SM3-3"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "SM3-3",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "SM3-3",
+     "what": "the total bar's green",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       114,
+       626,
+       "08A542"
+      ],
+      [
+       834,
+       626,
+       "08A542"
+      ]
+     ]
+    },
+    {
+     "rule": "SM3-3",
+     "what": "the #1 box painted over with the panel's colour",
+     "type": "uniform",
+     "shot": "start",
+     "rect": [
+      780,
+      300,
+      915,
+      435
+     ],
+     "color": "EFB5B5"
+    }
+   ]
+  },
+  {
+   "id": "sm3-us-panel-score-shown",
+   "rom": "A3AE",
+   "state": "super-mario-advance-3/us-panel-score.ss",
+   "desc": "the game showing World 6's score page itself: that's what's taken",
+   "rules": [
+    "SM3-3"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "SM3-3",
+     "what": "the total bar's green",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       114,
+       626,
+       "08A542"
+      ],
+      [
+       834,
+       626,
+       "08A542"
+      ]
+     ]
+    },
+    {
+     "rule": "SM3-3",
+     "what": "the #1 box painted over with the panel's colour",
+     "type": "uniform",
+     "shot": "start",
+     "rect": [
+      780,
+      300,
+      915,
+      435
+     ],
+     "color": "EFB5B5"
+    }
+   ]
+  },
+  {
+   "id": "sm3-us-panel-other-world",
+   "rom": "A3AE",
+   "state": "super-mario-advance-3/us-panel-w6.ss",
+   "desc": "World 5 picked on the tabs: World 5's score page",
+   "rules": [
+    "SM3-3"
+   ],
+   "input": [
+    [
+     100,
+     "UP"
+    ],
+    [
+     105,
+     "-"
+    ],
+    [
+     120,
+     "UP"
+    ],
+    [
+     125,
+     "-"
+    ],
+    [
+     140,
+     "LEFT"
+    ],
+    [
+     145,
+     "-"
+    ],
+    [
+     160,
+     "A"
+    ],
+    [
+     165,
+     "-"
+    ]
+   ],
+   "shots": {
+    "w6": 90,
+    "w5": 300
+   },
+   "checks": [
+    {
+     "rule": "SM3-3",
+     "what": "the total bar's green",
+     "type": "pixels",
+     "shot": "w5",
+     "probes": [
+      [
+       114,
+       626,
+       "08A542"
+      ],
+      [
+       834,
+       626,
+       "08A542"
+      ]
+     ]
+    },
+    {
+     "rule": "SM3-3",
+     "what": "another world's page (the panel's colour)",
+     "type": "differs",
+     "frac": 0.2,
+     "a": {
+      "shot": "w6",
+      "rect": [
+       64,
+       96,
+       959,
+       467
+      ],
+      "screen": "second"
+     },
+     "b": {
+      "shot": "w5",
+      "rect": [
+       64,
+       96,
+       959,
+       467
+      ],
+      "screen": "second"
+     }
+    },
+    {
+     "rule": "SM3-3",
+     "what": "the #1 box painted over with the panel's colour",
+     "type": "uniform",
+     "shot": "w5",
+     "rect": [
+      780,
+      300,
+      915,
+      435
+     ],
+     "color": "BDCEEF"
+    }
+   ]
+  },
+  {
+   "id": "sm3-us-back-to-map",
+   "rom": "A3AE",
+   "state": "super-mario-advance-3/us-level-6-7.ss",
+   "desc": "Return to Map from the pause menu: the score page as the panel comes up",
+   "rules": [
+    "SM3-1",
+    "SM3-3"
+   ],
+   "input": [
+    [
+     100,
+     "START"
+    ],
+    [
+     105,
+     "-"
+    ],
+    [
+     140,
+     "DOWN"
+    ],
+    [
+     145,
+     "-"
+    ],
+    [
+     160,
+     "DOWN"
+    ],
+    [
+     165,
+     "-"
+    ],
+    [
+     180,
+     "A"
+    ],
+    [
+     185,
+     "-"
+    ]
+   ],
+   "shots": {
+    "level": 60,
+    "panel": 420
+   },
+   "checks": [
+    {
+     "rule": "SM3-3",
+     "what": "the total bar's green",
+     "type": "pixels",
+     "shot": "panel",
+     "probes": [
+      [
+       114,
+       626,
+       "08A542"
+      ],
+      [
+       834,
+       626,
+       "08A542"
+      ]
+     ]
+    },
+    {
+     "rule": "SM3-3",
+     "what": "the #1 box painted over with the panel's colour",
+     "type": "uniform",
+     "shot": "panel",
+     "rect": [
+      780,
+      300,
+      915,
+      435
+     ],
+     "color": "EFB5B5"
+    }
+   ]
+  },
+  {
+   "id": "sm3-us-island",
+   "rom": "A3AE",
+   "state": "super-mario-advance-3/us-level-6-7.ss",
+   "desc": "the island map: the logo, the status screen forgotten",
+   "rules": [
+    "SM3-4"
+   ],
+   "input": [
+    [
+     100,
+     "LOAD:super-mario-advance-3/us-island.ss"
+    ]
+   ],
+   "shots": {
+    "island": 200
+   },
+   "checks": [
+    {
+     "rule": "SM3-4",
+     "what": "the idle logo's dark grey",
+     "type": "pixels",
+     "shot": "island",
+     "probes": [
+      [
+       42,
+       74,
+       "303030"
+      ],
+      [
+       982,
+       694,
+       "303030"
+      ]
+     ]
+    },
+    {
+     "rule": "SM3-4",
+     "what": "back to the logo",
+     "type": "log",
+     "match": "back to the logo"
+    }
+   ]
+  },
+  {
+   "id": "sm3-us-island-to-panel",
+   "rom": "A3AE",
+   "state": "super-mario-advance-3/us-island.ss",
+   "desc": "from the island map into World 6's panel: its score page",
+   "rules": [
+    "SM3-3",
+    "SM3-4"
+   ],
+   "input": [
+    [
+     60,
+     "A"
+    ],
+    [
+     65,
+     "-"
+    ]
+   ],
+   "shots": {
+    "island": 40,
+    "panel": 400
+   },
+   "checks": [
+    {
+     "rule": "SM3-4",
+     "what": "the idle logo's dark grey",
+     "type": "pixels",
+     "shot": "island",
+     "probes": [
+      [
+       42,
+       74,
+       "303030"
+      ],
+      [
+       982,
+       694,
+       "303030"
+      ]
+     ]
+    },
+    {
+     "rule": "SM3-3",
+     "what": "the total bar's green",
+     "type": "pixels",
+     "shot": "panel",
+     "probes": [
+      [
+       114,
+       626,
+       "08A542"
+      ],
+      [
+       834,
+       626,
+       "08A542"
+      ]
+     ]
+    },
+    {
+     "rule": "SM3-3",
+     "what": "the #1 box painted over with the panel's colour",
+     "type": "uniform",
+     "shot": "panel",
+     "rect": [
+      780,
+      300,
+      915,
+      435
+     ],
+     "color": "EFB5B5"
+    }
+   ]
+  },
+  {
+   "id": "sm3-us-title",
+   "rom": "A3AE",
+   "state": "super-mario-advance-3/us-title.ss",
+   "desc": "Yoshi's Island's title: the logo",
+   "rules": [
+    "SM3-4",
+    "SM3-5"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "SM3-4",
+     "what": "the idle logo's dark grey",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       42,
+       74,
+       "303030"
+      ],
+      [
+       982,
+       694,
+       "303030"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sm3-us-bonus",
+   "rom": "A3AE",
+   "state": "super-mario-advance-3/us-bonus.ss",
+   "desc": "World 6's bonus game: the logo",
+   "rules": [
+    "SM3-4"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "SM3-4",
+     "what": "the idle logo's dark grey",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       42,
+       74,
+       "303030"
+      ],
+      [
+       982,
+       694,
+       "303030"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sm3-us-mario-bros",
+   "rom": "A3AE",
+   "state": "super-mario-advance-3/us-mario-bros.ss",
+   "desc": "Mario Bros.: the logo",
+   "rules": [
+    "SM3-4"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "SM3-4",
+     "what": "the idle logo's dark grey",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       42,
+       74,
+       "303030"
+      ],
+      [
+       982,
+       694,
+       "303030"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sm3-eu-level",
+   "rom": "A3AP",
+   "state": "super-mario-advance-3/eu-level-6-7.ss",
+   "desc": "Europe, in 6-7: the status screen",
+   "rules": [
+    "SM3-1",
+    "SM3-2"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "SM3-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "SM3-1",
+     "what": "the status screen's lines (world, high score, stars, coins, flowers, points)",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      64,
+      80,
+      959,
+      547
+     ],
+     "color": "000000",
+     "frac": 0.96
+    },
+    {
+     "rule": "SM3-1",
+     "what": "the item row along the bottom (its pink and white border)",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       38,
+       698,
+       "DE31AD"
+      ],
+      [
+       554,
+       698,
+       "DE31AD"
+      ]
+     ],
+     "min": 1
+    },
+    {
+     "rule": "SM3-2",
+     "what": "no item cursor round the first slot",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       562,
+       626,
+       "000000"
+      ],
+      [
+       570,
+       642,
+       "000000"
+      ],
+      [
+       594,
+       594,
+       "000000"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sm3-eu-panel",
+   "rom": "A3AP",
+   "state": "super-mario-advance-3/eu-panel-w6.ss",
+   "desc": "Europe, World 6's panel: its score page",
+   "rules": [
+    "SM3-3"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "SM3-3",
+     "what": "the total bar's green",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       114,
+       626,
+       "08A542"
+      ],
+      [
+       834,
+       626,
+       "08A542"
+      ]
+     ]
+    },
+    {
+     "rule": "SM3-3",
+     "what": "the #1 box painted over with the panel's colour",
+     "type": "uniform",
+     "shot": "start",
+     "rect": [
+      780,
+      300,
+      915,
+      435
+     ],
+     "color": "EFB5B5"
+    }
+   ]
+  },
+  {
+   "id": "sm3-jp-level",
+   "rom": "A3AJ",
+   "state": "super-mario-advance-3/jp-level-6-7.ss",
+   "desc": "Japan, in 6-7: the status screen",
+   "rules": [
+    "SM3-1",
+    "SM3-2"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "SM3-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "SM3-1",
+     "what": "the status screen's lines (world, high score, stars, coins, flowers, points)",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      64,
+      80,
+      959,
+      547
+     ],
+     "color": "000000",
+     "frac": 0.96
+    },
+    {
+     "rule": "SM3-1",
+     "what": "the item row along the bottom (its pink and white border)",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       38,
+       698,
+       "DE31AD"
+      ],
+      [
+       554,
+       698,
+       "DE31AD"
+      ]
+     ],
+     "min": 1
+    },
+    {
+     "rule": "SM3-2",
+     "what": "no item cursor round the first slot",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       562,
+       626,
+       "000000"
+      ],
+      [
+       570,
+       642,
+       "000000"
+      ],
+      [
+       594,
+       594,
+       "000000"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sm3-jp-panel",
+   "rom": "A3AJ",
+   "state": "super-mario-advance-3/jp-panel-w6.ss",
+   "desc": "Japan, World 6's panel: its score page",
+   "rules": [
+    "SM3-3"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "SM3-3",
+     "what": "the total bar's green",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       114,
+       626,
+       "08A542"
+      ],
+      [
+       834,
+       626,
+       "08A542"
+      ]
+     ]
+    },
+    {
+     "rule": "SM3-3",
+     "what": "the #1 box painted over with the panel's colour",
+     "type": "uniform",
+     "shot": "start",
+     "rect": [
+      780,
+      300,
+      915,
+      435
+     ],
+     "color": "EFB5B5"
+    }
+   ]
+  },
+  {
+   "id": "sm3-us-snes-pick",
+   "rom": "A3AE",
+   "state": "super-mario-advance-3/us-level-6-7.ss",
+   "desc": "tapping SNES under Controls in the quick bar",
+   "rules": [
+    "SM3-7"
+   ],
+   "input": [
+    [
+     90,
+     "SWIPE:0.5,0.99,0.5,0.85"
+    ],
+    [
+     110,
+     "TAP:0.627,0.836"
+    ]
+   ],
+   "shots": {
+    "before": 105,
+    "after": 140
+   },
+   "golden": [],
+   "checks": [
+    {
+     "rule": "SM3-7",
+     "what": "SNES is selected after the tap",
+     "type": "differs",
+     "a": {
+      "shot": "before",
+      "rect": [
+       602,
+       476,
+       682,
+       556
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       602,
+       476,
+       682,
+       556
+      ]
+     },
+     "frac": 0.2
+    },
+    {
+     "rule": "SM3-7",
+     "what": "the layout switched to SNES",
+     "type": "log",
+     "match": "^frame \\d+: controls snes"
+    }
+   ]
+  },
+  {
+   "id": "sm3-us-snes-egg",
+   "rom": "A3AE",
+   "state": "super-mario-advance-3/us-opening-eggs.ss",
+   "desc": "SNES: the right face button aims an egg (GBA R)",
+   "rules": [
+    "SM3-7"
+   ],
+   "input": [
+    [
+     90,
+     "SWIPE:0.5,0.99,0.5,0.85"
+    ],
+    [
+     110,
+     "TAP:0.627,0.836"
+    ],
+    [
+     250,
+     "A"
+    ],
+    [
+     291,
+     "-"
+    ]
+   ],
+   "shots": {
+    "still": 240,
+    "aim": 290
+   },
+   "checks": [
+    {
+     "rule": "SM3-7",
+     "what": "the layout switched to SNES",
+     "type": "log",
+     "match": "^frame \\d+: controls snes"
+    },
+    {
+     "rule": "SM3-7",
+     "what": "the aiming cursor up (Yoshi stays on the ground: no jump)",
+     "type": "differs",
+     "a": {
+      "shot": "still",
+      "rect": [
+       32,
+       64,
+       991,
+       703
+      ],
+      "screen": "game"
+     },
+     "b": {
+      "shot": "aim",
+      "rect": [
+       32,
+       64,
+       991,
+       703
+      ],
+      "screen": "game"
+     },
+     "frac": 0.001
+    },
+    {
+     "rule": "SM3-7",
+     "what": "the aiming cursor's yellow",
+     "type": "pixels",
+     "shot": "aim",
+     "probes": [
+      [
+       576,
+       326,
+       "FFFF29"
+      ],
+      [
+       576,
+       328,
+       "FFFF29"
+      ]
+     ],
+     "screen": "game"
+    }
+   ],
+   "golden": []
+  },
+  {
+   "id": "sm3-us-snes-jump",
+   "rom": "A3AE",
+   "state": "super-mario-advance-3/us-opening-eggs.ss",
+   "desc": "SNES: the bottom face button jumps (GBA A)",
+   "rules": [
+    "SM3-7"
+   ],
+   "input": [
+    [
+     90,
+     "SWIPE:0.5,0.99,0.5,0.85"
+    ],
+    [
+     110,
+     "TAP:0.627,0.836"
+    ],
+    [
+     250,
+     "B"
+    ],
+    [
+     263,
+     "-"
+    ]
+   ],
+   "shots": {
+    "still": 240,
+    "jump": 262
+   },
+   "checks": [
+    {
+     "rule": "SM3-7",
+     "what": "the layout switched to SNES",
+     "type": "log",
+     "match": "^frame \\d+: controls snes"
+    },
+    {
+     "rule": "SM3-7",
+     "what": "Yoshi in the air",
+     "type": "differs",
+     "a": {
+      "shot": "still",
+      "rect": [
+       32,
+       64,
+       991,
+       703
+      ],
+      "screen": "game"
+     },
+     "b": {
+      "shot": "jump",
+      "rect": [
+       32,
+       64,
+       991,
+       703
+      ],
+      "screen": "game"
+     },
+     "frac": 0.001
+    }
+   ],
+   "golden": []
+  },
+  {
+   "id": "sm3-us-snes-panel",
+   "rom": "A3AE",
+   "state": "super-mario-advance-3/us-panel-w6.ss",
+   "desc": "SNES chosen, on a world's panel: the GBA layout there (the right face button, GBA A, picks the level)",
+   "rules": [
+    "SM3-7"
+   ],
+   "input": [
+    [
+     90,
+     "SWIPE:0.5,0.99,0.5,0.85"
+    ],
+    [
+     110,
+     "TAP:0.627,0.836"
+    ],
+    [
+     250,
+     "A"
+    ],
+    [
+     256,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 200,
+    "after": 400
+   },
+   "checks": [
+    {
+     "rule": "SM3-7",
+     "what": "the layout switched to SNES",
+     "type": "log",
+     "match": "^frame \\d+: controls snes"
+    },
+    {
+     "rule": "SM3-7",
+     "what": "the level picked (its tile turns)",
+     "type": "differs",
+     "a": {
+      "shot": "before",
+      "rect": [
+       32,
+       64,
+       991,
+       703
+      ],
+      "screen": "game"
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       32,
+       64,
+       991,
+       703
+      ],
+      "screen": "game"
+     },
+     "frac": 0.001
+    }
+   ],
+   "golden": []
+  }
+ ]
+}
