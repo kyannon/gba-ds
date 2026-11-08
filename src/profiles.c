@@ -3494,6 +3494,77 @@ static uint32_t wl4_virt(Emu* e, uint32_t addr) {
 	return 0;
 }
 
+/* ---------------------------------------------------------- Mega Man Battle Network
+ *
+ * Walking about, the second screen is the PET's MegaMan screen (START,
+ * MegaMan), opened on the shadow core: its panel (rows 0-95) with the
+ * cursor arrow left out, black below where its message box was (MMBN-2).
+ * In a battle the custom screen (BG3 and its cursor) moves to the second
+ * screen while it's up (MMBN-4: the profile's hud). Addresses from the
+ * Silenthal/bn1 disassembly (USA; Europe and Japan the same). */
+#define MMBN_STATE 0x02006CB8   /* gManager.gameState: 4 walking about, 8 battle, 0x18 a PET menu */
+#define MMBN_AREA 0x02000214    /* gWorld.currentArea (halfword) */
+#define MMBN_HP 0x0200022C      /* gWorld.hpCurrent, then hpMax */
+#define MMBN_SMENU 0x0200ACF0   /* gStartMenu: state (+0, 4 open), cursor (+6) */
+#define MMBN_MENU 0x020062E0    /* gMenu: which (+0, 8 MegaMan), step (+1, 4 open) */
+#define MMBN_FADING 0x02006CB3  /* gFadeSettings.isFadeActive */
+#define MMBN_BATTLE 0x02003710  /* gBattle: its step (+1: 4 the custom screen, 8 fighting) */
+#define MMBN_PANEL_ROWS 96      /* the MegaMan screen's panel; its message box below */
+/* the panel's frame and grid, the same with any stats (not the values,
+ * the armor or the silhouette) */
+static const Probe mmbnPanel[8] = { { 5, 5, 0x4A5A63 }, { 120, 3, 0x4A5A63 }, { 238, 10, 0x4A5A63 }, { 2, 50, 0x313939 },
+                                    { 10, 30, 0x313939 }, { 160, 60, 0x313939 }, { 230, 90, 0x313939 }, { 120, 92, 0x7B8C84 } };
+
+static void mmbn_tap(Emu* s, uint32_t keys) {
+	/* (a press held 2 frames or more: 1 is missed) */
+	aw_run(s, keys, 3);
+	aw_run(s, 0, 5);
+}
+static bool mmbn_megaman_up(Emu* s) {
+	return emu_read8(s, MMBN_STATE) == 0x18 && emu_read8(s, MMBN_MENU) == 8 && emu_read8(s, MMBN_MENU + 1) == 4 &&
+	       !emu_read8(s, MMBN_FADING);
+}
+static const char* mmbn_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame_blind(s, 0);
+	if (!mmbn_megaman_up(s)) {
+		if (emu_read8(s, MMBN_STATE) != 4) return "not walking about";
+		mmbn_tap(s, K_START);
+		int f = 0;
+		while (f < 40 && emu_read8(s, MMBN_SMENU) != 4) emu_frame_blind(s, 0), ++f;
+		if (emu_cancelled(s)) return "called off";
+		if (emu_read8(s, MMBN_SMENU) != 4) return "START opened nothing";
+		for (int i = 0; i < 8 && emu_read8(s, MMBN_SMENU + 6) != 2; ++i)
+			mmbn_tap(s, emu_read8(s, MMBN_SMENU + 6) < 2 ? K_DOWN : K_UP);
+		if (emu_read8(s, MMBN_SMENU + 6) != 2) return "MegaMan not reached in the menu";
+		mmbn_tap(s, K_A);
+		f = 0;
+		while (f < 90 && !mmbn_megaman_up(s)) emu_frame_blind(s, 0), ++f;
+		if (emu_cancelled(s)) return "called off";
+		if (!mmbn_megaman_up(s)) return "the MegaMan screen didn't open";
+	}
+	aw_run(s, 0, 4); /* (its values printed) */
+	if (emu_cancelled(s)) return "called off";
+	if (!som_probes(s, mmbnPanel, 8, 8, 8)) return "not the MegaMan screen";
+	for (int y = 0; y < h && y < GBA_H; ++y) {
+		for (int x = 0; x < w && x < GBA_W; ++x) out[y * w + x] = y < MMBN_PANEL_ROWS ? s->fb[y * GBA_W + x] : 0xFF000000;
+	}
+	/* the cursor arrow (BG2, left of the armor and the stats): from a
+	 * frame drawn without BG2 there, the panel's grid (BG1) showing */
+	/* (the layers take effect as the display registers are loaded) */
+	static uint8_t tmp[0x80000];
+	if (emu_state_size(s) > sizeof(tmp) || !emu_state_save(s, tmp)) return NULL;
+	emu_layers(s, 0x1B);
+	emu_state_load(s, tmp);
+	emu_frame(s, 0);
+	for (int y = 20; y < MMBN_PANEL_ROWS && y < h; ++y) {
+		for (int x = 112; x <= 139 && x < w; ++x) out[y * w + x] = s->fb[y * GBA_W + x];
+	}
+	emu_layers(s, 0x1F);
+	emu_state_load(s, tmp); /* every layer back on */
+	return NULL;
+}
+
 static const MapProfile profiles[] = {
 	{
 		.codes = { "A2CE" },
@@ -5296,6 +5367,44 @@ static const MapProfile profiles[] = {
 			          .over = { 176, 129, 208, 142, 0xFFF7BD, 0xFFFFCE } },
 		},
 	},
+	{
+		/* Mega Man Battle Network (USA; Europe and Japan, Battle Network
+		 * Rockman EXE: variants). Walking about, the PET's MegaMan
+		 * screen: see mmbn_compose (MMBN-2); in battles the custom screen
+		 * on the second screen (MMBN-4) */
+		.codes = { "AREE" },
+		.title = "Mega Man Battle Network",
+		.compose = mmbn_compose,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* walking about (scenes too: START opens nothing there, the last
+		 * picture stays, MMBN-3), or the MegaMan screen open in the game */
+		.live = { { MMBN_STATE, 0xFF, 4, 1, true, 0x18 } },
+		/* the title, a battle: the logo, the status forgotten (MMBN-1,
+		 * MMBN-3: an old HP never shown after a battle) */
+		.menu = { { MMBN_STATE, 0xFF, 0, 1, true, 8 } },
+		/* HP (back from a battle, a recovery), its maximum, the area:
+		 * taken again at once (MMBN-2) */
+		.room = { { MMBN_HP, 0xFFFF, 0, 2 }, { MMBN_HP + 2, 0xFFFF, 0, 2 }, { MMBN_AREA, 0xFFFF, 0, 2 } },
+		/* the title's lettering and emblem (BG3), above PRESS START */
+		.logo = { .wait = 400, .layers = 0x8, .maxY = 96 },
+		.hud = {
+			/* in a battle's custom screen step, while the custom
+			 * screen is in (BG3HOFS 0x188 in place, sliding from and
+			 * back to 0, where the HP box is at the top left while
+			 * fighting; the results slide in from 0xF0: MMBN-4) */
+			.on = { { MMBN_STATE, 0xFF, 8, 1 }, { MMBN_BATTLE + 1, 0xFF, 4, 1 },
+			        { 0x0400001C, 0x1FF, 0x100, 2, true, 0x1FF, true } },
+			/* the custom screen and the HP box beside it */
+			.bgMask = 0x8,
+			/* its cursor (priority 0; the field's sprites are 2) */
+			.objs = { { -256, -256, 511, 255, 0, 1023, 0 } },
+			/* on black (GEN-1), with no logo: the custom screen fills
+			 * the screen's height, the logo has no room below it */
+			.logoBelow = true,
+			.rows = GBA_H,
+		},
+	},
 };
 
 /* ---------------------------------------------------------------- regions
@@ -5574,6 +5683,14 @@ static void hm_jpn(MapProfile* p) {
 	p->logo.maxY = 113;
 }
 
+/* Battle Network Rockman EXE (Japan): its logo, ロックマン エグゼ, fills
+ * BG3 with the blue behind it (MMBN-1) */
+static void mmbn_jpn(MapProfile* p) {
+	p->logo.maxY = GBA_H;
+	p->logo.edgeClear[0] = 0x52B5FF;
+	p->logo.rev = 1;
+}
+
 static const Variant variants[] = {
 	{ "AGSD", "AGSE", 0, gs_ger },
 	/* Golden Sun: The Lost Age's other releases */
@@ -5635,6 +5752,9 @@ static const Variant variants[] = {
 	/* (Zoids Saga II's addresses: ZlRegion) */
 	{ "AZ2J", "AZ2E", 0, NULL },
 	{ "A4NJ", "A4NE", 0, hm_jpn },
+	/* (Mega Man Battle Network's RAM: the same in every release) */
+	{ "AREP", "AREE", 0, NULL },
+	{ "AREJ", "AREE", 0, mmbn_jpn },
 };
 #define N_VARIANTS (sizeof(variants) / sizeof(*variants))
 static MapProfile variantProfiles[N_VARIANTS];
