@@ -3345,7 +3345,8 @@ static volatile uint32_t toNoAimsAt;
  * 0x9D0 higher, as R's menu's (TO_MENU_UP), found in a victory made on
  * jp-field.ss: Stan set to 1 HP beside Kybard, who hit him */
 #define TO_WON(s) ((s)->gameCode[3] == 'J' ? 0x0202B1DDu : 0x0202A80Du)
-/* the battle's phase: bit 7 set on the enemy's (129; the player's: 1) */
+/* the battle's phase: bit 7 set on the enemy's (129; the player's: 1;
+ * 0 out of battle) */
 #define TO_PHASE(s) ((s)->gameCode[3] == 'J' ? 0x020018ACu : 0x020011CCu)
 static volatile int toStale, toLastWorld, toWasWorld;
 /* the enemy's phase seen: the logo until the player's phase's first
@@ -3366,9 +3367,12 @@ static uint32_t to_virt(Emu* e, uint32_t addr) {
 		return toStale || toAfterEnemy;
 	}
 	if (addr == TO_V_KEY)
-		return (e->gameCode[3] == 'E' ? emu_read8(e, TO_LIST_IDX_) | emu_read8(e, TO_LIST_TOP_) << 8 : 0) | (emu_read8(e, TO_PHASE(e)) & 0x80) << 9;
+	{
+		uint32_t j = e->gameCode[3] == 'J' ? 0x4D4u : 0u; /* (Japan's list 0x4D4 lower) */
+		return emu_read8(e, TO_LIST_IDX_ - j) | emu_read8(e, TO_LIST_TOP_ - j) << 8 | (emu_read8(e, TO_PHASE(e)) & 0x80) << 9;
+	}
 	if (addr == TO_V_NOAIMS)
-		return toNoAimsAt == (0x10000u | emu_read16(e, TO_FIELD_CURSOR(e))) && emu_read8(e, 0x02004453) != 17 && !to_on_unit(e);
+		return toNoAimsAt == (0x10000u | emu_read16(e, TO_FIELD_CURSOR(e))) && !to_world(e) && !to_on_unit(e);
 	return addr == TO_V_TITLE && som_probes(e, toTitle, 8, 7, 8);
 }
 
@@ -3546,17 +3550,21 @@ static const char* to_aims(Emu* s, const void* state, int extra, uint32_t* page,
 
 /* ------------------------------------------------- out of battle (TO-10, TO-11)
  * 0x02004453: 17 on the world map and in its menus (Organize...), 0 in a
- * battle (Training's too), whether or not a battle came before (USA:
- * Japan's isn't known, so its world map and Organize are left as they
- * were) */
-#define TO_WORLD 0x02004453u
+ * battle (Training's too), whether or not a battle came before. Japan's
+ * 0x80 lower, its world map's cursor and location 0x470 lower (found on a
+ * Japanese world map reached by playing on from jp-victory-field.ss) */
+#define TO_WORLD(s) ((s)->gameCode[3] == 'J' ? 0x020043D3u : 0x02004453u)
 static bool to_world(Emu* s) {
-	return s->gameCode[3] == 'E' && emu_read8(s, TO_WORLD) == 17;
+	/* (Japan's Organize reads 0 there, not 17: there, out of battle is
+	 * told by the battle's phase too, 0 out of battle, 1 or 129 in one) */
+	return emu_read8(s, TO_WORLD(s)) == 17 || (s->gameCode[3] == 'J' && emu_read8(s, TO_PHASE(s)) == 0);
 }
 /* the world map's cursor (x, y: where it points), the location it's on
  * (0xFF: none) */
-#define TO_WM_CURSOR 0x03000ECEu
-#define TO_WM_HOVER 0x03000EC2u
+#define TO_WM_CURSOR_ 0x03000ECEu
+#define TO_WM_HOVER_ 0x03000EC2u
+#define TO_WM_CURSOR (TO_WM_CURSOR_ - ((s)->gameCode[3] == 'J' ? 0x470u : 0u))
+#define TO_WM_HOVER (TO_WM_HOVER_ - ((s)->gameCode[3] == 'J' ? 0x470u : 0u))
 /* the HELP box SELECT opens on a location: 8-231 x 16-63, its outline */
 #define TO_HELP_X0 8
 #define TO_HELP_Y0 16
@@ -4009,7 +4017,7 @@ static const MapProfile profiles[] = {
 		/* the field cursor moved: the list again, on its unit */
 		/* (and the world map's location under the cursor, Organize's roster
 		 * cursor and its scroll, the phase: TO-10, TO-11, TO-13) */
-		.room = { { 0x0202AB90, 0xFFFF, 0, 2 }, { TO_WM_HOVER, 0xFF, 0, 1 }, { TO_V_KEY, 0, 0, 4 } },
+		.room = { { 0x0202AB90, 0xFFFF, 0, 2 }, { TO_WM_HOVER_, 0xFF, 0, 1 }, { TO_V_KEY, 0, 0, 4 } },
 		/* the title: the logo again, no captures (TO-4) */
 		.menu = { { TO_V_TITLE, 0xFF, 1, 4 } },
 		.live = { { TO_V_TITLE, 0xFF, 0, 4 } },
@@ -4033,7 +4041,7 @@ static const MapProfile profiles[] = {
 		.stillPick = STILL_FIRST,
 		.crop_w = GBA_W,
 		.crop_h = GBA_H,
-		.room = { { 0x0202B5C0, 0xFFFF, 0, 2 }, { TO_V_KEY, 0, 0, 4 } },
+		.room = { { 0x0202B5C0, 0xFFFF, 0, 2 }, { TO_WM_HOVER_ - 0x470, 0xFF, 0, 1 }, { TO_V_KEY, 0, 0, 4 } },
 		.menu = { { TO_V_TITLE, 0xFF, 1, 4 } },
 		.live = { { TO_V_TITLE, 0xFF, 0, 4 } },
 		.logoIf = { { TO_V_NOAIMS, 0xFF, 1, 4 } },

@@ -2072,6 +2072,247 @@
      "match": "logo only off"
     }
    ]
+  },
+  {
+   "id": "to-jp-world-map",
+   "rom": "ATOJ",
+   "state": "tactics-ogre/jp-world-map.ss",
+   "desc": "Japan's world map at Solea Coast (reached by playing on from to-jp-victory's battle): its HELP on black",
+   "rules": [
+    "TO-10"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "rule": "TO-10",
+     "what": "the HELP box",
+     "type": "log",
+     "match": "map updated \\(1 frame\\(s\\)"
+    },
+    {
+     "rule": "TO-10",
+     "what": "black above",
+     "type": "uniform",
+     "shot": "start",
+     "rect": [
+      0,
+      0,
+      1024,
+      200
+     ],
+     "color": "000000",
+     "frac": 0.99
+    },
+    {
+     "rule": "TO-10",
+     "what": "black below",
+     "type": "uniform",
+     "shot": "start",
+     "rect": [
+      0,
+      570,
+      1024,
+      768
+     ],
+     "color": "000000",
+     "frac": 0.99
+    }
+   ]
+  },
+  {
+   "id": "to-jp-world-map-between",
+   "rom": "ATOJ",
+   "state": "tactics-ogre/jp-world-map-between.ss",
+   "desc": "Japan's world map, the cursor moved up off Solea Coast: the player's own location's HELP (the cursor put on the army's flag)",
+   "rules": [
+    "TO-10"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "rule": "TO-10",
+     "what": "the HELP box",
+     "type": "log",
+     "match": "map updated \\(1 frame\\(s\\)"
+    }
+   ]
+  },
+  {
+   "id": "to-jp-world-map-scabellum",
+   "rom": "ATOJ",
+   "state": "tactics-ogre/jp-world-map-scabellum.ss",
+   "desc": "Japan's world map, the cursor on Scabellum (put there on the state, poking the cursor 0x03000A5E): Scabellum's HELP",
+   "rules": [
+    "TO-10"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "rule": "TO-10",
+     "what": "the HELP box",
+     "type": "log",
+     "match": "map updated \\(1 frame\\(s\\)"
+    }
+   ]
+  },
+  {
+   "id": "to-jp-organize",
+   "rom": "ATOJ",
+   "state": "tactics-ogre/jp-organize.ss",
+   "desc": "Japan's Organize (after Scabellum's battle, won with memory edits; its NAVI messages dismissed): the details of the unit under the roster's cursor; RIGHT to Aroz: his; B: the logo (TO-12)",
+   "rules": [
+    "TO-11",
+    "TO-12"
+   ],
+   "shots": {
+    "first": 100,
+    "moved": 620,
+    "back": 900
+   },
+   "checks": [
+    {
+     "rule": "TO-11",
+     "what": "three pages",
+     "type": "log",
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
+    },
+    {
+     "rule": "TO-11",
+     "what": "the details followed the roster's cursor",
+     "type": "differs",
+     "a": {
+      "shot": "first",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "moved",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.01
+    },
+    {
+     "rule": "TO-12",
+     "what": "the logo once back on the world map's command bar",
+     "type": "log",
+     "match": "frame (7[0-9]{2}|8[0-9]{2}): logo only on"
+    }
+   ],
+   "input": [
+    [
+     450,
+     "RIGHT"
+    ],
+    [
+     456,
+     "-"
+    ],
+    [
+     700,
+     "B"
+    ],
+    [
+     706,
+     "-"
+    ]
+   ]
+  },
+  {
+   "id": "to-jp-organize-details",
+   "rom": "ATOJ",
+   "state": "tactics-ogre/jp-organize-details.ss",
+   "desc": "Japan's Organize with Kybard's details open in the game: the same three pages, from the first",
+   "rules": [
+    "TO-11"
+   ],
+   "shots": {
+    "first": 100
+   },
+   "checks": [
+    {
+     "rule": "TO-11",
+     "what": "three pages",
+     "type": "log",
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
+    }
+   ]
+  },
+  {
+   "id": "to-jp-save-continue",
+   "rom": "ATOJ",
+   "desc": "Japan's battery save (written by the game: world map, System, Save, slot 1), Continue from the title: the world map at Scabellum, its HELP",
+   "rules": [
+    "TO-10"
+   ],
+   "shots": {
+    "loaded": 1500
+   },
+   "checks": [
+    {
+     "rule": "TO-10",
+     "what": "the HELP taken once the world map is up",
+     "type": "log",
+     "match": "frame 1[0-9]{3}: map updated \\(1 frame"
+    }
+   ],
+   "input": [
+    [
+     420,
+     "START"
+    ],
+    [
+     426,
+     "-"
+    ],
+    [
+     660,
+     "START"
+    ],
+    [
+     666,
+     "-"
+    ],
+    [
+     800,
+     "A"
+    ],
+    [
+     806,
+     "-"
+    ],
+    [
+     960,
+     "A"
+    ],
+    [
+     966,
+     "-"
+    ],
+    [
+     1110,
+     "A"
+    ],
+    [
+     1116,
+     "-"
+    ]
+   ],
+   "save": "ATOJ-scabellum-lv2.sav"
   }
  ]
 }
