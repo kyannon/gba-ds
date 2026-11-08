@@ -2,6 +2,9 @@
 
 ## v1.4.12 (not yet released)
 
+### New games
+- **Super Mario Advance** (USA and Europe; Super Mario USA + Mario Brothers in Japan): in Super Mario Bros. 2's levels (the Yoshi Challenge too), the status bar (world, the level's Ace Coins, lives and score) moves to the top of the second screen. Below it is the course board the game shows before each level (every level, starred once its five Ace Coins are found), with its Ace Coin percentage kept up to date from the pause screen as you find coins. The hearts and the pause box stay on the game screen. The title, menus, the screens between levels and the Mario Bros. arcade game show the logo. Known limitation: the board's level boxes are as they were before the level (the next board shows a level's new star); doors, jars, Subspace and boss rooms were checked on the device rather than by the tests.
+
 ## v1.4.11 (2026-11-07)
 
 ### New games

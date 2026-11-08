@@ -5225,6 +5225,77 @@ static const MapProfile profiles[] = {
 		 * what's below it (HM-5) */
 		.logo = { .wait = 1000, .layer = 4, .minX = 46, .maxY = 96 },
 	},
+	{
+		/* Super Mario Advance (USA and Europe; Japan, Super Mario USA +
+		 * Mario Brothers, the same: its levels use the same display
+		 * settings). Super Mario Bros. 2 has no map and its pause box only
+		 * the overall Ace Coin percentage: no capture, the logo, and in a
+		 * level the status bar on the second screen (SMB2-1). */
+		.codes = { "AMAE", "AMAJ" },
+		.title = "Super Mario Advance",
+		/* The "map": the pause box's Ace Coin percentage (START on the
+		 * hidden copy, in a level, about once a second), which counts the
+		 * coins found in this level: laid over the course board's own
+		 * under the status bar (hud.held.over, SMB2-9). The pause box is
+		 * sprites over a cream fill (0xFFFFCE, a darker rim), with the
+		 * window registers on (DISPCNT 0x7F00); its number right-aligned,
+		 * ending at x 144, rows 50-62. */
+		.open = { { K_START, 4 } },
+		.settleMax = 90, .openWithin = 40, .stableFrames = 3, .maxDiff = 0,
+		.crop_x = 112, .crop_y = 50, .crop_w = 34, .crop_h = 13,
+		.probes = { { 50, 30, 0xFFFFCE }, { 190, 30, 0xFFFFCE }, { 120, 20, 0xFFFFCE }, { 120, 47, 0xFFFFCE },
+		            { 50, 140, 0xFFE7A5 }, { 190, 140, 0xFFE7A5 } },
+		.tolerance = 8,
+		.mem = { { 0x04000000, 0xE000, 0x6000, 2 }, { 0x0400000E, 0xFFFC, 0x1900, 2 } },
+		/* in a level, not paused (no windows) */
+		.live = { { 0x0400000E, 0xFFFC, 0x1900, 2 }, { 0x04000000, 0xE807, 0x0800, 2 } },
+		.interval = 60,
+		/* the game select and file select: forgotten (another file's) */
+		.menu = { { 0x0400000E, 0xFF00, 0x3E00, 2 } },
+		/* out of a level (BG3 anything but 0x19xx): the logo, never the
+		 * number by itself (SMB2-4, SMB2-5) */
+		.logoIf = { { 0x0400000E, 0xFF00, 0x1A00, 2, true, 0xFF00, true } },
+		.logoIfOr = { { 0x0400000E, 0xFF00, 0x0000, 2, true, 0x1800, true } },
+		/* the title (START through the intro): SUPER MARIO ADVANCE with
+		 * Mario and Birdo round it, BG1 (mode 1); the choices and the
+		 * copyright line are sprites, the trees and hills BG0, the sky
+		 * BG2 (SMB2-6) */
+		.logo = { .steps = { { 0, 600 }, { K_START, 4 }, { 0, 150 } }, .layer = 1, .maxY = 140 },
+		/* In a level (both releases): mode 0 with BG3 on, BG3 the status
+		 * bar (0x1900, priority 0): rows 0-15 (WORLD, the level's Ace
+		 * Coins, lives, SCORE), the pause box below them on the same
+		 * layer. Elsewhere BG3 is 0x1C03 (character select, course board,
+		 * level card), 0x3E03 (title, menus) or 0xD603 (Mario Bros.). The
+		 * hearts are sprites and stay (SMB2-1, SMB2-2). */
+		.hud = {
+			.on = { { 0x0400000E, 0xFFFC, 0x1900, 2 }, { 0x04000000, 0x0807, 0x0800, 2 } },
+			/* the screen blanked between rooms (BG3 still 0x1900): the
+			 * last picture stays (SMB2-3) */
+			.keep = { { 0x0400000E, 0xFFFC, 0x1900, 2 } },
+			.bgMask = 8,
+			.rows = 16,
+			.logoBelow = true,
+			/* The course board before each level (all 20 levels and their
+			 * Ace Coins, BG0 in mode 1, 0x1101, at BG0HOFS 0x10 once in
+			 * place; it fades in from white): kept from its first frame
+			 * in place, its panel (rows 8-150: the frame's top edge to the
+			 * grass) below the status bar from row 17, instead of the logo
+			 * (SMB2-8). Probes on the panel's cream and the black line
+			 * along its bottom: the same on the Yoshi Challenge's board
+			 * (whose frame is cyan, not orange), not on the level card. */
+			.held = { .when = { { 0x04000000, 0xFFFF, 0x1101, 2 }, { 0x04000010, 0x01FF, 0x0010, 2 } },
+			          .probes = { { 120, 12, 0xFFF7BD }, { 60, 80, 0xFFF7BD }, { 180, 80, 0xFFF7BD },
+			                      { 60, 144, 0x000000 }, { 180, 144, 0x000000 } },
+			          /* (one may miss: a little creature walks the grass) */
+			          .min = 4, .tol = 8, .y0 = 8, .y1 = 150, .at = 17,
+			          /* the board's percentage (right-aligned, from x 179 at
+			           * 100% to 207, rows 129-142; its = ends at 174)
+			           * replaced by the pause box's, whose 100% reaches x 178
+			           * here (until the fourth test build the box began at
+			           * 180 and cut the 1's left edge off) */
+			          .over = { 176, 129, 208, 142, 0xFFF7BD, 0xFFFFCE } },
+		},
+	},
 };
 
 /* ---------------------------------------------------------------- regions

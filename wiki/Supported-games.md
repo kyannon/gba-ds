@@ -32,6 +32,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Spider-Man: Mysterio's Menace (Spider-Man: Mysterio no Kyoui in Japan) | `ASEE` (USA and Europe) `ASEJ` | the Select menu: the objective, password, suits, upgrades and web containers |
 | Summon Night: Swordcraft Story (Craft Sword Monogatari in Japan) | `AB4E` `AB4J` (no European release) | the Status screen, with where you are |
 | Summon Night: Swordcraft Story 2 (Craft Sword Monogatari 2 in Japan) | `BSKE` `BSKJ` (no European release) | the Status screen |
+| Super Mario Advance (Super Mario USA + Mario Brothers in Japan) | `AMAE` (USA and Europe) `AMAJ` | in levels: the status bar, and the course board with the Ace Coin percentage kept up to date |
 | Super Mario Advance 2: Super Mario World | `AA2E` `AA2P` `AA2J` | the SELECT menu on the world map; the status bar in levels; optional SNES layout |
 | Super Mario Advance 4: Super Mario Bros. 3 | `AX4E` `AX4P` `AX4J` | the item inventory and status bar on the world map; the status bar and P meter in levels |
 | Sword of Mana (Shinyaku Seiken Densetsu in Japan) | `AVSE` `AVSY` (Spanish, Italian) `AVSJ` | the Status screen |
@@ -307,6 +308,14 @@ The USA release and the Japanese one (Craft Sword Monogatari 2); there was no Eu
 - Where the menu can't be opened (a conversation, a scene, the game's own menus), the last Status picture stays.
 - At the title, and from there until the first Status picture, the second screen shows the logo.
 - Only the start of the story has been tried so far; battles, shops and the forge are still to try.
+
+## Super Mario Advance
+
+- **In Super Mario Bros. 2's levels** (the Yoshi Challenge too), the status bar along the top (world and level, the level's Ace Coins, lives and score) moves to the top of the second screen, so the game screen shows the level there. The hearts stay by Mario on the game screen, and so does the pause box.
+- **Below the status bar** is the course board the game shows before each level: every level, starred once its five Ace Coins are found. It's kept from the moment the game shows it, trimmed a little at the top and bottom to fit. Its Ace Coin percentage is kept up to date as you find coins: it's taken from the pause screen in the background about once a second (in the pause screen's own, slightly smaller digits); your game is never paused. The level boxes are as they were before the level: a level's new star shows on the next board.
+- A state saved by GBA DS keeps the board. Loaded from an older state or another emulator, the logo is under the status bar until the next board.
+- **Everywhere else** (the title and menus, choosing a player, the board and level card before each level, the Bonus Chance, and the Mario Bros. arcade game) the second screen shows the logo, from the title screen.
+- The Japanese release (Super Mario USA + Mario Brothers) works the same.
 
 ## Super Mario Advance 2: Super Mario World
 
