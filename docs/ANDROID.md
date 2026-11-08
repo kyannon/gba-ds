@@ -615,10 +615,26 @@ not onPause: split screen and dialogs over the activity keep it. While the
 folder picker is open (an activity on top), the second display is
 Android's too.
 
+## Save folder (issue #30, Nov 8, 2026)
+
+Settings' first row is Folders on Android (it was ROM Folder): a panel
+(library.c draw_folders / folders_input, like the Updates panel) with
+Choose ROM folder, Choose save folder, Keep saves next to the games (when
+a save folder is set) and Save files: .sav / .srm. They set romDir,
+saveDir and saveExt (the existing save_dir / save_ext), kept in
+library.cfg (which on Android always writes all three, so it overrides
+gba-ds.cfg's). The picker is shared: `pickFor` says which folder it's for.
+A save folder must be writable (a test file; else the message asks for All
+files access). paths.c (shared): with a save_dir and no save there yet, a
+game's save next to its ROM, in either type, is copied over (left there).
+Switching back to next to the games copies nothing back (said in the
+wiki).
+
 ## For the next release
 
 Player-facing Android changes since the last release, for the main session
 to move into CHANGELOG.md and the release notes (see CLAUDE.md, "More than
 one session"). Empty after each release.
+- New: battery saves can be kept in a folder of their own, and as RetroArch's .srm files to share them with RetroArch: game list > Settings > Folders. A game's save next to its ROM is copied there the first time you play it.
 
 - Fixed: leaving the app (Home, the app switcher) kept the second screen showing GBA DS (and awake) until the app was closed; it now goes back to Android until you return.

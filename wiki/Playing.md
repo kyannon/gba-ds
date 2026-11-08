@@ -16,7 +16,7 @@ GBA DS opens on a game list on the touchscreen (the bottom screen on the RG DS P
 | A or Start, or tap a game | Play |
 | Drag | Scroll |
 | X, or tap the button left of Settings | Switch between list and grid |
-| SELECT, or tap **Settings** | Settings (ROCKNIX: GBA DS in EmulationStation; BananaOS: GBA DS in its GBA list; Linux: Map Buttons, Updates; Android: ROM folder, RetroAchievements sign-in, Map Buttons, Updates) |
+| SELECT, or tap **Settings** | Settings (ROCKNIX: GBA DS in EmulationStation; BananaOS: GBA DS in its GBA list; Linux: Map Buttons, Updates; Android: Folders (ROMs and saves), RetroAchievements sign-in, Map Buttons, Updates) |
 | B or HOME | Back to EmulationStation / the launcher |
 
 ## Resume points
