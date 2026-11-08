@@ -5220,9 +5220,12 @@ static const MapProfile profiles[] = {
 			                      { 60, 144, 0x000000 }, { 180, 144, 0x000000 } },
 			          /* (one may miss: a little creature walks the grass) */
 			          .min = 4, .tol = 8, .y0 = 8, .y1 = 150, .at = 17,
-			          /* the board's percentage (right-aligned, ending at x
-			           * 207, rows 129-142) replaced by the pause box's */
-			          .over = { 180, 129, 208, 142, 0xFFF7BD, 0xFFFFCE } },
+			          /* the board's percentage (right-aligned, from x 179 at
+			           * 100% to 207, rows 129-142; its = ends at 174)
+			           * replaced by the pause box's, whose 100% reaches x 178
+			           * here (until the fourth test build the box began at
+			           * 180 and cut the 1's left edge off) */
+			          .over = { 176, 129, 208, 142, 0xFFF7BD, 0xFFFFCE } },
 		},
 	},
 };
