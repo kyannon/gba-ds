@@ -5422,11 +5422,14 @@ static void ml_eur(MapProfile* p) {
 	memcpy(p->logo.steps, steps, sizeof(steps));
 }
 /* Dragon Ball Z: The Legacy of Goku in Europe: a language menu first
- * (A: English) */
+ * (A: English); the counter's flag 0x3840 lower (at the USA's address
+ * Europe holds 0xFF, which took BG0, conversations' boxes too, off the
+ * game screen walking about: DBZ-5) */
 static void dbz_eur(MapProfile* p) {
 	static const MacroStep steps[] = { { 0, 300 }, { K_A, 6 }, { 0, 700 }, { K_A, 9 }, { 0, 150 } };
 	memset(p->logo.steps, 0, sizeof(p->logo.steps));
 	memcpy(p->logo.steps, steps, sizeof(steps));
+	p->hud.memLayers.when[0].addr = 0x0200000C;
 }
 /* Dragon Ball Z: The Legacy of Goku II in Europe: a language menu first
  * (A: English), then the title on its own (no intro); its zone and area
