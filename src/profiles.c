@@ -3364,15 +3364,21 @@ static uint32_t to_virt(Emu* e, uint32_t addr) {
 		/* (the battle won: the logo, TO-14; the next battle's first
 		 * picture ends it, as after the enemy's phase) */
 		{
-			int over = emu_read8(e, TO_WON(e)); /* (and lost: 1, from the leader's fall through Game Over) */
-			if (!to_world(e) && (over == 3 || over == 1)) toAfterEnemy = 1;
+			/* (and lost: 1, from the leader's fall through Game Over;
+			 * Training's end, one team out: 4, from as the last blow's
+			 * EXP box clears through Team A (B) Wins!) */
+			int over = emu_read8(e, TO_WON(e));
+			if (!to_world(e) && (over == 3 || over == 1 || over == 4)) toAfterEnemy = 1;
 		}
 		return toStale || toAfterEnemy;
 	}
 	if (addr == TO_V_KEY)
 	{
 		uint32_t j = e->gameCode[3] == 'J' ? 0x4D4u : 0u; /* (Japan's list 0x4D4 lower) */
-		return emu_read8(e, TO_LIST_IDX_ - j) | emu_read8(e, TO_LIST_TOP_ - j) << 8 | (emu_read8(e, TO_PHASE(e)) & 0x80) << 9;
+		/* (and Organize's roster on screen, so it's taken again at once
+		 * when it's back from Organize's own menu, TO-11) */
+		return emu_read8(e, TO_LIST_IDX_ - j) | emu_read8(e, TO_LIST_TOP_ - j) << 8 | (emu_read8(e, TO_PHASE(e)) & 0x80) << 9 |
+		       (uint32_t)(to_world(e) && to_list_up(e)) << 18;
 	}
 	if (addr == TO_V_NOAIMS)
 		return toNoAimsAt == (0x10000u | emu_read16(e, TO_FIELD_CURSOR(e))) && !to_world(e) && !to_on_unit(e);
@@ -3602,8 +3608,10 @@ static bool to_help_up(const uint32_t* fb) {
  * (sprite tiles 528-536, palette 2), 9 right of it and 23 down, where the
  * map opens it; SELECT; the box alone, in the middle, on black */
 static const char* to_world_map(Emu* s, uint32_t* page, int* nOut) {
+	/* (the world map itself under the HELP box too: the opening's
+	 * birthdate question, before the world map, has a box of its shape) */
+	if (!som_probes(s, toWorldMap, 12, 10, 8)) return "not the world map";
 	if (!to_help_up(s->fb)) {
-		if (!som_probes(s, toWorldMap, 12, 10, 8)) return "not the world map";
 		if (emu_read8(s, TO_WM_HOVER) == 0xFF) {
 			uint16_t oam[512];
 			emu_oam_read(s, oam);
@@ -3678,7 +3686,15 @@ static const char* to_organize(Emu* s, uint32_t (*page)[GBA_W * GBA_H], int max,
 		aw_run(s, 0, 10);
 	}
 	aw_run(s, K_A, 6);
-	if (!to_wait_details(s)) return "the details didn't open";
+	if (!to_wait_details(s)) {
+		/* (the roster's cursor still moving, or its page turning: A not
+		 * taken yet; once more when it's settled, rather than the logo for
+		 * a moment at every move, TO-12) */
+		if (!to_wait_list(s, 30)) return "the details didn't open";
+		aw_run(s, 0, 20);
+		aw_run(s, K_A, 6);
+		if (!to_wait_details(s)) return "the details didn't open";
+	}
 	return to_detail_pages(s, page, max, nOut);
 }
 
@@ -3704,6 +3720,11 @@ static const char* to_compose_(Emu* s, const void* state, uint32_t* const* out, 
 		/* out of battle: Organize (its roster, or a unit's details open),
 		 * else the world map */
 		int n = 0;
+		/* (the roster between two of its pages, or a screen on its way:
+		 * a moment for it, rather than the logo, TO-12) */
+		for (int f = 0; f < 30 && !to_list_up(s) && !to_details_up(s->fb) &&
+		                som_probes(s, toWorldMap, 12, 10, 8) == false; ++f)
+			emu_frame(s, 0);
 		const char* err = to_list_up(s) || to_details_up(s->fb) ? to_organize(s, page, max, &n) : to_world_map(s, page[0], &n);
 		if (err) return err;
 		*nOut = n;
