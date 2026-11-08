@@ -135,6 +135,10 @@ void ui_update_texture(SDL_Texture* t, const void* px, int pitch);
  * pictures, ABGR8888): the GBA's own screen, as mGBA's GBA Color shader
  * (sRGB profile, Darken Screen 0.5) draws it. */
 void ui_color_correction(bool on);
+/* Display > Shader (config.h SH_*): the subpixel presets brighten every
+ * picture given to ui_update_texture (their stripes darken it again); the
+ * pattern itself is drawn by ui_image_pixels from cfg->shader. */
+void ui_shader(int sh);
 /* One colour through it (for tests and the second screen's own grey) */
 uint32_t ui_color_correct(uint32_t abgr);
 /* Filled box with rounded corners (radius in pixels). */

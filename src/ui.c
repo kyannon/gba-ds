@@ -1224,40 +1224,80 @@ static uint32_t tex_version(SDL_Texture* t) {
  * power 1 / 2.0 (display gamma). The GBA has 32768 colours: a table, by the
  * 5-bit colour each 8-bit one came from (mGBA: c << 3 | c >> 2). */
 static uint32_t* ccLut;
-static bool ccOn;
-static void cc_build(void) {
+static bool ccOn;              /* pictures go through ccLut */
+static bool ccWant;            /* Display > Color Correction */
+static int ccGain = 100;       /* brightening, in percent (the subpixel shaders) */
+static bool lutCc = false;     /* what ccLut holds */
+static int lutGain = -1;
+static void cc_build(bool cc, int gain) {
 	static const double m[3][3] = {
 		{ 0.80, 0.275, -0.075 },
 		{ 0.135, 0.64, 0.225 },
 		{ 0.195, 0.155, 0.65 },
 	};
-	ccLut = malloc(32768 * sizeof(uint32_t));
+	if (!ccLut) ccLut = malloc(32768 * sizeof(uint32_t));
 	if (!ccLut) return;
 	for (int c = 0; c < 32768; ++c) {
 		double in[3];
 		for (int k = 0; k < 3; ++k) {
 			int v5 = c >> (k * 5) & 31;
 			double v = ((v5 << 3) | (v5 >> 2)) / 255.0;
-			v = pow(v, 2.0 + 0.5) * 0.93;
+			if (cc) v = pow(v, 2.0 + 0.5) * 0.93;
 			in[k] = v < 0 ? 0 : v > 1 ? 1 : v;
 		}
+		double o[3], top = 0;
+		for (int k = 0; k < 3; ++k) {
+			double v = cc ? m[k][0] * in[0] + m[k][1] * in[1] + m[k][2] * in[2] : in[k];
+			v = v < 0 ? 0 : v > 1 ? 1 : v;
+			o[k] = cc ? pow(v, 1.0 / 2.0) : v;
+			if (o[k] > top) top = o[k];
+		}
+		/* brightened (the shader's stripes darken it again), all three
+		 * channels alike so the colour keeps its hue: as far as the gain,
+		 * or as far as the brightest channel can go */
+		double f = gain / 100.0;
+		if (top > 0 && f * top > 1) f = SDL_max(1.0, 1 / top);
 		uint32_t out = 0;
 		for (int k = 0; k < 3; ++k) {
-			double v = m[k][0] * in[0] + m[k][1] * in[1] + m[k][2] * in[2];
-			v = v < 0 ? 0 : v > 1 ? 1 : v;
-			int b = (int) (pow(v, 1.0 / 2.0) * 255.0 + 0.5);
+			int b = (int) (o[k] * f * 255.0 + 0.5);
 			out |= (uint32_t) (b > 255 ? 255 : b) << (k * 8);
 		}
 		ccLut[c] = out;
 	}
+	lutCc = cc, lutGain = gain;
+}
+static void cc_refresh(void) {
+	bool want = ccWant || ccGain != 100;
+	if (want && (lutCc != ccWant || lutGain != ccGain || !ccLut)) cc_build(ccWant, ccGain);
+	ccOn = want && ccLut;
 }
 void ui_color_correction(bool on) {
-	if (on && !ccLut) cc_build();
-	ccOn = on && ccLut;
+	ccWant = on;
+	cc_refresh();
+}
+
+/* Display > Shader (config.h SH_*): the pattern draw_pixels lays over the
+ * pictures, and how much the colour table brightens them first. A pattern
+ * can only darken (it's multiplied in), so the subpixel stripes, which take
+ * away the most, get the colours brightened back (each keeping its hue,
+ * so the brightest can't be brightened much, and look a little darker
+ * under the stripes than without them). */
+static int uiShader = SH_OFF;
+static const struct {
+	float other, gap, row; /* a stripe's other two colours, the gap column, the bottom row */
+	int gain;
+} subPresets[3] = {
+	{ 0.80f, 0.80f, 0.92f, 112 }, /* light: for dim screens (about 0.9 of the picture's brightness) */
+	{ 0.62f, 0.65f, 0.85f, 125 }, /* (about 0.8) */
+	{ 0.45f, 0.50f, 0.75f, 140 }, /* strong: for bright screens (about 0.7) */
+};
+void ui_shader(int sh) {
+	uiShader = sh >= 0 && sh < SH_COUNT ? sh : SH_OFF;
+	ccGain = uiShader >= SH_SUB_LIGHT ? subPresets[uiShader - SH_SUB_LIGHT].gain : 100;
+	cc_refresh();
 }
 uint32_t ui_color_correct(uint32_t p) {
-	if (!ccLut) cc_build();
-	if (!ccLut) return p;
+	if (!ccOn) return p;
 	unsigned key = (p >> 3 & 31) | (p >> 11 & 31) << 5 | (p >> 19 & 31) << 10;
 	return ccLut[key] | (p & 0xFF000000u);
 }
@@ -1368,6 +1408,7 @@ static uint64_t ops_sig(const Retained* rv) {
 	for (size_t i = 0; i < sizeof(*rv->ops) * rv->nOps; ++i) h = (h ^ p[i]) * 1099511628211ull;
 	h = (h ^ (uint64_t) rv->nOps) * 1099511628211ull;
 	h = (h ^ (uint64_t) cfg->lcdStrength) * 1099511628211ull;
+	h = (h ^ (uint64_t) cfg->shader) * 1099511628211ull;
 	return h ^ (cfg->smooth ? 0x9e3779b97f4a7c15ull : 0);
 }
 
@@ -1792,6 +1833,92 @@ static SDL_Texture* pipe_grid_fine(int v, int dw, int dh, int gw, int gh, int st
 	return e->tex;
 }
 
+/* One of the other shaders' patterns at a point in a cell (u, v in 0..1,
+ * across and down), as a multiplier for red, green and blue. */
+static void pattern_at(int sh, double u, double v, double k, float out[3]) {
+	out[0] = out[1] = out[2] = 1;
+	if (sh == SH_SCANLINES) {
+		/* the bottom quarter of each row of pixels, darker than the grid's
+		 * lines (there are half as many), as mGBA's Scanlines at its 0.5 */
+		if (v >= 0.75) out[0] = out[1] = out[2] = (float) (1 - SDL_min(1.0, k * 1.4));
+	} else if (sh == SH_SOFT) {
+		/* darker toward the cell's edges, most at the corners: zfast_lcd's
+		 * falloff (RetroArch's handheld/zfast-lcd) */
+		double d = 2 * SDL_max(fabs(u - 0.5), fabs(v - 0.5));
+		out[0] = out[1] = out[2] = (float) (1 - SDL_min(1.0, k * 1.3) * d * d * d * d);
+	} else if (sh >= SH_SUB_LIGHT && sh <= SH_SUB_STRONG) {
+		/* red, green and blue stripes and a gap, a quarter of the cell each
+		 * (one screen pixel each at 4x), and a darker bottom row: mGBA's
+		 * AGB-001 and RetroArch's lcd3x */
+		int p = sh - SH_SUB_LIGHT, col = (int) (u * 4);
+		if (col >= 3) {
+			out[0] = out[1] = out[2] = subPresets[p].gap;
+		} else {
+			for (int c = 0; c < 3; ++c) out[c] = c == col ? 1.0f : subPresets[p].other;
+		}
+		if (v >= 0.75) for (int c = 0; c < 3; ++c) out[c] *= subPresets[p].row;
+	}
+}
+
+/* A multiply mask for the shaders other than the grid: gw x gh cells over a
+ * dw x dh picture (any size: whole screen pixels per cell or not), each
+ * pixel the average of the pattern over 4 x 4 points in it, so the pattern
+ * is as sharp as the screen allows and keeps its overall darkness. Built
+ * once per size. */
+static SDL_Texture* pipe_pattern(int v, int dw, int dh, int gw, int gh, int sh, int strength) {
+	strength = strength < 0 ? 0 : strength > 100 ? 100 : strength;
+	bool hit;
+	PipeEntry* e = pipe_lookup(pipeGrids[v], dw, dh, -(gw << 12 | gh), strength + 1000 * sh, &hit);
+	if (hit) return e->tex;
+	SDL_Surface* s = SDL_CreateRGBSurfaceWithFormat(0, dw, dh, 32, SDL_PIXELFORMAT_ARGB8888);
+	if (!s) return NULL;
+	enum { N = 4 };
+	double px = (double) dw / gw, py = (double) dh / gh, k = strength / 100.0;
+	/* three stripes don't fit in under 3 screen pixels (2x on a 640x480
+	 * screen): there each pixel gets their average, in grey, so the picture
+	 * has the subpixels' texture and darkness without a colour cast */
+	bool grey = px < 3 || py < 3;
+	for (int y = 0; y < dh; ++y) {
+		Uint32* row = (Uint32*) ((Uint8*) s->pixels + y * s->pitch);
+		for (int x = 0; x < dw; ++x) {
+			float sum[3] = { 0, 0, 0 };
+			for (int sy = 0; sy < N; ++sy) {
+				double fy = (y + (sy + 0.5) / N) / py, cv = fy - floor(fy);
+				for (int sx = 0; sx < N; ++sx) {
+					double fx = (x + (sx + 0.5) / N) / px;
+					float m[3];
+					pattern_at(sh, fx - floor(fx), cv, k, m);
+					for (int c = 0; c < 3; ++c) sum[c] += m[c];
+				}
+			}
+			if (grey) sum[0] = sum[1] = sum[2] = (sum[0] + sum[1] + sum[2]) / 3;
+			Uint32 r = (Uint32) (255 * sum[0] / (N * N) + 0.5f), g = (Uint32) (255 * sum[1] / (N * N) + 0.5f),
+			       b = (Uint32) (255 * sum[2] / (N * N) + 0.5f);
+			row[x] = 0xFF000000u | r << 16 | g << 8 | b;
+		}
+	}
+	e->tex = SDL_CreateTextureFromSurface(views[v].ren, s);
+	SDL_FreeSurface(s);
+	if (e->tex) {
+		SDL_SetTextureBlendMode(e->tex, SDL_BLENDMODE_MOD);
+		SDL_SetTextureScaleMode(e->tex, SDL_ScaleModeNearest);
+	}
+	return e->tex;
+}
+
+/* The chosen shader's mask for gw x gh cells over a dw x dh picture; kc: the
+ * screen pixels per cell when the picture is drawn at a whole multiple
+ * (the grid then draws its lines a whole screen pixel each), else 0. */
+static SDL_Texture* shader_mask(int v, int dw, int dh, int gw, int gh, int kc) {
+	bool small = dw < gw * 3 || dh < gh * 3;
+	if (cfg->shader == SH_GRID || cfg->shader <= SH_OFF || cfg->shader >= SH_COUNT || (cfg->shader == SH_SOFT && small)) {
+		/* (soft cells have no room for their falloff in under 3 screen
+		 * pixels: the fine grid there) */
+		return kc > 0 && !(cfg->shader == SH_SOFT && small) ? pipe_grid(v, gw, gh, kc, cfg->lcdStrength) : pipe_grid_fine(v, dw, dh, gw, gh, cfg->lcdStrength);
+	}
+	return pipe_pattern(v, dw, dh, gw, gh, cfg->shader, cfg->lcdStrength);
+}
+
 static void draw_pixels(SDL_Renderer* ren, int v, SDL_Texture* src, int w, int h, const SDL_Rect* dstp, int lcd);
 
 void ui_image_pixels(int screen, SDL_Texture* const* texPerView, int w, int h, const char* mode, int lcd) {
@@ -1840,7 +1967,7 @@ static void draw_pixels(SDL_Renderer* ren, int v, SDL_Texture* src, int w, int h
 		 * reload the whole framebuffer. */
 		SDL_SetTextureScaleMode(src, SDL_ScaleModeNearest);
 		SDL_RenderCopy(ren, src, NULL, &dst);
-		SDL_Texture* grid = pipe_grid(v, gw, gh, k * c, cfg->lcdStrength);
+		SDL_Texture* grid = shader_mask(v, dst.w, dst.h, gw, gh, k * c);
 		if (grid) SDL_RenderCopy(ren, grid, NULL, &dst);
 		return;
 	}
@@ -1848,7 +1975,7 @@ static void draw_pixels(SDL_Renderer* ren, int v, SDL_Texture* src, int w, int h
 		/* small cells (a 640x480 screen): the picture as without the grid,
 		 * then a grid made at the screen's resolution on top */
 		draw_pixels(ren, v, src, w, h, &dst, 0);
-		SDL_Texture* grid = pipe_grid_fine(v, dst.w, dst.h, gw, gh, cfg->lcdStrength);
+		SDL_Texture* grid = shader_mask(v, dst.w, dst.h, gw, gh, 0);
 		if (grid) SDL_RenderCopy(ren, grid, NULL, &dst);
 		return;
 	}
@@ -1858,7 +1985,7 @@ static void draw_pixels(SDL_Renderer* ren, int v, SDL_Texture* src, int w, int h
 		SDL_SetTextureScaleMode(src, SDL_ScaleModeNearest);
 		SDL_RenderCopy(ren, src, NULL, &dst);
 		if (lcd) {
-			SDL_Texture* grid = pipe_grid(v, gw, gh, k * c, cfg->lcdStrength);
+			SDL_Texture* grid = shader_mask(v, w * k, h * k, gw, gh, k * c);
 			if (grid) SDL_RenderCopy(ren, grid, NULL, &dst);
 		}
 		return;
@@ -1871,7 +1998,7 @@ static void draw_pixels(SDL_Renderer* ren, int v, SDL_Texture* src, int w, int h
 	SDL_SetTextureScaleMode(src, SDL_ScaleModeNearest);
 	SDL_RenderCopy(ren, src, NULL, NULL);
 	if (lcd) {
-		SDL_Texture* grid = pipe_grid(v, gw, gh, k * c, cfg->lcdStrength);
+		SDL_Texture* grid = shader_mask(v, w * k, h * k, gw, gh, k * c);
 		if (grid) SDL_RenderCopy(ren, grid, NULL, NULL);
 	}
 	SDL_SetRenderTarget(ren, NULL);

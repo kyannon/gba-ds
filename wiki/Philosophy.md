@@ -20,7 +20,7 @@ What this means in practice:
 - **Useful beats pretty.** A status screen with its last rows cut off but showing who acts next (Final Fantasy Tactics Advance's turn order) is better than a nicer-looking screen with less in it, or a slower one.
 - **Show what matters right now.** The second screen follows what the player is doing: the unit under the cursor in Fire Emblem, the level Mario is standing on. Keeping up quickly is part of the function.
 - **When there's nothing useful, say so plainly.** If there's nothing live to show (a title screen, a cutscene, a menu), the second screen shows the game's logo at half strength so it reads as idle, rather than something stale or invented. If a capture can't be confirmed as correct, the last good picture stays up. Better nothing new than something wrong.
-- **No enhancement for its own sake.** No smoothing, recolouring, upscaled art or animated transitions. Display options (scaling, LCD grid, overlays) are the player's choice, set in the pause menu, and are applied the same way to both screens.
+- **No enhancement for its own sake.** No smoothing, recolouring, upscaled art or animated transitions. Display options (scaling, shaders such as the LCD grid, overlays) are the player's choice, set in the pause menu, and are applied the same way to both screens.
 
 ## 3. Keep it simple.
 
