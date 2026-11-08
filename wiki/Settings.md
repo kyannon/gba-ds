@@ -3,7 +3,7 @@ Settings live in **`gba-ds.cfg`**: `/storage/roms/ports/gba-ds/gba-ds.cfg` on RO
 Three files are read in order, later ones winning:
 1. `gba-ds.cfg`;
 2. `states/prefs.cfg`: what you chose in the pause menu (screens swapped, scaling, shader, color correction, LCD ghosting, overlays, the second screen's logo, FPS counter, frame buffer). GBA DS rewrites this file; to change those settings, use the menu, or delete the line from `prefs.cfg`.
-3. `states/library.cfg`: the game list's view (list or grid) and, on Android, the ROM folder.
+3. `states/library.cfg`: the game list's view (list or grid) and, on Android, the ROM folder, the save folder and the saves' type (Settings > Folders).
 
 Updating from the game list (Settings > Updates) keeps your `gba-ds.cfg`. Unzipping a new release by hand replaces it, so keep a copy of your changes first.
 
@@ -83,7 +83,7 @@ What `map_crop` changes in the Metroid map screens:
 
 | Option | Default | |
 |---|---|---|
-| `save_dir` | empty | Battery saves (`.sav`). Empty: next to the ROM. An existing RetroArch `.srm` is copied to `.sav` the first time you play a game. |
+| `save_dir` | empty | Battery saves (`.sav`). Empty: next to the ROM. An existing RetroArch `.srm` is copied to `.sav` the first time you play a game, and so is a save next to the ROM when this is another folder. Android: Settings > Folders. |
 | `save_ext` | `sav` | The battery saves' extension: `sav`, or `srm` to use RetroArch's own save files in `save_dir` (BananaOS: `srm` in `/data/saves/gba`, set by GBA DS's launcher). An existing save in the other form is copied the first time you play a game. |
 | `save_from` | empty | A folder where GBA DS kept its `.sav` saves before (BananaOS: `/data/saves`). A game's save there is carried over the first time you start it, or when it's newer than the one in `save_dir` (that one kept as `.bak`). |
 | `state_dir` | empty | Save states, resume points, menu settings and extracted art. Empty: `gba-ds/states`. |

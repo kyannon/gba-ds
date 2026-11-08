@@ -498,8 +498,8 @@ static void draw_view_button(int scr) {
 	}
 }
 
-/* library.cfg: the game list's own settings (and, on Android, the ROM
- * folder picked in Settings). */
+/* library.cfg: the game list's own settings (and, on Android, the ROM and
+ * save folders and the saves' type, from Settings > Folders). */
 static void save_library_cfg(const Config* cfg) {
 	char file[1100];
 	snprintf(file, sizeof(file), "%s/library.cfg", cfg->stateDir);
@@ -508,6 +508,8 @@ static void save_library_cfg(const Config* cfg) {
 	fprintf(f, "# written by the game list\nlibrary_view = %s\n", listMode ? "list" : "grid");
 #ifdef __ANDROID__
 	fprintf(f, "rom_dir = %s\n", cfg->romDir);
+	/* (Settings > Folders; empty: next to the games) */
+	fprintf(f, "save_dir = %s\nsave_ext = %s\n", cfg->saveDir, cfg->saveExt[0] ? cfg->saveExt : "sav");
 #endif
 	fclose(f);
 }
@@ -645,7 +647,7 @@ static int updatesSel;
 
 /* Settings: a row of buttons, each with its text below, then Back.
  * Linux: GBA DS in EmulationStation (ROCKNIX) or in BananaOS's list, where
- * there's one; Map Buttons; Updates. Android: ROM Folder, RetroAchievements, Map Buttons. */
+ * there's one; Map Buttons; Updates. Android: Folders, RetroAchievements, Map Buttons, Updates. */
 #define SETTINGS_MAX 4
 static int nRows = 1; /* rows shown (Back is row nRows) */
 #ifndef __ANDROID__
@@ -656,7 +658,7 @@ static int rowKind[SETTINGS_MAX];
 static void settings_rows(const Config* cfg) {
 #ifdef __ANDROID__
 	(void) cfg;
-	nRows = 4; /* ROM Folder, RetroAchievements, Map Buttons, Updates */
+	nRows = 4; /* Folders, RetroAchievements, Map Buttons, Updates */
 #else
 	nRows = 0;
 #ifndef GBADS_SIDE
@@ -720,11 +722,32 @@ static void draw_settings_frame(int scr, const SettingsGeom* g, int sel, const c
 }
 
 #ifdef __ANDROID__
-/* Android: the ROM folder, chosen with Android's folder picker (android.c),
- * kept in <state_dir>/library.cfg; the RetroAchievements account, signed in
- * with a dialog (android.c, GbaDsActivity) and kept as a token by ra.c. */
+/* Android: the ROM and save folders (Folders, a panel of its own), chosen
+ * with Android's folder picker (android.c), kept in <state_dir>/library.cfg;
+ * the RetroAchievements account, signed in with a dialog (android.c,
+ * GbaDsActivity) and kept as a token by ra.c. */
 static bool pickPending, raDialogPending;
+static int pickFor; /* PICK_ROMS or PICK_SAVES: what the picker's folder is for */
+enum { PICK_ROMS, PICK_SAVES };
 static int settingsMsgRow; /* the row settingsMsg is about: shown in place of its text */
+static bool foldersOpen;
+static int foldersSel;
+
+static bool srm_saves(const Config* cfg) {
+	return !strcmp(cfg->saveExt, "srm");
+}
+
+/* "Games are read from ... Saves are kept in ..." (the Folders panel's) */
+static void folders_text(const Config* cfg, char* line, size_t n) {
+	char dirs[sizeof(cfg->romDir)];
+	snprintf(dirs, sizeof(dirs), "%s", cfg->romDir);
+	for (char* p = dirs; *p; ++p) {
+		if (*p == ':') *p = ' ';
+	}
+	const char* type = srm_saves(cfg) ? ".srm" : ".sav";
+	if (cfg->saveDir[0]) snprintf(line, n, "Games are read from %s (subfolders too). Saves (%s) are kept in %s.", dirs, type, cfg->saveDir);
+	else snprintf(line, n, "Games are read from %s (subfolders too). Saves (%s) are kept next to the games.", dirs, type);
+}
 
 static void draw_settings(const Config* cfg, int scr, int sel) {
 	SettingsGeom g = settings_geom(scr);
@@ -735,22 +758,14 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 	                      ra == RA_ACCOUNT_BUSY   ? "RetroAchievements: Signing In..." :
 	                      ra == RA_ACCOUNT_OFF    ? "RetroAchievements: Off" :
 	                                                "RetroAchievements: Sign In";
-	const char* labels[SETTINGS_MAX] = { "ROM Folder", raLabel, "Map Buttons", "Updates" };
+	const char* labels[SETTINGS_MAX] = { "Folders", raLabel, "Map Buttons", "Updates" };
 	draw_settings_frame(scr, &g, sel, labels);
 	int tx = g.row[0].x + px * 2, tw = g.row[0].w - px * 4;
 	char line[1400];
-	if (pickPending) {
-		snprintf(line, sizeof(line), "Choose a folder in Android's file picker...");
-	} else {
-		char dirs[sizeof(cfg->romDir)];
-		snprintf(dirs, sizeof(dirs), "%s", cfg->romDir);
-		for (char* p = dirs; *p; ++p) {
-			if (*p == ':') *p = ' ';
-		}
-		snprintf(line, sizeof(line), "Games are read from %s (subfolders too).", dirs);
-	}
-	if (settingsMsg[0] && settingsMsgRow == 0) draw_wrapped(scr, tx, g.textY[0], tw, px, settingsMsg, C_GOLD);
-	else draw_wrapped(scr, tx, g.textY[0], tw, px, line, C_DIM);
+	draw_wrapped(scr, tx, g.textY[0], tw, px,
+	             cfg->saveDir[0] ? "Where games are read from, and the folder their saves are kept in."
+	                             : "Where games are read from. Their saves are kept next to them.",
+	             C_DIM);
 	if (raDialogPending) {
 		snprintf(line, sizeof(line), "Enter your account in the sign-in box...");
 	} else if (ra == RA_ACCOUNT_OK) {
@@ -783,8 +798,7 @@ static void settings_activate(Config* cfg, int row) {
 	settingsMsg[0] = 0;
 	settingsMsgRow = row;
 	if (row == 0) {
-		if (android_pick_folder()) pickPending = true;
-		else snprintf(settingsMsg, sizeof(settingsMsg), "Couldn't open the file picker.");
+		foldersOpen = true, foldersSel = 0;
 		return;
 	}
 	if (row == 2) {
@@ -804,6 +818,18 @@ static void settings_activate(Config* cfg, int row) {
 		if (android_ra_dialog(user)) raDialogPending = true;
 		else snprintf(settingsMsg, sizeof(settingsMsg), "Couldn't open the sign-in box.");
 	}
+}
+
+/* GBA DS can write in dir (made if it isn't there): All files access */
+static bool can_write_in(const char* dir) {
+	mkdirs(dir);
+	char test[1100];
+	snprintf(test, sizeof(test), "%s/.gba-ds-write-test", dir);
+	FILE* f = fopen(test, "w");
+	if (!f) return false;
+	fclose(f);
+	remove(test);
+	return true;
 }
 
 /* Answers from the folder picker and the sign-in box, once they come.
@@ -828,8 +854,139 @@ static bool settings_poll(Config* cfg) {
 		snprintf(settingsMsg, sizeof(settingsMsg), "No folder chosen.");
 		return false;
 	}
+	if (pickFor == PICK_SAVES) {
+		if (!can_write_in(path)) {
+			snprintf(settingsMsg, sizeof(settingsMsg),
+			         "GBA DS can't save files there: allow it All files access in Android's settings, or choose another folder.");
+			return false;
+		}
+		snprintf(cfg->saveDir, sizeof(cfg->saveDir), "%s", path);
+		save_library_cfg(cfg);
+		snprintf(settingsMsg, sizeof(settingsMsg), "Saves will be kept there.");
+		fprintf(stderr, "library: saves in %s\n", path);
+		return false;
+	}
 	snprintf(cfg->romDir, sizeof(cfg->romDir), "%s", path);
 	save_library_cfg(cfg);
+	return true;
+}
+
+/* ------------------------------------------------------------ Settings > Folders (Android) */
+
+enum { FB_ROMS, FB_SAVES, FB_BESIDE, FB_TYPE, FB_BACK };
+
+static int folders_buttons(const Config* cfg, int* ids) {
+	int n = 0;
+	ids[n++] = FB_ROMS, ids[n++] = FB_SAVES;
+	if (cfg->saveDir[0]) ids[n++] = FB_BESIDE;
+	ids[n++] = FB_TYPE, ids[n++] = FB_BACK;
+	return n;
+}
+
+typedef struct {
+	SDL_Rect panel, text, btn[5];
+	float px;
+} FoldersGeom;
+
+static FoldersGeom folders_geom(int scr, int nb) {
+	FoldersGeom g;
+	SDL_Rect r = screens[scr].rect;
+	float px = ui_px(scr);
+	g.px = px;
+	int m = px * 6, rowH = px * 14, gap = px * 3;
+	g.panel = (SDL_Rect) { m, m, r.w - m * 2, r.h - m * 2 };
+	int y = g.panel.y + g.panel.h - px * 6;
+	for (int i = nb - 1; i >= 0; --i) {
+		y -= rowH;
+		g.btn[i] = (SDL_Rect) { g.panel.x + px * 6, y, g.panel.w - px * 12, rowH };
+		y -= gap;
+	}
+	int top = g.panel.y + px * 22;
+	g.text = (SDL_Rect) { g.panel.x + px * 8, top, g.panel.w - px * 16, y - top - px * 2 };
+	return g;
+}
+
+static void draw_folders(const Config* cfg, int scr, int sel) {
+	int ids[5];
+	int nb = folders_buttons(cfg, ids);
+	FoldersGeom g = folders_geom(scr, nb);
+	float px = g.px;
+	ui_dim(scr, 200);
+	ui_fill_round(scr, g.panel, C_HEADER, px * 4);
+	ui_label(scr, g.panel.x + g.panel.w / 2, g.panel.y + px * 12, px * 6, "Folders", C_TEXT);
+	for (int i = 0; i < nb; ++i) {
+		SDL_Rect b = g.btn[i];
+		const char* label = ids[i] == FB_ROMS   ? "Choose ROM folder"
+		                  : ids[i] == FB_SAVES  ? "Choose save folder"
+		                  : ids[i] == FB_BESIDE ? "Keep saves next to the games"
+		                  : ids[i] == FB_TYPE   ? (srm_saves(cfg) ? "Save files: .srm (RetroArch's)" : "Save files: .sav")
+		                                        : "Back";
+		if (i == sel) ui_fill_round(scr, (SDL_Rect) { b.x - px, b.y - px, b.w + px * 2, b.h + px * 2 }, C_EDGE, px * 4);
+		ui_fill_round(scr, b, i == sel ? C_SEL : C_ROW, px * 3);
+		ui_label(scr, b.x + b.w / 2, b.y + b.h / 2, px * 5, label, C_TEXT);
+	}
+	int tx = g.text.x, tw = g.text.w, y = g.text.y;
+	SDL_Rect clip = { screens[scr].rect.x + g.text.x, screens[scr].rect.y + g.text.y, g.text.w, g.text.h };
+	ui_clip(scr, &clip);
+	char line[1600];
+	if (pickPending) snprintf(line, sizeof(line), "Choose a folder in Android's file picker...");
+	else folders_text(cfg, line, sizeof(line));
+	y = draw_wrapped(scr, tx, y, tw, px, line, C_TEXT);
+	if (settingsMsg[0]) y = draw_wrapped(scr, tx, y + px * 3, tw, px, settingsMsg, C_GOLD);
+	draw_wrapped(scr, tx, y + px * 3, tw, px,
+	             "A game's save already next to it, or in the other type, is copied over the first time you play it. "
+	             ".srm is the type RetroArch uses: choose its saves folder too to share each game's save with it.",
+	             C_DIM);
+	ui_clip(scr, NULL);
+}
+
+/* One step of the Folders panel; false once it's closed. */
+static bool folders_input(Config* cfg, int ls) {
+	int ids[5];
+	int nb = folders_buttons(cfg, ids);
+	if (foldersSel >= nb) foldersSel = nb - 1;
+	int act = -1;
+	if (btn_pressed(B_DOWN)) foldersSel = (foldersSel + 1) % nb;
+	if (btn_pressed(B_UP)) foldersSel = (foldersSel + nb - 1) % nb;
+	if (btn_pressed(B_A) || btn_pressed(B_START)) act = ids[foldersSel];
+	if (btn_pressed(B_B) || btn_released(B_HOME)) act = FB_BACK;
+	Pointer p;
+	while (ui_next_pointer(&p)) {
+		if (p.screen != ls || p.kind != 1) continue;
+		FoldersGeom g = folders_geom(ls, nb);
+		SDL_Point pt = { p.x, p.y };
+		for (int i = 0; i < nb; ++i) {
+			if (SDL_PointInRect(&pt, &g.btn[i])) foldersSel = i, act = ids[i];
+		}
+		if (act < 0 && !SDL_PointInRect(&pt, &g.panel)) act = FB_BACK;
+	}
+	if (act >= 0 && act != FB_BACK) settingsMsg[0] = 0;
+	switch (act) {
+	case FB_ROMS:
+	case FB_SAVES:
+		if (pickPending) break;
+		pickFor = act == FB_ROMS ? PICK_ROMS : PICK_SAVES;
+		if (android_pick_folder()) pickPending = true;
+		else snprintf(settingsMsg, sizeof(settingsMsg), "Couldn't open the file picker.");
+		break;
+	case FB_BESIDE:
+		cfg->saveDir[0] = 0;
+		save_library_cfg(cfg);
+		snprintf(settingsMsg, sizeof(settingsMsg), "Saves will be kept next to the games.");
+		fprintf(stderr, "library: saves next to the games\n");
+		foldersSel = 1;
+		break;
+	case FB_TYPE:
+		snprintf(cfg->saveExt, sizeof(cfg->saveExt), "%s", srm_saves(cfg) ? "sav" : "srm");
+		save_library_cfg(cfg);
+		fprintf(stderr, "library: saves as .%s\n", cfg->saveExt);
+		break;
+	case FB_BACK:
+		settingsMsg[0] = 0;
+		return false;
+	default:
+		break;
+	}
 	return true;
 }
 #else
@@ -1234,6 +1391,30 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 			draw_list(cfg, ls, sel, scroll);
 			if (settingsOpen && updatesOpen) draw_settings(cfg, ls, settingsSel);
 			if (updatesOpen) draw_updates(ls, updatesSel);
+			if (nScreens > 1) draw_preview(cfg, ui_other_screen(), sel);
+			ui_present();
+			SDL_Delay(15);
+			continue;
+		}
+#endif
+#ifdef __ANDROID__
+		if (foldersOpen) {
+			if (settings_poll(cfg)) {
+				/* a new ROM folder: list it */
+				free_thumbs();
+				free_tiles();
+				scan(cfg);
+				thumbFor = -2;
+				sel = nGames ? 0 : -1;
+				scroll = 0;
+				snprintf(settingsMsg, sizeof(settingsMsg), "%d game%s found.", nGames, nGames == 1 ? "" : "s");
+			}
+			if (!pickPending && !folders_input(cfg, ls)) foldersOpen = false;
+			pressed = false;
+			ui_clear();
+			draw_list(cfg, ls, sel, scroll);
+			draw_settings(cfg, ls, settingsSel);
+			if (foldersOpen) draw_folders(cfg, ls, foldersSel);
 			if (nScreens > 1) draw_preview(cfg, ui_other_screen(), sel);
 			ui_present();
 			SDL_Delay(15);
