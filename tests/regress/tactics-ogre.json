@@ -6,11 +6,8 @@
    "id": "to-us-field",
    "rom": "ATOE",
    "state": "tactics-ogre/us-field.ss",
-   "desc": "the player's turn, the cursor on Orson (a guest): his details, then the list",
+   "desc": "the player's turn, the cursor on Orson (a guest): his details, three pages",
    "rules": [
-    "TO-1",
-    "TO-2",
-    "TO-3",
     "TO-7",
     "TO-8"
    ],
@@ -21,9 +18,9 @@
    "checks": [
     {
      "rule": "TO-8",
-     "what": "the unit's details, then the list's six pages, 2.5 s apart",
+     "what": "the unit's details, three pages, 2.5 s apart",
      "type": "log",
-     "match": "map updated \\(7 frame\\(s\\) 150 apart"
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
     },
     {
      "rule": "TO-8",
@@ -54,8 +51,8 @@
      "frac": 0.95
     },
     {
-     "rule": "TO-3",
-     "what": "the next page after 2.5 seconds",
+     "rule": "TO-8",
+     "what": "the next page after 2.5 seconds (Orson has no talents: the heading, POW to MP)",
      "type": "differs",
      "a": {
       "shot": "first",
@@ -75,7 +72,7 @@
        768
       ]
      },
-     "frac": 0.01
+     "frac": 0.0005
     },
     {
      "rule": "TO-7",
@@ -186,7 +183,7 @@
    "checks": [
     {
      "rule": "TO-5",
-     "what": "a list taken before the unit was picked",
+     "what": "the details taken before the unit was picked",
      "type": "log",
      "match": "frame [0-9]{1,2}: map updated"
     },
@@ -235,7 +232,7 @@
    "checks": [
     {
      "rule": "TO-5",
-     "what": "the list taken on your turn",
+     "what": "the details taken on your turn",
      "type": "log",
      "match": "frame 1?[0-9]{1,2}: map updated"
     },
@@ -251,9 +248,8 @@
    "id": "to-jp-field",
    "rom": "ATOJ",
    "state": "tactics-ogre/jp-field.ss",
-   "desc": "a battle in Tactics Ogre Gaiden (a player's bug report): the leader's details, then the list",
+   "desc": "a battle in Tactics Ogre Gaiden (a player's bug report): the leader's details",
    "rules": [
-    "TO-1",
     "TO-8"
    ],
    "shots": {
@@ -262,16 +258,10 @@
    },
    "checks": [
     {
-     "rule": "TO-1",
-     "what": "the list",
-     "type": "log",
-     "match": "map updated \\("
-    },
-    {
      "rule": "TO-8",
-     "what": "the unit's details, then the list's six pages, 2.5 s apart",
+     "what": "the unit's details, three pages, 2.5 s apart",
      "type": "log",
-     "match": "map updated \\(7 frame\\(s\\) 150 apart"
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
     },
     {
      "rule": "TO-8",
@@ -307,10 +297,9 @@
    "id": "to-us-cursor-moves",
    "rom": "ATOE",
    "state": "tactics-ogre/us-field.ss",
-   "desc": "the cursor moved up twice, onto Lara",
+   "desc": "the cursor moved up twice, onto Lara: her details",
    "rules": [
-    "TO-1",
-    "TO-2"
+    "TO-8"
    ],
    "input": [
     [
@@ -336,8 +325,8 @@
    },
    "checks": [
     {
-     "rule": "TO-2",
-     "what": "the list's cursor moved with it",
+     "rule": "TO-8",
+     "what": "the details followed the cursor",
      "type": "differs",
      "a": {
       "shot": "before",
@@ -365,9 +354,8 @@
    "id": "to-us-enemy",
    "rom": "ATOE",
    "state": "tactics-ogre/us-enemy.ss",
-   "desc": "the cursor on Stan, the enemy's leader: his details in the game's green, then the list (its box on the left)",
+   "desc": "the cursor on Stan, the enemy's leader: his details, in the game's green",
    "rules": [
-    "TO-2",
     "TO-8"
    ],
    "shots": {
@@ -375,16 +363,10 @@
    },
    "checks": [
     {
-     "rule": "TO-2",
-     "what": "the list was shown",
-     "type": "log",
-     "match": "map updated"
-    },
-    {
      "rule": "TO-8",
-     "what": "the unit's details, then the list's six pages, 2.5 s apart",
+     "what": "the unit's details, three pages, 2.5 s apart",
      "type": "log",
-     "match": "map updated \\(7 frame\\(s\\) 150 apart"
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
     },
     {
      "rule": "TO-8",
@@ -420,9 +402,8 @@
    "id": "to-us-lower-row",
    "rom": "ATOE",
    "state": "tactics-ogre/us-lower-row.ss",
-   "desc": "the cursor on Justin, on the list's third row (its box at the top): his details first",
+   "desc": "the cursor on Justin (on the list's third row, which used to matter): his details",
    "rules": [
-    "TO-2",
     "TO-8"
    ],
    "shots": {
@@ -430,16 +411,10 @@
    },
    "checks": [
     {
-     "rule": "TO-2",
-     "what": "the list was shown",
-     "type": "log",
-     "match": "map updated"
-    },
-    {
      "rule": "TO-8",
-     "what": "the unit's details, then the list's six pages, 2.5 s apart",
+     "what": "the unit's details, three pages, 2.5 s apart",
      "type": "log",
-     "match": "map updated \\(7 frame\\(s\\) 150 apart"
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
     },
     {
      "rule": "TO-8",
@@ -492,9 +467,9 @@
     },
     {
      "rule": "TO-9",
-     "what": "never the list or the details",
+     "what": "never a unit's details",
      "type": "no_log",
-     "match": "map updated \\((6|7) frame"
+     "match": "map updated \\(3 frame"
     },
     {
      "rule": "TO-9",
@@ -544,26 +519,19 @@
    "id": "to-us-list-open",
    "rom": "ATOE",
    "state": "tactics-ogre/us-list-open.ss",
-   "desc": "the list open in the game (the owner's bug report): the list alone, as the player has it",
+   "desc": "the unit list open in the game (the owner's bug report): nothing taken, the logo (no picture yet)",
    "rules": [
-    "TO-1",
-    "TO-8"
+    "TO-5"
    ],
    "shots": {
     "start": 120
    },
    "checks": [
     {
-     "rule": "TO-1",
-     "what": "the list was shown",
-     "type": "log",
-     "match": "map updated \\(6 frame"
-    },
-    {
-     "rule": "TO-8",
-     "what": "no details",
+     "rule": "TO-5",
+     "what": "none taken with the list open",
      "type": "no_log",
-     "match": "map updated \\(7 frame"
+     "match": "map updated"
     }
    ]
   },
@@ -617,9 +585,9 @@
    "id": "to-us-cursor-units",
    "rom": "ATOE",
    "state": "tactics-ogre/us-cursor-units.ss",
-   "desc": "the cursor moved over several units (a player's bug report, its keys played back): the list's cursor follows it onto each, guests and enemies too",
+   "desc": "the cursor moved over several units (a player's bug report, its keys played back): the details follow it onto each, guests and enemies too",
    "rules": [
-    "TO-2"
+    "TO-8"
    ],
    "input": [
     [
@@ -735,10 +703,9 @@
    "id": "to-jp-cursor-units",
    "rom": "ATOJ",
    "state": "tactics-ogre/jp-cursor-units.ss",
-   "desc": "Japan: the cursor moved onto guests (a player's bug report, its keys played back): the list's cursor follows it (Justin, then Andy), turning its pages",
+   "desc": "Japan: the cursor moved onto guests (a player's bug report, its keys played back): the details follow it (Justin, then Andy)",
    "rules": [
-    "TO-2",
-    "TO-3"
+    "TO-8"
    ],
    "input": [
     [
@@ -974,7 +941,7 @@
    "id": "to-us-details-open",
    "rom": "ATOE",
    "state": "tactics-ogre/us-field.ss",
-   "desc": "the player opens Orson's details (B) in the game and closes them again: the last pictures stay meanwhile; once the field is back, the list on Orson again, not on the leader while the field fades in",
+   "desc": "the player opens Orson's details (B) in the game and closes them again: the last pictures stay meanwhile; once the field is back, Orson's details again, not the empty square's page while the field fades in",
    "rules": [
     "TO-5",
     "TO-8",
@@ -1011,15 +978,15 @@
     },
     {
      "rule": "TO-5",
-     "what": "none while the field fades back in, then the list on Orson",
+     "what": "none while the field fades back in, then Orson's details",
      "type": "log",
-     "match": "frame (9[0-9]{2}|10[0-9]{2}): map updated \\(7 frame"
+     "match": "frame (9[0-9]{2}|10[0-9]{2}): map updated \\(3 frame"
     },
     {
      "rule": "TO-5",
-     "what": "never the list on the leader after closing",
+     "what": "never the empty square's page after closing",
      "type": "no_log",
-     "match": "frame (9[0-9]{2}|1[0-9]{3}): map updated \\(6 frame"
+     "match": "frame (9[0-9]{2}|1[0-9]{3}): map updated \\(1 frame"
     }
    ]
   },
@@ -1097,45 +1064,20 @@
    "id": "to-training-field",
    "rom": "ATOE",
    "state": "tactics-ogre/training-field.ss",
-   "desc": "Training (from the owner's GameShark save, its keys played in: world map R, Training, 8 and 5 units dispatched): R's menu has no Winning Condition, the list 13 units over a fourth row; the cursor on Fermin",
+   "desc": "Training (from the owner's GameShark save, its keys played in: world map R, Training, 8 and 5 units dispatched): R's menu has no Winning Condition, the cursor on Fermin",
    "rules": [
-    "TO-1",
     "TO-8"
    ],
    "shots": {
     "details": 120,
-    "list": 270
+    "second": 270
    },
    "checks": [
     {
      "rule": "TO-8",
-     "what": "the unit's details, then the list's six pages, 2.5 s apart",
+     "what": "the unit's details, three pages, 2.5 s apart",
      "type": "log",
-     "match": "map updated \\(7 frame\\(s\\) 150 apart"
-    },
-    {
-     "rule": "TO-1",
-     "what": "the list after the details",
-     "type": "differs",
-     "a": {
-      "shot": "details",
-      "rect": [
-       0,
-       0,
-       1024,
-       768
-      ]
-     },
-     "b": {
-      "shot": "list",
-      "rect": [
-       0,
-       0,
-       1024,
-       768
-      ]
-     },
-     "frac": 0.01
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
     },
     {
      "rule": "TO-8",
@@ -1173,19 +1115,18 @@
    "state": "tactics-ogre/training-doggy.ss",
    "desc": "Training: the cursor on Doggy, a dragon (SP, not MP)",
    "rules": [
-    "TO-2",
     "TO-8"
    ],
    "shots": {
     "details": 120,
-    "list": 270
+    "second": 270
    },
    "checks": [
     {
      "rule": "TO-8",
-     "what": "the unit's details, then the list's six pages, 2.5 s apart",
+     "what": "the unit's details, three pages, 2.5 s apart",
      "type": "log",
-     "match": "map updated \\(7 frame\\(s\\) 150 apart"
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
     },
     {
      "rule": "TO-8",
@@ -1223,19 +1164,18 @@
    "state": "tactics-ogre/training-allos.ss",
    "desc": "Training: the cursor on Allos (level 32, HP 364), on the list's first row",
    "rules": [
-    "TO-2",
     "TO-8"
    ],
    "shots": {
     "details": 120,
-    "list": 270
+    "second": 270
    },
    "checks": [
     {
      "rule": "TO-8",
-     "what": "the unit's details, then the list's six pages, 2.5 s apart",
+     "what": "the unit's details, three pages, 2.5 s apart",
      "type": "log",
-     "match": "map updated \\(7 frame\\(s\\) 150 apart"
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
     },
     {
      "rule": "TO-8",
@@ -1562,8 +1502,8 @@
    "state": "tactics-ogre/organize.ss",
    "desc": "Organize, then B (the world map's command bar: the logo, not the last details), then B again (the free world map: Formido's HELP)",
    "rules": [
-    "TO-12",
-    "TO-10"
+    "TO-10",
+    "TO-12"
    ],
    "input": [
     [
@@ -1605,6 +1545,90 @@
      "what": "the HELP taken on the free world map",
      "type": "log",
      "match": "frame (4[0-9]{2}|5[0-9]{2}): map updated \\(1 frame"
+    }
+   ]
+  },
+  {
+   "id": "to-us-vespa-enemy",
+   "rom": "ATOE",
+   "state": "tactics-ogre/us-vespa-enemy.ss",
+   "desc": "the owner's state: Vespa Hill, the cursor on Vonus, an enemy Griffin (SP) whose details didn't appear (the old list search didn't find him): his details, three pages (POW, SP, Emblems)",
+   "rules": [
+    "TO-8"
+   ],
+   "shots": {
+    "details": 120,
+    "costs": 270,
+    "emblems": 420
+   },
+   "checks": [
+    {
+     "rule": "TO-8",
+     "what": "the unit's details, three pages, 2.5 s apart",
+     "type": "log",
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
+    },
+    {
+     "rule": "TO-8",
+     "what": "the details' frame: its middle line",
+     "type": "uniform",
+     "shot": "details",
+     "rect": [
+      40,
+      380,
+      984,
+      388
+     ],
+     "color": "63737B",
+     "frac": 0.8
+    },
+    {
+     "rule": "TO-8",
+     "what": "the SP costs page",
+     "type": "differs",
+     "a": {
+      "shot": "details",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "costs",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0005
+    },
+    {
+     "rule": "TO-8",
+     "what": "the Emblems",
+     "type": "differs",
+     "a": {
+      "shot": "costs",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "emblems",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.05
     }
    ]
   }

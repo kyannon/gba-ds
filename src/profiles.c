@@ -3275,45 +3275,20 @@ static const char* gs2_compose(Emu* s, const void* state, uint32_t* const* out, 
 
 /* ---------------------------------------------------------- Tactics Ogre
  *
- * The second screen: the battle's unit list (R's menu, View List), with
- * its cursor on the unit the player's cursor is on in the field, its
- * pages (START: HP, MP, element...) taken in turn and shown 2.5 seconds
- * each (TO-1 to TO-3). The list opens on the leader; the unit under the
- * field cursor is found by its box (name, level, HP: the same box, the
- * same pixels, on the field at the right and in the list at the right for
- * the player's side, 112 pixels further left for the others), stepping
- * the list's cursor RIGHT along each row (it wraps within the row) and
- * DOWN to the next (back at the top: not found, the leader). With it
- * found, the unit's details (B on it in the field) come first (TO-8). */
-#define TO_LIST_IDX_ 0x0200A08A /* the list's cursor: row * 4 + column, of the rows in view */
-/* the list's first row in view: over 12 units (Training's 13) it scrolls,
- * a row at a time, once the cursor goes below the third */
+ * The second screen (docs/games/tactics-ogre.md). In a battle, on a unit:
+ * its details (B on it), three pages, 2.5 seconds each (TO-8); on an
+ * empty square, the battle's conditions on black (TO-9). Out of battle
+ * (USA): the world map's HELP (TO-10), Organize's details (TO-11). */
+/* the unit list (R's menu, View List; Organize's roster): the cursor, its
+ * first row in view (it scrolls over 12 units): room keys, so Organize's
+ * details follow its roster's cursor */
+#define TO_LIST_IDX_ 0x0200A08A
 #define TO_LIST_TOP_ 0x0200A09A
-#define TO_PAGE_ 0x0200AA1C     /* the list's page (START): 0-5 */
-/* (Japan's both 0x4D4 lower: found by stepping its list's cursor and pages) */
-#define TO_JP(s) ((s)->gameCode[3] == 'J' ? 0x4D4u : 0u)
-#define TO_LIST_IDX (TO_LIST_IDX_ - TO_JP(s))
-#define TO_LIST_TOP (TO_LIST_TOP_ - TO_JP(s))
-#define TO_PAGE (TO_PAGE_ - TO_JP(s))
 #define TO_PAGES 8
-#define TO_BOX_X 166            /* the unit's box, inside its frame: 166-233 x 108-155 */
-#define TO_BOX_Y 108
-#define TO_BOX_W 68
-#define TO_BOX_H 48
-#define TO_BOX_OTHER (-112)     /* in the list, the other side's box */
-#define TO_BOX_TOP 4            /* in the list, the box's top on the lower rows */
-/* the prompts, left out (TO-1): START:DATA, two sprites (tiles 1005 and
- * 1009) at the top or bottom, right or (the other side) left; R SEARCH, BG2 at 0-47 x 144-159, with
- * the list under it (BG2 off) put in its place */
-/* (and on the unit's details (TO-8) the arrows that blink in its bottom
- * corners, tile 762 at 0 and 232 x 152; the list never uses it) */
-/* (on an empty square's pages (TO-2): the conditions' R and L buttons,
- * tiles 516 and 512 at the bottom right, and the supply list's pointing
- * hand, tile 280 down its left) */
-static const SpriteRule toHide[4] = { { -64, -16, 239, 159, 1005, 1012, -1 }, { -8, 144, 239, 159, 762, 762, -1 },
-                                      { 128, 120, 239, 159, 512, 519, -1 }, { 24, 8, 63, 151, 280, 283, -1 } };
-#define TO_R_X1 47
-#define TO_R_Y0 144
+/* left out (the buttons don't work there): the details' START:DATA label,
+ * two sprites (tiles 1005 and 1009) at the top right, and the arrows that
+ * blink in their bottom corners, tile 762 at 0 and 232 x 152 */
+static const SpriteRule toHide[2] = { { -64, -16, 239, 159, 1005, 1012, -1 }, { -8, 144, 239, 159, 762, 762, -1 } };
 
 /* the list's background and frames, where no unit, box or START:DATA
  * label is ever drawn (the box and the label move about; a full list,
@@ -3346,22 +3321,6 @@ static bool to_supply_up(Emu* s) {
 #define TO_AIM_Y0 126
 #define TO_AIM_Y1 147
 
-/* the box at x, top (in the frame) is the field's box f */
-static bool to_box_at(const uint32_t* fb, int x, int top, const uint32_t* f) {
-	int diff = 0;
-	for (int y = 0; y < TO_BOX_H; ++y) {
-		for (int i = 0; i < TO_BOX_W; ++i) diff += (fb[(top + y) * GBA_W + x + i] & 0xFFFFFF) != (f[y * TO_BOX_W + i] & 0xFFFFFF);
-	}
-	return diff <= TO_BOX_W * TO_BOX_H / 100;
-}
-/* the list's box (wherever the list puts it: right or left, bottom or top) is f */
-static bool to_box_is(const uint32_t* fb, const uint32_t* f) {
-	for (int k = 0; k < 4; ++k) {
-		if (to_box_at(fb, TO_BOX_X + (k & 1 ? TO_BOX_OTHER : 0), k & 2 ? TO_BOX_TOP : TO_BOX_Y, f)) return true;
-	}
-	return false;
-}
-
 /* a unit's box on the field (its frame's white left edge, x 164, 44 of
  * rows 110-155 on every unit's box, none on an empty square) */
 static bool to_unit_box(const uint32_t* fb) {
@@ -3390,26 +3349,9 @@ static uint32_t to_virt(Emu* e, uint32_t addr) {
 	return addr == TO_V_TITLE && som_probes(e, toTitle, 8, 7, 8);
 }
 
-/* the list's cursor, counted from the list's first unit (row * 4 + column) */
-static int to_list_pos(Emu* s) {
-	return emu_read8(s, TO_LIST_TOP) * 4 + emu_read8(s, TO_LIST_IDX);
-}
-
 static bool to_wait_list(Emu* s, int n) {
 	for (int f = 0; f < n && !to_list_up(s); ++f) emu_frame(s, 0);
 	return to_list_up(s);
-}
-
-/* R's menu, View List, A. View List is the menu's last icon but one: the
- * fourth of five in a battle (End of Turn, Winning Condition,
- * Expendables, View List, System), the third of four in Training (no
- * Winning Condition): LEFT twice from the first, round its end */
-static bool to_open_list(Emu* s) {
-	aw_run(s, K_R, 6);
-	aw_run(s, 0, 34);
-	for (int i = 0; i < 2; ++i) aw_run(s, K_LEFT, 6), aw_run(s, 0, 14);
-	aw_run(s, K_A, 6);
-	return to_wait_list(s, 90);
 }
 
 /* the unit's details (B on it, TO-8): its frame, a line all one colour
@@ -3535,6 +3477,19 @@ static const char* to_aims(Emu* s, const void* state, uint32_t* page, int* nOut)
 	int pw = rw[1][2] - rw[1][0] + 1, ph = rw[1][3] - rw[1][1] + 1;
 	int px = (GBA_W - pw) / 2, py = (GBA_H - ph) / 2;
 	for (int y = 0; y < ph; ++y) memcpy(&page[(py + y) * GBA_W + px], &win[(rw[1][1] + y) * GBA_W + rw[1][0]], pw * 4);
+	/* (round each box's corners: black outside its outline, on every row:
+	 * the field's colour showed there) */
+	int boxes[3][4] = { { rw[0][0], rw[0][1], rw[0][2], rw[0][3] },
+	                    { rl[0][0], rl[0][1] + dy, rl[0][2], rl[0][3] + dy },
+	                    { px, py, px + pw - 1, py + ph - 1 } };
+	for (int b = 0; b < 3; ++b) {
+		for (int y = boxes[b][1]; y <= boxes[b][3]; ++y) {
+			uint32_t* row = &page[y * GBA_W];
+			int x = boxes[b][0];
+			for (; x <= boxes[b][2] && (row[x] & 0xFFFFFF) != 0x181810; ++x) row[x] = 0;
+			for (int x1 = boxes[b][2]; x1 > x && (row[x1] & 0xFFFFFF) != 0x181810; --x1) row[x1] = 0;
+		}
+	}
 	*nOut = 1;
 	return NULL;
 }
@@ -3611,28 +3566,18 @@ static const char* to_world_map(Emu* s, uint32_t* page, int* nOut) {
 	return NULL;
 }
 
-/* Organize (TO-11): the details of the unit the roster's cursor is on (A),
- * its three pages: the first, START (the talents' MP costs), RIGHT (the
- * Emblems). Opened in the game: back (B) to the roster and in again, so
- * they start on the first. */
-static const char* to_organize(Emu* s, uint32_t (*page)[GBA_W * GBA_H], int max, int* nOut) {
-	if (to_details_up(s->fb)) {
-		aw_run(s, K_B, 6);
-		if (!to_wait_list(s, 90)) return "the roster didn't come back";
-		aw_run(s, 0, 10);
-	}
-	aw_run(s, K_A, 6);
-	bool up = false;
-	for (int f = 0; f < 90 && !(up = to_details_up(s->fb)); ++f) emu_frame(s, 0);
-	if (!up) return "the details didn't open";
-	aw_run(s, 0, 20);
+/* A unit's details, up (B on the field, A in Organize): their three
+ * pages: as they open (equipment, talents and their POW), START (the
+ * talents' MP costs), RIGHT (the Emblems, which slide in over ~40 frames;
+ * from POW: back there with START first) (TO-8, TO-11) */
+static const char* to_detail_pages(Emu* s, uint32_t (*page)[GBA_W * GBA_H], int max, int* nOut) {
 	static const int keys[3] = { 0, K_START, K_RIGHT };
 	int n = 0;
 	for (; n < 3 && n < max; ++n) {
 		if (keys[n]) {
-			if (n == 2) aw_run(s, K_START, 4), aw_run(s, 0, 14); /* (back to POW: the Emblems take the right half only) */
+			if (n == 2) aw_run(s, K_START, 4), aw_run(s, 0, 14);
 			aw_run(s, keys[n], 4);
-			aw_run(s, 0, n == 2 ? 50 : 20); /* (the Emblems slide in) */
+			aw_run(s, 0, n == 2 ? 50 : 20);
 		}
 		if (!to_details_up(s->fb) && n < 2) return "the details closed";
 		if (emu_cancelled(s)) return "called off";
@@ -3640,6 +3585,30 @@ static const char* to_organize(Emu* s, uint32_t (*page)[GBA_W * GBA_H], int max,
 	}
 	*nOut = n;
 	return NULL;
+}
+
+/* the details opening after the key that opens them: up after ~35 frames,
+ * then a fade of 6 */
+static bool to_wait_details(Emu* s) {
+	bool up = false;
+	for (int f = 0; f < 90 && !(up = to_details_up(s->fb)); ++f) emu_frame(s, 0);
+	if (!up) return false;
+	aw_run(s, 0, 16);
+	return to_details_up(s->fb);
+}
+
+/* Organize (TO-11): the details of the unit the roster's cursor is on (A).
+ * Opened in the game: back (B) to the roster and in again, so they start
+ * on the first page. */
+static const char* to_organize(Emu* s, uint32_t (*page)[GBA_W * GBA_H], int max, int* nOut) {
+	if (to_details_up(s->fb)) {
+		aw_run(s, K_B, 6);
+		if (!to_wait_list(s, 90)) return "the roster didn't come back";
+		aw_run(s, 0, 10);
+	}
+	aw_run(s, K_A, 6);
+	if (!to_wait_details(s)) return "the details didn't open";
+	return to_detail_pages(s, page, max, nOut);
 }
 
 static const char* to_compose_(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h);
@@ -3653,11 +3622,10 @@ static const char* to_compose(Emu* s, const void* state, uint32_t* const* out, i
 }
 static const char* to_compose_(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
 	static uint32_t page[TO_PAGES][GBA_W * GBA_H];
-	static uint32_t field[TO_BOX_W * TO_BOX_H];
 	int max = *nOut < TO_PAGES ? *nOut : TO_PAGES;
 	*nOut = 1;
 	*step = 150; /* 2.5 seconds a page */
-	emu_hide_sprites(s, toHide, 4);
+	emu_hide_sprites(s, toHide, 2);
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
 	if (to_world(s)) {
@@ -3673,110 +3641,34 @@ static const char* to_compose_(Emu* s, const void* state, uint32_t* const* out, 
 		}
 		return NULL;
 	}
-	/* the field cursor on a unit (its box found in the list): its details
-	 * first (TO-8), page 0, taken once the list's pages are */
-	bool onUnit = false;
-	if (!to_list_up(s)) {
-		/* the field fading in (after the details, the list or a scene
-		 * close: BLDCNT darkening, 0x00FF): the unit's box comes only as
-		 * it ends, so a list taken now would be on the leader. The last
-		 * pictures stay; the next refresh takes it (TO-5). */
-		if ((emu_io16(s, 0x50) & 0xC0) >= 0x80) return "the field is fading in";
-		/* (the box comes 2 frames after the darkening ends: 4 more) */
-		aw_run(s, 0, 4);
-		/* the field: the box of the unit under the cursor (if any) */
-		for (int y = 0; y < TO_BOX_H; ++y) memcpy(&field[y * TO_BOX_W], &s->fb[(TO_BOX_Y + y) * GBA_W + TO_BOX_X], TO_BOX_W * 4);
-		/* none (its frame's white left edge, x 164, 44 of rows 110-155
-		 * on every unit's box, none on an empty square): the empty
-		 * square's pages, without looking through the list (TO-2) */
-		bool found = false;
-		if (!to_unit_box(s->fb)) goto empty;
-		if (!to_open_list(s)) return "the list didn't open";
-		aw_run(s, 0, 10);
-		/* to the unit under the field cursor */
-		for (int n = 0; n < 64 && !found; ++n) {
-			if (to_box_is(s->fb, field)) {
-				found = true;
-				break;
-			}
-			int i = to_list_pos(s);
-			aw_run(s, K_RIGHT, 4);
-			aw_run(s, 0, 8);
-			int j = to_list_pos(s);
-			if (j <= i) {
-				/* round the row: the next one (back at the top, or on the
-				 * last row of a list that scrolls, where DOWN does nothing:
-				 * none) */
-				aw_run(s, K_DOWN, 4);
-				aw_run(s, 0, 8);
-				if (to_list_pos(s) <= j) break;
-			}
-			if (emu_cancelled(s)) return "called off";
-		}
-	empty:
-		if (!found) {
-			/* (none: an empty square, nothing about a unit, TO-2; or a
-			 * box the list doesn't have) */
-			int n = 0;
-			const char* err = to_aims(s, state, page[0], &n);
-			if (err) return err;
-			*nOut = n;
-			for (int k = 0; k < n; ++k) {
-				for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[k][y * w], &page[k][y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
-			}
-			return NULL;
-		}
-		onUnit = found;
-	}
-	aw_run(s, 0, 20);
-	/* what's under R SEARCH: the list a frame on without BG2 */
-	static uint32_t under[(GBA_H - TO_R_Y0) * (TO_R_X1 + 1)];
-	{
-		static uint8_t* tmp;
-		static size_t tmpSize;
-		size_t sz = emu_state_size(s);
-		if (sz > tmpSize) free(tmp), tmp = malloc(sz), tmpSize = tmp ? sz : 0;
-		if (!tmp || !emu_state_save(s, tmp)) return "no memory";
-		emu_layers(s, 0x1B);
-		emu_state_load(s, tmp);
-		emu_frame(s, 0);
-		for (int y = TO_R_Y0; y < GBA_H; ++y) memcpy(&under[(y - TO_R_Y0) * (TO_R_X1 + 1)], &s->fb[y * GBA_W], (TO_R_X1 + 1) * 4);
-		emu_layers(s, 0x1F);
-		emu_state_load(s, tmp);
-		emu_frame(s, 0);
-	}
-	/* its pages: START turns to the next (HP, MP, element...), round to the
-	 * first (after page 0, kept for the details, on a unit) */
-	int d = onUnit && max > 1 ? 1 : 0;
-	int n = 0, first = emu_read8(s, TO_PAGE);
-	for (; n + d < max; ++n) {
-		if (n) {
-			aw_run(s, K_START, 4);
-			aw_run(s, 0, 14);
-			if (!to_list_up(s)) return "the list closed";
-			if (emu_read8(s, TO_PAGE) == first) break;
-		}
-		if (emu_cancelled(s)) return "called off";
-		memcpy(page[n + d], s->fb, sizeof(page[n + d]));
-		for (int y = TO_R_Y0; y < GBA_H; ++y) memcpy(&page[n + d][y * GBA_W], &under[(y - TO_R_Y0) * (TO_R_X1 + 1)], (TO_R_X1 + 1) * 4);
-	}
-	if (d) {
-		/* the details: B on the field (the list was there, so R's menu
-		 * and B work: TO-5), up after ~35 frames, then a fade of 6 */
-		bool up = false;
+	/* a battle: the list open in the game (or anything else where R's menu
+	 * doesn't open on the field): the last pictures (TO-5) */
+	if (to_list_up(s)) return "the list is open";
+	/* the field fading in (after the details, the list or a scene close:
+	 * BLDCNT darkening, 0x00FF): the unit's box comes only as it ends, so
+	 * it would look like an empty square. The last pictures stay; the next
+	 * refresh takes them (TO-5). */
+	if ((emu_io16(s, 0x50) & 0xC0) >= 0x80) return "the field is fading in";
+	/* (the box comes 2 frames after the darkening ends: 4 more) */
+	aw_run(s, 0, 4);
+	int n = 0;
+	const char* err;
+	if (!to_unit_box(s->fb)) {
+		/* an empty square: the battle's conditions (TO-9) */
+		err = to_aims(s, state, page[0], &n);
+	} else {
+		/* a unit: R's menu must open on the field (TO-5), then B on it
+		 * (TO-8) */
+		aw_run(s, K_R, 6);
+		aw_run(s, 0, 34);
+		if (emu_read8(s, TO_MENU_UP(s)) != 2) return "R's menu didn't open";
 		if (!emu_state_load(s, state)) return "state load failed";
 		emu_frame(s, 0);
 		aw_run(s, K_B, 6);
-		for (int f = 0; f < 90 && !(up = to_details_up(s->fb)); ++f) emu_frame(s, 0);
-		if (up) {
-			aw_run(s, 0, 16);
-			up = to_details_up(s->fb);
-		}
-		if (emu_cancelled(s)) return "called off";
-		if (up) memcpy(page[0], s->fb, sizeof(page[0]));
-		else memmove(page[0], page[1], sizeof(page[0]) * n), d = 0; /* (not up: the list alone) */
+		if (!to_wait_details(s)) return "the details didn't open";
+		err = to_detail_pages(s, page, max, &n);
 	}
-	n += d;
+	if (err) return err;
 	*nOut = n;
 	for (int k = 0; k < n; ++k) {
 		for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[k][y * w], &page[k][y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
@@ -4079,9 +3971,10 @@ static const MapProfile profiles[] = {
 		.logo = { .steps = { { 0, 480 }, { K_START, 4 }, { 0, 50 } }, .layers = 0x14, .maxY = 90 },
 	},
 	{
-		/* Japan (Tactics Ogre Gaiden): the same (its title's lettering is
-		 * the USA one, 外伝 beside it); the list's cursor and page 0x4D4
-		 * lower (TO_JP), the field cursor's place its own (by romxref) */
+		/* Japan (Tactics Ogre Gaiden): the same in battle (its title's
+		 * lettering is the USA one, 外伝 beside it); the field cursor's place
+		 * its own (by romxref), R's menu's too (TO_MENU_UP); out of battle
+		 * not known (to_world: USA only) */
 		.codes = { "ATOJ" },
 		.title = "Tactics Ogre: The Knight of Lodis",
 		.composePages = to_compose,
