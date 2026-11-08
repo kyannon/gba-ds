@@ -4655,8 +4655,13 @@ static const MapProfile profiles[] = {
 			          { 150, 80, 239, 159, 0, 1023, 0, 0, 0, 1u << 0 } },
 			.layout = { { 0x0600C434, 0x03FF, 1, 2, true, 0x3FF, true } },
 			/* the course map (the hub's too) in the bottom-right corner,
-			 * twice as big in the middle (CNK-4) */
+			 * twice as big on every course (CNK-4): up to 62x62 (Velo's
+			 * Challenge), taller than Mario Kart's way allows at 2x (60 with
+			 * its margin), so at a fixed place: right of the faces, its
+			 * bottom at row 156 (the tallest from row 33, below the top
+			 * row's time and wumpa icon) */
 			.map = { 176, 90, 239, 159 },
+			.mapAt = { 2, 139, 156 },
 			/* the sky (BG3) and the scenery (BG1, BG2 above the horizon) */
 			.backdrop = 0xE,
 			.backdropRows = 70,

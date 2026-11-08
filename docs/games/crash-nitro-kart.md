@@ -22,7 +22,7 @@ The second screen follows [Mario Kart: Super Circuit](mario-kart-super-circuit.m
 
 **CNK-3. Driving: game screen.** The game screen keeps, where the game draws them: the item you hold (top centre), your place (bottom left), anything the HUD draws in the middle of the screen (the turn signs), and on the hub the name of the place you're driving towards (bottom centre).
 
-**CNK-4. Driving: second screen.** The second screen has the time, the wumpa count and the lap along the top (on the hub: the trophies and keys), the four leading racers' faces with their places down the left (not in Time Trial or on the hub, which have none), and the course map with every racer's dot, twice as big, in the middle, over a dimmed picture of the course's sky and scenery taken as the race starts.
+**CNK-4. Driving: second screen.** The second screen has the time, the wumpa count and the lap along the top (on the hub: the trophies and keys), the four leading racers' faces with their places down the left (not in Time Trial or on the hub, which have none), and the course map with every racer's dot, twice as big on every course (the tallest, Velo's Challenge, 62 rows: 124 of the 160), right of the faces, its bottom 3 rows above the screen's, over a dimmed picture of the course's sky and scenery taken as the race starts.
 
 **CNK-5. Results.** After the finish, RACE RANKINGS (the faces, names and times) is on the second screen, on the course's scenery, while the karts drive on on the game screen, until A takes the game on.
 
@@ -74,6 +74,6 @@ Changelog line (under the open version's What's new):
 
 The USA, European and Japanese releases.
 
-While driving (races, Time Trial and the Adventure hub), the game's HUD moves to the second screen, as in Mario Kart: Super Circuit: the time, wumpa fruit and lap along the top (on the hub, your trophies and keys), the four leaders' faces with their places down the left, and the course map with every racer's dot, twice as big, in the middle, over a dimmed picture of the course's sky and scenery. The item you're holding and your place stay on the game screen, where the game draws them, as do the turn signs and the countdown. After the finish, the race rankings are on the second screen while the karts drive on. Pausing keeps the last HUD on the second screen; TRY AGAIN, the title and the menus show the logo.
+While driving (races, Time Trial and the Adventure hub), the game's HUD moves to the second screen, as in Mario Kart: Super Circuit: the time, wumpa fruit and lap along the top (on the hub, your trophies and keys), the four leaders' faces with their places down the left, and the course map with every racer's dot, twice as big on every course (the tallest, Velo's Challenge, 62 rows: 124 of the 160), right of the faces, its bottom 3 rows above the screen's, over a dimmed picture of the course's sky and scenery. The item you're holding and your place stay on the game screen, where the game draws them, as do the turn signs and the countdown. After the finish, the race rankings are on the second screen while the karts drive on. Pausing keeps the last HUD on the second screen; TRY AGAIN, the title and the menus show the logo.
 
 Known issues: Adventure's boss races, CNK challenges, relic races and crystal arenas, Time Trial's results and link play haven't been tried yet.
