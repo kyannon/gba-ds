@@ -2313,6 +2313,762 @@
     ]
    ],
    "save": "ATOJ-scabellum-lv2.sav"
+  },
+  {
+   "id": "to-us-vespa-defeat",
+   "rom": "ATOE",
+   "state": "tactics-ogre/us-vespa-defeat.ss",
+   "desc": "a defeat made for the test (the owner's Vespa Hill end-turn state, Fermin set to 1 HP and swapped to the front with Kamui, End of Turn, the enemy's phase played in the harness): a second before Fermin falls: the logo through his fall and Game Over",
+   "rules": [
+    "TO-13",
+    "TO-14"
+   ],
+   "input": [
+    [
+     54,
+     "B"
+    ],
+    [
+     60,
+     "-"
+    ],
+    [
+     114,
+     "B"
+    ],
+    [
+     120,
+     "-"
+    ],
+    [
+     174,
+     "B"
+    ],
+    [
+     180,
+     "-"
+    ],
+    [
+     234,
+     "B"
+    ],
+    [
+     240,
+     "-"
+    ],
+    [
+     294,
+     "B"
+    ],
+    [
+     300,
+     "-"
+    ],
+    [
+     354,
+     "B"
+    ],
+    [
+     360,
+     "-"
+    ],
+    [
+     414,
+     "B"
+    ],
+    [
+     420,
+     "-"
+    ],
+    [
+     474,
+     "B"
+    ],
+    [
+     480,
+     "-"
+    ],
+    [
+     534,
+     "B"
+    ],
+    [
+     540,
+     "-"
+    ],
+    [
+     594,
+     "B"
+    ],
+    [
+     600,
+     "-"
+    ],
+    [
+     654,
+     "B"
+    ],
+    [
+     660,
+     "-"
+    ],
+    [
+     714,
+     "B"
+    ],
+    [
+     720,
+     "-"
+    ],
+    [
+     774,
+     "B"
+    ],
+    [
+     780,
+     "-"
+    ],
+    [
+     834,
+     "B"
+    ],
+    [
+     840,
+     "-"
+    ],
+    [
+     894,
+     "B"
+    ],
+    [
+     900,
+     "-"
+    ],
+    [
+     954,
+     "B"
+    ],
+    [
+     960,
+     "-"
+    ],
+    [
+     1014,
+     "B"
+    ],
+    [
+     1020,
+     "-"
+    ],
+    [
+     1074,
+     "B"
+    ],
+    [
+     1080,
+     "-"
+    ],
+    [
+     1134,
+     "B"
+    ],
+    [
+     1140,
+     "-"
+    ],
+    [
+     1194,
+     "B"
+    ],
+    [
+     1200,
+     "-"
+    ],
+    [
+     1254,
+     "B"
+    ],
+    [
+     1260,
+     "-"
+    ],
+    [
+     1314,
+     "B"
+    ],
+    [
+     1320,
+     "-"
+    ],
+    [
+     1374,
+     "B"
+    ],
+    [
+     1380,
+     "-"
+    ],
+    [
+     1434,
+     "B"
+    ],
+    [
+     1440,
+     "-"
+    ],
+    [
+     1494,
+     "B"
+    ],
+    [
+     1500,
+     "-"
+    ],
+    [
+     1554,
+     "B"
+    ],
+    [
+     1560,
+     "-"
+    ],
+    [
+     1614,
+     "B"
+    ],
+    [
+     1620,
+     "-"
+    ],
+    [
+     1674,
+     "B"
+    ],
+    [
+     1680,
+     "-"
+    ],
+    [
+     1734,
+     "B"
+    ],
+    [
+     1740,
+     "-"
+    ],
+    [
+     1794,
+     "B"
+    ],
+    [
+     1800,
+     "-"
+    ],
+    [
+     1854,
+     "B"
+    ],
+    [
+     1860,
+     "-"
+    ],
+    [
+     1914,
+     "B"
+    ],
+    [
+     1920,
+     "-"
+    ],
+    [
+     1974,
+     "B"
+    ],
+    [
+     1980,
+     "-"
+    ],
+    [
+     2034,
+     "B"
+    ],
+    [
+     2040,
+     "-"
+    ],
+    [
+     2094,
+     "B"
+    ],
+    [
+     2100,
+     "-"
+    ],
+    [
+     2154,
+     "B"
+    ],
+    [
+     2160,
+     "-"
+    ],
+    [
+     2214,
+     "B"
+    ],
+    [
+     2220,
+     "-"
+    ],
+    [
+     2274,
+     "B"
+    ],
+    [
+     2280,
+     "-"
+    ],
+    [
+     2334,
+     "B"
+    ],
+    [
+     2340,
+     "-"
+    ],
+    [
+     2394,
+     "B"
+    ],
+    [
+     2400,
+     "-"
+    ]
+   ],
+   "shots": {
+    "fall": 400,
+    "gameover": 1000
+   },
+   "checks": [
+    {
+     "rule": "TO-14",
+     "what": "the logo",
+     "type": "log",
+     "match": "frame [0-9]: logo only on"
+    },
+    {
+     "rule": "TO-14",
+     "what": "no picture through Game Over",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "rule": "TO-14",
+     "what": "and the logo never off",
+     "type": "no_log",
+     "match": "logo only off"
+    }
+   ]
+  },
+  {
+   "id": "to-us-training-setup",
+   "rom": "ATOE",
+   "state": "tactics-ogre/training-setup.ss",
+   "desc": "Training's setup (choosing units): the logo, nothing taken",
+   "rules": [
+    "TO-15"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "rule": "TO-15",
+     "what": "no picture",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "to-us-organize-to-training",
+   "rom": "ATOE",
+   "state": "tactics-ogre/organize.ss",
+   "desc": "Organize, B to the command bar, then Training (its setup): the logo from leaving Organize, through the setup",
+   "rules": [
+    "TO-12",
+    "TO-15"
+   ],
+   "input": [
+    [
+     150,
+     "B"
+    ],
+    [
+     156,
+     "-"
+    ],
+    [
+     300,
+     "RIGHT"
+    ],
+    [
+     306,
+     "-"
+    ],
+    [
+     330,
+     "A"
+    ],
+    [
+     336,
+     "-"
+    ]
+   ],
+   "shots": {
+    "setup": 600
+   },
+   "checks": [
+    {
+     "rule": "TO-15",
+     "what": "the logo once out of Organize",
+     "type": "log",
+     "match": "frame 1[5-9][0-9]: logo only on"
+    },
+    {
+     "rule": "TO-15",
+     "what": "no picture in the setup",
+     "type": "no_log",
+     "match": "frame ([2-9][0-9]{2}): map updated"
+    }
+   ]
+  },
+  {
+   "id": "to-us-shop",
+   "rom": "ATOE",
+   "state": "tactics-ogre/world-map-formido.ss",
+   "desc": "the world map (Formido's HELP), then R's menu and the shop: the logo from R's menu, through the shop",
+   "rules": [
+    "TO-10",
+    "TO-15"
+   ],
+   "input": [
+    [
+     250,
+     "R"
+    ],
+    [
+     256,
+     "-"
+    ],
+    [
+     290,
+     "RIGHT"
+    ],
+    [
+     296,
+     "-"
+    ],
+    [
+     316,
+     "RIGHT"
+    ],
+    [
+     322,
+     "-"
+    ],
+    [
+     352,
+     "A"
+    ],
+    [
+     358,
+     "-"
+    ],
+    [
+     710,
+     "A"
+    ],
+    [
+     716,
+     "-"
+    ]
+   ],
+   "shots": {
+    "map": 200,
+    "shop": 700,
+    "buy": 1000
+   },
+   "checks": [
+    {
+     "rule": "TO-10",
+     "what": "the HELP first",
+     "type": "log",
+     "match": "frame 1: map updated \\(1 frame"
+    },
+    {
+     "rule": "TO-15",
+     "what": "the logo as R's menu opens",
+     "type": "log",
+     "match": "frame (2[5-9][0-9]|3[0-9]{2}): logo only on"
+    },
+    {
+     "rule": "TO-15",
+     "what": "no picture in the shop",
+     "type": "no_log",
+     "match": "frame ([3-9][0-9]{2}|[0-9]{4}): map updated"
+    }
+   ]
+  },
+  {
+   "id": "to-jp-shop",
+   "rom": "ATOJ",
+   "state": "tactics-ogre/jp-world-map-scabellum-2.ss",
+   "desc": "Japan: the world map (Scabellum's HELP), the shop, then back out (B four times: the shop's menus, R's menu, the map): the logo in the shop (not the shop's own HELP, which SELECT would bring up there) and with R's menu open, the HELP again on the map",
+   "rules": [
+    "TO-10",
+    "TO-15"
+   ],
+   "input": [
+    [
+     250,
+     "R"
+    ],
+    [
+     256,
+     "-"
+    ],
+    [
+     290,
+     "RIGHT"
+    ],
+    [
+     296,
+     "-"
+    ],
+    [
+     316,
+     "RIGHT"
+    ],
+    [
+     322,
+     "-"
+    ],
+    [
+     352,
+     "A"
+    ],
+    [
+     358,
+     "-"
+    ],
+    [
+     710,
+     "A"
+    ],
+    [
+     716,
+     "-"
+    ],
+    [
+     1100,
+     "B"
+    ],
+    [
+     1106,
+     "-"
+    ],
+    [
+     1200,
+     "B"
+    ],
+    [
+     1206,
+     "-"
+    ],
+    [
+     1300,
+     "B"
+    ],
+    [
+     1306,
+     "-"
+    ],
+    [
+     1400,
+     "B"
+    ],
+    [
+     1406,
+     "-"
+    ]
+   ],
+   "shots": {
+    "map": 200,
+    "shop": 700,
+    "buy": 1000,
+    "menu": 1350,
+    "back": 1900
+   },
+   "checks": [
+    {
+     "rule": "TO-15",
+     "what": "the logo as R's menu opens",
+     "type": "log",
+     "match": "frame (2[5-9][0-9]|3[0-9]{2}): logo only on"
+    },
+    {
+     "rule": "TO-15",
+     "what": "no picture in the shop",
+     "type": "no_log",
+     "match": "frame ([4-9][0-9]{2}|10[0-9]{2}): map updated"
+    },
+    {
+     "rule": "TO-10",
+     "what": "the HELP again once back on the map",
+     "type": "log",
+     "match": "frame 1[4-8][0-9]{2}: map updated \\(1 frame"
+    }
+   ]
+  },
+  {
+   "id": "to-jp-memo",
+   "rom": "ATOJ",
+   "state": "tactics-ogre/jp-world-map.ss",
+   "desc": "Japan: the world map, then R's menu, the memo (\u304b\u307c\u3061\u3083\u30e1\u30e2), back, and Save's slots: the logo",
+   "rules": [
+    "TO-15"
+   ],
+   "input": [
+    [
+     250,
+     "R"
+    ],
+    [
+     256,
+     "-"
+    ],
+    [
+     290,
+     "RIGHT"
+    ],
+    [
+     296,
+     "-"
+    ],
+    [
+     316,
+     "RIGHT"
+    ],
+    [
+     322,
+     "-"
+    ],
+    [
+     352,
+     "A"
+    ],
+    [
+     358,
+     "-"
+    ],
+    [
+     650,
+     "B"
+    ],
+    [
+     656,
+     "-"
+    ],
+    [
+     700,
+     "B"
+    ],
+    [
+     706,
+     "-"
+    ],
+    [
+     800,
+     "R"
+    ],
+    [
+     806,
+     "-"
+    ],
+    [
+     920,
+     "A"
+    ],
+    [
+     926,
+     "-"
+    ]
+   ],
+   "shots": {
+    "memo": 600,
+    "save": 1150
+   },
+   "checks": [
+    {
+     "rule": "TO-15",
+     "what": "the logo",
+     "type": "log",
+     "match": "logo only on"
+    },
+    {
+     "rule": "TO-15",
+     "what": "no picture after R's menu",
+     "type": "no_log",
+     "match": "frame ([3-9][0-9]{2}|[0-9]{4}): map updated"
+    }
+   ]
+  },
+  {
+   "id": "to-jp-training-field",
+   "rom": "ATOJ",
+   "state": "tactics-ogre/jp-training-field.ss",
+   "desc": "Japan's Training (from the save's world map: Kybard and Aroz for Team A, Flauros for B; its NAVI messages dismissed), the cursor on Kybard: his details",
+   "rules": [
+    "TO-8"
+   ],
+   "shots": {
+    "details": 120
+   },
+   "checks": [
+    {
+     "rule": "TO-8",
+     "what": "the unit's details, three pages",
+     "type": "log",
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
+    }
+   ]
+  },
+  {
+   "id": "to-jp-training-empty",
+   "rom": "ATOJ",
+   "state": "tactics-ogre/jp-training-empty.ss",
+   "desc": "Japan's Training, the cursor on an empty square: the logo (no conditions in Training)",
+   "rules": [
+    "TO-9"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "TO-9",
+     "what": "the logo",
+     "type": "log",
+     "match": "logo only on"
+    },
+    {
+     "rule": "TO-9",
+     "what": "no page taken",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
   }
  ]
 }

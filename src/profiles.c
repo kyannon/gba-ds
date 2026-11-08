@@ -3363,7 +3363,10 @@ static uint32_t to_virt(Emu* e, uint32_t addr) {
 		if (!to_world(e) && (emu_read8(e, TO_PHASE(e)) & 0x80)) toAfterEnemy = 1;
 		/* (the battle won: the logo, TO-14; the next battle's first
 		 * picture ends it, as after the enemy's phase) */
-		if (!to_world(e) && emu_read8(e, TO_WON(e)) == 3) toAfterEnemy = 1;
+		{
+			int over = emu_read8(e, TO_WON(e)); /* (and lost: 1, from the leader's fall through Game Over) */
+			if (!to_world(e) && (over == 3 || over == 1)) toAfterEnemy = 1;
+		}
 		return toStale || toAfterEnemy;
 	}
 	if (addr == TO_V_KEY)
@@ -3570,6 +3573,12 @@ static bool to_world(Emu* s) {
 #define TO_HELP_Y0 16
 #define TO_HELP_X1 231
 #define TO_HELP_Y1 63
+/* the world map itself: its lion and the location's box at the bottom
+ * right (both releases; not a shop, whose own HELP SELECT would bring
+ * up: TO-12) */
+static const Probe toWorldMap[12] = { { 150, 120, 0x8770BD }, { 215, 122, 0xA1B742 }, { 185, 125, 0x211000 }, { 155, 128, 0xD3D94A },
+                                      { 215, 130, 0xDE9C00 }, { 185, 133, 0x393900 }, { 155, 136, 0x393900 }, { 222, 139, 0xF7EF00 },
+                                      { 237, 145, 0x393900 }, { 233, 151, 0x393900 }, { 203, 154, 0x393900 }, { 173, 157, 0x211000 } };
 static bool to_help_up(const uint32_t* fb) {
 	int n = 0, all = 0;
 	for (int x = TO_HELP_X0; x <= TO_HELP_X1; ++x) {
@@ -3591,6 +3600,7 @@ static bool to_help_up(const uint32_t* fb) {
  * map opens it; SELECT; the box alone, in the middle, on black */
 static const char* to_world_map(Emu* s, uint32_t* page, int* nOut) {
 	if (!to_help_up(s->fb)) {
+		if (!som_probes(s, toWorldMap, 12, 10, 8)) return "not the world map";
 		if (emu_read8(s, TO_WM_HOVER) == 0xFF) {
 			uint16_t oam[512];
 			emu_oam_read(s, oam);
