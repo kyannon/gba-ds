@@ -3509,6 +3509,7 @@ static uint32_t wl4_virt(Emu* e, uint32_t addr) {
 #define MMBN_STATE 0x02006CB8   /* gManager.gameState: 4 walking about, 8 battle, 0x18 a PET menu */
 #define MMBN_AREA 0x02000214    /* gWorld.currentArea (halfword) */
 #define MMBN_HP 0x0200022C      /* gWorld.hpCurrent, then hpMax */
+#define MMBN_ZENNY 0x02000284   /* gWorld.zenny (word) */
 #define MMBN_SMENU 0x0200ACF0   /* gStartMenu: state (+0, 4 open), cursor (+6) */
 #define MMBN_MENU 0x020062E0    /* gMenu: which (+0, 8 MegaMan), step (+1, 4 open) */
 #define MMBN_FADING 0x02006CB3  /* gFadeSettings.isFadeActive */
@@ -3552,10 +3553,25 @@ static const char* mmbn_compose(Emu* s, const void* state, uint32_t* out, int w,
 	if (emu_read8(s, MMBN_SMENU) != 4) return "START opened nothing";
 	aw_run(s, 0, 3); /* (drawn) */
 	if (emu_cancelled(s)) return "called off";
-	if (!som_probes(s, mmbnMoney, 8, 8, 8)) return "no money counter";
-	/* the counter's frame rows and inside, kept */
+	/* the counter's frame rows and inside, kept: from a frame drawn with
+	 * the menu's layer (BG0) alone (whatever is behind the counter, the
+	 * net's paths, a Navi walking by, shows through it in places) */
+	static uint8_t tmp[0x80000];
+	if (emu_state_size(s) > sizeof(tmp) || !emu_state_save(s, tmp)) return "state save failed";
+	emu_layers(s, 0x01);
+	emu_state_load(s, tmp); /* (the layers take effect as the display registers are loaded) */
+	emu_frame(s, 0);
 	static uint32_t money[32 * GBA_W];
 	memcpy(money, s->fb, sizeof(money));
+	emu_layers(s, 0x1F);
+	emu_state_load(s, tmp); /* every layer back on */
+	if (emu_cancelled(s)) return "called off";
+	for (int i = 0; i < 8; ++i) {
+		uint32_t c = money[mmbnMoney[i].y * GBA_W + mmbnMoney[i].x], want = mmbnMoney[i].rgb;
+		if (abs((int) (c & 0xFF) - (int) (want >> 16)) > 8 || abs((int) ((c >> 8) & 0xFF) - (int) ((want >> 8) & 0xFF)) > 8 ||
+		    abs((int) ((c >> 16) & 0xFF) - (int) (want & 0xFF)) > 8)
+			return "no money counter";
+	}
 	for (int i = 0; i < 8 && emu_read8(s, MMBN_SMENU + 6) != 2; ++i)
 		mmbn_tap(s, emu_read8(s, MMBN_SMENU + 6) < 2 ? K_DOWN : K_UP);
 	if (emu_read8(s, MMBN_SMENU + 6) != 2) return "MegaMan not reached in the menu";
@@ -3571,9 +3587,7 @@ static const char* mmbn_compose(Emu* s, const void* state, uint32_t* out, int w,
 	 * stats) from a frame drawn without BG2 there: the panel's grid (BG1) */
 	static uint32_t panel[MMBN_PANEL_ROWS * GBA_W];
 	memcpy(panel, s->fb, sizeof(panel));
-	/* (the layers take effect as the display registers are loaded) */
-	static uint8_t tmp[0x80000];
-	if (emu_state_size(s) > sizeof(tmp) || !emu_state_save(s, tmp)) return "state save failed";
+	if (!emu_state_save(s, tmp)) return "state save failed";
 	emu_layers(s, 0x1B);
 	emu_state_load(s, tmp);
 	emu_frame(s, 0);
@@ -5426,9 +5440,9 @@ static const MapProfile profiles[] = {
 		/* the title, a battle: the logo, the status forgotten (MMBN-1,
 		 * MMBN-3: an old HP never shown after a battle) */
 		.menu = { { MMBN_STATE, 0xFF, 0, 1, true, 8 } },
-		/* HP (back from a battle, a recovery), its maximum, the area:
+		/* HP (back from a battle, a recovery), its maximum, the area, the money:
 		 * taken again at once (MMBN-2) */
-		.room = { { MMBN_HP, 0xFFFF, 0, 2 }, { MMBN_HP + 2, 0xFFFF, 0, 2 }, { MMBN_AREA, 0xFFFF, 0, 2 } },
+		.room = { { MMBN_HP, 0xFFFF, 0, 2 }, { MMBN_HP + 2, 0xFFFF, 0, 2 }, { MMBN_AREA, 0xFFFF, 0, 2 }, { MMBN_ZENNY, 0, 0, 4 } },
 		/* the title's lettering and emblem (BG3), above PRESS START */
 		.logo = { .wait = 400, .layers = 0x8, .maxY = 96 },
 		.hud = {
@@ -5440,8 +5454,11 @@ static const MapProfile profiles[] = {
 			        { 0x0400001C, 0x1FF, 0x100, 2, true, 0x1FF, true } },
 			/* the custom screen and the HP box beside it */
 			.bgMask = 0x8,
-			/* its cursor (priority 0; the field's sprites are 2) */
-			.objs = { { -256, -256, 511, 255, 0, 1023, 0 } },
+			/* its cursor (priority 0, palette 13; the field's sprites
+			 * are 2), and the tutorials' arrows (the same) where they
+			 * point into it; not their arrows over the field, or the
+			 * teacher's portrait by her message (priority 0, palette 14) */
+			.objs = { { -256, -256, 119, 255, 0, 1023, 0, 1u << 13 } },
 			/* on black (GEN-1), with no logo: the custom screen fills
 			 * the screen's height, the logo has no room below it */
 			.logoBelow = true,

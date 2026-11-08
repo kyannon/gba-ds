@@ -596,6 +596,81 @@
    ]
   },
   {
+   "id": "mmbn-us-net-path-behind",
+   "rom": "AREE",
+   "state": "mega-man-battle-network/us-net-path-behind-money.ss",
+   "desc": "MegaMan further down the net's path, which runs behind the START menu's money counter in the game: the counter taken without it (no lighter grey showing through)",
+   "rules": [
+    "MMBN-2"
+   ],
+   "shots": {
+    "status": 90
+   },
+   "checks": [
+    {
+     "rule": "MMBN-2",
+     "what": "MegaMan's status taken",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "MMBN-2",
+     "what": "the money counter's row plain left of the amount",
+     "type": "uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      740,
+      148,
+      780,
+      236
+     ],
+     "color": "4A5A63"
+    }
+   ]
+  },
+  {
+   "id": "mmbn-us-tutorial-message",
+   "rom": "AREE",
+   "state": "mega-man-battle-network/us-tutorial-message.ss",
+   "desc": "the first tutorial battle's custom screen with the teacher's message (the owner's state): the custom screen on the second screen; her message and portrait together on the game screen",
+   "rules": [
+    "MMBN-4"
+   ],
+   "shots": {
+    "message": 20
+   },
+   "checks": [
+    {
+     "rule": "MMBN-4",
+     "what": "the portrait by her message on the game screen",
+     "type": "not_uniform",
+     "shot": "message",
+     "screen": "game",
+     "rect": [
+      100,
+      490,
+      260,
+      660
+     ],
+     "color": "FFFFFF"
+    }
+   ]
+  },
+  {
+   "id": "mmbn-us-tutorial-arrows",
+   "rom": "AREE",
+   "state": "mega-man-battle-network/us-tutorial-arrows.ss",
+   "desc": "the first tutorial battle's custom screen with the teacher's arrows over the viruses (the owner's state): the arrows stay over the viruses on the game screen",
+   "rules": [
+    "MMBN-4"
+   ],
+   "shots": {
+    "arrows": 20
+   },
+   "checks": []
+  },
+  {
    "id": "mmbn-logo-aree",
    "kind": "logo",
    "rom": "AREE",
