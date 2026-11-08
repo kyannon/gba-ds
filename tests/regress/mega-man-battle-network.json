@@ -671,6 +671,59 @@
    "checks": []
   },
   {
+   "id": "mmbn-us-tutorial-talk",
+   "rom": "AREE",
+   "state": "mega-man-battle-network/us-tutorial-talk-over-custom.ss",
+   "desc": "the first tutorial battle, the teacher's arrows pointing into the custom screen, then her talking over it (the battle's step already 8; the owner's state): the custom screen with the arrows on the second screen throughout, her message on the game screen",
+   "rules": [
+    "MMBN-4"
+   ],
+   "shots": {
+    "arrows": 5,
+    "talking": 40,
+    "talking2": 200
+   },
+   "checks": [
+    {
+     "rule": "MMBN-4",
+     "what": "the custom screen still on the second screen while she talks",
+     "type": "same",
+     "a": {
+      "shot": "talking",
+      "rect": [
+       32,
+       64,
+       511,
+       703
+      ]
+     },
+     "b": {
+      "shot": "talking2",
+      "rect": [
+       32,
+       64,
+       511,
+       703
+      ]
+     }
+    },
+    {
+     "rule": "MMBN-4",
+     "what": "not the logo",
+     "type": "uniform",
+     "shot": "talking2",
+     "screen": "second",
+     "rect": [
+      740,
+      300,
+      991,
+      703
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
    "id": "mmbn-logo-aree",
    "kind": "logo",
    "rom": "AREE",

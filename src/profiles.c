@@ -5446,12 +5446,15 @@ static const MapProfile profiles[] = {
 		/* the title's lettering and emblem (BG3), above PRESS START */
 		.logo = { .wait = 400, .layers = 0x8, .maxY = 96 },
 		.hud = {
-			/* in a battle's custom screen step, while the custom
-			 * screen is in (BG3HOFS 0x188 in place, sliding from and
-			 * back to 0, where the HP box is at the top left while
-			 * fighting; the results slide in from 0xF0: MMBN-4) */
-			.on = { { MMBN_STATE, 0xFF, 8, 1 }, { MMBN_BATTLE + 1, 0xFF, 4, 1 },
-			        { 0x0400001C, 0x1FF, 0x100, 2, true, 0x1FF, true } },
+			/* in a battle, while the custom screen is in: BG3HOFS
+			 * 0x188 in place, sliding from and back to 0 in steps of 8
+			 * (0 while fighting, the HP box at the top left; the
+			 * results slide in from 0xF0). Not the battle's step: in
+			 * the tutorials the custom screen stays up, the teacher
+			 * talking over it, after the step has gone on to 8
+			 * (MMBN-4) */
+			.on = { { MMBN_STATE, 0xFF, 8, 1 }, { 0x0400001C, 0x1FF, 0x188, 2, true, 0x1F8, true },
+			        { 0x0400001C, 0x7, 0, 2 } },
 			/* the custom screen and the HP box beside it */
 			.bgMask = 0x8,
 			/* its cursor (priority 0, palette 13; the field's sprites
