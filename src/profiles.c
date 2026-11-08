@@ -3852,6 +3852,10 @@ static uint32_t wl4_virt(Emu* e, uint32_t addr) {
  * world 6 10, SCORE 12); 0 on the levels' rows too */
 #define SM3_TAB 0x03002E92
 #define SM3_TAB_SCORE 12
+/* the panel's score page up: 1 from SCORE picked, 2 as the bar slides
+ * in and as the cards turn back, 0 once they're back (beside the hand's
+ * own fields) */
+#define SM3_SCORE_UP 0x03002ECF
 /* each level's score (12 bytes a world, 100 = 0x64), and what follows
  * them (the worlds' totals): what the score page shows */
 #define SM3_SCORES 0x03006B08
@@ -3865,8 +3869,22 @@ static uint32_t wl4_virt(Emu* e, uint32_t addr) {
  * where it's drawn, round an item slot, is black otherwise */
 #define SM3_CURSOR_PAL 0x0500003C
 #define SM3_CURSOR_MAGENTA 0x7C1F
-/* the item row, the only place it's drawn */
+/* the item row, the only place it's drawn: four slots, 24 pixels apart
+ * from x 132, the cursor's ring 24 wide over the slot's white frame */
 #define SM3_ITEMS_Y0 124
+#define SM3_SLOT0_X 132
+#define SM3_SLOT_STEP 24
+#define SM3_SLOTS 4
+/* what the cursor's tiles change on slot 0 (slot k: 24k to the right) */
+#define SM3_RING_X0 131
+#define SM3_RING_W 26
+#define SM3_RING_Y0 131
+#define SM3_RING_Y1 156
+/* the red arrows beside the slots (more items that way), 8 x 10 on the
+ * bar's white, at x 122 and 230 from row 139 */
+#define SM3_ARROW_L_X 122
+#define SM3_ARROW_R_X 230
+#define SM3_ARROW_Y0 139
 /* the score page's GBA box with #1 (another menu), at the panel's bottom
  * right in every world and release, painted over with the panel's colour,
  * taken from beside the cards (SM3-3) */
@@ -3927,7 +3945,8 @@ static bool sm3_status(Emu* s) {
 }
 
 /* SM3-1, SM3-2: SELECT; once the status screen is up and its fade-in done
- * (its palette still for 4 frames), with the item cursor black */
+ * (its palette still for 4 frames), without the item cursor and the
+ * arrows */
 static const char* sm3_status_page(Emu* s, uint32_t* out, int w, int h) {
 	if (sm3_status(s)) return "screen already looks like the map";
 	sm3_tap(s, K_SELECT, 1);
@@ -3970,22 +3989,108 @@ static const char* sm3_status_page(Emu* s, uint32_t* out, int w, int h) {
 	/* (the whole picture from the frame as the game runs on: drawn again
 	 * from a loaded state, its sprites can be missing, depending on the
 	 * moment) */
-	static uint32_t bg3[GBA_W * GBA_H], whole[GBA_W * GBA_H];
+	static uint32_t bg3[GBA_W * GBA_H], whole[GBA_W * GBA_H], moved[GBA_W * GBA_H];
 	emu_frame(s, 0);
 	memcpy(whole, s->fb, sizeof(whole));
-	uint16_t c = emu_read16(s, SM3_CURSOR_PAL);
+	uint16_t cc = emu_read16(s, SM3_CURSOR_PAL);
 	emu_layers(s, 0x08);
 	emu_state_load(s, st);
 	emu_frame(s, 0);
 	memcpy(bg3, s->fb, sizeof(bg3));
 	emu_layers(s, 0x1F);
-	free(st);
-	uint32_t r = c & 31, g = (c >> 5) & 31, b = (c >> 10) & 31;
+	uint32_t r = cc & 31, g = (cc >> 5) & 31, b = (cc >> 10) & 31;
 	uint32_t rgb = ((r << 3 | r >> 2) << 16) | ((g << 3 | g >> 2) << 8) | (b << 3 | b >> 2);
+	/* the cursor's ring: where BG3 alone has its colour and the whole
+	 * picture too (no item over it), in the item row */
+	int cx0 = GBA_W, cx1 = -1, cy0 = GBA_H, cy1 = -1;
+	for (int y = SM3_ITEMS_Y0; y < GBA_H; ++y) {
+		for (int x = SM3_SLOT0_X; x < GBA_W; ++x) {
+			if (!sm3_rgb(bg3, x, y, rgb) || !sm3_rgb(whole, x, y, rgb)) continue;
+			if (x < cx0) cx0 = x;
+			if (x > cx1) cx1 = x;
+			if (y < cy0) cy0 = y;
+			if (y > cy1) cy1 = y;
+		}
+	}
+	/* The slot under it, as the game draws a slot the cursor isn't on.
+	 * The cursor's tiles on slot k change x 131 + 24k to 156 + 24k, rows
+	 * 131-156 (a column more than its dots on each side), so two slots'
+	 * share their two columns of the separator between them. The cursor
+	 * is moved two slots over (no scrolling; the other way if it can't
+	 * go that way) and BG3 alone drawn again: in slot c's area, where
+	 * that differs, it's the slot as the game draws it (its white frame,
+	 * the black round it, the bar's zigzag). Moved only one slot (two or
+	 * three items), the shared columns come from another separator with
+	 * no cursor by it; with one item it can't move, and the slot comes
+	 * from the next one, its left edge from the bar beside it. (The
+	 * slots differ at their edges, the first against the bar, so one
+	 * slot can't stand in for another whole.) */
+	int c = cx1 >= 0 ? (cx0 - SM3_SLOT0_X) / SM3_SLOT_STEP : -1, m = c;
+	for (int tries = 0; c >= 0 && m == c && tries < 2; ++tries) {
+		bool right = (c < SM3_SLOTS / 2) != (tries == 1);
+		emu_state_load(s, st);
+		sm3_tap(s, right ? K_RIGHT : K_LEFT, 2);
+		if (!sm3_status(s)) {
+			free(st);
+			return "the status screen closed";
+		}
+		uint8_t* st2 = malloc(n);
+		if (!st2 || !emu_state_save(s, st2)) {
+			free(st2);
+			break;
+		}
+		emu_layers(s, 0x08);
+		emu_state_load(s, st2);
+		emu_frame(s, 0);
+		memcpy(moved, s->fb, sizeof(moved));
+		emu_layers(s, 0x1F);
+		free(st2);
+		/* where it went: the other slot whose ring differs (its colour
+		 * may change on the frame drawn) */
+		int most = 20;
+		for (int k = 0; k < SM3_SLOTS; ++k) {
+			if (k == c) continue;
+			int x0 = SM3_RING_X0 + SM3_SLOT_STEP * k + 2, x1 = x0 + SM3_RING_W - 5, diff = 0;
+			for (int y = SM3_RING_Y0; y <= SM3_RING_Y1; ++y) {
+				for (int x = x0; x <= x1; ++x) diff += bg3[y * GBA_W + x] != moved[y * GBA_W + x];
+			}
+			if (diff > most) most = diff, m = k;
+		}
+	}
+	free(st);
+	int rx0 = SM3_RING_X0 + SM3_SLOT_STEP * c, rx1 = rx0 + SM3_RING_W - 1;
+	int mx0 = SM3_RING_X0 + SM3_SLOT_STEP * m, mx1 = mx0 + SM3_RING_W - 1;
+	/* a separator with no cursor by it: not c - 1 | c, nor c | c + 1 */
+	int sep = c >= 2 ? 0 : c + 1;
+	uint32_t white[2] = { whole[SM3_ARROW_Y0 * GBA_W + SM3_ARROW_L_X - 1], whole[SM3_ARROW_Y0 * GBA_W + SM3_ARROW_R_X + 8] };
 	for (int y = 0; y < h && y < GBA_H; ++y) {
 		for (int x = 0; x < w && x < GBA_W; ++x) {
 			uint32_t px = whole[y * GBA_W + x];
-			if (y >= SM3_ITEMS_Y0 && sm3_rgb(bg3, x, y, rgb) && sm3_rgb(whole, x, y, rgb)) px = (px & 0xFF000000u) | 0;
+			if (c >= 0 && y >= SM3_RING_Y0 && y <= SM3_RING_Y1 && x >= rx0 && x <= rx1) {
+				int sx = x, sy = y;
+				const uint32_t* from = whole;
+				if (m == c) {
+					/* one item: the next slot (where BG3 differs: not
+					 * the item inside); the first's left edge, the bar */
+					sx = c < SM3_SLOTS - 1 ? x + SM3_SLOT_STEP : x - SM3_SLOT_STEP;
+					if (c == 0 && x < SM3_RING_X0 + 2) sx = y < SM3_RING_Y0 + 2 || y > SM3_RING_Y1 - 2 ? x - 8 : SM3_RING_X0 - 1;
+					if (bg3[y * GBA_W + x] == bg3[sy * GBA_W + sx]) sx = x;
+				} else if (x >= mx0 && x <= mx1) {
+					/* the columns shared with where it went: another
+					 * separator's */
+					int at = (x - (SM3_RING_X0 + SM3_SLOT_STEP)) / SM3_SLOT_STEP;
+					sx = x + SM3_SLOT_STEP * (sep - at);
+				} else if (bg3[y * GBA_W + x] != moved[y * GBA_W + x]) {
+					from = moved;
+				}
+				px = (from[sy * GBA_W + sx] & 0xFFFFFF) | (px & 0xFF000000u);
+			}
+			/* the arrows (more items to the left or right): the bar's
+			 * white */
+			if (y >= SM3_ARROW_Y0 && y < SM3_ARROW_Y0 + 10) {
+				if (x >= SM3_ARROW_L_X && x < SM3_ARROW_L_X + 8) px = white[0];
+				if (x >= SM3_ARROW_R_X && x < SM3_ARROW_R_X + 8) px = white[1];
+			}
 			out[y * w + x] = px;
 		}
 	}
@@ -5492,6 +5597,12 @@ static const MapProfile profiles[] = {
 		/* the title, game select, file menu, opening, island map, a bonus
 		 * game, Mario Bros.: the logo (SM3-4) */
 		.menu = { { SM3_V_MENU, 0, 1, 1 } },
+		/* the game screen showing the status screen (its display set)
+		 * or a world's score page (from SCORE picked until the cards
+		 * have turned back): the logo, not the same on both (SM3-1,
+		 * SM3-3); the picture back after */
+		.logoIf = { { 0x04000000, 0xFFFF, SM3_STATUS_DISP, 2 }, { 0x0400000E, 0xFFFF, SM3_STATUS_BG3, 2 } },
+		.logoIfOr = { { SM3_SCREEN, 0xFF, SM3_ON_PANEL, 1 }, { SM3_SCORE_UP, 0xFF, 1, 1, true, 2, true } },
 		/* into a level or back to the panel, or another world's panel
 		 * picked: taken again at once */
 		.room = { { SM3_SCREEN, 0, 0, 1 }, { SM3_WORLD, 0, 0, 1 } },
