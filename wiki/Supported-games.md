@@ -38,7 +38,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Super Mario Advance 3: Yoshi's Island | `A3AE` `A3AP` `A3AJ` | the status screen in levels; a world's score page on its panel; optional SNES layout |
 | Super Mario Advance 4: Super Mario Bros. 3 | `AX4E` `AX4P` `AX4J` | the item inventory and status bar on the world map; the status bar and P meter in levels |
 | Sword of Mana (Shinyaku Seiken Densetsu in Japan) | `AVSE` `AVSY` (Spanish, Italian) `AVSJ` | the Status screen |
-| Tactics Ogre: The Knight of Lodis (Tactics Ogre Gaiden in Japan) | `ATOE` `ATOJ` (no European release) | the battle's unit list, on the unit under your cursor |
+| Tactics Ogre: The Knight of Lodis (Tactics Ogre Gaiden in Japan) | `ATOE` `ATOJ` (no European release) | in battle, the details of the unit under your cursor (on an empty square, the battle's conditions); on the world map, the location's HELP; in Organize, the unit's details |
 | Tony Hawk's Pro Skater 2 (SK8 in Japan) | `ATHE` (USA and Europe) `ATHF` `ATHD` `ATHJ` | the goal sheet for the current run |
 | Tony Hawk's Pro Skater 3 | `AT3E` (USA and Europe) `AT3F` `AT3D` | the goal list; optional four-button layout |
 | Wario Land 4 (Wario Land Advance in Japan) | `AWAE` (USA and Europe) `AWAJ` | in levels: the pause screen, with the hearts, money, coins and the treasures found; in boss fights: the HUD |
@@ -368,10 +368,13 @@ Profile contributed by LucasAlexandrou.
 
 The USA and Japanese (Tactics Ogre Gaiden) releases have both been tried.
 
-- **In a battle,** the second screen shows the battle's unit list (R, View List), with its cursor on the unit your cursor is on in the field, yours or the enemy's (on an empty square, your leader). It follows as soon as your cursor stops on another square.
-- **Its pages** (the ones START turns through: level, HP, MP, element, the bars, side) change every 2.5 seconds. Its R SEARCH and START:DATA prompts are left out, as those buttons don't work there.
-- It's brought up in the background on a silent copy of the game; your game is never paused or touched. While a unit moves or acts, on the enemy's turn and in scenes, the last pictures stay.
-- On the title screen, the second screen shows the logo.
+- **In a battle,** with your cursor on a unit (yours, a guest or the enemy's), the second screen shows its details, the screen B opens on it: three pages, 2.5 seconds each (stats, element, alignment, equipment and talents; the talents' costs; the Emblems). An enemy's are in the game's green. It follows as soon as your cursor stops on another square. Its START:DATA label and blinking arrows are left out.
+- **On an empty square,** nothing about a unit: the battle's Winning Condition at the top, its Losing Condition at the bottom and the place's name in the middle, on black. Training has no conditions, so there it's the logo.
+- It's brought up in the background on a silent copy of the game; your game is never paused or touched. While a unit moves or acts and in scenes, the last pictures stay. During the enemy's phase, the logo, until your next turn starts; and once the battle is won or lost (Training and Quest Mode too), through Congratulations! (or Game Over) and the scene after.
+- **On the world map**, the HELP text SELECT opens on the location under your cursor, or on where your army is when the cursor is between locations, in the middle of a black screen.
+- **In Organize**, the details of the unit under your cursor, their three pages in turn.
+- Out of battle, where there's nothing to show (the world map's command bar and other menus, shops, Training's setup, Organize's own menu, the opening and the ending), the logo.
+- Not tried yet: persuasion, the Japanese release's Quest Mode and suspended battles, and link-cable play.
 
 ## Tony Hawk's Pro Skater 2
 
