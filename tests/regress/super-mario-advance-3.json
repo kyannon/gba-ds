@@ -1012,6 +1012,279 @@
      "color": "EFB5B5"
     }
    ]
+  },
+  {
+   "id": "sm3-us-snes-pick",
+   "rom": "A3AE",
+   "state": "super-mario-advance-3/us-level-6-7.ss",
+   "desc": "tapping SNES under Controls in the quick bar",
+   "rules": [
+    "SM3-7"
+   ],
+   "input": [
+    [
+     90,
+     "SWIPE:0.5,0.99,0.5,0.85"
+    ],
+    [
+     110,
+     "TAP:0.627,0.836"
+    ]
+   ],
+   "shots": {
+    "before": 105,
+    "after": 140
+   },
+   "golden": [],
+   "checks": [
+    {
+     "rule": "SM3-7",
+     "what": "SNES is selected after the tap",
+     "type": "differs",
+     "a": {
+      "shot": "before",
+      "rect": [
+       602,
+       476,
+       682,
+       556
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       602,
+       476,
+       682,
+       556
+      ]
+     },
+     "frac": 0.2
+    },
+    {
+     "rule": "SM3-7",
+     "what": "the layout switched to SNES",
+     "type": "log",
+     "match": "^frame \\d+: controls snes"
+    }
+   ]
+  },
+  {
+   "id": "sm3-us-snes-egg",
+   "rom": "A3AE",
+   "state": "super-mario-advance-3/us-opening-eggs.ss",
+   "desc": "SNES: the right face button aims an egg (GBA R)",
+   "rules": [
+    "SM3-7"
+   ],
+   "input": [
+    [
+     90,
+     "SWIPE:0.5,0.99,0.5,0.85"
+    ],
+    [
+     110,
+     "TAP:0.627,0.836"
+    ],
+    [
+     250,
+     "A"
+    ],
+    [
+     291,
+     "-"
+    ]
+   ],
+   "shots": {
+    "still": 240,
+    "aim": 290
+   },
+   "checks": [
+    {
+     "rule": "SM3-7",
+     "what": "the layout switched to SNES",
+     "type": "log",
+     "match": "^frame \\d+: controls snes"
+    },
+    {
+     "rule": "SM3-7",
+     "what": "the aiming cursor up (Yoshi stays on the ground: no jump)",
+     "type": "differs",
+     "a": {
+      "shot": "still",
+      "rect": [
+       32,
+       64,
+       991,
+       703
+      ],
+      "screen": "game"
+     },
+     "b": {
+      "shot": "aim",
+      "rect": [
+       32,
+       64,
+       991,
+       703
+      ],
+      "screen": "game"
+     },
+     "frac": 0.001
+    },
+    {
+     "rule": "SM3-7",
+     "what": "the aiming cursor's yellow",
+     "type": "pixels",
+     "shot": "aim",
+     "probes": [
+      [
+       576,
+       326,
+       "FFFF29"
+      ],
+      [
+       576,
+       328,
+       "FFFF29"
+      ]
+     ],
+     "screen": "game"
+    }
+   ],
+   "golden": []
+  },
+  {
+   "id": "sm3-us-snes-jump",
+   "rom": "A3AE",
+   "state": "super-mario-advance-3/us-opening-eggs.ss",
+   "desc": "SNES: the bottom face button jumps (GBA A)",
+   "rules": [
+    "SM3-7"
+   ],
+   "input": [
+    [
+     90,
+     "SWIPE:0.5,0.99,0.5,0.85"
+    ],
+    [
+     110,
+     "TAP:0.627,0.836"
+    ],
+    [
+     250,
+     "B"
+    ],
+    [
+     263,
+     "-"
+    ]
+   ],
+   "shots": {
+    "still": 240,
+    "jump": 262
+   },
+   "checks": [
+    {
+     "rule": "SM3-7",
+     "what": "the layout switched to SNES",
+     "type": "log",
+     "match": "^frame \\d+: controls snes"
+    },
+    {
+     "rule": "SM3-7",
+     "what": "Yoshi in the air",
+     "type": "differs",
+     "a": {
+      "shot": "still",
+      "rect": [
+       32,
+       64,
+       991,
+       703
+      ],
+      "screen": "game"
+     },
+     "b": {
+      "shot": "jump",
+      "rect": [
+       32,
+       64,
+       991,
+       703
+      ],
+      "screen": "game"
+     },
+     "frac": 0.001
+    }
+   ],
+   "golden": []
+  },
+  {
+   "id": "sm3-us-snes-panel",
+   "rom": "A3AE",
+   "state": "super-mario-advance-3/us-panel-w6.ss",
+   "desc": "SNES chosen, on a world's panel: the GBA layout there (the right face button, GBA A, picks the level)",
+   "rules": [
+    "SM3-7"
+   ],
+   "input": [
+    [
+     90,
+     "SWIPE:0.5,0.99,0.5,0.85"
+    ],
+    [
+     110,
+     "TAP:0.627,0.836"
+    ],
+    [
+     250,
+     "A"
+    ],
+    [
+     256,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 200,
+    "after": 400
+   },
+   "checks": [
+    {
+     "rule": "SM3-7",
+     "what": "the layout switched to SNES",
+     "type": "log",
+     "match": "^frame \\d+: controls snes"
+    },
+    {
+     "rule": "SM3-7",
+     "what": "the level picked (its tile turns)",
+     "type": "differs",
+     "a": {
+      "shot": "before",
+      "rect": [
+       32,
+       64,
+       991,
+       703
+      ],
+      "screen": "game"
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       32,
+       64,
+       991,
+       703
+      ],
+      "screen": "game"
+     },
+     "frac": 0.001
+    }
+   ],
+   "golden": []
   }
  ]
 }

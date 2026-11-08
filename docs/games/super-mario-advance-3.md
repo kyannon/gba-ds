@@ -28,6 +28,8 @@ Modelled on Super Mario Advance 2 ([SMA rules](super-mario-advance-2.md)) and 4 
 
 **SM3-6. The game screen as the game draws it.** Nothing is taken off the game screen: the star countdown, the eggs following Yoshi, message boxes and the pause box stay as they are.
 
+**SM3-7. SNES layout.** The quick bar (swiped up from the bottom of the touchscreen) has Controls above its status row: GBA or SNES, as for Super Mario Advance 2 (SMA-5). SNES puts the face buttons where the SNES game had them, by position: the bottom one jumps (GBA A), the left one sticks out the tongue (GBA B), the right one aims and throws an egg (GBA R), and both shoulders lock the aim (GBA L). The top one, which the SNES game left to the bonus games, throws eggs too. START pauses and SELECT opens the status screen in both layouts (as on the GBA; the SNES game had its items under START). The SNES layout is used in levels only: everywhere else (the menus, the island map, a world's panel, the bonus games, Mario Bros.) it's the GBA layout, where A picks and B goes back.
+
 ## Known issues
 
 - Every release is tried with a 100% file (a GameShark save of the USA release, `saves/A3AE-100-percent.sav`, made into Europe's and Japan's by changing the region letter in its blocks and their sums): in World 6's 6-7, paused, with the status screen open, on its panel, World 5's, the island map, the bonus game and Mario Bros. Not tried yet: a file part way through (scores under 100, levels not open yet), boss fights, Yoshi's transformations, Baby Mario floating off (the star countdown), the ending, the Virtual Console dumps.
@@ -37,7 +39,7 @@ Modelled on Super Mario Advance 2 ([SMA rules](super-mario-advance-2.md)) and 4 
 
 Changelog (under the open version, "New games"):
 
-- **Super Mario Advance 3: Yoshi's Island** (USA, Europe, Japan): in a level, the second screen shows the game's status screen (stars, red coins and flowers found, the level's high score, lives, coins and items), kept up to date about once a second; on a world's panel, that world's score page (every level's score and the world's total). The logo elsewhere.
+- **Super Mario Advance 3: Yoshi's Island** (USA, Europe, Japan): in a level, the second screen shows the game's status screen (stars, red coins and flowers found, the level's high score, lives, coins and items), kept up to date about once a second; on a world's panel, that world's score page (every level's score and the world's total). The logo elsewhere. Controls in the quick bar: GBA or SNES (the SNES game's buttons, in levels).
 
 `docs/games/README.md`'s table, prefix SM3, releases A3AE + 2.
 
@@ -55,3 +57,4 @@ The USA, European and Japanese releases.
 - **On a world's panel** (where you pick a level), it shows that world's **score page**, as SCORE shows it: every level's score and the world's total, over the map's scenery (without Yoshi, the levels' markers or the #1 box). It's taken again when you come back from a level or pick another world.
 - On the title, the file menu, the opening, the island map, the bonus games and in Mario Bros., the second screen shows the logo.
 - Nothing is taken off the game screen.
+- **Controls** in the quick bar: GBA or SNES. SNES puts the buttons where the SNES game had them, in levels: bottom jumps, left sticks out the tongue, right (and top) throws an egg, the shoulders lock the aim.

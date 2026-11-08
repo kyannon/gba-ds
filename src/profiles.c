@@ -5082,6 +5082,14 @@ static const MapProfile profiles[] = {
 		 * left out (SM3-5) */
 		.logo = { .steps = { { 0, 300 }, { K_START, 5 }, { 0, 200 }, { K_START, 5 }, { 0, 200 }, { K_A, 5 }, { 0, 360 } },
 		          .layer = 1, .maxY = 64 },
+		/* Controls GBA or SNES (SM3-7): the SNES game's buttons by
+		 * position, B bottom jumps (GBA A), Y left the tongue (GBA B), A
+		 * right and X top throw an egg (GBA R), both shoulders lock the aim
+		 * (GBA L); in a level only. No camera pan (`pan` 0). */
+		.controls = {
+			.snes = { .right = K_R, .bottom = K_A, .top = K_R, .left = K_B,
+			          .when = { { SM3_SCREEN, 0xFF, SM3_IN_LEVEL, 1 } } },
+		},
 	},
 	{
 		/* Mario & Luigi: Superstar Saga (USA; Europe and Japan, Mario &
