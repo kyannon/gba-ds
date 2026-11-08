@@ -7,6 +7,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Castlevania: Aria of Sorrow | `A2CE` `A2CP` `A2CJ` | map |
 | Castlevania: Circle of the Moon | `AAME` `AAMP` `AAMJ` | map, with the completion rate |
 | Castlevania: Harmony of Dissonance | `ACHE` `ACHP` `ACHJ` | map |
+| Crash Nitro Kart (Crash Bandicoot Bakusou! Nitro Cart in Japan) | `BCNE` `BCNP` `BCNJ` | the race HUD: time, wumpa fruit, lap, the leaders and the course map twice as big; the race rankings |
 | Dragon Ball Z: The Legacy of Goku | `ALGE` `ALGP` (no Japanese release) | the pause menu, with the HP and Ki bars (or the counter SELECT and flying show) in place of its options |
 | F-Zero: GP Legend (F-Zero: Falcon Densetsu in Japan) | `BFZE` `BFZP` `BFZJ` | the race HUD, with the course map twice as big |
 | F-Zero: Maximum Velocity (F-Zero for Game Boy Advance in Japan) | `AFZE` (USA and Europe) `AFZJ` (China: `AFZC`) | the race HUD, with the course map twice as big |
@@ -32,6 +33,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Spider-Man: Mysterio's Menace (Spider-Man: Mysterio no Kyoui in Japan) | `ASEE` (USA and Europe) `ASEJ` | the Select menu: the objective, password, suits, upgrades and web containers |
 | Summon Night: Swordcraft Story (Craft Sword Monogatari in Japan) | `AB4E` `AB4J` (no European release) | the Status screen, with where you are |
 | Summon Night: Swordcraft Story 2 (Craft Sword Monogatari 2 in Japan) | `BSKE` `BSKJ` (no European release) | the Status screen |
+| Super Mario Advance (Super Mario USA + Mario Brothers in Japan) | `AMAE` (USA and Europe) `AMAJ` | in levels: the status bar, and the course board with the Ace Coin percentage kept up to date |
 | Super Mario Advance 2: Super Mario World | `AA2E` `AA2P` `AA2J` | the SELECT menu on the world map; the status bar in levels; optional SNES layout |
 | Super Mario Advance 4: Super Mario Bros. 3 | `AX4E` `AX4P` `AX4J` | the item inventory and status bar on the world map; the status bar and P meter in levels |
 | Sword of Mana (Shinyaku Seiken Densetsu in Japan) | `AVSE` `AVSY` (Spanish, Italian) `AVSJ` | the Status screen |
@@ -66,6 +68,19 @@ The USA and European releases of both, and in Japan Game Boy Wars Advance 1+2, w
 - The map is shown with a border taken from the game's own menus (see [[Map screen surrounds and overlays]]).
 - **Circle of the Moon**'s map screen has no completion rate, so GBA DS copies the percentage shown after "RATE" on the game's pause screen onto the map: in the top-right corner, which stays clear of rooms even on a fully explored castle (the bottom-right corner is the fallback).
 - The Japanese Aria of Sorrow and Harmony of Dissonance keep their data at different addresses; GBA DS knows both.
+
+## Crash Nitro Kart
+
+The HUD is moved off the game screen rather than copied, as in Mario Kart: Super Circuit.
+
+- **Driving** (races, Time Trial and the Adventure hub):
+  - The game screen shows the track and the karts, with the **item** you hold (top centre) and your **place** (bottom left) where the game draws them, and the turn signs and the countdown.
+  - The second screen has the time, wumpa fruit and lap along the top (on the hub, your trophies and keys), the **top-four faces** with their places down the left, and the **course map** with every racer's dot, twice as big on every course.
+  - Behind it all is a dimmed picture of the course's own sky and scenery, captured once each race has faded in. (On the hub, whose sky is a plain colour, it's mostly dark.)
+- **After the finish**, RACE RANKINGS is shown on the second screen while the karts drive on, until you press A.
+- The game's **pause menu** stays on the game screen, with the last HUD on the second screen. TRY AGAIN, the title and the menus show the logo.
+- With one screen (`layout = single`), the HUD stays where the game draws it.
+- Not tried yet: Adventure's boss races, CNK challenges, relic races and crystal arenas, Time Trial's results, and link play.
 
 ## Dragon Ball Z: The Legacy of Goku
 
@@ -307,6 +322,14 @@ The USA release and the Japanese one (Craft Sword Monogatari 2); there was no Eu
 - Where the menu can't be opened (a conversation, a scene, the game's own menus), the last Status picture stays.
 - At the title, and from there until the first Status picture, the second screen shows the logo.
 - Only the start of the story has been tried so far; battles, shops and the forge are still to try.
+
+## Super Mario Advance
+
+- **In Super Mario Bros. 2's levels** (the Yoshi Challenge too), the status bar along the top (world and level, the level's Ace Coins, lives and score) moves to the top of the second screen, so the game screen shows the level there. The hearts stay by Mario on the game screen, and so does the pause box.
+- **Below the status bar** is the course board the game shows before each level: every level, starred once its five Ace Coins are found. It's kept from the moment the game shows it, trimmed a little at the top and bottom to fit. Its Ace Coin percentage is kept up to date as you find coins: it's taken from the pause screen in the background about once a second (in the pause screen's own, slightly smaller digits); your game is never paused. The level boxes are as they were before the level: a level's new star shows on the next board.
+- A state saved by GBA DS keeps the board. Loaded from an older state or another emulator, the logo is under the status bar until the next board.
+- **Everywhere else** (the title and menus, choosing a player, the board and level card before each level, the Bonus Chance, and the Mario Bros. arcade game) the second screen shows the logo, from the title screen.
+- The Japanese release (Super Mario USA + Mario Brothers) works the same.
 
 ## Super Mario Advance 2: Super Mario World
 

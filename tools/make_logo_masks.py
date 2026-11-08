@@ -197,9 +197,38 @@ def gs2_dial(a):
     return m | (ref & ok)
 
 
+def _from_edges(bgc):
+    """Everything not reached from the frame's edges through `bgc` pixels,
+    its specks dropped and holes filled, without single-pixel spurs."""
+    lab, _ = ndimage.label(bgc)
+    edge = set(np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]]))) - {0}
+    logo = ~np.isin(lab, list(edge))
+    lab2, n = ndimage.label(logo)
+    sizes = ndimage.sum(logo, lab2, range(1, n + 1))
+    keep = np.isin(lab2, [i + 1 for i, s in enumerate(sizes) if s >= 30])
+    keep = ndimage.binary_fill_holes(keep)
+    nb = ndimage.convolve(keep.astype(int), np.ones((3, 3), int), mode="constant") - keep
+    return keep & (nb >= 2)
+
+
+def cnk(a):
+    """Crash Nitro Kart (USA, Europe): the tyre, lettering, flame and TM over
+    a blue swirl. The swirl is blue with more green than red; the tyre is
+    lavender, with more red than green."""
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    return _from_edges((g > r) & (b >= r + 20))
+
+
+def cnk_jpn(a):
+    """Crash Bandicoot Bakusou! Nitro Cart (Japan): its tyre and lettering
+    over purple space (blue well above green, red at least green)."""
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    return _from_edges((b >= r + 20) & (b >= g + 30) & (r >= g))
+
+
 MASKS = (("THPS2", thps2), ("SK8", sk8), ("THPS3", thps3), ("DBZ", dbz),
          ("GS2E", gs2), ("GS2D", gs2_dial), ("GS2F", gs2_dial), ("GS2I", gs2), ("GS2S", gs2_dial),
-         ("GS2J", gs2))
+         ("GS2J", gs2), ("CNK", cnk), ("CNKJ", cnk_jpn))
 
 
 def runs(mask):
