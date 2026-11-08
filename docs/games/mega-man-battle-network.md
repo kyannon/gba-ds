@@ -6,13 +6,13 @@
 | Dumps | `AREE` cartridge `1d347971` (tested), Virtual Console `1d5d0cb6` · `AREP` cartridge `1a7fb4fa` (tested), Virtual Console `1a16c13d` · `AREJ` cartridge `d9516e50` (tested), Virtual Console `109f133b` |
 | Profile | `src/profiles.c`: the `AREE` entry (`mmbn_compose`); variants `AREP`, `AREJ` (its logo) |
 | Tests | `tests/regress/mega-man-battle-network.json` (`tools/regress.py mega-man-battle-network`) |
-| Status | testing (branch `game/mega-man-battle-network`) |
+| Status | supported |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list mega-man-battle-network`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.
 
 Every game also follows the [general rules](README.md#general-rules) (GEN-1 to GEN-7).
 
-How it fits the [philosophy](../../wiki/Philosophy.md): MegaMan's level, HP, armor and buster are shown outside a battle only on the PET's MegaMan screen, a few button presses away (principle 2: information the player would otherwise find in a menu). In a battle, the custom screen (where the chips are picked) covers MegaMan's half of the field; with a second screen it has a screen of its own, and the field is whole on the game screen (principle 1: the only change to the game screen is something taken off it that now has its own screen). Both are the game's own screens: the MegaMan screen and the PET menu's money counter opened on the hidden copy, the custom screen moved over as the game draws it (principles 3 and 4). One exception (see Exceptions): the money counter and the MegaMan screen's panel put together in one frame made from the counter's own orange edge, as Final Fantasy Tactics Advance's turn order and Laws are.
+How it fits the [philosophy](../../wiki/Philosophy.md): MegaMan's level, HP, armor and buster are shown outside a battle only on the PET's MegaMan screen, a few button presses away (principle 2: information the player would otherwise find in a menu). In a battle, the custom screen (where the chips are picked) covers MegaMan's half of the field; with a second screen it has a screen of its own, and the field is whole on the game screen (principle 1: the only change to the game screen is something taken off it that now has its own screen). Both are the game's own screens: the MegaMan screen and the PET menu's money counter opened on the hidden copy, the custom screen moved over as the game draws it (principles 3 and 4). Two exceptions (see Exceptions): the money counter and the MegaMan screen's panel put together in one frame made from the counter's own orange edge, as Final Fantasy Tactics Advance's turn order and Laws are; and the custom screen, a menu you pick from with its cursor, on the second screen (principle 2 keeps what you act on, and cursors, on the game screen).
 
 ## Rules
 
@@ -35,6 +35,7 @@ How it fits the [philosophy](../../wiki/Philosophy.md): MegaMan's level, HP, arm
 ## Exceptions
 
 - **MegaMan's status and money in one frame (MMBN-2).** The game shows them on two screens of the PET, the money in a small box on START's menu, the status on the MegaMan screen. On the second screen they're put together, the money counter's own orange frame taken off it and drawn again, from its own top and bottom edges, across the screen above and below both. The counter and the panel are as the game draws them, but for the counter's background, made the panel's top row's colour and carried across the counter's row; only the frame and that fill are new, and they're the game's own colours, so the whole still reads as the PET's. As Final Fantasy Tactics Advance's turn order and Laws (FT-9).
+- **The custom screen, with its cursor, on the second screen (MMBN-4).** Principle 2 keeps what you act on on the game screen and leaves cursors off the second. The custom screen is a menu you pick from, with its cursor, but it's also the one thing that hides MegaMan's half of the field: on its own screen, the whole field shows while you choose, and the game is paused while it's up, so there's nothing on the game screen to react to meanwhile. It's moved whole, as the game draws it, nothing of it left on the game screen and nothing of it shown twice. Checked on the device and kept (Nov 8, 2026).
 
 ## Not covered yet
 
@@ -59,27 +60,3 @@ The disassembly at github.com/Silenthal/bn1 (USA) names the RAM (its `ld_script.
 | Title | US / Europe: BG2 the grid, BG3 the lettering and emblem (rows 20-90), sprites PRESS START and the copyright. Japan: BG3 the logo on a blue (`52B5FF`) fill, the whole screen; sprites PRESS START BUTTON and the copyright. Up by frame 300 |
 | Saves | `saves/AREE-endgame-lv79-gameshark.sav` (MegaMan on the net, "Last Battle"), `AREE-endgame-lv100-gameshark.sav` (Lan's room), `AREP-endgame-lv100-gameshark.sav` (on the net) in the fixtures, from GameFAQs' GameShark saves (`tools/sharkport.py`, no `--magic`: SRAM, 64 KB, with `ROCKMAN EXE 20010727` in it, Europe `20010807`). The harness doesn't load a battery save: the states were saved by the app started with `--save_dir` (Continue on the file menu) |
 | Viruses' HP (for sessions) | the busted results came from `eu-battle-gauge-full.ss` with both Rattys' HP set to 1 (`poke 0x02006790 2 1`, `poke 0x02006850 2 1`), then the buster up and down a row |
-
-## For the merge
-
-Changelog line (under the open version's What's new):
-
-- Mega Man Battle Network (USA, Europe and Japan) is supported: walking about, the second screen shows MegaMan's status and money from the PET (his level, HP, armor and buster, and your zenny) in one frame; in battles, the custom screen moves to the second screen, so the battlefield is whole while you pick your chips.
-
-Wiki, `wiki/Supported-games.md` (table row and section):
-
-| Mega Man Battle Network | `AREE` `AREP` `AREJ` | MegaMan's status (HP, level, armor, buster) and money; the custom screen in battles |
-
-### Mega Man Battle Network
-
-The USA, European and Japanese (Battle Network Rockman EXE) releases.
-
-Walking about, in the real world or on the net, the second screen shows the PET's MegaMan screen with your money above it, kept up to date about once a second: MegaMan's level, his HP, his armor and his buster's Attack, Rapid and Charge, and the zenny counter from the PET's menu. They're put together in one frame drawn from the money counter's own orange edge; the MegaMan screen's question box and cursor are left out. In conversations, scenes, the PET's menus and shops it keeps the last picture.
-
-In a battle, the custom screen (where you pick the chips) slides in on the second screen instead of over the battlefield, with MegaMan's HP beside it, so the whole field shows on the game screen while you choose; you pick the chips with the buttons as usual. While fighting, the battle is on the game screen as the game draws it and the second screen shows the logo.
-
-Known issues: the tutorial battles and link-cable net battles haven't been tried.
-
-Philosophy page, `wiki/Philosophy.md` (rule 6's list of exceptions, after Final Fantasy Tactics Advance's):
-
-  - Mega Man Battle Network's status screen and money counter, from two of the PET's screens, in one frame made from the counter's own orange edge;

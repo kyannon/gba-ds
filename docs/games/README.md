@@ -44,6 +44,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Harvest Moon: Friends of Mineral Town (Bokujou Monogatari: Mineral Town no Nakama-tachi in Japan)](harvest-moon-friends-of-mineral-town.md) | HM | `A4NE` + 3 |
 | [Yu-Gi-Oh! The Eternal Duelist Soul (Yu-Gi-Oh! Duel Monsters 5 Expert 1 in Japan)](yu-gi-oh-the-eternal-duelist-soul.md) | EDS | `AY5E` + 1 |
 | [Wario Land 4 (Wario Land Advance in Japan)](wario-land-4.md) | WL4 | `AWAE` + 1 |
+| [Mega Man Battle Network (Battle Network Rockman EXE in Japan)](mega-man-battle-network.md) | MMBN | `AREE` + 2 |
 
 ## General rules
 
