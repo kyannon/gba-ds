@@ -342,8 +342,9 @@ The USA release and the Japanese one (Craft Sword Monogatari 2); there was no Eu
 
 The USA, European and Japanese releases.
 
-- **In a level,** the second screen shows the game's own **status screen** (SELECT): the world's points, the level's high score, the stars, red coins and flowers you've found in it, your points so far, and your lives, coins, stars and items. It's kept up to date about once a second. The item cursor is left out.
+- **In a level,** the second screen shows the game's own **status screen** (SELECT): the world's points, the level's high score, the stars, red coins and flowers you've found in it, your points so far, and your lives, coins, stars and items. It's kept up to date about once a second. The item cursor and the arrows beside the items are left out.
 - **On a world's panel** (where you pick a level), it shows that world's **score page**, as SCORE shows it: every level's score and the world's total, over the map's scenery (without Yoshi, the levels' markers or the #1 box). It's taken again when you come back from a level or pick another world.
+- While you have the status screen or the score page open on the game screen, the second screen shows the logo, so they're not on both screens.
 - On the title, the file menu, the opening, the island map, the bonus games and in Mario Bros., the second screen shows the logo.
 - Nothing is taken off the game screen.
 - An optional **SNES layout** is under **Controls** in the quick bar (swipe up from the bottom of the touchscreen): see [Playing](Playing#buttons).

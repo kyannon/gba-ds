@@ -97,24 +97,39 @@
     },
     {
      "rule": "SM3-2",
-     "what": "no item cursor round the first slot",
+     "what": "the first slot framed like the others (no item cursor), no arrow beside the items",
      "type": "pixels",
      "shot": "start",
      "probes": [
       [
-       562,
+       558,
+       626,
+       "FFFFFF"
+      ],
+      [
+       566,
        626,
        "000000"
       ],
       [
        570,
-       642,
+       626,
+       "FFFFFF"
+      ],
+      [
+       574,
+       594,
        "000000"
       ],
       [
-       594,
-       594,
-       "000000"
+       966,
+       638,
+       "FFFFFF"
+      ],
+      [
+       974,
+       646,
+       "FFFFFF"
       ]
      ]
     }
@@ -176,7 +191,7 @@
    "id": "sm3-us-level-status-open",
    "rom": "A3AE",
    "state": "super-mario-advance-3/us-level-6-7.ss",
-   "desc": "the status screen opened on the game screen: the last picture stays",
+   "desc": "the status screen opened on the game screen: the logo, the picture back once it's closed",
    "rules": [
     "SM3-1"
    ],
@@ -184,19 +199,47 @@
     [
      100,
      "LOAD:super-mario-advance-3/us-level-status.ss"
+    ],
+    [
+     240,
+     "SELECT"
+    ],
+    [
+     245,
+     "-"
     ]
    ],
    "shots": {
     "before": 90,
-    "open": 220
+    "open": 220,
+    "closed": 420
    },
    "golden": [
-    "open"
+    "open",
+    "closed"
    ],
    "checks": [
     {
      "rule": "SM3-1",
-     "what": "the second screen unchanged",
+     "what": "the logo while it's open",
+     "type": "pixels",
+     "shot": "open",
+     "probes": [
+      [
+       42,
+       74,
+       "303030"
+      ],
+      [
+       982,
+       694,
+       "303030"
+      ]
+     ]
+    },
+    {
+     "rule": "SM3-1",
+     "what": "the status screen back after",
      "type": "same",
      "a": {
       "shot": "before",
@@ -209,7 +252,7 @@
       "screen": "second"
      },
      "b": {
-      "shot": "open",
+      "shot": "closed",
       "rect": [
        32,
        64,
@@ -217,7 +260,8 @@
        703
       ],
       "screen": "second"
-     }
+     },
+     "frac": 0.01
     }
    ]
   },
@@ -325,19 +369,38 @@
    "id": "sm3-us-panel-score-shown",
    "rom": "A3AE",
    "state": "super-mario-advance-3/us-panel-score.ss",
-   "desc": "the game showing World 6's score page itself: that's what's taken",
+   "desc": "the game showing World 6's score page itself: the logo, the page back once it's closed (B)",
    "rules": [
     "SM3-3"
    ],
    "shots": {
-    "start": 60
+    "start": 60,
+    "closed": 500
    },
    "checks": [
     {
      "rule": "SM3-3",
-     "what": "the total bar's green",
+     "what": "the logo while the game shows the page",
      "type": "pixels",
      "shot": "start",
+     "probes": [
+      [
+       42,
+       74,
+       "303030"
+      ],
+      [
+       982,
+       694,
+       "303030"
+      ]
+     ]
+    },
+    {
+     "rule": "SM3-3",
+     "what": "the total bar's green",
+     "type": "pixels",
+     "shot": "closed",
      "probes": [
       [
        114,
@@ -355,7 +418,7 @@
      "rule": "SM3-3",
      "what": "the #1 box painted over with the panel's colour",
      "type": "uniform",
-     "shot": "start",
+     "shot": "closed",
      "rect": [
       780,
       300,
@@ -364,6 +427,20 @@
      ],
      "color": "EFB5B5"
     }
+   ],
+   "input": [
+    [
+     100,
+     "B"
+    ],
+    [
+     105,
+     "-"
+    ]
+   ],
+   "golden": [
+    "start",
+    "closed"
    ]
   },
   {
@@ -823,24 +900,39 @@
     },
     {
      "rule": "SM3-2",
-     "what": "no item cursor round the first slot",
+     "what": "the first slot framed like the others (no item cursor), no arrow beside the items",
      "type": "pixels",
      "shot": "start",
      "probes": [
       [
-       562,
+       558,
+       626,
+       "FFFFFF"
+      ],
+      [
+       566,
        626,
        "000000"
       ],
       [
        570,
-       642,
+       626,
+       "FFFFFF"
+      ],
+      [
+       574,
+       594,
        "000000"
       ],
       [
-       594,
-       594,
-       "000000"
+       966,
+       638,
+       "FFFFFF"
+      ],
+      [
+       974,
+       646,
+       "FFFFFF"
       ]
      ]
     }
@@ -945,24 +1037,39 @@
     },
     {
      "rule": "SM3-2",
-     "what": "no item cursor round the first slot",
+     "what": "the first slot framed like the others (no item cursor), no arrow beside the items",
      "type": "pixels",
      "shot": "start",
      "probes": [
       [
-       562,
+       558,
+       626,
+       "FFFFFF"
+      ],
+      [
+       566,
        626,
        "000000"
       ],
       [
        570,
-       642,
+       626,
+       "FFFFFF"
+      ],
+      [
+       574,
+       594,
        "000000"
       ],
       [
-       594,
-       594,
-       "000000"
+       966,
+       638,
+       "FFFFFF"
+      ],
+      [
+       974,
+       646,
+       "FFFFFF"
       ]
      ]
     }
