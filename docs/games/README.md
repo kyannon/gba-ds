@@ -13,6 +13,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Tony Hawk's Pro Skater 2](tony-hawks-pro-skater-2.md) | TH2 | `ATHE` + 3 |
 | [Mario Kart: Super Circuit](mario-kart-super-circuit.md) | MK | `AMKE` + 2 |
 | [Tony Hawk's Pro Skater 3](tony-hawks-pro-skater-3.md) | TH3 | `AT3E` + 2 |
+| [Super Mario Advance (Super Mario Advance: Super Mario USA + Mario Brothers in Japan)](super-mario-advance.md) | SMB2 | `AMAE` + 1 |
 | [Super Mario Advance 2: Super Mario World](super-mario-advance-2.md) | SMA | `AA2E` + 2 |
 | [Super Mario Advance 4: Super Mario Bros. 3](super-mario-advance-4.md) | SM4 | `AX4E` + 2 |
 | [Final Fantasy Tactics Advance](final-fantasy-tactics-advance.md) | FT | `AFXE` + 2 |

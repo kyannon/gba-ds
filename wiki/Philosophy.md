@@ -72,6 +72,7 @@ What this means in practice:
   - Pokémon Pinball's and Sonic Pinball Party's tables spread over both screens as one tall view;
   - Mario Kart's and the F-Zero games' race screen course maps, drawn larger than the game's;
   - Super Mario Advance 2's level name moved above its status bar;
+  - Super Mario Advance's course board, shown before each level, kept under the status bar through the level: trimmed at the top and bottom to fit, with its Ace Coin percentage taken from the pause screen;
   - River City Ransom EX's Status screen on a plain blue background (one of the game's own pause colours) instead of the tinted street behind it;
   - Dragon Ball Z: The Legacy of Goku's logo, whose Z is drawn again in the game's own colours where the title screen paints Goku's hair over it;
   - a game's own window rearranged where there's no other way to show all of what it holds on one GBA screen, as the game would let the player see it by scrolling: its list split into columns, its heading bar or frame made wider from its own end and middle pieces, its own transparency kept over the background it sits on (Final Fantasy Tactics Advance's turn order in two columns, with the Laws below).
