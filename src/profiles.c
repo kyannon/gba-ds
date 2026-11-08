@@ -3339,10 +3339,12 @@ static volatile uint32_t toNoAimsAt;
  * picture is taken again, TO-12: a capture failed after the last picture
  * came from the world map or Organize), or the enemy's phase (TO-13) */
 #define TO_V_STALE 0xF0000032
-/* the battle won: 3 from as the last blow's EXP box clears, through
- * Congratulations! and the scene after (0 in a battle, its scenes, out
- * of battle). USA: Japan's isn't known (no state of a victory) */
-#define TO_WON 0x0202A80Du
+/* the battle won: 3 from as the last blow's EXP box clears (Japan: as
+ * the stage-clear NAVI message comes up), through Congratulations! and
+ * the scene after (0 in a battle, its scenes, out of battle). Japan's
+ * 0x9D0 higher, as R's menu's (TO_MENU_UP), found in a victory made on
+ * jp-field.ss: Stan set to 1 HP beside Kybard, who hit him */
+#define TO_WON(s) ((s)->gameCode[3] == 'J' ? 0x0202B1DDu : 0x0202A80Du)
 /* the battle's phase: bit 7 set on the enemy's (129; the player's: 1) */
 #define TO_PHASE(s) ((s)->gameCode[3] == 'J' ? 0x020018ACu : 0x020011CCu)
 static volatile int toStale, toLastWorld, toWasWorld;
@@ -3360,7 +3362,7 @@ static uint32_t to_virt(Emu* e, uint32_t addr) {
 		if (!to_world(e) && (emu_read8(e, TO_PHASE(e)) & 0x80)) toAfterEnemy = 1;
 		/* (the battle won: the logo, TO-14; the next battle's first
 		 * picture ends it, as after the enemy's phase) */
-		if (e->gameCode[3] == 'E' && !to_world(e) && emu_read8(e, TO_WON) == 3) toAfterEnemy = 1;
+		if (!to_world(e) && emu_read8(e, TO_WON(e)) == 3) toAfterEnemy = 1;
 		return toStale || toAfterEnemy;
 	}
 	if (addr == TO_V_KEY)

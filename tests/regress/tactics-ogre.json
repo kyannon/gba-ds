@@ -1825,6 +1825,253 @@
      "match": "logo only off"
     }
    ]
+  },
+  {
+   "id": "to-jp-victory",
+   "rom": "ATOJ",
+   "state": "tactics-ogre/jp-victory-field.ss",
+   "desc": "Japan, a victory made for the test (memory edits, from jp-field.ss: turn 1 ended as played, then on turn 2 Stan set to 1 HP and moved beside Kybard): Kybard's details; then (loaded) Kybard's attack on Stan confirmed: Stan falls, the stage-clear NAVI message, Congratulations!: the logo from the NAVI message on",
+   "rules": [
+    "TO-14"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:tactics-ogre/jp-victory-attack.ss"
+    ],
+    [
+     201,
+     "A"
+    ],
+    [
+     207,
+     "-"
+    ],
+    [
+     261,
+     "A"
+    ],
+    [
+     267,
+     "-"
+    ],
+    [
+     321,
+     "A"
+    ],
+    [
+     327,
+     "-"
+    ],
+    [
+     381,
+     "A"
+    ],
+    [
+     387,
+     "-"
+    ],
+    [
+     441,
+     "A"
+    ],
+    [
+     447,
+     "-"
+    ],
+    [
+     501,
+     "A"
+    ],
+    [
+     507,
+     "-"
+    ],
+    [
+     561,
+     "A"
+    ],
+    [
+     567,
+     "-"
+    ],
+    [
+     621,
+     "A"
+    ],
+    [
+     627,
+     "-"
+    ],
+    [
+     681,
+     "A"
+    ],
+    [
+     687,
+     "-"
+    ],
+    [
+     741,
+     "A"
+    ],
+    [
+     747,
+     "-"
+    ],
+    [
+     801,
+     "A"
+    ],
+    [
+     807,
+     "-"
+    ],
+    [
+     861,
+     "A"
+    ],
+    [
+     867,
+     "-"
+    ],
+    [
+     921,
+     "A"
+    ],
+    [
+     927,
+     "-"
+    ],
+    [
+     981,
+     "A"
+    ],
+    [
+     987,
+     "-"
+    ],
+    [
+     1041,
+     "A"
+    ],
+    [
+     1047,
+     "-"
+    ],
+    [
+     1101,
+     "A"
+    ],
+    [
+     1107,
+     "-"
+    ],
+    [
+     1161,
+     "A"
+    ],
+    [
+     1167,
+     "-"
+    ],
+    [
+     1221,
+     "A"
+    ],
+    [
+     1227,
+     "-"
+    ],
+    [
+     1281,
+     "A"
+    ],
+    [
+     1287,
+     "-"
+    ],
+    [
+     1341,
+     "A"
+    ],
+    [
+     1347,
+     "-"
+    ],
+    [
+     1401,
+     "A"
+    ],
+    [
+     1407,
+     "-"
+    ],
+    [
+     1461,
+     "A"
+    ],
+    [
+     1467,
+     "-"
+    ],
+    [
+     1521,
+     "A"
+    ],
+    [
+     1527,
+     "-"
+    ],
+    [
+     1581,
+     "A"
+    ],
+    [
+     1587,
+     "-"
+    ],
+    [
+     1641,
+     "A"
+    ],
+    [
+     1647,
+     "-"
+    ]
+   ],
+   "shots": {
+    "details": 150,
+    "attack": 600,
+    "won": 1200,
+    "congratulations": 1700
+   },
+   "checks": [
+    {
+     "rule": "TO-14",
+     "what": "the details before",
+     "type": "log",
+     "match": "frame 1: map updated \\(3 frame"
+    },
+    {
+     "rule": "TO-14",
+     "what": "the logo once the battle is won",
+     "type": "log",
+     "match": "frame (8[0-9]{2}|9[0-9]{2}|10[0-9]{2}): logo only on"
+    },
+    {
+     "rule": "TO-14",
+     "what": "no picture after",
+     "type": "no_log",
+     "match": "frame ([3-9][0-9]{2}|[0-9]{4,}): map updated"
+    },
+    {
+     "rule": "TO-14",
+     "what": "and the logo never off",
+     "type": "no_log",
+     "match": "logo only off"
+    }
+   ]
   }
  ]
 }
