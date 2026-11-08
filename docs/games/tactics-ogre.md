@@ -40,6 +40,8 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **TO-13. The enemy's phase: the logo.** From the moment the enemy's phase begins (End of Turn) until the player's next phase, the logo. Then the details of the unit the player's turn starts on (the leader, where the camera goes), as the Player Phase banner clears, not the last turn's pictures for a moment.
 
+**TO-14. Victory: the logo.** Once the battle is won (as the last blow's EXP box clears, before Congratulations!), the logo, through Congratulations!, the spoils and the scene after, until a picture is taken again (the world map, the next battle). USA; in Japan the last pictures stay (no state of a Japanese victory yet).
+
 ## Not covered yet
 
 - Nothing known. (The Japanese release's list, its cursor on other units and its pages, and its enemy turn are checked since v1.4.2's last test builds.)
@@ -51,13 +53,13 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 ## For the merge
 
-- Changelog (What's new): "Tactics Ogre: The Knight of Lodis: in a battle, the second screen shows the details of the unit under the cursor (the screen B opens), its three pages in turn: stats and equipment, its talents' costs, its Emblems; the unit list isn't shown any more. On an empty square it shows the battle's Winning and Losing Conditions and its place instead (the logo in Training, and during the enemy's phase). On the world map it shows the HELP text of the location under the cursor (or of where your army is), and in Organize the details of the unit under the cursor; elsewhere out of battle, the logo."
+- Changelog (What's new): "Tactics Ogre: The Knight of Lodis: in a battle, the second screen shows the details of the unit under the cursor (the screen B opens), its three pages in turn: stats and equipment, its talents' costs, its Emblems; the unit list isn't shown any more. On an empty square it shows the battle's Winning and Losing Conditions and its place instead (the logo in Training, during the enemy's phase and once the battle is won). On the world map it shows the HELP text of the location under the cursor (or of where your army is), and in Organize the details of the unit under the cursor; elsewhere out of battle, the logo."
 - Changelog (Fixes): "Tactics Ogre: The Knight of Lodis: the second screen works in Training battles, and on every unit, wherever it is in the unit list (an enemy's details could fail to appear)."
-- Changelog (Known issues): "Tactics Ogre: The Knight of Lodis: the world map's HELP and Organize's details are only in the USA release; in Japan the world map keeps the last picture and Organize shows its roster's pages."
+- Changelog (Known issues): "Tactics Ogre: The Knight of Lodis: the world map's HELP, Organize's details and the logo after a victory are only in the USA release; in Japan the world map and a won battle keep the last picture and Organize shows its roster's pages."
 - Wiki, Supported-games.md: the table's row becomes "in battle, the details of the unit under your cursor (on an empty square, the battle's conditions); on the world map, the location's HELP; in Organize, the unit's details"; Tactics Ogre's section becomes:
   - "**In a battle,** with your cursor on a unit (yours, a guest or the enemy's), the second screen shows its details, the screen B opens on it: three pages, 2.5 seconds each (stats, element, alignment, equipment and talents; the talents' costs; the Emblems). An enemy's are in the game's green. It follows as soon as your cursor stops on another square. Its START:DATA label and blinking arrows are left out."
   - "**On an empty square,** nothing about a unit: the battle's Winning Condition at the top, its Losing Condition at the bottom and the place's name in the middle, on black. Training has no conditions, so there it's the logo."
-  - "It's brought up in the background on a silent copy of the game; your game is never paused or touched. While a unit moves or acts and in scenes, the last pictures stay. During the enemy's phase, the logo, until your next turn starts."
+  - "It's brought up in the background on a silent copy of the game; your game is never paused or touched. While a unit moves or acts and in scenes, the last pictures stay. During the enemy's phase, the logo, until your next turn starts; and once the battle is won (USA), through Congratulations! and the scene after."
   - "**On the world map** (USA), the HELP text SELECT opens on the location under your cursor, or on where your army is when the cursor is between locations, in the middle of a black screen."
   - "**In Organize** (USA), the details of the unit under your cursor, their three pages in turn."
   - "Out of battle, where there's nothing to show (the world map's command bar, its other menus), the logo."

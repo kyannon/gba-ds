@@ -1791,6 +1791,40 @@
      "match": "frame (4[0-9]{2}|5[0-9]{2}): logo only off"
     }
    ]
+  },
+  {
+   "id": "to-us-vespa-victory",
+   "rom": "ATOE",
+   "state": "tactics-ogre/us-vespa-victory.ss",
+   "desc": "the owner's state: Vespa Hill's last blow (Allos's details up), then the victory: the logo as the EXP box clears, through Congratulations!, the spoils and the scene after",
+   "rules": [
+    "TO-14"
+   ],
+   "shots": {
+    "before": 30,
+    "congratulations": 200,
+    "scene": 1200
+   },
+   "checks": [
+    {
+     "rule": "TO-14",
+     "what": "the logo as the battle is won",
+     "type": "log",
+     "match": "frame [4-9][0-9]: logo only on"
+    },
+    {
+     "rule": "TO-14",
+     "what": "no picture after",
+     "type": "no_log",
+     "match": "frame ([1-9][0-9]{2,}): map updated"
+    },
+    {
+     "rule": "TO-14",
+     "what": "and the logo never off",
+     "type": "no_log",
+     "match": "logo only off"
+    }
+   ]
   }
  ]
 }

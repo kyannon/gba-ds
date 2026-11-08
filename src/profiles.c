@@ -3339,6 +3339,10 @@ static volatile uint32_t toNoAimsAt;
  * picture is taken again, TO-12: a capture failed after the last picture
  * came from the world map or Organize), or the enemy's phase (TO-13) */
 #define TO_V_STALE 0xF0000032
+/* the battle won: 3 from as the last blow's EXP box clears, through
+ * Congratulations! and the scene after (0 in a battle, its scenes, out
+ * of battle). USA: Japan's isn't known (no state of a victory) */
+#define TO_WON 0x0202A80Du
 /* the battle's phase: bit 7 set on the enemy's (129; the player's: 1) */
 #define TO_PHASE(s) ((s)->gameCode[3] == 'J' ? 0x020018ACu : 0x020011CCu)
 static volatile int toStale, toLastWorld, toWasWorld;
@@ -3354,6 +3358,9 @@ static bool to_world(Emu* s);
 static uint32_t to_virt(Emu* e, uint32_t addr) {
 	if (addr == TO_V_STALE) {
 		if (!to_world(e) && (emu_read8(e, TO_PHASE(e)) & 0x80)) toAfterEnemy = 1;
+		/* (the battle won: the logo, TO-14; the next battle's first
+		 * picture ends it, as after the enemy's phase) */
+		if (e->gameCode[3] == 'E' && !to_world(e) && emu_read8(e, TO_WON) == 3) toAfterEnemy = 1;
 		return toStale || toAfterEnemy;
 	}
 	if (addr == TO_V_KEY)
