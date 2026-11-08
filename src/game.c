@@ -5082,6 +5082,12 @@ static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha) {
 	SDL_Surface* lg = ui_logo_surface(cfg, emu.gameCode, &pixelArt);
 	if (!lg) return false;
 	int room = ch - top;
+	if (room <= 0) {
+		/* (no room below a HUD that fills the screen: Mega Man Battle
+		 * Network's custom screen, hud.rows GBA_H) */
+		SDL_FreeSurface(lg);
+		return false;
+	}
 	int w = lg->w * k, h = lg->h * k;
 	if (w > cw || h > room) {
 		float sc = SDL_min((float) cw / lg->w, (float) room / lg->h);

@@ -188,8 +188,13 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 		int* stack = malloc(sizeof(int) * GBA_W * GBA_H);
 		uint8_t* seen = calloc(GBA_W * GBA_H, 1);
 		int n = 0;
-		for (int i = 0; stack && seen && i < GBA_W * maxY; ++i)
-			if (!opaque[i]) stack[n++] = i, seen[i] = 1;
+		/* (from outside the logo, and from the picture's edges: a layer
+		 * that fills the screen with the background, Battle Network
+		 * Rockman EXE's blue) */
+		for (int i = 0; stack && seen && i < GBA_W * maxY; ++i) {
+			int x = i % GBA_W, y = i / GBA_W;
+			if (!opaque[i] || x == 0 || x == GBA_W - 1 || y == 0 || y == maxY - 1) stack[n++] = i, seen[i] = 1;
+		}
 		while (stack && seen && n) {
 			int i = stack[--n], x = i % GBA_W, y = i / GBA_W;
 			if (opaque[i]) {

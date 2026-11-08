@@ -624,9 +624,11 @@ typedef struct MapProfile {
 		bool pressStart, blackIsClear;
 		bool lightEdgeClear; /* light background around the logo, reached from the edges, is clear */
 		/* pixels of these colours (0xRRGGBB) reached from outside the logo
-		 * through others of them are clear, then any left with at most one
-		 * neighbour: the background showing at the lettering's dithered or
-		 * translucent edge (Mario & Luigi's sky, its shadow's specks) */
+		 * or the picture's edges through others of them are clear, then
+		 * any left with at most one neighbour: the background showing at
+		 * the lettering's dithered or translucent edge (Mario & Luigi's
+		 * sky, its shadow's specks), or a layer's own background
+		 * (Battle Network Rockman EXE's blue) */
 		uint32_t edgeClear[4];
 		/* a drop shadow of this colour (0xRRGGBB; either of a game's two
 		 * colour sets) stays only below and right of the lettering:

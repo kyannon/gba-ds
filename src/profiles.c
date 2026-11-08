@@ -3836,6 +3836,134 @@ static uint32_t wl4_virt(Emu* e, uint32_t addr) {
 	return 0;
 }
 
+/* ---------------------------------------------------------- Mega Man Battle Network
+ *
+ * Walking about, the second screen is MegaMan's status and money in one
+ * frame (MMBN-2): START's menu opened on the shadow core, its money counter
+ * taken (inside its orange frame); then the MegaMan screen (MegaMan), its
+ * panel (rows 0-95) taken with the cursor arrow left out. Put together:
+ * the counter's top edge across the screen, the counter at its place across
+ * (top right), the panel right below it, the counter's bottom edge, the
+ * whole centred top to bottom on black. In a battle the custom screen (BG3
+ * and its cursor) moves to the second screen while it's up (MMBN-4: the
+ * profile's hud). Addresses from the Silenthal/bn1 disassembly (USA;
+ * Europe and Japan the same). */
+#define MMBN_STATE 0x02006CB8   /* gManager.gameState: 4 walking about, 8 battle, 0x18 a PET menu */
+#define MMBN_AREA 0x02000214    /* gWorld.currentArea (halfword) */
+#define MMBN_HP 0x0200022C      /* gWorld.hpCurrent, then hpMax */
+#define MMBN_ZENNY 0x02000284   /* gWorld.zenny (word) */
+#define MMBN_SMENU 0x0200ACF0   /* gStartMenu: state (+0, 4 open), cursor (+6) */
+#define MMBN_MENU 0x020062E0    /* gMenu: which (+0, 8 MegaMan), step (+1, 4 open) */
+#define MMBN_FADING 0x02006CB3  /* gFadeSettings.isFadeActive */
+#define MMBN_BATTLE 0x02003710  /* gBattle: its step (+1: 4 the custom screen, 8 fighting) */
+#define MMBN_PANEL_ROWS 96      /* the MegaMan screen's panel; its message box below */
+/* START's money counter: x 168-239, rows 0-31 (at the screen's right edge,
+ * with no right end); its outline and orange frame rows 0-3 and 28-31 and
+ * columns 170-175, inside it x 176-239, rows 4-27 */
+#define MMBN_MONEY_X 176
+#define MMBN_MONEY_Y 4
+#define MMBN_MONEY_H 24
+#define MMBN_EDGE 4             /* the frame's top (outline, orange) and bottom rows */
+#define MMBN_GLOW_X 176         /* its edges' glow, x 176-239 (64 wide), with plain orange either side */
+#define MMBN_PLAIN_X 172        /* a plain column of its edges */
+/* the panel's frame and grid, the same with any stats (not the values,
+ * the armor or the silhouette) */
+static const Probe mmbnPanel[8] = { { 5, 5, 0x4A5A63 }, { 120, 3, 0x4A5A63 }, { 238, 10, 0x4A5A63 }, { 2, 50, 0x313939 },
+                                    { 10, 30, 0x313939 }, { 160, 60, 0x313939 }, { 230, 90, 0x313939 }, { 120, 92, 0x7B8C84 } };
+/* the money counter's outline, frame, glow and inside (not the amount) */
+static const Probe mmbnMoney[8] = { { 170, 0, 0x313939 }, { 170, 31, 0x313939 }, { 172, 2, 0xCE5A39 }, { 172, 29, 0xCE5A39 },
+                                    { 200, 1, 0xF78C00 }, { 200, 28, 0xF78C00 }, { 180, 5, 0x4A5A63 }, { 180, 25, 0x5A6B6B } };
+
+static void mmbn_tap(Emu* s, uint32_t keys) {
+	/* (a press held 2 frames or more: 1 is missed) */
+	aw_run(s, keys, 3);
+	aw_run(s, 0, 5);
+}
+static bool mmbn_megaman_up(Emu* s) {
+	return emu_read8(s, MMBN_STATE) == 0x18 && emu_read8(s, MMBN_MENU) == 8 && emu_read8(s, MMBN_MENU + 1) == 4 &&
+	       !emu_read8(s, MMBN_FADING);
+}
+static const char* mmbn_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	if (w != GBA_W || h != GBA_H) return "not a GBA screen";
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame_blind(s, 0);
+	if (emu_read8(s, MMBN_STATE) != 4) return "not walking about";
+	mmbn_tap(s, K_START);
+	int f = 0;
+	while (f < 40 && emu_read8(s, MMBN_SMENU) != 4) emu_frame_blind(s, 0), ++f;
+	if (emu_cancelled(s)) return "called off";
+	if (emu_read8(s, MMBN_SMENU) != 4) return "START opened nothing";
+	aw_run(s, 0, 3); /* (drawn) */
+	if (emu_cancelled(s)) return "called off";
+	/* the counter's frame rows and inside, kept: from a frame drawn with
+	 * the menu's layer (BG0) alone (whatever is behind the counter, the
+	 * net's paths, a Navi walking by, shows through it in places) */
+	static uint8_t tmp[0x80000];
+	if (emu_state_size(s) > sizeof(tmp) || !emu_state_save(s, tmp)) return "state save failed";
+	emu_layers(s, 0x01);
+	emu_state_load(s, tmp); /* (the layers take effect as the display registers are loaded) */
+	emu_frame(s, 0);
+	static uint32_t money[32 * GBA_W];
+	memcpy(money, s->fb, sizeof(money));
+	emu_layers(s, 0x1F);
+	emu_state_load(s, tmp); /* every layer back on */
+	if (emu_cancelled(s)) return "called off";
+	for (int i = 0; i < 8; ++i) {
+		uint32_t c = money[mmbnMoney[i].y * GBA_W + mmbnMoney[i].x], want = mmbnMoney[i].rgb;
+		if (abs((int) (c & 0xFF) - (int) (want >> 16)) > 8 || abs((int) ((c >> 8) & 0xFF) - (int) ((want >> 8) & 0xFF)) > 8 ||
+		    abs((int) ((c >> 16) & 0xFF) - (int) (want & 0xFF)) > 8)
+			return "no money counter";
+	}
+	for (int i = 0; i < 8 && emu_read8(s, MMBN_SMENU + 6) != 2; ++i)
+		mmbn_tap(s, emu_read8(s, MMBN_SMENU + 6) < 2 ? K_DOWN : K_UP);
+	if (emu_read8(s, MMBN_SMENU + 6) != 2) return "MegaMan not reached in the menu";
+	mmbn_tap(s, K_A);
+	f = 0;
+	while (f < 90 && !mmbn_megaman_up(s)) emu_frame_blind(s, 0), ++f;
+	if (emu_cancelled(s)) return "called off";
+	if (!mmbn_megaman_up(s)) return "the MegaMan screen didn't open";
+	aw_run(s, 0, 4); /* (its values printed) */
+	if (emu_cancelled(s)) return "called off";
+	if (!som_probes(s, mmbnPanel, 8, 8, 8)) return "not the MegaMan screen";
+	/* the panel, then the cursor arrow (BG2, left of the armor and the
+	 * stats) from a frame drawn without BG2 there: the panel's grid (BG1) */
+	static uint32_t panel[MMBN_PANEL_ROWS * GBA_W];
+	memcpy(panel, s->fb, sizeof(panel));
+	if (!emu_state_save(s, tmp)) return "state save failed";
+	emu_layers(s, 0x1B);
+	emu_state_load(s, tmp);
+	emu_frame(s, 0);
+	for (int y = 20; y < MMBN_PANEL_ROWS; ++y) {
+		for (int x = 112; x <= 139; ++x) panel[y * GBA_W + x] = s->fb[y * GBA_W + x];
+	}
+	emu_layers(s, 0x1F);
+	emu_state_load(s, tmp); /* every layer back on */
+	/* the frame: edge, money, panel, edge, centred top to bottom */
+	for (int i = 0; i < GBA_W * GBA_H; ++i) out[i] = 0xFF000000;
+	int all = 2 * MMBN_EDGE + MMBN_MONEY_H + MMBN_PANEL_ROWS, y0 = (GBA_H - all) / 2;
+	int glow0 = (GBA_W - (GBA_W - MMBN_GLOW_X)) / 2; /* (the glow in the middle) */
+	for (int e = 0; e < 2; ++e) {
+		int from = e ? 32 - MMBN_EDGE : 0, to = e ? y0 + all - MMBN_EDGE : y0;
+		for (int r = 0; r < MMBN_EDGE; ++r) {
+			const uint32_t* src = &money[(from + r) * GBA_W];
+			for (int x = 0; x < GBA_W; ++x) {
+				int g = x - glow0;
+				out[(to + r) * GBA_W + x] = g >= 0 && g < GBA_W - MMBN_GLOW_X ? src[MMBN_GLOW_X + g] : src[MMBN_PLAIN_X];
+			}
+		}
+	}
+	/* the counter's row in the panel's top row's colour (its own lighter
+	 * grey behind the amount too), so the two read as one piece */
+	uint32_t head = panel[2 * GBA_W + 2], light = money[(MMBN_MONEY_Y + 6) * GBA_W + MMBN_MONEY_X + 2];
+	for (int r = 0; r < MMBN_MONEY_H; ++r) {
+		uint32_t* o = &out[(y0 + MMBN_EDGE + r) * GBA_W];
+		const uint32_t* m = &money[(MMBN_MONEY_Y + r) * GBA_W];
+		for (int x = 0; x < GBA_W; ++x) o[x] = x < MMBN_MONEY_X || m[x] == light ? head : m[x];
+	}
+	memcpy(&out[(y0 + MMBN_EDGE + MMBN_MONEY_H) * GBA_W], panel, sizeof(panel));
+	return NULL;
+}
+
 /* -------------------------------------------------- Super Mario Advance 3: Yoshi's Island
  *
  * In a level, the status screen SELECT opens (SM3-1); on a world's panel,
@@ -5929,6 +6057,50 @@ static const MapProfile profiles[] = {
 			          .over = { 176, 129, 208, 142, 0xFFF7BD, 0xFFFFCE } },
 		},
 	},
+	{
+		/* Mega Man Battle Network (USA; Europe and Japan, Battle Network
+		 * Rockman EXE: variants). Walking about, the PET's MegaMan
+		 * screen: see mmbn_compose (MMBN-2); in battles the custom screen
+		 * on the second screen (MMBN-4) */
+		.codes = { "AREE" },
+		.title = "Mega Man Battle Network",
+		.compose = mmbn_compose,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* walking about (scenes too: START opens nothing there, the last
+		 * picture stays, MMBN-3) */
+		.live = { { MMBN_STATE, 0xFF, 4, 1 } },
+		/* the title, a battle: the logo, the status forgotten (MMBN-1,
+		 * MMBN-3: an old HP never shown after a battle) */
+		.menu = { { MMBN_STATE, 0xFF, 0, 1, true, 8 } },
+		/* HP (back from a battle, a recovery), its maximum, the area, the money:
+		 * taken again at once (MMBN-2) */
+		.room = { { MMBN_HP, 0xFFFF, 0, 2 }, { MMBN_HP + 2, 0xFFFF, 0, 2 }, { MMBN_AREA, 0xFFFF, 0, 2 }, { MMBN_ZENNY, 0, 0, 4 } },
+		/* the title's lettering and emblem (BG3), above PRESS START */
+		.logo = { .wait = 400, .layers = 0x8, .maxY = 96 },
+		.hud = {
+			/* in a battle, while the custom screen is in: BG3HOFS
+			 * 0x188 in place, sliding from and back to 0 in steps of 8
+			 * (0 while fighting, the HP box at the top left; the
+			 * results slide in from 0xF0). Not the battle's step: in
+			 * the tutorials the custom screen stays up, the teacher
+			 * talking over it, after the step has gone on to 8
+			 * (MMBN-4) */
+			.on = { { MMBN_STATE, 0xFF, 8, 1 }, { 0x0400001C, 0x1FF, 0x188, 2, true, 0x1F8, true },
+			        { 0x0400001C, 0x7, 0, 2 } },
+			/* the custom screen and the HP box beside it */
+			.bgMask = 0x8,
+			/* its cursor (priority 0, palette 13; the field's sprites
+			 * are 2), and the tutorials' arrows (the same) where they
+			 * point into it; not their arrows over the field, or the
+			 * teacher's portrait by her message (priority 0, palette 14) */
+			.objs = { { -256, -256, 119, 255, 0, 1023, 0, 1u << 13 } },
+			/* on black (GEN-1), with no logo: the custom screen fills
+			 * the screen's height, the logo has no room below it */
+			.logoBelow = true,
+			.rows = GBA_H,
+		},
+	},
 };
 
 /* ---------------------------------------------------------------- regions
@@ -6215,6 +6387,14 @@ static void hm_jpn(MapProfile* p) {
 	p->logo.maxY = 113;
 }
 
+/* Battle Network Rockman EXE (Japan): its logo, ロックマン エグゼ, fills
+ * BG3 with the blue behind it (MMBN-1) */
+static void mmbn_jpn(MapProfile* p) {
+	p->logo.maxY = GBA_H;
+	p->logo.edgeClear[0] = 0x52B5FF;
+	p->logo.rev = 1;
+}
+
 static const Variant variants[] = {
 	{ "AGSD", "AGSE", 0, gs_ger },
 	/* Golden Sun: The Lost Age's other releases */
@@ -6278,6 +6458,9 @@ static const Variant variants[] = {
 	/* (Zoids Saga II's addresses: ZlRegion) */
 	{ "AZ2J", "AZ2E", 0, NULL },
 	{ "A4NJ", "A4NE", 0, hm_jpn },
+	/* (Mega Man Battle Network's RAM: the same in every release) */
+	{ "AREP", "AREE", 0, NULL },
+	{ "AREJ", "AREE", 0, mmbn_jpn },
 };
 #define N_VARIANTS (sizeof(variants) / sizeof(*variants))
 static MapProfile variantProfiles[N_VARIANTS];

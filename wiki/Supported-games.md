@@ -22,6 +22,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | The Legend of Zelda: A Link to the Past & Four Swords | `AZLE` `AZLP` `AZLJ` | world and dungeon maps |
 | Mario Kart: Super Circuit (Mario Kart Advance in Japan) | `AMKE` `AMKP` `AMKJ` | the race HUD, results and podium |
 | Mario & Luigi: Superstar Saga (Mario & Luigi RPG in Japan) | `A88E` `A88P` `A88J` | Bros. Info of the brother you're controlling; in battles, the boxes and meters |
+| Mega Man Battle Network (Battle Network Rockman EXE in Japan) | `AREE` `AREP` `AREJ` | MegaMan's status (level, HP, armor, buster) with your money; in battles, the custom screen |
 | Metroid Fusion | `AMTE` `AMTP` `AMTJ` | map |
 | Metroid: Zero Mission | `BMXE` `BMXP` `BMXJ` | map |
 | Pokémon Pinball: Ruby & Sapphire | `BPPE` | the table twice as tall over both screens, live, with the score bar |
@@ -221,6 +222,16 @@ The USA, European and Japanese (Mario & Luigi RPG) releases.
 - **In battles,** the second screen has the battle's boxes and meters, over the logo: Mario's and Luigi's HP and BP at the top left, what the highlighted block does at the top right, the buttons at the bottom right, and the menus that open on the right side (the item list, the Bros. Attacks list) where they are on the game screen. The game screen keeps the command blocks and the A prompt over the brother whose turn it is, the damage numbers, the enemy's name while you aim, and everything else. Speech balloons in a battle, a boss's own messages and the results after it stay on the game screen. Tried in the story's first battles, late battles and boss battles.
 - On the title, the second screen shows the logo; in scenes, conversations and the game's own menus it keeps its picture.
 - Not tried yet: the European and Japanese releases beyond their titles.
+
+## Mega Man Battle Network
+
+The USA, European and Japanese (Battle Network Rockman EXE) releases.
+
+Walking about, in the real world or on the net, the second screen shows the PET's MegaMan screen with your money above it, kept up to date about once a second (and at once when your HP, money or area changes): MegaMan's level, his HP, his armor and his buster's Attack, Rapid and Charge, and the zenny counter from the PET's menu. They're put together in one frame edged with the money counter's own orange border; the MegaMan screen's question box and cursor are left out. In conversations, scenes, the PET's menus and shops it keeps the last picture; at the title, and back from a battle until the status is taken again, the logo.
+
+In a battle, the custom screen (where you pick the chips) slides in on the second screen instead of over the battlefield, with MegaMan's HP beside it, so the whole field shows on the game screen while you choose; you pick the chips with the buttons as usual. In the tutorial battles the teacher's messages stay on the game screen, and her arrows go with what they point at. While fighting, and on the results, the battle is on the game screen as the game draws it and the second screen shows the logo.
+
+Known issues: the later tutorial battles, boss battles and link-cable net battles haven't been tried.
 
 ## Metroid: Zero Mission and Metroid Fusion
 
