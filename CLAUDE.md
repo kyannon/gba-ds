@@ -16,7 +16,9 @@ with photos and screenshots; nothing ships untested on the device.
 
 `wiki/Philosophy.md` is the player-facing statement of what GBA DS is for
 and what goes on either screen: (1) a GBA with two 240x160 non-touch
-screens, (2) function over form, (3) keep it simple, (4) only the game's
+screens, (2) function over form (and nothing on the second screen that
+makes the player look twice: no prompts, cursor or controlled character,
+nothing split across the screens or on both), (3) keep it simple, (4) only the game's
 own graphics, (5) no in-game touch, (6) exceptions allowed when they earn
 their place. Read it before changing what a game shows. Keep it written
 for players (no rule IDs, file paths or session notes); how sessions apply
