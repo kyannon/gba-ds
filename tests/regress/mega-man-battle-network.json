@@ -26,7 +26,7 @@
    "id": "mmbn-us-net",
    "rom": "AREE",
    "state": "mega-man-battle-network/us-net-endgame.ss",
-   "desc": "MegaMan on the net (an endgame save, level 79, HeatArmor): the money counter at the top right and the MegaMan screen's panel without its cursor below it, in the counter's orange edges, centred",
+   "desc": "MegaMan on the net (an endgame save, level 79, HeatArmor): the money counter at the top right (its row in the panel's top colour) and the MegaMan screen's panel without its cursor below it, in the counter's orange edges, centred",
    "rules": [
     "MMBN-2"
    ],
@@ -56,7 +56,7 @@
     },
     {
      "rule": "MMBN-2",
-     "what": "black left of the money counter, between the top edge and the panel",
+     "what": "the money counter's row left of it in the panel's top row's colour",
      "type": "uniform",
      "shot": "status",
      "screen": "second",
@@ -66,11 +66,11 @@
       720,
       236
      ],
-     "color": "000000"
+     "color": "4A5A63"
     },
     {
      "rule": "MMBN-2",
-     "what": "the money counter at the top right",
+     "what": "the amount at the top right",
      "type": "not_uniform",
      "shot": "status",
      "screen": "second",
@@ -80,7 +80,7 @@
       991,
       236
      ],
-     "color": "000000"
+     "color": "4A5A63"
     }
    ]
   },
@@ -118,7 +118,7 @@
     },
     {
      "rule": "MMBN-2",
-     "what": "black left of the money counter, between the top edge and the panel",
+     "what": "the money counter's row left of it in the panel's top row's colour",
      "type": "uniform",
      "shot": "status",
      "screen": "second",
@@ -128,11 +128,11 @@
       720,
       236
      ],
-     "color": "000000"
+     "color": "4A5A63"
     },
     {
      "rule": "MMBN-2",
-     "what": "the money counter at the top right",
+     "what": "the amount at the top right",
      "type": "not_uniform",
      "shot": "status",
      "screen": "second",
@@ -142,7 +142,7 @@
       991,
       236
      ],
-     "color": "000000"
+     "color": "4A5A63"
     }
    ]
   },
@@ -180,7 +180,7 @@
     },
     {
      "rule": "MMBN-2",
-     "what": "black left of the money counter, between the top edge and the panel",
+     "what": "the money counter's row left of it in the panel's top row's colour",
      "type": "uniform",
      "shot": "status",
      "screen": "second",
@@ -190,11 +190,11 @@
       720,
       236
      ],
-     "color": "000000"
+     "color": "4A5A63"
     },
     {
      "rule": "MMBN-2",
-     "what": "the money counter at the top right",
+     "what": "the amount at the top right",
      "type": "not_uniform",
      "shot": "status",
      "screen": "second",
@@ -204,7 +204,7 @@
       991,
       236
      ],
-     "color": "000000"
+     "color": "4A5A63"
     }
    ]
   },
@@ -567,7 +567,7 @@
     },
     {
      "rule": "MMBN-2",
-     "what": "black left of the money counter, between the top edge and the panel",
+     "what": "the money counter's row left of it in the panel's top row's colour",
      "type": "uniform",
      "shot": "walking",
      "screen": "second",
@@ -577,11 +577,11 @@
       720,
       236
      ],
-     "color": "000000"
+     "color": "4A5A63"
     },
     {
      "rule": "MMBN-2",
-     "what": "the money counter at the top right",
+     "what": "the amount at the top right",
      "type": "not_uniform",
      "shot": "walking",
      "screen": "second",
@@ -591,7 +591,7 @@
       991,
       236
      ],
-     "color": "000000"
+     "color": "4A5A63"
     }
    ]
   },

@@ -3596,9 +3596,14 @@ static const char* mmbn_compose(Emu* s, const void* state, uint32_t* out, int w,
 			}
 		}
 	}
-	for (int r = 0; r < MMBN_MONEY_H; ++r)
-		memcpy(&out[(y0 + MMBN_EDGE + r) * GBA_W + MMBN_MONEY_X], &money[(MMBN_MONEY_Y + r) * GBA_W + MMBN_MONEY_X],
-		       (GBA_W - MMBN_MONEY_X) * sizeof(uint32_t));
+	/* the counter's row in the panel's top row's colour (its own lighter
+	 * grey behind the amount too), so the two read as one piece */
+	uint32_t head = panel[2 * GBA_W + 2], light = money[(MMBN_MONEY_Y + 6) * GBA_W + MMBN_MONEY_X + 2];
+	for (int r = 0; r < MMBN_MONEY_H; ++r) {
+		uint32_t* o = &out[(y0 + MMBN_EDGE + r) * GBA_W];
+		const uint32_t* m = &money[(MMBN_MONEY_Y + r) * GBA_W];
+		for (int x = 0; x < GBA_W; ++x) o[x] = x < MMBN_MONEY_X || m[x] == light ? head : m[x];
+	}
 	memcpy(&out[(y0 + MMBN_EDGE + MMBN_MONEY_H) * GBA_W], panel, sizeof(panel));
 	return NULL;
 }
