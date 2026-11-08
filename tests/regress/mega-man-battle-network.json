@@ -26,7 +26,7 @@
    "id": "mmbn-us-net",
    "rom": "AREE",
    "state": "mega-man-battle-network/us-net-endgame.ss",
-   "desc": "MegaMan on the net (an endgame save, level 79, HeatArmor): the MegaMan screen's panel without its cursor, black below",
+   "desc": "MegaMan on the net (an endgame save, level 79, HeatArmor): the money counter at the top right and the MegaMan screen's panel without its cursor below it, in the counter's orange edges, centred",
    "rules": [
     "MMBN-2"
    ],
@@ -42,15 +42,43 @@
     },
     {
      "rule": "MMBN-2",
-     "what": "black below the panel, where the message box was",
+     "what": "black above the frame (centred top to bottom)",
      "type": "uniform",
      "shot": "status",
      "screen": "second",
      "rect": [
       32,
-      452,
+      64,
       991,
-      700
+      124
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "MMBN-2",
+     "what": "black left of the money counter, between the top edge and the panel",
+     "type": "uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      40,
+      148,
+      720,
+      236
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "MMBN-2",
+     "what": "the money counter at the top right",
+     "type": "not_uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      740,
+      148,
+      991,
+      236
      ],
      "color": "000000"
     }
@@ -76,15 +104,43 @@
     },
     {
      "rule": "MMBN-2",
-     "what": "black below the panel, where the message box was",
+     "what": "black above the frame (centred top to bottom)",
      "type": "uniform",
      "shot": "status",
      "screen": "second",
      "rect": [
       32,
-      452,
+      64,
       991,
-      700
+      124
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "MMBN-2",
+     "what": "black left of the money counter, between the top edge and the panel",
+     "type": "uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      40,
+      148,
+      720,
+      236
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "MMBN-2",
+     "what": "the money counter at the top right",
+     "type": "not_uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      740,
+      148,
+      991,
+      236
      ],
      "color": "000000"
     }
@@ -110,15 +166,43 @@
     },
     {
      "rule": "MMBN-2",
-     "what": "black below the panel, where the message box was",
+     "what": "black above the frame (centred top to bottom)",
      "type": "uniform",
      "shot": "status",
      "screen": "second",
      "rect": [
       32,
-      452,
+      64,
       991,
-      700
+      124
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "MMBN-2",
+     "what": "black left of the money counter, between the top edge and the panel",
+     "type": "uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      40,
+      148,
+      720,
+      236
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "MMBN-2",
+     "what": "the money counter at the top right",
+     "type": "not_uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      740,
+      148,
+      991,
+      236
      ],
      "color": "000000"
     }
@@ -469,15 +553,43 @@
     },
     {
      "rule": "MMBN-2",
-     "what": "black below the panel, where the message box was",
+     "what": "black above the frame (centred top to bottom)",
      "type": "uniform",
      "shot": "walking",
      "screen": "second",
      "rect": [
       32,
-      452,
+      64,
       991,
-      700
+      124
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "MMBN-2",
+     "what": "black left of the money counter, between the top edge and the panel",
+     "type": "uniform",
+     "shot": "walking",
+     "screen": "second",
+     "rect": [
+      40,
+      148,
+      720,
+      236
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "MMBN-2",
+     "what": "the money counter at the top right",
+     "type": "not_uniform",
+     "shot": "walking",
+     "screen": "second",
+     "rect": [
+      740,
+      148,
+      991,
+      236
      ],
      "color": "000000"
     }
@@ -490,7 +602,8 @@
    "desc": "the logo (USA)",
    "rules": [
     "MMBN-1"
-   ]
+   ],
+   "checks": []
   },
   {
    "id": "mmbn-logo-arep",
@@ -499,7 +612,8 @@
    "desc": "the logo (Europe)",
    "rules": [
     "MMBN-1"
-   ]
+   ],
+   "checks": []
   },
   {
    "id": "mmbn-logo-arej",
@@ -508,7 +622,8 @@
    "desc": "the logo (Japan: on its title's blue, the blue left out)",
    "rules": [
     "MMBN-1"
-   ]
+   ],
+   "checks": []
   }
  ]
 }
