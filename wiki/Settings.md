@@ -2,7 +2,7 @@ Settings live in **`gba-ds.cfg`**: `/storage/roms/ports/gba-ds/gba-ds.cfg` on RO
 
 Three files are read in order, later ones winning:
 1. `gba-ds.cfg`;
-2. `states/prefs.cfg`: what you chose in the pause menu (screens swapped, scaling, LCD grid, color correction, overlays, the second screen's logo, FPS counter, frame buffer). GBA DS rewrites this file; to change those settings, use the menu, or delete the line from `prefs.cfg`.
+2. `states/prefs.cfg`: what you chose in the pause menu (screens swapped, scaling, shader, color correction, LCD ghosting, overlays, the second screen's logo, FPS counter, frame buffer). GBA DS rewrites this file; to change those settings, use the menu, or delete the line from `prefs.cfg`.
 3. `states/library.cfg`: the game list's view (list or grid) and, on Android, the ROM folder.
 
 Updating from the game list (Settings > Updates) keeps your `gba-ds.cfg`. Unzipping a new release by hand replaces it, so keep a copy of your changes first.
@@ -39,9 +39,10 @@ Updating from the game list (Settings > Updates) keeps your `gba-ds.cfg`. Unzipp
 | Option | Default | |
 |---|---|---|
 | `scale` / `map_scale` | `integer` | Game screen / second screen: `integer` (pixel perfect: sharp, whole-number scale, 4× on the RG DS Plus, with a small border), `fit` (full width, keeps the shape, stays sharp: scaled up by a whole number on the GPU, then filtered down), `zoom` (fills the height, the left and right edges are cut off), `stretch` (fills the screen, distorts the shape). |
-| `lcd_grid` | `0` | A pixel grid like a GBA screen's, on both screens. Drawn on the GPU, so it costs almost nothing. It adapts to the screen: with 3 or more screen pixels per GBA pixel (the RG DS Plus) each line is one screen pixel; with fewer (2× on the RG DS) the lines are drawn finer, at the screen's own resolution, so the picture stays sharp. |
-| `lcd_strength` | `35` | How dark the grid lines are, 0-100. |
+| `shader` | `off` | A pattern over every GBA pixel, on both screens: `off`, `grid` (lines between the pixels, like a GBA screen), `scanlines` (a dark line under each row), `soft` (each pixel a little darker toward its edges), or red, green and blue stripes like a GBA screen's: `subpixels-light` (gentle, for dim screens), `subpixels`, `subpixels-strong` (for bright screens). Each is drawn on the GPU as one pattern made once, so none costs more than the grid did. With 3 or more screen pixels per GBA pixel (the RG DS Plus) the patterns are drawn a screen pixel at a time; with fewer (2× on the RG DS) they're drawn finer, at the screen's own resolution: there `soft` looks like `grid`, and the subpixel stripes don't fit, so they're shown in grey (their texture and darkness, without colour). Before v1.4.12 this was `lcd_grid` (`1` still means `grid`). |
+| `lcd_strength` | `35` | How dark the lines of `grid`, `scanlines` and `soft` are, 0-100. |
 | `color_correction` | `0` | `1`: the game's colours as a Game Boy Advance's screen showed them (mGBA's GBA Color shader, sRGB, Darken Screen 0.5), on both screens. Also in the pause menu (Display). |
+| `lcd_ghosting` | `0` | `1`: each frame of the game is shown half and half with the one before, as a GBA's slow screen blurred them: moving things leave a short trail, and sprites a game flickers every other frame (to make them see-through) look see-through, as they did on a GBA. The game screen only. Also in the pause menu (Display). |
 | `smooth` | `0` | Plain bilinear filtering instead of sharp scaling (blurry; usually leave off). |
 | `vsync` | `0` | Present frames in step with the display. Off is smoother on these devices. |
 | `overlays` | `both` | `primary`, `secondary`, `both` or `none`: see [[Map screen surrounds and overlays]]. |

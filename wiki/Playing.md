@@ -47,7 +47,8 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 
 **Display** (remembered for next time)
 - **Scale**: Pixel Perfect (sharp, whole-number scale with a small border), Full Width (fills the width, keeps the shape, stays sharp), Zoom (fills the height, cutting off the left and right edges) or Stretch (fills the whole screen).
-- **LCD Grid**: a pixel grid like a GBA screen's, on both screens. `lcd_strength` sets how dark.
+- **Shader**: a pattern over every pixel, on both screens; each press picks the next. **Off**; **LCD Grid** (lines between the pixels, like a GBA's screen); **Scanlines** (a dark line under each row of pixels); **Soft Cells** (each pixel a little darker toward its edges); and three strengths of **Subpixels**, the red, green and blue stripes of a GBA's screen: **Light** for a dim screen or low brightness, the middle one, and **Strong** for a bright screen. The stripes darken the picture, so with them the colours are brightened to make up for it; the brightest colours can only go up to white, so they look a little darker than without. `lcd_strength` sets how dark the grid, scanlines and soft cells are. On the RG DS (2× scale), Soft Cells looks like the grid, and the subpixels have no room for their colours, so they're shown as a grey pattern.
+- **LCD Ghosting**: off by default. On, each frame of the game is shown half and half with the one before, as a GBA's slow screen blurred them: moving things leave a short trail, and sprites that a game flickers every other frame to make them see-through look see-through, as they did on a GBA. The game screen only.
 - **Color Correction**: off by default. On, the game's colours are shown as a Game Boy Advance's own screen showed them: darker and less saturated, as mGBA's GBA Color shader draws them (its sRGB profile, Darken Screen at its usual 0.5). On both screens: the game, and the maps, logos and status screens taken from it. Remembered for next time.
 - **Overlays**: primary / secondary / both / none. See [[Map screen surrounds and overlays]].
 - **Frame Buffer**: off by default. On, the next frame is prepared while the current one is on screen, which smooths out the odd stutter at the cost of one frame (about 17 ms) of input delay. In the pinball games it's always on, needed for full speed, so it's greyed out there.
@@ -130,6 +131,12 @@ The new mapping works straight away and is kept in `states/controllers.txt` for 
 - **L1 pans the camera left and R1 pans it right**, as on the SNES, without moving Mario. (In the GBA version L pans the way Mario faces.)
 
 Mario keeps facing the way he was while the camera pans; walking ends the pan, as on the SNES. While the game is paused, on the world map, in the SELECT menu and the menus, the buttons are the GBA's (A enters a level and confirms, R switches between Mario and Luigi). **GBA** keeps the GBA layout everywhere.
+
+**SNES layout (Super Mario Advance 3).** Under **Controls** in the quick bar, **SNES** gives Yoshi's Island the Super Nintendo's buttons in levels:
+- bottom (B) jumps and flutters, left (Y) sticks out the tongue, right (A) and top (X) aim and throw an egg;
+- L1 and R1 lock the aim.
+
+START pauses and SELECT opens the status screen, as on the GBA. On the island map, a world's panel, in the bonus games and the menus, the buttons are the GBA's (A enters a level and confirms, B goes back). **GBA** keeps the GBA layout everywhere.
 
 The choice is remembered per game.
 
