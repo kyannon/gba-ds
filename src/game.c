@@ -890,6 +890,7 @@ static uint32_t cardBest[GBA_W * GBA_H];
 static int sideScore = -1; /* hud.card.side: how far off centre its best take is (-1: none) */
 static uint32_t sideBest[GBA_W * GBA_H];
 static bool hudAlt; /* the HUD on its other layer (hud.alt: SMA2's boss rooms) */
+static bool hudOffLatch; /* hud.offAfter has matched: off till on[0] stops matching */
 static uint32_t hudLogoBack[HUD_CW * HUD_CH];
 static bool hudLogoDone;
 static bool hudShown; /* the second screen shows the HUD picture (hudTex) */
@@ -3057,6 +3058,18 @@ static void update_hud(void) {
 	bool main = memprobes_match(h->on, 4, &emu);
 	bool altOn = !main && h->alt.on[0].addr && memprobes_match(h->alt.on, (int) (sizeof h->alt.on / sizeof h->alt.on[0]), &emu);
 	bool race = main || altOn || (hudOn && h->stay[0].addr && memprobes_match(h->stay, 2, &emu));
+	/* hud.offAfter: off from when it matches (a battle's results) until
+	 * on[0] stops matching (the battle's over) */
+	if (h->offAfter[0].addr) {
+		if (!memprobes_match(h->on, 1, &emu)) {
+			if (hudOffLatch && debug) fprintf(stderr, "frame %llu: HUD held off: done\n", (unsigned long long) frameCount);
+			hudOffLatch = false;
+		} else if (!hudOffLatch && memprobes_match(h->offAfter, 2, &emu)) {
+			hudOffLatch = true;
+			if (debug) fprintf(stderr, "frame %llu: HUD held off\n", (unsigned long long) frameCount);
+		}
+		if (hudOffLatch) race = altOn = false, main = false;
+	}
 	/* the HUD's other layer (alt): kept while it stays on through a fade */
 	bool alt = main ? false : altOn ? true : hudAlt;
 	/* the map layer: which BG has it (none: not on a map) */
@@ -3923,6 +3936,7 @@ static bool state_load(const char* path) {
 	for (int m = 0; ok && m < 4; ++m) pieces[m].stale = true, pieces[m].still = 0;
 	if (ok) aheadReady = false; /* a frame emulated before the load: emulate afresh */
 	if (ok) mirrorHave = false; /* (hud.mirror: the picture from before is another moment's) */
+	if (ok) hudOffLatch = false; /* (hud.offAfter: found again from the loaded game) */
 	return ok;
 }
 
@@ -5505,6 +5519,7 @@ static void ss_setup(const char* rom, const char* code) {
 		memset(hudPalRef, 0, sizeof(hudPalRef));
 		hudWorld = false;
 		hudAlt = false;
+		hudOffLatch = false;
 		hudLogoDone = false;
 		hudLogoBelowDone = false;
 		mapTitleN = 0;

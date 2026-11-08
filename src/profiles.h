@@ -352,6 +352,11 @@ typedef struct MapProfile {
 		 * turned on by them): Super Mario Advance 2 fading out through a
 		 * pipe, which the world map does too on the way into a level. */
 		MemProbe stay[2];
+		/* Once every one of these has matched while `on` does, the HUD
+		 * stays off (the logo) until on[0] stops matching, or a state is
+		 * loaded: Mario & Luigi: Superstar Saga, from a battle's results
+		 * through the level-ups after them to the battle's end (ML-5) */
+		MemProbe offAfter[2];
 		unsigned bgMask;
 		/* The HUD on another layer where every alt.on probe matches (`on`
 		 * not matching): Super Mario Advance 2's boss rooms, in display

@@ -4909,6 +4909,11 @@ static const MapProfile profiles[] = {
 			/* in a battle, before its results (ML-5): those stay on the
 			 * game screen whole, the logo alone on the second screen */
 			.on = { { ML_STATE, 0xFF, 3, 1 }, { ML_RESULTS, 0xFFFF, 0, 2 } },
+			/* and once the results are up, off to the battle's end: a
+			 * level-up after them clears their panels before its own
+			 * (the brother jumping, his level, the star), and stays on
+			 * the game screen too (ML-5, issue #29) */
+			.offAfter = { { ML_RESULTS, 0xFFFF, 1, 2, true, 0xFFFF, true } },
 			/* the boxes' frames (BG3: only ever the boxes; empty in a
 			 * conversation, and between the boxes) */
 			.bgMask = 0x8,
