@@ -3525,14 +3525,15 @@ static uint32_t wl4_virt(Emu* e, uint32_t addr) {
 #define SM3_CURSOR_MAGENTA 0x7C1F
 /* the item row, the only place it's drawn */
 #define SM3_ITEMS_Y0 124
-/* the score page: the panel (BG0, BG1; the cards on BG2 show through its
- * holes) and the total bar under it, x 8-231 */
-#define SM3_PANEL_Y0 8
-#define SM3_PANEL_Y1 100
-#define SM3_BAR_Y0 112
-#define SM3_BAR_Y1 153
-#define SM3_PAGE_X0 8
-#define SM3_PAGE_X1 231
+/* the score page's GBA box with #1 (another menu), at the panel's bottom
+ * right in every world and release, painted over with the panel's colour,
+ * taken from beside the cards (SM3-3) */
+#define SM3_BOX_X0 187
+#define SM3_BOX_X1 220
+#define SM3_BOX_Y0 59
+#define SM3_BOX_Y1 92
+#define SM3_PANEL_AT_X 10
+#define SM3_PANEL_AT_Y 60
 #define SM3_CARD_GREEN 0x08A542 /* (also the bar's) */
 /* 1 in a level or on a world's panel: a picture is taken */
 #define SM3_V_LIVE 0xF0000070
@@ -3652,11 +3653,11 @@ static const char* sm3_status_page(Emu* s, uint32_t* out, int w, int h) {
 /* SM3-3: UP twice (from either row of levels to the tabs; on the tabs it
  * does nothing), RIGHT to SCORE, A, and the cards turning until the total
  * bar is in; then, of the next 64 frames, the one with the most green
- * (the 100-point cards blink red and green), drawn again with BG0-2 alone
- * (no map, Yoshi or hand: BG2 has the cards and, below the panel, the
- * map's scenery) inside the panel and BG0-1 inside the bar, black round
- * them. The same world and scores as last time: the same picture, without
- * the 5 seconds of turning cards. */
+ * (the 100-point cards blink red and green), drawn again with the BG
+ * layers alone (the panel, cards, bar and the map's scenery; Yoshi, the
+ * levels' markers and the hand are sprites), the #1 box painted over. The
+ * same world and scores as last time: the same picture, without the 5
+ * seconds of turning cards. */
 static const char* sm3_score_page(Emu* s, uint32_t* out, int w, int h) {
 	static uint8_t lastKey[SM3_SCORES_LEN + 1];
 	static uint32_t lastPage[GBA_W * GBA_H];
@@ -3703,27 +3704,18 @@ static const char* sm3_score_page(Emu* s, uint32_t* out, int w, int h) {
 		free(best);
 		return "the score page closed";
 	}
-	static uint32_t panel[GBA_W * GBA_H];
-	emu_layers(s, 0x07);
+	/* every BG layer, no sprites */
+	emu_layers(s, 0x0F);
 	emu_state_load(s, best);
-	emu_write16(s, 0x05000000, 0);
-	emu_frame(s, 0);
-	memcpy(panel, s->fb, sizeof(panel));
-	emu_layers(s, 0x03);
-	emu_state_load(s, best);
-	emu_write16(s, 0x05000000, 0);
 	emu_frame(s, 0);
 	emu_layers(s, 0x1F);
 	free(st);
 	free(best);
+	uint32_t panel = s->fb[SM3_PANEL_AT_Y * GBA_W + SM3_PANEL_AT_X];
 	for (int y = 0; y < h && y < GBA_H; ++y) {
 		for (int x = 0; x < w && x < GBA_W; ++x) {
-			uint32_t c = 0xFF000000u;
-			if (x >= SM3_PAGE_X0 && x <= SM3_PAGE_X1) {
-				if (y >= SM3_PANEL_Y0 && y <= SM3_PANEL_Y1) c = panel[y * GBA_W + x];
-				else if (y >= SM3_BAR_Y0 && y <= SM3_BAR_Y1) c = s->fb[y * GBA_W + x];
-			}
-			out[y * w + x] = c;
+			bool box = x >= SM3_BOX_X0 && x <= SM3_BOX_X1 && y >= SM3_BOX_Y0 && y <= SM3_BOX_Y1;
+			out[y * w + x] = box ? panel : s->fb[y * GBA_W + x];
 		}
 	}
 	if (cw && !emu_cancelled(s)) {

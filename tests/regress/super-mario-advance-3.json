@@ -274,7 +274,7 @@
    "id": "sm3-us-panel",
    "rom": "A3AE",
    "state": "super-mario-advance-3/us-panel-w6.ss",
-   "desc": "World 6's panel: its score page, without the map",
+   "desc": "World 6's panel: its score page over the map's scenery, without the map's sprites or the #1 box",
    "rules": [
     "SM3-3"
    ],
@@ -308,42 +308,16 @@
     },
     {
      "rule": "SM3-3",
-     "what": "nothing of the map between the panel and the bar",
+     "what": "the #1 box painted over with the panel's colour",
      "type": "uniform",
      "shot": "start",
      "rect": [
-      64,
-      472,
-      959,
-      507
+      780,
+      300,
+      915,
+      435
      ],
-     "color": "000000"
-    },
-    {
-     "rule": "SM3-3",
-     "what": "nothing of the map below the bar",
-     "type": "uniform",
-     "shot": "start",
-     "rect": [
-      64,
-      684,
-      959,
-      703
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "SM3-3",
-     "what": "nothing of the map at the left edge",
-     "type": "uniform",
-     "shot": "start",
-     "rect": [
-      32,
-      64,
-      59,
-      703
-     ],
-     "color": "000000"
+     "color": "EFB5B5"
     }
    ]
   },
@@ -379,42 +353,16 @@
     },
     {
      "rule": "SM3-3",
-     "what": "nothing of the map between the panel and the bar",
+     "what": "the #1 box painted over with the panel's colour",
      "type": "uniform",
      "shot": "start",
      "rect": [
-      64,
-      472,
-      959,
-      507
+      780,
+      300,
+      915,
+      435
      ],
-     "color": "000000"
-    },
-    {
-     "rule": "SM3-3",
-     "what": "nothing of the map below the bar",
-     "type": "uniform",
-     "shot": "start",
-     "rect": [
-      64,
-      684,
-      959,
-      703
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "SM3-3",
-     "what": "nothing of the map at the left edge",
-     "type": "uniform",
-     "shot": "start",
-     "rect": [
-      32,
-      64,
-      59,
-      703
-     ],
-     "color": "000000"
+     "color": "EFB5B5"
     }
    ]
   },
@@ -485,45 +433,6 @@
     },
     {
      "rule": "SM3-3",
-     "what": "nothing of the map between the panel and the bar",
-     "type": "uniform",
-     "shot": "w5",
-     "rect": [
-      64,
-      472,
-      959,
-      507
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "SM3-3",
-     "what": "nothing of the map below the bar",
-     "type": "uniform",
-     "shot": "w5",
-     "rect": [
-      64,
-      684,
-      959,
-      703
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "SM3-3",
-     "what": "nothing of the map at the left edge",
-     "type": "uniform",
-     "shot": "w5",
-     "rect": [
-      32,
-      64,
-      59,
-      703
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "SM3-3",
      "what": "another world's page (the panel's colour)",
      "type": "differs",
      "frac": 0.2,
@@ -547,6 +456,19 @@
       ],
       "screen": "second"
      }
+    },
+    {
+     "rule": "SM3-3",
+     "what": "the #1 box painted over with the panel's colour",
+     "type": "uniform",
+     "shot": "w5",
+     "rect": [
+      780,
+      300,
+      915,
+      435
+     ],
+     "color": "BDCEEF"
     }
    ]
   },
@@ -618,42 +540,16 @@
     },
     {
      "rule": "SM3-3",
-     "what": "nothing of the map between the panel and the bar",
+     "what": "the #1 box painted over with the panel's colour",
      "type": "uniform",
      "shot": "panel",
      "rect": [
-      64,
-      472,
-      959,
-      507
+      780,
+      300,
+      915,
+      435
      ],
-     "color": "000000"
-    },
-    {
-     "rule": "SM3-3",
-     "what": "nothing of the map below the bar",
-     "type": "uniform",
-     "shot": "panel",
-     "rect": [
-      64,
-      684,
-      959,
-      703
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "SM3-3",
-     "what": "nothing of the map at the left edge",
-     "type": "uniform",
-     "shot": "panel",
-     "rect": [
-      32,
-      64,
-      59,
-      703
-     ],
-     "color": "000000"
+     "color": "EFB5B5"
     }
    ]
   },
@@ -763,42 +659,16 @@
     },
     {
      "rule": "SM3-3",
-     "what": "nothing of the map between the panel and the bar",
+     "what": "the #1 box painted over with the panel's colour",
      "type": "uniform",
      "shot": "panel",
      "rect": [
-      64,
-      472,
-      959,
-      507
+      780,
+      300,
+      915,
+      435
      ],
-     "color": "000000"
-    },
-    {
-     "rule": "SM3-3",
-     "what": "nothing of the map below the bar",
-     "type": "uniform",
-     "shot": "panel",
-     "rect": [
-      64,
-      684,
-      959,
-      703
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "SM3-3",
-     "what": "nothing of the map at the left edge",
-     "type": "uniform",
-     "shot": "panel",
-     "rect": [
-      32,
-      64,
-      59,
-      703
-     ],
-     "color": "000000"
+     "color": "EFB5B5"
     }
    ]
   },
@@ -1008,42 +878,16 @@
     },
     {
      "rule": "SM3-3",
-     "what": "nothing of the map between the panel and the bar",
+     "what": "the #1 box painted over with the panel's colour",
      "type": "uniform",
      "shot": "start",
      "rect": [
-      64,
-      472,
-      959,
-      507
+      780,
+      300,
+      915,
+      435
      ],
-     "color": "000000"
-    },
-    {
-     "rule": "SM3-3",
-     "what": "nothing of the map below the bar",
-     "type": "uniform",
-     "shot": "start",
-     "rect": [
-      64,
-      684,
-      959,
-      703
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "SM3-3",
-     "what": "nothing of the map at the left edge",
-     "type": "uniform",
-     "shot": "start",
-     "rect": [
-      32,
-      64,
-      59,
-      703
-     ],
-     "color": "000000"
+     "color": "EFB5B5"
     }
    ]
   },
@@ -1156,42 +1000,16 @@
     },
     {
      "rule": "SM3-3",
-     "what": "nothing of the map between the panel and the bar",
+     "what": "the #1 box painted over with the panel's colour",
      "type": "uniform",
      "shot": "start",
      "rect": [
-      64,
-      472,
-      959,
-      507
+      780,
+      300,
+      915,
+      435
      ],
-     "color": "000000"
-    },
-    {
-     "rule": "SM3-3",
-     "what": "nothing of the map below the bar",
-     "type": "uniform",
-     "shot": "start",
-     "rect": [
-      64,
-      684,
-      959,
-      703
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "SM3-3",
-     "what": "nothing of the map at the left edge",
-     "type": "uniform",
-     "shot": "start",
-     "rect": [
-      32,
-      64,
-      59,
-      703
-     ],
-     "color": "000000"
+     "color": "EFB5B5"
     }
    ]
   }
