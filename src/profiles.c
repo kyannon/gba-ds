@@ -3476,17 +3476,20 @@ static int to_field_ready(Emu* s, const void* state) {
 	if (!emu_state_load(s, state)) return -1;
 	emu_frame(s, 0);
 	bool enemy = emu_read8(s, TO_PHASE(s)) & 0x80;
-	for (int extra = 0;; extra += 40) {
-		if (extra && enemy) return -1;
-		if (!emu_state_load(s, state)) return -1;
-		emu_frame(s, 0);
-		if (extra) aw_run(s, 0, extra);
+	aw_run(s, K_R, 6);
+	aw_run(s, 0, 34);
+	if (emu_read8(s, TO_MENU_UP(s)) == 2) return 0;
+	if (enemy || !toAfterEnemy) return -1;
+	/* (one run on, R every 40 frames, until its menu opens: the guests'
+	 * phase, which reads as the player's, costs ~330 frames a try, not a
+	 * restart for each) */
+	for (int extra = 40; extra <= 280; extra += 40) {
+		if (emu_cancelled(s) || (emu_read8(s, TO_PHASE(s)) & 0x80)) return -1;
 		aw_run(s, K_R, 6);
 		aw_run(s, 0, 34);
 		if (emu_read8(s, TO_MENU_UP(s)) == 2) return extra;
-		/* (on past only from the player's phase: not from the enemy's) */
-		if (!toAfterEnemy || (emu_read8(s, TO_PHASE(s)) & 0x80) || extra >= 280 || emu_cancelled(s)) return -1;
 	}
+	return -1;
 }
 static bool to_field_back(Emu* s, const void* state, int extra) {
 	if (!emu_state_load(s, state)) return false;
