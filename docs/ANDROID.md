@@ -599,8 +599,26 @@ displays of 1280x960 and 640x480 beside a 1024x768 game window, frames
 and the stacked screenshot both whole; 1024x768 beside 1024x768 as
 before. The software fallback already used the display's own size.
 
+## In the background (issue #28, Nov 8, 2026)
+
+A Presentation stays up while its activity is in the background, so after
+Home (or the app switcher, or another app on top) the second display kept
+GBA DS's last picture, took its touches and stayed awake (FLAG_KEEP_SCREEN_ON)
+until the app closed (AYN Thor report). GbaDsActivity now hides it in
+onStop and shows it in onStart (`secondHidden`; Dialog.hide keeps the
+window, so show can't fail while the display is there). Hiding destroys the
+SurfaceView's surface: nativeSetSurface(null) destroys the EGL surface and
+lets go of the window under winLock; showing brings a new surface, and
+android_second_begin makes a new EGL surface for it (ui.c's sw_render
+retries until it can, and DIDENTERFOREGROUND redraws both screens). onStop,
+not onPause: split screen and dialogs over the activity keep it. While the
+folder picker is open (an activity on top), the second display is
+Android's too.
+
 ## For the next release
 
 Player-facing Android changes since the last release, for the main session
 to move into CHANGELOG.md and the release notes (see CLAUDE.md, "More than
 one session"). Empty after each release.
+
+- Fixed: leaving the app (Home, the app switcher) kept the second screen showing GBA DS (and awake) until the app was closed; it now goes back to Android until you return.
