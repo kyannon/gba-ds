@@ -6,12 +6,10 @@
    "id": "to-us-field",
    "rom": "ATOE",
    "state": "tactics-ogre/us-field.ss",
-   "desc": "the player's turn, the cursor on Orson (a guest)",
+   "desc": "the player's turn, the cursor on Orson (a guest): his details, three pages",
    "rules": [
-    "TO-1",
-    "TO-2",
-    "TO-3",
-    "TO-7"
+    "TO-7",
+    "TO-8"
    ],
    "shots": {
     "first": 120,
@@ -19,14 +17,42 @@
    },
    "checks": [
     {
-     "rule": "TO-1",
-     "what": "the list was shown, six pages 2.5 s apart",
+     "rule": "TO-8",
+     "what": "the unit's details, three pages, 2.5 s apart",
      "type": "log",
-     "match": "map updated \\(6 frame\\(s\\) 150 apart"
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
     },
     {
-     "rule": "TO-3",
-     "what": "the next page after 2.5 seconds",
+     "rule": "TO-8",
+     "what": "the details' frame: its middle line",
+     "type": "uniform",
+     "shot": "first",
+     "rect": [
+      40,
+      380,
+      984,
+      388
+     ],
+     "color": "101818",
+     "frac": 0.8
+    },
+    {
+     "rule": "TO-8",
+     "what": "its lower boxes' dividing line",
+     "type": "uniform",
+     "shot": "first",
+     "rect": [
+      508,
+      392,
+      516,
+      688
+     ],
+     "color": "101818",
+     "frac": 0.95
+    },
+    {
+     "rule": "TO-8",
+     "what": "the next page after 2.5 seconds (Orson has no talents: the heading, POW to MP)",
      "type": "differs",
      "a": {
       "shot": "first",
@@ -46,7 +72,7 @@
        768
       ]
      },
-     "frac": 0.01
+     "frac": 0.0005
     },
     {
      "rule": "TO-7",
@@ -157,7 +183,7 @@
    "checks": [
     {
      "rule": "TO-5",
-     "what": "a list taken before the unit was picked",
+     "what": "the details taken before the unit was picked",
      "type": "log",
      "match": "frame [0-9]{1,2}: map updated"
     },
@@ -175,7 +201,8 @@
    "state": "tactics-ogre/us-field.ss",
    "desc": "the list taken on your turn, then the enemy's turn and a conversation in the battle (a player's bug report)",
    "rules": [
-    "TO-5"
+    "TO-5",
+    "TO-13"
    ],
    "input": [
     [
@@ -206,7 +233,7 @@
    "checks": [
     {
      "rule": "TO-5",
-     "what": "the list taken on your turn",
+     "what": "the details taken on your turn",
      "type": "log",
      "match": "frame 1?[0-9]{1,2}: map updated"
     },
@@ -215,6 +242,12 @@
      "what": "none taken on the enemy's turn and its conversation: the last stays",
      "type": "no_log",
      "match": "frame ([2-9][0-9]{2}|[0-9]{4,}): map updated"
+    },
+    {
+     "rule": "TO-13",
+     "what": "the logo on the enemy's turn",
+     "type": "log",
+     "match": "logo only on"
     }
    ]
   },
@@ -222,19 +255,48 @@
    "id": "to-jp-field",
    "rom": "ATOJ",
    "state": "tactics-ogre/jp-field.ss",
-   "desc": "a battle in Tactics Ogre Gaiden (a player's bug report)",
+   "desc": "a battle in Tactics Ogre Gaiden (a player's bug report): the leader's details",
    "rules": [
-    "TO-1"
+    "TO-8"
    ],
    "shots": {
+    "details": 120,
     "start": 150
    },
    "checks": [
     {
-     "rule": "TO-1",
-     "what": "the list",
+     "rule": "TO-8",
+     "what": "the unit's details, three pages, 2.5 s apart",
      "type": "log",
-     "match": "map updated \\("
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
+    },
+    {
+     "rule": "TO-8",
+     "what": "the details' frame: its middle line",
+     "type": "uniform",
+     "shot": "details",
+     "rect": [
+      40,
+      380,
+      984,
+      388
+     ],
+     "color": "101818",
+     "frac": 0.8
+    },
+    {
+     "rule": "TO-8",
+     "what": "its lower boxes' dividing line",
+     "type": "uniform",
+     "shot": "details",
+     "rect": [
+      508,
+      392,
+      516,
+      688
+     ],
+     "color": "101818",
+     "frac": 0.95
     }
    ]
   },
@@ -242,10 +304,9 @@
    "id": "to-us-cursor-moves",
    "rom": "ATOE",
    "state": "tactics-ogre/us-field.ss",
-   "desc": "the cursor moved up twice, onto Lara",
+   "desc": "the cursor moved up twice, onto Lara: her details",
    "rules": [
-    "TO-1",
-    "TO-2"
+    "TO-8"
    ],
    "input": [
     [
@@ -271,8 +332,8 @@
    },
    "checks": [
     {
-     "rule": "TO-2",
-     "what": "the list's cursor moved with it",
+     "rule": "TO-8",
+     "what": "the details followed the cursor",
      "type": "differs",
      "a": {
       "shot": "before",
@@ -300,19 +361,47 @@
    "id": "to-us-enemy",
    "rom": "ATOE",
    "state": "tactics-ogre/us-enemy.ss",
-   "desc": "the cursor on Stan, the enemy's leader (the list's box on the left)",
+   "desc": "the cursor on Stan, the enemy's leader: his details, in the game's green",
    "rules": [
-    "TO-2"
+    "TO-8"
    ],
    "shots": {
     "start": 120
    },
    "checks": [
     {
-     "rule": "TO-2",
-     "what": "the list was shown",
+     "rule": "TO-8",
+     "what": "the unit's details, three pages, 2.5 s apart",
      "type": "log",
-     "match": "map updated"
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
+    },
+    {
+     "rule": "TO-8",
+     "what": "the details' frame: its middle line",
+     "type": "uniform",
+     "shot": "start",
+     "rect": [
+      40,
+      380,
+      984,
+      388
+     ],
+     "color": "63737B",
+     "frac": 0.8
+    },
+    {
+     "rule": "TO-8",
+     "what": "its lower boxes' dividing line",
+     "type": "uniform",
+     "shot": "start",
+     "rect": [
+      508,
+      392,
+      516,
+      688
+     ],
+     "color": "63737B",
+     "frac": 0.95
     }
    ]
   },
@@ -320,19 +409,47 @@
    "id": "to-us-lower-row",
    "rom": "ATOE",
    "state": "tactics-ogre/us-lower-row.ss",
-   "desc": "the cursor on Justin, on the list's third row (its box at the top)",
+   "desc": "the cursor on Justin (on the list's third row, which used to matter): his details",
    "rules": [
-    "TO-2"
+    "TO-8"
    ],
    "shots": {
     "start": 120
    },
    "checks": [
     {
-     "rule": "TO-2",
-     "what": "the list was shown",
+     "rule": "TO-8",
+     "what": "the unit's details, three pages, 2.5 s apart",
      "type": "log",
-     "match": "map updated"
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
+    },
+    {
+     "rule": "TO-8",
+     "what": "the details' frame: its middle line",
+     "type": "uniform",
+     "shot": "start",
+     "rect": [
+      40,
+      380,
+      984,
+      388
+     ],
+     "color": "101818",
+     "frac": 0.8
+    },
+    {
+     "rule": "TO-8",
+     "what": "its lower boxes' dividing line",
+     "type": "uniform",
+     "shot": "start",
+     "rect": [
+      508,
+      392,
+      516,
+      688
+     ],
+     "color": "101818",
+     "frac": 0.95
     }
    ]
   },
@@ -340,19 +457,68 @@
    "id": "to-us-empty-tile",
    "rom": "ATOE",
    "state": "tactics-ogre/us-empty-tile.ss",
-   "desc": "the cursor on an empty square: the leader",
+   "desc": "the cursor on an empty square: one page, the Winning Condition's box at the top, the Losing Condition's at the bottom, the place's in the middle, on black",
    "rules": [
-    "TO-2"
+    "TO-9"
    ],
    "shots": {
-    "start": 120
+    "start": 120,
+    "later": 270
    },
    "checks": [
     {
-     "rule": "TO-2",
-     "what": "the list was shown",
+     "rule": "TO-9",
+     "what": "one page",
      "type": "log",
-     "match": "map updated"
+     "match": "map updated \\(1 frame\\(s\\)"
+    },
+    {
+     "rule": "TO-9",
+     "what": "never a unit's details",
+     "type": "no_log",
+     "match": "map updated \\(3 frame"
+    },
+    {
+     "rule": "TO-9",
+     "what": "black between the top box and the place",
+     "type": "uniform",
+     "shot": "start",
+     "rect": [
+      0,
+      232,
+      1024,
+      326
+     ],
+     "color": "000000",
+     "frac": 0.99
+    },
+    {
+     "rule": "TO-9",
+     "what": "black between the place and the bottom box",
+     "type": "uniform",
+     "shot": "start",
+     "rect": [
+      0,
+      442,
+      1024,
+      538
+     ],
+     "color": "000000",
+     "frac": 0.99
+    },
+    {
+     "rule": "TO-9",
+     "what": "the place's box in the middle",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      384,
+      370,
+      640,
+      400
+     ],
+     "color": "000000",
+     "frac": 0.5
     }
    ]
   },
@@ -360,19 +526,19 @@
    "id": "to-us-list-open",
    "rom": "ATOE",
    "state": "tactics-ogre/us-list-open.ss",
-   "desc": "the list open in the game (the owner's bug report)",
+   "desc": "the unit list open in the game (the owner's bug report): nothing taken, the logo (no picture yet)",
    "rules": [
-    "TO-1"
+    "TO-5"
    ],
    "shots": {
     "start": 120
    },
    "checks": [
     {
-     "rule": "TO-1",
-     "what": "the list was shown",
-     "type": "log",
-     "match": "map updated \\(6 frame"
+     "rule": "TO-5",
+     "what": "none taken with the list open",
+     "type": "no_log",
+     "match": "map updated"
     }
    ]
   },
@@ -426,9 +592,9 @@
    "id": "to-us-cursor-units",
    "rom": "ATOE",
    "state": "tactics-ogre/us-cursor-units.ss",
-   "desc": "the cursor moved over several units (a player's bug report, its keys played back): the list's cursor follows it onto each, guests and enemies too",
+   "desc": "the cursor moved over several units (a player's bug report, its keys played back): the details follow it onto each, guests and enemies too",
    "rules": [
-    "TO-2"
+    "TO-8"
    ],
    "input": [
     [
@@ -487,7 +653,8 @@
    "state": "tactics-ogre/us-attack-enemy-phase.ss",
    "desc": "an attack picked, the hit and its EXP, then Enemy Phase (a player's bug report, its keys played back): no list can be taken there, so the logo (no list taken yet)",
    "rules": [
-    "TO-5"
+    "TO-5",
+    "TO-13"
    ],
    "input": [
     [
@@ -544,10 +711,9 @@
    "id": "to-jp-cursor-units",
    "rom": "ATOJ",
    "state": "tactics-ogre/jp-cursor-units.ss",
-   "desc": "Japan: the cursor moved onto guests (a player's bug report, its keys played back): the list's cursor follows it (Justin, then Andy), turning its pages",
+   "desc": "Japan: the cursor moved onto guests (a player's bug report, its keys played back): the details follow it (Justin, then Andy)",
    "rules": [
-    "TO-2",
-    "TO-3"
+    "TO-8"
    ],
    "input": [
     [
@@ -630,7 +796,8 @@
    "state": "tactics-ogre/jp-move-enemy-phase.ss",
    "desc": "Japan: a unit moved, its turn ended, then Enemy Phase (a player's bug report, its keys played back): the last list stays",
    "rules": [
-    "TO-5"
+    "TO-5",
+    "TO-13"
    ],
    "input": [
     [
@@ -778,6 +945,4521 @@
     "moving": 120,
     "enemy": 670
    }
+  },
+  {
+   "id": "to-us-details-open",
+   "rom": "ATOE",
+   "state": "tactics-ogre/us-field.ss",
+   "desc": "the player opens Orson's details (B) in the game and closes them again: the last pictures stay meanwhile; once the field is back, Orson's details again, not the empty square's page while the field fades in",
+   "rules": [
+    "TO-5",
+    "TO-8",
+    "TO-9"
+   ],
+   "input": [
+    [
+     200,
+     "B"
+    ],
+    [
+     206,
+     "-"
+    ],
+    [
+     900,
+     "B"
+    ],
+    [
+     906,
+     "-"
+    ]
+   ],
+   "shots": {
+    "open": 600,
+    "closed": 1100
+   },
+   "checks": [
+    {
+     "rule": "TO-5",
+     "what": "none taken with the details open (R's menu doesn't open there)",
+     "type": "log",
+     "match": "map capture failed .*R's menu didn't open"
+    },
+    {
+     "rule": "TO-5",
+     "what": "none while the field fades back in, then Orson's details",
+     "type": "log",
+     "match": "frame (9[0-9]{2}|10[0-9]{2}): map updated \\(3 frame"
+    },
+    {
+     "rule": "TO-5",
+     "what": "never the empty square's page after closing",
+     "type": "no_log",
+     "match": "frame (9[0-9]{2}|1[0-9]{3}): map updated \\(1 frame"
+    }
+   ]
+  },
+  {
+   "id": "to-us-field-still",
+   "rom": "ATOE",
+   "state": "tactics-ogre/us-field.ss",
+   "desc": "Map Animations off: the details of the cursor's unit stay",
+   "rules": [
+    "TO-8"
+   ],
+   "config": {
+    "map_animations": 0
+   },
+   "shots": {
+    "first": 120,
+    "later": 400
+   },
+   "checks": [
+    {
+     "rule": "TO-8",
+     "what": "the same page 4.7 seconds on",
+     "type": "same",
+     "a": {
+      "shot": "first",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "later",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.01
+    },
+    {
+     "rule": "TO-8",
+     "what": "the details' frame: its middle line",
+     "type": "uniform",
+     "shot": "later",
+     "rect": [
+      40,
+      380,
+      984,
+      388
+     ],
+     "color": "101818",
+     "frac": 0.8
+    },
+    {
+     "rule": "TO-8",
+     "what": "its lower boxes' dividing line",
+     "type": "uniform",
+     "shot": "later",
+     "rect": [
+      508,
+      392,
+      516,
+      688
+     ],
+     "color": "101818",
+     "frac": 0.95
+    }
+   ]
+  },
+  {
+   "id": "to-training-field",
+   "rom": "ATOE",
+   "state": "tactics-ogre/training-field.ss",
+   "desc": "Training (from the owner's GameShark save, its keys played in: world map R, Training, 8 and 5 units dispatched): R's menu has no Winning Condition, the cursor on Fermin",
+   "rules": [
+    "TO-8"
+   ],
+   "shots": {
+    "details": 120,
+    "second": 270
+   },
+   "checks": [
+    {
+     "rule": "TO-8",
+     "what": "the unit's details, three pages, 2.5 s apart",
+     "type": "log",
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
+    },
+    {
+     "rule": "TO-8",
+     "what": "the details' frame: its middle line",
+     "type": "uniform",
+     "shot": "details",
+     "rect": [
+      40,
+      380,
+      984,
+      388
+     ],
+     "color": "101818",
+     "frac": 0.8
+    },
+    {
+     "rule": "TO-8",
+     "what": "its lower boxes' dividing line",
+     "type": "uniform",
+     "shot": "details",
+     "rect": [
+      508,
+      392,
+      516,
+      688
+     ],
+     "color": "101818",
+     "frac": 0.95
+    }
+   ]
+  },
+  {
+   "id": "to-training-doggy",
+   "rom": "ATOE",
+   "state": "tactics-ogre/training-doggy.ss",
+   "desc": "Training: the cursor on Doggy, a dragon (SP, not MP)",
+   "rules": [
+    "TO-8"
+   ],
+   "shots": {
+    "details": 120,
+    "second": 270
+   },
+   "checks": [
+    {
+     "rule": "TO-8",
+     "what": "the unit's details, three pages, 2.5 s apart",
+     "type": "log",
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
+    },
+    {
+     "rule": "TO-8",
+     "what": "the details' frame: its middle line",
+     "type": "uniform",
+     "shot": "details",
+     "rect": [
+      40,
+      380,
+      984,
+      388
+     ],
+     "color": "101818",
+     "frac": 0.8
+    },
+    {
+     "rule": "TO-8",
+     "what": "its lower boxes' dividing line",
+     "type": "uniform",
+     "shot": "details",
+     "rect": [
+      508,
+      392,
+      516,
+      688
+     ],
+     "color": "101818",
+     "frac": 0.95
+    }
+   ]
+  },
+  {
+   "id": "to-training-allos",
+   "rom": "ATOE",
+   "state": "tactics-ogre/training-allos.ss",
+   "desc": "Training: the cursor on Allos (level 32, HP 364), on the list's first row",
+   "rules": [
+    "TO-8"
+   ],
+   "shots": {
+    "details": 120,
+    "second": 270
+   },
+   "checks": [
+    {
+     "rule": "TO-8",
+     "what": "the unit's details, three pages, 2.5 s apart",
+     "type": "log",
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
+    },
+    {
+     "rule": "TO-8",
+     "what": "the details' frame: its middle line",
+     "type": "uniform",
+     "shot": "details",
+     "rect": [
+      40,
+      380,
+      984,
+      388
+     ],
+     "color": "101818",
+     "frac": 0.8
+    },
+    {
+     "rule": "TO-8",
+     "what": "its lower boxes' dividing line",
+     "type": "uniform",
+     "shot": "details",
+     "rect": [
+      508,
+      392,
+      516,
+      688
+     ],
+     "color": "101818",
+     "frac": 0.95
+    }
+   ]
+  },
+  {
+   "id": "to-training-empty",
+   "rom": "ATOE",
+   "state": "tactics-ogre/training-empty.ss",
+   "desc": "Training, the cursor on an empty square: no conditions in Training, so the logo",
+   "rules": [
+    "TO-9"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "TO-9",
+     "what": "the logo",
+     "type": "log",
+     "match": "logo only on"
+    },
+    {
+     "rule": "TO-9",
+     "what": "no page taken",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "to-jp-empty-tile",
+   "rom": "ATOJ",
+   "state": "tactics-ogre/jp-empty-tile.ss",
+   "desc": "Japan: the cursor moved off the leader to an empty square (from jp-field.ss): TACTICAL AIM at the top, DEFEAT CONDITION at the bottom, the place in the middle",
+   "rules": [
+    "TO-9"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "TO-9",
+     "what": "one page",
+     "type": "log",
+     "match": "map updated \\(1 frame\\(s\\)"
+    }
+   ]
+  },
+  {
+   "id": "to-us-organize",
+   "rom": "ATOE",
+   "state": "tactics-ogre/organize.ss",
+   "desc": "Organize, from the world map (the owner's GameShark save): the details of Fermin, under the roster's cursor, their three pages (POW, MP, Emblems)",
+   "rules": [
+    "TO-11"
+   ],
+   "shots": {
+    "first": 100,
+    "second": 250,
+    "third": 400
+   },
+   "checks": [
+    {
+     "rule": "TO-11",
+     "what": "three pages",
+     "type": "log",
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
+    },
+    {
+     "rule": "TO-11",
+     "what": "the next page (Fermin has no talents: only the heading, POW to MP, changes)",
+     "type": "differs",
+     "a": {
+      "shot": "first",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "second",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0005
+    },
+    {
+     "rule": "TO-11",
+     "what": "and the Emblems",
+     "type": "differs",
+     "a": {
+      "shot": "second",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "third",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.05
+    }
+   ]
+  },
+  {
+   "id": "to-us-world-map",
+   "rom": "ATOE",
+   "state": "tactics-ogre/world-map.ss",
+   "desc": "the world map at Formido (the owner's GameShark save), the cursor on it: its HELP box in the middle, on black",
+   "rules": [
+    "TO-10"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "rule": "TO-10",
+     "what": "the HELP box",
+     "type": "log",
+     "match": "map updated \\(1 frame\\(s\\)"
+    },
+    {
+     "rule": "TO-10",
+     "what": "black above",
+     "type": "uniform",
+     "shot": "start",
+     "rect": [
+      0,
+      0,
+      1024,
+      200
+     ],
+     "color": "000000",
+     "frac": 0.99
+    },
+    {
+     "rule": "TO-10",
+     "what": "black below",
+     "type": "uniform",
+     "shot": "start",
+     "rect": [
+      0,
+      570,
+      1024,
+      768
+     ],
+     "color": "000000",
+     "frac": 0.99
+    }
+   ]
+  },
+  {
+   "id": "to-us-world-map-between",
+   "rom": "ATOE",
+   "state": "tactics-ogre/world-map-between.ss",
+   "desc": "the world map, the cursor between locations (above Formido): the HELP of the player's own location, Formido (the cursor put on the army's flag on the hidden copy)",
+   "rules": [
+    "TO-10"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "rule": "TO-10",
+     "what": "the HELP box",
+     "type": "log",
+     "match": "map updated \\(1 frame\\(s\\)"
+    }
+   ]
+  },
+  {
+   "id": "to-us-world-map-after-training",
+   "rom": "ATOE",
+   "state": "tactics-ogre/world-map-after-training.ss",
+   "desc": "the world map after Training was ended (a battle's memory left behind): still the world map, Formido's HELP",
+   "rules": [
+    "TO-10"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "rule": "TO-10",
+     "what": "the HELP box",
+     "type": "log",
+     "match": "map updated \\(1 frame\\(s\\)"
+    }
+   ]
+  },
+  {
+   "id": "to-us-world-map-moves",
+   "rom": "ATOE",
+   "state": "tactics-ogre/world-map.ss",
+   "desc": "the world map, the cursor moved from Formido to Aquila: Aquila's HELP",
+   "rules": [
+    "TO-10"
+   ],
+   "input": [
+    [
+     150,
+     "RIGHT"
+    ],
+    [
+     156,
+     "-"
+    ],
+    [
+     180,
+     "RIGHT"
+    ],
+    [
+     186,
+     "-"
+    ],
+    [
+     210,
+     "DOWN"
+    ],
+    [
+     216,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 140,
+    "after": 400
+   },
+   "checks": [
+    {
+     "rule": "TO-10",
+     "what": "another location's HELP",
+     "type": "differs",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.01
+    }
+   ]
+  },
+  {
+   "id": "to-us-organize-details",
+   "rom": "ATOE",
+   "state": "tactics-ogre/organize-details.ss",
+   "desc": "Organize with Fermin's details open in the game: the same three pages, from the first",
+   "rules": [
+    "TO-11"
+   ],
+   "shots": {
+    "first": 100
+   },
+   "checks": [
+    {
+     "rule": "TO-11",
+     "what": "three pages",
+     "type": "log",
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
+    }
+   ]
+  },
+  {
+   "id": "to-us-organize-back",
+   "rom": "ATOE",
+   "state": "tactics-ogre/organize.ss",
+   "desc": "Organize, then B (the world map's command bar: the logo, not the last details), then B again (the free world map: Formido's HELP)",
+   "rules": [
+    "TO-10",
+    "TO-12"
+   ],
+   "input": [
+    [
+     150,
+     "B"
+    ],
+    [
+     156,
+     "-"
+    ],
+    [
+     400,
+     "B"
+    ],
+    [
+     406,
+     "-"
+    ]
+   ],
+   "shots": {
+    "bar": 300,
+    "map": 650
+   },
+   "checks": [
+    {
+     "rule": "TO-12",
+     "what": "the logo on the command bar",
+     "type": "log",
+     "match": "frame 1[5-9][0-9]: logo only on"
+    },
+    {
+     "rule": "TO-12",
+     "what": "off again once the HELP is taken",
+     "type": "log",
+     "match": "frame (4[0-9]{2}|5[0-9]{2}): logo only off"
+    },
+    {
+     "rule": "TO-10",
+     "what": "the HELP taken on the free world map",
+     "type": "log",
+     "match": "frame (4[0-9]{2}|5[0-9]{2}): map updated \\(1 frame"
+    }
+   ]
+  },
+  {
+   "id": "to-us-vespa-enemy",
+   "rom": "ATOE",
+   "state": "tactics-ogre/us-vespa-enemy.ss",
+   "desc": "the owner's state: Vespa Hill, the cursor on Vonus, an enemy Griffin (SP) whose details didn't appear (the old list search didn't find him): his details, three pages (POW, SP, Emblems)",
+   "rules": [
+    "TO-8"
+   ],
+   "shots": {
+    "details": 120,
+    "costs": 270,
+    "emblems": 420
+   },
+   "checks": [
+    {
+     "rule": "TO-8",
+     "what": "the unit's details, three pages, 2.5 s apart",
+     "type": "log",
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
+    },
+    {
+     "rule": "TO-8",
+     "what": "the details' frame: its middle line",
+     "type": "uniform",
+     "shot": "details",
+     "rect": [
+      40,
+      380,
+      984,
+      388
+     ],
+     "color": "63737B",
+     "frac": 0.8
+    },
+    {
+     "rule": "TO-8",
+     "what": "the SP costs page",
+     "type": "differs",
+     "a": {
+      "shot": "details",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "costs",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0005
+    },
+    {
+     "rule": "TO-8",
+     "what": "the Emblems",
+     "type": "differs",
+     "a": {
+      "shot": "costs",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "emblems",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.05
+    }
+   ]
+  },
+  {
+   "id": "to-us-vespa-box-top-left",
+   "rom": "ATOE",
+   "state": "tactics-ogre/us-vespa-box-top-left.ss",
+   "desc": "the owner's state: Vespa Hill, the cursor on the enemy Menes, the game's box for him at the top left (not the bottom right, out of the cursor's way): his details",
+   "rules": [
+    "TO-8"
+   ],
+   "shots": {
+    "details": 120
+   },
+   "checks": [
+    {
+     "rule": "TO-8",
+     "what": "the unit's details, three pages",
+     "type": "log",
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
+    },
+    {
+     "rule": "TO-8",
+     "what": "never the empty square's page",
+     "type": "no_log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "TO-8",
+     "what": "the details' frame: its middle line",
+     "type": "uniform",
+     "shot": "details",
+     "rect": [
+      40,
+      380,
+      984,
+      388
+     ],
+     "color": "63737B",
+     "frac": 0.8
+    }
+   ]
+  },
+  {
+   "id": "to-us-vespa-box-left",
+   "rom": "ATOE",
+   "state": "tactics-ogre/us-vespa-box-left.ss",
+   "desc": "the owner's state: Vespa Hill, the cursor on Kamui, the box at the middle left: his details",
+   "rules": [
+    "TO-8"
+   ],
+   "shots": {
+    "details": 120
+   },
+   "checks": [
+    {
+     "rule": "TO-8",
+     "what": "the unit's details, three pages",
+     "type": "log",
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
+    },
+    {
+     "rule": "TO-8",
+     "what": "never the empty square's page",
+     "type": "no_log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "TO-8",
+     "what": "the details' frame: its middle line",
+     "type": "uniform",
+     "shot": "details",
+     "rect": [
+      40,
+      380,
+      984,
+      388
+     ],
+     "color": "101818",
+     "frac": 0.8
+    }
+   ]
+  },
+  {
+   "id": "to-us-vespa-enemy-phase",
+   "rom": "ATOE",
+   "state": "tactics-ogre/us-vespa-end-turn.ss",
+   "desc": "the owner's state: Vespa Hill, End of Turn chosen (A): through the enemy's phase, the logo",
+   "rules": [
+    "TO-13"
+   ],
+   "input": [
+    [
+     30,
+     "A"
+    ],
+    [
+     36,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 20,
+    "enemy": 900
+   },
+   "checks": [
+    {
+     "rule": "TO-13",
+     "what": "the logo as the enemy's phase begins",
+     "type": "log",
+     "match": "frame ([3-9][0-9]|1[0-9]{2}): logo only on"
+    },
+    {
+     "rule": "TO-13",
+     "what": "no picture taken in the enemy's phase",
+     "type": "no_log",
+     "match": "frame ([4-9][0-9]|[0-9]{3,}): map updated"
+    }
+   ]
+  },
+  {
+   "id": "to-us-vespa-player-phase",
+   "rom": "ATOE",
+   "state": "tactics-ogre/us-vespa-enemy-phase-end.ss",
+   "desc": "the end of the enemy's phase (the owner's state played on, the harness: 100 s), into the player's turn 2: the logo, then Fermin's details as the Player Phase banner clears, not the last turn's",
+   "rules": [
+    "TO-13",
+    "TO-8"
+   ],
+   "shots": {
+    "enemy": 300,
+    "player": 600
+   },
+   "checks": [
+    {
+     "rule": "TO-13",
+     "what": "the logo in the enemy's phase",
+     "type": "log",
+     "match": "frame [0-9]: logo only on"
+    },
+    {
+     "rule": "TO-13",
+     "what": "the details taken as the player's phase begins",
+     "type": "log",
+     "match": "frame (3[6-9][0-9]|4[0-9]{2}): map updated \\(3 frame"
+    },
+    {
+     "rule": "TO-13",
+     "what": "then the logo off",
+     "type": "log",
+     "match": "frame (4[0-9]{2}|5[0-9]{2}): logo only off"
+    }
+   ]
+  },
+  {
+   "id": "to-us-vespa-victory",
+   "rom": "ATOE",
+   "state": "tactics-ogre/us-vespa-victory.ss",
+   "desc": "the owner's state: Vespa Hill's last blow (Allos's details up), then the victory: the logo as the EXP box clears, through Congratulations!, the spoils and the scene after",
+   "rules": [
+    "TO-14"
+   ],
+   "shots": {
+    "before": 30,
+    "congratulations": 200,
+    "scene": 1200
+   },
+   "checks": [
+    {
+     "rule": "TO-14",
+     "what": "the logo as the battle is won",
+     "type": "log",
+     "match": "frame [4-9][0-9]: logo only on"
+    },
+    {
+     "rule": "TO-14",
+     "what": "no picture after",
+     "type": "no_log",
+     "match": "frame ([1-9][0-9]{2,}): map updated"
+    },
+    {
+     "rule": "TO-14",
+     "what": "and the logo never off",
+     "type": "no_log",
+     "match": "logo only off"
+    }
+   ]
+  },
+  {
+   "id": "to-jp-victory",
+   "rom": "ATOJ",
+   "state": "tactics-ogre/jp-victory-field.ss",
+   "desc": "Japan, a victory made for the test (memory edits, from jp-field.ss: turn 1 ended as played, then on turn 2 Stan set to 1 HP and moved beside Kybard): Kybard's details; then (loaded) Kybard's attack on Stan confirmed: Stan falls, the stage-clear NAVI message, Congratulations!: the logo from the NAVI message on",
+   "rules": [
+    "TO-14"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:tactics-ogre/jp-victory-attack.ss"
+    ],
+    [
+     201,
+     "A"
+    ],
+    [
+     207,
+     "-"
+    ],
+    [
+     261,
+     "A"
+    ],
+    [
+     267,
+     "-"
+    ],
+    [
+     321,
+     "A"
+    ],
+    [
+     327,
+     "-"
+    ],
+    [
+     381,
+     "A"
+    ],
+    [
+     387,
+     "-"
+    ],
+    [
+     441,
+     "A"
+    ],
+    [
+     447,
+     "-"
+    ],
+    [
+     501,
+     "A"
+    ],
+    [
+     507,
+     "-"
+    ],
+    [
+     561,
+     "A"
+    ],
+    [
+     567,
+     "-"
+    ],
+    [
+     621,
+     "A"
+    ],
+    [
+     627,
+     "-"
+    ],
+    [
+     681,
+     "A"
+    ],
+    [
+     687,
+     "-"
+    ],
+    [
+     741,
+     "A"
+    ],
+    [
+     747,
+     "-"
+    ],
+    [
+     801,
+     "A"
+    ],
+    [
+     807,
+     "-"
+    ],
+    [
+     861,
+     "A"
+    ],
+    [
+     867,
+     "-"
+    ],
+    [
+     921,
+     "A"
+    ],
+    [
+     927,
+     "-"
+    ],
+    [
+     981,
+     "A"
+    ],
+    [
+     987,
+     "-"
+    ],
+    [
+     1041,
+     "A"
+    ],
+    [
+     1047,
+     "-"
+    ],
+    [
+     1101,
+     "A"
+    ],
+    [
+     1107,
+     "-"
+    ],
+    [
+     1161,
+     "A"
+    ],
+    [
+     1167,
+     "-"
+    ],
+    [
+     1221,
+     "A"
+    ],
+    [
+     1227,
+     "-"
+    ],
+    [
+     1281,
+     "A"
+    ],
+    [
+     1287,
+     "-"
+    ],
+    [
+     1341,
+     "A"
+    ],
+    [
+     1347,
+     "-"
+    ],
+    [
+     1401,
+     "A"
+    ],
+    [
+     1407,
+     "-"
+    ],
+    [
+     1461,
+     "A"
+    ],
+    [
+     1467,
+     "-"
+    ],
+    [
+     1521,
+     "A"
+    ],
+    [
+     1527,
+     "-"
+    ],
+    [
+     1581,
+     "A"
+    ],
+    [
+     1587,
+     "-"
+    ],
+    [
+     1641,
+     "A"
+    ],
+    [
+     1647,
+     "-"
+    ]
+   ],
+   "shots": {
+    "details": 150,
+    "attack": 600,
+    "won": 1200,
+    "congratulations": 1700
+   },
+   "checks": [
+    {
+     "rule": "TO-14",
+     "what": "the details before",
+     "type": "log",
+     "match": "frame 1: map updated \\(3 frame"
+    },
+    {
+     "rule": "TO-14",
+     "what": "the logo once the battle is won",
+     "type": "log",
+     "match": "frame (8[0-9]{2}|9[0-9]{2}|10[0-9]{2}): logo only on"
+    },
+    {
+     "rule": "TO-14",
+     "what": "no picture after",
+     "type": "no_log",
+     "match": "frame ([3-9][0-9]{2}|[0-9]{4,}): map updated"
+    },
+    {
+     "rule": "TO-14",
+     "what": "and the logo never off",
+     "type": "no_log",
+     "match": "logo only off"
+    }
+   ]
+  },
+  {
+   "id": "to-jp-world-map",
+   "rom": "ATOJ",
+   "state": "tactics-ogre/jp-world-map.ss",
+   "desc": "Japan's world map at Solea Coast (reached by playing on from to-jp-victory's battle): its HELP on black",
+   "rules": [
+    "TO-10"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "rule": "TO-10",
+     "what": "the HELP box",
+     "type": "log",
+     "match": "map updated \\(1 frame\\(s\\)"
+    },
+    {
+     "rule": "TO-10",
+     "what": "black above",
+     "type": "uniform",
+     "shot": "start",
+     "rect": [
+      0,
+      0,
+      1024,
+      200
+     ],
+     "color": "000000",
+     "frac": 0.99
+    },
+    {
+     "rule": "TO-10",
+     "what": "black below",
+     "type": "uniform",
+     "shot": "start",
+     "rect": [
+      0,
+      570,
+      1024,
+      768
+     ],
+     "color": "000000",
+     "frac": 0.99
+    }
+   ]
+  },
+  {
+   "id": "to-jp-world-map-between",
+   "rom": "ATOJ",
+   "state": "tactics-ogre/jp-world-map-between.ss",
+   "desc": "Japan's world map, the cursor moved up off Solea Coast: the player's own location's HELP (the cursor put on the army's flag)",
+   "rules": [
+    "TO-10"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "rule": "TO-10",
+     "what": "the HELP box",
+     "type": "log",
+     "match": "map updated \\(1 frame\\(s\\)"
+    }
+   ]
+  },
+  {
+   "id": "to-jp-world-map-scabellum",
+   "rom": "ATOJ",
+   "state": "tactics-ogre/jp-world-map-scabellum.ss",
+   "desc": "Japan's world map, the cursor on Scabellum (put there on the state, poking the cursor 0x03000A5E): Scabellum's HELP",
+   "rules": [
+    "TO-10"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "rule": "TO-10",
+     "what": "the HELP box",
+     "type": "log",
+     "match": "map updated \\(1 frame\\(s\\)"
+    }
+   ]
+  },
+  {
+   "id": "to-jp-organize",
+   "rom": "ATOJ",
+   "state": "tactics-ogre/jp-organize.ss",
+   "desc": "Japan's Organize (after Scabellum's battle, won with memory edits; its NAVI messages dismissed): the details of the unit under the roster's cursor; RIGHT to Aroz: his; B: the logo (TO-12)",
+   "rules": [
+    "TO-11",
+    "TO-12"
+   ],
+   "shots": {
+    "first": 100,
+    "moved": 620,
+    "back": 900
+   },
+   "checks": [
+    {
+     "rule": "TO-11",
+     "what": "three pages",
+     "type": "log",
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
+    },
+    {
+     "rule": "TO-11",
+     "what": "the details followed the roster's cursor",
+     "type": "differs",
+     "a": {
+      "shot": "first",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "moved",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.01
+    },
+    {
+     "rule": "TO-12",
+     "what": "the logo once back on the world map's command bar",
+     "type": "log",
+     "match": "frame (7[0-9]{2}|8[0-9]{2}): logo only on"
+    }
+   ],
+   "input": [
+    [
+     450,
+     "RIGHT"
+    ],
+    [
+     456,
+     "-"
+    ],
+    [
+     700,
+     "B"
+    ],
+    [
+     706,
+     "-"
+    ]
+   ]
+  },
+  {
+   "id": "to-jp-organize-details",
+   "rom": "ATOJ",
+   "state": "tactics-ogre/jp-organize-details.ss",
+   "desc": "Japan's Organize with Kybard's details open in the game: the same three pages, from the first",
+   "rules": [
+    "TO-11"
+   ],
+   "shots": {
+    "first": 100
+   },
+   "checks": [
+    {
+     "rule": "TO-11",
+     "what": "three pages",
+     "type": "log",
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
+    }
+   ]
+  },
+  {
+   "id": "to-jp-save-continue",
+   "rom": "ATOJ",
+   "desc": "Japan's battery save (written by the game: world map, System, Save, slot 1), Continue from the title: the world map at Scabellum, its HELP",
+   "rules": [
+    "TO-10"
+   ],
+   "shots": {
+    "loaded": 1500
+   },
+   "checks": [
+    {
+     "rule": "TO-10",
+     "what": "the HELP taken once the world map is up",
+     "type": "log",
+     "match": "frame 1[0-9]{3}: map updated \\(1 frame"
+    }
+   ],
+   "input": [
+    [
+     420,
+     "START"
+    ],
+    [
+     426,
+     "-"
+    ],
+    [
+     660,
+     "START"
+    ],
+    [
+     666,
+     "-"
+    ],
+    [
+     800,
+     "A"
+    ],
+    [
+     806,
+     "-"
+    ],
+    [
+     960,
+     "A"
+    ],
+    [
+     966,
+     "-"
+    ],
+    [
+     1110,
+     "A"
+    ],
+    [
+     1116,
+     "-"
+    ]
+   ],
+   "save": "ATOJ-scabellum-lv2.sav"
+  },
+  {
+   "id": "to-us-vespa-defeat",
+   "rom": "ATOE",
+   "state": "tactics-ogre/us-vespa-defeat.ss",
+   "desc": "a defeat made for the test (the owner's Vespa Hill end-turn state, Fermin set to 1 HP and swapped to the front with Kamui, End of Turn, the enemy's phase played in the harness): a second before Fermin falls: the logo through his fall and Game Over",
+   "rules": [
+    "TO-13",
+    "TO-14"
+   ],
+   "input": [
+    [
+     54,
+     "B"
+    ],
+    [
+     60,
+     "-"
+    ],
+    [
+     114,
+     "B"
+    ],
+    [
+     120,
+     "-"
+    ],
+    [
+     174,
+     "B"
+    ],
+    [
+     180,
+     "-"
+    ],
+    [
+     234,
+     "B"
+    ],
+    [
+     240,
+     "-"
+    ],
+    [
+     294,
+     "B"
+    ],
+    [
+     300,
+     "-"
+    ],
+    [
+     354,
+     "B"
+    ],
+    [
+     360,
+     "-"
+    ],
+    [
+     414,
+     "B"
+    ],
+    [
+     420,
+     "-"
+    ],
+    [
+     474,
+     "B"
+    ],
+    [
+     480,
+     "-"
+    ],
+    [
+     534,
+     "B"
+    ],
+    [
+     540,
+     "-"
+    ],
+    [
+     594,
+     "B"
+    ],
+    [
+     600,
+     "-"
+    ],
+    [
+     654,
+     "B"
+    ],
+    [
+     660,
+     "-"
+    ],
+    [
+     714,
+     "B"
+    ],
+    [
+     720,
+     "-"
+    ],
+    [
+     774,
+     "B"
+    ],
+    [
+     780,
+     "-"
+    ],
+    [
+     834,
+     "B"
+    ],
+    [
+     840,
+     "-"
+    ],
+    [
+     894,
+     "B"
+    ],
+    [
+     900,
+     "-"
+    ],
+    [
+     954,
+     "B"
+    ],
+    [
+     960,
+     "-"
+    ],
+    [
+     1014,
+     "B"
+    ],
+    [
+     1020,
+     "-"
+    ],
+    [
+     1074,
+     "B"
+    ],
+    [
+     1080,
+     "-"
+    ],
+    [
+     1134,
+     "B"
+    ],
+    [
+     1140,
+     "-"
+    ],
+    [
+     1194,
+     "B"
+    ],
+    [
+     1200,
+     "-"
+    ],
+    [
+     1254,
+     "B"
+    ],
+    [
+     1260,
+     "-"
+    ],
+    [
+     1314,
+     "B"
+    ],
+    [
+     1320,
+     "-"
+    ],
+    [
+     1374,
+     "B"
+    ],
+    [
+     1380,
+     "-"
+    ],
+    [
+     1434,
+     "B"
+    ],
+    [
+     1440,
+     "-"
+    ],
+    [
+     1494,
+     "B"
+    ],
+    [
+     1500,
+     "-"
+    ],
+    [
+     1554,
+     "B"
+    ],
+    [
+     1560,
+     "-"
+    ],
+    [
+     1614,
+     "B"
+    ],
+    [
+     1620,
+     "-"
+    ],
+    [
+     1674,
+     "B"
+    ],
+    [
+     1680,
+     "-"
+    ],
+    [
+     1734,
+     "B"
+    ],
+    [
+     1740,
+     "-"
+    ],
+    [
+     1794,
+     "B"
+    ],
+    [
+     1800,
+     "-"
+    ],
+    [
+     1854,
+     "B"
+    ],
+    [
+     1860,
+     "-"
+    ],
+    [
+     1914,
+     "B"
+    ],
+    [
+     1920,
+     "-"
+    ],
+    [
+     1974,
+     "B"
+    ],
+    [
+     1980,
+     "-"
+    ],
+    [
+     2034,
+     "B"
+    ],
+    [
+     2040,
+     "-"
+    ],
+    [
+     2094,
+     "B"
+    ],
+    [
+     2100,
+     "-"
+    ],
+    [
+     2154,
+     "B"
+    ],
+    [
+     2160,
+     "-"
+    ],
+    [
+     2214,
+     "B"
+    ],
+    [
+     2220,
+     "-"
+    ],
+    [
+     2274,
+     "B"
+    ],
+    [
+     2280,
+     "-"
+    ],
+    [
+     2334,
+     "B"
+    ],
+    [
+     2340,
+     "-"
+    ],
+    [
+     2394,
+     "B"
+    ],
+    [
+     2400,
+     "-"
+    ]
+   ],
+   "shots": {
+    "fall": 400,
+    "gameover": 1000
+   },
+   "checks": [
+    {
+     "rule": "TO-14",
+     "what": "the logo",
+     "type": "log",
+     "match": "frame [0-9]: logo only on"
+    },
+    {
+     "rule": "TO-14",
+     "what": "no picture through Game Over",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "rule": "TO-14",
+     "what": "and the logo never off",
+     "type": "no_log",
+     "match": "logo only off"
+    }
+   ]
+  },
+  {
+   "id": "to-us-training-setup",
+   "rom": "ATOE",
+   "state": "tactics-ogre/training-setup.ss",
+   "desc": "Training's setup (choosing units): the logo, nothing taken",
+   "rules": [
+    "TO-15"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "rule": "TO-15",
+     "what": "no picture",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "to-us-organize-to-training",
+   "rom": "ATOE",
+   "state": "tactics-ogre/organize.ss",
+   "desc": "Organize, B to the command bar, then Training (its setup): the logo from leaving Organize, through the setup",
+   "rules": [
+    "TO-12",
+    "TO-15"
+   ],
+   "input": [
+    [
+     150,
+     "B"
+    ],
+    [
+     156,
+     "-"
+    ],
+    [
+     300,
+     "RIGHT"
+    ],
+    [
+     306,
+     "-"
+    ],
+    [
+     330,
+     "A"
+    ],
+    [
+     336,
+     "-"
+    ]
+   ],
+   "shots": {
+    "setup": 600
+   },
+   "checks": [
+    {
+     "rule": "TO-15",
+     "what": "the logo once out of Organize",
+     "type": "log",
+     "match": "frame 1[5-9][0-9]: logo only on"
+    },
+    {
+     "rule": "TO-15",
+     "what": "no picture in the setup",
+     "type": "no_log",
+     "match": "frame ([2-9][0-9]{2}): map updated"
+    }
+   ]
+  },
+  {
+   "id": "to-us-shop",
+   "rom": "ATOE",
+   "state": "tactics-ogre/world-map-formido.ss",
+   "desc": "the world map (Formido's HELP), then R's menu and the shop: the logo from R's menu, through the shop",
+   "rules": [
+    "TO-10",
+    "TO-15"
+   ],
+   "input": [
+    [
+     250,
+     "R"
+    ],
+    [
+     256,
+     "-"
+    ],
+    [
+     290,
+     "RIGHT"
+    ],
+    [
+     296,
+     "-"
+    ],
+    [
+     316,
+     "RIGHT"
+    ],
+    [
+     322,
+     "-"
+    ],
+    [
+     352,
+     "A"
+    ],
+    [
+     358,
+     "-"
+    ],
+    [
+     710,
+     "A"
+    ],
+    [
+     716,
+     "-"
+    ]
+   ],
+   "shots": {
+    "map": 200,
+    "shop": 700,
+    "buy": 1000
+   },
+   "checks": [
+    {
+     "rule": "TO-10",
+     "what": "the HELP first",
+     "type": "log",
+     "match": "frame 1: map updated \\(1 frame"
+    },
+    {
+     "rule": "TO-15",
+     "what": "the logo as R's menu opens",
+     "type": "log",
+     "match": "frame (2[5-9][0-9]|3[0-9]{2}): logo only on"
+    },
+    {
+     "rule": "TO-15",
+     "what": "no picture in the shop",
+     "type": "no_log",
+     "match": "frame ([3-9][0-9]{2}|[0-9]{4}): map updated"
+    }
+   ]
+  },
+  {
+   "id": "to-jp-shop",
+   "rom": "ATOJ",
+   "state": "tactics-ogre/jp-world-map-scabellum-2.ss",
+   "desc": "Japan: the world map (Scabellum's HELP), the shop, then back out (B four times: the shop's menus, R's menu, the map): the logo in the shop (not the shop's own HELP, which SELECT would bring up there) and with R's menu open, the HELP again on the map",
+   "rules": [
+    "TO-10",
+    "TO-15"
+   ],
+   "input": [
+    [
+     250,
+     "R"
+    ],
+    [
+     256,
+     "-"
+    ],
+    [
+     290,
+     "RIGHT"
+    ],
+    [
+     296,
+     "-"
+    ],
+    [
+     316,
+     "RIGHT"
+    ],
+    [
+     322,
+     "-"
+    ],
+    [
+     352,
+     "A"
+    ],
+    [
+     358,
+     "-"
+    ],
+    [
+     710,
+     "A"
+    ],
+    [
+     716,
+     "-"
+    ],
+    [
+     1100,
+     "B"
+    ],
+    [
+     1106,
+     "-"
+    ],
+    [
+     1200,
+     "B"
+    ],
+    [
+     1206,
+     "-"
+    ],
+    [
+     1300,
+     "B"
+    ],
+    [
+     1306,
+     "-"
+    ],
+    [
+     1400,
+     "B"
+    ],
+    [
+     1406,
+     "-"
+    ]
+   ],
+   "shots": {
+    "map": 200,
+    "shop": 700,
+    "buy": 1000,
+    "menu": 1350,
+    "back": 1900
+   },
+   "checks": [
+    {
+     "rule": "TO-15",
+     "what": "the logo as R's menu opens",
+     "type": "log",
+     "match": "frame (2[5-9][0-9]|3[0-9]{2}): logo only on"
+    },
+    {
+     "rule": "TO-15",
+     "what": "no picture in the shop",
+     "type": "no_log",
+     "match": "frame ([4-9][0-9]{2}|10[0-9]{2}): map updated"
+    },
+    {
+     "rule": "TO-10",
+     "what": "the HELP again once back on the map",
+     "type": "log",
+     "match": "frame 1[4-8][0-9]{2}: map updated \\(1 frame"
+    }
+   ]
+  },
+  {
+   "id": "to-jp-memo",
+   "rom": "ATOJ",
+   "state": "tactics-ogre/jp-world-map.ss",
+   "desc": "Japan: the world map, then R's menu, the memo (かぼちゃメモ), back, and Save's slots: the logo",
+   "rules": [
+    "TO-15"
+   ],
+   "input": [
+    [
+     250,
+     "R"
+    ],
+    [
+     256,
+     "-"
+    ],
+    [
+     290,
+     "RIGHT"
+    ],
+    [
+     296,
+     "-"
+    ],
+    [
+     316,
+     "RIGHT"
+    ],
+    [
+     322,
+     "-"
+    ],
+    [
+     352,
+     "A"
+    ],
+    [
+     358,
+     "-"
+    ],
+    [
+     650,
+     "B"
+    ],
+    [
+     656,
+     "-"
+    ],
+    [
+     700,
+     "B"
+    ],
+    [
+     706,
+     "-"
+    ],
+    [
+     800,
+     "R"
+    ],
+    [
+     806,
+     "-"
+    ],
+    [
+     920,
+     "A"
+    ],
+    [
+     926,
+     "-"
+    ]
+   ],
+   "shots": {
+    "memo": 600,
+    "save": 1150
+   },
+   "checks": [
+    {
+     "rule": "TO-15",
+     "what": "the logo",
+     "type": "log",
+     "match": "logo only on"
+    },
+    {
+     "rule": "TO-15",
+     "what": "no picture after R's menu",
+     "type": "no_log",
+     "match": "frame ([3-9][0-9]{2}|[0-9]{4}): map updated"
+    }
+   ]
+  },
+  {
+   "id": "to-jp-training-field",
+   "rom": "ATOJ",
+   "state": "tactics-ogre/jp-training-field.ss",
+   "desc": "Japan's Training (from the save's world map: Kybard and Aroz for Team A, Flauros for B; its NAVI messages dismissed), the cursor on Kybard: his details",
+   "rules": [
+    "TO-8"
+   ],
+   "shots": {
+    "details": 120
+   },
+   "checks": [
+    {
+     "rule": "TO-8",
+     "what": "the unit's details, three pages",
+     "type": "log",
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
+    }
+   ]
+  },
+  {
+   "id": "to-jp-training-empty",
+   "rom": "ATOJ",
+   "state": "tactics-ogre/jp-training-empty.ss",
+   "desc": "Japan's Training, the cursor on an empty square: the logo (no conditions in Training)",
+   "rules": [
+    "TO-9"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "TO-9",
+     "what": "the logo",
+     "type": "log",
+     "match": "logo only on"
+    },
+    {
+     "rule": "TO-9",
+     "what": "no page taken",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "to-us-resume",
+   "rom": "ATOE",
+   "save": "ATOE-suspended-lutra.sav",
+   "desc": "a battle suspended (Lutra Islands, turn 1: START, Yes), then from the title Continue, Resume suspended game, Yes: the logo through the Winning Condition banner, BATTLE START and the tips; Kybard's details once the field is free",
+   "rules": [
+    "TO-5",
+    "TO-8",
+    "TO-16"
+   ],
+   "input": [
+    [
+     420,
+     "START"
+    ],
+    [
+     426,
+     "-"
+    ],
+    [
+     660,
+     "START"
+    ],
+    [
+     666,
+     "-"
+    ],
+    [
+     840,
+     "A"
+    ],
+    [
+     846,
+     "-"
+    ],
+    [
+     1000,
+     "A"
+    ],
+    [
+     1006,
+     "-"
+    ],
+    [
+     1110,
+     "A"
+    ],
+    [
+     1116,
+     "-"
+    ],
+    [
+     1720,
+     "A"
+    ],
+    [
+     1726,
+     "-"
+    ],
+    [
+     1800,
+     "A"
+    ],
+    [
+     1806,
+     "-"
+    ],
+    [
+     1880,
+     "A"
+    ],
+    [
+     1886,
+     "-"
+    ],
+    [
+     1960,
+     "A"
+    ],
+    [
+     1966,
+     "-"
+    ]
+   ],
+   "shots": {
+    "tips": 1700,
+    "field": 2100
+   },
+   "checks": [
+    {
+     "rule": "TO-5",
+     "what": "nothing taken through the banner and tips",
+     "type": "no_log",
+     "match": "frame (1[0-8][0-9]{2}): map updated"
+    },
+    {
+     "rule": "TO-8",
+     "what": "the details once the field is free",
+     "type": "log",
+     "match": "frame (19[0-9]{2}|20[0-9]{2}): map updated \\(3 frame"
+    }
+   ]
+  },
+  {
+   "id": "to-us-quest-field",
+   "rom": "ATOE",
+   "state": "tactics-ogre/us-quest-field.ss",
+   "desc": "Quest Mode (the GameShark save: Quest, Numida Chronology, Defeat Leader within 20 turns, Fermin dispatched), the cursor on Fermin: his details",
+   "rules": [
+    "TO-8",
+    "TO-16"
+   ],
+   "shots": {
+    "details": 120
+   },
+   "checks": [
+    {
+     "rule": "TO-8",
+     "what": "three pages",
+     "type": "log",
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
+    }
+   ]
+  },
+  {
+   "id": "to-us-quest-empty",
+   "rom": "ATOE",
+   "state": "tactics-ogre/us-quest-empty.ss",
+   "desc": "Quest Mode, the cursor on an empty square: the quest's own conditions (Defeat Calais!, Numida Swamp, Entire Party Dies)",
+   "rules": [
+    "TO-9",
+    "TO-16"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "TO-9",
+     "what": "one page",
+     "type": "log",
+     "match": "map updated \\(1 frame\\(s\\)"
+    }
+   ]
+  },
+  {
+   "id": "to-us-guests-phase",
+   "rom": "ATOE",
+   "state": "tactics-ogre/us-guests-phase.ss",
+   "desc": "Lutra Islands, turn 1 ended (us-field.ss: R, End of Turn, Yes), late in the enemy's phase; then the guests' phase (Orson, Lara: ~70 s, the phase byte already reads the player's) and the player's turn 2: the logo through both, Kybard's details as turn 2 is free",
+   "rules": [
+    "TO-13"
+   ],
+   "input": [
+    [
+     54,
+     "B"
+    ],
+    [
+     60,
+     "-"
+    ],
+    [
+     114,
+     "B"
+    ],
+    [
+     120,
+     "-"
+    ],
+    [
+     174,
+     "B"
+    ],
+    [
+     180,
+     "-"
+    ],
+    [
+     234,
+     "B"
+    ],
+    [
+     240,
+     "-"
+    ],
+    [
+     294,
+     "B"
+    ],
+    [
+     300,
+     "-"
+    ],
+    [
+     354,
+     "B"
+    ],
+    [
+     360,
+     "-"
+    ],
+    [
+     414,
+     "B"
+    ],
+    [
+     420,
+     "-"
+    ],
+    [
+     474,
+     "B"
+    ],
+    [
+     480,
+     "-"
+    ],
+    [
+     534,
+     "B"
+    ],
+    [
+     540,
+     "-"
+    ],
+    [
+     594,
+     "B"
+    ],
+    [
+     600,
+     "-"
+    ],
+    [
+     654,
+     "B"
+    ],
+    [
+     660,
+     "-"
+    ],
+    [
+     714,
+     "B"
+    ],
+    [
+     720,
+     "-"
+    ],
+    [
+     774,
+     "B"
+    ],
+    [
+     780,
+     "-"
+    ],
+    [
+     834,
+     "B"
+    ],
+    [
+     840,
+     "-"
+    ],
+    [
+     894,
+     "B"
+    ],
+    [
+     900,
+     "-"
+    ],
+    [
+     954,
+     "B"
+    ],
+    [
+     960,
+     "-"
+    ],
+    [
+     1014,
+     "B"
+    ],
+    [
+     1020,
+     "-"
+    ],
+    [
+     1074,
+     "B"
+    ],
+    [
+     1080,
+     "-"
+    ],
+    [
+     1134,
+     "B"
+    ],
+    [
+     1140,
+     "-"
+    ],
+    [
+     1194,
+     "B"
+    ],
+    [
+     1200,
+     "-"
+    ],
+    [
+     1254,
+     "B"
+    ],
+    [
+     1260,
+     "-"
+    ],
+    [
+     1314,
+     "B"
+    ],
+    [
+     1320,
+     "-"
+    ],
+    [
+     1374,
+     "B"
+    ],
+    [
+     1380,
+     "-"
+    ],
+    [
+     1434,
+     "B"
+    ],
+    [
+     1440,
+     "-"
+    ],
+    [
+     1494,
+     "B"
+    ],
+    [
+     1500,
+     "-"
+    ],
+    [
+     1554,
+     "B"
+    ],
+    [
+     1560,
+     "-"
+    ],
+    [
+     1614,
+     "B"
+    ],
+    [
+     1620,
+     "-"
+    ],
+    [
+     1674,
+     "B"
+    ],
+    [
+     1680,
+     "-"
+    ],
+    [
+     1734,
+     "B"
+    ],
+    [
+     1740,
+     "-"
+    ],
+    [
+     1794,
+     "B"
+    ],
+    [
+     1800,
+     "-"
+    ],
+    [
+     1854,
+     "B"
+    ],
+    [
+     1860,
+     "-"
+    ],
+    [
+     1914,
+     "B"
+    ],
+    [
+     1920,
+     "-"
+    ],
+    [
+     1974,
+     "B"
+    ],
+    [
+     1980,
+     "-"
+    ],
+    [
+     2034,
+     "B"
+    ],
+    [
+     2040,
+     "-"
+    ],
+    [
+     2094,
+     "B"
+    ],
+    [
+     2100,
+     "-"
+    ],
+    [
+     2154,
+     "B"
+    ],
+    [
+     2160,
+     "-"
+    ],
+    [
+     2214,
+     "B"
+    ],
+    [
+     2220,
+     "-"
+    ],
+    [
+     2274,
+     "B"
+    ],
+    [
+     2280,
+     "-"
+    ],
+    [
+     2334,
+     "B"
+    ],
+    [
+     2340,
+     "-"
+    ],
+    [
+     2394,
+     "B"
+    ],
+    [
+     2400,
+     "-"
+    ],
+    [
+     2454,
+     "B"
+    ],
+    [
+     2460,
+     "-"
+    ],
+    [
+     2514,
+     "B"
+    ],
+    [
+     2520,
+     "-"
+    ],
+    [
+     2574,
+     "B"
+    ],
+    [
+     2580,
+     "-"
+    ],
+    [
+     2634,
+     "B"
+    ],
+    [
+     2640,
+     "-"
+    ],
+    [
+     2694,
+     "B"
+    ],
+    [
+     2700,
+     "-"
+    ],
+    [
+     2754,
+     "B"
+    ],
+    [
+     2760,
+     "-"
+    ],
+    [
+     2814,
+     "B"
+    ],
+    [
+     2820,
+     "-"
+    ],
+    [
+     2874,
+     "B"
+    ],
+    [
+     2880,
+     "-"
+    ],
+    [
+     2934,
+     "B"
+    ],
+    [
+     2940,
+     "-"
+    ],
+    [
+     2994,
+     "B"
+    ],
+    [
+     3000,
+     "-"
+    ],
+    [
+     3054,
+     "B"
+    ],
+    [
+     3060,
+     "-"
+    ],
+    [
+     3114,
+     "B"
+    ],
+    [
+     3120,
+     "-"
+    ],
+    [
+     3174,
+     "B"
+    ],
+    [
+     3180,
+     "-"
+    ],
+    [
+     3234,
+     "B"
+    ],
+    [
+     3240,
+     "-"
+    ],
+    [
+     3294,
+     "B"
+    ],
+    [
+     3300,
+     "-"
+    ],
+    [
+     3354,
+     "B"
+    ],
+    [
+     3360,
+     "-"
+    ],
+    [
+     3414,
+     "B"
+    ],
+    [
+     3420,
+     "-"
+    ],
+    [
+     3474,
+     "B"
+    ],
+    [
+     3480,
+     "-"
+    ],
+    [
+     3534,
+     "B"
+    ],
+    [
+     3540,
+     "-"
+    ],
+    [
+     3594,
+     "B"
+    ],
+    [
+     3600,
+     "-"
+    ],
+    [
+     3654,
+     "B"
+    ],
+    [
+     3660,
+     "-"
+    ],
+    [
+     3714,
+     "B"
+    ],
+    [
+     3720,
+     "-"
+    ],
+    [
+     3774,
+     "B"
+    ],
+    [
+     3780,
+     "-"
+    ],
+    [
+     3834,
+     "B"
+    ],
+    [
+     3840,
+     "-"
+    ],
+    [
+     3894,
+     "B"
+    ],
+    [
+     3900,
+     "-"
+    ],
+    [
+     3954,
+     "B"
+    ],
+    [
+     3960,
+     "-"
+    ],
+    [
+     4014,
+     "B"
+    ],
+    [
+     4020,
+     "-"
+    ],
+    [
+     4074,
+     "B"
+    ],
+    [
+     4080,
+     "-"
+    ],
+    [
+     4134,
+     "B"
+    ],
+    [
+     4140,
+     "-"
+    ],
+    [
+     4194,
+     "B"
+    ],
+    [
+     4200,
+     "-"
+    ],
+    [
+     4254,
+     "B"
+    ],
+    [
+     4260,
+     "-"
+    ],
+    [
+     4314,
+     "B"
+    ],
+    [
+     4320,
+     "-"
+    ],
+    [
+     4374,
+     "B"
+    ],
+    [
+     4380,
+     "-"
+    ],
+    [
+     4434,
+     "B"
+    ],
+    [
+     4440,
+     "-"
+    ],
+    [
+     4494,
+     "B"
+    ],
+    [
+     4500,
+     "-"
+    ],
+    [
+     4554,
+     "B"
+    ],
+    [
+     4560,
+     "-"
+    ],
+    [
+     4614,
+     "B"
+    ],
+    [
+     4620,
+     "-"
+    ],
+    [
+     4674,
+     "B"
+    ],
+    [
+     4680,
+     "-"
+    ],
+    [
+     4734,
+     "B"
+    ],
+    [
+     4740,
+     "-"
+    ],
+    [
+     4794,
+     "B"
+    ],
+    [
+     4800,
+     "-"
+    ]
+   ],
+   "shots": {
+    "guests": 2400,
+    "player": 4200
+   },
+   "checks": [
+    {
+     "rule": "TO-13",
+     "what": "the logo",
+     "type": "log",
+     "match": "frame 1: logo only on"
+    },
+    {
+     "rule": "TO-13",
+     "what": "nothing taken in the guests' phase",
+     "type": "no_log",
+     "match": "frame ([0-9]{1,3}|[0-3][0-9]{3}): map updated"
+    },
+    {
+     "rule": "TO-13",
+     "what": "the details as the player's turn comes",
+     "type": "log",
+     "match": "frame 4[0-2][0-9]{2}: map updated \\(3 frame"
+    }
+   ]
+  },
+  {
+   "id": "to-jp-defeat",
+   "rom": "ATOJ",
+   "state": "tactics-ogre/jp-defeat.ss",
+   "desc": "Japan, a defeat made for the test (jp-defeat-setup.ss: Lutra Islands turn 2, Kybard set to 1 HP and moved among the enemies, the guests Justin and Lara moved away; End of Turn, the enemy's phase played in the harness): a few seconds before Kybard falls: the logo through his fall and Game Over",
+   "rules": [
+    "TO-13",
+    "TO-14"
+   ],
+   "input": [
+    [
+     54,
+     "B"
+    ],
+    [
+     60,
+     "-"
+    ],
+    [
+     114,
+     "B"
+    ],
+    [
+     120,
+     "-"
+    ],
+    [
+     174,
+     "B"
+    ],
+    [
+     180,
+     "-"
+    ],
+    [
+     234,
+     "B"
+    ],
+    [
+     240,
+     "-"
+    ],
+    [
+     294,
+     "B"
+    ],
+    [
+     300,
+     "-"
+    ],
+    [
+     354,
+     "B"
+    ],
+    [
+     360,
+     "-"
+    ],
+    [
+     414,
+     "B"
+    ],
+    [
+     420,
+     "-"
+    ],
+    [
+     474,
+     "B"
+    ],
+    [
+     480,
+     "-"
+    ],
+    [
+     534,
+     "B"
+    ],
+    [
+     540,
+     "-"
+    ],
+    [
+     594,
+     "B"
+    ],
+    [
+     600,
+     "-"
+    ],
+    [
+     654,
+     "B"
+    ],
+    [
+     660,
+     "-"
+    ],
+    [
+     714,
+     "B"
+    ],
+    [
+     720,
+     "-"
+    ],
+    [
+     774,
+     "B"
+    ],
+    [
+     780,
+     "-"
+    ],
+    [
+     834,
+     "B"
+    ],
+    [
+     840,
+     "-"
+    ],
+    [
+     894,
+     "B"
+    ],
+    [
+     900,
+     "-"
+    ],
+    [
+     954,
+     "B"
+    ],
+    [
+     960,
+     "-"
+    ],
+    [
+     1014,
+     "B"
+    ],
+    [
+     1020,
+     "-"
+    ],
+    [
+     1074,
+     "B"
+    ],
+    [
+     1080,
+     "-"
+    ],
+    [
+     1134,
+     "B"
+    ],
+    [
+     1140,
+     "-"
+    ],
+    [
+     1194,
+     "B"
+    ],
+    [
+     1200,
+     "-"
+    ],
+    [
+     1254,
+     "B"
+    ],
+    [
+     1260,
+     "-"
+    ],
+    [
+     1314,
+     "B"
+    ],
+    [
+     1320,
+     "-"
+    ],
+    [
+     1374,
+     "B"
+    ],
+    [
+     1380,
+     "-"
+    ],
+    [
+     1434,
+     "B"
+    ],
+    [
+     1440,
+     "-"
+    ],
+    [
+     1494,
+     "B"
+    ],
+    [
+     1500,
+     "-"
+    ],
+    [
+     1554,
+     "B"
+    ],
+    [
+     1560,
+     "-"
+    ],
+    [
+     1614,
+     "B"
+    ],
+    [
+     1620,
+     "-"
+    ],
+    [
+     1674,
+     "B"
+    ],
+    [
+     1680,
+     "-"
+    ],
+    [
+     1734,
+     "B"
+    ],
+    [
+     1740,
+     "-"
+    ],
+    [
+     1794,
+     "B"
+    ],
+    [
+     1800,
+     "-"
+    ],
+    [
+     1854,
+     "B"
+    ],
+    [
+     1860,
+     "-"
+    ],
+    [
+     1914,
+     "B"
+    ],
+    [
+     1920,
+     "-"
+    ],
+    [
+     1974,
+     "B"
+    ],
+    [
+     1980,
+     "-"
+    ],
+    [
+     2034,
+     "B"
+    ],
+    [
+     2040,
+     "-"
+    ],
+    [
+     2094,
+     "B"
+    ],
+    [
+     2100,
+     "-"
+    ],
+    [
+     2154,
+     "B"
+    ],
+    [
+     2160,
+     "-"
+    ],
+    [
+     2214,
+     "B"
+    ],
+    [
+     2220,
+     "-"
+    ],
+    [
+     2274,
+     "B"
+    ],
+    [
+     2280,
+     "-"
+    ],
+    [
+     2334,
+     "B"
+    ],
+    [
+     2340,
+     "-"
+    ],
+    [
+     2394,
+     "B"
+    ],
+    [
+     2400,
+     "-"
+    ]
+   ],
+   "shots": {
+    "fall": 300,
+    "gameover": 1200
+   },
+   "checks": [
+    {
+     "rule": "TO-14",
+     "what": "the logo",
+     "type": "log",
+     "match": "frame [0-9]: logo only on"
+    },
+    {
+     "rule": "TO-14",
+     "what": "no picture through Game Over",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "rule": "TO-14",
+     "what": "and the logo never off",
+     "type": "no_log",
+     "match": "logo only off"
+    }
+   ]
+  },
+  {
+   "id": "to-us-organize-page2",
+   "rom": "ATOE",
+   "state": "tactics-ogre/organize-page2.ss",
+   "desc": "Organize (the GameShark save's 13 units), the roster on its second page, the cursor on Eleanor (13th): her details",
+   "rules": [
+    "TO-11"
+   ],
+   "shots": {
+    "details": 120
+   },
+   "checks": [
+    {
+     "rule": "TO-11",
+     "what": "three pages",
+     "type": "log",
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
+    }
+   ]
+  },
+  {
+   "id": "to-us-organize-moves",
+   "rom": "ATOE",
+   "state": "tactics-ogre/organize.ss",
+   "desc": "Organize, the roster's cursor moved right four times, a second apart (round its row, back to Fermin): each unit's details, never the logo between",
+   "rules": [
+    "TO-11",
+    "TO-12"
+   ],
+   "input": [
+    [
+     60,
+     "RIGHT"
+    ],
+    [
+     66,
+     "-"
+    ],
+    [
+     120,
+     "RIGHT"
+    ],
+    [
+     126,
+     "-"
+    ],
+    [
+     180,
+     "RIGHT"
+    ],
+    [
+     186,
+     "-"
+    ],
+    [
+     240,
+     "RIGHT"
+    ],
+    [
+     246,
+     "-"
+    ]
+   ],
+   "shots": {
+    "fourth": 400
+   },
+   "checks": [
+    {
+     "rule": "TO-12",
+     "what": "no logo as the cursor moves",
+     "type": "no_log",
+     "match": "logo only on"
+    },
+    {
+     "rule": "TO-11",
+     "what": "no failed capture",
+     "type": "no_log",
+     "match": "capture failed"
+    }
+   ]
+  },
+  {
+   "id": "to-us-organize-menu",
+   "rom": "ATOE",
+   "state": "tactics-ogre/organize.ss",
+   "desc": "Organize, R (Organize's own menu: the logo), then B back to the roster: its details again at once",
+   "rules": [
+    "TO-11",
+    "TO-12"
+   ],
+   "input": [
+    [
+     200,
+     "R"
+    ],
+    [
+     206,
+     "-"
+    ],
+    [
+     500,
+     "B"
+    ],
+    [
+     506,
+     "-"
+    ]
+   ],
+   "shots": {
+    "menu": 400,
+    "back": 640
+   },
+   "checks": [
+    {
+     "rule": "TO-12",
+     "what": "the logo in Organize's menu",
+     "type": "log",
+     "match": "frame 2[0-4][0-9]: logo only on"
+    },
+    {
+     "rule": "TO-11",
+     "what": "the details taken again as the roster's back",
+     "type": "log",
+     "match": "frame 5[0-2][0-9]: map updated \\(3 frame"
+    },
+    {
+     "rule": "TO-11",
+     "what": "and the logo off within a second",
+     "type": "log",
+     "match": "frame 5[0-9][0-9]: logo only off"
+    }
+   ]
+  },
+  {
+   "id": "to-us-training-win",
+   "rom": "ATOE",
+   "state": "tactics-ogre/training-win-setup.ss",
+   "desc": "Training, a win made for the test (training-field.ss: Eleanor, team B's last, at 1 HP and agility 1, moved beside Fermin; the rest of team B at 0 HP): Fermin's details, then his attack: the logo from as the EXP box clears through Team A Wins!, then the world map's HELP",
+   "rules": [
+    "TO-14"
+   ],
+   "input": [
+    [
+     200,
+     "A"
+    ],
+    [
+     206,
+     "-"
+    ],
+    [
+     240,
+     "B"
+    ],
+    [
+     246,
+     "-"
+    ],
+    [
+     280,
+     "LEFT"
+    ],
+    [
+     286,
+     "-"
+    ],
+    [
+     320,
+     "A"
+    ],
+    [
+     326,
+     "-"
+    ],
+    [
+     360,
+     "A"
+    ],
+    [
+     366,
+     "-"
+    ],
+    [
+     400,
+     "A"
+    ],
+    [
+     406,
+     "-"
+    ],
+    [
+     440,
+     "A"
+    ],
+    [
+     446,
+     "-"
+    ],
+    [
+     480,
+     "LEFT"
+    ],
+    [
+     486,
+     "-"
+    ],
+    [
+     520,
+     "A"
+    ],
+    [
+     526,
+     "-"
+    ],
+    [
+     580,
+     "A"
+    ],
+    [
+     586,
+     "-"
+    ],
+    [
+     610,
+     "A"
+    ],
+    [
+     616,
+     "-"
+    ]
+   ],
+   "shots": {
+    "details": 120,
+    "won": 1200,
+    "map": 1800
+   },
+   "checks": [
+    {
+     "rule": "TO-14",
+     "what": "the logo once won",
+     "type": "log",
+     "match": "frame 1[01][0-9]{2}: logo only on"
+    },
+    {
+     "rule": "TO-14",
+     "what": "until the world map's HELP",
+     "type": "log",
+     "match": "frame 1[4-6][0-9]{2}: logo only off"
+    }
+   ]
+  },
+  {
+   "id": "to-us-quest-win",
+   "rom": "ATOE",
+   "state": "tactics-ogre/us-quest-win-setup.ss",
+   "desc": "Quest Mode, a win made for the test (us-quest-field.ss: Calais at 1 HP and agility 1, moved beside Fermin): Fermin's details, his attack, then the logo through Congratulations! and the spoils",
+   "rules": [
+    "TO-14",
+    "TO-16"
+   ],
+   "input": [
+    [
+     200,
+     "A"
+    ],
+    [
+     206,
+     "-"
+    ],
+    [
+     240,
+     "B"
+    ],
+    [
+     246,
+     "-"
+    ],
+    [
+     280,
+     "LEFT"
+    ],
+    [
+     286,
+     "-"
+    ],
+    [
+     320,
+     "A"
+    ],
+    [
+     326,
+     "-"
+    ],
+    [
+     360,
+     "A"
+    ],
+    [
+     366,
+     "-"
+    ],
+    [
+     400,
+     "A"
+    ],
+    [
+     406,
+     "-"
+    ],
+    [
+     440,
+     "LEFT"
+    ],
+    [
+     446,
+     "-"
+    ],
+    [
+     480,
+     "A"
+    ],
+    [
+     486,
+     "-"
+    ],
+    [
+     520,
+     "LEFT"
+    ],
+    [
+     526,
+     "-"
+    ],
+    [
+     560,
+     "A"
+    ],
+    [
+     566,
+     "-"
+    ],
+    [
+     620,
+     "A"
+    ],
+    [
+     626,
+     "-"
+    ],
+    [
+     650,
+     "A"
+    ],
+    [
+     656,
+     "-"
+    ]
+   ],
+   "shots": {
+    "details": 120,
+    "congratulations": 1300
+   },
+   "checks": [
+    {
+     "rule": "TO-14",
+     "what": "the logo once won",
+     "type": "log",
+     "match": "frame (8[0-9]{2}|9[0-9]{2}|10[0-9]{2}): logo only on"
+    },
+    {
+     "rule": "TO-14",
+     "what": "and it stays",
+     "type": "no_log",
+     "match": "logo only off"
+    }
+   ]
+  },
+  {
+   "id": "to-us-ending",
+   "rom": "ATOE",
+   "state": "tactics-ogre/us-ending-shaher.ss",
+   "desc": "The A+ ending (the owner's GameShark save, saves/ATOE-aplus-ending.sav: the suspended last battle resumed, the attack on Shaher chosen): the logo through his fall and the ending's scenes",
+   "rules": [
+    "TO-17"
+   ],
+   "input": [
+    [
+     10,
+     "A"
+    ],
+    [
+     16,
+     "-"
+    ],
+    [
+     70,
+     "A"
+    ],
+    [
+     76,
+     "-"
+    ],
+    [
+     130,
+     "A"
+    ],
+    [
+     136,
+     "-"
+    ],
+    [
+     190,
+     "A"
+    ],
+    [
+     196,
+     "-"
+    ],
+    [
+     250,
+     "A"
+    ],
+    [
+     256,
+     "-"
+    ],
+    [
+     310,
+     "A"
+    ],
+    [
+     316,
+     "-"
+    ],
+    [
+     370,
+     "A"
+    ],
+    [
+     376,
+     "-"
+    ],
+    [
+     430,
+     "A"
+    ],
+    [
+     436,
+     "-"
+    ],
+    [
+     490,
+     "A"
+    ],
+    [
+     496,
+     "-"
+    ],
+    [
+     550,
+     "A"
+    ],
+    [
+     556,
+     "-"
+    ],
+    [
+     610,
+     "A"
+    ],
+    [
+     616,
+     "-"
+    ],
+    [
+     670,
+     "A"
+    ],
+    [
+     676,
+     "-"
+    ],
+    [
+     730,
+     "A"
+    ],
+    [
+     736,
+     "-"
+    ],
+    [
+     790,
+     "A"
+    ],
+    [
+     796,
+     "-"
+    ],
+    [
+     850,
+     "A"
+    ],
+    [
+     856,
+     "-"
+    ],
+    [
+     910,
+     "A"
+    ],
+    [
+     916,
+     "-"
+    ],
+    [
+     970,
+     "A"
+    ],
+    [
+     976,
+     "-"
+    ],
+    [
+     1030,
+     "A"
+    ],
+    [
+     1036,
+     "-"
+    ],
+    [
+     1090,
+     "A"
+    ],
+    [
+     1096,
+     "-"
+    ],
+    [
+     1150,
+     "A"
+    ],
+    [
+     1156,
+     "-"
+    ],
+    [
+     1210,
+     "A"
+    ],
+    [
+     1216,
+     "-"
+    ],
+    [
+     1270,
+     "A"
+    ],
+    [
+     1276,
+     "-"
+    ],
+    [
+     1330,
+     "A"
+    ],
+    [
+     1336,
+     "-"
+    ],
+    [
+     1390,
+     "A"
+    ],
+    [
+     1396,
+     "-"
+    ],
+    [
+     1450,
+     "A"
+    ],
+    [
+     1456,
+     "-"
+    ],
+    [
+     1510,
+     "A"
+    ],
+    [
+     1516,
+     "-"
+    ],
+    [
+     1570,
+     "A"
+    ],
+    [
+     1576,
+     "-"
+    ],
+    [
+     1630,
+     "A"
+    ],
+    [
+     1636,
+     "-"
+    ],
+    [
+     1690,
+     "A"
+    ],
+    [
+     1696,
+     "-"
+    ],
+    [
+     1750,
+     "A"
+    ],
+    [
+     1756,
+     "-"
+    ],
+    [
+     1810,
+     "A"
+    ],
+    [
+     1816,
+     "-"
+    ],
+    [
+     1870,
+     "A"
+    ],
+    [
+     1876,
+     "-"
+    ],
+    [
+     1930,
+     "A"
+    ],
+    [
+     1936,
+     "-"
+    ],
+    [
+     1990,
+     "A"
+    ],
+    [
+     1996,
+     "-"
+    ],
+    [
+     2050,
+     "A"
+    ],
+    [
+     2056,
+     "-"
+    ],
+    [
+     2110,
+     "A"
+    ],
+    [
+     2116,
+     "-"
+    ],
+    [
+     2170,
+     "A"
+    ],
+    [
+     2176,
+     "-"
+    ],
+    [
+     2230,
+     "A"
+    ],
+    [
+     2236,
+     "-"
+    ],
+    [
+     2290,
+     "A"
+    ],
+    [
+     2296,
+     "-"
+    ]
+   ],
+   "shots": {
+    "fall": 600,
+    "ending": 2000
+   },
+   "checks": [
+    {
+     "rule": "TO-17",
+     "what": "no picture through the ending",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "to-us-new-game",
+   "rom": "ATOE",
+   "state": "tactics-ogre/us-new-game-name.ss",
+   "desc": "A new game, at the name entry: START (the name as it is), then A: the logo through the birthdate's question (its box like the world map's HELP), the fortune teller and the prologue",
+   "rules": [
+    "TO-17"
+   ],
+   "input": [
+    [
+     10,
+     "START"
+    ],
+    [
+     16,
+     "-"
+    ],
+    [
+     70,
+     "A"
+    ],
+    [
+     76,
+     "-"
+    ],
+    [
+     110,
+     "A"
+    ],
+    [
+     116,
+     "-"
+    ],
+    [
+     150,
+     "A"
+    ],
+    [
+     156,
+     "-"
+    ],
+    [
+     190,
+     "A"
+    ],
+    [
+     196,
+     "-"
+    ],
+    [
+     230,
+     "A"
+    ],
+    [
+     236,
+     "-"
+    ],
+    [
+     270,
+     "A"
+    ],
+    [
+     276,
+     "-"
+    ],
+    [
+     310,
+     "A"
+    ],
+    [
+     316,
+     "-"
+    ],
+    [
+     350,
+     "A"
+    ],
+    [
+     356,
+     "-"
+    ],
+    [
+     390,
+     "A"
+    ],
+    [
+     396,
+     "-"
+    ],
+    [
+     430,
+     "A"
+    ],
+    [
+     436,
+     "-"
+    ],
+    [
+     470,
+     "A"
+    ],
+    [
+     476,
+     "-"
+    ],
+    [
+     510,
+     "A"
+    ],
+    [
+     516,
+     "-"
+    ],
+    [
+     550,
+     "A"
+    ],
+    [
+     556,
+     "-"
+    ],
+    [
+     590,
+     "A"
+    ],
+    [
+     596,
+     "-"
+    ],
+    [
+     630,
+     "A"
+    ],
+    [
+     636,
+     "-"
+    ],
+    [
+     670,
+     "A"
+    ],
+    [
+     676,
+     "-"
+    ],
+    [
+     710,
+     "A"
+    ],
+    [
+     716,
+     "-"
+    ],
+    [
+     750,
+     "A"
+    ],
+    [
+     756,
+     "-"
+    ],
+    [
+     790,
+     "A"
+    ],
+    [
+     796,
+     "-"
+    ],
+    [
+     830,
+     "A"
+    ],
+    [
+     836,
+     "-"
+    ],
+    [
+     870,
+     "A"
+    ],
+    [
+     876,
+     "-"
+    ],
+    [
+     910,
+     "A"
+    ],
+    [
+     916,
+     "-"
+    ],
+    [
+     950,
+     "A"
+    ],
+    [
+     956,
+     "-"
+    ],
+    [
+     990,
+     "A"
+    ],
+    [
+     996,
+     "-"
+    ],
+    [
+     1030,
+     "A"
+    ],
+    [
+     1036,
+     "-"
+    ],
+    [
+     1070,
+     "A"
+    ],
+    [
+     1076,
+     "-"
+    ],
+    [
+     1110,
+     "A"
+    ],
+    [
+     1116,
+     "-"
+    ],
+    [
+     1150,
+     "A"
+    ],
+    [
+     1156,
+     "-"
+    ],
+    [
+     1190,
+     "A"
+    ],
+    [
+     1196,
+     "-"
+    ],
+    [
+     1230,
+     "A"
+    ],
+    [
+     1236,
+     "-"
+    ],
+    [
+     1270,
+     "A"
+    ],
+    [
+     1276,
+     "-"
+    ],
+    [
+     1310,
+     "A"
+    ],
+    [
+     1316,
+     "-"
+    ],
+    [
+     1350,
+     "A"
+    ],
+    [
+     1356,
+     "-"
+    ],
+    [
+     1390,
+     "A"
+    ],
+    [
+     1396,
+     "-"
+    ],
+    [
+     1430,
+     "A"
+    ],
+    [
+     1436,
+     "-"
+    ],
+    [
+     1470,
+     "A"
+    ],
+    [
+     1476,
+     "-"
+    ],
+    [
+     1510,
+     "A"
+    ],
+    [
+     1516,
+     "-"
+    ],
+    [
+     1550,
+     "A"
+    ],
+    [
+     1556,
+     "-"
+    ],
+    [
+     1590,
+     "A"
+    ],
+    [
+     1596,
+     "-"
+    ],
+    [
+     1630,
+     "A"
+    ],
+    [
+     1636,
+     "-"
+    ],
+    [
+     1670,
+     "A"
+    ],
+    [
+     1676,
+     "-"
+    ],
+    [
+     1710,
+     "A"
+    ],
+    [
+     1716,
+     "-"
+    ],
+    [
+     1750,
+     "A"
+    ],
+    [
+     1756,
+     "-"
+    ],
+    [
+     1790,
+     "A"
+    ],
+    [
+     1796,
+     "-"
+    ],
+    [
+     1830,
+     "A"
+    ],
+    [
+     1836,
+     "-"
+    ],
+    [
+     1870,
+     "A"
+    ],
+    [
+     1876,
+     "-"
+    ],
+    [
+     1910,
+     "A"
+    ],
+    [
+     1916,
+     "-"
+    ],
+    [
+     1950,
+     "A"
+    ],
+    [
+     1956,
+     "-"
+    ],
+    [
+     1990,
+     "A"
+    ],
+    [
+     1996,
+     "-"
+    ],
+    [
+     2030,
+     "A"
+    ],
+    [
+     2036,
+     "-"
+    ],
+    [
+     2070,
+     "A"
+    ],
+    [
+     2076,
+     "-"
+    ],
+    [
+     2110,
+     "A"
+    ],
+    [
+     2116,
+     "-"
+    ],
+    [
+     2150,
+     "A"
+    ],
+    [
+     2156,
+     "-"
+    ],
+    [
+     2190,
+     "A"
+    ],
+    [
+     2196,
+     "-"
+    ],
+    [
+     2230,
+     "A"
+    ],
+    [
+     2236,
+     "-"
+    ],
+    [
+     2270,
+     "A"
+    ],
+    [
+     2276,
+     "-"
+    ],
+    [
+     2310,
+     "A"
+    ],
+    [
+     2316,
+     "-"
+    ],
+    [
+     2350,
+     "A"
+    ],
+    [
+     2356,
+     "-"
+    ],
+    [
+     2390,
+     "A"
+    ],
+    [
+     2396,
+     "-"
+    ]
+   ],
+   "shots": {
+    "opening": 1200,
+    "later": 2300
+   },
+   "checks": [
+    {
+     "rule": "TO-17",
+     "what": "no picture through the opening",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
   }
  ]
 }
