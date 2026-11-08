@@ -3321,12 +3321,13 @@ static bool to_supply_up(Emu* s) {
 #define TO_AIM_Y0 126
 #define TO_AIM_Y1 147
 
-/* a unit's box on the field (its frame's white left edge, x 164, 44 of
- * rows 110-155 on every unit's box, none on an empty square) */
-static bool to_unit_box(const uint32_t* fb) {
-	int edge = 0;
-	for (int y = 110; y < 156; ++y) edge += (fb[y * GBA_W + 164] & 0xFFFFFF) == 0xEFFFFF; /* (XBGR: FFFFEF) */
-	return edge >= 40;
+/* the field cursor's square (x, y), and after it (+4) the unit on it: a
+ * pointer, 0 on an empty square (both releases). Not the unit's box on
+ * the screen: the game moves that about to keep clear of the cursor
+ * (bottom right, middle left, top left...). */
+#define TO_FIELD_CURSOR(s) ((s)->gameCode[3] == 'J' ? 0x0202B5C0u : 0x0202AB90u)
+static bool to_on_unit(Emu* s) {
+	return emu_read32(s, TO_FIELD_CURSOR(s) + 4) != 0;
 }
 
 /* the title's lettering (TACTICS OGRE; the Japanese release's too) */
@@ -3334,18 +3335,31 @@ static bool to_unit_box(const uint32_t* fb) {
 /* 1: Training's empty square, as its last capture found it (the logo, TO-9) */
 #define TO_V_NOAIMS 0xF0000031
 static volatile uint32_t toNoAimsAt;
-/* 1: out of battle, nothing to take any more (the logo until a picture
- * is taken again, TO-12): a capture failed after the last picture came
- * from the world map or Organize */
+/* 1: the logo: out of battle with nothing to take any more (until a
+ * picture is taken again, TO-12: a capture failed after the last picture
+ * came from the world map or Organize), or the enemy's phase (TO-13) */
 #define TO_V_STALE 0xF0000032
+/* the battle's phase: bit 7 set on the enemy's (129; the player's: 1) */
+#define TO_PHASE(s) ((s)->gameCode[3] == 'J' ? 0x020018ACu : 0x020011CCu)
 static volatile int toStale, toLastWorld, toWasWorld;
-#define TO_FIELD_CURSOR(s) ((s)->gameCode[3] == 'J' ? 0x0202B5C0u : 0x0202AB90u)
+/* the enemy's phase seen: the logo until the player's phase's first
+ * picture (not the last turn's for a moment) */
+static volatile int toAfterEnemy;
+/* a room key: Organize's roster cursor and scroll (USA), and the phase,
+ * so its turn back to the player's takes a picture at once */
+#define TO_V_KEY 0xF0000033
 static const Probe toTitle[8] = { { 169, 13, 0xF7C600 }, { 140, 19, 0xDEAD00 }, { 25, 20, 0xBD7300 }, { 169, 20, 0xFFEF00 },
                                   { 62, 22, 0xCE8C00 }, { 91, 26, 0xEFBD00 }, { 132, 26, 0xFFFF5A }, { 13, 27, 0xC68400 } };
+static bool to_world(Emu* s);
 static uint32_t to_virt(Emu* e, uint32_t addr) {
-	if (addr == TO_V_STALE) return toStale;
+	if (addr == TO_V_STALE) {
+		if (!to_world(e) && (emu_read8(e, TO_PHASE(e)) & 0x80)) toAfterEnemy = 1;
+		return toStale || toAfterEnemy;
+	}
+	if (addr == TO_V_KEY)
+		return (e->gameCode[3] == 'E' ? emu_read8(e, TO_LIST_IDX_) | emu_read8(e, TO_LIST_TOP_) << 8 : 0) | (emu_read8(e, TO_PHASE(e)) & 0x80) << 9;
 	if (addr == TO_V_NOAIMS)
-		return toNoAimsAt == (0x10000u | emu_read16(e, TO_FIELD_CURSOR(e))) && emu_read8(e, 0x02004453) != 17 && !to_unit_box(e->fb);
+		return toNoAimsAt == (0x10000u | emu_read16(e, TO_FIELD_CURSOR(e))) && emu_read8(e, 0x02004453) != 17 && !to_on_unit(e);
 	return addr == TO_V_TITLE && som_probes(e, toTitle, 8, 7, 8);
 }
 
@@ -3437,17 +3451,44 @@ static bool to_cut_boxes(Emu* s, uint32_t* out, int r[2][4]) {
  * that finds it notes the field cursor's square; the live game's
  * TO_V_NOAIMS reads 1 while the cursor stays there on no unit. */
 
+/* The hidden copy back at the live game's moment and `extra` frames on,
+ * where R's menu opens on the field (TO-5): 0, or (just after the enemy's
+ * phase, the player's has its banner up for ~4 seconds and moves the
+ * cursor to the leader, R doing nothing meanwhile) up to 4.5 seconds on,
+ * so the turn's first picture comes with it (TO-13). -1: not there. */
+static int to_field_ready(Emu* s, const void* state) {
+	if (!emu_state_load(s, state)) return -1;
+	emu_frame(s, 0);
+	bool enemy = emu_read8(s, TO_PHASE(s)) & 0x80;
+	for (int extra = 0;; extra += 40) {
+		if (extra && enemy) return -1;
+		if (!emu_state_load(s, state)) return -1;
+		emu_frame(s, 0);
+		if (extra) aw_run(s, 0, extra);
+		aw_run(s, K_R, 6);
+		aw_run(s, 0, 34);
+		if (emu_read8(s, TO_MENU_UP(s)) == 2) return extra;
+		/* (on past only from the player's phase: not from the enemy's) */
+		if (!toAfterEnemy || (emu_read8(s, TO_PHASE(s)) & 0x80) || extra >= 280 || emu_cancelled(s)) return -1;
+	}
+}
+static bool to_field_back(Emu* s, const void* state, int extra) {
+	if (!emu_state_load(s, state)) return false;
+	emu_frame(s, 0);
+	if (extra) aw_run(s, 0, extra);
+	return true;
+}
+
 /* an empty square (TO-2, TO-9): one page, the Winning Condition's box at
  * the top, the Losing Condition's at the bottom, the place's in the
  * middle, on black. R's second icon is the Winning Condition (R on it:
  * the Losing Condition); in Training, which has none, it's the supply
  * list: the logo. */
-static const char* to_aims(Emu* s, const void* state, uint32_t* page, int* nOut) {
+static const char* to_aims(Emu* s, const void* state, int extra, uint32_t* page, int* nOut) {
 	static uint32_t win[GBA_W * GBA_H], lose[GBA_W * GBA_H];
 	int rw[2][4], rl[2][4];
 	bool aims = false, supply = false;
-	if (!emu_state_load(s, state)) return "state load failed";
-	emu_frame(s, 0);
+	if (!to_field_back(s, state, extra)) return "state load failed";
 	uint32_t at = emu_read16(s, TO_FIELD_CURSOR(s));
 	if (!to_menu_pick(s, 1)) return "R's menu didn't open";
 	for (int f = 0; f < 90 && !(aims = to_aims_up(s)) && !(supply = to_supply_up(s)); ++f) emu_frame(s, 0);
@@ -3616,7 +3657,7 @@ static const char* to_compose_(Emu* s, const void* state, uint32_t* const* out, 
 static const char* to_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
 	toWasWorld = 0;
 	const char* err = to_compose_(s, state, out, nOut, step, w, h);
-	if (!err) toNoAimsAt = 0, toStale = 0, toLastWorld = toWasWorld;
+	if (!err) toNoAimsAt = 0, toStale = 0, toAfterEnemy = 0, toLastWorld = toWasWorld;
 	else if ((toWasWorld || toLastWorld) && !emu_cancelled(s)) toStale = 1;
 	return err;
 }
@@ -3645,25 +3686,26 @@ static const char* to_compose_(Emu* s, const void* state, uint32_t* const* out, 
 	 * doesn't open on the field): the last pictures (TO-5) */
 	if (to_list_up(s)) return "the list is open";
 	/* the field fading in (after the details, the list or a scene close:
-	 * BLDCNT darkening, 0x00FF): the unit's box comes only as it ends, so
-	 * it would look like an empty square. The last pictures stay; the next
-	 * refresh takes them (TO-5). */
+	 * BLDCNT darkening, 0x00FF): B there wouldn't open the details yet. The
+	 * last pictures stay; the next refresh takes them (TO-5). */
 	if ((emu_io16(s, 0x50) & 0xC0) >= 0x80) return "the field is fading in";
 	/* (the box comes 2 frames after the darkening ends: 4 more) */
 	aw_run(s, 0, 4);
 	int n = 0;
 	const char* err;
-	if (!to_unit_box(s->fb)) {
+	int extra = to_field_ready(s, state);
+	if (extra < 0) return "R's menu didn't open";
+	if (!to_field_back(s, state, extra)) return "state load failed";
+	/* (the unit on the cursor's square: 0 while a screen closes, until the
+	 * field is back; R's menu opened on it, so a few frames on it is) */
+	for (int f = 0; f < 40 && !to_on_unit(s); ++f) emu_frame(s, 0);
+	bool onUnit = to_on_unit(s);
+	if (!to_field_back(s, state, extra)) return "state load failed";
+	if (!onUnit) {
 		/* an empty square: the battle's conditions (TO-9) */
-		err = to_aims(s, state, page[0], &n);
+		err = to_aims(s, state, extra, page[0], &n);
 	} else {
-		/* a unit: R's menu must open on the field (TO-5), then B on it
-		 * (TO-8) */
-		aw_run(s, K_R, 6);
-		aw_run(s, 0, 34);
-		if (emu_read8(s, TO_MENU_UP(s)) != 2) return "R's menu didn't open";
-		if (!emu_state_load(s, state)) return "state load failed";
-		emu_frame(s, 0);
+		/* a unit: B on it (TO-8) */
 		aw_run(s, K_B, 6);
 		if (!to_wait_details(s)) return "the details didn't open";
 		err = to_detail_pages(s, page, max, &n);
@@ -3957,13 +3999,13 @@ static const MapProfile profiles[] = {
 		.crop_h = GBA_H,
 		/* the field cursor moved: the list again, on its unit */
 		/* (and the world map's location under the cursor, Organize's roster
-		 * cursor and its scroll: TO-10, TO-11) */
-		.room = { { 0x0202AB90, 0xFFFF, 0, 2 }, { TO_WM_HOVER, 0xFF, 0, 1 }, { TO_LIST_IDX_, 0xFF, 0, 1 }, { TO_LIST_TOP_, 0xFF, 0, 1 } },
+		 * cursor and its scroll, the phase: TO-10, TO-11, TO-13) */
+		.room = { { 0x0202AB90, 0xFFFF, 0, 2 }, { TO_WM_HOVER, 0xFF, 0, 1 }, { TO_V_KEY, 0, 0, 4 } },
 		/* the title: the logo again, no captures (TO-4) */
 		.menu = { { TO_V_TITLE, 0xFF, 1, 4 } },
 		.live = { { TO_V_TITLE, 0xFF, 0, 4 } },
 		/* Training's empty square: the logo (TO-9); out of battle with
-		 * nothing to take: the logo (TO-12) */
+		 * nothing to take, and the enemy's phase: the logo (TO-12, TO-13) */
 		.logoIf = { { TO_V_NOAIMS, 0xFF, 1, 4 } },
 		.logoIfOr = { { TO_V_STALE, 0xFF, 1, 4 } },
 		/* the title's lettering (BG2) and The Knight of Lodis (sprites, above
@@ -3982,9 +4024,11 @@ static const MapProfile profiles[] = {
 		.stillPick = STILL_FIRST,
 		.crop_w = GBA_W,
 		.crop_h = GBA_H,
-		.room = { { 0x0202B5C0, 0xFFFF, 0, 2 } },
+		.room = { { 0x0202B5C0, 0xFFFF, 0, 2 }, { TO_V_KEY, 0, 0, 4 } },
 		.menu = { { TO_V_TITLE, 0xFF, 1, 4 } },
 		.live = { { TO_V_TITLE, 0xFF, 0, 4 } },
+		.logoIf = { { TO_V_NOAIMS, 0xFF, 1, 4 } },
+		.logoIfOr = { { TO_V_STALE, 0xFF, 1, 4 } },
 		.logo = { .steps = { { 0, 480 }, { K_START, 4 }, { 0, 50 } }, .layers = 0x14, .maxY = 90 },
 	},
 	{
