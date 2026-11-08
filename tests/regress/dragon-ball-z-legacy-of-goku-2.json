@@ -1,0 +1,398 @@
+{
+ "game": "Dragon Ball Z: The Legacy of Goku II",
+ "rules": "docs/games/dragon-ball-z-legacy-of-goku-2.md",
+ "cases": [
+  {
+   "id": "dbz2-us-title",
+   "rom": "ALFE",
+   "state": "dragon-ball-z-legacy-of-goku-2/us-title.ss",
+   "desc": "the title: the logo, no capture",
+   "rules": [
+    "DBZ2-1"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "DBZ2-1",
+     "what": "no capture",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "dbz2-us-map",
+   "rom": "ALFE",
+   "state": "dragon-ball-z-legacy-of-goku-2/us-scouter.ss",
+   "desc": "Gohan at a save point in the Northern Mountains, with the Scouter: its area map, without the scroll arrows; walking left, the map follows him",
+   "rules": [
+    "DBZ2-2"
+   ],
+   "input": [
+    [
+     70,
+     "LEFT"
+    ],
+    [
+     160,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 60,
+    "later": 240
+   },
+   "checks": [
+    {
+     "rule": "DBZ2-2",
+     "what": "the map taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "DBZ2-2",
+     "what": "the map moved with him",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "screen": "second",
+      "rect": [
+       120,
+       100,
+       900,
+       660
+      ]
+     },
+     "b": {
+      "shot": "later",
+      "screen": "second",
+      "rect": [
+       120,
+       100,
+       900,
+       660
+      ]
+     },
+     "frac": 0.01
+    }
+   ]
+  },
+  {
+   "id": "dbz2-us-save-menu",
+   "rom": "ALFE",
+   "state": "dragon-ball-z-legacy-of-goku-2/us-scouter.ss",
+   "desc": "the save point's menu (A), then the game's own pause menu (START): the map from before stays",
+   "rules": [
+    "DBZ2-5"
+   ],
+   "input": [
+    [
+     90,
+     "A"
+    ],
+    [
+     95,
+     "-"
+    ],
+    [
+     200,
+     "B"
+    ],
+    [
+     205,
+     "-"
+    ],
+    [
+     260,
+     "START"
+    ],
+    [
+     265,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 80,
+    "menu": 200,
+    "pause": 380
+   },
+   "checks": [
+    {
+     "rule": "DBZ2-5",
+     "what": "neither opens anything there",
+     "type": "log",
+     "match": "map capture failed"
+    },
+    {
+     "rule": "DBZ2-5",
+     "what": "the map kept at the save menu",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "screen": "second",
+      "rect": [
+       120,
+       100,
+       900,
+       660
+      ]
+     },
+     "b": {
+      "shot": "menu",
+      "screen": "second",
+      "rect": [
+       120,
+       100,
+       900,
+       660
+      ]
+     },
+     "frac": 0.02
+    },
+    {
+     "rule": "DBZ2-5",
+     "what": "the map kept in the pause menu",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "screen": "second",
+      "rect": [
+       120,
+       100,
+       900,
+       660
+      ]
+     },
+     "b": {
+      "shot": "pause",
+      "screen": "second",
+      "rect": [
+       120,
+       100,
+       900,
+       660
+      ]
+     },
+     "frac": 0.02
+    }
+   ]
+  },
+  {
+   "id": "dbz2-us-new-game",
+   "rom": "ALFE",
+   "state": "dragon-ball-z-legacy-of-goku-2/us-new-game.ss",
+   "desc": "a new game's first area (Trunks, before the Scouter): the Status page",
+   "rules": [
+    "DBZ2-3"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "DBZ2-3",
+     "what": "the Status page taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "dbz2-us-conversation",
+   "rom": "ALFE",
+   "state": "dragon-ball-z-legacy-of-goku-2/us-scouter.ss",
+   "desc": "the map, then a conversation loaded (Trunks and Piccolo, zone 1): the map stays",
+   "rules": [
+    "DBZ2-5"
+   ],
+   "input": [
+    [
+     100,
+     "LOAD:dragon-ball-z-legacy-of-goku-2/us-conversation.ss"
+    ]
+   ],
+   "shots": {
+    "start": 60,
+    "conversation": 300
+   },
+   "checks": [
+    {
+     "rule": "DBZ2-5",
+     "what": "nothing opens in the conversation",
+     "type": "log",
+     "match": "map capture failed"
+    },
+    {
+     "rule": "DBZ2-5",
+     "what": "the map kept",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "screen": "second",
+      "rect": [
+       120,
+       100,
+       900,
+       660
+      ]
+     },
+     "b": {
+      "shot": "conversation",
+      "screen": "second",
+      "rect": [
+       120,
+       100,
+       900,
+       660
+      ]
+     },
+     "frac": 0.02
+    }
+   ]
+  },
+  {
+   "id": "dbz2-us-flying",
+   "rom": "ALFE",
+   "state": "dragon-ball-z-legacy-of-goku-2/us-wastelands.ss",
+   "desc": "the Northern Wastelands' map, then reading the World Map sign: flying, the logo",
+   "rules": [
+    "DBZ2-2",
+    "DBZ2-6"
+   ],
+   "input": [
+    [
+     100,
+     "UP"
+    ],
+    [
+     125,
+     "-"
+    ],
+    [
+     131,
+     "A"
+    ],
+    [
+     135,
+     "-"
+    ],
+    [
+     210,
+     "A"
+    ],
+    [
+     215,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 90,
+    "flying": 400
+   },
+   "checks": [
+    {
+     "rule": "DBZ2-6",
+     "what": "back to the logo",
+     "type": "log",
+     "match": "second screen back to the logo"
+    }
+   ]
+  },
+  {
+   "id": "dbz2-us-one-screen",
+   "rom": "ALFE",
+   "state": "dragon-ball-z-legacy-of-goku-2/us-scouter.ss",
+   "desc": "one screen: the game as it is",
+   "rules": [
+    "DBZ2-7"
+   ],
+   "config": {
+    "layout": "single"
+   },
+   "shots": {
+    "start": 60
+   }
+  },
+  {
+   "id": "dbz2-eu-new-game",
+   "rom": "ALFP",
+   "state": "dragon-ball-z-legacy-of-goku-2/eu-new-game.ss",
+   "desc": "Europe, a new game's first area: the Status page",
+   "rules": [
+    "DBZ2-3"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "DBZ2-3",
+     "what": "the Status page taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "dbz2-jp-new-game",
+   "rom": "ALFJ",
+   "state": "dragon-ball-z-legacy-of-goku-2/jp-new-game.ss",
+   "desc": "Japan, a new game's first area: the Status page",
+   "rules": [
+    "DBZ2-3"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "DBZ2-3",
+     "what": "the Status page taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "dbz2-logo-alfe",
+   "kind": "logo",
+   "rom": "ALFE",
+   "desc": "ALFE logo extraction",
+   "rules": [
+    "GEN-1",
+    "DBZ2-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "dbz2-logo-alfp",
+   "kind": "logo",
+   "rom": "ALFP",
+   "desc": "ALFP logo extraction (a language menu first)",
+   "rules": [
+    "GEN-1",
+    "DBZ2-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "dbz2-logo-alfj",
+   "kind": "logo",
+   "rom": "ALFJ",
+   "desc": "ALFJ logo extraction (International: its own title)",
+   "rules": [
+    "GEN-1",
+    "DBZ2-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

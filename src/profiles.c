@@ -2066,6 +2066,60 @@ static const char* dbz_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	return NULL;
 }
 
+/* ---------------------------------------------------------- Dragon Ball Z: The Legacy of Goku II
+ *
+ * The second screen (DBZ2-2): the Scouter's map of the area (R), opened on
+ * the shadow core from the live state at every capture, once it has faded
+ * in (BLDALPHA up to 16), without its four scroll arrows. Where R opens
+ * nothing (before the Scouter), the pause menu's Status page (START,
+ * DBZ2-3). An attack under way takes no R, so R is tried a few times
+ * before giving up on the map.
+ */
+#define DBZ2_FIELD_DISP 0x1F40
+#define DBZ2_MAP_DISP 0x1D40
+#define DBZ2_PAUSE_DISP 0x0E00
+static const SpriteRule dbz2Arrows[4] = {
+	{ 2, 70, 6, 74, 0, 1023, 0, 1u << 0, 0, 1u << 8 },     /* left (8x16) */
+	{ 226, 70, 230, 74, 0, 1023, 0, 1u << 0, 0, 1u << 8 }, /* right */
+	{ 110, 2, 114, 6, 0, 1023, 0, 1u << 0, 0, 1u << 4 },   /* top (16x8) */
+	{ 110, 146, 114, 150, 0, 1023, 0, 1u << 0, 0, 1u << 4 }, /* bottom */
+};
+/* the pause menu, faded in (BLDALPHA up to 16, as the map) */
+static bool dbz2_pause_up(Emu* s) {
+	return emu_io16(s, 0x00) == DBZ2_PAUSE_DISP && emu_io16(s, 0x52) == 0x0010;
+}
+static const char* dbz2_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	if (!emu_state_load(s, state)) return "state load failed";
+	if (emu_io16(s, 0x00) != DBZ2_FIELD_DISP) return "not walking about";
+	/* the map: R (three tries), then its fade-in */
+	bool map = false;
+	for (int t = 0; t < 3 && !map; ++t) {
+		aw_run(s, K_R, 3);
+		for (int f = 0; f < 40 && !map; ++f) {
+			emu_frame_blind(s, 0);
+			map = emu_io16(s, 0x00) == DBZ2_MAP_DISP;
+		}
+	}
+	if (map) {
+		int f = 0;
+		while (f < 60 && emu_io16(s, 0x52) != 0x0010) emu_frame_blind(s, 0), ++f;
+		if (emu_io16(s, 0x00) != DBZ2_MAP_DISP || emu_io16(s, 0x52) != 0x0010) return "the map did not settle";
+		emu_hide_sprites(s, dbz2Arrows, 4);
+		emu_frame(s, 0);
+		emu_frame(s, 0);
+		emu_hide_sprites(s, NULL, 0);
+		if (emu_io16(s, 0x00) != DBZ2_MAP_DISP) return "the map went away";
+	} else {
+		/* no map: the Status page, from the live state again */
+		if (!emu_state_load(s, state)) return "state load failed";
+		emu_frame(s, 0);
+		aw_run(s, K_START, 3);
+		if (!aw_settle(s, dbz2_pause_up, 90)) return "neither the map nor the pause menu opened";
+	}
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+	return NULL;
+}
+
 /* ---------------------------------------------------------- Mario & Luigi: Superstar Saga
  *
  * The second screen (ML-2): the Bros. Info screen, opened on the shadow core
@@ -4978,6 +5032,29 @@ static const MapProfile profiles[] = {
 		.logo = { .steps = { { 0, 900 }, { K_A, 9 }, { 0, 150 } }, .mask = &logoMaskDBZ },
 	},
 	{
+		/* Dragon Ball Z: The Legacy of Goku II (USA; Japan's International
+		 * the same, ALFJ; Europe ALFP). Walking about, the Scouter's area
+		 * map, or before the Scouter the Status page: see dbz2_compose
+		 * (DBZ2-2, DBZ2-3) */
+		.codes = { "ALFE" },
+		.title = "Dragon Ball Z: The Legacy of Goku II",
+		.compose = dbz2_compose,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* walking about (conversations too: there neither R nor START
+		 * opens anything, and the last picture stays, DBZ2-5) */
+		.live = { { 0x04000000, 0xFFFF, DBZ2_FIELD_DISP, 2 } },
+		/* the area: 0 on the title, the file menu and the intro, 99 flying
+		 * over the world: the logo, the last map forgotten (DBZ2-1,
+		 * DBZ2-6) */
+		.menu = { { 0x03002081, 0xFF, 0x00, 1, true, 0x63 } },
+		/* zone and area: a new area's map at once (GEN-6) */
+		.room = { { 0x03002080, 0xFFFF, 0, 2 } },
+		/* the title, after START skips the intro: DRAGON BALL Z and THE
+		 * LEGACY OF GOKU II inside its mask (DBZ2-1) */
+		.logo = { .steps = { { 0, 900 }, { K_START, 6 }, { 0, 150 } }, .mask = &logoMaskDBZ2 },
+	},
+	{
 		/* River City Ransom EX (USA; in Japan Downtown Nekketsu Monogatari
 		 * EX, with the same RAM and menus). The byte at 0x0300496E is the
 		 * game's screen: 1 the title card, 3 the Story / Manage Data menu,
@@ -5351,6 +5428,21 @@ static void dbz_eur(MapProfile* p) {
 	memset(p->logo.steps, 0, sizeof(p->logo.steps));
 	memcpy(p->logo.steps, steps, sizeof(steps));
 }
+/* Dragon Ball Z: The Legacy of Goku II in Europe: a language menu first
+ * (A: English), then the title on its own (no intro); its zone and area
+ * 0x1174 lower */
+static void dbz2_eur(MapProfile* p) {
+	static const MacroStep steps[] = { { 0, 450 }, { K_A, 6 }, { 0, 800 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+	p->menu[0].addr = 0x03000F0D;
+	p->room[0].addr = 0x03000F0C;
+}
+/* ... in Japan (International): the same RAM; its own title (with
+ * INTERNATIONAL under the logo) */
+static void dbz2_jpn(MapProfile* p) {
+	p->logo.mask = &logoMaskDBZ2J;
+}
 static void fe8_jpn(MapProfile* p) {
 	static const MacroStep steps[] = { { 0, 400 }, { K_START, 4 }, { 0, 90 } };
 	memset(p->logo.steps, 0, sizeof(p->logo.steps));
@@ -5617,6 +5709,8 @@ static const Variant variants[] = {
 	{ "AE7J", "AE7E", 0, fe_jpn },
 	{ "BE8P", "BE8E", 0, fe8_eur },
 	{ "ALGP", "ALGE", 0, dbz_eur },
+	{ "ALFP", "ALFE", 0, dbz2_eur },
+	{ "ALFJ", "ALFE", 0, dbz2_jpn },
 	{ "A88P", "A88E", 0, ml_eur },
 	{ "A88J", "A88E", 0, NULL },
 	{ "BE8J", "BE8E", 0, fe8_jpn },

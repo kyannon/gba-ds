@@ -150,6 +150,57 @@ def dbz(a):
     patch[fill & ~zr] = black[0] << 16 | black[1] << 8 | black[2]
     return m, patch
 
+def dbz2(a):
+    """Dragon Ball Z: The Legacy of Goku II (USA, Europe): DRAGON BALL Z and
+    THE LEGACY OF GOKU II painted over Goku, the Androids and the sky. The
+    lettering's saturated warm colours (yellow, red, the orange ball), in
+    pieces of 120 pixels or more (not Goku's hair's yellow streaks or 17's
+    scarf), the dark outline beside them and what they enclose (THE LEGACY
+    OF and GOKU are black inside), but not the bits of blue sky enclosed
+    between the lines. The (R) and TM, white, are left out, as is all from
+    the START / OPTIONS box down."""
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    ys, xs = np.mgrid[0:H, 0:W]
+    band = ys < 106
+    warm = comps((r - b > 100) & (r > 150) & band, 120)
+    near = ndimage.distance_transform_edt(~warm) <= 2
+    m = warm | ((a.max(axis=2) < 90) & near & band)
+    m = ndimage.binary_fill_holes(m) & ~(~m & (b > r + 20))
+    return comps(m, 150)
+
+
+def dbz2_jpn(a):
+    """Dragon Ball Z: The Legacy of Goku II International (Japan): DRAGON
+    BALL Z and the II as in the USA's (saturated warm and its dark outline;
+    not Goku's paler hair, at the left edge), and the subtitle band below
+    (THE LEGACY OF GOKU, the blue bar, INTERNATIONAL, on cream lines) by
+    its own colours, from its left end to the II, rows 66-93: Goku's aura
+    is the same cream, so the band's ends are where it stops."""
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    ys, xs = np.mgrid[0:H, 0:W]
+    rgb = r << 16 | g << 8 | b
+    band = (ys < 96) & (xs >= 30)
+    warm = comps((r - b > 100) & (r >= 200) & band, 20)
+    near = ndimage.distance_transform_edt(~warm) <= 2
+    top = warm | ((a.max(axis=2) < 90) & near & band)
+    pal = [0xFFFFCE, 0x182939, 0x8C8C8C, 0xFF9C00, 0xFF7300, 0xCE6300, 0x733108, 0x2163E7, 0x21BD7B, 0x7BD6AD]
+    sub = (ys >= 66) & (ys <= 93) & (xs >= 33) & (xs <= 202) & np.isin(rgb, pal)
+    # (INTERNATIONAL's own rows start at its I: the hair shows left of it)
+    sub &= ~((ys >= 86) & (ys <= 89) & (xs < 54))
+    m = top | sub
+    m = ndimage.binary_fill_holes(m) & ~(~m & (b > r + 20))
+    return comps(m, 150)
+
+
+def comps(m, mn):
+    """The parts of m (8-connected) of mn pixels or more."""
+    lab, n = ndimage.label(m, structure=np.ones((3, 3)))
+    if not n:
+        return m
+    s = ndimage.sum(m, lab, range(1, n + 1))
+    return np.isin(lab, [i + 1 for i, v in enumerate(s) if v >= mn])
+
+
 def gs2(a):
     """Golden Sun: The Lost Age (every release; its title only comes with a
     save, so the logo profile patches the save check): the emblem painted
@@ -228,7 +279,8 @@ def cnk_jpn(a):
 
 MASKS = (("THPS2", thps2), ("SK8", sk8), ("THPS3", thps3), ("DBZ", dbz),
          ("GS2E", gs2), ("GS2D", gs2_dial), ("GS2F", gs2_dial), ("GS2I", gs2), ("GS2S", gs2_dial),
-         ("GS2J", gs2), ("CNK", cnk), ("CNKJ", cnk_jpn))
+         ("GS2J", gs2), ("CNK", cnk), ("CNKJ", cnk_jpn),
+         ("DBZ2", dbz2), ("DBZ2J", dbz2_jpn))
 
 
 def runs(mask):
