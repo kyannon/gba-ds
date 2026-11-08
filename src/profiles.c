@@ -3494,6 +3494,247 @@ static uint32_t wl4_virt(Emu* e, uint32_t addr) {
 	return 0;
 }
 
+/* -------------------------------------------------- Super Mario Advance 3: Yoshi's Island
+ *
+ * In a level, the status screen SELECT opens (SM3-1); on a world's panel,
+ * its score page (SM3-3): sm3_compose, on the hidden copy. The screen the
+ * game is on, 0x03006AF6: 0 a level, 6 a world's panel, 0x0A the island
+ * map, 1 a bonus game, 2 the file menu and the opening story, 3 the
+ * title, 9 the game select, 5 and 8 Mario Bros. */
+#define SM3_SCREEN 0x03006AF6
+#define SM3_IN_LEVEL 0x00
+#define SM3_ON_PANEL 0x06
+/* the world the panel shows: (world - 1) * 2 */
+#define SM3_WORLD 0x0300633C
+/* the panel's hand on the tab row: the tab's place * 2 (world 1 0 ...
+ * world 6 10, SCORE 12); 0 on the levels' rows too */
+#define SM3_TAB 0x03002E92
+#define SM3_TAB_SCORE 12
+/* each level's score (12 bytes a world, 100 = 0x64), and what follows
+ * them (the worlds' totals): what the score page shows */
+#define SM3_SCORES 0x03006B08
+#define SM3_SCORES_LEN 0x68
+/* the status screen: BG3 and the sprites (the items), from about 50
+ * frames after SELECT (the level fades out, the screen fades in by its
+ * palette over the next 35) */
+#define SM3_STATUS_DISP 0x1800
+#define SM3_STATUS_BG3 0x7A04
+/* the item cursor's colour (BG palette 1, colour 14), cycled by the game;
+ * where it's drawn, round an item slot, is black otherwise */
+#define SM3_CURSOR_PAL 0x0500003C
+#define SM3_CURSOR_MAGENTA 0x7C1F
+/* the item row, the only place it's drawn */
+#define SM3_ITEMS_Y0 124
+/* the score page's GBA box with #1 (another menu), at the panel's bottom
+ * right in every world and release, painted over with the panel's colour,
+ * taken from beside the cards (SM3-3) */
+#define SM3_BOX_X0 187
+#define SM3_BOX_X1 220
+#define SM3_BOX_Y0 59
+#define SM3_BOX_Y1 92
+#define SM3_PANEL_AT_X 10
+#define SM3_PANEL_AT_Y 60
+#define SM3_CARD_GREEN 0x08A542 /* (also the bar's) */
+/* 1 in a level or on a world's panel: a picture is taken */
+#define SM3_V_LIVE 0xF0000070
+/* 1 anywhere but a level or a world's panel (the titles, file menu,
+ * opening, island map, a bonus game, Mario Bros.): the logo, the last
+ * picture forgotten (SM3-4) */
+#define SM3_V_MENU 0xF0000071
+
+static uint32_t sm3_virt(Emu* e, uint32_t addr) {
+	uint8_t s = emu_read8(e, SM3_SCREEN);
+	if (addr == SM3_V_LIVE) return s == SM3_IN_LEVEL || s == SM3_ON_PANEL;
+	if (addr == SM3_V_MENU) return s != SM3_IN_LEVEL && s != SM3_ON_PANEL;
+	return 0;
+}
+
+static bool sm3_rgb(const uint32_t* fb, int x, int y, uint32_t rgb) {
+	uint32_t c = fb[y * GBA_W + x];
+	return (((c & 0xFF) << 16) | (c & 0xFF00) | ((c >> 16) & 0xFF)) == rgb;
+}
+
+/* the score page's total bar in its place (it slides in from the right
+ * once the last card has turned): its green and black left edge, and its
+ * rim the panel's colour (each world's panel has its own) */
+static bool sm3_bar(const uint32_t* fb) {
+	uint32_t panel = fb[60 * GBA_W + 10] & 0xFFFFFF;
+	return sm3_rgb(fb, 20, 140, SM3_CARD_GREEN) && sm3_rgb(fb, 200, 140, SM3_CARD_GREEN) && sm3_rgb(fb, 16, 140, 0) &&
+	       (fb[132 * GBA_W + 12] & 0xFFFFFF) == panel && (fb[132 * GBA_W + 228] & 0xFFFFFF) == panel;
+}
+
+static int sm3_green(const uint32_t* fb) {
+	int n = 0;
+	for (int y = 24; y < 88; y += 2) {
+		for (int x = 24; x < 208; x += 2) n += sm3_rgb(fb, x, y, SM3_CARD_GREEN);
+	}
+	return n;
+}
+
+/* a press the game takes (its logic runs every other frame at times):
+ * 5 frames down, 10 up */
+static void sm3_tap(Emu* s, uint32_t keys, int n) {
+	for (int i = 0; i < n; ++i) {
+		aw_run(s, keys, 5);
+		aw_run(s, 0, 10);
+	}
+}
+
+static bool sm3_status(Emu* s) {
+	return emu_read16(s, 0x04000000) == SM3_STATUS_DISP && emu_read16(s, 0x0400000E) == SM3_STATUS_BG3;
+}
+
+/* SM3-1, SM3-2: SELECT; once the status screen is up and its fade-in done
+ * (its palette still for 4 frames), with the item cursor black */
+static const char* sm3_status_page(Emu* s, uint32_t* out, int w, int h) {
+	if (sm3_status(s)) return "screen already looks like the map";
+	sm3_tap(s, K_SELECT, 1);
+	int f = 0;
+	while (f < 90 && !sm3_status(s)) emu_frame_blind(s, 0), ++f;
+	if (!sm3_status(s)) return "map button did nothing";
+	uint16_t last[4] = { 0 };
+	int still = 0;
+	for (f = 0; f < 90 && still < 4; ++f) {
+		emu_frame_blind(s, 0);
+		if (!sm3_status(s)) return "the status screen closed";
+		bool same = true;
+		for (int i = 0; i < 4; ++i) {
+			uint16_t c = emu_read16(s, 0x05000002 + i * 2);
+			same &= c == last[i];
+			last[i] = c;
+		}
+		still = same && last[2] ? still + 1 : 0;
+	}
+	if (still < 4) return "the status screen never settled";
+	/* The cursor cycles blue, magenta, red, yellow, green and back, 8
+	 * frames each: the picture is taken while it's magenta, which nothing
+	 * else on the screen is (in its yellow, the star, the flower and the
+	 * figures would go black with it) */
+	for (f = 0; f < 72 && emu_read16(s, SM3_CURSOR_PAL) != SM3_CURSOR_MAGENTA; ++f) {
+		emu_frame_blind(s, 0);
+		if (!sm3_status(s)) return "the status screen closed";
+	}
+	if (emu_read16(s, SM3_CURSOR_PAL) != SM3_CURSOR_MAGENTA) return "the status screen's cursor never turned magenta";
+	/* The game sets the cursor's colour in its vblank, before drawing:
+	 * the frame is drawn twice from the same moment, BG3 alone and
+	 * whole, and where BG3 alone has the cursor's colour and the whole
+	 * picture too (no item over it), black instead (SM3-2). */
+	size_t n = emu_state_size(s);
+	uint8_t* st = malloc(n);
+	if (!st || !emu_state_save(s, st)) {
+		free(st);
+		return "out of memory";
+	}
+	/* (the whole picture from the frame as the game runs on: drawn again
+	 * from a loaded state, its sprites can be missing, depending on the
+	 * moment) */
+	static uint32_t bg3[GBA_W * GBA_H], whole[GBA_W * GBA_H];
+	emu_frame(s, 0);
+	memcpy(whole, s->fb, sizeof(whole));
+	uint16_t c = emu_read16(s, SM3_CURSOR_PAL);
+	emu_layers(s, 0x08);
+	emu_state_load(s, st);
+	emu_frame(s, 0);
+	memcpy(bg3, s->fb, sizeof(bg3));
+	emu_layers(s, 0x1F);
+	free(st);
+	uint32_t r = c & 31, g = (c >> 5) & 31, b = (c >> 10) & 31;
+	uint32_t rgb = ((r << 3 | r >> 2) << 16) | ((g << 3 | g >> 2) << 8) | (b << 3 | b >> 2);
+	for (int y = 0; y < h && y < GBA_H; ++y) {
+		for (int x = 0; x < w && x < GBA_W; ++x) {
+			uint32_t px = whole[y * GBA_W + x];
+			if (y >= SM3_ITEMS_Y0 && sm3_rgb(bg3, x, y, rgb) && sm3_rgb(whole, x, y, rgb)) px = (px & 0xFF000000u) | 0;
+			out[y * w + x] = px;
+		}
+	}
+	return NULL;
+}
+
+/* SM3-3: UP twice (from either row of levels to the tabs; on the tabs it
+ * does nothing), RIGHT to SCORE, A, and the cards turning until the total
+ * bar is in; then, of the next 64 frames, the one with the most green
+ * (the 100-point cards blink red and green), drawn again with the BG
+ * layers alone (the panel, cards, bar and the map's scenery; Yoshi, the
+ * levels' markers and the hand are sprites), the #1 box painted over. The
+ * same world and scores as last time: the same picture, without the 5
+ * seconds of turning cards. */
+static const char* sm3_score_page(Emu* s, uint32_t* out, int w, int h) {
+	static uint8_t lastKey[SM3_SCORES_LEN + 1];
+	static uint32_t lastPage[GBA_W * GBA_H];
+	static bool have;
+	uint8_t key[SM3_SCORES_LEN + 1];
+	key[0] = emu_read8(s, SM3_WORLD);
+	for (int i = 0; i < SM3_SCORES_LEN; ++i) key[i + 1] = emu_read8(s, SM3_SCORES + i);
+	bool cw = w == GBA_W && h == GBA_H;
+	if (have && cw && !memcmp(key, lastKey, sizeof(key))) {
+		memcpy(out, lastPage, sizeof(lastPage));
+		return NULL;
+	}
+	if (!sm3_bar(s->fb)) {
+		sm3_tap(s, K_UP, 2);
+		for (int i = 0; i < 8 && emu_read8(s, SM3_TAB) != SM3_TAB_SCORE; ++i) sm3_tap(s, K_RIGHT, 1);
+		if (emu_read8(s, SM3_TAB) != SM3_TAB_SCORE) return "map button did nothing";
+		sm3_tap(s, K_A, 1);
+		int f = 0, still = 0;
+		while (f < 480 && still < 3) {
+			aw_run(s, 0, 4);
+			f += 4;
+			still = sm3_bar(s->fb) ? still + 1 : 0;
+		}
+		if (still < 3) return "the score page never came up";
+	}
+	size_t n = emu_state_size(s);
+	uint8_t* st = malloc(n);
+	uint8_t* best = malloc(n);
+	if (!st || !best) {
+		free(st);
+		free(best);
+		return "out of memory";
+	}
+	int bestGreen = -1;
+	for (int f = 0; f < 64; ++f) {
+		emu_state_save(s, st);
+		emu_frame(s, 0);
+		if (!sm3_bar(s->fb)) break;
+		int g = sm3_green(s->fb);
+		if (g > bestGreen) bestGreen = g, memcpy(best, st, n);
+	}
+	if (bestGreen < 0) {
+		free(st);
+		free(best);
+		return "the score page closed";
+	}
+	/* every BG layer, no sprites */
+	emu_layers(s, 0x0F);
+	emu_state_load(s, best);
+	emu_frame(s, 0);
+	emu_layers(s, 0x1F);
+	free(st);
+	free(best);
+	uint32_t panel = s->fb[SM3_PANEL_AT_Y * GBA_W + SM3_PANEL_AT_X];
+	for (int y = 0; y < h && y < GBA_H; ++y) {
+		for (int x = 0; x < w && x < GBA_W; ++x) {
+			bool box = x >= SM3_BOX_X0 && x <= SM3_BOX_X1 && y >= SM3_BOX_Y0 && y <= SM3_BOX_Y1;
+			out[y * w + x] = box ? panel : s->fb[y * GBA_W + x];
+		}
+	}
+	if (cw && !emu_cancelled(s)) {
+		memcpy(lastPage, out, sizeof(lastPage));
+		memcpy(lastKey, key, sizeof(key));
+		have = true;
+	}
+	return NULL;
+}
+
+static const char* sm3_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	uint8_t screen = emu_read8(s, SM3_SCREEN);
+	if (screen == SM3_IN_LEVEL) return sm3_status_page(s, out, w, h);
+	if (screen == SM3_ON_PANEL) return sm3_score_page(s, out, w, h);
+	return "map button did nothing";
+}
+
 static const MapProfile profiles[] = {
 	{
 		.codes = { "A2CE" },
@@ -4883,6 +5124,42 @@ static const MapProfile profiles[] = {
 		},
 	},
 	{
+		/* Super Mario Advance 3: Yoshi's Island (USA and Japan; Europe:
+		 * the A3AP variant, its language menu first; all three with the
+		 * same addresses). In a level the status screen, on a world's
+		 * panel its score page: see sm3_compose (SM3-1 to SM3-3).
+		 * Nothing leaves the game screen (SM3-6). */
+		.codes = { "A3AE", "A3AJ" },
+		.title = "Super Mario Advance 3: Yoshi's Island",
+		.compose = sm3_compose,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		.virt = sm3_virt,
+		/* in a level or on a world's panel: taken (about once a second;
+		 * the score page only when its world or scores change) */
+		.live = { { SM3_V_LIVE, 0, 1, 1 } },
+		/* the title, game select, file menu, opening, island map, a bonus
+		 * game, Mario Bros.: the logo (SM3-4) */
+		.menu = { { SM3_V_MENU, 0, 1, 1 } },
+		/* into a level or back to the panel, or another world's panel
+		 * picked: taken again at once */
+		.room = { { SM3_SCREEN, 0, 0, 1 }, { SM3_WORLD, 0, 0, 1 } },
+		/* Yoshi's Island's own title (from power-on: the Super Mario
+		 * Advance 3 title, START, the game select, A): YOSHI'S ISLAND
+		 * and its TM on BG1, rows 16-63, the copyright line below them
+		 * left out (SM3-5) */
+		.logo = { .steps = { { 0, 300 }, { K_START, 5 }, { 0, 200 }, { K_START, 5 }, { 0, 200 }, { K_A, 5 }, { 0, 360 } },
+		          .layer = 1, .maxY = 64 },
+		/* Controls GBA or SNES (SM3-7): the SNES game's buttons by
+		 * position, B bottom jumps (GBA A), Y left the tongue (GBA B), A
+		 * right and X top throw an egg (GBA R), both shoulders lock the aim
+		 * (GBA L); in a level only. No camera pan (`pan` 0). */
+		.controls = {
+			.snes = { .right = K_R, .bottom = K_A, .top = K_R, .left = K_B,
+			          .when = { { SM3_SCREEN, 0xFF, SM3_IN_LEVEL, 1 } } },
+		},
+	},
+	{
 		/* Mario & Luigi: Superstar Saga (USA; Europe and Japan, Mario &
 		 * Luigi RPG: variants). Walking about, the Bros. Info screen, the
 		 * page of the brother in front: see ml_compose (ML-2) */
@@ -5335,6 +5612,14 @@ static void lang_menu(MapProfile* p) {
 	if (p->frame.steps[0].frames) insert_steps(p->frame.steps, 24, 0, LANGUAGE_A, 2);
 }
 
+/* Super Mario Advance 3 in Europe: the language menu (A: English), then
+ * a story screen before the Super Mario Advance 3 title (SM3-5) */
+static void sm3_eur(MapProfile* p) {
+	static const MacroStep steps[] = { { 0, 300 }, { K_A, 5 }, { 0, 300 }, { K_START, 5 }, { 0, 200 }, { K_START, 5 },
+	                                   { 0, 200 }, { K_A, 5 }, { 0, 360 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+}
 /* Fire Emblem: The Sacred Stones in Europe: the language menu (A for
  * English), then as the USA's; in Japan, no health and safety screen */
 static void fe8_eur(MapProfile* p) {
@@ -5616,6 +5901,8 @@ static const Variant variants[] = {
 	{ "ASEJ", "ASEE", 0, smm_jpn },
 	{ "ALDP", "ALDE", 0, NULL },
 	{ "AWAJ", "AWAE", 0, NULL },
+	/* Super Mario Advance 3 in Europe: its language menu first */
+	{ "A3AP", "A3AE", 0, sm3_eur },
 	/* (Fire Emblem's addresses: FeRegion) */
 	{ "AE7X", "AE7E", 0, lang_menu },
 	{ "AE7Y", "AE7E", 0, lang_menu },

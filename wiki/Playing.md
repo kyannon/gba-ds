@@ -132,6 +132,12 @@ The new mapping works straight away and is kept in `states/controllers.txt` for 
 
 Mario keeps facing the way he was while the camera pans; walking ends the pan, as on the SNES. While the game is paused, on the world map, in the SELECT menu and the menus, the buttons are the GBA's (A enters a level and confirms, R switches between Mario and Luigi). **GBA** keeps the GBA layout everywhere.
 
+**SNES layout (Super Mario Advance 3).** Under **Controls** in the quick bar, **SNES** gives Yoshi's Island the Super Nintendo's buttons in levels:
+- bottom (B) jumps and flutters, left (Y) sticks out the tongue, right (A) and top (X) aim and throw an egg;
+- L1 and R1 lock the aim.
+
+START pauses and SELECT opens the status screen, as on the GBA. On the island map, a world's panel, in the bonus games and the menus, the buttons are the GBA's (A enters a level and confirms, B goes back). **GBA** keeps the GBA layout everywhere.
+
 The choice is remembered per game.
 
 ## Cheats

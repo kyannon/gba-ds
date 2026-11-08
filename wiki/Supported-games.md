@@ -35,6 +35,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Summon Night: Swordcraft Story 2 (Craft Sword Monogatari 2 in Japan) | `BSKE` `BSKJ` (no European release) | the Status screen |
 | Super Mario Advance (Super Mario USA + Mario Brothers in Japan) | `AMAE` (USA and Europe) `AMAJ` | in levels: the status bar, and the course board with the Ace Coin percentage kept up to date |
 | Super Mario Advance 2: Super Mario World | `AA2E` `AA2P` `AA2J` | the SELECT menu on the world map; the status bar in levels; optional SNES layout |
+| Super Mario Advance 3: Yoshi's Island | `A3AE` `A3AP` `A3AJ` | the status screen in levels; a world's score page on its panel; optional SNES layout |
 | Super Mario Advance 4: Super Mario Bros. 3 | `AX4E` `AX4P` `AX4J` | the item inventory and status bar on the world map; the status bar and P meter in levels |
 | Sword of Mana (Shinyaku Seiken Densetsu in Japan) | `AVSE` `AVSY` (Spanish, Italian) `AVSJ` | the Status screen |
 | Tactics Ogre: The Knight of Lodis (Tactics Ogre Gaiden in Japan) | `ATOE` `ATOJ` (no European release) | the battle's unit list, on the unit under your cursor |
@@ -335,6 +336,16 @@ The USA release and the Japanese one (Craft Sword Monogatari 2); there was no Eu
 
 - **On the world map,** the second screen shows the SELECT menu: the list of levels on the island with your time and score, kept up to date as you move around, held still (Peach's HELP! and the level you're on are shown, not blinking). It's captured in the background like the other games' maps; the game itself is never paused.
 - **In a level,** the status bar (lives, Dragon Coins, time, coins and score) moves to the second screen, under the level's name (kept from the world map's list as you went in), with the logo below it. The logo is Super Mario World's own, from its title screen. The blue item box stays at the top of the game screen, with your reserve item in it. Message boxes and the pause box stay on the game screen. The status bar stays there through doors and pipes.
+- An optional **SNES layout** is under **Controls** in the quick bar (swipe up from the bottom of the touchscreen): see [Playing](Playing#buttons).
+
+## Super Mario Advance 3: Yoshi's Island
+
+The USA, European and Japanese releases.
+
+- **In a level,** the second screen shows the game's own **status screen** (SELECT): the world's points, the level's high score, the stars, red coins and flowers you've found in it, your points so far, and your lives, coins, stars and items. It's kept up to date about once a second. The item cursor is left out.
+- **On a world's panel** (where you pick a level), it shows that world's **score page**, as SCORE shows it: every level's score and the world's total, over the map's scenery (without Yoshi, the levels' markers or the #1 box). It's taken again when you come back from a level or pick another world.
+- On the title, the file menu, the opening, the island map, the bonus games and in Mario Bros., the second screen shows the logo.
+- Nothing is taken off the game screen.
 - An optional **SNES layout** is under **Controls** in the quick bar (swipe up from the bottom of the touchscreen): see [Playing](Playing#buttons).
 
 ## Super Mario Advance 4: Super Mario Bros. 3
