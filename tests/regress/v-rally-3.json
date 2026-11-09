@@ -1,0 +1,597 @@
+{
+ "game": "V-Rally 3",
+ "rules": "docs/games/v-rally-3.md",
+ "cases": [
+  {
+   "id": "vr3-us-menu",
+   "rom": "AVRE",
+   "state": "v-rally-3/us-menu.ss",
+   "desc": "the main menu, through its modes: the logo",
+   "rules": [
+    "VR3-7"
+   ],
+   "input": [
+    [
+     20,
+     "RIGHT"
+    ],
+    [
+     24,
+     "-"
+    ],
+    [
+     60,
+     "RIGHT"
+    ],
+    [
+     64,
+     "-"
+    ]
+   ],
+   "shots": {
+    "menu": 10,
+    "modes": 100
+   },
+   "checks": [
+    {
+     "rule": "VR3-7",
+     "what": "the idle logo",
+     "type": "pixels",
+     "shot": "modes",
+     "probes": [
+      [
+       100,
+       532,
+       "303030"
+      ]
+     ]
+    },
+    {
+     "rule": "VR3-7",
+     "what": "no HUD in the menus",
+     "type": "no_log",
+     "match": "HUD on"
+    }
+   ]
+  },
+  {
+   "id": "vr3-us-tt-start",
+   "rom": "AVRE",
+   "state": "v-rally-3/us-tt-service.ss",
+   "desc": "Time Trial: Start Stage at the service station, the loading screen (the logo), the HUD up before the countdown, 3 and GO over the track",
+   "rules": [
+    "VR3-2",
+    "VR3-3",
+    "VR3-4",
+    "VR3-7"
+   ],
+   "input": [
+    [
+     1,
+     "A"
+    ],
+    [
+     5,
+     "-"
+    ]
+   ],
+   "shots": {
+    "service": 3,
+    "loading": 100,
+    "before": 250,
+    "three": 300,
+    "go": 500
+   },
+   "checks": [
+    {
+     "rule": "VR3-7",
+     "what": "the logo while loading",
+     "type": "pixels",
+     "shot": "loading",
+     "probes": [
+      [
+       100,
+       532,
+       "303030"
+      ]
+     ]
+    },
+    {
+     "rule": "VR3-2",
+     "what": "the HUD on as the stage comes up",
+     "type": "log",
+     "match": "frame 2[0-9][0-9]: HUD on the second screen"
+    },
+    {
+     "rule": "VR3-7",
+     "what": "no HUD at the service station or while loading",
+     "type": "no_log",
+     "match": "frame ([0-9]|[0-9][0-9]|1[0-9][0-9]): HUD on"
+    },
+    {
+     "rule": "VR3-4",
+     "what": "the second screen live",
+     "type": "pixels",
+     "shot": "three",
+     "probes": [
+      [
+       100,
+       532,
+       "10101A"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "vr3-us-tt-drive",
+   "rom": "AVRE",
+   "state": "v-rally-3/us-tt-drive.ss",
+   "desc": "Time Trial, France: driving, a pace-note arrow over the track",
+   "rules": [
+    "VR3-2",
+    "VR3-3",
+    "VR3-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ],
+    [
+     400,
+     "-"
+    ]
+   ],
+   "shots": {
+    "straight": 30,
+    "faster": 120,
+    "arrow": 300
+   },
+   "checks": [
+    {
+     "rule": "VR3-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "VR3-4",
+     "what": "the second screen live",
+     "type": "pixels",
+     "shot": "arrow",
+     "probes": [
+      [
+       100,
+       532,
+       "10101A"
+      ]
+     ]
+    },
+    {
+     "rule": "VR3-2",
+     "what": "the HUD stays up while driving",
+     "type": "no_log",
+     "match": "HUD gone"
+    }
+   ]
+  },
+  {
+   "id": "vr3-us-tt-pause",
+   "rom": "AVRE",
+   "state": "v-rally-3/us-tt-pause.ss",
+   "desc": "Time Trial paused: the pause box on the game screen, the HUD on the second",
+   "rules": [
+    "VR3-5"
+   ],
+   "input": [
+    [
+     5,
+     "DOWN"
+    ],
+    [
+     9,
+     "-"
+    ]
+   ],
+   "shots": {
+    "paused": 3,
+    "cursor": 30
+   },
+   "checks": [
+    {
+     "rule": "VR3-5",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "VR3-5",
+     "what": "the HUD kept while paused",
+     "type": "no_log",
+     "match": "HUD gone"
+    },
+    {
+     "rule": "VR3-5",
+     "what": "the second screen live",
+     "type": "pixels",
+     "shot": "cursor",
+     "probes": [
+      [
+       100,
+       532,
+       "10101A"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "vr3-us-tt-incar",
+   "rom": "AVRE",
+   "state": "v-rally-3/us-tt-incar.ss",
+   "desc": "Time Trial, the in-car view: the dashboard on the game screen, the HUD on the second",
+   "rules": [
+    "VR3-6"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ],
+    [
+     200,
+     "-"
+    ]
+   ],
+   "shots": {
+    "incar": 30,
+    "later": 150
+   },
+   "checks": [
+    {
+     "rule": "VR3-6",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "VR3-6",
+     "what": "the second screen live",
+     "type": "pixels",
+     "shot": "later",
+     "probes": [
+      [
+       100,
+       532,
+       "10101A"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "vr3-us-tt-finish",
+   "rom": "AVRE",
+   "state": "v-rally-3/us-tt-finish.ss",
+   "desc": "Time Trial: over the finish line (moved there by the segment poke), NEW RECORD over the track, the CHECK POINT split, the save screen (the logo), the stage again",
+   "rules": [
+    "VR3-2",
+    "VR3-4",
+    "VR3-7"
+   ],
+   "input": [
+    [
+     1,
+     "-"
+    ]
+   ],
+   "shots": {
+    "line": 60,
+    "record": 300,
+    "saving": 560,
+    "again": 760,
+    "countdown": 820
+   },
+   "checks": [
+    {
+     "rule": "VR3-7",
+     "what": "the logo at the save screen",
+     "type": "log",
+     "match": "frame 4[6-9][0-9]: HUD gone"
+    },
+    {
+     "rule": "VR3-7",
+     "what": "the idle logo while saving",
+     "type": "pixels",
+     "shot": "saving",
+     "probes": [
+      [
+       100,
+       532,
+       "303030"
+      ]
+     ]
+    },
+    {
+     "rule": "VR3-2",
+     "what": "the HUD back with the next stage",
+     "type": "log",
+     "match": "frame 7[0-9][0-9]: HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "vr3-us-cross",
+   "rom": "AVRE",
+   "state": "v-rally-3/us-cross.ss",
+   "desc": "V-Rally Cross, Departmental's first track: POS in the game screen's top-left corner, LAP under BEST TIME on the second screen, the rivals' dots on the map",
+   "rules": [
+    "VR3-3",
+    "VR3-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ],
+    [
+     600,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 60,
+    "driving": 300
+   },
+   "checks": [
+    {
+     "rule": "VR3-4",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "VR3-3",
+     "what": "POS moved up into the top-left corner",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       70,
+       94,
+       "FFFF00"
+      ]
+     ],
+     "screen": "game"
+    },
+    {
+     "rule": "VR3-3",
+     "what": "POS not left at its own row",
+     "type": "not_pixels",
+     "shot": "start",
+     "probes": [
+      [
+       70,
+       190,
+       "FFFF00"
+      ]
+     ],
+     "screen": "game"
+    },
+    {
+     "rule": "VR3-4",
+     "what": "LAP moved up into POS's place on the second screen",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       70,
+       190,
+       "FFFF00"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "vr3-us-vrally",
+   "rom": "AVRE",
+   "state": "v-rally-3/us-vrally.ss",
+   "desc": "V-Rally Mode, Kenya's first stage: the countdown, the damage lights on the second screen",
+   "rules": [
+    "VR3-3",
+    "VR3-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ],
+    [
+     400,
+     "-"
+    ]
+   ],
+   "shots": {
+    "countdown": 30,
+    "driving": 200
+   },
+   "checks": [
+    {
+     "rule": "VR3-4",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "VR3-4",
+     "what": "the damage lights on the second screen",
+     "type": "pixels",
+     "shot": "driving",
+     "probes": [
+      [
+       902,
+       182,
+       "00FF00"
+      ]
+     ]
+    },
+    {
+     "rule": "VR3-4",
+     "what": "the damage lights off the game screen",
+     "type": "not_pixels",
+     "shot": "driving",
+     "probes": [
+      [
+       902,
+       182,
+       "00FF00"
+      ]
+     ],
+     "screen": "game"
+    }
+   ]
+  },
+  {
+   "id": "vr3-eu-tt-drive",
+   "rom": "AVRP",
+   "state": "v-rally-3/eu-tt-drive.ss",
+   "desc": "Europe: Time Trial, France, driving",
+   "rules": [
+    "VR3-2",
+    "VR3-3",
+    "VR3-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ],
+    [
+     300,
+     "-"
+    ]
+   ],
+   "shots": {
+    "driving": 120
+   },
+   "checks": [
+    {
+     "rule": "VR3-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "vr3-jp-tt-drive",
+   "rom": "AVRJ",
+   "state": "v-rally-3/jp-tt-drive.ss",
+   "desc": "Japan: Time Trial, France, driving",
+   "rules": [
+    "VR3-2",
+    "VR3-3",
+    "VR3-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ],
+    [
+     300,
+     "-"
+    ]
+   ],
+   "shots": {
+    "driving": 120
+   },
+   "checks": [
+    {
+     "rule": "VR3-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "vr3-us-single",
+   "rom": "AVRE",
+   "state": "v-rally-3/us-tt-drive.ss",
+   "desc": "driving with layout = single",
+   "rules": [
+    "VR3-8"
+   ],
+   "config": {
+    "layout": "single"
+   },
+   "input": [
+    [
+     0,
+     "A"
+    ]
+   ],
+   "shots": {
+    "end": 300
+   },
+   "checks": [
+    {
+     "rule": "VR3-8",
+     "what": "nothing on a second screen",
+     "type": "uniform",
+     "shot": "end",
+     "rect": [
+      0,
+      420,
+      1024,
+      768
+     ],
+     "color": "000000",
+     "frac": 0.99
+    }
+   ]
+  },
+  {
+   "id": "vr3-logo-avre",
+   "kind": "logo",
+   "rom": "AVRE",
+   "desc": "AVRE logo extraction",
+   "rules": [
+    "GEN-1",
+    "VR3-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "vr3-logo-avrp",
+   "kind": "logo",
+   "rom": "AVRP",
+   "desc": "AVRP logo extraction",
+   "rules": [
+    "GEN-1",
+    "VR3-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "vr3-logo-avrj",
+   "kind": "logo",
+   "rom": "AVRJ",
+   "desc": "AVRJ logo extraction",
+   "rules": [
+    "GEN-1",
+    "VR3-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}
