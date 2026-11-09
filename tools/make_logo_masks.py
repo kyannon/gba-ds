@@ -242,6 +242,12 @@ def nfo(a):
     light = a.min(axis=2) >= 150
     for _ in range(3):
         keep &= ~(light & keep & ~ndimage.binary_erosion(keep, border_value=0))
+    # FIVE-O (from row 95): the greyish blends where its letters met the
+    # kanji (between the I and V, under the I and the dash), greener
+    # than red and dull; not its navy, blues or the V's purple
+    dull = (g > r) & (a.max(axis=2) - a.min(axis=2) < 60) & (r >= 40)
+    dull[:95] = False
+    keep &= ~dull
     for _ in range(2):
         nb = ndimage.convolve(keep.astype(int), np.ones((3, 3), int), mode="constant") - keep
         keep &= nb >= 3

@@ -5650,7 +5650,7 @@ static const MapProfile profiles[] = {
 		 * brush strokes behind them, NINJA's white outline, the white
 		 * screen, the TM, PRESS START or the copyright line (NFO-1) */
 		.logo = { .steps = { { 0, 1200 }, { K_START, 4 }, { 0, 60 }, { K_START, 4 }, { 0, 60 } },
-		          .mask = &logoMaskNFO, .rev = 1 },
+		          .mask = &logoMaskNFO, .rev = 2 },
 		.logoOnly = true,
 		.hud = {
 			/* in a stage: the HUD's layer on, with its settings (BG0,
