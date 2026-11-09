@@ -4,8 +4,10 @@
 
 ### New games
 - **V-Rally 3** (USA, Europe and Japan): in a stage (Time Trial, V-Rally Mode and V-Rally Cross), the HUD moves to the second screen: the best time or checkpoint split, the clock, the lap in V-Rally Cross, the damage lights in V-Rally Mode, and the course map with every car's dot, twice as big. The rev counter, your place and the pace notes stay on the game screen, and so do the countdown and the pause menu. The results after a stage or race, the menus and loading show the logo. Known limitation: V-Rally Cross's boost bar and link play haven't been tried yet.
+- **Dragon Ball Z: The Legacy of Goku II** (USA, Europe, and The Legacy of Goku II International in Japan): walking about, the second screen shows the Scouter's map of the area you're in (the one R opens), kept up to date about once a second, so your dot moves as you do; before you have the Scouter, the pause menu's Status page (your fighter's level, HP, EP, stats and experience) instead. Flying over the world, the small world map at the top right of the game screen moves to the second screen, twice as big, with your arrow on it. The map's and the Status page's button prompts (L, R and the arrows) are left out. The HP and EP bars stay on the game screen; conversations, save points and the game's own menus keep the last picture; the title and menus show the logo. Not yet tried: boss fights, the Hyperbolic Time Chamber, the Cell Games and the ending.
 
 ### Fixes
+- **Dragon Ball Z: The Legacy of Goku (Europe):** conversations' text boxes, and the HP and Ki bars with them, disappeared from the game screen while walking about; they stay there now.
 - **Mario & Luigi: Superstar Saga:** in the Starshade Bros.' Bros. Attack tutorial, and other battle tutorials where someone speaks while the battle's boxes are up, the speech balloons stay on the game screen by whoever is speaking instead of moving to the second screen, and so do a Bros. Attack's big button prompts and the "!" over the brothers' heads (issue #31).
 
 ## v1.4.12 (2026-11-08)
