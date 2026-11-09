@@ -73,7 +73,13 @@ What `map_crop` changes in the Metroid map screens:
 | Option | Default | |
 |---|---|---|
 | `ab_swap` | `0` | GBA A is the right face button and GBA B the bottom one, like a GBA. `1` flips them. |
-| `hotkey` | `guide` | The button that opens the menu and is the modifier for the HOME + button shortcuts: `guide` (HOME) or `back` (SELECT; then SELECT alone still reaches the game when tapped). |
+| `hotkey` | `home` | The hotkey button, held with another button for a shortcut (see [[Playing#hotkeys]]): `home`, `select`, `start` or `l3`. SELECT or START as the hotkey still reach the game when tapped on their own, and L3 tapped on its own still swaps the screens. HOME always opens the menu. (`guide` and `back`, the names before v1.4.13, still work.) |
+| `hotkey_quit` | `start` | The button held with the hotkey to quit GBA DS (`select` when the hotkey is START). Each shortcut takes one of `a`, `b`, `x`, `y`, `l`, `r`, `l2`, `r2`, `select`, `start`, `l3`, `up`, `down`, `left`, `right`, or `none` to turn it off. |
+| `hotkey_save_state` | `r` | Hotkey + this button saves the quick state. |
+| `hotkey_load_state` | `l` | Hotkey + this button loads the quick state. |
+| `hotkey_fps` | `x` | Hotkey + this button shows or hides the FPS counter. |
+| `hotkey_swap_screens` | `y` | Hotkey + this button swaps the screens. |
+| `hotkey_shader` | `b` | Hotkey + this button turns the shader off, and on again (the last one you picked, or the LCD grid). |
 | `home_button` | `-1` | If HOME does nothing: launch once with `GBADS_DEBUG=1` (see [[Troubleshooting]]), press HOME, and put the "raw joystick ... button N" number from `gba-ds.log` here. |
 | `menu_combo` | `none` (Android: `select+start`) | `select+start`: SELECT and START pressed together also open the menu. The game doesn't see the pair; either button alone still reaches the game. |
 | `fast_forward` | `1` | Hold **R2** to fast-forward. `0`: R2 does nothing. Also in the pause menu (Extras). |

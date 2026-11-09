@@ -7,6 +7,7 @@
 #include "brand.h"
 #include "emu.h"
 #include "esinteg.h"
+#include "hotkeys.h"
 #include "mapper.h"
 #include "ra.h"
 #include "update.h"
@@ -648,10 +649,11 @@ static int updatesSel;
 /* Settings: a row of buttons, each with its text below, then Back.
  * Linux: GBA DS in EmulationStation (ROCKNIX) or in BananaOS's list, where
  * there's one; Map Buttons; Updates. Android: Folders, RetroAchievements, Map Buttons, Updates. */
-#define SETTINGS_MAX 4
+#define SETTINGS_MAX 5
 static int nRows = 1; /* rows shown (Back is row nRows) */
 #ifndef __ANDROID__
-enum { ROW_BANANA, ROW_ES, ROW_MAP, ROW_UPDATES };
+/* (Hotkeys shares Map Buttons' line: the right half of it, under one text) */
+enum { ROW_BANANA, ROW_ES, ROW_MAP, ROW_HOTKEYS, ROW_UPDATES };
 static int rowKind[SETTINGS_MAX];
 #endif
 
@@ -667,6 +669,7 @@ static void settings_rows(const Config* cfg) {
 	else if (es_present(cfg)) rowKind[nRows++] = ROW_ES;
 #endif
 	rowKind[nRows++] = ROW_MAP;
+	rowKind[nRows++] = ROW_HOTKEYS;
 #ifdef GBADS_UPDATES
 	rowKind[nRows++] = ROW_UPDATES;
 #endif
@@ -684,17 +687,33 @@ static SettingsGeom settings_geom(int scr) {
 	SDL_Rect r = screens[scr].rect;
 	float px = ui_px(scr);
 	g.px = px;
-	/* (four rows: Android's, each with a line or two of text) */
-	int m = px * 6, rowH = nRows > 3 ? px * 12 : nRows > 2 ? px * 14 : px * 18;
+	/* lines of buttons (Linux: Map Buttons and Hotkeys share one) */
+	int lines = nRows;
+#ifndef __ANDROID__
+	for (int i = 0; i < nRows; ++i) lines -= rowKind[i] == ROW_HOTKEYS;
+#endif
+	/* (four lines: Android's, each with a line or two of text) */
+	int m = px * 6, rowH = lines > 3 ? px * 12 : lines > 2 ? px * 14 : px * 18;
 	g.panel = (SDL_Rect) { m, m, r.w - m * 2, r.h - m * 2 };
-	int gap = nRows > 3 ? px * 24 : nRows > 2 ? px * 28 : px * 44; /* room for each row's text under it */
-	int y = g.panel.y + (nRows > 3 ? px * 22 : px * 26);
+	int gap = lines > 3 ? px * 24 : lines > 2 ? px * 28 : px * 44; /* room for each row's text under it */
+	int y = g.panel.y + (lines > 3 ? px * 22 : px * 26);
 	for (int i = 0; i < nRows; ++i) {
+#ifndef __ANDROID__
+		if (rowKind[i] == ROW_HOTKEYS && i > 0) {
+			/* the right half of the line above, Map Buttons the left */
+			SDL_Rect* left = &g.row[i - 1];
+			int half = (left->w - px * 6) / 2;
+			g.row[i] = (SDL_Rect) { left->x + half + px * 6, left->y, left->w - half - px * 6, left->h };
+			left->w = half;
+			g.textY[i] = g.textY[i - 1];
+			continue;
+		}
+#endif
 		g.row[i] = (SDL_Rect) { g.panel.x + px * 6, y, g.panel.w - px * 12, rowH };
 		g.textY[i] = g.row[i].y + rowH + px * 8;
 #ifndef __ANDROID__
 		/* Linux, three rows: room for each one's text (lines of about 8 units) */
-		if (nRows > 2) gap = px * (rowKind[i] == ROW_BANANA ? 46 : rowKind[i] == ROW_ES ? 38 : rowKind[i] == ROW_MAP ? 27 : 22);
+		if (lines > 2) gap = px * (rowKind[i] == ROW_BANANA ? 46 : rowKind[i] == ROW_ES ? 38 : rowKind[i] == ROW_MAP ? 27 : 22);
 #endif
 		y += rowH + gap;
 	}
@@ -1000,12 +1019,17 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 		labels[i] = rowKind[i] == ROW_BANANA ? (banana_integration_on() ? "GBA DS in BananaOS's GBA list: On" : "GBA DS in BananaOS's GBA list: Off")
 		          : rowKind[i] == ROW_ES     ? (es_integration_on(cfg) ? "GBA DS in EmulationStation: On" : "GBA DS in EmulationStation: Off")
 		          : rowKind[i] == ROW_MAP    ? "Map Buttons"
+		          : rowKind[i] == ROW_HOTKEYS ? "Hotkeys"
 		                                     : "Updates";
 	}
 	draw_settings_frame(scr, &g, sel, labels);
-	int tx = g.row[0].x + px * 2, tw = g.row[0].w - px * 4;
+	/* (the full width: row 0 may be Map Buttons, half a line) */
+	int tx = g.panel.x + px * 8, tw = g.panel.w - px * 16;
 	int y = 0;
 	for (int i = 0; i < nRows; ++i) {
+		/* (Hotkeys: under Map Buttons' text, unless it has a message) */
+		if (rowKind[i] == ROW_HOTKEYS && !(settingsMsg[0] && settingsMsgRow == i)) continue;
+		if (rowKind[i] == ROW_MAP && settingsMsg[0] && i + 1 < nRows && settingsMsgRow == i + 1) continue;
 		const char* text = rowKind[i] == ROW_BANANA
 		                       ? "Games picked in BananaOS's own Game Boy Advance list start in GBA DS when it has "
 		                         "second-screen support for them. Restart BananaOS after switching this."
@@ -1014,8 +1038,8 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 		                         "(its Advanced Game Options > Emulator) or for all of them (the system's advanced settings). "
 		                         "The other emulators keep working as before."
 		                   : rowKind[i] == ROW_MAP
-		                       ? "Sets which of this device's buttons does what: GBA DS asks for each one in turn. "
-		                         "Tap to skip any the device doesn't have."
+		                       ? "Map Buttons sets which of this device's buttons does what. "
+		                         "Hotkeys sets the shortcuts: the hotkey button held with another."
 		                       : "This is v" GBADS_VERSION ". Look for a new version, and download and install it.";
 		/* a message from switching a row (settings_activate): in place of
 		 * its text, where there's room for it */
@@ -1037,6 +1061,7 @@ static void settings_activate(Config* cfg, int row) {
 	if (rowKind[row] == ROW_UPDATES) updatesOpen = true, updatesNotice = false, updatesSel = 0;
 	else if (rowKind[row] == ROW_BANANA) banana_integration_set(!banana_integration_on(), settingsMsg, sizeof(settingsMsg));
 	else if (rowKind[row] == ROW_ES) es_integration_set(cfg, !es_integration_on(cfg), settingsMsg, sizeof(settingsMsg));
+	else if (rowKind[row] == ROW_HOTKEYS) hotkeys_run(cfg);
 	else mapper_run(cfg);
 }
 
@@ -1434,6 +1459,13 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 			}
 			if (btn_pressed(B_DOWN)) settingsSel = (settingsSel + 1) % (nRows + 1);
 			if (btn_pressed(B_UP)) settingsSel = (settingsSel + nRows) % (nRows + 1);
+#ifndef __ANDROID__
+			/* (Map Buttons and Hotkeys side by side) */
+			if ((btn_pressed(B_LEFT) || btn_pressed(B_RIGHT)) && settingsSel < nRows) {
+				if (rowKind[settingsSel] == ROW_HOTKEYS) --settingsSel;
+				else if (rowKind[settingsSel] == ROW_MAP && settingsSel + 1 < nRows && rowKind[settingsSel + 1] == ROW_HOTKEYS) ++settingsSel;
+			}
+#endif
 			if (btn_pressed(B_A) || btn_pressed(B_START)) {
 				if (settingsSel < nRows) settings_activate(cfg, settingsSel);
 				else settingsOpen = false;
