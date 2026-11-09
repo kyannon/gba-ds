@@ -599,6 +599,37 @@ displays of 1280x960 and 640x480 beside a 1024x768 game window, frames
 and the stacked screenshot both whole; 1024x768 beside 1024x768 as
 before. The software fallback already used the display's own size.
 
+## In the background (issue #28, Nov 8, 2026)
+
+A Presentation stays up while its activity is in the background, so after
+Home (or the app switcher, or another app on top) the second display kept
+GBA DS's last picture, took its touches and stayed awake (FLAG_KEEP_SCREEN_ON)
+until the app closed (AYN Thor report). GbaDsActivity now hides it in
+onStop and shows it in onStart (`secondHidden`; Dialog.hide keeps the
+window, so show can't fail while the display is there). Hiding destroys the
+SurfaceView's surface: nativeSetSurface(null) destroys the EGL surface and
+lets go of the window under winLock; showing brings a new surface, and
+android_second_begin makes a new EGL surface for it (ui.c's sw_render
+retries until it can, and DIDENTERFOREGROUND redraws both screens). onStop,
+not onPause: split screen and dialogs over the activity keep it. While the
+folder picker is open (an activity on top), the second display is
+Android's too.
+
+## Save folder (issue #30, Nov 8, 2026)
+
+Settings' first row is Folders on Android (it was ROM Folder): a panel
+(library.c draw_folders / folders_input, like the Updates panel) with
+Choose ROM folder, Choose save folder, Keep saves next to the games (when
+a save folder is set) and Save files: .sav / .srm. They set romDir,
+saveDir and saveExt (the existing save_dir / save_ext), kept in
+library.cfg (which on Android always writes all three, so it overrides
+gba-ds.cfg's). The picker is shared: `pickFor` says which folder it's for.
+A save folder must be writable (a test file; else the message asks for All
+files access). paths.c (shared): with a save_dir and no save there yet, a
+game's save next to its ROM, in either type, is copied over (left there).
+Switching back to next to the games copies nothing back (said in the
+wiki).
+
 ## For the next release
 
 Player-facing Android changes since the last release, for the main session

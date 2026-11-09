@@ -22,6 +22,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | The Legend of Zelda: A Link to the Past & Four Swords | `AZLE` `AZLP` `AZLJ` | world and dungeon maps |
 | Mario Kart: Super Circuit (Mario Kart Advance in Japan) | `AMKE` `AMKP` `AMKJ` | the race HUD, results and podium |
 | Mario & Luigi: Superstar Saga (Mario & Luigi RPG in Japan) | `A88E` `A88P` `A88J` | Bros. Info of the brother you're controlling; in battles, the boxes and meters |
+| Mega Man Battle Network (Battle Network Rockman EXE in Japan) | `AREE` `AREP` `AREJ` | MegaMan's status (level, HP, armor, buster) with your money; in battles, the custom screen |
 | Metroid Fusion | `AMTE` `AMTP` `AMTJ` | map |
 | Metroid: Zero Mission | `BMXE` `BMXP` `BMXJ` | map |
 | Pokémon Pinball: Ruby & Sapphire | `BPPE` | the table twice as tall over both screens, live, with the score bar |
@@ -35,11 +36,13 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Summon Night: Swordcraft Story 2 (Craft Sword Monogatari 2 in Japan) | `BSKE` `BSKJ` (no European release) | the Status screen |
 | Super Mario Advance (Super Mario USA + Mario Brothers in Japan) | `AMAE` (USA and Europe) `AMAJ` | in levels: the status bar, and the course board with the Ace Coin percentage kept up to date |
 | Super Mario Advance 2: Super Mario World | `AA2E` `AA2P` `AA2J` | the SELECT menu on the world map; the status bar in levels; optional SNES layout |
+| Super Mario Advance 3: Yoshi's Island | `A3AE` `A3AP` `A3AJ` | the status screen in levels; a world's score page on its panel; optional SNES layout |
 | Super Mario Advance 4: Super Mario Bros. 3 | `AX4E` `AX4P` `AX4J` | the item inventory and status bar on the world map; the status bar and P meter in levels |
 | Sword of Mana (Shinyaku Seiken Densetsu in Japan) | `AVSE` `AVSY` (Spanish, Italian) `AVSJ` | the Status screen |
-| Tactics Ogre: The Knight of Lodis (Tactics Ogre Gaiden in Japan) | `ATOE` `ATOJ` (no European release) | the battle's unit list, on the unit under your cursor |
+| Tactics Ogre: The Knight of Lodis (Tactics Ogre Gaiden in Japan) | `ATOE` `ATOJ` (no European release) | in battle, the details of the unit under your cursor (on an empty square, the battle's conditions); on the world map, the location's HELP; in Organize, the unit's details |
 | Tony Hawk's Pro Skater 2 (SK8 in Japan) | `ATHE` (USA and Europe) `ATHF` `ATHD` `ATHJ` | the goal sheet for the current run |
 | Tony Hawk's Pro Skater 3 | `AT3E` (USA and Europe) `AT3F` `AT3D` | the goal list; optional four-button layout |
+| V-Rally 3 | `AVRE` `AVRP` `AVRJ` | the stage's HUD, with the course map twice as big |
 | Wario Land 4 (Wario Land Advance in Japan) | `AWAE` (USA and Europe) `AWAJ` | in levels: the pause screen, with the hearts, money, coins and the treasures found; in boss fights: the HUD |
 | Yu-Gi-Oh! The Eternal Duelist Soul (Yu-Gi-Oh! Duel Monsters 5 Expert 1 in Japan) | `AY5E` `AY5J` | Card View of the card under the cursor |
 | Zoids: Legacy (Zoids Saga II in Japan) | `AZ2E` `AZ2J` (no European release) | the map screen; in battles, the Status of the Zoid choosing |
@@ -221,6 +224,16 @@ The USA, European and Japanese (Mario & Luigi RPG) releases.
 - On the title, the second screen shows the logo; in scenes, conversations and the game's own menus it keeps its picture.
 - Not tried yet: the European and Japanese releases beyond their titles.
 
+## Mega Man Battle Network
+
+The USA, European and Japanese (Battle Network Rockman EXE) releases.
+
+Walking about, in the real world or on the net, the second screen shows the PET's MegaMan screen with your money above it, kept up to date about once a second (and at once when your HP, money or area changes): MegaMan's level, his HP, his armor and his buster's Attack, Rapid and Charge, and the zenny counter from the PET's menu. They're put together in one frame edged with the money counter's own orange border; the MegaMan screen's question box and cursor are left out. In conversations, scenes, the PET's menus and shops it keeps the last picture; at the title, and back from a battle until the status is taken again, the logo.
+
+In a battle, the custom screen (where you pick the chips) slides in on the second screen instead of over the battlefield, with MegaMan's HP beside it, so the whole field shows on the game screen while you choose; you pick the chips with the buttons as usual. In the tutorial battles the teacher's messages stay on the game screen, and her arrows go with what they point at. While fighting, and on the results, the battle is on the game screen as the game draws it and the second screen shows the logo.
+
+Known issues: the later tutorial battles, boss battles and link-cable net battles haven't been tried.
+
 ## Metroid: Zero Mission and Metroid Fusion
 
 - **Mini-map:** with the full map always up, the small 3×3 mini-map in the top-right corner of the game screen is hidden. It's left out when the picture is drawn, so the game itself is unchanged; `map = 0` brings it back along with the normal one-screen view.
@@ -337,6 +350,17 @@ The USA release and the Japanese one (Craft Sword Monogatari 2); there was no Eu
 - **In a level,** the status bar (lives, Dragon Coins, time, coins and score) moves to the second screen, under the level's name (kept from the world map's list as you went in), with the logo below it. The logo is Super Mario World's own, from its title screen. The blue item box stays at the top of the game screen, with your reserve item in it. Message boxes and the pause box stay on the game screen. The status bar stays there through doors and pipes.
 - An optional **SNES layout** is under **Controls** in the quick bar (swipe up from the bottom of the touchscreen): see [Playing](Playing#buttons).
 
+## Super Mario Advance 3: Yoshi's Island
+
+The USA, European and Japanese releases.
+
+- **In a level,** the second screen shows the game's own **status screen** (SELECT): the world's points, the level's high score, the stars, red coins and flowers you've found in it, your points so far, and your lives, coins, stars and items. It's kept up to date about once a second. The item cursor and the arrows beside the items are left out.
+- **On a world's panel** (where you pick a level), it shows that world's **score page**, as SCORE shows it: every level's score and the world's total, over the map's scenery (without Yoshi, the levels' markers or the #1 box). It's taken again when you come back from a level or pick another world.
+- While you have the status screen or the score page open on the game screen, the second screen shows the logo, so they're not on both screens.
+- On the title, the file menu, the opening, the island map, the bonus games and in Mario Bros., the second screen shows the logo.
+- Nothing is taken off the game screen.
+- An optional **SNES layout** is under **Controls** in the quick bar (swipe up from the bottom of the touchscreen): see [Playing](Playing#buttons).
+
 ## Super Mario Advance 4: Super Mario Bros. 3
 
 - **On the world map,** the status bar (world, lives, coins, score and your three cards) moves from the bottom of the game screen to the top of the second screen, so the whole map shows. Below it is your item inventory, the panel L opens, as the game draws it, kept up to date as you walk about, win items in Toad Houses and use them. It's captured in the background like the other games' maps; the game itself is never paused.
@@ -357,10 +381,13 @@ Profile contributed by LucasAlexandrou.
 
 The USA and Japanese (Tactics Ogre Gaiden) releases have both been tried.
 
-- **In a battle,** the second screen shows the battle's unit list (R, View List), with its cursor on the unit your cursor is on in the field, yours or the enemy's (on an empty square, your leader). It follows as soon as your cursor stops on another square.
-- **Its pages** (the ones START turns through: level, HP, MP, element, the bars, side) change every 2.5 seconds. Its R SEARCH and START:DATA prompts are left out, as those buttons don't work there.
-- It's brought up in the background on a silent copy of the game; your game is never paused or touched. While a unit moves or acts, on the enemy's turn and in scenes, the last pictures stay.
-- On the title screen, the second screen shows the logo.
+- **In a battle,** with your cursor on a unit (yours, a guest or the enemy's), the second screen shows its details, the screen B opens on it: three pages, 2.5 seconds each (stats, element, alignment, equipment and talents; the talents' costs; the Emblems). An enemy's are in the game's green. It follows as soon as your cursor stops on another square. Its START:DATA label and blinking arrows are left out.
+- **On an empty square,** nothing about a unit: the battle's Winning Condition at the top, its Losing Condition at the bottom and the place's name in the middle, on black. Training has no conditions, so there it's the logo.
+- It's brought up in the background on a silent copy of the game; your game is never paused or touched. While a unit moves or acts and in scenes, the last pictures stay. During the enemy's phase, the logo, until your next turn starts; and once the battle is won or lost (Training and Quest Mode too), through Congratulations! (or Game Over) and the scene after.
+- **On the world map**, the HELP text SELECT opens on the location under your cursor, or on where your army is when the cursor is between locations, in the middle of a black screen.
+- **In Organize**, the details of the unit under your cursor, their three pages in turn.
+- Out of battle, where there's nothing to show (the world map's command bar and other menus, shops, Training's setup, Organize's own menu, the opening and the ending), the logo.
+- Not tried yet: persuasion, the Japanese release's Quest Mode and suspended battles, and link-cable play.
 
 ## Tony Hawk's Pro Skater 2
 
@@ -371,6 +398,22 @@ The USA and Japanese (Tactics Ogre Gaiden) releases have both been tried.
 
 - **During a run** the second screen shows the level's goal list (the pause menu's View Goals), on black, brought up in the background like the other games' maps and kept up to date as you go; the game is never paused. Back at the menus, it shows the logo again.
 - The four-button layout under **Controls**: GBA, Four buttons, or Auto (four buttons while skating), as for Tony Hawk's Pro Skater 2.
+
+## V-Rally 3
+
+The USA, European and Japanese releases.
+
+The HUD is moved off the game screen rather than copied, so nothing behind it is lost.
+
+- **Driving** (Time Trial, V-Rally Mode and V-Rally Cross):
+  - The game screen keeps the **rev counter** with your gear and speed (bottom left), the **pace-note arrows** (top centre), and your **place** (POS) in the top-left corner, where BEST TIME was.
+  - The second screen has **BEST TIME** (or the green CHECK POINT split) in the top-left corner with **LAP** under it in V-Rally Cross, the **stage clock** in the top-right corner, V-Rally Mode's **damage lights** down the right edge, and the **course map** with every car's dot, twice as big, at the bottom centre.
+  - The countdown, NEW RECORD, the hazard boards and, in the in-car view, the dashboard are part of the game's picture and stay on the game screen.
+- The game's **pause menu** stays on the game screen, with the HUD on the second screen.
+- Everywhere else (the intro, the menus, the service station, loading, the results after a stage or race, the save screen) the second screen shows the logo, the title lettering from the main menu.
+- With one screen (`layout = single`), the HUD stays where the game draws it.
+
+Known issues: V-Rally Cross's boost bar (in the second race of a licence) and link play haven't been tried.
 
 ## Wario Land 4
 

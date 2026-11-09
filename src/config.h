@@ -7,6 +7,12 @@
  * follow the picture when the screens are swapped). Secondary also covers the
  * generated map surrounds. */
 enum { OVL_PRIMARY = 1, OVL_SECONDARY = 2, OVL_BOTH = 3 };
+/* Display > Shader, in menu order. Each is a fixed pattern multiplied over
+ * every GBA pixel (a texture built once, ui.c), so none costs more than the
+ * LCD grid; the subpixel presets also brighten the colours to make up for
+ * their stripes (the colour table, ui.c). */
+enum { SH_OFF, SH_GRID, SH_SCANLINES, SH_SOFT, SH_SUB_LIGHT, SH_SUB, SH_SUB_STRONG, SH_COUNT };
+extern const char* const shaderNames[SH_COUNT]; /* gba-ds.cfg's names: off, grid, ... */
 
 typedef struct Config {
 	char layout[16];   /* auto | span-h | span-v | dual | single */
@@ -16,9 +22,10 @@ typedef struct Config {
 	bool smooth;       /* plain linear filtering when scaling (blurry) */
 	char borderColor[16]; /* RRGGBB behind the map screen (outside the map image) */
 	int overlays;      /* OVL_PRIMARY | OVL_SECONDARY: game-screen / map-screen overlays */
-	bool lcdGrid;      /* draw an LCD pixel grid over game and map */
+	int shader;        /* SH_*: a pattern over every pixel on both screens (Display > Shader) */
 	bool colorCorrection; /* the GBA's screen colours (mGBA's GBA Color shader) */
-	int lcdStrength;   /* grid darkness, 0..100 */
+	bool ghosting;     /* LCD ghosting: each frame of the game shown blended with the one before */
+	int lcdStrength;   /* grid, scanline and soft-cell darkness, 0..100 */
 	bool vsync;
 	bool frameBuffer; /* emulate a frame ahead on a second thread: smoother, a frame more input delay */
 	bool pinCores; /* Android: the game thread on a core of its own, the map capture off it (off by default) */

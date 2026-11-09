@@ -352,6 +352,11 @@ typedef struct MapProfile {
 		 * turned on by them): Super Mario Advance 2 fading out through a
 		 * pipe, which the world map does too on the way into a level. */
 		MemProbe stay[2];
+		/* Once every one of these has matched while `on` does, the HUD
+		 * stays off (the logo) until on[0] stops matching, or a state is
+		 * loaded: Mario & Luigi: Superstar Saga, from a battle's results
+		 * through the level-ups after them to the battle's end (ML-5) */
+		MemProbe offAfter[2];
 		unsigned bgMask;
 		/* The HUD on another layer where every alt.on probe matches (`on`
 		 * not matching): Super Mario Advance 2's boss rooms, in display
@@ -605,6 +610,12 @@ typedef struct MapProfile {
 			 * probes may be in VRAM too (Mario & Luigi: BG2's text goes
 			 * while either box's frame is on BG3, ML-5) */
 			bool any;
+			/* palette + 1 (0: none): on a line where one of those layers
+			 * has a tile in this palette, the layer stays on the game
+			 * screen there, out of the HUD (Mario & Luigi: a tutorial's
+			 * speech balloon, palette 15, while a box's text, palette 9,
+			 * is up: ML-5, issue #31) */
+			int gamePal;
 		} memLayers;
 	} hud;
 
@@ -619,9 +630,11 @@ typedef struct MapProfile {
 		bool pressStart, blackIsClear;
 		bool lightEdgeClear; /* light background around the logo, reached from the edges, is clear */
 		/* pixels of these colours (0xRRGGBB) reached from outside the logo
-		 * through others of them are clear, then any left with at most one
-		 * neighbour: the background showing at the lettering's dithered or
-		 * translucent edge (Mario & Luigi's sky, its shadow's specks) */
+		 * or the picture's edges through others of them are clear, then
+		 * any left with at most one neighbour: the background showing at
+		 * the lettering's dithered or translucent edge (Mario & Luigi's
+		 * sky, its shadow's specks), or a layer's own background
+		 * (Battle Network Rockman EXE's blue) */
 		uint32_t edgeClear[4];
 		/* a drop shadow of this colour (0xRRGGBB; either of a game's two
 		 * colour sets) stays only below and right of the lettering:

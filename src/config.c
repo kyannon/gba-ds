@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+const char* const shaderNames[SH_COUNT] = { "off", "grid", "scanlines", "soft", "subpixels-light", "subpixels", "subpixels-strong" };
+
 void config_defaults(Config* c) {
 	memset(c, 0, sizeof(*c));
 	strcpy(c->layout, "auto");
@@ -75,8 +77,20 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	STR("scale", scale)
 	STR("map_scale", mapScale)
 	BOOL("smooth", smooth)
-	BOOL("lcd_grid", lcdGrid)
+	if (!strcmp(key, "shader")) {
+		for (int i = 0; i < SH_COUNT; ++i) {
+			if (!strcasecmp(val, shaderNames[i])) c->shader = i;
+		}
+		return true;
+	}
+	if (!strcmp(key, "lcd_grid")) {
+		/* (before v1.4.12: the grid on or off) */
+		if (parse_bool(val)) c->shader = SH_GRID;
+		else if (c->shader == SH_GRID) c->shader = SH_OFF;
+		return true;
+	}
 	BOOL("color_correction", colorCorrection)
+	BOOL("lcd_ghosting", ghosting)
 	if (!strcmp(key, "overlays")) {
 		/* none / primary / secondary / both (older configs: 0 / 1, top / bottom) */
 		c->overlays = !strcmp(val, "primary") || !strcmp(val, "top")      ? OVL_PRIMARY :
@@ -232,7 +246,10 @@ void config_usage(const char* argv0) {
 	        "  --scale=integer|fit|stretch      game scaling (integer)\n"
 	        "  --map-scale=integer|fit|stretch  map scaling (integer)\n"
 	        "  --scale=fit            fill the screen width (keeps the aspect ratio)\n"
-	        "  --lcd-grid             LCD pixel grid on game and map (--lcd-strength=0..100)\n"
+	        "  --shader=NAME          a pattern over every pixel: off, grid, scanlines, soft,\n"
+	        "                         subpixels-light, subpixels, subpixels-strong\n"
+	        "                         (--lcd-strength=0..100 for the first three)\n"
+	        "  --lcd-ghosting         each frame blended with the one before, as on a GBA's LCD\n"
 	        "  --smooth               plain linear filtering\n"
 	        "  --vsync                sync presentation to the display\n"
 	        "  --no-map               disable the map screen\n"

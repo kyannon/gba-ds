@@ -277,10 +277,21 @@ def cnk_jpn(a):
     return _from_edges((b >= r + 20) & (b >= g + 30) & (r >= g))
 
 
+def vr3(a):
+    """V-Rally 3: the main menu's heading (the game has no title screen),
+    V-RALLY 3 in cream and gold with a dark outline and its heartbeat line,
+    over purple stripes (blue at least 12 above red); the menu below the
+    heading's band (from row 44) is left out."""
+    r, b = a[..., 0], a[..., 2]
+    ys = np.mgrid[0:H, 0:W][0]
+    return _from_edges((b >= r + 12) | (ys >= 44))
+
+
 MASKS = (("THPS2", thps2), ("SK8", sk8), ("THPS3", thps3), ("DBZ", dbz),
          ("GS2E", gs2), ("GS2D", gs2_dial), ("GS2F", gs2_dial), ("GS2I", gs2), ("GS2S", gs2_dial),
          ("GS2J", gs2), ("CNK", cnk), ("CNKJ", cnk_jpn),
-         ("DBZ2", dbz2), ("DBZ2J", dbz2_jpn))
+         ("DBZ2", dbz2), ("DBZ2J", dbz2_jpn),
+         ("VR3", vr3), ("VR3J", vr3))
 
 
 def runs(mask):

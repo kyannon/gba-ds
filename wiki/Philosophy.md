@@ -19,8 +19,9 @@ What this means in practice:
 
 - **Useful beats pretty.** A status screen with its last rows cut off but showing who acts next (Final Fantasy Tactics Advance's turn order) is better than a nicer-looking screen with less in it, or a slower one.
 - **Show what matters right now.** The second screen follows what the player is doing: the unit under the cursor in Fire Emblem, the level Mario is standing on. Keeping up quickly is part of the function.
+- **Nothing there should make you look twice.** The second screen is for looking at; everything you act on stays on the game screen. So the second screen leaves out anything that looks like it's waiting for a button or like the thing you're controlling: button prompts (a "press A", an arrow to turn a page), the cursor, the character you're moving. Those belong to the hidden copy, not your game. A map's own marker of where you are is information, and stays. What you have to react to stays where the action is: action prompts, a command menu over your character, damage numbers. And nothing is split across the two screens or shown on both: half an animation on each screen, or the same box twice, leaves you wondering which one is real. In Mario & Luigi's battles, the information boxes and meters move over, but the command blocks and action prompts stay, and a level-up stays whole on the game screen.
 - **When there's nothing useful, say so plainly.** If there's nothing live to show (a title screen, a cutscene, a menu), the second screen shows the game's logo at half strength so it reads as idle, rather than something stale or invented. If a capture can't be confirmed as correct, the last good picture stays up. Better nothing new than something wrong.
-- **No enhancement for its own sake.** No smoothing, recolouring, upscaled art or animated transitions. Display options (scaling, LCD grid, overlays) are the player's choice, set in the pause menu, and are applied the same way to both screens.
+- **No enhancement for its own sake.** No smoothing, recolouring, upscaled art or animated transitions. Display options (scaling, shaders such as the LCD grid, overlays) are the player's choice, set in the pause menu, and are applied the same way to both screens.
 
 ## 3. Keep it simple.
 
@@ -41,7 +42,7 @@ What this means in practice:
 
 - **Taken from the game, not drawn for it.** Logos are taken from each game's own title screen. The map surrounds are built from the game's own graphics. Status screens are the game's own, captured from the hidden copy. GBA DS ships no art for any game.
 - **Allowed changes are small and mechanical.** These include:
-  - hiding sprites that don't belong (a cursor, a button prompt, the player's sprite behind a menu);
+  - hiding sprites that don't belong (a cursor, a button prompt, the player's sprite behind a menu; see rule 2);
   - cropping to the part that matters;
   - moving a block of the game's own HUD into a free spot (Super Mario Advance 2's level name above its status bar);
   - placing two of the game's own windows together when both help (Final Fantasy Tactics Advance's Laws above its turn order);
@@ -70,11 +71,13 @@ What this means in practice:
 - **Every exception is deliberate.** It's written down with the game's other rules and tested like everything else, so it isn't "fixed" later by mistake. Current exceptions include:
   - the four-button and SNES layouts;
   - Pokémon Pinball's and Sonic Pinball Party's tables spread over both screens as one tall view;
-  - Mario Kart's, the F-Zero games' and Crash Nitro Kart's race screen course maps, drawn larger than the game's;
+  - Mario Kart's, the F-Zero games', Crash Nitro Kart's and V-Rally 3's race screen course maps, drawn larger than the game's;
   - Super Mario Advance 2's level name moved above its status bar;
   - Super Mario Advance's course board, shown before each level, kept under the status bar through the level: trimmed at the top and bottom to fit, with its Ace Coin percentage taken from the pause screen;
   - River City Ransom EX's Status screen on a plain blue background (one of the game's own pause colours) instead of the tinted street behind it;
   - Dragon Ball Z: The Legacy of Goku's logo, whose Z is drawn again in the game's own colours where the title screen paints Goku's hair over it;
-  - a game's own window rearranged where there's no other way to show all of what it holds on one GBA screen, as the game would let the player see it by scrolling: its list split into columns, its heading bar or frame made wider from its own end and middle pieces, its own transparency kept over the background it sits on (Final Fantasy Tactics Advance's turn order in two columns, with the Laws below).
+  - a game's own window rearranged where there's no other way to show all of what it holds on one GBA screen, as the game would let the player see it by scrolling: its list split into columns, its heading bar or frame made wider from its own end and middle pieces, its own transparency kept over the background it sits on (Final Fantasy Tactics Advance's turn order in two columns, with the Laws below);
+  - Mega Man Battle Network's status screen and money counter, from two of the PET's screens, in one frame edged with the counter's own orange border;
+  - Mega Man Battle Network's custom screen, the menu where you pick your chips, moved whole to the second screen with its cursor, so the whole battlefield shows while you choose (the game waits while it's up).
 - **Optional where it can be.** Where an exception changes how the game plays or looks, there's a way back to the original: GBA is the default control layout, and `pinball_live = 0` turns off the pinball games' tall view.
 - **Scope is a feature.** Every change has to be built, tested on the real device and maintained by one person. A smaller, solid feature beats a bigger, fragile one, and that's often the honest answer to a feature request: not "never", but "not at the cost of everything else working".
