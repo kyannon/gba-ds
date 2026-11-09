@@ -5655,8 +5655,20 @@ static const MapProfile profiles[] = {
 		.hud = {
 			/* in a stage: the HUD's layer on, with its settings (BG0,
 			 * screen 31, tiles 3; priority 0, or 1 in the Launch Site) */
-			.on = { { 0x04000008, 0xFFFC, 0x1F0C, 2 }, { 0x04000000, 0x0100, 0x0100, 2 } },
+			.on = { { 0x04000008, 0xFFFC, 0x1F0C, 2 }, { 0x04000000, 0x0100, 0x0100, 2 },
+			        /* the mission (0 Bank ... 4 Base): not the Launch Site */
+			        { 0x03003D41, 0xFF, 0, 1, true, 4, true } },
 			.bgMask = 0x1,
+			/* the Launch Site (mission 5): its BG0 is no HUD row but the
+			 * red that fades in over the stage as the ninja dies (kept
+			 * hidden by the blend till then): the sprites alone go, BG0
+			 * stays on the game screen; a move that does nothing, so
+			 * the bottom row's (none here) isn't copied up over the
+			 * countdown (NFO-2, NFO-3) */
+			.alt = { .on = { { 0x04000008, 0xFFFC, 0x1F0C, 2 }, { 0x04000000, 0x0100, 0x0100, 2 },
+			                 { 0x03003D41, 0xFF, 5, 1 } },
+			         .bgMask = 0,
+			         .moves = { { 0, 159, 0, 159, 0, 0, 'T', 159 } } },
 			/* the bars, points or time, the boss's bar and the Launch
 			 * Site's countdown: priority 1 at the top (the stage's own
 			 * things are 2, the card and pause menu 0) */

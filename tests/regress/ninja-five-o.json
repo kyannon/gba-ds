@@ -262,6 +262,30 @@
    ]
   },
   {
+   "id": "nfo-us-launch-site-dying",
+   "rom": "ANXE",
+   "state": "ninja-five-o/us-launch-site-dying.ss",
+   "desc": "the owner's state: the ninja dying on the Launch Site; the red fades in over the stage on the game screen, the bars and countdown stay whole on the second (no bar across the countdown), then the logo",
+   "rules": [
+    "NFO-2",
+    "NFO-3",
+    "NFO-4"
+   ],
+   "shots": {
+    "red": 40,
+    "redder": 70,
+    "failed": 250
+   },
+   "checks": [
+    {
+     "rule": "NFO-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
    "id": "nfo-us-time-trial-boss",
    "rom": "ANXE",
    "state": "ninja-five-o/us-time-trial-boss.ss",
