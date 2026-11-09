@@ -641,6 +641,12 @@ typedef struct MapProfile {
 			 * probes may be in VRAM too (Mario & Luigi: BG2's text goes
 			 * while either box's frame is on BG3, ML-5) */
 			bool any;
+			/* palette + 1 (0: none): on a line where one of those layers
+			 * has a tile in this palette, the layer stays on the game
+			 * screen there, out of the HUD (Mario & Luigi: a tutorial's
+			 * speech balloon, palette 15, while a box's text, palette 9,
+			 * is up: ML-5, issue #31) */
+			int gamePal;
 		} memLayers;
 	} hud;
 

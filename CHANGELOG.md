@@ -2,6 +2,9 @@
 
 ## v1.4.13 (not yet released)
 
+### Fixes
+- **Mario & Luigi: Superstar Saga:** in the Starshade Bros.' Bros. Attack tutorial, and other battle tutorials where someone speaks while the battle's boxes are up, the speech balloons stay on the game screen by whoever is speaking instead of moving to the second screen (issue #31).
+
 ## v1.4.12 (2026-11-08)
 
 ### New games
