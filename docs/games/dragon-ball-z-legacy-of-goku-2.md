@@ -16,17 +16,19 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **DBZ2-1. Logo.** On the title, the file menu (Select Game), the options, the intro and the opening's story text, the second screen shows the logo: DRAGON BALL Z and THE LEGACY OF GOKU II from the title screen, cut out of the picture they're painted on (none of Goku, the Androids or the sky; not the START / OPTIONS box, the ® and ™, or the copyright line).
 
-**DBZ2-2. The area map.** Walking about, once you have the Scouter, the second screen is the Scouter's map of the area (R) as the game draws it: the scouter frame, the area's shape, your dot and the other marks, centred on you as the game centres it when it opens. It's opened in the background on a silent copy of the game about once a second (and as soon as you're in a new area, GEN-6), so your dot moves as you do; your game is never paused. The four blinking arrows round its edge, which say the d-pad scrolls the map, are left out (the second screen doesn't scroll).
+**DBZ2-2. The area map.** Walking about, once you have the Scouter, the second screen is the Scouter's map of the area (R) as the game draws it: the scouter frame, the area's shape, your dot and the other marks, centred on you as the game centres it when it opens. It's opened in the background on a silent copy of the game about once a second (and as soon as you're in a new area, GEN-6), so your dot moves as you do; your game is never paused. Its button prompts are left out (DBZ2-8).
 
-**DBZ2-3. The Status page before the Scouter.** Walking about where R doesn't open a map (before the Scouter, from the start of the game until West City), the second screen is the pause menu's Status page (START) instead, as the game draws it: the fighter you're playing, level, HP, EP, STR, POW, END, EXP and NEXT, with its tab bar. Each refresh tries the map first, so the map takes over as soon as you have the Scouter.
+**DBZ2-3. The Status page before the Scouter.** Walking about where R doesn't open a map (before the Scouter, from the start of the game until West City), the second screen is the pause menu's Status page (START) instead, as the game draws it: the fighter you're playing, level, HP, EP, STR, POW, END, EXP and NEXT, under the STATUS tab; its button prompts are left out (DBZ2-8). Each refresh tries the map first, so the map takes over as soon as you have the Scouter.
 
 **DBZ2-4. The HUD stays.** The HP and EP bars, the attack icon and the Super Saiyan bar stay on the game screen, where the game draws them. (Unlike The Legacy of Goku, neither the map nor the Status page has a free place for them, and the Status page shows the same figures.)
 
 **DBZ2-5. Elsewhere, the last picture.** In a conversation, at a save point's menu (Save / Switch Characters), in the game's own pause menu, map, Dragon Radar or any other screen of its own, and wherever neither R nor START opens anything (a scene played on the field), the second screen keeps the last picture; before the first, the logo.
 
-**DBZ2-6. Flying.** Flying over the world (after reading a World Map sign), the second screen shows the logo, and the map of the area you left is forgotten: landing in an area brings that area's map.
+**DBZ2-6. Flying.** Flying over the world (after reading a World Map sign), the small map of the world at the game screen's top right (its outline, your arrow and the places' marks) moves to the second screen, twice as big and in the middle, on the plain dark background; the game screen goes on without it, the haze over the horizon below it as the game draws it. The map of the area you left is forgotten: landing in an area brings that area's map. (An exception to the second screen being drawn at the game's size, as the racing games' course maps are: the small map is hard to read at its own size.) The world map's frame is grown from what's drawn: if your arrow goes past the outline's edge, the picture moves a few pixels to stay in the middle.
 
 **DBZ2-7. One screen.** With one screen, the game plays as it is.
+
+**DBZ2-8. No button prompts.** The second screen can't be scrolled or paged, so the prompts for doing that are left out: on the area map, the four blinking arrows round its edge (the d-pad scrolls it) and the L and R buttons in the scouter frame's top corners (painted the frame's own dark green; its bright lines stay as they are, so a line can stop short there); on the Status page, the arrows in its top corners and in the panel's left side (painted the panel's own blue), and the L JOURNAL and ITEMS R tabs either side of STATUS (the stars behind them instead; STATUS and its orange line stay, with a few dark pixels where the L and R icons crossed the line's ends).
 
 ## Not covered yet
 
@@ -44,7 +46,8 @@ Tried in the USA release with a save at the Northern Mountains (Gohan at level 3
 | HUD | three sprites (OAM 0-2) at 8,8 / 40,8 / 56,8, priority 0, palette 0, tiles moving by area; gone in conversations |
 | SELECT | the Dragon Radar |
 | L / B | the attack (icon at the HUD's right) / Super Saiyan |
-| Flying | DISPCNT `0x1741` (mode 1), the world in perspective with an inset map at the top right |
+| Flying | DISPCNT `0x1741` (mode 1), the world in perspective with an inset map at the top right: its outline BG0 rows 4-49, x 168-230 (blended, BLDCNT `0x1641`, BLDALPHA `0x1006`), BG0's haze over the horizon from row 56; its marks 8x8 sprites (your arrow, a star, pink dots) |
+| Prompts | the map's L and R: BG0 tiles in the frame's top corners (greys with a black outline on the frame's (24, 66, 0)); the Status page's: BG1's corner arrows (x 7-24 and 216-234, rows 9-26) and L / R icons under the tab line's ends, BG2's JOURNAL and ITEMS and its UP / DOWN arrows (x 24-39, rows 36-52 and 100-116, on the panel's (107, 181, 222)) |
 | Title | DISPCNT `0x0C00`, BG2 alone (the logo painted into the picture); Select Game `0x1E40`; intro `0x0800` |
 | Debug menu | hold START on the title with `0x0202B32D` = 2 (Japan `0x0202B371`); Map Test's Zone / Area / Variation (rows 3-5) and A: a field with every fighter |
 | A save point's menu | START there is Save (harmless on the hidden copy, which has no battery save) |
@@ -53,11 +56,11 @@ Tried in the USA release with a save at the Northern Mountains (Gohan at level 3
 
 Changelog line (under the open version's What's new):
 
-- Dragon Ball Z: The Legacy of Goku II (USA, Europe and Japan) is supported: walking about, the second screen is the Scouter's map of the area you're in, your dot moving as you do (before you have the Scouter, the pause menu's Status page); the logo on the title, the menus and while flying over the world.
+- Dragon Ball Z: The Legacy of Goku II (USA, Europe and Japan) is supported: walking about, the second screen is the Scouter's map of the area you're in, your dot moving as you do (before you have the Scouter, the pause menu's Status page); flying over the world, the game's small world map, twice as big; the logo on the title and the menus.
 
 `wiki/Supported-games.md`, the table row and the section:
 
-| Dragon Ball Z: The Legacy of Goku II | `ALFE` `ALFP` `ALFJ` | the Scouter's area map (before the Scouter, the Status page) |
+| Dragon Ball Z: The Legacy of Goku II | `ALFE` `ALFP` `ALFJ` | the Scouter's area map (before the Scouter, the Status page); flying, the world map at 2x |
 
 ### Dragon Ball Z: The Legacy of Goku II
 
@@ -66,5 +69,11 @@ The USA, European and Japanese (International) releases.
 - **Walking about,** the second screen is the **Scouter's map** of the area you're in (R), as the game draws it, centred on you. It's opened in the background in a silent copy of the game about once a second, and as soon as you reach a new area, so your dot moves as you do; your game is never paused. The arrows round its edge (the d-pad scrolls the map) are left out.
 - **Before you have the Scouter,** the second screen is the pause menu's **Status page** (START) instead: your fighter's level, HP, EP, stats and experience.
 - The HP and EP bars stay on the game screen.
-- In conversations, at save points, and in the game's own pause menu, map and Dragon Radar, the second screen keeps its picture. On the title and menus, and while flying over the world, it shows the logo.
+- **Flying over the world,** the small world map at the top right of the game screen moves to the second screen, twice as big, with your arrow on it.
+- Button prompts for scrolling and turning pages are left out.
+- In conversations, at save points, and in the game's own pause menu, map and Dragon Radar, the second screen keeps its picture. On the title and menus it shows the logo.
 - Not tried yet: boss fights, the Hyperbolic Time Chamber, the Cell Games and the ending.
+
+`wiki/Philosophy.md`, its list of current exceptions (after the racing games' course maps):
+
+  - Dragon Ball Z: The Legacy of Goku II's small world map, shown while flying, drawn twice as big;

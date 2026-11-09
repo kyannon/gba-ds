@@ -28,7 +28,8 @@
    "state": "dragon-ball-z-legacy-of-goku-2/us-scouter.ss",
    "desc": "Gohan at a save point in the Northern Mountains, with the Scouter: its area map, without the scroll arrows; walking left, the map follows him",
    "rules": [
-    "DBZ2-2"
+    "DBZ2-2",
+    "DBZ2-8"
    ],
    "input": [
     [
@@ -185,7 +186,8 @@
    "state": "dragon-ball-z-legacy-of-goku-2/us-new-game.ss",
    "desc": "a new game's first area (Trunks, before the Scouter): the Status page",
    "rules": [
-    "DBZ2-3"
+    "DBZ2-3",
+    "DBZ2-8"
    ],
    "shots": {
     "start": 60
@@ -256,7 +258,7 @@
    "id": "dbz2-us-flying",
    "rom": "ALFE",
    "state": "dragon-ball-z-legacy-of-goku-2/us-wastelands.ss",
-   "desc": "the Northern Wastelands' map, then reading the World Map sign: flying, the logo",
+   "desc": "the Northern Wastelands' map, then reading the World Map sign: flying, the small world map twice as big on the second screen, off the game screen (the haze below it stays); flying north, the arrow moves on it",
    "rules": [
     "DBZ2-2",
     "DBZ2-6"
@@ -285,18 +287,59 @@
     [
      215,
      "-"
+    ],
+    [
+     340,
+     "UP"
+    ],
+    [
+     600,
+     "-"
     ]
    ],
    "shots": {
     "start": 90,
-    "flying": 400
+    "flying": 330,
+    "north": 600
    },
    "checks": [
     {
      "rule": "DBZ2-6",
-     "what": "back to the logo",
+     "what": "the area map forgotten",
      "type": "log",
      "match": "second screen back to the logo"
+    },
+    {
+     "rule": "DBZ2-6",
+     "what": "the world map on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "DBZ2-6",
+     "what": "the arrow moved",
+     "type": "differs",
+     "a": {
+      "shot": "flying",
+      "screen": "second",
+      "rect": [
+       256,
+       128,
+       768,
+       640
+      ]
+     },
+     "b": {
+      "shot": "north",
+      "screen": "second",
+      "rect": [
+       256,
+       128,
+       768,
+       640
+      ]
+     },
+     "frac": 0.002
     }
    ]
   },
@@ -321,7 +364,8 @@
    "state": "dragon-ball-z-legacy-of-goku-2/eu-new-game.ss",
    "desc": "Europe, a new game's first area: the Status page",
    "rules": [
-    "DBZ2-3"
+    "DBZ2-3",
+    "DBZ2-8"
    ],
    "shots": {
     "start": 60
@@ -341,7 +385,8 @@
    "state": "dragon-ball-z-legacy-of-goku-2/jp-new-game.ss",
    "desc": "Japan, a new game's first area: the Status page",
    "rules": [
-    "DBZ2-3"
+    "DBZ2-3",
+    "DBZ2-8"
    ],
    "shots": {
     "start": 60
