@@ -190,6 +190,8 @@ static const KnownDump knownDumps[] = {
 	{ "BFZP", 0xf1d5601b, true, "F-Zero - GP Legend (Europe) (En,Fr,De,Es,It)" },
 	{ "BGWJ", 0x49ee1fdd, true, "Game Boy Wars Advance 1+2 (Japan)" },
 	{ "BGWJ", 0xf8d3b3c6, false, "Game Boy Wars Advance 1+2 (Japan) (Virtual Console)" },
+	{ "BHTE", 0xc0bccaad, true, "Harry Potter and the Prisoner of Azkaban (USA, Europe) (En,Fr,De,Es,It,Nl,Da)" },
+	{ "BHTJ", 0x42e590d6, true, "Harry Potter to Azkaban no Shuujin (Japan)" },
 	{ "BMXE", 0x5c61a844, true, "Metroid - Zero Mission (USA, Australia)" },
 	{ "BMXE", 0x8825294a, false, "Metroid - Zero Mission (USA) (Virtual Console)" },
 	{ "BMXJ", 0x220b68f5, false, "Metroid - Zero Mission (Japan) (Virtual Console)" },
