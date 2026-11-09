@@ -5645,10 +5645,12 @@ static const MapProfile profiles[] = {
 		 * over the stage), so the HUD moves: see NFO_HUD below. */
 		.codes = { "ANXE" },
 		.title = "Ninja Five-O",
-		/* the title's lettering on BG0 (white behind it; PRESS START a
-		 * sprite, the copyright line below row 146) (NFO-1) */
+		/* the title's NINJA and FIVE-O, cut out of the title by their
+		 * colours (tools/make_logo_masks.py nfo): without the kanji's
+		 * brush strokes behind them, NINJA's white outline, the white
+		 * screen, the TM, PRESS START or the copyright line (NFO-1) */
 		.logo = { .steps = { { 0, 1200 }, { K_START, 4 }, { 0, 60 }, { K_START, 4 }, { 0, 60 } },
-		          .layers = 0x1, .maxY = 137, .edgeClear = { 0xFFFFFF, 0xF8F8F8 } },
+		          .mask = &logoMaskNFO, .rev = 1 },
 		.logoOnly = true,
 		.hud = {
 			/* in a stage: the HUD's layer on, with its settings (BG0,
@@ -6487,11 +6489,10 @@ static void cnk_jpn(MapProfile* p) {
 /* Spider-Man: Mysterio's Menace in Japan: the screen's handler 0x34 lower
  * (0x0300213C), and its values too (0x60F8 in a level, 0x41D8 elsewhere);
  * the display registers are the same */
-/* Ninja Cop (Europe): its title's NINJA COP on blue instead of Ninja
- * Five-O's lettering on white (NFO-1) */
+/* Ninja Cop (Europe): its title's NINJA COP to its white outline, without
+ * the black and purple rim round it or the blue screen (NFO-1) */
 static void nfo_eur(MapProfile* p) {
-	p->logo.edgeClear[0] = 0x1829AD;
-	p->logo.edgeClear[1] = 0;
+	p->logo.mask = &logoMaskNFOP;
 }
 
 static void smm_jpn(MapProfile* p) {

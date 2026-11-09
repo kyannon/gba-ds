@@ -26,5 +26,7 @@ extern const LogoMask logoMaskDBZ;
 extern const LogoMask logoMaskGS2E, logoMaskGS2D, logoMaskGS2F, logoMaskGS2I, logoMaskGS2S, logoMaskGS2J;
 /* Crash Nitro Kart (USA, Europe), and Japan's */
 extern const LogoMask logoMaskCNK, logoMaskCNKJ;
+/* Ninja Five-O (USA), and Ninja Cop (Europe) */
+extern const LogoMask logoMaskNFO, logoMaskNFOP;
 
 #endif
