@@ -5579,6 +5579,60 @@ static const MapProfile profiles[] = {
 		},
 	},
 	{
+		/* V-Rally 3 (docs/games/v-rally-3.md), the racing games' second
+		 * screen. A stage is a bitmap (mode 4, DISPCNT 0x1444 / 0x1454 as
+		 * the game flips its frames) with the HUD, sky and scenery as
+		 * sprites: the HUD priority 0, the scenery priority 1. The menus
+		 * use the same display mode; only a stage has the V-count
+		 * interrupt on (DISPSTAT bit 5). Sprite tiles are handed out per
+		 * mode (808-815 is LAP in V-Rally Cross, the damage lights in
+		 * V-Rally Mode), so each piece is told by tile, palette and place.
+		 * The countdown, NEW RECORD, the hazard boards, the pause box and
+		 * the in-car dashboard are drawn into the bitmap: they stay on the
+		 * game screen with the track (VR3-2). */
+		.codes = { "AVRE", "AVRP" },
+		.title = "V-Rally 3",
+		.logoOnly = true,
+		/* no title screen: the main menu's heading, V-RALLY 3, painted into
+		 * its bitmap over purple stripes (VR3-1). From power-on: the
+		 * language (START), the save slot (A, A), its name and flag (A,
+		 * A, START), then A on to the main menu (no battery save on the
+		 * logo's copy, so the same every time) */
+		.logo = { .steps = { { 0, 1500 }, { K_START, 4 }, { 0, 120 }, { K_A, 4 }, { 0, 120 }, { K_A, 4 }, { 0, 120 },
+		                     { K_A, 4 }, { 0, 90 }, { K_A, 4 }, { 0, 90 }, { K_START, 4 }, { 0, 90 },
+		                     { K_A, 4 }, { 0, 90 }, { K_A, 4 }, { 0, 120 }, { K_A, 4 }, { 0, 120 } },
+		          .mask = &logoMaskVR3 },
+		.hud = {
+			/* a stage: the V-count interrupt on and the bitmap mode; the
+			 * HUD's own sprites tell its first frames (none yet) apart
+			 * (VR3-2, VR3-7) */
+			.on = { { 0x04000004, 0x0020, 0x0020, 2 }, { 0x04000000, 0x0007, 4, 2 } },
+			.emptyIsOff = true,
+			.objs = { /* BEST TIME / CHECK POINT and its time */
+			          { -8, -8, 80, 24, 816, 831, 0, 1u << 5 },
+			          /* the clock */
+			          { 150, -8, 240, 24, 1000, 1015, 0, 1u << 8 },
+			          /* POS (moved back onto the game screen, VR3-3) */
+			          { -8, 24, 80, 40, 1016, 1023, 0, 1u << 5 },
+			          /* LAP (V-Rally Cross) */
+			          { -8, 40, 80, 56, 808, 815, 0, 1u << 5 },
+			          /* the damage lights (V-Rally Mode) */
+			          { 200, 16, 239, 100, 800, 815, 0, 1u << 8 },
+			          /* the course map: its line, the dots, the round backing */
+			          { 160, 80, 239, 159, 832, 832, 0, 1u << 6 },
+			          { 160, 80, 239, 159, 896, 899, 0, 1u << 6 },
+			          { 160, 80, 239, 159, 900, 912, 0, 1u << 7 } },
+			/* the map's box (the 64x64 sprite at 176, 96 and its backing),
+			 * twice as big at the bottom centre (VR3-4) */
+			.map = { 176, 96, 239, 159 },
+			.mapAt = { 2, 120, 158 },
+			/* POS up into BEST TIME's corner of the game screen (VR3-3);
+			 * LAP up into POS's place on the second screen (VR3-4) */
+			.moves = { { 0, 26, 80, 39, 'L', 7, 'T', 6, true },
+			           { 0, 42, 80, 55, 'L', 7, 'T', 30 } },
+		},
+	},
+	{
 		/* Summon Night: Swordcraft Story 2 (USA; in Japan Craft Sword
 		 * Monogatari 2, the same RAM and menus). Walking about: DISPCNT
 		 * 0x1F40; START's menu and its Status screen 0x3F40, the Status with
@@ -5873,11 +5927,15 @@ static const MapProfile profiles[] = {
 			.memLayers = { .when = { { ML_BOX_TOP, 0xF000, 0x8000, 2 }, { ML_BOX_BOTTOM, 0xF000, 0x8000, 2 } }, .bgMask = 0x4, .any = true, .gamePal = 16 },
 			/* priority 0: the meters, the menus' cursor and icons (the
 			 * blocks, the A over the brother's head and the rest are 2);
-			 * not palette 15: a speech balloon's marker and edges. The
+			 * from tile 112 only palettes 11 (the cursor and icons) and
+			 * 13 (the BROS list's level marks): a Bros. Attack's big
+			 * button prompts (7), the "!" over a brother's head (8) and
+			 * a speech balloon's marker and edges (15) stay (issue #31).
+			 * The
 			 * meters' digits and backing (tiles 0-111) only in their
 			 * corner (x 4-93, rows 130-142 seen): the damage numbers over
 			 * an enemy or a brother are the same digits, and stay */
-			.objs = { { -16, 120, 110, 159, 0, 111, 0, 0x7FFF }, { -256, -96, 255, 159, 112, 1023, 0, 0x7FFF } },
+			.objs = { { -16, 120, 110, 159, 0, 111, 0, 0x7FFF }, { -256, -96, 255, 159, 112, 1023, 0, 0x2800 } },
 			/* the meters (bottom left; the bottom box starts at 120) to
 			 * the top left corner, against the top right box (from
 			 * column 104) and above the item list's cursor (from row 29);
@@ -6538,6 +6596,13 @@ static void cnk_jpn(MapProfile* p) {
 	p->logo.mask = &logoMaskCNKJ;
 }
 
+/* V-Rally 3 in Japan: no language screen, so the main menu (the logo's
+ * place, VR3-1) is up three presses sooner; the HUD the same */
+static void vr3_jpn(MapProfile* p) {
+	p->logo.steps[13].frames = 0;
+	p->logo.mask = &logoMaskVR3J;
+}
+
 /* Spider-Man: Mysterio's Menace in Japan: the screen's handler 0x34 lower
  * (0x0300213C), and its values too (0x60F8 in a level, 0x41D8 elsewhere);
  * the display registers are the same */
@@ -6603,6 +6668,7 @@ static const Variant variants[] = {
 	{ "BFZP", "BFZE", 0, lang_menu },
 	{ "AFZC", "AFZE", 0, fzm_chn },
 	{ "BCNJ", "BCNE", 0, cnk_jpn },
+	{ "AVRJ", "AVRE", 0, vr3_jpn },
 	{ "A2CP", "A2CE", 0, lang_menu },
 	{ "A2CJ", "A2CE", -0x30, NULL },
 	{ "ACHP", "ACHE", 0, NULL },

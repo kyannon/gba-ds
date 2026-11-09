@@ -28,5 +28,6 @@ extern const LogoMask logoMaskGS2E, logoMaskGS2D, logoMaskGS2F, logoMaskGS2I, lo
 extern const LogoMask logoMaskCNK, logoMaskCNKJ;
 /* Muppet Pinball Mayhem (USA, Europe): the name on its badge, top left */
 extern const LogoMask logoMaskAMW;
+extern const LogoMask logoMaskVR3, logoMaskVR3J;
 
 #endif
