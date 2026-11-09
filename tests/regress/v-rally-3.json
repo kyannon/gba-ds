@@ -454,6 +454,111 @@
    ]
   },
   {
+   "id": "vr3-us-vrally-finish",
+   "rom": "AVRE",
+   "state": "v-rally-3/us-vrally-finish.ss",
+   "desc": "V-Rally Mode, Kenya (the owner's state, one damage light red): over the finish line, the mosaic, STAGE RANKING (the logo)",
+   "rules": [
+    "VR3-4",
+    "VR3-7"
+   ],
+   "input": [
+    [
+     1,
+     "A"
+    ],
+    [
+     900,
+     "-"
+    ]
+   ],
+   "shots": {
+    "line": 60,
+    "split": 380,
+    "ranking": 480,
+    "later": 800
+   },
+   "checks": [
+    {
+     "rule": "VR3-4",
+     "what": "the HUD on through the finish",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "VR3-7",
+     "what": "the HUD gone with the mosaic",
+     "type": "log",
+     "match": "frame 4[0-4][0-9]: HUD gone"
+    },
+    {
+     "rule": "VR3-7",
+     "what": "the idle logo on STAGE RANKING",
+     "type": "pixels",
+     "shot": "ranking",
+     "probes": [
+      [
+       100,
+       532,
+       "303030"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "vr3-us-cross-finish",
+   "rom": "AVRE",
+   "state": "v-rally-3/us-cross-finish.ss",
+   "desc": "V-Rally Cross, Departmental's first track (the owner's state): the last lap's finish, the mosaic, BOOST BONUS (the logo)",
+   "rules": [
+    "VR3-4",
+    "VR3-7"
+   ],
+   "input": [
+    [
+     1,
+     "A"
+    ],
+    [
+     900,
+     "-"
+    ]
+   ],
+   "shots": {
+    "line": 60,
+    "bonus": 480,
+    "later": 800
+   },
+   "checks": [
+    {
+     "rule": "VR3-4",
+     "what": "the HUD on through the finish",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "VR3-7",
+     "what": "the HUD gone with the mosaic",
+     "type": "log",
+     "match": "frame 4[0-4][0-9]: HUD gone"
+    },
+    {
+     "rule": "VR3-7",
+     "what": "the idle logo on BOOST BONUS",
+     "type": "pixels",
+     "shot": "later",
+     "probes": [
+      [
+       100,
+       532,
+       "303030"
+      ]
+     ]
+    }
+   ]
+  },
+  {
    "id": "vr3-eu-tt-drive",
    "rom": "AVRP",
    "state": "v-rally-3/eu-tt-drive.ss",

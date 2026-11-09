@@ -28,7 +28,7 @@ The second screen follows the other racing games' ([F-Zero: Maximum Velocity](f-
 
 **VR3-6. In-car view.** In the in-car view (SELECT), the HUD moves as in VR3-4 and VR3-3; the dashboard (with its own speed readout) and the driver's hands stay on the game screen. (The game has no rev counter in that view.)
 
-**VR3-7. Logo elsewhere.** Wherever the stage's HUD is gone, the second screen shows the logo: the intro, the language and save-slot screens, the main menu and every menu after it (the cars, the rallies and licences, the stage choice, the service station), the black loading screens, a stage's first moments before the game puts its HUD up, and "The game is being saved" after a stage.
+**VR3-7. Logo elsewhere.** Wherever the stage's HUD is gone, the second screen shows the logo: the intro, the language and save-slot screens, the main menu and every menu after it (the cars, the rallies and licences, the stage choice, the service station), the black loading screens, a stage's first moments before the game puts its HUD up, and after a stage or race: V-Rally Mode's STAGE RANKING, V-Rally Cross's BOOST BONUS, and "The game is being saved".
 
 **VR3-8. One screen.** With `layout = single` the HUD stays where the game draws it.
 
@@ -56,10 +56,9 @@ Other addresses found (for tests): the car's segment along the stage 0x03001CE4 
 
 ## Not covered yet
 
-- **The end of a V-Rally Mode stage** (the stage's standings) and **of a V-Rally Cross race** (the results): the segment trick above doesn't reach their finish lines, and steering a whole stage by script didn't work out. They're expected to show the logo (they're menus, without the stage's interrupt). *Needs a state just before the finish of each, from the owner.*
-- **V-Rally Cross's boost** (the second race of each licence, after leading laps in the first): its bar wasn't reached. *Needs a state with the bar up.* Until then it stays on the game screen (not one of the HUD's tiles).
-- **Damage** in V-Rally Mode: the lights were only seen green (no damage). They're the same sprites when they change colour, so they're expected to move alike.
+- **V-Rally Cross's boost** (the second race of each licence, after leading laps in the first): its bar wasn't seen in a race. Until it is, it stays on the game screen (not one of the HUD's tiles).
 - Weather (rain, snow, night) and the other rallies' stages: only France (Time Trial), Kenya (V-Rally Mode) and Departmental's first track (V-Rally Cross) were tried.
+- Damage was seen only lightly (one light red, in the owner's V-Rally Mode state; it moved with the others).
 - Link play needs a link cable: not tried.
 
 ## Exceptions
@@ -70,7 +69,7 @@ Other addresses found (for tests): the car's segment along the stage 0x03001CE4 
 
 Changelog line (under the open version's What's new):
 
-- V-Rally 3 (USA, Europe and Japan) is supported: in a stage, the HUD moves to the second screen (the best time or checkpoint split, the clock, the lap in V-Rally Cross, the damage lights in V-Rally Mode, and the course map twice as big); the rev counter, your place and the pace notes stay on the game screen. The logo elsewhere. Not tried yet: the end of a V-Rally Mode stage and of a V-Rally Cross race, and V-Rally Cross's boost.
+- V-Rally 3 (USA, Europe and Japan) is supported: in a stage, the HUD moves to the second screen (the best time or checkpoint split, the clock, the lap in V-Rally Cross, the damage lights in V-Rally Mode, and the course map twice as big); the rev counter, your place and the pace notes stay on the game screen. The logo elsewhere. Not tried yet: V-Rally Cross's boost bar in a race.
 
 Wiki, `wiki/Supported-games.md` (table row and section):
 
@@ -87,9 +86,9 @@ The HUD is moved off the game screen rather than copied, so nothing behind it is
   - The second screen has **BEST TIME** (or the green CHECK POINT split) in the top-left corner with **LAP** under it in V-Rally Cross, the **stage clock** in the top-right corner, V-Rally Mode's **damage lights** down the right edge, and the **course map** with every car's dot, twice as big, at the bottom centre.
   - The countdown, NEW RECORD, the hazard boards and, in the in-car view, the dashboard are part of the game's picture and stay on the game screen.
 - The game's **pause menu** stays on the game screen, with the HUD on the second screen.
-- Everywhere else (the intro, the menus, the service station, loading, the save screen after a stage) the second screen shows the logo, the title lettering from the main menu.
+- Everywhere else (the intro, the menus, the service station, loading, the results after a stage or race, the save screen) the second screen shows the logo, the title lettering from the main menu.
 - With one screen (`layout = single`), the HUD stays where the game draws it.
 
-Known issues: the end of a V-Rally Mode stage and of a V-Rally Cross race, V-Rally Cross's boost bar, damage, and link play haven't been tried.
+Known issues: V-Rally Cross's boost bar (in the second race of a licence) and link play haven't been tried.
 
 Wiki, `wiki/Philosophy.md`, its list of exceptions: add V-Rally 3 to the race screens' course maps drawn larger ("Mario Kart's, the F-Zero games', Crash Nitro Kart's and V-Rally 3's race screen course maps, drawn larger than the game's").
