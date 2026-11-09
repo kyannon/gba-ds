@@ -635,6 +635,3 @@ wiki).
 Player-facing Android changes since the last release, for the main session
 to move into CHANGELOG.md and the release notes (see CLAUDE.md, "More than
 one session"). Empty after each release.
-- New: battery saves can be kept in a folder of their own, and as RetroArch's .srm files to share them with RetroArch: game list > Settings > Folders. A game's save next to its ROM is copied there the first time you play it.
-
-- Fixed: leaving the app (Home, the app switcher) kept the second screen showing GBA DS (and awake) until the app was closed; it now goes back to Android until you return.
