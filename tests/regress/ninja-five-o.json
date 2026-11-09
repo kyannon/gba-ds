@@ -1,0 +1,327 @@
+{
+ "game": "Ninja Five-O",
+ "rules": "docs/games/ninja-five-o.md",
+ "cases": [
+  {
+   "id": "nfo-logo-anxe",
+   "kind": "logo",
+   "rom": "ANXE",
+   "desc": "ANXE logo extraction",
+   "rules": [
+    "GEN-1",
+    "NFO-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "nfo-logo-anxp",
+   "kind": "logo",
+   "rom": "ANXP",
+   "desc": "ANXP logo extraction",
+   "rules": [
+    "GEN-1",
+    "NFO-1",
+    "NFO-6"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "nfo-us-opening",
+   "rom": "ANXE",
+   "state": "ninja-five-o/us-opening.ss",
+   "desc": "the opening's city: the logo at half strength",
+   "rules": [
+    "NFO-4"
+   ],
+   "shots": {
+    "opening": 60
+   },
+   "checks": [
+    {
+     "rule": "NFO-4",
+     "what": "no HUD",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "nfo-us-difficulty",
+   "rom": "ANXE",
+   "state": "ninja-five-o/us-difficulty.ss",
+   "desc": "Difficulty (a new game): the logo",
+   "rules": [
+    "NFO-4"
+   ],
+   "shots": {
+    "menu": 30
+   },
+   "checks": [
+    {
+     "rule": "NFO-4",
+     "what": "no HUD",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "nfo-us-mission-select",
+   "rom": "ANXE",
+   "state": "ninja-five-o/us-mission-select.ss",
+   "desc": "Select Mission: the logo",
+   "rules": [
+    "NFO-4"
+   ],
+   "shots": {
+    "select": 30
+   },
+   "checks": [
+    {
+     "rule": "NFO-4",
+     "what": "no HUD",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "nfo-us-briefing",
+   "rom": "ANXE",
+   "state": "ninja-five-o/us-briefing.ss",
+   "desc": "the Bank's briefing (its pictures and text): the logo",
+   "rules": [
+    "NFO-4"
+   ],
+   "shots": {
+    "briefing": 60
+   },
+   "checks": [
+    {
+     "rule": "NFO-4",
+     "what": "no HUD",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "nfo-us-stage-card",
+   "rom": "ANXE",
+   "state": "ninja-five-o/us-stage-card.ss",
+   "desc": "the Bank's first stage starting: STAGE 1 on the game screen, the HUD on the second with the logo below",
+   "rules": [
+    "NFO-2",
+    "NFO-3"
+   ],
+   "shots": {
+    "card": 10,
+    "play": 120
+   },
+   "checks": [
+    {
+     "rule": "NFO-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "nfo-us-airport",
+   "rom": "ANXE",
+   "state": "ninja-five-o/us-airport.ss",
+   "desc": "the Airport's second stage: the bars, score, shuriken level and RESCUE with seven hostages on the second screen; the stage alone on the game screen, its own board at the top too",
+   "rules": [
+    "NFO-2",
+    "NFO-3"
+   ],
+   "shots": {
+    "play": 30,
+    "walk": 200
+   },
+   "checks": [
+    {
+     "rule": "NFO-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ],
+   "input": [
+    [
+     60,
+     "RIGHT"
+    ],
+    [
+     150,
+     "-"
+    ]
+   ]
+  },
+  {
+   "id": "nfo-us-pause",
+   "rom": "ANXE",
+   "state": "ninja-five-o/us-pause.ss",
+   "desc": "paused in the Airport: the pause menu on the game screen, the HUD on the second, both dimmed; then resumed",
+   "rules": [
+    "NFO-5",
+    "NFO-2"
+   ],
+   "shots": {
+    "paused": 30,
+    "resumed": 120
+   },
+   "checks": [
+    {
+     "rule": "NFO-5",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ],
+   "input": [
+    [
+     60,
+     "START"
+    ],
+    [
+     64,
+     "-"
+    ]
+   ]
+  },
+  {
+   "id": "nfo-us-boss",
+   "rom": "ANXE",
+   "state": "ninja-five-o/us-boss.ss",
+   "desc": "Kabuki (the Bank's boss): the boss's bar at the top right of the second screen; Kabuki on his platform clear of the bars on the game screen",
+   "rules": [
+    "NFO-2",
+    "NFO-3"
+   ],
+   "shots": {
+    "fight": 30,
+    "later": 240
+   },
+   "checks": [
+    {
+     "rule": "NFO-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "nfo-us-launch-site",
+   "rom": "ANXE",
+   "state": "ninja-five-o/us-launch-site.ss",
+   "desc": "the Launch Site: its countdown's red figures on the second screen with the bars, over the logo's top",
+   "rules": [
+    "NFO-2"
+   ],
+   "shots": {
+    "countdown": 30,
+    "later": 240
+   },
+   "checks": [
+    {
+     "rule": "NFO-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "nfo-us-dying",
+   "rom": "ANXE",
+   "state": "ninja-five-o/us-dying.ss",
+   "desc": "the ninja's health gone (set in memory): he falls with the HUD still on the second screen, the circle closes, MISSION FAILED with the logo",
+   "rules": [
+    "NFO-2",
+    "NFO-3",
+    "NFO-4"
+   ],
+   "shots": {
+    "falling": 30,
+    "failed": 400
+   },
+   "checks": [
+    {
+     "rule": "NFO-2",
+     "what": "the HUD on the second screen while he falls",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "nfo-us-time-trial-boss",
+   "rom": "ANXE",
+   "state": "ninja-five-o/us-time-trial-boss.ss",
+   "desc": "Time Trial, the Bank's boss: the time in place of the score, with the boss's bar",
+   "rules": [
+    "NFO-2"
+   ],
+   "shots": {
+    "fight": 30
+   },
+   "checks": [
+    {
+     "rule": "NFO-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "nfo-eu-mission-select",
+   "rom": "ANXP",
+   "state": "ninja-five-o/eu-mission-select.ss",
+   "desc": "Ninja Cop's Select Mission: its logo",
+   "rules": [
+    "NFO-4",
+    "NFO-6"
+   ],
+   "shots": {
+    "select": 30
+   },
+   "checks": [
+    {
+     "rule": "NFO-4",
+     "what": "no HUD",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "nfo-eu-airport",
+   "rom": "ANXP",
+   "state": "ninja-five-o/eu-airport.ss",
+   "desc": "Ninja Cop, the Airport's second stage: the same HUD on the second screen, Ninja Cop's logo below",
+   "rules": [
+    "NFO-2",
+    "NFO-6"
+   ],
+   "shots": {
+    "play": 30
+   },
+   "checks": [
+    {
+     "rule": "NFO-6",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  }
+ ]
+}

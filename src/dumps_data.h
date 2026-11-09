@@ -106,6 +106,8 @@ static const KnownDump knownDumps[] = {
 	{ "AMTJ", 0x817a7e9e, true, "Metroid Fusion (Japan)" },
 	{ "AMTP", 0x974e46ab, true, "Metroid Fusion (Europe) (En,Fr,De,Es,It)" },
 	{ "AMTP", 0xeee01b78, false, "Metroid Fusion (Europe) (En,Fr,De,Es,It) (Virtual Console)" },
+	{ "ANXE", 0xeb3954c6, true, "Ninja Five-O (USA)" },
+	{ "ANXP", 0xc14295b1, true, "Ninja Cop (Europe)" },
 	{ "AREE", 0x1d347971, true, "Mega Man - Battle Network (USA)" },
 	{ "AREE", 0x1d5d0cb6, false, "Mega Man - Battle Network (USA) (Virtual Console)" },
 	{ "AREJ", 0x109f133b, false, "Battle Network - Rockman EXE (Japan) (Virtual Console)" },

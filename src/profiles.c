@@ -5640,6 +5640,36 @@ static const MapProfile profiles[] = {
 		.hideWhen = { { LS_V_PLAY, 0, 1, 1 } },
 	},
 	{
+		/* Ninja Five-O (USA; Europe, Ninja Cop: the ANXP variant). No
+		 * screen of the game's own holds its status (its pause is a menu
+		 * over the stage), so the HUD moves: see NFO_HUD below. */
+		.codes = { "ANXE" },
+		.title = "Ninja Five-O",
+		/* the title's lettering on BG0 (white behind it; PRESS START a
+		 * sprite, the copyright line below row 146) (NFO-1) */
+		.logo = { .steps = { { 0, 1200 }, { K_START, 4 }, { 0, 60 }, { K_START, 4 }, { 0, 60 } },
+		          .layers = 0x1, .maxY = 137, .edgeClear = { 0xFFFFFF, 0xF8F8F8 } },
+		.logoOnly = true,
+		.hud = {
+			/* in a stage: the HUD's layer on, with its settings (BG0,
+			 * screen 31, tiles 3; priority 0, or 1 in the Launch Site) */
+			.on = { { 0x04000008, 0xFFFC, 0x1F0C, 2 }, { 0x04000000, 0x0100, 0x0100, 2 } },
+			.bgMask = 0x1,
+			/* the bars, points or time, the boss's bar and the Launch
+			 * Site's countdown: priority 1 at the top (the stage's own
+			 * things are 2, the card and pause menu 0) */
+			.objs = { { -16, -16, 255, 24, 0, 1023, 1, 0 } },
+			/* the bottom row (shuriken level, keys, RESCUE) up under
+			 * the bars, the logo below them both */
+			.moves = { { 0, 152, 239, 159, 0, 0, 'T', 24 } },
+			.logoBelow = true,
+			.logoTop = 32,
+			/* the opening's demo plays a stage with the HUD's layer set
+			 * up but nothing on it: the logo, idle (NFO-4) */
+			.emptyIsOff = true,
+		},
+	},
+	{
 		/* Wario Land 4 (USA and Europe; Japan: the AWAJ variant, same
 		 * addresses and screens). The pause screen (START) slides down
 		 * from the top over some 40 frames: its menu in rows 0-23 (BG0
@@ -6457,6 +6487,13 @@ static void cnk_jpn(MapProfile* p) {
 /* Spider-Man: Mysterio's Menace in Japan: the screen's handler 0x34 lower
  * (0x0300213C), and its values too (0x60F8 in a level, 0x41D8 elsewhere);
  * the display registers are the same */
+/* Ninja Cop (Europe): its title's NINJA COP on blue instead of Ninja
+ * Five-O's lettering on white (NFO-1) */
+static void nfo_eur(MapProfile* p) {
+	p->logo.edgeClear[0] = 0x1829AD;
+	p->logo.edgeClear[1] = 0;
+}
+
 static void smm_jpn(MapProfile* p) {
 	p->mem[1].addr -= 0x34, p->mem[1].value -= 0x34;
 	p->live[1].addr -= 0x34, p->live[1].value -= 0x34;
@@ -6542,6 +6579,7 @@ static const Variant variants[] = {
 	{ "AT3D", "AT3E", 0, thps3_ger },
 	{ "ASEJ", "ASEE", 0, smm_jpn },
 	{ "ALDP", "ALDE", 0, NULL },
+	{ "ANXP", "ANXE", 0, nfo_eur },
 	{ "AWAJ", "AWAE", 0, NULL },
 	/* Super Mario Advance 3 in Europe: its language menu first */
 	{ "A3AP", "A3AE", 0, sm3_eur },

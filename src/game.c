@@ -2437,6 +2437,7 @@ static void hud_make_logo_below(void) {
 		if (mv->toGame && !mv->how && !mv->vhow && mv->x0 == 0 && mv->x1 >= GBA_W - 1 && mv->y0 > 0) top = mv->y0 * 2;
 	}
 	if (hudProf->hud.rows) top = hudProf->hud.rows * 2;
+	if (hudProf->hud.logoTop) top = hudProf->hud.logoTop * 2;
 	if (hudProf->hud.mapTitleRows && mapTitleN) top += (mapTitleN + 2) * 2; /* (and the level's name above it) */
 	logo_draw(hudLogoBelow, HUD_CW, HUD_CH, HUD_CW / GBA_W, top, 255);
 }
