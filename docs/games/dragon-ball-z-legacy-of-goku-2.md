@@ -28,7 +28,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **DBZ2-7. One screen.** With one screen, the game plays as it is.
 
-**DBZ2-8. No button prompts.** The second screen can't be scrolled or paged, so the prompts for doing that are left out: on the area map, the four blinking arrows round its edge (the d-pad scrolls it) and the L and R buttons in the scouter frame's top corners (painted the frame's own dark green; its bright lines stay as they are, so a line can stop short there); on the Status page, the arrows in its top corners and in the panel's left side (painted the panel's own blue), and the L JOURNAL and ITEMS R tabs either side of STATUS (the stars behind them instead; STATUS and its orange line stay, with a few dark pixels where the L and R icons crossed the line's ends).
+**DBZ2-8. No button prompts.** The second screen can't be scrolled or paged, so the prompts for doing that are left out: on the area map, the four blinking arrows round its edge (the d-pad scrolls it) and the L and R buttons in the scouter frame's top corners (painted the frame's own dark green; its bright lines stay as they are, so a line can stop short there); on the Status page, the arrows in its top corners and in the panel's left side (painted the panel's own blue), and the L JOURNAL and ITEMS R tabs either side of STATUS (the stars behind them instead; STATUS and its orange line stay, the line drawn whole where the L and R icons covered its ends, from its own pixels beside them).
 
 ## Not covered yet
 

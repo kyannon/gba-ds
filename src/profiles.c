@@ -2164,6 +2164,13 @@ static const char* dbz2_status_prompts(Emu* s, uint32_t* out, int w, int h) {
 				if (dbz2_grey(out[y * w + x])) out[y * w + x] = s->fb[y * GBA_W + x];
 		}
 	}
+	/* the orange line where the L and R icons covered it: its four rows
+	 * (orange, yellow, orange, dark edge) along the straight ends, copied
+	 * from a clean column of the line beside them */
+	static const int ends[2][3] = { { 0, 75, 40 }, { 165, 239, 200 } };
+	for (int k = 0; k < 2; ++k)
+		for (int y = 136; y <= 139 && y < h; ++y)
+			for (int x = ends[k][0]; x <= ends[k][1] && x < w; ++x) out[y * w + x] = out[y * w + ends[k][2]];
 	/* UP and DOWN */
 	static const int ud[2][4] = { { 23, 35, 40, 53 }, { 23, 99, 40, 117 } };
 	for (int k = 0; k < 2; ++k)
