@@ -3371,7 +3371,12 @@ static void update_hud(void) {
  * (held at v + 160). Rows none has are black (only until the copies are
  * up). The score bar goes to the bottom of the bottom screen. Called after
  * each frame. */
-typedef struct { const uint32_t* px; int row; int from; } TallSrc; /* (from: its first line with table rows) */
+typedef struct { const uint32_t* px; int row; int from, safe; } TallSrc;
+/* (from: its first line with table rows; safe: its first line whose rows
+ * are sure to be right: a carry copy's lines above gameFrom - 1 are the
+ * rows its game hides under the score bar, whose tiles the game doesn't
+ * keep (Muppet Pinball Mayhem's, moving down the table): used only when
+ * no other picture has the row lower down) */
 int stbi_write_png(char const* filename, int w, int h, int comp, const void* data, int stride_in_bytes);
 static bool tallKeep; /* (carry) a row no picture has keeps what it showed last */
 /* the live view's last 10 seconds, a line a frame, for bug reports
@@ -3380,13 +3385,15 @@ static bool tallKeep; /* (carry) a row no picture has keeps what it showed last 
 static char tallLog[TALL_LOG][176];
 static unsigned tallLogN;
 static bool tall_line(uint32_t* dst, int row, const TallSrc* src, int n) {
-	for (int i = 0; i < n; ++i) {
-		int y = row - src[i].row;
-		if (src[i].px && y >= src[i].from && y < GBA_H) {
-			memcpy(dst, &src[i].px[y * GBA_W], sizeof(uint32_t) * GBA_W);
-			return true;
+	for (int pass = 0; pass < 2; ++pass)
+		for (int i = 0; i < n; ++i) {
+			int y = row - src[i].row;
+			int lo = pass ? src[i].from : SDL_max(src[i].from, src[i].safe);
+			if (src[i].px && y >= lo && y < GBA_H) {
+				memcpy(dst, &src[i].px[y * GBA_W], sizeof(uint32_t) * GBA_W);
+				return true;
+			}
 		}
-	}
 	if (!tallKeep) for (int x = 0; x < GBA_W; ++x) dst[x] = 0xFF000000;
 	return false;
 }
@@ -3414,7 +3421,8 @@ static void update_tall(void) {
 		int s0 = emu_io16(&emu, 0x10 + 4 * L->viewBg + 2) & 0x1FF, r0 = tall_rows_of(tallProf, &emu);
 		if (s0 >= r0) s0 -= 512;
 		if (s0 - twinShakeNow > r0 - 2 * GBA_H && !(twins[0].up && twins[0].havePic)) up = false;
-		if (L->carry.plain.addr && memprobes_match(&L->carry.plain, 1, &emu)) up = false;
+		for (int i = 0; i < 3 && L->carry.plain[i].addr; ++i)
+			if (memprobes_match(&L->carry.plain[i], 1, &emu)) up = false;
 	}
 	if (!up) {
 		/* the copies aren't running (the table's opening sweep, a table they
@@ -3442,9 +3450,10 @@ static void update_tall(void) {
 	 * the copies shake alike, by themselves) */
 	int k = twinShakeNow;
 	int v = SDL_max(SDL_min(s - k, vmax), top) + k;
-	TallSrc game = { emu.fb, s, carry ? L->carry.gameFrom : 0 };
-	TallSrc a = { twins[0].up && twins[0].havePic ? twins[0].pic : NULL, twins[0].picRow, 0 }; /* (this frame's only) */
-	TallSrc b = { twins[1].pic, twins[1].picRow, 0 };
+	int safe = carry && L->carry.gameFrom ? L->carry.gameFrom - 1 : 0;
+	TallSrc game = { emu.fb, s, carry ? L->carry.gameFrom : 0, 0 };
+	TallSrc a = { twins[0].up && twins[0].havePic ? twins[0].pic : NULL, twins[0].picRow, 0, safe }; /* (this frame's only) */
+	TallSrc b = { twins[1].pic, twins[1].picRow, 0, safe };
 	TallSrc topSrc[3] = { game, a, b }, botSrc[3] = { b, a, game };
 	bool gameOnTop = s == v;
 	if (!gameOnTop) topSrc[0] = a, topSrc[1] = game;
@@ -3465,7 +3474,7 @@ static void update_tall(void) {
 	/* PP-11: the game dims its screen (paused, the Mart: brightness down)
 	 * or shows a message box: its whole screen on the bottom one */
 	uint16_t bld = emu_io16(&emu, 0x50);
-	bool msg = (bld & 0xC0) == 0xC0 && (emu_io16(&emu, 0x54) & 0x1F);
+	bool msg = (bld & 0xC0) == 0xC0 && (emu_io16(&emu, 0x54) & 0x1F) && !(carry && L->carry.keepDim);
 	if (!msg && L->msg.map) {
 		int n = 0;
 		for (int r = L->msg.row0; r < L->msg.row0 + L->msg.rows; ++r) {

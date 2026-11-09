@@ -262,16 +262,22 @@ typedef struct MapProfile {
 				 * qStride bytes (default 12) with the destination at
 				 * qDst, the size in bytes at qSize (defaults 0 and 8) */
 				int viewOff, gameFrom;
-				/* while this matches (Muppet Pinball Mayhem paused: its menu
-				 * of sprites over the table), the game as it is and the logo
-				 * on the second screen; the copies go on running, so they're
-				 * at their rows again at once after */
-				MemProbe plain;
+				/* while any of these matches (Muppet Pinball Mayhem paused:
+				 * its menu of sprites over the table; its game over: the
+				 * scroll to the top, the curtains), the game as it is and the
+				 * logo on the second screen; the copies go on running, so
+				 * they're at their rows again at once after */
+				MemProbe plain[3];
 				/* the copies keep all their sprites (none of the game's are
 				 * fixed to the screen outside `plain`; its sprites are written
 				 * in the vblank from its objects, so the lists twin_hide
 				 * compares are a frame old) */
 				bool keepObj;
+				/* a dimmed screen (the game fading out, Muppet Pinball
+				 * Mayhem's at the end of a game) stays on both screens, the
+				 * copies dimmed alike, not the game's screen on the bottom
+				 * one (PP-11's) */
+				bool keepDim;
 				uint32_t qIndex;
 				int qSlots, qStride, qDst, qSize;
 				int qReload; /* (an entry into the ring bigger than this, in bytes, is the table loaded afresh; default 0x400) */

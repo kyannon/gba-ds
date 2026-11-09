@@ -4763,21 +4763,28 @@ static const MapProfile profiles[] = {
 			 * vblank (0x080064E8). The sprites are written to OAM by the
 			 * vblank code from the objects (no shadow table) */
 			.live = { .oam = 0x07000000, .view = 0x030019C8, .viewBg = 3,
-			          .carry = { .cam = 0x030019E0, .camOff = 16, .viewOff = 16, .top = -16, .gameFrom = 17,
-			                     /* (paused: the game's mode 0x030013B6 is 5; 4 in play) */
-			                     .plain = { 0x030013B6, 0xFF, 5, 1 },
+			          .carry = { .cam = 0x03001A00, .camOff = 16, .viewOff = 16, .top = -16, .gameFrom = 17,
+			                     /* (the game's mode 0x030013B6: 4 in play, 6 a ball's bonus
+			                      * count, 3 then 2 the next ball; 5 paused; 7 then 8 the
+			                      * game over, through its curtains) */
+			                     .plain = { { 0x030013B6, 0xFF, 5, 1 }, { 0x030013B6, 0xFF, 7, 1 }, { 0x030013B6, 0xFF, 8, 1 } },
 			                     .keepObj = true,
+			                     .keepDim = true, /* (its fade out at a game's end: both screens fade) */
 			                     .ringLo = 0x2D40, .ringHi = 0x10000,
 			                     /* (its camera's row) */
 			                     .vars = { { 0x030019C8, 4 } },
 			                     .qCount = 0x03002A9C, .qWide = true, .qIndex = 0x03002AA0, .qSlots = 64,
 			                     .qEntries = 0x0300269C, .qStride = 16, .qDst = 4, .qSize = 8, .qReload = 0x8000,
 			                     .patch = {
-			                         /* the camera's target: the halfword at 0x030019E0 (unused by
-			                          * the game; game.c puts the copy's row there) instead of 0x120
-			                          * less the ball's height: mov r1,r8; ldrh r1,[r1,#0x18]. The
-			                          * game's own easing and streaming then move the copy there */
-			                         { 0x08004B50, 0x4641 }, { 0x08004B52, 0x8B09 }, { 0x08004B54, 0x46C0 },
+			                         /* the camera's target: the halfword at 0x03001A00 (never read
+			                          * or written by the game, nor named in its code; game.c puts the
+			                          * copy's row there) instead of 0x120 less the ball's height:
+			                          * mov r1,r8; ldrh r1,[r1,#0x38]. (Not 0x030019E0: that's the
+			                          * hold timer of the pan up the table after a ball is saved, at
+			                          * 0x08004D30, which a target there kept running: the copies'
+			                          * view froze.) The game's own easing and streaming then move
+			                          * the copy there */
+			                         { 0x08004B50, 0x4641 }, { 0x08004B52, 0x8F09 }, { 0x08004B54, 0x46C0 },
 			                         { 0x08004B56, 0x46C0 }, { 0x08004B58, 0x46C0 },
 			                         /* and always that way: not the game's own pans (a ball
 			                          * starting or lost: 0x030019E8 clear, b 0x08004CC4) */
@@ -4786,6 +4793,11 @@ static const MapProfile profiles[] = {
 			                          * the streaming sees the move all the same): a copy's target
 			                          * moves with the game's view, which its easing would trail */
 			                         { 0x08004C58, 0x46C0 }, { 0x08004CAA, 0x46C0 },
+			                         /* nor the easing up the table after a ball is saved
+			                          * (0x030019E9 set: the view eased from 0x030019D4 by
+			                          * 0x08004D76, held by the timer at 0x030019E0), which both
+			                          * paths reach at 0x08004CEE: beq 0x08004D7C -> b */
+			                         { 0x08004CF4, 0xE042 },
 			                         /* the table on lines 0-15 too (under the score bar, which the
 			                          * copies leave out): display mode 1's store at line 0 gone, and
 			                          * line 16's (0x08000A7A) stores DISPCNT without window 0 (whose
