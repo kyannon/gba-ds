@@ -6530,6 +6530,26 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				int idx = map_anim_index();
 				upload_map_frame(idx);
 			}
+			/* a profile's own live picture (Mega Man Battle Network's maps on
+			 * the net), drawn every frame over whatever was captured; when it
+			 * stops, the captured picture again */
+			static bool liveOn;
+			const MapProfile* lvp = mapcap_profile(mc);
+			const uint32_t* lv = lvp && lvp->liveView && romPath ? lvp->liveView(&emu, romPath) : NULL;
+			if (lv) {
+				for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], lv, mapW * 4);
+				if (mapShownIdx < 0) mapShownIdx = 0;
+				liveOn = canvasDirty = true;
+			} else if (liveOn) {
+				liveOn = false;
+				if (mapRes.ok && map_px(mapShownIdx)) {
+					overDirty = true;
+					upload_map_frame(mapShownIdx);
+				} else {
+					mapShownIdx = -1;
+				}
+				canvasDirty = true;
+			}
 		}
 
 		if (snapProf) update_snapshot();

@@ -746,6 +746,12 @@ typedef struct MapProfile {
 	 * the live game's state; NULL on success, else why not (Advance Wars:
 	 * the unit list or the battle intel, with the minimap below). */
 	const char* (*compose)(Emu* s, const void* state, uint32_t* out, int w, int h);
+	/* Every frame, on the main thread: a picture the profile draws itself
+	 * from the live game (crop_w x crop_h), shown instead of the captured
+	 * one while it returns one; NULL: the usual picture. rom: the game's
+	 * file, for copies of its own (Mega Man Battle Network's area maps on
+	 * the net, made by a third copy beside the game, MMBN-6) */
+	const uint32_t* (*liveView)(Emu* live, const char* rom);
 	/* Instead of compose: several pictures (pages shown in turn, `*step`
 	 * emulated frames each); out[0..*n) on return, *n the most on the way in */
 	const char* (*composePages)(Emu* s, const void* state, uint32_t* const* out, int* n, int* step, int w, int h);
