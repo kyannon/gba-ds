@@ -6,7 +6,7 @@
 - **V-Rally 3** (USA, Europe and Japan): in a stage (Time Trial, V-Rally Mode and V-Rally Cross), the HUD moves to the second screen: the best time or checkpoint split, the clock, the lap in V-Rally Cross, the damage lights in V-Rally Mode, and the course map with every car's dot, twice as big. The rev counter, your place and the pace notes stay on the game screen, and so do the countdown and the pause menu. The results after a stage or race, the menus and loading show the logo. Known limitation: V-Rally Cross's boost bar and link play haven't been tried yet.
 
 ### Fixes
-- **Mario & Luigi: Superstar Saga:** in the Starshade Bros.' Bros. Attack tutorial, and other battle tutorials where someone speaks while the battle's boxes are up, the speech balloons stay on the game screen by whoever is speaking instead of moving to the second screen (issue #31).
+- **Mario & Luigi: Superstar Saga:** in the Starshade Bros.' Bros. Attack tutorial, and other battle tutorials where someone speaks while the battle's boxes are up, the speech balloons stay on the game screen by whoever is speaking instead of moving to the second screen, and so does the big button prompt a Bros. Attack shows by the brother (issue #31).
 
 ## v1.4.12 (2026-11-08)
 
