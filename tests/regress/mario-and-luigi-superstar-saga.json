@@ -277,6 +277,205 @@
    }
   },
   {
+   "id": "ml-us-tutorial-bros-attack",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-tutorial-bros-attack.ss",
+   "desc": "the Starshade Bros.' Bros. Attack tutorial (formation 0x012, from the endgame file in room 0x076), A every 40 frames: their balloons, shown while the top right box (Bros. Attack) is up, stay on the game screen by them; the box and the meters go to the second screen (issue #31)",
+   "rules": [
+    "ML-5"
+   ],
+   "input": [
+    [
+     8,
+     "A"
+    ],
+    [
+     11,
+     "-"
+    ],
+    [
+     48,
+     "A"
+    ],
+    [
+     51,
+     "-"
+    ],
+    [
+     88,
+     "A"
+    ],
+    [
+     91,
+     "-"
+    ],
+    [
+     128,
+     "A"
+    ],
+    [
+     131,
+     "-"
+    ],
+    [
+     168,
+     "A"
+    ],
+    [
+     171,
+     "-"
+    ],
+    [
+     208,
+     "A"
+    ],
+    [
+     211,
+     "-"
+    ],
+    [
+     248,
+     "A"
+    ],
+    [
+     251,
+     "-"
+    ],
+    [
+     288,
+     "A"
+    ],
+    [
+     291,
+     "-"
+    ],
+    [
+     328,
+     "A"
+    ],
+    [
+     331,
+     "-"
+    ]
+   ],
+   "shots": {
+    "choosing": 160,
+    "balloon": 200,
+    "balloon2": 240
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "the balloon on the game screen",
+     "type": "uniform",
+     "shot": "balloon",
+     "screen": "game",
+     "rect": [
+      150,
+      420,
+      850,
+      540
+     ],
+     "color": "FFFFFF",
+     "frac": 0.9
+    },
+    {
+     "rule": "ML-5",
+     "what": "no balloon on the second screen",
+     "type": "not_uniform",
+     "shot": "balloon",
+     "rect": [
+      0,
+      200,
+      1024,
+      768
+     ],
+     "color": "FFFFFF",
+     "frac": 0.02
+    },
+    {
+     "rule": "ML-5",
+     "what": "the balloon on the game screen",
+     "type": "uniform",
+     "shot": "balloon2",
+     "screen": "game",
+     "rect": [
+      150,
+      420,
+      850,
+      540
+     ],
+     "color": "FFFFFF",
+     "frac": 0.75
+    },
+    {
+     "rule": "ML-5",
+     "what": "no balloon on the second screen",
+     "type": "not_uniform",
+     "shot": "balloon2",
+     "rect": [
+      0,
+      200,
+      1024,
+      768
+     ],
+     "color": "FFFFFF",
+     "frac": 0.02
+    },
+    {
+     "rule": "ML-5",
+     "what": "the top right box on the second screen",
+     "type": "not_uniform",
+     "shot": "balloon2",
+     "rect": [
+      472,
+      76,
+      975,
+      131
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ml-us-tutorial-031",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-tutorial-031.ss",
+   "desc": "a battle tutorial (formation 0x031, from the endgame file in room 0x076) speaking while the Jump / Hammer / Hand list is up: the balloon stays on the game screen, the list goes to the second screen (issue #31)",
+   "rules": [
+    "ML-5"
+   ],
+   "input": [
+    [
+     8,
+     "A"
+    ],
+    [
+     11,
+     "-"
+    ]
+   ],
+   "shots": {
+    "balloon": 40
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "no balloon on the second screen",
+     "type": "not_uniform",
+     "shot": "balloon",
+     "rect": [
+      0,
+      200,
+      1024,
+      768
+     ],
+     "color": "FFFFFF",
+     "frac": 0.02
+    }
+   ]
+  },
+  {
    "id": "ml-us-battle-boxes",
    "rom": "A88E",
    "state": "mario-and-luigi-superstar-saga/us-battle-blocks.ss",
