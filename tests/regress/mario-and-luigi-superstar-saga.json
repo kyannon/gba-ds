@@ -451,6 +451,19 @@
    }
   },
   {
+   "id": "ml-us-tutorial-bros-attack-alert",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-tutorial-bros-attack-alert.ss",
+   "desc": "later in the same Bros. Attack (the owner's state from the device): Luigi's B prompt, then the \"!\" in its balloon over Mario's head as he moves (a priority 0 sprite, palette 8), up at the top of the screen, beside \"Halt!\": all stay on the game screen, only the meters on the second screen",
+   "rules": [
+    "ML-5"
+   ],
+   "shots": {
+    "bprompt": 18,
+    "alert": 76
+   }
+  },
+  {
    "id": "ml-us-tutorial-031",
    "rom": "A88E",
    "state": "mario-and-luigi-superstar-saga/us-tutorial-031.ss",

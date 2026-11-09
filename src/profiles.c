@@ -5847,11 +5847,15 @@ static const MapProfile profiles[] = {
 			.memLayers = { .when = { { ML_BOX_TOP, 0xF000, 0x8000, 2 }, { ML_BOX_BOTTOM, 0xF000, 0x8000, 2 } }, .bgMask = 0x4, .any = true, .gamePal = 16 },
 			/* priority 0: the meters, the menus' cursor and icons (the
 			 * blocks, the A over the brother's head and the rest are 2);
-			 * not palette 15: a speech balloon's marker and edges. The
+			 * from tile 112 only palettes 11 (the cursor and icons) and
+			 * 13 (the BROS list's level marks): a Bros. Attack's big
+			 * button prompts (7), the "!" over a brother's head (8) and
+			 * a speech balloon's marker and edges (15) stay (issue #31).
+			 * The
 			 * meters' digits and backing (tiles 0-111) only in their
 			 * corner (x 4-93, rows 130-142 seen): the damage numbers over
 			 * an enemy or a brother are the same digits, and stay */
-			.objs = { { -16, 120, 110, 159, 0, 111, 0, 0x7FFF }, { -256, -96, 255, 159, 112, 1023, 0, 0x7F7F } },
+			.objs = { { -16, 120, 110, 159, 0, 111, 0, 0x7FFF }, { -256, -96, 255, 159, 112, 1023, 0, 0x2800 } },
 			/* the meters (bottom left; the bottom box starts at 120) to
 			 * the top left corner, against the top right box (from
 			 * column 104) and above the item list's cursor (from row 29);
