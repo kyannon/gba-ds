@@ -5785,8 +5785,12 @@ static const MapProfile profiles[] = {
 			 * conversation, and between the boxes) */
 			.bgMask = 0x8,
 			/* their text (BG2) only while a box is up: BG2 is also the
-			 * tutorials' speech balloons, which stay by the speaker */
-			.memLayers = { .when = { { ML_BOX_TOP, 0xF000, 0x8000, 2 }, { ML_BOX_BOTTOM, 0xF000, 0x8000, 2 } }, .bgMask = 0x4, .any = true },
+			 * tutorials' speech balloons, which stay by the speaker, also
+			 * while a box is up (the Starshade Bros.' Bros. Attack
+			 * tutorial): their lines, BG2 in palette 15 (the boxes' text
+			 * is 9; they never share a line), stay on the game screen
+			 * (issue #31) */
+			.memLayers = { .when = { { ML_BOX_TOP, 0xF000, 0x8000, 2 }, { ML_BOX_BOTTOM, 0xF000, 0x8000, 2 } }, .bgMask = 0x4, .any = true, .gamePal = 16 },
 			/* priority 0: the meters, the menus' cursor and icons (the
 			 * blocks, the A over the brother's head and the rest are 2);
 			 * not palette 15: a speech balloon's marker and edges. The
