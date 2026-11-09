@@ -3462,10 +3462,14 @@ static void update_tall(void) {
 	if (carry) topSrc[0] = game, topSrc[1] = a, botSrc[0] = game, botSrc[1] = b, botSrc[2] = a;
 	tallKeep = carry && tallLive;
 	int missing = 0;
-	/* (carry with gameFrom: the top screen's lines above it are the game's
-	 * own, the score bar's alone, where the table doesn't show: its layers
-	 * are laid over them below, on what the game has behind them) */
-	int gf = carry ? L->carry.gameFrom : 0;
+	/* (carry with gameFrom: the top screen's lines above gameFrom - 1 are
+	 * the game's own, the score bar's alone, where the table doesn't show:
+	 * its layers are laid over them below, on what the game has behind
+	 * them. The line between, under the score bar, is the table's like
+	 * the rest: the game's own shows the row under its own view, black or
+	 * not as its line interrupt falls, which with the lower view is
+	 * another part of the table) */
+	int gf = carry && L->carry.gameFrom ? L->carry.gameFrom - 1 : 0;
 	for (int y = 0; y < GBA_H; ++y) {
 		if (y < gf) memcpy(&tallTop[y * GBA_W], &emu.fb[y * GBA_W], sizeof(uint32_t) * GBA_W);
 		else missing += !tall_line(&tallTop[y * GBA_W], v + y, topSrc, 3);

@@ -371,6 +371,28 @@
    ]
   },
   {
+   "id": "mpm-us-under-bar",
+   "rom": "AMWE",
+   "state": "muppet-pinball-mayhem/us-kermit-under-bar.ss",
+   "desc": "Kermit's table, the owner's state (Nov 9): the lower view, sprites passing under the score bar (frames 11-23 and 62-81); the line under the score bar is the table's next row, not a row from the game's own view",
+   "rules": [
+    "MPM-3"
+   ],
+   "shots": {
+    "early": 14,
+    "mid": 20,
+    "late": 70
+   },
+   "checks": [
+    {
+     "rule": "MPM-3",
+     "what": "the table over both screens",
+     "type": "log",
+     "match": "frame [0-9]+: live view"
+    }
+   ]
+  },
+  {
    "id": "mpm-us-animal",
    "rom": "AMWE",
    "state": "muppet-pinball-mayhem/us-animal-play.ss",

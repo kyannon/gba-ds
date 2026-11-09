@@ -228,29 +228,16 @@ def cnk_jpn(a):
 
 def amw(a):
     """Muppet Pinball Mayhem (USA, Europe): the name on its badge (the
-    starburst and three bumpers) in the title picture's top left corner,
-    over a pale sky and a roller coaster's blue frame; Gonzo and the
-    coaster car to its right left out."""
-    r, g, b = a[..., 0], a[..., 1], a[..., 2]
-    mx, mn = a.max(axis=2), a.min(axis=2)
-    ys, xs = np.mgrid[0:H, 0:W]
-    # the sky: pale, not yellow; the coaster's blues: green well below blue
-    # (the letters' cyan top rim has green near blue)
-    sky = (mn > 150) & (b >= r - 10) & (b >= g)
-    coaster = (b > r + 30) & (mn > 60) & (mx > 170) & (g <= b - 30)
-    box = (ys < 72) & (xs >= 2) & (xs < 142) & ~((xs >= 110) & (ys >= 27))
-    lab, _ = ndimage.label(sky | coaster | ~box)
-    edge = set(np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]]))) - {0}
-    logo = ~np.isin(lab, list(edge)) & box
-    lab2, n = ndimage.label(logo)
-    sizes = ndimage.sum(logo, lab2, range(1, n + 1))
-    keep = lab2 == 1 + int(np.argmax(sizes))
-    m = ndimage.binary_closing(keep, structure=np.ones((7, 7)), border_value=0)
-    m = ndimage.binary_fill_holes(m | keep) & box
-    # (the deep blue sky showing at the top right, outside the lettering)
-    m &= ~((xs >= 104) & (ys < 10) & (b >= r + 80) & (g <= b - 30))
-    nb = ndimage.convolve(m.astype(int), np.ones((3, 3), int), mode="constant") - m
-    return m & (nb >= 2)
+    starburst, three bumpers and the swoosh under MAYHEM) in the title
+    picture's top left corner. The shape is tools/logo_masks/amw.png, made
+    from a high-resolution copy of the logo with a transparent background,
+    scaled to the title's (146x94 from its top left, a pixel to the right)
+    less its ball, which the title doesn't have, and the places where the
+    title's Muppets and roller coaster are drawn in front (the swoosh's tail,
+    the right bumper's foot): the sky, the coaster and the Muppets left out."""
+    shape = np.asarray(Image.open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                               "logo_masks", "amw.png")).convert("L")) > 127
+    return shape[:a.shape[0], :a.shape[1]]
 
 
 MASKS = (("THPS2", thps2), ("SK8", sk8), ("THPS3", thps3), ("DBZ", dbz),
