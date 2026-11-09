@@ -11,7 +11,8 @@ const char* const hotkeyBtnNames[B_COUNT] = { "a", "b", "x", "y", "start", "sele
 /* as players know them (the device's names, as in the wiki's Buttons table) */
 static const char* const btnTitles[B_COUNT] = { "A", "B", "X", "Y", "Start", "Select", "Home", "L1", "R1", "L2", "R2", "L3",
 	                                            "Up", "Down", "Left", "Right" };
-static const char* const actionTitles[HK_COUNT] = { "Quit", "Save state", "Load state", "FPS counter", "Swap screens", "Shader off / on" };
+static const char* const actionTitles[HK_COUNT] = { "Quit", "Quick save state", "Quick load state", "Open quick menu", "Swap screens",
+                                                    "Toggle selected shader" };
 
 static int btn_by_name(const char* s) {
 	for (int b = 0; b < B_COUNT; ++b) {
@@ -122,7 +123,7 @@ static void draw(int scr, const View_* v) {
 		if (v->secondsLeft >= 0) snprintf(line, sizeof(line), "Kept as it was in %d s if nothing is pressed", v->secondsLeft), foot = line;
 		else foot = v->listen == R_MOD ? "Home, Select, Start or L3. Tap to keep it as it is" : "Tap to set none";
 	} else if (v->sel == R_MOD) {
-		foot = "Select or Start still reach the game when tapped on their own, L3 still swaps the screens";
+		foot = "Select or Start still reach the game when tapped on their own, L3 still opens the quick menu";
 	} else if (v->sel == R_RESET) {
 		foot = "Home as the hotkey button, with Start, R1, L1, X, Y and B";
 	} else if (v->sel == R_DONE) {

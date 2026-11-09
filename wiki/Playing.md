@@ -56,7 +56,7 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 - **Screen shapes** (experimental; only on devices whose two screens are different shapes, such as the AYN Thor and the Retroid Pocket Duo, greyed out elsewhere): **Keep device aspect ratios** (each screen's picture as its own shape allows), **Match screen aspect ratios** (the wider screen's picture takes the other screen's shape, with black bars at its sides) or **Match screen sizes and aspect ratios** (the same, at the other screen's real size, against the edge nearest it). With Stretch and either match, both screens show the same shape, so Pokémon Pinball's table carries on across them. Overlays can be made for each: see [[Map screen surrounds and overlays]].
 
 **Extras** (Swap Screens, Rewind, Fast Forward, Save on Quit and Auto-Load are remembered for next time)
-- **Swap Screens**: game and second screen trade places (also **L3**, or HOME + Y).
+- **Swap Screens**: game and second screen trade places (also HOME + Y).
 - **Cheats**: see [below](#cheats).
 - **Achievements**: when signed in to RetroAchievements; see [below](#retroachievements).
 - **Take Screenshot**: both screens as they look right now, with your display settings, stacked top to bottom into one PNG in `/storage/roms/screenshots` (Android: `GBA DS/screenshots`); `screenshot_dir` changes the folder.
@@ -68,7 +68,7 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 
 ## The quick bar and bug reports
 
-Swipe up from the bottom edge of the touchscreen for the quick bar. The game keeps running underneath it. In games with another button layout (the Tony Hawk's games, Super Mario Advance 2), **Controls** is at its top: see [Buttons](#buttons). Under that are the time, the frames per second (about 59.7 is full speed) and the battery level, then five buttons, and under them a line for messages (State saved. and the like):
+Swipe up from the bottom edge of the touchscreen for the quick bar, or press **L3** (or HOME + X); press it again, or swipe down, to put it away. The game keeps running underneath it. In games with another button layout (the Tony Hawk's games, Super Mario Advance 2), **Controls** is at its top: see [Buttons](#buttons). Under that are the time, the frames per second (about 59.7 is full speed) and the battery level, then five buttons, and under them a line for messages (State saved. and the like):
 - **Save State** (floppy disk) and **Load State** (folder): the quick state, a slot of its own, apart from the pause menu's ten (Load is greyed out until you've saved one). HOME + R1 / L1 save and load it too.
 - **Settings** (gear): the pause menu.
 - **Bug Report** (bug): see below.
@@ -99,13 +99,13 @@ From these, what you did can be played back exactly, frame by frame. So when som
 | Start / Select | Start / Select |
 | HOME, or tap the touchscreen | Pause menu (Android: SELECT + START, or BACK) |
 | L2 (hold) | Rewind |
-| L3 (press the left stick) | Swap screens |
+| L3 (press the left stick) | Quick bar (as swiping up; again to put it away) |
 | R2 (hold) | Fast-forward (`ff_speed`, default 3×; Fast Forward in Extras turns it off) |
-| HOME + R1 / L1 | Quick save / load state (the quick bar's) |
+| HOME + R1 / L1 | Quick save / load state (the same state as the quick bar's buttons) |
 | HOME + Start | Quit |
-| HOME + X | FPS counter above the game (the quick bar shows it too) |
+| HOME + X | Quick bar (it shows the FPS too) |
 | HOME + Y | Swap screens |
-| HOME + B | Shader off, and on again |
+| HOME + B | Toggle the selected shader (off, and back on) |
 
 If HOME doesn't open the menu on your device, see `home_button` in [[Settings]]; `menu_combo = select+start` also makes SELECT + START open it.
 
@@ -113,8 +113,8 @@ If HOME doesn't open the menu on your device, see `home_button` in [[Settings]];
 
 The HOME + button shortcuts above are hotkeys: hold the hotkey button, then press the other one. To change them, open **Settings** in the game list and choose **Hotkeys** (beside Map Buttons):
 
-- **Hotkey button**: HOME (the default), SELECT, START or L3. With SELECT or START, the button still reaches the game when you tap it on its own; with L3, a tap on its own still swaps the screens. HOME opens the menu whichever is the hotkey.
-- **Quit**, **Save state**, **Load state**, **FPS counter**, **Swap screens** and **Shader off / on**: the button for each.
+- **Hotkey button**: HOME (the default), SELECT, START or L3. With SELECT or START, the button still reaches the game when you tap it on its own; with L3, a tap on its own still opens the quick bar. HOME opens the menu whichever is the hotkey.
+- **Quit**, **Quick save state**, **Quick load state**, **Open quick menu** (the quick bar), **Swap screens** and **Toggle selected shader** (off, and back on to the one picked in the pause menu's Shader): the button for each.
 
 Pick a row (tap it, or the D-pad and A), then press the button you want for it. Tapping the touchscreen instead gives a shortcut no button (or keeps the hotkey button as it was). A button already used by another shortcut moves to the new one, and the other is left without. **Reset** goes back to HOME and the buttons above; **Done** (or B) keeps your choices for every game, in `states/hotkeys.cfg`. They can also be set in `gba-ds.cfg` (see the Buttons section of [[Settings]]), but once you've used Hotkeys in Settings, its choices win until you delete `hotkeys.cfg`. On Android, Hotkeys isn't in Settings yet: use `gba-ds.cfg`.
 

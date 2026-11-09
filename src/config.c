@@ -6,7 +6,7 @@
 #include <string.h>
 
 const char* const shaderNames[SH_COUNT] = { "off", "grid", "scanlines", "soft", "subpixels-light", "subpixels", "subpixels-strong" };
-const char* const hotkeyNames[HK_COUNT] = { "quit", "save_state", "load_state", "fps", "swap_screens", "shader" };
+const char* const hotkeyNames[HK_COUNT] = { "quit", "save_state", "load_state", "quick_menu", "swap_screens", "shader" };
 static const char* const hotkeyDefaults[HK_COUNT] = { "start", "r", "l", "x", "y", "b" };
 
 void config_defaults(Config* c) {
@@ -120,6 +120,7 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	INT("map_interval", mapInterval)
 	BOOL("ab_swap", abSwap)
 	STR("hotkey", hotkey)
+	if (!strcmp(key, "hotkey_fps")) return true; /* (a test build's: the quick menu has the FPS counter) */
 	if (!strncmp(key, "hotkey_", 7)) {
 		for (int i = 0; i < HK_COUNT; ++i) {
 			if (strcmp(key + 7, hotkeyNames[i])) continue;
@@ -274,7 +275,7 @@ void config_usage(const char* argv0) {
 	        "  --map-interval=N       frames between map refreshes (90)\n"
 	        "  --ab-swap              GBA A on the bottom face button\n"
 	        "  --hotkey=home|select|start|l3   the hotkey button, held with another for a shortcut\n"
-	        "  --hotkey-quit=BUTTON (and -save-state, -load-state, -fps, -swap-screens, -shader)\n"
+	        "  --hotkey-quit=BUTTON (and -save-state, -load-state, -quick-menu, -swap-screens, -shader)\n"
 	        "                         each shortcut's button (a, b, x, y, l, r, l2, r2, select,\n"
 	        "                         start, l3, up, down, left, right) or none\n"
 	        "  --menu-combo=select+start|none   buttons that open the menu together (none)\n"
