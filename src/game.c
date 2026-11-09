@@ -7,6 +7,7 @@ extern void web_sleep(unsigned ms) __attribute__((import_module("env"), import_n
 #include "brand.h"
 #include "emu.h"
 #include "mapcap.h"
+#include "hotkeys.h"
 #include "paths.h"
 #include "ui.h"
 #include "ra.h"
@@ -1028,6 +1029,10 @@ static int pages[N_PAGES][12], pageLen[N_PAGES], curPage;
  * doesn't make Samus jump. */
 static bool suppress[B_COUNT];
 #define HELD(b) (btnNow[b] && !suppress[b])
+/* the hotkeys (hotkeys.c): the hotkey button, each action's button or -1 */
+static int hkMod = B_HOME;
+static int hkBtn[HK_COUNT];
+
 static void suppress_held(void) {
 	for (int b = 0; b < B_COUNT; ++b) suppress[b] = btnNow[b];
 }
@@ -4233,6 +4238,8 @@ static void bug_info(Text* t, const char* date, uint64_t back) {
 	         cfg->matchDisplay, cfg->vsync, cfg->audioLatency, cfg->rewind, cfg->rewindSeconds, cfg->fastForward, cfg->ffSpeed);
 	text_add(t, "hotkey %s, menu_combo %s, home_button %d, ab_swap %d, touch_map %s, touch_screen %s\n", cfg->hotkey, cfg->menuCombo,
 	         cfg->homeButton, cfg->abSwap, cfg->touchMap, cfg->touchScreen);
+	text_add(t, "hotkeys: %s +", hotkeyBtnNames[hkMod]);
+	for (int i = 0; i < HK_COUNT; ++i) text_add(t, " %s %s%s", hotkeyNames[i], hkBtn[i] >= 0 ? hotkeyBtnNames[hkBtn[i]] : "none", i + 1 < HK_COUNT ? "," : "\n");
 	text_add(t, "save_on_quit %d, auto_load %d, quick_bar_pinned %d\n", cfg->autoSave, cfg->autoLoad, cfg->barPinned);
 
 	char lp[1024];
@@ -4966,6 +4973,7 @@ static void save_prefs(void) {
 		        cfg->frameBuffer ? 1 : 0, cfg->matchDisplay ? 1 : 0, cfg->rewind ? 1 : 0, cfg->fastForward ? 1 : 0,
 		        cfg->autoSave ? 1 : 0, cfg->autoLoad ? 1 : 0, cfg->barPinned ? 1 : 0);
 		fprintf(f, "screen_match = %s\n", cfg->screenMatch);
+		fprintf(f, "shader_last = %s\n", shaderNames[cfg->shaderLast > SH_OFF && cfg->shaderLast < SH_COUNT ? cfg->shaderLast : SH_GRID]);
 		fclose(f);
 	}
 }
@@ -4984,6 +4992,29 @@ static void swap_screens(void) {
 	}
 	cfg->swap = !cfg->swap;
 	save_prefs();
+}
+
+/* Display > Shader, or the shader hotkey: the pattern over the pixels */
+static void set_shader(int sh) {
+	bool subBefore = cfg->shader >= SH_SUB_LIGHT;
+	cfg->shader = sh;
+	if (sh != SH_OFF) cfg->shaderLast = sh;
+	ui_shader(cfg->shader);
+	if (subBefore || cfg->shader >= SH_SUB_LIGHT) rebuild_textures(); /* (the subpixels' brightening is in the colour table) */
+	save_prefs();
+}
+
+/* ---- hotkeys (hotkeys.c): the hotkey button (HOME, SELECT, START or L3)
+ * held with an action's button (Settings > Hotkeys, gba-ds.cfg).
+ * SELECT or START as the hotkey still reach the game when tapped alone;
+ * L3 tapped alone swaps the screens, as it does when it isn't the hotkey. */
+static void hotkeys_setup(void) {
+	hotkeys_resolve(cfg, &hkMod, hkBtn, true);
+	char line[200];
+	int n = snprintf(line, sizeof(line), "hotkey: %s +", hotkeyBtnNames[hkMod]);
+	for (int i = 0; i < HK_COUNT && n < (int) sizeof(line); ++i)
+		n += snprintf(line + n, sizeof(line) - n, " %s %s%s", hotkeyNames[i], hkBtn[i] >= 0 ? hotkeyBtnNames[hkBtn[i]] : "none", i + 1 < HK_COUNT ? "," : "");
+	fprintf(stderr, "%s\n", line);
 }
 
 static SDL_Color borderColor;
@@ -5292,15 +5323,10 @@ static bool activate(int item, enum GameExit* exitTo) {
 		save_prefs();
 		break;
 	}
-	case M_LCD: {
-		bool subBefore = cfg->shader >= SH_SUB_LIGHT;
-		cfg->shader = (cfg->shader + 1) % SH_COUNT;
-		ui_shader(cfg->shader);
-		if (subBefore || cfg->shader >= SH_SUB_LIGHT) rebuild_textures(); /* (the subpixels' brightening is in the colour table) */
+	case M_LCD:
+		set_shader((cfg->shader + 1) % SH_COUNT);
 		snprintf(menuNote, sizeof(menuNote), "%s", shaderNotes[cfg->shader]);
-		save_prefs();
 		break;
-	}
 	case M_GHOST:
 		cfg->ghosting = !cfg->ghosting;
 		ghostHave = false;
@@ -5777,12 +5803,15 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	int lastFails = 0;
 	bool forceMap = true, wasDark = false;
 	long refreshAt = -1;
-	bool hotkeyBack = !strcmp(cfg->hotkey, "back");
-	int modBtn = hotkeyBack ? B_SELECT : B_HOME;
+	hotkeys_setup();
+	const int modBtn = hkMod;
+	/* SELECT or START as the hotkey: a GBA button, held back from the game
+	 * while it's down and handed over if it comes up with nothing pressed */
+	const bool modIsGame = modBtn == B_SELECT || modBtn == B_START;
 	bool comboUsed = false;
 	int comboHold = -1, comboFrames = 0; /* menu combo: the button held back, frames since */
 	int comboPulse[2] = { 0, 0 };        /* SELECT, START handed to the game late */
-	int selectPulse = 0;
+	int modPulse = 0; /* the hotkey button (SELECT or START), tapped alone: handed to the game */
 	unsigned ffPhase = 0;
 	bool noPace = getenv("GBADS_NOPACE") != NULL;
 	enum GameExit exitTo = GAME_QUIT_APP;
@@ -6077,12 +6106,25 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		/* ---- HOME (or the hotkey modifier) alone toggles the menu; with a button it's a hotkey */
 		bool mod = btnNow[modBtn];
 		if (mod && !menuOpen) {
-			if (btn_pressed(B_START)) exitTo = GAME_QUIT_APP, done = true, comboUsed = true;
-			/* (the quick state, as the quick bar's buttons) */
-			if (btn_pressed(B_R)) ui_osd(state_save(gp.quick) ? "State saved" : "Save failed"), comboUsed = true;
-			if (btn_pressed(B_L) && file_exists(gp.quick)) state_load(gp.quick), ui_osd("State loaded"), forceMap = true, comboUsed = true;
-			if (btn_pressed(B_X)) cfg->showFps = !cfg->showFps, comboUsed = true;
-			if (btn_pressed(B_Y)) swap_screens(), comboUsed = true;
+			for (int i = 0; i < HK_COUNT; ++i) {
+				if (hkBtn[i] < 0 || !btn_pressed(hkBtn[i])) continue;
+				comboUsed = true;
+				if (debug) fprintf(stderr, "hotkey: %s\n", hotkeyNames[i]);
+				switch (i) {
+				case HK_QUIT: exitTo = GAME_QUIT_APP, done = true; break;
+				/* (the quick state, as the quick bar's buttons) */
+				case HK_SAVE: ui_osd(state_save(gp.quick) ? "State saved" : "Save failed"); break;
+				case HK_LOAD:
+					if (file_exists(gp.quick)) state_load(gp.quick), ui_osd("State loaded"), forceMap = true;
+					break;
+				case HK_FPS: cfg->showFps = !cfg->showFps; break;
+				case HK_SWAP: swap_screens(); break;
+				case HK_SHADER:
+					set_shader(cfg->shader != SH_OFF ? SH_OFF : cfg->shaderLast > SH_OFF && cfg->shaderLast < SH_COUNT ? cfg->shaderLast : SH_GRID);
+					ui_osd("%s", shader_label(cfg->shader));
+					break;
+				}
+			}
 		}
 		if (btn_released(B_HOME) && !(modBtn == B_HOME && comboUsed)) {
 			if (menuOpen) menuOpen = false;
@@ -6090,7 +6132,8 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		}
 		if (btn_released(modBtn)) {
 			if (comboUsed) suppress_held();
-			if (hotkeyBack && !comboUsed && !menuOpen) selectPulse = 4; /* plain Select goes to the game */
+			else if (!menuOpen && modIsGame) modPulse = 4; /* tapped alone: the game gets it */
+			else if (!menuOpen && modBtn == B_L3) swap_screens();
 			comboUsed = false;
 		}
 		if (done) break;
@@ -6184,14 +6227,21 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			continue;
 		}
 
-		if (btn_pressed(B_L3)) swap_screens();
+		if (btn_pressed(B_L3) && modBtn != B_L3) swap_screens();
 
 		/* ---- emulate */
 		uint32_t keys = 0;
 		for (int b = 0; b < B_COUNT; ++b) {
 			if (!btnNow[b]) suppress[b] = false; /* released: counts again */
 		}
-		if (!btnNow[modBtn] || hotkeyBack) {
+		if (modIsGame && btnNow[modBtn]) {
+			/* the hotkey (SELECT or START) held: the actions' buttons are
+			 * kept from the game until released, the rest go through */
+			for (int i = 0; i < HK_COUNT; ++i) {
+				if (hkBtn[i] >= 0 && btnNow[hkBtn[i]]) suppress[hkBtn[i]] = true;
+			}
+		}
+		if (!btnNow[modBtn] || modIsGame) {
 			/* the SNES layout only where it applies (Super Mario Advance 2: in
 			 * a level; on the world map R switches Mario and Luigi, and only A
 			 * enters a level) */
@@ -6217,8 +6267,8 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				if (HELD(B_A)) keys |= K_A;
 				if (HELD(B_B)) keys |= K_B;
 			}
-			if (HELD(B_START) && !(hotkeyBack && btnNow[B_SELECT]) && comboHold != B_START) keys |= K_START;
-			if (HELD(B_SELECT) && !hotkeyBack && comboHold != B_SELECT) keys |= K_SELECT;
+			if (HELD(B_START) && modBtn != B_START && comboHold != B_START) keys |= K_START;
+			if (HELD(B_SELECT) && modBtn != B_SELECT && comboHold != B_SELECT) keys |= K_SELECT;
 			if (snes) {
 				/* both shoulders are GBA L, panning the camera their own way */
 				if (HELD(B_L)) keys |= K_L | KX_PAN_L;
@@ -6237,9 +6287,8 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			if (HELD(B_DOWN)) keys |= K_DOWN;
 			if (HELD(B_LEFT)) keys |= K_LEFT;
 			if (HELD(B_RIGHT)) keys |= K_RIGHT;
-			if (hotkeyBack && btnNow[B_SELECT]) keys &= ~(K_L | K_R | K_START | KX_PAN_L | KX_PAN_R);
 		}
-		if (selectPulse > 0) keys |= K_SELECT, --selectPulse;
+		if (modPulse > 0) keys |= modBtn == B_START ? K_START : K_SELECT, --modPulse;
 		if (comboPulse[0] > 0) keys |= K_SELECT, --comboPulse[0];
 		if (comboPulse[1] > 0) keys |= K_START, --comboPulse[1];
 		{
