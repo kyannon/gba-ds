@@ -352,6 +352,11 @@ typedef struct MapProfile {
 		 * turned on by them): Super Mario Advance 2 fading out through a
 		 * pipe, which the world map does too on the way into a level. */
 		MemProbe stay[2];
+		/* Once every one of these has matched while `on` does, the HUD
+		 * stays off (the logo) until on[0] stops matching, or a state is
+		 * loaded: Mario & Luigi: Superstar Saga, from a battle's results
+		 * through the level-ups after them to the battle's end (ML-5) */
+		MemProbe offAfter[2];
 		unsigned bgMask;
 		/* The HUD on another layer where every alt.on probe matches (`on`
 		 * not matching): Super Mario Advance 2's boss rooms, in display
@@ -495,6 +500,32 @@ typedef struct MapProfile {
 		int rows;
 		/* The same (unused). */
 		bool logoBehind;
+		/* With logoBelow: a picture the game shows on its own screen
+		 * elsewhere, kept from the game screen and shown below the HUD
+		 * instead of the logo (Super Mario Advance's course board, shown
+		 * before each level). Taken from the first frame where every
+		 * `when` probe matches and at least `min` of `probes` do (game
+		 * screen pixels, within tol per channel; min 0: all), once each
+		 * time it's shown; its rows y0..y1 go to the second screen from
+		 * row `at`, on black. Until one is taken (a state loaded in a
+		 * level, made before this), the logo. Kept with saved states. */
+		struct {
+			MemProbe when[3];
+			Probe probes[8];
+			int min, tol;
+			int y0, y1, at;
+			/* A number taken from another screen of the game laid over
+			 * it (Super Mario Advance: the pause box's Ace Coin
+			 * percentage, which counts the coins found in this level,
+			 * over the board's, from before it): the map capture (its
+			 * crop: that number alone) goes in place of the held
+			 * picture's rect x0..x1, y0..y1 (game screen coordinates),
+			 * which is first filled with `fill` (0xRRGGBB); the capture's
+			 * pixels of colour `key` (its background) are left out, and
+			 * its right edge goes at x1, its top at y0. Until there's a
+			 * capture since the picture was taken, the picture's own. */
+			struct { int x0, y0, x1, y1; uint32_t fill, key; } over;
+		} held;
 		/* While every `mirror` probe matches, or every `mirrorOr` one: the
 		 * whole game screen goes to the second screen, and the game screen
 		 * holds the last picture from before (menus over a paused world,
@@ -593,9 +624,11 @@ typedef struct MapProfile {
 		bool pressStart, blackIsClear;
 		bool lightEdgeClear; /* light background around the logo, reached from the edges, is clear */
 		/* pixels of these colours (0xRRGGBB) reached from outside the logo
-		 * through others of them are clear, then any left with at most one
-		 * neighbour: the background showing at the lettering's dithered or
-		 * translucent edge (Mario & Luigi's sky, its shadow's specks) */
+		 * or the picture's edges through others of them are clear, then
+		 * any left with at most one neighbour: the background showing at
+		 * the lettering's dithered or translucent edge (Mario & Luigi's
+		 * sky, its shadow's specks), or a layer's own background
+		 * (Battle Network Rockman EXE's blue) */
 		uint32_t edgeClear[4];
 		/* a drop shadow of this colour (0xRRGGBB; either of a game's two
 		 * colour sets) stays only below and right of the lettering:

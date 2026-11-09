@@ -1,0 +1,356 @@
+{
+ "game": "Crash Nitro Kart",
+ "rules": "docs/games/crash-nitro-kart.md",
+ "cases": [
+  {
+   "id": "cnk-us-race-item",
+   "rom": "BCNE",
+   "state": "crash-nitro-kart/us-race-item.ss",
+   "desc": "Inferno Island in first place holding an item, driving on",
+   "rules": [
+    "CNK-2",
+    "CNK-3",
+    "CNK-4"
+   ],
+   "input": [
+    [
+     30,
+     "A"
+    ]
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "CNK-4",
+     "what": "the HUD and map on the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      200,
+      150,
+      820,
+      600
+     ],
+     "color": "000000",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "cnk-us-race-start",
+   "rom": "BCNE",
+   "state": "crash-nitro-kart/us-track-menu.ss",
+   "desc": "a race started from the track menu: the fade-in, the countdown and GO",
+   "rules": [
+    "CNK-2",
+    "CNK-3",
+    "CNK-4"
+   ],
+   "input": [
+    [
+     10,
+     "A"
+    ],
+    [
+     14,
+     "-"
+    ]
+   ],
+   "shots": {
+    "fadein": 50,
+    "countdown": 200,
+    "go": 400
+   },
+   "checks": [
+    {
+     "rule": "CNK-4",
+     "what": "the scenery behind the map isn't washed out (taken after the fade-in)",
+     "type": "not_uniform",
+     "shot": "go",
+     "screen": "second",
+     "rect": [
+      300,
+      300,
+      700,
+      700
+     ],
+     "color": "808080",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "cnk-us-countdown",
+   "rom": "BCNE",
+   "state": "crash-nitro-kart/us-countdown.ss",
+   "desc": "the countdown on Inferno Island: the lights stay on the game screen",
+   "rules": [
+    "CNK-2",
+    "CNK-3",
+    "CNK-4"
+   ],
+   "shots": {
+    "lights": 30,
+    "go": 240
+   }
+  },
+  {
+   "id": "cnk-us-finish",
+   "rom": "BCNE",
+   "state": "crash-nitro-kart/us-last-lap.ss",
+   "desc": "the finish: RACE RANKINGS, A to the camera shot, then TRY AGAIN? and RETRY",
+   "rules": [
+    "CNK-2",
+    "CNK-5",
+    "CNK-6"
+   ],
+   "input": [
+    [
+     1830,
+     "A"
+    ],
+    [
+     1834,
+     "-"
+    ],
+    [
+     1980,
+     "A"
+    ],
+    [
+     1984,
+     "-"
+    ],
+    [
+     2160,
+     "A"
+    ],
+    [
+     2164,
+     "-"
+    ]
+   ],
+   "shots": {
+    "rankings": 1600,
+    "camera": 1950,
+    "tryagain": 2140,
+    "retry": 2400
+   }
+  },
+  {
+   "id": "cnk-us-paused",
+   "rom": "BCNE",
+   "state": "crash-nitro-kart/us-race-item.ss",
+   "desc": "paused and resumed: the last HUD stays while paused",
+   "rules": [
+    "CNK-6"
+   ],
+   "input": [
+    [
+     90,
+     "START"
+    ],
+    [
+     94,
+     "-"
+    ],
+    [
+     320,
+     "A"
+    ],
+    [
+     324,
+     "-"
+    ]
+   ],
+   "shots": {
+    "racing": 60,
+    "paused": 300,
+    "resumed": 400
+   },
+   "checks": [
+    {
+     "rule": "CNK-6",
+     "what": "the same HUD on the second screen while paused",
+     "type": "same",
+     "a": {
+      "shot": "paused",
+      "rect": [
+       0,
+       0,
+       1024,
+       140
+      ]
+     },
+     "b": {
+      "shot": "racing",
+      "rect": [
+       0,
+       0,
+       1024,
+       140
+      ]
+     },
+     "frac": 0.08
+    }
+   ]
+  },
+  {
+   "id": "cnk-us-time-trial",
+   "rom": "BCNE",
+   "state": "crash-nitro-kart/us-time-trial.ss",
+   "desc": "Time Trial on Inferno Island: time, lap and map, no faces",
+   "rules": [
+    "CNK-2",
+    "CNK-4"
+   ],
+   "input": [
+    [
+     30,
+     "A"
+    ]
+   ],
+   "shots": {
+    "start": 60,
+    "later": 200
+   }
+  },
+  {
+   "id": "cnk-us-hub",
+   "rom": "BCNE",
+   "state": "crash-nitro-kart/us-hub.ss",
+   "desc": "Adventure's hub (Velo's Citadel, 101% save): trophies, keys and the hub map",
+   "rules": [
+    "CNK-2",
+    "CNK-4"
+   ],
+   "input": [
+    [
+     61,
+     "A"
+    ]
+   ],
+   "shots": {
+    "start": 60,
+    "driving": 400
+   }
+  },
+  {
+   "id": "cnk-eu-race",
+   "rom": "BCNP",
+   "state": "crash-nitro-kart/eu-race-start.ss",
+   "desc": "Europe: the countdown, then racing",
+   "rules": [
+    "CNK-2",
+    "CNK-3",
+    "CNK-4"
+   ],
+   "input": [
+    [
+     31,
+     "A"
+    ]
+   ],
+   "shots": {
+    "start": 30,
+    "racing": 400
+   }
+  },
+  {
+   "id": "cnk-jp-race",
+   "rom": "BCNJ",
+   "state": "crash-nitro-kart/jp-race.ss",
+   "desc": "Japan: racing, then paused (its player block 0x30 higher)",
+   "rules": [
+    "CNK-2",
+    "CNK-4",
+    "CNK-6"
+   ],
+   "input": [
+    [
+     31,
+     "START"
+    ],
+    [
+     34,
+     "-"
+    ]
+   ],
+   "shots": {
+    "racing": 30,
+    "paused": 90
+   }
+  },
+  {
+   "id": "cnk-us-single",
+   "rom": "BCNE",
+   "state": "crash-nitro-kart/us-race-item.ss",
+   "desc": "racing with layout = single",
+   "rules": [
+    "CNK-7"
+   ],
+   "config": {
+    "layout": "single"
+   },
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "CNK-7",
+     "what": "nothing on a second screen",
+     "type": "uniform",
+     "shot": "start",
+     "rect": [
+      0,
+      420,
+      1024,
+      768
+     ],
+     "color": "000000",
+     "frac": 0.99
+    }
+   ]
+  },
+  {
+   "id": "cnk-logo-bcne",
+   "kind": "logo",
+   "rom": "BCNE",
+   "desc": "BCNE logo extraction",
+   "rules": [
+    "CNK-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "cnk-logo-bcnp",
+   "kind": "logo",
+   "rom": "BCNP",
+   "desc": "BCNP logo extraction",
+   "rules": [
+    "CNK-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "cnk-logo-bcnj",
+   "kind": "logo",
+   "rom": "BCNJ",
+   "desc": "BCNJ logo extraction",
+   "rules": [
+    "CNK-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

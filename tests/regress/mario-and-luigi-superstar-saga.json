@@ -468,6 +468,413 @@
    ]
   },
   {
+   "id": "ml-us-battle-level-up",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-battle-level-up.ss",
+   "desc": "a battle's last blow with both brothers' EXP set just short of their next level (issue #29), then the results and both level-ups: Mario's and Luigi's (the brother jumping as his level counts up, his name, the star, LEVEL UP! and the bonuses) stay on the game screen whole, the logo alone on the second screen; Bros. Info once walking about",
+   "rules": [
+    "ML-2",
+    "ML-5"
+   ],
+   "input": [
+    [
+     20,
+     "A"
+    ],
+    [
+     22,
+     "-"
+    ],
+    [
+     120,
+     "A"
+    ],
+    [
+     122,
+     "-"
+    ],
+    [
+     220,
+     "A"
+    ],
+    [
+     222,
+     "-"
+    ],
+    [
+     320,
+     "A"
+    ],
+    [
+     322,
+     "-"
+    ],
+    [
+     420,
+     "A"
+    ],
+    [
+     422,
+     "-"
+    ],
+    [
+     520,
+     "A"
+    ],
+    [
+     522,
+     "-"
+    ],
+    [
+     620,
+     "A"
+    ],
+    [
+     622,
+     "-"
+    ],
+    [
+     720,
+     "A"
+    ],
+    [
+     722,
+     "-"
+    ],
+    [
+     820,
+     "A"
+    ],
+    [
+     822,
+     "-"
+    ],
+    [
+     920,
+     "A"
+    ],
+    [
+     922,
+     "-"
+    ],
+    [
+     1020,
+     "A"
+    ],
+    [
+     1022,
+     "-"
+    ],
+    [
+     1120,
+     "A"
+    ],
+    [
+     1122,
+     "-"
+    ],
+    [
+     1220,
+     "A"
+    ],
+    [
+     1222,
+     "-"
+    ],
+    [
+     1320,
+     "A"
+    ],
+    [
+     1322,
+     "-"
+    ],
+    [
+     1420,
+     "A"
+    ],
+    [
+     1422,
+     "-"
+    ],
+    [
+     1520,
+     "A"
+    ],
+    [
+     1522,
+     "-"
+    ],
+    [
+     1620,
+     "A"
+    ],
+    [
+     1622,
+     "-"
+    ],
+    [
+     1720,
+     "A"
+    ],
+    [
+     1722,
+     "-"
+    ],
+    [
+     1820,
+     "A"
+    ],
+    [
+     1822,
+     "-"
+    ],
+    [
+     1920,
+     "A"
+    ],
+    [
+     1922,
+     "-"
+    ],
+    [
+     2020,
+     "A"
+    ],
+    [
+     2022,
+     "-"
+    ],
+    [
+     2120,
+     "A"
+    ],
+    [
+     2122,
+     "-"
+    ],
+    [
+     2220,
+     "A"
+    ],
+    [
+     2222,
+     "-"
+    ]
+   ],
+   "shots": {
+    "mario-jump": 280,
+    "mario-star": 360,
+    "mario-bonus": 600,
+    "luigi-jump": 1240,
+    "luigi-star": 1320,
+    "walking": 2300
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "Mario's level-up opening: nothing moved to the second screen's top left",
+     "type": "uniform",
+     "shot": "mario-jump",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "Mario's level-up opening: nothing moved to the second screen's right",
+     "type": "uniform",
+     "shot": "mario-jump",
+     "rect": [
+      512,
+      144,
+      975,
+      227
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "Mario's level-up opening: nothing moved to the second screen's bottom",
+     "type": "uniform",
+     "shot": "mario-jump",
+     "rect": [
+      32,
+      500,
+      991,
+      700
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "Mario's star: nothing moved to the second screen's top left",
+     "type": "uniform",
+     "shot": "mario-star",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "Mario's star: nothing moved to the second screen's right",
+     "type": "uniform",
+     "shot": "mario-star",
+     "rect": [
+      512,
+      144,
+      975,
+      227
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "Mario's star: nothing moved to the second screen's bottom",
+     "type": "uniform",
+     "shot": "mario-star",
+     "rect": [
+      32,
+      500,
+      991,
+      700
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "Mario's bonuses: nothing moved to the second screen's top left",
+     "type": "uniform",
+     "shot": "mario-bonus",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "Mario's bonuses: nothing moved to the second screen's right",
+     "type": "uniform",
+     "shot": "mario-bonus",
+     "rect": [
+      512,
+      144,
+      975,
+      227
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "Mario's bonuses: nothing moved to the second screen's bottom",
+     "type": "uniform",
+     "shot": "mario-bonus",
+     "rect": [
+      32,
+      500,
+      991,
+      700
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "Luigi's level-up opening: nothing moved to the second screen's top left",
+     "type": "uniform",
+     "shot": "luigi-jump",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "Luigi's level-up opening: nothing moved to the second screen's right",
+     "type": "uniform",
+     "shot": "luigi-jump",
+     "rect": [
+      512,
+      144,
+      975,
+      227
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "Luigi's level-up opening: nothing moved to the second screen's bottom",
+     "type": "uniform",
+     "shot": "luigi-jump",
+     "rect": [
+      32,
+      500,
+      991,
+      700
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "Luigi's star: nothing moved to the second screen's top left",
+     "type": "uniform",
+     "shot": "luigi-star",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "Luigi's star: nothing moved to the second screen's right",
+     "type": "uniform",
+     "shot": "luigi-star",
+     "rect": [
+      512,
+      144,
+      975,
+      227
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "Luigi's star: nothing moved to the second screen's bottom",
+     "type": "uniform",
+     "shot": "luigi-star",
+     "rect": [
+      32,
+      500,
+      991,
+      700
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-2",
+     "what": "Bros. Info taken after the battle",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
    "id": "ml-us-endgame-battle-16b",
    "rom": "A88E",
    "state": "mario-and-luigi-superstar-saga/us-endgame-battle-16b.ss",

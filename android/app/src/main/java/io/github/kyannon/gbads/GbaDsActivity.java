@@ -376,6 +376,42 @@ public class GbaDsActivity extends SDLActivity {
         }
     };
 
+    /* ------------------------------------------------------------ in the background (issue #28) */
+
+    /* Android leaves a Presentation up while its activity is in the
+     * background: the second display stayed GBA DS's (and awake) until the
+     * app closed. So it's hidden while the app can't be seen and shown
+     * again when it can. Hiding takes its surface away (the native side lets
+     * go of it: nativeSetSurface(null)) and showing brings a new one, which
+     * the native side draws on again (ui.c retries a redraw until the window
+     * is there). Dialog.hide() keeps the window, so show() can't fail on a
+     * display that's still there. */
+    private boolean secondHidden;
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (second != null && secondHidden) {
+            secondHidden = false;
+            try {
+                second.show();
+                Log.i(TAG, "second screen shown again (the app is in the foreground)");
+            } catch (RuntimeException e) { /* (its display gone meanwhile: Android cancels it) */
+                Log.e(TAG, "second screen: " + e);
+            }
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (second != null && !secondHidden && !isFinishing()) {
+            second.hide();
+            secondHidden = true;
+            Log.i(TAG, "second screen hidden (the app is in the background)");
+        }
+    }
+
     @Override
     protected void onDestroy() {
         try {

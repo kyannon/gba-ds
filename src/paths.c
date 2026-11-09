@@ -102,6 +102,15 @@ void game_paths(const Config* cfg, const char* rom, GamePaths* o) {
 		snprintf(other, sizeof(other), "%s/%s.%s", saveDir, o->base, strcmp(ext, "srm") ? "srm" : "sav");
 		if (copy_file(other, o->sav)) fprintf(stderr, "imported %s -> %s\n", other, o->sav);
 	}
+	/* Saves kept in a folder of their own (save_dir; Android's Settings >
+	 * Folders), and none there yet: the one next to the ROM, where they
+	 * were kept before, in either form, is copied over (and left there) */
+	if (!file_exists(o->sav) && cfg->saveDir[0] && strcmp(saveDir, romDir)) {
+		char beside[1100];
+		snprintf(beside, sizeof(beside), "%s/%s.%s", romDir, o->base, ext);
+		if (!file_exists(beside)) snprintf(beside, sizeof(beside), "%s/%s.%s", romDir, o->base, strcmp(ext, "srm") ? "srm" : "sav");
+		if (copy_file(beside, o->sav)) fprintf(stderr, "save carried over from beside the ROM: %s -> %s\n", beside, o->sav);
+	}
 	/* Before v1.4.5 there was one save state, <game>.state, used by the
 	 * quick bar and the pause menu alike: it becomes the quick state, and
 	 * slot 0 gets a copy, so it's where a player looks either way (with

@@ -13,7 +13,9 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Tony Hawk's Pro Skater 2](tony-hawks-pro-skater-2.md) | TH2 | `ATHE` + 3 |
 | [Mario Kart: Super Circuit](mario-kart-super-circuit.md) | MK | `AMKE` + 2 |
 | [Tony Hawk's Pro Skater 3](tony-hawks-pro-skater-3.md) | TH3 | `AT3E` + 2 |
+| [Super Mario Advance (Super Mario Advance: Super Mario USA + Mario Brothers in Japan)](super-mario-advance.md) | SMB2 | `AMAE` + 1 |
 | [Super Mario Advance 2: Super Mario World](super-mario-advance-2.md) | SMA | `AA2E` + 2 |
+| [Super Mario Advance 3: Yoshi's Island](super-mario-advance-3.md) | SM3 | `A3AE` + 2 |
 | [Super Mario Advance 4: Super Mario Bros. 3](super-mario-advance-4.md) | SM4 | `AX4E` + 2 |
 | [Final Fantasy Tactics Advance](final-fantasy-tactics-advance.md) | FT | `AFXE` + 2 |
 | [Advance Wars](advance-wars.md) | AW | `AWRE` + 1 |
@@ -42,6 +44,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Harvest Moon: Friends of Mineral Town (Bokujou Monogatari: Mineral Town no Nakama-tachi in Japan)](harvest-moon-friends-of-mineral-town.md) | HM | `A4NE` + 3 |
 | [Yu-Gi-Oh! The Eternal Duelist Soul (Yu-Gi-Oh! Duel Monsters 5 Expert 1 in Japan)](yu-gi-oh-the-eternal-duelist-soul.md) | EDS | `AY5E` + 1 |
 | [Wario Land 4 (Wario Land Advance in Japan)](wario-land-4.md) | WL4 | `AWAE` + 1 |
+| [Mega Man Battle Network (Battle Network Rockman EXE in Japan)](mega-man-battle-network.md) | MMBN | `AREE` + 2 |
 
 ## General rules
 

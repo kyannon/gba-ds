@@ -24,5 +24,7 @@ extern const LogoMask logoMaskTHPS3;
 extern const LogoMask logoMaskDBZ;
 /* Golden Sun: The Lost Age, each release's */
 extern const LogoMask logoMaskGS2E, logoMaskGS2D, logoMaskGS2F, logoMaskGS2I, logoMaskGS2S, logoMaskGS2J;
+/* Crash Nitro Kart (USA, Europe), and Japan's */
+extern const LogoMask logoMaskCNK, logoMaskCNKJ;
 
 #endif
