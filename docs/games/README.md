@@ -45,6 +45,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Yu-Gi-Oh! The Eternal Duelist Soul (Yu-Gi-Oh! Duel Monsters 5 Expert 1 in Japan)](yu-gi-oh-the-eternal-duelist-soul.md) | EDS | `AY5E` + 1 |
 | [Wario Land 4 (Wario Land Advance in Japan)](wario-land-4.md) | WL4 | `AWAE` + 1 |
 | [Mega Man Battle Network (Battle Network Rockman EXE in Japan)](mega-man-battle-network.md) | MMBN | `AREE` + 2 |
+| [Muppet Pinball Mayhem](muppet-pinball-mayhem.md) | MPM | `AMWE` + 1 |
 
 ## General rules
 

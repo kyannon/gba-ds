@@ -4739,6 +4739,74 @@ static const MapProfile profiles[] = {
 		.logo = { .steps = { { 0, 300 }, { K_A, 6 }, { 0, 1000 } }, .layers = 0x06, .maxY = 142, .lowFrom = 122, .lowLayers = 0x04, .rev = 1 },
 	},
 	{
+		/* Muppet Pinball Mayhem: the table over both screens, live (see
+		 * profiles.h tall; docs/games/muppet-pinball-mayhem.md). The score
+		 * bar (BG0, BG1: lines 0-15, in display mode 1 with window 0, where
+		 * the table's BG3 doesn't show) stays at the top of the top screen. */
+		.codes = { "AMWE", "AMWP" }, /* (the same code and RAM; Europe has a Ubi Soft screen before the title) */
+		.title = "Muppet Pinball Mayhem",
+		.logoOnly = true,
+		.tall = {
+			/* on a table: the score bar's BG0 and the table's BG3 (256
+			 * colours, 256x512, map 0x0000) set up */
+			.on = { { 0x04000008, 0xFFFF, 0x0200, 2 }, { 0x0400000E, 0xFFFF, 0x8083, 2 } },
+			.hudBg = 0x03,
+			.rows = 359, /* (every table: the camera's 0-215, its view 16 rows above) */
+			.hudRow = GBA_H, /* (nothing at the bottom: the score bar stays on the top screen) */
+			/* the camera: a row (0x030019C8; BG3VOFS = it - 16, set at the
+			 * vblank by 0x080008EA, HOFS 0x030019CA) eased toward 0x120 less
+			 * the ball's height (0x08004B4E), clamped to 0-0xD7, its speed at
+			 * 0x030019EC. As it moves, 0x08004E40 queues the tile rows coming
+			 * into view (BG3's map is fixed; table tile rows far apart share
+			 * tiles) into a ring of 64 16-byte entries (source, destination,
+			 * size, kind; start 0x03002AA0, count 0x03002A9C) done at the next
+			 * vblank (0x080064E8). The sprites are written to OAM by the
+			 * vblank code from the objects (no shadow table) */
+			.live = { .oam = 0x07000000, .view = 0x030019C8, .viewBg = 3,
+			          .carry = { .cam = 0x030019E0, .camOff = 16, .viewOff = 16, .top = -16, .gameFrom = 17,
+			                     /* (paused: the game's mode 0x030013B6 is 5; 4 in play) */
+			                     .plain = { 0x030013B6, 0xFF, 5, 1 },
+			                     .keepObj = true,
+			                     .ringLo = 0x2D40, .ringHi = 0x10000,
+			                     /* (its camera's row) */
+			                     .vars = { { 0x030019C8, 4 } },
+			                     .qCount = 0x03002A9C, .qWide = true, .qIndex = 0x03002AA0, .qSlots = 64,
+			                     .qEntries = 0x0300269C, .qStride = 16, .qDst = 4, .qSize = 8, .qReload = 0x8000,
+			                     .patch = {
+			                         /* the camera's target: the halfword at 0x030019E0 (unused by
+			                          * the game; game.c puts the copy's row there) instead of 0x120
+			                          * less the ball's height: mov r1,r8; ldrh r1,[r1,#0x18]. The
+			                          * game's own easing and streaming then move the copy there */
+			                         { 0x08004B50, 0x4641 }, { 0x08004B52, 0x8B09 }, { 0x08004B54, 0x46C0 },
+			                         { 0x08004B56, 0x46C0 }, { 0x08004B58, 0x46C0 },
+			                         /* and always that way: not the game's own pans (a ball
+			                          * starting or lost: 0x030019E8 clear, b 0x08004CC4) */
+			                         { 0x08004B4C, 0x46C0 },
+			                         /* and there at once, not eased (the stores of the eased row;
+			                          * the streaming sees the move all the same): a copy's target
+			                          * moves with the game's view, which its easing would trail */
+			                         { 0x08004C58, 0x46C0 }, { 0x08004CAA, 0x46C0 },
+			                         /* the table on lines 0-15 too (under the score bar, which the
+			                          * copies leave out): display mode 1's store at line 0 gone, and
+			                          * line 16's (0x08000A7A) stores DISPCNT without window 0 (whose
+			                          * WININ leaves BG3 out): lsrs r2,r1,#13 (0x2000); bics r0,r2;
+			                          * strh r0,[r1]; then BLDALPHA 0x1000 as before: adds r1,#0x52;
+			                          * lsrs r0,r1,#14; strh r0,[r1] */
+			                         { 0x0800087E, 0x46C0 },
+			                         { 0x08000A80, 0x0B4A }, { 0x08000A82, 0x4390 }, { 0x08000A84, 0x8008 },
+			                         { 0x08000A86, 0x3152 }, { 0x08000A88, 0x0B88 }, { 0x08000A8A, 0x8008 },
+			                         /* and the tile rows streamed in at the top two higher (the
+			                          * 16 rows above line 16): cmp r5,#0 -> subs r5,#2 */
+			                         { 0x08004E64, 0x3D02 } } } },
+		},
+		/* the title (from frame 1650 on USA's, 2050 on Europe's, after its
+		 * Ubi Soft screen) is one picture on BG0, the name painted into its
+		 * top left corner on a badge of a starburst and three bumpers: that
+		 * corner by its mask (tools/make_logo_masks.py), without the sky,
+		 * the roller coaster or the Muppets */
+		.logo = { .wait = 2300, .mask = &logoMaskAMW },
+	},
+	{
 		/* Sonic Advance (USA, Europe and Japan (Rev 1): the same sprites,
 		 * registers and title steps in each). In a level
 		 * (display mode 0 with BG1-3: the zone card, play, the act's

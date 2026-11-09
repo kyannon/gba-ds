@@ -250,7 +250,32 @@ typedef struct MapProfile {
 				 * Pinball Party's opening sweep) */
 				MemProbe noObj;
 				/* halfwords written over the copies' code (with nop) */
-				struct { uint32_t addr; uint16_t v; } patch[12];
+				struct { uint32_t addr; uint16_t v; } patch[16];
+				/* (Muppet Pinball Mayhem) viewOff: `view` holds the view's
+				 * row plus this (its BG VOFS is set from it at the vblank);
+				 * gameFrom: the first line of the game's own picture with
+				 * table rows (the lines above it show only the score bar's
+				 * layers: the copies draw those rows); no rowsAt: the
+				 * table's height is `rows`. The queue of copies at the next
+				 * vblank as a ring: its start index a word at qIndex (slot
+				 * (start + i) % qSlots), qWide: the count a word, entries
+				 * qStride bytes (default 12) with the destination at
+				 * qDst, the size in bytes at qSize (defaults 0 and 8) */
+				int viewOff, gameFrom;
+				/* while this matches (Muppet Pinball Mayhem paused: its menu
+				 * of sprites over the table), the game as it is and the logo
+				 * on the second screen; the copies go on running, so they're
+				 * at their rows again at once after */
+				MemProbe plain;
+				/* the copies keep all their sprites (none of the game's are
+				 * fixed to the screen outside `plain`; its sprites are written
+				 * in the vblank from its objects, so the lists twin_hide
+				 * compares are a frame old) */
+				bool keepObj;
+				uint32_t qIndex;
+				int qSlots, qStride, qDst, qSize;
+				int qReload; /* (an entry into the ring bigger than this, in bytes, is the table loaded afresh; default 0x400) */
+				bool qWide;
 			} carry;
 		} live;
 	} tall;

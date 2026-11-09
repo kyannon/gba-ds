@@ -4,7 +4,7 @@ full-screen title picture rather than drawn on a layer of their own.
 
     GBADS_LOGO_DEBUG=1 build/host/harness THPS2.gba out logo.txt   # 'logo logo'
     (writes out/logo.png.fg.png: the exact title frame GBA DS renders)
-    tools/make_logo_masks.py THPS2=THPS2-frame.png [SK8=SK8-frame.png] [THPS3=...]
+    tools/make_logo_masks.py THPS2=THPS2-frame.png [SK8=SK8-frame.png] [THPS3=...] [AMW=...]
 
 Masks not named on the command line are kept as they are in
 src/logo_masks.c, so one can be redone without the other games' ROMs.
@@ -226,9 +226,36 @@ def cnk_jpn(a):
     return _from_edges((b >= r + 20) & (b >= g + 30) & (r >= g))
 
 
+def amw(a):
+    """Muppet Pinball Mayhem (USA, Europe): the name on its badge (the
+    starburst and three bumpers) in the title picture's top left corner,
+    over a pale sky and a roller coaster's blue frame; Gonzo and the
+    coaster car to its right left out."""
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    mx, mn = a.max(axis=2), a.min(axis=2)
+    ys, xs = np.mgrid[0:H, 0:W]
+    # the sky: pale, not yellow; the coaster's blues: green well below blue
+    # (the letters' cyan top rim has green near blue)
+    sky = (mn > 150) & (b >= r - 10) & (b >= g)
+    coaster = (b > r + 30) & (mn > 60) & (mx > 170) & (g <= b - 30)
+    box = (ys < 72) & (xs >= 2) & (xs < 142) & ~((xs >= 110) & (ys >= 27))
+    lab, _ = ndimage.label(sky | coaster | ~box)
+    edge = set(np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]]))) - {0}
+    logo = ~np.isin(lab, list(edge)) & box
+    lab2, n = ndimage.label(logo)
+    sizes = ndimage.sum(logo, lab2, range(1, n + 1))
+    keep = lab2 == 1 + int(np.argmax(sizes))
+    m = ndimage.binary_closing(keep, structure=np.ones((7, 7)), border_value=0)
+    m = ndimage.binary_fill_holes(m | keep) & box
+    # (the deep blue sky showing at the top right, outside the lettering)
+    m &= ~((xs >= 104) & (ys < 10) & (b >= r + 80) & (g <= b - 30))
+    nb = ndimage.convolve(m.astype(int), np.ones((3, 3), int), mode="constant") - m
+    return m & (nb >= 2)
+
+
 MASKS = (("THPS2", thps2), ("SK8", sk8), ("THPS3", thps3), ("DBZ", dbz),
          ("GS2E", gs2), ("GS2D", gs2_dial), ("GS2F", gs2_dial), ("GS2I", gs2), ("GS2S", gs2_dial),
-         ("GS2J", gs2), ("CNK", cnk), ("CNKJ", cnk_jpn))
+         ("GS2J", gs2), ("CNK", cnk), ("CNKJ", cnk_jpn), ("AMW", amw))
 
 
 def runs(mask):
