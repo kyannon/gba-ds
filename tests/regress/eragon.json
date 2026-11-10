@@ -1,0 +1,991 @@
+{
+ "game": "eragon",
+ "rules": "docs/games/eragon.md",
+ "cases": [
+  {
+   "id": "er-us-town",
+   "rom": "BENE",
+   "state": "eragon/us-carvahall.ss",
+   "desc": "walking about Carvahall, three in the party: the Party screen, every card lit",
+   "rules": [
+    "ER-1",
+    "ER-2",
+    "ER-8"
+   ],
+   "shots": {
+    "start": 300
+   },
+   "checks": [
+    {
+     "rule": "ER-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ER-8",
+     "what": "nothing leaves the game screen",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "ER-2",
+     "what": "the second and third cards lit like the first",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       274,
+       410,
+       "212984"
+      ],
+      [
+       634,
+       410,
+       "212984"
+      ],
+      [
+       274,
+       634,
+       "212984"
+      ],
+      [
+       634,
+       634,
+       "212984"
+      ]
+     ],
+     "tol": 4
+    }
+   ]
+  },
+  {
+   "id": "er-us-two",
+   "rom": "BENE",
+   "state": "eragon/us-gilead.ss",
+   "desc": "Gil'ead, two in the party: both cards lit, the empty slot as drawn",
+   "rules": [
+    "ER-1",
+    "ER-2"
+   ],
+   "shots": {
+    "start": 300
+   },
+   "checks": [
+    {
+     "rule": "ER-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ER-2",
+     "what": "the second card lit like the first",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       274,
+       410,
+       "212984"
+      ],
+      [
+       634,
+       410,
+       "212984"
+      ]
+     ],
+     "tol": 4
+    },
+    {
+     "rule": "ER-2",
+     "what": "the empty slot as the game draws it (dim)",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       274,
+       634,
+       "161E51"
+      ],
+      [
+       634,
+       634,
+       "161E51"
+      ]
+     ],
+     "tol": 4
+    }
+   ]
+  },
+  {
+   "id": "er-us-teirm",
+   "rom": "BENE",
+   "state": "eragon/us-teirm.ss",
+   "desc": "Teirm with Brom and Angela: the Party screen",
+   "rules": [
+    "ER-1",
+    "ER-2"
+   ],
+   "shots": {
+    "start": 300
+   },
+   "checks": [
+    {
+     "rule": "ER-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ER-2",
+     "what": "the second and third cards lit like the first",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       274,
+       410,
+       "212984"
+      ],
+      [
+       634,
+       410,
+       "212984"
+      ],
+      [
+       274,
+       634,
+       "212984"
+      ],
+      [
+       634,
+       634,
+       "212984"
+      ]
+     ],
+     "tol": 4
+    }
+   ]
+  },
+  {
+   "id": "er-us-party-open",
+   "rom": "BENE",
+   "state": "eragon/us-party-open.ss",
+   "desc": "the Party screen open in the game with a member's Equipment / Focus / Abilities box up: the second screen's Party screen without it",
+   "rules": [
+    "ER-1",
+    "ER-2"
+   ],
+   "shots": {
+    "start": 600
+   },
+   "checks": [
+    {
+     "rule": "ER-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ER-1",
+     "what": "the card's own fill where the game shows the member's box",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       634,
+       410,
+       "212984"
+      ],
+      [
+       594,
+       386,
+       "212984"
+      ],
+      [
+       514,
+       346,
+       "212984"
+      ]
+     ],
+     "tol": 4
+    }
+   ]
+  },
+  {
+   "id": "er-us-overworld",
+   "rom": "BENE",
+   "state": "eragon/us-overworld.ss",
+   "desc": "on the overworld in the Hadarac desert: its map with Eragon's figure",
+   "rules": [
+    "ER-3",
+    "ER-8"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "rule": "ER-3",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "er-us-map-open",
+   "rom": "BENE",
+   "state": "eragon/us-map-open.ss",
+   "desc": "the map open in the game: the same map",
+   "rules": [
+    "ER-3"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "rule": "ER-3",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "er-us-talk",
+   "rom": "BENE",
+   "state": "eragon/us-carvahall.ss",
+   "desc": "the Party screen in Carvahall, then a conversation in Sloan's shop: the picture stays",
+   "rules": [
+    "ER-4"
+   ],
+   "input": [
+    [
+     320,
+     "LOAD:eragon/us-talk.ss"
+    ]
+   ],
+   "shots": {
+    "walking": 300,
+    "talk": 700
+   },
+   "checks": [
+    {
+     "rule": "ER-4",
+     "what": "the Party screen stays through the conversation",
+     "type": "same",
+     "a": {
+      "shot": "walking",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "talk",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.001
+    }
+   ]
+  },
+  {
+   "id": "er-us-battle",
+   "rom": "BENE",
+   "state": "eragon/us-overworld.ss",
+   "desc": "the overworld's map, then a battle (the logo till the plates show), then Retreat (R, DOWN three times, A, A on Escaped): the map again",
+   "rules": [
+    "ER-3",
+    "ER-5",
+    "ER-9"
+   ],
+   "input": [
+    [
+     220,
+     "LOAD:eragon/us-battle.ss"
+    ],
+    [
+     230,
+     "R"
+    ],
+    [
+     234,
+     "-"
+    ],
+    [
+     260,
+     "DOWN"
+    ],
+    [
+     264,
+     "-"
+    ],
+    [
+     274,
+     "DOWN"
+    ],
+    [
+     278,
+     "-"
+    ],
+    [
+     288,
+     "DOWN"
+    ],
+    [
+     292,
+     "-"
+    ],
+    [
+     302,
+     "A"
+    ],
+    [
+     306,
+     "-"
+    ],
+    [
+     430,
+     "A"
+    ],
+    [
+     434,
+     "-"
+    ]
+   ],
+   "shots": {
+    "map": 200,
+    "battle": 380,
+    "after": 700
+   },
+   "checks": [
+    {
+     "rule": "ER-5",
+     "what": "the map gone in the battle",
+     "type": "differs",
+     "a": {
+      "shot": "map",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "battle",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.5
+    },
+    {
+     "rule": "ER-9",
+     "what": "the map again after the battle",
+     "type": "same",
+     "a": {
+      "shot": "map",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.01
+    },
+    {
+     "rule": "ER-5",
+     "what": "the logo alone (the idle grey round it)",
+     "shot": "battle",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      200,
+      200
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "er-us-battle-hp",
+   "rom": "BENE",
+   "state": "eragon/us-overworld.ss",
+   "desc": "a battle from the overworld, A through Murtagh's attacks: the logo while the first command is chosen, then the party's plates and HP bars on the second screen (off the game screen), kept while the next command is chosen",
+   "rules": [
+    "ER-5",
+    "ER-7",
+    "ER-8"
+   ],
+   "input": [
+    [
+     220,
+     "LOAD:eragon/us-battle.ss"
+    ],
+    [
+     320,
+     "A"
+    ],
+    [
+     323,
+     "-"
+    ],
+    [
+     340,
+     "A"
+    ],
+    [
+     343,
+     "-"
+    ],
+    [
+     360,
+     "A"
+    ],
+    [
+     363,
+     "-"
+    ],
+    [
+     380,
+     "A"
+    ],
+    [
+     383,
+     "-"
+    ],
+    [
+     400,
+     "A"
+    ],
+    [
+     403,
+     "-"
+    ],
+    [
+     420,
+     "A"
+    ],
+    [
+     423,
+     "-"
+    ],
+    [
+     440,
+     "A"
+    ],
+    [
+     443,
+     "-"
+    ],
+    [
+     460,
+     "A"
+    ],
+    [
+     463,
+     "-"
+    ],
+    [
+     480,
+     "A"
+    ],
+    [
+     483,
+     "-"
+    ],
+    [
+     500,
+     "A"
+    ],
+    [
+     503,
+     "-"
+    ],
+    [
+     520,
+     "A"
+    ],
+    [
+     523,
+     "-"
+    ],
+    [
+     540,
+     "A"
+    ],
+    [
+     543,
+     "-"
+    ],
+    [
+     560,
+     "A"
+    ],
+    [
+     563,
+     "-"
+    ],
+    [
+     580,
+     "A"
+    ],
+    [
+     583,
+     "-"
+    ],
+    [
+     600,
+     "A"
+    ],
+    [
+     603,
+     "-"
+    ],
+    [
+     620,
+     "A"
+    ],
+    [
+     623,
+     "-"
+    ],
+    [
+     640,
+     "A"
+    ],
+    [
+     643,
+     "-"
+    ],
+    [
+     660,
+     "A"
+    ],
+    [
+     663,
+     "-"
+    ],
+    [
+     680,
+     "A"
+    ],
+    [
+     683,
+     "-"
+    ],
+    [
+     700,
+     "A"
+    ],
+    [
+     703,
+     "-"
+    ],
+    [
+     720,
+     "A"
+    ],
+    [
+     723,
+     "-"
+    ],
+    [
+     740,
+     "A"
+    ],
+    [
+     743,
+     "-"
+    ]
+   ],
+   "shots": {
+    "choose": 300,
+    "plates": 580,
+    "next": 740
+   },
+   "checks": [
+    {
+     "rule": "ER-5",
+     "what": "the plates go to the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "ER-5",
+     "what": "the logo before the plates first show",
+     "type": "uniform",
+     "shot": "choose",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      200,
+      200
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ER-5",
+     "what": "the three HP bars on the second screen",
+     "type": "pixels",
+     "shot": "plates",
+     "screen": "second",
+     "probes": [
+      [
+       154,
+       114,
+       "E70000"
+      ],
+      [
+       474,
+       114,
+       "E70000"
+      ],
+      [
+       794,
+       114,
+       "E70000"
+      ]
+     ],
+     "tol": 8
+    },
+    {
+     "rule": "ER-8",
+     "what": "the bars off the game screen (the desert there)",
+     "type": "pixels",
+     "shot": "plates",
+     "screen": "game",
+     "probes": [
+      [
+       154,
+       114,
+       "EFDE6B"
+      ]
+     ],
+     "tol": 8
+    },
+    {
+     "rule": "ER-5",
+     "what": "the plates kept while the next command is chosen",
+     "type": "same",
+     "a": {
+      "shot": "plates",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       160
+      ]
+     },
+     "b": {
+      "shot": "next",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       160
+      ]
+     },
+     "frac": 0.05
+    },
+    {
+     "rule": "ER-8",
+     "what": "none of the plates left on the game screen (their bottom edge, row 24)",
+     "type": "not_pixels",
+     "shot": "plates",
+     "screen": "game",
+     "probes": [
+      [
+       114,
+       162,
+       "DEDEDE"
+      ],
+      [
+       154,
+       162,
+       "DEDEDE"
+      ],
+      [
+       194,
+       162,
+       "DEDEDE"
+      ],
+      [
+       434,
+       162,
+       "DEDEDE"
+      ],
+      [
+       474,
+       162,
+       "DEDEDE"
+      ],
+      [
+       754,
+       162,
+       "DEDEDE"
+      ],
+      [
+       794,
+       162,
+       "DEDEDE"
+      ]
+     ],
+     "tol": 8
+    }
+   ]
+  },
+  {
+   "id": "er-us-quick",
+   "rom": "BENE",
+   "state": "eragon/us-carvahall.ss",
+   "desc": "the Party screen in Carvahall, then out onto the overworld: its map within half a second",
+   "rules": [
+    "ER-9"
+   ],
+   "input": [
+    [
+     320,
+     "LOAD:eragon/us-overworld.ss"
+    ]
+   ],
+   "shots": {
+    "town": 300,
+    "overworld": 350
+   },
+   "checks": [
+    {
+     "rule": "ER-9",
+     "what": "the map, not the Party screen, at once",
+     "type": "differs",
+     "a": {
+      "shot": "town",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "overworld",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "er-us-title",
+   "rom": "BENE",
+   "state": "eragon/us-title.ss",
+   "desc": "the title screen: the logo, no captures",
+   "rules": [
+    "ER-6"
+   ],
+   "shots": {
+    "start": 300
+   },
+   "checks": [
+    {
+     "rule": "ER-6",
+     "what": "no capture",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ER-6",
+     "what": "the logo alone (the idle grey round it)",
+     "shot": "start",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      200,
+      200
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "er-eu-language",
+   "rom": "BENP",
+   "state": "eragon/eu-language.ss",
+   "desc": "Europe's language screen: the logo, no captures",
+   "rules": [
+    "ER-6"
+   ],
+   "shots": {
+    "start": 300
+   },
+   "checks": [
+    {
+     "rule": "ER-6",
+     "what": "no capture",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ER-6",
+     "what": "the logo alone (the idle grey round it)",
+     "shot": "start",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      200,
+      200
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "er-eu-town",
+   "rom": "BENP",
+   "state": "eragon/eu-carvahall.ss",
+   "desc": "Europe: walking about Carvahall: the Party screen, every card lit",
+   "rules": [
+    "ER-1",
+    "ER-2"
+   ],
+   "shots": {
+    "start": 300
+   },
+   "checks": [
+    {
+     "rule": "ER-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ER-2",
+     "what": "the second and third cards lit like the first",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       274,
+       410,
+       "212984"
+      ],
+      [
+       634,
+       410,
+       "212984"
+      ],
+      [
+       274,
+       634,
+       "212984"
+      ],
+      [
+       634,
+       634,
+       "212984"
+      ]
+     ],
+     "tol": 4
+    }
+   ]
+  },
+  {
+   "id": "er-eu-desert",
+   "rom": "BENP",
+   "state": "eragon/eu-desert.ss",
+   "desc": "Europe: the Hadarac desert, which L maps though its place byte reads as a town's: the map",
+   "rules": [
+    "ER-3"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "rule": "ER-3",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "er-logo-bene",
+   "kind": "logo",
+   "rom": "BENE",
+   "desc": "BENE logo extraction",
+   "rules": [
+    "GEN-1",
+    "ER-7"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "er-logo-benp",
+   "kind": "logo",
+   "rom": "BENP",
+   "desc": "BENP logo extraction",
+   "rules": [
+    "GEN-1",
+    "ER-7"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

@@ -4,7 +4,7 @@ full-screen title picture rather than drawn on a layer of their own.
 
     GBADS_LOGO_DEBUG=1 build/host/harness THPS2.gba out logo.txt   # 'logo logo'
     (writes out/logo.png.fg.png: the exact title frame GBA DS renders)
-    tools/make_logo_masks.py THPS2=THPS2-frame.png [SK8=SK8-frame.png] [THPS3=...]
+    tools/make_logo_masks.py THPS2=THPS2-frame.png [SK8=SK8-frame.png] [THPS3=...] [AMW=...]
 
 Masks not named on the command line are kept as they are in
 src/logo_masks.c, so one can be redone without the other games' ROMs.
@@ -150,6 +150,103 @@ def dbz(a):
     patch[fill & ~zr] = black[0] << 16 | black[1] << 8 | black[2]
     return m, patch
 
+def dbz2(a):
+    """Dragon Ball Z: The Legacy of Goku II (USA, Europe): DRAGON BALL Z and
+    THE LEGACY OF GOKU II painted over Goku, the Androids and the sky. The
+    lettering's saturated warm colours (yellow, red, the orange ball), in
+    pieces of 120 pixels or more (not Goku's hair's yellow streaks or 17's
+    scarf), the dark outline beside them and what they enclose (THE LEGACY
+    OF and GOKU are black inside), but not the bits of blue sky enclosed
+    between the lines. The (R) and TM, white, are left out, as is all from
+    the START / OPTIONS box down."""
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    ys, xs = np.mgrid[0:H, 0:W]
+    band = ys < 106
+    warm = comps((r - b > 100) & (r > 150) & band, 120)
+    near = ndimage.distance_transform_edt(~warm) <= 2
+    m = warm | ((a.max(axis=2) < 90) & near & band)
+    m = ndimage.binary_fill_holes(m) & ~(~m & (b > r + 20))
+    return comps(m, 150)
+
+
+def dbz2_jpn(a):
+    """Dragon Ball Z: The Legacy of Goku II International (Japan): DRAGON
+    BALL Z and the II as in the USA's (saturated warm and its dark outline;
+    not Goku's paler hair, at the left edge), and the subtitle band below
+    (THE LEGACY OF GOKU, the blue bar, INTERNATIONAL, on cream lines) by
+    its own colours, from its left end to the II, rows 66-93: Goku's aura
+    is the same cream, so the band's ends are where it stops."""
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    ys, xs = np.mgrid[0:H, 0:W]
+    rgb = r << 16 | g << 8 | b
+    band = (ys < 96) & (xs >= 30)
+    warm = comps((r - b > 100) & (r >= 200) & band, 20)
+    near = ndimage.distance_transform_edt(~warm) <= 2
+    top = warm | ((a.max(axis=2) < 90) & near & band)
+    pal = [0xFFFFCE, 0x182939, 0x8C8C8C, 0xFF9C00, 0xFF7300, 0xCE6300, 0x733108, 0x2163E7, 0x21BD7B, 0x7BD6AD]
+    sub = (ys >= 66) & (ys <= 93) & (xs >= 33) & (xs <= 202) & np.isin(rgb, pal)
+    # (INTERNATIONAL's own rows start at its I: the hair shows left of it)
+    sub &= ~((ys >= 86) & (ys <= 89) & (xs < 54))
+    m = top | sub
+    m = ndimage.binary_fill_holes(m) & ~(~m & (b > r + 20))
+    return comps(m, 150)
+
+
+def bf(a):
+    """Dragon Ball Z: Buu's Fury (USA): DRAGON BALL Z and BUU'S FURY painted
+    over the fighters, Buu and an orange sun much the colour of the
+    lettering, BUU'S FURY on a dark band with orange sparks. First the
+    lettering's area, by its black outline: the outline's large pieces
+    (rows 0-72, left of the (R)), their one-pixel gaps closed, and all they
+    enclose, Buu's pink left out; between BALL and the Z's diagonal (from x
+    140, rows 0-48), where that encloses a sliver of the sun, only the red
+    letters and the outline next to them. Then, inside it, the letters
+    themselves: the coloured pieces (not outline-dark) of 100 pixels or
+    more, or of 10 or more in the letters' saturated yellow or red (a piece
+    of the G); not the sun's slivers, the band's sparks or the strip
+    under the Z. The mask is those letters, a one-pixel ring round them and
+    all they enclose (the letters' counters), so each letter ends on a
+    black edge (the owner's request, Nov 9, 2026: see BF-1): wherever that
+    ring or counter isn't the game's outline-dark already, it's drawn black.
+    Returns the mask and the drawn pixels (0xRRGGBB, -1 elsewhere)."""
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    ys, xs = np.mgrid[0:H, 0:W]
+    band = (ys <= 72) & (xs <= 212)
+    dark = (a.max(axis=2) < 60) & (b < 20)
+    outline = comps(dark & band, 150)
+    m = ndimage.binary_fill_holes(ndimage.binary_closing(outline, structure=np.ones((3, 3)))) & band
+    m &= ~((r > 200) & (b > 100))
+    zone = (xs >= 140) & (ys <= 48)
+    red = (r >= 80) & (g < 40) & (b < 40) & zone
+    near = ndimage.distance_transform_edt(~red) <= 1.5
+    m = (m & ~zone) | (ndimage.binary_fill_holes(red | (near & dark)) & zone)
+    m = comps(m, 150)
+    # the letters: the coloured pieces inside it (4-connected)
+    fill = m & ~dark
+    sat = (r > 150) & ((g > 150) | (g < 40)) & (b < 60)
+    lab, n = ndimage.label(fill)
+    keep = []
+    for i in range(1, n + 1):
+        piece = lab == i
+        size = int(piece.sum())
+        if size >= 100 or (size >= 10 and sat[piece].mean() > 0.5):
+            keep.append(i)
+    fill = np.isin(lab, keep)
+    mask = ndimage.binary_fill_holes(ndimage.binary_dilation(fill, structure=np.ones((3, 3))))
+    patch = np.full((H, W), -1, np.int64)
+    patch[mask & ~fill & ~dark] = 0
+    return mask, patch
+
+
+def comps(m, mn):
+    """The parts of m (8-connected) of mn pixels or more."""
+    lab, n = ndimage.label(m, structure=np.ones((3, 3)))
+    if not n:
+        return m
+    s = ndimage.sum(m, lab, range(1, n + 1))
+    return np.isin(lab, [i + 1 for i, v in enumerate(s) if v >= mn])
+
+
 def gs2(a):
     """Golden Sun: The Lost Age (every release; its title only comes with a
     save, so the logo profile patches the save check): the emblem painted
@@ -226,9 +323,121 @@ def cnk_jpn(a):
     return _from_edges((b >= r + 20) & (b >= g + 30) & (r >= g))
 
 
+def amw(a):
+    """Muppet Pinball Mayhem (USA, Europe): the name on its badge (the
+    starburst, three bumpers and the swoosh under MAYHEM) in the title
+    picture's top left corner. The shape is tools/logo_masks/amw.png, made
+    from a high-resolution copy of the logo with a transparent background,
+    scaled to the title's (146x94 from its top left, a pixel to the right)
+    less its ball, which the title doesn't have, and the places where the
+    title's Muppets and roller coaster are drawn in front (the swoosh's tail,
+    the right bumper's foot): the sky, the coaster and the Muppets left out."""
+    shape = np.asarray(Image.open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                               "logo_masks", "amw.png")).convert("L")) > 127
+    return shape[:a.shape[0], :a.shape[1]]
+
+
+def nfo(a):
+    """Ninja Five-O (USA): NINJA and FIVE-O without the black brush-stroke
+    kanji behind them or the white title screen. Every colour but the
+    greys (the kanji, NINJA's white outline, the background, the TM, the
+    copyright line) is lettering; then the light pixels left on the
+    lettering's edge (its blend into the white) are peeled off, three
+    deep, and spurs with fewer than three neighbours dropped."""
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    keep = ~((abs(r - g) <= 12) & (abs(g - b) <= 12))
+    keep[146:] = False
+    lab, n = ndimage.label(keep)
+    sizes = ndimage.sum(keep, lab, range(1, n + 1))
+    keep = np.isin(lab, [i + 1 for i, s in enumerate(sizes) if s >= 30])
+    light = a.min(axis=2) >= 150
+    for _ in range(3):
+        keep &= ~(light & keep & ~ndimage.binary_erosion(keep, border_value=0))
+    # FIVE-O (from row 95): the greyish blends where its letters met the
+    # kanji (between the I and V, under the I and the dash), greener
+    # than red and dull; not its navy, blues or the V's purple
+    dull = (g > r) & (a.max(axis=2) - a.min(axis=2) < 60) & (r >= 40)
+    dull[:95] = False
+    keep &= ~dull
+    for _ in range(2):
+        nb = ndimage.convolve(keep.astype(int), np.ones((3, 3), int), mode="constant") - keep
+        keep &= nb >= 3
+    return keep
+
+
+def nfo_eur(a):
+    """Ninja Cop (Europe): NINJA COP to the outside of its white outline,
+    without the ragged black and purple rim round it or the blue screen:
+    dark pixels, the blue, and the rim's mauve (red well above green, blue
+    above green) reached from the edges are clear."""
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    bgc = (a.max(axis=2) < 160) | ((b > r + 80) & (b > g + 80)) | ((r > g + 20) & (b > g) & (g > 60))
+    keep = _from_edges(bgc)
+    keep[100:] = False
+    return keep
+
+
+def vr3(a):
+    """V-Rally 3: the main menu's heading (the game has no title screen),
+    V-RALLY 3 in cream and gold with a dark outline and its heartbeat line,
+    over purple stripes (blue at least 12 above red); the menu below the
+    heading's band (from row 44) is left out."""
+    r, b = a[..., 0], a[..., 2]
+    ys = np.mgrid[0:H, 0:W][0]
+    return _from_edges((b >= r + 12) | (ys >= 44))
+
+
+def gt3(a):
+    """GT Advance 3: Pro Concept Racing (USA, Europe): GT3 ADVANCE PRO
+    CONCEPT RACING painted over a highway and white sky, the GT3 silver
+    with blue reflections, ADVANCE black, the subtitle navy: colours the
+    highway shares, so no rule on them cuts the lettering out cleanly. The
+    outline is a stencil instead, tools/logo_stencils/gt3.png: the
+    publisher's logo artwork's silhouette (its glow left out) scaled to
+    the title's lettering (0.30 x 0.32, at 59.5, 0: the best overlap with
+    the title's grey and black pixels), without the PRO CONCEPT RACING
+    line (navy, unreadable on the idle screen's grey). Only its outline is
+    used; the pixels are the title's."""
+    st = np.asarray(Image.open(os.path.join(ROOT, "tools", "logo_stencils", "gt3.png")).convert("L")) > 127
+    return st
+
+
+def gt3_jpn(a):
+    """Advance GT2 (GT Advance 3 in Japan): its lettering outlined in black
+    over the highway and sky, everything inside the outline, and the bar
+    under it with its katakana (rows 44-52) whole; the highway's loose dark
+    streaks (under 400 pixels) left out."""
+    ys, xs = np.mgrid[0:H, 0:W]
+    m = _from_edges((a.max(axis=2) >= 0x60) | (ys >= 53) | (ys < 5) | (xs < 12))
+    m |= (ys >= 44) & (ys <= 52) & (xs >= 12) & (xs <= 231)
+    return comps(m, 400)
+
+
+def er(a):
+    """Eragon (USA, Europe: the same title picture): the carved "eragon"
+    without the stone it's carved into or its TM. The owner's outline of
+    the word (tools/logo_stencils/er.png, from the film's logo), scaled and
+    placed on the title's letters (187.5 frame pixels wide, its top left at
+    26.75, 15.25: where its outline best follows the letters' edges), and
+    one pixel wider all round so the carved rims (the light top edge, the
+    shadow below) come too. The frame itself isn't read."""
+    ink = np.asarray(Image.open(os.path.join(ROOT, "tools", "logo_stencils", "er.png")).convert("L")) >= 128
+    ss, x0, y0, w = 4, 26.75, 15.25, 187.5
+    h = w * ink.shape[0] / ink.shape[1]
+    sw, sh = int(round(w * ss)), int(round(h * ss))
+    big = np.zeros((H * ss, W * ss))
+    ox, oy = int(round(x0 * ss)), int(round(y0 * ss))
+    big[oy:oy + sh, ox:ox + sw] = np.asarray(Image.fromarray(ink.astype(np.uint8) * 255).resize((sw, sh), Image.BILINEAR)) / 255
+    m = big.reshape(H, ss, W, ss).mean(axis=(1, 3)) >= 0.5
+    return ndimage.binary_dilation(m, iterations=1)
+
+
 MASKS = (("THPS2", thps2), ("SK8", sk8), ("THPS3", thps3), ("DBZ", dbz),
          ("GS2E", gs2), ("GS2D", gs2_dial), ("GS2F", gs2_dial), ("GS2I", gs2), ("GS2S", gs2_dial),
-         ("GS2J", gs2), ("CNK", cnk), ("CNKJ", cnk_jpn))
+         ("GS2J", gs2), ("CNK", cnk), ("CNKJ", cnk_jpn),
+         ("DBZ2", dbz2), ("DBZ2J", dbz2_jpn), ("BF", bf),
+         ("VR3", vr3), ("VR3J", vr3), ("GT3", gt3), ("GT3J", gt3_jpn),
+         ("NFO", nfo), ("NFOP", nfo_eur), ("AMW", amw), ("ER", er))
 
 
 def runs(mask):
