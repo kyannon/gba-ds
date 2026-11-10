@@ -1,11 +1,14 @@
 # The web player
 
-GBA DS in a browser, for testing builds without the device (and, later,
-perhaps for players). It runs a dev build's `web/gba-ds.wasm` (the same file
-State Saver's GBA DS tab runs) for the screens of any device GBA DS knows,
-with sound, every button, remappable keys and controllers, and the bottom
-screen as the touchscreen. Work on it happens on the `web-player` branch
-until it's merged into `dev`.
+GBA DS in a browser, in beta: for players (published to GitHub Pages from
+each release, below) and for trying builds without the device. It runs a
+build's `web/gba-ds.wasm` (the one that comes with it, or a zip with a web
+build dropped on it: the `-dev` zips have one, release zips don't; the same
+file State Saver's GBA DS tab runs) for the screens of any device GBA DS
+knows, with sound, every button, remappable keys, controllers and
+on-screen controls, and the bottom screen as the touchscreen. Merged into
+`dev` on Nov 10, 2026; the `web-player` branch stays open for work on it
+after the release (merge `dev` in before starting, merge back when tested).
 
 ## Building it
 
@@ -188,12 +191,3 @@ of ARM assembled with clang (`--target=armv4t-none-eabi`) and linked at
 - The browser may not show a Bluetooth controller until one of its buttons
   is pressed with the page open.
 - Sound starts with the first click or key on the page (browsers' rule).
-
-## For the merge
-
-Changelog line (under the open version):
-
-- New: a web player for GBA DS, one .html file or a folder for a web
-  server. Drop a dev build and a game on it to play with the screens of any
-  supported device, with sound, remappable keys and Bluetooth or USB
-  controllers, and the bottom screen as the touchscreen.

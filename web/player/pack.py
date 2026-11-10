@@ -6,7 +6,8 @@
 
   pack.py OUT [--build ZIP_OR_WASM]
 
---build puts a GBA DS build in both, so the player starts with it: a dev zip
+--build puts a GBA DS build in both, so the player starts with it: a zip with a
+web build inside (the -dev zips have one; the Pages workflow builds its own)
 (gba-ds-*-linux-aarch64.zip, its gba-ds/web/gba-ds.wasm) or a bare
 gba-ds.wasm (then dist/gba-ds.cfg and VERSION go with it). Only what the
 player uses is kept (web/gba-ds.wasm, web/VERSION, gba-ds.cfg,
@@ -186,7 +187,7 @@ def main():
             z.writestr(d + "build/gba-ds-web.zip", bundle)
         z.writestr(d + "README.txt", README.format(version=version, bundled=(
             "build/gba-ds-web.zip is GBA DS " + bver + ": the player starts with it.\n" if bundle else
-            "No GBA DS build comes with it: drop a dev build (.zip) on the page,\nor put one at build/gba-ds-web.zip (scripts/build-web-player.sh --build).\n")))
+            "No GBA DS build comes with it: drop a GBA DS build (.zip) with a web\nbuild inside on the page, or put one at build/gba-ds-web.zip\n(scripts/build-web-player.sh --build).\n")))
     for n in (name + ".html", name + ".zip"):
         print(os.path.join(a.out, n), os.path.getsize(os.path.join(a.out, n)))
 
@@ -202,7 +203,7 @@ can't start the files beside it, so for that use the one-file player
 (gba-ds-web-player-*.html) instead.
 
 {bundled}
-Drop on the page: a GBA DS dev build (.zip), a game (.gba or zipped), a
+Drop on the page: a game (.gba or zipped), a GBA DS build (.zip), a
 battery save (.sav) or a state (.ss), or a bug report zip. Saves, states and
 settings stay in the browser (IndexedDB); nothing is sent anywhere.
 

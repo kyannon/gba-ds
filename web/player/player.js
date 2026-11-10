@@ -1,4 +1,5 @@
-/* GBA DS web player: the page. Takes a dev build (its web/gba-ds.wasm) and a
+/* GBA DS web player: the page. Takes a GBA DS build (its web/gba-ds.wasm: the
+ * one that comes with the player, or a zip dropped on it) and a
  * game, runs GBA DS in a worker (worker.js) for the screens of a chosen
  * device, and maps the keyboard and controllers to the device's buttons.
  * Packed by scripts/build-web-player.sh into one .html file or a folder. */
@@ -162,7 +163,7 @@ function buildCaps(module) {
   const names = new Set(WebAssembly.Module.exports(module).map((e) => e.name));
   return { hasAudio: names.has("web_audio_pull"), hasButtons: names.has("web_buttons"), hasCaptureWorker: names.has("web_capture_job") };
 }
-const NO_SOUND = "No sound: this build's web version was made without it (it's on the web-player branch, not yet in dev).";
+const NO_SOUND = "No sound: this build's web version was made without it.";
 const NO_BUTTONS = "Keyboard only: X and Y can't be pressed with this build.";
 function warnCaps(b) {
   if (!b.caps.hasAudio) toast(NO_SOUND, true);
@@ -431,7 +432,7 @@ function freshCanvas() {
 }
 async function boot(opts) {
   opts = opts || {};
-  if (!P.build) { toast("Now drop a GBA DS dev build (.zip).", true); showSlots(); return; }
+  if (!P.build) { toast("Now drop a GBA DS build (.zip) with a web build inside.", true); showSlots(); return; }
   if (!P.rom && !opts.library) { toast("Now drop a GBA game (.gba).", true); showSlots(); return; }
   if (P.booting) return;
   P.booting = true;
@@ -609,7 +610,7 @@ function showSlots() {
   const b = P.build, r = P.rom;
   $("slotBuild").classList.toggle("have", !!b);
   $("buildName").textContent = b ? "GBA DS " + b.version : "No build yet";
-  $("buildHint").textContent = b ? (!b.caps.hasAudio ? "No sound in this build's web version" : !b.caps.hasButtons ? "Keyboard only: no X or Y" : b.bundled ? "Comes with this player · drop a dev build to use another" : b.name) : "A GBA DS dev build (.zip) with a web build inside";
+  $("buildHint").textContent = b ? (!b.caps.hasAudio ? "No sound in this build's web version" : !b.caps.hasButtons ? "Keyboard only: no X or Y" : b.bundled ? "Comes with this player · drop another build (.zip) to try it" : b.name) : "A GBA DS build (.zip) with a web build inside";
   $("buildHint").classList.toggle("warn", !!b && !(b.caps.hasAudio && b.caps.hasButtons));
   $("slotGame").classList.toggle("have", !!r);
   $("gameName").textContent = r ? r.title : "No game yet";

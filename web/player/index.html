@@ -21,7 +21,7 @@
     <div class="brand">
       <img class="logo" src="logo.png" alt="GBA DS">
       <span class="product">Web player</span>
-      <span class="tag" id="testTag" title="This player is for testing GBA DS builds">Testing</span>
+      <span class="tag" id="betaTag" title="The web player is in beta: some things may change or not work yet">Beta</span>
     </div>
     <div class="now" id="nowPlaying" hidden>
       <span class="now-title" id="nowTitle"></span>
@@ -52,14 +52,9 @@
     <section class="start" id="start">
       <div class="start-card">
         <div class="notice" id="iosNotice" hidden><span>On iPhone and iPad, add this page to your Home Screen (Share, then Add to Home Screen) and open it from there: Safari can clear what a page keeps, your saves included, when it isn't opened for a while.</span><button type="button" id="iosNoticeX" aria-label="Dismiss">×</button></div>
-        <h1>Play a GBA DS build in your browser</h1>
-        <p class="lede">Drop files anywhere on this page, or choose them. A build and a game are all it needs.</p>
+        <h1>GBA DS in your browser</h1>
+        <p class="lede">Choose a GBA game, or drop it anywhere on this page. Your games and saves stay on this device.</p>
         <div class="slots">
-          <button class="slot" id="slotBuild" type="button">
-            <span class="slot-k">Build</span>
-            <span class="slot-v" id="buildName">No build yet</span>
-            <span class="slot-h" id="buildHint">A GBA DS dev build (.zip) with a web build inside</span>
-          </button>
           <button class="slot" id="slotGame" type="button">
             <span class="slot-k">Game</span>
             <span class="slot-v" id="gameName">No game yet</span>
@@ -69,6 +64,11 @@
             <span class="slot-k">Save <em>optional</em></span>
             <span class="slot-v" id="saveName">The player keeps your saves</span>
             <span class="slot-h">A battery save (.sav, .srm) or a state (.ss) to start from</span>
+          </button>
+          <button class="slot optional" id="slotBuild" type="button">
+            <span class="slot-k">GBA DS</span>
+            <span class="slot-v" id="buildName">No build yet</span>
+            <span class="slot-h" id="buildHint">A GBA DS build (.zip) with a web build inside</span>
           </button>
         </div>
         <div class="go">
@@ -139,7 +139,7 @@
       </div>
     </section>
     <section>
-      <h3>Testing</h3>
+      <h3>Troubleshooting</h3>
       <div class="buttons"><button type="button" class="ghost" id="logBtn">Show GBA DS's log</button></div>
       <p class="note" id="aboutNote"></p>
     </section>
