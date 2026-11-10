@@ -4475,7 +4475,8 @@ static const char* sm3_compose(Emu* s, const void* state, uint32_t* out, int w, 
  *             places with a map (the desert); in a battle it runs through
  *             the battle's own steps: only for following the player (ER-9),
  *             L itself tells where there's a map
- *   ER_BATTLE 1 from a battle's start to its end
+ *   ER_BATTLE 1 from a battle's start to its end (5 or 6 in the debug
+ *             menu's battles): a battle is anything but 0
  * The Party screen dims every card but the chosen one (the first as it
  * opens); its cards are ER_CARD rows apart, so each band of rows is taken
  * from the picture with that card chosen (DOWN), ER-2. */
@@ -4490,12 +4491,19 @@ static const char* sm3_compose(Emu* s, const void* state, uint32_t* out, int w, 
 #define ER_V_TITLE 0xF0000080  /* the title or the language screen (ER-6) */
 #define ER_V_FORGET 0xF0000081 /* the title or a battle: the pictures go (ER-5, ER-6) */
 #define ER_V_PLACE 0xF0000082  /* the kind of place, 0 in a battle (ER-9) */
+#define ER_V_BATTLE 0xF0000083 /* a battle: its plates' last picture kept (ER-5) */
+/* the party's name plates and HP bars along the top in a battle (ER-5):
+ * BG3's first map entry is the first plate's corner exactly while they're
+ * up (the combo track has none there) */
+#define ER_PLATES 0x0600E002
+#define ER_PLATE 0x0212
 
 static uint32_t er_virt(Emu* e, uint32_t addr) {
 	int screen = emu_read8(e, ER_SCREEN);
 	bool title = screen == 3 || screen == 7;
-	bool battle = emu_read8(e, ER_BATTLE) == 1;
+	bool battle = emu_read8(e, ER_BATTLE) != 0;
 	if (addr == ER_V_TITLE) return title;
+	if (addr == ER_V_BATTLE) return battle;
 	if (addr == ER_V_FORGET) return title || battle;
 	if (addr == ER_V_PLACE) return battle ? 0 : emu_read8(e, ER_PLACE);
 	return 0;
@@ -4558,7 +4566,7 @@ static const char* er_compose(Emu* s, const void* state, uint32_t* out, int w, i
 	emu_frame(s, 0);
 	/* a battle: the logo (ER-5); elsewhere neither screen opens but from
 	 * the field, its menu or the map (ER-4): quick failures */
-	if (emu_read8(s, ER_BATTLE) == 1) return "map button did nothing";
+	if (emu_read8(s, ER_BATTLE) != 0) return "map button did nothing";
 	int screen = emu_read8(s, ER_SCREEN);
 	if (screen != ER_FIELD && screen != ER_MENU && screen != ER_PARTY && screen != ER_MAP) return "map button did nothing";
 	/* the map where L opens one (ER-3): the screen byte reads 0x9A (its
@@ -6624,14 +6632,24 @@ static const MapProfile profiles[] = {
 		.virt = er_virt,
 		/* the title: the logo, no captures (ER-6) */
 		.live = { { ER_V_TITLE, 0xFF, 0, 4 } },
-		.menu = { { ER_V_FORGET, 0xFF, 1, 4 } }, /* (ER-5, ER-6) */
-		/* a battle: the logo (ER-5) */
-		.combat = { { ER_BATTLE, 0xFF, 1, 1 } },
+		.menu = { { ER_V_FORGET, 0xFF, 1, 4 } }, /* (ER-5, ER-6: the logo until the plates) */
+		/* a battle: its plates and HP bars, BG3's top three rows of
+		 * tiles and the bars' sprites, on the second screen with the
+		 * logo below; kept while a command is chosen (ER-5) */
+		.hud = {
+			.on = { { ER_PLATES, 0xFFFF, ER_PLATE, 2 }, { 0x0400000E, 0xFFFC, 0x1C08, 2 } },
+			.keep = { { ER_V_BATTLE, 0xFF, 1, 4 } },
+			.bgMask = 8,
+			.objs = { { 0, -8, 239, 23, 0, 1023, 0 } },
+			.rows = 24,
+			.logoBelow = true,
+		},
 		/* into a place or out of one, or a battle over (ER-9) */
 		.room = { { ER_V_PLACE, 0xFF, 0, 4 } },
-		/* the carved "eragon" and its TM on their strip of stone: the
-		 * title picture (BG1) alone, boxed (ER-7) */
-		.logo = { .wait = 1000, .layer = 1, .minY = 8, .maxY = 58, .minX = 20, .maxX = 232 },
+		/* the carved "eragon" alone, cut out by the owner's outline of
+		 * the word (ER-7; tools/make_logo_masks.py, er). rev 1: the boxed
+		 * strip of stone before */
+		.logo = { .wait = 1000, .mask = &logoMaskER, .rev = 1 },
 	},
 	{
 		/* the same for Europe: A on its language screen (English) first */
@@ -6643,9 +6661,16 @@ static const MapProfile profiles[] = {
 		.virt = er_virt,
 		.live = { { ER_V_TITLE, 0xFF, 0, 4 } },
 		.menu = { { ER_V_FORGET, 0xFF, 1, 4 } },
-		.combat = { { ER_BATTLE, 0xFF, 1, 1 } },
+		.hud = {
+			.on = { { ER_PLATES, 0xFFFF, ER_PLATE, 2 }, { 0x0400000E, 0xFFFC, 0x1C08, 2 } },
+			.keep = { { ER_V_BATTLE, 0xFF, 1, 4 } },
+			.bgMask = 8,
+			.objs = { { 0, -8, 239, 23, 0, 1023, 0 } },
+			.rows = 24,
+			.logoBelow = true,
+		},
 		.room = { { ER_V_PLACE, 0xFF, 0, 4 } },
-		.logo = { .steps = { { 0, 100 }, { K_A, 4 }, { 0, 1100 } }, .layer = 1, .minY = 8, .maxY = 58, .minX = 20, .maxX = 232 },
+		.logo = { .steps = { { 0, 100 }, { K_A, 4 }, { 0, 1100 } }, .mask = &logoMaskER, .rev = 1 },
 	},
 };
 

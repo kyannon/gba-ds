@@ -310,7 +310,7 @@
    "id": "er-us-battle",
    "rom": "BENE",
    "state": "eragon/us-overworld.ss",
-   "desc": "the overworld's map, then a battle (the logo), then Retreat (R, DOWN three times, A, A on Escaped): the map again",
+   "desc": "the overworld's map, then a battle (the logo till the plates show), then Retreat (R, DOWN three times, A, A on Escaped): the map again",
    "rules": [
     "ER-3",
     "ER-5",
@@ -378,18 +378,6 @@
    "checks": [
     {
      "rule": "ER-5",
-     "what": "the battle's logo",
-     "type": "log",
-     "match": "fight on"
-    },
-    {
-     "rule": "ER-5",
-     "what": "the battle over",
-     "type": "log",
-     "match": "fight off"
-    },
-    {
-     "rule": "ER-5",
      "what": "the map gone in the battle",
      "type": "differs",
      "a": {
@@ -453,6 +441,292 @@
       200
      ],
      "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "er-us-battle-hp",
+   "rom": "BENE",
+   "state": "eragon/us-overworld.ss",
+   "desc": "a battle from the overworld, A through Murtagh's attacks: the logo while the first command is chosen, then the party's plates and HP bars on the second screen (off the game screen), kept while the next command is chosen",
+   "rules": [
+    "ER-5",
+    "ER-7",
+    "ER-8"
+   ],
+   "input": [
+    [
+     220,
+     "LOAD:eragon/us-battle.ss"
+    ],
+    [
+     320,
+     "A"
+    ],
+    [
+     323,
+     "-"
+    ],
+    [
+     340,
+     "A"
+    ],
+    [
+     343,
+     "-"
+    ],
+    [
+     360,
+     "A"
+    ],
+    [
+     363,
+     "-"
+    ],
+    [
+     380,
+     "A"
+    ],
+    [
+     383,
+     "-"
+    ],
+    [
+     400,
+     "A"
+    ],
+    [
+     403,
+     "-"
+    ],
+    [
+     420,
+     "A"
+    ],
+    [
+     423,
+     "-"
+    ],
+    [
+     440,
+     "A"
+    ],
+    [
+     443,
+     "-"
+    ],
+    [
+     460,
+     "A"
+    ],
+    [
+     463,
+     "-"
+    ],
+    [
+     480,
+     "A"
+    ],
+    [
+     483,
+     "-"
+    ],
+    [
+     500,
+     "A"
+    ],
+    [
+     503,
+     "-"
+    ],
+    [
+     520,
+     "A"
+    ],
+    [
+     523,
+     "-"
+    ],
+    [
+     540,
+     "A"
+    ],
+    [
+     543,
+     "-"
+    ],
+    [
+     560,
+     "A"
+    ],
+    [
+     563,
+     "-"
+    ],
+    [
+     580,
+     "A"
+    ],
+    [
+     583,
+     "-"
+    ],
+    [
+     600,
+     "A"
+    ],
+    [
+     603,
+     "-"
+    ],
+    [
+     620,
+     "A"
+    ],
+    [
+     623,
+     "-"
+    ],
+    [
+     640,
+     "A"
+    ],
+    [
+     643,
+     "-"
+    ],
+    [
+     660,
+     "A"
+    ],
+    [
+     663,
+     "-"
+    ],
+    [
+     680,
+     "A"
+    ],
+    [
+     683,
+     "-"
+    ],
+    [
+     700,
+     "A"
+    ],
+    [
+     703,
+     "-"
+    ],
+    [
+     720,
+     "A"
+    ],
+    [
+     723,
+     "-"
+    ],
+    [
+     740,
+     "A"
+    ],
+    [
+     743,
+     "-"
+    ]
+   ],
+   "shots": {
+    "choose": 300,
+    "plates": 580,
+    "next": 740
+   },
+   "checks": [
+    {
+     "rule": "ER-5",
+     "what": "the plates go to the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "ER-5",
+     "what": "the logo before the plates first show",
+     "type": "uniform",
+     "shot": "choose",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      200,
+      200
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ER-5",
+     "what": "the three HP bars on the second screen",
+     "type": "pixels",
+     "shot": "plates",
+     "screen": "second",
+     "probes": [
+      [
+       154,
+       114,
+       "E70000"
+      ],
+      [
+       474,
+       114,
+       "E70000"
+      ],
+      [
+       794,
+       114,
+       "E70000"
+      ]
+     ],
+     "tol": 8
+    },
+    {
+     "rule": "ER-8",
+     "what": "the bars off the game screen (the desert there)",
+     "type": "pixels",
+     "shot": "plates",
+     "screen": "game",
+     "probes": [
+      [
+       154,
+       114,
+       "EFDE6B"
+      ]
+     ],
+     "tol": 8
+    },
+    {
+     "rule": "ER-5",
+     "what": "the plates kept while the next command is chosen",
+     "type": "same",
+     "a": {
+      "shot": "plates",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       160
+      ]
+     },
+     "b": {
+      "shot": "next",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       160
+      ]
+     },
+     "frac": 0.05
     }
    ]
   },

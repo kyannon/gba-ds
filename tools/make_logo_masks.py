@@ -287,11 +287,30 @@ def vr3(a):
     return _from_edges((b >= r + 12) | (ys >= 44))
 
 
+def er(a):
+    """Eragon (USA, Europe: the same title picture): the carved "eragon"
+    without the stone it's carved into or its TM. The owner's outline of
+    the word (tools/eragon-wordmark.png, from the film's logo), scaled and
+    placed on the title's letters (187.5 frame pixels wide, its top left at
+    26.75, 15.25: where its outline best follows the letters' edges), and
+    one pixel wider all round so the carved rims (the light top edge, the
+    shadow below) come too. The frame itself isn't read."""
+    ink = np.asarray(Image.open(os.path.join(ROOT, "tools", "eragon-wordmark.png")).convert("L")) >= 128
+    ss, x0, y0, w = 4, 26.75, 15.25, 187.5
+    h = w * ink.shape[0] / ink.shape[1]
+    sw, sh = int(round(w * ss)), int(round(h * ss))
+    big = np.zeros((H * ss, W * ss))
+    ox, oy = int(round(x0 * ss)), int(round(y0 * ss))
+    big[oy:oy + sh, ox:ox + sw] = np.asarray(Image.fromarray(ink.astype(np.uint8) * 255).resize((sw, sh), Image.BILINEAR)) / 255
+    m = big.reshape(H, ss, W, ss).mean(axis=(1, 3)) >= 0.5
+    return ndimage.binary_dilation(m, iterations=1)
+
+
 MASKS = (("THPS2", thps2), ("SK8", sk8), ("THPS3", thps3), ("DBZ", dbz),
          ("GS2E", gs2), ("GS2D", gs2_dial), ("GS2F", gs2_dial), ("GS2I", gs2), ("GS2S", gs2_dial),
          ("GS2J", gs2), ("CNK", cnk), ("CNKJ", cnk_jpn),
          ("DBZ2", dbz2), ("DBZ2J", dbz2_jpn),
-         ("VR3", vr3), ("VR3J", vr3))
+         ("VR3", vr3), ("VR3J", vr3), ("ER", er))
 
 
 def runs(mask):

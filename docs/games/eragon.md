@@ -22,13 +22,13 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **ER-4. Last one stays.** Where neither can be opened (a conversation, a scene, a door's fade, the debug menu), the last picture stays; before the first, the logo.
 
-**ER-5. Battles: the logo.** From a battle's start to its end (its victory or escape included), the second screen shows the logo, and the picture from before is dropped: the Party screen or map is taken again once walking about resumes. (The battle screen shows the party's HP itself.)
+**ER-5. Battles: the party's HP.** In a battle, whenever the game shows the party's name plates with their HP bars along the top of the screen (as each attack plays out, the enemies' too), they go to the second screen instead, at its top as the game draws them, the logo below (GEN-1), their bars going down as they are hit. While they're not up (choosing a command, a conversation, the victory's XP windows) the last picture of them stays; before they first show in a battle, the logo. The map or Party screen from before is dropped, and taken again once walking about resumes. *Until Nov 9, 2026: the logo for the whole battle.*
 
 **ER-6. Title.** On the title screen (and the European release's language screen before it) the second screen shows the logo, and no captures are tried there.
 
-**ER-7. Logo.** The logo is the title's carved "eragon" with its ™ on the strip of stone it's carved into (the title picture's BG1, without its sparkles, PRESS START or the copyright lines).
+**ER-7. Logo.** The logo is the title's carved "eragon" alone, cut out of the stone it's carved into along the owner's outline of the word (the film's logo), one pixel wider so its carved rims come too; no ™, sparkles, PRESS START or copyright lines. *Until Nov 9, 2026: the word on its strip of stone, with the ™.*
 
-**ER-8. Game screen untouched.** Nothing leaves the game screen.
+**ER-8. Game screen.** Nothing leaves the game screen but the battle plates (ER-5); the combo track that takes their place while a command is chosen stays.
 
 **ER-9. Quick to follow.** Going from the overworld into a town or back out, and leaving a battle, a capture starts at once (GEN-6) instead of waiting for the next refresh.
 
@@ -40,12 +40,13 @@ The same addresses in both releases.
 |---|---|
 | The screen | `0x03005660` (byte): 1 in the field (walking, or a scripted walk), 3 the title, 4 the debug menu, 6 a conversation (in the field or a battle), 7 the European language screen, 13 (0x0D) the START menu, 14 (0x0E) the Party screen, 16 (0x10) a battle, 22 (0x16) a battle's victory, 26 (0x1A) the overworld map; 0x8x / 0x9x for a moment between |
 | The kind of place | `0x03002330` (byte, outside battles): 12 (0x0C) the overworld, 10 (0x0A) a town or dungeon, but the Hadarac desert, which has a map, reads 10 too; 0 the title; in a battle it runs through the battle's own steps. Only used to follow the player (ER-9): pressing L tells where there's a map (the screen byte reads 0x9A at once, the map's way in; in a town it stays 1) |
-| A battle | `0x0200CAF1` = 1 from a battle's start to its end, 0 elsewhere (2 seen once just after a debug jump, before its battle) |
+| A battle | `0x0200CAF1`: 1 from a battle's start to its end, 0 elsewhere (2 seen once just after a debug jump, before its battle; 5 or 6 in the debug menu's battles) |
 | Timing | The START menu takes A ~50 frames after the screen byte reads 13 (its eye keeps moving: no still picture tells when). After leaving the menu the field takes no START or L for ~120 frames, ~140 after the map. A press must be held a few frames (2 is missed) |
 | Party cards | 56 rows apart (0-55, 56-111, 112-159); the chosen one undimmed |
+| Battle plates | BG3 (BGxCNT 0x1C08), its top three rows of tiles: the map entry at `0x0600E002` is 0x0212 (the first plate's corner) exactly while the plates are up, 0 with the combo track; the red bars are sprites at row 11, priority 0. (`0x0200BF71`, `0x030023AC` follow them only in some battles.) The debug menu's Combat runs battles with `0x0200CAF1` at 5 or 6, so a battle is taken as it being anything but 0 |
 | Debug menu | CodeBreaker `730051C4 0200` / `83005660 0004` (TCRF): write 4 to the screen byte in the field. Jump to Story reaches every chapter (the harness: `poke 0x03005660 2 4`) |
 
 ## For the merge
 
-- Changelog: "Eragon: the Party screen on the second screen in towns and dungeons, every member's card lit, and the overworld map between them; the logo in battles."
-- Wiki (Supported games): **Eragon** (USA, Europe). In towns and dungeons the second screen shows the Party screen: everyone's HP, XP, focus and level, and the party's gold, every card lit. On the overworld it shows the game's map with the party's place on it. In battles, and on the title, it shows the logo; in conversations and scenes the last picture stays.
+- Changelog: "Eragon: the Party screen on the second screen in towns and dungeons, every member's card lit, and the overworld map between them; in battles, the party's HP bars."
+- Wiki (Supported games): **Eragon** (USA, Europe). In towns and dungeons the second screen shows the Party screen: everyone's HP, XP, focus and level, and the party's gold, every card lit. On the overworld it shows the game's map with the party's place on it. In battles the party's name plates and HP bars move there from the top of the game screen. On the title it shows the logo; in conversations and scenes the last picture stays.
