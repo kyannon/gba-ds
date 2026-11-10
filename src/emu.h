@@ -148,7 +148,9 @@ void emu_hud_keep_bgs(unsigned mask);
  * is set); addresses in EWRAM, IWRAM, the I/O registers or VRAM. n 0: off.
  * any: while any one of them holds instead (Mario & Luigi: either box's
  * tile map entry). */
-void emu_hud_mem_layers(const uint32_t addr[2], const uint32_t mask[2], const uint32_t value[2], const int size[2], int n, bool any, unsigned layers);
+/* (gamePal: palette + 1; on a line where one of those layers has a tile
+ * in it, the layer stays on the game there instead; 0: none) */
+void emu_hud_mem_layers(const uint32_t addr[2], const uint32_t mask[2], const uint32_t value[2], const int size[2], int n, bool any, unsigned layers, int gamePal);
 /* While split: both renderers see these bits of the video register at
  * addr (offset from 0x04000000) cleared, the game's register untouched
  * (Advance Wars: WININ's window 0 effects, the darkened box behind the

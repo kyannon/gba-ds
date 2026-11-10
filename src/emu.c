@@ -595,6 +595,8 @@ typedef struct {
 	uint32_t memAddr[2], memMask[2], memVal[2];
 	int memSize[2], memN;
 	bool memAny; /* any one of them holds, instead of every one */
+	int memGamePal; /* palette + 1: their lines with a tile of it stay on the game (0: none) */
+	unsigned memLineOff; /* memLayers left out of the HUD on this line, for that */
 	/* emu_hud_band: lines where a BG has one of these BGxCNT values */
 	unsigned lineHud, lineGame; /* this line's HUD layers / layers left out of the game */
 	int bandY0, bandY1;         /* this frame's band lines so far (y1 < y0: none) */
@@ -684,6 +686,28 @@ static uint32_t split_read(uint32_t a, int size) {
 	return v;
 }
 
+/* Whether text BG `bg`'s map, as the registers are now, has a tile in
+ * palette `pal` on screen line `y` (any column on screen; mode 0, or BG0-1
+ * in mode 1) */
+static bool bg_line_has_pal(int bg, int y, int pal) {
+	const uint16_t* io = split.gba->memory.io;
+	int mode = io[0] & 7;
+	if (mode > 1 || (mode == 1 && bg > 1)) return false;
+	uint16_t cnt = io[(0x08 >> 1) + bg];
+	int hofs = io[(0x10 >> 1) + bg * 2] & 0x1FF, vofs = io[(0x12 >> 1) + bg * 2] & 0x1FF;
+	int size = cnt >> 14, sb = (cnt >> 8) & 0x1F;
+	int wide = size & 1, tall = size >> 1;
+	int ty = ((y + vofs) >> 3) & (tall ? 63 : 31);
+	const uint16_t* vram = split.gba->video.vram;
+	for (int c = 0; c < GBA_W / 8 + 1; ++c) {
+		int tx = ((hofs >> 3) + c) & (wide ? 63 : 31);
+		int block = sb + (tx >> 5) + ((ty >> 5) << wide);
+		uint16_t e = vram[block * 0x400 + (ty & 31) * 32 + (tx & 31)];
+		if ((e & 0x3FF) && (e >> 12) == pal) return true;
+	}
+	return false;
+}
+
 static int copyAbove; /* emu_hud_copy_above */
 static int splitRows; /* emu_hud_rows */
 static bool splitCopying; /* emu_hud_copy: the HUD's layers left on the game too */
@@ -726,6 +750,23 @@ static void split_draw(struct GBAVideoRenderer* r, int y) {
 				split.bgMask = split.lineHud = split.lineGame = m;
 				for (int i = 0; i < 4; ++i) r->disableBG[i] = (m >> i) & 1;
 				if (!split.grabbing) split_layers(m, split.nObjs > 0 || split.nKeep > 0);
+			}
+		}
+		if (split.memGamePal) {
+			/* emu_hud_mem_layers' gamePal: on a line where one of those
+			 * layers has a tile in that palette (Mario & Luigi's speech
+			 * balloons, beside the boxes' text in another), the layer stays
+			 * on the game there and is left out of the HUD (ML-5) */
+			unsigned off = 0;
+			for (int i = 0; i < 4; ++i) {
+				if (((split.memLayers & split.bgMask) >> i) & 1 && bg_line_has_pal(i, y, split.memGamePal - 1)) off |= 1u << i;
+			}
+			if (y == 0 || off != split.memLineOff) {
+				for (int i = 0; i < 4; ++i) {
+					if ((split.memLayers >> i) & 1) r->disableBG[i] = ((split.bgMask & ~off) >> i) & 1;
+				}
+				if (!split.grabbing) split_layers(split.bgMask & ~off, split.nObjs > 0 || split.nKeep > 0);
+				split.memLineOff = off;
 			}
 		}
 		if (y == 0 && split.grabBuf) {
@@ -945,8 +986,10 @@ void emu_hud_keep_bgs(unsigned mask) {
 	split.keepBgs = mask;
 }
 
-void emu_hud_mem_layers(const uint32_t addr[2], const uint32_t mask[2], const uint32_t value[2], const int size[2], int n, bool any, unsigned layers) {
+void emu_hud_mem_layers(const uint32_t addr[2], const uint32_t mask[2], const uint32_t value[2], const int size[2], int n, bool any, unsigned layers, int gamePal) {
 	split.memN = n < 0 ? 0 : n > 2 ? 2 : n;
+	split.memGamePal = split.memN ? gamePal : 0;
+	split.memLineOff = 0;
 	split.memAny = any;
 	for (int i = 0; i < split.memN; ++i) split.memAddr[i] = addr[i], split.memMask[i] = mask[i], split.memVal[i] = value[i], split.memSize[i] = size[i];
 	split.memLayers = layers;

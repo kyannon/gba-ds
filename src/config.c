@@ -6,6 +6,8 @@
 #include <string.h>
 
 const char* const shaderNames[SH_COUNT] = { "off", "grid", "scanlines", "soft", "subpixels-light", "subpixels", "subpixels-strong" };
+const char* const hotkeyNames[HK_COUNT] = { "quit", "save_state", "load_state", "quick_menu", "swap_screens", "shader" };
+static const char* const hotkeyDefaults[HK_COUNT] = { "start", "r", "l", "x", "y", "b" };
 
 void config_defaults(Config* c) {
 	memset(c, 0, sizeof(*c));
@@ -13,7 +15,9 @@ void config_defaults(Config* c) {
 	strcpy(c->saveExt, "sav");
 	strcpy(c->scale, "integer");
 	strcpy(c->mapScale, "integer");
-	strcpy(c->hotkey, "guide");
+	strcpy(c->hotkey, "home");
+	for (int i = 0; i < HK_COUNT; ++i) strcpy(c->hotkeyBtn[i], hotkeyDefaults[i]);
+	c->shaderLast = SH_GRID;
 	strcpy(c->menuCombo, "none");
 	strcpy(c->romDir, "/storage/roms/gba");
 	strcpy(c->screenshotDir, "/storage/roms/screenshots");
@@ -116,6 +120,21 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	INT("map_interval", mapInterval)
 	BOOL("ab_swap", abSwap)
 	STR("hotkey", hotkey)
+	if (!strcmp(key, "hotkey_fps")) return true; /* (a test build's: the quick menu has the FPS counter) */
+	if (!strncmp(key, "hotkey_", 7)) {
+		for (int i = 0; i < HK_COUNT; ++i) {
+			if (strcmp(key + 7, hotkeyNames[i])) continue;
+			snprintf(c->hotkeyBtn[i], sizeof(c->hotkeyBtn[i]), "%s", val);
+			for (char* p = c->hotkeyBtn[i]; *p; ++p) *p = (char) tolower((unsigned char) *p);
+			return true;
+		}
+	}
+	if (!strcmp(key, "shader_last")) {
+		for (int i = 1; i < SH_COUNT; ++i) {
+			if (!strcasecmp(val, shaderNames[i])) c->shaderLast = i;
+		}
+		return true;
+	}
 	STR("menu_combo", menuCombo)
 	INT("home_button", homeButton)
 	BOOL("show_fps", showFps)
@@ -255,7 +274,10 @@ void config_usage(const char* argv0) {
 	        "  --no-map               disable the map screen\n"
 	        "  --map-interval=N       frames between map refreshes (90)\n"
 	        "  --ab-swap              GBA A on the bottom face button\n"
-	        "  --hotkey=guide|back    menu / hotkey button (guide = HOME)\n"
+	        "  --hotkey=home|select|start|l3   the hotkey button, held with another for a shortcut\n"
+	        "  --hotkey-quit=BUTTON (and -save-state, -load-state, -quick-menu, -swap-screens, -shader)\n"
+	        "                         each shortcut's button (a, b, x, y, l, r, l2, r2, select,\n"
+	        "                         start, l3, up, down, left, right) or none\n"
 	        "  --menu-combo=select+start|none   buttons that open the menu together (none)\n"
 	        "  --home-button=N        raw joystick button that acts as HOME (see GBADS_DEBUG=1 log)\n"
 	        "  --no-auto-resume       don't save on exit / resume on launch\n"

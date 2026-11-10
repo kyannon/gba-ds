@@ -26,6 +26,9 @@ extern const LogoMask logoMaskDBZ;
 extern const LogoMask logoMaskGS2E, logoMaskGS2D, logoMaskGS2F, logoMaskGS2I, logoMaskGS2S, logoMaskGS2J;
 /* Crash Nitro Kart (USA, Europe), and Japan's */
 extern const LogoMask logoMaskCNK, logoMaskCNKJ;
+/* Dragon Ball Z: The Legacy of Goku II (USA, Europe), and Japan's */
+extern const LogoMask logoMaskDBZ2, logoMaskDBZ2J;
+extern const LogoMask logoMaskVR3, logoMaskVR3J;
 /* Ninja Five-O (USA), and Ninja Cop (Europe) */
 extern const LogoMask logoMaskNFO, logoMaskNFOP;
 

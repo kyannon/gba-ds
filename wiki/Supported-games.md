@@ -9,6 +9,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Castlevania: Harmony of Dissonance | `ACHE` `ACHP` `ACHJ` | map |
 | Crash Nitro Kart (Crash Bandicoot Bakusou! Nitro Cart in Japan) | `BCNE` `BCNP` `BCNJ` | the race HUD: time, wumpa fruit, lap, the leaders and the course map twice as big; the race rankings |
 | Dragon Ball Z: The Legacy of Goku | `ALGE` `ALGP` (no Japanese release) | the pause menu, with the HP and Ki bars (or the counter SELECT and flying show) in place of its options |
+| Dragon Ball Z: The Legacy of Goku II (The Legacy of Goku II International in Japan) | `ALFE` `ALFP` `ALFJ` | the Scouter's area map (before the Scouter, the Status page); flying, the world map twice as big |
 | F-Zero: GP Legend (F-Zero: Falcon Densetsu in Japan) | `BFZE` `BFZP` `BFZJ` | the race HUD, with the course map twice as big |
 | F-Zero: Maximum Velocity (F-Zero for Game Boy Advance in Japan) | `AFZE` (USA and Europe) `AFZJ` (China: `AFZC`) | the race HUD, with the course map twice as big |
 | Final Fantasy Tactics Advance | `AFXE` `AFXP` `AFXJ` | in battles: the Status of the unit under the cursor, or the turn order and Laws; on the world map: today's Laws |
@@ -42,6 +43,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Tactics Ogre: The Knight of Lodis (Tactics Ogre Gaiden in Japan) | `ATOE` `ATOJ` (no European release) | in battle, the details of the unit under your cursor (on an empty square, the battle's conditions); on the world map, the location's HELP; in Organize, the unit's details |
 | Tony Hawk's Pro Skater 2 (SK8 in Japan) | `ATHE` (USA and Europe) `ATHF` `ATHD` `ATHJ` | the goal sheet for the current run |
 | Tony Hawk's Pro Skater 3 | `AT3E` (USA and Europe) `AT3F` `AT3D` | the goal list; optional four-button layout |
+| V-Rally 3 | `AVRE` `AVRP` `AVRJ` | the stage's HUD, with the course map twice as big |
 | Wario Land 4 (Wario Land Advance in Japan) | `AWAE` (USA and Europe) `AWAJ` | in levels: the pause screen, with the hearts, money, coins and the treasures found; in boss fights: the HUD |
 | Yu-Gi-Oh! The Eternal Duelist Soul (Yu-Gi-Oh! Duel Monsters 5 Expert 1 in Japan) | `AY5E` `AY5J` | Card View of the card under the cursor |
 | Zoids: Legacy (Zoids Saga II in Japan) | `AZ2E` `AZ2J` (no European release) | the map screen; in battles, the Status of the Zoid choosing |
@@ -92,7 +94,19 @@ The USA and European releases.
 - The pause menu's list of options is left out. In its place goes whatever the game shows at the game screen's top left, moved off it, live: the **HP and Ki bars**, or, while you hold SELECT or fly, the **counter** the game shows in their place.
 - In the game's own pause menu and its screens, the second screen keeps its picture. On the title and menus it shows the logo.
 - The title screen paints Goku's hair over the Z, so in the logo the Z is drawn again there, in the game's own colours, to the official logo's shape.
-- Not tried yet: fights, later areas and most of the European release.
+- Not tried yet: fights and later areas (in the European release, anything past the first island).
+
+## Dragon Ball Z: The Legacy of Goku II
+
+The USA, European and Japanese (International) releases.
+
+- **Walking about,** the second screen is the **Scouter's map** of the area you're in (R), as the game draws it, centred on you. It's opened in the background in a silent copy of the game about once a second, and as soon as you reach a new area, so your dot moves as you do; your game is never paused.
+- **Before you have the Scouter,** the second screen is the pause menu's **Status page** (START) instead: your fighter's level, HP, EP, stats and experience.
+- **Flying over the world,** the small world map at the top right of the game screen moves to the second screen, twice as big, with your arrow on it.
+- The map's and the Status page's button prompts (L, R and the arrows for scrolling and turning pages) are left out.
+- The HP and EP bars stay on the game screen.
+- In conversations, at save points, and in the game's own pause menu, map and Dragon Radar, the second screen keeps its picture. On the title and menus it shows the logo.
+- Not tried yet: boss fights, the Hyperbolic Time Chamber, the Cell Games and the ending.
 
 ## F-Zero: GP Legend
 
@@ -397,6 +411,22 @@ The USA and Japanese (Tactics Ogre Gaiden) releases have both been tried.
 
 - **During a run** the second screen shows the level's goal list (the pause menu's View Goals), on black, brought up in the background like the other games' maps and kept up to date as you go; the game is never paused. Back at the menus, it shows the logo again.
 - The four-button layout under **Controls**: GBA, Four buttons, or Auto (four buttons while skating), as for Tony Hawk's Pro Skater 2.
+
+## V-Rally 3
+
+The USA, European and Japanese releases.
+
+The HUD is moved off the game screen rather than copied, so nothing behind it is lost.
+
+- **Driving** (Time Trial, V-Rally Mode and V-Rally Cross):
+  - The game screen keeps the **rev counter** with your gear and speed (bottom left), the **pace-note arrows** (top centre), and your **place** (POS) in the top-left corner, where BEST TIME was.
+  - The second screen has **BEST TIME** (or the green CHECK POINT split) in the top-left corner with **LAP** under it in V-Rally Cross, the **stage clock** in the top-right corner, V-Rally Mode's **damage lights** down the right edge, and the **course map** with every car's dot, twice as big, at the bottom centre.
+  - The countdown, NEW RECORD, the hazard boards and, in the in-car view, the dashboard are part of the game's picture and stay on the game screen.
+- The game's **pause menu** stays on the game screen, with the HUD on the second screen.
+- Everywhere else (the intro, the menus, the service station, loading, the results after a stage or race, the save screen) the second screen shows the logo, the title lettering from the main menu.
+- With one screen (`layout = single`), the HUD stays where the game draws it.
+
+Known issues: V-Rally Cross's boost bar (in the second race of a licence) and link play haven't been tried.
 
 ## Wario Land 4
 
