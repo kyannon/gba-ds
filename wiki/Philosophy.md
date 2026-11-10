@@ -70,7 +70,7 @@ What this means in practice:
 - **An exception has to earn its place.** It should make the game clearly more fun or easier to play on the device, and be something the player would recognise (the four-button layouts mirror the console versions of those games). Being technically possible is not enough.
 - **Every exception is deliberate.** It's written down with the game's other rules and tested like everything else, so it isn't "fixed" later by mistake. Current exceptions include:
   - the four-button and SNES layouts;
-  - Pokémon Pinball's and Sonic Pinball Party's tables spread over both screens as one tall view;
+  - Pokémon Pinball's, Sonic Pinball Party's and Muppet Pinball Mayhem's tables spread over both screens as one tall view;
   - Mario Kart's, the F-Zero games', Crash Nitro Kart's and V-Rally 3's race screen course maps, drawn larger than the game's;
   - Dragon Ball Z: The Legacy of Goku II's small world map, shown while flying, drawn twice as big;
   - Super Mario Advance 2's level name moved above its status bar;
