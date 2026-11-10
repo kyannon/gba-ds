@@ -295,8 +295,9 @@ def gt3(a):
     outline is a stencil instead, tools/logo_stencils/gt3.png: the
     publisher's logo artwork's silhouette (its glow left out) scaled to
     the title's lettering (0.30 x 0.32, at 59.5, 0: the best overlap with
-    the title's grey and black pixels). Only its outline is used; the
-    pixels are the title's."""
+    the title's grey and black pixels), without the PRO CONCEPT RACING
+    line (navy, unreadable on the idle screen's grey). Only its outline is
+    used; the pixels are the title's."""
     st = np.asarray(Image.open(os.path.join(ROOT, "tools", "logo_stencils", "gt3.png")).convert("L")) > 127
     return st
 
