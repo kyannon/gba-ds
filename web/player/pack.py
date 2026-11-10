@@ -13,7 +13,7 @@ player uses is kept (web/gba-ds.wasm, web/VERSION, gba-ds.cfg,
 gamecontrollerdb.txt). The names then end in "-with-BUILDVERSION".
 Run by scripts/build-web-player.sh.
 """
-import argparse, base64, io, os, re, sys, zipfile
+import argparse, base64, io, json, os, re, sys, zipfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
@@ -40,6 +40,61 @@ def logo_png():
         return b.getvalue()
     except ImportError:
         return read(LOGO, "rb")
+
+
+def app_icon(size, pad=0.14):
+    """The Home Screen icon: the logo on the player's navy, square."""
+    from PIL import Image
+    im = Image.new("RGBA", (size, size), (19, 33, 95, 255))
+    logo = Image.open(LOGO).convert("RGBA")
+    w = round(size * (1 - pad * 2))
+    logo = logo.resize((w, round(logo.height * w / logo.width)), Image.LANCZOS)
+    im.alpha_composite(logo, ((size - logo.width) // 2, (size - logo.height) // 2))
+    b = io.BytesIO()
+    im.convert("RGB").save(b, "PNG", optimize=True)
+    return b.getvalue()
+
+
+MANIFEST = """{{
+  "name": "GBA DS",
+  "short_name": "GBA DS",
+  "description": "GBA DS in a web browser: GBA games with their second screen.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#070b24",
+  "theme_color": "#070b24",
+  "icons": [
+    {{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }},
+    {{ "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }},
+    {{ "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }}
+  ],
+  "version": "{version}"
+}}
+"""
+
+# The offline copy: every file kept on install, served from the cache (the
+# page itself from the network first, so an update shows on the next start).
+SW = """/* GBA DS web player {version}: the offline copy (made by pack.py) */
+const CACHE = "gba-ds-player-{version}";
+const FILES = {files};
+self.addEventListener("install", (e) => {{
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));
+}});
+self.addEventListener("activate", (e) => {{
+  e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k.startsWith("gba-ds-player-") && k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
+}});
+self.addEventListener("fetch", (e) => {{
+  const req = e.request;
+  if (req.method !== "GET" || new URL(req.url).origin !== location.origin) return;
+  if (req.mode === "navigate") {{
+    e.respondWith(fetch(req).then((r) => {{ const c = r.clone(); caches.open(CACHE).then((k) => k.put("./", c)); return r; }}).catch(() => caches.match("./")));
+    return;
+  }}
+  e.respondWith(caches.match(req, {{ ignoreSearch: true }}).then((hit) => hit || fetch(req)));
+}});
+"""
 
 
 def build_zip(src):
@@ -79,7 +134,7 @@ def main():
 
     html = read(os.path.join(HERE, "index.html")).replace('data-version="dev"', 'data-version="' + version + '"')
     css = read(os.path.join(HERE, "player.css"))
-    srcs = {n: read(os.path.join(HERE, n + ".js")) for n in ("zip", "player", "worker", "worklet")}
+    srcs = {n: read(os.path.join(HERE, n + ".js")) for n in ("zip", "controls", "player", "worker", "worklet")}
     srcs["runtime"] = read(RUNTIME)
     for n, t in srcs.items():
         if "</script" in t.lower():
@@ -95,8 +150,10 @@ def main():
     inline = "".join('<script type="text/plain" id="src-' + n + '">\n' + srcs[n] + "</script>\n" for n in ("runtime", "worker", "worklet"))
     if bundle:
         inline += '<script type="application/octet-stream" id="bundled-build">' + base64.b64encode(bundle).decode() + "</script>\n"
-    one = one.replace('<script src="zip.js"></script>\n<script src="player.js"></script>',
-                      inline + "<script>\n" + srcs["zip"] + "</script>\n<script>\n" + srcs["player"] + "</script>")
+    one = one.replace('<script src="zip.js"></script>\n<script src="controls.js"></script>\n<script src="player.js"></script>',
+                      inline + "".join("<script>\n" + srcs[n] + "</script>\n" for n in ("zip", "controls", "player")).rstrip("\n"))
+    # (one file is no Home Screen app: no manifest, no icons beside it)
+    one = re.sub(r'<link rel="(manifest|apple-touch-icon|icon)"[^>]*>\n', "", one)
     one = one.replace("</body>", lic + "</body>")
     with open(os.path.join(a.out, name + ".html"), "w") as f:
         f.write(one)
@@ -106,8 +163,17 @@ def main():
         d = name + "/"
         z.writestr(d + "index.html", html.replace("</body>", lic + "</body>"))
         z.writestr(d + "player.css", css)
-        for n in ("zip", "player", "worker", "worklet"):
+        for n in ("zip", "controls", "player", "worker", "worklet"):
             z.writestr(d + n + ".js", srcs[n])
+        z.writestr(d + "manifest.webmanifest", MANIFEST.format(version=version))
+        z.writestr(d + "icon-192.png", app_icon(192))
+        z.writestr(d + "icon-512.png", app_icon(512))
+        z.writestr(d + "apple-touch-icon.png", app_icon(180, 0.12))
+        files = ["./", "index.html", "player.css", "zip.js", "controls.js", "player.js", "worker.js", "worklet.js", "gbads-runtime.js",
+                 "logo.png", "jost-bold-italic.ttf", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png"]
+        if bundle:
+            files.append("build/gba-ds-web.zip")
+        z.writestr(d + "sw.js", SW.format(version=version + ("+" + bver if bundle else ""), files=json.dumps(files)))
         z.writestr(d + "gbads-runtime.js", srcs["runtime"])
         z.writestr(d + "logo.png", logo)
         z.write(FONT, d + "jost-bold-italic.ttf")

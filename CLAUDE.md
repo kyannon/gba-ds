@@ -269,7 +269,9 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   same web build in a worker with WebGL2, sound, remappable keys and
   controllers, for any known device's screens; map captures run in a second
   worker (a second copy of the build, `mapcap_web_serve`), all inside
-  `#ifdef __wasi__`. See docs/WEB-PLAYER.md.
+  `#ifdef __wasi__`; on-screen controls for phones (`controls.js`), a Home
+  Screen app with an offline copy, published to GitHub Pages from `main`
+  (`.github/workflows/web-player.yml`). See docs/WEB-PLAYER.md.
 - **The owner's states come from State Saver** (artifact
   https://claude.ai/artifact/LGoZRvRDJjagz6ib1h3oxk, the owner's own; started
   empty on Nov 3, 2026, once the earlier one's states were in the suite: that

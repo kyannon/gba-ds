@@ -6,6 +6,13 @@
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#070b24">
 <title>GBA DS web player</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GBA DS">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
 <link rel="stylesheet" href="player.css">
 </head>
 <body>
@@ -37,12 +44,14 @@
   </header>
 
   <main id="stage">
+    <button class="bar-pill" id="barPill" type="button" aria-label="Show the toolbar"></button>
     <div id="bezels" aria-hidden="true"></div>
     <canvas id="screen"></canvas>
     <div class="paused-veil" id="pausedVeil" hidden><span>Paused</span></div>
 
     <section class="start" id="start">
       <div class="start-card">
+        <div class="notice" id="iosNotice" hidden><span>On iPhone and iPad, add this page to your Home Screen (Share, then Add to Home Screen) and open it from there: Safari can clear what a page keeps, your saves included, when it isn't opened for a while.</span><button type="button" id="iosNoticeX" aria-label="Dismiss">×</button></div>
         <h1>Play a GBA DS build in your browser</h1>
         <p class="lede">Drop files anywhere on this page, or choose them. A build and a game are all it needs.</p>
         <div class="slots">
@@ -107,6 +116,15 @@
         <select id="scale"><option value="1">The device's</option><option value="0.75">Three quarters</option><option value="0.5">Half (fastest)</option></select></label>
     </section>
     <section>
+      <h3>On-screen controls</h3>
+      <label class="row"><span>Show them</span>
+        <select id="touchShow"><option value="auto">On touchscreens, until a controller connects</option><option value="always">Always</option><option value="never">Never</option></select></label>
+      <label class="row"><span>Placement</span>
+        <select id="touchPlace"><option value="below">Below the screens</option><option value="beside">Beside the screens</option></select></label>
+      <label class="row"><span>Size</span><input type="range" id="touchSize" min="70" max="140" step="5"></label>
+      <label class="check"><input type="checkbox" id="touchVibrate"> Vibrate on each press (where the phone can)</label>
+    </section>
+    <section>
       <h3>Sound and play</h3>
       <label class="row"><span>Volume</span><input type="range" id="volume" min="0" max="100" step="1"></label>
       <label class="check"><input type="checkbox" id="pauseHidden"> Pause when this tab is hidden</label>
@@ -166,6 +184,7 @@
 </dialog>
 
 <script src="zip.js"></script>
+<script src="controls.js"></script>
 <script src="player.js"></script>
 </body>
 </html>

@@ -29,7 +29,9 @@ button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 [hidden] { display: none !important; }
 
-#app { height: 100%; display: grid; grid-template-rows: auto 1fr; }
+#app { height: 100%; display: grid; grid-template-rows: auto 1fr; grid-template-columns: minmax(0, 1fr); }
+#app > .bar { grid-row: 1; min-width: 0; }
+#app > #stage { grid-row: 2; min-width: 0; min-height: 0; }
 
 /* ---- the bar */
 .bar { display: flex; align-items: center; gap: 16px; padding: 8px 12px 8px 16px; border-bottom: 1px solid var(--line); background: linear-gradient(var(--bg2), var(--bg)); min-height: 52px; }
@@ -167,3 +169,55 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
   .tr { grid-template-columns: 110px 1fr 1fr; }
   .row { grid-template-columns: 1fr; gap: 4px; }
 }
+
+/* ---- on-screen controls (controls.js): in space of their own beside or below the screens */
+#touch { position: absolute; inset: 0; pointer-events: none; z-index: 3; --u: 1; }
+#touch .tc { position: absolute; pointer-events: auto; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+#touch .tc span { pointer-events: none; }
+/* the D-pad: a cross, an arrow lit for each direction held */
+#touch .dpad .arm { position: absolute; background: linear-gradient(#26306e, #1a2257); border: 1px solid rgba(190,205,255,0.16); box-shadow: 0 calc(3px * var(--u)) 0 #0b1035; }
+#touch .dpad .arm.v { left: 33%; width: 34%; top: 0; height: 100%; border-radius: calc(9px * var(--u)); }
+#touch .dpad .arm.h { top: 33%; height: 34%; left: 0; width: 100%; border-radius: calc(9px * var(--u)); }
+#touch .dpad .hub { position: absolute; left: 33.5%; top: 33.5%; width: 33%; height: 33%; background: #1f286a; border-radius: 50%; box-shadow: inset 0 0 0 calc(5px * var(--u)) #222b6c, inset 0 1px 6px rgba(0,0,0,0.5); }
+#touch .dpad .ar { position: absolute; width: 0; height: 0; border: calc(8px * var(--u)) solid transparent; opacity: 0.55; transition: opacity .06s; }
+#touch .dpad .ar.u { left: 50%; top: 8%; transform: translateX(-50%); border-bottom-color: #c9d2ff; border-top-width: 0; }
+#touch .dpad .ar.d { left: 50%; bottom: 8%; transform: translateX(-50%); border-top-color: #c9d2ff; border-bottom-width: 0; }
+#touch .dpad .ar.l { top: 50%; left: 8%; transform: translateY(-50%); border-right-color: #c9d2ff; border-left-width: 0; }
+#touch .dpad .ar.r { top: 50%; right: 8%; transform: translateY(-50%); border-left-color: #c9d2ff; border-right-width: 0; }
+#touch .dpad .ar.on { opacity: 1; filter: drop-shadow(0 0 6px #8fb0ff); }
+/* buttons */
+#touch .face, #touch .shoulder, #touch .pill { display: grid; place-items: center; color: #dfe5ff; background: linear-gradient(#2b3678, #1c2459); border: 1px solid rgba(190,205,255,0.18); box-shadow: 0 calc(3px * var(--u)) 0 #0b1035; transition: transform .05s, background .05s; }
+#touch .face { border-radius: 50%; font: italic 700 calc(19px * var(--u)) var(--display); }
+#touch .face.f-a, #touch .face.f-b { background: linear-gradient(#3a4794, #263070); }
+#touch .shoulder { border-radius: calc(16px * var(--u)) calc(16px * var(--u)) calc(7px * var(--u)) calc(7px * var(--u)); font: italic 700 calc(15px * var(--u)) var(--display); }
+#touch .pill { border-radius: 99px; font: 600 calc(10.5px * var(--u)) var(--ui); letter-spacing: 0.04em; text-transform: uppercase; color: #aab4e6; }
+#touch .tc.on { transform: translateY(calc(2px * var(--u))); box-shadow: 0 calc(1px * var(--u)) 0 #0b1035; background: linear-gradient(#5568c4, #3a4aa0); color: #fff; }
+
+/* ---- phones */
+:root { --sat: env(safe-area-inset-top, 0px); --sar: env(safe-area-inset-right, 0px); --sab: env(safe-area-inset-bottom, 0px); --sal: env(safe-area-inset-left, 0px); }
+#app { padding: var(--sat) var(--sar) 0 var(--sal); }
+.bar-pill { display: none; }
+@media (max-width: 720px) {
+  .bar { min-height: 44px; padding: 4px 6px 4px 10px; gap: 8px; }
+  .logo { height: 18px; }
+  .tool { width: 34px; height: 34px; }
+  .sep { margin: 0 2px; }
+  #fullBtn { display: none; }
+}
+/* (a phone held upright: the toolbar's buttons take the width; the game's name gives way) */
+@media (max-width: 480px) {
+  .now { display: none; }
+  .brand { flex: 1; min-width: 0; }
+  .tools { gap: 0; }
+}
+/* phones on their side: the bar out of the way while playing, a pill brings it back */
+@media (max-height: 500px) and (pointer: coarse) {
+  body.playing:not(.showbar) .bar { display: none; }
+  body.playing:not(.showbar) #app { grid-template-rows: 0 1fr; }
+  body.playing .bar-pill { display: block; position: absolute; top: 4px; left: 50%; transform: translateX(-50%); z-index: 6; width: 44px; height: 18px; border: 0; border-radius: 99px; background: rgba(143,176,255,0.22); }
+  body.playing .bar-pill::after { content: ""; position: absolute; left: 12px; right: 12px; top: 8px; height: 2px; border-radius: 2px; background: #c9d2ff; }
+}
+.notice { margin: 0 0 14px; padding: 10px 12px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent); background: color-mix(in srgb, var(--warn) 9%, transparent); font-size: 13px; display: flex; gap: 10px; align-items: flex-start; }
+.notice button { margin-left: auto; border: 0; background: none; color: var(--muted); font-size: 18px; line-height: 1; padding: 0 2px; }
+/* (with the on-screen controls up, the fps counter goes to the top, out of their way) */
+#stage:has(#touch:not([hidden])) .fps { top: 6px; bottom: auto; }

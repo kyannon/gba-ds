@@ -1,0 +1,75 @@
+# The web player on GitHub Pages (https://kyannon.github.io/gba-ds/): built
+# from main (each release) and published, with the web build inside; the
+# one-file player is downloadable beside it. Pages must be set to "GitHub
+# Actions" (Settings > Pages > Source) once. docs/WEB-PLAYER.md.
+name: Web player
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq clang lld llvm cmake libpng-dev > /dev/null
+          pip install --quiet --break-system-packages pillow
+
+      # mGBA and SDL2's sources (and the desktop build, shared with regress.yml)
+      - uses: actions/cache@v4
+        with:
+          path: |
+            deps/mgba
+            deps/SDL2
+            deps/sdl-host
+          key: host-deps-${{ runner.os }}-${{ hashFiles('scripts/mgba-options.sh', 'scripts/setup-host.sh') }}
+
+      # the WASI toolchain and the web build's libraries
+      - uses: actions/cache@v4
+        with:
+          path: wasm-work
+          key: wasm-work-${{ runner.os }}-${{ hashFiles('scripts/wasi-toolchain.sh', 'scripts/build-web.sh', 'scripts/mgba-options.sh', 'web/SDL_config_wasi.h', 'web/sdl_*.c') }}
+
+      - name: Host deps
+        run: scripts/setup-host.sh > build.log 2>&1 || { tail -n 60 build.log; exit 1; }
+
+      - name: Web build
+        run: scripts/build-web.sh "$PWD/wasm-work" > web.log 2>&1 || { tail -n 60 web.log; exit 1; }
+
+      - name: Player
+        run: |
+          scripts/build-web-player.sh --build
+          mkdir -p _site
+          unzip -q build/web-player/gba-ds-web-player-*.zip -d unpacked
+          cp -r unpacked/*/. _site/
+          cp build/web-player/gba-ds-web-player-*.html _site/gba-ds-web-player.html
+          echo "Published GBA DS $(cat VERSION): $(ls _site | wc -l) files" >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

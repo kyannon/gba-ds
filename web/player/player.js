@@ -60,7 +60,8 @@ const DEVICES = [
 /* ================================================================ settings */
 const SET_KEY = "gbadsPlayer.settings", CTL_KEY = "gbadsPlayer.controls";
 const DEFAULTS = { device: "rgdsplus", custom: { top: [1024, 768, 4.3], bottom: [1024, 768, 4.3] }, arrange: "auto", sizes: "device",
-  gap: 4, smooth: true, scale: 1, volume: 80, muted: false, pauseHidden: true };
+  gap: 4, smooth: true, scale: 1, volume: 80, muted: false, pauseHidden: true,
+  touchShow: "auto", touchPlace: "below", touchSize: 100, touchVibrate: true };
 const readJSON = (k) => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } };
 const writeJSON = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
 const S = Object.assign({}, DEFAULTS, readJSON(SET_KEY) || {});
@@ -302,11 +303,29 @@ function placeScreens(win, W, H) {
   const pick = S.arrange === "side" ? try_(true) : S.arrange === "stack" ? try_(false) : (() => { const s = try_(true), t = try_(false); return s.k > t.k * 1.02 ? s : t; })();
   return pick.r;
 }
+// the on-screen controls: on a touchscreen without a controller (or always, or never), while playing
+const coarse = matchMedia("(pointer: coarse)");
+function touchShown() {
+  if (!(P.running || P.booting) || S.touchShow === "never") return false;
+  return S.touchShow === "always" || (coarse.matches && !pads().length);
+}
+// the screen's safe area (notch, home bar), from CSS (?safe=top,right,bottom,left stands in for one, to model a phone)
+// (#app is padded by the top and sides already; the controls keep clear of the bottom's)
+let safeProbe = null;
+function safeArea() {
+  if (!safeProbe) {
+    safeProbe = document.createElement("div");
+    safeProbe.style.cssText = "position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding-bottom:var(--sab)";
+    document.body.appendChild(safeProbe);
+  }
+  return { top: 0, left: 0, right: 0, bottom: parseFloat(getComputedStyle(safeProbe).paddingBottom) || 0 };
+}
 function relayout() {
   const stage = $("stage"), W = stage.clientWidth, H = stage.clientHeight;
   if (!W || !H) return;
   const win = P.win || appWindow();
-  const rects = placeScreens(win, W, H);
+  const box = GBATouch.place(W, H, { show: touchShown(), placement: S.touchPlace, size: S.touchSize / 100, vibrate: !!S.touchVibrate, safe: safeArea() });
+  const rects = placeScreens(win, box.w, box.h).map((r) => ({ x: r.x + box.x, y: r.y + box.y, w: r.w, h: r.h }));
   P.rects = rects;
   const dpr = window.devicePixelRatio || 1;
   const bz = $("bezels");
@@ -546,6 +565,7 @@ function endRun(worker) {
 }
 function showStopped() {
   P.running = false; P.paused = false;
+  GBATouch.release();
   document.body.classList.remove("playing");
   $("start").hidden = false;
   $("fps").textContent = "";
@@ -748,6 +768,7 @@ function currentMask() {
   for (const b of BUTTONS) {
     if ((km[b.id] || []).some((c) => keysDown.has(c))) mask |= 1 << b.bit;
   }
+  mask |= GBATouch.mask;
   for (const p of pads()) {
     const pm = padMap(p);
     for (const b of BUTTONS) if ((pm[b.id] || []).some((bd) => held(p, bd))) mask |= 1 << b.bit;
@@ -772,7 +793,9 @@ window.addEventListener("gamepadconnected", (e) => {
   toast(known ? "Controller connected: " + padName(p) + "." : "Controller connected: " + padName(p) + ". The browser doesn't know its layout: map it in Controls.", !known);
   if ($("controls").open) showControls();
 });
-window.addEventListener("gamepaddisconnected", () => { if ($("controls").open) showControls(); });
+window.addEventListener("gamepaddisconnected", () => { if ($("controls").open) showControls(); relayout(); });
+window.addEventListener("gamepadconnected", () => relayout());
+coarse.addEventListener?.("change", relayout);
 const padName = (p) => p.id.replace(/\s*\(.*?Vendor:.*?\)\s*/i, "").replace(/^[0-9a-f]{4}-[0-9a-f]{4}-/i, "").trim() || "Controller";
 
 /* ================================================================ controls panel */
@@ -946,6 +969,7 @@ function showSettings() {
   $("arrange").value = S.arrange; $("sizes").value = S.sizes; $("gap").value = S.gap;
   $("smooth").value = S.smooth ? "1" : "0"; $("scale").value = String(S.scale);
   $("volume").value = S.volume; $("pauseHidden").checked = !!S.pauseHidden;
+  $("touchShow").value = S.touchShow; $("touchPlace").value = S.touchPlace; $("touchSize").value = S.touchSize; $("touchVibrate").checked = !!S.touchVibrate;
   $("exportSave").disabled = !P.rom;
   $("forgetBuild").hidden = !P.build || P.build.bundled;
   $("aboutNote").textContent = "Player " + VERSION + (P.build ? " · GBA DS " + P.build.version : "") +
@@ -966,6 +990,10 @@ $("gap").oninput = () => { S.gap = Number($("gap").value); saveSettings(); relay
 $("smooth").onchange = () => { S.smooth = $("smooth").value === "1"; saveSettings(); relayout(); };
 $("scale").onchange = () => { S.scale = Number($("scale").value); saveSettings(); restartSoon("Restarted at the new resolution."); };
 $("volume").oninput = () => { S.volume = Number($("volume").value); S.muted = false; saveSettings(); showSound(); };
+$("touchShow").onchange = () => { S.touchShow = $("touchShow").value; saveSettings(); relayout(); };
+$("touchPlace").onchange = () => { S.touchPlace = $("touchPlace").value; saveSettings(); relayout(); };
+$("touchSize").oninput = () => { S.touchSize = Number($("touchSize").value); saveSettings(); relayout(); };
+$("touchVibrate").onchange = () => { S.touchVibrate = $("touchVibrate").checked; saveSettings(); relayout(); };
 $("pauseHidden").onchange = () => { S.pauseHidden = $("pauseHidden").checked; saveSettings(); };
 $("settingsBtn").onclick = () => { showSettings(); $("settings").showModal(); };
 $("exportSave").onclick = async () => {
@@ -997,6 +1025,30 @@ $("logCopy").onclick = () => navigator.clipboard.writeText(P.log.join("\n")).the
 
 // for tests and the console: what's loaded and running (read it, don't change it)
 window.gbadsPlayer = { P, S, sound: A, capture: CAP, currentMask: () => currentMask() };
+
+/* ================================================================ phones */
+// on their side, the bar hides while playing; the pill at the top brings it back
+$("barPill").onclick = () => { document.body.classList.toggle("showbar"); };
+document.addEventListener("pointerdown", (e) => { if (document.body.classList.contains("showbar") && !e.target.closest(".bar, #barPill, dialog")) document.body.classList.remove("showbar"); });
+// iPhone and iPad: Safari clears a page's storage when it isn't opened for a while, unless it's on the Home Screen
+(() => {
+  const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  let dismissed = false;
+  try { dismissed = localStorage.getItem("gbadsPlayer.iosNotice") === "1"; } catch (e) {}
+  if (ios && !navigator.standalone && !dismissed) $("iosNotice").hidden = false;
+  $("iosNoticeX").onclick = () => { $("iosNotice").hidden = true; try { localStorage.setItem("gbadsPlayer.iosNotice", "1"); } catch (e) {} };
+})();
+// ?safe=top,right,bottom,left: a phone's safe area, to model one in a desktop browser
+(() => {
+  const m = location.search.match(/[?&]safe=([\d.]+),([\d.]+),([\d.]+),([\d.]+)/);
+  if (!m) return;
+  const r = document.documentElement.style;
+  r.setProperty("--sat", m[1] + "px"); r.setProperty("--sar", m[2] + "px"); r.setProperty("--sab", m[3] + "px"); r.setProperty("--sal", m[4] + "px");
+})();
+// offline, and on the Home Screen: the folder version, served over http(s), keeps its files (sw.js)
+if ("serviceWorker" in navigator && !document.getElementById("src-worker") && /^https?:$/.test(location.protocol) && !/[?&]nosw\b/.test(location.search)) {
+  navigator.serviceWorker.register("sw.js").catch((e) => console.info("no offline copy:", e.message));
+}
 
 /* ================================================================ start */
 // a build that comes with the player: inline (script#bundled-build, base64) or build/gba-ds-web.zip beside the page

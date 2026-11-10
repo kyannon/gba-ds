@@ -24,6 +24,58 @@ inside both (`script#bundled-build` / `build/gba-ds-web.zip`); the names end
 in `-with-VERSION`. Only `web/gba-ds.wasm`, `web/VERSION`, `gba-ds.cfg` and
 `gamecontrollerdb.txt` are kept from the zip.
 
+## On GitHub Pages
+
+`.github/workflows/web-player.yml` builds the web build and the player from
+`main` (each release; or "Run workflow") and publishes the folder version
+to https://kyannon.github.io/gba-ds/, with the one-file player beside it
+(`gba-ds-web-player.html`). Pages must be set to "GitHub Actions" once
+(Settings > Pages > Source: the owner; sessions can't). The workflow shares
+regress.yml's host-deps cache and keeps the WASI toolchain in its own.
+Games are never published: players bring their own.
+
+## Phones
+
+- **On-screen controls** (`controls.js`, `GBATouch`): the D-pad, X / Y /
+  A / B as on the device (X top, Y left, A right, B bottom), L, R, Select,
+  Start and Menu (Home). Settings > On-screen controls: show them on
+  touchscreens until a controller connects (default), always, or never;
+  placement below the screens (a band: L, Menu, R over the D-pad, Select /
+  Start, the face buttons) or beside them (a column each side: L, the
+  D-pad, Select and Menu | R, the face buttons, Start); size 70-140 %;
+  vibrate on press (Android: iPhones have no web vibration). The controls
+  take their space first and the screens fit into the rest, so the
+  placement holds whichever way the screens are arranged. They shrink to
+  fit (below: the width; beside: the columns at most 62 % of it).
+  Multi-touch; a finger slides from button to button and round the D-pad
+  (8 ways); buttons have some slack around them. Their mask is OR-ed into
+  the keyboard's and controllers'. L2 / R2 / L3 (rewind, fast-forward,
+  swap) aren't on screen: GBA DS's menu has them.
+- **Home Screen app** (the folder version over http(s) only): a manifest,
+  icons (the logo on navy, made by pack.py) and `sw.js`, which keeps every
+  file for offline use (cache-first; the page network-first, so a new
+  version shows at the next start; the cache is named by version, older
+  ones deleted). `?nosw` skips it (tests).
+- **iPhone saves**: Safari can clear a page's storage when it isn't opened
+  for a while, unless it's on the Home Screen, so iPhones and iPads not
+  started from there get a notice saying so (dismissible, remembered).
+- **Safe areas** (`viewport-fit=cover`): `#app` is padded by the top and
+  sides' insets, the controls keep clear of the bottom's (`--sat` / `--sar`
+  / `--sab` / `--sal`; `?safe=top,right,bottom,left` stands in for a
+  phone's, to model one in a desktop browser). On a phone held sideways the
+  toolbar hides while playing; the pill at the top brings it back. Upright
+  and narrow, the game's name gives way to the toolbar's buttons.
+- **Modelled on an iPhone 17** (402 x 874 pt, 3x; insets 62 / 34 upright,
+  62 each side and 20 top and bottom sideways, from Apple's), Nov 9, 2026,
+  RG DS Plus screens: upright, controls below, screens stacked gives each
+  screen 335 x 251 pt (the best upright); beside leaves 137 x 103.
+  Sideways, beside with screens stacked gives 226 x 170, side by side
+  208 x 156; below leaves 99 x 74 stacked. Playwright with `is_mobile`,
+  `has_touch`, the safe area by `?safe=`, then each shot in the phone's
+  outline (corners, Dynamic Island, home bar) with Pillow. Touches tested
+  with CDP `Input.dispatchTouchEvent` (one finger, two, a slide, a
+  diagonal). Not yet tried on a real phone.
+
 ## How it works
 
 - `player.js` (the page): files dropped or chosen (`takeFiles`: a dev zip,
