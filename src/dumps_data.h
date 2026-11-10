@@ -198,6 +198,7 @@ static const KnownDump knownDumps[] = {
 	{ "BFZJ", 0x7978b706, false, "F-Zero - Falcon Densetsu (Japan) (Virtual Console)" },
 	{ "BFZP", 0xd9b2d53d, false, "F-Zero - GP Legend (Europe) (En,Fr,De,Es,It) (Virtual Console)" },
 	{ "BFZP", 0xf1d5601b, true, "F-Zero - GP Legend (Europe) (En,Fr,De,Es,It)" },
+	{ "BG3E", 0x01c1707f, true, "Dragon Ball Z - Buu's Fury (USA)" },
 	{ "BGWJ", 0x49ee1fdd, true, "Game Boy Wars Advance 1+2 (Japan)" },
 	{ "BGWJ", 0xf8d3b3c6, false, "Game Boy Wars Advance 1+2 (Japan) (Virtual Console)" },
 	{ "BMXE", 0x5c61a844, true, "Metroid - Zero Mission (USA, Australia)" },

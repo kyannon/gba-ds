@@ -8,6 +8,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Castlevania: Circle of the Moon | `AAME` `AAMP` `AAMJ` | map, with the completion rate |
 | Castlevania: Harmony of Dissonance | `ACHE` `ACHP` `ACHJ` | map |
 | Crash Nitro Kart (Crash Bandicoot Bakusou! Nitro Cart in Japan) | `BCNE` `BCNP` `BCNJ` | the race HUD: time, wumpa fruit, lap, the leaders and the course map twice as big; the race rankings |
+| Dragon Ball Z: Buu's Fury | `BG3E` (USA only) | the Scouter's area map; flying, the world map twice as big |
 | Dragon Ball Z: The Legacy of Goku | `ALGE` `ALGP` (no Japanese release) | the pause menu, with the HP and Ki bars (or the counter SELECT and flying show) in place of its options |
 | Dragon Ball Z: The Legacy of Goku II (The Legacy of Goku II International in Japan) | `ALFE` `ALFP` `ALFJ` | the Scouter's area map (before the Scouter, the Status page); flying, the world map twice as big |
 | F-Zero: GP Legend (F-Zero: Falcon Densetsu in Japan) | `BFZE` `BFZP` `BFZJ` | the race HUD, with the course map twice as big |
@@ -87,6 +88,18 @@ The HUD is moved off the game screen rather than copied, as in Mario Kart: Super
 - The game's **pause menu** stays on the game screen, with the last HUD on the second screen. TRY AGAIN, the title and the menus show the logo.
 - With one screen (`layout = single`), the HUD stays where the game draws it.
 - Not tried yet: Adventure's boss races, CNK challenges, relic races and crystal arenas, Time Trial's results, and link play.
+
+## Dragon Ball Z: Buu's Fury
+
+The USA release (the only one; the double pack with Dragon Ball GT: Transformation isn't supported).
+
+- **Walking about,** the second screen is the **Scouter's map** of the area you're in (SELECT), as the game draws it, centred on you. It's opened in the background in a silent copy of the game about once a second, and as soon as you reach a new area, so your dot moves as you do; your game is never paused.
+- **Inside shops,** where the game's Scouter has no map, the last map stays, dimmed.
+- **Flying over the world,** the small world map at the top right of the game screen moves to the second screen, twice as big, with your arrow on it.
+- The map's button prompts (the scroll arrows and the L and R letters) are left out.
+- The HUD stays on the game screen.
+- In conversations, at save circles, and in the game's own pause menu and Scouter, the second screen keeps its picture. On the title, the menus and the opening story it shows the logo, each letter with its black outline.
+- Not tried yet: fights with the Scouter open, boss fights, fusion, Instant Transmission, Chapter 6's Dragon Ball search and the ending.
 
 ## Dragon Ball Z: The Legacy of Goku
 

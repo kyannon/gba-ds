@@ -48,6 +48,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Muppet Pinball Mayhem](muppet-pinball-mayhem.md) | MPM | `AMWE` + 1 |
 | [Ninja Five-O (Ninja Cop in Europe)](ninja-five-o.md) | NFO | `ANXE` + 1 |
 | [V-Rally 3](v-rally-3.md) | VR3 | `AVRE` + 2 |
+| [Dragon Ball Z: Buu's Fury](dragon-ball-z-buus-fury.md) | BF | `BG3E` |
 
 ## General rules
 

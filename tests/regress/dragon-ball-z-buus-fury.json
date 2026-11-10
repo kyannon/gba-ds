@@ -1,0 +1,563 @@
+{
+ "game": "Dragon Ball Z: Buu's Fury",
+ "rules": "docs/games/dragon-ball-z-buus-fury.md",
+ "cases": [
+  {
+   "id": "bf-us-title",
+   "rom": "BG3E",
+   "state": "dragon-ball-z-buus-fury/us-title.ss",
+   "desc": "the title: the logo, no capture",
+   "rules": [
+    "BF-1"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "BF-1",
+     "what": "no capture",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "bf-us-intro",
+   "rom": "BG3E",
+   "state": "dragon-ball-z-buus-fury/us-intro.ss",
+   "desc": "a new game's opening story (its text, then Gohan and Chi-Chi outside their house, a scene on the field): SELECT opens nothing there, so the logo stays",
+   "rules": [
+    "BF-1",
+    "BF-4"
+   ],
+   "input": [
+    [
+     60,
+     "A"
+    ],
+    [
+     63,
+     "-"
+    ],
+    [
+     120,
+     "A"
+    ],
+    [
+     123,
+     "-"
+    ],
+    [
+     180,
+     "A"
+    ],
+    [
+     183,
+     "-"
+    ],
+    [
+     240,
+     "A"
+    ],
+    [
+     243,
+     "-"
+    ],
+    [
+     300,
+     "A"
+    ],
+    [
+     303,
+     "-"
+    ],
+    [
+     360,
+     "A"
+    ],
+    [
+     363,
+     "-"
+    ],
+    [
+     420,
+     "A"
+    ],
+    [
+     423,
+     "-"
+    ],
+    [
+     480,
+     "A"
+    ],
+    [
+     483,
+     "-"
+    ]
+   ],
+   "shots": {
+    "text": 50,
+    "house": 600
+   },
+   "checks": [
+    {
+     "rule": "BF-4",
+     "what": "no map in the story",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "bf-us-map",
+   "rom": "BG3E",
+   "state": "dragon-ball-z-buus-fury/us-west-city.ss",
+   "desc": "Goku on a save circle in West City (the owner's save): the Scouter's map of the area, without its scroll arrows and L / R letters; walking up, the map follows him; the HUD stays on the game screen",
+   "rules": [
+    "BF-2",
+    "BF-3",
+    "BF-7"
+   ],
+   "input": [
+    [
+     120,
+     "UP"
+    ],
+    [
+     180,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "BF-2",
+     "what": "the map taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "BF-2",
+     "what": "the map moved with him",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "screen": "second",
+      "rect": [
+       120,
+       100,
+       900,
+       660
+      ]
+     },
+     "b": {
+      "shot": "later",
+      "screen": "second",
+      "rect": [
+       120,
+       100,
+       900,
+       660
+      ]
+     },
+     "frac": 0.01
+    },
+    {
+     "rule": "BF-7",
+     "what": "no L or R on the frame's corners",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       54,
+       94,
+       "00A500"
+      ],
+      [
+       54,
+       110,
+       "00A500"
+      ],
+      [
+       950,
+       94,
+       "00A500"
+      ],
+      [
+       950,
+       110,
+       "00A500"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bf-us-pause",
+   "rom": "BG3E",
+   "state": "dragon-ball-z-buus-fury/us-west-city.ss",
+   "desc": "the game's own pause menu (START), then its own Scouter (SELECT): the map from before stays",
+   "rules": [
+    "BF-4"
+   ],
+   "input": [
+    [
+     100,
+     "START"
+    ],
+    [
+     103,
+     "-"
+    ],
+    [
+     260,
+     "B"
+    ],
+    [
+     263,
+     "-"
+    ],
+    [
+     360,
+     "SELECT"
+    ],
+    [
+     363,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 80,
+    "pause": 240,
+    "scouter": 500
+   },
+   "checks": [
+    {
+     "rule": "BF-4",
+     "what": "the map kept in the pause menu",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "screen": "second",
+      "rect": [
+       120,
+       100,
+       900,
+       660
+      ]
+     },
+     "b": {
+      "shot": "pause",
+      "screen": "second",
+      "rect": [
+       120,
+       100,
+       900,
+       660
+      ]
+     },
+     "frac": 0.02
+    },
+    {
+     "rule": "BF-4",
+     "what": "the map kept under the game's own Scouter",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "screen": "second",
+      "rect": [
+       120,
+       100,
+       900,
+       660
+      ]
+     },
+     "b": {
+      "shot": "scouter",
+      "screen": "second",
+      "rect": [
+       120,
+       100,
+       900,
+       660
+      ]
+     },
+     "frac": 0.02
+    }
+   ]
+  },
+  {
+   "id": "bf-us-shop",
+   "rom": "BG3E",
+   "state": "dragon-ball-z-buus-fury/us-west-city.ss",
+   "desc": "West City's map, then inside its Z-Mart (loaded), where the game's Scouter has no map: West City's map stays, dimmed; talking to the shopkeeper (the shop's menu), it stays so",
+   "rules": [
+    "BF-4",
+    "BF-8"
+   ],
+   "input": [
+    [
+     100,
+     "LOAD:dragon-ball-z-buus-fury/us-z-mart.ss"
+    ],
+    [
+     200,
+     "LEFT"
+    ],
+    [
+     210,
+     "-"
+    ],
+    [
+     212,
+     "A"
+    ],
+    [
+     215,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 90,
+    "z-mart": 190,
+    "shop": 420
+   },
+   "checks": [
+    {
+     "rule": "BF-8",
+     "what": "no map in the shop",
+     "type": "log",
+     "match": "map capture failed.*map button did nothing"
+    },
+    {
+     "rule": "BF-8",
+     "what": "West City's map dimmed",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "screen": "second",
+      "rect": [
+       120,
+       100,
+       900,
+       660
+      ]
+     },
+     "b": {
+      "shot": "z-mart",
+      "screen": "second",
+      "rect": [
+       120,
+       100,
+       900,
+       660
+      ]
+     },
+     "frac": 0.05
+    },
+    {
+     "rule": "BF-4",
+     "what": "kept in the shop's menu",
+     "type": "same",
+     "a": {
+      "shot": "z-mart",
+      "screen": "second",
+      "rect": [
+       120,
+       100,
+       900,
+       660
+      ]
+     },
+     "b": {
+      "shot": "shop",
+      "screen": "second",
+      "rect": [
+       120,
+       100,
+       900,
+       660
+      ]
+     },
+     "frac": 0.02
+    }
+   ]
+  },
+  {
+   "id": "bf-us-flying",
+   "rom": "BG3E",
+   "state": "dragon-ball-z-buus-fury/us-world-map-circle.ss",
+   "desc": "West City's map, then the World Map Circle (A): flying, the small world map twice as big on the second screen, off the game screen (the haze and the help bar stay); flying on, the arrow moves on it",
+   "rules": [
+    "BF-2",
+    "BF-5"
+   ],
+   "input": [
+    [
+     70,
+     "A"
+    ],
+    [
+     73,
+     "-"
+    ],
+    [
+     130,
+     "A"
+    ],
+    [
+     133,
+     "-"
+    ],
+    [
+     420,
+     "UP"
+    ],
+    [
+     700,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 60,
+    "flying": 400,
+    "on": 700
+   },
+   "checks": [
+    {
+     "rule": "BF-5",
+     "what": "the area map forgotten",
+     "type": "log",
+     "match": "second screen back to the logo"
+    },
+    {
+     "rule": "BF-5",
+     "what": "the world map on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "BF-5",
+     "what": "the arrow moved",
+     "type": "differs",
+     "a": {
+      "shot": "flying",
+      "screen": "second",
+      "rect": [
+       256,
+       128,
+       768,
+       640
+      ]
+     },
+     "b": {
+      "shot": "on",
+      "screen": "second",
+      "rect": [
+       256,
+       128,
+       768,
+       640
+      ]
+     },
+     "frac": 0.002
+    }
+   ]
+  },
+  {
+   "id": "bf-us-landing",
+   "rom": "BG3E",
+   "state": "dragon-ball-z-buus-fury/us-flying.ss",
+   "desc": "flying over West City, then landing (A held): the world map goes, West City's map comes",
+   "rules": [
+    "BF-2",
+    "BF-5"
+   ],
+   "input": [
+    [
+     60,
+     "A"
+    ],
+    [
+     100,
+     "-"
+    ],
+    [
+     110,
+     "A"
+    ],
+    [
+     150,
+     "-"
+    ]
+   ],
+   "shots": {
+    "flying": 50,
+    "landed": 400
+   },
+   "checks": [
+    {
+     "rule": "BF-5",
+     "what": "the area's map after landing",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "bf-us-snake-way",
+   "rom": "BG3E",
+   "state": "dragon-ball-z-buus-fury/us-snake-way.ss",
+   "desc": "a new game's first walk, Snake Way (Chapter 1, Goku): the Scouter's map already",
+   "rules": [
+    "BF-2",
+    "BF-7"
+   ],
+   "shots": {
+    "start": 90
+   },
+   "checks": [
+    {
+     "rule": "BF-2",
+     "what": "the map taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "bf-us-one-screen",
+   "rom": "BG3E",
+   "state": "dragon-ball-z-buus-fury/us-west-city.ss",
+   "desc": "one screen: the game as it is",
+   "rules": [
+    "BF-6"
+   ],
+   "config": {
+    "layout": "single"
+   },
+   "shots": {
+    "start": 60
+   }
+  },
+  {
+   "id": "bf-logo-bg3e",
+   "kind": "logo",
+   "rom": "BG3E",
+   "desc": "BG3E logo extraction",
+   "rules": [
+    "GEN-1",
+    "BF-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

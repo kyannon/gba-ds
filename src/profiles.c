@@ -2218,6 +2218,67 @@ static const char* dbz2_compose(Emu* s, const void* state, uint32_t* out, int w,
 	return NULL;
 }
 
+/* ---------------------------------------------------------- Dragon Ball Z: Buu's Fury
+ *
+ * The Legacy of Goku II's engine. The second screen (BF-2): the Scouter's
+ * map of the area (SELECT here), opened on the shadow core from the live
+ * state at every capture, once it has faded in (BLDALPHA up to 16), without
+ * its four scroll arrows (the same sprites as The Legacy of Goku II's) and
+ * its L and R letters (BF-7). The Scouter works from the start, so there's
+ * nothing to fall back on: where SELECT opens nothing (a conversation, a
+ * scene), the last picture stays (BF-4). An attack under way takes no
+ * SELECT, so it's tried a few times.
+ */
+#define BF_FIELD_DISP 0x1F40
+#define BF_MAP_DISP 0x1D40
+#define BF_ZONE 0x0300197D /* 0 on the title and file menu, 0x32 flying */
+#define BF_AREA 0x03001980 /* the area's map data */
+/* BF-7: the frame's top corners, dark green letters on the plates' green */
+#define BF_LETTER 0x004A00 /* (0, 74, 0) as mGBA's XBGR */
+#define BF_PLATE 0x00A500  /* (0, 165, 0) */
+static void bf_map_prompts(uint32_t* out, int w, int h) {
+	static const int box[2][4] = { { 4, 3, 11, 11 }, { 228, 3, 235, 12 } };
+	for (int k = 0; k < 2; ++k)
+		for (int y = box[k][1]; y <= box[k][3] && y < h; ++y)
+			for (int x = box[k][0]; x <= box[k][2] && x < w; ++x) {
+				uint32_t* c = &out[y * w + x];
+				if ((*c & 0xF8F8F8) == (BF_LETTER & 0xF8F8F8)) *c = (*c & 0xFF000000) | BF_PLATE;
+			}
+}
+static const char* bf_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	if (!emu_state_load(s, state)) return "state load failed";
+	if (emu_io16(s, 0x00) != BF_FIELD_DISP) return "not walking about";
+	/* the map: SELECT (three tries), then its fade-in */
+	bool map = false;
+	for (int t = 0; t < 3 && !map; ++t) {
+		aw_run(s, K_SELECT, 3);
+		for (int f = 0; f < 40 && !map; ++f) {
+			emu_frame_blind(s, 0);
+			map = emu_io16(s, 0x00) == BF_MAP_DISP;
+		}
+	}
+	if (!map) return "the map did not open";
+	int f = 0;
+	while (f < 60 && emu_io16(s, 0x52) != 0x0010) emu_frame_blind(s, 0), ++f;
+	if (emu_io16(s, 0x00) != BF_MAP_DISP || emu_io16(s, 0x52) != 0x0010) return "the map did not settle";
+	emu_hide_sprites(s, dbz2Arrows, 4);
+	emu_frame(s, 0);
+	emu_frame(s, 0);
+	emu_hide_sprites(s, NULL, 0);
+	if (emu_io16(s, 0x00) != BF_MAP_DISP) return "the map went away";
+	/* no map here (a shop: the frame alone, all greens, no area or dot):
+	 * the last map dimmed (BF-8, dimWhenUnavailable) */
+	bool any = false;
+	for (int i = 0; i < GBA_W * GBA_H && !any; ++i) {
+		uint32_t c = s->fb[i];
+		any = (c & 0xFF) > 100 || ((c >> 16) & 0xFF) > 100;
+	}
+	if (!any) return "map button did nothing";
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+	bf_map_prompts(out, w, h);
+	return NULL;
+}
+
 /* ---------------------------------------------------------- Mario & Luigi: Superstar Saga
  *
  * The second screen (ML-2): the Bros. Info screen, opened on the shadow core
@@ -6222,6 +6283,44 @@ static const MapProfile profiles[] = {
 		/* the title, after START skips the intro: DRAGON BALL Z and THE
 		 * LEGACY OF GOKU II inside its mask (DBZ2-1) */
 		.logo = { .steps = { { 0, 900 }, { K_START, 6 }, { 0, 150 } }, .mask = &logoMaskDBZ2 },
+	},
+	{
+		/* Dragon Ball Z: Buu's Fury (USA only). Walking about, the
+		 * Scouter's area map: see bf_compose (BF-2) */
+		.codes = { "BG3E" },
+		.title = "Dragon Ball Z: Buu's Fury",
+		.compose = bf_compose,
+		/* (an empty Scouter, in a shop: the last map dimmed, BF-8) */
+		.dimWhenUnavailable = true,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* walking about (the story scenes and conversations too: there
+		 * SELECT opens nothing, and the last picture or the logo stays,
+		 * BF-1, BF-4) */
+		.live = { { 0x04000000, 0xFFFF, BF_FIELD_DISP, 2 } },
+		/* 0 on the title and the file menu, 0x32 flying over the world:
+		 * the logo, the last map forgotten (BF-1, BF-5) */
+		.menu = { { BF_ZONE, 0xFF, 0x00, 1, true, 0x32 } },
+		/* the area: a new area's map at once (GEN-6) */
+		.room = { { BF_AREA, 0xFFFFFFFF, 0, 4 } },
+		/* flying over the world (DISPCNT 0x1741, zone 0x32): the inset map
+		 * at the top right (BG0 rows 6-51, your arrow an 8x8 sprite) moves
+		 * to the second screen, twice as big and in the middle (BF-5).
+		 * BG0's haze over the horizon, from row 56 down, and the help bar
+		 * (sprites at row 136) stay on the game screen */
+		.hud = {
+			.on = { { 0x04000000, 0xFFFF, 0x1741, 2 }, { BF_ZONE, 0xFF, 0x32, 1 } },
+			.bgMask = 1,
+			.rows = 56,
+			.objs = { { 150, -8, 239, 55, 0, 1023, -1, 0, 0, 1u << 0 } },
+			/* (grown from what's drawn: the outline, 63x46, centred at
+			 * row 80; a mark past its edge grows it a little) */
+			.map = { 150, 0, 239, 55 },
+			.mapAt = { 2, 120, 125 },
+		},
+		/* the title, which comes up with no input: DRAGON BALL Z and BUU'S
+		 * FURY inside its mask (BF-1) */
+		.logo = { .steps = { { 0, 900 } }, .mask = &logoMaskBF },
 	},
 	{
 		/* River City Ransom EX (USA; in Japan Downtown Nekketsu Monogatari
