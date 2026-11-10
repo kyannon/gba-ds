@@ -195,23 +195,47 @@ def dbz2_jpn(a):
 def bf(a):
     """Dragon Ball Z: Buu's Fury (USA): DRAGON BALL Z and BUU'S FURY painted
     over the fighters, Buu and an orange sun much the colour of the
-    lettering, so the lettering is found by its black outline instead: the
-    outline's large pieces (rows 0-72, left of the (R)), their one-pixel
-    gaps closed, and all they enclose. Buu's pink is left out. Between BALL
-    and the Z's diagonal the outlines enclose a sliver of the sun: there
-    (from x 140, rows 0-48) only the red letters and the outline next to
-    them count, with what they enclose."""
+    lettering, BUU'S FURY on a dark band with orange sparks. First the
+    lettering's area, by its black outline: the outline's large pieces
+    (rows 0-72, left of the (R)), their one-pixel gaps closed, and all they
+    enclose, Buu's pink left out; between BALL and the Z's diagonal (from x
+    140, rows 0-48), where that encloses a sliver of the sun, only the red
+    letters and the outline next to them. Then, inside it, the letters
+    themselves: the coloured pieces (not outline-dark) of 100 pixels or
+    more, or of 10 or more in the letters' saturated yellow or red (a piece
+    of the G); not the sun's slivers, the band's sparks or the strip
+    under the Z. The mask is those letters, a one-pixel ring round them and
+    all they enclose (the letters' counters), so each letter ends on a
+    black edge (the owner's request, Nov 9, 2026: see BF-1): wherever that
+    ring or counter isn't the game's outline-dark already, it's drawn black.
+    Returns the mask and the drawn pixels (0xRRGGBB, -1 elsewhere)."""
     r, g, b = a[..., 0], a[..., 1], a[..., 2]
     ys, xs = np.mgrid[0:H, 0:W]
     band = (ys <= 72) & (xs <= 212)
-    outline = comps((a.max(axis=2) < 60) & (b < 20) & band, 150)
+    dark = (a.max(axis=2) < 60) & (b < 20)
+    outline = comps(dark & band, 150)
     m = ndimage.binary_fill_holes(ndimage.binary_closing(outline, structure=np.ones((3, 3)))) & band
     m &= ~((r > 200) & (b > 100))
     zone = (xs >= 140) & (ys <= 48)
     red = (r >= 80) & (g < 40) & (b < 40) & zone
     near = ndimage.distance_transform_edt(~red) <= 1.5
-    m = (m & ~zone) | (ndimage.binary_fill_holes(red | (near & (a.max(axis=2) < 60))) & zone)
-    return comps(m, 150)
+    m = (m & ~zone) | (ndimage.binary_fill_holes(red | (near & dark)) & zone)
+    m = comps(m, 150)
+    # the letters: the coloured pieces inside it (4-connected)
+    fill = m & ~dark
+    sat = (r > 150) & ((g > 150) | (g < 40)) & (b < 60)
+    lab, n = ndimage.label(fill)
+    keep = []
+    for i in range(1, n + 1):
+        piece = lab == i
+        size = int(piece.sum())
+        if size >= 100 or (size >= 10 and sat[piece].mean() > 0.5):
+            keep.append(i)
+    fill = np.isin(lab, keep)
+    mask = ndimage.binary_fill_holes(ndimage.binary_dilation(fill, structure=np.ones((3, 3))))
+    patch = np.full((H, W), -1, np.int64)
+    patch[mask & ~fill & ~dark] = 0
+    return mask, patch
 
 
 def comps(m, mn):

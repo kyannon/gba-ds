@@ -4,7 +4,7 @@
 |---|---|
 | Releases | `BG3E` USA |
 | Dumps | `BG3E` cartridge `01c1707f` (tested) |
-| Profile | `src/profiles.c`: the `BG3E` entry (`bf_compose`, a logo mask) |
+| Profile | `src/profiles.c`: the `BG3E` entry (`bf_compose`, a logo mask with its outline closed) |
 | Tests | `tests/regress/dragon-ball-z-buus-fury.json` (`tools/regress.py dragon-ball-z-buus-fury`) |
 | Status | supported |
 
@@ -14,7 +14,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 ## Rules
 
-**BF-1. Logo.** On the title, the file menu (Select Game), the options and the story scenes the game opens with, the second screen shows the logo: DRAGON BALL Z and BUU'S FURY from the title screen, cut out of the picture they're painted on (none of Buu, the fighters, the sun behind the lettering or the sky; not the ® and ™, the START / OPTIONS box or the copyright line).
+**BF-1. Logo.** On the title, the file menu (Select Game), the options and the story scenes the game opens with, the second screen shows the logo: DRAGON BALL Z and BUU'S FURY from the title screen, cut out of the picture they're painted on, each letter (and the Dragon Ball) to its own edge and ending on a one-pixel black outline, its counters dark as the game draws them (none of Buu, the fighters, the sun behind the lettering, the dark band and its sparks behind BUU'S FURY or the sky; not the ® and ™, the START / OPTIONS box or the copyright line). Where the game's own outline has a gap at a letter's edge, it's drawn black: see Exceptions.
 
 **BF-2. The area map.** Walking about, the second screen is the Scouter's map of the area (SELECT) as the game draws it: the scouter frame, the area's shape (the parts you've been to in blue), your dot and the other marks, centred on you as the game centres it when it opens. It's opened in the background on a silent copy of the game about once a second (and as soon as you're in a new area, GEN-6), so your dot moves as you do; your game is never paused. Its button prompts are left out (BF-7).
 
@@ -29,6 +29,10 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 **BF-7. No button prompts.** The second screen can't be scrolled or paged, so the prompts for doing that are left out of the area map: the four arrows round its edge (the d-pad scrolls it) and the L and R letters on the scouter frame's top corners (the corners' own green instead).
 
 **BF-8. No map here.** Where the game's Scouter has no map to show (inside a shop such as West City's Z-Mart, where it opens on an empty frame with no dot), the second screen keeps the last area's map, dimmed, until a map can be shown again (as A Link to the Past does indoors); before the first, the logo.
+
+## Exceptions
+
+BF-1's closed outline is an exception to the philosophy's "only the game's own graphics": 24 of the logo's pixels, at the letters' edges where the game's outline has a gap (or a counter isn't dark), are drawn black. The owner's request (Nov 9, 2026), with the official logo as the reference, so the lettering reads cleanly against the second screen; `tools/make_logo_masks.py` (`bf`) stores the drawn pixels with the mask (`patchAt` / `patchRgb`).
 
 ## Not covered yet
 
@@ -54,7 +58,7 @@ Tried with the owner's save (Kid Buu Saga, West City: Goku at level 200, all fiv
 
 Changelog line (New games): "Dragon Ball Z: Buu's Fury: walking about, the Scouter's map of the area on the second screen, following you; flying, the small world map moved there, twice as big."
 
-Philosophy's exceptions: add "Dragon Ball Z: Buu's Fury's" to The Legacy of Goku II's small world map, shown while flying, drawn twice as big.
+Philosophy's exceptions: add "Dragon Ball Z: Buu's Fury's" to The Legacy of Goku II's small world map, shown while flying, drawn twice as big; and, beside The Legacy of Goku's logo, "Dragon Ball Z: Buu's Fury's logo, each letter's black outline closed where the title screen leaves a gap".
 
 Wiki, Supported games (table row and section):
 
