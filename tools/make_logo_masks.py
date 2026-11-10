@@ -289,21 +289,16 @@ def vr3(a):
 
 def gt3(a):
     """GT Advance 3: Pro Concept Racing (USA, Europe): GT3 ADVANCE PRO
-    CONCEPT RACING painted over a highway and white sky, the GT3 silver and
-    grey, ADVANCE black. What isn't pure white sky or brighter blue
-    highway, reached from inside a hand-drawn outline round the lettering
-    (the highway's dark beams run into it from both sides); the subtitle's
-    rows (38-41) whole, its pale blue letters being the highway's colours."""
-    from PIL import ImageDraw
-    r, g, b = a[..., 0], a[..., 1], a[..., 2]
-    ys, xs = np.mgrid[0:H, 0:W]
-    white = (r >= 0xF8) & (g >= 0xF8) & (b >= 0xF8)
-    blue = (b >= r + 20) & (a.max(axis=2) >= 0x70)
-    pi = Image.new("1", (W, H))
-    ImageDraw.Draw(pi).polygon([(74, 0), (187, 0), (187, 28), (168, 34), (168, 44), (59, 44), (63, 33), (66, 24), (70, 10)], fill=1)
-    inside = np.asarray(pi)
-    m = _from_edges(white | blue | ~inside)
-    return m | (inside & (ys >= 26) & (ys <= 41))
+    CONCEPT RACING painted over a highway and white sky, the GT3 silver
+    with blue reflections, ADVANCE black, the subtitle navy: colours the
+    highway shares, so no rule on them cuts the lettering out cleanly. The
+    outline is a stencil instead, tools/logo_stencils/gt3.png: the
+    publisher's logo artwork's silhouette (its glow left out) scaled to
+    the title's lettering (0.30 x 0.32, at 59.5, 0: the best overlap with
+    the title's grey and black pixels). Only its outline is used; the
+    pixels are the title's."""
+    st = np.asarray(Image.open(os.path.join(ROOT, "tools", "logo_stencils", "gt3.png")).convert("L")) > 127
+    return st
 
 
 def gt3_jpn(a):
