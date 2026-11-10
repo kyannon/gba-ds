@@ -291,6 +291,46 @@ def amw(a):
     return shape[:a.shape[0], :a.shape[1]]
 
 
+def nfo(a):
+    """Ninja Five-O (USA): NINJA and FIVE-O without the black brush-stroke
+    kanji behind them or the white title screen. Every colour but the
+    greys (the kanji, NINJA's white outline, the background, the TM, the
+    copyright line) is lettering; then the light pixels left on the
+    lettering's edge (its blend into the white) are peeled off, three
+    deep, and spurs with fewer than three neighbours dropped."""
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    keep = ~((abs(r - g) <= 12) & (abs(g - b) <= 12))
+    keep[146:] = False
+    lab, n = ndimage.label(keep)
+    sizes = ndimage.sum(keep, lab, range(1, n + 1))
+    keep = np.isin(lab, [i + 1 for i, s in enumerate(sizes) if s >= 30])
+    light = a.min(axis=2) >= 150
+    for _ in range(3):
+        keep &= ~(light & keep & ~ndimage.binary_erosion(keep, border_value=0))
+    # FIVE-O (from row 95): the greyish blends where its letters met the
+    # kanji (between the I and V, under the I and the dash), greener
+    # than red and dull; not its navy, blues or the V's purple
+    dull = (g > r) & (a.max(axis=2) - a.min(axis=2) < 60) & (r >= 40)
+    dull[:95] = False
+    keep &= ~dull
+    for _ in range(2):
+        nb = ndimage.convolve(keep.astype(int), np.ones((3, 3), int), mode="constant") - keep
+        keep &= nb >= 3
+    return keep
+
+
+def nfo_eur(a):
+    """Ninja Cop (Europe): NINJA COP to the outside of its white outline,
+    without the ragged black and purple rim round it or the blue screen:
+    dark pixels, the blue, and the rim's mauve (red well above green, blue
+    above green) reached from the edges are clear."""
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    bgc = (a.max(axis=2) < 160) | ((b > r + 80) & (b > g + 80)) | ((r > g + 20) & (b > g) & (g > 60))
+    keep = _from_edges(bgc)
+    keep[100:] = False
+    return keep
+
+
 def vr3(a):
     """V-Rally 3: the main menu's heading (the game has no title screen),
     V-RALLY 3 in cream and gold with a dark outline and its heartbeat line,
@@ -305,7 +345,8 @@ MASKS = (("THPS2", thps2), ("SK8", sk8), ("THPS3", thps3), ("DBZ", dbz),
          ("GS2E", gs2), ("GS2D", gs2_dial), ("GS2F", gs2_dial), ("GS2I", gs2), ("GS2S", gs2_dial),
          ("GS2J", gs2), ("CNK", cnk), ("CNKJ", cnk_jpn),
          ("DBZ2", dbz2), ("DBZ2J", dbz2_jpn),
-         ("VR3", vr3), ("VR3J", vr3), ("AMW", amw))
+         ("VR3", vr3), ("VR3J", vr3),
+         ("NFO", nfo), ("NFOP", nfo_eur), ("AMW", amw))
 
 
 def runs(mask):

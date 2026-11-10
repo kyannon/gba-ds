@@ -46,6 +46,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Wario Land 4 (Wario Land Advance in Japan)](wario-land-4.md) | WL4 | `AWAE` + 1 |
 | [Mega Man Battle Network (Battle Network Rockman EXE in Japan)](mega-man-battle-network.md) | MMBN | `AREE` + 2 |
 | [Muppet Pinball Mayhem](muppet-pinball-mayhem.md) | MPM | `AMWE` + 1 |
+| [Ninja Five-O (Ninja Cop in Europe)](ninja-five-o.md) | NFO | `ANXE` + 1 |
 | [V-Rally 3](v-rally-3.md) | VR3 | `AVRE` + 2 |
 
 ## General rules
