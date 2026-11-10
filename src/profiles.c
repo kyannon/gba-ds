@@ -4111,13 +4111,15 @@ static void* mmbn_worker(void* arg) {
 	MmbnMap* m = &mmbnMaps[mmbnJobMap];
 	struct timespec t0;
 	clock_gettime(CLOCK_MONOTONIC, &t0);
-	if (!mmbnEmuOpen || !emu_state_load(e, mmbnJob)) goto out;
+	const char* why = NULL;
+	if (!mmbnEmuOpen && (why = "the ROM didn't open")) goto out;
+	if (!emu_state_load(e, mmbnJob) && (why = "the game's moment didn't load")) goto out;
 	uint16_t area = m->area;
 	uint32_t pos = emu_read32(e, MMBN_CAM + 0x10);
 	int xl = (int32_t) emu_read32(e, MMBN_CAM + 0x14) >> 16, xu = (int32_t) emu_read32(e, MMBN_CAM + 0x18) >> 16;
 	int yu = (int32_t) emu_read32(e, MMBN_CAM + 0x1C) >> 16, yl = (int32_t) emu_read32(e, MMBN_CAM + 0x20) >> 16;
 	if (yl > yu) { int t = yl; yl = yu; yu = t; }
-	if (pos < 0x02000000 || pos >= 0x02040000 || xu <= xl || yu <= yl) goto out;
+	if ((pos < 0x02000000 || pos >= 0x02040000 || xu <= xl || yu <= yl) && (why = "no position or bounds")) goto out;
 	/* (the bounds are the camera's: MegaMan can stand a little past them) */
 	xl -= 64, xu += 64, yl -= 64, yu += 64;
 	emu_layers(e, 0x0C);
@@ -4126,15 +4128,16 @@ static void* mmbn_worker(void* arg) {
 	uint8_t* seen = calloc((size_t) gw * gh, 1);
 	int* queue = malloc(sizeof(int) * gw * gh);
 	uint8_t* walking = malloc(mmbnJobSize);
-	if (!at || !seen || !queue || !walking) goto done;
+	if ((!at || !seen || !queue || !walking) && (why = "out of memory")) goto done;
 	int qh = 0, qt = 0;
 	int32_t x0 = (int32_t) emu_read32(e, pos), y0 = (int32_t) emu_read32(e, pos + 4), z0 = (int32_t) emu_read32(e, pos + 8);
 	/* the walking moment */
 	for (int f = 0; f < 4; ++f) emu_frame_blind(e, K_DOWN);
-	if (emu_read8(e, MMBN_STATE) != 4 || emu_read16(e, MMBN_AREA) != area || !emu_state_save(e, walking)) goto done;
+	if ((emu_read8(e, MMBN_STATE) != 4 || emu_read16(e, MMBN_AREA) != area || !emu_state_save(e, walking)) &&
+	    (why = "he didn't walk")) goto done;
 #define MMBN_CELL(X, Y) \
 	(((((Y) >> 16) - yl + MMBN_GRID / 2) / MMBN_GRID) * gw + ((((X) >> 16) - xl + MMBN_GRID / 2) / MMBN_GRID))
-	if ((x0 >> 16) < xl || (x0 >> 16) > xu || (y0 >> 16) < yl || (y0 >> 16) > yu) goto done;
+	if (((x0 >> 16) < xl || (x0 >> 16) > xu || (y0 >> 16) < yl || (y0 >> 16) > yu) && (why = "he's outside the area")) goto done;
 	int c0 = MMBN_CELL(x0, y0);
 	seen[c0] = 1, at[c0 * 3] = x0, at[c0 * 3 + 1] = y0, at[c0 * 3 + 2] = z0, queue[qt++] = c0;
 	static const int8_t ways[8][2] = { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 }, { 1, 1 }, { -1, -1 }, { 1, -1 }, { -1, 1 } };
@@ -4185,7 +4188,8 @@ static void* mmbn_worker(void* arg) {
 	}
 #undef MMBN_CELL
 	m->failed = !mmbnStop && qt <= 1;
-	if (!mmbnStop) {
+	if (m->failed) why = "he couldn't go anywhere";
+	if (!mmbnStop && !m->failed) {
 		m->done = true;
 		struct timespec t1;
 		clock_gettime(CLOCK_MONOTONIC, &t1);
@@ -4197,6 +4201,9 @@ done:
 	emu_layers(e, 0x1F);
 out:
 	if (!m->done && !mmbnStop) m->done = m->failed = true; /* (not made again this session) */
+	/* (always logged: why the second screen keeps the logo on the net) */
+	if (m->failed) fprintf(stderr, "Mega Man Battle Network: area %04X not mapped: %s\n", m->area, why ? why : "?");
+	else if (mmbnStop && !m->done) fprintf(stderr, "Mega Man Battle Network: area %04X's map called off\n", m->area);
 	mmbnBusy = false;
 	return NULL;
 }
@@ -4209,7 +4216,12 @@ static const uint32_t* mmbn_live_view(Emu* live, const char* rom) {
 	++mmbnAsked;
 	uint8_t st = emu_read8(live, MMBN_STATE);
 	uint16_t area = emu_read16(live, MMBN_AREA);
-	if ((st != 4 && st != 0x18) || !mmbn_area_net(area)) return NULL;
+	if ((st != 4 && st != 0x18) || !mmbn_area_net(area)) {
+		static uint16_t told;
+		if ((area & 0xFF) >= 0x80 && area != told && (st == 4 || st == 0x18))
+			told = area, fprintf(stderr, "Mega Man Battle Network: on the net (area %04X), maps off (GBADS_SYNC)\n", area);
+		return NULL;
+	}
 	MmbnMap* m = NULL;
 	for (int i = 0; i < MMBN_MAPS; ++i)
 		if (mmbnMaps[i].px && mmbnMaps[i].area == area) m = &mmbnMaps[i];
