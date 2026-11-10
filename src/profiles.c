@@ -4065,7 +4065,7 @@ static bool mmbn_megaman_up(Emu* s) {
 #define MMBN_MAPS 4
 typedef struct {
 	uint16_t area;
-	bool done, failed;
+	bool done, failed, counted;
 	int w, h, x0, y0;   /* the picture's size, and its top left's screen position */
 	uint32_t* px;       /* 0: nothing seen there */
 	unsigned used;
@@ -4222,14 +4222,43 @@ static const uint32_t* mmbn_live_view(Emu* live, const char* rom) {
 			told = area, fprintf(stderr, "Mega Man Battle Network: on the net (area %04X), maps off (GBADS_SYNC)\n", area);
 		return NULL;
 	}
+	/* a warp: the area's number changes before its map and bounds are in
+	 * (a map started then fails); a new map waits for half a second of the
+	 * same area, walking, no fade */
+	static uint16_t settledArea;
+	static int settledFor;
+	if (area != settledArea) settledArea = area, settledFor = 0;
+	else if (st == 4 && !emu_read8(live, MMBN_FADING)) ++settledFor;
+	else settledFor = 0;
 	MmbnMap* m = NULL;
 	for (int i = 0; i < MMBN_MAPS; ++i)
 		if (mmbnMaps[i].px && mmbnMaps[i].area == area) m = &mmbnMaps[i];
+	if (m && m->failed) {
+		/* not made: most often he wasn't moving yet (arriving on a warp
+		 * pad, he steps off it by himself, the D-pad ignored): tried again
+		 * after two seconds, 3 more times; then the logo, its place going
+		 * first to a new area */
+		static uint16_t failArea;
+		static int fails;
+		if (!m->counted) {
+			m->counted = true;
+			if (failArea != area) failArea = area, fails = 0;
+			if (++fails <= 3) {
+				free(m->px);
+				memset(m, 0, sizeof(*m));
+				settledFor = -90;
+				return NULL;
+			}
+			fprintf(stderr, "Mega Man Battle Network: area %04X: no map this session\n", area);
+		}
+		m->used = 0;
+		return NULL;
+	}
 	if (m && !m->done && !mmbnBusy) {
 		/* (one called off: made again from here) */
 		free(m->px), m->px = NULL, m = NULL;
 	}
-	if (!m && st == 4) {
+	if (!m && st == 4 && settledFor >= 30) {
 		if (mmbnBusy) {
 			/* another area's still being made: called off */
 			mmbnStop = true;
