@@ -278,6 +278,11 @@ typedef struct MapProfile {
 				 * copies dimmed alike, not the game's screen on the bottom
 				 * one (PP-11's) */
 				bool keepDim;
+				/* while it doesn't match (in the copy, as taken from the
+				 * game), the copy keeps nothing of its own: it starts again
+				 * from the game's tiles (Muppet Pinball Mayhem's table being
+				 * set up, its tiles not loaded yet) */
+				MemProbe ready;
 				uint32_t qIndex;
 				int qSlots, qStride, qDst, qSize;
 				int qReload; /* (an entry into the ring bigger than this, in bytes, is the table loaded afresh; default 0x400) */

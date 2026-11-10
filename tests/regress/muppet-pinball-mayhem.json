@@ -591,6 +591,41 @@
    ]
   },
   {
+   "id": "mpm-us-load-table",
+   "rom": "AMWE",
+   "state": "muppet-pinball-mayhem/us-kermit-play.ss",
+   "desc": "Kermit's table played, then a state loaded at the table choice (Animal's) and a game started: the copies start again from the new table, none of the menus' tiles or sprites nor Kermit's on either screen (a player's report)",
+   "rules": [
+    "MPM-2"
+   ],
+   "input": [
+    [
+     120,
+     "LOAD:muppet-pinball-mayhem/us-animal-choice.ss"
+    ],
+    [
+     160,
+     "A"
+    ],
+    [
+     164,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 700,
+    "later": 800
+   },
+   "checks": [
+    {
+     "rule": "MPM-2",
+     "what": "the table over both screens",
+     "type": "log",
+     "match": "frame [0-9]+: live view"
+    }
+   ]
+  },
+  {
    "id": "mpm-us-4-players",
    "rom": "AMWE",
    "state": "muppet-pinball-mayhem/us-4-players.ss",

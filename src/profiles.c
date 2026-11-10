@@ -4920,6 +4920,7 @@ static const MapProfile profiles[] = {
 			                      * count, 3 then 2 the next ball; 5 paused; 7 then 8 the
 			                      * game over, through its curtains) */
 			                     .plain = { { 0x030013B6, 0xFF, 5, 1 }, { 0x030013B6, 0xFF, 7, 1 }, { 0x030013B6, 0xFF, 8, 1 } },
+			                     .ready = { 0x030013B6, 0xFF, 2, 1, true, 0x0C, true }, /* (modes 0 and 1: the table being set up, its tiles still the menus') */
 			                     .keepObj = true,
 			                     .keepDim = true, /* (its fade out at a game's end: both screens fade) */
 			                     .ringLo = 0x2D40, .ringHi = 0x10000,
@@ -4958,10 +4959,7 @@ static const MapProfile profiles[] = {
 			                          * lsrs r0,r1,#14; strh r0,[r1] */
 			                         { 0x0800087E, 0x46C0 },
 			                         { 0x08000A80, 0x0B4A }, { 0x08000A82, 0x4390 }, { 0x08000A84, 0x8008 },
-			                         { 0x08000A86, 0x3152 }, { 0x08000A88, 0x0B88 }, { 0x08000A8A, 0x8008 },
-			                         /* and the tile rows streamed in at the top two higher (the
-			                          * 16 rows above line 16): cmp r5,#0 -> subs r5,#2 */
-			                         { 0x08004E64, 0x3D02 } } } },
+			                         { 0x08000A86, 0x3152 }, { 0x08000A88, 0x0B88 }, { 0x08000A8A, 0x8008 } } } },
 		},
 		/* the title (from frame 1650 on USA's, 2050 on Europe's, after its
 		 * Ubi Soft screen) is one picture on BG0, the name painted into its

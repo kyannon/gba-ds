@@ -510,6 +510,7 @@ static void twin_first_carry(Twin* tw) {
 		if (tallTrace) fprintf(stderr, "copy %d: the table's tiles reloaded, starting again\n", (int) (tw - twins));
 	}
 	tw->seq = twinSeq;
+	if (C->ready.addr && !memprobes_match(&C->ready, 1, &tw->e)) tw->carried = false;
 	if (tw->carried) carry_put(tw);
 	/* (its own shadow sprite table: a frame whose logic runs long leaves
 	 * part of it as it was, which would be the game's, placed for the
@@ -525,8 +526,13 @@ static void twin_first_carry(Twin* tw) {
 	tw->cam = want > at ? SDL_min(at + 16, want) : SDL_max(at - 16, want);
 
 	emu_write16(&tw->e, C->cam, (uint16_t) tw->cam);
+	bool fresh = !tw->carried;
 	emu_frame(&tw->e, twinKeys[twinCur] & 0x3FF);
 	carry_take(tw);
+	/* (starting again: its own sprites are the ones it just drew, not
+	 * what it kept from when it last ran, on another table or before a
+	 * state was loaded) */
+	if (fresh) emu_oam_read(&tw->e, tw->oam);
 	tw->up = true;
 }
 
@@ -3424,6 +3430,11 @@ static void update_tall(void) {
 		tallMsg = haveLastTop = false;
 		tallLive = false;
 		mapShownIdx = -1;
+		/* (carry: the copies start again from the game's: what they kept,
+		 * running on through the menus, is the last table's tiles, which
+		 * a new table's (Muppet Pinball Mayhem's, after its curtains)
+		 * doesn't reload in one go) */
+		for (int i = 0; i < TWINS; ++i) twins[i].carried = false;
 		if (debug) fprintf(stderr, "frame %llu: table %s\n", (unsigned long long) frameCount, on ? "up" : "gone");
 		return;
 	}
