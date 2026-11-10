@@ -287,11 +287,41 @@ def vr3(a):
     return _from_edges((b >= r + 12) | (ys >= 44))
 
 
+def gt3(a):
+    """GT Advance 3: Pro Concept Racing (USA, Europe): GT3 ADVANCE PRO
+    CONCEPT RACING painted over a highway and white sky, the GT3 silver and
+    grey, ADVANCE black. What isn't pure white sky or brighter blue
+    highway, reached from inside a hand-drawn outline round the lettering
+    (the highway's dark beams run into it from both sides); the subtitle's
+    rows (38-41) whole, its pale blue letters being the highway's colours."""
+    from PIL import ImageDraw
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    ys, xs = np.mgrid[0:H, 0:W]
+    white = (r >= 0xF8) & (g >= 0xF8) & (b >= 0xF8)
+    blue = (b >= r + 20) & (a.max(axis=2) >= 0x70)
+    pi = Image.new("1", (W, H))
+    ImageDraw.Draw(pi).polygon([(74, 0), (187, 0), (187, 28), (168, 34), (168, 44), (59, 44), (63, 33), (66, 24), (70, 10)], fill=1)
+    inside = np.asarray(pi)
+    m = _from_edges(white | blue | ~inside)
+    return m | (inside & (ys >= 26) & (ys <= 41))
+
+
+def gt3_jpn(a):
+    """Advance GT2 (GT Advance 3 in Japan): its lettering outlined in black
+    over the highway and sky, everything inside the outline, and the bar
+    under it with its katakana (rows 44-52) whole; the highway's loose dark
+    streaks (under 400 pixels) left out."""
+    ys, xs = np.mgrid[0:H, 0:W]
+    m = _from_edges((a.max(axis=2) >= 0x60) | (ys >= 53) | (ys < 5) | (xs < 12))
+    m |= (ys >= 44) & (ys <= 52) & (xs >= 12) & (xs <= 231)
+    return comps(m, 400)
+
+
 MASKS = (("THPS2", thps2), ("SK8", sk8), ("THPS3", thps3), ("DBZ", dbz),
          ("GS2E", gs2), ("GS2D", gs2_dial), ("GS2F", gs2_dial), ("GS2I", gs2), ("GS2S", gs2_dial),
          ("GS2J", gs2), ("CNK", cnk), ("CNKJ", cnk_jpn),
          ("DBZ2", dbz2), ("DBZ2J", dbz2_jpn),
-         ("VR3", vr3), ("VR3J", vr3))
+         ("VR3", vr3), ("VR3J", vr3), ("GT3", gt3), ("GT3J", gt3_jpn))
 
 
 def runs(mask):

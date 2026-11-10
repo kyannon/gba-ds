@@ -1,0 +1,967 @@
+{
+ "game": "GT Advance 3: Pro Concept Racing",
+ "rules": "docs/games/gt-advance-3-pro-concept-racing.md",
+ "cases": [
+  {
+   "id": "gt3-us-menu",
+   "rom": "A2GE",
+   "state": "gt-advance-3-pro-concept-racing/us-title.ss",
+   "save": "A2GE-100-percent.sav",
+   "desc": "the title, then START to the mode menu and down it: the logo",
+   "rules": [
+    "GT3-7"
+   ],
+   "input": [
+    [
+     5,
+     "START"
+    ],
+    [
+     9,
+     "-"
+    ],
+    [
+     130,
+     "DOWN"
+    ],
+    [
+     134,
+     "-"
+    ]
+   ],
+   "shots": {
+    "title": 3,
+    "modes": 100,
+    "down": 170
+   },
+   "checks": [
+    {
+     "rule": "GT3-7",
+     "what": "the idle logo",
+     "type": "pixels",
+     "shot": "modes",
+     "probes": [
+      [
+       100,
+       532,
+       "303030"
+      ]
+     ]
+    },
+    {
+     "rule": "GT3-7",
+     "what": "the idle logo",
+     "type": "pixels",
+     "shot": "down",
+     "probes": [
+      [
+       100,
+       532,
+       "303030"
+      ]
+     ]
+    },
+    {
+     "rule": "GT3-7",
+     "what": "no HUD in the menus",
+     "type": "no_log",
+     "match": "HUD on"
+    }
+   ]
+  },
+  {
+   "id": "gt3-us-qr-start",
+   "rom": "A2GE",
+   "state": "gt-advance-3-pro-concept-racing/us-qr-go.ss",
+   "save": "A2GE-100-percent.sav",
+   "desc": "Quick Race: GO TO RACE, the loading screens (the logo), the race fading in with its HUD, the countdown and GO! over the track",
+   "rules": [
+    "GT3-2",
+    "GT3-3",
+    "GT3-4",
+    "GT3-7"
+   ],
+   "input": [
+    [
+     1,
+     "A"
+    ],
+    [
+     5,
+     "-"
+    ],
+    [
+     430,
+     "A"
+    ]
+   ],
+   "shots": {
+    "loading": 60,
+    "three": 280,
+    "one": 400,
+    "go": 520
+   },
+   "checks": [
+    {
+     "rule": "GT3-7",
+     "what": "the logo while loading",
+     "type": "pixels",
+     "shot": "loading",
+     "probes": [
+      [
+       100,
+       532,
+       "303030"
+      ]
+     ]
+    },
+    {
+     "rule": "GT3-2",
+     "what": "the HUD on as the race comes up",
+     "type": "log",
+     "match": "frame 1[0-9][0-9]: HUD on the second screen"
+    },
+    {
+     "rule": "GT3-7",
+     "what": "no HUD while loading",
+     "type": "no_log",
+     "match": "frame ([0-9]|[0-9][0-9]): HUD on"
+    },
+    {
+     "rule": "GT3-4",
+     "what": "the second screen live",
+     "type": "pixels",
+     "shot": "three",
+     "probes": [
+      [
+       100,
+       532,
+       "10101A"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gt3-us-qr-race",
+   "rom": "A2GE",
+   "state": "gt-advance-3-pro-concept-racing/us-qr-race.ss",
+   "desc": "Quick Race, Hornet, lap 1: driving among the rivals",
+   "rules": [
+    "GT3-2",
+    "GT3-3",
+    "GT3-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ],
+    [
+     400,
+     "-"
+    ]
+   ],
+   "shots": {
+    "drive": 30,
+    "later": 200
+   },
+   "checks": [
+    {
+     "rule": "GT3-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "GT3-4",
+     "what": "the second screen live",
+     "type": "pixels",
+     "shot": "later",
+     "probes": [
+      [
+       100,
+       532,
+       "10101A"
+      ]
+     ]
+    },
+    {
+     "rule": "GT3-2",
+     "what": "the HUD stays up",
+     "type": "no_log",
+     "match": "HUD gone|HUD empty"
+    }
+   ]
+  },
+  {
+   "id": "gt3-us-qr-pause",
+   "rom": "A2GE",
+   "state": "gt-advance-3-pro-concept-racing/us-qr-race.ss",
+   "desc": "Quick Race paused: the pause menu on the game screen, the HUD kept on the second as it was",
+   "rules": [
+    "GT3-5"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ],
+    [
+     30,
+     "START"
+    ],
+    [
+     34,
+     "-"
+    ],
+    [
+     80,
+     "DOWN"
+    ],
+    [
+     84,
+     "-"
+    ]
+   ],
+   "shots": {
+    "driving": 20,
+    "paused": 70,
+    "cursor": 120
+   },
+   "checks": [
+    {
+     "rule": "GT3-5",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "GT3-5",
+     "what": "the HUD kept while paused",
+     "type": "no_log",
+     "match": "HUD gone|HUD empty"
+    },
+    {
+     "rule": "GT3-5",
+     "what": "the second screen live",
+     "type": "pixels",
+     "shot": "cursor",
+     "probes": [
+      [
+       100,
+       532,
+       "10101A"
+      ]
+     ]
+    },
+    {
+     "rule": "GT3-5",
+     "what": "the HUD held still while paused",
+     "type": "same",
+     "a": {
+      "shot": "paused",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "cursor",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "gt3-us-qr-lap",
+   "rom": "A2GE",
+   "state": "gt-advance-3-pro-concept-racing/us-qr-lap.ss",
+   "desc": "Quick Race: lap 2 begins, the finished lap's time over the track (game screen)",
+   "rules": [
+    "GT3-2",
+    "GT3-3",
+    "GT3-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ],
+    [
+     400,
+     "-"
+    ]
+   ],
+   "shots": {
+    "lap": 2,
+    "later": 60
+   },
+   "checks": [
+    {
+     "rule": "GT3-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "GT3-4",
+     "what": "the second screen live",
+     "type": "pixels",
+     "shot": "later",
+     "probes": [
+      [
+       100,
+       532,
+       "10101A"
+      ]
+     ]
+    },
+    {
+     "rule": "GT3-2",
+     "what": "the HUD stays up",
+     "type": "no_log",
+     "match": "HUD gone|HUD empty"
+    }
+   ]
+  },
+  {
+   "id": "gt3-us-qr-finish",
+   "rom": "A2GE",
+   "state": "gt-advance-3-pro-concept-racing/us-qr-finish.ss",
+   "desc": "Quick Race: over the line, GOAL! on the game screen, the times on the second (the map gone), the fade, then the replay: the logo",
+   "rules": [
+    "GT3-6",
+    "GT3-7"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ],
+    [
+     300,
+     "-"
+    ]
+   ],
+   "shots": {
+    "line": 40,
+    "goal": 200,
+    "turn": 280,
+    "replay": 560
+   },
+   "checks": [
+    {
+     "rule": "GT3-6",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "GT3-6",
+     "what": "the second screen live",
+     "type": "pixels",
+     "shot": "goal",
+     "probes": [
+      [
+       100,
+       532,
+       "10101A"
+      ]
+     ]
+    },
+    {
+     "rule": "GT3-7",
+     "what": "the logo in the replay",
+     "type": "pixels",
+     "shot": "replay",
+     "probes": [
+      [
+       100,
+       532,
+       "303030"
+      ]
+     ]
+    },
+    {
+     "rule": "GT3-7",
+     "what": "the replay's empty HUD: the logo",
+     "type": "log",
+     "match": "HUD empty: the logo"
+    }
+   ]
+  },
+  {
+   "id": "gt3-us-qr-results",
+   "rom": "A2GE",
+   "state": "gt-advance-3-pro-concept-racing/us-qr-replay.ss",
+   "desc": "the replay after a race, A to the results, A to RETRY: the logo",
+   "rules": [
+    "GT3-7"
+   ],
+   "input": [
+    [
+     100,
+     "A"
+    ],
+    [
+     104,
+     "-"
+    ],
+    [
+     210,
+     "A"
+    ],
+    [
+     214,
+     "-"
+    ]
+   ],
+   "shots": {
+    "replay": 60,
+    "results": 200,
+    "retry": 300
+   },
+   "checks": [
+    {
+     "rule": "GT3-7",
+     "what": "the logo in the replay",
+     "type": "pixels",
+     "shot": "replay",
+     "probes": [
+      [
+       100,
+       532,
+       "303030"
+      ]
+     ]
+    },
+    {
+     "rule": "GT3-7",
+     "what": "the idle logo",
+     "type": "pixels",
+     "shot": "results",
+     "probes": [
+      [
+       100,
+       532,
+       "303030"
+      ]
+     ]
+    },
+    {
+     "rule": "GT3-7",
+     "what": "the idle logo",
+     "type": "pixels",
+     "shot": "retry",
+     "probes": [
+      [
+       100,
+       532,
+       "303030"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gt3-us-time-attack",
+   "rom": "A2GE",
+   "state": "gt-advance-3-pro-concept-racing/us-time-attack.ss",
+   "desc": "Time Attack, Hornet: no POSITION; the times, LAP and the map on the second screen",
+   "rules": [
+    "GT3-2",
+    "GT3-3",
+    "GT3-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ],
+    [
+     400,
+     "-"
+    ]
+   ],
+   "shots": {
+    "drive": 60
+   },
+   "checks": [
+    {
+     "rule": "GT3-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "GT3-4",
+     "what": "the second screen live",
+     "type": "pixels",
+     "shot": "drive",
+     "probes": [
+      [
+       100,
+       532,
+       "10101A"
+      ]
+     ]
+    },
+    {
+     "rule": "GT3-2",
+     "what": "the HUD stays up",
+     "type": "no_log",
+     "match": "HUD gone|HUD empty"
+    }
+   ]
+  },
+  {
+   "id": "gt3-us-drift",
+   "rom": "A2GE",
+   "state": "gt-advance-3-pro-concept-racing/us-drift.ss",
+   "desc": "Drift-Combo, Slip Rough: LAP and MAX-COMBO with its count on the second screen",
+   "rules": [
+    "GT3-2",
+    "GT3-3",
+    "GT3-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ],
+    [
+     400,
+     "-"
+    ]
+   ],
+   "shots": {
+    "drive": 60
+   },
+   "checks": [
+    {
+     "rule": "GT3-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "GT3-4",
+     "what": "the second screen live",
+     "type": "pixels",
+     "shot": "drive",
+     "probes": [
+      [
+       100,
+       532,
+       "10101A"
+      ]
+     ]
+    },
+    {
+     "rule": "GT3-2",
+     "what": "the HUD stays up",
+     "type": "no_log",
+     "match": "HUD gone|HUD empty"
+    }
+   ]
+  },
+  {
+   "id": "gt3-us-practice",
+   "rom": "A2GE",
+   "state": "gt-advance-3-pro-concept-racing/us-practice.ss",
+   "desc": "Practice: the rev counter alone on the game screen, the PRACTICE map on the second",
+   "rules": [
+    "GT3-2",
+    "GT3-3",
+    "GT3-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ],
+    [
+     400,
+     "-"
+    ]
+   ],
+   "shots": {
+    "drive": 60
+   },
+   "checks": [
+    {
+     "rule": "GT3-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "GT3-4",
+     "what": "the second screen live",
+     "type": "pixels",
+     "shot": "drive",
+     "probes": [
+      [
+       100,
+       532,
+       "10101A"
+      ]
+     ]
+    },
+    {
+     "rule": "GT3-2",
+     "what": "the HUD stays up",
+     "type": "no_log",
+     "match": "HUD gone|HUD empty"
+    }
+   ]
+  },
+  {
+   "id": "gt3-us-kart",
+   "rom": "A2GE",
+   "state": "gt-advance-3-pro-concept-racing/us-kart.ss",
+   "desc": "Extra, Kart, Hornet: the race HUD as in Quick Race, the countdown over the track",
+   "rules": [
+    "GT3-2",
+    "GT3-3",
+    "GT3-4"
+   ],
+   "input": [
+    [
+     150,
+     "A"
+    ]
+   ],
+   "shots": {
+    "count": 10,
+    "go": 200
+   },
+   "checks": [
+    {
+     "rule": "GT3-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "GT3-4",
+     "what": "the second screen live",
+     "type": "pixels",
+     "shot": "go",
+     "probes": [
+      [
+       100,
+       532,
+       "10101A"
+      ]
+     ]
+    },
+    {
+     "rule": "GT3-2",
+     "what": "the HUD stays up",
+     "type": "no_log",
+     "match": "HUD gone|HUD empty"
+    }
+   ]
+  },
+  {
+   "id": "gt3-us-champ-night",
+   "rom": "A2GE",
+   "state": "gt-advance-3-pro-concept-racing/us-champ-night.ss",
+   "desc": "Championship, Expert, Flash Speed at night in the rain: the course name and countdown over the track, then the map",
+   "rules": [
+    "GT3-2",
+    "GT3-3",
+    "GT3-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ]
+   ],
+   "shots": {
+    "name": 2,
+    "count": 150,
+    "map": 400
+   },
+   "checks": [
+    {
+     "rule": "GT3-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "GT3-4",
+     "what": "the second screen live",
+     "type": "pixels",
+     "shot": "map",
+     "probes": [
+      [
+       100,
+       532,
+       "10101A"
+      ]
+     ]
+    },
+    {
+     "rule": "GT3-2",
+     "what": "the HUD stays up",
+     "type": "no_log",
+     "match": "HUD gone|HUD empty"
+    }
+   ]
+  },
+  {
+   "id": "gt3-us-licence",
+   "rom": "A2GE",
+   "state": "gt-advance-3-pro-concept-racing/us-licence.ss",
+   "desc": "Licence Basic 1, the straight: TIME LIMIT and the map on the second screen, PASSED over the track, then the replay (the logo)",
+   "rules": [
+    "GT3-2",
+    "GT3-4",
+    "GT3-6",
+    "GT3-7"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ],
+    [
+     800,
+     "-"
+    ]
+   ],
+   "shots": {
+    "drive": 30,
+    "line": 550,
+    "passed": 700,
+    "replay": 900
+   },
+   "checks": [
+    {
+     "rule": "GT3-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "GT3-4",
+     "what": "the second screen live",
+     "type": "pixels",
+     "shot": "drive",
+     "probes": [
+      [
+       100,
+       532,
+       "10101A"
+      ]
+     ]
+    },
+    {
+     "rule": "GT3-6",
+     "what": "the second screen live",
+     "type": "pixels",
+     "shot": "passed",
+     "probes": [
+      [
+       100,
+       532,
+       "10101A"
+      ]
+     ]
+    },
+    {
+     "rule": "GT3-7",
+     "what": "the logo in the replay",
+     "type": "pixels",
+     "shot": "replay",
+     "probes": [
+      [
+       100,
+       532,
+       "303030"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gt3-eu-race",
+   "rom": "A2GP",
+   "state": "gt-advance-3-pro-concept-racing/eu-race.ss",
+   "desc": "Europe: Quick Race, Hornet, as the USA's",
+   "rules": [
+    "GT3-2",
+    "GT3-3",
+    "GT3-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ],
+    [
+     400,
+     "-"
+    ]
+   ],
+   "shots": {
+    "drive": 60
+   },
+   "checks": [
+    {
+     "rule": "GT3-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "GT3-4",
+     "what": "the second screen live",
+     "type": "pixels",
+     "shot": "drive",
+     "probes": [
+      [
+       100,
+       532,
+       "10101A"
+      ]
+     ]
+    },
+    {
+     "rule": "GT3-2",
+     "what": "the HUD stays up",
+     "type": "no_log",
+     "match": "HUD gone|HUD empty"
+    }
+   ]
+  },
+  {
+   "id": "gt3-jp-race",
+   "rom": "A2GJ",
+   "state": "gt-advance-3-pro-concept-racing/jp-race.ss",
+   "desc": "Japan (Advance GT2): Quick Race, Hornet, its own spellings in the same places",
+   "rules": [
+    "GT3-2",
+    "GT3-3",
+    "GT3-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ],
+    [
+     400,
+     "-"
+    ]
+   ],
+   "shots": {
+    "drive": 60
+   },
+   "checks": [
+    {
+     "rule": "GT3-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "GT3-4",
+     "what": "the second screen live",
+     "type": "pixels",
+     "shot": "drive",
+     "probes": [
+      [
+       100,
+       532,
+       "10101A"
+      ]
+     ]
+    },
+    {
+     "rule": "GT3-2",
+     "what": "the HUD stays up",
+     "type": "no_log",
+     "match": "HUD gone|HUD empty"
+    }
+   ]
+  },
+  {
+   "id": "gt3-us-single",
+   "rom": "A2GE",
+   "state": "gt-advance-3-pro-concept-racing/us-qr-race.ss",
+   "desc": "one screen: the HUD where the game draws it",
+   "rules": [
+    "GT3-8"
+   ],
+   "config": {
+    "layout": "single"
+   },
+   "input": [
+    [
+     0,
+     "A"
+    ],
+    [
+     100,
+     "-"
+    ]
+   ],
+   "shots": {
+    "drive": 60
+   },
+   "checks": []
+  },
+  {
+   "id": "gt3-logo-a2ge",
+   "kind": "logo",
+   "rom": "A2GE",
+   "desc": "A2GE logo extraction",
+   "rules": [
+    "GEN-1",
+    "GT3-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "gt3-logo-a2gp",
+   "kind": "logo",
+   "rom": "A2GP",
+   "desc": "A2GP logo extraction",
+   "rules": [
+    "GEN-1",
+    "GT3-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "gt3-logo-a2gj",
+   "kind": "logo",
+   "rom": "A2GJ",
+   "desc": "A2GJ logo extraction",
+   "rules": [
+    "GEN-1",
+    "GT3-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

@@ -29,5 +29,7 @@ extern const LogoMask logoMaskCNK, logoMaskCNKJ;
 /* Dragon Ball Z: The Legacy of Goku II (USA, Europe), and Japan's */
 extern const LogoMask logoMaskDBZ2, logoMaskDBZ2J;
 extern const LogoMask logoMaskVR3, logoMaskVR3J;
+/* GT Advance 3: Pro Concept Racing (USA, Europe), and Japan's Advance GT2 */
+extern const LogoMask logoMaskGT3, logoMaskGT3J;
 
 #endif
