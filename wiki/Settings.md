@@ -25,8 +25,8 @@ Updating from the game list (Settings > Updates) keeps your `gba-ds.cfg`. Unzipp
 
 | Option | Default | |
 |---|---|---|
-| `layout` | `auto` | `auto` detects the screens. On ROCKNIX's sway, GBA DS makes its window full screen across both outputs and splits it. `span-h` / `span-v`: one window over two screens side by side / stacked. `dual`: one window per display. `single`: one screen; L3 flips between game and second screen. |
-| `swap` | `0` | `1` puts the second screen first (top) and the game second. The menu's Swap Screens and L3 are remembered in `prefs.cfg` and win over this. |
+| `layout` | `auto` | `auto` detects the screens. On ROCKNIX's sway, GBA DS makes its window full screen across both outputs and splits it. `span-h` / `span-v`: one window over two screens side by side / stacked. `dual`: one window per display. `single`: one screen; HOME + Y (or the menu's Swap Screens) flips between game and second screen. |
+| `swap` | `0` | `1` puts the second screen first (top) and the game second. The menu's Swap Screens and its hotkey (HOME + Y) are remembered in `prefs.cfg` and win over this. |
 | `touch_screen` | `second` | `first` or `second`: the screen with the touch panel. The menu and game list are drawn there. |
 | `screen_match` | `keep` | **Experimental.** When your two screens' shapes differ (a widescreen top screen over a narrower bottom one, as on the AYN Thor): `keep` draws each screen's picture as its own screen's shape allows; `aspect` gives the wider screen's picture the other screen's shape (black bars at the sides); `size` gives it the other screen's real size too, at the edge nearest the other screen, so a picture that carries on across both (Pokémon Pinball's table) lines up. The pause menu's **Display** page has it as Keep device aspect ratios / Match screen aspect ratios / Match screen sizes and aspect ratios. Does nothing on two screens of a shape. |
 | `screen_ppi` | (unset) | `top,bottom`, e.g. `367,419`: your screens' pixels per inch, for `screen_match = size`. GBA DS knows them for the AYN Thor, Retroid Pocket Duo and Duo Lite, AYANEO Pocket DS and Anbernic RG DDS (recognised by their screens' resolutions; the Duo and Duo Lite by the nearer of the two to what Android reports); on other devices it uses what the system reports. Set this if the size match comes out wrong on yours. |
@@ -73,7 +73,13 @@ What `map_crop` changes in the Metroid map screens:
 | Option | Default | |
 |---|---|---|
 | `ab_swap` | `0` | GBA A is the right face button and GBA B the bottom one, like a GBA. `1` flips them. |
-| `hotkey` | `guide` | The button that opens the menu and is the modifier for the HOME + button shortcuts: `guide` (HOME) or `back` (SELECT; then SELECT alone still reaches the game when tapped). |
+| `hotkey` | `home` | The hotkey button, held with another button for a shortcut (see [[Playing#hotkeys]]): `home`, `select`, `start` or `l3`. SELECT or START as the hotkey still reach the game when tapped on their own, and L3 tapped on its own still opens the quick bar. HOME always opens the menu. (`guide` and `back`, the names before v1.4.13, still work.) |
+| `hotkey_quit` | `start` | The button held with the hotkey to quit GBA DS (`select` when the hotkey is START). Each shortcut takes one of `a`, `b`, `x`, `y`, `l`, `r`, `l2`, `r2`, `select`, `start`, `l3`, `up`, `down`, `left`, `right`, or `none` to turn it off. |
+| `hotkey_save_state` | `r` | Hotkey + this button saves the quick state (the quick bar's, not the resume point or the menu's slots). |
+| `hotkey_load_state` | `l` | Hotkey + this button loads the quick state. |
+| `hotkey_quick_menu` | `x` | Hotkey + this button brings up the quick bar, as swiping up does (again: puts it away). |
+| `hotkey_swap_screens` | `y` | Hotkey + this button swaps the screens. |
+| `hotkey_shader` | `b` | Hotkey + this button toggles the selected shader: off, and back on (the one last picked in the pause menu, or the LCD grid). |
 | `home_button` | `-1` | If HOME does nothing: launch once with `GBADS_DEBUG=1` (see [[Troubleshooting]]), press HOME, and put the "raw joystick ... button N" number from `gba-ds.log` here. |
 | `menu_combo` | `none` (Android: `select+start`) | `select+start`: SELECT and START pressed together also open the menu. The game doesn't see the pair; either button alone still reaches the game. |
 | `fast_forward` | `1` | Hold **R2** to fast-forward. `0`: R2 does nothing. Also in the pause menu (Extras). |

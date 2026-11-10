@@ -99,7 +99,11 @@ it lives here:
   SHA-256" annotation, readable from the run page or the public API:
   check-runs/<job id>/annotations) and send them with the zip.
   Then bump `dev` to the next `-dev` version with an empty changelog
-  section.
+  section, but only once the release commit's regression run (the full
+  suite, on `dev`) has finished: a push to `dev` cancels the run still
+  going there (regress.yml's concurrency), as happened to v1.4.11's and
+  v1.4.12's. If it was cancelled, run it on `main` by hand ("Run
+  workflow", full).
 - Test builds for the device: `dist/gba-ds-vX.Y.Z-dev-linux-aarch64.zip`,
   sent to the owner after each change; Android test APKs are the artifacts
   of the workflow runs on `android` / `dev` (link the run).

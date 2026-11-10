@@ -101,7 +101,8 @@ int main(int argc, char** argv) {
 	if (android_home()) snprintf(exeDir, sizeof(exeDir), "%s", android_home());
 #endif
 
-	/* defaults < gba-ds.cfg < states/prefs.cfg (choices made in the menu) < command line */
+	/* defaults < gba-ds.cfg < states/prefs.cfg (choices made in the menu),
+	 * library.cfg and hotkeys.cfg (the game list's Settings) < command line */
 	char path[1100];
 	if (getenv("GBADS_CONFIG")) {
 		config_load_file(&cfg, getenv("GBADS_CONFIG"));
@@ -136,6 +137,9 @@ int main(int argc, char** argv) {
 	}
 	/* the game list's Settings (Android: the ROM folder) */
 	snprintf(path, sizeof(path), "%s/library.cfg", cfg.stateDir);
+	config_load_file(&cfg, path);
+	/* Settings > Hotkeys */
+	snprintf(path, sizeof(path), "%s/hotkeys.cfg", cfg.stateDir);
 	config_load_file(&cfg, path);
 	config_parse_args(&cfg, argc, argv);
 

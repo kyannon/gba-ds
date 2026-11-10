@@ -11,7 +11,7 @@ The Android version is made for the **Anbernic RG DS Plus on GammaOS** (Android 
 
 ## Screens and buttons
 
-The game plays on the top screen. The map (or logo, or HUD), the pause menu and the game list are on the bottom touchscreen. **L3** (press the left stick) or the pause menu's **Swap Screens** swaps them.
+The game plays on the top screen. The map (or logo, or HUD), the pause menu and the game list are on the bottom touchscreen. The pause menu's **Swap Screens** swaps them. **L3** (press the left stick) brings up the quick bar.
 
 Android keeps HOME for itself, so the pause menu opens with:
 - **SELECT + START** pressed together (the game doesn't see the pair), or
@@ -49,6 +49,7 @@ Without All files access, these are kept in the app's own folder (`Android/data/
   All three are kept in `states/library.cfg`. A save folder outside the `GBA DS` folder needs All files access.
 - **RetroAchievements: Sign In / Sign Out**: sign in with your retroachievements.org username and password. GBA DS keeps a sign-in token, not the password, and signs in by itself from then on. See [Playing](Playing#retroachievements).
 - **Map Buttons**: if a button does the wrong thing, or for a controller GBA DS doesn't know, set each button by where it sits (see [Playing](Playing#mapping-the-buttons)). Android keeps HOME (and usually BACK) for itself, so skip **Home** with a tap: SELECT + START or BACK still open the menu. The mapping is kept in `GBA DS/states/controllers.txt`.
+- **Hotkeys** (beside Map Buttons): change the shortcuts, the hotkey button held with another (see [Playing](Playing#hotkeys)). On Android the hotkey button is BACK by default (Android keeps HOME), shown as **Back**; SELECT, START or L3 can be the hotkey instead. Kept in `GBA DS/states/hotkeys.cfg`.
 
 ## Starting games from a launcher
 
