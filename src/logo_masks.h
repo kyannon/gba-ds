@@ -26,6 +26,8 @@ extern const LogoMask logoMaskDBZ;
 extern const LogoMask logoMaskGS2E, logoMaskGS2D, logoMaskGS2F, logoMaskGS2I, logoMaskGS2S, logoMaskGS2J;
 /* Crash Nitro Kart (USA, Europe), and Japan's */
 extern const LogoMask logoMaskCNK, logoMaskCNKJ;
+/* Dragon Ball Z: The Legacy of Goku II (USA, Europe), and Japan's */
+extern const LogoMask logoMaskDBZ2, logoMaskDBZ2J;
 /* Muppet Pinball Mayhem (USA, Europe): the name on its badge, top left */
 extern const LogoMask logoMaskAMW;
 extern const LogoMask logoMaskVR3, logoMaskVR3J;

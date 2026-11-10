@@ -4,7 +4,7 @@
 |---|---|
 | Releases | `ALGE` USA · `ALGP` Europe (English, French, German, Spanish, Italian) |
 | Dumps | `ALGE` cartridge `d47ccff4` (tested) · `ALGP` cartridge `ca6e149c` (tested) |
-| Profile | `src/profiles.c`: the `ALGE` entry (`dbz_compose`, the `hud` with `overMap`, a logo mask with the Z drawn again); Europe the `ALGP` variant (its language menu) |
+| Profile | `src/profiles.c`: the `ALGE` entry (`dbz_compose`, the `hud` with `overMap`, a logo mask with the Z drawn again); Europe the `ALGP` variant (its language menu, its counter flag) |
 | Tests | `tests/regress/dragon-ball-z-legacy-of-goku.json` (`tools/regress.py dragon-ball-z-legacy-of-goku`) |
 | Status | supported |
 
@@ -22,7 +22,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **DBZ-4. The counter, when the game shows it.** While SELECT is held, or while Goku flies (R, which uses up what the counter counts), the game shows a counter at its top left instead of the bars: an icon and a count, such as 00/06. The second screen shows it in their place, live, and the bars again once the game does; it never shows on the game screen, not even on the frame it comes up; only the counter (its icon sprite and its box), not whatever else is in that corner (a ki blast, a squirrel, even one between the icon and the box). (Until v1.4.5's later test builds, the counter was always on the second screen, below the bars.)
 
-**DBZ-5. Elsewhere.** In the game's own pause menu and its screens, the second screen keeps the last picture. Conversations and anything else over the field stay on the game screen.
+**DBZ-5. Elsewhere.** In the game's own pause menu and its screens, the second screen keeps the last picture. Conversations and anything else over the field stay on the game screen, their boxes and text whole, in every release. (Until the Legacy of Goku II branch's first test build, the European release read the counter's flag at the USA's address, where it holds 0xFF: walking about, BG0 always went with the HUD, so a conversation's box and text left the game screen and the bars went with them.)
 
 **DBZ-6. One screen.** With one screen, the game plays as it is.
 
@@ -32,7 +32,7 @@ DBZ-1's rebuilt Z is an exception to the philosophy's "only the game's own graph
 
 ## Not covered yet
 
-Tried in the USA release from the owner's reports (the title, the pause menu, walking about, charging ki and a conversation on the first island). Fights, other areas, the Europe release beyond its title and the game's ending aren't tried yet; in a situation that keeps the field's display setup they get the same treatment, untried.
+Tried in the USA release from the owner's reports (the title, the pause menu, walking about, charging ki and a conversation on the first island), and in the European release from a new game (the opening on the first island: walking about, SELECT's counter, Gohan's first conversation). Fights, other areas and the game's ending aren't tried yet; in a situation that keeps the field's display setup they get the same treatment, untried.
 
 ## Facts found so far (for sessions)
 
@@ -43,5 +43,6 @@ Tried in the USA release from the owner's reports (the title, the pause menu, wa
 | Options panel | the bottom-left panel: border at x 9 / 150, y 81 / 150; inside x 11-147, y 84-147 |
 | Title | mode 4 (DISPCNT `0x0404`) with the subtitle, then mode 0 (`0x0900`, BG3 the picture, BG0 Press Start); A skips the intro |
 | HP / Ki bars | four sprites at y 8, x 8-87 (palettes 14, 15, priority 1); tiles 1-16, or 17-32 in a conversation (the portrait takes the first) |
-| SELECT's counter | with SELECT held or flying (R): an icon sprite (palette 15) at 6,12 and a box on BG0 (BG0 has nothing else walking about but conversations' boxes); `0x0200384C` bit `0x08` is set while it's shown, the bars back when it clears |
-| The count | `0x030007AD` (what flying uses up; set it to fly in tests: `us-flying.ss` was made by poking it to 6) |
+| SELECT's counter | with SELECT held or flying (R): an icon sprite (palette 15) at 6,12 and a box on BG0 (BG0 has nothing else walking about but conversations' boxes); `0x0200384C` bit `0x08` is set while it's shown, the bars back when it clears; Europe `0x0200000C` (the same block, 0x3840 lower; the USA's address holds 0xFF there) |
+| The count | `0x030007AD` (what flying uses up; set it to fly in tests: `us-flying.ss` was made by poking it to 6); Europe `0x030007A9` |
+| Talking | A, facing someone: on the first island, Gohan (his first conversation, "Daddy, ..."), up and right of where Goku starts |

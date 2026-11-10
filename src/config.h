@@ -13,6 +13,11 @@ enum { OVL_PRIMARY = 1, OVL_SECONDARY = 2, OVL_BOTH = 3 };
  * their stripes (the colour table, ui.c). */
 enum { SH_OFF, SH_GRID, SH_SCANLINES, SH_SOFT, SH_SUB_LIGHT, SH_SUB, SH_SUB_STRONG, SH_COUNT };
 extern const char* const shaderNames[SH_COUNT]; /* gba-ds.cfg's names: off, grid, ... */
+/* Hotkeys: the hotkey button held with an action's button does the action
+ * (game.c). gba-ds.cfg: hotkey_<name> = a button (a, b, x, y, l, r, l2, r2,
+ * select, start, l3, up, down, left, right) or none. */
+enum { HK_QUIT, HK_SAVE, HK_LOAD, HK_BAR, HK_SWAP, HK_SHADER, HK_COUNT };
+extern const char* const hotkeyNames[HK_COUNT]; /* quit, save_state, ... */
 
 typedef struct Config {
 	char layout[16];   /* auto | span-h | span-v | dual | single */
@@ -40,7 +45,9 @@ typedef struct Config {
 	bool showLogo;     /* the game's logo on the second screen when it has nothing else (off: blank) */
 	int mapInterval;   /* frames between periodic map refreshes */
 	bool abSwap;       /* GBA A on the bottom face button instead of the right one */
-	char hotkey[16];   /* guide | back */
+	char hotkey[16];   /* home | select | start | l3 (older names: guide = home, back = select) */
+	char hotkeyBtn[HK_COUNT][8]; /* each hotkey action's button (hotkey_quit ...), or none */
+	int shaderLast;    /* the shader the shader hotkey turns back on (shader_last) */
 	char menuCombo[16]; /* select+start | none: buttons held together that open the pause menu */
 	int homeButton;    /* raw joystick button number that acts as HOME (-1 = off) */
 	bool showFps;

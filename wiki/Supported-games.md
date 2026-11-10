@@ -9,6 +9,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Castlevania: Harmony of Dissonance | `ACHE` `ACHP` `ACHJ` | map |
 | Crash Nitro Kart (Crash Bandicoot Bakusou! Nitro Cart in Japan) | `BCNE` `BCNP` `BCNJ` | the race HUD: time, wumpa fruit, lap, the leaders and the course map twice as big; the race rankings |
 | Dragon Ball Z: The Legacy of Goku | `ALGE` `ALGP` (no Japanese release) | the pause menu, with the HP and Ki bars (or the counter SELECT and flying show) in place of its options |
+| Dragon Ball Z: The Legacy of Goku II (The Legacy of Goku II International in Japan) | `ALFE` `ALFP` `ALFJ` | the Scouter's area map (before the Scouter, the Status page); flying, the world map twice as big |
 | F-Zero: GP Legend (F-Zero: Falcon Densetsu in Japan) | `BFZE` `BFZP` `BFZJ` | the race HUD, with the course map twice as big |
 | F-Zero: Maximum Velocity (F-Zero for Game Boy Advance in Japan) | `AFZE` (USA and Europe) `AFZJ` (China: `AFZC`) | the race HUD, with the course map twice as big |
 | Final Fantasy Tactics Advance | `AFXE` `AFXP` `AFXJ` | in battles: the Status of the unit under the cursor, or the turn order and Laws; on the world map: today's Laws |
@@ -93,7 +94,19 @@ The USA and European releases.
 - The pause menu's list of options is left out. In its place goes whatever the game shows at the game screen's top left, moved off it, live: the **HP and Ki bars**, or, while you hold SELECT or fly, the **counter** the game shows in their place.
 - In the game's own pause menu and its screens, the second screen keeps its picture. On the title and menus it shows the logo.
 - The title screen paints Goku's hair over the Z, so in the logo the Z is drawn again there, in the game's own colours, to the official logo's shape.
-- Not tried yet: fights, later areas and most of the European release.
+- Not tried yet: fights and later areas (in the European release, anything past the first island).
+
+## Dragon Ball Z: The Legacy of Goku II
+
+The USA, European and Japanese (International) releases.
+
+- **Walking about,** the second screen is the **Scouter's map** of the area you're in (R), as the game draws it, centred on you. It's opened in the background in a silent copy of the game about once a second, and as soon as you reach a new area, so your dot moves as you do; your game is never paused.
+- **Before you have the Scouter,** the second screen is the pause menu's **Status page** (START) instead: your fighter's level, HP, EP, stats and experience.
+- **Flying over the world,** the small world map at the top right of the game screen moves to the second screen, twice as big, with your arrow on it.
+- The map's and the Status page's button prompts (L, R and the arrows for scrolling and turning pages) are left out.
+- The HP and EP bars stay on the game screen.
+- In conversations, at save points, and in the game's own pause menu, map and Dragon Radar, the second screen keeps its picture. On the title and menus it shows the logo.
+- Not tried yet: boss fights, the Hyperbolic Time Chamber, the Cell Games and the ending.
 
 ## F-Zero: GP Legend
 

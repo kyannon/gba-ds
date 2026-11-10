@@ -11,7 +11,7 @@ The Android version is made for the **Anbernic RG DS Plus on GammaOS** (Android 
 
 ## Screens and buttons
 
-The game plays on the top screen. The map (or logo, or HUD), the pause menu and the game list are on the bottom touchscreen. **L3** (press the left stick) or the pause menu's **Swap Screens** swaps them.
+The game plays on the top screen. The map (or logo, or HUD), the pause menu and the game list are on the bottom touchscreen. The pause menu's **Swap Screens** swaps them. **L3** (press the left stick) brings up the quick bar.
 
 Android keeps HOME for itself, so the pause menu opens with:
 - **SELECT + START** pressed together (the game doesn't see the pair), or

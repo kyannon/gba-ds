@@ -300,6 +300,71 @@
    }
   },
   {
+   "id": "dbz-eu-walk",
+   "rom": "ALGP",
+   "state": "dragon-ball-z-legacy-of-goku/eu-walk.ss",
+   "desc": "Europe, walking about on the first island (a new game): the pause menu without its options, the bars in its empty panel and off the game screen; SELECT held: the counter there instead",
+   "rules": [
+    "DBZ-2",
+    "DBZ-3",
+    "DBZ-4"
+   ],
+   "input": [
+    [
+     150,
+     "SELECT"
+    ],
+    [
+     200,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 60,
+    "select": 190,
+    "after": 260
+   },
+   "checks": [
+    {
+     "rule": "DBZ-2",
+     "what": "the pause menu taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "dbz-eu-conversation",
+   "rom": "ALGP",
+   "state": "dragon-ball-z-legacy-of-goku/eu-conversation.ss",
+   "desc": "Europe, Gohan's first conversation: its box and text stay on the game screen (until this case's build, Europe's counter flag was read at the USA's address and BG0 always left the game screen)",
+   "rules": [
+    "DBZ-3",
+    "DBZ-5"
+   ],
+   "shots": {
+    "start": 40,
+    "later": 120
+   },
+   "checks": [
+    {
+     "rule": "DBZ-5",
+     "what": "the box on the game screen",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "game",
+     "rect": [
+      300,
+      230,
+      700,
+      290
+     ],
+     "color": "0800FF",
+     "frac": 0.8
+    }
+   ]
+  },
+  {
    "id": "dbz-logo-alge",
    "kind": "logo",
    "rom": "ALGE",
