@@ -43,7 +43,7 @@ The same addresses in both releases.
 | A battle | `0x0200CAF1`: 1 from a battle's start to its end, 0 elsewhere (2 seen once just after a debug jump, before its battle; 5 or 6 in the debug menu's battles) |
 | Timing | The START menu takes A ~50 frames after the screen byte reads 13 (its eye keeps moving: no still picture tells when). After leaving the menu the field takes no START or L for ~120 frames, ~140 after the map. A press must be held a few frames (2 is missed) |
 | Party cards | 56 rows apart (0-55, 56-111, 112-159); the chosen one undimmed |
-| Battle plates | BG3 (BGxCNT 0x1C08), its top three rows of tiles: the map entry at `0x0600E002` is 0x0212 (the first plate's corner) exactly while the plates are up, 0 with the combo track; the red bars are sprites at row 11, priority 0. (`0x0200BF71`, `0x030023AC` follow them only in some battles.) The debug menu's Combat runs battles with `0x0200CAF1` at 5 or 6, so a battle is taken as it being anything but 0 |
+| Battle plates | BG3 (BGxCNT 0x1C08), rows 0-24 (the plates' light bottom edge is row 24; below them BG3 has only the command bar, rows 144-159): the map entry at `0x0600E002` is 0x0212 (the first plate's corner) exactly while the plates are up, 0 with the combo track; the red bars are sprites at row 11, priority 0. (`0x0200BF71`, `0x030023AC` follow them only in some battles.) The debug menu's Combat runs battles with `0x0200CAF1` at 5 or 6, so a battle is taken as it being anything but 0 |
 | Debug menu | CodeBreaker `730051C4 0200` / `83005660 0004` (TCRF): write 4 to the screen byte in the field. Jump to Story reaches every chapter (the harness: `poke 0x03005660 2 4`) |
 
 ## For the merge

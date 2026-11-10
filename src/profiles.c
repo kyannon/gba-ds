@@ -6641,7 +6641,7 @@ static const MapProfile profiles[] = {
 			.keep = { { ER_V_BATTLE, 0xFF, 1, 4 } },
 			.bgMask = 8,
 			.objs = { { 0, -8, 239, 23, 0, 1023, 0 } },
-			.rows = 24,
+			.rows = 25, /* (the plates' bottom edge is row 24; BG3 below is the command bar, rows 144-159, which stays) */
 			.logoBelow = true,
 		},
 		/* into a place or out of one, or a battle over (ER-9) */
@@ -6666,7 +6666,7 @@ static const MapProfile profiles[] = {
 			.keep = { { ER_V_BATTLE, 0xFF, 1, 4 } },
 			.bgMask = 8,
 			.objs = { { 0, -8, 239, 23, 0, 1023, 0 } },
-			.rows = 24,
+			.rows = 25, /* (the plates' bottom edge is row 24; BG3 below is the command bar, rows 144-159, which stays) */
 			.logoBelow = true,
 		},
 		.room = { { ER_V_PLACE, 0xFF, 0, 4 } },

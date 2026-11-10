@@ -727,6 +727,51 @@
       ]
      },
      "frac": 0.05
+    },
+    {
+     "rule": "ER-8",
+     "what": "none of the plates left on the game screen (their bottom edge, row 24)",
+     "type": "not_pixels",
+     "shot": "plates",
+     "screen": "game",
+     "probes": [
+      [
+       114,
+       162,
+       "DEDEDE"
+      ],
+      [
+       154,
+       162,
+       "DEDEDE"
+      ],
+      [
+       194,
+       162,
+       "DEDEDE"
+      ],
+      [
+       434,
+       162,
+       "DEDEDE"
+      ],
+      [
+       474,
+       162,
+       "DEDEDE"
+      ],
+      [
+       754,
+       162,
+       "DEDEDE"
+      ],
+      [
+       794,
+       162,
+       "DEDEDE"
+      ]
+     ],
+     "tol": 8
     }
    ]
   },
