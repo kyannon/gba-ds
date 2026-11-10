@@ -5,6 +5,8 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+#include <time.h>
 
 /* Values below were found with tools/harness + tools/ramdiff.py against the
  * USA releases. Each profile describes how to bring up the in-game map and
@@ -4035,11 +4037,224 @@ static bool mmbn_megaman_up(Emu* s) {
 	return emu_read8(s, MMBN_STATE) == 0x18 && emu_read8(s, MMBN_MENU) == 8 && emu_read8(s, MMBN_MENU + 1) == 4 &&
 	       !emu_read8(s, MMBN_FADING);
 }
+/* ---- the net's area maps (MMBN-6, an experiment)
+ *
+ * A third copy of the game (its own Emu, on its own thread) is given the
+ * live game's state when MegaMan is in an area of the net with no map yet.
+ * From where he stands it tries walking him each of 8 ways for MMBN_STEPF
+ * frames, from every place reached so far (breadth first over a grid of
+ * MMBN_GRID map units; each try from the state's own moment, him set down
+ * at the place: gCamera.playerRealPos, 16.16, x up-right, y down-right).
+ * At each place reached, a frame of the area's own layers (BG2 and BG3: no
+ * sprites, no BG0 messages, no BG1 sky) goes into the area's picture at the
+ * camera's screen position (cameraX = x + y, cameraY = (y - x) / 2): only
+ * where he can go, so the camera never shows what's past the area's tiles
+ * (tools/scout/mmbnmap.c, the experiment). The picture is drawn on the
+ * second screen at half size around the live camera, as it fills in. */
+#define MMBN_CAM 0x02004950     /* gCamera: cameraX (+4), cameraY (+6), playerRealPos (+0x10), bounds (+0x14..0x23) */
+#define MMBN_GRID 16
+#define MMBN_STEPF 20
+#define MMBN_MAPS 4
+typedef struct {
+	uint16_t area;
+	bool done;
+	int w, h, x0, y0;   /* the picture's size, and its top left's screen position */
+	uint32_t* px;       /* 0: nothing seen there */
+	unsigned used;
+} MmbnMap;
+static MmbnMap mmbnMaps[MMBN_MAPS];
+static pthread_t mmbnThread;
+static volatile bool mmbnBusy, mmbnStop;
+static volatile unsigned mmbnAsked; /* liveView's calls, counted: the worker waits while they stop (paused) */
+static uint8_t* mmbnJob;            /* the state it starts from */
+static size_t mmbnJobSize;
+static int mmbnJobMap;
+static char mmbnRom[1024];
+static Emu mmbnEmu;
+static bool mmbnEmuOpen;
+
+/* on the net, with maps: not in exact runs (GBADS_SYNC, the tests: the map
+ * is made at its own pace beside the game), unless GBADS_MMBN_MAPS=1 */
+static bool mmbn_area_net(uint16_t area) {
+	static int maps = -1;
+	if (maps < 0) maps = !getenv("GBADS_SYNC") || getenv("GBADS_MMBN_MAPS");
+	return maps && (area & 0xFF) >= 0x80;
+}
+
+/* from the job's moment, MegaMan set down at (x, y, z) walks `keys` for n
+ * frames; false if he left the area or a battle began */
+static bool mmbn_walk(Emu* e, uint16_t area, uint32_t pos, int32_t x, int32_t y, int32_t z, uint32_t keys, int n) {
+	emu_state_load(e, mmbnJob);
+	emu_write32(e, pos, (uint32_t) x);
+	emu_write32(e, pos + 4, (uint32_t) y);
+	emu_write32(e, pos + 8, (uint32_t) z);
+	for (int f = 0; f < n; ++f) emu_frame_blind(e, keys);
+	return emu_read8(e, MMBN_STATE) == 4 && emu_read16(e, MMBN_AREA) == area;
+}
+
+static void* mmbn_worker(void* arg) {
+	(void) arg;
+	Emu* e = &mmbnEmu;
+	if (!mmbnEmuOpen) mmbnEmuOpen = emu_open(e, mmbnRom, NULL, false);
+	MmbnMap* m = &mmbnMaps[mmbnJobMap];
+	if (!mmbnEmuOpen || !emu_state_load(e, mmbnJob)) goto out;
+	uint16_t area = m->area;
+	uint32_t pos = emu_read32(e, MMBN_CAM + 0x10);
+	int xl = (int32_t) emu_read32(e, MMBN_CAM + 0x14) >> 16, xu = (int32_t) emu_read32(e, MMBN_CAM + 0x18) >> 16;
+	int yu = (int32_t) emu_read32(e, MMBN_CAM + 0x1C) >> 16, yl = (int32_t) emu_read32(e, MMBN_CAM + 0x20) >> 16;
+	if (yl > yu) { int t = yl; yl = yu; yu = t; }
+	if (pos < 0x02000000 || pos >= 0x02040000 || xu <= xl || yu <= yl) goto out;
+	emu_layers(e, 0x0C);
+	int gw = (xu - xl) / MMBN_GRID + 3, gh = (yu - yl) / MMBN_GRID + 3;
+	int32_t* at = calloc((size_t) gw * gh * 3, 4);
+	uint8_t* seen = calloc((size_t) gw * gh, 1);
+	int* queue = malloc(sizeof(int) * gw * gh);
+	if (!at || !seen || !queue) goto done;
+	int qh = 0, qt = 0;
+	int32_t x0 = (int32_t) emu_read32(e, pos), y0 = (int32_t) emu_read32(e, pos + 4), z0 = (int32_t) emu_read32(e, pos + 8);
+#define MMBN_CELL(X, Y) ((((Y) >> 16) - yl) / MMBN_GRID * gw + (((X) >> 16) - xl) / MMBN_GRID)
+	if ((x0 >> 16) < xl || (x0 >> 16) > xu || (y0 >> 16) < yl || (y0 >> 16) > yu) goto done;
+	int c0 = MMBN_CELL(x0, y0);
+	seen[c0] = 1, at[c0 * 3] = x0, at[c0 * 3 + 1] = y0, at[c0 * 3 + 2] = z0, queue[qt++] = c0;
+	static const uint32_t ways[8] = { K_UP | K_LEFT, K_UP | K_RIGHT, K_DOWN | K_LEFT, K_DOWN | K_RIGHT, K_UP, K_DOWN, K_LEFT, K_RIGHT };
+	unsigned lastAsked = mmbnAsked - 1;
+	while (qh < qt && !mmbnStop) {
+		/* (the game paused, its pause menu: wait; closed: stop) */
+		for (int idle = 0; mmbnAsked == lastAsked && !mmbnStop; ++idle) {
+			struct timespec ts = { 0, 50 * 1000000 };
+			nanosleep(&ts, NULL);
+			if (idle > 20 * 60) mmbnStop = true; /* a minute: the game was closed */
+		}
+		lastAsked = mmbnAsked;
+		if (mmbnStop) break;
+		int c = queue[qh++];
+		int32_t x = at[c * 3], y = at[c * 3 + 1], z = at[c * 3 + 2];
+		if (mmbn_walk(e, area, pos, x, y, z, 0, 6)) {
+			emu_frame(e, 0);
+			int camx = (int16_t) emu_read16(e, MMBN_CAM + 4), camy = (int16_t) emu_read16(e, MMBN_CAM + 6);
+			for (int sy = 0; sy < GBA_H; ++sy) {
+				int py = camy - 80 + sy - m->y0;
+				if (py < 0 || py >= m->h) continue;
+				for (int sx = 0; sx < GBA_W; ++sx) {
+					int qx = camx - 120 + sx - m->x0;
+					if (qx < 0 || qx >= m->w) continue;
+					m->px[(size_t) py * m->w + qx] = e->fb[sy * GBA_W + sx] | 0xFF000000;
+				}
+			}
+		}
+		for (int w = 0; w < 8 && !mmbnStop; ++w) {
+			if (!mmbn_walk(e, area, pos, x, y, z, ways[w], MMBN_STEPF)) continue;
+			int32_t nx = (int32_t) emu_read32(e, pos), ny = (int32_t) emu_read32(e, pos + 4), nz = (int32_t) emu_read32(e, pos + 8);
+			if ((nx >> 16) < xl || (nx >> 16) > xu || (ny >> 16) < yl || (ny >> 16) > yu) continue;
+			int n = MMBN_CELL(nx, ny);
+			if (seen[n]) continue;
+			seen[n] = 1, at[n * 3] = nx, at[n * 3 + 1] = ny, at[n * 3 + 2] = nz, queue[qt++] = n;
+		}
+	}
+#undef MMBN_CELL
+	if (!mmbnStop) {
+		m->done = true;
+		fprintf(stderr, "Mega Man Battle Network: area %04X mapped (%d places)\n", area, qt);
+	}
+done:
+	free(at), free(seen), free(queue);
+	emu_layers(e, 0x1F);
+out:
+	mmbnBusy = false;
+	return NULL;
+}
+
+/* the live game's map of its area on the net, at half size around its
+ * camera (MMBN-6); a new area's map started beside the game */
+static const uint32_t* mmbn_live_view(Emu* live, const char* rom) {
+	static uint32_t out[GBA_W * GBA_H];
+	static unsigned tick;
+	++mmbnAsked;
+	uint8_t st = emu_read8(live, MMBN_STATE);
+	uint16_t area = emu_read16(live, MMBN_AREA);
+	if ((st != 4 && st != 0x18) || !mmbn_area_net(area)) return NULL;
+	MmbnMap* m = NULL;
+	for (int i = 0; i < MMBN_MAPS; ++i)
+		if (mmbnMaps[i].px && mmbnMaps[i].area == area) m = &mmbnMaps[i];
+	if (m && !m->done && !mmbnBusy) {
+		/* (one called off: made again from here) */
+		free(m->px), m->px = NULL, m = NULL;
+	}
+	if (!m && st == 4) {
+		if (mmbnBusy) {
+			/* another area's still being made: called off */
+			mmbnStop = true;
+			return NULL;
+		}
+		if (mmbnThread) pthread_join(mmbnThread, NULL), mmbnThread = 0;
+		/* the slot used longest ago */
+		int k = 0;
+		for (int i = 1; i < MMBN_MAPS; ++i)
+			if (!mmbnMaps[i].px || (mmbnMaps[k].px && mmbnMaps[i].used < mmbnMaps[k].used)) k = i;
+		m = &mmbnMaps[k];
+		free(m->px);
+		memset(m, 0, sizeof(*m));
+		int xl = (int32_t) emu_read32(live, MMBN_CAM + 0x14) >> 16, xu = (int32_t) emu_read32(live, MMBN_CAM + 0x18) >> 16;
+		int yu = (int32_t) emu_read32(live, MMBN_CAM + 0x1C) >> 16, yl = (int32_t) emu_read32(live, MMBN_CAM + 0x20) >> 16;
+		if (yl > yu) { int t = yl; yl = yu; yu = t; }
+		m->area = area;
+		m->x0 = xl + yl - 240, m->y0 = (yl - xu) / 2 - 240;
+		m->w = xu + yu + 240 - m->x0, m->h = (yu - xl) / 2 + 160 - m->y0;
+		if (m->w <= 0 || m->h <= 0 || m->w > 4096 || m->h > 4096 || !(m->px = calloc((size_t) m->w * m->h, 4))) {
+			memset(m, 0, sizeof(*m));
+			return NULL;
+		}
+		size_t sz = emu_state_size(live);
+		if (sz > mmbnJobSize) free(mmbnJob), mmbnJob = malloc(sz), mmbnJobSize = mmbnJob ? sz : 0;
+		if (!mmbnJob || !emu_state_save(live, mmbnJob)) {
+			free(m->px);
+			memset(m, 0, sizeof(*m));
+			return NULL;
+		}
+		snprintf(mmbnRom, sizeof(mmbnRom), "%s", rom);
+		mmbnJobMap = (int) (m - mmbnMaps);
+		mmbnStop = false;
+		mmbnBusy = true;
+		if (pthread_create(&mmbnThread, NULL, mmbn_worker, NULL)) {
+			mmbnBusy = false, mmbnThread = 0;
+			free(m->px);
+			memset(m, 0, sizeof(*m));
+			return NULL;
+		}
+		fprintf(stderr, "Mega Man Battle Network: mapping area %04X (%dx%d)\n", area, m->w, m->h);
+	}
+	if (!m) return NULL;
+	m->used = ++tick;
+	/* half size: each pixel the mean of 2x2 of the picture's, around the
+	 * camera (its centre on the screen's) */
+	int camx = (int16_t) emu_read16(live, MMBN_CAM + 4), camy = (int16_t) emu_read16(live, MMBN_CAM + 6);
+	int left = camx - GBA_W - m->x0, top = camy - GBA_H - m->y0;
+	for (int oy = 0; oy < GBA_H; ++oy) {
+		int py = top + oy * 2;
+		for (int ox = 0; ox < GBA_W; ++ox) {
+			int qx = left + ox * 2;
+			unsigned r = 0, g = 0, b = 0;
+			for (int dy = 0; dy < 2; ++dy) {
+				if (py + dy < 0 || py + dy >= m->h) continue;
+				for (int dx = 0; dx < 2; ++dx) {
+					if (qx + dx < 0 || qx + dx >= m->w) continue;
+					uint32_t c = m->px[(size_t) (py + dy) * m->w + qx + dx];
+					r += c & 0xFF, g += (c >> 8) & 0xFF, b += (c >> 16) & 0xFF;
+				}
+			}
+			out[oy * GBA_W + ox] = 0xFF000000 | (b / 4) << 16 | (g / 4) << 8 | r / 4;
+		}
+	}
+	return out;
+}
+
 static const char* mmbn_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
 	if (w != GBA_W || h != GBA_H) return "not a GBA screen";
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame_blind(s, 0);
 	if (emu_read8(s, MMBN_STATE) != 4) return "not walking about";
+	/* (on the net: its map, MMBN-6) */
+	if (mmbn_area_net(emu_read16(s, MMBN_AREA))) return "on the net: the area's map instead";
 	mmbn_tap(s, K_START);
 	int f = 0;
 	while (f < 40 && emu_read8(s, MMBN_SMENU) != 4) emu_frame_blind(s, 0), ++f;
@@ -6429,6 +6644,8 @@ static const MapProfile profiles[] = {
 		.codes = { "AREE" },
 		.title = "Mega Man Battle Network",
 		.compose = mmbn_compose,
+		/* on the net, the area's map (MMBN-6) */
+		.liveView = mmbn_live_view,
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
 		/* walking about (scenes too: START opens nothing there, the last
