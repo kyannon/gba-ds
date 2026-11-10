@@ -1818,6 +1818,15 @@ static void bar_close(void) {
 	barGesture = G_NONE;
 	barExitArmed = 0;
 }
+/* L3, or the quick menu hotkey: up, as with a swipe; again: down */
+static void bar_toggle(void) {
+	if (barOpen) {
+		bar_close();
+		return;
+	}
+	barOpen = true;
+	barSince = SDL_GetTicks();
+}
 
 /* pixel art ('X' rows, NULL-ended), as big as fits size, centred on cx, cy */
 static void draw_icon(int s, const char* const* art, int cx, int cy, int size, SDL_Color c) {
@@ -5007,7 +5016,7 @@ static void set_shader(int sh) {
 /* ---- hotkeys (hotkeys.c): the hotkey button (HOME, SELECT, START or L3)
  * held with an action's button (Settings > Hotkeys, gba-ds.cfg).
  * SELECT or START as the hotkey still reach the game when tapped alone;
- * L3 tapped alone swaps the screens, as it does when it isn't the hotkey. */
+ * L3 tapped alone opens the quick menu, as it does when it isn't the hotkey. */
 static void hotkeys_setup(void) {
 	hotkeys_resolve(cfg, &hkMod, hkBtn, true);
 	char line[200];
@@ -6113,11 +6122,13 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				switch (i) {
 				case HK_QUIT: exitTo = GAME_QUIT_APP, done = true; break;
 				/* (the quick state, as the quick bar's buttons) */
-				case HK_SAVE: ui_osd(state_save(gp.quick) ? "State saved" : "Save failed"); break;
+				case HK_SAVE: ui_osd(state_save(gp.quick) ? "State saved." : "Save failed."); break;
 				case HK_LOAD:
-					if (file_exists(gp.quick)) state_load(gp.quick), ui_osd("State loaded"), forceMap = true;
+					if (!file_exists(gp.quick)) ui_osd("No quick state saved yet.");
+					else if (state_load(gp.quick)) ui_osd("State loaded."), forceMap = true;
+					else ui_osd("Load failed.");
 					break;
-				case HK_FPS: cfg->showFps = !cfg->showFps; break;
+				case HK_BAR: bar_toggle(); break;
 				case HK_SWAP: swap_screens(); break;
 				case HK_SHADER:
 					set_shader(cfg->shader != SH_OFF ? SH_OFF : cfg->shaderLast > SH_OFF && cfg->shaderLast < SH_COUNT ? cfg->shaderLast : SH_GRID);
@@ -6133,7 +6144,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		if (btn_released(modBtn)) {
 			if (comboUsed) suppress_held();
 			else if (!menuOpen && modIsGame) modPulse = 4; /* tapped alone: the game gets it */
-			else if (!menuOpen && modBtn == B_L3) swap_screens();
+			else if (!menuOpen && modBtn == B_L3) bar_toggle();
 			comboUsed = false;
 		}
 		if (done) break;
@@ -6227,7 +6238,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			continue;
 		}
 
-		if (btn_pressed(B_L3) && modBtn != B_L3) swap_screens();
+		if (btn_pressed(B_L3) && modBtn != B_L3) bar_toggle(); /* (L3: the quick menu, as a swipe up) */
 
 		/* ---- emulate */
 		uint32_t keys = 0;

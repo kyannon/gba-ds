@@ -496,6 +496,72 @@
    ]
   },
   {
+   "id": "mmbn-eu-one-screen",
+   "rom": "AREP",
+   "state": "mega-man-battle-network/eu-battle-start.ss",
+   "desc": "a battle's first custom screen with one screen: the game as it is, the custom screen where the game draws it",
+   "rules": [
+    "MMBN-5"
+   ],
+   "config": {
+    "layout": "single"
+   },
+   "shots": {
+    "custom": 60
+   },
+   "checks": [
+    {
+     "rule": "MMBN-5",
+     "what": "nothing moved",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "MMBN-5",
+     "what": "the custom screen on the game's left half",
+     "type": "pixels",
+     "shot": "custom",
+     "screen": "game",
+     "probes": [
+      [
+       34,
+       466,
+       "524A52"
+      ],
+      [
+       134,
+       582,
+       "181039"
+      ],
+      [
+       394,
+       694,
+       "524A52"
+      ]
+     ]
+    },
+    {
+     "rule": "MMBN-5",
+     "what": "its chip list below",
+     "type": "pixels",
+     "shot": "custom",
+     "screen": "second",
+     "probes": [
+      [
+       478,
+       42,
+       "F7EFCE"
+      ],
+      [
+       250,
+       178,
+       "848C84"
+      ]
+     ]
+    }
+   ]
+  },
+  {
    "id": "mmbn-eu-results",
    "rom": "AREP",
    "state": "mega-man-battle-network/eu-results.ss",
