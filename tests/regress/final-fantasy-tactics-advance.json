@@ -386,6 +386,43 @@
    ]
   },
   {
+   "id": "ft-eu-snowball-fight",
+   "rom": "AFXP",
+   "state": "final-fantasy-tactics-advance/eu-snowball-fight.ss",
+   "desc": "Europe (English on the language menu), the snowball fight at the story's start (a new game played from power-on), the cursor on Ritz, the active unit: her Status",
+   "rules": [
+    "FT-8",
+    "FT-10"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 300
+   },
+   "checks": [
+    {
+     "rule": "FT-8",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FT-8",
+     "what": "the Status fills the second screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.05
+    }
+   ]
+  },
+  {
    "id": "ft-us-battle-won",
    "rom": "AFXE",
    "state": "final-fantasy-tactics-advance/us-battle-won.ss",
