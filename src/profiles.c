@@ -5846,6 +5846,49 @@ static const MapProfile profiles[] = {
 		.hideWhen = { { LS_V_PLAY, 0, 1, 1 } },
 	},
 	{
+		/* Ninja Five-O (USA; Europe, Ninja Cop: the ANXP variant). No
+		 * screen of the game's own holds its status (its pause is a menu
+		 * over the stage), so the HUD moves: see NFO_HUD below. */
+		.codes = { "ANXE" },
+		.title = "Ninja Five-O",
+		/* the title's NINJA and FIVE-O, cut out of the title by their
+		 * colours (tools/make_logo_masks.py nfo): without the kanji's
+		 * brush strokes behind them, NINJA's white outline, the white
+		 * screen, the TM, PRESS START or the copyright line (NFO-1) */
+		.logo = { .steps = { { 0, 1200 }, { K_START, 4 }, { 0, 60 }, { K_START, 4 }, { 0, 60 } },
+		          .mask = &logoMaskNFO, .rev = 2 },
+		.logoOnly = true,
+		.hud = {
+			/* in a stage: the HUD's layer on, with its settings (BG0,
+			 * screen 31, tiles 3; priority 0, or 1 in the Launch Site) */
+			.on = { { 0x04000008, 0xFFFC, 0x1F0C, 2 }, { 0x04000000, 0x0100, 0x0100, 2 },
+			        /* the mission (0 Bank ... 4 Base): not the Launch Site */
+			        { 0x03003D41, 0xFF, 0, 1, true, 4, true },
+			        /* not the opening's demo (1 there, from its first frame) */
+			        { 0x03003D52, 0xFF, 0, 1 } },
+			.bgMask = 0x1,
+			/* the Launch Site (mission 5): its BG0 is no HUD row but the
+			 * red that fades in over the stage as the ninja dies (kept
+			 * hidden by the blend till then): the sprites alone go, BG0
+			 * stays on the game screen; a move that does nothing, so
+			 * the bottom row's (none here) isn't copied up over the
+			 * countdown (NFO-2, NFO-3) */
+			.alt = { .on = { { 0x04000008, 0xFFFC, 0x1F0C, 2 }, { 0x04000000, 0x0100, 0x0100, 2 },
+			                 { 0x03003D41, 0xFF, 5, 1 }, { 0x03003D52, 0xFF, 0, 1 } },
+			         .bgMask = 0,
+			         .moves = { { 0, 159, 0, 159, 0, 0, 'T', 159 } } },
+			/* the bars, points or time, the boss's bar and the Launch
+			 * Site's countdown: priority 1 at the top (the stage's own
+			 * things are 2, the card and pause menu 0) */
+			.objs = { { -16, -16, 255, 24, 0, 1023, 1, 0 } },
+			/* the bottom row (shuriken level, keys, RESCUE) up under
+			 * the bars, the logo below them both */
+			.moves = { { 0, 152, 239, 159, 0, 0, 'T', 24 } },
+			.logoBelow = true,
+			.logoTop = 32,
+		},
+	},
+	{
 		/* Wario Land 4 (USA and Europe; Japan: the AWAJ variant, same
 		 * addresses and screens). The pause screen (START) slides down
 		 * from the top over some 40 frames: its menu in rows 0-23 (BG0
@@ -6736,6 +6779,12 @@ static void vr3_jpn(MapProfile* p) {
 /* Spider-Man: Mysterio's Menace in Japan: the screen's handler 0x34 lower
  * (0x0300213C), and its values too (0x60F8 in a level, 0x41D8 elsewhere);
  * the display registers are the same */
+/* Ninja Cop (Europe): its title's NINJA COP to its white outline, without
+ * the black and purple rim round it or the blue screen (NFO-1) */
+static void nfo_eur(MapProfile* p) {
+	p->logo.mask = &logoMaskNFOP;
+}
+
 static void smm_jpn(MapProfile* p) {
 	p->mem[1].addr -= 0x34, p->mem[1].value -= 0x34;
 	p->live[1].addr -= 0x34, p->live[1].value -= 0x34;
@@ -6822,6 +6871,7 @@ static const Variant variants[] = {
 	{ "AT3D", "AT3E", 0, thps3_ger },
 	{ "ASEJ", "ASEE", 0, smm_jpn },
 	{ "ALDP", "ALDE", 0, NULL },
+	{ "ANXP", "ANXE", 0, nfo_eur },
 	{ "AWAJ", "AWAE", 0, NULL },
 	/* Super Mario Advance 3 in Europe: its language menu first */
 	{ "A3AP", "A3AE", 0, sm3_eur },

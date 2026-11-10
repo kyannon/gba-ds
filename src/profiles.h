@@ -500,6 +500,10 @@ typedef struct MapProfile {
 		int rows;
 		/* The same (unused). */
 		bool logoBehind;
+		/* With logoBelow: the logo goes in the room below this row
+		 * instead of below `rows` (0: none), for a HUD that moves its
+		 * lower pieces up under its top ones (Ninja Five-O) */
+		int logoTop;
 		/* With logoBelow: a picture the game shows on its own screen
 		 * elsewhere, kept from the game screen and shown below the HUD
 		 * instead of the logo (Super Mario Advance's course board, shown

@@ -29,5 +29,7 @@ extern const LogoMask logoMaskCNK, logoMaskCNKJ;
 /* Dragon Ball Z: The Legacy of Goku II (USA, Europe), and Japan's */
 extern const LogoMask logoMaskDBZ2, logoMaskDBZ2J;
 extern const LogoMask logoMaskVR3, logoMaskVR3J;
+/* Ninja Five-O (USA), and Ninja Cop (Europe) */
+extern const LogoMask logoMaskNFO, logoMaskNFOP;
 
 #endif
