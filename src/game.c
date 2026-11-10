@@ -3479,13 +3479,15 @@ static void update_tall(void) {
 	/* (carry with gameFrom: the top screen's lines above gameFrom - 1 are
 	 * the game's own, the score bar's alone, where the table doesn't show:
 	 * its layers are laid over them below, on what the game has behind
-	 * them. The line between, under the score bar, is the table's like
-	 * the rest: the game's own shows the row under its own view, black or
-	 * not as its line interrupt falls, which with the lower view is
-	 * another part of the table) */
+	 * them. The line between is the score bar's black edge, drawn black:
+	 * the game's own has it black but for a sprite passing under the bar
+	 * (or, in its picture without the score bar's layers, a row from under
+	 * its own view, which with the lower view is another part of the
+	 * table); the copies' have the table) */
 	int gf = carry && L->carry.gameFrom ? L->carry.gameFrom - 1 : 0;
 	for (int y = 0; y < GBA_H; ++y) {
 		if (y < gf) memcpy(&tallTop[y * GBA_W], &emu.fb[y * GBA_W], sizeof(uint32_t) * GBA_W);
+		else if (gf && y == gf) for (int x = 0; x < GBA_W; ++x) tallTop[y * GBA_W + x] = 0xFF000000u;
 		else missing += !tall_line(&tallTop[y * GBA_W], v + y, topSrc, 3);
 		missing += !tall_line(&tallBot[y * GBA_W], v + GBA_H + y, botSrc, 3);
 	}

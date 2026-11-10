@@ -4968,7 +4968,7 @@ static const MapProfile profiles[] = {
 		 * top left corner on a badge of a starburst and three bumpers: that
 		 * corner by its mask (tools/make_logo_masks.py), without the sky,
 		 * the roller coaster or the Muppets */
-		.logo = { .wait = 2300, .mask = &logoMaskAMW },
+		.logo = { .wait = 2300, .mask = &logoMaskAMW, .rev = 1 /* (cut along the official logo's outline: test builds' first cut made again) */ },
 	},
 	{
 		/* Sonic Advance (USA, Europe and Japan (Rev 1): the same sprites,

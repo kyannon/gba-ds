@@ -393,6 +393,28 @@
    ]
   },
   {
+   "id": "mpm-us-pan-under-bar",
+   "rom": "AMWE",
+   "state": "muppet-pinball-mayhem/us-kermit-pan-under-bar.ss",
+   "desc": "Kermit's table, the owner's second state (Nov 9): the view panning down from the table's top to the lower view (frames 13-150); the score bar's edge stays black throughout, in the upper view (the game on the top screen) and the lower (a copy)",
+   "rules": [
+    "MPM-3"
+   ],
+   "shots": {
+    "upper": 30,
+    "switch": 70,
+    "lower": 130
+   },
+   "checks": [
+    {
+     "rule": "MPM-3",
+     "what": "the table over both screens",
+     "type": "log",
+     "match": "frame [0-9]+: live view"
+    }
+   ]
+  },
+  {
    "id": "mpm-us-animal",
    "rom": "AMWE",
    "state": "muppet-pinball-mayhem/us-animal-play.ss",
