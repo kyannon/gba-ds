@@ -192,6 +192,28 @@ def dbz2_jpn(a):
     return comps(m, 150)
 
 
+def bf(a):
+    """Dragon Ball Z: Buu's Fury (USA): DRAGON BALL Z and BUU'S FURY painted
+    over the fighters, Buu and an orange sun much the colour of the
+    lettering, so the lettering is found by its black outline instead: the
+    outline's large pieces (rows 0-72, left of the (R)), their one-pixel
+    gaps closed, and all they enclose. Buu's pink is left out. Between BALL
+    and the Z's diagonal the outlines enclose a sliver of the sun: there
+    (from x 140, rows 0-48) only the red letters and the outline next to
+    them count, with what they enclose."""
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    ys, xs = np.mgrid[0:H, 0:W]
+    band = (ys <= 72) & (xs <= 212)
+    outline = comps((a.max(axis=2) < 60) & (b < 20) & band, 150)
+    m = ndimage.binary_fill_holes(ndimage.binary_closing(outline, structure=np.ones((3, 3)))) & band
+    m &= ~((r > 200) & (b > 100))
+    zone = (xs >= 140) & (ys <= 48)
+    red = (r >= 80) & (g < 40) & (b < 40) & zone
+    near = ndimage.distance_transform_edt(~red) <= 1.5
+    m = (m & ~zone) | (ndimage.binary_fill_holes(red | (near & (a.max(axis=2) < 60))) & zone)
+    return comps(m, 150)
+
+
 def comps(m, mn):
     """The parts of m (8-connected) of mn pixels or more."""
     lab, n = ndimage.label(m, structure=np.ones((3, 3)))
@@ -290,7 +312,7 @@ def vr3(a):
 MASKS = (("THPS2", thps2), ("SK8", sk8), ("THPS3", thps3), ("DBZ", dbz),
          ("GS2E", gs2), ("GS2D", gs2_dial), ("GS2F", gs2_dial), ("GS2I", gs2), ("GS2S", gs2_dial),
          ("GS2J", gs2), ("CNK", cnk), ("CNKJ", cnk_jpn),
-         ("DBZ2", dbz2), ("DBZ2J", dbz2_jpn),
+         ("DBZ2", dbz2), ("DBZ2J", dbz2_jpn), ("BF", bf),
          ("VR3", vr3), ("VR3J", vr3))
 
 
