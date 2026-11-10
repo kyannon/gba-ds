@@ -4462,6 +4462,154 @@ static const char* sm3_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	return "map button did nothing";
 }
 
+/* ---------------------------------------------------------------- Eragon
+ *
+ * docs/games/eragon.md. Where L opens the map (the overworld), the map;
+ * elsewhere (towns and dungeons), the Party screen (START, Party) with every member's card lit;
+ * the logo in battles and on the title. Both releases use these addresses:
+ *   ER_SCREEN 1 in the field, 3 the title, 6 a conversation, 7 the
+ *             European language screen, 13 the START menu, 14 the Party
+ *             screen, 16 a battle, 26 the overworld map (0x8x / 0x9x
+ *             between)
+ *   ER_PLACE  12 the overworld, 10 a town or dungeon, but also some wild
+ *             places with a map (the desert); in a battle it runs through
+ *             the battle's own steps: only for following the player (ER-9),
+ *             L itself tells where there's a map
+ *   ER_BATTLE 1 from a battle's start to its end
+ * The Party screen dims every card but the chosen one (the first as it
+ * opens); its cards are ER_CARD rows apart, so each band of rows is taken
+ * from the picture with that card chosen (DOWN), ER-2. */
+#define ER_SCREEN 0x03005660
+#define ER_PLACE 0x03002330
+#define ER_BATTLE 0x0200CAF1
+#define ER_FIELD 1
+#define ER_MENU 13
+#define ER_PARTY 14
+#define ER_MAP 26
+#define ER_CARD 56
+#define ER_V_TITLE 0xF0000080  /* the title or the language screen (ER-6) */
+#define ER_V_FORGET 0xF0000081 /* the title or a battle: the pictures go (ER-5, ER-6) */
+#define ER_V_PLACE 0xF0000082  /* the kind of place, 0 in a battle (ER-9) */
+
+static uint32_t er_virt(Emu* e, uint32_t addr) {
+	int screen = emu_read8(e, ER_SCREEN);
+	bool title = screen == 3 || screen == 7;
+	bool battle = emu_read8(e, ER_BATTLE) == 1;
+	if (addr == ER_V_TITLE) return title;
+	if (addr == ER_V_FORGET) return title || battle;
+	if (addr == ER_V_PLACE) return battle ? 0 : emu_read8(e, ER_PLACE);
+	return 0;
+}
+
+/* a press the game takes (it misses the quickest taps) */
+static void er_press(Emu* s, uint32_t key) {
+	aw_run(s, key, 4);
+	aw_run(s, 0, 4);
+}
+
+static bool er_on(Emu* s, int screen) {
+	return emu_read8(s, ER_SCREEN) == screen;
+}
+
+/* runs up to max frames (not drawn) until the screen byte reads screen */
+static bool er_wait(Emu* s, int screen, int max) {
+	for (int f = 0; f < max && !er_on(s, screen); ++f) emu_frame_blind(s, 0);
+	return er_on(s, screen);
+}
+
+/* runs frames until the picture has held still for `need` (past a slide
+ * or a fade): 12 for the Party screen (its cards come in two steps, ~8
+ * frames apart), 4 for the map (Eragon's figure steps in place every 6),
+ * and not dark (the black between the field and the map); false if it
+ * hasn't within max */
+static bool er_settle(Emu* s, int need, int max) {
+	static uint32_t prev[GBA_W * GBA_H];
+	int still = 0;
+	for (int f = 0; f < max; ++f) {
+		emu_frame(s, 0);
+		still = f && !memcmp(prev, s->fb, sizeof(prev)) && !sn_dark(s->fb) ? still + 1 : 0;
+		if (still >= need) return true;
+		memcpy(prev, s->fb, sizeof(prev));
+	}
+	return false;
+}
+
+/* back to walking about from the START menu or one of its screens, the
+ * map too (B, each step) */
+static bool er_to_field(Emu* s) {
+	if (er_on(s, ER_FIELD)) return true;
+	for (int i = 0; i < 5 && !er_on(s, ER_FIELD); ++i) {
+		er_press(s, K_B);
+		er_wait(s, ER_FIELD, 40);
+	}
+	/* (the field takes no START or L for ~120 frames after the menu,
+	 * ~140 after the map) */
+	aw_run(s, 0, 160);
+	return er_on(s, ER_FIELD);
+}
+
+static void er_put(const uint32_t* px, uint32_t* out, int w, int h, int y0, int y1) {
+	int cw = w < GBA_W ? w : GBA_W;
+	for (int y = y0; y < y1 && y < h && y < GBA_H; ++y) memcpy(&out[y * w], &px[y * GBA_W], (size_t) cw * 4);
+}
+
+static const char* er_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	/* a battle: the logo (ER-5); elsewhere neither screen opens but from
+	 * the field, its menu or the map (ER-4): quick failures */
+	if (emu_read8(s, ER_BATTLE) == 1) return "map button did nothing";
+	int screen = emu_read8(s, ER_SCREEN);
+	if (screen != ER_FIELD && screen != ER_MENU && screen != ER_PARTY && screen != ER_MAP) return "map button did nothing";
+	/* the map where L opens one (ER-3): the screen byte reads 0x9A (its
+	 * way in) at once; in a town it stays at ER_FIELD. (ER_PLACE doesn't
+	 * tell: the desert reads as a town there.) */
+	bool map = er_on(s, ER_MAP);
+	if (!map) {
+		if (!er_to_field(s)) return "not walking about";
+		er_press(s, K_L);
+		map = (emu_read8(s, ER_SCREEN) & 0x7F) == ER_MAP;
+		if (map && !er_wait(s, ER_MAP, 60)) return "the map didn't open";
+	}
+	if (map) {
+		if (!er_settle(s, 4, 120)) return "the map didn't settle";
+		if (emu_cancelled(s)) return "called off";
+		er_put(s->fb, out, w, h, 0, GBA_H);
+		return NULL;
+	}
+	/* no map here: the Party screen (ER-1), opened afresh so the first
+	 * card is chosen */
+	if (!er_on(s, ER_FIELD)) return "not walking about";
+	er_press(s, K_START);
+	if (!er_wait(s, ER_MENU, 60)) return "map button did nothing";
+	/* the menu takes A ~50 frames after it's up (its eye keeps moving, so
+	 * no still picture tells when): wait, then A until the Party screen
+	 * opens (its cursor starts on Party) */
+	aw_run(s, 0, 46);
+	for (int i = 0; i < 4 && !er_on(s, ER_PARTY); ++i) {
+		er_press(s, K_A);
+		er_wait(s, ER_PARTY, 12);
+	}
+	if (!er_on(s, ER_PARTY)) return "the Party screen didn't open";
+	if (!er_settle(s, 12, 150)) return "the Party screen didn't settle";
+	/* each card from the picture with it chosen (ER-2): DOWN to the next,
+	 * until DOWN changes nothing (fewer in the party: the empty slot stays
+	 * as drawn) */
+	static uint32_t last[GBA_W * GBA_H];
+	memcpy(last, s->fb, sizeof(last));
+	er_put(s->fb, out, w, h, 0, GBA_H);
+	for (int k = 1; k * ER_CARD < GBA_H; ++k) {
+		er_press(s, K_DOWN);
+		if (!er_settle(s, 12, 60)) return "the Party screen didn't settle";
+		if (!er_on(s, ER_PARTY)) return "the Party screen closed";
+		if (!memcmp(last, s->fb, sizeof(last))) break;
+		memcpy(last, s->fb, sizeof(last));
+		er_put(s->fb, out, w, h, k * ER_CARD, (k + 1) * ER_CARD);
+	}
+	if (emu_cancelled(s)) return "called off";
+	return NULL;
+}
+
 static const MapProfile profiles[] = {
 	{
 		.codes = { "A2CE" },
@@ -6464,6 +6612,40 @@ static const MapProfile profiles[] = {
 			.logoBelow = true,
 			.rows = GBA_H,
 		},
+	},
+	{
+		/* the overworld's map, or the Party screen in towns and dungeons:
+		 * see er_compose (docs/games/eragon.md) */
+		.codes = { "BENE" },
+		.title = "Eragon",
+		.compose = er_compose,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		.virt = er_virt,
+		/* the title: the logo, no captures (ER-6) */
+		.live = { { ER_V_TITLE, 0xFF, 0, 4 } },
+		.menu = { { ER_V_FORGET, 0xFF, 1, 4 } }, /* (ER-5, ER-6) */
+		/* a battle: the logo (ER-5) */
+		.combat = { { ER_BATTLE, 0xFF, 1, 1 } },
+		/* into a place or out of one, or a battle over (ER-9) */
+		.room = { { ER_V_PLACE, 0xFF, 0, 4 } },
+		/* the carved "eragon" and its TM on their strip of stone: the
+		 * title picture (BG1) alone, boxed (ER-7) */
+		.logo = { .wait = 1000, .layer = 1, .minY = 8, .maxY = 58, .minX = 20, .maxX = 232 },
+	},
+	{
+		/* the same for Europe: A on its language screen (English) first */
+		.codes = { "BENP" },
+		.title = "Eragon",
+		.compose = er_compose,
+		.crop_w = GBA_W,
+		.crop_h = GBA_H,
+		.virt = er_virt,
+		.live = { { ER_V_TITLE, 0xFF, 0, 4 } },
+		.menu = { { ER_V_FORGET, 0xFF, 1, 4 } },
+		.combat = { { ER_BATTLE, 0xFF, 1, 1 } },
+		.room = { { ER_V_PLACE, 0xFF, 0, 4 } },
+		.logo = { .steps = { { 0, 100 }, { K_A, 4 }, { 0, 1100 } }, .layer = 1, .minY = 8, .maxY = 58, .minX = 20, .maxX = 232 },
 	},
 };
 
