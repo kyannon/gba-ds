@@ -50,6 +50,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [V-Rally 3](v-rally-3.md) | VR3 | `AVRE` + 2 |
 | [Dragon Ball Z: Buu's Fury](dragon-ball-z-buus-fury.md) | BF | `BG3E` |
 | [GT Advance 3: Pro Concept Racing (Advance GT2 in Japan)](gt-advance-3-pro-concept-racing.md) | GT3 | `A2GE` + 2 |
+| [Eragon](eragon.md) | ER | `BENE` + 1 |
 
 ## General rules
 

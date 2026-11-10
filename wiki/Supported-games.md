@@ -11,6 +11,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Dragon Ball Z: Buu's Fury | `BG3E` (USA only) | the Scouter's area map; flying, the world map twice as big |
 | Dragon Ball Z: The Legacy of Goku | `ALGE` `ALGP` (no Japanese release) | the pause menu, with the HP and Ki bars (or the counter SELECT and flying show) in place of its options |
 | Dragon Ball Z: The Legacy of Goku II (The Legacy of Goku II International in Japan) | `ALFE` `ALFP` `ALFJ` | the Scouter's area map (before the Scouter, the Status page); flying, the world map twice as big |
+| Eragon | `BENE` `BENP` (no Japanese release) | the Party screen, every card lit; the map where L opens one; in battles, the party's HP bars |
 | F-Zero: GP Legend (F-Zero: Falcon Densetsu in Japan) | `BFZE` `BFZP` `BFZJ` | the race HUD, with the course map twice as big |
 | F-Zero: Maximum Velocity (F-Zero for Game Boy Advance in Japan) | `AFZE` (USA and Europe) `AFZJ` (China: `AFZC`) | the race HUD, with the course map twice as big |
 | Final Fantasy Tactics Advance | `AFXE` `AFXP` `AFXJ` | in battles: the Status of the unit under the cursor, or the turn order and Laws; on the world map: today's Laws |
@@ -123,6 +124,17 @@ The USA, European and Japanese (International) releases.
 - The HP and EP bars stay on the game screen.
 - In conversations, at save points, and in the game's own pause menu, map and Dragon Radar, the second screen keeps its picture. On the title and menus it shows the logo.
 - Not tried yet: boss fights, the Hyperbolic Time Chamber, the Cell Games and the ending.
+
+## Eragon
+
+USA and Europe (English, French, German, Spanish and Italian).
+
+- **In towns, houses, caves and castles,** the second screen is the game's **Party screen** (START, Party): each member's portrait, name, HP and XP bars, focus and level, and your gold. It's opened in the background in a silent copy of the game about once a second; your game is never paused. The game dims every card but the chosen one; on the second screen they're all lit.
+- **Wherever L opens the map** (the overworld between places, and wild places such as the Hadarac desert), the second screen is that **map**, with Eragon's figure where you are.
+- **In battles,** the party's name plates and HP bars move from the top of the game screen to the top of the second screen whenever the game shows them, as attacks play out; while you choose a command, they stay there as they last were. Before they first show in a battle, the logo.
+- In conversations and scenes the second screen keeps its picture. The title and Europe's language screen show the logo: the carved "eragon" alone.
+- After you leave the game's own menu or map, the second screen can take a few seconds to catch up (the game ignores START and L for about two seconds then).
+- Not tried yet: Saphira's flying, boss battles, Farthen Dûr and the ending.
 
 ## F-Zero: GP Legend
 

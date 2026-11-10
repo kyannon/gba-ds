@@ -195,6 +195,8 @@ static const KnownDump knownDumps[] = {
 	{ "BE8J", 0xd2b431f8, false, "Fire Emblem - Seima no Kouseki (Japan) (Virtual Console)" },
 	{ "BE8P", 0x2653401a, false, "Fire Emblem - The Sacred Stones (Europe) (En,Fr,De,Es,It) (Virtual Console)" },
 	{ "BE8P", 0xb3005195, true, "Fire Emblem - The Sacred Stones (Europe) (En,Fr,De,Es,It)" },
+	{ "BENE", 0xaf8af2e8, true, "Eragon (USA)" },
+	{ "BENP", 0xbb05a63f, true, "Eragon (Europe) (En,Fr,De,Es,It)" },
 	{ "BFZE", 0x781aab58, true, "F-Zero - GP Legend (USA)" },
 	{ "BFZE", 0x9075c6fd, false, "F-Zero - GP Legend (USA) (Virtual Console)" },
 	{ "BFZJ", 0x2446b920, true, "F-Zero - Falcon Densetsu (Japan)" },

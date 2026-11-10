@@ -37,5 +37,7 @@ extern const LogoMask logoMaskVR3, logoMaskVR3J;
 extern const LogoMask logoMaskNFO, logoMaskNFOP;
 /* GT Advance 3: Pro Concept Racing (USA, Europe), and Japan's Advance GT2 */
 extern const LogoMask logoMaskGT3, logoMaskGT3J;
+/* Eragon (USA, Europe) */
+extern const LogoMask logoMaskER;
 
 #endif
