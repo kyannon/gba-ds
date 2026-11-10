@@ -250,7 +250,43 @@ typedef struct MapProfile {
 				 * Pinball Party's opening sweep) */
 				MemProbe noObj;
 				/* halfwords written over the copies' code (with nop) */
-				struct { uint32_t addr; uint16_t v; } patch[12];
+				struct { uint32_t addr; uint16_t v; } patch[16];
+				/* (Muppet Pinball Mayhem) viewOff: `view` holds the view's
+				 * row plus this (its BG VOFS is set from it at the vblank);
+				 * gameFrom: the first line of the game's own picture with
+				 * table rows (the lines above it show only the score bar's
+				 * layers: the copies draw those rows); no rowsAt: the
+				 * table's height is `rows`. The queue of copies at the next
+				 * vblank as a ring: its start index a word at qIndex (slot
+				 * (start + i) % qSlots), qWide: the count a word, entries
+				 * qStride bytes (default 12) with the destination at
+				 * qDst, the size in bytes at qSize (defaults 0 and 8) */
+				int viewOff, gameFrom;
+				/* while any of these matches (Muppet Pinball Mayhem paused:
+				 * its menu of sprites over the table; its game over: the
+				 * scroll to the top, the curtains), the game as it is and the
+				 * logo on the second screen; the copies go on running, so
+				 * they're at their rows again at once after */
+				MemProbe plain[3];
+				/* the copies keep all their sprites (none of the game's are
+				 * fixed to the screen outside `plain`; its sprites are written
+				 * in the vblank from its objects, so the lists twin_hide
+				 * compares are a frame old) */
+				bool keepObj;
+				/* a dimmed screen (the game fading out, Muppet Pinball
+				 * Mayhem's at the end of a game) stays on both screens, the
+				 * copies dimmed alike, not the game's screen on the bottom
+				 * one (PP-11's) */
+				bool keepDim;
+				/* while it doesn't match (in the copy, as taken from the
+				 * game), the copy keeps nothing of its own: it starts again
+				 * from the game's tiles (Muppet Pinball Mayhem's table being
+				 * set up, its tiles not loaded yet) */
+				MemProbe ready;
+				uint32_t qIndex;
+				int qSlots, qStride, qDst, qSize;
+				int qReload; /* (an entry into the ring bigger than this, in bytes, is the table loaded afresh; default 0x400) */
+				bool qWide;
 			} carry;
 		} live;
 	} tall;

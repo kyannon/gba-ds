@@ -4,7 +4,7 @@ full-screen title picture rather than drawn on a layer of their own.
 
     GBADS_LOGO_DEBUG=1 build/host/harness THPS2.gba out logo.txt   # 'logo logo'
     (writes out/logo.png.fg.png: the exact title frame GBA DS renders)
-    tools/make_logo_masks.py THPS2=THPS2-frame.png [SK8=SK8-frame.png] [THPS3=...]
+    tools/make_logo_masks.py THPS2=THPS2-frame.png [SK8=SK8-frame.png] [THPS3=...] [AMW=...]
 
 Masks not named on the command line are kept as they are in
 src/logo_masks.c, so one can be redone without the other games' ROMs.
@@ -277,6 +277,20 @@ def cnk_jpn(a):
     return _from_edges((b >= r + 20) & (b >= g + 30) & (r >= g))
 
 
+def amw(a):
+    """Muppet Pinball Mayhem (USA, Europe): the name on its badge (the
+    starburst, three bumpers and the swoosh under MAYHEM) in the title
+    picture's top left corner. The shape is tools/logo_masks/amw.png, made
+    from a high-resolution copy of the logo with a transparent background,
+    scaled to the title's (146x94 from its top left, a pixel to the right)
+    less its ball, which the title doesn't have, and the places where the
+    title's Muppets and roller coaster are drawn in front (the swoosh's tail,
+    the right bumper's foot): the sky, the coaster and the Muppets left out."""
+    shape = np.asarray(Image.open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                               "logo_masks", "amw.png")).convert("L")) > 127
+    return shape[:a.shape[0], :a.shape[1]]
+
+
 def nfo(a):
     """Ninja Five-O (USA): NINJA and FIVE-O without the black brush-stroke
     kanji behind them or the white title screen. Every colour but the
@@ -332,7 +346,7 @@ MASKS = (("THPS2", thps2), ("SK8", sk8), ("THPS3", thps3), ("DBZ", dbz),
          ("GS2J", gs2), ("CNK", cnk), ("CNKJ", cnk_jpn),
          ("DBZ2", dbz2), ("DBZ2J", dbz2_jpn),
          ("VR3", vr3), ("VR3J", vr3),
-         ("NFO", nfo), ("NFOP", nfo_eur))
+         ("NFO", nfo), ("NFOP", nfo_eur), ("AMW", amw))
 
 
 def runs(mask):

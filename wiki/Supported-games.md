@@ -26,6 +26,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Mega Man Battle Network (Battle Network Rockman EXE in Japan) | `AREE` `AREP` `AREJ` | MegaMan's status (level, HP, armor, buster) with your money; in battles, the custom screen |
 | Metroid Fusion | `AMTE` `AMTP` `AMTJ` | map |
 | Metroid: Zero Mission | `BMXE` `BMXP` `BMXJ` | map |
+| Muppet Pinball Mayhem | `AMWE` `AMWP` (no Japanese release) | the table twice as tall over both screens, live, with the score bar |
 | Ninja Five-O (Ninja Cop in Europe) | `ANXE` `ANXP` (no Japanese release) | in stages: the HUD (bars, score or time, the boss's bar, the shuriken's level, keys and hostages) |
 | Pokémon Pinball: Ruby & Sapphire | `BPPE` | the table twice as tall over both screens, live, with the score bar |
 | River City Ransom EX (Downtown Nekketsu Monogatari EX in Japan) | `BDTE` `BDTJ` (no European release) | the Status screen, with the top bar moved off the game screen |
@@ -257,6 +258,20 @@ Known issues: the later tutorial battles, boss battles and link-cable net battle
   - Zero Mission's corner minimap gives way to the map underneath, with its "SELECT / CHANGE AREAS" prompt covered by a piece of the bezel;
   - the coloured plates are recoloured to the frame's greys so they don't stand out.
 - `map_crop = 0` shows the pause screens exactly as the games draw them. The European versions' label erasing was checked in English and German.
+
+## Muppet Pinball Mayhem
+
+The USA release and Europe's.
+
+- **On a table** (every table, in Competition and Adventure, with one to four players), the two screens together show it as one tall table, **live**, as on Pokémon Pinball: GBA DS runs two more copies of the game alongside yours, drawing the parts of the table your game's view doesn't, so the ball, the flippers and everything else move on both screens. Your game itself is never changed.
+- The view scrolls smoothly with the ball and never jumps. While the ball is in the table's upper part, your game is on the top screen with the next part of the table below it. Further down, the two screens show the table's lower part down to the flippers.
+- The **score bar** stays at the top of the top screen, where the game has it.
+- While the game is **paused**, and when a **game ends** (its run up the table, the stage curtains), the game screen shows the game as it is and the second screen the logo. The stage curtains and the table's opening pan before a table play on one screen too.
+- After you load a state, the copies start again from your game: the game plays on one screen for a moment.
+- `pinball_live = 0` in `gba-ds.cfg` turns the copies off (for slower devices): the game then plays on one screen, with the logo on the other.
+- On the title and menus, the second screen shows the logo.
+
+Known issues: Adventure's move from one table to the next (once a table's goals are done) hasn't been tried yet.
 
 ## Ninja Five-O
 
