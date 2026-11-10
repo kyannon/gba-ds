@@ -26,61 +26,33 @@
    "id": "mmbn-us-net",
    "rom": "AREE",
    "state": "mega-man-battle-network/us-net-endgame.ss",
-   "desc": "MegaMan on the net (an endgame save, level 79, HeatArmor): the money counter at the top right (its row in the panel's top colour) and the MegaMan screen's panel without its cursor below it, in the counter's orange edges, centred",
+   "desc": "MegaMan on the net (an endgame save, level 79: the WWW's maze): the area's map, a third of its size, centred on him",
    "rules": [
-    "MMBN-2"
+    "MMBN-6"
    ],
    "shots": {
-    "status": 90
+    "map": 90
    },
    "checks": [
     {
-     "rule": "MMBN-2",
-     "what": "MegaMan's status taken",
+     "rule": "MMBN-6",
+     "what": "the area's map made",
      "type": "log",
-     "match": "map updated \\(1 frame"
+     "match": "area [0-9A-F]{4} mapped"
     },
     {
-     "rule": "MMBN-2",
-     "what": "black above the frame (centred top to bottom)",
-     "type": "uniform",
-     "shot": "status",
+     "rule": "MMBN-6",
+     "what": "the map drawn around him (the middle of the second screen not black)",
+     "type": "not_uniform",
+     "shot": "map",
      "screen": "second",
      "rect": [
-      32,
-      64,
-      991,
-      124
+      312,
+      284,
+      712,
+      484
      ],
      "color": "000000"
-    },
-    {
-     "rule": "MMBN-2",
-     "what": "the money counter's row left of it in the panel's top row's colour",
-     "type": "uniform",
-     "shot": "status",
-     "screen": "second",
-     "rect": [
-      40,
-      148,
-      720,
-      236
-     ],
-     "color": "4A5A63"
-    },
-    {
-     "rule": "MMBN-2",
-     "what": "the amount at the top right",
-     "type": "not_uniform",
-     "shot": "status",
-     "screen": "second",
-     "rect": [
-      740,
-      148,
-      991,
-      236
-     ],
-     "color": "4A5A63"
     }
    ]
   },
@@ -150,61 +122,33 @@
    "id": "mmbn-eu-net",
    "rom": "AREP",
    "state": "mega-man-battle-network/eu-net-endgame.ss",
-   "desc": "Europe, MegaMan on the net (an endgame save, level 100, plain Armor): the same",
+   "desc": "Europe, MegaMan on the net (an endgame save, level 100: the Undernet's big panels): the same",
    "rules": [
-    "MMBN-2"
+    "MMBN-6"
    ],
    "shots": {
-    "status": 90
+    "map": 90
    },
    "checks": [
     {
-     "rule": "MMBN-2",
-     "what": "MegaMan's status taken",
+     "rule": "MMBN-6",
+     "what": "the area's map made",
      "type": "log",
-     "match": "map updated \\(1 frame"
+     "match": "area [0-9A-F]{4} mapped"
     },
     {
-     "rule": "MMBN-2",
-     "what": "black above the frame (centred top to bottom)",
-     "type": "uniform",
-     "shot": "status",
+     "rule": "MMBN-6",
+     "what": "the map drawn around him (the middle of the second screen not black)",
+     "type": "not_uniform",
+     "shot": "map",
      "screen": "second",
      "rect": [
-      32,
-      64,
-      991,
-      124
+      312,
+      284,
+      712,
+      484
      ],
      "color": "000000"
-    },
-    {
-     "rule": "MMBN-2",
-     "what": "the money counter's row left of it in the panel's top row's colour",
-     "type": "uniform",
-     "shot": "status",
-     "screen": "second",
-     "rect": [
-      40,
-      148,
-      720,
-      236
-     ],
-     "color": "4A5A63"
-    },
-    {
-     "rule": "MMBN-2",
-     "what": "the amount at the top right",
-     "type": "not_uniform",
-     "shot": "status",
-     "screen": "second",
-     "rect": [
-      740,
-      148,
-      991,
-      236
-     ],
-     "color": "4A5A63"
     }
    ]
   },
@@ -212,9 +156,10 @@
    "id": "mmbn-us-conversation",
    "rom": "AREE",
    "state": "mega-man-battle-network/us-net-endgame.ss",
-   "desc": "talking to the Navi beside MegaMan: the status taken before stays through the conversation",
+   "desc": "talking to the Navi beside MegaMan: the map stays through the conversation",
    "rules": [
-    "MMBN-3"
+    "MMBN-3",
+    "MMBN-6"
    ],
    "input": [
     [
@@ -261,9 +206,10 @@
    "id": "mmbn-us-pet-menu",
    "rom": "AREE",
    "state": "mega-man-battle-network/us-net-endgame.ss",
-   "desc": "the PET's menu, then the folder, open in the game: the status taken before stays",
+   "desc": "the PET's menu, then the folder, open in the game: the map stays",
    "rules": [
-    "MMBN-3"
+    "MMBN-3",
+    "MMBN-6"
    ],
    "input": [
     [
@@ -565,12 +511,12 @@
    "id": "mmbn-eu-results",
    "rom": "AREP",
    "state": "mega-man-battle-network/eu-results.ss",
-   "desc": "a battle's results (the viruses' HP set to 1 and busted): on the game screen, the logo on the second; A twice, walking about again, and MegaMan's status taken",
+   "desc": "a battle's results (the viruses' HP set to 1 and busted): on the game screen, the logo on the second; A twice, walking about on the net again, and the area's map",
    "rules": [
     "MMBN-1",
-    "MMBN-2",
     "MMBN-3",
-    "MMBN-4"
+    "MMBN-4",
+    "MMBN-6"
    ],
    "input": [
     [
@@ -612,52 +558,24 @@
    },
    "checks": [
     {
-     "rule": "MMBN-2",
-     "what": "MegaMan's status taken",
+     "rule": "MMBN-6",
+     "what": "the area's map made",
      "type": "log",
-     "match": "map updated \\(1 frame"
+     "match": "area [0-9A-F]{4} mapped"
     },
     {
-     "rule": "MMBN-2",
-     "what": "black above the frame (centred top to bottom)",
-     "type": "uniform",
-     "shot": "walking",
-     "screen": "second",
-     "rect": [
-      32,
-      64,
-      991,
-      124
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "MMBN-2",
-     "what": "the money counter's row left of it in the panel's top row's colour",
-     "type": "uniform",
-     "shot": "walking",
-     "screen": "second",
-     "rect": [
-      40,
-      148,
-      720,
-      236
-     ],
-     "color": "4A5A63"
-    },
-    {
-     "rule": "MMBN-2",
-     "what": "the amount at the top right",
+     "rule": "MMBN-6",
+     "what": "the map drawn around him (the middle of the second screen not black)",
      "type": "not_uniform",
      "shot": "walking",
      "screen": "second",
      "rect": [
-      740,
-      148,
-      991,
-      236
+      312,
+      284,
+      712,
+      484
      ],
-     "color": "4A5A63"
+     "color": "000000"
     }
    ]
   },
@@ -665,33 +583,130 @@
    "id": "mmbn-us-net-path-behind",
    "rom": "AREE",
    "state": "mega-man-battle-network/us-net-path-behind-money.ss",
-   "desc": "MegaMan further down the net's path, which runs behind the START menu's money counter in the game: the counter taken without it (no lighter grey showing through)",
+   "desc": "MegaMan on the net where a path passes behind the PET's money counter in the game: the area's map (the counter only in the real world now)",
    "rules": [
-    "MMBN-2"
+    "MMBN-6"
    ],
    "shots": {
-    "status": 90
+    "map": 90
    },
    "checks": [
     {
-     "rule": "MMBN-2",
-     "what": "MegaMan's status taken",
+     "rule": "MMBN-6",
+     "what": "the area's map made",
      "type": "log",
-     "match": "map updated \\(1 frame"
+     "match": "area [0-9A-F]{4} mapped"
     },
     {
-     "rule": "MMBN-2",
-     "what": "the money counter's row plain left of the amount",
-     "type": "uniform",
-     "shot": "status",
+     "rule": "MMBN-6",
+     "what": "the map drawn around him (the middle of the second screen not black)",
+     "type": "not_uniform",
+     "shot": "map",
      "screen": "second",
      "rect": [
-      740,
-      148,
-      780,
-      236
+      312,
+      284,
+      712,
+      484
      ],
-     "color": "4A5A63"
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "mmbn-us-warp",
+   "rom": "AREE",
+   "state": "mega-man-battle-network/us-warp-to-oven.ss",
+   "desc": "warping from Lan's PC to Oven Comp 1 (an endgame save; the warp started by setting gMapChange): the logo while MegaMan steps off the warp pad, then the new area's map",
+   "rules": [
+    "MMBN-6"
+   ],
+   "shots": {
+    "arriving": 60,
+    "map": 360
+   },
+   "checks": [
+    {
+     "rule": "MMBN-6",
+     "what": "the new area's map made once the camera follows him",
+     "type": "log",
+     "match": "area 0081 mapped"
+    },
+    {
+     "rule": "MMBN-6",
+     "what": "the logo while he steps off the pad (no half-made map)",
+     "type": "uniform",
+     "shot": "arriving",
+     "screen": "second",
+     "rect": [
+      100,
+      110,
+      260,
+      170
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "MMBN-6",
+     "what": "the map drawn around him",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      312,
+      284,
+      712,
+      484
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "mmbn-us-lan-pc",
+   "rom": "AREE",
+   "state": "mega-man-battle-network/us-lan-pc.ss",
+   "desc": "Lan's PC (its patterned floor behind): the homepage's panel on black, none of the pattern",
+   "rules": [
+    "MMBN-6"
+   ],
+   "shots": {
+    "map": 90
+   },
+   "checks": [
+    {
+     "rule": "MMBN-6",
+     "what": "the area's map made",
+     "type": "log",
+     "match": "area 0088 mapped"
+    },
+    {
+     "rule": "MMBN-6",
+     "what": "the map drawn around him",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      312,
+      284,
+      712,
+      484
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "MMBN-6",
+     "what": "no backdrop: black at the second screen's corners",
+     "type": "uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      0,
+      0,
+      160,
+      120
+     ],
+     "color": "000000"
     }
    ]
   },

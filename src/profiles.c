@@ -4037,248 +4037,190 @@ static bool mmbn_megaman_up(Emu* s) {
 	return emu_read8(s, MMBN_STATE) == 0x18 && emu_read8(s, MMBN_MENU) == 8 && emu_read8(s, MMBN_MENU + 1) == 4 &&
 	       !emu_read8(s, MMBN_FADING);
 }
-/* ---- the net's area maps (MMBN-6, an experiment)
+/* ---- the net's area maps (MMBN-6, an exception: see the rules file)
  *
- * A third copy of the game (its own Emu, on its own thread) is given the
- * live game's state when MegaMan is in an area of the net with no map yet.
- * Where he can go is asked of the game's own walls, a grid cell at a time:
- * from a moment of him walking (the job's state, DOWN held a few frames), he
- * is set down at a place he reached (gCamera.playerRealPos, 16.16, x
- * up-right, y down-right) with his step (diff_x / diff_y, +0x1C / +0x20
- * from his position, kept while the same key is held) set to take him one
- * MMBN_GRID cell, one of 8 ways, in MMBN_STEPF frames: his own running
- * stride, 2 units a frame (longer steps slip through some walls: the game
- * checks each frame's line against the walls of the cells it crosses).
- * Where he ends up is a place reached, a cell further (breadth first). At
- * each place reached whose surroundings the picture doesn't have yet, a
- * frame of the area's own layers (BG2 and BG3: no sprites, no BG0
- * messages, no BG1 sky) goes into the area's picture at the camera's
- * screen position (cameraX = x + y, cameraY = (y - x) / 2): only where he
- * can go, so the camera never shows what's past the area's tiles
- * (tools/scout/mmbnprobe.c, the experiment; mmbnmap.c, the walk it
- * replaced: the same maps, 6 to 11 times slower). The picture is drawn on
- * the second screen at a third of its size around the live camera, as it
- * fills in. */
+ * The game keeps the whole area's layout (gBgDataManager: its width and
+ * height in tiles, bytes +0 / +1; on the net BG2 and BG3, centred on the
+ * camera's 0,0) and draws the screen from it, the whole screen when the
+ * camera jumps. A copy of the game (its own Emu, on its own thread; inline
+ * in exact runs and where there are no threads) is given the live game's
+ * state once MegaMan has been in a new area of the net for half a second
+ * (a warp changes the area's number before its layout is in), gCamera's
+ * bounds opened up, and MegaMan (so the camera: cameraX = x + y, cameraY =
+ * (y - x) / 2) set down a screen at a time over the layout; each frame of
+ * BG2 and BG3 (no sprites, no BG0 messages, no BG1 sky) goes into the
+ * area's picture where the camera was. The backdrop colour (palette 0) is
+ * magenta in the copy, so what's transparent stays black; a layer with
+ * nothing transparent on 9 screens over the area is a backdrop, left out.
+ * A screen where the game stops walking about (a warp pad under him, a
+ * battle) is left out on the first pass, taken from a little way off on
+ * the second. Each area in 0.1-0.3 s on one of this machine's cores
+ * (tools/scout/mmbnlayout.c; mmbnprobe.c and mmbnmap.c, the walking ways
+ * it replaced). The picture is drawn on the second screen at a third of
+ * its size around the live camera. */
 #define MMBN_CAM 0x02004950     /* gCamera: cameraX (+4), cameraY (+6), playerRealPos (+0x10), bounds (+0x14..0x23) */
-#define MMBN_GRID 16
-#define MMBN_STEPF 8 /* (16 units at his running stride) */
-#define MMBN_MAPS 4
+#define MMBN_BGDM 0x02009A50    /* gBgDataManager: the layout's width (+0) and height (+1) in tiles */
+#define MMBN_SETTLE 4           /* frames from setting him down to the screen drawn */
 typedef struct {
 	uint16_t area;
-	bool done, failed, counted;
-	int w, h, x0, y0;   /* the picture's size, and its top left's screen position */
-	uint32_t* px;       /* 0: nothing seen there */
-	unsigned used;
+	bool done, failed, early; /* early: the camera wasn't following him yet */
+	int w, h, x0, y0; /* the picture's size, and its top left's screen position */
+	uint32_t* px;     /* 0: nothing there */
 } MmbnMap;
-static MmbnMap mmbnMaps[MMBN_MAPS];
+static MmbnMap mmbnMap;
 static pthread_t mmbnThread;
 static volatile bool mmbnBusy, mmbnStop;
-static volatile unsigned mmbnAsked; /* liveView's calls, counted: the worker waits while they stop (paused) */
-static uint8_t* mmbnJob;            /* the state it starts from */
+static uint8_t* mmbnJob; /* the state it starts from */
 static size_t mmbnJobSize;
-static int mmbnJobMap;
 static char mmbnRom[1024];
 static Emu mmbnEmu;
 static bool mmbnEmuOpen;
 
-/* on the net, with maps: not in exact runs (GBADS_SYNC, the tests: the map
- * is made at its own pace beside the game), unless GBADS_MMBN_MAPS=1 */
+/* on the net */
 static bool mmbn_area_net(uint16_t area) {
-	static int maps = -1;
-	if (maps < 0) maps = !getenv("GBADS_SYNC") || getenv("GBADS_MMBN_MAPS");
-	return maps && (area & 0xFF) >= 0x80;
+	return (area & 0xFF) >= 0x80;
 }
 
-/* from the walking moment, MegaMan set down at (x, y, z) steps (dx, dy) over
- * n frames (dx = dy = 0: stands for n frames); false if he left the area or
- * a battle began */
-static bool mmbn_step(Emu* e, const uint8_t* st, uint16_t area, uint32_t pos, int32_t x, int32_t y, int32_t z, int32_t dx,
-                      int32_t dy, int n) {
-	emu_state_load(e, st);
-	emu_write32(e, pos, (uint32_t) x);
-	emu_write32(e, pos + 4, (uint32_t) y);
-	emu_write32(e, pos + 8, (uint32_t) z);
-	emu_write32(e, pos + 0x1C, (uint32_t) (dx / n));
-	emu_write32(e, pos + 0x20, (uint32_t) (dy / n));
-	for (int f = 0; f < n; ++f) emu_frame_blind(e, dx || dy ? K_DOWN : 0);
+/* the copy's camera brought to (cx, cy), as near as the game takes it, and
+ * a frame of `layers` drawn there; false if the game stopped walking about */
+static bool mmbn_look(Emu* e, uint16_t area, uint32_t pos, int cx, int cy, unsigned layers, int* camx, int* camy) {
+	/* (layers take effect as a state's registers load) */
+	emu_layers(e, layers);
+	emu_state_load(e, mmbnJob);
+	emu_write32(e, MMBN_CAM + 0x14, (uint32_t) (-30000 * 65536));
+	emu_write32(e, MMBN_CAM + 0x18, (uint32_t) (30000 * 65536));
+	emu_write32(e, MMBN_CAM + 0x1C, (uint32_t) (30000 * 65536));
+	emu_write32(e, MMBN_CAM + 0x20, (uint32_t) (-30000 * 65536));
+	int x = (cx - 2 * cy) / 2, y = (cx + 2 * cy) / 2;
+	emu_write32(e, pos, (uint32_t) (x * 65536));
+	emu_write32(e, pos + 4, (uint32_t) (y * 65536));
+	for (int f = 0; f < MMBN_SETTLE; ++f) emu_frame_blind(e, 0);
+	emu_write16(e, 0x05000000, 0x7C1F); /* (magenta) */
+	emu_frame(e, 0);
+	*camx = (int16_t) emu_read16(e, MMBN_CAM + 4), *camy = (int16_t) emu_read16(e, MMBN_CAM + 6);
 	return emu_read8(e, MMBN_STATE) == 4 && emu_read16(e, MMBN_AREA) == area;
 }
 
 static void* mmbn_worker(void* arg) {
 	(void) arg;
 	Emu* e = &mmbnEmu;
-	if (!mmbnEmuOpen) mmbnEmuOpen = emu_open(e, mmbnRom, NULL, false);
-	MmbnMap* m = &mmbnMaps[mmbnJobMap];
+	MmbnMap* m = &mmbnMap;
 	struct timespec t0;
 	clock_gettime(CLOCK_MONOTONIC, &t0);
 	const char* why = NULL;
+	if (!mmbnEmuOpen) mmbnEmuOpen = emu_open(e, mmbnRom, NULL, false);
 	if (!mmbnEmuOpen && (why = "the ROM didn't open")) goto out;
 	if (!emu_state_load(e, mmbnJob) && (why = "the game's moment didn't load")) goto out;
 	uint16_t area = m->area;
 	uint32_t pos = emu_read32(e, MMBN_CAM + 0x10);
-	int xl = (int32_t) emu_read32(e, MMBN_CAM + 0x14) >> 16, xu = (int32_t) emu_read32(e, MMBN_CAM + 0x18) >> 16;
-	int yu = (int32_t) emu_read32(e, MMBN_CAM + 0x1C) >> 16, yl = (int32_t) emu_read32(e, MMBN_CAM + 0x20) >> 16;
-	if (yl > yu) { int t = yl; yl = yu; yu = t; }
-	if ((pos < 0x02000000 || pos >= 0x02040000 || xu <= xl || yu <= yl) && (why = "no position or bounds")) goto out;
-	/* (the bounds are the camera's: MegaMan can stand a little past them) */
-	xl -= 64, xu += 64, yl -= 64, yu += 64;
-	emu_layers(e, 0x0C);
-	int gw = (xu - xl) / MMBN_GRID + 3, gh = (yu - yl) / MMBN_GRID + 3;
-	int32_t* at = calloc((size_t) gw * gh * 3, 4);
-	uint8_t* seen = calloc((size_t) gw * gh, 1);
-	int* queue = malloc(sizeof(int) * gw * gh);
-	uint8_t* walking = malloc(mmbnJobSize);
-	if ((!at || !seen || !queue || !walking) && (why = "out of memory")) goto done;
-	int qh = 0, qt = 0;
-	int32_t x0 = (int32_t) emu_read32(e, pos), y0 = (int32_t) emu_read32(e, pos + 4), z0 = (int32_t) emu_read32(e, pos + 8);
-	/* the walking moment */
-	for (int f = 0; f < 4; ++f) emu_frame_blind(e, K_DOWN);
-	if ((emu_read8(e, MMBN_STATE) != 4 || emu_read16(e, MMBN_AREA) != area || !emu_state_save(e, walking)) &&
-	    (why = "he didn't walk")) goto done;
-#define MMBN_CELL(X, Y) \
-	(((((Y) >> 16) - yl + MMBN_GRID / 2) / MMBN_GRID) * gw + ((((X) >> 16) - xl + MMBN_GRID / 2) / MMBN_GRID))
-	if (((x0 >> 16) < xl || (x0 >> 16) > xu || (y0 >> 16) < yl || (y0 >> 16) > yu) && (why = "he's outside the area")) goto done;
-	int c0 = MMBN_CELL(x0, y0);
-	seen[c0] = 1, at[c0 * 3] = x0, at[c0 * 3 + 1] = y0, at[c0 * 3 + 2] = z0, queue[qt++] = c0;
-	static const int8_t ways[8][2] = { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 }, { 1, 1 }, { -1, -1 }, { 1, -1 }, { -1, 1 } };
-	unsigned lastAsked = mmbnAsked - 1;
-	while (qh < qt && !mmbnStop) {
-		/* (the game paused, its pause menu: wait; closed: stop) */
-		for (int idle = 0; mmbnAsked == lastAsked && !mmbnStop; ++idle) {
-			struct timespec ts = { 0, 50 * 1000000 };
-			nanosleep(&ts, NULL);
-			if (idle > 20 * 60) mmbnStop = true; /* a minute: the game was closed */
-		}
-		lastAsked = mmbnAsked;
-		if (mmbnStop) break;
-		int c = queue[qh++];
-		int32_t x = at[c * 3], y = at[c * 3 + 1], z = at[c * 3 + 2];
-		/* its picture, unless the middle of the screen around it (half its
-		 * width and height) is all in the picture already */
-		int sx0 = (x >> 16) + (y >> 16) - m->x0, sy0 = ((y >> 16) - (x >> 16)) / 2 - m->y0;
-		bool need = false;
-		for (int dy = -GBA_H / 4; dy <= GBA_H / 4 && !need; dy += 8)
-			for (int dx = -GBA_W / 4; dx <= GBA_W / 4 && !need; dx += 8) {
-				int qx = sx0 + dx, qy = sy0 + dy;
-				need = qx >= 0 && qy >= 0 && qx < m->w && qy < m->h && !m->px[(size_t) qy * m->w + qx];
+	if ((pos < 0x02000000 || pos >= 0x02040000) && (why = "no position")) goto out;
+	int W = m->w, H = m->h, X0 = m->x0, Y0 = m->y0, cx, cy;
+	/* the copy's magenta, as its renderer puts it out */
+	if (!mmbn_look(e, area, pos, X0 + W / 2, Y0 + H / 2, 0, &cx, &cy) && (why = "he can't be set down")) goto out;
+	uint32_t magenta = e->fb[0] & 0xFFFFFF;
+	/* (arriving on a warp pad, he steps off it by himself, the camera
+	 * following that, not where he's set down: tried again later) */
+	if ((cx < X0 + W / 2 - 16 || cx > X0 + W / 2 + 16 || cy < Y0 + H / 2 - 16 || cy > Y0 + H / 2 + 16) &&
+	    (why = "the camera isn't following him yet"))
+		m->early = true;
+	if (why) goto out;
+	/* the backdrop: a layer with nothing transparent */
+	unsigned layers = 0;
+	for (int L = 2; L <= 3 && !mmbnStop; ++L) {
+		long clear = 0, drawn = 0;
+		for (int k = 0; k < 9 && !mmbnStop; ++k) {
+			if (!mmbn_look(e, area, pos, X0 + W * (1 + k % 3) / 4, Y0 + H * (1 + k / 3) / 4, 1u << L, &cx, &cy)) continue;
+			for (int i = 0; i < GBA_W * GBA_H; ++i) {
+				if ((e->fb[i] & 0xFFFFFF) == magenta) ++clear;
+				else ++drawn;
 			}
-		if (need && mmbn_step(e, walking, area, pos, x, y, z, 0, 0, 6)) {
-			emu_frame(e, 0);
-			int camx = (int16_t) emu_read16(e, MMBN_CAM + 4), camy = (int16_t) emu_read16(e, MMBN_CAM + 6);
-			for (int sy = 0; sy < GBA_H; ++sy) {
-				int py = camy - 80 + sy - m->y0;
-				if (py < 0 || py >= m->h) continue;
-				for (int sx = 0; sx < GBA_W; ++sx) {
-					int qx = camx - 120 + sx - m->x0;
-					if (qx < 0 || qx >= m->w) continue;
-					m->px[(size_t) py * m->w + qx] = e->fb[sy * GBA_W + sx] | 0xFF000000;
+		}
+		if (drawn && clear) layers |= 1u << L;
+	}
+	if (!layers && !mmbnStop && (why = "nothing drawn")) goto out;
+	/* the screens, 8 pixels overlapping; the second pass a little way off
+	 * from where the first left something out */
+	for (int pass = 0; pass < 2 && !mmbnStop; ++pass)
+		for (int ty0 = Y0 + GBA_H / 2; ty0 < Y0 + H + GBA_H / 2 && !mmbnStop; ty0 += GBA_H - 8)
+			for (int tx0 = X0 + GBA_W / 2; tx0 < X0 + W + GBA_W / 2 && !mmbnStop; tx0 += GBA_W - 8) {
+				int tx = tx0 < X0 + W - GBA_W / 2 ? tx0 : X0 + W - GBA_W / 2, ty = ty0 < Y0 + H - GBA_H / 2 ? ty0 : Y0 + H - GBA_H / 2;
+				if (pass) {
+					bool need = false;
+					for (int y = ty - GBA_H / 2; y < ty + GBA_H / 2 && !need; y += 4)
+						for (int x = tx - GBA_W / 2; x < tx + GBA_W / 2 && !need; x += 4)
+							need = x >= X0 && y >= Y0 && x < X0 + W && y < Y0 + H && !m->px[(size_t) (y - Y0) * W + x - X0];
+					if (!need) continue;
+					tx += 24, ty += 16;
+				}
+				if (!mmbn_look(e, area, pos, tx, ty, layers, &cx, &cy)) {
+					if (getenv("GBADS_DEBUG"))
+						fprintf(stderr, "mmbn map: no screen at %d,%d (state %d, area %04X)\n", tx, ty, emu_read8(e, MMBN_STATE),
+						        emu_read16(e, MMBN_AREA));
+					continue;
+				}
+				for (int sy = 0; sy < GBA_H; ++sy) {
+					int py = cy - GBA_H / 2 + sy - Y0;
+					if (py < 0 || py >= H) continue;
+					for (int sx = 0; sx < GBA_W; ++sx) {
+						int qx = cx - GBA_W / 2 + sx - X0;
+						if (qx < 0 || qx >= W) continue;
+						uint32_t c = e->fb[sy * GBA_W + sx] & 0xFFFFFF;
+						/* (transparent: black, but marked seen) */
+						m->px[(size_t) py * W + qx] = c == magenta ? 0xFE000000 : c | 0xFF000000;
+					}
 				}
 			}
-		}
-		for (int w = 0; w < 8 && !mmbnStop; ++w) {
-			int32_t bx = x + (ways[w][0] * MMBN_GRID << 16), by = y + (ways[w][1] * MMBN_GRID << 16);
-			if ((bx >> 16) < xl || (bx >> 16) > xu || (by >> 16) < yl || (by >> 16) > yu || seen[MMBN_CELL(bx, by)]) continue;
-			if (!mmbn_step(e, walking, area, pos, x, y, z, bx - x, by - y, MMBN_STEPF)) continue;
-			int32_t nx = (int32_t) emu_read32(e, pos), ny = (int32_t) emu_read32(e, pos + 4), nz = (int32_t) emu_read32(e, pos + 8);
-			if ((nx >> 16) < xl || (nx >> 16) > xu || (ny >> 16) < yl || (ny >> 16) > yu) continue;
-			int n = MMBN_CELL(nx, ny);
-			if (seen[n]) continue;
-			seen[n] = 1, at[n * 3] = nx, at[n * 3 + 1] = ny, at[n * 3 + 2] = nz, queue[qt++] = n;
-		}
-	}
-#undef MMBN_CELL
-	m->failed = !mmbnStop && qt <= 1;
-	if (m->failed) why = "he couldn't go anywhere";
-	if (!mmbnStop && !m->failed) {
+	emu_layers(e, 0x1F);
+	if (!mmbnStop) {
 		m->done = true;
 		struct timespec t1;
 		clock_gettime(CLOCK_MONOTONIC, &t1);
-		fprintf(stderr, "Mega Man Battle Network: area %04X mapped (%d places, %ld ms)\n", area, qt,
+		fprintf(stderr, "Mega Man Battle Network: area %04X mapped (%dx%d, layers %X, %ld ms)\n", area, W, H, layers,
 		        (long) ((t1.tv_sec - t0.tv_sec) * 1000 + (t1.tv_nsec - t0.tv_nsec) / 1000000));
 	}
-done:
-	free(at), free(seen), free(queue), free(walking);
-	emu_layers(e, 0x1F);
 out:
-	if (!m->done && !mmbnStop) m->done = m->failed = true; /* (not made again this session) */
-	/* (always logged: why the second screen keeps the logo on the net) */
-	if (m->failed) fprintf(stderr, "Mega Man Battle Network: area %04X not mapped: %s\n", m->area, why ? why : "?");
-	else if (mmbnStop && !m->done) fprintf(stderr, "Mega Man Battle Network: area %04X's map called off\n", m->area);
+	if (why) {
+		m->done = m->failed = true;
+		/* (always logged: why the second screen keeps the logo on the net) */
+		fprintf(stderr, "Mega Man Battle Network: area %04X not mapped: %s\n", m->area, why);
+	}
 	mmbnBusy = false;
 	return NULL;
 }
 
 /* the live game's map of its area on the net, at a third of its size around its
- * camera (MMBN-6); a new area's map started beside the game */
+ * camera (MMBN-6); a new area's map made beside the game */
 static const uint32_t* mmbn_live_view(Emu* live, const char* rom) {
 	static uint32_t out[GBA_W * GBA_H];
-	static unsigned tick;
-	++mmbnAsked;
 	uint8_t st = emu_read8(live, MMBN_STATE);
 	uint16_t area = emu_read16(live, MMBN_AREA);
-	if ((st != 4 && st != 0x18) || !mmbn_area_net(area)) {
-		static uint16_t told;
-		if ((area & 0xFF) >= 0x80 && area != told && (st == 4 || st == 0x18))
-			told = area, fprintf(stderr, "Mega Man Battle Network: on the net (area %04X), maps off (GBADS_SYNC)\n", area);
-		return NULL;
-	}
-	/* a warp: the area's number changes before its map and bounds are in
-	 * (a map started then fails); a new map waits for half a second of the
-	 * same area, walking, no fade */
+	if ((st != 4 && st != 0x18) || !mmbn_area_net(area)) return NULL;
+	/* a warp: the area's number changes before its layout is in; a new map
+	 * waits for half a second of the same area, walking, no fade */
 	static uint16_t settledArea;
 	static int settledFor;
 	if (area != settledArea) settledArea = area, settledFor = 0;
 	else if (st == 4 && !emu_read8(live, MMBN_FADING)) ++settledFor;
 	else settledFor = 0;
-	MmbnMap* m = NULL;
-	for (int i = 0; i < MMBN_MAPS; ++i)
-		if (mmbnMaps[i].px && mmbnMaps[i].area == area) m = &mmbnMaps[i];
-	if (m && m->failed) {
-		/* not made: most often he wasn't moving yet (arriving on a warp
-		 * pad, he steps off it by himself, the D-pad ignored): tried again
-		 * after two seconds, 3 more times; then the logo, its place going
-		 * first to a new area */
-		static uint16_t failArea;
-		static int fails;
-		if (!m->counted) {
-			m->counted = true;
-			if (failArea != area) failArea = area, fails = 0;
-			if (++fails <= 3) {
-				free(m->px);
-				memset(m, 0, sizeof(*m));
-				settledFor = -90;
-				return NULL;
-			}
-			fprintf(stderr, "Mega Man Battle Network: area %04X: no map this session\n", area);
-		}
-		m->used = 0;
-		return NULL;
-	}
-	if (m && !m->done && !mmbnBusy) {
-		/* (one called off: made again from here) */
-		free(m->px), m->px = NULL, m = NULL;
-	}
-	if (!m && st == 4 && settledFor >= 30) {
+	MmbnMap* m = &mmbnMap;
+	if (m->px && m->area != area) {
+		/* another area: its map dropped (called off first if still being made) */
 		if (mmbnBusy) {
-			/* another area's still being made: called off */
 			mmbnStop = true;
 			return NULL;
 		}
 		if (mmbnThread) pthread_join(mmbnThread, NULL), mmbnThread = 0;
-		/* the slot used longest ago */
-		int k = 0;
-		for (int i = 1; i < MMBN_MAPS; ++i)
-			if (!mmbnMaps[i].px || (mmbnMaps[k].px && mmbnMaps[i].used < mmbnMaps[k].used)) k = i;
-		m = &mmbnMaps[k];
 		free(m->px);
 		memset(m, 0, sizeof(*m));
-		int xl = (int32_t) emu_read32(live, MMBN_CAM + 0x14) >> 16, xu = (int32_t) emu_read32(live, MMBN_CAM + 0x18) >> 16;
-		int yu = (int32_t) emu_read32(live, MMBN_CAM + 0x1C) >> 16, yl = (int32_t) emu_read32(live, MMBN_CAM + 0x20) >> 16;
-		if (yl > yu) { int t = yl; yl = yu; yu = t; }
+	}
+	if (!m->px) {
+		if (st != 4 || settledFor < 30 || mmbnBusy) return NULL;
+		if (mmbnThread) pthread_join(mmbnThread, NULL), mmbnThread = 0;
+		int tw = emu_read8(live, MMBN_BGDM), th = emu_read8(live, MMBN_BGDM + 1);
+		if (tw < 30 || th < 20) return NULL;
 		m->area = area;
-		m->x0 = xl + yl - 240, m->y0 = (yl - xu) / 2 - 240;
-		m->w = xu + yu + 240 - m->x0, m->h = (yu - xl) / 2 + 160 - m->y0;
-		if (m->w <= 0 || m->h <= 0 || m->w > 4096 || m->h > 4096 || !(m->px = calloc((size_t) m->w * m->h, 4))) {
+		m->w = tw * 8, m->h = th * 8, m->x0 = -tw * 4, m->y0 = -th * 4;
+		if (!(m->px = calloc((size_t) m->w * m->h, 4))) {
 			memset(m, 0, sizeof(*m));
 			return NULL;
 		}
@@ -4290,19 +4232,25 @@ static const uint32_t* mmbn_live_view(Emu* live, const char* rom) {
 			return NULL;
 		}
 		snprintf(mmbnRom, sizeof(mmbnRom), "%s", rom);
-		mmbnJobMap = (int) (m - mmbnMaps);
 		mmbnStop = false;
 		mmbnBusy = true;
-		if (pthread_create(&mmbnThread, NULL, mmbn_worker, NULL)) {
-			mmbnBusy = false, mmbnThread = 0;
+		/* in exact runs (the tests), and with no threads, made here */
+		if (getenv("GBADS_SYNC") || pthread_create(&mmbnThread, NULL, mmbn_worker, NULL)) mmbnThread = 0, mmbn_worker(NULL);
+	}
+	if (m->failed && m->early) {
+		/* again in a second, for at most ten seconds */
+		static uint16_t earlyArea;
+		static int early;
+		if (earlyArea != area) earlyArea = area, early = 0;
+		if (!mmbnBusy && ++early <= 10) {
+			if (mmbnThread) pthread_join(mmbnThread, NULL), mmbnThread = 0;
 			free(m->px);
 			memset(m, 0, sizeof(*m));
-			return NULL;
+			settledFor = -30;
 		}
-		fprintf(stderr, "Mega Man Battle Network: mapping area %04X (%dx%d)\n", area, m->w, m->h);
+		return NULL;
 	}
-	if (!m) return NULL;
-	m->used = ++tick;
+	if (m->failed || !m->done) return NULL; /* (the logo meanwhile: it's quick) */
 	/* a third of the size: each pixel the mean of 3x3 of the picture's,
 	 * around the camera (its centre on the screen's) */
 	enum { Z = 3 };

@@ -4893,9 +4893,12 @@ static void map_show_new(bool fresh) {
 }
 
 
+/* a profile's own live picture is up (liveView): drawn as it is */
+static bool liveOn;
+
 /* Draws the map with its generated surround; false if there's none to draw. */
 static bool draw_framed_map(int s) {
-	if (!(cfg->overlays & OVL_SECONDARY) || !mapframe_ready(&mf) || mapShownIdx < 0) return false;
+	if (liveOn || !(cfg->overlays & OVL_SECONDARY) || !mapframe_ready(&mf) || mapShownIdx < 0) return false;
 	if (!strcmp(cfg->mapScale, "zoom")) return false; /* the map fills the height: no room for a surround */
 	SDL_Rect r = screens[s].pic; /* (the picture area: screen_match) */
 	if (mapframe_layout(&mf, r.w, r.h, cfg->mapScale) || mf.baseDirty) canvasDirty = true;
@@ -6544,15 +6547,16 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			/* a profile's own live picture (Mega Man Battle Network's maps on
 			 * the net), drawn every frame over whatever was captured; when it
 			 * stops, the captured picture again */
-			static bool liveOn;
 			const MapProfile* lvp = mapcap_profile(mc);
 			const uint32_t* lv = lvp && lvp->liveView && romPath ? lvp->liveView(&emu, romPath) : NULL;
 			if (lv) {
 				for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], lv, mapW * 4);
 				if (mapShownIdx < 0) mapShownIdx = 0;
+				if (!liveOn && debug) fprintf(stderr, "frame %llu: live view on\n", (unsigned long long) frameCount);
 				liveOn = canvasDirty = true;
 			} else if (liveOn) {
 				liveOn = false;
+				if (debug) fprintf(stderr, "frame %llu: live view off\n", (unsigned long long) frameCount);
 				if (mapRes.ok && map_px(mapShownIdx)) {
 					overDirty = true;
 					upload_map_frame(mapShownIdx);
