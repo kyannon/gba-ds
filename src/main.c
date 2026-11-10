@@ -16,6 +16,9 @@
 #include "ui.h"
 #include "ra.h"
 #include "update.h"
+#ifdef __wasi__
+#include "mapcap.h"
+#endif
 #include "emu.h"
 #include "profiles.h"
 
@@ -48,6 +51,14 @@ static void on_crash(int sig) {
 #endif
 
 int main(int argc, char** argv) {
+#ifdef __wasi__
+	/* the web player's capture worker: GBADS_CAPTURE_SERVE=CODE, the ROM last,
+	 * GBADS_CAPTURE_TIGHT=1 for the tight crop (mapcap.c) */
+	if (getenv("GBADS_CAPTURE_SERVE") && argc > 1) {
+		const char* t = getenv("GBADS_CAPTURE_TIGHT");
+		return mapcap_web_serve(argv[argc - 1], getenv("GBADS_CAPTURE_SERVE"), t && *t == '1');
+	}
+#endif
 	for (int i = 1; i < argc; ++i) {
 		if (!strcmp(argv[i], "--version")) {
 			printf("GBA DS %s\n", GBADS_VERSION);

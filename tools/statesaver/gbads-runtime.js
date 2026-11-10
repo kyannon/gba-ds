@@ -355,6 +355,7 @@ const GBADS = (() => {
     step();
     const cstr = (text) => { const b = enc.encode(text + "\0"); const p = X.web_alloc(b.length); u8().set(b, p); return p; };
     const idle = () => !stopped && state === "sleeping";
+    let audioBuf = 0, audioBufLen = 0;
     return {
       fs,
       // touch: 1 down, 2 up, 3 move; x, y fractions of the window
@@ -373,6 +374,27 @@ const GBADS = (() => {
         return !!X.web_load_state(cstr("/web-in.ss"));
       },
       key(scancode, down) { if (!stopped && state !== "unwinding" && state !== "rewinding") X.web_key(scancode, down ? 1 : 0); },
+      // what this build can do beyond the first web builds' (keys, touch, states)
+      get memory() { return X.memory; }, // (frames from onFrame point into it)
+      // one of the app's own web_* exports, while it's between frames (else undefined);
+      // `has` says whether this build has it
+      has(name) { return typeof X[name] === "function"; },
+      get idle() { return idle(); },
+      call(name, ...args) { return typeof X[name] === "function" && idle() ? X[name](...args) : undefined; },
+      get hasAudio() { return !!X.web_audio_pull; },
+      get hasButtons() { return !!X.web_buttons; },
+      // the buttons held now, as a mask of ui.h's list (B_A = 1, B_B = 2, B_X = 4...)
+      buttons(mask) { if (X.web_buttons && !stopped && state !== "unwinding" && state !== "rewinding") X.web_buttons(mask >>> 0); },
+      // up to `frames` of queued sound (16-bit stereo, interleaved), or null;
+      // at audioRate() Hz (0 before the game opens its device)
+      audioRate() { return X.web_audio_rate && idle() ? X.web_audio_rate() : 0; },
+      audioPull(frames) {
+        if (!X.web_audio_pull || !idle() || frames <= 0) return null;
+        const bytes = frames * 4;
+        if (!audioBuf || audioBufLen < bytes) { audioBuf = X.web_alloc(bytes); audioBufLen = bytes; }
+        const got = X.web_audio_pull(audioBuf, bytes);
+        return got > 0 ? new Int16Array(X.memory.buffer.slice(audioBuf, audioBuf + got)) : null;
+      },
       pause(on) {
         paused = on;
         if (!on && resumeFn && state === "sleeping") opts.schedule(resumeFn, 0);

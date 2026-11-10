@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en" data-version="dev">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#070b24">
+<title>GBA DS web player</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GBA DS">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="stylesheet" href="player.css">
+</head>
+<body>
+<div id="app">
+  <header class="bar">
+    <div class="brand">
+      <img class="logo" src="logo.png" alt="GBA DS">
+      <span class="product">Web player</span>
+      <span class="tag" id="betaTag" title="The web player is in beta: some things may change or not work yet">Beta</span>
+    </div>
+    <div class="now" id="nowPlaying" hidden>
+      <span class="now-title" id="nowTitle"></span>
+      <span class="now-sub" id="nowSub"></span>
+    </div>
+    <nav class="tools" aria-label="Player">
+      <button class="tool" id="openBtn" title="Open files (or drop them anywhere)" aria-label="Open files"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></button>
+      <span class="sep"></span>
+      <button class="tool game-only" id="pauseBtn" title="Pause" aria-label="Pause"><svg class="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg><svg class="i-play" viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z"/></svg></button>
+      <button class="tool game-only" id="resetBtn" title="Restart the game" aria-label="Restart the game"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4"/></svg></button>
+      <button class="tool game-only" id="stateBtn" title="Save a state (downloads a .ss file)" aria-label="Save a state"><svg viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5zM8 4v5h7V4M8 20v-6h8v6"/></svg></button>
+      <button class="tool game-only" id="shotBtn" title="Screenshot (both screens)" aria-label="Screenshot"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
+      <button class="tool game-only" id="closeBtn" title="Close the game" aria-label="Close the game"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <span class="sep game-only"></span>
+      <button class="tool" id="soundBtn" title="Sound" aria-label="Sound"><svg class="i-on" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4zM16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg><svg class="i-off" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4zM17 9l5 6M22 9l-5 6"/></svg></button>
+      <button class="tool" id="controlsBtn" title="Controls" aria-label="Controls"><svg viewBox="0 0 24 24"><path d="M7 8h10a5 5 0 0 1 4.6 7l-1 2.3a2 2 0 0 1-3.4.4L15 15H9l-2.2 2.7a2 2 0 0 1-3.4-.4l-1-2.3A5 5 0 0 1 7 8zM8 10.5v3M6.5 12h3"/><circle cx="16" cy="11" r=".6"/><circle cx="17.5" cy="13" r=".6"/></svg></button>
+      <button class="tool" id="settingsBtn" title="Settings" aria-label="Settings"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
+      <button class="tool" id="fullBtn" title="Full screen" aria-label="Full screen"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+    </nav>
+  </header>
+
+  <main id="stage">
+    <button class="bar-pill" id="barPill" type="button" aria-label="Show the toolbar"></button>
+    <div id="bezels" aria-hidden="true"></div>
+    <canvas id="screen"></canvas>
+    <div class="paused-veil" id="pausedVeil" hidden><span>Paused</span></div>
+
+    <section class="start" id="start">
+      <div class="start-card">
+        <div class="notice" id="iosNotice" hidden><span>On iPhone and iPad, add this page to your Home Screen (Share, then Add to Home Screen) and open it from there: Safari can clear what a page keeps, your saves included, when it isn't opened for a while.</span><button type="button" id="iosNoticeX" aria-label="Dismiss">×</button></div>
+        <h1>GBA DS in your browser</h1>
+        <p class="lede">Choose a GBA game, or drop it anywhere on this page. Your games and saves stay on this device.</p>
+        <div class="slots">
+          <button class="slot" id="slotGame" type="button">
+            <span class="slot-k">Game</span>
+            <span class="slot-v" id="gameName">No game yet</span>
+            <span class="slot-h" id="gameHint">A GBA game (.gba, or zipped)</span>
+          </button>
+          <button class="slot optional" id="slotSave" type="button">
+            <span class="slot-k">Save <em>optional</em></span>
+            <span class="slot-v" id="saveName">The player keeps your saves</span>
+            <span class="slot-h">A battery save (.sav, .srm) or a state (.ss) to start from</span>
+          </button>
+          <button class="slot optional" id="slotBuild" type="button">
+            <span class="slot-k">GBA DS</span>
+            <span class="slot-v" id="buildName">No build yet</span>
+            <span class="slot-h" id="buildHint">A GBA DS build (.zip) with a web build inside</span>
+          </button>
+        </div>
+        <div class="go">
+          <button class="primary" id="playBtn" type="button" disabled>Play</button>
+          <button class="ghost" id="listBtn" type="button" hidden>Open GBA DS's game list</button>
+        </div>
+        <div class="recent" id="recent" hidden>
+          <h2>Recent games</h2>
+          <ul id="recentList"></ul>
+        </div>
+      </div>
+    </section>
+
+    <div class="drop-veil" id="dropVeil" hidden><div><strong>Drop to open</strong><span>Builds, games, saves, states and bug reports</span></div></div>
+    <div class="fps" id="fps" aria-live="off"></div>
+  </main>
+</div>
+
+<input type="file" id="fileInput" multiple hidden>
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+
+<!-- Settings -->
+<dialog class="panel" id="settings">
+  <form method="dialog" class="panel-in">
+    <header><h2>Settings</h2><button class="x" value="close" aria-label="Close">×</button></header>
+    <section>
+      <h3>Device</h3>
+      <label class="row"><span>Screens of</span><select id="device"></select></label>
+      <div class="custom" id="customDevice" hidden>
+        <div class="custom-row"><span>Top</span><input type="number" id="cTopW" min="240" max="3840" aria-label="Top width"> × <input type="number" id="cTopH" min="160" max="2160" aria-label="Top height"> px, <input type="number" id="cTopIn" min="1" max="20" step="0.1" aria-label="Top size in inches"> in</div>
+        <div class="custom-row"><span>Bottom</span><input type="number" id="cBotW" min="240" max="3840" aria-label="Bottom width"> × <input type="number" id="cBotH" min="160" max="2160" aria-label="Bottom height"> px, <input type="number" id="cBotIn" min="1" max="20" step="0.1" aria-label="Bottom size in inches"> in</div>
+      </div>
+      <p class="note">GBA DS lays itself out for these screens, as on the device. Changing them restarts the game where it is.</p>
+    </section>
+    <section>
+      <h3>Screens on this computer</h3>
+      <label class="row"><span>Arrangement</span>
+        <select id="arrange"><option value="auto">Whichever fits bigger</option><option value="stack">Top over bottom</option><option value="side">Side by side</option></select></label>
+      <label class="row"><span>Sizes</span>
+        <select id="sizes"><option value="device">As on the device (by inches)</option><option value="pixels">By pixels</option></select></label>
+      <label class="row"><span>Gap between them</span><input type="range" id="gap" min="0" max="12" step="1"></label>
+      <label class="row"><span>Picture</span>
+        <select id="smooth"><option value="1">Smooth</option><option value="0">Sharp pixels</option></select></label>
+      <label class="row"><span>Resolution</span>
+        <select id="scale"><option value="1">The device's</option><option value="0.75">Three quarters</option><option value="0.5">Half (fastest)</option></select></label>
+    </section>
+    <section>
+      <h3>On-screen controls</h3>
+      <label class="row"><span>Show them</span>
+        <select id="touchShow"><option value="auto">On touchscreens, until a controller connects</option><option value="always">Always</option><option value="never">Never</option></select></label>
+      <label class="row"><span>Placement</span>
+        <select id="touchPlace"><option value="below">Below the screens</option><option value="beside">Beside the screens</option></select></label>
+      <label class="row"><span>Size</span><input type="range" id="touchSize" min="70" max="140" step="5"></label>
+      <label class="check"><input type="checkbox" id="touchVibrate"> Vibrate on each press (where the phone can)</label>
+    </section>
+    <section>
+      <h3>Sound and play</h3>
+      <label class="row"><span>Volume</span><input type="range" id="volume" min="0" max="100" step="1"></label>
+      <label class="check"><input type="checkbox" id="pauseHidden"> Pause when this tab is hidden</label>
+    </section>
+    <section>
+      <h3>Kept in this browser</h3>
+      <p class="note" id="keptNote">Battery saves, states and GBA DS's own settings are kept here between visits.</p>
+      <div class="buttons">
+        <button type="button" class="ghost" id="exportSave">Download this game's save</button>
+        <button type="button" class="ghost" id="forgetBuild">Forget the dropped build</button>
+        <button type="button" class="ghost danger" id="clearAll">Delete everything kept here</button>
+      </div>
+    </section>
+    <section>
+      <h3>Troubleshooting</h3>
+      <div class="buttons"><button type="button" class="ghost" id="logBtn">Show GBA DS's log</button></div>
+      <p class="note" id="aboutNote"></p>
+    </section>
+  </form>
+</dialog>
+
+<!-- Controls -->
+<dialog class="panel wide" id="controls">
+  <form method="dialog" class="panel-in">
+    <header><h2>Controls</h2><button class="x" value="close" aria-label="Close">×</button></header>
+    <div class="pads" id="padLine"></div>
+    <div class="tbl" role="table" aria-label="Button mapping">
+      <div class="tr th" role="row"><span role="columnheader">Button</span><span role="columnheader">Keyboard</span><span role="columnheader" id="padHead">Controller</span></div>
+      <div id="mapRows"></div>
+    </div>
+    <footer class="buttons">
+      <button type="button" class="primary" id="wizardBtn">Map all controller buttons…</button>
+      <button type="button" class="ghost" id="resetKeys">Reset keyboard</button>
+      <button type="button" class="ghost" id="resetPad">Reset controller</button>
+    </footer>
+    <p class="note">Click + to add a key or a controller button. Bluetooth controllers work once they're paired with this computer: press any button on one so the browser shows it.</p>
+  </form>
+</dialog>
+
+<!-- Asking for one button -->
+<dialog class="ask" id="ask">
+  <div class="ask-in">
+    <div class="ask-step" id="askStep"></div>
+    <div class="ask-q" id="askQ"></div>
+    <div class="ask-h" id="askH"></div>
+    <div class="buttons"><button type="button" class="ghost" id="askSkip">Skip</button><button type="button" class="ghost" id="askCancel">Cancel</button></div>
+  </div>
+</dialog>
+
+<!-- Log -->
+<dialog class="panel wide" id="logDlg">
+  <form method="dialog" class="panel-in">
+    <header><h2>GBA DS's log</h2><button class="x" value="close" aria-label="Close">×</button></header>
+    <pre class="log" id="logText"></pre>
+    <footer class="buttons"><button type="button" class="ghost" id="logCopy">Copy</button></footer>
+  </form>
+</dialog>
+
+<script src="zip.js"></script>
+<script src="controls.js"></script>
+<script src="player.js"></script>
+</body>
+</html>
