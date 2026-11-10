@@ -2779,7 +2779,7 @@ static void hud_compose(void) {
 	} else if (h->card.tile) {
 		memcpy(hudCanvas, card_logo(), sizeof(hudCanvas));
 	} else {
-		uint32_t plain = h->mapCnt ? (hudFadeEff == 2 ? 0xFFFFFFFF : 0xFF000000) : 0xFF1A1010;
+		uint32_t plain = h->mapCnt ? (hudFadeEff == 2 ? 0xFFFFFFFF : 0xFF000000) : h->black ? SCREEN_LIVE : 0xFF1A1010;
 		for (int i = 0; i < HUD_CW * HUD_CH; ++i) hudCanvas[i] = plain;
 	}
 	/* moved pieces (the scene's, or racing's): how far each goes this frame */

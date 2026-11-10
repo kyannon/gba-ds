@@ -5731,6 +5731,8 @@ static const MapProfile profiles[] = {
 			 * the replay after the finish draws no HUD: the logo (GT3-7) */
 			.on = { { 0x04000000, 0x0007, 1, 2 }, { 0x0400000A, 0xFFFF, 0x5E48, 2 } },
 			.emptyIsOff = true,
+			/* on black (GT3-4) */
+			.black = true,
 			/* paused (the pause flag): the HUD as it was before the game
 			 * hid it (GT3-5) */
 			.freeze = { { 0x0203EE58, 0x20, 0x20, 1 } },
@@ -5738,9 +5740,11 @@ static const MapProfile profiles[] = {
 			.bgPrioBelow = 1,
 			.objs = { /* the top row: TOTAL TIME, POSITION, LAP */
 			          { -8, -8, 239, 8, 800, 1023, 0, (1u << 13) | (1u << 14) },
-			          /* the course map (also Practice's) and its dots */
-			          { -8, 8, 72, 80, 700, 799, 0, 1u << 11 },
-			          { -8, 8, 72, 88, 800, 807, 0, 1u << 12 },
+			          /* the course map (also Practice's) and its dots,
+			           * also as they slide off to the left at the finish
+			           * (GT3-6) */
+			          { -72, 8, 72, 80, 700, 799, 0, 1u << 11 },
+			          { -72, 8, 72, 88, 800, 807, 0, 1u << 12 },
 			          /* LAP-TIME's or MAX-COMBO's figures (the combo's
 			           * count from tile 448) */
 			          { -8, 130, 149, 168, 400, 1023, 0, (1u << 13) | (1u << 14) },

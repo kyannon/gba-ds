@@ -136,7 +136,7 @@
       [
        100,
        532,
-       "10101A"
+       "000000"
       ]
      ]
     }
@@ -182,7 +182,7 @@
       [
        100,
        532,
-       "10101A"
+       "000000"
       ]
      ]
     },
@@ -251,7 +251,7 @@
       [
        100,
        532,
-       "10101A"
+       "000000"
       ]
      ]
     },
@@ -320,7 +320,7 @@
       [
        100,
        532,
-       "10101A"
+       "000000"
       ]
      ]
     },
@@ -336,7 +336,7 @@
    "id": "gt3-us-qr-finish",
    "rom": "A2GE",
    "state": "gt-advance-3-pro-concept-racing/us-qr-finish.ss",
-   "desc": "Quick Race: over the line, GOAL! on the game screen, the times on the second (the map gone), the fade, then the replay: the logo",
+   "desc": "Quick Race: over the line, GOAL! on the game screen, the map sliding off the second screen (not back onto the game screen), the times staying, the fade, then the replay: the logo",
    "rules": [
     "GT3-6",
     "GT3-7"
@@ -353,6 +353,8 @@
    ],
    "shots": {
     "line": 40,
+    "slide": 84,
+    "slide2": 92,
     "goal": 200,
     "turn": 280,
     "replay": 560
@@ -373,7 +375,7 @@
       [
        100,
        532,
-       "10101A"
+       "000000"
       ]
      ]
     },
@@ -510,7 +512,7 @@
       [
        100,
        532,
-       "10101A"
+       "000000"
       ]
      ]
     },
@@ -561,7 +563,7 @@
       [
        100,
        532,
-       "10101A"
+       "000000"
       ]
      ]
     },
@@ -612,7 +614,7 @@
       [
        100,
        532,
-       "10101A"
+       "000000"
       ]
      ]
     },
@@ -660,7 +662,7 @@
       [
        100,
        532,
-       "10101A"
+       "000000"
       ]
      ]
     },
@@ -709,7 +711,7 @@
       [
        100,
        532,
-       "10101A"
+       "000000"
       ]
      ]
     },
@@ -764,7 +766,7 @@
       [
        100,
        532,
-       "10101A"
+       "000000"
       ]
      ]
     },
@@ -777,7 +779,7 @@
       [
        100,
        532,
-       "10101A"
+       "000000"
       ]
      ]
     },
@@ -835,7 +837,7 @@
       [
        100,
        532,
-       "10101A"
+       "000000"
       ]
      ]
     },
@@ -886,7 +888,7 @@
       [
        100,
        532,
-       "10101A"
+       "000000"
       ]
      ]
     },

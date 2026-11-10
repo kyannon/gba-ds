@@ -22,11 +22,11 @@ The second screen follows the other racing games' ([V-Rally 3](v-rally-3.md), [M
 
 **GT3-3. Racing: game screen.** The game screen keeps the rev counter with its needle, the speed and the gear where the game draws them (bottom right), and your place (POSITION, in the modes that have it) moved into the top-left corner, where TOTAL TIME was.
 
-**GT3-4. Racing: second screen.** On the second screen (dark, as the other racing games'), where the game draws them: TOTAL TIME (top left) and LAP with the laps of the race (top right); LAP-TIME, TIME LIMIT (licence tests) or MAX-COMBO (Drift-Combo) bottom left; and the course map with every car's dot (Practice: its own PRACTICE map), twice as big, in the middle. The map comes up when the game draws it (as the race starts, after GO!) and goes when the game takes it away (at the finish).
+**GT3-4. Racing: second screen.** On the second screen (on black, so the game's fades in and out of a race fade the HUD into the same black as the game screen), where the game draws them: TOTAL TIME (top left) and LAP with the laps of the race (top right); LAP-TIME, TIME LIMIT (licence tests) or MAX-COMBO (Drift-Combo) bottom left; and the course map with every car's dot (Practice: its own PRACTICE map), twice as big, in the middle. The map comes up when the game draws it (as the race starts, after GO!) and goes when the game takes it away (at the finish, sliding off to the left: on the second screen, never back on the game screen).
 
 **GT3-5. Pause.** The pause menu (CANCEL, RESTART, RETIRE) stays on the game screen; the second screen keeps the HUD as it was before the game hid it. The game screen shows the pause menu over the track alone (the game hides the needle and figures; the rev counter's dial and the bottom bar go with the HUD).
 
-**GT3-6. Finish.** At the finish, GOAL! (PASSED after a licence test) stays on the game screen with the rev counter while the camera turns round the car; the second screen keeps the times (the game takes the map away) until the game fades out.
+**GT3-6. Finish.** At the finish, GOAL! (PASSED after a licence test) stays on the game screen with the rev counter while the camera turns round the car; the second screen keeps the times until the game fades out; the map slides off the second screen to the left as the game takes it away.
 
 **GT3-7. Logo elsewhere.** Wherever the race's HUD is gone, the second screen shows the logo: the intro, the title, every menu (the modes, the classes, the races, the garage, the courses, options), the black loading screens, the replay after a race (REPLAY, no HUD), the results and RETRY menu after it.
 
