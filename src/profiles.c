@@ -4065,6 +4065,7 @@ typedef struct {
 	uint16_t area;
 	bool done, failed, early; /* early: the camera wasn't following him yet */
 	int w, h, x0, y0; /* the picture's size, and its top left's screen position */
+	int ex0, ey0, ex1, ey1; /* what's drawn on it: its edges (in the picture, ex1 / ey1 past them) */
 	uint32_t* px;     /* 0: nothing there */
 } MmbnMap;
 static MmbnMap mmbnMap;
@@ -4172,6 +4173,17 @@ static void* mmbn_worker(void* arg) {
 			}
 	emu_layers(e, 0x1F);
 	if (!mmbnStop) {
+		/* the area's edges: its last paths and panels */
+		m->ex0 = W, m->ey0 = H, m->ex1 = m->ey1 = 0;
+		for (int y = 0; y < H; ++y)
+			for (int x = 0; x < W; ++x)
+				if (m->px[(size_t) y * W + x] >> 24 == 0xFF) {
+					if (x < m->ex0) m->ex0 = x;
+					if (x >= m->ex1) m->ex1 = x + 1;
+					if (y < m->ey0) m->ey0 = y;
+					if (y >= m->ey1) m->ey1 = y + 1;
+				}
+		if (m->ex1 <= m->ex0) m->ex0 = 0, m->ey0 = 0, m->ex1 = W, m->ey1 = H;
 		m->done = true;
 		struct timespec t1;
 		clock_gettime(CLOCK_MONOTONIC, &t1);
@@ -4252,10 +4264,23 @@ static const uint32_t* mmbn_live_view(Emu* live, const char* rom) {
 	}
 	if (m->failed || !m->done) return NULL; /* (the logo meanwhile: it's quick) */
 	/* a third of the size: each pixel the mean of 3x3 of the picture's,
-	 * around the camera (its centre on the screen's) */
+	 * centred on MegaMan (his screen position: x + y, (y - x) / 2), but
+	 * kept within the area's edges; an area smaller than the screen in
+	 * its middle */
 	enum { Z = 3 };
 	int camx = (int16_t) emu_read16(live, MMBN_CAM + 4), camy = (int16_t) emu_read16(live, MMBN_CAM + 6);
+	uint32_t pos = emu_read32(live, MMBN_CAM + 0x10);
+	if (pos >= 0x02000000 && pos < 0x02040000) {
+		int x = (int32_t) emu_read32(live, pos) >> 16, y = (int32_t) emu_read32(live, pos + 4) >> 16;
+		camx = x + y, camy = (y - x) / 2;
+	}
 	int left = camx - GBA_W * Z / 2 - m->x0, top = camy - GBA_H * Z / 2 - m->y0;
+	if (m->ex1 - m->ex0 <= GBA_W * Z) left = (m->ex0 + m->ex1) / 2 - GBA_W * Z / 2;
+	else if (left < m->ex0) left = m->ex0;
+	else if (left > m->ex1 - GBA_W * Z) left = m->ex1 - GBA_W * Z;
+	if (m->ey1 - m->ey0 <= GBA_H * Z) top = (m->ey0 + m->ey1) / 2 - GBA_H * Z / 2;
+	else if (top < m->ey0) top = m->ey0;
+	else if (top > m->ey1 - GBA_H * Z) top = m->ey1 - GBA_H * Z;
 	for (int oy = 0; oy < GBA_H; ++oy) {
 		int py = top + oy * Z;
 		for (int ox = 0; ox < GBA_W; ++ox) {
