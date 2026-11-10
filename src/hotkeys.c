@@ -8,8 +8,14 @@
 
 const char* const hotkeyBtnNames[B_COUNT] = { "a", "b", "x", "y", "start", "select", "home", "l", "r", "l2", "r2", "l3",
 	                                          "up", "down", "left", "right" };
-/* as players know them (the device's names, as in the wiki's Buttons table) */
-static const char* const btnTitles[B_COUNT] = { "A", "B", "X", "Y", "Start", "Select", "Home", "L1", "R1", "L2", "R2", "L3",
+/* as players know them (the device's names, as in the wiki's Buttons table;
+ * Android keeps HOME for itself, and BACK stands in for it) */
+#ifdef __ANDROID__
+#define HOME_TITLE "Back"
+#else
+#define HOME_TITLE "Home"
+#endif
+static const char* const btnTitles[B_COUNT] = { "A", "B", "X", "Y", "Start", "Select", HOME_TITLE, "L1", "R1", "L2", "R2", "L3",
 	                                            "Up", "Down", "Left", "Right" };
 static const char* const actionTitles[HK_COUNT] = { "Quit", "Quick save state", "Quick load state", "Open quick menu", "Swap screens",
                                                     "Toggle selected shader" };
@@ -121,11 +127,11 @@ static void draw(int scr, const View_* v) {
 		foot = v->note, fc = C_GOLD;
 	} else if (v->listen >= 0) {
 		if (v->secondsLeft >= 0) snprintf(line, sizeof(line), "Kept as it was in %d s if nothing is pressed", v->secondsLeft), foot = line;
-		else foot = v->listen == R_MOD ? "Home, Select, Start or L3. Tap to keep it as it is" : "Tap to set none";
+		else foot = v->listen == R_MOD ? HOME_TITLE ", Select, Start or L3. Tap to keep it as it is" : "Tap to set none";
 	} else if (v->sel == R_MOD) {
 		foot = "Select or Start still reach the game when tapped on their own, L3 still opens the quick menu";
 	} else if (v->sel == R_RESET) {
-		foot = "Home as the hotkey button, with Start, R1, L1, X, Y and B";
+		foot = HOME_TITLE " as the hotkey button, with Start, R1, L1, X, Y and B";
 	} else if (v->sel == R_DONE) {
 		foot = "Kept for every game";
 	}
@@ -144,7 +150,7 @@ static bool all_released(void) {
 static bool assign(View_* v, int row, int b) {
 	if (row == R_MOD) {
 		if (b != B_HOME && b != B_SELECT && b != B_START && b != B_L3) {
-			snprintf(v->note, sizeof(v->note), "The hotkey button can be Home, Select, Start or L3");
+			snprintf(v->note, sizeof(v->note), "The hotkey button can be " HOME_TITLE ", Select, Start or L3");
 			return false;
 		}
 		v->mod = b;
@@ -166,7 +172,7 @@ static bool assign(View_* v, int row, int b) {
 		return true;
 	}
 	if (b == B_HOME) {
-		snprintf(v->note, sizeof(v->note), "Home opens the menu: press another button");
+		snprintf(v->note, sizeof(v->note), HOME_TITLE " opens the menu: press another button");
 		return false;
 	}
 	if (b == v->mod) {
@@ -284,7 +290,7 @@ void hotkeys_run(Config* cfg) {
 				Config d;
 				config_defaults(&d);
 				hotkeys_resolve(&d, &v.mod, v.btn, false);
-				snprintf(v.note, sizeof(v.note), "Back to Home and the buttons it started with");
+				snprintf(v.note, sizeof(v.note), "Back to " HOME_TITLE " and the buttons it started with");
 			} else if (act >= 0) {
 				v.listen = act;
 				v.note[0] = 0;
