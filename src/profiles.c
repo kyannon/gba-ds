@@ -4050,14 +4050,15 @@ static bool mmbn_megaman_up(Emu* s) {
  * camera's screen position (cameraX = x + y, cameraY = (y - x) / 2): only
  * where he can go, so the camera never shows what's past the area's tiles
  * (tools/scout/mmbnmap.c, the experiment). The picture is drawn on the
- * second screen at half size around the live camera, as it fills in. */
+ * second screen at a third of its size around the live camera, as it
+ * fills in. */
 #define MMBN_CAM 0x02004950     /* gCamera: cameraX (+4), cameraY (+6), playerRealPos (+0x10), bounds (+0x14..0x23) */
 #define MMBN_GRID 16
 #define MMBN_STEPF 20
 #define MMBN_MAPS 4
 typedef struct {
 	uint16_t area;
-	bool done;
+	bool done, failed;
 	int w, h, x0, y0;   /* the picture's size, and its top left's screen position */
 	uint32_t* px;       /* 0: nothing seen there */
 	unsigned used;
@@ -4097,6 +4098,8 @@ static void* mmbn_worker(void* arg) {
 	Emu* e = &mmbnEmu;
 	if (!mmbnEmuOpen) mmbnEmuOpen = emu_open(e, mmbnRom, NULL, false);
 	MmbnMap* m = &mmbnMaps[mmbnJobMap];
+	struct timespec t0;
+	clock_gettime(CLOCK_MONOTONIC, &t0);
 	if (!mmbnEmuOpen || !emu_state_load(e, mmbnJob)) goto out;
 	uint16_t area = m->area;
 	uint32_t pos = emu_read32(e, MMBN_CAM + 0x10);
@@ -4104,6 +4107,8 @@ static void* mmbn_worker(void* arg) {
 	int yu = (int32_t) emu_read32(e, MMBN_CAM + 0x1C) >> 16, yl = (int32_t) emu_read32(e, MMBN_CAM + 0x20) >> 16;
 	if (yl > yu) { int t = yl; yl = yu; yu = t; }
 	if (pos < 0x02000000 || pos >= 0x02040000 || xu <= xl || yu <= yl) goto out;
+	/* (the bounds are the camera's: MegaMan can stand a little past them) */
+	xl -= 64, xu += 64, yl -= 64, yu += 64;
 	emu_layers(e, 0x0C);
 	int gw = (xu - xl) / MMBN_GRID + 3, gh = (yu - yl) / MMBN_GRID + 3;
 	int32_t* at = calloc((size_t) gw * gh * 3, 4);
@@ -4152,19 +4157,24 @@ static void* mmbn_worker(void* arg) {
 		}
 	}
 #undef MMBN_CELL
+	m->failed = !mmbnStop && qt <= 1;
 	if (!mmbnStop) {
 		m->done = true;
-		fprintf(stderr, "Mega Man Battle Network: area %04X mapped (%d places)\n", area, qt);
+		struct timespec t1;
+		clock_gettime(CLOCK_MONOTONIC, &t1);
+		fprintf(stderr, "Mega Man Battle Network: area %04X mapped (%d places, %ld ms)\n", area, qt,
+		        (long) ((t1.tv_sec - t0.tv_sec) * 1000 + (t1.tv_nsec - t0.tv_nsec) / 1000000));
 	}
 done:
 	free(at), free(seen), free(queue);
 	emu_layers(e, 0x1F);
 out:
+	if (!m->done && !mmbnStop) m->done = m->failed = true; /* (not made again this session) */
 	mmbnBusy = false;
 	return NULL;
 }
 
-/* the live game's map of its area on the net, at half size around its
+/* the live game's map of its area on the net, at a third of its size around its
  * camera (MMBN-6); a new area's map started beside the game */
 static const uint32_t* mmbn_live_view(Emu* live, const char* rom) {
 	static uint32_t out[GBA_W * GBA_H];
@@ -4225,24 +4235,25 @@ static const uint32_t* mmbn_live_view(Emu* live, const char* rom) {
 	}
 	if (!m) return NULL;
 	m->used = ++tick;
-	/* half size: each pixel the mean of 2x2 of the picture's, around the
-	 * camera (its centre on the screen's) */
+	/* a third of the size: each pixel the mean of 3x3 of the picture's,
+	 * around the camera (its centre on the screen's) */
+	enum { Z = 3 };
 	int camx = (int16_t) emu_read16(live, MMBN_CAM + 4), camy = (int16_t) emu_read16(live, MMBN_CAM + 6);
-	int left = camx - GBA_W - m->x0, top = camy - GBA_H - m->y0;
+	int left = camx - GBA_W * Z / 2 - m->x0, top = camy - GBA_H * Z / 2 - m->y0;
 	for (int oy = 0; oy < GBA_H; ++oy) {
-		int py = top + oy * 2;
+		int py = top + oy * Z;
 		for (int ox = 0; ox < GBA_W; ++ox) {
-			int qx = left + ox * 2;
+			int qx = left + ox * Z;
 			unsigned r = 0, g = 0, b = 0;
-			for (int dy = 0; dy < 2; ++dy) {
+			for (int dy = 0; dy < Z; ++dy) {
 				if (py + dy < 0 || py + dy >= m->h) continue;
-				for (int dx = 0; dx < 2; ++dx) {
+				for (int dx = 0; dx < Z; ++dx) {
 					if (qx + dx < 0 || qx + dx >= m->w) continue;
 					uint32_t c = m->px[(size_t) (py + dy) * m->w + qx + dx];
 					r += c & 0xFF, g += (c >> 8) & 0xFF, b += (c >> 16) & 0xFF;
 				}
 			}
-			out[oy * GBA_W + ox] = 0xFF000000 | (b / 4) << 16 | (g / 4) << 8 | r / 4;
+			out[oy * GBA_W + ox] = 0xFF000000 | (b / (Z * Z)) << 16 | (g / (Z * Z)) << 8 | r / (Z * Z);
 		}
 	}
 	return out;
