@@ -5657,7 +5657,9 @@ static const MapProfile profiles[] = {
 			 * screen 31, tiles 3; priority 0, or 1 in the Launch Site) */
 			.on = { { 0x04000008, 0xFFFC, 0x1F0C, 2 }, { 0x04000000, 0x0100, 0x0100, 2 },
 			        /* the mission (0 Bank ... 4 Base): not the Launch Site */
-			        { 0x03003D41, 0xFF, 0, 1, true, 4, true } },
+			        { 0x03003D41, 0xFF, 0, 1, true, 4, true },
+			        /* not the opening's demo (1 there, from its first frame) */
+			        { 0x03003D52, 0xFF, 0, 1 } },
 			.bgMask = 0x1,
 			/* the Launch Site (mission 5): its BG0 is no HUD row but the
 			 * red that fades in over the stage as the ninja dies (kept
@@ -5666,7 +5668,7 @@ static const MapProfile profiles[] = {
 			 * the bottom row's (none here) isn't copied up over the
 			 * countdown (NFO-2, NFO-3) */
 			.alt = { .on = { { 0x04000008, 0xFFFC, 0x1F0C, 2 }, { 0x04000000, 0x0100, 0x0100, 2 },
-			                 { 0x03003D41, 0xFF, 5, 1 } },
+			                 { 0x03003D41, 0xFF, 5, 1 }, { 0x03003D52, 0xFF, 0, 1 } },
 			         .bgMask = 0,
 			         .moves = { { 0, 159, 0, 159, 0, 0, 'T', 159 } } },
 			/* the bars, points or time, the boss's bar and the Launch
@@ -5678,9 +5680,6 @@ static const MapProfile profiles[] = {
 			.moves = { { 0, 152, 239, 159, 0, 0, 'T', 24 } },
 			.logoBelow = true,
 			.logoTop = 32,
-			/* the opening's demo plays a stage with the HUD's layer set
-			 * up but nothing on it: the logo, idle (NFO-4) */
-			.emptyIsOff = true,
 		},
 	},
 	{

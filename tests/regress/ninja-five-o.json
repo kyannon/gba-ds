@@ -164,6 +164,35 @@
    ]
   },
   {
+   "id": "nfo-us-doorway",
+   "rom": "ANXE",
+   "state": "ninja-five-o/us-doorway.ss",
+   "desc": "the owner's state: through a doorway between rooms; the circle closes and opens on the game screen, the HUD taken away and drawn back on the second screen with the logo at full strength throughout (no flash of the idle logo)",
+   "rules": [
+    "NFO-2"
+   ],
+   "shots": {
+    "closing": 64,
+    "between": 76,
+    "opening": 96,
+    "back": 108
+   },
+   "checks": [
+    {
+     "rule": "NFO-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "NFO-2",
+     "what": "never the idle logo in between",
+     "type": "no_log",
+     "match": "HUD empty"
+    }
+   ]
+  },
+  {
    "id": "nfo-us-pause",
    "rom": "ANXE",
    "state": "ninja-five-o/us-pause.ss",
