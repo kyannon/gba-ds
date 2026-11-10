@@ -16,7 +16,7 @@ GBA DS opens on a game list on the touchscreen (the bottom screen on the RG DS P
 | A or Start, or tap a game | Play |
 | Drag | Scroll |
 | X, or tap the button left of Settings | Switch between list and grid |
-| SELECT, or tap **Settings** | Settings (ROCKNIX: GBA DS in EmulationStation; BananaOS: GBA DS in its GBA list; Linux: Map Buttons, Hotkeys, Updates; Android: Folders (ROMs and saves), RetroAchievements sign-in, Map Buttons, Updates) |
+| SELECT, or tap **Settings** | Settings (ROCKNIX: GBA DS in EmulationStation; BananaOS: GBA DS in its GBA list; Linux: Map Buttons, Hotkeys, Updates; Android: Folders (ROMs and saves), RetroAchievements sign-in, Map Buttons, Hotkeys, Updates) |
 | B or HOME | Back to EmulationStation / the launcher |
 
 ## Resume points
@@ -116,7 +116,7 @@ The HOME + button shortcuts above are hotkeys: hold the hotkey button, then pres
 - **Hotkey button**: HOME (the default), SELECT, START or L3. With SELECT or START, the button still reaches the game when you tap it on its own; with L3, a tap on its own still opens the quick bar. HOME opens the menu whichever is the hotkey.
 - **Quit**, **Quick save state**, **Quick load state**, **Open quick menu** (the quick bar), **Swap screens** and **Toggle selected shader** (off, and back on to the one picked in the pause menu's Shader): the button for each.
 
-Pick a row (tap it, or the D-pad and A), then press the button you want for it. Tapping the touchscreen instead gives a shortcut no button (or keeps the hotkey button as it was). A button already used by another shortcut moves to the new one, and the other is left without. **Reset** goes back to HOME and the buttons above; **Done** (or B) keeps your choices for every game, in `states/hotkeys.cfg`. They can also be set in `gba-ds.cfg` (see the Buttons section of [[Settings]]), but once you've used Hotkeys in Settings, its choices win until you delete `hotkeys.cfg`. On Android, Hotkeys isn't in Settings yet: use `gba-ds.cfg`.
+Pick a row (tap it, or the D-pad and A), then press the button you want for it. Tapping the touchscreen instead gives a shortcut no button (or keeps the hotkey button as it was). A button already used by another shortcut moves to the new one, and the other is left without. **Reset** goes back to HOME and the buttons above; **Done** (or B) keeps your choices for every game, in `states/hotkeys.cfg`. They can also be set in `gba-ds.cfg` (see the Buttons section of [[Settings]]), but once you've used Hotkeys in Settings, its choices win until you delete `hotkeys.cfg`. On Android, HOME is the BACK button (Android keeps HOME for itself), and Hotkeys calls it Back.
 
 With START as the hotkey, quitting is START + SELECT. With SELECT or START as the hotkey, the buttons you've given to shortcuts don't reach the game while the hotkey is held; the others do. If `menu_combo = select+start` is on too, SELECT + START opens the menu rather than doing a hotkey.
 
