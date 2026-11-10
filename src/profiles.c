@@ -2218,6 +2218,67 @@ static const char* dbz2_compose(Emu* s, const void* state, uint32_t* out, int w,
 	return NULL;
 }
 
+/* ---------------------------------------------------------- Dragon Ball Z: Buu's Fury
+ *
+ * The Legacy of Goku II's engine. The second screen (BF-2): the Scouter's
+ * map of the area (SELECT here), opened on the shadow core from the live
+ * state at every capture, once it has faded in (BLDALPHA up to 16), without
+ * its four scroll arrows (the same sprites as The Legacy of Goku II's) and
+ * its L and R letters (BF-7). The Scouter works from the start, so there's
+ * nothing to fall back on: where SELECT opens nothing (a conversation, a
+ * scene), the last picture stays (BF-4). An attack under way takes no
+ * SELECT, so it's tried a few times.
+ */
+#define BF_FIELD_DISP 0x1F40
+#define BF_MAP_DISP 0x1D40
+#define BF_ZONE 0x0300197D /* 0 on the title and file menu, 0x32 flying */
+#define BF_AREA 0x03001980 /* the area's map data */
+/* BF-7: the frame's top corners, dark green letters on the plates' green */
+#define BF_LETTER 0x004A00 /* (0, 74, 0) as mGBA's XBGR */
+#define BF_PLATE 0x00A500  /* (0, 165, 0) */
+static void bf_map_prompts(uint32_t* out, int w, int h) {
+	static const int box[2][4] = { { 4, 3, 11, 11 }, { 228, 3, 235, 12 } };
+	for (int k = 0; k < 2; ++k)
+		for (int y = box[k][1]; y <= box[k][3] && y < h; ++y)
+			for (int x = box[k][0]; x <= box[k][2] && x < w; ++x) {
+				uint32_t* c = &out[y * w + x];
+				if ((*c & 0xF8F8F8) == (BF_LETTER & 0xF8F8F8)) *c = (*c & 0xFF000000) | BF_PLATE;
+			}
+}
+static const char* bf_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	if (!emu_state_load(s, state)) return "state load failed";
+	if (emu_io16(s, 0x00) != BF_FIELD_DISP) return "not walking about";
+	/* the map: SELECT (three tries), then its fade-in */
+	bool map = false;
+	for (int t = 0; t < 3 && !map; ++t) {
+		aw_run(s, K_SELECT, 3);
+		for (int f = 0; f < 40 && !map; ++f) {
+			emu_frame_blind(s, 0);
+			map = emu_io16(s, 0x00) == BF_MAP_DISP;
+		}
+	}
+	if (!map) return "the map did not open";
+	int f = 0;
+	while (f < 60 && emu_io16(s, 0x52) != 0x0010) emu_frame_blind(s, 0), ++f;
+	if (emu_io16(s, 0x00) != BF_MAP_DISP || emu_io16(s, 0x52) != 0x0010) return "the map did not settle";
+	emu_hide_sprites(s, dbz2Arrows, 4);
+	emu_frame(s, 0);
+	emu_frame(s, 0);
+	emu_hide_sprites(s, NULL, 0);
+	if (emu_io16(s, 0x00) != BF_MAP_DISP) return "the map went away";
+	/* no map here (a shop: the frame alone, all greens, no area or dot):
+	 * the last map dimmed (BF-8, dimWhenUnavailable) */
+	bool any = false;
+	for (int i = 0; i < GBA_W * GBA_H && !any; ++i) {
+		uint32_t c = s->fb[i];
+		any = (c & 0xFF) > 100 || ((c >> 16) & 0xFF) > 100;
+	}
+	if (!any) return "map button did nothing";
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+	bf_map_prompts(out, w, h);
+	return NULL;
+}
+
 /* ---------------------------------------------------------- Mario & Luigi: Superstar Saga
  *
  * The second screen (ML-2): the Bros. Info screen, opened on the shadow core
@@ -4891,6 +4952,84 @@ static const MapProfile profiles[] = {
 		.logo = { .steps = { { 0, 300 }, { K_A, 6 }, { 0, 1000 } }, .layers = 0x06, .maxY = 142, .lowFrom = 122, .lowLayers = 0x04, .rev = 1 },
 	},
 	{
+		/* Muppet Pinball Mayhem: the table over both screens, live (see
+		 * profiles.h tall; docs/games/muppet-pinball-mayhem.md). The score
+		 * bar (BG0, BG1: lines 0-15, in display mode 1 with window 0, where
+		 * the table's BG3 doesn't show) stays at the top of the top screen. */
+		.codes = { "AMWE", "AMWP" }, /* (the same code and RAM; Europe has a Ubi Soft screen before the title) */
+		.title = "Muppet Pinball Mayhem",
+		.logoOnly = true,
+		.tall = {
+			/* on a table: the score bar's BG0 and the table's BG3 (256
+			 * colours, 256x512, map 0x0000) set up */
+			.on = { { 0x04000008, 0xFFFF, 0x0200, 2 }, { 0x0400000E, 0xFFFF, 0x8083, 2 } },
+			.hudBg = 0x03,
+			.rows = 359, /* (every table: the camera's 0-215, its view 16 rows above) */
+			.hudRow = GBA_H, /* (nothing at the bottom: the score bar stays on the top screen) */
+			/* the camera: a row (0x030019C8; BG3VOFS = it - 16, set at the
+			 * vblank by 0x080008EA, HOFS 0x030019CA) eased toward 0x120 less
+			 * the ball's height (0x08004B4E), clamped to 0-0xD7, its speed at
+			 * 0x030019EC. As it moves, 0x08004E40 queues the tile rows coming
+			 * into view (BG3's map is fixed; table tile rows far apart share
+			 * tiles) into a ring of 64 16-byte entries (source, destination,
+			 * size, kind; start 0x03002AA0, count 0x03002A9C) done at the next
+			 * vblank (0x080064E8). The sprites are written to OAM by the
+			 * vblank code from the objects (no shadow table) */
+			.live = { .oam = 0x07000000, .view = 0x030019C8, .viewBg = 3,
+			          .carry = { .cam = 0x03001A00, .camOff = 16, .viewOff = 16, .top = -16, .gameFrom = 17,
+			                     /* (the game's mode 0x030013B6: 4 in play, 6 a ball's bonus
+			                      * count, 3 then 2 the next ball; 5 paused; 7 then 8 the
+			                      * game over, through its curtains) */
+			                     .plain = { { 0x030013B6, 0xFF, 5, 1 }, { 0x030013B6, 0xFF, 7, 1 }, { 0x030013B6, 0xFF, 8, 1 } },
+			                     .ready = { 0x030013B6, 0xFF, 2, 1, true, 0x0C, true }, /* (modes 0 and 1: the table being set up, its tiles still the menus') */
+			                     .keepObj = true,
+			                     .keepDim = true, /* (its fade out at a game's end: both screens fade) */
+			                     .ringLo = 0x2D40, .ringHi = 0x10000,
+			                     /* (its camera's row) */
+			                     .vars = { { 0x030019C8, 4 } },
+			                     .qCount = 0x03002A9C, .qWide = true, .qIndex = 0x03002AA0, .qSlots = 64,
+			                     .qEntries = 0x0300269C, .qStride = 16, .qDst = 4, .qSize = 8, .qReload = 0x8000,
+			                     .patch = {
+			                         /* the camera's target: the halfword at 0x03001A00 (never read
+			                          * or written by the game, nor named in its code; game.c puts the
+			                          * copy's row there) instead of 0x120 less the ball's height:
+			                          * mov r1,r8; ldrh r1,[r1,#0x38]. (Not 0x030019E0: that's the
+			                          * hold timer of the pan up the table after a ball is saved, at
+			                          * 0x08004D30, which a target there kept running: the copies'
+			                          * view froze.) The game's own easing and streaming then move
+			                          * the copy there */
+			                         { 0x08004B50, 0x4641 }, { 0x08004B52, 0x8F09 }, { 0x08004B54, 0x46C0 },
+			                         { 0x08004B56, 0x46C0 }, { 0x08004B58, 0x46C0 },
+			                         /* and always that way: not the game's own pans (a ball
+			                          * starting or lost: 0x030019E8 clear, b 0x08004CC4) */
+			                         { 0x08004B4C, 0x46C0 },
+			                         /* and there at once, not eased (the stores of the eased row;
+			                          * the streaming sees the move all the same): a copy's target
+			                          * moves with the game's view, which its easing would trail */
+			                         { 0x08004C58, 0x46C0 }, { 0x08004CAA, 0x46C0 },
+			                         /* nor the easing up the table after a ball is saved
+			                          * (0x030019E9 set: the view eased from 0x030019D4 by
+			                          * 0x08004D76, held by the timer at 0x030019E0), which both
+			                          * paths reach at 0x08004CEE: beq 0x08004D7C -> b */
+			                         { 0x08004CF4, 0xE042 },
+			                         /* the table on lines 0-15 too (under the score bar, which the
+			                          * copies leave out): display mode 1's store at line 0 gone, and
+			                          * line 16's (0x08000A7A) stores DISPCNT without window 0 (whose
+			                          * WININ leaves BG3 out): lsrs r2,r1,#13 (0x2000); bics r0,r2;
+			                          * strh r0,[r1]; then BLDALPHA 0x1000 as before: adds r1,#0x52;
+			                          * lsrs r0,r1,#14; strh r0,[r1] */
+			                         { 0x0800087E, 0x46C0 },
+			                         { 0x08000A80, 0x0B4A }, { 0x08000A82, 0x4390 }, { 0x08000A84, 0x8008 },
+			                         { 0x08000A86, 0x3152 }, { 0x08000A88, 0x0B88 }, { 0x08000A8A, 0x8008 } } } },
+		},
+		/* the title (from frame 1650 on USA's, 2050 on Europe's, after its
+		 * Ubi Soft screen) is one picture on BG0, the name painted into its
+		 * top left corner on a badge of a starburst and three bumpers: that
+		 * corner by its mask (tools/make_logo_masks.py), without the sky,
+		 * the roller coaster or the Muppets */
+		.logo = { .wait = 2300, .mask = &logoMaskAMW, .rev = 1 /* (cut along the official logo's outline: test builds' first cut made again) */ },
+	},
+	{
 		/* Sonic Advance (USA, Europe and Japan (Rev 1): the same sprites,
 		 * registers and title steps in each). In a level
 		 * (display mode 0 with BG1-3: the zone card, play, the act's
@@ -5903,6 +6042,49 @@ static const MapProfile profiles[] = {
 		.hideWhen = { { LS_V_PLAY, 0, 1, 1 } },
 	},
 	{
+		/* Ninja Five-O (USA; Europe, Ninja Cop: the ANXP variant). No
+		 * screen of the game's own holds its status (its pause is a menu
+		 * over the stage), so the HUD moves: see NFO_HUD below. */
+		.codes = { "ANXE" },
+		.title = "Ninja Five-O",
+		/* the title's NINJA and FIVE-O, cut out of the title by their
+		 * colours (tools/make_logo_masks.py nfo): without the kanji's
+		 * brush strokes behind them, NINJA's white outline, the white
+		 * screen, the TM, PRESS START or the copyright line (NFO-1) */
+		.logo = { .steps = { { 0, 1200 }, { K_START, 4 }, { 0, 60 }, { K_START, 4 }, { 0, 60 } },
+		          .mask = &logoMaskNFO, .rev = 2 },
+		.logoOnly = true,
+		.hud = {
+			/* in a stage: the HUD's layer on, with its settings (BG0,
+			 * screen 31, tiles 3; priority 0, or 1 in the Launch Site) */
+			.on = { { 0x04000008, 0xFFFC, 0x1F0C, 2 }, { 0x04000000, 0x0100, 0x0100, 2 },
+			        /* the mission (0 Bank ... 4 Base): not the Launch Site */
+			        { 0x03003D41, 0xFF, 0, 1, true, 4, true },
+			        /* not the opening's demo (1 there, from its first frame) */
+			        { 0x03003D52, 0xFF, 0, 1 } },
+			.bgMask = 0x1,
+			/* the Launch Site (mission 5): its BG0 is no HUD row but the
+			 * red that fades in over the stage as the ninja dies (kept
+			 * hidden by the blend till then): the sprites alone go, BG0
+			 * stays on the game screen; a move that does nothing, so
+			 * the bottom row's (none here) isn't copied up over the
+			 * countdown (NFO-2, NFO-3) */
+			.alt = { .on = { { 0x04000008, 0xFFFC, 0x1F0C, 2 }, { 0x04000000, 0x0100, 0x0100, 2 },
+			                 { 0x03003D41, 0xFF, 5, 1 }, { 0x03003D52, 0xFF, 0, 1 } },
+			         .bgMask = 0,
+			         .moves = { { 0, 159, 0, 159, 0, 0, 'T', 159 } } },
+			/* the bars, points or time, the boss's bar and the Launch
+			 * Site's countdown: priority 1 at the top (the stage's own
+			 * things are 2, the card and pause menu 0) */
+			.objs = { { -16, -16, 255, 24, 0, 1023, 1, 0 } },
+			/* the bottom row (shuriken level, keys, RESCUE) up under
+			 * the bars, the logo below them both */
+			.moves = { { 0, 152, 239, 159, 0, 0, 'T', 24 } },
+			.logoBelow = true,
+			.logoTop = 32,
+		},
+	},
+	{
 		/* Wario Land 4 (USA and Europe; Japan: the AWAJ variant, same
 		 * addresses and screens). The pause screen (START) slides down
 		 * from the top over some 40 frames: its menu in rows 0-23 (BG0
@@ -6158,6 +6340,44 @@ static const MapProfile profiles[] = {
 		/* the title, after START skips the intro: DRAGON BALL Z and THE
 		 * LEGACY OF GOKU II inside its mask (DBZ2-1) */
 		.logo = { .steps = { { 0, 900 }, { K_START, 6 }, { 0, 150 } }, .mask = &logoMaskDBZ2 },
+	},
+	{
+		/* Dragon Ball Z: Buu's Fury (USA only). Walking about, the
+		 * Scouter's area map: see bf_compose (BF-2) */
+		.codes = { "BG3E" },
+		.title = "Dragon Ball Z: Buu's Fury",
+		.compose = bf_compose,
+		/* (an empty Scouter, in a shop: the last map dimmed, BF-8) */
+		.dimWhenUnavailable = true,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* walking about (the story scenes and conversations too: there
+		 * SELECT opens nothing, and the last picture or the logo stays,
+		 * BF-1, BF-4) */
+		.live = { { 0x04000000, 0xFFFF, BF_FIELD_DISP, 2 } },
+		/* 0 on the title and the file menu, 0x32 flying over the world:
+		 * the logo, the last map forgotten (BF-1, BF-5) */
+		.menu = { { BF_ZONE, 0xFF, 0x00, 1, true, 0x32 } },
+		/* the area: a new area's map at once (GEN-6) */
+		.room = { { BF_AREA, 0xFFFFFFFF, 0, 4 } },
+		/* flying over the world (DISPCNT 0x1741, zone 0x32): the inset map
+		 * at the top right (BG0 rows 6-51, your arrow an 8x8 sprite) moves
+		 * to the second screen, twice as big and in the middle (BF-5).
+		 * BG0's haze over the horizon, from row 56 down, and the help bar
+		 * (sprites at row 136) stay on the game screen */
+		.hud = {
+			.on = { { 0x04000000, 0xFFFF, 0x1741, 2 }, { BF_ZONE, 0xFF, 0x32, 1 } },
+			.bgMask = 1,
+			.rows = 56,
+			.objs = { { 150, -8, 239, 55, 0, 1023, -1, 0, 0, 1u << 0 } },
+			/* (grown from what's drawn: the outline, 63x46, centred at
+			 * row 80; a mark past its edge grows it a little) */
+			.map = { 150, 0, 239, 55 },
+			.mapAt = { 2, 120, 125 },
+		},
+		/* the title, which comes up with no input: DRAGON BALL Z and BUU'S
+		 * FURY inside its mask (BF-1) */
+		.logo = { .steps = { { 0, 900 } }, .mask = &logoMaskBF },
 	},
 	{
 		/* River City Ransom EX (USA; in Japan Downtown Nekketsu Monogatari
@@ -6800,6 +7020,12 @@ static void gt3_jpn(MapProfile* p) {
 /* Spider-Man: Mysterio's Menace in Japan: the screen's handler 0x34 lower
  * (0x0300213C), and its values too (0x60F8 in a level, 0x41D8 elsewhere);
  * the display registers are the same */
+/* Ninja Cop (Europe): its title's NINJA COP to its white outline, without
+ * the black and purple rim round it or the blue screen (NFO-1) */
+static void nfo_eur(MapProfile* p) {
+	p->logo.mask = &logoMaskNFOP;
+}
+
 static void smm_jpn(MapProfile* p) {
 	p->mem[1].addr -= 0x34, p->mem[1].value -= 0x34;
 	p->live[1].addr -= 0x34, p->live[1].value -= 0x34;
@@ -6887,6 +7113,7 @@ static const Variant variants[] = {
 	{ "AT3D", "AT3E", 0, thps3_ger },
 	{ "ASEJ", "ASEE", 0, smm_jpn },
 	{ "ALDP", "ALDE", 0, NULL },
+	{ "ANXP", "ANXE", 0, nfo_eur },
 	{ "AWAJ", "AWAE", 0, NULL },
 	/* Super Mario Advance 3 in Europe: its language menu first */
 	{ "A3AP", "A3AE", 0, sm3_eur },

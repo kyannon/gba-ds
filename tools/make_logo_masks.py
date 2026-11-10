@@ -4,7 +4,7 @@ full-screen title picture rather than drawn on a layer of their own.
 
     GBADS_LOGO_DEBUG=1 build/host/harness THPS2.gba out logo.txt   # 'logo logo'
     (writes out/logo.png.fg.png: the exact title frame GBA DS renders)
-    tools/make_logo_masks.py THPS2=THPS2-frame.png [SK8=SK8-frame.png] [THPS3=...]
+    tools/make_logo_masks.py THPS2=THPS2-frame.png [SK8=SK8-frame.png] [THPS3=...] [AMW=...]
 
 Masks not named on the command line are kept as they are in
 src/logo_masks.c, so one can be redone without the other games' ROMs.
@@ -192,6 +192,52 @@ def dbz2_jpn(a):
     return comps(m, 150)
 
 
+def bf(a):
+    """Dragon Ball Z: Buu's Fury (USA): DRAGON BALL Z and BUU'S FURY painted
+    over the fighters, Buu and an orange sun much the colour of the
+    lettering, BUU'S FURY on a dark band with orange sparks. First the
+    lettering's area, by its black outline: the outline's large pieces
+    (rows 0-72, left of the (R)), their one-pixel gaps closed, and all they
+    enclose, Buu's pink left out; between BALL and the Z's diagonal (from x
+    140, rows 0-48), where that encloses a sliver of the sun, only the red
+    letters and the outline next to them. Then, inside it, the letters
+    themselves: the coloured pieces (not outline-dark) of 100 pixels or
+    more, or of 10 or more in the letters' saturated yellow or red (a piece
+    of the G); not the sun's slivers, the band's sparks or the strip
+    under the Z. The mask is those letters, a one-pixel ring round them and
+    all they enclose (the letters' counters), so each letter ends on a
+    black edge (the owner's request, Nov 9, 2026: see BF-1): wherever that
+    ring or counter isn't the game's outline-dark already, it's drawn black.
+    Returns the mask and the drawn pixels (0xRRGGBB, -1 elsewhere)."""
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    ys, xs = np.mgrid[0:H, 0:W]
+    band = (ys <= 72) & (xs <= 212)
+    dark = (a.max(axis=2) < 60) & (b < 20)
+    outline = comps(dark & band, 150)
+    m = ndimage.binary_fill_holes(ndimage.binary_closing(outline, structure=np.ones((3, 3)))) & band
+    m &= ~((r > 200) & (b > 100))
+    zone = (xs >= 140) & (ys <= 48)
+    red = (r >= 80) & (g < 40) & (b < 40) & zone
+    near = ndimage.distance_transform_edt(~red) <= 1.5
+    m = (m & ~zone) | (ndimage.binary_fill_holes(red | (near & dark)) & zone)
+    m = comps(m, 150)
+    # the letters: the coloured pieces inside it (4-connected)
+    fill = m & ~dark
+    sat = (r > 150) & ((g > 150) | (g < 40)) & (b < 60)
+    lab, n = ndimage.label(fill)
+    keep = []
+    for i in range(1, n + 1):
+        piece = lab == i
+        size = int(piece.sum())
+        if size >= 100 or (size >= 10 and sat[piece].mean() > 0.5):
+            keep.append(i)
+    fill = np.isin(lab, keep)
+    mask = ndimage.binary_fill_holes(ndimage.binary_dilation(fill, structure=np.ones((3, 3))))
+    patch = np.full((H, W), -1, np.int64)
+    patch[mask & ~fill & ~dark] = 0
+    return mask, patch
+
+
 def comps(m, mn):
     """The parts of m (8-connected) of mn pixels or more."""
     lab, n = ndimage.label(m, structure=np.ones((3, 3)))
@@ -277,6 +323,60 @@ def cnk_jpn(a):
     return _from_edges((b >= r + 20) & (b >= g + 30) & (r >= g))
 
 
+def amw(a):
+    """Muppet Pinball Mayhem (USA, Europe): the name on its badge (the
+    starburst, three bumpers and the swoosh under MAYHEM) in the title
+    picture's top left corner. The shape is tools/logo_masks/amw.png, made
+    from a high-resolution copy of the logo with a transparent background,
+    scaled to the title's (146x94 from its top left, a pixel to the right)
+    less its ball, which the title doesn't have, and the places where the
+    title's Muppets and roller coaster are drawn in front (the swoosh's tail,
+    the right bumper's foot): the sky, the coaster and the Muppets left out."""
+    shape = np.asarray(Image.open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                               "logo_masks", "amw.png")).convert("L")) > 127
+    return shape[:a.shape[0], :a.shape[1]]
+
+
+def nfo(a):
+    """Ninja Five-O (USA): NINJA and FIVE-O without the black brush-stroke
+    kanji behind them or the white title screen. Every colour but the
+    greys (the kanji, NINJA's white outline, the background, the TM, the
+    copyright line) is lettering; then the light pixels left on the
+    lettering's edge (its blend into the white) are peeled off, three
+    deep, and spurs with fewer than three neighbours dropped."""
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    keep = ~((abs(r - g) <= 12) & (abs(g - b) <= 12))
+    keep[146:] = False
+    lab, n = ndimage.label(keep)
+    sizes = ndimage.sum(keep, lab, range(1, n + 1))
+    keep = np.isin(lab, [i + 1 for i, s in enumerate(sizes) if s >= 30])
+    light = a.min(axis=2) >= 150
+    for _ in range(3):
+        keep &= ~(light & keep & ~ndimage.binary_erosion(keep, border_value=0))
+    # FIVE-O (from row 95): the greyish blends where its letters met the
+    # kanji (between the I and V, under the I and the dash), greener
+    # than red and dull; not its navy, blues or the V's purple
+    dull = (g > r) & (a.max(axis=2) - a.min(axis=2) < 60) & (r >= 40)
+    dull[:95] = False
+    keep &= ~dull
+    for _ in range(2):
+        nb = ndimage.convolve(keep.astype(int), np.ones((3, 3), int), mode="constant") - keep
+        keep &= nb >= 3
+    return keep
+
+
+def nfo_eur(a):
+    """Ninja Cop (Europe): NINJA COP to the outside of its white outline,
+    without the ragged black and purple rim round it or the blue screen:
+    dark pixels, the blue, and the rim's mauve (red well above green, blue
+    above green) reached from the edges are clear."""
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    bgc = (a.max(axis=2) < 160) | ((b > r + 80) & (b > g + 80)) | ((r > g + 20) & (b > g) & (g > 60))
+    keep = _from_edges(bgc)
+    keep[100:] = False
+    return keep
+
+
 def vr3(a):
     """V-Rally 3: the main menu's heading (the game has no title screen),
     V-RALLY 3 in cream and gold with a dark outline and its heartbeat line,
@@ -316,8 +416,9 @@ def gt3_jpn(a):
 MASKS = (("THPS2", thps2), ("SK8", sk8), ("THPS3", thps3), ("DBZ", dbz),
          ("GS2E", gs2), ("GS2D", gs2_dial), ("GS2F", gs2_dial), ("GS2I", gs2), ("GS2S", gs2_dial),
          ("GS2J", gs2), ("CNK", cnk), ("CNKJ", cnk_jpn),
-         ("DBZ2", dbz2), ("DBZ2J", dbz2_jpn),
-         ("VR3", vr3), ("VR3J", vr3), ("GT3", gt3), ("GT3J", gt3_jpn))
+         ("DBZ2", dbz2), ("DBZ2J", dbz2_jpn), ("BF", bf),
+         ("VR3", vr3), ("VR3J", vr3), ("GT3", gt3), ("GT3J", gt3_jpn),
+         ("NFO", nfo), ("NFOP", nfo_eur), ("AMW", amw))
 
 
 def runs(mask):

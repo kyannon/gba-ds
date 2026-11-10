@@ -1,0 +1,807 @@
+{
+ "game": "Muppet Pinball Mayhem",
+ "rules": "docs/games/muppet-pinball-mayhem.md",
+ "cases": [
+  {
+   "id": "mpm-us-title",
+   "rom": "AMWE",
+   "state": "muppet-pinball-mayhem/us-title.ss",
+   "desc": "the title, then START into the menus: the logo, no table view",
+   "rules": [
+    "MPM-1"
+   ],
+   "input": [
+    [
+     100,
+     "START"
+    ],
+    [
+     104,
+     "-"
+    ]
+   ],
+   "shots": {
+    "title": 60,
+    "menu": 300
+   },
+   "checks": [
+    {
+     "rule": "MPM-1",
+     "what": "no table view",
+     "type": "no_log",
+     "match": "frame [0-9]+: live view"
+    },
+    {
+     "rule": "MPM-1",
+     "what": "the second screen idle round the logo",
+     "type": "uniform",
+     "shot": "menu",
+     "screen": "second",
+     "rect": [
+      40,
+      72,
+      200,
+      232
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "mpm-us-kermit",
+   "rom": "AMWE",
+   "state": "muppet-pinball-mayhem/us-kermit-play.ss",
+   "desc": "Kermit's table, the ball in play, nothing pressed: the view in the upper part (the game on the top screen), the lower view (a copy on the top screen, the flippers on the bottom), the ball lost, and the game's pan back up the table, all on both screens",
+   "rules": [
+    "MPM-2",
+    "MPM-3"
+   ],
+   "shots": {
+    "upper": 40,
+    "middle": 120,
+    "lower": 300,
+    "pan": 450,
+    "again": 480
+   },
+   "checks": [
+    {
+     "rule": "MPM-2",
+     "what": "the table over both screens",
+     "type": "log",
+     "match": "frame [0-9]+: live view"
+    },
+    {
+     "rule": "MPM-2",
+     "what": "never off, the lost ball and the pan included",
+     "type": "no_log",
+     "match": "live view off"
+    },
+    {
+     "rule": "MPM-2",
+     "what": "the lower view's top screen from a copy",
+     "type": "log",
+     "match": "top screen: a copy"
+    },
+    {
+     "rule": "MPM-2",
+     "what": "the second screen live",
+     "type": "not_uniform",
+     "shot": "lower",
+     "screen": "second",
+     "rect": [
+      0,
+      0,
+      1024,
+      768
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "mpm-us-pause",
+   "rom": "AMWE",
+   "state": "muppet-pinball-mayhem/us-kermit-play.ss",
+   "desc": "paused with the lower view (START at 300, again at 400): the game's pause menu on the top screen, the logo on the second; then both screens live again",
+   "rules": [
+    "MPM-4"
+   ],
+   "input": [
+    [
+     300,
+     "START"
+    ],
+    [
+     304,
+     "-"
+    ],
+    [
+     400,
+     "START"
+    ],
+    [
+     404,
+     "-"
+    ]
+   ],
+   "shots": {
+    "paused": 360,
+    "back": 440
+   },
+   "checks": [
+    {
+     "rule": "MPM-4",
+     "what": "the copies' view off while paused",
+     "type": "log",
+     "match": "frame 30[0-9]: live view off"
+    },
+    {
+     "rule": "MPM-4",
+     "what": "the second screen idle round the logo",
+     "type": "uniform",
+     "shot": "paused",
+     "screen": "second",
+     "rect": [
+      40,
+      72,
+      200,
+      232
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "MPM-4",
+     "what": "back at once",
+     "type": "log",
+     "match": "frame 40[0-9]: live view$"
+    },
+    {
+     "rule": "MPM-4",
+     "what": "the second screen live again",
+     "type": "not_uniform",
+     "shot": "back",
+     "screen": "second",
+     "rect": [
+      0,
+      0,
+      1024,
+      768
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "mpm-us-piggy",
+   "rom": "AMWE",
+   "state": "muppet-pinball-mayhem/us-piggy-table.ss",
+   "desc": "Miss Piggy's table: its opening pan, then the ball launched (A held at 320) and played a little",
+   "rules": [
+    "MPM-2",
+    "MPM-3"
+   ],
+   "input": [
+    [
+     320,
+     "A"
+    ],
+    [
+     380,
+     "-"
+    ],
+    [
+     460,
+     "L"
+    ],
+    [
+     466,
+     "-"
+    ],
+    [
+     500,
+     "A"
+    ],
+    [
+     506,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 60,
+    "plunger": 300,
+    "play": 520
+   },
+   "checks": [
+    {
+     "rule": "MPM-2",
+     "what": "the table over both screens",
+     "type": "log",
+     "match": "frame [0-9]+: live view"
+    },
+    {
+     "rule": "MPM-2",
+     "what": "never off",
+     "type": "no_log",
+     "match": "live view off"
+    }
+   ]
+  },
+  {
+   "id": "mpm-us-gonzo",
+   "rom": "AMWE",
+   "state": "muppet-pinball-mayhem/us-gonzo-table.ss",
+   "desc": "Gonzo's table: its opening pan, then the ball launched (A held at 320) and played a little",
+   "rules": [
+    "MPM-2",
+    "MPM-3"
+   ],
+   "input": [
+    [
+     320,
+     "A"
+    ],
+    [
+     380,
+     "-"
+    ],
+    [
+     460,
+     "L"
+    ],
+    [
+     466,
+     "-"
+    ],
+    [
+     500,
+     "A"
+    ],
+    [
+     506,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 60,
+    "plunger": 300,
+    "play": 520
+   },
+   "checks": [
+    {
+     "rule": "MPM-2",
+     "what": "the table over both screens",
+     "type": "log",
+     "match": "frame [0-9]+: live view"
+    },
+    {
+     "rule": "MPM-2",
+     "what": "never off",
+     "type": "no_log",
+     "match": "live view off"
+    }
+   ]
+  },
+  {
+   "id": "mpm-eu-kermit",
+   "rom": "AMWP",
+   "state": "muppet-pinball-mayhem/eu-kermit-play.ss",
+   "desc": "Europe: Kermit's table, the ball in play, nothing pressed: the table over both screens",
+   "rules": [
+    "MPM-2",
+    "MPM-3"
+   ],
+   "shots": {
+    "upper": 40,
+    "lower": 300
+   },
+   "checks": [
+    {
+     "rule": "MPM-2",
+     "what": "the table over both screens",
+     "type": "log",
+     "match": "frame [0-9]+: live view"
+    },
+    {
+     "rule": "MPM-2",
+     "what": "never off",
+     "type": "no_log",
+     "match": "live view off"
+    }
+   ]
+  },
+  {
+   "id": "mpm-us-swapped",
+   "rom": "AMWE",
+   "state": "muppet-pinball-mayhem/us-kermit-play.ss",
+   "desc": "swapped screens: the table's upper rows still on the top screen",
+   "rules": [
+    "MPM-5"
+   ],
+   "config": {
+    "swap": "1"
+   },
+   "shots": {
+    "upper": 40,
+    "lower": 300
+   },
+   "checks": [
+    {
+     "rule": "MPM-5",
+     "what": "the table over both screens",
+     "type": "log",
+     "match": "frame [0-9]+: live view"
+    }
+   ]
+  },
+  {
+   "id": "mpm-us-not-live",
+   "rom": "AMWE",
+   "state": "muppet-pinball-mayhem/us-kermit-play.ss",
+   "desc": "pinball_live = 0: the game on one screen, the logo on the other",
+   "rules": [
+    "MPM-6"
+   ],
+   "config": {
+    "pinball_live": "0"
+   },
+   "shots": {
+    "lower": 300
+   },
+   "checks": [
+    {
+     "rule": "MPM-6",
+     "what": "no table view",
+     "type": "no_log",
+     "match": "frame [0-9]+: live view"
+    },
+    {
+     "rule": "MPM-6",
+     "what": "the second screen idle round the logo",
+     "type": "uniform",
+     "shot": "lower",
+     "screen": "second",
+     "rect": [
+      40,
+      72,
+      200,
+      232
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "mpm-us-under-bar",
+   "rom": "AMWE",
+   "state": "muppet-pinball-mayhem/us-kermit-under-bar.ss",
+   "desc": "Kermit's table, the owner's state (Nov 9): the lower view, sprites passing under the score bar (frames 11-23 and 62-81); the line under the score bar is the table's next row, not a row from the game's own view",
+   "rules": [
+    "MPM-3"
+   ],
+   "shots": {
+    "early": 14,
+    "mid": 20,
+    "late": 70
+   },
+   "checks": [
+    {
+     "rule": "MPM-3",
+     "what": "the table over both screens",
+     "type": "log",
+     "match": "frame [0-9]+: live view"
+    }
+   ]
+  },
+  {
+   "id": "mpm-us-pan-under-bar",
+   "rom": "AMWE",
+   "state": "muppet-pinball-mayhem/us-kermit-pan-under-bar.ss",
+   "desc": "Kermit's table, the owner's second state (Nov 9): the view panning down from the table's top to the lower view (frames 13-150); the score bar's edge stays black throughout, in the upper view (the game on the top screen) and the lower (a copy)",
+   "rules": [
+    "MPM-3"
+   ],
+   "shots": {
+    "upper": 30,
+    "switch": 70,
+    "lower": 130
+   },
+   "checks": [
+    {
+     "rule": "MPM-3",
+     "what": "the table over both screens",
+     "type": "log",
+     "match": "frame [0-9]+: live view"
+    }
+   ]
+  },
+  {
+   "id": "mpm-us-animal",
+   "rom": "AMWE",
+   "state": "muppet-pinball-mayhem/us-animal-play.ss",
+   "desc": "Animal's table (opened by memory: 0x03006865 = 1), played: a ball saved and the run back up to the top (from frame 506), followed on both screens; the bottom screen's top rows clean at the end of the run",
+   "rules": [
+    "MPM-2",
+    "MPM-3"
+   ],
+   "input": [
+    [
+     20,
+     "A"
+    ],
+    [
+     26,
+     "-"
+    ],
+    [
+     58,
+     "A+L"
+    ],
+    [
+     68,
+     "-"
+    ],
+    [
+     95,
+     "A"
+    ],
+    [
+     99,
+     "-"
+    ],
+    [
+     136,
+     "L"
+    ],
+    [
+     146,
+     "-"
+    ],
+    [
+     181,
+     "L"
+    ],
+    [
+     190,
+     "-"
+    ],
+    [
+     197,
+     "L"
+    ],
+    [
+     201,
+     "-"
+    ],
+    [
+     223,
+     "L"
+    ],
+    [
+     233,
+     "-"
+    ],
+    [
+     245,
+     "L"
+    ],
+    [
+     253,
+     "-"
+    ],
+    [
+     263,
+     "A"
+    ],
+    [
+     268,
+     "-"
+    ],
+    [
+     278,
+     "L"
+    ],
+    [
+     285,
+     "-"
+    ],
+    [
+     301,
+     "L"
+    ],
+    [
+     311,
+     "-"
+    ],
+    [
+     340,
+     "L"
+    ],
+    [
+     345,
+     "-"
+    ],
+    [
+     379,
+     "A"
+    ],
+    [
+     384,
+     "-"
+    ],
+    [
+     413,
+     "A"
+    ],
+    [
+     420,
+     "-"
+    ],
+    [
+     432,
+     "L"
+    ],
+    [
+     436,
+     "-"
+    ],
+    [
+     474,
+     "A"
+    ],
+    [
+     479,
+     "-"
+    ],
+    [
+     513,
+     "L"
+    ],
+    [
+     518,
+     "-"
+    ],
+    [
+     555,
+     "L"
+    ],
+    [
+     561,
+     "-"
+    ]
+   ],
+   "shots": {
+    "play": 300,
+    "saved": 510,
+    "run": 540,
+    "top": 575
+   },
+   "checks": [
+    {
+     "rule": "MPM-2",
+     "what": "the table over both screens",
+     "type": "log",
+     "match": "frame [0-9]+: live view"
+    },
+    {
+     "rule": "MPM-2",
+     "what": "never off, the run up the table included",
+     "type": "no_log",
+     "match": "live view off"
+    }
+   ]
+  },
+  {
+   "id": "mpm-us-load-table",
+   "rom": "AMWE",
+   "state": "muppet-pinball-mayhem/us-kermit-play.ss",
+   "desc": "Kermit's table played, then a state loaded at the table choice (Animal's) and a game started: the copies start again from the new table, none of the menus' tiles or sprites nor Kermit's on either screen (a player's report)",
+   "rules": [
+    "MPM-2"
+   ],
+   "input": [
+    [
+     120,
+     "LOAD:muppet-pinball-mayhem/us-animal-choice.ss"
+    ],
+    [
+     160,
+     "A"
+    ],
+    [
+     164,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 700,
+    "later": 800
+   },
+   "checks": [
+    {
+     "rule": "MPM-2",
+     "what": "the table over both screens",
+     "type": "log",
+     "match": "frame [0-9]+: live view"
+    }
+   ]
+  },
+  {
+   "id": "mpm-us-4-players",
+   "rom": "AMWE",
+   "state": "muppet-pinball-mayhem/us-4-players.ss",
+   "desc": "a game of four players on Kermit's table, nothing pressed: the first player's balls lost and saved, then PLAYER 2's turn (around frame 2800), all on both screens",
+   "rules": [
+    "MPM-2",
+    "MPM-3"
+   ],
+   "shots": {
+    "first": 300,
+    "second": 2900
+   },
+   "checks": [
+    {
+     "rule": "MPM-2",
+     "what": "the table over both screens",
+     "type": "log",
+     "match": "frame [0-9]+: live view"
+    },
+    {
+     "rule": "MPM-2",
+     "what": "never off, the next player's turn included",
+     "type": "no_log",
+     "match": "live view off"
+    }
+   ]
+  },
+  {
+   "id": "mpm-us-adventure-start",
+   "rom": "AMWE",
+   "state": "muppet-pinball-mayhem/us-adventure-menu.ss",
+   "desc": "Adventure's New Game: the stage curtains and Kermit's table opening as they are, the logo on the second screen; then the table over both screens",
+   "rules": [
+    "MPM-7",
+    "MPM-2"
+   ],
+   "input": [
+    [
+     10,
+     "A"
+    ],
+    [
+     14,
+     "-"
+    ]
+   ],
+   "shots": {
+    "curtains": 330,
+    "opening": 460,
+    "table": 700
+   },
+   "checks": [
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      40,
+      72,
+      200,
+      232
+     ],
+     "color": "303030",
+     "rule": "MPM-7",
+     "what": "the second screen idle round the logo at the curtains",
+     "shot": "curtains"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      40,
+      72,
+      200,
+      232
+     ],
+     "color": "303030",
+     "rule": "MPM-7",
+     "what": "and through the table's opening pan",
+     "shot": "opening"
+    },
+    {
+     "rule": "MPM-7",
+     "what": "then the table over both screens",
+     "type": "log",
+     "match": "frame [0-9]+: live view$"
+    }
+   ]
+  },
+  {
+   "id": "mpm-us-adventure-end",
+   "rom": "AMWE",
+   "state": "muppet-pinball-mayhem/us-adventure-last-ball.ss",
+   "desc": "Adventure's last ball lost (around frame 374): the game's end as it is (its run up the table, the curtains) with the logo on the second screen, never the game's screen on the bottom one",
+   "rules": [
+    "MPM-4",
+    "MPM-7"
+   ],
+   "shots": {
+    "play": 300,
+    "end": 500,
+    "curtains": 640
+   },
+   "checks": [
+    {
+     "rule": "MPM-4",
+     "what": "the table over both screens before",
+     "type": "log",
+     "match": "frame [0-9]+: live view$"
+    },
+    {
+     "rule": "MPM-4",
+     "what": "off at the game's end",
+     "type": "log",
+     "match": "live view off"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      40,
+      72,
+      200,
+      232
+     ],
+     "color": "303030",
+     "rule": "MPM-4",
+     "what": "the second screen idle round the logo",
+     "shot": "end"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      40,
+      72,
+      200,
+      232
+     ],
+     "color": "303030",
+     "rule": "MPM-4",
+     "what": "and at the curtains",
+     "shot": "curtains"
+    },
+    {
+     "rule": "MPM-7",
+     "what": "the fade never puts the game's screen on the bottom one",
+     "type": "no_log",
+     "match": "dimmed or a message"
+    }
+   ]
+  },
+  {
+   "id": "mpm-logo-amwe",
+   "kind": "logo",
+   "rom": "AMWE",
+   "desc": "AMWE logo extraction",
+   "rules": [
+    "GEN-1",
+    "MPM-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "mpm-logo-amwp",
+   "kind": "logo",
+   "rom": "AMWP",
+   "desc": "AMWP logo extraction",
+   "rules": [
+    "GEN-1",
+    "MPM-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

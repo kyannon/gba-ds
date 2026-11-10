@@ -22,6 +22,7 @@ static uint32_t (*l32)(struct ARMCore*, uint32_t, int*);
 static uint32_t (*l16)(struct ARMCore*, uint32_t, int*);
 static uint32_t (*l8)(struct ARMCore*, uint32_t, int*);
 static int reads;
+static struct { uint32_t a, v; } each[8]; static int nEach;
 static struct { uint32_t lo, hi; } rng[16];
 static int nr, curFrame;
 
@@ -66,7 +67,7 @@ static uint32_t parse_keys(const char* s) {
 }
 
 int main(int argc, char** argv) {
-	if (argc < 5) { fprintf(stderr, "wwatch ROM STATE FRAMES ADDR[:LEN]... [-k KEYS]\n"); return 1; }
+	if (argc < 5) { fprintf(stderr, "wwatch ROM STATE FRAMES ADDR[:LEN]... [-k KEYS] [-r] [-p ROMADDR=HALF]... [-e RAMADDR=HALF]...\n"); return 1; }
 	Emu e = {0};
 	if (!emu_open(&e, argv[1], NULL, false)) return 1;
 	if (!emu_state_load_file(&e, argv[2])) { fprintf(stderr, "no state\n"); return 1; }
@@ -74,6 +75,17 @@ int main(int argc, char** argv) {
 	static uint32_t keys[100000]; int nk = 0;
 	for (int i = 4; i < argc; ++i) {
 		if (!strcmp(argv[i], "-r")) { reads = 1; continue; }
+		/* -p ADDR=VAL: a halfword written over the ROM first (a profile's
+		 * patch); -e ADDR=VAL: a halfword written to RAM before every frame
+		 * (a copy's camera target) */
+		if ((!strcmp(argv[i], "-p") || !strcmp(argv[i], "-e")) && i + 1 < argc) {
+			char* eq = strchr(argv[i + 1], '=');
+			uint32_t a = strtoul(argv[i + 1], NULL, 0), v = eq ? strtoul(eq + 1, NULL, 0) : 0;
+			if (argv[i][1] == 'p') { e.core->rawWrite16(e.core, a, -1, (int16_t) v); }
+			else if (nEach < 8) { each[nEach].a = a; each[nEach].v = v; nEach++; }
+			++i;
+			continue;
+		}
 		if (!strcmp(argv[i], "-k") && i + 1 < argc) {
 			FILE* f = fopen(argv[++i], "r"); char line[256], b[64]; int n;
 			while (f && fgets(line, sizeof line, f))
@@ -97,6 +109,9 @@ int main(int argc, char** argv) {
 		l16 = cpu->memory.load16; cpu->memory.load16 = r16;
 		l8 = cpu->memory.load8; cpu->memory.load8 = r8;
 	}
-	for (curFrame = 0; curFrame < frames; ++curFrame) emu_frame(&e, curFrame < nk ? keys[curFrame] : 0);
+	for (curFrame = 0; curFrame < frames; ++curFrame) {
+		for (int j = 0; j < nEach; ++j) e.core->rawWrite16(e.core, each[j].a, -1, (int16_t) each[j].v);
+		emu_frame(&e, curFrame < nk ? keys[curFrame] : 0);
+	}
 	return 0;
 }

@@ -70,13 +70,14 @@ What this means in practice:
 - **An exception has to earn its place.** It should make the game clearly more fun or easier to play on the device, and be something the player would recognise (the four-button layouts mirror the console versions of those games). Being technically possible is not enough.
 - **Every exception is deliberate.** It's written down with the game's other rules and tested like everything else, so it isn't "fixed" later by mistake. Current exceptions include:
   - the four-button and SNES layouts;
-  - Pokémon Pinball's and Sonic Pinball Party's tables spread over both screens as one tall view;
+  - Pokémon Pinball's, Sonic Pinball Party's and Muppet Pinball Mayhem's tables spread over both screens as one tall view;
   - Mario Kart's, the F-Zero games', Crash Nitro Kart's and V-Rally 3's race screen course maps, drawn larger than the game's;
-  - Dragon Ball Z: The Legacy of Goku II's small world map, shown while flying, drawn twice as big;
+  - Dragon Ball Z: The Legacy of Goku II's and Buu's Fury's small world maps, shown while flying, drawn twice as big;
   - Super Mario Advance 2's level name moved above its status bar;
   - Super Mario Advance's course board, shown before each level, kept under the status bar through the level: trimmed at the top and bottom to fit, with its Ace Coin percentage taken from the pause screen;
   - River City Ransom EX's Status screen on a plain blue background (one of the game's own pause colours) instead of the tinted street behind it;
   - Dragon Ball Z: The Legacy of Goku's logo, whose Z is drawn again in the game's own colours where the title screen paints Goku's hair over it;
+  - Dragon Ball Z: Buu's Fury's logo, each letter's black outline closed where the title screen leaves a gap;
   - a game's own window rearranged where there's no other way to show all of what it holds on one GBA screen, as the game would let the player see it by scrolling: its list split into columns, its heading bar or frame made wider from its own end and middle pieces, its own transparency kept over the background it sits on (Final Fantasy Tactics Advance's turn order in two columns, with the Laws below);
   - Mega Man Battle Network's status screen and money counter, from two of the PET's screens, in one frame edged with the counter's own orange border;
   - Mega Man Battle Network's custom screen, the menu where you pick your chips, moved whole to the second screen with its cursor, so the whole battlefield shows while you choose (the game waits while it's up).
