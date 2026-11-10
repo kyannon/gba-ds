@@ -20,6 +20,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Golden Sun (Ougon no Taiyou: Hirakareshi Fuuin in Japan) | `AGSE` `AGSD` `AGSF` `AGSI` `AGSS` `AGSJ` | the Status screen, each party member in turn; in battle, the one choosing |
 | Golden Sun: The Lost Age (Ougon no Taiyou: Ushinawareshi Toki in Japan) | `AGFE` `AGFD` `AGFF` `AGFI` `AGFS` `AGFJ` | the Status screen, each party member in turn; in battle, the one choosing |
 | GT Advance 3: Pro Concept Racing (Advance GT2 in Japan) | `A2GE` `A2GP` `A2GJ` | the race's HUD, with the course map twice as big |
+| Harry Potter and the Prisoner of Azkaban (Harry Potter to Azkaban no Shuujin in Japan) | `BHTE` (USA and Europe) `BHTJ` | the party's level, experience, Stamina and Magic from the Status/Equip screen, with the current task |
 | Harvest Moon: Friends of Mineral Town (Bokujou Monogatari: Mineral Town no Nakama-tachi in Japan) | `A4NE` `A4NP` `A4ND` `A4NJ` | the town map, with where you are |
 | Kingdom Hearts: Chain of Memories | `B8CE` `B8CP` `B8CJ` | the World Map; in battles, the logo |
 | Lady Sia | `ALDE` `ALDP` (no Japanese release) | the pause screen as a status screen: lives, gems, villagers, the time, the ring and heart; the HUD off the game screen |
@@ -221,6 +222,15 @@ The HUD is moved off the game screen rather than copied, so nothing behind it is
 - With one screen (`layout = single`), the HUD stays where the game draws it.
 
 Known issues: link play hasn't been tried.
+
+## Harry Potter and the Prisoner of Azkaban
+
+The USA and European release (in all seven of its languages) and the Japanese one (Harry Potter to Azkaban no Shuujin).
+
+- **Walking about,** the second screen shows the party's summary from the game's **Status/Equip screen** (each one's figure with their level, experience, the experience to the next level, Stamina and Magic) and, below it, the **task** from the bottom of START's menu, so what to do next is always in view. Both are opened in the background in a silent copy of the game about once a second, and at once after a menu, a conversation or a battle; your game is never paused. The screen's heading bar and the wand cursor are left out, so the two fit together.
+- With START's menu open, the same. In conversations and scenes the second screen keeps its picture.
+- In battles (to the results), on the title, the language and file screens, and on the story's pages, the logo. After a battle, the summary comes back as soon as you can walk again, with Stamina and Magic as they are then.
+- Not tried yet: Ron and Hermione in the party (the summary was laid out with Harry alone; with three, the task box may cover part of it), and the story's mini-games.
 
 ## Harvest Moon: Friends of Mineral Town
 

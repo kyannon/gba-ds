@@ -4177,6 +4177,105 @@ static const char* mmbn_compose(Emu* s, const void* state, uint32_t* out, int w,
 	return NULL;
 }
 
+/* ------------------------------ Harry Potter and the Prisoner of Azkaban
+ *
+ * Walking about, the second screen is the party's summary from START's
+ * Status/Equip screen above the task box from the bottom of START's menu
+ * (HPA-1): hpa_compose, on the hidden copy. The screen the game is on,
+ * HPA_MODE: 3 the title, 7 the file screens, 8 walking about, 0x18 a
+ * conversation or a scene (START opens nothing), 9 a battle, 0x2C its
+ * results; START's menu 0x0A (opened) or 0x0B (back from one of its
+ * screens), Status/Equip's summary 0x0C or 0x0D, a character's page 0x0E,
+ * Items 0x10, Folios 0x13, Save Game 0x14, Connectivity 0x16, Help 0x17.
+ * HPA_CURSOR: the menu's cursor (0 Status/Equip). Japan (Harry Potter to
+ * Azkaban no Shuujin): both 0x60 higher (by romxref), the rest the same. */
+#define HPA_MODE 0x03003F18
+#define HPA_CURSOR 0x03003F14
+#define HPA_J(e) ((e)->gameCode[3] == 'J' ? 0x60u : 0u)
+#define HPA_SP 0x030024F4 /* Harry's Stamina (SP), then his Magic (MP): halves */
+#define HPA_V_LIVE 0xF0000040 /* walking about, or START's menu open (HPA-1, HPA-2) */
+#define HPA_V_FORGET 0xF0000041 /* not walking about, in the menu or a scene: the title, a battle... (HPA-4, HPA-5) */
+#define HPA_V_BATTLE 0xF0000042 /* a battle, to its results (HPA-4) */
+/* the summary: rows 25-148 (each one's figure to the bottom of their box;
+ * the heading bar above it left out); the task box: rows 122-157 (its frame,
+ * the posts at its ends but for their outer rows) */
+#define HPA_SUM_Y 25
+#define HPA_SUM_H 124
+#define HPA_TASK_Y 122
+#define HPA_TASK_H 36
+static bool hpa_menu_mode(int m) {
+	return m >= 0x0A && m <= 0x17;
+}
+static int hpa_mode(Emu* e) {
+	return emu_read8(e, HPA_MODE + HPA_J(e)) & 0x7F; /* (0x80 set for a frame or two as it changes) */
+}
+static uint32_t hpa_virt(Emu* e, uint32_t addr) {
+	int m = hpa_mode(e);
+	if (addr == HPA_V_LIVE) return m == 8 || hpa_menu_mode(m);
+	if (addr == HPA_V_FORGET) return !(m == 8 || m == 0x18 || hpa_menu_mode(m));
+	if (addr == HPA_V_BATTLE) return m == 9 || m == 0x2C;
+	return 0;
+}
+/* the menu's task box (its frame's gold and cream); the Status/Equip
+ * screen's heading bar and the parchment's left edge */
+static const Probe hpaTask[6] = { { 5, 121, 0xB57B31 }, { 60, 123, 0xD6A54A }, { 60, 124, 0xF7E78C },
+                                  { 120, 155, 0xF7E78C }, { 120, 156, 0xD6A54A }, { 5, 158, 0xB57B31 } };
+static const Probe hpaStatus[6] = { { 5, 22, 0x845A31 }, { 60, 22, 0x845A31 }, { 0, 23, 0x8C8C84 },
+                                    { 200, 23, 0x8C8C84 }, { 5, 60, 0x9C634A }, { 5, 146, 0x9C634A } };
+static void hpa_tap(Emu* s, uint32_t keys) {
+	aw_run(s, keys, 3);
+	aw_run(s, 0, 8);
+}
+static bool hpa_wait_mode(Emu* s, int a, int b, int n) {
+	for (int f = 0; f < n; ++f) {
+		int m = hpa_mode(s);
+		if (m == a || m == b) return true;
+		emu_frame_blind(s, 0);
+	}
+	int m = hpa_mode(s);
+	return m == a || m == b;
+}
+static const char* hpa_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	if (w != GBA_W || h != GBA_H) return "not a GBA screen";
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame_blind(s, 0);
+	/* to START's menu: from walking about, START; from one of its
+	 * screens, B back to it (HPA-2) */
+	int m = hpa_mode(s);
+	for (int i = 0; i < 4 && hpa_menu_mode(m) && m != 0x0A && m != 0x0B; ++i) {
+		hpa_tap(s, K_B);
+		hpa_wait_mode(s, 0x0A, 0x0B, 30);
+		m = hpa_mode(s);
+	}
+	if (m == 8) hpa_tap(s, K_START);
+	else if (m != 0x0A && m != 0x0B) return "not walking about";
+	if (!hpa_wait_mode(s, 0x0A, 0x0B, 60)) return "START opened nothing";
+	aw_run(s, 0, 50); /* (faded in) */
+	if (emu_cancelled(s)) return "called off";
+	if (!som_probes(s, hpaTask, 6, 6, 8)) return "no task box";
+	static uint32_t task[HPA_TASK_H * GBA_W];
+	memcpy(task, &s->fb[HPA_TASK_Y * GBA_W], sizeof(task));
+	/* Status/Equip, the menu's first line */
+	for (int i = 0; i < 8 && emu_read8(s, HPA_CURSOR + HPA_J(s)) != 0; ++i) hpa_tap(s, K_UP);
+	if (emu_read8(s, HPA_CURSOR + HPA_J(s)) != 0) return "Status/Equip not reached in the menu";
+	hpa_tap(s, K_A);
+	if (!hpa_wait_mode(s, 0x0C, 0x0D, 60)) return "Status/Equip didn't open";
+	aw_run(s, 0, 50);
+	if (emu_cancelled(s)) return "called off";
+	if (!som_probes(s, hpaStatus, 6, 6, 8)) return "not the Status/Equip screen";
+	/* drawn without its sprites: the wand cursor and its sparkles */
+	static uint8_t tmp[0x80000];
+	if (emu_state_size(s) > sizeof(tmp) || !emu_state_save(s, tmp)) return "state save failed";
+	emu_layers(s, 0x0F);
+	emu_state_load(s, tmp); /* (the layers take effect as the display registers are loaded) */
+	emu_frame(s, 0);
+	memcpy(out, &s->fb[HPA_SUM_Y * GBA_W], HPA_SUM_H * GBA_W * sizeof(uint32_t));
+	emu_layers(s, 0x1F);
+	emu_state_load(s, tmp); /* every layer back on */
+	memcpy(&out[HPA_SUM_H * GBA_W], task, sizeof(task));
+	return NULL;
+}
+
 /* -------------------------------------------------- Super Mario Advance 3: Yoshi's Island
  *
  * In a level, the status screen SELECT opens (SM3-1); on a world's panel,
@@ -6949,6 +7048,33 @@ static const MapProfile profiles[] = {
 		.room = { { ER_V_PLACE, 0xFF, 0, 4 } },
 		.logo = { .steps = { { 0, 100 }, { K_A, 4 }, { 0, 1100 } }, .mask = &logoMaskER, .rev = 1 },
 	},
+	{
+		/* Harry Potter and the Prisoner of Azkaban (USA and Europe, one
+		 * release in seven languages). Walking about, the party's summary
+		 * and the task: see hpa_compose (HPA-1) */
+		.codes = { "BHTE" },
+		.title = "Harry Potter and the Prisoner of Azkaban",
+		.compose = hpa_compose,
+		.virt = hpa_virt,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* walking about or in START's menu (HPA-1, HPA-2; in a
+		 * conversation or a scene START opens nothing: the last picture
+		 * stays, HPA-3) */
+		.live = { { HPA_V_LIVE, 0xFF, 1, 4 } },
+		/* the title, the file screens, a battle: the logo, the summary
+		 * forgotten (HPA-4, HPA-5) */
+		.menu = { { HPA_V_FORGET, 0xFF, 1, 4 } },
+		.combat = { { HPA_V_BATTLE, 0xFF, 1, 4 } },
+		/* the screen (a menu closed, a scene over), Harry's SP and MP:
+		 * taken again at once */
+		.room = { { HPA_MODE, 0x7F, 0, 1 }, { HPA_SP, 0xFFFF, 0, 2 }, { HPA_SP + 2, 0xFFFF, 0, 2 } },
+		/* the title's lettering (BG2), past the language screen (A:
+		 * English) and the company screens (START), before PRESS START */
+		.logo = { .steps = { { 0, 600 }, { K_A, 4 }, { 0, 100 }, { K_START, 4 }, { 0, 90 }, { K_START, 4 }, { 0, 90 },
+		                     { K_START, 4 }, { 0, 90 }, { K_START, 4 }, { 0, 90 }, { K_START, 4 }, { 0, 240 } },
+		          .layer = 2, .maxY = 120 },
+	},
 };
 
 /* ---------------------------------------------------------------- regions
@@ -7282,6 +7408,15 @@ static void mmbn_jpn(MapProfile* p) {
 	p->logo.rev = 1;
 }
 
+/* Harry Potter to Azkaban no Shuujin (Japan): the screen's byte 0x60
+ * higher (hpa_compose, hpa_virt: HPA_J); no language screen before the
+ * company screens; its logo the title's lettering too (BG2) */
+static void hpa_jpn(MapProfile* p) {
+	p->room[0].addr += 0x60;
+	p->logo = (typeof(p->logo)) { .steps = { { 0, 360 }, { K_START, 4 }, { 0, 86 }, { K_START, 4 }, { 0, 86 }, { K_START, 4 }, { 0, 286 } },
+	                              .layer = 2, .maxY = 120 };
+}
+
 static const Variant variants[] = {
 	{ "AGSD", "AGSE", 0, gs_ger },
 	/* Golden Sun: The Lost Age's other releases */
@@ -7352,6 +7487,7 @@ static const Variant variants[] = {
 	{ "A4NJ", "A4NE", 0, hm_jpn },
 	/* (Mega Man Battle Network's RAM: the same in every release) */
 	{ "AREP", "AREE", 0, NULL },
+	{ "BHTJ", "BHTE", 0, hpa_jpn },
 	{ "AREJ", "AREE", 0, mmbn_jpn },
 };
 #define N_VARIANTS (sizeof(variants) / sizeof(*variants))
