@@ -176,6 +176,21 @@ near 3 × `audio_latency` means nothing pulls it). No ROMs here: a few lines
 of ARM assembled with clang (`--target=armv4t-none-eabi`) and linked at
 0x08000000 make a test ROM (colour bars, a tone, red while A is held).
 
+## Speed
+
+Measured Nov 10, 2026 (Eragon in a town, the Party screen refreshing about
+once a second, the capture worker on its own thread, Node): emulating 2.3
+ms a frame; drawing GBA DS's window in software 7-8 ms at the RG DS
+Plus's whole 1024 x 1536, 1.8 ms at half (512 x 768), 3.4 ms at 720 x 960;
+the median frame 10.5 ms whole, 4.2 ms at half. Half is the default since
+(settings v2 moved saved settings once): the graphics card scales the
+screens to fit, and half still holds over twice the game's 240 x 160, so
+games look the same; GBA DS's own menus are slightly softer. In headless
+Chromium on 2 cores the same moment ran 27 fps whole, 52 at half. Builds
+without the capture worker (before 1.4.13-dev, or game branches not yet
+merged with dev since) pause the game at each capture: the player says so
+when one is dropped.
+
 ## Known limitations
 
 - The capture worker needs a free CPU core to help: on a computer with

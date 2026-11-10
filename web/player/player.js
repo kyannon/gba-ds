@@ -61,11 +61,14 @@ const DEVICES = [
 /* ================================================================ settings */
 const SET_KEY = "gbadsPlayer.settings", CTL_KEY = "gbadsPlayer.controls";
 const DEFAULTS = { device: "rgdsplus", custom: { top: [1024, 768, 4.3], bottom: [1024, 768, 4.3] }, arrange: "auto", sizes: "device",
-  gap: 4, smooth: true, scale: 1, volume: 80, muted: false, pauseHidden: true,
+  gap: 4, smooth: true, scale: 0.5, volume: 80, muted: false, pauseHidden: true,
   touchShow: "auto", touchPlace: "below", touchSize: 100, touchVibrate: true };
 const readJSON = (k) => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } };
 const writeJSON = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
 const S = Object.assign({}, DEFAULTS, readJSON(SET_KEY) || {});
+// (settings v2, Nov 10, 2026: half the device's resolution by default, a quarter of
+// the drawing; settings saved before then had the device's whole, so they move once)
+if ((S.v || 1) < 2) { S.scale = DEFAULTS.scale; S.v = 2; try { localStorage.setItem(SET_KEY, JSON.stringify(S)); } catch (e) {} }
 const saveSettings = () => writeJSON(SET_KEY, S);
 const ctl = Object.assign({ keys: null, pads: {} }, readJSON(CTL_KEY) || {});
 const keyMap = () => ctl.keys || KEY_DEFAULTS;
@@ -165,9 +168,11 @@ function buildCaps(module) {
 }
 const NO_SOUND = "No sound: this build's web version was made without it.";
 const NO_BUTTONS = "Keyboard only: X and Y can't be pressed with this build.";
+const NO_CAPTURE_WORKER = "This build updates the second screen inside the game, so the game pauses each time it does (builds from GBA DS 1.4.13 on update it alongside).";
 function warnCaps(b) {
   if (!b.caps.hasAudio) toast(NO_SOUND, true);
   else if (!b.caps.hasButtons) toast(NO_BUTTONS, true);
+  else if (!b.caps.hasCaptureWorker) toast(NO_CAPTURE_WORKER, true);
 }
 
 async function takeBuild(name, bytes, opts) {
