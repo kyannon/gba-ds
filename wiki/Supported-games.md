@@ -18,6 +18,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Fire Emblem: The Sacred Stones (Seima no Kouseki in Japan) | `BE8E` `BE8P` `BE8J` | on the map: the status of the unit under the cursor |
 | Golden Sun (Ougon no Taiyou: Hirakareshi Fuuin in Japan) | `AGSE` `AGSD` `AGSF` `AGSI` `AGSS` `AGSJ` | the Status screen, each party member in turn; in battle, the one choosing |
 | Golden Sun: The Lost Age (Ougon no Taiyou: Ushinawareshi Toki in Japan) | `AGFE` `AGFD` `AGFF` `AGFI` `AGFS` `AGFJ` | the Status screen, each party member in turn; in battle, the one choosing |
+| GT Advance 3: Pro Concept Racing (Advance GT2 in Japan) | `A2GE` `A2GP` `A2GJ` | the race's HUD, with the course map twice as big |
 | Harvest Moon: Friends of Mineral Town (Bokujou Monogatari: Mineral Town no Nakama-tachi in Japan) | `A4NE` `A4NP` `A4ND` `A4NJ` | the town map, with where you are |
 | Kingdom Hearts: Chain of Memories | `B8CE` `B8CP` `B8CJ` | the World Map; in battles, the logo |
 | Lady Sia | `ALDE` `ALDP` (no Japanese release) | the pause screen as a status screen: lives, gems, villagers, the time, the ring and heart; the HUD off the game screen |
@@ -192,6 +193,22 @@ Every release has been tried walking about and in a battle (USA / Europe, German
 - **In a battle,** while you choose what to do, the second screen shows the battle's Status screen of the character choosing (the party's first in the Fight / Switch / Flee / Status menu). While the turn plays out, it shows the logo.
 - Walking about, where the menu can't be opened (a conversation, a scene, the START menu), the last pictures stay.
 - On the title screen, the naming screens and the opening's story text, the second screen shows the logo: the title screen's emblem, without its subtitle and ™.
+
+## GT Advance 3: Pro Concept Racing
+
+The USA and European releases, and Japan's Advance GT2.
+
+The HUD is moved off the game screen rather than copied, so nothing behind it is lost.
+
+- **Racing** (Championship races and licence tests, Quick Race, Time Attack, Drift-Combo, Practice and the Extra modes):
+  - The game screen keeps the **rev counter** with your speed and gear (bottom right) and your **place** (POSITION) in the top-left corner.
+  - The second screen has **TOTAL TIME** and **LAP** along the top, **LAP-TIME** (TIME LIMIT in a licence test, MAX-COMBO in Drift-Combo) at the bottom left, and the **course map** with every car's dot, twice as big, in the middle.
+  - The countdown, the corner signs, WRONG WAY, a finished lap's time and GOAL! are drawn over the track and stay on the game screen.
+- The game's **pause menu** stays on the game screen, with the HUD on the second screen.
+- Everywhere else (the menus, loading, the replay and results after a race) the second screen shows the logo, the title's GT3 ADVANCE lettering.
+- With one screen (`layout = single`), the HUD stays where the game draws it.
+
+Known issues: link play hasn't been tried.
 
 ## Harvest Moon: Friends of Mineral Town
 

@@ -71,7 +71,7 @@ What this means in practice:
 - **Every exception is deliberate.** It's written down with the game's other rules and tested like everything else, so it isn't "fixed" later by mistake. Current exceptions include:
   - the four-button and SNES layouts;
   - Pokémon Pinball's, Sonic Pinball Party's and Muppet Pinball Mayhem's tables spread over both screens as one tall view;
-  - Mario Kart's, the F-Zero games', Crash Nitro Kart's and V-Rally 3's race screen course maps, drawn larger than the game's;
+  - Mario Kart's, the F-Zero games', Crash Nitro Kart's, V-Rally 3's and GT Advance 3's race screen course maps, drawn larger than the game's;
   - Dragon Ball Z: The Legacy of Goku II's and Buu's Fury's small world maps, shown while flying, drawn twice as big;
   - Super Mario Advance 2's level name moved above its status bar;
   - Super Mario Advance's course board, shown before each level, kept under the status bar through the level: trimmed at the top and bottom to fit, with its Ace Coin percentage taken from the pause screen;

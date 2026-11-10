@@ -35,5 +35,7 @@ extern const LogoMask logoMaskAMW;
 extern const LogoMask logoMaskVR3, logoMaskVR3J;
 /* Ninja Five-O (USA), and Ninja Cop (Europe) */
 extern const LogoMask logoMaskNFO, logoMaskNFOP;
+/* GT Advance 3: Pro Concept Racing (USA, Europe), and Japan's Advance GT2 */
+extern const LogoMask logoMaskGT3, logoMaskGT3J;
 
 #endif

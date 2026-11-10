@@ -5844,6 +5844,63 @@ static const MapProfile profiles[] = {
 		},
 	},
 	{
+		/* GT Advance 3: Pro Concept Racing (docs/games/
+		 * gt-advance-3-pro-concept-racing.md), the racing games' second
+		 * screen. A race is display mode 1, its picture split by line: the
+		 * sky on BG0 (lines 0-51), the scenery on BG1 at priority 1 and the
+		 * road on BG2 (affine); from line 80 BG1 is the HUD's bottom bar
+		 * (LAP-TIME or MAX-COMBO, the rev counter's dial and the speed box)
+		 * at priority 0, so the frame ends with BG1CNT 0x5E48. Everything
+		 * else of the HUD is priority-0 sprites in palettes 11-14 (the
+		 * figures in 14, the words in 13, the course map 11, its dots 12):
+		 * told by place, since the figures share their tiles. The
+		 * countdown, the corner signs, WRONG WAY, GHOST OVER, GOAL!, a
+		 * finished lap's time and the pause menu are sprites elsewhere on
+		 * the screen: they stay on the game screen (GT3-2). */
+		.codes = { "A2GE", "A2GP" },
+		.title = "GT Advance 3: Pro Concept Racing",
+		.logoOnly = true,
+		/* the title's lettering, GT3 ADVANCE PRO CONCEPT RACING, painted
+		 * into its picture over the highway (GT3-1): past the
+		 * disclaimer (A) from power-on */
+		.logo = { .steps = { { 0, 720 }, { K_START, 4 }, { 0, 68 }, { K_A, 4 }, { 0, 250 } },
+		          .mask = &logoMaskGT3 },
+		.hud = {
+			/* a race: display mode 1 with the bottom bar's BG1 (GT3-2);
+			 * the replay after the finish draws no HUD: the logo (GT3-7) */
+			.on = { { 0x04000000, 0x0007, 1, 2 }, { 0x0400000A, 0xFFFF, 0x5E48, 2 } },
+			.emptyIsOff = true,
+			/* on black (GT3-4) */
+			.black = true,
+			/* paused (the pause flag): the HUD as it was before the game
+			 * hid it (GT3-5) */
+			.freeze = { { 0x0203EE58, 0x20, 0x20, 1 } },
+			/* the bottom bar: BG1 where it's priority 0 (from line 80) */
+			.bgPrioBelow = 1,
+			.objs = { /* the top row: TOTAL TIME, POSITION, LAP */
+			          { -8, -8, 239, 8, 800, 1023, 0, (1u << 13) | (1u << 14) },
+			          /* the course map (also Practice's) and its dots,
+			           * also as they slide off to the left at the finish
+			           * (GT3-6) */
+			          { -72, 8, 72, 80, 700, 799, 0, 1u << 11 },
+			          { -72, 8, 72, 88, 800, 807, 0, 1u << 12 },
+			          /* LAP-TIME's or MAX-COMBO's figures (the combo's
+			           * count from tile 448) */
+			          { -8, 130, 149, 168, 400, 1023, 0, (1u << 13) | (1u << 14) },
+			          /* the rev counter's needle, the speed and the gear
+			           * (moved back onto the game screen, GT3-3) */
+			          { 150, 100, 239, 168, 800, 1023, 0, (1u << 13) | (1u << 14) } },
+			/* the map's 64x64 sprite, twice as big in the middle (GT3-4) */
+			.map = { 0, 16, 63, 79 },
+			.mapAt = { 2, 120, 140 },
+			/* POSITION back onto the game screen, into the top-left
+			 * corner, where TOTAL TIME was; the rev counter with the speed
+			 * and gear where they were (GT3-3) */
+			.moves = { { 119, 0, 183, 20, 'L', 0, 0, 0, true },
+			           { 150, 100, 239, 159, 0, 0, 0, 0, true } },
+		},
+	},
+	{
 		/* Summon Night: Swordcraft Story 2 (USA; in Japan Craft Sword
 		 * Monogatari 2, the same RAM and menus). Walking about: DISPCNT
 		 * 0x1F40; START's menu and its Status screen 0x3F40, the Status with
@@ -6953,6 +7010,13 @@ static void vr3_jpn(MapProfile* p) {
 	p->logo.mask = &logoMaskVR3J;
 }
 
+/* Advance GT2, GT Advance 3's Japanese release: its own title, Advance GT2,
+ * up by itself from frame ~600 (no disclaimer to pass); the races the same
+ * (GT3-1) */
+static void gt3_jpn(MapProfile* p) {
+	p->logo = (typeof(p->logo)) { .steps = { { 0, 750 } }, .mask = &logoMaskGT3J };
+}
+
 /* Spider-Man: Mysterio's Menace in Japan: the screen's handler 0x34 lower
  * (0x0300213C), and its values too (0x60F8 in a level, 0x41D8 elsewhere);
  * the display registers are the same */
@@ -7025,6 +7089,7 @@ static const Variant variants[] = {
 	{ "AFZC", "AFZE", 0, fzm_chn },
 	{ "BCNJ", "BCNE", 0, cnk_jpn },
 	{ "AVRJ", "AVRE", 0, vr3_jpn },
+	{ "A2GJ", "A2GE", 0, gt3_jpn },
 	{ "A2CP", "A2CE", 0, lang_menu },
 	{ "A2CJ", "A2CE", -0x30, NULL },
 	{ "ACHP", "ACHE", 0, NULL },

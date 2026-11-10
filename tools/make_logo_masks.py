@@ -387,11 +387,37 @@ def vr3(a):
     return _from_edges((b >= r + 12) | (ys >= 44))
 
 
+def gt3(a):
+    """GT Advance 3: Pro Concept Racing (USA, Europe): GT3 ADVANCE PRO
+    CONCEPT RACING painted over a highway and white sky, the GT3 silver
+    with blue reflections, ADVANCE black, the subtitle navy: colours the
+    highway shares, so no rule on them cuts the lettering out cleanly. The
+    outline is a stencil instead, tools/logo_stencils/gt3.png: the
+    publisher's logo artwork's silhouette (its glow left out) scaled to
+    the title's lettering (0.30 x 0.32, at 59.5, 0: the best overlap with
+    the title's grey and black pixels), without the PRO CONCEPT RACING
+    line (navy, unreadable on the idle screen's grey). Only its outline is
+    used; the pixels are the title's."""
+    st = np.asarray(Image.open(os.path.join(ROOT, "tools", "logo_stencils", "gt3.png")).convert("L")) > 127
+    return st
+
+
+def gt3_jpn(a):
+    """Advance GT2 (GT Advance 3 in Japan): its lettering outlined in black
+    over the highway and sky, everything inside the outline, and the bar
+    under it with its katakana (rows 44-52) whole; the highway's loose dark
+    streaks (under 400 pixels) left out."""
+    ys, xs = np.mgrid[0:H, 0:W]
+    m = _from_edges((a.max(axis=2) >= 0x60) | (ys >= 53) | (ys < 5) | (xs < 12))
+    m |= (ys >= 44) & (ys <= 52) & (xs >= 12) & (xs <= 231)
+    return comps(m, 400)
+
+
 MASKS = (("THPS2", thps2), ("SK8", sk8), ("THPS3", thps3), ("DBZ", dbz),
          ("GS2E", gs2), ("GS2D", gs2_dial), ("GS2F", gs2_dial), ("GS2I", gs2), ("GS2S", gs2_dial),
          ("GS2J", gs2), ("CNK", cnk), ("CNKJ", cnk_jpn),
          ("DBZ2", dbz2), ("DBZ2J", dbz2_jpn), ("BF", bf),
-         ("VR3", vr3), ("VR3J", vr3),
+         ("VR3", vr3), ("VR3J", vr3), ("GT3", gt3), ("GT3J", gt3_jpn),
          ("NFO", nfo), ("NFOP", nfo_eur), ("AMW", amw))
 
 

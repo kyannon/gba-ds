@@ -443,6 +443,10 @@ typedef struct MapProfile {
 		 * second, the logo instead (F-Zero: GP Legend's course fly-in, with
 		 * the race's registers already set) */
 		bool emptyIsOff;
+		/* Racing's second screen on black (SCREEN_LIVE) instead of the
+		 * plain dark red-grey (GT Advance 3: its fades match the game
+		 * screen's) */
+		bool black;
 		/* While a sprite with this tile is shown, not racing (F-Zero: GP
 		 * Legend's RESULTS, over the track as a race ends); 0: none */
 		int offTile;
