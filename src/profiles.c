@@ -2948,6 +2948,36 @@ static bool ml_bros_info(Emu* s) {
 static void ml_page(const uint32_t* fb, uint32_t* out, int w, int h) {
 	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
 }
+/* Bros. Info's L and R prompts (ML-2), under the portrait on BG2: each a
+ * pink tab with its letter, tiles 0x172-0x173 (L) and 0x170-0x171 (R) on
+ * map row 9, columns 2-3 and 6-7, and 0x192-0x193 / 0x190-0x191 on row 10.
+ * Row 9 also holds the bottom of the portrait's ring, so it stays, its
+ * white letters taken by the stand's dark brown around them; row 10's tab
+ * tiles become the stand's own bottom tiles (row 10, columns 4-5), drawn
+ * by one more frame of the hidden copy. Not this layout: left as it is */
+#define ML_TAB_X0 16
+#define ML_TAB_X1 48
+static void ml_no_prompts(Emu* s, uint32_t* out, int w, int h) {
+	if (w < 64 || h < 88) return;
+	uint32_t map = 0x06000000 + ((emu_read16(s, 0x0400000C) >> 8) & 0x1F) * 0x800;
+#define ML_MAP(r, c) (map + ((r) * 32 + (c)) * 2)
+	static const uint16_t want9[4] = { 0x172, 0x173, 0x170, 0x171 }, want10[4] = { 0x192, 0x193, 0x190, 0x191 };
+	static const int cols[4] = { 2, 3, 6, 7 };
+	for (int i = 0; i < 4; ++i)
+		if ((emu_read16(s, ML_MAP(9, cols[i])) & 0x3FF) != want9[i] || (emu_read16(s, ML_MAP(10, cols[i])) & 0x3FF) != want10[i]) return;
+	uint16_t plain[2] = { emu_read16(s, ML_MAP(10, 4)), emu_read16(s, ML_MAP(10, 5)) };
+	for (int i = 0; i < 4; ++i) emu_write16(s, ML_MAP(10, cols[i]), plain[i & 1]);
+	emu_frame(s, 0);
+	uint32_t dark = out[77 * w + 40]; /* (the stand's inside, between the tabs) */
+	for (int t = 0; t < 2; ++t) {
+		int x0 = t ? ML_TAB_X1 : ML_TAB_X0;
+		for (int y = 72; y < 80; ++y)
+			for (int x = x0; x < x0 + 16; ++x)
+				if ((out[y * w + x] & 0xFFFFFF) == 0xFFFFFF) out[y * w + x] = dark;
+		for (int y = 80; y < 88; ++y) memcpy(&out[y * w + x0], &s->fb[y * GBA_W + x0], 16 * sizeof(uint32_t));
+	}
+#undef ML_MAP
+}
 static const char* ml_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
 	*nOut = 1;
 	*step = 300;
@@ -2977,6 +3007,7 @@ static const char* ml_compose(Emu* s, const void* state, uint32_t* const* out, i
 	if (!ml_bros_info(s)) return "not Bros. Info";
 	if (!luigi) {
 		ml_page(s->fb, out[0], w, h);
+		ml_no_prompts(s, out[0], w, h);
 		return NULL;
 	}
 	/* Luigi in front: R (the portrait turns round), until the page changes */
@@ -2988,6 +3019,7 @@ static const char* ml_compose(Emu* s, const void* state, uint32_t* const* out, i
 		if (!ml_settle(s, 150) || !ml_bros_info(s)) break;
 		if (memcmp(first, s->fb, sizeof(first))) {
 			ml_page(s->fb, out[0], w, h);
+			ml_no_prompts(s, out[0], w, h);
 			return NULL;
 		}
 	}

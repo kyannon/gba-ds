@@ -16,7 +16,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **ML-1. Logo.** On the title and in battles (ML-3, behind the battle's boxes and meters: ML-5), the second screen shows the logo: MARIO & LUIGI and SUPERSTAR SAGA (in Japan マリオ&ルイージRPG), without the sky, PRESS START, the suitcase or the copyright line: no sky blue at the lettering's edge, no specks of the background around its shadow, no stray dots in its corners.
 
-**ML-2. Bros. Info, always.** Walking about, the second screen is the Bros. Info screen (SELECT's menu, its third icon), as the game draws it, filling the screen, once it has settled (its opening and the brothers' turn over) and only if it is Bros. Info (its frame checked; never the field or a menu): the page of the brother you're controlling, the one in front (START swaps them; the page follows within a moment). It's opened in the background on a silent copy of the game about once a second; your game is never paused. (Until v1.4.5's later test builds, Mario's and Luigi's pages in turn, 5 seconds each.)
+**ML-2. Bros. Info, always.** Walking about, the second screen is the Bros. Info screen (SELECT's menu, its third icon), as the game draws it but for the L and R prompts under the brother's portrait (the buttons that turn it round: the letters and the pink tabs they sit on are left out, the stand under the portrait running straight across in its own tiles; until the Japanese fix's later test build they were there), filling the screen, once it has settled (its opening and the brothers' turn over) and only if it is Bros. Info (its frame checked; never the field or a menu): the page of the brother you're controlling, the one in front (START swaps them; the page follows within a moment). It's opened in the background on a silent copy of the game about once a second; your game is never paused. (Until v1.4.5's later test builds, Mario's and Luigi's pages in turn, 5 seconds each.)
 
 **ML-3. Elsewhere.** In a battle, the second screen shows the logo, with the battle's boxes and meters over it (ML-5); Bros. Info again once you're walking about after it. In scenes, conversations and the game's own menus it keeps the last picture. Nothing else leaves the game screen.
 
@@ -63,4 +63,5 @@ Walking about (ML-2): every room from 0x000 to 0x1FF was tried in the USA releas
 
 Changelog (Fixes):
 
+- **Mario & Luigi: Superstar Saga:** the Bros. Info page on the second screen no longer shows the L and R prompts under the brother's portrait (they can't be pressed there).
 - **Mario & Luigi: Superstar Saga (Japan, Mario & Luigi RPG):** walking about, the second screen showed the logo instead of Bros. Info; it shows Bros. Info now, as in the USA and Europe.
