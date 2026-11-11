@@ -284,6 +284,227 @@
    ]
   },
   {
+   "id": "ml-eu-battle-boxes",
+   "rom": "A88P",
+   "state": "mario-and-luigi-superstar-saga/eu-battle-blocks.ss",
+   "desc": "Europe, a battle on the Koopa Cruiser, choosing Mario's block (the owner's state): the meters and boxes on the second screen over the logo, the blocks on the game screen",
+   "rules": [
+    "ML-1",
+    "ML-5"
+   ],
+   "shots": {
+    "blocks": 30,
+    "later": 90
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "the meters at the top left of the second screen",
+     "type": "not_uniform",
+     "shot": "blocks",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "the top right box on the second screen",
+     "type": "not_uniform",
+     "shot": "blocks",
+     "rect": [
+      472,
+      76,
+      975,
+      131
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "the bottom box on the second screen",
+     "type": "not_uniform",
+     "shot": "blocks",
+     "rect": [
+      532,
+      624,
+      975,
+      687
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ml-eu-battle-results",
+   "rom": "A88P",
+   "state": "mario-and-luigi-superstar-saga/eu-battle-results.ss",
+   "desc": "Europe, the results of a battle on the Koopa Cruiser (the owner's state): EXP, coins and items on the game screen whole, the logo alone on the second screen",
+   "rules": [
+    "ML-3",
+    "ML-5"
+   ],
+   "shots": {
+    "results": 60
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "the results on the game screen",
+     "type": "not_uniform",
+     "shot": "results",
+     "screen": "game",
+     "rect": [
+      272,
+      244,
+      475,
+      567
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "ML-5",
+     "what": "nothing moved to the second screen's top left",
+     "type": "uniform",
+     "shot": "results",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "nothing moved to the second screen's right",
+     "type": "uniform",
+     "shot": "results",
+     "rect": [
+      512,
+      144,
+      975,
+      227
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ml-jp-battle-boxes",
+   "rom": "A88J",
+   "state": "mario-and-luigi-superstar-saga/jp-battle-blocks.ss",
+   "desc": "Japan, a battle on the Koopa Cruiser, choosing Mario's block (the owner's state): the meters and boxes on the second screen over the logo, the blocks on the game screen",
+   "rules": [
+    "ML-1",
+    "ML-5"
+   ],
+   "shots": {
+    "blocks": 30,
+    "later": 90
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "the meters at the top left of the second screen",
+     "type": "not_uniform",
+     "shot": "blocks",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "the top right box on the second screen",
+     "type": "not_uniform",
+     "shot": "blocks",
+     "rect": [
+      472,
+      76,
+      975,
+      131
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "the bottom box on the second screen",
+     "type": "not_uniform",
+     "shot": "blocks",
+     "rect": [
+      532,
+      624,
+      975,
+      687
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ml-jp-battle-results",
+   "rom": "A88J",
+   "state": "mario-and-luigi-superstar-saga/jp-battle-results.ss",
+   "desc": "Japan, a battle's last moment, then its results (the owner's state, saved before them): EXP, coins and items on the game screen whole, the logo alone on the second screen",
+   "rules": [
+    "ML-3",
+    "ML-5"
+   ],
+   "shots": {
+    "blow": 40,
+    "results": 150
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "the results on the game screen",
+     "type": "not_uniform",
+     "shot": "results",
+     "screen": "game",
+     "rect": [
+      272,
+      244,
+      475,
+      567
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "ML-5",
+     "what": "nothing moved to the second screen's top left",
+     "type": "uniform",
+     "shot": "results",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "nothing moved to the second screen's right",
+     "type": "uniform",
+     "shot": "results",
+     "rect": [
+      512,
+      144,
+      975,
+      227
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
    "id": "ml-us-bros-info",
    "rom": "A88E",
    "state": "mario-and-luigi-superstar-saga/us-bros-info.ss",
