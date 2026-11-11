@@ -2948,35 +2948,63 @@ static bool ml_bros_info(Emu* s) {
 static void ml_page(const uint32_t* fb, uint32_t* out, int w, int h) {
 	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
 }
-/* Bros. Info's L and R prompts (ML-2), under the portrait on BG2: each a
- * pink tab with its letter, tiles 0x172-0x173 (L) and 0x170-0x171 (R) on
- * map row 9, columns 2-3 and 6-7, and 0x192-0x193 / 0x190-0x191 on row 10.
- * Row 9 also holds the bottom of the portrait's ring, so it stays, its
- * white letters taken by the stand's dark brown around them; row 10's tab
- * tiles become the stand's own bottom tiles (row 10, columns 4-5), drawn
- * by one more frame of the hidden copy. Not this layout: left as it is */
-#define ML_TAB_X0 16
-#define ML_TAB_X1 48
+/* Bros. Info's L and R prompts (ML-2): each a pink tab with its letter,
+ * drawn into BG2's magnifying glass (tiles 0x170-0x173 on map row 9 and
+ * 0x190-0x193 on row 10, columns 2-3 for L and 6-7 for R; not sprites, so
+ * they can't be hidden alone). The glass is concentric rings round the
+ * lens's centre (39.5, 47): the dark rim, its lighter outline, the medium
+ * brown, then the spoon's own edge (on the right the stem instead). Under
+ * the tabs (16x16 at x 16 and 48, y 72) each BG2 pixel takes the glass's
+ * own colour at the same distance from the centre along the nearest angle
+ * the tabs don't cover, so the rings close round; where the glass has
+ * nothing at that distance, what lies behind BG2 (the plaid) shows; under
+ * R, right of the spoon's bottom edge (x 50), the stem's medium brown. A
+ * pixel the portrait's sprites cover, or the lens, stays. Not this
+ * layout: left as it is */
+#define ML_GLASS_X 39.5
+#define ML_GLASS_Y 47.0
 static void ml_no_prompts(Emu* s, uint32_t* out, int w, int h) {
-	if (w < 64 || h < 88) return;
+	if (w < 80 || h < 88) return;
 	uint32_t map = 0x06000000 + ((emu_read16(s, 0x0400000C) >> 8) & 0x1F) * 0x800;
-#define ML_MAP(r, c) (map + ((r) * 32 + (c)) * 2)
 	static const uint16_t want9[4] = { 0x172, 0x173, 0x170, 0x171 }, want10[4] = { 0x192, 0x193, 0x190, 0x191 };
 	static const int cols[4] = { 2, 3, 6, 7 };
 	for (int i = 0; i < 4; ++i)
-		if ((emu_read16(s, ML_MAP(9, cols[i])) & 0x3FF) != want9[i] || (emu_read16(s, ML_MAP(10, cols[i])) & 0x3FF) != want10[i]) return;
-	uint16_t plain[2] = { emu_read16(s, ML_MAP(10, 4)), emu_read16(s, ML_MAP(10, 5)) };
-	for (int i = 0; i < 4; ++i) emu_write16(s, ML_MAP(10, cols[i]), plain[i & 1]);
+		if ((emu_read16(s, map + (9 * 32 + cols[i]) * 2) & 0x3FF) != want9[i] ||
+		    (emu_read16(s, map + (10 * 32 + cols[i]) * 2) & 0x3FF) != want10[i])
+			return;
+	/* the page without BG2, the same frame on: BG2's whole map blank for a
+	 * frame (tile 0 is empty), then back (emu_layers doesn't reach the
+	 * app's renderer) */
+	static uint32_t bare[GBA_W * GBA_H];
+	static uint16_t saved[32 * 32];
+	for (int i = 0; i < 32 * 32; ++i) saved[i] = emu_read16(s, map + i * 2), emu_write16(s, map + i * 2, 0);
 	emu_frame(s, 0);
-	uint32_t dark = out[77 * w + 40]; /* (the stand's inside, between the tabs) */
-	for (int t = 0; t < 2; ++t) {
-		int x0 = t ? ML_TAB_X1 : ML_TAB_X0;
-		for (int y = 72; y < 80; ++y)
-			for (int x = x0; x < x0 + 16; ++x)
-				if ((out[y * w + x] & 0xFFFFFF) == 0xFFFFFF) out[y * w + x] = dark;
-		for (int y = 80; y < 88; ++y) memcpy(&out[y * w + x0], &s->fb[y * GBA_W + x0], 16 * sizeof(uint32_t));
-	}
-#undef ML_MAP
+	memcpy(bare, s->fb, sizeof(bare));
+	for (int i = 0; i < 32 * 32; ++i) emu_write16(s, map + i * 2, saved[i]);
+	/* the angles (y down) either side of each tab that show the glass whole:
+	 * L between above it and the bottom's middle, R between the middle and
+	 * the stem */
+	static const struct { int x; double a0, a1; } tabs[2] = { { 16, 136.0, 100.0 }, { 48, 80.0, 40.0 } };
+	static uint32_t page[GBA_W * GBA_H];
+	for (int y = 0; y < GBA_H; ++y) memcpy(&page[y * GBA_W], &out[y * w], GBA_W * sizeof(uint32_t));
+	for (int t = 0; t < 2; ++t)
+		for (int y = 72; y < 88; ++y)
+			for (int x = tabs[t].x; x < tabs[t].x + 16; ++x) {
+				int i = y * GBA_W + x;
+				if (page[i] == bare[i]) continue; /* (not BG2: the portrait, the lens) */
+				double dx = x - ML_GLASS_X, dy = y - ML_GLASS_Y, r = sqrt(dx * dx + dy * dy);
+				double a = atan2(dy, dx) * 180.0 / M_PI;
+				double e = fabs(a - tabs[t].a0) < fabs(a - tabs[t].a1) ? tabs[t].a0 : tabs[t].a1;
+				/* (under R, the spoon's bottom edge stops at x 50, where the stem
+				 * goes on down: past it, the stem's medium brown) */
+				if (t == 1 && x > 50 && r > 34.5) e = tabs[t].a1;
+				int qx = (int) lround(ML_GLASS_X + r * cos(e * M_PI / 180.0));
+				int qy = (int) lround(ML_GLASS_Y + r * sin(e * M_PI / 180.0));
+				uint32_t v = bare[i];
+				if (qx >= 0 && qx < GBA_W && qy >= 0 && qy < GBA_H && page[qy * GBA_W + qx] != bare[qy * GBA_W + qx])
+					v = page[qy * GBA_W + qx];
+				out[y * w + x] = v;
+			}
 }
 static const char* ml_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
 	*nOut = 1;
