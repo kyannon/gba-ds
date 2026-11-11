@@ -42,7 +42,7 @@ Every level of every passage was loaded in both releases (on a passage's level s
 
 - The bonus rooms behind the pipes and the moment a gem chest opens: the pause screen is expected to open as usual there, or the last picture to stay; not tried.
 - Hard difficulty (Super Hard was checked; the screens are the same).
-- Items from the Item Shop used in a fight (expected to stay on the game screen: they're not in the HUD's palettes).
+- Items from the Item Shop in a fight: only the Apple Bomb against Cractus is checked (wl4-us-cractus-apple-bomb: the shop's helper and the bomb stay on the game screen); the other items are expected alike (not in the HUD's palettes).
 - The ending and the Sound Room.
 
 ## Facts found so far (for sessions)
