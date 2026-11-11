@@ -418,6 +418,107 @@
    ]
   },
   {
+   "id": "mmbn-us-game-over",
+   "rom": "AREE",
+   "state": "mega-man-battle-network/us-before-battle.ss",
+   "desc": "into a battle with MegaMan's status on the second screen, then the game over screen (the owner's bug report, replayed to where it begins, loaded in): the logo at once",
+   "rules": [
+    "MMBN-1"
+   ],
+   "input": [
+    [
+     0,
+     "UP"
+    ],
+    [
+     30,
+     "DOWN"
+    ],
+    [
+     60,
+     "UP"
+    ],
+    [
+     90,
+     "DOWN"
+    ],
+    [
+     120,
+     "UP"
+    ],
+    [
+     150,
+     "DOWN"
+    ],
+    [
+     180,
+     "UP"
+    ],
+    [
+     210,
+     "DOWN"
+    ],
+    [
+     240,
+     "UP"
+    ],
+    [
+     270,
+     "DOWN"
+    ],
+    [
+     300,
+     "UP"
+    ],
+    [
+     330,
+     "DOWN"
+    ],
+    [
+     360,
+     "-"
+    ],
+    [
+     420,
+     "LOAD:mega-man-battle-network/us-game-over.ss"
+    ]
+   ],
+   "shots": {
+    "battle": 400,
+    "game_over": 480
+   },
+   "checks": [
+    {
+     "rule": "MMBN-1",
+     "what": "the status in the battle",
+     "type": "uniform",
+     "shot": "battle",
+     "screen": "second",
+     "rect": [
+      40,
+      148,
+      720,
+      236
+     ],
+     "color": "4A5A63"
+    },
+    {
+     "rule": "MMBN-1",
+     "what": "game over: the logo",
+     "type": "uniform",
+     "shot": "game_over",
+     "screen": "second",
+     "rect": [
+      100,
+      110,
+      260,
+      170
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
    "id": "mmbn-eu-custom",
    "rom": "AREP",
    "state": "mega-man-battle-network/eu-battle-gauge-full.ss",

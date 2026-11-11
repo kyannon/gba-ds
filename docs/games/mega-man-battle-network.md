@@ -16,7 +16,7 @@ How it fits the [philosophy](../../wiki/Philosophy.md): MegaMan's level, HP, arm
 
 ## Rules
 
-**MMBN-1. Logo.** On the title, and until MegaMan's status is first taken (MMBN-2), the second screen shows the logo: the title's MEGAMAN BATTLE NETWORK lettering with its emblem, without the grid behind it, PRESS START or the copyright lines; in Japan the title's ロックマン エグゼ with its バトルネットワーク banner, its purple swoosh and the emblem, without the blue behind them.
+**MMBN-1. Logo.** On the title, on the game over screen (from the moment it comes up, MegaMan's status forgotten; until the eighth test build with maps, the status or the map stayed until the title), and until MegaMan's status is first taken (MMBN-2), the second screen shows the logo: the title's MEGAMAN BATTLE NETWORK lettering with its emblem, without the grid behind it, PRESS START or the copyright lines; in Japan the title's ロックマン エグゼ with its バトルネットワーク banner, its purple swoosh and the emblem, without the blue behind them.
 
 **MMBN-2. MegaMan's status and money, in the real world.** Walking about with Lan in the real world, and in battles (MMBN-4; walking about on the net: the area's map, MMBN-6), the second screen shows the PET's MegaMan screen (START, MegaMan) and its money counter (START's menu, its top right corner) in one frame:
 - at the top right, the money counter as the game draws it, without its own orange frame (its dark band and the amount, at the same place across as in the game), its lighter grey behind the amount made the dark grey-blue of the panel's top row (behind "MegaMan.exe" and the level), and the rest of its rows, left of it, filled with that colour too, so the counter's row and the panel read as one piece;

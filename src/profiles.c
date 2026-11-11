@@ -6772,9 +6772,9 @@ static const MapProfile profiles[] = {
 		/* walking about (scenes too: START opens nothing there, the last
 		 * picture stays, MMBN-3) */
 		.live = { { MMBN_STATE, 0xFF, 4, 1 } },
-		/* the title: the logo, the status forgotten (MMBN-1); in a battle
-		 * the status from before it stays (MMBN-4) */
-		.menu = { { MMBN_STATE, 0xFF, 0, 1 } },
+		/* the title, game over (0x20): the logo, the status forgotten
+		 * (MMBN-1); in a battle the status from before it stays (MMBN-4) */
+		.menu = { { MMBN_STATE, 0xFF, 0, 1, true, 0x20 } },
 		/* HP (back from a battle, a recovery), its maximum, the area, the money:
 		 * taken again at once (MMBN-2) */
 		.room = { { MMBN_HP, 0xFFFF, 0, 2 }, { MMBN_HP + 2, 0xFFFF, 0, 2 }, { MMBN_AREA, 0xFFFF, 0, 2 }, { MMBN_ZENNY, 0, 0, 4 } },
