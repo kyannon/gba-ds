@@ -24,6 +24,7 @@
 - **Patch files beside the ROM:** an `.ips`, `.ups` or `.bps` patch with the same name as a ROM, in the same folder, is applied every time the game starts, as RetroArch does, so romhacks can be played from the unchanged ROM (Superstar Saga+ included). The game list says when a patch was applied ("(patch file)" after a romhack's name) or wasn't ("Patch not applied: ... is for another ROM"). Saves and save states keep the ROM's names.
 
 ### Fixes
+- **Mario & Luigi: Superstar Saga:** in a battle's item list, the green items' icons (Refreshing Herbs, Green Peppers) are back in the list on the second screen; since v1.5's first test builds they were left on the game screen by Mario.
 - **Dragon Ball Z: The Legacy of Goku (Europe):** conversations' text boxes, and the HP and Ki bars with them, disappeared from the game screen while walking about; they stay there now.
 - **Mario & Luigi: Superstar Saga:** in the Starshade Bros.' Bros. Attack tutorial, and other battle tutorials where someone speaks while the battle's boxes are up, the speech balloons stay on the game screen by whoever is speaking instead of moving to the second screen, and so do a Bros. Attack's big button prompts and the "!" over the brothers' heads (issue #31).
 
