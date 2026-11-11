@@ -97,6 +97,94 @@
    ]
   },
   {
+   "id": "mzm-eu-play",
+   "rom": "BMXP",
+   "state": "metroid-zero-mission/eu-play.ss",
+   "desc": "Europe (English on the language menu), Brinstar at the start of a new game (played from power-on): the tidied map, no mini-map on the game screen",
+   "rules": [
+    "MZM-1",
+    "MZM-2",
+    "MZM-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "MZM-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "mzm-jp-play",
+   "rom": "BMXJ",
+   "state": "metroid-zero-mission/jp-play.ss",
+   "desc": "Japan, Brinstar at the start of a new game (played from power-on): the tidied map, no mini-map on the game screen",
+   "rules": [
+    "MZM-1",
+    "MZM-2",
+    "MZM-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "MZM-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "mzm-eu-menu",
+   "rom": "BMXP",
+   "state": "metroid-zero-mission/eu-menu.ss",
+   "desc": "Europe, the title going into the file menu: the logo, no map",
+   "rules": [
+    "MZM-5"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "type": "no_log",
+     "match": "map updated",
+     "rule": "MZM-5",
+     "what": "no map captured at the menus"
+    }
+   ]
+  },
+  {
+   "id": "mzm-jp-menu",
+   "rom": "BMXJ",
+   "state": "metroid-zero-mission/jp-menu.ss",
+   "desc": "Japan, the title going into the file menu: the logo, no map",
+   "rules": [
+    "MZM-5"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "type": "no_log",
+     "match": "map updated",
+     "rule": "MZM-5",
+     "what": "no map captured at the menus"
+    }
+   ]
+  },
+  {
    "id": "mzm-logo-bmxe",
    "kind": "logo",
    "rom": "BMXE",
