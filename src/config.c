@@ -96,9 +96,10 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	BOOL("color_correction", colorCorrection)
 	BOOL("lcd_ghosting", ghosting)
 	if (!strcmp(key, "overlays")) {
-		/* none / primary / secondary / both (older configs: 0 / 1, top / bottom) */
-		c->overlays = !strcmp(val, "primary") || !strcmp(val, "top")      ? OVL_PRIMARY :
-		              !strcmp(val, "secondary") || !strcmp(val, "bottom") ? OVL_SECONDARY :
+		/* none / top / bottom / both (older configs: 0 / 1; primary / secondary,
+		 * the game / map screen before v1.5: as the screens are unswapped) */
+		c->overlays = !strcmp(val, "top") || !strcmp(val, "primary")      ? OVL_TOP :
+		              !strcmp(val, "bottom") || !strcmp(val, "secondary") ? OVL_BOTTOM :
 		              !strcmp(val, "both")   ? OVL_BOTH :
 		              !strcmp(val, "none")   ? 0 :
 		              parse_bool(val)        ? OVL_BOTH : 0;

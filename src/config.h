@@ -3,10 +3,11 @@
 
 #include <stdbool.h>
 
-/* Overlays: "primary" is the game screen, "secondary" the map screen (they
- * follow the picture when the screens are swapped). Each is the player's
- * overlay, else GBA DS's own bezel (overlays/default). */
-enum { OVL_PRIMARY = 1, OVL_SECONDARY = 2, OVL_BOTH = 3 };
+/* Overlays, by physical screen (they stay put when the screens are swapped):
+ * the top one, the bottom one or both. On each, the player's overlay for the
+ * picture there (primary / secondary files), else GBA DS's own bezel
+ * (overlays/default). */
+enum { OVL_TOP = 1, OVL_BOTTOM = 2, OVL_BOTH = 3 };
 /* Display > Shader, in menu order. Each is a fixed pattern multiplied over
  * every GBA pixel (a texture built once, ui.c), so none costs more than the
  * LCD grid; the subpixel presets also brighten the colours to make up for
@@ -26,7 +27,7 @@ typedef struct Config {
 	char mapScale[16]; /* map:  integer | fit | stretch */
 	bool smooth;       /* plain linear filtering when scaling (blurry) */
 	char borderColor[16]; /* RRGGBB behind the map screen (outside the map image) */
-	int overlays;      /* OVL_PRIMARY | OVL_SECONDARY: game-screen / map-screen overlays */
+	int overlays;      /* OVL_TOP | OVL_BOTTOM: the screens that have overlays */
 	int shader;        /* SH_*: a pattern over every pixel on both screens (Display > Shader) */
 	bool colorCorrection; /* the GBA's screen colours (mGBA's GBA Color shader) */
 	bool ghosting;     /* LCD ghosting: each frame of the game shown blended with the one before */

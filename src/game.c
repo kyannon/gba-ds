@@ -1115,8 +1115,8 @@ static const char* const allLabels[] = {
 	"Resume", "Restart Game", "Are You Sure?", "Save State", "Load State", "Cheats", "Achievements",
 	"Take Screenshot", "Close Game", "Close GBA DS", "Swap Screens", "Scale: Pixel Perfect", "Scale: Full Width",
 	"Scale: Zoom", "Scale: Stretch", "Shader: Off", "Shader: LCD Grid", "Shader: Scanlines", "Shader: Soft Cells",
-	"Shader: Subpixels (Light)", "Shader: Subpixels", "Shader: Subpixels (Strong)", "Overlays: None", "Overlays: Primary",
-	"Overlays: Secondary", "Overlays: Both", "Submit a Bug Report",
+	"Shader: Subpixels (Light)", "Shader: Subpixels", "Shader: Subpixels (Strong)", "Overlays: None", "Overlays: Show Top Only",
+	"Overlays: Show Bottom Only", "Overlays: Show Both", "Submit a Bug Report",
 	"Map Animations: On", "Map Animations: Off", "Map Refresh: Every 3 s", "Map Refresh: Every 1.5 s",
 	"Map Refresh: Every 1 s", "Map Refresh: Every 0.5 s", "Map Refresh: Custom", "Frame Buffer: On",
 	"Frame Buffer: Off", "Match Display Rate: On", "Match Display Rate: Off",
@@ -2217,7 +2217,7 @@ static void draw_menu(void) {
 		                                      !strcmp(cfg->screenMatch, "aspect") ? "Match screen aspect ratios" : "Match screen sizes and aspect ratios";
 		if (menuItems[i] == M_LOGO) label = cfg->showLogo ? "No Second Screen: Show Logo" : "No Second Screen: Keep Blank";
 		if (menuItems[i] == M_OVERLAY) {
-			static const char* const ovl[4] = { "Overlays: None", "Overlays: Primary", "Overlays: Secondary", "Overlays: Both" };
+			static const char* const ovl[4] = { "Overlays: None", "Overlays: Show Top Only", "Overlays: Show Bottom Only", "Overlays: Show Both" };
 			label = ovl[cfg->overlays & OVL_BOTH];
 		}
 		if (menuItems[i] == armedItem) label = "Are You Sure?";
@@ -5029,7 +5029,7 @@ static void save_prefs(void) {
 		fprintf(f, "# written by gba-ds's pause menu; overrides gba-ds.cfg\n");
 		fprintf(f, "swap = %d\nscale = %s\nmap_scale = %s\nshader = %s\ncolor_correction = %d\nlcd_ghosting = %d\noverlays = %s\nframe_buffer = %d\nmatch_display = %d\nrewind = %d\nfast_forward = %d\nsave_on_quit = %d\nauto_load = %d\nquick_bar_pinned = %d\n",
 		        cfg->swap ? 1 : 0, cfg->scale, cfg->mapScale, shaderNames[cfg->shader], cfg->colorCorrection ? 1 : 0, cfg->ghosting ? 1 : 0,
-		        (const char* const[]) { "none", "primary", "secondary", "both" }[cfg->overlays & OVL_BOTH],
+		        (const char* const[]) { "none", "top", "bottom", "both" }[cfg->overlays & OVL_BOTH],
 		        cfg->frameBuffer ? 1 : 0, cfg->matchDisplay ? 1 : 0, cfg->rewind ? 1 : 0, cfg->fastForward ? 1 : 0,
 		        cfg->autoSave ? 1 : 0, cfg->autoLoad ? 1 : 0, cfg->barPinned ? 1 : 0);
 		fprintf(f, "screen_match = %s\n", cfg->screenMatch);
@@ -5154,6 +5154,11 @@ static void draw_default_overlay(int s, const char* mode) {
 		fprintf(stderr, "overlay (default, %s screen): %s%s\n", s ? "bottom" : "top", name, ok ? "" : ", none made for this");
 	}
 	if (defOverlayTex[s][0] || defOverlayTex[s][1]) ui_image(s, defOverlayTex[s], defOverlayW[s], defOverlayH[s], "stretch", NULL);
+}
+
+/* Overlays: on for this physical screen (one screen: the top one's setting) */
+static bool overlay_on(int s) {
+	return cfg->overlays & (s == 1 && nScreens == 2 ? OVL_BOTTOM : OVL_TOP);
 }
 
 static void draw_overlay(int s, int which) {
@@ -5284,7 +5289,7 @@ static void draw_game(void) {
 		if (showGame) {
 			if (nScreens == 2 && !mapOn && s != game_screen()) {
 				/* no map: the other screen black (in its bezel with overlays on both screens) */
-				if ((cfg->overlays & OVL_BOTH) == OVL_BOTH) draw_overlay(s, 1);
+				if (cfg->overlays == OVL_BOTH) draw_overlay(s, 1);
 				continue;
 			}
 			ui_image_pixels(s, gameTex, GBA_W, GBA_H, cfg->scale, SHADER_ON);
@@ -5293,7 +5298,7 @@ static void draw_game(void) {
 				SDL_Rect img = ui_image_rect(s, GBA_W, GBA_H, cfg->scale);
 				ui_fill(s, img, (SDL_Color) { 0, 0, 0, 150 });
 			}
-			if (cfg->overlays & OVL_PRIMARY) draw_overlay(s, 0);
+			if (overlay_on(s)) draw_overlay(s, 0);
 			if (cfg->showFps) {
 				/* sized to sit in the empty band above the picture */
 				char buf[48];
@@ -5341,9 +5346,9 @@ static void draw_game(void) {
 			if (tp) ui_title_block(s, area, tp->title, (int) (ui_px(s) * 14), (SDL_Color) { 236, 236, 244, 255 });
 		}
 		/* with overlays on both screens, whatever this one shows (map, HUD, logo
-		 * or nothing); with the secondary's alone, only over a map or HUD */
+		 * or nothing); with this screen's alone, only over a map or HUD */
 		bool liveHere = (hudShown || mapShownIdx >= 0) && !logoForced;
-		if ((cfg->overlays & OVL_SECONDARY) && ((cfg->overlays & OVL_BOTH) == OVL_BOTH || liveHere)) draw_overlay(s, 1);
+		if (overlay_on(s) && (cfg->overlays == OVL_BOTH || liveHere)) draw_overlay(s, 1);
 		if (!hudShown && mapShownIdx >= 0 && mapInactive && !logoForced) {
 			ui_dim(s, 120);
 		}
@@ -5478,8 +5483,8 @@ static bool activate(int item, enum GameExit* exitTo) {
 		break;
 	case M_OVERLAY:
 		/* PRIMARY -> SECONDARY -> BOTH -> NONE -> PRIMARY */
-		cfg->overlays = cfg->overlays == OVL_PRIMARY ? OVL_SECONDARY : cfg->overlays == OVL_SECONDARY ? OVL_BOTH :
-		                cfg->overlays == OVL_BOTH ? 0 : OVL_PRIMARY;
+		cfg->overlays = cfg->overlays == OVL_TOP ? OVL_BOTTOM : cfg->overlays == OVL_BOTTOM ? OVL_BOTH :
+		                cfg->overlays == OVL_BOTH ? 0 : OVL_TOP;
 		save_prefs();
 		break;
 	case M_FPS:
