@@ -248,7 +248,11 @@ def run_app(case, args, workdir):
         cmd.append("--rom_dir=" + romdir)
     else:
         cmd.append(rom)
-    env = dict(os.environ, SDL_VIDEODRIVER="offscreen", SDL_AUDIODRIVER="dummy",
+    # SDL's own software renderer, the same arithmetic on any machine: through
+    # OpenGL (Mesa's llvmpipe, where a machine has it) blended pictures (text,
+    # its shadow, a dimmed map) came out a shade apart from one CPU or Mesa to
+    # another, so goldens made on a session's container failed on GitHub's runners
+    env = dict(os.environ, SDL_VIDEODRIVER="offscreen", SDL_AUDIODRIVER="dummy", SDL_RENDER_DRIVER="software",
                GBADS_WINDOW="%dx%d" % (SCREEN_W, SCREEN_H * 2), GBADS_SYNC="1", GBADS_DEBUG="1")
     if not args.paced:
         # (as fast as it goes, drawing only the frames a screenshot or a
@@ -351,7 +355,7 @@ def golden_path(args, case, shot):
 
 
 # a failing case's log lines worth printing with it
-LOG_KEYS = ("ROM: ", "patches: ", "patch ", "load state: ", "game list: ", "osd: ")
+LOG_KEYS = ("renderer: ", "ROM: ", "patches: ", "patch ", "load state: ", "game list: ", "osd: ")
 
 
 def compare_golden(run, args, shot):

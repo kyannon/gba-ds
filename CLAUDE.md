@@ -367,7 +367,12 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   games a change touches (docs/TESTING.md); GitHub runs that on every push
   to dev / android / game/* (`.github/workflows/regress.yml`; the full
   suite for a "Release vX.Y.Z" commit or "Run workflow" with "full"). `GBADS_SYNC=1`
-  makes captures and logo extraction run inline, so runs are exact. By
+  makes captures and logo extraction run inline, so runs are exact; the app
+  draws with SDL's software renderer (`SDL_RENDER_DRIVER=software`, set by
+  regress.py), the same on every machine (through Mesa's OpenGL, blended
+  text came out a shade apart from GitHub's runners). A failing case prints
+  where its pictures differ and its log's ROM / patch / state lines (all a
+  GitHub run keeps). By
   default regress.py also runs the app unpaced (`GBADS_NOPACE=1`) and
   drawing only screenshot and touch frames (`GBADS_DRAW_SHOTS_ONLY=1`),
   the CPU count + 1 cases at a time: the full suite takes 10-15 minutes

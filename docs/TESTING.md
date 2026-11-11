@@ -81,8 +81,14 @@ failing share keeps its report as an artifact for 7 days.
 ## How a case runs
 
 The app runs headless (`SDL_VIDEODRIVER=offscreen`) in a 1024x1536 window
-(both RG DS Plus screens stacked: the game screen on top) with
-`GBADS_SYNC=1`. That switch makes map captures and logo extraction run
+(both RG DS Plus screens stacked: the game screen on top), drawn by SDL's
+own software renderer (`SDL_RENDER_DRIVER=software`), with
+`GBADS_SYNC=1`. The software renderer does the same arithmetic on any
+machine: through OpenGL (Mesa's llvmpipe, where a machine has it)
+blended pictures (text and its shadow, a dimmed map, a menu's panels)
+came out a shade apart from one CPU or Mesa to another, so goldens
+approved on a session's container failed on GitHub's runners, which
+have no OpenGL (71 cases, Nov 11, 2026). That switch makes map captures and logo extraction run
 inline at the frame they're asked for instead of on background threads, so
 every run of a case gives exactly the same pictures. The app also runs
 as fast as it can (`GBADS_NOPACE=1`) and draws only the frames that need
@@ -91,7 +97,7 @@ of a tap, swipe, state load or joystick line): the game, map and HUD
 pictures are still made every frame, only the screens aren't put
 together, so the pictures are the same as when it draws every frame, in
 under half the time (most of a frame's time went into drawing both
-screens through software OpenGL). `--paced` runs it as players do
+screens). `--paced` runs it as players do
 instead, at 60 frames a second and drawing every frame: for a case that
 might depend on something timed in real seconds (the quick bar closes
 itself after 5 s). Each case gets a
