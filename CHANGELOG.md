@@ -21,6 +21,7 @@
 - **Mega Man Battle Network:** on the net, the second screen now shows a map of the area you're in, following MegaMan, at a third of the game's size, with his head marking where he is: the game has no map, so GBA DS draws one from the area's own layout, in the game's own tiles, as you arrive (Navis, Mystery Data and other characters aren't on it). Battles now play on the game screen as the game draws them, custom screen included, instead of the custom screen sliding in on the second screen; the second screen shows MegaMan's status and money as they were when the battle began (his HP there is the one he went in with). The game over screen shows the logo.
 
 ### Fixes
+- **Mario & Luigi: Superstar Saga:** in a battle's item list, the green items' icons (Refreshing Herbs, Green Peppers) are back in the list on the second screen; since v1.5's first test builds they were left on the game screen by Mario.
 - **Dragon Ball Z: The Legacy of Goku (Europe):** conversations' text boxes, and the HP and Ki bars with them, disappeared from the game screen while walking about; they stay there now.
 - **Mario & Luigi: Superstar Saga:** in the Starshade Bros.' Bros. Attack tutorial, and other battle tutorials where someone speaks while the battle's boxes are up, the speech balloons stay on the game screen by whoever is speaking instead of moving to the second screen, and so do a Bros. Attack's big button prompts and the "!" over the brothers' heads (issue #31).
 
