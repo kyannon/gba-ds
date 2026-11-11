@@ -20,7 +20,7 @@ ROCKNIX build is unaffected.
 ## What carries over
 
 Everything game-side is portable C: `emu.c`, `mapcap.c`, `profiles.c`,
-`logo.c`, `mapframe.c`, `cheats.c`, and most of `game.c` / `library.c`.
+`logo.c`, `cheats.c`, and most of `game.c` / `library.c`.
 libmgba builds with the Android NDK (mGBA has its own Android-friendly
 CMake), SDL2 runs on Android (SDLActivity), audio and gamepads come through
 SDL.

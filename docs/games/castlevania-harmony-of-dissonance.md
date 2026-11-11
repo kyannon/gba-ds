@@ -16,7 +16,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **CVH-1. Map during play.** While the game is being played, the second screen shows the game's pause-screen map, captured on the hidden copy every `map_interval` frames (60: every second) and after each room transition.
 
-**CVH-2. Map surround.** The map is drawn inside the generated surround built from the game's menu artwork.
+**CVH-2.** *Retired in v1.5's test builds:* the map drawn inside a border built from the game's own menu artwork (the generated map surround). Overlays are now only bezels around the picture, the same for every game; the map is on the screen's background colour like every other game's.
 
 **CVH-3. Last good map stays.** When the map can't be opened, the last good map stays up.
 

@@ -702,20 +702,6 @@ typedef struct MapProfile {
 		RomPatch patch[2];
 	} logo;
 
-	/* Border for the map screen, taken from one of the game's own menu screens
-	 * (Castlevania): play `steps` from power-on, render BG `layer` alone, and
-	 * read a frame of thickness t whose corners are at x0/x1, y0/y1. Edges are
-	 * tiled from p-wide slices (the most common one along each edge, which
-	 * skips one-off decorations). */
-	struct {
-		MacroStep steps[24];
-		int layer, t, p;
-		int x0, y0, x1, y1;
-		int minLuma; /* pixels darker than this are dropped (translucent panel fills) */
-	} frame;
-	/* Metroid: fill the map screen with the map's own empty grid tile. */
-	bool gridBackground;
-
 	/* Text to copy from another screen onto the map (Circle of the Moon's map
 	 * has no completion rate; its pause screen does): press `open` from the
 	 * live state, wait, then take the pixels of colour `text` inside x/y/w/h

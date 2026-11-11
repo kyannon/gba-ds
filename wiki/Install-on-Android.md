@@ -27,7 +27,7 @@ Everything except the battery saves lives in a **`GBA DS`** folder on the intern
 |---|---|
 | `GBA DS/states/` | save states, resume points, menu settings (`prefs.cfg`), the game list's settings (`library.cfg`), extracted logos, the RetroAchievements sign-in and badges |
 | `GBA DS/cheats/` | your RetroArch `.cht` cheat files (subfolders are fine) |
-| `GBA DS/overlays/` | your own overlay PNGs (see [[Map screen surrounds and overlays]]) |
+| `GBA DS/overlays/` | your own overlay PNGs (see [[Overlays]]) |
 | `GBA DS/logos/` | your own logo images (`<CODE>.png`), used instead of the extracted ones |
 | `GBA DS/screenshots/` | Take Screenshot's PNGs |
 | `GBA DS/gba-ds.cfg` | optional: settings from [[Settings]] (create it; only the lines you want to change) |

@@ -94,10 +94,15 @@ void android_config_defaults(Config* c) {
 			            "A file goes with the ROM of the same name: Metroid Fusion (World) (Code Breaker).cht\n"
 			            "with Metroid Fusion (USA).gba. Switch cheats on in the pause menu: Extras > Cheats.\n"
 			            "More in the wiki: https://github.com/kyannon/gba-ds/wiki/Playing#cheats\n" },
-			{ "overlays", "Overlay PNGs (1024x768, transparent where the picture shows): primary.png (game screen) /\n"
-			              "secondary.png (map screen) for every game, <CODE>-primary.png / <CODE>-secondary.png for\n"
-			              "one game. Names for one scaling or screen shape, and more, in the wiki:\n"
-			              "https://github.com/kyannon/gba-ds/wiki/Map-screen-surrounds-and-overlays\n" },
+			{ "overlays", "Your own overlay PNGs go in this folder. Make each one the screen's size, transparent where\n"
+			              "the picture shows.\n\n"
+			              "top.png is drawn on the top screen and bottom.png on the bottom screen, for every game.\n"
+			              "<CODE>-top.png and <CODE>-bottom.png are for one game.\n"
+			              "The Overlays setting in the pause menu picks the screens: Show Top Only, Show Bottom Only,\n"
+			              "Show Both or None. Swapping screens doesn't move them.\n\n"
+			              "Yours win over GBA DS's own bezels, which are inside the app.\n\n"
+			              "Names for one scaling or screen shape, and more, in the wiki:\n"
+			              "https://github.com/kyannon/gba-ds/wiki/Overlays\n" },
 			{ "logos", "Optional: your own logo images (<CODE>.png or .bmp) override the ones extracted from the games.\n" },
 			{ "screenshots", NULL },
 		};
@@ -113,7 +118,7 @@ void android_config_defaults(Config* c) {
 				fclose(f);
 			}
 		}
-		/* the extracted logos and map borders in states/ aren't photos */
+		/* the extracted logos in states/ aren't photos */
 		char nomedia[1100];
 		snprintf(nomedia, sizeof(nomedia), "%s/states", home);
 		mkdirs(nomedia);

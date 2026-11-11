@@ -5193,10 +5193,6 @@ static const MapProfile profiles[] = {
 		.bgColor = 0x29007B, .minForeground = 12,
 		.mem = { { 0x03002C68, 0xFF, 0x02, 1 } },
 		.logo = { .wait = 1700, .layer = 1, .maxY = 160 },
-		/* name entry screen: power on, Start through the title, A (Game Start), A (new file) */
-		.frame = { .steps = { { 0, 900 }, { K_START, 3 }, { 0, 9 }, { K_START, 3 }, { 0, 69 }, { K_A, 3 }, { 0, 49 },
-		                      { K_A, 3 }, { 0, 69 } },
-		           .layer = 1, .t = 8, .p = 8, .x0 = 0, .y0 = 40, .x1 = 232, .y1 = 152 },
 		.animFrames = 8, .animStep = 4, .animCycle = 90, /* glow pulse: 84 frames */
 	},
 	{
@@ -5210,11 +5206,6 @@ static const MapProfile profiles[] = {
 		.bgColor = 0x000000, .minForeground = 12,
 		.mem = { { 0x03002B28, 0xFF, 0x02, 1 } },
 		.logo = { .wait = 1700, .layer = 1, .maxY = 130 },
-		/* name entry screen */
-		.frame = { .steps = { { 0, 700 }, { K_START, 3 }, { 0, 9 }, { K_A, 3 }, { 0, 39 }, { K_START, 3 }, { 0, 9 },
-		                      { K_A, 3 }, { 0, 39 }, { K_START, 3 }, { 0, 9 }, { K_A, 3 }, { 0, 39 }, { K_START, 3 },
-		                      { 0, 9 }, { K_A, 3 }, { 0, 90 } },
-		           .layer = 1, .t = 8, .p = 8, .x0 = 0, .y0 = 40, .x1 = 232, .y1 = 152, .minLuma = 90 },
 		.animFrames = 8, .animStep = 3, .animCycle = 64, /* glow pulse: 64 frames */
 	},
 	{
@@ -5229,9 +5220,6 @@ static const MapProfile profiles[] = {
 		.mem = { { 0x03000C80, 0xFF, 0x01, 1 } },
 		.live = { { 0x03000C80, 0xFF, 0x00, 1 } },
 		.logo = { .wait = 700, .layer = 0, .maxY = 120, .blackIsClear = true },
-		/* the bevelled boxes of the file menu (same style as name entry) */
-		.frame = { .steps = { { 0, 600 }, { K_START, 3 }, { 0, 9 }, { K_START, 3 }, { 0, 400 } },
-		           .layer = 1, .t = 4, .p = 1, .x0 = 10, .y0 = 10, .x1 = 98, .y1 = 34 },
 		/* the "x.x%" after RATE on the pause screen (fully drawn ~30 frames after
 		 * Start); digits only, so it fits beside a fully explored castle */
 		.rate = { .open = { { K_START, 4 } }, .wait = 40, .x = 183, .y = 25, .w = 56, .h = 7, .text = 0xEFFFEF },
@@ -7491,7 +7479,6 @@ static const MacroStep LANGUAGE_A[] = { { 0, 60 }, { K_A, 4 } };
 
 static void lang_menu(MapProfile* p) {
 	insert_steps(p->logo.steps, 24, 0, LANGUAGE_A, 2);
-	if (p->frame.steps[0].frames) insert_steps(p->frame.steps, 24, 0, LANGUAGE_A, 2);
 }
 
 /* Super Mario Advance 3 in Europe: the language menu (A: English), then

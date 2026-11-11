@@ -18,7 +18,7 @@ The idea here is "what if the Game Boy Advance had a second screen" -- part of w
 
 GBA DS supports 50 games, with their regional releases: see [Supported games](https://github.com/kyannon/gba-ds/wiki/Supported-games) in the wiki for the list and what each one shows on the second screen. Any other GBA game also runs; it just plays on one screen.
 
-**Documentation is in the [wiki](https://github.com/kyannon/gba-ds/wiki):** [Playing](https://github.com/kyannon/gba-ds/wiki/Playing) · [Supported games](https://github.com/kyannon/gba-ds/wiki/Supported-games) · [Map screen surrounds and overlays](https://github.com/kyannon/gba-ds/wiki/Map-screen-surrounds-and-overlays) · [Settings](https://github.com/kyannon/gba-ds/wiki/Settings) · [Troubleshooting](https://github.com/kyannon/gba-ds/wiki/Troubleshooting) · [Adding second-screen compatibility for a game](https://github.com/kyannon/gba-ds/wiki/Adding-second-screen-compatibility-for-a-game) · [Philosophy](https://github.com/kyannon/gba-ds/wiki/Philosophy)
+**Documentation is in the [wiki](https://github.com/kyannon/gba-ds/wiki):** [Playing](https://github.com/kyannon/gba-ds/wiki/Playing) · [Supported games](https://github.com/kyannon/gba-ds/wiki/Supported-games) · [Overlays](https://github.com/kyannon/gba-ds/wiki/Overlays) · [Settings](https://github.com/kyannon/gba-ds/wiki/Settings) · [Troubleshooting](https://github.com/kyannon/gba-ds/wiki/Troubleshooting) · [Adding second-screen compatibility for a game](https://github.com/kyannon/gba-ds/wiki/Adding-second-screen-compatibility-for-a-game) · [Philosophy](https://github.com/kyannon/gba-ds/wiki/Philosophy)
 
 ## How it works
 
@@ -97,7 +97,7 @@ GBA DS is written almost entirely by AI. The code is written by Claude, Anthropi
 
 **What you can see in the history:** since October 16, 2026, each commit shows "kyannon authored and Claude committed", with a Verified badge. "Authored" means I asked for and approved the change; "committed" means Claude wrote it. Earlier commits show me alone, but they were made the same way.
 
-**What isn't AI-generated:** the game logos, map borders and second-screen art are extracted from your own ROMs while the app runs, not drawn by AI or shipped with the app. Emulation itself is [mGBA](https://mgba.io)'s, a long-established, human-written emulator, which GBA DS builds on.
+**What isn't AI-generated:** the game logos and second-screen art are extracted from your own ROMs while the app runs, not drawn by AI or shipped with the app. Emulation itself is [mGBA](https://mgba.io)'s, a long-established, human-written emulator, which GBA DS builds on.
 
 **What this means for you:** I can't promise there are no bugs, but every feature in a release has been used on the device it was made for. A feature that can't be tested on my hardware is labeled *experimental* (for example, starting games from some Android frontends). If something doesn't work for you, please [open an issue](https://github.com/kyannon/gba-ds/issues); it gets tested on hardware the same way.
 

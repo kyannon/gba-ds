@@ -165,6 +165,9 @@ float ui_px(int screen); /* the layout unit: screen height / 192 (4 at 768), at 
 
 /* Loads a BMP into one texture per view. Returns false if missing. */
 bool ui_load_image(const char* path, SDL_Texture* out[2], int* w, int* h, bool smooth);
+/* The same through SDL_RWFromFile: on Android, a relative path is a file in
+ * the APK's assets. */
+bool ui_load_image_rw(const char* path, SDL_Texture* out[2], int* w, int* h, bool smooth);
 /* One of the built-in images (BRAND_* in brand.h), smooth-scaled. */
 bool ui_load_brand(int id, SDL_Texture* out[2], int* w, int* h);
 void ui_free_image(SDL_Texture* tex[2]);

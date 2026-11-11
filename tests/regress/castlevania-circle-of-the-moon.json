@@ -9,8 +9,7 @@
    "desc": "a 100% save in play",
    "rules": [
     "CVC-1",
-    "CVC-2",
-    "CVC-3"
+    "CVC-2"
    ],
    "shots": {
     "start": 60,
@@ -105,8 +104,7 @@
    "desc": "Europe, a new game's first room in the catacombs (played from power-on): the map and its rate",
    "rules": [
     "CVC-1",
-    "CVC-2",
-    "CVC-3"
+    "CVC-2"
    ],
    "shots": {
     "start": 60,
@@ -128,8 +126,7 @@
    "desc": "Japan, a new game's first room in the catacombs (played from power-on): the map and its rate",
    "rules": [
     "CVC-1",
-    "CVC-2",
-    "CVC-3"
+    "CVC-2"
    ],
    "shots": {
     "start": 60,
@@ -196,7 +193,8 @@
    ],
    "golden": [
     "logo"
-   ]
+   ],
+   "checks": []
   },
   {
    "id": "cvc-logo-aamp",
@@ -208,7 +206,8 @@
    ],
    "golden": [
     "logo"
-   ]
+   ],
+   "checks": []
   },
   {
    "id": "cvc-logo-aamj",
@@ -220,7 +219,8 @@
    ],
    "golden": [
     "logo"
-   ]
+   ],
+   "checks": []
   }
  ]
 }

@@ -9,7 +9,6 @@
    "desc": "outside the castle walls, new game",
    "rules": [
     "CVH-1",
-    "CVH-2",
     "CVH-5"
    ],
    "shots": {
@@ -103,7 +102,6 @@
    "desc": "Europe, outside the castle walls (a new game played from power-on): the map",
    "rules": [
     "CVH-1",
-    "CVH-2",
     "CVH-5"
    ],
    "shots": {
@@ -126,7 +124,6 @@
    "desc": "Japan (RAM 0x30 lower), outside the castle walls (a new game played from power-on): the map",
    "rules": [
     "CVH-1",
-    "CVH-2",
     "CVH-5"
    ],
    "shots": {
@@ -194,7 +191,8 @@
    ],
    "golden": [
     "logo"
-   ]
+   ],
+   "checks": []
   },
   {
    "id": "cvh-logo-achp",
@@ -206,7 +204,8 @@
    ],
    "golden": [
     "logo"
-   ]
+   ],
+   "checks": []
   },
   {
    "id": "cvh-logo-achj",
@@ -218,7 +217,8 @@
    ],
    "golden": [
     "logo"
-   ]
+   ],
+   "checks": []
   }
  ]
 }
