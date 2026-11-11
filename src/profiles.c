@@ -4374,8 +4374,8 @@ static const char* mmbn_compose(Emu* s, const void* state, uint32_t* out, int w,
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame_blind(s, 0);
 	if (emu_read8(s, MMBN_STATE) != 4) return "not walking about";
-	/* (on the net: its map, MMBN-6) */
-	if (mmbn_area_net(emu_read16(s, MMBN_AREA))) return "on the net: the area's map instead";
+	/* (on the net too: the map's shown there while walking about, MMBN-6,
+	 * the status in its battles, MMBN-4) */
 	mmbn_tap(s, K_START);
 	int f = 0;
 	while (f < 40 && emu_read8(s, MMBN_SMENU) != 4) emu_frame_blind(s, 0), ++f;
@@ -6760,8 +6760,8 @@ static const MapProfile profiles[] = {
 	{
 		/* Mega Man Battle Network (USA; Europe and Japan, Battle Network
 		 * Rockman EXE: variants). Walking about, the PET's MegaMan
-		 * screen: see mmbn_compose (MMBN-2); in battles the custom screen
-		 * on the second screen (MMBN-4) */
+		 * screen: see mmbn_compose (MMBN-2), kept through battles
+		 * (MMBN-4); on the net the area's map (MMBN-6) */
 		.codes = { "AREE" },
 		.title = "Mega Man Battle Network",
 		.compose = mmbn_compose,
@@ -6772,36 +6772,14 @@ static const MapProfile profiles[] = {
 		/* walking about (scenes too: START opens nothing there, the last
 		 * picture stays, MMBN-3) */
 		.live = { { MMBN_STATE, 0xFF, 4, 1 } },
-		/* the title, a battle: the logo, the status forgotten (MMBN-1,
-		 * MMBN-3: an old HP never shown after a battle) */
-		.menu = { { MMBN_STATE, 0xFF, 0, 1, true, 8 } },
+		/* the title: the logo, the status forgotten (MMBN-1); in a battle
+		 * the status from before it stays (MMBN-4) */
+		.menu = { { MMBN_STATE, 0xFF, 0, 1 } },
 		/* HP (back from a battle, a recovery), its maximum, the area, the money:
 		 * taken again at once (MMBN-2) */
 		.room = { { MMBN_HP, 0xFFFF, 0, 2 }, { MMBN_HP + 2, 0xFFFF, 0, 2 }, { MMBN_AREA, 0xFFFF, 0, 2 }, { MMBN_ZENNY, 0, 0, 4 } },
 		/* the title's lettering and emblem (BG3), above PRESS START */
 		.logo = { .wait = 400, .layers = 0x8, .maxY = 96 },
-		.hud = {
-			/* in a battle, while the custom screen is in: BG3HOFS
-			 * 0x188 in place, sliding from and back to 0 in steps of 8
-			 * (0 while fighting, the HP box at the top left; the
-			 * results slide in from 0xF0). Not the battle's step: in
-			 * the tutorials the custom screen stays up, the teacher
-			 * talking over it, after the step has gone on to 8
-			 * (MMBN-4) */
-			.on = { { MMBN_STATE, 0xFF, 8, 1 }, { 0x0400001C, 0x1FF, 0x188, 2, true, 0x1F8, true },
-			        { 0x0400001C, 0x7, 0, 2 } },
-			/* the custom screen and the HP box beside it */
-			.bgMask = 0x8,
-			/* its cursor (priority 0, palette 13; the field's sprites
-			 * are 2), and the tutorials' arrows (the same) where they
-			 * point into it; not their arrows over the field, or the
-			 * teacher's portrait by her message (priority 0, palette 14) */
-			.objs = { { -256, -256, 119, 255, 0, 1023, 0, 1u << 13 } },
-			/* on black (GEN-1), with no logo: the custom screen fills
-			 * the screen's height, the logo has no room below it */
-			.logoBelow = true,
-			.rows = GBA_H,
-		},
 	},
 };
 

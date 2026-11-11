@@ -282,10 +282,146 @@
    ]
   },
   {
+   "id": "mmbn-us-into-battle",
+   "rom": "AREE",
+   "state": "mega-man-battle-network/us-before-battle.ss",
+   "desc": "walking up and down on the net (area 0388) into a random battle: the area's map while walking, MegaMan's status and money (taken on the net beforehand) through the battle, its custom screen on the game screen",
+   "rules": [
+    "MMBN-2",
+    "MMBN-4",
+    "MMBN-6"
+   ],
+   "input": [
+    [
+     0,
+     "UP"
+    ],
+    [
+     30,
+     "DOWN"
+    ],
+    [
+     60,
+     "UP"
+    ],
+    [
+     90,
+     "DOWN"
+    ],
+    [
+     120,
+     "UP"
+    ],
+    [
+     150,
+     "DOWN"
+    ],
+    [
+     180,
+     "UP"
+    ],
+    [
+     210,
+     "DOWN"
+    ],
+    [
+     240,
+     "UP"
+    ],
+    [
+     270,
+     "DOWN"
+    ],
+    [
+     300,
+     "UP"
+    ],
+    [
+     330,
+     "DOWN"
+    ],
+    [
+     360,
+     "-"
+    ]
+   ],
+   "shots": {
+    "walking": 60,
+    "battle": 400
+   },
+   "checks": [
+    {
+     "rule": "MMBN-6",
+     "what": "the map while walking",
+     "type": "log",
+     "match": "area 0388 mapped"
+    },
+    {
+     "rule": "MMBN-2",
+     "what": "MegaMan's status taken on the net",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "MMBN-4",
+     "what": "in the battle: black above the status frame",
+     "type": "uniform",
+     "shot": "battle",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      991,
+      124
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "MMBN-4",
+     "what": "in the battle: the money counter's row in the panel's top row's colour",
+     "type": "uniform",
+     "shot": "battle",
+     "screen": "second",
+     "rect": [
+      40,
+      148,
+      720,
+      236
+     ],
+     "color": "4A5A63"
+    },
+    {
+     "rule": "MMBN-4",
+     "what": "the map gone in the battle",
+     "type": "differs",
+     "a": {
+      "shot": "walking",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ],
+      "screen": "second"
+     },
+     "b": {
+      "shot": "battle",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ],
+      "screen": "second"
+     }
+    }
+   ]
+  },
+  {
    "id": "mmbn-eu-custom",
    "rom": "AREP",
    "state": "mega-man-battle-network/eu-battle-gauge-full.ss",
-   "desc": "a battle with the custom gauge full: the logo; R brings the custom screen in on the second screen, the field whole on the game screen; a chip picked, OK, and the custom screen slides out: the logo again",
+   "desc": "R opens the custom screen, a chip picked, OK: all of it on the game screen as the game draws it; the second screen unchanged (the logo: no status from before this battle)",
    "rules": [
     "MMBN-1",
     "MMBN-4"
@@ -335,35 +471,21 @@
    "checks": [
     {
      "rule": "MMBN-4",
-     "what": "nothing at the right of the custom screen and its HP box",
+     "what": "no status from before this battle (the state starts in it): the logo",
      "type": "uniform",
      "shot": "open",
      "screen": "second",
      "rect": [
-      740,
-      64,
-      991,
-      703
+      100,
+      110,
+      260,
+      170
      ],
-     "color": "000000"
+     "color": "303030"
     },
     {
      "rule": "MMBN-4",
-     "what": "the custom screen on the second screen",
-     "type": "not_uniform",
-     "shot": "open",
-     "screen": "second",
-     "rect": [
-      32,
-      64,
-      511,
-      703
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "MMBN-4",
-     "what": "the second screen follows the pick",
+     "what": "the custom screen on the game screen: it follows the pick",
      "type": "differs",
      "a": {
       "shot": "open",
@@ -373,10 +495,35 @@
        1024,
        768
       ],
-      "screen": "second"
+      "screen": "game"
      },
      "b": {
       "shot": "picked",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ],
+      "screen": "game"
+     }
+    },
+    {
+     "rule": "MMBN-4",
+     "what": "the second screen the same throughout",
+     "type": "same",
+     "a": {
+      "shot": "fighting",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ],
+      "screen": "second"
+     },
+     "b": {
+      "shot": "open",
       "rect": [
        0,
        0,
@@ -387,8 +534,8 @@
      }
     },
     {
-     "rule": "MMBN-1",
-     "what": "the logo while fighting, before and after",
+     "rule": "MMBN-4",
+     "what": "the second screen the same after",
      "type": "same",
      "a": {
       "shot": "fighting",
@@ -417,7 +564,7 @@
    "id": "mmbn-eu-battle-start",
    "rom": "AREP",
    "state": "mega-man-battle-network/eu-battle-start.ss",
-   "desc": "a battle's first custom screen, up as the battle starts: on the second screen",
+   "desc": "a battle's start, the custom screen sliding in on the game screen; the logo on the second (no status from before this battle)",
    "rules": [
     "MMBN-4"
    ],
@@ -427,17 +574,17 @@
    "checks": [
     {
      "rule": "MMBN-4",
-     "what": "nothing at the right of the custom screen and its HP box",
+     "what": "no status from before this battle (the state starts in it): the logo",
      "type": "uniform",
      "shot": "open",
      "screen": "second",
      "rect": [
-      740,
-      64,
-      991,
-      703
+      100,
+      110,
+      260,
+      170
      ],
-     "color": "000000"
+     "color": "303030"
     }
    ]
   },
@@ -511,9 +658,8 @@
    "id": "mmbn-eu-results",
    "rom": "AREP",
    "state": "mega-man-battle-network/eu-results.ss",
-   "desc": "a battle's results (the viruses' HP set to 1 and busted): on the game screen, the logo on the second; A twice, walking about on the net again, and the area's map",
+   "desc": "a battle's results (the viruses' HP set to 1 and busted): on the game screen, the logo on the second (no status from before this battle); A twice, walking about on the net again, and the area's map",
    "rules": [
-    "MMBN-1",
     "MMBN-3",
     "MMBN-4",
     "MMBN-6"
@@ -769,6 +915,20 @@
       660
      ],
      "color": "FFFFFF"
+    },
+    {
+     "rule": "MMBN-4",
+     "what": "no status from before this battle (the state starts in it): the logo",
+     "type": "uniform",
+     "shot": "message",
+     "screen": "second",
+     "rect": [
+      100,
+      110,
+      260,
+      170
+     ],
+     "color": "303030"
     }
    ]
   },
@@ -783,13 +943,28 @@
    "shots": {
     "arrows": 20
    },
-   "checks": []
+   "checks": [
+    {
+     "rule": "MMBN-4",
+     "what": "no status from before this battle (the state starts in it): the logo",
+     "type": "uniform",
+     "shot": "arrows",
+     "screen": "second",
+     "rect": [
+      100,
+      110,
+      260,
+      170
+     ],
+     "color": "303030"
+    }
+   ]
   },
   {
    "id": "mmbn-us-tutorial-talk",
    "rom": "AREE",
    "state": "mega-man-battle-network/us-tutorial-talk-over-custom.ss",
-   "desc": "the first tutorial battle, the teacher's arrows pointing into the custom screen, then her talking over it (the battle's step already 8; the owner's state): the custom screen with the arrows on the second screen throughout, her message on the game screen",
+   "desc": "the teacher talking over the custom screen in the first tutorial battle: all of it on the game screen; the logo on the second",
    "rules": [
     "MMBN-4"
    ],
@@ -801,40 +976,42 @@
    "checks": [
     {
      "rule": "MMBN-4",
-     "what": "the custom screen still on the second screen while she talks",
+     "what": "no status from before this battle (the state starts in it): the logo",
+     "type": "uniform",
+     "shot": "talking",
+     "screen": "second",
+     "rect": [
+      100,
+      110,
+      260,
+      170
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "MMBN-4",
+     "what": "the second screen the same while she talks",
      "type": "same",
      "a": {
       "shot": "talking",
       "rect": [
-       32,
-       64,
-       511,
-       703
-      ]
+       0,
+       0,
+       1024,
+       768
+      ],
+      "screen": "second"
      },
      "b": {
       "shot": "talking2",
       "rect": [
-       32,
-       64,
-       511,
-       703
-      ]
+       0,
+       0,
+       1024,
+       768
+      ],
+      "screen": "second"
      }
-    },
-    {
-     "rule": "MMBN-4",
-     "what": "not the logo",
-     "type": "uniform",
-     "shot": "talking2",
-     "screen": "second",
-     "rect": [
-      740,
-      300,
-      991,
-      703
-     ],
-     "color": "000000"
     }
    ]
   },
