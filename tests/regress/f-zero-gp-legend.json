@@ -61,6 +61,71 @@
    ]
   },
   {
+   "id": "fz-eu-menu",
+   "rom": "BFZP",
+   "state": "f-zero-gp-legend/eu-menu.ss",
+   "desc": "Europe (English on the language menu), the main menu (played from power-on): the logo",
+   "rules": [
+    "FZ-6"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 300
+   },
+   "checks": [
+    {
+     "rule": "FZ-6",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "FZ-6",
+     "what": "no HUD",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "fz-eu-story-race",
+   "rom": "BFZP",
+   "state": "f-zero-gp-legend/eu-story-race.ss",
+   "desc": "Europe, Story's first race (played from power-on), holding A: the HUD on the second screen",
+   "rules": [
+    "FZ-2",
+    "FZ-3",
+    "FZ-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ]
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "FZ-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
    "id": "fz-us-gp-start",
    "rom": "BFZE",
    "state": "f-zero-gp-legend/us-gp-start.ss",
