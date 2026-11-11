@@ -5291,8 +5291,8 @@ static void draw_game(void) {
 		SDL_Rect r = screens[s].rect;
 		if (showGame) {
 			if (nScreens == 2 && !mapOn && s != game_screen()) {
-				/* no map: the other screen black (in its bezel with overlays on both screens) */
-				if (cfg->overlays == OVL_BOTH) draw_overlay(s, 1);
+				/* no map: the other screen black, in its bezel if it has one */
+				if (overlay_on(s)) draw_overlay(s, 1);
 				continue;
 			}
 			ui_image_pixels(s, gameTex, GBA_W, GBA_H, cfg->scale, SHADER_ON);
@@ -5348,10 +5348,8 @@ static void draw_game(void) {
 			area = (SDL_Rect) { area.x + in, area.y + in, area.w - in * 2, area.h - in * 2 };
 			if (tp) ui_title_block(s, area, tp->title, (int) (ui_px(s) * 14), (SDL_Color) { 236, 236, 244, 255 });
 		}
-		/* with overlays on both screens, whatever this one shows (map, HUD, logo
-		 * or nothing); with this screen's alone, only over a map or HUD */
-		bool liveHere = (hudShown || mapShownIdx >= 0) && !logoForced;
-		if (overlay_on(s) && (cfg->overlays == OVL_BOTH || liveHere)) draw_overlay(s, 1);
+		/* whatever this screen shows: map, HUD, logo or nothing */
+		if (overlay_on(s)) draw_overlay(s, 1);
 		if (!hudShown && mapShownIdx >= 0 && mapInactive && !logoForced) {
 			ui_dim(s, 120);
 		}

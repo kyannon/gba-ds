@@ -4,7 +4,7 @@ An overlay is a picture drawn over the space around the game, never over the gam
 
 ## GBA DS's own bezel
 
-Out of the box, GBA DS draws a bezel round the picture: a dark grey bezel on the navy of the GBA DS logo's outline, with the logo in the bezel by the hinge (below the picture on the top screen, above it on the bottom screen). With **Show Both**, it's drawn on the second screen whatever that shows, logo and all.
+Out of the box, GBA DS draws a bezel round the picture: a dark grey bezel on the navy of the GBA DS logo's outline, with the logo in the bezel by the hinge (below the picture on the top screen, above it on the bottom screen). On the second screen it's drawn whatever that shows, logo and all.
 
 It's made for every screen of the devices GBA DS knows (the Anbernic RG DS and RG DS Plus, the AYN Thor, the Retroid Pocket Duo and Duo Lite, the AYANEO Pocket DS and the Anbernic RG DDS), in every scaling that leaves room round the picture, and with each **Screen shapes** setting. Where there's little room (Full Width, or the sides in Pixel Perfect on a 4:3 screen), you see only the part of the bezel that fits; with Stretch, or Zoom on a 4:3 screen, the picture fills the screen and there's no bezel.
 
@@ -41,7 +41,7 @@ For each screen the most specific file found is used, so a game's own overlay be
 
 For example, on an AYN Thor with Stretch and **Match screen aspect ratios**: on the top screen, `top-stretch-aspect.png` is used if you have it, then `top-aspect.png`, then `top-stretch.png`, then `top.png`.
 
-- With **Show Both**, the overlay on the screen without the game is drawn whatever that screen shows: the map, the HUD, the logo, or nothing. With only that screen's overlays on, only while a map (or HUD) is showing.
+- On the screen without the game, the overlay is drawn whatever that screen shows: the map, the HUD, the logo, or nothing.
 - An overlay is always drawn over its whole screen, whatever the screen shapes setting: make it the screen's own size (1920×1080 for the Thor's top screen), transparent where the picture goes.
 
 Areas to keep transparent, where the game or map picture is (the same for every game, since everything is shown at full GBA size):
