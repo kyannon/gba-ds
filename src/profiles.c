@@ -4066,6 +4066,8 @@ typedef struct {
 	bool done, failed, early; /* early: the camera wasn't following him yet */
 	int w, h, x0, y0; /* the picture's size, and its top left's screen position */
 	int ex0, ey0, ex1, ey1; /* what's drawn on it: its edges (in the picture, ex1 / ey1 past them) */
+	uint32_t head[24 * 16]; /* MegaMan's head, facing the camera (0: transparent) */
+	int headW, headH, headDown; /* its size; from its top to his feet */
 	uint32_t* px;     /* 0: nothing there */
 } MmbnMap;
 static MmbnMap mmbnMap;
@@ -4100,6 +4102,58 @@ static bool mmbn_look(Emu* e, uint16_t area, uint32_t pos, int cx, int cy, unsig
 	emu_frame(e, 0);
 	*camx = (int16_t) emu_read16(e, MMBN_CAM + 4), *camy = (int16_t) emu_read16(e, MMBN_CAM + 6);
 	return emu_read8(e, MMBN_STATE) == 4 && emu_read16(e, MMBN_AREA) == area;
+}
+
+/* MegaMan's head, the marker on the map: in the copy, set down in a corner
+ * of the layout (nothing else there), a tap of DOWN (facing the camera),
+ * standing for 20 frames, sprites alone; his sprite above his feet, from
+ * its top to its narrowest row below the face (his chin; 16 rows at most) */
+static void mmbn_head(Emu* e, uint16_t area, uint32_t pos, MmbnMap* m, uint32_t magenta) {
+	m->headW = m->headH = 0;
+	emu_layers(e, 0x10);
+	emu_state_load(e, mmbnJob);
+	emu_write32(e, MMBN_CAM + 0x14, (uint32_t) (-30000 * 65536));
+	emu_write32(e, MMBN_CAM + 0x18, (uint32_t) (30000 * 65536));
+	emu_write32(e, MMBN_CAM + 0x1C, (uint32_t) (30000 * 65536));
+	emu_write32(e, MMBN_CAM + 0x20, (uint32_t) (-30000 * 65536));
+	int cx = m->x0 + 40, cy = m->y0 + 60, x = (cx - 2 * cy) / 2, y = (cx + 2 * cy) / 2;
+	emu_write32(e, pos, (uint32_t) (x * 65536));
+	emu_write32(e, pos + 4, (uint32_t) (y * 65536));
+	for (int f = 0; f < 2; ++f) emu_frame_blind(e, K_DOWN);
+	for (int f = 0; f < 20; ++f) emu_frame_blind(e, 0);
+	emu_write16(e, 0x05000000, 0x7C1F);
+	emu_frame(e, 0);
+	emu_layers(e, 0x1F);
+	if (emu_read8(e, MMBN_STATE) != 4 || emu_read16(e, MMBN_AREA) != area) return;
+	x = (int32_t) emu_read32(e, pos) >> 16, y = (int32_t) emu_read32(e, pos + 4) >> 16;
+	int camx = (int16_t) emu_read16(e, MMBN_CAM + 4), camy = (int16_t) emu_read16(e, MMBN_CAM + 6);
+	int fx = x + y - camx + GBA_W / 2, fy = (y - x) / 2 - camy + GBA_H / 2; /* his feet on the screen */
+	if (fx < 12 || fx > GBA_W - 12 || fy < 48 || fy > GBA_H) return;
+	int top = -1, wid[16] = { 0 };
+	for (int r = fy - 48; r < fy && top < 0; ++r)
+		for (int c = fx - 12; c < fx + 12; ++c)
+			if ((e->fb[r * GBA_W + c] & 0xFFFFFF) != magenta) top = r;
+	if (top < 0) return;
+	int h = 0, widest = 0;
+	for (; h < 16 && top + h < fy; ++h) {
+		for (int c = fx - 12; c < fx + 12; ++c) wid[h] += (e->fb[(top + h) * GBA_W + c] & 0xFFFFFF) != magenta;
+		if (wid[h] > widest) widest = wid[h];
+		/* (the chin: narrower than the widest, and the next row wider) */
+		if (h > 4 && wid[h] < widest && h + 1 < 16) {
+			int next = 0;
+			for (int c = fx - 12; c < fx + 12; ++c) next += (e->fb[(top + h + 1) * GBA_W + c] & 0xFFFFFF) != magenta;
+			if (next > wid[h]) {
+				++h;
+				break;
+			}
+		}
+	}
+	for (int r = 0; r < h; ++r)
+		for (int c = 0; c < 24; ++c) {
+			uint32_t px = e->fb[(top + r) * GBA_W + fx - 12 + c] & 0xFFFFFF;
+			m->head[r * 24 + c] = px == magenta ? 0 : px | 0xFF000000;
+		}
+	m->headW = 24, m->headH = h, m->headDown = fy - top;
 }
 
 static void* mmbn_worker(void* arg) {
@@ -4184,6 +4238,7 @@ static void* mmbn_worker(void* arg) {
 					if (y >= m->ey1) m->ey1 = y + 1;
 				}
 		if (m->ex1 <= m->ex0) m->ex0 = 0, m->ey0 = 0, m->ex1 = W, m->ey1 = H;
+		mmbn_head(e, area, pos, m, magenta);
 		m->done = true;
 		struct timespec t1;
 		clock_gettime(CLOCK_MONOTONIC, &t1);
@@ -4295,6 +4350,16 @@ static const uint32_t* mmbn_live_view(Emu* live, const char* rom) {
 				}
 			}
 			out[oy * GBA_W + ox] = 0xFF000000 | (b / (Z * Z)) << 16 | (g / (Z * Z)) << 8 | r / (Z * Z);
+		}
+	}
+	/* his head where he stands, at the game's size: centred on where his
+	 * sprite, at a third, would be */
+	if (m->headH) {
+		int hx = (camx - m->x0 - left) / Z - m->headW / 2, hy = (camy - m->y0 - top - m->headDown / 2) / Z - m->headH / 2;
+		for (int r = 0; r < m->headH; ++r) {
+			if (hy + r < 0 || hy + r >= GBA_H) continue;
+			for (int c = 0; c < m->headW; ++c)
+				if (m->head[r * 24 + c] && hx + c >= 0 && hx + c < GBA_W) out[(hy + r) * GBA_W + hx + c] = m->head[r * 24 + c];
 		}
 	}
 	return out;
