@@ -187,7 +187,7 @@ the median frame 10.5 ms whole, 4.2 ms at half. Half is the default since
 screens to fit, and half still holds over twice the game's 240 x 160, so
 games look the same; GBA DS's own menus are slightly softer. In headless
 Chromium on 2 cores the same moment ran 27 fps whole, 52 at half. Builds
-without the capture worker (before 1.4.13-dev, or game branches not yet
+without the capture worker (before 1.4.13-dev (v1.5's first dev builds), or game branches not yet
 merged with dev since) pause the game at each capture: the player says so
 when one is dropped.
 

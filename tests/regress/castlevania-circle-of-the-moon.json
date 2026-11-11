@@ -99,6 +99,94 @@
    ]
   },
   {
+   "id": "cvc-eu-play",
+   "rom": "AAMP",
+   "state": "castlevania-circle-of-the-moon/eu-play.ss",
+   "desc": "Europe, a new game's first room in the catacombs (played from power-on): the map and its rate",
+   "rules": [
+    "CVC-1",
+    "CVC-2",
+    "CVC-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "CVC-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "cvc-jp-play",
+   "rom": "AAMJ",
+   "state": "castlevania-circle-of-the-moon/jp-play.ss",
+   "desc": "Japan, a new game's first room in the catacombs (played from power-on): the map and its rate",
+   "rules": [
+    "CVC-1",
+    "CVC-2",
+    "CVC-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "CVC-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "cvc-eu-menu",
+   "rom": "AAMP",
+   "state": "castlevania-circle-of-the-moon/eu-menu.ss",
+   "desc": "Europe, the file menu: the logo, no map",
+   "rules": [
+    "CVC-5"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "type": "no_log",
+     "match": "map updated",
+     "rule": "CVC-5",
+     "what": "no map captured at the menus"
+    }
+   ]
+  },
+  {
+   "id": "cvc-jp-menu",
+   "rom": "AAMJ",
+   "state": "castlevania-circle-of-the-moon/jp-menu.ss",
+   "desc": "Japan, the file menu: the logo, no map",
+   "rules": [
+    "CVC-5"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "type": "no_log",
+     "match": "map updated",
+     "rule": "CVC-5",
+     "what": "no map captured at the menus"
+    }
+   ]
+  },
+  {
    "id": "cvc-logo-aame",
    "kind": "logo",
    "rom": "AAME",

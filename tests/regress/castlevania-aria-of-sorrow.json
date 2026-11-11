@@ -97,6 +97,94 @@
    ]
   },
   {
+   "id": "cva-eu-play",
+   "rom": "A2CP",
+   "state": "castlevania-aria-of-sorrow/eu-play.ss",
+   "desc": "Europe (English picked on the language menu), the castle's first room after the opening (a new game played from power-on): the map",
+   "rules": [
+    "CVA-1",
+    "CVA-2",
+    "CVA-5"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "CVA-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "cva-jp-play",
+   "rom": "A2CJ",
+   "state": "castlevania-aria-of-sorrow/jp-play.ss",
+   "desc": "Japan (RAM 0x30 lower), the castle's first room after the opening (a new game played from power-on): the map",
+   "rules": [
+    "CVA-1",
+    "CVA-2",
+    "CVA-5"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "CVA-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "cva-eu-menu",
+   "rom": "A2CP",
+   "state": "castlevania-aria-of-sorrow/eu-menu.ss",
+   "desc": "Europe, the file menu: the logo, no map",
+   "rules": [
+    "CVA-4"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "type": "no_log",
+     "match": "map updated",
+     "rule": "CVA-4",
+     "what": "no map captured at the menus"
+    }
+   ]
+  },
+  {
+   "id": "cva-jp-menu",
+   "rom": "A2CJ",
+   "state": "castlevania-aria-of-sorrow/jp-menu.ss",
+   "desc": "Japan, the file menu: the logo, no map",
+   "rules": [
+    "CVA-4"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "type": "no_log",
+     "match": "map updated",
+     "rule": "CVA-4",
+     "what": "no map captured at the menus"
+    }
+   ]
+  },
+  {
    "id": "cva-logo-a2ce",
    "kind": "logo",
    "rom": "A2CE",
