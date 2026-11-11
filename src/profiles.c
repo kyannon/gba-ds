@@ -6572,8 +6572,9 @@ static const MapProfile profiles[] = {
 	},
 	{
 		/* Spider-Man: Mysterio's Menace (USA and Europe; Japan: the ASEJ
-		 * variant). In a level the display is mode 0 with every layer and
-		 * sprites (DISPCNT 0x1F40, the title's too); SELECT brings up the
+		 * variant). In a level the display is mode 0 with sprites (DISPCNT
+		 * 0x1F40, every layer, the title's too; the Nightclub's 0x1340);
+		 * SELECT brings up the
 		 * Select menu, a mode 4 bitmap with sprite text (0x1444) that fades
 		 * in over some 40 frames (BLDY); START a small pause menu over the
 		 * level (0x1F40 still). The intro, story pictures and the city map
@@ -6597,7 +6598,9 @@ static const MapProfile profiles[] = {
 		 * taken until most of it isn't black) */
 		.bgColor = 0x000000, .minForeground = 20000, .tolerance = 8,
 		.mem = { { 0x04000000, 0xFFFF, 0x1444, 2 }, { 0x03002170, 0xFFFF, 0x612C, 2 } },
-		.live = { { 0x04000000, 0xFFFF, 0x1F40, 2 }, { 0x03002170, 0xFFFF, 0x612C, 2 } },
+		/* in a level: mode 0 with sprites (the Nightclub's level has only
+		 * BG0 and BG1 on, 0x1340, the others every layer, 0x1F40) */
+		.live = { { 0x04000000, 0x1007, 0x1000, 2 }, { 0x03002170, 0xFFFF, 0x612C, 2 } },
 		/* the title, the intro, between levels, the continue screen: the
 		 * logo (SMM-3) */
 		.menu = { { 0x03002170, 0xFFFF, 0x420C, 2 } },

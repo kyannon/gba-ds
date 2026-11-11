@@ -163,6 +163,303 @@
    ]
   },
   {
+   "id": "smm-us-level-empire",
+   "rom": "ASEE",
+   "state": "spider-man-mysterios-menace/us-level-empire.ss",
+   "desc": "in Empire Metals (reached with the password JV37T, every level open): the Select menu on the second screen",
+   "rules": [
+    "SMM-2"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 200
+   },
+   "checks": [
+    {
+     "rule": "SMM-2",
+     "what": "a Select menu picture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "SMM-2",
+     "what": "the menu, not the logo or black",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "000000",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "smm-us-level-chemcorp",
+   "rom": "ASEE",
+   "state": "spider-man-mysterios-menace/us-level-chemcorp.ss",
+   "desc": "in Chemcorp (reached with the password JV37T, every level open): the Select menu on the second screen",
+   "rules": [
+    "SMM-2"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 200
+   },
+   "checks": [
+    {
+     "rule": "SMM-2",
+     "what": "a Select menu picture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "SMM-2",
+     "what": "the menu, not the logo or black",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "000000",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "smm-us-level-pier",
+   "rom": "ASEE",
+   "state": "spider-man-mysterios-menace/us-level-pier.ss",
+   "desc": "in Pier 54 (reached with the password JV37T, every level open): the Select menu on the second screen",
+   "rules": [
+    "SMM-2"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 200
+   },
+   "checks": [
+    {
+     "rule": "SMM-2",
+     "what": "a Select menu picture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "SMM-2",
+     "what": "the menu, not the logo or black",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "000000",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "smm-us-level-museum",
+   "rom": "ASEE",
+   "state": "spider-man-mysterios-menace/us-level-museum.ss",
+   "desc": "in Museum (reached with the password JV37T, every level open): the Select menu on the second screen",
+   "rules": [
+    "SMM-2"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 200
+   },
+   "checks": [
+    {
+     "rule": "SMM-2",
+     "what": "a Select menu picture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "SMM-2",
+     "what": "the menu, not the logo or black",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "000000",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "smm-us-level-park",
+   "rom": "ASEE",
+   "state": "spider-man-mysterios-menace/us-level-park.ss",
+   "desc": "in Amusement Park (reached with the password JV37T, every level open): the Select menu on the second screen",
+   "rules": [
+    "SMM-2"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 200
+   },
+   "checks": [
+    {
+     "rule": "SMM-2",
+     "what": "a Select menu picture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "SMM-2",
+     "what": "the menu, not the logo or black",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "000000",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "smm-us-level-nightclub",
+   "rom": "ASEE",
+   "state": "spider-man-mysterios-menace/us-level-nightclub.ss",
+   "desc": "in Nightclub (reached with the password JV37T, every level open): the Select menu on the second screen (the level's display has BG2 and BG3 off: until v1.5's test builds the logo stayed)",
+   "rules": [
+    "SMM-2"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 200
+   },
+   "checks": [
+    {
+     "rule": "SMM-2",
+     "what": "a Select menu picture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "SMM-2",
+     "what": "the menu, not the logo or black",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "000000",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "smm-us-lost-life",
+   "rom": "ASEE",
+   "state": "spider-man-mysterios-menace/us-dying.ss",
+   "desc": "in Empire Metals with 1 HP (set by memory), walking into the thug: a life lost, the level again from its last point: the Select menu stays through it",
+   "rules": [
+    "SMM-2"
+   ],
+   "input": [
+    [
+     0,
+     "RIGHT"
+    ]
+   ],
+   "shots": {
+    "before": 60,
+    "dying": 120,
+    "after": 240
+   },
+   "checks": [
+    {
+     "rule": "SMM-2",
+     "what": "the Select menu stays through the lost life",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    },
+    {
+     "rule": "SMM-3",
+     "what": "no logo",
+     "type": "no_log",
+     "match": "back to the logo"
+    }
+   ]
+  },
+  {
+   "id": "smm-us-game-over",
+   "rom": "ASEE",
+   "state": "spider-man-mysterios-menace/us-last-life.ss",
+   "desc": "in Empire Metals, the last life with 1 HP (set by memory), walking into the thug: the continue screen after the last life, the logo",
+   "rules": [
+    "SMM-2",
+    "SMM-3"
+   ],
+   "input": [
+    [
+     0,
+     "RIGHT"
+    ]
+   ],
+   "shots": {
+    "level": 120,
+    "continue": 600
+   },
+   "checks": [
+    {
+     "rule": "SMM-3",
+     "what": "back to the logo on the continue screen",
+     "type": "log",
+     "match": "second screen back to the logo"
+    }
+   ]
+  },
+  {
    "id": "smm-us-quit-to-map",
    "rom": "ASEE",
    "state": "spider-man-mysterios-menace/us-quit-to-map.ss",
