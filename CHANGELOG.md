@@ -1,5 +1,7 @@
 # Changelog
 
+## v1.5.1 (not yet released)
+
 ## v1.5 (2026-11-11)
 
 50+ games supported!
