@@ -365,6 +365,52 @@
    ]
   },
   {
+   "id": "dbz-us-one-screen",
+   "rom": "ALGE",
+   "state": "dragon-ball-z-legacy-of-goku/us-walk.ss",
+   "desc": "walking about on the first island with one screen: the game as it is, the HP and Ki bars at its top left",
+   "rules": [
+    "DBZ-6"
+   ],
+   "config": {
+    "layout": "single"
+   },
+   "shots": {
+    "walk": 120
+   },
+   "checks": [
+    {
+     "rule": "DBZ-6",
+     "what": "the bars at the game's top left",
+     "type": "pixels",
+     "shot": "walk",
+     "screen": "game",
+     "probes": [
+      [
+       82,
+       482,
+       "5A4A29"
+      ],
+      [
+       106,
+       486,
+       "636363"
+      ],
+      [
+       150,
+       490,
+       "ADADAD"
+      ],
+      [
+       174,
+       498,
+       "00FF31"
+      ]
+     ]
+    }
+   ]
+  },
+  {
    "id": "dbz-logo-alge",
    "kind": "logo",
    "rom": "ALGE",
