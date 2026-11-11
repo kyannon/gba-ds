@@ -186,6 +186,8 @@ To use your own art instead, put `<CODE>.png` (or `.bmp`) in `gba-ds/logos/` (An
 
 ## Where files go
 
+`gba-ds/` and `GBA DS/` below are GBA DS's folders as installed. Its own files (everything but the battery saves, screenshots on ROCKNIX and the settings file on ROCKNIX) can be kept somewhere else: `data_dir` on ROCKNIX and BananaOS (see [Settings](Settings#files-and-folders)), **Settings** → **Folders** → **Choose GBA DS folder** on Android.
+
 | What | ROCKNIX | Android |
 |---|---|---|
 | Battery saves (`.sav`) | next to the ROM (`save_dir` changes it). On first launch an existing RetroArch `Game.srm` is copied to `Game.sav`; the `.srm` is left alone. | next to the ROM |

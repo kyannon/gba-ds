@@ -55,12 +55,36 @@ public class LauncherActivity extends Activity {
      * written) can be looked at without adb. */
 
     static File dataDir(Context c) {
+        /* the folder the player chose (Settings > Folders), once GBA DS has moved there */
+        String now = dataFolderSetting(c, "data_dir_now");
+        if (now != null && new File(now).isDirectory()) return new File(now);
         if (Build.VERSION.SDK_INT < 30 || Environment.isExternalStorageManager()) {
             File shared = new File(Environment.getExternalStorageDirectory(), "GBA DS");
             if (shared.isDirectory() || shared.mkdirs()) return shared;
         }
         File app = c.getExternalFilesDir(null);
         return app != null ? app : c.getFilesDir();
+    }
+
+    /**
+     * A line of data-folder.cfg in the app's own storage (kept through updates):
+     * data_dir, the folder the player chose for GBA DS's files, and
+     * data_dir_now, where they are (the native side moves them: paths.c
+     * data_dir_setup). Null if it isn't set.
+     */
+    static String dataFolderSetting(Context c, String key) {
+        File f = new File(c.getFilesDir(), "data-folder.cfg");
+        String value = null;
+        try (java.io.BufferedReader r = new java.io.BufferedReader(new java.io.FileReader(f))) {
+            for (String line; (line = r.readLine()) != null; ) {
+                String t = line.trim();
+                int eq = t.indexOf('=');
+                if (eq > 0 && t.substring(0, eq).trim().equals(key)) value = t.substring(eq + 1).trim();
+            }
+        } catch (IOException e) {
+            return null;
+        }
+        return value != null && value.startsWith("/") ? value : null;
     }
 
     static synchronized void launchLog(Context c, String line) {

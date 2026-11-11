@@ -67,11 +67,21 @@ The easiest way: in the game list, **Settings** > **Updates** > **Check now**, t
 
 By hand: unzip the new release over the old one, into `/storage/roms/ports/`.
 
-- **Kept:** everything in `gba-ds/states/` (save states, resume points, cheat choices, menu settings, extracted logos, your RetroAchievements sign-in), your own `logos/` and `overlays/`, and the battery saves next to your ROMs.
+- **Kept:** everything in `gba-ds/states/` (save states, resume points, cheat choices, menu settings, extracted logos, your RetroAchievements sign-in), your own `logos/` and `overlays/`, and the battery saves next to your ROMs. If you keep GBA DS's files in a folder of your own (`data-folder.cfg`, below), that file and that folder are kept too.
 - **Replaced** (by hand only): `gba-ds/gba-ds.cfg`. If you've edited it, keep a copy first and copy your changes back (new versions may add options; see [[Settings]]).
 - If **GBA DS in EmulationStation** was on, it stays on.
 
 **From gbadual** (this app's old name): unzip as above, then launch **GBA DS** once. On that first run it copies your save states, resume points, menu settings and any custom logos or overlays from the old `gbadual/` folder. Then delete the old `gbadual/` folder and the **GBA Dual Screen** entry (`GBA Dual Screen.sh`) from `/storage/roms/ports/`. Copy any changes you'd made in `gbadual.cfg` into `gba-ds/gba-ds.cfg`.
+
+## Keeping GBA DS's files somewhere else
+
+By default GBA DS keeps its own files (`states/`, `cheats/`, `overlays/`, `logos/`, `bug-reports/`) in its folder, `gba-ds/`, beside the program. To keep them elsewhere, make a file called `data-folder.cfg` in `gba-ds/` with one line:
+
+```
+data_dir = /storage/roms/ports-data/gba-ds
+```
+
+The next time GBA DS starts, it moves its files there (the program, `gba-ds.cfg` and `gba-ds.log` stay in `gba-ds/`). If that folder already has GBA DS's files in it, they're used as they are and nothing is moved. Take the line out to move them back. Updates (and unzipping a new version over the old one) leave `data-folder.cfg` alone, so the choice stays. If the folder can't be reached (its card isn't in), the game list says so and GBA DS uses `gba-ds/` for that run. The same works on BananaOS and other systems.
 
 ## Uninstalling
 

@@ -70,7 +70,8 @@ typedef struct Config {
 	char cheatDir[1024]; /* RetroArch .cht folders, ':'-separated (searched two levels deep) */
 	char libraryView[8]; /* game list: "list" (names) or "grid" (logos) */
 	char esConfigDir[512]; /* EmulationStation's config folder (Settings: GBA DS in EmulationStation) */
-	char assetDir[512]; /* logos etc.; default: next to the binary */
+	char assetDir[512]; /* logos etc.; default: the data folder */
+	char dataDir[512]; /* data_dir: GBA DS's data folder (states/, cheats/...); default: the app's folder (paths.c data_dir_setup) */
 	char touchScreen[16]; /* first | second: which screen has the touch panel */
 	char topScreen[16];   /* Android: auto | app | second: which display is the top screen */
 	char screenMatch[8];  /* keep | aspect | size: the wider screen's picture area (ui.c layout_pictures) */

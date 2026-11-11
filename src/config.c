@@ -176,6 +176,8 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	STR("cheat_dir", cheatDir)
 	STR("screenshot_dir", screenshotDir)
 	STR("asset_dir", assetDir)
+	STR("data_dir", dataDir)
+	if (!strcmp(key, "data_dir_now")) return true; /* (data-folder.cfg: where the data is, written by the app) */
 	STR("touch_screen", touchScreen)
 	STR("top_screen", topScreen)
 	STR("screen_match", screenMatch)
@@ -313,7 +315,9 @@ void config_usage(const char* argv0) {
 	        "  --audio-latency=MS     (64)\n"
 	        "  --ff-speed=N           fast-forward multiplier (3)\n"
 	        "  --save-dir=DIR         battery saves (next to the ROM)\n"
-	        "  --state-dir=DIR        save states and thumbnails (<app>/states)\n"
+	        "  --state-dir=DIR        save states and thumbnails (<data folder>/states)\n"
+	        "  --data-dir=DIR         GBA DS's data folder: states, cheats, overlays, logos...\n"
+	        "                         (the app's folder; best set in data-folder.cfg there)\n"
 	        "\n"
 	        "Testing: --load-state=FILE --quit-after=TICKS --input-script=FILE\n"
 	        "  script lines: 'TICK TOKEN' with TOKEN a button combo held until the next\n"

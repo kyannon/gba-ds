@@ -54,6 +54,8 @@ public class GbaDsActivity extends SDLActivity {
         File home = dataFolder();
         try {
             Os.setenv("GBADS_HOME", home.getAbsolutePath(), true);
+            /* data-folder.cfg there: the folder the player chose instead (android.c android_data_setup) */
+            Os.setenv("GBADS_APP_FILES", getFilesDir().getAbsolutePath(), true);
         } catch (ErrnoException e) {
             Log.e(TAG, "setenv: " + e);
         }
@@ -78,12 +80,17 @@ public class GbaDsActivity extends SDLActivity {
      * overlays, screenshots, save states), laid out like the ROCKNIX install
      * folder. Needs All files access; without it, the app's own folder.
      * Data from builds that used the app's folder is copied over once.
+     * This is the default: a folder the player chose instead (Settings >
+     * Folders) is set up by the native side (android_data_setup), and then
+     * "GBA DS" isn't made.
      */
     private File dataFolder() {
         File appDir = getExternalFilesDir(null);
         if (appDir == null) appDir = getFilesDir();
         File shared = new File(Environment.getExternalStorageDirectory(), "GBA DS");
         boolean canShare = Build.VERSION.SDK_INT < 30 || Environment.isExternalStorageManager();
+        String now = LauncherActivity.dataFolderSetting(this, "data_dir_now");
+        if (canShare && now != null && !new File(now).equals(shared) && !shared.isDirectory()) return shared;
         if (!canShare || !(shared.isDirectory() || shared.mkdirs())) {
             Log.w(TAG, "no All files access: data stays in " + appDir);
             appDir.mkdirs();

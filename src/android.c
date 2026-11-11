@@ -73,6 +73,39 @@ const char* android_home(void) {
 	return h && *h ? h : NULL;
 }
 
+bool android_data_record(char* out, size_t size) {
+	const char* files = getenv("GBADS_APP_FILES");
+	if (!files || !*files) return false;
+	snprintf(out, size, "%s/data-folder.cfg", files);
+	return true;
+}
+
+void android_data_setup(void) {
+	const char* home = android_home();
+	char record[1100], want[1024] = "", out[1024];
+	if (!home || !android_data_record(record, sizeof(record))) return;
+	char def[1024];
+	snprintf(def, sizeof(def), "%s", home);
+	kv_get(record, "data_dir", want, sizeof(want));
+	char was[1024];
+	if (!kv_get(record, "data_dir_now", was, sizeof(was))) snprintf(was, sizeof(was), "%s", def);
+	data_dir_setup(def, record, want, true, out, sizeof(out));
+	setenv("GBADS_HOME", out, 1);
+	/* a ROM or save folder chosen inside the old folder (Settings > Folders,
+	 * library.cfg) moved with it */
+	size_t wn = strlen(was);
+	if (strcmp(was, out)) {
+		char lib[1100], v[1024], fixed[2100];
+		snprintf(lib, sizeof(lib), "%s/states/library.cfg", out);
+		static const char* const keys[] = { "save_dir", "rom_dir" };
+		for (int i = 0; i < 2; ++i) {
+			if (!kv_get(lib, keys[i], v, sizeof(v)) || strncmp(v, was, wn) || (v[wn] && v[wn] != '/')) continue;
+			snprintf(fixed, sizeof(fixed), "%s%s", out, v + wn);
+			kv_set(lib, keys[i], fixed, NULL);
+		}
+	}
+}
+
 /* ------------------------------------------------------------- defaults */
 
 void android_config_defaults(Config* c) {

@@ -93,6 +93,9 @@ int main(int argc, char** argv) {
 		}
 	}
 #ifdef __ANDROID__
+	/* GBA DS's folder where the player chose it (Settings > Folders), its
+	 * files moved there first if it's new: before the log, which goes in it */
+	android_data_setup();
 	android_init_log();
 #endif
 	fprintf(stderr, "GBA DS %s\n", GBADS_VERSION);
@@ -129,13 +132,29 @@ int main(int argc, char** argv) {
 			snprintf(path, sizeof(path), "%s/.config/gba-ds/gba-ds.cfg", getenv("HOME"));
 			config_load_file(&cfg, path);
 		}
+#if !defined(__ANDROID__) && !defined(__wasi__)
+		/* data-folder.cfg: data_dir, where GBA DS keeps its own files (in a
+		 * file of its own, which neither the zip nor an update has) */
+		snprintf(path, sizeof(path), "%s/data-folder.cfg", exeDir);
+		config_load_file(&cfg, path);
+#endif
 	}
 	if (!config_parse_args(&cfg, argc, argv)) {
 		config_usage(argv[0]);
 		return 1;
 	}
-	if (!cfg.assetDir[0]) snprintf(cfg.assetDir, sizeof(cfg.assetDir), "%s", exeDir);
-	if (!cfg.stateDir[0]) snprintf(cfg.stateDir, sizeof(cfg.stateDir), "%s/states", exeDir);
+	/* GBA DS's data folder (states/, cheats/, overlays/, logos/...): the
+	 * app's folder, or data_dir, moved there when that changes (paths.c) */
+	char dataDir[480];
+	snprintf(dataDir, sizeof(dataDir), "%s", exeDir);
+#if !defined(__ANDROID__) && !defined(__wasi__)
+	snprintf(path, sizeof(path), "%s/data-folder.cfg", exeDir);
+	data_dir_setup(exeDir, getenv("GBADS_CONFIG") ? NULL : path, cfg.dataDir, false, dataDir, sizeof(dataDir));
+#endif
+	if (strcmp(dataDir, exeDir) || data_dir_note()[0])
+		fprintf(stderr, "data folder: %s%s%s\n", dataDir, data_dir_note()[0] ? " - " : "", data_dir_note());
+	if (!cfg.assetDir[0]) snprintf(cfg.assetDir, sizeof(cfg.assetDir), "%s", dataDir);
+	if (!cfg.stateDir[0]) snprintf(cfg.stateDir, sizeof(cfg.stateDir), "%s/states", dataDir);
 	mkdirs(cfg.stateDir);
 	snprintf(path, sizeof(path), "%s/prefs.cfg", cfg.stateDir);
 	{

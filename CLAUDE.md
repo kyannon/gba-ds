@@ -343,6 +343,14 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
 ## Architecture (src/)
 
 - `main.c` start-up; `config.c` settings (`gba-ds.cfg`, `prefs.cfg`, `--key=value`).
+  The data folder (issue #34; `paths.c` data_dir_setup): `states/`, `cheats/`,
+  `overlays/`, `logos/`, `patches/`, `bug-reports/` live in the app's folder
+  unless `data_dir` (Linux: `<app>/data-folder.cfg`, never in the zip, so
+  updates keep it; Android: Settings > Folders, `data-folder.cfg` in the
+  app's own storage) says otherwise; it's moved there at start, and
+  `data_dir_now` in that file records where it is. `asset_dir` and
+  `state_dir` default to it. The program, `gba-ds.cfg` and the log stay in
+  the app folder on Linux.
 - `emu.c` the libmgba wrapper: frames, states, audio, cheats, per-renderer
   sprite hiding (SpriteRule), layer toggles, ROM headers (also inside
   .zip / .7z), and the HUD split (`emu_hud_split`: a second software
