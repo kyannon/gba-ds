@@ -295,10 +295,10 @@ The HUD is moved off the game screen rather than copied: GBA DS draws each frame
 
 The USA, European and Japanese (Mario & Luigi RPG) releases.
 
-- **Walking about,** the second screen is the **Bros. Info** screen (SELECT's menu, the third icon), as the game draws it, filling the screen: the page of the brother you're controlling, the one in front. Swap them with START and the page follows within a moment. It's opened in the background in a silent copy of the game about once a second; your game is never paused.
+- **Walking about,** the second screen is the **Bros. Info** screen (SELECT's menu, the third icon), as the game draws it but without the L and R prompts under the portrait, filling the screen: the page of the brother you're controlling, the one in front. Swap them with START and the page follows within a moment. It's opened in the background in a silent copy of the game about once a second; your game is never paused.
 - **In battles,** the second screen has the battle's boxes and meters, over the logo: Mario's and Luigi's HP and BP at the top left, what the highlighted block does at the top right, the buttons at the bottom right, and the menus that open on the right side (the item list, the Bros. Attacks list) where they are on the game screen. The game screen keeps the command blocks and the A prompt over the brother whose turn it is, the damage numbers, the enemy's name while you aim, and everything else. Speech balloons in a battle, a boss's own messages and the results after it stay on the game screen. Tried in the story's first battles, late battles and boss battles.
 - On the title, the second screen shows the logo; in scenes, conversations and the game's own menus it keeps its picture.
-- Not tried yet: the European and Japanese releases beyond their titles.
+- Not tried yet: the European and Japanese releases beyond the Koopa Cruiser (walking about and its battles were tried in both).
 - **Superstar Saga+** (the romhack, v1.5: its 100%, 80% and 60% patches for the USA release) works the same, with the mod's own names and numbers on Bros. Info and in the battle boxes (its items, its attacks' BP). Don't load a save state made on the unchanged game into the mod, or the other way round: a conversation in progress comes out garbled. Battery saves are fine.
 
 ## Mega Man Battle Network
