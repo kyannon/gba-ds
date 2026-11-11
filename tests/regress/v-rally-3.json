@@ -177,6 +177,271 @@
    ]
   },
   {
+   "id": "vr3-us-tt-sweden",
+   "rom": "AVRE",
+   "state": "v-rally-3/us-tt-sweden.ss",
+   "desc": "Time Trial, Sweden's first stage (picked on the stage screen, driven from the start): the HUD and the stage's map on the second screen",
+   "rules": [
+    "VR3-2",
+    "VR3-3",
+    "VR3-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ],
+    [
+     400,
+     "-"
+    ]
+   ],
+   "shots": {
+    "straight": 30,
+    "faster": 120,
+    "arrow": 300
+   },
+   "checks": [
+    {
+     "rule": "VR3-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "VR3-4",
+     "what": "the second screen live",
+     "type": "pixels",
+     "shot": "arrow",
+     "probes": [
+      [
+       100,
+       532,
+       "10101A"
+      ]
+     ]
+    },
+    {
+     "rule": "VR3-2",
+     "what": "the HUD stays up while driving",
+     "type": "no_log",
+     "match": "HUD gone"
+    }
+   ]
+  },
+  {
+   "id": "vr3-us-tt-portugal",
+   "rom": "AVRE",
+   "state": "v-rally-3/us-tt-portugal.ss",
+   "desc": "Time Trial, Portugal's first stage (picked on the stage screen, driven from the start): the HUD and the stage's map on the second screen",
+   "rules": [
+    "VR3-2",
+    "VR3-3",
+    "VR3-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ],
+    [
+     400,
+     "-"
+    ]
+   ],
+   "shots": {
+    "straight": 30,
+    "faster": 120,
+    "arrow": 300
+   },
+   "checks": [
+    {
+     "rule": "VR3-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "VR3-4",
+     "what": "the second screen live",
+     "type": "pixels",
+     "shot": "arrow",
+     "probes": [
+      [
+       100,
+       532,
+       "10101A"
+      ]
+     ]
+    },
+    {
+     "rule": "VR3-2",
+     "what": "the HUD stays up while driving",
+     "type": "no_log",
+     "match": "HUD gone"
+    }
+   ]
+  },
+  {
+   "id": "vr3-us-tt-germany",
+   "rom": "AVRE",
+   "state": "v-rally-3/us-tt-germany.ss",
+   "desc": "Time Trial, Germany's first stage (picked on the stage screen, driven from the start): the HUD and the stage's map on the second screen",
+   "rules": [
+    "VR3-2",
+    "VR3-3",
+    "VR3-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ],
+    [
+     400,
+     "-"
+    ]
+   ],
+   "shots": {
+    "straight": 30,
+    "faster": 120,
+    "arrow": 300
+   },
+   "checks": [
+    {
+     "rule": "VR3-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "VR3-4",
+     "what": "the second screen live",
+     "type": "pixels",
+     "shot": "arrow",
+     "probes": [
+      [
+       100,
+       532,
+       "10101A"
+      ]
+     ]
+    },
+    {
+     "rule": "VR3-2",
+     "what": "the HUD stays up while driving",
+     "type": "no_log",
+     "match": "HUD gone"
+    }
+   ]
+  },
+  {
+   "id": "vr3-us-tt-finland",
+   "rom": "AVRE",
+   "state": "v-rally-3/us-tt-finland.ss",
+   "desc": "Time Trial, Finland's first stage (picked on the stage screen, driven from the start): the HUD and the stage's map on the second screen",
+   "rules": [
+    "VR3-2",
+    "VR3-3",
+    "VR3-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ],
+    [
+     400,
+     "-"
+    ]
+   ],
+   "shots": {
+    "straight": 30,
+    "faster": 120,
+    "arrow": 300
+   },
+   "checks": [
+    {
+     "rule": "VR3-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "VR3-4",
+     "what": "the second screen live",
+     "type": "pixels",
+     "shot": "arrow",
+     "probes": [
+      [
+       100,
+       532,
+       "10101A"
+      ]
+     ]
+    },
+    {
+     "rule": "VR3-2",
+     "what": "the HUD stays up while driving",
+     "type": "no_log",
+     "match": "HUD gone"
+    }
+   ]
+  },
+  {
+   "id": "vr3-us-tt-gb",
+   "rom": "AVRE",
+   "state": "v-rally-3/us-tt-gb.ss",
+   "desc": "Time Trial, Great Britain's first stage (picked on the stage screen, driven from the start): the HUD and the stage's map on the second screen",
+   "rules": [
+    "VR3-2",
+    "VR3-3",
+    "VR3-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ],
+    [
+     400,
+     "-"
+    ]
+   ],
+   "shots": {
+    "straight": 30,
+    "faster": 120,
+    "arrow": 300
+   },
+   "checks": [
+    {
+     "rule": "VR3-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "VR3-4",
+     "what": "the second screen live",
+     "type": "pixels",
+     "shot": "arrow",
+     "probes": [
+      [
+       100,
+       532,
+       "10101A"
+      ]
+     ]
+    },
+    {
+     "rule": "VR3-2",
+     "what": "the HUD stays up while driving",
+     "type": "no_log",
+     "match": "HUD gone"
+    }
+   ]
+  },
+  {
    "id": "vr3-us-tt-pause",
    "rom": "AVRE",
    "state": "v-rally-3/us-tt-pause.ss",
