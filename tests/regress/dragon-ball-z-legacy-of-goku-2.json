@@ -26,10 +26,11 @@
    "id": "dbz2-us-map",
    "rom": "ALFE",
    "state": "dragon-ball-z-legacy-of-goku-2/us-scouter.ss",
-   "desc": "Gohan at a save point in the Northern Mountains, with the Scouter: its area map, without the scroll arrows; walking left, the map follows him",
+   "desc": "Gohan at a save point in the Northern Mountains, with the Scouter: its area map, without the scroll arrows; walking left, the map follows him; the HUD stays on the game screen",
    "rules": [
     "DBZ2-2",
-    "DBZ2-8"
+    "DBZ2-8",
+    "DBZ2-4"
    ],
    "input": [
     [
@@ -77,6 +78,64 @@
       ]
      },
      "frac": 0.01
+    },
+    {
+     "rule": "DBZ2-4",
+     "what": "the HP and EP bars at the game screen's top left (start)",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "game",
+     "probes": [
+      [
+       74,
+       98,
+       "C6C6C6"
+      ],
+      [
+       98,
+       106,
+       "FF4A4A"
+      ],
+      [
+       178,
+       106,
+       "FF7373"
+      ],
+      [
+       102,
+       110,
+       "AD0810"
+      ]
+     ]
+    },
+    {
+     "rule": "DBZ2-4",
+     "what": "the HP and EP bars at the game screen's top left (later)",
+     "type": "pixels",
+     "shot": "later",
+     "screen": "game",
+     "probes": [
+      [
+       74,
+       98,
+       "C6C6C6"
+      ],
+      [
+       98,
+       106,
+       "FF4A4A"
+      ],
+      [
+       178,
+       106,
+       "FF7373"
+      ],
+      [
+       102,
+       110,
+       "AD0810"
+      ]
+     ]
     }
    ]
   },
