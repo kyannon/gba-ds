@@ -1,23 +1,20 @@
 #!/usr/bin/env python3
-"""Draws GBA DS's default overlays: a flat bezel in the style of the purple
-(indigo) Game Boy Advance around the picture, for every screen of every
-device in docs/devices.csv and every scaling that leaves room around the
-picture.
+"""Draws GBA DS's default overlays: a flat bezel around the picture, for
+every screen of every device in docs/devices.csv and every scaling that
+leaves room around the picture.
 
-    tools/make_overlays.py [--out DIR] [--master DIR]
+    tools/make_overlays.py [--out DIR] [--master DIR] [--master-only]
 
 The design (the "master") is defined once, in GBA pixels around a 240x160
 picture, by the constants below, and drawn at any size by bezel(): the
-picture's hole, a thin grey outline round it, a black bezel with slightly
-rounded corners, purple outside it, and the text in the black above and
-below the picture:
-
-    top screen:    "kyannon" above the picture, the GBA DS logo below it
-    bottom screen: the GBA DS logo above the picture, "kyannon" below it
+picture's hole, a dark grey bezel with slightly rounded corners, the GBA DS
+logo's navy outside it, and the logo (black outline, dimmed letters) in the
+bezel next to the hinge: below the picture on the top screen, above it on
+the bottom screen.
 
 Where the screen has less room than the design (Full Width, or Pixel
 Perfect's sides on a 4:3 screen), the bezel is cut off by the screen's edge;
-the text shrinks to fit its band, or is left out where the band is too thin.
+the logo shrinks to fit its band, or is left out where the band is too thin.
 
 Outputs:
 
@@ -42,103 +39,71 @@ import math
 import os
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GBA_W, GBA_H = 240, 160
 
 # ---------------------------------------------------------------- the design
 # Sizes in GBA pixels (u: one GBA pixel at the picture's scale).
-PURPLE = (94, 63, 181, 255)    # #5E3FB5, the indigo GBA's shell, flat
-BLACK = (0, 0, 0, 255)
-GREY = (140, 140, 140, 255)    # #8C8C8C, the screen's outline
-WHITE = (255, 255, 255, 255)
-OUTLINE = 1.25    # grey outline round the picture
-MARGIN = 12.0     # black bezel round the picture (outline included)
-RADIUS = 3.0      # black bezel's corners
-OUTLINE_RADIUS = 0.75
-SLIVER = 2.0      # less purple than this beside the bezel: the black goes to the edge
-NAME_H = 0.42     # "kyannon": ascender height, as a share of the text band
-LOGO_H = 0.62     # the GBA DS logo's height (outline included), as a share of the band
-MIN_TEXT = 9      # screen pixels: smaller text is left out
-FONT = os.path.join(ROOT, "assets", "fonts", "Jost-700-BoldItalic.ttf")
+NAVY = (16, 32, 96, 255)       # #102060, the GBA DS logo's outline (tools/make_brand.py)
+BEZEL = (43, 43, 43, 255)      # #2B2B2B, the bezel round the screen
+LOGO_INK = (208, 208, 208)     # the logo's letters, a little dimmer than white
+MARGIN = 12.0     # the bezel round the picture
+RADIUS = 3.0      # its corners
+SLIVER = 2.0      # less navy than this beside the bezel: the bezel goes to the edge
+LOGO_H = 0.56     # the GBA DS logo's height (outline included), as a share of the bezel's band
+MIN_TEXT = 9      # screen pixels: a smaller logo is left out
 LOGO = os.path.join(ROOT, "assets", "brand", "gba-ds-logo.png")
-
-
-def name_image(height):
-    """'kyannon' in white, its ascender `height` px tall, trimmed."""
-    f = ImageFont.truetype(FONT, 1000)
-    b = f.getbbox("k")
-    size = max(1, round(1000 * height / (b[3] - b[1])))
-    f = ImageFont.truetype(FONT, size)
-    l, t, r, btm = f.getbbox("kyannon")
-    img = Image.new("RGBA", (r - l + 4, btm - t + 4), (0, 0, 0, 0))
-    ImageDraw.Draw(img).text((2 - l, 2 - t), "kyannon", font=f, fill=WHITE)
-    img = img.crop(img.getbbox())
-    # align on the ascender: the image's top is the k's top; its descender (y) hangs below
-    return img, (b[3] - b[1]) * size / 1000.0
-
 
 _logo = None
 
 
 def logo_image(height):
+    """The GBA DS logo with a black outline and slightly dim letters."""
     global _logo
     if _logo is None:
-        _logo = Image.open(LOGO).convert("RGBA")
-        _logo = _logo.crop(_logo.getbbox())
+        src = Image.open(LOGO).convert("RGBA")
+        src = src.crop(src.getbbox())
+        a = np.array(src).astype(np.float32)
+        luma = a[..., 0] * 0.299 + a[..., 1] * 0.587 + a[..., 2] * 0.114
+        n = NAVY[0] * 0.299 + NAVY[1] * 0.587 + NAVY[2] * 0.114
+        t = np.clip((luma - n) / (255 - n), 0, 1)  # 0: the outline, 1: the letters
+        for c in range(3):
+            a[..., c] = t * LOGO_INK[c]
+        _logo = Image.fromarray(a.round().astype(np.uint8), "RGBA")
     w = max(1, round(_logo.width * height / _logo.height))
     return _logo.resize((w, max(1, round(height))), Image.LANCZOS)
 
 
 def bezel(sw, sh, pic, bottom, ss=4):
     """The overlay for a screen of sw x sh whose picture is pic = (x, y, w, h)
-    (screen pixels): RGBA, transparent inside the picture. bottom: the bottom
-    screen (the logo above the picture, the name below)."""
+    (screen pixels): RGBA, transparent inside the picture. The logo goes in
+    the bezel next to the hinge: below the picture on the top screen, above
+    it on the bottom one (bottom)."""
     px, py, pw, ph = pic
     u = min(pw / GBA_W, ph / GBA_H)  # one GBA pixel
     W, H = sw * ss, sh * ss
     X0, Y0, X1, Y1 = px * ss, py * ss, (px + pw) * ss, (py + ph) * ss
     U = u * ss
-    img = Image.new("RGBA", (W, H), PURPLE)
+    img = Image.new("RGBA", (W, H), NAVY)
     d = ImageDraw.Draw(img)
     m = MARGIN * U
-    # black: the picture plus the margin, out to the edge where only a sliver of purple would be left
+    # the bezel: the picture plus the margin, out to the edge where only a sliver of navy would be left
     bx0, by0, bx1, by1 = X0 - m, Y0 - m, X1 + m, Y1 + m
     if bx0 < SLIVER * U: bx0 = -RADIUS * U * 2
     if by0 < SLIVER * U: by0 = -RADIUS * U * 2
     if bx1 > W - SLIVER * U: bx1 = W + RADIUS * U * 2
     if by1 > H - SLIVER * U: by1 = H + RADIUS * U * 2
-    d.rounded_rectangle((bx0, by0, bx1 - 1, by1 - 1), radius=RADIUS * U, fill=BLACK)
-    o = OUTLINE * U
-    d.rounded_rectangle((X0 - o, Y0 - o, X1 + o - 1, Y1 + o - 1), radius=OUTLINE_RADIUS * U, fill=GREY)
+    d.rounded_rectangle((bx0, by0, bx1 - 1, by1 - 1), radius=RADIUS * U, fill=BEZEL)
     img = img.resize((sw, sh), Image.BOX) if ss > 1 else img
-    # the text, at the screen's own resolution, in the black above and below
-    d = ImageDraw.Draw(img)
-    full = (MARGIN - OUTLINE) * u  # the design's band
-    o1 = OUTLINE * u
-    bands = {
-        "above": (max(0, by0 / ss), py - o1),
-        "below": (py + ph + o1, min(sh, by1 / ss)),
-    }
-    texts = {"above": "logo" if bottom else "name", "below": "name" if bottom else "logo"}
-    for where, (t0, t1) in bands.items():
-        band = t1 - t0
-        if band <= 0:
-            continue
-        kind = texts[where]
-        share = LOGO_H if kind == "logo" else NAME_H
-        h = min(share * full, 0.8 * band)  # the design's size, smaller if the band is cut off
-        if h < MIN_TEXT:
-            continue
-        if kind == "logo":
-            t = logo_image(h)
-            top = (t0 + t1) / 2 - t.height / 2
-        else:
-            t, asc = name_image(h)
-            top = (t0 + t1) / 2 - asc / 2  # centred on the letters' x-to-ascender block
-        x = px + pw / 2 - t.width / 2
-        img.alpha_composite(t, (round(x), round(top)))
+    # the logo, at the screen's own resolution
+    t0, t1 = (max(0, by0 / ss), py) if bottom else (py + ph, min(sh, by1 / ss))
+    band = t1 - t0
+    h = min(LOGO_H * MARGIN * u, 0.8 * band)  # the design's size, smaller if the band is cut off
+    if band > 0 and h >= MIN_TEXT:
+        t = logo_image(h)
+        img.alpha_composite(t, (round(px + pw / 2 - t.width / 2), round((t0 + t1) / 2 - t.height / 2)))
     # the picture: fully transparent, exactly
     a = np.array(img)
     a[py:py + ph, px:px + pw] = 0
@@ -228,6 +193,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=os.path.join(ROOT, "assets", "overlays", "default"))
     ap.add_argument("--master", default=os.path.join(ROOT, "assets", "overlays"))
+    ap.add_argument("--master-only", action="store_true", help="draw only the master images")
     args = ap.parse_args()
 
     # the master: the design at 16x, with room for all of it
@@ -237,6 +203,8 @@ def main():
     for bottom in (False, True):
         m = bezel(pw + 2 * pad, ph + 2 * pad, (pad, pad, pw, ph), bottom, ss=1)
         m.save(os.path.join(args.master, f"master-{'bottom' if bottom else 'top'}.png"), optimize=True)
+    if args.master_only:
+        return
 
     os.makedirs(args.out, exist_ok=True)
     for f in os.listdir(args.out):

@@ -4,14 +4,13 @@ An overlay is a picture drawn over the space around the game, never over the gam
 
 ## GBA DS's own bezel
 
-Out of the box, GBA DS draws a bezel round the picture in the style of the indigo Game Boy Advance: purple outside, a black bezel with a thin grey edge round the screen, "kyannon" and the GBA DS logo in the black above and below. On the top screen "kyannon" is above the picture and the logo below it; on the bottom screen it's the other way round, so the logo sits by the hinge on both.
+Out of the box, GBA DS draws a bezel round the picture: a dark grey bezel on the navy of the GBA DS logo's outline, with the logo in the bezel by the hinge (below the picture on the top screen, above it on the bottom screen). It's drawn on the second screen whatever that shows, logo and all.
 
 It's made for every screen of the devices GBA DS knows (the Anbernic RG DS and RG DS Plus, the AYN Thor, the Retroid Pocket Duo and Duo Lite, the AYANEO Pocket DS and the Anbernic RG DDS), in every scaling that leaves room round the picture, and with each **Screen shapes** setting. Where there's little room (Full Width, or the sides in Pixel Perfect on a 4:3 screen), you see only the part of the bezel that fits; with Stretch, or Zoom on a 4:3 screen, the picture fills the screen and there's no bezel.
 
 - Your own overlays (below) always win over it.
 - With **Match screen sizes and aspect ratios**, the bezel is made for the screen sizes GBA DS knows for your device; if you set `screen_ppi` yourself, the picture may land where no bezel was made, and then there's none.
 - **Overlays: None** turns it off; **Primary** or **Secondary** keeps it on one screen only.
-- As with your own, the second screen's bezel is only drawn while a map (or HUD) is showing, not over the logo.
 - The files are in `gba-ds/overlays/default/` (on Android, inside the app), one for each screen size and picture position; its `README.txt` says which device and setting uses each. They're replaced by every update, so don't edit them there: copy one into `overlays/` under one of the names below and change that.
 
 ## Your own overlays
@@ -43,7 +42,7 @@ For each screen the most specific file found is used, so a game's own overlay be
 For example, on an AYN Thor with the game on the top screen, Stretch and **Match screen aspect ratios**: `primary-stretch-aspect.png` is used if you have it, then `primary-aspect.png`, then `primary-stretch.png`, then `primary.png`.
 
 - Map overlays named the old way (`<CODE>-<scale>.png`, `<CODE>.png`) still work, ahead of the global ones.
-- The secondary overlay is only drawn while a map (or HUD) is showing, not over the logo.
+- The secondary overlay is drawn whatever the second screen shows: the map, the HUD, the logo, or nothing.
 - An overlay is always drawn over its whole screen, whatever the screen shapes setting: make it the screen's own size (1920×1080 for the Thor's top screen), transparent where the picture goes.
 
 Areas to keep transparent, where the game or map picture is (the same for every game, since everything is shown at full GBA size):

@@ -5282,7 +5282,11 @@ static void draw_game(void) {
 		bool showGame = nScreens == 1 ? !(singleShowsMap && mapOn) : (s == game_screen() || !mapOn);
 		SDL_Rect r = screens[s].rect;
 		if (showGame) {
-			if (nScreens == 2 && !mapOn && s != game_screen()) continue; /* no map: leave other screen black */
+			if (nScreens == 2 && !mapOn && s != game_screen()) {
+				/* no map: the other screen black, in its bezel */
+				if (cfg->overlays & OVL_SECONDARY) draw_overlay(s, 1);
+				continue;
+			}
 			ui_image_pixels(s, gameTex, GBA_W, GBA_H, cfg->scale, SHADER_ON);
 			if (hudProf && hudOn && hudAlt && hudProf->hud.alt.dimGame) {
 				/* (the phase banner moved to the other screen) */
@@ -5336,9 +5340,7 @@ static void draw_game(void) {
 			area = (SDL_Rect) { area.x + in, area.y + in, area.w - in * 2, area.h - in * 2 };
 			if (tp) ui_title_block(s, area, tp->title, (int) (ui_px(s) * 14), (SDL_Color) { 236, 236, 244, 255 });
 		}
-		if ((hudShown || mapShownIdx >= 0) && !logoForced && (cfg->overlays & OVL_SECONDARY)) { /* the map only, never the logo */
-			draw_overlay(s, 1);
-		}
+		if (cfg->overlays & OVL_SECONDARY) draw_overlay(s, 1); /* (map, HUD, logo or nothing: always) */
 		if (!hudShown && mapShownIdx >= 0 && mapInactive && !logoForced) {
 			ui_dim(s, 120);
 		}
