@@ -21,3 +21,8 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 **TH2-3. Logo at the menus.** Back at the menus the second screen shows the logo.
 
 **TH2-4. Controls picker.** The quick bar (swiped up from the bottom of the touchscreen) has Controls above its status row, centred, offering the four-button layout; GBA is the default. The second screen itself shows no picker. (Until v1.4.1: a Controls row at the bottom of the second screen.)
+
+## Not covered yet
+
+- Each release has one run (the first level) and the menus; the other levels and the end of a career haven't been tried.
+- Two-player play needs a link cable: not tried.

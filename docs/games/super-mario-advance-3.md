@@ -30,6 +30,11 @@ Modelled on Super Mario Advance 2 ([SMA rules](super-mario-advance-2.md)) and 4 
 
 **SM3-7. SNES layout.** The quick bar (swiped up from the bottom of the touchscreen) has Controls above its status row: GBA or SNES, as for Super Mario Advance 2 (SMA-5). SNES puts the face buttons where the SNES game had them, by position: the bottom one jumps (GBA A), the left one sticks out the tongue (GBA B), the right one aims and throws an egg (GBA R), and both shoulders lock the aim (GBA L). The top one, which the SNES game left to the bonus games, throws eggs too. START pauses and SELECT opens the status screen in both layouts (as on the GBA; the SNES game had its items under START). The SNES layout is used in levels only: everywhere else (the menus, the island map, a world's panel, the bonus games, Mario Bros.) it's the GBA layout, where A picks and B goes back.
 
+## Not covered yet
+
+- Europe and Japan have a level and a world's panel only.
+- Boss fights (the big ones drawn in mode 7, such as Raphael the Raven) and the extra levels haven't been tried.
+
 ## Known issues
 
 - Every release is tried with a 100% file (a GameShark save of the USA release, `saves/A3AE-100-percent.sav`, made into Europe's and Japan's by changing the region letter in its blocks and their sums): in World 6's 6-7, paused, with the status screen open, on its panel, World 5's, the island map, the bonus game and Mario Bros. Not tried yet: a file part way through (scores under 100, levels not open yet), boss fights, Yoshi's transformations, Baby Mario floating off (the star countdown), the ending, the Virtual Console dumps.

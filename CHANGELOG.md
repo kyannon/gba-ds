@@ -33,6 +33,7 @@
 - **Mario & Luigi: Superstar Saga:** the Bros. Info page on the second screen no longer shows the L and R prompts under the brother's portrait (they can't be pressed there); the magnifying glass the portrait sits in is shown whole where they were.
 - **Mario & Luigi: Superstar Saga (Japan, Mario & Luigi RPG):** walking about, the second screen showed the logo instead of Bros. Info; it shows Bros. Info now, as in the USA and Europe.
 - **F-Zero: Maximum Velocity:** on Bianca City's Ultimate Circuit (Bishop series) the course map now moves to the second screen like every other course's; it stayed on the game screen, flickering, with only your dot on the second screen.
+- **Spider-Man: Mysterio's Menace:** in the Nightclub level the second screen showed the logo instead of the Select menu; it shows the Select menu now, as in the other levels.
 
 ## v1.4.12 (2026-11-08)
 

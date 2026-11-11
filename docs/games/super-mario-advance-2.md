@@ -27,3 +27,8 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 **SMA-6. Logo.** The logo (GEN-1) is Super Mario World's own, SUPER MARIO WORLD alone, taken from its title screen (Start for single player, A on Super Mario World) without the wooden frame round it or the copyright line. (Until v1.3.2's later test builds it was the first title's, with SUPER MARIO ADVANCE 2 under it.)
 
 **SMA-7. Level name.** In a level, the top of the second screen keeps the level list's title row (its name, as the world map's list showed it when Mario last stood still: the level he went into), held there all through the level, through doors and castles too (SMA-4); the status bar (SMA-2) is 2 rows below it, and the logo centred in the room left under the status bar. With no list taken yet (a state loaded in a level), the status bar is at the top.
+
+## Not covered yet
+
+- Europe has a level only, Japan the world map and a level; their castles, doors and message boxes haven't been run.
+- Ghost houses, Yoshi's houses, the Star Road and Special Zone, boss fights (Koopalings and Bowser's final fight) and the ending haven't been tried; castle rooms and doors are checked in the USA.

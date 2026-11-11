@@ -92,6 +92,111 @@
    ]
   },
   {
+   "id": "hm-us-farm-summer-rain",
+   "rom": "A4NE",
+   "state": "harvest-moon-friends-of-mineral-town/us-farm-summer-rain.ss",
+   "desc": "the new game's first morning on the farm with the date and weather set by memory to Summer 11, rain (0x020025E9: season in the low 2 bits, day - 1 above; 0x020025E0 the weather): the town map with that season's clock (SU, the rain icon)",
+   "rules": [
+    "HM-1"
+   ],
+   "shots": {
+    "map": 200
+   },
+   "checks": [
+    {
+     "rule": "HM-1",
+     "what": "the town map taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "HM-1",
+     "what": "the town map, not the logo",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "hm-us-farm-autumn",
+   "rom": "A4NE",
+   "state": "harvest-moon-friends-of-mineral-town/us-farm-autumn.ss",
+   "desc": "the new game's first morning on the farm with the date and weather set by memory to Autumn 21, sunny (0x020025E9: season in the low 2 bits, day - 1 above; 0x020025E0 the weather): the town map with that season's clock (AU, the autumn map)",
+   "rules": [
+    "HM-1"
+   ],
+   "shots": {
+    "map": 200
+   },
+   "checks": [
+    {
+     "rule": "HM-1",
+     "what": "the town map taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "HM-1",
+     "what": "the town map, not the logo",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "hm-us-farm-winter-snow",
+   "rom": "A4NE",
+   "state": "harvest-moon-friends-of-mineral-town/us-farm-winter-snow.ss",
+   "desc": "the new game's first morning on the farm with the date and weather set by memory to Winter 10, snow (0x020025E9: season in the low 2 bits, day - 1 above; 0x020025E0 the weather): the town map with that season's clock (WT, the snow-covered valley and the snow icon)",
+   "rules": [
+    "HM-1"
+   ],
+   "shots": {
+    "map": 200
+   },
+   "checks": [
+    {
+     "rule": "HM-1",
+     "what": "the town map taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "HM-1",
+     "what": "the town map, not the logo",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
    "id": "hm-us-house",
    "rom": "A4NE",
    "state": "harvest-moon-friends-of-mineral-town/us-house.ss",

@@ -23,3 +23,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 **MF-4. Last good map stays.** When the map can't be opened (the intro, a briefing), the last good map stays up, or the logo if there's none yet.
 
 **MF-5. Logo before the first map.** Until the first map is captured, and at the title and file menus, the second screen shows the logo.
+
+## Not covered yet
+
+- Each release has one moment of play, its pause screen and the file menu. Boss fights, an SA-X chase, a Navigation Room's briefing in mid-play (MF-4) and the ending haven't been run.

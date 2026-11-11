@@ -38,6 +38,11 @@ Modelled on Super Mario Advance 2 ([SMA rules](super-mario-advance-2.md)): somet
 
 **SM4-11. World-e's castle hall: the logo.** From the moment Mario goes into a spot on World-e's map (the castle, or a level), as the map closes in a circle, the second screen shows the logo, and it stays the logo in the castle hall (whose doors lead to the e-Reader levels), which has no status bar. The status bar and inventory come back on World-e's map; in a level, its status bar (SM4-2), straight after the logo, with nothing from before between them (in a v1.4.11 test build the inventory showed for a frame as a level started). (Until v1.4.11's later test builds the castle hall showed the inventory without the status bar. A player's bug report, Europe's Rev 1 on the Wii U Virtual Console.) *The tests run Europe's Rev 1 Virtual Console dump (the only one with World-e's levels without the cards) for SM4-8 and SM4-11.*
 
+## Not covered yet
+
+- Japan has the world map and a level only (Europe also its language menu and World-e from the Virtual Console dump); their houses, airships and bosses haven't been run.
+- The e-Reader levels themselves (World-e's levels played) and Classic Mario Bros. (from the title) haven't been tried.
+
 ## Known issues
 
 - Not tried: Europe's Rev 1 cartridge and Switch Online dumps, the USA's Virtual Console and Switch Online dumps, Japan's Rev 1 and its Virtual Console and Switch Online dumps. Each is expected to behave as the revision it's made from (SM4-7).

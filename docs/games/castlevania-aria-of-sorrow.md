@@ -23,3 +23,8 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 **CVA-4. Logo before the first map.** Until the first map is captured, and back at the title and file menus, the second screen shows the game's logo.
 
 **CVA-5. Game screen untouched.** The game screen shows the game exactly as it draws itself; nothing is moved or hidden there.
+
+## Not covered yet
+
+- Each release has one moment of play (an early room), its pause screen and the file menu. Boss fights, the castle's later areas (a map scrolled further), warp rooms, and a scene in mid-play (where CVA-3's last good map should stay) haven't been run.
+- Julius Mode and Boss Rush haven't been tried.

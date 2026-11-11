@@ -28,6 +28,11 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **SN-7. Battles: the logo.** In a battle the second screen shows the logo (as on the title, SN-3) instead of the Status, as the battle comes up (within half a second: the logo's checked twice a second) until it's over; walking about again, the Status comes back with the next capture. (Until v1.4.5's later test builds, the Status from before the battle stayed.)
 
+## Not covered yet
+
+- Japan is checked on the title and walking about; its battles haven't been run (the USA's is: sn-us-battle).
+- Shops, the forge, the tournament's arena and the story past its first chapters haven't been tried.
+
 ## Facts found so far (for sessions)
 
 | What | Where / value (USA) |

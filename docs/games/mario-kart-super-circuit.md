@@ -27,3 +27,9 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 **MK-6. Pause and menus.** The pause menu stays on the game screen with the last HUD below it; in the menus the second screen shows the logo.
 
 **MK-7. One screen.** With `layout = single` the HUD stays where the game draws it.
+
+## Not covered yet
+
+- Europe and Japan are checked at a race's start and on the menus; their last lap, results, podium and pause haven't been run.
+- Time Trial (its ghost), Quick Run and Battle mode haven't been tried.
+- Link play needs a link cable: not tried.
