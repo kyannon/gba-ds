@@ -2953,30 +2953,32 @@ static void ml_page(const uint32_t* fb, uint32_t* out, int w, int h) {
  * 0x190-0x193 on row 10, columns 2-3 for L and 6-7 for R; not sprites, so
  * they can't be hidden alone). Only the tabs' pixels (their letters, faces,
  * shading and outlines) are replaced, from the owner's own repaint of the
- * glass (Nov 10, 2026, on the Equipment page, which shows more of it): the
- * lens's rim and its lighter outline closed round, the glass's edge going
- * on round under L with the plaid outside it, tapering into the handle
- * under R and between the tabs' feet. The table is rows 72-87 from x 14:
+ * glass (Nov 10, 2026, on the Equipment page, which shows more of it),
+ * tidied: the lens's rim and its lighter outline closed round at the widths
+ * the game draws them on the lower arc, the glass's edge going
+ * on round under L, its thin dark outline drawn on to the glass's bottom
+ * outline, what's behind outside it, tapering into the handle under R and
+ * between the tabs' feet. The table is rows 72-87 from x 14:
  * a-e the glass's colours, as the page has them on its left edge, '.' what
- * lies behind BG2 there, '-' the game's own pixel kept. A pixel the
- * portrait's sprites cover stays. Not this layout: left as it is */
+ * lies behind BG2 there, '-' the game's own pixel kept (the portrait's
+ * sprites are clear outside the lens). Not this layout: left as it is */
 static const char mlGlass[16][53] = {
 	"----------------------------------------------------",
 	"----------------------------------------------------",
-	"----eddd--------------------------------abbdddd-----",
-	"----eedd--------------------------------edddddde----",
-	"----eeee--------------------------------ddddddee----",
-	"----eeee---------------------------------ddddeee----",
-	"----ddee---------------------------------ddeeeee----",
-	"---bddddeee------------------------------eeeeeee----",
-	"----.dddddeeeeee--------------------eeeeeeeeeeee----",
-	"---.....ddddeeee--------------------eeeeeeeeeeeee---",
-	"--........ddddee--------------------eeeeeeeeeeeeee--",
-	"--...........ddd--------------------eeeeeeeeeeeeee--",
-	"--...............-------------------eeeeeeeeeeeeee--",
-	"---...............------------------eeeeeeeeeeeee---",
-	"----...............b----------------eeeeeeeeeeee----",
-	"-----------------------------------b----------------"
+	"----eddd--------------------------------aaabddd-----",
+	"----eedd--------------------------------abddddee----",
+	"----eeee--------------------------------bdddeeee----",
+	"----eeee---------------------------------ddeeeee----",
+	"----ddee---------------------------------eeeeeee----",
+	"---bddeeeee------------------------------eeeeeee----",
+	"...aaddddeeeeeee--------------------eeeeeeeeeeee----",
+	".....aaaddddeeee--------------------eeeeeeeeeeeee---",
+	"........aaddddee--------------------eeeeeeeeeeeeee--",
+	"..........aaaddd--------------------eeeeeeeeeeeeee--",
+	".............aaddd------------------eeeeeeeeeeeeee--",
+	"................aaddddd-------------eeeeeeeeeeeee---",
+	"..................abb---------------eeeeeeeeeeee----",
+	"...................a---------------b----------------"
 };
 static void ml_no_prompts(Emu* s, uint32_t* out, int w, int h) {
 	if (w < 66 || h < 88) return;
@@ -3005,8 +3007,6 @@ static void ml_no_prompts(Emu* s, uint32_t* out, int w, int h) {
 			if (c == '-') continue;
 			uint32_t* o = &out[y * w + x];
 			int i = y * GBA_W + x;
-			/* (a sprite over the tab: the portrait) */
-			if (*o == bare[i] && c != '.') continue;
 			*o = c == '.' ? bare[i] : glass[c - 'a'];
 		}
 }
