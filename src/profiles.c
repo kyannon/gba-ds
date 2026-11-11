@@ -2295,13 +2295,15 @@ static const char* bf_compose(Emu* s, const void* state, uint32_t* out, int w, i
  *     count, which held 1 walking about on the first maps and flickered 0 /
  *     1 on others, after a battle: the capture took the field for the menu
  *     and failed there)
- *   ML_CURSOR the menu's icon (0 Items, 1 Equipment, 2 Bros. Info)
+ *   ML_CURSOR the menu's icon (0 Items, 1 Equipment, 2 Bros. Info); in
+ *     Japan 0x20 higher (0x030040C9: with the USA's address the capture
+ *     never reached Bros. Info there, and the logo stayed)
  */
 #define ML_STATE 0x02000008 /* 8 walking about (its menus too), 3 a battle, 2 the title */
 #define ML_MODE 0x02000009 /* with state 8: 21 walking about, 10 SELECT's menu opening, 26 the menus */
 #define ML_PAGE 0x0200000D /* in the menus: 9 SELECT's menu, 12 Bros. Info (Mario's page), 14 Luigi's */
 #define ML_WALKING 0x1508 /* ML_STATE and ML_MODE as a halfword, walking about */
-#define ML_CURSOR 0x030040A9
+#define ML_CURSOR(e) (0x030040A9 + ((e)->gameCode[3] == 'J' ? 0x20 : 0))
 #define ML_LEAD 0x02004F4C /* the brother in front: 0 Mario, 1 Luigi (START swaps) */
 /* BG3's tile map entry inside the results' red EXP panel (row 7, column 9):
  * empty through a battle, set from the results' first frame (no battle box
@@ -2961,11 +2963,11 @@ static const char* ml_compose(Emu* s, const void* state, uint32_t* const* out, i
 	}
 	if (at == ML_MENU) {
 		aw_run(s, 0, 20); /* (past its opening: DOWN is taken 10 to 15 frames on) */
-		for (int i = 0; i < 8 && emu_read8(s, ML_CURSOR) != 2; ++i) {
-			aw_tap(s, emu_read8(s, ML_CURSOR) < 2 ? K_DOWN : K_UP, 1);
+		for (int i = 0; i < 8 && emu_read8(s, ML_CURSOR(s)) != 2; ++i) {
+			aw_tap(s, emu_read8(s, ML_CURSOR(s)) < 2 ? K_DOWN : K_UP, 1);
 			aw_run(s, 0, 4);
 		}
-		if (emu_read8(s, ML_CURSOR) != 2) return "Bros. Info not reached in the menu";
+		if (emu_read8(s, ML_CURSOR(s)) != 2) return "Bros. Info not reached in the menu";
 		aw_tap(s, K_A, 1);
 		if (!ml_wait(s, ML_BROS, 90)) return "Bros. Info didn't open";
 	} else if (at != ML_BROS) {

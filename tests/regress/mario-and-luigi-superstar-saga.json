@@ -110,6 +110,180 @@
    ]
   },
   {
+   "id": "ml-eu-field",
+   "rom": "A88P",
+   "state": "mario-and-luigi-superstar-saga/eu-field.ss",
+   "desc": "Europe, walking about on the Koopa Cruiser (the owner's state): Bros. Info, Mario's page, Luigi's after START, Mario's again",
+   "rules": [
+    "ML-2"
+   ],
+   "shots": {
+    "mario": 100,
+    "luigi": 260,
+    "mario2": 510
+   },
+   "checks": [
+    {
+     "rule": "ML-2",
+     "what": "Bros. Info taken, one page",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "ML-2",
+     "what": "the page follows the brother in front",
+     "type": "differs",
+     "a": {
+      "shot": "mario",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "luigi",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.05
+    },
+    {
+     "rule": "ML-2",
+     "what": "and back",
+     "type": "same",
+     "a": {
+      "shot": "mario",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "mario2",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     }
+    }
+   ],
+   "input": [
+    [
+     150,
+     "START"
+    ],
+    [
+     154,
+     "-"
+    ],
+    [
+     400,
+     "START"
+    ],
+    [
+     404,
+     "-"
+    ]
+   ]
+  },
+  {
+   "id": "ml-jp-field",
+   "rom": "A88J",
+   "state": "mario-and-luigi-superstar-saga/jp-field.ss",
+   "desc": "Japan, walking about on the Koopa Cruiser (the owner's state): Bros. Info, Mario's page, Luigi's after START, Mario's again (the logo stayed until Japan's menu cursor was found 0x20 higher)",
+   "rules": [
+    "ML-2"
+   ],
+   "shots": {
+    "mario": 100,
+    "luigi": 260,
+    "mario2": 510
+   },
+   "checks": [
+    {
+     "rule": "ML-2",
+     "what": "Bros. Info taken, one page",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "ML-2",
+     "what": "the page follows the brother in front",
+     "type": "differs",
+     "a": {
+      "shot": "mario",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "luigi",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.05
+    },
+    {
+     "rule": "ML-2",
+     "what": "and back",
+     "type": "same",
+     "a": {
+      "shot": "mario",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "mario2",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     }
+    }
+   ],
+   "input": [
+    [
+     150,
+     "START"
+    ],
+    [
+     154,
+     "-"
+    ],
+    [
+     400,
+     "START"
+    ],
+    [
+     404,
+     "-"
+    ]
+   ]
+  },
+  {
    "id": "ml-us-bros-info",
    "rom": "A88E",
    "state": "mario-and-luigi-superstar-saga/us-bros-info.ss",
