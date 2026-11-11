@@ -5134,8 +5134,36 @@ static bool state_save(const char* path) {
 	return ok;
 }
 
+/* GEN-9: a state saved with another ROM than the one playing (other
+ * patches, none, another dump) still loads, with a note */
+static bool stateWarned; /* (the last load's note is up: callers' "loaded" notes wait) */
+static bool stateNoCheck;
+static void state_rom_check(const char* path) {
+	uint32_t crc;
+	stateWarned = false;
+	if (!emu_state_file_rom_crc(path, &crc) || crc == emu.romCrc) return;
+	const char* name = NULL;
+	DumpKind k = profile_dump(emu.gameCode, crc, &name);
+	char what[300];
+	bool patched = emu.patch == PATCH_APPLIED || emu.patch == PATCH_PARTIAL;
+	if (patched && crc == emu.fileCrc) snprintf(what, sizeof(what), "without the patches on");
+	else if (name && (k == DUMP_MOD || k == DUMP_MOD_TESTED)) snprintf(what, sizeof(what), "with %s", name);
+	else if (name) {
+		/* (an official dump: the unchanged game, if this one's changed) */
+		DumpKind now = profile_dump(emu.gameCode, emu.romCrc, NULL);
+		bool changed = patched || now == DUMP_MOD || now == DUMP_MOD_TESTED || now == DUMP_MODIFIED;
+		snprintf(what, sizeof(what), changed ? "with the unchanged game (%s)" : "with another dump of the game (%s)", name);
+	}
+	else snprintf(what, sizeof(what), "with another version of the game (other patches, or another ROM)");
+	fprintf(stderr, "load state: %s was saved %s (ROM CRC32 %08x, playing %08x)\n", path, what, crc, emu.romCrc);
+	ui_osd_long("This state was saved %s: it may not work", what);
+	stateWarned = true;
+}
+
 static bool state_load(const char* path) {
 	bool ok = emu_state_load_file(&emu, path);
+	stateWarned = false;
+	if (ok && !stateNoCheck) state_rom_check(path);
 	if (ok) ra_state_loaded(path);
 	/* (the second screen kept with it: put back at the next frame) */
 	if (ok) {
@@ -6591,7 +6619,7 @@ static bool activate(int item, enum GameExit* exitTo) {
 		} else if (state_load(gp.slot[stateSlot])) {
 			char m[40];
 			snprintf(m, sizeof(m), "Slot %d loaded", stateSlot);
-			ui_osd(m);
+			if (!stateWarned) ui_osd(m);
 			menuOpen = false;
 			return false;
 		} else {
@@ -6996,13 +7024,15 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		cfg->loadState[0] = 0;
 	} else if (patchHandoff[0] && file_exists(patchHandoff)) {
 		/* GEN-9: patches switched without upsetting the saves: on from that very moment */
+		stateNoCheck = true; /* (saved with the ROM before the change, on purpose) */
 		bool ok = state_load(patchHandoff);
+		stateNoCheck = false;
 		remove(patchHandoff);
 		patchHandoff[0] = 0;
-		ui_osd(ok ? "Patches changed: carrying on from where you were" : "Patches changed");
+		if (!stateWarned) ui_osd(ok ? "Patches changed: carrying on from where you were" : "Patches changed");
 	} else if (cfg->autoLoad && !patchReload && file_exists(gp.autoState)) { /* (not right after switching a patch) */
 		if (state_load(gp.autoState)) {
-			ui_osd("Resumed. Tap or HOME for the menu");
+			if (!stateWarned) ui_osd("Resumed. Tap or HOME for the menu");
 		}
 	} else {
 		ui_osd("Tap the screen or press HOME for the menu");
@@ -7198,7 +7228,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 							if (ok) barLit = bb, barLitAt = barSince;
 						} else if (bb == BB_LOAD) {
 							if (!file_exists(gp.quick)) ui_osd("No quick state saved yet.");
-							else if (state_load(gp.quick)) ui_osd("State loaded."), forceMap = true, barLit = bb, barLitAt = barSince;
+							else if (state_load(gp.quick)) { if (!stateWarned) ui_osd("State loaded."); forceMap = true, barLit = bb, barLitAt = barSince; }
 							else ui_osd("Load failed.");
 						} else if (bb == BB_SETTINGS) {
 							open_menu();
@@ -7490,7 +7520,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				case HK_SAVE: ui_osd(state_save(gp.quick) ? "State saved." : "Save failed."); break;
 				case HK_LOAD:
 					if (!file_exists(gp.quick)) ui_osd("No quick state saved yet.");
-					else if (state_load(gp.quick)) ui_osd("State loaded."), forceMap = true;
+					else if (state_load(gp.quick)) { if (!stateWarned) ui_osd("State loaded."); forceMap = true; }
 					else ui_osd("Load failed.");
 					break;
 				case HK_BAR: bar_toggle(); break;

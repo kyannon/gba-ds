@@ -2232,6 +2232,14 @@ void ui_osd(const char* fmt, ...) {
 	osdUntil = ticks + 120;
 }
 
+void ui_osd_long(const char* fmt, ...) {
+	va_list ap;
+	va_start(ap, fmt);
+	vsnprintf(osdText, sizeof(osdText), fmt, ap);
+	va_end(ap);
+	osdUntil = ticks + 300;
+}
+
 const char* ui_osd_text(void) {
 	return ticks < osdUntil ? osdText : NULL;
 }

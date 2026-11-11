@@ -3927,6 +3927,26 @@
      70
     ]
    ]
+  },
+  {
+   "id": "ml-us-state-from-mod",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-field-mlssplus.ss",
+   "desc": "the unchanged USA game loading a state saved with Superstar Saga+ (100%): it loads, with the note that it was saved with that mod and may not work",
+   "rules": [
+    "GEN-9"
+   ],
+   "shots": {
+    "loaded": 30
+   },
+   "checks": [
+    {
+     "rule": "GEN-9",
+     "what": "the state's ROM named",
+     "type": "log",
+     "match": "load state: .* was saved with Superstar Saga\\+ v1\\.5 \\(100%\\) \\(ROM CRC32 ba4791f4, playing e718d850\\)"
+    }
+   ]
   }
  ]
 }

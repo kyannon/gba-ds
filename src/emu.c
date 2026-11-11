@@ -484,6 +484,18 @@ bool emu_state_load_file(Emu* e, const char* path) {
 	return ok;
 }
 
+bool emu_state_file_rom_crc(const char* path, uint32_t* crc) {
+	uint8_t h[12];
+	FILE* f = fopen(path, "rb");
+	if (!f) return false;
+	bool ok = fread(h, 1, sizeof(h), f) == sizeof(h);
+	fclose(f);
+	/* GBASerializedState: versionMagic (0x01000000 + version), biosChecksum, romCrc32 */
+	if (!ok || h[3] != 0x01) return false;
+	*crc = (uint32_t) h[8] | (uint32_t) h[9] << 8 | (uint32_t) h[10] << 16 | (uint32_t) h[11] << 24;
+	return true;
+}
+
 /* (in mGBA's subsystem range, which it doesn't use for the GBA) */
 #define EXTDATA_GBADS ((enum mStateExtdataTag) (EXTDATA_SUBSYSTEM_START + 0x3D))
 
