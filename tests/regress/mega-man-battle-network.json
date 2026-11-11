@@ -1,0 +1,1150 @@
+{
+ "game": "Mega Man Battle Network",
+ "rules": "docs/games/mega-man-battle-network.md",
+ "cases": [
+  {
+   "id": "mmbn-us-title",
+   "rom": "AREE",
+   "state": "mega-man-battle-network/us-title.ss",
+   "desc": "the title: the logo, nothing taken",
+   "rules": [
+    "MMBN-1"
+   ],
+   "shots": {
+    "title": 60
+   },
+   "checks": [
+    {
+     "rule": "MMBN-1",
+     "what": "no status taken",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "mmbn-us-net",
+   "rom": "AREE",
+   "state": "mega-man-battle-network/us-net-endgame.ss",
+   "desc": "MegaMan on the net (an endgame save, level 79: the WWW's maze): the area's map, a third of its size, centred on him",
+   "rules": [
+    "MMBN-6"
+   ],
+   "shots": {
+    "map": 90
+   },
+   "checks": [
+    {
+     "rule": "MMBN-6",
+     "what": "the area's map made",
+     "type": "log",
+     "match": "area [0-9A-F]{4} mapped"
+    },
+    {
+     "rule": "MMBN-6",
+     "what": "the map drawn around him (the middle of the second screen not black)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      312,
+      284,
+      712,
+      484
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "mmbn-us-room",
+   "rom": "AREE",
+   "state": "mega-man-battle-network/us-room-endgame.ss",
+   "desc": "Lan in his room (an endgame save, level 100): MegaMan's status in the real world too",
+   "rules": [
+    "MMBN-2"
+   ],
+   "shots": {
+    "status": 90
+   },
+   "checks": [
+    {
+     "rule": "MMBN-2",
+     "what": "MegaMan's status taken",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "MMBN-2",
+     "what": "black above the frame (centred top to bottom)",
+     "type": "uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      991,
+      124
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "MMBN-2",
+     "what": "the money counter's row left of it in the panel's top row's colour",
+     "type": "uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      40,
+      148,
+      720,
+      236
+     ],
+     "color": "4A5A63"
+    },
+    {
+     "rule": "MMBN-2",
+     "what": "the amount at the top right",
+     "type": "not_uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      740,
+      148,
+      991,
+      236
+     ],
+     "color": "4A5A63"
+    }
+   ]
+  },
+  {
+   "id": "mmbn-eu-net",
+   "rom": "AREP",
+   "state": "mega-man-battle-network/eu-net-endgame.ss",
+   "desc": "Europe, MegaMan on the net (an endgame save, level 100: the Undernet's big panels): the same",
+   "rules": [
+    "MMBN-6"
+   ],
+   "shots": {
+    "map": 90
+   },
+   "checks": [
+    {
+     "rule": "MMBN-6",
+     "what": "the area's map made",
+     "type": "log",
+     "match": "area [0-9A-F]{4} mapped"
+    },
+    {
+     "rule": "MMBN-6",
+     "what": "the map drawn around him (the middle of the second screen not black)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      312,
+      284,
+      712,
+      484
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "mmbn-us-conversation",
+   "rom": "AREE",
+   "state": "mega-man-battle-network/us-net-endgame.ss",
+   "desc": "talking to the Navi beside MegaMan: the map stays through the conversation",
+   "rules": [
+    "MMBN-3",
+    "MMBN-6"
+   ],
+   "input": [
+    [
+     100,
+     "A"
+    ],
+    [
+     104,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 90,
+    "talking": 200,
+    "talking2": 400
+   },
+   "checks": [
+    {
+     "rule": "MMBN-3",
+     "what": "the same picture through the conversation",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "talking2",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "mmbn-us-pet-menu",
+   "rom": "AREE",
+   "state": "mega-man-battle-network/us-net-endgame.ss",
+   "desc": "the PET's menu, then the folder, open in the game: the map stays",
+   "rules": [
+    "MMBN-3",
+    "MMBN-6"
+   ],
+   "input": [
+    [
+     100,
+     "START"
+    ],
+    [
+     104,
+     "-"
+    ],
+    [
+     150,
+     "A"
+    ],
+    [
+     154,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 90,
+    "menu": 140,
+    "folder": 300
+   },
+   "checks": [
+    {
+     "rule": "MMBN-3",
+     "what": "the same picture in the folder",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "folder",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "mmbn-us-new-game",
+   "rom": "AREE",
+   "state": "mega-man-battle-network/us-new-game.ss",
+   "desc": "a new game, Lan in his room before he has his PET (START opens nothing): the logo",
+   "rules": [
+    "MMBN-1",
+    "MMBN-3"
+   ],
+   "shots": {
+    "room": 200
+   },
+   "checks": [
+    {
+     "rule": "MMBN-1",
+     "what": "no status taken",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "mmbn-us-into-battle",
+   "rom": "AREE",
+   "state": "mega-man-battle-network/us-before-battle.ss",
+   "desc": "walking up and down on the net (area 0388) into a random battle: the area's map while walking, MegaMan's status and money (taken on the net beforehand) through the battle, its custom screen on the game screen",
+   "rules": [
+    "MMBN-2",
+    "MMBN-4",
+    "MMBN-6"
+   ],
+   "input": [
+    [
+     0,
+     "UP"
+    ],
+    [
+     30,
+     "DOWN"
+    ],
+    [
+     60,
+     "UP"
+    ],
+    [
+     90,
+     "DOWN"
+    ],
+    [
+     120,
+     "UP"
+    ],
+    [
+     150,
+     "DOWN"
+    ],
+    [
+     180,
+     "UP"
+    ],
+    [
+     210,
+     "DOWN"
+    ],
+    [
+     240,
+     "UP"
+    ],
+    [
+     270,
+     "DOWN"
+    ],
+    [
+     300,
+     "UP"
+    ],
+    [
+     330,
+     "DOWN"
+    ],
+    [
+     360,
+     "-"
+    ]
+   ],
+   "shots": {
+    "walking": 60,
+    "battle": 400
+   },
+   "checks": [
+    {
+     "rule": "MMBN-6",
+     "what": "the map while walking",
+     "type": "log",
+     "match": "area 0388 mapped"
+    },
+    {
+     "rule": "MMBN-2",
+     "what": "MegaMan's status taken on the net",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "MMBN-4",
+     "what": "in the battle: black above the status frame",
+     "type": "uniform",
+     "shot": "battle",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      991,
+      124
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "MMBN-4",
+     "what": "in the battle: the money counter's row in the panel's top row's colour",
+     "type": "uniform",
+     "shot": "battle",
+     "screen": "second",
+     "rect": [
+      40,
+      148,
+      720,
+      236
+     ],
+     "color": "4A5A63"
+    },
+    {
+     "rule": "MMBN-4",
+     "what": "the map gone in the battle",
+     "type": "differs",
+     "a": {
+      "shot": "walking",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ],
+      "screen": "second"
+     },
+     "b": {
+      "shot": "battle",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ],
+      "screen": "second"
+     }
+    }
+   ]
+  },
+  {
+   "id": "mmbn-us-game-over",
+   "rom": "AREE",
+   "state": "mega-man-battle-network/us-before-battle.ss",
+   "desc": "into a battle with MegaMan's status on the second screen, then the game over screen (the owner's bug report, replayed to where it begins, loaded in): the logo at once",
+   "rules": [
+    "MMBN-1"
+   ],
+   "input": [
+    [
+     0,
+     "UP"
+    ],
+    [
+     30,
+     "DOWN"
+    ],
+    [
+     60,
+     "UP"
+    ],
+    [
+     90,
+     "DOWN"
+    ],
+    [
+     120,
+     "UP"
+    ],
+    [
+     150,
+     "DOWN"
+    ],
+    [
+     180,
+     "UP"
+    ],
+    [
+     210,
+     "DOWN"
+    ],
+    [
+     240,
+     "UP"
+    ],
+    [
+     270,
+     "DOWN"
+    ],
+    [
+     300,
+     "UP"
+    ],
+    [
+     330,
+     "DOWN"
+    ],
+    [
+     360,
+     "-"
+    ],
+    [
+     420,
+     "LOAD:mega-man-battle-network/us-game-over.ss"
+    ]
+   ],
+   "shots": {
+    "battle": 400,
+    "game_over": 480
+   },
+   "checks": [
+    {
+     "rule": "MMBN-1",
+     "what": "the status in the battle",
+     "type": "uniform",
+     "shot": "battle",
+     "screen": "second",
+     "rect": [
+      40,
+      148,
+      720,
+      236
+     ],
+     "color": "4A5A63"
+    },
+    {
+     "rule": "MMBN-1",
+     "what": "game over: the logo",
+     "type": "uniform",
+     "shot": "game_over",
+     "screen": "second",
+     "rect": [
+      100,
+      110,
+      260,
+      170
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "mmbn-eu-custom",
+   "rom": "AREP",
+   "state": "mega-man-battle-network/eu-battle-gauge-full.ss",
+   "desc": "R opens the custom screen, a chip picked, OK: all of it on the game screen as the game draws it; the second screen unchanged (the logo: no status from before this battle)",
+   "rules": [
+    "MMBN-1",
+    "MMBN-4"
+   ],
+   "input": [
+    [
+     60,
+     "R"
+    ],
+    [
+     63,
+     "-"
+    ],
+    [
+     130,
+     "A"
+    ],
+    [
+     133,
+     "-"
+    ],
+    [
+     160,
+     "START"
+    ],
+    [
+     163,
+     "-"
+    ],
+    [
+     170,
+     "A"
+    ],
+    [
+     173,
+     "-"
+    ]
+   ],
+   "shots": {
+    "fighting": 50,
+    "sliding": 100,
+    "open": 120,
+    "picked": 150,
+    "closing": 182,
+    "after": 260
+   },
+   "checks": [
+    {
+     "rule": "MMBN-4",
+     "what": "no status from before this battle (the state starts in it): the logo",
+     "type": "uniform",
+     "shot": "open",
+     "screen": "second",
+     "rect": [
+      100,
+      110,
+      260,
+      170
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "MMBN-4",
+     "what": "the custom screen on the game screen: it follows the pick",
+     "type": "differs",
+     "a": {
+      "shot": "open",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ],
+      "screen": "game"
+     },
+     "b": {
+      "shot": "picked",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ],
+      "screen": "game"
+     }
+    },
+    {
+     "rule": "MMBN-4",
+     "what": "the second screen the same throughout",
+     "type": "same",
+     "a": {
+      "shot": "fighting",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ],
+      "screen": "second"
+     },
+     "b": {
+      "shot": "open",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ],
+      "screen": "second"
+     }
+    },
+    {
+     "rule": "MMBN-4",
+     "what": "the second screen the same after",
+     "type": "same",
+     "a": {
+      "shot": "fighting",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ],
+      "screen": "second"
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ],
+      "screen": "second"
+     }
+    }
+   ]
+  },
+  {
+   "id": "mmbn-eu-battle-start",
+   "rom": "AREP",
+   "state": "mega-man-battle-network/eu-battle-start.ss",
+   "desc": "a battle's start, the custom screen sliding in on the game screen; the logo on the second (no status from before this battle)",
+   "rules": [
+    "MMBN-4"
+   ],
+   "shots": {
+    "open": 30
+   },
+   "checks": [
+    {
+     "rule": "MMBN-4",
+     "what": "no status from before this battle (the state starts in it): the logo",
+     "type": "uniform",
+     "shot": "open",
+     "screen": "second",
+     "rect": [
+      100,
+      110,
+      260,
+      170
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "mmbn-eu-one-screen",
+   "rom": "AREP",
+   "state": "mega-man-battle-network/eu-battle-start.ss",
+   "desc": "a battle's first custom screen with one screen: the game as it is, the custom screen where the game draws it",
+   "rules": [
+    "MMBN-5"
+   ],
+   "config": {
+    "layout": "single"
+   },
+   "shots": {
+    "custom": 60
+   },
+   "checks": [
+    {
+     "rule": "MMBN-5",
+     "what": "nothing moved",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "MMBN-5",
+     "what": "the custom screen on the game's left half",
+     "type": "pixels",
+     "shot": "custom",
+     "screen": "game",
+     "probes": [
+      [
+       34,
+       466,
+       "524A52"
+      ],
+      [
+       134,
+       582,
+       "181039"
+      ],
+      [
+       394,
+       694,
+       "524A52"
+      ]
+     ]
+    },
+    {
+     "rule": "MMBN-5",
+     "what": "its chip list below",
+     "type": "pixels",
+     "shot": "custom",
+     "screen": "second",
+     "probes": [
+      [
+       478,
+       42,
+       "F7EFCE"
+      ],
+      [
+       250,
+       178,
+       "848C84"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "mmbn-eu-results",
+   "rom": "AREP",
+   "state": "mega-man-battle-network/eu-results.ss",
+   "desc": "a battle's results (the viruses' HP set to 1 and busted): on the game screen, the logo on the second (no status from before this battle); A twice, walking about on the net again, and the area's map",
+   "rules": [
+    "MMBN-3",
+    "MMBN-4",
+    "MMBN-6"
+   ],
+   "input": [
+    [
+     60,
+     "A"
+    ],
+    [
+     66,
+     "-"
+    ],
+    [
+     90,
+     "A"
+    ],
+    [
+     96,
+     "-"
+    ],
+    [
+     120,
+     "A"
+    ],
+    [
+     126,
+     "-"
+    ],
+    [
+     150,
+     "A"
+    ],
+    [
+     156,
+     "-"
+    ]
+   ],
+   "shots": {
+    "results": 40,
+    "walking": 400
+   },
+   "checks": [
+    {
+     "rule": "MMBN-6",
+     "what": "the area's map made",
+     "type": "log",
+     "match": "area [0-9A-F]{4} mapped"
+    },
+    {
+     "rule": "MMBN-6",
+     "what": "the map drawn around him (the middle of the second screen not black)",
+     "type": "not_uniform",
+     "shot": "walking",
+     "screen": "second",
+     "rect": [
+      312,
+      284,
+      712,
+      484
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "mmbn-us-net-path-behind",
+   "rom": "AREE",
+   "state": "mega-man-battle-network/us-net-path-behind-money.ss",
+   "desc": "MegaMan on the net where a path passes behind the PET's money counter in the game: the area's map (the counter only in the real world now)",
+   "rules": [
+    "MMBN-6"
+   ],
+   "shots": {
+    "map": 90
+   },
+   "checks": [
+    {
+     "rule": "MMBN-6",
+     "what": "the area's map made",
+     "type": "log",
+     "match": "area [0-9A-F]{4} mapped"
+    },
+    {
+     "rule": "MMBN-6",
+     "what": "the map drawn around him (the middle of the second screen not black)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      312,
+      284,
+      712,
+      484
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "mmbn-us-warp",
+   "rom": "AREE",
+   "state": "mega-man-battle-network/us-warp-to-oven.ss",
+   "desc": "warping from Lan's PC to Oven Comp 1 (an endgame save; the warp started by setting gMapChange): the logo while MegaMan steps off the warp pad, then the new area's map",
+   "rules": [
+    "MMBN-6"
+   ],
+   "shots": {
+    "arriving": 60,
+    "map": 360
+   },
+   "checks": [
+    {
+     "rule": "MMBN-6",
+     "what": "the new area's map made once the camera follows him",
+     "type": "log",
+     "match": "area 0081 mapped"
+    },
+    {
+     "rule": "MMBN-6",
+     "what": "the logo while he steps off the pad (no half-made map)",
+     "type": "uniform",
+     "shot": "arriving",
+     "screen": "second",
+     "rect": [
+      100,
+      110,
+      260,
+      170
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "MMBN-6",
+     "what": "the map drawn around him",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      312,
+      284,
+      712,
+      484
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "mmbn-us-lan-pc",
+   "rom": "AREE",
+   "state": "mega-man-battle-network/us-lan-pc.ss",
+   "desc": "Lan's PC (its patterned floor behind): the homepage's panel on black, none of the pattern",
+   "rules": [
+    "MMBN-6"
+   ],
+   "shots": {
+    "map": 90
+   },
+   "checks": [
+    {
+     "rule": "MMBN-6",
+     "what": "the area's map made",
+     "type": "log",
+     "match": "area 0088 mapped"
+    },
+    {
+     "rule": "MMBN-6",
+     "what": "the map drawn around him",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      312,
+      284,
+      712,
+      484
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "MMBN-6",
+     "what": "no backdrop: black at the second screen's corners",
+     "type": "uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      0,
+      0,
+      160,
+      120
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "mmbn-us-jacked-in",
+   "rom": "AREE",
+   "state": "mega-man-battle-network/us-jacked-in.ss",
+   "desc": "jacked in again after jacking out (the owner's steps from Oven Comp 1): MegaMan on WWW Comp 5's raised entrance pad (64 up): the area's map, his head on the pad",
+   "rules": [
+    "MMBN-6"
+   ],
+   "shots": {
+    "map": 120
+   },
+   "checks": [
+    {
+     "rule": "MMBN-6",
+     "what": "the area's map made (the camera followed his height, not the copy's check)",
+     "type": "log",
+     "match": "area 0485 mapped"
+    },
+    {
+     "rule": "MMBN-6",
+     "what": "the map drawn around him",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      312,
+      284,
+      712,
+      484
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "mmbn-us-tutorial-message",
+   "rom": "AREE",
+   "state": "mega-man-battle-network/us-tutorial-message.ss",
+   "desc": "the first tutorial battle's custom screen with the teacher's message (the owner's state): the custom screen on the second screen; her message and portrait together on the game screen",
+   "rules": [
+    "MMBN-4"
+   ],
+   "shots": {
+    "message": 20
+   },
+   "checks": [
+    {
+     "rule": "MMBN-4",
+     "what": "the portrait by her message on the game screen",
+     "type": "not_uniform",
+     "shot": "message",
+     "screen": "game",
+     "rect": [
+      100,
+      490,
+      260,
+      660
+     ],
+     "color": "FFFFFF"
+    },
+    {
+     "rule": "MMBN-4",
+     "what": "no status from before this battle (the state starts in it): the logo",
+     "type": "uniform",
+     "shot": "message",
+     "screen": "second",
+     "rect": [
+      100,
+      110,
+      260,
+      170
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "mmbn-us-tutorial-arrows",
+   "rom": "AREE",
+   "state": "mega-man-battle-network/us-tutorial-arrows.ss",
+   "desc": "the first tutorial battle's custom screen with the teacher's arrows over the viruses (the owner's state): the arrows stay over the viruses on the game screen",
+   "rules": [
+    "MMBN-4"
+   ],
+   "shots": {
+    "arrows": 20
+   },
+   "checks": [
+    {
+     "rule": "MMBN-4",
+     "what": "no status from before this battle (the state starts in it): the logo",
+     "type": "uniform",
+     "shot": "arrows",
+     "screen": "second",
+     "rect": [
+      100,
+      110,
+      260,
+      170
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "mmbn-us-tutorial-talk",
+   "rom": "AREE",
+   "state": "mega-man-battle-network/us-tutorial-talk-over-custom.ss",
+   "desc": "the teacher talking over the custom screen in the first tutorial battle: all of it on the game screen; the logo on the second",
+   "rules": [
+    "MMBN-4"
+   ],
+   "shots": {
+    "arrows": 5,
+    "talking": 40,
+    "talking2": 200
+   },
+   "checks": [
+    {
+     "rule": "MMBN-4",
+     "what": "no status from before this battle (the state starts in it): the logo",
+     "type": "uniform",
+     "shot": "talking",
+     "screen": "second",
+     "rect": [
+      100,
+      110,
+      260,
+      170
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "MMBN-4",
+     "what": "the second screen the same while she talks",
+     "type": "same",
+     "a": {
+      "shot": "talking",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ],
+      "screen": "second"
+     },
+     "b": {
+      "shot": "talking2",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ],
+      "screen": "second"
+     }
+    }
+   ]
+  },
+  {
+   "id": "mmbn-logo-aree",
+   "kind": "logo",
+   "rom": "AREE",
+   "desc": "the logo (USA)",
+   "rules": [
+    "MMBN-1"
+   ],
+   "checks": []
+  },
+  {
+   "id": "mmbn-logo-arep",
+   "kind": "logo",
+   "rom": "AREP",
+   "desc": "the logo (Europe)",
+   "rules": [
+    "MMBN-1"
+   ],
+   "checks": []
+  },
+  {
+   "id": "mmbn-logo-arej",
+   "kind": "logo",
+   "rom": "AREJ",
+   "desc": "the logo (Japan: on its title's blue, the blue left out)",
+   "rules": [
+    "MMBN-1"
+   ],
+   "checks": []
+  }
+ ]
+}

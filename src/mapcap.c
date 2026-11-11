@@ -59,7 +59,19 @@ struct MapCapture {
 	int pubStep;
 	uint32_t serial;
 	const char* lastError;
+#ifdef __wasi__
+	uint32_t webWant; /* the web player's capture worker: the job wanted back (0: none) */
+#endif
 };
+
+#ifdef __wasi__
+/* the web player's capture worker (below, by mapcap_request) */
+static bool webOffload;
+static MapCapture* webLive;
+static uint32_t webJobN;
+static char webRom[512], webCode[8];
+static bool webTight;
+#endif
 
 static int probe_count(const MapProfile* p) {
 	int n = 0;
@@ -805,6 +817,11 @@ MapCapture* mapcap_create(const char* romPath, const char* gameCode, bool tight)
 		mc->underState = malloc(mc->stateSize);
 	}
 	mc->rateRef = calloc(mc->cropPixels, sizeof(uint32_t));
+#ifdef __wasi__
+	snprintf(webRom, sizeof(webRom), "%s", romPath);
+	snprintf(webCode, sizeof(webCode), "%s", gameCode);
+	webTight = tight;
+#endif
 	pthread_mutex_init(&mc->lock, NULL);
 	pthread_cond_init(&mc->cond, NULL);
 	return mc;
@@ -827,6 +844,9 @@ void mapcap_destroy(MapCapture* mc) {
 	if (!mc) {
 		return;
 	}
+#ifdef __wasi__
+	if (webLive == mc) webLive = NULL;
+#endif
 	if (mc->running) {
 		pthread_mutex_lock(&mc->lock);
 		mc->running = false;
@@ -878,7 +898,154 @@ MapResult mapcap_capture_sync(MapCapture* mc, Emu* live) {
 	return r;
 }
 
+#ifdef __wasi__
+/* The web player runs captures in a second copy of the app, in a worker of
+ * its own (web/player/worker.js, started with GBADS_CAPTURE_SERVE): the
+ * game here goes on while it works, as it does beside a capture thread on a
+ * device. Without the page asking for that (State Saver's tab), captures
+ * run in mapcap_request, the game waiting for them. Live side: a request
+ * leaves the snapshot for the page (web_capture_job), which hands the result
+ * back (web_capture_deliver); cancelling only forgets the job. */
+static uint8_t* webInbox;
+static size_t webInboxLen;
+static char webErr[160];
+
+/* On (the page has a capture worker) or off (it hasn't, or it failed: a job
+ * it had is let go, and captures run here again). */
+__attribute__((export_name("web_capture_offload"))) void web_capture_offload(int on) {
+	webOffload = on;
+	if (!on && webLive) webLive->busy = webLive->pending = false, webLive->webWant = 0;
+}
+
+/* A capture to run, if one's waiting: its number (0: none), and in info the
+ * snapshot (pointer, size), Map Animations off (still), and what the worker
+ * starts with: the ROM's path, the game's code and the tight crop. */
+__attribute__((export_name("web_capture_job"))) uint32_t web_capture_job(uint32_t* info) {
+	MapCapture* mc = webLive;
+	if (!webOffload || !mc || !mc->pending) return 0;
+	mc->pending = false;
+	info[0] = (uint32_t) (uintptr_t) mc->snapshot;
+	info[1] = (uint32_t) mc->stateSize;
+	info[2] = mc->still;
+	info[3] = (uint32_t) (uintptr_t) webRom;
+	info[4] = (uint32_t) (uintptr_t) webCode;
+	info[5] = webTight;
+	return mc->webWant;
+}
+
+/* Room for a result: its frames one after another, then the grid cell
+ * (16 x 16), then an error's text. */
+__attribute__((export_name("web_capture_inbox"))) void* web_capture_inbox(size_t n) {
+	if (n > webInboxLen) {
+		free(webInbox);
+		webInbox = malloc(n);
+		webInboxLen = webInbox ? n : 0;
+	}
+	return webInbox;
+}
+
+/* A capture's result is in the inbox (failed: its reason's text after the
+ * cell). Kept as a capture thread's would be, if it's still the one wanted. */
+__attribute__((export_name("web_capture_deliver"))) void web_capture_deliver(uint32_t job, int frames, int step, int tileValid, int failed) {
+	MapCapture* mc = webLive;
+	if (!mc || !job || job != mc->webWant || !webInbox) return;
+	size_t n = mc->cropPixels;
+	if (frames < 0 || frames > MAP_MAX_FRAMES || (n * frames + 256) * 4 > webInboxLen) frames = 0, failed = 1;
+	const uint32_t* px = (const uint32_t*) webInbox;
+	for (int i = 0; i < frames; ++i) memcpy(mc->work[i], px + n * i, n * sizeof(uint32_t));
+	mc->workFrames = frames;
+	mc->workStep = step < 1 ? 1 : step;
+	mc->tileValid = tileValid && !failed;
+	if (mc->tileValid) memcpy(mc->tile, px + n * frames, sizeof(mc->tile));
+	const char* err = NULL;
+	if (failed) {
+		size_t at = (n * frames + 256) * 4;
+		snprintf(webErr, sizeof(webErr), "%s", at < webInboxLen && webInbox[at] ? (const char*) webInbox + at : "the capture worker failed");
+		err = webErr;
+	}
+	publish(mc, err);
+	mc->busy = false;
+	mc->webWant = 0;
+}
+
+/* ---- the capture worker's copy */
+extern void web_sleep(unsigned ms) __attribute__((import_module("env"), import_name("web_sleep")));
+static MapCapture* serveMc;
+static uint32_t serveJob, serveDone;
+static const char* serveErr;
+
+/* Where the page puts a job's snapshot, and its size (0 until started). */
+__attribute__((export_name("web_serve_snapshot"))) void* web_serve_snapshot(void) {
+	return serveMc ? serveMc->snapshot : NULL;
+}
+__attribute__((export_name("web_serve_snapshot_size"))) uint32_t web_serve_snapshot_size(void) {
+	return serveMc ? (uint32_t) serveMc->stateSize : 0;
+}
+/* The snapshot is in: run job `job` (at the next wake). */
+__attribute__((export_name("web_serve_job"))) void web_serve_job(uint32_t job, int still) {
+	if (!serveMc) return;
+	serveMc->still = still;
+	serveJob = job;
+}
+/* The job finished since the last call (0: none), with in info: frames,
+ * step, cell valid, cell pointer, pixels per frame, error text (0: none),
+ * then the frames' pointers. */
+__attribute__((export_name("web_serve_result"))) uint32_t web_serve_result(uint32_t* info) {
+	MapCapture* mc = serveMc;
+	uint32_t j = serveDone;
+	if (!mc || !j) return 0;
+	serveDone = 0;
+	info[0] = (uint32_t) mc->workFrames;
+	info[1] = (uint32_t) mc->workStep;
+	info[2] = mc->tileValid;
+	info[3] = (uint32_t) (uintptr_t) mc->tile;
+	info[4] = (uint32_t) mc->cropPixels;
+	info[5] = (uint32_t) (uintptr_t) serveErr;
+	for (int i = 0; i < MAP_MAX_FRAMES; ++i) info[6 + i] = (uint32_t) (uintptr_t) mc->work[i];
+	return j;
+}
+
+/* The capture worker's whole run (main, with GBADS_CAPTURE_SERVE=CODE): the
+ * game's capture set up, then jobs as they come, between short sleeps. */
+int mapcap_web_serve(const char* romPath, const char* code, bool tight) {
+	serveMc = mapcap_create(romPath, code, tight);
+	if (!serveMc) {
+		fprintf(stderr, "capture worker: no capture for %s (%s)\n", code, romPath);
+		return 1;
+	}
+	serveMc->noThread = true;
+	fprintf(stderr, "capture worker: %s, %dx%d\n", serveMc->prof->title, serveMc->cw, serveMc->ch);
+	for (;;) {
+		if (serveJob) {
+			uint32_t j = serveJob;
+			serveJob = 0;
+			serveErr = do_capture(serveMc, serveMc->snapshot);
+			serveDone = j;
+		}
+		web_sleep(serveJob ? 0 : 2);
+	}
+}
+#endif
+
 bool mapcap_request(MapCapture* mc, Emu* live) {
+#ifdef __wasi__
+	/* (the page asks for it from the start with GBADS_CAPTURE_OFFLOAD=1: a game
+	 * can want its first capture before its first frame) */
+	static bool envRead;
+	if (!envRead) {
+		const char* o = getenv("GBADS_CAPTURE_OFFLOAD");
+		envRead = true;
+		if (o && *o == '1') webOffload = true;
+	}
+	if (webOffload) {
+		if (mc->busy || mc->pending) return false;
+		if (!emu_state_save(live, mc->snapshot)) return false;
+		webLive = mc;
+		mc->webWant = ++webJobN ? webJobN : ++webJobN;
+		mc->pending = mc->busy = true;
+		return true;
+	}
+#endif
 	start_thread(mc);
 	if (mc->noThread) {
 		/* no threads: the capture now, the game waiting for it */
@@ -910,6 +1077,14 @@ const MapProfile* mapcap_profile(MapCapture* mc) {
 }
 
 void mapcap_cancel(MapCapture* mc) {
+#ifdef __wasi__
+	if (webOffload && webLive == mc) {
+		/* (the worker finishes it; its result is let go) */
+		mc->busy = mc->pending = false;
+		mc->webWant = 0;
+		return;
+	}
+#endif
 	pthread_mutex_lock(&mc->lock);
 	if (mc->busy) mc->cancel = true;
 	pthread_mutex_unlock(&mc->lock);

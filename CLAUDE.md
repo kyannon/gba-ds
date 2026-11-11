@@ -16,7 +16,9 @@ with photos and screenshots; nothing ships untested on the device.
 
 `wiki/Philosophy.md` is the player-facing statement of what GBA DS is for
 and what goes on either screen: (1) a GBA with two 240x160 non-touch
-screens, (2) function over form, (3) keep it simple, (4) only the game's
+screens, (2) function over form (and nothing on the second screen that
+makes the player look twice: no prompts, cursor or controlled character,
+nothing split across the screens or on both), (3) keep it simple, (4) only the game's
 own graphics, (5) no in-game touch, (6) exceptions allowed when they earn
 their place. Read it before changing what a game shows. Keep it written
 for players (no rule IDs, file paths or session notes); how sessions apply
@@ -97,7 +99,11 @@ it lives here:
   SHA-256" annotation, readable from the run page or the public API:
   check-runs/<job id>/annotations) and send them with the zip.
   Then bump `dev` to the next `-dev` version with an empty changelog
-  section.
+  section, but only once the release commit's regression run (the full
+  suite, on `dev`) has finished: a push to `dev` cancels the run still
+  going there (regress.yml's concurrency), as happened to v1.4.11's and
+  v1.4.12's. If it was cancelled, run it on `main` by hand ("Run
+  workflow", full).
 - Test builds for the device: `dist/gba-ds-vX.Y.Z-dev-linux-aarch64.zip`,
   sent to the owner after each change; Android test APKs are the artifacts
   of the workflow runs on `android` / `dev` (link the run).
@@ -166,7 +172,9 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   (`docs/games/<slug>.md`), cases (`tests/regress/<slug>.json`), fixtures and
   goldens as usual, and run `tools/regress.py <slug>`, not the whole suite.
   Fixtures go to `gba-ds-tests`' `main` as usual (only this game's cases use
-  them). Keep to the game's profile and its own composer: a change to shared
+  them). Don't approve goldens of other games' or shared cases from the
+  branch (that broke `dev`'s cases until the merge): if the game's change
+  alters a shared picture, give it a new shot name instead. Keep to the game's profile and its own composer: a change to shared
   code (`game.c`, `emu.c`, `mapcap.c`, `logo.c`, other games' profiles) is
   for `dev`. If the game really needs one, keep it small, say so in the
   commit message, and say at the merge that the full suite has to run.
@@ -266,7 +274,16 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   captures and logo extraction run inline; asyncify around `web_sleep`) with
   `tools/statesaver/gbads-runtime.js` (in-memory WASI files). Republish it with
   that file beside the page when either changes. `web_*` exports in web/web.c,
-  game.c and ui.c (`#ifdef __wasi__`).
+  game.c and ui.c (`#ifdef __wasi__`), and web/sdl_audio_web.c (sound, pulled
+  by the page: `web_audio_pull`).
+- **The web player** (`web/player/`, `scripts/build-web-player.sh`: one .html
+  or a folder zip in `build/web-player/`, `--build` to carry a build) runs the
+  same web build in a worker with WebGL2, sound, remappable keys and
+  controllers, for any known device's screens; map captures run in a second
+  worker (a second copy of the build, `mapcap_web_serve`), all inside
+  `#ifdef __wasi__`; on-screen controls for phones (`controls.js`), a Home
+  Screen app with an offline copy, published to GitHub Pages from `main`
+  (`.github/workflows/web-player.yml`). See docs/WEB-PLAYER.md.
 - **The owner's states come from State Saver** (artifact
   https://claude.ai/artifact/LGoZRvRDJjagz6ib1h3oxk, the owner's own; started
   empty on Nov 3, 2026, once the earlier one's states were in the suite: that
@@ -324,9 +341,12 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   makes captures and logo extraction run inline, so runs are exact. By
   default regress.py also runs the app unpaced (`GBADS_NOPACE=1`) and
   drawing only screenshot and touch frames (`GBADS_DRAW_SHOTS_ONLY=1`),
-  the CPU count + 1 cases at a time: the full suite takes about 8 minutes
-  on a session's 2 cores (18 drawing every frame). `--paced` runs as
-  players do.
+  the CPU count + 1 cases at a time: the full suite takes 10-15 minutes
+  on a session's 2 cores (more drawing every frame). `--paced` runs as
+  players do. The container's disk can fill up: clear `build/regress` and
+  old `dist/` zips. A check that a screen shows nothing there (GEN-1): on
+  a live second screen (a HUD over the logo, a card, a podium) it looks
+  for 000000, on an idle one (the logo alone, at half strength) 303030.
 
 ## Architecture (src/)
 
@@ -346,7 +366,13 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   map, screen and memory probes, crops, captureHide/underHide sprite rules,
   logo extraction, regional variants (`variants[]` + patch functions), and
   for logo-only games (Tony Hawk's Pro Skater 2) the `snap` screen copy and
-  `controls` four-face layout (Super Mario Advance 2: `controls.snes`, with the camera pan poke done in game.c's run_frame), (Mario Kart; Super Mario Advance 2 in levels, beside its map capture) the `hud` split and when it's on. Pokémon Pinball has `tall`: the table over both screens as one tall view (game.c update_tall), its top row min(the game's view, rows - 320): the top screen the game as it is while that's its view, else a copy held at rows - 320 with the game's screen-fixed things laid over it (BG0 and the sprites found fixed, drawn by the HUD split: emu_hud_keep_exact); the bottom screen a second copy held 160 rows below the view's top (twins[], run_frame: every frame each copy is taken from the game's state from before the frame before, held at its row (camera stores NOPed, its own pans compensated, twin_jump) and run that frame and this one, on worker threads beside the game: a copy left on its own fell behind the game's logic); sprites alike the game's hidden only when fixed to the screen or wrapped round (twin_hide); paused, the Mart or a message: the game's whole screen on the bottom one (PP-11). See docs/PINBALL.md. Sonic Pinball Party uses the same with `tall.live.carry` (its camera is a row, its table tiles stream through a vblank queue): each copy keeps its own BG0 tile ring, scroll vars and queued ring copies from its last frame (carry_take / carry_put) and walks its camera to its row; the game's own picture is used wherever it has the rows; docs/games/sonic-pinball-party.md has its addresses, tools/scout/sjump.c the experiment. A compilation with its own RAM per game (Game Boy Wars Advance 1+2, `BGWJ`) has `pick`: game.c's ss_switch sets the second screen up again for the variant it names (BGW1, BGW2). Adding a game mostly means a profile.
+  `controls` four-face layout (Super Mario Advance 2: `controls.snes`, with the camera pan poke done in game.c's run_frame), (Mario Kart; Super Mario Advance 2 in levels, beside its map capture) the `hud` split and when it's on. Pokémon Pinball has `tall`: the table over both screens as one tall view (game.c update_tall), its top row min(the game's view, rows - 320): the top screen the game as it is while that's its view, else a copy held at rows - 320 with the game's screen-fixed things laid over it (BG0 and the sprites found fixed, drawn by the HUD split: emu_hud_keep_exact); the bottom screen a second copy held 160 rows below the view's top (twins[], run_frame: every frame each copy is taken from the game's state from before the frame before, held at its row (camera stores NOPed, its own pans compensated, twin_jump) and run that frame and this one, on worker threads beside the game: a copy left on its own fell behind the game's logic); sprites alike the game's hidden only when fixed to the screen or wrapped round (twin_hide); paused, the Mart or a message: the game's whole screen on the bottom one (PP-11). See docs/PINBALL.md. Sonic Pinball Party uses the same with `tall.live.carry` (its camera is a row, its table tiles stream through a vblank queue): each copy keeps its own BG0 tile ring, scroll vars and queued ring copies from its last frame (carry_take / carry_put) and walks its camera to its row; the game's own picture is used wherever it has the rows; docs/games/sonic-pinball-party.md has its addresses, tools/scout/sjump.c the experiment. A compilation with its own RAM per game (Game Boy Wars Advance 1+2, `BGWJ`) has `pick`: game.c's ss_switch sets the second screen up again for the variant it names (BGW1, BGW2). Other profile switches: `logoIf` / `logoIfOr` (the logo while they match,
+  map and HUD kept for after; Super Mario Advance 4's World-e castle hall;
+  the logo stays until a new HUD picture is drawn, at most a second),
+  `hud.freeze` (the HUD picture held as it is while they match: SMA4's
+  status bar sliding off), `hud.offAfter` (the HUD off from when they match
+  until `on[0]` stops: Superstar Saga's results and level-ups, to the
+  battle's end). Adding a game mostly means a profile.
 - `mapcap.c` map capture on a hidden second core in a background thread.
   A `room` key change starts one once it has held 3 frames (game.c), calling
   off one still running (`mapcap_cancel`: the shadow's frames stop running,
@@ -462,7 +488,11 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
 - **Fixtures repo** (`../gba-ds-tests`, branch `main`): push in small
   commits (a ROM per commit); a big push prints a harmless "push
   negotiation failed"; check with `git ls-remote origin main`. ROM zips are
-  named `CODE.zip` holding the ROM under its usual name.
+  named `CODE.zip` holding the ROM under its usual name; another official
+  dump of the same release goes in as `CODE+name.zip` (`AX4P+vc.zip`,
+  Europe's Rev 1 Virtual Console dump of Super Mario Advance 4, for
+  World-e): regress.py checks it against CODE's dumps and make_dumps.py
+  marks it tested.
 - Shell safety checks block `rm` with a bare variable: use `"${VAR:?}"` or
   a literal path. `pkill -f PATTERN` can kill the shell running it (the
   pattern is in its own command line): keep a PID file instead.

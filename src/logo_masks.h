@@ -24,5 +24,20 @@ extern const LogoMask logoMaskTHPS3;
 extern const LogoMask logoMaskDBZ;
 /* Golden Sun: The Lost Age, each release's */
 extern const LogoMask logoMaskGS2E, logoMaskGS2D, logoMaskGS2F, logoMaskGS2I, logoMaskGS2S, logoMaskGS2J;
+/* Crash Nitro Kart (USA, Europe), and Japan's */
+extern const LogoMask logoMaskCNK, logoMaskCNKJ;
+/* Dragon Ball Z: The Legacy of Goku II (USA, Europe), and Japan's */
+extern const LogoMask logoMaskDBZ2, logoMaskDBZ2J;
+/* Dragon Ball Z: Buu's Fury (USA) */
+extern const LogoMask logoMaskBF;
+/* Muppet Pinball Mayhem (USA, Europe): the name on its badge, top left */
+extern const LogoMask logoMaskAMW;
+extern const LogoMask logoMaskVR3, logoMaskVR3J;
+/* Ninja Five-O (USA), and Ninja Cop (Europe) */
+extern const LogoMask logoMaskNFO, logoMaskNFOP;
+/* GT Advance 3: Pro Concept Racing (USA, Europe), and Japan's Advance GT2 */
+extern const LogoMask logoMaskGT3, logoMaskGT3J;
+/* Eragon (USA, Europe) */
+extern const LogoMask logoMaskER;
 
 #endif

@@ -7,6 +7,7 @@ extern void web_sleep(unsigned ms) __attribute__((import_module("env"), import_n
 #include "brand.h"
 #include "emu.h"
 #include "mapcap.h"
+#include "hotkeys.h"
 #include "paths.h"
 #include "ui.h"
 #include "ra.h"
@@ -167,7 +168,7 @@ typedef struct {
 	uint64_t seq; /* the run_frame its first frame last ran in */
 	uint8_t* ring;
 	uint8_t vars[4][32];
-	uint32_t q[64][3];
+	uint32_t q[64][4]; /* (entries of up to 16 bytes) */
 	int nq;
 	uint16_t oam[512];   /* its sprite table as it last drew, and */
 	uint8_t shadow[1024]; /* the game's shadow of it, as the copy left it: its own sprites, for a frame whose logic runs long */
@@ -260,11 +261,16 @@ static bool twin_ball(Emu* e, uint32_t S, int32_t* x, int32_t* y) {
 static bool tall_carry(const MapProfile* p) { return p && p->tall.live.carry.cam; }
 static int tall_rows_of(const MapProfile* p, Emu* e) {
 	const typeof(p->tall.live.carry)* C = &p->tall.live.carry;
-	if (!C->cam) return p->tall.rows;
+	if (!C->cam || !C->rowsAt) return p->tall.rows;
 	int h = emu_read16(e, C->rowsAt) - C->bottomLess;
 	return h > 2 * GBA_H + C->top && h < 1024 ? h : 2 * GBA_H + C->top;
 }
 static int tall_top_of(const MapProfile* p) { return p->tall.live.carry.cam ? p->tall.live.carry.top : 0; }
+/* the view's row as the game keeps it (the next frame's BG VOFS; carry:
+ * less viewOff, Muppet Pinball Mayhem's camera being 16 rows below it) */
+static int tall_view(const MapProfile* p, Emu* e) {
+	return (int16_t) emu_read16(e, p->tall.live.view) - p->tall.live.carry.viewOff;
+}
 static int tall_shake(const MapProfile* p, Emu* e) {
 	const typeof(p->tall.live)* L = &p->tall.live;
 	if (L->carry.cam) return L->carry.shakeAt ? (int16_t) emu_read16(e, L->carry.shakeAt) : 0;
@@ -318,7 +324,7 @@ static int gameView;
 static void game_oam_take(void) {
 	const typeof(twinProf->tall.live)* L = &twinProf->tall.live;
 	for (int i = 0; i < 1024; i += 2) { uint16_t v = emu_read16(&emu, L->oam + i); gameOam[i] = v & 0xFF, gameOam[i + 1] = v >> 8; }
-	gameView = (int16_t) emu_read16(&emu, L->view);
+	gameView = tall_view(twinProf, &emu);
 }
 #define GAME_OAM16(off) ((uint16_t) (gameOam[(off)] | gameOam[(off) + 1] << 8))
 
@@ -334,7 +340,7 @@ static void game_oam_take(void) {
 static void twin_hide(Twin* tw) {
 	const typeof(twinProf->tall.live)* L = &twinProf->tall.live;
 	uint32_t o = L->oam;
-	int gs = gameView, cs = (int16_t) emu_read16(&tw->e, L->view);
+	int gs = gameView, cs = tall_view(twinProf, &tw->e);
 	static uint16_t gA[128][4]; /* the game's sprites on its screen: attributes 0-2, y on its screen + 256 */
 	int ng = 0;
 	for (int i = 0; i < 128; ++i) {
@@ -403,19 +409,46 @@ static uint32_t twin_hold(Twin* tw, int target, int step) {
 }
 
 /* (carry) the game's queue of copies at the next vblank: its entries into
- * the copy's BG tiles left out, the copy's own put in */
+ * the copy's BG tiles left out, the copy's own put in. Entries of qStride
+ * bytes (12 by default: Sonic Pinball Party's destination, source, size;
+ * Muppet Pinball Mayhem's 16: source, destination, size, kind), the count a
+ * byte (or a word: qWide), from slot 0 (or a ring of qSlots from the start
+ * index at qIndex) */
+#define CARRY_Q 64
+static int carry_q_stride(const typeof(twinProf->tall.live.carry)* C) { return C->qStride ? C->qStride : 12; }
+static int carry_q_count(const typeof(twinProf->tall.live.carry)* C, Emu* e) {
+	int n = C->qWide ? (int) emu_read32(e, C->qCount) : emu_read8(e, C->qCount);
+	return n < 0 ? 0 : n > CARRY_Q ? CARRY_Q : n;
+}
+static void carry_q_set_count(const typeof(twinProf->tall.live.carry)* C, Emu* e, int n) {
+	if (C->qWide) emu_write32(e, C->qCount, (uint32_t) n);
+	else emu_write8(e, C->qCount, (uint8_t) n);
+}
+/* the address of the queue's i-th entry, from its start */
+static uint32_t carry_q_at(const typeof(twinProf->tall.live.carry)* C, Emu* e, int i) {
+	int slot = i;
+	if (C->qIndex) {
+		int slots = C->qSlots ? C->qSlots : CARRY_Q;
+		slot = (int) ((emu_read32(e, C->qIndex) + (uint32_t) i) % (uint32_t) slots);
+	}
+	return C->qEntries + (uint32_t) (slot * carry_q_stride(C));
+}
 static bool carry_ring(const typeof(twinProf->tall.live.carry)* C, uint32_t d) {
 	return d >= 0x06000000 + C->ringLo && d < 0x06000000 + C->ringHi;
+}
+static bool carry_q_ring(const typeof(twinProf->tall.live.carry)* C, Emu* e, uint32_t at) {
+	return carry_ring(C, emu_read32(e, at + (uint32_t) C->qDst));
 }
 /* (carry) the game's queue holds more than a row's copy into the ring (the
  * whole table's tiles loaded afresh) */
 static bool carry_reload(Emu* e) {
 	const typeof(twinProf->tall.live.carry)* C = &twinProf->tall.live.carry;
 	if (!C->qCount) return false;
-	int n = emu_read8(e, C->qCount);
-	for (int i = 0; i < n && i < 64; ++i) {
-		uint32_t at = C->qEntries + i * 12;
-		if (carry_ring(C, emu_read32(e, at)) && emu_read32(e, at + 8) > 0x400) return true;
+	int n = carry_q_count(C, e);
+	uint32_t big = C->qReload ? (uint32_t) C->qReload : 0x400;
+	for (int i = 0; i < n; ++i) {
+		uint32_t at = carry_q_at(C, e, i);
+		if (carry_q_ring(C, e, at) && emu_read32(e, at + (uint32_t) (C->qSize ? C->qSize : 8)) > big) return true;
 	}
 	return false;
 }
@@ -426,16 +459,22 @@ static void carry_put(Twin* tw) {
 	for (int k = 0; k < 4 && C->vars[k].addr; ++k)
 		for (int j = 0; j < C->vars[k].n; ++j) emu_write8(e, C->vars[k].addr + j, tw->vars[k][j]);
 	if (!C->qCount) return;
-	int n = emu_read8(e, C->qCount), m = 0;
-	for (int i = 0; i < n && i < 64; ++i) {
-		uint32_t at = C->qEntries + i * 12;
-		if (carry_ring(C, emu_read32(e, at))) continue;
-		for (int j = 0; j < 12; j += 4) emu_write32(e, C->qEntries + m * 12 + j, emu_read32(e, at + j));
+	int n = carry_q_count(C, e), m = 0, st = carry_q_stride(C);
+	/* (the game's other entries kept, in order, then the copy's own; read
+	 * them all first: they're written back from the same start) */
+	static uint32_t keep[2][CARRY_Q][4];
+	uint32_t (*kp)[4] = keep[tw == &twins[0] ? 0 : 1];
+	for (int i = 0; i < n; ++i) {
+		uint32_t at = carry_q_at(C, e, i);
+		if (carry_q_ring(C, e, at)) continue;
+		for (int j = 0; j < st / 4; ++j) kp[m][j] = emu_read32(e, at + (uint32_t) j * 4);
 		++m;
 	}
-	for (int i = 0; i < tw->nq && m < 64; ++i, ++m)
-		for (int j = 0; j < 3; ++j) emu_write32(e, C->qEntries + m * 12 + j * 4, tw->q[i][j]);
-	emu_write8(e, C->qCount, (uint8_t) m);
+	for (int i = 0; i < m; ++i)
+		for (int j = 0; j < st / 4; ++j) emu_write32(e, carry_q_at(C, e, i) + (uint32_t) j * 4, kp[i][j]);
+	for (int i = 0; i < tw->nq && m < CARRY_Q; ++i, ++m)
+		for (int j = 0; j < st / 4; ++j) emu_write32(e, carry_q_at(C, e, m) + (uint32_t) j * 4, tw->q[i][j]);
+	carry_q_set_count(C, e, m);
 }
 static void carry_take(Twin* tw) {
 	const typeof(twinProf->tall.live.carry)* C = &twinProf->tall.live.carry;
@@ -444,11 +483,11 @@ static void carry_take(Twin* tw) {
 	for (int k = 0; k < 4 && C->vars[k].addr; ++k)
 		for (int j = 0; j < C->vars[k].n; ++j) tw->vars[k][j] = emu_read8(e, C->vars[k].addr + j);
 	tw->nq = 0;
-	int n = C->qCount ? emu_read8(e, C->qCount) : 0;
-	for (int i = 0; i < n && i < 64; ++i) {
-		uint32_t at = C->qEntries + i * 12;
-		if (!carry_ring(C, emu_read32(e, at))) continue;
-		for (int j = 0; j < 3; ++j) tw->q[tw->nq][j] = emu_read32(e, at + j * 4);
+	int n = C->qCount ? carry_q_count(C, e) : 0, st = carry_q_stride(C);
+	for (int i = 0; i < n; ++i) {
+		uint32_t at = carry_q_at(C, e, i);
+		if (!carry_q_ring(C, e, at)) continue;
+		for (int j = 0; j < st / 4; ++j) tw->q[tw->nq][j] = emu_read32(e, at + (uint32_t) j * 4);
 		++tw->nq;
 	}
 	tw->carried = true;
@@ -471,6 +510,7 @@ static void twin_first_carry(Twin* tw) {
 		if (tallTrace) fprintf(stderr, "copy %d: the table's tiles reloaded, starting again\n", (int) (tw - twins));
 	}
 	tw->seq = twinSeq;
+	if (C->ready.addr && !memprobes_match(&C->ready, 1, &tw->e)) tw->carried = false;
 	if (tw->carried) carry_put(tw);
 	/* (its own shadow sprite table: a frame whose logic runs long leaves
 	 * part of it as it was, which would be the game's, placed for the
@@ -481,13 +521,18 @@ static void twin_first_carry(Twin* tw) {
 	 * moves the view only when its camera code runs, which it doesn't in
 	 * a table's intro, and streams at most two tile rows a frame: a view
 	 * jumping further leaves its tiles behind for good) */
-	int at = (int16_t) emu_read16(&tw->e, twinProf->tall.live.view) - tall_shake(twinProf, &tw->e) + C->camOff;
+	int at = tall_view(twinProf, &tw->e) - tall_shake(twinProf, &tw->e) + C->camOff;
 	int want = tw->row + C->camOff;
 	tw->cam = want > at ? SDL_min(at + 16, want) : SDL_max(at - 16, want);
 
 	emu_write16(&tw->e, C->cam, (uint16_t) tw->cam);
+	bool fresh = !tw->carried;
 	emu_frame(&tw->e, twinKeys[twinCur] & 0x3FF);
 	carry_take(tw);
+	/* (starting again: its own sprites are the ones it just drew, not
+	 * what it kept from when it last ran, on another table or before a
+	 * state was loaded) */
+	if (fresh) emu_oam_read(&tw->e, tw->oam);
 	tw->up = true;
 }
 
@@ -551,7 +596,7 @@ static void twin_step(void) {
 		int k = tall_shake(twinProf, &emu);
 		twinShakeNow = twinShakeNext, twinShakeNext = k;
 		int top = tall_top_of(twinProf), vmax = tall_rows_of(twinProf, &emu) - 2 * GBA_H;
-		int u = (int16_t) emu_read16(&emu, L->view) - k;
+		int u = tall_view(twinProf, &emu) - k;
 		twins[0].row = vmax, twins[1].row = SDL_max(SDL_min(u, vmax), top) + GBA_H;
 		/* (both always: a copy walking to its row from the game's isn't
 		 * shown for a few frames, so the top screen's copy is kept at its
@@ -628,7 +673,7 @@ static void twin_open(const char* rom, const MapProfile* p) {
 	}
 	for (int k = 0; k < TWINS; ++k) {
 		for (int i = 0; i < 4 && p->tall.live.nop[i]; ++i) emu_write16(&twins[k].e, p->tall.live.nop[i], 0x46C0); /* mov r8, r8 */
-		for (int i = 0; i < 12 && p->tall.live.carry.patch[i].addr; ++i) emu_write16(&twins[k].e, p->tall.live.carry.patch[i].addr, p->tall.live.carry.patch[i].v);
+		for (int i = 0; i < 16 && p->tall.live.carry.patch[i].addr; ++i) emu_write16(&twins[k].e, p->tall.live.carry.patch[i].addr, p->tall.live.carry.patch[i].v);
 		emu_layers(&twins[k].e, 0x1F & ~p->tall.hudBg); /* (its score bar's layers: fixed to the screen, the game's are shown) */
 	}
 	twinProf = p;
@@ -674,10 +719,10 @@ static void run_frame(uint32_t keys) {
 		if (twins[0].need) twin_work_start(0, twin_first, &twins[0]);
 		twin_first(&twins[1]);
 		if (twins[0].need) twin_work_wait(0);
-		for (int i = 0; i < TWINS; ++i) if (twins[i].up) twin_hide(&twins[i]);
-		const typeof(twinProf->tall.live)* L = &twinProf->tall.live;
+		if (!twinProf->tall.live.carry.keepObj)
+			for (int i = 0; i < TWINS; ++i) if (twins[i].up) twin_hide(&twins[i]);
 		/* (only while a copy's rows are on the top screen this frame) */
-		bool topCopy = (int16_t) emu_read16(&emu, L->view) - tall_shake(twinProf, &emu) > tall_rows_of(twinProf, &emu) - 2 * GBA_H;
+		bool topCopy = tall_view(twinProf, &emu) - tall_shake(twinProf, &emu) > tall_rows_of(twinProf, &emu) - 2 * GBA_H;
 		emu_hud_keep_exact(tallFixed, topCopy ? nTallFixed : 0);
 		/* (carry: and left out of the game's picture, which can be on the
 		 * bottom screen) */
@@ -892,6 +937,7 @@ static uint32_t cardBest[GBA_W * GBA_H];
 static int sideScore = -1; /* hud.card.side: how far off centre its best take is (-1: none) */
 static uint32_t sideBest[GBA_W * GBA_H];
 static bool hudAlt; /* the HUD on its other layer (hud.alt: SMA2's boss rooms) */
+static bool hudOffLatch; /* hud.offAfter has matched: off till on[0] stops matching */
 static uint32_t hudLogoBack[HUD_CW * HUD_CH];
 static bool hudLogoDone;
 static bool hudShown; /* the second screen shows the HUD picture (hudTex) */
@@ -991,19 +1037,20 @@ static bool debug;
 
 /* ---------------------------------------------------------------- menu */
 
-enum MenuItem { M_RESUME, M_CHEATS, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND, M_AUTOSAVE, M_AUTOLOAD, M_BUG, M_SLOT, M_SHAPES, M_FF, M_COLOR };
+enum MenuItem { M_RESUME, M_CHEATS, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND, M_AUTOSAVE, M_AUTOLOAD, M_BUG, M_SLOT, M_SHAPES, M_FF, M_COLOR, M_GHOST };
 static const char* menuLabels[] = {
 	/* title case: drawn in Futura from the built-in images (tools/make_brand.py) */
 	[M_RESUME] = "Resume", [M_SWAP] = "Swap Screens", [M_SAVE] = "Save State", [M_SCALE] = "", [M_LCD] = "", [M_FPS] = "", [M_FRAMEBUF] = "", [M_OVERLAY] = "", [M_LOGO] = "", [M_MATCH] = "", [M_REWIND] = "", [M_RESTART] = "Restart Game",
 	[M_LOAD] = "Load State", [M_CHEATS] = "Cheats", [M_ACH] = "Achievements", [M_SHOT] = "Take Screenshot", [M_LIBRARY] = "Close Game", [M_EXIT] = "Close GBA DS",
-	[M_AUTOSAVE] = "", [M_AUTOLOAD] = "", [M_BUG] = "Submit a Bug Report", [M_SLOT] = "", [M_FF] = "", [M_COLOR] = "",
+	[M_AUTOSAVE] = "", [M_AUTOLOAD] = "", [M_BUG] = "Submit a Bug Report", [M_SLOT] = "", [M_FF] = "", [M_COLOR] = "", [M_GHOST] = "",
 };
 static int menuItems[12], nMenuItems;
 /* Some buttons are half as wide, two to a row (Save State | Load State):
  * each item's row and side (-1: the whole row, 0 left, 1 right). */
 static int itemRow[12], itemSide[12], nMenuRows;
 static bool half_item(int item) {
-	return item == M_SAVE || item == M_LOAD || item == M_AUTOSAVE || item == M_AUTOLOAD || item == M_REWIND || item == M_FF;
+	return item == M_SAVE || item == M_LOAD || item == M_AUTOSAVE || item == M_AUTOLOAD || item == M_REWIND || item == M_FF ||
+	       item == M_COLOR || item == M_GHOST;
 }
 /* rows, sides and the row count for a page's items (two half items in a row share it) */
 static int layout_rows(const int* items, int n, int* row, int* side) {
@@ -1028,6 +1075,10 @@ static int pages[N_PAGES][12], pageLen[N_PAGES], curPage;
  * doesn't make Samus jump. */
 static bool suppress[B_COUNT];
 #define HELD(b) (btnNow[b] && !suppress[b])
+/* the hotkeys (hotkeys.c): the hotkey button, each action's button or -1 */
+static int hkMod = B_HOME;
+static int hkBtn[HK_COUNT];
+
 static void suppress_held(void) {
 	for (int b = 0; b < B_COUNT; ++b) suppress[b] = btnNow[b];
 }
@@ -1062,7 +1113,8 @@ static SDL_Rect ach_area(int scr);
 static const char* const allLabels[] = {
 	"Resume", "Restart Game", "Are You Sure?", "Save State", "Load State", "Cheats", "Achievements",
 	"Take Screenshot", "Close Game", "Close GBA DS", "Swap Screens", "Scale: Pixel Perfect", "Scale: Full Width",
-	"Scale: Zoom", "Scale: Stretch", "LCD Grid: On", "LCD Grid: Off", "Overlays: None", "Overlays: Primary",
+	"Scale: Zoom", "Scale: Stretch", "Shader: Off", "Shader: LCD Grid", "Shader: Scanlines", "Shader: Soft Cells",
+	"Shader: Subpixels (Light)", "Shader: Subpixels", "Shader: Subpixels (Strong)", "Overlays: None", "Overlays: Primary",
 	"Overlays: Secondary", "Overlays: Both", "Submit a Bug Report",
 	"Map Animations: On", "Map Animations: Off", "Map Refresh: Every 3 s", "Map Refresh: Every 1.5 s",
 	"Map Refresh: Every 1 s", "Map Refresh: Every 0.5 s", "Map Refresh: Custom", "Frame Buffer: On",
@@ -1073,6 +1125,7 @@ static const char* const allLabels[] = {
 static const char* const halfLabels[] = {
 	"Save State", "Load State", "Save State 0", "Load State 0", "Save on Quit: On", "Save on Quit: Off", "Auto-Load: On", "Auto-Load: Off",
 	"Rewind: On", "Rewind: Off", "Fast Forward: On", "Fast Forward: Off",
+	"Color Correction: On", "Color Correction: Off", "LCD Ghosting: On", "LCD Ghosting: Off",
 };
 
 /* The pause menu's layout: buttons across the whole screen (a small margin
@@ -1811,6 +1864,15 @@ static void bar_close(void) {
 	barGesture = G_NONE;
 	barExitArmed = 0;
 }
+/* L3, or the quick menu hotkey: up, as with a swipe; again: down */
+static void bar_toggle(void) {
+	if (barOpen) {
+		bar_close();
+		return;
+	}
+	barOpen = true;
+	barSince = SDL_GetTicks();
+}
 
 /* pixel art ('X' rows, NULL-ended), as big as fits size, centred on cx, cy */
 static void draw_icon(int s, const char* const* art, int cx, int cy, int size, SDL_Color c) {
@@ -2018,6 +2080,46 @@ static int item_at(int scr, int x, int y) {
 	return -1;
 }
 
+/* Display > Shader: the label and the note under the buttons, by SH_* */
+#define SHADER_ON (cfg->shader != SH_OFF)
+static const char* const shaderLabels[SH_COUNT] = {
+	"Shader: Off", "Shader: LCD Grid", "Shader: Scanlines", "Shader: Soft Cells",
+	"Shader: Subpixels (Light)", "Shader: Subpixels", "Shader: Subpixels (Strong)",
+};
+static const char* const shaderNotes[SH_COUNT] = {
+	"The game's pixels as they are",
+	"Lines between the pixels, like a GBA's screen",
+	"A dark line under each row of pixels",
+	"Each pixel a little darker toward its edges",
+	"Red, green and blue stripes, gentle: for dim screens",
+	"Red, green and blue stripes, like a GBA's screen",
+	"Red, green and blue stripes, strong: for bright screens",
+};
+static const char* shader_label(int sh) {
+	return shaderLabels[sh >= 0 && sh < SH_COUNT ? sh : 0];
+}
+/* Display > LCD Ghosting: the game's last frame (as the emulator drew it),
+ * to show each frame half and half with it */
+static uint32_t ghostPrev[GBA_W * GBA_H], ghostOut[GBA_W * GBA_H];
+static bool ghostHave;
+static uint64_t ghostFrame;
+static const uint32_t* ghost_frame(const uint32_t* fb) {
+	if (ghostHave && frameCount == ghostFrame) return ghostOut; /* (the same frame drawn again) */
+	if (!ghostHave) {
+		memcpy(ghostPrev, fb, sizeof(ghostPrev));
+		ghostHave = true;
+	}
+	/* half this frame, half the one before: a sprite the game flickers
+	 * every other frame shows half see-through, as on the GBA's slow LCD */
+	for (int i = 0; i < GBA_W * GBA_H; ++i) {
+		uint32_t a = fb[i], b = ghostPrev[i];
+		ghostOut[i] = (a | b) - (((a ^ b) & 0xFEFEFEFEu) >> 1); /* the rounded-up average of each byte */
+		ghostPrev[i] = a;
+	}
+	ghostFrame = frameCount;
+	return ghostOut;
+}
+
 static const char* scale_label(const char* scale) {
 	return !strcmp(scale, "fit")       ? "Scale: Full Width" :
 	       !strcmp(scale, "zoom")      ? "Scale: Zoom" :
@@ -2100,8 +2202,9 @@ static void draw_menu(void) {
 		bool en = item_enabled(menuItems[i]);
 		const char* label = menuLabels[menuItems[i]];
 		if (menuItems[i] == M_SCALE) label = scale_label(cfg->scale);
-		if (menuItems[i] == M_LCD) label = cfg->lcdGrid ? "LCD Grid: On" : "LCD Grid: Off";
+		if (menuItems[i] == M_LCD) label = shader_label(cfg->shader);
 		if (menuItems[i] == M_COLOR) label = cfg->colorCorrection ? "Color Correction: On" : "Color Correction: Off";
+		if (menuItems[i] == M_GHOST) label = cfg->ghosting ? "LCD Ghosting: On" : "LCD Ghosting: Off";
 		if (menuItems[i] == M_AUTOSAVE) label = cfg->autoSave ? "Save on Quit: On" : "Save on Quit: Off";
 		if (menuItems[i] == M_AUTOLOAD) label = cfg->autoLoad ? "Auto-Load: On" : "Auto-Load: Off";
 		if (menuItems[i] == M_FPS) label = cfg->showFps ? "Show FPS: On" : "Show FPS: Off";
@@ -2349,15 +2452,52 @@ static void hud_make_logo_back(void) {
 
 /* Profile hud.logoBelow: the logo as on any other second screen (GEN-1),
  * centred, kept below the HUD's rows. */
+/* hud.held: the picture kept from the game screen (heldN rows: none) */
+static uint32_t heldPic[GBA_W * GBA_H];
+static int heldN;
+static bool heldArmed = true; /* (taken once each time it's shown) */
+/* hud.held.over: the number from the last capture since then (w 0: none) */
+static uint32_t heldNum[GBA_W * GBA_H];
+static int heldNumW, heldNumH;
 static void hud_make_logo_below(void) {
 	hudLogoBelowDone = true;
 	for (int i = 0; i < HUD_CW * HUD_CH; ++i) hudLogoBelow[i] = SCREEN_LIVE; /* (under the HUD: GEN-1) */
+	const typeof(hudProf->hud.held)* hp = &hudProf->hud.held;
+	if (hp->y1 && heldN > 0) {
+		/* (hud.held: the kept picture instead of the logo, at its own size) */
+		for (int y = 0; y < heldN && hp->at + y < GBA_H; ++y) {
+			for (int x = 0; x < GBA_W; ++x) {
+				uint32_t* o = &hudLogoBelow[(hp->at + y) * 2 * HUD_CW + x * 2];
+				o[0] = o[1] = o[HUD_CW] = o[HUD_CW + 1] = heldPic[y * GBA_W + x] | 0xFF000000;
+			}
+		}
+		/* (hud.held.over: the number from the capture over its own) */
+		const typeof(hp->over)* ov = &hp->over;
+		if (ov->x1 && heldNumW > 0) {
+			uint32_t fill = 0xFF000000 | (ov->fill >> 16 & 0xFF) | (ov->fill & 0xFF00) | (ov->fill & 0xFF) << 16;
+			uint32_t key = (ov->key >> 16 & 0xFF) | (ov->key & 0xFF00) | (ov->key & 0xFF) << 16;
+			for (int gy = ov->y0; gy <= ov->y1; ++gy) {
+				for (int gx = ov->x0; gx <= ov->x1; ++gx) {
+					int y = gy - hp->y0 + hp->at;
+					if (gy < hp->y0 || y < 0 || y >= GBA_H || gx < 0 || gx >= GBA_W) continue;
+					uint32_t c = fill;
+					int sx = gx - (ov->x1 - heldNumW + 1), sy = gy - ov->y0;
+					if (sx >= 0 && sx < heldNumW && sy >= 0 && sy < heldNumH && (heldNum[sy * heldNumW + sx] & 0xFFFFFF) != key)
+						c = heldNum[sy * heldNumW + sx] | 0xFF000000;
+					uint32_t* o = &hudLogoBelow[y * 2 * HUD_CW + gx * 2];
+					o[0] = o[1] = o[HUD_CW] = o[HUD_CW + 1] = c;
+				}
+			}
+		}
+		return;
+	}
 	int top = 0; /* below the HUD: its lowest row on the canvas */
 	for (int m = 0; m < HUD_MOVES; ++m) {
 		const HudMove* mv = &hudProf->hud.moves[m];
 		if (mv->toGame && !mv->how && !mv->vhow && mv->x0 == 0 && mv->x1 >= GBA_W - 1 && mv->y0 > 0) top = mv->y0 * 2;
 	}
 	if (hudProf->hud.rows) top = hudProf->hud.rows * 2;
+	if (hudProf->hud.logoTop) top = hudProf->hud.logoTop * 2;
 	if (hudProf->hud.mapTitleRows && mapTitleN) top += (mapTitleN + 2) * 2; /* (and the level's name above it) */
 	logo_draw(hudLogoBelow, HUD_CW, HUD_CH, HUD_CW / GBA_W, top, 255);
 }
@@ -2686,7 +2826,7 @@ static void hud_compose(void) {
 	} else if (h->card.tile) {
 		memcpy(hudCanvas, card_logo(), sizeof(hudCanvas));
 	} else {
-		uint32_t plain = h->mapCnt ? (hudFadeEff == 2 ? 0xFFFFFFFF : 0xFF000000) : 0xFF1A1010;
+		uint32_t plain = h->mapCnt ? (hudFadeEff == 2 ? 0xFFFFFFFF : 0xFF000000) : h->black ? SCREEN_LIVE : 0xFF1A1010;
 		for (int i = 0; i < HUD_CW * HUD_CH; ++i) hudCanvas[i] = plain;
 	}
 	/* moved pieces (the scene's, or racing's): how far each goes this frame */
@@ -2911,6 +3051,23 @@ static bool mirrorHave, mirrorOn;
 
 static void update_hud(void) {
 	const typeof(hudProf->hud)* h = &hudProf->hud;
+	/* hud.held: taken from the game screen the first frame it's shown in place */
+	if (h->held.y1) {
+		if (!memprobes_match(h->held.when, 3, &emu)) {
+			heldArmed = true;
+		} else if (heldArmed) {
+			int n = 0;
+			while (n < 8 && (h->held.probes[n].x || h->held.probes[n].y || h->held.probes[n].rgb)) ++n;
+			if (probes_hit(emu.fb, h->held.probes, h->held.tol) >= (h->held.min ? h->held.min : n)) {
+				heldArmed = false;
+				heldN = SDL_min(h->held.y1, GBA_H - 1) - h->held.y0 + 1;
+				memcpy(heldPic, emu.fb + h->held.y0 * GBA_W, (size_t) heldN * GBA_W * 4);
+				heldNumW = 0; /* (its own number is the latest till the next capture) */
+				hudLogoBelowDone = false;
+				if (debug) fprintf(stderr, "frame %llu: picture kept for under the HUD\n", (unsigned long long) frameCount);
+			}
+		}
+	}
 	/* a conversation leaves the game screen only once there's a picture
 	 * on the second screen to put it on */
 	if (h->band) emu_hud_band(true, mapShownIdx < 0, h->band == BAND_WATCH);
@@ -2962,6 +3119,18 @@ static void update_hud(void) {
 	bool main = memprobes_match(h->on, 4, &emu);
 	bool altOn = !main && h->alt.on[0].addr && memprobes_match(h->alt.on, (int) (sizeof h->alt.on / sizeof h->alt.on[0]), &emu);
 	bool race = main || altOn || (hudOn && h->stay[0].addr && memprobes_match(h->stay, 2, &emu));
+	/* hud.offAfter: off from when it matches (a battle's results) until
+	 * on[0] stops matching (the battle's over) */
+	if (h->offAfter[0].addr) {
+		if (!memprobes_match(h->on, 1, &emu)) {
+			if (hudOffLatch && debug) fprintf(stderr, "frame %llu: HUD held off: done\n", (unsigned long long) frameCount);
+			hudOffLatch = false;
+		} else if (!hudOffLatch && memprobes_match(h->offAfter, 2, &emu)) {
+			hudOffLatch = true;
+			if (debug) fprintf(stderr, "frame %llu: HUD held off\n", (unsigned long long) frameCount);
+		}
+		if (hudOffLatch) race = altOn = false, main = false;
+	}
 	/* the HUD's other layer (alt): kept while it stays on through a fade */
 	bool alt = main ? false : altOn ? true : hudAlt;
 	/* the map layer: which BG has it (none: not on a map) */
@@ -3135,7 +3304,7 @@ static void update_hud(void) {
 			for (; n < 2 && h->memLayers.when[n].addr; ++n) {
 				a[n] = h->memLayers.when[n].addr, m[n] = h->memLayers.when[n].mask, v[n] = h->memLayers.when[n].value, sz[n] = h->memLayers.when[n].size;
 			}
-			emu_hud_mem_layers(a, m, v, sz, race ? n : 0, h->memLayers.any, h->memLayers.bgMask);
+			emu_hud_mem_layers(a, m, v, sz, race ? n : 0, h->memLayers.any, h->memLayers.bgMask, h->memLayers.gamePal);
 		}
 		hudKeep = 0;
 		if (debug && race && scene != hudScene) fprintf(stderr, "frame %llu: HUD scene %s\n", (unsigned long long) frameCount, scene ? "on" : "off");
@@ -3225,7 +3394,12 @@ static void update_hud(void) {
  * (held at v + 160). Rows none has are black (only until the copies are
  * up). The score bar goes to the bottom of the bottom screen. Called after
  * each frame. */
-typedef struct { const uint32_t* px; int row; } TallSrc;
+typedef struct { const uint32_t* px; int row; int from, safe; } TallSrc;
+/* (from: its first line with table rows; safe: its first line whose rows
+ * are sure to be right: a carry copy's lines above gameFrom - 1 are the
+ * rows its game hides under the score bar, whose tiles the game doesn't
+ * keep (Muppet Pinball Mayhem's, moving down the table): used only when
+ * no other picture has the row lower down) */
 int stbi_write_png(char const* filename, int w, int h, int comp, const void* data, int stride_in_bytes);
 static bool tallKeep; /* (carry) a row no picture has keeps what it showed last */
 /* the live view's last 10 seconds, a line a frame, for bug reports
@@ -3234,13 +3408,15 @@ static bool tallKeep; /* (carry) a row no picture has keeps what it showed last 
 static char tallLog[TALL_LOG][176];
 static unsigned tallLogN;
 static bool tall_line(uint32_t* dst, int row, const TallSrc* src, int n) {
-	for (int i = 0; i < n; ++i) {
-		int y = row - src[i].row;
-		if (src[i].px && y >= 0 && y < GBA_H) {
-			memcpy(dst, &src[i].px[y * GBA_W], sizeof(uint32_t) * GBA_W);
-			return true;
+	for (int pass = 0; pass < 2; ++pass)
+		for (int i = 0; i < n; ++i) {
+			int y = row - src[i].row;
+			int lo = pass ? src[i].from : SDL_max(src[i].from, src[i].safe);
+			if (src[i].px && y >= lo && y < GBA_H) {
+				memcpy(dst, &src[i].px[y * GBA_W], sizeof(uint32_t) * GBA_W);
+				return true;
+			}
 		}
-	}
 	if (!tallKeep) for (int x = 0; x < GBA_W; ++x) dst[x] = 0xFF000000;
 	return false;
 }
@@ -3257,11 +3433,25 @@ static void update_tall(void) {
 		tallMsg = haveLastTop = false;
 		tallLive = false;
 		mapShownIdx = -1;
+		/* (carry: the copies start again from the game's: what they kept,
+		 * running on through the menus, is the last table's tiles, which
+		 * a new table's (Muppet Pinball Mayhem's, after its curtains)
+		 * doesn't reload in one go) */
+		for (int i = 0; i < TWINS; ++i) twins[i].carried = false;
 		if (debug) fprintf(stderr, "frame %llu: table %s\n", (unsigned long long) frameCount, on ? "up" : "gone");
 		return;
 	}
 	if (!on) return;
 	bool up = twinOpen && twins[1].up && twins[1].havePic;
+	/* (carry: and the top screen's copy, when its rows are on the top
+	 * screen: one still walking to its row would leave them blank) */
+	if (up && tall_carry(tallProf)) {
+		int s0 = emu_io16(&emu, 0x10 + 4 * L->viewBg + 2) & 0x1FF, r0 = tall_rows_of(tallProf, &emu);
+		if (s0 >= r0) s0 -= 512;
+		if (s0 - twinShakeNow > r0 - 2 * GBA_H && !(twins[0].up && twins[0].havePic)) up = false;
+		for (int i = 0; i < 3 && L->carry.plain[i].addr; ++i)
+			if (memprobes_match(&L->carry.plain[i], 1, &emu)) up = false;
+	}
 	if (!up) {
 		/* the copies aren't running (the table's opening sweep, a table they
 		 * don't know, no ball): the game as it is, the logo on the second screen */
@@ -3288,9 +3478,10 @@ static void update_tall(void) {
 	 * the copies shake alike, by themselves) */
 	int k = twinShakeNow;
 	int v = SDL_max(SDL_min(s - k, vmax), top) + k;
-	TallSrc game = { emu.fb, s };
-	TallSrc a = { twins[0].up && twins[0].havePic ? twins[0].pic : NULL, twins[0].picRow }; /* (this frame's only) */
-	TallSrc b = { twins[1].pic, twins[1].picRow };
+	int safe = carry && L->carry.gameFrom ? L->carry.gameFrom - 1 : 0;
+	TallSrc game = { emu.fb, s, carry ? L->carry.gameFrom : 0, 0 };
+	TallSrc a = { twins[0].up && twins[0].havePic ? twins[0].pic : NULL, twins[0].picRow, 0, safe }; /* (this frame's only) */
+	TallSrc b = { twins[1].pic, twins[1].picRow, 0, safe };
 	TallSrc topSrc[3] = { game, a, b }, botSrc[3] = { b, a, game };
 	bool gameOnTop = s == v;
 	if (!gameOnTop) topSrc[0] = a, topSrc[1] = game;
@@ -3299,14 +3490,25 @@ static void update_tall(void) {
 	if (carry) topSrc[0] = game, topSrc[1] = a, botSrc[0] = game, botSrc[1] = b, botSrc[2] = a;
 	tallKeep = carry && tallLive;
 	int missing = 0;
+	/* (carry with gameFrom: the top screen's lines above gameFrom - 1 are
+	 * the game's own, the score bar's alone, where the table doesn't show:
+	 * its layers are laid over them below, on what the game has behind
+	 * them. The line between is the score bar's black edge, drawn black:
+	 * the game's own has it black but for a sprite passing under the bar
+	 * (or, in its picture without the score bar's layers, a row from under
+	 * its own view, which with the lower view is another part of the
+	 * table); the copies' have the table) */
+	int gf = carry && L->carry.gameFrom ? L->carry.gameFrom - 1 : 0;
 	for (int y = 0; y < GBA_H; ++y) {
-		missing += !tall_line(&tallTop[y * GBA_W], v + y, topSrc, 3);
+		if (y < gf) memcpy(&tallTop[y * GBA_W], &emu.fb[y * GBA_W], sizeof(uint32_t) * GBA_W);
+		else if (gf && y == gf) for (int x = 0; x < GBA_W; ++x) tallTop[y * GBA_W + x] = 0xFF000000u;
+		else missing += !tall_line(&tallTop[y * GBA_W], v + y, topSrc, 3);
 		missing += !tall_line(&tallBot[y * GBA_W], v + GBA_H + y, botSrc, 3);
 	}
 	/* PP-11: the game dims its screen (paused, the Mart: brightness down)
 	 * or shows a message box: its whole screen on the bottom one */
 	uint16_t bld = emu_io16(&emu, 0x50);
-	bool msg = (bld & 0xC0) == 0xC0 && (emu_io16(&emu, 0x54) & 0x1F);
+	bool msg = (bld & 0xC0) == 0xC0 && (emu_io16(&emu, 0x54) & 0x1F) && !(carry && L->carry.keepDim);
 	if (!msg && L->msg.map) {
 		int n = 0;
 		for (int r = L->msg.row0; r < L->msg.row0 + L->msg.rows; ++r) {
@@ -3698,6 +3900,18 @@ static void* screen_blob(size_t* n) {
 		if (t.p) blob_section(&b, "TITL", t.p, t.n);
 		free(t.p);
 	}
+	if (hudProf && hudProf->hud.held.y1 && heldN > 0) {
+		Blob t = { 0 };
+		blob_u32(&t, (uint32_t) heldN), blob_add(&t, heldPic, (size_t) GBA_W * heldN * 4);
+		if (t.p) blob_section(&b, "HELD", t.p, t.n);
+		free(t.p);
+		if (heldNumW > 0) {
+			Blob u = { 0 };
+			blob_u32(&u, (uint32_t) heldNumW), blob_u32(&u, (uint32_t) heldNumH), blob_add(&u, heldNum, (size_t) heldNumW * heldNumH * 4);
+			if (u.p) blob_section(&b, "HNUM", u.p, u.n);
+			free(u.p);
+		}
+	}
 	if (hudProf && hudProf->hud.card.tile && hudBackValid && cardScore >= 0) {
 		Blob c = { 0 };
 		blob_u32(&c, (uint32_t) cardScore), blob_add(&c, cardBest, sizeof(cardBest));
@@ -3740,6 +3954,7 @@ static void screen_restore_apply(void) {
 	 * card and the level name go (back from the state, if it has them) */
 	if (hudProf && hudProf->hud.card.tile) hudBackValid = false, cardScore = -1, sideScore = -1;
 	mapTitleN = 0, hudLogoBelowDone = false;
+	heldN = 0, heldNumW = 0, heldArmed = true;
 	logoForced = false, logoHolding = 0;
 	if (!ours) {
 		if (b && debug) fprintf(stderr, "load state: its second screen is for another game or version: not used\n");
@@ -3776,13 +3991,22 @@ static void screen_restore_apply(void) {
 		int rows = (int) rd32(d);
 		if (rows > 0 && rows <= 32 && sz == 4 + (size_t) GBA_W * rows * 4) memcpy(mapTitle, d + 4, sz - 4), mapTitleN = rows;
 	}
+	if (hudProf && hudProf->hud.held.y1 && (d = blob_find(b, n, "HELD", &sz)) && sz >= 4) {
+		int rows = (int) rd32(d);
+		if (rows > 0 && rows <= GBA_H && sz == 4 + (size_t) GBA_W * rows * 4) memcpy(heldPic, d + 4, sz - 4), heldN = rows;
+	}
+	if (hudProf && hudProf->hud.held.over.x1 && (d = blob_find(b, n, "HNUM", &sz)) && sz >= 8) {
+		int w = (int) rd32(d), hh = (int) rd32(d + 4);
+		if (w > 0 && hh > 0 && w * hh <= GBA_W * GBA_H && sz == 8 + (size_t) w * hh * 4) memcpy(heldNum, d + 8, sz - 8), heldNumW = w, heldNumH = hh;
+	}
 	if (hudProf && hudProf->hud.card.tile && (d = blob_find(b, n, "CARD", &sz)) && sz == 4 + sizeof(cardBest)) {
 		cardScore = (int) rd32(d);
 		memcpy(cardBest, d + 4, sizeof(cardBest));
 		card_backdrop();
 	}
-	if (debug) fprintf(stderr, "load state: the second screen from it (%s%s%s%s)\n", blob_find(b, n, "MAP ", &sz) ? " map" : "",
-	                   blob_find(b, n, "SNAP", &sz) ? " copy" : "", blob_find(b, n, "TITL", &sz) ? " title" : "", blob_find(b, n, "CARD", &sz) ? " card" : "");
+	if (debug) fprintf(stderr, "load state: the second screen from it (%s%s%s%s%s)\n", blob_find(b, n, "MAP ", &sz) ? " map" : "",
+	                   blob_find(b, n, "SNAP", &sz) ? " copy" : "", blob_find(b, n, "TITL", &sz) ? " title" : "", blob_find(b, n, "CARD", &sz) ? " card" : "",
+	                   blob_find(b, n, "HELD", &sz) ? " held" : "");
 }
 
 /* Save states, with the RetroAchievements progress beside them. */
@@ -3806,6 +4030,7 @@ static bool state_load(const char* path) {
 	for (int m = 0; ok && m < 4; ++m) pieces[m].stale = true, pieces[m].still = 0;
 	if (ok) aheadReady = false; /* a frame emulated before the load: emulate afresh */
 	if (ok) mirrorHave = false; /* (hud.mirror: the picture from before is another moment's) */
+	if (ok) hudOffLatch = false; /* (hud.offAfter: found again from the loaded game) */
 	return ok;
 }
 
@@ -4094,14 +4319,16 @@ static void bug_info(Text* t, const char* date, uint64_t back) {
 	text_add(t, "The rewound state is %llu frames before the other\n", (unsigned long long) back);
 
 	text_add(t, "\n== Settings\n");
-	text_add(t, "layout %s, swap %d, scale %s, map_scale %s, lcd_grid %d, color_correction %d, smooth %d, overlays %d, border_color %s\n", cfg->layout,
-	         cfg->swap, cfg->scale, cfg->mapScale, cfg->lcdGrid, cfg->colorCorrection, cfg->smooth, cfg->overlays, cfg->borderColor);
+	text_add(t, "layout %s, swap %d, scale %s, map_scale %s, shader %s, color_correction %d, lcd_ghosting %d, smooth %d, overlays %d, border_color %s\n", cfg->layout,
+	         cfg->swap, cfg->scale, cfg->mapScale, shaderNames[cfg->shader], cfg->colorCorrection, cfg->ghosting, cfg->smooth, cfg->overlays, cfg->borderColor);
 	text_add(t, "map %d, map_animations %d, map_interval %d, show_logo %d, pinball_live %d\n", cfg->map, cfg->mapAnim,
 	         cfg->mapInterval, cfg->showLogo, cfg->tallLive);
 	text_add(t, "frame_buffer %d, match_display %d, vsync %d, audio_latency %d, rewind %d (%d s), fast_forward %d, ff_speed %d\n", cfg->frameBuffer,
 	         cfg->matchDisplay, cfg->vsync, cfg->audioLatency, cfg->rewind, cfg->rewindSeconds, cfg->fastForward, cfg->ffSpeed);
 	text_add(t, "hotkey %s, menu_combo %s, home_button %d, ab_swap %d, touch_map %s, touch_screen %s\n", cfg->hotkey, cfg->menuCombo,
 	         cfg->homeButton, cfg->abSwap, cfg->touchMap, cfg->touchScreen);
+	text_add(t, "hotkeys: %s +", hotkeyBtnNames[hkMod]);
+	for (int i = 0; i < HK_COUNT; ++i) text_add(t, " %s %s%s", hotkeyNames[i], hkBtn[i] >= 0 ? hotkeyBtnNames[hkBtn[i]] : "none", i + 1 < HK_COUNT ? "," : "\n");
 	text_add(t, "save_on_quit %d, auto_load %d, quick_bar_pinned %d\n", cfg->autoSave, cfg->autoLoad, cfg->barPinned);
 
 	char lp[1024];
@@ -4716,6 +4943,12 @@ static bool update_still(void) {
  * kept on its own) */
 static void map_show_new(bool fresh) {
 	mapInactive = false;
+	if (fresh && hudProf && hudProf->hud.held.over.x1 && mapRes.frames[0] && mapRes.w * mapRes.h <= GBA_W * GBA_H) {
+		/* hud.held.over: the number, laid over the held picture */
+		heldNumW = mapRes.w, heldNumH = mapRes.h;
+		memcpy(heldNum, mapRes.frames[0], (size_t) mapRes.w * mapRes.h * 4);
+		hudLogoBelowDone = false;
+	}
 	if (fresh && hudProf && hudProf->hud.mapTitleRows && mapRes.w == GBA_W && mapRes.frames[0]) {
 		/* the level list's title row (SMA-7), held for the level */
 		if (!mapTitleN) hudLogoBelowDone = false; /* (the logo moves down under it) */
@@ -4740,9 +4973,12 @@ static void map_show_new(bool fresh) {
 }
 
 
+/* a profile's own live picture is up (liveView): drawn as it is */
+static bool liveOn;
+
 /* Draws the map with its generated surround; false if there's none to draw. */
 static bool draw_framed_map(int s) {
-	if (!(cfg->overlays & OVL_SECONDARY) || !mapframe_ready(&mf) || mapShownIdx < 0) return false;
+	if (liveOn || !(cfg->overlays & OVL_SECONDARY) || !mapframe_ready(&mf) || mapShownIdx < 0) return false;
 	if (!strcmp(cfg->mapScale, "zoom")) return false; /* the map fills the height: no room for a surround */
 	SDL_Rect r = screens[s].pic; /* (the picture area: screen_match) */
 	if (mapframe_layout(&mf, r.w, r.h, cfg->mapScale) || mf.baseDirty) canvasDirty = true;
@@ -4761,7 +4997,7 @@ static bool draw_framed_map(int s) {
 		for (int i = 0; i < nViews; ++i) ui_update_texture(canvasTex[i], px, mf.cw * 4);
 		canvasDirty = false;
 	}
-	ui_image_pixels(s, canvasTex, mf.cw, mf.ch, "stretch", cfg->lcdGrid);
+	ui_image_pixels(s, canvasTex, mf.cw, mf.ch, "stretch", SHADER_ON);
 	return true;
 }
 
@@ -4823,12 +5059,13 @@ static void save_prefs(void) {
 	FILE* f = fopen(prefs, "w");
 	if (f) {
 		fprintf(f, "# written by gba-ds's pause menu; overrides gba-ds.cfg\n");
-		fprintf(f, "swap = %d\nscale = %s\nmap_scale = %s\nlcd_grid = %d\ncolor_correction = %d\noverlays = %s\nframe_buffer = %d\nmatch_display = %d\nrewind = %d\nfast_forward = %d\nsave_on_quit = %d\nauto_load = %d\nquick_bar_pinned = %d\n",
-		        cfg->swap ? 1 : 0, cfg->scale, cfg->mapScale, cfg->lcdGrid ? 1 : 0, cfg->colorCorrection ? 1 : 0,
+		fprintf(f, "swap = %d\nscale = %s\nmap_scale = %s\nshader = %s\ncolor_correction = %d\nlcd_ghosting = %d\noverlays = %s\nframe_buffer = %d\nmatch_display = %d\nrewind = %d\nfast_forward = %d\nsave_on_quit = %d\nauto_load = %d\nquick_bar_pinned = %d\n",
+		        cfg->swap ? 1 : 0, cfg->scale, cfg->mapScale, shaderNames[cfg->shader], cfg->colorCorrection ? 1 : 0, cfg->ghosting ? 1 : 0,
 		        (const char* const[]) { "none", "primary", "secondary", "both" }[cfg->overlays & OVL_BOTH],
 		        cfg->frameBuffer ? 1 : 0, cfg->matchDisplay ? 1 : 0, cfg->rewind ? 1 : 0, cfg->fastForward ? 1 : 0,
 		        cfg->autoSave ? 1 : 0, cfg->autoLoad ? 1 : 0, cfg->barPinned ? 1 : 0);
 		fprintf(f, "screen_match = %s\n", cfg->screenMatch);
+		fprintf(f, "shader_last = %s\n", shaderNames[cfg->shaderLast > SH_OFF && cfg->shaderLast < SH_COUNT ? cfg->shaderLast : SH_GRID]);
 		fclose(f);
 	}
 }
@@ -4847,6 +5084,29 @@ static void swap_screens(void) {
 	}
 	cfg->swap = !cfg->swap;
 	save_prefs();
+}
+
+/* Display > Shader, or the shader hotkey: the pattern over the pixels */
+static void set_shader(int sh) {
+	bool subBefore = cfg->shader >= SH_SUB_LIGHT;
+	cfg->shader = sh;
+	if (sh != SH_OFF) cfg->shaderLast = sh;
+	ui_shader(cfg->shader);
+	if (subBefore || cfg->shader >= SH_SUB_LIGHT) rebuild_textures(); /* (the subpixels' brightening is in the colour table) */
+	save_prefs();
+}
+
+/* ---- hotkeys (hotkeys.c): the hotkey button (HOME, SELECT, START or L3)
+ * held with an action's button (Settings > Hotkeys, gba-ds.cfg).
+ * SELECT or START as the hotkey still reach the game when tapped alone;
+ * L3 tapped alone opens the quick menu, as it does when it isn't the hotkey. */
+static void hotkeys_setup(void) {
+	hotkeys_resolve(cfg, &hkMod, hkBtn, true);
+	char line[200];
+	int n = snprintf(line, sizeof(line), "hotkey: %s +", hotkeyBtnNames[hkMod]);
+	for (int i = 0; i < HK_COUNT && n < (int) sizeof(line); ++i)
+		n += snprintf(line + n, sizeof(line) - n, " %s %s%s", hotkeyNames[i], hkBtn[i] >= 0 ? hotkeyBtnNames[hkBtn[i]] : "none", i + 1 < HK_COUNT ? "," : "");
+	fprintf(stderr, "%s\n", line);
 }
 
 static SDL_Color borderColor;
@@ -4945,6 +5205,12 @@ static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha) {
 	SDL_Surface* lg = ui_logo_surface(cfg, emu.gameCode, &pixelArt);
 	if (!lg) return false;
 	int room = ch - top;
+	if (room <= 0) {
+		/* (no room below a HUD that fills the screen: Mega Man Battle
+		 * Network's custom screen, hud.rows GBA_H) */
+		SDL_FreeSurface(lg);
+		return false;
+	}
 	int w = lg->w * k, h = lg->h * k;
 	if (w > cw || h > room) {
 		float sc = SDL_min((float) cw / lg->w, (float) room / lg->h);
@@ -5019,7 +5285,7 @@ static void draw_game(void) {
 		SDL_Rect r = screens[s].rect;
 		if (showGame) {
 			if (nScreens == 2 && !mapOn && s != game_screen()) continue; /* no map: leave other screen black */
-			ui_image_pixels(s, gameTex, GBA_W, GBA_H, cfg->scale, cfg->lcdGrid);
+			ui_image_pixels(s, gameTex, GBA_W, GBA_H, cfg->scale, SHADER_ON);
 			if (hudProf && hudOn && hudAlt && hudProf->hud.alt.dimGame) {
 				/* (the phase banner moved to the other screen) */
 				SDL_Rect img = ui_image_rect(s, GBA_W, GBA_H, cfg->scale);
@@ -5046,22 +5312,22 @@ static void draw_game(void) {
 		if (overAlone && mapShownIdx >= 0) logoBack = false; /* (the phase banner, on the other armies' turn too) */
 		if (((combatOn && !(overAlone && mapShownIdx >= 0)) || logoBack) && (combatTex[0] || combatTex[1])) {
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
-			ui_image_pixels(s, combatTex, mapW, mapH, cfg->mapScale, cfg->lcdGrid ? 1 : 0);
+			ui_image_pixels(s, combatTex, mapW, mapH, cfg->mapScale, SHADER_ON);
 		} else if (hudShown && !logoForced) {
 			/* the HUD picture is at 2x: a grid cell per GBA pixel */
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
-			ui_image_pixels(s, hudTex, HUD_CW, HUD_CH, cfg->mapScale, cfg->lcdGrid ? 2 : 0);
+			ui_image_pixels(s, hudTex, HUD_CW, HUD_CH, cfg->mapScale, SHADER_ON ? 2 : 0);
 		} else if (mapShownIdx >= 0 && !logoForced && draw_framed_map(s)) {
 			/* map + generated surround */
 		} else if (mapShownIdx >= 0 && !logoForced) {
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
-			ui_image_pixels(s, mapTex, mapW, mapH, cfg->mapScale, cfg->lcdGrid ? 1 : 0);
+			ui_image_pixels(s, mapTex, mapW, mapH, cfg->mapScale, SHADER_ON);
 		} else if (!cfg->showLogo) {
 			/* nothing to show: the screen stays blank */
 		} else if (logoCanvasTex[0] || logoCanvasTex[1]) {
 			/* no map yet (title screen, intro...): the game's logo, as if the
 			 * game drew it on a second GBA screen */
-			ui_image_pixels(s, logoCanvasTex, GBA_W, GBA_H, cfg->mapScale, cfg->lcdGrid ? 1 : 0);
+			ui_image_pixels(s, logoCanvasTex, GBA_W, GBA_H, cfg->mapScale, SHADER_ON);
 		} else if (logoTex[0] || logoTex[1]) {
 			/* a user's high-resolution logo: fitted to where the picture goes */
 			SDL_Rect area = ui_image_rect(s, GBA_W, GBA_H, cfg->mapScale);
@@ -5150,7 +5416,13 @@ static bool activate(int item, enum GameExit* exitTo) {
 		break;
 	}
 	case M_LCD:
-		cfg->lcdGrid = !cfg->lcdGrid;
+		set_shader((cfg->shader + 1) % SH_COUNT);
+		snprintf(menuNote, sizeof(menuNote), "%s", shaderNotes[cfg->shader]);
+		break;
+	case M_GHOST:
+		cfg->ghosting = !cfg->ghosting;
+		ghostHave = false;
+		snprintf(menuNote, sizeof(menuNote), "%s", cfg->ghosting ? "Moving things leave a short trail, as on a GBA" : "Each frame shown on its own");
 		save_prefs();
 		break;
 	case M_COLOR:
@@ -5371,6 +5643,7 @@ static void ss_setup(const char* rom, const char* code) {
 		memset(hudPalRef, 0, sizeof(hudPalRef));
 		hudWorld = false;
 		hudAlt = false;
+		hudOffLatch = false;
 		hudLogoDone = false;
 		hudLogoBelowDone = false;
 		mapTitleN = 0;
@@ -5531,9 +5804,11 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	if (fromLibrary) pages[0][pageLen[0]++] = M_LIBRARY;
 	pages[0][pageLen[0]++] = M_EXIT;
 	ui_color_correction(cfg->colorCorrection); /* (Display > Color Correction, for this session's pictures) */
+	ui_shader(cfg->shader);
 	pages[1][pageLen[1]++] = M_SCALE;
 	pages[1][pageLen[1]++] = M_LCD;
 	pages[1][pageLen[1]++] = M_COLOR;
+	pages[1][pageLen[1]++] = M_GHOST;
 	pages[1][pageLen[1]++] = M_OVERLAY;
 	pages[1][pageLen[1]++] = M_FRAMEBUF;
 	pages[1][pageLen[1]++] = M_MATCH;
@@ -5620,12 +5895,15 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	int lastFails = 0;
 	bool forceMap = true, wasDark = false;
 	long refreshAt = -1;
-	bool hotkeyBack = !strcmp(cfg->hotkey, "back");
-	int modBtn = hotkeyBack ? B_SELECT : B_HOME;
+	hotkeys_setup();
+	const int modBtn = hkMod;
+	/* SELECT or START as the hotkey: a GBA button, held back from the game
+	 * while it's down and handed over if it comes up with nothing pressed */
+	const bool modIsGame = modBtn == B_SELECT || modBtn == B_START;
 	bool comboUsed = false;
 	int comboHold = -1, comboFrames = 0; /* menu combo: the button held back, frames since */
 	int comboPulse[2] = { 0, 0 };        /* SELECT, START handed to the game late */
-	int selectPulse = 0;
+	int modPulse = 0; /* the hotkey button (SELECT or START), tapped alone: handed to the game */
 	unsigned ffPhase = 0;
 	bool noPace = getenv("GBADS_NOPACE") != NULL;
 	enum GameExit exitTo = GAME_QUIT_APP;
@@ -5920,12 +6198,27 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		/* ---- HOME (or the hotkey modifier) alone toggles the menu; with a button it's a hotkey */
 		bool mod = btnNow[modBtn];
 		if (mod && !menuOpen) {
-			if (btn_pressed(B_START)) exitTo = GAME_QUIT_APP, done = true, comboUsed = true;
-			/* (the quick state, as the quick bar's buttons) */
-			if (btn_pressed(B_R)) ui_osd(state_save(gp.quick) ? "State saved" : "Save failed"), comboUsed = true;
-			if (btn_pressed(B_L) && file_exists(gp.quick)) state_load(gp.quick), ui_osd("State loaded"), forceMap = true, comboUsed = true;
-			if (btn_pressed(B_X)) cfg->showFps = !cfg->showFps, comboUsed = true;
-			if (btn_pressed(B_Y)) swap_screens(), comboUsed = true;
+			for (int i = 0; i < HK_COUNT; ++i) {
+				if (hkBtn[i] < 0 || !btn_pressed(hkBtn[i])) continue;
+				comboUsed = true;
+				if (debug) fprintf(stderr, "hotkey: %s\n", hotkeyNames[i]);
+				switch (i) {
+				case HK_QUIT: exitTo = GAME_QUIT_APP, done = true; break;
+				/* (the quick state, as the quick bar's buttons) */
+				case HK_SAVE: ui_osd(state_save(gp.quick) ? "State saved." : "Save failed."); break;
+				case HK_LOAD:
+					if (!file_exists(gp.quick)) ui_osd("No quick state saved yet.");
+					else if (state_load(gp.quick)) ui_osd("State loaded."), forceMap = true;
+					else ui_osd("Load failed.");
+					break;
+				case HK_BAR: bar_toggle(); break;
+				case HK_SWAP: swap_screens(); break;
+				case HK_SHADER:
+					set_shader(cfg->shader != SH_OFF ? SH_OFF : cfg->shaderLast > SH_OFF && cfg->shaderLast < SH_COUNT ? cfg->shaderLast : SH_GRID);
+					ui_osd("%s", shader_label(cfg->shader));
+					break;
+				}
+			}
 		}
 		if (btn_released(B_HOME) && !(modBtn == B_HOME && comboUsed)) {
 			if (menuOpen) menuOpen = false;
@@ -5933,7 +6226,8 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		}
 		if (btn_released(modBtn)) {
 			if (comboUsed) suppress_held();
-			if (hotkeyBack && !comboUsed && !menuOpen) selectPulse = 4; /* plain Select goes to the game */
+			else if (!menuOpen && modIsGame) modPulse = 4; /* tapped alone: the game gets it */
+			else if (!menuOpen && modBtn == B_L3) bar_toggle();
 			comboUsed = false;
 		}
 		if (done) break;
@@ -6027,14 +6321,21 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			continue;
 		}
 
-		if (btn_pressed(B_L3)) swap_screens();
+		if (btn_pressed(B_L3) && modBtn != B_L3) bar_toggle(); /* (L3: the quick menu, as a swipe up) */
 
 		/* ---- emulate */
 		uint32_t keys = 0;
 		for (int b = 0; b < B_COUNT; ++b) {
 			if (!btnNow[b]) suppress[b] = false; /* released: counts again */
 		}
-		if (!btnNow[modBtn] || hotkeyBack) {
+		if (modIsGame && btnNow[modBtn]) {
+			/* the hotkey (SELECT or START) held: the actions' buttons are
+			 * kept from the game until released, the rest go through */
+			for (int i = 0; i < HK_COUNT; ++i) {
+				if (hkBtn[i] >= 0 && btnNow[hkBtn[i]]) suppress[hkBtn[i]] = true;
+			}
+		}
+		if (!btnNow[modBtn] || modIsGame) {
 			/* the SNES layout only where it applies (Super Mario Advance 2: in
 			 * a level; on the world map R switches Mario and Luigi, and only A
 			 * enters a level) */
@@ -6060,8 +6361,8 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				if (HELD(B_A)) keys |= K_A;
 				if (HELD(B_B)) keys |= K_B;
 			}
-			if (HELD(B_START) && !(hotkeyBack && btnNow[B_SELECT]) && comboHold != B_START) keys |= K_START;
-			if (HELD(B_SELECT) && !hotkeyBack && comboHold != B_SELECT) keys |= K_SELECT;
+			if (HELD(B_START) && modBtn != B_START && comboHold != B_START) keys |= K_START;
+			if (HELD(B_SELECT) && modBtn != B_SELECT && comboHold != B_SELECT) keys |= K_SELECT;
 			if (snes) {
 				/* both shoulders are GBA L, panning the camera their own way */
 				if (HELD(B_L)) keys |= K_L | KX_PAN_L;
@@ -6080,9 +6381,8 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			if (HELD(B_DOWN)) keys |= K_DOWN;
 			if (HELD(B_LEFT)) keys |= K_LEFT;
 			if (HELD(B_RIGHT)) keys |= K_RIGHT;
-			if (hotkeyBack && btnNow[B_SELECT]) keys &= ~(K_L | K_R | K_START | KX_PAN_L | KX_PAN_R);
 		}
-		if (selectPulse > 0) keys |= K_SELECT, --selectPulse;
+		if (modPulse > 0) keys |= modBtn == B_START ? K_START : K_SELECT, --modPulse;
 		if (comboPulse[0] > 0) keys |= K_SELECT, --comboPulse[0];
 		if (comboPulse[1] > 0) keys |= K_START, --comboPulse[1];
 		{
@@ -6324,6 +6624,27 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				int idx = map_anim_index();
 				upload_map_frame(idx);
 			}
+			/* a profile's own live picture (Mega Man Battle Network's maps on
+			 * the net), drawn every frame over whatever was captured; when it
+			 * stops, the captured picture again */
+			const MapProfile* lvp = mapcap_profile(mc);
+			const uint32_t* lv = lvp && lvp->liveView && romPath ? lvp->liveView(&emu, romPath) : NULL;
+			if (lv) {
+				for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], lv, mapW * 4);
+				if (mapShownIdx < 0) mapShownIdx = 0;
+				if (!liveOn && debug) fprintf(stderr, "frame %llu: live view on\n", (unsigned long long) frameCount);
+				liveOn = canvasDirty = true;
+			} else if (liveOn) {
+				liveOn = false;
+				if (debug) fprintf(stderr, "frame %llu: live view off\n", (unsigned long long) frameCount);
+				if (mapRes.ok && map_px(mapShownIdx)) {
+					overDirty = true;
+					upload_map_frame(mapShownIdx);
+				} else {
+					mapShownIdx = -1;
+				}
+				canvasDirty = true;
+			}
 		}
 
 		if (snapProf) update_snapshot();
@@ -6371,6 +6692,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		}
 		if (mirrorOn && mirrorHave) shownFb = mirrorHeld; /* (hud.mirror: the picture from before) */
 		if (tallLive) shownFb = cfg->swap ? tallBot : tallTop; /* (profile.tall: the table's upper half on the top screen) */
+		if (cfg->ghosting) shownFb = ghost_frame(shownFb);
 		/* only the view the game is on needs it (all of them right after a swap,
 		 * since the menu draws the game without uploading) */
 		for (int i = 0; i < nViews; ++i) {

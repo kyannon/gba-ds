@@ -14,20 +14,46 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 ## Rules
 
-**TO-1. Unit list.** In a battle, with the cursor free on the field (where R opens the menu), the second screen shows the battle's unit list (R, View List), the whole screen at the game screen's size, as the game draws it, without its R SEARCH and START:DATA prompts (the buttons don't work there): what's under them in the list shows instead. It's opened on the hidden copy at every map refresh and as soon as the field cursor has stopped on another square, so it stays up to date without the player opening it. With the list open in the game, the list as the player has it.
+**TO-1. Unit list.** *Retired:* the battle's unit list (R, View List), with its cursor on the field cursor's unit, isn't shown any more: too much, and too slow to turn through, beside the unit's details (TO-8).
 
-**TO-2. On the cursor's unit.** The list's cursor is on the unit the field cursor is on, the player's or the enemy's, wherever it is in the list (the list moves its box about: right or left, bottom or top). On a square with no unit, the list as it opens, on the leader.
+**TO-2. On the cursor's unit.** *Retired* with TO-1: the details (TO-8) are always the field cursor's unit's.
 
-**TO-3. Every page in turn.** The list's pages (START: level, HP, MP, element, the bars, side), one every 2.5 seconds, round to the first, turning at that pace through each refresh.
+**TO-3. Every page in turn.** *Retired* with TO-1 (the details' pages turn: TO-8).
 
 **TO-4. Title.** On the title screen the second screen shows the logo, and no captures are tried there.
 
-**TO-5. Last one stays.** Where R doesn't open the list (a unit moving or acting, the enemy's turn, a scene), the last list pictures stay; before the first, the logo.
+**TO-5. Last one stays.** In a battle, where R's menu doesn't open on the field (a unit moving or acting: an attack, a spell or special, an item; a scene, R's menu's own screens, the unit list or a unit's details open in the game), the last pictures stay; before the first, the logo. So do they while the field fades back in (after a screen or a scene closes, before the unit's box under the cursor is back): the next refresh, a second later, takes the details of that unit.
 
 **TO-6. Logo.** The title's TACTICS OGRE lettering with The Knight of Lodis under it (and 外伝 beside it in Japan), without the emblem, OGRE BATTLE SAGA or the copyright lines.
 
 **TO-7. Game screen untouched.** Nothing leaves the game screen.
 
+**TO-8. The unit's details.** In a battle, with the field cursor on a unit (the player's, a guest or the enemy's; wherever the game puts the unit's little box on the field, which it moves out of the cursor's way), its details, the screen B opens on it, the whole screen at the game screen's size, as the game draws it (an enemy's in the game's green), its three pages in turn, 2.5 seconds each: as it opens (name, class, level, HP and MP or SP, STR, INT, AGI, element and alignment, equipment, talents and their POW), the talents' MP (or SP) costs (START), the Emblems (RIGHT); without its START:DATA label or the arrows that blink in its bottom corners (the buttons don't work there). With Map Animations off, the first page stays. Taken on the hidden copy only where R's menu opens on the field (TO-5). On a square with no unit, TO-9.
+
+**TO-9. An empty square: the battle, not a unit.** With the field cursor on a square with no unit, nothing about a unit: one page, on black, made of the game's own boxes from R's menu: the Winning Condition's box (its label and aim) at the top, where the game has it; the Losing Condition's box (R there) as far from the bottom; the place's name box (Lutra Islands...) in the middle. Not the field behind them (black round the boxes' corners too), the turn number or their R / L prompts. Training has no conditions: the logo, as long as the cursor stays on that empty square. Taken on the hidden copy only where R opens its menu on the field (TO-5).
+
+**TO-10. World map: the location's HELP.** On the world map, the HELP box SELECT opens on a location (two lines about it), alone, in the middle of a black screen: of the location the cursor is on, or, with the cursor between locations, of the player's own (where the army's flag stands). Taken again as the cursor reaches another location (and at each refresh). In the world map's menus (R, the shops, Training's setup) the last picture stays.
+
+**TO-11. Organize: the unit's details.** In Organize, the details of the unit the roster's cursor is on (A on it), as the game draws them, their three pages in turn, 2.5 seconds each: the first (equipment, talents and their POW), the talents' MP costs (START), the Emblems (RIGHT); without their START:DATA label. Not the roster's pages. Taken again as the roster's cursor moves (on either of its pages), with no logo between; with a unit's details open in the game, that unit's, from the first page. With Map Animations off, the first page stays. Organize's own menu (R: its items, spellbooks...): the logo (TO-12); back on the roster, the details again at once.
+
+**TO-12. Out of battle, nothing stale.** Once the last picture came from the world map or Organize (TO-10, TO-11), wherever there's nothing to take (the world map's command bar after Organize, its other menus, a town, Training's setup until its units are placed), the logo, not the last picture, until a picture is taken again: on the free world map, in Organize, or in a battle. (In a battle, TO-5: the last pictures stay.) The logo can stay up to a second after the new picture is taken.
+
+**TO-13. The enemy's phase: the logo.** From the moment the enemy's phase begins (End of Turn) until the player's next phase, the logo, through the guests' phase too (in battles with guests, who act after the enemy). Then the details of the unit the player's turn starts on (the leader, where the camera goes), as the Player Phase banner clears, not the last turn's pictures for a moment.
+
+**TO-14. Victory or defeat: the logo.** Once the battle is lost (the losing condition met: from the fall through Game Over) or won (as the last blow's EXP box clears, before Congratulations!; in Japan's first battle, as the stage-clear NAVI message comes up; in Training, as one team's last unit falls, through Team A (or B) Wins!), the logo, through Congratulations!, the spoils and the scene after, until a picture is taken again (the world map, the next battle). Both releases (Japan's checked on a victory made for the test with memory edits: to-jp-victory). (Training's and Quest Mode's wins made for the test with memory edits: the other team's last unit, or the quest's leader, at 1 HP and agility 1 beside Fermin. Defeats made for the test with memory edits: the owner's Vespa Hill state, Fermin at 1 HP moved to the front; Japan's Lutra Islands, Kybard at 1 HP moved among the enemies. The same byte reads 1 in both releases.)
+
+**TO-15. Training's setup, shops and the world map's menus: the logo.** Choosing and placing units for Training, the shops, R's menu on the world map and the screens it opens (System, the Japanese release's memo, Options): the logo, as there's nothing for the second screen there (TO-12). The world map's HELP is taken only with the world map itself on screen (not a shop, whose own HELP SELECT would bring up).
+
+**TO-16. Quest Mode and a resumed battle.** Quest Mode's battles are as the story's: the details on a unit, the quest's own conditions on an empty square, the logo once won (TO-14). Its menus before a battle: the logo. A suspended battle resumed from the title: the logo through its Winning Condition banner, BATTLE START and its tips, then the details as soon as the field is free.
+
+**TO-17. The opening and the ending: the logo.** A new game's opening (the prologue, the name entry, the birthdate's question, whose box is shaped like the world map's HELP, the fortune teller's questions) and the ending (from the last battle's last blow through the ending's scenes and credits): the logo, as there's nothing for the second screen. The world map's HELP is taken only with the world map itself under it (TO-10).
+
 ## Not covered yet
 
 - Nothing known. (The Japanese release's list, its cursor on other units and its pages, and its enemy turn are checked since v1.4.2's last test builds.)
+- *By hand:* TO-8 on the device, through a battle later in the game (more units, talents, emblems): the details match the unit under the cursor, the pages turn at an even pace.
+- Not tried: Quest Mode's VS and Exchange (link cable), link-cable battles; persuasion (a Knight's talent): the GameShark save's units on Vespa Hill have none, but it acts as the other talents do (TO-5).
+- Japan's Quest Mode: its exploration quests need a chronology found in the story, and the Japanese save made for the tests (Scabellum, level 2) has none, so only its menu (the logo) was seen. Japan's System menu in its first battles has no Suspend (memo and Options only), so its resume wasn't tried; the USA's was (TO-16).
+- Japan's world map and Organize (TO-10, TO-11) are checked on states reached by playing on from to-jp-victory (its first two battles won with memory edits: the enemy leader set to 1 HP beside Kybard) and on a battery save the game wrote there (`saves/ATOJ-scabellum-lv2.sav`: Scabellum, level 2). Japan's Organize reads 0 at the out-of-battle byte (the USA's 17), so there it's told by the battle's phase (0 out of battle). Later Japanese locations and a full roster haven't been tried.
+- The world map's HELP for the player's own location finds the army's flag (a sprite); a location whose flag stands somewhere else, or a map with no flag (late in the story?), keeps the last picture. Towns and the world map's other screens (shops, the Warren-like menus) haven't been looked at beyond Organize.
+- The owner's GameShark save (`saves/ATOE-formido-lv6-gameshark.sav` in the fixtures: Fermin, level 6, at Formido, 13 units, cheat-raised levels and Goth) reaches the world map, Organize and Training.

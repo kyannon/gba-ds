@@ -250,7 +250,43 @@ typedef struct MapProfile {
 				 * Pinball Party's opening sweep) */
 				MemProbe noObj;
 				/* halfwords written over the copies' code (with nop) */
-				struct { uint32_t addr; uint16_t v; } patch[12];
+				struct { uint32_t addr; uint16_t v; } patch[16];
+				/* (Muppet Pinball Mayhem) viewOff: `view` holds the view's
+				 * row plus this (its BG VOFS is set from it at the vblank);
+				 * gameFrom: the first line of the game's own picture with
+				 * table rows (the lines above it show only the score bar's
+				 * layers: the copies draw those rows); no rowsAt: the
+				 * table's height is `rows`. The queue of copies at the next
+				 * vblank as a ring: its start index a word at qIndex (slot
+				 * (start + i) % qSlots), qWide: the count a word, entries
+				 * qStride bytes (default 12) with the destination at
+				 * qDst, the size in bytes at qSize (defaults 0 and 8) */
+				int viewOff, gameFrom;
+				/* while any of these matches (Muppet Pinball Mayhem paused:
+				 * its menu of sprites over the table; its game over: the
+				 * scroll to the top, the curtains), the game as it is and the
+				 * logo on the second screen; the copies go on running, so
+				 * they're at their rows again at once after */
+				MemProbe plain[3];
+				/* the copies keep all their sprites (none of the game's are
+				 * fixed to the screen outside `plain`; its sprites are written
+				 * in the vblank from its objects, so the lists twin_hide
+				 * compares are a frame old) */
+				bool keepObj;
+				/* a dimmed screen (the game fading out, Muppet Pinball
+				 * Mayhem's at the end of a game) stays on both screens, the
+				 * copies dimmed alike, not the game's screen on the bottom
+				 * one (PP-11's) */
+				bool keepDim;
+				/* while it doesn't match (in the copy, as taken from the
+				 * game), the copy keeps nothing of its own: it starts again
+				 * from the game's tiles (Muppet Pinball Mayhem's table being
+				 * set up, its tiles not loaded yet) */
+				MemProbe ready;
+				uint32_t qIndex;
+				int qSlots, qStride, qDst, qSize;
+				int qReload; /* (an entry into the ring bigger than this, in bytes, is the table loaded afresh; default 0x400) */
+				bool qWide;
 			} carry;
 		} live;
 	} tall;
@@ -352,6 +388,11 @@ typedef struct MapProfile {
 		 * turned on by them): Super Mario Advance 2 fading out through a
 		 * pipe, which the world map does too on the way into a level. */
 		MemProbe stay[2];
+		/* Once every one of these has matched while `on` does, the HUD
+		 * stays off (the logo) until on[0] stops matching, or a state is
+		 * loaded: Mario & Luigi: Superstar Saga, from a battle's results
+		 * through the level-ups after them to the battle's end (ML-5) */
+		MemProbe offAfter[2];
 		unsigned bgMask;
 		/* The HUD on another layer where every alt.on probe matches (`on`
 		 * not matching): Super Mario Advance 2's boss rooms, in display
@@ -402,6 +443,10 @@ typedef struct MapProfile {
 		 * second, the logo instead (F-Zero: GP Legend's course fly-in, with
 		 * the race's registers already set) */
 		bool emptyIsOff;
+		/* Racing's second screen on black (SCREEN_LIVE) instead of the
+		 * plain dark red-grey (GT Advance 3: its fades match the game
+		 * screen's) */
+		bool black;
 		/* While a sprite with this tile is shown, not racing (F-Zero: GP
 		 * Legend's RESULTS, over the track as a race ends); 0: none */
 		int offTile;
@@ -495,6 +540,36 @@ typedef struct MapProfile {
 		int rows;
 		/* The same (unused). */
 		bool logoBehind;
+		/* With logoBelow: the logo goes in the room below this row
+		 * instead of below `rows` (0: none), for a HUD that moves its
+		 * lower pieces up under its top ones (Ninja Five-O) */
+		int logoTop;
+		/* With logoBelow: a picture the game shows on its own screen
+		 * elsewhere, kept from the game screen and shown below the HUD
+		 * instead of the logo (Super Mario Advance's course board, shown
+		 * before each level). Taken from the first frame where every
+		 * `when` probe matches and at least `min` of `probes` do (game
+		 * screen pixels, within tol per channel; min 0: all), once each
+		 * time it's shown; its rows y0..y1 go to the second screen from
+		 * row `at`, on black. Until one is taken (a state loaded in a
+		 * level, made before this), the logo. Kept with saved states. */
+		struct {
+			MemProbe when[3];
+			Probe probes[8];
+			int min, tol;
+			int y0, y1, at;
+			/* A number taken from another screen of the game laid over
+			 * it (Super Mario Advance: the pause box's Ace Coin
+			 * percentage, which counts the coins found in this level,
+			 * over the board's, from before it): the map capture (its
+			 * crop: that number alone) goes in place of the held
+			 * picture's rect x0..x1, y0..y1 (game screen coordinates),
+			 * which is first filled with `fill` (0xRRGGBB); the capture's
+			 * pixels of colour `key` (its background) are left out, and
+			 * its right edge goes at x1, its top at y0. Until there's a
+			 * capture since the picture was taken, the picture's own. */
+			struct { int x0, y0, x1, y1; uint32_t fill, key; } over;
+		} held;
 		/* While every `mirror` probe matches, or every `mirrorOr` one: the
 		 * whole game screen goes to the second screen, and the game screen
 		 * holds the last picture from before (menus over a paused world,
@@ -579,6 +654,12 @@ typedef struct MapProfile {
 			 * probes may be in VRAM too (Mario & Luigi: BG2's text goes
 			 * while either box's frame is on BG3, ML-5) */
 			bool any;
+			/* palette + 1 (0: none): on a line where one of those layers
+			 * has a tile in this palette, the layer stays on the game
+			 * screen there, out of the HUD (Mario & Luigi: a tutorial's
+			 * speech balloon, palette 15, while a box's text, palette 9,
+			 * is up: ML-5, issue #31) */
+			int gamePal;
 		} memLayers;
 	} hud;
 
@@ -593,9 +674,11 @@ typedef struct MapProfile {
 		bool pressStart, blackIsClear;
 		bool lightEdgeClear; /* light background around the logo, reached from the edges, is clear */
 		/* pixels of these colours (0xRRGGBB) reached from outside the logo
-		 * through others of them are clear, then any left with at most one
-		 * neighbour: the background showing at the lettering's dithered or
-		 * translucent edge (Mario & Luigi's sky, its shadow's specks) */
+		 * or the picture's edges through others of them are clear, then
+		 * any left with at most one neighbour: the background showing at
+		 * the lettering's dithered or translucent edge (Mario & Luigi's
+		 * sky, its shadow's specks), or a layer's own background
+		 * (Battle Network Rockman EXE's blue) */
 		uint32_t edgeClear[4];
 		/* a drop shadow of this colour (0xRRGGBB; either of a game's two
 		 * colour sets) stays only below and right of the lettering:
@@ -707,6 +790,12 @@ typedef struct MapProfile {
 	 * the live game's state; NULL on success, else why not (Advance Wars:
 	 * the unit list or the battle intel, with the minimap below). */
 	const char* (*compose)(Emu* s, const void* state, uint32_t* out, int w, int h);
+	/* Every frame, on the main thread: a picture the profile draws itself
+	 * from the live game (crop_w x crop_h), shown instead of the captured
+	 * one while it returns one; NULL: the usual picture. rom: the game's
+	 * file, for copies of its own (Mega Man Battle Network's area maps on
+	 * the net, made by a third copy beside the game, MMBN-6) */
+	const uint32_t* (*liveView)(Emu* live, const char* rom);
 	/* Instead of compose: several pictures (pages shown in turn, `*step`
 	 * emulated frames each); out[0..*n) on return, *n the most on the way in */
 	const char* (*composePages)(Emu* s, const void* state, uint32_t* const* out, int* n, int* step, int w, int h);

@@ -5,6 +5,8 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+#include <time.h>
 
 /* Values below were found with tools/harness + tools/ramdiff.py against the
  * USA releases. Each profile describes how to bring up the in-game map and
@@ -2066,6 +2068,219 @@ static const char* dbz_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	return NULL;
 }
 
+/* ---------------------------------------------------------- Dragon Ball Z: The Legacy of Goku II
+ *
+ * The second screen (DBZ2-2): the Scouter's map of the area (R), opened on
+ * the shadow core from the live state at every capture, once it has faded
+ * in (BLDALPHA up to 16), without its four scroll arrows. Where R opens
+ * nothing (before the Scouter), the pause menu's Status page (START,
+ * DBZ2-3). An attack under way takes no R, so R is tried a few times
+ * before giving up on the map.
+ */
+#define DBZ2_FIELD_DISP 0x1F40
+#define DBZ2_MAP_DISP 0x1D40
+#define DBZ2_PAUSE_DISP 0x0E00
+static const SpriteRule dbz2Arrows[4] = {
+	{ 2, 70, 6, 74, 0, 1023, 0, 1u << 0, 0, 1u << 8 },     /* left (8x16) */
+	{ 226, 70, 230, 74, 0, 1023, 0, 1u << 0, 0, 1u << 8 }, /* right */
+	{ 110, 2, 114, 6, 0, 1023, 0, 1u << 0, 0, 1u << 4 },   /* top (16x8) */
+	{ 110, 146, 114, 150, 0, 1023, 0, 1u << 0, 0, 1u << 4 }, /* bottom */
+};
+/* the pause menu, faded in (BLDALPHA up to 16, as the map) */
+/* DBZ2-8: the button prompts that don't apply on the second screen. The
+ * map's L and R (the scouter frame's top corners, BG0): their greys and
+ * the black outline round them (within 2 pixels) painted the frame's own
+ * dark green, its bright lines left as they are */
+#define DBZ2_FRAME_BG 0x004218 /* (24, 66, 0) as mGBA's XBGR */
+static bool dbz2_grey(uint32_t c) {
+	int r = c & 0xFF, g = (c >> 8) & 0xFF, b = (c >> 16) & 0xFF;
+	return (r == g && g == b && r > 40) || (r > 150 && g > 150 && b > 150); /* (and its highlights) */
+}
+static bool dbz2_black(uint32_t c) {
+	return (c & 0xF8F8F8) == 0;
+}
+static void dbz2_map_prompts(uint32_t* out, int w, int h) {
+	static const int box[2][4] = { { 0, 0, 31, 25 }, { 208, 0, 239, 25 } };
+	static uint8_t mask[26][32];
+	for (int k = 0; k < 2; ++k) {
+		const int* b = box[k];
+		memset(mask, 0, sizeof(mask));
+		for (int y = b[1]; y <= b[3] && y < h; ++y)
+			for (int x = b[0]; x <= b[2] && x < w; ++x) mask[y - b[1]][x - b[0]] = dbz2_grey(out[y * w + x]);
+		for (int y = b[1]; y <= b[3] && y < h; ++y) {
+			for (int x = b[0]; x <= b[2] && x < w; ++x) {
+				uint32_t* c = &out[y * w + x];
+				bool near = false;
+				for (int dy = -2; dy <= 2 && !near; ++dy)
+					for (int dx = -2; dx <= 2 && !near; ++dx) {
+						int yy = y + dy - b[1], xx = x + dx - b[0];
+						near = yy >= 0 && yy < 26 && xx >= 0 && xx < 32 && mask[yy][xx] == 1;
+					}
+				if (mask[y - b[1]][x - b[0]] || (near && dbz2_black(*c))) *c = (*c & 0xFF000000) | DBZ2_FRAME_BG;
+			}
+		}
+	}
+}
+/* The Status page's: its corner arrows (BG1) from the page drawn without
+ * BG1; L JOURNAL and ITEMS R (BG1, BG2) below the orange tab line from the
+ * stars alone (BG3); the panel's UP and DOWN arrows (BG2) its own blue */
+#define DBZ2_PANEL 0xDEB56B /* (107, 181, 222) */
+static bool dbz2_line(uint32_t c) {
+	int r = c & 0xFF, g = (c >> 8) & 0xFF, b = (c >> 16) & 0xFF;
+	return r > 150 && g > 60 && b < 100; /* (orange, yellow) */
+}
+static const char* dbz2_status_prompts(Emu* s, uint32_t* out, int w, int h) {
+	static uint8_t* st;
+	static size_t stSize;
+	static uint32_t noBg1[GBA_W * GBA_H];
+	size_t sz = emu_state_size(s);
+	if (sz > stSize) {
+		free(st);
+		st = malloc(sz);
+		stSize = st ? sz : 0;
+	}
+	if (!st) return "no memory";
+	if (!emu_state_save(s, st)) return "state save failed";
+	emu_layers(s, 0x0C);
+	emu_state_load(s, st);
+	emu_frame(s, 0);
+	memcpy(noBg1, s->fb, sizeof(noBg1));
+	emu_layers(s, 0x08);
+	emu_state_load(s, st);
+	emu_frame(s, 0);
+	/* the corner arrows */
+	static const int arrows[2][4] = { { 4, 0, 27, 28 }, { 212, 0, 235, 28 } };
+	for (int k = 0; k < 2; ++k)
+		for (int y = arrows[k][1]; y <= arrows[k][3] && y < h; ++y)
+			for (int x = arrows[k][0]; x <= arrows[k][2] && x < w; ++x) out[y * w + x] = noBg1[y * GBA_W + x];
+	/* the tabs either side of STATUS: below the line, column by column */
+	static const int tabs[2][2] = { { 0, 82 }, { 160, 239 } };
+	for (int k = 0; k < 2; ++k) {
+		for (int x = tabs[k][0]; x <= tabs[k][1] && x < w; ++x) {
+			int cut = 140;
+			for (int y = 124; y < GBA_H && y < h; ++y)
+				if (dbz2_line(out[y * w + x])) cut = y + 2; /* (its dark edge below) */
+			for (int y = cut; y < GBA_H && y < h; ++y) out[y * w + x] = s->fb[y * GBA_W + x];
+			/* (the icons' tops, over the line's ends: their greys) */
+			for (int y = 124; y < cut && y < h; ++y)
+				if (dbz2_grey(out[y * w + x])) out[y * w + x] = s->fb[y * GBA_W + x];
+		}
+	}
+	/* the orange line where the L and R icons covered it: its four rows
+	 * (orange, yellow, orange, dark edge) along the straight ends, copied
+	 * from a clean column of the line beside them */
+	static const int ends[2][3] = { { 0, 75, 40 }, { 165, 239, 200 } };
+	for (int k = 0; k < 2; ++k)
+		for (int y = 136; y <= 139 && y < h; ++y)
+			for (int x = ends[k][0]; x <= ends[k][1] && x < w; ++x) out[y * w + x] = out[y * w + ends[k][2]];
+	/* UP and DOWN */
+	static const int ud[2][4] = { { 23, 35, 40, 53 }, { 23, 99, 40, 117 } };
+	for (int k = 0; k < 2; ++k)
+		for (int y = ud[k][1]; y <= ud[k][3] && y < h; ++y)
+			for (int x = ud[k][0]; x <= ud[k][2] && x < w; ++x) out[y * w + x] = (out[y * w + x] & 0xFF000000) | DBZ2_PANEL;
+	emu_layers(s, 0x1F);
+	emu_state_load(s, st);
+	return NULL;
+}
+static bool dbz2_pause_up(Emu* s) {
+	return emu_io16(s, 0x00) == DBZ2_PAUSE_DISP && emu_io16(s, 0x52) == 0x0010;
+}
+static const char* dbz2_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	if (!emu_state_load(s, state)) return "state load failed";
+	if (emu_io16(s, 0x00) != DBZ2_FIELD_DISP) return "not walking about";
+	/* the map: R (three tries), then its fade-in */
+	bool map = false;
+	for (int t = 0; t < 3 && !map; ++t) {
+		aw_run(s, K_R, 3);
+		for (int f = 0; f < 40 && !map; ++f) {
+			emu_frame_blind(s, 0);
+			map = emu_io16(s, 0x00) == DBZ2_MAP_DISP;
+		}
+	}
+	if (map) {
+		int f = 0;
+		while (f < 60 && emu_io16(s, 0x52) != 0x0010) emu_frame_blind(s, 0), ++f;
+		if (emu_io16(s, 0x00) != DBZ2_MAP_DISP || emu_io16(s, 0x52) != 0x0010) return "the map did not settle";
+		emu_hide_sprites(s, dbz2Arrows, 4);
+		emu_frame(s, 0);
+		emu_frame(s, 0);
+		emu_hide_sprites(s, NULL, 0);
+		if (emu_io16(s, 0x00) != DBZ2_MAP_DISP) return "the map went away";
+	} else {
+		/* no map: the Status page, from the live state again */
+		if (!emu_state_load(s, state)) return "state load failed";
+		emu_frame(s, 0);
+		aw_run(s, K_START, 3);
+		if (!aw_settle(s, dbz2_pause_up, 90)) return "neither the map nor the pause menu opened";
+	}
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+	/* without the prompts that don't apply here (DBZ2-8) */
+	if (map) dbz2_map_prompts(out, w, h);
+	else return dbz2_status_prompts(s, out, w, h);
+	return NULL;
+}
+
+/* ---------------------------------------------------------- Dragon Ball Z: Buu's Fury
+ *
+ * The Legacy of Goku II's engine. The second screen (BF-2): the Scouter's
+ * map of the area (SELECT here), opened on the shadow core from the live
+ * state at every capture, once it has faded in (BLDALPHA up to 16), without
+ * its four scroll arrows (the same sprites as The Legacy of Goku II's) and
+ * its L and R letters (BF-7). The Scouter works from the start, so there's
+ * nothing to fall back on: where SELECT opens nothing (a conversation, a
+ * scene), the last picture stays (BF-4). An attack under way takes no
+ * SELECT, so it's tried a few times.
+ */
+#define BF_FIELD_DISP 0x1F40
+#define BF_MAP_DISP 0x1D40
+#define BF_ZONE 0x0300197D /* 0 on the title and file menu, 0x32 flying */
+#define BF_AREA 0x03001980 /* the area's map data */
+/* BF-7: the frame's top corners, dark green letters on the plates' green */
+#define BF_LETTER 0x004A00 /* (0, 74, 0) as mGBA's XBGR */
+#define BF_PLATE 0x00A500  /* (0, 165, 0) */
+static void bf_map_prompts(uint32_t* out, int w, int h) {
+	static const int box[2][4] = { { 4, 3, 11, 11 }, { 228, 3, 235, 12 } };
+	for (int k = 0; k < 2; ++k)
+		for (int y = box[k][1]; y <= box[k][3] && y < h; ++y)
+			for (int x = box[k][0]; x <= box[k][2] && x < w; ++x) {
+				uint32_t* c = &out[y * w + x];
+				if ((*c & 0xF8F8F8) == (BF_LETTER & 0xF8F8F8)) *c = (*c & 0xFF000000) | BF_PLATE;
+			}
+}
+static const char* bf_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	if (!emu_state_load(s, state)) return "state load failed";
+	if (emu_io16(s, 0x00) != BF_FIELD_DISP) return "not walking about";
+	/* the map: SELECT (three tries), then its fade-in */
+	bool map = false;
+	for (int t = 0; t < 3 && !map; ++t) {
+		aw_run(s, K_SELECT, 3);
+		for (int f = 0; f < 40 && !map; ++f) {
+			emu_frame_blind(s, 0);
+			map = emu_io16(s, 0x00) == BF_MAP_DISP;
+		}
+	}
+	if (!map) return "the map did not open";
+	int f = 0;
+	while (f < 60 && emu_io16(s, 0x52) != 0x0010) emu_frame_blind(s, 0), ++f;
+	if (emu_io16(s, 0x00) != BF_MAP_DISP || emu_io16(s, 0x52) != 0x0010) return "the map did not settle";
+	emu_hide_sprites(s, dbz2Arrows, 4);
+	emu_frame(s, 0);
+	emu_frame(s, 0);
+	emu_hide_sprites(s, NULL, 0);
+	if (emu_io16(s, 0x00) != BF_MAP_DISP) return "the map went away";
+	/* no map here (a shop: the frame alone, all greens, no area or dot):
+	 * the last map dimmed (BF-8, dimWhenUnavailable) */
+	bool any = false;
+	for (int i = 0; i < GBA_W * GBA_H && !any; ++i) {
+		uint32_t c = s->fb[i];
+		any = (c & 0xFF) > 100 || ((c >> 16) & 0xFF) > 100;
+	}
+	if (!any) return "map button did nothing";
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+	bf_map_prompts(out, w, h);
+	return NULL;
+}
+
 /* ---------------------------------------------------------- Mario & Luigi: Superstar Saga
  *
  * The second screen (ML-2): the Bros. Info screen, opened on the shadow core
@@ -3275,64 +3490,113 @@ static const char* gs2_compose(Emu* s, const void* state, uint32_t* const* out, 
 
 /* ---------------------------------------------------------- Tactics Ogre
  *
- * The second screen: the battle's unit list (R's menu, View List), with
- * its cursor on the unit the player's cursor is on in the field, its
- * pages (START: HP, MP, element...) taken in turn and shown 2.5 seconds
- * each (TO-1 to TO-3). The list opens on the leader; the unit under the
- * field cursor is found by its box (name, level, HP: the same box, the
- * same pixels, on the field at the right and in the list at the right for
- * the player's side, 112 pixels further left for the others), stepping
- * the list's cursor RIGHT along each row (it wraps within the row) and
- * DOWN to the next (back at the top: not found, the leader). */
-#define TO_LIST_IDX_ 0x0200A08A /* the list's cursor: row * 4 + column */
-#define TO_PAGE_ 0x0200AA1C     /* the list's page (START): 0-5 */
-/* (Japan's both 0x4D4 lower: found by stepping its list's cursor and pages) */
-#define TO_JP(s) ((s)->gameCode[3] == 'J' ? 0x4D4u : 0u)
-#define TO_LIST_IDX (TO_LIST_IDX_ - TO_JP(s))
-#define TO_PAGE (TO_PAGE_ - TO_JP(s))
+ * The second screen (docs/games/tactics-ogre.md). In a battle, on a unit:
+ * its details (B on it), three pages, 2.5 seconds each (TO-8); on an
+ * empty square, the battle's conditions on black (TO-9). Out of battle
+ * (USA): the world map's HELP (TO-10), Organize's details (TO-11). */
+/* the unit list (R's menu, View List; Organize's roster): the cursor, its
+ * first row in view (it scrolls over 12 units): room keys, so Organize's
+ * details follow its roster's cursor */
+#define TO_LIST_IDX_ 0x0200A08A
+#define TO_LIST_TOP_ 0x0200A09A
 #define TO_PAGES 8
-#define TO_BOX_X 166            /* the unit's box, inside its frame: 166-233 x 108-155 */
-#define TO_BOX_Y 108
-#define TO_BOX_W 68
-#define TO_BOX_H 48
-#define TO_BOX_OTHER (-112)     /* in the list, the other side's box */
-#define TO_BOX_TOP 4            /* in the list, the box's top on the lower rows */
-/* the prompts, left out (TO-1): START:DATA, two sprites (tiles 1005 and
- * 1009) at the top or bottom, right or (the other side) left; R SEARCH, BG2 at 0-47 x 144-159, with
- * the list under it (BG2 off) put in its place */
-static const SpriteRule toHide[1] = { { -64, -16, 239, 159, 1005, 1012, -1 } };
-#define TO_R_X1 47
-#define TO_R_Y0 144
+/* left out (the buttons don't work there): the details' START:DATA label,
+ * two sprites (tiles 1005 and 1009) at the top right, and the arrows that
+ * blink in their bottom corners, tile 762 at 0 and 232 x 152 */
+static const SpriteRule toHide[2] = { { -64, -16, 239, 159, 1005, 1012, -1 }, { -8, 144, 239, 159, 762, 762, -1 } };
 
 /* the list's background and frames, where no unit, box or START:DATA
- * label is ever drawn (the box and the label move about) */
+ * label is ever drawn (the box and the label move about; a full list,
+ * Training's 13 units, fills a third row and starts a fourth from y 152:
+ * the two lowest are in the gap between them) */
 static const Probe toList[7] = { { 103, 0, 0x6F7346 }, { 137, 16, 0x6F7346 }, { 60, 53, 0x807F46 }, { 100, 100, 0x807F46 },
-                                 { 150, 120, 0x807F46 }, { 30, 150, 0x312921 }, { 70, 157, 0x6F7346 } };
+                                 { 140, 147, 0x807F46 }, { 30, 150, 0x312921 }, { 160, 150, 0x6F7346 } };
 static bool to_list_up(Emu* s) {
 	return som_probes(s, toList, 7, 6, 8);
 }
 
-/* the box at x, top (in the frame) is the field's box f */
-static bool to_box_at(const uint32_t* fb, int x, int top, const uint32_t* f) {
-	int diff = 0;
-	for (int y = 0; y < TO_BOX_H; ++y) {
-		for (int i = 0; i < TO_BOX_W; ++i) diff += (fb[(top + y) * GBA_W + x + i] & 0xFFFFFF) != (f[y * TO_BOX_W + i] & 0xFFFFFF);
-	}
-	return diff <= TO_BOX_W * TO_BOX_H / 100;
+/* the Winning (or Losing) Condition: its box at the top and the place's
+ * at the bottom left, over the field (both pages, both releases, wherever
+ * the camera is) */
+static const Probe toAims[8] = { { 12, 24, 0xFFFF8C }, { 228, 24, 0xFFFF8C }, { 120, 10, 0x525231 }, { 60, 34, 0xDEE78C },
+                                 { 200, 34, 0xDEE78C }, { 14, 140, 0xDEE78C }, { 103, 128, 0x394252 }, { 60, 147, 0x525231 } };
+static bool to_aims_up(Emu* s) {
+	return som_probes(s, toAims, 8, 7, 8);
 }
-/* the list's box (wherever the list puts it: right or left, bottom or top) is f */
-static bool to_box_is(const uint32_t* fb, const uint32_t* f) {
-	for (int k = 0; k < 4; ++k) {
-		if (to_box_at(fb, TO_BOX_X + (k & 1 ? TO_BOX_OTHER : 0), k & 2 ? TO_BOX_TOP : TO_BOX_Y, f)) return true;
-	}
-	return false;
+/* the supply list (Expendables): its box's edges */
+static const Probe toSupply[8] = { { 56, 26, 0x101818 }, { 160, 26, 0x525231 }, { 56, 134, 0x101818 }, { 160, 134, 0xA5AD63 },
+                                   { 56, 80, 0x101818 }, { 162, 80, 0xFFFF8C }, { 100, 26, 0x525231 }, { 100, 134, 0xA5AD63 } };
+static bool to_supply_up(Emu* s) {
+	return som_probes(s, toSupply, 8, 7, 8);
+}
+/* the conditions' prompt (LOSING CONDITION or WINNING CONDITION, BG2,
+ * beside the R or L button), at the bottom right: the place's box ends at
+ * x 100 */
+#define TO_AIM_X0 104
+#define TO_AIM_Y0 126
+#define TO_AIM_Y1 147
+
+/* the field cursor's square (x, y), and after it (+4) the unit on it: a
+ * pointer, 0 on an empty square (both releases). Not the unit's box on
+ * the screen: the game moves that about to keep clear of the cursor
+ * (bottom right, middle left, top left...). */
+#define TO_FIELD_CURSOR(s) ((s)->gameCode[3] == 'J' ? 0x0202B5C0u : 0x0202AB90u)
+static bool to_on_unit(Emu* s) {
+	return emu_read32(s, TO_FIELD_CURSOR(s) + 4) != 0;
 }
 
 /* the title's lettering (TACTICS OGRE; the Japanese release's too) */
 #define TO_V_TITLE 0xF0000030
+/* 1: Training's empty square, as its last capture found it (the logo, TO-9) */
+#define TO_V_NOAIMS 0xF0000031
+static volatile uint32_t toNoAimsAt;
+/* 1: the logo: out of battle with nothing to take any more (until a
+ * picture is taken again, TO-12: a capture failed after the last picture
+ * came from the world map or Organize), or the enemy's phase (TO-13) */
+#define TO_V_STALE 0xF0000032
+/* the battle won: 3 from as the last blow's EXP box clears (Japan: as
+ * the stage-clear NAVI message comes up), through Congratulations! and
+ * the scene after (0 in a battle, its scenes, out of battle). Japan's
+ * 0x9D0 higher, as R's menu's (TO_MENU_UP), found in a victory made on
+ * jp-field.ss: Stan set to 1 HP beside Kybard, who hit him */
+#define TO_WON(s) ((s)->gameCode[3] == 'J' ? 0x0202B1DDu : 0x0202A80Du)
+/* the battle's phase: bit 7 set on the enemy's (129; the player's: 1;
+ * 0 out of battle) */
+#define TO_PHASE(s) ((s)->gameCode[3] == 'J' ? 0x020018ACu : 0x020011CCu)
+static volatile int toStale, toLastWorld, toWasWorld;
+/* the enemy's phase seen: the logo until the player's phase's first
+ * picture (not the last turn's for a moment) */
+static volatile int toAfterEnemy;
+/* a room key: Organize's roster cursor and scroll (USA), and the phase,
+ * so its turn back to the player's takes a picture at once */
+#define TO_V_KEY 0xF0000033
 static const Probe toTitle[8] = { { 169, 13, 0xF7C600 }, { 140, 19, 0xDEAD00 }, { 25, 20, 0xBD7300 }, { 169, 20, 0xFFEF00 },
                                   { 62, 22, 0xCE8C00 }, { 91, 26, 0xEFBD00 }, { 132, 26, 0xFFFF5A }, { 13, 27, 0xC68400 } };
+static bool to_world(Emu* s);
 static uint32_t to_virt(Emu* e, uint32_t addr) {
+	if (addr == TO_V_STALE) {
+		if (!to_world(e) && (emu_read8(e, TO_PHASE(e)) & 0x80)) toAfterEnemy = 1;
+		/* (the battle won: the logo, TO-14; the next battle's first
+		 * picture ends it, as after the enemy's phase) */
+		{
+			/* (and lost: 1, from the leader's fall through Game Over;
+			 * Training's end, one team out: 4, from as the last blow's
+			 * EXP box clears through Team A (B) Wins!) */
+			int over = emu_read8(e, TO_WON(e));
+			if (!to_world(e) && (over == 3 || over == 1 || over == 4)) toAfterEnemy = 1;
+		}
+		return toStale || toAfterEnemy;
+	}
+	if (addr == TO_V_KEY)
+	{
+		uint32_t j = e->gameCode[3] == 'J' ? 0x4D4u : 0u; /* (Japan's list 0x4D4 lower) */
+		/* (and Organize's roster on screen, so it's taken again at once
+		 * when it's back from Organize's own menu, TO-11) */
+		return emu_read8(e, TO_LIST_IDX_ - j) | emu_read8(e, TO_LIST_TOP_ - j) << 8 | (emu_read8(e, TO_PHASE(e)) & 0x80) << 9 |
+		       (uint32_t)(to_world(e) && to_list_up(e)) << 18;
+	}
+	if (addr == TO_V_NOAIMS)
+		return toNoAimsAt == (0x10000u | emu_read16(e, TO_FIELD_CURSOR(e))) && !to_world(e) && !to_on_unit(e);
 	return addr == TO_V_TITLE && som_probes(e, toTitle, 8, 7, 8);
 }
 
@@ -3341,85 +3605,378 @@ static bool to_wait_list(Emu* s, int n) {
 	return to_list_up(s);
 }
 
+/* the unit's details (B on it, TO-8): its frame, a line all one colour
+ * along rows 0, 79, 80 and 159 and down columns 119-120 between its
+ * lower boxes (the player's yellow, the enemy's green: the colours differ,
+ * not the lines), the boxes inside another colour. Nothing else the game
+ * shows comes near (the field, the list, R's menu, a black screen: at
+ * most half the lines, or the insides the same). */
+static bool to_details_up(const uint32_t* fb) {
+	uint32_t c = fb[79 * GBA_W + 4] & 0xFFFFFF;
+	int same = 0, all = 0;
+	for (int x = 0; x < GBA_W; ++x) {
+		static const int rows[4] = { 0, 79, 80, GBA_H - 1 };
+		for (int k = 0; k < 4; ++k) same += (fb[rows[k] * GBA_W + x] & 0xFFFFFF) == c, ++all;
+	}
+	for (int y = 81; y < GBA_H - 1; ++y) {
+		same += (fb[y * GBA_W + 119] & 0xFFFFFF) == c, ++all;
+		same += (fb[y * GBA_W + 120] & 0xFFFFFF) == c, ++all;
+	}
+	return same * 10 >= all * 8 && (fb[40 * GBA_W + 60] & 0xFFFFFF) != c && (fb[120 * GBA_W + 60] & 0xFFFFFF) != c &&
+	       (fb[120 * GBA_W + 180] & 0xFFFFFF) != c;
+}
+
+/* R's menu open on the field: 2 (0 with R pressed anywhere else: a unit
+ * picked or acting, the details or the list open, the enemy's turn);
+ * Japan's by the same RAM, the 5 after it too */
+#define TO_MENU_UP(s) ((s)->gameCode[3] == 'J' ? 0x0202A733u : 0x02029D63u)
+
+/* R's menu, its icon k (from the first), A; false if R's menu didn't
+ * open (only from the free field: TO-5) */
+static bool to_menu_pick(Emu* s, int k) {
+	aw_run(s, K_R, 6);
+	aw_run(s, 0, 34);
+	if (emu_read8(s, TO_MENU_UP(s)) != 2) return false;
+	for (int i = 0; i < k; ++i) aw_run(s, K_RIGHT, 6), aw_run(s, 0, 14);
+	aw_run(s, K_A, 6);
+	return true;
+}
+
+/* bounding box of the pixels of colour c in x0-x1 x y0-y1 of fb */
+static bool to_bbox(const uint32_t* fb, uint32_t c, int x0, int y0, int x1, int y1, int r[4]) {
+	r[0] = GBA_W, r[1] = GBA_H, r[2] = -1, r[3] = -1;
+	for (int y = y0; y <= y1; ++y) {
+		for (int x = x0; x <= x1; ++x) {
+			if ((fb[y * GBA_W + x] & 0xFFFFFF) != c) continue;
+			if (x < r[0]) r[0] = x;
+			if (x > r[2]) r[2] = x;
+			if (y < r[1]) r[1] = y;
+			if (y > r[3]) r[3] = y;
+		}
+	}
+	return r[2] >= 0;
+}
+
+/* The conditions' boxes alone (TO-9): BG3 draws the boxes, outlined in
+ * 101818, and BG2 their text and labels, inside them, over the field (BG0,
+ * BG1, sprites; windows darken it, so its backdrop isn't one colour). From
+ * the frame after with BG3 alone, the outlines' extent: the condition's
+ * box at the top (8-231 x 8-39), the place's at the bottom left (x 0-119:
+ * the prompt at the bottom right has no box); then BG2 and BG3 drawn,
+ * into out. */
+static bool to_cut_boxes(Emu* s, uint32_t* out, int r[2][4]) {
+	static uint8_t* tmp;
+	static size_t tmpSize;
+	size_t sz = emu_state_size(s);
+	if (sz > tmpSize) free(tmp), tmp = malloc(sz), tmpSize = tmp ? sz : 0;
+	if (!tmp || !emu_state_save(s, tmp)) return false;
+	emu_layers(s, 0x08);
+	emu_state_load(s, tmp);
+	emu_frame(s, 0);
+	bool ok = to_bbox(s->fb, 0x181810, 0, 0, GBA_W - 1, 79, r[0]) && to_bbox(s->fb, 0x181810, 0, 100, 119, GBA_H - 1, r[1]); /* (XBGR) */
+	emu_layers(s, 0x0C);
+	emu_state_load(s, tmp);
+	emu_frame(s, 0);
+	if (ok) memcpy(out, s->fb, GBA_W * GBA_H * 4);
+	emu_layers(s, 0x1F);
+	emu_state_load(s, tmp);
+	emu_frame(s, 0);
+	return ok;
+}
+
+/* Training's empty squares: no conditions, the logo (TO-9). The capture
+ * that finds it notes the field cursor's square; the live game's
+ * TO_V_NOAIMS reads 1 while the cursor stays there on no unit. */
+
+/* The hidden copy back at the live game's moment and `extra` frames on,
+ * where R's menu opens on the field (TO-5): 0, or (just after the enemy's
+ * phase, the player's has its banner up for ~4 seconds and moves the
+ * cursor to the leader, R doing nothing meanwhile) up to 4.5 seconds on,
+ * so the turn's first picture comes with it (TO-13). -1: not there. */
+static int to_field_ready(Emu* s, const void* state) {
+	if (!emu_state_load(s, state)) return -1;
+	emu_frame(s, 0);
+	bool enemy = emu_read8(s, TO_PHASE(s)) & 0x80;
+	aw_run(s, K_R, 6);
+	aw_run(s, 0, 34);
+	if (emu_read8(s, TO_MENU_UP(s)) == 2) return 0;
+	if (enemy || !toAfterEnemy) return -1;
+	/* (one run on, R every 40 frames, until its menu opens: the guests'
+	 * phase, which reads as the player's, costs ~330 frames a try, not a
+	 * restart for each) */
+	for (int extra = 40; extra <= 280; extra += 40) {
+		if (emu_cancelled(s) || (emu_read8(s, TO_PHASE(s)) & 0x80)) return -1;
+		aw_run(s, K_R, 6);
+		aw_run(s, 0, 34);
+		if (emu_read8(s, TO_MENU_UP(s)) == 2) return extra;
+	}
+	return -1;
+}
+static bool to_field_back(Emu* s, const void* state, int extra) {
+	if (!emu_state_load(s, state)) return false;
+	emu_frame(s, 0);
+	if (extra) aw_run(s, 0, extra);
+	return true;
+}
+
+/* an empty square (TO-2, TO-9): one page, the Winning Condition's box at
+ * the top, the Losing Condition's at the bottom, the place's in the
+ * middle, on black. R's second icon is the Winning Condition (R on it:
+ * the Losing Condition); in Training, which has none, it's the supply
+ * list: the logo. */
+static const char* to_aims(Emu* s, const void* state, int extra, uint32_t* page, int* nOut) {
+	static uint32_t win[GBA_W * GBA_H], lose[GBA_W * GBA_H];
+	int rw[2][4], rl[2][4];
+	bool aims = false, supply = false;
+	if (!to_field_back(s, state, extra)) return "state load failed";
+	uint32_t at = emu_read16(s, TO_FIELD_CURSOR(s));
+	if (!to_menu_pick(s, 1)) return "R's menu didn't open";
+	for (int f = 0; f < 90 && !(aims = to_aims_up(s)) && !(supply = to_supply_up(s)); ++f) emu_frame(s, 0);
+	if (emu_cancelled(s)) return "called off";
+	if (supply) {
+		toNoAimsAt = 0x10000u | at;
+		return "no conditions here (Training): the logo";
+	}
+	if (!aims) return "the conditions didn't open";
+	aw_run(s, 0, 30);
+	if (!to_aims_up(s)) return "the conditions closed";
+	if (!to_cut_boxes(s, win, rw)) return "the conditions' boxes weren't found";
+	aw_run(s, K_R, 6);
+	aw_run(s, 0, 40);
+	if (!to_aims_up(s)) return "the losing condition didn't open";
+	if (!to_cut_boxes(s, lose, rl)) return "the conditions' boxes weren't found";
+	if (emu_cancelled(s)) return "called off";
+	/* the page: the winning box where the game has it, the losing box as
+	 * far from the bottom, the place centred */
+	memset(page, 0, GBA_W * GBA_H * 4);
+	int m = rw[0][1];
+	for (int y = rw[0][1]; y <= rw[0][3]; ++y)
+		memcpy(&page[y * GBA_W + rw[0][0]], &win[y * GBA_W + rw[0][0]], (rw[0][2] - rw[0][0] + 1) * 4);
+	int dy = GBA_H - 1 - m - rl[0][3];
+	for (int y = rl[0][1]; y <= rl[0][3]; ++y)
+		memcpy(&page[(y + dy) * GBA_W + rl[0][0]], &lose[y * GBA_W + rl[0][0]], (rl[0][2] - rl[0][0] + 1) * 4);
+	int pw = rw[1][2] - rw[1][0] + 1, ph = rw[1][3] - rw[1][1] + 1;
+	int px = (GBA_W - pw) / 2, py = (GBA_H - ph) / 2;
+	for (int y = 0; y < ph; ++y) memcpy(&page[(py + y) * GBA_W + px], &win[(rw[1][1] + y) * GBA_W + rw[1][0]], pw * 4);
+	/* (round each box's corners: black outside its outline, on every row:
+	 * the field's colour showed there) */
+	int boxes[3][4] = { { rw[0][0], rw[0][1], rw[0][2], rw[0][3] },
+	                    { rl[0][0], rl[0][1] + dy, rl[0][2], rl[0][3] + dy },
+	                    { px, py, px + pw - 1, py + ph - 1 } };
+	for (int b = 0; b < 3; ++b) {
+		for (int y = boxes[b][1]; y <= boxes[b][3]; ++y) {
+			uint32_t* row = &page[y * GBA_W];
+			int x = boxes[b][0];
+			for (; x <= boxes[b][2] && (row[x] & 0xFFFFFF) != 0x181810; ++x) row[x] = 0;
+			for (int x1 = boxes[b][2]; x1 > x && (row[x1] & 0xFFFFFF) != 0x181810; --x1) row[x1] = 0;
+		}
+	}
+	*nOut = 1;
+	return NULL;
+}
+
+/* ------------------------------------------------- out of battle (TO-10, TO-11)
+ * 0x02004453: 17 on the world map and in its menus (Organize...), 0 in a
+ * battle (Training's too), whether or not a battle came before. Japan's
+ * 0x80 lower, its world map's cursor and location 0x470 lower (found on a
+ * Japanese world map reached by playing on from jp-victory-field.ss) */
+#define TO_WORLD(s) ((s)->gameCode[3] == 'J' ? 0x020043D3u : 0x02004453u)
+static bool to_world(Emu* s) {
+	/* (Japan's Organize reads 0 there, not 17: there, out of battle is
+	 * told by the battle's phase too, 0 out of battle, 1 or 129 in one) */
+	return emu_read8(s, TO_WORLD(s)) == 17 || (s->gameCode[3] == 'J' && emu_read8(s, TO_PHASE(s)) == 0);
+}
+/* the world map's cursor (x, y: where it points), the location it's on
+ * (0xFF: none) */
+#define TO_WM_CURSOR_ 0x03000ECEu
+#define TO_WM_HOVER_ 0x03000EC2u
+#define TO_WM_CURSOR (TO_WM_CURSOR_ - ((s)->gameCode[3] == 'J' ? 0x470u : 0u))
+#define TO_WM_HOVER (TO_WM_HOVER_ - ((s)->gameCode[3] == 'J' ? 0x470u : 0u))
+/* the HELP box SELECT opens on a location: 8-231 x 16-63, its outline */
+#define TO_HELP_X0 8
+#define TO_HELP_Y0 16
+#define TO_HELP_X1 231
+#define TO_HELP_Y1 63
+/* the world map itself: its lion and the location's box at the bottom
+ * right (both releases; not a shop, whose own HELP SELECT would bring
+ * up: TO-12) */
+static const Probe toWorldMap[12] = { { 150, 120, 0x8770BD }, { 215, 122, 0xA1B742 }, { 185, 125, 0x211000 }, { 155, 128, 0xD3D94A },
+                                      { 215, 130, 0xDE9C00 }, { 185, 133, 0x393900 }, { 155, 136, 0x393900 }, { 222, 139, 0xF7EF00 },
+                                      { 237, 145, 0x393900 }, { 233, 151, 0x393900 }, { 203, 154, 0x393900 }, { 173, 157, 0x211000 } };
+static bool to_help_up(const uint32_t* fb) {
+	int n = 0, all = 0;
+	for (int x = TO_HELP_X0; x <= TO_HELP_X1; ++x) {
+		n += (fb[TO_HELP_Y0 * GBA_W + x] & 0xFFFFFF) == 0x181810; /* (XBGR: 101818) */
+		n += (fb[TO_HELP_Y1 * GBA_W + x] & 0xFFFFFF) == 0x181810;
+		all += 2;
+	}
+	for (int y = TO_HELP_Y0; y <= TO_HELP_Y1; ++y) {
+		n += (fb[y * GBA_W + TO_HELP_X0] & 0xFFFFFF) == 0x181810;
+		n += (fb[y * GBA_W + TO_HELP_X1] & 0xFFFFFF) == 0x181810;
+		all += 2;
+	}
+	return n * 10 >= all * 9 && (fb[30 * GBA_W + 120] & 0xFFFFFF) != 0x181810;
+}
+
+/* the world map (TO-10): the HELP box of the location the cursor is on,
+ * or (on none) of the player's own: the cursor put on the army's flag
+ * (sprite tiles 528-536, palette 2), 9 right of it and 23 down, where the
+ * map opens it; SELECT; the box alone, in the middle, on black */
+static const char* to_world_map(Emu* s, uint32_t* page, int* nOut) {
+	/* (the world map itself under the HELP box too: the opening's
+	 * birthdate question, before the world map, has a box of its shape) */
+	if (!som_probes(s, toWorldMap, 12, 10, 8)) return "not the world map";
+	if (!to_help_up(s->fb)) {
+		if (emu_read8(s, TO_WM_HOVER) == 0xFF) {
+			uint16_t oam[512];
+			emu_oam_read(s, oam);
+			int fx = -1, fy = -1;
+			for (int i = 0; i < 128; ++i) {
+				uint16_t a0 = oam[i * 4], a1 = oam[i * 4 + 1], a2 = oam[i * 4 + 2];
+				if ((a0 & 0x300) == 0x200) continue; /* (hidden) */
+				int tile = a2 & 0x3FF, pal = a2 >> 12;
+				if (tile >= 528 && tile <= 536 && pal == 2) {
+					fx = a1 & 0x1FF, fy = a0 & 0xFF;
+					break;
+				}
+			}
+			if (fx < 0 || fx > 239 - 9 || fy > 159 - 23) return "not on a location, and no flag";
+			emu_write8(s, TO_WM_CURSOR, fx + 9);
+			emu_write8(s, TO_WM_CURSOR + 1, fy + 23);
+			aw_run(s, 0, 10);
+			if (emu_read8(s, TO_WM_HOVER) == 0xFF) return "the flag's location wasn't found";
+		}
+		aw_run(s, K_SELECT, 6);
+		for (int f = 0; f < 60 && !to_help_up(s->fb); ++f) emu_frame(s, 0);
+		aw_run(s, 0, 10);
+		if (!to_help_up(s->fb)) return "no HELP box";
+	}
+	if (emu_cancelled(s)) return "called off";
+	memset(page, 0, GBA_W * GBA_H * 4);
+	int h = TO_HELP_Y1 - TO_HELP_Y0 + 1, y0 = (GBA_H - h) / 2;
+	for (int y = 0; y < h; ++y)
+		memcpy(&page[(y0 + y) * GBA_W + TO_HELP_X0], &s->fb[(TO_HELP_Y0 + y) * GBA_W + TO_HELP_X0], (TO_HELP_X1 - TO_HELP_X0 + 1) * 4);
+	*nOut = 1;
+	return NULL;
+}
+
+/* A unit's details, up (B on the field, A in Organize): their three
+ * pages: as they open (equipment, talents and their POW), START (the
+ * talents' MP costs), RIGHT (the Emblems, which slide in over ~40 frames;
+ * from POW: back there with START first) (TO-8, TO-11) */
+static const char* to_detail_pages(Emu* s, uint32_t (*page)[GBA_W * GBA_H], int max, int* nOut) {
+	static const int keys[3] = { 0, K_START, K_RIGHT };
+	int n = 0;
+	for (; n < 3 && n < max; ++n) {
+		if (keys[n]) {
+			if (n == 2) aw_run(s, K_START, 4), aw_run(s, 0, 14);
+			aw_run(s, keys[n], 4);
+			aw_run(s, 0, n == 2 ? 50 : 20);
+		}
+		if (!to_details_up(s->fb) && n < 2) return "the details closed";
+		if (emu_cancelled(s)) return "called off";
+		memcpy(page[n], s->fb, sizeof(page[n]));
+	}
+	*nOut = n;
+	return NULL;
+}
+
+/* the details opening after the key that opens them: up after ~35 frames,
+ * then a fade of 6 */
+static bool to_wait_details(Emu* s) {
+	bool up = false;
+	for (int f = 0; f < 90 && !(up = to_details_up(s->fb)); ++f) emu_frame(s, 0);
+	if (!up) return false;
+	aw_run(s, 0, 16);
+	return to_details_up(s->fb);
+}
+
+/* Organize (TO-11): the details of the unit the roster's cursor is on (A).
+ * Opened in the game: back (B) to the roster and in again, so they start
+ * on the first page. */
+static const char* to_organize(Emu* s, uint32_t (*page)[GBA_W * GBA_H], int max, int* nOut) {
+	if (to_details_up(s->fb)) {
+		aw_run(s, K_B, 6);
+		if (!to_wait_list(s, 90)) return "the roster didn't come back";
+		aw_run(s, 0, 10);
+	}
+	aw_run(s, K_A, 6);
+	if (!to_wait_details(s)) {
+		/* (the roster's cursor still moving, or its page turning: A not
+		 * taken yet; once more when it's settled, rather than the logo for
+		 * a moment at every move, TO-12) */
+		if (!to_wait_list(s, 30)) return "the details didn't open";
+		aw_run(s, 0, 20);
+		aw_run(s, K_A, 6);
+		if (!to_wait_details(s)) return "the details didn't open";
+	}
+	return to_detail_pages(s, page, max, nOut);
+}
+
+static const char* to_compose_(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h);
+/* (a picture taken: Training's logo is over, TO_V_NOAIMS) */
 static const char* to_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+	toWasWorld = 0;
+	const char* err = to_compose_(s, state, out, nOut, step, w, h);
+	if (!err) toNoAimsAt = 0, toStale = 0, toAfterEnemy = 0, toLastWorld = toWasWorld;
+	else if ((toWasWorld || toLastWorld) && !emu_cancelled(s)) toStale = 1;
+	return err;
+}
+static const char* to_compose_(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
 	static uint32_t page[TO_PAGES][GBA_W * GBA_H];
-	static uint32_t field[TO_BOX_W * TO_BOX_H];
 	int max = *nOut < TO_PAGES ? *nOut : TO_PAGES;
 	*nOut = 1;
 	*step = 150; /* 2.5 seconds a page */
-	emu_hide_sprites(s, toHide, 1);
+	emu_hide_sprites(s, toHide, 2);
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
-	if (!to_list_up(s)) {
-		/* the field: the box of the unit under the cursor (if any) */
-		for (int y = 0; y < TO_BOX_H; ++y) memcpy(&field[y * TO_BOX_W], &s->fb[(TO_BOX_Y + y) * GBA_W + TO_BOX_X], TO_BOX_W * 4);
-		/* R's menu, View List (its fourth icon), A */
-		aw_run(s, K_R, 6);
-		aw_run(s, 0, 34);
-		for (int i = 0; i < 3; ++i) aw_run(s, K_RIGHT, 6), aw_run(s, 0, 14);
-		aw_run(s, K_A, 6);
-		if (!to_wait_list(s, 90)) return "the list didn't open";
-		aw_run(s, 0, 10);
-		/* to the unit under the field cursor */
-		bool found = false;
-		for (int n = 0; n < 64 && !found; ++n) {
-			if (to_box_is(s->fb, field)) {
-				found = true;
-				break;
-			}
-			int i = emu_read8(s, TO_LIST_IDX);
-			aw_run(s, K_RIGHT, 4);
-			aw_run(s, 0, 8);
-			int j = emu_read8(s, TO_LIST_IDX);
-			if (j <= i) {
-				/* round the row: the next one (back at the top: none) */
-				aw_run(s, K_DOWN, 4);
-				aw_run(s, 0, 8);
-				if (emu_read8(s, TO_LIST_IDX) <= j) break;
-			}
-			if (emu_cancelled(s)) return "called off";
-		}
-		if (!found && emu_read8(s, TO_LIST_IDX) != 0) {
-			/* (none: the list as it opens, on the leader) */
-			if (!emu_state_load(s, state)) return "state load failed";
+	if (to_world(s)) {
+		toWasWorld = 1;
+		/* out of battle: Organize (its roster, or a unit's details open),
+		 * else the world map */
+		int n = 0;
+		/* (the roster between two of its pages, or a screen on its way:
+		 * a moment for it, rather than the logo, TO-12) */
+		for (int f = 0; f < 30 && !to_list_up(s) && !to_details_up(s->fb) &&
+		                som_probes(s, toWorldMap, 12, 10, 8) == false; ++f)
 			emu_frame(s, 0);
-			aw_run(s, K_R, 6);
-			aw_run(s, 0, 34);
-			for (int i = 0; i < 3; ++i) aw_run(s, K_RIGHT, 6), aw_run(s, 0, 14);
-			aw_run(s, K_A, 6);
-			if (!to_wait_list(s, 90)) return "the list didn't open";
+		const char* err = to_list_up(s) || to_details_up(s->fb) ? to_organize(s, page, max, &n) : to_world_map(s, page[0], &n);
+		if (err) return err;
+		*nOut = n;
+		for (int k = 0; k < n; ++k) {
+			for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[k][y * w], &page[k][y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
 		}
+		return NULL;
 	}
-	aw_run(s, 0, 20);
-	/* what's under R SEARCH: the list a frame on without BG2 */
-	static uint32_t under[(GBA_H - TO_R_Y0) * (TO_R_X1 + 1)];
-	{
-		static uint8_t* tmp;
-		static size_t tmpSize;
-		size_t sz = emu_state_size(s);
-		if (sz > tmpSize) free(tmp), tmp = malloc(sz), tmpSize = tmp ? sz : 0;
-		if (!tmp || !emu_state_save(s, tmp)) return "no memory";
-		emu_layers(s, 0x1B);
-		emu_state_load(s, tmp);
-		emu_frame(s, 0);
-		for (int y = TO_R_Y0; y < GBA_H; ++y) memcpy(&under[(y - TO_R_Y0) * (TO_R_X1 + 1)], &s->fb[y * GBA_W], (TO_R_X1 + 1) * 4);
-		emu_layers(s, 0x1F);
-		emu_state_load(s, tmp);
-		emu_frame(s, 0);
+	/* a battle: the list open in the game (or anything else where R's menu
+	 * doesn't open on the field): the last pictures (TO-5) */
+	if (to_list_up(s)) return "the list is open";
+	/* the field fading in (after the details, the list or a scene close:
+	 * BLDCNT darkening, 0x00FF): B there wouldn't open the details yet. The
+	 * last pictures stay; the next refresh takes them (TO-5). */
+	if ((emu_io16(s, 0x50) & 0xC0) >= 0x80) return "the field is fading in";
+	/* (the box comes 2 frames after the darkening ends: 4 more) */
+	aw_run(s, 0, 4);
+	int n = 0;
+	const char* err;
+	int extra = to_field_ready(s, state);
+	if (extra < 0) return "R's menu didn't open";
+	if (!to_field_back(s, state, extra)) return "state load failed";
+	/* (the unit on the cursor's square: 0 while a screen closes, until the
+	 * field is back; R's menu opened on it, so a few frames on it is) */
+	for (int f = 0; f < 40 && !to_on_unit(s); ++f) emu_frame(s, 0);
+	bool onUnit = to_on_unit(s);
+	if (!to_field_back(s, state, extra)) return "state load failed";
+	if (!onUnit) {
+		/* an empty square: the battle's conditions (TO-9) */
+		err = to_aims(s, state, extra, page[0], &n);
+	} else {
+		/* a unit: B on it (TO-8) */
+		aw_run(s, K_B, 6);
+		if (!to_wait_details(s)) return "the details didn't open";
+		err = to_detail_pages(s, page, max, &n);
 	}
-	/* its pages: START turns to the next (HP, MP, element...), round to the first */
-	int n = 0, first = emu_read8(s, TO_PAGE);
-	for (; n < max; ++n) {
-		if (n) {
-			aw_run(s, K_START, 4);
-			aw_run(s, 0, 14);
-			if (!to_list_up(s)) return "the list closed";
-			if (emu_read8(s, TO_PAGE) == first) break;
-		}
-		if (emu_cancelled(s)) return "called off";
-		memcpy(page[n], s->fb, sizeof(page[n]));
-		for (int y = TO_R_Y0; y < GBA_H; ++y) memcpy(&page[n][y * GBA_W], &under[(y - TO_R_Y0) * (TO_R_X1 + 1)], (TO_R_X1 + 1) * 4);
-	}
+	if (err) return err;
 	*nOut = n;
 	for (int k = 0; k < n; ++k) {
 		for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[k][y * w], &page[k][y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
@@ -3492,6 +4049,1069 @@ static uint32_t wl4_virt(Emu* e, uint32_t addr) {
 	if (addr == WL4_V_HUDOFF)
 		return emu_read16(e, WL4_SCREEN) == 2 && emu_read8(e, WL4_LEVEL) <= 3 && emu_read8(e, WL4_HEARTS) != 0;
 	return 0;
+}
+
+/* ---------------------------------------------------------- Mega Man Battle Network
+ *
+ * Walking about, the second screen is MegaMan's status and money in one
+ * frame (MMBN-2): START's menu opened on the shadow core, its money counter
+ * taken (inside its orange frame); then the MegaMan screen (MegaMan), its
+ * panel (rows 0-95) taken with the cursor arrow left out. Put together:
+ * the counter's top edge across the screen, the counter at its place across
+ * (top right), the panel right below it, the counter's bottom edge, the
+ * whole centred top to bottom on black. In a battle the custom screen (BG3
+ * and its cursor) moves to the second screen while it's up (MMBN-4: the
+ * profile's hud). Addresses from the Silenthal/bn1 disassembly (USA;
+ * Europe and Japan the same). */
+#define MMBN_STATE 0x02006CB8   /* gManager.gameState: 4 walking about, 8 battle, 0x18 a PET menu */
+#define MMBN_AREA 0x02000214    /* gWorld.currentArea (halfword) */
+#define MMBN_HP 0x0200022C      /* gWorld.hpCurrent, then hpMax */
+#define MMBN_ZENNY 0x02000284   /* gWorld.zenny (word) */
+#define MMBN_SMENU 0x0200ACF0   /* gStartMenu: state (+0, 4 open), cursor (+6) */
+#define MMBN_MENU 0x020062E0    /* gMenu: which (+0, 8 MegaMan), step (+1, 4 open) */
+#define MMBN_FADING 0x02006CB3  /* gFadeSettings.isFadeActive */
+#define MMBN_BATTLE 0x02003710  /* gBattle: its step (+1: 4 the custom screen, 8 fighting) */
+#define MMBN_PANEL_ROWS 96      /* the MegaMan screen's panel; its message box below */
+/* START's money counter: x 168-239, rows 0-31 (at the screen's right edge,
+ * with no right end); its outline and orange frame rows 0-3 and 28-31 and
+ * columns 170-175, inside it x 176-239, rows 4-27 */
+#define MMBN_MONEY_X 176
+#define MMBN_MONEY_Y 4
+#define MMBN_MONEY_H 24
+#define MMBN_EDGE 4             /* the frame's top (outline, orange) and bottom rows */
+#define MMBN_GLOW_X 176         /* its edges' glow, x 176-239 (64 wide), with plain orange either side */
+#define MMBN_PLAIN_X 172        /* a plain column of its edges */
+/* the panel's frame and grid, the same with any stats (not the values,
+ * the armor or the silhouette) */
+static const Probe mmbnPanel[8] = { { 5, 5, 0x4A5A63 }, { 120, 3, 0x4A5A63 }, { 238, 10, 0x4A5A63 }, { 2, 50, 0x313939 },
+                                    { 10, 30, 0x313939 }, { 160, 60, 0x313939 }, { 230, 90, 0x313939 }, { 120, 92, 0x7B8C84 } };
+/* the money counter's outline, frame, glow and inside (not the amount) */
+static const Probe mmbnMoney[8] = { { 170, 0, 0x313939 }, { 170, 31, 0x313939 }, { 172, 2, 0xCE5A39 }, { 172, 29, 0xCE5A39 },
+                                    { 200, 1, 0xF78C00 }, { 200, 28, 0xF78C00 }, { 180, 5, 0x4A5A63 }, { 180, 25, 0x5A6B6B } };
+
+static void mmbn_tap(Emu* s, uint32_t keys) {
+	/* (a press held 2 frames or more: 1 is missed) */
+	aw_run(s, keys, 3);
+	aw_run(s, 0, 5);
+}
+static bool mmbn_megaman_up(Emu* s) {
+	return emu_read8(s, MMBN_STATE) == 0x18 && emu_read8(s, MMBN_MENU) == 8 && emu_read8(s, MMBN_MENU + 1) == 4 &&
+	       !emu_read8(s, MMBN_FADING);
+}
+/* ---- the net's area maps (MMBN-6, an exception: see the rules file)
+ *
+ * The game keeps the whole area's layout (gBgDataManager: its width and
+ * height in tiles, bytes +0 / +1; on the net BG2 and BG3, centred on the
+ * camera's 0,0) and draws the screen from it, the whole screen when the
+ * camera jumps. A copy of the game (its own Emu, on its own thread; inline
+ * in exact runs and where there are no threads) is given the live game's
+ * state once MegaMan has been in a new area of the net for half a second
+ * (a warp changes the area's number before its layout is in), gCamera's
+ * bounds opened up, and MegaMan (so the camera: cameraX = x + y, cameraY =
+ * (y - x) / 2) set down a screen at a time over the layout; each frame of
+ * BG2 and BG3 (no sprites, no BG0 messages, no BG1 sky) goes into the
+ * area's picture where the camera was. The backdrop colour (palette 0) is
+ * magenta in the copy, so what's transparent stays black; a layer with
+ * nothing transparent on 9 screens over the area is a backdrop, left out.
+ * A screen where the game stops walking about (a warp pad under him, a
+ * battle) is left out on the first pass, taken from a little way off on
+ * the second. Each area in 0.1-0.3 s on one of this machine's cores
+ * (tools/scout/mmbnlayout.c; mmbnprobe.c and mmbnmap.c, the walking ways
+ * it replaced). The picture is drawn on the second screen at a third of
+ * its size around the live camera. */
+#define MMBN_CAM 0x02004950     /* gCamera: cameraX (+4), cameraY (+6), playerRealPos (+0x10), bounds (+0x14..0x23) */
+#define MMBN_BGDM 0x02009A50    /* gBgDataManager: the layout's width (+0) and height (+1) in tiles */
+#define MMBN_SETTLE 4           /* frames from setting him down to the screen drawn */
+typedef struct {
+	uint16_t area;
+	bool done, failed, early; /* early: the camera wasn't following him yet */
+	int w, h, x0, y0; /* the picture's size, and its top left's screen position */
+	int ex0, ey0, ex1, ey1; /* what's drawn on it: its edges (in the picture, ex1 / ey1 past them) */
+	uint32_t head[24 * 16]; /* MegaMan's head, facing the camera (0: transparent) */
+	int headW, headH, headDown; /* its size; from its top to his feet */
+	uint32_t* px;     /* 0: nothing there */
+} MmbnMap;
+static MmbnMap mmbnMap;
+static pthread_t mmbnThread;
+static volatile bool mmbnBusy, mmbnStop;
+static uint8_t* mmbnJob; /* the state it starts from */
+static size_t mmbnJobSize;
+static char mmbnRom[1024];
+static Emu mmbnEmu;
+static bool mmbnEmuOpen;
+
+/* on the net */
+static bool mmbn_area_net(uint16_t area) {
+	return (area & 0xFF) >= 0x80;
+}
+
+/* the copy's camera brought to (cx, cy), as near as the game takes it, and
+ * a frame of `layers` drawn there; false if the game stopped walking about */
+static bool mmbn_look(Emu* e, uint16_t area, uint32_t pos, int cx, int cy, unsigned layers, int* camx, int* camy) {
+	/* (layers take effect as a state's registers load) */
+	emu_layers(e, layers);
+	emu_state_load(e, mmbnJob);
+	emu_write32(e, MMBN_CAM + 0x14, (uint32_t) (-30000 * 65536));
+	emu_write32(e, MMBN_CAM + 0x18, (uint32_t) (30000 * 65536));
+	emu_write32(e, MMBN_CAM + 0x1C, (uint32_t) (30000 * 65536));
+	emu_write32(e, MMBN_CAM + 0x20, (uint32_t) (-30000 * 65536));
+	int x = (cx - 2 * cy) / 2, y = (cx + 2 * cy) / 2;
+	emu_write32(e, pos, (uint32_t) (x * 65536));
+	emu_write32(e, pos + 4, (uint32_t) (y * 65536));
+	emu_write32(e, pos + 8, 0); /* (on the ground: the camera follows his height too) */
+	for (int f = 0; f < MMBN_SETTLE; ++f) emu_frame_blind(e, 0);
+	emu_write16(e, 0x05000000, 0x7C1F); /* (magenta) */
+	emu_frame(e, 0);
+	*camx = (int16_t) emu_read16(e, MMBN_CAM + 4), *camy = (int16_t) emu_read16(e, MMBN_CAM + 6);
+	return emu_read8(e, MMBN_STATE) == 4 && emu_read16(e, MMBN_AREA) == area;
+}
+
+/* MegaMan's head, the marker on the map: in the copy, set down in a corner
+ * of the layout (nothing else there), a tap of DOWN (facing the camera),
+ * standing for 20 frames, sprites alone; his sprite above his feet, from
+ * its top to its narrowest row below the face (his chin; 16 rows at most) */
+static void mmbn_head(Emu* e, uint16_t area, uint32_t pos, MmbnMap* m, uint32_t magenta) {
+	m->headW = m->headH = 0;
+	emu_layers(e, 0x10);
+	emu_state_load(e, mmbnJob);
+	emu_write32(e, MMBN_CAM + 0x14, (uint32_t) (-30000 * 65536));
+	emu_write32(e, MMBN_CAM + 0x18, (uint32_t) (30000 * 65536));
+	emu_write32(e, MMBN_CAM + 0x1C, (uint32_t) (30000 * 65536));
+	emu_write32(e, MMBN_CAM + 0x20, (uint32_t) (-30000 * 65536));
+	int cx = m->x0 + 40, cy = m->y0 + 60, x = (cx - 2 * cy) / 2, y = (cx + 2 * cy) / 2;
+	emu_write32(e, pos, (uint32_t) (x * 65536));
+	emu_write32(e, pos + 4, (uint32_t) (y * 65536));
+	emu_write32(e, pos + 8, 0);
+	for (int f = 0; f < 2; ++f) emu_frame_blind(e, K_DOWN);
+	for (int f = 0; f < 20; ++f) emu_frame_blind(e, 0);
+	emu_write16(e, 0x05000000, 0x7C1F);
+	emu_frame(e, 0);
+	emu_layers(e, 0x1F);
+	if (emu_read8(e, MMBN_STATE) != 4 || emu_read16(e, MMBN_AREA) != area) return;
+	x = (int32_t) emu_read32(e, pos) >> 16, y = (int32_t) emu_read32(e, pos + 4) >> 16;
+	int camx = (int16_t) emu_read16(e, MMBN_CAM + 4), camy = (int16_t) emu_read16(e, MMBN_CAM + 6);
+	int fx = x + y - camx + GBA_W / 2, fy = (y - x) / 2 - camy + GBA_H / 2; /* his feet on the screen */
+	if (fx < 12 || fx > GBA_W - 12 || fy < 48 || fy > GBA_H) return;
+	int top = -1, wid[16] = { 0 };
+	for (int r = fy - 48; r < fy && top < 0; ++r)
+		for (int c = fx - 12; c < fx + 12; ++c)
+			if ((e->fb[r * GBA_W + c] & 0xFFFFFF) != magenta) top = r;
+	if (top < 0) return;
+	int h = 0, widest = 0;
+	for (; h < 16 && top + h < fy; ++h) {
+		for (int c = fx - 12; c < fx + 12; ++c) wid[h] += (e->fb[(top + h) * GBA_W + c] & 0xFFFFFF) != magenta;
+		if (wid[h] > widest) widest = wid[h];
+		/* (the chin: narrower than the widest, and the next row wider) */
+		if (h > 4 && wid[h] < widest && h + 1 < 16) {
+			int next = 0;
+			for (int c = fx - 12; c < fx + 12; ++c) next += (e->fb[(top + h + 1) * GBA_W + c] & 0xFFFFFF) != magenta;
+			if (next > wid[h]) {
+				++h;
+				break;
+			}
+		}
+	}
+	for (int r = 0; r < h; ++r)
+		for (int c = 0; c < 24; ++c) {
+			uint32_t px = e->fb[(top + r) * GBA_W + fx - 12 + c] & 0xFFFFFF;
+			m->head[r * 24 + c] = px == magenta ? 0 : px | 0xFF000000;
+		}
+	m->headW = 24, m->headH = h, m->headDown = fy - top;
+}
+
+static void* mmbn_worker(void* arg) {
+	(void) arg;
+	Emu* e = &mmbnEmu;
+	MmbnMap* m = &mmbnMap;
+	struct timespec t0;
+	clock_gettime(CLOCK_MONOTONIC, &t0);
+	const char* why = NULL;
+	if (!mmbnEmuOpen) mmbnEmuOpen = emu_open(e, mmbnRom, NULL, false);
+	if (!mmbnEmuOpen && (why = "the ROM didn't open")) goto out;
+	if (!emu_state_load(e, mmbnJob) && (why = "the game's moment didn't load")) goto out;
+	uint16_t area = m->area;
+	uint32_t pos = emu_read32(e, MMBN_CAM + 0x10);
+	if ((pos < 0x02000000 || pos >= 0x02040000) && (why = "no position")) goto out;
+	int W = m->w, H = m->h, X0 = m->x0, Y0 = m->y0, cx, cy;
+	/* the copy's magenta, as its renderer puts it out */
+	if (!mmbn_look(e, area, pos, X0 + W / 2, Y0 + H / 2, 0, &cx, &cy) && (why = "he can't be set down")) goto out;
+	uint32_t magenta = e->fb[0] & 0xFFFFFF;
+	/* (arriving on a warp pad, he steps off it by himself, the camera
+	 * following that, not where he's set down: tried again later) */
+	int hz = (int32_t) emu_read32(e, pos + 8) >> 16; /* (his height, if the floor there lifts him) */
+	if ((cx < X0 + W / 2 - 16 || cx > X0 + W / 2 + 16 || cy < Y0 + H / 2 - hz - 16 || cy > Y0 + H / 2 - hz + 16) &&
+	    (why = "the camera isn't following him yet"))
+		m->early = true;
+	if (why) goto out;
+	/* the backdrop: a layer with nothing transparent */
+	unsigned layers = 0;
+	for (int L = 2; L <= 3 && !mmbnStop; ++L) {
+		long clear = 0, drawn = 0;
+		for (int k = 0; k < 9 && !mmbnStop; ++k) {
+			if (!mmbn_look(e, area, pos, X0 + W * (1 + k % 3) / 4, Y0 + H * (1 + k / 3) / 4, 1u << L, &cx, &cy)) continue;
+			for (int i = 0; i < GBA_W * GBA_H; ++i) {
+				if ((e->fb[i] & 0xFFFFFF) == magenta) ++clear;
+				else ++drawn;
+			}
+		}
+		if (drawn && clear) layers |= 1u << L;
+	}
+	if (!layers && !mmbnStop && (why = "nothing drawn")) goto out;
+	/* the screens, 8 pixels overlapping; the second pass a little way off
+	 * from where the first left something out */
+	for (int pass = 0; pass < 2 && !mmbnStop; ++pass)
+		for (int ty0 = Y0 + GBA_H / 2; ty0 < Y0 + H + GBA_H / 2 && !mmbnStop; ty0 += GBA_H - 8)
+			for (int tx0 = X0 + GBA_W / 2; tx0 < X0 + W + GBA_W / 2 && !mmbnStop; tx0 += GBA_W - 8) {
+				int tx = tx0 < X0 + W - GBA_W / 2 ? tx0 : X0 + W - GBA_W / 2, ty = ty0 < Y0 + H - GBA_H / 2 ? ty0 : Y0 + H - GBA_H / 2;
+				if (pass) {
+					bool need = false;
+					for (int y = ty - GBA_H / 2; y < ty + GBA_H / 2 && !need; y += 4)
+						for (int x = tx - GBA_W / 2; x < tx + GBA_W / 2 && !need; x += 4)
+							need = x >= X0 && y >= Y0 && x < X0 + W && y < Y0 + H && !m->px[(size_t) (y - Y0) * W + x - X0];
+					if (!need) continue;
+					tx += 24, ty += 16;
+				}
+				if (!mmbn_look(e, area, pos, tx, ty, layers, &cx, &cy)) {
+					if (getenv("GBADS_DEBUG"))
+						fprintf(stderr, "mmbn map: no screen at %d,%d (state %d, area %04X)\n", tx, ty, emu_read8(e, MMBN_STATE),
+						        emu_read16(e, MMBN_AREA));
+					continue;
+				}
+				for (int sy = 0; sy < GBA_H; ++sy) {
+					int py = cy - GBA_H / 2 + sy - Y0;
+					if (py < 0 || py >= H) continue;
+					for (int sx = 0; sx < GBA_W; ++sx) {
+						int qx = cx - GBA_W / 2 + sx - X0;
+						if (qx < 0 || qx >= W) continue;
+						uint32_t c = e->fb[sy * GBA_W + sx] & 0xFFFFFF;
+						/* (transparent: black, but marked seen) */
+						m->px[(size_t) py * W + qx] = c == magenta ? 0xFE000000 : c | 0xFF000000;
+					}
+				}
+			}
+	emu_layers(e, 0x1F);
+	if (!mmbnStop) {
+		/* the area's edges: its last paths and panels */
+		m->ex0 = W, m->ey0 = H, m->ex1 = m->ey1 = 0;
+		for (int y = 0; y < H; ++y)
+			for (int x = 0; x < W; ++x)
+				if (m->px[(size_t) y * W + x] >> 24 == 0xFF) {
+					if (x < m->ex0) m->ex0 = x;
+					if (x >= m->ex1) m->ex1 = x + 1;
+					if (y < m->ey0) m->ey0 = y;
+					if (y >= m->ey1) m->ey1 = y + 1;
+				}
+		if (m->ex1 <= m->ex0) m->ex0 = 0, m->ey0 = 0, m->ex1 = W, m->ey1 = H;
+		mmbn_head(e, area, pos, m, magenta);
+		m->done = true;
+		struct timespec t1;
+		clock_gettime(CLOCK_MONOTONIC, &t1);
+		fprintf(stderr, "Mega Man Battle Network: area %04X mapped (%dx%d, layers %X, %ld ms)\n", area, W, H, layers,
+		        (long) ((t1.tv_sec - t0.tv_sec) * 1000 + (t1.tv_nsec - t0.tv_nsec) / 1000000));
+	}
+out:
+	if (why) {
+		m->done = m->failed = true;
+		/* (always logged: why the second screen keeps the logo on the net) */
+		fprintf(stderr, "Mega Man Battle Network: area %04X not mapped: %s\n", m->area, why);
+	}
+	mmbnBusy = false;
+	return NULL;
+}
+
+/* the live game's map of its area on the net, at a third of its size around its
+ * camera (MMBN-6); a new area's map made beside the game */
+static const uint32_t* mmbn_live_view(Emu* live, const char* rom) {
+	static uint32_t out[GBA_W * GBA_H];
+	uint8_t st = emu_read8(live, MMBN_STATE);
+	uint16_t area = emu_read16(live, MMBN_AREA);
+	if ((st != 4 && st != 0x18) || !mmbn_area_net(area)) return NULL;
+	/* a warp: the area's number changes before its layout is in; a new map
+	 * waits for half a second of the same area, walking, no fade */
+	static uint16_t settledArea;
+	static int settledFor;
+	if (area != settledArea) settledArea = area, settledFor = 0;
+	else if (st == 4 && !emu_read8(live, MMBN_FADING)) ++settledFor;
+	else settledFor = 0;
+	MmbnMap* m = &mmbnMap;
+	if (m->px && m->area != area) {
+		/* another area: its map dropped (called off first if still being made) */
+		if (mmbnBusy) {
+			mmbnStop = true;
+			return NULL;
+		}
+		if (mmbnThread) pthread_join(mmbnThread, NULL), mmbnThread = 0;
+		free(m->px);
+		memset(m, 0, sizeof(*m));
+	}
+	if (!m->px) {
+		if (st != 4 || settledFor < 30 || mmbnBusy) return NULL;
+		if (mmbnThread) pthread_join(mmbnThread, NULL), mmbnThread = 0;
+		int tw = emu_read8(live, MMBN_BGDM), th = emu_read8(live, MMBN_BGDM + 1);
+		if (tw < 30 || th < 20) return NULL;
+		m->area = area;
+		m->w = tw * 8, m->h = th * 8, m->x0 = -tw * 4, m->y0 = -th * 4;
+		if (!(m->px = calloc((size_t) m->w * m->h, 4))) {
+			memset(m, 0, sizeof(*m));
+			return NULL;
+		}
+		size_t sz = emu_state_size(live);
+		if (sz > mmbnJobSize) free(mmbnJob), mmbnJob = malloc(sz), mmbnJobSize = mmbnJob ? sz : 0;
+		if (!mmbnJob || !emu_state_save(live, mmbnJob)) {
+			free(m->px);
+			memset(m, 0, sizeof(*m));
+			return NULL;
+		}
+		snprintf(mmbnRom, sizeof(mmbnRom), "%s", rom);
+		mmbnStop = false;
+		mmbnBusy = true;
+		/* in exact runs (the tests), and with no threads, made here */
+		if (getenv("GBADS_SYNC") || pthread_create(&mmbnThread, NULL, mmbn_worker, NULL)) mmbnThread = 0, mmbn_worker(NULL);
+	}
+	if (m->failed && m->early) {
+		/* again in a second, for at most ten seconds */
+		static uint16_t earlyArea;
+		static int early;
+		if (earlyArea != area) earlyArea = area, early = 0;
+		if (!mmbnBusy && ++early <= 10) {
+			if (mmbnThread) pthread_join(mmbnThread, NULL), mmbnThread = 0;
+			free(m->px);
+			memset(m, 0, sizeof(*m));
+			settledFor = -30;
+		}
+		return NULL;
+	}
+	if (m->failed || !m->done) return NULL; /* (the logo meanwhile: it's quick) */
+	/* a third of the size: each pixel the mean of 3x3 of the picture's,
+	 * centred on MegaMan (his screen position: x + y, (y - x) / 2 - z), but
+	 * kept within the area's edges; an area smaller than the screen in
+	 * its middle */
+	enum { Z = 3 };
+	int camx = (int16_t) emu_read16(live, MMBN_CAM + 4), camy = (int16_t) emu_read16(live, MMBN_CAM + 6);
+	uint32_t pos = emu_read32(live, MMBN_CAM + 0x10);
+	if (pos >= 0x02000000 && pos < 0x02040000) {
+		int x = (int32_t) emu_read32(live, pos) >> 16, y = (int32_t) emu_read32(live, pos + 4) >> 16;
+		int z = (int32_t) emu_read32(live, pos + 8) >> 16; /* (his height: on a raised floor, higher up) */
+		camx = x + y, camy = (y - x) / 2 - z;
+	}
+	int left = camx - GBA_W * Z / 2 - m->x0, top = camy - GBA_H * Z / 2 - m->y0;
+	if (m->ex1 - m->ex0 <= GBA_W * Z) left = (m->ex0 + m->ex1) / 2 - GBA_W * Z / 2;
+	else if (left < m->ex0) left = m->ex0;
+	else if (left > m->ex1 - GBA_W * Z) left = m->ex1 - GBA_W * Z;
+	if (m->ey1 - m->ey0 <= GBA_H * Z) top = (m->ey0 + m->ey1) / 2 - GBA_H * Z / 2;
+	else if (top < m->ey0) top = m->ey0;
+	else if (top > m->ey1 - GBA_H * Z) top = m->ey1 - GBA_H * Z;
+	for (int oy = 0; oy < GBA_H; ++oy) {
+		int py = top + oy * Z;
+		for (int ox = 0; ox < GBA_W; ++ox) {
+			int qx = left + ox * Z;
+			unsigned r = 0, g = 0, b = 0;
+			for (int dy = 0; dy < Z; ++dy) {
+				if (py + dy < 0 || py + dy >= m->h) continue;
+				for (int dx = 0; dx < Z; ++dx) {
+					if (qx + dx < 0 || qx + dx >= m->w) continue;
+					uint32_t c = m->px[(size_t) (py + dy) * m->w + qx + dx];
+					r += c & 0xFF, g += (c >> 8) & 0xFF, b += (c >> 16) & 0xFF;
+				}
+			}
+			out[oy * GBA_W + ox] = 0xFF000000 | (b / (Z * Z)) << 16 | (g / (Z * Z)) << 8 | r / (Z * Z);
+		}
+	}
+	/* his head where he stands, at the game's size: centred on where his
+	 * sprite, at a third, would be */
+	if (m->headH) {
+		int hx = (camx - m->x0 - left) / Z - m->headW / 2, hy = (camy - m->y0 - top - m->headDown / 2) / Z - m->headH / 2;
+		for (int r = 0; r < m->headH; ++r) {
+			if (hy + r < 0 || hy + r >= GBA_H) continue;
+			for (int c = 0; c < m->headW; ++c)
+				if (m->head[r * 24 + c] && hx + c >= 0 && hx + c < GBA_W) out[(hy + r) * GBA_W + hx + c] = m->head[r * 24 + c];
+		}
+	}
+	return out;
+}
+
+static const char* mmbn_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	if (w != GBA_W || h != GBA_H) return "not a GBA screen";
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame_blind(s, 0);
+	if (emu_read8(s, MMBN_STATE) != 4) return "not walking about";
+	/* (on the net too: the map's shown there while walking about, MMBN-6,
+	 * the status in its battles, MMBN-4) */
+	mmbn_tap(s, K_START);
+	int f = 0;
+	while (f < 40 && emu_read8(s, MMBN_SMENU) != 4) emu_frame_blind(s, 0), ++f;
+	if (emu_cancelled(s)) return "called off";
+	if (emu_read8(s, MMBN_SMENU) != 4) return "START opened nothing";
+	aw_run(s, 0, 3); /* (drawn) */
+	if (emu_cancelled(s)) return "called off";
+	/* the counter's frame rows and inside, kept: from a frame drawn with
+	 * the menu's layer (BG0) alone (whatever is behind the counter, the
+	 * net's paths, a Navi walking by, shows through it in places) */
+	static uint8_t tmp[0x80000];
+	if (emu_state_size(s) > sizeof(tmp) || !emu_state_save(s, tmp)) return "state save failed";
+	emu_layers(s, 0x01);
+	emu_state_load(s, tmp); /* (the layers take effect as the display registers are loaded) */
+	emu_frame(s, 0);
+	static uint32_t money[32 * GBA_W];
+	memcpy(money, s->fb, sizeof(money));
+	emu_layers(s, 0x1F);
+	emu_state_load(s, tmp); /* every layer back on */
+	if (emu_cancelled(s)) return "called off";
+	for (int i = 0; i < 8; ++i) {
+		uint32_t c = money[mmbnMoney[i].y * GBA_W + mmbnMoney[i].x], want = mmbnMoney[i].rgb;
+		if (abs((int) (c & 0xFF) - (int) (want >> 16)) > 8 || abs((int) ((c >> 8) & 0xFF) - (int) ((want >> 8) & 0xFF)) > 8 ||
+		    abs((int) ((c >> 16) & 0xFF) - (int) (want & 0xFF)) > 8)
+			return "no money counter";
+	}
+	for (int i = 0; i < 8 && emu_read8(s, MMBN_SMENU + 6) != 2; ++i)
+		mmbn_tap(s, emu_read8(s, MMBN_SMENU + 6) < 2 ? K_DOWN : K_UP);
+	if (emu_read8(s, MMBN_SMENU + 6) != 2) return "MegaMan not reached in the menu";
+	mmbn_tap(s, K_A);
+	f = 0;
+	while (f < 90 && !mmbn_megaman_up(s)) emu_frame_blind(s, 0), ++f;
+	if (emu_cancelled(s)) return "called off";
+	if (!mmbn_megaman_up(s)) return "the MegaMan screen didn't open";
+	aw_run(s, 0, 4); /* (its values printed) */
+	if (emu_cancelled(s)) return "called off";
+	if (!som_probes(s, mmbnPanel, 8, 8, 8)) return "not the MegaMan screen";
+	/* the panel, then the cursor arrow (BG2, left of the armor and the
+	 * stats) from a frame drawn without BG2 there: the panel's grid (BG1) */
+	static uint32_t panel[MMBN_PANEL_ROWS * GBA_W];
+	memcpy(panel, s->fb, sizeof(panel));
+	if (!emu_state_save(s, tmp)) return "state save failed";
+	emu_layers(s, 0x1B);
+	emu_state_load(s, tmp);
+	emu_frame(s, 0);
+	for (int y = 20; y < MMBN_PANEL_ROWS; ++y) {
+		for (int x = 112; x <= 139; ++x) panel[y * GBA_W + x] = s->fb[y * GBA_W + x];
+	}
+	emu_layers(s, 0x1F);
+	emu_state_load(s, tmp); /* every layer back on */
+	/* the frame: edge, money, panel, edge, centred top to bottom */
+	for (int i = 0; i < GBA_W * GBA_H; ++i) out[i] = 0xFF000000;
+	int all = 2 * MMBN_EDGE + MMBN_MONEY_H + MMBN_PANEL_ROWS, y0 = (GBA_H - all) / 2;
+	int glow0 = (GBA_W - (GBA_W - MMBN_GLOW_X)) / 2; /* (the glow in the middle) */
+	for (int e = 0; e < 2; ++e) {
+		int from = e ? 32 - MMBN_EDGE : 0, to = e ? y0 + all - MMBN_EDGE : y0;
+		for (int r = 0; r < MMBN_EDGE; ++r) {
+			const uint32_t* src = &money[(from + r) * GBA_W];
+			for (int x = 0; x < GBA_W; ++x) {
+				int g = x - glow0;
+				out[(to + r) * GBA_W + x] = g >= 0 && g < GBA_W - MMBN_GLOW_X ? src[MMBN_GLOW_X + g] : src[MMBN_PLAIN_X];
+			}
+		}
+	}
+	/* the counter's row in the panel's top row's colour (its own lighter
+	 * grey behind the amount too), so the two read as one piece */
+	uint32_t head = panel[2 * GBA_W + 2], light = money[(MMBN_MONEY_Y + 6) * GBA_W + MMBN_MONEY_X + 2];
+	for (int r = 0; r < MMBN_MONEY_H; ++r) {
+		uint32_t* o = &out[(y0 + MMBN_EDGE + r) * GBA_W];
+		const uint32_t* m = &money[(MMBN_MONEY_Y + r) * GBA_W];
+		for (int x = 0; x < GBA_W; ++x) o[x] = x < MMBN_MONEY_X || m[x] == light ? head : m[x];
+	}
+	memcpy(&out[(y0 + MMBN_EDGE + MMBN_MONEY_H) * GBA_W], panel, sizeof(panel));
+	return NULL;
+}
+
+/* ------------------------------ Harry Potter and the Prisoner of Azkaban
+ *
+ * Walking about, the second screen is the party's summary from START's
+ * Status/Equip screen above the task box from the bottom of START's menu
+ * (HPA-1): hpa_compose, on the hidden copy. The screen the game is on,
+ * HPA_MODE: 3 the title, 7 the file screens, 8 walking about, 0x18 a
+ * conversation or a scene (START opens nothing), 9 a battle, 0x2C its
+ * results; START's menu 0x0A (opened) or 0x0B (back from one of its
+ * screens), Status/Equip's summary 0x0C or 0x0D, a character's page 0x0E,
+ * Items 0x10, Folios 0x13, Save Game 0x14, Connectivity 0x16, Help 0x17.
+ * HPA_CURSOR: the menu's cursor (0 Status/Equip). Japan (Harry Potter to
+ * Azkaban no Shuujin): both 0x60 higher (by romxref), the rest the same. */
+#define HPA_MODE 0x03003F18
+#define HPA_CURSOR 0x03003F14
+#define HPA_J(e) ((e)->gameCode[3] == 'J' ? 0x60u : 0u)
+#define HPA_SP 0x030024F4 /* Harry's Stamina (SP), then his Magic (MP): halves */
+#define HPA_V_LIVE 0xF0000040 /* walking about, or START's menu open (HPA-1, HPA-2) */
+#define HPA_V_FORGET 0xF0000041 /* not walking about, in the menu or a scene: the title, a battle... (HPA-4, HPA-5) */
+#define HPA_V_BATTLE 0xF0000042 /* a battle, to its results (HPA-4) */
+/* the summary: rows 25-148 (each one's figure to the bottom of their box;
+ * the heading bar above it left out); the task box: rows 122-157 (its frame,
+ * the posts at its ends but for their outer rows) */
+#define HPA_SUM_Y 25
+#define HPA_SUM_H 124
+#define HPA_TASK_Y 122
+#define HPA_TASK_H 36
+static bool hpa_menu_mode(int m) {
+	return m >= 0x0A && m <= 0x17;
+}
+static int hpa_mode(Emu* e) {
+	return emu_read8(e, HPA_MODE + HPA_J(e)) & 0x7F; /* (0x80 set for a frame or two as it changes) */
+}
+static uint32_t hpa_virt(Emu* e, uint32_t addr) {
+	int m = hpa_mode(e);
+	if (addr == HPA_V_LIVE) return m == 8 || hpa_menu_mode(m);
+	if (addr == HPA_V_FORGET) return !(m == 8 || m == 0x18 || hpa_menu_mode(m));
+	if (addr == HPA_V_BATTLE) return m == 9 || m == 0x2C;
+	return 0;
+}
+/* the menu's task box (its frame's gold and cream); the Status/Equip
+ * screen's heading bar and the parchment's left edge */
+static const Probe hpaTask[6] = { { 5, 121, 0xB57B31 }, { 60, 123, 0xD6A54A }, { 60, 124, 0xF7E78C },
+                                  { 120, 155, 0xF7E78C }, { 120, 156, 0xD6A54A }, { 5, 158, 0xB57B31 } };
+static const Probe hpaStatus[6] = { { 5, 22, 0x845A31 }, { 60, 22, 0x845A31 }, { 0, 23, 0x8C8C84 },
+                                    { 200, 23, 0x8C8C84 }, { 5, 60, 0x9C634A }, { 5, 146, 0x9C634A } };
+static void hpa_tap(Emu* s, uint32_t keys) {
+	aw_run(s, keys, 3);
+	aw_run(s, 0, 8);
+}
+static bool hpa_wait_mode(Emu* s, int a, int b, int n) {
+	for (int f = 0; f < n; ++f) {
+		int m = hpa_mode(s);
+		if (m == a || m == b) return true;
+		emu_frame_blind(s, 0);
+	}
+	int m = hpa_mode(s);
+	return m == a || m == b;
+}
+static const char* hpa_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	if (w != GBA_W || h != GBA_H) return "not a GBA screen";
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame_blind(s, 0);
+	/* to START's menu: from walking about, START; from one of its
+	 * screens, B back to it (HPA-2) */
+	int m = hpa_mode(s);
+	for (int i = 0; i < 4 && hpa_menu_mode(m) && m != 0x0A && m != 0x0B; ++i) {
+		hpa_tap(s, K_B);
+		hpa_wait_mode(s, 0x0A, 0x0B, 30);
+		m = hpa_mode(s);
+	}
+	if (m == 8) hpa_tap(s, K_START);
+	else if (m != 0x0A && m != 0x0B) return "not walking about";
+	if (!hpa_wait_mode(s, 0x0A, 0x0B, 60)) return "START opened nothing";
+	aw_run(s, 0, 50); /* (faded in) */
+	if (emu_cancelled(s)) return "called off";
+	if (!som_probes(s, hpaTask, 6, 6, 8)) return "no task box";
+	static uint32_t task[HPA_TASK_H * GBA_W];
+	memcpy(task, &s->fb[HPA_TASK_Y * GBA_W], sizeof(task));
+	/* Status/Equip, the menu's first line */
+	for (int i = 0; i < 8 && emu_read8(s, HPA_CURSOR + HPA_J(s)) != 0; ++i) hpa_tap(s, K_UP);
+	if (emu_read8(s, HPA_CURSOR + HPA_J(s)) != 0) return "Status/Equip not reached in the menu";
+	hpa_tap(s, K_A);
+	if (!hpa_wait_mode(s, 0x0C, 0x0D, 60)) return "Status/Equip didn't open";
+	aw_run(s, 0, 50);
+	if (emu_cancelled(s)) return "called off";
+	if (!som_probes(s, hpaStatus, 6, 6, 8)) return "not the Status/Equip screen";
+	/* drawn without its sprites: the wand cursor and its sparkles */
+	static uint8_t tmp[0x80000];
+	if (emu_state_size(s) > sizeof(tmp) || !emu_state_save(s, tmp)) return "state save failed";
+	emu_layers(s, 0x0F);
+	emu_state_load(s, tmp); /* (the layers take effect as the display registers are loaded) */
+	emu_frame(s, 0);
+	memcpy(out, &s->fb[HPA_SUM_Y * GBA_W], HPA_SUM_H * GBA_W * sizeof(uint32_t));
+	emu_layers(s, 0x1F);
+	emu_state_load(s, tmp); /* every layer back on */
+	memcpy(&out[HPA_SUM_H * GBA_W], task, sizeof(task));
+	return NULL;
+}
+
+/* -------------------------------------------------- Super Mario Advance 3: Yoshi's Island
+ *
+ * In a level, the status screen SELECT opens (SM3-1); on a world's panel,
+ * its score page (SM3-3): sm3_compose, on the hidden copy. The screen the
+ * game is on, 0x03006AF6: 0 a level, 6 a world's panel, 0x0A the island
+ * map, 1 a bonus game, 2 the file menu and the opening story, 3 the
+ * title, 9 the game select, 5 and 8 Mario Bros. */
+#define SM3_SCREEN 0x03006AF6
+#define SM3_IN_LEVEL 0x00
+#define SM3_ON_PANEL 0x06
+/* the world the panel shows: (world - 1) * 2 */
+#define SM3_WORLD 0x0300633C
+/* the panel's hand on the tab row: the tab's place * 2 (world 1 0 ...
+ * world 6 10, SCORE 12); 0 on the levels' rows too */
+#define SM3_TAB 0x03002E92
+#define SM3_TAB_SCORE 12
+/* the panel's score page up: 1 from SCORE picked, 2 as the bar slides
+ * in and as the cards turn back, 0 once they're back (beside the hand's
+ * own fields) */
+#define SM3_SCORE_UP 0x03002ECF
+/* each level's score (12 bytes a world, 100 = 0x64), and what follows
+ * them (the worlds' totals): what the score page shows */
+#define SM3_SCORES 0x03006B08
+#define SM3_SCORES_LEN 0x68
+/* the status screen: BG3 and the sprites (the items), from about 50
+ * frames after SELECT (the level fades out, the screen fades in by its
+ * palette over the next 35) */
+#define SM3_STATUS_DISP 0x1800
+#define SM3_STATUS_BG3 0x7A04
+/* the item cursor's colour (BG palette 1, colour 14), cycled by the game;
+ * where it's drawn, round an item slot, is black otherwise */
+#define SM3_CURSOR_PAL 0x0500003C
+#define SM3_CURSOR_MAGENTA 0x7C1F
+/* the item row, the only place it's drawn: four slots, 24 pixels apart
+ * from x 132, the cursor's ring 24 wide over the slot's white frame */
+#define SM3_ITEMS_Y0 124
+#define SM3_SLOT0_X 132
+#define SM3_SLOT_STEP 24
+#define SM3_SLOTS 4
+/* what the cursor's tiles change on slot 0 (slot k: 24k to the right) */
+#define SM3_RING_X0 131
+#define SM3_RING_W 26
+#define SM3_RING_Y0 131
+#define SM3_RING_Y1 156
+/* the red arrows beside the slots (more items that way), 8 x 10 on the
+ * bar's white, at x 122 and 230 from row 139 */
+#define SM3_ARROW_L_X 122
+#define SM3_ARROW_R_X 230
+#define SM3_ARROW_Y0 139
+/* the score page's GBA box with #1 (another menu), at the panel's bottom
+ * right in every world and release, painted over with the panel's colour,
+ * taken from beside the cards (SM3-3) */
+#define SM3_BOX_X0 187
+#define SM3_BOX_X1 220
+#define SM3_BOX_Y0 59
+#define SM3_BOX_Y1 92
+#define SM3_PANEL_AT_X 10
+#define SM3_PANEL_AT_Y 60
+#define SM3_CARD_GREEN 0x08A542 /* (also the bar's) */
+/* 1 in a level or on a world's panel: a picture is taken */
+#define SM3_V_LIVE 0xF0000070
+/* 1 anywhere but a level or a world's panel (the titles, file menu,
+ * opening, island map, a bonus game, Mario Bros.): the logo, the last
+ * picture forgotten (SM3-4) */
+#define SM3_V_MENU 0xF0000071
+
+static uint32_t sm3_virt(Emu* e, uint32_t addr) {
+	uint8_t s = emu_read8(e, SM3_SCREEN);
+	if (addr == SM3_V_LIVE) return s == SM3_IN_LEVEL || s == SM3_ON_PANEL;
+	if (addr == SM3_V_MENU) return s != SM3_IN_LEVEL && s != SM3_ON_PANEL;
+	return 0;
+}
+
+static bool sm3_rgb(const uint32_t* fb, int x, int y, uint32_t rgb) {
+	uint32_t c = fb[y * GBA_W + x];
+	return (((c & 0xFF) << 16) | (c & 0xFF00) | ((c >> 16) & 0xFF)) == rgb;
+}
+
+/* the score page's total bar in its place (it slides in from the right
+ * once the last card has turned): its green and black left edge, and its
+ * rim the panel's colour (each world's panel has its own) */
+static bool sm3_bar(const uint32_t* fb) {
+	uint32_t panel = fb[60 * GBA_W + 10] & 0xFFFFFF;
+	return sm3_rgb(fb, 20, 140, SM3_CARD_GREEN) && sm3_rgb(fb, 200, 140, SM3_CARD_GREEN) && sm3_rgb(fb, 16, 140, 0) &&
+	       (fb[132 * GBA_W + 12] & 0xFFFFFF) == panel && (fb[132 * GBA_W + 228] & 0xFFFFFF) == panel;
+}
+
+static int sm3_green(const uint32_t* fb) {
+	int n = 0;
+	for (int y = 24; y < 88; y += 2) {
+		for (int x = 24; x < 208; x += 2) n += sm3_rgb(fb, x, y, SM3_CARD_GREEN);
+	}
+	return n;
+}
+
+/* a press the game takes (its logic runs every other frame at times):
+ * 5 frames down, 10 up */
+static void sm3_tap(Emu* s, uint32_t keys, int n) {
+	for (int i = 0; i < n; ++i) {
+		aw_run(s, keys, 5);
+		aw_run(s, 0, 10);
+	}
+}
+
+static bool sm3_status(Emu* s) {
+	return emu_read16(s, 0x04000000) == SM3_STATUS_DISP && emu_read16(s, 0x0400000E) == SM3_STATUS_BG3;
+}
+
+/* SM3-1, SM3-2: SELECT; once the status screen is up and its fade-in done
+ * (its palette still for 4 frames), without the item cursor and the
+ * arrows */
+static const char* sm3_status_page(Emu* s, uint32_t* out, int w, int h) {
+	if (sm3_status(s)) return "screen already looks like the map";
+	sm3_tap(s, K_SELECT, 1);
+	int f = 0;
+	while (f < 90 && !sm3_status(s)) emu_frame_blind(s, 0), ++f;
+	if (!sm3_status(s)) return "map button did nothing";
+	uint16_t last[4] = { 0 };
+	int still = 0;
+	for (f = 0; f < 90 && still < 4; ++f) {
+		emu_frame_blind(s, 0);
+		if (!sm3_status(s)) return "the status screen closed";
+		bool same = true;
+		for (int i = 0; i < 4; ++i) {
+			uint16_t c = emu_read16(s, 0x05000002 + i * 2);
+			same &= c == last[i];
+			last[i] = c;
+		}
+		still = same && last[2] ? still + 1 : 0;
+	}
+	if (still < 4) return "the status screen never settled";
+	/* The cursor cycles blue, magenta, red, yellow, green and back, 8
+	 * frames each: the picture is taken while it's magenta, which nothing
+	 * else on the screen is (in its yellow, the star, the flower and the
+	 * figures would go black with it) */
+	for (f = 0; f < 72 && emu_read16(s, SM3_CURSOR_PAL) != SM3_CURSOR_MAGENTA; ++f) {
+		emu_frame_blind(s, 0);
+		if (!sm3_status(s)) return "the status screen closed";
+	}
+	if (emu_read16(s, SM3_CURSOR_PAL) != SM3_CURSOR_MAGENTA) return "the status screen's cursor never turned magenta";
+	/* The game sets the cursor's colour in its vblank, before drawing:
+	 * the frame is drawn twice from the same moment, BG3 alone and
+	 * whole, and where BG3 alone has the cursor's colour and the whole
+	 * picture too (no item over it), black instead (SM3-2). */
+	size_t n = emu_state_size(s);
+	uint8_t* st = malloc(n);
+	if (!st || !emu_state_save(s, st)) {
+		free(st);
+		return "out of memory";
+	}
+	/* (the whole picture from the frame as the game runs on: drawn again
+	 * from a loaded state, its sprites can be missing, depending on the
+	 * moment) */
+	static uint32_t bg3[GBA_W * GBA_H], whole[GBA_W * GBA_H], moved[GBA_W * GBA_H];
+	emu_frame(s, 0);
+	memcpy(whole, s->fb, sizeof(whole));
+	uint16_t cc = emu_read16(s, SM3_CURSOR_PAL);
+	emu_layers(s, 0x08);
+	emu_state_load(s, st);
+	emu_frame(s, 0);
+	memcpy(bg3, s->fb, sizeof(bg3));
+	emu_layers(s, 0x1F);
+	uint32_t r = cc & 31, g = (cc >> 5) & 31, b = (cc >> 10) & 31;
+	uint32_t rgb = ((r << 3 | r >> 2) << 16) | ((g << 3 | g >> 2) << 8) | (b << 3 | b >> 2);
+	/* the cursor's ring: where BG3 alone has its colour and the whole
+	 * picture too (no item over it), in the item row */
+	int cx0 = GBA_W, cx1 = -1, cy0 = GBA_H, cy1 = -1;
+	for (int y = SM3_ITEMS_Y0; y < GBA_H; ++y) {
+		for (int x = SM3_SLOT0_X; x < GBA_W; ++x) {
+			if (!sm3_rgb(bg3, x, y, rgb) || !sm3_rgb(whole, x, y, rgb)) continue;
+			if (x < cx0) cx0 = x;
+			if (x > cx1) cx1 = x;
+			if (y < cy0) cy0 = y;
+			if (y > cy1) cy1 = y;
+		}
+	}
+	/* The slot under it, as the game draws a slot the cursor isn't on.
+	 * The cursor's tiles on slot k change x 131 + 24k to 156 + 24k, rows
+	 * 131-156 (a column more than its dots on each side), so two slots'
+	 * share their two columns of the separator between them. The cursor
+	 * is moved two slots over (no scrolling; the other way if it can't
+	 * go that way) and BG3 alone drawn again: in slot c's area, where
+	 * that differs, it's the slot as the game draws it (its white frame,
+	 * the black round it, the bar's zigzag). Moved only one slot (two or
+	 * three items), the shared columns come from another separator with
+	 * no cursor by it; with one item it can't move, and the slot comes
+	 * from the next one, its left edge from the bar beside it. (The
+	 * slots differ at their edges, the first against the bar, so one
+	 * slot can't stand in for another whole.) */
+	int c = cx1 >= 0 ? (cx0 - SM3_SLOT0_X) / SM3_SLOT_STEP : -1, m = c;
+	for (int tries = 0; c >= 0 && m == c && tries < 2; ++tries) {
+		bool right = (c < SM3_SLOTS / 2) != (tries == 1);
+		emu_state_load(s, st);
+		sm3_tap(s, right ? K_RIGHT : K_LEFT, 2);
+		if (!sm3_status(s)) {
+			free(st);
+			return "the status screen closed";
+		}
+		uint8_t* st2 = malloc(n);
+		if (!st2 || !emu_state_save(s, st2)) {
+			free(st2);
+			break;
+		}
+		emu_layers(s, 0x08);
+		emu_state_load(s, st2);
+		emu_frame(s, 0);
+		memcpy(moved, s->fb, sizeof(moved));
+		emu_layers(s, 0x1F);
+		free(st2);
+		/* where it went: the other slot whose ring differs (its colour
+		 * may change on the frame drawn) */
+		int most = 20;
+		for (int k = 0; k < SM3_SLOTS; ++k) {
+			if (k == c) continue;
+			int x0 = SM3_RING_X0 + SM3_SLOT_STEP * k + 2, x1 = x0 + SM3_RING_W - 5, diff = 0;
+			for (int y = SM3_RING_Y0; y <= SM3_RING_Y1; ++y) {
+				for (int x = x0; x <= x1; ++x) diff += bg3[y * GBA_W + x] != moved[y * GBA_W + x];
+			}
+			if (diff > most) most = diff, m = k;
+		}
+	}
+	free(st);
+	int rx0 = SM3_RING_X0 + SM3_SLOT_STEP * c, rx1 = rx0 + SM3_RING_W - 1;
+	int mx0 = SM3_RING_X0 + SM3_SLOT_STEP * m, mx1 = mx0 + SM3_RING_W - 1;
+	/* a separator with no cursor by it: not c - 1 | c, nor c | c + 1 */
+	int sep = c >= 2 ? 0 : c + 1;
+	uint32_t white[2] = { whole[SM3_ARROW_Y0 * GBA_W + SM3_ARROW_L_X - 1], whole[SM3_ARROW_Y0 * GBA_W + SM3_ARROW_R_X + 8] };
+	for (int y = 0; y < h && y < GBA_H; ++y) {
+		for (int x = 0; x < w && x < GBA_W; ++x) {
+			uint32_t px = whole[y * GBA_W + x];
+			if (c >= 0 && y >= SM3_RING_Y0 && y <= SM3_RING_Y1 && x >= rx0 && x <= rx1) {
+				int sx = x, sy = y;
+				const uint32_t* from = whole;
+				if (m == c) {
+					/* one item: the next slot (where BG3 differs: not
+					 * the item inside); the first's left edge, the bar */
+					sx = c < SM3_SLOTS - 1 ? x + SM3_SLOT_STEP : x - SM3_SLOT_STEP;
+					if (c == 0 && x < SM3_RING_X0 + 2) sx = y < SM3_RING_Y0 + 2 || y > SM3_RING_Y1 - 2 ? x - 8 : SM3_RING_X0 - 1;
+					if (bg3[y * GBA_W + x] == bg3[sy * GBA_W + sx]) sx = x;
+				} else if (x >= mx0 && x <= mx1) {
+					/* the columns shared with where it went: another
+					 * separator's */
+					int at = (x - (SM3_RING_X0 + SM3_SLOT_STEP)) / SM3_SLOT_STEP;
+					sx = x + SM3_SLOT_STEP * (sep - at);
+				} else if (bg3[y * GBA_W + x] != moved[y * GBA_W + x]) {
+					from = moved;
+				}
+				px = (from[sy * GBA_W + sx] & 0xFFFFFF) | (px & 0xFF000000u);
+			}
+			/* the arrows (more items to the left or right): the bar's
+			 * white */
+			if (y >= SM3_ARROW_Y0 && y < SM3_ARROW_Y0 + 10) {
+				if (x >= SM3_ARROW_L_X && x < SM3_ARROW_L_X + 8) px = white[0];
+				if (x >= SM3_ARROW_R_X && x < SM3_ARROW_R_X + 8) px = white[1];
+			}
+			out[y * w + x] = px;
+		}
+	}
+	return NULL;
+}
+
+/* SM3-3: UP twice (from either row of levels to the tabs; on the tabs it
+ * does nothing), RIGHT to SCORE, A, and the cards turning until the total
+ * bar is in; then, of the next 64 frames, the one with the most green
+ * (the 100-point cards blink red and green), drawn again with the BG
+ * layers alone (the panel, cards, bar and the map's scenery; Yoshi, the
+ * levels' markers and the hand are sprites), the #1 box painted over. The
+ * same world and scores as last time: the same picture, without the 5
+ * seconds of turning cards. */
+static const char* sm3_score_page(Emu* s, uint32_t* out, int w, int h) {
+	static uint8_t lastKey[SM3_SCORES_LEN + 1];
+	static uint32_t lastPage[GBA_W * GBA_H];
+	static bool have;
+	uint8_t key[SM3_SCORES_LEN + 1];
+	key[0] = emu_read8(s, SM3_WORLD);
+	for (int i = 0; i < SM3_SCORES_LEN; ++i) key[i + 1] = emu_read8(s, SM3_SCORES + i);
+	bool cw = w == GBA_W && h == GBA_H;
+	if (have && cw && !memcmp(key, lastKey, sizeof(key))) {
+		memcpy(out, lastPage, sizeof(lastPage));
+		return NULL;
+	}
+	if (!sm3_bar(s->fb)) {
+		sm3_tap(s, K_UP, 2);
+		for (int i = 0; i < 8 && emu_read8(s, SM3_TAB) != SM3_TAB_SCORE; ++i) sm3_tap(s, K_RIGHT, 1);
+		if (emu_read8(s, SM3_TAB) != SM3_TAB_SCORE) return "map button did nothing";
+		sm3_tap(s, K_A, 1);
+		int f = 0, still = 0;
+		while (f < 480 && still < 3) {
+			aw_run(s, 0, 4);
+			f += 4;
+			still = sm3_bar(s->fb) ? still + 1 : 0;
+		}
+		if (still < 3) return "the score page never came up";
+	}
+	size_t n = emu_state_size(s);
+	uint8_t* st = malloc(n);
+	uint8_t* best = malloc(n);
+	if (!st || !best) {
+		free(st);
+		free(best);
+		return "out of memory";
+	}
+	int bestGreen = -1;
+	for (int f = 0; f < 64; ++f) {
+		emu_state_save(s, st);
+		emu_frame(s, 0);
+		if (!sm3_bar(s->fb)) break;
+		int g = sm3_green(s->fb);
+		if (g > bestGreen) bestGreen = g, memcpy(best, st, n);
+	}
+	if (bestGreen < 0) {
+		free(st);
+		free(best);
+		return "the score page closed";
+	}
+	/* every BG layer, no sprites */
+	emu_layers(s, 0x0F);
+	emu_state_load(s, best);
+	emu_frame(s, 0);
+	emu_layers(s, 0x1F);
+	free(st);
+	free(best);
+	uint32_t panel = s->fb[SM3_PANEL_AT_Y * GBA_W + SM3_PANEL_AT_X];
+	for (int y = 0; y < h && y < GBA_H; ++y) {
+		for (int x = 0; x < w && x < GBA_W; ++x) {
+			bool box = x >= SM3_BOX_X0 && x <= SM3_BOX_X1 && y >= SM3_BOX_Y0 && y <= SM3_BOX_Y1;
+			out[y * w + x] = box ? panel : s->fb[y * GBA_W + x];
+		}
+	}
+	if (cw && !emu_cancelled(s)) {
+		memcpy(lastPage, out, sizeof(lastPage));
+		memcpy(lastKey, key, sizeof(key));
+		have = true;
+	}
+	return NULL;
+}
+
+static const char* sm3_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	uint8_t screen = emu_read8(s, SM3_SCREEN);
+	if (screen == SM3_IN_LEVEL) return sm3_status_page(s, out, w, h);
+	if (screen == SM3_ON_PANEL) return sm3_score_page(s, out, w, h);
+	return "map button did nothing";
+}
+
+/* ---------------------------------------------------------------- Eragon
+ *
+ * docs/games/eragon.md. Where L opens the map (the overworld), the map;
+ * elsewhere (towns and dungeons), the Party screen (START, Party) with every member's card lit;
+ * the logo in battles and on the title. Both releases use these addresses:
+ *   ER_SCREEN 1 in the field, 3 the title, 6 a conversation, 7 the
+ *             European language screen, 13 the START menu, 14 the Party
+ *             screen, 16 a battle, 26 the overworld map (0x8x / 0x9x
+ *             between)
+ *   ER_PLACE  12 the overworld, 10 a town or dungeon, but also some wild
+ *             places with a map (the desert); in a battle it runs through
+ *             the battle's own steps: only for following the player (ER-9),
+ *             L itself tells where there's a map
+ *   ER_BATTLE 1 from a battle's start to its end (5 or 6 in the debug
+ *             menu's battles): a battle is anything but 0
+ * The Party screen dims every card but the chosen one (the first as it
+ * opens); its cards are ER_CARD rows apart, so each band of rows is taken
+ * from the picture with that card chosen (DOWN), ER-2. */
+#define ER_SCREEN 0x03005660
+#define ER_PLACE 0x03002330
+#define ER_BATTLE 0x0200CAF1
+#define ER_FIELD 1
+#define ER_MENU 13
+#define ER_PARTY 14
+#define ER_MAP 26
+#define ER_CARD 56
+#define ER_V_TITLE 0xF0000080  /* the title or the language screen (ER-6) */
+#define ER_V_FORGET 0xF0000081 /* the title or a battle: the pictures go (ER-5, ER-6) */
+#define ER_V_PLACE 0xF0000082  /* the kind of place, 0 in a battle (ER-9) */
+#define ER_V_BATTLE 0xF0000083 /* a battle: its plates' last picture kept (ER-5) */
+/* the party's name plates and HP bars along the top in a battle (ER-5):
+ * BG3's first map entry is the first plate's corner exactly while they're
+ * up (the combo track has none there) */
+#define ER_PLATES 0x0600E002
+#define ER_PLATE 0x0212
+
+static uint32_t er_virt(Emu* e, uint32_t addr) {
+	int screen = emu_read8(e, ER_SCREEN);
+	bool title = screen == 3 || screen == 7;
+	bool battle = emu_read8(e, ER_BATTLE) != 0;
+	if (addr == ER_V_TITLE) return title;
+	if (addr == ER_V_BATTLE) return battle;
+	if (addr == ER_V_FORGET) return title || battle;
+	if (addr == ER_V_PLACE) return battle ? 0 : emu_read8(e, ER_PLACE);
+	return 0;
+}
+
+/* a press the game takes (it misses the quickest taps) */
+static void er_press(Emu* s, uint32_t key) {
+	aw_run(s, key, 4);
+	aw_run(s, 0, 4);
+}
+
+static bool er_on(Emu* s, int screen) {
+	return emu_read8(s, ER_SCREEN) == screen;
+}
+
+/* runs up to max frames (not drawn) until the screen byte reads screen */
+static bool er_wait(Emu* s, int screen, int max) {
+	for (int f = 0; f < max && !er_on(s, screen); ++f) emu_frame_blind(s, 0);
+	return er_on(s, screen);
+}
+
+/* runs frames until the picture has held still for `need` (past a slide
+ * or a fade): 12 for the Party screen (its cards come in two steps, ~8
+ * frames apart), 4 for the map (Eragon's figure steps in place every 6),
+ * and not dark (the black between the field and the map); false if it
+ * hasn't within max */
+static bool er_settle(Emu* s, int need, int max) {
+	static uint32_t prev[GBA_W * GBA_H];
+	int still = 0;
+	for (int f = 0; f < max; ++f) {
+		emu_frame(s, 0);
+		still = f && !memcmp(prev, s->fb, sizeof(prev)) && !sn_dark(s->fb) ? still + 1 : 0;
+		if (still >= need) return true;
+		memcpy(prev, s->fb, sizeof(prev));
+	}
+	return false;
+}
+
+/* back to walking about from the START menu or one of its screens, the
+ * map too (B, each step) */
+static bool er_to_field(Emu* s) {
+	if (er_on(s, ER_FIELD)) return true;
+	for (int i = 0; i < 5 && !er_on(s, ER_FIELD); ++i) {
+		er_press(s, K_B);
+		er_wait(s, ER_FIELD, 40);
+	}
+	/* (the field takes no START or L for ~120 frames after the menu,
+	 * ~140 after the map) */
+	aw_run(s, 0, 160);
+	return er_on(s, ER_FIELD);
+}
+
+static void er_put(const uint32_t* px, uint32_t* out, int w, int h, int y0, int y1) {
+	int cw = w < GBA_W ? w : GBA_W;
+	for (int y = y0; y < y1 && y < h && y < GBA_H; ++y) memcpy(&out[y * w], &px[y * GBA_W], (size_t) cw * 4);
+}
+
+static const char* er_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	/* a battle: the logo (ER-5); elsewhere neither screen opens but from
+	 * the field, its menu or the map (ER-4): quick failures */
+	if (emu_read8(s, ER_BATTLE) != 0) return "map button did nothing";
+	int screen = emu_read8(s, ER_SCREEN);
+	if (screen != ER_FIELD && screen != ER_MENU && screen != ER_PARTY && screen != ER_MAP) return "map button did nothing";
+	/* the map where L opens one (ER-3): the screen byte reads 0x9A (its
+	 * way in) at once; in a town it stays at ER_FIELD. (ER_PLACE doesn't
+	 * tell: the desert reads as a town there.) */
+	bool map = er_on(s, ER_MAP);
+	if (!map) {
+		if (!er_to_field(s)) return "not walking about";
+		er_press(s, K_L);
+		map = (emu_read8(s, ER_SCREEN) & 0x7F) == ER_MAP;
+		if (map && !er_wait(s, ER_MAP, 60)) return "the map didn't open";
+	}
+	if (map) {
+		if (!er_settle(s, 4, 120)) return "the map didn't settle";
+		if (emu_cancelled(s)) return "called off";
+		er_put(s->fb, out, w, h, 0, GBA_H);
+		return NULL;
+	}
+	/* no map here: the Party screen (ER-1), opened afresh so the first
+	 * card is chosen */
+	if (!er_on(s, ER_FIELD)) return "not walking about";
+	er_press(s, K_START);
+	if (!er_wait(s, ER_MENU, 60)) return "map button did nothing";
+	/* the menu takes A ~50 frames after it's up (its eye keeps moving, so
+	 * no still picture tells when): wait, then A until the Party screen
+	 * opens (its cursor starts on Party) */
+	aw_run(s, 0, 46);
+	for (int i = 0; i < 4 && !er_on(s, ER_PARTY); ++i) {
+		er_press(s, K_A);
+		er_wait(s, ER_PARTY, 12);
+	}
+	if (!er_on(s, ER_PARTY)) return "the Party screen didn't open";
+	if (!er_settle(s, 12, 150)) return "the Party screen didn't settle";
+	/* each card from the picture with it chosen (ER-2): DOWN to the next,
+	 * until DOWN changes nothing (fewer in the party: the empty slot stays
+	 * as drawn) */
+	static uint32_t last[GBA_W * GBA_H];
+	memcpy(last, s->fb, sizeof(last));
+	er_put(s->fb, out, w, h, 0, GBA_H);
+	for (int k = 1; k * ER_CARD < GBA_H; ++k) {
+		er_press(s, K_DOWN);
+		if (!er_settle(s, 12, 60)) return "the Party screen didn't settle";
+		if (!er_on(s, ER_PARTY)) return "the Party screen closed";
+		if (!memcmp(last, s->fb, sizeof(last))) break;
+		memcpy(last, s->fb, sizeof(last));
+		er_put(s->fb, out, w, h, k * ER_CARD, (k + 1) * ER_CARD);
+	}
+	if (emu_cancelled(s)) return "called off";
+	return NULL;
 }
 
 static const MapProfile profiles[] = {
@@ -3707,18 +5327,25 @@ static const MapProfile profiles[] = {
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
 		/* the field cursor moved: the list again, on its unit */
-		.room = { { 0x0202AB90, 0xFFFF, 0, 2 } },
+		/* (and the world map's location under the cursor, Organize's roster
+		 * cursor and its scroll, the phase: TO-10, TO-11, TO-13) */
+		.room = { { 0x0202AB90, 0xFFFF, 0, 2 }, { TO_WM_HOVER_, 0xFF, 0, 1 }, { TO_V_KEY, 0, 0, 4 } },
 		/* the title: the logo again, no captures (TO-4) */
 		.menu = { { TO_V_TITLE, 0xFF, 1, 4 } },
 		.live = { { TO_V_TITLE, 0xFF, 0, 4 } },
+		/* Training's empty square: the logo (TO-9); out of battle with
+		 * nothing to take, and the enemy's phase: the logo (TO-12, TO-13) */
+		.logoIf = { { TO_V_NOAIMS, 0xFF, 1, 4 } },
+		.logoIfOr = { { TO_V_STALE, 0xFF, 1, 4 } },
 		/* the title's lettering (BG2) and The Knight of Lodis (sprites, above
 		 * PUSH START), not the emblem behind or OGRE BATTLE SAGA (BG1) */
 		.logo = { .steps = { { 0, 480 }, { K_START, 4 }, { 0, 50 } }, .layers = 0x14, .maxY = 90 },
 	},
 	{
-		/* Japan (Tactics Ogre Gaiden): the same (its title's lettering is
-		 * the USA one, 外伝 beside it); the list's cursor and page 0x4D4
-		 * lower (TO_JP), the field cursor's place its own (by romxref) */
+		/* Japan (Tactics Ogre Gaiden): the same in battle (its title's
+		 * lettering is the USA one, 外伝 beside it); the field cursor's place
+		 * its own (by romxref), R's menu's too (TO_MENU_UP); out of battle
+		 * not known (to_world: USA only) */
 		.codes = { "ATOJ" },
 		.title = "Tactics Ogre: The Knight of Lodis",
 		.composePages = to_compose,
@@ -3726,9 +5353,11 @@ static const MapProfile profiles[] = {
 		.stillPick = STILL_FIRST,
 		.crop_w = GBA_W,
 		.crop_h = GBA_H,
-		.room = { { 0x0202B5C0, 0xFFFF, 0, 2 } },
+		.room = { { 0x0202B5C0, 0xFFFF, 0, 2 }, { TO_WM_HOVER_ - 0x470, 0xFF, 0, 1 }, { TO_V_KEY, 0, 0, 4 } },
 		.menu = { { TO_V_TITLE, 0xFF, 1, 4 } },
 		.live = { { TO_V_TITLE, 0xFF, 0, 4 } },
+		.logoIf = { { TO_V_NOAIMS, 0xFF, 1, 4 } },
+		.logoIfOr = { { TO_V_STALE, 0xFF, 1, 4 } },
 		.logo = { .steps = { { 0, 480 }, { K_START, 4 }, { 0, 50 } }, .layers = 0x14, .maxY = 90 },
 	},
 	{
@@ -3912,6 +5541,84 @@ static const MapProfile profiles[] = {
 		 * (sprites) or the copyright lines (BG1 from row 137: from row 122
 		 * down, the badge alone) */
 		.logo = { .steps = { { 0, 300 }, { K_A, 6 }, { 0, 1000 } }, .layers = 0x06, .maxY = 142, .lowFrom = 122, .lowLayers = 0x04, .rev = 1 },
+	},
+	{
+		/* Muppet Pinball Mayhem: the table over both screens, live (see
+		 * profiles.h tall; docs/games/muppet-pinball-mayhem.md). The score
+		 * bar (BG0, BG1: lines 0-15, in display mode 1 with window 0, where
+		 * the table's BG3 doesn't show) stays at the top of the top screen. */
+		.codes = { "AMWE", "AMWP" }, /* (the same code and RAM; Europe has a Ubi Soft screen before the title) */
+		.title = "Muppet Pinball Mayhem",
+		.logoOnly = true,
+		.tall = {
+			/* on a table: the score bar's BG0 and the table's BG3 (256
+			 * colours, 256x512, map 0x0000) set up */
+			.on = { { 0x04000008, 0xFFFF, 0x0200, 2 }, { 0x0400000E, 0xFFFF, 0x8083, 2 } },
+			.hudBg = 0x03,
+			.rows = 359, /* (every table: the camera's 0-215, its view 16 rows above) */
+			.hudRow = GBA_H, /* (nothing at the bottom: the score bar stays on the top screen) */
+			/* the camera: a row (0x030019C8; BG3VOFS = it - 16, set at the
+			 * vblank by 0x080008EA, HOFS 0x030019CA) eased toward 0x120 less
+			 * the ball's height (0x08004B4E), clamped to 0-0xD7, its speed at
+			 * 0x030019EC. As it moves, 0x08004E40 queues the tile rows coming
+			 * into view (BG3's map is fixed; table tile rows far apart share
+			 * tiles) into a ring of 64 16-byte entries (source, destination,
+			 * size, kind; start 0x03002AA0, count 0x03002A9C) done at the next
+			 * vblank (0x080064E8). The sprites are written to OAM by the
+			 * vblank code from the objects (no shadow table) */
+			.live = { .oam = 0x07000000, .view = 0x030019C8, .viewBg = 3,
+			          .carry = { .cam = 0x03001A00, .camOff = 16, .viewOff = 16, .top = -16, .gameFrom = 17,
+			                     /* (the game's mode 0x030013B6: 4 in play, 6 a ball's bonus
+			                      * count, 3 then 2 the next ball; 5 paused; 7 then 8 the
+			                      * game over, through its curtains) */
+			                     .plain = { { 0x030013B6, 0xFF, 5, 1 }, { 0x030013B6, 0xFF, 7, 1 }, { 0x030013B6, 0xFF, 8, 1 } },
+			                     .ready = { 0x030013B6, 0xFF, 2, 1, true, 0x0C, true }, /* (modes 0 and 1: the table being set up, its tiles still the menus') */
+			                     .keepObj = true,
+			                     .keepDim = true, /* (its fade out at a game's end: both screens fade) */
+			                     .ringLo = 0x2D40, .ringHi = 0x10000,
+			                     /* (its camera's row) */
+			                     .vars = { { 0x030019C8, 4 } },
+			                     .qCount = 0x03002A9C, .qWide = true, .qIndex = 0x03002AA0, .qSlots = 64,
+			                     .qEntries = 0x0300269C, .qStride = 16, .qDst = 4, .qSize = 8, .qReload = 0x8000,
+			                     .patch = {
+			                         /* the camera's target: the halfword at 0x03001A00 (never read
+			                          * or written by the game, nor named in its code; game.c puts the
+			                          * copy's row there) instead of 0x120 less the ball's height:
+			                          * mov r1,r8; ldrh r1,[r1,#0x38]. (Not 0x030019E0: that's the
+			                          * hold timer of the pan up the table after a ball is saved, at
+			                          * 0x08004D30, which a target there kept running: the copies'
+			                          * view froze.) The game's own easing and streaming then move
+			                          * the copy there */
+			                         { 0x08004B50, 0x4641 }, { 0x08004B52, 0x8F09 }, { 0x08004B54, 0x46C0 },
+			                         { 0x08004B56, 0x46C0 }, { 0x08004B58, 0x46C0 },
+			                         /* and always that way: not the game's own pans (a ball
+			                          * starting or lost: 0x030019E8 clear, b 0x08004CC4) */
+			                         { 0x08004B4C, 0x46C0 },
+			                         /* and there at once, not eased (the stores of the eased row;
+			                          * the streaming sees the move all the same): a copy's target
+			                          * moves with the game's view, which its easing would trail */
+			                         { 0x08004C58, 0x46C0 }, { 0x08004CAA, 0x46C0 },
+			                         /* nor the easing up the table after a ball is saved
+			                          * (0x030019E9 set: the view eased from 0x030019D4 by
+			                          * 0x08004D76, held by the timer at 0x030019E0), which both
+			                          * paths reach at 0x08004CEE: beq 0x08004D7C -> b */
+			                         { 0x08004CF4, 0xE042 },
+			                         /* the table on lines 0-15 too (under the score bar, which the
+			                          * copies leave out): display mode 1's store at line 0 gone, and
+			                          * line 16's (0x08000A7A) stores DISPCNT without window 0 (whose
+			                          * WININ leaves BG3 out): lsrs r2,r1,#13 (0x2000); bics r0,r2;
+			                          * strh r0,[r1]; then BLDALPHA 0x1000 as before: adds r1,#0x52;
+			                          * lsrs r0,r1,#14; strh r0,[r1] */
+			                         { 0x0800087E, 0x46C0 },
+			                         { 0x08000A80, 0x0B4A }, { 0x08000A82, 0x4390 }, { 0x08000A84, 0x8008 },
+			                         { 0x08000A86, 0x3152 }, { 0x08000A88, 0x0B88 }, { 0x08000A8A, 0x8008 } } } },
+		},
+		/* the title (from frame 1650 on USA's, 2050 on Europe's, after its
+		 * Ubi Soft screen) is one picture on BG0, the name painted into its
+		 * top left corner on a badge of a starburst and three bumpers: that
+		 * corner by its mask (tools/make_logo_masks.py), without the sky,
+		 * the roller coaster or the Muppets */
+		.logo = { .wait = 2300, .mask = &logoMaskAMW, .rev = 1 /* (cut along the official logo's outline: test builds' first cut made again) */ },
 	},
 	{
 		/* Sonic Advance (USA, Europe and Japan (Rev 1): the same sprites,
@@ -4606,6 +6313,185 @@ static const MapProfile profiles[] = {
 		},
 	},
 	{
+		/* Crash Nitro Kart (docs/games/crash-nitro-kart.md), Mario Kart's
+		 * second screen. Driving (races, Time Trial, the Adventure hub),
+		 * the end-of-race menus and the pause all use display mode 1 with
+		 * BG0-2 and sprites (DISPCNT 0x1741), the HUD on BG0 (BG0CNT 0x1800,
+		 * map at 0x0600C000). BG0's tiles are handed out as each screen is
+		 * built (from 0x300), so no tile number is fixed: what the map
+		 * holds tells the screens apart. The course map is an 8x8 block of
+		 * cells (rows 12-19, columns 22-29), filled while driving whatever
+		 * the course's shape: cell (16, 26). RACE RANKINGS has the faces'
+		 * column (cell (3, 0)) but no map; TRY AGAIN? neither; the pause
+		 * takes the HUD off BG0. Sprite tiles are handed out the same way:
+		 * the HUD's sprites are told by priority 0, place and size. */
+		.codes = { "BCNE", "BCNP" },
+		.title = "Crash Nitro Kart",
+		.logoOnly = true,
+		/* the title is one bitmap (mode 4) from frame ~880: the tyre and
+		 * lettering inside the mask, the swirl behind left out (CNK-1) */
+		.logo = { .wait = 950, .mask = &logoMaskCNK },
+		.hud = {
+			/* driving: the course map's cell filled (CNK-2), and the game's
+			 * fade-in done (0x03002A5B: 0xB0-0xF0 as a race fades in through
+			 * its palettes, the HUD already up; 0xFF from then on, all
+			 * through a race): the scenery behind the map is taken then,
+			 * not half faded in */
+			.on = { { 0x04000000, 0xFFFF, 0x1741, 2 }, { 0x04000008, 0xFFFF, 0x1800, 2 },
+			        { 0x0600C434, 0x03FF, 1, 2, true, 0x3FF, true }, { 0x03002A5B, 0xFF, 0xFF, 1 } },
+			/* paused: the player's pause byte (0x030045A1, 1 from START until
+			 * the HUD is back after RESUME): the last HUD stays (CNK-6) */
+			.keep = { { 0x030045A1, 0xFF, 1, 1 } },
+			/* RACE RANKINGS: the map's cell blank, the faces' column filled:
+			 * the table as it is (no moves, no map), CNK-5 */
+			.alt = { .on = { { 0x04000000, 0xFFFF, 0x1741, 2 }, { 0x04000008, 0xFFFF, 0x1800, 2 },
+			                 { 0x0600C434, 0x03FF, 0, 2 }, { 0x0600C0C0, 0x03FF, 1, 2, true, 0x3FF, true } },
+			         .bgMask = 1 },
+			.bgMask = 1,
+			/* priority 0: the place numbers by the faces (8x8 at x 26), the
+			 * wumpa icon (32x32 at x 128), the hub's trophy and key (tall
+			 * shapes, top: the key spins, 8x32 edge-on), the racers' dots on
+			 * the map (8x8, bottom right). Not the
+			 * item you hold (32x32 at x 96: it stays on the game screen,
+			 * CNK-3), the countdown's lights (16x16 at row 47; at GO they fly
+			 * up past the top as 32x32s) or its letters (row 86) */
+			.objs = { { 16, -8, 40, 127, 0, 1023, 0, 0, 0, 1u << 0 },
+			          { 126, -2, 130, 3, 0, 1023, 0, 0, 0, 1u << 2 },
+			          { 64, 4, 80, 13, 0, 1023, 0, 0, 0, 0xFu << 8 },
+			          { 146, 4, 164, 13, 0, 1023, 0, 0, 0, 0xFu << 8 },
+			          { 150, 80, 239, 159, 0, 1023, 0, 0, 0, 1u << 0 } },
+			.layout = { { 0x0600C434, 0x03FF, 1, 2, true, 0x3FF, true } },
+			/* the course map (the hub's too) in the bottom-right corner,
+			 * twice as big on every course (CNK-4): up to 62x62 (Velo's
+			 * Challenge), taller than Mario Kart's way allows at 2x (60 with
+			 * its margin), so at a fixed place: right of the faces, its
+			 * bottom at row 156 (the tallest from row 33, below the top
+			 * row's time and wumpa icon) */
+			.map = { 176, 90, 239, 159 },
+			.mapAt = { 2, 139, 156 },
+			/* the sky (BG3) and the scenery (BG1, BG2 above the horizon) */
+			.backdrop = 0xE,
+			.backdropRows = 70,
+			/* back onto the game screen where the game draws them (CNK-3):
+			 * the place (bottom left), the middle (turn signs; below the
+			 * hub's trophy count, rows 21-32), the bottom centre (the hub's
+			 * place names) */
+			.moves = { { 0, 128, 60, 159, 0, 0, 0, 0, true }, { 50, 36, 175, 127, 0, 0, 0, 0, true },
+			           { 61, 128, 175, 159, 0, 0, 0, 0, true } },
+		},
+	},
+	{
+		/* V-Rally 3 (docs/games/v-rally-3.md), the racing games' second
+		 * screen. A stage is a bitmap (mode 4, DISPCNT 0x1444 / 0x1454 as
+		 * the game flips its frames) with the HUD, sky and scenery as
+		 * sprites: the HUD priority 0, the scenery priority 1. The menus
+		 * use the same display mode; only a stage has the V-count
+		 * interrupt on (DISPSTAT bit 5). Sprite tiles are handed out per
+		 * mode (808-815 is LAP in V-Rally Cross, the damage lights in
+		 * V-Rally Mode), so each piece is told by tile, palette and place.
+		 * The countdown, NEW RECORD, the hazard boards, the pause box and
+		 * the in-car dashboard are drawn into the bitmap: they stay on the
+		 * game screen with the track (VR3-2). */
+		.codes = { "AVRE", "AVRP" },
+		.title = "V-Rally 3",
+		.logoOnly = true,
+		/* no title screen: the main menu's heading, V-RALLY 3, painted into
+		 * its bitmap over purple stripes (VR3-1). From power-on: the
+		 * language (START), the save slot (A, A), its name and flag (A,
+		 * A, START), then A on to the main menu (no battery save on the
+		 * logo's copy, so the same every time) */
+		.logo = { .steps = { { 0, 1500 }, { K_START, 4 }, { 0, 120 }, { K_A, 4 }, { 0, 120 }, { K_A, 4 }, { 0, 120 },
+		                     { K_A, 4 }, { 0, 90 }, { K_A, 4 }, { 0, 90 }, { K_START, 4 }, { 0, 90 },
+		                     { K_A, 4 }, { 0, 90 }, { K_A, 4 }, { 0, 120 }, { K_A, 4 }, { 0, 120 } },
+		          .mask = &logoMaskVR3 },
+		.hud = {
+			/* a stage: the V-count interrupt on and the bitmap mode; the
+			 * HUD's own sprites tell its first frames (none yet) apart
+			 * (VR3-2, VR3-7) */
+			.on = { { 0x04000004, 0x0020, 0x0020, 2 }, { 0x04000000, 0x0007, 4, 2 } },
+			.emptyIsOff = true,
+			.objs = { /* BEST TIME / CHECK POINT and its time */
+			          { -8, -8, 80, 24, 816, 831, 0, 1u << 5 },
+			          /* the clock */
+			          { 150, -8, 240, 24, 1000, 1015, 0, 1u << 8 },
+			          /* POS (moved back onto the game screen, VR3-3) */
+			          { -8, 24, 80, 40, 1016, 1023, 0, 1u << 5 },
+			          /* LAP (V-Rally Cross) */
+			          { -8, 40, 80, 56, 808, 815, 0, 1u << 5 },
+			          /* the damage lights (V-Rally Mode) */
+			          { 200, 16, 239, 100, 800, 815, 0, 1u << 8 },
+			          /* the course map: its line, the dots, the round backing */
+			          { 160, 80, 239, 159, 832, 832, 0, 1u << 6 },
+			          { 160, 80, 239, 159, 896, 899, 0, 1u << 6 },
+			          { 160, 80, 239, 159, 900, 912, 0, 1u << 7 } },
+			/* the map's box (the 64x64 sprite at 176, 96 and its backing),
+			 * twice as big at the bottom centre (VR3-4) */
+			.map = { 176, 96, 239, 159 },
+			.mapAt = { 2, 120, 158 },
+			/* POS up into BEST TIME's corner of the game screen (VR3-3);
+			 * LAP up into POS's place on the second screen (VR3-4) */
+			.moves = { { 0, 26, 80, 39, 'L', 7, 'T', 6, true },
+			           { 0, 42, 80, 55, 'L', 7, 'T', 30 } },
+		},
+	},
+	{
+		/* GT Advance 3: Pro Concept Racing (docs/games/
+		 * gt-advance-3-pro-concept-racing.md), the racing games' second
+		 * screen. A race is display mode 1, its picture split by line: the
+		 * sky on BG0 (lines 0-51), the scenery on BG1 at priority 1 and the
+		 * road on BG2 (affine); from line 80 BG1 is the HUD's bottom bar
+		 * (LAP-TIME or MAX-COMBO, the rev counter's dial and the speed box)
+		 * at priority 0, so the frame ends with BG1CNT 0x5E48. Everything
+		 * else of the HUD is priority-0 sprites in palettes 11-14 (the
+		 * figures in 14, the words in 13, the course map 11, its dots 12):
+		 * told by place, since the figures share their tiles. The
+		 * countdown, the corner signs, WRONG WAY, GHOST OVER, GOAL!, a
+		 * finished lap's time and the pause menu are sprites elsewhere on
+		 * the screen: they stay on the game screen (GT3-2). */
+		.codes = { "A2GE", "A2GP" },
+		.title = "GT Advance 3: Pro Concept Racing",
+		.logoOnly = true,
+		/* the title's lettering, GT3 ADVANCE PRO CONCEPT RACING, painted
+		 * into its picture over the highway (GT3-1): past the
+		 * disclaimer (A) from power-on */
+		.logo = { .steps = { { 0, 720 }, { K_START, 4 }, { 0, 68 }, { K_A, 4 }, { 0, 250 } },
+		          .mask = &logoMaskGT3 },
+		.hud = {
+			/* a race: display mode 1 with the bottom bar's BG1 (GT3-2);
+			 * the replay after the finish draws no HUD: the logo (GT3-7) */
+			.on = { { 0x04000000, 0x0007, 1, 2 }, { 0x0400000A, 0xFFFF, 0x5E48, 2 } },
+			.emptyIsOff = true,
+			/* on black (GT3-4) */
+			.black = true,
+			/* paused (the pause flag): the HUD as it was before the game
+			 * hid it (GT3-5) */
+			.freeze = { { 0x0203EE58, 0x20, 0x20, 1 } },
+			/* the bottom bar: BG1 where it's priority 0 (from line 80) */
+			.bgPrioBelow = 1,
+			.objs = { /* the top row: TOTAL TIME, POSITION, LAP */
+			          { -8, -8, 239, 8, 800, 1023, 0, (1u << 13) | (1u << 14) },
+			          /* the course map (also Practice's) and its dots,
+			           * also as they slide off to the left at the finish
+			           * (GT3-6) */
+			          { -72, 8, 72, 80, 700, 799, 0, 1u << 11 },
+			          { -72, 8, 72, 88, 800, 807, 0, 1u << 12 },
+			          /* LAP-TIME's or MAX-COMBO's figures (the combo's
+			           * count from tile 448) */
+			          { -8, 130, 149, 168, 400, 1023, 0, (1u << 13) | (1u << 14) },
+			          /* the rev counter's needle, the speed and the gear
+			           * (moved back onto the game screen, GT3-3) */
+			          { 150, 100, 239, 168, 800, 1023, 0, (1u << 13) | (1u << 14) } },
+			/* the map's 64x64 sprite, twice as big in the middle (GT3-4) */
+			.map = { 0, 16, 63, 79 },
+			.mapAt = { 2, 120, 140 },
+			/* POSITION back onto the game screen, into the top-left
+			 * corner, where TOTAL TIME was; the rev counter with the speed
+			 * and gear where they were (GT3-3) */
+			.moves = { { 119, 0, 183, 20, 'L', 0, 0, 0, true },
+			           { 150, 100, 239, 159, 0, 0, 0, 0, true } },
+		},
+	},
+	{
 		/* Summon Night: Swordcraft Story 2 (USA; in Japan Craft Sword
 		 * Monogatari 2, the same RAM and menus). Walking about: DISPCNT
 		 * 0x1F40; START's menu and its Status screen 0x3F40, the Status with
@@ -4747,6 +6633,49 @@ static const MapProfile profiles[] = {
 		.hideWhen = { { LS_V_PLAY, 0, 1, 1 } },
 	},
 	{
+		/* Ninja Five-O (USA; Europe, Ninja Cop: the ANXP variant). No
+		 * screen of the game's own holds its status (its pause is a menu
+		 * over the stage), so the HUD moves: see NFO_HUD below. */
+		.codes = { "ANXE" },
+		.title = "Ninja Five-O",
+		/* the title's NINJA and FIVE-O, cut out of the title by their
+		 * colours (tools/make_logo_masks.py nfo): without the kanji's
+		 * brush strokes behind them, NINJA's white outline, the white
+		 * screen, the TM, PRESS START or the copyright line (NFO-1) */
+		.logo = { .steps = { { 0, 1200 }, { K_START, 4 }, { 0, 60 }, { K_START, 4 }, { 0, 60 } },
+		          .mask = &logoMaskNFO, .rev = 2 },
+		.logoOnly = true,
+		.hud = {
+			/* in a stage: the HUD's layer on, with its settings (BG0,
+			 * screen 31, tiles 3; priority 0, or 1 in the Launch Site) */
+			.on = { { 0x04000008, 0xFFFC, 0x1F0C, 2 }, { 0x04000000, 0x0100, 0x0100, 2 },
+			        /* the mission (0 Bank ... 4 Base): not the Launch Site */
+			        { 0x03003D41, 0xFF, 0, 1, true, 4, true },
+			        /* not the opening's demo (1 there, from its first frame) */
+			        { 0x03003D52, 0xFF, 0, 1 } },
+			.bgMask = 0x1,
+			/* the Launch Site (mission 5): its BG0 is no HUD row but the
+			 * red that fades in over the stage as the ninja dies (kept
+			 * hidden by the blend till then): the sprites alone go, BG0
+			 * stays on the game screen; a move that does nothing, so
+			 * the bottom row's (none here) isn't copied up over the
+			 * countdown (NFO-2, NFO-3) */
+			.alt = { .on = { { 0x04000008, 0xFFFC, 0x1F0C, 2 }, { 0x04000000, 0x0100, 0x0100, 2 },
+			                 { 0x03003D41, 0xFF, 5, 1 }, { 0x03003D52, 0xFF, 0, 1 } },
+			         .bgMask = 0,
+			         .moves = { { 0, 159, 0, 159, 0, 0, 'T', 159 } } },
+			/* the bars, points or time, the boss's bar and the Launch
+			 * Site's countdown: priority 1 at the top (the stage's own
+			 * things are 2, the card and pause menu 0) */
+			.objs = { { -16, -16, 255, 24, 0, 1023, 1, 0 } },
+			/* the bottom row (shuriken level, keys, RESCUE) up under
+			 * the bars, the logo below them both */
+			.moves = { { 0, 152, 239, 159, 0, 0, 'T', 24 } },
+			.logoBelow = true,
+			.logoTop = 32,
+		},
+	},
+	{
 		/* Wario Land 4 (USA and Europe; Japan: the AWAJ variant, same
 		 * addresses and screens). The pause screen (START) slides down
 		 * from the top over some 40 frames: its menu in rows 0-23 (BG0
@@ -4815,6 +6744,48 @@ static const MapProfile profiles[] = {
 		},
 	},
 	{
+		/* Super Mario Advance 3: Yoshi's Island (USA and Japan; Europe:
+		 * the A3AP variant, its language menu first; all three with the
+		 * same addresses). In a level the status screen, on a world's
+		 * panel its score page: see sm3_compose (SM3-1 to SM3-3).
+		 * Nothing leaves the game screen (SM3-6). */
+		.codes = { "A3AE", "A3AJ" },
+		.title = "Super Mario Advance 3: Yoshi's Island",
+		.compose = sm3_compose,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		.virt = sm3_virt,
+		/* in a level or on a world's panel: taken (about once a second;
+		 * the score page only when its world or scores change) */
+		.live = { { SM3_V_LIVE, 0, 1, 1 } },
+		/* the title, game select, file menu, opening, island map, a bonus
+		 * game, Mario Bros.: the logo (SM3-4) */
+		.menu = { { SM3_V_MENU, 0, 1, 1 } },
+		/* the game screen showing the status screen (its display set)
+		 * or a world's score page (from SCORE picked until the cards
+		 * have turned back): the logo, not the same on both (SM3-1,
+		 * SM3-3); the picture back after */
+		.logoIf = { { 0x04000000, 0xFFFF, SM3_STATUS_DISP, 2 }, { 0x0400000E, 0xFFFF, SM3_STATUS_BG3, 2 } },
+		.logoIfOr = { { SM3_SCREEN, 0xFF, SM3_ON_PANEL, 1 }, { SM3_SCORE_UP, 0xFF, 1, 1, true, 2, true } },
+		/* into a level or back to the panel, or another world's panel
+		 * picked: taken again at once */
+		.room = { { SM3_SCREEN, 0, 0, 1 }, { SM3_WORLD, 0, 0, 1 } },
+		/* Yoshi's Island's own title (from power-on: the Super Mario
+		 * Advance 3 title, START, the game select, A): YOSHI'S ISLAND
+		 * and its TM on BG1, rows 16-63, the copyright line below them
+		 * left out (SM3-5) */
+		.logo = { .steps = { { 0, 300 }, { K_START, 5 }, { 0, 200 }, { K_START, 5 }, { 0, 200 }, { K_A, 5 }, { 0, 360 } },
+		          .layer = 1, .maxY = 64 },
+		/* Controls GBA or SNES (SM3-7): the SNES game's buttons by
+		 * position, B bottom jumps (GBA A), Y left the tongue (GBA B), A
+		 * right and X top throw an egg (GBA R), both shoulders lock the aim
+		 * (GBA L); in a level only. No camera pan (`pan` 0). */
+		.controls = {
+			.snes = { .right = K_R, .bottom = K_A, .top = K_R, .left = K_B,
+			          .when = { { SM3_SCREEN, 0xFF, SM3_IN_LEVEL, 1 } } },
+		},
+	},
+	{
 		/* Mario & Luigi: Superstar Saga (USA; Europe and Japan, Mario &
 		 * Luigi RPG: variants). Walking about, the Bros. Info screen, the
 		 * page of the brother in front: see ml_compose (ML-2) */
@@ -4841,19 +6812,32 @@ static const MapProfile profiles[] = {
 			/* in a battle, before its results (ML-5): those stay on the
 			 * game screen whole, the logo alone on the second screen */
 			.on = { { ML_STATE, 0xFF, 3, 1 }, { ML_RESULTS, 0xFFFF, 0, 2 } },
+			/* and once the results are up, off to the battle's end: a
+			 * level-up after them clears their panels before its own
+			 * (the brother jumping, his level, the star), and stays on
+			 * the game screen too (ML-5, issue #29) */
+			.offAfter = { { ML_RESULTS, 0xFFFF, 1, 2, true, 0xFFFF, true } },
 			/* the boxes' frames (BG3: only ever the boxes; empty in a
 			 * conversation, and between the boxes) */
 			.bgMask = 0x8,
 			/* their text (BG2) only while a box is up: BG2 is also the
-			 * tutorials' speech balloons, which stay by the speaker */
-			.memLayers = { .when = { { ML_BOX_TOP, 0xF000, 0x8000, 2 }, { ML_BOX_BOTTOM, 0xF000, 0x8000, 2 } }, .bgMask = 0x4, .any = true },
+			 * tutorials' speech balloons, which stay by the speaker, also
+			 * while a box is up (the Starshade Bros.' Bros. Attack
+			 * tutorial): their lines, BG2 in palette 15 (the boxes' text
+			 * is 9; they never share a line), stay on the game screen
+			 * (issue #31) */
+			.memLayers = { .when = { { ML_BOX_TOP, 0xF000, 0x8000, 2 }, { ML_BOX_BOTTOM, 0xF000, 0x8000, 2 } }, .bgMask = 0x4, .any = true, .gamePal = 16 },
 			/* priority 0: the meters, the menus' cursor and icons (the
 			 * blocks, the A over the brother's head and the rest are 2);
-			 * not palette 15: a speech balloon's marker and edges. The
+			 * from tile 112 only palettes 11 (the cursor and icons) and
+			 * 13 (the BROS list's level marks): a Bros. Attack's big
+			 * button prompts (7), the "!" over a brother's head (8) and
+			 * a speech balloon's marker and edges (15) stay (issue #31).
+			 * The
 			 * meters' digits and backing (tiles 0-111) only in their
 			 * corner (x 4-93, rows 130-142 seen): the damage numbers over
 			 * an enemy or a brother are the same digits, and stay */
-			.objs = { { -16, 120, 110, 159, 0, 111, 0, 0x7FFF }, { -256, -96, 255, 159, 112, 1023, 0, 0x7FFF } },
+			.objs = { { -16, 120, 110, 159, 0, 111, 0, 0x7FFF }, { -256, -96, 255, 159, 112, 1023, 0, 0x2800 } },
 			/* the meters (bottom left; the bottom box starts at 120) to
 			 * the top left corner, against the top right box (from
 			 * column 104) and above the item list's cursor (from row 29);
@@ -4908,6 +6892,83 @@ static const MapProfile profiles[] = {
 		/* the title with THE LEGACY OF GOKU, after A skips the intro: the
 		 * lettering inside its mask (DBZ-1) */
 		.logo = { .steps = { { 0, 900 }, { K_A, 9 }, { 0, 150 } }, .mask = &logoMaskDBZ },
+	},
+	{
+		/* Dragon Ball Z: The Legacy of Goku II (USA; Japan's International
+		 * the same, ALFJ; Europe ALFP). Walking about, the Scouter's area
+		 * map, or before the Scouter the Status page: see dbz2_compose
+		 * (DBZ2-2, DBZ2-3) */
+		.codes = { "ALFE" },
+		.title = "Dragon Ball Z: The Legacy of Goku II",
+		.compose = dbz2_compose,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* walking about (conversations too: there neither R nor START
+		 * opens anything, and the last picture stays, DBZ2-5) */
+		.live = { { 0x04000000, 0xFFFF, DBZ2_FIELD_DISP, 2 } },
+		/* the area: 0 on the title, the file menu and the intro, 99 flying
+		 * over the world: the logo, the last map forgotten (DBZ2-1,
+		 * DBZ2-6) */
+		.menu = { { 0x03002081, 0xFF, 0x00, 1, true, 0x63 } },
+		/* zone and area: a new area's map at once (GEN-6) */
+		.room = { { 0x03002080, 0xFFFF, 0, 2 } },
+		/* flying over the world (DISPCNT 0x1741, area 99): the inset map at
+		 * the top right (BG0 rows 4-49, its marks 8x8 sprites: your arrow,
+		 * the places' star and dots) moves to the second screen, twice as
+		 * big and in the middle (DBZ2-6). BG0's haze over the horizon,
+		 * from row 56 down, stays on the game screen as the game draws it
+		 * (blended) */
+		.hud = {
+			.on = { { 0x04000000, 0xFFFF, 0x1741, 2 }, { 0x03002081, 0xFF, 0x63, 1 } },
+			.bgMask = 1,
+			.rows = 56,
+			.objs = { { 150, -8, 239, 55, 0, 1023, -1, 0, 0, 1u << 0 } },
+			/* (grown from what's drawn: the outline, 63x46, centred at
+			 * row 80; a mark past its edge grows it a little) */
+			.map = { 150, 0, 239, 55 },
+			.mapAt = { 2, 120, 125 },
+		},
+		/* the title, after START skips the intro: DRAGON BALL Z and THE
+		 * LEGACY OF GOKU II inside its mask (DBZ2-1) */
+		.logo = { .steps = { { 0, 900 }, { K_START, 6 }, { 0, 150 } }, .mask = &logoMaskDBZ2 },
+	},
+	{
+		/* Dragon Ball Z: Buu's Fury (USA only). Walking about, the
+		 * Scouter's area map: see bf_compose (BF-2) */
+		.codes = { "BG3E" },
+		.title = "Dragon Ball Z: Buu's Fury",
+		.compose = bf_compose,
+		/* (an empty Scouter, in a shop: the last map dimmed, BF-8) */
+		.dimWhenUnavailable = true,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* walking about (the story scenes and conversations too: there
+		 * SELECT opens nothing, and the last picture or the logo stays,
+		 * BF-1, BF-4) */
+		.live = { { 0x04000000, 0xFFFF, BF_FIELD_DISP, 2 } },
+		/* 0 on the title and the file menu, 0x32 flying over the world:
+		 * the logo, the last map forgotten (BF-1, BF-5) */
+		.menu = { { BF_ZONE, 0xFF, 0x00, 1, true, 0x32 } },
+		/* the area: a new area's map at once (GEN-6) */
+		.room = { { BF_AREA, 0xFFFFFFFF, 0, 4 } },
+		/* flying over the world (DISPCNT 0x1741, zone 0x32): the inset map
+		 * at the top right (BG0 rows 6-51, your arrow an 8x8 sprite) moves
+		 * to the second screen, twice as big and in the middle (BF-5).
+		 * BG0's haze over the horizon, from row 56 down, and the help bar
+		 * (sprites at row 136) stay on the game screen */
+		.hud = {
+			.on = { { 0x04000000, 0xFFFF, 0x1741, 2 }, { BF_ZONE, 0xFF, 0x32, 1 } },
+			.bgMask = 1,
+			.rows = 56,
+			.objs = { { 150, -8, 239, 55, 0, 1023, -1, 0, 0, 1u << 0 } },
+			/* (grown from what's drawn: the outline, 63x46, centred at
+			 * row 80; a mark past its edge grows it a little) */
+			.map = { 150, 0, 239, 55 },
+			.mapAt = { 2, 120, 125 },
+		},
+		/* the title, which comes up with no input: DRAGON BALL Z and BUU'S
+		 * FURY inside its mask (BF-1) */
+		.logo = { .steps = { { 0, 900 } }, .mask = &logoMaskBF },
 	},
 	{
 		/* River City Ransom EX (USA; in Japan Downtown Nekketsu Monogatari
@@ -5157,6 +7218,179 @@ static const MapProfile profiles[] = {
 		 * what's below it (HM-5) */
 		.logo = { .wait = 1000, .layer = 4, .minX = 46, .maxY = 96 },
 	},
+	{
+		/* Super Mario Advance (USA and Europe; Japan, Super Mario USA +
+		 * Mario Brothers, the same: its levels use the same display
+		 * settings). Super Mario Bros. 2 has no map and its pause box only
+		 * the overall Ace Coin percentage: no capture, the logo, and in a
+		 * level the status bar on the second screen (SMB2-1). */
+		.codes = { "AMAE", "AMAJ" },
+		.title = "Super Mario Advance",
+		/* The "map": the pause box's Ace Coin percentage (START on the
+		 * hidden copy, in a level, about once a second), which counts the
+		 * coins found in this level: laid over the course board's own
+		 * under the status bar (hud.held.over, SMB2-9). The pause box is
+		 * sprites over a cream fill (0xFFFFCE, a darker rim), with the
+		 * window registers on (DISPCNT 0x7F00); its number right-aligned,
+		 * ending at x 144, rows 50-62. */
+		.open = { { K_START, 4 } },
+		.settleMax = 90, .openWithin = 40, .stableFrames = 3, .maxDiff = 0,
+		.crop_x = 112, .crop_y = 50, .crop_w = 34, .crop_h = 13,
+		.probes = { { 50, 30, 0xFFFFCE }, { 190, 30, 0xFFFFCE }, { 120, 20, 0xFFFFCE }, { 120, 47, 0xFFFFCE },
+		            { 50, 140, 0xFFE7A5 }, { 190, 140, 0xFFE7A5 } },
+		.tolerance = 8,
+		.mem = { { 0x04000000, 0xE000, 0x6000, 2 }, { 0x0400000E, 0xFFFC, 0x1900, 2 } },
+		/* in a level, not paused (no windows) */
+		.live = { { 0x0400000E, 0xFFFC, 0x1900, 2 }, { 0x04000000, 0xE807, 0x0800, 2 } },
+		.interval = 60,
+		/* the game select and file select: forgotten (another file's) */
+		.menu = { { 0x0400000E, 0xFF00, 0x3E00, 2 } },
+		/* out of a level (BG3 anything but 0x19xx): the logo, never the
+		 * number by itself (SMB2-4, SMB2-5) */
+		.logoIf = { { 0x0400000E, 0xFF00, 0x1A00, 2, true, 0xFF00, true } },
+		.logoIfOr = { { 0x0400000E, 0xFF00, 0x0000, 2, true, 0x1800, true } },
+		/* the title (START through the intro): SUPER MARIO ADVANCE with
+		 * Mario and Birdo round it, BG1 (mode 1); the choices and the
+		 * copyright line are sprites, the trees and hills BG0, the sky
+		 * BG2 (SMB2-6) */
+		.logo = { .steps = { { 0, 600 }, { K_START, 4 }, { 0, 150 } }, .layer = 1, .maxY = 140 },
+		/* In a level (both releases): mode 0 with BG3 on, BG3 the status
+		 * bar (0x1900, priority 0): rows 0-15 (WORLD, the level's Ace
+		 * Coins, lives, SCORE), the pause box below them on the same
+		 * layer. Elsewhere BG3 is 0x1C03 (character select, course board,
+		 * level card), 0x3E03 (title, menus) or 0xD603 (Mario Bros.). The
+		 * hearts are sprites and stay (SMB2-1, SMB2-2). */
+		.hud = {
+			.on = { { 0x0400000E, 0xFFFC, 0x1900, 2 }, { 0x04000000, 0x0807, 0x0800, 2 } },
+			/* the screen blanked between rooms (BG3 still 0x1900): the
+			 * last picture stays (SMB2-3) */
+			.keep = { { 0x0400000E, 0xFFFC, 0x1900, 2 } },
+			.bgMask = 8,
+			.rows = 16,
+			.logoBelow = true,
+			/* The course board before each level (all 20 levels and their
+			 * Ace Coins, BG0 in mode 1, 0x1101, at BG0HOFS 0x10 once in
+			 * place; it fades in from white): kept from its first frame
+			 * in place, its panel (rows 8-150: the frame's top edge to the
+			 * grass) below the status bar from row 17, instead of the logo
+			 * (SMB2-8). Probes on the panel's cream and the black line
+			 * along its bottom: the same on the Yoshi Challenge's board
+			 * (whose frame is cyan, not orange), not on the level card. */
+			.held = { .when = { { 0x04000000, 0xFFFF, 0x1101, 2 }, { 0x04000010, 0x01FF, 0x0010, 2 } },
+			          .probes = { { 120, 12, 0xFFF7BD }, { 60, 80, 0xFFF7BD }, { 180, 80, 0xFFF7BD },
+			                      { 60, 144, 0x000000 }, { 180, 144, 0x000000 } },
+			          /* (one may miss: a little creature walks the grass) */
+			          .min = 4, .tol = 8, .y0 = 8, .y1 = 150, .at = 17,
+			          /* the board's percentage (right-aligned, from x 179 at
+			           * 100% to 207, rows 129-142; its = ends at 174)
+			           * replaced by the pause box's, whose 100% reaches x 178
+			           * here (until the fourth test build the box began at
+			           * 180 and cut the 1's left edge off) */
+			          .over = { 176, 129, 208, 142, 0xFFF7BD, 0xFFFFCE } },
+		},
+	},
+	{
+		/* Mega Man Battle Network (USA; Europe and Japan, Battle Network
+		 * Rockman EXE: variants). Walking about, the PET's MegaMan
+		 * screen: see mmbn_compose (MMBN-2), kept through battles
+		 * (MMBN-4); on the net the area's map (MMBN-6) */
+		.codes = { "AREE" },
+		.title = "Mega Man Battle Network",
+		.compose = mmbn_compose,
+		/* on the net, the area's map (MMBN-6) */
+		.liveView = mmbn_live_view,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* walking about (scenes too: START opens nothing there, the last
+		 * picture stays, MMBN-3) */
+		.live = { { MMBN_STATE, 0xFF, 4, 1 } },
+		/* the title, game over (0x20): the logo, the status forgotten
+		 * (MMBN-1); in a battle the status from before it stays (MMBN-4) */
+		.menu = { { MMBN_STATE, 0xFF, 0, 1, true, 0x20 } },
+		/* HP (back from a battle, a recovery), its maximum, the area, the money:
+		 * taken again at once (MMBN-2) */
+		.room = { { MMBN_HP, 0xFFFF, 0, 2 }, { MMBN_HP + 2, 0xFFFF, 0, 2 }, { MMBN_AREA, 0xFFFF, 0, 2 }, { MMBN_ZENNY, 0, 0, 4 } },
+		/* the title's lettering and emblem (BG3), above PRESS START */
+		.logo = { .wait = 400, .layers = 0x8, .maxY = 96 },
+	},
+	{
+		/* the overworld's map, or the Party screen in towns and dungeons:
+		 * see er_compose (docs/games/eragon.md) */
+		.codes = { "BENE" },
+		.title = "Eragon",
+		.compose = er_compose,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		.virt = er_virt,
+		/* the title: the logo, no captures (ER-6) */
+		.live = { { ER_V_TITLE, 0xFF, 0, 4 } },
+		.menu = { { ER_V_FORGET, 0xFF, 1, 4 } }, /* (ER-5, ER-6: the logo until the plates) */
+		/* a battle: its plates and HP bars, BG3's top three rows of
+		 * tiles and the bars' sprites, on the second screen with the
+		 * logo below; kept while a command is chosen (ER-5) */
+		.hud = {
+			.on = { { ER_PLATES, 0xFFFF, ER_PLATE, 2 }, { 0x0400000E, 0xFFFC, 0x1C08, 2 } },
+			.keep = { { ER_V_BATTLE, 0xFF, 1, 4 } },
+			.bgMask = 8,
+			.objs = { { 0, -8, 239, 23, 0, 1023, 0 } },
+			.rows = 25, /* (the plates' bottom edge is row 24; BG3 below is the command bar, rows 144-159, which stays) */
+			.logoBelow = true,
+		},
+		/* into a place or out of one, or a battle over (ER-9) */
+		.room = { { ER_V_PLACE, 0xFF, 0, 4 } },
+		/* the carved "eragon" alone, cut out by the owner's outline of
+		 * the word (ER-7; tools/make_logo_masks.py, er). rev 1: the boxed
+		 * strip of stone before */
+		.logo = { .wait = 1000, .mask = &logoMaskER, .rev = 1 },
+	},
+	{
+		/* the same for Europe: A on its language screen (English) first */
+		.codes = { "BENP" },
+		.title = "Eragon",
+		.compose = er_compose,
+		.crop_w = GBA_W,
+		.crop_h = GBA_H,
+		.virt = er_virt,
+		.live = { { ER_V_TITLE, 0xFF, 0, 4 } },
+		.menu = { { ER_V_FORGET, 0xFF, 1, 4 } },
+		.hud = {
+			.on = { { ER_PLATES, 0xFFFF, ER_PLATE, 2 }, { 0x0400000E, 0xFFFC, 0x1C08, 2 } },
+			.keep = { { ER_V_BATTLE, 0xFF, 1, 4 } },
+			.bgMask = 8,
+			.objs = { { 0, -8, 239, 23, 0, 1023, 0 } },
+			.rows = 25, /* (the plates' bottom edge is row 24; BG3 below is the command bar, rows 144-159, which stays) */
+			.logoBelow = true,
+		},
+		.room = { { ER_V_PLACE, 0xFF, 0, 4 } },
+		.logo = { .steps = { { 0, 100 }, { K_A, 4 }, { 0, 1100 } }, .mask = &logoMaskER, .rev = 1 },
+	},
+	{
+		/* Harry Potter and the Prisoner of Azkaban (USA and Europe, one
+		 * release in seven languages). Walking about, the party's summary
+		 * and the task: see hpa_compose (HPA-1) */
+		.codes = { "BHTE" },
+		.title = "Harry Potter and the Prisoner of Azkaban",
+		.compose = hpa_compose,
+		.virt = hpa_virt,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* walking about or in START's menu (HPA-1, HPA-2; in a
+		 * conversation or a scene START opens nothing: the last picture
+		 * stays, HPA-3) */
+		.live = { { HPA_V_LIVE, 0xFF, 1, 4 } },
+		/* the title, the file screens, a battle: the logo, the summary
+		 * forgotten (HPA-4, HPA-5) */
+		.menu = { { HPA_V_FORGET, 0xFF, 1, 4 } },
+		.combat = { { HPA_V_BATTLE, 0xFF, 1, 4 } },
+		/* the screen (a menu closed, a scene over), Harry's SP and MP:
+		 * taken again at once */
+		.room = { { HPA_MODE, 0x7F, 0, 1 }, { HPA_SP, 0xFFFF, 0, 2 }, { HPA_SP + 2, 0xFFFF, 0, 2 } },
+		/* the title's lettering (BG2), past the language screen (A:
+		 * English) and the company screens (START), before PRESS START */
+		.logo = { .steps = { { 0, 600 }, { K_A, 4 }, { 0, 100 }, { K_START, 4 }, { 0, 90 }, { K_START, 4 }, { 0, 90 },
+		                     { K_START, 4 }, { 0, 90 }, { K_START, 4 }, { 0, 90 }, { K_START, 4 }, { 0, 240 } },
+		          .layer = 2, .maxY = 120 },
+	},
 };
 
 /* ---------------------------------------------------------------- regions
@@ -5191,6 +7425,14 @@ static void lang_menu(MapProfile* p) {
 	if (p->frame.steps[0].frames) insert_steps(p->frame.steps, 24, 0, LANGUAGE_A, 2);
 }
 
+/* Super Mario Advance 3 in Europe: the language menu (A: English), then
+ * a story screen before the Super Mario Advance 3 title (SM3-5) */
+static void sm3_eur(MapProfile* p) {
+	static const MacroStep steps[] = { { 0, 300 }, { K_A, 5 }, { 0, 300 }, { K_START, 5 }, { 0, 200 }, { K_START, 5 },
+	                                   { 0, 200 }, { K_A, 5 }, { 0, 360 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+}
 /* Fire Emblem: The Sacred Stones in Europe: the language menu (A for
  * English), then as the USA's; in Japan, no health and safety screen */
 static void fe8_eur(MapProfile* p) {
@@ -5206,11 +7448,30 @@ static void ml_eur(MapProfile* p) {
 	memcpy(p->logo.steps, steps, sizeof(steps));
 }
 /* Dragon Ball Z: The Legacy of Goku in Europe: a language menu first
- * (A: English) */
+ * (A: English); the counter's flag 0x3840 lower (at the USA's address
+ * Europe holds 0xFF, which took BG0, conversations' boxes too, off the
+ * game screen walking about: DBZ-5) */
 static void dbz_eur(MapProfile* p) {
 	static const MacroStep steps[] = { { 0, 300 }, { K_A, 6 }, { 0, 700 }, { K_A, 9 }, { 0, 150 } };
 	memset(p->logo.steps, 0, sizeof(p->logo.steps));
 	memcpy(p->logo.steps, steps, sizeof(steps));
+	p->hud.memLayers.when[0].addr = 0x0200000C;
+}
+/* Dragon Ball Z: The Legacy of Goku II in Europe: a language menu first
+ * (A: English), then the title on its own (no intro); its zone and area
+ * 0x1174 lower */
+static void dbz2_eur(MapProfile* p) {
+	static const MacroStep steps[] = { { 0, 450 }, { K_A, 6 }, { 0, 800 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+	p->menu[0].addr = 0x03000F0D;
+	p->room[0].addr = 0x03000F0C;
+	p->hud.on[1].addr = 0x03000F0D;
+}
+/* ... in Japan (International): the same RAM; its own title (with
+ * INTERNATIONAL under the logo) */
+static void dbz2_jpn(MapProfile* p) {
+	p->logo.mask = &logoMaskDBZ2J;
 }
 static void fe8_jpn(MapProfile* p) {
 	static const MacroStep steps[] = { { 0, 400 }, { K_START, 4 }, { 0, 90 } };
@@ -5381,9 +7642,39 @@ static void fzm_chn(MapProfile* p) {
 	p->logo.steps[0].frames = 1100;
 }
 
+/* Crash Nitro Kart in Japan: the player's block 0x30 higher (its pause byte
+ * 0x030045D1), the BG0 cells and registers the same; its own title, shown
+ * from frame ~1050 to ~1170 before its menu comes up by itself */
+static void cnk_jpn(MapProfile* p) {
+	p->hud.on[3].addr += 0x10; /* (the fade byte: 0x03002A6B) */
+	p->hud.keep[0].addr += 0x30;
+	p->logo.wait = 1110;
+	p->logo.mask = &logoMaskCNKJ;
+}
+
+/* V-Rally 3 in Japan: no language screen, so the main menu (the logo's
+ * place, VR3-1) is up three presses sooner; the HUD the same */
+static void vr3_jpn(MapProfile* p) {
+	p->logo.steps[13].frames = 0;
+	p->logo.mask = &logoMaskVR3J;
+}
+
+/* Advance GT2, GT Advance 3's Japanese release: its own title, Advance GT2,
+ * up by itself from frame ~600 (no disclaimer to pass); the races the same
+ * (GT3-1) */
+static void gt3_jpn(MapProfile* p) {
+	p->logo = (typeof(p->logo)) { .steps = { { 0, 750 } }, .mask = &logoMaskGT3J };
+}
+
 /* Spider-Man: Mysterio's Menace in Japan: the screen's handler 0x34 lower
  * (0x0300213C), and its values too (0x60F8 in a level, 0x41D8 elsewhere);
  * the display registers are the same */
+/* Ninja Cop (Europe): its title's NINJA COP to its white outline, without
+ * the black and purple rim round it or the blue screen (NFO-1) */
+static void nfo_eur(MapProfile* p) {
+	p->logo.mask = &logoMaskNFOP;
+}
+
 static void smm_jpn(MapProfile* p) {
 	p->mem[1].addr -= 0x34, p->mem[1].value -= 0x34;
 	p->live[1].addr -= 0x34, p->live[1].value -= 0x34;
@@ -5425,6 +7716,23 @@ static void hm_jpn(MapProfile* p) {
 	p->logo.maxY = 113;
 }
 
+/* Battle Network Rockman EXE (Japan): its logo, ロックマン エグゼ, fills
+ * BG3 with the blue behind it (MMBN-1) */
+static void mmbn_jpn(MapProfile* p) {
+	p->logo.maxY = GBA_H;
+	p->logo.edgeClear[0] = 0x52B5FF;
+	p->logo.rev = 1;
+}
+
+/* Harry Potter to Azkaban no Shuujin (Japan): the screen's byte 0x60
+ * higher (hpa_compose, hpa_virt: HPA_J); no language screen before the
+ * company screens; its logo the title's lettering too (BG2) */
+static void hpa_jpn(MapProfile* p) {
+	p->room[0].addr += 0x60;
+	p->logo = (typeof(p->logo)) { .steps = { { 0, 360 }, { K_START, 4 }, { 0, 86 }, { K_START, 4 }, { 0, 86 }, { K_START, 4 }, { 0, 286 } },
+	                              .layer = 2, .maxY = 120 };
+}
+
 static const Variant variants[] = {
 	{ "AGSD", "AGSE", 0, gs_ger },
 	/* Golden Sun: The Lost Age's other releases */
@@ -5437,6 +7745,9 @@ static const Variant variants[] = {
 	 * comes ~700 frames after A); its races not tried (f-zero-gp-legend.md) */
 	{ "BFZP", "BFZE", 0, lang_menu },
 	{ "AFZC", "AFZE", 0, fzm_chn },
+	{ "BCNJ", "BCNE", 0, cnk_jpn },
+	{ "AVRJ", "AVRE", 0, vr3_jpn },
+	{ "A2GJ", "A2GE", 0, gt3_jpn },
 	{ "A2CP", "A2CE", 0, lang_menu },
 	{ "A2CJ", "A2CE", -0x30, NULL },
 	{ "ACHP", "ACHE", 0, NULL },
@@ -5460,13 +7771,18 @@ static const Variant variants[] = {
 	{ "AT3D", "AT3E", 0, thps3_ger },
 	{ "ASEJ", "ASEE", 0, smm_jpn },
 	{ "ALDP", "ALDE", 0, NULL },
+	{ "ANXP", "ANXE", 0, nfo_eur },
 	{ "AWAJ", "AWAE", 0, NULL },
+	/* Super Mario Advance 3 in Europe: its language menu first */
+	{ "A3AP", "A3AE", 0, sm3_eur },
 	/* (Fire Emblem's addresses: FeRegion) */
 	{ "AE7X", "AE7E", 0, lang_menu },
 	{ "AE7Y", "AE7E", 0, lang_menu },
 	{ "AE7J", "AE7E", 0, fe_jpn },
 	{ "BE8P", "BE8E", 0, fe8_eur },
 	{ "ALGP", "ALGE", 0, dbz_eur },
+	{ "ALFP", "ALFE", 0, dbz2_eur },
+	{ "ALFJ", "ALFE", 0, dbz2_jpn },
 	{ "A88P", "A88E", 0, ml_eur },
 	{ "A88J", "A88E", 0, NULL },
 	{ "BE8J", "BE8E", 0, fe8_jpn },
@@ -5485,6 +7801,10 @@ static const Variant variants[] = {
 	/* (Zoids Saga II's addresses: ZlRegion) */
 	{ "AZ2J", "AZ2E", 0, NULL },
 	{ "A4NJ", "A4NE", 0, hm_jpn },
+	/* (Mega Man Battle Network's RAM: the same in every release) */
+	{ "AREP", "AREE", 0, NULL },
+	{ "BHTJ", "BHTE", 0, hpa_jpn },
+	{ "AREJ", "AREE", 0, mmbn_jpn },
 };
 #define N_VARIANTS (sizeof(variants) / sizeof(*variants))
 static MapProfile variantProfiles[N_VARIANTS];

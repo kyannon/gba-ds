@@ -454,7 +454,7 @@ def main():
         n, hand = 0, []
         for doc in sorted(glob.glob(os.path.join(ROOT, "docs", "games", "*.md"))):
             for m in re.finditer(r"^\*\*([A-Z0-9]+-\d+)\. ([^*]+)\*\*(.*)$", open(doc).read(), re.M):
-                if "retired" in m.group(3)[:40]:
+                if "retired" in m.group(3)[:40].lower():
                     continue
                 by = re.search(r"\*By hand: ([^*]+)\*", m.group(3))
                 if by:

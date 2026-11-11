@@ -7,6 +7,17 @@
  * follow the picture when the screens are swapped). Secondary also covers the
  * generated map surrounds. */
 enum { OVL_PRIMARY = 1, OVL_SECONDARY = 2, OVL_BOTH = 3 };
+/* Display > Shader, in menu order. Each is a fixed pattern multiplied over
+ * every GBA pixel (a texture built once, ui.c), so none costs more than the
+ * LCD grid; the subpixel presets also brighten the colours to make up for
+ * their stripes (the colour table, ui.c). */
+enum { SH_OFF, SH_GRID, SH_SCANLINES, SH_SOFT, SH_SUB_LIGHT, SH_SUB, SH_SUB_STRONG, SH_COUNT };
+extern const char* const shaderNames[SH_COUNT]; /* gba-ds.cfg's names: off, grid, ... */
+/* Hotkeys: the hotkey button held with an action's button does the action
+ * (game.c). gba-ds.cfg: hotkey_<name> = a button (a, b, x, y, l, r, l2, r2,
+ * select, start, l3, up, down, left, right) or none. */
+enum { HK_QUIT, HK_SAVE, HK_LOAD, HK_BAR, HK_SWAP, HK_SHADER, HK_COUNT };
+extern const char* const hotkeyNames[HK_COUNT]; /* quit, save_state, ... */
 
 typedef struct Config {
 	char layout[16];   /* auto | span-h | span-v | dual | single */
@@ -16,9 +27,10 @@ typedef struct Config {
 	bool smooth;       /* plain linear filtering when scaling (blurry) */
 	char borderColor[16]; /* RRGGBB behind the map screen (outside the map image) */
 	int overlays;      /* OVL_PRIMARY | OVL_SECONDARY: game-screen / map-screen overlays */
-	bool lcdGrid;      /* draw an LCD pixel grid over game and map */
+	int shader;        /* SH_*: a pattern over every pixel on both screens (Display > Shader) */
 	bool colorCorrection; /* the GBA's screen colours (mGBA's GBA Color shader) */
-	int lcdStrength;   /* grid darkness, 0..100 */
+	bool ghosting;     /* LCD ghosting: each frame of the game shown blended with the one before */
+	int lcdStrength;   /* grid, scanline and soft-cell darkness, 0..100 */
 	bool vsync;
 	bool frameBuffer; /* emulate a frame ahead on a second thread: smoother, a frame more input delay */
 	bool pinCores; /* Android: the game thread on a core of its own, the map capture off it (off by default) */
@@ -33,7 +45,9 @@ typedef struct Config {
 	bool showLogo;     /* the game's logo on the second screen when it has nothing else (off: blank) */
 	int mapInterval;   /* frames between periodic map refreshes */
 	bool abSwap;       /* GBA A on the bottom face button instead of the right one */
-	char hotkey[16];   /* guide | back */
+	char hotkey[16];   /* home | select | start | l3 (older names: guide = home, back = select) */
+	char hotkeyBtn[HK_COUNT][8]; /* each hotkey action's button (hotkey_quit ...), or none */
+	int shaderLast;    /* the shader the shader hotkey turns back on (shader_last) */
 	char menuCombo[16]; /* select+start | none: buttons held together that open the pause menu */
 	int homeButton;    /* raw joystick button number that acts as HOME (-1 = off) */
 	bool showFps;
