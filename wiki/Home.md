@@ -20,7 +20,7 @@
 
 - **[[Playing]]**: the game list, the pause menu, buttons, resume points, cheats, RetroAchievements, screenshots, and where every file goes.
 - **[[Supported games]]**: what each game shows on the second screen, and per-game details.
-- **[[Map screen surrounds and overlays]]**: the generated map borders and your own overlay images.
+- **[[Overlays]]**: GBA DS's bezel round the picture, and your own overlay images.
 - **[[Settings]]**: every option in `gba-ds.cfg`, explained.
 - **[[Troubleshooting]]**: logs, and what to do when something doesn't work.
 - **[[Philosophy]]**: what GBA DS is meant to be, and why some feature requests get a no.

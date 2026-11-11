@@ -20,7 +20,7 @@ ROCKNIX build is unaffected.
 ## What carries over
 
 Everything game-side is portable C: `emu.c`, `mapcap.c`, `profiles.c`,
-`logo.c`, `mapframe.c`, `cheats.c`, and most of `game.c` / `library.c`.
+`logo.c`, `cheats.c`, and most of `game.c` / `library.c`.
 libmgba builds with the Android NDK (mGBA has its own Android-friendly
 CMake), SDL2 runs on Android (SDLActivity), audio and gamepads come through
 SDL.
@@ -638,6 +638,23 @@ ROW_UPDATES: indexes 0-4), with Hotkeys on the right half of Map Buttons'
 line as on Linux (left/right between them). hotkeys.c calls B_HOME "Back"
 on Android (HOME_TITLE): BACK is HOME there (ui.c), so the default hotkey
 is BACK.
+
+## GBA DS's folder, chosen (issue #34, Nov 11, 2026)
+
+Settings > Folders > Choose GBA DS folder (FB_DATA, PICK_DATA in
+library.c): the picked folder is GBA DS's folder if it's empty or already
+has `states/`, else `<picked>/GBA DS`. Written as `data_dir` into
+`data-folder.cfg` in the app's own storage (getFilesDir(), passed to native
+as GBADS_APP_FILES; kept through updates, gone on uninstall). At the next
+start, before the log, android_data_setup runs paths.c data_dir_setup with
+`all`: everything in the old folder moves (rename, or copy then delete
+across storages; states/ first, all or nothing) and the old folder goes;
+`data_dir_now` records where it is, GBADS_HOME is set to it. Java's
+dataFolder() doesn't make "GBA DS" at the top of the storage while
+data_dir_now is elsewhere, and launch.log follows data_dir_now
+(LauncherActivity.dataFolderSetting). Linux uses the same code with
+`data_dir` in `<app>/data-folder.cfg` (moving only GBA DS's own folders).
+Not tried on the device yet.
 
 ## For the next release
 

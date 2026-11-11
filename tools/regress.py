@@ -223,8 +223,9 @@ def run_app(case, args, workdir):
     with open(script, "w") as f:
         for frame, what in lines:
             f.write("%d %s\n" % (frame, what))
-    # (the start-up hint is timed in real seconds: off, so the pictures are exact)
-    cmd = [args.bin, "--state-dir=" + statedir, "--input-script=" + script, "--quick_bar_hint=0", "--patch_dir=" + patchdir]
+    # (the start-up hint is timed in real seconds: off, so the pictures are exact;
+    # overlays off, so the goldens are the games' pictures alone: a case can turn them on)
+    cmd = [args.bin, "--state-dir=" + statedir, "--input-script=" + script, "--quick_bar_hint=0", "--overlays=off", "--patch_dir=" + patchdir]
     for k, v in case.get("config", {}).items():
         cmd.append("--%s=%s" % (k, v))
     if case.get("state"):

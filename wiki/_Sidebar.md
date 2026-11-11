@@ -10,7 +10,7 @@
 **Use**
 - [[Playing]]
 - [[Supported games]]
-- [[Map screen surrounds and overlays]]
+- [[Overlays]]
 - [[Settings]]
 - [[Troubleshooting]]
 - [[Philosophy]]

@@ -54,7 +54,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Yu-Gi-Oh! The Eternal Duelist Soul (Yu-Gi-Oh! Duel Monsters 5 Expert 1 in Japan) | `AY5E` `AY5J` | Card View of the card under the cursor | |
 | Zoids: Legacy (Zoids Saga II in Japan) | `AZ2E` `AZ2J` (no European release) | the map screen; in battles, the Status of the Zoid choosing | |
 
-The codes are what `<CODE>` means in logo and overlay file names (see [Playing](Playing#logos) and [[Map screen surrounds and overlays]]).
+The codes are what `<CODE>` means in logo and overlay file names (see [Playing](Playing#logos) and [[Overlays]]).
 
 ## Romhacks and patched ROMs
 
@@ -84,7 +84,6 @@ The USA and European releases of both, and in Japan Game Boy Wars Advance 1+2, w
 
 ## Castlevania: Aria of Sorrow, Harmony of Dissonance, Circle of the Moon
 
-- The map is shown with a border taken from the game's own menus (see [[Map screen surrounds and overlays]]).
 - **Circle of the Moon**'s map screen has no completion rate, so GBA DS copies the percentage shown after "RATE" on the game's pause screen onto the map: in the top-right corner, which stays clear of rooms even on a fully explored castle (the bottom-right corner is the fallback).
 - The Japanese Aria of Sorrow and Harmony of Dissonance keep their data at different addresses; GBA DS knows both.
 

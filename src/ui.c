@@ -2103,6 +2103,10 @@ bool ui_load_image(const char* path, SDL_Texture* out[2], int* w, int* h, bool s
 	return textures_from(image_load(path), out, w, h, smooth);
 }
 
+bool ui_load_surface(SDL_Surface* s, SDL_Texture* out[2], int* w, int* h, bool smooth) {
+	return textures_from(s, out, w, h, smooth);
+}
+
 bool ui_load_brand(int id, SDL_Texture* out[2], int* w, int* h) {
 	return textures_from(image_load_mem(brandImages[id].png, brandImages[id].size), out, w, h, true);
 }

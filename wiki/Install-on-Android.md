@@ -27,7 +27,7 @@ Everything except the battery saves lives in a **`GBA DS`** folder on the intern
 |---|---|
 | `GBA DS/states/` | save states, resume points, menu settings (`prefs.cfg`), the game list's settings (`library.cfg`), extracted logos, the RetroAchievements sign-in and badges |
 | `GBA DS/cheats/` | your RetroArch `.cht` cheat files (subfolders are fine) |
-| `GBA DS/overlays/` | your own overlay PNGs (see [[Map screen surrounds and overlays]]) |
+| `GBA DS/overlays/` | your own overlay PNGs (see [[Overlays]]) |
 | `GBA DS/logos/` | your own logo images (`<CODE>.png`), used instead of the extracted ones |
 | `GBA DS/screenshots/` | Take Screenshot's PNGs |
 | `GBA DS/gba-ds.cfg` | optional: settings from [[Settings]] (create it; only the lines you want to change) |
@@ -38,6 +38,8 @@ Battery saves (`.sav`) are kept next to the ROMs by default, as on ROCKNIX, so o
 
 Without All files access, these are kept in the app's own folder (`Android/data/io.github.kyannon.gbads/files`) instead, which other apps (and you, on newer Android) can't open.
 
+To keep this folder somewhere else (in a folder for all your emulators, say), use **Settings** → **Folders** → **Choose GBA DS folder** (below).
+
 ## Game list settings
 
 **Settings** in the game list (tap it, or **SELECT**) has, on Android:
@@ -47,6 +49,7 @@ Without All files access, these are kept in the app's own folder (`Android/data/
   - **Save files: .sav / .srm (RetroArch's)**: `.srm` is the type RetroArch uses. To share each game's save with RetroArch, choose `.srm` and RetroArch's saves folder (`RetroArch/saves`, or the core's folder in it if RetroArch sorts saves by core). A save in the other type is copied over the first time you play a game.
   
   All three are kept in `states/library.cfg`. A save folder outside the `GBA DS` folder needs All files access.
+  - **Choose GBA DS folder**: where the `GBA DS` folder itself goes. Pick an empty folder (make one in the picker) and GBA DS uses it as its folder; pick a folder with other things in it, such as `Emulators`, and GBA DS makes a `GBA DS` folder inside it. Close GBA DS and open it again: everything moves there before the game list opens, and the old folder goes. Picking a folder that already has GBA DS's files in it (from before) uses those as they are. The choice is kept in the app's own storage, so updates keep it; uninstalling forgets it (the folder and your files stay where they are: choose it again after reinstalling). Needs All files access.
 - **RetroAchievements: Sign In / Sign Out**: sign in with your retroachievements.org username and password. GBA DS keeps a sign-in token, not the password, and signs in by itself from then on. See [Playing](Playing#retroachievements).
 - **Map Buttons**: if a button does the wrong thing, or for a controller GBA DS doesn't know, set each button by where it sits (see [Playing](Playing#mapping-the-buttons)). Android keeps HOME (and usually BACK) for itself, so skip **Home** with a tap: SELECT + START or BACK still open the menu. The mapping is kept in `GBA DS/states/controllers.txt`.
 - **Hotkeys** (beside Map Buttons): change the shortcuts, the hotkey button held with another (see [Playing](Playing#hotkeys)). On Android the hotkey button is BACK by default (Android keeps HOME), shown as **Back**; SELECT, START or L3 can be the hotkey instead. Kept in `GBA DS/states/hotkeys.cfg`.

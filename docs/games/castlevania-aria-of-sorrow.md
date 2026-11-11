@@ -16,7 +16,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **CVA-1. Map during play.** While the game is being played, the second screen shows the game's own pause-screen map, captured on the hidden copy, every `map_interval` frames (60: every second) and right after each room transition.
 
-**CVA-2. Map surround.** The map is drawn inside a border built from the game's own menu artwork (the generated surround), not on bare black.
+**CVA-2.** *Retired in v1.5's test builds:* the map drawn inside a border built from the game's own menu artwork (the generated map surround). Overlays are now only bezels around the picture, the same for every game; the map is on the screen's background colour like every other game's.
 
 **CVA-3. Last good map stays.** When the map can't be opened (a cutscene, a menu, a fade), the last good map stays up; nothing half-drawn is ever shown.
 

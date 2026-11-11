@@ -36,7 +36,11 @@ void config_defaults(Config* c) {
 	c->showLogo = true;
 	c->rewind = true;
 	c->rewindSeconds = 30;
+	c->overlayMode = OVM_GENERATED;
 	c->overlays = OVL_BOTH;
+	c->bezelLogo = true;
+	strcpy(c->bezelInner, "1A1A1A");
+	strcpy(c->bezelOuter, "102060");
 	c->mapInterval = 60;
 	c->sway = true;
 	c->audioLatency = 64;
@@ -96,12 +100,34 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	BOOL("color_correction", colorCorrection)
 	BOOL("lcd_ghosting", ghosting)
 	if (!strcmp(key, "overlays")) {
-		/* none / primary / secondary / both (older configs: 0 / 1, top / bottom) */
-		c->overlays = !strcmp(val, "primary") || !strcmp(val, "top")      ? OVL_PRIMARY :
-		              !strcmp(val, "secondary") || !strcmp(val, "bottom") ? OVL_SECONDARY :
-		              !strcmp(val, "both")   ? OVL_BOTH :
-		              !strcmp(val, "none")   ? 0 :
-		              parse_bool(val)        ? OVL_BOTH : 0;
+		/* off / generated / custom. From before v1.5: none / 0, or the screens
+		 * (top / bottom / both / 1; primary / secondary, the game / map screen,
+		 * as the screens are unswapped), the player's PNGs: OVM_LEGACY */
+		if (!strcmp(val, "off") || !strcmp(val, "none") || !strcmp(val, "0") || !strcasecmp(val, "false")) c->overlayMode = OVM_OFF;
+		else if (!strcmp(val, "generated")) c->overlayMode = OVM_GENERATED;
+		else if (!strcmp(val, "custom")) c->overlayMode = OVM_CUSTOM;
+		else {
+			c->overlayMode = OVM_LEGACY;
+			c->overlays = !strcmp(val, "top") || !strcmp(val, "primary")      ? OVL_TOP :
+			              !strcmp(val, "bottom") || !strcmp(val, "secondary") ? OVL_BOTTOM : OVL_BOTH;
+		}
+		return true;
+	}
+	if (!strcmp(key, "overlay_screens")) {
+		c->overlays = !strcmp(val, "top") ? OVL_TOP : !strcmp(val, "bottom") ? OVL_BOTTOM : OVL_BOTH;
+		return true;
+	}
+	BOOL("bezel_logo", bezelLogo)
+	if (!strcmp(key, "bezel_inner") || !strcmp(key, "bezel_outer")) {
+		/* RRGGBB (a # in front is fine); anything else keeps the default */
+		const char* h = val[0] == '#' ? val + 1 : val;
+		bool ok = strlen(h) == 6;
+		for (int i = 0; ok && i < 6; ++i) ok = isxdigit((unsigned char) h[i]);
+		if (ok) {
+			char* f = key[6] == 'i' ? c->bezelInner : c->bezelOuter;
+			for (int i = 0; i < 6; ++i) f[i] = (char) toupper((unsigned char) h[i]);
+			f[6] = 0;
+		}
 		return true;
 	}
 	STR("border_color", borderColor)
@@ -151,6 +177,8 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	STR("patch_dir", patchDir)
 	STR("screenshot_dir", screenshotDir)
 	STR("asset_dir", assetDir)
+	STR("data_dir", dataDir)
+	if (!strcmp(key, "data_dir_now")) return true; /* (data-folder.cfg: where the data is, written by the app) */
 	STR("touch_screen", touchScreen)
 	STR("top_screen", topScreen)
 	STR("screen_match", screenMatch)
@@ -289,7 +317,9 @@ void config_usage(const char* argv0) {
 	        "  --audio-latency=MS     (64)\n"
 	        "  --ff-speed=N           fast-forward multiplier (3)\n"
 	        "  --save-dir=DIR         battery saves (next to the ROM)\n"
-	        "  --state-dir=DIR        save states and thumbnails (<app>/states)\n"
+	        "  --state-dir=DIR        save states and thumbnails (<data folder>/states)\n"
+	        "  --data-dir=DIR         GBA DS's data folder: states, cheats, overlays, logos...\n"
+	        "                         (the app's folder; best set in data-folder.cfg there)\n"
 	        "\n"
 	        "Testing: --load-state=FILE --quit-after=TICKS --input-script=FILE\n"
 	        "  script lines: 'TICK TOKEN' with TOKEN a button combo held until the next\n"

@@ -45,7 +45,11 @@ Updating from the game list (Settings > Updates) keeps your `gba-ds.cfg`. Unzipp
 | `lcd_ghosting` | `0` | `1`: each frame of the game is shown half and half with the one before, as a GBA's slow screen blurred them: moving things leave a short trail, and sprites a game flickers every other frame (to make them see-through) look see-through, as they did on a GBA. The game screen only. Also in the pause menu (Display). |
 | `smooth` | `0` | Plain bilinear filtering instead of sharp scaling (blurry; usually leave off). |
 | `vsync` | `0` | Present frames in step with the display. Off is smoother on these devices. |
-| `overlays` | `both` | `primary`, `secondary`, `both` or `none`: see [[Map screen surrounds and overlays]]. |
+| `overlays` | `generated` | `off`, `generated` (GBA DS's bezel round the picture) or `custom` (your own PNGs in `overlays/`). See [[Overlays]]. |
+| `overlay_screens` | `both` | Which screens have them: `both`, `top` or `bottom`. |
+| `bezel_logo` | `1` | The GBA DS logo in the generated bezel. |
+| `bezel_inner` | `1A1A1A` | The generated bezel's colour round the picture (RRGGBB). |
+| `bezel_outer` | `102060` | The generated bezel's colour outside that (RRGGBB). |
 | `border_color` | `000000` | Colour behind the map image where nothing else is drawn (RRGGBB). |
 | `show_fps` | `0` | Frames per second and % of full speed above the game, all the time (also HOME + X). The quick bar shows the frames per second whenever you swipe it up. |
 | `match_display` | `0` | **Match Display Rate**: run the game at the display's refresh rate instead of the GBA's 59.73 frames a second, when the two are within 1.5% (a 60 Hz screen: 0.46% faster, sound resampled to match, which you can't hear), and present each frame in step with the display. The GBA's own rate on a 60 Hz screen shows one frame twice about every 3.7 seconds, a small regular stutter; matched, every frame gets exactly one refresh. Also in the pause menu. |
@@ -92,10 +96,11 @@ What `map_crop` changes in the Metroid map screens:
 | `save_dir` | empty | Battery saves (`.sav`). Empty: next to the ROM. An existing RetroArch `.srm` is copied to `.sav` the first time you play a game, and so is a save next to the ROM when this is another folder. Android: Settings > Folders. |
 | `save_ext` | `sav` | The battery saves' extension: `sav`, or `srm` to use RetroArch's own save files in `save_dir` (BananaOS: `srm` in `/data/saves/gba`, set by GBA DS's launcher). An existing save in the other form is copied the first time you play a game. |
 | `save_from` | empty | A folder where GBA DS kept its `.sav` saves before (BananaOS: `/data/saves`). A game's save there is carried over the first time you start it, or when it's newer than the one in `save_dir` (that one kept as `.bak`). |
-| `state_dir` | empty | Save states, resume points, menu settings and extracted art. Empty: `gba-ds/states`. |
+| `data_dir` | empty | GBA DS's own folder for its files: `states/`, `cheats/`, `overlays/`, `logos/`, `patches/`, `bug-reports/`. Empty: the app's folder (`gba-ds/`). Set it in a file of its own, `data-folder.cfg` beside `gba-ds.cfg` (one line: `data_dir = /storage/roms/ports-data/gba-ds`), which updates and unzipping a new version leave alone. GBA DS moves its files there the next time it starts, and back if you take the line out. If the folder's card isn't in, GBA DS says so in the game list and uses the app's folder for that run. Android: Settings > Folders > Choose GBA DS folder. |
+| `state_dir` | empty | Save states, resume points, menu settings and extracted art. Empty: `states` in the data folder (`gba-ds/states`). |
 | `screenshot_dir` | `/storage/roms/screenshots` | Where Take Screenshot saves its PNGs. |
 | `cheat_dir` | RetroArch's cheat folders | RetroArch's `.cht` folders, searched two levels deep, `:`-separated. GBA DS's own `cheats` folder (`gba-ds/cheats`) is always searched first. |
-| `asset_dir` | empty | The folder holding your `logos/` and `overlays/`. Empty: the GBA DS folder. |
+| `asset_dir` | empty | The folder holding your `logos/` and `overlays/`. Empty: the data folder (`data_dir`). |
 | `es_config_dir` | `/storage/.config/emulationstation` | Where **GBA DS in EmulationStation** puts its two files. |
 
 ## RetroAchievements

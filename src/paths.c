@@ -4,10 +4,16 @@
 #include "patch.h"
 #include "profiles.h"
 
+#include <ctype.h>
+#include <dirent.h>
+#include <errno.h>
 #include <libgen.h>
+#include <limits.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #include <utime.h>
 
 bool file_exists(const char* path) {
@@ -236,5 +242,352 @@ void game_paths_patched(const Config* cfg, GamePaths* o, const PatchChoice* c) {
 		snprintf(o->quick, sizeof(o->quick), "%s/%s.quick.state", cfg->stateDir, base);
 		for (int i = 0; i < 10; ++i) snprintf(o->slot[i], sizeof(o->slot[i]), "%s/%s.slot%d.state", cfg->stateDir, base, i);
 		snprintf(o->autoState, sizeof(o->autoState), "%s/%s.auto.state", cfg->stateDir, base);
+	}
+}
+
+/* ------------------------------------------------------------ key = value files */
+
+/* the value in a "key = value" line, or NULL */
+static const char* kv_match(const char* line, const char* key) {
+	while (isspace((unsigned char) *line)) ++line;
+	size_t k = strlen(key);
+	if (strncmp(line, key, k)) return NULL;
+	line += k;
+	while (*line == ' ' || *line == '\t') ++line;
+	if (*line != '=') return NULL;
+	++line;
+	while (*line == ' ' || *line == '\t') ++line;
+	return line;
+}
+
+bool kv_get(const char* file, const char* key, char* out, size_t n) {
+	FILE* f = fopen(file, "r");
+	if (!f) return false;
+	char line[1200];
+	bool found = false;
+	while (fgets(line, sizeof(line), f)) {
+		const char* v = kv_match(line, key);
+		if (!v) continue;
+		snprintf(out, n, "%s", v);
+		size_t len = strlen(out);
+		while (len && isspace((unsigned char) out[len - 1])) out[--len] = 0;
+		found = true;
+	}
+	fclose(f);
+	return found;
+}
+
+bool kv_set(const char* file, const char* key, const char* val, const char* header) {
+	char text[16384] = "";
+	size_t len = 0;
+	bool done = false;
+	FILE* f = fopen(file, "r");
+	if (f) {
+		char line[1200];
+		while (fgets(line, sizeof(line), f)) {
+			if (kv_match(line, key)) {
+				if (done) continue;
+				done = true;
+				len += snprintf(text + len, sizeof(text) - len, "%s = %s\n", key, val);
+			} else {
+				len += snprintf(text + len, sizeof(text) - len, "%s", line);
+				if (len && text[len - 1] != '\n' && len < sizeof(text) - 1) text[len++] = '\n', text[len] = 0;
+			}
+			if (len >= sizeof(text)) return false;
+		}
+		fclose(f);
+	} else if (header) {
+		len += snprintf(text, sizeof(text), "%s\n", header);
+	}
+	if (!done) len += snprintf(text + len, sizeof(text) - len, "%s = %s\n", key, val);
+	if (len >= sizeof(text)) return false;
+	char tmp[1100];
+	snprintf(tmp, sizeof(tmp), "%s.tmp", file);
+	f = fopen(tmp, "w");
+	if (!f) return false;
+	bool ok = fputs(text, f) >= 0;
+	if (fclose(f) != 0) ok = false;
+	if (ok && rename(tmp, file) == 0) return true;
+	remove(tmp);
+	return false;
+}
+
+/* ------------------------------------------------------------ the data folder */
+
+static char dataNote[256];
+
+const char* data_dir_note(void) {
+	return dataNote;
+}
+
+static bool is_dir(const char* p) {
+	struct stat st;
+	return stat(p, &st) == 0 && S_ISDIR(st.st_mode);
+}
+
+/* the same folder (both there), or the same path */
+static bool same_dir(const char* a, const char* b) {
+	struct stat sa, sb;
+	if (stat(a, &sa) == 0 && stat(b, &sb) == 0) return sa.st_dev == sb.st_dev && sa.st_ino == sb.st_ino;
+	return !strcmp(a, b);
+}
+
+/* path is inside dir (not dir itself), by their real paths where they exist */
+static bool inside(const char* path, const char* dir) {
+	char rp[PATH_MAX], rd[PATH_MAX];
+	if (!realpath(dir, rd)) snprintf(rd, sizeof(rd), "%s", dir);
+	if (!realpath(path, rp)) snprintf(rp, sizeof(rp), "%s", path);
+	size_t n = strlen(rd);
+	if (n == 1) return rp[1] != 0; /* (dir is /) */
+	return !strncmp(rp, rd, n) && rp[n] == '/';
+}
+
+static bool can_write(const char* dir) {
+	char test[1100];
+	snprintf(test, sizeof(test), "%s/.gba-ds-write-test", dir);
+	FILE* f = fopen(test, "w");
+	if (!f) return false;
+	bool ok = fclose(f) == 0;
+	remove(test);
+	return ok;
+}
+
+static void remove_tree(const char* p) {
+	struct stat st;
+	if (lstat(p, &st) != 0) return;
+	if (S_ISDIR(st.st_mode)) {
+		DIR* d = opendir(p);
+		struct dirent* e;
+		while (d && (e = readdir(d))) {
+			if (!strcmp(e->d_name, ".") || !strcmp(e->d_name, "..")) continue;
+			char c[1100];
+			snprintf(c, sizeof(c), "%s/%s", p, e->d_name);
+			remove_tree(c);
+		}
+		if (d) closedir(d);
+		rmdir(p);
+	} else {
+		remove(p);
+	}
+}
+
+/* a copy of a file or folder (its files' times kept: the pause menu shows
+ * when a state was saved); false if any of it failed */
+static bool copy_tree(const char* from, const char* to) {
+	struct stat st;
+	if (lstat(from, &st) != 0) return false;
+	if (S_ISDIR(st.st_mode)) {
+		if (mkdir(to, 0755) != 0 && !is_dir(to)) return false;
+		DIR* d = opendir(from);
+		if (!d) return false;
+		bool ok = true;
+		struct dirent* e;
+		while (ok && (e = readdir(d))) {
+			if (!strcmp(e->d_name, ".") || !strcmp(e->d_name, "..")) continue;
+			char a[1100], b[1100];
+			snprintf(a, sizeof(a), "%s/%s", from, e->d_name);
+			snprintf(b, sizeof(b), "%s/%s", to, e->d_name);
+			ok = copy_tree(a, b);
+		}
+		closedir(d);
+		return ok;
+	}
+	if (!S_ISREG(st.st_mode)) return true; /* (links and the like: left out) */
+	FILE* in = fopen(from, "rb");
+	if (!in) return false;
+	FILE* out = fopen(to, "wb");
+	if (!out) {
+		fclose(in);
+		return false;
+	}
+	char buf[1 << 16];
+	size_t n;
+	bool ok = true;
+	while (ok && (n = fread(buf, 1, sizeof(buf), in)) > 0) ok = fwrite(buf, 1, n, out) == n;
+	if (ferror(in)) ok = false;
+	fclose(in);
+	if (fclose(out) != 0) ok = false;
+	struct utimbuf ut = { st.st_atime, st.st_mtime };
+	utime(to, &ut);
+	return ok;
+}
+
+/* from moved to to: renamed, or copied and then deleted (another card or
+ * storage). Where to is there already, folders are merged; a file there
+ * already is kept and the one from `from` left where it is (except the
+ * README.txt files GBA DS puts in its folders). Returns how many things
+ * couldn't move. */
+static int move_tree(const char* from, const char* to) {
+	struct stat sf, st;
+	if (lstat(from, &sf) != 0) return 0;
+	if (lstat(to, &st) != 0) {
+		if (rename(from, to) == 0) return 0;
+		if (errno != EXDEV) {
+			fprintf(stderr, "data folder: can't move %s to %s: %s\n", from, to, strerror(errno));
+			return 1;
+		}
+		if (!copy_tree(from, to)) {
+			fprintf(stderr, "data folder: can't copy %s to %s\n", from, to);
+			remove_tree(to);
+			return 1;
+		}
+		remove_tree(from);
+		return 0;
+	}
+	if (S_ISDIR(sf.st_mode) && S_ISDIR(st.st_mode)) {
+		int fails = 0;
+		DIR* d = opendir(from);
+		struct dirent* e;
+		while (d && (e = readdir(d))) {
+			if (!strcmp(e->d_name, ".") || !strcmp(e->d_name, "..")) continue;
+			char a[1100], b[1100];
+			snprintf(a, sizeof(a), "%s/%s", from, e->d_name);
+			snprintf(b, sizeof(b), "%s/%s", to, e->d_name);
+			fails += move_tree(a, b);
+		}
+		if (d) closedir(d);
+		rmdir(from); /* (once empty) */
+		return fails;
+	}
+	const char* name = strrchr(from, '/');
+	if (!strcmp(name ? name + 1 : from, "README.txt") || same_file_data(from, to)) {
+		remove(from);
+		return 0;
+	}
+	fprintf(stderr, "data folder: %s is there already: %s left where it is\n", to, from);
+	return 1;
+}
+
+/* GBA DS's own folders on Linux (the app folder's other files are the program) */
+static const char* const dataEntries[] = { "states", "cheats", "overlays", "logos", "patches", "bug-reports", "screenshots" };
+/* the ones the zip has (with a README.txt): an update puts them back in the app folder */
+static const char* const shippedEntries[] = { "cheats", "overlays", "logos" };
+
+void data_dir_setup(const char* defDir, const char* record, const char* want, bool all, char* out, size_t n) {
+	dataNote[0] = 0;
+	char now[1024], to[1024];
+	if (!record || !kv_get(record, "data_dir_now", now, sizeof(now)) || now[0] != '/') snprintf(now, sizeof(now), "%s", defDir);
+	snprintf(to, sizeof(to), "%s", want && want[0] ? want : defDir);
+	for (size_t k = strlen(to); k > 1 && to[k - 1] == '/'; --k) to[k - 1] = 0;
+	snprintf(out, n, "%s", now);
+
+	if (to[0] != '/') {
+		snprintf(dataNote, sizeof(dataNote), "data_dir must be a full path (/...): not used");
+		fprintf(stderr, "data folder: data_dir = %s isn't a full path: ignored\n", to);
+		snprintf(to, sizeof(to), "%s", now);
+	}
+	if (same_dir(to, now)) {
+		snprintf(out, n, "%s", now);
+		if (same_dir(now, defDir)) {
+			mkdirs(now);
+		} else {
+			/* a folder of the player's: made again if it's gone (where its
+			 * parent is there: not on a card that isn't in) */
+			char parent[1024];
+			snprintf(parent, sizeof(parent), "%s", now);
+			char* s = strrchr(parent, '/');
+			if (s && s != parent) *s = 0;
+			if (!is_dir(now) && is_dir(parent)) mkdirs(now);
+			if (!is_dir(now) || !can_write(now)) {
+				fprintf(stderr, "data folder: can't reach %s: using %s for now\n", now, defDir);
+				snprintf(dataNote, sizeof(dataNote), "Can't reach GBA DS's folder, using %s for now: %s", defDir, now);
+				snprintf(out, n, "%s", defDir);
+				mkdirs(defDir);
+				return;
+			}
+		}
+	} else {
+		/* moving */
+		char parent[1024];
+		snprintf(parent, sizeof(parent), "%s", to);
+		char* s = strrchr(parent, '/');
+		if (s && s != parent) *s = 0;
+		bool nested = false;
+		if (all) {
+			nested = inside(to, now);
+		} else {
+			for (size_t i = 0; i < sizeof(dataEntries) / sizeof(dataEntries[0]); ++i) {
+				char e[1100];
+				snprintf(e, sizeof(e), "%s/%s", now, dataEntries[i]);
+				nested |= same_dir(to, e) || inside(to, e);
+			}
+		}
+		if (!is_dir(parent)) {
+			fprintf(stderr, "data folder: %s isn't there (for %s): staying in %s\n", parent, to, now);
+			snprintf(dataNote, sizeof(dataNote), "Chosen folder not found, files not moved: %s", to);
+		} else if (nested) {
+			fprintf(stderr, "data folder: %s is inside %s's own folders: staying there\n", to, now);
+			snprintf(dataNote, sizeof(dataNote), "Chosen folder is inside GBA DS's own, files not moved: %s", to);
+		} else if ((mkdirs(to), !is_dir(to)) || !can_write(to)) {
+			fprintf(stderr, "data folder: can't write in %s: staying in %s\n", to, now);
+			snprintf(dataNote, sizeof(dataNote), "Can't save in the chosen folder, files not moved: %s", to);
+		} else {
+			char states[1100];
+			snprintf(states, sizeof(states), "%s/states", to);
+			if (is_dir(states)) {
+				/* GBA DS's files from before (moved back, or another install's) */
+				fprintf(stderr, "data folder: %s has GBA DS's files already: using them (%s left as it is)\n", to, now);
+			} else if (is_dir(now)) {
+				fprintf(stderr, "data folder: moving %s to %s\n", now, to);
+				char a[1100], b[1100];
+				snprintf(a, sizeof(a), "%s/states", now);
+				int fails = move_tree(a, states);
+				if (fails) {
+					snprintf(dataNote, sizeof(dataNote), "Couldn't move GBA DS's files, they stay in %s", now);
+					rmdir(to);
+					if (!is_dir(now) || !can_write(now)) snprintf(out, n, "%s", defDir), mkdirs(defDir);
+					return;
+				}
+				if (all) {
+					DIR* d = opendir(now);
+					struct dirent* e;
+					while (d && (e = readdir(d))) {
+						if (!strcmp(e->d_name, ".") || !strcmp(e->d_name, "..")) continue;
+						snprintf(a, sizeof(a), "%s/%s", now, e->d_name);
+						snprintf(b, sizeof(b), "%s/%s", to, e->d_name);
+						fails += move_tree(a, b);
+					}
+					if (d) closedir(d);
+					/* the old folder, once empty (a line Java's launch.log wrote
+					 * there meanwhile goes over too) */
+					if (rmdir(now) != 0) {
+						snprintf(a, sizeof(a), "%s/launch.log", now);
+						snprintf(b, sizeof(b), "%s/launch.log.old", to);
+						rename(a, b);
+						rmdir(now);
+					}
+				} else {
+					for (size_t i = 1; i < sizeof(dataEntries) / sizeof(dataEntries[0]); ++i) {
+						snprintf(a, sizeof(a), "%s/%s", now, dataEntries[i]);
+						snprintf(b, sizeof(b), "%s/%s", to, dataEntries[i]);
+						fails += move_tree(a, b);
+					}
+					/* (a folder of the player's, once empty) */
+					if (!same_dir(now, defDir)) rmdir(now);
+				}
+				if (fails) snprintf(dataNote, sizeof(dataNote), "Some files couldn't be moved, they're still in %s", now);
+				fprintf(stderr, "data folder: moved%s\n", fails ? ", some files left (above)" : "");
+			}
+			snprintf(out, n, "%s", to);
+			snprintf(now, sizeof(now), "%s", to);
+		}
+	}
+	/* where it is now, for the next start */
+	if (record) {
+		char was[1024] = "";
+		bool have = kv_get(record, "data_dir_now", was, sizeof(was));
+		if ((have || !same_dir(out, defDir) || (want && want[0])) && strcmp(was, out))
+			kv_set(record, "data_dir_now", out, "# GBA DS's data folder");
+	}
+	/* Linux: the folders an update (or unzipping a new version over the old)
+	 * put back in the app folder: anything a player put in them goes over
+	 * too, the README files go */
+	if (!all && !same_dir(out, defDir)) {
+		for (size_t i = 0; i < sizeof(shippedEntries) / sizeof(shippedEntries[0]); ++i) {
+			char a[1100], b[1100];
+			snprintf(a, sizeof(a), "%s/%s", defDir, shippedEntries[i]);
+			snprintf(b, sizeof(b), "%s/%s", out, shippedEntries[i]);
+			if (is_dir(a)) move_tree(a, b);
+		}
 	}
 }

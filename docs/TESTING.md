@@ -41,7 +41,7 @@ picture, the golden and a diff side by side.
 
 The exit status is 0 only when every case passes. Run the suite before
 sending a build that touches `profiles.c`, `game.c`, `mapcap.c`, `emu.c`,
-`logo.c` or `mapframe.c`.
+or `logo.c`.
 
 ### Only what changed
 
@@ -95,8 +95,9 @@ screens through software OpenGL). `--paced` runs it as players do
 instead, at 60 frames a second and drawing every frame: for a case that
 might depend on something timed in real seconds (the quick bar closes
 itself after 5 s). Each case gets a
-fresh state folder, so it also tests the first-run path (logo and surround
-extraction).
+fresh state folder, so it also tests the first-run path (logo extraction).
+It runs the app with `--overlays=off`, so goldens are the games' pictures
+without GBA DS's bezel (a case can turn it on in its `config`).
 
 A **logo** case (`"kind": "logo"`) extracts one release's logo the way the
 app does, and compares it with its golden.

@@ -22,12 +22,28 @@
 #include "emu.h"
 #include "profiles.h"
 
+#include <dirent.h>
 #include <libgen.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <unistd.h>
+
+/* true if the folder has a .png in it */
+static bool dir_has_png(const char* path) {
+	DIR* d = opendir(path);
+	if (!d) return false;
+	bool found = false;
+	struct dirent* e;
+	while (!found && (e = readdir(d))) {
+		size_t n = strlen(e->d_name);
+		found = n > 4 && !strcasecmp(e->d_name + n - 4, ".png");
+	}
+	closedir(d);
+	return found;
+}
 
 static void on_signal(int sig) {
 	(void) sig;
@@ -77,6 +93,9 @@ int main(int argc, char** argv) {
 		}
 	}
 #ifdef __ANDROID__
+	/* GBA DS's folder where the player chose it (Settings > Folders), its
+	 * files moved there first if it's new: before the log, which goes in it */
+	android_data_setup();
 	android_init_log();
 #endif
 	fprintf(stderr, "GBA DS %s\n", GBADS_VERSION);
@@ -113,14 +132,30 @@ int main(int argc, char** argv) {
 			snprintf(path, sizeof(path), "%s/.config/gba-ds/gba-ds.cfg", getenv("HOME"));
 			config_load_file(&cfg, path);
 		}
+#if !defined(__ANDROID__) && !defined(__wasi__)
+		/* data-folder.cfg: data_dir, where GBA DS keeps its own files (in a
+		 * file of its own, which neither the zip nor an update has) */
+		snprintf(path, sizeof(path), "%s/data-folder.cfg", exeDir);
+		config_load_file(&cfg, path);
+#endif
 	}
 	if (!config_parse_args(&cfg, argc, argv)) {
 		config_usage(argv[0]);
 		return 1;
 	}
-	if (!cfg.assetDir[0]) snprintf(cfg.assetDir, sizeof(cfg.assetDir), "%s", exeDir);
+	/* GBA DS's data folder (states/, cheats/, overlays/, logos/...): the
+	 * app's folder, or data_dir, moved there when that changes (paths.c) */
+	char dataDir[480];
+	snprintf(dataDir, sizeof(dataDir), "%s", exeDir);
+#if !defined(__ANDROID__) && !defined(__wasi__)
+	snprintf(path, sizeof(path), "%s/data-folder.cfg", exeDir);
+	data_dir_setup(exeDir, getenv("GBADS_CONFIG") ? NULL : path, cfg.dataDir, false, dataDir, sizeof(dataDir));
+#endif
+	if (strcmp(dataDir, exeDir) || data_dir_note()[0])
+		fprintf(stderr, "data folder: %s%s%s\n", dataDir, data_dir_note()[0] ? " - " : "", data_dir_note());
+	if (!cfg.assetDir[0]) snprintf(cfg.assetDir, sizeof(cfg.assetDir), "%s", dataDir);
 	if (!cfg.patchDir[0]) snprintf(cfg.patchDir, sizeof(cfg.patchDir), "%s/patches", cfg.assetDir); /* GEN-9 */
-	if (!cfg.stateDir[0]) snprintf(cfg.stateDir, sizeof(cfg.stateDir), "%s/states", exeDir);
+	if (!cfg.stateDir[0]) snprintf(cfg.stateDir, sizeof(cfg.stateDir), "%s/states", dataDir);
 	mkdirs(cfg.stateDir);
 	snprintf(path, sizeof(path), "%s/prefs.cfg", cfg.stateDir);
 	{
@@ -143,6 +178,13 @@ int main(int argc, char** argv) {
 	snprintf(path, sizeof(path), "%s/hotkeys.cfg", cfg.stateDir);
 	config_load_file(&cfg, path);
 	config_parse_args(&cfg, argc, argv);
+	if (cfg.overlayMode == OVM_LEGACY) {
+		/* overlays = top / both... from before v1.5 (the player's PNGs, which
+		 * had no bezel to fall back on): Custom if overlays/ has any, else
+		 * the generated bezel */
+		snprintf(path, sizeof(path), "%s/overlays", cfg.assetDir);
+		cfg.overlayMode = dir_has_png(path) ? OVM_CUSTOM : OVM_GENERATED;
+	}
 
 #ifndef __ANDROID__
 	/* keep EmulationStation's entry for GBA DS current, if it's switched on */

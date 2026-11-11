@@ -473,11 +473,6 @@ static void scan(Config* cfg) {
 		int w, h;
 		bool px;
 		if (ui_load_logo(cfg, games[i].path, games[i].code, t, &w, &h, &px)) ui_free_image(t);
-		char fp[1200];
-		snprintf(fp, sizeof(fp), "%s/frames", cfg->stateDir);
-		mkdirs(fp);
-		snprintf(fp, sizeof(fp), "%s/frames/%.4s.png", cfg->stateDir, games[i].code);
-		frame_request(games[i].path, games[i].code, fp);
 	}
 	fprintf(stderr, "library: %d game(s)\n", nGames);
 }
@@ -757,7 +752,7 @@ static void toggle_view(Config* cfg) {
 /* Can GBA DS write where it keeps its files (states, logos, screenshots)?
  * Checked once a run; when it can't, the game list's header says so
  * instead of everything failing quietly. */
-static char storageMsg[128];
+static char storageMsg[256];
 static void storage_check(const Config* cfg) {
 	static bool checked;
 	if (checked) return;
@@ -769,6 +764,8 @@ static void storage_check(const Config* cfg) {
 	bool ok = f && fputs("ok\n", f) >= 0;
 	if (f && fclose(f) != 0) ok = false;
 	remove(path);
+	/* the data folder couldn't be reached or moved to (paths.c) */
+	if (ok && data_dir_note()[0]) snprintf(storageMsg, sizeof(storageMsg), "%s", data_dir_note());
 	if (ok) return;
 	fprintf(stderr, "storage: can't write in %s\n", cfg->stateDir);
 	/* (on Android without All files access the app's own folder is used,
@@ -874,7 +871,7 @@ static void draw_list(Config* cfg, int scr, int sel, int scroll) {
 
 /* ------------------------------------------------------------ settings */
 
-static char settingsMsg[128];
+static char settingsMsg[320];
 static bool updatesOpen;   /* the Updates panel (Linux), over Settings or the game list */
 static bool updatesNotice; /* opened by an automatic check */
 static int updatesSel;
@@ -977,8 +974,8 @@ static void draw_settings_frame(int scr, const SettingsGeom* g, int sel, const c
  * the RetroAchievements account, signed in with a dialog (android.c,
  * GbaDsActivity) and kept as a token by ra.c. */
 static bool pickPending, raDialogPending;
-static int pickFor; /* PICK_ROMS or PICK_SAVES: what the picker's folder is for */
-enum { PICK_ROMS, PICK_SAVES };
+static int pickFor; /* PICK_ROMS, PICK_SAVES or PICK_DATA: what the picker's folder is for */
+enum { PICK_ROMS, PICK_SAVES, PICK_DATA };
 static int settingsMsgRow; /* the row settingsMsg is about: shown in place of its text */
 static bool foldersOpen;
 static int foldersSel;
@@ -1086,6 +1083,54 @@ static bool can_write_in(const char* dir) {
 	return true;
 }
 
+/* GBA DS's own folder (issue #34): where it's moved to at the next start
+ * (android_data_setup), data_dir in data-folder.cfg in the app's storage */
+static bool data_folder_wanted(char* out, size_t n) {
+	char record[1100];
+	return android_data_record(record, sizeof(record)) && kv_get(record, "data_dir", out, n) && out[0] == '/';
+}
+
+/* a folder with anything in it but hidden files */
+static bool dir_in_use(const char* dir) {
+	DIR* d = opendir(dir);
+	if (!d) return false;
+	bool used = false;
+	struct dirent* e;
+	while (!used && (e = readdir(d))) used = e->d_name[0] != '.';
+	closedir(d);
+	return used;
+}
+
+static void data_folder_picked(const char* path) {
+	const char* home = android_home();
+	char to[1100], states[1200], record[1100];
+	struct stat st;
+	snprintf(to, sizeof(to), "%s", path);
+	snprintf(states, sizeof(states), "%s/states", path);
+	/* a folder with other things in it (Emulators, the storage's own top):
+	 * GBA DS's in a "GBA DS" folder there, not spread among them */
+	if (home && strcmp(path, home) && dir_in_use(path) && stat(states, &st) != 0) snprintf(to, sizeof(to), "%s/GBA DS", path);
+	size_t hn = home ? strlen(home) : 0;
+	if (!android_data_record(record, sizeof(record))) {
+		snprintf(settingsMsg, sizeof(settingsMsg), "Couldn't keep that choice.");
+	} else if (home && !strcmp(to, home)) {
+		/* (chosen back before the move happened: nothing to move) */
+		kv_set(record, "data_dir", to, "# GBA DS's data folder");
+		snprintf(settingsMsg, sizeof(settingsMsg), "GBA DS's files are kept there already.");
+	} else if (home && !strncmp(to, home, hn) && to[hn] == '/') {
+		snprintf(settingsMsg, sizeof(settingsMsg), "That's inside GBA DS's own folder: choose one outside it.");
+	} else if (!can_write_in(path)) {
+		snprintf(settingsMsg, sizeof(settingsMsg),
+		         "GBA DS can't save files there: allow it All files access in Android's settings, or choose another folder.");
+	} else if (!kv_set(record, "data_dir", to, "# GBA DS's data folder")) {
+		snprintf(settingsMsg, sizeof(settingsMsg), "Couldn't keep that choice.");
+	} else {
+		snprintf(settingsMsg, sizeof(settingsMsg),
+		         "GBA DS's files go to %s the next time it starts: close GBA DS and open it again.", to);
+		fprintf(stderr, "library: data folder to %s at the next start\n", to);
+	}
+}
+
 /* Answers from the folder picker and the sign-in box, once they come.
  * True if the ROM folder changed. */
 static bool settings_poll(Config* cfg) {
@@ -1108,6 +1153,10 @@ static bool settings_poll(Config* cfg) {
 		snprintf(settingsMsg, sizeof(settingsMsg), "No folder chosen.");
 		return false;
 	}
+	if (pickFor == PICK_DATA) {
+		data_folder_picked(path);
+		return false;
+	}
 	if (pickFor == PICK_SAVES) {
 		if (!can_write_in(path)) {
 			snprintf(settingsMsg, sizeof(settingsMsg),
@@ -1127,18 +1176,18 @@ static bool settings_poll(Config* cfg) {
 
 /* ------------------------------------------------------------ Settings > Folders (Android) */
 
-enum { FB_ROMS, FB_SAVES, FB_BESIDE, FB_TYPE, FB_BACK };
+enum { FB_ROMS, FB_SAVES, FB_BESIDE, FB_TYPE, FB_DATA, FB_BACK };
 
 static int folders_buttons(const Config* cfg, int* ids) {
 	int n = 0;
 	ids[n++] = FB_ROMS, ids[n++] = FB_SAVES;
 	if (cfg->saveDir[0]) ids[n++] = FB_BESIDE;
-	ids[n++] = FB_TYPE, ids[n++] = FB_BACK;
+	ids[n++] = FB_TYPE, ids[n++] = FB_DATA, ids[n++] = FB_BACK;
 	return n;
 }
 
 typedef struct {
-	SDL_Rect panel, text, btn[5];
+	SDL_Rect panel, text, btn[6];
 	float px;
 } FoldersGeom;
 
@@ -1147,7 +1196,7 @@ static FoldersGeom folders_geom(int scr, int nb) {
 	SDL_Rect r = screens[scr].rect;
 	float px = ui_px(scr);
 	g.px = px;
-	int m = px * 6, rowH = px * 14, gap = px * 3;
+	int m = px * 6, rowH = nb > 5 ? px * 12 : px * 14, gap = px * 3;
 	g.panel = (SDL_Rect) { m, m, r.w - m * 2, r.h - m * 2 };
 	int y = g.panel.y + g.panel.h - px * 6;
 	for (int i = nb - 1; i >= 0; --i) {
@@ -1161,7 +1210,7 @@ static FoldersGeom folders_geom(int scr, int nb) {
 }
 
 static void draw_folders(const Config* cfg, int scr, int sel) {
-	int ids[5];
+	int ids[6];
 	int nb = folders_buttons(cfg, ids);
 	FoldersGeom g = folders_geom(scr, nb);
 	float px = g.px;
@@ -1174,6 +1223,7 @@ static void draw_folders(const Config* cfg, int scr, int sel) {
 		                  : ids[i] == FB_SAVES  ? "Choose save folder"
 		                  : ids[i] == FB_BESIDE ? "Keep saves next to the games"
 		                  : ids[i] == FB_TYPE   ? (srm_saves(cfg) ? "Save files: .srm (RetroArch's)" : "Save files: .sav")
+		                  : ids[i] == FB_DATA   ? "Choose GBA DS folder"
 		                                        : "Back";
 		if (i == sel) ui_fill_round(scr, (SDL_Rect) { b.x - px, b.y - px, b.w + px * 2, b.h + px * 2 }, C_EDGE, px * 4);
 		ui_fill_round(scr, b, i == sel ? C_SEL : C_ROW, px * 3);
@@ -1186,6 +1236,16 @@ static void draw_folders(const Config* cfg, int scr, int sel) {
 	if (pickPending) snprintf(line, sizeof(line), "Choose a folder in Android's file picker...");
 	else folders_text(cfg, line, sizeof(line));
 	y = draw_wrapped(scr, tx, y, tw, px, line, C_TEXT);
+	/* GBA DS's own folder, and where it's going */
+	char want[1024];
+	const char* home = android_home();
+	if (home) {
+		if (data_folder_wanted(want, sizeof(want)) && strcmp(want, home))
+			snprintf(line, sizeof(line), "GBA DS's own files (states, settings, cheats, overlays) are in %s, moving to %s at the next start.", home, want);
+		else
+			snprintf(line, sizeof(line), "GBA DS's own files (states, settings, cheats, overlays) are in %s.", home);
+		y = draw_wrapped(scr, tx, y + px * 3, tw, px, line, C_TEXT);
+	}
 	if (settingsMsg[0]) y = draw_wrapped(scr, tx, y + px * 3, tw, px, settingsMsg, C_GOLD);
 	draw_wrapped(scr, tx, y + px * 3, tw, px,
 	             "A game's save already next to it, or in the other type, is copied over the first time you play it. "
@@ -1196,7 +1256,7 @@ static void draw_folders(const Config* cfg, int scr, int sel) {
 
 /* One step of the Folders panel; false once it's closed. */
 static bool folders_input(Config* cfg, int ls) {
-	int ids[5];
+	int ids[6];
 	int nb = folders_buttons(cfg, ids);
 	if (foldersSel >= nb) foldersSel = nb - 1;
 	int act = -1;
@@ -1218,8 +1278,9 @@ static bool folders_input(Config* cfg, int ls) {
 	switch (act) {
 	case FB_ROMS:
 	case FB_SAVES:
+	case FB_DATA:
 		if (pickPending) break;
-		pickFor = act == FB_ROMS ? PICK_ROMS : PICK_SAVES;
+		pickFor = act == FB_ROMS ? PICK_ROMS : act == FB_SAVES ? PICK_SAVES : PICK_DATA;
 		if (android_pick_folder()) pickPending = true;
 		else snprintf(settingsMsg, sizeof(settingsMsg), "Couldn't open the file picker.");
 		break;

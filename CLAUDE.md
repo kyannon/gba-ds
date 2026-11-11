@@ -344,7 +344,7 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   Fixtures (ROMs as `roms/CODE.zip`, states, saves, golden screenshots) are
   in the private repo kyannon/gba-ds-tests, cloned to `../gba-ds-tests`
   (attach it with add_repo). Run the suite before sending a build that
-  touches profiles.c, game.c, mapcap.c, emu.c, logo.c or mapframe.c. For an
+  touches profiles.c, game.c, mapcap.c, emu.c or logo.c. For an
   intended change: rule first, then profile, then `--update CASES` after
   looking at every differing picture in build/regress/index.html; commit the
   goldens in the fixtures repo saying which rule changed. Before a release,
@@ -366,6 +366,14 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
 ## Architecture (src/)
 
 - `main.c` start-up; `config.c` settings (`gba-ds.cfg`, `prefs.cfg`, `--key=value`).
+  The data folder (issue #34; `paths.c` data_dir_setup): `states/`, `cheats/`,
+  `overlays/`, `logos/`, `patches/`, `bug-reports/` live in the app's folder
+  unless `data_dir` (Linux: `<app>/data-folder.cfg`, never in the zip, so
+  updates keep it; Android: Settings > Folders, `data-folder.cfg` in the
+  app's own storage) says otherwise; it's moved there at start, and
+  `data_dir_now` in that file records where it is. `asset_dir` and
+  `state_dir` default to it. The program, `gba-ds.cfg` and the log stay in
+  the app folder on Linux.
 - `emu.c` the libmgba wrapper: frames, states, audio, cheats, per-renderer
   sprite hiding (SpriteRule), layer toggles, ROM headers (also inside
   .zip / .7z), and the HUD split (`emu_hud_split`: a second software
@@ -394,7 +402,13 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   `emu_cancelled`, composers keep nothing); `aw_run` waits draw only their
   last two frames (`emu_frame_blind`). `GBADS_DEBUG=1` logs each capture's
   time and frame count ("capture: ... ms, ... frames").
-- `mapframe.c` generated map surrounds; `logo.c` logo / frame extraction.
+- `logo.c` logo extraction. Overlays (game.c `draw_overlay`, Display > Overlays: its own screen,
+  `draw_ovl_menu`, with a colour picker and hex keypad): Off, Generated (GBA DS's bezel, drawn by
+  `bezel.c` for any screen and picture, in the player's colours `bezel_inner` / `bezel_outer`,
+  logo `bezel_logo`; a texture made again when any of it changes) or Custom (the player's PNGs,
+  else the bezel in its default colours), on `overlay_screens`. `tools/make_overlays.py` is the
+  design's reference (the master images, a set for every device in `docs/devices.csv` to check
+  against) and `--embed` makes `src/bezel_logo.c`. regress.py runs with `--overlays=off`.
 - `game.c` a play session: input, the second screen (map, logo, THPS2
   snapshot), the quick bar (Controls picker, buttons, bug reports), pause
   menu, cheats screen, screenshots.

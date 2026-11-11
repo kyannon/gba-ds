@@ -73,6 +73,39 @@ const char* android_home(void) {
 	return h && *h ? h : NULL;
 }
 
+bool android_data_record(char* out, size_t size) {
+	const char* files = getenv("GBADS_APP_FILES");
+	if (!files || !*files) return false;
+	snprintf(out, size, "%s/data-folder.cfg", files);
+	return true;
+}
+
+void android_data_setup(void) {
+	const char* home = android_home();
+	char record[1100], want[1024] = "", out[1024];
+	if (!home || !android_data_record(record, sizeof(record))) return;
+	char def[1024];
+	snprintf(def, sizeof(def), "%s", home);
+	kv_get(record, "data_dir", want, sizeof(want));
+	char was[1024];
+	if (!kv_get(record, "data_dir_now", was, sizeof(was))) snprintf(was, sizeof(was), "%s", def);
+	data_dir_setup(def, record, want, true, out, sizeof(out));
+	setenv("GBADS_HOME", out, 1);
+	/* a ROM or save folder chosen inside the old folder (Settings > Folders,
+	 * library.cfg) moved with it */
+	size_t wn = strlen(was);
+	if (strcmp(was, out)) {
+		char lib[1100], v[1024], fixed[2100];
+		snprintf(lib, sizeof(lib), "%s/states/library.cfg", out);
+		static const char* const keys[] = { "save_dir", "rom_dir" };
+		for (int i = 0; i < 2; ++i) {
+			if (!kv_get(lib, keys[i], v, sizeof(v)) || strncmp(v, was, wn) || (v[wn] && v[wn] != '/')) continue;
+			snprintf(fixed, sizeof(fixed), "%s%s", out, v + wn);
+			kv_set(lib, keys[i], fixed, NULL);
+		}
+	}
+}
+
 /* ------------------------------------------------------------- defaults */
 
 void android_config_defaults(Config* c) {
@@ -95,10 +128,15 @@ void android_config_defaults(Config* c) {
 			            "A file goes with the ROM of the same name: Metroid Fusion (World) (Code Breaker).cht\n"
 			            "with Metroid Fusion (USA).gba. Switch cheats on in the pause menu: Extras > Cheats.\n"
 			            "More in the wiki: https://github.com/kyannon/gba-ds/wiki/Playing#cheats\n" },
-			{ "overlays", "Overlay PNGs (1024x768, transparent where the picture shows): primary.png (game screen) /\n"
-			              "secondary.png (map screen) for every game, <CODE>-primary.png / <CODE>-secondary.png for\n"
-			              "one game. Names for one scaling or screen shape, and more, in the wiki:\n"
-			              "https://github.com/kyannon/gba-ds/wiki/Map-screen-surrounds-and-overlays\n" },
+			{ "overlays", "Your own overlay PNGs go in this folder. Make each one the screen's size, transparent where\n"
+			              "the picture shows.\n\n"
+			              "top.png is drawn on the top screen and bottom.png on the bottom screen, for every game.\n"
+			              "<CODE>-top.png and <CODE>-bottom.png are for one game.\n"
+			              "To use them, set Display > Overlays in the pause menu to Custom (in /overlays). Which Screen\n"
+			              "there picks the screens: Both, Top Only or Bottom Only. Swapping screens doesn't move them.\n"
+			              "A screen with no file of its own gets GBA DS's generated bezel in its default colors.\n\n"
+			              "Names for one scaling or screen shape, and more, in the wiki:\n"
+			              "https://github.com/kyannon/gba-ds/wiki/Overlays\n" },
 			{ "logos", "Optional: your own logo images (<CODE>.png or .bmp) override the ones extracted from the games.\n" },
 			{ "screenshots", NULL },
 		};
@@ -114,7 +152,7 @@ void android_config_defaults(Config* c) {
 				fclose(f);
 			}
 		}
-		/* the extracted logos and map borders in states/ aren't photos */
+		/* the extracted logos in states/ aren't photos */
 		char nomedia[1100];
 		snprintf(nomedia, sizeof(nomedia), "%s/states", home);
 		mkdirs(nomedia);

@@ -5193,10 +5193,6 @@ static const MapProfile profiles[] = {
 		.bgColor = 0x29007B, .minForeground = 12,
 		.mem = { { 0x03002C68, 0xFF, 0x02, 1 } },
 		.logo = { .wait = 1700, .layer = 1, .maxY = 160 },
-		/* name entry screen: power on, Start through the title, A (Game Start), A (new file) */
-		.frame = { .steps = { { 0, 900 }, { K_START, 3 }, { 0, 9 }, { K_START, 3 }, { 0, 69 }, { K_A, 3 }, { 0, 49 },
-		                      { K_A, 3 }, { 0, 69 } },
-		           .layer = 1, .t = 8, .p = 8, .x0 = 0, .y0 = 40, .x1 = 232, .y1 = 152 },
 		.animFrames = 8, .animStep = 4, .animCycle = 90, /* glow pulse: 84 frames */
 	},
 	{
@@ -5210,11 +5206,6 @@ static const MapProfile profiles[] = {
 		.bgColor = 0x000000, .minForeground = 12,
 		.mem = { { 0x03002B28, 0xFF, 0x02, 1 } },
 		.logo = { .wait = 1700, .layer = 1, .maxY = 130 },
-		/* name entry screen */
-		.frame = { .steps = { { 0, 700 }, { K_START, 3 }, { 0, 9 }, { K_A, 3 }, { 0, 39 }, { K_START, 3 }, { 0, 9 },
-		                      { K_A, 3 }, { 0, 39 }, { K_START, 3 }, { 0, 9 }, { K_A, 3 }, { 0, 39 }, { K_START, 3 },
-		                      { 0, 9 }, { K_A, 3 }, { 0, 90 } },
-		           .layer = 1, .t = 8, .p = 8, .x0 = 0, .y0 = 40, .x1 = 232, .y1 = 152, .minLuma = 90 },
 		.animFrames = 8, .animStep = 3, .animCycle = 64, /* glow pulse: 64 frames */
 	},
 	{
@@ -5229,9 +5220,6 @@ static const MapProfile profiles[] = {
 		.mem = { { 0x03000C80, 0xFF, 0x01, 1 } },
 		.live = { { 0x03000C80, 0xFF, 0x00, 1 } },
 		.logo = { .wait = 700, .layer = 0, .maxY = 120, .blackIsClear = true },
-		/* the bevelled boxes of the file menu (same style as name entry) */
-		.frame = { .steps = { { 0, 600 }, { K_START, 3 }, { 0, 9 }, { K_START, 3 }, { 0, 400 } },
-		           .layer = 1, .t = 4, .p = 1, .x0 = 10, .y0 = 10, .x1 = 98, .y1 = 34 },
 		/* the "x.x%" after RATE on the pause screen (fully drawn ~30 frames after
 		 * Start); digits only, so it fits beside a fully explored castle */
 		.rate = { .open = { { K_START, 4 } }, .wait = 40, .x = 183, .y = 25, .w = 56, .h = 7, .text = 0xEFFFEF },
@@ -6304,7 +6292,8 @@ static const MapProfile profiles[] = {
 		 * 952-961) under it and the time (962-986, palettes 12, 15; a lap's
 		 * time under it as it ends) under that; BOOST (406-408) bottom
 		 * right; the course map one 64x64 sprite (tile 884, palette 15) at
-		 * 0, 96, drawn every other frame, with the player's dot (675) on
+		 * 0, 96 (further left on a narrow course: Bianca City Ultimate
+		 * Circuit's at -24), drawn every other frame, with the player's dot (675) on
 		 * it. Not the HUD: the number over a rival ahead and its line
 		 * (688-698, anywhere over the track's top half, the RANK corner
 		 * too), the signs over the track (256-280: READY, the laps left,
@@ -6356,9 +6345,10 @@ static const MapProfile profiles[] = {
 			          { 170, 140, 240, 159, 406, 408, 0 },
 			          /* the time and the lap's time */
 			          { 150, 18, 250, 56, 962, 986, 0, 1u << 12 | 1u << 15 },
-			          /* the map (x from -16: a narrow course's further left)
-			           * and the dot */
-			          { -16, 88, 64, 159, 884, 884, 0, 1u << 15 },
+			          /* the map (x from -64: a narrow course's further
+			           * left, Bianca City Ultimate Circuit's at -24) and the
+			           * dot */
+			          { -64, 88, 64, 159, 884, 884, 0, 1u << 15 },
 			          { -16, 84, 72, 159, 675, 675, 0 } },
 			/* the map's box (the sprite at 0, 96; the dot reaches row 92),
 			 * twice as big at the bottom centre; the game draws it every
@@ -7489,7 +7479,6 @@ static const MacroStep LANGUAGE_A[] = { { 0, 60 }, { K_A, 4 } };
 
 static void lang_menu(MapProfile* p) {
 	insert_steps(p->logo.steps, 24, 0, LANGUAGE_A, 2);
-	if (p->frame.steps[0].frames) insert_steps(p->frame.steps, 24, 0, LANGUAGE_A, 2);
 }
 
 /* Super Mario Advance 3 in Europe: the language menu (A: English), then

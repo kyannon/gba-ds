@@ -62,10 +62,15 @@ if ! ./gba-ds --version >/dev/null 2>&1; then
 	[ "$GBADS" = ./gba-ds ] && EXEC_NOTE="gba-ds won't run here, and no copy of it would either: $(./gba-ds --version 2>&1 | head -n 1)"
 fi
 
+# GBA DS's own files (states/, cheats/, overlays/, logos/...): this folder,
+# or data_dir in data-folder.cfg here (the app moves them there itself)
+DATA=$(sed -n 's/^[[:space:]]*data_dir[[:space:]]*=[[:space:]]*//p' "$DIR/data-folder.cfg" 2>/dev/null | tail -n 1 | sed 's:/*[[:space:]]*$::')
+case "$DATA" in /*) [ -d "$(dirname "$DATA")" ] || DATA="$DIR" ;; *) DATA="$DIR" ;; esac
+
 # First run after upgrading from gbadual (the app's old name): bring over
 # save states, resume points, menu settings and any custom logos/overlays.
 OLD="$DIR/../gbadual"
-if [ -d "$OLD/states" ] && [ ! -d "$DIR/states" ]; then
+if [ -d "$OLD/states" ] && [ ! -d "$DIR/states" ] && [ ! -f "$DIR/data-folder.cfg" ]; then
 	cp -a "$OLD/states" "$DIR/states"
 	for d in logos overlays; do
 		[ -d "$OLD/$d" ] && mkdir -p "$DIR/$d" && cp -an "$OLD/$d/." "$DIR/$d/" 2>/dev/null
@@ -152,7 +157,7 @@ if ! grep -qi rocknix /etc/os-release 2>/dev/null && [ ! -d /storage/.config/sys
 		done
 		[ -n "$GBA" ] && O+=("--rom-dir=$GBA")
 	fi
-	[ "$(cfgval screenshot_dir)" = /storage/roms/screenshots ] && mkdir -p "$DIR/screenshots" && O+=("--screenshot-dir=$DIR/screenshots")
+	[ "$(cfgval screenshot_dir)" = /storage/roms/screenshots ] && O+=("--screenshot-dir=$DATA/screenshots")
 	# Sound: SDL plays through ALSA there, whose default device is
 	# PulseAudio's (/etc/asound.conf); named here too in case that changes.
 	# Twice a run was silent with no error, cause unknown: the log's sound
@@ -165,7 +170,7 @@ if ! grep -qi rocknix /etc/os-release 2>/dev/null && [ ! -d /storage/.config/sys
 		done
 	fi
 	[ -n "$PULSE_SERVER" ] && [ -z "$AUDIODEV" ] && ls /usr/share/alsa/alsa.conf.d/*pulse* >/dev/null 2>&1 && export AUDIODEV=pulse
-	mkdir -p "$DIR/states" && export GBADS_VOLUME="$DIR/states/volume.txt"
+	export GBADS_VOLUME="$DATA/states/volume.txt"
 	# the RG DS Plus's volume keys: raw buttons 16 (up) and 15 (down)
 	grep -q 'ANBERNIC-rk3568-keys' /proc/bus/input/devices 2>/dev/null && export GBADS_VOLUME_BUTTONS=16,15
 	# the touchscreen read straight from its device (weston gives GBA DS no

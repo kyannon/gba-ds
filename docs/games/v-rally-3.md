@@ -57,7 +57,7 @@ Other addresses found (for tests): the car's segment along the stage 0x03001CE4 
 ## Not covered yet
 
 - **V-Rally Cross's boost** (the second race of each licence, after leading laps in the first): its bar wasn't seen in a race. Until it is, it stays on the game screen (not one of the HUD's tiles).
-- Weather (rain, snow, night) and the other rallies' stages: only France (Time Trial), Kenya (V-Rally Mode) and Departmental's first track (V-Rally Cross) were tried.
+- Every rally's first stage in Time Trial (France, Sweden, Portugal, Germany, Finland, Great Britain), Kenya in V-Rally Mode and Departmental's first track in V-Rally Cross are tried; their later stages (locked in Time Trial until won), V-Rally Cross Regional, and weather other than Time Trial's midday sun (rain, snow falling, night) aren't. Sweden's route is drawn dark blue on its map and Portugal's route has a pixel just outside the map's circle: both the game's own.
 - Damage was seen only lightly (one light red, in the owner's V-Rally Mode state; it moved with the others).
 - Link play needs a link cable: not tried.
 

@@ -18,6 +18,13 @@
 void android_init_log(void);
 /* The folder Java gave us for config, states, logos (GBADS_HOME), or NULL. */
 const char* android_home(void);
+/* GBA DS's folder (issue #34): "GBA DS" on the internal storage, or the one
+ * the player chose (Settings > Folders: data_dir in data-folder.cfg in the
+ * app's own storage, GBADS_APP_FILES, which updates keep), moved there
+ * first if that's new; GBADS_HOME is set to it. Before android_init_log. */
+void android_data_setup(void);
+/* data-folder.cfg (in the app's own storage), or false if there's none */
+bool android_data_record(char* out, size_t size);
 /* Android defaults: ROM folders, screenshots, cheats, no sway. */
 void android_config_defaults(Config* cfg);
 /* Opens Android's folder picker (the activity goes to the background while
