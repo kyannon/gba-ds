@@ -14,20 +14,14 @@
  * the logo couldn't be found. */
 bool logo_extract(const char* romPath, const char* gameCode, const char* outPng);
 
-/* Map-screen border pieces from one of the game's menu screens, saved as a
- * (2t+p) x (2t+p) atlas: corners in the corners, one edge slice between them
- * (see MapProfile.frame). */
-bool frame_extract(const char* romPath, const char* gameCode, const char* outPng);
-
 /* Background queue: extracts outPng if it doesn't exist yet. */
 void logo_request(const char* romPath, const char* gameCode, const char* outPng);
-void frame_request(const char* romPath, const char* gameCode, const char* outPng);
 /* Changes every time a queued logo finishes; compare to know when to reload. */
 uint32_t logo_generation(void);
 /* Background work done / total (queued + running + done) since the queue was
  * last idle; done == total when there's nothing left to do. */
 void logo_progress(int* done, int* total);
-/* A game's jobs (its logo, its map border) to the front of the queue, in
+/* A game's jobs (its logo) to the front of the queue, in
  * the order of the calls' reverse (the last call's first); urgent: they run
  * even while the queue's paused (the game about to start). */
 void logo_front(const char* gameCode, bool urgent);

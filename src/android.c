@@ -97,7 +97,7 @@ void android_config_defaults(Config* c) {
 			{ "overlays", "Overlay PNGs (1024x768, transparent where the picture shows): primary.png (game screen) /\n"
 			              "secondary.png (map screen) for every game, <CODE>-primary.png / <CODE>-secondary.png for\n"
 			              "one game. Names for one scaling or screen shape, and more, in the wiki:\n"
-			              "https://github.com/kyannon/gba-ds/wiki/Map-screen-surrounds-and-overlays\n" },
+			              "https://github.com/kyannon/gba-ds/wiki/Overlays\n" },
 			{ "logos", "Optional: your own logo images (<CODE>.png or .bmp) override the ones extracted from the games.\n" },
 			{ "screenshots", NULL },
 		};
@@ -113,7 +113,7 @@ void android_config_defaults(Config* c) {
 				fclose(f);
 			}
 		}
-		/* the extracted logos and map borders in states/ aren't photos */
+		/* the extracted logos in states/ aren't photos */
 		char nomedia[1100];
 		snprintf(nomedia, sizeof(nomedia), "%s/states", home);
 		mkdirs(nomedia);

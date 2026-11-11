@@ -321,7 +321,7 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   Fixtures (ROMs as `roms/CODE.zip`, states, saves, golden screenshots) are
   in the private repo kyannon/gba-ds-tests, cloned to `../gba-ds-tests`
   (attach it with add_repo). Run the suite before sending a build that
-  touches profiles.c, game.c, mapcap.c, emu.c, logo.c or mapframe.c. For an
+  touches profiles.c, game.c, mapcap.c, emu.c or logo.c. For an
   intended change: rule first, then profile, then `--update CASES` after
   looking at every differing picture in build/regress/index.html; commit the
   goldens in the fixtures repo saying which rule changed. Before a release,
@@ -371,7 +371,10 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   `emu_cancelled`, composers keep nothing); `aw_run` waits draw only their
   last two frames (`emu_frame_blind`). `GBADS_DEBUG=1` logs each capture's
   time and frame count ("capture: ... ms, ... frames").
-- `mapframe.c` generated map surrounds; `logo.c` logo / frame extraction.
+- `logo.c` logo extraction. Overlays (game.c `draw_overlay`): the player's PNGs, else GBA DS's
+  own bezel, `assets/overlays/default/` made by `tools/make_overlays.py` (from `docs/devices.csv`;
+  re-run it when a device is added or the picture's geometry changes), shipped in the zip's
+  `overlays/default/` and the APK's assets.
 - `game.c` a play session: input, the second screen (map, logo, THPS2
   snapshot), the quick bar (Controls picker, buttons, bug reports), pause
   menu, cheats screen, screenshots.

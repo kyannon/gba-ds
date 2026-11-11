@@ -21,7 +21,7 @@ What this means in practice:
 - **Show what matters right now.** The second screen follows what the player is doing: the unit under the cursor in Fire Emblem, the level Mario is standing on. Keeping up quickly is part of the function.
 - **Nothing there should make you look twice.** The second screen is for looking at; everything you act on stays on the game screen. So the second screen leaves out anything that looks like it's waiting for a button or like the thing you're controlling: button prompts (a "press A", an arrow to turn a page), the cursor, the character you're moving. Those belong to the hidden copy, not your game. A map's own marker of where you are is information, and stays. What you have to react to stays where the action is: action prompts, a command menu over your character, damage numbers. And nothing is split across the two screens or shown on both: half an animation on each screen, or the same box twice, leaves you wondering which one is real. In Mario & Luigi's battles, the information boxes and meters move over, but the command blocks and action prompts stay, and a level-up stays whole on the game screen.
 - **When there's nothing useful, say so plainly.** If there's nothing live to show (a title screen, a cutscene, a menu), the second screen shows the game's logo at half strength so it reads as idle, rather than something stale or invented. If a capture can't be confirmed as correct, the last good picture stays up. Better nothing new than something wrong.
-- **No enhancement for its own sake.** No smoothing, recolouring, upscaled art or animated transitions. Display options (scaling, shaders such as the LCD grid, overlays) are the player's choice, set in the pause menu, and are applied the same way to both screens.
+- **No enhancement for its own sake.** No smoothing, recolouring, upscaled art or animated transitions. Display options (scaling, shaders such as the LCD grid, overlays) are the player's choice, set in the pause menu, and are applied the same way to both screens. Overlays only ever fill the space around the GBA screens, never what's on them: GBA DS's own is a plain console bezel, as the imagined console would have (rule 1).
 
 ## 3. Keep it simple.
 
@@ -40,13 +40,13 @@ Don't create original UI elements from scratch. Everything drawn on either scree
 
 What this means in practice:
 
-- **Taken from the game, not drawn for it.** Logos are taken from each game's own title screen. The map surrounds are built from the game's own graphics. Status screens are the game's own, captured from the hidden copy. GBA DS ships no art for any game.
+- **Taken from the game, not drawn for it.** Logos are taken from each game's own title screen. Status screens are the game's own, captured from the hidden copy. GBA DS ships no art for any game.
 - **Allowed changes are small and mechanical.** These include:
   - hiding sprites that don't belong (a cursor, a button prompt, the player's sprite behind a menu; see rule 2);
   - cropping to the part that matters;
   - moving a block of the game's own HUD into a free spot (Super Mario Advance 2's level name above its status bar);
   - placing two of the game's own windows together when both help (Final Fantasy Tactics Advance's Laws above its turn order);
-  - one window across the whole screen, made of the game's own window edge and background, where the game split its information into small windows only to leave the battle visible (Advance Wars' unit intel, its text and minimap in one frame). The second screen has no battle to keep clear. Like the map surrounds, it's built from tiles the game draws, never drawn for it;
+  - one window across the whole screen, made of the game's own window edge and background, where the game split its information into small windows only to leave the battle visible (Advance Wars' unit intel, its text and minimap in one frame). The second screen has no battle to keep clear. It's built from tiles the game draws, never drawn for it;
   - turning through a status screen's pages on a timer (Fire Emblem's three pages, every 5 seconds).
 - **Not allowed:** text in GBA DS's font on the second screen, new icons, panels or frames of GBA DS's own design, redrawn or restyled game art, or a layout so rearranged that it no longer reads as the game's own screen.
 - **The exception that proves the rule:** when the logo is all the second screen shows, it's on dark grey rather than black, and at half strength. That's GBA DS signalling where the screen is and that it's idle, kept to a minimum. Under anything live (a status bar, a HUD) the second screen is black, as the game's own screen would be, with the logo at full strength.

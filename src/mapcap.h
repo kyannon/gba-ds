@@ -23,11 +23,6 @@ typedef struct MapResult {
 	uint32_t* pixels;            /* == frames[0] */
 	uint32_t* frames[MAP_MAX_FRAMES];
 	uint32_t serial;             /* increments with each successful capture */
-	/* the map's empty background grid cell, when the profile has one:
-	 * map pixel (u,v) of an empty cell = tile[((v-tileY)%k)*k + (u-tileX)%k] */
-	bool hasTile;
-	int tileK, tileX, tileY;
-	uint32_t tile[16 * 16];
 } MapResult;
 
 /* Returns NULL when no profile matches gameCode. */

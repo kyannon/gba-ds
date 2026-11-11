@@ -9,7 +9,6 @@
    "desc": "first rooms of the castle, new game",
    "rules": [
     "CVA-1",
-    "CVA-2",
     "CVA-5"
    ],
    "shots": {
@@ -103,7 +102,6 @@
    "desc": "Europe (English picked on the language menu), the castle's first room after the opening (a new game played from power-on): the map",
    "rules": [
     "CVA-1",
-    "CVA-2",
     "CVA-5"
    ],
    "shots": {
@@ -126,7 +124,6 @@
    "desc": "Japan (RAM 0x30 lower), the castle's first room after the opening (a new game played from power-on): the map",
    "rules": [
     "CVA-1",
-    "CVA-2",
     "CVA-5"
    ],
    "shots": {
@@ -194,7 +191,8 @@
    ],
    "golden": [
     "logo"
-   ]
+   ],
+   "checks": []
   },
   {
    "id": "cva-logo-a2cp",
@@ -206,7 +204,8 @@
    ],
    "golden": [
     "logo"
-   ]
+   ],
+   "checks": []
   },
   {
    "id": "cva-logo-a2cj",
@@ -218,7 +217,8 @@
    ],
    "golden": [
     "logo"
-   ]
+   ],
+   "checks": []
   }
  ]
 }

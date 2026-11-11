@@ -18,7 +18,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **CVC-2. Completion rate.** The map screen has no completion rate of its own, so the percentage after RATE on the pause screen is copied onto the map, in its top-right corner (bottom-right if the top-right is taken).
 
-**CVC-3. Map surround.** The map is drawn inside the generated surround.
+**CVC-3.** *Retired in v1.5's test builds:* the map drawn inside a border built from the game's own menu artwork (the generated map surround). Overlays are now only bezels around the picture, the same for every game; the map is on the screen's background colour like every other game's.
 
 **CVC-4. Last good map stays.** When the map can't be opened, the last good map stays up.
 

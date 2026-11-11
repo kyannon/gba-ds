@@ -4,8 +4,8 @@
 #include <stdbool.h>
 
 /* Overlays: "primary" is the game screen, "secondary" the map screen (they
- * follow the picture when the screens are swapped). Secondary also covers the
- * generated map surrounds. */
+ * follow the picture when the screens are swapped). Each is the player's
+ * overlay, else GBA DS's own bezel (overlays/default). */
 enum { OVL_PRIMARY = 1, OVL_SECONDARY = 2, OVL_BOTH = 3 };
 /* Display > Shader, in menu order. Each is a fixed pattern multiplied over
  * every GBA pixel (a texture built once, ui.c), so none costs more than the
@@ -64,6 +64,7 @@ typedef struct Config {
 	char libraryView[8]; /* game list: "list" (names) or "grid" (logos) */
 	char esConfigDir[512]; /* EmulationStation's config folder (Settings: GBA DS in EmulationStation) */
 	char assetDir[512]; /* logos etc.; default: next to the binary */
+	char appDir[1024];  /* the app's own folder (not a setting): what ships with it, such as overlays/default */
 	char touchScreen[16]; /* first | second: which screen has the touch panel */
 	char topScreen[16];   /* Android: auto | app | second: which display is the top screen */
 	char screenMatch[8];  /* keep | aspect | size: the wider screen's picture area (ui.c layout_pictures) */

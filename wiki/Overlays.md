@@ -1,22 +1,22 @@
 The **Overlays** setting (pause menu → Display, or `overlays` in `gba-ds.cfg`) cycles **Primary / Secondary / Both / None**. "Primary" is the game screen and "secondary" the second (map) screen, whichever physical screen they're on: swap screens and each overlay moves with its picture.
 
-## Generated map surrounds
+An overlay is a picture drawn over the space around the game, never over the game itself: a console bezel, or art of your own.
 
-**Secondary** turns on the generated map surround (and your own second-screen overlay). The surround fills the space around the map with graphics from the game itself. Nothing is shipped: like the logos, it's extracted from the ROM once in the background and cached in `states/frames/`.
+## GBA DS's own bezel
 
-- **Castlevania (all three):** the map's background colour, plus a border from the game's own menus:
-  - Aria of Sorrow and Harmony of Dissonance use their name-entry frame;
-  - Circle of the Moon uses the bevelled boxes from its file menu.
+Out of the box, GBA DS draws a bezel round the picture in the style of the indigo Game Boy Advance: purple outside, a black bezel with a thin grey edge round the screen, "kyannon" and the GBA DS logo in the black above and below. On the top screen "kyannon" is above the picture and the logo below it; on the bottom screen it's the other way round, so the logo sits by the hinge on both.
 
-  In Pixel Perfect scaling the border goes all the way round the map; in Full Width it spans the top and bottom.
-- **Metroid: Zero Mission / Fusion, A Link to the Past:** none. These map screens are shown whole, with the game's own frame, so there's nothing to fill.
-- **Tony Hawk's Pro Skater 2, Mario Kart: Super Circuit:** none; their second screens are full GBA screens (Mario Kart's has the course's scenery behind it; see [[Supported games]]).
+It's made for every screen of the devices GBA DS knows (the Anbernic RG DS and RG DS Plus, the AYN Thor, the Retroid Pocket Duo and Duo Lite, the AYANEO Pocket DS and the Anbernic RG DDS), in every scaling that leaves room round the picture, and with each **Screen shapes** setting. Where there's little room (Full Width, or the sides in Pixel Perfect on a 4:3 screen), you see only the part of the bezel that fits; with Stretch, or Zoom on a 4:3 screen, the picture fills the screen and there's no bezel.
 
-The surround is assembled in the game's own pixel space and scaled together with the map, so it lines up exactly and the LCD grid covers it too. `border_color` (hex, default `000000`) sets the colour behind the map where there's no surround or overlay.
+- Your own overlays (below) always win over it.
+- With **Match screen sizes and aspect ratios**, the bezel is made for the screen sizes GBA DS knows for your device; if you set `screen_ppi` yourself, the picture may land where no bezel was made, and then there's none.
+- **Overlays: None** turns it off; **Primary** or **Secondary** keeps it on one screen only.
+- As with your own, the second screen's bezel is only drawn while a map (or HUD) is showing, not over the logo.
+- The files are in `gba-ds/overlays/default/` (on Android, inside the app), one for each screen size and picture position; its `README.txt` says which device and setting uses each. They're replaced by every update, so don't edit them there: copy one into `overlays/` under one of the names below and change that.
 
 ## Your own overlays
 
-Put PNGs in `gba-ds/overlays/` (Android: `GBA DS/overlays/`). Each one is drawn over the whole screen, stretched to its size, so make it the screen's size (**1024×768** on the RG DS Plus, **640×480** on the RG DS) and leave it transparent where the picture should show. The primary (game screen) overlay is a good place for a console bezel.
+Put PNGs in `gba-ds/overlays/` (Android: `GBA DS/overlays/`), not in its `default/` folder. Each one is drawn over the whole screen, stretched to its size, so make it the screen's size (**1024×768** on the RG DS Plus, **640×480** on the RG DS) and leave it transparent where the picture should show. The primary (game screen) overlay is a good place for a console bezel.
 
 A file's name is made of these parts, in this order, joined by dashes; only `<side>` is needed:
 
@@ -51,7 +51,7 @@ Areas to keep transparent, where the game or map picture is (the same for every 
 | Scaling | RG DS Plus (1024×768) | RG DS (640×480) |
 |---|---|---|
 | Pixel Perfect (`integer`) | x=32, y=64, 960×640 | x=80, y=80, 480×320 |
-| Full Width (`fit`) | x=0, y=43, 1024×682 | x=0, y=27, 640×427 |
+| Full Width (`fit`) | x=0, y=43, 1024×682 | x=0, y=27, 640×426 |
 | Zoom, Stretch | the whole screen | the whole screen |
 
 **With Screen shapes on** (screens of different shapes, such as the AYN Thor's 1920×1080 top screen over its 1240×1080 bottom one), the wider screen's picture goes in a smaller area first, and its scaling then works inside that area as it would on a whole screen:

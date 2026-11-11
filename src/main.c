@@ -119,6 +119,7 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 	if (!cfg.assetDir[0]) snprintf(cfg.assetDir, sizeof(cfg.assetDir), "%s", exeDir);
+	snprintf(cfg.appDir, sizeof(cfg.appDir), "%s", exeDir);
 	if (!cfg.stateDir[0]) snprintf(cfg.stateDir, sizeof(cfg.stateDir), "%s/states", exeDir);
 	mkdirs(cfg.stateDir);
 	snprintf(path, sizeof(path), "%s/prefs.cfg", cfg.stateDir);

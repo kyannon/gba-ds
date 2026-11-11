@@ -55,7 +55,7 @@ The log's every-5-seconds report says whether the sound ran out (underruns) and 
 
 ## Logos and thumbnails
 
-**A tile says "Loading thumbnail..." forever, or a logo is wrong.** Delete `states/logos/<CODE>.png` (and `states/frames/<CODE>*` for map borders); they're made again on the next start. Your own `logos/<CODE>.png` always wins.
+**A tile says "Loading thumbnail..." forever, or a logo is wrong.** Delete `states/logos/<CODE>.png`; it's made again on the next start. Your own `logos/<CODE>.png` always wins.
 
 ## Saves
 

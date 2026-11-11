@@ -53,8 +53,6 @@ struct MapCapture {
 	void* snapshot;
 
 	uint32_t* published[MAP_MAX_FRAMES];
-	uint32_t pubTile[16 * 16];
-	bool pubTileValid;
 	int pubFrames;
 	int pubStep;
 	uint32_t serial;
@@ -771,10 +769,6 @@ static void publish(MapCapture* mc, const char* err) {
 	}
 	mc->pubFrames = mc->workFrames;
 	mc->pubStep = mc->workStep;
-	if (mc->tileValid) {
-		memcpy(mc->pubTile, mc->tile, sizeof(mc->pubTile));
-		mc->pubTileValid = true;
-	}
 	++mc->serial;
 }
 
@@ -1118,14 +1112,6 @@ bool mapcap_poll(MapCapture* mc, uint32_t lastSerial, MapResult* out) {
 		}
 		out->pixels = out->frames[0];
 		out->serial = mc->serial;
-		int k = mc->prof->gridCell;
-		out->hasTile = mc->pubTileValid && k > 0 && k <= 16;
-		if (out->hasTile) {
-			out->tileK = k;
-			out->tileX = ((mc->prof->gridX - mc->cx) % k + k) % k;
-			out->tileY = ((mc->prof->gridY - mc->cy) % k + k) % k;
-			memcpy(out->tile, mc->pubTile, sizeof(out->tile));
-		}
 	}
 	pthread_mutex_unlock(&mc->lock);
 	return fresh;

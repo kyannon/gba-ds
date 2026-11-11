@@ -265,11 +265,6 @@ static void scan(Config* cfg) {
 		int w, h;
 		bool px;
 		if (ui_load_logo(cfg, games[i].path, games[i].code, t, &w, &h, &px)) ui_free_image(t);
-		char fp[1200];
-		snprintf(fp, sizeof(fp), "%s/frames", cfg->stateDir);
-		mkdirs(fp);
-		snprintf(fp, sizeof(fp), "%s/frames/%.4s.png", cfg->stateDir, games[i].code);
-		frame_request(games[i].path, games[i].code, fp);
 	}
 	fprintf(stderr, "library: %d game(s)\n", nGames);
 }

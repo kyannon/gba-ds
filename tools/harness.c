@@ -177,10 +177,10 @@ int main(int argc, char** argv) {
 			uint32_t addr = strtoul(a1, NULL, 0), len = strtoul(a2, NULL, 0), val = strtoul(a3, NULL, 0);
 			/* (little-endian: len bytes of val) */
 			for (uint32_t i = 0; i < len; ++i) emu.core->rawWrite8(emu.core, addr + i, -1, i < 4 ? (val >> (8 * i)) & 0xFF : 0);
-		} else if (!strcmp(cmd, "frameatlas") || !strcmp(cmd, "logo")) {
+		} else if (!strcmp(cmd, "logo")) {
 			char path[512];
 			snprintf(path, sizeof(path), "%s/%s.png", outdir, a1);
-			bool ok = cmd[0] == 'f' ? frame_extract(argv[1], emu.gameCode, path) : logo_extract(argv[1], emu.gameCode, path);
+			bool ok = logo_extract(argv[1], emu.gameCode, path);
 			fprintf(stderr, "%s: %s\n", cmd, ok ? "ok" : "failed");
 		} else if (!strcmp(cmd, "layershot")) {
 			/* For each layer (bg0-3, obj) alone: render the next frame twice with

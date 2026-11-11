@@ -49,7 +49,7 @@ The hidden copy is given the live game's state, the map button is pressed, and t
 - **Crop and clean-up:** `crop_*` (what's shown), and with `map_crop` on: `tight_*`, `glyphs` (lettering to erase), `recolor`, `masks` with `gridX`/`gridY`/`gridCell` (rebuild the map grid), `captureHide` (sprites drawn over the map), `underRect`/`underLayers`/`underHide` (pieces of bezel that give way to the map under them) and `tab`. `captureLayers` keeps only some BG layers in the capture, over black, with `captureHide` always applied (Tony Hawk's Pro Skater 3's goal list without the level behind it).
 - **Animation:** `animFrames` × `animStep` frames are recorded so markers blink; `animCycle` and `stillPick` choose the frame for each blinking spot when the map is still (`map_animations = 0`, or `mapStill` for a game whose map is always still: A Link to the Past, Super Mario Advance 2's level list).
 - `hideSprites`: sprites hidden on the game screen while a map is shown (the Metroids' mini-map). Sprite rules give a screen box, a tile range and a priority (`-1`: any).
-- `frame`: a border from one of the game's menus, for the generated surround (button `steps` from power-on, then a frame of thickness `t` around `x0,y0`–`x1,y1` on BG `layer`). `gridBackground` fills the screen with the map's own grid tile (Metroid). `rate` copies text from another screen onto the map (Circle of the Moon's completion rate).
+- `rate` copies text from another screen onto the map (Circle of the Moon's completion rate).
 - `dimWhenUnavailable`: dim the last map while it can't be opened.
 
 ## Screen snapshot
@@ -90,7 +90,7 @@ The second screen is a 480×320 canvas (2× GBA pixels), so moved and scaled pie
 | `dumpram NAME` | EWRAM then IWRAM to `NAME.ram`, for `ramdiff.py` |
 | `watch ADDR LEN` then `diff` | what changed in a range since `watch` |
 | `map NAME` | run the real map capture against the profile (prints why it failed) |
-| `logo NAME` / `frameatlas NAME` | run the logo / border extraction |
+| `logo NAME` | run the logo extraction |
 | `split BGMASK PRIO` / `split off` / `hudshot NAME` | try a HUD split: BG layers and sprites of one priority |
 
 ### The app, headless

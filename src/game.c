@@ -14,7 +14,6 @@ extern void web_sleep(unsigned ms) __attribute__((import_module("env"), import_n
 #include "logo.h"
 #include <dirent.h>
 #include <math.h>
-#include "mapframe.h"
 #include "profiles.h"
 #include "cheats.h"
 
@@ -887,6 +886,10 @@ static SDL_Texture* logoCanvasTex[2];
 static SDL_Texture* overlayTex[2][2];
 static int overlayW[2], overlayH[2];
 static char overlayMode[2][16];
+/* GBA DS's own (draw_default_overlay): [0] top screen, [1] bottom */
+static SDL_Texture* defOverlayTex[2][2];
+static int defOverlayW[2], defOverlayH[2];
+static char defOverlayName[2][96];
 static int logoW, logoH;
 static bool logoPixel;
 static MapResult mapRes;
@@ -4642,12 +4645,6 @@ static void on_foreground(void) {
 	if (!menuOpen) open_menu();
 }
 
-/* generated surround (built-in overlay), see mapframe.c */
-static MapFrame mf;
-static SDL_Texture* canvasTex[2];
-static int canvasTexW, canvasTexH;
-static bool canvasDirty;
-static char framePath[1200];
 
 
 static const uint32_t* map_px(int idx) {
@@ -4785,7 +4782,6 @@ static void upload_map_frame(int idx) {
 	px = hud_over_map(px);
 	for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], px, mapW * 4);
 	mapShownIdx = idx;
-	canvasDirty = true;
 }
 
 static int cmp_u32(const void* a, const void* b) {
@@ -4953,7 +4949,6 @@ static void map_show_new(bool fresh) {
 		mapTitleN = SDL_min(hudProf->hud.mapTitleRows, 32);
 		for (int i = 0; i < GBA_W * mapTitleN; ++i) mapTitle[i] = mapRes.frames[0][i] | 0xFF000000;
 	}
-	if (mapRes.hasTile) mapframe_set_tile(&mf, mapRes.tile, mapRes.tileK, mapRes.tileX, mapRes.tileY);
 	mapShownIdx = -1;
 	/* (pages, a few seconds each: Fire Emblem's unit status; they
 	 * keep turning at their pace through new captures) */
@@ -4973,31 +4968,6 @@ static void map_show_new(bool fresh) {
 
 /* a profile's own live picture is up (liveView): drawn as it is */
 static bool liveOn;
-
-/* Draws the map with its generated surround; false if there's none to draw. */
-static bool draw_framed_map(int s) {
-	if (liveOn || !(cfg->overlays & OVL_SECONDARY) || !mapframe_ready(&mf) || mapShownIdx < 0) return false;
-	if (!strcmp(cfg->mapScale, "zoom")) return false; /* the map fills the height: no room for a surround */
-	SDL_Rect r = screens[s].pic; /* (the picture area: screen_match) */
-	if (mapframe_layout(&mf, r.w, r.h, cfg->mapScale) || mf.baseDirty) canvasDirty = true;
-	if (canvasTexW != mf.cw || canvasTexH != mf.ch) {
-		for (int i = 0; i < nViews; ++i) {
-			if (canvasTex[i]) SDL_DestroyTexture(canvasTex[i]);
-			canvasTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, mf.cw, mf.ch);
-			SDL_SetTextureBlendMode(canvasTex[i], SDL_BLENDMODE_NONE);
-		}
-		canvasTexW = mf.cw;
-		canvasTexH = mf.ch;
-		canvasDirty = true;
-	}
-	if (canvasDirty) {
-		const uint32_t* px = mapframe_compose(&mf, map_px(mapShownIdx));
-		for (int i = 0; i < nViews; ++i) ui_update_texture(canvasTex[i], px, mf.cw * 4);
-		canvasDirty = false;
-	}
-	ui_image_pixels(s, canvasTex, mf.cw, mf.ch, "stretch", SHADER_ON);
-	return true;
-}
 
 static bool frame_is_dark(const uint32_t* fb) {
 	int bright = 0, total = 0;
@@ -5120,9 +5090,10 @@ static SDL_Color borderColor;
  *   <CODE>-<side>-<scale>, <CODE>-<side>,
  *   (secondary only, older names: <CODE>-<scale>, <CODE>)
  *   <side>-<scale>-<match>, <side>-<match>, <side>-<scale>, <side>
- * wiki/Map-screen-surrounds-and-overlays.md explains them for players. */
+ * wiki/Overlays.md explains them for players. */
 static void overlays_reload(void) {
 	overlayMode[0][0] = overlayMode[1][0] = 0;
+	defOverlayName[0][0] = defOverlayName[1][0] = 0;
 }
 
 static void load_overlay(int which) {
@@ -5158,10 +5129,39 @@ static void load_overlay(int which) {
 	}
 }
 
+/* GBA DS's own overlays (tools/make_overlays.py), for when there's no
+ * player's overlay: a bezel round the picture, one file for each screen
+ * size, screen (top or bottom: the text is the other way round) and
+ * picture rectangle, in <app folder>/overlays/default/ (Android: the APK's
+ * assets). Drawn only where one was made for exactly this picture. */
+static void draw_default_overlay(int s, const char* mode) {
+	if (nScreens != 2 || s < 0 || s > 1) return;
+	SDL_Rect r = ui_image_rect(s, GBA_W, GBA_H, mode), sr = screens[s].rect;
+	char name[96];
+	snprintf(name, sizeof(name), "%dx%d-%s-%dx%d+%d+%d.png", sr.w, sr.h, s ? "bottom" : "top", r.w, r.h, r.x, r.y);
+	if (strcmp(name, defOverlayName[s])) {
+		snprintf(defOverlayName[s], sizeof(defOverlayName[s]), "%s", name);
+		ui_free_image(defOverlayTex[s]);
+		char path[1200];
+		snprintf(path, sizeof(path), "%s/overlays/default/%s", cfg->appDir, name);
+		bool ok = ui_load_image(path, defOverlayTex[s], &defOverlayW[s], &defOverlayH[s], true);
+#ifdef __ANDROID__
+		if (!ok) {
+			snprintf(path, sizeof(path), "overlays/default/%s", name);
+			ok = ui_load_image_rw(path, defOverlayTex[s], &defOverlayW[s], &defOverlayH[s], true);
+		}
+#endif
+		fprintf(stderr, "overlay (default, %s screen): %s%s\n", s ? "bottom" : "top", name, ok ? "" : ", none made for this");
+	}
+	if (defOverlayTex[s][0] || defOverlayTex[s][1]) ui_image(s, defOverlayTex[s], defOverlayW[s], defOverlayH[s], "stretch", NULL);
+}
+
 static void draw_overlay(int s, int which) {
 	load_overlay(which);
 	if (overlayTex[which][0] || overlayTex[which][1]) {
 		ui_image(s, overlayTex[which], overlayW[which], overlayH[which], "stretch", NULL);
+	} else {
+		draw_default_overlay(s, which ? cfg->mapScale : cfg->scale);
 	}
 }
 
@@ -5315,8 +5315,6 @@ static void draw_game(void) {
 			/* the HUD picture is at 2x: a grid cell per GBA pixel */
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
 			ui_image_pixels(s, hudTex, HUD_CW, HUD_CH, cfg->mapScale, SHADER_ON ? 2 : 0);
-		} else if (mapShownIdx >= 0 && !logoForced && draw_framed_map(s)) {
-			/* map + generated surround */
 		} else if (mapShownIdx >= 0 && !logoForced) {
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
 			ui_image_pixels(s, mapTex, mapW, mapH, cfg->mapScale, SHADER_ON);
@@ -5703,8 +5701,6 @@ static void rebuild_textures(void) {
 	}
 	if (combatMade) make_combat_canvas();
 	if (hudProf) for (int i = 0; i < nViews; ++i) ui_update_texture(hudTex[i], hudCanvas, HUD_CW * 4);
-	canvasTexW = canvasTexH = 0; /* (the map surround's: made again when next drawn) */
-	canvasDirty = true;
 	ui_free_image(logoTex);
 	if (romPath && ui_load_logo(cfg, romPath, emu.gameCode, logoTex, &logoW, &logoH, &logoPixel)) make_logo_canvas();
 	else make_logo_canvas();
@@ -5727,9 +5723,6 @@ static void ss_switch(const char* rom, const char* code) {
 	}
 	ss_setup(rom, subCode);
 	ss_textures();
-	mapframe_free(&mf);
-	mapframe_init(&mf, mc ? profile_find(subCode) : NULL, mapW, mapH);
-	canvasTexW = canvasTexH = 0;
 	make_logo_canvas();
 }
 
@@ -5777,17 +5770,9 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	unsigned bc = (unsigned) strtoul(cfg->borderColor, NULL, 16);
 	borderColor = (SDL_Color) { (bc >> 16) & 0xFF, (bc >> 8) & 0xFF, bc & 0xFF, 255 };
 	overlayMode[0][0] = overlayMode[1][0] = 0;
+	defOverlayName[0][0] = defOverlayName[1][0] = 0;
 	uint32_t logoGen = logo_generation();
 	if (ui_load_logo(cfg, rom, emu.gameCode, logoTex, &logoW, &logoH, &logoPixel)) make_logo_canvas();
-	mapframe_init(&mf, mc ? profile_find(subCode) : NULL, mapW, mapH);
-	canvasTexW = canvasTexH = 0;
-	snprintf(framePath, sizeof(framePath), "%s/frames", cfg->stateDir);
-	mkdirs(framePath);
-	snprintf(framePath, sizeof(framePath), "%s/frames/%.4s.png", cfg->stateDir, emu.gameCode);
-	/* (read before the request: with GBADS_SYNC the extraction is done by
-	 * the time frame_request returns) */
-	uint32_t frameGen = logo_generation();
-	if (mf.prof && mf.prof->frame.t && !mapframe_load_atlas(&mf, framePath)) frame_request(rom, emu.gameCode, framePath);
 
 	memset(pageLen, 0, sizeof(pageLen));
 	pages[0][pageLen[0]++] = M_RESUME;
@@ -5930,10 +5915,6 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		Uint64 workT0 = SDL_GetPerformanceCounter(); /* this frame's work, without the wait at the end */
 		long preempt0 = thread_preemptions();
 		double cpuMs0 = thread_cpu_ms();
-		if (mf.prof && mf.prof->frame.t && !mf.atlas && logo_generation() != frameGen) {
-			frameGen = logo_generation();
-			if (mapframe_load_atlas(&mf, framePath)) canvasDirty = true;
-		}
 		if (!logoTex[0] && !logoTex[1] && logo_generation() != logoGen) {
 			logoGen = logo_generation();
 			if (ui_load_logo(cfg, NULL, emu.gameCode, logoTex, &logoW, &logoH, &logoPixel)) {
@@ -6631,7 +6612,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], lv, mapW * 4);
 				if (mapShownIdx < 0) mapShownIdx = 0;
 				if (!liveOn && debug) fprintf(stderr, "frame %llu: live view on\n", (unsigned long long) frameCount);
-				liveOn = canvasDirty = true;
+				liveOn = true;
 			} else if (liveOn) {
 				liveOn = false;
 				if (debug) fprintf(stderr, "frame %llu: live view off\n", (unsigned long long) frameCount);
@@ -6641,7 +6622,6 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				} else {
 					mapShownIdx = -1;
 				}
-				canvasDirty = true;
 			}
 		}
 
@@ -6836,10 +6816,8 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	ui_free_image(overlayTex[0]);
 	ui_free_image(overlayTex[1]);
 	overlayMode[0][0] = overlayMode[1][0] = 0;
-	mapframe_free(&mf);
-	for (int i = 0; i < 2; ++i) {
-		if (canvasTex[i]) SDL_DestroyTexture(canvasTex[i]);
-		canvasTex[i] = NULL;
-	}
+	ui_free_image(defOverlayTex[0]);
+	ui_free_image(defOverlayTex[1]);
+	defOverlayName[0][0] = defOverlayName[1][0] = 0;
 	return exitTo;
 }

@@ -322,132 +322,10 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 	return ok;
 }
 
-/* Renders BG `layer` alone after playing `steps` from power-on; returns the
- * frame and a mask of non-transparent pixels. */
-static bool render_layer(const char* romPath, const MacroStep* steps, int nSteps, int layer, uint32_t* out,
-                         uint8_t* opaque) {
-	Emu e;
-	if (!emu_open(&e, romPath, NULL, false)) return false;
-	for (int s = 0; s < nSteps && steps[s].frames; ++s) {
-		for (int f = 0; f < steps[s].frames && !cancelAll; ++f) emu_frame(&e, steps[s].keys);
-	}
-	if (cancelAll) {
-		emu_close(&e);
-		return false;
-	}
-	size_t sz = emu_state_size(&e);
-	void* st = malloc(sz);
-	uint32_t* back = malloc(GBA_W * GBA_H * 4);
-	emu_state_save(&e, st);
-	layers(&e, -1); /* (state reloaded after switching layers: see logo_extract) */
-	emu_state_load(&e, st);
-	emu_frame(&e, 0);
-	memcpy(back, e.fb, GBA_W * GBA_H * 4);
-	layers(&e, layer);
-	emu_state_load(&e, st);
-	emu_frame(&e, 0);
-	memcpy(out, e.fb, GBA_W * GBA_H * 4);
-	layers(&e, -2);
-	emu_close(&e);
-	for (int i = 0; i < GBA_W * GBA_H; ++i) opaque[i] = out[i] != back[i];
-	free(st);
-	free(back);
-	return true;
-}
-
-/* Index of the most common w x h block among n candidates starting at
- * (x + i*dx, y + i*dy). */
-static int mode_block(const uint32_t* px, const uint8_t* op, int x, int y, int dx, int dy, int n, int w, int h) {
-	uint64_t hashes[256];
-	if (n > 256) n = 256;
-	for (int i = 0; i < n; ++i) {
-		uint64_t hsh = 1469598103934665603ull;
-		for (int yy = 0; yy < h; ++yy) {
-			for (int xx = 0; xx < w; ++xx) {
-				int k = (y + i * dy + yy) * GBA_W + x + i * dx + xx;
-				hsh = (hsh ^ (op[k] ? px[k] : 0xFFFFFFFFu)) * 1099511628211ull;
-			}
-		}
-		hashes[i] = hsh;
-	}
-	int best = 0, bestN = 0;
-	for (int i = 0; i < n; ++i) {
-		int c = 0;
-		for (int j = 0; j < n; ++j) c += hashes[j] == hashes[i];
-		if (c > bestN) bestN = c, best = i;
-	}
-	return best;
-}
-
-static void blit(uint8_t* atlas, int aw, int ax, int ay, const uint32_t* px, const uint8_t* op, int sx, int sy, int w,
-                 int h) {
-	for (int y = 0; y < h; ++y) {
-		for (int x = 0; x < w; ++x) {
-			int k = (sy + y) * GBA_W + sx + x;
-			uint8_t* o = &atlas[((ay + y) * aw + ax + x) * 4];
-			uint32_t c = px[k];
-			o[0] = c & 0xFF;
-			o[1] = (c >> 8) & 0xFF;
-			o[2] = (c >> 16) & 0xFF;
-			o[3] = op[k] ? 255 : 0;
-		}
-	}
-}
-
-bool frame_extract(const char* romPath, const char* gameCode, const char* outPng) {
-	const MapProfile* p = profile_find(gameCode);
-	if (!p || !p->frame.t) return false;
-	int t = p->frame.t, pw = p->frame.p ? p->frame.p : t;
-	int x0 = p->frame.x0, y0 = p->frame.y0, x1 = p->frame.x1, y1 = p->frame.y1;
-	uint32_t* px = malloc(GBA_W * GBA_H * 4);
-	uint8_t* op = malloc(GBA_W * GBA_H);
-	bool ok = render_layer(romPath, p->frame.steps, 24, p->frame.layer, px, op);
-	if (ok && p->frame.minLuma) {
-		for (int i = 0; i < GBA_W * GBA_H; ++i) {
-			uint32_t c = px[i];
-			int luma = ((c & 0xFF) + ((c >> 8) & 0xFF) * 2 + ((c >> 16) & 0xFF)) / 4;
-			if (luma < p->frame.minLuma) op[i] = 0;
-		}
-	}
-	if (ok) {
-		/* sanity: the corners must be there */
-		int n = 0;
-		for (int y = 0; y < t; ++y)
-			for (int x = 0; x < t; ++x) n += op[(y0 + y) * GBA_W + x0 + x] + op[(y1 + y) * GBA_W + x1 + x];
-		ok = n >= t; /* at least a few corner pixels */
-	}
-	if (ok) {
-		int aw = 2 * t + pw;
-		uint8_t* atlas = calloc((size_t) aw * aw, 4);
-		int nh = (x1 - x0 - t) / pw, nv = (y1 - y0 - t) / pw;
-		int top = mode_block(px, op, x0 + t, y0, pw, 0, nh, pw, t);
-		int bot = mode_block(px, op, x0 + t, y1, pw, 0, nh, pw, t);
-		int lft = mode_block(px, op, x0, y0 + t, 0, pw, nv, t, pw);
-		int rgt = mode_block(px, op, x1, y0 + t, 0, pw, nv, t, pw);
-		blit(atlas, aw, 0, 0, px, op, x0, y0, t, t);
-		blit(atlas, aw, t + pw, 0, px, op, x1, y0, t, t);
-		blit(atlas, aw, 0, t + pw, px, op, x0, y1, t, t);
-		blit(atlas, aw, t + pw, t + pw, px, op, x1, y1, t, t);
-		blit(atlas, aw, t, 0, px, op, x0 + t + top * pw, y0, pw, t);
-		blit(atlas, aw, t, t + pw, px, op, x0 + t + bot * pw, y1, pw, t);
-		blit(atlas, aw, 0, t, px, op, x0, y0 + t + lft * pw, t, pw);
-		blit(atlas, aw, t + pw, t, px, op, x1, y0 + t + rgt * pw, t, pw);
-		char tmp[1100];
-		snprintf(tmp, sizeof(tmp), "%s.tmp", outPng);
-		ok = stbi_write_png(tmp, aw, aw, 4, atlas, aw * 4) && rename(tmp, outPng) == 0;
-		free(atlas);
-	}
-	fprintf(stderr, "frame: %s %s\n", gameCode, ok ? outPng : "not found");
-	free(px);
-	free(op);
-	return ok;
-}
-
 /* ------------------------------------------------------------ queue */
 
 typedef struct Job {
 	char rom[1024], code[5], out[1024];
-	bool frame;
 	bool urgent; /* runs while the queue's paused: the game being started or played */
 	struct Job* next;
 } Job;
@@ -469,8 +347,7 @@ static bool exists(const char* p) {
 
 static void do_job(Job* j) {
 	if (!exists(j->out)) {
-		if (j->frame) frame_extract(j->rom, j->code, j->out);
-		else logo_extract(j->rom, j->code, j->out);
+		logo_extract(j->rom, j->code, j->out);
 	}
 	free(j);
 	__atomic_add_fetch(&generation, 1, __ATOMIC_SEQ_CST);
@@ -532,7 +409,7 @@ static bool tried_before(const char* out) {
 	return false;
 }
 
-static void enqueue(const char* romPath, const char* gameCode, const char* outPng, bool frame) {
+static void enqueue(const char* romPath, const char* gameCode, const char* outPng) {
 	pthread_mutex_lock(&qlock);
 	for (Job* j = queue; j; j = j->next) {
 		if (!strcmp(j->out, outPng)) {
@@ -548,7 +425,6 @@ static void enqueue(const char* romPath, const char* gameCode, const char* outPn
 	snprintf(j->rom, sizeof(j->rom), "%s", romPath);
 	snprintf(j->code, sizeof(j->code), "%.4s", gameCode);
 	snprintf(j->out, sizeof(j->out), "%s", outPng);
-	j->frame = frame;
 	j->urgent = paused; /* (asked for by the game being played: its own logo) */
 	if (!pending) finished = 0;
 	++pending;
@@ -582,14 +458,7 @@ void logo_request(const char* romPath, const char* gameCode, const char* outPng)
 	if (exists(outPng)) return;
 	const MapProfile* p = profile_find(gameCode);
 	if (!p || (!p->logo.wait && !p->logo.steps[0].frames)) return;
-	enqueue(romPath, gameCode, outPng, false);
-}
-
-void frame_request(const char* romPath, const char* gameCode, const char* outPng) {
-	if (exists(outPng)) return;
-	const MapProfile* p = profile_find(gameCode);
-	if (!p || !p->frame.t) return;
-	enqueue(romPath, gameCode, outPng, true);
+	enqueue(romPath, gameCode, outPng);
 }
 
 void logo_front(const char* gameCode, bool urgent) {
