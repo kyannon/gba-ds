@@ -221,8 +221,10 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   romhacks known to work, goes into the table too). At start the app logs
   `ROM: CRC32 ...` (the tested dump, another official one, a known mod, or
   modified), and bug reports' info.txt has it as `ROM dump:`
-  (`profile_dump`). Romhack support (issue #17) is worked on in the branch
-  `patch-support`; a mod's fixture is `roms/CODE+mod.zip`
+  (`profile_dump`). Romhack support (issue #17; branch `patch-support`, merged into
+  `dev` Nov 11, 2026; a fallback to the logo when a modified ROM's captures
+  keep failing and an estimate for untested mods are left for a later
+  release); a mod's fixture is `roms/CODE+mod.zip`
   (docs/games/README.md, "Releases and dumps"). A mod someone asks for:
   `tools/romhack.py PATCH [--base CODE]` (IPS, UPS, BPS or a patched ROM)
   applies it, says what it changes, runs the release's cases on it

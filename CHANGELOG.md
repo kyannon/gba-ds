@@ -35,6 +35,14 @@
 - **F-Zero: Maximum Velocity:** on Bianca City's Ultimate Circuit (Bishop series) the course map now moves to the second screen like every other course's; it stayed on the game screen, flickering, with only your dot on the second screen.
 - **Spider-Man: Mysterio's Menace:** in the Nightclub level the second screen showed the logo instead of the Select menu; it shows the Select menu now, as in the other levels.
 
+### Known issues
+- **Patches:** a `.ips` patch can't say which version of a game it's made for. GBA DS warns when it knows the patch (its list of colour, voice and translation patches), but an unknown one made for another version is applied all the same and may break the game.
+- **Patches:** a romhack with its own title screen still shows the original game's logo on the second screen.
+- **Patches:** two patches that change the same part of the game are only warned about (the one lower in the list wins there); whether they really clash can't be known until you play.
+- **Patches:** Metroid: Zero Mission's colour patches work on their own; stacked with another patch, its map may not come up.
+- **Patches:** after switching a colour patch without a restart, colours already on the screen stay until the game draws them again.
+- **Patches (Android):** games started from a frontend that passes a link rather than a file get no patches.
+
 ## v1.4.12 (2026-11-08)
 
 ### New games
