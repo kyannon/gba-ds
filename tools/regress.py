@@ -134,12 +134,13 @@ def release_name(code):
     the title with its region and languages only), or None."""
     global _releaseNames
     if _releaseNames is None:
-        _releaseNames = {}
+        names = {}  # (built whole before it's shared: cases run on several threads)
         text = open(os.path.join(ROOT, "src", "dumps_data.h"), encoding="utf-8").read()
         for m in re.finditer(r'\{ "(\w{4})", 0x[0-9a-f]{8}, (true|false), false, "((?:[^"\\]|\\.)*)" \}', text):
             c, tested, n = m.group(1), m.group(2) == "true", m.group(3)
-            if c not in _releaseNames or (tested and not _releaseNames[c][1]):
-                _releaseNames[c] = (n, tested)
+            if c not in names or (tested and not names[c][1]):
+                names[c] = (n, tested)
+        _releaseNames = names
     if code not in _releaseNames:
         return None
     n = _releaseNames[code][0]
@@ -153,6 +154,12 @@ def release_name(code):
         if e2 > e + 3 and re.fullmatch(r"[A-Za-z,]+", n[e + 3:e2]):
             keep = e2 + 1
     return n[:keep]
+
+
+def patches_on(case):
+    """A case's "patch_on": one file name or a list, in the order applied."""
+    on = case.get("patch_on") or []
+    return [on] if isinstance(on, str) else list(on)
 
 
 def run_app(case, args, workdir):
@@ -178,7 +185,8 @@ def run_app(case, args, workdir):
             return r
         os.symlink(pf, os.path.join(romdir, case["rom"] + os.path.splitext(pf)[1]))
     # patches in the game's own folder (GEN-9): "patch_folder" lists the
-    # fixtures' patches/ files put there, "patch_on" the one switched on
+    # fixtures' patches/ files put there, "patch_on" the one switched on (or
+    # a list: the ones on, in the order they're applied)
     patchdir = os.path.join(workdir, "patches")
     if case.get("patch_folder") or case.get("patch_on"):
         name = release_name(case["rom"][:4])
@@ -187,7 +195,7 @@ def run_app(case, args, workdir):
             return r
         folder = os.path.join(patchdir, name)
         os.makedirs(folder, exist_ok=True)
-        for f in case.get("patch_folder", []) + ([case["patch_on"]] if case.get("patch_on") else []):
+        for f in case.get("patch_folder", []) + patches_on(case):
             pf = os.path.join(args.fixtures, "patches", f)
             if not os.path.exists(pf):
                 r.error = "missing patch fixture patches/%s" % f
@@ -196,7 +204,7 @@ def run_app(case, args, workdir):
                 os.symlink(pf, os.path.join(folder, f))
         if case.get("patch_on"):
             with open(os.path.join(statedir, case["rom"] + ".patches"), "w") as f:
-                f.write("on %s\nseparate_save 1\nseparate_states 1\n" % case["patch_on"])
+                f.write("".join("on %s\n" % p for p in patches_on(case)) + "separate_save 1\nseparate_states 1\n")
     if case.get("save"):
         sav = os.path.join(args.fixtures, "saves", case["save"])
         if not os.path.exists(sav):
@@ -553,7 +561,7 @@ def main():
                 need.add("states/" + c["state"])
             if c.get("save"):
                 need.add("saves/" + c["save"])
-            for f in ([c["patch"]] if c.get("patch") else []) + c.get("patch_folder", []) + ([c["patch_on"]] if c.get("patch_on") else []):
+            for f in ([c["patch"]] if c.get("patch") else []) + c.get("patch_folder", []) + patches_on(c):
                 need.add("patches/" + f)
             for _, keys in c.get("input", []):
                 if keys.startswith("LOAD:"):

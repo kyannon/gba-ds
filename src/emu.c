@@ -162,6 +162,7 @@ static struct {
 	char key[PLAN_MAX * 1100 + 1100];
 	int result;
 	char names[256];
+	char skipped[256]; /* (PATCH_PARTIAL) the ones left out */
 	uint32_t fileCrc;
 	uint8_t* data; /* the patched ROM (NULL unless something was applied) */
 	size_t size;
@@ -196,8 +197,9 @@ static uint8_t* read_file(const char* path, size_t* n) {
  * caller frees. patchName (256 bytes): the patches' file names, " + "
  * between. */
 static uint8_t* patched_with(const char* romPath, char files[][1024], int n, size_t* size, int* result, char* patchName,
-                             uint32_t* fileCrc);
-static uint8_t* patched_rom(const char* romPath, size_t* size, int* result, char* patchName, uint32_t* fileCrc) {
+                             uint32_t* fileCrc, char* skipped);
+static uint8_t* patched_rom(const char* romPath, size_t* size, int* result, char* patchName, uint32_t* fileCrc,
+                            char* skipped) {
 	char files[PLAN_MAX][1024];
 	int n = 0;
 	bool planned = false;
@@ -208,12 +210,12 @@ static uint8_t* patched_rom(const char* romPath, size_t* size, int* result, char
 	}
 	pthread_mutex_unlock(&patchedLock);
 	if (!planned && patch_find(romPath, files[0], sizeof(files[0]))) n = 1; /* (beside the ROM) */
-	return patched_with(romPath, files, n, size, result, patchName, fileCrc);
+	return patched_with(romPath, files, n, size, result, patchName, fileCrc, skipped);
 }
 
 /* (the same with the patches given) */
 static uint8_t* patched_with(const char* romPath, char files[][1024], int n, size_t* size, int* result, char* patchName,
-                             uint32_t* fileCrc) {
+                             uint32_t* fileCrc, char* skipped) {
 	*result = PATCH_NONE;
 	if (n > PLAN_MAX) n = PLAN_MAX;
 	if (!n) return NULL;
@@ -255,12 +257,15 @@ static uint8_t* patched_with(const char* romPath, char files[][1024], int n, siz
 					size_t l = strlen(patched.names);
 					snprintf(patched.names + l, sizeof(patched.names) - l, "%s%s", l ? " + " : "", patch_name(files[i]));
 					++applied;
-				} else if (failed == PATCH_NONE) {
-					failed = r;
-					if (!applied && !patched.names[0]) snprintf(patched.names, sizeof(patched.names), "%s", patch_name(files[i]));
+				} else {
+					if (failed == PATCH_NONE) failed = r;
+					size_t l = strlen(patched.skipped);
+					snprintf(patched.skipped + l, sizeof(patched.skipped) - l, "%s%s", l ? " + " : "", patch_name(files[i]));
 				}
 			}
-			patched.result = failed != PATCH_NONE ? failed : PATCH_APPLIED;
+			/* (none applied: why the first wasn't, under its name) */
+			patched.result = failed == PATCH_NONE ? PATCH_APPLIED : applied ? PATCH_PARTIAL : failed;
+			if (!applied) snprintf(patched.names, sizeof(patched.names), "%s", patched.skipped);
 			if (applied) {
 				patched.data = rom;
 				patched.size = romN;
@@ -272,6 +277,7 @@ static uint8_t* patched_with(const char* romPath, char files[][1024], int n, siz
 	*result = patched.result;
 	if (fileCrc) *fileCrc = patched.fileCrc;
 	if (patchName) snprintf(patchName, 256, "%s", patched.names);
+	if (skipped) snprintf(skipped, 256, "%s", patched.skipped);
 	uint8_t* copy = NULL;
 	if (patched.data && (copy = malloc(patched.size))) {
 		memcpy(copy, patched.data, patched.size);
@@ -283,14 +289,14 @@ static uint8_t* patched_with(const char* romPath, char files[][1024], int n, siz
 
 uint8_t* emu_rom_read_patched(const char* path, char files[][1024], int n, size_t* size, int* patch, char* patchName) {
 	int r;
-	uint8_t* p = patched_with(path, files, n, size, &r, patchName, NULL);
+	uint8_t* p = patched_with(path, files, n, size, &r, patchName, NULL, NULL);
 	if (patch) *patch = r;
 	return p ? p : emu_rom_read_all(path, size);
 }
 
 uint8_t* emu_rom_read_played(const char* path, size_t* size, int* patch, char* patchName, uint32_t* fileCrc) {
 	int r;
-	uint8_t* p = patched_rom(path, size, &r, patchName, fileCrc);
+	uint8_t* p = patched_rom(path, size, &r, patchName, fileCrc, NULL);
 	if (patch) *patch = r;
 	if (p) return p;
 	uint8_t* rom = emu_rom_read_all(path, size);
@@ -323,7 +329,7 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	}
 
 	size_t patchedSize = 0;
-	uint8_t* patchedRom = patched_rom(romPath, &patchedSize, &e->patch, e->patchName, &e->fileCrc);
+	uint8_t* patchedRom = patched_rom(romPath, &patchedSize, &e->patch, e->patchName, &e->fileCrc, e->patchSkipped);
 	if (patchedRom) { /* a patch file beside the ROM, applied (GEN-9) */
 		struct VFile* vf = VFileMemChunk(patchedRom, patchedSize);
 		free(patchedRom);
@@ -356,7 +362,7 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	memcpy(e->gameCode, info.code, 4);
 	e->gameCode[4] = 0;
 	e->core->checksum(e->core, &e->romCrc, mCHECKSUM_CRC32); /* (worked out by mGBA as it loaded the ROM) */
-	if (e->patch != PATCH_APPLIED) e->fileCrc = e->romCrc;
+	if (e->patch != PATCH_APPLIED && e->patch != PATCH_PARTIAL) e->fileCrc = e->romCrc;
 	return true;
 }
 

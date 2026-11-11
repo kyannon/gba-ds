@@ -3540,6 +3540,393 @@
     ]
    ],
    "patch_on": "mlssplus-v1.5-100.ips"
+  },
+  {
+   "id": "ml-patches-stack",
+   "rom": "A88E",
+   "patch_folder": [
+    "Padding test.ips",
+    "mlssplus-v1.5-100.bps"
+   ],
+   "patch_on": [
+    "mlssplus-v1.5-100.ips",
+    "Overlap test.ips"
+   ],
+   "desc": "two patches on in the game's folder, Superstar Saga+ (IPS) then a test patch writing one of the bytes it writes: numbered 1 and 2 above the rest, \"Together: Tested romhack\", the second's name in gold with the note that they change the same bytes; then X on it and UP: moved above the first (\"Move\"), A: put down, and the top row says the patches changed since the game started",
+   "rules": [
+    "GEN-9"
+   ],
+   "input": [
+    [
+     120,
+     "TAP:0.5,0.3"
+    ],
+    [
+     130,
+     "R"
+    ],
+    [
+     134,
+     "-"
+    ],
+    [
+     140,
+     "R"
+    ],
+    [
+     144,
+     "-"
+    ],
+    [
+     150,
+     "DOWN"
+    ],
+    [
+     152,
+     "-"
+    ],
+    [
+     156,
+     "DOWN"
+    ],
+    [
+     158,
+     "-"
+    ],
+    [
+     162,
+     "A"
+    ],
+    [
+     166,
+     "-"
+    ],
+    [
+     180,
+     "DOWN"
+    ],
+    [
+     182,
+     "-"
+    ],
+    [
+     186,
+     "DOWN"
+    ],
+    [
+     188,
+     "-"
+    ],
+    [
+     192,
+     "DOWN"
+    ],
+    [
+     194,
+     "-"
+    ],
+    [
+     210,
+     "X"
+    ],
+    [
+     212,
+     "-"
+    ],
+    [
+     216,
+     "UP"
+    ],
+    [
+     218,
+     "-"
+    ],
+    [
+     240,
+     "A"
+    ],
+    [
+     242,
+     "-"
+    ]
+   ],
+   "shots": {
+    "list": 176,
+    "overlap": 204,
+    "moving": 230,
+    "moved": 250
+   },
+   "checks": [
+    {
+     "rule": "GEN-9",
+     "what": "both applied, in order, the mod known",
+     "type": "log",
+     "match": "ROM: CRC32 [0-9a-f]+, a mod GBA DS is tested on \\(Superstar Saga\\+ v1\\.5 \\(100%\\)\\); patched as it started with mlssplus-v1\\.5-100\\.ips \\+ Overlap test\\.ips"
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the saves named for both, by name",
+     "type": "log",
+     "match": "save .*/A88E \\+ mlssplus-v1\\.5-100 \\+ Overlap test\\.sav"
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the move saved",
+     "type": "log",
+     "match": "patches: Overlap test\\.ips moved to 1"
+    }
+   ],
+   "golden_mask": [
+    [
+     0,
+     0,
+     260,
+     70
+    ]
+   ]
+  },
+  {
+   "id": "ml-patches-fails",
+   "rom": "A88E",
+   "patch_on": [
+    "Padding test.ips",
+    "mlssplus-v1.5-100.bps"
+   ],
+   "desc": "a test patch, then Superstar Saga+ as a BPS (made for the unchanged ROM) second: the BPS left out as the game starts (the log and the list: \"Fails\" with the note to move it up), the first applied, \"Together: Untested\"",
+   "rules": [
+    "GEN-9"
+   ],
+   "input": [
+    [
+     120,
+     "TAP:0.5,0.3"
+    ],
+    [
+     130,
+     "R"
+    ],
+    [
+     134,
+     "-"
+    ],
+    [
+     140,
+     "R"
+    ],
+    [
+     144,
+     "-"
+    ],
+    [
+     150,
+     "DOWN"
+    ],
+    [
+     152,
+     "-"
+    ],
+    [
+     156,
+     "DOWN"
+    ],
+    [
+     158,
+     "-"
+    ],
+    [
+     162,
+     "A"
+    ],
+    [
+     166,
+     "-"
+    ],
+    [
+     180,
+     "DOWN"
+    ],
+    [
+     182,
+     "-"
+    ],
+    [
+     186,
+     "DOWN"
+    ],
+    [
+     188,
+     "-"
+    ],
+    [
+     192,
+     "DOWN"
+    ],
+    [
+     194,
+     "-"
+    ]
+   ],
+   "shots": {
+    "fails": 204
+   },
+   "checks": [
+    {
+     "rule": "GEN-9",
+     "what": "the first applied, the BPS left out",
+     "type": "log",
+     "match": "patched as it started with Padding test\\.ips, .*; not applied: mlssplus-v1\\.5-100\\.bps"
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the BPS left out where it is",
+     "type": "log",
+     "match": "patch [^\\n]*bps: made for another ROM, not applied"
+    }
+   ],
+   "golden_mask": [
+    [
+     0,
+     0,
+     260,
+     70
+    ]
+   ]
+  },
+  {
+   "id": "ml-patches-stack-library",
+   "kind": "library",
+   "rom": "A88E",
+   "desc": "the game list with Superstar Saga+ (IPS) and a test patch writing one of its bytes switched on: together still the mod, \"Romhack: Superstar Saga+ v1.5 (100%) (patch)\"",
+   "rules": [
+    "GEN-8",
+    "GEN-9"
+   ],
+   "shots": {
+    "list": 40
+   },
+   "golden_mask": [
+    [
+     700,
+     720,
+     1024,
+     768
+    ]
+   ],
+   "patch_on": [
+    "mlssplus-v1.5-100.ips",
+    "Overlap test.ips"
+   ]
+  },
+  {
+   "id": "ml-patches-fails-library",
+   "kind": "library",
+   "rom": "A88E",
+   "desc": "the game list with a test patch and then Superstar Saga+ as a BPS switched on (the BPS can't follow it): \"Patched, but a patch was left out\"",
+   "rules": [
+    "GEN-8",
+    "GEN-9"
+   ],
+   "shots": {
+    "list": 40
+   },
+   "golden_mask": [
+    [
+     700,
+     720,
+     1024,
+     768
+    ]
+   ],
+   "patch_on": [
+    "Padding test.ips",
+    "mlssplus-v1.5-100.bps"
+   ]
+  },
+  {
+   "id": "ml-patches-touch",
+   "rom": "A88E",
+   "patch_on": [
+    "mlssplus-v1.5-100.ips",
+    "Overlap test.ips"
+   ],
+   "desc": "touch: a tap on the second patch's number picks it up (\"Move\"), a tap on the first puts it there: the test patch first, Superstar Saga+ second",
+   "rules": [
+    "GEN-9"
+   ],
+   "input": [
+    [
+     120,
+     "TAP:0.5,0.3"
+    ],
+    [
+     130,
+     "R"
+    ],
+    [
+     134,
+     "-"
+    ],
+    [
+     140,
+     "R"
+    ],
+    [
+     144,
+     "-"
+    ],
+    [
+     150,
+     "DOWN"
+    ],
+    [
+     152,
+     "-"
+    ],
+    [
+     156,
+     "DOWN"
+    ],
+    [
+     158,
+     "-"
+    ],
+    [
+     162,
+     "A"
+    ],
+    [
+     166,
+     "-"
+    ],
+    [
+     180,
+     "TAP:0.03,0.7396"
+    ],
+    [
+     200,
+     "TAP:0.5,0.707"
+    ]
+   ],
+   "shots": {
+    "picked": 192,
+    "moved": 212
+   },
+   "checks": [
+    {
+     "rule": "GEN-9",
+     "what": "moved by touch",
+     "type": "log",
+     "match": "patches: Overlap test\\.ips moved to 1"
+    }
+   ],
+   "golden_mask": [
+    [
+     0,
+     0,
+     260,
+     70
+    ]
+   ]
   }
  ]
 }

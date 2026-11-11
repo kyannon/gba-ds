@@ -37,8 +37,8 @@ typedef struct {
 	int flag; /* BRAND_FLAG_* shown on the tile, or -1 (only one region of this game) */
 	long long size, mtime; /* the file's, from the scan (its ROM checksum's cache key; with a patch
 	                        * file beside it, their sizes added and the later time) */
-	char patch[256]; /* the name of the patch it's played with (GEN-9: switched on, or beside it), or "" */
-	char patchOn[256]; /* the one switched on in its patches folder, or "" */
+	char patch[512]; /* the names of the patches it's played with (GEN-9: beside it, then switched on; " + " between), or "" */
+	PatchChoice patchOn; /* the ones switched on in its patches folder */
 } GameEntry;
 
 static GameEntry* games;
@@ -232,19 +232,22 @@ static void scan_dir(Config* cfg, const char* d, int depth) {
 			char* dot = strrchr(base, '.');
 			if (dot) *dot = 0;
 			snprintf(gpx.patches, sizeof(gpx.patches), "%s/%s.patches", cfg->stateDir, base);
-			PatchChoice pc;
-			patch_choice_load(gpx.patches, &pc);
-			if (pc.on[0]) {
+			patch_choice_load(gpx.patches, &g.patchOn);
+			if (g.patchOn.nOn) {
 				char dir[1024], file[1400];
 				patch_folder(cfg, g.path, g.code, dir, sizeof(dir), false);
-				snprintf(file, sizeof(file), "%s/%s", dir, pc.on);
-				if (stat(file, &ps) == 0) {
-					snprintf(g.patchOn, sizeof(g.patchOn), "%s", pc.on);
-					snprintf(g.patch, sizeof(g.patch), "%s", pc.on);
+				bool any = false;
+				for (int i = 0; i < g.patchOn.nOn; ++i) {
+					snprintf(file, sizeof(file), "%s/%s", dir, g.patchOn.on[i]);
+					if (stat(file, &ps) != 0) continue;
+					size_t l = strlen(g.patch);
+					snprintf(g.patch + l, sizeof(g.patch) - l, "%s%s", l ? " + " : "", g.patchOn.on[i]);
 					g.size += (long long) ps.st_size;
 					if ((long long) ps.st_mtime > g.mtime) g.mtime = (long long) ps.st_mtime;
-					if (stat(gpx.patches, &ps) == 0 && (long long) ps.st_mtime > g.mtime) g.mtime = (long long) ps.st_mtime;
+					any = true;
 				}
+				/* (the choice's time too: the same patches in another order) */
+				if (any && stat(gpx.patches, &ps) == 0 && (long long) ps.st_mtime > g.mtime) g.mtime = (long long) ps.st_mtime;
 			}
 		}
 #ifdef GBADS_SIDE_CODES
@@ -299,7 +302,7 @@ static bool romCrcsDirty;
 static pthread_mutex_t crcLock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t crcWake = PTHREAD_COND_INITIALIZER;
 static RomCrc crcWant; /* the next file to read (path "": none) */
-static char crcWantFiles[4][1024]; /* and the patches to apply to it, in order (GEN-9) */
+static char crcWantFiles[PATCH_ON_MAX + 1][1024]; /* and the patches to apply to it, in order (GEN-9) */
 static const Config* crcCfg;       /* (the settings, for the patches' folder: set by scan) */
 static int crcWantN;
 static bool crcThread;
@@ -347,7 +350,7 @@ static void* rom_crc_worker(void* arg) {
 	for (;;) {
 		while (!crcWant.path[0]) pthread_cond_wait(&crcWake, &crcLock);
 		RomCrc c = crcWant;
-		char files[4][1024];
+		char files[PATCH_ON_MAX + 1][1024];
 		int nf = crcWantN;
 		memcpy(files, crcWantFiles, sizeof(files));
 		crcWant.path[0] = 0;
@@ -407,9 +410,7 @@ static bool game_crc(const GameEntry* g, uint32_t* crc, int* patch) {
 		crcWant.size = g->size;
 		crcWant.mtime = g->mtime;
 		snprintf(crcWant.path, sizeof(crcWant.path), "%s", g->path);
-		PatchChoice pc = { .sepSave = true, .sepStates = true };
-		snprintf(pc.on, sizeof(pc.on), "%s", g->patchOn);
-		crcWantN = crcCfg ? patch_plan(crcCfg, g->path, g->code, &pc, crcWantFiles, 4) : 0;
+		crcWantN = crcCfg ? patch_plan(crcCfg, g->path, g->code, &g->patchOn, crcWantFiles, PATCH_ON_MAX + 1) : 0;
 		if (!crcThread && !(getenv("GBADS_SYNC") && atoi(getenv("GBADS_SYNC")))) {
 			pthread_t t;
 			crcThread = pthread_create(&t, NULL, rom_crc_worker, NULL) == 0;
@@ -609,7 +610,9 @@ static void draw_preview(Config* cfg, int scr, int sel) {
 		const char* name;
 		const char* from = patch == PATCH_APPLIED ? " (patch)" : "";
 		char line[400] = "";
-		if (patch == PATCH_WRONG_ROM) {
+		if (patch == PATCH_PARTIAL) {
+			snprintf(line, sizeof(line), "Patched, but a patch was left out: see Patches in the game's menu");
+		} else if (patch == PATCH_WRONG_ROM) {
 			snprintf(line, sizeof(line), "Patch not applied: %s is for another ROM", g->patch);
 		} else if (patch == PATCH_UNREADABLE) {
 			snprintf(line, sizeof(line), "Patch not applied: %s can't be read", g->patch);

@@ -48,7 +48,8 @@ typedef struct Emu {
 	char gameCode[5];
 	uint32_t romCrc; /* the ROM's CRC32, as loaded, patched if it was (profile_dump) */
 	int patch; /* PatchResult (patch.h): a patch file beside the ROM, and whether it was applied (GEN-9) */
-	char patchName[256]; /* that file's name */
+	char patchName[256]; /* the applied patches' file names, " + " between (or the one that wasn't) */
+	char patchSkipped[256]; /* (PATCH_PARTIAL) the ones left out, " + " between */
 	uint32_t fileCrc; /* the ROM file's own CRC32, before the patch */
 	bool audio;
 	unsigned long frames; /* frames run (emu_frame), for timing the captures */

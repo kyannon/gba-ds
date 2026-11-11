@@ -872,7 +872,7 @@ static const char* dump_text(char* buf, size_t n) {
 	}
 	/* a patch file beside the ROM (GEN-9): which, and what the file was before it */
 	size_t l = strlen(buf);
-	if (emu.patch == PATCH_APPLIED) {
+	if (emu.patch == PATCH_APPLIED || emu.patch == PATCH_PARTIAL) {
 		const char* fname = NULL;
 		DumpKind fk = profile_dump(emu.gameCode, emu.fileCrc, &fname);
 		snprintf(buf + l, n - l, "; patched as it started with %s, the ROM file itself CRC32 %08x (%s)", emu.patchName,
@@ -881,6 +881,10 @@ static const char* dump_text(char* buf, size_t n) {
 		         : fk == DUMP_OFFICIAL ? "an official dump"
 		         : fk == DUMP_MODIFIED ? "not a known dump"
 		                               : "a known mod");
+		l = strlen(buf);
+		if (emu.patch == PATCH_PARTIAL)
+			snprintf(buf + l, n - l, "; not applied: %s (made for another ROM, or for the ROM before the patches above it, or can't be read)",
+			         emu.patchSkipped);
 	} else if (emu.patch == PATCH_WRONG_ROM) {
 		snprintf(buf + l, n - l, "; %s beside it was made for another ROM, not applied", emu.patchName);
 	} else if (emu.patch == PATCH_UNREADABLE) {
@@ -1421,89 +1425,188 @@ static void draw_cheats(int scr) {
 /* ---------------------------------------------------------------- patches screen (GEN-9)
  *
  * "Patches" on the Extras page: the game's patches folder's files with an
- * On/Off pill each (one on at a time), the file beside the ROM (always on),
- * and two switches for the patched game's own battery save and states.
- * Switching a patch asks first: A again restarts the game with the change,
- * Y keeps it for the next start, B (or anything else) calls it off. Each
- * patch is tried on the ROM as the list opens, so it can say what it is. */
+ * On/Off pill each, the file beside the ROM (always on, applied first), and
+ * two switches for the patched game's own battery save and states. The ones
+ * on come first, numbered in the order they're applied; X (or a tap on the
+ * number) picks one up to move it. Switching a patch asks first: A again
+ * restarts the game with the change, Y keeps it for later, B calls it off;
+ * while the choice isn't what the game started with, a "Restart" row at the
+ * top does it. Each patch is tried on the ROM as the list opens, and the
+ * ones on are tried together, in order, so the list can say which can't
+ * follow which (a UPS or BPS is made for the unchanged ROM) and which
+ * change the same bytes. */
 static const char* romPath; /* (the game's ROM; set by game_run) */
-static PatchChoice patchChoice;
+static PatchChoice patchChoice;  /* as chosen (saved as it changes) */
+static PatchChoice patchStarted; /* as the game started */
 static char patchDir[1024];
 static bool patchReload; /* the game restarted for a patch switched on or off: no auto-load */
 static bool patchReloadNext;
 uint32_t doCrc32(const void* buf, size_t size); /* (libmgba's: its header wants zlib.h) */
-enum { PR_SAVE, PR_STATES, PR_HEADER, PR_BESIDE, PR_PATCH, PR_EMPTY };
+enum { PR_RESTART, PR_SAVE, PR_STATES, PR_HEADER, PR_SUMMARY, PR_BESIDE, PR_PATCH, PR_EMPTY };
+/* what each file does to the ROM on its own (worked out as the list opens) */
+typedef struct {
+	uint32_t from, to; /* [from, to) */
+} ByteRange;
+typedef struct {
+	char file[256];
+	char note[300];
+	bool usable;       /* applies to this ROM on its own */
+	ByteRange* ranges; /* (usable) the bytes it changes */
+	int nRanges;
+} PatchInfo;
+#define PATCH_ROWS 70
+static PatchInfo patchInfo[PATCH_ROWS];
+static int nPatchInfo;
+static bool patchBesideAt0; /* patchInfo[0] is the file beside the ROM */
 typedef struct {
 	int kind;
 	char file[256]; /* (PR_PATCH, PR_BESIDE) its file name */
 	char label[300];
-	char note[300]; /* the footer's text when it's selected */
+	char note[600]; /* the footer's text when it's selected */
 	bool usable;    /* (PR_PATCH) can be switched on */
+	int order;      /* (PR_PATCH) its place among the ones on, from 0, or -1 */
+	int chain;      /* (on) 0 applies, 1 applies but shares bytes with one above, 2 fails where it is */
 } PatchRow;
-#define PATCH_ROWS 70
-static PatchRow patchRows[PATCH_ROWS];
+static PatchRow patchRows[PATCH_ROWS + 8];
 static int nPatchRows, patchSel, patchScroll, patchArmed = -1;
-static bool patchesOpen;
+static bool patchesOpen, patchMoving;
 static char patchNote[300];
 static int patchPressRow = -1, patchPressY, patchPressScroll;
 static bool patchDragging;
 
-static void patch_row_add(int kind, const char* file, const char* label, const char* note, bool usable) {
-	if (nPatchRows >= PATCH_ROWS) return;
+static PatchRow* patch_row_add(int kind, const char* file, const char* label, const char* note, bool usable) {
+	if (nPatchRows >= PATCH_ROWS + 8) return NULL;
 	PatchRow* r = &patchRows[nPatchRows++];
+	memset(r, 0, sizeof(*r));
 	r->kind = kind;
+	r->order = -1;
 	snprintf(r->file, sizeof(r->file), "%s", file ? file : "");
 	snprintf(r->label, sizeof(r->label), "%s", label);
 	snprintf(r->note, sizeof(r->note), "%s", note ? note : "");
 	r->usable = usable;
+	return r;
 }
 
 static int patch_name_cmp(const void* a, const void* b) {
 	return strcasecmp((const char*) a, (const char*) b);
 }
 
-/* what a patch does to this ROM, on its own */
-static void patch_describe(const uint8_t* rom, size_t romN, const char* path, char* note, size_t size, bool* usable) {
-	size_t pn = 0;
+static uint8_t* patch_file_read(const char* path, size_t* n) {
+	*n = 0;
 	uint8_t* p = NULL;
 	FILE* f = fopen(path, "rb");
-	if (f) {
-		fseek(f, 0, SEEK_END);
-		long len = ftell(f);
-		rewind(f);
-		if (len > 0 && len <= 64L * 1024 * 1024 && (p = malloc((size_t) len)) && fread(p, 1, (size_t) len, f) == (size_t) len)
-			pn = (size_t) len;
-		fclose(f);
+	if (!f) return NULL;
+	fseek(f, 0, SEEK_END);
+	long len = ftell(f);
+	rewind(f);
+	if (len > 0 && len <= 64L * 1024 * 1024 && (p = malloc((size_t) len)) && fread(p, 1, (size_t) len, f) == (size_t) len)
+		*n = (size_t) len;
+	else {
+		free(p);
+		p = NULL;
 	}
+	fclose(f);
+	return p;
+}
+
+/* the bytes out changes from rom (gaps under 16 bytes joined; past rom's end, all) */
+static void patch_ranges(const uint8_t* rom, size_t romN, const uint8_t* out, size_t outN, PatchInfo* pi) {
+	int cap = 0;
+	size_t n = romN < outN ? romN : outN;
+	for (size_t i = 0; i < n;) {
+		if (rom[i] == out[i]) {
+			++i;
+			continue;
+		}
+		size_t j = i + 1, same = 0;
+		while (j < n && same < 16) {
+			same = rom[j] == out[j] ? same + 1 : 0;
+			++j;
+		}
+		ByteRange br = { (uint32_t) i, (uint32_t) (j - same) };
+		if (pi->nRanges == cap) {
+			cap = cap ? cap * 2 : 64;
+			ByteRange* nr = realloc(pi->ranges, sizeof(ByteRange) * (size_t) cap);
+			if (!nr) return;
+			pi->ranges = nr;
+		}
+		pi->ranges[pi->nRanges++] = br;
+		i = j;
+	}
+	if (outN > romN) {
+		ByteRange* nr = realloc(pi->ranges, sizeof(ByteRange) * (size_t) (pi->nRanges + 1));
+		if (!nr) return;
+		pi->ranges = nr;
+		pi->ranges[pi->nRanges++] = (ByteRange) { (uint32_t) romN, (uint32_t) outN };
+	}
+}
+
+static bool patch_overlap(const PatchInfo* a, const PatchInfo* b) {
+	int i = 0, j = 0;
+	while (i < a->nRanges && j < b->nRanges) {
+		if (a->ranges[i].to <= b->ranges[j].from) ++i;
+		else if (b->ranges[j].to <= a->ranges[i].from) ++j;
+		else return true;
+	}
+	return false;
+}
+
+/* what a ROM the patches made is ("Tested romhack: ..." / "Untested ...") */
+static void patch_result_text(const uint8_t* out, size_t outN, char* note, size_t size) {
+	const char* name = NULL;
+	switch (profile_dump(emu.gameCode, doCrc32(out, outN), &name)) {
+	case DUMP_MOD_TESTED: snprintf(note, size, "Tested romhack: %s", name); break;
+	case DUMP_MOD: snprintf(note, size, "Known romhack: %s, untested", name); break;
+	case DUMP_TESTED:
+	case DUMP_OFFICIAL: snprintf(note, size, "Turns this ROM into another official release: %s", name ? name : ""); break;
+	default: snprintf(note, size, "Untested: the second screen may not work with it"); break;
+	}
+}
+
+/* what a patch does to this ROM, on its own */
+static void patch_describe(const uint8_t* rom, size_t romN, const char* path, PatchInfo* pi) {
+	size_t pn = 0;
+	uint8_t* p = patch_file_read(path, &pn);
 	uint8_t* out = NULL;
 	size_t outN = 0;
 	int r = pn && rom ? patch_apply(p, pn, rom, romN, &out, &outN) : PATCH_UNREADABLE;
 	free(p);
-	*usable = r == PATCH_APPLIED;
+	pi->usable = r == PATCH_APPLIED;
 	if (r == PATCH_WRONG_ROM) {
-		snprintf(note, size, "Made for another version of the game: it can't be switched on for this ROM");
+		snprintf(pi->note, sizeof(pi->note), "Made for another version of the game: it can't be switched on for this ROM");
 	} else if (r != PATCH_APPLIED) {
-		snprintf(note, size, "Can't be read: not a patch, or damaged");
+		snprintf(pi->note, sizeof(pi->note), "Can't be read: not a patch, or damaged");
 	} else {
-		const char* name = NULL;
-		uint32_t crc = doCrc32(out, outN);
-		switch (profile_dump(emu.gameCode, crc, &name)) {
-		case DUMP_MOD_TESTED: snprintf(note, size, "Tested romhack: %s", name); break;
-		case DUMP_MOD: snprintf(note, size, "Known romhack: %s, untested", name); break;
-		case DUMP_TESTED:
-		case DUMP_OFFICIAL: snprintf(note, size, "Turns this ROM into another official release: %s", name ? name : ""); break;
-		default: snprintf(note, size, "Untested: the second screen may not work with it"); break;
-		}
+		patch_result_text(out, outN, pi->note, sizeof(pi->note));
+		patch_ranges(rom, romN, out, outN, pi);
 	}
 	free(out);
 }
 
-static void open_patches(void) {
+static PatchInfo* patch_info(const char* file) {
+	for (int i = patchBesideAt0 ? 1 : 0; i < nPatchInfo; ++i)
+		if (!strcmp(patchInfo[i].file, file)) return &patchInfo[i];
+	return NULL;
+}
+
+static void patch_title_type(const char* file, char* out, size_t size) {
+	char title[256], type[8] = "";
+	patch_title(file, title, sizeof(title));
+	const char* ext = strrchr(file, '.');
+	for (int k = 0; ext && ext[k + 1] && k < 3; ++k) type[k] = (char) toupper((unsigned char) ext[k + 1]);
+	snprintf(out, size, "%s (%s)", title, type);
+}
+
+/* The rows, from patchInfo and the choice; the selection kept on the same
+ * row. With more than one patch to apply, they're tried together. */
+static void patch_rebuild(void) {
+	int selKind = patchSel >= 0 && patchSel < nPatchRows ? patchRows[patchSel].kind : PR_SAVE;
+	char selFile[256];
+	snprintf(selFile, sizeof(selFile), "%s", patchSel >= 0 && patchSel < nPatchRows ? patchRows[patchSel].file : "");
 	nPatchRows = 0;
-	patchSel = patchScroll = 0;
-	patchArmed = -1;
-	patchNote[0] = 0;
-	patchPressRow = -1;
+	if (!patch_choice_same(&patchChoice, &patchStarted))
+		patch_row_add(PR_RESTART, NULL, "Patches changed since the game started",
+		              "The patches aren't as the game started: restart it to play with them (or they're used from the next start)", true);
 	patch_row_add(PR_SAVE, NULL, "Separate battery save",
 	              "With a patch on, the game keeps its own battery save (\"<game> + <patch>\"): off, it uses the original's", true);
 	patch_row_add(PR_STATES, NULL, "Separate save states",
@@ -1512,24 +1615,130 @@ static void open_patches(void) {
 	const char* slash = strrchr(patchDir, '/');
 	snprintf(folder, sizeof(folder), "In patches/%s", slash ? slash + 1 : patchDir);
 	patch_row_add(PR_HEADER, NULL, folder, NULL, false);
+	int summaryAt = nPatchRows;
+	int nApply = (patchBesideAt0 ? 1 : 0) + patchChoice.nOn;
+	if (nApply > 1) patch_row_add(PR_SUMMARY, NULL, "", NULL, false);
+	if (patchBesideAt0) {
+		PatchInfo* pi = &patchInfo[0];
+		char label[300], full[600];
+		snprintf(label, sizeof(label), "%s (beside the ROM)", pi->file);
+		snprintf(full, sizeof(full), "Always on, applied first (RetroArch's way: a patch named as the ROM). %s", pi->note);
+		patch_row_add(PR_BESIDE, pi->file, label, full, false);
+	}
+	/* the ones on, in order */
+	for (int i = 0; i < patchChoice.nOn; ++i) {
+		PatchInfo* pi = patch_info(patchChoice.on[i]);
+		char label[300], t[280];
+		patch_title_type(patchChoice.on[i], t, sizeof(t));
+		if (nApply > 1) snprintf(label, sizeof(label), "%d. %s", i + 1, t);
+		else snprintf(label, sizeof(label), "%s", t);
+		PatchRow* r = patch_row_add(PR_PATCH, patchChoice.on[i], label,
+		                            pi ? pi->note : "Not in the folder any more: it's left out", pi && pi->usable);
+		if (r) r->order = i;
+	}
+	/* the rest, by name */
+	int first = patchBesideAt0 ? 1 : 0;
+	for (int i = first; i < nPatchInfo; ++i) {
+		if (patch_choice_find(&patchChoice, patchInfo[i].file) >= 0) continue;
+		char t[280];
+		patch_title_type(patchInfo[i].file, t, sizeof(t));
+		patch_row_add(PR_PATCH, patchInfo[i].file, t, patchInfo[i].note, patchInfo[i].usable);
+	}
+	if (nPatchInfo == first) {
+		char note[1300];
+		snprintf(note, sizeof(note), "Put .ips, .ups or .bps files in %s", patchDir);
+		patch_row_add(PR_EMPTY, NULL, "No patches here yet", note, false);
+	}
+	/* together, in order, as the game will apply them */
+	if (nApply > 1) {
+		size_t romN = 0;
+		uint8_t* rom = emu_rom_read_all(romPath, &romN);
+		const PatchInfo* appliedInfo[PATCH_ON_MAX + 1];
+		const char* appliedName[PATCH_ON_MAX + 1];
+		int nApplied = 0;
+		for (int k = 0; rom && k < nApply; ++k) {
+			bool beside = patchBesideAt0 && k == 0;
+			const char* file = beside ? patchInfo[0].file : patchChoice.on[k - (patchBesideAt0 ? 1 : 0)];
+			PatchInfo* pi = beside ? &patchInfo[0] : patch_info(file);
+			PatchRow* row = NULL;
+			for (int j = 0; j < nPatchRows; ++j)
+				if ((patchRows[j].kind == (beside ? PR_BESIDE : PR_PATCH)) && !strcmp(patchRows[j].file, file)) row = &patchRows[j];
+			char path[1400];
+			if (beside) patch_find(romPath, path, sizeof(path));
+			else snprintf(path, sizeof(path), "%s/%s", patchDir, file);
+			size_t pn = 0;
+			uint8_t* p = pi ? patch_file_read(path, &pn) : NULL;
+			uint8_t* out = NULL;
+			size_t outN = 0;
+			int r = pn ? patch_apply(p, pn, rom, romN, &out, &outN) : PATCH_UNREADABLE;
+			free(p);
+			char t[280];
+			patch_title(file, t, sizeof(t));
+			if (r == PATCH_APPLIED) {
+				free(rom);
+				rom = out, romN = outN;
+				for (int a = 0; pi && row && a < nApplied; ++a) {
+					if (!appliedInfo[a] || !patch_overlap(pi, appliedInfo[a])) continue;
+					row->chain = 1;
+					char other[280];
+					if (appliedName[a]) patch_title_type(appliedName[a], other, sizeof(other));
+					else snprintf(other, sizeof(other), "the patch beside the ROM");
+					snprintf(row->note, sizeof(row->note),
+					         "Changes some of the same bytes as %s, and goes over it there: they may not work together", other);
+					break;
+				}
+				appliedInfo[nApplied] = pi;
+				appliedName[nApplied++] = beside ? NULL : patchChoice.on[k - (patchBesideAt0 ? 1 : 0)];
+			} else {
+				free(out);
+				if (row && pi && pi->usable) {
+					row->chain = 2;
+					snprintf(row->note, sizeof(row->note),
+					         "Left out where it is: it's made for the unchanged ROM, so it has to be first (only one such patch "
+					         "can be on). Move it up with X");
+				} else if (row) {
+					row->chain = 2;
+				}
+			}
+		}
+		char res[300] = "";
+		if (rom) patch_result_text(rom, romN, res, sizeof(res));
+		free(rom);
+		snprintf(patchRows[summaryAt].label, sizeof(patchRows[0].label), "Together: %s", res);
+		snprintf(patchRows[summaryAt].note, sizeof(patchRows[0].note), "%s", res);
+	}
+	/* the selection where it was */
+	patchSel = -1;
+	for (int i = 0; i < nPatchRows && patchSel < 0; ++i)
+		if (patchRows[i].kind == selKind && !strcmp(patchRows[i].file, selFile)) patchSel = i;
+	for (int i = 0; i < nPatchRows && patchSel < 0; ++i)
+		if (patchRows[i].kind == PR_SAVE) patchSel = i;
+}
+
+static void open_patches(void) {
+	for (int i = 0; i < nPatchInfo; ++i) free(patchInfo[i].ranges);
+	memset(patchInfo, 0, sizeof(patchInfo));
+	nPatchInfo = 0;
+	nPatchRows = 0;
+	patchSel = patchScroll = 0;
+	patchArmed = -1;
+	patchMoving = false;
+	patchNote[0] = 0;
+	patchPressRow = -1;
 	size_t romN = 0;
 	uint8_t* rom = emu_rom_read_all(romPath, &romN);
 	char beside[1024];
-	if (patch_find(romPath, beside, sizeof(beside))) {
-		char note[300];
-		bool ok;
-		patch_describe(rom, romN, beside, note, sizeof(note), &ok);
-		char label[300];
-		snprintf(label, sizeof(label), "%s (beside the ROM)", patch_name(beside));
-		char full[600];
-		snprintf(full, sizeof(full), "Always on (RetroArch's way: a patch named as the ROM). %s", note);
-		patch_row_add(PR_BESIDE, patch_name(beside), label, full, false);
+	patchBesideAt0 = patch_find(romPath, beside, sizeof(beside));
+	if (patchBesideAt0) {
+		PatchInfo* pi = &patchInfo[nPatchInfo++];
+		snprintf(pi->file, sizeof(pi->file), "%s", patch_name(beside));
+		patch_describe(rom, romN, beside, pi);
 	}
 	char names[PATCH_ROWS][256];
 	int n = 0;
 	DIR* d = opendir(patchDir);
 	struct dirent* e;
-	while (d && (e = readdir(d)) && n < PATCH_ROWS - 5) {
+	while (d && (e = readdir(d)) && n < PATCH_ROWS - 2) {
 		const char* ext = strrchr(e->d_name, '.');
 		if (e->d_name[0] != '.' && ext && (!strcasecmp(ext, ".ips") || !strcasecmp(ext, ".ups") || !strcasecmp(ext, ".bps")))
 			snprintf(names[n++], sizeof(names[0]), "%s", e->d_name);
@@ -1537,23 +1746,15 @@ static void open_patches(void) {
 	if (d) closedir(d);
 	qsort(names, (size_t) n, sizeof(names[0]), patch_name_cmp);
 	for (int i = 0; i < n; ++i) {
-		char path[1300], note[300], title[256], label[300];
+		char path[1300];
 		snprintf(path, sizeof(path), "%s/%s", patchDir, names[i]);
-		bool ok;
-		patch_describe(rom, romN, path, note, sizeof(note), &ok);
-		patch_title(names[i], title, sizeof(title));
-		const char* ext = strrchr(names[i], '.');
-		char type[8] = "";
-		for (int k = 0; ext && ext[k + 1] && k < 3; ++k) type[k] = (char) toupper((unsigned char) ext[k + 1]);
-		snprintf(label, sizeof(label), "%s (%s)", title, type);
-		patch_row_add(PR_PATCH, names[i], label, note, ok);
+		PatchInfo* pi = &patchInfo[nPatchInfo++];
+		snprintf(pi->file, sizeof(pi->file), "%s", names[i]);
+		patch_describe(rom, romN, path, pi);
 	}
 	free(rom);
-	if (!n) {
-		char note[1300];
-		snprintf(note, sizeof(note), "Put .ips, .ups or .bps files in %s", patchDir);
-		patch_row_add(PR_EMPTY, NULL, "No patches here yet", note, false);
-	}
+	patch_rebuild();
+	patchSel = 0;
 	patchesOpen = true;
 }
 
@@ -1561,7 +1762,11 @@ static bool patch_is_on(const PatchRow* r) {
 	if (r->kind == PR_SAVE) return patchChoice.sepSave;
 	if (r->kind == PR_STATES) return patchChoice.sepStates;
 	if (r->kind == PR_BESIDE) return true;
-	return r->kind == PR_PATCH && !strcmp(patchChoice.on, r->file);
+	return r->kind == PR_PATCH && r->order >= 0;
+}
+
+static bool patch_row_text_only(int kind) {
+	return kind == PR_HEADER || kind == PR_SUMMARY || kind == PR_EMPTY;
 }
 
 static int patch_max_scroll(const CheatGeom* g) {
@@ -1576,9 +1781,28 @@ static void patch_keep_visible(int scr) {
 	patchScroll = SDL_clamp(patchScroll, 0, patch_max_scroll(&g));
 }
 
+/* the one picked up (X) a place up or down among the ones on */
+static void patch_shift(int dir) {
+	if (patchSel < 0 || patchSel >= nPatchRows) return;
+	int i = patchRows[patchSel].order, j = i + dir;
+	if (i < 0 || j < 0 || j >= patchChoice.nOn) return;
+	char t[256];
+	memcpy(t, patchChoice.on[i], sizeof(t));
+	memcpy(patchChoice.on[i], patchChoice.on[j], sizeof(t));
+	memcpy(patchChoice.on[j], t, sizeof(t));
+	patch_choice_save(gp.patches, &patchChoice);
+	fprintf(stderr, "patches: %s moved to %d\n", t, j + 1);
+	patch_rebuild();
+	patch_keep_visible(ui_touch_screen());
+}
+
 static void patch_move(int dir) {
+	if (patchMoving) {
+		patch_shift(dir);
+		return;
+	}
 	for (int i = patchSel + dir; i >= 0 && i < nPatchRows; i += dir) {
-		if (patchRows[i].kind != PR_HEADER) {
+		if (!patch_row_text_only(patchRows[i].kind)) {
 			patchSel = i;
 			break;
 		}
@@ -1588,16 +1812,51 @@ static void patch_move(int dir) {
 	patch_keep_visible(ui_touch_screen());
 }
 
+/* X (or a tap on its number): pick the selected patch up to move it, or put it down */
+static void patch_pick_up(void) {
+	patchArmed = -1;
+	if (patchMoving) {
+		patchMoving = false;
+		snprintf(patchNote, sizeof(patchNote), "%s",
+		         patch_choice_same(&patchChoice, &patchStarted) ? "As the game started" : "Restart from the top row to play with this order");
+		return;
+	}
+	const PatchRow* r = patchSel >= 0 && patchSel < nPatchRows ? &patchRows[patchSel] : NULL;
+	if (!r || r->kind != PR_PATCH || r->order < 0) return;
+	if (patchChoice.nOn < 2) {
+		snprintf(patchNote, sizeof(patchNote), "Only patches that are on have an order, and this is the only one");
+		return;
+	}
+	patchMoving = true;
+	snprintf(patchNote, sizeof(patchNote), "Moving it: Up / Down or tap where it goes, then A (or tap it again). The one lower in the list is applied later");
+}
+
 /* A on a row (or a tap). Returns true when the game is to restart (GEN-9). */
 static bool patch_choose(int row, bool later) {
 	if (row < 0 || row >= nPatchRows) return false;
 	PatchRow* r = &patchRows[row];
+	if (patchMoving) {
+		patch_pick_up();
+		return false;
+	}
 	if (r->kind == PR_SAVE || r->kind == PR_STATES) {
 		bool* v = r->kind == PR_SAVE ? &patchChoice.sepSave : &patchChoice.sepStates;
 		*v = !*v;
 		patch_choice_save(gp.patches, &patchChoice);
-		snprintf(patchNote, sizeof(patchNote), "%s", patchChoice.on[0] ? "Used from the next time the game starts" : "Saved for when a patch is on");
+		snprintf(patchNote, sizeof(patchNote), "%s", patchChoice.nOn ? "Used from the next time the game starts" : "Saved for when a patch is on");
 		return false;
+	}
+	if (r->kind == PR_RESTART) {
+		if (later) return false;
+		if (patchArmed != row) {
+			patchArmed = row;
+			snprintf(patchNote, sizeof(patchNote), "Are you sure? Save your game first. A: restart now. B: call it off");
+			return false;
+		}
+		patchArmed = -1;
+		fprintf(stderr, "patches: restarting with the patches as chosen\n");
+		patchReloadNext = true;
+		return true;
 	}
 	if (r->kind != PR_PATCH) return false;
 	bool on = patch_is_on(r);
@@ -1605,23 +1864,45 @@ static bool patch_choose(int row, bool later) {
 		snprintf(patchNote, sizeof(patchNote), "%s", r->note);
 		return false;
 	}
+	if (!on && patchChoice.nOn >= PATCH_ON_MAX) {
+		snprintf(patchNote, sizeof(patchNote), "Up to %d patches can be on at once", PATCH_ON_MAX);
+		return false;
+	}
 	if (patchArmed != row) {
 		patchArmed = row;
 		snprintf(patchNote, sizeof(patchNote),
-		         "Are you sure? Save your game first. A: restart %s it now. Y: from the next start. B: call it off",
+		         "Are you sure? Save your game first. A: restart %s it now. Y: not yet (more changes first). B: call it off",
 		         on ? "without" : "with");
 		return false;
 	}
 	patchArmed = -1;
-	snprintf(patchChoice.on, sizeof(patchChoice.on), "%s", on ? "" : r->file);
+	char file[256];
+	snprintf(file, sizeof(file), "%s", r->file);
+	if (on) {
+		int i = r->order;
+		for (int k = i; k + 1 < patchChoice.nOn; ++k) memcpy(patchChoice.on[k], patchChoice.on[k + 1], sizeof(patchChoice.on[0]));
+		--patchChoice.nOn;
+	} else {
+		snprintf(patchChoice.on[patchChoice.nOn++], sizeof(patchChoice.on[0]), "%s", file); /* (applied last) */
+	}
 	patch_choice_save(gp.patches, &patchChoice);
-	fprintf(stderr, "patches: %s %s%s\n", r->file, on ? "switched off" : "switched on", later ? ", from the next start" : "");
+	fprintf(stderr, "patches: %s %s%s\n", file, on ? "switched off" : "switched on", later ? ", for later" : "");
 	if (later) {
-		snprintf(patchNote, sizeof(patchNote), "%s the next time the game starts", on ? "Off" : "On");
+		patch_rebuild();
+		patch_keep_visible(ui_touch_screen());
+		snprintf(patchNote, sizeof(patchNote), "%s", patch_choice_same(&patchChoice, &patchStarted) ? "As the game started"
+		         : "Restart from the top row to play with it (or it's used from the next start)");
 		return false;
 	}
 	patchReloadNext = true;
 	return true;
+}
+
+/* is screen-local x on the number of a patch that's on (to pick it up) */
+static bool patch_on_number(int scr, int row, int x) {
+	CheatGeom g = cheat_geom(scr);
+	return row >= 0 && row < nPatchRows && patchRows[row].kind == PR_PATCH && patchRows[row].order >= 0 && patchChoice.nOn > 1 &&
+	       x < g.x + g.px * 14;
 }
 
 /* row under screen-local y, or -1 */
@@ -1647,33 +1928,46 @@ static void draw_patches(int scr) {
 	SDL_Rect clip = { screens[scr].rect.x, screens[scr].rect.y + g.top, r.w, g.listH };
 	ui_clip(scr, &clip);
 	int tcap = g.tpx * 5;
-	int pillW = ui_label_width(scr, tcap, "Always") + px * 8;
+	int pillW = ui_label_width(scr, tcap, "Restart") + px * 8;
 	int nameW = g.w - pillW - px * 10;
 	for (int i = 0; i < nPatchRows; ++i) {
 		int y = g.top + i * (g.rowH + g.gap) - patchScroll;
 		if (y + g.rowH <= g.top || y >= g.top + g.listH) continue;
 		const PatchRow* pr = &patchRows[i];
 		char line[300];
-		if (pr->kind == PR_HEADER || pr->kind == PR_EMPTY) {
+		if (patch_row_text_only(pr->kind)) {
 			fit_text(line, sizeof(line), pr->kind == PR_HEADER ? TF_BOLD : TF_BODY, tcap, pr->label, g.w - px * 4);
 			ui_font_text(scr, pr->kind == PR_HEADER ? TF_BOLD : TF_BODY, g.x + px * 2, y + g.rowH / 2, tcap, line,
-			             pr->kind == PR_HEADER ? C_GOLD : C_DIS, -1);
+			             pr->kind == PR_HEADER ? C_GOLD : pr->kind == PR_SUMMARY ? C_TEXT : C_DIS, -1);
 			continue;
 		}
 		bool sel = i == patchSel;
 		SDL_Rect row = { g.x, y, g.w, g.rowH };
 		if (sel) ui_fill_round(scr, (SDL_Rect) { row.x - px / 2, row.y - px / 2, row.w + px, row.h + px }, C_BTN_EDGE, rad);
 		ui_fill_round(scr, row, sel ? C_BTN_SEL : C_BTN, rad);
-		bool dim = pr->kind == PR_PATCH && !pr->usable && !patch_is_on(pr);
-		fit_text(line, sizeof(line), TF_BODY, tcap, pr->label, nameW);
-		ui_font_text(scr, TF_BODY, g.x + px * 4, y + g.rowH / 2, tcap, line, dim ? C_DIS : C_TEXT, -1);
 		bool on = patch_is_on(pr);
-		const char* pill = i == patchArmed ? "Sure?" : pr->kind == PR_BESIDE ? "Always" : dim ? "-" : on ? "On" : "Off";
+		bool dim = pr->kind == PR_PATCH && !pr->usable && !on;
+		bool moving = sel && patchMoving;
+		fit_text(line, sizeof(line), TF_BODY, tcap, pr->label, nameW);
+		/* (a patch that shares bytes with one above it: its name in gold) */
+		ui_font_text(scr, TF_BODY, g.x + px * 4, y + g.rowH / 2, tcap, line, dim ? C_DIS : on && pr->chain == 1 ? C_GOLD : C_TEXT, -1);
+		const char* pill = i == patchArmed ? "Sure?"
+		                   : moving        ? "Move"
+		                   : pr->kind == PR_RESTART ? "Restart"
+		                   : pr->kind == PR_BESIDE  ? (pr->chain == 2 ? "Fails" : "Always")
+		                   : dim                    ? "-"
+		                   : on && pr->chain == 2   ? "Fails"
+		                   : on                     ? "On"
+		                                            : "Off";
+		bool gold = i == patchArmed || moving || pr->kind == PR_RESTART;
 		SDL_Rect pl = { g.x + g.w - pillW - px * 3, y + px * 2, pillW, g.rowH - px * 4 };
-		SDL_Color pc = i == patchArmed ? C_GOLD : on ? (SDL_Color) { 64, 168, 112, 255 } : (SDL_Color) { 60, 56, 84, 255 };
+		SDL_Color pc = gold                   ? C_GOLD
+		               : on && pr->chain == 2 ? (SDL_Color) { 176, 72, 72, 255 }
+		               : on                   ? (SDL_Color) { 64, 168, 112, 255 }
+		                                      : (SDL_Color) { 60, 56, 84, 255 };
 		ui_fill_round(scr, pl, pc, px * 2);
 		ui_label(scr, pl.x + pl.w / 2, pl.y + pl.h / 2, tcap, pill,
-		         i == patchArmed ? (SDL_Color) { 20, 16, 36, 255 } : on ? C_TEXT : (SDL_Color) { 160, 156, 184, 255 });
+		         gold ? (SDL_Color) { 20, 16, 36, 255 } : on ? C_TEXT : (SDL_Color) { 160, 156, 184, 255 });
 	}
 	ui_clip(scr, NULL);
 	int maxS = patch_max_scroll(&g);
@@ -6494,20 +6788,23 @@ static void patches_setup(const char* rom) {
 	if (emu_rom_header(rom, h, sizeof(h))) memcpy(code, h + 0xAC, 4);
 	patch_folder(cfg, rom, code, patchDir, sizeof(patchDir), true);
 	patch_choice_load(gp.patches, &patchChoice);
-	char files[4][1024];
-	int n = patch_plan(cfg, rom, code, &patchChoice, files, 4);
+	patchStarted = patchChoice;
+	char files[PATCH_ON_MAX + 1][1024];
+	int n = patch_plan(cfg, rom, code, &patchChoice, files, PATCH_ON_MAX + 1);
 	emu_patch_plan(rom, files, n);
-	if (patchChoice.on[0]) {
-		/* its own saves only when it applies: a patch that doesn't fit leaves
-		 * the game as it is, with its own saves */
+	if (patchChoice.nOn) {
+		/* their own saves only when something applies: patches that don't
+		 * fit leave the game as it is, with its own saves */
 		size_t sz = 0;
 		int r = PATCH_NONE;
 		free(emu_rom_read_played(rom, &sz, &r, NULL, NULL));
-		if (r == PATCH_APPLIED) game_paths_patched(cfg, &gp, &patchChoice);
+		if (r == PATCH_APPLIED || r == PATCH_PARTIAL) game_paths_patched(cfg, &gp, &patchChoice);
 	}
 	patchReload = patchReloadNext;
 	patchReloadNext = false;
-	fprintf(stderr, "patches: %s, %d to apply%s%s\n", patchDir, n, patchChoice.on[0] ? ", on: " : "", patchChoice.on);
+	char on[PATCH_ON_MAX * 260] = "";
+	for (int i = 0, l = 0; i < patchChoice.nOn; ++i) l += snprintf(on + l, sizeof(on) - (size_t) l, "%s%s", i ? ", " : ", on: ", patchChoice.on[i]);
+	fprintf(stderr, "patches: %s, %d to apply%s\n", patchDir, n, on);
 }
 
 enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
@@ -6528,7 +6825,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 #ifdef __wasi__
 	webPlaying = true;
 #endif
-	if (emu.patch == PATCH_APPLIED || emu.patch == PATCH_WRONG_ROM || emu.patch == PATCH_UNREADABLE) {
+	if (emu.patch != PATCH_NONE) {
 		ra_game_patched(); /* (RetroAchievements doesn't allow patched games) */
 	} else {
 		ra_game_start(&emu, rom);
@@ -6899,10 +7196,22 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 					}
 				} else if (p.kind == 2) {
 					int row = patch_row_at(p.screen, p.x, p.y);
-					if (!ignorePointerUp && !patchDragging && row >= 0 && row == patchPressRow && patchRows[row].kind != PR_HEADER) {
+					if (!ignorePointerUp && !patchDragging && row >= 0 && row == patchPressRow && patchMoving) {
+						/* moving one: where it goes (another that's on), else put it down */
+						int to = patchRows[row].kind == PR_PATCH ? patchRows[row].order : -1;
+						int from = patchRows[patchSel].order;
+						if (to >= 0 && to != from) {
+							for (int k = 0; k < abs(to - from); ++k) patch_shift(to > from ? 1 : -1);
+						} else {
+							patch_pick_up();
+						}
+					} else if (!ignorePointerUp && !patchDragging && row >= 0 && row == patchPressRow &&
+					           !patch_row_text_only(patchRows[row].kind)) {
 						if (row != patchSel) patchArmed = -1, patchNote[0] = 0;
 						patchSel = row;
-						if (patch_choose(row, false)) {
+						if (patch_on_number(p.screen, row, p.x)) {
+							patch_pick_up(); /* (its number: picked up to move) */
+						} else if (patch_choose(row, false)) {
 							exitTo = GAME_RELOAD;
 							done = true;
 						}
@@ -7140,18 +7449,20 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			}
 			CheatGeom g = cheat_geom(ui_touch_screen());
 			int page = SDL_max(1, g.listH / (g.rowH + g.gap) - 1);
-			if (btn_pressed(B_L)) for (int k = 0; k < page; ++k) patch_move(-1);
-			if (btn_pressed(B_R)) for (int k = 0; k < page; ++k) patch_move(1);
+			if (!patchMoving && btn_pressed(B_L)) for (int k = 0; k < page; ++k) patch_move(-1);
+			if (!patchMoving && btn_pressed(B_R)) for (int k = 0; k < page; ++k) patch_move(1);
 			bool later = patchArmed >= 0 && btn_pressed(B_Y);
-			if ((btn_pressed(B_A) || later) && patch_choose(patchSel, later)) {
+			if (btn_pressed(B_X)) patch_pick_up(); /* (pick a patch that's on up to move it, or put it down) */
+			else if ((btn_pressed(B_A) || later) && patch_choose(patchSel, later)) {
 				exitTo = GAME_RELOAD;
 				done = true;
 			}
 			if (btn_pressed(B_B)) {
-				if (patchArmed >= 0) patchArmed = -1, patchNote[0] = 0;
+				if (patchMoving) patch_pick_up();
+				else if (patchArmed >= 0) patchArmed = -1, patchNote[0] = 0;
 				else patchesOpen = false;
 			}
-			if (btn_pressed(B_START)) patchesOpen = false, menuOpen = false;
+			if (btn_pressed(B_START)) patchMoving = false, patchesOpen = false, menuOpen = false;
 		} else if (menuOpen && hexOpen) {
 			/* D-pad (repeating) and A on the keys; B deletes (or, with nothing typed, goes back), START Done */
 			static int held[4];

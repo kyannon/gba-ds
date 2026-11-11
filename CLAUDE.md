@@ -230,15 +230,21 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   (report.md, the patched ROM, the regress report). Patches (GEN-9): `src/patch.c` (IPS,
   UPS, BPS, bounds-checked; mGBA's own does no BPS). The game's folder is
   `<patch_dir>/<profile_release_name>` (paths.c `patch_folder`, made at
-  start); `<state_dir>/<game>.patches` says which is on (one, for now) and
-  the "separate battery save / states" switches (`game_paths_patched`:
-  "<game> + <patch>"). game.c `patches_setup` sets `emu_patch_plan` (the
-  file beside the ROM, then the one on) before `emu_open`, which applies it
+  start); `<state_dir>/<game>.patches` says which are on (`on NAME` lines, in the
+  order applied, up to `PATCH_ON_MAX`) and the "separate battery save /
+  states" switches (`game_paths_patched`: "<game> + <patch> + ...", the
+  names sorted). game.c `patches_setup` sets `emu_patch_plan` (the
+  file beside the ROM, then the ones on) before `emu_open`, which applies it
   for every core (the game, the hidden copy, logos, twins) from one cached
   patched copy, loaded with `VFileMemChunk` + `core->loadROM`. Extras >
   Patches (`open_patches` / `draw_patches` / `patch_choose`, after Cheats):
-  each file tried on the ROM as the list opens; switching asks, then
-  `GAME_RELOAD` (main.c starts the ROM again, no auto-load). Patched:
+  each file tried on the ROM as the list opens (`PatchInfo`: its note and
+  the bytes it changes); `patch_rebuild` puts the ones on first, numbered,
+  and tries them together (PR_SUMMARY, chain 2 "Fails", chain 1 overlap);
+  X / `patch_pick_up` and `patch_shift` reorder; switching asks, then
+  `GAME_RELOAD` (main.c starts the ROM again, no auto-load); PR_RESTART
+  while the choice isn't `patchStarted`. Some applied, some not:
+  `PATCH_PARTIAL` (`emu.patchSkipped`). Patched:
   `ra_game_patched` (no achievements, its banner says so). The game list's
   checksum is of the ROM as it would be played (`emu_rom_read_patched`).
   Cases: `"patch"` (beside the ROM), `"patch_folder"` / `"patch_on"`

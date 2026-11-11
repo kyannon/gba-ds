@@ -10,6 +10,7 @@ typedef enum {
 	PATCH_APPLIED,
 	PATCH_WRONG_ROM, /* a UPS / BPS made for another ROM (its CRC32 isn't this one's) */
 	PATCH_UNREADABLE, /* not a patch, damaged, or its result doesn't match its own checksum */
+	PATCH_PARTIAL, /* (several) some applied, one or more not: made for another ROM or unreadable */
 } PatchResult;
 
 /* The patch file beside a ROM: the ROM's path with its extension (.gba,

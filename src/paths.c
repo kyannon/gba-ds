@@ -163,8 +163,11 @@ void patch_choice_load(const char* path, PatchChoice* c) {
 	char line[512];
 	while (fgets(line, sizeof(line), f)) {
 		line[strcspn(line, "\r\n")] = 0;
-		if (!strncmp(line, "on ", 3)) snprintf(c->on, sizeof(c->on), "%s", line + 3);
-		else if (!strncmp(line, "separate_save ", 14)) c->sepSave = line[14] == '1';
+		if (!strncmp(line, "on ", 3)) {
+			/* (one line per patch, in the order they're applied) */
+			if (c->nOn < PATCH_ON_MAX && line[3] && patch_choice_find(c, line + 3) < 0)
+				snprintf(c->on[c->nOn++], sizeof(c->on[0]), "%s", line + 3);
+		} else if (!strncmp(line, "separate_save ", 14)) c->sepSave = line[14] == '1';
 		else if (!strncmp(line, "separate_states ", 16)) c->sepStates = line[16] == '1';
 	}
 	fclose(f);
@@ -173,9 +176,22 @@ void patch_choice_load(const char* path, PatchChoice* c) {
 void patch_choice_save(const char* path, const PatchChoice* c) {
 	FILE* f = fopen(path, "w");
 	if (!f) return;
-	if (c->on[0]) fprintf(f, "on %s\n", c->on);
+	for (int i = 0; i < c->nOn; ++i) fprintf(f, "on %s\n", c->on[i]);
 	fprintf(f, "separate_save %d\nseparate_states %d\n", c->sepSave, c->sepStates);
 	fclose(f);
+}
+
+int patch_choice_find(const PatchChoice* c, const char* file) {
+	for (int i = 0; i < c->nOn; ++i)
+		if (!strcmp(c->on[i], file)) return i;
+	return -1;
+}
+
+bool patch_choice_same(const PatchChoice* a, const PatchChoice* b) {
+	if (a->nOn != b->nOn) return false;
+	for (int i = 0; i < a->nOn; ++i)
+		if (strcmp(a->on[i], b->on[i])) return false;
+	return true;
 }
 
 /* a folder name from a header's title: SD cards' file systems take no : / \ * ? " < > | */
@@ -211,21 +227,27 @@ void patch_title(const char* file, char* out, size_t size) {
 
 int patch_plan(const Config* cfg, const char* rom, const char* code, const PatchChoice* c, char files[][1024], int max) {
 	int n = 0;
-	if (n < max && patch_find(rom, files[n], 1024)) ++n; /* beside the ROM: always on */
-	if (n < max && c && c->on[0]) {
-		char dir[1024];
-		patch_folder(cfg, rom, code, dir, sizeof(dir), false);
-		snprintf(files[n], 1024, "%s/%s", dir, c->on);
+	if (n < max && patch_find(rom, files[n], 1024)) ++n; /* beside the ROM: always on, first */
+	char dir[1024] = "";
+	if (c && c->nOn) patch_folder(cfg, rom, code, dir, sizeof(dir), false);
+	for (int i = 0; c && i < c->nOn && n < max; ++i) {
+		snprintf(files[n], 1024, "%s/%s", dir, c->on[i]);
 		if (file_exists(files[n])) ++n;
 	}
 	return n;
 }
 
+static int title_cmp(const void* a, const void* b) {
+	return strcasecmp((const char*) a, (const char*) b);
+}
+
 void game_paths_patched(const Config* cfg, GamePaths* o, const PatchChoice* c) {
-	if (!c->on[0] || (!c->sepSave && !c->sepStates)) return;
-	char t[256], base[600];
-	patch_title(c->on, t, sizeof(t));
-	snprintf(base, sizeof(base), "%s + %s", o->base, t);
+	if (!c->nOn || (!c->sepSave && !c->sepStates)) return;
+	char t[PATCH_ON_MAX][256], base[600];
+	for (int i = 0; i < c->nOn; ++i) patch_title(c->on[i], t[i], sizeof(t[0]));
+	qsort(t, (size_t) c->nOn, sizeof(t[0]), title_cmp);
+	int l = snprintf(base, sizeof(base), "%s", o->base);
+	for (int i = 0; i < c->nOn && l < (int) sizeof(base); ++i) l += snprintf(base + l, sizeof(base) - (size_t) l, " + %s", t[i]);
 	if (c->sepSave) {
 		char dir[1024];
 		snprintf(dir, sizeof(dir), "%s", o->sav);
