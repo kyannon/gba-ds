@@ -22,7 +22,7 @@ The second screen follows [F-Zero: GP Legend](f-zero-gp-legend.md)'s: the race H
 
 **FZM-3. Racing: game screen.** The game screen keeps the speed where the game draws it (top right), the CHECK sign under a machine close behind, and RANK with the race's limit (1/15, then /10, /7, /5, red when you're outside it), moved to the bottom left, where the course map was. Training has no RANK; nothing moves there.
 
-**FZM-4. Racing: second screen.** On the second screen (dark, the HUD's pieces on it): the POW meter at the top centre, with BOOST and its three marks centred just under it (in every race that has them, Training too; until v1.4.10's second test build of this game BOOST stayed on the game screen); the course map at the bottom centre, twice as big; the game draws the map every other frame and your dot every frame, so the map is held steady between and the dot moves every frame; SPARE MACHINES in the top left corner with LAST (laps left) two rows under it, lined up with its left edge, or in the corner itself when there's no SPARE MACHINES (Training); the time, with each lap's time under it as a lap ends, at the top right, moved up into the speed's place.
+**FZM-4. Racing: second screen.** On the second screen (dark, the HUD's pieces on it): the POW meter at the top centre, with BOOST and its three marks centred just under it (in every race that has them, Training too; until v1.4.10's second test build of this game BOOST stayed on the game screen); the course map at the bottom centre, twice as big, on every course (Bianca City Ultimate Circuit's, drawn further left as the course is narrow, stayed on the game screen until v1.5's test build of this game, the second screen showing only your dot); the game draws the map every other frame and your dot every frame, so the map is held steady between and the dot moves every frame; SPARE MACHINES in the top left corner with LAST (laps left) two rows under it, lined up with its left edge, or in the corner itself when there's no SPARE MACHINES (Training); the time, with each lap's time under it as a lap ends, at the top right, moved up into the speed's place.
 
 **FZM-5. Pause.** The pause menu (CONTINUE, GIVE UP) stays on the game screen; the HUD stays on the second screen.
 
@@ -39,8 +39,12 @@ The second screen follows [F-Zero: GP Legend](f-zero-gp-legend.md)'s: the race H
 ## Not covered yet
 
 - The multiplayer modes (Multipak and Single-Pak Link) need a link cable: not tried. Their races use the race HUD's registers; what they show is unknown.
-- Courses past the Pawn Cup (Knight, Bishop, Queen, Champion series) are expected to behave alike: only Bianca City (Stretch Circuit) has cases.
+- The hidden Champion series wasn't reached: setting the series byte (0x03000BFF) to 4 from a Grand Prix in progress gives no race, and the fixtures' save hasn't unlocked it. The other four series' 20 courses each have a case (made by memory: the series byte and the races done, 0x03002B68, set on a results screen).
 
 ## Exceptions
 
 - The course map drawn twice as big (as F-Zero: GP Legend's and Mario Kart's): a GBA pixel per 2x2 of the second screen's GBA screen, so still the game's own picture at its own resolution.
+
+## For the merge
+
+- Changelog (Fixes): "F-Zero: Maximum Velocity: on Bianca City's Ultimate Circuit (Bishop series) the course map now moves to the second screen like every other course's; it stayed on the game screen, flickering, with only your dot on the second screen."

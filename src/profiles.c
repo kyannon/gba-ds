@@ -6304,7 +6304,8 @@ static const MapProfile profiles[] = {
 		 * 952-961) under it and the time (962-986, palettes 12, 15; a lap's
 		 * time under it as it ends) under that; BOOST (406-408) bottom
 		 * right; the course map one 64x64 sprite (tile 884, palette 15) at
-		 * 0, 96, drawn every other frame, with the player's dot (675) on
+		 * 0, 96 (further left on a narrow course: Bianca City Ultimate
+		 * Circuit's at -24), drawn every other frame, with the player's dot (675) on
 		 * it. Not the HUD: the number over a rival ahead and its line
 		 * (688-698, anywhere over the track's top half, the RANK corner
 		 * too), the signs over the track (256-280: READY, the laps left,
@@ -6356,9 +6357,10 @@ static const MapProfile profiles[] = {
 			          { 170, 140, 240, 159, 406, 408, 0 },
 			          /* the time and the lap's time */
 			          { 150, 18, 250, 56, 962, 986, 0, 1u << 12 | 1u << 15 },
-			          /* the map (x from -16: a narrow course's further left)
-			           * and the dot */
-			          { -16, 88, 64, 159, 884, 884, 0, 1u << 15 },
+			          /* the map (x from -64: a narrow course's further
+			           * left, Bianca City Ultimate Circuit's at -24) and the
+			           * dot */
+			          { -64, 88, 64, 159, 884, 884, 0, 1u << 15 },
 			          { -16, 84, 72, 159, 675, 675, 0 } },
 			/* the map's box (the sprite at 0, 96; the dot reaches row 92),
 			 * twice as big at the bottom centre; the game draws it every

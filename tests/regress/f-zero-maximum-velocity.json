@@ -377,6 +377,1127 @@
    ]
   },
   {
+   "id": "fzm-us-pawn-2-stark-farm-first",
+   "rom": "AFZE",
+   "state": "f-zero-maximum-velocity/us-pawn-2-stark-farm-first.ss",
+   "desc": "Grand Prix, Pawn 2: Stark Farm First Circuit (the course by memory: series 0x03000BFF, races done 0x03002B68), racing: the HUD and the course map on the second screen",
+   "rules": [
+    "FZM-2",
+    "FZM-3",
+    "FZM-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ]
+   ],
+   "shots": {
+    "racing": 120,
+    "next": 121
+   },
+   "checks": [
+    {
+     "rule": "FZM-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the course map at the bottom centre",
+     "type": "not_uniform",
+     "shot": "racing",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the map held on the frame the game doesn't draw it",
+     "type": "not_uniform",
+     "shot": "next",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "fzm-us-pawn-3-empyrean-colony-dash",
+   "rom": "AFZE",
+   "state": "f-zero-maximum-velocity/us-pawn-3-empyrean-colony-dash.ss",
+   "desc": "Grand Prix, Pawn 3: Empyrean Colony Dash Circuit (the course by memory: series 0x03000BFF, races done 0x03002B68), racing: the HUD and the course map on the second screen",
+   "rules": [
+    "FZM-2",
+    "FZM-3",
+    "FZM-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ]
+   ],
+   "shots": {
+    "racing": 120,
+    "next": 121
+   },
+   "checks": [
+    {
+     "rule": "FZM-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the course map at the bottom centre",
+     "type": "not_uniform",
+     "shot": "racing",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the map held on the frame the game doesn't draw it",
+     "type": "not_uniform",
+     "shot": "next",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "fzm-us-pawn-4-stark-farm-second",
+   "rom": "AFZE",
+   "state": "f-zero-maximum-velocity/us-pawn-4-stark-farm-second.ss",
+   "desc": "Grand Prix, Pawn 4: Stark Farm Second Circuit (the course by memory: series 0x03000BFF, races done 0x03002B68), racing: the HUD and the course map on the second screen",
+   "rules": [
+    "FZM-2",
+    "FZM-3",
+    "FZM-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ]
+   ],
+   "shots": {
+    "racing": 120,
+    "next": 121
+   },
+   "checks": [
+    {
+     "rule": "FZM-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the course map at the bottom centre",
+     "type": "not_uniform",
+     "shot": "racing",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the map held on the frame the game doesn't draw it",
+     "type": "not_uniform",
+     "shot": "next",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "fzm-us-pawn-5-cloud-carpet-long-jump",
+   "rom": "AFZE",
+   "state": "f-zero-maximum-velocity/us-pawn-5-cloud-carpet-long-jump.ss",
+   "desc": "Grand Prix, Pawn 5: Cloud Carpet Long Jump Circuit (the course by memory: series 0x03000BFF, races done 0x03002B68), racing: the HUD and the course map on the second screen",
+   "rules": [
+    "FZM-2",
+    "FZM-3",
+    "FZM-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ]
+   ],
+   "shots": {
+    "racing": 120,
+    "next": 121
+   },
+   "checks": [
+    {
+     "rule": "FZM-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the course map at the bottom centre",
+     "type": "not_uniform",
+     "shot": "racing",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the map held on the frame the game doesn't draw it",
+     "type": "not_uniform",
+     "shot": "next",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "fzm-us-knight-1-tenth-zone-east-snake",
+   "rom": "AFZE",
+   "state": "f-zero-maximum-velocity/us-knight-1-tenth-zone-east-snake.ss",
+   "desc": "Grand Prix, Knight 1: Tenth Zone East Snake Circuit (the course by memory: series 0x03000BFF, races done 0x03002B68), racing: the HUD and the course map on the second screen",
+   "rules": [
+    "FZM-2",
+    "FZM-3",
+    "FZM-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ]
+   ],
+   "shots": {
+    "racing": 120,
+    "next": 121
+   },
+   "checks": [
+    {
+     "rule": "FZM-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the course map at the bottom centre",
+     "type": "not_uniform",
+     "shot": "racing",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the map held on the frame the game doesn't draw it",
+     "type": "not_uniform",
+     "shot": "next",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "fzm-us-knight-2-beacon-port-crossroad",
+   "rom": "AFZE",
+   "state": "f-zero-maximum-velocity/us-knight-2-beacon-port-crossroad.ss",
+   "desc": "Grand Prix, Knight 2: Beacon Port Crossroad Circuit (the course by memory: series 0x03000BFF, races done 0x03002B68), racing: the HUD and the course map on the second screen",
+   "rules": [
+    "FZM-2",
+    "FZM-3",
+    "FZM-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ]
+   ],
+   "shots": {
+    "racing": 120,
+    "next": 121
+   },
+   "checks": [
+    {
+     "rule": "FZM-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the course map at the bottom centre",
+     "type": "not_uniform",
+     "shot": "racing",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the map held on the frame the game doesn't draw it",
+     "type": "not_uniform",
+     "shot": "next",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "fzm-us-knight-3-synobazz-explosive",
+   "rom": "AFZE",
+   "state": "f-zero-maximum-velocity/us-knight-3-synobazz-explosive.ss",
+   "desc": "Grand Prix, Knight 3: Synobazz Explosive Circuit (the course by memory: series 0x03000BFF, races done 0x03002B68), racing: the HUD and the course map on the second screen",
+   "rules": [
+    "FZM-2",
+    "FZM-3",
+    "FZM-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ]
+   ],
+   "shots": {
+    "racing": 120,
+    "next": 121
+   },
+   "checks": [
+    {
+     "rule": "FZM-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the course map at the bottom centre",
+     "type": "not_uniform",
+     "shot": "racing",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the map held on the frame the game doesn't draw it",
+     "type": "not_uniform",
+     "shot": "next",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "fzm-us-knight-4-ancient-mesa-split",
+   "rom": "AFZE",
+   "state": "f-zero-maximum-velocity/us-knight-4-ancient-mesa-split.ss",
+   "desc": "Grand Prix, Knight 4: Ancient Mesa Split Circuit (the course by memory: series 0x03000BFF, races done 0x03002B68), racing: the HUD and the course map on the second screen",
+   "rules": [
+    "FZM-2",
+    "FZM-3",
+    "FZM-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ]
+   ],
+   "shots": {
+    "racing": 120,
+    "next": 121
+   },
+   "checks": [
+    {
+     "rule": "FZM-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the course map at the bottom centre",
+     "type": "not_uniform",
+     "shot": "racing",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the map held on the frame the game doesn't draw it",
+     "type": "not_uniform",
+     "shot": "next",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "fzm-us-knight-5-stark-farm-third",
+   "rom": "AFZE",
+   "state": "f-zero-maximum-velocity/us-knight-5-stark-farm-third.ss",
+   "desc": "Grand Prix, Knight 5: Stark Farm Third Circuit (the course by memory: series 0x03000BFF, races done 0x03002B68), racing: the HUD and the course map on the second screen",
+   "rules": [
+    "FZM-2",
+    "FZM-3",
+    "FZM-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ]
+   ],
+   "shots": {
+    "racing": 120,
+    "next": 121
+   },
+   "checks": [
+    {
+     "rule": "FZM-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the course map at the bottom centre",
+     "type": "not_uniform",
+     "shot": "racing",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the map held on the frame the game doesn't draw it",
+     "type": "not_uniform",
+     "shot": "next",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "fzm-us-bishop-1-bianca-city-tightrope",
+   "rom": "AFZE",
+   "state": "f-zero-maximum-velocity/us-bishop-1-bianca-city-tightrope.ss",
+   "desc": "Grand Prix, Bishop 1: Bianca City Tightrope Circuit (the course by memory: series 0x03000BFF, races done 0x03002B68), racing: the HUD and the course map on the second screen",
+   "rules": [
+    "FZM-2",
+    "FZM-3",
+    "FZM-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ]
+   ],
+   "shots": {
+    "racing": 120,
+    "next": 121
+   },
+   "checks": [
+    {
+     "rule": "FZM-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the course map at the bottom centre",
+     "type": "not_uniform",
+     "shot": "racing",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the map held on the frame the game doesn't draw it",
+     "type": "not_uniform",
+     "shot": "next",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "fzm-us-bishop-2-ancient-mesa-skating",
+   "rom": "AFZE",
+   "state": "f-zero-maximum-velocity/us-bishop-2-ancient-mesa-skating.ss",
+   "desc": "Grand Prix, Bishop 2: Ancient Mesa Skating Circuit (the course by memory: series 0x03000BFF, races done 0x03002B68), racing: the HUD and the course map on the second screen",
+   "rules": [
+    "FZM-2",
+    "FZM-3",
+    "FZM-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ]
+   ],
+   "shots": {
+    "racing": 120,
+    "next": 121
+   },
+   "checks": [
+    {
+     "rule": "FZM-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the course map at the bottom centre",
+     "type": "not_uniform",
+     "shot": "racing",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the map held on the frame the game doesn't draw it",
+     "type": "not_uniform",
+     "shot": "next",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "fzm-us-bishop-3-crater-land-skid-zone",
+   "rom": "AFZE",
+   "state": "f-zero-maximum-velocity/us-bishop-3-crater-land-skid-zone.ss",
+   "desc": "Grand Prix, Bishop 3: Crater Land Skid Zone Circuit (the course by memory: series 0x03000BFF, races done 0x03002B68), racing: the HUD and the course map on the second screen",
+   "rules": [
+    "FZM-2",
+    "FZM-3",
+    "FZM-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ]
+   ],
+   "shots": {
+    "racing": 120,
+    "next": 121
+   },
+   "checks": [
+    {
+     "rule": "FZM-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the course map at the bottom centre",
+     "type": "not_uniform",
+     "shot": "racing",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the map held on the frame the game doesn't draw it",
+     "type": "not_uniform",
+     "shot": "next",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "fzm-us-bishop-4-cloud-carpet-icarus",
+   "rom": "AFZE",
+   "state": "f-zero-maximum-velocity/us-bishop-4-cloud-carpet-icarus.ss",
+   "desc": "Grand Prix, Bishop 4: Cloud Carpet Icarus Circuit (the course by memory: series 0x03000BFF, races done 0x03002B68), racing: the HUD and the course map on the second screen",
+   "rules": [
+    "FZM-2",
+    "FZM-3",
+    "FZM-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ]
+   ],
+   "shots": {
+    "racing": 120,
+    "next": 121
+   },
+   "checks": [
+    {
+     "rule": "FZM-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the course map at the bottom centre",
+     "type": "not_uniform",
+     "shot": "racing",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the map held on the frame the game doesn't draw it",
+     "type": "not_uniform",
+     "shot": "next",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "fzm-us-bishop-5-bianca-city-ultimate",
+   "rom": "AFZE",
+   "state": "f-zero-maximum-velocity/us-bishop-5-bianca-city-ultimate.ss",
+   "desc": "Grand Prix, Bishop 5: Bianca City Ultimate Circuit (the course by memory: series 0x03000BFF, races done 0x03002B68), racing: the HUD and the course map on the second screen; its map sprite is at x -24 (until v1.5's test build of this game it stayed on the game screen, the second screen showing only the dot)",
+   "rules": [
+    "FZM-2",
+    "FZM-3",
+    "FZM-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ]
+   ],
+   "shots": {
+    "racing": 120,
+    "next": 121
+   },
+   "checks": [
+    {
+     "rule": "FZM-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the course map at the bottom centre",
+     "type": "not_uniform",
+     "shot": "racing",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the map held on the frame the game doesn't draw it",
+     "type": "not_uniform",
+     "shot": "next",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "fzm-us-queen-1-crater-land-loop",
+   "rom": "AFZE",
+   "state": "f-zero-maximum-velocity/us-queen-1-crater-land-loop.ss",
+   "desc": "Grand Prix, Queen 1: Crater Land Loop Circuit (the course by memory: series 0x03000BFF, races done 0x03002B68), racing: the HUD and the course map on the second screen",
+   "rules": [
+    "FZM-2",
+    "FZM-3",
+    "FZM-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ]
+   ],
+   "shots": {
+    "racing": 120,
+    "next": 121
+   },
+   "checks": [
+    {
+     "rule": "FZM-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the course map at the bottom centre",
+     "type": "not_uniform",
+     "shot": "racing",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the map held on the frame the game doesn't draw it",
+     "type": "not_uniform",
+     "shot": "next",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "fzm-us-queen-2-tenth-zone-east-plummet",
+   "rom": "AFZE",
+   "state": "f-zero-maximum-velocity/us-queen-2-tenth-zone-east-plummet.ss",
+   "desc": "Grand Prix, Queen 2: Tenth Zone East Plummet Circuit (the course by memory: series 0x03000BFF, races done 0x03002B68), racing: the HUD and the course map on the second screen",
+   "rules": [
+    "FZM-2",
+    "FZM-3",
+    "FZM-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ]
+   ],
+   "shots": {
+    "racing": 120,
+    "next": 121
+   },
+   "checks": [
+    {
+     "rule": "FZM-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the course map at the bottom centre",
+     "type": "not_uniform",
+     "shot": "racing",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the map held on the frame the game doesn't draw it",
+     "type": "not_uniform",
+     "shot": "next",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "fzm-us-queen-3-empyrean-colony-twist",
+   "rom": "AFZE",
+   "state": "f-zero-maximum-velocity/us-queen-3-empyrean-colony-twist.ss",
+   "desc": "Grand Prix, Queen 3: Empyrean Colony Twist Circuit (the course by memory: series 0x03000BFF, races done 0x03002B68), racing: the HUD and the course map on the second screen",
+   "rules": [
+    "FZM-2",
+    "FZM-3",
+    "FZM-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ]
+   ],
+   "shots": {
+    "racing": 120,
+    "next": 121
+   },
+   "checks": [
+    {
+     "rule": "FZM-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the course map at the bottom centre",
+     "type": "not_uniform",
+     "shot": "racing",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the map held on the frame the game doesn't draw it",
+     "type": "not_uniform",
+     "shot": "next",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "fzm-us-queen-4-fire-field-land-mine",
+   "rom": "AFZE",
+   "state": "f-zero-maximum-velocity/us-queen-4-fire-field-land-mine.ss",
+   "desc": "Grand Prix, Queen 4: Fire Field Land Mine Circuit (the course by memory: series 0x03000BFF, races done 0x03002B68), racing: the HUD and the course map on the second screen",
+   "rules": [
+    "FZM-2",
+    "FZM-3",
+    "FZM-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ]
+   ],
+   "shots": {
+    "racing": 120,
+    "next": 121
+   },
+   "checks": [
+    {
+     "rule": "FZM-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the course map at the bottom centre",
+     "type": "not_uniform",
+     "shot": "racing",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the map held on the frame the game doesn't draw it",
+     "type": "not_uniform",
+     "shot": "next",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "fzm-us-queen-5-fire-field-warrior",
+   "rom": "AFZE",
+   "state": "f-zero-maximum-velocity/us-queen-5-fire-field-warrior.ss",
+   "desc": "Grand Prix, Queen 5: Fire Field Warrior Circuit (the course by memory: series 0x03000BFF, races done 0x03002B68), racing: the HUD and the course map on the second screen",
+   "rules": [
+    "FZM-2",
+    "FZM-3",
+    "FZM-4"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ]
+   ],
+   "shots": {
+    "racing": 120,
+    "next": 121
+   },
+   "checks": [
+    {
+     "rule": "FZM-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the course map at the bottom centre",
+     "type": "not_uniform",
+     "shot": "racing",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    },
+    {
+     "rule": "FZM-4",
+     "what": "the map held on the frame the game doesn't draw it",
+     "type": "not_uniform",
+     "shot": "next",
+     "screen": "second",
+     "rect": [
+      200,
+      180,
+      824,
+      740
+     ],
+     "color": "10101A",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
    "id": "fzm-jp-gp-race",
    "rom": "AFZJ",
    "state": "f-zero-maximum-velocity/jp-gp-race.ss",
