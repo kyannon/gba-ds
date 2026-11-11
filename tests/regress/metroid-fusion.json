@@ -97,6 +97,94 @@
    ]
   },
   {
+   "id": "mf-eu-play",
+   "rom": "AMTP",
+   "state": "metroid-fusion/eu-play.ss",
+   "desc": "Europe (English on the language menu), the docking bay after the opening and first briefing (a new game played from power-on): the map",
+   "rules": [
+    "MF-1",
+    "MF-2",
+    "MF-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "MF-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "mf-jp-play",
+   "rom": "AMTJ",
+   "state": "metroid-fusion/jp-play.ss",
+   "desc": "Japan (RAM 0x34 higher), the docking bay after the opening and first briefing (a new game played from power-on): the map",
+   "rules": [
+    "MF-1",
+    "MF-2",
+    "MF-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "MF-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "mf-eu-menu",
+   "rom": "AMTP",
+   "state": "metroid-fusion/eu-menu.ss",
+   "desc": "Europe, the file menu: the logo, no map",
+   "rules": [
+    "MF-5"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "type": "no_log",
+     "match": "map updated",
+     "rule": "MF-5",
+     "what": "no map captured at the menus"
+    }
+   ]
+  },
+  {
+   "id": "mf-jp-menu",
+   "rom": "AMTJ",
+   "state": "metroid-fusion/jp-menu.ss",
+   "desc": "Japan, the title going into the file menu: the logo, no map",
+   "rules": [
+    "MF-5"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "type": "no_log",
+     "match": "map updated",
+     "rule": "MF-5",
+     "what": "no map captured at the menus"
+    }
+   ]
+  },
+  {
    "id": "mf-logo-amte",
    "kind": "logo",
    "rom": "AMTE",
