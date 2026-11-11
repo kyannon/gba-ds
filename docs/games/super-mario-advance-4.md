@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Releases | `AX4E` USA · `AX4P` Europe · `AX4J` Japan (where Mario is, 4 bytes lower in Europe, Japan and the USA's Rev 1: variant AX4R, picked by the ROM's version byte) |
-| Dumps | `AX4E` cartridge `a44ba79f` (tested), Rev 1 `88dab27f`, Rev 1, Switch Online `22e12d0e`, Rev 1, Virtual Console `d4c13ac3` · `AX4P` cartridge `37141f32` (tested), Rev 1 `8d84acfc`, Rev 1, Switch Online `e3847e32`, Rev 1, Virtual Console `d4f45b01` (tested) · `AX4J` cartridge `f3c87306` (tested), Rev 1 `5a676424`, Rev 2 `7b1a4c22`, Rev 2, Switch Online `aa312980`, Rev 2, Virtual Console `4aee9c77` |
+| Dumps | `AX4E` cartridge `a44ba79f` (tested), Rev 1 `88dab27f` (tested), Rev 1, Switch Online `22e12d0e`, Rev 1, Virtual Console `d4c13ac3` · `AX4P` cartridge `37141f32` (tested), Rev 1 `8d84acfc` (tested), Rev 1, Switch Online `e3847e32`, Rev 1, Virtual Console `d4f45b01` (tested) · `AX4J` cartridge `f3c87306` (tested), Rev 1 `5a676424`, Rev 2 `7b1a4c22`, Rev 2, Switch Online `aa312980`, Rev 2, Virtual Console `4aee9c77` |
 | Profile | `src/profiles.c`: the `AX4E` entry (its `pick`, `sma4_pick`, switches a later USA revision to AX4R); variants `AX4P` (`sma4_eur`), `AX4J` and AX4R (`sma4_moved`) |
 | Tests | `tests/regress/super-mario-advance-4.json` (`tools/regress.py super-mario-advance-4`) |
 | Status | supported |

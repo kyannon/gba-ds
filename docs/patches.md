@@ -45,7 +45,7 @@ the repo. Fixtures for the tested ones are in the fixtures repo's
 | Breath of Fire II | `AB2P` | SNES palette | colour | bof2_eu_snes_palette.ips | 42152 | `8c9f2a02` | `ff5e8e39` |  |  |
 | Breath of Fire II | `AB2J` | SNES palette | colour | bof2_jp_snes_palette.ips | 42152 | `c275ef24` | `8a824a70` |  |  |
 | Donkey Kong Country | `A5NP` | Restoration v1.1 (marc_max) | colour | dkc_gba_restoration_v1_1.ips | 19955 | `702bd4af` | `41d277fe` |  |  |
-| Final Fantasy IV Advance |  | Color improvement and restoration 1.1 | colour | Final Fantasy IV Advance Color Improvement and Restoration 1.1.ips | 88348 | `6145799d` |  |  |  |
+| Final Fantasy IV Advance | `BZ4P` | Color improvement and restoration 1.1 | colour | Final Fantasy IV Advance Color Improvement and Restoration 1.1.ips | 88348 | `6145799d` | `27f2bc67` |  |  |
 | Final Fantasy V Advance | `BZ5P` | Color correction and improvement | colour | Final Fantasy V Color Correction and Improvement.ips | 29491 | `9e8bd7d4` | `7197117e` |  |  |
 | Final Fantasy VI Advance | `BZ6P` | Color restoration v1.01 | colour | ff6_gba_e_color_restoration.ips | 29738 | `44d098f5` | `d15deba5` |  |  |
 | Final Fantasy VI Advance | `BZ6J` | Color restoration v1.01 | colour | ff6_gba_j_color_restoration.ips | 29790 | `2f796c54` | `d67478fe` |  |  |
@@ -59,24 +59,24 @@ the repo. Fixtures for the tested ones are in the fixtures repo's
 | Final Fantasy VI Advance | `BZ6P` | Color restoration: monster (optional) | colour | ff6_gba_jue_color_restoration_monster.ips | 1150 | `452e75de` |  |  |  |
 | Final Fantasy VI Advance | `BZ6J` | Color restoration: monster (optional) | colour | ff6_gba_jue_color_restoration_monster.ips | 1150 | `452e75de` |  |  |  |
 | Final Fantasy VI Advance | `BZ6E` | Color restoration: monster (optional) | colour | ff6_gba_jue_color_restoration_monster.ips | 1150 | `452e75de` |  |  |  |
-| Final Fight One |  | Redux Edition | colour | Final Fight One - Redux Edition.ips | 213089 | `62445f39` |  |  |  |
+| Final Fight One | `AFFJ` | Redux Edition | colour | Final Fight One - Redux Edition.ips | 213089 | `62445f39` | `c9e5e223` |  |  |
 | The Lost Vikings | `ALVP` | Palette restoration v1.0 | colour | Lost Vikings, The (Europe) (En,Fr,De,Es) Palette Restoration v1_0.ips | 3485 | `c4356eb6` | `1c008d32` |  |  |
 | Mother 1+2 | `A2UJ` | English v1.01 | translation | mother12.ips | 165587 | `4e04ba9e` | `0a44569c` |  |  |
 | Mother 3 | `A3UJ` | English v1.3 | translation | mother3.ups | 1547180 | `d849ce95` | `42ac9cb9` | `e73b0f7d` |  |
 | Fire Emblem: Fuuin no Tsurugi | `AFEJ` | English (Dark Twilkitri) | translation | fe6.ips | 610179 | `5befafab` | `d38763e1` |  |  |
-| Rhythm Tengoku |  | Rhythm Heaven Silver beta 13a | translation | Rhythm.Heaven.Silver.-.Beta.13a.ips | 339033 | `be54e107` |  |  |  |
+| Rhythm Tengoku | `BRIJ` | Rhythm Heaven Silver beta 13a | translation | Rhythm.Heaven.Silver.-.Beta.13a.ips | 339033 | `be54e107` | `349d7025` |  |  |
 | Super Mario Advance 4 | `AX4E` | GBP palette v1.0 (djedditt) | colour | AGB-AX4E_(USA)_GBPPalette.ips | 15 | `9fa926ad` | `a44ba79f` | `d4f7d398` | yes (SM4-9's check of the opening's frame colour doesn't apply: the frame is there, a shade darker) |
-| Super Mario Advance 4 | `AX4E` | GBP palette v1.0 (djedditt) | colour | AGB-AX4E_(USA, Australia)_(Rev 1)_GBPPalette.ips | 15 | `a99fb3df` | `88dab27f` |  |  |
+| Super Mario Advance 4 | `AX4E` | GBP palette v1.0 (djedditt) | colour | AGB-AX4E_(USA, Australia)_(Rev 1)_GBPPalette.ips | 15 | `a99fb3df` | `88dab27f` | `e6c145c2` | yes |
 | Super Mario Advance 4 | `AX4E` | GBP palette v1.0 (djedditt) | colour | AGB-AX4E_(USA)_(Rev 1)_(Virtual Console)_GBPPalette.ips | 15 | `a99fb3df` | `d4c13ac3` |  |  |
 | Super Mario Advance 4 | `AX4J` | GBP palette v1.0 (djedditt) | colour | AGB-AX4J_(Japan)_GBPPalette.ips | 15 | `92c0cb60` | `f3c87306` | `500b180f` | yes |
 | Super Mario Advance 4 | `AX4J` | GBP palette v1.0 (djedditt) | colour | AGB-AX4J_(Japan)_(Rev 1)_GBPPalette.ips | 15 | `40f08492` | `5a676424` |  |  |
 | Super Mario Advance 4 | `AX4J` | GBP palette v1.0 (djedditt) | colour | AGB-AX4J_(Japan)_(Rev 2)_GBPPalette.ips | 15 | `dc1dbffc` | `7b1a4c22` |  |  |
 | Super Mario Advance 4 | `AX4J` | GBP palette v1.0 (djedditt) | colour | AGB-AX4J_(Japan)_(Rev 2)_(Virtual Console)_GBPPalette.ips | 15 | `dc1dbffc` | `4aee9c77` |  |  |
 | Super Mario Advance 4 | `AX4P` | GBP palette v1.0 (djedditt) | colour | AGB-AX4P_(Europe)_GBPPalette.ips | 15 | `b7be6294` | `37141f32` | `f5362ce8` | yes |
-| Super Mario Advance 4 | `AX4P` | GBP palette v1.0 (djedditt) | colour | AGB-AX4P_(Europe)_(Rev 1)_GBPPalette.ips | 15 | `95bafd62` | `8d84acfc` |  |  |
+| Super Mario Advance 4 | `AX4P` | GBP palette v1.0 (djedditt) | colour | AGB-AX4P_(Europe)_(Rev 1)_GBPPalette.ips | 15 | `95bafd62` | `8d84acfc` | `3996c9e4` | yes |
 | Super Mario Advance 4 | `AX4P` | GBP palette v1.0 (djedditt) | colour | AGB-AX4P_(Europe)_(Rev 1)_(Virtual Console)_GBPPalette.ips | 15 | `95bafd62` | `d4f45b01` | `60e63e19` | yes |
-| Super Mario Advance 4 | `AX4E` | Voice removal v0.2 | voice removal | smb3gba_voice_removal(U)0.2.ips | 15514 | `989a0b35` | `88dab27f` |  |  |
-| Super Mario Advance 4 | `AX4P` | Voice removal v0.2 | voice removal | smb3gba_voice_removal(E)0.2.ips | 15498 | `8eddafdb` | `8d84acfc` |  |  |
+| Super Mario Advance 4 | `AX4E` | Voice removal v0.2 | voice removal | smb3gba_voice_removal(U)0.2.ips | 15514 | `989a0b35` | `88dab27f` | `ec07d927` | yes |
+| Super Mario Advance 4 | `AX4P` | Voice removal v0.2 | voice removal | smb3gba_voice_removal(E)0.2.ips | 15498 | `8eddafdb` | `8d84acfc` | `4da5dd12` | yes |
 | Super Mario Advance 4 | `AX4P` | Voice removal v0.2 | voice removal | smb3gba_voice_removal(E)0.2.ips | 15498 | `8eddafdb` | `d4f45b01` | `14d52aef` | yes (on the Virtual Console dump) |
 | Super Mario Advance 3 | `A3AE` | Colour restoration | colour | SMA3 - Yoshi's Island Colour Restoration (U).ips | 19180 | `b1cd1b98` | `40a48276` | `954c2cfe` | yes |
 | Super Mario Advance 3 | `A3AP` | Colour restoration | colour | SMA3 - Yoshi's Island Colour Restoration (E).ips | 19210 | `386e3f75` | `639e9d3b` | `7323e988` | yes |
