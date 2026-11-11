@@ -23,3 +23,8 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 **MZM-4. Last good map stays.** When the map can't be opened, the last good map stays up.
 
 **MZM-5. Logo before the first map.** Until the first map is captured, and at the title and file menus, the second screen shows the logo.
+
+## Not covered yet
+
+- Each release has one moment of play, its pause screen and the file menu. Boss fights (Kraid, Ridley, Mother Brain), Chozodia's stretch without the Power Suit and the ending haven't been run.
+- The original Metroid (unlocked by finishing the game, played inside it from the gallery) hasn't been tried: what the second screen shows there isn't known.

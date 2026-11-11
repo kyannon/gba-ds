@@ -32,6 +32,11 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **ER-9. Quick to follow.** Going from the overworld into a town or back out, and leaving a battle, a capture starts at once (GEN-6) instead of waiting for the next refresh.
 
+## Not covered yet
+
+- Saphira's flying, boss battles, Farthen Dûr and the ending haven't been reached.
+- Europe is checked in English (its language screen, a town and the desert); the other four languages share its addresses but haven't been run.
+
 ## Facts found so far (for sessions)
 
 The same addresses in both releases.

@@ -32,6 +32,12 @@ The Battle Intel is opened with SELECT > Intel > Status, wherever Status is in t
 
 **AW-8. Game screen untouched.** Nothing leaves the game screen: the CO and day plate, the terrain and unit info with its darkened box, the DAMAGE box and conversations stay where the game draws them, as they would on one screen.
 
+## Not covered yet
+
+- Europe is checked on a unit, an empty square, End and a French Battle Intel; its fights, conversations and the computer's moves haven't been run.
+- Fog of war hasn't been tried.
+- Later campaign maps and the Advance Campaign: only early maps were used.
+
 ## Known issues
 
 Known issue (won't fix): in Field Training the tutorial blocks SELECT and START, so the panels can't be brought up: the second screen keeps the logo. That's the game's tutorial doing what it does on one screen, so it stays as it is.

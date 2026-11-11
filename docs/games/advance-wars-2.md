@@ -29,3 +29,9 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 **AW2-7. Conversations.** A conversation during a battle stays on the game screen. While it's up, and as it slides in and out, nothing on the second screen changes (the panels can't be brought up behind it). (Until v1.3.2's later test builds it moved to the second screen.)
 
 **AW2-8. Game screen untouched.** Nothing leaves the game screen: the CO plate, the terrain and unit info, the DAMAGE box, the cursor and conversations stay where the game draws them, as they would on one screen.
+
+## Not covered yet
+
+- Europe is checked on a unit's intel and an empty square (the same RAM as the USA); its computer turn, fights, conversations and results haven't been run.
+- Fog of war and weather (rain, snow, sandstorm) haven't been tried in Advance Wars 2 (Advance Wars' rain is checked: aw-us-rain).
+- Later campaign maps, Hard Campaign and the War Room: only early maps and a Versus map were used.
