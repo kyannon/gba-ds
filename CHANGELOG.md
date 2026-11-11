@@ -23,6 +23,7 @@
 ### Changes
 - **Mario & Luigi: Superstar Saga+** (v1.5 of the romhack, its 100%, 80% and 60% versions, patched onto the USA release) works as the game does: Bros. Info walking about and the battle boxes on the second screen, with the mod's own names and numbers, and the logo on the title. GBA DS knows it as that mod (bug reports say so). It's the first tested romhack: the wiki's Supported games page lists tested romhacks under the game they're made from, and says what to expect from other patched ROMs. Save states don't carry between the unchanged game and the mod: a conversation in progress comes out garbled.
 - **Romhacks and patched ROMs in the game list:** under the selected game's logo, GBA DS says when its ROM is a romhack it knows ("Romhack: Superstar Saga+ v1.5 (100%)", "untested" for a version it isn't tested on) or a ROM it doesn't know ("Modified ROM: the second screen may not work"), once it has read the ROM the first time you select it (half a second or so).
+- **Patch files beside the ROM:** an `.ips`, `.ups` or `.bps` patch with the same name as a ROM, in the same folder, is applied every time the game starts, as RetroArch does, so romhacks can be played from the unchanged ROM (Superstar Saga+ included). The game list says when a patch was applied ("(patch file)" after a romhack's name) or wasn't ("Patch not applied: ... is for another ROM"). Saves and save states keep the ROM's names.
 
 ## v1.4.12 (2026-11-08)
 

@@ -2608,6 +2608,152 @@
      768
     ]
    ]
+  },
+  {
+   "id": "mlp-patch-field",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-field.ss",
+   "desc": "Superstar Saga+ (100%) as an IPS patch file beside the USA ROM: applied as the game starts, Bros. Info with the mod's names and numbers as with the patched ROM (the game's own state)",
+   "rules": [
+    "GEN-9",
+    "ML-6"
+   ],
+   "shots": {
+    "mario": 100,
+    "luigi": 260,
+    "mario2": 510
+   },
+   "checks": [
+    {
+     "rule": "ML-2",
+     "what": "Bros. Info taken, one page",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "ML-2",
+     "what": "the page follows the brother in front",
+     "type": "differs",
+     "a": {
+      "shot": "mario",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "luigi",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.05
+    },
+    {
+     "rule": "ML-2",
+     "what": "and back",
+     "type": "same",
+     "a": {
+      "shot": "mario",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "mario2",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     }
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the patch applied, the mod known, the ROM file the tested dump",
+     "type": "log",
+     "match": "ROM: CRC32 ba4791f4, a mod GBA DS is tested on \\(Superstar Saga\\+ v1\\.5 \\(100%\\)\\); patched as it started with A88E\\.ips, the ROM file itself CRC32 e718d850 \\(the tested dump\\)"
+    }
+   ],
+   "input": [
+    [
+     150,
+     "START"
+    ],
+    [
+     154,
+     "-"
+    ],
+    [
+     400,
+     "START"
+    ],
+    [
+     404,
+     "-"
+    ]
+   ],
+   "patch": "mlssplus-v1.5-100.ips"
+  },
+  {
+   "id": "mlp-patch-library",
+   "kind": "library",
+   "rom": "A88E",
+   "desc": "the game list with the USA ROM and Superstar Saga+ (100%) as a BPS patch file beside it: \"Romhack: Superstar Saga+ v1.5 (100%) (patch file)\" under the game's logo",
+   "rules": [
+    "GEN-8",
+    "GEN-9"
+   ],
+   "shots": {
+    "list": 40
+   },
+   "golden_mask": [
+    [
+     880,
+     720,
+     1024,
+     768
+    ]
+   ],
+   "patch": "mlssplus-v1.5-100.bps"
+  },
+  {
+   "id": "ml-patch-wrong-library",
+   "kind": "library",
+   "rom": "A88P",
+   "desc": "the game list with the European ROM and a BPS patch made for the USA one beside it: \"Patch not applied: A88P.bps is for another ROM\"",
+   "rules": [
+    "GEN-9"
+   ],
+   "shots": {
+    "list": 40
+   },
+   "golden_mask": [
+    [
+     880,
+     720,
+     1024,
+     768
+    ]
+   ],
+   "patch": "mlssplus-v1.5-100.bps",
+   "checks": [
+    {
+     "rule": "GEN-9",
+     "what": "the patch not applied",
+     "type": "log",
+     "match": "patch A88P\\.bps: made for another ROM, not applied"
+    }
+   ]
   }
  ]
 }

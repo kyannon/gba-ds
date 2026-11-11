@@ -2,6 +2,7 @@
 #include "android.h"
 #include "paths.h"
 #include "profiles.h"
+#include "patch.h"
 #include "ui.h"
 #include "logo.h"
 #include "brand.h"
@@ -34,7 +35,9 @@ typedef struct {
 	char code[5];
 	bool supported;
 	int flag; /* BRAND_FLAG_* shown on the tile, or -1 (only one region of this game) */
-	long long size, mtime; /* the file's, from the scan (its ROM checksum's cache key) */
+	long long size, mtime; /* the file's, from the scan (its ROM checksum's cache key; with a patch
+	                        * file beside it, their sizes added and the later time) */
+	char patch[256]; /* the name of a patch file beside it (GEN-9), or "" */
 } GameEntry;
 
 static GameEntry* games;
@@ -212,6 +215,15 @@ static void scan_dir(Config* cfg, const char* d, int depth) {
 		g.supported = profile_find(g.code) != NULL;
 		g.size = (long long) st.st_size;
 		g.mtime = (long long) st.st_mtime;
+		{
+			char pp[1100];
+			struct stat ps;
+			if (patch_find(g.path, pp, sizeof(pp)) && stat(pp, &ps) == 0) { /* GEN-9 */
+				snprintf(g.patch, sizeof(g.patch), "%s", patch_name(pp));
+				g.size += (long long) ps.st_size;
+				if ((long long) ps.st_mtime > g.mtime) g.mtime = (long long) ps.st_mtime;
+			}
+		}
 #ifdef GBADS_SIDE_CODES
 		/* a side build lists only its game's releases (the Makefile's SIDE_CODES) */
 		if (!strstr(GBADS_SIDE_CODES, g.code)) continue;
@@ -249,10 +261,13 @@ static int region_flag(char c) {
  * Reading a whole ROM takes a moment, so it's done once per file, for the
  * selected game only, on a worker thread (inline with GBADS_SYNC=1 and in
  * the web build, which has no threads), and remembered in
- * <state_dir>/roms.cache, lines "size mtime crc32 path" (crc32 0: unreadable). */
+ * <state_dir>/roms.cache, lines "size mtime crc32 patch path" (crc32 0:
+ * unreadable; the ROM as played: patched when a patch file beside it fits,
+ * patch its PatchResult, GEN-9). */
 typedef struct {
 	long long size, mtime;
 	uint32_t crc;
+	int patch;
 	char path[1024];
 } RomCrc;
 static RomCrc* romCrcs;
@@ -289,9 +304,9 @@ static void rom_crc_put(const RomCrc* c) {
  * every build's include path) */
 uint32_t doCrc32(const void* buf, size_t size);
 
-static uint32_t rom_crc_read(const char* path) {
+static uint32_t rom_crc_read(const char* path, int* patch) {
 	size_t n = 0;
-	uint8_t* buf = emu_rom_read_all(path, &n);
+	uint8_t* buf = emu_rom_read_played(path, &n, patch, NULL, NULL);
 	uint32_t crc = buf ? doCrc32(buf, n) : 0;
 	free(buf);
 	return crc;
@@ -308,7 +323,7 @@ static void* rom_crc_worker(void* arg) {
 		RomCrc c = crcWant;
 		crcWant.path[0] = 0;
 		pthread_mutex_unlock(&crcLock);
-		c.crc = rom_crc_read(c.path);
+		c.crc = rom_crc_read(c.path, &c.patch);
 		pthread_mutex_lock(&crcLock);
 		rom_crc_put(&c);
 	}
@@ -322,7 +337,7 @@ static void rom_crc_load(const Config* cfg) {
 		snprintf(path, sizeof(path), "%s/roms.cache", cfg->stateDir);
 		FILE* f = fopen(path, "r");
 		RomCrc c;
-		while (f && fscanf(f, "%lld %lld %x %1023[^\n]", &c.size, &c.mtime, &c.crc, c.path) == 4) {
+		while (f && fscanf(f, "%lld %lld %x %d %1023[^\n]", &c.size, &c.mtime, &c.crc, &c.patch, c.path) == 5) {
 			romCrcs = realloc(romCrcs, sizeof(*romCrcs) * (nRomCrcs + 1));
 			romCrcs[nRomCrcs++] = c;
 		}
@@ -339,7 +354,8 @@ static void rom_crc_save(const Config* cfg) {
 		FILE* f = fopen(path, "w");
 		if (f) {
 			for (int i = 0; i < nRomCrcs; ++i)
-				fprintf(f, "%lld %lld %08x %s\n", romCrcs[i].size, romCrcs[i].mtime, romCrcs[i].crc, romCrcs[i].path);
+				fprintf(f, "%lld %lld %08x %d %s\n", romCrcs[i].size, romCrcs[i].mtime, romCrcs[i].crc, romCrcs[i].patch,
+				        romCrcs[i].path);
 			fclose(f);
 			romCrcsDirty = false;
 		}
@@ -349,12 +365,15 @@ static void rom_crc_save(const Config* cfg) {
 
 /* The game's ROM checksum if it's known; if not, asks for it (only supported
  * games: the others have no list of dumps to check it against). */
-static bool game_crc(const GameEntry* g, uint32_t* crc) {
+static bool game_crc(const GameEntry* g, uint32_t* crc, int* patch) {
 	if (!g->supported) return false;
 	pthread_mutex_lock(&crcLock);
 	RomCrc* c = rom_crc_find(g->path, g->size, g->mtime);
 	bool have = c != NULL;
-	if (have) *crc = c->crc;
+	if (have) {
+		*crc = c->crc;
+		*patch = c->patch;
+	}
 	else if (strcmp(crcWant.path, g->path)) {
 		crcWant.size = g->size;
 		crcWant.mtime = g->mtime;
@@ -370,10 +389,11 @@ static bool game_crc(const GameEntry* g, uint32_t* crc) {
 			RomCrc w = crcWant;
 			crcWant.path[0] = 0;
 			pthread_mutex_unlock(&crcLock);
-			w.crc = rom_crc_read(w.path);
+			w.crc = rom_crc_read(w.path, &w.patch);
 			pthread_mutex_lock(&crcLock);
 			rom_crc_put(&w);
 			*crc = w.crc;
+			*patch = w.patch;
 			have = true;
 		}
 	}
@@ -553,16 +573,28 @@ static void draw_preview(Config* cfg, int scr, int sel) {
 	/* (a game with no profile has no logo either: the note goes where a
 	 * game's logo would, at the top right, beside ours) */
 	if (!g->supported) ui_font_text(scr, TF_BODY, r.w - m, m + headH / 2, px * 5, "Single screen only: plays normally", C_DIM, 1);
-	/* a romhack, or a modified ROM, under the game's logo (GEN-8) */
+	/* a romhack, or a modified ROM, under the game's logo (GEN-8), patched
+	 * by a patch file beside it or not (GEN-9) */
 	uint32_t crc;
-	if (game_crc(g, &crc)) {
+	int patch = PATCH_NONE;
+	if (game_crc(g, &crc, &patch)) {
 		const char* name;
-		char line[200] = "";
-		switch (profile_dump(g->code, crc, &name)) {
-		case DUMP_MOD_TESTED: snprintf(line, sizeof(line), "Romhack: %s", name); break;
-		case DUMP_MOD: snprintf(line, sizeof(line), "Romhack: %s, untested", name); break;
-		case DUMP_MODIFIED: snprintf(line, sizeof(line), "Modified ROM: the second screen may not work"); break;
-		default: break;
+		const char* from = patch == PATCH_APPLIED ? " (patch file)" : "";
+		char line[400] = "";
+		if (patch == PATCH_WRONG_ROM) {
+			snprintf(line, sizeof(line), "Patch not applied: %s is for another ROM", g->patch);
+		} else if (patch == PATCH_UNREADABLE) {
+			snprintf(line, sizeof(line), "Patch not applied: %s can't be read", g->patch);
+		} else {
+			switch (profile_dump(g->code, crc, &name)) {
+			case DUMP_MOD_TESTED: snprintf(line, sizeof(line), "Romhack: %s%s", name, from); break;
+			case DUMP_MOD: snprintf(line, sizeof(line), "Romhack: %s%s, untested", name, from); break;
+			case DUMP_MODIFIED:
+				if (patch == PATCH_APPLIED) snprintf(line, sizeof(line), "Patched (%s): the second screen may not work", g->patch);
+				else snprintf(line, sizeof(line), "Modified ROM: the second screen may not work");
+				break;
+			default: break;
+			}
 		}
 		if (line[0]) ui_font_text(scr, TF_BODY, r.w - m, m + headH * 2 + px * 7, px * 4, line, C_DIM, 1);
 	}

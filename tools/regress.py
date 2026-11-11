@@ -141,6 +141,12 @@ def run_app(case, args, workdir):
     romdir = os.path.join(workdir, "rom")
     os.makedirs(romdir)
     os.symlink(rom, os.path.join(romdir, case["rom"] + ".zip"))
+    if case.get("patch"):  # a patch file beside the ROM (GEN-9), from the fixtures' patches/
+        pf = os.path.join(args.fixtures, "patches", case["patch"])
+        if not os.path.exists(pf):
+            r.error = "missing patch fixture patches/%s" % case["patch"]
+            return r
+        os.symlink(pf, os.path.join(romdir, case["rom"] + os.path.splitext(pf)[1]))
     if case.get("save"):
         sav = os.path.join(args.fixtures, "saves", case["save"])
         if not os.path.exists(sav):
@@ -496,6 +502,8 @@ def main():
                 need.add("states/" + c["state"])
             if c.get("save"):
                 need.add("saves/" + c["save"])
+            if c.get("patch"):
+                need.add("patches/" + c["patch"])
             for _, keys in c.get("input", []):
                 if keys.startswith("LOAD:"):
                     need.add("states/" + keys[5:])

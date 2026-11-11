@@ -17,7 +17,9 @@
 #include <mgba-util/audio-buffer.h>
 #include <mgba-util/vfs.h>
 #include <mgba/core/log.h>
+#include "patch.h"
 #include <stdarg.h>
+#include <sys/stat.h>
 #include <pthread.h>
 #include <ctype.h>
 
@@ -142,6 +144,85 @@ static struct VFile* async_save_open(const char* path) {
 static void split_resync(Emu* e);
 static void split_release(Emu* e);
 
+/* ---------------------------------------------- patch files (GEN-9) */
+/* The last patched ROM, shared by every core that opens it (the game, the
+ * hidden copy for map captures, logos, the game list's checksum), so it's
+ * patched once: keyed by the ROM's and the patch's paths, sizes and times. */
+uint32_t doCrc32(const void* buf, size_t size); /* (libmgba's: its header wants zlib.h) */
+static pthread_mutex_t patchedLock = PTHREAD_MUTEX_INITIALIZER;
+static struct {
+	char rom[1024], patch[1024];
+	long long romSize, romTime, patchSize, patchTime;
+	int result;
+	uint32_t fileCrc;
+	uint8_t* data; /* the patched ROM (NULL unless result is PATCH_APPLIED) */
+	size_t size;
+} patched;
+
+/* The patched ROM for romPath, or NULL: *result says why (PATCH_NONE: no
+ * patch file beside it). Returns a copy the caller frees. */
+static uint8_t* patched_rom(const char* romPath, size_t* size, int* result, char* patchName, uint32_t* fileCrc) {
+	char pp[1024];
+	*result = PATCH_NONE;
+	if (!patch_find(romPath, pp, sizeof(pp))) return NULL;
+	if (patchName) snprintf(patchName, 256, "%s", patch_name(pp));
+	struct stat rs, ps;
+	if (stat(romPath, &rs) || stat(pp, &ps)) {
+		*result = PATCH_UNREADABLE;
+		return NULL;
+	}
+	pthread_mutex_lock(&patchedLock);
+	if (strcmp(patched.rom, romPath) || strcmp(patched.patch, pp) || patched.romSize != (long long) rs.st_size ||
+	    patched.romTime != (long long) rs.st_mtime || patched.patchSize != (long long) ps.st_size ||
+	    patched.patchTime != (long long) ps.st_mtime) {
+		free(patched.data);
+		memset(&patched, 0, sizeof(patched));
+		snprintf(patched.rom, sizeof(patched.rom), "%s", romPath);
+		snprintf(patched.patch, sizeof(patched.patch), "%s", pp);
+		patched.romSize = (long long) rs.st_size;
+		patched.romTime = (long long) rs.st_mtime;
+		patched.patchSize = (long long) ps.st_size;
+		patched.patchTime = (long long) ps.st_mtime;
+		patched.result = PATCH_UNREADABLE;
+		size_t romN = 0, patchN = 0;
+		uint8_t* rom = emu_rom_read_all(romPath, &romN);
+		uint8_t* p = NULL;
+		FILE* f = ps.st_size > 0 && ps.st_size <= 64 * 1024 * 1024 ? fopen(pp, "rb") : NULL;
+		if (f && (p = malloc((size_t) ps.st_size)) && fread(p, 1, (size_t) ps.st_size, f) == (size_t) ps.st_size)
+			patchN = (size_t) ps.st_size;
+		if (f) fclose(f);
+		if (rom) {
+			patched.fileCrc = doCrc32(rom, romN);
+			if (patchN) patched.result = patch_apply(p, patchN, rom, romN, &patched.data, &patched.size);
+		}
+		free(rom);
+		free(p);
+		fprintf(stderr, "patch %s: %s\n", patch_name(pp),
+		        patched.result == PATCH_APPLIED     ? "applied"
+		        : patched.result == PATCH_WRONG_ROM ? "made for another ROM, not applied"
+		                                            : "can't be read, not applied");
+	}
+	*result = patched.result;
+	if (fileCrc) *fileCrc = patched.fileCrc;
+	uint8_t* copy = NULL;
+	if (patched.data && (copy = malloc(patched.size))) {
+		memcpy(copy, patched.data, patched.size);
+		*size = patched.size;
+	}
+	pthread_mutex_unlock(&patchedLock);
+	return copy;
+}
+
+uint8_t* emu_rom_read_played(const char* path, size_t* size, int* patch, char* patchName, uint32_t* fileCrc) {
+	int r;
+	uint8_t* p = patched_rom(path, size, &r, patchName, fileCrc);
+	if (patch) *patch = r;
+	if (p) return p;
+	uint8_t* rom = emu_rom_read_all(path, size);
+	if (rom && fileCrc) *fileCrc = doCrc32(rom, *size);
+	return rom;
+}
+
 bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	memset(e, 0, sizeof(*e));
 	mLogSetDefaultLogger(&quietLogger);
@@ -166,7 +247,17 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 		e->core->setAudioBufferSize(e->core, 2048);
 	}
 
-	if (!mCoreLoadFile(e->core, romPath)) {
+	size_t patchedSize = 0;
+	uint8_t* patchedRom = patched_rom(romPath, &patchedSize, &e->patch, e->patchName, &e->fileCrc);
+	if (patchedRom) { /* a patch file beside the ROM, applied (GEN-9) */
+		struct VFile* vf = VFileMemChunk(patchedRom, patchedSize);
+		free(patchedRom);
+		if (!vf || !e->core->loadROM(e->core, vf)) {
+			if (vf) vf->close(vf);
+			fprintf(stderr, "could not load the patched ROM %s\n", romPath);
+			return false;
+		}
+	} else if (!mCoreLoadFile(e->core, romPath)) {
 		fprintf(stderr, "could not load ROM %s\n", romPath);
 		return false;
 	}
@@ -190,6 +281,7 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	memcpy(e->gameCode, info.code, 4);
 	e->gameCode[4] = 0;
 	e->core->checksum(e->core, &e->romCrc, mCHECKSUM_CRC32); /* (worked out by mGBA as it loaded the ROM) */
+	if (e->patch != PATCH_APPLIED) e->fileCrc = e->romCrc;
 	return true;
 }
 

@@ -46,7 +46,10 @@ typedef struct Emu {
 	struct mCore* core;
 	uint32_t* fb; /* GBA_W * GBA_H, mGBA native 32-bit color (XBGR8888, i.e. bytes R,G,B,X) */
 	char gameCode[5];
-	uint32_t romCrc; /* the ROM file's CRC32, as loaded (profile_dump) */
+	uint32_t romCrc; /* the ROM's CRC32, as loaded, patched if it was (profile_dump) */
+	int patch; /* PatchResult (patch.h): a patch file beside the ROM, and whether it was applied (GEN-9) */
+	char patchName[256]; /* that file's name */
+	uint32_t fileCrc; /* the ROM file's own CRC32, before the patch */
 	bool audio;
 	unsigned long frames; /* frames run (emu_frame), for timing the captures */
 	/* a hidden copy's capture called off (mapcap_cancel): while it's set,
@@ -95,6 +98,11 @@ void* emu_state_file_get_extra(Emu* e, const char* path, size_t* n);
 
 /* The whole ROM file (inside a .zip / .7z too), malloc'd; NULL on failure. */
 uint8_t* emu_rom_read_all(const char* path, size_t* size);
+/* The ROM as it's played: patched when a patch file beside it fits (GEN-9).
+ * *patch: PatchResult; patchName (if not NULL, 256 bytes): the patch file's
+ * name; *fileCrc (if not NULL): the ROM file's CRC32 before any patch.
+ * malloc'd, NULL if the ROM can't be read. */
+uint8_t* emu_rom_read_played(const char* path, size_t* size, int* patch, char* patchName, uint32_t* fileCrc);
 /* A memory region of the running game (GBA address >> 24: 2 EWRAM, 3 IWRAM,
  * 0xE save RAM), or NULL. */
 uint8_t* emu_memory(Emu* e, int region, size_t* size);

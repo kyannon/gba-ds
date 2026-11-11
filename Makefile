@@ -39,7 +39,7 @@ LDFLAGS    += -L$(SDL_PREFIX)/lib -Wl,-rpath-link,$(SDL_PREFIX)/lib
 ZLIB_A     := $(wildcard $(MGBA_BUILD)/zlib/libz.a)
 LIBS       := $(MGBA_BUILD)/libmgba.a $(ZLIB_A) -lSDL2 -lpthread -lm
 
-CORE_SRC   := src/emu.c src/mapcap.c src/profiles.c src/logo_masks.c
+CORE_SRC   := src/emu.c src/patch.c src/mapcap.c src/profiles.c src/logo_masks.c
 # RetroAchievements: rcheevos (MIT), vendored in third_party/rcheevos
 RC_DIR     := third_party/rcheevos
 RC_SRC     := $(wildcard $(RC_DIR)/src/*.c $(RC_DIR)/src/rapi/*.c $(RC_DIR)/src/rcheevos/*.c) $(RC_DIR)/src/rhash/md5.c

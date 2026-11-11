@@ -16,6 +16,7 @@ extern void web_sleep(unsigned ms) __attribute__((import_module("env"), import_n
 #include <math.h>
 #include "mapframe.h"
 #include "profiles.h"
+#include "patch.h"
 #include "cheats.h"
 
 #include <pthread.h>
@@ -866,6 +867,22 @@ static const char* dump_text(char* buf, size_t n) {
 		         emu.gameCode);
 		break;
 	default: snprintf(buf, n, "CRC32 %08x, not checked (no list of %.4s's dumps)", emu.romCrc, emu.gameCode); break;
+	}
+	/* a patch file beside the ROM (GEN-9): which, and what the file was before it */
+	size_t l = strlen(buf);
+	if (emu.patch == PATCH_APPLIED) {
+		const char* fname = NULL;
+		DumpKind fk = profile_dump(emu.gameCode, emu.fileCrc, &fname);
+		snprintf(buf + l, n - l, "; patched as it started with %s, the ROM file itself CRC32 %08x (%s)", emu.patchName,
+		         emu.fileCrc,
+		         fk == DUMP_TESTED     ? "the tested dump"
+		         : fk == DUMP_OFFICIAL ? "an official dump"
+		         : fk == DUMP_MODIFIED ? "not a known dump"
+		                               : "a known mod");
+	} else if (emu.patch == PATCH_WRONG_ROM) {
+		snprintf(buf + l, n - l, "; %s beside it was made for another ROM, not applied", emu.patchName);
+	} else if (emu.patch == PATCH_UNREADABLE) {
+		snprintf(buf + l, n - l, "; %s beside it can't be read, not applied", emu.patchName);
 	}
 	return buf;
 }
@@ -4302,7 +4319,7 @@ static void bug_info(Text* t, const char* date, uint64_t back) {
 	text_add(t, "ROM: %s (%s%s%s), %s\n", gp.base, emu.gameCode, strcmp(subCode, emu.gameCode) ? ", playing " : "",
 	         strcmp(subCode, emu.gameCode) ? subCode : "", prof ? prof->title : "no profile");
 	{
-		char d[256];
+		char d[640];
 		text_add(t, "ROM dump: %s\n", dump_text(d, sizeof(d)));
 	}
 	text_add(t, "Running %.1f minutes (%llu frames), %.1f FPS (%.0f%%) when the report was made\n", SDL_GetTicks() / 60000.0,
@@ -5746,7 +5763,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	}
 	fprintf(stderr, "game %s (%s), save %s\n", gp.base, emu.gameCode, gp.sav);
 	{
-		char d[256];
+		char d[640];
 		fprintf(stderr, "ROM: %s\n", dump_text(d, sizeof(d)));
 	}
 #ifdef __wasi__

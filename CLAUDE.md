@@ -227,7 +227,14 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   `tools/romhack.py PATCH [--base CODE]` (IPS, UPS, BPS or a patched ROM)
   applies it, says what it changes, runs the release's cases on it
   (regress.py `--any-rom --json`) and writes `build/romhack/<name>/`
-  (report.md, the patched ROM, the regress report).
+  (report.md, the patched ROM, the regress report). Patch files beside a
+  ROM (GEN-9): `src/patch.c` (IPS, UPS, BPS, bounds-checked; mGBA's own
+  does no BPS), applied in `emu_open` (every core: the game, the hidden
+  copy, logos, twins) from one cached patched copy (`patched_rom`, emu.c),
+  loaded with `VFileMemChunk` + `core->loadROM`; `emu.patch` / `patchName`
+  / `fileCrc` for the log and bug reports; the game list's checksum is of
+  the ROM as played (`emu_rom_read_played`). Cases: `"patch": "FILE"`, the
+  fixture `patches/FILE` beside the ROM.
 
 ## Testing without the device
 

@@ -109,6 +109,10 @@ screen's bottom right, so these cases leave it out of the comparison:
 `"golden_mask": [[880, 720, 1024, 768]]` (rects painted over in both
 pictures before they're compared; any case can use it).
 
+A case with `"patch": "FILE"` puts the fixture `patches/FILE` (an IPS, UPS or
+BPS) beside its ROM, named as the ROM with the patch's extension, so the app
+applies it as the game starts (GEN-9).
+
 ## Writing a case
 
 ```json
