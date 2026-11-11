@@ -124,7 +124,9 @@ jobs:
           git init -q fixtures
           cd fixtures
           git remote add origin "https://x-access-token:${TOKEN}@github.com/kyannon/gba-ds-tests.git"
-          git sparse-checkout set --no-cone $(sed 's|^|/|' ../fixtures.txt)
+          # (one path a line on stdin, so names with spaces stay whole (the patches'); a
+          # pattern's own wildcards escaped, and each anchored at the top)
+          sed -e 's/[][*?\\]/\\&/g' -e 's|^|/|' ../fixtures.txt | git sparse-checkout set --no-cone --stdin
           git fetch -q --depth 1 --filter=blob:none origin main || {
             echo "::error title=Fixtures not reachable::Couldn't fetch kyannon/gba-ds-tests: GBA_DS_TESTS_TOKEN may have expired or lost access."; exit 1; }
           git checkout -q FETCH_HEAD

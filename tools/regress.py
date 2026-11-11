@@ -350,6 +350,10 @@ def golden_path(args, case, shot):
     return os.path.join(args.fixtures, "golden", case["slug"], case["id"], shot + ".png")
 
 
+# a failing case's log lines worth printing with it
+LOG_KEYS = ("ROM: ", "patches: ", "patch ", "load state: ", "game list: ", "osd: ")
+
+
 def compare_golden(run, args, shot):
     case = run.case
     path = golden_path(args, case, shot)
@@ -369,7 +373,11 @@ def compare_golden(run, args, shot):
     n = sum(1 for p in pixels(diff) if max(p) > tol)
     frac = n / (have.size[0] * have.size[1])
     limit = case.get("golden_frac", 0.0)
-    return frac <= limit, "%d pixels differ (%.3f%%, allowed %.3f%%)" % (n, frac * 100, limit * 100)
+    where = ""
+    if n:  # (where they differ: what a log can say of a picture it can't show, as on GitHub)
+        box = diff.convert("L").point(lambda v: 255 if v > tol else 0).getbbox()
+        if box: where = ", in x %d-%d, y %d-%d" % (box[0], box[2] - 1, box[1], box[3] - 1)
+    return frac <= limit, "%d pixels differ (%.3f%%, allowed %.3f%%%s)" % (n, frac * 100, limit * 100, where)
 
 
 def evaluate(case, args):
@@ -604,6 +612,10 @@ def main():
         for shot, ok, seen in r["goldens"]:
             if ok is not True:
                 print("       golden %s: %s" % (shot, seen))
+        if not r["ok"]:  # (what the app said of the ROM, its patches and the state: GitHub's runs keep only this output)
+            for line in (r.get("log") or "").splitlines():
+                if line.startswith(LOG_KEYS):
+                    print("       log: %s" % line[:240])
     shutil.rmtree(args.work, ignore_errors=True)
     print("\n%d of %d cases pass%s. Report: %s" % (len(results) - len(fails), len(results),
           " (goldens approved)" if args.update else "", os.path.join(args.report, "index.html")))
