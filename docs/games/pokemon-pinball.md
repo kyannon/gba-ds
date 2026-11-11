@@ -42,6 +42,11 @@ Unlike the other games, both screens show the table itself, live: two more copie
 
 **PP-13. Events.** The egg hatch (the hatched Pokémon wandering, then caught), an evolution (the EVOLUTION banners, the evolved Pokémon shown), Travel (its confirmation and the travel scene) and Jirachi's catch mode (Jirachi flying about, then caught) play on both screens like the rest of the table (PP-1), in step (PP-9); when the game dims its screen for them, PP-11. (Their test states are built by `tools/pinball_events.py`, which steers the game there through its own code: docs/PINBALL.md.)
 
+## Exceptions
+
+PP-1 (the table over both screens, live, from two more copies of the game) is an exception to the philosophy's GBA screen (a GBA has one 240x160 screen) and cost rules: the owner's request, and the first game to have it (Sonic Pinball Party's SPP-2 and Muppet Pinball Mayhem's MPM-2 follow it), with `pinball_live = 0` as the way back (the game on one screen, the logo on the other).
+
+
 ## Not covered yet
 
 Nothing the owner wants changed. Events (evolution, hatching, the bonus-stage entrances) were checked on the device for v1.4.2. The catch animation's outline (the Pokémon flashing red as it's caught) shows on your game's screen but not always on a copy's (cosmetic). The game always runs with the frame buffer on (Settings' Frame Buffer is shown as always on here): without it the device doesn't reach full speed.

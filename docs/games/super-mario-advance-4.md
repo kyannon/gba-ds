@@ -45,7 +45,7 @@ Modelled on Super Mario Advance 2 ([SMA rules](super-mario-advance-2.md)): somet
 
 ## Known issues
 
-- Not tried: Europe's Rev 1 cartridge and Switch Online dumps, the USA's Virtual Console and Switch Online dumps, Japan's Rev 1 and its Virtual Console and Switch Online dumps. Each is expected to behave as the revision it's made from (SM4-7).
+- Not tried: Europe's Switch Online dump, the USA's Virtual Console and Switch Online dumps, Japan's Rev 1 and Rev 2 and their Virtual Console and Switch Online dumps. Each is expected to behave as the revision it's made from (SM4-7).
 - During a fade (through a pipe or door, at the goal) the status bar fades with the game, so it shows as dark shapes for a moment.
 - Checked at the start of every level of worlds 1 to 6 and 8 that the warp zone reaches (underwater, desert, giant, sky, ice, cave and fortress levels), in World 1's airship and Larry's room, World 5-3 with Kuribo's Shoe, World 8's tank and Bowser's castle: the status bar is always the same layer. Not tried yet: Luigi's turns in Mario & Luigi mode.
 - World-e (SM4-8) is tried only with Europe's Rev 1 Virtual Console dump; the USA's and Japan's World-e (with the cards scanned) aren't.

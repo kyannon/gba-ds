@@ -28,6 +28,11 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **MK-7. One screen.** With `layout = single` the HUD stays where the game draws it.
 
+## Exceptions
+
+- MK-3's course map drawn twice as big (1.5x where it wouldn't fit), as the F-Zero games', Crash Nitro Kart's, V-Rally 3's and GT Advance 3's are: a GBA pixel per 2x2 of the second screen's GBA screen, so still the game's own picture at its own resolution.
+
+
 ## Not covered yet
 
 - Europe and Japan are checked at a race's start and on the menus; their last lap, results, podium and pause haven't been run.

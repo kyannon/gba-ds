@@ -98,6 +98,8 @@ mkdir -p "$PKG/cheats"
 printf "RetroArch cheat files (.cht) for GBA DS, in this folder or subfolders: picked by name, as RetroArch does (Game (USA).gba -> Game (USA) (Code Breaker).cht).\nRetroArch's own cheat folders are searched too (cheat_dir in gba-ds.cfg).\nSwitch cheats on in the pause menu: Extras > Cheats. More in the wiki: https://github.com/kyannon/gba-ds/wiki/Playing#cheats\n" > "$PKG/cheats/README.txt"
 mkdir -p "$PKG/overlays"
 cp dist/overlays-README.txt "$PKG/overlays/README.txt"
+mkdir -p "$PKG/patches"
+printf "Patches for GBA DS (.ips, .ups, .bps: romhacks, colour patches, translations), in a folder for each game,\nnamed after the game and its region (for example \"Mario & Luigi - Superstar Saga (USA)\"). GBA DS makes a game's folder\nthe first time you play it; your ROM itself is never changed.\nSwitch patches on in the pause menu: Extras > Patches. More in the wiki: https://github.com/kyannon/gba-ds/wiki/Playing#patches\n" > "$PKG/patches/README.txt"
 cp README.md "$PKG/README.md"
 # mGBA is statically linked (MPL-2.0): ship its licence and where to get its source
 mkdir -p "$PKG/licenses"

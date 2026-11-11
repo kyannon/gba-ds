@@ -77,13 +77,6 @@ SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=dummy GBADS_WINDOW=640x960 \
 
 To add second-screen support for another game, see [Adding second-screen compatibility for a game](https://github.com/kyannon/gba-ds/wiki/Adding-second-screen-compatibility-for-a-game), and [Philosophy](https://github.com/kyannon/gba-ds/wiki/Philosophy) for what should go on the second screen.
 
-## Roadmap
-
-- Better aspect ratio and display controls for more devices
-- Hopefully, with dev permissions and as the emulator matures, deeper integration options for the popular RG DS/DS+ operating systems
-- Eventually, potentially, RetroAchievements hardcore support
-- As always: more games!
-
 ## AI Disclosure
 
 GBA DS is written almost entirely by AI. The code is written by Claude, Anthropic's AI model, working in Claude Code sessions, and so are the documentation, the changelog and the commit messages. I decide what gets built and how it should behave, and I test it.

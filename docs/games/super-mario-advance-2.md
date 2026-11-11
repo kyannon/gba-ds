@@ -28,6 +28,11 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **SMA-7. Level name.** In a level, the top of the second screen keeps the level list's title row (its name, as the world map's list showed it when Mario last stood still: the level he went into), held there all through the level, through doors and castles too (SMA-4); the status bar (SMA-2) is 2 rows below it, and the logo centred in the room left under the status bar. With no list taken yet (a state loaded in a level), the status bar is at the top.
 
+## Exceptions
+
+- SMA-7's level name: the title row of the world map's level list, held above the status bar all through the level, is a piece of one of the game's screens moved onto another (as Super Mario Advance's course board is, SMB2-8), so the second screen says which level you're in.
+
+
 ## Not covered yet
 
 - Europe has a level only, Japan the world map and a level; their castles, doors and message boxes haven't been run.

@@ -483,7 +483,7 @@ static int move_tree(const char* from, const char* to) {
 /* GBA DS's own folders on Linux (the app folder's other files are the program) */
 static const char* const dataEntries[] = { "states", "cheats", "overlays", "logos", "patches", "bug-reports", "screenshots" };
 /* the ones the zip has (with a README.txt): an update puts them back in the app folder */
-static const char* const shippedEntries[] = { "cheats", "overlays", "logos" };
+static const char* const shippedEntries[] = { "cheats", "overlays", "logos", "patches" };
 
 void data_dir_setup(const char* defDir, const char* record, const char* want, bool all, char* out, size_t n) {
 	dataNote[0] = 0;
