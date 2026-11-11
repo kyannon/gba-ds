@@ -6,7 +6,7 @@
 | Dumps | `BHTE` cartridge `c0bccaad` (tested) · `BHTJ` cartridge `42e590d6` (tested) |
 | Profile | `src/profiles.c`: the `BHTE` entry (`hpa_compose`); variant `BHTJ` (its screen byte, its logo) |
 | Tests | `tests/regress/harry-potter-and-the-prisoner-of-azkaban.json` (`tools/regress.py harry-potter-and-the-prisoner-of-azkaban`) |
-| Status | supported (new in v1.4.13) |
+| Status | supported (new in v1.5) |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list harry-potter-and-the-prisoner-of-azkaban`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.
 

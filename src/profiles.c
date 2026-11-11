@@ -2295,13 +2295,15 @@ static const char* bf_compose(Emu* s, const void* state, uint32_t* out, int w, i
  *     count, which held 1 walking about on the first maps and flickered 0 /
  *     1 on others, after a battle: the capture took the field for the menu
  *     and failed there)
- *   ML_CURSOR the menu's icon (0 Items, 1 Equipment, 2 Bros. Info)
+ *   ML_CURSOR the menu's icon (0 Items, 1 Equipment, 2 Bros. Info); in
+ *     Japan 0x20 higher (0x030040C9: with the USA's address the capture
+ *     never reached Bros. Info there, and the logo stayed)
  */
 #define ML_STATE 0x02000008 /* 8 walking about (its menus too), 3 a battle, 2 the title */
 #define ML_MODE 0x02000009 /* with state 8: 21 walking about, 10 SELECT's menu opening, 26 the menus */
 #define ML_PAGE 0x0200000D /* in the menus: 9 SELECT's menu, 12 Bros. Info (Mario's page), 14 Luigi's */
 #define ML_WALKING 0x1508 /* ML_STATE and ML_MODE as a halfword, walking about */
-#define ML_CURSOR 0x030040A9
+#define ML_CURSOR(e) (0x030040A9 + ((e)->gameCode[3] == 'J' ? 0x20 : 0))
 #define ML_LEAD 0x02004F4C /* the brother in front: 0 Mario, 1 Luigi (START swaps) */
 /* BG3's tile map entry inside the results' red EXP panel (row 7, column 9):
  * empty through a battle, set from the results' first frame (no battle box
@@ -2946,6 +2948,68 @@ static bool ml_bros_info(Emu* s) {
 static void ml_page(const uint32_t* fb, uint32_t* out, int w, int h) {
 	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
 }
+/* Bros. Info's L and R prompts (ML-2): each a pink tab with its letter,
+ * drawn into BG2's magnifying glass (tiles 0x170-0x173 on map row 9 and
+ * 0x190-0x193 on row 10, columns 2-3 for L and 6-7 for R; not sprites, so
+ * they can't be hidden alone). Only the tabs' pixels (their letters, faces,
+ * shading and outlines) are replaced, from the owner's own repaint of the
+ * glass (Nov 10, 2026, on the Equipment page, which shows more of it),
+ * tidied: the lens's rim and its lighter outline closed round at the widths
+ * the game draws them on the lower arc, the glass's edge going
+ * on round under L, its thin dark outline drawn on to the glass's bottom
+ * outline, what's behind outside it, tapering into the handle under R and
+ * between the tabs' feet. The table is rows 72-87 from x 14:
+ * a-e the glass's colours, as the page has them on its left edge, '.' what
+ * lies behind BG2 there, '-' the game's own pixel kept (the portrait's
+ * sprites are clear outside the lens). Not this layout: left as it is */
+static const char mlGlass[16][53] = {
+	"----------------------------------------------------",
+	"----------------------------------------------------",
+	"----eddd--------------------------------aaabddd-----",
+	"----eedd--------------------------------abddddee----",
+	"----eeee--------------------------------bdddeeee----",
+	"----eeee---------------------------------ddeeeee----",
+	"----ddee---------------------------------eeeeeee----",
+	"---bddeeeee------------------------------eeeeeee----",
+	"...aaddddeeeeeee--------------------eeeeeeeeeeee----",
+	".....aaaddddeeee--------------------eeeeeeeeeeeee---",
+	"........aaddddee--------------------eeeeeeeeeeeeee--",
+	"..........aaaddd--------------------eeeeeeeeeeeeee--",
+	".............aaddd------------------eeeeeeeeeeeeee--",
+	"................aaddddd-------------eeeeeeeeeeeee---",
+	"..................abb---------------eeeeeeeeeeee----",
+	"...................a---------------b----------------"
+};
+static void ml_no_prompts(Emu* s, uint32_t* out, int w, int h) {
+	if (w < 66 || h < 88) return;
+	uint32_t map = 0x06000000 + ((emu_read16(s, 0x0400000C) >> 8) & 0x1F) * 0x800;
+	static const uint16_t want9[4] = { 0x172, 0x173, 0x170, 0x171 }, want10[4] = { 0x192, 0x193, 0x190, 0x191 };
+	static const int cols[4] = { 2, 3, 6, 7 };
+	for (int i = 0; i < 4; ++i)
+		if ((emu_read16(s, map + (9 * 32 + cols[i]) * 2) & 0x3FF) != want9[i] ||
+		    (emu_read16(s, map + (10 * 32 + cols[i]) * 2) & 0x3FF) != want10[i])
+			return;
+	/* the page without BG2, the same frame on: BG2's whole map blank for a
+	 * frame (tile 0 is empty), then back (emu_layers doesn't reach the
+	 * app's renderer) */
+	static uint32_t bare[GBA_W * GBA_H];
+	static uint16_t saved[32 * 32];
+	for (int i = 0; i < 32 * 32; ++i) saved[i] = emu_read16(s, map + i * 2), emu_write16(s, map + i * 2, 0);
+	emu_frame(s, 0);
+	memcpy(bare, s->fb, sizeof(bare));
+	for (int i = 0; i < 32 * 32; ++i) emu_write16(s, map + i * 2, saved[i]);
+	/* the glass's colours, from its left edge (dark, -, highlight, light,
+	 * medium; b a step in from row 52's) */
+	const uint32_t glass[5] = { out[60 * w + 2], out[52 * w + 8], out[60 * w + 3], out[60 * w + 4], out[60 * w + 5] };
+	for (int y = 72; y < 88; ++y)
+		for (int x = 14; x < 66; ++x) {
+			char c = mlGlass[y - 72][x - 14];
+			if (c == '-') continue;
+			uint32_t* o = &out[y * w + x];
+			int i = y * GBA_W + x;
+			*o = c == '.' ? bare[i] : glass[c - 'a'];
+		}
+}
 static const char* ml_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
 	*nOut = 1;
 	*step = 300;
@@ -2961,11 +3025,11 @@ static const char* ml_compose(Emu* s, const void* state, uint32_t* const* out, i
 	}
 	if (at == ML_MENU) {
 		aw_run(s, 0, 20); /* (past its opening: DOWN is taken 10 to 15 frames on) */
-		for (int i = 0; i < 8 && emu_read8(s, ML_CURSOR) != 2; ++i) {
-			aw_tap(s, emu_read8(s, ML_CURSOR) < 2 ? K_DOWN : K_UP, 1);
+		for (int i = 0; i < 8 && emu_read8(s, ML_CURSOR(s)) != 2; ++i) {
+			aw_tap(s, emu_read8(s, ML_CURSOR(s)) < 2 ? K_DOWN : K_UP, 1);
 			aw_run(s, 0, 4);
 		}
-		if (emu_read8(s, ML_CURSOR) != 2) return "Bros. Info not reached in the menu";
+		if (emu_read8(s, ML_CURSOR(s)) != 2) return "Bros. Info not reached in the menu";
 		aw_tap(s, K_A, 1);
 		if (!ml_wait(s, ML_BROS, 90)) return "Bros. Info didn't open";
 	} else if (at != ML_BROS) {
@@ -2975,6 +3039,7 @@ static const char* ml_compose(Emu* s, const void* state, uint32_t* const* out, i
 	if (!ml_bros_info(s)) return "not Bros. Info";
 	if (!luigi) {
 		ml_page(s->fb, out[0], w, h);
+		ml_no_prompts(s, out[0], w, h);
 		return NULL;
 	}
 	/* Luigi in front: R (the portrait turns round), until the page changes */
@@ -2986,6 +3051,7 @@ static const char* ml_compose(Emu* s, const void* state, uint32_t* const* out, i
 		if (!ml_settle(s, 150) || !ml_bros_info(s)) break;
 		if (memcmp(first, s->fb, sizeof(first))) {
 			ml_page(s->fb, out[0], w, h);
+			ml_no_prompts(s, out[0], w, h);
 			return NULL;
 		}
 	}
@@ -6829,15 +6895,16 @@ static const MapProfile profiles[] = {
 			.memLayers = { .when = { { ML_BOX_TOP, 0xF000, 0x8000, 2 }, { ML_BOX_BOTTOM, 0xF000, 0x8000, 2 } }, .bgMask = 0x4, .any = true, .gamePal = 16 },
 			/* priority 0: the meters, the menus' cursor and icons (the
 			 * blocks, the A over the brother's head and the rest are 2);
-			 * from tile 112 only palettes 11 (the cursor and icons) and
-			 * 13 (the BROS list's level marks): a Bros. Attack's big
+			 * from tile 112 only palettes 11 (the cursor and icons), 12
+			 * (the green icons: Refreshing Herbs, Green Peppers) and 13
+			 * (the BROS list's level marks): a Bros. Attack's big
 			 * button prompts (7), the "!" over a brother's head (8) and
 			 * a speech balloon's marker and edges (15) stay (issue #31).
 			 * The
 			 * meters' digits and backing (tiles 0-111) only in their
 			 * corner (x 4-93, rows 130-142 seen): the damage numbers over
 			 * an enemy or a brother are the same digits, and stay */
-			.objs = { { -16, 120, 110, 159, 0, 111, 0, 0x7FFF }, { -256, -96, 255, 159, 112, 1023, 0, 0x2800 } },
+			.objs = { { -16, 120, 110, 159, 0, 111, 0, 0x7FFF }, { -256, -96, 255, 159, 112, 1023, 0, 0x3800 } },
 			/* the meters (bottom left; the bottom box starts at 120) to
 			 * the top left corner, against the top right box (from
 			 * column 104) and above the item list's cursor (from row 29);
