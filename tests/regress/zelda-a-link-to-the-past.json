@@ -284,6 +284,134 @@
    ]
   },
   {
+   "id": "lttp-eu-house",
+   "rom": "AZLP",
+   "state": "zelda-a-link-to-the-past/eu-house.ss",
+   "desc": "Europe (English on the language menu), Link's house at the start of a new game (played from power-on): no map yet",
+   "rules": [
+    "LTTP-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "LTTP-3",
+     "what": "no map shown indoors without one",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "lttp-jp-house",
+   "rom": "AZLJ",
+   "state": "zelda-a-link-to-the-past/jp-house.ss",
+   "desc": "Japan, Link's house at the start of a new game (played from power-on): no map yet",
+   "rules": [
+    "LTTP-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "LTTP-3",
+     "what": "no map shown indoors without one",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "lttp-eu-outdoors",
+   "rom": "AZLP",
+   "state": "zelda-a-link-to-the-past/eu-outdoors.ss",
+   "desc": "Europe, outside Link's house in the rain: the world map",
+   "rules": [
+    "LTTP-1",
+    "LTTP-6"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "LTTP-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "lttp-jp-outdoors",
+   "rom": "AZLJ",
+   "state": "zelda-a-link-to-the-past/jp-outdoors.ss",
+   "desc": "Japan, outside Link's house in the rain: the world map",
+   "rules": [
+    "LTTP-1",
+    "LTTP-6"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "LTTP-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "lttp-eu-file-select",
+   "rom": "AZLP",
+   "state": "zelda-a-link-to-the-past/eu-file-select.ss",
+   "desc": "Europe, the file select screen: the logo",
+   "rules": [
+    "LTTP-4"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "type": "no_log",
+     "match": "map updated",
+     "rule": "LTTP-4",
+     "what": "no map captured at the file select"
+    }
+   ]
+  },
+  {
+   "id": "lttp-jp-file-select",
+   "rom": "AZLJ",
+   "state": "zelda-a-link-to-the-past/jp-file-select.ss",
+   "desc": "Japan, the file select screen: the logo",
+   "rules": [
+    "LTTP-4"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "type": "no_log",
+     "match": "map updated",
+     "rule": "LTTP-4",
+     "what": "no map captured at the file select"
+    }
+   ]
+  },
+  {
    "id": "lttp-logo-azle",
    "kind": "logo",
    "rom": "AZLE",
