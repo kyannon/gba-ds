@@ -24,6 +24,8 @@
 - **Mario & Luigi: Superstar Saga:** in a battle's item list, the green items' icons (Refreshing Herbs, Green Peppers) are back in the list on the second screen; since v1.5's first test builds they were left on the game screen by Mario.
 - **Dragon Ball Z: The Legacy of Goku (Europe):** conversations' text boxes, and the HP and Ki bars with them, disappeared from the game screen while walking about; they stay there now.
 - **Mario & Luigi: Superstar Saga:** in the Starshade Bros.' Bros. Attack tutorial, and other battle tutorials where someone speaks while the battle's boxes are up, the speech balloons stay on the game screen by whoever is speaking instead of moving to the second screen, and so do a Bros. Attack's big button prompts and the "!" over the brothers' heads (issue #31).
+- **Mario & Luigi: Superstar Saga:** the Bros. Info page on the second screen no longer shows the L and R prompts under the brother's portrait (they can't be pressed there); the magnifying glass the portrait sits in is shown whole where they were.
+- **Mario & Luigi: Superstar Saga (Japan, Mario & Luigi RPG):** walking about, the second screen showed the logo instead of Bros. Info; it shows Bros. Info now, as in the USA and Europe.
 
 ## v1.4.12 (2026-11-08)
 
