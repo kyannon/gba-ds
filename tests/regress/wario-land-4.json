@@ -1387,6 +1387,36 @@
      "match": "map capture failed"
     }
    ]
+  },
+  {
+   "id": "wl4-us-hall-patch-colour",
+   "rom": "AWAE",
+   "state": "wario-land-4/us-hall.ss",
+   "desc": "wl4-us-hall with \"Color palette enhancement 1.1 (Piggy Chan!)\" switched on in its patches folder (docs/patches.md): known by GBA DS as that patch, tested; the second screen as without it, in the patch's colours. in the Hall of Hieroglyphs: the pause screen with the wall's bricks in place of its menu; the game screen without the hearts, heart meter and coins",
+   "rules": [
+    "GEN-9",
+    "WL4-2",
+    "WL4-4"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 200
+   },
+   "checks": [
+    {
+     "rule": "WL4-2",
+     "what": "a pause-screen picture is taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the patch applied and known, tested",
+     "type": "log",
+     "match": "a mod GBA DS is tested on \\(Color\\ palette\\ enhancement\\ 1\\.1\\ \\(Piggy\\ Chan!\\)\\); patched as it started with Wario\\ Land\\ 4\\ Color\\ Palette\\ Enhancement\\ 1\\.1\\.ips"
+    }
+   ],
+   "patch_on": "Wario Land 4 Color Palette Enhancement 1.1.ips"
   }
  ]
 }

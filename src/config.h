@@ -68,6 +68,7 @@ typedef struct Config {
 	char romDir[1024]; /* library folders, ':'-separated */
 	char screenshotDir[512]; /* "Take Screenshot" saves here */
 	char cheatDir[1024]; /* RetroArch .cht folders, ':'-separated (searched two levels deep) */
+	char patchDir[1024]; /* patches, a folder per game in it (GEN-9); default: <assetDir>/patches */
 	char libraryView[8]; /* game list: "list" (names) or "grid" (logos) */
 	char esConfigDir[512]; /* EmulationStation's config folder (Settings: GBA DS in EmulationStation) */
 	char assetDir[512]; /* logos etc.; default: the data folder */

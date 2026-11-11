@@ -219,6 +219,68 @@
    "golden": [
     "logo"
    ]
+  },
+  {
+   "id": "mzm-us-play-patch-colour-v1",
+   "rom": "BMXE",
+   "state": "metroid-zero-mission/us-play.ss",
+   "desc": "mzm-us-play with \"Color improvement v1\" switched on in its patches folder (docs/patches.md): known by GBA DS as that patch, tested; the second screen as without it, in the patch's colours. Brinstar, start of a new game",
+   "rules": [
+    "GEN-9",
+    "MZM-1",
+    "MZM-2",
+    "MZM-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "MZM-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the patch applied and known, tested",
+     "type": "log",
+     "match": "a mod GBA DS is tested on \\(Color\\ improvement\\ v1\\); patched as it started with Metroid\\ Zero\\ Mission\\ \\-\\ Color\\ Improvement\\ v1\\.ips"
+    }
+   ],
+   "patch_on": "Metroid Zero Mission - Color Improvement v1.ips"
+  },
+  {
+   "id": "mzm-us-play-patch-colour-v2",
+   "rom": "BMXE",
+   "state": "metroid-zero-mission/us-play.ss",
+   "desc": "mzm-us-play with \"Color improvement v2\" switched on in its patches folder (docs/patches.md): known by GBA DS as that patch, tested; the second screen as without it, in the patch's colours. Brinstar, start of a new game",
+   "rules": [
+    "GEN-9",
+    "MZM-1",
+    "MZM-2",
+    "MZM-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "MZM-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the patch applied and known, tested",
+     "type": "log",
+     "match": "a mod GBA DS is tested on \\(Color\\ improvement\\ v2\\); patched as it started with Metroid\\ Zero\\ Mission\\ \\-\\ Color\\ Improvement\\ v2\\.ips"
+    }
+   ],
+   "patch_on": "Metroid Zero Mission - Color Improvement v2.ips"
   }
  ]
 }

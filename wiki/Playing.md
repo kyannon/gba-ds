@@ -58,6 +58,7 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 **Extras** (Swap Screens, Rewind, Fast Forward, Save on Quit and Auto-Load are remembered for next time)
 - **Swap Screens**: game and second screen trade places (also HOME + Y).
 - **Cheats**: see [below](#cheats).
+- **Patches**: romhacks and other patches for the game; see [below](#patches).
 - **Achievements**: when signed in to RetroAchievements; see [below](#retroachievements).
 - **Take Screenshot**: both screens as they look right now, with your display settings, stacked top to bottom into one PNG in `/storage/roms/screenshots` (Android: `GBA DS/screenshots`); `screenshot_dir` changes the folder.
 - **Submit a Bug Report**: the same as the quick bar's bug button (see [below](#the-quick-bar-and-bug-reports)), for the moment you opened the menu.
@@ -158,10 +159,17 @@ GBA DS reads RetroArch's cheat files (`.cht`, the format of the [libretro cheat 
 
 - **Where:** GBA DS's own `cheats` folder (`gba-ds/cheats`, on ROCKNIX and BananaOS), then RetroArch's cheats folders: on ROCKNIX `/config/retroarch/cheats` and `/storage/.config/retroarch/cheats`, on BananaOS `/data/retroarch/cheats`. Subfolders such as `Nintendo - Game Boy Advance/` are searched too (`cheat_dir` changes RetroArch's folders, `:`-separated). Android: `GBA DS/cheats` on the internal storage (subfolders are fine).
 - **Which file:** picked by name, so `Metroid Fusion (World) (Code Breaker).cht` goes with `Metroid Fusion (USA).gba`. The bracketed parts don't have to match, except the region: a file marked `(USA)` isn't offered for a Japanese ROM. The Japanese Aria of Sorrow, Harmony of Dissonance and Metroid Fusion keep their data at different addresses from the other releases, so for those only files that say `(Japan)` are used, not `(World)` ones.
-- **Using them:** pause menu → Extras → **Cheats** lists them with an On/Off switch each: D-pad and A, L1 / R1 a page at a time, B to go back; or tap a cheat to switch it, and drag to scroll. A long name is shown in full at the bottom.
-- Code Breaker files usually start with an "Enable Code (Must Be On)" cheat: switch it on along with the others, as on the real device.
-- Choices take effect immediately and are remembered per game (`states/<game>.cheats`); a file's own `cheatN_enable` values are used until you change something.
-- Cheats can crash or soft-lock a game, and anything they change is kept in your saves. Make a save state first.
+- **Using them:** pause menu → Extras → **Patches** lists the game's patches with an On/Off switch each (D-pad and A, L1 / R1 a page at a time, B to go back, or tap one), and at the bottom what GBA DS makes of the selected one: a tested romhack (see [Supported games](Supported-games#romhacks-and-patched-roms)), untested, or made for another version of the game (that can't be switched on). Switching one on or off asks first ("Sure?"): save your game, then A restarts the game with the change, or Y leaves it for now so you can change more first. When the change can't upset your saves, the game doesn't restart: it carries on from where you were, with the change ("carry on from here", the question says). That's when the patched game is the same size as before and keeps the same battery save and save states: the two "separate" switches off, as for a colour patch. Colours already on the screen change as the game draws them again.
+- **Patches GBA DS knows:** a list of colour restorations, voice removals and translations (see [Supported games](Supported-games#romhacks-and-patched-roms)) is built in, so the list names them whatever their file is called, says whether they're tested, and warns when one was made for another version of the game than your ROM.
+- **Several at once:** you can switch on up to seven. They're applied in order, top to bottom: the ones that are on sit at the top of the list, numbered, and a patch you switch on goes last. To change the order, press X on one (or tap its number), move it with Up / Down (or tap where it should go), then press A. With two or more on, the list says what they make together, and warns you when they won't go together:
+  - **Fails:** a `.ups` or `.bps` patch is made for the unchanged game, so it only works first in the list (and only one of those can be on). Move it up, or it's left out when the game starts.
+  - **A name in gold:** that patch changes some of the same parts of the game as one above it, and wins there, so the two may not work together.
+- **Restart:** when the patches aren't the ones the game started with (you pressed Y, or moved one), the top row of the list says so: A on it, then A again, restarts the game with them. Otherwise they're used the next time you start the game.
+- **Saves:** a game with a patch on has its own battery save and save states by default, named `<game> + <patch>` (with several, all their names, whatever their order), so a romhack that changes the whole game never loads the original's. The two switches at the top of the list turn either off, for a patch that keeps the game's saves working (a colour patch, say).
+- **Save states and patches:** a save state remembers which version of the game it was saved with. Loading one saved with different patches (or none, or another copy of the game) still works, but a note says so ("This state was saved without the patches on: it may not work"), because the game's insides can differ: if things look wrong, load another state or switch the patches back.
+- **RetroAchievements** are off while a patch is on (they aren't allowed for patched games); the banner as the game starts says so.
+- A patch named as the ROM, beside it (`Mario & Luigi.ips` beside `Mario & Luigi.gba`), the way RetroArch uses them, is always on: it shows in the list as "Always".
+- A ROM you've patched yourself works as well, with no patch file.
 
 ## RetroAchievements
 

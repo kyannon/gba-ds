@@ -217,9 +217,46 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   --dat DAT`: every official dump of each release by CRC32, from No-Intro's
   list in libretro-database (fetched with git, see the tool), the fixtures'
   marked tested; re-run it when a Releases row changes or a game is added,
-  including at a game branch's merge). At start the app logs `ROM: CRC32 ...`
-  (the tested dump, another official one, or modified), and bug reports'
-  info.txt has it as `ROM dump:` (`profile_dump`).
+  including at a game branch's merge; a rules file's hand-written Mods row,
+  romhacks known to work, goes into the table too). At start the app logs
+  `ROM: CRC32 ...` (the tested dump, another official one, a known mod, or
+  modified), and bug reports' info.txt has it as `ROM dump:`
+  (`profile_dump`). Romhack support (issue #17; branch `patch-support`, merged into
+  `dev` Nov 11, 2026; a fallback to the logo when a modified ROM's captures
+  keep failing and an estimate for untested mods are left for a later
+  release); a mod's fixture is `roms/CODE+mod.zip`
+  (docs/games/README.md, "Releases and dumps"). A mod someone asks for:
+  `tools/romhack.py PATCH [--base CODE]` (IPS, UPS, BPS or a patched ROM)
+  applies it, says what it changes, runs the release's cases on it
+  (regress.py `--any-rom --json`) and writes `build/romhack/<name>/`
+  (report.md, the patched ROM, the regress report). Patches (GEN-9): `src/patch.c` (IPS,
+  UPS, BPS, bounds-checked; mGBA's own does no BPS). The game's folder is
+  `<patch_dir>/<profile_release_name>` (paths.c `patch_folder`, made at
+  start); `<state_dir>/<game>.patches` says which are on (`on NAME` lines, in the
+  order applied, up to `PATCH_ON_MAX`) and the "separate battery save /
+  states" switches (`game_paths_patched`: "<game> + <patch> + ...", the
+  names sorted). game.c `patches_setup` sets `emu_patch_plan` (the
+  file beside the ROM, then the ones on) before `emu_open`, which applies it
+  for every core (the game, the hidden copy, logos, twins) from one cached
+  patched copy, loaded with `VFileMemChunk` + `core->loadROM`. Extras >
+  Patches (`open_patches` / `draw_patches` / `patch_choose`, after Cheats):
+  each file tried on the ROM as the list opens (`PatchInfo`: its note and
+  the bytes it changes); `patch_rebuild` puts the ones on first, numbered,
+  and tries them together (PR_SUMMARY, chain 2 "Fails", chain 1 overlap);
+  X / `patch_pick_up` and `patch_shift` reorder; switching asks, then
+  `GAME_RELOAD` (main.c starts the ROM again, no auto-load); PR_RESTART
+  while the choice isn't `patchStarted`. Some applied, some not:
+  `PATCH_PARTIAL` (`emu.patchSkipped`). Patched:
+  `ra_game_patched` (no achievements, its banner says so). The game list's
+  checksum is of the ROM as it would be played (`emu_rom_read_patched`).
+  Cases: `"patch"` (beside the ROM), `"patch_folder"` / `"patch_on"`
+  (docs/TESTING.md). Known patches: `docs/patches.md` (any game, by the
+  patch file's CRC32 without its last 4 bytes, `tools/patch_id.py`) ->
+  make_dumps.py -> `knownPatches[]` + results as mods; the Patches menu
+  names them and warns about another version's IPS. A colour patch that
+  changes colours a profile probes: profiles.c `colorSwaps[]` (by the
+  result's CRC32), applied by `profile_set_rom` (game.c, after emu_open).
+  Each tested patch has a `<case>-patch-<label>` case.
 
 ## Testing without the device
 
@@ -407,7 +444,10 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   libcurl), SHA-256 check (`sha256.c`), install over the app's folder via
   `.new` files and rename (gba-ds.cfg kept), then main() execs the new
   binary. Test offline with `tools/update_mock.py` (docs/TESTING.md).
-- `library.c` the game list and its Settings screen; `esinteg.c` the
+- `library.c` the game list and its Settings screen (and the selected
+  game's ROM checksum, read once per file on a worker thread and kept in
+  `<state_dir>/roms.cache`: "Romhack: ..." / "Modified ROM" under its logo,
+  GEN-8; regress.py's `"kind": "library"` cases); `esinteg.c` the
   EmulationStation integration; `cheats.c` RetroArch .cht files;
   `ui.c` SDL windows, input, drawing, the pause-menu text images.
 

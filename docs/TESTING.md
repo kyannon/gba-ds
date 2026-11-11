@@ -102,6 +102,22 @@ without GBA DS's bezel (a case can turn it on in its `config`).
 A **logo** case (`"kind": "logo"`) extracts one release's logo the way the
 app does, and compares it with its golden.
 
+A **library** case (`"kind": "library"`) starts the app on the game list
+instead of the game, with the case's ROM the only one in it (`--rom_dir`),
+and takes its shots and input as an app case does (GEN-8: what the panel
+says about the ROM). The game list shows the app's version at the top
+screen's bottom right, so these cases leave it out of the comparison:
+`"golden_mask": [[700, 720, 1024, 768]]` (rects painted over in both
+pictures before they're compared; any case can use it).
+
+A case with `"patch": "FILE"` puts the fixture `patches/FILE` (an IPS, UPS or
+BPS) beside its ROM, named as the ROM with the patch's extension, so the app
+applies it as the game starts (GEN-9). `"patch_folder": [FILE, ...]` puts
+fixtures in the game's own patches folder (`<work>/patches/<release name>`,
+the release's No-Intro name as `profile_release_name` gives it), and
+`"patch_on": "FILE"` switches one on there (writing `<rom>.patches`; a list switches on several, in the order they're applied; `"patch_separate": false` turns the separate battery save and states switches off). Every
+app case runs with its own `--patch_dir`.
+
 ## Writing a case
 
 ```json

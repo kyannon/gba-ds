@@ -20,7 +20,9 @@ Options: --fixtures DIR (default $GBADS_TESTS, else ../gba-ds-tests),
 --bin build/host/gba-ds, --harness build/host/harness, --report DIR
 (default build/regress: index.html with each failure's pictures), -j N
 (default: the CPU count + 1), --shard I/N (the Ith of N even shares of
-the cases, for running on several machines), --paced (at 60 frames a second, drawing
+the cases, for running on several machines), --json FILE (each case's results, for tools/romhack.py), --any-rom (run
+cases on fixture ROMs that aren't the tested dumps: tools/romhack.py's patched
+ROMs), --paced (at 60 frames a second, drawing
 every frame, as players run it; by default the app runs as fast as it
 can and draws only the frames a screenshot or a touch needs).
 
@@ -92,6 +94,7 @@ class Run:
 
 
 _testedDumps = {}
+ANY_ROM = False  # --any-rom (tools/romhack.py: a patched ROM in the fixtures on purpose)
 
 
 def dump_error(case, rom):
@@ -99,27 +102,64 @@ def dump_error(case, rom):
     marks tested (a patched or other dump in the fixtures); None if it is, or
     the rules have no Dumps row yet (tools/make_dumps.py writes them)."""
     rules = case.get("rulesFile")
-    if not rules:
+    if not rules or ANY_ROM:
         return None
     if rules not in _testedDumps:
         tested = None
         for line in open(os.path.join(ROOT, rules), encoding="utf-8"):
-            if line.startswith("| Dumps |"):
-                tested = {}
+            if line.startswith("| Dumps |") or line.startswith("| Mods |"):
+                tested = tested if tested is not None else {}
                 for part in line.split(" · "):
                     m = re.search(r"`([A-Z0-9]{4})`", part)
                     if m:
-                        tested[m.group(1)] = set(re.findall(r"`([0-9a-f]{8})` \(tested\)", part))
+                        tested.setdefault(m.group(1), set()).update(re.findall(r"`([0-9a-f]{8})` \(tested\)", part))
         _testedDumps[rules] = tested
     tested = _testedDumps[rules]
     if tested is None:
         return None
     with zipfile.ZipFile(rom) as z:
         crcs = ["%08x" % i.CRC for i in z.infolist() if i.filename.lower().endswith(".gba")]
-    if crcs and crcs[0] in tested.get(case["rom"][:4], set()):  # (CODE+name: another dump of it)
+    if crcs and crcs[0] in tested.get(case["rom"][:4], set()):  # (CODE+name: a mod, or another dump of it)
         return None
     return "fixture roms/%s.zip (CRC32 %s) isn't the tested dump in %s's Dumps row (a patched ROM? tools/make_dumps.py)" % (
         case["rom"], crcs[0] if crcs else "?", rules)
+
+
+_releaseNames = None
+
+
+def release_name(code):
+    """The release's No-Intro name as GBA DS names its patches folder
+    (profile_release_name: the tested dump's, else the first official one's,
+    the title with its region and languages only), or None."""
+    global _releaseNames
+    if _releaseNames is None:
+        names = {}  # (built whole before it's shared: cases run on several threads)
+        text = open(os.path.join(ROOT, "src", "dumps_data.h"), encoding="utf-8").read()
+        for m in re.finditer(r'\{ "(\w{4})", 0x[0-9a-f]{8}, (true|false), false, "((?:[^"\\]|\\.)*)" \}', text):
+            c, tested, n = m.group(1), m.group(2) == "true", m.group(3)
+            if c not in names or (tested and not names[c][1]):
+                names[c] = (n, tested)
+        _releaseNames = names
+    if code not in _releaseNames:
+        return None
+    n = _releaseNames[code][0]
+    p = n.find("(")
+    if p < 0:
+        return n
+    e = n.index(")", p)
+    keep = e + 1
+    if n[e + 1:e + 3] == " (":
+        e2 = n.find(")", e + 2)
+        if e2 > e + 3 and re.fullmatch(r"[A-Za-z,]+", n[e + 3:e2]):
+            keep = e2 + 1
+    return n[:keep]
+
+
+def patches_on(case):
+    """A case's "patch_on": one file name or a list, in the order applied."""
+    on = case.get("patch_on") or []
+    return [on] if isinstance(on, str) else list(on)
 
 
 def run_app(case, args, workdir):
@@ -138,6 +178,35 @@ def run_app(case, args, workdir):
     romdir = os.path.join(workdir, "rom")
     os.makedirs(romdir)
     os.symlink(rom, os.path.join(romdir, case["rom"] + ".zip"))
+    if case.get("patch"):  # a patch file beside the ROM (GEN-9), from the fixtures' patches/
+        pf = os.path.join(args.fixtures, "patches", case["patch"])
+        if not os.path.exists(pf):
+            r.error = "missing patch fixture patches/%s" % case["patch"]
+            return r
+        os.symlink(pf, os.path.join(romdir, case["rom"] + os.path.splitext(pf)[1]))
+    # patches in the game's own folder (GEN-9): "patch_folder" lists the
+    # fixtures' patches/ files put there, "patch_on" the one switched on (or
+    # a list: the ones on, in the order they're applied)
+    patchdir = os.path.join(workdir, "patches")
+    if case.get("patch_folder") or case.get("patch_on") or "patch_separate" in case:
+        name = release_name(case["rom"][:4])
+        if not name:
+            r.error = "no release name for %s (src/dumps_data.h)" % case["rom"][:4]
+            return r
+        folder = os.path.join(patchdir, name)
+        os.makedirs(folder, exist_ok=True)
+        for f in case.get("patch_folder", []) + patches_on(case):
+            pf = os.path.join(args.fixtures, "patches", f)
+            if not os.path.exists(pf):
+                r.error = "missing patch fixture patches/%s" % f
+                return r
+            if not os.path.exists(os.path.join(folder, f)):
+                os.symlink(pf, os.path.join(folder, f))
+        if case.get("patch_on") or "patch_separate" in case:
+            # ("patch_separate": false: the separate battery save and states switches off)
+            sep = 1 if case.get("patch_separate", True) else 0
+            with open(os.path.join(statedir, case["rom"] + ".patches"), "w") as f:
+                f.write("".join("on %s\n" % p for p in patches_on(case)) + "separate_save %d\nseparate_states %d\n" % (sep, sep))
     if case.get("save"):
         sav = os.path.join(args.fixtures, "saves", case["save"])
         if not os.path.exists(sav):
@@ -166,7 +235,7 @@ def run_app(case, args, workdir):
             f.write("%d %s\n" % (frame, what))
     # (the start-up hint is timed in real seconds: off, so the pictures are exact;
     # overlays off, so the goldens are the games' pictures alone: a case can turn them on)
-    cmd = [args.bin, "--state-dir=" + statedir, "--input-script=" + script, "--quick_bar_hint=0", "--overlays=off"]
+    cmd = [args.bin, "--state-dir=" + statedir, "--input-script=" + script, "--quick_bar_hint=0", "--overlays=off", "--patch_dir=" + patchdir]
     for k, v in case.get("config", {}).items():
         cmd.append("--%s=%s" % (k, v))
     if case.get("state"):
@@ -175,7 +244,10 @@ def run_app(case, args, workdir):
             r.error = "missing state fixture states/%s" % case["state"]
             return r
         cmd.append("--load-state=" + st)
-    cmd.append(rom)
+    if case.get("kind") == "library":  # the game list, with the case's ROM in it
+        cmd.append("--rom_dir=" + romdir)
+    else:
+        cmd.append(rom)
     env = dict(os.environ, SDL_VIDEODRIVER="offscreen", SDL_AUDIODRIVER="dummy",
                GBADS_WINDOW="%dx%d" % (SCREEN_W, SCREEN_H * 2), GBADS_SYNC="1", GBADS_DEBUG="1")
     if not args.paced:
@@ -287,6 +359,11 @@ def compare_golden(run, args, shot):
     have = run.shots[shot]
     if want.size != have.size:
         return False, "size %s, golden %s" % (have.size, want.size)
+    if case.get("golden_mask"):  # rects [x0, y0, x1, y1] left out (the app's version number...)
+        want, have = want.copy(), have.copy()
+        for box in case["golden_mask"]:
+            for im in (want, have):
+                im.paste((0,) * len(im.getbands()), tuple(box))
     diff = ImageChops.difference(have, want)
     tol = case.get("golden_tol", 0)
     n = sum(1 for p in pixels(diff) if max(p) > tol)
@@ -391,7 +468,12 @@ def main():
     ap.add_argument("--fixture-paths", action="store_true",
                     help="list the fixture files the selected cases need (for a sparse checkout) and stop")
     ap.add_argument("--games-json", metavar="FILE", help="with --changed: write the games picked (or \"all\") as JSON and stop")
+    ap.add_argument("--json", metavar="FILE", help="also write each case's results as JSON (tools/romhack.py reads it)")
+    ap.add_argument("--any-rom", action="store_true",
+                    help="run cases whose fixture ROM isn't the tested dump (tools/romhack.py's patched ROMs)")
     args = ap.parse_args()
+    global ANY_ROM
+    ANY_ROM = args.any_rom
     args.fixtures = os.path.abspath(args.fixtures)  # (cases run in their own folders)
     if args.changed:
         sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -481,6 +563,8 @@ def main():
                 need.add("states/" + c["state"])
             if c.get("save"):
                 need.add("saves/" + c["save"])
+            for f in ([c["patch"]] if c.get("patch") else []) + c.get("patch_folder", []) + patches_on(c):
+                need.add("patches/" + f)
             for _, keys in c.get("input", []):
                 if keys.startswith("LOAD:"):
                     need.add("states/" + keys[5:])
@@ -502,6 +586,11 @@ def main():
     with ThreadPoolExecutor(max_workers=args.j) as pool:
         results = list(pool.map(lambda c: evaluate(c, args), cases))
     write_report(results, args.report)
+    if args.json:
+        json.dump([{"id": r["case"]["id"], "rom": r["case"]["rom"], "rules": r["case"].get("rules", []), "ok": r["ok"],
+                    "error": r["error"], "checks": [{"rule": a, "what": b, "ok": c, "seen": d} for a, b, c, d in r["checks"]],
+                    "goldens": [{"shot": a, "ok": b, "seen": c} for a, b, c in r["goldens"]]} for r in results],
+                  open(args.json, "w"), indent=1)
     fails = [r for r in results if not r["ok"]]
     for r in results:
         c = r["case"]

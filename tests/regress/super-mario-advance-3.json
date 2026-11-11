@@ -1392,6 +1392,410 @@
     }
    ],
    "golden": []
+  },
+  {
+   "id": "sm3-us-level-patch-colour",
+   "rom": "A3AE",
+   "state": "super-mario-advance-3/us-level-6-7.ss",
+   "desc": "sm3-us-level with \"Colour restoration\" switched on in its patches folder (docs/patches.md): known by GBA DS as that patch, tested; the second screen as without it, in the patch's colours. in 6-7: the status screen, without the item cursor; the game screen as it is",
+   "rules": [
+    "GEN-9",
+    "SM3-1",
+    "SM3-2",
+    "SM3-6"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 200
+   },
+   "checks": [
+    {
+     "rule": "SM3-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "SM3-1",
+     "what": "the status screen's lines (world, high score, stars, coins, flowers, points)",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      64,
+      80,
+      959,
+      547
+     ],
+     "color": "000000",
+     "frac": 0.96
+    },
+    {
+     "rule": "SM3-1",
+     "what": "the item row along the bottom (its pink and white border)",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       38,
+       698,
+       "DE31AD"
+      ],
+      [
+       554,
+       698,
+       "DE31AD"
+      ]
+     ],
+     "min": 1
+    },
+    {
+     "rule": "SM3-2",
+     "what": "the first slot framed like the others (no item cursor), no arrow beside the items",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       558,
+       626,
+       "FFFFFF"
+      ],
+      [
+       566,
+       626,
+       "000000"
+      ],
+      [
+       570,
+       626,
+       "FFFFFF"
+      ],
+      [
+       574,
+       594,
+       "000000"
+      ],
+      [
+       966,
+       638,
+       "FFFFFF"
+      ],
+      [
+       974,
+       646,
+       "FFFFFF"
+      ]
+     ]
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the patch applied and known, tested",
+     "type": "log",
+     "match": "a mod GBA DS is tested on \\(Colour\\ restoration\\); patched as it started with SMA3\\ \\-\\ Yoshi's\\ Island\\ Colour\\ Restoration\\ \\(U\\)\\.ips"
+    }
+   ],
+   "patch_on": "SMA3 - Yoshi's Island Colour Restoration (U).ips"
+  },
+  {
+   "id": "sm3-us-level-patch-voice",
+   "rom": "A3AE",
+   "state": "super-mario-advance-3/us-level-6-7.ss",
+   "desc": "sm3-us-level with \"Voice removal v0.1\" switched on in its patches folder (docs/patches.md): known by GBA DS as that patch, tested; the second screen as without it, in the patch's colours. in 6-7: the status screen, without the item cursor; the game screen as it is",
+   "rules": [
+    "GEN-9",
+    "SM3-1",
+    "SM3-2",
+    "SM3-6"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 200
+   },
+   "checks": [
+    {
+     "rule": "SM3-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "SM3-1",
+     "what": "the status screen's lines (world, high score, stars, coins, flowers, points)",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      64,
+      80,
+      959,
+      547
+     ],
+     "color": "000000",
+     "frac": 0.96
+    },
+    {
+     "rule": "SM3-1",
+     "what": "the item row along the bottom (its pink and white border)",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       38,
+       698,
+       "DE31AD"
+      ],
+      [
+       554,
+       698,
+       "DE31AD"
+      ]
+     ],
+     "min": 1
+    },
+    {
+     "rule": "SM3-2",
+     "what": "the first slot framed like the others (no item cursor), no arrow beside the items",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       558,
+       626,
+       "FFFFFF"
+      ],
+      [
+       566,
+       626,
+       "000000"
+      ],
+      [
+       570,
+       626,
+       "FFFFFF"
+      ],
+      [
+       574,
+       594,
+       "000000"
+      ],
+      [
+       966,
+       638,
+       "FFFFFF"
+      ],
+      [
+       974,
+       646,
+       "FFFFFF"
+      ]
+     ]
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the patch applied and known, tested",
+     "type": "log",
+     "match": "a mod GBA DS is tested on \\(Voice\\ removal\\ v0\\.1\\); patched as it started with smw2yigba_voice_removal\\(U\\)0\\.1\\.ips"
+    }
+   ],
+   "patch_on": "smw2yigba_voice_removal(U)0.1.ips"
+  },
+  {
+   "id": "sm3-eu-level-patch-colour",
+   "rom": "A3AP",
+   "state": "super-mario-advance-3/eu-level-6-7.ss",
+   "desc": "sm3-eu-level with \"Colour restoration\" switched on in its patches folder (docs/patches.md): known by GBA DS as that patch, tested; the second screen as without it, in the patch's colours. Europe, in 6-7: the status screen",
+   "rules": [
+    "GEN-9",
+    "SM3-1",
+    "SM3-2"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "SM3-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "SM3-1",
+     "what": "the status screen's lines (world, high score, stars, coins, flowers, points)",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      64,
+      80,
+      959,
+      547
+     ],
+     "color": "000000",
+     "frac": 0.96
+    },
+    {
+     "rule": "SM3-1",
+     "what": "the item row along the bottom (its pink and white border)",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       38,
+       698,
+       "DE31AD"
+      ],
+      [
+       554,
+       698,
+       "DE31AD"
+      ]
+     ],
+     "min": 1
+    },
+    {
+     "rule": "SM3-2",
+     "what": "the first slot framed like the others (no item cursor), no arrow beside the items",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       558,
+       626,
+       "FFFFFF"
+      ],
+      [
+       566,
+       626,
+       "000000"
+      ],
+      [
+       570,
+       626,
+       "FFFFFF"
+      ],
+      [
+       574,
+       594,
+       "000000"
+      ],
+      [
+       966,
+       638,
+       "FFFFFF"
+      ],
+      [
+       974,
+       646,
+       "FFFFFF"
+      ]
+     ]
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the patch applied and known, tested",
+     "type": "log",
+     "match": "a mod GBA DS is tested on \\(Colour\\ restoration\\); patched as it started with SMA3\\ \\-\\ Yoshi's\\ Island\\ Colour\\ Restoration\\ \\(E\\)\\.ips"
+    }
+   ],
+   "patch_on": "SMA3 - Yoshi's Island Colour Restoration (E).ips"
+  },
+  {
+   "id": "sm3-eu-level-patch-voice",
+   "rom": "A3AP",
+   "state": "super-mario-advance-3/eu-level-6-7.ss",
+   "desc": "sm3-eu-level with \"Voice removal v0.1\" switched on in its patches folder (docs/patches.md): known by GBA DS as that patch, tested; the second screen as without it, in the patch's colours. Europe, in 6-7: the status screen",
+   "rules": [
+    "GEN-9",
+    "SM3-1",
+    "SM3-2"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "SM3-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "SM3-1",
+     "what": "the status screen's lines (world, high score, stars, coins, flowers, points)",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      64,
+      80,
+      959,
+      547
+     ],
+     "color": "000000",
+     "frac": 0.96
+    },
+    {
+     "rule": "SM3-1",
+     "what": "the item row along the bottom (its pink and white border)",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       38,
+       698,
+       "DE31AD"
+      ],
+      [
+       554,
+       698,
+       "DE31AD"
+      ]
+     ],
+     "min": 1
+    },
+    {
+     "rule": "SM3-2",
+     "what": "the first slot framed like the others (no item cursor), no arrow beside the items",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       558,
+       626,
+       "FFFFFF"
+      ],
+      [
+       566,
+       626,
+       "000000"
+      ],
+      [
+       570,
+       626,
+       "FFFFFF"
+      ],
+      [
+       574,
+       594,
+       "000000"
+      ],
+      [
+       966,
+       638,
+       "FFFFFF"
+      ],
+      [
+       974,
+       646,
+       "FFFFFF"
+      ]
+     ]
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the patch applied and known, tested",
+     "type": "log",
+     "match": "a mod GBA DS is tested on \\(Voice\\ removal\\ v0\\.1\\); patched as it started with smw2yigba_voice_removal\\(E\\)0\\.1\\.ips"
+    }
+   ],
+   "patch_on": "smw2yigba_voice_removal(E)0.1.ips"
   }
  ]
 }

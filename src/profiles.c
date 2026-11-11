@@ -7909,7 +7909,65 @@ bool profile_ram_moved(const char* gameCode) {
 	return false;
 }
 
+/* ---------------------------------------------------------- colour patches
+ * A known patch's result (docs/patches.md) that changes colours the profile
+ * looks for (the map screen's probes, the lettering map_crop erases...):
+ * those colours, swapped for the ones the patched game draws. Found by
+ * opening the screens on the clean and the patched ROM and pairing their
+ * pixels. The game being played says which ROM it is (profile_set_rom). */
+typedef struct {
+	char code[5];
+	uint32_t crc; /* the patched ROM */
+	int n;
+	uint32_t from[8], to[8];
+} ColorSwap;
+static const ColorSwap colorSwaps[] = {
+	/* Metroid: Zero Mission's colour improvement v1 and v2: the pause
+	 * screen's dark grey-green (its sides and the map's background) is black */
+	{ "BMXE", 0x70409097, 1, { 0x212921 }, { 0x000000 } },
+	{ "BMXE", 0x4c0e3216, 1, { 0x212921 }, { 0x000000 } },
+};
+static const ColorSwap* romSwap; /* the game being played's, or NULL */
+static MapProfile swapped;        /* its profile with the colours swapped */
+
+static void swap_colour(uint32_t* c) {
+	for (int i = 0; romSwap && i < romSwap->n; ++i) {
+		if (*c == romSwap->from[i]) {
+			*c = romSwap->to[i];
+			return;
+		}
+	}
+}
+
+static const MapProfile* find_unswapped(const char* gameCode);
+
+void profile_set_rom(const char* gameCode, uint32_t crc) {
+	romSwap = NULL;
+	for (size_t i = 0; gameCode && i < sizeof(colorSwaps) / sizeof(colorSwaps[0]); ++i)
+		if (!strncmp(colorSwaps[i].code, gameCode, 4) && colorSwaps[i].crc == crc) romSwap = &colorSwaps[i];
+	const MapProfile* p = romSwap ? find_unswapped(gameCode) : NULL;
+	if (!p) {
+		romSwap = NULL;
+		return;
+	}
+	swapped = *p;
+	for (size_t i = 0; i < sizeof(swapped.probes) / sizeof(swapped.probes[0]); ++i) swap_colour(&swapped.probes[i].rgb);
+	for (size_t i = 0; i < sizeof(swapped.glyphs) / sizeof(swapped.glyphs[0]); ++i)
+		for (int k = 0; k < 8; ++k) swap_colour(&swapped.glyphs[i].rgb[k]);
+	for (size_t i = 0; i < sizeof(swapped.recolor) / sizeof(swapped.recolor[0]); ++i)
+		for (int k = 0; k < 16; ++k) swap_colour(&swapped.recolor[i].from[k]), swap_colour(&swapped.recolor[i].to[k]);
+	for (int k = 0; k < 12; ++k) swap_colour(&swapped.tab.colors[k]);
+	swap_colour(&swapped.bgColor);
+	swap_colour(&swapped.rate.text);
+	fprintf(stderr, "profile: colours swapped for the patched ROM %08x (%d)\n", crc, romSwap->n);
+}
+
 const MapProfile* profile_find(const char* gameCode) {
+	if (romSwap && !strncmp(romSwap->code, gameCode, 4)) return &swapped;
+	return find_unswapped(gameCode);
+}
+
+static const MapProfile* find_unswapped(const char* gameCode) {
 	const MapProfile* p = base_find(gameCode);
 	if (p) return p;
 	pthread_once(&variantsOnce, build_variants);
@@ -7937,6 +7995,7 @@ typedef struct {
 	char code[5];
 	uint32_t crc;
 	bool tested;
+	bool mod; /* a romhack or patch (a Mods row), not one of No-Intro's dumps */
 	const char* name;
 } KnownDump;
 #include "dumps_data.h"
@@ -7946,10 +8005,56 @@ DumpKind profile_dump(const char* gameCode, uint32_t crc, const char** name) {
 	if (name) *name = NULL;
 	for (size_t i = 0; i < sizeof(knownDumps) / sizeof(knownDumps[0]); ++i) {
 		if (strncmp(knownDumps[i].code, gameCode, 4)) continue;
-		listed = true;
+		if (!knownDumps[i].mod) listed = true; /* (only patches known for it: not checked) */
 		if (knownDumps[i].crc != crc) continue;
 		if (name) *name = knownDumps[i].name;
+		if (knownDumps[i].mod) return knownDumps[i].tested ? DUMP_MOD_TESTED : DUMP_MOD;
 		return knownDumps[i].tested ? DUMP_TESTED : DUMP_OFFICIAL;
 	}
 	return listed ? DUMP_MODIFIED : DUMP_UNLISTED;
+}
+
+uint32_t doCrc32(const void* buf, size_t size); /* (libmgba's: its header wants zlib.h) */
+const KnownPatch* profile_patch(const uint8_t* file, size_t size, int n) {
+	if (size <= 4) return NULL;
+	uint32_t id = doCrc32(file, size - 4);
+	for (size_t i = 0; i < sizeof(knownPatches) / sizeof(knownPatches[0]); ++i) {
+		if (knownPatches[i].id != id || knownPatches[i].size != size) continue;
+		if (n-- == 0) return &knownPatches[i];
+	}
+	return NULL;
+}
+
+/* The release's name as No-Intro gives it ("Mario & Luigi - Superstar Saga
+ * (USA)"): its tested dump's, else its first official one's, without what
+ * sets that dump apart ("(Rev 1)", "(Virtual Console)"...): the region and
+ * languages kept. NULL for a release with no list of dumps. (GEN-9's
+ * patches folder.) */
+bool profile_release_name(const char* gameCode, char* out, size_t size) {
+	const char* name = NULL;
+	for (size_t i = 0; i < sizeof(knownDumps) / sizeof(knownDumps[0]); ++i) {
+		if (strncmp(knownDumps[i].code, gameCode, 4) || knownDumps[i].mod) continue;
+		if (!name || knownDumps[i].tested) name = knownDumps[i].name;
+		if (knownDumps[i].tested) break;
+	}
+	if (!name) return false;
+	/* the title, then "(Region)", then "(En,Fr,...)" if it's languages */
+	const char* p = strchr(name, '(');
+	size_t keep = p ? (size_t) (p - name) : strlen(name);
+	while (keep && name[keep - 1] == ' ') --keep;
+	const char* e = p ? strchr(p, ')') : NULL;
+	if (e) {
+		keep = (size_t) (e + 1 - name); /* the region */
+		if (e[1] == ' ' && e[2] == '(') {
+			const char* p2 = e + 2;
+			const char* e2 = strchr(p2, ')');
+			bool langs = e2 && e2 > p2 + 1;
+			for (const char* q = p2 + 1; langs && q < e2; ++q) {
+				if (!((*q >= 'A' && *q <= 'Z') || (*q >= 'a' && *q <= 'z') || *q == ',')) langs = false;
+			}
+			if (langs) keep = (size_t) (e2 + 1 - name);
+		}
+	}
+	snprintf(out, size, "%.*s", (int) keep, name);
+	return true;
 }

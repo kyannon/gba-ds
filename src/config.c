@@ -174,6 +174,7 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	STR("state_dir", stateDir)
 	STR("rom_dir", romDir)
 	STR("cheat_dir", cheatDir)
+	STR("patch_dir", patchDir)
 	STR("screenshot_dir", screenshotDir)
 	STR("asset_dir", assetDir)
 	STR("data_dir", dataDir)
@@ -285,6 +286,7 @@ void config_usage(const char* argv0) {
 	        "Options (also accepted as key=value lines in gba-ds.cfg):\n"
 	        "  --rom-dir=DIR[:DIR]    library folders (/storage/roms/gba)\n"
 	        "  --cheat-dir=DIR[:DIR]  RetroArch .cht folders (/config/retroarch/cheats:...)\n"
+	        "  --patch-dir=DIR        patches, a folder per game (default: patches beside the app)\n"
 	        "  --screenshot-dir=DIR   where Take Screenshot saves (/storage/roms/screenshots)\n"
 	        "  --layout=auto|span-h|span-v|dual|single   screen arrangement (auto)\n"
 	        "  --swap                 show the map on the first screen\n"

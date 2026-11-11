@@ -49,7 +49,7 @@ set(S "${GBADS_ROOT}/src")
 add_library(main SHARED
 	${S}/main.c ${S}/config.c ${S}/font.c ${S}/ui.c ${S}/library.c ${S}/game.c ${S}/paths.c ${S}/image.c ${S}/mapper.c ${S}/hotkeys.c
 	${S}/brand_data.c ${S}/bezel.c ${S}/bezel_logo.c ${S}/logo.c ${S}/cheats.c ${S}/esinteg.c ${S}/textfont.c ${S}/fonts_data.c
-	${S}/emu.c ${S}/mapcap.c ${S}/profiles.c ${S}/logo_masks.c ${S}/ra.c ${S}/update.c ${S}/http.c ${S}/sha256.c
+	${S}/emu.c ${S}/patch.c ${S}/mapcap.c ${S}/profiles.c ${S}/logo_masks.c ${S}/ra.c ${S}/update.c ${S}/http.c ${S}/sha256.c
 	${S}/android.c)
 set_target_properties(main PROPERTIES C_STANDARD 11 C_EXTENSIONS ON)
 target_compile_options(main PRIVATE ${MGBA_DEFINES} -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers)

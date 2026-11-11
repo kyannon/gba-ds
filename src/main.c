@@ -154,6 +154,7 @@ int main(int argc, char** argv) {
 	if (strcmp(dataDir, exeDir) || data_dir_note()[0])
 		fprintf(stderr, "data folder: %s%s%s\n", dataDir, data_dir_note()[0] ? " - " : "", data_dir_note());
 	if (!cfg.assetDir[0]) snprintf(cfg.assetDir, sizeof(cfg.assetDir), "%s", dataDir);
+	if (!cfg.patchDir[0]) snprintf(cfg.patchDir, sizeof(cfg.patchDir), "%s/patches", cfg.assetDir); /* GEN-9 */
 	if (!cfg.stateDir[0]) snprintf(cfg.stateDir, sizeof(cfg.stateDir), "%s/states", dataDir);
 	mkdirs(cfg.stateDir);
 	snprintf(path, sizeof(path), "%s/prefs.cfg", cfg.stateDir);
@@ -211,12 +212,14 @@ int main(int argc, char** argv) {
 	if (cfg.inputScript[0]) ui_load_script(cfg.inputScript);
 
 	if (cfg.rom[0]) {
-		game_run(&cfg, cfg.rom, false);
+		while (game_run(&cfg, cfg.rom, false) == GAME_RELOAD && !uiQuit) fprintf(stderr, "restarting %s\n", cfg.rom);
 	} else {
 		char rom[1024];
 		while (!uiQuit && library_run(&cfg, rom, sizeof(rom))) {
 			fprintf(stderr, "starting %s\n", rom);
-			if (game_run(&cfg, rom, true) == GAME_QUIT_APP) break;
+			enum GameExit x;
+			while ((x = game_run(&cfg, rom, true)) == GAME_RELOAD && !uiQuit) fprintf(stderr, "restarting %s\n", rom);
+			if (x == GAME_QUIT_APP) break;
 		}
 	}
 	logo_shutdown();

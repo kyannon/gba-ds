@@ -386,6 +386,110 @@
    "shots": {
     "list": 240
    }
+  },
+  {
+   "id": "sma-us-worldmap-patch-colour",
+   "rom": "AA2E",
+   "state": "super-mario-advance-2/us-worldmap.ss",
+   "desc": "sma-us-worldmap with \"Super Mario World Color Restoration v0.91\" switched on in its patches folder (docs/patches.md): known by GBA DS as that patch, tested; the second screen as without it, in the patch's colours. Yoshi's House on the world map",
+   "rules": [
+    "GEN-9",
+    "SMA-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "SMA-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the patch applied and known, tested",
+     "type": "log",
+     "match": "a mod GBA DS is tested on \\(Super\\ Mario\\ World\\ Color\\ Restoration\\ v0\\.91\\); patched as it started with smwcr091u\\.ips"
+    }
+   ],
+   "patch_on": "smwcr091u.ips"
+  },
+  {
+   "id": "sma-us-worldmap-patch-voice",
+   "rom": "AA2E",
+   "state": "super-mario-advance-2/us-worldmap.ss",
+   "desc": "sma-us-worldmap with \"Voice removal v1.0\" switched on in its patches folder (docs/patches.md): known by GBA DS as that patch, tested; the second screen as without it, in the patch's colours. Yoshi's House on the world map",
+   "rules": [
+    "GEN-9",
+    "SMA-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "SMA-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the patch applied and known, tested",
+     "type": "log",
+     "match": "a mod GBA DS is tested on \\(Voice\\ removal\\ v1\\.0\\); patched as it started with smwgba_voices_removed\\(U\\)1\\.0\\.ips"
+    }
+   ],
+   "patch_on": "smwgba_voices_removed(U)1.0.ips"
+  },
+  {
+   "id": "sma-eu-level-patch-colour",
+   "rom": "AA2P",
+   "state": "super-mario-advance-2/eu-level.ss",
+   "desc": "sma-eu-level with \"Super Mario World Color Restoration v0.91\" switched on in its patches folder (docs/patches.md): known by GBA DS as that patch, tested; the second screen as without it, in the patch's colours. Yoshi's Island 1, European release (the state leaves the level by itself at about frame 250)",
+   "rules": [
+    "GEN-9",
+    "SMA-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 200
+   },
+   "patch_on": "smwcr091e.ips",
+   "checks": [
+    {
+     "rule": "GEN-9",
+     "what": "the patch applied and known, tested",
+     "type": "log",
+     "match": "a mod GBA DS is tested on \\(Super\\ Mario\\ World\\ Color\\ Restoration\\ v0\\.91\\); patched as it started with smwcr091e\\.ips"
+    }
+   ]
+  },
+  {
+   "id": "sma-eu-level-patch-voice",
+   "rom": "AA2P",
+   "state": "super-mario-advance-2/eu-level.ss",
+   "desc": "sma-eu-level with \"Voice removal v1.0\" switched on in its patches folder (docs/patches.md): known by GBA DS as that patch, tested; the second screen as without it, in the patch's colours. Yoshi's Island 1, European release (the state leaves the level by itself at about frame 250)",
+   "rules": [
+    "GEN-9",
+    "SMA-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 200
+   },
+   "patch_on": "smwgba_voices_removed(E)1.0.ips",
+   "checks": [
+    {
+     "rule": "GEN-9",
+     "what": "the patch applied and known, tested",
+     "type": "log",
+     "match": "a mod GBA DS is tested on \\(Voice\\ removal\\ v1\\.0\\); patched as it started with smwgba_voices_removed\\(E\\)1\\.0\\.ips"
+    }
+   ]
   }
  ]
 }

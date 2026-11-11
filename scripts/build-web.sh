@@ -57,7 +57,7 @@ sed '/^#ifndef MINIMAL_CORE$/,/^#endif$/d' "$W/mgba-build/include/mgba/flags.h" 
 
 # ---- GBA DS (no RetroAchievements: no network from the page)
 APP="src/main.c src/config.c src/font.c src/ui.c src/library.c src/mapper.c src/hotkeys.c src/game.c src/paths.c src/image.c src/brand_data.c
-     src/bezel.c src/bezel_logo.c src/logo.c src/cheats.c src/esinteg.c src/textfont.c src/fonts_data.c src/ra.c src/emu.c src/mapcap.c
+     src/bezel.c src/bezel_logo.c src/logo.c src/cheats.c src/esinteg.c src/textfont.c src/fonts_data.c src/ra.c src/emu.c src/patch.c src/mapcap.c
      src/profiles.c src/logo_masks.c web/web.c"
 mkdir -p "$OUT/obj"
 VERSION=$(cat "$ROOT/VERSION")

@@ -515,6 +515,347 @@
    "golden": [
     "logo"
    ]
+  },
+  {
+   "id": "smb2-us-level-patch-colour",
+   "rom": "AMAE",
+   "state": "super-mario-advance/us-level.ss",
+   "desc": "smb2-us-level with \"SNES color restoration v1.2 (Mister Man)\" switched on in its patches folder (docs/patches.md): known by GBA DS as that patch, tested; the second screen as without it, in the patch's colours. World 1-1, a new file, Mario just landed",
+   "rules": [
+    "GEN-9",
+    "SMB2-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 240
+   },
+   "checks": [
+    {
+     "rule": "SMB2-1",
+     "what": "the status bar along the top of the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      110
+     ],
+     "color": "000000",
+     "frac": 0.97
+    },
+    {
+     "rule": "SMB2-1",
+     "what": "no board kept yet: the logo below the status bar, nothing of a board",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      256,
+      400,
+      768,
+      440
+     ],
+     "color": "FFF7BD",
+     "frac": 0.9
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the patch applied and known, tested",
+     "type": "log",
+     "match": "a mod GBA DS is tested on \\(SNES\\ color\\ restoration\\ v1\\.2\\ \\(Mister\\ Man\\)\\); patched as it started with SMA_USA\\.ips"
+    }
+   ],
+   "patch_on": "SMA_USA.ips"
+  },
+  {
+   "id": "smb2-us-level-patch-colour-gba-players",
+   "rom": "AMAE",
+   "state": "super-mario-advance/us-level.ss",
+   "desc": "smb2-us-level with \"SNES color restoration v1.2 (Mister Man)\" then \"Color restoration: GBA-style player palettes (optional)\" switched on in its patches folder (docs/patches.md): known by GBA DS as that patch, tested; the second screen as without it, in the patch's colours. World 1-1, a new file, Mario just landed",
+   "rules": [
+    "GEN-9",
+    "SMB2-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 240
+   },
+   "checks": [
+    {
+     "rule": "SMB2-1",
+     "what": "the status bar along the top of the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      110
+     ],
+     "color": "000000",
+     "frac": 0.97
+    },
+    {
+     "rule": "SMB2-1",
+     "what": "no board kept yet: the logo below the status bar, nothing of a board",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      256,
+      400,
+      768,
+      440
+     ],
+     "color": "FFF7BD",
+     "frac": 0.9
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the patch applied and known, tested",
+     "type": "log",
+     "match": "a mod GBA DS is tested on \\(Color\\ restoration:\\ GBA\\-style\\ player\\ palettes\\ \\(optional\\)\\); patched as it started with SMA_USA\\.ips"
+    }
+   ],
+   "patch_on": [
+    "SMA_USA.ips",
+    "GBA-Style Player Palettes_USA.ips"
+   ]
+  },
+  {
+   "id": "smb2-us-level-patch-colour-enemies",
+   "rom": "AMAE",
+   "state": "super-mario-advance/us-level.ss",
+   "desc": "smb2-us-level with \"SNES color restoration v1.2 (Mister Man)\" then \"Color restoration: original enemy colors (optional)\" switched on in its patches folder (docs/patches.md): known by GBA DS as that patch, tested; the second screen as without it, in the patch's colours. World 1-1, a new file, Mario just landed",
+   "rules": [
+    "GEN-9",
+    "SMB2-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 240
+   },
+   "checks": [
+    {
+     "rule": "SMB2-1",
+     "what": "the status bar along the top of the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      110
+     ],
+     "color": "000000",
+     "frac": 0.97
+    },
+    {
+     "rule": "SMB2-1",
+     "what": "no board kept yet: the logo below the status bar, nothing of a board",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      256,
+      400,
+      768,
+      440
+     ],
+     "color": "FFF7BD",
+     "frac": 0.9
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the patch applied and known, tested",
+     "type": "log",
+     "match": "a mod GBA DS is tested on \\(Color\\ restoration:\\ original\\ enemy\\ colors\\ \\(optional\\)\\); patched as it started with SMA_USA\\.ips"
+    }
+   ],
+   "patch_on": [
+    "SMA_USA.ips",
+    "Original Enemy Colors_USA.ips"
+   ]
+  },
+  {
+   "id": "smb2-us-level-patch-voice",
+   "rom": "AMAE",
+   "state": "super-mario-advance/us-level.ss",
+   "desc": "smb2-us-level with \"Voice removal v1.0\" switched on in its patches folder (docs/patches.md): known by GBA DS as that patch, tested; the second screen as without it, in the patch's colours. World 1-1, a new file, Mario just landed",
+   "rules": [
+    "GEN-9",
+    "SMB2-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 240
+   },
+   "checks": [
+    {
+     "rule": "SMB2-1",
+     "what": "the status bar along the top of the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      110
+     ],
+     "color": "000000",
+     "frac": 0.97
+    },
+    {
+     "rule": "SMB2-1",
+     "what": "no board kept yet: the logo below the status bar, nothing of a board",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      256,
+      400,
+      768,
+      440
+     ],
+     "color": "FFF7BD",
+     "frac": 0.9
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the patch applied and known, tested",
+     "type": "log",
+     "match": "a mod GBA DS is tested on \\(Voice\\ removal\\ v1\\.0\\); patched as it started with smb2gba_voice_removal\\(UE\\)1\\.0\\.ips"
+    }
+   ],
+   "patch_on": "smb2gba_voice_removal(UE)1.0.ips"
+  },
+  {
+   "id": "smb2-jp-level-patch-colour",
+   "rom": "AMAJ",
+   "state": "super-mario-advance/jp-level.ss",
+   "desc": "smb2-jp-level with \"SNES color restoration v1.2 (Mister Man)\" switched on in its patches folder (docs/patches.md): known by GBA DS as that patch, tested; the second screen as without it, in the patch's colours. World 1-1, Japanese release",
+   "rules": [
+    "GEN-9",
+    "SMB2-1",
+    "SMB2-7"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 240
+   },
+   "checks": [
+    {
+     "rule": "SMB2-1",
+     "what": "the status bar along the top of the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      110
+     ],
+     "color": "000000",
+     "frac": 0.97
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the patch applied and known, tested",
+     "type": "log",
+     "match": "a mod GBA DS is tested on \\(SNES\\ color\\ restoration\\ v1\\.2\\ \\(Mister\\ Man\\)\\); patched as it started with SMA_JPN\\.ips"
+    }
+   ],
+   "patch_on": "SMA_JPN.ips"
+  },
+  {
+   "id": "smb2-jp-level-patch-colour-gba-players",
+   "rom": "AMAJ",
+   "state": "super-mario-advance/jp-level.ss",
+   "desc": "smb2-jp-level with \"SNES color restoration v1.2 (Mister Man)\" then \"Color restoration: GBA-style player palettes (optional)\" switched on in its patches folder (docs/patches.md): known by GBA DS as that patch, tested; the second screen as without it, in the patch's colours. World 1-1, Japanese release",
+   "rules": [
+    "GEN-9",
+    "SMB2-1",
+    "SMB2-7"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 240
+   },
+   "checks": [
+    {
+     "rule": "SMB2-1",
+     "what": "the status bar along the top of the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      110
+     ],
+     "color": "000000",
+     "frac": 0.97
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the patch applied and known, tested",
+     "type": "log",
+     "match": "a mod GBA DS is tested on \\(Color\\ restoration:\\ GBA\\-style\\ player\\ palettes\\ \\(optional\\)\\); patched as it started with SMA_JPN\\.ips"
+    }
+   ],
+   "patch_on": [
+    "SMA_JPN.ips",
+    "GBA-Style Player Palettes_JPN.ips"
+   ]
+  },
+  {
+   "id": "smb2-jp-level-patch-colour-enemies",
+   "rom": "AMAJ",
+   "state": "super-mario-advance/jp-level.ss",
+   "desc": "smb2-jp-level with \"SNES color restoration v1.2 (Mister Man)\" then \"Color restoration: original enemy colors (optional)\" switched on in its patches folder (docs/patches.md): known by GBA DS as that patch, tested; the second screen as without it, in the patch's colours. World 1-1, Japanese release",
+   "rules": [
+    "GEN-9",
+    "SMB2-1",
+    "SMB2-7"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 240
+   },
+   "checks": [
+    {
+     "rule": "SMB2-1",
+     "what": "the status bar along the top of the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      110
+     ],
+     "color": "000000",
+     "frac": 0.97
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the patch applied and known, tested",
+     "type": "log",
+     "match": "a mod GBA DS is tested on \\(Color\\ restoration:\\ original\\ enemy\\ colors\\ \\(optional\\)\\); patched as it started with SMA_JPN\\.ips"
+    }
+   ],
+   "patch_on": [
+    "SMA_JPN.ips",
+    "Original Enemy Colors_JPN.ips"
+   ]
   }
  ]
 }

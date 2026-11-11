@@ -4,6 +4,7 @@
 |---|---|
 | Releases | `A88E` USA · `A88P` Europe (English, French, German, Spanish, Italian) · `A88J` Japan (Mario & Luigi RPG) |
 | Dumps | `A88E` cartridge `e718d850` (tested), Virtual Console `f87ea3c3` · `A88P` cartridge `170cc574` (tested), Virtual Console `6a5bd4f0` · `A88J` cartridge `4ef93d41` (tested), Virtual Console `bee3055a` |
+| Mods | `A88E` Superstar Saga+ v1.5 (100%) `ba4791f4` (tested), Superstar Saga+ v1.5 (80%) `10edf89c`, Superstar Saga+ v1.5 (60%) `e9f4ab5e` |
 | Profile | `src/profiles.c`: the `A88E` entry (`ml_compose`); variants `A88P` (its language menu), `A88J` |
 | Tests | `tests/regress/mario-and-luigi-superstar-saga.json` (`tools/regress.py mario-and-luigi-superstar-saga`) |
 | Status | supported |
@@ -29,6 +30,8 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 - The command blocks (RUN, ITEM, SOLO...) and the A button prompt stay on the game screen, over the brother whose turn it is, and so does everything else: the brothers, the enemies, the attacks and their action command prompts (the big A or B a Bros. Attack shows by the brother who has to press it, and the "!" over a brother's head, too), and the damage numbers over an enemy or a brother.
 - A conversation in a battle (the tutorials' speech balloons) stays on the game screen, by whoever is speaking, also while a box is up beside it on the second screen (the Starshade Bros.' Bros. Attack tutorial in Stardust Fields). (Until v1.5's test builds, a balloon shown while a box was up went to the second screen: issue #31.)
 - The results (EXP, coins, items won) and any level-ups after them (the brother jumping as his level counts up, his name, the star, LEVEL UP! and the stat bonuses) stay on the game screen as the game draws them, with the logo alone on the second screen, until you're walking about again. (Until v1.4.12's test builds, a level-up's opening, between the results and LEVEL UP!, went to the second screen: issue #29.)
+
+**ML-6. Superstar Saga+.** Superstar Saga+ (v1.5 by its 100%, 80% and 60% patches for the USA release, from GameBanana) plays the same as the game: ML-1 to ML-5 hold, with the mod's own names and numbers on Bros. Info (its items renamed, its experience) and in the battle boxes on the second screen (what its items do, its Bros. attacks' BP). A save state made on the unchanged game shouldn't be loaded into the mod, or the other way round: the mod's text has moved, so a conversation in progress comes out garbled. Battery saves aren't affected.
 
 ## Not covered yet
 

@@ -2764,6 +2764,1189 @@
     "herbs": 700,
     "green": 740
    }
+  },
+  {
+   "id": "mlp-us-title",
+   "rom": "A88E+mlssplus-100",
+   "state": "mario-and-luigi-superstar-saga/us-title.ss",
+   "desc": "Superstar Saga+ (100%), the title: the logo (the game's own state, loaded into the mod)",
+   "rules": [
+    "ML-1",
+    "ML-6"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "ML-1",
+     "what": "no capture",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ML-6",
+     "what": "GBA DS knows the mod",
+     "type": "log",
+     "match": "ROM: CRC32 ba4791f4, a mod GBA DS is tested on \\(Superstar Saga\\+ v1\\.5 \\(100%\\)\\)"
+    }
+   ]
+  },
+  {
+   "id": "mlp-us-field",
+   "rom": "A88E+mlssplus-100",
+   "state": "mario-and-luigi-superstar-saga/us-field.ss",
+   "desc": "Superstar Saga+ (100%), walking about: Bros. Info with the mod's names and numbers, following the brother in front (the game's own state, loaded into the mod)",
+   "rules": [
+    "ML-2",
+    "ML-6"
+   ],
+   "shots": {
+    "mario": 100,
+    "luigi": 260,
+    "mario2": 510
+   },
+   "checks": [
+    {
+     "rule": "ML-2",
+     "what": "Bros. Info taken, one page",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "ML-2",
+     "what": "the page follows the brother in front",
+     "type": "differs",
+     "a": {
+      "shot": "mario",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "luigi",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.05
+    },
+    {
+     "rule": "ML-2",
+     "what": "and back (above the note that the state was saved with the unchanged game)",
+     "type": "same",
+     "a": {
+      "shot": "mario",
+      "rect": [
+       0,
+       0,
+       1024,
+       712
+      ]
+     },
+     "b": {
+      "shot": "mario2",
+      "rect": [
+       0,
+       0,
+       1024,
+       712
+      ]
+     }
+    }
+   ],
+   "input": [
+    [
+     150,
+     "START"
+    ],
+    [
+     154,
+     "-"
+    ],
+    [
+     400,
+     "START"
+    ],
+    [
+     404,
+     "-"
+    ]
+   ]
+  },
+  {
+   "id": "mlp-us-into-battle",
+   "rom": "A88E+mlssplus-100",
+   "state": "mario-and-luigi-superstar-saga/us-into-battle.ss",
+   "desc": "Superstar Saga+ (100%), walking about into a battle: Bros. Info, then the logo once the battle starts (the game's own state, loaded into the mod)",
+   "rules": [
+    "ML-2",
+    "ML-3",
+    "ML-5",
+    "ML-6"
+   ],
+   "input": [
+    [
+     0,
+     "RIGHT"
+    ],
+    [
+     5,
+     "RIGHT+DOWN"
+    ],
+    [
+     7,
+     "DOWN"
+    ],
+    [
+     17,
+     "A+DOWN"
+    ],
+    [
+     23,
+     "A"
+    ],
+    [
+     27,
+     "-"
+    ],
+    [
+     44,
+     "A"
+    ],
+    [
+     52,
+     "-"
+    ],
+    [
+     73,
+     "A"
+    ],
+    [
+     81,
+     "-"
+    ],
+    [
+     94,
+     "A"
+    ],
+    [
+     104,
+     "-"
+    ],
+    [
+     203,
+     "UP"
+    ],
+    [
+     220,
+     "-"
+    ],
+    [
+     247,
+     "A"
+    ],
+    [
+     266,
+     "-"
+    ],
+    [
+     456,
+     "A"
+    ],
+    [
+     465,
+     "-"
+    ],
+    [
+     479,
+     "A"
+    ],
+    [
+     487,
+     "-"
+    ],
+    [
+     511,
+     "A"
+    ],
+    [
+     518,
+     "-"
+    ]
+   ],
+   "shots": {
+    "walking": 200,
+    "battle": 560
+   }
+  },
+  {
+   "id": "mlp-logo",
+   "kind": "logo",
+   "rom": "A88E+mlssplus-100",
+   "desc": "Superstar Saga+ (100%) logo extraction",
+   "rules": [
+    "GEN-1",
+    "ML-1",
+    "ML-6"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "mlp-us-battle-boxes",
+   "rom": "A88E+mlssplus-100",
+   "state": "mario-and-luigi-superstar-saga/us-battle-blocks.ss",
+   "desc": "Superstar Saga+ (100%), a battle, choosing Mario's block: the boxes and meters on the second screen (the game's own state, loaded into the mod)",
+   "rules": [
+    "ML-1",
+    "ML-5",
+    "ML-6"
+   ],
+   "input": [
+    [
+     32,
+     "A"
+    ],
+    [
+     34,
+     "-"
+    ],
+    [
+     82,
+     "DOWN"
+    ],
+    [
+     84,
+     "-"
+    ],
+    [
+     102,
+     "B"
+    ],
+    [
+     104,
+     "-"
+    ],
+    [
+     130,
+     "RIGHT"
+    ],
+    [
+     134,
+     "-"
+    ],
+    [
+     160,
+     "A"
+    ],
+    [
+     162,
+     "-"
+    ]
+   ],
+   "shots": {
+    "blocks": 30,
+    "item": 80,
+    "item2": 100,
+    "aim": 210
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "the meters at the top left of the second screen",
+     "type": "not_uniform",
+     "shot": "blocks",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "the top right box on the second screen",
+     "type": "not_uniform",
+     "shot": "blocks",
+     "rect": [
+      472,
+      76,
+      975,
+      131
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "the bottom box on the second screen",
+     "type": "not_uniform",
+     "shot": "blocks",
+     "rect": [
+      532,
+      624,
+      975,
+      687
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "the item list on the second screen",
+     "type": "not_uniform",
+     "shot": "item",
+     "rect": [
+      472,
+      176,
+      975,
+      387
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "ML-5",
+     "what": "aiming: the meters at the top left of the second screen, the name box not there",
+     "type": "not_uniform",
+     "shot": "aim",
+     "rect": [
+      32,
+      64,
+      435,
+      155
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "mlp-us-endgame-battle-bros",
+   "rom": "A88E+mlssplus-100",
+   "state": "mario-and-luigi-superstar-saga/us-endgame-battle-076.ss",
+   "desc": "Superstar Saga+ (100%), a level 38 battle: BROS, then its list on the second screen with the mod's attacks (the game's own state, loaded into the mod)",
+   "rules": [
+    "ML-5",
+    "ML-6"
+   ],
+   "input": [
+    [
+     30,
+     "RIGHT"
+    ],
+    [
+     34,
+     "-"
+    ],
+    [
+     80,
+     "A"
+    ],
+    [
+     84,
+     "-"
+    ],
+    [
+     160,
+     "DOWN"
+    ],
+    [
+     164,
+     "-"
+    ]
+   ],
+   "shots": {
+    "bros": 70,
+    "list": 150,
+    "list2": 190
+   },
+   "checks": [
+    {
+     "rule": "ML-5",
+     "what": "the Bros. list on the second screen",
+     "type": "not_uniform",
+     "shot": "list",
+     "rect": [
+      472,
+      176,
+      975,
+      267
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ml-library",
+   "kind": "library",
+   "rom": "A88E",
+   "desc": "the game list with the USA release: its logo, and nothing said about the ROM (an official dump)",
+   "rules": [
+    "GEN-8"
+   ],
+   "shots": {
+    "list": 40
+   },
+   "golden_mask": [
+    [
+     700,
+     720,
+     1024,
+     768
+    ]
+   ]
+  },
+  {
+   "id": "mlp-library",
+   "kind": "library",
+   "rom": "A88E+mlssplus-100",
+   "desc": "the game list with Superstar Saga+ (100%): \"Romhack: Superstar Saga+ v1.5 (100%)\" under the game's logo",
+   "rules": [
+    "GEN-8",
+    "ML-6"
+   ],
+   "shots": {
+    "list": 40
+   },
+   "golden_mask": [
+    [
+     700,
+     720,
+     1024,
+     768
+    ]
+   ]
+  },
+  {
+   "id": "mlp-patch-field",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-field.ss",
+   "desc": "Superstar Saga+ (100%) as an IPS patch file beside the USA ROM: applied as the game starts, Bros. Info with the mod's names and numbers as with the patched ROM (the game's own state)",
+   "rules": [
+    "GEN-9",
+    "ML-6"
+   ],
+   "shots": {
+    "mario": 100,
+    "luigi": 260,
+    "mario2": 510
+   },
+   "checks": [
+    {
+     "rule": "ML-2",
+     "what": "Bros. Info taken, one page",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "ML-2",
+     "what": "the page follows the brother in front",
+     "type": "differs",
+     "a": {
+      "shot": "mario",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "luigi",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.05
+    },
+    {
+     "rule": "ML-2",
+     "what": "and back",
+     "type": "same",
+     "a": {
+      "shot": "mario",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "mario2",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     }
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the patch applied, the mod known, the ROM file the tested dump",
+     "type": "log",
+     "match": "ROM: CRC32 ba4791f4, a mod GBA DS is tested on \\(Superstar Saga\\+ v1\\.5 \\(100%\\)\\); patched as it started with A88E\\.ips, the ROM file itself CRC32 e718d850 \\(the tested dump\\)"
+    }
+   ],
+   "input": [
+    [
+     150,
+     "START"
+    ],
+    [
+     154,
+     "-"
+    ],
+    [
+     400,
+     "START"
+    ],
+    [
+     404,
+     "-"
+    ]
+   ],
+   "patch": "mlssplus-v1.5-100.ips"
+  },
+  {
+   "id": "mlp-patch-library",
+   "kind": "library",
+   "rom": "A88E",
+   "desc": "the game list with the USA ROM and Superstar Saga+ (100%) as a BPS patch file beside it: \"Romhack: Superstar Saga+ v1.5 (100%) (patch file)\" under the game's logo",
+   "rules": [
+    "GEN-8",
+    "GEN-9"
+   ],
+   "shots": {
+    "list": 40
+   },
+   "golden_mask": [
+    [
+     700,
+     720,
+     1024,
+     768
+    ]
+   ],
+   "patch": "mlssplus-v1.5-100.bps"
+  },
+  {
+   "id": "ml-patch-wrong-library",
+   "kind": "library",
+   "rom": "A88P",
+   "desc": "the game list with the European ROM and a BPS patch made for the USA one beside it: \"Patch not applied: A88P.bps is for another ROM\"",
+   "rules": [
+    "GEN-9"
+   ],
+   "shots": {
+    "list": 40
+   },
+   "golden_mask": [
+    [
+     700,
+     720,
+     1024,
+     768
+    ]
+   ],
+   "patch": "mlssplus-v1.5-100.bps",
+   "checks": [
+    {
+     "rule": "GEN-9",
+     "what": "the patch not applied",
+     "type": "log",
+     "match": "patch A88P\\.bps: made for another ROM, not applied"
+    }
+   ]
+  },
+  {
+   "id": "mlp-patches-on-field",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-field.ss",
+   "desc": "Superstar Saga+ (100%) as a BPS in the game's patches folder, switched on: applied as the game starts, its own battery save, Bros. Info with the mod's names and numbers (the game's own state)",
+   "rules": [
+    "GEN-9",
+    "ML-6"
+   ],
+   "shots": {
+    "mario": 100,
+    "luigi": 260,
+    "mario2": 510
+   },
+   "checks": [
+    {
+     "rule": "GEN-9",
+     "what": "the patch from the folder applied, the mod known",
+     "type": "log",
+     "match": "ROM: CRC32 ba4791f4, a mod GBA DS is tested on \\(Superstar Saga\\+ v1\\.5 \\(100%\\)\\); patched as it started with mlssplus-v1\\.5-100\\.bps"
+    },
+    {
+     "rule": "GEN-9",
+     "what": "its own battery save",
+     "type": "log",
+     "match": "save .*/A88E \\+ mlssplus-v1\\.5-100\\.sav"
+    }
+   ],
+   "input": [
+    [
+     150,
+     "START"
+    ],
+    [
+     154,
+     "-"
+    ],
+    [
+     400,
+     "START"
+    ],
+    [
+     404,
+     "-"
+    ]
+   ],
+   "patch_on": "mlssplus-v1.5-100.bps"
+  },
+  {
+   "id": "ml-patches-list",
+   "rom": "A88E",
+   "patch_folder": [
+    "mlssplus-v1.5-100.ips",
+    "mlssplus-v1.5-100.bps"
+   ],
+   "desc": "the pause menu's Extras > Patches with Superstar Saga+ as an IPS and a BPS in the game's folder: both \"Tested romhack\", the IPS selected, then A once: \"Sure?\" and the note to save first",
+   "rules": [
+    "GEN-9"
+   ],
+   "input": [
+    [
+     120,
+     "TAP:0.5,0.3"
+    ],
+    [
+     130,
+     "R"
+    ],
+    [
+     134,
+     "-"
+    ],
+    [
+     140,
+     "R"
+    ],
+    [
+     144,
+     "-"
+    ],
+    [
+     150,
+     "DOWN"
+    ],
+    [
+     152,
+     "-"
+    ],
+    [
+     156,
+     "DOWN"
+    ],
+    [
+     158,
+     "-"
+    ],
+    [
+     162,
+     "A"
+    ],
+    [
+     166,
+     "-"
+    ],
+    [
+     180,
+     "DOWN"
+    ],
+    [
+     182,
+     "-"
+    ],
+    [
+     190,
+     "DOWN"
+    ],
+    [
+     192,
+     "-"
+    ],
+    [
+     200,
+     "DOWN"
+    ],
+    [
+     202,
+     "-"
+    ],
+    [
+     220,
+     "A"
+    ],
+    [
+     222,
+     "-"
+    ]
+   ],
+   "shots": {
+    "list": 210,
+    "armed": 240
+   },
+   "golden_mask": [
+    [
+     0,
+     0,
+     260,
+     70
+    ]
+   ]
+  },
+  {
+   "id": "mlp-patches-library",
+   "kind": "library",
+   "rom": "A88E",
+   "desc": "the game list with the USA ROM and Superstar Saga+ (100%) switched on in its patches folder: \"Romhack: Superstar Saga+ v1.5 (100%) (patch)\" under the game's logo",
+   "rules": [
+    "GEN-8",
+    "GEN-9"
+   ],
+   "shots": {
+    "list": 40
+   },
+   "golden_mask": [
+    [
+     700,
+     720,
+     1024,
+     768
+    ]
+   ],
+   "patch_on": "mlssplus-v1.5-100.ips"
+  },
+  {
+   "id": "ml-patches-stack",
+   "rom": "A88E",
+   "patch_folder": [
+    "Padding test.ips",
+    "mlssplus-v1.5-100.bps"
+   ],
+   "patch_on": [
+    "mlssplus-v1.5-100.ips",
+    "Overlap test.ips"
+   ],
+   "desc": "two patches on in the game's folder, Superstar Saga+ (IPS) then a test patch writing one of the bytes it writes: numbered 1 and 2 above the rest, \"Together: Tested romhack\", the second's name in gold with the note that they change the same bytes; then X on it and UP: moved above the first (\"Move\"), A: put down, and the top row says the patches changed since the game started",
+   "rules": [
+    "GEN-9"
+   ],
+   "input": [
+    [
+     120,
+     "TAP:0.5,0.3"
+    ],
+    [
+     130,
+     "R"
+    ],
+    [
+     134,
+     "-"
+    ],
+    [
+     140,
+     "R"
+    ],
+    [
+     144,
+     "-"
+    ],
+    [
+     150,
+     "DOWN"
+    ],
+    [
+     152,
+     "-"
+    ],
+    [
+     156,
+     "DOWN"
+    ],
+    [
+     158,
+     "-"
+    ],
+    [
+     162,
+     "A"
+    ],
+    [
+     166,
+     "-"
+    ],
+    [
+     180,
+     "DOWN"
+    ],
+    [
+     182,
+     "-"
+    ],
+    [
+     186,
+     "DOWN"
+    ],
+    [
+     188,
+     "-"
+    ],
+    [
+     192,
+     "DOWN"
+    ],
+    [
+     194,
+     "-"
+    ],
+    [
+     210,
+     "X"
+    ],
+    [
+     212,
+     "-"
+    ],
+    [
+     216,
+     "UP"
+    ],
+    [
+     218,
+     "-"
+    ],
+    [
+     240,
+     "A"
+    ],
+    [
+     242,
+     "-"
+    ]
+   ],
+   "shots": {
+    "list": 176,
+    "overlap": 204,
+    "moving": 230,
+    "moved": 250
+   },
+   "checks": [
+    {
+     "rule": "GEN-9",
+     "what": "both applied, in order, the mod known",
+     "type": "log",
+     "match": "ROM: CRC32 [0-9a-f]+, a mod GBA DS is tested on \\(Superstar Saga\\+ v1\\.5 \\(100%\\)\\); patched as it started with mlssplus-v1\\.5-100\\.ips \\+ Overlap test\\.ips"
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the saves named for both, by name",
+     "type": "log",
+     "match": "save .*/A88E \\+ mlssplus-v1\\.5-100 \\+ Overlap test\\.sav"
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the move saved",
+     "type": "log",
+     "match": "patches: Overlap test\\.ips moved to 1"
+    }
+   ],
+   "golden_mask": [
+    [
+     0,
+     0,
+     260,
+     70
+    ]
+   ]
+  },
+  {
+   "id": "ml-patches-fails",
+   "rom": "A88E",
+   "patch_on": [
+    "Padding test.ips",
+    "mlssplus-v1.5-100.bps"
+   ],
+   "desc": "a test patch, then Superstar Saga+ as a BPS (made for the unchanged ROM) second: the BPS left out as the game starts (the log and the list: \"Fails\" with the note to move it up), the first applied, \"Together: Untested\"",
+   "rules": [
+    "GEN-9"
+   ],
+   "input": [
+    [
+     120,
+     "TAP:0.5,0.3"
+    ],
+    [
+     130,
+     "R"
+    ],
+    [
+     134,
+     "-"
+    ],
+    [
+     140,
+     "R"
+    ],
+    [
+     144,
+     "-"
+    ],
+    [
+     150,
+     "DOWN"
+    ],
+    [
+     152,
+     "-"
+    ],
+    [
+     156,
+     "DOWN"
+    ],
+    [
+     158,
+     "-"
+    ],
+    [
+     162,
+     "A"
+    ],
+    [
+     166,
+     "-"
+    ],
+    [
+     180,
+     "DOWN"
+    ],
+    [
+     182,
+     "-"
+    ],
+    [
+     186,
+     "DOWN"
+    ],
+    [
+     188,
+     "-"
+    ],
+    [
+     192,
+     "DOWN"
+    ],
+    [
+     194,
+     "-"
+    ]
+   ],
+   "shots": {
+    "fails": 204
+   },
+   "checks": [
+    {
+     "rule": "GEN-9",
+     "what": "the first applied, the BPS left out",
+     "type": "log",
+     "match": "patched as it started with Padding test\\.ips, .*; not applied: mlssplus-v1\\.5-100\\.bps"
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the BPS left out where it is",
+     "type": "log",
+     "match": "patch [^\\n]*bps: made for another ROM, not applied"
+    }
+   ],
+   "golden_mask": [
+    [
+     0,
+     0,
+     260,
+     70
+    ]
+   ]
+  },
+  {
+   "id": "ml-patches-stack-library",
+   "kind": "library",
+   "rom": "A88E",
+   "desc": "the game list with Superstar Saga+ (IPS) and a test patch writing one of its bytes switched on: together still the mod, \"Romhack: Superstar Saga+ v1.5 (100%) (patch)\"",
+   "rules": [
+    "GEN-8",
+    "GEN-9"
+   ],
+   "shots": {
+    "list": 40
+   },
+   "golden_mask": [
+    [
+     700,
+     720,
+     1024,
+     768
+    ]
+   ],
+   "patch_on": [
+    "mlssplus-v1.5-100.ips",
+    "Overlap test.ips"
+   ]
+  },
+  {
+   "id": "ml-patches-fails-library",
+   "kind": "library",
+   "rom": "A88E",
+   "desc": "the game list with a test patch and then Superstar Saga+ as a BPS switched on (the BPS can't follow it): \"Patched, but a patch was left out\"",
+   "rules": [
+    "GEN-8",
+    "GEN-9"
+   ],
+   "shots": {
+    "list": 40
+   },
+   "golden_mask": [
+    [
+     700,
+     720,
+     1024,
+     768
+    ]
+   ],
+   "patch_on": [
+    "Padding test.ips",
+    "mlssplus-v1.5-100.bps"
+   ]
+  },
+  {
+   "id": "ml-patches-touch",
+   "rom": "A88E",
+   "patch_on": [
+    "mlssplus-v1.5-100.ips",
+    "Overlap test.ips"
+   ],
+   "desc": "touch: a tap on the second patch's number picks it up (\"Move\"), a tap on the first puts it there: the test patch first, Superstar Saga+ second",
+   "rules": [
+    "GEN-9"
+   ],
+   "input": [
+    [
+     120,
+     "TAP:0.5,0.3"
+    ],
+    [
+     130,
+     "R"
+    ],
+    [
+     134,
+     "-"
+    ],
+    [
+     140,
+     "R"
+    ],
+    [
+     144,
+     "-"
+    ],
+    [
+     150,
+     "DOWN"
+    ],
+    [
+     152,
+     "-"
+    ],
+    [
+     156,
+     "DOWN"
+    ],
+    [
+     158,
+     "-"
+    ],
+    [
+     162,
+     "A"
+    ],
+    [
+     166,
+     "-"
+    ],
+    [
+     180,
+     "TAP:0.03,0.7396"
+    ],
+    [
+     200,
+     "TAP:0.5,0.707"
+    ]
+   ],
+   "shots": {
+    "picked": 192,
+    "moved": 212
+   },
+   "checks": [
+    {
+     "rule": "GEN-9",
+     "what": "moved by touch",
+     "type": "log",
+     "match": "patches: Overlap test\\.ips moved to 1"
+    }
+   ],
+   "golden_mask": [
+    [
+     0,
+     0,
+     260,
+     70
+    ]
+   ]
+  },
+  {
+   "id": "ml-us-state-from-mod",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-field-mlssplus.ss",
+   "desc": "the unchanged USA game loading a state saved with Superstar Saga+ (100%): it loads, with the note that it was saved with that mod and may not work",
+   "rules": [
+    "GEN-9"
+   ],
+   "shots": {
+    "loaded": 30
+   },
+   "checks": [
+    {
+     "rule": "GEN-9",
+     "what": "the state's ROM named",
+     "type": "log",
+     "match": "load state: .* was saved with Superstar Saga\\+ v1\\.5 \\(100%\\) \\(ROM CRC32 ba4791f4, playing e718d850\\)"
+    }
+   ]
   }
  ]
 }

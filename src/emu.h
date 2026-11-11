@@ -46,7 +46,11 @@ typedef struct Emu {
 	struct mCore* core;
 	uint32_t* fb; /* GBA_W * GBA_H, mGBA native 32-bit color (XBGR8888, i.e. bytes R,G,B,X) */
 	char gameCode[5];
-	uint32_t romCrc; /* the ROM file's CRC32, as loaded (profile_dump) */
+	uint32_t romCrc; /* the ROM's CRC32, as loaded, patched if it was (profile_dump) */
+	int patch; /* PatchResult (patch.h): a patch file beside the ROM, and whether it was applied (GEN-9) */
+	char patchName[256]; /* the applied patches' file names, " + " between (or the one that wasn't) */
+	char patchSkipped[256]; /* (PATCH_PARTIAL) the ones left out, " + " between */
+	uint32_t fileCrc; /* the ROM file's own CRC32, before the patch */
 	bool audio;
 	unsigned long frames; /* frames run (emu_frame), for timing the captures */
 	/* a hidden copy's capture called off (mapcap_cancel): while it's set,
@@ -87,6 +91,9 @@ size_t emu_rewind_count(void);
 /* Persist full savestates (including battery data) to disk. */
 bool emu_state_save_file(Emu* e, const char* path);
 bool emu_state_load_file(Emu* e, const char* path);
+/* The CRC32 of the ROM a state file was saved with (mGBA keeps it in the
+ * state's header); false if it isn't a GBA state */
+bool emu_state_file_rom_crc(const char* path, uint32_t* crc);
 /* GBA DS's own data kept inside a state file (mGBA's extra data, a tag of
  * its own: other emulators skip it): written after the state (path saved
  * just before), read back as a malloc'd copy (NULL: none) */
@@ -95,6 +102,18 @@ void* emu_state_file_get_extra(Emu* e, const char* path, size_t* n);
 
 /* The whole ROM file (inside a .zip / .7z too), malloc'd; NULL on failure. */
 uint8_t* emu_rom_read_all(const char* path, size_t* size);
+/* The ROM as it's played: patched when a patch file beside it fits (GEN-9).
+ * *patch: PatchResult; patchName (if not NULL, 256 bytes): the patch file's
+ * name; *fileCrc (if not NULL): the ROM file's CRC32 before any patch.
+ * malloc'd, NULL if the ROM can't be read. */
+uint8_t* emu_rom_read_played(const char* path, size_t* size, int* patch, char* patchName, uint32_t* fileCrc);
+/* The patches a game is played with (GEN-9), in order: whatever opens that
+ * ROM from now on gets them; a NULL rom or no files: none planned (then the
+ * patch file beside a ROM, if any). */
+void emu_patch_plan(const char* rom, char files[][1024], int n);
+/* The ROM with the patches given applied, in order (the game list's
+ * checksum of each game as it would be played) */
+uint8_t* emu_rom_read_patched(const char* path, char files[][1024], int n, size_t* size, int* patch, char* patchName);
 /* A memory region of the running game (GBA address >> 24: 2 EWRAM, 3 IWRAM,
  * 0xE save RAM), or NULL. */
 uint8_t* emu_memory(Emu* e, int region, size_t* size);
