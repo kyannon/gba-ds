@@ -2993,7 +2993,9 @@ static void ml_no_prompts(Emu* s, uint32_t* out, int w, int h) {
 		for (int y = 72; y < 88; ++y)
 			for (int x = tabs[t].x; x < tabs[t].x + 16; ++x) {
 				int i = y * GBA_W + x;
-				if (page[i] == bare[i]) continue; /* (not BG2: the portrait, the lens) */
+				/* (not BG2: the portrait, the lens; under L from row 79 down,
+				 * the base, below the portrait, whatever the tab's tiles had) */
+				if (page[i] == bare[i] && !(t == 0 && y >= 79)) continue;
 				double dx = x - ML_GLASS_X, dy = y - ML_GLASS_Y, r = sqrt(dx * dx + dy * dy);
 				double a = atan2(dy, dx) * 180.0 / M_PI;
 				double e = fabs(a - tabs[t].a0) < fabs(a - tabs[t].a1) ? tabs[t].a0 : tabs[t].a1;
@@ -3005,25 +3007,34 @@ static void ml_no_prompts(Emu* s, uint32_t* out, int w, int h) {
 				uint32_t v = bare[i];
 				if (qx >= 0 && qx < GBA_W && qy >= 0 && qy < GBA_H && page[qy * GBA_W + qx] != bare[qy * GBA_W + qx])
 					v = page[qy * GBA_W + qx];
-				/* under L, past the medium brown: not the circle's edge curving
-				 * in under the tab but the glass's base, as the handle's side
-				 * widens (the owner's look at the Equipment page): its left edge
-				 * near straight down from where the game's own leaves off (x 16
-				 * on row 79), as the glass's left edge is drawn (dark, highlight,
-				 * light), medium brown inside, the base's bottom on row 86 (dark,
-				 * with light above it), as just right of the tab; the plaid left
-				 * of the edge and under the base */
-				if (t == 0 && r > 38.5 && y >= 79) {
-					static const int edge[8] = { 16, 16, 17, 17, 17, 18, 18, 18 };
+				/* under L from row 79 down: not the circle's edge curving in under
+				 * the tab but the glass's base, as its handle side widens (the
+				 * owner's look at the Equipment page): its left edge near straight
+				 * down from where the game's own leaves off (x 16 on row 79), in
+				 * the glass's own edge colours (dark, highlight, light), medium
+				 * brown inside right down to row 87, flush with the box below, as
+				 * the handle's brown is right of the tabs; the plaid left of the
+				 * edge. Nothing of the circle's outer rings there */
+				if (t == 0 && y >= 79) {
+					static const int edge[9] = { 16, 16, 17, 17, 17, 18, 18, 18, 18 };
 					int ex = edge[y - 79];
-					if (y == 87 || x < ex) v = bare[i];
-					else if (x == ex || y == 86) v = rim[0];
+					if (x < ex) v = bare[i];
+					else if (x == ex) v = rim[0];
 					else if (x == ex + 1) v = rim[1];
-					else if (x == ex + 2 || y == 85) v = rim[2];
-					else v = rim[3];
+					else if (x == ex + 2) v = rim[2];
+					else if (r > 34.5) v = rim[3];
 				}
 				out[y * w + x] = v;
 			}
+	/* the glass's base, between the tabs and under R too: no outer ring of
+	 * the circle along the bottom (its light and dark rows from 37.5 out,
+	 * the game's own between the tabs), medium brown down to row 87, flush
+	 * with the box below, as the handle's brown is right of the tabs */
+	for (int y = 79; y < 88; ++y)
+		for (int x = 32; x < 64; ++x) {
+			double dx = x - ML_GLASS_X, dy = y - ML_GLASS_Y;
+			if (dx * dx + dy * dy > 37.5 * 37.5) out[y * w + x] = rim[3];
+		}
 }
 static const char* ml_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
 	*nOut = 1;
