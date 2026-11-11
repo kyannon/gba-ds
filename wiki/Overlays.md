@@ -15,34 +15,33 @@ It's made for every screen of the devices GBA DS knows (the Anbernic RG DS and R
 
 ## Your own overlays
 
-Put PNGs in `gba-ds/overlays/` (Android: `GBA DS/overlays/`), not in its `default/` folder. Each one is drawn over the whole screen, stretched to its size, so make it the screen's size (**1024×768** on the RG DS Plus, **640×480** on the RG DS) and leave it transparent where the picture should show. Your files are named for what's on the screen rather than which screen it is: `primary` for the game screen and `secondary` for the second screen, so they follow the picture when you swap screens. The setting still decides which screens have one: with **Show Top Only**, only the top screen's overlay is drawn, whichever picture is there.
+Put PNGs in `gba-ds/overlays/` (Android: `GBA DS/overlays/`), not in its `default/` folder. Each one is drawn over the whole screen, stretched to its size, so make it the screen's size (**1024×768** on the RG DS Plus, **640×480** on the RG DS) and leave it transparent where the picture should show. Like GBA DS's own bezel, your overlays belong to a screen: `top` or `bottom`. Swapping screens doesn't move them, and the Overlays setting decides which screens have one.
 
-A file's name is made of these parts, in this order, joined by dashes; only `<side>` is needed:
+A file's name is made of these parts, in this order, joined by dashes; only `<screen>` is needed:
 
-`<CODE>` - `<side>` - `<scale>` - `<shapes>` `.png`
+`<CODE>` - `<screen>` - `<scale>` - `<shapes>` `.png`
 
 - `<CODE>`: the game's code, e.g. `A2CE` (Aria of Sorrow, USA), for an overlay for that game only. Each region has its own code: see the table in [[Supported games]].
-- `<side>`: `primary` (the game screen) or `secondary` (the second screen).
-- `<scale>`: that screen's scaling, for an overlay for that scaling only: `integer` (Pixel Perfect), `fit` (Full Width), `zoom` or `stretch`.
+- `<screen>`: `top` or `bottom`.
+- `<scale>`: the scaling of the picture on that screen, for an overlay for that scaling only: `integer` (Pixel Perfect), `fit` (Full Width), `zoom` or `stretch`.
 - `<shapes>`: **Screen shapes** (pause menu → Display; experimental), for an overlay for that setting only: `aspect` (Match screen aspect ratios) or `size` (Match screen sizes and aspect ratios). Only looked for while that setting is on and your two screens' shapes differ. With **Keep device aspect ratios**, or two screens of a shape (the RG DS), names with a `<shapes>` part are left alone, so the overlays you have keep working as they are.
 
 For each screen the most specific file found is used, so a game's own overlay beats a global one, and one made for your scaling and screen shapes beats one without them:
 
-| | Primary (game screen) | Secondary (second screen) |
+| | Top screen | Bottom screen |
 |---|---|---|
-| this game, this scaling and screen shapes | `<CODE>-primary-<scale>-<shapes>.png` | `<CODE>-secondary-<scale>-<shapes>.png` |
-| this game, these screen shapes | `<CODE>-primary-<shapes>.png` | `<CODE>-secondary-<shapes>.png` |
-| this game, this scaling | `<CODE>-primary-<scale>.png` | `<CODE>-secondary-<scale>.png` |
-| this game | `<CODE>-primary.png` | `<CODE>-secondary.png` |
-| every game, this scaling and screen shapes | `primary-<scale>-<shapes>.png` | `secondary-<scale>-<shapes>.png` |
-| every game, these screen shapes | `primary-<shapes>.png` | `secondary-<shapes>.png` |
-| every game, this scaling | `primary-<scale>.png` | `secondary-<scale>.png` |
-| every game | `primary.png` | `secondary.png` |
+| this game, this scaling and screen shapes | `<CODE>-top-<scale>-<shapes>.png` | `<CODE>-bottom-<scale>-<shapes>.png` |
+| this game, these screen shapes | `<CODE>-top-<shapes>.png` | `<CODE>-bottom-<shapes>.png` |
+| this game, this scaling | `<CODE>-top-<scale>.png` | `<CODE>-bottom-<scale>.png` |
+| this game | `<CODE>-top.png` | `<CODE>-bottom.png` |
+| every game, this scaling and screen shapes | `top-<scale>-<shapes>.png` | `bottom-<scale>-<shapes>.png` |
+| every game, these screen shapes | `top-<shapes>.png` | `bottom-<shapes>.png` |
+| every game, this scaling | `top-<scale>.png` | `bottom-<scale>.png` |
+| every game | `top.png` | `bottom.png` |
 
-For example, on an AYN Thor with the game on the top screen, Stretch and **Match screen aspect ratios**: `primary-stretch-aspect.png` is used if you have it, then `primary-aspect.png`, then `primary-stretch.png`, then `primary.png`.
+For example, on an AYN Thor with Stretch and **Match screen aspect ratios**: on the top screen, `top-stretch-aspect.png` is used if you have it, then `top-aspect.png`, then `top-stretch.png`, then `top.png`.
 
-- Map overlays named the old way (`<CODE>-<scale>.png`, `<CODE>.png`) still work, ahead of the global ones.
-- With **Show Both**, the second screen's overlay is drawn whatever it shows: the map, the HUD, the logo, or nothing. With only that screen's overlays on, only while a map (or HUD) is showing.
+- With **Show Both**, the overlay on the screen without the game is drawn whatever that screen shows: the map, the HUD, the logo, or nothing. With only that screen's overlays on, only while a map (or HUD) is showing.
 - An overlay is always drawn over its whole screen, whatever the screen shapes setting: make it the screen's own size (1920×1080 for the Thor's top screen), transparent where the picture goes.
 
 Areas to keep transparent, where the game or map picture is (the same for every game, since everything is shown at full GBA size):

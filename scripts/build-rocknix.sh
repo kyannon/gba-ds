@@ -97,7 +97,7 @@ printf "Optional: your own logo images (<CODE>.png or .bmp) override the ones ex
 mkdir -p "$PKG/cheats"
 printf "RetroArch cheat files (.cht) for GBA DS, in this folder or subfolders: picked by name, as RetroArch does (Game (USA).gba -> Game (USA) (Code Breaker).cht).\nRetroArch's own cheat folders are searched too (cheat_dir in gba-ds.cfg).\nSwitch cheats on in the pause menu: Extras > Cheats. More in the wiki: https://github.com/kyannon/gba-ds/wiki/Playing#cheats\n" > "$PKG/cheats/README.txt"
 mkdir -p "$PKG/overlays/default"
-printf "Your own overlay PNGs (the screen's size, 1024x768 on the RG DS Plus, transparent where the picture shows): primary.png (game screen) / secondary.png (second screen) for every game,\n<CODE>-primary.png / <CODE>-secondary.png for one game. Yours win over GBA DS's own bezels in default/ (replaced by each update: don't edit them there). Names for one scaling or screen shape, and more, in the wiki:\nhttps://github.com/kyannon/gba-ds/wiki/Overlays\n" > "$PKG/overlays/README.txt"
+cp dist/overlays-README.txt "$PKG/overlays/README.txt"
 cp assets/overlays/default/*.png assets/overlays/default/README.txt "$PKG/overlays/default/"
 cp README.md "$PKG/README.md"
 # mGBA is statically linked (MPL-2.0): ship its licence and where to get its source

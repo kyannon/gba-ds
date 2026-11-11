@@ -882,10 +882,10 @@ static SDL_Texture* logoTex[2];
 /* the logo centred in a GBA-sized picture, so it's scaled (and gridded)
  * like the game; NULL for a user's high-resolution logo */
 static SDL_Texture* logoCanvasTex[2];
-/* user overlay PNGs: [0] game screen ("primary"), [1] map screen ("secondary") */
+/* user overlay PNGs: [0] top screen, [1] bottom (load_overlay) */
 static SDL_Texture* overlayTex[2][2];
 static int overlayW[2], overlayH[2];
-static char overlayMode[2][16];
+static char overlayMode[2][32];
 /* GBA DS's own (draw_default_overlay): [0] top screen, [1] bottom */
 static SDL_Texture* defOverlayTex[2][2];
 static int defOverlayW[2], defOverlayH[2];
@@ -5082,48 +5082,51 @@ static SDL_Color borderColor;
 /* User overlay PNGs in <asset_dir>/overlays/, drawn over a whole screen
  * (transparent where the picture should show). A name is the parts that
  * apply, in this order, joined by dashes: the game's code (optional), the
- * side (primary: the game screen; secondary: the other), the scaling
- * (integer, fit, zoom, stretch; optional) and the screen shapes (aspect or
- * size, for screen_match; optional, and only looked for while it's on and
- * the screens' shapes differ). The most specific found wins:
- *   <CODE>-<side>-<scale>-<match>, <CODE>-<side>-<match>,
- *   <CODE>-<side>-<scale>, <CODE>-<side>,
- *   (secondary only, older names: <CODE>-<scale>, <CODE>)
- *   <side>-<scale>-<match>, <side>-<match>, <side>-<scale>, <side>
- * wiki/Overlays.md explains them for players. */
+ * screen (top or bottom; or, from before v1.5, primary: the game screen,
+ * secondary: the other, which follow the picture when the screens are
+ * swapped), the scaling (integer, fit, zoom, stretch; optional) and the
+ * screen shapes (aspect or size, for screen_match; optional, and only
+ * looked for while it's on and the screens' shapes differ). The most
+ * specific found wins, top / bottom before primary / secondary at each step:
+ *   <CODE>-<screen>-<scale>-<match>, <CODE>-<screen>-<match>,
+ *   <CODE>-<screen>-<scale>, <CODE>-<screen>,
+ *   (the second screen only, older names: <CODE>-<scale>, <CODE>)
+ *   <screen>-<scale>-<match>, <screen>-<match>, <screen>-<scale>, <screen>
+ * wiki/Overlays.md explains them for players (top and bottom only). */
 static void overlays_reload(void) {
 	overlayMode[0][0] = overlayMode[1][0] = 0;
 	defOverlayName[0][0] = defOverlayName[1][0] = 0;
 }
 
-static void load_overlay(int which) {
+/* s: the physical screen (0 top, 1 bottom); which: what's on it (0 the game, 1 the second screen) */
+static void load_overlay(int s, int which) {
 	const char* scale = which ? cfg->mapScale : cfg->scale;
 	const char* match = strcmp(cfg->screenMatch, "keep") && ui_screens_differ() ? cfg->screenMatch : NULL;
-	char key[16];
-	snprintf(key, sizeof(key), "%s|%s", scale, match ? match : "");
-	if (!strcmp(overlayMode[which], key)) return;
-	snprintf(overlayMode[which], sizeof(overlayMode[which]), "%s", key);
-	ui_free_image(overlayTex[which]);
-	const char* side = which ? "secondary" : "primary";
-	char names[10][64];
+	char key[sizeof(overlayMode[0])];
+	snprintf(key, sizeof(key), "%d|%s|%s", which, scale, match ? match : "");
+	if (!strcmp(overlayMode[s], key)) return;
+	snprintf(overlayMode[s], sizeof(overlayMode[s]), "%s", key);
+	ui_free_image(overlayTex[s]);
+	const char* sides[2] = { s == 1 && nScreens == 2 ? "bottom" : "top", which ? "secondary" : "primary" };
+	char names[20][64];
 	int n = 0;
-	if (match) snprintf(names[n++], 64, "%.4s-%s-%s-%s", emu.gameCode, side, scale, match);
-	if (match) snprintf(names[n++], 64, "%.4s-%s-%s", emu.gameCode, side, match);
-	snprintf(names[n++], 64, "%.4s-%s-%s", emu.gameCode, side, scale);
-	snprintf(names[n++], 64, "%.4s-%s", emu.gameCode, side);
-	if (which) {
-		snprintf(names[n++], 64, "%.4s-%s", emu.gameCode, scale); /* older names */
-		snprintf(names[n++], 64, "%.4s", emu.gameCode);
+	for (int g = 0; g < 2; ++g) { /* this game's, then every game's */
+		char code[8] = "";
+		if (!g) snprintf(code, sizeof(code), "%.4s-", emu.gameCode);
+		for (int k = 0; k < 2; ++k) if (match) snprintf(names[n++], 64, "%s%s-%s-%s", code, sides[k], scale, match);
+		for (int k = 0; k < 2; ++k) if (match) snprintf(names[n++], 64, "%s%s-%s", code, sides[k], match);
+		for (int k = 0; k < 2; ++k) snprintf(names[n++], 64, "%s%s-%s", code, sides[k], scale);
+		for (int k = 0; k < 2; ++k) snprintf(names[n++], 64, "%s%s", code, sides[k]);
+		if (!g && which) {
+			snprintf(names[n++], 64, "%.4s-%s", emu.gameCode, scale); /* older names */
+			snprintf(names[n++], 64, "%.4s", emu.gameCode);
+		}
 	}
-	if (match) snprintf(names[n++], 64, "%s-%s-%s", side, scale, match);
-	if (match) snprintf(names[n++], 64, "%s-%s", side, match);
-	snprintf(names[n++], 64, "%s-%s", side, scale);
-	snprintf(names[n++], 64, "%s", side);
 	char path[1200];
 	for (int i = 0; i < n; ++i) {
 		snprintf(path, sizeof(path), "%s/overlays/%s.png", cfg->assetDir, names[i]);
-		if (ui_load_image(path, overlayTex[which], &overlayW[which], &overlayH[which], true)) {
-			if (debug) fprintf(stderr, "overlay (%s): %s\n", side, path);
+		if (ui_load_image(path, overlayTex[s], &overlayW[s], &overlayH[s], true)) {
+			if (debug) fprintf(stderr, "overlay (%s screen): %s\n", sides[0], path);
 			return;
 		}
 	}
@@ -5162,9 +5165,9 @@ static bool overlay_on(int s) {
 }
 
 static void draw_overlay(int s, int which) {
-	load_overlay(which);
-	if (overlayTex[which][0] || overlayTex[which][1]) {
-		ui_image(s, overlayTex[which], overlayW[which], overlayH[which], "stretch", NULL);
+	load_overlay(s, which);
+	if (overlayTex[s][0] || overlayTex[s][1]) {
+		ui_image(s, overlayTex[s], overlayW[s], overlayH[s], "stretch", NULL);
 	} else {
 		draw_default_overlay(s, which ? cfg->mapScale : cfg->scale);
 	}
