@@ -7897,3 +7897,37 @@ DumpKind profile_dump(const char* gameCode, uint32_t crc, const char** name) {
 	}
 	return listed ? DUMP_MODIFIED : DUMP_UNLISTED;
 }
+
+/* The release's name as No-Intro gives it ("Mario & Luigi - Superstar Saga
+ * (USA)"): its tested dump's, else its first official one's, without what
+ * sets that dump apart ("(Rev 1)", "(Virtual Console)"...): the region and
+ * languages kept. NULL for a release with no list of dumps. (GEN-9's
+ * patches folder.) */
+bool profile_release_name(const char* gameCode, char* out, size_t size) {
+	const char* name = NULL;
+	for (size_t i = 0; i < sizeof(knownDumps) / sizeof(knownDumps[0]); ++i) {
+		if (strncmp(knownDumps[i].code, gameCode, 4) || knownDumps[i].mod) continue;
+		if (!name || knownDumps[i].tested) name = knownDumps[i].name;
+		if (knownDumps[i].tested) break;
+	}
+	if (!name) return false;
+	/* the title, then "(Region)", then "(En,Fr,...)" if it's languages */
+	const char* p = strchr(name, '(');
+	size_t keep = p ? (size_t) (p - name) : strlen(name);
+	while (keep && name[keep - 1] == ' ') --keep;
+	const char* e = p ? strchr(p, ')') : NULL;
+	if (e) {
+		keep = (size_t) (e + 1 - name); /* the region */
+		if (e[1] == ' ' && e[2] == '(') {
+			const char* p2 = e + 2;
+			const char* e2 = strchr(p2, ')');
+			bool langs = e2 && e2 > p2 + 1;
+			for (const char* q = p2 + 1; langs && q < e2; ++q) {
+				if (!((*q >= 'A' && *q <= 'Z') || (*q >= 'a' && *q <= 'z') || *q == ',')) langs = false;
+			}
+			if (langs) keep = (size_t) (e2 + 1 - name);
+		}
+	}
+	snprintf(out, size, "%.*s", (int) keep, name);
+	return true;
+}

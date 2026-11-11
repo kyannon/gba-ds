@@ -12,7 +12,9 @@ extern void web_sleep(unsigned ms) __attribute__((import_module("env"), import_n
 #include "ui.h"
 #include "ra.h"
 #include "logo.h"
+#include <ctype.h>
 #include <dirent.h>
+#include <strings.h>
 #include <math.h>
 #include "mapframe.h"
 #include "profiles.h"
@@ -1054,11 +1056,11 @@ static bool debug;
 
 /* ---------------------------------------------------------------- menu */
 
-enum MenuItem { M_RESUME, M_CHEATS, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND, M_AUTOSAVE, M_AUTOLOAD, M_BUG, M_SLOT, M_SHAPES, M_FF, M_COLOR, M_GHOST };
+enum MenuItem { M_RESUME, M_CHEATS, M_PATCHES, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND, M_AUTOSAVE, M_AUTOLOAD, M_BUG, M_SLOT, M_SHAPES, M_FF, M_COLOR, M_GHOST };
 static const char* menuLabels[] = {
 	/* title case: drawn in Futura from the built-in images (tools/make_brand.py) */
 	[M_RESUME] = "Resume", [M_SWAP] = "Swap Screens", [M_SAVE] = "Save State", [M_SCALE] = "", [M_LCD] = "", [M_FPS] = "", [M_FRAMEBUF] = "", [M_OVERLAY] = "", [M_LOGO] = "", [M_MATCH] = "", [M_REWIND] = "", [M_RESTART] = "Restart Game",
-	[M_LOAD] = "Load State", [M_CHEATS] = "Cheats", [M_ACH] = "Achievements", [M_SHOT] = "Take Screenshot", [M_LIBRARY] = "Close Game", [M_EXIT] = "Close GBA DS",
+	[M_LOAD] = "Load State", [M_CHEATS] = "Cheats", [M_PATCHES] = "Patches", [M_ACH] = "Achievements", [M_SHOT] = "Take Screenshot", [M_LIBRARY] = "Close Game", [M_EXIT] = "Close GBA DS",
 	[M_AUTOSAVE] = "", [M_AUTOLOAD] = "", [M_BUG] = "Submit a Bug Report", [M_SLOT] = "", [M_FF] = "", [M_COLOR] = "", [M_GHOST] = "",
 };
 static int menuItems[12], nMenuItems;
@@ -1409,6 +1411,276 @@ static void draw_cheats(int scr) {
 	char count[48];
 	snprintf(count, sizeof(count), "%d on", cheats_on(&cheats));
 	ui_font_text(scr, TF_BODY, r.w - px * 4, r.h - g.tpx * 5, tcap, count, C_DIS, 1);
+}
+
+/* ---------------------------------------------------------------- patches screen (GEN-9)
+ *
+ * "Patches" on the Extras page: the game's patches folder's files with an
+ * On/Off pill each (one on at a time), the file beside the ROM (always on),
+ * and two switches for the patched game's own battery save and states.
+ * Switching a patch asks first: A again restarts the game with the change,
+ * Y keeps it for the next start, B (or anything else) calls it off. Each
+ * patch is tried on the ROM as the list opens, so it can say what it is. */
+static const char* romPath; /* (the game's ROM; set by game_run) */
+static PatchChoice patchChoice;
+static char patchDir[1024];
+static bool patchReload; /* the game restarted for a patch switched on or off: no auto-load */
+static bool patchReloadNext;
+uint32_t doCrc32(const void* buf, size_t size); /* (libmgba's: its header wants zlib.h) */
+enum { PR_SAVE, PR_STATES, PR_HEADER, PR_BESIDE, PR_PATCH, PR_EMPTY };
+typedef struct {
+	int kind;
+	char file[256]; /* (PR_PATCH, PR_BESIDE) its file name */
+	char label[300];
+	char note[300]; /* the footer's text when it's selected */
+	bool usable;    /* (PR_PATCH) can be switched on */
+} PatchRow;
+#define PATCH_ROWS 70
+static PatchRow patchRows[PATCH_ROWS];
+static int nPatchRows, patchSel, patchScroll, patchArmed = -1;
+static bool patchesOpen;
+static char patchNote[300];
+static int patchPressRow = -1, patchPressY, patchPressScroll;
+static bool patchDragging;
+
+static void patch_row_add(int kind, const char* file, const char* label, const char* note, bool usable) {
+	if (nPatchRows >= PATCH_ROWS) return;
+	PatchRow* r = &patchRows[nPatchRows++];
+	r->kind = kind;
+	snprintf(r->file, sizeof(r->file), "%s", file ? file : "");
+	snprintf(r->label, sizeof(r->label), "%s", label);
+	snprintf(r->note, sizeof(r->note), "%s", note ? note : "");
+	r->usable = usable;
+}
+
+static int patch_name_cmp(const void* a, const void* b) {
+	return strcasecmp((const char*) a, (const char*) b);
+}
+
+/* what a patch does to this ROM, on its own */
+static void patch_describe(const uint8_t* rom, size_t romN, const char* path, char* note, size_t size, bool* usable) {
+	size_t pn = 0;
+	uint8_t* p = NULL;
+	FILE* f = fopen(path, "rb");
+	if (f) {
+		fseek(f, 0, SEEK_END);
+		long len = ftell(f);
+		rewind(f);
+		if (len > 0 && len <= 64L * 1024 * 1024 && (p = malloc((size_t) len)) && fread(p, 1, (size_t) len, f) == (size_t) len)
+			pn = (size_t) len;
+		fclose(f);
+	}
+	uint8_t* out = NULL;
+	size_t outN = 0;
+	int r = pn && rom ? patch_apply(p, pn, rom, romN, &out, &outN) : PATCH_UNREADABLE;
+	free(p);
+	*usable = r == PATCH_APPLIED;
+	if (r == PATCH_WRONG_ROM) {
+		snprintf(note, size, "Made for another version of the game: it can't be switched on for this ROM");
+	} else if (r != PATCH_APPLIED) {
+		snprintf(note, size, "Can't be read: not a patch, or damaged");
+	} else {
+		const char* name = NULL;
+		uint32_t crc = doCrc32(out, outN);
+		switch (profile_dump(emu.gameCode, crc, &name)) {
+		case DUMP_MOD_TESTED: snprintf(note, size, "Tested romhack: %s", name); break;
+		case DUMP_MOD: snprintf(note, size, "Known romhack: %s, untested", name); break;
+		case DUMP_TESTED:
+		case DUMP_OFFICIAL: snprintf(note, size, "Turns this ROM into another official release: %s", name ? name : ""); break;
+		default: snprintf(note, size, "Untested: the second screen may not work with it"); break;
+		}
+	}
+	free(out);
+}
+
+static void open_patches(void) {
+	nPatchRows = 0;
+	patchSel = patchScroll = 0;
+	patchArmed = -1;
+	patchNote[0] = 0;
+	patchPressRow = -1;
+	patch_row_add(PR_SAVE, NULL, "Separate battery save",
+	              "With a patch on, the game keeps its own battery save (\"<game> + <patch>\"): off, it uses the original's", true);
+	patch_row_add(PR_STATES, NULL, "Separate save states",
+	              "With a patch on, the game keeps its own save states: off, it uses the original's (a state can come out garbled in the other)", true);
+	char folder[300];
+	const char* slash = strrchr(patchDir, '/');
+	snprintf(folder, sizeof(folder), "In patches/%s", slash ? slash + 1 : patchDir);
+	patch_row_add(PR_HEADER, NULL, folder, NULL, false);
+	size_t romN = 0;
+	uint8_t* rom = emu_rom_read_all(romPath, &romN);
+	char beside[1024];
+	if (patch_find(romPath, beside, sizeof(beside))) {
+		char note[300];
+		bool ok;
+		patch_describe(rom, romN, beside, note, sizeof(note), &ok);
+		char label[300];
+		snprintf(label, sizeof(label), "%s (beside the ROM)", patch_name(beside));
+		char full[600];
+		snprintf(full, sizeof(full), "Always on (RetroArch's way: a patch named as the ROM). %s", note);
+		patch_row_add(PR_BESIDE, patch_name(beside), label, full, false);
+	}
+	char names[PATCH_ROWS][256];
+	int n = 0;
+	DIR* d = opendir(patchDir);
+	struct dirent* e;
+	while (d && (e = readdir(d)) && n < PATCH_ROWS - 5) {
+		const char* ext = strrchr(e->d_name, '.');
+		if (e->d_name[0] != '.' && ext && (!strcasecmp(ext, ".ips") || !strcasecmp(ext, ".ups") || !strcasecmp(ext, ".bps")))
+			snprintf(names[n++], sizeof(names[0]), "%s", e->d_name);
+	}
+	if (d) closedir(d);
+	qsort(names, (size_t) n, sizeof(names[0]), patch_name_cmp);
+	for (int i = 0; i < n; ++i) {
+		char path[1300], note[300], title[256], label[300];
+		snprintf(path, sizeof(path), "%s/%s", patchDir, names[i]);
+		bool ok;
+		patch_describe(rom, romN, path, note, sizeof(note), &ok);
+		patch_title(names[i], title, sizeof(title));
+		const char* ext = strrchr(names[i], '.');
+		char type[8] = "";
+		for (int k = 0; ext && ext[k + 1] && k < 3; ++k) type[k] = (char) toupper((unsigned char) ext[k + 1]);
+		snprintf(label, sizeof(label), "%s (%s)", title, type);
+		patch_row_add(PR_PATCH, names[i], label, note, ok);
+	}
+	free(rom);
+	if (!n) {
+		char note[1300];
+		snprintf(note, sizeof(note), "Put .ips, .ups or .bps files in %s", patchDir);
+		patch_row_add(PR_EMPTY, NULL, "No patches here yet", note, false);
+	}
+	patchesOpen = true;
+}
+
+static bool patch_is_on(const PatchRow* r) {
+	if (r->kind == PR_SAVE) return patchChoice.sepSave;
+	if (r->kind == PR_STATES) return patchChoice.sepStates;
+	if (r->kind == PR_BESIDE) return true;
+	return r->kind == PR_PATCH && !strcmp(patchChoice.on, r->file);
+}
+
+static int patch_max_scroll(const CheatGeom* g) {
+	return SDL_max(0, nPatchRows * (g->rowH + g->gap) - g->gap - g->listH);
+}
+
+static void patch_keep_visible(int scr) {
+	CheatGeom g = cheat_geom(scr);
+	int y = patchSel * (g.rowH + g.gap);
+	if (y < patchScroll) patchScroll = y;
+	if (y + g.rowH > patchScroll + g.listH) patchScroll = y + g.rowH - g.listH;
+	patchScroll = SDL_clamp(patchScroll, 0, patch_max_scroll(&g));
+}
+
+static void patch_move(int dir) {
+	for (int i = patchSel + dir; i >= 0 && i < nPatchRows; i += dir) {
+		if (patchRows[i].kind != PR_HEADER) {
+			patchSel = i;
+			break;
+		}
+	}
+	patchArmed = -1;
+	patchNote[0] = 0;
+	patch_keep_visible(ui_touch_screen());
+}
+
+/* A on a row (or a tap). Returns true when the game is to restart (GEN-9). */
+static bool patch_choose(int row, bool later) {
+	if (row < 0 || row >= nPatchRows) return false;
+	PatchRow* r = &patchRows[row];
+	if (r->kind == PR_SAVE || r->kind == PR_STATES) {
+		bool* v = r->kind == PR_SAVE ? &patchChoice.sepSave : &patchChoice.sepStates;
+		*v = !*v;
+		patch_choice_save(gp.patches, &patchChoice);
+		snprintf(patchNote, sizeof(patchNote), "%s", patchChoice.on[0] ? "Used from the next time the game starts" : "Saved for when a patch is on");
+		return false;
+	}
+	if (r->kind != PR_PATCH) return false;
+	bool on = patch_is_on(r);
+	if (!on && !r->usable) {
+		snprintf(patchNote, sizeof(patchNote), "%s", r->note);
+		return false;
+	}
+	if (patchArmed != row) {
+		patchArmed = row;
+		snprintf(patchNote, sizeof(patchNote),
+		         "Are you sure? Save your game first. A: restart %s it now. Y: from the next start. B: call it off",
+		         on ? "without" : "with");
+		return false;
+	}
+	patchArmed = -1;
+	snprintf(patchChoice.on, sizeof(patchChoice.on), "%s", on ? "" : r->file);
+	patch_choice_save(gp.patches, &patchChoice);
+	fprintf(stderr, "patches: %s %s%s\n", r->file, on ? "switched off" : "switched on", later ? ", from the next start" : "");
+	if (later) {
+		snprintf(patchNote, sizeof(patchNote), "%s the next time the game starts", on ? "Off" : "On");
+		return false;
+	}
+	patchReloadNext = true;
+	return true;
+}
+
+/* row under screen-local y, or -1 */
+static int patch_row_at(int scr, int x, int y) {
+	CheatGeom g = cheat_geom(scr);
+	if (y < g.top || y >= g.top + g.listH || x < g.x || x >= g.x + g.w) return -1;
+	int ly = y - g.top + patchScroll;
+	int row = ly / (g.rowH + g.gap);
+	if (ly % (g.rowH + g.gap) >= g.rowH || row >= nPatchRows) return -1;
+	return row;
+}
+
+static void draw_patches(int scr) {
+	CheatGeom g = cheat_geom(scr);
+	SDL_Rect r = screens[scr].rect;
+	float px = g.px;
+	int rad = menu_geom(scr).rad, cap = menu_geom(scr).cap;
+	SDL_Rect b = tab_rect(scr, 0), t = tab_rect(scr, 1);
+	ui_fill_round(scr, b, C_BTN, rad);
+	ui_label(scr, b.x + b.w / 2, b.y + b.h / 2, cap, "Back", C_TEXT);
+	ui_fill_round(scr, t, C_BTN_EDGE, rad);
+	ui_label(scr, t.x + t.w / 2, t.y + t.h / 2, cap, "Patches", (SDL_Color) { 20, 16, 36, 255 });
+	SDL_Rect clip = { screens[scr].rect.x, screens[scr].rect.y + g.top, r.w, g.listH };
+	ui_clip(scr, &clip);
+	int tcap = g.tpx * 5;
+	int pillW = ui_label_width(scr, tcap, "Always") + px * 8;
+	int nameW = g.w - pillW - px * 10;
+	for (int i = 0; i < nPatchRows; ++i) {
+		int y = g.top + i * (g.rowH + g.gap) - patchScroll;
+		if (y + g.rowH <= g.top || y >= g.top + g.listH) continue;
+		const PatchRow* pr = &patchRows[i];
+		char line[300];
+		if (pr->kind == PR_HEADER || pr->kind == PR_EMPTY) {
+			fit_text(line, sizeof(line), pr->kind == PR_HEADER ? TF_BOLD : TF_BODY, tcap, pr->label, g.w - px * 4);
+			ui_font_text(scr, pr->kind == PR_HEADER ? TF_BOLD : TF_BODY, g.x + px * 2, y + g.rowH / 2, tcap, line,
+			             pr->kind == PR_HEADER ? C_GOLD : C_DIS, -1);
+			continue;
+		}
+		bool sel = i == patchSel;
+		SDL_Rect row = { g.x, y, g.w, g.rowH };
+		if (sel) ui_fill_round(scr, (SDL_Rect) { row.x - px / 2, row.y - px / 2, row.w + px, row.h + px }, C_BTN_EDGE, rad);
+		ui_fill_round(scr, row, sel ? C_BTN_SEL : C_BTN, rad);
+		bool dim = pr->kind == PR_PATCH && !pr->usable && !patch_is_on(pr);
+		fit_text(line, sizeof(line), TF_BODY, tcap, pr->label, nameW);
+		ui_font_text(scr, TF_BODY, g.x + px * 4, y + g.rowH / 2, tcap, line, dim ? C_DIS : C_TEXT, -1);
+		bool on = patch_is_on(pr);
+		const char* pill = i == patchArmed ? "Sure?" : pr->kind == PR_BESIDE ? "Always" : dim ? "-" : on ? "On" : "Off";
+		SDL_Rect pl = { g.x + g.w - pillW - px * 3, y + px * 2, pillW, g.rowH - px * 4 };
+		SDL_Color pc = i == patchArmed ? C_GOLD : on ? (SDL_Color) { 64, 168, 112, 255 } : (SDL_Color) { 60, 56, 84, 255 };
+		ui_fill_round(scr, pl, pc, px * 2);
+		ui_label(scr, pl.x + pl.w / 2, pl.y + pl.h / 2, tcap, pill,
+		         i == patchArmed ? (SDL_Color) { 20, 16, 36, 255 } : on ? C_TEXT : (SDL_Color) { 160, 156, 184, 255 });
+	}
+	ui_clip(scr, NULL);
+	int maxS = patch_max_scroll(&g);
+	if (maxS > 0) {
+		int total = g.listH + maxS;
+		int bh = SDL_max(px * 6, g.listH * g.listH / total);
+		int by = g.top + (g.listH - bh) * patchScroll / maxS;
+		ui_fill_round(scr, (SDL_Rect) { r.w - px * 4, by, px * 2, bh }, C_BTN_EDGE, px);
+	}
+	/* footer: what was just done or asked, else what the selected row is */
+	const char* foot = patchNote[0] ? patchNote : (patchSel >= 0 && patchSel < nPatchRows ? patchRows[patchSel].note : "");
+	if (foot[0]) ui_font_wrap(scr, TF_BODY, px * 6, g.footY - tcap / 2, r.w - px * 12, tcap, foot, C_GOLD);
 }
 
 static SDL_Rect item_rect(int scr, int i) {
@@ -2173,6 +2445,14 @@ static void draw_menu(void) {
 	}
 	if (noteOpen) {
 		draw_note(scr);
+		if (nScreens > 1) {
+			int o = ui_other_screen();
+			ui_label(o, screens[o].rect.w / 2, screens[o].rect.h / 2, (ui_px(o) + 1) * 7 * 34 / 35, "Paused", C_GOLD);
+		}
+		return;
+	}
+	if (patchesOpen) {
+		draw_patches(scr);
 		if (nScreens > 1) {
 			int o = ui_other_screen();
 			ui_label(o, screens[o].rect.w / 2, screens[o].rect.h / 2, (ui_px(o) + 1) * 7 * 34 / 35, "Paused", C_GOLD);
@@ -5383,6 +5663,7 @@ static void open_menu(void) {
 	bar_close();
 	barShown = 0;
 	cheatsOpen = false;
+	patchesOpen = false;
 	close_ach();
 	set_page(0);
 	menuOpen = true;
@@ -5418,6 +5699,9 @@ static bool activate(int item, enum GameExit* exitTo) {
 	case M_CHEATS:
 		if (!cheats.n) snprintf(menuNote, sizeof(menuNote), "No cheats found (see Cheats in the wiki)");
 		else open_cheats();
+		break;
+	case M_PATCHES:
+		open_patches();
 		break;
 	case M_SWAP:
 		swap_screens();
@@ -5752,11 +6036,40 @@ static void ss_switch(const char* rom, const char* code) {
 	make_logo_canvas();
 }
 
+/* ---------------------------------------------------------------- patches (GEN-9)
+ * The game's patches folder (made if it isn't there), what's switched on
+ * (<game>.patches), and the patches every core opens the ROM with; with one
+ * applied, the saves and states named "<game> + <patch>" as the switches
+ * say. */
+
+static void patches_setup(const char* rom) {
+	uint8_t h[0xB0];
+	char code[5] = "????";
+	if (emu_rom_header(rom, h, sizeof(h))) memcpy(code, h + 0xAC, 4);
+	patch_folder(cfg, rom, code, patchDir, sizeof(patchDir), true);
+	patch_choice_load(gp.patches, &patchChoice);
+	char files[4][1024];
+	int n = patch_plan(cfg, rom, code, &patchChoice, files, 4);
+	emu_patch_plan(rom, files, n);
+	if (patchChoice.on[0]) {
+		/* its own saves only when it applies: a patch that doesn't fit leaves
+		 * the game as it is, with its own saves */
+		size_t sz = 0;
+		int r = PATCH_NONE;
+		free(emu_rom_read_played(rom, &sz, &r, NULL, NULL));
+		if (r == PATCH_APPLIED) game_paths_patched(cfg, &gp, &patchChoice);
+	}
+	patchReload = patchReloadNext;
+	patchReloadNext = false;
+	fprintf(stderr, "patches: %s, %d to apply%s%s\n", patchDir, n, patchChoice.on[0] ? ", on: " : "", patchChoice.on);
+}
+
 enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	cfg = c;
 	debug = getenv("GBADS_DEBUG") != NULL;
 	romPath = rom, lastLoop = 0;
 	game_paths(cfg, rom, &gp);
+	patches_setup(rom); /* GEN-9: the patches folder, what's on, and the plan every core opens the ROM with */
 	if (!emu_open(&emu, rom, gp.sav, true)) {
 		ui_osd("Couldn't load the game");
 		return fromLibrary ? GAME_TO_LIBRARY : GAME_QUIT_APP;
@@ -5769,10 +6082,15 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 #ifdef __wasi__
 	webPlaying = true;
 #endif
-	ra_game_start(&emu, rom);
+	if (emu.patch == PATCH_APPLIED || emu.patch == PATCH_WRONG_ROM || emu.patch == PATCH_UNREADABLE) {
+		ra_game_patched(); /* (RetroAchievements doesn't allow patched games) */
+	} else {
+		ra_game_start(&emu, rom);
+	}
 	cheats_load(&cheats, cfg, rom, emu.gameCode, gp.cheats);
 	if (cheats_on(&cheats)) cheats_apply(&cheats, &emu);
 	cheatsOpen = false;
+	patchesOpen = false;
 	ui_on_background(on_background);
 	ui_on_foreground(on_foreground);
 
@@ -5816,6 +6134,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	pages[0][pageLen[0]++] = M_SLOT;
 	pages[2][pageLen[2]++] = M_SWAP; /* (on Extras since v1.4.6: Display has Screen shapes) */
 	pages[2][pageLen[2]++] = M_CHEATS;
+	pages[2][pageLen[2]++] = M_PATCHES;
 	if (ra_enabled()) pages[2][pageLen[2]++] = M_ACH;
 	pages[2][pageLen[2]++] = M_SHOT;
 	if (fromLibrary) pages[0][pageLen[0]++] = M_LIBRARY;
@@ -5841,7 +6160,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	if (cfg->loadState[0]) {
 		if (!state_load(cfg->loadState)) fprintf(stderr, "could not load %s\n", cfg->loadState);
 		cfg->loadState[0] = 0;
-	} else if (cfg->autoLoad && file_exists(gp.autoState)) {
+	} else if (cfg->autoLoad && !patchReload && file_exists(gp.autoState)) { /* (not right after switching a patch) */
 		if (state_load(gp.autoState)) {
 			ui_osd("Resumed. Tap or HOME for the menu");
 		}
@@ -6124,6 +6443,41 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				}
 				continue;
 			}
+			if (patchesOpen) {
+				float px = ui_px(p.screen);
+				if (p.kind == 1) {
+					if (tab_at(p.screen, p.x, p.y, 2) == 0) {
+						patchesOpen = false; /* Back */
+						ignorePointerUp = true;
+						continue;
+					}
+					patchPressRow = patch_row_at(p.screen, p.x, p.y);
+					patchPressY = p.y;
+					patchPressScroll = patchScroll;
+					patchDragging = false;
+					ignorePointerUp = false;
+				} else if (p.kind == 3 && patchPressRow != -2) {
+					if (abs(p.y - patchPressY) > px * 4) patchDragging = true;
+					if (patchDragging) {
+						CheatGeom g = cheat_geom(p.screen);
+						patchScroll = SDL_clamp(patchPressScroll - (p.y - patchPressY), 0, patch_max_scroll(&g));
+					}
+				} else if (p.kind == 2) {
+					int row = patch_row_at(p.screen, p.x, p.y);
+					if (!ignorePointerUp && !patchDragging && row >= 0 && row == patchPressRow && patchRows[row].kind != PR_HEADER) {
+						if (row != patchSel) patchArmed = -1, patchNote[0] = 0;
+						patchSel = row;
+						if (patch_choose(row, false)) {
+							exitTo = GAME_RELOAD;
+							done = true;
+						}
+					}
+					patchPressRow = -2;
+					patchDragging = false;
+					ignorePointerUp = false;
+				}
+				continue;
+			}
 			if (cheatsOpen) {
 				float px = ui_px(p.screen);
 				if (p.kind == 1) {
@@ -6279,6 +6633,27 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			} else if (btn_pressed(B_X)) note_type(" ");
 			else if (btn_pressed(B_SELECT)) noteShift = !noteShift;
 			else if (btn_pressed(B_START)) note_done(true);
+		} else if (menuOpen && patchesOpen) {
+			static int pheld[2];
+			for (int k = 0; k < 2; ++k) {
+				int b = k ? B_DOWN : B_UP;
+				pheld[k] = btnNow[b] ? pheld[k] + 1 : 0;
+				if (pheld[k] == 1 || (pheld[k] > 20 && pheld[k] % 4 == 0)) patch_move(k ? 1 : -1);
+			}
+			CheatGeom g = cheat_geom(ui_touch_screen());
+			int page = SDL_max(1, g.listH / (g.rowH + g.gap) - 1);
+			if (btn_pressed(B_L)) for (int k = 0; k < page; ++k) patch_move(-1);
+			if (btn_pressed(B_R)) for (int k = 0; k < page; ++k) patch_move(1);
+			bool later = patchArmed >= 0 && btn_pressed(B_Y);
+			if ((btn_pressed(B_A) || later) && patch_choose(patchSel, later)) {
+				exitTo = GAME_RELOAD;
+				done = true;
+			}
+			if (btn_pressed(B_B)) {
+				if (patchArmed >= 0) patchArmed = -1, patchNote[0] = 0;
+				else patchesOpen = false;
+			}
+			if (btn_pressed(B_START)) patchesOpen = false, menuOpen = false;
 		} else if (menuOpen && cheatsOpen) {
 			/* D-pad repeats while held */
 			static int held[2];

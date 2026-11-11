@@ -1030,6 +1030,16 @@ void ra_game_start(Emu* e, const char* romPath) {
 	else if (loginState == LOGIN_FAILED && !loginRejected) start_login();
 }
 
+void ra_game_patched(void) {
+	if (!client) return;
+	emu = NULL;
+	gameLoaded = gameWanted = false;
+	nPopups = 0;
+	gameHash[0] = 0;
+	note("Off while a patch is on", "RetroAchievements doesn't allow patched games");
+	fprintf(stderr, "ra: off, the game is patched\n");
+}
+
 void ra_list_close(void);
 
 void ra_game_end(void) {

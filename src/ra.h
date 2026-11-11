@@ -28,6 +28,9 @@ void ra_init(const Config* cfg);
 void ra_shutdown(void);
 /* A game started / ended (the core running it stays valid in between). */
 void ra_game_start(Emu* e, const char* romPath);
+/* A game played with a patch (GEN-9): no achievements (RetroAchievements
+ * doesn't allow patched games), the banner says so instead */
+void ra_game_patched(void);
 void ra_game_end(void);
 /* After each emulated frame. */
 void ra_frame(void);
@@ -61,6 +64,7 @@ void ra_sign_out(void);
 static inline void ra_init(const Config* cfg) { (void) cfg; }
 static inline void ra_shutdown(void) {}
 static inline void ra_game_start(Emu* e, const char* romPath) { (void) e, (void) romPath; }
+static inline void ra_game_patched(void) {}
 static inline void ra_game_end(void) {}
 static inline void ra_frame(void) {}
 static inline void ra_idle(void) {}

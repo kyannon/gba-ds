@@ -37,7 +37,8 @@ typedef struct {
 	int flag; /* BRAND_FLAG_* shown on the tile, or -1 (only one region of this game) */
 	long long size, mtime; /* the file's, from the scan (its ROM checksum's cache key; with a patch
 	                        * file beside it, their sizes added and the later time) */
-	char patch[256]; /* the name of a patch file beside it (GEN-9), or "" */
+	char patch[256]; /* the name of the patch it's played with (GEN-9: switched on, or beside it), or "" */
+	char patchOn[256]; /* the one switched on in its patches folder, or "" */
 } GameEntry;
 
 static GameEntry* games;
@@ -216,12 +217,34 @@ static void scan_dir(Config* cfg, const char* d, int depth) {
 		g.size = (long long) st.st_size;
 		g.mtime = (long long) st.st_mtime;
 		{
+			/* its patches (GEN-9): beside it, and the one switched on in its
+			 * folder; their sizes and times (and the choice's) in the key */
 			char pp[1100];
 			struct stat ps;
-			if (patch_find(g.path, pp, sizeof(pp)) && stat(pp, &ps) == 0) { /* GEN-9 */
+			if (patch_find(g.path, pp, sizeof(pp)) && stat(pp, &ps) == 0) {
 				snprintf(g.patch, sizeof(g.patch), "%s", patch_name(pp));
 				g.size += (long long) ps.st_size;
 				if ((long long) ps.st_mtime > g.mtime) g.mtime = (long long) ps.st_mtime;
+			}
+			GamePaths gpx;
+			char base[256];
+			snprintf(base, sizeof(base), "%s", de->d_name);
+			char* dot = strrchr(base, '.');
+			if (dot) *dot = 0;
+			snprintf(gpx.patches, sizeof(gpx.patches), "%s/%s.patches", cfg->stateDir, base);
+			PatchChoice pc;
+			patch_choice_load(gpx.patches, &pc);
+			if (pc.on[0]) {
+				char dir[1024], file[1400];
+				patch_folder(cfg, g.path, g.code, dir, sizeof(dir), false);
+				snprintf(file, sizeof(file), "%s/%s", dir, pc.on);
+				if (stat(file, &ps) == 0) {
+					snprintf(g.patchOn, sizeof(g.patchOn), "%s", pc.on);
+					snprintf(g.patch, sizeof(g.patch), "%s", pc.on);
+					g.size += (long long) ps.st_size;
+					if ((long long) ps.st_mtime > g.mtime) g.mtime = (long long) ps.st_mtime;
+					if (stat(gpx.patches, &ps) == 0 && (long long) ps.st_mtime > g.mtime) g.mtime = (long long) ps.st_mtime;
+				}
 			}
 		}
 #ifdef GBADS_SIDE_CODES
@@ -276,6 +299,9 @@ static bool romCrcsDirty;
 static pthread_mutex_t crcLock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t crcWake = PTHREAD_COND_INITIALIZER;
 static RomCrc crcWant; /* the next file to read (path "": none) */
+static char crcWantFiles[4][1024]; /* and the patches to apply to it, in order (GEN-9) */
+static const Config* crcCfg;       /* (the settings, for the patches' folder: set by scan) */
+static int crcWantN;
 static bool crcThread;
 static unsigned crcGen; /* bumped as a checksum is worked out (crcLock) */
 
@@ -304,9 +330,9 @@ static void rom_crc_put(const RomCrc* c) {
  * every build's include path) */
 uint32_t doCrc32(const void* buf, size_t size);
 
-static uint32_t rom_crc_read(const char* path, int* patch) {
+static uint32_t rom_crc_read(const char* path, char files[][1024], int nFiles, int* patch) {
 	size_t n = 0;
-	uint8_t* buf = emu_rom_read_played(path, &n, patch, NULL, NULL);
+	uint8_t* buf = emu_rom_read_patched(path, files, nFiles, &n, patch, NULL);
 	uint32_t crc = buf ? doCrc32(buf, n) : 0;
 	free(buf);
 	return crc;
@@ -321,9 +347,12 @@ static void* rom_crc_worker(void* arg) {
 	for (;;) {
 		while (!crcWant.path[0]) pthread_cond_wait(&crcWake, &crcLock);
 		RomCrc c = crcWant;
+		char files[4][1024];
+		int nf = crcWantN;
+		memcpy(files, crcWantFiles, sizeof(files));
 		crcWant.path[0] = 0;
 		pthread_mutex_unlock(&crcLock);
-		c.crc = rom_crc_read(c.path, &c.patch);
+		c.crc = rom_crc_read(c.path, files, nf, &c.patch);
 		pthread_mutex_lock(&crcLock);
 		rom_crc_put(&c);
 	}
@@ -378,6 +407,9 @@ static bool game_crc(const GameEntry* g, uint32_t* crc, int* patch) {
 		crcWant.size = g->size;
 		crcWant.mtime = g->mtime;
 		snprintf(crcWant.path, sizeof(crcWant.path), "%s", g->path);
+		PatchChoice pc = { .sepSave = true, .sepStates = true };
+		snprintf(pc.on, sizeof(pc.on), "%s", g->patchOn);
+		crcWantN = crcCfg ? patch_plan(crcCfg, g->path, g->code, &pc, crcWantFiles, 4) : 0;
 		if (!crcThread && !(getenv("GBADS_SYNC") && atoi(getenv("GBADS_SYNC")))) {
 			pthread_t t;
 			crcThread = pthread_create(&t, NULL, rom_crc_worker, NULL) == 0;
@@ -389,7 +421,7 @@ static bool game_crc(const GameEntry* g, uint32_t* crc, int* patch) {
 			RomCrc w = crcWant;
 			crcWant.path[0] = 0;
 			pthread_mutex_unlock(&crcLock);
-			w.crc = rom_crc_read(w.path, &w.patch);
+			w.crc = rom_crc_read(w.path, crcWantFiles, crcWantN, &w.patch);
 			pthread_mutex_lock(&crcLock);
 			rom_crc_put(&w);
 			*crc = w.crc;
@@ -418,6 +450,7 @@ static void scan(Config* cfg) {
 	nSeenDirs = 0;
 	code_cache_load(cfg);
 	rom_crc_load(cfg);
+	crcCfg = cfg;
 	for (char* d = strtok_r(dirs, ":", &save); d; d = strtok_r(NULL, ":", &save)) scan_dir(cfg, d, 0);
 	code_cache_save(cfg);
 	qsort(games, nGames, sizeof(*games), cmp_games);
@@ -579,7 +612,7 @@ static void draw_preview(Config* cfg, int scr, int sel) {
 	int patch = PATCH_NONE;
 	if (game_crc(g, &crc, &patch)) {
 		const char* name;
-		const char* from = patch == PATCH_APPLIED ? " (patch file)" : "";
+		const char* from = patch == PATCH_APPLIED ? " (patch)" : "";
 		char line[400] = "";
 		if (patch == PATCH_WRONG_ROM) {
 			snprintf(line, sizeof(line), "Patch not applied: %s is for another ROM", g->patch);
@@ -590,7 +623,7 @@ static void draw_preview(Config* cfg, int scr, int sel) {
 			case DUMP_MOD_TESTED: snprintf(line, sizeof(line), "Romhack: %s%s", name, from); break;
 			case DUMP_MOD: snprintf(line, sizeof(line), "Romhack: %s%s, untested", name, from); break;
 			case DUMP_MODIFIED:
-				if (patch == PATCH_APPLIED) snprintf(line, sizeof(line), "Patched (%s): the second screen may not work", g->patch);
+				if (patch == PATCH_APPLIED) snprintf(line, sizeof(line), "Patched: the second screen may not work");
 				else snprintf(line, sizeof(line), "Modified ROM: the second screen may not work");
 				break;
 			default: break;

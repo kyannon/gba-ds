@@ -834,6 +834,9 @@ typedef enum {
 } DumpKind;
 /* name: No-Intro's name of the dump, or the mod's (NULL when not known) */
 DumpKind profile_dump(const char* gameCode, uint32_t crc, const char** name);
+/* The release's No-Intro name, without a revision's or reissue's mark
+ * ("Mario & Luigi - Superstar Saga (USA)"); false if it has no list of dumps */
+bool profile_release_name(const char* gameCode, char* out, size_t size);
 bool memprobes_match(const MemProbe* list, int n, Emu* e);
 /* the profile's virt (set when a game's map capture starts): MemProbe
  * addresses from 0xF0000000 */

@@ -125,6 +125,36 @@ def dump_error(case, rom):
         case["rom"], crcs[0] if crcs else "?", rules)
 
 
+_releaseNames = None
+
+
+def release_name(code):
+    """The release's No-Intro name as GBA DS names its patches folder
+    (profile_release_name: the tested dump's, else the first official one's,
+    the title with its region and languages only), or None."""
+    global _releaseNames
+    if _releaseNames is None:
+        _releaseNames = {}
+        text = open(os.path.join(ROOT, "src", "dumps_data.h"), encoding="utf-8").read()
+        for m in re.finditer(r'\{ "(\w{4})", 0x[0-9a-f]{8}, (true|false), false, "((?:[^"\\]|\\.)*)" \}', text):
+            c, tested, n = m.group(1), m.group(2) == "true", m.group(3)
+            if c not in _releaseNames or (tested and not _releaseNames[c][1]):
+                _releaseNames[c] = (n, tested)
+    if code not in _releaseNames:
+        return None
+    n = _releaseNames[code][0]
+    p = n.find("(")
+    if p < 0:
+        return n
+    e = n.index(")", p)
+    keep = e + 1
+    if n[e + 1:e + 3] == " (":
+        e2 = n.find(")", e + 2)
+        if e2 > e + 3 and re.fullmatch(r"[A-Za-z,]+", n[e + 3:e2]):
+            keep = e2 + 1
+    return n[:keep]
+
+
 def run_app(case, args, workdir):
     r = Run(case, workdir)
     rom = os.path.join(args.fixtures, "roms", case["rom"] + ".zip")
@@ -147,6 +177,26 @@ def run_app(case, args, workdir):
             r.error = "missing patch fixture patches/%s" % case["patch"]
             return r
         os.symlink(pf, os.path.join(romdir, case["rom"] + os.path.splitext(pf)[1]))
+    # patches in the game's own folder (GEN-9): "patch_folder" lists the
+    # fixtures' patches/ files put there, "patch_on" the one switched on
+    patchdir = os.path.join(workdir, "patches")
+    if case.get("patch_folder") or case.get("patch_on"):
+        name = release_name(case["rom"][:4])
+        if not name:
+            r.error = "no release name for %s (src/dumps_data.h)" % case["rom"][:4]
+            return r
+        folder = os.path.join(patchdir, name)
+        os.makedirs(folder, exist_ok=True)
+        for f in case.get("patch_folder", []) + ([case["patch_on"]] if case.get("patch_on") else []):
+            pf = os.path.join(args.fixtures, "patches", f)
+            if not os.path.exists(pf):
+                r.error = "missing patch fixture patches/%s" % f
+                return r
+            if not os.path.exists(os.path.join(folder, f)):
+                os.symlink(pf, os.path.join(folder, f))
+        if case.get("patch_on"):
+            with open(os.path.join(statedir, case["rom"] + ".patches"), "w") as f:
+                f.write("on %s\nseparate_save 1\nseparate_states 1\n" % case["patch_on"])
     if case.get("save"):
         sav = os.path.join(args.fixtures, "saves", case["save"])
         if not os.path.exists(sav):
@@ -174,7 +224,7 @@ def run_app(case, args, workdir):
         for frame, what in lines:
             f.write("%d %s\n" % (frame, what))
     # (the start-up hint is timed in real seconds: off, so the pictures are exact)
-    cmd = [args.bin, "--state-dir=" + statedir, "--input-script=" + script, "--quick_bar_hint=0"]
+    cmd = [args.bin, "--state-dir=" + statedir, "--input-script=" + script, "--quick_bar_hint=0", "--patch_dir=" + patchdir]
     for k, v in case.get("config", {}).items():
         cmd.append("--%s=%s" % (k, v))
     if case.get("state"):
@@ -502,8 +552,8 @@ def main():
                 need.add("states/" + c["state"])
             if c.get("save"):
                 need.add("saves/" + c["save"])
-            if c.get("patch"):
-                need.add("patches/" + c["patch"])
+            for f in ([c["patch"]] if c.get("patch") else []) + c.get("patch_folder", []) + ([c["patch_on"]] if c.get("patch_on") else []):
+                need.add("patches/" + f)
             for _, keys in c.get("input", []):
                 if keys.startswith("LOAD:"):
                     need.add("states/" + keys[5:])

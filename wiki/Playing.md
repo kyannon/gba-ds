@@ -58,6 +58,7 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 **Extras** (Swap Screens, Rewind, Fast Forward, Save on Quit and Auto-Load are remembered for next time)
 - **Swap Screens**: game and second screen trade places (also HOME + Y).
 - **Cheats**: see [below](#cheats).
+- **Patches**: romhacks and other patches for the game; see [below](#patches).
 - **Achievements**: when signed in to RetroAchievements; see [below](#retroachievements).
 - **Take Screenshot**: both screens as they look right now, with your display settings, stacked top to bottom into one PNG in `/storage/roms/screenshots` (Android: `GBA DS/screenshots`); `screenshot_dir` changes the folder.
 - **Submit a Bug Report**: the same as the quick bar's bug button (see [below](#the-quick-bar-and-bug-reports)), for the moment you opened the menu.
@@ -162,6 +163,17 @@ GBA DS reads RetroArch's cheat files (`.cht`, the format of the [libretro cheat 
 - Code Breaker files usually start with an "Enable Code (Must Be On)" cheat: switch it on along with the others, as on the real device.
 - Choices take effect immediately and are remembered per game (`states/<game>.cheats`); a file's own `cheatN_enable` values are used until you change something.
 - Cheats can crash or soft-lock a game, and anything they change is kept in your saves. Make a save state first.
+
+## Patches
+
+GBA DS applies patches (`.ips`, `.ups` and `.bps` files: romhacks, colour patches, translations) to a game as it starts, so the ROM itself stays as it is.
+
+- **Where:** each game has its own folder in GBA DS's `patches` folder (`gba-ds/patches`, on ROCKNIX and BananaOS; Android: `GBA DS/patches` on the internal storage), named after the game and its region, for example `patches/Mario & Luigi - Superstar Saga (USA)`. GBA DS makes the folder the first time you play the game, so it's there to drop files into, whatever your ROM file is called. Name the patch files as you like: the name is what the list shows. `patch_dir` changes the folder.
+- **Using them:** pause menu → Extras → **Patches** lists the game's patches with an On/Off switch each (D-pad and A, L1 / R1 a page at a time, B to go back, or tap one), and at the bottom what GBA DS makes of the selected one: a tested romhack (see [Supported games](Supported-games#romhacks-and-patched-roms)), untested, or made for another version of the game (that can't be switched on). One patch is on at a time. Switching one on or off asks first ("Sure?"): save your game, then A restarts the game with the change, or Y keeps it for the next time the game starts.
+- **Saves:** a game with a patch on has its own battery save and save states by default, named `<game> + <patch>`, so a romhack that changes the whole game never loads the original's. The two switches at the top of the list turn either off, for a patch that keeps the game's saves working (a colour patch, say).
+- **RetroAchievements** are off while a patch is on (they aren't allowed for patched games); the banner as the game starts says so.
+- A patch named as the ROM, beside it (`Mario & Luigi.ips` beside `Mario & Luigi.gba`), the way RetroArch uses them, is always on: it shows in the list as "Always".
+- A ROM you've patched yourself works as well, with no patch file.
 
 ## RetroAchievements
 

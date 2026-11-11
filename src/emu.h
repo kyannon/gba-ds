@@ -103,6 +103,13 @@ uint8_t* emu_rom_read_all(const char* path, size_t* size);
  * name; *fileCrc (if not NULL): the ROM file's CRC32 before any patch.
  * malloc'd, NULL if the ROM can't be read. */
 uint8_t* emu_rom_read_played(const char* path, size_t* size, int* patch, char* patchName, uint32_t* fileCrc);
+/* The patches a game is played with (GEN-9), in order: whatever opens that
+ * ROM from now on gets them; a NULL rom or no files: none planned (then the
+ * patch file beside a ROM, if any). */
+void emu_patch_plan(const char* rom, char files[][1024], int n);
+/* The ROM with the patches given applied, in order (the game list's
+ * checksum of each game as it would be played) */
+uint8_t* emu_rom_read_patched(const char* path, char files[][1024], int n, size_t* size, int* patch, char* patchName);
 /* A memory region of the running game (GBA address >> 24: 2 EWRAM, 3 IWRAM,
  * 0xE save RAM), or NULL. */
 uint8_t* emu_memory(Emu* e, int region, size_t* size);

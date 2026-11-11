@@ -19,6 +19,7 @@
 | Battery saves (`.srm`) | `/data/saves/gba`: the same file BananaOS's own Game Boy Advance list uses, so a game goes on from where you left it in either. GBA DS's saves from before v1.4.10 (`/data/saves/<game>.sav`) are carried over the first time you start each game; if both have a save, the newer one is used and the other is kept as `.srm.bak`. |
 | Screenshots | `/data/screenshots` |
 | Cheats | `roms/ports/gba-ds/cheats` (RetroArch `.cht` files; subfolders are fine), and RetroArch's `/data/retroarch/cheats` |
+| Patches | `roms/ports/gba-ds/patches/<game>` (a folder per game, made by GBA DS) |
 | Save states, settings from the menu, logos | `roms/ports/gba-ds/states/` |
 | Log | `roms/ports/gba-ds/gba-ds.log` |
 

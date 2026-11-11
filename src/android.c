@@ -86,6 +86,7 @@ void android_config_defaults(Config* c) {
 	if (home) {
 		snprintf(c->screenshotDir, sizeof(c->screenshotDir), "%s/screenshots", home);
 		snprintf(c->cheatDir, sizeof(c->cheatDir), "%s/cheats", home);
+		snprintf(c->patchDir, sizeof(c->patchDir), "%s/patches", home);
 		static const struct {
 			const char* dir;
 			const char* text;

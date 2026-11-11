@@ -111,7 +111,11 @@ pictures before they're compared; any case can use it).
 
 A case with `"patch": "FILE"` puts the fixture `patches/FILE` (an IPS, UPS or
 BPS) beside its ROM, named as the ROM with the patch's extension, so the app
-applies it as the game starts (GEN-9).
+applies it as the game starts (GEN-9). `"patch_folder": [FILE, ...]` puts
+fixtures in the game's own patches folder (`<work>/patches/<release name>`,
+the release's No-Intro name as `profile_release_name` gives it), and
+`"patch_on": "FILE"` switches one on there (writing `<rom>.patches`). Every
+app case runs with its own `--patch_dir`.
 
 ## Writing a case
 

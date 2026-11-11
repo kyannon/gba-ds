@@ -2973,6 +2973,178 @@
      "match": "patch A88P\\.bps: made for another ROM, not applied"
     }
    ]
+  },
+  {
+   "id": "mlp-patches-on-field",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-field.ss",
+   "desc": "Superstar Saga+ (100%) as a BPS in the game's patches folder, switched on: applied as the game starts, its own battery save, Bros. Info with the mod's names and numbers (the game's own state)",
+   "rules": [
+    "GEN-9",
+    "ML-6"
+   ],
+   "shots": {
+    "mario": 100,
+    "luigi": 260,
+    "mario2": 510
+   },
+   "checks": [
+    {
+     "rule": "GEN-9",
+     "what": "the patch from the folder applied, the mod known",
+     "type": "log",
+     "match": "ROM: CRC32 ba4791f4, a mod GBA DS is tested on \\(Superstar Saga\\+ v1\\.5 \\(100%\\)\\); patched as it started with mlssplus-v1\\.5-100\\.bps"
+    },
+    {
+     "rule": "GEN-9",
+     "what": "its own battery save",
+     "type": "log",
+     "match": "save .*/A88E \\+ mlssplus-v1\\.5-100\\.sav"
+    }
+   ],
+   "input": [
+    [
+     150,
+     "START"
+    ],
+    [
+     154,
+     "-"
+    ],
+    [
+     400,
+     "START"
+    ],
+    [
+     404,
+     "-"
+    ]
+   ],
+   "patch_on": "mlssplus-v1.5-100.bps"
+  },
+  {
+   "id": "ml-patches-list",
+   "rom": "A88E",
+   "patch_folder": [
+    "mlssplus-v1.5-100.ips",
+    "mlssplus-v1.5-100.bps"
+   ],
+   "desc": "the pause menu's Extras > Patches with Superstar Saga+ as an IPS and a BPS in the game's folder: both \"Tested romhack\", the IPS selected, then A once: \"Sure?\" and the note to save first",
+   "rules": [
+    "GEN-9"
+   ],
+   "input": [
+    [
+     120,
+     "TAP:0.5,0.3"
+    ],
+    [
+     130,
+     "R"
+    ],
+    [
+     134,
+     "-"
+    ],
+    [
+     140,
+     "R"
+    ],
+    [
+     144,
+     "-"
+    ],
+    [
+     150,
+     "DOWN"
+    ],
+    [
+     152,
+     "-"
+    ],
+    [
+     156,
+     "DOWN"
+    ],
+    [
+     158,
+     "-"
+    ],
+    [
+     162,
+     "A"
+    ],
+    [
+     166,
+     "-"
+    ],
+    [
+     180,
+     "DOWN"
+    ],
+    [
+     182,
+     "-"
+    ],
+    [
+     190,
+     "DOWN"
+    ],
+    [
+     192,
+     "-"
+    ],
+    [
+     200,
+     "DOWN"
+    ],
+    [
+     202,
+     "-"
+    ],
+    [
+     220,
+     "A"
+    ],
+    [
+     222,
+     "-"
+    ]
+   ],
+   "shots": {
+    "list": 210,
+    "armed": 240
+   },
+   "golden_mask": [
+    [
+     0,
+     0,
+     260,
+     70
+    ]
+   ]
+  },
+  {
+   "id": "mlp-patches-library",
+   "kind": "library",
+   "rom": "A88E",
+   "desc": "the game list with the USA ROM and Superstar Saga+ (100%) switched on in its patches folder: \"Romhack: Superstar Saga+ v1.5 (100%) (patch)\" under the game's logo",
+   "rules": [
+    "GEN-8",
+    "GEN-9"
+   ],
+   "shots": {
+    "list": 40
+   },
+   "golden_mask": [
+    [
+     700,
+     720,
+     1024,
+     768
+    ]
+   ],
+   "patch_on": "mlssplus-v1.5-100.ips"
   }
  ]
 }

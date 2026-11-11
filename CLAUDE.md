@@ -227,14 +227,22 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   `tools/romhack.py PATCH [--base CODE]` (IPS, UPS, BPS or a patched ROM)
   applies it, says what it changes, runs the release's cases on it
   (regress.py `--any-rom --json`) and writes `build/romhack/<name>/`
-  (report.md, the patched ROM, the regress report). Patch files beside a
-  ROM (GEN-9): `src/patch.c` (IPS, UPS, BPS, bounds-checked; mGBA's own
-  does no BPS), applied in `emu_open` (every core: the game, the hidden
-  copy, logos, twins) from one cached patched copy (`patched_rom`, emu.c),
-  loaded with `VFileMemChunk` + `core->loadROM`; `emu.patch` / `patchName`
-  / `fileCrc` for the log and bug reports; the game list's checksum is of
-  the ROM as played (`emu_rom_read_played`). Cases: `"patch": "FILE"`, the
-  fixture `patches/FILE` beside the ROM.
+  (report.md, the patched ROM, the regress report). Patches (GEN-9): `src/patch.c` (IPS,
+  UPS, BPS, bounds-checked; mGBA's own does no BPS). The game's folder is
+  `<patch_dir>/<profile_release_name>` (paths.c `patch_folder`, made at
+  start); `<state_dir>/<game>.patches` says which is on (one, for now) and
+  the "separate battery save / states" switches (`game_paths_patched`:
+  "<game> + <patch>"). game.c `patches_setup` sets `emu_patch_plan` (the
+  file beside the ROM, then the one on) before `emu_open`, which applies it
+  for every core (the game, the hidden copy, logos, twins) from one cached
+  patched copy, loaded with `VFileMemChunk` + `core->loadROM`. Extras >
+  Patches (`open_patches` / `draw_patches` / `patch_choose`, after Cheats):
+  each file tried on the ROM as the list opens; switching asks, then
+  `GAME_RELOAD` (main.c starts the ROM again, no auto-load). Patched:
+  `ra_game_patched` (no achievements, its banner says so). The game list's
+  checksum is of the ROM as it would be played (`emu_rom_read_patched`).
+  Cases: `"patch"` (beside the ROM), `"patch_folder"` / `"patch_on"`
+  (docs/TESTING.md).
 
 ## Testing without the device
 
