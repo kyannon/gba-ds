@@ -2951,20 +2951,35 @@ static void ml_page(const uint32_t* fb, uint32_t* out, int w, int h) {
 /* Bros. Info's L and R prompts (ML-2): each a pink tab with its letter,
  * drawn into BG2's magnifying glass (tiles 0x170-0x173 on map row 9 and
  * 0x190-0x193 on row 10, columns 2-3 for L and 6-7 for R; not sprites, so
- * they can't be hidden alone). The glass is concentric rings round the
- * lens's centre (39.5, 47): the dark rim, its lighter outline, the medium
- * brown, then the spoon's own edge (on the right the stem instead). Under
- * the tabs (16x16 at x 16 and 48, y 72) each BG2 pixel takes the glass's
- * own colour at the same distance from the centre along the nearest angle
- * the tabs don't cover, so the rings close round; where the glass has
- * nothing at that distance, what lies behind BG2 (the plaid) shows; under
- * R, right of the spoon's bottom edge (x 50), the stem's medium brown. A
- * pixel the portrait's sprites cover, or the lens, stays. Not this
- * layout: left as it is */
-#define ML_GLASS_X 39.5
-#define ML_GLASS_Y 47.0
+ * they can't be hidden alone). Only the tabs' pixels (their letters, faces,
+ * shading and outlines) are replaced, from the owner's own repaint of the
+ * glass (Nov 10, 2026, on the Equipment page, which shows more of it): the
+ * lens's rim and its lighter outline closed round, the glass's edge going
+ * on round under L with the plaid outside it, tapering into the handle
+ * under R and between the tabs' feet. The table is rows 72-87 from x 14:
+ * a-e the glass's colours, as the page has them on its left edge, '.' what
+ * lies behind BG2 there, '-' the game's own pixel kept. A pixel the
+ * portrait's sprites cover stays. Not this layout: left as it is */
+static const char mlGlass[16][53] = {
+	"----------------------------------------------------",
+	"----------------------------------------------------",
+	"----eddd--------------------------------abbdddd-----",
+	"----eedd--------------------------------edddddde----",
+	"----eeee--------------------------------ddddddee----",
+	"----eeee---------------------------------ddddeee----",
+	"----ddee---------------------------------ddeeeee----",
+	"---bddddeee------------------------------eeeeeee----",
+	"----.dddddeeeeee--------------------eeeeeeeeeeee----",
+	"---.....ddddeeee--------------------eeeeeeeeeeeee---",
+	"--........ddddee--------------------eeeeeeeeeeeeee--",
+	"--...........ddd--------------------eeeeeeeeeeeeee--",
+	"--...............-------------------eeeeeeeeeeeeee--",
+	"---...............------------------eeeeeeeeeeeee---",
+	"----...............b----------------eeeeeeeeeeee----",
+	"-----------------------------------b----------------"
+};
 static void ml_no_prompts(Emu* s, uint32_t* out, int w, int h) {
-	if (w < 80 || h < 88) return;
+	if (w < 66 || h < 88) return;
 	uint32_t map = 0x06000000 + ((emu_read16(s, 0x0400000C) >> 8) & 0x1F) * 0x800;
 	static const uint16_t want9[4] = { 0x172, 0x173, 0x170, 0x171 }, want10[4] = { 0x192, 0x193, 0x190, 0x191 };
 	static const int cols[4] = { 2, 3, 6, 7 };
@@ -2981,59 +2996,18 @@ static void ml_no_prompts(Emu* s, uint32_t* out, int w, int h) {
 	emu_frame(s, 0);
 	memcpy(bare, s->fb, sizeof(bare));
 	for (int i = 0; i < 32 * 32; ++i) emu_write16(s, map + i * 2, saved[i]);
-	/* the angles (y down) either side of each tab that show the glass whole:
-	 * L between above it and the bottom's middle, R between the middle and
-	 * the stem */
-	static const struct { int x; double a0, a1; } tabs[2] = { { 16, 136.0, 100.0 }, { 48, 80.0, 40.0 } };
-	static uint32_t page[GBA_W * GBA_H];
-	for (int y = 0; y < GBA_H; ++y) memcpy(&page[y * GBA_W], &out[y * w], GBA_W * sizeof(uint32_t));
-	/* the glass's left edge, from outside in (row 60: dark, highlight, light, medium) */
-	const uint32_t rim[4] = { page[60 * GBA_W + 2], page[60 * GBA_W + 3], page[60 * GBA_W + 4], page[60 * GBA_W + 5] };
-	for (int t = 0; t < 2; ++t)
-		for (int y = 72; y < 88; ++y)
-			for (int x = tabs[t].x; x < tabs[t].x + 16; ++x) {
-				int i = y * GBA_W + x;
-				/* (not BG2: the portrait, the lens; under L from row 79 down,
-				 * the base, below the portrait, whatever the tab's tiles had) */
-				if (page[i] == bare[i] && !(t == 0 && y >= 79)) continue;
-				double dx = x - ML_GLASS_X, dy = y - ML_GLASS_Y, r = sqrt(dx * dx + dy * dy);
-				double a = atan2(dy, dx) * 180.0 / M_PI;
-				double e = fabs(a - tabs[t].a0) < fabs(a - tabs[t].a1) ? tabs[t].a0 : tabs[t].a1;
-				/* (under R, the spoon's bottom edge stops at x 50, where the stem
-				 * goes on down: past it, the stem's medium brown) */
-				if (t == 1 && x > 50 && r > 34.5) e = tabs[t].a1;
-				int qx = (int) lround(ML_GLASS_X + r * cos(e * M_PI / 180.0));
-				int qy = (int) lround(ML_GLASS_Y + r * sin(e * M_PI / 180.0));
-				uint32_t v = bare[i];
-				if (qx >= 0 && qx < GBA_W && qy >= 0 && qy < GBA_H && page[qy * GBA_W + qx] != bare[qy * GBA_W + qx])
-					v = page[qy * GBA_W + qx];
-				/* under L from row 79 down: not the circle's edge curving in under
-				 * the tab but the glass's base, as its handle side widens (the
-				 * owner's look at the Equipment page): its left edge near straight
-				 * down from where the game's own leaves off (x 16 on row 79), in
-				 * the glass's own edge colours (dark, highlight, light), medium
-				 * brown inside right down to row 87, flush with the box below, as
-				 * the handle's brown is right of the tabs; the plaid left of the
-				 * edge. Nothing of the circle's outer rings there */
-				if (t == 0 && y >= 79) {
-					static const int edge[9] = { 16, 16, 17, 17, 17, 18, 18, 18, 18 };
-					int ex = edge[y - 79];
-					if (x < ex) v = bare[i];
-					else if (x == ex) v = rim[0];
-					else if (x == ex + 1) v = rim[1];
-					else if (x == ex + 2) v = rim[2];
-					else if (r > 34.5) v = rim[3];
-				}
-				out[y * w + x] = v;
-			}
-	/* the glass's base, between the tabs and under R too: no outer ring of
-	 * the circle along the bottom (its light and dark rows from 37.5 out,
-	 * the game's own between the tabs), medium brown down to row 87, flush
-	 * with the box below, as the handle's brown is right of the tabs */
-	for (int y = 79; y < 88; ++y)
-		for (int x = 32; x < 64; ++x) {
-			double dx = x - ML_GLASS_X, dy = y - ML_GLASS_Y;
-			if (dx * dx + dy * dy > 37.5 * 37.5) out[y * w + x] = rim[3];
+	/* the glass's colours, from its left edge (dark, -, highlight, light,
+	 * medium; b a step in from row 52's) */
+	const uint32_t glass[5] = { out[60 * w + 2], out[52 * w + 8], out[60 * w + 3], out[60 * w + 4], out[60 * w + 5] };
+	for (int y = 72; y < 88; ++y)
+		for (int x = 14; x < 66; ++x) {
+			char c = mlGlass[y - 72][x - 14];
+			if (c == '-') continue;
+			uint32_t* o = &out[y * w + x];
+			int i = y * GBA_W + x;
+			/* (a sprite over the tab: the portrait) */
+			if (*o == bare[i] && c != '.') continue;
+			*o = c == '.' ? bare[i] : glass[c - 'a'];
 		}
 }
 static const char* ml_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
