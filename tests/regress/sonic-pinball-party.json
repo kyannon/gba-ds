@@ -484,6 +484,49 @@
    ]
   },
   {
+   "id": "spp-eu-title",
+   "rom": "A3VP",
+   "state": "sonic-pinball-party/eu-title.ss",
+   "desc": "Europe (English on the language menu), the title: the logo",
+   "rules": [
+    "SPP-1"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "SPP-1",
+     "what": "no table view",
+     "type": "no_log",
+     "match": "frame [0-9]+: live view"
+    }
+   ]
+  },
+  {
+   "id": "spp-eu-sonic-table",
+   "rom": "A3VP",
+   "state": "sonic-pinball-party/eu-sonic-table.ss",
+   "desc": "Europe, Arcade, the Sonic table in play (played from power-on): the table over both screens",
+   "rules": [
+    "SPP-2",
+    "SPP-3"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "SPP-2",
+     "what": "the table over both screens",
+     "type": "log",
+     "match": "frame [0-9]+: live view"
+    }
+   ]
+  },
+  {
    "id": "spp-us-story-pause",
    "rom": "A3VE",
    "state": "sonic-pinball-party/us-story-table.ss",

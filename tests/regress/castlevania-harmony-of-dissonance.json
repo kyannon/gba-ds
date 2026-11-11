@@ -97,6 +97,94 @@
    ]
   },
   {
+   "id": "cvh-eu-play",
+   "rom": "ACHP",
+   "state": "castlevania-harmony-of-dissonance/eu-play.ss",
+   "desc": "Europe, outside the castle walls (a new game played from power-on): the map",
+   "rules": [
+    "CVH-1",
+    "CVH-2",
+    "CVH-5"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "CVH-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "cvh-jp-play",
+   "rom": "ACHJ",
+   "state": "castlevania-harmony-of-dissonance/jp-play.ss",
+   "desc": "Japan (RAM 0x30 lower), outside the castle walls (a new game played from power-on): the map",
+   "rules": [
+    "CVH-1",
+    "CVH-2",
+    "CVH-5"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "CVH-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "cvh-eu-menu",
+   "rom": "ACHP",
+   "state": "castlevania-harmony-of-dissonance/eu-menu.ss",
+   "desc": "Europe, the file menu: the logo, no map",
+   "rules": [
+    "CVH-4"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "type": "no_log",
+     "match": "map updated",
+     "rule": "CVH-4",
+     "what": "no map captured at the menus"
+    }
+   ]
+  },
+  {
+   "id": "cvh-jp-menu",
+   "rom": "ACHJ",
+   "state": "castlevania-harmony-of-dissonance/jp-menu.ss",
+   "desc": "Japan, the file menu: the logo, no map",
+   "rules": [
+    "CVH-4"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "type": "no_log",
+     "match": "map updated",
+     "rule": "CVH-4",
+     "what": "no map captured at the menus"
+    }
+   ]
+  },
+  {
    "id": "cvh-logo-ache",
    "kind": "logo",
    "rom": "ACHE",

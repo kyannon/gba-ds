@@ -536,6 +536,58 @@
    ]
   },
   {
+   "id": "fe8-us-story-scene",
+   "rom": "BE8E",
+   "state": "fire-emblem-sacred-stones/us-story-scene.ss",
+   "desc": "the prologue's opening story scene (a new game, Easy): the units walking in Renais Castle's throne room, then Seth's report with both portraits: the logo throughout",
+   "rules": [
+    "FE8-3",
+    "FE8-1"
+   ],
+   "shots": {
+    "map": 100,
+    "talk": 400
+   },
+   "checks": [
+    {
+     "rule": "FE8-3",
+     "what": "the logo on dark grey (the scene on the map)",
+     "type": "uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "FE8-3",
+     "what": "the logo on dark grey (the conversation)",
+     "type": "uniform",
+     "shot": "talk",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "FE8-3",
+     "what": "no status taken",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
    "id": "fe8-eu-map",
    "rom": "BE8P",
    "state": "fire-emblem-sacred-stones/eu-map.ss",
