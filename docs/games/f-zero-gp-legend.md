@@ -36,4 +36,4 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 ## Not covered yet
 
-- The European release is checked for its logo only (its races tried on the device, Oct 30, 2026); the Japanese release has one race case (a player's bug report: a course whose map sits higher).
+- The European release is checked on its main menu and Story's first race (played from power-on; its races tried on the device, Oct 30, 2026); the Japanese release has one race case (a player's bug report: a course whose map sits higher). Neither has a Grand Prix, Time Trial or pause case of its own.
