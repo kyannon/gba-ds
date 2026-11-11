@@ -627,6 +627,58 @@
    ]
   },
   {
+   "id": "ml-us-one-screen",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-battle-blocks.ss",
+   "desc": "a battle, choosing Mario's block, with one screen: the game as it is, the boxes and meters where the game draws them",
+   "rules": [
+    "ML-4"
+   ],
+   "config": {
+    "layout": "single"
+   },
+   "shots": {
+    "battle": 60
+   },
+   "checks": [
+    {
+     "rule": "ML-4",
+     "what": "nothing moved",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "ML-4",
+     "what": "the brothers' meters and the box at the game's bottom",
+     "type": "pixels",
+     "shot": "battle",
+     "screen": "second",
+     "probes": [
+      [
+       50,
+       242,
+       "107300"
+      ],
+      [
+       742,
+       250,
+       "29427B"
+      ],
+      [
+       782,
+       262,
+       "2963F7"
+      ],
+      [
+       238,
+       286,
+       "107300"
+      ]
+     ]
+    }
+   ]
+  },
+  {
    "id": "ml-us-battle-results",
    "rom": "A88E",
    "state": "mario-and-luigi-superstar-saga/us-battle-pre-results.ss",
