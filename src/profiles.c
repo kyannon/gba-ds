@@ -7944,13 +7944,24 @@ DumpKind profile_dump(const char* gameCode, uint32_t crc, const char** name) {
 	if (name) *name = NULL;
 	for (size_t i = 0; i < sizeof(knownDumps) / sizeof(knownDumps[0]); ++i) {
 		if (strncmp(knownDumps[i].code, gameCode, 4)) continue;
-		listed = true;
+		if (!knownDumps[i].mod) listed = true; /* (only patches known for it: not checked) */
 		if (knownDumps[i].crc != crc) continue;
 		if (name) *name = knownDumps[i].name;
 		if (knownDumps[i].mod) return knownDumps[i].tested ? DUMP_MOD_TESTED : DUMP_MOD;
 		return knownDumps[i].tested ? DUMP_TESTED : DUMP_OFFICIAL;
 	}
 	return listed ? DUMP_MODIFIED : DUMP_UNLISTED;
+}
+
+uint32_t doCrc32(const void* buf, size_t size); /* (libmgba's: its header wants zlib.h) */
+const KnownPatch* profile_patch(const uint8_t* file, size_t size, int n) {
+	if (size <= 4) return NULL;
+	uint32_t id = doCrc32(file, size - 4);
+	for (size_t i = 0; i < sizeof(knownPatches) / sizeof(knownPatches[0]); ++i) {
+		if (knownPatches[i].id != id || knownPatches[i].size != size) continue;
+		if (n-- == 0) return &knownPatches[i];
+	}
+	return NULL;
 }
 
 /* The release's name as No-Intro gives it ("Mario & Luigi - Superstar Saga

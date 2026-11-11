@@ -823,6 +823,21 @@ DumpKind profile_dump(const char* gameCode, uint32_t crc, const char** name);
 /* The release's No-Intro name, without a revision's or reissue's mark
  * ("Mario & Luigi - Superstar Saga (USA)"); false if it has no list of dumps */
 bool profile_release_name(const char* gameCode, char* out, size_t size);
+/* A patch GBA DS knows (docs/patches.md, src/dumps_data.h), by its file's
+ * checksum: the CRC32 of the file without its last four bytes, and its size */
+typedef struct {
+	char code[5];      /* the release it's for ("" if not known) */
+	uint32_t id;
+	uint32_t size;
+	uint32_t base;     /* the ROM it's made for (0: any of the release's, or not known) */
+	uint32_t result;   /* the ROM it makes from that (0: not known) */
+	const char* kind;  /* "colour", "voice removal", "translation"... */
+	const char* name;
+	const char* baseName; /* the base's No-Intro name, or "the game with <patch>" */
+	bool tested;       /* the game's cases pass on the result */
+} KnownPatch;
+/* the n-th entry for a patch file (one per ROM it's made for), or NULL */
+const KnownPatch* profile_patch(const uint8_t* file, size_t size, int n);
 bool memprobes_match(const MemProbe* list, int n, Emu* e);
 /* the profile's virt (set when a game's map capture starts): MemProbe
  * addresses from 0xF0000000 */

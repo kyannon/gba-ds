@@ -1453,6 +1453,14 @@ typedef struct {
 	bool usable;       /* applies to this ROM on its own */
 	ByteRange* ranges; /* (usable) the bytes it changes */
 	int nRanges;
+	/* a patch GBA DS knows (docs/patches.md): the ROMs it's made for, and
+	 * what to say when it goes on one of them (an optional patch: on
+	 * another patch's result, found when they're tried together) */
+	const KnownPatch* known;
+	uint32_t bases[8];
+	int nBases;
+	bool baseOk; /* made for this ROM (or for any of its release's) */
+	char okNote[300];
 } PatchInfo;
 #define PATCH_ROWS 70
 static PatchInfo patchInfo[PATCH_ROWS];
@@ -1563,23 +1571,52 @@ static void patch_result_text(const uint8_t* out, size_t outN, char* note, size_
 	}
 }
 
+/* a known patch's note when it goes on the ROM it's made for */
+static void patch_known_text(const KnownPatch* k, const uint8_t* out, size_t outN, char* note, size_t size) {
+	const char* name = NULL;
+	DumpKind d = out ? profile_dump(emu.gameCode, doCrc32(out, outN), &name) : DUMP_MODIFIED;
+	if (d == DUMP_MOD_TESTED) snprintf(note, size, "Known %s patch, tested: %s", k->kind, k->name);
+	else snprintf(note, size, "Known %s patch, untested: %s. The second screen may not work with it", k->kind, k->name);
+}
+
 /* what a patch does to this ROM, on its own */
-static void patch_describe(const uint8_t* rom, size_t romN, const char* path, PatchInfo* pi) {
+static void patch_describe(const uint8_t* rom, size_t romN, uint32_t romCrc, const char* path, PatchInfo* pi) {
 	size_t pn = 0;
 	uint8_t* p = patch_file_read(path, &pn);
 	uint8_t* out = NULL;
 	size_t outN = 0;
 	int r = pn && rom ? patch_apply(p, pn, rom, romN, &out, &outN) : PATCH_UNREADABLE;
+	/* known (docs/patches.md)? Made for this ROM? */
+	pi->known = NULL;
+	pi->nBases = 0;
+	pi->baseOk = false;
+	const KnownPatch* k;
+	for (int i = 0; pn && (k = profile_patch(p, pn, i)); ++i) {
+		if (strncmp(k->code, emu.gameCode, 4) && k->code[0]) continue; /* (another game's, with the same file) */
+		if (!pi->known) pi->known = k;
+		if (!k->base || k->base == romCrc) pi->baseOk = true, pi->known = k;
+		else if (pi->nBases < 8) pi->bases[pi->nBases++] = k->base;
+	}
 	free(p);
 	pi->usable = r == PATCH_APPLIED;
-	if (r == PATCH_WRONG_ROM) {
+	if (pi->known && r == PATCH_APPLIED) patch_known_text(pi->known, out, outN, pi->okNote, sizeof(pi->okNote));
+	if (r == PATCH_WRONG_ROM && pi->known) {
+		snprintf(pi->note, sizeof(pi->note), "Known %s patch: %s, made for %s: it can't be switched on for this ROM", pi->known->kind,
+		         pi->known->name, pi->known->baseName);
+	} else if (r == PATCH_WRONG_ROM) {
 		snprintf(pi->note, sizeof(pi->note), "Made for another version of the game: it can't be switched on for this ROM");
 	} else if (r != PATCH_APPLIED) {
 		snprintf(pi->note, sizeof(pi->note), "Can't be read: not a patch, or damaged");
+	} else if (pi->known && !pi->baseOk) {
+		/* an IPS can't say which ROM it's for: the list knows */
+		snprintf(pi->note, sizeof(pi->note), "Known %s patch: %s, made for %s. This ROM is another version: it may break the game",
+		         pi->known->kind, pi->known->name, pi->known->baseName);
+	} else if (pi->known) {
+		snprintf(pi->note, sizeof(pi->note), "%s", pi->okNote);
 	} else {
 		patch_result_text(out, outN, pi->note, sizeof(pi->note));
-		patch_ranges(rom, romN, out, outN, pi);
 	}
+	if (r == PATCH_APPLIED) patch_ranges(rom, romN, out, outN, pi);
 	free(out);
 }
 
@@ -1672,8 +1709,12 @@ static void patch_rebuild(void) {
 			size_t outN = 0;
 			int r = pn ? patch_apply(p, pn, rom, romN, &out, &outN) : PATCH_UNREADABLE;
 			free(p);
-			char t[280];
-			patch_title(file, t, sizeof(t));
+			/* a known patch made for another patch's result (an optional one, after its main patch): fine here */
+			if (r == PATCH_APPLIED && row && pi && pi->known && !pi->baseOk) {
+				uint32_t here = doCrc32(rom, romN);
+				for (int b = 0; b < pi->nBases; ++b)
+					if (pi->bases[b] == here) snprintf(row->note, sizeof(row->note), "%s", pi->okNote);
+			}
 			if (r == PATCH_APPLIED) {
 				free(rom);
 				rom = out, romN = outN;
@@ -1727,12 +1768,13 @@ static void open_patches(void) {
 	patchPressRow = -1;
 	size_t romN = 0;
 	uint8_t* rom = emu_rom_read_all(romPath, &romN);
+	uint32_t romCrc = rom ? doCrc32(rom, romN) : 0;
 	char beside[1024];
 	patchBesideAt0 = patch_find(romPath, beside, sizeof(beside));
 	if (patchBesideAt0) {
 		PatchInfo* pi = &patchInfo[nPatchInfo++];
 		snprintf(pi->file, sizeof(pi->file), "%s", patch_name(beside));
-		patch_describe(rom, romN, beside, pi);
+		patch_describe(rom, romN, romCrc, beside, pi);
 	}
 	char names[PATCH_ROWS][256];
 	int n = 0;
@@ -1750,7 +1792,7 @@ static void open_patches(void) {
 		snprintf(path, sizeof(path), "%s/%s", patchDir, names[i]);
 		PatchInfo* pi = &patchInfo[nPatchInfo++];
 		snprintf(pi->file, sizeof(pi->file), "%s", names[i]);
-		patch_describe(rom, romN, path, pi);
+		patch_describe(rom, romN, romCrc, path, pi);
 	}
 	free(rom);
 	patch_rebuild();
