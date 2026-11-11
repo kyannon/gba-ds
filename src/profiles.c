@@ -4097,6 +4097,7 @@ static bool mmbn_look(Emu* e, uint16_t area, uint32_t pos, int cx, int cy, unsig
 	int x = (cx - 2 * cy) / 2, y = (cx + 2 * cy) / 2;
 	emu_write32(e, pos, (uint32_t) (x * 65536));
 	emu_write32(e, pos + 4, (uint32_t) (y * 65536));
+	emu_write32(e, pos + 8, 0); /* (on the ground: the camera follows his height too) */
 	for (int f = 0; f < MMBN_SETTLE; ++f) emu_frame_blind(e, 0);
 	emu_write16(e, 0x05000000, 0x7C1F); /* (magenta) */
 	emu_frame(e, 0);
@@ -4119,6 +4120,7 @@ static void mmbn_head(Emu* e, uint16_t area, uint32_t pos, MmbnMap* m, uint32_t 
 	int cx = m->x0 + 40, cy = m->y0 + 60, x = (cx - 2 * cy) / 2, y = (cx + 2 * cy) / 2;
 	emu_write32(e, pos, (uint32_t) (x * 65536));
 	emu_write32(e, pos + 4, (uint32_t) (y * 65536));
+	emu_write32(e, pos + 8, 0);
 	for (int f = 0; f < 2; ++f) emu_frame_blind(e, K_DOWN);
 	for (int f = 0; f < 20; ++f) emu_frame_blind(e, 0);
 	emu_write16(e, 0x05000000, 0x7C1F);
@@ -4175,7 +4177,8 @@ static void* mmbn_worker(void* arg) {
 	uint32_t magenta = e->fb[0] & 0xFFFFFF;
 	/* (arriving on a warp pad, he steps off it by himself, the camera
 	 * following that, not where he's set down: tried again later) */
-	if ((cx < X0 + W / 2 - 16 || cx > X0 + W / 2 + 16 || cy < Y0 + H / 2 - 16 || cy > Y0 + H / 2 + 16) &&
+	int hz = (int32_t) emu_read32(e, pos + 8) >> 16; /* (his height, if the floor there lifts him) */
+	if ((cx < X0 + W / 2 - 16 || cx > X0 + W / 2 + 16 || cy < Y0 + H / 2 - hz - 16 || cy > Y0 + H / 2 - hz + 16) &&
 	    (why = "the camera isn't following him yet"))
 		m->early = true;
 	if (why) goto out;
@@ -4319,7 +4322,7 @@ static const uint32_t* mmbn_live_view(Emu* live, const char* rom) {
 	}
 	if (m->failed || !m->done) return NULL; /* (the logo meanwhile: it's quick) */
 	/* a third of the size: each pixel the mean of 3x3 of the picture's,
-	 * centred on MegaMan (his screen position: x + y, (y - x) / 2), but
+	 * centred on MegaMan (his screen position: x + y, (y - x) / 2 - z), but
 	 * kept within the area's edges; an area smaller than the screen in
 	 * its middle */
 	enum { Z = 3 };
@@ -4327,7 +4330,8 @@ static const uint32_t* mmbn_live_view(Emu* live, const char* rom) {
 	uint32_t pos = emu_read32(live, MMBN_CAM + 0x10);
 	if (pos >= 0x02000000 && pos < 0x02040000) {
 		int x = (int32_t) emu_read32(live, pos) >> 16, y = (int32_t) emu_read32(live, pos + 4) >> 16;
-		camx = x + y, camy = (y - x) / 2;
+		int z = (int32_t) emu_read32(live, pos + 8) >> 16; /* (his height: on a raised floor, higher up) */
+		camx = x + y, camy = (y - x) / 2 - z;
 	}
 	int left = camx - GBA_W * Z / 2 - m->x0, top = camy - GBA_H * Z / 2 - m->y0;
 	if (m->ex1 - m->ex0 <= GBA_W * Z) left = (m->ex0 + m->ex1) / 2 - GBA_W * Z / 2;

@@ -711,6 +711,40 @@
    ]
   },
   {
+   "id": "mmbn-us-jacked-in",
+   "rom": "AREE",
+   "state": "mega-man-battle-network/us-jacked-in.ss",
+   "desc": "jacked in again after jacking out (the owner's steps from Oven Comp 1): MegaMan on WWW Comp 5's raised entrance pad (64 up): the area's map, his head on the pad",
+   "rules": [
+    "MMBN-6"
+   ],
+   "shots": {
+    "map": 120
+   },
+   "checks": [
+    {
+     "rule": "MMBN-6",
+     "what": "the area's map made (the camera followed his height, not the copy's check)",
+     "type": "log",
+     "match": "area 0485 mapped"
+    },
+    {
+     "rule": "MMBN-6",
+     "what": "the map drawn around him",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      312,
+      284,
+      712,
+      484
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
    "id": "mmbn-us-tutorial-message",
    "rom": "AREE",
    "state": "mega-man-battle-network/us-tutorial-message.ss",
