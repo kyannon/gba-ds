@@ -1,12 +1,12 @@
 The USA, European and Japanese releases are all supported. Any other GBA game also runs (set `show_all = 1` to list them); it just plays on one screen, with the second screen dark.
 
-| Game | Codes (USA / Europe / Japan) | Second screen | Romhacks tested |
+| Game | Codes (USA / Europe / Japan) | Second screen | Romhacks and patches tested |
 |---|---|---|---|
 | Advance Wars (Game Boy Wars Advance in Japan) | `AWRE` `AWRP` `BGWJ` (Japan: on Game Boy Wars Advance 1+2, with Advance Wars 2) | in battles: the intel of the unit under the cursor, or the battle intel | |
 | Advance Wars 2: Black Hole Rising (Game Boy Wars Advance 2 in Japan) | `AW2E` `AW2P` `BGWJ` (Japan: on Game Boy Wars Advance 1+2, with Advance Wars) | in battles: the intel of the unit under the cursor, or the battle intel | |
-| Castlevania: Aria of Sorrow | `A2CE` `A2CP` `A2CJ` | map | |
+| Castlevania: Aria of Sorrow | `A2CE` `A2CP` `A2CJ` | map | JonataGuitar's Recolor v1.02 and Symphony of the Colors (USA) |
 | Castlevania: Circle of the Moon | `AAME` `AAMP` `AAMJ` | map, with the completion rate | |
-| Castlevania: Harmony of Dissonance | `ACHE` `ACHP` `ACHJ` | map | |
+| Castlevania: Harmony of Dissonance | `ACHE` `ACHP` `ACHJ` | map | Recolor by JonataGuitar and sorrow (USA) |
 | Crash Nitro Kart (Crash Bandicoot Bakusou! Nitro Cart in Japan) | `BCNE` `BCNP` `BCNJ` | the race HUD: time, wumpa fruit, lap, the leaders and the course map twice as big; the race rankings | |
 | Dragon Ball Z: Buu's Fury | `BG3E` (USA only) | the Scouter's area map; flying, the world map twice as big | |
 | Dragon Ball Z: The Legacy of Goku | `ALGE` `ALGP` (no Japanese release) | the pause menu, with the HP and Ki bars (or the counter SELECT and flying show) in place of its options | |
@@ -24,12 +24,12 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Harvest Moon: Friends of Mineral Town (Bokujou Monogatari: Mineral Town no Nakama-tachi in Japan) | `A4NE` `A4NP` `A4ND` `A4NJ` | the town map, with where you are | |
 | Kingdom Hearts: Chain of Memories | `B8CE` `B8CP` `B8CJ` | the World Map; in battles, the logo | |
 | Lady Sia | `ALDE` `ALDP` (no Japanese release) | the pause screen as a status screen: lives, gems, villagers, the time, the ring and heart; the HUD off the game screen | |
-| The Legend of Zelda: A Link to the Past & Four Swords | `AZLE` `AZLP` `AZLJ` | world and dungeon maps | |
-| Mario Kart: Super Circuit (Mario Kart Advance in Japan) | `AMKE` `AMKP` `AMKJ` | the race HUD, results and podium | |
+| The Legend of Zelda: A Link to the Past & Four Swords | `AZLE` `AZLP` `AZLJ` | world and dungeon maps | Voice removal (USA, Europe) |
+| Mario Kart: Super Circuit (Mario Kart Advance in Japan) | `AMKE` `AMKP` `AMKJ` | the race HUD, results and podium | Better colors (USA, Europe) |
 | Mario & Luigi: Superstar Saga (Mario & Luigi RPG in Japan) | `A88E` `A88P` `A88J` | Bros. Info of the brother you're controlling; in battles, the boxes and meters | [Superstar Saga+](#mario--luigi-superstar-saga) v1.5 (100%, 80%, 60%) |
 | Mega Man Battle Network (Battle Network Rockman EXE in Japan) | `AREE` `AREP` `AREJ` | MegaMan's status (level, HP, armor, buster) with your money, in battles too; on the net, a map of the area | |
-| Metroid Fusion | `AMTE` `AMTP` `AMTJ` | map | |
-| Metroid: Zero Mission | `BMXE` `BMXP` `BMXJ` | map | |
+| Metroid Fusion | `AMTE` `AMTP` `AMTJ` | map | Color improvement (USA) |
+| Metroid: Zero Mission | `BMXE` `BMXP` `BMXJ` | map | Color improvement v1 and v2 (USA) |
 | Muppet Pinball Mayhem | `AMWE` `AMWP` (no Japanese release) | the table twice as tall over both screens, live, with the score bar | |
 | Ninja Five-O (Ninja Cop in Europe) | `ANXE` `ANXP` (no Japanese release) | in stages: the HUD (bars, score or time, the boss's bar, the shuriken's level, keys and hostages) | |
 | Pokémon Pinball: Ruby & Sapphire | `BPPE` | the table twice as tall over both screens, live, with the score bar | |
@@ -41,16 +41,16 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Spider-Man: Mysterio's Menace (Spider-Man: Mysterio no Kyoui in Japan) | `ASEE` (USA and Europe) `ASEJ` | the Select menu: the objective, password, suits, upgrades and web containers | |
 | Summon Night: Swordcraft Story (Craft Sword Monogatari in Japan) | `AB4E` `AB4J` (no European release) | the Status screen, with where you are | |
 | Summon Night: Swordcraft Story 2 (Craft Sword Monogatari 2 in Japan) | `BSKE` `BSKJ` (no European release) | the Status screen | |
-| Super Mario Advance (Super Mario USA + Mario Brothers in Japan) | `AMAE` (USA and Europe) `AMAJ` | in levels: the status bar, and the course board with the Ace Coin percentage kept up to date | |
-| Super Mario Advance 2: Super Mario World | `AA2E` `AA2P` `AA2J` | the SELECT menu on the world map; the status bar in levels; optional SNES layout | |
-| Super Mario Advance 3: Yoshi's Island | `A3AE` `A3AP` `A3AJ` | the status screen in levels; a world's score page on its panel; optional SNES layout | |
-| Super Mario Advance 4: Super Mario Bros. 3 | `AX4E` `AX4P` `AX4J` | the item inventory and status bar on the world map; the status bar and P meter in levels | |
+| Super Mario Advance (Super Mario USA + Mario Brothers in Japan) | `AMAE` (USA and Europe) `AMAJ` | in levels: the status bar, and the course board with the Ace Coin percentage kept up to date | SNES color restoration v1.2 (USA, Japan; with or without its two optional patches), voice removal (USA) |
+| Super Mario Advance 2: Super Mario World | `AA2E` `AA2P` `AA2J` | the SELECT menu on the world map; the status bar in levels; optional SNES layout | Super Mario World Color Restoration v0.91 (USA, Europe), voice removal (USA, Europe) |
+| Super Mario Advance 3: Yoshi's Island | `A3AE` `A3AP` `A3AJ` | the status screen in levels; a world's score page on its panel; optional SNES layout | Colour restoration (USA, Europe), voice removal (USA, Europe) |
+| Super Mario Advance 4: Super Mario Bros. 3 | `AX4E` `AX4P` `AX4J` | the item inventory and status bar on the world map; the status bar and P meter in levels | GBP palette (USA, Europe, Japan, Europe Rev 1 Virtual Console), voice removal (Europe Rev 1 Virtual Console) |
 | Sword of Mana (Shinyaku Seiken Densetsu in Japan) | `AVSE` `AVSY` (Spanish, Italian) `AVSJ` | the Status screen | |
 | Tactics Ogre: The Knight of Lodis (Tactics Ogre Gaiden in Japan) | `ATOE` `ATOJ` (no European release) | in battle, the details of the unit under your cursor (on an empty square, the battle's conditions); on the world map, the location's HELP; in Organize, the unit's details | |
 | Tony Hawk's Pro Skater 2 (SK8 in Japan) | `ATHE` (USA and Europe) `ATHF` `ATHD` `ATHJ` | the goal sheet for the current run | |
 | Tony Hawk's Pro Skater 3 | `AT3E` (USA and Europe) `AT3F` `AT3D` | the goal list; optional four-button layout | |
 | V-Rally 3 | `AVRE` `AVRP` `AVRJ` | the stage's HUD, with the course map twice as big | |
-| Wario Land 4 (Wario Land Advance in Japan) | `AWAE` (USA and Europe) `AWAJ` | in levels: the pause screen, with the hearts, money, coins and the treasures found; in boss fights: the HUD | |
+| Wario Land 4 (Wario Land Advance in Japan) | `AWAE` (USA and Europe) `AWAJ` | in levels: the pause screen, with the hearts, money, coins and the treasures found; in boss fights: the HUD | Color palette enhancement 1.1 (USA) |
 | Yu-Gi-Oh! The Eternal Duelist Soul (Yu-Gi-Oh! Duel Monsters 5 Expert 1 in Japan) | `AY5E` `AY5J` | Card View of the card under the cursor | |
 | Zoids: Legacy (Zoids Saga II in Japan) | `AZ2E` `AZ2J` (no European release) | the map screen; in battles, the Status of the Zoid choosing | |
 
@@ -60,8 +60,9 @@ The codes are what `<CODE>` means in logo and overlay file names (see [Playing](
 
 GBA DS knows a game by its code, which romhacks and patches of a supported game usually keep, so they start with the game's second screen. Whether it works depends on what the mod changes: new text, items, stats and colours are usually fine, while a mod that changes the screens GBA DS shows (a redrawn menu or map) can leave the second screen wrong or blank.
 
-- **Tested romhacks** are in the table's last column, on the row of the game they're made from, with what's different in the game's section. GBA DS knows them by their checksum, and they're tested like the games. They aren't counted as games of their own.
+- **Tested romhacks and patches** (colour restorations, voice removals...) are in the table's last column, on the row of the game they're made from, with what's different in the game's section. GBA DS knows them by their checksum, and they're tested like the games. They aren't counted as games of their own.
 - **Any other patched or modified ROM** runs with the game's second screen, untested. The game list says so under the game's logo ("Romhack: ..." for one GBA DS knows, "Modified ROM" for any other), once it has read the ROM the first time you select it, and bug reports say the same, so if the second screen goes wrong in a mod, send one. To ask for a romhack to be supported, open an issue with a link to it.
+- **Patches GBA DS knows:** besides the tested ones, GBA DS knows a list of colour, voice and translation patches for other games too (some not supported yet), so the Patches menu can name them and say when one is made for another version of the game (a `.ips` file can't say which version it's for, so this is the only warning you'll get).
 - **Patch files:** put the patch (`.ips`, `.ups` or `.bps`) in the game's folder in GBA DS's `patches` folder (GBA DS makes it, named after the game: `patches/Mario & Luigi - Superstar Saga (USA)`) and switch it on in the pause menu's Extras → Patches, which says whether it's a tested romhack (see [Patches](Playing#patches)). A ROM you've already patched works too.
 - Save states made on the unchanged game shouldn't be loaded into a mod of it, or the other way round.
 

@@ -823,6 +823,9 @@ DumpKind profile_dump(const char* gameCode, uint32_t crc, const char** name);
 /* The release's No-Intro name, without a revision's or reissue's mark
  * ("Mario & Luigi - Superstar Saga (USA)"); false if it has no list of dumps */
 bool profile_release_name(const char* gameCode, char* out, size_t size);
+/* The ROM being played (its code and CRC32; NULL: none): a known colour
+ * patch's result gets its profile with the colours it changes swapped */
+void profile_set_rom(const char* gameCode, uint32_t crc);
 /* A patch GBA DS knows (docs/patches.md, src/dumps_data.h), by its file's
  * checksum: the CRC32 of the file without its last four bytes, and its size */
 typedef struct {

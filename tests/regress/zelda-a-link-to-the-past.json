@@ -446,6 +446,66 @@
    "golden": [
     "logo"
    ]
+  },
+  {
+   "id": "lttp-us-outdoors-patch-voice",
+   "rom": "AZLE",
+   "state": "zelda-a-link-to-the-past/us-outdoors.ss",
+   "desc": "lttp-us-outdoors with \"Voice removal v0.1\" switched on in its patches folder (docs/patches.md): known by GBA DS as that patch, tested; the second screen as without it, in the patch's colours. outside Link's house in the rain",
+   "rules": [
+    "GEN-9",
+    "LTTP-1",
+    "LTTP-6"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "LTTP-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the patch applied and known, tested",
+     "type": "log",
+     "match": "a mod GBA DS is tested on \\(Voice\\ removal\\ v0\\.1\\); patched as it started with lozalttpgba_voice\\ removal\\(U\\)0\\.1\\.ips"
+    }
+   ],
+   "patch_on": "lozalttpgba_voice removal(U)0.1.ips"
+  },
+  {
+   "id": "lttp-eu-outdoors-patch-voice",
+   "rom": "AZLP",
+   "state": "zelda-a-link-to-the-past/eu-outdoors.ss",
+   "desc": "lttp-eu-outdoors with \"Voice removal v0.1\" switched on in its patches folder (docs/patches.md): known by GBA DS as that patch, tested; the second screen as without it, in the patch's colours. Europe, outside Link's house in the rain: the world map",
+   "rules": [
+    "GEN-9",
+    "LTTP-1",
+    "LTTP-6"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "LTTP-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the patch applied and known, tested",
+     "type": "log",
+     "match": "a mod GBA DS is tested on \\(Voice\\ removal\\ v0\\.1\\); patched as it started with lozalttpgba_voice\\ removal\\(E\\)0\\.1\\.ips"
+    }
+   ],
+   "patch_on": "lozalttpgba_voice removal(E)0.1.ips"
   }
  ]
 }

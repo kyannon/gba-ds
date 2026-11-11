@@ -248,7 +248,13 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   `ra_game_patched` (no achievements, its banner says so). The game list's
   checksum is of the ROM as it would be played (`emu_rom_read_patched`).
   Cases: `"patch"` (beside the ROM), `"patch_folder"` / `"patch_on"`
-  (docs/TESTING.md).
+  (docs/TESTING.md). Known patches: `docs/patches.md` (any game, by the
+  patch file's CRC32 without its last 4 bytes, `tools/patch_id.py`) ->
+  make_dumps.py -> `knownPatches[]` + results as mods; the Patches menu
+  names them and warns about another version's IPS. A colour patch that
+  changes colours a profile probes: profiles.c `colorSwaps[]` (by the
+  result's CRC32), applied by `profile_set_rom` (game.c, after emu_open).
+  Each tested patch has a `<case>-patch-<label>` case.
 
 ## Testing without the device
 

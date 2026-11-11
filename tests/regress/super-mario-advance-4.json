@@ -1898,6 +1898,447 @@
      "frac": 0.97
     }
    ]
+  },
+  {
+   "id": "sm4-us-worldmap-patch-gbp",
+   "rom": "AX4E",
+   "state": "super-mario-advance-4/us-worldmap-item.ss",
+   "desc": "sm4-us-worldmap with \"GBP palette v1.0 (djedditt)\" switched on in its patches folder (docs/patches.md): known by GBA DS as that patch, tested; the second screen as without it, in the patch's colours. on the world map with a fire flower won in a Toad House",
+   "rules": [
+    "GEN-9",
+    "SM4-1",
+    "SM4-6"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 300
+   },
+   "checks": [
+    {
+     "rule": "SM4-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "SM4-1",
+     "what": "the inventory panel at the bottom",
+     "type": "pixels",
+     "probes": [
+      [
+       512,
+       292,
+       "FFFFFF"
+      ],
+      [
+       64,
+       464,
+       "42ADF7"
+      ],
+      [
+       976,
+       464,
+       "FFFFFF"
+      ],
+      [
+       512,
+       692,
+       "FFFFFF"
+      ]
+     ],
+     "shot": "start"
+    },
+    {
+     "rule": "SM4-1",
+     "what": "nothing of the map between the status bar and the inventory",
+     "type": "uniform",
+     "rect": [
+      32,
+      160,
+      988,
+      264
+     ],
+     "color": "000000",
+     "shot": "start"
+    },
+    {
+     "rule": "SM4-6",
+     "what": "the world map's status bar at the top",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "000000",
+     "frac": 0.5
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the patch applied and known, tested",
+     "type": "log",
+     "match": "a mod GBA DS is tested on \\(GBP\\ palette\\ v1\\.0\\ \\(djedditt\\)\\); patched as it started with AGB\\-AX4E_\\(USA\\)_GBPPalette\\.ips"
+    }
+   ],
+   "patch_on": "AGB-AX4E_(USA)_GBPPalette.ips"
+  },
+  {
+   "id": "sm4-jp-worldmap-patch-gbp",
+   "rom": "AX4J",
+   "state": "super-mario-advance-4/jp-worldmap.ss",
+   "desc": "sm4-jp-worldmap with \"GBP palette v1.0 (djedditt)\" switched on in its patches folder (docs/patches.md): known by GBA DS as that patch, tested; the second screen as without it, in the patch's colours. the world map, Japanese release",
+   "rules": [
+    "GEN-9",
+    "SM4-1",
+    "SM4-6"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": [
+    {
+     "rule": "SM4-1",
+     "what": "the inventory panel at the bottom",
+     "type": "pixels",
+     "probes": [
+      [
+       512,
+       292,
+       "FFFFFF"
+      ],
+      [
+       64,
+       464,
+       "42ADF7"
+      ],
+      [
+       976,
+       464,
+       "FFFFFF"
+      ],
+      [
+       512,
+       692,
+       "FFFFFF"
+      ]
+     ],
+     "shot": "start"
+    },
+    {
+     "rule": "SM4-1",
+     "what": "nothing of the map between the status bar and the inventory",
+     "type": "uniform",
+     "rect": [
+      32,
+      160,
+      988,
+      264
+     ],
+     "color": "000000",
+     "shot": "start"
+    },
+    {
+     "rule": "SM4-6",
+     "what": "the world map's status bar at the top",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "000000",
+     "frac": 0.5
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the patch applied and known, tested",
+     "type": "log",
+     "match": "a mod GBA DS is tested on \\(GBP\\ palette\\ v1\\.0\\ \\(djedditt\\)\\); patched as it started with AGB\\-AX4J_\\(Japan\\)_GBPPalette\\.ips"
+    }
+   ],
+   "patch_on": "AGB-AX4J_(Japan)_GBPPalette.ips"
+  },
+  {
+   "id": "sm4-eu-worldmap-patch-gbp",
+   "rom": "AX4P",
+   "state": "super-mario-advance-4/eu-worldmap.ss",
+   "desc": "sm4-eu-worldmap with \"GBP palette v1.0 (djedditt)\" switched on in its patches folder (docs/patches.md): known by GBA DS as that patch, tested; the second screen as without it, in the patch's colours. the world map, European release",
+   "rules": [
+    "GEN-9",
+    "SM4-1",
+    "SM4-6"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": [
+    {
+     "rule": "SM4-1",
+     "what": "the inventory panel at the bottom",
+     "type": "pixels",
+     "probes": [
+      [
+       512,
+       292,
+       "FFFFFF"
+      ],
+      [
+       64,
+       464,
+       "42ADF7"
+      ],
+      [
+       976,
+       464,
+       "FFFFFF"
+      ],
+      [
+       512,
+       692,
+       "FFFFFF"
+      ]
+     ],
+     "shot": "start"
+    },
+    {
+     "rule": "SM4-1",
+     "what": "nothing of the map between the status bar and the inventory",
+     "type": "uniform",
+     "rect": [
+      32,
+      160,
+      988,
+      264
+     ],
+     "color": "000000",
+     "shot": "start"
+    },
+    {
+     "rule": "SM4-6",
+     "what": "the world map's status bar at the top",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "000000",
+     "frac": 0.5
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the patch applied and known, tested",
+     "type": "log",
+     "match": "a mod GBA DS is tested on \\(GBP\\ palette\\ v1\\.0\\ \\(djedditt\\)\\); patched as it started with AGB\\-AX4P_\\(Europe\\)_GBPPalette\\.ips"
+    }
+   ],
+   "patch_on": "AGB-AX4P_(Europe)_GBPPalette.ips"
+  },
+  {
+   "id": "sm4-eu-vc-worlde-inventory-patch-gbp",
+   "rom": "AX4P+vc",
+   "state": "super-mario-advance-4/eu-vc-worlde-map.ss",
+   "desc": "sm4-eu-vc-worlde-inventory with \"GBP palette v1.0 (djedditt)\" switched on in its patches folder (docs/patches.md): known by GBA DS as that patch, tested; the second screen as without it, in the patch's colours. World-e's map (Europe's Rev 1 Virtual Console): L opens the inventory, L again closes it; the status bar held still on the second screen",
+   "rules": [
+    "GEN-9",
+    "SM4-8"
+   ],
+   "input": [
+    [
+     60,
+     "L"
+    ],
+    [
+     64,
+     "-"
+    ],
+    [
+     160,
+     "L"
+    ],
+    [
+     164,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 50,
+    "sliding-off": 64,
+    "open": 130,
+    "sliding-back": 186,
+    "back": 230
+   },
+   "checks": [
+    {
+     "rule": "SM4-8",
+     "what": "the status bar at the top (sliding-off)",
+     "type": "not_uniform",
+     "shot": "sliding-off",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SM4-8",
+     "what": "the status bar at the top (open)",
+     "type": "not_uniform",
+     "shot": "open",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SM4-8",
+     "what": "the status bar at the top (sliding-back)",
+     "type": "not_uniform",
+     "shot": "sliding-back",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SM4-8",
+     "what": "the status bar at the top (back)",
+     "type": "not_uniform",
+     "shot": "back",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the patch applied and known, tested",
+     "type": "log",
+     "match": "a mod GBA DS is tested on \\(GBP\\ palette\\ v1\\.0\\ \\(djedditt\\)\\); patched as it started with AGB\\-AX4P_\\(Europe\\)_\\(Rev\\ 1\\)_\\(Virtual\\ Console\\)_GBPPalette\\.ips"
+    }
+   ],
+   "patch_on": "AGB-AX4P_(Europe)_(Rev 1)_(Virtual Console)_GBPPalette.ips"
+  },
+  {
+   "id": "sm4-eu-vc-worlde-inventory-patch-voice",
+   "rom": "AX4P+vc",
+   "state": "super-mario-advance-4/eu-vc-worlde-map.ss",
+   "desc": "sm4-eu-vc-worlde-inventory with \"Voice removal v0.2\" switched on in its patches folder (docs/patches.md): known by GBA DS as that patch, tested; the second screen as without it, in the patch's colours. World-e's map (Europe's Rev 1 Virtual Console): L opens the inventory, L again closes it; the status bar held still on the second screen",
+   "rules": [
+    "GEN-9",
+    "SM4-8"
+   ],
+   "input": [
+    [
+     60,
+     "L"
+    ],
+    [
+     64,
+     "-"
+    ],
+    [
+     160,
+     "L"
+    ],
+    [
+     164,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 50,
+    "sliding-off": 64,
+    "open": 130,
+    "sliding-back": 186,
+    "back": 230
+   },
+   "checks": [
+    {
+     "rule": "SM4-8",
+     "what": "the status bar at the top (sliding-off)",
+     "type": "not_uniform",
+     "shot": "sliding-off",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SM4-8",
+     "what": "the status bar at the top (open)",
+     "type": "not_uniform",
+     "shot": "open",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SM4-8",
+     "what": "the status bar at the top (sliding-back)",
+     "type": "not_uniform",
+     "shot": "sliding-back",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SM4-8",
+     "what": "the status bar at the top (back)",
+     "type": "not_uniform",
+     "shot": "back",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the patch applied and known, tested",
+     "type": "log",
+     "match": "a mod GBA DS is tested on \\(Voice\\ removal\\ v0\\.2\\); patched as it started with smb3gba_voice_removal\\(E\\)0\\.2\\.ips"
+    }
+   ],
+   "patch_on": "smb3gba_voice_removal(E)0.2.ips"
   }
  ]
 }

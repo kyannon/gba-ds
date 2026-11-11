@@ -219,6 +219,36 @@
     "logo"
    ],
    "checks": []
+  },
+  {
+   "id": "cvh-us-play-patch-recolor",
+   "rom": "ACHE",
+   "state": "castlevania-harmony-of-dissonance/us-play.ss",
+   "desc": "cvh-us-play with \"Recolor v1.0 (JonataGuitar and sorrow)\" switched on in its patches folder (docs/patches.md): known by GBA DS as that patch, tested; the second screen as without it, in the patch's colours. outside the castle walls, new game",
+   "rules": [
+    "CVH-1",
+    "CVH-5",
+    "GEN-9"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "CVH-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the patch applied and known, tested",
+     "type": "log",
+     "match": "a mod GBA DS is tested on \\(Recolor\\ v1\\.0\\ \\(JonataGuitar\\ and\\ sorrow\\)\\); patched as it started with Castlevania\\ HoD\\ Recolor\\ by\\ JonataGuitar\\ and\\ sorrow\\ v1\\.0\\.ips"
+    }
+   ],
+   "patch_on": "Castlevania HoD Recolor by JonataGuitar and sorrow v1.0.ips"
   }
  ]
 }

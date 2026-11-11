@@ -219,6 +219,37 @@
    "golden": [
     "logo"
    ]
+  },
+  {
+   "id": "mf-us-play-patch-colour",
+   "rom": "AMTE",
+   "state": "metroid-fusion/us-play.ss",
+   "desc": "mf-us-play with \"Color improvement v1.0\" switched on in its patches folder (docs/patches.md): known by GBA DS as that patch, tested; the second screen as without it, in the patch's colours. the docking bay, new game",
+   "rules": [
+    "GEN-9",
+    "MF-1",
+    "MF-2",
+    "MF-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "MF-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the patch applied and known, tested",
+     "type": "log",
+     "match": "a mod GBA DS is tested on \\(Color\\ improvement\\ v1\\.0\\); patched as it started with Metroid\\ Fusion\\ Color\\ Improvement\\.ips"
+    }
+   ],
+   "patch_on": "Metroid Fusion Color Improvement.ips"
   }
  ]
 }

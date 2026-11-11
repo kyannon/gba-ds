@@ -264,6 +264,56 @@
    "golden": [
     "logo"
    ]
+  },
+  {
+   "id": "mk-us-race-start-patch-colour",
+   "rom": "AMKE",
+   "state": "mario-kart-super-circuit/us-race-start.ss",
+   "desc": "mk-us-race-start with \"Better colors (N.Dpendent)\" switched on in its patches folder (docs/patches.md): known by GBA DS as that patch, tested; the second screen as without it, in the patch's colours. the countdown on Peach Circuit",
+   "rules": [
+    "GEN-9",
+    "MK-1",
+    "MK-2",
+    "MK-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "patch_on": "Mario Kart Super Circuit (Better Colors).ips",
+   "checks": [
+    {
+     "rule": "GEN-9",
+     "what": "the patch applied and known, tested",
+     "type": "log",
+     "match": "a mod GBA DS is tested on \\(Better\\ colors\\ \\(N\\.Dpendent\\)\\); patched as it started with Mario\\ Kart\\ Super\\ Circuit\\ \\(Better\\ Colors\\)\\.ips"
+    }
+   ]
+  },
+  {
+   "id": "mk-eu-race-start-patch-colour",
+   "rom": "AMKP",
+   "state": "mario-kart-super-circuit/eu-race-start.ss",
+   "desc": "mk-eu-race-start with \"Better colors (N.Dpendent)\" switched on in its patches folder (docs/patches.md): known by GBA DS as that patch, tested; the second screen as without it, in the patch's colours. Europe, the countdown on Peach Circuit (Mushroom Cup 50cc, Toad, played from power-on)",
+   "rules": [
+    "GEN-9",
+    "MK-1",
+    "MK-2",
+    "MK-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "patch_on": "Mario Kart Super Circuit (Better Colors).ips",
+   "checks": [
+    {
+     "rule": "GEN-9",
+     "what": "the patch applied and known, tested",
+     "type": "log",
+     "match": "a mod GBA DS is tested on \\(Better\\ colors\\ \\(N\\.Dpendent\\)\\); patched as it started with Mario\\ Kart\\ Super\\ Circuit\\ \\(Better\\ Colors\\)\\.ips"
+    }
+   ]
   }
  ]
 }
