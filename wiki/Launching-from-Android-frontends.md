@@ -86,7 +86,7 @@ GBA DS accepts the game in any of these ways (it checks them in this order):
 2. **The intent's data**: a `file://` or `content://` URI, with or without a MIME type, usually with the `android.intent.action.VIEW` action.
 3. **ClipData**: the first item's URI (some launchers attach the file this way).
 
-A `content://` URI from Android's own storage provider (e.g. `content://com.android.externalstorage.documents/…`) is turned back into a plain path, which works with All files access. A URI from another app's provider is copied into GBA DS's `launched/` folder first, which takes a moment for a large ROM, and saves then go next to the copy; prefer paths or `file://` URIs where the launcher offers them.
+A `content://` URI from Android's own storage provider (e.g. `content://com.android.externalstorage.documents/…`) is turned back into a plain path, which works with All files access. A URI from another app's provider is copied into the app's own storage first (`Android/data/io.github.kyannon.gbads/files/launched`), which takes a moment for a large ROM, and saves then go next to the copy; patches aren't applied to a game started this way. Prefer paths or `file://` URIs where the launcher offers them.
 
 **Testing with adb:**
 

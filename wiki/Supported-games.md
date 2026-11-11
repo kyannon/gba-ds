@@ -1,4 +1,4 @@
-The USA, European and Japanese releases are all supported. Any other GBA game also runs (set `show_all = 1` to list them); it just plays on one screen, with the second screen dark.
+The releases listed for each game are supported (for most games, the USA, European and Japanese ones). Any other GBA game also runs (set `show_all = 1` to list them); it just plays on one screen, with the second screen dark.
 
 | Game | Codes (USA / Europe / Japan) | Second screen | Romhacks and patches tested |
 |---|---|---|---|
@@ -26,7 +26,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Lady Sia | `ALDE` `ALDP` (no Japanese release) | the pause screen as a status screen: lives, gems, villagers, the time, the ring and heart; the HUD off the game screen | |
 | The Legend of Zelda: A Link to the Past & Four Swords | `AZLE` `AZLP` `AZLJ` | world and dungeon maps | Voice removal (USA, Europe) |
 | Mario Kart: Super Circuit (Mario Kart Advance in Japan) | `AMKE` `AMKP` `AMKJ` | the race HUD, results and podium | Better colors (USA, Europe) |
-| Mario & Luigi: Superstar Saga (Mario & Luigi RPG in Japan) | `A88E` `A88P` `A88J` | Bros. Info of the brother you're controlling; in battles, the boxes and meters | [Superstar Saga+](#mario--luigi-superstar-saga) v1.5 (100%, 80%, 60%) |
+| Mario & Luigi: Superstar Saga (Mario & Luigi RPG in Japan) | `A88E` `A88P` `A88J` | Bros. Info of the brother you're controlling; in battles, the boxes and meters | [Superstar Saga+](#mario--luigi-superstar-saga) v1.5 (100%; its 80% and 60% versions untested) |
 | Mega Man Battle Network (Battle Network Rockman EXE in Japan) | `AREE` `AREP` `AREJ` | MegaMan's status (level, HP, armor, buster) with your money, in battles too; on the net, a map of the area | |
 | Metroid Fusion | `AMTE` `AMTP` `AMTJ` | map | Color improvement (USA) |
 | Metroid: Zero Mission | `BMXE` `BMXP` `BMXJ` | map | Color improvement v1 and v2 (USA) |
@@ -41,7 +41,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Spider-Man: Mysterio's Menace (Spider-Man: Mysterio no Kyoui in Japan) | `ASEE` (USA and Europe) `ASEJ` | the Select menu: the objective, password, suits, upgrades and web containers | |
 | Summon Night: Swordcraft Story (Craft Sword Monogatari in Japan) | `AB4E` `AB4J` (no European release) | the Status screen, with where you are | |
 | Summon Night: Swordcraft Story 2 (Craft Sword Monogatari 2 in Japan) | `BSKE` `BSKJ` (no European release) | the Status screen | |
-| Super Mario Advance (Super Mario USA + Mario Brothers in Japan) | `AMAE` (USA and Europe) `AMAJ` | in levels: the status bar, and the course board with the Ace Coin percentage kept up to date | SNES color restoration v1.2 (USA, Japan; with or without its two optional patches), voice removal (USA) |
+| Super Mario Advance (Super Mario USA + Mario Brothers in Japan) | `AMAE` (USA and Europe) `AMAJ` | in levels: the status bar, and the course board with the Ace Coin percentage kept up to date | SNES color restoration v1.2 (USA, Japan; with or without its two optional patches), voice removal (USA and Europe) |
 | Super Mario Advance 2: Super Mario World | `AA2E` `AA2P` `AA2J` | the SELECT menu on the world map; the status bar in levels; optional SNES layout | Super Mario World Color Restoration v0.91 (USA, Europe), voice removal (USA, Europe) |
 | Super Mario Advance 3: Yoshi's Island | `A3AE` `A3AP` `A3AJ` | the status screen in levels; a world's score page on its panel; optional SNES layout | Colour restoration (USA, Europe), voice removal (USA, Europe) |
 | Super Mario Advance 4: Super Mario Bros. 3 | `AX4E` `AX4P` `AX4J` | the item inventory and status bar on the world map; the status bar and P meter in levels | GBP palette (USA and its Rev 1, Europe and its Rev 1 and Rev 1 Virtual Console, Japan), voice removal (USA Rev 1, Europe Rev 1 and its Virtual Console) |
@@ -50,7 +50,7 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Tony Hawk's Pro Skater 2 (SK8 in Japan) | `ATHE` (USA and Europe) `ATHF` `ATHD` `ATHJ` | the goal sheet for the current run | |
 | Tony Hawk's Pro Skater 3 | `AT3E` (USA and Europe) `AT3F` `AT3D` | the goal list; optional four-button layout | |
 | V-Rally 3 | `AVRE` `AVRP` `AVRJ` | the stage's HUD, with the course map twice as big | |
-| Wario Land 4 (Wario Land Advance in Japan) | `AWAE` (USA and Europe) `AWAJ` | in levels: the pause screen, with the hearts, money, coins and the treasures found; in boss fights: the HUD | Color palette enhancement 1.1 (USA) |
+| Wario Land 4 (Wario Land Advance in Japan) | `AWAE` (USA and Europe) `AWAJ` | in levels: the pause screen, with the hearts, money, coins and the treasures found; in boss fights: the HUD | Color palette enhancement 1.1 (USA and Europe) |
 | Yu-Gi-Oh! The Eternal Duelist Soul (Yu-Gi-Oh! Duel Monsters 5 Expert 1 in Japan) | `AY5E` `AY5J` | Card View of the card under the cursor | |
 | Zoids: Legacy (Zoids Saga II in Japan) | `AZ2E` `AZ2J` (no European release) | the map screen; in battles, the Status of the Zoid choosing | |
 
@@ -65,6 +65,7 @@ GBA DS knows a game by its code, which romhacks and patches of a supported game 
 - **Patches GBA DS knows:** besides the tested ones, GBA DS knows a list of colour, voice and translation patches for other games too (some not supported yet), so the Patches menu can name them and say when one is made for another version of the game (a `.ips` file can't say which version it's for, so this is the only warning you'll get).
 - **Patch files:** put the patch (`.ips`, `.ups` or `.bps`) in the game's folder in GBA DS's `patches` folder (GBA DS makes it, named after the game: `patches/Mario & Luigi - Superstar Saga (USA)`) and switch it on in the pause menu's Extras → Patches, which says whether it's a tested romhack (see [Patches](Playing#patches)). A ROM you've already patched works too.
 - Save states made on the unchanged game shouldn't be loaded into a mod of it, or the other way round.
+- A romhack with its own title screen still shows the original game's logo on the second screen.
 
 ## How the maps work
 
@@ -81,7 +82,7 @@ The USA and European releases of both, and in Japan Game Boy Wars Advance 1+2, w
 - **On the computer's turn** (from the moment you end yours, through its moves) the second screen shows the logo: the cursor isn't yours, so there's no intel to bring up. Your army is taken to be the first, as in the campaigns; in Versus, if you play a later army or two people share the device, those turns show the logo too.
 - **In a fight,** on the title and menus, and on a battle's results pages, the second screen shows the game's logo.
 - **Known issue (won't fix):** in Advance Wars' **Field Training** missions the second screen keeps the logo: the tutorial blocks the menus it's built from (SELECT and START). It works fully in Campaign and Versus.
-- **Game Boy Wars Advance 1+2** (Japan): GBA DS notices which of the two games you pick from the cartridge's menu and sets the second screen up as for that game (Game Boy Wars Advance as Advance Wars, Game Boy Wars Advance 2 as Advance Wars 2). On the cartridge's own title and menu, and on both games' titles, the second screen shows the cartridge's logo. Game Boy Wars Advance has so far been tried only in its first Field Training mission (with the known issue above); its campaign and versus battles are still to be checked.
+- **Game Boy Wars Advance 1+2** (Japan): GBA DS notices which of the two games you pick from the cartridge's menu and sets the second screen up as for that game (Game Boy Wars Advance as Advance Wars, Game Boy Wars Advance 2 as Advance Wars 2). On the cartridge's own title and menu, and on both games' titles, the second screen shows the cartridge's logo. Both games have been tried in battles (Game Boy Wars Advance's unit intel and the computer's turn too); Game Boy Wars Advance 2's computer's turn hasn't been seen yet.
 
 ## Castlevania: Aria of Sorrow, Harmony of Dissonance, Circle of the Moon
 
@@ -170,16 +171,16 @@ The same second screen as F-Zero: GP Legend's: the HUD is moved off the game scr
 - On **YOU LOST** (after GIVE UP, after RANK OUT, or once a destroyed machine's wreck has been circled), the HUD stays on the second screen until A takes the game on to the results.
 - Everywhere else (the title and menus, the course name as a race fades in, the end of a race once the HUD's gone, while the camera circles a destroyed machine, the results) the second screen shows the logo, the title's lettering.
 - With one screen (`layout = single`), the HUD stays where the game draws it.
-- The USA / Europe, Japanese and Chinese releases have all been tried in Grand Prix and Training; the link-cable modes haven't.
+- The USA / Europe, Japanese and Chinese releases have all been tried in Grand Prix and Training; the link-cable modes and the hidden Champion series haven't.
 
 ## Final Fantasy Tactics Advance
 
 A new second screen since v1.3.2, replacing the earlier one (which moved the game's dialogue and menus there).
 
 - **In a battle, with the cursor on a unit** (yours, an enemy or a guest), the second screen is that unit's **Status** screen, as the game draws it, turning between its Equip and Abilities pages every 5 seconds.
-- **With the cursor on no unit** (or on the judge, who has no Status), it shows the **Laws** (forbidden and recommended) at the top and the **turn order** (the list L shows) below them. The list is too long to fit under the Laws, so its last rows are cut off at the bottom; who acts next always shows.
-- All of it is brought up in the background on a silent copy of the game, as the other games' maps are; your game is never paused or touched, and the game screen stays exactly as the game draws it. It's taken again only with the battle map showing: while a unit picks where to move or what to hit, on the enemy's turn and in scenes, the last picture stays.
-- **On the world map**, it shows the **Laws** window (what L opens there) on its own, as the game draws it but without the map behind it, the L Law sign or the pointer: today's laws, taken again as soon as your clan arrives somewhere new, even with the place's menu up (a town's, or a mission's). The Laws window shows another day's laws while the map's pointer is on another place (the day your clan would get there), so the second screen only takes it with the pointer on your clan or between places; in a notice or while your clan travels, the last picture stays.
+- **With the cursor on no unit** (or on the judge, who has no Status), it shows the **turn order** (the list L shows) in two columns, with the **Laws** (forbidden and recommended) below it, on the Status screen's checkerboard. Empty law fields are left out; with very long names, only the first four in the list are shown.
+- All of it is brought up in the background on a silent copy of the game, as the other games' maps are; your game is never paused or touched, and the game screen stays exactly as the game draws it. It's taken again only with the battle map showing: while a unit picks where to move or what to hit, and in scenes, the last picture stays. On a turn that isn't yours (an enemy's, the judge's or a guest's), it shows the turn order and Laws as they were at the start of your last unit's turn.
+- **On the world map**, it shows the **Laws** window (what L opens there), as the game draws it, on the Status screen's checkerboard, without the map behind it, the L Law sign or the pointer: today's laws, taken again as soon as your clan arrives somewhere new, even with the place's menu up (a town's, or a mission's). The Laws window shows another day's laws while the map's pointer is on another place (the day your clan would get there), so the second screen only takes it with the pointer on your clan or between places; in a notice or while your clan travels, the last picture stays.
 - Once a battle is won (from the last enemy defeated through the closing scene), during story scenes on the battle map, and outside battles and the world map (the title, menus, a town's Pub or Shop), the second screen shows the logo.
 
 ## Fire Emblem
@@ -230,7 +231,7 @@ The HUD is moved off the game screen rather than copied, so nothing behind it is
 - Everywhere else (the menus, loading, the replay and results after a race) the second screen shows the logo, the title's GT3 ADVANCE lettering.
 - With one screen (`layout = single`), the HUD stays where the game draws it.
 
-Known issues: link play hasn't been tried.
+Known issues: link play and the Wireframe and Radio Con extra modes haven't been tried.
 
 ## Harry Potter and the Prisoner of Azkaban
 
@@ -299,7 +300,7 @@ The USA, European and Japanese (Mario & Luigi RPG) releases.
 - **In battles,** the second screen has the battle's boxes and meters, over the logo: Mario's and Luigi's HP and BP at the top left, what the highlighted block does at the top right, the buttons at the bottom right, and the menus that open on the right side (the item list, the Bros. Attacks list) where they are on the game screen. The game screen keeps the command blocks and the A prompt over the brother whose turn it is, the damage numbers, the enemy's name while you aim, and everything else. Speech balloons in a battle, a boss's own messages and the results after it stay on the game screen. Tried in the story's first battles, late battles and boss battles.
 - On the title, the second screen shows the logo; in scenes, conversations and the game's own menus it keeps its picture.
 - Not tried yet: the European and Japanese releases beyond the Koopa Cruiser (walking about and its battles were tried in both).
-- **Superstar Saga+** (the romhack, v1.5: its 100%, 80% and 60% patches for the USA release) works the same, with the mod's own names and numbers on Bros. Info and in the battle boxes (its items, its attacks' BP). Don't load a save state made on the unchanged game into the mod, or the other way round: a conversation in progress comes out garbled. Battery saves are fine.
+- **Superstar Saga+** (the romhack, v1.5, its 100% patch for the USA release; its 80% and 60% versions haven't been tried) works the same, with the mod's own names and numbers on Bros. Info and in the battle boxes (its items, its attacks' BP). Don't load a save state made on the unchanged game into the mod, or the other way round: a conversation in progress comes out garbled. Battery saves are fine.
 
 ## Mega Man Battle Network
 
@@ -322,6 +323,7 @@ Known issues: the later tutorial battles, boss battles and link-cable net battle
   - Zero Mission's corner minimap gives way to the map underneath, with its "SELECT / CHANGE AREAS" prompt covered by a piece of the bezel;
   - the coloured plates are recoloured to the frame's greys so they don't stand out.
 - `map_crop = 0` shows the pause screens exactly as the games draw them. The European versions' label erasing was checked in English and German.
+- Zero Mission's colour patches (Color improvement v1 and v2) work on their own; with another patch on as well, its map may not come up.
 
 ## Muppet Pinball Mayhem
 
@@ -355,11 +357,11 @@ Known issues: the end of a stage (the red door), a boss's defeat, a mission's en
 
 The USA release.
 
-- **On a table,** the two screens together show twice as much of it, **live**, as if they were one tall screen: GBA DS runs two more copies of the game alongside yours, with the same buttons every frame, drawing the parts of the table your game's view doesn't, so the flippers, the Pokémon and everything else move on both screens. Your game itself is never changed.
+- **On a table,** the two screens together show twice as much of it, **live**, as if they were one tall screen: GBA DS runs two more copies of the game alongside yours, drawing the parts of the table your game's view doesn't, so the flippers, the Pokémon and everything else move on both screens. Your game itself is never changed.
 - The view scrolls smoothly with the ball and never jumps. While the ball is in the table's upper part, your game is on the top screen with the next part of the table below it. Further down, the two screens show the whole lower table, and the ball is on the bottom screen only when it's down by the flippers.
 - The **score bar** is always at the bottom of the bottom screen. The catch timer and banners (BALL SAVE) stay on the top screen.
 - When the game is **paused**, in the **Pokémon Mart** or showing a **message** (a Pokémon caught), the bottom screen shows its whole screen, with the table on the top screen.
-- The copies are checked against your game every frame. When one drifts apart (now and then in catch mode), or after you load a state or rewind, it's taken from your game again; its screen keeps its last picture for that one frame. During each table's opening sweep the game plays on one screen, with the logo on the other.
+- Every frame, each copy is taken again from your game, so everything that happens in your game happens on both screens (eggs hatching, the catch portrait's squares) and the copies never drift apart. During each table's opening sweep the game plays on one screen, with the logo on the other.
 - `pinball_live = 0` in `gba-ds.cfg` turns the copies off (for slower devices): the game then plays on one screen, with the logo on the other.
 - On the title and menus, the second screen shows the logo.
 - The **bonus stages** play on one screen, with the logo on the other.
@@ -422,13 +424,13 @@ The USA and European release (one cartridge) and the Japanese one (Spider-Man: M
 - **In a level,** the second screen shows the **Select menu**, as the game draws it: the level's picture, its objective and password, your suits, upgrades and web containers. It's opened in the background in a silent copy of the game about once a second; your game is never paused.
 - The game's own **pause menu** (START) and **Select menu** (SELECT) stay on the game screen; the second screen keeps its picture meanwhile.
 - At the title, through the intro and the screens between levels (story pictures, the city map with the next mission), and on the continue screen after you quit a level, the second screen shows the logo.
-- Only the first level has been tried so far.
+- Every level has been tried (in the Japanese release, the first only); the boss fights haven't been yet.
 
 ## Summon Night: Swordcraft Story
 
 The USA release and the Japanese one (Craft Sword Monogatari); there was no European release.
 
-- **While you play,** the second screen shows the **Status** screen from the START menu, at the game screen's size, with the menu's **Place** bar (where you are) over its bottom, its heading short enough to leave the row under the stats in view. Both are brought up in the background on a silent copy of the game; your game is never paused or touched. Where the menu can't be opened (a scene, a fight), the last picture stays.
+- **While you play,** the second screen shows the **Status** screen from the START menu, at the game screen's size, with the menu's **Place** bar (where you are) over its bottom, its heading short enough to leave the row under the stats in view. Both are brought up in the background on a silent copy of the game; your game is never paused or touched. Where the menu can't be opened (a scene), the last picture stays; in a battle, the second screen shows the logo until you're walking about again.
 - **With more than one character** on the Status (L / R switch between them in the game), the second screen shows each in turn, 5 seconds each, with the Place bar over the button prompt.
 - It's taken again about every half second, and as soon as you arrive in a new area.
 - On the title screen, the second screen shows the logo, the whole sword included.
@@ -474,7 +476,7 @@ The USA, European and Japanese releases.
 - **In Toad Houses, Spade games and the kings' rooms,** the status bar moves the same way, above your inventory. So it does on World-e's map (the e-Reader levels), where the status bar stays put on the second screen while the inventory opens and closes; in World-e's castle hall, which has no status bar, the logo.
 - **In a level** (airships, boss rooms, World 8's tanks and Bowser's castle too), the status bar (world, lives, time, coins and score; in World-e's levels the coin count too) moves to the top of the second screen and the P meter to the middle of its bottom, with the logo between them. LEVEL CLEARED! and the card you win stay on the game screen. The status bar stays there through pipes, doors and bonus rooms.
 - The logo is Super Mario Bros. 3's own, from its title screen.
-- Every revision works (USA, Europe and Japan, the Virtual Console and Switch Online dumps), and so does the game's other set of colours, which some colour patches pick.
+- Tried on the USA cartridge and its Rev 1, Europe's cartridge, Rev 1 and Virtual Console dump, and Japan's cartridge; the other revisions and dumps (Switch Online, Japan's Rev 1 and 2) are expected to work the same. So does the game's other set of colours, which some colour patches pick.
 
 ## Sword of Mana
 

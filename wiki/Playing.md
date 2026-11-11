@@ -69,7 +69,7 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 
 ## The quick bar and bug reports
 
-Swipe up from the bottom edge of the touchscreen for the quick bar, or press **L3** (or HOME + X); press it again, or swipe down, to put it away. The game keeps running underneath it. In games with another button layout (the Tony Hawk's games, Super Mario Advance 2), **Controls** is at its top: see [Buttons](#buttons). Under that are the time, the frames per second (about 59.7 is full speed) and the battery level, then five buttons, and under them a line for messages (State saved. and the like):
+Swipe up from the bottom edge of the touchscreen for the quick bar, or press **L3** (or HOME + X); press it again, or swipe down, to put it away. The game keeps running underneath it. In games with another button layout (the Tony Hawk's games, Super Mario Advance 2 and 3), **Controls** is at its top: see [Buttons](#buttons). Under that are the time, the frames per second (about 59.7 is full speed) and the battery level, then five buttons, and under them a line for messages (State saved. and the like):
 - **Save State** (floppy disk) and **Load State** (folder): the quick state, a slot of its own, apart from the pause menu's ten (Load is greyed out until you've saved one). HOME + R1 / L1 save and load it too.
 - **Settings** (gear): the pause menu.
 - **Bug Report** (bug): see below.
@@ -159,6 +159,16 @@ GBA DS reads RetroArch's cheat files (`.cht`, the format of the [libretro cheat 
 
 - **Where:** GBA DS's own `cheats` folder (`gba-ds/cheats`, on ROCKNIX and BananaOS), then RetroArch's cheats folders: on ROCKNIX `/config/retroarch/cheats` and `/storage/.config/retroarch/cheats`, on BananaOS `/data/retroarch/cheats`. Subfolders such as `Nintendo - Game Boy Advance/` are searched too (`cheat_dir` changes RetroArch's folders, `:`-separated). Android: `GBA DS/cheats` on the internal storage (subfolders are fine).
 - **Which file:** picked by name, so `Metroid Fusion (World) (Code Breaker).cht` goes with `Metroid Fusion (USA).gba`. The bracketed parts don't have to match, except the region: a file marked `(USA)` isn't offered for a Japanese ROM. The Japanese Aria of Sorrow, Harmony of Dissonance and Metroid Fusion keep their data at different addresses from the other releases, so for those only files that say `(Japan)` are used, not `(World)` ones.
+- **Using them:** pause menu → Extras → **Cheats** lists them with an On/Off switch each: D-pad and A, L1 / R1 a page at a time, B to go back; or tap a cheat to switch it, and drag to scroll. A long name is shown in full at the bottom.
+- Code Breaker files usually start with an "Enable Code (Must Be On)" cheat: switch it on along with the others, as on the real device.
+- Choices take effect immediately and are remembered per game (`states/<game>.cheats`); a file's own `cheatN_enable` values are used until you change something.
+- Cheats can crash or soft-lock a game, and anything they change is kept in your saves. Make a save state first.
+
+## Patches
+
+GBA DS applies patches (`.ips`, `.ups` and `.bps` files: romhacks, colour patches, translations) to a game as it starts, so the ROM itself stays as it is.
+
+- **Where:** each game has its own folder in GBA DS's `patches` folder (`gba-ds/patches`, on ROCKNIX and BananaOS; Android: `GBA DS/patches` on the internal storage; in the folder of your choice if you've moved GBA DS's files, see [[Install on ROCKNIX]] and [[Install on Android]]), named after the game and its region, for example `patches/Mario & Luigi - Superstar Saga (USA)`. GBA DS makes the folder the first time you play the game, so it's there to drop files into, whatever your ROM file is called. Name the patch files as you like: the name is what the list shows. `patch_dir` changes the folder.
 - **Using them:** pause menu → Extras → **Patches** lists the game's patches with an On/Off switch each (D-pad and A, L1 / R1 a page at a time, B to go back, or tap one), and at the bottom what GBA DS makes of the selected one: a tested romhack (see [Supported games](Supported-games#romhacks-and-patched-roms)), untested, or made for another version of the game (that can't be switched on). Switching one on or off asks first ("Sure?"): save your game, then A restarts the game with the change, or Y leaves it for now so you can change more first. When the change can't upset your saves, the game doesn't restart: it carries on from where you were, with the change ("carry on from here", the question says). That's when the patched game is the same size as before and keeps the same battery save and save states: the two "separate" switches off, as for a colour patch. Colours already on the screen change as the game draws them again.
 - **Patches GBA DS knows:** a list of colour restorations, voice removals and translations (see [Supported games](Supported-games#romhacks-and-patched-roms)) is built in, so the list names them whatever their file is called, says whether they're tested, and warns when one was made for another version of the game than your ROM.
 - **Several at once:** you can switch on up to seven. They're applied in order, top to bottom: the ones that are on sit at the top of the list, numbered, and a patch you switch on goes last. To change the order, press X on one (or tap its number), move it with Up / Down (or tap where it should go), then press A. With two or more on, the list says what they make together, and warns you when they won't go together:
@@ -188,7 +198,7 @@ GBA DS earns [RetroAchievements](https://retroachievements.org) in **casual (sof
 
 ## Logos
 
-Until the second screen has something to show (title screen, intro, menus), it shows the game's logo. No logo files are shipped: the first time a game appears in the list, GBA DS boots it silently in the background, runs it to its title screen and renders just the layer that holds the logo, at the game's own resolution with transparency. It's saved as `states/logos/<CODE>.png`. The logo is drawn like a second GBA screen: at its own size, centred on dark grey in a GBA-sized picture (at half strength while it's all there is to show), with the second screen's scaling and the LCD grid, so its pixels match the game beside it. Everything else GBA DS puts on the second screen (maps, status screens, windows) is drawn the same way, at the game's own size. **No Second Screen: Keep Blank** (pause menu → Display) leaves the second screen black instead.
+Until the second screen has something to show (title screen, intro, menus), it shows the game's logo. No logo files are shipped: the first time a game appears in the list, GBA DS boots it silently in the background, runs it to its title screen and renders just the layer that holds the logo, at the game's own resolution with transparency. It's saved as `states/logos/<CODE>.png`. The logo is drawn like a second GBA screen: at its own size, centred on dark grey in a GBA-sized picture (at half strength while it's all there is to show), with the second screen's scaling and the LCD grid, so its pixels match the game beside it. Everything else GBA DS puts on the second screen (maps, status screens, windows) is drawn the same way, at the game's own size. `show_logo = 0` in `gba-ds.cfg` leaves the second screen black instead.
 
 To use your own art instead, put `<CODE>.png` (or `.bmp`) in `gba-ds/logos/` (Android: `GBA DS/logos/`). Art up to 240×160 is treated like the extracted logos; bigger images are fitted, smoothly, to where the GBA picture would be (without the grid). `<CODE>` is the game's four-letter code, listed in [[Supported games]].
 
@@ -201,7 +211,9 @@ To use your own art instead, put `<CODE>.png` (or `.bmp`) in `gba-ds/logos/` (An
 | Battery saves (`.sav`) | next to the ROM (`save_dir` changes it). On first launch an existing RetroArch `Game.srm` is copied to `Game.sav`; the `.srm` is left alone. | next to the ROM |
 | Save states (`<game>.quick.state` for the quick bar, `<game>.slot0.state` to `.slot9.state` for the pause menu's slots), resume points (`<game>.auto.state`), with `.ra` beside them | `/storage/roms/ports/gba-ds/states/` (`state_dir`) | `GBA DS/states/` |
 | Menu settings (`prefs.cfg`), game list settings (`library.cfg`) | `gba-ds/states/` | `GBA DS/states/` |
-| Cheat choices (`<game>.cheats`) | `gba-ds/states/` | `GBA DS/states/` |
+| Cheat choices (`<game>.cheats`), patch choices (`<game>.patches`) | `gba-ds/states/` | `GBA DS/states/` |
+| Hotkeys (`hotkeys.cfg`), Map Buttons (`controllers.txt`) | `gba-ds/states/` | `GBA DS/states/` |
+| Patches | `gba-ds/patches/<game>/` | `GBA DS/patches/<game>/` |
 | Extracted logos | `gba-ds/states/logos/` | `GBA DS/states/…` |
 | RetroAchievements sign-in and badges | `gba-ds/states/ra/` | `GBA DS/states/ra/` |
 | Your logos and overlays | `gba-ds/logos/`, `gba-ds/overlays/` | `GBA DS/logos/`, `GBA DS/overlays/` |

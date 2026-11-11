@@ -23,9 +23,15 @@
 | Save states, settings from the menu, logos | `roms/ports/gba-ds/states/` |
 | Log | `roms/ports/gba-ds/gba-ds.log` |
 
+To keep GBA DS's own files (states, cheats, overlays, logos, patches, bug reports) somewhere else, see [Keeping GBA DS's files somewhere else](Install-on-ROCKNIX#keeping-gba-dss-files-somewhere-else): it works the same here.
+
 - **RetroAchievements:** the account from Banana's first-time setup (`banana/accounts.conf`) is used, in casual mode. Banana has no `curl` program, so GBA DS talks to the server through Banana's curl library instead (the log says "using libcurl").
 - **Battery and clock** in the pause menu come from the system, as on ROCKNIX.
 - **Back to Banana:** closing GBA DS from Ports goes back to Banana's menu.
+
+## Upgrading
+
+In GBA DS's game list, **Settings** > **Updates** > **Check now**, then **Update now** (see [Playing](Playing#updates)). Or unzip the new release over the old one in `roms/ports`.
 
 ## Starting games from Banana's Game Boy Advance list
 

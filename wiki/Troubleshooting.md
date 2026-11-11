@@ -51,11 +51,11 @@ The log's every-5-seconds report says whether the sound ran out (underruns) and 
 
 **The map is from an older moment.** Lower `map_interval` in `gba-ds.cfg` (frames between refreshes; 60 by default), or wait for the next room change, which refreshes it straight away.
 
-**A game isn't in the list.** Only supported games are listed by default; check the game's code against [[Supported games]], or set `show_all = 1`. Hacks and translations with a changed header code aren't recognised.
+**A game isn't in the list.** Only supported games are listed by default; check the game's code against [[Supported games]], or set `show_all = 1`. Hacks and translations with a changed header code aren't recognised: keep the unchanged ROM instead, put the patch in its folder in `gba-ds/patches` (see [Playing](Playing#patches)) and switch it on in Extras > Patches.
 
 ## Logos and thumbnails
 
-**A tile says "Loading thumbnail..." forever, or a logo is wrong.** Delete `states/logos/<CODE>.png`; it's made again on the next start. Your own `logos/<CODE>.png` always wins.
+**A tile says "Loading thumbnail..." forever, or a logo is wrong.** Delete `states/logos/<CODE>.png` (or `<CODE>-r1.png` and the like); it's made again on the next start. Your own `logos/<CODE>.png` always wins.
 
 ## Saves
 
@@ -78,5 +78,5 @@ The log's every-5-seconds report says whether the sound ran out (underruns) and 
 ## RetroAchievements
 
 - **Not signing in:** check the username and password (ROCKNIX: EmulationStation's RetroAchievements settings, or `ra_username` / `ra_password`). Delete `states/ra/login.cfg` to forget the stored token and sign in again.
-- **No achievements for a game:** RetroAchievements recognises a game by its ROM's checksum; hacks, translations and bad dumps aren't recognised. The second screen says so as the game starts.
+- **No achievements for a game:** RetroAchievements recognises a game by its ROM's checksum; hacks, translations and bad dumps aren't recognised. The second screen says so as the game starts. With a patch on (Extras > Patches), RetroAchievements are off for that game.
 - **Unlocked offline:** unlocks are sent when the connection comes back, while GBA DS is running.

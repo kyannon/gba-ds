@@ -12,7 +12,7 @@ GBA DS runs on stock [ROCKNIX](https://rocknix.org) and on ROCKNIXDS, on the Anb
    - saves and states are named after the file, so `Game.zip` and an unzipped `Game.gba` share them.
 4. In EmulationStation, update the game lists (Start → Game settings → Update gamelists, or restart EmulationStation) and launch **GBA DS** from **Ports**.
 
-The first time the game list opens, GBA DS pulls each game's logo (and, for the Castlevanias, its map border art) out of the ROMs in the background. The selected game and the ones on screen go first, and you can start a game as soon as its own logo is ready; the rest carry on while you're in the game list. Tiles say "Loading thumbnail..." until their logo is ready. See [[Playing]] for the game list itself.
+The first time the game list opens, GBA DS pulls each game's logo out of the ROMs in the background. The selected game and the ones on screen go first, and you can start a game as soon as its own logo is ready; the rest carry on while you're in the game list. Tiles say "Loading thumbnail..." until their logo is ready. See [[Playing]] for the game list itself.
 
 ## The two screens on stock ROCKNIX
 
@@ -67,7 +67,7 @@ The easiest way: in the game list, **Settings** > **Updates** > **Check now**, t
 
 By hand: unzip the new release over the old one, into `/storage/roms/ports/`.
 
-- **Kept:** everything in `gba-ds/states/` (save states, resume points, cheat choices, menu settings, extracted logos, your RetroAchievements sign-in), your own `logos/` and `overlays/`, and the battery saves next to your ROMs. If you keep GBA DS's files in a folder of your own (`data-folder.cfg`, below), that file and that folder are kept too.
+- **Kept:** everything in `gba-ds/states/` (save states, resume points, cheat choices, menu settings, extracted logos, your RetroAchievements sign-in), your own `logos/`, `overlays/`, `cheats/` and `patches/`, and the battery saves next to your ROMs. If you keep GBA DS's files in a folder of your own (`data-folder.cfg`, below), that file and that folder are kept too.
 - **Replaced** (by hand only): `gba-ds/gba-ds.cfg`. If you've edited it, keep a copy first and copy your changes back (new versions may add options; see [[Settings]]).
 - If **GBA DS in EmulationStation** was on, it stays on.
 
@@ -75,7 +75,7 @@ By hand: unzip the new release over the old one, into `/storage/roms/ports/`.
 
 ## Keeping GBA DS's files somewhere else
 
-By default GBA DS keeps its own files (`states/`, `cheats/`, `overlays/`, `logos/`, `bug-reports/`) in its folder, `gba-ds/`, beside the program. To keep them elsewhere, make a file called `data-folder.cfg` in `gba-ds/` with one line:
+By default GBA DS keeps its own files (`states/`, `cheats/`, `overlays/`, `logos/`, `patches/`, `bug-reports/`) in its folder, `gba-ds/`, beside the program. To keep them elsewhere, make a file called `data-folder.cfg` in `gba-ds/` with one line:
 
 ```
 data_dir = /storage/roms/ports-data/gba-ds
@@ -86,6 +86,6 @@ The next time GBA DS starts, it moves its files there (the program, `gba-ds.cfg`
 ## Uninstalling
 
 1. If you switched **GBA DS in EmulationStation** on, switch it off first (game list → Settings).
-2. Delete `gba-ds/`, `GBA DS.sh` and `images/GBA DS.png` from `/storage/roms/ports/`.
+2. Delete `gba-ds/`, `GBA DS.sh` and `images/GBA DS.png` from `/storage/roms/ports/`. If you moved GBA DS's files with `data-folder.cfg`, delete that folder too.
 
 Battery saves (`.sav`, next to your ROMs) stay; other emulators can use them.

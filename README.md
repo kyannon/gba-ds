@@ -16,7 +16,7 @@ The idea here is "what if the Game Boy Advance had a second screen" -- part of w
 
 <sub>Stacked screens, pixel-perfect scaling, LCD grid on.</sub>
 
-GBA DS supports 51 games, with their regional releases and some romhacks of them: see [Supported games](https://github.com/kyannon/gba-ds/wiki/Supported-games) in the wiki for the list and what each one shows on the second screen. Any other GBA game also runs; it just plays on one screen.
+GBA DS supports 51 games, with their regional releases and some romhacks of them: see [Supported games](https://github.com/kyannon/gba-ds/wiki/Supported-games) in the wiki for the list and what each one shows on the second screen. Any other GBA game also runs; it just plays on one screen. Romhacks and other patches (`.ips`, `.ups`, `.bps`) can be switched on for each game in the pause menu (Extras → Patches).
 
 **Documentation is in the [wiki](https://github.com/kyannon/gba-ds/wiki):** [Playing](https://github.com/kyannon/gba-ds/wiki/Playing) · [Supported games](https://github.com/kyannon/gba-ds/wiki/Supported-games) · [Overlays](https://github.com/kyannon/gba-ds/wiki/Overlays) · [Settings](https://github.com/kyannon/gba-ds/wiki/Settings) · [Troubleshooting](https://github.com/kyannon/gba-ds/wiki/Troubleshooting) · [Adding second-screen compatibility for a game](https://github.com/kyannon/gba-ds/wiki/Adding-second-screen-compatibility-for-a-game) · [Philosophy](https://github.com/kyannon/gba-ds/wiki/Philosophy)
 
@@ -45,6 +45,7 @@ Download the latest release from the [Releases page](https://github.com/kyannon/
 - **[BananaOS](https://github.com/kyannon/gba-ds/wiki/Install-on-BananaOS)**: the same zip, unzipped into the card's `roms/ports`; games in `roms/gba`.
 - **[Stock Linux OS](https://github.com/kyannon/gba-ds/wiki/Install-on-Stock-Linux-OS)** (the RG DS Plus's own system, experimental): the same zip, unzipped into the card's `Ports` folder; games in `Roms/GBA`.
 - **[Android](https://github.com/kyannon/gba-ds/wiki/Install-on-Android)** (GammaOS): install `gba-ds-v…-android.apk`, allow All files access, and put your ROMs in `ROMs/gba`. To start games from GammaOS, Daijisho, ES-DE or another frontend, see [Launching from Android frontends](https://github.com/kyannon/gba-ds/wiki/Launching-from-Android-frontends).
+- **[In your web browser](https://kyannon.github.io/gba-ds/)** (beta): choose a GBA game and play it with its second screen on a computer, a tablet or a phone, with nothing to install. Your games and saves stay on your device.
 
 ## Building
 
@@ -56,7 +57,7 @@ scripts/build-rocknix.sh            # -> dist/gba-ds-v<VERSION>-linux-aarch64.zi
 
 The script fetches a GCC aarch64 toolchain, mGBA (pinned commit), and SDL2 into `deps/`.
 
-Dev builds (a `-dev` VERSION) also carry `gba-ds/web/gba-ds.wasm`, GBA DS compiled to WebAssembly by `scripts/build-web.sh` (needs clang, wasm-ld and llvm-ar; it builds its own SDL2, libmgba and binaryen's `wasm-opt` the first time). Dropping such a zip on the GBA DS tab of the State Saver tool (`tools/statesaver/`) runs that build in a browser, both screens at default settings, for testing before it goes on a device.
+Dev builds (a `-dev` VERSION) also carry `gba-ds/web/gba-ds.wasm`, GBA DS compiled to WebAssembly by `scripts/build-web.sh` (needs clang, wasm-ld, llvm-ar, cmake and git, and the mGBA and SDL2 sources in `deps/` from `scripts/setup-host.sh` or `scripts/build-rocknix.sh`; it builds binaryen's `wasm-opt` the first time). Dropping such a zip on the GBA DS tab of the State Saver tool (`tools/statesaver/`) runs that build in a browser, both screens at default settings, for testing before it goes on a device.
 
 To build for the host so you can develop and test (needs libpng-dev too):
 
@@ -64,6 +65,8 @@ To build for the host so you can develop and test (needs libpng-dev too):
 scripts/setup-host.sh   # first time: mGBA and SDL2 into deps/, then builds
 make && make tools      # afterwards: build/host/gba-ds, build/host/harness
 ```
+
+The Android app, `scripts/build-android.sh` (-> `dist/gba-ds-v<VERSION>-android.apk`), needs the Android SDK and NDK, so it runs on GitHub Actions (`.github/workflows/android.yml`; the APK is in the run's artifacts). The web player, `scripts/build-web-player.sh` (-> `build/web-player/`), puts the web build in a page you can open in a browser; GitHub Pages publishes it from `main`.
 
 Run it headless and drive it from a script (button combos, `HOME`, `TAP:x,y`, `SHOT:file.bmp`, `QUIT`; see `--help`):
 
@@ -76,9 +79,6 @@ To add second-screen support for another game, see [Adding second-screen compati
 
 ## Roadmap
 
-- Better save and load state handling, toggles for auto-save and auto-load
-- "Bug report save" functionality that includes a rewound state, button logs, and custom notes
-- A hideable touch menu on the second screen that gives all games access to performance and other functionality without needing to pause
 - Better aspect ratio and display controls for more devices
 - Hopefully, with dev permissions and as the emulator matures, deeper integration options for the popular RG DS/DS+ operating systems
 - Eventually, potentially, RetroAchievements hardcore support
@@ -113,7 +113,7 @@ GBA DS is free software: you can redistribute it and/or modify it under the term
 
 The parts of GBA DS made by others keep their own licences, all compatible with the GPL:
 
-GBA DS statically links libmgba, which is © Jeffrey Pfau and licensed under MPL-2.0. The mGBA source is at <https://github.com/mgba-emu/mgba> (pinned commit in `scripts/build-rocknix.sh`).
+GBA DS statically links libmgba, which is © Jeffrey Pfau and licensed under MPL-2.0. The mGBA source is at <https://github.com/mgba-emu/mgba> (pinned commit in `scripts/mgba-options.sh`).
 
 The interface text is set in [Jost](https://github.com/indestructible-type/Jost) (© The Jost Project Authors), bundled under the SIL Open Font License 1.1 (`assets/fonts/Jost-OFL.txt`), and drawn with [stb_truetype](https://github.com/nothings/stb) (public domain).
 

@@ -29,7 +29,9 @@ Everything except the battery saves lives in a **`GBA DS`** folder on the intern
 | `GBA DS/cheats/` | your RetroArch `.cht` cheat files (subfolders are fine) |
 | `GBA DS/overlays/` | your own overlay PNGs (see [[Overlays]]) |
 | `GBA DS/logos/` | your own logo images (`<CODE>.png`), used instead of the extracted ones |
+| `GBA DS/patches/` | patches (`.ips`, `.ups`, `.bps`), in a folder for each game made by GBA DS (see [Playing](Playing#patches)) |
 | `GBA DS/screenshots/` | Take Screenshot's PNGs |
+| `GBA DS/bug-reports/` | bug reports from the quick bar's bug button |
 | `GBA DS/gba-ds.cfg` | optional: settings from [[Settings]] (create it; only the lines you want to change) |
 | `GBA DS/gba-ds.log` | the log of the last run |
 | `GBA DS/launch.log` | what frontends sent when they started GBA DS (see [[Launching from Android frontends]]) |
@@ -53,6 +55,7 @@ To keep this folder somewhere else (in a folder for all your emulators, say), us
 - **RetroAchievements: Sign In / Sign Out**: sign in with your retroachievements.org username and password. GBA DS keeps a sign-in token, not the password, and signs in by itself from then on. See [Playing](Playing#retroachievements).
 - **Map Buttons**: if a button does the wrong thing, or for a controller GBA DS doesn't know, set each button by where it sits (see [Playing](Playing#mapping-the-buttons)). Android keeps HOME (and usually BACK) for itself, so skip **Home** with a tap: SELECT + START or BACK still open the menu. The mapping is kept in `GBA DS/states/controllers.txt`.
 - **Hotkeys** (beside Map Buttons): change the shortcuts, the hotkey button held with another (see [Playing](Playing#hotkeys)). On Android the hotkey button is BACK by default (Android keeps HOME), shown as **Back**; SELECT, START or L3 can be the hotkey instead. Kept in `GBA DS/states/hotkeys.cfg`.
+- **Updates**: check for a new version and install it (see Updating, above).
 
 ## Starting games from a launcher
 

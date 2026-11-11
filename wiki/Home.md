@@ -15,6 +15,7 @@
 - **[[Install on Stock Linux OS]]**: the same zip as a port on the RG DS Plus's Stock Linux OS (experimental).
 - **[[Install on Android]]**: the APK, permissions and the `GBA DS` folder.
 - **[[Launching from Android frontends]]**: GammaOS, Daijisho, ES-DE and other launchers, with the intent arguments they need.
+- **[Play in your web browser](https://kyannon.github.io/gba-ds/)** (beta): GBA DS with both screens on a computer, a tablet or a phone, with nothing to install.
 
 ## Using GBA DS
 

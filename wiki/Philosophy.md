@@ -17,7 +17,7 @@ The second screen gives the player information or context they would otherwise h
 
 What this means in practice:
 
-- **Useful beats pretty.** A status screen with its last rows cut off but showing who acts next (Final Fantasy Tactics Advance's turn order) is better than a nicer-looking screen with less in it, or a slower one.
+- **Useful beats pretty.** A status screen that shows who acts next, even when it can't show everything (Final Fantasy Tactics Advance's turn order with very long names: the first four only), is better than a nicer-looking screen with less in it, or a slower one.
 - **Show what matters right now.** The second screen follows what the player is doing: the unit under the cursor in Fire Emblem, the level Mario is standing on. Keeping up quickly is part of the function.
 - **Nothing there should make you look twice.** The second screen is for looking at; everything you act on stays on the game screen. So the second screen leaves out anything that looks like it's waiting for a button or like the thing you're controlling: button prompts (a "press A", an arrow to turn a page), the cursor, the character you're moving. Those belong to the hidden copy, not your game. A map's own marker of where you are is information, and stays. What you have to react to stays where the action is: action prompts, a command menu over your character, damage numbers. And nothing is split across the two screens or shown on both: half an animation on each screen, or the same box twice, leaves you wondering which one is real. In Mario & Luigi's battles, the information boxes and meters move over, but the command blocks and action prompts stay, and a level-up stays whole on the game screen.
 - **When there's nothing useful, say so plainly.** If there's nothing live to show (a title screen, a cutscene, a menu), the second screen shows the game's logo at half strength so it reads as idle, rather than something stale or invented. If a capture can't be confirmed as correct, the last good picture stays up. Better nothing new than something wrong.
@@ -45,7 +45,7 @@ What this means in practice:
   - hiding sprites that don't belong (a cursor, a button prompt, the player's sprite behind a menu; see rule 2);
   - cropping to the part that matters;
   - moving a block of the game's own HUD into a free spot (Super Mario Advance 2's level name above its status bar);
-  - placing two of the game's own windows together when both help (Final Fantasy Tactics Advance's Laws above its turn order);
+  - placing two of the game's own windows together when both help (Final Fantasy Tactics Advance's turn order with its Laws below);
   - one window across the whole screen, made of the game's own window edge and background, where the game split its information into small windows only to leave the battle visible (Advance Wars' unit intel, its text and minimap in one frame). The second screen has no battle to keep clear. It's built from tiles the game draws, never drawn for it;
   - turning through a status screen's pages on a timer (Fire Emblem's three pages, every 5 seconds).
 - **Not allowed:** text in GBA DS's font on the second screen, new icons, panels or frames of GBA DS's own design, redrawn or restyled game art, or a layout so rearranged that it no longer reads as the game's own screen.
@@ -79,6 +79,7 @@ What this means in practice:
   - Dragon Ball Z: The Legacy of Goku's logo, whose Z is drawn again in the game's own colours where the title screen paints Goku's hair over it;
   - Dragon Ball Z: Buu's Fury's logo, each letter's black outline closed where the title screen leaves a gap;
   - a game's own window rearranged where there's no other way to show all of what it holds on one GBA screen, as the game would let the player see it by scrolling: its list split into columns, its heading bar or frame made wider from its own end and middle pieces, its own transparency kept over the background it sits on (Final Fantasy Tactics Advance's turn order in two columns, with the Laws below);
+  - Final Fantasy Tactics Advance's Laws on the world map, on the Status screen's checkerboard, so they look as they do in a battle;
   - Mega Man Battle Network's status screen and money counter, from two of the PET's screens, in one frame edged with the counter's own orange border;
   - Mega Man Battle Network's maps of the net, which the game doesn't have, drawn from each area's own layout in the game's own tiles, with MegaMan's head marking where he is.
 - **Optional where it can be.** Where an exception changes how the game plays or looks, there's a way back to the original: GBA is the default control layout, and `pinball_live = 0` turns off the pinball games' tall view.

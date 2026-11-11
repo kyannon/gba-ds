@@ -6,6 +6,7 @@
 - [[Install on Stock Linux OS]]
 - [[Install on Android]]
 - [[Launching from Android frontends]]
+- [Play in your browser](https://kyannon.github.io/gba-ds/)
 
 **Use**
 - [[Playing]]

@@ -52,6 +52,8 @@ For each screen the most specific file found is used, so a game's own overlay be
 
 For example, on an AYN Thor with Stretch and **Match screen aspect ratios**: on the top screen, `top-stretch-aspect.png` is used if you have it, then `top-aspect.png`, then `top-stretch.png`, then `top.png`.
 
+Overlays named the old way still work: `primary` (the game's screen) and `secondary` (the second screen) in place of `top` and `bottom`, and these follow their picture when you swap screens. At each step, a `top` / `bottom` file is used first.
+
 - On the screen without the game, the overlay is drawn whatever that screen shows: the map, the HUD, the logo, or nothing.
 - An overlay is always drawn over its whole screen, whatever the screen shapes setting: make it the screen's own size (1920×1080 for the Thor's top screen), transparent where the picture goes.
 

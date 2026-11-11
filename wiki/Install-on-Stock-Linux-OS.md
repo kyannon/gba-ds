@@ -17,6 +17,10 @@ The RG DS Plus ships with Anbernic's **Stock Linux OS**. GBA DS runs on it from 
 - **HOME and BACK** both open the pause menu, and so does a tap on the touchscreen.
 - **No EmulationStation:** the Stock Linux OS's menu isn't EmulationStation, so the game list's Settings don't offer to add GBA DS to it. Start GBA DS from Ports.
 
+## Upgrading
+
+In GBA DS's game list, **Settings** > **Updates** > **Check now**, then **Update now** (see [Playing](Playing#updates)). Or unzip the new release over the old one in `Ports`.
+
 ## Known issues
 
 - **Volume:** the volume keys set GBA DS's own volume (shown on screen, kept between games in `gba-ds/states/volume.txt`), not the system's. The Stock Linux OS applies its menu volume somewhere GBA DS can't read or change, so the level you set in the menu doesn't carry over: GBA DS starts at its own last level.

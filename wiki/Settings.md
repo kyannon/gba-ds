@@ -1,9 +1,10 @@
-Settings live in **`gba-ds.cfg`**: `/storage/roms/ports/gba-ds/gba-ds.cfg` on ROCKNIX (commented, with every option), `GBA DS/gba-ds.cfg` on Android (create it, with just the lines you want to change). Lines are `key = value`; lines starting with `#` are ignored. Every option can also be given on the command line with dashes for underscores, e.g. `launch.sh --map-interval=60 --swap`.
+Settings live in **`gba-ds.cfg`**: `/storage/roms/ports/gba-ds/gba-ds.cfg` on ROCKNIX (commented, with the main options; the rest are below), `GBA DS/gba-ds.cfg` on Android (create it, with just the lines you want to change). Lines are `key = value`; lines starting with `#` are ignored. Every option can also be given on the command line with dashes for underscores, e.g. `launch.sh --map-interval=60 --swap`.
 
-Three files are read in order, later ones winning:
+Four files are read in order, later ones winning:
 1. `gba-ds.cfg`;
-2. `states/prefs.cfg`: what you chose in the pause menu (screens swapped, scaling, shader, color correction, LCD ghosting, overlays, the second screen's logo, FPS counter, frame buffer). GBA DS rewrites this file; to change those settings, use the menu, or delete the line from `prefs.cfg`.
-3. `states/library.cfg`: the game list's view (list or grid) and, on Android, the ROM folder, the save folder and the saves' type (Settings > Folders).
+2. `states/prefs.cfg`: what you chose in the pause menu (screens swapped, scaling, shader, color correction, LCD ghosting, overlays and the bezel, frame buffer, match display rate, screen shapes, rewind, fast forward, save on quit, auto-load, the quick bar's pin). GBA DS rewrites this file; to change those settings, use the menu, or delete the line from `prefs.cfg`.
+3. `states/library.cfg`: the game list's view (list or grid) and, on Android, the ROM folder, the save folder and the saves' type (Settings > Folders);
+4. `states/hotkeys.cfg`: what you chose in Settings > Hotkeys.
 
 Updating from the game list (Settings > Updates) keeps your `gba-ds.cfg`. Unzipping a new release by hand replaces it, so keep a copy of your changes first.
 
@@ -51,11 +52,11 @@ Updating from the game list (Settings > Updates) keeps your `gba-ds.cfg`. Unzipp
 | `bezel_inner` | `1A1A1A` | The generated bezel's colour round the picture (RRGGBB). |
 | `bezel_outer` | `102060` | The generated bezel's colour outside that (RRGGBB). |
 | `border_color` | `000000` | Colour behind the map image where nothing else is drawn (RRGGBB). |
-| `show_fps` | `0` | Frames per second and % of full speed above the game, all the time (also HOME + X). The quick bar shows the frames per second whenever you swipe it up. |
+| `show_fps` | `0` | Frames per second and % of full speed above the game, all the time. The quick bar (HOME + X) shows the frames per second whenever it's up. |
 | `match_display` | `0` | **Match Display Rate**: run the game at the display's refresh rate instead of the GBA's 59.73 frames a second, when the two are within 1.5% (a 60 Hz screen: 0.46% faster, sound resampled to match, which you can't hear), and present each frame in step with the display. The GBA's own rate on a 60 Hz screen shows one frame twice about every 3.7 seconds, a small regular stutter; matched, every frame gets exactly one refresh. Also in the pause menu. |
 | `rewind` | `1` | Keep a rewind buffer: hold **L2** to go back in time. Also in the pause menu (Extras). |
 | `rewind_seconds` | `30` | How far back rewind goes (5-300). The buffer holds the differences between states, about 1 MB a second. |
-| `frame_buffer` | `0` | Prepare the next frame while the current one is shown: smoother, one frame (about 17 ms) more input delay. Also in the pause menu. Always on in Pokémon Pinball, which needs it for full speed. |
+| `frame_buffer` | `0` | Prepare the next frame while the current one is shown: smoother, one frame (about 17 ms) more input delay. Also in the pause menu. Always on in the pinball games' two-screen tables (Pokémon Pinball, Sonic Pinball Party, Muppet Pinball Mayhem), which need it for full speed. |
 
 ## Second screen
 
@@ -66,7 +67,7 @@ Updating from the game list (Settings > Updates) keeps your `gba-ds.cfg`. Unzipp
 | `map_crop` | `1` | The Metroid map screens, tidied (labels erased, prompts and minimap removed; see [[Supported games]]), and Lady Sia's pause screen without its menu lines. `0` shows them exactly as the games draw them. |
 | `show_logo` | `1` | The game's logo on the second screen when there's nothing else to show (title screens, menus, before the first map). `0` keeps it blank. |
 | `map_animations` | `1` | Blinking map markers. `0` shows one still frame, with every marker that blinks showing. A Link to the Past's map is always still that way. |
-| `pinball_live` | `1` | Pokémon Pinball: two more copies of the game draw the rest of the table live on both screens. `0` turns them off (for slower devices): the game plays on one screen, with the logo on the other. |
+| `pinball_live` | `1` | Pokémon Pinball, Sonic Pinball Party and Muppet Pinball Mayhem: two more copies of the game draw the rest of the table live on both screens. `0` turns them off (for slower devices): the game plays on one screen, with the logo on the other. |
 
 What `map_crop` changes in the Metroid map screens:
 - **Zero Mission** keeps its whole pause screen, frame included, and only the lettering is erased: the L and R key letters, SLEEP, the area name, STATUS, and the A on the button beside the minimap. The keys, plates and button stay; the blank plates (magenta) and L/R keys (orange) are recoloured to the dark grey-green of the curved pieces beside the area name. The corner minimap gives way to the map underneath, and its "SELECT / CHANGE AREAS" prompt is covered by a piece of the bezel.
@@ -96,11 +97,12 @@ What `map_crop` changes in the Metroid map screens:
 | `save_dir` | empty | Battery saves (`.sav`). Empty: next to the ROM. An existing RetroArch `.srm` is copied to `.sav` the first time you play a game, and so is a save next to the ROM when this is another folder. Android: Settings > Folders. |
 | `save_ext` | `sav` | The battery saves' extension: `sav`, or `srm` to use RetroArch's own save files in `save_dir` (BananaOS: `srm` in `/data/saves/gba`, set by GBA DS's launcher). An existing save in the other form is copied the first time you play a game. |
 | `save_from` | empty | A folder where GBA DS kept its `.sav` saves before (BananaOS: `/data/saves`). A game's save there is carried over the first time you start it, or when it's newer than the one in `save_dir` (that one kept as `.bak`). |
-| `data_dir` | empty | GBA DS's own folder for its files: `states/`, `cheats/`, `overlays/`, `logos/`, `patches/`, `bug-reports/`. Empty: the app's folder (`gba-ds/`). Set it in a file of its own, `data-folder.cfg` beside `gba-ds.cfg` (one line: `data_dir = /storage/roms/ports-data/gba-ds`), which updates and unzipping a new version leave alone. GBA DS moves its files there the next time it starts, and back if you take the line out. If the folder's card isn't in, GBA DS says so in the game list and uses the app's folder for that run. Android: Settings > Folders > Choose GBA DS folder. |
+| `data_dir` | empty | GBA DS's own folder for its files: `states/`, `cheats/`, `overlays/`, `logos/`, `patches/`, `bug-reports/`. Empty: the app's folder (`gba-ds/`). Set it in a file of its own, `data-folder.cfg` beside `gba-ds.cfg` (one line, for example `data_dir = /storage/roms/gba-ds-data`; the folder it goes in must already exist, and GBA DS makes the last folder itself), which updates and unzipping a new version leave alone. GBA DS moves its files there the next time it starts, and back if you take the line out. If the folder's card isn't in, GBA DS says so in the game list and uses the app's folder for that run. Android: Settings > Folders > Choose GBA DS folder. |
 | `state_dir` | empty | Save states, resume points, menu settings and extracted art. Empty: `states` in the data folder (`gba-ds/states`). |
 | `screenshot_dir` | `/storage/roms/screenshots` | Where Take Screenshot saves its PNGs. |
 | `cheat_dir` | RetroArch's cheat folders | RetroArch's `.cht` folders, searched two levels deep, `:`-separated. GBA DS's own `cheats` folder (`gba-ds/cheats`) is always searched first. |
-| `asset_dir` | empty | The folder holding your `logos/` and `overlays/`. Empty: the data folder (`data_dir`). |
+| `asset_dir` | empty | The folder holding your `logos/`, `overlays/` and `patches/`. Empty: the data folder (`data_dir`). |
+| `patch_dir` | empty | Patches, in a folder for each game (see [Playing](Playing#patches)). Empty: `patches` in the data folder (`gba-ds/patches`). |
 | `es_config_dir` | `/storage/.config/emulationstation` | Where **GBA DS in EmulationStation** puts its two files. |
 
 ## RetroAchievements
