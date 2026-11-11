@@ -47,7 +47,7 @@ GBA_W, GBA_H = 240, 160
 # ---------------------------------------------------------------- the design
 # Sizes in GBA pixels (u: one GBA pixel at the picture's scale).
 NAVY = (16, 32, 96, 255)       # #102060, the GBA DS logo's outline (tools/make_brand.py)
-BEZEL = (43, 43, 43, 255)      # #2B2B2B, the bezel round the screen
+BEZEL = (26, 26, 26, 255)      # #1A1A1A, the bezel round the screen (darker than the idle logo screen's #303030)
 LOGO_INK = (208, 208, 208)     # the logo's letters, a little dimmer than white
 MARGIN = 12.0     # the bezel round the picture
 RADIUS = 3.0      # its corners
