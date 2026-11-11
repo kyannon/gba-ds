@@ -2839,7 +2839,7 @@
     },
     {
      "rule": "ML-2",
-     "what": "and back",
+     "what": "and back (above the note that the state was saved with the unchanged game)",
      "type": "same",
      "a": {
       "shot": "mario",
@@ -2847,7 +2847,7 @@
        0,
        0,
        1024,
-       768
+       712
       ]
      },
      "b": {
@@ -2856,7 +2856,7 @@
        0,
        0,
        1024,
-       768
+       712
       ]
      }
     }
