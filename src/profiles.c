@@ -2987,6 +2987,8 @@ static void ml_no_prompts(Emu* s, uint32_t* out, int w, int h) {
 	static const struct { int x; double a0, a1; } tabs[2] = { { 16, 136.0, 100.0 }, { 48, 80.0, 40.0 } };
 	static uint32_t page[GBA_W * GBA_H];
 	for (int y = 0; y < GBA_H; ++y) memcpy(&page[y * GBA_W], &out[y * w], GBA_W * sizeof(uint32_t));
+	/* the glass's left edge, from outside in (row 60: dark, highlight, light, medium) */
+	const uint32_t rim[4] = { page[60 * GBA_W + 2], page[60 * GBA_W + 3], page[60 * GBA_W + 4], page[60 * GBA_W + 5] };
 	for (int t = 0; t < 2; ++t)
 		for (int y = 72; y < 88; ++y)
 			for (int x = tabs[t].x; x < tabs[t].x + 16; ++x) {
@@ -3003,6 +3005,23 @@ static void ml_no_prompts(Emu* s, uint32_t* out, int w, int h) {
 				uint32_t v = bare[i];
 				if (qx >= 0 && qx < GBA_W && qy >= 0 && qy < GBA_H && page[qy * GBA_W + qx] != bare[qy * GBA_W + qx])
 					v = page[qy * GBA_W + qx];
+				/* under L, past the medium brown: not the circle's edge curving
+				 * in under the tab but the glass's base, as the handle's side
+				 * widens (the owner's look at the Equipment page): its left edge
+				 * near straight down from where the game's own leaves off (x 16
+				 * on row 79), as the glass's left edge is drawn (dark, highlight,
+				 * light), medium brown inside, the base's bottom on row 86 (dark,
+				 * with light above it), as just right of the tab; the plaid left
+				 * of the edge and under the base */
+				if (t == 0 && r > 38.5 && y >= 79) {
+					static const int edge[8] = { 16, 16, 17, 17, 17, 18, 18, 18 };
+					int ex = edge[y - 79];
+					if (y == 87 || x < ex) v = bare[i];
+					else if (x == ex || y == 86) v = rim[0];
+					else if (x == ex + 1) v = rim[1];
+					else if (x == ex + 2 || y == 85) v = rim[2];
+					else v = rim[3];
+				}
 				out[y * w + x] = v;
 			}
 }
