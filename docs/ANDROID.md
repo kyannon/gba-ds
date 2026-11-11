@@ -661,4 +661,3 @@ Not tried on the device yet.
 Player-facing Android changes since the last release, for the main session
 to move into CHANGELOG.md and the release notes (see CLAUDE.md, "More than
 one session"). Empty after each release.
-- New on Android: Settings > Hotkeys, to change the shortcuts (the hotkey button, BACK by default there, held with another).
