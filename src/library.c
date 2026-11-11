@@ -648,19 +648,21 @@ static int updatesSel;
 
 /* Settings: a row of buttons, each with its text below, then Back.
  * Linux: GBA DS in EmulationStation (ROCKNIX) or in BananaOS's list, where
- * there's one; Map Buttons; Updates. Android: Folders, RetroAchievements, Map Buttons, Updates. */
+ * there's one; Map Buttons and Hotkeys; Updates. Android: Folders,
+ * RetroAchievements, Map Buttons and Hotkeys, Updates. */
 #define SETTINGS_MAX 5
 static int nRows = 1; /* rows shown (Back is row nRows) */
-#ifndef __ANDROID__
 /* (Hotkeys shares Map Buttons' line: the right half of it, under one text) */
-enum { ROW_BANANA, ROW_ES, ROW_MAP, ROW_HOTKEYS, ROW_UPDATES };
+enum { ROW_BANANA, ROW_ES, ROW_MAP, ROW_HOTKEYS, ROW_UPDATES, ROW_FOLDERS, ROW_RA };
 static int rowKind[SETTINGS_MAX];
-#endif
 
 static void settings_rows(const Config* cfg) {
 #ifdef __ANDROID__
 	(void) cfg;
-	nRows = 4; /* Folders, RetroAchievements, Map Buttons, Updates */
+	/* (the indexes draw_settings and settings_activate use on Android) */
+	static const int android[] = { ROW_FOLDERS, ROW_RA, ROW_MAP, ROW_HOTKEYS, ROW_UPDATES };
+	nRows = 5;
+	memcpy(rowKind, android, sizeof(android));
 #else
 	nRows = 0;
 #ifndef GBADS_SIDE
@@ -689,16 +691,13 @@ static SettingsGeom settings_geom(int scr) {
 	g.px = px;
 	/* lines of buttons (Linux: Map Buttons and Hotkeys share one) */
 	int lines = nRows;
-#ifndef __ANDROID__
 	for (int i = 0; i < nRows; ++i) lines -= rowKind[i] == ROW_HOTKEYS;
-#endif
 	/* (four lines: Android's, each with a line or two of text) */
 	int m = px * 6, rowH = lines > 3 ? px * 12 : lines > 2 ? px * 14 : px * 18;
 	g.panel = (SDL_Rect) { m, m, r.w - m * 2, r.h - m * 2 };
 	int gap = lines > 3 ? px * 24 : lines > 2 ? px * 28 : px * 44; /* room for each row's text under it */
 	int y = g.panel.y + (lines > 3 ? px * 22 : px * 26);
 	for (int i = 0; i < nRows; ++i) {
-#ifndef __ANDROID__
 		if (rowKind[i] == ROW_HOTKEYS && i > 0) {
 			/* the right half of the line above, Map Buttons the left */
 			SDL_Rect* left = &g.row[i - 1];
@@ -708,7 +707,6 @@ static SettingsGeom settings_geom(int scr) {
 			g.textY[i] = g.textY[i - 1];
 			continue;
 		}
-#endif
 		g.row[i] = (SDL_Rect) { g.panel.x + px * 6, y, g.panel.w - px * 12, rowH };
 		g.textY[i] = g.row[i].y + rowH + px * 8;
 #ifndef __ANDROID__
@@ -777,7 +775,7 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 	                      ra == RA_ACCOUNT_BUSY   ? "RetroAchievements: Signing In..." :
 	                      ra == RA_ACCOUNT_OFF    ? "RetroAchievements: Off" :
 	                                                "RetroAchievements: Sign In";
-	const char* labels[SETTINGS_MAX] = { "Folders", raLabel, "Map Buttons", "Updates" };
+	const char* labels[SETTINGS_MAX] = { "Folders", raLabel, "Map Buttons", "Hotkeys", "Updates" };
 	draw_settings_frame(scr, &g, sel, labels);
 	int tx = g.row[0].x + px * 2, tw = g.row[0].w - px * 4;
 	char line[1400];
@@ -805,10 +803,10 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 	if (settingsMsg[0] && settingsMsgRow == 1) draw_wrapped(scr, tx, g.textY[1], tw, px, settingsMsg, C_GOLD);
 	else draw_wrapped(scr, tx, g.textY[1], tw, px, line, ra == RA_ACCOUNT_FAILED ? C_GOLD : C_DIM);
 	draw_wrapped(scr, tx, g.textY[2], tw, px,
-	             "Sets which of this device's buttons does what: GBA DS asks for each one in turn. "
-	             "Tap to skip any the device doesn't have.",
+	             "Map Buttons sets which of this device's buttons does what. "
+	             "Hotkeys sets the shortcuts: the hotkey button held with another.",
 	             C_DIM);
-	draw_wrapped(scr, tx, g.textY[3], tw, px, "This is v" GBADS_VERSION ". Look for a new version, and download and install it.",
+	draw_wrapped(scr, tx, g.textY[4], tw, px, "This is v" GBADS_VERSION ". Look for a new version, and download and install it.",
 	             C_DIM);
 }
 
@@ -825,6 +823,10 @@ static void settings_activate(Config* cfg, int row) {
 		return;
 	}
 	if (row == 3) {
+		hotkeys_run(cfg);
+		return;
+	}
+	if (row == 4) {
 		updatesOpen = true, updatesNotice = false, updatesSel = 0;
 		return;
 	}
@@ -1459,13 +1461,11 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 			}
 			if (btn_pressed(B_DOWN)) settingsSel = (settingsSel + 1) % (nRows + 1);
 			if (btn_pressed(B_UP)) settingsSel = (settingsSel + nRows) % (nRows + 1);
-#ifndef __ANDROID__
 			/* (Map Buttons and Hotkeys side by side) */
 			if ((btn_pressed(B_LEFT) || btn_pressed(B_RIGHT)) && settingsSel < nRows) {
 				if (rowKind[settingsSel] == ROW_HOTKEYS) --settingsSel;
 				else if (rowKind[settingsSel] == ROW_MAP && settingsSel + 1 < nRows && rowKind[settingsSel + 1] == ROW_HOTKEYS) ++settingsSel;
 			}
-#endif
 			if (btn_pressed(B_A) || btn_pressed(B_START)) {
 				if (settingsSel < nRows) settings_activate(cfg, settingsSel);
 				else settingsOpen = false;

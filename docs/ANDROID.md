@@ -630,8 +630,18 @@ game's save next to its ROM, in either type, is copied over (left there).
 Switching back to next to the games copies nothing back (said in the
 wiki).
 
+## Hotkeys (Nov 9, 2026)
+
+Settings > Hotkeys (dev's hotkeys.c, #32) on Android too: Settings uses
+`rowKind` there as well (ROW_FOLDERS, ROW_RA, ROW_MAP, ROW_HOTKEYS,
+ROW_UPDATES: indexes 0-4), with Hotkeys on the right half of Map Buttons'
+line as on Linux (left/right between them). hotkeys.c calls B_HOME "Back"
+on Android (HOME_TITLE): BACK is HOME there (ui.c), so the default hotkey
+is BACK.
+
 ## For the next release
 
 Player-facing Android changes since the last release, for the main session
 to move into CHANGELOG.md and the release notes (see CLAUDE.md, "More than
 one session"). Empty after each release.
+- New on Android: Settings > Hotkeys, to change the shortcuts (the hotkey button, BACK by default there, held with another).

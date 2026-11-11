@@ -1,0 +1,651 @@
+{
+ "game": "Harry Potter and the Prisoner of Azkaban",
+ "rules": "docs/games/harry-potter-and-the-prisoner-of-azkaban.md",
+ "cases": [
+  {
+   "id": "hpa-us-field",
+   "rom": "BHTE",
+   "state": "harry-potter-and-the-prisoner-of-azkaban/us-field.ss",
+   "desc": "walking about in the Leaky Cauldron, Harry alone (the owner's save: level 28), the task Talk to Cornelius Fudge",
+   "rules": [
+    "HPA-1",
+    "HPA-7"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "HPA-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "HPA-1",
+     "what": "the task box at the bottom: its posts, gold frame and cream inside",
+     "type": "pixels",
+     "probes": [
+      [
+       54,
+       562,
+       "B57B31"
+      ],
+      [
+       274,
+       566,
+       "D6A54A"
+      ],
+      [
+       274,
+       570,
+       "F7E78C"
+      ],
+      [
+       514,
+       694,
+       "F7E78C"
+      ],
+      [
+       514,
+       698,
+       "D6A54A"
+      ],
+      [
+       54,
+       702,
+       "B57B31"
+      ]
+     ],
+     "tol": 8,
+     "shot": "start"
+    },
+    {
+     "rule": "HPA-1",
+     "what": "no wand cursor left of Harry's figure: its dark shaft (at 83-86, 76-79 on the Status/Equip screen, 25 rows higher here)",
+     "type": "not_pixels",
+     "probes": [
+      [
+       378,
+       270,
+       "731800"
+      ],
+      [
+       366,
+       282,
+       "731800"
+      ]
+     ],
+     "tol": 24,
+     "shot": "start"
+    },
+    {
+     "rule": "HPA-7",
+     "what": "the game screen is the game's own",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "hpa-us-pub",
+   "rom": "BHTE",
+   "state": "harry-potter-and-the-prisoner-of-azkaban/us-pub.ss",
+   "desc": "walking about in the pub, people about, the task Find the Rat Tonic",
+   "rules": [
+    "HPA-1"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "HPA-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "HPA-1",
+     "what": "the task box at the bottom: its posts, gold frame and cream inside",
+     "type": "pixels",
+     "probes": [
+      [
+       54,
+       562,
+       "B57B31"
+      ],
+      [
+       274,
+       566,
+       "D6A54A"
+      ],
+      [
+       274,
+       570,
+       "F7E78C"
+      ],
+      [
+       514,
+       694,
+       "F7E78C"
+      ],
+      [
+       514,
+       698,
+       "D6A54A"
+      ],
+      [
+       54,
+       702,
+       "B57B31"
+      ]
+     ],
+     "tol": 8,
+     "shot": "start"
+    }
+   ]
+  },
+  {
+   "id": "hpa-us-menu",
+   "rom": "BHTE",
+   "state": "harry-potter-and-the-prisoner-of-azkaban/us-menu.ss",
+   "desc": "START's menu open in the game",
+   "rules": [
+    "HPA-2"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "HPA-2",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    }
+   ]
+  },
+  {
+   "id": "hpa-us-status",
+   "rom": "BHTE",
+   "state": "harry-potter-and-the-prisoner-of-azkaban/us-status.ss",
+   "desc": "Status/Equip's summary open in the game",
+   "rules": [
+    "HPA-2"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "HPA-2",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    }
+   ]
+  },
+  {
+   "id": "hpa-us-page",
+   "rom": "BHTE",
+   "state": "harry-potter-and-the-prisoner-of-azkaban/us-page.ss",
+   "desc": "Harry's Status/Equip page (stats and equipment) open in the game",
+   "rules": [
+    "HPA-2"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "HPA-2",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    }
+   ]
+  },
+  {
+   "id": "hpa-us-talk",
+   "rom": "BHTE",
+   "state": "harry-potter-and-the-prisoner-of-azkaban/us-field.ss",
+   "desc": "walking about, then a conversation with Cornelius Fudge (loaded): the picture stays",
+   "rules": [
+    "HPA-3"
+   ],
+   "input": [
+    [
+     150,
+     "LOAD:harry-potter-and-the-prisoner-of-azkaban/us-talk.ss"
+    ]
+   ],
+   "shots": {
+    "field": 140,
+    "talk": 420
+   },
+   "checks": [
+    {
+     "rule": "HPA-3",
+     "what": "the same picture through the conversation",
+     "type": "same",
+     "a": {
+      "shot": "field",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "talk",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.001
+    }
+   ]
+  },
+  {
+   "id": "hpa-us-talk-first",
+   "rom": "BHTE",
+   "state": "harry-potter-and-the-prisoner-of-azkaban/us-talk.ss",
+   "desc": "a conversation from the start: the logo, as nothing was taken yet",
+   "rules": [
+    "HPA-3"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "rule": "HPA-3",
+     "what": "the logo",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "shot": "start"
+    }
+   ]
+  },
+  {
+   "id": "hpa-us-battle",
+   "rom": "BHTE",
+   "state": "harry-potter-and-the-prisoner-of-azkaban/us-field.ss",
+   "desc": "walking about, then a battle (The Monster Book of Monsters, Harry choosing; loaded)",
+   "rules": [
+    "HPA-4"
+   ],
+   "input": [
+    [
+     150,
+     "LOAD:harry-potter-and-the-prisoner-of-azkaban/us-battle.ss"
+    ]
+   ],
+   "shots": {
+    "field": 140,
+    "battle": 300
+   },
+   "checks": [
+    {
+     "rule": "HPA-4",
+     "what": "the summary while walking about",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "HPA-4",
+     "what": "a fight",
+     "type": "log",
+     "match": "fight on"
+    },
+    {
+     "rule": "HPA-4",
+     "what": "the logo in the battle, not the picture from walking about",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "shot": "battle"
+    }
+   ]
+  },
+  {
+   "id": "hpa-us-battle-results",
+   "rom": "BHTE",
+   "state": "harry-potter-and-the-prisoner-of-azkaban/us-battle-results.ss",
+   "desc": "a battle's results, then on (A) to the scene after it in Harry's room",
+   "rules": [
+    "HPA-4"
+   ],
+   "input": [
+    [
+     130,
+     "A"
+    ],
+    [
+     134,
+     "-"
+    ],
+    [
+     174,
+     "A"
+    ],
+    [
+     178,
+     "-"
+    ],
+    [
+     218,
+     "A"
+    ],
+    [
+     222,
+     "-"
+    ],
+    [
+     262,
+     "A"
+    ],
+    [
+     266,
+     "-"
+    ],
+    [
+     306,
+     "A"
+    ],
+    [
+     310,
+     "-"
+    ],
+    [
+     350,
+     "A"
+    ],
+    [
+     354,
+     "-"
+    ],
+    [
+     394,
+     "A"
+    ],
+    [
+     398,
+     "-"
+    ]
+   ],
+   "shots": {
+    "results": 100,
+    "scene": 600
+   },
+   "checks": [
+    {
+     "rule": "HPA-4",
+     "what": "the logo on the results screen",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "shot": "results"
+    },
+    {
+     "rule": "HPA-4",
+     "what": "still the logo in the scene after it (START opens nothing there)",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "shot": "scene"
+    },
+    {
+     "rule": "HPA-4",
+     "what": "nothing taken",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "hpa-us-title",
+   "rom": "BHTE",
+   "state": "harry-potter-and-the-prisoner-of-azkaban/us-title.ss",
+   "desc": "the title screen",
+   "rules": [
+    "HPA-5"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 300
+   },
+   "checks": [
+    {
+     "rule": "HPA-5",
+     "what": "no captures there",
+     "type": "no_log",
+     "match": "capture:"
+    },
+    {
+     "rule": "HPA-5",
+     "what": "the logo",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "shot": "end"
+    }
+   ]
+  },
+  {
+   "id": "hpa-us-story",
+   "rom": "BHTE",
+   "state": "harry-potter-and-the-prisoner-of-azkaban/us-field.ss",
+   "desc": "walking about, then the story's first picture page of a new game (loaded): the logo",
+   "rules": [
+    "HPA-5"
+   ],
+   "input": [
+    [
+     150,
+     "LOAD:harry-potter-and-the-prisoner-of-azkaban/us-story.ss"
+    ]
+   ],
+   "shots": {
+    "field": 140,
+    "story": 300
+   },
+   "checks": [
+    {
+     "rule": "HPA-5",
+     "what": "the logo, the picture from before dropped",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "shot": "story"
+    }
+   ]
+  },
+  {
+   "id": "hpa-de-field",
+   "rom": "BHTE",
+   "state": "harry-potter-and-the-prisoner-of-azkaban/de-field.ss",
+   "desc": "German: walking about at a new game's start (Spreche mit Cornelius Fudge)",
+   "rules": [
+    "HPA-1"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "HPA-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "HPA-1",
+     "what": "the task box at the bottom: its posts, gold frame and cream inside",
+     "type": "pixels",
+     "probes": [
+      [
+       54,
+       562,
+       "B57B31"
+      ],
+      [
+       274,
+       566,
+       "D6A54A"
+      ],
+      [
+       274,
+       570,
+       "F7E78C"
+      ],
+      [
+       514,
+       694,
+       "F7E78C"
+      ],
+      [
+       514,
+       698,
+       "D6A54A"
+      ],
+      [
+       54,
+       702,
+       "B57B31"
+      ]
+     ],
+     "tol": 8,
+     "shot": "start"
+    }
+   ]
+  },
+  {
+   "id": "hpa-jp-field",
+   "rom": "BHTJ",
+   "state": "harry-potter-and-the-prisoner-of-azkaban/jp-field.ss",
+   "desc": "Japan: walking about at a new game's start",
+   "rules": [
+    "HPA-1"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "HPA-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "HPA-1",
+     "what": "the task box at the bottom: its posts, gold frame and cream inside",
+     "type": "pixels",
+     "probes": [
+      [
+       54,
+       562,
+       "B57B31"
+      ],
+      [
+       274,
+       566,
+       "D6A54A"
+      ],
+      [
+       274,
+       570,
+       "F7E78C"
+      ],
+      [
+       514,
+       694,
+       "F7E78C"
+      ],
+      [
+       514,
+       698,
+       "D6A54A"
+      ],
+      [
+       54,
+       702,
+       "B57B31"
+      ]
+     ],
+     "tol": 8,
+     "shot": "start"
+    }
+   ]
+  },
+  {
+   "id": "hpa-logo-bhte",
+   "kind": "logo",
+   "rom": "BHTE",
+   "desc": "the logo (past the language screen)",
+   "rules": [
+    "HPA-6"
+   ],
+   "checks": []
+  },
+  {
+   "id": "hpa-logo-bhtj",
+   "kind": "logo",
+   "rom": "BHTJ",
+   "desc": "the logo (Japan)",
+   "rules": [
+    "HPA-6"
+   ],
+   "checks": []
+  }
+ ]
+}

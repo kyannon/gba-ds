@@ -1,5 +1,5 @@
 #!/bin/bash
-# GBA DS for the web (State Saver's GBA DS tab): the app itself, compiled to
+# GBA DS for the web (State Saver's GBA DS tab, the web player in web/player): the app itself, compiled to
 # WebAssembly (wasm32-wasi) with its own SDL2 (offscreen video, software
 # renderer, no threads: web/SDL_config_wasi.h) and libmgba, then run through
 # binaryen's asyncify so its waits hand control back to the page.
@@ -24,7 +24,7 @@ CFLAGS_W="--target=wasm32-wasip1 --sysroot=$W/sysroot -resource-dir=$W/res -O2 -
 
 # ---- SDL2: its headers with our configuration, and the parts we use
 SI="$OUT/sdl-include/SDL2"
-if [ ! -f "$OUT/libSDL2.a" ] || [ "$ROOT/web/SDL_config_wasi.h" -nt "$OUT/libSDL2.a" ] || [ "$ROOT/web/sdl_timer_web.c" -nt "$OUT/libSDL2.a" ]; then
+if [ ! -f "$OUT/libSDL2.a" ] || [ "$ROOT/web/SDL_config_wasi.h" -nt "$OUT/libSDL2.a" ] || [ "$ROOT/web/sdl_timer_web.c" -nt "$OUT/libSDL2.a" ] || [ "$ROOT/web/sdl_audio_web.c" -nt "$OUT/libSDL2.a" ]; then
 	rm -rf "$OUT/sdl-include" "$OUT/sdl-obj"
 	mkdir -p "$SI" "$OUT/sdl-obj"
 	cp "$S"/include/*.h "$SI/"
@@ -37,7 +37,7 @@ if [ ! -f "$OUT/libSDL2.a" ] || [ "$ROOT/web/SDL_config_wasi.h" -nt "$OUT/libSDL
 		"$S"/src/render/software/*.c "$S"/src/sensor/SDL_sensor.c "$S"/src/sensor/dummy/*.c "$S"/src/stdlib/*.c \
 		"$S"/src/libm/*.c "$S"/src/thread/SDL_thread.c "$S"/src/thread/generic/*.c "$S"/src/timer/SDL_timer.c \
 		"$S"/src/video/*.c "$S"/src/video/offscreen/*.c "$S"/src/video/yuv2rgb/*.c "$S"/src/filesystem/dummy/*.c \
-		"$S"/src/loadso/dummy/*.c "$ROOT/web/sdl_timer_web.c")
+		"$S"/src/loadso/dummy/*.c "$ROOT/web/sdl_timer_web.c" "$ROOT/web/sdl_audio_web.c")
 	# shellcheck disable=SC2086
 	printf '%s\n' $SRCS | xargs -P "$JOBS" -I{} sh -c 'o="$1/sdl-obj/$(echo "$2" | md5sum | cut -c1-12).o"; clang $3 -I"$4" -I"$5/src" -DSDL_config_h_ -include "$4/SDL_config.h" -Wno-everything -c "$2" -o "$o"' _ "$OUT" {} "$CFLAGS_W" "$SI" "$S"
 	llvm-ar rcs "$OUT/libSDL2.a" "$OUT"/sdl-obj/*.o

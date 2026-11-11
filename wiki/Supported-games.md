@@ -8,8 +8,10 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Castlevania: Circle of the Moon | `AAME` `AAMP` `AAMJ` | map, with the completion rate |
 | Castlevania: Harmony of Dissonance | `ACHE` `ACHP` `ACHJ` | map |
 | Crash Nitro Kart (Crash Bandicoot Bakusou! Nitro Cart in Japan) | `BCNE` `BCNP` `BCNJ` | the race HUD: time, wumpa fruit, lap, the leaders and the course map twice as big; the race rankings |
+| Dragon Ball Z: Buu's Fury | `BG3E` (USA only) | the Scouter's area map; flying, the world map twice as big |
 | Dragon Ball Z: The Legacy of Goku | `ALGE` `ALGP` (no Japanese release) | the pause menu, with the HP and Ki bars (or the counter SELECT and flying show) in place of its options |
 | Dragon Ball Z: The Legacy of Goku II (The Legacy of Goku II International in Japan) | `ALFE` `ALFP` `ALFJ` | the Scouter's area map (before the Scouter, the Status page); flying, the world map twice as big |
+| Eragon | `BENE` `BENP` (no Japanese release) | the Party screen, every card lit; the map where L opens one; in battles, the party's HP bars |
 | F-Zero: GP Legend (F-Zero: Falcon Densetsu in Japan) | `BFZE` `BFZP` `BFZJ` | the race HUD, with the course map twice as big |
 | F-Zero: Maximum Velocity (F-Zero for Game Boy Advance in Japan) | `AFZE` (USA and Europe) `AFZJ` (China: `AFZC`) | the race HUD, with the course map twice as big |
 | Final Fantasy Tactics Advance | `AFXE` `AFXP` `AFXJ` | in battles: the Status of the unit under the cursor, or the turn order and Laws; on the world map: today's Laws |
@@ -17,6 +19,8 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Fire Emblem: The Sacred Stones (Seima no Kouseki in Japan) | `BE8E` `BE8P` `BE8J` | on the map: the status of the unit under the cursor |
 | Golden Sun (Ougon no Taiyou: Hirakareshi Fuuin in Japan) | `AGSE` `AGSD` `AGSF` `AGSI` `AGSS` `AGSJ` | the Status screen, each party member in turn; in battle, the one choosing |
 | Golden Sun: The Lost Age (Ougon no Taiyou: Ushinawareshi Toki in Japan) | `AGFE` `AGFD` `AGFF` `AGFI` `AGFS` `AGFJ` | the Status screen, each party member in turn; in battle, the one choosing |
+| GT Advance 3: Pro Concept Racing (Advance GT2 in Japan) | `A2GE` `A2GP` `A2GJ` | the race's HUD, with the course map twice as big |
+| Harry Potter and the Prisoner of Azkaban (Harry Potter to Azkaban no Shuujin in Japan) | `BHTE` (USA and Europe) `BHTJ` | the party's level, experience, Stamina and Magic from the Status/Equip screen, with the current task |
 | Harvest Moon: Friends of Mineral Town (Bokujou Monogatari: Mineral Town no Nakama-tachi in Japan) | `A4NE` `A4NP` `A4ND` `A4NJ` | the town map, with where you are |
 | Kingdom Hearts: Chain of Memories | `B8CE` `B8CP` `B8CJ` | the World Map; in battles, the logo |
 | Lady Sia | `ALDE` `ALDP` (no Japanese release) | the pause screen as a status screen: lives, gems, villagers, the time, the ring and heart; the HUD off the game screen |
@@ -26,6 +30,8 @@ The USA, European and Japanese releases are all supported. Any other GBA game al
 | Mega Man Battle Network (Battle Network Rockman EXE in Japan) | `AREE` `AREP` `AREJ` | MegaMan's status (level, HP, armor, buster) with your money; in battles, the custom screen |
 | Metroid Fusion | `AMTE` `AMTP` `AMTJ` | map |
 | Metroid: Zero Mission | `BMXE` `BMXP` `BMXJ` | map |
+| Muppet Pinball Mayhem | `AMWE` `AMWP` (no Japanese release) | the table twice as tall over both screens, live, with the score bar |
+| Ninja Five-O (Ninja Cop in Europe) | `ANXE` `ANXP` (no Japanese release) | in stages: the HUD (bars, score or time, the boss's bar, the shuriken's level, keys and hostages) |
 | Pokémon Pinball: Ruby & Sapphire | `BPPE` | the table twice as tall over both screens, live, with the score bar |
 | River City Ransom EX (Downtown Nekketsu Monogatari EX in Japan) | `BDTE` `BDTJ` (no European release) | the Status screen, with the top bar moved off the game screen |
 | Sonic Advance | `ASOE` `ASOP` `ASOJ` | the zone card, with the rings, score, time and lives |
@@ -86,6 +92,18 @@ The HUD is moved off the game screen rather than copied, as in Mario Kart: Super
 - With one screen (`layout = single`), the HUD stays where the game draws it.
 - Not tried yet: Adventure's boss races, CNK challenges, relic races and crystal arenas, Time Trial's results, and link play.
 
+## Dragon Ball Z: Buu's Fury
+
+The USA release (the only one; the double pack with Dragon Ball GT: Transformation isn't supported).
+
+- **Walking about,** the second screen is the **Scouter's map** of the area you're in (SELECT), as the game draws it, centred on you. It's opened in the background in a silent copy of the game about once a second, and as soon as you reach a new area, so your dot moves as you do; your game is never paused.
+- **Inside shops,** where the game's Scouter has no map, the last map stays, dimmed.
+- **Flying over the world,** the small world map at the top right of the game screen moves to the second screen, twice as big, with your arrow on it.
+- The map's button prompts (the scroll arrows and the L and R letters) are left out.
+- The HUD stays on the game screen.
+- In conversations, at save circles, and in the game's own pause menu and Scouter, the second screen keeps its picture. On the title, the menus and the opening story it shows the logo, each letter with its black outline.
+- Not tried yet: fights with the Scouter open, boss fights, fusion, Instant Transmission, Chapter 6's Dragon Ball search and the ending.
+
 ## Dragon Ball Z: The Legacy of Goku
 
 The USA and European releases.
@@ -107,6 +125,17 @@ The USA, European and Japanese (International) releases.
 - The HP and EP bars stay on the game screen.
 - In conversations, at save points, and in the game's own pause menu, map and Dragon Radar, the second screen keeps its picture. On the title and menus it shows the logo.
 - Not tried yet: boss fights, the Hyperbolic Time Chamber, the Cell Games and the ending.
+
+## Eragon
+
+USA and Europe (English, French, German, Spanish and Italian).
+
+- **In towns, houses, caves and castles,** the second screen is the game's **Party screen** (START, Party): each member's portrait, name, HP and XP bars, focus and level, and your gold. It's opened in the background in a silent copy of the game about once a second; your game is never paused. The game dims every card but the chosen one; on the second screen they're all lit.
+- **Wherever L opens the map** (the overworld between places, and wild places such as the Hadarac desert), the second screen is that **map**, with Eragon's figure where you are.
+- **In battles,** the party's name plates and HP bars move from the top of the game screen to the top of the second screen whenever the game shows them, as attacks play out; while you choose a command, they stay there as they last were. Before they first show in a battle, the logo.
+- In conversations and scenes the second screen keeps its picture. The title and Europe's language screen show the logo: the carved "eragon" alone.
+- After you leave the game's own menu or map, the second screen can take a few seconds to catch up (the game ignores START and L for about two seconds then).
+- Not tried yet: Saphira's flying, boss battles, Farthen Dûr and the ending.
 
 ## F-Zero: GP Legend
 
@@ -177,6 +206,31 @@ Every release has been tried walking about and in a battle (USA / Europe, German
 - **In a battle,** while you choose what to do, the second screen shows the battle's Status screen of the character choosing (the party's first in the Fight / Switch / Flee / Status menu). While the turn plays out, it shows the logo.
 - Walking about, where the menu can't be opened (a conversation, a scene, the START menu), the last pictures stay.
 - On the title screen, the naming screens and the opening's story text, the second screen shows the logo: the title screen's emblem, without its subtitle and ™.
+
+## GT Advance 3: Pro Concept Racing
+
+The USA and European releases, and Japan's Advance GT2.
+
+The HUD is moved off the game screen rather than copied, so nothing behind it is lost.
+
+- **Racing** (Championship races and licence tests, Quick Race, Time Attack, Drift-Combo, Practice and the Extra modes):
+  - The game screen keeps the **rev counter** with your speed and gear (bottom right) and your **place** (POSITION) in the top-left corner.
+  - The second screen has **TOTAL TIME** and **LAP** along the top, **LAP-TIME** (TIME LIMIT in a licence test, MAX-COMBO in Drift-Combo) at the bottom left, and the **course map** with every car's dot, twice as big, in the middle.
+  - The countdown, the corner signs, WRONG WAY, a finished lap's time and GOAL! are drawn over the track and stay on the game screen.
+- The game's **pause menu** stays on the game screen, with the HUD on the second screen.
+- Everywhere else (the menus, loading, the replay and results after a race) the second screen shows the logo, the title's GT3 ADVANCE lettering.
+- With one screen (`layout = single`), the HUD stays where the game draws it.
+
+Known issues: link play hasn't been tried.
+
+## Harry Potter and the Prisoner of Azkaban
+
+The USA and European release (in all seven of its languages) and the Japanese one (Harry Potter to Azkaban no Shuujin).
+
+- **Walking about,** the second screen shows the party's summary from the game's **Status/Equip screen** (each one's figure with their level, experience, the experience to the next level, Stamina and Magic) and, below it, the **task** from the bottom of START's menu, so what to do next is always in view. Both are opened in the background in a silent copy of the game about once a second, and at once after a menu, a conversation or a battle; your game is never paused. The screen's heading bar and the wand cursor are left out, so the two fit together.
+- With START's menu open, the same. In conversations and scenes the second screen keeps its picture.
+- In battles (to the results), on the title, the language and file screens, and on the story's pages, the logo. After a battle, the summary comes back as soon as you can walk again, with Stamina and Magic as they are then.
+- Not tried yet: Ron and Hermione in the party (the summary was laid out with Harry alone; with three, the task box may cover part of it), and the story's mini-games.
 
 ## Harvest Moon: Friends of Mineral Town
 
@@ -256,6 +310,34 @@ Known issues: the later tutorial battles, boss battles and link-cable net battle
   - Zero Mission's corner minimap gives way to the map underneath, with its "SELECT / CHANGE AREAS" prompt covered by a piece of the bezel;
   - the coloured plates are recoloured to the frame's greys so they don't stand out.
 - `map_crop = 0` shows the pause screens exactly as the games draw them. The European versions' label erasing was checked in English and German.
+
+## Muppet Pinball Mayhem
+
+The USA release and Europe's.
+
+- **On a table** (every table, in Competition and Adventure, with one to four players), the two screens together show it as one tall table, **live**, as on Pokémon Pinball: GBA DS runs two more copies of the game alongside yours, drawing the parts of the table your game's view doesn't, so the ball, the flippers and everything else move on both screens. Your game itself is never changed.
+- The view scrolls smoothly with the ball and never jumps. While the ball is in the table's upper part, your game is on the top screen with the next part of the table below it. Further down, the two screens show the table's lower part down to the flippers.
+- The **score bar** stays at the top of the top screen, where the game has it.
+- While the game is **paused**, and when a **game ends** (its run up the table, the stage curtains), the game screen shows the game as it is and the second screen the logo. The stage curtains and the table's opening pan before a table play on one screen too.
+- After you load a state, the copies start again from your game: the game plays on one screen for a moment.
+- `pinball_live = 0` in `gba-ds.cfg` turns the copies off (for slower devices): the game then plays on one screen, with the logo on the other.
+- On the title and menus, the second screen shows the logo.
+
+Known issues: Adventure's move from one table to the next (once a table's goals are done) hasn't been tried yet.
+
+## Ninja Five-O
+
+The USA release and Europe's, Ninja Cop.
+
+The game has no status screen of its own, so in a stage its HUD is moved off the game screen rather than copied: the game screen shows the whole stage, with nothing over it.
+
+- **In a stage** (every mission, the boss fights, Time Trial): the second screen has the **health and ninpo bars** and the **score** (the **time** in Time Trial) along the top, with the **boss's bar** at the top right in a boss fight and the Launch Site's **countdown** in the middle; just under them, the row the game draws at the bottom of the screen: the **shuriken** and its level, the **keys** you've found and **RESCUE** with the hostages still to save. The game's lettering (NINJA FIVE-O, or NINJA COP) is below them.
+- Through a doorway, the game takes its HUD away as the circle closes and draws it back as it opens; the second screen follows it.
+- The **STAGE** card, the boss's introduction, the **pause menu**, the closing circle as the ninja dies and the Launch Site's red fade stay on the game screen.
+- Everywhere else (the opening and its demo, the title, the menus, the briefings, MISSION FAILED) the second screen shows the logo.
+- With one screen (`layout = single`), the HUD stays where the game draws it.
+
+Known issues: the end of a stage (the red door), a boss's defeat, a mission's end and the ending haven't been tried yet.
 
 ## Pokémon Pinball: Ruby & Sapphire
 
