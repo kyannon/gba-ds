@@ -1,21 +1,32 @@
-The **Overlays** setting (pause menu → Display, or `overlays` in `gba-ds.cfg`) cycles **Show Top Only / Show Bottom Only / Show Both / None**: which of your device's screens have an overlay. It goes by the screens themselves, so when you swap screens the top screen keeps the top screen's bezel (the logo below the picture) and the bottom screen the bottom one's.
-
 An overlay is a picture drawn over the space around the game, never over the game itself: a console bezel, or art of your own.
+
+**Overlays** has a screen of its own in the pause menu (Display → Overlays):
+
+- **Overlays**: **Off**, **Generated** (GBA DS's own bezel, below) or **Custom (in /overlays)** (your own PNGs, further down).
+- **Which Screen**: **Both**, **Top Only** or **Bottom Only**. It goes by the screens themselves, so when you swap screens the top screen keeps the top screen's bezel (the logo below the picture) and the bottom screen the bottom one's.
+- With Generated: **GBA DS Logo** (Show or Hide), **Inner Bezel Color**, **Outer Bezel Color** and **Reset Bezels**, which puts the logo and both colours back as they came.
+
+While you're on that screen, the other screen isn't dimmed, so you see the bezel as it will be.
 
 ## GBA DS's own bezel
 
-Out of the box, GBA DS draws a bezel round the picture: a dark grey bezel on the navy of the GBA DS logo's outline, with the logo in the bezel by the hinge (below the picture on the top screen, above it on the bottom screen). On the second screen it's drawn whatever that shows, logo and all.
+Out of the box, GBA DS draws a bezel round the picture: a dark grey bezel (`#1A1A1A`) on the navy of the GBA DS logo's outline (`#102060`), with the logo in the bezel by the hinge (below the picture on the top screen, above it on the bottom screen). It's drawn whatever the screen shows, the second screen's logo too.
 
-It's made for every screen of the devices GBA DS knows (the Anbernic RG DS and RG DS Plus, the AYN Thor, the Retroid Pocket Duo and Duo Lite, the AYANEO Pocket DS and the Anbernic RG DDS), in every scaling that leaves room round the picture, and with each **Screen shapes** setting. Where there's little room (Full Width, or the sides in Pixel Perfect on a 4:3 screen), you see only the part of the bezel that fits; with Stretch, or Zoom on a 4:3 screen, the picture fills the screen and there's no bezel.
+It's drawn by the app for your screens and the scaling you use, so it fits any device and any setting. Where there's little room (Full Width, or the sides in Pixel Perfect on a 4:3 screen), you see only the part of the bezel that fits, and the logo shrinks or is left out; with Stretch, or Zoom on a 4:3 screen, the picture fills the screen and there's no bezel.
 
-- Your own overlays (below) always win over it.
-- With **Match screen sizes and aspect ratios**, the bezel is made for the screen sizes GBA DS knows for your device; if you set `screen_ppi` yourself, the picture may land where no bezel was made, and then there's none.
-- **Overlays: None** turns it off; **Show Top Only** or **Show Bottom Only** keeps it on one screen.
-- The files are in `gba-ds/overlays/default/` (on Android, inside the app), one for each screen size and picture position; its `README.txt` says which device and setting uses each. They're replaced by every update, so don't edit them there: copy one into `overlays/` under one of the names below and change that.
+### Picking its colours
+
+Choose **Inner Bezel Color** (round the picture) or **Outer Bezel Color** (outside it). The picker shows the colour on the bezel as you pick it:
+
+- **Touch**: drag in the square for the shade and along the strip beside it for the hue, tap a preset, or tap the hex value to type one.
+- **Buttons**: the D-pad moves in the square (left / right: how strong the colour is; up / down: how bright), **L1** / **R1** move along the hue, **X** steps through the presets, **Y** brings up a keypad for a hex value (six digits, or three: `ABC` is `AABBCC`).
+- **A** or **OK** keeps it; **B** or **Cancel** leaves the colour as it was.
+
+The settings are saved with your other pause-menu choices; in `gba-ds.cfg` they're `overlays`, `overlay_screens`, `bezel_logo`, `bezel_inner` and `bezel_outer` (see [[Settings]]).
 
 ## Your own overlays
 
-Put PNGs in `gba-ds/overlays/` (Android: `GBA DS/overlays/`), not in its `default/` folder. Each one is drawn over the whole screen, stretched to its size, so make it the screen's size (**1024×768** on the RG DS Plus, **640×480** on the RG DS) and leave it transparent where the picture should show. Like GBA DS's own bezel, your overlays belong to a screen: `top` or `bottom`. Swapping screens doesn't move them, and the Overlays setting decides which screens have one.
+Set **Overlays** to **Custom (in /overlays)** and put PNGs in `gba-ds/overlays/` (Android: `GBA DS/overlays/`). A screen with no file of its own gets GBA DS's bezel in its default colours. Each one is drawn over the whole screen, stretched to its size, so make it the screen's size (**1024×768** on the RG DS Plus, **640×480** on the RG DS) and leave it transparent where the picture should show. Like GBA DS's own bezel, your overlays belong to a screen: `top` or `bottom`. Swapping screens doesn't move them, and **Which Screen** decides which screens have one.
 
 A file's name is made of these parts, in this order, joined by dashes; only `<screen>` is needed:
 

@@ -22,12 +22,28 @@
 #include "emu.h"
 #include "profiles.h"
 
+#include <dirent.h>
 #include <libgen.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <unistd.h>
+
+/* true if the folder has a .png in it */
+static bool dir_has_png(const char* path) {
+	DIR* d = opendir(path);
+	if (!d) return false;
+	bool found = false;
+	struct dirent* e;
+	while (!found && (e = readdir(d))) {
+		size_t n = strlen(e->d_name);
+		found = n > 4 && !strcasecmp(e->d_name + n - 4, ".png");
+	}
+	closedir(d);
+	return found;
+}
 
 static void on_signal(int sig) {
 	(void) sig;
@@ -119,7 +135,6 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 	if (!cfg.assetDir[0]) snprintf(cfg.assetDir, sizeof(cfg.assetDir), "%s", exeDir);
-	snprintf(cfg.appDir, sizeof(cfg.appDir), "%s", exeDir);
 	if (!cfg.stateDir[0]) snprintf(cfg.stateDir, sizeof(cfg.stateDir), "%s/states", exeDir);
 	mkdirs(cfg.stateDir);
 	snprintf(path, sizeof(path), "%s/prefs.cfg", cfg.stateDir);
@@ -143,6 +158,13 @@ int main(int argc, char** argv) {
 	snprintf(path, sizeof(path), "%s/hotkeys.cfg", cfg.stateDir);
 	config_load_file(&cfg, path);
 	config_parse_args(&cfg, argc, argv);
+	if (cfg.overlayMode == OVM_LEGACY) {
+		/* overlays = top / both... from before v1.5 (the player's PNGs, which
+		 * had no bezel to fall back on): Custom if overlays/ has any, else
+		 * the generated bezel */
+		snprintf(path, sizeof(path), "%s/overlays", cfg.assetDir);
+		cfg.overlayMode = dir_has_png(path) ? OVM_CUSTOM : OVM_GENERATED;
+	}
 
 #ifndef __ANDROID__
 	/* keep EmulationStation's entry for GBA DS current, if it's switched on */

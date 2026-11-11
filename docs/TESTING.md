@@ -96,8 +96,8 @@ instead, at 60 frames a second and drawing every frame: for a case that
 might depend on something timed in real seconds (the quick bar closes
 itself after 5 s). Each case gets a
 fresh state folder, so it also tests the first-run path (logo extraction).
-GBA DS's default overlays aren't drawn there (they're looked for beside the
-app, and `build/host` has none), so goldens don't depend on them.
+It runs the app with `--overlays=off`, so goldens are the games' pictures
+without GBA DS's bezel (a case can turn it on in its `config`).
 
 A **logo** case (`"kind": "logo"`) extracts one release's logo the way the
 app does, and compares it with its golden.

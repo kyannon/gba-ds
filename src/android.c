@@ -98,9 +98,9 @@ void android_config_defaults(Config* c) {
 			              "the picture shows.\n\n"
 			              "top.png is drawn on the top screen and bottom.png on the bottom screen, for every game.\n"
 			              "<CODE>-top.png and <CODE>-bottom.png are for one game.\n"
-			              "The Overlays setting in the pause menu picks the screens: Show Top Only, Show Bottom Only,\n"
-			              "Show Both or None. Swapping screens doesn't move them.\n\n"
-			              "Yours win over GBA DS's own bezels, which are inside the app.\n\n"
+			              "To use them, set Display > Overlays in the pause menu to Custom (in /overlays). Which Screen\n"
+			              "there picks the screens: Both, Top Only or Bottom Only. Swapping screens doesn't move them.\n"
+			              "A screen with no file of its own gets GBA DS's generated bezel in its default colors.\n\n"
 			              "Names for one scaling or screen shape, and more, in the wiki:\n"
 			              "https://github.com/kyannon/gba-ds/wiki/Overlays\n" },
 			{ "logos", "Optional: your own logo images (<CODE>.png or .bmp) override the ones extracted from the games.\n" },

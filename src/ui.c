@@ -2103,13 +2103,8 @@ bool ui_load_image(const char* path, SDL_Texture* out[2], int* w, int* h, bool s
 	return textures_from(image_load(path), out, w, h, smooth);
 }
 
-bool ui_load_image_rw(const char* path, SDL_Texture* out[2], int* w, int* h, bool smooth) {
-	size_t size = 0;
-	void* data = SDL_LoadFile(path, &size);
-	if (!data) return false;
-	bool ok = textures_from(image_load_mem(data, size), out, w, h, smooth);
-	SDL_free(data);
-	return ok;
+bool ui_load_surface(SDL_Surface* s, SDL_Texture* out[2], int* w, int* h, bool smooth) {
+	return textures_from(s, out, w, h, smooth);
 }
 
 bool ui_load_brand(int id, SDL_Texture* out[2], int* w, int* h) {

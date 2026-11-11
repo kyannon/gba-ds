@@ -371,10 +371,13 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   `emu_cancelled`, composers keep nothing); `aw_run` waits draw only their
   last two frames (`emu_frame_blind`). `GBADS_DEBUG=1` logs each capture's
   time and frame count ("capture: ... ms, ... frames").
-- `logo.c` logo extraction. Overlays (game.c `draw_overlay`): the player's PNGs, else GBA DS's
-  own bezel, `assets/overlays/default/` made by `tools/make_overlays.py` (from `docs/devices.csv`;
-  re-run it when a device is added or the picture's geometry changes), shipped in the zip's
-  `overlays/default/` and the APK's assets.
+- `logo.c` logo extraction. Overlays (game.c `draw_overlay`, Display > Overlays: its own screen,
+  `draw_ovl_menu`, with a colour picker and hex keypad): Off, Generated (GBA DS's bezel, drawn by
+  `bezel.c` for any screen and picture, in the player's colours `bezel_inner` / `bezel_outer`,
+  logo `bezel_logo`; a texture made again when any of it changes) or Custom (the player's PNGs,
+  else the bezel in its default colours), on `overlay_screens`. `tools/make_overlays.py` is the
+  design's reference (the master images, a set for every device in `docs/devices.csv` to check
+  against) and `--embed` makes `src/bezel_logo.c`. regress.py runs with `--overlays=off`.
 - `game.c` a play session: input, the second screen (map, logo, THPS2
   snapshot), the quick bar (Controls picker, buttons, bug reports), pause
   menu, cheats screen, screenshots.

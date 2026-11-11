@@ -10,6 +10,7 @@ extern void web_sleep(unsigned ms) __attribute__((import_module("env"), import_n
 #include "hotkeys.h"
 #include "paths.h"
 #include "ui.h"
+#include "bezel.h"
 #include "ra.h"
 #include "logo.h"
 #include <dirent.h>
@@ -886,10 +887,11 @@ static SDL_Texture* logoCanvasTex[2];
 static SDL_Texture* overlayTex[2][2];
 static int overlayW[2], overlayH[2];
 static char overlayMode[2][32];
-/* GBA DS's own (draw_default_overlay): [0] top screen, [1] bottom */
-static SDL_Texture* defOverlayTex[2][2];
-static int defOverlayW[2], defOverlayH[2];
-static char defOverlayName[2][96];
+/* GBA DS's own bezel (draw_bezel, bezel.c): [0] top screen, [1] bottom,
+ * made again when anything it's drawn from changes */
+static SDL_Texture* bezelTex[2][2];
+static int bezelW[2], bezelH[2];
+static char bezelKey[2][96];
 static int logoW, logoH;
 static bool logoPixel;
 static MapResult mapRes;
@@ -1115,8 +1117,8 @@ static const char* const allLabels[] = {
 	"Resume", "Restart Game", "Are You Sure?", "Save State", "Load State", "Cheats", "Achievements",
 	"Take Screenshot", "Close Game", "Close GBA DS", "Swap Screens", "Scale: Pixel Perfect", "Scale: Full Width",
 	"Scale: Zoom", "Scale: Stretch", "Shader: Off", "Shader: LCD Grid", "Shader: Scanlines", "Shader: Soft Cells",
-	"Shader: Subpixels (Light)", "Shader: Subpixels", "Shader: Subpixels (Strong)", "Overlays: None", "Overlays: Show Top Only",
-	"Overlays: Show Bottom Only", "Overlays: Show Both", "Submit a Bug Report",
+	"Shader: Subpixels (Light)", "Shader: Subpixels", "Shader: Subpixels (Strong)", "Overlays: Off", "Overlays: Generated",
+	"Overlays: Custom", "Submit a Bug Report",
 	"Map Animations: On", "Map Animations: Off", "Map Refresh: Every 3 s", "Map Refresh: Every 1.5 s",
 	"Map Refresh: Every 1 s", "Map Refresh: Every 0.5 s", "Map Refresh: Custom", "Frame Buffer: On",
 	"Frame Buffer: Off", "Match Display Rate: On", "Match Display Rate: Off",
@@ -2121,6 +2123,426 @@ static const uint32_t* ghost_frame(const uint32_t* fb) {
 	return ghostOut;
 }
 
+/* RRGGBB to 0xRRGGBB */
+static uint32_t hex_rgb(const char* h) {
+	return (uint32_t) strtoul(h, NULL, 16) & 0xFFFFFF;
+}
+
+/* ---------------------------------------------------------------- Display > Overlays
+ *
+ * A screen of its own (like Cheats): Back and the title on top, then the
+ * rows: Overlays (Off / Generated / Custom (in /overlays)), Which Screen
+ * (not when Off), and for Generated the logo, the two bezel colours and
+ * Reset Bezels. D-pad / A (LEFT / RIGHT also cycle), B back; touch taps.
+ * The colours open the picker; its Y (or a tap on the hex value) the hex
+ * keypad. The game screen isn't dimmed meanwhile, so the bezel shows as it
+ * will be, the picker's colour too as it's picked (draw_bezel). */
+static bool ovlOpen;
+static int ovlSel, ovlPress = -1;
+enum { OR_MODE, OR_SCREENS, OR_LOGO, OR_INNER, OR_OUTER, OR_RESET };
+
+static int ovl_rows(int* rows) {
+	int n = 0;
+	rows[n++] = OR_MODE;
+	if (cfg->overlayMode != OVM_OFF) rows[n++] = OR_SCREENS;
+	if (cfg->overlayMode == OVM_GENERATED) rows[n++] = OR_LOGO, rows[n++] = OR_INNER, rows[n++] = OR_OUTER, rows[n++] = OR_RESET;
+	return n;
+}
+static SDL_Rect ovl_row_rect(int scr, int i) {
+	MenuGeom g = menu_geom(scr);
+	return (SDL_Rect) { g.margin, g.top + i * (g.h + g.gap), g.w, g.h };
+}
+static const char* ovl_row_label(int row) {
+	static const char* const modes[3] = { "Overlays: Off", "Overlays: Generated", "Overlays: Custom (in /overlays)" };
+	switch (row) {
+	case OR_MODE: return modes[SDL_clamp(cfg->overlayMode, 0, 2)];
+	case OR_SCREENS: return cfg->overlays == OVL_TOP ? "Which Screen: Top Only" : cfg->overlays == OVL_BOTTOM ? "Which Screen: Bottom Only" : "Which Screen: Both";
+	case OR_LOGO: return cfg->bezelLogo ? "GBA DS Logo: Show" : "GBA DS Logo: Hide";
+	case OR_INNER: return "Inner Bezel Color";
+	case OR_OUTER: return "Outer Bezel Color";
+	default: return "Reset Bezels";
+	}
+}
+
+/* -------- the colour picker: hue / saturation / value, as the bezel shows it */
+static int pickWhich = -1; /* 0 inner, 1 outer; -1 closed */
+static float pickH, pickS, pickV;
+static int pickPreset = -1; /* the last preset X stepped to */
+static int pickDrag;        /* finger on 1 the square, 2 the hue strip */
+static SDL_Texture* pickSqTex[2], *pickHueTex[2];
+static float pickSqHue = -1;
+static int pickTexW, pickTexH;
+static const uint32_t pickPresets[2][8] = {
+	{ 0x1A1A1A, 0x000000, 0x2B2B2B, 0x3C3C3C, 0x102060, 0x2A1F55, 0x3A1020, 0xE8E6E3 },
+	{ 0x102060, 0x4B3A8C, 0x000000, 0x9FB7C9, 0xC9C9C9, 0xB03A7A, 0xD66A1E, 0xE8E6E3 },
+};
+
+static uint32_t hsv_rgb(float h, float s, float v) {
+	float c = v * s, x = c * (1 - fabsf(fmodf(h / 60, 2) - 1)), m = v - c, r = 0, g = 0, b = 0;
+	if (h < 60) r = c, g = x;
+	else if (h < 120) r = x, g = c;
+	else if (h < 180) g = c, b = x;
+	else if (h < 240) g = x, b = c;
+	else if (h < 300) r = x, b = c;
+	else r = c, b = x;
+	return ((uint32_t) lroundf((r + m) * 255) << 16) | ((uint32_t) lroundf((g + m) * 255) << 8) | (uint32_t) lroundf((b + m) * 255);
+}
+static void rgb_hsv(uint32_t rgb, float* h, float* s, float* v) {
+	float r = ((rgb >> 16) & 0xFF) / 255.0f, g = ((rgb >> 8) & 0xFF) / 255.0f, b = (rgb & 0xFF) / 255.0f;
+	float mx = fmaxf(r, fmaxf(g, b)), mn = fminf(r, fminf(g, b)), d = mx - mn;
+	float hh = 0;
+	if (d > 0) {
+		if (mx == r) hh = fmodf((g - b) / d, 6);
+		else if (mx == g) hh = (b - r) / d + 2;
+		else hh = (r - g) / d + 4;
+		hh *= 60;
+		if (hh < 0) hh += 360;
+	}
+	*h = hh, *s = mx > 0 ? d / mx : 0, *v = mx;
+}
+static uint32_t pick_rgb(void) {
+	return hsv_rgb(pickH, pickS, pickV);
+}
+static SDL_Color rgb_color(uint32_t rgb) {
+	return (SDL_Color) { (rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF, 255 };
+}
+static void pick_open(int which) {
+	pickWhich = which;
+	rgb_hsv(hex_rgb(which ? cfg->bezelOuter : cfg->bezelInner), &pickH, &pickS, &pickV);
+	pickPreset = -1;
+	pickDrag = 0;
+}
+static void pick_close(bool keep) {
+	if (keep && pickWhich >= 0) {
+		snprintf(pickWhich ? cfg->bezelOuter : cfg->bezelInner, 8, "%06X", (unsigned) pick_rgb());
+		save_prefs();
+	}
+	pickWhich = -1;
+	pickDrag = 0;
+}
+
+typedef struct {
+	SDL_Rect title, sq, hue, now, next, presets[8], hex, cancel, ok;
+	int hintY, cap, small;
+} PickGeom;
+static PickGeom pick_geom(int scr) {
+	MenuGeom mg = menu_geom(scr);
+	SDL_Rect r = screens[scr].rect;
+	PickGeom p;
+	int m = mg.margin, gap = mg.gap * 2;
+	p.cap = mg.cap;
+	p.small = mg.cap * 2 / 3;
+	p.title = (SDL_Rect) { m, mg.tabY, mg.w, mg.h };
+	int bh = mg.h, hw = (mg.w - mg.gap) / 2;
+	p.cancel = (SDL_Rect) { m, r.h - m - bh, hw, bh };
+	p.ok = (SDL_Rect) { m + mg.w - hw, r.h - m - bh, hw, bh };
+	p.hintY = p.cancel.y - mg.gap * 2 - p.small;
+	int top = p.title.y + p.title.h + gap, bot = p.hintY - p.small - mg.gap;
+	int side = SDL_min(bot - top, mg.w * 9 / 20);
+	p.sq = (SDL_Rect) { m, top, side, side };
+	p.hue = (SDL_Rect) { m + side + gap, top, SDL_max(8, side / 9), side };
+	int rx = p.hue.x + p.hue.w + gap, rw = m + mg.w - rx;
+	int prevH = side / 5;
+	p.now = (SDL_Rect) { rx, top, rw / 2, prevH };
+	p.next = (SDL_Rect) { rx + rw / 2, top, rw - rw / 2, prevH };
+	int hexH = SDL_min(mg.h, side / 5);
+	p.hex = (SDL_Rect) { rx, top + side - hexH, rw, hexH };
+	int py = p.now.y + prevH + gap, ph = (p.hex.y - gap - py - mg.gap) / 2, pw = (rw - mg.gap * 3) / 4;
+	for (int i = 0; i < 8; ++i) p.presets[i] = (SDL_Rect) { rx + (i % 4) * (pw + mg.gap), py + (i / 4) * (ph + mg.gap), pw, ph };
+	return p;
+}
+static bool in_rect(SDL_Rect r, int x, int y) {
+	return x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
+}
+static void pick_touch(int scr, int x, int y) {
+	PickGeom p = pick_geom(scr);
+	if (pickDrag == 1) {
+		pickS = SDL_clamp((float) (x - p.sq.x) / p.sq.w, 0.0f, 1.0f);
+		pickV = SDL_clamp(1 - (float) (y - p.sq.y) / p.sq.h, 0.0f, 1.0f);
+	} else if (pickDrag == 2) {
+		pickH = SDL_clamp((float) (y - p.hue.y) / p.hue.h * 360, 0.0f, 359.9f);
+	}
+}
+/* the textures: the square for the current hue (made again when it moves), the hue strip once */
+static void pick_textures(void) {
+	const int n = 64;
+	if (!pickHueTex[0] && !pickHueTex[1]) {
+		SDL_Surface* s = SDL_CreateRGBSurfaceWithFormat(0, 1, 360, 32, SDL_PIXELFORMAT_RGBA32);
+		if (s) {
+			uint8_t* px = s->pixels;
+			for (int y = 0; y < 360; ++y) {
+				uint32_t c = hsv_rgb((float) y, 1, 1);
+				uint8_t* q = px + y * s->pitch;
+				q[0] = c >> 16, q[1] = c >> 8, q[2] = c, q[3] = 255;
+			}
+			int w, h;
+			ui_load_surface(s, pickHueTex, &w, &h, true);
+		}
+	}
+	if (pickSqHue != pickH) {
+		ui_free_image(pickSqTex);
+		pickSqHue = pickH;
+		SDL_Surface* s = SDL_CreateRGBSurfaceWithFormat(0, n, n, 32, SDL_PIXELFORMAT_RGBA32);
+		if (s) {
+			uint8_t* px = s->pixels;
+			for (int y = 0; y < n; ++y) {
+				for (int x = 0; x < n; ++x) {
+					uint32_t c = hsv_rgb(pickH, x / (float) (n - 1), 1 - y / (float) (n - 1));
+					uint8_t* q = px + y * s->pitch + x * 4;
+					q[0] = c >> 16, q[1] = c >> 8, q[2] = c, q[3] = 255;
+				}
+			}
+			ui_load_surface(s, pickSqTex, &pickTexW, &pickTexH, true);
+		}
+	}
+}
+/* a ring marker centred on (x, y) */
+static void draw_ring(int scr, int x, int y, int r, SDL_Color fill) {
+	ui_fill_round(scr, (SDL_Rect) { x - r - 2, y - r - 2, r * 2 + 4, r * 2 + 4 }, (SDL_Color) { 0, 0, 0, 255 }, r + 2);
+	ui_fill_round(scr, (SDL_Rect) { x - r, y - r, r * 2, r * 2 }, (SDL_Color) { 255, 255, 255, 255 }, r);
+	int k = SDL_max(1, r * 2 / 3);
+	ui_fill_round(scr, (SDL_Rect) { x - k, y - k, k * 2, k * 2 }, fill, k);
+}
+/* a small button prompt ("A", "L1") and its words after it; returns the x after them */
+static int draw_btn_hint(int scr, int x, int cy, int cap, const char* btn, const char* words) {
+	int bw = ui_label_width(scr, cap, btn) + cap;
+	ui_fill_round(scr, (SDL_Rect) { x, cy - cap, bw, cap * 2 }, C_TEXT, cap / 2);
+	ui_label(scr, x + bw / 2, cy, cap, btn, (SDL_Color) { 20, 16, 36, 255 });
+	ui_font_text(scr, TF_BODY, x + bw + cap / 2, cy, cap, words, C_DIS, -1);
+	return x + bw + cap / 2 + ui_font_width(TF_BODY, cap, words) + cap * 2;
+}
+static int hint_width(int scr, int cap, const char* btn, const char* words) {
+	return ui_label_width(scr, cap, btn) + cap + cap / 2 + ui_font_width(TF_BODY, cap, words) + cap * 2;
+}
+
+/* -------- the hex keypad (Y in the picker, or a tap on the hex value) */
+static bool hexOpen;
+static char hexText[8];
+static int hexLen, hexRow, hexCol, hexPress = -1;
+static const char* const hexKeys[3][8] = {
+	{ "0", "1", "2", "3", "4", "5", "6", "7" },
+	{ "8", "9", "A", "B", "C", "D", "E", "F" },
+	{ "Del", "Done" },
+};
+static int hex_row_len(int r) {
+	return r == 2 ? 2 : 8;
+}
+static SDL_Rect hex_field(int scr) {
+	MenuGeom mg = menu_geom(scr);
+	return (SDL_Rect) { mg.margin, mg.top, mg.w, mg.h * 3 / 2 };
+}
+static SDL_Rect hex_key_rect(int scr, int r, int c) {
+	MenuGeom mg = menu_geom(scr);
+	SDL_Rect f = hex_field(scr);
+	int top = f.y + f.h + mg.gap * 2, rowH = (screens[scr].rect.h - mg.margin - top - mg.gap * 2) / 3;
+	int n = hex_row_len(r), kw = (mg.w - mg.gap * (n - 1)) / n;
+	return (SDL_Rect) { mg.margin + c * (kw + mg.gap), top + r * (rowH + mg.gap), c == n - 1 ? mg.margin + mg.w - (mg.margin + c * (kw + mg.gap)) : kw, rowH };
+}
+static bool hex_key_at(int scr, int x, int y, int* r, int* c) {
+	for (int i = 0; i < 3; ++i)
+		for (int j = 0; j < hex_row_len(i); ++j)
+			if (in_rect(hex_key_rect(scr, i, j), x, y)) return *r = i, *c = j, true;
+	return false;
+}
+static void hex_open(void) {
+	hexOpen = true;
+	hexLen = 0, hexText[0] = 0;
+	hexRow = 0, hexCol = 0;
+	hexPress = -1;
+}
+/* Done: six digits (or three, #ABC = #AABBCC) become the picker's colour */
+static void hex_done(void) {
+	if (hexLen != 6 && hexLen != 3) return;
+	char full[sizeof(hexText)];
+	if (hexLen == 3) snprintf(full, sizeof(full), "%c%c%c%c%c%c", hexText[0], hexText[0], hexText[1], hexText[1], hexText[2], hexText[2]);
+	else snprintf(full, sizeof(full), "%s", hexText);
+	rgb_hsv(hex_rgb(full), &pickH, &pickS, &pickV);
+	hexOpen = false;
+}
+static void hex_press(int r, int c) {
+	if (r == 2) {
+		if (c == 0) {
+			if (hexLen) hexText[--hexLen] = 0;
+		} else {
+			hex_done();
+		}
+		return;
+	}
+	if (hexLen < 6) hexText[hexLen++] = hexKeys[r][c][0], hexText[hexLen] = 0;
+}
+static void hex_move(int dr, int dc) {
+	if (dc) {
+		int n = hex_row_len(hexRow);
+		hexCol = (hexCol + dc + n) % n;
+		return;
+	}
+	int from = hex_row_len(hexRow);
+	hexRow = (hexRow + dr + 3) % 3;
+	int n = hex_row_len(hexRow);
+	hexCol = SDL_min(n - 1, hexCol * n / from);
+}
+
+/* -------- drawing */
+static void draw_ovl_menu(int scr) {
+	MenuGeom mg = menu_geom(scr);
+	int rad = mg.rad, cap = mg.cap;
+	SDL_Rect b = tab_rect(scr, 0), t = tab_rect(scr, 1);
+	ui_fill_round(scr, b, C_BTN, rad);
+	ui_label(scr, b.x + b.w / 2, b.y + b.h / 2, cap, "Back", C_TEXT);
+	ui_fill_round(scr, t, C_BTN_EDGE, rad);
+	ui_label(scr, t.x + t.w / 2, t.y + t.h / 2, cap, "Overlays", (SDL_Color) { 20, 16, 36, 255 });
+	int rows[8], n = ovl_rows(rows);
+	if (ovlSel >= n) ovlSel = n - 1;
+	for (int i = 0; i < n; ++i) {
+		SDL_Rect r = ovl_row_rect(scr, i);
+		bool sel = i == ovlSel;
+		int e = SDL_max(1, mg.h / 28);
+		if (sel) ui_fill_round(scr, (SDL_Rect) { r.x - e, r.y - e, r.w + e * 2, r.h + e * 2 }, C_BTN_EDGE, rad + e);
+		ui_fill_round(scr, r, sel ? C_BTN_SEL : C_BTN, rad);
+		const char* label = ovl_row_label(rows[i]);
+		int lc = SDL_min(cap, cap * (r.w - mg.pad * 2) / SDL_max(1, ui_label_width(scr, cap, label)));
+		if (rows[i] == OR_INNER || rows[i] == OR_OUTER) {
+			/* the label, its swatch and the hex value, centred together */
+			const char* hex = rows[i] == OR_INNER ? cfg->bezelInner : cfg->bezelOuter;
+			char hv[10];
+			snprintf(hv, sizeof(hv), "#%s", hex);
+			int sw = mg.h * 3 / 5, hc = cap * 4 / 5, gap = mg.pad / 2;
+			int lw = ui_label_width(scr, cap, label), hw = ui_label_width(scr, hc, hv);
+			int x = r.x + (r.w - (lw + gap + sw + gap + hw)) / 2, cy = r.y + r.h / 2;
+			ui_label(scr, x + lw / 2, cy, cap, label, C_TEXT);
+			x += lw + gap;
+			int e2 = SDL_max(2, sw / 12);
+			ui_fill_round(scr, (SDL_Rect) { x, cy - sw / 2, sw, sw }, C_TEXT, SDL_max(2, sw / 6));
+			ui_fill_round(scr, (SDL_Rect) { x + e2, cy - sw / 2 + e2, sw - e2 * 2, sw - e2 * 2 }, rgb_color(hex_rgb(hex)), SDL_max(1, sw / 8));
+			x += sw + gap;
+			ui_label(scr, x + hw / 2, cy, hc, hv, (SDL_Color) { 185, 179, 211, 255 });
+		} else {
+			ui_label(scr, r.x + r.w / 2, r.y + r.h / 2, lc, label, C_TEXT);
+		}
+	}
+	if (cfg->overlayMode == OVM_CUSTOM) {
+		SDL_Rect last = ovl_row_rect(scr, n - 1);
+		ui_font_wrap(scr, TF_BODY, mg.margin + mg.pad, last.y + last.h + mg.gap * 2, mg.w - mg.pad * 2, mg.noteCap,
+		             "Your own PNGs in gba-ds/overlays/. A screen without one gets the generated bezel in its default colors.", C_DIS);
+	}
+}
+
+static void draw_picker(int scr) {
+	PickGeom p = pick_geom(scr);
+	MenuGeom mg = menu_geom(scr);
+	SDL_Rect r = screens[scr].rect;
+	ui_fill(scr, (SDL_Rect) { 0, 0, r.w, r.h }, (SDL_Color) { 12, 10, 22, 255 });
+	ui_fill_round(scr, p.title, C_BTN_EDGE, mg.rad);
+	ui_label(scr, p.title.x + p.title.w / 2, p.title.y + p.title.h / 2, p.cap, pickWhich ? "Outer Bezel Color" : "Inner Bezel Color", (SDL_Color) { 20, 16, 36, 255 });
+	pick_textures();
+	ui_image(scr, pickSqTex, pickTexW, pickTexH, "stretch", &p.sq);
+	ui_image(scr, pickHueTex, 1, 360, "stretch", &p.hue);
+	uint32_t now = pick_rgb();
+	int rr = SDL_max(6, p.sq.w / 28);
+	draw_ring(scr, p.sq.x + (int) lroundf(pickS * p.sq.w), p.sq.y + (int) lroundf((1 - pickV) * p.sq.h), rr, rgb_color(now));
+	int hy = p.hue.y + (int) lroundf(pickH / 360 * p.hue.h);
+	ui_fill_round(scr, (SDL_Rect) { p.hue.x - 6, hy - 6, p.hue.w + 12, 12 }, (SDL_Color) { 0, 0, 0, 255 }, 5);
+	ui_fill_round(scr, (SDL_Rect) { p.hue.x - 4, hy - 4, p.hue.w + 8, 8 }, (SDL_Color) { 255, 255, 255, 255 }, 3);
+	/* now / new */
+	uint32_t was = hex_rgb(pickWhich ? cfg->bezelOuter : cfg->bezelInner);
+	ui_fill(scr, p.now, rgb_color(was));
+	ui_fill(scr, p.next, rgb_color(now));
+	ui_font_text(scr, TF_BOLD, p.now.x + mg.pad / 2, p.now.y + p.now.h - p.small, p.small, "Now", C_TEXT, -1);
+	ui_font_text(scr, TF_BOLD, p.next.x + mg.pad / 2, p.next.y + p.next.h - p.small, p.small, "New", C_TEXT, -1);
+	for (int i = 0; i < 8; ++i) {
+		uint32_t c = pickPresets[pickWhich][i];
+		SDL_Rect q = p.presets[i];
+		bool on = c == now;
+		int e = on ? SDL_max(3, q.h / 10) : 2;
+		ui_fill_round(scr, q, on ? C_TEXT : (SDL_Color) { 58, 54, 80, 255 }, mg.rad);
+		ui_fill_round(scr, (SDL_Rect) { q.x + e, q.y + e, q.w - e * 2, q.h - e * 2 }, rgb_color(c), SDL_max(1, mg.rad - e));
+	}
+	char hv[12];
+	snprintf(hv, sizeof(hv), "#%06X", (unsigned) now);
+	ui_fill_round(scr, p.hex, (SDL_Color) { 30, 26, 50, 255 }, mg.rad);
+	ui_label(scr, p.hex.x + p.hex.w / 2, p.hex.y + p.hex.h / 2, SDL_min(p.cap, p.hex.h * 2 / 5), hv, C_TEXT);
+	/* the buttons, centred in a line */
+	const char* btn[4] = { "D-pad", "L1 R1", "X", "Y" };
+	const char* words[4] = { "color", "hue", "presets", "hex" };
+	int hc = p.small, tw = 0;
+	for (int i = 0; i < 4; ++i) tw += hint_width(scr, hc, btn[i], words[i]);
+	if (tw > mg.w) hc = hc * mg.w / tw, tw = mg.w;
+	int x = (r.w - tw) / 2;
+	for (int i = 0; i < 4; ++i) x = draw_btn_hint(scr, x, p.hintY, hc, btn[i], words[i]);
+	ui_fill_round(scr, p.cancel, C_BTN, mg.rad);
+	ui_label(scr, p.cancel.x + p.cancel.w / 2, p.cancel.y + p.cancel.h / 2, p.cap, "Cancel", C_TEXT);
+	int e = SDL_max(1, mg.h / 28);
+	ui_fill_round(scr, (SDL_Rect) { p.ok.x - e, p.ok.y - e, p.ok.w + e * 2, p.ok.h + e * 2 }, C_BTN_EDGE, mg.rad + e);
+	ui_fill_round(scr, p.ok, C_BTN_SEL, mg.rad);
+	ui_label(scr, p.ok.x + p.ok.w / 2, p.ok.y + p.ok.h / 2, p.cap, "OK", C_TEXT);
+}
+
+static void draw_hex(int scr) {
+	MenuGeom mg = menu_geom(scr);
+	SDL_Rect r = screens[scr].rect;
+	ui_fill(scr, (SDL_Rect) { 0, 0, r.w, r.h }, (SDL_Color) { 12, 10, 22, 255 });
+	SDL_Rect b = tab_rect(scr, 0), t = tab_rect(scr, 1);
+	ui_fill_round(scr, b, C_BTN, mg.rad);
+	ui_label(scr, b.x + b.w / 2, b.y + b.h / 2, mg.cap, "Back", C_TEXT);
+	ui_fill_round(scr, t, C_BTN_EDGE, mg.rad);
+	ui_label(scr, t.x + t.w / 2, t.y + t.h / 2, mg.cap, "Hex Color", (SDL_Color) { 20, 16, 36, 255 });
+	SDL_Rect f = hex_field(scr);
+	ui_fill_round(scr, f, (SDL_Color) { 30, 26, 50, 255 }, mg.rad);
+	char shown[16];
+	snprintf(shown, sizeof(shown), "#%s%s", hexText, hexLen < 6 && (SDL_GetTicks() / 500) & 1 ? "|" : "");
+	ui_label(scr, f.x + f.w / 2, f.y + f.h / 2, mg.cap * 3 / 2, shown, hexLen ? C_TEXT : C_DIS);
+	bool canDone = hexLen == 6 || hexLen == 3;
+	for (int i = 0; i < 3; ++i) {
+		for (int j = 0; j < hex_row_len(i); ++j) {
+			SDL_Rect k = hex_key_rect(scr, i, j);
+			bool sel = i == hexRow && j == hexCol;
+			if (sel) {
+				int e = SDL_max(1, mg.h / 28);
+				ui_fill_round(scr, (SDL_Rect) { k.x - e, k.y - e, k.w + e * 2, k.h + e * 2 }, C_BTN_EDGE, mg.rad + e);
+			}
+			ui_fill_round(scr, k, sel ? C_BTN_SEL : i == 2 ? (SDL_Color) { 52, 44, 84, 240 } : C_BTN, mg.rad);
+			bool dim = i == 2 && j == 1 && !canDone;
+			ui_label(scr, k.x + k.w / 2, k.y + k.h / 2, SDL_min(mg.cap, k.h * 2 / 5), hexKeys[i][j], dim ? C_DIS : C_TEXT);
+		}
+	}
+}
+
+/* -------- what a row does (dir: -1 LEFT, else forward) */
+static void ovl_activate(int i, int dir) {
+	int rows[8], n = ovl_rows(rows);
+	if (i < 0 || i >= n) return;
+	switch (rows[i]) {
+	case OR_MODE:
+		cfg->overlayMode = (SDL_clamp(cfg->overlayMode, 0, 2) + (dir < 0 ? 2 : 1)) % 3;
+		break;
+	case OR_SCREENS: {
+		static const int order[3] = { OVL_BOTH, OVL_TOP, OVL_BOTTOM };
+		int k = cfg->overlays == OVL_TOP ? 1 : cfg->overlays == OVL_BOTTOM ? 2 : 0;
+		cfg->overlays = order[(k + (dir < 0 ? 2 : 1)) % 3];
+		break;
+	}
+	case OR_LOGO:
+		cfg->bezelLogo = !cfg->bezelLogo;
+		break;
+	case OR_INNER:
+	case OR_OUTER:
+		pick_open(rows[i] == OR_OUTER);
+		return;
+	case OR_RESET:
+		cfg->bezelLogo = true;
+		snprintf(cfg->bezelInner, sizeof(cfg->bezelInner), "%06X", BEZEL_INNER_DEFAULT);
+		snprintf(cfg->bezelOuter, sizeof(cfg->bezelOuter), "%06X", BEZEL_OUTER_DEFAULT);
+		break;
+	}
+	save_prefs();
+}
+static void ovl_close_all(void) {
+	ovlOpen = false;
+	hexOpen = false;
+	pickWhich = -1;
+	pickDrag = 0;
+}
+
 static const char* scale_label(const char* scale) {
 	return !strcmp(scale, "fit")       ? "Scale: Full Width" :
 	       !strcmp(scale, "zoom")      ? "Scale: Zoom" :
@@ -2134,9 +2556,11 @@ static void draw_menu(void) {
 		ui_load_brand(BRAND_BTN_L1, shoulderTex[0], &shoulderW, &shoulderH);
 		ui_load_brand(BRAND_BTN_R1, shoulderTex[1], &shoulderW, &shoulderH);
 	}
-	for (int s = 0; s < nScreens; ++s) ui_dim(s, 170);
-	draw_battery();
 	int scr = ui_touch_screen();
+	/* (Overlays: the other screens undimmed, to show the bezel as it is) */
+	bool preview = ovlOpen || pickWhich >= 0 || hexOpen;
+	for (int s = 0; s < nScreens; ++s) if (!preview || s == scr) ui_dim(s, 170);
+	draw_battery();
 	float px = ui_px(scr);
 	int cap = px * 11 / 2;   /* Futura capital height */
 	int rad = px * 3;        /* box corner radius */
@@ -2161,6 +2585,12 @@ static void draw_menu(void) {
 			int o = ui_other_screen();
 			ui_label(o, screens[o].rect.w / 2, screens[o].rect.h / 2, (ui_px(o) + 1) * 7 * 34 / 35, "Paused", C_GOLD);
 		}
+		return;
+	}
+	if (preview) {
+		if (hexOpen) draw_hex(scr);
+		else if (pickWhich >= 0) draw_picker(scr);
+		else draw_ovl_menu(scr);
 		return;
 	}
 	if (cheatsOpen) {
@@ -2217,8 +2647,8 @@ static void draw_menu(void) {
 		                                      !strcmp(cfg->screenMatch, "aspect") ? "Match screen aspect ratios" : "Match screen sizes and aspect ratios";
 		if (menuItems[i] == M_LOGO) label = cfg->showLogo ? "No Second Screen: Show Logo" : "No Second Screen: Keep Blank";
 		if (menuItems[i] == M_OVERLAY) {
-			static const char* const ovl[4] = { "Overlays: None", "Overlays: Show Top Only", "Overlays: Show Bottom Only", "Overlays: Show Both" };
-			label = ovl[cfg->overlays & OVL_BOTH];
+			static const char* const ovl[3] = { "Overlays: Off", "Overlays: Generated", "Overlays: Custom" };
+			label = ovl[SDL_clamp(cfg->overlayMode, 0, 2)];
 		}
 		if (menuItems[i] == armedItem) label = "Are You Sure?";
 		/* (the slot they use: "Save State 3", "Load State 3") */
@@ -4320,8 +4750,8 @@ static void bug_info(Text* t, const char* date, uint64_t back) {
 	text_add(t, "The rewound state is %llu frames before the other\n", (unsigned long long) back);
 
 	text_add(t, "\n== Settings\n");
-	text_add(t, "layout %s, swap %d, scale %s, map_scale %s, shader %s, color_correction %d, lcd_ghosting %d, smooth %d, overlays %d, border_color %s\n", cfg->layout,
-	         cfg->swap, cfg->scale, cfg->mapScale, shaderNames[cfg->shader], cfg->colorCorrection, cfg->ghosting, cfg->smooth, cfg->overlays, cfg->borderColor);
+	text_add(t, "layout %s, swap %d, scale %s, map_scale %s, shader %s, color_correction %d, lcd_ghosting %d, smooth %d, overlays %d (screens %d, logo %d, %s / %s), border_color %s\n", cfg->layout,
+	         cfg->swap, cfg->scale, cfg->mapScale, shaderNames[cfg->shader], cfg->colorCorrection, cfg->ghosting, cfg->smooth, cfg->overlayMode, cfg->overlays, cfg->bezelLogo, cfg->bezelInner, cfg->bezelOuter, cfg->borderColor);
 	text_add(t, "map %d, map_animations %d, map_interval %d, show_logo %d, pinball_live %d\n", cfg->map, cfg->mapAnim,
 	         cfg->mapInterval, cfg->showLogo, cfg->tallLive);
 	text_add(t, "frame_buffer %d, match_display %d, vsync %d, audio_latency %d, rewind %d (%d s), fast_forward %d, ff_speed %d\n", cfg->frameBuffer,
@@ -5029,10 +5459,12 @@ static void save_prefs(void) {
 		fprintf(f, "# written by gba-ds's pause menu; overrides gba-ds.cfg\n");
 		fprintf(f, "swap = %d\nscale = %s\nmap_scale = %s\nshader = %s\ncolor_correction = %d\nlcd_ghosting = %d\noverlays = %s\nframe_buffer = %d\nmatch_display = %d\nrewind = %d\nfast_forward = %d\nsave_on_quit = %d\nauto_load = %d\nquick_bar_pinned = %d\n",
 		        cfg->swap ? 1 : 0, cfg->scale, cfg->mapScale, shaderNames[cfg->shader], cfg->colorCorrection ? 1 : 0, cfg->ghosting ? 1 : 0,
-		        (const char* const[]) { "none", "top", "bottom", "both" }[cfg->overlays & OVL_BOTH],
+		        (const char* const[]) { "off", "generated", "custom" }[SDL_clamp(cfg->overlayMode, 0, 2)],
 		        cfg->frameBuffer ? 1 : 0, cfg->matchDisplay ? 1 : 0, cfg->rewind ? 1 : 0, cfg->fastForward ? 1 : 0,
 		        cfg->autoSave ? 1 : 0, cfg->autoLoad ? 1 : 0, cfg->barPinned ? 1 : 0);
 		fprintf(f, "screen_match = %s\n", cfg->screenMatch);
+		fprintf(f, "overlay_screens = %s\nbezel_logo = %d\nbezel_inner = %s\nbezel_outer = %s\n",
+		        cfg->overlays == OVL_TOP ? "top" : cfg->overlays == OVL_BOTTOM ? "bottom" : "both", cfg->bezelLogo, cfg->bezelInner, cfg->bezelOuter);
 		fprintf(f, "shader_last = %s\n", shaderNames[cfg->shaderLast > SH_OFF && cfg->shaderLast < SH_COUNT ? cfg->shaderLast : SH_GRID]);
 		fclose(f);
 	}
@@ -5095,7 +5527,7 @@ static SDL_Color borderColor;
  * wiki/Overlays.md explains them for players (top and bottom only). */
 static void overlays_reload(void) {
 	overlayMode[0][0] = overlayMode[1][0] = 0;
-	defOverlayName[0][0] = defOverlayName[1][0] = 0;
+	bezelKey[0][0] = bezelKey[1][0] = 0;
 }
 
 /* s: the physical screen (0 top, 1 bottom); which: what's on it (0 the game, 1 the second screen) */
@@ -5132,45 +5564,54 @@ static void load_overlay(int s, int which) {
 	}
 }
 
-/* GBA DS's own overlays (tools/make_overlays.py), for when there's no
- * player's overlay: a bezel round the picture, one file for each screen
- * size, screen (top or bottom: the text is the other way round) and
- * picture rectangle, in <app folder>/overlays/default/ (Android: the APK's
- * assets). Drawn only where one was made for exactly this picture. */
-static void draw_default_overlay(int s, const char* mode) {
-	if (nScreens != 2 || s < 0 || s > 1) return;
+/* GBA DS's own bezel round screen s's picture (bezel.c): in the player's
+ * colours and with their logo setting (Overlays: Generated; while the
+ * colour picker is open, its colour as it's picked), or in the defaults
+ * (a screen without a PNG in Overlays: Custom). Nothing where the picture
+ * fills the screen. */
+static void draw_bezel(int s, const char* mode, bool defaults) {
 	SDL_Rect r = ui_image_rect(s, GBA_W, GBA_H, mode), sr = screens[s].rect;
-	char name[96];
-	snprintf(name, sizeof(name), "%dx%d-%s-%dx%d+%d+%d.png", sr.w, sr.h, s ? "bottom" : "top", r.w, r.h, r.x, r.y);
-	if (strcmp(name, defOverlayName[s])) {
-		snprintf(defOverlayName[s], sizeof(defOverlayName[s]), "%s", name);
-		ui_free_image(defOverlayTex[s]);
-		char path[1200];
-		snprintf(path, sizeof(path), "%s/overlays/default/%s", cfg->appDir, name);
-		bool ok = ui_load_image(path, defOverlayTex[s], &defOverlayW[s], &defOverlayH[s], true);
-#ifdef __ANDROID__
-		if (!ok) {
-			snprintf(path, sizeof(path), "overlays/default/%s", name);
-			ok = ui_load_image_rw(path, defOverlayTex[s], &defOverlayW[s], &defOverlayH[s], true);
-		}
-#endif
-		fprintf(stderr, "overlay (default, %s screen): %s%s\n", s ? "bottom" : "top", name, ok ? "" : ", none made for this");
+	/* (Zoom: the part on the screen) */
+	int x0 = SDL_max(r.x, 0), y0 = SDL_max(r.y, 0), x1 = SDL_min(r.x + r.w, sr.w), y1 = SDL_min(r.y + r.h, sr.h);
+	if (x0 <= 0 && y0 <= 0 && x1 >= sr.w && y1 >= sr.h) return;
+	r = (SDL_Rect) { x0, y0, x1 - x0, y1 - y0 };
+	uint32_t in = BEZEL_INNER_DEFAULT, out = BEZEL_OUTER_DEFAULT;
+	bool logo = true;
+	if (!defaults) {
+		in = hex_rgb(cfg->bezelInner), out = hex_rgb(cfg->bezelOuter), logo = cfg->bezelLogo;
+		if (pickWhich == 0) in = pick_rgb();
+		if (pickWhich == 1) out = pick_rgb();
 	}
-	if (defOverlayTex[s][0] || defOverlayTex[s][1]) ui_image(s, defOverlayTex[s], defOverlayW[s], defOverlayH[s], "stretch", NULL);
+	bool bottom = s == 1 && nScreens == 2;
+	char key[96];
+	snprintf(key, sizeof(key), "%dx%d %d,%d,%d,%d %d %06X %06X %d", sr.w, sr.h, r.x, r.y, r.w, r.h, bottom, (unsigned) in, (unsigned) out, logo);
+	if (strcmp(key, bezelKey[s])) {
+		snprintf(bezelKey[s], sizeof(bezelKey[s]), "%s", key);
+		ui_free_image(bezelTex[s]);
+		Uint64 t0 = SDL_GetPerformanceCounter();
+		SDL_Surface* srf = bezel_surface(sr.w, sr.h, r, bottom, in, out, logo);
+		if (srf) ui_load_surface(srf, bezelTex[s], &bezelW[s], &bezelH[s], false);
+		if (debug) fprintf(stderr, "bezel (%s screen): %s, %.1f ms\n", bottom ? "bottom" : "top", key,
+		                   (SDL_GetPerformanceCounter() - t0) * 1000.0 / SDL_GetPerformanceFrequency());
+	}
+	if (bezelTex[s][0] || bezelTex[s][1]) ui_image(s, bezelTex[s], bezelW[s], bezelH[s], "stretch", NULL);
 }
 
 /* Overlays: on for this physical screen (one screen: the top one's setting) */
 static bool overlay_on(int s) {
-	return cfg->overlays & (s == 1 && nScreens == 2 ? OVL_BOTTOM : OVL_TOP);
+	return cfg->overlayMode != OVM_OFF && (cfg->overlays & (s == 1 && nScreens == 2 ? OVL_BOTTOM : OVL_TOP));
 }
 
+/* which: what's on the screen (0 the game, 1 the second screen) */
 static void draw_overlay(int s, int which) {
-	load_overlay(s, which);
-	if (overlayTex[s][0] || overlayTex[s][1]) {
-		ui_image(s, overlayTex[s], overlayW[s], overlayH[s], "stretch", NULL);
-	} else {
-		draw_default_overlay(s, which ? cfg->mapScale : cfg->scale);
+	if (cfg->overlayMode == OVM_CUSTOM) {
+		load_overlay(s, which);
+		if (overlayTex[s][0] || overlayTex[s][1]) {
+			ui_image(s, overlayTex[s], overlayW[s], overlayH[s], "stretch", NULL);
+			return;
+		}
 	}
+	draw_bezel(s, which ? cfg->mapScale : cfg->scale, cfg->overlayMode != OVM_GENERATED);
 }
 
 
@@ -5373,6 +5814,7 @@ static void open_menu(void) {
 	bar_close();
 	barShown = 0;
 	cheatsOpen = false;
+	ovl_close_all();
 	close_ach();
 	set_page(0);
 	menuOpen = true;
@@ -5483,10 +5925,10 @@ static bool activate(int item, enum GameExit* exitTo) {
 		save_prefs();
 		break;
 	case M_OVERLAY:
-		/* PRIMARY -> SECONDARY -> BOTH -> NONE -> PRIMARY */
-		cfg->overlays = cfg->overlays == OVL_TOP ? OVL_BOTTOM : cfg->overlays == OVL_BOTTOM ? OVL_BOTH :
-		                cfg->overlays == OVL_BOTH ? 0 : OVL_TOP;
-		save_prefs();
+		/* its own screen: Display > Overlays */
+		ovlOpen = true;
+		ovlSel = 0;
+		ovlPress = -1;
 		break;
 	case M_FPS:
 		cfg->showFps = !cfg->showFps;
@@ -5758,6 +6200,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	cheats_load(&cheats, cfg, rom, emu.gameCode, gp.cheats);
 	if (cheats_on(&cheats)) cheats_apply(&cheats, &emu);
 	cheatsOpen = false;
+	ovl_close_all();
 	ui_on_background(on_background);
 	ui_on_foreground(on_foreground);
 
@@ -5781,7 +6224,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	unsigned bc = (unsigned) strtoul(cfg->borderColor, NULL, 16);
 	borderColor = (SDL_Color) { (bc >> 16) & 0xFF, (bc >> 8) & 0xFF, bc & 0xFF, 255 };
 	overlayMode[0][0] = overlayMode[1][0] = 0;
-	defOverlayName[0][0] = defOverlayName[1][0] = 0;
+	bezelKey[0][0] = bezelKey[1][0] = 0;
 	uint32_t logoGen = logo_generation();
 	if (ui_load_logo(cfg, rom, emu.gameCode, logoTex, &logoW, &logoH, &logoPixel)) make_logo_canvas();
 
@@ -6097,6 +6540,69 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				}
 				continue;
 			}
+			if (hexOpen) {
+				int r, c;
+				if (p.kind == 1) {
+					ignorePointerUp = false;
+					hexPress = -1;
+					if (tab_at(p.screen, p.x, p.y, 2) == 0) {
+						hexOpen = false; /* Back */
+						ignorePointerUp = true;
+						continue;
+					}
+					if (hex_key_at(p.screen, p.x, p.y, &r, &c)) hexPress = r * 16 + c, hexRow = r, hexCol = c;
+				} else if (p.kind == 2) {
+					if (!ignorePointerUp && hex_key_at(p.screen, p.x, p.y, &r, &c) && r * 16 + c == hexPress) hex_press(r, c);
+					hexPress = -1;
+					ignorePointerUp = false;
+				}
+				continue;
+			}
+			if (pickWhich >= 0) {
+				PickGeom pg = pick_geom(p.screen);
+				if (p.kind == 1) {
+					ignorePointerUp = false;
+					if (in_rect(pg.sq, p.x, p.y)) pickDrag = 1;
+					else if (in_rect((SDL_Rect) { pg.hue.x - pg.hue.w / 2, pg.hue.y, pg.hue.w * 2, pg.hue.h }, p.x, p.y)) pickDrag = 2;
+					else {
+						for (int i = 0; i < 8; ++i)
+							if (in_rect(pg.presets[i], p.x, p.y)) rgb_hsv(pickPresets[pickWhich][i], &pickH, &pickS, &pickV), pickPreset = i;
+						if (in_rect(pg.hex, p.x, p.y)) hex_open();
+						else if (in_rect(pg.cancel, p.x, p.y)) pick_close(false);
+						else if (in_rect(pg.ok, p.x, p.y)) pick_close(true);
+						ignorePointerUp = true;
+					}
+					pick_touch(p.screen, p.x, p.y);
+				} else if (p.kind == 3) {
+					pick_touch(p.screen, p.x, p.y);
+				} else if (p.kind == 2) {
+					pick_touch(p.screen, p.x, p.y);
+					pickDrag = 0;
+					ignorePointerUp = false;
+				}
+				continue;
+			}
+			if (ovlOpen) {
+				if (p.kind == 1) {
+					ignorePointerUp = false;
+					ovlPress = -1;
+					if (tab_at(p.screen, p.x, p.y, 2) == 0) {
+						ovlOpen = false; /* Back */
+						ignorePointerUp = true;
+						continue;
+					}
+					int rows[8], n = ovl_rows(rows);
+					for (int i = 0; i < n; ++i)
+						if (in_rect(ovl_row_rect(p.screen, i), p.x, p.y)) ovlPress = i, ovlSel = i;
+				} else if (p.kind == 2) {
+					int rows[8], n = ovl_rows(rows);
+					for (int i = 0; i < n; ++i)
+						if (!ignorePointerUp && i == ovlPress && in_rect(ovl_row_rect(p.screen, i), p.x, p.y)) ovl_activate(i, 1);
+					ovlPress = -1;
+					ignorePointerUp = false;
+				}
+				continue;
+			}
 			if (cheatsOpen) {
 				float px = ui_px(p.screen);
 				if (p.kind == 1) {
@@ -6252,6 +6758,50 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			} else if (btn_pressed(B_X)) note_type(" ");
 			else if (btn_pressed(B_SELECT)) noteShift = !noteShift;
 			else if (btn_pressed(B_START)) note_done(true);
+		} else if (menuOpen && hexOpen) {
+			/* D-pad (repeating) and A on the keys; B deletes (or, with nothing typed, goes back), START Done */
+			static int held[4];
+			const int dirs[4] = { B_UP, B_DOWN, B_LEFT, B_RIGHT };
+			for (int k = 0; k < 4; ++k) {
+				held[k] = btnNow[dirs[k]] ? held[k] + 1 : 0;
+				if (held[k] == 1 || (held[k] > 20 && held[k] % 4 == 0)) hex_move(k == 0 ? -1 : k == 1 ? 1 : 0, k == 2 ? -1 : k == 3 ? 1 : 0);
+			}
+			if (btn_pressed(B_A)) hex_press(hexRow, hexCol);
+			else if (btn_pressed(B_B)) {
+				if (hexLen) hexText[--hexLen] = 0;
+				else hexOpen = false;
+			} else if (btn_pressed(B_START)) hex_done();
+		} else if (menuOpen && pickWhich >= 0) {
+			/* D-pad: saturation (across) and brightness (up / down); L1 / R1 the
+			 * hue; held, a step at a time, then faster. X the next preset, Y
+			 * the hex keypad, A OK, B Cancel, START OK and back to the game. */
+			static int held[6];
+			const int keys[6] = { B_LEFT, B_RIGHT, B_UP, B_DOWN, B_L, B_R };
+			for (int k = 0; k < 6; ++k) {
+				held[k] = btnNow[keys[k]] ? held[k] + 1 : 0;
+				if (held[k] != 1 && held[k] <= 15) continue;
+				float step = held[k] == 1 ? 0.01f : held[k] > 60 ? 0.03f : 0.01f;
+				if (k == 0) pickS = SDL_max(0.0f, pickS - step);
+				if (k == 1) pickS = SDL_min(1.0f, pickS + step);
+				if (k == 2) pickV = SDL_min(1.0f, pickV + step);
+				if (k == 3) pickV = SDL_max(0.0f, pickV - step);
+				if (k >= 4) pickH = fmodf(pickH + (k == 4 ? -1 : 1) * step * 200 + 360, 360);
+			}
+			if (btn_pressed(B_X)) pickPreset = (pickPreset + 1) % 8, rgb_hsv(pickPresets[pickWhich][pickPreset], &pickH, &pickS, &pickV);
+			else if (btn_pressed(B_Y)) hex_open();
+			else if (btn_pressed(B_A)) pick_close(true);
+			else if (btn_pressed(B_B)) pick_close(false);
+			else if (btn_pressed(B_START)) pick_close(true), ovl_close_all(), menuOpen = false;
+		} else if (menuOpen && ovlOpen) {
+			int rows[8], n = ovl_rows(rows);
+			if (btn_pressed(B_DOWN)) ovlSel = SDL_min(n - 1, ovlSel + 1);
+			if (btn_pressed(B_UP)) ovlSel = SDL_max(0, ovlSel - 1);
+			bool cycles = rows[ovlSel] == OR_MODE || rows[ovlSel] == OR_SCREENS || rows[ovlSel] == OR_LOGO;
+			if (cycles && btn_pressed(B_LEFT)) ovl_activate(ovlSel, -1);
+			else if (cycles && btn_pressed(B_RIGHT)) ovl_activate(ovlSel, 1);
+			else if (btn_pressed(B_A)) ovl_activate(ovlSel, 1);
+			else if (btn_pressed(B_B)) ovlOpen = false;
+			else if (btn_pressed(B_START)) ovl_close_all(), menuOpen = false;
 		} else if (menuOpen && cheatsOpen) {
 			/* D-pad repeats while held */
 			static int held[2];
@@ -6827,8 +7377,8 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	ui_free_image(overlayTex[0]);
 	ui_free_image(overlayTex[1]);
 	overlayMode[0][0] = overlayMode[1][0] = 0;
-	ui_free_image(defOverlayTex[0]);
-	ui_free_image(defOverlayTex[1]);
-	defOverlayName[0][0] = defOverlayName[1][0] = 0;
+	ui_free_image(bezelTex[0]);
+	ui_free_image(bezelTex[1]);
+	bezelKey[0][0] = bezelKey[1][0] = 0;
 	return exitTo;
 }

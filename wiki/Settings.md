@@ -45,7 +45,11 @@ Updating from the game list (Settings > Updates) keeps your `gba-ds.cfg`. Unzipp
 | `lcd_ghosting` | `0` | `1`: each frame of the game is shown half and half with the one before, as a GBA's slow screen blurred them: moving things leave a short trail, and sprites a game flickers every other frame (to make them see-through) look see-through, as they did on a GBA. The game screen only. Also in the pause menu (Display). |
 | `smooth` | `0` | Plain bilinear filtering instead of sharp scaling (blurry; usually leave off). |
 | `vsync` | `0` | Present frames in step with the display. Off is smoother on these devices. |
-| `overlays` | `both` | `top`, `bottom`, `both` or `none`: which screens have an overlay. See [[Overlays]]. |
+| `overlays` | `generated` | `off`, `generated` (GBA DS's bezel round the picture) or `custom` (your own PNGs in `overlays/`). See [[Overlays]]. |
+| `overlay_screens` | `both` | Which screens have them: `both`, `top` or `bottom`. |
+| `bezel_logo` | `1` | The GBA DS logo in the generated bezel. |
+| `bezel_inner` | `1A1A1A` | The generated bezel's colour round the picture (RRGGBB). |
+| `bezel_outer` | `102060` | The generated bezel's colour outside that (RRGGBB). |
 | `border_color` | `000000` | Colour behind the map image where nothing else is drawn (RRGGBB). |
 | `show_fps` | `0` | Frames per second and % of full speed above the game, all the time (also HOME + X). The quick bar shows the frames per second whenever you swipe it up. |
 | `match_display` | `0` | **Match Display Rate**: run the game at the display's refresh rate instead of the GBA's 59.73 frames a second, when the two are within 1.5% (a 60 Hz screen: 0.46% faster, sound resampled to match, which you can't hear), and present each frame in step with the display. The GBA's own rate on a 60 Hz screen shows one frame twice about every 3.7 seconds, a small regular stutter; matched, every frame gets exactly one refresh. Also in the pause menu. |

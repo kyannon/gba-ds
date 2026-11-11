@@ -3,10 +3,13 @@
 
 #include <stdbool.h>
 
-/* Overlays, by physical screen (they stay put when the screens are swapped):
- * the top one, the bottom one or both. On each, the player's overlay for the
- * picture there (primary / secondary files), else GBA DS's own bezel
- * (overlays/default). */
+/* Display > Overlays: off, GBA DS's own bezel drawn by the app in the
+ * player's colours (bezel.c), or the player's PNGs in overlays/ (a screen
+ * without one: the bezel in its default colours). OVM_LEGACY: a config from
+ * before (overlays = top / both...), settled at start (main.c): custom if
+ * overlays/ has PNGs, else generated. */
+enum { OVM_OFF, OVM_GENERATED, OVM_CUSTOM, OVM_LEGACY };
+/* ...on which physical screens (they stay put when the screens are swapped) */
 enum { OVL_TOP = 1, OVL_BOTTOM = 2, OVL_BOTH = 3 };
 /* Display > Shader, in menu order. Each is a fixed pattern multiplied over
  * every GBA pixel (a texture built once, ui.c), so none costs more than the
@@ -27,7 +30,10 @@ typedef struct Config {
 	char mapScale[16]; /* map:  integer | fit | stretch */
 	bool smooth;       /* plain linear filtering when scaling (blurry) */
 	char borderColor[16]; /* RRGGBB behind the map screen (outside the map image) */
-	int overlays;      /* OVL_TOP | OVL_BOTTOM: the screens that have overlays */
+	int overlayMode;   /* OVM_*: overlays */
+	int overlays;      /* OVL_TOP | OVL_BOTTOM: overlay_screens, the screens that have them */
+	bool bezelLogo;    /* the GBA DS logo in the generated bezel */
+	char bezelInner[8], bezelOuter[8]; /* its colours, RRGGBB */
 	int shader;        /* SH_*: a pattern over every pixel on both screens (Display > Shader) */
 	bool colorCorrection; /* the GBA's screen colours (mGBA's GBA Color shader) */
 	bool ghosting;     /* LCD ghosting: each frame of the game shown blended with the one before */
@@ -65,7 +71,6 @@ typedef struct Config {
 	char libraryView[8]; /* game list: "list" (names) or "grid" (logos) */
 	char esConfigDir[512]; /* EmulationStation's config folder (Settings: GBA DS in EmulationStation) */
 	char assetDir[512]; /* logos etc.; default: next to the binary */
-	char appDir[1024];  /* the app's own folder (not a setting): what ships with it, such as overlays/default */
 	char touchScreen[16]; /* first | second: which screen has the touch panel */
 	char topScreen[16];   /* Android: auto | app | second: which display is the top screen */
 	char screenMatch[8];  /* keep | aspect | size: the wider screen's picture area (ui.c layout_pictures) */

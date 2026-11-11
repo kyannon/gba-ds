@@ -58,10 +58,8 @@ cp third_party/rcheevos/LICENSE "$LIC/rcheevos-LICENSE.txt"
 printf "GBA DS %s is free software under the GNU General Public License, version 3 only (GBA-DS-LICENSE.txt).\nIt statically links libmgba (c) Jeffrey Pfau, MPL-2.0.\nmGBA source: https://github.com/mgba-emu/mgba (commit %s)\nSDL2 (c) Sam Lantinga, zlib licence: https://github.com/libsdl-org/SDL (%s)\nIts text is set in Jost (c) The Jost Project Authors, SIL Open Font License 1.1 (Jost-OFL.txt).\nRetroAchievements support: rcheevos (c) RetroAchievements, MIT (rcheevos-LICENSE.txt), %s.\nGBA DS source: https://github.com/kyannon/gba-ds\n" \
 	"$VERSION" "$(git -C "$DEPS/mgba" rev-parse --short HEAD)" "$SDL_BRANCH" "$(tail -1 third_party/rcheevos/VERSION)" > "$LIC/README.txt"
 
-# GBA DS's default overlays (tools/make_overlays.py), read from the APK's assets (game.c draw_default_overlay)
-OVL=android/app/src/main/assets/overlays/default
-rm -rf "$OVL" && mkdir -p "$OVL"
-cp assets/overlays/default/*.png "$OVL/"
+# (no longer packed: the default overlays the APK carried before the bezel was drawn by the app)
+rm -rf android/app/src/main/assets/overlays
 
 gradle -p android --no-daemon assembleRelease \
 	-PsdlDir="$DEPS/SDL2" -PmgbaSrc="$DEPS/mgba" -PmgbaBuild="$MGBA_BUILD" -PcpuFlags="$CPU_FLAGS"
