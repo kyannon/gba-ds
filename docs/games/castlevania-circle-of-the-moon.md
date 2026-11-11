@@ -23,3 +23,8 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 **CVC-4. Last good map stays.** When the map can't be opened, the last good map stays up.
 
 **CVC-5. Logo before the first map.** Until the first map is captured, and at the title and file menus, the second screen shows the logo.
+
+## Not covered yet
+
+- Each release has one moment of play, its pause screen and the file menu. Boss fights, the Battle Arena, later areas and a scene in mid-play (CVC-4) haven't been run.
+- The other modes (Magician, Fighter, Shooter, Thief) haven't been tried.

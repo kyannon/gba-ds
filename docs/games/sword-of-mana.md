@@ -21,3 +21,8 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 **SOM-3. HUD trimmed.** On the game screen the HUD's portrait and HP / MP figures are hidden; the charge bar under them stays.
 
 **SOM-4. Title.** On the title screen the second screen shows the logo, and no captures are tried there.
+
+## Not covered yet
+
+- Europe and Japan have one moment of play each; their conversations and scenes (SOM-2) haven't been run.
+- The heroine's story, boss fights and the ending haven't been tried.

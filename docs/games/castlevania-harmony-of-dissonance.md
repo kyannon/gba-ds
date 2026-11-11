@@ -23,3 +23,8 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 **CVH-4. Logo before the first map.** Until the first map is captured, and at the title and file menus, the second screen shows the logo.
 
 **CVH-5. Game screen untouched.** The game screen is the game as it draws itself.
+
+## Not covered yet
+
+- Each release has one moment of play, its pause screen and the file menu. Boss fights, Castle B (the second castle, with its own map), later areas and a scene in mid-play (CVH-3) haven't been run.
+- Maxim Mode and Boss Rush haven't been tried.

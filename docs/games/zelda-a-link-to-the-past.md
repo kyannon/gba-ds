@@ -25,3 +25,8 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 **LTTP-5. A Link to the Past only.** The game list shows only A Link to the Past (Four Swords needs linked GBAs), and maps are only captured while A Link to the Past is played. *By hand: Four Swords needs linked GBAs, which the tests can't emulate; check on the device that the game list shows one entry and that Four Swords gets no map (checked for v1.4.2).*
 
 **LTTP-6. Still, with every marker showing.** The map never animates, whatever `map_animations` says: everything that blinks on the game's map screen (the floor buttons, Link's and the goal's markers, the room brackets), each at its own rate, is shown in its visible state, all at once and without moving. The X marking where to go, which fades between red and white, is shown at its reddest.
+
+## Not covered yet
+
+- Europe and Japan are checked in a house, outdoors and on the file menus; their dungeons haven't been run.
+- The Dark World's map outdoors, and dungeons past the first ones (Hyrule Castle and the floors case), haven't been tried.

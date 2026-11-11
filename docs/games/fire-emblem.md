@@ -33,3 +33,9 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 **FE-9. Fights and other turns.** In a fight and on the other armies' turns, the second screen shows the logo.
 
 **FE-10. Game screen untouched.** Nothing leaves the game screen: the unit, terrain and goal windows, menus, the battle forecast, conversations, the tutorial's boxes and the phase banners stay where the game draws them, as they would on one screen.
+
+## Not covered yet
+
+- Europe (both releases) is checked in the prologue (a unit's status, a phase banner, a story scene) and Japan on a unit's status there; their later chapters, fights and other armies' turns haven't been run.
+- Fog of war chapters, Hector's mode and the final chapters: not reached.
+- The Link Arena needs a link cable: not tried.
