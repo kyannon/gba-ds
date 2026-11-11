@@ -168,7 +168,7 @@ function buildCaps(module) {
 }
 const NO_SOUND = "No sound: this build's web version was made without it.";
 const NO_BUTTONS = "Keyboard only: X and Y can't be pressed with this build.";
-const NO_CAPTURE_WORKER = "This build updates the second screen inside the game, so the game pauses each time it does (builds from GBA DS 1.4.13 on update it alongside).";
+const NO_CAPTURE_WORKER = "This build updates the second screen inside the game, so the game pauses each time it does (builds from GBA DS 1.5 on update it alongside).";
 function warnCaps(b) {
   if (!b.caps.hasAudio) toast(NO_SOUND, true);
   else if (!b.caps.hasButtons) toast(NO_BUTTONS, true);
