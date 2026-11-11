@@ -128,6 +128,108 @@
    ]
   },
   {
+   "id": "mk-eu-race-start",
+   "rom": "AMKP",
+   "state": "mario-kart-super-circuit/eu-race-start.ss",
+   "desc": "Europe, the countdown on Peach Circuit (Mushroom Cup 50cc, Toad, played from power-on)",
+   "rules": [
+    "MK-1",
+    "MK-2",
+    "MK-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "mk-jp-race-start",
+   "rom": "AMKJ",
+   "state": "mario-kart-super-circuit/jp-race-start.ss",
+   "desc": "Japan, the countdown on Peach Circuit (Mushroom Cup 50cc, Toad, played from power-on)",
+   "rules": [
+    "MK-1",
+    "MK-2",
+    "MK-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "mk-jp-menu",
+   "rom": "AMKJ",
+   "state": "mario-kart-super-circuit/jp-menu.ss",
+   "desc": "Japan, the game select menu: the logo",
+   "rules": [
+    "MK-6"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 300
+   },
+   "checks": [
+    {
+     "rule": "MK-6",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "MK-6",
+     "what": "no HUD",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "mk-eu-menu",
+   "rom": "AMKP",
+   "state": "mario-kart-super-circuit/eu-menu.ss",
+   "desc": "Europe, the game select menu: the logo",
+   "rules": [
+    "MK-6"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 300
+   },
+   "checks": [
+    {
+     "rule": "MK-6",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "MK-6",
+     "what": "no HUD",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
    "id": "mk-logo-amke",
    "kind": "logo",
    "rom": "AMKE",
