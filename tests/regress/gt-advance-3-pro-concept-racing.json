@@ -724,6 +724,309 @@
    ]
   },
   {
+   "id": "gt3-us-champ-slippery",
+   "rom": "A2GE",
+   "state": "gt-advance-3-pro-concept-racing/us-champ-slippery.ss",
+   "save": "A2GE-100-percent.sav",
+   "desc": "Championship, Expert, Slippery (picked on the race list, accelerating from the start): the HUD and the course's map on the second screen, the map whole",
+   "rules": [
+    "GT3-2",
+    "GT3-4"
+   ],
+   "shots": {
+    "race": 30,
+    "later": 150
+   },
+   "checks": [
+    {
+     "rule": "GT3-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "GT3-4",
+     "what": "the map in the middle of the second screen",
+     "type": "not_uniform",
+     "shot": "race",
+     "screen": "second",
+     "rect": [
+      192,
+      184,
+      832,
+      584
+     ],
+     "color": "000000",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "gt3-us-champ-sky-scraper",
+   "rom": "A2GE",
+   "state": "gt-advance-3-pro-concept-racing/us-champ-sky-scraper.ss",
+   "save": "A2GE-100-percent.sav",
+   "desc": "Championship, Expert, Sky-Scraper (picked on the race list, accelerating from the start): the HUD and the course's map on the second screen, the map whole",
+   "rules": [
+    "GT3-2",
+    "GT3-4"
+   ],
+   "shots": {
+    "race": 30,
+    "later": 150
+   },
+   "checks": [
+    {
+     "rule": "GT3-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "GT3-4",
+     "what": "the map in the middle of the second screen",
+     "type": "not_uniform",
+     "shot": "race",
+     "screen": "second",
+     "rect": [
+      192,
+      184,
+      832,
+      584
+     ],
+     "color": "000000",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "gt3-us-champ-terrible-mt",
+   "rom": "A2GE",
+   "state": "gt-advance-3-pro-concept-racing/us-champ-terrible-mt.ss",
+   "save": "A2GE-100-percent.sav",
+   "desc": "Championship, Expert, Terrible Mt. (picked on the race list, accelerating from the start): the HUD and the course's map on the second screen, the map whole",
+   "rules": [
+    "GT3-2",
+    "GT3-4"
+   ],
+   "shots": {
+    "race": 30,
+    "later": 150
+   },
+   "checks": [
+    {
+     "rule": "GT3-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "GT3-4",
+     "what": "the map in the middle of the second screen",
+     "type": "not_uniform",
+     "shot": "race",
+     "screen": "second",
+     "rect": [
+      192,
+      184,
+      832,
+      584
+     ],
+     "color": "000000",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "gt3-us-champ-knock-down",
+   "rom": "A2GE",
+   "state": "gt-advance-3-pro-concept-racing/us-champ-knock-down.ss",
+   "save": "A2GE-100-percent.sav",
+   "desc": "Championship, Expert, Knock Down (picked on the race list, accelerating from the start): the HUD and the course's map on the second screen, the map whole",
+   "rules": [
+    "GT3-2",
+    "GT3-4"
+   ],
+   "shots": {
+    "race": 30,
+    "later": 150
+   },
+   "checks": [
+    {
+     "rule": "GT3-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "GT3-4",
+     "what": "the map in the middle of the second screen",
+     "type": "not_uniform",
+     "shot": "race",
+     "screen": "second",
+     "rect": [
+      192,
+      184,
+      832,
+      584
+     ],
+     "color": "000000",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "gt3-us-champ-assault",
+   "rom": "A2GE",
+   "state": "gt-advance-3-pro-concept-racing/us-champ-assault.ss",
+   "save": "A2GE-100-percent.sav",
+   "desc": "Championship, Expert, Assault (picked on the race list, accelerating from the start): the HUD and the course's map on the second screen, the map whole",
+   "rules": [
+    "GT3-2",
+    "GT3-4"
+   ],
+   "shots": {
+    "race": 30,
+    "later": 150
+   },
+   "checks": [
+    {
+     "rule": "GT3-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "GT3-4",
+     "what": "the map in the middle of the second screen",
+     "type": "not_uniform",
+     "shot": "race",
+     "screen": "second",
+     "rect": [
+      192,
+      184,
+      832,
+      584
+     ],
+     "color": "000000",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "gt3-us-champ-blast-laps",
+   "rom": "A2GE",
+   "state": "gt-advance-3-pro-concept-racing/us-champ-blast-laps.ss",
+   "save": "A2GE-100-percent.sav",
+   "desc": "Championship, Expert, Blast Laps (picked on the race list, accelerating from the start): the HUD and the course's map on the second screen, the map whole",
+   "rules": [
+    "GT3-2",
+    "GT3-4"
+   ],
+   "shots": {
+    "race": 30,
+    "later": 150
+   },
+   "checks": [
+    {
+     "rule": "GT3-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "GT3-4",
+     "what": "the map in the middle of the second screen",
+     "type": "not_uniform",
+     "shot": "race",
+     "screen": "second",
+     "rect": [
+      192,
+      184,
+      832,
+      584
+     ],
+     "color": "000000",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "gt3-us-champ-blow-back",
+   "rom": "A2GE",
+   "state": "gt-advance-3-pro-concept-racing/us-champ-blow-back.ss",
+   "save": "A2GE-100-percent.sav",
+   "desc": "Championship, Expert, Blow Back (picked on the race list, accelerating from the start): the HUD and the course's map on the second screen, the map whole",
+   "rules": [
+    "GT3-2",
+    "GT3-4"
+   ],
+   "shots": {
+    "race": 30,
+    "later": 150
+   },
+   "checks": [
+    {
+     "rule": "GT3-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "GT3-4",
+     "what": "the map in the middle of the second screen",
+     "type": "not_uniform",
+     "shot": "race",
+     "screen": "second",
+     "rect": [
+      192,
+      184,
+      832,
+      584
+     ],
+     "color": "000000",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "gt3-us-time-limit-failed",
+   "rom": "A2GE",
+   "state": "gt-advance-3-pro-concept-racing/us-time-limit-failed.ss",
+   "save": "A2GE-100-percent.sav",
+   "desc": "Championship, Expert, the race list's ninth entry, a time-limit run driven off the track: FAILED on the game screen, TIME LIMIT and the map kept on the second",
+   "rules": [
+    "GT3-4",
+    "GT3-6"
+   ],
+   "shots": {
+    "failed": 30
+   },
+   "checks": [
+    {
+     "rule": "GT3-6",
+     "what": "the HUD still on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "GT3-4",
+     "what": "the map on the second screen",
+     "type": "not_uniform",
+     "shot": "failed",
+     "screen": "second",
+     "rect": [
+      192,
+      184,
+      832,
+      584
+     ],
+     "color": "000000",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
    "id": "gt3-us-licence",
    "rom": "A2GE",
    "state": "gt-advance-3-pro-concept-racing/us-licence.ss",
