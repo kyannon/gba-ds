@@ -1441,6 +1441,10 @@ static PatchChoice patchStarted; /* as the game started */
 static char patchDir[1024];
 static bool patchReload; /* the game restarted for a patch switched on or off: no auto-load */
 static bool patchReloadNext;
+/* (GEN-9) a change that can't upset the saves: the moment saved here before
+ * the game reopens with it, and loaded straight back, so it carries on */
+static bool patchHandoffNext;
+static char patchHandoff[1100];
 uint32_t doCrc32(const void* buf, size_t size); /* (libmgba's: its header wants zlib.h) */
 enum { PR_RESTART, PR_SAVE, PR_STATES, PR_HEADER, PR_SUMMARY, PR_BESIDE, PR_PATCH, PR_EMPTY };
 /* what each file does to the ROM on its own (worked out as the list opens) */
@@ -1873,6 +1877,41 @@ static void patch_pick_up(void) {
 	snprintf(patchNote, sizeof(patchNote), "Moving it: Up / Down or tap where it goes, then A (or tap it again). The one lower in the list is applied later");
 }
 
+/* Can the game carry on from this moment with the patches as chosen (GEN-9)?
+ * The patched ROM the same size as the one playing, and the battery save and
+ * save states the same files. */
+static bool patch_live_ok(void) {
+	uint8_t h[0xB0];
+	char code[5] = "????";
+	if (emu_rom_header(romPath, h, sizeof(h))) memcpy(code, h + 0xAC, 4);
+	size_t nowN = 0, newN = 0;
+	int nowR = PATCH_NONE, newR = PATCH_NONE;
+	free(emu_rom_read_played(romPath, &nowN, &nowR, NULL, NULL));
+	char files[PATCH_ON_MAX + 1][1024];
+	int n = patch_plan(cfg, romPath, code, &patchChoice, files, PATCH_ON_MAX + 1);
+	free(emu_rom_read_patched(romPath, files, n, &newN, &newR, NULL));
+	if (!nowN || nowN != newN) return false;
+	GamePaths a, b;
+	game_paths(cfg, romPath, &a);
+	game_paths(cfg, romPath, &b);
+	if (nowR == PATCH_APPLIED || nowR == PATCH_PARTIAL) game_paths_patched(cfg, &a, &patchStarted);
+	if (newR == PATCH_APPLIED || newR == PATCH_PARTIAL) game_paths_patched(cfg, &b, &patchChoice);
+	return !strcmp(a.sav, b.sav) && !strcmp(a.quick, b.quick) && !strcmp(a.autoState, b.autoState);
+}
+
+static bool state_save(const char* path);
+/* the restart for a change: carrying on from this moment when it can */
+static bool patch_restart(void) {
+	patchReloadNext = true;
+	patchHandoffNext = false;
+	if (patch_live_ok()) {
+		snprintf(patchHandoff, sizeof(patchHandoff), "%s/%s.patch-switch.state", cfg->stateDir, gp.base);
+		patchHandoffNext = state_save(patchHandoff);
+	}
+	fprintf(stderr, "patches: %s\n", patchHandoffNext ? "carrying on with the change" : "restarting with the change");
+	return true;
+}
+
 /* A on a row (or a tap). Returns true when the game is to restart (GEN-9). */
 static bool patch_choose(int row, bool later) {
 	if (row < 0 || row >= nPatchRows) return false;
@@ -1892,13 +1931,13 @@ static bool patch_choose(int row, bool later) {
 		if (later) return false;
 		if (patchArmed != row) {
 			patchArmed = row;
-			snprintf(patchNote, sizeof(patchNote), "Are you sure? Save your game first. A: restart now. B: call it off");
+			snprintf(patchNote, sizeof(patchNote), "%s",
+			         patch_live_ok() ? "Are you sure? A: use them now and carry on from here. B: call it off"
+			                         : "Are you sure? Save your game first. A: restart now. B: call it off");
 			return false;
 		}
 		patchArmed = -1;
-		fprintf(stderr, "patches: restarting with the patches as chosen\n");
-		patchReloadNext = true;
-		return true;
+		return patch_restart();
 	}
 	if (r->kind != PR_PATCH) return false;
 	bool on = patch_is_on(r);
@@ -1912,9 +1951,23 @@ static bool patch_choose(int row, bool later) {
 	}
 	if (patchArmed != row) {
 		patchArmed = row;
-		snprintf(patchNote, sizeof(patchNote),
-		         "Are you sure? Save your game first. A: restart %s it now. Y: not yet (more changes first). B: call it off",
-		         on ? "without" : "with");
+		/* (what A would do: tried on a copy of the choice) */
+		PatchChoice keep = patchChoice;
+		if (on) {
+			for (int k = r->order; k + 1 < patchChoice.nOn; ++k) memcpy(patchChoice.on[k], patchChoice.on[k + 1], sizeof(patchChoice.on[0]));
+			--patchChoice.nOn;
+		} else {
+			snprintf(patchChoice.on[patchChoice.nOn++], sizeof(patchChoice.on[0]), "%s", r->file);
+		}
+		bool live = patch_live_ok();
+		patchChoice = keep;
+		if (live)
+			snprintf(patchNote, sizeof(patchNote), "Are you sure? A: switch it %s now and carry on from here. Y: not yet (more changes first). B: call it off",
+			         on ? "off" : "on");
+		else
+			snprintf(patchNote, sizeof(patchNote),
+			         "Are you sure? Save your game first. A: restart %s it now. Y: not yet (more changes first). B: call it off",
+			         on ? "without" : "with");
 		return false;
 	}
 	patchArmed = -1;
@@ -1936,8 +1989,7 @@ static bool patch_choose(int row, bool later) {
 		         : "Restart from the top row to play with it (or it's used from the next start)");
 		return false;
 	}
-	patchReloadNext = true;
-	return true;
+	return patch_restart();
 }
 
 /* is screen-local x on the number of a patch that's on (to pick it up) */
@@ -6844,6 +6896,8 @@ static void patches_setup(const char* rom) {
 	}
 	patchReload = patchReloadNext;
 	patchReloadNext = false;
+	if (!patchHandoffNext) patchHandoff[0] = 0;
+	patchHandoffNext = false;
 	char on[PATCH_ON_MAX * 260] = "";
 	for (int i = 0, l = 0; i < patchChoice.nOn; ++i) l += snprintf(on + l, sizeof(on) - (size_t) l, "%s%s", i ? ", " : ", on: ", patchChoice.on[i]);
 	fprintf(stderr, "patches: %s, %d to apply%s\n", patchDir, n, on);
@@ -6940,6 +6994,12 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	if (cfg->loadState[0]) {
 		if (!state_load(cfg->loadState)) fprintf(stderr, "could not load %s\n", cfg->loadState);
 		cfg->loadState[0] = 0;
+	} else if (patchHandoff[0] && file_exists(patchHandoff)) {
+		/* GEN-9: patches switched without upsetting the saves: on from that very moment */
+		bool ok = state_load(patchHandoff);
+		remove(patchHandoff);
+		patchHandoff[0] = 0;
+		ui_osd(ok ? "Patches changed: carrying on from where you were" : "Patches changed");
 	} else if (cfg->autoLoad && !patchReload && file_exists(gp.autoState)) { /* (not right after switching a patch) */
 		if (state_load(gp.autoState)) {
 			ui_osd("Resumed. Tap or HOME for the menu");

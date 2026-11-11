@@ -250,6 +250,240 @@
     }
    ],
    "patch_on": "Metroid Fusion Color Improvement.ips"
+  },
+  {
+   "id": "mf-us-patch-carry-on",
+   "rom": "AMTE",
+   "state": "metroid-fusion/us-play.ss",
+   "desc": "the game paused, Extras > Patches, the colour improvement switched on with the separate battery save and states switches off: \"Sure?\" says it carries on from here; A: the game reopens with it and goes on from that very moment (the menu was up: the game as it was, in the patch's colours where it draws them again)",
+   "rules": [
+    "GEN-9"
+   ],
+   "input": [
+    [
+     120,
+     "TAP:0.5,0.3"
+    ],
+    [
+     130,
+     "R"
+    ],
+    [
+     134,
+     "-"
+    ],
+    [
+     140,
+     "R"
+    ],
+    [
+     144,
+     "-"
+    ],
+    [
+     150,
+     "DOWN"
+    ],
+    [
+     152,
+     "-"
+    ],
+    [
+     156,
+     "DOWN"
+    ],
+    [
+     158,
+     "-"
+    ],
+    [
+     162,
+     "A"
+    ],
+    [
+     166,
+     "-"
+    ],
+    [
+     180,
+     "DOWN"
+    ],
+    [
+     182,
+     "-"
+    ],
+    [
+     186,
+     "DOWN"
+    ],
+    [
+     188,
+     "-"
+    ],
+    [
+     200,
+     "A"
+    ],
+    [
+     202,
+     "-"
+    ],
+    [
+     220,
+     "A"
+    ],
+    [
+     222,
+     "-"
+    ]
+   ],
+   "patch_folder": [
+    "Metroid Fusion Color Improvement.ips"
+   ],
+   "patch_separate": false,
+   "shots": {
+    "armed": 210,
+    "after": 300
+   },
+   "checks": [
+    {
+     "rule": "GEN-9",
+     "what": "carried on, not restarted",
+     "type": "log",
+     "match": "patches: carrying on with the change"
+    },
+    {
+     "rule": "GEN-9",
+     "what": "reopened with the patch",
+     "type": "log",
+     "match": "patched as it started with Metroid Fusion Color Improvement\\.ips"
+    }
+   ],
+   "golden_mask": [
+    [
+     0,
+     0,
+     260,
+     70
+    ]
+   ]
+  },
+  {
+   "id": "mf-us-patch-restart",
+   "rom": "AMTE",
+   "state": "metroid-fusion/us-play.ss",
+   "desc": "the same with the separate battery save and states switches on (the default): the game restarts with the patch, as before (its own saves)",
+   "rules": [
+    "GEN-9"
+   ],
+   "input": [
+    [
+     120,
+     "TAP:0.5,0.3"
+    ],
+    [
+     130,
+     "R"
+    ],
+    [
+     134,
+     "-"
+    ],
+    [
+     140,
+     "R"
+    ],
+    [
+     144,
+     "-"
+    ],
+    [
+     150,
+     "DOWN"
+    ],
+    [
+     152,
+     "-"
+    ],
+    [
+     156,
+     "DOWN"
+    ],
+    [
+     158,
+     "-"
+    ],
+    [
+     162,
+     "A"
+    ],
+    [
+     166,
+     "-"
+    ],
+    [
+     180,
+     "DOWN"
+    ],
+    [
+     182,
+     "-"
+    ],
+    [
+     186,
+     "DOWN"
+    ],
+    [
+     188,
+     "-"
+    ],
+    [
+     200,
+     "A"
+    ],
+    [
+     202,
+     "-"
+    ],
+    [
+     220,
+     "A"
+    ],
+    [
+     222,
+     "-"
+    ]
+   ],
+   "patch_folder": [
+    "Metroid Fusion Color Improvement.ips"
+   ],
+   "patch_separate": true,
+   "shots": {
+    "armed": 210,
+    "after": 300
+   },
+   "checks": [
+    {
+     "rule": "GEN-9",
+     "what": "restarted",
+     "type": "log",
+     "match": "patches: restarting with the change"
+    },
+    {
+     "rule": "GEN-9",
+     "what": "its own battery save",
+     "type": "log",
+     "match": "save .*AMTE \\+ Metroid Fusion Color Improvement\\.sav"
+    }
+   ],
+   "golden_mask": [
+    [
+     0,
+     0,
+     260,
+     70
+    ]
+   ]
   }
  ]
 }

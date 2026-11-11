@@ -188,7 +188,7 @@ def run_app(case, args, workdir):
     # fixtures' patches/ files put there, "patch_on" the one switched on (or
     # a list: the ones on, in the order they're applied)
     patchdir = os.path.join(workdir, "patches")
-    if case.get("patch_folder") or case.get("patch_on"):
+    if case.get("patch_folder") or case.get("patch_on") or "patch_separate" in case:
         name = release_name(case["rom"][:4])
         if not name:
             r.error = "no release name for %s (src/dumps_data.h)" % case["rom"][:4]
@@ -202,9 +202,11 @@ def run_app(case, args, workdir):
                 return r
             if not os.path.exists(os.path.join(folder, f)):
                 os.symlink(pf, os.path.join(folder, f))
-        if case.get("patch_on"):
+        if case.get("patch_on") or "patch_separate" in case:
+            # ("patch_separate": false: the separate battery save and states switches off)
+            sep = 1 if case.get("patch_separate", True) else 0
             with open(os.path.join(statedir, case["rom"] + ".patches"), "w") as f:
-                f.write("".join("on %s\n" % p for p in patches_on(case)) + "separate_save 1\nseparate_states 1\n")
+                f.write("".join("on %s\n" % p for p in patches_on(case)) + "separate_save %d\nseparate_states %d\n" % (sep, sep))
     if case.get("save"):
         sav = os.path.join(args.fixtures, "saves", case["save"])
         if not os.path.exists(sav):
