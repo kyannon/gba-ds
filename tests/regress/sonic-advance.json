@@ -94,6 +94,107 @@
    ]
   },
   {
+   "id": "sa-us-one-screen",
+   "rom": "ASOE",
+   "state": "sonic-advance/us-card-lead-in.ss",
+   "desc": "the same into Neo Green Hill act 1 with one screen: the game as it is, the card and HUD where the game draws them",
+   "rules": [
+    "SA-4"
+   ],
+   "input": [
+    [
+     0,
+     "-"
+    ],
+    [
+     350,
+     "RIGHT"
+    ],
+    [
+     361,
+     "-"
+    ],
+    [
+     427,
+     "LEFT"
+    ],
+    [
+     429,
+     "-"
+    ],
+    [
+     500,
+     "A"
+    ],
+    [
+     507,
+     "-"
+    ],
+    [
+     625,
+     "-"
+    ]
+   ],
+   "config": {
+    "layout": "single"
+   },
+   "shots": {
+    "card": 665,
+    "play": 925
+   },
+   "checks": [
+    {
+     "rule": "SA-4",
+     "what": "nothing moved",
+     "type": "no_log",
+     "match": "HUD on the second screen|title card taken"
+    },
+    {
+     "rule": "SA-4",
+     "what": "the rings and time at the game's top left",
+     "type": "pixels",
+     "shot": "play",
+     "screen": "game",
+     "probes": [
+      [
+       70,
+       486,
+       "FF9C42"
+      ],
+      [
+       98,
+       494,
+       "FFFF9C"
+      ],
+      [
+       90,
+       474,
+       "522131"
+      ]
+     ]
+    },
+    {
+     "rule": "SA-4",
+     "what": "the lives at the game's bottom left",
+     "type": "pixels",
+     "shot": "play",
+     "screen": "second",
+     "probes": [
+      [
+       58,
+       258,
+       "000063"
+      ],
+      [
+       42,
+       278,
+       "000063"
+      ]
+     ]
+    }
+   ]
+  },
+  {
    "id": "sa-us-act-end",
    "rom": "ASOE",
    "state": "sonic-advance/us-act-end-lead-in.ss",
