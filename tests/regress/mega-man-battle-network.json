@@ -282,6 +282,321 @@
    ]
   },
   {
+   "id": "mmbn-jp-new-game",
+   "rom": "AREJ",
+   "state": "mega-man-battle-network/jp-new-game.ss",
+   "desc": "Japan, a new game, Lan in his room before he has his PET (START opens nothing): the logo",
+   "rules": [
+    "MMBN-1",
+    "MMBN-3"
+   ],
+   "shots": {
+    "room": 200
+   },
+   "checks": [
+    {
+     "rule": "MMBN-1",
+     "what": "no status taken",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "mmbn-jp-room",
+   "rom": "AREJ",
+   "state": "mega-man-battle-network/jp-room.ss",
+   "desc": "Japan, Lan in his room (a new game, the START menu let open by clearing system flag 7 at 0x02000080): MegaMan's status in the real world",
+   "rules": [
+    "MMBN-2"
+   ],
+   "shots": {
+    "status": 90
+   },
+   "checks": [
+    {
+     "rule": "MMBN-2",
+     "what": "MegaMan's status taken",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "MMBN-2",
+     "what": "black above the frame (centred top to bottom)",
+     "type": "uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      991,
+      124
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "MMBN-2",
+     "what": "the money counter's row left of it in the panel's top row's colour",
+     "type": "uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      40,
+      148,
+      720,
+      236
+     ],
+     "color": "4A5A63"
+    },
+    {
+     "rule": "MMBN-2",
+     "what": "the amount at the top right",
+     "type": "not_uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      740,
+      148,
+      991,
+      236
+     ],
+     "color": "4A5A63"
+    }
+   ]
+  },
+  {
+   "id": "mmbn-jp-lan-pc",
+   "rom": "AREJ",
+   "state": "mega-man-battle-network/jp-lan-pc.ss",
+   "desc": "Japan, Lan's PC (a new game warped there through gMapChange, the START menu let open): the homepage's panel on black",
+   "rules": [
+    "MMBN-6"
+   ],
+   "shots": {
+    "map": 90
+   },
+   "checks": [
+    {
+     "rule": "MMBN-6",
+     "what": "the area's map made",
+     "type": "log",
+     "match": "area 0088 mapped"
+    },
+    {
+     "rule": "MMBN-6",
+     "what": "the map drawn around him",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      312,
+      284,
+      712,
+      484
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "MMBN-6",
+     "what": "no backdrop: black at the second screen's corners",
+     "type": "uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      0,
+      0,
+      160,
+      120
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "mmbn-jp-into-battle",
+   "rom": "AREJ",
+   "state": "mega-man-battle-network/jp-before-battle.ss",
+   "desc": "Japan, walking up and down on the net (area 0388, warped there from a new game) into a random battle: the area's map while walking, MegaMan's status and money through the battle",
+   "rules": [
+    "MMBN-2",
+    "MMBN-4",
+    "MMBN-6"
+   ],
+   "input": [
+    [
+     0,
+     "UP"
+    ],
+    [
+     30,
+     "DOWN"
+    ],
+    [
+     60,
+     "UP"
+    ],
+    [
+     90,
+     "DOWN"
+    ],
+    [
+     120,
+     "UP"
+    ],
+    [
+     150,
+     "DOWN"
+    ],
+    [
+     180,
+     "UP"
+    ],
+    [
+     210,
+     "DOWN"
+    ],
+    [
+     240,
+     "UP"
+    ],
+    [
+     270,
+     "DOWN"
+    ],
+    [
+     300,
+     "UP"
+    ],
+    [
+     330,
+     "DOWN"
+    ],
+    [
+     360,
+     "UP"
+    ],
+    [
+     390,
+     "DOWN"
+    ],
+    [
+     420,
+     "UP"
+    ],
+    [
+     450,
+     "DOWN"
+    ],
+    [
+     480,
+     "UP"
+    ],
+    [
+     510,
+     "DOWN"
+    ],
+    [
+     540,
+     "UP"
+    ],
+    [
+     570,
+     "DOWN"
+    ],
+    [
+     600,
+     "UP"
+    ],
+    [
+     630,
+     "DOWN"
+    ],
+    [
+     660,
+     "UP"
+    ],
+    [
+     690,
+     "DOWN"
+    ],
+    [
+     720,
+     "-"
+    ]
+   ],
+   "shots": {
+    "walking": 60,
+    "battle": 900
+   },
+   "checks": [
+    {
+     "rule": "MMBN-6",
+     "what": "the map while walking",
+     "type": "log",
+     "match": "area 0388 mapped"
+    },
+    {
+     "rule": "MMBN-2",
+     "what": "MegaMan's status taken on the net",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "MMBN-4",
+     "what": "in the battle: black above the status frame",
+     "type": "uniform",
+     "shot": "battle",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      991,
+      124
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "MMBN-4",
+     "what": "in the battle: the money counter's row in the panel's top row's colour",
+     "type": "uniform",
+     "shot": "battle",
+     "screen": "second",
+     "rect": [
+      40,
+      148,
+      720,
+      236
+     ],
+     "color": "4A5A63"
+    },
+    {
+     "rule": "MMBN-4",
+     "what": "the map gone in the battle",
+     "type": "differs",
+     "a": {
+      "shot": "walking",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ],
+      "screen": "second"
+     },
+     "b": {
+      "shot": "battle",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ],
+      "screen": "second"
+     }
+    }
+   ]
+  },
+  {
    "id": "mmbn-us-into-battle",
    "rom": "AREE",
    "state": "mega-man-battle-network/us-before-battle.ss",
