@@ -96,6 +96,13 @@ RC_SRC). Differences from ROCKNIX:
   restart, unlock, badge downloads, sign-out; and the ROCKNIX build
   unchanged. Not yet on the device.
 
+## Trying Android code on the desktop
+
+`tools/androidtest/` (README there): `build.sh` builds the desktop app with
+`__ANDROID__` and stand-ins for android.c, so Settings, the GPU second
+display, updates and touch can be run headless and looked at before a CI
+APK.
+
 ## Build pipeline
 
 The Claude workspace can't download Google's Android SDK/NDK (blocked), so
