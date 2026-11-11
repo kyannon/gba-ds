@@ -57,8 +57,8 @@ Other addresses: the pause flag, bit 0x20 of 0x0203EE58 (0x31 paused, 0x11 racin
 ## Not covered yet
 
 - Link play needs a link cable: not tried.
-- Only the first course of most modes was tried (Hornet in Quick Race, Time Attack and Kart; Slip Rough in Drift-Combo; Flash Speed at night in the rain; Licence Basic 1); the other courses use the same HUD. The Wireframe and Radio Con extra modes weren't tried.
-- A licence test failed (the time running out) wasn't seen.
+- Courses tried: Hornet (Quick Race, Time Attack, Kart), Slip Rough (Drift-Combo), Licence Basic 1, and Championship Expert's race list: Flash Speed (at night in the rain), Slippery, Sky-Scraper, Terrible Mt., Knock Down, Assault, Blast Laps, Blow Back, each with its map whole on the second screen (gt3-us-champ-*). The other classes' courses and the Wireframe and Radio Con extra modes weren't tried.
+- A time-limit run failed (driven off the track: FAILED on the game screen, the HUD kept on the second) is checked (gt3-us-time-limit-failed); a licence test failed by its time running out wasn't seen.
 
 ## Exceptions
 
