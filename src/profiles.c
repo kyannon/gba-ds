@@ -5195,6 +5195,11 @@ static const char* er_compose(Emu* s, const void* state, uint32_t* out, int w, i
  *             4 Sleep)
  *   M3_SCREEN 1 while one of the menu's screens is open
  *   M3_WHO    the party member the Status shows (0 the first)
+ *   M3_SCENE  bit 0x10 while a scene plays (also between two rooms, M3_MODE
+ *             6 / 7, while walking about; not in a conversation the player
+ *             starts)
+ *   M3_SCREEN_PTR (word) 0x0202CD88 while the battle screen is up, else
+ *             0x0202CD48 (0 on the title)
  * Sprites: the area map's scroll arrows (tiles 916-919, at its top and
  * bottom edges), the Status's L / R badges with their orange arrows (tiles
  * 592-595, either end of the portraits). */
@@ -5203,8 +5208,10 @@ static const char* er_compose(Emu* s, const void* state, uint32_t* out, int w, i
 #define M3_ICON 0x020281EB
 #define M3_SCREEN 0x02000024
 #define M3_WHO 0x02018E92
+#define M3_SCENE 0x0200DEB7
+#define M3_SCREEN_PTR 0x02000008
 #define M3_PAGES 8
-#define M3_V_TITLE 0xF0000060
+#define M3_V_LOGO 0xF0000060 /* the title, a scene or a battle */
 #define M3_HELP_Y 128 /* the Status's help window: rows 130-159, the gap above it from 128 */
 static const SpriteRule m3MapArrows = { 0, -16, 240, 160, 916, 919, -1 };
 static const SpriteRule m3StatusLR = { -16, -16, 240, 24, 592, 595, -1 };
@@ -5215,8 +5222,18 @@ static bool m3_title(Emu* e) {
 	return emu_read16(e, M3_MAP) == 0 && emu_read8(e, M3_MODE) != 0x0A;
 }
 
+/* a battle (M3-11) or a scene (M3-10): the logo */
+static bool m3_battle(Emu* e) {
+	return emu_read32(e, M3_SCREEN_PTR) == 0x0202CD88;
+}
+
+static bool m3_scene(Emu* e) {
+	int mode = emu_read8(e, M3_MODE);
+	return (emu_read8(e, M3_SCENE) & 0x10) && mode != 6 && mode != 7;
+}
+
 static uint32_t m3_virt(Emu* e, uint32_t addr) {
-	if (addr == M3_V_TITLE) return m3_title(e);
+	if (addr == M3_V_LOGO) return m3_title(e) || m3_battle(e) || m3_scene(e);
 	return 0;
 }
 
@@ -5293,6 +5310,8 @@ static const char* m3_compose(Emu* s, const void* state, uint32_t* const* out, i
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
 	if (m3_title(s)) return "the title"; /* (M3-6) */
+	if (m3_battle(s)) return "a battle"; /* (M3-11) */
+	if (m3_scene(s)) return "a scene"; /* (M3-10) */
 	/* back to walking about from the menu or the map (M3-4) */
 	for (int i = 0; i < 5 && m3_menu(emu_read8(s, M3_MODE)); ++i) {
 		aw_run(s, K_B, 6);
@@ -7638,9 +7657,10 @@ static const MapProfile profiles[] = {
 		.virt = m3_virt,
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
-		/* the title and file screens: the logo, no captures (M3-6) */
-		.live = { { M3_V_TITLE, 0xFF, 0, 4 } },
-		.menu = { { M3_V_TITLE, 0xFF, 1, 4 } },
+		/* the title and file screens, scenes and battles: the logo
+		 * (the pictures dropped), no captures (M3-6, M3-10, M3-11) */
+		.live = { { M3_V_LOGO, 0xFF, 0, 4 } },
+		.menu = { { M3_V_LOGO, 0xFF, 1, 4 } },
 		/* another area: its map or the Status at once (M3-2) */
 		.room = { { M3_MAP, 0xFFFF, 0, 2 } },
 		/* the title's lettering (BG3, over black), past the health

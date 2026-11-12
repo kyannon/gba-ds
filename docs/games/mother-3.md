@@ -29,7 +29,7 @@ Asked what the game would have put on a second GBA screen: the two things a play
 
 **M3-4. A menu or the map open in the game.** With START's menu, one of its screens or the area map open in the game, the second screen shows what it would walking about there (M3-2, M3-3): the hidden copy closes them first (B).
 
-**M3-5. Last picture stays.** In a conversation, a scene, between rooms, and anywhere else START and R open nothing, the last picture stays; before the first, the logo.
+**M3-5. Last picture stays.** In a conversation the player starts while walking about (talking to someone, checking something, a save frog), between rooms, and anywhere else START and R open nothing that isn't a scene or a battle (M3-10, M3-11), the last picture stays; before the first, the logo.
 
 **M3-6. Title and file screens.** On the title, the file screens and before them (the area number 0), the second screen shows the logo and no captures are tried there.
 
@@ -39,9 +39,14 @@ Asked what the game would have put on a second GBA screen: the two things a play
 
 **M3-9. The HQ audio mix.** MusicTheorist's HQ audio mix (only the music changes) keeps M3-1 to M3-8: on the Japanese ROM (its two versions, "Default" and "Alt.") and on the English translation. Its patches are UPS files made for one exact ROM each (GEN-9: a UPS has to be first and can't follow another patch): the Japanese ones for the Japanese ROM, the English one for one build of the English v1.3 ROM (`0e013b7b`, not the result of the published v1.3 UPS, `8a3bc5a8`, nor v1.3a). So on a Japanese ROM GBA DS can play the translation or the Japanese HQ mix from the Patches menu, but not the translation and the HQ mix together: for that, the ROM already patched with both (the patch makers' own) is needed, or the v1.3 ROM it was made for with the English HQ patch.
 
+**M3-10. Scenes.** While the game plays a scene (the story taking over: cutscenes, with or without the party on screen, the falling MOTHER 3 title, a chapter's title card, a letter read out), the second screen shows the logo, and no pictures are taken; the map or the Status comes back once the party walks about again (at the next capture, within a second or two). Told by the game's own flag for a scene (bit 0x10 of 0x0200DEB7, set from a scene's start to its end and not in a conversation the player starts); between two rooms the same flag is set while walking about too, so there (M3_MODE 6 or 7) it doesn't count, and a scene's own room changes keep the logo as it is.
+
+**M3-11. Battles.** In a battle, from the encounter's message to the end of the results, the second screen shows the logo (the Status's HP and PP would be stale while the meters roll) and no pictures are taken; walking about again, the map or the Status comes back. Told by the game's battle screen being up (0x02000008 holds 0x0202CD88 there, 0x0202CD48 walking about and in scenes).
+
 ## Not covered yet
 
-- **Battles.** No battle state yet (the owner's saves are all before the last battle, and the areas reached with them have no enemies left). In a battle the hidden copy's START and R open nothing, so the last picture stays (M3-5). The plan, once a battle state shows how to tell a battle: the logo there (the Status's HP and PP would be stale while the meters roll), and the pictures taken again after it.
+- **Battles in the Japanese game.** The battle state (the owner's, Nov 12, 2026) is from the English v1.3a translation; the translation keeps the game's memory layout (every other address here is the same in both), but no Japanese battle has been tried.
+- **After a battle, walking about.** The owner's battle (the Prologue's Mole Cricket) runs straight into a scene; a battle that ends with the party walking about is checked on the device.
 - Areas reached only later in the story or earlier in it (the save files are all in Chapter 8); the cases reach Tazmily, Mt. Oriander and New Pork City's highway through the game's own debug menu (see "How the states were made").
 
 ## How the states were made
@@ -50,7 +55,7 @@ The owner's saves (GameShark and a `.sav`, `saves/A3UJ-*.sav` in the fixtures) a
 
 ## For the merge
 
-- Changelog (under the open version, What's new): "MOTHER 3 (Japan, and its English fan translation v1.3 / v1.3a, with or without the HQ audio mix): walking about, the second screen shows the area's map where R opens one, and the party's Status screen, a page each, elsewhere. In battles the last picture stays for now."
+- Changelog (under the open version, What's new): "MOTHER 3 (Japan, and its English fan translation v1.3 / v1.3a, with or without the HQ audio mix): walking about, the second screen shows the area's map where R opens one, and the party's Status screen, a page each, elsewhere. In battles and scenes it shows the logo; in conversations the last picture stays."
 - `wiki/Supported-games.md`, table: MOTHER 3 | Japan | Romhacks tested: English translation v1.3, v1.3a; HQ audio mix.
 - `wiki/Supported-games.md`, section:
 
@@ -60,5 +65,5 @@ The owner's saves (GameShark and a `.sav`, `saves/A3UJ-*.sav` in the fixtures) a
 
   - Walking about where the R button opens a map of the area, the second screen shows that map, with the party's marker, without its scroll arrows.
   - Elsewhere it shows the Status screen, turning through the party every 5 seconds, without its L / R badges and its help line.
-  - In a conversation or a scene, the last picture stays; on the title, the logo.
-  - Known issues: in battles the last picture stays (the logo is planned). The translation and the HQ audio mix can't both be switched on as patches (each is a UPS made for one exact ROM): use a ROM patched with both.
+  - In battles, scenes and on the title, the logo; in a conversation, the last picture stays.
+  - Known issues: the translation and the HQ audio mix can't both be switched on as patches (each is a UPS made for one exact ROM): use a ROM patched with both.

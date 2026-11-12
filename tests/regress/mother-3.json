@@ -665,6 +665,449 @@
      "match": "ROM: CRC32 e73b0f7d, a mod GBA DS is tested on[^\\n]*; patched as it started with"
     }
    ]
+  },
+  {
+   "id": "m3-en13a-battle",
+   "rom": "A3UJ+en13a",
+   "state": "mother-3/en13a-battle.ss",
+   "desc": "a battle (the Prologue's Mole Cricket, the command menu up): the logo",
+   "rules": [
+    "M3-11"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 400
+   },
+   "checks": [
+    {
+     "rule": "M3-11",
+     "what": "no pictures taken",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "rule": "M3-11",
+     "what": "the logo stays",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "later",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.0
+    }
+   ]
+  },
+  {
+   "id": "m3-en13a-battle-results",
+   "rom": "A3UJ+en13a",
+   "state": "mother-3/en13a-battle-results.ss",
+   "desc": "a battle's results (\"Lucas and company earned...\"): still the logo",
+   "rules": [
+    "M3-11"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "M3-11",
+     "what": "no pictures taken",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "m3-en13a-battle-starts",
+   "rom": "A3UJ+en13a",
+   "state": "mother-3/en13a-flint-house.ss",
+   "desc": "walking about in Flint's house (the Status), then a battle loaded: the logo",
+   "rules": [
+    "M3-11"
+   ],
+   "input": [
+    [
+     400,
+     "LOAD:mother-3/en13a-battle.ss"
+    ]
+   ],
+   "shots": {
+    "before": 380,
+    "after": 460
+   },
+   "checks": [
+    {
+     "rule": "M3-11",
+     "what": "the pictures dropped",
+     "type": "log",
+     "match": "second screen back to the logo"
+    },
+    {
+     "rule": "M3-11",
+     "what": "the Status gone",
+     "type": "differs",
+     "a": {
+      "shot": "before",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.02
+    }
+   ]
+  },
+  {
+   "id": "m3-en13a-scene",
+   "rom": "A3UJ+en13a",
+   "state": "mother-3/en13a-scene.ss",
+   "desc": "a scene with no one on screen (Chapter 1's night over Mt. Oriander): the logo",
+   "rules": [
+    "M3-10"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 400
+   },
+   "checks": [
+    {
+     "rule": "M3-10",
+     "what": "no pictures taken",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "rule": "M3-10",
+     "what": "the logo stays",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "later",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.0
+    }
+   ]
+  },
+  {
+   "id": "m3-en13a-title-drop",
+   "rom": "A3UJ+en13a",
+   "state": "mother-3/en13a-title-drop.ss",
+   "desc": "the MOTHER 3 title falling in at the Prologue's end: the logo",
+   "rules": [
+    "M3-10"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "M3-10",
+     "what": "no pictures taken",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "m3-en13a-chapter-card",
+   "rom": "A3UJ+en13a",
+   "state": "mother-3/en13a-chapter-card.ss",
+   "desc": "Chapter 1's title card: the logo",
+   "rules": [
+    "M3-10"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "M3-10",
+     "what": "no pictures taken",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "m3-en13a-knock-scene",
+   "rom": "A3UJ+en13a",
+   "state": "mother-3/en13a-flint-house.ss",
+   "desc": "Flint's house (the Status), then the scene outside (someone knocking) loaded: the logo",
+   "rules": [
+    "M3-10"
+   ],
+   "input": [
+    [
+     400,
+     "LOAD:mother-3/en13a-knock-scene.ss"
+    ]
+   ],
+   "shots": {
+    "before": 380,
+    "after": 460
+   },
+   "checks": [
+    {
+     "rule": "M3-10",
+     "what": "the pictures dropped",
+     "type": "log",
+     "match": "second screen back to the logo"
+    },
+    {
+     "rule": "M3-10",
+     "what": "the Status gone",
+     "type": "differs",
+     "a": {
+      "shot": "before",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.02
+    }
+   ]
+  },
+  {
+   "id": "m3-en13a-scene-end",
+   "rom": "A3UJ+en13a",
+   "state": "mother-3/en13a-scene-end.ss",
+   "desc": "the last line of the opening scene, then A: walking about in Flint's house, the Status comes back",
+   "rules": [
+    "M3-10",
+    "M3-3"
+   ],
+   "input": [
+    [
+     100,
+     "A"
+    ],
+    [
+     106,
+     "-"
+    ],
+    [
+     160,
+     "A"
+    ],
+    [
+     166,
+     "-"
+    ],
+    [
+     220,
+     "A"
+    ],
+    [
+     226,
+     "-"
+    ],
+    [
+     280,
+     "A"
+    ],
+    [
+     286,
+     "-"
+    ]
+   ],
+   "shots": {
+    "scene": 60,
+    "walking": 600
+   },
+   "checks": [
+    {
+     "rule": "M3-10",
+     "what": "no picture during the scene",
+     "type": "no_log",
+     "match": "frame [0-9]?[0-9]: map updated"
+    },
+    {
+     "rule": "M3-10",
+     "what": "the Status after the scene",
+     "type": "differs",
+     "a": {
+      "shot": "scene",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "walking",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.02
+    },
+    {
+     "rule": "M3-10",
+     "what": "a picture once walking about",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    }
+   ]
+  },
+  {
+   "id": "m3-en13a-check",
+   "rom": "A3UJ+en13a",
+   "state": "mother-3/en13a-flint-house.ss",
+   "desc": "Flint's house (the Status), then checking the table (\"No problem here.\"): the Status stays",
+   "rules": [
+    "M3-5"
+   ],
+   "input": [
+    [
+     400,
+     "LOAD:mother-3/en13a-flint-check.ss"
+    ]
+   ],
+   "shots": {
+    "before": 380,
+    "after": 460
+   },
+   "checks": [
+    {
+     "rule": "M3-5",
+     "what": "not sent back to the logo",
+     "type": "no_log",
+     "match": "second screen back to the logo"
+    },
+    {
+     "rule": "M3-5",
+     "what": "the same picture",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.0
+    }
+   ]
+  },
+  {
+   "id": "m3-jp-oriander-walk",
+   "rom": "A3UJ",
+   "state": "mother-3/jp-oriander.ss",
+   "desc": "walking about Mt. Oriander across its rooms: the map throughout, never the logo between rooms",
+   "rules": [
+    "M3-10",
+    "M3-2"
+   ],
+   "input": [
+    [
+     100,
+     "UP"
+    ],
+    [
+     160,
+     "LEFT"
+    ],
+    [
+     220,
+     "DOWN"
+    ],
+    [
+     300,
+     "RIGHT"
+    ],
+    [
+     360,
+     "UP"
+    ],
+    [
+     420,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 60,
+    "end": 500
+   },
+   "checks": [
+    {
+     "rule": "M3-10",
+     "what": "not sent back to the logo between rooms",
+     "type": "no_log",
+     "match": "second screen back to the logo"
+    },
+    {
+     "rule": "M3-2",
+     "what": "the map was taken",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    }
+   ]
   }
  ]
 }
