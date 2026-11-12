@@ -4,7 +4,7 @@
 
 1. Download the latest `gba-ds-v…-linux-aarch64.zip` from the [Releases page](https://github.com/kyannon/gba-ds/releases).
 2. Unzip it into the card's `roms/ports` folder (on the device: `/data/roms/ports`). You get a `gba-ds/` folder, a `GBA DS.sh` entry and `images/`. Banana's file sharing (Settings → Network) lets you copy it over Wi-Fi.
-3. Keep your Game Boy Advance games in `roms/gba` (`/data/roms/gba`), where Banana's own GBA list finds them too.
+3. Keep your Game Boy Advance games in `roms/gba` (`/data/roms/gba`), where Banana's own GBA list finds them too. On the RG DS Plus, games in the second SD card's `roms/gba` folder are listed as well, as long as Banana's Settings shows that card's games (Second SD card: Show its games, the default).
 4. In Banana's menu, open **Ports** and start **GBA DS**.
 
 ## How it fits in
@@ -15,7 +15,7 @@
 
 | | |
 |---|---|
-| Games | `/data/roms/gba` |
+| Games | `/data/roms/gba`, and the second SD card's `roms/gba` (`/run/sd2/roms/gba`) while it's in. A card put in while GBA DS is open is read the next time it starts. |
 | Battery saves (`.srm`) | `/data/saves/gba`: the same file BananaOS's own Game Boy Advance list uses, so a game goes on from where you left it in either. GBA DS's saves from before v1.4.10 (`/data/saves/<game>.sav`) are carried over the first time you start each game; if both have a save, the newer one is used and the other is kept as `.srm.bak`. |
 | Screenshots | `/data/screenshots` |
 | Cheats | `roms/ports/gba-ds/cheats` (RetroArch `.cht` files; subfolders are fine), and RetroArch's `/data/retroarch/cheats` |

@@ -666,9 +666,9 @@
    "id": "sm4-us-house-scraped",
    "rom": "AX4E",
    "state": "super-mario-advance-4/us-toad-house.ss",
-   "desc": "GEN-10: a scraped PNG marquee (named with type info the ROM's name hasn't) under the Toad House's status bar, as tall as the extracted logo, pixelated",
+   "desc": "GEN-11: a scraped PNG marquee (named with type info the ROM's name hasn't) under the Toad House's status bar, as tall as the extracted logo, pixelated",
    "rules": [
-    "GEN-10",
+    "GEN-11",
     "SM4-4"
    ],
    "shots": {
@@ -699,9 +699,9 @@
    "id": "sm4-us-house-scraped-full",
    "rom": "AX4E",
    "state": "super-mario-advance-4/us-toad-house.ss",
-   "desc": "GEN-10: the same marquee at Full Detail (custom_logos full) under the status bar: the same size, smooth",
+   "desc": "GEN-11: the same marquee at Full Detail (custom_logos full) under the status bar: the same size, smooth",
    "rules": [
-    "GEN-10",
+    "GEN-11",
     "SM4-4"
    ],
    "shots": {
@@ -735,9 +735,9 @@
    "id": "sm4-us-house-scraped-off",
    "rom": "AX4E",
    "state": "super-mario-advance-4/us-toad-house.ss",
-   "desc": "GEN-10: the same marquee with Custom Logos: Do Not Use (custom_logos off): the game's own logo under the status bar, as without one",
+   "desc": "GEN-11: the same marquee with Custom Logos: Do Not Use (custom_logos off): the game's own logo under the status bar, as without one",
    "rules": [
-    "GEN-10",
+    "GEN-11",
     "SM4-4"
    ],
    "shots": {
@@ -771,9 +771,9 @@
    "id": "sm4-us-menu-scraped-jpg",
    "rom": "AX4E",
    "state": "super-mario-advance-4/us-game-select.ss",
-   "desc": "GEN-10: the game select screen with a scraped JPEG named after the bare title (its black border cut, its background kept) and box art beside it (not picked)",
+   "desc": "GEN-11: the game select screen with a scraped JPEG named after the bare title (its black border cut, its background kept) and box art beside it (not picked)",
    "rules": [
-    "GEN-10",
+    "GEN-11",
     "SM4-5"
    ],
    "logo_folder": {
@@ -788,9 +788,9 @@
    "id": "sm4-us-menu-own",
    "rom": "AX4E",
    "state": "super-mario-advance-4/us-game-select.ss",
-   "desc": "GEN-10: the game select screen with the player's own logos/AX4E.png (a solid plate, kept whole), as tall as the extracted logo",
+   "desc": "GEN-11: the game select screen with the player's own logos/AX4E.png (a solid plate, kept whole), as tall as the extracted logo",
    "rules": [
-    "GEN-10",
+    "GEN-11",
     "SM4-5"
    ],
    "own_logo": "scraped/own-plate.png",

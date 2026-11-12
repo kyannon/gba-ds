@@ -920,7 +920,7 @@ static char bezelKey[2][96];
 static int logoW, logoH;
 static bool logoPixel;
 static int logoSub = 1; /* logoTex's pixels per GBA pixel (LOGO_SUB: a scraped logo at full resolution) */
-static bool logoProvisional; /* a scraped logo sized before the extracted one existed (GEN-10) */
+static bool logoProvisional; /* a scraped logo sized before the extracted one existed (GEN-11) */
 static MapResult mapRes;
 static int mapW = GBA_W, mapH = GBA_H;
 static int mapShownIdx = -1;
@@ -1069,11 +1069,11 @@ static bool debug;
 
 /* ---------------------------------------------------------------- menu */
 
-enum MenuItem { M_RESUME, M_CHEATS, M_PATCHES, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND, M_AUTOSAVE, M_AUTOLOAD, M_BUG, M_SLOT, M_SHAPES, M_FF, M_COLOR, M_GHOST, M_PIXLOGO };
+enum MenuItem { M_RESUME, M_CHEATS, M_PATCHES, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND, M_AUTOSAVE, M_AUTOLOAD, M_BUG, M_SLOT, M_SHAPES, M_FF, M_COLOR, M_GHOST, M_BUTTONS, M_PIXLOGO };
 static const char* menuLabels[] = {
 	/* title case: drawn in Futura from the built-in images (tools/make_brand.py) */
 	[M_RESUME] = "Resume", [M_SWAP] = "Swap Screens", [M_SAVE] = "Save State", [M_SCALE] = "", [M_LCD] = "", [M_FPS] = "", [M_FRAMEBUF] = "", [M_OVERLAY] = "", [M_LOGO] = "", [M_MATCH] = "", [M_REWIND] = "", [M_RESTART] = "Restart Game",
-	[M_LOAD] = "Load State", [M_CHEATS] = "Cheats", [M_PATCHES] = "Patches", [M_ACH] = "Achievements", [M_SHOT] = "Take Screenshot", [M_LIBRARY] = "Close Game", [M_EXIT] = "Close GBA DS",
+	[M_LOAD] = "Load State", [M_CHEATS] = "Cheats", [M_PATCHES] = "Patches", [M_BUTTONS] = "Buttons", [M_ACH] = "Achievements", [M_SHOT] = "Take Screenshot", [M_LIBRARY] = "Close Game", [M_EXIT] = "Close GBA DS",
 	[M_AUTOSAVE] = "", [M_AUTOLOAD] = "", [M_BUG] = "Submit a Bug Report", [M_SLOT] = "", [M_FF] = "", [M_COLOR] = "", [M_GHOST] = "", [M_PIXLOGO] = "",
 };
 static int menuItems[12], nMenuItems;
@@ -1143,7 +1143,7 @@ static SDL_Rect ach_area(int scr);
 /* Every label a pause-menu button can show, for sizing the text so the
  * widest fits (item_label gives the current one). */
 static const char* const allLabels[] = {
-	"Resume", "Restart Game", "Are You Sure?", "Save State", "Load State", "Cheats", "Achievements",
+	"Resume", "Restart Game", "Are You Sure?", "Save State", "Load State", "Cheats", "Buttons", "Achievements",
 	"Take Screenshot", "Close Game", "Close GBA DS", "Swap Screens", "Scale: Pixel Perfect", "Scale: Full Width",
 	"Scale: Zoom", "Scale: Stretch", "Shader: Off", "Shader: LCD Grid", "Shader: Scanlines", "Shader: Soft Cells",
 	"Shader: Subpixels (Light)", "Shader: Subpixels", "Shader: Subpixels (Strong)", "Overlays: Off", "Overlays: Generated",
@@ -3226,6 +3226,132 @@ static void ovl_close_all(void) {
 	pickDrag = 0;
 }
 
+/* ---------------------------------------------------------------- Extras > Buttons
+ *
+ * GEN-10: which GBA button each face button gives the game, per game. A
+ * screen of its own (as Overlays): a row per face button, by position
+ * (right, bottom, top, left), stepping through GBA A / B / L / R / Nothing,
+ * then Reset Buttons. Kept in <state_dir>/<game>.buttons ("right a" lines);
+ * with no file, ab_swap's layout. Only the game's keys change (run loop,
+ * the GBA layout's branch): GBA DS's own screens keep B_A / B_B. In games
+ * with a layout picker (profile `controls`), the SNES / four-button layout
+ * decides the face buttons wherever it's in use. */
+enum { FB_RIGHT, FB_BOTTOM, FB_TOP, FB_LEFT, FB_COUNT };
+enum { FG_A, FG_B, FG_L, FG_R, FG_NONE, FG_COUNT };
+static const char* const fbNames[FB_COUNT] = { "right", "bottom", "top", "left" };
+static const char* const fbLabels[FB_COUNT] = { "A (Right)", "B (Bottom)", "X (Top)", "Y (Left)" };
+static const char* const fgNames[FG_COUNT] = { "a", "b", "l", "r", "none" };
+static const char* const fgLabels[FG_COUNT] = { "GBA A", "GBA B", "GBA L", "GBA R", "Nothing" };
+static int fbMap[FB_COUNT]; /* each face button's FG_ */
+static bool fbSet;          /* the player's own (else ab_swap's) */
+static char fbPath[1400];
+static bool btnsOpen;
+static int btnsSel, btnsPress = -1;
+#define BTNS_ROWS (FB_COUNT + 1) /* + Reset Buttons */
+
+static void fb_default(void) {
+	fbMap[FB_RIGHT] = cfg->abSwap ? FG_B : FG_A;
+	fbMap[FB_BOTTOM] = cfg->abSwap ? FG_A : FG_B;
+	fbMap[FB_TOP] = fbMap[FB_LEFT] = FG_NONE;
+	fbSet = false;
+}
+
+/* "right GBA A, bottom GBA B, ..." for the log and bug reports */
+static const char* fb_describe(void) {
+	static char s[128];
+	s[0] = 0;
+	for (int i = 0; i < FB_COUNT; ++i)
+		snprintf(s + strlen(s), sizeof(s) - strlen(s), "%s%s %s", i ? ", " : "", fbNames[i], fgLabels[fbMap[i]]);
+	return s;
+}
+
+static void fb_load(void) {
+	fb_default();
+	snprintf(fbPath, sizeof(fbPath), "%s/%s.buttons", cfg->stateDir, gp.base);
+	FILE* f = fopen(fbPath, "r");
+	if (!f) return;
+	char k[16], v[16];
+	while (fscanf(f, "%15s %15s", k, v) == 2) {
+		for (int i = 0; i < FB_COUNT; ++i) {
+			if (strcmp(k, fbNames[i])) continue;
+			for (int j = 0; j < FG_COUNT; ++j)
+				if (!strcmp(v, fgNames[j])) fbMap[i] = j, fbSet = true;
+		}
+	}
+	fclose(f);
+	if (fbSet) fprintf(stderr, "buttons: %s\n", fb_describe());
+}
+
+static void fb_save(void) {
+	if (!fbSet) {
+		remove(fbPath);
+	} else {
+		FILE* f = fopen(fbPath, "w");
+		if (!f) return;
+		for (int i = 0; i < FB_COUNT; ++i) fprintf(f, "%s %s\n", fbNames[i], fgNames[fbMap[i]]);
+		fclose(f);
+	}
+	fprintf(stderr, "buttons: %s%s\n", fb_describe(), fbSet ? "" : " (the default)");
+}
+
+/* the GBA keys the face buttons give the game (the GBA layout) */
+static uint32_t fb_keys(void) {
+	static const uint32_t key[FG_COUNT] = { K_A, K_B, K_L, K_R, 0 };
+	/* (ui.c puts the bottom button on B_A with ab_swap: by position again) */
+	int phys[FB_COUNT] = { cfg->abSwap ? B_B : B_A, cfg->abSwap ? B_A : B_B, B_X, B_Y };
+	uint32_t keys = 0;
+	for (int i = 0; i < FB_COUNT; ++i)
+		if (HELD(phys[i])) keys |= key[fbMap[i]];
+	return keys;
+}
+
+static SDL_Rect btns_row_rect(int scr, int i) {
+	MenuGeom g = menu_geom(scr);
+	return (SDL_Rect) { g.margin, g.top + i * (g.h + g.gap), g.w, g.h };
+}
+
+static void btns_activate(int i, int dir) {
+	if (i < 0 || i >= BTNS_ROWS) return;
+	if (i == FB_COUNT) {
+		fb_default(); /* Reset Buttons */
+	} else {
+		fbMap[i] = (fbMap[i] + (dir < 0 ? FG_COUNT - 1 : 1)) % FG_COUNT;
+		fbSet = true;
+	}
+	fb_save();
+}
+
+static void draw_buttons_menu(int scr) {
+	MenuGeom mg = menu_geom(scr);
+	int rad = mg.rad, cap = mg.cap;
+	SDL_Rect b = tab_rect(scr, 0), t = tab_rect(scr, 1);
+	ui_fill_round(scr, b, C_BTN, rad);
+	ui_label(scr, b.x + b.w / 2, b.y + b.h / 2, cap, "Back", C_TEXT);
+	ui_fill_round(scr, t, C_BTN_EDGE, rad);
+	ui_label(scr, t.x + t.w / 2, t.y + t.h / 2, cap, "Buttons", (SDL_Color) { 20, 16, 36, 255 });
+	for (int i = 0; i < BTNS_ROWS; ++i) {
+		SDL_Rect r = btns_row_rect(scr, i);
+		bool sel = i == btnsSel;
+		int e = SDL_max(1, mg.h / 28);
+		if (sel) ui_fill_round(scr, (SDL_Rect) { r.x - e, r.y - e, r.w + e * 2, r.h + e * 2 }, C_BTN_EDGE, rad + e);
+		ui_fill_round(scr, r, sel ? C_BTN_SEL : C_BTN, rad);
+		char label[64];
+		if (i < FB_COUNT) snprintf(label, sizeof(label), "%s: %s", fbLabels[i], fgLabels[fbMap[i]]);
+		else snprintf(label, sizeof(label), "Reset Buttons");
+		int lc = SDL_min(cap, cap * (r.w - mg.pad * 2) / SDL_max(1, ui_label_width(scr, cap, label)));
+		ui_label(scr, r.x + r.w / 2, r.y + r.h / 2, lc, label, i < FB_COUNT && fbMap[i] == FG_NONE ? C_DIS : C_TEXT);
+	}
+	const char* note = NULL;
+	if (ctlProf && ctlProf->controls.snes.bottom)
+		note = "With SNES picked under Controls in the quick bar, the SNES layout replaces these in levels.";
+	else if (ctlProf)
+		note = "With Four buttons picked under Controls in the quick bar (or Auto, while you're skating), the four-button layout replaces these.";
+	if (note) {
+		SDL_Rect last = btns_row_rect(scr, BTNS_ROWS - 1);
+		ui_font_wrap(scr, TF_BODY, mg.margin + mg.pad, last.y + last.h + mg.gap * 2, mg.w - mg.pad * 2, mg.noteCap, note, C_DIS);
+	}
+}
+
 static const char* scale_label(const char* scale) {
 	return !strcmp(scale, "fit")       ? "Scale: Full Width" :
 	       !strcmp(scale, "zoom")      ? "Scale: Zoom" :
@@ -3272,6 +3398,14 @@ static void draw_menu(void) {
 	}
 	if (patchesOpen) {
 		draw_patches(scr);
+		if (nScreens > 1) {
+			int o = ui_other_screen();
+			ui_label(o, screens[o].rect.w / 2, screens[o].rect.h / 2, (ui_px(o) + 1) * 7 * 34 / 35, "Paused", C_GOLD);
+		}
+		return;
+	}
+	if (btnsOpen) {
+		draw_buttons_menu(scr);
 		if (nScreens > 1) {
 			int o = ui_other_screen();
 			ui_label(o, screens[o].rect.w / 2, screens[o].rect.h / 2, (ui_px(o) + 1) * 7 * 34 / 35, "Paused", C_GOLD);
@@ -5480,6 +5614,7 @@ static void bug_info(Text* t, const char* date, uint64_t back) {
 	text_add(t, "hotkeys: %s +", hotkeyBtnNames[hkMod]);
 	for (int i = 0; i < HK_COUNT; ++i) text_add(t, " %s %s%s", hotkeyNames[i], hkBtn[i] >= 0 ? hotkeyBtnNames[hkBtn[i]] : "none", i + 1 < HK_COUNT ? "," : "\n");
 	text_add(t, "save_on_quit %d, auto_load %d, quick_bar_pinned %d\n", cfg->autoSave, cfg->autoLoad, cfg->barPinned);
+	text_add(t, "buttons (this game): %s%s\n", fb_describe(), fbSet ? "" : " (the default)");
 
 	char lp[1024];
 	log_path(lp, sizeof(lp));
@@ -6382,7 +6517,7 @@ static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha) {
 	int w = SDL_max(1, lg->w * k / sub), h = SDL_max(1, lg->h * k / sub);
 	if (sub > k) {
 		/* a scraped logo at full resolution, onto a canvas with fewer
-		 * pixels per GBA pixel: averaged down to them (GEN-10) */
+		 * pixels per GBA pixel: averaged down to them (GEN-11) */
 		SDL_Surface* sm = ui_resample(lg, w, h);
 		if (sm) SDL_FreeSurface(lg), lg = sm;
 	}
@@ -6428,7 +6563,7 @@ static void make_logo_canvas(void) {
 	SDL_FreeSurface(lg);
 	if (big) return;
 	if (sub > 1) {
-		/* a scraped logo at full resolution (GEN-10): the same picture at
+		/* a scraped logo at full resolution (GEN-11): the same picture at
 		 * sub pixels per GBA pixel, smoothly scaled to the GBA picture's place */
 		int cw = GBA_W * sub, ch = GBA_H * sub;
 		uint32_t* big4 = malloc((size_t) cw * ch * 4);
@@ -6521,7 +6656,7 @@ static void draw_game(void) {
 		} else if (!cfg->showLogo) {
 			/* nothing to show: the screen stays blank */
 		} else if ((logoCanvasTex[0] || logoCanvasTex[1]) && logoSub > 1) {
-			/* a scraped logo at full resolution (GEN-10): its picture made at
+			/* a scraped logo at full resolution (GEN-11): its picture made at
 			 * LOGO_SUB pixels per GBA pixel, onto where the GBA picture goes */
 			SDL_Rect area = ui_image_rect(s, GBA_W, GBA_H, cfg->mapScale);
 			ui_image(s, logoCanvasTex, GBA_W * logoSub, GBA_H * logoSub, "stretch", &area);
@@ -6567,6 +6702,7 @@ static void open_menu(void) {
 	barShown = 0;
 	cheatsOpen = false;
 	patchesOpen = false;
+	btnsOpen = false;
 	ovl_close_all();
 	close_ach();
 	set_page(0);
@@ -6606,6 +6742,12 @@ static bool activate(int item, enum GameExit* exitTo) {
 		break;
 	case M_PATCHES:
 		open_patches();
+		break;
+	case M_BUTTONS:
+		/* its own screen: Extras > Buttons (GEN-10) */
+		btnsOpen = true;
+		btnsSel = 0;
+		btnsPress = -1;
 		break;
 	case M_SWAP:
 		swap_screens();
@@ -6737,7 +6879,7 @@ static bool activate(int item, enum GameExit* exitTo) {
 		save_prefs();
 		break;
 	case M_PIXLOGO:
-		/* GEN-10: the player's own or a scraped logo at GBA pixels, at full
+		/* GEN-11: the player's own or a scraped logo at GBA pixels, at full
 		 * detail, or not used (the game's own) */
 		cfg->customLogos = (cfg->customLogos + 1) % 3;
 		snprintf(menuNote, sizeof(menuNote), "%s",
@@ -6814,6 +6956,7 @@ static void ss_setup(const char* rom, const char* code) {
 		const MapProfile* cp = profile_find(code);
 		ctlProf = cp && (cp->controls.fourFace || cp->controls.snes.bottom) ? cp : NULL;
 		snesHere = false;
+		fb_load(); /* GEN-10 */
 		if (ctlProf) {
 			ctl_load();
 			fprintf(stderr, "controls: %s\n", ctl_name(ctlMode));
@@ -6980,7 +7123,7 @@ static void patches_setup(const char* rom) {
 }
 
 /* The logo loaded again, and every picture it's in made again (extracted at
- * last, or a scraped / own logo's pixelate switched: GEN-10). */
+ * last, or a scraped / own logo's pixelate switched: GEN-11). */
 static void logo_refresh(void) {
 	ui_free_image(logoTex);
 	ui_free_image(logoCanvasTex);
@@ -7028,6 +7171,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	if (cheats_on(&cheats)) cheats_apply(&cheats, &emu);
 	cheatsOpen = false;
 	patchesOpen = false;
+	btnsOpen = false;
 	ovl_close_all();
 	ui_on_background(on_background);
 	ui_on_foreground(on_foreground);
@@ -7067,6 +7211,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	pages[2][pageLen[2]++] = M_SWAP; /* (on Extras since v1.4.6: Display has Screen shapes) */
 	pages[2][pageLen[2]++] = M_CHEATS;
 	pages[2][pageLen[2]++] = M_PATCHES;
+	pages[2][pageLen[2]++] = M_BUTTONS; /* GEN-10 */
 	if (ra_enabled()) pages[2][pageLen[2]++] = M_ACH;
 	pages[2][pageLen[2]++] = M_SHOT;
 	if (fromLibrary) pages[0][pageLen[0]++] = M_LIBRARY;
@@ -7082,7 +7227,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	pages[1][pageLen[1]++] = M_MATCH;
 	pages[1][pageLen[1]++] = M_SHAPES;
 	{
-		/* the game has the player's own or a scraped logo (GEN-10) */
+		/* the game has the player's own or a scraped logo (GEN-11) */
 		if (ui_logo_custom(cfg, romPath, emu.gameCode)) pages[1][pageLen[1]++] = M_PIXLOGO;
 	}
 	pages[2][pageLen[2]++] = M_REWIND;
@@ -7214,7 +7359,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		double cpuMs0 = thread_cpu_ms();
 		if (((!logoTex[0] && !logoTex[1]) || logoProvisional) && logo_generation() != logoGen) {
 			/* a logo finished extracting: the game's, or the one a scraped
-			 * logo takes its size from (GEN-10) */
+			 * logo takes its size from (GEN-11) */
 			logoGen = logo_generation();
 			logo_refresh();
 		}
@@ -7465,6 +7610,25 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				}
 				continue;
 			}
+			if (btnsOpen) {
+				if (p.kind == 1) {
+					ignorePointerUp = false;
+					btnsPress = -1;
+					if (tab_at(p.screen, p.x, p.y, 2) == 0) {
+						btnsOpen = false; /* Back */
+						ignorePointerUp = true;
+						continue;
+					}
+					for (int i = 0; i < BTNS_ROWS; ++i)
+						if (in_rect(btns_row_rect(p.screen, i), p.x, p.y)) btnsPress = i, btnsSel = i;
+				} else if (p.kind == 2) {
+					for (int i = 0; i < BTNS_ROWS; ++i)
+						if (!ignorePointerUp && i == btnsPress && in_rect(btns_row_rect(p.screen, i), p.x, p.y)) btns_activate(i, 1);
+					btnsPress = -1;
+					ignorePointerUp = false;
+				}
+				continue;
+			}
 			if (ovlOpen) {
 				if (p.kind == 1) {
 					ignorePointerUp = false;
@@ -7698,6 +7862,15 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			else if (btn_pressed(B_A)) pick_close(true);
 			else if (btn_pressed(B_B)) pick_close(false);
 			else if (btn_pressed(B_START)) pick_close(true), ovl_close_all(), menuOpen = false;
+		} else if (menuOpen && btnsOpen) {
+			if (btn_pressed(B_DOWN)) btnsSel = SDL_min(BTNS_ROWS - 1, btnsSel + 1);
+			if (btn_pressed(B_UP)) btnsSel = SDL_max(0, btnsSel - 1);
+			bool cycles = btnsSel < FB_COUNT;
+			if (cycles && btn_pressed(B_LEFT)) btns_activate(btnsSel, -1);
+			else if (cycles && btn_pressed(B_RIGHT)) btns_activate(btnsSel, 1);
+			else if (btn_pressed(B_A)) btns_activate(btnsSel, 1);
+			else if (btn_pressed(B_B)) btnsOpen = false;
+			else if (btn_pressed(B_START)) btnsOpen = false, menuOpen = false;
 		} else if (menuOpen && ovlOpen) {
 			int rows[8], n = ovl_rows(rows);
 			if (btn_pressed(B_DOWN)) ovlSel = SDL_min(n - 1, ovlSel + 1);
@@ -7804,8 +7977,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				if (HELD(B_Y)) keys |= K_L;
 				if (HELD(right)) keys |= K_R;
 			} else {
-				if (HELD(B_A)) keys |= K_A;
-				if (HELD(B_B)) keys |= K_B;
+				keys |= fb_keys(); /* the player's choices (GEN-10), else ab_swap's */
 			}
 			if (HELD(B_START) && modBtn != B_START && comboHold != B_START) keys |= K_START;
 			if (HELD(B_SELECT) && modBtn != B_SELECT && comboHold != B_SELECT) keys |= K_SELECT;

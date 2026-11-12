@@ -484,6 +484,146 @@
      70
     ]
    ]
+  },
+  {
+   "id": "mf-us-buttons",
+   "rom": "AMTE",
+   "state": "metroid-fusion/us-play.ss",
+   "desc": "Extras > Buttons: B (Bottom) set to GBA A and Y (Left) to GBA B, then B and Y pressed in the game",
+   "rules": [
+    "GEN-10"
+   ],
+   "input": [
+    [
+     90,
+     "TAP:0.5,0.75"
+    ],
+    [
+     100,
+     "R"
+    ],
+    [
+     104,
+     "-"
+    ],
+    [
+     110,
+     "R"
+    ],
+    [
+     114,
+     "-"
+    ],
+    [
+     120,
+     "TAP:0.5,0.737"
+    ],
+    [
+     130,
+     "DOWN"
+    ],
+    [
+     134,
+     "-"
+    ],
+    [
+     140,
+     "LEFT"
+    ],
+    [
+     144,
+     "-"
+    ],
+    [
+     150,
+     "DOWN"
+    ],
+    [
+     154,
+     "-"
+    ],
+    [
+     160,
+     "DOWN"
+    ],
+    [
+     164,
+     "-"
+    ],
+    [
+     170,
+     "RIGHT"
+    ],
+    [
+     174,
+     "-"
+    ],
+    [
+     180,
+     "RIGHT"
+    ],
+    [
+     184,
+     "-"
+    ],
+    [
+     200,
+     "START"
+    ],
+    [
+     210,
+     "-"
+    ],
+    [
+     240,
+     "B"
+    ],
+    [
+     250,
+     "-"
+    ],
+    [
+     270,
+     "Y"
+    ],
+    [
+     280,
+     "-"
+    ],
+    [
+     300,
+     "X"
+    ],
+    [
+     310,
+     "-"
+    ]
+   ],
+   "shots": {
+    "buttons": 190,
+    "end": 330
+   },
+   "golden": [],
+   "checks": [
+    {
+     "rule": "GEN-10",
+     "what": "the choices are kept for the game",
+     "type": "log",
+     "match": "^buttons: right GBA A, bottom GBA A, top Nothing, left GBA B$"
+    },
+    {
+     "rule": "GEN-10",
+     "what": "B (Bottom) gives the game GBA A",
+     "type": "log",
+     "match": "^frame \\d+: game keys 001$"
+    },
+    {
+     "rule": "GEN-10",
+     "what": "Y (Left) gives the game GBA B",
+     "type": "log",
+     "match": "^frame \\d+: game keys 002$"
+    }
+   ]
   }
  ]
 }

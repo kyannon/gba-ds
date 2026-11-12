@@ -54,6 +54,13 @@ Games are never published: players bring their own.
   (8 ways); buttons have some slack around them. Their mask is OR-ed into
   the keyboard's and controllers'. L2 / R2 / L3 (rewind, fast-forward,
   swap) aren't on screen: GBA DS's menu has them.
+- **No zooming the page:** the viewport tag (`maximum-scale=1,
+  user-scalable=no`), `touch-action: pan-x pan-y` on every element (none on
+  `#stage` and the controls), and player.js's guards for what those miss:
+  Safari's `gesture*` events (it ignores user-scalable), a touchmove with two
+  fingers, `dblclick`, and Ctrl/Cmd with the wheel (a trackpad pinch) or
+  + / -. Ctrl/Cmd + 0 is left alone. Headless Chromium never zooms a page,
+  so tests can only check that these events come back `defaultPrevented`.
 - **Home Screen app** (the folder version over http(s) only): a manifest,
   icons (the logo on navy, made by pack.py) and `sw.js`, which keeps every
   file for offline use (cache-first; the page network-first, so a new

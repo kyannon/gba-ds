@@ -23,6 +23,8 @@
 }
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }
+/* no pinch or double-tap zoom anywhere (scrolling still works); #stage and the controls take none at all */
+* { touch-action: pan-x pan-y; }
 body { background: var(--bg); color: var(--text); font: 14px/1.45 var(--ui); -webkit-font-smoothing: antialiased; overflow: hidden; }
 button, input, select { font: inherit; color: inherit; }
 button { cursor: pointer; }

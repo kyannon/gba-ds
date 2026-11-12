@@ -8,7 +8,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #define STBI_ONLY_PNG
 #define STBI_ONLY_BMP
-#define STBI_ONLY_JPEG /* scraped logos (GEN-10) */
+#define STBI_ONLY_JPEG /* scraped logos (GEN-11) */
 #define STBI_NO_STDIO_WARNINGS
 #include "stb_image.h"
 #pragma GCC diagnostic pop

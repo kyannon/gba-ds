@@ -207,7 +207,7 @@ def run_app(case, args, workdir):
             sep = 1 if case.get("patch_separate", True) else 0
             with open(os.path.join(statedir, case["rom"] + ".patches"), "w") as f:
                 f.write("".join("on %s\n" % p for p in patches_on(case)) + "separate_save %d\nseparate_states %d\n" % (sep, sep))
-    # GEN-10: "logo_folder" {name there: fixture under logos/}, the folder
+    # GEN-11: "logo_folder" {name there: fixture under logos/}, the folder
     # given as --logo_folder (named as a scraper would, to test the lookup);
     # "own_logo": a fixture under logos/, put as <asset_dir>/logos/CODE.<ext>
     extra = []

@@ -23,7 +23,7 @@ extern const char* const shaderNames[SH_COUNT]; /* gba-ds.cfg's names: off, grid
 enum { HK_QUIT, HK_SAVE, HK_LOAD, HK_BAR, HK_SWAP, HK_SHADER, HK_COUNT };
 extern const char* const hotkeyNames[HK_COUNT]; /* quit, save_state, ... */
 
-/* custom_logos (GEN-10): the player's own and scraped logos shrunk to GBA
+/* custom_logos (GEN-11): the player's own and scraped logos shrunk to GBA
  * pixels, at full detail (the same size), or not used. */
 enum { CL_PIXELATED, CL_FULL, CL_OFF };
 
@@ -76,8 +76,8 @@ typedef struct Config {
 	char libraryView[8]; /* game list: "list" (names) or "grid" (logos) */
 	char esConfigDir[512]; /* EmulationStation's config folder (Settings: GBA DS in EmulationStation) */
 	char assetDir[512]; /* logos etc.; default: the data folder */
-	char logoFolder[512]; /* scraped logos, found by the ROM's file name (GEN-10); empty: none */
-	int customLogos;      /* the player's own and scraped logos (GEN-10): CL_PIXELATED, CL_FULL or CL_OFF */
+	char logoFolder[512]; /* scraped logos, found by the ROM's file name (GEN-11); empty: none */
+	int customLogos;      /* the player's own and scraped logos (GEN-11): CL_PIXELATED, CL_FULL or CL_OFF */
 	char dataDir[512]; /* data_dir: GBA DS's data folder (states/, cheats/...); default: the app's folder (paths.c data_dir_setup) */
 	char touchScreen[16]; /* first | second: which screen has the touch panel */
 	char topScreen[16];   /* Android: auto | app | second: which display is the top screen */

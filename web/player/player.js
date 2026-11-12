@@ -735,6 +735,22 @@ function bindTouch(c) {
 }
 bindTouch($("screen"));
 
+/* ================================================================ no zooming the page
+   A quick double tap on the controls, or two fingers on the screens, would
+   zoom the page under the player's hands. The viewport tag and CSS's
+   touch-action cover most browsers; these cover the rest: Safari's pinch
+   (gesture* events, and it ignores user-scalable=no), a second finger's
+   moves, a double tap anywhere, and Ctrl/Cmd with the wheel, a trackpad
+   pinch or + / - on computers. Ctrl/Cmd + 0 (back to 100 %) still works. */
+const noZoom = (e) => { if (e.cancelable) e.preventDefault(); };
+for (const ev of ["gesturestart", "gesturechange", "gestureend"]) document.addEventListener(ev, noZoom, { passive: false });
+document.addEventListener("touchmove", (e) => { if (e.touches.length > 1 || (e.scale !== undefined && e.scale !== 1)) noZoom(e); }, { passive: false });
+document.addEventListener("dblclick", noZoom, { passive: false });
+window.addEventListener("wheel", (e) => { if (e.ctrlKey || e.metaKey) noZoom(e); }, { passive: false });
+window.addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && !e.altKey && ["+", "=", "-", "_"].includes(e.key)) noZoom(e);
+}, true);
+
 /* ================================================================ input: keyboard and controllers */
 const keysDown = new Set();
 const typing = (e) => { const t = e.target; return t && (t.tagName === "INPUT" || t.tagName === "SELECT" || t.tagName === "TEXTAREA"); };

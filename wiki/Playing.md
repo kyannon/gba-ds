@@ -97,6 +97,7 @@ From these, what you did can be played back exactly, frame by frame. So when som
 | D-pad / left stick | D-pad |
 | Right face button | GBA A (`ab_swap = 1` flips A and B) |
 | Bottom face button | GBA B |
+| Top / left face buttons | Nothing (see [Changing the face buttons](#changing-the-face-buttons-for-a-game)) |
 | L1 / R1 | GBA L / R |
 | Start / Select | Start / Select |
 | HOME, or tap the touchscreen | Pause menu (Android: SELECT + START, or BACK) |
@@ -134,6 +135,14 @@ If buttons do the wrong thing on your device (or a controller isn't recognised),
 Press each one when it's asked for. **Tap the touchscreen to skip** a button your device doesn't have (without a touchscreen, each one is skipped after 15 seconds), or tap **Cancel** to stop and keep the old mapping. A button that's already been given to something else isn't taken twice. Volume keys and buttons that arrive as keyboard keys can't be mapped.
 
 The new mapping works straight away and is kept in `states/controllers.txt` for that controller. The log (`gba-ds.log`) has the same line: send it in an issue and it can be built into GBA DS for everyone with that device and system. Running Map Buttons again replaces it; deleting `controllers.txt` goes back to the built-in mappings.
+
+### Changing the face buttons for a game
+
+Pause menu → Extras → **Buttons** sets which GBA button each face button gives this game: **A (Right)**, **B (Bottom)**, **X (Top)** and **Y (Left)** can each be GBA A, GBA B, GBA L, GBA R or Nothing (LEFT / RIGHT, A or a tap to change one; B to go back). For example, B (Bottom) as GBA A and Y (Left) as GBA B puts jump on the bottom button and attack on the left one, as in many SNES games. Two buttons can give the same GBA button.
+
+Changes work straight away and are kept for that game only (`states/<game>.buttons`). **Reset Buttons** goes back to the default (the table above, `ab_swap` included). GBA DS's own menus keep A to choose and B to go back, L1 / R1 stay GBA L / R, and the hotkeys don't change.
+
+In games with a layout under **Controls** in the quick bar (below), the four-button or SNES layout decides the face buttons wherever it's in use, and your Buttons choices everywhere else.
 
 **Four-button layout (Tony Hawk's Pro Skater 2 and 3).** The GBA version uses L and R for two of the console games' four face buttons. Swipe up from the bottom of the touchscreen for the [quick bar](#the-quick-bar-and-bug-reports) and tap a layout under **Controls**, at its top:
 - **GBA**: the layout above.

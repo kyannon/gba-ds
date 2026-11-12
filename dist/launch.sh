@@ -111,7 +111,15 @@ if [ -d /etc/banana ]; then
 		rm -f /run/banana/panel-off
 		[ -w "$BL/bl_power" ] && echo 0 > "$BL/bl_power"
 	fi
-	[ "$(cfgval rom_dir)" = /storage/roms/gba ] && B+=(--rom-dir=/data/roms/gba)
+	# games: /data/roms/gba, and the RG DS Plus's second SD card's gba folder
+	# while Banana's library shows that card's games (its sd2 script writes the
+	# card's roms folder, /run/sd2/roms, in /run/banana/sd2/roms; issue #42)
+	if [ "$(cfgval rom_dir)" = /storage/roms/gba ]; then
+		R=/data/roms/gba
+		SD2=$(head -n 1 /run/banana/sd2/roms 2>/dev/null)
+		[ -n "$SD2" ] && [ -d "$SD2/gba" ] && R="$R:$SD2/gba"
+		B+=(--rom-dir="$R")
+	fi
 	[ "$(cfgval screenshot_dir)" = /storage/roms/screenshots ] && B+=(--screenshot-dir=/data/screenshots)
 	case "$(cfgval cheat_dir)" in /config/retroarch/cheats*) B+=(--cheat-dir=/data/retroarch/cheats) ;; esac
 	# battery saves: the Game Boy Advance list's own, /data/saves/gba/<game>.srm,

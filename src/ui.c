@@ -2191,7 +2191,7 @@ static void logo_dir_list(const char* dir) {
 	closedir(d);
 }
 
-/* A scraped logo (GEN-10): in logo_folder, the image whose name is the ROM
+/* A scraped logo (GEN-11): in logo_folder, the image whose name is the ROM
  * file's, whatever type info either has: "Game Name (USA).png",
  * "Game Name.jpg" and "Game Name-marquee.png" all go with
  * "Game Name (USA) (Rev 1).gba". Best first: the ROM's whole name, then
@@ -2306,7 +2306,7 @@ static struct {
 } scrapedCache;
 static bool scrapedProvisional;
 
-/* The player's own or a scraped logo sized as the game's own (GEN-10): as
+/* The player's own or a scraped logo sized as the game's own (GEN-11): as
  * tall as the extracted logo (refH GBA pixels; until that exists, within LOGO_BOX_W x LOGO_BOX_H),
  * never wider than the GBA screen. Pixelated: one pixel per GBA pixel (*sub
  * 1); otherwise LOGO_SUB pixels per GBA pixel, the same size on the screen. */
@@ -2385,7 +2385,7 @@ SDL_Surface* ui_logo_surface(const Config* c, const char* rom, const char* code,
 	*sub = 1;
 	scrapedProvisional = false;
 	if (ui_logo_source(c, rom, code, path, sizeof(path)) != LOGO_EXTRACTED) {
-		/* the player's own or a scraped logo, as tall as the extracted one (GEN-10) */
+		/* the player's own or a scraped logo, as tall as the extracted one (GEN-11) */
 		SDL_Surface* s = sized_surface(c, path, code, sub);
 		if (s) {
 			*pixelArt = *sub == 1;
