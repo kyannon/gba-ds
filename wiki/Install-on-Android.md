@@ -29,7 +29,7 @@ Everything except the battery saves lives in a **`GBA DS`** folder on the intern
 | `GBA DS/cheats/` | your RetroArch `.cht` cheat files (subfolders are fine) |
 | `GBA DS/overlays/` | your own overlay PNGs (see [[Overlays]]) |
 | `GBA DS/logos/` | your own logo images (`<CODE>.png`), used instead of the extracted ones |
-| `GBA DS/patches/` | patches (`.ips`, `.ups`, `.bps`), in a folder for each game made by GBA DS (see [Playing](Playing#patches)) |
+| `GBA DS/patches/` | patches (`.ips`, `.ups`, `.bps`, `.xdelta`), in a folder for each game made by GBA DS (see [Playing](Playing#patches)) |
 | `GBA DS/screenshots/` | Take Screenshot's PNGs |
 | `GBA DS/bug-reports/` | bug reports from the quick bar's bug button |
 | `GBA DS/gba-ds.cfg` | optional: settings from [[Settings]] (create it; only the lines you want to change) |

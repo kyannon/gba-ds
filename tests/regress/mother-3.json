@@ -2198,6 +2198,258 @@
      "match": "ROM: CRC32 21fdf96c, a mod GBA DS is tested on[^\\n]*; patched as it started with"
     }
    ]
+  },
+  {
+   "id": "m3-title-patch-nl",
+   "rom": "A3UJ",
+   "state": "mother-3/nl-title.ss",
+   "desc": "the Dutch translation's xdelta beside the Japanese ROM: the title with a save: the logo, no captures",
+   "rules": [
+    "M3-12",
+    "M3-1",
+    "M3-6",
+    "GEN-9"
+   ],
+   "patch": "MOTHER_3_Dutch.xdelta",
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "M3-12",
+     "what": "no captures on the title",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the xdelta applied: the Dutch translation, known and tested",
+     "type": "log",
+     "match": "ROM: CRC32 8b74324c, a mod GBA DS is tested on[^\\n]*; patched as it started with"
+    }
+   ]
+  },
+  {
+   "id": "m3-porky-patch-nl",
+   "rom": "A3UJ",
+   "state": "mother-3/nl-porky.ss",
+   "desc": "the Dutch translation's xdelta beside the Japanese ROM: the Empire Porky Building: the Status in Dutch, a page each",
+   "rules": [
+    "M3-12",
+    "M3-3",
+    "GEN-9"
+   ],
+   "patch": "MOTHER_3_Dutch.xdelta",
+   "shots": {
+    "first": 60,
+    "second": 360
+   },
+   "checks": [
+    {
+     "rule": "M3-12",
+     "what": "four pages",
+     "type": "log",
+     "match": "map updated \\(4 frame\\(s\\) 300 apart"
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the xdelta applied: the Dutch translation, known and tested",
+     "type": "log",
+     "match": "ROM: CRC32 8b74324c, a mod GBA DS is tested on[^\\n]*; patched as it started with"
+    }
+   ]
+  },
+  {
+   "id": "m3-tazmily-patch-nl",
+   "rom": "A3UJ",
+   "state": "mother-3/nl-tazmily.ss",
+   "desc": "the Dutch translation's xdelta beside the Japanese ROM: Tazmily: the area map",
+   "rules": [
+    "M3-12",
+    "M3-2",
+    "GEN-9"
+   ],
+   "patch": "MOTHER_3_Dutch.xdelta",
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "M3-12",
+     "what": "the map",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the xdelta applied: the Dutch translation, known and tested",
+     "type": "log",
+     "match": "ROM: CRC32 8b74324c, a mod GBA DS is tested on[^\\n]*; patched as it started with"
+    }
+   ]
+  },
+  {
+   "id": "m3-porky-patch-on-nl",
+   "rom": "A3UJ",
+   "state": "mother-3/nl-porky.ss",
+   "desc": "the Dutch xdelta switched on in the Patches menu's folder: the Status in Dutch",
+   "rules": [
+    "M3-12",
+    "M3-3",
+    "GEN-9"
+   ],
+   "patch_folder": [
+    "MOTHER_3_Dutch.xdelta"
+   ],
+   "patch_on": "MOTHER_3_Dutch.xdelta",
+   "shots": {
+    "first": 60
+   },
+   "checks": [
+    {
+     "rule": "M3-12",
+     "what": "four pages",
+     "type": "log",
+     "match": "map updated \\(4 frame\\(s\\) 300 apart"
+    },
+    {
+     "rule": "GEN-9",
+     "what": "the xdelta applied from the Patches menu",
+     "type": "log",
+     "match": "ROM: CRC32 8b74324c, a mod GBA DS is tested on[^\\n]*; patched as it started with"
+    }
+   ]
+  },
+  {
+   "id": "m3-patches-list-xdelta",
+   "rom": "A3UJ",
+   "patch_folder": [
+    "MOTHER_3_Dutch.xdelta",
+    "MOTHER_3_Dutch_compressed.xdelta",
+    "MOTHER_3_French.ups"
+   ],
+   "desc": "the pause menu's Extras > Patches with the Dutch xdelta, a copy whose header says it's compressed, and the French UPS: the xdelta \"Known translation patch, tested: Dutch\" with its type (xdelta), then the compressed one \"An xdelta made with compression, which GBA DS can't read\"",
+   "rules": [
+    "GEN-9",
+    "M3-12"
+   ],
+   "input": [
+    [
+     120,
+     "TAP:0.5,0.3"
+    ],
+    [
+     130,
+     "R"
+    ],
+    [
+     134,
+     "-"
+    ],
+    [
+     140,
+     "R"
+    ],
+    [
+     144,
+     "-"
+    ],
+    [
+     150,
+     "DOWN"
+    ],
+    [
+     152,
+     "-"
+    ],
+    [
+     156,
+     "DOWN"
+    ],
+    [
+     158,
+     "-"
+    ],
+    [
+     162,
+     "A"
+    ],
+    [
+     166,
+     "-"
+    ],
+    [
+     180,
+     "DOWN"
+    ],
+    [
+     182,
+     "-"
+    ],
+    [
+     190,
+     "DOWN"
+    ],
+    [
+     192,
+     "-"
+    ],
+    [
+     200,
+     "DOWN"
+    ],
+    [
+     202,
+     "-"
+    ],
+    [
+     230,
+     "DOWN"
+    ],
+    [
+     232,
+     "-"
+    ]
+   ],
+   "shots": {
+    "xdelta": 196,
+    "compressed": 215,
+    "ups": 240
+   },
+   "golden_mask": [
+    [
+     0,
+     0,
+     260,
+     70
+    ]
+   ],
+   "checks": [
+    {
+     "rule": "GEN-9",
+     "what": "the rows differ (the selection moved)",
+     "type": "differs",
+     "a": {
+      "shot": "xdelta",
+      "rect": [
+       0,
+       0,
+       1024,
+       1536
+      ]
+     },
+     "b": {
+      "shot": "compressed",
+      "rect": [
+       0,
+       0,
+       1024,
+       1536
+      ]
+     },
+     "frac": 0.001
+    }
+   ]
   }
  ]
 }

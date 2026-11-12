@@ -355,6 +355,7 @@ static const KnownPatch knownPatches[] = {
 	{ "A3UJ", 0xcc81483c, 2340, 0x0e013b7b, 0x91ac31cb, "audio", "English v1.3 HQ audio mix (MusicTheorist)", "", true },
 	{ "AMAJ", 0xceba7723, 721, 0x7d4b7cf8, 0x95ec1d90, "colour", "Color restoration: GBA-style player palettes (optional)", "the game with SNES color restoration v1.2 (Mister Man)", true },
 	{ "A3UJ", 0xd232c9db, 1636872, 0x42ac9cb9, 0x5f7919f4, "translation", "Catalan v1.0.2 (fan translation)", "Mother 3 (Japan)", true },
+	{ "A3UJ", 0xd3ee6bc5, 451837, 0x42ac9cb9, 0x8b74324c, "translation", "Dutch (fan translation)", "Mother 3 (Japan)", true },
 	{ "A2CE", 0xd79af16f, 142985, 0x35536183, 0x00d0fddf, "colour", "Symphony of the Colors v1.0 (JonataGuitar)", "Castlevania - Aria of Sorrow (USA)", true },
 	{ "A3UJ", 0xd849ce95, 1547180, 0x42ac9cb9, 0xe73b0f7d, "translation", "English v1.3a (fan translation)", "Mother 3 (Japan)", true },
 	{ "A3UJ", 0xd9c06486, 1051060, 0x42ac9cb9, 0x21fdf96c, "translation", "Simplified Chinese (fan translation)", "Mother 3 (Japan)", true },

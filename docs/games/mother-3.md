@@ -43,7 +43,7 @@ Asked what the game would have put on a second GBA screen: the two things a play
 
 **M3-11. Battles.** In a battle, from the encounter's swirl to the end of the results, the second screen shows the logo (the Status's HP and PP would be stale while the meters roll) and no pictures are taken; walking about again, the map or the Status comes back. Told by the game's mode (M3_MODE 0x08 for the swirl, 0x09 for the battle, an enemy met while walking about) or, in the story's own battles (the Prologue's Mole Cricket, started by a scene, M3_MODE 1), by its battle screen being up (0x02000008 holds 0x0202CD88 there, 0x0202CD48 walking about and in scenes).
 
-**M3-12. The other fan translations.** The translations on romhacking.net into Brazilian Portuguese, Italian (v1.1.1), German (v1.1), Simplified Chinese, Polish, French, Catalan (v1.0 and v1.0.2) and Dutch keep M3-1 to M3-11 as the English one does (M3-8): the same addresses, screens and sprites, the logo the same (only the title's menu lines are translated, and they're left out), the Status in each language with its help window left out the same way. All but Dutch are UPS or BPS patches made for the Japanese ROM, played with the Patches menu or beside the ROM (GEN-9). Dutch is an xdelta patch, a format GBA DS doesn't apply: it plays as a ROM patched beforehand (with xdelta or a patcher that reads it), recognised as the Dutch translation.
+**M3-12. The other fan translations.** The translations on romhacking.net into Brazilian Portuguese, Italian (v1.1.1), German (v1.1), Simplified Chinese, Polish, French, Catalan (v1.0 and v1.0.2) and Dutch keep M3-1 to M3-11 as the English one does (M3-8): the same addresses, screens and sprites, the logo the same (only the title's menu lines are translated, and they're left out), the Status in each language with its help window left out the same way. All are patches made for the Japanese ROM (UPS or BPS, and Dutch an xdelta), played with the Patches menu or beside the ROM (GEN-9), or as a ROM patched beforehand, recognised as the translation.
 
 ## Not covered yet
 
@@ -56,13 +56,16 @@ The owner's saves (GameShark and a `.sav`, `saves/A3UJ-*.sav` in the fixtures) a
 
 ## For the merge
 
+- **Shared code on this branch:** xdelta patches (`src/patch.c` `apply_vcdiff`, the Patches menu in `src/game.c`, `tools/romhack.py`), for the Dutch translation, asked for by the owner. Run the full suite after the merge. Every documented fixture patch gave its listed result with the new code (46 of 46 whose base is a fixture), and the other games' 50 patch cases drew the same pictures with and without it; 6 of them (`ml-patches-*`, `mf-us-patch-*`) fail on this branch either way, because their goldens were updated at 16:34 on Nov 12 for smaller Back / Patches tabs that aren't on `dev` yet.
+- Changelog (What's new, for all games): "Patches: `.xdelta` files (xdelta3 / VCDIFF) work too, beside the ROM or in the Patches menu, unless made with compression (xdelta3's `-S` option): the menu says so."
+- `wiki/Supported-games.md`, "Patch files": add `.xdelta` to the list of patch types.
 - Changelog (under the open version, What's new): "MOTHER 3 (Japan, and its fan translations: English v1.3 / v1.3a, with or without the HQ audio mix; Brazilian Portuguese, Italian, German, Simplified Chinese, Polish, French, Catalan and Dutch): walking about, the second screen shows the area's map where R opens one, and the party's Status screen, a page each, elsewhere. In battles and scenes it shows the logo; in conversations the last picture stays."
 - `wiki/Supported-games.md`, table: MOTHER 3 | Japan | Romhacks tested: translations into English (v1.3, v1.3a), Brazilian Portuguese, Italian, German, Simplified Chinese, Polish, French, Catalan, Dutch; HQ audio mix.
 - `wiki/Supported-games.md`, section:
 
   ### MOTHER 3
 
-  Japan only; the English fan translation (v1.3 or v1.3a, as a patched ROM or with its UPS patch in the Patches menu) and MusicTheorist's HQ audio mix work the same, as do the fan translations into Brazilian Portuguese, Italian, German, Simplified Chinese, Polish, French, Catalan and Dutch (Dutch as a ROM patched beforehand: GBA DS doesn't apply xdelta patches).
+  Japan only; the English fan translation (v1.3 or v1.3a, as a patched ROM or with its UPS patch in the Patches menu) and MusicTheorist's HQ audio mix work the same, as do the fan translations into Brazilian Portuguese, Italian, German, Simplified Chinese, Polish, French, Catalan and Dutch.
 
   - Walking about where the R button opens a map of the area, the second screen shows that map, with the party's marker, without its scroll arrows.
   - Elsewhere it shows the Status screen, turning through the party every 5 seconds, without its L / R badges and its help line.
