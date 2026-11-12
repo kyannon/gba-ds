@@ -628,6 +628,202 @@
    ]
   },
   {
+   "id": "hpa-us-field-ron",
+   "rom": "BHTE",
+   "state": "harry-potter-and-the-prisoner-of-azkaban/us-field-ron.ss",
+   "desc": "walking about in the Leaky Cauldron with Ron in the party (set by the game's debug menu's Party Member Select, the owner's save's own stats put back): Harry and Ron's figures and boxes, a gap between, above the task box",
+   "rules": [
+    "HPA-1",
+    "HPA-7"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "HPA-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "HPA-1",
+     "what": "the task box at the bottom: its posts, gold frame and cream inside",
+     "type": "pixels",
+     "probes": [
+      [
+       54,
+       562,
+       "B57B31"
+      ],
+      [
+       274,
+       566,
+       "D6A54A"
+      ],
+      [
+       274,
+       570,
+       "F7E78C"
+      ],
+      [
+       514,
+       694,
+       "F7E78C"
+      ],
+      [
+       514,
+       698,
+       "D6A54A"
+      ],
+      [
+       54,
+       702,
+       "B57B31"
+      ]
+     ],
+     "tol": 8,
+     "shot": "start"
+    },
+    {
+     "rule": "HPA-7",
+     "what": "the game screen is the game's own",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "hpa-us-field-three",
+   "rom": "BHTE",
+   "state": "harry-potter-and-the-prisoner-of-azkaban/us-field-three.ss",
+   "desc": "walking about with Ron and Hermione in the party (set as for hpa-us-field-ron): Hermione, Harry and Ron's figures and boxes above the task box",
+   "rules": [
+    "HPA-1",
+    "HPA-7"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "HPA-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "HPA-1",
+     "what": "the task box at the bottom: its posts, gold frame and cream inside",
+     "type": "pixels",
+     "probes": [
+      [
+       54,
+       562,
+       "B57B31"
+      ],
+      [
+       274,
+       566,
+       "D6A54A"
+      ],
+      [
+       274,
+       570,
+       "F7E78C"
+      ],
+      [
+       514,
+       694,
+       "F7E78C"
+      ],
+      [
+       514,
+       698,
+       "D6A54A"
+      ],
+      [
+       54,
+       702,
+       "B57B31"
+      ]
+     ],
+     "tol": 8,
+     "shot": "start"
+    },
+    {
+     "rule": "HPA-7",
+     "what": "the game screen is the game's own",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "hpa-us-battle-three",
+   "rom": "BHTE",
+   "state": "harry-potter-and-the-prisoner-of-azkaban/us-dada-three.ss",
+   "desc": "Hermione, Harry and Ron (as in hpa-us-field-three) walking about the Defense Against the Dark Arts Classroom (put there by the debug menu's Map Select, the stats put back) into a battle: the summary while walking, then the logo in the battle",
+   "rules": [
+    "HPA-4"
+   ],
+   "input": [
+    [
+     0,
+     "LEFT"
+    ],
+    [
+     6,
+     "RIGHT"
+    ],
+    [
+     45,
+     "LEFT"
+    ],
+    [
+     189,
+     "RIGHT"
+    ],
+    [
+     200,
+     "-"
+    ]
+   ],
+   "shots": {
+    "field": 120,
+    "battle": 360
+   },
+   "checks": [
+    {
+     "rule": "HPA-4",
+     "what": "the summary while walking about",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "HPA-4",
+     "what": "a fight",
+     "type": "log",
+     "match": "fight on"
+    },
+    {
+     "rule": "HPA-4",
+     "what": "the logo in the battle, not the picture from walking about",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "shot": "battle"
+    }
+   ]
+  },
+  {
    "id": "hpa-logo-bhte",
    "kind": "logo",
    "rom": "BHTE",

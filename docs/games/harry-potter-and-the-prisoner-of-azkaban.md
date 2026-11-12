@@ -34,8 +34,12 @@ Both are opened on the hidden copy (START, the task box, then Status/Equip) abou
 
 **HPA-7. Game screen untouched.** Nothing leaves the game screen: the spell and portrait at its top left stay (the spell is what B casts, and L and R change it).
 
+## How it was checked
+
+Ron and Hermione in the party: the game's debug menu (the screen byte 0x03003F18 set to 0x19, as tcrf.net describes) has a Party Member Select; Robed Ron (8) and Robed Hermione (7) were put in the followers' places there (it rewrites the three characters' stat blocks, at 0x030024F4, 0x0300253C and 0x03002584, 0x48 bytes apart, so the owner's save's were put back), then the screen byte set to 8 (walking about). With two, Harry's figure and box go to the left and Ron's to the right; with three, Hermione, Harry and Ron side by side. Either way the summary keeps rows 25-148, so HPA-1's layout holds. Its Map Select put the three in the Defense Against the Dark Arts Classroom, where they walked into a battle (HPA-4).
+
 ## Not covered yet
 
-- Ron and Hermione in the party: the summary was laid out from Harry alone at the start of the game. With three figures and boxes, the summary may be taller or laid out differently, and the task box may cover part of it. States walking about with two and with three in the party, and a battle with three, would settle it (asked of the owner).
+- Ron and Hermione joined by the debug menu, not by the story: a party they joined in play is taken to look the same.
 - The mini-games in the story (Buckbeak's Hippogriff Glide, the Riddikulus Boggart Challenge, Wizard Cracker Pop-it) and the story's picture pages: what the screen byte reads there isn't known. Where it's none of walking about, a conversation or the menu, the second screen shows the logo (HPA-5); where START opens nothing, the last picture stays (HPA-3).
 - Battles in Japan: the battle's screen byte is taken to read as in the USA and Europe release (only walking about, the menu and the title were tried there).
