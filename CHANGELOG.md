@@ -3,6 +3,7 @@
 ## v1.5.1 (not yet released)
 
 ### Fixes
+- **BananaOS:** the game list now also shows the games on the RG DS Plus's second SD card (its `roms/gba` folder), as Banana's own list does. Before, only the games on the card BananaOS runs from were listed.
 - **Web player:** the page no longer zooms in when you tap the on-screen controls quickly or touch the screens with two fingers on a phone or tablet, or with Ctrl and the mouse wheel, a trackpad pinch or Ctrl + / - on a computer.
 
 ## v1.5 (2026-11-11)
