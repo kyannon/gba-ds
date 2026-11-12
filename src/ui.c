@@ -14,6 +14,10 @@
 #include <math.h>
 #include <string.h>
 #include <unistd.h>
+#include <dirent.h>
+#include <strings.h>
+#include <sys/stat.h>
+#include <time.h>
 
 View views[2];
 int nViews;
@@ -2132,61 +2136,114 @@ static void extracted_path(const Config* c, const char* code, char* path, size_t
 	else snprintf(path, n, "%s/logos/%.4s.png", c->stateDir, code);
 }
 
-/* The player's own logo for the game: <asset_dir>/logos/<CODE>.png|.bmp. */
+/* The player's own logo for the game: <asset_dir>/logos/<CODE>.png|.bmp|.jpg. */
 static bool own_logo(const Config* c, const char* code, char* path, size_t n) {
-	const char* exts[] = { "png", "bmp" };
-	for (int i = 0; i < 2; ++i) {
+	const char* exts[] = { "png", "bmp", "jpg", "jpeg" };
+	for (int i = 0; i < 4; ++i) {
 		snprintf(path, n, "%s/logos/%.4s.%s", c->assetDir, code, exts[i]);
 		if (file_there(path)) return true;
 	}
 	return false;
 }
 
-/* A scraped logo (GEN-10): in logo_folder, by the ROM file's name without
- * its extension, as scrapers name them: <rom>, <rom>-marquee, <rom>-wheel,
- * <rom>-logo, each as .png first (it can be transparent), then as .jpg or
- * .jpeg. */
+/* A name's title: lower case, cut at its first "(" or "[" (the type info:
+ * region, revision, dump flags), spaces at its end dropped. */
+static void title_key(const char* name, size_t len, char* out, size_t n) {
+	size_t o = 0;
+	for (size_t i = 0; i < len && name[i] && name[i] != '(' && name[i] != '[' && o + 1 < n; ++i)
+		out[o++] = (char) SDL_tolower((unsigned char) name[i]);
+	while (o > 0 && (out[o - 1] == ' ' || out[o - 1] == '_')) --o;
+	out[o] = 0;
+}
+
+/* logo_folder's image files, listed once (and again when it changes). */
+static struct {
+	char dir[512];
+	time_t mtime;
+	char** names;
+	int n;
+} logoDir;
+
+static void logo_dir_list(const char* dir) {
+	struct stat st;
+	if (stat(dir, &st) != 0) st.st_mtime = 0;
+	if (logoDir.names && !strcmp(logoDir.dir, dir) && logoDir.mtime == st.st_mtime) return;
+	for (int i = 0; i < logoDir.n; ++i) free(logoDir.names[i]);
+	free(logoDir.names);
+	logoDir.names = NULL, logoDir.n = 0;
+	snprintf(logoDir.dir, sizeof(logoDir.dir), "%s", dir);
+	logoDir.mtime = st.st_mtime;
+	DIR* d = opendir(dir);
+	if (!d) return;
+	int cap = 0;
+	struct dirent* e;
+	while ((e = readdir(d))) {
+		const char* dot = strrchr(e->d_name, '.');
+		if (!dot || (strcasecmp(dot, ".png") && strcasecmp(dot, ".jpg") && strcasecmp(dot, ".jpeg"))) continue;
+		if (logoDir.n == cap) {
+			cap = cap ? cap * 2 : 256;
+			char** nn = realloc(logoDir.names, sizeof(char*) * cap);
+			if (!nn) break;
+			logoDir.names = nn;
+		}
+		logoDir.names[logoDir.n++] = strdup(e->d_name);
+	}
+	closedir(d);
+}
+
+/* A scraped logo (GEN-10): in logo_folder, the image whose name is the ROM
+ * file's, whatever type info either has: "Game Name (USA).png",
+ * "Game Name.jpg" and "Game Name-marquee.png" all go with
+ * "Game Name (USA) (Rev 1).gba". Best first: the ROM's whole name, then
+ * the same title, then the title with -marquee / -wheel / -logo, then with
+ * any other -suffix; PNG before JPG (it can be transparent); then by name. */
 static bool scraped_logo(const Config* c, const char* rom, char* path, size_t n) {
 	if (!c->logoFolder[0] || !rom || !rom[0]) return false;
 	const char* base = strrchr(rom, '/');
 	base = base ? base + 1 : rom;
-	char stem[512];
-	snprintf(stem, sizeof(stem), "%s", base);
-	char* dot = strrchr(stem, '.');
-	if (dot && dot != stem) *dot = 0;
-	const char* exts[] = { "png", "jpg", "jpeg", "PNG", "JPG", "JPEG" };
-	const char* tails[] = { "", "-marquee", "-wheel", "-logo" };
-	for (int e = 0; e < 6; ++e)
-		for (int i = 0; i < 4; ++i) {
-			snprintf(path, n, "%s/%s%s.%s", c->logoFolder, stem, tails[i], exts[e]);
-			if (file_there(path)) return true;
-		}
-	return false;
+	const char* rdot = strrchr(base, '.');
+	size_t rlen = rdot && rdot != base ? (size_t) (rdot - base) : strlen(base);
+	char rkey[512];
+	title_key(base, rlen, rkey, sizeof(rkey));
+	size_t klen = strlen(rkey);
+	if (!klen) return false;
+	logo_dir_list(c->logoFolder);
+	int best = -1, bestScore = 1 << 30;
+	for (int i = 0; i < logoDir.n; ++i) {
+		const char* f = logoDir.names[i];
+		const char* fdot = strrchr(f, '.');
+		size_t flen = (size_t) (fdot - f);
+		char fkey[512];
+		title_key(f, flen, fkey, sizeof(fkey));
+		int rank;
+		if (flen == rlen && !strncasecmp(f, base, rlen)) rank = 0;
+		else if (!strcmp(fkey, rkey)) rank = 1;
+		else if (!strncmp(fkey, rkey, klen) && (fkey[klen] == '-' || fkey[klen] == '_' || fkey[klen] == '.')) {
+			const char* tail = fkey + klen + 1;
+			rank = !strcmp(tail, "marquee") || !strcmp(tail, "wheel") || !strcmp(tail, "logo") ? 2 : 3;
+		} else continue;
+		int score = rank * 2 + (strcasecmp(fdot, ".png") ? 1 : 0);
+		if (score < bestScore || (score == bestScore && strcmp(f, logoDir.names[best]) < 0)) best = i, bestScore = score;
+	}
+	if (best < 0) return false;
+	snprintf(path, n, "%s/%s", c->logoFolder, logoDir.names[best]);
+	return true;
 }
 
-/* A pixel unlike the background: any alpha, or, in a picture with none to
- * cut by (a JPEG), a colour away from its top-left corner's (JPEG noise
- * allowed for). */
+/* A pixel unlike the background: any alpha, or, in a JPEG (no alpha to cut
+ * by), a colour away from its top-left corner's (JPEG noise allowed for). */
 static bool drawn_px(const uint8_t* p, const uint8_t* bg) {
 	if (!bg) return p[3] != 0;
 	return abs(p[0] - bg[0]) > 24 || abs(p[1] - bg[1]) > 24 || abs(p[2] - bg[2]) > 24;
 }
 
-/* What's drawn, the rest cut away: a scraped image's transparent padding,
- * or a JPEG's plain border (its background inside the logo's box stays). */
-static SDL_Surface* trim_alpha(SDL_Surface* s) {
-	bool opaque = true;
-	for (int y = 0; y < s->h && opaque; ++y) {
-		const uint8_t* row = (const uint8_t*) s->pixels + (size_t) y * s->pitch;
-		for (int x = 0; x < s->w; ++x)
-			if (row[x * 4 + 3] != 255) {
-				opaque = false;
-				break;
-			}
-	}
+/* What's drawn, the rest cut away: a PNG's transparent padding, or a
+ * JPEG's plain border (its background inside the logo's box stays). A PNG
+ * with no transparency is kept whole: its background is the logo's. */
+static SDL_Surface* trim_alpha(SDL_Surface* s, bool jpeg) {
 	uint8_t corner[4];
 	memcpy(corner, s->pixels, 4);
-	const uint8_t* bg = opaque ? corner : NULL;
+	const uint8_t* bg = jpeg ? corner : NULL;
 	int x0 = s->w, y0 = s->h, x1 = -1, y1 = -1;
 	for (int y = 0; y < s->h; ++y) {
 		const uint8_t* row = (const uint8_t*) s->pixels + (size_t) y * s->pitch;
@@ -2249,13 +2306,13 @@ static struct {
 } scrapedCache;
 static bool scrapedProvisional;
 
-/* A scraped logo sized as the game's own (GEN-10): as tall as the extracted
- * logo (refH GBA pixels; until that exists, within LOGO_BOX_W x LOGO_BOX_H),
+/* The player's own or a scraped logo sized as the game's own (GEN-10): as
+ * tall as the extracted logo (refH GBA pixels; until that exists, within LOGO_BOX_W x LOGO_BOX_H),
  * never wider than the GBA screen. Pixelated: one pixel per GBA pixel (*sub
  * 1); otherwise LOGO_SUB pixels per GBA pixel, the same size on the screen. */
 #define LOGO_BOX_W 224
 #define LOGO_BOX_H 64
-static SDL_Surface* scraped_surface(const Config* c, const char* src, const char* code, int* sub) {
+static SDL_Surface* sized_surface(const Config* c, const char* src, const char* code, int* sub) {
 	char ref[1200];
 	extracted_path(c, code, ref, sizeof(ref));
 	int refH = 0;
@@ -2268,7 +2325,8 @@ static SDL_Surface* scraped_surface(const Config* c, const char* src, const char
 	}
 	SDL_Surface* img = image_load(src);
 	if (!img) return NULL;
-	img = trim_alpha(img);
+	const char* ext = strrchr(src, '.');
+	img = trim_alpha(img, ext && (!strcasecmp(ext, ".jpg") || !strcasecmp(ext, ".jpeg")));
 	float gw, gh; /* the size in GBA pixels */
 	if (refH > 0) {
 		gh = (float) SDL_min(refH, GBA_H);
@@ -2294,7 +2352,6 @@ static SDL_Surface* scraped_surface(const Config* c, const char* src, const char
 
 void ui_logo_queue(const Config* c, const char* rom, const char* code) {
 	char path[1200];
-	if (own_logo(c, code, path, sizeof(path))) return;
 	snprintf(path, sizeof(path), "%s/logos", c->stateDir);
 	mkdirs(path);
 	extracted_path(c, code, path, sizeof(path));
@@ -2305,24 +2362,30 @@ bool ui_logo_provisional(void) {
 	return scrapedProvisional;
 }
 
+/* The logo's source: the player's own file or a scraped one (path set), or
+ * the extracted one (path its file, which may not exist yet). */
+int ui_logo_source(const Config* c, const char* rom, const char* code, char* path, size_t n) {
+	if (own_logo(c, code, path, n)) return LOGO_OWN;
+	if (scraped_logo(c, rom, path, n)) return LOGO_SCRAPED;
+	extracted_path(c, code, path, n);
+	return LOGO_EXTRACTED;
+}
+
 SDL_Surface* ui_logo_surface(const Config* c, const char* rom, const char* code, bool* pixelArt, int* sub) {
 	char path[1200];
 	int one;
 	if (!sub) sub = &one;
 	*sub = 1;
 	scrapedProvisional = false;
-	if (own_logo(c, code, path, sizeof(path))) {
-		*pixelArt = false;
-		return image_load(path);
-	}
-	if (scraped_logo(c, rom, path, sizeof(path))) {
-		SDL_Surface* s = scraped_surface(c, path, code, sub);
+	if (ui_logo_source(c, rom, code, path, sizeof(path)) != LOGO_EXTRACTED) {
+		/* the player's own or a scraped logo, as tall as the extracted one (GEN-10) */
+		SDL_Surface* s = sized_surface(c, path, code, sub);
 		if (s) {
 			*pixelArt = *sub == 1;
 			return s;
 		}
+		extracted_path(c, code, path, sizeof(path));
 	}
-	extracted_path(c, code, path, sizeof(path));
 	*pixelArt = true;
 	return image_load(path);
 }
@@ -2331,19 +2394,15 @@ bool ui_load_logo(const Config* c, const char* rom, const char* code, SDL_Textur
                   bool* pixelArt) {
 	char path[1200];
 	scrapedProvisional = false;
-	/* a file the user supplied wins */
-	if (own_logo(c, code, path, sizeof(path))) {
-		*pixelArt = false;
-		return ui_load_image(path, tex, w, h, true);
-	}
-	/* then a scraped one, sized from the extracted one (made if missing) */
 	snprintf(path, sizeof(path), "%s/logos", c->stateDir);
 	mkdirs(path);
 	char ext[1200];
 	extracted_path(c, code, ext, sizeof(ext));
-	if (scraped_logo(c, rom, path, sizeof(path))) {
+	/* the player's own logo, else a scraped one: sized from the extracted
+	 * one (made if missing) */
+	if (ui_logo_source(c, rom, code, path, sizeof(path)) != LOGO_EXTRACTED) {
 		int sub = 1;
-		SDL_Surface* s = scraped_surface(c, path, code, &sub);
+		SDL_Surface* s = sized_surface(c, path, code, &sub);
 		if (s) {
 			if (scrapedProvisional && rom) logo_request(rom, code, ext);
 			*pixelArt = sub == 1;

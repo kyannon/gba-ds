@@ -1002,6 +1002,8 @@ static const uint32_t* map_px(int idx);
 static const uint32_t* hud_over_map(const uint32_t* px);
 static void make_combat_canvas(void);
 static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha);
+static void logo_refresh(void);
+static bool cardLogoMade; /* card_logo's picture is made */
 static uint32_t hudLogoBelow[HUD_CW * HUD_CH]; /* profile hud.logoBelow: dark grey, the logo below the HUD */
 /* profile hud.mapTitleRows: those rows of the last map picture, held over
  * the HUD (mapTitleN rows; 0: none taken yet) */
@@ -1067,12 +1069,12 @@ static bool debug;
 
 /* ---------------------------------------------------------------- menu */
 
-enum MenuItem { M_RESUME, M_CHEATS, M_PATCHES, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND, M_AUTOSAVE, M_AUTOLOAD, M_BUG, M_SLOT, M_SHAPES, M_FF, M_COLOR, M_GHOST };
+enum MenuItem { M_RESUME, M_CHEATS, M_PATCHES, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND, M_AUTOSAVE, M_AUTOLOAD, M_BUG, M_SLOT, M_SHAPES, M_FF, M_COLOR, M_GHOST, M_PIXLOGO };
 static const char* menuLabels[] = {
 	/* title case: drawn in Futura from the built-in images (tools/make_brand.py) */
 	[M_RESUME] = "Resume", [M_SWAP] = "Swap Screens", [M_SAVE] = "Save State", [M_SCALE] = "", [M_LCD] = "", [M_FPS] = "", [M_FRAMEBUF] = "", [M_OVERLAY] = "", [M_LOGO] = "", [M_MATCH] = "", [M_REWIND] = "", [M_RESTART] = "Restart Game",
 	[M_LOAD] = "Load State", [M_CHEATS] = "Cheats", [M_PATCHES] = "Patches", [M_ACH] = "Achievements", [M_SHOT] = "Take Screenshot", [M_LIBRARY] = "Close Game", [M_EXIT] = "Close GBA DS",
-	[M_AUTOSAVE] = "", [M_AUTOLOAD] = "", [M_BUG] = "Submit a Bug Report", [M_SLOT] = "", [M_FF] = "", [M_COLOR] = "", [M_GHOST] = "",
+	[M_AUTOSAVE] = "", [M_AUTOLOAD] = "", [M_BUG] = "Submit a Bug Report", [M_SLOT] = "", [M_FF] = "", [M_COLOR] = "", [M_GHOST] = "", [M_PIXLOGO] = "",
 };
 static int menuItems[12], nMenuItems;
 /* Some buttons are half as wide, two to a row (Save State | Load State):
@@ -3334,6 +3336,7 @@ static void draw_menu(void) {
 		if (menuItems[i] == M_MATCH) label = cfg->matchDisplay ? "Match Display Rate: On" : "Match Display Rate: Off";
 		if (menuItems[i] == M_SHAPES) label = !en || !strcmp(cfg->screenMatch, "keep") ? "Keep device aspect ratios" :
 		                                      !strcmp(cfg->screenMatch, "aspect") ? "Match screen aspect ratios" : "Match screen sizes and aspect ratios";
+		if (menuItems[i] == M_PIXLOGO) label = cfg->logoPixelate ? "Logo: Pixelated" : "Logo: Full Detail";
 		if (menuItems[i] == M_LOGO) label = cfg->showLogo ? "No Second Screen: Show Logo" : "No Second Screen: Keep Blank";
 		if (menuItems[i] == M_OVERLAY) {
 			static const char* const ovl[3] = { "Overlays: Off", "Overlays: Generated", "Overlays: Custom" };
@@ -3734,10 +3737,9 @@ static void card_backdrop(void) {
  * bottom */
 static const uint32_t* card_logo(void) {
 	static uint32_t cardLogo[HUD_CW * HUD_CH];
-	static bool made;
-	if (!made) {
+	if (!cardLogoMade) {
 		for (int i = 0; i < HUD_CW * HUD_CH; ++i) cardLogo[i] = SCREEN_LIVE; /* (under the HUD: GEN-1) */
-		made = logo_draw(cardLogo, HUD_CW, HUD_CH, HUD_CW / GBA_W, hudProf->hud.card.whole ? 0 : 48 * 2, 255);
+		cardLogoMade = logo_draw(cardLogo, HUD_CW, HUD_CH, HUD_CW / GBA_W, hudProf->hud.card.whole ? 0 : 48 * 2, 255);
 	}
 	return cardLogo;
 }
@@ -6180,6 +6182,7 @@ static void save_prefs(void) {
 		        cfg->frameBuffer ? 1 : 0, cfg->matchDisplay ? 1 : 0, cfg->rewind ? 1 : 0, cfg->fastForward ? 1 : 0,
 		        cfg->autoSave ? 1 : 0, cfg->autoLoad ? 1 : 0, cfg->barPinned ? 1 : 0);
 		fprintf(f, "screen_match = %s\n", cfg->screenMatch);
+		fprintf(f, "logo_pixelate = %d\n", cfg->logoPixelate ? 1 : 0);
 		fprintf(f, "overlay_screens = %s\nbezel_logo = %d\nbezel_inner = %s\nbezel_outer = %s\n",
 		        cfg->overlays == OVL_TOP ? "top" : cfg->overlays == OVL_BOTTOM ? "bottom" : "both", cfg->bezelLogo, cfg->bezelInner, cfg->bezelOuter);
 		fprintf(f, "shader_last = %s\n", shaderNames[cfg->shaderLast > SH_OFF && cfg->shaderLast < SH_COUNT ? cfg->shaderLast : SH_GRID]);
@@ -6733,6 +6736,13 @@ static bool activate(int item, enum GameExit* exitTo) {
 		else snprintf(menuNote, sizeof(menuNote), "The display's rate isn't close enough to match");
 		save_prefs();
 		break;
+	case M_PIXLOGO:
+		/* GEN-10: the player's own or a scraped logo, at GBA pixels or not */
+		cfg->logoPixelate = !cfg->logoPixelate;
+		snprintf(menuNote, sizeof(menuNote), "%s", cfg->logoPixelate ? "Shrunk to the GBA's pixels" : "With all its detail, at the same size");
+		logo_refresh();
+		save_prefs();
+		break;
 	case M_LOGO:
 		cfg->showLogo = !cfg->showLogo;
 		save_prefs();
@@ -6966,6 +6976,26 @@ static void patches_setup(const char* rom) {
 	fprintf(stderr, "patches: %s, %d to apply%s\n", patchDir, n, on);
 }
 
+/* The logo loaded again, and every picture it's in made again (extracted at
+ * last, or a scraped / own logo's pixelate switched: GEN-10). */
+static void logo_refresh(void) {
+	ui_free_image(logoTex);
+	ui_free_image(logoCanvasTex);
+	logoSub = 1;
+	bool got = ui_load_logo(cfg, romPath, emu.gameCode, logoTex, &logoW, &logoH, &logoPixel);
+	logoProvisional = ui_logo_provisional();
+	if (!got) return;
+	make_logo_canvas();
+	hudLogoBelowDone = hudLogoDone = false; /* the HUD's pictures with it */
+	cardLogoMade = false;
+	if (combatMade) {
+		/* and the fight picture (and the map picture's logo behind) */
+		make_combat_canvas();
+		overDirty = true;
+		if (mapShownIdx >= 0) upload_map_frame(mapShownIdx);
+	}
+}
+
 enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	cfg = c;
 	debug = getenv("GBADS_DEBUG") != NULL;
@@ -7048,6 +7078,11 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	pages[1][pageLen[1]++] = M_FRAMEBUF;
 	pages[1][pageLen[1]++] = M_MATCH;
 	pages[1][pageLen[1]++] = M_SHAPES;
+	{
+		/* the game's logo is the player's own or a scraped one (GEN-10) */
+		char lp[1200];
+		if (ui_logo_source(cfg, romPath, emu.gameCode, lp, sizeof(lp)) != LOGO_EXTRACTED) pages[1][pageLen[1]++] = M_PIXLOGO;
+	}
 	pages[2][pageLen[2]++] = M_REWIND;
 	pages[2][pageLen[2]++] = M_FF;
 	pages[2][pageLen[2]++] = M_AUTOSAVE;
@@ -7179,19 +7214,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			/* a logo finished extracting: the game's, or the one a scraped
 			 * logo takes its size from (GEN-10) */
 			logoGen = logo_generation();
-			ui_free_image(logoTex);
-			bool got = ui_load_logo(cfg, romPath, emu.gameCode, logoTex, &logoW, &logoH, &logoPixel);
-			logoProvisional = ui_logo_provisional();
-			if (got) {
-				make_logo_canvas();
-				hudLogoBelowDone = hudLogoDone = false; /* the HUD's pictures with it */
-				if (combatMade) {
-					/* and the fight picture (and the map picture's logo behind) */
-					make_combat_canvas();
-					overDirty = true;
-					if (mapShownIdx >= 0) upload_map_frame(mapShownIdx);
-				}
-			}
+			logo_refresh();
 		}
 		{
 			/* back from sleep (frames stopped for over 2 seconds) or the

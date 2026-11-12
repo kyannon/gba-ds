@@ -170,9 +170,9 @@ bool ui_load_surface(SDL_Surface* s, SDL_Texture* out[2], int* w, int* h, bool s
 /* One of the built-in images (BRAND_* in brand.h), smooth-scaled. */
 bool ui_load_brand(int id, SDL_Texture* out[2], int* w, int* h);
 void ui_free_image(SDL_Texture* tex[2]);
-/* A game's title logo: <asset_dir>/logos/<CODE>.png|.bmp if the user put one
- * there; else a scraped one in logo_folder named after the ROM file (GEN-10),
- * sized as the extracted logo is; else the one extracted from the ROM
+/* A game's title logo: <asset_dir>/logos/<CODE>.png|.bmp|.jpg if the user
+ * put one there; else a scraped one in logo_folder named after the ROM file;
+ * either sized as the extracted logo is (GEN-10); else the one extracted from the ROM
  * (<state_dir>/logos/<CODE>.png), which is queued for extraction in the
  * background if it doesn't exist yet (watch logo_generation() and call
  * again). pixelArt: one pixel per GBA pixel, drawn with "integer". */
@@ -188,6 +188,9 @@ bool ui_load_logo(const Config* cfg, const char* rom, const char* code, SDL_Text
 /* The last logo loaded is a scraped one sized before the extracted logo
  * existed (load it again once logo_generation() changes). */
 bool ui_logo_provisional(void);
+/* Where the game's logo comes from (GEN-10); path: its file. */
+enum { LOGO_EXTRACTED, LOGO_OWN, LOGO_SCRAPED };
+int ui_logo_source(const Config* c, const char* rom, const char* code, char* path, size_t n);
 /* The extracted logo queued for extraction if it's needed and missing (a
  * scraped logo needs it too: it takes its size from it). */
 void ui_logo_queue(const Config* c, const char* rom, const char* code);

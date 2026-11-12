@@ -207,6 +207,29 @@ def run_app(case, args, workdir):
             sep = 1 if case.get("patch_separate", True) else 0
             with open(os.path.join(statedir, case["rom"] + ".patches"), "w") as f:
                 f.write("".join("on %s\n" % p for p in patches_on(case)) + "separate_save %d\nseparate_states %d\n" % (sep, sep))
+    # GEN-10: "logo_folder" {name there: fixture under logos/}, the folder
+    # given as --logo_folder (named as a scraper would, to test the lookup);
+    # "own_logo": a fixture under logos/, put as <asset_dir>/logos/CODE.<ext>
+    extra = []
+    if case.get("logo_folder"):
+        lf = os.path.join(workdir, "scraped")
+        os.makedirs(lf)
+        for name, f in case["logo_folder"].items():
+            src = os.path.join(args.fixtures, "logos", f)
+            if not os.path.exists(src):
+                r.error = "missing logo fixture logos/%s" % f
+                return r
+            os.symlink(src, os.path.join(lf, name))
+        extra.append("--logo_folder=" + lf)
+    if case.get("own_logo"):
+        src = os.path.join(args.fixtures, "logos", case["own_logo"])
+        if not os.path.exists(src):
+            r.error = "missing logo fixture logos/%s" % case["own_logo"]
+            return r
+        ad = os.path.join(workdir, "assets")
+        os.makedirs(os.path.join(ad, "logos"))
+        os.symlink(src, os.path.join(ad, "logos", case["rom"][:4] + os.path.splitext(src)[1]))
+        extra.append("--asset_dir=" + ad)
     if case.get("save"):
         sav = os.path.join(args.fixtures, "saves", case["save"])
         if not os.path.exists(sav):
@@ -235,7 +258,7 @@ def run_app(case, args, workdir):
             f.write("%d %s\n" % (frame, what))
     # (the start-up hint is timed in real seconds: off, so the pictures are exact;
     # overlays off, so the goldens are the games' pictures alone: a case can turn them on)
-    cmd = [args.bin, "--state-dir=" + statedir, "--input-script=" + script, "--quick_bar_hint=0", "--overlays=off", "--patch_dir=" + patchdir]
+    cmd = [args.bin, "--state-dir=" + statedir, "--input-script=" + script, "--quick_bar_hint=0", "--overlays=off", "--patch_dir=" + patchdir] + extra
     for k, v in case.get("config", {}).items():
         cmd.append("--%s=%s" % (k, v))
     if case.get("state"):
@@ -577,6 +600,8 @@ def main():
                 need.add("saves/" + c["save"])
             for f in ([c["patch"]] if c.get("patch") else []) + c.get("patch_folder", []) + patches_on(c):
                 need.add("patches/" + f)
+            for f in list(c.get("logo_folder", {}).values()) + ([c["own_logo"]] if c.get("own_logo") else []):
+                need.add("logos/" + f)
             for _, keys in c.get("input", []):
                 if keys.startswith("LOAD:"):
                     need.add("states/" + keys[5:])
