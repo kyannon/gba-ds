@@ -2143,8 +2143,9 @@ static bool own_logo(const Config* c, const char* code, char* path, size_t n) {
 }
 
 /* A scraped logo (GEN-10): in logo_folder, by the ROM file's name without
- * its extension, as scrapers name them: <rom>.png, then <rom>-marquee.png,
- * <rom>-wheel.png, <rom>-logo.png. */
+ * its extension, as scrapers name them: <rom>, <rom>-marquee, <rom>-wheel,
+ * <rom>-logo, each as .png first (it can be transparent), then as .jpg or
+ * .jpeg. */
 static bool scraped_logo(const Config* c, const char* rom, char* path, size_t n) {
 	if (!c->logoFolder[0] || !rom || !rom[0]) return false;
 	const char* base = strrchr(rom, '/');
@@ -2153,21 +2154,44 @@ static bool scraped_logo(const Config* c, const char* rom, char* path, size_t n)
 	snprintf(stem, sizeof(stem), "%s", base);
 	char* dot = strrchr(stem, '.');
 	if (dot && dot != stem) *dot = 0;
+	const char* exts[] = { "png", "jpg", "jpeg", "PNG", "JPG", "JPEG" };
 	const char* tails[] = { "", "-marquee", "-wheel", "-logo" };
-	for (int i = 0; i < 4; ++i) {
-		snprintf(path, n, "%s/%s%s.png", c->logoFolder, stem, tails[i]);
-		if (file_there(path)) return true;
-	}
+	for (int e = 0; e < 6; ++e)
+		for (int i = 0; i < 4; ++i) {
+			snprintf(path, n, "%s/%s%s.%s", c->logoFolder, stem, tails[i], exts[e]);
+			if (file_there(path)) return true;
+		}
 	return false;
 }
 
-/* The pixels with any alpha: a scraped image's padding cut away. */
+/* A pixel unlike the background: any alpha, or, in a picture with none to
+ * cut by (a JPEG), a colour away from its top-left corner's (JPEG noise
+ * allowed for). */
+static bool drawn_px(const uint8_t* p, const uint8_t* bg) {
+	if (!bg) return p[3] != 0;
+	return abs(p[0] - bg[0]) > 24 || abs(p[1] - bg[1]) > 24 || abs(p[2] - bg[2]) > 24;
+}
+
+/* What's drawn, the rest cut away: a scraped image's transparent padding,
+ * or a JPEG's plain border (its background inside the logo's box stays). */
 static SDL_Surface* trim_alpha(SDL_Surface* s) {
+	bool opaque = true;
+	for (int y = 0; y < s->h && opaque; ++y) {
+		const uint8_t* row = (const uint8_t*) s->pixels + (size_t) y * s->pitch;
+		for (int x = 0; x < s->w; ++x)
+			if (row[x * 4 + 3] != 255) {
+				opaque = false;
+				break;
+			}
+	}
+	uint8_t corner[4];
+	memcpy(corner, s->pixels, 4);
+	const uint8_t* bg = opaque ? corner : NULL;
 	int x0 = s->w, y0 = s->h, x1 = -1, y1 = -1;
 	for (int y = 0; y < s->h; ++y) {
 		const uint8_t* row = (const uint8_t*) s->pixels + (size_t) y * s->pitch;
 		for (int x = 0; x < s->w; ++x) {
-			if (!row[x * 4 + 3]) continue;
+			if (!drawn_px(row + x * 4, bg)) continue;
 			if (x < x0) x0 = x;
 			if (x > x1) x1 = x;
 			if (y < y0) y0 = y;
