@@ -2,6 +2,9 @@
 
 ## v1.5.1 (not yet released)
 
+### Fixes
+- **Web player:** the page no longer zooms in when you tap the on-screen controls quickly or touch the screens with two fingers on a phone or tablet, or with Ctrl and the mouse wheel, a trackpad pinch or Ctrl + / - on a computer.
+
 ## v1.5 (2026-11-11)
 
 50+ games supported!
