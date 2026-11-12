@@ -108,6 +108,328 @@
    ]
   },
   {
+   "id": "th3-fr-back-to-menu",
+   "rom": "AT3F",
+   "state": "tony-hawks-pro-skater-3/fr-run.ss",
+   "desc": "France: a run (the goal list), then the pause menu's last item (end the run), the end-of-run menu's last item (MENU PRINC.): the main menu, with the logo",
+   "rules": [
+    "TH3-1",
+    "TH3-2"
+   ],
+   "input": [
+    [
+     300,
+     "START"
+    ],
+    [
+     304,
+     "-"
+    ],
+    [
+     344,
+     "DOWN"
+    ],
+    [
+     348,
+     "-"
+    ],
+    [
+     360,
+     "DOWN"
+    ],
+    [
+     364,
+     "-"
+    ],
+    [
+     376,
+     "DOWN"
+    ],
+    [
+     380,
+     "-"
+    ],
+    [
+     392,
+     "DOWN"
+    ],
+    [
+     396,
+     "-"
+    ],
+    [
+     408,
+     "DOWN"
+    ],
+    [
+     412,
+     "-"
+    ],
+    [
+     424,
+     "A"
+    ],
+    [
+     428,
+     "-"
+    ],
+    [
+     488,
+     "DOWN"
+    ],
+    [
+     492,
+     "-"
+    ],
+    [
+     504,
+     "DOWN"
+    ],
+    [
+     508,
+     "-"
+    ],
+    [
+     520,
+     "DOWN"
+    ],
+    [
+     524,
+     "-"
+    ],
+    [
+     536,
+     "DOWN"
+    ],
+    [
+     540,
+     "-"
+    ],
+    [
+     552,
+     "DOWN"
+    ],
+    [
+     556,
+     "-"
+    ],
+    [
+     568,
+     "DOWN"
+    ],
+    [
+     572,
+     "-"
+    ],
+    [
+     584,
+     "DOWN"
+    ],
+    [
+     588,
+     "-"
+    ],
+    [
+     600,
+     "A"
+    ],
+    [
+     604,
+     "-"
+    ]
+   ],
+   "shots": {
+    "run": 280,
+    "after-run": 470,
+    "menu": 800,
+    "later": 1100
+   },
+   "checks": [
+    {
+     "rule": "TH3-1",
+     "what": "the goal list during the run",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "TH3-2",
+     "what": "the logo at the main menu",
+     "shot": "later"
+    }
+   ]
+  },
+  {
+   "id": "th3-de-back-to-menu",
+   "rom": "AT3D",
+   "state": "tony-hawks-pro-skater-3/de-run.ss",
+   "desc": "Germany: a run (the goal list), then the pause menu's last item (end the run), the end-of-run menu's last item (ZURÜCK): the main menu, with the logo",
+   "rules": [
+    "TH3-1",
+    "TH3-2"
+   ],
+   "input": [
+    [
+     300,
+     "START"
+    ],
+    [
+     304,
+     "-"
+    ],
+    [
+     344,
+     "DOWN"
+    ],
+    [
+     348,
+     "-"
+    ],
+    [
+     360,
+     "DOWN"
+    ],
+    [
+     364,
+     "-"
+    ],
+    [
+     376,
+     "DOWN"
+    ],
+    [
+     380,
+     "-"
+    ],
+    [
+     392,
+     "DOWN"
+    ],
+    [
+     396,
+     "-"
+    ],
+    [
+     408,
+     "DOWN"
+    ],
+    [
+     412,
+     "-"
+    ],
+    [
+     424,
+     "A"
+    ],
+    [
+     428,
+     "-"
+    ],
+    [
+     488,
+     "DOWN"
+    ],
+    [
+     492,
+     "-"
+    ],
+    [
+     504,
+     "DOWN"
+    ],
+    [
+     508,
+     "-"
+    ],
+    [
+     520,
+     "DOWN"
+    ],
+    [
+     524,
+     "-"
+    ],
+    [
+     536,
+     "DOWN"
+    ],
+    [
+     540,
+     "-"
+    ],
+    [
+     552,
+     "DOWN"
+    ],
+    [
+     556,
+     "-"
+    ],
+    [
+     568,
+     "DOWN"
+    ],
+    [
+     572,
+     "-"
+    ],
+    [
+     584,
+     "DOWN"
+    ],
+    [
+     588,
+     "-"
+    ],
+    [
+     600,
+     "A"
+    ],
+    [
+     604,
+     "-"
+    ]
+   ],
+   "shots": {
+    "run": 280,
+    "after-run": 470,
+    "menu": 800,
+    "later": 1100
+   },
+   "checks": [
+    {
+     "rule": "TH3-1",
+     "what": "the goal list during the run",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "TH3-2",
+     "what": "the logo at the main menu",
+     "shot": "later"
+    }
+   ]
+  },
+  {
    "id": "th3-logo-at3e",
    "kind": "logo",
    "rom": "AT3E",
