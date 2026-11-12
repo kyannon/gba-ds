@@ -40,7 +40,7 @@ Modelled on Super Mario Advance 2 ([SMA rules](super-mario-advance-2.md)): somet
 
 ## Not covered yet
 
-- Japan has the world map and a level only (Europe also its language menu and World-e from the Virtual Console dump); their houses, airships and bosses haven't been run.
+- Japan has the world map, a level and going into one from the map only (Europe also its language menu and World-e from the Virtual Console dump); their houses, airships and bosses haven't been run.
 - The e-Reader levels themselves (World-e's levels played) and Classic Mario Bros. (from the title) haven't been tried.
 
 ## Known issues

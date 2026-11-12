@@ -913,6 +913,284 @@
    ]
   },
   {
+   "id": "sm4-eu-enter",
+   "rom": "AX4P",
+   "state": "super-mario-advance-4/eu-worldmap.ss",
+   "desc": "Europe: on World 1's map, to level 1 (RIGHT, UP) and into it (A): the map, then the level's status picture",
+   "rules": [
+    "SM4-1",
+    "SM4-2",
+    "SM4-6"
+   ],
+   "input": [
+    [
+     130,
+     "RIGHT"
+    ],
+    [
+     134,
+     "-"
+    ],
+    [
+     174,
+     "UP"
+    ],
+    [
+     178,
+     "-"
+    ],
+    [
+     218,
+     "A"
+    ],
+    [
+     222,
+     "-"
+    ]
+   ],
+   "shots": {
+    "map": 120,
+    "level": 560
+   },
+   "checks": [
+    {
+     "rule": "SM4-1",
+     "what": "the inventory panel at the bottom",
+     "type": "pixels",
+     "probes": [
+      [
+       512,
+       292,
+       "FFFFFF"
+      ],
+      [
+       64,
+       464,
+       "42ADF7"
+      ],
+      [
+       976,
+       464,
+       "FFFFFF"
+      ],
+      [
+       512,
+       692,
+       "FFFFFF"
+      ]
+     ],
+     "shot": "map"
+    },
+    {
+     "rule": "SM4-1",
+     "what": "nothing of the map between the status bar and the inventory",
+     "type": "uniform",
+     "rect": [
+      32,
+      160,
+      988,
+      264
+     ],
+     "color": "000000",
+     "shot": "map"
+    },
+    {
+     "rule": "SM4-2",
+     "what": "the status bar along the top",
+     "type": "not_uniform",
+     "shot": "level",
+     "rect": [
+      32,
+      64,
+      988,
+      92
+     ],
+     "color": "000000",
+     "frac": 0.97
+    },
+    {
+     "rule": "SM4-2",
+     "what": "the P meter centred along the bottom",
+     "type": "not_uniform",
+     "shot": "level",
+     "rect": [
+      432,
+      664,
+      592,
+      692
+     ],
+     "color": "000000",
+     "frac": 0.97
+    },
+    {
+     "rule": "SM4-6",
+     "what": "the world map's status bar at the top",
+     "type": "not_uniform",
+     "shot": "map",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "000000",
+     "frac": 0.5
+    },
+    {
+     "rule": "SM4-2",
+     "what": "nothing at the bottom left",
+     "type": "uniform",
+     "shot": "level",
+     "rect": [
+      48,
+      664,
+      272,
+      692
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "sm4-jp-enter",
+   "rom": "AX4J",
+   "state": "super-mario-advance-4/jp-worldmap.ss",
+   "desc": "Japan: on World 1's map, to level 1 (RIGHT, UP) and into it (A): the map, then the level's status picture",
+   "rules": [
+    "SM4-1",
+    "SM4-2",
+    "SM4-6"
+   ],
+   "input": [
+    [
+     130,
+     "RIGHT"
+    ],
+    [
+     134,
+     "-"
+    ],
+    [
+     174,
+     "UP"
+    ],
+    [
+     178,
+     "-"
+    ],
+    [
+     218,
+     "A"
+    ],
+    [
+     222,
+     "-"
+    ]
+   ],
+   "shots": {
+    "map": 120,
+    "level": 560
+   },
+   "checks": [
+    {
+     "rule": "SM4-1",
+     "what": "the inventory panel at the bottom",
+     "type": "pixels",
+     "probes": [
+      [
+       512,
+       292,
+       "FFFFFF"
+      ],
+      [
+       64,
+       464,
+       "42ADF7"
+      ],
+      [
+       976,
+       464,
+       "FFFFFF"
+      ],
+      [
+       512,
+       692,
+       "FFFFFF"
+      ]
+     ],
+     "shot": "map"
+    },
+    {
+     "rule": "SM4-1",
+     "what": "nothing of the map between the status bar and the inventory",
+     "type": "uniform",
+     "rect": [
+      32,
+      160,
+      988,
+      264
+     ],
+     "color": "000000",
+     "shot": "map"
+    },
+    {
+     "rule": "SM4-2",
+     "what": "the status bar along the top",
+     "type": "not_uniform",
+     "shot": "level",
+     "rect": [
+      32,
+      64,
+      988,
+      92
+     ],
+     "color": "000000",
+     "frac": 0.97
+    },
+    {
+     "rule": "SM4-2",
+     "what": "the P meter centred along the bottom",
+     "type": "not_uniform",
+     "shot": "level",
+     "rect": [
+      432,
+      664,
+      592,
+      692
+     ],
+     "color": "000000",
+     "frac": 0.97
+    },
+    {
+     "rule": "SM4-6",
+     "what": "the world map's status bar at the top",
+     "type": "not_uniform",
+     "shot": "map",
+     "rect": [
+      48,
+      64,
+      976,
+      136
+     ],
+     "color": "000000",
+     "frac": 0.5
+    },
+    {
+     "rule": "SM4-2",
+     "what": "nothing at the bottom left",
+     "type": "uniform",
+     "shot": "level",
+     "rect": [
+      48,
+      664,
+      272,
+      692
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
    "id": "sm4-us-other-colours",
    "rom": "AX4E",
    "state": "super-mario-advance-4/us-worldmap-other-colours.ss",
