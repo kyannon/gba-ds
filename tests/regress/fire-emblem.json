@@ -736,6 +736,366 @@
    ]
   },
   {
+   "id": "fe-eu-y-enemy-status",
+   "rom": "AE7Y",
+   "state": "fire-emblem/eu-y-prologue-unit.ss",
+   "desc": "Europe (English, Spanish, Italian): the prologue, the cursor moved from Lyn to Batta's brigand (11 LEFT, 1 UP): the other army's unit's status on the second screen",
+   "rules": [
+    "FE-3"
+   ],
+   "input": [
+    [
+     60,
+     "LEFT"
+    ],
+    [
+     63,
+     "-"
+    ],
+    [
+     72,
+     "LEFT"
+    ],
+    [
+     75,
+     "-"
+    ],
+    [
+     84,
+     "LEFT"
+    ],
+    [
+     87,
+     "-"
+    ],
+    [
+     96,
+     "LEFT"
+    ],
+    [
+     99,
+     "-"
+    ],
+    [
+     108,
+     "LEFT"
+    ],
+    [
+     111,
+     "-"
+    ],
+    [
+     120,
+     "LEFT"
+    ],
+    [
+     123,
+     "-"
+    ],
+    [
+     132,
+     "LEFT"
+    ],
+    [
+     135,
+     "-"
+    ],
+    [
+     144,
+     "LEFT"
+    ],
+    [
+     147,
+     "-"
+    ],
+    [
+     156,
+     "LEFT"
+    ],
+    [
+     159,
+     "-"
+    ],
+    [
+     168,
+     "LEFT"
+    ],
+    [
+     171,
+     "-"
+    ],
+    [
+     180,
+     "LEFT"
+    ],
+    [
+     183,
+     "-"
+    ],
+    [
+     192,
+     "UP"
+    ],
+    [
+     195,
+     "-"
+    ]
+   ],
+   "shots": {
+    "lyn": 50,
+    "start": 392,
+    "end": 692
+   },
+   "checks": [
+    {
+     "rule": "FE-3",
+     "what": "a status taken after the cursor moved",
+     "type": "log",
+     "match": "frame (2[0-9][0-9]|[3-6][0-9][0-9]): map updated"
+    }
+   ]
+  },
+  {
+   "id": "fe-eu-x-enemy-status",
+   "rom": "AE7X",
+   "state": "fire-emblem/eu-x-prologue-unit.ss",
+   "desc": "Europe (English, French, German): the prologue, the cursor moved from Lyn to Batta's brigand (11 LEFT, 1 UP): the other army's unit's status on the second screen",
+   "rules": [
+    "FE-3"
+   ],
+   "input": [
+    [
+     60,
+     "LEFT"
+    ],
+    [
+     63,
+     "-"
+    ],
+    [
+     72,
+     "LEFT"
+    ],
+    [
+     75,
+     "-"
+    ],
+    [
+     84,
+     "LEFT"
+    ],
+    [
+     87,
+     "-"
+    ],
+    [
+     96,
+     "LEFT"
+    ],
+    [
+     99,
+     "-"
+    ],
+    [
+     108,
+     "LEFT"
+    ],
+    [
+     111,
+     "-"
+    ],
+    [
+     120,
+     "LEFT"
+    ],
+    [
+     123,
+     "-"
+    ],
+    [
+     132,
+     "LEFT"
+    ],
+    [
+     135,
+     "-"
+    ],
+    [
+     144,
+     "LEFT"
+    ],
+    [
+     147,
+     "-"
+    ],
+    [
+     156,
+     "LEFT"
+    ],
+    [
+     159,
+     "-"
+    ],
+    [
+     168,
+     "LEFT"
+    ],
+    [
+     171,
+     "-"
+    ],
+    [
+     180,
+     "LEFT"
+    ],
+    [
+     183,
+     "-"
+    ],
+    [
+     192,
+     "UP"
+    ],
+    [
+     195,
+     "-"
+    ]
+   ],
+   "shots": {
+    "lyn": 50,
+    "start": 392,
+    "end": 692
+   },
+   "checks": [
+    {
+     "rule": "FE-3",
+     "what": "a status taken after the cursor moved",
+     "type": "log",
+     "match": "frame (2[0-9][0-9]|[3-6][0-9][0-9]): map updated"
+    }
+   ]
+  },
+  {
+   "id": "fe-jp-enemy-status",
+   "rom": "AE7J",
+   "state": "fire-emblem/jp-prologue-unit.ss",
+   "desc": "Japan: the prologue, the cursor moved from Lyn to Batta's brigand (11 LEFT, 1 UP): the other army's unit's status on the second screen",
+   "rules": [
+    "FE-3"
+   ],
+   "input": [
+    [
+     60,
+     "LEFT"
+    ],
+    [
+     63,
+     "-"
+    ],
+    [
+     72,
+     "LEFT"
+    ],
+    [
+     75,
+     "-"
+    ],
+    [
+     84,
+     "LEFT"
+    ],
+    [
+     87,
+     "-"
+    ],
+    [
+     96,
+     "LEFT"
+    ],
+    [
+     99,
+     "-"
+    ],
+    [
+     108,
+     "LEFT"
+    ],
+    [
+     111,
+     "-"
+    ],
+    [
+     120,
+     "LEFT"
+    ],
+    [
+     123,
+     "-"
+    ],
+    [
+     132,
+     "LEFT"
+    ],
+    [
+     135,
+     "-"
+    ],
+    [
+     144,
+     "LEFT"
+    ],
+    [
+     147,
+     "-"
+    ],
+    [
+     156,
+     "LEFT"
+    ],
+    [
+     159,
+     "-"
+    ],
+    [
+     168,
+     "LEFT"
+    ],
+    [
+     171,
+     "-"
+    ],
+    [
+     180,
+     "LEFT"
+    ],
+    [
+     183,
+     "-"
+    ],
+    [
+     192,
+     "UP"
+    ],
+    [
+     195,
+     "-"
+    ]
+   ],
+   "shots": {
+    "lyn": 50,
+    "start": 392,
+    "end": 692
+   },
+   "checks": [
+    {
+     "rule": "FE-3",
+     "what": "a status taken after the cursor moved",
+     "type": "log",
+     "match": "frame (2[0-9][0-9]|[3-6][0-9][0-9]): map updated"
+    }
+   ]
+  },
+  {
    "id": "fe-logo-ae7e",
    "kind": "logo",
    "rom": "AE7E",

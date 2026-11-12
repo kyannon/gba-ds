@@ -36,6 +36,6 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 ## Not covered yet
 
-- Europe (both releases) is checked in the prologue (a unit's status, a phase banner, a story scene) and Japan on a unit's status there; their later chapters, fights and other armies' turns haven't been run.
+- Europe (both releases) is checked in the prologue (a unit's status, an enemy's, a phase banner, a story scene) and Japan on a unit's and an enemy's status there; their later chapters, fights and other armies' turns haven't been run.
 - Fog of war chapters, Hector's mode and the final chapters: not reached.
 - The Link Arena needs a link cable: not tried.
