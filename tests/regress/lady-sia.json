@@ -1403,6 +1403,349 @@
      ]
     }
    ]
+  },
+  {
+   "id": "ls-us-spell-water",
+   "rom": "ALDE",
+   "state": "lady-sia/us-spells.ss",
+   "desc": "the spells set in memory (0x03001D2C), the water spell cast (LEFT, UP, RIGHT, A+B) in the first level: the ring the game puts up for it is left off the game screen, its countdown in the top right stays; the second screen keeps its last picture while the spell runs, then the status picture comes back with the ring's stone dark",
+   "rules": [
+    "LS-2",
+    "LS-6"
+   ],
+   "input": [
+    [
+     30,
+     "LEFT"
+    ],
+    [
+     34,
+     "-"
+    ],
+    [
+     36,
+     "UP"
+    ],
+    [
+     40,
+     "-"
+    ],
+    [
+     42,
+     "RIGHT"
+    ],
+    [
+     46,
+     "-"
+    ],
+    [
+     48,
+     "A+B"
+    ],
+    [
+     54,
+     "-"
+    ]
+   ],
+   "shots": {
+    "cast": 60,
+    "during": 88,
+    "later": 948
+   },
+   "checks": [
+    {
+     "rule": "LS-6",
+     "what": "the ring the game puts up for the spell, not on the game screen",
+     "type": "not_pixels",
+     "shot": "during",
+     "screen": "game",
+     "probes": [
+      [
+       314,
+       586,
+       "636363"
+      ],
+      [
+       342,
+       614,
+       "636363"
+      ],
+      [
+       254,
+       638,
+       "636363"
+      ]
+     ]
+    },
+    {
+     "rule": "LS-2",
+     "what": "the second screen keeps its last picture while the spell runs",
+     "type": "same",
+     "a": {
+      "shot": "cast",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "during",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     }
+    },
+    {
+     "rule": "LS-2",
+     "what": "the ring's stone changed once the status picture is back (the magic used)",
+     "type": "differs",
+     "a": {
+      "shot": "cast",
+      "rect": [
+       260,
+       585,
+       340,
+       650
+      ]
+     },
+     "b": {
+      "shot": "later",
+      "rect": [
+       260,
+       585,
+       340,
+       650
+      ]
+     },
+     "frac": 0.2
+    }
+   ]
+  },
+  {
+   "id": "ls-us-spell-fire",
+   "rom": "ALDE",
+   "state": "lady-sia/us-spells.ss",
+   "desc": "the spells set in memory, the fire spell cast (UP, LEFT, DOWN, A+B) in the first level: the ring left off the game screen; the second screen keeps its last picture while the spell runs, then the ring's stone dark",
+   "rules": [
+    "LS-2",
+    "LS-6"
+   ],
+   "input": [
+    [
+     30,
+     "UP"
+    ],
+    [
+     34,
+     "-"
+    ],
+    [
+     36,
+     "LEFT"
+    ],
+    [
+     40,
+     "-"
+    ],
+    [
+     42,
+     "DOWN"
+    ],
+    [
+     46,
+     "-"
+    ],
+    [
+     48,
+     "A+B"
+    ],
+    [
+     54,
+     "-"
+    ]
+   ],
+   "shots": {
+    "cast": 60,
+    "during": 88,
+    "later": 948
+   },
+   "checks": [
+    {
+     "rule": "LS-6",
+     "what": "the ring the game puts up for the spell, not on the game screen",
+     "type": "not_pixels",
+     "shot": "during",
+     "screen": "game",
+     "probes": [
+      [
+       314,
+       586,
+       "636363"
+      ],
+      [
+       342,
+       614,
+       "636363"
+      ],
+      [
+       254,
+       638,
+       "636363"
+      ]
+     ]
+    },
+    {
+     "rule": "LS-2",
+     "what": "the second screen keeps its last picture while the spell runs",
+     "type": "same",
+     "a": {
+      "shot": "cast",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "during",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     }
+    },
+    {
+     "rule": "LS-2",
+     "what": "the ring's stone changed once the status picture is back (the magic used)",
+     "type": "differs",
+     "a": {
+      "shot": "cast",
+      "rect": [
+       260,
+       585,
+       340,
+       650
+      ]
+     },
+     "b": {
+      "shot": "later",
+      "rect": [
+       260,
+       585,
+       340,
+       650
+      ]
+     },
+     "frac": 0.2
+    }
+   ]
+  },
+  {
+   "id": "ls-us-spell-air",
+   "rom": "ALDE",
+   "state": "lady-sia/us-log-spells.ss",
+   "desc": "the spells set in memory, the air spell cast (LEFT, DOWN, RIGHT, A+B) on the ghost by the log: the ghost gone, the ring left off the game screen though it's put up where the log is; then the status picture with the ring's stone dark",
+   "rules": [
+    "LS-2",
+    "LS-6"
+   ],
+   "input": [
+    [
+     10,
+     "LEFT"
+    ],
+    [
+     14,
+     "-"
+    ],
+    [
+     16,
+     "DOWN"
+    ],
+    [
+     20,
+     "-"
+    ],
+    [
+     22,
+     "RIGHT"
+    ],
+    [
+     26,
+     "-"
+    ],
+    [
+     28,
+     "A+B"
+    ],
+    [
+     34,
+     "-"
+    ]
+   ],
+   "shots": {
+    "cast": 40,
+    "during": 68,
+    "later": 928
+   },
+   "checks": [
+    {
+     "rule": "LS-6",
+     "what": "the ring the game puts up for the spell, not on the game screen",
+     "type": "not_pixels",
+     "shot": "during",
+     "screen": "game",
+     "probes": [
+      [
+       314,
+       586,
+       "636363"
+      ],
+      [
+       342,
+       614,
+       "636363"
+      ],
+      [
+       254,
+       638,
+       "636363"
+      ]
+     ]
+    },
+    {
+     "rule": "LS-2",
+     "what": "the ring's stone changed once the status picture is back (the magic used)",
+     "type": "differs",
+     "a": {
+      "shot": "cast",
+      "rect": [
+       260,
+       585,
+       340,
+       650
+      ]
+     },
+     "b": {
+      "shot": "later",
+      "rect": [
+       260,
+       585,
+       340,
+       650
+      ]
+     },
+     "frac": 0.2
+    }
+   ]
   }
  ]
 }
