@@ -2318,7 +2318,7 @@ static SDL_Surface* sized_surface(const Config* c, const char* src, const char* 
 	int refH = 0;
 	SDL_Surface* r = image_load(ref);
 	if (r) refH = r->h, SDL_FreeSurface(r);
-	if (scrapedCache.s && !strcmp(scrapedCache.src, src) && scrapedCache.refH == refH && scrapedCache.pixelate == c->logoPixelate) {
+	if (scrapedCache.s && !strcmp(scrapedCache.src, src) && scrapedCache.refH == refH && scrapedCache.pixelate == (c->customLogos == CL_PIXELATED)) {
 		*sub = scrapedCache.sub;
 		scrapedProvisional = scrapedCache.provisional;
 		return SDL_DuplicateSurface(scrapedCache.s);
@@ -2336,14 +2336,14 @@ static SDL_Surface* sized_surface(const Config* c, const char* src, const char* 
 		float sc = SDL_min((float) LOGO_BOX_W / img->w, (float) LOGO_BOX_H / img->h);
 		gw = img->w * sc, gh = img->h * sc;
 	}
-	int k = c->logoPixelate ? 1 : LOGO_SUB;
+	int k = c->customLogos == CL_PIXELATED ? 1 : LOGO_SUB;
 	int w = SDL_max(1, (int) lroundf(gw * k)), h = SDL_max(1, (int) lroundf(gh * k));
 	SDL_Surface* o = ui_resample(img, w, h);
 	SDL_FreeSurface(img);
 	if (!o) return NULL;
 	if (scrapedCache.s) SDL_FreeSurface(scrapedCache.s);
 	snprintf(scrapedCache.src, sizeof(scrapedCache.src), "%s", src);
-	scrapedCache.refH = refH, scrapedCache.pixelate = c->logoPixelate;
+	scrapedCache.refH = refH, scrapedCache.pixelate = c->customLogos == CL_PIXELATED;
 	scrapedCache.s = o, scrapedCache.sub = k, scrapedCache.provisional = refH <= 0;
 	*sub = k;
 	scrapedProvisional = refH <= 0;
@@ -2365,10 +2365,17 @@ bool ui_logo_provisional(void) {
 /* The logo's source: the player's own file or a scraped one (path set), or
  * the extracted one (path its file, which may not exist yet). */
 int ui_logo_source(const Config* c, const char* rom, const char* code, char* path, size_t n) {
-	if (own_logo(c, code, path, n)) return LOGO_OWN;
-	if (scraped_logo(c, rom, path, n)) return LOGO_SCRAPED;
+	if (c->customLogos != CL_OFF) {
+		if (own_logo(c, code, path, n)) return LOGO_OWN;
+		if (scraped_logo(c, rom, path, n)) return LOGO_SCRAPED;
+	}
 	extracted_path(c, code, path, n);
 	return LOGO_EXTRACTED;
+}
+
+bool ui_logo_custom(const Config* c, const char* rom, const char* code) {
+	char path[1200];
+	return own_logo(c, code, path, sizeof(path)) || scraped_logo(c, rom, path, sizeof(path));
 }
 
 SDL_Surface* ui_logo_surface(const Config* c, const char* rom, const char* code, bool* pixelArt, int* sub) {

@@ -67,7 +67,7 @@ Updating from the game list (Settings > Updates) keeps your `gba-ds.cfg`. Unzipp
 | `map_crop` | `1` | The Metroid map screens, tidied (labels erased, prompts and minimap removed; see [[Supported games]]), and Lady Sia's pause screen without its menu lines. `0` shows them exactly as the games draw them. |
 | `show_logo` | `1` | The game's logo on the second screen when there's nothing else to show (title screens, menus, before the first map). `0` keeps it blank. |
 | `logo_folder` | empty | A folder of scraped logos (EmulationStation's marquees, Skraper's wheels), found by the ROM's file name whatever the details in brackets (`Golden Sun.png`, `Golden Sun (USA)-marquee.jpg`...), PNG or JPG. Used instead of the logo GBA DS takes from the game, at its height. See [Playing](Playing#logos). |
-| `logo_pixelate` | `1` | Your own or a scraped logo shrunk to the GBA's pixels, drawn like the game's own. `0` keeps its detail, at the same size. Also in the pause menu (Display > Logo). |
+| `custom_logos` | `pixelated` | Your own and scraped logos: `pixelated` shrinks them to the GBA's pixels, drawn like the game's own; `full` keeps their detail, at the same size; `off` doesn't use them (the logo GBA DS takes from the game instead). Also in the pause menu (Display > Custom Logos). |
 | `map_animations` | `1` | Blinking map markers. `0` shows one still frame, with every marker that blinks showing. A Link to the Past's map is always still that way. |
 | `pinball_live` | `1` | Pokémon Pinball, Sonic Pinball Party and Muppet Pinball Mayhem: two more copies of the game draw the rest of the table live on both screens. `0` turns them off (for slower devices): the game plays on one screen, with the logo on the other. |
 

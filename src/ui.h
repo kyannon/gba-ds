@@ -191,6 +191,8 @@ bool ui_logo_provisional(void);
 /* Where the game's logo comes from (GEN-10); path: its file. */
 enum { LOGO_EXTRACTED, LOGO_OWN, LOGO_SCRAPED };
 int ui_logo_source(const Config* c, const char* rom, const char* code, char* path, size_t n);
+/* The game has an own or scraped logo, used or not (custom_logos off). */
+bool ui_logo_custom(const Config* c, const char* rom, const char* code);
 /* The extracted logo queued for extraction if it's needed and missing (a
  * scraped logo needs it too: it takes its size from it). */
 void ui_logo_queue(const Config* c, const char* rom, const char* code);

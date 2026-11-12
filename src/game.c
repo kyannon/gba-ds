@@ -3336,7 +3336,7 @@ static void draw_menu(void) {
 		if (menuItems[i] == M_MATCH) label = cfg->matchDisplay ? "Match Display Rate: On" : "Match Display Rate: Off";
 		if (menuItems[i] == M_SHAPES) label = !en || !strcmp(cfg->screenMatch, "keep") ? "Keep device aspect ratios" :
 		                                      !strcmp(cfg->screenMatch, "aspect") ? "Match screen aspect ratios" : "Match screen sizes and aspect ratios";
-		if (menuItems[i] == M_PIXLOGO) label = cfg->logoPixelate ? "Logo: Pixelated" : "Logo: Full Detail";
+		if (menuItems[i] == M_PIXLOGO) label = cfg->customLogos == CL_OFF ? "Custom Logos: Do Not Use" : cfg->customLogos == CL_FULL ? "Custom Logos: Full Detail" : "Custom Logos: Pixelated";
 		if (menuItems[i] == M_LOGO) label = cfg->showLogo ? "No Second Screen: Show Logo" : "No Second Screen: Keep Blank";
 		if (menuItems[i] == M_OVERLAY) {
 			static const char* const ovl[3] = { "Overlays: Off", "Overlays: Generated", "Overlays: Custom" };
@@ -6182,7 +6182,7 @@ static void save_prefs(void) {
 		        cfg->frameBuffer ? 1 : 0, cfg->matchDisplay ? 1 : 0, cfg->rewind ? 1 : 0, cfg->fastForward ? 1 : 0,
 		        cfg->autoSave ? 1 : 0, cfg->autoLoad ? 1 : 0, cfg->barPinned ? 1 : 0);
 		fprintf(f, "screen_match = %s\n", cfg->screenMatch);
-		fprintf(f, "logo_pixelate = %d\n", cfg->logoPixelate ? 1 : 0);
+		fprintf(f, "custom_logos = %s\n", cfg->customLogos == CL_OFF ? "off" : cfg->customLogos == CL_FULL ? "full" : "pixelated");
 		fprintf(f, "overlay_screens = %s\nbezel_logo = %d\nbezel_inner = %s\nbezel_outer = %s\n",
 		        cfg->overlays == OVL_TOP ? "top" : cfg->overlays == OVL_BOTTOM ? "bottom" : "both", cfg->bezelLogo, cfg->bezelInner, cfg->bezelOuter);
 		fprintf(f, "shader_last = %s\n", shaderNames[cfg->shaderLast > SH_OFF && cfg->shaderLast < SH_COUNT ? cfg->shaderLast : SH_GRID]);
@@ -6737,9 +6737,12 @@ static bool activate(int item, enum GameExit* exitTo) {
 		save_prefs();
 		break;
 	case M_PIXLOGO:
-		/* GEN-10: the player's own or a scraped logo, at GBA pixels or not */
-		cfg->logoPixelate = !cfg->logoPixelate;
-		snprintf(menuNote, sizeof(menuNote), "%s", cfg->logoPixelate ? "Shrunk to the GBA's pixels" : "With all its detail, at the same size");
+		/* GEN-10: the player's own or a scraped logo at GBA pixels, at full
+		 * detail, or not used (the game's own) */
+		cfg->customLogos = (cfg->customLogos + 1) % 3;
+		snprintf(menuNote, sizeof(menuNote), "%s",
+		         cfg->customLogos == CL_OFF  ? "The logo GBA DS takes from the game" :
+		         cfg->customLogos == CL_FULL ? "With all its detail, at the same size" : "Shrunk to the GBA's pixels");
 		logo_refresh();
 		save_prefs();
 		break;
@@ -7079,9 +7082,8 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	pages[1][pageLen[1]++] = M_MATCH;
 	pages[1][pageLen[1]++] = M_SHAPES;
 	{
-		/* the game's logo is the player's own or a scraped one (GEN-10) */
-		char lp[1200];
-		if (ui_logo_source(cfg, romPath, emu.gameCode, lp, sizeof(lp)) != LOGO_EXTRACTED) pages[1][pageLen[1]++] = M_PIXLOGO;
+		/* the game has the player's own or a scraped logo (GEN-10) */
+		if (ui_logo_custom(cfg, romPath, emu.gameCode)) pages[1][pageLen[1]++] = M_PIXLOGO;
 	}
 	pages[2][pageLen[2]++] = M_REWIND;
 	pages[2][pageLen[2]++] = M_FF;
