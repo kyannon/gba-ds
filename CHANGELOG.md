@@ -2,6 +2,9 @@
 
 ## v1.5.1 (not yet released)
 
+### New
+- **Buttons**, in the pause menu's Extras page (issue #41): choose which GBA button each face button gives the game you're playing: A (right), B (bottom), X (top) and Y (left) can each be GBA A, B, L, R or nothing, so jump can go on B and attack on Y, for instance. Each game keeps its own choices; Reset Buttons goes back to the usual layout (`ab_swap` included). GBA DS's menus and the hotkeys don't change. In Super Mario Advance 2 and 3 and Tony Hawk's Pro Skater 2 and 3, the SNES or four-button layout under Controls decides the face buttons wherever it's in use.
+
 ### Fixes
 - **BananaOS:** the game list now also shows the games on the RG DS Plus's second SD card (its `roms/gba` folder), as Banana's own list does. Before, only the games on the card BananaOS runs from were listed.
 - **Web player:** the page no longer zooms in when you tap the on-screen controls quickly or touch the screens with two fingers on a phone or tablet, or with Ctrl and the mouse wheel, a trackpad pinch or Ctrl + / - on a computer.
