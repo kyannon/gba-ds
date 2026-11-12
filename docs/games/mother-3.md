@@ -2,9 +2,9 @@
 
 | | |
 |---|---|
-| Releases | `A3UJ` Japan (the only release; played in English with the fan translation, a mod of it) |
+| Releases | `A3UJ` Japan (the only release; played in English or another language with a fan translation, a mod of it) |
 | Dumps | `A3UJ` cartridge `42ac9cb9` (tested), Virtual Console `c704a567` |
-| Mods | `A3UJ` English v1.3a (fan translation) `e73b0f7d` (tested), English v1.3 (fan translation) `0e013b7b` (tested), English v1.3 (fan translation; its published UPS) `8a3bc5a8` (tested), English v1.3a + HQ audio mix (MusicTheorist) `789605cd` (tested), English v1.3 + HQ audio mix (MusicTheorist) `57f94dcf` (tested), English v1.3 + HQ audio mix (MusicTheorist; its UPS) `91ac31cb` (tested), HQ audio mix (MusicTheorist) `add15282` (tested), HQ audio mix alternative (MusicTheorist) `b7faa37d` (tested) |
+| Mods | `A3UJ` English v1.3a (fan translation) `e73b0f7d` (tested), English v1.3 (fan translation) `0e013b7b` (tested), English v1.3 (fan translation; its published UPS) `8a3bc5a8` (tested), English v1.3a + HQ audio mix (MusicTheorist) `789605cd` (tested), English v1.3 + HQ audio mix (MusicTheorist) `57f94dcf` (tested), English v1.3 + HQ audio mix (MusicTheorist; its UPS) `91ac31cb` (tested), HQ audio mix (MusicTheorist) `add15282` (tested), HQ audio mix alternative (MusicTheorist) `b7faa37d` (tested), Brazilian Portuguese (fan translation) `00508b53` (tested), Italian v1.1.1 (fan translation) `e7185f88` (tested), German v1.1 (fan translation) `b0b73624` (tested), Simplified Chinese (fan translation) `21fdf96c` (tested), Polish (fan translation) `b439dc34` (tested), French (fan translation) `3c4f84e9` (tested), Catalan v1.0 (fan translation) `4f9f87b5` (tested), Catalan v1.0.2 (fan translation) `5f7919f4` (tested), Dutch (fan translation) `8b74324c` (tested) |
 | Profile | `src/profiles.c`: the `A3UJ` entry (`m3_compose`) |
 | Tests | `tests/regress/mother-3.json` (`tools/regress.py mother-3`) |
 | Status | being added (branch `game/mother-3`) |
@@ -43,6 +43,8 @@ Asked what the game would have put on a second GBA screen: the two things a play
 
 **M3-11. Battles.** In a battle, from the encounter's swirl to the end of the results, the second screen shows the logo (the Status's HP and PP would be stale while the meters roll) and no pictures are taken; walking about again, the map or the Status comes back. Told by the game's mode (M3_MODE 0x08 for the swirl, 0x09 for the battle, an enemy met while walking about) or, in the story's own battles (the Prologue's Mole Cricket, started by a scene, M3_MODE 1), by its battle screen being up (0x02000008 holds 0x0202CD88 there, 0x0202CD48 walking about and in scenes).
 
+**M3-12. The other fan translations.** The translations on romhacking.net into Brazilian Portuguese, Italian (v1.1.1), German (v1.1), Simplified Chinese, Polish, French, Catalan (v1.0 and v1.0.2) and Dutch keep M3-1 to M3-11 as the English one does (M3-8): the same addresses, screens and sprites, the logo the same (only the title's menu lines are translated, and they're left out), the Status in each language with its help window left out the same way. All but Dutch are UPS or BPS patches made for the Japanese ROM, played with the Patches menu or beside the ROM (GEN-9). Dutch is an xdelta patch, a format GBA DS doesn't apply: it plays as a ROM patched beforehand (with xdelta or a patcher that reads it), recognised as the Dutch translation.
+
 ## Not covered yet
 
 - **Battles in the Japanese game.** The battle state (the owner's, Nov 12, 2026) is from the English v1.3a translation; the translation keeps the game's memory layout (every other address here is the same in both), but no Japanese battle has been tried.
@@ -54,13 +56,13 @@ The owner's saves (GameShark and a `.sav`, `saves/A3UJ-*.sav` in the fixtures) a
 
 ## For the merge
 
-- Changelog (under the open version, What's new): "MOTHER 3 (Japan, and its English fan translation v1.3 / v1.3a, with or without the HQ audio mix): walking about, the second screen shows the area's map where R opens one, and the party's Status screen, a page each, elsewhere. In battles and scenes it shows the logo; in conversations the last picture stays."
-- `wiki/Supported-games.md`, table: MOTHER 3 | Japan | Romhacks tested: English translation v1.3, v1.3a; HQ audio mix.
+- Changelog (under the open version, What's new): "MOTHER 3 (Japan, and its fan translations: English v1.3 / v1.3a, with or without the HQ audio mix; Brazilian Portuguese, Italian, German, Simplified Chinese, Polish, French, Catalan and Dutch): walking about, the second screen shows the area's map where R opens one, and the party's Status screen, a page each, elsewhere. In battles and scenes it shows the logo; in conversations the last picture stays."
+- `wiki/Supported-games.md`, table: MOTHER 3 | Japan | Romhacks tested: translations into English (v1.3, v1.3a), Brazilian Portuguese, Italian, German, Simplified Chinese, Polish, French, Catalan, Dutch; HQ audio mix.
 - `wiki/Supported-games.md`, section:
 
   ### MOTHER 3
 
-  Japan only; the English fan translation (v1.3 or v1.3a, as a patched ROM or with its UPS patch in the Patches menu) and MusicTheorist's HQ audio mix work the same.
+  Japan only; the English fan translation (v1.3 or v1.3a, as a patched ROM or with its UPS patch in the Patches menu) and MusicTheorist's HQ audio mix work the same, as do the fan translations into Brazilian Portuguese, Italian, German, Simplified Chinese, Polish, French, Catalan and Dutch (Dutch as a ROM patched beforehand: GBA DS doesn't apply xdelta patches).
 
   - Walking about where the R button opens a map of the area, the second screen shows that map, with the party's marker, without its scroll arrows.
   - Elsewhere it shows the Status screen, turning through the party every 5 seconds, without its L / R badges and its help line.

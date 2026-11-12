@@ -67,6 +67,14 @@ the repo. Fixtures for the tested ones are in the fixtures repo's
 | Mother 3 | `A3UJ` | HQ audio mix (MusicTheorist) | audio | Mother_3_Default_HQ_Audio_Japan.ups | 2318 | `69c5246a` | `42ac9cb9` | `add15282` | yes |
 | Mother 3 | `A3UJ` | HQ audio mix alternative (MusicTheorist) | audio | Mother_3_Alt._HQ_Audio_Japan.ups | 2336 | `f02e4122` | `42ac9cb9` | `b7faa37d` | yes |
 | Mother 3 | `A3UJ` | English v1.3 HQ audio mix (MusicTheorist) | audio | Mother_3_EN_v1.3.ups | 2340 | `cc81483c` | `0e013b7b` | `91ac31cb` | yes (made for one build of the English v1.3 ROM, not the published v1.3 UPS's result; a UPS can't follow another patch, so it doesn't go on top of the translation patch) |
+| Mother 3 | `A3UJ` | Brazilian Portuguese (fan translation) | translation | MOTHER_3_Brazilian_Portuguese.ups | 1354866 | `c6b824db` | `42ac9cb9` | `00508b53` | yes |
+| Mother 3 | `A3UJ` | Italian v1.1.1 (fan translation) | translation | MOTHER_3_Italian_1.1.1.ups | 1462865 | `6607345b` | `42ac9cb9` | `e7185f88` | yes |
+| Mother 3 | `A3UJ` | German v1.1 (fan translation) | translation | MOTHER_3_German_1.1.ups | 1960371 | `887ef75e` | `42ac9cb9` | `b0b73624` | yes |
+| Mother 3 | `A3UJ` | Simplified Chinese (fan translation) | translation | MOTHER_3_Simplified_Chinese.bps | 1051060 | `d9c06486` | `42ac9cb9` | `21fdf96c` | yes |
+| Mother 3 | `A3UJ` | Polish (fan translation) | translation | MOTHER_3_Polish.bps | 1381012 | `074595ff` | `42ac9cb9` | `b439dc34` | yes |
+| Mother 3 | `A3UJ` | French (fan translation) | translation | MOTHER_3_French.ups | 1670991 | `af332e9a` | `42ac9cb9` | `3c4f84e9` | yes |
+| Mother 3 | `A3UJ` | Catalan v1.0 (fan translation) | translation | MOTHER_3_Catalan_1.0.ups | 1555589 | `231ead71` | `42ac9cb9` | `4f9f87b5` | yes |
+| Mother 3 | `A3UJ` | Catalan v1.0.2 (fan translation) | translation | MOTHER_3_Catalan_1.0.2.ups | 1636872 | `d232c9db` | `42ac9cb9` | `5f7919f4` | yes |
 | Fire Emblem: Fuuin no Tsurugi | `AFEJ` | English (Dark Twilkitri) | translation | fe6.ips | 610179 | `5befafab` | `d38763e1` |  |  |
 | Rhythm Tengoku | `BRIJ` | Rhythm Heaven Silver beta 13a | translation | Rhythm.Heaven.Silver.-.Beta.13a.ips | 339033 | `be54e107` | `349d7025` |  |  |
 | Super Mario Advance 4 | `AX4E` | GBP palette v1.0 (djedditt) | colour | AGB-AX4E_(USA)_GBPPalette.ips | 15 | `9fa926ad` | `a44ba79f` | `d4f7d398` | yes (SM4-9's check of the opening's frame colour doesn't apply: the frame is there, a shade darker) |
