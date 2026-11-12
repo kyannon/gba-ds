@@ -32,7 +32,7 @@ Modelled on Super Mario Advance 2 ([SMA rules](super-mario-advance-2.md)) and 4 
 
 ## Not covered yet
 
-- Europe and Japan have a level and a world's panel only.
+- Europe and Japan have a level (its status screen opened, the pause, Return to Map) and a world's panel (another world picked); their island map, title, bonus games and Mario Bros. haven't been run.
 - Boss fights (the big ones drawn in mode 7, such as Raphael the Raven) and the extra levels haven't been tried.
 
 ## Known issues

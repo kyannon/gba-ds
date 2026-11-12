@@ -1121,6 +1121,650 @@
    ]
   },
   {
+   "id": "sm3-eu-back-to-map",
+   "rom": "A3AP",
+   "state": "super-mario-advance-3/eu-level-6-7.ss",
+   "desc": "Europe: Return to Map from the pause menu: the score page as the panel comes up",
+   "rules": [
+    "SM3-1",
+    "SM3-3"
+   ],
+   "input": [
+    [
+     100,
+     "START"
+    ],
+    [
+     105,
+     "-"
+    ],
+    [
+     140,
+     "DOWN"
+    ],
+    [
+     145,
+     "-"
+    ],
+    [
+     160,
+     "DOWN"
+    ],
+    [
+     165,
+     "-"
+    ],
+    [
+     180,
+     "A"
+    ],
+    [
+     185,
+     "-"
+    ]
+   ],
+   "shots": {
+    "level": 60,
+    "panel": 420
+   },
+   "checks": [
+    {
+     "rule": "SM3-3",
+     "what": "the total bar's green",
+     "type": "pixels",
+     "shot": "panel",
+     "probes": [
+      [
+       114,
+       626,
+       "08A542"
+      ],
+      [
+       834,
+       626,
+       "08A542"
+      ]
+     ]
+    },
+    {
+     "rule": "SM3-3",
+     "what": "the #1 box painted over with the panel's colour",
+     "type": "uniform",
+     "shot": "panel",
+     "rect": [
+      780,
+      300,
+      915,
+      435
+     ],
+     "color": "EFB5B5"
+    }
+   ]
+  },
+  {
+   "id": "sm3-eu-panel-other-world",
+   "rom": "A3AP",
+   "state": "super-mario-advance-3/eu-panel-w6.ss",
+   "desc": "Europe: World 5 picked on the tabs: World 5's score page",
+   "rules": [
+    "SM3-3"
+   ],
+   "input": [
+    [
+     100,
+     "UP"
+    ],
+    [
+     105,
+     "-"
+    ],
+    [
+     120,
+     "UP"
+    ],
+    [
+     125,
+     "-"
+    ],
+    [
+     140,
+     "LEFT"
+    ],
+    [
+     145,
+     "-"
+    ],
+    [
+     160,
+     "A"
+    ],
+    [
+     165,
+     "-"
+    ]
+   ],
+   "shots": {
+    "w6": 90,
+    "w5": 300
+   },
+   "checks": [
+    {
+     "rule": "SM3-3",
+     "what": "the total bar's green",
+     "type": "pixels",
+     "shot": "w5",
+     "probes": [
+      [
+       114,
+       626,
+       "08A542"
+      ],
+      [
+       834,
+       626,
+       "08A542"
+      ]
+     ]
+    },
+    {
+     "rule": "SM3-3",
+     "what": "another world's page (the panel's colour)",
+     "type": "differs",
+     "frac": 0.2,
+     "a": {
+      "shot": "w6",
+      "rect": [
+       64,
+       96,
+       959,
+       467
+      ],
+      "screen": "second"
+     },
+     "b": {
+      "shot": "w5",
+      "rect": [
+       64,
+       96,
+       959,
+       467
+      ],
+      "screen": "second"
+     }
+    },
+    {
+     "rule": "SM3-3",
+     "what": "the #1 box painted over with the panel's colour",
+     "type": "uniform",
+     "shot": "w5",
+     "rect": [
+      780,
+      300,
+      915,
+      435
+     ],
+     "color": "BDCEEF"
+    }
+   ]
+  },
+  {
+   "id": "sm3-eu-level-status-open",
+   "rom": "A3AP",
+   "state": "super-mario-advance-3/eu-level-6-7.ss",
+   "desc": "Europe: in a level, SELECT opens the game's own status screen (the logo while it's up), SELECT again closes it (the status picture back)",
+   "rules": [
+    "SM3-1"
+   ],
+   "input": [
+    [
+     100,
+     "SELECT"
+    ],
+    [
+     105,
+     "-"
+    ],
+    [
+     340,
+     "SELECT"
+    ],
+    [
+     345,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 90,
+    "open": 320,
+    "closed": 520
+   },
+   "golden": [
+    "open",
+    "closed"
+   ],
+   "checks": [
+    {
+     "rule": "SM3-1",
+     "what": "the logo while it's open",
+     "type": "pixels",
+     "shot": "open",
+     "probes": [
+      [
+       42,
+       74,
+       "303030"
+      ],
+      [
+       982,
+       694,
+       "303030"
+      ]
+     ]
+    },
+    {
+     "rule": "SM3-1",
+     "what": "the status screen back after",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       32,
+       64,
+       991,
+       703
+      ],
+      "screen": "second"
+     },
+     "b": {
+      "shot": "closed",
+      "rect": [
+       32,
+       64,
+       991,
+       703
+      ],
+      "screen": "second"
+     },
+     "frac": 0.01
+    }
+   ]
+  },
+  {
+   "id": "sm3-eu-level-paused",
+   "rom": "A3AP",
+   "state": "super-mario-advance-3/eu-level-6-7.ss",
+   "desc": "Europe: in a level, START pauses: the second screen unchanged",
+   "rules": [
+    "SM3-1"
+   ],
+   "input": [
+    [
+     100,
+     "START"
+    ],
+    [
+     105,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 90,
+    "paused": 220
+   },
+   "golden": [
+    "paused"
+   ],
+   "checks": [
+    {
+     "rule": "SM3-1",
+     "what": "the second screen unchanged",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       32,
+       64,
+       991,
+       703
+      ],
+      "screen": "second"
+     },
+     "b": {
+      "shot": "paused",
+      "rect": [
+       32,
+       64,
+       991,
+       703
+      ],
+      "screen": "second"
+     }
+    }
+   ]
+  },
+  {
+   "id": "sm3-jp-back-to-map",
+   "rom": "A3AJ",
+   "state": "super-mario-advance-3/jp-level-6-7.ss",
+   "desc": "Japan: Return to Map from the pause menu: the score page as the panel comes up",
+   "rules": [
+    "SM3-1",
+    "SM3-3"
+   ],
+   "input": [
+    [
+     100,
+     "START"
+    ],
+    [
+     105,
+     "-"
+    ],
+    [
+     140,
+     "DOWN"
+    ],
+    [
+     145,
+     "-"
+    ],
+    [
+     160,
+     "DOWN"
+    ],
+    [
+     165,
+     "-"
+    ],
+    [
+     180,
+     "A"
+    ],
+    [
+     185,
+     "-"
+    ]
+   ],
+   "shots": {
+    "level": 60,
+    "panel": 420
+   },
+   "checks": [
+    {
+     "rule": "SM3-3",
+     "what": "the total bar's green",
+     "type": "pixels",
+     "shot": "panel",
+     "probes": [
+      [
+       114,
+       626,
+       "08A542"
+      ],
+      [
+       834,
+       626,
+       "08A542"
+      ]
+     ]
+    },
+    {
+     "rule": "SM3-3",
+     "what": "the #1 box painted over with the panel's colour",
+     "type": "uniform",
+     "shot": "panel",
+     "rect": [
+      780,
+      300,
+      915,
+      435
+     ],
+     "color": "EFB5B5"
+    }
+   ]
+  },
+  {
+   "id": "sm3-jp-panel-other-world",
+   "rom": "A3AJ",
+   "state": "super-mario-advance-3/jp-panel-w6.ss",
+   "desc": "Japan: World 5 picked on the tabs: World 5's score page",
+   "rules": [
+    "SM3-3"
+   ],
+   "input": [
+    [
+     100,
+     "UP"
+    ],
+    [
+     105,
+     "-"
+    ],
+    [
+     120,
+     "UP"
+    ],
+    [
+     125,
+     "-"
+    ],
+    [
+     140,
+     "LEFT"
+    ],
+    [
+     145,
+     "-"
+    ],
+    [
+     160,
+     "A"
+    ],
+    [
+     165,
+     "-"
+    ]
+   ],
+   "shots": {
+    "w6": 90,
+    "w5": 300
+   },
+   "checks": [
+    {
+     "rule": "SM3-3",
+     "what": "the total bar's green",
+     "type": "pixels",
+     "shot": "w5",
+     "probes": [
+      [
+       114,
+       626,
+       "08A542"
+      ],
+      [
+       834,
+       626,
+       "08A542"
+      ]
+     ]
+    },
+    {
+     "rule": "SM3-3",
+     "what": "another world's page (the panel's colour)",
+     "type": "differs",
+     "frac": 0.2,
+     "a": {
+      "shot": "w6",
+      "rect": [
+       64,
+       96,
+       959,
+       467
+      ],
+      "screen": "second"
+     },
+     "b": {
+      "shot": "w5",
+      "rect": [
+       64,
+       96,
+       959,
+       467
+      ],
+      "screen": "second"
+     }
+    },
+    {
+     "rule": "SM3-3",
+     "what": "the #1 box painted over with the panel's colour",
+     "type": "uniform",
+     "shot": "w5",
+     "rect": [
+      780,
+      300,
+      915,
+      435
+     ],
+     "color": "BDCEEF"
+    }
+   ]
+  },
+  {
+   "id": "sm3-jp-level-status-open",
+   "rom": "A3AJ",
+   "state": "super-mario-advance-3/jp-level-6-7.ss",
+   "desc": "Japan: in a level, SELECT opens the game's own status screen (the logo while it's up), SELECT again closes it (the status picture back)",
+   "rules": [
+    "SM3-1"
+   ],
+   "input": [
+    [
+     100,
+     "SELECT"
+    ],
+    [
+     105,
+     "-"
+    ],
+    [
+     340,
+     "SELECT"
+    ],
+    [
+     345,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 90,
+    "open": 320,
+    "closed": 520
+   },
+   "golden": [
+    "open",
+    "closed"
+   ],
+   "checks": [
+    {
+     "rule": "SM3-1",
+     "what": "the logo while it's open",
+     "type": "pixels",
+     "shot": "open",
+     "probes": [
+      [
+       42,
+       74,
+       "303030"
+      ],
+      [
+       982,
+       694,
+       "303030"
+      ]
+     ]
+    },
+    {
+     "rule": "SM3-1",
+     "what": "the status screen back after",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       32,
+       64,
+       991,
+       703
+      ],
+      "screen": "second"
+     },
+     "b": {
+      "shot": "closed",
+      "rect": [
+       32,
+       64,
+       991,
+       703
+      ],
+      "screen": "second"
+     },
+     "frac": 0.01
+    }
+   ]
+  },
+  {
+   "id": "sm3-jp-level-paused",
+   "rom": "A3AJ",
+   "state": "super-mario-advance-3/jp-level-6-7.ss",
+   "desc": "Japan: in a level, START pauses: the second screen unchanged",
+   "rules": [
+    "SM3-1"
+   ],
+   "input": [
+    [
+     100,
+     "START"
+    ],
+    [
+     105,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 90,
+    "paused": 220
+   },
+   "golden": [
+    "paused"
+   ],
+   "checks": [
+    {
+     "rule": "SM3-1",
+     "what": "the second screen unchanged",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       32,
+       64,
+       991,
+       703
+      ],
+      "screen": "second"
+     },
+     "b": {
+      "shot": "paused",
+      "rect": [
+       32,
+       64,
+       991,
+       703
+      ],
+      "screen": "second"
+     }
+    }
+   ]
+  },
+  {
    "id": "sm3-us-snes-pick",
    "rom": "A3AE",
    "state": "super-mario-advance-3/us-level-6-7.ss",
