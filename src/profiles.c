@@ -4678,6 +4678,26 @@ static const char* hpa_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	return NULL;
 }
 
+/* -------------------------------------------------- Metroid: Zero Mission
+ *
+ * The game mode, 0x03000C70: 2 the title, 3 the file menus, 4 play, 5 the
+ * map screen. The original Metroid (OPTIONS > ORIGINAL METROID) is the
+ * NES game run by an emulator in the cartridge, which takes over IWRAM:
+ * the mode byte reads 7 there (also the Chozodia escape's), but the
+ * interrupt handler at 0x03007FFC is no longer Zero Mission's 0x03000C7C
+ * (every release). Title, file menus or the original Metroid: the logo,
+ * the last map dropped (MZM-5, MZM-6). */
+#define MZM_MODE 0x03000C70
+#define MZM_IRQ_OWN 0x03000C7C
+#define MZM_V_MENU 0xF00000A0
+static uint32_t mzm_virt(Emu* e, uint32_t addr) {
+	if (addr == MZM_V_MENU) {
+		int m = emu_read8(e, MZM_MODE);
+		return m == 2 || m == 3 || emu_read32(e, 0x03007FFC) != MZM_IRQ_OWN;
+	}
+	return 0;
+}
+
 /* -------------------------------------------------- Super Mario Advance 3: Yoshi's Island
  *
  * In a level, the status screen SELECT opens (SM3-1); on a world's panel,
@@ -5266,6 +5286,10 @@ static const MapProfile profiles[] = {
 		         .colors = { 0x000000, 0xFFFFFF, 0xCEDECE, 0xCEDECE, 0x94A594, 0x637363, 0x637363, 0x314231, 0x000000 } },
 		.mem = { { 0x03000C70, 0xFF, 0x05, 1 } },
 		.live = { { 0x03000C70, 0xFF, 0x04, 1 } },
+		/* the title, the file menus, the original Metroid: the logo, the
+		 * last map dropped (MZM-5, MZM-6) */
+		.virt = mzm_virt,
+		.menu = { { MZM_V_MENU, 0xFF, 1, 4 } },
 		.logo = { .wait = 200, .pressStart = true, .wait2 = 200, .layer = 1, .maxY = 104 },
 		/* the HUD mini-map in the top-right corner: a 32x32 frame (tile 220)
 		 * and the blinking 8x8 position marker, both drawn on top (priority 0) */

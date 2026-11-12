@@ -281,6 +281,199 @@
     }
    ],
    "patch_on": "Metroid Zero Mission - Color Improvement v2.ips"
+  },
+  {
+   "id": "mzm-us-original",
+   "rom": "BMXE",
+   "state": "metroid-zero-mission/us-play.ss",
+   "desc": "playing (the map up), then the file menu's OPTIONS with Original Metroid unlocked (0x03000018 set: a state loaded, the second screen kept), Original Metroid chosen, its title, START, its menu, START, walking: the map dropped at the file menu, the logo through the original Metroid",
+   "rules": [
+    "MZM-5",
+    "MZM-6"
+   ],
+   "input": [
+    [
+     300,
+     "LOAD:metroid-zero-mission/us-options-original.ss"
+    ],
+    [
+     340,
+     "DOWN"
+    ],
+    [
+     344,
+     "-"
+    ],
+    [
+     360,
+     "DOWN"
+    ],
+    [
+     364,
+     "-"
+    ],
+    [
+     380,
+     "A"
+    ],
+    [
+     384,
+     "-"
+    ],
+    [
+     640,
+     "START"
+    ],
+    [
+     644,
+     "-"
+    ],
+    [
+     840,
+     "START"
+    ],
+    [
+     844,
+     "-"
+    ],
+    [
+     1200,
+     "RIGHT"
+    ],
+    [
+     1500,
+     "-"
+    ]
+   ],
+   "shots": {
+    "play": 280,
+    "options": 330,
+    "title": 620,
+    "menu": 800,
+    "game": 1300,
+    "later": 1600
+   },
+   "checks": [
+    {
+     "rule": "MZM-5",
+     "what": "the map while playing",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "MZM-5",
+     "what": "the logo on the file menu, not the map from before",
+     "shot": "options"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "MZM-6",
+     "what": "the logo on the original Metroid's title",
+     "shot": "title"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "MZM-6",
+     "what": "the logo while the original Metroid is played",
+     "shot": "later"
+    }
+   ]
+  },
+  {
+   "id": "mzm-us-original-play",
+   "rom": "BMXE",
+   "state": "metroid-zero-mission/us-original-metroid.ss",
+   "desc": "the original Metroid from the start (a state), walking, jumping, its own pause (START) and back: the logo throughout, no captures tried, the game screen as drawn",
+   "rules": [
+    "MZM-6"
+   ],
+   "input": [
+    [
+     60,
+     "RIGHT"
+    ],
+    [
+     300,
+     "RIGHT+A"
+    ],
+    [
+     330,
+     "RIGHT"
+    ],
+    [
+     600,
+     "START"
+    ],
+    [
+     604,
+     "-"
+    ],
+    [
+     700,
+     "START"
+    ],
+    [
+     704,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 50,
+    "walk": 290,
+    "paused": 660,
+    "after": 900
+   },
+   "checks": [
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "MZM-6",
+     "what": "the logo",
+     "shot": "after"
+    },
+    {
+     "rule": "MZM-6",
+     "what": "no captures tried",
+     "type": "no_log",
+     "match": "capture:"
+    }
+   ]
   }
  ]
 }
