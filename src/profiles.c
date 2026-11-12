@@ -3460,13 +3460,17 @@ static bool gs2_status(Emu* s) {
 	return emu_read8(s, a->fmenu) == 1 && emu_read8(s, a->screen) == 1;
 }
 /* a battle's party menu, settled (a character's menu passes through it
- * on the way back to the one before) */
+ * on the way back to the one before). Switch's menu (choosing who to
+ * switch) reads the same but for the first sprite: its pink cursor, 16x16
+ * (attribute 1's size bits 1), where the party menu has its highlighted
+ * icon, 32x32 (2) (GS2-7) */
 static bool gs2_party_menu(Emu* s) {
 	const Gs2Addr* a = gs2_addr(s);
 	int still = 0;
 	for (int f = 0; f < 60 && still < 16; ++f) {
 		emu_frame_blind(s, 0);
-		bool up = emu_read8(s, a->input) == 5 && emu_read8(s, a->who) == 0xFF && emu_read8(s, a->bstat) == 0;
+		bool up = emu_read8(s, a->input) == 5 && emu_read8(s, a->who) == 0xFF && emu_read8(s, a->bstat) == 0 &&
+		          (emu_read16(s, a->hilite) & 0xC000) == 0x8000;
 		still = up ? still + 1 : 0;
 	}
 	return still >= 16;

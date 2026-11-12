@@ -26,14 +26,13 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **GS2-6. Game screen untouched.** Nothing leaves the game screen.
 
-**GS2-7. A battle, choosing.** In a battle, while the player chooses what to do (the party menu: Fight, Switch, Flee, Status; a character's menu; picking a target), the second screen shows the battle's own Status screen of the one choosing (the party's first in the party menu), as the game draws it but for its "Use the L & R Buttons to switch between characters." line and the hand pointing at the character's name, left out (the window's own colour there; until the first test build the hand showed), and the window's four corner pixels, see-through to the battle behind, black (until the second test build they showed it): opened on the hidden copy (back to the party menu, Status, A, R to that character: as many as the character's place in the party), and again as soon as the next character's turn to choose comes, the first turn too. With the battle's Status open in the game, the party's first. Until that picture is taken, the logo: never the Status from walking about.
+**GS2-7. A battle, choosing.** In a battle, while the player chooses what to do (the party menu: Fight, Switch, Flee, Status; a character's menu; picking a target), the second screen shows the battle's own Status screen of the one choosing (the party's first in the party menu), as the game draws it but for its "Use the L & R Buttons to switch between characters." line and the hand pointing at the character's name, left out (the window's own colour there; until the first test build the hand showed), and the window's four corner pixels, see-through to the battle behind, black (until the second test build they showed it): opened on the hidden copy (back to the party menu, Status, A, R to that character: as many as the character's place in the party), and again as soon as the next character's turn to choose comes, the first turn too. With the battle's Status open in the game, the party's first; with Switch's menu open (the party menu's second icon: choosing who to switch), the party's first too, the hidden copy backing out of it to the party menu (before v1.5.1 it didn't, and the last picture stayed). Until that picture is taken, the logo: never the Status from walking about.
 
 **GS2-8. A battle playing out.** In a battle, while it plays out (from its start, with the enemies appearing, through the party's and the enemies' moves and its messages, to the experience and coins at its end), the second screen shows the logo, and the pictures from walking about are dropped: after the battle they're taken again.
 
 ## Not covered yet
 
 - At sea on Piers's ship: its states are past the test states' story (they're made from the game's first steps). If SELECT's menu works the same there, so does the second screen; a state at sea would settle it.
-- Switch's menu (the party menu's second icon) open in the game during a battle: the hidden copy backs out of it to the party menu, as from a character's menu; not tried.
 
 ## Facts about the game
 

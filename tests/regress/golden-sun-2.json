@@ -537,6 +537,76 @@
    ]
   },
   {
+   "id": "gs2-us-battle-switch",
+   "rom": "AGFE",
+   "state": "golden-sun-2/us-battle-party.ss",
+   "desc": "a battle, the party menu, then Switch's menu opened in the game (RIGHT, A: the pink cursor over the party, choosing who to switch): the hidden copy backs out of it to the party menu, so the battle's Status of the party's first (Isaac) is taken afresh every second",
+   "rules": [
+    "GS2-7"
+   ],
+   "input": [
+    [
+     160,
+     "RIGHT"
+    ],
+    [
+     164,
+     "-"
+    ],
+    [
+     190,
+     "A"
+    ],
+    [
+     194,
+     "-"
+    ]
+   ],
+   "shots": {
+    "party": 150,
+    "switch": 330,
+    "later": 600
+   },
+   "checks": [
+    {
+     "rule": "GS2-7",
+     "what": "no capture failed with Switch's menu open (before v1.5.1: \"the party menu's cursor isn't on Status\")",
+     "type": "no_log",
+     "match": "map capture failed"
+    },
+    {
+     "rule": "GS2-7",
+     "what": "it opened every time",
+     "type": "no_log",
+     "match": "didn't open"
+    },
+    {
+     "rule": "GS2-7",
+     "what": "the same Status (Isaac's) with Switch's menu open as in the party menu (but for his figure, which moves)",
+     "type": "same",
+     "a": {
+      "shot": "party",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "later",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.03
+    }
+   ]
+  },
+  {
    "id": "gs2-us-battle-turn",
    "rom": "AGFE",
    "state": "golden-sun-2/us-battle-mia.ss",
