@@ -272,6 +272,164 @@
    ]
   },
   {
+   "id": "sn-jp-menu-open",
+   "rom": "AB4J",
+   "state": "summon-night-swordcraft-story/jp-field.ss",
+   "desc": "Japan: walking about, then START's menu opened in the game: the Status and the Place bar on the second screen as before",
+   "rules": [
+    "SN-1",
+    "SN-2",
+    "SN-4"
+   ],
+   "shots": {
+    "field": 150,
+    "menu": 500
+   },
+   "checks": [
+    {
+     "rule": "SN-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "SN-1",
+     "what": "the Status on the second screen",
+     "type": "not_uniform",
+     "shot": "menu",
+     "screen": "second",
+     "rect": [
+      100,
+      80,
+      920,
+      600
+     ],
+     "color": "000000",
+     "frac": 0.5
+    },
+    {
+     "rule": "SN-2",
+     "what": "the Place bar at the bottom",
+     "type": "not_uniform",
+     "shot": "menu",
+     "screen": "second",
+     "rect": [
+      100,
+      620,
+      920,
+      700
+     ],
+     "color": "000000",
+     "frac": 0.5
+    }
+   ],
+   "input": [
+    [
+     160,
+     "START"
+    ],
+    [
+     164,
+     "-"
+    ]
+   ]
+  },
+  {
+   "id": "sn-jp-status-open",
+   "rom": "AB4J",
+   "state": "summon-night-swordcraft-story/jp-field.ss",
+   "desc": "Japan: walking about, then the Status (ステータス) opened in the game from START's menu: the Status and the Place bar on the second screen as before",
+   "rules": [
+    "SN-1",
+    "SN-2",
+    "SN-4"
+   ],
+   "shots": {
+    "field": 150,
+    "status": 600
+   },
+   "checks": [
+    {
+     "rule": "SN-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "SN-1",
+     "what": "the Status on the second screen",
+     "type": "not_uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      100,
+      80,
+      920,
+      600
+     ],
+     "color": "000000",
+     "frac": 0.5
+    },
+    {
+     "rule": "SN-2",
+     "what": "the Place bar at the bottom",
+     "type": "not_uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      100,
+      620,
+      920,
+      700
+     ],
+     "color": "000000",
+     "frac": 0.5
+    }
+   ],
+   "input": [
+    [
+     160,
+     "START"
+    ],
+    [
+     164,
+     "-"
+    ],
+    [
+     230,
+     "UP"
+    ],
+    [
+     234,
+     "-"
+    ],
+    [
+     250,
+     "UP"
+    ],
+    [
+     254,
+     "-"
+    ],
+    [
+     270,
+     "UP"
+    ],
+    [
+     274,
+     "-"
+    ],
+    [
+     300,
+     "A"
+    ],
+    [
+     304,
+     "-"
+    ]
+   ]
+  },
+  {
    "id": "sn-logo-ab4e",
    "kind": "logo",
    "rom": "AB4E",

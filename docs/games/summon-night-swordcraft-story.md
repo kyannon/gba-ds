@@ -30,7 +30,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 ## Not covered yet
 
-- Japan is checked on the title and walking about; its battles haven't been run (the USA's is: sn-us-battle).
+- Japan is checked on the title, walking about and with START's menu and the Status open; its battles haven't been run (the USA's is: sn-us-battle).
 - Shops, the forge, the tournament's arena and the story past its first chapters haven't been tried.
 
 ## Facts found so far (for sessions)
