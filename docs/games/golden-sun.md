@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Releases | `AGSE` USA, Europe (English) · `AGSD` Germany · `AGSF` France · `AGSI` Italy · `AGSS` Spain · `AGSJ` Japan (each tried walking about; battles only in `AGSE`) |
+| Releases | `AGSE` USA, Europe (English) · `AGSD` Germany · `AGSF` France · `AGSI` Italy · `AGSS` Spain · `AGSJ` Japan (each tried walking about and in a battle) |
 | Dumps | `AGSE` cartridge `e1fb68e8` (tested) · `AGSD` cartridge `1053dce4` (tested) · `AGSF` cartridge `f6521161` (tested) · `AGSI` cartridge `f3128812` (tested) · `AGSS` cartridge `c63008d6` (tested) · `AGSJ` cartridge `fb96d9de` (tested) |
 | Profile | `src/profiles.c`: the `AGSE` entry (gs_compose); variant `AGSD` (its battle bytes 0x10 higher) |
 | Tests | `tests/regress/golden-sun.json` (`tools/regress.py golden-sun`) |
@@ -30,6 +30,10 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **GS-8. A battle playing out.** In a battle, while it plays out (from its start, with the enemies appearing, through the party's and the enemies' moves and its messages), the second screen shows the logo, and the pictures from walking about are dropped: after the battle they're taken again.
 
+## How it was checked
+
+Battles in every release: the French, Italian, Spanish and Japanese ones use the USA release's addresses (Germany's are 0x10 higher). Their battle states come from the test states walking about in Vale (a USA save, which those releases load), warped to the world map by the game's debug mode (0x03001F54 set to 1, B+START: map 2, entrance 0; the flag cleared again before saving) and walked into a battle. The map is the half at 0x02000400 (3 Vale, 2 the world map, 510 a battle; the entrance beside it), as in Golden Sun: The Lost Age 0x20 lower.
+
 ## Not covered yet
 
-- Battles in the French, Italian, Spanish and Japanese releases: their Status walking about is checked; in battles they use the USA release's addresses (Germany's, 0x10 higher, are checked: gs-de-battle). A battle state from one of them would settle it; if they differ, the battle shows the logo.
+- In the other releases' battles, only Isaac alone (the save's party): the battle's Status of the others, turned to with R, is taken to work as in the USA and German releases.

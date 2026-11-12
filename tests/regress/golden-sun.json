@@ -748,6 +748,382 @@
     "isaac": 220,
     "garet": 400
    }
+  },
+  {
+   "id": "gs-fr-battle",
+   "rom": "AGSF",
+   "state": "golden-sun/fr-battle-start.ss",
+   "desc": "France: a battle beginning on the world map outside Vale (a USA save, warped there by the game's debug menu, walked into a battle), A through its messages: the logo, then, as Isaac (alone, level 1: the save's) chooses, his battle Status without the help line",
+   "rules": [
+    "GS-7",
+    "GS-8"
+   ],
+   "input": [
+    [
+     60,
+     "A"
+    ],
+    [
+     65,
+     "-"
+    ],
+    [
+     120,
+     "A"
+    ],
+    [
+     125,
+     "-"
+    ],
+    [
+     180,
+     "A"
+    ],
+    [
+     185,
+     "-"
+    ],
+    [
+     240,
+     "A"
+    ],
+    [
+     245,
+     "-"
+    ],
+    [
+     300,
+     "A"
+    ],
+    [
+     305,
+     "-"
+    ],
+    [
+     360,
+     "A"
+    ],
+    [
+     365,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 40,
+    "messages": 220,
+    "later": 400
+   },
+   "checks": [
+    {
+     "rule": "GS-8",
+     "what": "the logo as the battle starts",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "shot": "start"
+    },
+    {
+     "rule": "GS-7",
+     "what": "the battle's Status was shown",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "GS-7",
+     "what": "the battle's Status in place of the logo once the player chooses",
+     "type": "log",
+     "match": "fight off"
+    }
+   ]
+  },
+  {
+   "id": "gs-it-battle",
+   "rom": "AGSI",
+   "state": "golden-sun/it-battle-start.ss",
+   "desc": "Italy: a battle beginning on the world map outside Vale (a USA save, warped there by the game's debug menu, walked into a battle), A through its messages: the logo, then, as Isaac (alone, level 1: the save's) chooses, his battle Status without the help line",
+   "rules": [
+    "GS-7",
+    "GS-8"
+   ],
+   "input": [
+    [
+     60,
+     "A"
+    ],
+    [
+     65,
+     "-"
+    ],
+    [
+     120,
+     "A"
+    ],
+    [
+     125,
+     "-"
+    ],
+    [
+     180,
+     "A"
+    ],
+    [
+     185,
+     "-"
+    ],
+    [
+     240,
+     "A"
+    ],
+    [
+     245,
+     "-"
+    ],
+    [
+     300,
+     "A"
+    ],
+    [
+     305,
+     "-"
+    ],
+    [
+     360,
+     "A"
+    ],
+    [
+     365,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 40,
+    "messages": 220,
+    "later": 400
+   },
+   "checks": [
+    {
+     "rule": "GS-8",
+     "what": "the logo as the battle starts",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "shot": "start"
+    },
+    {
+     "rule": "GS-7",
+     "what": "the battle's Status was shown",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "GS-7",
+     "what": "the battle's Status in place of the logo once the player chooses",
+     "type": "log",
+     "match": "fight off"
+    }
+   ]
+  },
+  {
+   "id": "gs-es-battle",
+   "rom": "AGSS",
+   "state": "golden-sun/es-battle-start.ss",
+   "desc": "Spain: a battle beginning on the world map outside Vale (a USA save, warped there by the game's debug menu, walked into a battle), A through its messages: the logo, then, as Isaac (alone, level 1: the save's) chooses, his battle Status without the help line",
+   "rules": [
+    "GS-7",
+    "GS-8"
+   ],
+   "input": [
+    [
+     60,
+     "A"
+    ],
+    [
+     65,
+     "-"
+    ],
+    [
+     120,
+     "A"
+    ],
+    [
+     125,
+     "-"
+    ],
+    [
+     180,
+     "A"
+    ],
+    [
+     185,
+     "-"
+    ],
+    [
+     240,
+     "A"
+    ],
+    [
+     245,
+     "-"
+    ],
+    [
+     300,
+     "A"
+    ],
+    [
+     305,
+     "-"
+    ],
+    [
+     360,
+     "A"
+    ],
+    [
+     365,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 40,
+    "messages": 220,
+    "later": 400
+   },
+   "checks": [
+    {
+     "rule": "GS-8",
+     "what": "the logo as the battle starts",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "shot": "start"
+    },
+    {
+     "rule": "GS-7",
+     "what": "the battle's Status was shown",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "GS-7",
+     "what": "the battle's Status in place of the logo once the player chooses",
+     "type": "log",
+     "match": "fight off"
+    }
+   ]
+  },
+  {
+   "id": "gs-jp-battle",
+   "rom": "AGSJ",
+   "state": "golden-sun/jp-battle-start.ss",
+   "desc": "Japan: a battle beginning on the world map outside Vale (a USA save, warped there by the game's debug menu, walked into a battle), A through its messages: the logo, then, as Isaac (alone, level 1: the save's) chooses, his battle Status without the help line",
+   "rules": [
+    "GS-7",
+    "GS-8"
+   ],
+   "input": [
+    [
+     60,
+     "A"
+    ],
+    [
+     65,
+     "-"
+    ],
+    [
+     120,
+     "A"
+    ],
+    [
+     125,
+     "-"
+    ],
+    [
+     180,
+     "A"
+    ],
+    [
+     185,
+     "-"
+    ],
+    [
+     240,
+     "A"
+    ],
+    [
+     245,
+     "-"
+    ],
+    [
+     300,
+     "A"
+    ],
+    [
+     305,
+     "-"
+    ],
+    [
+     360,
+     "A"
+    ],
+    [
+     365,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 40,
+    "messages": 220,
+    "later": 400
+   },
+   "checks": [
+    {
+     "rule": "GS-8",
+     "what": "the logo as the battle starts",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "shot": "start"
+    },
+    {
+     "rule": "GS-7",
+     "what": "the battle's Status was shown",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "GS-7",
+     "what": "the battle's Status in place of the logo once the player chooses",
+     "type": "log",
+     "match": "fight off"
+    }
+   ]
   }
  ]
 }
