@@ -41,12 +41,11 @@ Asked what the game would have put on a second GBA screen: the two things a play
 
 **M3-10. Scenes.** While the game plays a scene (the story taking over: cutscenes, with or without the party on screen, the falling MOTHER 3 title, a chapter's title card, a letter read out), the second screen shows the logo, and no pictures are taken; the map or the Status comes back once the party walks about again (at the next capture, within a second or two). Told by the game's own flag for a scene (bit 0x10 of 0x0200DEB7, set from a scene's start to its end and not in a conversation the player starts); between two rooms the same flag is set while walking about too, so there (M3_MODE 6 or 7) it doesn't count, and a scene's own room changes keep the logo as it is.
 
-**M3-11. Battles.** In a battle, from the encounter's message to the end of the results, the second screen shows the logo (the Status's HP and PP would be stale while the meters roll) and no pictures are taken; walking about again, the map or the Status comes back. Told by the game's battle screen being up (0x02000008 holds 0x0202CD88 there, 0x0202CD48 walking about and in scenes).
+**M3-11. Battles.** In a battle, from the encounter's swirl to the end of the results, the second screen shows the logo (the Status's HP and PP would be stale while the meters roll) and no pictures are taken; walking about again, the map or the Status comes back. Told by the game's mode (M3_MODE 0x08 for the swirl, 0x09 for the battle, an enemy met while walking about) or, in the story's own battles (the Prologue's Mole Cricket, started by a scene, M3_MODE 1), by its battle screen being up (0x02000008 holds 0x0202CD88 there, 0x0202CD48 walking about and in scenes).
 
 ## Not covered yet
 
 - **Battles in the Japanese game.** The battle state (the owner's, Nov 12, 2026) is from the English v1.3a translation; the translation keeps the game's memory layout (every other address here is the same in both), but no Japanese battle has been tried.
-- **After a battle, walking about.** The owner's battle (the Prologue's Mole Cricket) runs straight into a scene; a battle that ends with the party walking about is checked on the device.
 - Areas reached only later in the story or earlier in it (the save files are all in Chapter 8); the cases reach Tazmily, Mt. Oriander and New Pork City's highway through the game's own debug menu (see "How the states were made").
 
 ## How the states were made

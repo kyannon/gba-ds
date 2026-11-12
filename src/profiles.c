@@ -5186,7 +5186,9 @@ static const char* er_compose(Emu* s, const void* state, uint32_t* out, int w, i
  * (M3-2), else START's Status screen, a page per party member (M3-3); the
  * logo on the title and file screens (M3-6). The same addresses in the
  * Japanese release and the English translations:
- *   M3_MODE   0 walking about, 1 a text box, 6 / 7 between rooms, 0x0A one
+ *   M3_MODE   0 walking about, 1 a text box (and scenes, and the story's own
+ *             battles), 6 / 7 between rooms, 8 an enemy met (the swirl), 9 a
+ *             battle (to the end of its results), 0x0A one
  *             of START's screens (Goods, Equip, PSI, Status), 0x0D the area
  *             map (R), 0x0E START's menu, 0x0F the unused debug menu
  *   M3_MAP    (half) the area (the debug menu's map number); 0 on the title,
@@ -5198,7 +5200,8 @@ static const char* er_compose(Emu* s, const void* state, uint32_t* out, int w, i
  *   M3_SCENE  bit 0x10 while a scene plays (also between two rooms, M3_MODE
  *             6 / 7, while walking about; not in a conversation the player
  *             starts)
- *   M3_SCREEN_PTR (word) 0x0202CD88 while the battle screen is up, else
+ *   M3_SCREEN_PTR (word) 0x0202CD88 while the battle screen of a story
+ *             battle (M3_MODE 1: the Prologue's Mole Cricket) is up, else
  *             0x0202CD48 (0 on the title)
  * Sprites: the area map's scroll arrows (tiles 916-919, at its top and
  * bottom edges), the Status's L / R badges with their orange arrows (tiles
@@ -5224,7 +5227,8 @@ static bool m3_title(Emu* e) {
 
 /* a battle (M3-11) or a scene (M3-10): the logo */
 static bool m3_battle(Emu* e) {
-	return emu_read32(e, M3_SCREEN_PTR) == 0x0202CD88;
+	int mode = emu_read8(e, M3_MODE);
+	return mode == 0x08 || mode == 0x09 || emu_read32(e, M3_SCREEN_PTR) == 0x0202CD88;
 }
 
 static bool m3_scene(Emu* e) {

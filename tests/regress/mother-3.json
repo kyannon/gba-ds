@@ -1108,6 +1108,254 @@
      "match": "map updated \\(1 frame"
     }
    ]
+  },
+  {
+   "id": "m3-en13a-forest-battle",
+   "rom": "A3UJ+en13a",
+   "state": "mother-3/en13a-forest.ss",
+   "desc": "Sunshine Forest (its map), then walking up into Mr. Batty: the logo from the swirl (the owner's report, Nov 12, 2026)",
+   "rules": [
+    "M3-11",
+    "M3-2"
+   ],
+   "input": [
+    [
+     400,
+     "UP"
+    ],
+    [
+     640,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 380,
+    "battle": 720
+   },
+   "checks": [
+    {
+     "rule": "M3-2",
+     "what": "the map first",
+     "type": "log",
+     "match": "frame [0-9]?[0-9]: map updated \\(1 frame"
+    },
+    {
+     "rule": "M3-11",
+     "what": "the pictures dropped",
+     "type": "log",
+     "match": "second screen back to the logo"
+    },
+    {
+     "rule": "M3-11",
+     "what": "the map gone",
+     "type": "differs",
+     "a": {
+      "shot": "before",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "battle",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.02
+    }
+   ]
+  },
+  {
+   "id": "m3-en13a-batty",
+   "rom": "A3UJ+en13a",
+   "state": "mother-3/en13a-batty.ss",
+   "desc": "a battle met walking about (Mr. Batty): the logo",
+   "rules": [
+    "M3-11"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "M3-11",
+     "what": "no pictures taken",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "m3-en13a-batty-ends",
+   "rom": "A3UJ+en13a",
+   "state": "mother-3/en13a-batty-results.ss",
+   "desc": "the battle's results, then A until walking about again: the map comes back",
+   "rules": [
+    "M3-11",
+    "M3-2"
+   ],
+   "input": [
+    [
+     100,
+     "A"
+    ],
+    [
+     106,
+     "-"
+    ],
+    [
+     130,
+     "A"
+    ],
+    [
+     136,
+     "-"
+    ],
+    [
+     160,
+     "A"
+    ],
+    [
+     166,
+     "-"
+    ],
+    [
+     190,
+     "A"
+    ],
+    [
+     196,
+     "-"
+    ],
+    [
+     220,
+     "A"
+    ],
+    [
+     226,
+     "-"
+    ],
+    [
+     250,
+     "A"
+    ],
+    [
+     256,
+     "-"
+    ],
+    [
+     280,
+     "A"
+    ],
+    [
+     286,
+     "-"
+    ],
+    [
+     310,
+     "A"
+    ],
+    [
+     316,
+     "-"
+    ],
+    [
+     340,
+     "A"
+    ],
+    [
+     346,
+     "-"
+    ],
+    [
+     370,
+     "A"
+    ],
+    [
+     376,
+     "-"
+    ],
+    [
+     400,
+     "A"
+    ],
+    [
+     406,
+     "-"
+    ],
+    [
+     430,
+     "A"
+    ],
+    [
+     436,
+     "-"
+    ],
+    [
+     460,
+     "A"
+    ],
+    [
+     466,
+     "-"
+    ],
+    [
+     490,
+     "A"
+    ],
+    [
+     496,
+     "-"
+    ]
+   ],
+   "shots": {
+    "results": 60,
+    "walking": 900
+   },
+   "checks": [
+    {
+     "rule": "M3-11",
+     "what": "no picture during the results",
+     "type": "no_log",
+     "match": "frame [0-9]?[0-9]: map updated"
+    },
+    {
+     "rule": "M3-11",
+     "what": "a picture once walking about",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "M3-11",
+     "what": "the map after the battle",
+     "type": "differs",
+     "a": {
+      "shot": "results",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "walking",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.02
+    }
+   ]
   }
  ]
 }
