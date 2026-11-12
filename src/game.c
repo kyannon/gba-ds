@@ -801,6 +801,9 @@ static void bug_reset(void) {
 /* Between frames (the worker idle): a state a second for the bug log. */
 static void bug_tick(void) {
 	if (!emu.core) return;
+#ifdef __3DS__
+	return; /* (twelve states are a quarter of the console's heap, and a state a second is time the game needs) */
+#endif
 	int oldest = 0;
 	uint64_t newest = 0;
 	bool any = false;
@@ -6422,6 +6425,9 @@ static bool wasRewinding;
 static void rewind_setup(void) {
 	emu_rewind_deinit();
 	rewindTick = 0;
+#ifdef __3DS__
+	cfg->rewind = false; /* (see M_REWIND) */
+#endif
 	if (!cfg->rewind || !emu.core) return;
 	int secs = cfg->rewindSeconds < 5 ? 5 : cfg->rewindSeconds > 300 ? 300 : cfg->rewindSeconds;
 	emu_rewind_init(&emu, (size_t) secs * 30);
@@ -6989,6 +6995,12 @@ static bool activate(int item, enum GameExit* exitTo) {
 		save_prefs();
 		break;
 	case M_REWIND:
+#ifdef __3DS__
+		/* (each step back is a state of 0.8 MiB: 30 seconds of them are the console's memory many times over) */
+		cfg->rewind = false;
+		snprintf(menuNote, sizeof(menuNote), "Not on the 3DS: there's no memory for it");
+		break;
+#endif
 		cfg->rewind = !cfg->rewind;
 		rewind_setup();
 		snprintf(menuNote, sizeof(menuNote), "%s", cfg->rewind ? "Hold L2 to go back in time" : "No rewind buffer: a little less work");
@@ -7002,8 +7014,8 @@ static bool activate(int item, enum GameExit* exitTo) {
 		else if (cfg->ffSpeed < FF_SPEED_MIN) cfg->ffSpeed = FF_SPEED_MIN;
 		else if (cfg->ffSpeed < FF_SPEED_MAX) ++cfg->ffSpeed;
 		else cfg->ffSpeed = 0;
-		if (cfg->fastForward && cfg->ffSpeed <= 0) snprintf(menuNote, sizeof(menuNote), "Hold R2 to play as fast as this device can");
-		else if (cfg->fastForward) snprintf(menuNote, sizeof(menuNote), "Hold R2 to play %dx as fast", cfg->ffSpeed);
+		if (cfg->fastForward && cfg->ffSpeed <= 0) snprintf(menuNote, sizeof(menuNote), "Hold R2 to play as fast as this device can%s", cfg->ffMute ? ", without sound" : "");
+		else if (cfg->fastForward) snprintf(menuNote, sizeof(menuNote), "Hold R2 to play %dx as fast%s", cfg->ffSpeed, cfg->ffMute ? ", without sound" : "");
 		else snprintf(menuNote, sizeof(menuNote), "R2 does nothing: no skipping ahead by mistake");
 		save_prefs();
 		break;
@@ -8275,7 +8287,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			Uint64 audT0 = SDL_GetPerformanceCounter();
 			size_t got;
 			while ((got = emu_audio_read(&emu, samples, 4096)) > 0) {
-				if (!audio || dropAudio) continue;
+				if (!audio || dropAudio || (ff && cfg->ffMute)) continue;
 				if (thin > 1) {
 					size_t outN = 0;
 					for (size_t f = 0; f < got; ++f) {

@@ -34,7 +34,7 @@ typedef struct {
 } UpdateInfo;
 
 /* (not in a side build, GBADS_SIDE: it would replace itself with the release) */
-#if !defined(__wasi__) && !defined(GBADS_SIDE)
+#if !defined(__wasi__) && !defined(GBADS_SIDE) && !defined(__3DS__)
 #define GBADS_UPDATES 1
 /* exeDir: the app's folder; argv: for the restart */
 void update_init(const Config* cfg, const char* exeDir, int argc, char** argv);

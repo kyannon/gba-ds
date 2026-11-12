@@ -68,6 +68,7 @@ typedef struct Config {
 	bool sway;         /* ask sway to fullscreen the window across all outputs */
 	int audioLatency;  /* ms */
 	int ffSpeed;       /* fast-forward multiplier (the menu cycles FF_SPEED_MIN..MAX) */
+	int ffMute;        /* ff_mute: no sound while fast-forwarding (the 3DS's default) */
 	char saveDir[512]; /* battery saves; default: next to the ROM */
 	char saveExt[8];   /* their extension: sav, or srm (RetroArch's: BananaOS's GBA saves, shared) */
 	char saveFrom[512]; /* where GBA DS kept them before (<game>.sav), carried over: BananaOS */

@@ -18,3 +18,6 @@ android/app/src/main/assets/
 tools/statesaver/ss.wasm
 tools/statesaver/mds.wasm
 __pycache__/
+3ds/ctr/build-test/
+3ds/ctr/*.3dsx
+3ds/ctr/*.cia

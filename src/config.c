@@ -47,6 +47,9 @@ void config_defaults(Config* c) {
 	c->sway = true;
 	c->audioLatency = 64;
 	c->ffSpeed = 3;
+	#ifdef __3DS__
+	c->ffMute = 1;
+#endif
 	c->fastForward = true;
 	c->pinCores = false; /* tried on the RG DS Plus: no better (docs/ANDROID.md) */
 	c->autoSave = true;
@@ -178,6 +181,7 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	BOOL("sway", sway)
 	INT("audio_latency", audioLatency)
 	INT("ff_speed", ffSpeed)
+	INT("ff_mute", ffMute)
 	BOOL("fast_forward", fastForward)
 	STR("save_dir", saveDir)
 	STR("save_ext", saveExt)
