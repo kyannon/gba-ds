@@ -962,6 +962,290 @@
    ]
   },
   {
+   "id": "er-eu-fr-town",
+   "rom": "BENP",
+   "state": "eragon/eu-fr-carvahall.ss",
+   "desc": "Europe in French (the language set in the game's Options from er-eu-town's state): the Party screen in French",
+   "rules": [
+    "ER-1",
+    "ER-2"
+   ],
+   "shots": {
+    "start": 300
+   },
+   "checks": [
+    {
+     "rule": "ER-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ER-2",
+     "what": "the second and third cards lit like the first",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       274,
+       410,
+       "212984"
+      ],
+      [
+       634,
+       410,
+       "212984"
+      ],
+      [
+       274,
+       634,
+       "212984"
+      ],
+      [
+       634,
+       634,
+       "212984"
+      ]
+     ],
+     "tol": 4
+    }
+   ]
+  },
+  {
+   "id": "er-eu-fr-desert",
+   "rom": "BENP",
+   "state": "eragon/eu-fr-desert.ss",
+   "desc": "Europe in French (set in Options from er-eu-desert's state): the Hadarac desert's map",
+   "rules": [
+    "ER-3"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "rule": "ER-3",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "er-eu-de-town",
+   "rom": "BENP",
+   "state": "eragon/eu-de-carvahall.ss",
+   "desc": "Europe in German (the language set in the game's Options from er-eu-town's state): the Party screen in German",
+   "rules": [
+    "ER-1",
+    "ER-2"
+   ],
+   "shots": {
+    "start": 300
+   },
+   "checks": [
+    {
+     "rule": "ER-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ER-2",
+     "what": "the second and third cards lit like the first",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       274,
+       410,
+       "212984"
+      ],
+      [
+       634,
+       410,
+       "212984"
+      ],
+      [
+       274,
+       634,
+       "212984"
+      ],
+      [
+       634,
+       634,
+       "212984"
+      ]
+     ],
+     "tol": 4
+    }
+   ]
+  },
+  {
+   "id": "er-eu-de-desert",
+   "rom": "BENP",
+   "state": "eragon/eu-de-desert.ss",
+   "desc": "Europe in German (set in Options from er-eu-desert's state): the Hadarac desert's map",
+   "rules": [
+    "ER-3"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "rule": "ER-3",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "er-eu-it-town",
+   "rom": "BENP",
+   "state": "eragon/eu-it-carvahall.ss",
+   "desc": "Europe in Italian (the language set in the game's Options from er-eu-town's state): the Party screen in Italian",
+   "rules": [
+    "ER-1",
+    "ER-2"
+   ],
+   "shots": {
+    "start": 300
+   },
+   "checks": [
+    {
+     "rule": "ER-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ER-2",
+     "what": "the second and third cards lit like the first",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       274,
+       410,
+       "212984"
+      ],
+      [
+       634,
+       410,
+       "212984"
+      ],
+      [
+       274,
+       634,
+       "212984"
+      ],
+      [
+       634,
+       634,
+       "212984"
+      ]
+     ],
+     "tol": 4
+    }
+   ]
+  },
+  {
+   "id": "er-eu-it-desert",
+   "rom": "BENP",
+   "state": "eragon/eu-it-desert.ss",
+   "desc": "Europe in Italian (set in Options from er-eu-desert's state): the Hadarac desert's map",
+   "rules": [
+    "ER-3"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "rule": "ER-3",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "er-eu-es-town",
+   "rom": "BENP",
+   "state": "eragon/eu-es-carvahall.ss",
+   "desc": "Europe in Spanish (the language set in the game's Options from er-eu-town's state): the Party screen in Spanish",
+   "rules": [
+    "ER-1",
+    "ER-2"
+   ],
+   "shots": {
+    "start": 300
+   },
+   "checks": [
+    {
+     "rule": "ER-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "ER-2",
+     "what": "the second and third cards lit like the first",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       274,
+       410,
+       "212984"
+      ],
+      [
+       634,
+       410,
+       "212984"
+      ],
+      [
+       274,
+       634,
+       "212984"
+      ],
+      [
+       634,
+       634,
+       "212984"
+      ]
+     ],
+     "tol": 4
+    }
+   ]
+  },
+  {
+   "id": "er-eu-es-desert",
+   "rom": "BENP",
+   "state": "eragon/eu-es-desert.ss",
+   "desc": "Europe in Spanish (set in Options from er-eu-desert's state): the Hadarac desert's map",
+   "rules": [
+    "ER-3"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "rule": "ER-3",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
    "id": "er-logo-bene",
    "kind": "logo",
    "rom": "BENE",

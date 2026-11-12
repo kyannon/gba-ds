@@ -35,7 +35,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 ## Not covered yet
 
 - Saphira's flying, boss battles, Farthen Dûr and the ending haven't been reached.
-- Europe is checked in English (its language screen, a town and the desert); the other four languages share its addresses but haven't been run.
+- Europe's other languages are checked in a town and the desert (set in the game's START > Option > Language, from the English states); their battles and the overworld haven't been run.
 
 ## Facts found so far (for sessions)
 
