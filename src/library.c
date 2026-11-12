@@ -469,12 +469,7 @@ static void scan(Config* cfg) {
 			}
 		}
 	}
-	for (int i = 0; i < nGames; ++i) {
-		SDL_Texture* t[2];
-		int w, h;
-		bool px;
-		if (ui_load_logo(cfg, games[i].path, games[i].code, t, &w, &h, &px)) ui_free_image(t);
-	}
+	for (int i = 0; i < nGames; ++i) ui_logo_queue(cfg, games[i].path, games[i].code);
 	fprintf(stderr, "library: %d game(s)\n", nGames);
 }
 

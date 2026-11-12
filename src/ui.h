@@ -171,15 +171,28 @@ bool ui_load_surface(SDL_Surface* s, SDL_Texture* out[2], int* w, int* h, bool s
 bool ui_load_brand(int id, SDL_Texture* out[2], int* w, int* h);
 void ui_free_image(SDL_Texture* tex[2]);
 /* A game's title logo: <asset_dir>/logos/<CODE>.png|.bmp if the user put one
- * there, else the one extracted from the ROM (<state_dir>/logos/<CODE>.png),
- * which is queued for extraction in the background if it doesn't exist yet
- * (watch logo_generation() and call again). pixelArt: draw with "integer". */
-/* The game's logo as an RGBA32 surface (caller frees): the user's file if
- * there is one, else the one extracted from the title screen; NULL if
- * neither exists yet. */
-SDL_Surface* ui_logo_surface(const Config* c, const char* code, bool* pixelArt);
+ * there; else a scraped one in logo_folder named after the ROM file (GEN-10),
+ * sized as the extracted logo is; else the one extracted from the ROM
+ * (<state_dir>/logos/<CODE>.png), which is queued for extraction in the
+ * background if it doesn't exist yet (watch logo_generation() and call
+ * again). pixelArt: one pixel per GBA pixel, drawn with "integer". */
+/* A scraped logo not pixelated: LOGO_SUB of its pixels per GBA pixel. */
+#define LOGO_SUB 4
+/* The game's logo as an RGBA32 surface (caller frees): the user's file, a
+ * scraped one, or the one extracted from the title screen; NULL if none
+ * exists yet. *sub (may be NULL): the surface's pixels per GBA pixel (1,
+ * or LOGO_SUB for a scraped logo at full resolution). */
+SDL_Surface* ui_logo_surface(const Config* c, const char* rom, const char* code, bool* pixelArt, int* sub);
 bool ui_load_logo(const Config* cfg, const char* rom, const char* code, SDL_Texture* tex[2], int* w, int* h,
                   bool* pixelArt);
+/* The last logo loaded is a scraped one sized before the extracted logo
+ * existed (load it again once logo_generation() changes). */
+bool ui_logo_provisional(void);
+/* The extracted logo queued for extraction if it's needed and missing (a
+ * scraped logo needs it too: it takes its size from it). */
+void ui_logo_queue(const Config* c, const char* rom, const char* code);
+/* An RGBA32 picture resampled to w x h (averaged down; nearest pixel up). */
+SDL_Surface* ui_resample(const SDL_Surface* s, int w, int h);
 
 void ui_screenshot(const char* path);
 /* An input script's LOAD:file, once (NULL if none is due): the play session

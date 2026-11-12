@@ -34,6 +34,7 @@ void config_defaults(Config* c) {
 	c->mapAnim = true;
 	c->tallLive = true;
 	c->showLogo = true;
+	c->logoPixelate = true;
 	c->rewind = true;
 	c->rewindSeconds = 30;
 	c->overlayMode = OVM_GENERATED;
@@ -140,6 +141,8 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	BOOL("map_animations", mapAnim)
 	BOOL("pinball_live", tallLive)
 	BOOL("show_logo", showLogo)
+	STR("logo_folder", logoFolder)
+	BOOL("logo_pixelate", logoPixelate)
 	BOOL("match_display", matchDisplay)
 	BOOL("rewind", rewind)
 	INT("rewind_seconds", rewindSeconds)

@@ -72,6 +72,8 @@ typedef struct Config {
 	char libraryView[8]; /* game list: "list" (names) or "grid" (logos) */
 	char esConfigDir[512]; /* EmulationStation's config folder (Settings: GBA DS in EmulationStation) */
 	char assetDir[512]; /* logos etc.; default: the data folder */
+	char logoFolder[512]; /* scraped logos, found by the ROM's file name (GEN-10); empty: none */
+	bool logoPixelate;    /* a scraped logo shrunk to GBA pixels (off: full resolution, the same size) */
 	char dataDir[512]; /* data_dir: GBA DS's data folder (states/, cheats/...); default: the app's folder (paths.c data_dir_setup) */
 	char touchScreen[16]; /* first | second: which screen has the touch panel */
 	char topScreen[16];   /* Android: auto | app | second: which display is the top screen */

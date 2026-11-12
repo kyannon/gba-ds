@@ -919,6 +919,8 @@ static int bezelW[2], bezelH[2];
 static char bezelKey[2][96];
 static int logoW, logoH;
 static bool logoPixel;
+static int logoSub = 1; /* logoTex's pixels per GBA pixel (LOGO_SUB: a scraped logo at full resolution) */
+static bool logoProvisional; /* a scraped logo sized before the extracted one existed (GEN-10) */
 static MapResult mapRes;
 static int mapW = GBA_W, mapH = GBA_H;
 static int mapShownIdx = -1;
@@ -6364,7 +6366,8 @@ static void draw_osd(void) {
 #define LOGO_IDLE 128
 static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha) {
 	bool pixelArt = false;
-	SDL_Surface* lg = ui_logo_surface(cfg, emu.gameCode, &pixelArt);
+	int sub = 1;
+	SDL_Surface* lg = ui_logo_surface(cfg, romPath, emu.gameCode, &pixelArt, &sub);
 	if (!lg) return false;
 	int room = ch - top;
 	if (room <= 0) {
@@ -6373,7 +6376,13 @@ static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha) {
 		SDL_FreeSurface(lg);
 		return false;
 	}
-	int w = lg->w * k, h = lg->h * k;
+	int w = SDL_max(1, lg->w * k / sub), h = SDL_max(1, lg->h * k / sub);
+	if (sub > k) {
+		/* a scraped logo at full resolution, onto a canvas with fewer
+		 * pixels per GBA pixel: averaged down to them (GEN-10) */
+		SDL_Surface* sm = ui_resample(lg, w, h);
+		if (sm) SDL_FreeSurface(lg), lg = sm;
+	}
 	if (w > cw || h > room) {
 		float sc = SDL_min((float) cw / lg->w, (float) room / lg->h);
 		w = SDL_max(1, (int) (lg->w * sc)), h = SDL_max(1, (int) (lg->h * sc));
@@ -6408,11 +6417,31 @@ static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha) {
 static void make_logo_canvas(void) {
 	ui_free_image(logoCanvasTex);
 	bool pixelArt = false;
-	SDL_Surface* lg = ui_logo_surface(cfg, emu.gameCode, &pixelArt);
+	int sub = 1;
+	SDL_Surface* lg = ui_logo_surface(cfg, romPath, emu.gameCode, &pixelArt, &sub);
 	if (!lg) return;
-	bool big = lg->w > GBA_W || lg->h > GBA_H;
+	logoSub = sub;
+	bool big = lg->w > GBA_W * sub || lg->h > GBA_H * sub;
 	SDL_FreeSurface(lg);
 	if (big) return;
+	if (sub > 1) {
+		/* a scraped logo at full resolution (GEN-10): the same picture at
+		 * sub pixels per GBA pixel, smoothly scaled to the GBA picture's place */
+		int cw = GBA_W * sub, ch = GBA_H * sub;
+		uint32_t* big4 = malloc((size_t) cw * ch * 4);
+		if (!big4) return;
+		for (int i = 0; i < cw * ch; ++i) big4[i] = SCREEN_GREY;
+		logo_draw(big4, cw, ch, sub, 0, LOGO_IDLE);
+		for (int i = 0; i < nViews; ++i) {
+			logoCanvasTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, cw, ch);
+			if (!logoCanvasTex[i]) continue;
+			SDL_SetTextureBlendMode(logoCanvasTex[i], SDL_BLENDMODE_NONE);
+			SDL_SetTextureScaleMode(logoCanvasTex[i], SDL_ScaleModeLinear);
+			ui_update_texture(logoCanvasTex[i], big4, cw * 4);
+		}
+		free(big4);
+		return;
+	}
 	static uint32_t px[GBA_W * GBA_H];
 	for (int i = 0; i < GBA_W * GBA_H; ++i) px[i] = SCREEN_GREY;
 	logo_draw(px, GBA_W, GBA_H, 1, 0, LOGO_IDLE);
@@ -6488,6 +6517,11 @@ static void draw_game(void) {
 			ui_image_pixels(s, mapTex, mapW, mapH, cfg->mapScale, SHADER_ON);
 		} else if (!cfg->showLogo) {
 			/* nothing to show: the screen stays blank */
+		} else if ((logoCanvasTex[0] || logoCanvasTex[1]) && logoSub > 1) {
+			/* a scraped logo at full resolution (GEN-10): its picture made at
+			 * LOGO_SUB pixels per GBA pixel, onto where the GBA picture goes */
+			SDL_Rect area = ui_image_rect(s, GBA_W, GBA_H, cfg->mapScale);
+			ui_image(s, logoCanvasTex, GBA_W * logoSub, GBA_H * logoSub, "stretch", &area);
 		} else if (logoCanvasTex[0] || logoCanvasTex[1]) {
 			/* no map yet (title screen, intro...): the game's logo, as if the
 			 * game drew it on a second GBA screen */
@@ -6876,6 +6910,7 @@ static void rebuild_textures(void) {
 	ui_free_image(logoTex);
 	if (romPath && ui_load_logo(cfg, romPath, emu.gameCode, logoTex, &logoW, &logoH, &logoPixel)) make_logo_canvas();
 	else make_logo_canvas();
+	logoProvisional = ui_logo_provisional();
 	ui_textures_reset();
 }
 
@@ -6986,7 +7021,9 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	overlayMode[0][0] = overlayMode[1][0] = 0;
 	bezelKey[0][0] = bezelKey[1][0] = 0;
 	uint32_t logoGen = logo_generation();
+	logoSub = 1;
 	if (ui_load_logo(cfg, rom, emu.gameCode, logoTex, &logoW, &logoH, &logoPixel)) make_logo_canvas();
+	logoProvisional = ui_logo_provisional();
 
 	memset(pageLen, 0, sizeof(pageLen));
 	pages[0][pageLen[0]++] = M_RESUME;
@@ -7138,9 +7175,14 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		Uint64 workT0 = SDL_GetPerformanceCounter(); /* this frame's work, without the wait at the end */
 		long preempt0 = thread_preemptions();
 		double cpuMs0 = thread_cpu_ms();
-		if (!logoTex[0] && !logoTex[1] && logo_generation() != logoGen) {
+		if (((!logoTex[0] && !logoTex[1]) || logoProvisional) && logo_generation() != logoGen) {
+			/* a logo finished extracting: the game's, or the one a scraped
+			 * logo takes its size from (GEN-10) */
 			logoGen = logo_generation();
-			if (ui_load_logo(cfg, NULL, emu.gameCode, logoTex, &logoW, &logoH, &logoPixel)) {
+			ui_free_image(logoTex);
+			bool got = ui_load_logo(cfg, romPath, emu.gameCode, logoTex, &logoW, &logoH, &logoPixel);
+			logoProvisional = ui_logo_provisional();
+			if (got) {
 				make_logo_canvas();
 				hudLogoBelowDone = hudLogoDone = false; /* the HUD's pictures with it */
 				if (combatMade) {
