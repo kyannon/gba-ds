@@ -1,0 +1,670 @@
+{
+ "game": "MOTHER 3",
+ "rules": "docs/games/mother-3.md",
+ "cases": [
+  {
+   "id": "m3-logo",
+   "kind": "logo",
+   "rom": "A3UJ",
+   "desc": "the title's MOTHER 3 lettering",
+   "rules": [
+    "M3-1"
+   ],
+   "checks": []
+  },
+  {
+   "id": "m3-logo-en13a",
+   "kind": "logo",
+   "rom": "A3UJ+en13a",
+   "desc": "the same lettering on the English v1.3a translation, past its title card",
+   "rules": [
+    "M3-1",
+    "M3-8"
+   ],
+   "checks": []
+  },
+  {
+   "id": "m3-jp-title",
+   "rom": "A3UJ",
+   "state": "mother-3/jp-title.ss",
+   "desc": "the title with a save (NEW GAME, LOAD, SOUND PLAYER)",
+   "rules": [
+    "M3-1",
+    "M3-6"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 400
+   },
+   "checks": [
+    {
+     "rule": "M3-6",
+     "what": "no captures on the title",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "rule": "M3-6",
+     "what": "the logo stays",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "later",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.0
+    }
+   ]
+  },
+  {
+   "id": "m3-jp-tazmily",
+   "rom": "A3UJ",
+   "state": "mother-3/jp-tazmily.ss",
+   "desc": "walking about in Tazmily: the Nowhere Islands map, the red dot south of the square",
+   "rules": [
+    "M3-2",
+    "M3-7"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "M3-2",
+     "what": "the map was taken",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    }
+   ]
+  },
+  {
+   "id": "m3-jp-highway",
+   "rom": "A3UJ",
+   "state": "mother-3/jp-highway.ss",
+   "desc": "New Pork City's highway: its map with the legend",
+   "rules": [
+    "M3-2"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "M3-2",
+     "what": "the map was taken",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    }
+   ]
+  },
+  {
+   "id": "m3-jp-porky",
+   "rom": "A3UJ",
+   "state": "mother-3/jp-porky.ss",
+   "desc": "the Empire Porky Building, four in the party, no map: the Status, a page each",
+   "rules": [
+    "M3-3",
+    "M3-7"
+   ],
+   "shots": {
+    "first": 60,
+    "second": 360,
+    "third": 660,
+    "fourth": 960,
+    "again": 1260
+   },
+   "checks": [
+    {
+     "rule": "M3-3",
+     "what": "four pages",
+     "type": "log",
+     "match": "map updated \\(4 frame\\(s\\) 300 apart"
+    },
+    {
+     "rule": "M3-3",
+     "what": "the next member after 5 seconds",
+     "type": "differs",
+     "a": {
+      "shot": "first",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.02
+    },
+    {
+     "rule": "M3-3",
+     "what": "back to the first after the fourth",
+     "type": "same",
+     "a": {
+      "shot": "first",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "again",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.0
+    }
+   ]
+  },
+  {
+   "id": "m3-jp-tazmily-menu",
+   "rom": "A3UJ",
+   "state": "mother-3/jp-tazmily-menu.ss",
+   "desc": "START's menu open in Tazmily: the map all the same",
+   "rules": [
+    "M3-4"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "M3-4",
+     "what": "the map was taken",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    }
+   ]
+  },
+  {
+   "id": "m3-jp-porky-status",
+   "rom": "A3UJ",
+   "state": "mother-3/jp-porky-status.ss",
+   "desc": "the Status open in the game in the Porky Building: the Status pages all the same",
+   "rules": [
+    "M3-4"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "M3-4",
+     "what": "four pages",
+     "type": "log",
+     "match": "map updated \\(4 frame\\(s\\) 300 apart"
+    }
+   ]
+  },
+  {
+   "id": "m3-jp-talk",
+   "rom": "A3UJ",
+   "state": "mother-3/jp-porky-talk.ss",
+   "desc": "talking to the save frog: nothing can be opened, the logo before the first picture",
+   "rules": [
+    "M3-5"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "M3-5",
+     "what": "no picture",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "m3-jp-talk-stays",
+   "rom": "A3UJ",
+   "state": "mother-3/jp-porky.ss",
+   "desc": "the Status shown, then a state talking to the frog loaded: the Status stays",
+   "rules": [
+    "M3-5"
+   ],
+   "input": [
+    [
+     400,
+     "LOAD:mother-3/jp-porky-talk.ss"
+    ]
+   ],
+   "shots": {
+    "before": 380,
+    "after": 460
+   },
+   "checks": [
+    {
+     "rule": "M3-5",
+     "what": "the same page stays",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.0
+    }
+   ]
+  },
+  {
+   "id": "m3-jp-room",
+   "rom": "A3UJ",
+   "state": "mother-3/jp-porky.ss",
+   "desc": "the Status shown, then Tazmily loaded: its map at once",
+   "rules": [
+    "M3-2"
+   ],
+   "input": [
+    [
+     400,
+     "LOAD:mother-3/jp-tazmily.ss"
+    ]
+   ],
+   "shots": {
+    "before": 380,
+    "after": 420
+   },
+   "checks": [
+    {
+     "rule": "M3-2",
+     "what": "the map, not the Status",
+     "type": "differs",
+     "a": {
+      "shot": "before",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.02
+    }
+   ]
+  },
+  {
+   "id": "m3-en13a-tazmily",
+   "rom": "A3UJ+en13a",
+   "state": "mother-3/en13a-tazmily.ss",
+   "desc": "the English v1.3a translation in Tazmily: the map",
+   "rules": [
+    "M3-2",
+    "M3-8"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "M3-8",
+     "what": "the map was taken",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "M3-8",
+     "what": "the mod, known and tested",
+     "type": "log",
+     "match": "ROM: CRC32 e73b0f7d, a mod GBA DS is tested on"
+    }
+   ]
+  },
+  {
+   "id": "m3-en13a-porky",
+   "rom": "A3UJ+en13a",
+   "state": "mother-3/en13a-porky.ss",
+   "desc": "the English v1.3a translation in the Porky Building: the Status in English",
+   "rules": [
+    "M3-3",
+    "M3-8"
+   ],
+   "shots": {
+    "first": 60,
+    "second": 360
+   },
+   "checks": [
+    {
+     "rule": "M3-8",
+     "what": "four pages",
+     "type": "log",
+     "match": "map updated \\(4 frame\\(s\\) 300 apart"
+    },
+    {
+     "rule": "M3-3",
+     "what": "the next member after 5 seconds",
+     "type": "differs",
+     "a": {
+      "shot": "first",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.02
+    },
+    {
+     "rule": "M3-8",
+     "what": "the mod, known and tested",
+     "type": "log",
+     "match": "ROM: CRC32 e73b0f7d, a mod GBA DS is tested on"
+    }
+   ]
+  },
+  {
+   "id": "m3-en13-porky",
+   "rom": "A3UJ+en13",
+   "state": "mother-3/en13-porky.ss",
+   "desc": "the English v1.3 ROM: the Status in English",
+   "rules": [
+    "M3-3",
+    "M3-8"
+   ],
+   "shots": {
+    "first": 60
+   },
+   "checks": [
+    {
+     "rule": "M3-8",
+     "what": "four pages",
+     "type": "log",
+     "match": "map updated \\(4 frame\\(s\\) 300 apart"
+    },
+    {
+     "rule": "M3-8",
+     "what": "the mod, known and tested",
+     "type": "log",
+     "match": "ROM: CRC32 0e013b7b, a mod GBA DS is tested on"
+    }
+   ]
+  },
+  {
+   "id": "m3-en13hq-porky",
+   "rom": "A3UJ+en13-hq",
+   "state": "mother-3/en13hq-porky.ss",
+   "desc": "the English v1.3 ROM with the HQ audio mix: the Status in English",
+   "rules": [
+    "M3-3",
+    "M3-8",
+    "M3-9"
+   ],
+   "shots": {
+    "first": 60
+   },
+   "checks": [
+    {
+     "rule": "M3-9",
+     "what": "four pages",
+     "type": "log",
+     "match": "map updated \\(4 frame\\(s\\) 300 apart"
+    },
+    {
+     "rule": "M3-9",
+     "what": "the mod, known and tested",
+     "type": "log",
+     "match": "ROM: CRC32 57f94dcf, a mod GBA DS is tested on"
+    }
+   ]
+  },
+  {
+   "id": "m3-en13ahq-porky",
+   "rom": "A3UJ+en13a-hq",
+   "state": "mother-3/en13ahq-porky.ss",
+   "desc": "the English v1.3a ROM with the HQ audio mix: the Status in English",
+   "rules": [
+    "M3-3",
+    "M3-8",
+    "M3-9"
+   ],
+   "shots": {
+    "first": 60
+   },
+   "checks": [
+    {
+     "rule": "M3-9",
+     "what": "four pages",
+     "type": "log",
+     "match": "map updated \\(4 frame\\(s\\) 300 apart"
+    },
+    {
+     "rule": "M3-9",
+     "what": "the mod, known and tested",
+     "type": "log",
+     "match": "ROM: CRC32 789605cd, a mod GBA DS is tested on"
+    }
+   ]
+  },
+  {
+   "id": "m3-porky-patch-en13a",
+   "rom": "A3UJ",
+   "state": "mother-3/en13a-porky.ss",
+   "desc": "the English v1.3a UPS beside the Japanese ROM: the Status",
+   "rules": [
+    "M3-3",
+    "M3-8"
+   ],
+   "patch": "mother3_1.3a.ups",
+   "shots": {
+    "first": 60
+   },
+   "checks": [
+    {
+     "rule": "M3-8",
+     "what": "four pages",
+     "type": "log",
+     "match": "map updated \\(4 frame\\(s\\) 300 apart"
+    },
+    {
+     "rule": "M3-8",
+     "what": "the mod, known and tested",
+     "type": "log",
+     "match": "ROM: CRC32 e73b0f7d, a mod GBA DS is tested on[^\\n]*; patched as it started with"
+    }
+   ]
+  },
+  {
+   "id": "m3-porky-patch-en13",
+   "rom": "A3UJ",
+   "state": "mother-3/p13-porky.ss",
+   "desc": "the English v1.3 UPS beside the Japanese ROM: the Status",
+   "rules": [
+    "M3-3",
+    "M3-8"
+   ],
+   "patch": "mother3_1.3.ups",
+   "shots": {
+    "first": 60
+   },
+   "checks": [
+    {
+     "rule": "M3-8",
+     "what": "four pages",
+     "type": "log",
+     "match": "map updated \\(4 frame\\(s\\) 300 apart"
+    },
+    {
+     "rule": "M3-8",
+     "what": "the mod, known and tested",
+     "type": "log",
+     "match": "ROM: CRC32 8a3bc5a8, a mod GBA DS is tested on[^\\n]*; patched as it started with"
+    }
+   ]
+  },
+  {
+   "id": "m3-porky-patch-hq",
+   "rom": "A3UJ",
+   "state": "mother-3/jhqd-porky.ss",
+   "desc": "the HQ audio mix UPS beside the Japanese ROM: the Status",
+   "rules": [
+    "M3-3",
+    "M3-9"
+   ],
+   "patch": "Mother_3_Default_HQ_Audio_Japan.ups",
+   "shots": {
+    "first": 60
+   },
+   "checks": [
+    {
+     "rule": "M3-9",
+     "what": "four pages",
+     "type": "log",
+     "match": "map updated \\(4 frame\\(s\\) 300 apart"
+    },
+    {
+     "rule": "M3-9",
+     "what": "the mod, known and tested",
+     "type": "log",
+     "match": "ROM: CRC32 add15282, a mod GBA DS is tested on[^\\n]*; patched as it started with"
+    }
+   ]
+  },
+  {
+   "id": "m3-porky-patch-hqalt",
+   "rom": "A3UJ",
+   "state": "mother-3/jhqa-porky.ss",
+   "desc": "the alternative HQ audio mix UPS beside the Japanese ROM: the Status",
+   "rules": [
+    "M3-3",
+    "M3-9"
+   ],
+   "patch": "Mother_3_Alt._HQ_Audio_Japan.ups",
+   "shots": {
+    "first": 60
+   },
+   "checks": [
+    {
+     "rule": "M3-9",
+     "what": "four pages",
+     "type": "log",
+     "match": "map updated \\(4 frame\\(s\\) 300 apart"
+    },
+    {
+     "rule": "M3-9",
+     "what": "the mod, known and tested",
+     "type": "log",
+     "match": "ROM: CRC32 b7faa37d, a mod GBA DS is tested on[^\\n]*; patched as it started with"
+    }
+   ]
+  },
+  {
+   "id": "m3-en13-porky-patch-hq",
+   "rom": "A3UJ+en13",
+   "state": "mother-3/en13p-porky.ss",
+   "desc": "the English HQ audio UPS beside the English v1.3 ROM it's made for: the Status",
+   "rules": [
+    "M3-3",
+    "M3-9"
+   ],
+   "patch": "Mother_3_EN_v1.3.ups",
+   "shots": {
+    "first": 60
+   },
+   "checks": [
+    {
+     "rule": "M3-9",
+     "what": "four pages",
+     "type": "log",
+     "match": "map updated \\(4 frame\\(s\\) 300 apart"
+    },
+    {
+     "rule": "M3-9",
+     "what": "the mod, known and tested",
+     "type": "log",
+     "match": "ROM: CRC32 91ac31cb, a mod GBA DS is tested on[^\\n]*; patched as it started with"
+    }
+   ]
+  },
+  {
+   "id": "m3-porky-patch-on-en13a",
+   "rom": "A3UJ",
+   "state": "mother-3/en13a-porky.ss",
+   "desc": "the English v1.3a UPS switched on in the Patches menu's folder: the Status in English",
+   "rules": [
+    "M3-3",
+    "M3-8"
+   ],
+   "patch_folder": [
+    "mother3_1.3a.ups"
+   ],
+   "patch_on": "mother3_1.3a.ups",
+   "shots": {
+    "first": 60
+   },
+   "checks": [
+    {
+     "rule": "M3-8",
+     "what": "four pages",
+     "type": "log",
+     "match": "map updated \\(4 frame\\(s\\) 300 apart"
+    },
+    {
+     "rule": "M3-8",
+     "what": "the mod, known and tested",
+     "type": "log",
+     "match": "ROM: CRC32 e73b0f7d, a mod GBA DS is tested on[^\\n]*; patched as it started with"
+    }
+   ]
+  }
+ ]
+}

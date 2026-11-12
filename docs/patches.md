@@ -62,7 +62,11 @@ the repo. Fixtures for the tested ones are in the fixtures repo's
 | Final Fight One | `AFFJ` | Redux Edition | colour | Final Fight One - Redux Edition.ips | 213089 | `62445f39` | `c9e5e223` |  |  |
 | The Lost Vikings | `ALVP` | Palette restoration v1.0 | colour | Lost Vikings, The (Europe) (En,Fr,De,Es) Palette Restoration v1_0.ips | 3485 | `c4356eb6` | `1c008d32` |  |  |
 | Mother 1+2 | `A2UJ` | English v1.01 | translation | mother12.ips | 165587 | `4e04ba9e` | `0a44569c` |  |  |
-| Mother 3 | `A3UJ` | English v1.3 | translation | mother3.ups | 1547180 | `d849ce95` | `42ac9cb9` | `e73b0f7d` |  |
+| Mother 3 | `A3UJ` | English v1.3a (fan translation) | translation | mother3_1.3a.ups | 1547180 | `d849ce95` | `42ac9cb9` | `e73b0f7d` | yes |
+| Mother 3 | `A3UJ` | English v1.3 (fan translation) | translation | mother3_1.3.ups | 1546281 | `89f254f4` | `42ac9cb9` | `8a3bc5a8` | yes |
+| Mother 3 | `A3UJ` | HQ audio mix (MusicTheorist) | audio | Mother_3_Default_HQ_Audio_Japan.ups | 2318 | `69c5246a` | `42ac9cb9` | `add15282` | yes |
+| Mother 3 | `A3UJ` | HQ audio mix alternative (MusicTheorist) | audio | Mother_3_Alt._HQ_Audio_Japan.ups | 2336 | `f02e4122` | `42ac9cb9` | `b7faa37d` | yes |
+| Mother 3 | `A3UJ` | English v1.3 HQ audio mix (MusicTheorist) | audio | Mother_3_EN_v1.3.ups | 2340 | `cc81483c` | `0e013b7b` | `91ac31cb` | yes (made for one build of the English v1.3 ROM, not the published v1.3 UPS's result; a UPS can't follow another patch, so it doesn't go on top of the translation patch) |
 | Fire Emblem: Fuuin no Tsurugi | `AFEJ` | English (Dark Twilkitri) | translation | fe6.ips | 610179 | `5befafab` | `d38763e1` |  |  |
 | Rhythm Tengoku | `BRIJ` | Rhythm Heaven Silver beta 13a | translation | Rhythm.Heaven.Silver.-.Beta.13a.ips | 339033 | `be54e107` | `349d7025` |  |  |
 | Super Mario Advance 4 | `AX4E` | GBP palette v1.0 (djedditt) | colour | AGB-AX4E_(USA)_GBPPalette.ips | 15 | `9fa926ad` | `a44ba79f` | `d4f7d398` | yes (SM4-9's check of the opening's frame colour doesn't apply: the frame is there, a shade darker) |

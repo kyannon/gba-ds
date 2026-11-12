@@ -51,6 +51,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Dragon Ball Z: Buu's Fury](dragon-ball-z-buus-fury.md) | BF | `BG3E` |
 | [GT Advance 3: Pro Concept Racing (Advance GT2 in Japan)](gt-advance-3-pro-concept-racing.md) | GT3 | `A2GE` + 2 |
 | [Eragon](eragon.md) | ER | `BENE` + 1 |
+| [MOTHER 3](mother-3.md) | M3 | `A3UJ` |
 
 ## General rules
 
