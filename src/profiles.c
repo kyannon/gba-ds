@@ -5197,9 +5197,10 @@ static const char* er_compose(Emu* s, const void* state, uint32_t* out, int w, i
  *             4 Sleep)
  *   M3_SCREEN 1 while one of the menu's screens is open
  *   M3_WHO    the party member the Status shows (0 the first)
- *   M3_SCENE  bit 0x10 while a scene plays (also between two rooms, M3_MODE
- *             6 / 7, while walking about; not in a conversation the player
- *             starts)
+ *   M3_SCENE  bit 0x10 while a scene plays (also while walking about:
+ *             between two rooms, M3_MODE 6 / 7, and a dash carried into the
+ *             next room, M3_MODE 0, until it stops; not in a conversation the
+ *             player starts)
  *   M3_SCREEN_PTR (word) 0x0202CD88 while the battle screen of a story
  *             battle (M3_MODE 1: the Prologue's Mole Cricket) is up, else
  *             0x0202CD48 (0 on the title)
@@ -5233,7 +5234,7 @@ static bool m3_battle(Emu* e) {
 
 static bool m3_scene(Emu* e) {
 	int mode = emu_read8(e, M3_MODE);
-	return (emu_read8(e, M3_SCENE) & 0x10) && mode != 6 && mode != 7;
+	return (emu_read8(e, M3_SCENE) & 0x10) && mode != 0 && mode != 6 && mode != 7;
 }
 
 static uint32_t m3_virt(Emu* e, uint32_t addr) {

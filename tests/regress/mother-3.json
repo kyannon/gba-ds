@@ -1356,6 +1356,35 @@
      "frac": 0.02
     }
    ]
+  },
+  {
+   "id": "m3-en13a-dash",
+   "rom": "A3UJ+en13a",
+   "state": "mother-3/en13a-dash.ss",
+   "desc": "dashing into the next room in Sunshine Forest (the owner's report, Nov 12, 2026): the map throughout, not the logo while the dash carries on",
+   "rules": [
+    "M3-10",
+    "M3-2"
+   ],
+   "shots": {
+    "before": 20,
+    "dashing": 90,
+    "after": 300
+   },
+   "checks": [
+    {
+     "rule": "M3-10",
+     "what": "not sent back to the logo",
+     "type": "no_log",
+     "match": "second screen back to the logo"
+    },
+    {
+     "rule": "M3-2",
+     "what": "the map in the new room",
+     "type": "log",
+     "match": "frame [0-9]?[0-9]: map updated \\(1 frame"
+    }
+   ]
   }
  ]
 }
