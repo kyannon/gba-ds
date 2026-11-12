@@ -919,6 +919,8 @@ static int bezelW[2], bezelH[2];
 static char bezelKey[2][96];
 static int logoW, logoH;
 static bool logoPixel;
+static int logoSub = 1; /* logoTex's pixels per GBA pixel (LOGO_SUB: a scraped logo at full resolution) */
+static bool logoProvisional; /* a scraped logo sized before the extracted one existed (GEN-11) */
 static MapResult mapRes;
 static int mapW = GBA_W, mapH = GBA_H;
 static int mapShownIdx = -1;
@@ -1000,6 +1002,8 @@ static const uint32_t* map_px(int idx);
 static const uint32_t* hud_over_map(const uint32_t* px);
 static void make_combat_canvas(void);
 static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha);
+static void logo_refresh(void);
+static bool cardLogoMade; /* card_logo's picture is made */
 static uint32_t hudLogoBelow[HUD_CW * HUD_CH]; /* profile hud.logoBelow: dark grey, the logo below the HUD */
 /* profile hud.mapTitleRows: those rows of the last map picture, held over
  * the HUD (mapTitleN rows; 0: none taken yet) */
@@ -1065,12 +1069,12 @@ static bool debug;
 
 /* ---------------------------------------------------------------- menu */
 
-enum MenuItem { M_RESUME, M_CHEATS, M_PATCHES, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND, M_AUTOSAVE, M_AUTOLOAD, M_BUG, M_SLOT, M_SHAPES, M_FF, M_COLOR, M_GHOST, M_BUTTONS };
+enum MenuItem { M_RESUME, M_CHEATS, M_PATCHES, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND, M_AUTOSAVE, M_AUTOLOAD, M_BUG, M_SLOT, M_SHAPES, M_FF, M_COLOR, M_GHOST, M_BUTTONS, M_PIXLOGO };
 static const char* menuLabels[] = {
 	/* title case: drawn in Futura from the built-in images (tools/make_brand.py) */
 	[M_RESUME] = "Resume", [M_SWAP] = "Swap Screens", [M_SAVE] = "Save State", [M_SCALE] = "", [M_LCD] = "", [M_FPS] = "", [M_FRAMEBUF] = "", [M_OVERLAY] = "", [M_LOGO] = "", [M_MATCH] = "", [M_REWIND] = "", [M_RESTART] = "Restart Game",
 	[M_LOAD] = "Load State", [M_CHEATS] = "Cheats", [M_PATCHES] = "Patches", [M_BUTTONS] = "Buttons", [M_ACH] = "Achievements", [M_SHOT] = "Take Screenshot", [M_LIBRARY] = "Close Game", [M_EXIT] = "Close GBA DS",
-	[M_AUTOSAVE] = "", [M_AUTOLOAD] = "", [M_BUG] = "Submit a Bug Report", [M_SLOT] = "", [M_FF] = "", [M_COLOR] = "", [M_GHOST] = "",
+	[M_AUTOSAVE] = "", [M_AUTOLOAD] = "", [M_BUG] = "Submit a Bug Report", [M_SLOT] = "", [M_FF] = "", [M_COLOR] = "", [M_GHOST] = "", [M_PIXLOGO] = "",
 };
 static int menuItems[12], nMenuItems;
 /* Some buttons are half as wide, two to a row (Save State | Load State):
@@ -3466,6 +3470,7 @@ static void draw_menu(void) {
 		if (menuItems[i] == M_MATCH) label = cfg->matchDisplay ? "Match Display Rate: On" : "Match Display Rate: Off";
 		if (menuItems[i] == M_SHAPES) label = !en || !strcmp(cfg->screenMatch, "keep") ? "Keep device aspect ratios" :
 		                                      !strcmp(cfg->screenMatch, "aspect") ? "Match screen aspect ratios" : "Match screen sizes and aspect ratios";
+		if (menuItems[i] == M_PIXLOGO) label = cfg->customLogos == CL_OFF ? "Custom Logos: Do Not Use" : cfg->customLogos == CL_FULL ? "Custom Logos: Full Detail" : "Custom Logos: Pixelated";
 		if (menuItems[i] == M_LOGO) label = cfg->showLogo ? "No Second Screen: Show Logo" : "No Second Screen: Keep Blank";
 		if (menuItems[i] == M_OVERLAY) {
 			static const char* const ovl[3] = { "Overlays: Off", "Overlays: Generated", "Overlays: Custom" };
@@ -3866,10 +3871,9 @@ static void card_backdrop(void) {
  * bottom */
 static const uint32_t* card_logo(void) {
 	static uint32_t cardLogo[HUD_CW * HUD_CH];
-	static bool made;
-	if (!made) {
+	if (!cardLogoMade) {
 		for (int i = 0; i < HUD_CW * HUD_CH; ++i) cardLogo[i] = SCREEN_LIVE; /* (under the HUD: GEN-1) */
-		made = logo_draw(cardLogo, HUD_CW, HUD_CH, HUD_CW / GBA_W, hudProf->hud.card.whole ? 0 : 48 * 2, 255);
+		cardLogoMade = logo_draw(cardLogo, HUD_CW, HUD_CH, HUD_CW / GBA_W, hudProf->hud.card.whole ? 0 : 48 * 2, 255);
 	}
 	return cardLogo;
 }
@@ -6313,6 +6317,7 @@ static void save_prefs(void) {
 		        cfg->frameBuffer ? 1 : 0, cfg->matchDisplay ? 1 : 0, cfg->rewind ? 1 : 0, cfg->fastForward ? 1 : 0,
 		        cfg->autoSave ? 1 : 0, cfg->autoLoad ? 1 : 0, cfg->barPinned ? 1 : 0);
 		fprintf(f, "screen_match = %s\n", cfg->screenMatch);
+		fprintf(f, "custom_logos = %s\n", cfg->customLogos == CL_OFF ? "off" : cfg->customLogos == CL_FULL ? "full" : "pixelated");
 		fprintf(f, "overlay_screens = %s\nbezel_logo = %d\nbezel_inner = %s\nbezel_outer = %s\n",
 		        cfg->overlays == OVL_TOP ? "top" : cfg->overlays == OVL_BOTTOM ? "bottom" : "both", cfg->bezelLogo, cfg->bezelInner, cfg->bezelOuter);
 		fprintf(f, "shader_last = %s\n", shaderNames[cfg->shaderLast > SH_OFF && cfg->shaderLast < SH_COUNT ? cfg->shaderLast : SH_GRID]);
@@ -6499,7 +6504,8 @@ static void draw_osd(void) {
 #define LOGO_IDLE 128
 static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha) {
 	bool pixelArt = false;
-	SDL_Surface* lg = ui_logo_surface(cfg, emu.gameCode, &pixelArt);
+	int sub = 1;
+	SDL_Surface* lg = ui_logo_surface(cfg, romPath, emu.gameCode, &pixelArt, &sub);
 	if (!lg) return false;
 	int room = ch - top;
 	if (room <= 0) {
@@ -6508,7 +6514,13 @@ static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha) {
 		SDL_FreeSurface(lg);
 		return false;
 	}
-	int w = lg->w * k, h = lg->h * k;
+	int w = SDL_max(1, lg->w * k / sub), h = SDL_max(1, lg->h * k / sub);
+	if (sub > k) {
+		/* a scraped logo at full resolution, onto a canvas with fewer
+		 * pixels per GBA pixel: averaged down to them (GEN-11) */
+		SDL_Surface* sm = ui_resample(lg, w, h);
+		if (sm) SDL_FreeSurface(lg), lg = sm;
+	}
 	if (w > cw || h > room) {
 		float sc = SDL_min((float) cw / lg->w, (float) room / lg->h);
 		w = SDL_max(1, (int) (lg->w * sc)), h = SDL_max(1, (int) (lg->h * sc));
@@ -6543,11 +6555,31 @@ static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha) {
 static void make_logo_canvas(void) {
 	ui_free_image(logoCanvasTex);
 	bool pixelArt = false;
-	SDL_Surface* lg = ui_logo_surface(cfg, emu.gameCode, &pixelArt);
+	int sub = 1;
+	SDL_Surface* lg = ui_logo_surface(cfg, romPath, emu.gameCode, &pixelArt, &sub);
 	if (!lg) return;
-	bool big = lg->w > GBA_W || lg->h > GBA_H;
+	logoSub = sub;
+	bool big = lg->w > GBA_W * sub || lg->h > GBA_H * sub;
 	SDL_FreeSurface(lg);
 	if (big) return;
+	if (sub > 1) {
+		/* a scraped logo at full resolution (GEN-11): the same picture at
+		 * sub pixels per GBA pixel, smoothly scaled to the GBA picture's place */
+		int cw = GBA_W * sub, ch = GBA_H * sub;
+		uint32_t* big4 = malloc((size_t) cw * ch * 4);
+		if (!big4) return;
+		for (int i = 0; i < cw * ch; ++i) big4[i] = SCREEN_GREY;
+		logo_draw(big4, cw, ch, sub, 0, LOGO_IDLE);
+		for (int i = 0; i < nViews; ++i) {
+			logoCanvasTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, cw, ch);
+			if (!logoCanvasTex[i]) continue;
+			SDL_SetTextureBlendMode(logoCanvasTex[i], SDL_BLENDMODE_NONE);
+			SDL_SetTextureScaleMode(logoCanvasTex[i], SDL_ScaleModeLinear);
+			ui_update_texture(logoCanvasTex[i], big4, cw * 4);
+		}
+		free(big4);
+		return;
+	}
 	static uint32_t px[GBA_W * GBA_H];
 	for (int i = 0; i < GBA_W * GBA_H; ++i) px[i] = SCREEN_GREY;
 	logo_draw(px, GBA_W, GBA_H, 1, 0, LOGO_IDLE);
@@ -6623,6 +6655,11 @@ static void draw_game(void) {
 			ui_image_pixels(s, mapTex, mapW, mapH, cfg->mapScale, SHADER_ON);
 		} else if (!cfg->showLogo) {
 			/* nothing to show: the screen stays blank */
+		} else if ((logoCanvasTex[0] || logoCanvasTex[1]) && logoSub > 1) {
+			/* a scraped logo at full resolution (GEN-11): its picture made at
+			 * LOGO_SUB pixels per GBA pixel, onto where the GBA picture goes */
+			SDL_Rect area = ui_image_rect(s, GBA_W, GBA_H, cfg->mapScale);
+			ui_image(s, logoCanvasTex, GBA_W * logoSub, GBA_H * logoSub, "stretch", &area);
 		} else if (logoCanvasTex[0] || logoCanvasTex[1]) {
 			/* no map yet (title screen, intro...): the game's logo, as if the
 			 * game drew it on a second GBA screen */
@@ -6841,6 +6878,16 @@ static bool activate(int item, enum GameExit* exitTo) {
 		else snprintf(menuNote, sizeof(menuNote), "The display's rate isn't close enough to match");
 		save_prefs();
 		break;
+	case M_PIXLOGO:
+		/* GEN-11: the player's own or a scraped logo at GBA pixels, at full
+		 * detail, or not used (the game's own) */
+		cfg->customLogos = (cfg->customLogos + 1) % 3;
+		snprintf(menuNote, sizeof(menuNote), "%s",
+		         cfg->customLogos == CL_OFF  ? "The logo GBA DS takes from the game" :
+		         cfg->customLogos == CL_FULL ? "With all its detail, at the same size" : "Shrunk to the GBA's pixels");
+		logo_refresh();
+		save_prefs();
+		break;
 	case M_LOGO:
 		cfg->showLogo = !cfg->showLogo;
 		save_prefs();
@@ -7019,6 +7066,7 @@ static void rebuild_textures(void) {
 	ui_free_image(logoTex);
 	if (romPath && ui_load_logo(cfg, romPath, emu.gameCode, logoTex, &logoW, &logoH, &logoPixel)) make_logo_canvas();
 	else make_logo_canvas();
+	logoProvisional = ui_logo_provisional();
 	ui_textures_reset();
 }
 
@@ -7072,6 +7120,26 @@ static void patches_setup(const char* rom) {
 	char on[PATCH_ON_MAX * 260] = "";
 	for (int i = 0, l = 0; i < patchChoice.nOn; ++i) l += snprintf(on + l, sizeof(on) - (size_t) l, "%s%s", i ? ", " : ", on: ", patchChoice.on[i]);
 	fprintf(stderr, "patches: %s, %d to apply%s\n", patchDir, n, on);
+}
+
+/* The logo loaded again, and every picture it's in made again (extracted at
+ * last, or a scraped / own logo's pixelate switched: GEN-11). */
+static void logo_refresh(void) {
+	ui_free_image(logoTex);
+	ui_free_image(logoCanvasTex);
+	logoSub = 1;
+	bool got = ui_load_logo(cfg, romPath, emu.gameCode, logoTex, &logoW, &logoH, &logoPixel);
+	logoProvisional = ui_logo_provisional();
+	if (!got) return;
+	make_logo_canvas();
+	hudLogoBelowDone = hudLogoDone = false; /* the HUD's pictures with it */
+	cardLogoMade = false;
+	if (combatMade) {
+		/* and the fight picture (and the map picture's logo behind) */
+		make_combat_canvas();
+		overDirty = true;
+		if (mapShownIdx >= 0) upload_map_frame(mapShownIdx);
+	}
 }
 
 enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
@@ -7130,7 +7198,9 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	overlayMode[0][0] = overlayMode[1][0] = 0;
 	bezelKey[0][0] = bezelKey[1][0] = 0;
 	uint32_t logoGen = logo_generation();
+	logoSub = 1;
 	if (ui_load_logo(cfg, rom, emu.gameCode, logoTex, &logoW, &logoH, &logoPixel)) make_logo_canvas();
+	logoProvisional = ui_logo_provisional();
 
 	memset(pageLen, 0, sizeof(pageLen));
 	pages[0][pageLen[0]++] = M_RESUME;
@@ -7156,6 +7226,10 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	pages[1][pageLen[1]++] = M_FRAMEBUF;
 	pages[1][pageLen[1]++] = M_MATCH;
 	pages[1][pageLen[1]++] = M_SHAPES;
+	{
+		/* the game has the player's own or a scraped logo (GEN-11) */
+		if (ui_logo_custom(cfg, romPath, emu.gameCode)) pages[1][pageLen[1]++] = M_PIXLOGO;
+	}
 	pages[2][pageLen[2]++] = M_REWIND;
 	pages[2][pageLen[2]++] = M_FF;
 	pages[2][pageLen[2]++] = M_AUTOSAVE;
@@ -7283,18 +7357,11 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		Uint64 workT0 = SDL_GetPerformanceCounter(); /* this frame's work, without the wait at the end */
 		long preempt0 = thread_preemptions();
 		double cpuMs0 = thread_cpu_ms();
-		if (!logoTex[0] && !logoTex[1] && logo_generation() != logoGen) {
+		if (((!logoTex[0] && !logoTex[1]) || logoProvisional) && logo_generation() != logoGen) {
+			/* a logo finished extracting: the game's, or the one a scraped
+			 * logo takes its size from (GEN-11) */
 			logoGen = logo_generation();
-			if (ui_load_logo(cfg, NULL, emu.gameCode, logoTex, &logoW, &logoH, &logoPixel)) {
-				make_logo_canvas();
-				hudLogoBelowDone = hudLogoDone = false; /* the HUD's pictures with it */
-				if (combatMade) {
-					/* and the fight picture (and the map picture's logo behind) */
-					make_combat_canvas();
-					overDirty = true;
-					if (mapShownIdx >= 0) upload_map_frame(mapShownIdx);
-				}
-			}
+			logo_refresh();
 		}
 		{
 			/* back from sleep (frames stopped for over 2 seconds) or the
