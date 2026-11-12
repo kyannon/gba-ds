@@ -59,7 +59,7 @@ What this means in practice:
 
 - **Touch belongs to GBA DS.** Tapping opens the pause menu and swiping up brings up the quick bar; the game list, settings, the pause menu, the cheats list and the quick bar (with its Controls picker, in the games that have one) are all touch controls for GBA DS itself.
 - **Nothing on the second screen needs a tap.** Everything the game puts there is to look at. Choosing a unit by tapping it, tapping a map to move there, or any other touch input sent to the game is out of scope, however natural it might feel on a DS.
-- **Buttons do what they did on a GBA.** Remapping is limited to layouts players already know (rule 6).
+- **Buttons give the game a GBA's buttons.** Which face button gives GBA A, B, L or R is yours to choose, game by game (Buttons, in the pause menu's Extras). Beyond that, layouts are limited to ones players already know (rule 6).
 
 ## 6. Rules are written to be broken.
 
