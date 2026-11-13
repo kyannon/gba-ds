@@ -4032,8 +4032,8 @@ static void hud_compose(void) {
 	if (hudScene) {
 		if (!hudLogoDone) hud_make_logo_back();
 		memcpy(hudCanvas, hudLogoBack, sizeof(hudCanvas));
-	} else if (hudAlt && h->alt.mapBelow && mapShownIdx >= 0 && mapW == GBA_W && mapH == GBA_H && map_px(mapShownIdx)) {
-		/* (hud.alt.mapBelow: the map picture behind, at the game's size) */
+	} else if ((hudAlt ? h->alt.mapBelow : h->mapBelow) && mapShownIdx >= 0 && mapW == GBA_W && mapH == GBA_H && map_px(mapShownIdx)) {
+		/* (hud.mapBelow, hud.alt.mapBelow: the map picture behind, at the game's size) */
 		const uint32_t* mp = map_px(mapShownIdx);
 		for (int y = 0; y < GBA_H; ++y) {
 			for (int x = 0; x < GBA_W; ++x) {

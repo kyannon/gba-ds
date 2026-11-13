@@ -438,8 +438,7 @@ def _mvdk_cut(a, below):
     cleared from the frame's edges; of what's left, anything touching an
     edge (Mario's and Donkey Kong's faces in the corners, Japan's top
     stripe) or from row `below` down goes, and specks under 40 pixels
-    (the TM); then the greys at the edge where the shadow blends into the
-    sky."""
+    (the TM); then the greys and whites left outside the black outline."""
     r, g, b = a[..., 0], a[..., 1], a[..., 2]
     sky = ((a.min(axis=2) >= 0x90) & (b >= r - 8)) | ((b >= 0xC0) & (r < 0x80) & (g >= 0x90))
     lab, _ = ndimage.label(sky)
@@ -450,11 +449,15 @@ def _mvdk_cut(a, below):
     border = set(np.unique(np.concatenate([lab2[0], lab2[-1], lab2[:, 0], lab2[:, -1]]))) - {0}
     sizes = ndimage.sum(logo, lab2, range(1, n + 1))
     keep = np.isin(lab2, [i + 1 for i, s in enumerate(sizes) if s >= 40 and (i + 1) not in border])
-    # the greys where the black shadow blends into the sky, peeled off
-    # the edge, two deep
-    grey = (a.min(axis=2) >= 0x50) & (a.max(axis=2) - a.min(axis=2) < 40)
-    for _ in range(2):
-        keep &= ~(grey & ~ndimage.binary_erosion(keep, border_value=0))
+    # the greys and whites outside the black outline (where it blends into
+    # the sky, Japan's white rim round マリオ), peeled off the edge until
+    # the black is the edge all round
+    grey = (a.min(axis=2) >= 0x30) & (a.max(axis=2) - a.min(axis=2) < 48)
+    for _ in range(12):
+        peel = grey & keep & ~ndimage.binary_erosion(keep, border_value=0)
+        if not peel.any():
+            break
+        keep &= ~peel
     return keep
 
 
