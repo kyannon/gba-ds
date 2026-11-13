@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.5.1 (not yet released)
+## v1.5.1 (2026-11-13)
 
 ### New games
 - **Mario vs. Donkey Kong** (USA, Europe and Japan): in a level, the HUD leaves the game screen for the top of the second screen (Mario's lives, the score, the presents or T, O and Y blocks, the Mini-Marios and Donkey Kong's hits in the fights, and the time), so nothing at the top of the level is hidden; in the middle of the second screen, the pause box's LEVEL and HI SCORE lines say which level you're on and the score to beat for its star. The level's opening pan, the title, the menus, films, results and bonus games show the logo; paused or at a help sign, the second screen stays as it was. Not tried yet: the Expert and e-Reader levels, and Europe in a language other than English.
