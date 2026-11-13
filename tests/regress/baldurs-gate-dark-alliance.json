@@ -32,43 +32,82 @@
    "id": "bgd-us-tavern",
    "rom": "BGDE",
    "state": "baldurs-gate-dark-alliance/us-tavern.ss",
-   "desc": "walking about the Elfsong Tavern: the character tab's first seven lines, no cursor or arrows",
+   "desc": "the Elfsong Tavern: the logo for half a second, then the whole tavern's map at a third; in the hall's corner, walking a little, the map stays put at the area's edges",
    "rules": [
-    "BGD-1",
-    "BGD-2",
-    "BGD-3",
+    "BGD-10",
     "BGD-7"
    ],
+   "input": [
+    [
+     100,
+     "LEFT"
+    ],
+    [
+     160,
+     "-"
+    ]
+   ],
    "shots": {
-    "start": 90,
-    "later": 390
+    "start": 15,
+    "map": 60,
+    "walked": 200
    },
    "checks": [
     {
-     "rule": "BGD-1",
-     "what": "the character tab was taken",
+     "rule": "BGD-10",
+     "what": "the area was mapped",
      "type": "log",
-     "match": "map updated"
+     "match": "area mapped"
     },
     {
-     "rule": "BGD-2",
-     "what": "one picture: the list stays as it is",
-     "type": "same",
+     "rule": "BGD-10",
+     "what": "its map on the second screen",
+     "type": "log",
+     "match": "live view on"
+    },
+    {
+     "rule": "BGD-10",
+     "what": "the logo until the map is made",
+     "type": "differs",
      "a": {
       "shot": "start",
       "rect": [
        32,
        64,
-       672,
+       992,
        704
       ]
      },
      "b": {
-      "shot": "later",
+      "shot": "map",
       "rect": [
        32,
        64,
-       672,
+       992,
+       704
+      ]
+     },
+     "frac": 0.3
+    },
+    {
+     "rule": "BGD-10",
+     "what": "near the area's edges the map stays put",
+     "type": "same",
+     "a": {
+      "shot": "map",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "walked",
+      "rect": [
+       32,
+       64,
+       992,
        704
       ]
      },
@@ -86,81 +125,98 @@
    "id": "bgd-us-menu",
    "rom": "BGDE",
    "state": "baldurs-gate-dark-alliance/us-menu.ss",
-   "desc": "START's menu open on the weapons tab: the character tab's first seven lines on the second screen",
+   "desc": "Loaded with START's menu open: the logo until it's closed (the menu's pictures are on the map's layers), then the map",
    "rules": [
-    "BGD-1",
-    "BGD-2",
-    "BGD-3"
+    "BGD-10"
    ],
    "shots": {
-    "start": 90,
-    "later": 390
+    "menu": 50,
+    "map": 200
    },
    "checks": [
     {
-     "rule": "BGD-1",
-     "what": "the character tab was taken",
-     "type": "log",
-     "match": "map updated"
-    },
-    {
-     "rule": "BGD-2",
-     "what": "one picture: the list stays as it is",
-     "type": "same",
+     "rule": "BGD-10",
+     "what": "no map from the menu",
+     "type": "differs",
      "a": {
-      "shot": "start",
+      "shot": "menu",
       "rect": [
        32,
        64,
-       672,
+       992,
        704
       ]
      },
      "b": {
-      "shot": "later",
+      "shot": "map",
       "rect": [
        32,
        64,
-       672,
+       992,
        704
       ]
      },
-     "frac": 0.0
+     "frac": 0.3
+    },
+    {
+     "rule": "BGD-10",
+     "what": "mapped once it's closed",
+     "type": "log",
+     "match": "area mapped"
     }
+   ],
+   "input": [
+    [
+     60,
+     "START"
+    ],
+    [
+     64,
+     "-"
+    ]
    ]
   },
   {
    "id": "bgd-us-talk",
    "rom": "BGDE",
    "state": "baldurs-gate-dark-alliance/us-tavern.ss",
-   "desc": "the tab taken, then a conversation with Alyth loaded: the last picture stays",
+   "desc": "the tavern mapped, then a conversation with Alyth loaded (the same area): the map stays, not made again, around the bar",
    "rules": [
-    "BGD-4"
+    "BGD-10"
    ],
    "input": [
     [
-     400,
+     100,
      "LOAD:baldurs-gate-dark-alliance/us-talk.ss"
     ]
    ],
    "shots": {
-    "start": 90,
-    "talk": 700
+    "map": 60,
+    "talk": 200
    },
-   "golden": [
-    "talk"
-   ],
    "checks": [
     {
-     "rule": "BGD-4",
-     "what": "the picture stays through the conversation",
-     "type": "same",
+     "rule": "BGD-10",
+     "what": "the area was mapped",
+     "type": "log",
+     "match": "area mapped"
+    },
+    {
+     "rule": "BGD-10",
+     "what": "made once, not again for the same area",
+     "type": "no_log",
+     "match": "area mapped[\\s\\S]*area mapped"
+    },
+    {
+     "rule": "BGD-10",
+     "what": "the map moved to where the game screen now is",
+     "type": "differs",
      "a": {
-      "shot": "start",
+      "shot": "map",
       "rect": [
        32,
        64,
-       672,
+       992,
        704
       ]
      },
@@ -169,11 +225,11 @@
       "rect": [
        32,
        64,
-       672,
+       992,
        704
       ]
      },
-     "frac": 0.0
+     "frac": 0.1
     }
    ]
   },
@@ -181,20 +237,20 @@
    "id": "bgd-us-scene",
    "rom": "BGDE",
    "state": "baldurs-gate-dark-alliance/us-scene.ss",
-   "desc": "the opening's black scene (Karne's ambush): nothing taken yet, the logo",
+   "desc": "the opening's black scene (Karne's ambush): not under his control, nothing mapped, the logo",
    "rules": [
-    "BGD-4"
+    "BGD-10"
    ],
    "shots": {
     "start": 90,
-    "later": 400
+    "later": 300
    },
    "checks": [
     {
-     "rule": "BGD-4",
-     "what": "START opens nothing in a scene",
+     "rule": "BGD-10",
+     "what": "no map in a scene before he's in control",
      "type": "no_log",
-     "match": "map updated"
+     "match": "area mapped"
     }
    ]
   },
@@ -202,21 +258,21 @@
    "id": "bgd-us-title",
    "rom": "BGDE",
    "state": "baldurs-gate-dark-alliance/us-title.ss",
-   "desc": "the title: the logo, no captures",
+   "desc": "the title: the logo",
    "rules": [
     "BGD-5",
     "GEN-1"
    ],
    "shots": {
     "start": 90,
-    "later": 400
+    "later": 300
    },
    "checks": [
     {
      "rule": "BGD-5",
-     "what": "no captures on the title",
+     "what": "no map on the title",
      "type": "no_log",
-     "match": "map updated"
+     "match": "area mapped"
     },
     {
      "rule": "BGD-5",
@@ -248,7 +304,7 @@
    "id": "bgd-us-class",
    "rom": "BGDE",
    "state": "baldurs-gate-dark-alliance/us-class.ss",
-   "desc": "choosing a class: the logo, no captures",
+   "desc": "choosing a class: the logo",
    "rules": [
     "BGD-5"
    ],
@@ -258,9 +314,9 @@
    "checks": [
     {
      "rule": "BGD-5",
-     "what": "no captures while choosing a class",
+     "what": "no map while choosing a class",
      "type": "no_log",
-     "match": "map updated"
+     "match": "area mapped"
     }
    ]
   },
@@ -268,27 +324,33 @@
    "id": "bgd-us-quit",
    "rom": "BGDE",
    "state": "baldurs-gate-dark-alliance/us-tavern.ss",
-   "desc": "the tab taken, then the title loaded (as after Quit Game): the picture dropped, the logo",
+   "desc": "the tavern mapped, then the title loaded (as after Quit Game): the map dropped, the logo",
    "rules": [
     "BGD-5"
    ],
    "input": [
     [
-     200,
+     100,
      "LOAD:baldurs-gate-dark-alliance/us-title.ss"
     ]
    ],
    "shots": {
-    "start": 90,
-    "title": 300
+    "map": 60,
+    "title": 200
    },
    "checks": [
     {
+     "rule": "BGD-10",
+     "what": "the area was mapped",
+     "type": "log",
+     "match": "area mapped"
+    },
+    {
      "rule": "BGD-5",
-     "what": "the tab is gone",
+     "what": "the map is gone",
      "type": "differs",
      "a": {
-      "shot": "start",
+      "shot": "map",
       "rect": [
        32,
        64,
@@ -313,70 +375,26 @@
    "id": "bgd-us-rats",
    "rom": "BGDE",
    "state": "baldurs-gate-dark-alliance/us-rats.ss",
-   "desc": "in the cellar, rats biting: the Health line goes down with the bar (owner's state)",
+   "desc": "the cellar under the tavern, rats biting (owner's state): the whole cellar mapped, the copy's hero kept alive while it's made",
    "rules": [
-    "BGD-1",
-    "BGD-8"
+    "BGD-10"
    ],
    "shots": {
-    "start": 60,
-    "bitten": 320,
-    "more": 470
+    "map": 60,
+    "later": 300
    },
    "checks": [
     {
-     "rule": "BGD-1",
-     "what": "the character tab was taken",
+     "rule": "BGD-10",
+     "what": "all 54 of the cellar's screens",
      "type": "log",
-     "match": "map updated"
+     "match": "area mapped \\(1440x1424, 54 screens, "
     },
     {
-     "rule": "BGD-8",
-     "what": "Health taken again after the first bites",
-     "type": "differs",
-     "a": {
-      "shot": "start",
-      "rect": [
-       32,
-       388,
-       668,
-       444
-      ]
-     },
-     "b": {
-      "shot": "bitten",
-      "rect": [
-       32,
-       388,
-       668,
-       444
-      ]
-     },
-     "frac": 0.001
-    },
-    {
-     "rule": "BGD-8",
-     "what": "and again after more",
-     "type": "differs",
-     "a": {
-      "shot": "bitten",
-      "rect": [
-       32,
-       388,
-       668,
-       444
-      ]
-     },
-     "b": {
-      "shot": "more",
-      "rect": [
-       32,
-       388,
-       668,
-       444
-      ]
-     },
-     "frac": 0.001
+     "rule": "BGD-10",
+     "what": "its map on the second screen",
+     "type": "log",
+     "match": "live view on"
     }
    ]
   },
@@ -384,9 +402,8 @@
    "id": "bgd-us-death",
    "rom": "BGDE",
    "state": "baldurs-gate-dark-alliance/us-rats.ss",
-   "desc": "the tab taken, then the hero's death loaded (owner's state): the last picture while he falls, the logo at GAME OVER",
+   "desc": "the cellar mapped, then the hero's death loaded (owner's state): the map while he falls, the logo at GAME OVER",
    "rules": [
-    "BGD-4",
     "BGD-9"
    ],
    "input": [
@@ -403,35 +420,11 @@
    },
    "checks": [
     {
-     "rule": "BGD-4",
-     "what": "the picture stays while he falls",
-     "type": "same",
-     "a": {
-      "shot": "start",
-      "rect": [
-       32,
-       64,
-       992,
-       704
-      ]
-     },
-     "b": {
-      "shot": "fall",
-      "rect": [
-       32,
-       64,
-       992,
-       704
-      ]
-     },
-     "frac": 0.0
-    },
-    {
      "rule": "BGD-9",
-     "what": "the logo at GAME OVER",
+     "what": "the map while he falls",
      "type": "differs",
      "a": {
-      "shot": "start",
+      "shot": "fall",
       "rect": [
        32,
        64,
@@ -452,7 +445,7 @@
     },
     {
      "rule": "BGD-9",
-     "what": "and it stays",
+     "what": "the logo stays",
      "type": "same",
      "a": {
       "shot": "gameover",
@@ -480,46 +473,25 @@
    "id": "bgd-eu-tavern",
    "rom": "BGDP",
    "state": "baldurs-gate-dark-alliance/eu-tavern.ss",
-   "desc": "Europe (English), walking about the tavern: the character tab's first seven lines",
+   "desc": "Europe (English), the tavern: its map",
    "rules": [
-    "BGD-1",
-    "BGD-2",
-    "BGD-3"
+    "BGD-10"
    ],
    "shots": {
-    "start": 90,
-    "later": 390
+    "map": 90
    },
    "checks": [
     {
-     "rule": "BGD-1",
-     "what": "the character tab was taken",
+     "rule": "BGD-10",
+     "what": "the area was mapped",
      "type": "log",
-     "match": "map updated"
+     "match": "area mapped"
     },
     {
-     "rule": "BGD-2",
-     "what": "one picture: the list stays as it is",
-     "type": "same",
-     "a": {
-      "shot": "start",
-      "rect": [
-       32,
-       64,
-       672,
-       704
-      ]
-     },
-     "b": {
-      "shot": "later",
-      "rect": [
-       32,
-       64,
-       672,
-       704
-      ]
-     },
-     "frac": 0.0
+     "rule": "BGD-10",
+     "what": "its map on the second screen",
+     "type": "log",
+     "match": "live view on"
     }
    ]
   },
@@ -527,53 +499,62 @@
    "id": "bgd-eu-menu",
    "rom": "BGDP",
    "state": "baldurs-gate-dark-alliance/eu-menu.ss",
-   "desc": "Europe, START's menu open on the armour tab: the character tab's first seven lines",
+   "desc": "Europe, loaded with START's menu open: the logo until it's closed (the menu's pictures are on the map's layers), then the map",
    "rules": [
-    "BGD-1",
-    "BGD-2"
+    "BGD-10"
    ],
    "shots": {
-    "start": 90,
-    "later": 390
+    "menu": 50,
+    "map": 200
    },
    "checks": [
     {
-     "rule": "BGD-1",
-     "what": "the character tab was taken",
-     "type": "log",
-     "match": "map updated"
-    },
-    {
-     "rule": "BGD-2",
-     "what": "one picture: the list stays as it is",
-     "type": "same",
+     "rule": "BGD-10",
+     "what": "no map from the menu",
+     "type": "differs",
      "a": {
-      "shot": "start",
+      "shot": "menu",
       "rect": [
        32,
        64,
-       672,
+       992,
        704
       ]
      },
      "b": {
-      "shot": "later",
+      "shot": "map",
       "rect": [
        32,
        64,
-       672,
+       992,
        704
       ]
      },
-     "frac": 0.0
+     "frac": 0.3
+    },
+    {
+     "rule": "BGD-10",
+     "what": "mapped once it's closed",
+     "type": "log",
+     "match": "area mapped"
     }
+   ],
+   "input": [
+    [
+     60,
+     "START"
+    ],
+    [
+     64,
+     "-"
+    ]
    ]
   },
   {
    "id": "bgd-eu-title",
    "rom": "BGDP",
    "state": "baldurs-gate-dark-alliance/eu-title.ss",
-   "desc": "Europe's title with its language list: the logo, no captures",
+   "desc": "Europe's title with its language list: the logo",
    "rules": [
     "BGD-5"
    ],
@@ -583,9 +564,9 @@
    "checks": [
     {
      "rule": "BGD-5",
-     "what": "no captures on the title",
+     "what": "no map on the title",
      "type": "no_log",
-     "match": "map updated"
+     "match": "area mapped"
     }
    ]
   }

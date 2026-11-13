@@ -5383,69 +5383,54 @@ static const char* m3_compose(Emu* s, const void* state, uint32_t* const* out, i
 
 /* ---------------------------------------------------------------- Baldur's Gate: Dark Alliance
  *
- * docs/games/baldurs-gate-dark-alliance.md. The game has no map: walking
- * about, START's character tab (BGD-1), the first seven lines of its list
- * in one picture (BGD-2), without its cursor, scroll arrows or tab marker
- * (BGD-3); the logo at GAME OVER (BGD-9). Both releases use these
- * addresses:
+ * docs/games/baldurs-gate-dark-alliance.md. The game has no map: GBA DS
+ * makes one of each area (BGD-10, an exception), shown by bgd_live_view
+ * at a third of its size around the game screen's middle; the logo on the
+ * title (BGD-5) and at GAME OVER (BGD-9). (Until Nov 13, 2026 START's
+ * character tab instead, BGD-1 to BGD-4 and BGD-8, retired.) Both releases
+ * use these addresses:
  *   BGD_INGAME  1 in a game (from the abilities screen on), else on the
  *               title, the language list and the class choice (and again
  *               after Quit Game): 0x14 USA, 0x07 Europe
  *   BGD_CONTROL 1 walking about (or in a conversation), 2 in a fight (or
  *               a scene in the world, or dying), 0 from START on, a
  *               black-screen scene, GAME OVER
- *   BGD_MENU    0x40 while START's menu is up (~33 frames after START, black
- *               between); 0 elsewhere. (0x0300456A, which looked like one,
- *               is 1 in conversations and fights too)
- *   BGD_TAB     the menu's tab (3 the character tab); written in the hidden
- *               copy once the menu is up, the tab is drawn 2 frames later
- *   BGD_TOP     the character list's first line shown (0-9; 4 shown of 13);
- *               written alike, the list is drawn from it 2 frames later
- *   BGD_CURSOR  the cursor's line within the four shown
- *   BGD_HP, BGD_EP, BGD_XP  health, energy (halves), experience (word)
- * Everything on the tab but its background (BG2) is a sprite, each letter
- * one: the list's lines at y BGD_ROW_Y + BGD_PITCH * (line - first shown).
- * The list is taken as the pixels that differ from the same frame drawn
- * without the list's sprites, from frames with each of bgdTops as the first
- * line, and laid on the tab drawn without them, BGD_PITCH apart from
- * BGD_PAGE_Y. */
+ *   BGD_HP      health (0 from the hero's death on)
+ *   BGD_CAMX/Y  the camera (words, pixels): the screen's top left in the area
+ *   BGD_DX/DY   the camera's pending move (halves): each frame the game's
+ *               scroll (0x086A1600) adds them to the camera, draws the 16-px
+ *               strips of each layer newly shown (one a frame: 16 px a step
+ *               at most) and clears them. The follow routine (0x08690E60)
+ *               sets them from the hero, with the three stores in bgdFollow;
+ *               another pushes the camera back toward him once he's off
+ *               screen, after the scroll
+ *   BGD_LEVEL   the area's header: per layer a rectangle in 16-px blocks at
+ *               header + 2 + 4 * the half at header + 0x10 + 2 * layer. The
+ *               camera goes from its top left to a pixel short of its size
+ *               less the screen's (exactly there, the scroll stops for good)
+ * A copy of the game (its own Emu, on its own thread; inline in exact runs
+ * and where there are no threads) is given the live game's state once the
+ * hero has been in a new area under his control for half a second, the
+ * follow routine's stores blanked in it (its own copy of the ROM: mGBA
+ * copies a core's ROM before its first write), and its camera moved over
+ * the area a screen at a time (the hero's health kept as it was, so that
+ * nothing kills him on the way); at each stop BG0-BG2 alone (floors and
+ * walls, furniture and wall pieces in front, lamps, upper edges and raised
+ * floors; no sprites) go into the area's picture where the camera is
+ * (tools/scout/bgdpan.c, the experiment). */
 #define BGD_INGAME 0x030077D8
 #define BGD_CONTROL 0x03002C02
-#define BGD_MENU 0x03004161
-#define BGD_MENU_UP 0x40
-#define BGD_TAB 0x03000AA0
-#define BGD_TOP 0x03000AA1
-#define BGD_CURSOR 0x03000ACB
-#define BGD_XP 0x03000B50
 #define BGD_HP 0x03000B54
-#define BGD_EP 0x03000B56
-#define BGD_V_LOGO 0xF0000090 /* not in a game (BGD-5), or GAME OVER (BGD-9) */
-#define BGD_CHARACTER 3
-#define BGD_LINES 7   /* Experience to Damage (BGD-2) */
-#define BGD_ROW_Y 68
-#define BGD_PITCH 15
-#define BGD_PAGE_Y 53 /* (the class and level end at y 46) */
-#define BGD_LIST_X 160 /* the list's side of the tab (the archway from here) */
-/* the cursor's brackets (8x32, palette 14), the scroll arrows and the
- * marker under the tab (16x8, palette 15), BGD-3. By shape and palette: the
- * game puts its sprites' tiles wherever there's room, so their numbers
- * change from one moment to another */
-#define BGD_TALL (1u << (2 * 4 + 1))
-#define BGD_WIDE (1u << (1 * 4 + 0))
-static const SpriteRule bgdHide[] = {
-	{ -32, -64, 240, 160, 0, 1023, -1, 1u << 14, 0, BGD_TALL },
-	{ 100, 40, BGD_LIST_X - 1, 150, 0, 1023, -1, 1u << 15, 0, BGD_WIDE },
-	{ -16, 12, 240, 28, 0, 1023, -1, 1u << 15, 0, BGD_WIDE },
-};
-/* and the list's lines (its letters and digits), for its background */
-static const SpriteRule bgdHideList[] = {
-	{ -32, -64, 240, 160, 0, 1023, -1, 1u << 14, 0, BGD_TALL },
-	{ 100, 40, BGD_LIST_X - 1, 150, 0, 1023, -1, 1u << 15, 0, BGD_WIDE },
-	{ -16, 12, 240, 28, 0, 1023, -1, 1u << 15, 0, BGD_WIDE },
-	{ -8, 50, BGD_LIST_X - 1, 159, 0, 1023, -1 },
-};
-/* the first lines shown in the frames the lines are taken from: 0-3, 3-6 */
-static const int bgdTops[] = { 0, 3 };
+#define BGD_CAMX 0x030017D0
+#define BGD_CAMY 0x030016B0
+#define BGD_DX 0x03003538
+#define BGD_DY 0x03002BF0
+#define BGD_LEVEL 0x030035B4
+#define BGD_V_LOGO 0xF0000090  /* not in a game (BGD-5), or GAME OVER (BGD-9) */
+#define BGD_V_NEVER 0xF0000091 /* (no captures: the map is drawn live) */
+#define BGD_SETTLE 30          /* frames under control in an area before it's mapped */
+#define BGD_MAX 8192           /* the largest area mapped, each way (pixels) */
+static const uint32_t bgdFollow[] = { 0x08690FD2, 0x0869108A, 0x0869109C };
 
 static uint32_t bgd_virt(Emu* e, uint32_t addr) {
 	if (addr == BGD_V_LOGO) {
@@ -5456,81 +5441,237 @@ static uint32_t bgd_virt(Emu* e, uint32_t addr) {
 	return 0;
 }
 
-/* the frame of state st drawn with these sprites hidden, into dst (drawn
- * twice: the first frame after the rules change can still have the last
- * ones' sprites) */
-static void bgd_draw(Emu* s, const void* st, const SpriteRule* r, int n, uint32_t* dst) {
-	emu_hide_sprites(s, r, n);
-	emu_state_load(s, st);
-	emu_frame(s, 0);
-	emu_state_load(s, st);
-	emu_frame(s, 0);
-	memcpy(dst, s->fb, GBA_W * GBA_H * sizeof(uint32_t));
+/* the area: its header's address and its rectangle (pixels); false if none */
+static bool bgd_level(Emu* e, uint32_t* hdr, int* x0, int* y0, int* x1, int* y1) {
+	uint32_t h = emu_read32(e, BGD_LEVEL);
+	if (h < 0x02000000 || h >= 0x0203FF00) return false;
+	uint32_t r = h + 2 + 4 * emu_read16(e, h + 0x10);
+	if (r < 0x02000000 || r >= 0x0203FFF8) return false;
+	*hdr = h;
+	*x0 = 16 * emu_read16(e, r), *y0 = 16 * emu_read16(e, r + 2);
+	*x1 = 16 * emu_read16(e, r + 4), *y1 = 16 * emu_read16(e, r + 6);
+	return *x1 - *x0 >= GBA_W && *y1 - *y0 >= GBA_H && *x1 - *x0 <= BGD_MAX && *y1 - *y0 <= BGD_MAX;
 }
 
-static const char* bgd_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
-	enum { NT = sizeof(bgdTops) / sizeof(bgdTops[0]) };
-	static uint32_t base[GBA_W * GBA_H], lines[NT][GBA_W * GBA_H], bare[GBA_W * GBA_H];
-	static uint8_t ink[NT][GBA_W * GBA_H];
-	emu_hide_sprites(s, NULL, 0);
-	if (!emu_state_load(s, state)) return "state load failed";
-	emu_frame(s, 0);
-	if (emu_read8(s, BGD_INGAME) != 1) return "the title"; /* (BGD-5) */
-	/* START's menu, open already or opened from walking about or a fight
-	 * (elsewhere it opens nothing: the last picture stays, BGD-4) */
-	if (emu_read8(s, BGD_MENU) != BGD_MENU_UP) {
-		int c = emu_read8(s, BGD_CONTROL);
-		if (c != 1 && c != 2) return "not walking about";
-		aw_run(s, K_START, 2);
-		for (int f = 0; f < 60 && emu_read8(s, BGD_MENU) != BGD_MENU_UP; ++f) emu_frame_blind(s, 0);
+/* which area: its rectangle and its header's first bytes */
+static uint32_t bgd_area_key(Emu* e) {
+	uint32_t h;
+	int x0, y0, x1, y1;
+	if (!bgd_level(e, &h, &x0, &y0, &x1, &y1)) return 0;
+	uint32_t k = 2166136261u ^ h;
+	for (int i = 0; i < 0x20; i += 2) k = (k ^ emu_read16(e, h + i)) * 16777619u;
+	return (k ^ (uint32_t) (x1 << 16 | y1)) | 1;
+}
+
+typedef struct {
+	uint32_t key;
+	bool done, failed;
+	int x0, y0, w, h;         /* the area's top left (camera coordinates) and size */
+	int ex0, ey0, ex1, ey1;   /* what's drawn on it: its edges (ex1 / ey1 past them) */
+	uint32_t* px;             /* 0: nothing there */
+} BgdMap;
+static BgdMap bgdMap;
+static pthread_t bgdThread;
+static volatile bool bgdBusy, bgdStop;
+static uint8_t* bgdJob;
+static size_t bgdJobSize;
+static char bgdRom[1024];
+static Emu bgdEmu;
+static bool bgdEmuOpen;
+
+/* the copy's camera moved to x, y, a step at most each way a frame (the
+ * hero's health kept at hp); false if it stops short */
+static bool bgd_go(Emu* e, int x, int y, uint16_t hp) {
+	int stuck = 0, lx = (int32_t) emu_read32(e, BGD_CAMX), ly = (int32_t) emu_read32(e, BGD_CAMY);
+	for (int f = 0; f < 4000 && !bgdStop; ++f) {
+		int cx = (int32_t) emu_read32(e, BGD_CAMX), cy = (int32_t) emu_read32(e, BGD_CAMY);
+		if (cx == x && cy == y) return true;
+		if (cx != lx || cy != ly) stuck = 0;
+		else if (++stuck > 30) return false;
+		lx = cx, ly = cy;
+		int dx = x - cx, dy = y - cy;
+		dx = dx > 16 ? 16 : dx < -16 ? -16 : dx;
+		dy = dy > 16 ? 16 : dy < -16 ? -16 : dy;
+		/* (every frame: the push back toward the hero sets them after the scroll) */
+		emu_write16(e, BGD_DX, (uint16_t) dx);
+		emu_write16(e, BGD_DY, (uint16_t) dy);
+		emu_write16(e, BGD_HP, hp);
+		emu_frame_blind(e, 0);
 	}
-	if (emu_read8(s, BGD_MENU) != BGD_MENU_UP || emu_read8(s, BGD_CONTROL) != 0) return "START opened nothing";
-	/* (BGD-8: no presses) the character tab and the list's first lines,
-	 * written in the hidden copy and drawn by the game a frame or two
-	 * later; then the same from line 3 */
-	size_t sz = emu_state_size(s);
-	void* st = malloc(sz);
-	if (!st) return "out of memory";
-	const char* err = NULL;
-	for (int t = 0; t < NT && !err; ++t) {
-		emu_write8(s, BGD_TAB, BGD_CHARACTER);
-		emu_write8(s, BGD_TOP, (uint8_t) bgdTops[t]);
-		emu_write8(s, BGD_CURSOR, 0);
-		aw_run(s, 0, 3);
-		if (emu_read8(s, BGD_MENU) != BGD_MENU_UP || emu_read8(s, BGD_TAB) != BGD_CHARACTER || emu_read8(s, BGD_TOP) != bgdTops[t]) {
-			err = "the character tab didn't come up";
-			break;
-		}
-		emu_state_save(s, st);
-		bgd_draw(s, st, bgdHideList, 4, bare);
-		bgd_draw(s, st, bgdHide, 3, lines[t]);
-		if (!t) memcpy(base, bare, sizeof(base));
-		/* the list's letters alone: where it differs from the frame without them */
-		for (int i = 0; i < GBA_W * GBA_H; ++i) ink[t][i] = lines[t][i] != bare[i];
-		/* (back to the frame as it was, for the next) */
-		emu_hide_sprites(s, NULL, 0);
-		emu_state_load(s, st);
-	}
-	free(st);
-	emu_hide_sprites(s, NULL, 0);
-	if (err) return err;
-	if (emu_cancelled(s)) return "called off";
-	/* the tab without its list, the lines laid on it (BGD-2) */
-	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &base[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
-	for (int line = 0; line < BGD_LINES; ++line) {
-		int t = NT - 1;
-		while (t > 0 && bgdTops[t] > line) --t;
-		int from = BGD_ROW_Y + BGD_PITCH * (line - bgdTops[t]) - 2;
-		int to = BGD_PAGE_Y + BGD_PITCH * line - 2;
-		for (int dy = 0; dy < BGD_PITCH - 1; ++dy) {
-			int ys = from + dy, yd = to + dy;
-			if (ys < 0 || ys >= GBA_H || yd < 0 || yd >= h || yd >= GBA_H) continue;
-			for (int x = 0; x < BGD_LIST_X && x < w; ++x) {
-				if (ink[t][ys * GBA_W + x]) out[yd * w + x] = lines[t][ys * GBA_W + x];
+	return false;
+}
+
+static void* bgd_worker(void* arg) {
+	(void) arg;
+	Emu* e = &bgdEmu;
+	BgdMap* m = &bgdMap;
+	struct timespec t0;
+	clock_gettime(CLOCK_MONOTONIC, &t0);
+	const char* why = NULL;
+	int stops = 0, missed = 0;
+	void* st = NULL;
+	if (!bgdEmuOpen) bgdEmuOpen = emu_open(e, bgdRom, NULL, false);
+	if (!bgdEmuOpen && (why = "the ROM didn't open")) goto out;
+	emu_layers(e, 0x1F);
+	if (!emu_state_load(e, bgdJob) && (why = "the game's moment didn't load")) goto out;
+	/* the camera held still: the follow routine's stores blanked (mov r8, r8) */
+	for (size_t i = 0; i < sizeof(bgdFollow) / sizeof(bgdFollow[0]); ++i) emu_write16(e, bgdFollow[i], 0x46C0);
+	uint16_t hp = emu_read16(e, BGD_HP);
+	for (int i = 0; i < 2; ++i) emu_frame_blind(e, 0);
+	int X1 = m->x0 + m->w - GBA_W - 1, Y1 = m->y0 + m->h - GBA_H - 1;
+	st = malloc(emu_state_size(e));
+	if (!st && (why = "out of memory")) goto out;
+	/* a screen at a time, row by row, each row the other way */
+	for (int y = m->y0, row = 0; !bgdStop; y += GBA_H, ++row) {
+		if (y > Y1) y = Y1;
+		int n = (X1 - m->x0 + GBA_W - 1) / GBA_W + 1;
+		for (int k = 0; k < n && !bgdStop; ++k) {
+			int x = m->x0 + (row & 1 ? n - 1 - k : k) * GBA_W;
+			if (x > X1) x = X1;
+			if (!bgd_go(e, x, y, hp)) {
+				++missed;
+				continue;
 			}
+			for (int i = 0; i < 2; ++i) emu_frame_blind(e, 0); /* (its last strips drawn) */
+			int cx = (int32_t) emu_read32(e, BGD_CAMX), cy = (int32_t) emu_read32(e, BGD_CAMY);
+			emu_state_save(e, st);
+			emu_layers(e, 0x07);
+			emu_state_load(e, st);
+			emu_frame(e, 0);
+			for (int r = 0; r < GBA_H; ++r) {
+				int py = cy - m->y0 + r;
+				if (py < 0 || py >= m->h) continue;
+				for (int c = 0; c < GBA_W; ++c) {
+					int qx = cx - m->x0 + c;
+					if (qx >= 0 && qx < m->w) m->px[(size_t) py * m->w + qx] = e->fb[r * GBA_W + c] & 0xFFFFFF;
+				}
+			}
+			emu_layers(e, 0x1F);
+			emu_state_load(e, st);
+			++stops;
+		}
+		if (y == Y1) break;
+	}
+	if (!stops && !bgdStop && (why = "the camera wouldn't move")) goto out;
+	if (!bgdStop) {
+		/* the area's edges: its last drawn pixels (the rest is black) */
+		m->ex0 = m->w, m->ey0 = m->h, m->ex1 = m->ey1 = 0;
+		for (int y = 0; y < m->h; ++y)
+			for (int x = 0; x < m->w; ++x)
+				if (m->px[(size_t) y * m->w + x]) {
+					if (x < m->ex0) m->ex0 = x;
+					if (x >= m->ex1) m->ex1 = x + 1;
+					if (y < m->ey0) m->ey0 = y;
+					if (y >= m->ey1) m->ey1 = y + 1;
+				}
+		if (m->ex1 <= m->ex0 && (why = "nothing drawn")) goto out;
+		m->done = true;
+		struct timespec t1;
+		clock_gettime(CLOCK_MONOTONIC, &t1);
+		fprintf(stderr, "Baldur's Gate: Dark Alliance: area mapped (%dx%d, %d screens%s, %ld ms)\n", m->w, m->h, stops,
+		        missed ? ", some out of reach" : "", (long) ((t1.tv_sec - t0.tv_sec) * 1000 + (t1.tv_nsec - t0.tv_nsec) / 1000000));
+	}
+out:
+	free(st);
+	if (why) {
+		m->done = m->failed = true;
+		fprintf(stderr, "Baldur's Gate: Dark Alliance: area not mapped: %s\n", why);
+	}
+	bgdBusy = false;
+	return NULL;
+}
+
+/* the map dropped (called off first if it's still being made: false until it's stopped) */
+static bool bgd_drop(void) {
+	BgdMap* m = &bgdMap;
+	if (bgdBusy) {
+		bgdStop = true;
+		return false;
+	}
+	if (bgdThread) pthread_join(bgdThread, NULL), bgdThread = 0;
+	free(m->px);
+	memset(m, 0, sizeof(*m));
+	return true;
+}
+
+/* the area's map, at a third of its size around the game screen's middle
+ * (BGD-10); a new area's map made beside the game */
+static const uint32_t* bgd_live_view(Emu* live, const char* rom) {
+	static uint32_t out[GBA_W * GBA_H];
+	BgdMap* m = &bgdMap;
+	if (emu_read8(live, BGD_INGAME) != 1) {
+		/* the title: the map from before dropped (BGD-5) */
+		if (m->px || bgdBusy) bgd_drop();
+		return NULL;
+	}
+	if (bgd_virt(live, BGD_V_LOGO)) return NULL; /* GAME OVER (BGD-9) */
+	/* a new area is mapped once he's been in it under his control for half
+	 * a second, from a moment under his control (in START's menu, BG0-BG2
+	 * hold the menu's pictures; a conversation's words are sprites) */
+	static uint32_t settledKey;
+	static int settledFor;
+	uint32_t key = bgd_area_key(live);
+	int c = emu_read8(live, BGD_CONTROL);
+	if (key != settledKey) settledKey = key, settledFor = 0;
+	else if (c == 1 || c == 2) ++settledFor;
+	if ((m->px || bgdBusy) && m->key != key && key) {
+		if (!bgd_drop()) return NULL;
+	}
+	if (!m->px) {
+		if (!key || settledFor < BGD_SETTLE || (c != 1 && c != 2) || bgdBusy) return NULL;
+		if (bgdThread) pthread_join(bgdThread, NULL), bgdThread = 0;
+		uint32_t h;
+		int x0, y0, x1, y1;
+		if (!bgd_level(live, &h, &x0, &y0, &x1, &y1)) return NULL;
+		m->key = key;
+		m->x0 = x0, m->y0 = y0, m->w = x1 - x0, m->h = y1 - y0;
+		if (!(m->px = calloc((size_t) m->w * m->h, 4))) {
+			memset(m, 0, sizeof(*m));
+			return NULL;
+		}
+		size_t sz = emu_state_size(live);
+		if (sz > bgdJobSize) free(bgdJob), bgdJob = malloc(sz), bgdJobSize = bgdJob ? sz : 0;
+		if (!bgdJob || !emu_state_save(live, bgdJob)) {
+			free(m->px);
+			memset(m, 0, sizeof(*m));
+			return NULL;
+		}
+		snprintf(bgdRom, sizeof(bgdRom), "%s", rom);
+		bgdStop = false;
+		bgdBusy = true;
+		/* in exact runs (the tests), and with no threads, made here */
+		if (getenv("GBADS_SYNC") || pthread_create(&bgdThread, NULL, bgd_worker, NULL)) bgdThread = 0, bgd_worker(NULL);
+	}
+	if (m->failed || !m->done) return NULL; /* (the logo meanwhile) */
+	/* a third of the size: each pixel the mean of 3x3 of the picture's,
+	 * centred on the game screen's middle, kept within the area's edges; an
+	 * area smaller than the screen in its middle */
+	enum { Z = 3 };
+	int camx = (int32_t) emu_read32(live, BGD_CAMX) + GBA_W / 2 - m->x0, camy = (int32_t) emu_read32(live, BGD_CAMY) + GBA_H / 2 - m->y0;
+	int left = camx - GBA_W * Z / 2, top = camy - GBA_H * Z / 2;
+	if (m->ex1 - m->ex0 <= GBA_W * Z) left = (m->ex0 + m->ex1) / 2 - GBA_W * Z / 2;
+	else if (left < m->ex0) left = m->ex0;
+	else if (left > m->ex1 - GBA_W * Z) left = m->ex1 - GBA_W * Z;
+	if (m->ey1 - m->ey0 <= GBA_H * Z) top = (m->ey0 + m->ey1) / 2 - GBA_H * Z / 2;
+	else if (top < m->ey0) top = m->ey0;
+	else if (top > m->ey1 - GBA_H * Z) top = m->ey1 - GBA_H * Z;
+	for (int oy = 0; oy < GBA_H; ++oy) {
+		int py = top + oy * Z;
+		for (int ox = 0; ox < GBA_W; ++ox) {
+			int qx = left + ox * Z;
+			unsigned r = 0, g = 0, b = 0;
+			for (int dy = 0; dy < Z; ++dy) {
+				if (py + dy < 0 || py + dy >= m->h) continue;
+				for (int dx = 0; dx < Z; ++dx) {
+					if (qx + dx < 0 || qx + dx >= m->w) continue;
+					uint32_t px = m->px[(size_t) (py + dy) * m->w + qx + dx];
+					r += px & 0xFF, g += (px >> 8) & 0xFF, b += (px >> 16) & 0xFF;
+				}
+			}
+			out[oy * GBA_W + ox] = 0xFF000000 | (b / (Z * Z)) << 16 | (g / (Z * Z)) << 8 | r / (Z * Z);
 		}
 	}
-	return NULL;
+	return out;
 }
 
 static const MapProfile profiles[] = {
@@ -7779,23 +7920,19 @@ static const MapProfile profiles[] = {
 	},
 	{
 		/* Baldur's Gate: Dark Alliance (USA, Europe: the same addresses).
-		 * Walking about, START's character tab, its list's first seven lines:
-		 * see bgd_compose (docs/games/baldurs-gate-dark-alliance.md) */
+		 * The area's map, made on a copy and drawn live: see
+		 * bgd_live_view (docs/games/baldurs-gate-dark-alliance.md) */
 		.codes = { "BGDE", "BGDP" },
 		.title = "Baldur's Gate: Dark Alliance",
-		.compose = bgd_compose,
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
 		.virt = bgd_virt,
-		/* in a game (elsewhere START opens nothing: the last picture
-		 * stays, BGD-4) */
-		.live = { { BGD_INGAME, 0xFF, 1, 1 } },
+		.liveView = bgd_live_view,
+		/* (no captures: the map is the live view's) */
+		.live = { { BGD_V_NEVER, 0xFF, 1, 1 } },
 		/* the title, the language list, the class choice, GAME OVER: the
-		 * logo, the picture from before dropped (BGD-5, BGD-9) */
+		 * logo (BGD-5, BGD-9) */
 		.menu = { { BGD_V_LOGO, 0xFF, 1, 4 } },
-		/* health, energy, experience (a hit, a potion, a kill, a level):
-		 * taken again at once (BGD-8) */
-		.room = { { BGD_HP, 0, 0, 2 }, { BGD_EP, 0, 0, 2 }, { BGD_XP, 0, 0, 4 } },
 		/* the lettering on its piece of the title's parchment map, BG2 a
 		 * bitmap (BGD-6; the European language list is sprites, left out) */
 		.logo = { .wait = 1500, .layers = 0x4, .minX = 32, .maxX = 212, .minY = 6, .maxY = 97 },

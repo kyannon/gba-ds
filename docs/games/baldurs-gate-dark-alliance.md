@@ -4,7 +4,7 @@
 |---|---|
 | Releases | `BGDE` USA · `BGDP` Europe (English, French, German, Spanish, Italian; a language list on the title; the same addresses) |
 | Dumps | `BGDE` cartridge `deedd7d9` (tested) · `BGDP` cartridge `494492dc` (tested) |
-| Profile | `src/profiles.c`: the `BGDE` / `BGDP` entry (`bgd_compose`) |
+| Profile | `src/profiles.c`: the `BGDE` / `BGDP` entry (`bgd_live_view`, `bgd_worker`) |
 | Tests | `tests/regress/baldurs-gate-dark-alliance.json` (`tools/regress.py baldurs-gate-dark-alliance`) |
 | Status | supported (new in v1.5) |
 
@@ -12,32 +12,43 @@ What GBA DS does with this game. Each rule is a promise the profile keeps; the r
 
 Every game also follows the [general rules](README.md#general-rules) (GEN-1 to GEN-7).
 
-The game has no map. What it keeps in its START menu that a player checks often is the character tab (the yellow emblem): the class and level, experience and the experience for the next level, health and energy, armor, base attack and damage (and the six abilities), with the weight carried and the gold in the menu's top bar. That's what the second screen shows, without the abilities.
+The game has no map. The second screen shows one, made from the game's own screens by a copy of the game (BGD-10). Until Nov 13, 2026 it showed the hero's sheet from START's menu instead (BGD-1 to BGD-4, BGD-8, retired).
 
 ## Rules
 
-**BGD-1. Walking about: the character tab.** Under the player's control (in a town, a sewer, a dungeon, a camp), the second screen shows START's character tab, the whole screen at the game screen's size, as the game draws it: the tab icons with the weight carried and the gold along the top, the class and level under them, the list of the character's figures, and the hero in the archway on the right. It's opened on the hidden copy at every refresh and whenever health, energy or experience change (BGD-8), so it stays up to date without the player opening it, in a fight too. With START's menu open in the game, on any tab, the same.
+**BGD-1.** *Retired Nov 13, 2026 (the area's map took its place, BGD-10): walking about, START's character tab, taken on the hidden copy.*
 
-**BGD-2. The first seven lines, in one picture.** The game shows four lines of the list at a time and scrolls through its thirteen. The second screen shows its first seven, all at once: Experience, Next Level, Health, Energy, Armor, Base Attack and Damage, the game's own lines at the game's own spacing, starting just under the class and level (the game starts them a line lower, to leave room for its scroll arrow). The six abilities below them (Strength to Charisma) aren't shown: they change only every few levels, and the owner wants the figures that change in play. *An exception to "the game's own screen as it is": the list is made taller so those seven lines can be read without scrolling, as a player would read them by scrolling. Until Nov 12, 2026's second build: all thirteen lines, in two pages turned every 5 seconds.*
+**BGD-2.** *Retired Nov 13, 2026: the character list's first seven lines in one picture (until Nov 12's second build, all thirteen in two pages).*
 
-**BGD-3. Nothing to press.** The list's cursor (the yellow brackets round a line), its scroll arrows and the small marker under the chosen tab icon are left out: nothing on the second screen is waiting for a button.
+**BGD-3.** *Retired Nov 13, 2026: the list's cursor, scroll arrows and tab marker left out.*
 
-**BGD-4. Last one stays.** Where START opens nothing (a conversation, a scene, a door's fade, a shop, the save book, the hero falling), the last picture stays; before the first, the logo.
+**BGD-4.** *Retired Nov 13, 2026 (now part of BGD-10): where START opened nothing, the last picture stayed.*
 
-**BGD-5. Title.** On the title screen (and the European release's language list on it) and while choosing a class, the second screen shows the logo, and no captures are tried. A picture from before (after Quit Game) is dropped.
+**BGD-5. Title.** On the title screen (and the European release's language list on it) and while choosing a class, the second screen shows the logo. A map from before (after Quit Game) is dropped.
 
 **BGD-6. Logo.** The logo is the title's lettering, "Forgotten Realms", "Baldur's Gate" and "Dark Alliance" with its red crescent, on the piece of the title's parchment map behind it (a box round the lettering): the lettering is painted into the map, with translucent edges that no outline can cleanly follow.
 
 **BGD-7. Game screen.** Nothing leaves the game screen: the health and energy bars and the three quick slots stay where the game draws them.
 
-**BGD-8. Health as it happens.** When health, energy or experience change (a hit taken, health coming back, a potion, an enemy killed, a quest's reward, a level), a capture starts at once (GEN-6) instead of waiting for the next refresh, and takes under a second: the hidden copy opens START and goes straight to the character tab, with no button presses after START. In a fight the second screen's Health line follows the bar on the game screen within about a second. *By hand: how closely it follows on the device, where captures run beside the game (the tests run them inline).*
+**BGD-8.** *Retired Nov 13, 2026: the character tab taken again at once when health, energy or experience changed.*
 
-**BGD-9. GAME OVER: the logo.** When the hero dies, as the screen goes black for GAME OVER, the second screen drops the character tab and shows the logo; while the hero falls, the last picture stays (BGD-4).
+**BGD-9. GAME OVER: the logo.** When the hero dies, as the screen goes black for GAME OVER, the second screen drops the map and shows the logo; while the hero falls, the map stays.
+
+**BGD-10. The area's map.** In every area (the tavern, its cellar, the town, the sewers, dungeons, camps), the second screen shows a map of the whole area: its floors, walls, furniture, lamps and raised floors as the game draws them, at a third of their size, on black. It's centred on the middle of the game screen and follows it as the hero walks, but stops at the area's edges: near an edge the map stays put rather than show the black beyond the area's last rooms, and an area smaller than the screen sits in its middle. The game has no map, so GBA DS makes one from the game's own screens: a silent copy of the game, its camera held still and moved over the whole area a screen at a time, draws each part as the game would if the hero stood there, with the game's own tiles and colours. Only the background layers are kept: the hero, enemies, barrels, pots and the HUD (all sprites) aren't on it. Nothing is added: no marker, no names, no frame. The map is whole as soon as it's made, rooms the hero hasn't reached yet too, and is made each time he arrives in an area, once he's been in it under his control for half a second (not from START's menu, whose pictures are on the same layers: a game loaded with the menu open shows the logo until it's closed); the logo until it's ready. It stays up in fights, conversations, scenes in the area and START's menu. Doors opened and things broken after it's made aren't on it until he comes back to the area. *By hand: how long a map takes on the device (here: under a second for the tavern; the device is slower, and it's made beside the game, which never waits for it).*
+
+## Exceptions
+
+- **The areas' maps, made from the game's own screens (BGD-10).** The game has no map, so this goes against three principles:
+  - principle 1, because the map is the game's pictures at a third of their size, not GBA pixels;
+  - principles 3 and 4, because it's a screen the game never draws, put together by GBA DS.
+
+  It earns its place because the sewers, dungeons and the tavern's own rooms are mazes of look-alike corridors and the game gives you no map, as Mega Man Battle Network's net (MMBN-6). It's kept as close to the game as it can be: only what the game itself draws, each part drawn by the game on a copy of the player's own game, its camera moved by GBA DS but nothing else changed, and nothing new on it. The owner asked for it (Nov 13, 2026) in place of the hero's sheet (BGD-1 to BGD-4, BGD-8, retired).
 
 ## Not covered yet
 
 - Only the start of Act I has been played (the Elfsong Tavern); later acts, other classes (the Wizard, the Archer, the Elven Fighter), shops, a level up and the game's own save book haven't been run.
-- An experience change (a kill) and a level up haven't been run; BGD-8's case is health going down in a fight with rats.
+- Only the tavern and its cellar have been mapped; the town, the sewers, later acts and their outdoor areas (maybe much bigger) haven't.
+- No marker for the hero: near an area's edge, where the map stops following, he isn't in its middle. A marker (as Mega Man Battle Network's head) needs where he is, which moves about in memory.
 - Europe is checked in English; the other four languages share its addresses but haven't been run.
 
 ## Facts found so far (for sessions)
@@ -61,17 +72,17 @@ The same addresses in both releases.
 
 ## For the merge
 
-- Changelog line (under the open version's What's new): "New game: Baldur's Gate: Dark Alliance (USA, Europe). The game has no map, so the second screen shows the hero's sheet from START's menu, kept up to date as you play, within a second of a hit or a potion: class and level, experience and the next level's, health and energy, armor, attack and damage, with the weight carried and the gold. The logo on the title and at GAME OVER."
-- `wiki/Supported-games.md`, table: `| Baldur's Gate: Dark Alliance | `BGDE` `BGDP` | the hero's sheet (START's character tab: experience, health, energy, armor, attack, damage) | |`
+- Changelog line (under the open version's What's new): "New game: Baldur's Gate: Dark Alliance (USA, Europe). The game has no map, so GBA DS makes one: a copy of the game draws each area's rooms and corridors with the game's own pictures, and the second screen shows them at a third of their size, following you. The logo on the title and at GAME OVER."
+- `wiki/Supported-games.md`, table: `| Baldur's Gate: Dark Alliance | `BGDE` `BGDP` | the area's map (made from the game's own screens) | |`
 - `wiki/Supported-games.md`, section:
 
   ### Baldur's Gate: Dark Alliance
 
   The USA and European releases.
 
-  The game has no map. Walking about and in fights, the second screen shows the character tab of START's menu, kept up to date as you play (within about a second of a hit, health coming back or a potion): your class and level, your experience and the experience for the next level, health and energy, armor, base attack and damage, with the weight you carry and your gold along the top. The game shows four lines of that list at a time; the second screen shows those seven at once. The cursor and the scroll arrows are left out, and so are the six abilities. In conversations and scenes the last picture stays; on the title, while choosing a class and at GAME OVER, the logo.
+  The game has no map, so GBA DS makes one. Each time you arrive in an area, a copy of the game, running silently beside yours, looks over the whole area a screen at a time; the second screen then shows the area's floors, walls and furniture at a third of their size, following your view and stopping at the area's edges. Rooms you haven't reached yet are on it too. Enemies, barrels, pots and you yourself aren't. The logo shows on the title, while the map is being made, and at GAME OVER.
 
-  Known issues: only Act I's tavern and cellar and the Fighter have been tried.
-- `wiki/Philosophy.md`, its list of exceptions: "Baldur's Gate: Dark Alliance's character list, made taller so its first seven lines can be read without scrolling."
+  Known issues: there's no marker for where you are (near an area's edge you aren't in the map's middle); doors you open aren't shown open until you come back to the area; only Act I's tavern and cellar have been tried.
+- `wiki/Philosophy.md`, its list of exceptions: "Baldur's Gate: Dark Alliance's maps, made from the game's own screens by a copy of the game, as Mega Man Battle Network's net maps."
 - `docs/games/README.md`: its row in the table (prefix BGD, `BGDE` + 1).
 - README's count of games, one more; `tools/make_dumps.py` for the Dumps row.
