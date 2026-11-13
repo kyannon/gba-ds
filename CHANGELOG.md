@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.5.2 (not yet released)
+## v1.5.2 (2026-11-13)
 
 ### New
 - **Fast-forward speed** (issue #44): Fast Forward in the pause menu's Extras page now sets how fast holding R2 plays, 2x, 3x (the default), 4x, 5x or Max (as fast as your device can run the game), as well as turning it off. Each press goes on to the next.
