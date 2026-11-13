@@ -1,7 +1,8 @@
 /* GBA DS web player: on-screen controls, for touchscreens. The device's
  * buttons laid out below the two screens, or beside them (the D-pad on the
  * left, the face buttons on the right, as on a GBA), in space of their own:
- * the screens fit into what's left, whichever way they're arranged.
+ * the screens fit into what's left, whichever way they're arranged. L2 and
+ * R2 sit inside L and R: held, they rewind and fast-forward, as on the device.
  *
  *   GBATouch.place(W, H, opts) -> the screens' box { x, y, w, h }
  *   GBATouch.mask              the buttons held now (ui.h's bits)
@@ -12,7 +13,7 @@
 "use strict";
 const GBATouch = (() => {
   // ui.h's bits
-  const B = { a: 1 << 0, b: 1 << 1, x: 1 << 2, y: 1 << 3, start: 1 << 4, select: 1 << 5, home: 1 << 6, l: 1 << 7, r: 1 << 8,
+  const B = { a: 1 << 0, b: 1 << 1, x: 1 << 2, y: 1 << 3, start: 1 << 4, select: 1 << 5, home: 1 << 6, l: 1 << 7, r: 1 << 8, l2: 1 << 9, r2: 1 << 10,
     up: 1 << 12, down: 1 << 13, left: 1 << 14, right: 1 << 15 };
   let root = null, ctl = [], mask = 0, opts = { vibrate: true };
   const held = new Map(); // pointer -> bits
@@ -35,6 +36,8 @@ const GBATouch = (() => {
     for (const [k, label] of [["x", "X"], ["y", "Y"], ["a", "A"], ["b", "B"]]) ctl.push({ el: el("face f-" + k, "<span>" + label + "</span>", B[k]), kind: "btn", bits: B[k], round: true, group: "face" });
     ctl.push({ el: el("shoulder sl", "<span>L</span>", B.l), kind: "btn", bits: B.l });
     ctl.push({ el: el("shoulder sr", "<span>R</span>", B.r), kind: "btn", bits: B.r });
+    ctl.push({ el: el("shoulder s2 sl2", "<span>L2</span>", B.l2), kind: "btn", bits: B.l2 });
+    ctl.push({ el: el("shoulder s2 sr2", "<span>R2</span>", B.r2), kind: "btn", bits: B.r2 });
     for (const [k, label] of [["select", "Select"], ["start", "Start"], ["home", "Menu"]]) ctl.push({ el: el("pill p-" + k, "<span>" + label + "</span>", B[k]), kind: "btn", bits: B[k] });
     root.addEventListener("pointerdown", down);
     root.addEventListener("pointermove", move);
@@ -59,17 +62,19 @@ const GBATouch = (() => {
     const s = Object.assign({ top: 0, right: 0, bottom: 0, left: 0 }, o.safe || {});
     // sizes in CSS px at 100 %, scaled to the screen and the setting, then down to fit
     let u = (o.size || 1) * Math.max(0.78, Math.min(1.25, Math.min(W, H) / 400));
-    const size = (u) => ({ D: 128 * u, F: 138 * u, fb: 52 * u, SW: 76 * u, SH: 32 * u, PW: 56 * u, PH: 24 * u, g: 10 * u, pad: 12 * u });
+    const size = (u) => ({ D: 128 * u, F: 138 * u, fb: 52 * u, SW: 76 * u, S2: 56 * u, SH: 32 * u, PW: 56 * u, PH: 24 * u, g: 10 * u, pad: 12 * u });
     let z = size(u), box;
     if (o.placement === "beside") {
-      // a column each side: L, the D-pad, Select and Menu | R, the face buttons, Start
-      const colW = (z) => z.pad * 2 + Math.max(z.D, z.F, z.PW * 2 + z.g);
+      // a column each side: L and L2, the D-pad, Select and Menu | R2 and R, the face buttons, Start
+      const colW = (z) => z.pad * 2 + Math.max(z.D, z.F, z.PW * 2 + z.g, z.SW + z.g + z.S2);
       const avail = W - s.left - s.right;
       if (colW(z) * 2 > avail * 0.62) { u *= avail * 0.62 / (colW(z) * 2); z = size(u); }
       const cw = colW(z), top = s.top + z.pad, bot = H - s.bottom - z.pad;
       const lx = s.left, rx = W - s.right - cw, mid = (top + bot) / 2;
       put(find("sl"), lx + z.pad, top, z.SW, z.SH);
       put(find("sr"), rx + cw - z.pad - z.SW, top, z.SW, z.SH);
+      put(find("sl2"), lx + z.pad + z.SW + z.g, top, z.S2, z.SH);
+      put(find("sr2"), rx + cw - z.pad - z.SW - z.g - z.S2, top, z.S2, z.SH);
       put(find("dpad"), lx + (cw - z.D) / 2, mid - z.D / 2, z.D, z.D);
       face(rx + (cw - z.F) / 2, mid - z.F / 2, z);
       put(find("p-select"), lx + cw / 2 - z.PW - z.g / 2, bot - z.PH, z.PW, z.PH);
@@ -77,8 +82,8 @@ const GBATouch = (() => {
       put(find("p-start"), rx + (cw - z.PW) / 2, bot - z.PH, z.PW, z.PH);
       box = { x: lx + cw, y: s.top, w: rx - lx - cw, h: H - s.top - s.bottom };
     } else {
-      // a band below: L, Menu, R | the D-pad, Select over Start, the face buttons
-      const need = (z) => z.pad * 2 + z.D + z.F + z.PW + z.g * 4;
+      // a band below: L, L2, Menu, R2, R | the D-pad, Select over Start, the face buttons
+      const need = (z) => z.pad * 2 + Math.max(z.D + z.F + z.PW + z.g * 4, (z.SW + z.g + z.S2) * 2 + z.PW + z.g * 2);
       const avail = W - s.left - s.right;
       if (need(z) > avail) { u *= avail / need(z); z = size(u); }
       const band = z.pad + z.SH + z.g + Math.max(z.D, z.F) + z.pad + s.bottom;
@@ -86,6 +91,8 @@ const GBATouch = (() => {
       const ry = y0 + z.pad + z.SH + z.g, rh = Math.max(z.D, z.F);
       put(find("sl"), x0 + z.pad, y0 + z.pad, z.SW, z.SH);
       put(find("sr"), x1 - z.pad - z.SW, y0 + z.pad, z.SW, z.SH);
+      put(find("sl2"), x0 + z.pad + z.SW + z.g, y0 + z.pad, z.S2, z.SH);
+      put(find("sr2"), x1 - z.pad - z.SW - z.g - z.S2, y0 + z.pad, z.S2, z.SH);
       put(find("p-home"), cx - z.PW / 2, y0 + z.pad + (z.SH - z.PH) / 2, z.PW, z.PH);
       put(find("dpad"), x0 + z.pad, ry + (rh - z.D) / 2, z.D, z.D);
       face(x1 - z.pad - z.F, ry + (rh - z.F) / 2, z);

@@ -145,7 +145,9 @@ function setButtons(mask) {
 
 /* ------------------------------------------------------------ files the player keeps */
 // battery saves, states and the menu's settings (states/prefs.cfg), and the home folder
-const KEEP = /^\/(saves|states|home)\//;
+// (kept in the browser); screenshots and GBA DS's data folders (cheats, overlays, logos,
+// patches, bug reports: in /gba-ds, the app's folder) too, for a folder of the player's
+const KEEP = /^\/(saves|states|home|shots)\/|^\/gba-ds\/(cheats|overlays|logos|patches|bug-reports)\//;
 const seen = new Map();
 function changedFiles(all) {
   const files = [], deleted = [];

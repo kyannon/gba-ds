@@ -192,6 +192,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 #touch .face { border-radius: 50%; font: italic 700 calc(19px * var(--u)) var(--display); }
 #touch .face.f-a, #touch .face.f-b { background: linear-gradient(#3a4794, #263070); }
 #touch .shoulder { border-radius: calc(16px * var(--u)) calc(16px * var(--u)) calc(7px * var(--u)) calc(7px * var(--u)); font: italic 700 calc(15px * var(--u)) var(--display); }
+#touch .shoulder.s2 { font-size: calc(13px * var(--u)); color: #aab4e6; background: linear-gradient(#232c66, #181f4f); }
 #touch .pill { border-radius: 99px; font: 600 calc(10.5px * var(--u)) var(--ui); letter-spacing: 0.04em; text-transform: uppercase; color: #aab4e6; }
 #touch .tc.on { transform: translateY(calc(2px * var(--u))); box-shadow: 0 calc(1px * var(--u)) 0 #0b1035; background: linear-gradient(#5568c4, #3a4aa0); color: #fff; }
 
