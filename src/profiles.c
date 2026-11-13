@@ -5385,7 +5385,7 @@ static const char* m3_compose(Emu* s, const void* state, uint32_t* const* out, i
  *
  * docs/games/baldurs-gate-dark-alliance.md. The game has no map: GBA DS
  * makes one of each area (BGD-10, an exception), shown by bgd_live_view
- * at a quarter of its size around the hero, his head on it (BGD-11); the logo on the
+ * at a quarter of its size around the hero, a red X where he is (BGD-11); the logo on the
  * title (BGD-5) and at GAME OVER (BGD-9). (Until Nov 13, 2026 START's
  * character tab instead, BGD-1 to BGD-4 and BGD-8, retired.) Both releases
  * use these addresses:
@@ -5436,8 +5436,8 @@ static const char* m3_compose(Emu* s, const void* state, uint32_t* const* out, i
 #define BGD_SETTLE 30          /* frames under control in an area before it's mapped */
 #define BGD_MAX 8192           /* the largest area mapped, each way (pixels) */
 #define BGD_Z 4                /* the map's scale: a quarter (BGD-10) */
-#define BGD_HEAD_W 15          /* his head, at the game's size (BGD-11) */
-#define BGD_HEAD_H 10
+#define BGD_SLOT 0x0844E0CA    /* the empty quick slot: 16x16, 4 bpp (BGD-11) */
+#define BGD_SLOT_PAL 0x0860900C /* its palette; the X is entry 2 */
 static const uint32_t bgdFollow[] = { 0x08690FD2, 0x0869108A, 0x0869109C };
 
 static uint32_t bgd_virt(Emu* e, uint32_t addr) {
@@ -5476,8 +5476,6 @@ typedef struct {
 	bool done, failed;
 	int x0, y0, w, h;         /* the area's top left (camera coordinates) and size */
 	int ex0, ey0, ex1, ey1;   /* what's drawn on it: its edges (ex1 / ey1 past them) */
-	uint32_t head[BGD_HEAD_W * BGD_HEAD_H]; /* his head (0: transparent) */
-	int headUp;               /* from its top to his feet; 0: no head found */
 	uint32_t* px;             /* 0: nothing there */
 } BgdMap;
 static BgdMap bgdMap;
@@ -5531,43 +5529,6 @@ static void* bgd_worker(void* arg) {
 	int X1 = m->x0 + m->w - GBA_W - 1, Y1 = m->y0 + m->h - GBA_H - 1;
 	st = malloc(emu_state_size(e));
 	if (!st && (why = "out of memory")) goto out;
-	{
-		/* his head (BGD-11): the sprites alone and nothing at all, drawn from
-		 * the same moment; where they differ is a sprite. Its top: the first
-		 * row with one, above his feet, a few pixels either side of them;
-		 * then BGD_HEAD_H rows from there, BGD_HEAD_W wide round his feet */
-		static uint32_t a[GBA_W * GBA_H], b[GBA_W * GBA_H];
-		int fx = (int32_t) emu_read32(e, BGD_HEROX) / 256 - (int32_t) emu_read32(e, BGD_CAMX);
-		int fy = (int32_t) emu_read32(e, BGD_HEROY) / 256 - (int32_t) emu_read32(e, BGD_CAMY);
-		emu_state_save(e, st);
-		emu_layers(e, 0x10);
-		emu_state_load(e, st);
-		emu_frame(e, 0);
-		memcpy(a, e->fb, sizeof(a));
-		emu_layers(e, 0x00);
-		emu_state_load(e, st);
-		emu_frame(e, 0);
-		memcpy(b, e->fb, sizeof(b));
-		emu_layers(e, 0x1F);
-		emu_state_load(e, st);
-		int top = -1;
-		for (int y = fy - 64; y < fy - 16 && top < 0; ++y) {
-			if (y < 0 || y >= GBA_H) continue;
-			for (int x = fx - 4; x <= fx + 4; ++x)
-				if (x >= 0 && x < GBA_W && a[y * GBA_W + x] != b[y * GBA_W + x]) top = y;
-		}
-		if (top >= 0) {
-			bool any = false;
-			for (int r = 0; r < BGD_HEAD_H; ++r)
-				for (int c = 0; c < BGD_HEAD_W; ++c) {
-					int x = fx - BGD_HEAD_W / 2 + c, y = top + r, i = y * GBA_W + x;
-					bool in = x >= 0 && x < GBA_W && y < GBA_H && a[i] != b[i];
-					m->head[r * BGD_HEAD_W + c] = in ? (a[i] & 0xFFFFFF) | 0xFF000000 : 0;
-					any |= in;
-				}
-			if (any) m->headUp = fy - top;
-		}
-	}
 	/* a screen at a time, row by row, each row the other way */
 	for (int y = m->y0, row = 0; !bgdStop; y += GBA_H, ++row) {
 		if (y > Y1) y = Y1;
@@ -5641,8 +5602,37 @@ static bool bgd_drop(void) {
 	return true;
 }
 
-/* the area's map, at a third of its size around the game screen's middle
- * (BGD-10); a new area's map made beside the game */
+/* the marker (BGD-11): the empty quick slot's picture as the cartridge holds
+ * it, its X (entry 2) and the pixels of its dark face touching the X; the
+ * rest transparent (0). Read once */
+static const uint32_t* bgd_x(Emu* e) {
+	static uint32_t x[16 * 16];
+	static bool made;
+	if (made) return x;
+	uint8_t px[16 * 16];
+	for (int t = 0; t < 4; ++t)
+		for (int r = 0; r < 8; ++r)
+			for (int c = 0; c < 8; ++c) {
+				uint8_t b = emu_read8(e, BGD_SLOT + t * 32 + r * 4 + c / 2);
+				px[((t >> 1) * 8 + r) * 16 + (t & 1) * 8 + c] = c & 1 ? b >> 4 : b & 15;
+			}
+	for (int i = 0; i < 16 * 16; ++i) {
+		int r = i / 16, c = i % 16;
+		bool keep = px[i] == 2;
+		for (int dy = -1; dy <= 1 && !keep && px[i]; ++dy)
+			for (int dx = -1; dx <= 1; ++dx)
+				if (r + dy >= 0 && r + dy < 16 && c + dx >= 0 && c + dx < 16 && px[(r + dy) * 16 + c + dx] == 2) keep = true;
+		if (!keep) continue;
+		uint16_t v = emu_read16(e, BGD_SLOT_PAL + 2 * px[i]);
+		uint32_t R = v & 31, G = (v >> 5) & 31, B = (v >> 10) & 31;
+		x[i] = 0xFF000000 | (B << 3 | B >> 2) << 16 | (G << 3 | G >> 2) << 8 | (R << 3 | R >> 2);
+	}
+	made = true;
+	return x;
+}
+
+/* the area's map, at a quarter of its size around the hero, a red X where he
+ * is (BGD-10, BGD-11); a new area's map made beside the game */
 static const uint32_t* bgd_live_view(Emu* live, const char* rom) {
 	static uint32_t out[GBA_W * GBA_H];
 	BgdMap* m = &bgdMap;
@@ -5718,15 +5708,14 @@ static const uint32_t* bgd_live_view(Emu* live, const char* rom) {
 			out[oy * GBA_W + ox] = 0xFF000000 | (b / (Z * Z)) << 16 | (g / (Z * Z)) << 8 | r / (Z * Z);
 		}
 	}
-	/* his head where he is, at the game's size, centred where the middle
-	 * of his sprite, at a quarter, would be (BGD-11) */
-	if (m->headUp) {
-		int hx = (camx - left) / Z - BGD_HEAD_W / 2, hy = (camy - top - m->headUp / 2) / Z - BGD_HEAD_H / 2;
-		for (int r = 0; r < BGD_HEAD_H; ++r) {
-			if (hy + r < 0 || hy + r >= GBA_H) continue;
-			for (int c = 0; c < BGD_HEAD_W; ++c)
-				if (m->head[r * BGD_HEAD_W + c] && hx + c >= 0 && hx + c < GBA_W) out[(hy + r) * GBA_W + hx + c] = m->head[r * BGD_HEAD_W + c];
-		}
+	/* X marks the spot: the red X of an unusable quick slot, at the game's
+	 * size, its middle where his feet are (BGD-11) */
+	const uint32_t* x = bgd_x(live);
+	int hx = (camx - left) / Z - 8, hy = (camy - top) / Z - 8;
+	for (int r = 0; r < 16; ++r) {
+		if (hy + r < 0 || hy + r >= GBA_H) continue;
+		for (int c = 0; c < 16; ++c)
+			if (x[r * 16 + c] && hx + c >= 0 && hx + c < GBA_W) out[(hy + r) * GBA_W + hx + c] = x[r * 16 + c];
 	}
 	return out;
 }
