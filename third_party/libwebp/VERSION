@@ -1,0 +1,3 @@
+libwebp v1.6.0 (webmproject/libwebp 4fa2191), decoder only: src/dec, the decoder half of src/dsp and src/utils
+(the files in its Android.mk dec_srcs, dsp_dec_srcs, utils_dec_srcs; MIPS/MSA left out). BSD 3-clause (COPYING).
+v1.6.0

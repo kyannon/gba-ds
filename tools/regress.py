@@ -378,7 +378,7 @@ def golden_path(args, case, shot):
 
 
 # a failing case's log lines worth printing with it
-LOG_KEYS = ("renderer: ", "ROM: ", "patches: ", "patch ", "load state: ", "game list: ", "osd: ")
+LOG_KEYS = ("renderer: ", "ROM: ", "patches: ", "patch ", "load state: ", "game list: ", "osd: ", "logo: ")
 
 
 def compare_golden(run, args, shot):

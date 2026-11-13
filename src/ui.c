@@ -2137,10 +2137,10 @@ static void extracted_path(const Config* c, const char* code, char* path, size_t
 	else snprintf(path, n, "%s/logos/%.4s.png", c->stateDir, code);
 }
 
-/* The player's own logo for the game: <asset_dir>/logos/<CODE>.png|.bmp|.jpg. */
+/* The player's own logo for the game: <asset_dir>/logos/<CODE>.png|.bmp|.jpg|.webp. */
 static bool own_logo(const Config* c, const char* code, char* path, size_t n) {
-	const char* exts[] = { "png", "bmp", "jpg", "jpeg" };
-	for (int i = 0; i < 4; ++i) {
+	const char* exts[] = { "png", "bmp", "jpg", "jpeg", "webp" };
+	for (int i = 0; i < 5; ++i) {
 		snprintf(path, n, "%s/logos/%.4s.%s", c->assetDir, code, exts[i]);
 		if (file_there(path)) return true;
 	}
@@ -2180,7 +2180,7 @@ static void logo_dir_list(const char* dir) {
 	struct dirent* e;
 	while ((e = readdir(d))) {
 		const char* dot = strrchr(e->d_name, '.');
-		if (!dot || (strcasecmp(dot, ".png") && strcasecmp(dot, ".jpg") && strcasecmp(dot, ".jpeg"))) continue;
+		if (!dot || (strcasecmp(dot, ".png") && strcasecmp(dot, ".jpg") && strcasecmp(dot, ".jpeg") && strcasecmp(dot, ".webp"))) continue;
 		if (logoDir.n == cap) {
 			cap = cap ? cap * 2 : 256;
 			char** nn = realloc(logoDir.names, sizeof(char*) * cap);
@@ -2197,7 +2197,7 @@ static void logo_dir_list(const char* dir) {
  * "Game Name.jpg" and "Game Name-marquee.png" all go with
  * "Game Name (USA) (Rev 1).gba". Best first: the ROM's whole name, then
  * the same title, then the title with -marquee / -wheel / -logo, then with
- * any other -suffix; PNG before JPG (it can be transparent); then by name. */
+ * any other -suffix; PNG or WebP before JPG (they can be transparent); then by name. */
 static bool scraped_logo(const Config* c, const char* rom, char* path, size_t n) {
 	if (!c->logoFolder[0] || !rom || !rom[0]) return false;
 	const char* base = strrchr(rom, '/');
@@ -2223,7 +2223,7 @@ static bool scraped_logo(const Config* c, const char* rom, char* path, size_t n)
 			const char* tail = fkey + klen + 1;
 			rank = !strcmp(tail, "marquee") || !strcmp(tail, "wheel") || !strcmp(tail, "logo") ? 2 : 3;
 		} else continue;
-		int score = rank * 2 + (strcasecmp(fdot, ".png") ? 1 : 0);
+		int score = rank * 2 + (strcasecmp(fdot, ".png") && strcasecmp(fdot, ".webp") ? 1 : 0); /* PNG and WebP can be transparent */
 		if (score < bestScore || (score == bestScore && strcmp(f, logoDir.names[best]) < 0)) best = i, bestScore = score;
 	}
 	if (best < 0) return false;
