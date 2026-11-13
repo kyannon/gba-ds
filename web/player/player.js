@@ -212,7 +212,9 @@ function folderWrite(files, deleted) {
   return F.queue;
 }
 const isRomName = (n) => /\.(gba|agb|bin|zip|7z)$/i.test(n);
-// what the folder has, as the app's paths (games only when asked; never screenshots or bug reports: the app only writes those)
+// what the folder has, as the app's paths, [path, bytes, modified] (games only when asked, and as
+// files GBA DS reads from the folder when it opens them: never all in memory; never screenshots
+// or bug reports: the app only writes those). The real dates keep GBA DS's roms.cache good between runs.
 async function folderFiles(withRoms) {
   const out = [];
   async function walk(d, vp) {
@@ -220,7 +222,8 @@ async function folderFiles(withRoms) {
       if (name.startsWith(".")) continue;
       if (h.kind === "directory") { await walk(h, vp + name + "/"); continue; }
       if (vp === "/roms/" && !isRomName(name)) continue;
-      out.push([vp + name, new Uint8Array(await (await h.getFile()).arrayBuffer())]);
+      const f = await h.getFile();
+      out.push([vp + name, vp === "/roms/" ? f : new Uint8Array(await f.arrayBuffer()), f.lastModified]);
     }
   }
   for (const [vp, rel] of FOLDER_MAP) {
@@ -399,8 +402,8 @@ async function takeBareWasm(name, bytes) {
   showSlots();
   return true;
 }
-function takeRom(name, bytes, remember) {
-  P.rom = { name, bytes, code: romCode(bytes), title: romTitle(bytes) || baseName(name) };
+function takeRom(name, bytes, remember, mtime) {
+  P.rom = { name, bytes, mtime: mtime || 0, code: romCode(bytes), title: romTitle(bytes) || baseName(name) };
   if (remember !== false) rememberRom(P.rom);
   showSlots();
 }
@@ -409,7 +412,7 @@ async function rememberRom(r) {
     await idb("roms", "readwrite", (s) => s.put(r.bytes, r.name));
     folderWrite([["/roms/" + r.name.replace(/[\/\\]/g, "_"), r.bytes]]);
     const list = ((await kvGet("recent")) || []).filter((x) => x.name !== r.name);
-    list.unshift({ name: r.name, code: r.code, title: r.title, t: Date.now() });
+    list.unshift({ name: r.name, code: r.code, title: r.title, t: Date.now(), mtime: r.mtime || 0 });
     for (const old of list.splice(10)) idb("roms", "readwrite", (s) => s.delete(old.name)).catch(() => {});
     await kvSet("recent", list);
     showRecent();
@@ -419,7 +422,7 @@ async function rememberRom(r) {
 // what dropped files are, in an order that lets each make sense: builds, games, saves, states
 async function takeFiles(list) {
   const items = [];
-  for (const f of list) items.push({ name: f.name, bytes: new Uint8Array(await f.arrayBuffer()) });
+  for (const f of list) items.push({ name: f.name, bytes: new Uint8Array(await f.arrayBuffer()), mtime: f.lastModified || 0 });
   let newGame = false, newBuild = false, newState = null;
   for (const it of items) {
     const ext = extOf(it.name);
@@ -434,12 +437,12 @@ async function takeFiles(list) {
           continue;
         }
         const romE = entries.find((e) => /\.(gba|agb|bin)$/i.test(e.name) && !e.dir);
-        if (romE) { const b = await romE.read(); if (looksLikeRom(b)) { takeRom(romE.name.split("/").pop(), b); newGame = true; continue; } }
+        if (romE) { const b = await romE.read(); if (looksLikeRom(b)) { takeRom(romE.name.split("/").pop(), b, true, it.mtime); newGame = true; continue; } }
         toast(it.name + ": no GBA DS build, game or bug report inside.", true);
       } else if (ext === "wasm") {
         if (await takeBareWasm(it.name, it.bytes)) { newBuild = true; toast("Web build loaded (no settings file with it: GBA DS's defaults)."); warnCaps(P.build); }
       } else if (["gba", "agb", "bin"].includes(ext) || looksLikeRom(it.bytes)) {
-        takeRom(it.name, it.bytes); newGame = true;
+        takeRom(it.name, it.bytes, true, it.mtime); newGame = true;
       } else if (["sav", "srm"].includes(ext)) {
         P.save = { name: it.name, bytes: it.bytes }; showSlots();
       } else if (/^(ss\d?|state)$/.test(ext)) {
@@ -672,11 +675,11 @@ async function boot(opts) {
       const p = "/roms/" + r.name.replace(/[\/\\]/g, "_");
       if (have.has(p)) continue;
       const b = await idb("roms", "readonly", (s) => s.get(r.name)).catch(() => null);
-      if (b) files.push([p, b]);
+      if (b) files.push([p, b, r.mtime || 0]);
     }
   } else {
     const romName = P.rom.name.replace(/[\/\\]/g, "_");
-    files.push(["/roms/" + romName, P.rom.bytes]);
+    files.push(["/roms/" + romName, P.rom.bytes, P.rom.mtime]);
     if (P.save) { files.push(["/saves/" + baseName(romName) + ".sav", P.save.bytes]); P.save = null; }
     if (state) { files.push(["/load.ss", state]); args.push("--load-state=/load.ss"); }
     args.push("/roms/" + romName);
@@ -730,7 +733,9 @@ function captureJob(m) {
     w.onmessage = (e) => onCapture(w, e.data);
     w.onerror = (e) => { if (CAP.w === w) captureFailed(e.message); };
     const env = Object.assign({}, P.capEnv, { GBADS_CAPTURE_SERVE: m.code, GBADS_CAPTURE_TIGHT: m.tight ? "1" : "0" });
-    w.postMessage({ t: "bootCapture", wasm: P.build.module, files: P.capFiles, args: ["/gba-ds/gba-ds", "--asset-dir=/gba-ds", m.rom], env });
+    const mine = P.capFiles.some(([p]) => p === m.rom);
+    const files = P.capFiles.filter(([p]) => !p.startsWith("/roms/") || !mine || p === m.rom);
+    w.postMessage({ t: "bootCapture", wasm: P.build.module, files, args: ["/gba-ds/gba-ds", "--asset-dir=/gba-ds", m.rom], env });
   }
   // (one at a time: a newer job waiting replaces an older one)
   if (CAP.busy) { CAP.next = m; return; }
@@ -858,7 +863,7 @@ async function showRecent() {
     pick.onclick = async () => {
       const bytes = await idb("roms", "readonly", (s) => s.get(it.name)).catch(() => null);
       if (!bytes) { toast("That game isn't kept any more: drop it again.", true); return; }
-      takeRom(it.name, bytes, true);
+      takeRom(it.name, bytes, true, it.mtime);
       if (P.build) boot();
     };
     const rm = document.createElement("button");
@@ -1316,7 +1321,7 @@ async function loadBundled() {
   const recent = (await kvGet("recent")) || [];
   if (recent.length && !P.rom) {
     const b = await idb("roms", "readonly", (s) => s.get(recent[0].name)).catch(() => null);
-    if (b) takeRom(recent[0].name, b, false);
+    if (b) takeRom(recent[0].name, b, false, recent[0].mtime);
   }
   showSlots(); showRecent();
   if (!navigator.storage || !navigator.storage.persist) return;

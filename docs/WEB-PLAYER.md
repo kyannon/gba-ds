@@ -134,7 +134,21 @@ Games are never published: players bring their own.
   change to the folder and the saves / states / home ones to IndexedDB as
   before (`keepFiles`), so the browser keeps a copy. With a folder, a run
   starts from the folder's files (plus IndexedDB's `/home`), the game list
-  from its `roms/` too; screenshots and bug reports are only written. The
+  from its `roms/` too; screenshots and bug reports are only written.
+  The folder's games aren't copied into memory: each goes to the worker as
+  a `File` (from `getFile()`), and the runtime (`MemFS.write` with a Blob)
+  reads only what the app reads, when it reads it, with the worker's
+  `FileReaderSync` (synchronous, so no asyncify or C change; the app's
+  reads are synchronous WASI calls). The capture worker gets only the game
+  it captures. Measured Nov 13, 2026 (two games, the game list for 4 s):
+  the first run reads each game whole once (its logo, then the selected
+  one's checksum), the next only each header (176 bytes), the logos and
+  `roms.cache` coming from the folder's `states/`.
+- **Files keep their dates**: `MemFS.write(path, bytes, mtime)` (the
+  folder's `lastModified`, a dropped file's, kept with a recent game in
+  IndexedDB). Before, every file got the time of the run, so GBA DS's
+  `roms.cache` (by size and date) never matched and the selected game's
+  checksum was worked out again on every run. The
   handle is kept in IndexedDB (`kv` "folder"); permission is asked at Play
   (a click) when the browser hasn't kept it, or with Reconnect. Choosing a
   folder copies in what the browser kept (games too) where the folder has
@@ -252,9 +266,6 @@ when one is dropped.
 - The browser may not show a Bluetooth controller until one of its buttons
   is pressed with the page open.
 - Sound starts with the first click or key on the page (browsers' rule).
-- With a folder of the player's, GBA DS's game list loads every game in its
-  `roms/` into the browser's memory at the start: a big folder takes a while
-  and a lot of memory.
 
 ## For the merge
 

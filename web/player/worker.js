@@ -262,7 +262,7 @@ function serveTick() {
 }
 async function bootCapture(m) {
   const fs = new GBADS.MemFS();
-  for (const [p, b] of m.files) fs.write(p, b);
+  for (const [p, b, t] of m.files) fs.write(p, b, t);
   log("$ " + Object.entries(m.env).filter(([k]) => /CAPTURE/.test(k)).map(([k, v]) => k + "=" + v).join(" ") + " " + m.args.join(" "));
   try {
     serve.h = await GBADS.start({
@@ -287,7 +287,7 @@ async function boot(m) {
   if (m.layout) setLayout(m.layout, m.canvas);
   attachAudio(m.audioPort || null);
   const fs = new GBADS.MemFS();
-  for (const [p, b] of m.files) fs.write(p, b);
+  for (const [p, b, t] of m.files) fs.write(p, b, t);
   for (const [p] of m.files) if (KEEP.test(p)) { const n = fs.nodes.get(p); seen.set(p, n.size + ":" + (n.mtime || 0)); }
   for (const d of ["/states", "/saves", "/shots", "/home", "/roms"]) fs.mkdirs(d);
   log("$ " + m.args.join(" "));
