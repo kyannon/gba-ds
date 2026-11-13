@@ -482,6 +482,162 @@
      "match": "map updated"
     }
    ]
+  },
+  {
+   "id": "ff2-world",
+   "rom": "BFFE",
+   "state": "final-fantasy-1-2-dawn-of-souls/us-ff2-world.ss",
+   "desc": "Final Fantasy II's world map (an endgame save, teleported out of Pandaemonium): its map, the party's marker by the Jade passage",
+   "rules": [
+    "FF-11",
+    "FF-9"
+   ],
+   "shots": {
+    "start": 90
+   },
+   "checks": [
+    {
+     "rule": "FF-11",
+     "what": "the map was taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF-11",
+     "what": "black either side of the map",
+     "type": "uniform",
+     "shot": "start",
+     "rect": [
+      32,
+      64,
+      252,
+      704
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "ff2-world-map-open",
+   "rom": "BFFE",
+   "state": "final-fantasy-1-2-dawn-of-souls/us-ff2-world-map-open.ss",
+   "desc": "Final Fantasy II's world map open in the game: the same map, closed and opened again on the hidden copy",
+   "rules": [
+    "FF-11",
+    "FF-6"
+   ],
+   "shots": {
+    "start": 90
+   },
+   "checks": [
+    {
+     "rule": "FF-6",
+     "what": "the map was taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ff2-world-menu-open",
+   "rom": "BFFE",
+   "state": "final-fantasy-1-2-dawn-of-souls/us-ff2-world-menu-open.ss",
+   "desc": "Final Fantasy II's menu open on the world map: the world map on the second screen",
+   "rules": [
+    "FF-11",
+    "FF-6"
+   ],
+   "shots": {
+    "start": 90
+   },
+   "checks": [
+    {
+     "rule": "FF-6",
+     "what": "the map was taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ff2-pandaemonium",
+   "rom": "BFFE",
+   "state": "final-fantasy-1-2-dawn-of-souls/us-ff2-pandaemonium.ss",
+   "desc": "Final Fantasy II in Pandaemonium 10F (an endgame save): START's menu",
+   "rules": [
+    "FF-10"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "FF-10",
+     "what": "the menu was taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "sor-machanon",
+   "rom": "BFFE",
+   "state": "final-fantasy-1-2-dawn-of-souls/us-sor-machanon.ss",
+   "desc": "Soul of Rebirth in Machanon: START's menu, as in Final Fantasy II",
+   "rules": [
+    "FF-10"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "FF-10",
+     "what": "the menu was taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ff1-airship",
+   "rom": "BFFE",
+   "state": "final-fantasy-1-2-dawn-of-souls/us-ff1-airship.ss",
+   "desc": "Final Fantasy, flying the airship over the sea north of the Chaos Shrine (an endgame save): the world map, its marker there",
+   "rules": [
+    "FF-4"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "FF-4",
+     "what": "the map was taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ff1-chaos-shrine",
+   "rom": "BFFE",
+   "state": "final-fantasy-1-2-dawn-of-souls/us-ff1-chaos-shrine-b1.ss",
+   "desc": "Final Fantasy in the Chaos Shrine's past, B1 (an endgame save; the game would open its map here too): START's menu, the four crystals lit",
+   "rules": [
+    "FF-5"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "FF-5",
+     "what": "the menu was taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
   }
  ]
 }

@@ -16,7 +16,7 @@ The cartridge holds two games, Final Fantasy and Final Fantasy II (with its extr
 
 ## Why these screens
 
-Asked what the games would have put on a second GBA screen: the two things a player keeps opening while walking about are the world map (hold B and press SELECT, on the world map only) and START's menu, which shows the whole party at once (level, HP and MP), the gil and play time, the crystals (Final Fantasy) and where the party is. Both are the game's own screens, opened on the hidden copy and taken as they are, with the cursor left out. In a battle the party's HP and MP are on the game screen already, rolling as they change, so the second screen shows the logo there rather than numbers that are out of date.
+Asked what the games would have put on a second GBA screen: the two things a player keeps opening while walking about are the world map (hold B and press SELECT) and START's menu, which shows the whole party at once (level, HP and MP), the gil and play time, the crystals (Final Fantasy) and where the party is. Both are the game's own screens, opened on the hidden copy and taken as they are, with the cursor left out. In a battle the party's HP and MP are on the game screen already, rolling as they change, so the second screen shows the logo there rather than numbers that are out of date.
 
 ## Rules
 
@@ -26,9 +26,9 @@ Asked what the games would have put on a second GBA screen: the two things a pla
 
 **FF-3. A game's own title and new game.** On a game's own title, its New Game, Load and naming screens and its opening scenes, nothing can be opened yet: the second screen keeps the logo until the first picture is taken (FF-4, FF-5). (Captures are tried there and fail: neither the map's nor the menu's windows come up.)
 
-**FF-4. Final Fantasy: the world map.** Walking about on the world map (Final Fantasy's map number, the first byte of its memory, is 0), the second screen shows the world map (on the hidden copy: hold B, then SELECT): the parchment with the whole world on it, as the game draws it at the left of its map screen, with the party's marker (a pulsing blue sparkle) shown at its largest, without the hand cursor, the help window ("Select a location to examine."), the command window (Enlarged Map, Current Position) or the button window (A Confirm, B Exit, R + pad Scroll), all of them prompts. The parchment, as much of it as the game shows under its help window (128 by 132 pixels, at the game's own size), is in the middle of the second screen, black around it. It's taken again at every refresh, so the marker follows the party.
+**FF-4. Final Fantasy: the world map.** Walking about on the world map (Final Fantasy's map number, the first byte of its memory, is 0), the second screen shows the world map (on the hidden copy: hold B, then SELECT): the parchment with the whole world on it, as the game draws it at the left of its map screen, with the party's marker (a pulsing blue sparkle) shown at its largest, without the hand cursor, the help window ("Select a location to examine."), the command window (Enlarged Map, Current Position) or the button window (A Confirm, B Exit, R + pad Scroll), all of them prompts. The parchment, as much of it as the game shows under its help window (128 by 132 pixels, at the game's own size), is in the middle of the second screen, black around it. It's taken again at every refresh, so the marker follows the party. On foot or aboard (the airship too: its marker where it flies).
 
-**FF-5. Final Fantasy: the menu elsewhere.** Walking about anywhere else (towns, castles, dungeons), the second screen shows START's menu as the game draws it: the party (portrait, name, level, class, HP and MP), the command list, the gil and play time, the crystals and where the party is, but without the hand cursor at the command list (a prompt). It's taken again at every refresh, and at once on entering another map.
+**FF-5. Final Fantasy: the menu elsewhere.** Walking about anywhere else (towns, castles, dungeons; the game opens its map in some dungeons too, at least late in the game, but there the party's HP and MP matter more than where the dungeon is), the second screen shows START's menu as the game draws it: the party (portrait, name, level, class, HP and MP), the command list, the gil and play time, the crystals and where the party is, but without the hand cursor at the command list (a prompt). It's taken again at every refresh, and at once on entering another map.
 
 **FF-6. A menu or the map open in the game.** With START's menu, one of its screens or the world map open in the game, the second screen shows what it would walking about there (FF-4, FF-5): the hidden copy closes them first (B, as many times as it takes for START to bring the menu up, at most three).
 
@@ -38,29 +38,30 @@ Asked what the games would have put on a second GBA screen: the two things a pla
 
 **FF-9. Game screen untouched.** Nothing leaves the game screen.
 
-**FF-10. Final Fantasy II: the menu.** Walking about in Final Fantasy II (and Soul of Rebirth), the second screen shows START's menu as the game draws it: the party (portrait, name, HP and MP), the command list, where the party is, and the time, steps and gil, without the hand cursor. It's taken again at every refresh. FF-6 to FF-9 hold as in Final Fantasy.
+**FF-10. Final Fantasy II: the menu.** Walking about in Final Fantasy II and Soul of Rebirth, anywhere but the world map (FF-11), the second screen shows START's menu as the game draws it: the party (portrait, name, HP and MP), the command list, where the party is, and the time, steps and gil, without the hand cursor. It's taken again at every refresh. FF-6 to FF-9 hold as in Final Fantasy.
+
+**FF-11. Final Fantasy II: the world map.** Walking about on Final Fantasy II's world map (told by the byte 0x11C4 past its memory's base being 4: 0x020030E4 in the USA release), the second screen shows its world map as FF-4 shows Final Fantasy's: the map at the left of the map screen (BG1, its sea's edges on BG3), with the party's marker (a white circle) and the game's own marks for towns and vehicles, without the hand cursor, the help window, the command window (Enlarged Map, Current Position, the vehicles and towns) or the button window; as much of it as the game shows under its help window (128 by 136 pixels), in the middle of the second screen, black around it. Taken again at every refresh, and at once on reaching or leaving the world map.
 
 ## Not covered yet
 
-- **Final Fantasy II's world map.** Whether hold B and SELECT opens a map there as in Final Fantasy, and what it looks like, waits on a state on Final Fantasy II's world map (the owner's); until then FF-10 holds there too.
-- **Final Fantasy's ship, canoe and airship**: the cases walk the world map on foot; the map is expected to open aboard as well.
-- **Soul of Rebirth**, reached only after finishing Final Fantasy II: FF-10 is expected to hold as in the main game.
+- **Final Fantasy's ship and canoe**: the cases walk the world map on foot and fly the airship; the map is expected to open aboard the others as well.
+- **Soul of Rebirth's world map**: Soul of Rebirth's cases are in Machanon (the menu); FF-11 is expected to hold on its world map as in Final Fantasy II.
 - **The European release in French, German, Spanish or Italian**: its windows are the same as in English; the cases play it in English.
-- **Final Fantasy II in Europe and Japan**: the cases reach Final Fantasy's world map and Castle Cornelia in both; Final Fantasy II's menu there is expected to match the USA one (its frames are checked the same way). A Final Fantasy II state from either would settle it.
+- **Final Fantasy II in Europe and Japan**: the cases reach Final Fantasy's world map and Castle Cornelia in both; Final Fantasy II's menu there is expected to match the USA one (its frames are checked the same way), and its world map byte to be the same distance past its base (FF-11). A Final Fantasy II state from either would settle it; if the byte differs, the menu shows on the world map instead.
 
 ## How the states were made
 
-All in the harness from power-on, on the USA ROM unless the case says otherwise (Europe and Japan: the same buttons, A on Europe's language screen first): Final Fantasy's new game (each character auto-named, SELECT), the opening on the world map outside Cornelia, Castle Cornelia's 1F, a battle with goblins near Cornelia; Final Fantasy II's new game (the default names), its opening battle with the Black Knights, the Rebel Hideout in Altair and Altair itself.
+All in the harness from power-on, on the USA ROM unless the case says otherwise (Europe and Japan: the same buttons, A on Europe's language screen first): Final Fantasy's new game (each character auto-named, SELECT), the opening on the world map outside Cornelia, Castle Cornelia's 1F, a battle with goblins near Cornelia; Final Fantasy II's new game (the default names), its opening battle with the Black Knights, the Rebel Hideout in Altair and Altair itself. The endgame states come from the owner's GameShark save (`saves/BFFE-endgame.sav`, converted with `tools/sharkport.py`), loaded in the app (the harness has no battery save) and played on in the harness: Final Fantasy's file 1 in the Chaos Shrine's past (Exit, then the airship); Final Fantasy II's file 1 in Pandaemonium 10F (Teleport, to the world map) and file 3, Soul of Rebirth in Machanon.
 
 ## For the merge
 
-- Changelog (under the open version, What's new): "Final Fantasy I & II: Dawn of Souls (USA, Europe, Japan): in Final Fantasy, the second screen shows the world map with the party's marker while on the world map, and START's menu (the party, gil, time, crystals, where you are) elsewhere; in Final Fantasy II, START's menu. In battles and outside the games it shows the logo; in conversations the last picture stays."
-- `wiki/Supported-games.md`, table: Final Fantasy I & II: Dawn of Souls | USA, Europe, Japan | Final Fantasy: the world map on the world map, START's menu elsewhere; Final Fantasy II: START's menu.
+- Changelog (under the open version, What's new): "Final Fantasy I & II: Dawn of Souls (USA, Europe, Japan): in Final Fantasy, the second screen shows the world map with the party's marker while on the world map, and START's menu (the party, gil, time, crystals, where you are) elsewhere; in Final Fantasy II (and Soul of Rebirth), its world map on the world map and START's menu elsewhere. In battles and outside the games it shows the logo; in conversations the last picture stays."
+- `wiki/Supported-games.md`, table: Final Fantasy I & II: Dawn of Souls | USA, Europe, Japan | the world map on the world map, START's menu elsewhere (both games).
 - `wiki/Supported-games.md`, section:
 
   ### Final Fantasy I & II: Dawn of Souls
 
-  Both games on the cartridge. In Final Fantasy, walking about on the world map, the second screen shows the game's world map (the one hold B and SELECT opens) with the party's marker; anywhere else, START's menu with the whole party, the gil, play time, crystals and where you are. In Final Fantasy II, START's menu. Both are taken again every second or so, so they keep up as you play. In battles, on the cartridge's own menus and in the Bestiary, the second screen shows the logo; in conversations, shops and scenes, the last picture stays.
+  Both games on the cartridge. In Final Fantasy, walking about on the world map, the second screen shows the game's world map (the one hold B and SELECT opens) with the party's marker; anywhere else, START's menu with the whole party, the gil, play time, crystals and where you are. Final Fantasy II and Soul of Rebirth do the same with their own world map and menu. Both are taken again every second or so, so they keep up as you play. In battles, on the cartridge's own menus and in the Bestiary, the second screen shows the logo; in conversations, shops and scenes, the last picture stays.
 
-  Known issues: Final Fantasy II's world map isn't shown yet (its menu is, everywhere).
+  Late in Final Fantasy the game opens its map in dungeons too; the second screen shows the menu there, where HP and MP matter more.
 - README: the supported game count goes up by one; `docs/games/README.md`: its row in the table (prefix FF, `BFFE` + 2).
