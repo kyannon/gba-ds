@@ -1,0 +1,451 @@
+{
+ "game": "baldurs-gate-dark-alliance",
+ "rules": "docs/games/baldurs-gate-dark-alliance.md",
+ "cases": [
+  {
+   "id": "bgd-logo-bgde",
+   "kind": "logo",
+   "rom": "BGDE",
+   "desc": "BGDE logo extraction",
+   "rules": [
+    "GEN-1",
+    "BGD-6"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "bgd-logo-bgdp",
+   "kind": "logo",
+   "rom": "BGDP",
+   "desc": "BGDP logo extraction",
+   "rules": [
+    "GEN-1",
+    "BGD-6"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "bgd-us-tavern",
+   "rom": "BGDE",
+   "state": "baldurs-gate-dark-alliance/us-tavern.ss",
+   "desc": "walking about the Elfsong Tavern: the character tab, its list in two pages, no cursor or arrows",
+   "rules": [
+    "BGD-1",
+    "BGD-2",
+    "BGD-3",
+    "BGD-7"
+   ],
+   "shots": {
+    "page1": 90,
+    "page2": 390,
+    "again": 690
+   },
+   "checks": [
+    {
+     "rule": "BGD-1",
+     "what": "the character tab was taken, in two pages",
+     "type": "log",
+     "match": "map updated \\(2 frame\\(s\\) 300 apart"
+    },
+    {
+     "rule": "BGD-2",
+     "what": "the second page after 5 seconds",
+     "type": "differs",
+     "a": {
+      "shot": "page1",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "page2",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.02
+    },
+    {
+     "rule": "BGD-2",
+     "what": "back to the first page after the second",
+     "type": "same",
+     "a": {
+      "shot": "page1",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "again",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "BGD-7",
+     "what": "nothing leaves the game screen",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "bgd-us-menu",
+   "rom": "BGDE",
+   "state": "baldurs-gate-dark-alliance/us-menu.ss",
+   "desc": "START's menu open on the weapons tab: the character tab on the second screen",
+   "rules": [
+    "BGD-1",
+    "BGD-2",
+    "BGD-3"
+   ],
+   "shots": {
+    "page1": 90,
+    "page2": 390
+   },
+   "checks": [
+    {
+     "rule": "BGD-1",
+     "what": "the character tab was taken, in two pages",
+     "type": "log",
+     "match": "map updated \\(2 frame\\(s\\) 300 apart"
+    },
+    {
+     "rule": "BGD-2",
+     "what": "the second page after 5 seconds",
+     "type": "differs",
+     "a": {
+      "shot": "page1",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "page2",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.02
+    }
+   ]
+  },
+  {
+   "id": "bgd-us-talk",
+   "rom": "BGDE",
+   "state": "baldurs-gate-dark-alliance/us-tavern.ss",
+   "desc": "the tab taken, then a conversation with Alyth loaded: the last picture stays",
+   "rules": [
+    "BGD-4"
+   ],
+   "input": [
+    [
+     400,
+     "LOAD:baldurs-gate-dark-alliance/us-talk.ss"
+    ]
+   ],
+   "shots": {
+    "page1": 90,
+    "talk": 700
+   },
+   "golden": [
+    "talk"
+   ],
+   "checks": [
+    {
+     "rule": "BGD-4",
+     "what": "the first page stays through the conversation (the pages go on turning: page 1 again at 690)",
+     "type": "same",
+     "a": {
+      "shot": "page1",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "talk",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.0
+    }
+   ]
+  },
+  {
+   "id": "bgd-us-scene",
+   "rom": "BGDE",
+   "state": "baldurs-gate-dark-alliance/us-scene.ss",
+   "desc": "the opening's black scene (Karne's ambush): nothing taken yet, the logo",
+   "rules": [
+    "BGD-4"
+   ],
+   "shots": {
+    "start": 90,
+    "later": 400
+   },
+   "checks": [
+    {
+     "rule": "BGD-4",
+     "what": "START opens nothing in a scene",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "bgd-us-title",
+   "rom": "BGDE",
+   "state": "baldurs-gate-dark-alliance/us-title.ss",
+   "desc": "the title: the logo, no captures",
+   "rules": [
+    "BGD-5",
+    "GEN-1"
+   ],
+   "shots": {
+    "start": 90,
+    "later": 400
+   },
+   "checks": [
+    {
+     "rule": "BGD-5",
+     "what": "no captures on the title",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "rule": "BGD-5",
+     "what": "the logo stays",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "later",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.0
+    }
+   ]
+  },
+  {
+   "id": "bgd-us-class",
+   "rom": "BGDE",
+   "state": "baldurs-gate-dark-alliance/us-class.ss",
+   "desc": "choosing a class: the logo, no captures",
+   "rules": [
+    "BGD-5"
+   ],
+   "shots": {
+    "start": 90
+   },
+   "checks": [
+    {
+     "rule": "BGD-5",
+     "what": "no captures while choosing a class",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "bgd-us-quit",
+   "rom": "BGDE",
+   "state": "baldurs-gate-dark-alliance/us-tavern.ss",
+   "desc": "the tab taken, then the title loaded (as after Quit Game): the picture dropped, the logo",
+   "rules": [
+    "BGD-5"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:baldurs-gate-dark-alliance/us-title.ss"
+    ]
+   ],
+   "shots": {
+    "page1": 90,
+    "title": 300
+   },
+   "checks": [
+    {
+     "rule": "BGD-5",
+     "what": "the tab is gone",
+     "type": "differs",
+     "a": {
+      "shot": "page1",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "title",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.3
+    }
+   ]
+  },
+  {
+   "id": "bgd-eu-tavern",
+   "rom": "BGDP",
+   "state": "baldurs-gate-dark-alliance/eu-tavern.ss",
+   "desc": "Europe (English), walking about the tavern: the character tab in two pages",
+   "rules": [
+    "BGD-1",
+    "BGD-2",
+    "BGD-3"
+   ],
+   "shots": {
+    "page1": 90,
+    "page2": 390
+   },
+   "checks": [
+    {
+     "rule": "BGD-1",
+     "what": "the character tab was taken, in two pages",
+     "type": "log",
+     "match": "map updated \\(2 frame\\(s\\) 300 apart"
+    },
+    {
+     "rule": "BGD-2",
+     "what": "the second page after 5 seconds",
+     "type": "differs",
+     "a": {
+      "shot": "page1",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "page2",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.02
+    }
+   ]
+  },
+  {
+   "id": "bgd-eu-menu",
+   "rom": "BGDP",
+   "state": "baldurs-gate-dark-alliance/eu-menu.ss",
+   "desc": "Europe, START's menu open on the armour tab: the character tab",
+   "rules": [
+    "BGD-1",
+    "BGD-2"
+   ],
+   "shots": {
+    "page1": 90,
+    "page2": 390
+   },
+   "checks": [
+    {
+     "rule": "BGD-1",
+     "what": "the character tab was taken, in two pages",
+     "type": "log",
+     "match": "map updated \\(2 frame\\(s\\) 300 apart"
+    },
+    {
+     "rule": "BGD-2",
+     "what": "the second page after 5 seconds",
+     "type": "differs",
+     "a": {
+      "shot": "page1",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "page2",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.02
+    }
+   ]
+  },
+  {
+   "id": "bgd-eu-title",
+   "rom": "BGDP",
+   "state": "baldurs-gate-dark-alliance/eu-title.ss",
+   "desc": "Europe's title with its language list: the logo, no captures",
+   "rules": [
+    "BGD-5"
+   ],
+   "shots": {
+    "start": 90
+   },
+   "checks": [
+    {
+     "rule": "BGD-5",
+     "what": "no captures on the title",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  }
+ ]
+}

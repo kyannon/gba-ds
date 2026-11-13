@@ -207,6 +207,8 @@ static const KnownDump knownDumps[] = {
 	{ "BFZP", 0xd9b2d53d, false, false, "F-Zero - GP Legend (Europe) (En,Fr,De,Es,It) (Virtual Console)" },
 	{ "BFZP", 0xf1d5601b, true, false, "F-Zero - GP Legend (Europe) (En,Fr,De,Es,It)" },
 	{ "BG3E", 0x01c1707f, true, false, "Dragon Ball Z - Buu's Fury (USA)" },
+	{ "BGDE", 0xdeedd7d9, true, false, "Baldur's Gate - Dark Alliance (USA)" },
+	{ "BGDP", 0x494492dc, true, false, "Baldur's Gate - Dark Alliance (Europe) (En,Fr,De,Es,It)" },
 	{ "BGWJ", 0x49ee1fdd, true, false, "Game Boy Wars Advance 1+2 (Japan)" },
 	{ "BGWJ", 0xf8d3b3c6, false, false, "Game Boy Wars Advance 1+2 (Japan) (Virtual Console)" },
 	{ "BHTE", 0xc0bccaad, true, false, "Harry Potter and the Prisoner of Azkaban (USA, Europe) (En,Fr,De,Es,It,Nl,Da)" },
