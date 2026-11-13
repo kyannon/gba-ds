@@ -16,6 +16,8 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 
 /* Background queue: extracts outPng if it doesn't exist yet. */
 void logo_request(const char* romPath, const char* gameCode, const char* outPng);
+/* The web build: the next queued job (one a frame; it has no thread to do them). */
+void logo_step(void);
 /* Changes every time a queued logo finishes; compare to know when to reload. */
 uint32_t logo_generation(void);
 /* Background work done / total (queued + running + done) since the queue was

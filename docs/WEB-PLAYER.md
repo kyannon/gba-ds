@@ -5,10 +5,13 @@ each release, below) and for trying builds without the device. It runs a
 build's `web/gba-ds.wasm` (the one that comes with it, or a zip with a web
 build dropped on it: the `-dev` zips have one, release zips don't; the same
 file State Saver's GBA DS tab runs) for the screens of any device GBA DS
-knows, with sound, every button, remappable keys, controllers and
-on-screen controls, and the bottom screen as the touchscreen. Merged into
-`dev` on Nov 10, 2026; the `web-player` branch stays open for work on it
-after the release (merge `dev` in before starting, merge back when tested).
+knows (offered by resolution, not by device: Settings > Screens >
+Resolution, Two GBA screens by default), with sound, every button,
+remappable keys, controllers and on-screen controls, and the bottom screen
+as the touchscreen. Merged into
+`dev` on Nov 10, 2026; work on it since happens on a `web-player` branch
+made from `dev` (merge `dev` in before merging back, when tested): the last
+merged Nov 13, 2026 (resolutions, follow rotation, L2 / R2, the folder).
 
 ## Building it
 
@@ -40,20 +43,34 @@ Games are never published: players bring their own.
 ## Phones
 
 - **On-screen controls** (`controls.js`, `GBATouch`): the D-pad, X / Y /
-  A / B as on the device (X top, Y left, A right, B bottom), L, R, Select,
+  A / B as on the device (X top, Y left, A right, B bottom), L, R, L2 and R2
+  (inside L and R: held, rewind and fast-forward, as on the device), Select,
   Start and Menu (Home). Settings > On-screen controls: show them on
   touchscreens until a controller connects (default), always, or never;
-  placement below the screens (a band: L, Menu, R over the D-pad, Select /
-  Start, the face buttons) or beside them (a column each side: L, the
-  D-pad, Select and Menu | R, the face buttons, Start); size 70-140 %;
+  placement following the screen's rotation (default: below upright, beside
+  on its side), below the screens (a band: L, L2, Menu, R2, R over the
+  D-pad, Select / Start, the face buttons) or beside them (a column each
+  side: L and L2, the D-pad, Select and Menu | R2 and R, the face buttons,
+  Start); size 70-140 %;
   vibrate on press (Android: iPhones have no web vibration). The controls
   take their space first and the screens fit into the rest, so the
   placement holds whichever way the screens are arranged. They shrink to
   fit (below: the width; beside: the columns at most 62 % of it).
   Multi-touch; a finger slides from button to button and round the D-pad
   (8 ways); buttons have some slack around them. Their mask is OR-ed into
-  the keyboard's and controllers'. L2 / R2 / L3 (rewind, fast-forward,
-  swap) aren't on screen: GBA DS's menu has them.
+  the keyboard's and controllers'. L3 (swap) isn't on screen: GBA DS's
+  menu has it.
+- **Follow screen rotation** (the default for Arrangement and for the
+  controls' placement; player.js `rotation()`): portrait stacks the screens
+  with the controls below, landscape puts them side by side with the
+  controls beside. The rotation is `screen.orientation.type`, else
+  `window.orientation`, else `screen.width` against `screen.height`; it
+  changes with `screen.orientation`'s change event and `orientationchange`.
+  `?rotation=portrait|landscape` stands in for it (tests). On a computer the
+  screen is landscape, so the screens sit side by side. Settings v3 (Nov 13,
+  2026) moved what was still at the old defaults once: the RG DS Plus's
+  screens to Two GBA screens, "Whichever fits bigger" to follow rotation,
+  the gap 4 to 0, controls below to follow rotation.
 - **No zooming the page:** the viewport tag (`maximum-scale=1,
   user-scalable=no`), `touch-action: pan-x pan-y` on every element (none on
   `#stage` and the controls), and player.js's guards for what those miss:
@@ -91,9 +108,11 @@ Games are never published: players bring their own.
 - `player.js` (the page): files dropped or chosen (`takeFiles`: a dev zip,
   a game or zipped game, `.sav` / `.srm`, `.ss` / `.state`, a bug report zip,
   whose `GAME-DATE.state` it loads), IndexedDB (`gba-ds-player`: the last
-  dropped build, the last 10 games, and the app's own files), the device's
-  screens (`DEVICES`, from src/ui.c knownDevices, plus custom ones) and where
-  they go on the page, input, sound and the panels.
+  dropped build, the last 10 games, and the app's own files), the screens'
+  resolution (`DEVICES`, from src/ui.c knownDevices, offered as
+  `RESOLUTIONS`: each pair of resolutions once, the first device with it
+  giving its inches and id, the others' ids aliased to it; plus custom ones)
+  and where they go on the page, input, sound and the panels.
 - `worker.js` runs the app with `tools/statesaver/gbads-runtime.js`, off the
   page's thread. It draws the app's window into the page's canvas (an
   OffscreenCanvas) with WebGL2, uploading the window's pixels straight from
@@ -106,6 +125,35 @@ Games are never published: players bring their own.
 - Kept between visits: everything under `/saves`, `/states` (with GBA DS's
   `prefs.cfg`) and `/home`, synced to IndexedDB every 4 s, on pause and on
   closing.
+- **A folder of the player's** (Settings > Your files; File System Access:
+  Chrome and Edge on computers, Chrome on Android 132+, not Firefox or
+  Safari), as GBA DS's data folder on a handheld: `roms/`, `saves/`,
+  `states/`, `screenshots/` (the app's `/shots`), `cheats/`, `overlays/`,
+  `logos/`, `patches/`, `bug-reports/` (the app's `/gba-ds/<name>`) and
+  `web-player-settings.json` (the player's settings and controls). The
+  worker reports changes under all of them (`KEEP`); the page writes every
+  change to the folder and the saves / states / home ones to IndexedDB as
+  before (`keepFiles`), so the browser keeps a copy. With a folder, a run
+  starts from the folder's files (plus IndexedDB's `/home`), the game list
+  from its `roms/` too; screenshots and bug reports are only written.
+  The folder's games aren't copied into memory: each goes to the worker as
+  a `File` (from `getFile()`), and the runtime (`MemFS.write` with a Blob)
+  reads only what the app reads, when it reads it, with the worker's
+  `FileReaderSync` (synchronous, so no asyncify or C change; the app's
+  reads are synchronous WASI calls). The capture worker gets only the game
+  it captures. Measured Nov 13, 2026 (two games, the game list for 4 s):
+  the first run reads each game whole once (its logo, then the selected
+  one's checksum), the next only each header (176 bytes), the logos and
+  `roms.cache` coming from the folder's `states/`.
+- **Files keep their dates**: `MemFS.write(path, bytes, mtime)` (the
+  folder's `lastModified`, a dropped file's, kept with a recent game in
+  IndexedDB). Before, every file got the time of the run, so GBA DS's
+  `roms.cache` (by size and date) never matched and the selected game's
+  checksum was worked out again on every run. The
+  handle is kept in IndexedDB (`kv` "folder"); permission is asked at Play
+  (a click) when the browser hasn't kept it, or with Reconnect. Choosing a
+  folder copies in what the browser kept (games too) where the folder has
+  none of its own, and takes the folder's player settings if it has them.
 - **Sound**: the web build's SDL has a driver of its own
   (`web/sdl_audio_web.c`, in SDL2's Emscripten driver slot; no thread). The
   app queues its sound as on a device; `worklet.js` asks for what it has
@@ -179,7 +227,13 @@ for the other. Launch with `--autoplay-policy=no-user-gesture-required
 game to `#fileInput`, click once for sound. A controller: an init script
 that replaces `navigator.getGamepads`. The app's health lines (`P.log`,
 "last 5 s: ... audio queue N ms") show whether sound drains (a queue pinned
-near 3 × `audio_latency` means nothing pulls it). No ROMs here: a few lines
+near 3 × `audio_latency` means nothing pulls it). The folder: an init script
+that makes `showDirectoryPicker` return a folder of the origin's private
+file system (`navigator.storage.getDirectory()`) tests choosing it and
+what's written (Nov 13, 2026: the game, its battery save, the extracted
+logo, the settings file); a new page can't test reconnecting, as this
+headless Chromium crashes reading such a handle back from IndexedDB (plain
+code does too), so that's checked in a real browser. No ROMs here: a few lines
 of ARM assembled with clang (`--target=armv4t-none-eabi`) and linked at
 0x08000000 make a test ROM (colour bars, a tone, red while A is held).
 
@@ -207,6 +261,20 @@ when one is dropped.
 
 - Map captures and logo extraction run inline (the web build has no
   threads), so a capture can make a frame late, as in State Saver's tab.
+- The first time the game list shows new games (a folder of the
+  player's, most of all), it takes each one's logo, one a frame (logo.c
+  `logo_step`, `#ifdef __wasi__`: the web build has no thread for them;
+  only a game's own logo, asked for while it's played, is taken at once).
+  The list shows at once and the logos fill in, the ones on screen first,
+  but each holds the list up while it's taken: measured Nov 13, 2026 in
+  Node with 12 games, the list's first frame after 0.14 s (before, after
+  every logo), then frames of 0.6-2 s while the logos came, none on the
+  next run (the logos are kept in `states/logos/`). Slower on a phone.
+- Memory, measured Nov 13, 2026 (Node, Superstar Saga, 5 minutes): the
+  wasm memory levels at 104 MB once the 30 s of rewind are full, the same
+  with the game read from a folder or given whole; the file isn't read
+  again once the game has started. Choosing a folder copies the browser's
+  files in one at a time.
 - No RetroAchievements and no updates in the browser (no network from the
   page). The app's Settings that write the device's own files (es_systems,
   BananaOS) do nothing useful here.

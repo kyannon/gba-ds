@@ -4,6 +4,11 @@
 
 ### New
 - **Fast-forward speed** (issue #44): Fast Forward in the pause menu's Extras page now sets how fast holding R2 plays, 2x, 3x (the default), 4x, 5x or Max (as fast as your device can run the game), as well as turning it off. Each press goes on to the next.
+- **Web player: a folder for your files.** Keep your games, saves, states, settings, screenshots, cheats, overlays, logos and patches in a folder on your device (Settings → Your files; Chrome and Edge, Chrome on Android too), as GBA DS does on a handheld: they stay if the browser's data is cleared, and you can add your own overlays, cheats and patches there. GBA DS's game list plays the folder's games straight from it, reading each only as it's needed, and appears at once, the logos filling in.
+- **Web player: L2 and R2** on the on-screen controls: hold them to rewind and fast-forward, as on the device.
+
+### Changes
+- **Web player: screens.** Settings → Screens → Resolution (was "Screens of") lists each pair of screen resolutions once, without device names, and starts on Two GBA screens. The screens and the on-screen controls follow your phone's or tablet's rotation by default: upright, the screens stack with the controls below; on its side, they sit side by side with the controls beside them. "Screen gap" (was "Gap between them") starts at none, and the setting for how sharply GBA DS draws is now called Detail.
 
 ### Fixes
 - **ROCKNIX on the RG DS:** the buttons now work in the game list, in games and in Map Buttons. With both screens on, GBA DS's window could end up without focus, and its buttons were ignored until then (issue #45; thanks to MarcJKolb for finding the fix).

@@ -8457,6 +8457,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 #ifdef __wasi__
 		/* the web build: back to the page every frame, for the wait or not */
 		web_sleep(wait > 0 ? (unsigned) (wait * 1000) : 0);
+		logo_step(); /* (a logo a frame: the game's own, started without the game list) */
 #else
 		if (wait > 0) {
 			struct timespec ts = { 0, (long) (wait * 1e9) };

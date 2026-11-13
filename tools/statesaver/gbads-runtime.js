@@ -5,7 +5,7 @@
 "use strict";
 
 const GBADS = (() => {
-  const E = { OK: 0, BADF: 8, EXIST: 20, INVAL: 28, ISDIR: 31, NOENT: 44, NOSYS: 52, NOTDIR: 54, NOTEMPTY: 55 };
+  const E = { OK: 0, BADF: 8, EXIST: 20, INVAL: 28, IO: 29, ISDIR: 31, NOENT: 44, NOSYS: 52, NOTDIR: 54, NOTEMPTY: 55 };
   const ALL_RIGHTS = 0x1fffffffn;
 
   /* ---------------------------------------------------------------- files */
@@ -26,12 +26,27 @@ const GBADS = (() => {
       this.mkdirs(this.parent(p));
       this.nodes.set(p, { dir: true });
     }
-    write(p, bytes) {
+    // bytes, or a Blob / File read only when the app reads it (a worker's FileReaderSync:
+    // a big file, such as a game in the player's folder, never sits in memory whole);
+    // mtime: the file's own (ms), so the app's caches keyed by it hold from run to run
+    write(p, bytes, mtime) {
       p = MemFS.norm(p);
       this.mkdirs(this.parent(p));
-      this.nodes.set(p, { dir: false, data: bytes, size: bytes.length, mtime: Date.now() });
+      const t = mtime || (bytes && bytes.lastModified) || Date.now();
+      if (MemFS.isBlob(bytes)) this.nodes.set(p, { dir: false, blob: bytes, data: null, size: bytes.size, mtime: t });
+      else this.nodes.set(p, { dir: false, data: bytes, size: bytes.length, mtime: t });
     }
-    read(p) { const n = this.nodes.get(MemFS.norm(p)); return n && !n.dir ? n.data.subarray(0, n.size) : null; }
+    static isBlob(b) { return typeof Blob !== "undefined" && b instanceof Blob; }
+    // a slice of a Blob node's file, now
+    static slice(node, from, to) { return new Uint8Array(new FileReaderSync().readAsArrayBuffer(node.blob.slice(from, to))); }
+    // a Blob node made an ordinary one (written to, or read whole)
+    static materialize(node) {
+      if (!node.blob) return node;
+      node.data = MemFS.slice(node, 0, node.size);
+      node.blob = null;
+      return node;
+    }
+    read(p) { const n = this.nodes.get(MemFS.norm(p)); return n && !n.dir ? MemFS.materialize(n).data.subarray(0, n.size) : null; }
     list(p) {
       p = MemFS.norm(p);
       const pre = p === "/" ? "/" : p + "/";
@@ -73,6 +88,7 @@ const GBADS = (() => {
     };
     const inoOf = (path) => { let h = 7; for (let i = 0; i < path.length; i++) h = (h * 31 + path.charCodeAt(i)) >>> 0; return h || 1; };
     const ensure = (node, need) => {
+      MemFS.materialize(node);
       if (node.data.length >= need) return;
       const grown = new Uint8Array(Math.max(need, node.data.length * 2, 4096));
       grown.set(node.data.subarray(0, node.size));
@@ -85,6 +101,19 @@ const GBADS = (() => {
     };
     const readAt = (node, pos, list) => {
       let total = 0;
+      if (node.blob) {
+        // what this read asks for, read from the file at once, then handed out
+        const want = Math.max(0, Math.min(list.reduce((a, [, l]) => a + l, 0), node.size - pos));
+        if (!want) return 0;
+        const got = MemFS.slice(node, pos, pos + want);
+        for (const [p, l] of list) {
+          const n = Math.min(l, got.length - total);
+          u8().set(got.subarray(total, total + n), p);
+          total += n;
+          if (n < l) break;
+        }
+        return total;
+      }
       for (const [p, l] of list) {
         const n = Math.max(0, Math.min(l, node.size - pos));
         u8().set(node.data.subarray(pos, pos + n), p);
@@ -179,13 +208,15 @@ const GBADS = (() => {
         const f = fds.get(fd), node = f && fs.nodes.get(f.path);
         if (!node) return E.BADF;
         if (node.dir) return E.ISDIR;
-        const n = readAt(node, f.pos, iovs(iov, cnt));
+        let n;
+        try { n = readAt(node, f.pos, iovs(iov, cnt)); } catch (e) { return E.IO; }
         f.pos += n; mem().setUint32(nread, n, true); return 0;
       },
       fd_pread(fd, iov, cnt, off, nread) {
         const f = fds.get(fd), node = f && fs.nodes.get(f.path);
         if (!node || node.dir) return E.BADF;
-        mem().setUint32(nread, readAt(node, Number(off), iovs(iov, cnt)), true); return 0;
+        try { mem().setUint32(nread, readAt(node, Number(off), iovs(iov, cnt)), true); } catch (e) { return E.IO; }
+        return 0;
       },
       fd_write(fd, iov, cnt, nw) {
         const list = iovs(iov, cnt);
@@ -250,7 +281,7 @@ const GBADS = (() => {
           fs.nodes.set(path, node);
         }
         if ((oflags & 2) && !node.dir) return E.NOTDIR;
-        if (!node.dir && (oflags & 8)) node.size = 0;
+        if (!node.dir && (oflags & 8)) { if (node.blob) { node.blob = null; node.data = new Uint8Array(0); } node.size = 0; }
         const fd = nextFd++;
         fds.set(fd, { path, dir: node.dir, pos: 0, append: !!(fdflags & 1) });
         mem().setUint32(out, fd, true); return 0;
