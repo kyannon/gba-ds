@@ -551,10 +551,14 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   check on the device; known limitations said plainly. When a game's
   behaviour changes, the rule in `docs/games/` changes first.
 - **Open by-hand checks** (`tools/regress.py --uncovered`): none open
-  beyond the list it prints. Checked on the device for v1.4.2: AW2-4/5,
-  LTTP-5, GEN-2 (Super Mario World), GEN-6, PP-6, PP-9 (60 fps), Linux
-  updates (BananaOS), Android's update download (its install is still to
-  try), Pinball's two-screen view on Android.
+  beyond the list it prints; as of v1.5.1 every rule it lists has been
+  checked (each rule's note says when). Checked on the device for v1.4.2:
+  AW2-4/5, LTTP-5, GEN-2 (Super Mario World), GEN-6, PP-6, PP-9 (60 fps),
+  Linux updates (BananaOS), Android's update download (its install is
+  still to try), Pinball's two-screen view on Android. For v1.5.1:
+  MMBN-6, MPM-6, NFO-7, SM4-7, SMB2-3 on the device, GEN-4 by two full
+  runs. A new by-hand rule (or one whose game changed) is open until the
+  owner checks it again.
 - **Won't fix / not issues** (don't list them as outstanding): Advance Wars
   and Game Boy Wars' Field Training keeps the logo (won't fix); Mario
   Kart's course map at 2x is intended; Pokémon Pinball's bonus stages on

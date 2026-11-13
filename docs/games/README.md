@@ -61,7 +61,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 
 **GEN-3. Nothing half-drawn.** A capture is only shown once its checks pass (memory flags and fixed pixels of the screen it opened); otherwise the last good picture stays.
 
-**GEN-4. Same input, same pictures.** With `GBADS_SYNC=1` a run is deterministic, so the tests compare screenshots exactly. *By hand: checked by running the suite twice with no differences, after any change to capture timing (mapcap.c, logo.c, GBADS_SYNC).*
+**GEN-4. Same input, same pictures.** With `GBADS_SYNC=1` a run is deterministic, so the tests compare screenshots exactly. *By hand: checked by running the suite twice with no differences, after any change to capture timing (mapcap.c, logo.c, GBADS_SYNC). (checked with v1.5.1: the full suite run twice, locally and on GitHub, with no differences)*
 
 **GEN-5. A GBA screen.** The second screen is a 240x160 picture like the game screen, scaled up the same way (Settings: Map Scale, as Scale is for the game screen), so with the same settings a GBA pixel is the same size on both screens: whatever a game puts there (a map, a status screen, a window, the logo) is at the game's own size. (Until v1.3.2's later test builds, Fire Emblem's, Final Fantasy Tactics Advance's and the Advance Wars games' second screens were bigger pictures, 320x240 or 512x384, so what they showed was smaller than on the game screen.) Mario Kart's race screen is the exception for now: its course map is drawn larger, and the scenery behind it smoothly scaled.
 

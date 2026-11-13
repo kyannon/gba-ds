@@ -26,7 +26,7 @@ The tables are twice as tall over both screens, live, as Pokémon Pinball's and 
 
 **MPM-5. Swapped screens.** With the screens swapped, the table's upper rows stay on the top screen and the lower ones on the bottom screen.
 
-**MPM-6. One screen.** With one screen, the game plays as it is; `pinball_live = 0` in `gba-ds.cfg` turns the copies off too (one screen, the logo on the other). *By hand: speed on the device (two copies, two frames each every frame, as on the other pinball games).*
+**MPM-6. One screen.** With one screen, the game plays as it is; `pinball_live = 0` in `gba-ds.cfg` turns the copies off too (one screen, the logo on the other). *By hand: speed on the device (two copies, two frames each every frame, as on the other pinball games). (checked on the device for v1.5.1)*
 
 **MPM-7. The stage curtains.** Before a table (a game starting, Adventure's next table), the stage curtains and the table's opening pan show on your game's screen as they are, with the logo on the second screen; the two screens show the table once the ball is ready to launch (MPM-2). The game's darkening at a game's end never puts its screen on the bottom one: both screens darken together.
 
