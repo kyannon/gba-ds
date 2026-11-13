@@ -5541,14 +5541,21 @@ static const char* ff_compose(Emu* s, const void* state, uint32_t* out, int w, i
 
 	/* the world map (FF-4, FF-11): hold B, then SELECT */
 	if (ff_virt(s, FF_V_MAP) == (game == 1 ? 0u : 4u)) {
-		aw_run(s, K_B, 10);
-		aw_run(s, K_B | K_SELECT, 4);
+		/* (a press mid-step can go unseen: tried again, up to three
+		 * times) */
 		bool map = false;
-		for (int f = 0; f < 90 && !map; f += 2) {
-			aw_run(s, 0, 2);
-			map = ff_map_up(s);
+		for (int tries = 0; tries < 3 && !map; ++tries) {
+			aw_run(s, K_B, 10);
+			aw_run(s, K_B | K_SELECT, 6);
+			for (int f = 0; f < 40 && !map; f += 2) {
+				aw_run(s, 0, 2);
+				map = ff_map_up(s);
+			}
 		}
-		if (map) {
+		/* the world map never shows the menu: the last picture stays
+		 * instead (FF-4, FF-11) */
+		if (!map) return "the map didn't open";
+		{
 			/* faded in: the windows at its right still (the parchment's
 			 * marker pulses) */
 			if (!ff_settle_right(s, 120)) return "the map didn't settle";
@@ -5603,7 +5610,6 @@ static const char* ff_compose(Emu* s, const void* state, uint32_t* out, int w, i
 			}
 			return NULL;
 		}
-		/* (no map here after all: the menu) */
 	}
 
 	/* START's menu (FF-5, FF-10); from one of its screens (Status, Items...),

@@ -638,6 +638,315 @@
      "match": "map updated"
     }
    ]
+  },
+  {
+   "id": "ff1-world-walk",
+   "rom": "BFFE",
+   "state": "final-fantasy-1-2-dawn-of-souls/us-ff1-world.ss",
+   "desc": "Final Fantasy, walking about on the world map outside Cornelia for 15 s: the world map at every moment, never the menu (a press of the map's buttons mid-step on the hidden copy is tried again)",
+   "rules": [
+    "FF-4"
+   ],
+   "input": [
+    [
+     60,
+     "LEFT"
+    ],
+    [
+     90,
+     "LEFT"
+    ],
+    [
+     120,
+     "DOWN"
+    ],
+    [
+     150,
+     "DOWN"
+    ],
+    [
+     180,
+     "DOWN"
+    ],
+    [
+     210,
+     "DOWN"
+    ],
+    [
+     240,
+     "RIGHT"
+    ],
+    [
+     270,
+     "RIGHT"
+    ],
+    [
+     300,
+     "RIGHT"
+    ],
+    [
+     330,
+     "RIGHT"
+    ],
+    [
+     360,
+     "UP"
+    ],
+    [
+     390,
+     "UP"
+    ],
+    [
+     420,
+     "UP"
+    ],
+    [
+     450,
+     "UP"
+    ],
+    [
+     480,
+     "LEFT"
+    ],
+    [
+     510,
+     "LEFT"
+    ],
+    [
+     540,
+     "LEFT"
+    ],
+    [
+     570,
+     "LEFT"
+    ],
+    [
+     600,
+     "DOWN"
+    ],
+    [
+     630,
+     "DOWN"
+    ],
+    [
+     660,
+     "DOWN"
+    ],
+    [
+     690,
+     "DOWN"
+    ],
+    [
+     720,
+     "RIGHT"
+    ],
+    [
+     750,
+     "RIGHT"
+    ],
+    [
+     780,
+     "RIGHT"
+    ],
+    [
+     810,
+     "RIGHT"
+    ],
+    [
+     840,
+     "UP"
+    ],
+    [
+     870,
+     "UP"
+    ]
+   ],
+   "shots": {
+    "w150": 150,
+    "w210": 210,
+    "w270": 270,
+    "w330": 330,
+    "w390": 390,
+    "w450": 450,
+    "w510": 510,
+    "w570": 570,
+    "w630": 630,
+    "w690": 690,
+    "w750": 750,
+    "w810": 810,
+    "w870": 870
+   },
+   "checks": [
+    {
+     "rule": "FF-4",
+     "what": "the map, not the menu, at frame 150",
+     "type": "uniform",
+     "shot": "w150",
+     "rect": [
+      32,
+      64,
+      252,
+      704
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "FF-4",
+     "what": "the map, not the menu, at frame 210",
+     "type": "uniform",
+     "shot": "w210",
+     "rect": [
+      32,
+      64,
+      252,
+      704
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "FF-4",
+     "what": "the map, not the menu, at frame 270",
+     "type": "uniform",
+     "shot": "w270",
+     "rect": [
+      32,
+      64,
+      252,
+      704
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "FF-4",
+     "what": "the map, not the menu, at frame 330",
+     "type": "uniform",
+     "shot": "w330",
+     "rect": [
+      32,
+      64,
+      252,
+      704
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "FF-4",
+     "what": "the map, not the menu, at frame 390",
+     "type": "uniform",
+     "shot": "w390",
+     "rect": [
+      32,
+      64,
+      252,
+      704
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "FF-4",
+     "what": "the map, not the menu, at frame 450",
+     "type": "uniform",
+     "shot": "w450",
+     "rect": [
+      32,
+      64,
+      252,
+      704
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "FF-4",
+     "what": "the map, not the menu, at frame 510",
+     "type": "uniform",
+     "shot": "w510",
+     "rect": [
+      32,
+      64,
+      252,
+      704
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "FF-4",
+     "what": "the map, not the menu, at frame 570",
+     "type": "uniform",
+     "shot": "w570",
+     "rect": [
+      32,
+      64,
+      252,
+      704
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "FF-4",
+     "what": "the map, not the menu, at frame 630",
+     "type": "uniform",
+     "shot": "w630",
+     "rect": [
+      32,
+      64,
+      252,
+      704
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "FF-4",
+     "what": "the map, not the menu, at frame 690",
+     "type": "uniform",
+     "shot": "w690",
+     "rect": [
+      32,
+      64,
+      252,
+      704
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "FF-4",
+     "what": "the map, not the menu, at frame 750",
+     "type": "uniform",
+     "shot": "w750",
+     "rect": [
+      32,
+      64,
+      252,
+      704
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "FF-4",
+     "what": "the map, not the menu, at frame 810",
+     "type": "uniform",
+     "shot": "w810",
+     "rect": [
+      32,
+      64,
+      252,
+      704
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "FF-4",
+     "what": "the map, not the menu, at frame 870",
+     "type": "uniform",
+     "shot": "w870",
+     "rect": [
+      32,
+      64,
+      252,
+      704
+     ],
+     "color": "000000"
+    }
+   ]
   }
  ]
 }
