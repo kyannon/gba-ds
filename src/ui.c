@@ -396,6 +396,12 @@ bool ui_init(Config* c, bool wantDual) {
 #ifdef __ANDROID__
 	SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft");
 	SDL_SetHint(SDL_HINT_ANDROID_TRAP_BACK_BUTTON, "1"); /* BACK opens the menu instead of closing the app */
+#else
+	/* SDL drops controller events while the window isn't focused. Under sway
+	 * with both panels (stock ROCKNIX on the RG DS, issue #45) our window may
+	 * never get focus, and a tap doesn't give it any: keep the buttons
+	 * coming regardless. The environment variable still overrides this. */
+	SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
 #endif
 	setenv("SDL_VIDEO_WAYLAND_WMCLASS", "gba-ds", 0);
 	/* (the web build's sound too: web/sdl_audio_web.c, pulled by the page) */

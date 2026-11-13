@@ -2,6 +2,9 @@
 
 ## v1.5.2 (not yet released)
 
+### Fixes
+- **ROCKNIX on the RG DS:** the buttons now work in the game list, in games and in Map Buttons. With both screens on, GBA DS's window could end up without focus, and its buttons were ignored until then (issue #45; thanks to MarcJKolb for finding the fix).
+
 ## v1.5.1 (2026-11-13)
 
 ### New games
