@@ -1,0 +1,487 @@
+{
+ "game": "Final Fantasy I & II: Dawn of Souls",
+ "rules": "docs/games/final-fantasy-1-2-dawn-of-souls.md",
+ "cases": [
+  {
+   "id": "ff-logo",
+   "kind": "logo",
+   "rom": "BFFE",
+   "desc": "the cartridge title's FINAL FANTASY I & II lettering and DAWN OF SOULS bar",
+   "rules": [
+    "FF-1"
+   ],
+   "checks": []
+  },
+  {
+   "id": "ff-logo-eu",
+   "kind": "logo",
+   "rom": "BFFP",
+   "desc": "the same lettering in Europe, past the language screen",
+   "rules": [
+    "FF-1"
+   ],
+   "checks": []
+  },
+  {
+   "id": "ff-logo-jp",
+   "kind": "logo",
+   "rom": "BFFJ",
+   "desc": "FINAL FANTASY I・II with the ADVANCE bar and its katakana",
+   "rules": [
+    "FF-1"
+   ],
+   "checks": []
+  },
+  {
+   "id": "ff-title-select",
+   "rom": "BFFE",
+   "state": "final-fantasy-1-2-dawn-of-souls/us-title-select.ss",
+   "desc": "the cartridge's Title Select screen: the logo, no captures",
+   "rules": [
+    "FF-1",
+    "FF-2"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 400
+   },
+   "checks": [
+    {
+     "rule": "FF-2",
+     "what": "no captures outside the games",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF-2",
+     "what": "the logo stays",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "later",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.0
+    }
+   ]
+  },
+  {
+   "id": "ff1-world",
+   "rom": "BFFE",
+   "state": "final-fantasy-1-2-dawn-of-souls/us-ff1-world.ss",
+   "desc": "Final Fantasy, on the world map outside Cornelia: the world map's parchment, the party's marker by Cornelia",
+   "rules": [
+    "FF-4",
+    "FF-9"
+   ],
+   "shots": {
+    "start": 90
+   },
+   "checks": [
+    {
+     "rule": "FF-4",
+     "what": "the map was taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF-4",
+     "what": "black either side of the parchment",
+     "type": "uniform",
+     "shot": "start",
+     "rect": [
+      32,
+      64,
+      252,
+      704
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "FF-4",
+     "what": "black either side of the parchment",
+     "type": "uniform",
+     "shot": "start",
+     "rect": [
+      772,
+      64,
+      992,
+      704
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "ff1-map-open",
+   "rom": "BFFE",
+   "state": "final-fantasy-1-2-dawn-of-souls/us-ff1-map-open.ss",
+   "desc": "Final Fantasy's world map open in the game: the same parchment, closed and opened again on the hidden copy",
+   "rules": [
+    "FF-4",
+    "FF-6"
+   ],
+   "shots": {
+    "start": 90
+   },
+   "checks": [
+    {
+     "rule": "FF-6",
+     "what": "the map was taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ff1-menu-open",
+   "rom": "BFFE",
+   "state": "final-fantasy-1-2-dawn-of-souls/us-ff1-menu-open.ss",
+   "desc": "Final Fantasy's menu open on the world map: the world map on the second screen",
+   "rules": [
+    "FF-4",
+    "FF-6"
+   ],
+   "shots": {
+    "start": 90
+   },
+   "checks": [
+    {
+     "rule": "FF-6",
+     "what": "the map was taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ff1-castle",
+   "rom": "BFFE",
+   "state": "final-fantasy-1-2-dawn-of-souls/us-ff1-castle.ss",
+   "desc": "Final Fantasy in Castle Cornelia 1F: START's menu without its hand",
+   "rules": [
+    "FF-5",
+    "FF-9"
+   ],
+   "shots": {
+    "start": 90
+   },
+   "checks": [
+    {
+     "rule": "FF-5",
+     "what": "the menu was taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ff1-battle",
+   "rom": "BFFE",
+   "state": "final-fantasy-1-2-dawn-of-souls/us-ff1-battle.ss",
+   "desc": "Final Fantasy, a battle with goblins: the logo, no captures",
+   "rules": [
+    "FF-8"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "FF-8",
+     "what": "no captures in a battle",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ff2-hideout",
+   "rom": "BFFE",
+   "state": "final-fantasy-1-2-dawn-of-souls/us-ff2-hideout.ss",
+   "desc": "Final Fantasy II in the Rebel Hideout: START's menu without its hand",
+   "rules": [
+    "FF-10",
+    "FF-9"
+   ],
+   "shots": {
+    "start": 90
+   },
+   "checks": [
+    {
+     "rule": "FF-10",
+     "what": "the menu was taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ff2-menu-open",
+   "rom": "BFFE",
+   "state": "final-fantasy-1-2-dawn-of-souls/us-ff2-menu-open.ss",
+   "desc": "Final Fantasy II with its menu open: the menu, closed and opened again on the hidden copy",
+   "rules": [
+    "FF-10",
+    "FF-6"
+   ],
+   "shots": {
+    "start": 90
+   },
+   "checks": [
+    {
+     "rule": "FF-6",
+     "what": "the menu was taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ff2-altair",
+   "rom": "BFFE",
+   "state": "final-fantasy-1-2-dawn-of-souls/us-ff2-altair.ss",
+   "desc": "Final Fantasy II in Altair: START's menu",
+   "rules": [
+    "FF-10"
+   ],
+   "shots": {
+    "start": 90
+   },
+   "checks": [
+    {
+     "rule": "FF-10",
+     "what": "the menu was taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ff2-battle",
+   "rom": "BFFE",
+   "state": "final-fantasy-1-2-dawn-of-souls/us-ff2-battle.ss",
+   "desc": "Final Fantasy II's opening battle with the Black Knights: the logo, no captures",
+   "rules": [
+    "FF-8"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "FF-8",
+     "what": "no captures in a battle",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ff1-status-open",
+   "rom": "BFFE",
+   "state": "final-fantasy-1-2-dawn-of-souls/us-ff1-status-open.ss",
+   "desc": "Final Fantasy's Status screen open in Castle Cornelia: the menu on the second screen",
+   "rules": [
+    "FF-5",
+    "FF-6"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "FF-6",
+     "what": "the menu was taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ff1-title",
+   "rom": "BFFE",
+   "state": "final-fantasy-1-2-dawn-of-souls/us-ff1-title.ss",
+   "desc": "Final Fantasy's own title: the logo, nothing taken",
+   "rules": [
+    "FF-3"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 400
+   },
+   "checks": [
+    {
+     "rule": "FF-3",
+     "what": "nothing taken",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF-3",
+     "what": "the logo stays",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "later",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.0
+    }
+   ]
+  },
+  {
+   "id": "ff2-talk",
+   "rom": "BFFE",
+   "state": "final-fantasy-1-2-dawn-of-souls/us-ff2-hideout.ss",
+   "desc": "Final Fantasy II: the menu taken in the Rebel Hideout, then a conversation loaded: the menu stays",
+   "rules": [
+    "FF-7"
+   ],
+   "input": [
+    [
+     150,
+     "LOAD:final-fantasy-1-2-dawn-of-souls/us-ff2-talk.ss"
+    ]
+   ],
+   "shots": {
+    "before": 140,
+    "during": 400
+   },
+   "checks": [
+    {
+     "rule": "FF-7",
+     "what": "the menu stays through the conversation",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "during",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.0
+    }
+   ]
+  },
+  {
+   "id": "ff1-eu-world",
+   "rom": "BFFP",
+   "state": "final-fantasy-1-2-dawn-of-souls/eu-ff1-world.ss",
+   "desc": "Europe, in English: Final Fantasy on the world map outside Cornelia: the parchment, as in the USA release",
+   "rules": [
+    "FF-4"
+   ],
+   "shots": {
+    "start": 90
+   },
+   "checks": [
+    {
+     "rule": "FF-4",
+     "what": "the map was taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ff1-eu-castle",
+   "rom": "BFFP",
+   "state": "final-fantasy-1-2-dawn-of-souls/eu-ff1-castle.ss",
+   "desc": "Europe, in English: Final Fantasy in Castle Cornelia 1F: START's menu",
+   "rules": [
+    "FF-5"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "FF-5",
+     "what": "the menu was taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ff1-jp-world",
+   "rom": "BFFJ",
+   "state": "final-fantasy-1-2-dawn-of-souls/jp-ff1-world.ss",
+   "desc": "Japan: Final Fantasy on the world map outside Cornelia: the parchment, as in the USA release",
+   "rules": [
+    "FF-4"
+   ],
+   "shots": {
+    "start": 90
+   },
+   "checks": [
+    {
+     "rule": "FF-4",
+     "what": "the map was taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ff1-jp-castle",
+   "rom": "BFFJ",
+   "state": "final-fantasy-1-2-dawn-of-souls/jp-ff1-castle.ss",
+   "desc": "Japan: Final Fantasy in Castle Cornelia 1F: START's menu",
+   "rules": [
+    "FF-5"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "FF-5",
+     "what": "the menu was taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  }
+ ]
+}

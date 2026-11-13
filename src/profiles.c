@@ -5381,6 +5381,240 @@ static const char* m3_compose(Emu* s, const void* state, uint32_t* const* out, i
 	return NULL;
 }
 
+/* ------------------------------------------- Final Fantasy I & II: Dawn of Souls
+ *
+ * docs/games/final-fantasy-1-2-dawn-of-souls.md. Two games on one cartridge,
+ * each with its own memory, set up from a base the release keeps a pointer
+ * to (FfRegion: the pointers, by release; tools/romxref.py):
+ *   game1     (word) Final Fantasy's base while it runs, else 0
+ *   game2     (word) Final Fantasy II's base while it runs, else 0
+ *   FF_BATTLE 1 in a battle (either game) and on the cartridge's own menus,
+ *             0 walking about and in the games' menus (every release)
+ *   base + 0  Final Fantasy's map number (0 the world map, also on its own
+ *             title and New Game screens; 0x38 Castle Cornelia 1F...: the
+ *             numbers of the game's event list)
+ * START's menu and the world map screen are told by their windows' frames
+ * (ffMenu1 / ffMenu2, ffMap); the hand cursor is a 16x16 sprite, at the
+ * menu's command list or over the map's parchment (where the party's
+ * marker is 8x8). */
+typedef struct {
+	const char* code;
+	uint32_t game1, game2;
+} FfRegion;
+static const FfRegion ffRegions[] = {
+	{ "BFFE", 0x02000584, 0x0200099C },
+	{ "BFFP", 0x020004D0, 0x0200080C },
+	{ "BFFJ", 0x020004F8, 0x02000904 },
+};
+#define FF_BATTLE 0x02000000
+#define FF_V_LOGO 0xF0000080 /* outside the games, or a battle (FF-2, FF-8) */
+#define FF_V_MAP 0xF0000084 /* Final Fantasy's map number */
+#define FF_MAP_W 128 /* the map screen's parchment, at its left, */
+#define FF_MAP_TOP 28 /* below the help window */
+/* START's menu, faded in: its windows' frames (x, y, 0xRRGGBB) */
+/* (Final Fantasy: the command window's lower frame, in every release, and
+ * the party window's left edge) */
+static const int ffMenu1[][3] = { { 185, 69, 0xFFFFFF }, { 185, 71, 0x212121 }, { 185, 72, 0xFFFFFF },
+                                  { 185, 74, 0x212121 }, { 222, 71, 0x212121 }, { 222, 72, 0xFFFFFF },
+                                  { 1, 80, 0xCECECE }, { 2, 80, 0x212121 } };
+static const int ffMenu2[][3] = { { 200, 78, 0xCECECE }, { 200, 82, 0x212121 }, { 200, 110, 0xCECECE },
+                                  { 200, 114, 0x212121 }, { 144, 90, 0xFFFFFF } };
+/* the world map screen: the parchment's frame and the button window's */
+static const int ffMap[][3] = { { 128, 80, 0xFFFFFF }, { 129, 80, 0xCECECE }, { 130, 80, 0x212121 },
+                                { 200, 98, 0x00006B }, { 200, 103, 0x212121 }, { 200, 104, 0xFFFFFF } };
+/* the hand at the menu's command list; the one on the map's parchment */
+static const SpriteRule ffMenuHand = { 136, -16, 200, 100, 0, 1023, -1, 0, 0, 1u << 1 };
+static const SpriteRule ffMapHand = { -16, -16, FF_MAP_W - 1, 159, 0, 1023, -1, 0, 0, 1u << 1 };
+
+static const FfRegion* ff_r(Emu* e) {
+	for (size_t i = 0; i < sizeof(ffRegions) / sizeof(*ffRegions); ++i) {
+		if (!strncmp(e->gameCode, ffRegions[i].code, 4)) return &ffRegions[i];
+	}
+	return &ffRegions[0];
+}
+
+static bool ff_ram(uint32_t a) {
+	return a >= 0x02000000 && a < 0x02040000;
+}
+
+/* 1: Final Fantasy, 2: Final Fantasy II, 0: neither (the cartridge's menus) */
+static int ff_game(Emu* e) {
+	const FfRegion* r = ff_r(e);
+	if (ff_ram(emu_read32(e, r->game1))) return 1;
+	if (ff_ram(emu_read32(e, r->game2))) return 2;
+	return 0;
+}
+
+static uint32_t ff_virt(Emu* e, uint32_t addr) {
+	if (addr == FF_V_LOGO) return !ff_game(e) || emu_read8(e, FF_BATTLE) == 1;
+	/* Final Fantasy's map number (FF-5) */
+	if (addr == FF_V_MAP) return ff_game(e) == 1 ? emu_read8(e, emu_read32(e, ff_r(e)->game1)) : 0xFF;
+	return 0;
+}
+
+static bool ff_is(uint32_t px, int rgb) {
+	int d[3] = { (int) (px & 0xFF) - (rgb >> 16 & 0xFF), (int) (px >> 8 & 0xFF) - (rgb >> 8 & 0xFF),
+	             (int) (px >> 16 & 0xFF) - (rgb & 0xFF) };
+	for (int i = 0; i < 3; ++i) {
+		if (d[i] > 16 || d[i] < -16) return false;
+	}
+	return true;
+}
+
+static bool ff_probes(Emu* s, const int (*p)[3], int n) {
+	for (int i = 0; i < n; ++i) {
+		if (!ff_is(s->fb[p[i][1] * GBA_W + p[i][0]], p[i][2])) return false;
+	}
+	return true;
+}
+
+static bool ff_map_up(Emu* s) {
+	return ff_probes(s, ffMap, sizeof(ffMap) / sizeof(*ffMap));
+}
+
+/* START's menu up: its windows' frames where they are */
+static bool ff_menu_up(Emu* s, int game) {
+	const int (*p)[3] = game == 2 ? ffMenu2 : ffMenu1;
+	int n = game == 2 ? (int) (sizeof(ffMenu2) / sizeof(*ffMenu2)) : (int) (sizeof(ffMenu1) / sizeof(*ffMenu1));
+	for (int i = 0; i < n; ++i) {
+		if (!ff_is(s->fb[p[i][1] * GBA_W + p[i][0]], p[i][2])) return false;
+	}
+	return true;
+}
+
+/* runs until the picture has been still for 3 looks 4 frames apart (at most
+ * n frames); false if it never was */
+static bool ff_settle(Emu* s, int n) {
+	static uint32_t last[GBA_W * GBA_H];
+	int still = 0;
+	memset(last, 0, sizeof(last));
+	for (int f = 0; f < n && still < 3; f += 4) {
+		aw_run(s, 0, 4);
+		still = !memcmp(last, s->fb, sizeof(last)) ? still + 1 : 0;
+		memcpy(last, s->fb, sizeof(last));
+	}
+	return still >= 3;
+}
+
+/* as ff_settle, looking only right of the map's parchment */
+static bool ff_settle_right(Emu* s, int n) {
+	static uint32_t last[GBA_W * GBA_H];
+	int still = 0;
+	memset(last, 0, sizeof(last));
+	for (int f = 0; f < n && still < 3; f += 4) {
+		aw_run(s, 0, 4);
+		bool same = true;
+		for (int y = 0; y < GBA_H && same; ++y) same = !memcmp(&last[y * GBA_W + FF_MAP_W], &s->fb[y * GBA_W + FF_MAP_W], (GBA_W - FF_MAP_W) * 4);
+		still = same ? still + 1 : 0;
+		memcpy(last, s->fb, sizeof(last));
+	}
+	return still >= 3;
+}
+
+static const char* ff_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	static uint32_t pic[GBA_W * GBA_H];
+	emu_hide_sprites(s, NULL, 0);
+	emu_layers(s, 0x1F);
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	int game = ff_game(s);
+	if (!game) return "not in a game"; /* (FF-2) */
+	if (emu_read8(s, FF_BATTLE) == 1) return "a battle"; /* (FF-8) */
+	/* back to walking about from the menu or the map (FF-6) */
+	for (int i = 0; i < 4; ++i) {
+		bool map = game == 1 && ff_map_up(s);
+		if (!map && !ff_menu_up(s, game)) break;
+		aw_run(s, K_B, 4);
+		aw_run(s, 0, 40);
+	}
+	if (emu_cancelled(s)) return "called off";
+
+	/* Final Fantasy's world map (FF-4): hold B, then SELECT */
+	if (game == 1 && ff_virt(s, FF_V_MAP) == 0) {
+		aw_run(s, K_B, 10);
+		aw_run(s, K_B | K_SELECT, 4);
+		bool map = false;
+		for (int f = 0; f < 90 && !map; f += 2) {
+			aw_run(s, 0, 2);
+			map = ff_map_up(s);
+		}
+		if (map) {
+			/* faded in: the windows at its right still (the parchment's
+			 * marker pulses) */
+			if (!ff_settle_right(s, 120)) return "the map didn't settle";
+			if (emu_cancelled(s)) return "called off";
+			/* the parchment and its marker alone (BG2, sprites), without
+			 * the hand: drawn again from a state (the layers take effect as
+			 * the display registers are written) */
+			static uint8_t* tmp;
+			static size_t tmpSize;
+			size_t need = emu_state_size(s);
+			if (need > tmpSize) {
+				free(tmp);
+				tmp = malloc(need);
+				tmpSize = tmp ? need : 0;
+			}
+			if (!tmp || !emu_state_save(s, tmp)) return "state save failed";
+			static uint32_t bare[GBA_W * GBA_H];
+			emu_layers(s, 0x04);
+			emu_state_load(s, tmp);
+			emu_frame(s, 0);
+			memcpy(bare, s->fb, sizeof(bare));
+			/* the frame where the marker (it pulses) covers the most */
+			emu_hide_sprites(s, &ffMapHand, 1);
+			emu_layers(s, 0x14);
+			emu_state_load(s, tmp);
+			int best = -1;
+			for (int k = 0; k < 40; ++k) {
+				emu_frame(s, 0);
+				int n = 0;
+				for (int y = 0; y < GBA_H; ++y) {
+					for (int x = 0; x < FF_MAP_W; ++x) n += s->fb[y * GBA_W + x] != bare[y * GBA_W + x];
+				}
+				if (n > best) {
+					best = n;
+					memcpy(pic, s->fb, sizeof(pic));
+				}
+			}
+			emu_layers(s, 0x1F);
+			emu_state_load(s, tmp);
+			if (emu_cancelled(s)) return "called off";
+			int x0 = (w - FF_MAP_W) / 2, y0 = (h - (GBA_H - FF_MAP_TOP)) / 2;
+			for (int y = 0; y < h; ++y) {
+				for (int x = 0; x < w; ++x) {
+					int sx = x - x0, sy = y - y0 + FF_MAP_TOP;
+					bool in = sx >= 0 && sx < FF_MAP_W && sy >= FF_MAP_TOP && sy < GBA_H;
+					out[y * w + x] = in ? pic[sy * GBA_W + sx] : 0xFF000000;
+				}
+			}
+			return NULL;
+		}
+		/* (no map here after all: the menu) */
+	}
+
+	/* START's menu (FF-5, FF-10); from one of its screens (Status, Items...),
+	 * B first (FF-6), as often as it takes */
+	emu_hide_sprites(s, &ffMenuHand, 1);
+	bool up = false;
+	for (int tries = 0; tries < 3 && !up; ++tries) {
+		if (tries) {
+			aw_run(s, K_B, 4);
+			aw_run(s, 0, 40);
+		}
+		aw_run(s, K_START, 4);
+		for (int f = 0; f < 90 && !up; f += 2) {
+			aw_run(s, 0, 2);
+			up = ff_menu_up(s, game);
+		}
+	}
+	if (!up) return "the menu didn't open"; /* (FF-7) */
+	if (!ff_settle(s, 120)) return "the menu didn't settle";
+	if (!ff_menu_up(s, game)) return "the menu closed";
+	if (emu_cancelled(s)) return "called off";
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+	return NULL;
+}
+
 static const MapProfile profiles[] = {
 	{
 		.codes = { "A2CE" },
@@ -7672,6 +7906,25 @@ static const MapProfile profiles[] = {
 		 * warning (A) and, in the translations, their title card (A) */
 		.logo = { .steps = { { 0, 200 }, { K_A, 4 }, { 0, 400 }, { K_A, 4 }, { 0, 1800 } }, .layer = 3, .maxY = 160, .blackIsClear = true },
 	},
+	{
+		/* Final Fantasy I & II: Dawn of Souls (two games, each with its
+		 * own memory): walking about, Final Fantasy's world map or START's
+		 * menu: see ff_compose */
+		.codes = { "BFFE" },
+		.title = "Final Fantasy I & II: Dawn of Souls",
+		.compose = ff_compose,
+		.virt = ff_virt,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* outside the games and in battles: the logo (the pictures
+		 * dropped), no captures (FF-2, FF-8) */
+		.live = { { FF_V_LOGO, 0xFF, 0, 4 } },
+		.menu = { { FF_V_LOGO, 0xFF, 1, 4 } },
+		/* another map, a battle over: taken again at once (FF-5, FF-8) */
+		.room = { { FF_V_MAP, 0xFF, 0, 4 }, { FF_BATTLE, 0xFF, 0, 1 } },
+		/* the title's lettering (BG1) and DAWN OF SOULS bar (BG3) */
+		.logo = { .steps = { { 0, 1000 } }, .layers = 0x0A, .maxY = 130 },
+	},
 };
 
 /* ---------------------------------------------------------------- regions
@@ -7703,6 +7956,17 @@ static const MacroStep LANGUAGE_A[] = { { 0, 60 }, { K_A, 4 } };
 
 static void lang_menu(MapProfile* p) {
 	insert_steps(p->logo.steps, 24, 0, LANGUAGE_A, 2);
+}
+/* Final Fantasy I & II in Europe: its language screen first (A:
+ * English). In Japan: FINAL FANTASY I・II, the ADVANCE bar
+ * (BG2) and the katakana under it (BG3) (FF-1) */
+static void ff_eur(MapProfile* p) {
+	static const MacroStep steps[] = { { 0, 300 }, { K_A, 4 }, { 0, 1000 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+}
+static void ff_jpn(MapProfile* p) {
+	p->logo.layers = 0x0E;
 }
 
 /* Super Mario Advance 3 in Europe: the language menu (A: English), then
@@ -8085,6 +8349,9 @@ static const Variant variants[] = {
 	{ "AREP", "AREE", 0, NULL },
 	{ "BHTJ", "BHTE", 0, hpa_jpn },
 	{ "AREJ", "AREE", 0, mmbn_jpn },
+	/* (Final Fantasy I & II: the same RAM in every release) */
+	{ "BFFP", "BFFE", 0, ff_eur },
+	{ "BFFJ", "BFFE", 0, ff_jpn },
 };
 #define N_VARIANTS (sizeof(variants) / sizeof(*variants))
 static MapProfile variantProfiles[N_VARIANTS];
