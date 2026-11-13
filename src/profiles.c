@@ -5385,7 +5385,7 @@ static const char* m3_compose(Emu* s, const void* state, uint32_t* const* out, i
  *
  * docs/games/baldurs-gate-dark-alliance.md. The game has no map: GBA DS
  * makes one of each area (BGD-10, an exception), shown by bgd_live_view
- * at a third of its size around the game screen's middle; the logo on the
+ * at a quarter of its size around the hero, his head on it (BGD-11); the logo on the
  * title (BGD-5) and at GAME OVER (BGD-9). (Until Nov 13, 2026 START's
  * character tab instead, BGD-1 to BGD-4 and BGD-8, retired.) Both releases
  * use these addresses:
@@ -5396,6 +5396,9 @@ static const char* m3_compose(Emu* s, const void* state, uint32_t* const* out, i
  *               a scene in the world, or dying), 0 from START on, a
  *               black-screen scene, GAME OVER
  *   BGD_HP      health (0 from the hero's death on)
+ *   BGD_HEROX/Y where the hero's feet are in the area (1/256 px): the follow
+ *               routine keeps the camera 120 px left of and 100 px above
+ *               them (his feet at 120, 100 on the game screen)
  *   BGD_CAMX/Y  the camera (words, pixels): the screen's top left in the area
  *   BGD_DX/DY   the camera's pending move (halves): each frame the game's
  *               scroll (0x086A1600) adds them to the camera, draws the 16-px
@@ -5421,6 +5424,8 @@ static const char* m3_compose(Emu* s, const void* state, uint32_t* const* out, i
 #define BGD_INGAME 0x030077D8
 #define BGD_CONTROL 0x03002C02
 #define BGD_HP 0x03000B54
+#define BGD_HEROX 0x03001520   /* where his feet are (words, 1/256 px; the camera's target) */
+#define BGD_HEROY 0x03001524
 #define BGD_CAMX 0x030017D0
 #define BGD_CAMY 0x030016B0
 #define BGD_DX 0x03003538
@@ -5430,6 +5435,9 @@ static const char* m3_compose(Emu* s, const void* state, uint32_t* const* out, i
 #define BGD_V_NEVER 0xF0000091 /* (no captures: the map is drawn live) */
 #define BGD_SETTLE 30          /* frames under control in an area before it's mapped */
 #define BGD_MAX 8192           /* the largest area mapped, each way (pixels) */
+#define BGD_Z 4                /* the map's scale: a quarter (BGD-10) */
+#define BGD_HEAD_W 15          /* his head, at the game's size (BGD-11) */
+#define BGD_HEAD_H 10
 static const uint32_t bgdFollow[] = { 0x08690FD2, 0x0869108A, 0x0869109C };
 
 static uint32_t bgd_virt(Emu* e, uint32_t addr) {
@@ -5468,6 +5476,8 @@ typedef struct {
 	bool done, failed;
 	int x0, y0, w, h;         /* the area's top left (camera coordinates) and size */
 	int ex0, ey0, ex1, ey1;   /* what's drawn on it: its edges (ex1 / ey1 past them) */
+	uint32_t head[BGD_HEAD_W * BGD_HEAD_H]; /* his head (0: transparent) */
+	int headUp;               /* from its top to his feet; 0: no head found */
 	uint32_t* px;             /* 0: nothing there */
 } BgdMap;
 static BgdMap bgdMap;
@@ -5521,6 +5531,43 @@ static void* bgd_worker(void* arg) {
 	int X1 = m->x0 + m->w - GBA_W - 1, Y1 = m->y0 + m->h - GBA_H - 1;
 	st = malloc(emu_state_size(e));
 	if (!st && (why = "out of memory")) goto out;
+	{
+		/* his head (BGD-11): the sprites alone and nothing at all, drawn from
+		 * the same moment; where they differ is a sprite. Its top: the first
+		 * row with one, above his feet, a few pixels either side of them;
+		 * then BGD_HEAD_H rows from there, BGD_HEAD_W wide round his feet */
+		static uint32_t a[GBA_W * GBA_H], b[GBA_W * GBA_H];
+		int fx = (int32_t) emu_read32(e, BGD_HEROX) / 256 - (int32_t) emu_read32(e, BGD_CAMX);
+		int fy = (int32_t) emu_read32(e, BGD_HEROY) / 256 - (int32_t) emu_read32(e, BGD_CAMY);
+		emu_state_save(e, st);
+		emu_layers(e, 0x10);
+		emu_state_load(e, st);
+		emu_frame(e, 0);
+		memcpy(a, e->fb, sizeof(a));
+		emu_layers(e, 0x00);
+		emu_state_load(e, st);
+		emu_frame(e, 0);
+		memcpy(b, e->fb, sizeof(b));
+		emu_layers(e, 0x1F);
+		emu_state_load(e, st);
+		int top = -1;
+		for (int y = fy - 64; y < fy - 16 && top < 0; ++y) {
+			if (y < 0 || y >= GBA_H) continue;
+			for (int x = fx - 4; x <= fx + 4; ++x)
+				if (x >= 0 && x < GBA_W && a[y * GBA_W + x] != b[y * GBA_W + x]) top = y;
+		}
+		if (top >= 0) {
+			bool any = false;
+			for (int r = 0; r < BGD_HEAD_H; ++r)
+				for (int c = 0; c < BGD_HEAD_W; ++c) {
+					int x = fx - BGD_HEAD_W / 2 + c, y = top + r, i = y * GBA_W + x;
+					bool in = x >= 0 && x < GBA_W && y < GBA_H && a[i] != b[i];
+					m->head[r * BGD_HEAD_W + c] = in ? (a[i] & 0xFFFFFF) | 0xFF000000 : 0;
+					any |= in;
+				}
+			if (any) m->headUp = fy - top;
+		}
+	}
 	/* a screen at a time, row by row, each row the other way */
 	for (int y = m->y0, row = 0; !bgdStop; y += GBA_H, ++row) {
 		if (y > Y1) y = Y1;
@@ -5643,11 +5690,11 @@ static const uint32_t* bgd_live_view(Emu* live, const char* rom) {
 		if (getenv("GBADS_SYNC") || pthread_create(&bgdThread, NULL, bgd_worker, NULL)) bgdThread = 0, bgd_worker(NULL);
 	}
 	if (m->failed || !m->done) return NULL; /* (the logo meanwhile) */
-	/* a third of the size: each pixel the mean of 3x3 of the picture's,
-	 * centred on the game screen's middle, kept within the area's edges; an
-	 * area smaller than the screen in its middle */
-	enum { Z = 3 };
-	int camx = (int32_t) emu_read32(live, BGD_CAMX) + GBA_W / 2 - m->x0, camy = (int32_t) emu_read32(live, BGD_CAMY) + GBA_H / 2 - m->y0;
+	/* a quarter of the size: each pixel the mean of 4x4 of the picture's,
+	 * centred on his feet, kept within the area's edges; an area smaller
+	 * than the screen in its middle */
+	enum { Z = BGD_Z };
+	int camx = (int32_t) emu_read32(live, BGD_HEROX) / 256 - m->x0, camy = (int32_t) emu_read32(live, BGD_HEROY) / 256 - m->y0;
 	int left = camx - GBA_W * Z / 2, top = camy - GBA_H * Z / 2;
 	if (m->ex1 - m->ex0 <= GBA_W * Z) left = (m->ex0 + m->ex1) / 2 - GBA_W * Z / 2;
 	else if (left < m->ex0) left = m->ex0;
@@ -5669,6 +5716,16 @@ static const uint32_t* bgd_live_view(Emu* live, const char* rom) {
 				}
 			}
 			out[oy * GBA_W + ox] = 0xFF000000 | (b / (Z * Z)) << 16 | (g / (Z * Z)) << 8 | r / (Z * Z);
+		}
+	}
+	/* his head where he is, at the game's size, centred where the middle
+	 * of his sprite, at a quarter, would be (BGD-11) */
+	if (m->headUp) {
+		int hx = (camx - left) / Z - BGD_HEAD_W / 2, hy = (camy - top - m->headUp / 2) / Z - BGD_HEAD_H / 2;
+		for (int r = 0; r < BGD_HEAD_H; ++r) {
+			if (hy + r < 0 || hy + r >= GBA_H) continue;
+			for (int c = 0; c < BGD_HEAD_W; ++c)
+				if (m->head[r * BGD_HEAD_W + c] && hx + c >= 0 && hx + c < GBA_W) out[(hy + r) * GBA_W + hx + c] = m->head[r * BGD_HEAD_W + c];
 		}
 	}
 	return out;

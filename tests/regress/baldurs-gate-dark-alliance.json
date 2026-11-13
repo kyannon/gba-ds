@@ -32,9 +32,10 @@
    "id": "bgd-us-tavern",
    "rom": "BGDE",
    "state": "baldurs-gate-dark-alliance/us-tavern.ss",
-   "desc": "the Elfsong Tavern: the logo for half a second, then the whole tavern's map at a third; in the hall's corner, walking a little, the map stays put at the area's edges",
+   "desc": "the Elfsong Tavern: the logo for half a second, then the whole tavern's map at a quarter with his head where he is; in the hall's corner, walking a little, the map stays put at the area's edges and only his head moves",
    "rules": [
     "BGD-10",
+    "BGD-11",
     "BGD-7"
    ],
    "input": [
@@ -91,7 +92,37 @@
     },
     {
      "rule": "BGD-10",
-     "what": "near the area's edges the map stays put",
+     "what": "near the area's edges the map stays put, only his head moves",
+     "type": "differs",
+     "a": {
+      "shot": "map",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "walked",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.0005
+    },
+    {
+     "rule": "BGD-7",
+     "what": "nothing leaves the game screen",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "BGD-10",
+     "what": "(and no more than his head)",
      "type": "same",
      "a": {
       "shot": "map",
@@ -111,13 +142,7 @@
        704
       ]
      },
-     "frac": 0.0
-    },
-    {
-     "rule": "BGD-7",
-     "what": "nothing leaves the game screen",
-     "type": "no_log",
-     "match": "HUD on the second screen"
+     "frac": 0.01
     }
    ]
   },
@@ -182,7 +207,8 @@
    "state": "baldurs-gate-dark-alliance/us-tavern.ss",
    "desc": "the tavern mapped, then a conversation with Alyth loaded (the same area): the map stays, not made again, around the bar",
    "rules": [
-    "BGD-10"
+    "BGD-10",
+    "BGD-11"
    ],
    "input": [
     [
