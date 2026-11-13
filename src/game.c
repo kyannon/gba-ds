@@ -1437,7 +1437,7 @@ static void draw_cheats(int scr) {
  * while the choice isn't what the game started with, a "Restart" row at the
  * top does it. Each patch is tried on the ROM as the list opens, and the
  * ones on are tried together, in order, so the list can say which can't
- * follow which (a UPS or BPS is made for the unchanged ROM) and which
+ * follow which (a UPS, BPS or xdelta is made for the unchanged ROM) and which
  * change the same bytes. */
 static const char* romPath; /* (the game's ROM; set by game_run) */
 static PatchChoice patchChoice;  /* as chosen (saved as it changes) */
@@ -1605,6 +1605,7 @@ static void patch_describe(const uint8_t* rom, size_t romN, uint32_t romCrc, con
 		if (!k->base || k->base == romCrc) pi->baseOk = true, pi->known = k;
 		else if (pi->nBases < 8) pi->bases[pi->nBases++] = k->base;
 	}
+	bool compressed = pn && patch_xdelta_compressed(p, pn);
 	free(p);
 	pi->usable = r == PATCH_APPLIED;
 	if (pi->known && r == PATCH_APPLIED) patch_known_text(pi->known, out, outN, pi->okNote, sizeof(pi->okNote));
@@ -1613,6 +1614,9 @@ static void patch_describe(const uint8_t* rom, size_t romN, uint32_t romCrc, con
 		         pi->known->name, pi->known->baseName);
 	} else if (r == PATCH_WRONG_ROM) {
 		snprintf(pi->note, sizeof(pi->note), "Made for another version of the game: it can't be switched on for this ROM");
+	} else if (r != PATCH_APPLIED && compressed) {
+		snprintf(pi->note, sizeof(pi->note),
+		         "An xdelta made with compression, which GBA DS can't read: patch the ROM with it beforehand, or make it again without (xdelta3 -S none)");
 	} else if (r != PATCH_APPLIED) {
 		snprintf(pi->note, sizeof(pi->note), "Can't be read: not a patch, or damaged");
 	} else if (pi->known && !pi->baseOk) {
@@ -1638,7 +1642,9 @@ static void patch_title_type(const char* file, char* out, size_t size) {
 	char title[256], type[8] = "";
 	patch_title(file, title, sizeof(title));
 	const char* ext = strrchr(file, '.');
-	for (int k = 0; ext && ext[k + 1] && k < 3; ++k) type[k] = (char) toupper((unsigned char) ext[k + 1]);
+	if (ext && (!strcasecmp(ext, ".xdelta") || !strcasecmp(ext, ".vcdiff"))) snprintf(type, sizeof(type), "xdelta");
+	else
+		for (int k = 0; ext && ext[k + 1] && k < 3; ++k) type[k] = (char) toupper((unsigned char) ext[k + 1]);
 	snprintf(out, size, "%s (%s)", title, type);
 }
 
@@ -1691,7 +1697,7 @@ static void patch_rebuild(void) {
 	}
 	if (nPatchInfo == first) {
 		char note[1300];
-		snprintf(note, sizeof(note), "Put .ips, .ups or .bps files in %s", patchDir);
+		snprintf(note, sizeof(note), "Put .ips, .ups, .bps or .xdelta files in %s", patchDir);
 		patch_row_add(PR_EMPTY, NULL, "No patches here yet", note, false);
 	}
 	/* together, in order, as the game will apply them */
@@ -1790,7 +1796,9 @@ static void open_patches(void) {
 	struct dirent* e;
 	while (d && (e = readdir(d)) && n < PATCH_ROWS - 2) {
 		const char* ext = strrchr(e->d_name, '.');
-		if (e->d_name[0] != '.' && ext && (!strcasecmp(ext, ".ips") || !strcasecmp(ext, ".ups") || !strcasecmp(ext, ".bps")))
+		if (e->d_name[0] != '.' && ext &&
+		    (!strcasecmp(ext, ".ips") || !strcasecmp(ext, ".ups") || !strcasecmp(ext, ".bps") || !strcasecmp(ext, ".xdelta") ||
+		     !strcasecmp(ext, ".vcdiff")))
 			snprintf(names[n++], sizeof(names[0]), "%s", e->d_name);
 	}
 	if (d) closedir(d);

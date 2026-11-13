@@ -30,6 +30,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Mega Man Battle Network (Battle Network Rockman EXE in Japan) | `AREE` `AREP` `AREJ` | MegaMan's status (level, HP, armor, buster) with your money, in battles too; on the net, a map of the area | |
 | Metroid Fusion | `AMTE` `AMTP` `AMTJ` | map | Color improvement (USA) |
 | Metroid: Zero Mission | `BMXE` `BMXP` `BMXJ` | map | Color improvement v1 and v2 (USA) |
+| MOTHER 3 | `A3UJ` (Japan only) | walking about: the area map where R opens one, else the Status screen, each party member in turn | Translations into English (v1.3, v1.3a), Brazilian Portuguese, Italian, German, Simplified Chinese, Polish, French, Catalan (v1.0, v1.0.2) and Dutch; MusicTheorist's HQ audio mix (Japanese and English) |
 | Muppet Pinball Mayhem | `AMWE` `AMWP` (no Japanese release) | the table twice as tall over both screens, live, with the score bar | |
 | Ninja Five-O (Ninja Cop in Europe) | `ANXE` `ANXP` (no Japanese release) | in stages: the HUD (bars, score or time, the boss's bar, the shuriken's level, keys and hostages) | |
 | Pokémon Pinball: Ruby & Sapphire | `BPPE` | the table twice as tall over both screens, live, with the score bar | |
@@ -63,7 +64,7 @@ GBA DS knows a game by its code, which romhacks and patches of a supported game 
 - **Tested romhacks and patches** (colour restorations, voice removals...) are in the table's last column, on the row of the game they're made from, with what's different in the game's section. GBA DS knows them by their checksum, and they're tested like the games. They aren't counted as games of their own.
 - **Any other patched or modified ROM** runs with the game's second screen, untested. The game list says so under the game's logo ("Romhack: ..." for one GBA DS knows, "Modified ROM" for any other), once it has read the ROM the first time you select it, and bug reports say the same, so if the second screen goes wrong in a mod, send one. To ask for a romhack to be supported, open an issue with a link to it.
 - **Patches GBA DS knows:** besides the tested ones, GBA DS knows a list of colour, voice and translation patches for other games too (some not supported yet), so the Patches menu can name them and say when one is made for another version of the game (a `.ips` file can't say which version it's for, so this is the only warning you'll get).
-- **Patch files:** put the patch (`.ips`, `.ups` or `.bps`) in the game's folder in GBA DS's `patches` folder (GBA DS makes it, named after the game: `patches/Mario & Luigi - Superstar Saga (USA)`) and switch it on in the pause menu's Extras → Patches, which says whether it's a tested romhack (see [Patches](Playing#patches)). A ROM you've already patched works too.
+- **Patch files:** put the patch (`.ips`, `.ups`, `.bps` or `.xdelta`) in the game's folder in GBA DS's `patches` folder (GBA DS makes it, named after the game: `patches/Mario & Luigi - Superstar Saga (USA)`) and switch it on in the pause menu's Extras → Patches, which says whether it's a tested romhack (see [Patches](Playing#patches)). A ROM you've already patched works too.
 - Save states made on the unchanged game shouldn't be loaded into a mod of it, or the other way round.
 - A romhack with its own title screen still shows the original game's logo on the second screen.
 
@@ -324,6 +325,15 @@ Known issues: the later tutorial battles, boss battles and link-cable net battle
   - the coloured plates are recoloured to the frame's greys so they don't stand out.
 - `map_crop = 0` shows the pause screens exactly as the games draw them. The European versions' label erasing was checked in English and German.
 - Zero Mission's colour patches (Color improvement v1 and v2) work on their own; with another patch on as well, its map may not come up.
+
+## MOTHER 3
+
+Japan only; the English fan translation (v1.3 or v1.3a, as a patched ROM or with its patch in the Patches menu) and MusicTheorist's HQ audio mix work the same, as do the fan translations into Brazilian Portuguese, Italian, German, Simplified Chinese, Polish, French, Catalan and Dutch.
+
+- Walking about where the R button opens a map of the area, the second screen shows that map, with the party's marker, without its scroll arrows.
+- Elsewhere it shows the Status screen, turning through the party every 5 seconds, without its L / R badges and its help line.
+- In battles, scenes, chapter cards and on the title, the logo; in a conversation you start, the last picture stays.
+- Known issues: the translation and the HQ audio mix can't both be switched on as patches (each is made for one exact ROM): use a ROM patched with both. Battles have only been tried on the English translation.
 
 ## Muppet Pinball Mayhem
 

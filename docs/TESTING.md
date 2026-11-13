@@ -116,8 +116,8 @@ screen's bottom right, so these cases leave it out of the comparison:
 `"golden_mask": [[700, 720, 1024, 768]]` (rects painted over in both
 pictures before they're compared; any case can use it).
 
-A case with `"patch": "FILE"` puts the fixture `patches/FILE` (an IPS, UPS or
-BPS) beside its ROM, named as the ROM with the patch's extension, so the app
+A case with `"patch": "FILE"` puts the fixture `patches/FILE` (an IPS, UPS,
+BPS or xdelta) beside its ROM, named as the ROM with the patch's extension, so the app
 applies it as the game starts (GEN-9). `"patch_folder": [FILE, ...]` puts
 fixtures in the game's own patches folder (`<work>/patches/<release name>`,
 the release's No-Intro name as `profile_release_name` gives it), and

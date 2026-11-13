@@ -147,6 +147,106 @@ def apply_bps(src, p):
     return bytes(out)
 
 
+def _vcd_int(b, i):
+    v = 0
+    for _ in range(9):
+        c = b[i]
+        i += 1
+        v = (v << 7) | (c & 0x7F)
+        if not c & 0x80:
+            return v, i
+    raise ValueError("the xdelta is damaged")
+
+
+def _vcd_table():
+    t = [((2, 0, 0), None)]
+    t += [((1, s, 0), None) for s in range(18)]
+    for m in range(9):
+        t.append(((3, 0, m), None))
+        t += [((3, s, m), None) for s in range(4, 19)]
+    for m in range(6):
+        t += [((1, a, 0), (3, c, m)) for a in range(1, 5) for c in range(4, 7)]
+    for m in range(6, 9):
+        t += [((1, a, 0), (3, 4, m)) for a in range(1, 5)]
+    t += [((3, 4, m), (1, 1, 0)) for m in range(9)]
+    return t
+
+
+def apply_vcdiff(src, p):
+    """xdelta (VCDIFF, RFC 3284) without secondary compression, as src/patch.c."""
+    if p[:3] != b"\xd6\xc3\xc4" or p[3] != 0:
+        raise ValueError("not an xdelta")
+    if p[4] & 3:
+        raise ValueError("an xdelta made with compression (xdelta3 -S), which GBA DS can't read")
+    i = 5
+    if p[4] & 4:
+        n, i = _vcd_int(p, i)
+        i += n
+    tbl, out = _vcd_table(), bytearray()
+    while i < len(p):
+        win = p[i]
+        i += 1
+        sl = sp = 0
+        if win & 3:
+            sl, i = _vcd_int(p, i)
+            sp, i = _vcd_int(p, i)
+            if win & 1 and sp + sl > len(src):
+                raise ValueError("this xdelta is for another ROM (a bigger one)")
+        seg = src[sp:sp + sl] if win & 1 else bytes(out[sp:sp + sl])
+        _, i = _vcd_int(p, i)
+        tlen, i = _vcd_int(p, i)
+        if p[i]:
+            raise ValueError("an xdelta made with compression (xdelta3 -S), which GBA DS can't read")
+        i += 1
+        al, i = _vcd_int(p, i)
+        il, i = _vcd_int(p, i)
+        cl, i = _vcd_int(p, i)
+        ck = None
+        if win & 4:
+            ck = int.from_bytes(p[i:i + 4], "big")
+            i += 4
+        data, inst, addr = p[i:i + al], p[i + al:i + al + il], p[i + al + il:i + al + il + cl]
+        i += al + il + cl
+        di = ii = ai = 0
+        near, ni, same = [0] * 4, 0, [0] * 768
+        t = bytearray()
+        while ii < len(inst):
+            op = inst[ii]
+            ii += 1
+            for ins in tbl[op]:
+                if ins is None:
+                    continue
+                typ, size, mode = ins
+                if size == 0:
+                    size, ii = _vcd_int(inst, ii)
+                if typ == 1:
+                    t += data[di:di + size]
+                    di += size
+                elif typ == 2:
+                    t += bytes([data[di]]) * size
+                    di += 1
+                else:
+                    here = sl + len(t)
+                    if mode < 6:
+                        v, ai = _vcd_int(addr, ai)
+                        a = v if mode == 0 else here - v if mode == 1 else near[mode - 2] + v
+                    else:
+                        a = same[(mode - 6) * 256 + addr[ai]]
+                        ai += 1
+                    near[ni] = a
+                    ni = (ni + 1) % 4
+                    same[a % 768] = a
+                    for k in range(size):
+                        q = a + k
+                        t.append(seg[q] if q < sl else t[q - sl])
+        if len(t) != tlen:
+            raise ValueError("the xdelta is damaged")
+        if ck is not None and zlib.adler32(bytes(t)) != ck:
+            raise ValueError("this xdelta is for another ROM" if win & 1 else "the xdelta is damaged")
+        out += t
+    return bytes(out)
+
+
 def read_rom(path):
     if path.lower().endswith(".zip"):
         with zipfile.ZipFile(path) as z:
@@ -222,7 +322,7 @@ def main():
     ap.add_argument("--no-tests", action="store_true", help="only apply the patch and describe it")
     a = ap.parse_args()
     a.fixtures = os.path.abspath(a.fixtures)
-    name = a.name or re.sub(r"\.(ips|ups|bps|gba|zip)$", "", os.path.basename(a.patch), flags=re.I)
+    name = a.name or re.sub(r"\.(ips|ups|bps|xdelta|vcdiff|gba|zip)$", "", os.path.basename(a.patch), flags=re.I)
     slugName = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
     out = os.path.abspath(a.out or os.path.join(ROOT, "build", "romhack", slugName))
     os.makedirs(out, exist_ok=True)
@@ -236,6 +336,8 @@ def main():
         kind = "UPS"
     elif data and data[:4] == b"BPS1":
         kind = "BPS"
+    elif data and data[:3] == b"\xd6\xc3\xc4":
+        kind = "xdelta"
 
     # the base: --base, the UPS / BPS's source CRC, or the patched ROM's code
     base = baseName = None
@@ -251,8 +353,8 @@ def main():
         if want not in fixtures:
             sys.exit("the %s is for a ROM with CRC32 %08x, which isn't in the fixtures: give --base" % (kind, want))
         base, baseName = read_rom(fixtures[want][1]), "roms/%s.zip" % fixtures[want][0]
-    elif kind == "IPS":
-        sys.exit("an IPS doesn't say which ROM it's for: give --base CODE (the release's fixture) or --base ROM")
+    elif kind in ("IPS", "xdelta"):
+        sys.exit("an %s doesn't say which ROM it's for: give --base CODE (the release's fixture) or --base ROM" % kind)
 
     if kind == "ROM":
         rom = read_rom(a.patch)
@@ -264,7 +366,7 @@ def main():
             base, baseName = read_rom(z), "roms/%s.zip" % code
     else:
         try:
-            rom = {"IPS": apply_ips, "UPS": apply_ups, "BPS": apply_bps}[kind](base, data)
+            rom = {"IPS": apply_ips, "UPS": apply_ups, "BPS": apply_bps, "xdelta": apply_vcdiff}[kind](base, data)
         except ValueError as e:
             sys.exit(str(e))
 

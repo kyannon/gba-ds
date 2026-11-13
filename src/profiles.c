@@ -5180,6 +5180,207 @@ static const char* er_compose(Emu* s, const void* state, uint32_t* out, int w, i
 	return NULL;
 }
 
+/* ---------------------------------------------------------------- MOTHER 3
+ *
+ * docs/games/mother-3.md. Walking about, the area's map where R opens one
+ * (M3-2), else START's Status screen, a page per party member (M3-3); the
+ * logo on the title and file screens (M3-6). The same addresses in the
+ * Japanese release and the English translations:
+ *   M3_MODE   0 walking about, 1 a text box (and scenes, and the story's own
+ *             battles), 6 / 7 between rooms, 8 an enemy met (the swirl), 9 a
+ *             battle (to the end of its results), 0x0A one
+ *             of START's screens (Goods, Equip, PSI, Status), 0x0D the area
+ *             map (R), 0x0E START's menu, 0x0F the unused debug menu
+ *   M3_MAP    (half) the area (the debug menu's map number); 0 on the title,
+ *             the file screens and before, and on START's screens
+ *   M3_ICON   START's menu: its icon (0 Goods, 1 Equip, 2 PSI, 3 Status,
+ *             4 Sleep)
+ *   M3_SCREEN 1 while one of the menu's screens is open
+ *   M3_WHO    the party member the Status shows (0 the first)
+ *   M3_SCENE  bit 0x10 while a scene plays (also while walking about:
+ *             between two rooms, M3_MODE 6 / 7, and a dash carried into the
+ *             next room, M3_MODE 0, until it stops; not in a conversation the
+ *             player starts)
+ *   M3_SCREEN_PTR (word) 0x0202CD88 while the battle screen of a story
+ *             battle (M3_MODE 1: the Prologue's Mole Cricket) is up, else
+ *             0x0202CD48 (0 on the title)
+ * Sprites: the area map's scroll arrows (tiles 916-919, at its top and
+ * bottom edges), the Status's L / R badges with their orange arrows (tiles
+ * 592-595, either end of the portraits). */
+#define M3_MODE 0x02005C00
+#define M3_MAP 0x0201963C
+#define M3_ICON 0x020281EB
+#define M3_SCREEN 0x02000024
+#define M3_WHO 0x02018E92
+#define M3_SCENE 0x0200DEB7
+#define M3_SCREEN_PTR 0x02000008
+#define M3_PAGES 8
+#define M3_V_LOGO 0xF0000060 /* the title, a scene or a battle */
+#define M3_HELP_Y 128 /* the Status's help window: rows 130-159, the gap above it from 128 */
+static const SpriteRule m3MapArrows = { 0, -16, 240, 160, 916, 919, -1 };
+static const SpriteRule m3StatusLR = { -16, -16, 240, 24, 592, 595, -1 };
+
+/* the title and file screens: no area (START's screens clear it too, so
+ * not on one of those) */
+static bool m3_title(Emu* e) {
+	return emu_read16(e, M3_MAP) == 0 && emu_read8(e, M3_MODE) != 0x0A;
+}
+
+/* a battle (M3-11) or a scene (M3-10): the logo */
+static bool m3_battle(Emu* e) {
+	int mode = emu_read8(e, M3_MODE);
+	return mode == 0x08 || mode == 0x09 || emu_read32(e, M3_SCREEN_PTR) == 0x0202CD88;
+}
+
+static bool m3_scene(Emu* e) {
+	int mode = emu_read8(e, M3_MODE);
+	return (emu_read8(e, M3_SCENE) & 0x10) && mode != 0 && mode != 6 && mode != 7;
+}
+
+static uint32_t m3_virt(Emu* e, uint32_t addr) {
+	if (addr == M3_V_LOGO) return m3_title(e) || m3_battle(e) || m3_scene(e);
+	return 0;
+}
+
+static bool m3_menu(int mode) {
+	return mode == 0x0A || mode == 0x0D || mode == 0x0E;
+}
+
+/* runs until the mode has held 12 frames (at most n) */
+static void m3_settle_mode(Emu* s, int n) {
+	int last = -1, held = 0;
+	for (int f = 0; f < n && held < 12; ++f) {
+		emu_frame_blind(s, 0);
+		int m = emu_read8(s, M3_MODE);
+		held = m == last ? held + 1 : 0;
+		last = m;
+	}
+}
+
+static bool m3_wait_mode(Emu* s, int mode, int n) {
+	for (int f = 0; f < n && emu_read8(s, M3_MODE) != mode; ++f) emu_frame_blind(s, 0);
+	return emu_read8(s, M3_MODE) == mode;
+}
+
+/* sprites shown that aren't the map's scroll arrows (its marker: blinking) */
+static int m3_marks(Emu* s) {
+	int n = 0;
+	for (int i = 0; i < 128; ++i) {
+		uint16_t a0 = emu_read16(s, 0x07000000 + i * 8), a2 = emu_read16(s, 0x07000004 + i * 8);
+		if ((a0 & 0x0300) == 0x0200) continue; /* (off) */
+		int t = a2 & 0x3FF;
+		if (t >= 916 && t <= 919) continue;
+		++n;
+	}
+	return n;
+}
+
+/* the Status faded in (its window's white left edge, x 3) and still */
+static bool m3_settle(Emu* s) {
+	static uint32_t last[GBA_W * GBA_H];
+	int still = 0;
+	memset(last, 0, sizeof(last));
+	for (int f = 0; f < 120 && still < 3; ++f) {
+		aw_run(s, 0, 4);
+		bool lit = (s->fb[140 * GBA_W + 3] & 0xFFFFFF) == 0xFFFFFF;
+		still = lit && !memcmp(last, s->fb, sizeof(last)) ? still + 1 : 0;
+		memcpy(last, s->fb, sizeof(last));
+	}
+	return still >= 3;
+}
+
+static void m3_put(const uint32_t* src, uint32_t* dst, int w, int h) {
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&dst[y * w], &src[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+}
+
+/* The Status without its help window (M3-3: "Press the A Button for skill
+ * info.", a prompt): the menu's brown background there, as in the gap
+ * above it. Found by its white left edge at x 3 under that gap; left as it
+ * is if not found. */
+static void m3_no_help(uint32_t* px, int w) {
+	if (w < GBA_W) return;
+	uint32_t bg = px[M3_HELP_Y * w + 3];
+	if ((bg & 0xFFFFFF) != (px[M3_HELP_Y * w] & 0xFFFFFF) || (px[140 * w + 3] & 0xFFFFFF) != 0xFFFFFF) return;
+	for (int y = M3_HELP_Y; y < GBA_H; ++y) {
+		for (int x = 0; x < GBA_W; ++x) px[y * w + x] = bg;
+	}
+}
+
+static const char* m3_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+	static uint32_t page[M3_PAGES][GBA_W * GBA_H];
+	int max = *nOut < M3_PAGES ? *nOut : M3_PAGES;
+	*nOut = 1;
+	*step = 300; /* 5 seconds a party member (M3-3) */
+	emu_hide_sprites(s, NULL, 0);
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	if (m3_title(s)) return "the title"; /* (M3-6) */
+	if (m3_battle(s)) return "a battle"; /* (M3-11) */
+	if (m3_scene(s)) return "a scene"; /* (M3-10) */
+	/* back to walking about from the menu or the map (M3-4) */
+	for (int i = 0; i < 5 && m3_menu(emu_read8(s, M3_MODE)); ++i) {
+		aw_run(s, K_B, 6);
+		m3_settle_mode(s, 120); /* (a screen passes through 0 and 6 on its way back to the menu) */
+	}
+	m3_settle_mode(s, 60);
+	if (emu_read8(s, M3_MODE) != 0) return "not walking about"; /* (M3-5) */
+
+	/* the area's map (M3-2): R, where there's one */
+	aw_run(s, K_R, 4);
+	if (m3_wait_mode(s, 0x0D, 90)) {
+		emu_hide_sprites(s, &m3MapArrows, 1);
+		aw_run(s, 0, 30);
+		/* the frame with the most of its marks shown (its marker blinks) */
+		int best = -1;
+		for (int f = 0; f < 60; ++f) {
+			int n = m3_marks(s);
+			emu_frame(s, 0);
+			if (n > best) {
+				best = n;
+				memcpy(page[0], s->fb, sizeof(page[0]));
+			}
+		}
+		if (emu_cancelled(s)) return "called off";
+		if (emu_read8(s, M3_MODE) != 0x0D) return "the map closed";
+		m3_put(page[0], out[0], w, h);
+		return NULL;
+	}
+	if (emu_read8(s, M3_MODE) != 0) return "not walking about";
+
+	/* no map here: START, Status, A (M3-3) */
+	/* (waits generous: with the HQ audio mix the game lags, M3-9) */
+	aw_run(s, K_START, 6);
+	if (!m3_wait_mode(s, 0x0E, 120)) return "the menu didn't open";
+	aw_run(s, 0, 16);
+	for (int i = 0; i < 6 && emu_read8(s, M3_ICON) != 3; ++i) {
+		aw_run(s, K_RIGHT, 4);
+		aw_run(s, 0, 10);
+	}
+	if (emu_read8(s, M3_ICON) != 3) return "Status not reached";
+	emu_hide_sprites(s, &m3StatusLR, 1);
+	aw_run(s, K_A, 4);
+	if (!m3_wait_mode(s, 0x0A, 120) || emu_read8(s, M3_SCREEN) != 1) return "the Status didn't open";
+	if (!m3_settle(s)) return "the Status didn't fade in";
+	int first = emu_read8(s, M3_WHO), n = 0;
+	for (; n < max; ++n) {
+		if (n) {
+			aw_run(s, K_R, 4);
+			aw_run(s, 0, 8);
+			if (!m3_settle(s)) return "the Status didn't settle";
+			if (emu_read8(s, M3_SCREEN) != 1 || emu_read8(s, M3_MODE) != 0x0A) return "the Status closed";
+			if (emu_read8(s, M3_WHO) == first) break; /* (round to the first again) */
+		}
+		if (emu_cancelled(s)) return "called off";
+		memcpy(page[n], s->fb, sizeof(page[n]));
+	}
+	*nOut = n;
+	for (int k = 0; k < n; ++k) {
+		m3_put(page[k], out[k], w, h);
+		m3_no_help(out[k], w);
+	}
+	return NULL;
+}
+
 static const MapProfile profiles[] = {
 	{
 		.codes = { "A2CE" },
@@ -7450,6 +7651,26 @@ static const MapProfile profiles[] = {
 		.logo = { .steps = { { 0, 600 }, { K_A, 4 }, { 0, 100 }, { K_START, 4 }, { 0, 90 }, { K_START, 4 }, { 0, 90 },
 		                     { K_START, 4 }, { 0, 90 }, { K_START, 4 }, { 0, 90 }, { K_START, 4 }, { 0, 240 } },
 		          .layer = 2, .maxY = 120 },
+	},
+	{
+		/* MOTHER 3 (Japan only; the fan translations are mods of it):
+		 * walking about, the area's map or the Status: see m3_compose */
+		.codes = { "A3UJ" },
+		.title = "MOTHER 3",
+		.composePages = m3_compose,
+		.stillPick = STILL_FIRST, /* (Map Animations off: the first page) */
+		.virt = m3_virt,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* the title and file screens, scenes and battles: the logo
+		 * (the pictures dropped), no captures (M3-6, M3-10, M3-11) */
+		.live = { { M3_V_LOGO, 0xFF, 0, 4 } },
+		.menu = { { M3_V_LOGO, 0xFF, 1, 4 } },
+		/* another area: its map or the Status at once (M3-2) */
+		.room = { { M3_MAP, 0xFFFF, 0, 2 } },
+		/* the title's lettering (BG3, over black), past the health
+		 * warning (A) and, in the translations, their title card (A) */
+		.logo = { .steps = { { 0, 200 }, { K_A, 4 }, { 0, 400 }, { K_A, 4 }, { 0, 1800 } }, .layer = 3, .maxY = 160, .blackIsClear = true },
 	},
 };
 

@@ -1,0 +1,55 @@
+# MOTHER 3
+
+| | |
+|---|---|
+| Releases | `A3UJ` Japan (the only release; played in English or another language with a fan translation, a mod of it) |
+| Dumps | `A3UJ` cartridge `42ac9cb9` (tested), Virtual Console `c704a567` |
+| Mods | `A3UJ` English v1.3a (fan translation) `e73b0f7d` (tested), English v1.3 (fan translation) `0e013b7b` (tested), English v1.3 (fan translation; its published UPS) `8a3bc5a8` (tested), English v1.3a + HQ audio mix (MusicTheorist) `789605cd` (tested), English v1.3 + HQ audio mix (MusicTheorist) `57f94dcf` (tested), English v1.3 + HQ audio mix (MusicTheorist; its UPS) `91ac31cb` (tested), HQ audio mix (MusicTheorist) `add15282` (tested), HQ audio mix alternative (MusicTheorist) `b7faa37d` (tested), Brazilian Portuguese (fan translation) `00508b53` (tested), Italian v1.1.1 (fan translation) `e7185f88` (tested), German v1.1 (fan translation) `b0b73624` (tested), Simplified Chinese (fan translation) `21fdf96c` (tested), Polish (fan translation) `b439dc34` (tested), French (fan translation) `3c4f84e9` (tested), Catalan v1.0 (fan translation) `4f9f87b5` (tested), Catalan v1.0.2 (fan translation) `5f7919f4` (tested), Dutch (fan translation) `8b74324c` (tested) |
+| Profile | `src/profiles.c`: the `A3UJ` entry (`m3_compose`) |
+| Tests | `tests/regress/mother-3.json` (`tools/regress.py mother-3`) |
+| Status | supported |
+
+What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list mother-3`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.
+
+Every game also follows the [general rules](README.md#general-rules) (GEN-1 to GEN-9).
+
+MOTHER 3 came out only in Japan. Most players play it in English with the fan translation (Chewy, Jeffman, Tomato and others; a UPS patch for the Japanese ROM), often with MusicTheorist's HQ audio mix: the rules hold for those as for the Japanese game (M3-8, M3-9).
+
+## Why these screens
+
+Asked what the game would have put on a second GBA screen: the two things a player keeps opening while walking about are the area map (R, where the area has one) and the party's Status (START, Status). Both are the game's own screens, opened on the hidden copy and taken as they are, with their button prompts left out. The HP and PP meters in a battle stay on the game screen: they roll as the party takes damage, and acting before they reach zero is the game, so they're something to react to, not to glance at.
+
+## Rules
+
+**M3-1. Logo.** On the title, the file screens and before the first picture, the second screen shows the logo: the title's MOTHER 3 lettering with its ®, without NEW GAME, LOAD, SOUND PLAYER or the copyright lines (BG3 of the title, over black, taken from power-on past the health warning and, in the translations, their title card). The translations keep the Japanese title, so the logo is the same in every version.
+
+**M3-2. The area map.** Walking about where R opens a map of the area (Tazmily and the Nowhere Islands, Mt. Oriander, New Pork City's highway...), the second screen shows that map, opened on the hidden copy: the whole screen as the game draws it, where the game opens it, with its marker of where the party is (the blinking red dot, the circle on Mt. Oriander) shown, and without the white scroll arrows at its top and bottom edges (prompts to scroll it, which the second screen can't). Entering another area, its map (or the Status, M3-3) is taken at once; otherwise again at every refresh, so the marker follows the party.
+
+**M3-3. The Status where there's no map.** Walking about where R opens nothing (indoors, the Empire Porky Building...), the second screen shows the Status screen (START, Status, A): the party's portraits with the one shown framed, the DP on hand and the stats window, as the game draws them, but without the L and R badges and their orange arrows at either end of the portraits (prompts to turn the page) and without the help window at the bottom ("Press the A Button for skill info.", a prompt): the menu's brown background there, as in the gap above it. It turns through the party, one every 5 seconds (R on the hidden copy), back to the first.
+
+**M3-4. A menu or the map open in the game.** With START's menu, one of its screens or the area map open in the game, the second screen shows what it would walking about there (M3-2, M3-3): the hidden copy closes them first (B).
+
+**M3-5. Last picture stays.** In a conversation the player starts while walking about (talking to someone, checking something, a save frog), between rooms, and anywhere else START and R open nothing that isn't a scene or a battle (M3-10, M3-11), the last picture stays; before the first, the logo.
+
+**M3-6. Title and file screens.** On the title, the file screens and before them (the area number 0), the second screen shows the logo and no captures are tried there.
+
+**M3-7. Game screen untouched.** Nothing leaves the game screen.
+
+**M3-8. The English translation.** On the fan translation (v1.3 and v1.3a, as a patched ROM or with its UPS patch on the Japanese ROM, GEN-9) M3-1 to M3-7 hold as they are: the same addresses, screens and sprites, the Status in English ("Status", "Level", "Offense"...), its help window ("Press the A Button for skill info.") left out the same way.
+
+**M3-9. The HQ audio mix.** MusicTheorist's HQ audio mix (only the music changes) keeps M3-1 to M3-8: on the Japanese ROM (its two versions, "Default" and "Alt.") and on the English translation. Its patches are UPS files made for one exact ROM each (GEN-9: a UPS has to be first and can't follow another patch): the Japanese ones for the Japanese ROM, the English one for one build of the English v1.3 ROM (`0e013b7b`, not the result of the published v1.3 UPS, `8a3bc5a8`, nor v1.3a). So on a Japanese ROM GBA DS can play the translation or the Japanese HQ mix from the Patches menu, but not the translation and the HQ mix together: for that, the ROM already patched with both (the patch makers' own) is needed, or the v1.3 ROM it was made for with the English HQ patch.
+
+**M3-10. Scenes.** While the game plays a scene (the story taking over: cutscenes, with or without the party on screen, the falling MOTHER 3 title, a chapter's title card, a letter read out), the second screen shows the logo, and no pictures are taken; the map or the Status comes back once the party walks about again (at the next capture, within a second or two). Told by the game's own flag for a scene (bit 0x10 of 0x0200DEB7, set from a scene's start to its end and not in a conversation the player starts); the same flag is set while walking about too, between two rooms (M3_MODE 6 or 7) and while a dash carries on into the next room until it stops (M3_MODE 0), so it counts only with a scene's own modes (1, 2, 3, 0x0B: never 0 in a scene), and a scene's own room changes keep the logo as it is.
+
+**M3-11. Battles.** In a battle, from the encounter's swirl to the end of the results, the second screen shows the logo (the Status's HP and PP would be stale while the meters roll) and no pictures are taken; walking about again, the map or the Status comes back. Told by the game's mode (M3_MODE 0x08 for the swirl, 0x09 for the battle, an enemy met while walking about) or, in the story's own battles (the Prologue's Mole Cricket, started by a scene, M3_MODE 1), by its battle screen being up (0x02000008 holds 0x0202CD88 there, 0x0202CD48 walking about and in scenes).
+
+**M3-12. The other fan translations.** The translations on romhacking.net into Brazilian Portuguese, Italian (v1.1.1), German (v1.1), Simplified Chinese, Polish, French, Catalan (v1.0 and v1.0.2) and Dutch keep M3-1 to M3-11 as the English one does (M3-8): the same addresses, screens and sprites, the logo the same (only the title's menu lines are translated, and they're left out), the Status in each language with its help window left out the same way. All are patches made for the Japanese ROM (UPS or BPS, and Dutch an xdelta), played with the Patches menu or beside the ROM (GEN-9), or as a ROM patched beforehand, recognised as the translation.
+
+## Not covered yet
+
+- **Battles in the Japanese game.** The battle state (the owner's, Nov 12, 2026) is from the English v1.3a translation; the translation keeps the game's memory layout (every other address here is the same in both), but no Japanese battle has been tried.
+- Areas reached only later in the story or earlier in it (the save files are all in Chapter 8); the cases reach Tazmily, Mt. Oriander and New Pork City's highway through the game's own debug menu (see "How the states were made").
+
+## How the states were made
+
+The owner's saves (GameShark and a `.sav`, `saves/A3UJ-*.sav` in the fixtures) are all in Chapter 8, in the Empire Porky Building. Other areas were reached with the game's unused debug menu (The Cutting Room Floor, "Mother 3/Debug Menu"): on a scratch copy of the ROM, the three calls of the room set-up at 0x080075FE, 0x08007960 and 0x08007BEA go to a stub in free space at 0x0821EFE0 that runs it and then the debug menu's set-up at 0x08039C04; with M3_MODE set to 0x0F after a room loads, the menu's map number (M3_MAP) is set, START warps there, M3_MODE 0x0F and SELECT close the menu, and the state is saved again on the unchanged ROM (the same bytes in the English v1.3 and v1.3a ROMs). The fixtures' states were all saved on the ROM their cases use.
