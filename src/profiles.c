@@ -5393,12 +5393,12 @@ static const char* m3_compose(Emu* s, const void* state, uint32_t* const* out, i
 /* the HUD's sprite shapes: all but 32x32 (shape 0 size 2) and 8x32 (shape
  * 2 size 1) */
 #define MVDK_HUD_SHAPES (0xFFFu & ~(1u << 2 | 1u << 9))
-/* the pause box closed up (MVDK-9): its frame and LEVEL and HI SCORE lines
- * (26 rows) and its bottom edge (5), MVDK_BOX_PAD rows of black above and
- * below; the HUD under it */
-#define MVDK_BOX_PAD 4
+/* the HUD along the second screen's top, from row MVDK_HUD_TOP (the
+ * game's from row 3); the pause box closed up (MVDK-9: its frame and LEVEL
+ * and HI SCORE lines, 26 rows, and its bottom edge, 5) in the middle */
+#define MVDK_HUD_TOP 6
 #define MVDK_BOX_ROWS 31
-#define MVDK_HUD_TOP (MVDK_BOX_PAD + MVDK_BOX_ROWS + MVDK_BOX_PAD)
+#define MVDK_BOX_TOP ((GBA_H - MVDK_BOX_ROWS) / 2)
 #define MVDK_LEVEL 0x0300010Cu /* the world, the level's kind, Plus (every release) */
 #define MVDK_V_PLAY 0xF0000080u  /* a level played with its HUD up (mvdk_hud_up), not paused (the box can be taken) */
 #define MVDK_V_LOGO 0xF0000081u  /* no level shown: the logo, the box forgotten */
@@ -5435,8 +5435,8 @@ static bool mvdk_rgb(uint32_t c, uint32_t rgb) {
 
 /* The level's box (MVDK-9): START on the hidden copy, the pause box's
  * priority-0 sprites alone (the level, and its things behind the box,
- * left out), its frame and LEVEL and HI SCORE lines and then its bottom
- * edge, centred at the top of a black GBA screen. Checked as it's cut
+ * left out, and the star), its frame and LEVEL and HI SCORE lines and then
+ * its bottom edge, in the middle of a black GBA screen. Checked as it's cut
  * (GEN-3): the frame's black top (a run of 60 or more) and bottom, the two
  * lines' grey bars 6 in from its side with lavender between and after. */
 static const char* mvdk_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
@@ -5460,9 +5460,12 @@ static const char* mvdk_compose(Emu* s, const void* state, uint32_t* out, int w,
 	}
 	/* the box's sprites alone, then the backdrop alone (layer switches
 	 * take effect as the registers are written: loading the state again) */
-	static const SpriteRule behind[3] = { { -512, -256, 511, 255, 0, 1023, 1 }, { -512, -256, 511, 255, 0, 1023, 2 },
-	                                      { -512, -256, 511, 255, 0, 1023, 3 } };
-	emu_hide_sprites(s, behind, 3);
+	/* (and the star beside LEVEL once its high score is beaten, palette 10:
+	 * the box itself is palette 6) */
+	static const SpriteRule behind[4] = { { -512, -256, 511, 255, 0, 1023, 1 }, { -512, -256, 511, 255, 0, 1023, 2 },
+	                                      { -512, -256, 511, 255, 0, 1023, 3 },
+	                                      { -512, -256, 511, 255, 0, 1023, 0, 1u << 10 } };
+	emu_hide_sprites(s, behind, 4);
 	emu_layers(s, 0x10);
 	emu_state_load(s, paused);
 	emu_frame(s, 0);
@@ -5515,7 +5518,7 @@ static const char* mvdk_compose(Emu* s, const void* state, uint32_t* out, int w,
 		for (int r = 0; r < MVDK_BOX_ROWS; ++r) {
 			int sy = r < upper ? top + r : bottom - (MVDK_BOX_ROWS - 1 - r);
 			for (int x = x0; x <= x1; ++x)
-				if (MVDK_SPR(x, sy)) out[(MVDK_BOX_PAD + r) * GBA_W + x + dx] = spr[sy * GBA_W + x] | 0xFF000000;
+				if (MVDK_SPR(x, sy)) out[(MVDK_BOX_TOP + r) * GBA_W + x + dx] = spr[sy * GBA_W + x] | 0xFF000000;
 		}
 #undef MVDK_SPR
 #undef MVDK_IS
@@ -7840,8 +7843,8 @@ static const MapProfile profiles[] = {
 			 * (to 20 for slack); not the fights' rope (8x32, at the top
 			 * too) or the viewer's arrows (32x32) (MVDK-4) */
 			.objs = { { -32, -16, 239, 20, 0, 1023, 0, 0, 0, MVDK_HUD_SHAPES } },
-			/* the HUD under the box: its top (the game's row 3) at row
-			 * MVDK_HUD_TOP (MVDK-2) */
+			/* the HUD along the top: its top (the game's row 3) at row
+			 * MVDK_HUD_TOP, over the box in the middle (MVDK-2) */
 			.moves = { { 0, 0, 239, 40, 0, 0, 'T', MVDK_HUD_TOP } },
 			/* the box (the map picture) behind it; black without one */
 			.mapBelow = true,
