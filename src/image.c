@@ -14,6 +14,8 @@
 #pragma GCC diagnostic pop
 
 #include <SDL.h>
+#include <stdio.h>
+#include <string.h>
 
 /* Returns an RGBA32 surface (caller frees) or NULL. */
 SDL_Surface* image_load(const char* path) {
@@ -26,6 +28,22 @@ SDL_Surface* image_load(const char* path) {
 	}
 	stbi_image_free(px);
 	return s;
+}
+
+/* Why image_load(path) gave nothing, in a few words for the log: a format
+ * it doesn't read (WebP, GIF...) whatever the file's name says, or stb's
+ * reason. */
+const char* image_why(const char* path) {
+	unsigned char h[12] = { 0 };
+	FILE* f = fopen(path, "rb");
+	if (!f) return "can't be opened";
+	size_t n = fread(h, 1, sizeof(h), f);
+	fclose(f);
+	if (n >= 12 && !memcmp(h, "RIFF", 4) && !memcmp(h + 8, "WEBP", 4)) return "it's a WebP image (PNG, JPG or BMP only)";
+	if (n >= 6 && !memcmp(h, "GIF8", 4)) return "it's a GIF image (PNG, JPG or BMP only)";
+	if (n >= 12 && !memcmp(h + 4, "ftyp", 4)) return "it's an AVIF / HEIF image (PNG, JPG or BMP only)";
+	const char* why = stbi_failure_reason();
+	return why ? why : "unreadable";
 }
 
 /* Same, from a PNG held in memory. */
