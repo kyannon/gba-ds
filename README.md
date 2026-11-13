@@ -110,4 +110,4 @@ GBA DS statically links libmgba, which is © Jeffrey Pfau and licensed under MPL
 
 The interface text is set in [Jost](https://github.com/indestructible-type/Jost) (© The Jost Project Authors), bundled under the SIL Open Font License 1.1 (`assets/fonts/Jost-OFL.txt`), and drawn with [stb_truetype](https://github.com/nothings/stb) (public domain).
 
-RetroAchievements support uses [rcheevos](https://github.com/RetroAchievements/rcheevos) (© RetroAchievements, MIT licence), vendored in `third_party/rcheevos`.
+RetroAchievements support uses [rcheevos](https://github.com/RetroAchievements/rcheevos) (© RetroAchievements, MIT licence), vendored in `third_party/rcheevos`. WebP logos are read with [libwebp](https://github.com/webmproject/libwebp)'s decoder (© Google Inc., BSD licence), vendored in `third_party/libwebp`.

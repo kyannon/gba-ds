@@ -2087,6 +2087,7 @@ void ui_text_center(int screen, int cx, int y, int px, const char* s, SDL_Color 
 }
 
 SDL_Surface* image_load(const char* path); /* image.c */
+const char* image_why(const char* path); /* image.c */
 
 SDL_Surface* image_load_mem(const unsigned char* data, size_t size); /* image.c */
 
@@ -2136,10 +2137,10 @@ static void extracted_path(const Config* c, const char* code, char* path, size_t
 	else snprintf(path, n, "%s/logos/%.4s.png", c->stateDir, code);
 }
 
-/* The player's own logo for the game: <asset_dir>/logos/<CODE>.png|.bmp|.jpg. */
+/* The player's own logo for the game: <asset_dir>/logos/<CODE>.png|.bmp|.jpg|.webp. */
 static bool own_logo(const Config* c, const char* code, char* path, size_t n) {
-	const char* exts[] = { "png", "bmp", "jpg", "jpeg" };
-	for (int i = 0; i < 4; ++i) {
+	const char* exts[] = { "png", "bmp", "jpg", "jpeg", "webp" };
+	for (int i = 0; i < 5; ++i) {
 		snprintf(path, n, "%s/logos/%.4s.%s", c->assetDir, code, exts[i]);
 		if (file_there(path)) return true;
 	}
@@ -2179,7 +2180,7 @@ static void logo_dir_list(const char* dir) {
 	struct dirent* e;
 	while ((e = readdir(d))) {
 		const char* dot = strrchr(e->d_name, '.');
-		if (!dot || (strcasecmp(dot, ".png") && strcasecmp(dot, ".jpg") && strcasecmp(dot, ".jpeg"))) continue;
+		if (!dot || (strcasecmp(dot, ".png") && strcasecmp(dot, ".jpg") && strcasecmp(dot, ".jpeg") && strcasecmp(dot, ".webp"))) continue;
 		if (logoDir.n == cap) {
 			cap = cap ? cap * 2 : 256;
 			char** nn = realloc(logoDir.names, sizeof(char*) * cap);
@@ -2196,7 +2197,7 @@ static void logo_dir_list(const char* dir) {
  * "Game Name.jpg" and "Game Name-marquee.png" all go with
  * "Game Name (USA) (Rev 1).gba". Best first: the ROM's whole name, then
  * the same title, then the title with -marquee / -wheel / -logo, then with
- * any other -suffix; PNG before JPG (it can be transparent); then by name. */
+ * any other -suffix; PNG or WebP before JPG (they can be transparent); then by name. */
 static bool scraped_logo(const Config* c, const char* rom, char* path, size_t n) {
 	if (!c->logoFolder[0] || !rom || !rom[0]) return false;
 	const char* base = strrchr(rom, '/');
@@ -2222,7 +2223,7 @@ static bool scraped_logo(const Config* c, const char* rom, char* path, size_t n)
 			const char* tail = fkey + klen + 1;
 			rank = !strcmp(tail, "marquee") || !strcmp(tail, "wheel") || !strcmp(tail, "logo") ? 2 : 3;
 		} else continue;
-		int score = rank * 2 + (strcasecmp(fdot, ".png") ? 1 : 0);
+		int score = rank * 2 + (strcasecmp(fdot, ".png") && strcasecmp(fdot, ".webp") ? 1 : 0); /* PNG and WebP can be transparent */
 		if (score < bestScore || (score == bestScore && strcmp(f, logoDir.names[best]) < 0)) best = i, bestScore = score;
 	}
 	if (best < 0) return false;
@@ -2296,6 +2297,25 @@ SDL_Surface* ui_resample(const SDL_Surface* s, int w, int h) {
 	return o;
 }
 
+/* What the last logo choice was, for the log (once per change) and bug
+ * reports: which file, or why a custom one wasn't used. */
+static char logoNote[1400];
+static char logoBad[1200]; /* the last custom logo that couldn't be read */
+static void logo_note(const char* fmt, ...) {
+	char s[sizeof(logoNote)];
+	va_list ap;
+	va_start(ap, fmt);
+	vsnprintf(s, sizeof(s), fmt, ap);
+	va_end(ap);
+	if (!strcmp(s, logoNote)) return;
+	snprintf(logoNote, sizeof(logoNote), "%s", s);
+	fprintf(stderr, "logo: %s\n", s);
+}
+
+const char* ui_logo_note(void) {
+	return logoNote[0] ? logoNote : "none yet";
+}
+
 /* The last scraped logo made, kept: making it means reading a big PNG. */
 static struct {
 	char src[1200];
@@ -2324,7 +2344,11 @@ static SDL_Surface* sized_surface(const Config* c, const char* src, const char* 
 		return SDL_DuplicateSurface(scrapedCache.s);
 	}
 	SDL_Surface* img = image_load(src);
-	if (!img) return NULL;
+	if (!img) {
+		snprintf(logoBad, sizeof(logoBad), "%s", src);
+		logo_note("%s can't be read: %s; the game's own logo instead", src, image_why(src));
+		return NULL;
+	}
 	const char* ext = strrchr(src, '.');
 	img = trim_alpha(img, ext && (!strcasecmp(ext, ".jpg") || !strcasecmp(ext, ".jpeg")));
 	float gw, gh; /* the size in GBA pixels */
@@ -2366,9 +2390,26 @@ bool ui_logo_provisional(void) {
  * the extracted one (path its file, which may not exist yet). */
 int ui_logo_source(const Config* c, const char* rom, const char* code, char* path, size_t n) {
 	if (c->customLogos != CL_OFF) {
-		if (own_logo(c, code, path, n)) return LOGO_OWN;
-		if (scraped_logo(c, rom, path, n)) return LOGO_SCRAPED;
+		/* (one that couldn't be read keeps saying so: sized_surface falls back) */
+		if (own_logo(c, code, path, n)) {
+			if (strcmp(path, logoBad)) logo_note("own %s", path);
+			return LOGO_OWN;
+		}
+		if (scraped_logo(c, rom, path, n)) {
+			if (strcmp(path, logoBad)) logo_note("scraped %s", path);
+			return LOGO_SCRAPED;
+		}
 	}
+	if (c->customLogos == CL_OFF) logo_note("the game's own (custom_logos = off)");
+	else if (c->logoFolder[0]) {
+		struct stat st;
+		const char* base = rom ? strrchr(rom, '/') : NULL;
+		if (stat(c->logoFolder, &st) != 0 || !S_ISDIR(st.st_mode))
+			logo_note("the game's own: logo_folder %s isn't a folder", c->logoFolder);
+		else
+			logo_note("the game's own: nothing in %s (%d images) named after %s, and no logos/%.4s.png", c->logoFolder,
+			          logoDir.n, base ? base + 1 : rom ? rom : "?", code);
+	} else logo_note("the game's own (no logos/%.4s.png, logo_folder not set)", code);
 	extracted_path(c, code, path, n);
 	return LOGO_EXTRACTED;
 }

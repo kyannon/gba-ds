@@ -30,7 +30,7 @@ The game has no status screen of its own: START brings up a three-line menu (Qui
 
 **NFO-6. Both releases.** Ninja Cop in Europe draws the same HUD in the same places; the second screen is the same as in the USA but for its logo (NFO-1).
 
-**NFO-7. One screen.** With `layout = single` the game is as it is: the HUD stays where the game draws it. *By hand: no state needed; check on the device that with one screen the bars and RESCUE are back on the game screen.*
+**NFO-7. One screen.** With `layout = single` the game is as it is: the HUD stays where the game draws it. *By hand: no state needed; check on the device that with one screen the bars and RESCUE are back on the game screen. (checked on the device for v1.5.1)*
 
 ## How it was checked
 
