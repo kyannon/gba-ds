@@ -5384,38 +5384,47 @@ static const char* m3_compose(Emu* s, const void* state, uint32_t* const* out, i
 /* ---------------------------------------------------------------- Baldur's Gate: Dark Alliance
  *
  * docs/games/baldurs-gate-dark-alliance.md. The game has no map: walking
- * about, START's character tab (BGD-1), its thirteen lines in two pages
- * (BGD-2), without its cursor, scroll arrows or tab marker (BGD-3). Both
- * releases use these addresses:
+ * about, START's character tab (BGD-1), the first seven lines of its list
+ * in one picture (BGD-2), without its cursor, scroll arrows or tab marker
+ * (BGD-3); the logo at GAME OVER (BGD-9). Both releases use these
+ * addresses:
  *   BGD_INGAME  1 in a game (from the abilities screen on), else on the
  *               title, the language list and the class choice (and again
  *               after Quit Game): 0x14 USA, 0x07 Europe
- *   BGD_CONTROL 1 walking about (or in a conversation), 2 a scene in the
- *               world, 0 START's menu or a black-screen scene
- *   BGD_MENU    1 while START's menu is up (~32 frames after START; the
- *               control byte reads 0 from START on)
- *   BGD_TAB     the menu's tab (3 the character tab)
- *   BGD_TOP     the character list's first line shown (0-9; 4 shown of 13)
- *   BGD_XP      the experience (word)
+ *   BGD_CONTROL 1 walking about (or in a conversation), 2 in a fight (or
+ *               a scene in the world, or dying), 0 from START on, a
+ *               black-screen scene, GAME OVER
+ *   BGD_MENU    0x40 while START's menu is up (~33 frames after START, black
+ *               between); 0 elsewhere. (0x0300456A, which looked like one,
+ *               is 1 in conversations and fights too)
+ *   BGD_TAB     the menu's tab (3 the character tab); written in the hidden
+ *               copy once the menu is up, the tab is drawn 2 frames later
+ *   BGD_TOP     the character list's first line shown (0-9; 4 shown of 13);
+ *               written alike, the list is drawn from it 2 frames later
+ *   BGD_CURSOR  the cursor's line within the four shown
+ *   BGD_HP, BGD_EP, BGD_XP  health, energy (halves), experience (word)
  * Everything on the tab but its background (BG2) is a sprite, each letter
  * one: the list's lines at y BGD_ROW_Y + BGD_PITCH * (line - first shown).
  * The list is taken as the pixels that differ from the same frame drawn
- * without the list's sprites, from a frame scrolled to each of the first
- * lines in bgdTops, and laid on the tab drawn without them, BGD_PITCH apart
- * from BGD_PAGE_Y. */
+ * without the list's sprites, from frames with each of bgdTops as the first
+ * line, and laid on the tab drawn without them, BGD_PITCH apart from
+ * BGD_PAGE_Y. */
 #define BGD_INGAME 0x030077D8
-#define BGD_V_TITLE 0xF0000090 /* not in a game (BGD-5) */
 #define BGD_CONTROL 0x03002C02
-#define BGD_MENU 0x0300456A
+#define BGD_MENU 0x03004161
+#define BGD_MENU_UP 0x40
 #define BGD_TAB 0x03000AA0
 #define BGD_TOP 0x03000AA1
+#define BGD_CURSOR 0x03000ACB
 #define BGD_XP 0x03000B50
+#define BGD_HP 0x03000B54
+#define BGD_EP 0x03000B56
+#define BGD_V_LOGO 0xF0000090 /* not in a game (BGD-5), or GAME OVER (BGD-9) */
 #define BGD_CHARACTER 3
-#define BGD_LINES 13
+#define BGD_LINES 7   /* Experience to Damage (BGD-2) */
 #define BGD_ROW_Y 68
 #define BGD_PITCH 15
 #define BGD_PAGE_Y 53 /* (the class and level end at y 46) */
-#define BGD_PAGE1 7   /* lines on the first page (BGD-2) */
 #define BGD_LIST_X 160 /* the list's side of the tab (the archway from here) */
 /* the cursor's brackets (8x32, palette 14), the scroll arrows and the
  * marker under the tab (16x8, palette 15), BGD-3. By shape and palette: the
@@ -5435,17 +5444,16 @@ static const SpriteRule bgdHideList[] = {
 	{ -16, 12, 240, 28, 0, 1023, -1, 1u << 15, 0, BGD_WIDE },
 	{ -8, 50, BGD_LIST_X - 1, 159, 0, 1023, -1 },
 };
-/* the first lines shown in the frames the lines are taken from */
-static const int bgdTops[] = { 0, 4, 8, 9 };
+/* the first lines shown in the frames the lines are taken from: 0-3, 3-6 */
+static const int bgdTops[] = { 0, 3 };
 
 static uint32_t bgd_virt(Emu* e, uint32_t addr) {
-	if (addr == BGD_V_TITLE) return emu_read8(e, BGD_INGAME) != 1;
+	if (addr == BGD_V_LOGO) {
+		if (emu_read8(e, BGD_INGAME) != 1) return 1;
+		/* GAME OVER: the screen gone black after the hero's fall */
+		return emu_read16(e, BGD_HP) == 0 && emu_read8(e, BGD_CONTROL) == 0;
+	}
 	return 0;
-}
-
-static void bgd_press(Emu* s, uint32_t key, int after) {
-	aw_run(s, key, 2);
-	aw_run(s, 0, after);
 }
 
 /* the frame of state st drawn with these sprites hidden, into dst (drawn
@@ -5460,55 +5468,46 @@ static void bgd_draw(Emu* s, const void* st, const SpriteRule* r, int n, uint32_
 	memcpy(dst, s->fb, GBA_W * GBA_H * sizeof(uint32_t));
 }
 
-static const char* bgd_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+static const char* bgd_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
 	enum { NT = sizeof(bgdTops) / sizeof(bgdTops[0]) };
 	static uint32_t base[GBA_W * GBA_H], lines[NT][GBA_W * GBA_H], bare[GBA_W * GBA_H];
 	static uint8_t ink[NT][GBA_W * GBA_H];
-	int max = *nOut;
-	*nOut = 1;
-	*step = 300; /* 5 seconds a page (BGD-2) */
 	emu_hide_sprites(s, NULL, 0);
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
 	if (emu_read8(s, BGD_INGAME) != 1) return "the title"; /* (BGD-5) */
-	/* START's menu, open already or opened from walking about (elsewhere
-	 * it opens nothing: the last picture stays, BGD-4) */
-	if (emu_read8(s, BGD_MENU) != 1) {
-		if (emu_read8(s, BGD_CONTROL) != 1) return "not walking about";
-		bgd_press(s, K_START, 0);
-		for (int f = 0; f < 60 && emu_read8(s, BGD_MENU) != 1; ++f) emu_frame_blind(s, 0);
-		if (emu_read8(s, BGD_MENU) != 1) return "START opened nothing";
+	/* START's menu, open already or opened from walking about or a fight
+	 * (elsewhere it opens nothing: the last picture stays, BGD-4) */
+	if (emu_read8(s, BGD_MENU) != BGD_MENU_UP) {
+		int c = emu_read8(s, BGD_CONTROL);
+		if (c != 1 && c != 2) return "not walking about";
+		aw_run(s, K_START, 2);
+		for (int f = 0; f < 60 && emu_read8(s, BGD_MENU) != BGD_MENU_UP; ++f) emu_frame_blind(s, 0);
 	}
-	aw_run(s, 0, 8);
-	/* its character tab (LEFT / RIGHT wrap round: the shorter way) */
-	for (int i = 0; i < 7 && emu_read8(s, BGD_TAB) != BGD_CHARACTER; ++i) {
-		int tab = emu_read8(s, BGD_TAB);
-		bgd_press(s, tab < BGD_CHARACTER ? K_RIGHT : K_LEFT, 4);
-		if (emu_read8(s, BGD_MENU) != 1) return "the menu closed";
-	}
-	if (emu_read8(s, BGD_TAB) != BGD_CHARACTER) return "the character tab not reached";
-	aw_run(s, 0, 30); /* (the tab takes no UP / DOWN until it's up) */
-	/* the list from its first line, then scrolled to each of bgdTops */
-	for (int i = 0; i < BGD_LINES && emu_read8(s, BGD_TOP) != 0; ++i) bgd_press(s, K_UP, 6);
-	if (emu_read8(s, BGD_TOP) != 0) return "the list didn't scroll back";
+	if (emu_read8(s, BGD_MENU) != BGD_MENU_UP || emu_read8(s, BGD_CONTROL) != 0) return "START opened nothing";
+	/* (BGD-8: no presses) the character tab and the list's first lines,
+	 * written in the hidden copy and drawn by the game a frame or two
+	 * later; then the same from line 3 */
 	size_t sz = emu_state_size(s);
 	void* st = malloc(sz);
 	if (!st) return "out of memory";
 	const char* err = NULL;
 	for (int t = 0; t < NT && !err; ++t) {
-		for (int i = 0; i < BGD_LINES && emu_read8(s, BGD_TOP) < bgdTops[t]; ++i) bgd_press(s, K_DOWN, 6);
-		if (emu_read8(s, BGD_TOP) != bgdTops[t] || emu_read8(s, BGD_TAB) != BGD_CHARACTER) {
-			err = "the list didn't scroll";
+		emu_write8(s, BGD_TAB, BGD_CHARACTER);
+		emu_write8(s, BGD_TOP, (uint8_t) bgdTops[t]);
+		emu_write8(s, BGD_CURSOR, 0);
+		aw_run(s, 0, 3);
+		if (emu_read8(s, BGD_MENU) != BGD_MENU_UP || emu_read8(s, BGD_TAB) != BGD_CHARACTER || emu_read8(s, BGD_TOP) != bgdTops[t]) {
+			err = "the character tab didn't come up";
 			break;
 		}
-		aw_run(s, 0, 2);
 		emu_state_save(s, st);
 		bgd_draw(s, st, bgdHideList, 4, bare);
 		bgd_draw(s, st, bgdHide, 3, lines[t]);
 		if (!t) memcpy(base, bare, sizeof(base));
 		/* the list's letters alone: where it differs from the frame without them */
 		for (int i = 0; i < GBA_W * GBA_H; ++i) ink[t][i] = lines[t][i] != bare[i];
-		/* (back to the frame as it was, for the next scroll) */
+		/* (back to the frame as it was, for the next) */
 		emu_hide_sprites(s, NULL, 0);
 		emu_state_load(s, st);
 	}
@@ -5516,26 +5515,21 @@ static const char* bgd_compose(Emu* s, const void* state, uint32_t* const* out, 
 	emu_hide_sprites(s, NULL, 0);
 	if (err) return err;
 	if (emu_cancelled(s)) return "called off";
-	/* the pages (BGD-2): the tab without its list, the lines laid on it */
-	int pages[2][2] = { { 0, BGD_PAGE1 }, { BGD_PAGE1, BGD_LINES } };
-	int n = max < 2 ? max : 2;
-	for (int p = 0; p < n; ++p) {
-		for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[p][y * w], &base[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
-		for (int line = pages[p][0]; line < pages[p][1]; ++line) {
-			int t = NT - 1;
-			while (t > 0 && bgdTops[t] > line) --t;
-			int from = BGD_ROW_Y + BGD_PITCH * (line - bgdTops[t]) - 2;
-			int to = BGD_PAGE_Y + BGD_PITCH * (line - pages[p][0]) - 2;
-			for (int dy = 0; dy < BGD_PITCH - 1; ++dy) {
-				int ys = from + dy, yd = to + dy;
-				if (ys < 0 || ys >= GBA_H || yd < 0 || yd >= h || yd >= GBA_H) continue;
-				for (int x = 0; x < BGD_LIST_X && x < w; ++x) {
-					if (ink[t][ys * GBA_W + x]) out[p][yd * w + x] = lines[t][ys * GBA_W + x];
-				}
+	/* the tab without its list, the lines laid on it (BGD-2) */
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &base[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+	for (int line = 0; line < BGD_LINES; ++line) {
+		int t = NT - 1;
+		while (t > 0 && bgdTops[t] > line) --t;
+		int from = BGD_ROW_Y + BGD_PITCH * (line - bgdTops[t]) - 2;
+		int to = BGD_PAGE_Y + BGD_PITCH * line - 2;
+		for (int dy = 0; dy < BGD_PITCH - 1; ++dy) {
+			int ys = from + dy, yd = to + dy;
+			if (ys < 0 || ys >= GBA_H || yd < 0 || yd >= h || yd >= GBA_H) continue;
+			for (int x = 0; x < BGD_LIST_X && x < w; ++x) {
+				if (ink[t][ys * GBA_W + x]) out[yd * w + x] = lines[t][ys * GBA_W + x];
 			}
 		}
 	}
-	*nOut = n;
 	return NULL;
 }
 
@@ -7785,22 +7779,23 @@ static const MapProfile profiles[] = {
 	},
 	{
 		/* Baldur's Gate: Dark Alliance (USA, Europe: the same addresses).
-		 * Walking about, START's character tab, its list in two pages:
+		 * Walking about, START's character tab, its list's first seven lines:
 		 * see bgd_compose (docs/games/baldurs-gate-dark-alliance.md) */
 		.codes = { "BGDE", "BGDP" },
 		.title = "Baldur's Gate: Dark Alliance",
-		.composePages = bgd_compose,
+		.compose = bgd_compose,
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
 		.virt = bgd_virt,
 		/* in a game (elsewhere START opens nothing: the last picture
 		 * stays, BGD-4) */
 		.live = { { BGD_INGAME, 0xFF, 1, 1 } },
-		/* the title, the language list, the class choice: the logo, the
-		 * picture from before dropped (BGD-5) */
-		.menu = { { BGD_V_TITLE, 0xFF, 1, 4 } },
-		/* the experience (a kill, a reward, a level): taken again at once (BGD-8) */
-		.room = { { BGD_XP, 0, 0, 4 } },
+		/* the title, the language list, the class choice, GAME OVER: the
+		 * logo, the picture from before dropped (BGD-5, BGD-9) */
+		.menu = { { BGD_V_LOGO, 0xFF, 1, 4 } },
+		/* health, energy, experience (a hit, a potion, a kill, a level):
+		 * taken again at once (BGD-8) */
+		.room = { { BGD_HP, 0, 0, 2 }, { BGD_EP, 0, 0, 2 }, { BGD_XP, 0, 0, 4 } },
 		/* the lettering on its piece of the title's parchment map, BG2 a
 		 * bitmap (BGD-6; the European language list is sprites, left out) */
 		.logo = { .wait = 1500, .layers = 0x4, .minX = 32, .maxX = 212, .minY = 6, .maxY = 97 },

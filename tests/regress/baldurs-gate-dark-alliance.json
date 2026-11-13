@@ -32,7 +32,7 @@
    "id": "bgd-us-tavern",
    "rom": "BGDE",
    "state": "baldurs-gate-dark-alliance/us-tavern.ss",
-   "desc": "walking about the Elfsong Tavern: the character tab, its list in two pages, no cursor or arrows",
+   "desc": "walking about the Elfsong Tavern: the character tab's first seven lines, no cursor or arrows",
    "rules": [
     "BGD-1",
     "BGD-2",
@@ -40,60 +40,35 @@
     "BGD-7"
    ],
    "shots": {
-    "page1": 90,
-    "page2": 390,
-    "again": 690
+    "start": 90,
+    "later": 390
    },
    "checks": [
     {
      "rule": "BGD-1",
-     "what": "the character tab was taken, in two pages",
+     "what": "the character tab was taken",
      "type": "log",
-     "match": "map updated \\(2 frame\\(s\\) 300 apart"
+     "match": "map updated"
     },
     {
      "rule": "BGD-2",
-     "what": "the second page after 5 seconds",
-     "type": "differs",
-     "a": {
-      "shot": "page1",
-      "rect": [
-       32,
-       64,
-       992,
-       704
-      ]
-     },
-     "b": {
-      "shot": "page2",
-      "rect": [
-       32,
-       64,
-       992,
-       704
-      ]
-     },
-     "frac": 0.02
-    },
-    {
-     "rule": "BGD-2",
-     "what": "back to the first page after the second",
+     "what": "one picture: the list stays as it is",
      "type": "same",
      "a": {
-      "shot": "page1",
+      "shot": "start",
       "rect": [
        32,
        64,
-       992,
+       672,
        704
       ]
      },
      "b": {
-      "shot": "again",
+      "shot": "later",
       "rect": [
        32,
        64,
-       992,
+       672,
        704
       ]
      },
@@ -111,46 +86,46 @@
    "id": "bgd-us-menu",
    "rom": "BGDE",
    "state": "baldurs-gate-dark-alliance/us-menu.ss",
-   "desc": "START's menu open on the weapons tab: the character tab on the second screen",
+   "desc": "START's menu open on the weapons tab: the character tab's first seven lines on the second screen",
    "rules": [
     "BGD-1",
     "BGD-2",
     "BGD-3"
    ],
    "shots": {
-    "page1": 90,
-    "page2": 390
+    "start": 90,
+    "later": 390
    },
    "checks": [
     {
      "rule": "BGD-1",
-     "what": "the character tab was taken, in two pages",
+     "what": "the character tab was taken",
      "type": "log",
-     "match": "map updated \\(2 frame\\(s\\) 300 apart"
+     "match": "map updated"
     },
     {
      "rule": "BGD-2",
-     "what": "the second page after 5 seconds",
-     "type": "differs",
+     "what": "one picture: the list stays as it is",
+     "type": "same",
      "a": {
-      "shot": "page1",
+      "shot": "start",
       "rect": [
        32,
        64,
-       992,
+       672,
        704
       ]
      },
      "b": {
-      "shot": "page2",
+      "shot": "later",
       "rect": [
        32,
        64,
-       992,
+       672,
        704
       ]
      },
-     "frac": 0.02
+     "frac": 0.0
     }
    ]
   },
@@ -169,7 +144,7 @@
     ]
    ],
    "shots": {
-    "page1": 90,
+    "start": 90,
     "talk": 700
    },
    "golden": [
@@ -178,14 +153,14 @@
    "checks": [
     {
      "rule": "BGD-4",
-     "what": "the first page stays through the conversation (the pages go on turning: page 1 again at 690)",
+     "what": "the picture stays through the conversation",
      "type": "same",
      "a": {
-      "shot": "page1",
+      "shot": "start",
       "rect": [
        32,
        64,
-       992,
+       672,
        704
       ]
      },
@@ -194,7 +169,7 @@
       "rect": [
        32,
        64,
-       992,
+       672,
        704
       ]
      },
@@ -304,7 +279,7 @@
     ]
    ],
    "shots": {
-    "page1": 90,
+    "start": 90,
     "title": 300
    },
    "checks": [
@@ -313,7 +288,7 @@
      "what": "the tab is gone",
      "type": "differs",
      "a": {
-      "shot": "page1",
+      "shot": "start",
       "rect": [
        32,
        64,
@@ -335,32 +310,104 @@
    ]
   },
   {
-   "id": "bgd-eu-tavern",
-   "rom": "BGDP",
-   "state": "baldurs-gate-dark-alliance/eu-tavern.ss",
-   "desc": "Europe (English), walking about the tavern: the character tab in two pages",
+   "id": "bgd-us-rats",
+   "rom": "BGDE",
+   "state": "baldurs-gate-dark-alliance/us-rats.ss",
+   "desc": "in the cellar, rats biting: the Health line goes down with the bar (owner's state)",
    "rules": [
     "BGD-1",
-    "BGD-2",
-    "BGD-3"
+    "BGD-8"
    ],
    "shots": {
-    "page1": 90,
-    "page2": 390
+    "start": 60,
+    "bitten": 320,
+    "more": 470
    },
    "checks": [
     {
      "rule": "BGD-1",
-     "what": "the character tab was taken, in two pages",
+     "what": "the character tab was taken",
      "type": "log",
-     "match": "map updated \\(2 frame\\(s\\) 300 apart"
+     "match": "map updated"
     },
     {
-     "rule": "BGD-2",
-     "what": "the second page after 5 seconds",
+     "rule": "BGD-8",
+     "what": "Health taken again after the first bites",
      "type": "differs",
      "a": {
-      "shot": "page1",
+      "shot": "start",
+      "rect": [
+       32,
+       388,
+       668,
+       444
+      ]
+     },
+     "b": {
+      "shot": "bitten",
+      "rect": [
+       32,
+       388,
+       668,
+       444
+      ]
+     },
+     "frac": 0.001
+    },
+    {
+     "rule": "BGD-8",
+     "what": "and again after more",
+     "type": "differs",
+     "a": {
+      "shot": "bitten",
+      "rect": [
+       32,
+       388,
+       668,
+       444
+      ]
+     },
+     "b": {
+      "shot": "more",
+      "rect": [
+       32,
+       388,
+       668,
+       444
+      ]
+     },
+     "frac": 0.001
+    }
+   ]
+  },
+  {
+   "id": "bgd-us-death",
+   "rom": "BGDE",
+   "state": "baldurs-gate-dark-alliance/us-rats.ss",
+   "desc": "the tab taken, then the hero's death loaded (owner's state): the last picture while he falls, the logo at GAME OVER",
+   "rules": [
+    "BGD-4",
+    "BGD-9"
+   ],
+   "input": [
+    [
+     150,
+     "LOAD:baldurs-gate-dark-alliance/us-death.ss"
+    ]
+   ],
+   "shots": {
+    "start": 100,
+    "fall": 240,
+    "gameover": 320,
+    "later": 600
+   },
+   "checks": [
+    {
+     "rule": "BGD-4",
+     "what": "the picture stays while he falls",
+     "type": "same",
+     "a": {
+      "shot": "start",
       "rect": [
        32,
        64,
@@ -369,7 +416,7 @@
       ]
      },
      "b": {
-      "shot": "page2",
+      "shot": "fall",
       "rect": [
        32,
        64,
@@ -377,7 +424,102 @@
        704
       ]
      },
-     "frac": 0.02
+     "frac": 0.0
+    },
+    {
+     "rule": "BGD-9",
+     "what": "the logo at GAME OVER",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "gameover",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.3
+    },
+    {
+     "rule": "BGD-9",
+     "what": "and it stays",
+     "type": "same",
+     "a": {
+      "shot": "gameover",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "later",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.0
+    }
+   ]
+  },
+  {
+   "id": "bgd-eu-tavern",
+   "rom": "BGDP",
+   "state": "baldurs-gate-dark-alliance/eu-tavern.ss",
+   "desc": "Europe (English), walking about the tavern: the character tab's first seven lines",
+   "rules": [
+    "BGD-1",
+    "BGD-2",
+    "BGD-3"
+   ],
+   "shots": {
+    "start": 90,
+    "later": 390
+   },
+   "checks": [
+    {
+     "rule": "BGD-1",
+     "what": "the character tab was taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "BGD-2",
+     "what": "one picture: the list stays as it is",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       672,
+       704
+      ]
+     },
+     "b": {
+      "shot": "later",
+      "rect": [
+       32,
+       64,
+       672,
+       704
+      ]
+     },
+     "frac": 0.0
     }
    ]
   },
@@ -385,45 +527,45 @@
    "id": "bgd-eu-menu",
    "rom": "BGDP",
    "state": "baldurs-gate-dark-alliance/eu-menu.ss",
-   "desc": "Europe, START's menu open on the armour tab: the character tab",
+   "desc": "Europe, START's menu open on the armour tab: the character tab's first seven lines",
    "rules": [
     "BGD-1",
     "BGD-2"
    ],
    "shots": {
-    "page1": 90,
-    "page2": 390
+    "start": 90,
+    "later": 390
    },
    "checks": [
     {
      "rule": "BGD-1",
-     "what": "the character tab was taken, in two pages",
+     "what": "the character tab was taken",
      "type": "log",
-     "match": "map updated \\(2 frame\\(s\\) 300 apart"
+     "match": "map updated"
     },
     {
      "rule": "BGD-2",
-     "what": "the second page after 5 seconds",
-     "type": "differs",
+     "what": "one picture: the list stays as it is",
+     "type": "same",
      "a": {
-      "shot": "page1",
+      "shot": "start",
       "rect": [
        32,
        64,
-       992,
+       672,
        704
       ]
      },
      "b": {
-      "shot": "page2",
+      "shot": "later",
       "rect": [
        32,
        64,
-       992,
+       672,
        704
       ]
      },
-     "frac": 0.02
+     "frac": 0.0
     }
    ]
   },
