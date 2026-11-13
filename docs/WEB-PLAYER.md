@@ -260,6 +260,18 @@ when one is dropped.
 
 - Map captures and logo extraction run inline (the web build has no
   threads), so a capture can make a frame late, as in State Saver's tab.
+- The first time the game list opens with new games (a folder of the
+  player's, most of all), it takes each one's logo before it shows: about
+  0.6 s a game measured in Node (Nov 13, 2026), more on a phone, all at
+  once, as logo.c runs its queue inline where there are no threads. The
+  logos are kept (`states/logos/`), so it's once per game. Memory stays at
+  one game at a time. Spreading them over frames (logo.c, `#ifdef
+  __wasi__`) would let the list show first.
+- Memory, measured Nov 13, 2026 (Node, Superstar Saga, 5 minutes): the
+  wasm memory levels at 104 MB once the 30 s of rewind are full, the same
+  with the game read from a folder or given whole; the file isn't read
+  again once the game has started. Choosing a folder copies the browser's
+  files in one at a time.
 - No RetroAchievements and no updates in the browser (no network from the
   page). The app's Settings that write the device's own files (es_systems,
   BananaOS) do nothing useful here.

@@ -267,14 +267,15 @@ async function chooseFolder() {
   // a folder used before (here or in another browser) brings its settings; else ours go in
   const had = await folderTakeSettings();
   if (!had) folderKeepSettings();
-  // what this browser kept goes in too, where the folder hasn't its own
+  // what this browser kept goes in too, where the folder hasn't its own (one file at a
+  // time, each written before the next is read: never ten games in memory at once)
   let copied = 0;
-  for (const [p, b] of await allFiles()) { const rel = toFolder(p); if (rel && !(await folderHas(rel))) { folderWrite([[p, b]]); copied++; } }
+  for (const [p, b] of await allFiles()) { const rel = toFolder(p); if (rel && !(await folderHas(rel))) { await folderWrite([[p, b]]); copied++; } }
   for (const r of (await kvGet("recent")) || []) {
     const rel = "roms/" + r.name.replace(/[\/\\]/g, "_");
     if (await folderHas(rel)) continue;
     const b = await idb("roms", "readonly", (s) => s.get(r.name)).catch(() => null);
-    if (b) { folderWrite([["/" + rel, b]]); copied++; }
+    if (b) { await folderWrite([["/" + rel, b]]); copied++; }
   }
   await F.queue;
   showFolder(); showSettings(); showRecent();
