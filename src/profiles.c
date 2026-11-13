@@ -5381,6 +5381,155 @@ static const char* m3_compose(Emu* s, const void* state, uint32_t* const* out, i
 	return NULL;
 }
 
+/* Mario vs. Donkey Kong: the game's state (decomp camthesaxman/mariovsdk,
+ * gMainState; Europe's 0x40 lower: mvdk_eur): 0x0D a level (its opening pan
+ * too), 0x0E a life lost, 0x0F the mute after, 0x10 paused, 0x11 a help
+ * screen, 0x21 the level viewer (MVDK-2 to MVDK-7) */
+#define MVDK_STATE 0x030009C0u
+#define MVDK_PLAY 0x0D
+#define MVDK_PAUSE 0x10
+#define MVDK_HELP 0x11
+#define MVDK_VIEWER 0x21
+/* the HUD's sprite shapes: all but 32x32 (shape 0 size 2) and 8x32 (shape
+ * 2 size 1) */
+#define MVDK_HUD_SHAPES (0xFFFu & ~(1u << 2 | 1u << 9))
+/* the HUD along the second screen's top, from row MVDK_HUD_TOP (the
+ * game's from row 3); the pause box closed up (MVDK-9: its frame and LEVEL
+ * and HI SCORE lines, 26 rows, and its bottom edge, 5) in the middle */
+#define MVDK_HUD_TOP 6
+#define MVDK_BOX_ROWS 31
+#define MVDK_BOX_TOP ((GBA_H - MVDK_BOX_ROWS) / 2)
+#define MVDK_LEVEL 0x0300010Cu /* the world, the level's kind, Plus (every release) */
+#define MVDK_V_PLAY 0xF0000080u  /* a level played with its HUD up (mvdk_hud_up), not paused (the box can be taken) */
+#define MVDK_V_LOGO 0xF0000081u  /* no level shown: the logo, the box forgotten */
+#define MVDK_V_LEVEL 0xF0000082u /* the level (MVDK_LEVEL's word) */
+
+/* the state's address in this release (Europe's 0x40 lower) */
+static uint32_t mvdk_state(Emu* e) {
+	return e->gameCode[3] == 'P' ? MVDK_STATE - 0x40 : MVDK_STATE;
+}
+
+/* the game's own "playing" flag: 0 through a level's opening pan and
+ * HERE WE GO, TIME'S UP and a life lost, 1 from the frame the HUD appears
+ * (and straight on as a help box closes, where the HUD's sprites come back
+ * a few frames after the state does) */
+static bool mvdk_hud_up(Emu* e) {
+	char r = e->gameCode[3];
+	return emu_read8(e, r == 'P' ? 0x030009ACu : r == 'J' ? 0x030009ECu : 0x030009E8u) != 0;
+}
+
+static uint32_t mvdk_virt(Emu* e, uint32_t addr) {
+	int st = emu_read8(e, mvdk_state(e));
+	if (addr == MVDK_V_LEVEL) return emu_read32(e, MVDK_LEVEL);
+	bool shown = ((st == MVDK_PLAY || st == MVDK_PAUSE || st == MVDK_VIEWER) && mvdk_hud_up(e)) ||
+	             (st > MVDK_PLAY && st <= MVDK_HELP && st != MVDK_PAUSE); /* (a life lost, a help screen: kept) */
+	if (addr == MVDK_V_PLAY) return st == MVDK_PLAY && mvdk_hud_up(e);
+	if (addr == MVDK_V_LOGO) return !shown;
+	return 0;
+}
+
+static bool mvdk_rgb(uint32_t c, uint32_t rgb) {
+	/* (framebuffer ABGR: R in the low byte) */
+	return (c & 0xFF) == (rgb >> 16 & 0xFF) && (c >> 8 & 0xFF) == (rgb >> 8 & 0xFF) && (c >> 16 & 0xFF) == (rgb & 0xFF);
+}
+
+/* The level's box (MVDK-9): START on the hidden copy, the pause box's
+ * priority-0 sprites alone (the level, and its things behind the box,
+ * left out, and the star), its frame and LEVEL and HI SCORE lines and then
+ * its bottom edge, in the middle of a black GBA screen. Checked as it's cut
+ * (GEN-3): the frame's black top (a run of 60 or more) and bottom, the two
+ * lines' grey bars 6 in from its side with lavender between and after. */
+static const char* mvdk_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	if (w != GBA_W || h != GBA_H) return "wrong size";
+	if (!emu_state_load(s, state)) return "state load failed";
+	uint32_t sa = mvdk_state(s);
+	emu_frame(s, 0);
+	if (emu_read8(s, sa) != MVDK_PLAY) return "not playing";
+	aw_run(s, K_START, 4);
+	for (int f = 0; f < 40 && emu_read8(s, sa) != MVDK_PAUSE && !emu_cancelled(s); ++f) aw_run(s, 0, 1);
+	if (emu_read8(s, sa) != MVDK_PAUSE) return "START didn't pause";
+	aw_run(s, 0, 6);
+	size_t sz = emu_state_size(s);
+	void* paused = malloc(sz);
+	uint32_t* spr = malloc(GBA_W * GBA_H * 4);
+	uint32_t* back = malloc(GBA_W * GBA_H * 4);
+	const char* err = NULL;
+	if (!paused || !spr || !back || !emu_state_save(s, paused)) {
+		err = "out of memory";
+		goto done;
+	}
+	/* the box's sprites alone, then the backdrop alone (layer switches
+	 * take effect as the registers are written: loading the state again) */
+	/* (and the star beside LEVEL once its high score is beaten, palette 10:
+	 * the box itself is palette 6) */
+	static const SpriteRule behind[4] = { { -512, -256, 511, 255, 0, 1023, 1 }, { -512, -256, 511, 255, 0, 1023, 2 },
+	                                      { -512, -256, 511, 255, 0, 1023, 3 },
+	                                      { -512, -256, 511, 255, 0, 1023, 0, 1u << 10 } };
+	emu_hide_sprites(s, behind, 4);
+	emu_layers(s, 0x10);
+	emu_state_load(s, paused);
+	emu_frame(s, 0);
+	memcpy(spr, s->fb, GBA_W * GBA_H * 4);
+	emu_layers(s, 0);
+	emu_state_load(s, paused);
+	emu_frame(s, 0);
+	memcpy(back, s->fb, GBA_W * GBA_H * 4);
+	emu_layers(s, 0x1F);
+	emu_hide_sprites(s, NULL, 0);
+	{
+#define MVDK_SPR(x, y) (spr[(y) * GBA_W + (x)] != back[(y) * GBA_W + (x)])
+#define MVDK_IS(x, y, rgb) (MVDK_SPR(x, y) && mvdk_rgb(spr[(y) * GBA_W + (x)], rgb))
+		/* the frame's top: a row of 60 or more black pixels (82 in the
+		 * box; it's centred, or in a Mini-Mario level more to the side) */
+		int top = -1, bottom = -1, x0 = 0, x1 = 0;
+		for (int y = 0; y < GBA_H - 60 && top < 0; ++y) {
+			int run = 0;
+			for (int x = 0; x <= GBA_W && top < 0; ++x) {
+				if (x < GBA_W && MVDK_IS(x, y, 0x000000)) {
+					++run;
+					continue;
+				}
+				if (run >= 60) top = y, x0 = x - run - 5, x1 = x - 1 + 5;
+				run = 0;
+			}
+		}
+		int cx = (x0 + x1) / 2;
+		for (int y = top + 40; top >= 0 && y < GBA_H - 1 && bottom < 0; ++y)
+			if (MVDK_IS(cx, y, 0x000000) && !MVDK_SPR(cx, y + 1)) bottom = y;
+		/* the two bars, 6 in from the box's side: grey, lavender, grey,
+		 * lavender */
+		int edges[4], n = 0;
+		const uint32_t want[4] = { 0xC6C6C6, 0xE7CEFF, 0xC6C6C6, 0xE7CEFF };
+		for (int y = top + 1; top >= 0 && x0 >= 0 && y < top + 30 && n < 4; ++y)
+			if (MVDK_IS(x0 + 6, y, want[n])) edges[n++] = y;
+		if (top < 0 || bottom < 0 || n < 4 || x0 < 0 || x1 >= GBA_W) {
+			err = "no pause box";
+			goto done;
+		}
+		/* down to the lavender row after HI SCORE and one more, then the
+		 * box's bottom edge (its last 5 rows); centred */
+		int upper = edges[3] + 2 - top;
+		if (upper + 5 != MVDK_BOX_ROWS) {
+			err = "pause box of another size";
+			goto done;
+		}
+		int dx = (GBA_W - (x1 - x0 + 1)) / 2 - x0;
+		for (int i = 0; i < w * h; ++i) out[i] = 0xFF000000;
+		for (int r = 0; r < MVDK_BOX_ROWS; ++r) {
+			int sy = r < upper ? top + r : bottom - (MVDK_BOX_ROWS - 1 - r);
+			for (int x = x0; x <= x1; ++x)
+				if (MVDK_SPR(x, sy)) out[(MVDK_BOX_TOP + r) * GBA_W + x + dx] = spr[sy * GBA_W + x] | 0xFF000000;
+		}
+#undef MVDK_SPR
+#undef MVDK_IS
+	}
+done:
+	free(paused);
+	free(spr);
+	free(back);
+	return err;
+}
+
 static const MapProfile profiles[] = {
 	{
 		.codes = { "A2CE" },
@@ -7653,6 +7802,57 @@ static const MapProfile profiles[] = {
 		          .layer = 2, .maxY = 120 },
 	},
 	{
+		/* Mario vs. Donkey Kong (USA and Australia; Europe and Japan:
+		 * the BM5P and BM5J variants). The game has no status screen, so
+		 * the HUD moves, as Ninja Five-O's, under the pause box's LEVEL
+		 * and HI SCORE lines from the hidden copy: see mvdk_compose
+		 * (MVDK-2, MVDK-9). */
+		.codes = { "BM5E" },
+		.title = "Mario vs. Donkey Kong",
+		/* the title's lettering, cut out of the title by its sky
+		 * (tools/make_logo_masks.py mvdk): START at 600 skips the
+		 * opening film, the title up from about 120 frames on (MVDK-1).
+		 * rev 1: the greys outside the black outline left out */
+		.logo = { .steps = { { 0, 600 }, { K_START, 4 }, { 0, 300 } }, .mask = &logoMaskMVDK, .rev = 1 },
+		.compose = mvdk_compose,
+		.crop_w = GBA_W, /* a GBA screen: the box at its top, black below */
+		.crop_h = GBA_H,
+		.virt = mvdk_virt,
+		/* the box taken while the HUD is up and not paused (MVDK-9) */
+		.live = { { MVDK_V_PLAY, 0xFF, 1, 4 } },
+		/* no level being shown (outside levels, a level's opening pan):
+		 * the logo, the box forgotten (MVDK-3, MVDK-7) */
+		.menu = { { MVDK_V_LOGO, 0xFF, 1, 4 } },
+		.logoIf = { { MVDK_V_LOGO, 0xFF, 1, 4 } },
+		/* another level or part (the HUD back after its pan): the box
+		 * taken again at once (MVDK-9) */
+		.room = { { MVDK_V_LEVEL, 0, 0, 4 }, { MVDK_V_PLAY, 0, 0, 4 } },
+		.hud = {
+			/* a level played (its pan and HERE WE GO too: no HUD sprites
+			 * yet, so the logo, emptyIsOff; MVDK-3) or paused, its HUD
+			 * held on the second screen while the box is up (MVDK-2,
+			 * MVDK-6) */
+			.on = { { MVDK_STATE, 0xFF, MVDK_PLAY, 1, true, MVDK_PAUSE } },
+			.freeze = { { MVDK_STATE, 0xFF, MVDK_PAUSE, 1 } },
+			/* the level viewer (L+R): the same, as in play (MVDK-5) */
+			.alt = { .on = { { MVDK_STATE, 0xFF, MVDK_VIEWER, 1 } }, .bgMask = 0, .mapBelow = true },
+			/* a life lost, the mute after it, a help sign's screen: the
+			 * last HUD picture (MVDK-6) */
+			.keep = { { MVDK_STATE, 0xFF, MVDK_PLAY + 1, 1, true, MVDK_HELP, true } },
+			/* the HUD: priority-0 sprites with their top in rows 0-17
+			 * (to 20 for slack); not the fights' rope (8x32, at the top
+			 * too) or the viewer's arrows (32x32) (MVDK-4) */
+			.objs = { { -32, -16, 239, 20, 0, 1023, 0, 0, 0, MVDK_HUD_SHAPES } },
+			/* the HUD along the top: its top (the game's row 3) at row
+			 * MVDK_HUD_TOP, over the box in the middle (MVDK-2) */
+			.moves = { { 0, 0, 239, 40, 0, 0, 'T', MVDK_HUD_TOP } },
+			/* the box (the map picture) behind it; black without one */
+			.mapBelow = true,
+			.black = true,
+			.emptyIsOff = true,
+		},
+	},
+	{
 		/* MOTHER 3 (Japan only; the fan translations are mods of it):
 		 * walking about, the area's map or the Status: see m3_compose */
 		.codes = { "A3UJ" },
@@ -8013,6 +8213,26 @@ static void hpa_jpn(MapProfile* p) {
 	                              .layer = 2, .maxY = 120 };
 }
 
+/* Mario vs. Donkey Kong in Europe: its state 0x40 lower (romxref), its
+ * language list first (START: English), then START skips the film
+ * (MVDK-1, MVDK-8) */
+static void mvdk_eur(MapProfile* p) {
+	p->hud.on[0].addr -= 0x40;
+	p->hud.freeze[0].addr -= 0x40;
+	p->hud.alt.on[0].addr -= 0x40;
+	p->hud.keep[0].addr -= 0x40;
+	p->logo.steps[1] = (MacroStep) { K_START, 4 };
+	p->logo.steps[2] = (MacroStep) { 0, 200 };
+	p->logo.steps[3] = (MacroStep) { K_START, 4 };
+	p->logo.steps[4] = (MacroStep) { 0, 300 };
+}
+
+/* Mario vs. Donkey Kong in Japan: the same state address; its own title,
+ * the katakana lettering (MVDK-1) */
+static void mvdk_jpn(MapProfile* p) {
+	p->logo.mask = &logoMaskMVDKJ;
+}
+
 static const Variant variants[] = {
 	{ "AGSD", "AGSE", 0, gs_ger },
 	/* Golden Sun: The Lost Age's other releases */
@@ -8053,6 +8273,8 @@ static const Variant variants[] = {
 	{ "ALDP", "ALDE", 0, NULL },
 	{ "ANXP", "ANXE", 0, nfo_eur },
 	{ "AWAJ", "AWAE", 0, NULL },
+	{ "BM5P", "BM5E", 0, mvdk_eur }, /* (its state moved: mvdk_eur, mvdk_state) */
+	{ "BM5J", "BM5E", 0, mvdk_jpn },
 	/* Super Mario Advance 3 in Europe: its language menu first */
 	{ "A3AP", "A3AE", 0, sm3_eur },
 	/* (Fire Emblem's addresses: FeRegion) */

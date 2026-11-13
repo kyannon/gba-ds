@@ -39,5 +39,7 @@ extern const LogoMask logoMaskNFO, logoMaskNFOP;
 extern const LogoMask logoMaskGT3, logoMaskGT3J;
 /* Eragon (USA, Europe) */
 extern const LogoMask logoMaskER;
+/* Mario vs. Donkey Kong (USA, Europe), and Japan's */
+extern const LogoMask logoMaskMVDK, logoMaskMVDKJ;
 
 #endif

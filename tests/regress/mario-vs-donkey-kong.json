@@ -1,0 +1,784 @@
+{
+ "game": "Mario vs. Donkey Kong",
+ "rules": "docs/games/mario-vs-donkey-kong.md",
+ "cases": [
+  {
+   "id": "mvdk-logo-bm5e",
+   "kind": "logo",
+   "rom": "BM5E",
+   "desc": "BM5E logo extraction",
+   "rules": [
+    "GEN-1",
+    "MVDK-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "mvdk-logo-bm5p",
+   "kind": "logo",
+   "rom": "BM5P",
+   "desc": "BM5P logo extraction",
+   "rules": [
+    "GEN-1",
+    "MVDK-1",
+    "MVDK-8"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "mvdk-logo-bm5j",
+   "kind": "logo",
+   "rom": "BM5J",
+   "desc": "BM5J logo extraction",
+   "rules": [
+    "GEN-1",
+    "MVDK-1",
+    "MVDK-8"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "mvdk-us-title",
+   "rom": "BM5E",
+   "state": "mario-vs-donkey-kong/us-title.ss",
+   "desc": "the title: the logo at half strength",
+   "rules": [
+    "MVDK-7"
+   ],
+   "shots": {
+    "screen": 40
+   },
+   "checks": [
+    {
+     "rule": "MVDK-7",
+     "what": "no HUD",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "mvdk-us-select-data",
+   "rom": "BM5E",
+   "state": "mario-vs-donkey-kong/us-select-data.ss",
+   "desc": "Select Data: the logo",
+   "rules": [
+    "MVDK-7"
+   ],
+   "shots": {
+    "screen": 40
+   },
+   "checks": [
+    {
+     "rule": "MVDK-7",
+     "what": "no HUD",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "mvdk-us-level-select",
+   "rom": "BM5E",
+   "state": "mario-vs-donkey-kong/us-level-select.ss",
+   "desc": "the level select (every level open): the logo",
+   "rules": [
+    "MVDK-7"
+   ],
+   "shots": {
+    "screen": 40
+   },
+   "checks": [
+    {
+     "rule": "MVDK-7",
+     "what": "no HUD",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "mvdk-us-world-opening",
+   "rom": "BM5E",
+   "state": "mario-vs-donkey-kong/us-world-opening.ss",
+   "desc": "World 1 Start!, a world's opening: the logo",
+   "rules": [
+    "MVDK-7"
+   ],
+   "shots": {
+    "screen": 40
+   },
+   "checks": [
+    {
+     "rule": "MVDK-7",
+     "what": "no HUD",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "mvdk-us-results",
+   "rom": "BM5E",
+   "state": "mario-vs-donkey-kong/us-results.ss",
+   "desc": "the results after a level: the logo",
+   "rules": [
+    "MVDK-7"
+   ],
+   "shots": {
+    "screen": 40
+   },
+   "checks": [
+    {
+     "rule": "MVDK-7",
+     "what": "no HUD",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "mvdk-us-bonus",
+   "rom": "BM5E",
+   "state": "mario-vs-donkey-kong/us-bonus.ss",
+   "desc": "the present-catching bonus game: the logo",
+   "rules": [
+    "MVDK-7"
+   ],
+   "shots": {
+    "screen": 40
+   },
+   "checks": [
+    {
+     "rule": "MVDK-7",
+     "what": "no HUD",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "mvdk-us-fight-won",
+   "rom": "BM5E",
+   "state": "mario-vs-donkey-kong/us-fight-won.ss",
+   "desc": "GREAT! YOU WON! after a fight: the logo",
+   "rules": [
+    "MVDK-7"
+   ],
+   "shots": {
+    "screen": 40
+   },
+   "checks": [
+    {
+     "rule": "MVDK-7",
+     "what": "no HUD",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "mvdk-us-how-to",
+   "rom": "BM5E",
+   "state": "mario-vs-donkey-kong/us-how-to.ss",
+   "desc": "the how-to demo before 1-1 (LEVEL 1-1 with the buttons): the logo; B skips it, the level's pan (the logo) and then the HUD",
+   "rules": [
+    "MVDK-7",
+    "MVDK-3",
+    "MVDK-2",
+    "MVDK-9"
+   ],
+   "shots": {
+    "demo": 40,
+    "pan": 200,
+    "play": 700
+   },
+   "checks": [
+    {
+     "rule": "MVDK-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "MVDK-9",
+     "what": "the level's box taken from the hidden copy",
+     "type": "log",
+     "match": "map updated"
+    }
+   ],
+   "input": [
+    [
+     90,
+     "B"
+    ],
+    [
+     94,
+     "-"
+    ]
+   ]
+  },
+  {
+   "id": "mvdk-us-1-1-start",
+   "rom": "BM5E",
+   "state": "mario-vs-donkey-kong/us-1-1-start.ss",
+   "desc": "1-1 starting: the pan across the level and HERE WE GO! with the logo, then the HUD on the second screen",
+   "rules": [
+    "MVDK-3",
+    "MVDK-2",
+    "MVDK-9"
+   ],
+   "shots": {
+    "pan": 30,
+    "herewego": 330,
+    "play": 420
+   },
+   "checks": [
+    {
+     "rule": "MVDK-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "MVDK-9",
+     "what": "the level's box taken from the hidden copy",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "mvdk-us-1-2",
+   "rom": "BM5E",
+   "state": "mario-vs-donkey-kong/us-1-2.ss",
+   "desc": "1-2 played: LEVEL 1-2 and its HI SCORE in the closed-up pause box at the top of the second screen, the lives, score, presents and time under it, no logo; the level alone on the game screen",
+   "rules": [
+    "MVDK-2",
+    "MVDK-4",
+    "MVDK-9"
+   ],
+   "shots": {
+    "play": 30,
+    "walk": 120
+   },
+   "checks": [
+    {
+     "rule": "MVDK-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "MVDK-9",
+     "what": "the level's box taken from the hidden copy",
+     "type": "log",
+     "match": "map updated"
+    }
+   ],
+   "input": [
+    [
+     40,
+     "RIGHT"
+    ],
+    [
+     100,
+     "-"
+    ]
+   ]
+  },
+  {
+   "id": "mvdk-us-1-2-pause",
+   "rom": "BM5E",
+   "state": "mario-vs-donkey-kong/us-1-2.ss",
+   "desc": "paused in 1-2: the pause box on the game screen, the HUD held on the second (lives off the game screen); then CONTINUE",
+   "rules": [
+    "MVDK-6",
+    "MVDK-9"
+   ],
+   "shots": {
+    "play": 30,
+    "paused": 110,
+    "resumed": 220
+   },
+   "checks": [
+    {
+     "rule": "MVDK-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "MVDK-9",
+     "what": "the level's box taken from the hidden copy",
+     "type": "log",
+     "match": "map updated"
+    }
+   ],
+   "input": [
+    [
+     60,
+     "START"
+    ],
+    [
+     64,
+     "-"
+    ],
+    [
+     150,
+     "START"
+    ],
+    [
+     154,
+     "-"
+    ]
+   ]
+  },
+  {
+   "id": "mvdk-us-1-2-viewer",
+   "rom": "BM5E",
+   "state": "mario-vs-donkey-kong/us-1-2.ss",
+   "desc": "the level viewer (L+R) in 1-2: the arrows and B BACK TO GAME on the game screen, the HUD on the second; then B back",
+   "rules": [
+    "MVDK-5",
+    "MVDK-4",
+    "MVDK-9"
+   ],
+   "shots": {
+    "viewer": 100,
+    "scrolled": 170,
+    "back": 260
+   },
+   "checks": [
+    {
+     "rule": "MVDK-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "MVDK-9",
+     "what": "the level's box taken from the hidden copy",
+     "type": "log",
+     "match": "map updated"
+    }
+   ],
+   "input": [
+    [
+     60,
+     "L+R"
+    ],
+    [
+     72,
+     "-"
+    ],
+    [
+     110,
+     "RIGHT"
+    ],
+    [
+     160,
+     "-"
+    ],
+    [
+     200,
+     "B"
+    ],
+    [
+     204,
+     "-"
+    ]
+   ]
+  },
+  {
+   "id": "mvdk-us-1-2-time-up",
+   "rom": "BM5E",
+   "state": "mario-vs-donkey-kong/us-1-2-time-up.ss",
+   "desc": "1-2 with a second left: TIME'S UP!! on the game screen with the HUD on the second, the life lost, then the level's pan again (the logo) and the HUD",
+   "rules": [
+    "MVDK-6",
+    "MVDK-3",
+    "MVDK-4",
+    "MVDK-9"
+   ],
+   "shots": {
+    "timeup": 300,
+    "lost": 586,
+    "pan": 700,
+    "play": 1100
+   },
+   "checks": [
+    {
+     "rule": "MVDK-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "MVDK-9",
+     "what": "the level's box taken from the hidden copy",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "mvdk-us-1-3-help",
+   "rom": "BM5E",
+   "state": "mario-vs-donkey-kong/us-1-3-help-sign.ss",
+   "desc": "1-3: Mario jumps at the HELP sign; its screen on the game screen, the HUD held on the second; then B back to the level",
+   "rules": [
+    "MVDK-6",
+    "MVDK-9"
+   ],
+   "shots": {
+    "play": 10,
+    "help": 120,
+    "back": 260
+   },
+   "checks": [
+    {
+     "rule": "MVDK-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "MVDK-9",
+     "what": "the level's box taken from the hidden copy",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "MVDK-6",
+     "what": "never the logo as the help box opens or closes",
+     "type": "no_log",
+     "match": "logo only on|HUD empty"
+    }
+   ],
+   "input": [
+    [
+     20,
+     "A"
+    ],
+    [
+     35,
+     "-"
+    ],
+    [
+     180,
+     "B"
+    ],
+    [
+     184,
+     "-"
+    ]
+   ]
+  },
+  {
+   "id": "mvdk-us-1-1-help-box",
+   "rom": "BM5E",
+   "state": "mario-vs-donkey-kong/us-1-1-help-box.ss",
+   "desc": "the owner's state: 1-1 beside a HELP sign; A opens its box, B closes it; the second screen keeps the box and HUD throughout, no frame of the logo as it closes (the HUD's sprites come back 3 frames after the game does)",
+   "rules": [
+    "MVDK-6",
+    "MVDK-9"
+   ],
+   "shots": {
+    "help": 120,
+    "closing": 183,
+    "closed": 186,
+    "back": 240
+   },
+   "checks": [
+    {
+     "rule": "MVDK-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "MVDK-6",
+     "what": "never the logo as the help box opens or closes",
+     "type": "no_log",
+     "match": "logo only on|HUD empty"
+    }
+   ],
+   "input": [
+    [
+     10,
+     "A"
+    ],
+    [
+     25,
+     "-"
+    ],
+    [
+     180,
+     "B"
+    ],
+    [
+     184,
+     "-"
+    ]
+   ]
+  },
+  {
+   "id": "mvdk-us-3-mm",
+   "rom": "BM5E",
+   "state": "mario-vs-donkey-kong/us-3-mm.ss",
+   "desc": "3-MM, a Mini-Mario level: the lives, score, T O Y blocks, time and the six Mini-Marios on the second screen",
+   "rules": [
+    "MVDK-2",
+    "MVDK-9"
+   ],
+   "shots": {
+    "play": 30,
+    "later": 150
+   },
+   "checks": [
+    {
+     "rule": "MVDK-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "MVDK-9",
+     "what": "the level's box taken from the hidden copy",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "mvdk-us-1-dk",
+   "rom": "BM5E",
+   "state": "mario-vs-donkey-kong/us-1-dk.ss",
+   "desc": "1-DK: the HUD with the Mini-Marios, M vs. DK and Donkey Kong's hits on the second screen; Donkey Kong's rope stays on the game screen",
+   "rules": [
+    "MVDK-2",
+    "MVDK-4",
+    "MVDK-9"
+   ],
+   "shots": {
+    "play": 30,
+    "later": 150
+   },
+   "checks": [
+    {
+     "rule": "MVDK-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "MVDK-9",
+     "what": "the level's box taken from the hidden copy",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "mvdk-us-2-3-plus",
+   "rom": "BM5E",
+   "state": "mario-vs-donkey-kong/us-2-3-plus.ss",
+   "desc": "2-3+, a Plus level: the HUD on the second screen",
+   "rules": [
+    "MVDK-2",
+    "MVDK-9"
+   ],
+   "shots": {
+    "play": 30,
+    "later": 150
+   },
+   "checks": [
+    {
+     "rule": "MVDK-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "MVDK-9",
+     "what": "the level's box taken from the hidden copy",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "mvdk-us-4-dk-plus",
+   "rom": "BM5E",
+   "state": "mario-vs-donkey-kong/us-4-dk-plus.ss",
+   "desc": "4-DK+, a Plus fight: the HUD on the second screen",
+   "rules": [
+    "MVDK-2",
+    "MVDK-9"
+   ],
+   "shots": {
+    "play": 30,
+    "later": 150
+   },
+   "checks": [
+    {
+     "rule": "MVDK-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "MVDK-9",
+     "what": "the level's box taken from the hidden copy",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "mvdk-us-last-fight",
+   "rom": "BM5E",
+   "state": "mario-vs-donkey-kong/us-last-fight.ss",
+   "desc": "the last fight (the tower): the HUD on the second screen",
+   "rules": [
+    "MVDK-2",
+    "MVDK-9"
+   ],
+   "shots": {
+    "play": 30,
+    "later": 150
+   },
+   "checks": [
+    {
+     "rule": "MVDK-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "MVDK-9",
+     "what": "the level's box taken from the hidden copy",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "mvdk-us-last-fight-plus",
+   "rom": "BM5E",
+   "state": "mario-vs-donkey-kong/us-last-fight-plus.ss",
+   "desc": "the Plus worlds' last fight (the robot): the HUD on the second screen; the box once the fight's opening lets the game pause (about 5 seconds)",
+   "rules": [
+    "MVDK-2",
+    "MVDK-9"
+   ],
+   "shots": {
+    "play": 30,
+    "later": 150,
+    "box": 600
+   },
+   "checks": [
+    {
+     "rule": "MVDK-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "MVDK-9",
+     "what": "the level's box taken from the hidden copy",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "mvdk-eu-language",
+   "rom": "BM5P",
+   "state": "mario-vs-donkey-kong/eu-language.ss",
+   "desc": "Europe's language list: the logo",
+   "rules": [
+    "MVDK-7",
+    "MVDK-8"
+   ],
+   "shots": {
+    "screen": 40
+   },
+   "checks": [
+    {
+     "rule": "MVDK-7",
+     "what": "no HUD",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "mvdk-eu-1-1",
+   "rom": "BM5P",
+   "state": "mario-vs-donkey-kong/eu-1-1.ss",
+   "desc": "Europe's 1-1 starting (English): the pan with the logo, then the HUD",
+   "rules": [
+    "MVDK-8",
+    "MVDK-3",
+    "MVDK-2",
+    "MVDK-9"
+   ],
+   "shots": {
+    "pan": 30,
+    "play": 400
+   },
+   "checks": [
+    {
+     "rule": "MVDK-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "MVDK-9",
+     "what": "the level's box taken from the hidden copy",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "mvdk-jp-1-1",
+   "rom": "BM5J",
+   "state": "mario-vs-donkey-kong/jp-1-1.ss",
+   "desc": "Japan's 1-1 starting: the pan with the logo, then the HUD",
+   "rules": [
+    "MVDK-8",
+    "MVDK-3",
+    "MVDK-2",
+    "MVDK-9"
+   ],
+   "shots": {
+    "pan": 30,
+    "play": 400
+   },
+   "checks": [
+    {
+     "rule": "MVDK-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "MVDK-9",
+     "what": "the level's box taken from the hidden copy",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  }
+ ]
+}
