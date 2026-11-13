@@ -63,9 +63,9 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 - **Achievements**: when signed in to RetroAchievements; see [below](#retroachievements).
 - **Take Screenshot**: both screens as they look right now, with your display settings, stacked top to bottom into one PNG in `/storage/roms/screenshots` (Android: `GBA DS/screenshots`); `screenshot_dir` changes the folder.
 - **Submit a Bug Report**: the same as the quick bar's bug button (see [below](#the-quick-bar-and-bug-reports)), for the moment you opened the menu.
-- **Rewind: On / Off** and **Fast Forward: On / Off**, side by side.
+- **Rewind: On / Off** and **Fast Forward** (its speed, or Off), side by side.
 - **Rewind**: on by default. Hold **L2** to go back in time, up to 30 seconds (`rewind_seconds`), at double speed and without sound, with **Rewinding...** in the middle of the second screen (**Can't rewind further** once you reach the start of the buffer); let go to play on from there. Off saves the little work it takes to keep the buffer.
-- **Fast Forward**: on by default. Hold **R2** to play 3 times as fast (`ff_speed`), with **Fast forwarding...** in the middle of the second screen. Off, R2 does nothing, so a trigger pressed by accident can't skip you ahead.
+- **Fast Forward**: 3x by default. Hold **R2** to play that many times as fast, with **Fast forwarding...** in the middle of the second screen; all the other buttons still work meanwhile, so you can press A through text. Each press of the button goes on to the next speed: 2x, 3x, 4x, 5x, Max (as fast as your device can run the game; how fast that is depends on the device and the game, and the sound gets choppy), then Off (R2 does nothing, so a trigger pressed by accident can't skip you ahead), then 2x again. HOME + R2 fast-forwards too, the same way, if you're used to it from RetroArch.
 - **Save on Quit: On / Off** and **Auto-Load: On / Off**, side by side: whether closing the game saves a resume point, and whether starting it picks up from one (see Resume points above). Remembered for next time.
 
 ## The quick bar and bug reports
@@ -103,7 +103,7 @@ From these, what you did can be played back exactly, frame by frame. So when som
 | HOME, or tap the touchscreen | Pause menu (Android: SELECT + START, or BACK) |
 | L2 (hold) | Rewind |
 | L3 (press the left stick) | Quick bar (as swiping up; again to put it away) |
-| R2 (hold) | Fast-forward (`ff_speed`, default 3×; Fast Forward in Extras turns it off) |
+| R2 (hold) | Fast-forward (default 3×; Fast Forward in Extras sets the speed or turns it off). HOME + R2 too |
 | HOME + R1 / L1 | Quick save / load state (the same state as the quick bar's buttons) |
 | HOME + Start | Quit |
 | HOME + X | Quick bar (it shows the FPS too) |

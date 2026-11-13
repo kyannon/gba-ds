@@ -85,6 +85,7 @@ static int current_cpu(void) {
 }
 
 #define GBA_FPS (16777216.0 / 280896.0)
+#define FF_MAX_RUNS 30 /* fast-forward at Max: at most this many frames a display frame */
 
 static Config* cfg;
 static Emu emu;
@@ -1156,7 +1157,7 @@ static const char* const allLabels[] = {
 /* the labels of the half-width buttons, which fit in half the width */
 static const char* const halfLabels[] = {
 	"Save State", "Load State", "Save State 0", "Load State 0", "Save on Quit: On", "Save on Quit: Off", "Auto-Load: On", "Auto-Load: Off",
-	"Rewind: On", "Rewind: Off", "Fast Forward: On", "Fast Forward: Off",
+	"Rewind: On", "Rewind: Off", "Fast Forward: 2x", "Fast Forward: 3x", "Fast Forward: 4x", "Fast Forward: 5x", "Fast Forward: Max", "Fast Forward: Off",
 	"Color Correction: On", "Color Correction: Off", "LCD Ghosting: On", "LCD Ghosting: Off",
 };
 
@@ -3474,7 +3475,12 @@ static void draw_menu(void) {
 		if (menuItems[i] == M_FPS) label = cfg->showFps ? "Show FPS: On" : "Show FPS: Off";
 		if (menuItems[i] == M_FRAMEBUF) label = tallProf ? "Frame Buffer: Always on here" : cfg->frameBuffer ? "Frame Buffer: On" : "Frame Buffer: Off";
 		if (menuItems[i] == M_REWIND) label = cfg->rewind ? "Rewind: On" : "Rewind: Off";
-		if (menuItems[i] == M_FF) label = cfg->fastForward ? "Fast Forward: On" : "Fast Forward: Off";
+		if (menuItems[i] == M_FF) {
+			static char ffLabel[32];
+			if (cfg->fastForward && cfg->ffSpeed <= 0) snprintf(ffLabel, sizeof(ffLabel), "Fast Forward: Max");
+			else if (cfg->fastForward) snprintf(ffLabel, sizeof(ffLabel), "Fast Forward: %dx", cfg->ffSpeed);
+			label = cfg->fastForward ? ffLabel : "Fast Forward: Off";
+		}
 		if (menuItems[i] == M_MATCH) label = cfg->matchDisplay ? "Match Display Rate: On" : "Match Display Rate: Off";
 		if (menuItems[i] == M_SHAPES) label = !en || !strcmp(cfg->screenMatch, "keep") ? "Keep device aspect ratios" :
 		                                      !strcmp(cfg->screenMatch, "aspect") ? "Match screen aspect ratios" : "Match screen sizes and aspect ratios";
@@ -6314,6 +6320,14 @@ static void rewind_setup(void) {
 	fprintf(stderr, "rewind: %d s (%d states)\n", secs, secs * 30);
 }
 
+/* ff_speed as gba-ds.cfg writes it: a number, or max (0, as atoi reads it) */
+static const char* ff_speed_name(void) {
+	static char s[12];
+	if (cfg->ffSpeed <= 0) return "max";
+	snprintf(s, sizeof(s), "%d", cfg->ffSpeed);
+	return s;
+}
+
 /* Display choices made in the menu are remembered for next time. */
 static void save_prefs(void) {
 	char prefs[1100];
@@ -6321,10 +6335,10 @@ static void save_prefs(void) {
 	FILE* f = fopen(prefs, "w");
 	if (f) {
 		fprintf(f, "# written by gba-ds's pause menu; overrides gba-ds.cfg\n");
-		fprintf(f, "swap = %d\nscale = %s\nmap_scale = %s\nshader = %s\ncolor_correction = %d\nlcd_ghosting = %d\noverlays = %s\nframe_buffer = %d\nmatch_display = %d\nrewind = %d\nfast_forward = %d\nsave_on_quit = %d\nauto_load = %d\nquick_bar_pinned = %d\n",
+		fprintf(f, "swap = %d\nscale = %s\nmap_scale = %s\nshader = %s\ncolor_correction = %d\nlcd_ghosting = %d\noverlays = %s\nframe_buffer = %d\nmatch_display = %d\nrewind = %d\nfast_forward = %d\nff_speed = %s\nsave_on_quit = %d\nauto_load = %d\nquick_bar_pinned = %d\n",
 		        cfg->swap ? 1 : 0, cfg->scale, cfg->mapScale, shaderNames[cfg->shader], cfg->colorCorrection ? 1 : 0, cfg->ghosting ? 1 : 0,
 		        (const char* const[]) { "off", "generated", "custom" }[SDL_clamp(cfg->overlayMode, 0, 2)],
-		        cfg->frameBuffer ? 1 : 0, cfg->matchDisplay ? 1 : 0, cfg->rewind ? 1 : 0, cfg->fastForward ? 1 : 0,
+		        cfg->frameBuffer ? 1 : 0, cfg->matchDisplay ? 1 : 0, cfg->rewind ? 1 : 0, cfg->fastForward ? 1 : 0, ff_speed_name(),
 		        cfg->autoSave ? 1 : 0, cfg->autoLoad ? 1 : 0, cfg->barPinned ? 1 : 0);
 		fprintf(f, "screen_match = %s\n", cfg->screenMatch);
 		fprintf(f, "custom_logos = %s\n", cfg->customLogos == CL_OFF ? "off" : cfg->customLogos == CL_FULL ? "full" : "pixelated");
@@ -6859,8 +6873,15 @@ static bool activate(int item, enum GameExit* exitTo) {
 		save_prefs();
 		break;
 	case M_FF:
-		cfg->fastForward = !cfg->fastForward;
-		if (cfg->fastForward) snprintf(menuNote, sizeof(menuNote), "Hold R2 to play %dx as fast", SDL_max(1, cfg->ffSpeed));
+		/* each press: 2x, 3x, 4x, 5x, max, off, 2x... (an ff_speed above 5
+		 * from gba-ds.cfg: max next) */
+		if (!cfg->fastForward) cfg->fastForward = true, cfg->ffSpeed = FF_SPEED_MIN;
+		else if (cfg->ffSpeed <= 0) cfg->fastForward = false;
+		else if (cfg->ffSpeed < FF_SPEED_MIN) cfg->ffSpeed = FF_SPEED_MIN;
+		else if (cfg->ffSpeed < FF_SPEED_MAX) ++cfg->ffSpeed;
+		else cfg->ffSpeed = 0;
+		if (cfg->fastForward && cfg->ffSpeed <= 0) snprintf(menuNote, sizeof(menuNote), "Hold R2 to play as fast as this device can");
+		else if (cfg->fastForward) snprintf(menuNote, sizeof(menuNote), "Hold R2 to play %dx as fast", cfg->ffSpeed);
 		else snprintf(menuNote, sizeof(menuNote), "R2 does nothing: no skipping ahead by mistake");
 		save_prefs();
 		break;
@@ -7335,7 +7356,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	/* SELECT or START as the hotkey: a GBA button, held back from the game
 	 * while it's down and handed over if it comes up with nothing pressed */
 	const bool modIsGame = modBtn == B_SELECT || modBtn == B_START;
-	bool comboUsed = false;
+	bool comboUsed = false, ffModUsed = false; /* (ffModUsed: hotkey + R2 fast-forwarded) */
 	int comboHold = -1, comboFrames = 0; /* menu combo: the button held back, frames since */
 	int comboPulse[2] = { 0, 0 };        /* SELECT, START handed to the game late */
 	int modPulse = 0; /* the hotkey button (SELECT or START), tapped alone: handed to the game */
@@ -7750,7 +7771,17 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 
 		/* ---- HOME (or the hotkey modifier) alone toggles the menu; with a button it's a hotkey */
 		bool mod = btnNow[modBtn];
-		if (mod && !menuOpen) {
+		/* Hotkey + R2 (R2 no action's button): fast-forward, as R2 alone,
+		 * with the game's buttons going through, so text can still be
+		 * skipped (RetroArch's habit; issue #44). No hotkeys meanwhile,
+		 * and letting go of the hotkey doesn't open the menu. */
+		bool ffMod = false;
+		if (mod && !menuOpen && cfg->fastForward && btnNow[B_R2] && !(cfg->rewind && btnNow[B_L2])) {
+			ffMod = true;
+			for (int i = 0; i < HK_COUNT; ++i) ffMod = ffMod && hkBtn[i] != B_R2;
+			if (ffMod) comboUsed = ffModUsed = true;
+		}
+		if (mod && !menuOpen && !ffMod) {
 			for (int i = 0; i < HK_COUNT; ++i) {
 				if (hkBtn[i] < 0 || !btn_pressed(hkBtn[i])) continue;
 				comboUsed = true;
@@ -7778,10 +7809,10 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			else open_menu();
 		}
 		if (btn_released(modBtn)) {
-			if (comboUsed) suppress_held();
+			if (comboUsed && !ffModUsed) suppress_held(); /* (not after hotkey + R2: the game had them) */
 			else if (!menuOpen && modIsGame) modPulse = 4; /* tapped alone: the game gets it */
 			else if (!menuOpen && modBtn == B_L3) bar_toggle();
-			comboUsed = false;
+			comboUsed = ffModUsed = false;
 		}
 		if (done) break;
 
@@ -7964,7 +7995,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				if (hkBtn[i] >= 0 && btnNow[hkBtn[i]]) suppress[hkBtn[i]] = true;
 			}
 		}
-		if (!btnNow[modBtn] || modIsGame) {
+		if (!btnNow[modBtn] || modIsGame || ffMod) {
 			/* the SNES layout only where it applies (Super Mario Advance 2: in
 			 * a level; on the world map R switches Mario and Luigi, and only A
 			 * enters a level) */
@@ -8022,7 +8053,13 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		bool rewinding = cfg->rewind && btnNow[B_L2];
 		bool ff = cfg->fastForward && btnNow[B_R2] && !rewinding;
 		ffBox = ff;
-		int runs = ff ? SDL_max(1, cfg->ffSpeed) : 1;
+		/* Max (ff_speed 0): as many frames as fit in about 70% of a display
+		 * frame (the rest for drawing it), up to FF_MAX_RUNS; the sound
+		 * thinned out by the last count */
+		const bool ffMax = ff && cfg->ffSpeed <= 0;
+		static int maxRan = 4;
+		int runs = ffMax ? FF_MAX_RUNS : ff ? cfg->ffSpeed : 1;
+		int thin = ffMax ? maxRan : runs; /* every thin-th sound sample kept */
 		/* Audio keeps flowing during fast-forward: every runs-th sample is kept,
 		 * so the device gets real-time worth of (sped-up) sound. Starving it
 		 * makes PulseAudio/PipeWire grow their buffers after each underrun,
@@ -8086,7 +8123,10 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			rewindBox = 0;
 			forceMap = true; /* the map, as of where the rewind stopped */
 		}
+		int ran = 0;
 		for (int i = 0; i < (rewinding ? 0 : runs); ++i) {
+			if (ffMax && i > 0 && (SDL_GetPerformanceCounter() - emuT0) / freq > frameSec * 0.7) break;
+			++ran;
 			if (i == 0 && aheadReady) aheadReady = false; /* emulated by the worker while the last frame was shown */
 			else run_frame(keys);
 			Uint64 raT0 = SDL_GetPerformanceCounter();
@@ -8096,10 +8136,10 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			size_t got;
 			while ((got = emu_audio_read(&emu, samples, 4096)) > 0) {
 				if (!audio || dropAudio) continue;
-				if (runs > 1) {
+				if (thin > 1) {
 					size_t outN = 0;
 					for (size_t f = 0; f < got; ++f) {
-						if (ffPhase++ % runs == 0) {
+						if (ffPhase++ % thin == 0) {
 							samples[outN * 2] = samples[f * 2];
 							samples[outN * 2 + 1] = samples[f * 2 + 1];
 							++outN;
@@ -8145,6 +8185,8 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			}
 			audT += SDL_GetPerformanceCounter() - audT0;
 		}
+		if (ffMax) maxRan = SDL_max(1, ran);
+		runs = rewinding ? runs : SDL_max(1, ran); /* (the frames run, for the rewind buffer and the speed) */
 		Uint64 emuT1 = SDL_GetPerformanceCounter();
 		double emuCpu1 = thread_cpu_ms();
 		emuTicks += emuT1 - emuT0;

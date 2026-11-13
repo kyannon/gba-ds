@@ -17,6 +17,9 @@ enum { OVL_TOP = 1, OVL_BOTTOM = 2, OVL_BOTH = 3 };
  * their stripes (the colour table, ui.c). */
 enum { SH_OFF, SH_GRID, SH_SCANLINES, SH_SOFT, SH_SUB_LIGHT, SH_SUB, SH_SUB_STRONG, SH_COUNT };
 extern const char* const shaderNames[SH_COUNT]; /* gba-ds.cfg's names: off, grid, ... */
+/* the fast-forward speeds the pause menu goes through (ff_speed) */
+#define FF_SPEED_MIN 2
+#define FF_SPEED_MAX 5
 /* Hotkeys: the hotkey button held with an action's button does the action
  * (game.c). gba-ds.cfg: hotkey_<name> = a button (a, b, x, y, l, r, l2, r2,
  * select, start, l3, up, down, left, right) or none. */
@@ -64,7 +67,7 @@ typedef struct Config {
 	bool showFps;
 	bool sway;         /* ask sway to fullscreen the window across all outputs */
 	int audioLatency;  /* ms */
-	int ffSpeed;       /* fast-forward multiplier */
+	int ffSpeed;       /* fast-forward multiplier (the menu cycles FF_SPEED_MIN..MAX) */
 	char saveDir[512]; /* battery saves; default: next to the ROM */
 	char saveExt[8];   /* their extension: sav, or srm (RetroArch's: BananaOS's GBA saves, shared) */
 	char saveFrom[512]; /* where GBA DS kept them before (<game>.sav), carried over: BananaOS */

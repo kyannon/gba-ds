@@ -2,7 +2,7 @@ Settings live in **`gba-ds.cfg`**: `/storage/roms/ports/gba-ds/gba-ds.cfg` on RO
 
 Four files are read in order, later ones winning:
 1. `gba-ds.cfg`;
-2. `states/prefs.cfg`: what you chose in the pause menu (screens swapped, scaling, shader, color correction, LCD ghosting, overlays and the bezel, frame buffer, match display rate, screen shapes, rewind, fast forward, save on quit, auto-load, the quick bar's pin). GBA DS rewrites this file; to change those settings, use the menu, or delete the line from `prefs.cfg`.
+2. `states/prefs.cfg`: what you chose in the pause menu (screens swapped, scaling, shader, color correction, LCD ghosting, overlays and the bezel, frame buffer, match display rate, screen shapes, rewind, fast forward and its speed, save on quit, auto-load, the quick bar's pin). GBA DS rewrites this file; to change those settings, use the menu, or delete the line from `prefs.cfg`.
 3. `states/library.cfg`: the game list's view (list or grid) and, on Android, the ROM folder, the save folder and the saves' type (Settings > Folders);
 4. `states/hotkeys.cfg`: what you chose in Settings > Hotkeys.
 
@@ -90,7 +90,7 @@ What `map_crop` changes in the Metroid map screens:
 | `home_button` | `-1` | If HOME does nothing: launch once with `GBADS_DEBUG=1` (see [[Troubleshooting]]), press HOME, and put the "raw joystick ... button N" number from `gba-ds.log` here. |
 | `menu_combo` | `none` (Android: `select+start`) | `select+start`: SELECT and START pressed together also open the menu. The game doesn't see the pair; either button alone still reaches the game. |
 | `fast_forward` | `1` | Hold **R2** to fast-forward. `0`: R2 does nothing. Also in the pause menu (Extras). |
-| `ff_speed` | `3` | Fast-forward speed (hold R2). |
+| `ff_speed` | `3` | Fast-forward speed (hold R2): how many times as fast, or `max` for as fast as the device can. Fast Forward in the pause menu goes through 2 to 5 and Max. |
 
 ## Files and folders
 

@@ -325,7 +325,7 @@ void config_usage(const char* argv0) {
 	        "  --show-fps\n"
 	        "  --no-sway              don't ask sway to span both outputs\n"
 	        "  --audio-latency=MS     (64)\n"
-	        "  --ff-speed=N           fast-forward multiplier (3)\n"
+	        "  --ff-speed=N|max       fast-forward multiplier (3)\n"
 	        "  --save-dir=DIR         battery saves (next to the ROM)\n"
 	        "  --state-dir=DIR        save states and thumbnails (<data folder>/states)\n"
 	        "  --data-dir=DIR         GBA DS's data folder: states, cheats, overlays, logos...\n"
