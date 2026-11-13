@@ -1,0 +1,1245 @@
+{
+ "game": "Mega Man Battle Network 2",
+ "rules": "docs/games/mega-man-battle-network-2.md",
+ "cases": [
+  {
+   "id": "mmbn2-us-title",
+   "rom": "AE2E",
+   "state": "mega-man-battle-network-2/us-title.ss",
+   "desc": "the title: the logo, nothing taken",
+   "rules": [
+    "MMBN2-1"
+   ],
+   "shots": {
+    "title": 60
+   },
+   "checks": [
+    {
+     "rule": "MMBN2-1",
+     "what": "no status taken",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "mmbn2-us-classroom",
+   "rom": "AE2E",
+   "state": "mega-man-battle-network-2/us-classroom.ss",
+   "desc": "a new game, Lan in his classroom after the opening: MegaMan's status and money in one frame",
+   "rules": [
+    "MMBN2-2"
+   ],
+   "shots": {
+    "status": 90
+   },
+   "checks": [
+    {
+     "rule": "MMBN2-2",
+     "what": "MegaMan's status taken",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "MMBN2-2",
+     "what": "black above the frame (centred top to bottom)",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      70,
+      991,
+      124
+     ],
+     "color": "000000",
+     "shot": "status"
+    },
+    {
+     "rule": "MMBN2-2",
+     "what": "the money's row left of it in the panel's top row's colour",
+     "type": "uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      40,
+      164,
+      620,
+      236
+     ],
+     "color": "5A6B6B"
+    },
+    {
+     "rule": "MMBN2-2",
+     "what": "the amount at the top right",
+     "type": "not_uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      760,
+      164,
+      991,
+      236
+     ],
+     "color": "5A6B6B"
+    }
+   ]
+  },
+  {
+   "id": "mmbn2-us-town",
+   "rom": "AE2E",
+   "state": "mega-man-battle-network-2/us-town.ss",
+   "desc": "Lan in ACDC Town: MegaMan's status and money",
+   "rules": [
+    "MMBN2-2"
+   ],
+   "shots": {
+    "status": 90
+   },
+   "checks": [
+    {
+     "rule": "MMBN2-2",
+     "what": "MegaMan's status taken",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "MMBN2-2",
+     "what": "black above the frame (centred top to bottom)",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      70,
+      991,
+      124
+     ],
+     "color": "000000",
+     "shot": "status"
+    },
+    {
+     "rule": "MMBN2-2",
+     "what": "the money's row left of it in the panel's top row's colour",
+     "type": "uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      40,
+      164,
+      620,
+      236
+     ],
+     "color": "5A6B6B"
+    },
+    {
+     "rule": "MMBN2-2",
+     "what": "the amount at the top right",
+     "type": "not_uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      760,
+      164,
+      991,
+      236
+     ],
+     "color": "5A6B6B"
+    }
+   ]
+  },
+  {
+   "id": "mmbn2-us-style",
+   "rom": "AE2E",
+   "state": "mega-man-battle-network-2/us-style.ss",
+   "desc": "MegaMan in HeatGuts with a PowerUP to use (12345 zenny, 340 HP): the Style row; the cursor by it left out",
+   "rules": [
+    "MMBN2-2"
+   ],
+   "shots": {
+    "status": 90
+   },
+   "checks": [
+    {
+     "rule": "MMBN2-2",
+     "what": "MegaMan's status taken",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "MMBN2-2",
+     "what": "no cursor by STYLE (the stats' box's colour there)",
+     "type": "pixels",
+     "shot": "status",
+     "screen": "second",
+     "probes": [
+      [
+       412,
+       360,
+       "5A6B6B"
+      ]
+     ]
+    },
+    {
+     "rule": "MMBN2-2",
+     "what": "black above the frame (centred top to bottom)",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      70,
+      991,
+      124
+     ],
+     "color": "000000",
+     "shot": "status"
+    },
+    {
+     "rule": "MMBN2-2",
+     "what": "the money's row left of it in the panel's top row's colour",
+     "type": "uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      40,
+      164,
+      620,
+      236
+     ],
+     "color": "5A6B6B"
+    },
+    {
+     "rule": "MMBN2-2",
+     "what": "the amount at the top right",
+     "type": "not_uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      760,
+      164,
+      991,
+      236
+     ],
+     "color": "5A6B6B"
+    }
+   ]
+  },
+  {
+   "id": "mmbn2-us-net",
+   "rom": "AE2E",
+   "state": "mega-man-battle-network-2/us-net.ss",
+   "desc": "MegaMan on the net (Den Area: 0x81): the area's map, a third of its size, centred on him",
+   "rules": [
+    "MMBN2-6"
+   ],
+   "shots": {
+    "map": 120
+   },
+   "checks": [
+    {
+     "rule": "MMBN2-6",
+     "what": "the area's map made",
+     "type": "log",
+     "match": "area [0-9A-F]{4} mapped"
+    },
+    {
+     "rule": "MMBN2-6",
+     "what": "the map drawn around him (the middle of the second screen not black)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      312,
+      284,
+      712,
+      484
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "mmbn2-us-into-battle",
+   "rom": "AE2E",
+   "state": "mega-man-battle-network-2/us-net.ss",
+   "desc": "running about the net into a random battle (Spikey): the map while walking, MegaMan's status (taken on the net) in the battle",
+   "rules": [
+    "MMBN2-4",
+    "MMBN2-6"
+   ],
+   "input": [
+    [
+     1,
+     "B+LEFT"
+    ],
+    [
+     11,
+     "B+LEFT"
+    ],
+    [
+     21,
+     "B+LEFT"
+    ],
+    [
+     31,
+     "B+LEFT"
+    ],
+    [
+     41,
+     "B+RIGHT"
+    ],
+    [
+     51,
+     "B+RIGHT"
+    ],
+    [
+     61,
+     "B+RIGHT"
+    ],
+    [
+     71,
+     "B+RIGHT"
+    ],
+    [
+     81,
+     "B+UP"
+    ],
+    [
+     91,
+     "B+UP"
+    ],
+    [
+     101,
+     "B+UP"
+    ],
+    [
+     111,
+     "B+UP"
+    ],
+    [
+     121,
+     "B+DOWN"
+    ],
+    [
+     131,
+     "B+DOWN"
+    ],
+    [
+     141,
+     "B+DOWN"
+    ],
+    [
+     151,
+     "B+DOWN"
+    ],
+    [
+     161,
+     "B+LEFT"
+    ],
+    [
+     171,
+     "B+LEFT"
+    ],
+    [
+     181,
+     "B+LEFT"
+    ],
+    [
+     191,
+     "B+LEFT"
+    ],
+    [
+     201,
+     "B+RIGHT"
+    ],
+    [
+     211,
+     "B+RIGHT"
+    ],
+    [
+     221,
+     "B+RIGHT"
+    ],
+    [
+     231,
+     "B+RIGHT"
+    ],
+    [
+     241,
+     "B+UP"
+    ],
+    [
+     251,
+     "B+UP"
+    ],
+    [
+     261,
+     "B+UP"
+    ],
+    [
+     271,
+     "B+UP"
+    ],
+    [
+     281,
+     "B+DOWN"
+    ],
+    [
+     291,
+     "B+DOWN"
+    ],
+    [
+     301,
+     "B+DOWN"
+    ],
+    [
+     311,
+     "B+DOWN"
+    ],
+    [
+     321,
+     "B+LEFT"
+    ],
+    [
+     331,
+     "B+LEFT"
+    ],
+    [
+     341,
+     "B+LEFT"
+    ],
+    [
+     351,
+     "B+LEFT"
+    ],
+    [
+     361,
+     "B+RIGHT"
+    ],
+    [
+     371,
+     "B+RIGHT"
+    ],
+    [
+     381,
+     "B+RIGHT"
+    ],
+    [
+     391,
+     "B+RIGHT"
+    ],
+    [
+     401,
+     "B+UP"
+    ],
+    [
+     411,
+     "-"
+    ]
+   ],
+   "shots": {
+    "walking": 200,
+    "battle": 520
+   },
+   "checks": [
+    {
+     "rule": "MMBN2-6",
+     "what": "the map while walking",
+     "type": "log",
+     "match": "area 0081 mapped"
+    },
+    {
+     "rule": "MMBN2-4",
+     "what": "black above the frame (centred top to bottom)",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      70,
+      991,
+      124
+     ],
+     "color": "000000",
+     "shot": "battle"
+    },
+    {
+     "rule": "MMBN2-4",
+     "what": "the money's row left of it in the panel's top row's colour",
+     "type": "uniform",
+     "shot": "battle",
+     "screen": "second",
+     "rect": [
+      40,
+      164,
+      620,
+      236
+     ],
+     "color": "5A6B6B"
+    },
+    {
+     "rule": "MMBN2-4",
+     "what": "the amount at the top right",
+     "type": "not_uniform",
+     "shot": "battle",
+     "screen": "second",
+     "rect": [
+      760,
+      164,
+      991,
+      236
+     ],
+     "color": "5A6B6B"
+    }
+   ]
+  },
+  {
+   "id": "mmbn2-us-pet-menu",
+   "rom": "AE2E",
+   "state": "mega-man-battle-network-2/us-town.ss",
+   "desc": "START's menu, then the MegaMan screen, open in the game: the status stays as it was",
+   "rules": [
+    "MMBN2-3"
+   ],
+   "input": [
+    [
+     100,
+     "START"
+    ],
+    [
+     104,
+     "-"
+    ],
+    [
+     130,
+     "DOWN"
+    ],
+    [
+     134,
+     "-"
+    ],
+    [
+     146,
+     "DOWN"
+    ],
+    [
+     150,
+     "-"
+    ],
+    [
+     162,
+     "DOWN"
+    ],
+    [
+     166,
+     "-"
+    ],
+    [
+     180,
+     "A"
+    ],
+    [
+     184,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 90,
+    "menu": 140,
+    "megaman": 300
+   },
+   "checks": [
+    {
+     "rule": "MMBN2-3",
+     "what": "the same picture with the MegaMan screen open",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       768,
+       1024,
+       1536
+      ]
+     },
+     "b": {
+      "shot": "megaman",
+      "rect": [
+       0,
+       768,
+       1024,
+       1536
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "mmbn2-us-conversation",
+   "rom": "AE2E",
+   "state": "mega-man-battle-network-2/us-classroom.ss",
+   "desc": "walking to the classroom's door: MegaMan stops Lan (\"Don't go home now!!\"): the status stays",
+   "rules": [
+    "MMBN2-3"
+   ],
+   "input": [
+    [
+     100,
+     "DOWN"
+    ],
+    [
+     130,
+     "RIGHT"
+    ],
+    [
+     190,
+     "RIGHT+DOWN"
+    ],
+    [
+     230,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 90,
+    "talking": 300
+   },
+   "checks": [
+    {
+     "rule": "MMBN2-3",
+     "what": "the same picture while MegaMan talks",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       768,
+       1024,
+       1536
+      ]
+     },
+     "b": {
+      "shot": "talking",
+      "rect": [
+       0,
+       768,
+       1024,
+       1536
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "mmbn2-us-battle-custom",
+   "rom": "AE2E",
+   "state": "mega-man-battle-network-2/us-battle-custom.ss",
+   "desc": "a state loaded in a battle's custom screen: the battle as the game draws it, the logo on the second screen (no status taken before it)",
+   "rules": [
+    "MMBN2-4"
+   ],
+   "shots": {
+    "custom": 60
+   },
+   "checks": [
+    {
+     "rule": "MMBN2-4",
+     "what": "the logo (idle)",
+     "type": "uniform",
+     "shot": "custom",
+     "screen": "second",
+     "rect": [
+      100,
+      110,
+      260,
+      170
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "MMBN2-4",
+     "what": "nothing taken",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "mmbn2-us-battle-status",
+   "rom": "AE2E",
+   "state": "mega-man-battle-network-2/us-town.ss",
+   "desc": "MegaMan's status taken in town, then a battle loaded (its custom screen, then fighting): the status stays through the battle",
+   "rules": [
+    "MMBN2-4"
+   ],
+   "input": [
+    [
+     120,
+     "LOAD:mega-man-battle-network-2/us-battle-custom.ss"
+    ],
+    [
+     200,
+     "START"
+    ],
+    [
+     204,
+     "-"
+    ],
+    [
+     214,
+     "A"
+    ],
+    [
+     218,
+     "-"
+    ]
+   ],
+   "shots": {
+    "custom": 160,
+    "fighting": 300
+   },
+   "checks": [
+    {
+     "rule": "MMBN2-4",
+     "what": "black above the frame (centred top to bottom)",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      70,
+      991,
+      124
+     ],
+     "color": "000000",
+     "shot": "custom"
+    },
+    {
+     "rule": "MMBN2-4",
+     "what": "the money's row left of it in the panel's top row's colour",
+     "type": "uniform",
+     "shot": "custom",
+     "screen": "second",
+     "rect": [
+      40,
+      164,
+      620,
+      236
+     ],
+     "color": "5A6B6B"
+    },
+    {
+     "rule": "MMBN2-4",
+     "what": "the amount at the top right",
+     "type": "not_uniform",
+     "shot": "custom",
+     "screen": "second",
+     "rect": [
+      760,
+      164,
+      991,
+      236
+     ],
+     "color": "5A6B6B"
+    },
+    {
+     "rule": "MMBN2-4",
+     "what": "black above the frame (centred top to bottom)",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      70,
+      991,
+      124
+     ],
+     "color": "000000",
+     "shot": "fighting"
+    },
+    {
+     "rule": "MMBN2-4",
+     "what": "the money's row left of it in the panel's top row's colour",
+     "type": "uniform",
+     "shot": "fighting",
+     "screen": "second",
+     "rect": [
+      40,
+      164,
+      620,
+      236
+     ],
+     "color": "5A6B6B"
+    },
+    {
+     "rule": "MMBN2-4",
+     "what": "the amount at the top right",
+     "type": "not_uniform",
+     "shot": "fighting",
+     "screen": "second",
+     "rect": [
+      760,
+      164,
+      991,
+      236
+     ],
+     "color": "5A6B6B"
+    }
+   ]
+  },
+  {
+   "id": "mmbn2-us-results",
+   "rom": "AE2E",
+   "state": "mega-man-battle-network-2/us-results.ss",
+   "desc": "a battle's results, then back on the net: the logo, then the area's map",
+   "rules": [
+    "MMBN2-4",
+    "MMBN2-6"
+   ],
+   "input": [
+    [
+     30,
+     "A"
+    ],
+    [
+     34,
+     "-"
+    ],
+    [
+     90,
+     "A"
+    ],
+    [
+     94,
+     "-"
+    ],
+    [
+     150,
+     "A"
+    ],
+    [
+     154,
+     "-"
+    ]
+   ],
+   "shots": {
+    "results": 20,
+    "walking": 300
+   },
+   "checks": [
+    {
+     "rule": "MMBN2-6",
+     "what": "the map made back on the net",
+     "type": "log",
+     "match": "area 0081 mapped"
+    },
+    {
+     "rule": "MMBN2-6",
+     "what": "the map on the second screen",
+     "type": "not_uniform",
+     "shot": "walking",
+     "screen": "second",
+     "rect": [
+      312,
+      284,
+      712,
+      484
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "mmbn2-us-game-over",
+   "rom": "AE2E",
+   "state": "mega-man-battle-network-2/us-town.ss",
+   "desc": "MegaMan's status taken, then a battle where he's deleted (loaded in): the status in the battle, the logo at once on the game over screen",
+   "rules": [
+    "MMBN2-1",
+    "MMBN2-4"
+   ],
+   "input": [
+    [
+     120,
+     "LOAD:mega-man-battle-network-2/us-dying.ss"
+    ]
+   ],
+   "shots": {
+    "battle": 130,
+    "game_over": 400
+   },
+   "checks": [
+    {
+     "rule": "MMBN2-4",
+     "what": "black above the frame (centred top to bottom)",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      70,
+      991,
+      124
+     ],
+     "color": "000000",
+     "shot": "battle"
+    },
+    {
+     "rule": "MMBN2-4",
+     "what": "the money's row left of it in the panel's top row's colour",
+     "type": "uniform",
+     "shot": "battle",
+     "screen": "second",
+     "rect": [
+      40,
+      164,
+      620,
+      236
+     ],
+     "color": "5A6B6B"
+    },
+    {
+     "rule": "MMBN2-4",
+     "what": "the amount at the top right",
+     "type": "not_uniform",
+     "shot": "battle",
+     "screen": "second",
+     "rect": [
+      760,
+      164,
+      991,
+      236
+     ],
+     "color": "5A6B6B"
+    },
+    {
+     "rule": "MMBN2-1",
+     "what": "game over: the logo",
+     "type": "uniform",
+     "shot": "game_over",
+     "screen": "second",
+     "rect": [
+      100,
+      110,
+      260,
+      170
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "mmbn2-us-one-screen",
+   "rom": "AE2E",
+   "state": "mega-man-battle-network-2/us-battle-custom.ss",
+   "desc": "a battle's custom screen with one screen: the game as it is",
+   "rules": [
+    "MMBN2-5"
+   ],
+   "config": {
+    "layout": "single"
+   },
+   "shots": {
+    "custom": 60
+   },
+   "checks": [
+    {
+     "rule": "MMBN2-5",
+     "what": "nothing on a second screen",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "mmbn2-eu-town",
+   "rom": "AM2P",
+   "state": "mega-man-battle-network-2/eu-town.ss",
+   "desc": "Europe: Lan in ACDC Town, MegaMan's status and money",
+   "rules": [
+    "MMBN2-2"
+   ],
+   "shots": {
+    "status": 90
+   },
+   "checks": [
+    {
+     "rule": "MMBN2-2",
+     "what": "MegaMan's status taken",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "MMBN2-2",
+     "what": "black above the frame (centred top to bottom)",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      70,
+      991,
+      124
+     ],
+     "color": "000000",
+     "shot": "status"
+    },
+    {
+     "rule": "MMBN2-2",
+     "what": "the money's row left of it in the panel's top row's colour",
+     "type": "uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      40,
+      164,
+      620,
+      236
+     ],
+     "color": "5A6B6B"
+    },
+    {
+     "rule": "MMBN2-2",
+     "what": "the amount at the top right",
+     "type": "not_uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      760,
+      164,
+      991,
+      236
+     ],
+     "color": "5A6B6B"
+    }
+   ]
+  },
+  {
+   "id": "mmbn2-eu-net",
+   "rom": "AM2P",
+   "state": "mega-man-battle-network-2/eu-net.ss",
+   "desc": "Europe: MegaMan on the net, the area's map",
+   "rules": [
+    "MMBN2-6"
+   ],
+   "shots": {
+    "map": 120
+   },
+   "checks": [
+    {
+     "rule": "MMBN2-6",
+     "what": "the area's map made",
+     "type": "log",
+     "match": "area [0-9A-F]{4} mapped"
+    }
+   ]
+  },
+  {
+   "id": "mmbn2-jp-classroom",
+   "rom": "AE2J",
+   "state": "mega-man-battle-network-2/jp-classroom.ss",
+   "desc": "Japan: a new game, Lan in his classroom: rockman.exe's status and money",
+   "rules": [
+    "MMBN2-2"
+   ],
+   "shots": {
+    "status": 90
+   },
+   "checks": [
+    {
+     "rule": "MMBN2-2",
+     "what": "the status taken",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "MMBN2-2",
+     "what": "black above the frame (centred top to bottom)",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      70,
+      991,
+      124
+     ],
+     "color": "000000",
+     "shot": "status"
+    },
+    {
+     "rule": "MMBN2-2",
+     "what": "the money's row left of it in the panel's top row's colour",
+     "type": "uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      40,
+      164,
+      620,
+      236
+     ],
+     "color": "5A6B6B"
+    },
+    {
+     "rule": "MMBN2-2",
+     "what": "the amount at the top right",
+     "type": "not_uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      760,
+      164,
+      991,
+      236
+     ],
+     "color": "5A6B6B"
+    }
+   ]
+  },
+  {
+   "id": "mmbn2-jp-town",
+   "rom": "AE2J",
+   "state": "mega-man-battle-network-2/jp-town.ss",
+   "desc": "Japan: Lan in town, the status and money",
+   "rules": [
+    "MMBN2-2"
+   ],
+   "shots": {
+    "status": 90
+   },
+   "checks": [
+    {
+     "rule": "MMBN2-2",
+     "what": "the status taken",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "MMBN2-2",
+     "what": "black above the frame (centred top to bottom)",
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      70,
+      991,
+      124
+     ],
+     "color": "000000",
+     "shot": "status"
+    },
+    {
+     "rule": "MMBN2-2",
+     "what": "the money's row left of it in the panel's top row's colour",
+     "type": "uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      40,
+      164,
+      620,
+      236
+     ],
+     "color": "5A6B6B"
+    },
+    {
+     "rule": "MMBN2-2",
+     "what": "the amount at the top right",
+     "type": "not_uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      760,
+      164,
+      991,
+      236
+     ],
+     "color": "5A6B6B"
+    }
+   ]
+  },
+  {
+   "id": "mmbn2-jp-net",
+   "rom": "AE2J",
+   "state": "mega-man-battle-network-2/jp-net.ss",
+   "desc": "Japan: on the net, the area's map",
+   "rules": [
+    "MMBN2-6"
+   ],
+   "shots": {
+    "map": 120
+   },
+   "checks": [
+    {
+     "rule": "MMBN2-6",
+     "what": "the area's map made",
+     "type": "log",
+     "match": "area [0-9A-F]{4} mapped"
+    }
+   ]
+  },
+  {
+   "id": "mmbn2-jp-rev1-town",
+   "rom": "AE2J+rev1",
+   "state": "mega-man-battle-network-2/jp-rev1-town.ss",
+   "desc": "Japan's Rev 1: the same",
+   "rules": [
+    "MMBN2-2"
+   ],
+   "shots": {
+    "status": 90
+   },
+   "checks": [
+    {
+     "rule": "MMBN2-2",
+     "what": "the status taken",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    }
+   ]
+  },
+  {
+   "id": "mmbn2-us-vc-net",
+   "rom": "AE2E+vc",
+   "state": "mega-man-battle-network-2/us-vc-net.ss",
+   "desc": "the Wii U Virtual Console dump: MegaMan on the net, the area's map",
+   "rules": [
+    "MMBN2-6"
+   ],
+   "shots": {
+    "map": 120
+   },
+   "checks": [
+    {
+     "rule": "MMBN2-6",
+     "what": "the area's map made",
+     "type": "log",
+     "match": "area [0-9A-F]{4} mapped"
+    }
+   ]
+  },
+  {
+   "id": "mmbn2-logo-ae2e",
+   "kind": "logo",
+   "rom": "AE2E",
+   "desc": "the logo (USA)",
+   "rules": [
+    "MMBN2-1"
+   ],
+   "checks": []
+  },
+  {
+   "id": "mmbn2-logo-am2p",
+   "kind": "logo",
+   "rom": "AM2P",
+   "desc": "the logo (Europe)",
+   "rules": [
+    "MMBN2-1"
+   ],
+   "checks": []
+  },
+  {
+   "id": "mmbn2-logo-ae2j",
+   "kind": "logo",
+   "rom": "AE2J",
+   "desc": "the logo (Japan)",
+   "rules": [
+    "MMBN2-1"
+   ],
+   "checks": []
+  }
+ ]
+}

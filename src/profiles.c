@@ -4187,6 +4187,20 @@ static bool mmbn_megaman_up(Emu* s) {
  * its size around the live camera. */
 #define MMBN_CAM 0x02004950     /* gCamera: cameraX (+4), cameraY (+6), playerRealPos (+0x10), bounds (+0x14..0x23) */
 #define MMBN_BGDM 0x02009A50    /* gBgDataManager: the layout's width (+0) and height (+1) in tiles */
+/* Mega Man Battle Network 2 (docs/games/mega-man-battle-network-2.md) is
+ * the same engine, its structures elsewhere: the maps' addresses by game */
+typedef struct {
+	uint32_t state, area, fading, cam, bgdm;
+	const char* title;
+} MmbnNet;
+static const MmbnNet mmbnNet[2] = {
+	{ MMBN_STATE, MMBN_AREA, MMBN_FADING, MMBN_CAM, MMBN_BGDM, "Mega Man Battle Network" },
+	{ 0x02009078, 0x02000DC4, 0x02009073, 0x02006370, 0x0200C1F0, "Mega Man Battle Network 2" },
+};
+static const MmbnNet* mmbn_net(const Emu* e) {
+	return &mmbnNet[e->gameCode[2] == '2']; /* (AE2E, AM2P, AE2J; the first game AREx) */
+}
+static const MmbnNet* mmbnN = &mmbnNet[0]; /* the live game's, set as a map is asked for */
 #define MMBN_SETTLE 4           /* frames from setting him down to the screen drawn */
 typedef struct {
 	uint16_t area;
@@ -4214,13 +4228,14 @@ static bool mmbn_area_net(uint16_t area) {
 /* the copy's camera brought to (cx, cy), as near as the game takes it, and
  * a frame of `layers` drawn there; false if the game stopped walking about */
 static bool mmbn_look(Emu* e, uint16_t area, uint32_t pos, int cx, int cy, unsigned layers, int* camx, int* camy) {
+	const MmbnNet* N = mmbnN;
 	/* (layers take effect as a state's registers load) */
 	emu_layers(e, layers);
 	emu_state_load(e, mmbnJob);
-	emu_write32(e, MMBN_CAM + 0x14, (uint32_t) (-30000 * 65536));
-	emu_write32(e, MMBN_CAM + 0x18, (uint32_t) (30000 * 65536));
-	emu_write32(e, MMBN_CAM + 0x1C, (uint32_t) (30000 * 65536));
-	emu_write32(e, MMBN_CAM + 0x20, (uint32_t) (-30000 * 65536));
+	emu_write32(e, N->cam + 0x14, (uint32_t) (-30000 * 65536));
+	emu_write32(e, N->cam + 0x18, (uint32_t) (30000 * 65536));
+	emu_write32(e, N->cam + 0x1C, (uint32_t) (30000 * 65536));
+	emu_write32(e, N->cam + 0x20, (uint32_t) (-30000 * 65536));
 	int x = (cx - 2 * cy) / 2, y = (cx + 2 * cy) / 2;
 	emu_write32(e, pos, (uint32_t) (x * 65536));
 	emu_write32(e, pos + 4, (uint32_t) (y * 65536));
@@ -4228,8 +4243,8 @@ static bool mmbn_look(Emu* e, uint16_t area, uint32_t pos, int cx, int cy, unsig
 	for (int f = 0; f < MMBN_SETTLE; ++f) emu_frame_blind(e, 0);
 	emu_write16(e, 0x05000000, 0x7C1F); /* (magenta) */
 	emu_frame(e, 0);
-	*camx = (int16_t) emu_read16(e, MMBN_CAM + 4), *camy = (int16_t) emu_read16(e, MMBN_CAM + 6);
-	return emu_read8(e, MMBN_STATE) == 4 && emu_read16(e, MMBN_AREA) == area;
+	*camx = (int16_t) emu_read16(e, N->cam + 4), *camy = (int16_t) emu_read16(e, N->cam + 6);
+	return emu_read8(e, N->state) == 4 && emu_read16(e, N->area) == area;
 }
 
 /* MegaMan's head, the marker on the map: in the copy, set down in a corner
@@ -4237,13 +4252,14 @@ static bool mmbn_look(Emu* e, uint16_t area, uint32_t pos, int cx, int cy, unsig
  * standing for 20 frames, sprites alone; his sprite above his feet, from
  * its top to its narrowest row below the face (his chin; 16 rows at most) */
 static void mmbn_head(Emu* e, uint16_t area, uint32_t pos, MmbnMap* m, uint32_t magenta) {
+	const MmbnNet* N = mmbnN;
 	m->headW = m->headH = 0;
 	emu_layers(e, 0x10);
 	emu_state_load(e, mmbnJob);
-	emu_write32(e, MMBN_CAM + 0x14, (uint32_t) (-30000 * 65536));
-	emu_write32(e, MMBN_CAM + 0x18, (uint32_t) (30000 * 65536));
-	emu_write32(e, MMBN_CAM + 0x1C, (uint32_t) (30000 * 65536));
-	emu_write32(e, MMBN_CAM + 0x20, (uint32_t) (-30000 * 65536));
+	emu_write32(e, N->cam + 0x14, (uint32_t) (-30000 * 65536));
+	emu_write32(e, N->cam + 0x18, (uint32_t) (30000 * 65536));
+	emu_write32(e, N->cam + 0x1C, (uint32_t) (30000 * 65536));
+	emu_write32(e, N->cam + 0x20, (uint32_t) (-30000 * 65536));
 	int cx = m->x0 + 40, cy = m->y0 + 60, x = (cx - 2 * cy) / 2, y = (cx + 2 * cy) / 2;
 	emu_write32(e, pos, (uint32_t) (x * 65536));
 	emu_write32(e, pos + 4, (uint32_t) (y * 65536));
@@ -4253,9 +4269,9 @@ static void mmbn_head(Emu* e, uint16_t area, uint32_t pos, MmbnMap* m, uint32_t 
 	emu_write16(e, 0x05000000, 0x7C1F);
 	emu_frame(e, 0);
 	emu_layers(e, 0x1F);
-	if (emu_read8(e, MMBN_STATE) != 4 || emu_read16(e, MMBN_AREA) != area) return;
+	if (emu_read8(e, N->state) != 4 || emu_read16(e, N->area) != area) return;
 	x = (int32_t) emu_read32(e, pos) >> 16, y = (int32_t) emu_read32(e, pos + 4) >> 16;
-	int camx = (int16_t) emu_read16(e, MMBN_CAM + 4), camy = (int16_t) emu_read16(e, MMBN_CAM + 6);
+	int camx = (int16_t) emu_read16(e, N->cam + 4), camy = (int16_t) emu_read16(e, N->cam + 6);
 	int fx = x + y - camx + GBA_W / 2, fy = (y - x) / 2 - camy + GBA_H / 2; /* his feet on the screen */
 	if (fx < 12 || fx > GBA_W - 12 || fy < 48 || fy > GBA_H) return;
 	int top = -1, wid[16] = { 0 };
@@ -4286,6 +4302,7 @@ static void mmbn_head(Emu* e, uint16_t area, uint32_t pos, MmbnMap* m, uint32_t 
 }
 
 static void* mmbn_worker(void* arg) {
+	const MmbnNet* N = mmbnN;
 	(void) arg;
 	Emu* e = &mmbnEmu;
 	MmbnMap* m = &mmbnMap;
@@ -4296,7 +4313,7 @@ static void* mmbn_worker(void* arg) {
 	if (!mmbnEmuOpen && (why = "the ROM didn't open")) goto out;
 	if (!emu_state_load(e, mmbnJob) && (why = "the game's moment didn't load")) goto out;
 	uint16_t area = m->area;
-	uint32_t pos = emu_read32(e, MMBN_CAM + 0x10);
+	uint32_t pos = emu_read32(e, N->cam + 0x10);
 	if ((pos < 0x02000000 || pos >= 0x02040000) && (why = "no position")) goto out;
 	int W = m->w, H = m->h, X0 = m->x0, Y0 = m->y0, cx, cy;
 	/* the copy's magenta, as its renderer puts it out */
@@ -4339,8 +4356,8 @@ static void* mmbn_worker(void* arg) {
 				}
 				if (!mmbn_look(e, area, pos, tx, ty, layers, &cx, &cy)) {
 					if (getenv("GBADS_DEBUG"))
-						fprintf(stderr, "mmbn map: no screen at %d,%d (state %d, area %04X)\n", tx, ty, emu_read8(e, MMBN_STATE),
-						        emu_read16(e, MMBN_AREA));
+						fprintf(stderr, "mmbn map: no screen at %d,%d (state %d, area %04X)\n", tx, ty, emu_read8(e, N->state),
+						        emu_read16(e, N->area));
 					continue;
 				}
 				for (int sy = 0; sy < GBA_H; ++sy) {
@@ -4372,14 +4389,14 @@ static void* mmbn_worker(void* arg) {
 		m->done = true;
 		struct timespec t1;
 		clock_gettime(CLOCK_MONOTONIC, &t1);
-		fprintf(stderr, "Mega Man Battle Network: area %04X mapped (%dx%d, layers %X, %ld ms)\n", area, W, H, layers,
+		fprintf(stderr, "%s: area %04X mapped (%dx%d, layers %X, %ld ms)\n", N->title, area, W, H, layers,
 		        (long) ((t1.tv_sec - t0.tv_sec) * 1000 + (t1.tv_nsec - t0.tv_nsec) / 1000000));
 	}
 out:
 	if (why) {
 		m->done = m->failed = true;
 		/* (always logged: why the second screen keeps the logo on the net) */
-		fprintf(stderr, "Mega Man Battle Network: area %04X not mapped: %s\n", m->area, why);
+		fprintf(stderr, "%s: area %04X not mapped: %s\n", N->title, m->area, why);
 	}
 	mmbnBusy = false;
 	return NULL;
@@ -4389,15 +4406,16 @@ out:
  * camera (MMBN-6); a new area's map made beside the game */
 static const uint32_t* mmbn_live_view(Emu* live, const char* rom) {
 	static uint32_t out[GBA_W * GBA_H];
-	uint8_t st = emu_read8(live, MMBN_STATE);
-	uint16_t area = emu_read16(live, MMBN_AREA);
+	const MmbnNet* N = mmbnN = mmbn_net(live);
+	uint8_t st = emu_read8(live, N->state);
+	uint16_t area = emu_read16(live, N->area);
 	if ((st != 4 && st != 0x18) || !mmbn_area_net(area)) return NULL;
 	/* a warp: the area's number changes before its layout is in; a new map
 	 * waits for half a second of the same area, walking, no fade */
 	static uint16_t settledArea;
 	static int settledFor;
 	if (area != settledArea) settledArea = area, settledFor = 0;
-	else if (st == 4 && !emu_read8(live, MMBN_FADING)) ++settledFor;
+	else if (st == 4 && !emu_read8(live, N->fading)) ++settledFor;
 	else settledFor = 0;
 	MmbnMap* m = &mmbnMap;
 	if (m->px && m->area != area) {
@@ -4413,7 +4431,7 @@ static const uint32_t* mmbn_live_view(Emu* live, const char* rom) {
 	if (!m->px) {
 		if (st != 4 || settledFor < 30 || mmbnBusy) return NULL;
 		if (mmbnThread) pthread_join(mmbnThread, NULL), mmbnThread = 0;
-		int tw = emu_read8(live, MMBN_BGDM), th = emu_read8(live, MMBN_BGDM + 1);
+		int tw = emu_read8(live, N->bgdm), th = emu_read8(live, N->bgdm + 1);
 		if (tw < 30 || th < 20) return NULL;
 		m->area = area;
 		m->w = tw * 8, m->h = th * 8, m->x0 = -tw * 4, m->y0 = -th * 4;
@@ -4453,8 +4471,8 @@ static const uint32_t* mmbn_live_view(Emu* live, const char* rom) {
 	 * kept within the area's edges; an area smaller than the screen in
 	 * its middle */
 	enum { Z = 3 };
-	int camx = (int16_t) emu_read16(live, MMBN_CAM + 4), camy = (int16_t) emu_read16(live, MMBN_CAM + 6);
-	uint32_t pos = emu_read32(live, MMBN_CAM + 0x10);
+	int camx = (int16_t) emu_read16(live, N->cam + 4), camy = (int16_t) emu_read16(live, N->cam + 6);
+	uint32_t pos = emu_read32(live, N->cam + 0x10);
 	if (pos >= 0x02000000 && pos < 0x02040000) {
 		int x = (int32_t) emu_read32(live, pos) >> 16, y = (int32_t) emu_read32(live, pos + 4) >> 16;
 		int z = (int32_t) emu_read32(live, pos + 8) >> 16; /* (his height: on a raised floor, higher up) */
@@ -4576,6 +4594,134 @@ static const char* mmbn_compose(Emu* s, const void* state, uint32_t* out, int w,
 		for (int x = 0; x < GBA_W; ++x) o[x] = x < MMBN_MONEY_X || m[x] == light ? head : m[x];
 	}
 	memcpy(&out[(y0 + MMBN_EDGE + MMBN_MONEY_H) * GBA_W], panel, sizeof(panel));
+	return NULL;
+}
+
+/* ---------------------------------------------------------- Mega Man Battle Network 2
+ *
+ * The first game's second screen (docs/games/mega-man-battle-network-2.md):
+ * walking about, MegaMan's status and money in one frame (MMBN2-2),
+ * mmbn2_compose on the shadow core: START's menu opened, the money from its
+ * box at the top right (its HP line left out), then the MegaMan screen's
+ * panel (rows 0-95) with its cursor (a sprite) left out; put together as
+ * the first game's, the box's orange edge across the screen above and
+ * below. On the net, the area's map (MMBN2-6): mmbn_live_view, shared with
+ * the first game (mmbnNet). Every release has the same RAM addresses. */
+#define MMBN2_STATE 0x02009078  /* gManager.gameState: 4 walking about, 8 battle, 0x18 a PET menu */
+#define MMBN2_FADING 0x02009073 /* gManager: a fade going */
+#define MMBN2_AREA 0x02000DC4   /* gWorld: the area (halfword) */
+#define MMBN2_HP 0x02001130     /* HP, then its maximum (what the MegaMan screen prints; gWorld +0x20 a copy) */
+#define MMBN2_ZENNY 0x02000E34  /* gWorld: the money (word) */
+#define MMBN2_SMENU 0x0200D580  /* START's menu: state (+0, 4 open), cursor (+6, 3 MegaMan) */
+#define MMBN2_MENU 0x02007EA0   /* the PET's menus: which (+0, 0x0C MegaMan), step (+1, 4 open) */
+/* START's box (BG0): x 146-239, rows 0-47; its outline and orange frame
+ * rows 0-3 and 44-47, columns 146-151; inside x 152-239: the dark band
+ * rows 4-7, HP rows 10-22, the money rows 26-38 */
+#define MMBN2_BOX_X 152
+#define MMBN2_BAND_Y 4
+#define MMBN2_BAND_H 4
+#define MMBN2_MONEY_Y 23        /* the money's rows, 3 above it to 4 below */
+#define MMBN2_MONEY_H 20
+#define MMBN2_BOX_H 48
+#define MMBN2_EDGE 4
+#define MMBN2_GLOW_X 160        /* its edges' glow, x 160-231 (72 wide), with plain orange either side */
+#define MMBN2_GLOW_W 72
+#define MMBN2_PLAIN_X 154
+static const Probe mmbn2Panel[8] = { { 5, 5, 0x5A6B6B }, { 120, 3, 0x5A6B6B }, { 238, 10, 0x5A6B6B }, { 2, 50, 0x313939 },
+                                     { 205, 70, 0x313939 }, { 230, 90, 0x313939 }, { 120, 92, 0x313939 }, { 150, 94, 0x313939 } };
+static const Probe mmbn2Money[8] = { { 146, 0, 0x313939 }, { 146, 47, 0x313939 }, { 148, 2, 0xCE5A39 }, { 148, 45, 0xCE5A39 },
+                                     { 200, 1, 0xF78C00 }, { 200, 45, 0xF78C00 }, { 180, 5, 0x4A5A63 }, { 160, 25, 0x5A6B6B } };
+/* the MegaMan screen's cursor (a 16x16 sprite at x 88, Japan's at 96), by
+ * the STYLE / ATTACK / RAPID / CHARGE rows; MegaMan's sprites left of it */
+#define MMBN2_CURSOR_X0 72
+#define MMBN2_CURSOR_X1 119
+#define MMBN2_CURSOR_Y0 16
+static bool mmbn2_megaman_up(Emu* s) {
+	return emu_read8(s, MMBN2_STATE) == 0x18 && emu_read8(s, MMBN2_MENU) == 0x0C && emu_read8(s, MMBN2_MENU + 1) == 4 &&
+	       !emu_read8(s, MMBN2_FADING);
+}
+static const char* mmbn2_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	if (w != GBA_W || h != GBA_H) return "not a GBA screen";
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame_blind(s, 0);
+	if (emu_read8(s, MMBN2_STATE) != 4) return "not walking about";
+	/* (on the net too: the map's shown there while walking about, MMBN2-6,
+	 * the status in its battles, MMBN2-4) */
+	mmbn_tap(s, K_START);
+	int f = 0;
+	while (f < 40 && emu_read8(s, MMBN2_SMENU) != 4) emu_frame_blind(s, 0), ++f;
+	if (emu_cancelled(s)) return "called off";
+	if (emu_read8(s, MMBN2_SMENU) != 4) return "START opened nothing";
+	aw_run(s, 0, 3); /* (drawn) */
+	if (emu_cancelled(s)) return "called off";
+	/* the box, from a frame drawn with the menu's layer (BG0) alone */
+	static uint8_t tmp[0x80000];
+	if (emu_state_size(s) > sizeof(tmp) || !emu_state_save(s, tmp)) return "state save failed";
+	emu_layers(s, 0x01);
+	emu_state_load(s, tmp); /* (the layers take effect as the display registers are loaded) */
+	emu_frame(s, 0);
+	static uint32_t box[MMBN2_BOX_H * GBA_W];
+	memcpy(box, s->fb, sizeof(box));
+	emu_layers(s, 0x1F);
+	emu_state_load(s, tmp); /* every layer back on */
+	if (emu_cancelled(s)) return "called off";
+	for (int i = 0; i < 8; ++i) {
+		uint32_t c = box[mmbn2Money[i].y * GBA_W + mmbn2Money[i].x], want = mmbn2Money[i].rgb;
+		if (abs((int) (c & 0xFF) - (int) (want >> 16)) > 8 || abs((int) ((c >> 8) & 0xFF) - (int) ((want >> 8) & 0xFF)) > 8 ||
+		    abs((int) ((c >> 16) & 0xFF) - (int) (want & 0xFF)) > 8)
+			return "no money box";
+	}
+	for (int i = 0; i < 10 && emu_read8(s, MMBN2_SMENU + 6) != 3; ++i)
+		mmbn_tap(s, emu_read8(s, MMBN2_SMENU + 6) < 3 ? K_DOWN : K_UP);
+	if (emu_read8(s, MMBN2_SMENU + 6) != 3) return "MegaMan not reached in the menu";
+	mmbn_tap(s, K_A);
+	f = 0;
+	while (f < 90 && !mmbn2_megaman_up(s)) emu_frame_blind(s, 0), ++f;
+	if (emu_cancelled(s)) return "called off";
+	if (!mmbn2_megaman_up(s)) return "the MegaMan screen didn't open";
+	aw_run(s, 0, 4); /* (its values printed) */
+	if (emu_cancelled(s)) return "called off";
+	if (!som_probes(s, mmbn2Panel, 8, 8, 8)) return "not the MegaMan screen";
+	/* the panel, then the cursor (a sprite, by the rows) from a frame
+	 * drawn without sprites there (MegaMan's are left of it) */
+	static uint32_t panel[MMBN_PANEL_ROWS * GBA_W];
+	memcpy(panel, s->fb, sizeof(panel));
+	if (!emu_state_save(s, tmp)) return "state save failed";
+	emu_layers(s, 0x0F);
+	emu_state_load(s, tmp);
+	emu_frame(s, 0);
+	for (int y = MMBN2_CURSOR_Y0; y < MMBN_PANEL_ROWS; ++y)
+		for (int x = MMBN2_CURSOR_X0; x <= MMBN2_CURSOR_X1; ++x) panel[y * GBA_W + x] = s->fb[y * GBA_W + x];
+	emu_layers(s, 0x1F);
+	emu_state_load(s, tmp); /* every layer back on */
+	/* the frame: edge, money, panel, edge, centred top to bottom */
+	for (int i = 0; i < GBA_W * GBA_H; ++i) out[i] = 0xFF000000;
+	int all = 2 * MMBN2_EDGE + MMBN2_BAND_H + MMBN2_MONEY_H + MMBN_PANEL_ROWS, y0 = (GBA_H - all) / 2;
+	int glow0 = (GBA_W - MMBN2_GLOW_W) / 2; /* (the glow in the middle) */
+	for (int e = 0; e < 2; ++e) {
+		int from = e ? MMBN2_BOX_H - MMBN2_EDGE : 0, to = e ? y0 + all - MMBN2_EDGE : y0;
+		for (int r = 0; r < MMBN2_EDGE; ++r) {
+			const uint32_t* src = &box[(from + r) * GBA_W];
+			for (int x = 0; x < GBA_W; ++x) {
+				int g = x - glow0;
+				out[(to + r) * GBA_W + x] = g >= 0 && g < MMBN2_GLOW_W ? src[MMBN2_GLOW_X + g] : src[MMBN2_PLAIN_X];
+			}
+		}
+	}
+	/* the box's dark band carried across the screen, then the money's rows
+	 * in the panel's top row's colour (the box's lighter grey too), so the
+	 * two read as one piece */
+	uint32_t head = panel[2 * GBA_W + 2], light = box[(MMBN2_MONEY_Y + 1) * GBA_W + MMBN2_BOX_X + 2];
+	int y = y0 + MMBN2_EDGE;
+	for (int r = 0; r < MMBN2_BAND_H; ++r, ++y) {
+		const uint32_t* m = &box[(MMBN2_BAND_Y + r) * GBA_W];
+		for (int x = 0; x < GBA_W; ++x) out[y * GBA_W + x] = m[x < MMBN2_BOX_X ? MMBN2_BOX_X : x];
+	}
+	for (int r = 0; r < MMBN2_MONEY_H; ++r, ++y) {
+		const uint32_t* m = &box[(MMBN2_MONEY_Y + r) * GBA_W];
+		for (int x = 0; x < GBA_W; ++x) out[y * GBA_W + x] = x < MMBN2_BOX_X || m[x] == light ? head : m[x];
+	}
+	memcpy(&out[y * GBA_W], panel, sizeof(panel));
 	return NULL;
 }
 
@@ -7575,6 +7721,30 @@ static const MapProfile profiles[] = {
 		.logo = { .wait = 400, .layers = 0x8, .maxY = 96 },
 	},
 	{
+		/* Mega Man Battle Network 2 (USA, the Wii U's too; Europe AM2P,
+		 * Japan Battle Network Rockman EXE 2: variants). As the first
+		 * game: walking about, the PET's MegaMan screen with the money
+		 * (mmbn2_compose, MMBN2-2), kept through battles (MMBN2-4); on the
+		 * net the area's map (MMBN2-6) */
+		.codes = { "AE2E" },
+		.title = "Mega Man Battle Network 2",
+		.compose = mmbn2_compose,
+		.liveView = mmbn_live_view,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* walking about (scenes too: START opens nothing there, the last
+		 * picture stays, MMBN2-3) */
+		.live = { { MMBN2_STATE, 0xFF, 4, 1 } },
+		/* the title, game over (0x20): the logo, the status forgotten
+		 * (MMBN2-1); in a battle the status from before it stays (MMBN2-4) */
+		.menu = { { MMBN2_STATE, 0xFF, 0, 1, true, 0x20 } },
+		/* HP, its maximum, the area, the money: taken again at once (MMBN2-2) */
+		.room = { { MMBN2_HP, 0xFFFF, 0, 2 }, { MMBN2_HP + 2, 0xFFFF, 0, 2 }, { MMBN2_AREA, 0xFFFF, 0, 2 }, { MMBN2_ZENNY, 0, 0, 4 } },
+		/* the title's lettering and emblem (BG3) above PRESS START, the
+		 * grid of lines behind it on the same layer left out */
+		.logo = { .wait = 420, .layers = 0x8, .maxY = 112, .edgeClear = { 0x006B00, 0x52B500, 0x84D600, 0xCEFF00 } },
+	},
+	{
 		/* the overworld's map, or the Party screen in towns and dungeons:
 		 * see er_compose (docs/games/eragon.md) */
 		.codes = { "BENE" },
@@ -7998,6 +8168,14 @@ static void hm_jpn(MapProfile* p) {
 
 /* Battle Network Rockman EXE (Japan): its logo, ロックマン エグゼ, fills
  * BG3 with the blue behind it (MMBN-1) */
+/* Battle Network Rockman EXE 2 (Japan; its Rev 1 the same): the title's
+ * logo on BG3 over its own dark grid, which comes in later */
+static void mmbn2_jpn(MapProfile* p) {
+	p->logo.wait = 560;
+	p->logo.maxY = 140;
+	p->logo.edgeClear[0] = 0x080808, p->logo.edgeClear[1] = 0x214A29;
+	p->logo.edgeClear[2] = 0x316329, p->logo.edgeClear[3] = 0x4A7B39;
+}
 static void mmbn_jpn(MapProfile* p) {
 	p->logo.maxY = GBA_H;
 	p->logo.edgeClear[0] = 0x52B5FF;
@@ -8085,6 +8263,8 @@ static const Variant variants[] = {
 	{ "AREP", "AREE", 0, NULL },
 	{ "BHTJ", "BHTE", 0, hpa_jpn },
 	{ "AREJ", "AREE", 0, mmbn_jpn },
+	{ "AM2P", "AE2E", 0, NULL },
+	{ "AE2J", "AE2E", 0, mmbn2_jpn },
 };
 #define N_VARIANTS (sizeof(variants) / sizeof(*variants))
 static MapProfile variantProfiles[N_VARIANTS];
