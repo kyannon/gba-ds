@@ -5400,7 +5400,7 @@ static const char* m3_compose(Emu* s, const void* state, uint32_t* const* out, i
 #define MVDK_BOX_ROWS 31
 #define MVDK_HUD_TOP (MVDK_BOX_PAD + MVDK_BOX_ROWS + MVDK_BOX_PAD)
 #define MVDK_LEVEL 0x0300010Cu /* the world, the level's kind, Plus (every release) */
-#define MVDK_V_PLAY 0xF0000080u  /* a level played with its HUD up, not paused (the box can be taken) */
+#define MVDK_V_PLAY 0xF0000080u  /* a level played with its HUD up (mvdk_hud_up), not paused (the box can be taken) */
 #define MVDK_V_LOGO 0xF0000081u  /* no level shown: the logo, the box forgotten */
 #define MVDK_V_LEVEL 0xF0000082u /* the level (MVDK_LEVEL's word) */
 
@@ -5409,16 +5409,13 @@ static uint32_t mvdk_state(Emu* e) {
 	return e->gameCode[3] == 'P' ? MVDK_STATE - 0x40 : MVDK_STATE;
 }
 
-/* the HUD's lives (32x16 at 8,0, priority 0) shown: the HUD is up (not the
- * level's opening pan) */
+/* the game's own "playing" flag: 0 through a level's opening pan and
+ * HERE WE GO, TIME'S UP and a life lost, 1 from the frame the HUD appears
+ * (and straight on as a help box closes, where the HUD's sprites come back
+ * a few frames after the state does) */
 static bool mvdk_hud_up(Emu* e) {
-	for (int i = 0; i < 128; ++i) {
-		uint16_t a0 = emu_read16(e, 0x07000000 + i * 8), a1 = emu_read16(e, 0x07000002 + i * 8);
-		uint16_t a2 = emu_read16(e, 0x07000004 + i * 8);
-		if ((a0 & 0x300) == 0x200) continue; /* hidden */
-		if ((a0 & 0xFF) == 0 && (a1 & 0x1FF) == 8 && (a0 >> 14) == 1 && (a1 >> 14) == 2 && ((a2 >> 10) & 3) == 0) return true;
-	}
-	return false;
+	char r = e->gameCode[3];
+	return emu_read8(e, r == 'P' ? 0x030009ACu : r == 'J' ? 0x030009ECu : 0x030009E8u) != 0;
 }
 
 static uint32_t mvdk_virt(Emu* e, uint32_t addr) {

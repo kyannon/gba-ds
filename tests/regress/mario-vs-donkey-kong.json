@@ -454,6 +454,12 @@
      "what": "the level's box taken from the hidden copy",
      "type": "log",
      "match": "map updated"
+    },
+    {
+     "rule": "MVDK-6",
+     "what": "never the logo as the help box opens or closes",
+     "type": "no_log",
+     "match": "logo only on|HUD empty"
     }
    ],
    "input": [
@@ -463,6 +469,54 @@
     ],
     [
      35,
+     "-"
+    ],
+    [
+     180,
+     "B"
+    ],
+    [
+     184,
+     "-"
+    ]
+   ]
+  },
+  {
+   "id": "mvdk-us-1-1-help-box",
+   "rom": "BM5E",
+   "state": "mario-vs-donkey-kong/us-1-1-help-box.ss",
+   "desc": "the owner's state: 1-1 beside a HELP sign; A opens its box, B closes it; the second screen keeps the box and HUD throughout, no frame of the logo as it closes (the HUD's sprites come back 3 frames after the game does)",
+   "rules": [
+    "MVDK-6",
+    "MVDK-9"
+   ],
+   "shots": {
+    "help": 120,
+    "closing": 183,
+    "closed": 186,
+    "back": 240
+   },
+   "checks": [
+    {
+     "rule": "MVDK-2",
+     "what": "the HUD on the second screen",
+     "type": "log",
+     "match": "HUD on the second screen"
+    },
+    {
+     "rule": "MVDK-6",
+     "what": "never the logo as the help box opens or closes",
+     "type": "no_log",
+     "match": "logo only on|HUD empty"
+    }
+   ],
+   "input": [
+    [
+     10,
+     "A"
+    ],
+    [
+     25,
      "-"
     ],
     [
