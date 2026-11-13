@@ -75,20 +75,23 @@ static void load_state_file(void) {
 
 /* ------------------------------------------------------------ versions */
 
-/* "v1.3.1", "1.3", "1.3.2-dev" -> parts; a -suffix sorts before the release */
-static void parse_version(const char* s, int v[4]) {
+/* "v1.3.1", "1.3", "1.3.2-dev", "1.5.1.1" -> parts (up to four numbers, the
+ * missing ones 0); a -suffix sorts before the release. Versions before 1.5.2
+ * read only three numbers, so they'd see 1.5.1.1 as 1.5.1: a four-number
+ * release is only offered from 1.5.2 on. */
+static void parse_version(const char* s, int v[5]) {
 	if (*s == 'v' || *s == 'V') ++s;
-	v[0] = v[1] = v[2] = 0;
-	v[3] = 1;
-	sscanf(s, "%d.%d.%d", &v[0], &v[1], &v[2]);
-	if (strchr(s, '-')) v[3] = 0;
+	v[0] = v[1] = v[2] = v[3] = 0;
+	v[4] = 1;
+	sscanf(s, "%d.%d.%d.%d", &v[0], &v[1], &v[2], &v[3]);
+	if (strchr(s, '-')) v[4] = 0;
 }
 
 static int compare_versions(const char* a, const char* b) {
-	int x[4], y[4];
+	int x[5], y[5];
 	parse_version(a, x);
 	parse_version(b, y);
-	for (int i = 0; i < 4; ++i) {
+	for (int i = 0; i < 5; ++i) {
 		if (x[i] != y[i]) return x[i] < y[i] ? -1 : 1;
 	}
 	return 0;
