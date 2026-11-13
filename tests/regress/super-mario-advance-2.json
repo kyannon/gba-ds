@@ -490,6 +490,107 @@
      "match": "a mod GBA DS is tested on \\(Voice\\ removal\\ v1\\.0\\); patched as it started with smwgba_voices_removed\\(E\\)1\\.0\\.ips"
     }
    ]
+  },
+  {
+   "id": "sma-us-snes-over-buttons",
+   "rom": "AA2E",
+   "state": "super-mario-advance-2/us-level.ss",
+   "desc": "Extras > Buttons: A (Right) set to Nothing, then SNES picked under Controls: in a level the SNES layout decides, so A (Right) gives GBA R",
+   "rules": [
+    "GEN-10",
+    "SMA-5"
+   ],
+   "input": [
+    [
+     90,
+     "TAP:0.5,0.75"
+    ],
+    [
+     100,
+     "R"
+    ],
+    [
+     104,
+     "-"
+    ],
+    [
+     110,
+     "R"
+    ],
+    [
+     114,
+     "-"
+    ],
+    [
+     120,
+     "TAP:0.5,0.737"
+    ],
+    [
+     140,
+     "LEFT"
+    ],
+    [
+     144,
+     "-"
+    ],
+    [
+     160,
+     "START"
+    ],
+    [
+     170,
+     "-"
+    ],
+    [
+     200,
+     "SWIPE:0.5,0.99,0.5,0.85"
+    ],
+    [
+     220,
+     "TAP:0.627,0.836"
+    ],
+    [
+     240,
+     "L3"
+    ],
+    [
+     244,
+     "-"
+    ],
+    [
+     270,
+     "A"
+    ],
+    [
+     280,
+     "-"
+    ]
+   ],
+   "shots": {
+    "buttons": 150,
+    "end": 300
+   },
+   "golden": [],
+   "checks": [
+    {
+     "rule": "GEN-10",
+     "what": "A (Right) set to Nothing",
+     "type": "log",
+     "match": "^buttons: right Nothing, bottom GBA B, top Nothing, left Nothing$"
+    },
+    {
+     "rule": "GEN-10",
+     "what": "SNES picked under Controls",
+     "type": "log",
+     "match": "^frame \\d+: controls snes"
+    },
+    {
+     "rule": "GEN-10",
+     "what": "A (Right) gives GBA R in the SNES layout",
+     "type": "log",
+     "match": "^frame \\d+: game keys 100$"
+    }
+   ]
   }
  ]
 }

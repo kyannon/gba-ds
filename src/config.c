@@ -34,6 +34,7 @@ void config_defaults(Config* c) {
 	c->mapAnim = true;
 	c->tallLive = true;
 	c->showLogo = true;
+	c->customLogos = CL_PIXELATED;
 	c->rewind = true;
 	c->rewindSeconds = 30;
 	c->overlayMode = OVM_GENERATED;
@@ -140,6 +141,15 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	BOOL("map_animations", mapAnim)
 	BOOL("pinball_live", tallLive)
 	BOOL("show_logo", showLogo)
+	STR("logo_folder", logoFolder)
+	if (!strcmp(key, "custom_logos")) {
+		c->customLogos = !strcmp(val, "off") ? CL_OFF : !strcmp(val, "full") ? CL_FULL : CL_PIXELATED;
+		return true;
+	}
+	if (!strcmp(key, "logo_pixelate")) { /* (the test builds before custom_logos) */
+		c->customLogos = parse_bool(val) ? CL_PIXELATED : CL_FULL;
+		return true;
+	}
 	BOOL("match_display", matchDisplay)
 	BOOL("rewind", rewind)
 	INT("rewind_seconds", rewindSeconds)

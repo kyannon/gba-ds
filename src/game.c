@@ -919,6 +919,8 @@ static int bezelW[2], bezelH[2];
 static char bezelKey[2][96];
 static int logoW, logoH;
 static bool logoPixel;
+static int logoSub = 1; /* logoTex's pixels per GBA pixel (LOGO_SUB: a scraped logo at full resolution) */
+static bool logoProvisional; /* a scraped logo sized before the extracted one existed (GEN-11) */
 static MapResult mapRes;
 static int mapW = GBA_W, mapH = GBA_H;
 static int mapShownIdx = -1;
@@ -1000,6 +1002,8 @@ static const uint32_t* map_px(int idx);
 static const uint32_t* hud_over_map(const uint32_t* px);
 static void make_combat_canvas(void);
 static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha);
+static void logo_refresh(void);
+static bool cardLogoMade; /* card_logo's picture is made */
 static uint32_t hudLogoBelow[HUD_CW * HUD_CH]; /* profile hud.logoBelow: dark grey, the logo below the HUD */
 /* profile hud.mapTitleRows: those rows of the last map picture, held over
  * the HUD (mapTitleN rows; 0: none taken yet) */
@@ -1065,12 +1069,12 @@ static bool debug;
 
 /* ---------------------------------------------------------------- menu */
 
-enum MenuItem { M_RESUME, M_CHEATS, M_PATCHES, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND, M_AUTOSAVE, M_AUTOLOAD, M_BUG, M_SLOT, M_SHAPES, M_FF, M_COLOR, M_GHOST };
+enum MenuItem { M_RESUME, M_CHEATS, M_PATCHES, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND, M_AUTOSAVE, M_AUTOLOAD, M_BUG, M_SLOT, M_SHAPES, M_FF, M_COLOR, M_GHOST, M_BUTTONS, M_PIXLOGO };
 static const char* menuLabels[] = {
 	/* title case: drawn in Futura from the built-in images (tools/make_brand.py) */
 	[M_RESUME] = "Resume", [M_SWAP] = "Swap Screens", [M_SAVE] = "Save State", [M_SCALE] = "", [M_LCD] = "", [M_FPS] = "", [M_FRAMEBUF] = "", [M_OVERLAY] = "", [M_LOGO] = "", [M_MATCH] = "", [M_REWIND] = "", [M_RESTART] = "Restart Game",
-	[M_LOAD] = "Load State", [M_CHEATS] = "Cheats", [M_PATCHES] = "Patches", [M_ACH] = "Achievements", [M_SHOT] = "Take Screenshot", [M_LIBRARY] = "Close Game", [M_EXIT] = "Close GBA DS",
-	[M_AUTOSAVE] = "", [M_AUTOLOAD] = "", [M_BUG] = "Submit a Bug Report", [M_SLOT] = "", [M_FF] = "", [M_COLOR] = "", [M_GHOST] = "",
+	[M_LOAD] = "Load State", [M_CHEATS] = "Cheats", [M_PATCHES] = "Patches", [M_BUTTONS] = "Buttons", [M_ACH] = "Achievements", [M_SHOT] = "Take Screenshot", [M_LIBRARY] = "Close Game", [M_EXIT] = "Close GBA DS",
+	[M_AUTOSAVE] = "", [M_AUTOLOAD] = "", [M_BUG] = "Submit a Bug Report", [M_SLOT] = "", [M_FF] = "", [M_COLOR] = "", [M_GHOST] = "", [M_PIXLOGO] = "",
 };
 static int menuItems[12], nMenuItems;
 /* Some buttons are half as wide, two to a row (Save State | Load State):
@@ -1139,7 +1143,7 @@ static SDL_Rect ach_area(int scr);
 /* Every label a pause-menu button can show, for sizing the text so the
  * widest fits (item_label gives the current one). */
 static const char* const allLabels[] = {
-	"Resume", "Restart Game", "Are You Sure?", "Save State", "Load State", "Cheats", "Achievements",
+	"Resume", "Restart Game", "Are You Sure?", "Save State", "Load State", "Cheats", "Buttons", "Achievements",
 	"Take Screenshot", "Close Game", "Close GBA DS", "Swap Screens", "Scale: Pixel Perfect", "Scale: Full Width",
 	"Scale: Zoom", "Scale: Stretch", "Shader: Off", "Shader: LCD Grid", "Shader: Scanlines", "Shader: Soft Cells",
 	"Shader: Subpixels (Light)", "Shader: Subpixels", "Shader: Subpixels (Strong)", "Overlays: Off", "Overlays: Generated",
@@ -3230,6 +3234,132 @@ static void ovl_close_all(void) {
 	pickDrag = 0;
 }
 
+/* ---------------------------------------------------------------- Extras > Buttons
+ *
+ * GEN-10: which GBA button each face button gives the game, per game. A
+ * screen of its own (as Overlays): a row per face button, by position
+ * (right, bottom, top, left), stepping through GBA A / B / L / R / Nothing,
+ * then Reset Buttons. Kept in <state_dir>/<game>.buttons ("right a" lines);
+ * with no file, ab_swap's layout. Only the game's keys change (run loop,
+ * the GBA layout's branch): GBA DS's own screens keep B_A / B_B. In games
+ * with a layout picker (profile `controls`), the SNES / four-button layout
+ * decides the face buttons wherever it's in use. */
+enum { FB_RIGHT, FB_BOTTOM, FB_TOP, FB_LEFT, FB_COUNT };
+enum { FG_A, FG_B, FG_L, FG_R, FG_NONE, FG_COUNT };
+static const char* const fbNames[FB_COUNT] = { "right", "bottom", "top", "left" };
+static const char* const fbLabels[FB_COUNT] = { "A (Right)", "B (Bottom)", "X (Top)", "Y (Left)" };
+static const char* const fgNames[FG_COUNT] = { "a", "b", "l", "r", "none" };
+static const char* const fgLabels[FG_COUNT] = { "GBA A", "GBA B", "GBA L", "GBA R", "Nothing" };
+static int fbMap[FB_COUNT]; /* each face button's FG_ */
+static bool fbSet;          /* the player's own (else ab_swap's) */
+static char fbPath[1400];
+static bool btnsOpen;
+static int btnsSel, btnsPress = -1;
+#define BTNS_ROWS (FB_COUNT + 1) /* + Reset Buttons */
+
+static void fb_default(void) {
+	fbMap[FB_RIGHT] = cfg->abSwap ? FG_B : FG_A;
+	fbMap[FB_BOTTOM] = cfg->abSwap ? FG_A : FG_B;
+	fbMap[FB_TOP] = fbMap[FB_LEFT] = FG_NONE;
+	fbSet = false;
+}
+
+/* "right GBA A, bottom GBA B, ..." for the log and bug reports */
+static const char* fb_describe(void) {
+	static char s[128];
+	s[0] = 0;
+	for (int i = 0; i < FB_COUNT; ++i)
+		snprintf(s + strlen(s), sizeof(s) - strlen(s), "%s%s %s", i ? ", " : "", fbNames[i], fgLabels[fbMap[i]]);
+	return s;
+}
+
+static void fb_load(void) {
+	fb_default();
+	snprintf(fbPath, sizeof(fbPath), "%s/%s.buttons", cfg->stateDir, gp.base);
+	FILE* f = fopen(fbPath, "r");
+	if (!f) return;
+	char k[16], v[16];
+	while (fscanf(f, "%15s %15s", k, v) == 2) {
+		for (int i = 0; i < FB_COUNT; ++i) {
+			if (strcmp(k, fbNames[i])) continue;
+			for (int j = 0; j < FG_COUNT; ++j)
+				if (!strcmp(v, fgNames[j])) fbMap[i] = j, fbSet = true;
+		}
+	}
+	fclose(f);
+	if (fbSet) fprintf(stderr, "buttons: %s\n", fb_describe());
+}
+
+static void fb_save(void) {
+	if (!fbSet) {
+		remove(fbPath);
+	} else {
+		FILE* f = fopen(fbPath, "w");
+		if (!f) return;
+		for (int i = 0; i < FB_COUNT; ++i) fprintf(f, "%s %s\n", fbNames[i], fgNames[fbMap[i]]);
+		fclose(f);
+	}
+	fprintf(stderr, "buttons: %s%s\n", fb_describe(), fbSet ? "" : " (the default)");
+}
+
+/* the GBA keys the face buttons give the game (the GBA layout) */
+static uint32_t fb_keys(void) {
+	static const uint32_t key[FG_COUNT] = { K_A, K_B, K_L, K_R, 0 };
+	/* (ui.c puts the bottom button on B_A with ab_swap: by position again) */
+	int phys[FB_COUNT] = { cfg->abSwap ? B_B : B_A, cfg->abSwap ? B_A : B_B, B_X, B_Y };
+	uint32_t keys = 0;
+	for (int i = 0; i < FB_COUNT; ++i)
+		if (HELD(phys[i])) keys |= key[fbMap[i]];
+	return keys;
+}
+
+static SDL_Rect btns_row_rect(int scr, int i) {
+	MenuGeom g = menu_geom(scr);
+	return (SDL_Rect) { g.margin, g.top + i * (g.h + g.gap), g.w, g.h };
+}
+
+static void btns_activate(int i, int dir) {
+	if (i < 0 || i >= BTNS_ROWS) return;
+	if (i == FB_COUNT) {
+		fb_default(); /* Reset Buttons */
+	} else {
+		fbMap[i] = (fbMap[i] + (dir < 0 ? FG_COUNT - 1 : 1)) % FG_COUNT;
+		fbSet = true;
+	}
+	fb_save();
+}
+
+static void draw_buttons_menu(int scr) {
+	MenuGeom mg = menu_geom(scr);
+	int rad = mg.rad, cap = mg.cap;
+	SDL_Rect b = tab_rect(scr, 0), t = tab_rect(scr, 1);
+	ui_fill_round(scr, b, C_BTN, rad);
+	ui_label(scr, b.x + b.w / 2, b.y + b.h / 2, cap, "Back", C_TEXT);
+	ui_fill_round(scr, t, C_BTN_EDGE, rad);
+	ui_label(scr, t.x + t.w / 2, t.y + t.h / 2, cap, "Buttons", (SDL_Color) { 20, 16, 36, 255 });
+	for (int i = 0; i < BTNS_ROWS; ++i) {
+		SDL_Rect r = btns_row_rect(scr, i);
+		bool sel = i == btnsSel;
+		int e = SDL_max(1, mg.h / 28);
+		if (sel) ui_fill_round(scr, (SDL_Rect) { r.x - e, r.y - e, r.w + e * 2, r.h + e * 2 }, C_BTN_EDGE, rad + e);
+		ui_fill_round(scr, r, sel ? C_BTN_SEL : C_BTN, rad);
+		char label[64];
+		if (i < FB_COUNT) snprintf(label, sizeof(label), "%s: %s", fbLabels[i], fgLabels[fbMap[i]]);
+		else snprintf(label, sizeof(label), "Reset Buttons");
+		int lc = SDL_min(cap, cap * (r.w - mg.pad * 2) / SDL_max(1, ui_label_width(scr, cap, label)));
+		ui_label(scr, r.x + r.w / 2, r.y + r.h / 2, lc, label, i < FB_COUNT && fbMap[i] == FG_NONE ? C_DIS : C_TEXT);
+	}
+	const char* note = NULL;
+	if (ctlProf && ctlProf->controls.snes.bottom)
+		note = "With SNES picked under Controls in the quick bar, the SNES layout replaces these in levels.";
+	else if (ctlProf)
+		note = "With Four buttons picked under Controls in the quick bar (or Auto, while you're skating), the four-button layout replaces these.";
+	if (note) {
+		SDL_Rect last = btns_row_rect(scr, BTNS_ROWS - 1);
+		ui_font_wrap(scr, TF_BODY, mg.margin + mg.pad, last.y + last.h + mg.gap * 2, mg.w - mg.pad * 2, mg.noteCap, note, C_DIS);
+	}
+}
+
 static const char* scale_label(const char* scale) {
 	return !strcmp(scale, "fit")       ? "Scale: Full Width" :
 	       !strcmp(scale, "zoom")      ? "Scale: Zoom" :
@@ -3276,6 +3406,14 @@ static void draw_menu(void) {
 	}
 	if (patchesOpen) {
 		draw_patches(scr);
+		if (nScreens > 1) {
+			int o = ui_other_screen();
+			ui_label(o, screens[o].rect.w / 2, screens[o].rect.h / 2, (ui_px(o) + 1) * 7 * 34 / 35, "Paused", C_GOLD);
+		}
+		return;
+	}
+	if (btnsOpen) {
+		draw_buttons_menu(scr);
 		if (nScreens > 1) {
 			int o = ui_other_screen();
 			ui_label(o, screens[o].rect.w / 2, screens[o].rect.h / 2, (ui_px(o) + 1) * 7 * 34 / 35, "Paused", C_GOLD);
@@ -3340,6 +3478,7 @@ static void draw_menu(void) {
 		if (menuItems[i] == M_MATCH) label = cfg->matchDisplay ? "Match Display Rate: On" : "Match Display Rate: Off";
 		if (menuItems[i] == M_SHAPES) label = !en || !strcmp(cfg->screenMatch, "keep") ? "Keep device aspect ratios" :
 		                                      !strcmp(cfg->screenMatch, "aspect") ? "Match screen aspect ratios" : "Match screen sizes and aspect ratios";
+		if (menuItems[i] == M_PIXLOGO) label = cfg->customLogos == CL_OFF ? "Custom Logos: Do Not Use" : cfg->customLogos == CL_FULL ? "Custom Logos: Full Detail" : "Custom Logos: Pixelated";
 		if (menuItems[i] == M_LOGO) label = cfg->showLogo ? "No Second Screen: Show Logo" : "No Second Screen: Keep Blank";
 		if (menuItems[i] == M_OVERLAY) {
 			static const char* const ovl[3] = { "Overlays: Off", "Overlays: Generated", "Overlays: Custom" };
@@ -3740,10 +3879,9 @@ static void card_backdrop(void) {
  * bottom */
 static const uint32_t* card_logo(void) {
 	static uint32_t cardLogo[HUD_CW * HUD_CH];
-	static bool made;
-	if (!made) {
+	if (!cardLogoMade) {
 		for (int i = 0; i < HUD_CW * HUD_CH; ++i) cardLogo[i] = SCREEN_LIVE; /* (under the HUD: GEN-1) */
-		made = logo_draw(cardLogo, HUD_CW, HUD_CH, HUD_CW / GBA_W, hudProf->hud.card.whole ? 0 : 48 * 2, 255);
+		cardLogoMade = logo_draw(cardLogo, HUD_CW, HUD_CH, HUD_CW / GBA_W, hudProf->hud.card.whole ? 0 : 48 * 2, 255);
 	}
 	return cardLogo;
 }
@@ -5484,6 +5622,7 @@ static void bug_info(Text* t, const char* date, uint64_t back) {
 	text_add(t, "hotkeys: %s +", hotkeyBtnNames[hkMod]);
 	for (int i = 0; i < HK_COUNT; ++i) text_add(t, " %s %s%s", hotkeyNames[i], hkBtn[i] >= 0 ? hotkeyBtnNames[hkBtn[i]] : "none", i + 1 < HK_COUNT ? "," : "\n");
 	text_add(t, "save_on_quit %d, auto_load %d, quick_bar_pinned %d\n", cfg->autoSave, cfg->autoLoad, cfg->barPinned);
+	text_add(t, "buttons (this game): %s%s\n", fb_describe(), fbSet ? "" : " (the default)");
 
 	char lp[1024];
 	log_path(lp, sizeof(lp));
@@ -6186,6 +6325,7 @@ static void save_prefs(void) {
 		        cfg->frameBuffer ? 1 : 0, cfg->matchDisplay ? 1 : 0, cfg->rewind ? 1 : 0, cfg->fastForward ? 1 : 0,
 		        cfg->autoSave ? 1 : 0, cfg->autoLoad ? 1 : 0, cfg->barPinned ? 1 : 0);
 		fprintf(f, "screen_match = %s\n", cfg->screenMatch);
+		fprintf(f, "custom_logos = %s\n", cfg->customLogos == CL_OFF ? "off" : cfg->customLogos == CL_FULL ? "full" : "pixelated");
 		fprintf(f, "overlay_screens = %s\nbezel_logo = %d\nbezel_inner = %s\nbezel_outer = %s\n",
 		        cfg->overlays == OVL_TOP ? "top" : cfg->overlays == OVL_BOTTOM ? "bottom" : "both", cfg->bezelLogo, cfg->bezelInner, cfg->bezelOuter);
 		fprintf(f, "shader_last = %s\n", shaderNames[cfg->shaderLast > SH_OFF && cfg->shaderLast < SH_COUNT ? cfg->shaderLast : SH_GRID]);
@@ -6372,7 +6512,8 @@ static void draw_osd(void) {
 #define LOGO_IDLE 128
 static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha) {
 	bool pixelArt = false;
-	SDL_Surface* lg = ui_logo_surface(cfg, emu.gameCode, &pixelArt);
+	int sub = 1;
+	SDL_Surface* lg = ui_logo_surface(cfg, romPath, emu.gameCode, &pixelArt, &sub);
 	if (!lg) return false;
 	int room = ch - top;
 	if (room <= 0) {
@@ -6381,7 +6522,13 @@ static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha) {
 		SDL_FreeSurface(lg);
 		return false;
 	}
-	int w = lg->w * k, h = lg->h * k;
+	int w = SDL_max(1, lg->w * k / sub), h = SDL_max(1, lg->h * k / sub);
+	if (sub > k) {
+		/* a scraped logo at full resolution, onto a canvas with fewer
+		 * pixels per GBA pixel: averaged down to them (GEN-11) */
+		SDL_Surface* sm = ui_resample(lg, w, h);
+		if (sm) SDL_FreeSurface(lg), lg = sm;
+	}
 	if (w > cw || h > room) {
 		float sc = SDL_min((float) cw / lg->w, (float) room / lg->h);
 		w = SDL_max(1, (int) (lg->w * sc)), h = SDL_max(1, (int) (lg->h * sc));
@@ -6416,11 +6563,31 @@ static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha) {
 static void make_logo_canvas(void) {
 	ui_free_image(logoCanvasTex);
 	bool pixelArt = false;
-	SDL_Surface* lg = ui_logo_surface(cfg, emu.gameCode, &pixelArt);
+	int sub = 1;
+	SDL_Surface* lg = ui_logo_surface(cfg, romPath, emu.gameCode, &pixelArt, &sub);
 	if (!lg) return;
-	bool big = lg->w > GBA_W || lg->h > GBA_H;
+	logoSub = sub;
+	bool big = lg->w > GBA_W * sub || lg->h > GBA_H * sub;
 	SDL_FreeSurface(lg);
 	if (big) return;
+	if (sub > 1) {
+		/* a scraped logo at full resolution (GEN-11): the same picture at
+		 * sub pixels per GBA pixel, smoothly scaled to the GBA picture's place */
+		int cw = GBA_W * sub, ch = GBA_H * sub;
+		uint32_t* big4 = malloc((size_t) cw * ch * 4);
+		if (!big4) return;
+		for (int i = 0; i < cw * ch; ++i) big4[i] = SCREEN_GREY;
+		logo_draw(big4, cw, ch, sub, 0, LOGO_IDLE);
+		for (int i = 0; i < nViews; ++i) {
+			logoCanvasTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, cw, ch);
+			if (!logoCanvasTex[i]) continue;
+			SDL_SetTextureBlendMode(logoCanvasTex[i], SDL_BLENDMODE_NONE);
+			SDL_SetTextureScaleMode(logoCanvasTex[i], SDL_ScaleModeLinear);
+			ui_update_texture(logoCanvasTex[i], big4, cw * 4);
+		}
+		free(big4);
+		return;
+	}
 	static uint32_t px[GBA_W * GBA_H];
 	for (int i = 0; i < GBA_W * GBA_H; ++i) px[i] = SCREEN_GREY;
 	logo_draw(px, GBA_W, GBA_H, 1, 0, LOGO_IDLE);
@@ -6496,6 +6663,11 @@ static void draw_game(void) {
 			ui_image_pixels(s, mapTex, mapW, mapH, cfg->mapScale, SHADER_ON);
 		} else if (!cfg->showLogo) {
 			/* nothing to show: the screen stays blank */
+		} else if ((logoCanvasTex[0] || logoCanvasTex[1]) && logoSub > 1) {
+			/* a scraped logo at full resolution (GEN-11): its picture made at
+			 * LOGO_SUB pixels per GBA pixel, onto where the GBA picture goes */
+			SDL_Rect area = ui_image_rect(s, GBA_W, GBA_H, cfg->mapScale);
+			ui_image(s, logoCanvasTex, GBA_W * logoSub, GBA_H * logoSub, "stretch", &area);
 		} else if (logoCanvasTex[0] || logoCanvasTex[1]) {
 			/* no map yet (title screen, intro...): the game's logo, as if the
 			 * game drew it on a second GBA screen */
@@ -6538,6 +6710,7 @@ static void open_menu(void) {
 	barShown = 0;
 	cheatsOpen = false;
 	patchesOpen = false;
+	btnsOpen = false;
 	ovl_close_all();
 	close_ach();
 	set_page(0);
@@ -6577,6 +6750,12 @@ static bool activate(int item, enum GameExit* exitTo) {
 		break;
 	case M_PATCHES:
 		open_patches();
+		break;
+	case M_BUTTONS:
+		/* its own screen: Extras > Buttons (GEN-10) */
+		btnsOpen = true;
+		btnsSel = 0;
+		btnsPress = -1;
 		break;
 	case M_SWAP:
 		swap_screens();
@@ -6707,6 +6886,16 @@ static bool activate(int item, enum GameExit* exitTo) {
 		else snprintf(menuNote, sizeof(menuNote), "The display's rate isn't close enough to match");
 		save_prefs();
 		break;
+	case M_PIXLOGO:
+		/* GEN-11: the player's own or a scraped logo at GBA pixels, at full
+		 * detail, or not used (the game's own) */
+		cfg->customLogos = (cfg->customLogos + 1) % 3;
+		snprintf(menuNote, sizeof(menuNote), "%s",
+		         cfg->customLogos == CL_OFF  ? "The logo GBA DS takes from the game" :
+		         cfg->customLogos == CL_FULL ? "With all its detail, at the same size" : "Shrunk to the GBA's pixels");
+		logo_refresh();
+		save_prefs();
+		break;
 	case M_LOGO:
 		cfg->showLogo = !cfg->showLogo;
 		save_prefs();
@@ -6775,6 +6964,7 @@ static void ss_setup(const char* rom, const char* code) {
 		const MapProfile* cp = profile_find(code);
 		ctlProf = cp && (cp->controls.fourFace || cp->controls.snes.bottom) ? cp : NULL;
 		snesHere = false;
+		fb_load(); /* GEN-10 */
 		if (ctlProf) {
 			ctl_load();
 			fprintf(stderr, "controls: %s\n", ctl_name(ctlMode));
@@ -6884,6 +7074,7 @@ static void rebuild_textures(void) {
 	ui_free_image(logoTex);
 	if (romPath && ui_load_logo(cfg, romPath, emu.gameCode, logoTex, &logoW, &logoH, &logoPixel)) make_logo_canvas();
 	else make_logo_canvas();
+	logoProvisional = ui_logo_provisional();
 	ui_textures_reset();
 }
 
@@ -6939,6 +7130,26 @@ static void patches_setup(const char* rom) {
 	fprintf(stderr, "patches: %s, %d to apply%s\n", patchDir, n, on);
 }
 
+/* The logo loaded again, and every picture it's in made again (extracted at
+ * last, or a scraped / own logo's pixelate switched: GEN-11). */
+static void logo_refresh(void) {
+	ui_free_image(logoTex);
+	ui_free_image(logoCanvasTex);
+	logoSub = 1;
+	bool got = ui_load_logo(cfg, romPath, emu.gameCode, logoTex, &logoW, &logoH, &logoPixel);
+	logoProvisional = ui_logo_provisional();
+	if (!got) return;
+	make_logo_canvas();
+	hudLogoBelowDone = hudLogoDone = false; /* the HUD's pictures with it */
+	cardLogoMade = false;
+	if (combatMade) {
+		/* and the fight picture (and the map picture's logo behind) */
+		make_combat_canvas();
+		overDirty = true;
+		if (mapShownIdx >= 0) upload_map_frame(mapShownIdx);
+	}
+}
+
 enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	cfg = c;
 	debug = getenv("GBADS_DEBUG") != NULL;
@@ -6968,6 +7179,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	if (cheats_on(&cheats)) cheats_apply(&cheats, &emu);
 	cheatsOpen = false;
 	patchesOpen = false;
+	btnsOpen = false;
 	ovl_close_all();
 	ui_on_background(on_background);
 	ui_on_foreground(on_foreground);
@@ -6994,7 +7206,9 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	overlayMode[0][0] = overlayMode[1][0] = 0;
 	bezelKey[0][0] = bezelKey[1][0] = 0;
 	uint32_t logoGen = logo_generation();
+	logoSub = 1;
 	if (ui_load_logo(cfg, rom, emu.gameCode, logoTex, &logoW, &logoH, &logoPixel)) make_logo_canvas();
+	logoProvisional = ui_logo_provisional();
 
 	memset(pageLen, 0, sizeof(pageLen));
 	pages[0][pageLen[0]++] = M_RESUME;
@@ -7005,6 +7219,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	pages[2][pageLen[2]++] = M_SWAP; /* (on Extras since v1.4.6: Display has Screen shapes) */
 	pages[2][pageLen[2]++] = M_CHEATS;
 	pages[2][pageLen[2]++] = M_PATCHES;
+	pages[2][pageLen[2]++] = M_BUTTONS; /* GEN-10 */
 	if (ra_enabled()) pages[2][pageLen[2]++] = M_ACH;
 	pages[2][pageLen[2]++] = M_SHOT;
 	if (fromLibrary) pages[0][pageLen[0]++] = M_LIBRARY;
@@ -7019,6 +7234,10 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	pages[1][pageLen[1]++] = M_FRAMEBUF;
 	pages[1][pageLen[1]++] = M_MATCH;
 	pages[1][pageLen[1]++] = M_SHAPES;
+	{
+		/* the game has the player's own or a scraped logo (GEN-11) */
+		if (ui_logo_custom(cfg, romPath, emu.gameCode)) pages[1][pageLen[1]++] = M_PIXLOGO;
+	}
 	pages[2][pageLen[2]++] = M_REWIND;
 	pages[2][pageLen[2]++] = M_FF;
 	pages[2][pageLen[2]++] = M_AUTOSAVE;
@@ -7146,18 +7365,11 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		Uint64 workT0 = SDL_GetPerformanceCounter(); /* this frame's work, without the wait at the end */
 		long preempt0 = thread_preemptions();
 		double cpuMs0 = thread_cpu_ms();
-		if (!logoTex[0] && !logoTex[1] && logo_generation() != logoGen) {
+		if (((!logoTex[0] && !logoTex[1]) || logoProvisional) && logo_generation() != logoGen) {
+			/* a logo finished extracting: the game's, or the one a scraped
+			 * logo takes its size from (GEN-11) */
 			logoGen = logo_generation();
-			if (ui_load_logo(cfg, NULL, emu.gameCode, logoTex, &logoW, &logoH, &logoPixel)) {
-				make_logo_canvas();
-				hudLogoBelowDone = hudLogoDone = false; /* the HUD's pictures with it */
-				if (combatMade) {
-					/* and the fight picture (and the map picture's logo behind) */
-					make_combat_canvas();
-					overDirty = true;
-					if (mapShownIdx >= 0) upload_map_frame(mapShownIdx);
-				}
-			}
+			logo_refresh();
 		}
 		{
 			/* back from sleep (frames stopped for over 2 seconds) or the
@@ -7406,6 +7618,25 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				}
 				continue;
 			}
+			if (btnsOpen) {
+				if (p.kind == 1) {
+					ignorePointerUp = false;
+					btnsPress = -1;
+					if (tab_at(p.screen, p.x, p.y, 2) == 0) {
+						btnsOpen = false; /* Back */
+						ignorePointerUp = true;
+						continue;
+					}
+					for (int i = 0; i < BTNS_ROWS; ++i)
+						if (in_rect(btns_row_rect(p.screen, i), p.x, p.y)) btnsPress = i, btnsSel = i;
+				} else if (p.kind == 2) {
+					for (int i = 0; i < BTNS_ROWS; ++i)
+						if (!ignorePointerUp && i == btnsPress && in_rect(btns_row_rect(p.screen, i), p.x, p.y)) btns_activate(i, 1);
+					btnsPress = -1;
+					ignorePointerUp = false;
+				}
+				continue;
+			}
 			if (ovlOpen) {
 				if (p.kind == 1) {
 					ignorePointerUp = false;
@@ -7639,6 +7870,15 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			else if (btn_pressed(B_A)) pick_close(true);
 			else if (btn_pressed(B_B)) pick_close(false);
 			else if (btn_pressed(B_START)) pick_close(true), ovl_close_all(), menuOpen = false;
+		} else if (menuOpen && btnsOpen) {
+			if (btn_pressed(B_DOWN)) btnsSel = SDL_min(BTNS_ROWS - 1, btnsSel + 1);
+			if (btn_pressed(B_UP)) btnsSel = SDL_max(0, btnsSel - 1);
+			bool cycles = btnsSel < FB_COUNT;
+			if (cycles && btn_pressed(B_LEFT)) btns_activate(btnsSel, -1);
+			else if (cycles && btn_pressed(B_RIGHT)) btns_activate(btnsSel, 1);
+			else if (btn_pressed(B_A)) btns_activate(btnsSel, 1);
+			else if (btn_pressed(B_B)) btnsOpen = false;
+			else if (btn_pressed(B_START)) btnsOpen = false, menuOpen = false;
 		} else if (menuOpen && ovlOpen) {
 			int rows[8], n = ovl_rows(rows);
 			if (btn_pressed(B_DOWN)) ovlSel = SDL_min(n - 1, ovlSel + 1);
@@ -7745,8 +7985,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				if (HELD(B_Y)) keys |= K_L;
 				if (HELD(right)) keys |= K_R;
 			} else {
-				if (HELD(B_A)) keys |= K_A;
-				if (HELD(B_B)) keys |= K_B;
+				keys |= fb_keys(); /* the player's choices (GEN-10), else ab_swap's */
 			}
 			if (HELD(B_START) && modBtn != B_START && comboHold != B_START) keys |= K_START;
 			if (HELD(B_SELECT) && modBtn != B_SELECT && comboHold != B_SELECT) keys |= K_SELECT;

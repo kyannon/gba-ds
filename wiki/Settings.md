@@ -66,6 +66,8 @@ Updating from the game list (Settings > Updates) keeps your `gba-ds.cfg`. Unzipp
 | `map_interval` | `60` | Frames (60 a second) between map refreshes: 60 is every second. The map also refreshes right after every room transition. Each refresh runs the hidden copy of the game for a moment on another CPU core, so on a slower device very short intervals can make the sound crackle (the log reports it). |
 | `map_crop` | `1` | The Metroid map screens, tidied (labels erased, prompts and minimap removed; see [[Supported games]]), and Lady Sia's pause screen without its menu lines. `0` shows them exactly as the games draw them. |
 | `show_logo` | `1` | The game's logo on the second screen when there's nothing else to show (title screens, menus, before the first map). `0` keeps it blank. |
+| `logo_folder` | empty | A folder of scraped logos (EmulationStation's marquees, Skraper's wheels), found by the ROM's file name whatever the details in brackets (`Golden Sun.png`, `Golden Sun (USA)-marquee.jpg`...), PNG or JPG. Used instead of the logo GBA DS takes from the game, at its height. See [Playing](Playing#logos). |
+| `custom_logos` | `pixelated` | Your own and scraped logos: `pixelated` shrinks them to the GBA's pixels, drawn like the game's own; `full` keeps their detail, at the same size; `off` doesn't use them (the logo GBA DS takes from the game instead). Also in the pause menu (Display > Custom Logos). |
 | `map_animations` | `1` | Blinking map markers. `0` shows one still frame, with every marker that blinks showing. A Link to the Past's map is always still that way. |
 | `pinball_live` | `1` | Pokémon Pinball, Sonic Pinball Party and Muppet Pinball Mayhem: two more copies of the game draw the rest of the table live on both screens. `0` turns them off (for slower devices): the game plays on one screen, with the logo on the other. |
 
@@ -77,7 +79,7 @@ What `map_crop` changes in the Metroid map screens:
 
 | Option | Default | |
 |---|---|---|
-| `ab_swap` | `0` | GBA A is the right face button and GBA B the bottom one, like a GBA. `1` flips them. |
+| `ab_swap` | `0` | GBA A is the right face button and GBA B the bottom one, like a GBA. `1` flips them. A game's own choices in the pause menu (Extras > Buttons, see [Playing](Playing#changing-the-face-buttons-for-a-game)) replace this for that game. |
 | `hotkey` | `home` | The hotkey button, held with another button for a shortcut (see [[Playing#hotkeys]]): `home`, `select`, `start` or `l3`. SELECT or START as the hotkey still reach the game when tapped on their own, and L3 tapped on its own still opens the quick bar. HOME always opens the menu. (`guide` and `back`, the names before v1.5, still work.) |
 | `hotkey_quit` | `start` | The button held with the hotkey to quit GBA DS (`select` when the hotkey is START). Each shortcut takes one of `a`, `b`, `x`, `y`, `l`, `r`, `l2`, `r2`, `select`, `start`, `l3`, `up`, `down`, `left`, `right`, or `none` to turn it off. |
 | `hotkey_save_state` | `r` | Hotkey + this button saves the quick state (the quick bar's, not the resume point or the menu's slots). |

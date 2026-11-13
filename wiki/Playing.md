@@ -53,6 +53,7 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 - **Overlays**: a screen of its own. Off, Generated (GBA DS's bezel round the picture, in colours you pick, with or without its logo) or Custom (your own PNGs in `overlays/`), and which screens have them. See [[Overlays]].
 - **Frame Buffer**: off by default. On, the next frame is prepared while the current one is on screen, which smooths out the odd stutter at the cost of one frame (about 17 ms) of input delay. In the pinball games it's always on, needed for full speed, so it's greyed out there.
 - **Match Display Rate**: off by default. On, the game runs at the screen's refresh rate (60 Hz: 0.5% faster than a GBA, too little to notice, with the sound adjusted to match) and each frame is shown for exactly one refresh. Off, a 60 Hz screen shows one frame twice about every 3.7 seconds: a small, regular stutter.
+- **Custom Logos**: only for a game whose logo can be your own or a scraped one ([Logos](#logos)). **Pixelated** (the default) shrinks it to the GBA's pixels; **Full Detail** keeps its detail, at the same size; **Do Not Use** shows the logo GBA DS takes from the game instead.
 - **Screen shapes** (experimental; only on devices whose two screens are different shapes, such as the AYN Thor and the Retroid Pocket Duo, greyed out elsewhere): **Keep device aspect ratios** (each screen's picture as its own shape allows), **Match screen aspect ratios** (the wider screen's picture takes the other screen's shape, with black bars at its sides) or **Match screen sizes and aspect ratios** (the same, at the other screen's real size, against the edge nearest it). With Stretch and either match, both screens show the same shape, so Pokémon Pinball's table carries on across them. Overlays can be made for each: see [[Overlays]].
 
 **Extras** (Swap Screens, Rewind, Fast Forward, Save on Quit and Auto-Load are remembered for next time)
@@ -96,6 +97,7 @@ From these, what you did can be played back exactly, frame by frame. So when som
 | D-pad / left stick | D-pad |
 | Right face button | GBA A (`ab_swap = 1` flips A and B) |
 | Bottom face button | GBA B |
+| Top / left face buttons | Nothing (see [Changing the face buttons](#changing-the-face-buttons-for-a-game)) |
 | L1 / R1 | GBA L / R |
 | Start / Select | Start / Select |
 | HOME, or tap the touchscreen | Pause menu (Android: SELECT + START, or BACK) |
@@ -133,6 +135,14 @@ If buttons do the wrong thing on your device (or a controller isn't recognised),
 Press each one when it's asked for. **Tap the touchscreen to skip** a button your device doesn't have (without a touchscreen, each one is skipped after 15 seconds), or tap **Cancel** to stop and keep the old mapping. A button that's already been given to something else isn't taken twice. Volume keys and buttons that arrive as keyboard keys can't be mapped.
 
 The new mapping works straight away and is kept in `states/controllers.txt` for that controller. The log (`gba-ds.log`) has the same line: send it in an issue and it can be built into GBA DS for everyone with that device and system. Running Map Buttons again replaces it; deleting `controllers.txt` goes back to the built-in mappings.
+
+### Changing the face buttons for a game
+
+Pause menu → Extras → **Buttons** sets which GBA button each face button gives this game: **A (Right)**, **B (Bottom)**, **X (Top)** and **Y (Left)** can each be GBA A, GBA B, GBA L, GBA R or Nothing (LEFT / RIGHT, A or a tap to change one; B to go back). For example, B (Bottom) as GBA A and Y (Left) as GBA B puts jump on the bottom button and attack on the left one, as in many SNES games. Two buttons can give the same GBA button.
+
+Changes work straight away and are kept for that game only (`states/<game>.buttons`). **Reset Buttons** goes back to the default (the table above, `ab_swap` included). GBA DS's own menus keep A to choose and B to go back, L1 / R1 stay GBA L / R, and the hotkeys don't change.
+
+In games with a layout under **Controls** in the quick bar (below), the four-button or SNES layout decides the face buttons wherever it's in use, and your Buttons choices everywhere else.
 
 **Four-button layout (Tony Hawk's Pro Skater 2 and 3).** The GBA version uses L and R for two of the console games' four face buttons. Swipe up from the bottom of the touchscreen for the [quick bar](#the-quick-bar-and-bug-reports) and tap a layout under **Controls**, at its top:
 - **GBA**: the layout above.
@@ -200,7 +210,11 @@ GBA DS earns [RetroAchievements](https://retroachievements.org) in **casual (sof
 
 Until the second screen has something to show (title screen, intro, menus), it shows the game's logo. No logo files are shipped: the first time a game appears in the list, GBA DS boots it silently in the background, runs it to its title screen and renders just the layer that holds the logo, at the game's own resolution with transparency. It's saved as `states/logos/<CODE>.png`. The logo is drawn like a second GBA screen: at its own size, centred on dark grey in a GBA-sized picture (at half strength while it's all there is to show), with the second screen's scaling and the LCD grid, so its pixels match the game beside it. Everything else GBA DS puts on the second screen (maps, status screens, windows) is drawn the same way, at the game's own size. `show_logo = 0` in `gba-ds.cfg` leaves the second screen black instead.
 
-To use your own art instead, put `<CODE>.png` (or `.bmp`) in `gba-ds/logos/` (Android: `GBA DS/logos/`). Art up to 240×160 is treated like the extracted logos; bigger images are fitted, smoothly, to where the GBA picture would be (without the grid). `<CODE>` is the game's four-letter code, listed in [[Supported games]].
+To use your own art instead, put `<CODE>.png` (or `.bmp` or `.jpg`) in `gba-ds/logos/` (Android: `GBA DS/logos/`). `<CODE>` is the game's four-letter code, listed in [[Supported games]].
+
+**Scraped logos.** If a scraper has downloaded logos for your games (EmulationStation's marquees, Skraper's wheels), set `logo_folder` in `gba-ds.cfg` to that folder, for example `logo_folder = /storage/roms/gba/images`. GBA DS picks the image named after the ROM, whatever region or other details in brackets either name has: `Golden Sun.png`, `Golden Sun (USA).jpg` and `Golden Sun-marquee.png` all go with `Golden Sun (USA, Europe).gba`. If there are several, it prefers the ROM's exact name, then the plain title, then a marquee, wheel or logo, and PNG over JPG. Point it at a folder of logos rather than one that mixes in box art, or the box art may be picked for a game with no logo. A JPG has no transparency, so its background shows as a box around the logo (the plain border outside it is cut off); a PNG looks better if your scraper offers one. A `logos/<CODE>.png` of your own still wins.
+
+Your own logos and scraped ones are made as tall as the logo GBA DS took from the game, so they sit in the same place and nothing else on the second screen moves. **Custom Logos** in the pause menu's Display page (there only when the game has one of these) switches between **Pixelated**, shrunk to the GBA's own pixels to look like the game drew it, **Full Detail**, at the same size, and **Do Not Use**, which goes back to the logo GBA DS takes from the game, for every game.
 
 ## Where files go
 
