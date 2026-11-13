@@ -76,7 +76,10 @@ it lives here:
   longer matches. Add the Co-Authored-By / Claude-Session trailers the
   session asks for. Commits before Oct 16, 2026 were made as kyannon alone
   and stay that way (never rewrite pushed history).
-- **VERSION** holds `X.Y.Z-dev` (or `X.Y-dev`) on `dev`; CHANGELOG.md has a
+- **VERSION** holds `X.Y.Z-dev` (or `X.Y-dev`) on `dev`; a release may also
+  be `X.Y.Z.W` (update.c compares up to four numbers from v1.5.2 on; v1.5.1
+  and earlier read three, so they'd never be offered a four-number release:
+  the v1.5.1 hotfix was named v1.5.2 for that reason). CHANGELOG.md has a
   `## vX.Y.Z (not yet released)` section on top. Add a line there for every
   user-visible change, written for players (not implementation notes).
 - **Release:** merge `android` into `dev` if it has anything new. Set

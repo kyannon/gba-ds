@@ -2,8 +2,12 @@
 
 ## v1.5.2 (not yet released)
 
+### New
+- **Fast-forward speed** (issue #44): Fast Forward in the pause menu's Extras page now sets how fast holding R2 plays, 2x, 3x (the default), 4x, 5x or Max (as fast as your device can run the game), as well as turning it off. Each press goes on to the next.
+
 ### Fixes
 - **ROCKNIX on the RG DS:** the buttons now work in the game list, in games and in Map Buttons. With both screens on, GBA DS's window could end up without focus, and its buttons were ignored until then (issue #45; thanks to MarcJKolb for finding the fix).
+- **Fast-forward with HOME** (issue #44): holding HOME + R2 fast-forwards as R2 alone does, with the other buttons still reaching the game, so A can skip text. Before, holding HOME kept every button from the game, and letting go of it opened the menu.
 
 ## v1.5.1 (2026-11-13)
 
