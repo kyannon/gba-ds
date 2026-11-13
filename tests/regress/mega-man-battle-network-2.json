@@ -223,6 +223,425 @@
    ]
   },
   {
+   "id": "mmbn2-us-endgame-room",
+   "rom": "AE2E",
+   "state": "mega-man-battle-network-2/us-endgame-room.ss",
+   "desc": "an endgame save from GameFAQs (all five stars, level 100, NormStyl, 995249 zenny), Lan in his room: the status and money",
+   "rules": [
+    "MMBN2-2"
+   ],
+   "shots": {
+    "status": 90
+   },
+   "checks": [
+    {
+     "rule": "MMBN2-2",
+     "what": "MegaMan's status taken",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "MMBN2-2",
+     "what": "black above the frame (centred top to bottom)",
+     "type": "uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      32,
+      70,
+      991,
+      124
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "MMBN2-2",
+     "what": "the money's row left of it in the panel's top row's colour",
+     "type": "uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      40,
+      164,
+      620,
+      236
+     ],
+     "color": "5A6B6B"
+    },
+    {
+     "rule": "MMBN2-2",
+     "what": "the amount at the top right",
+     "type": "not_uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      760,
+      164,
+      991,
+      236
+     ],
+     "color": "5A6B6B"
+    }
+   ]
+  },
+  {
+   "id": "mmbn2-us-endgame-net",
+   "rom": "AE2E",
+   "state": "mega-man-battle-network-2/us-endgame-net.ss",
+   "desc": "an endgame save from GameFAQs on the net (area 0x0794, a maze of conveyor arrows): the area's map",
+   "rules": [
+    "MMBN2-6"
+   ],
+   "shots": {
+    "map": 120
+   },
+   "checks": [
+    {
+     "rule": "MMBN2-6",
+     "what": "the area's map made",
+     "type": "log",
+     "match": "area 0794 mapped"
+    },
+    {
+     "rule": "MMBN2-6",
+     "what": "the map drawn around him",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      312,
+      284,
+      712,
+      484
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "mmbn2-us-endgame-battle",
+   "rom": "AE2E",
+   "state": "mega-man-battle-network-2/us-endgame-net.ss",
+   "desc": "the same, running into a random battle (Swordy3, Spooky3) in HeatGuts V3: the map while walking, the status as he went in (900/1000, the V3 by HeatGuts, Attack past five) in the battle",
+   "rules": [
+    "MMBN2-2",
+    "MMBN2-4",
+    "MMBN2-6"
+   ],
+   "input": [
+    [
+     1,
+     "B+LEFT"
+    ],
+    [
+     11,
+     "B+LEFT"
+    ],
+    [
+     21,
+     "B+LEFT"
+    ],
+    [
+     31,
+     "B+LEFT"
+    ],
+    [
+     41,
+     "B+LEFT"
+    ],
+    [
+     51,
+     "B+LEFT"
+    ],
+    [
+     61,
+     "B+UP"
+    ],
+    [
+     71,
+     "B+UP"
+    ],
+    [
+     81,
+     "B+UP"
+    ],
+    [
+     91,
+     "B+UP"
+    ],
+    [
+     101,
+     "B+UP"
+    ],
+    [
+     111,
+     "B+UP"
+    ],
+    [
+     121,
+     "B+RIGHT"
+    ],
+    [
+     131,
+     "B+RIGHT"
+    ],
+    [
+     141,
+     "B+RIGHT"
+    ],
+    [
+     151,
+     "B+RIGHT"
+    ],
+    [
+     161,
+     "B+RIGHT"
+    ],
+    [
+     171,
+     "B+RIGHT"
+    ],
+    [
+     181,
+     "B+DOWN"
+    ],
+    [
+     191,
+     "B+DOWN"
+    ],
+    [
+     201,
+     "B+DOWN"
+    ],
+    [
+     211,
+     "B+DOWN"
+    ],
+    [
+     221,
+     "B+DOWN"
+    ],
+    [
+     231,
+     "B+DOWN"
+    ],
+    [
+     241,
+     "B+UP"
+    ],
+    [
+     251,
+     "B+UP"
+    ],
+    [
+     261,
+     "B+UP"
+    ],
+    [
+     271,
+     "B+UP"
+    ],
+    [
+     281,
+     "B+UP"
+    ],
+    [
+     291,
+     "B+UP"
+    ],
+    [
+     301,
+     "B+LEFT"
+    ],
+    [
+     311,
+     "B+LEFT"
+    ],
+    [
+     321,
+     "B+LEFT"
+    ],
+    [
+     331,
+     "B+LEFT"
+    ],
+    [
+     341,
+     "B+LEFT"
+    ],
+    [
+     351,
+     "B+LEFT"
+    ],
+    [
+     361,
+     "B+LEFT"
+    ],
+    [
+     371,
+     "B+LEFT"
+    ],
+    [
+     381,
+     "B+LEFT"
+    ],
+    [
+     391,
+     "B+LEFT"
+    ],
+    [
+     401,
+     "B+LEFT"
+    ],
+    [
+     411,
+     "B+LEFT"
+    ],
+    [
+     421,
+     "B+UP"
+    ],
+    [
+     431,
+     "B+UP"
+    ],
+    [
+     441,
+     "B+UP"
+    ],
+    [
+     451,
+     "B+UP"
+    ],
+    [
+     461,
+     "B+UP"
+    ],
+    [
+     471,
+     "B+UP"
+    ],
+    [
+     481,
+     "B+RIGHT"
+    ],
+    [
+     491,
+     "-"
+    ]
+   ],
+   "shots": {
+    "walking": 200,
+    "battle": 640
+   },
+   "checks": [
+    {
+     "rule": "MMBN2-4",
+     "what": "black above the frame (centred top to bottom)",
+     "type": "uniform",
+     "shot": "battle",
+     "screen": "second",
+     "rect": [
+      32,
+      70,
+      991,
+      124
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "MMBN2-4",
+     "what": "the money's row left of it in the panel's top row's colour",
+     "type": "uniform",
+     "shot": "battle",
+     "screen": "second",
+     "rect": [
+      40,
+      164,
+      620,
+      236
+     ],
+     "color": "5A6B6B"
+    },
+    {
+     "rule": "MMBN2-4",
+     "what": "the amount at the top right",
+     "type": "not_uniform",
+     "shot": "battle",
+     "screen": "second",
+     "rect": [
+      760,
+      164,
+      991,
+      236
+     ],
+     "color": "5A6B6B"
+    }
+   ]
+  },
+  {
+   "id": "mmbn2-us-cheated-save",
+   "rom": "AE2E",
+   "state": "mega-man-battle-network-2/us-cheated-save.ss",
+   "desc": "a GameShark-edited save from GameFAQs (level 471, HubStyl V3, Attack and Rapid out of range, drawn by the game as stray tiles), Lan in a building: the status still taken, as the game draws it",
+   "rules": [
+    "MMBN2-2"
+   ],
+   "shots": {
+    "status": 90
+   },
+   "checks": [
+    {
+     "rule": "MMBN2-2",
+     "what": "MegaMan's status taken",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "MMBN2-2",
+     "what": "black above the frame (centred top to bottom)",
+     "type": "uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      32,
+      70,
+      991,
+      124
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "MMBN2-2",
+     "what": "the money's row left of it in the panel's top row's colour",
+     "type": "uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      40,
+      164,
+      620,
+      236
+     ],
+     "color": "5A6B6B"
+    },
+    {
+     "rule": "MMBN2-2",
+     "what": "the amount at the top right",
+     "type": "not_uniform",
+     "shot": "status",
+     "screen": "second",
+     "rect": [
+      760,
+      164,
+      991,
+      236
+     ],
+     "color": "5A6B6B"
+    }
+   ]
+  },
+  {
    "id": "mmbn2-us-net",
    "rom": "AE2E",
    "state": "mega-man-battle-network-2/us-net.ss",

@@ -4628,7 +4628,7 @@ static const char* mmbn_compose(Emu* s, const void* state, uint32_t* out, int w,
 #define MMBN2_GLOW_W 72
 #define MMBN2_PLAIN_X 154
 static const Probe mmbn2Panel[8] = { { 5, 5, 0x5A6B6B }, { 120, 3, 0x5A6B6B }, { 238, 10, 0x5A6B6B }, { 2, 50, 0x313939 },
-                                     { 205, 70, 0x313939 }, { 230, 90, 0x313939 }, { 120, 92, 0x313939 }, { 150, 94, 0x313939 } };
+                                     { 236, 60, 0x5A6B6B }, { 230, 90, 0x313939 }, { 120, 92, 0x313939 }, { 150, 94, 0x313939 } };
 static const Probe mmbn2Money[8] = { { 146, 0, 0x313939 }, { 146, 47, 0x313939 }, { 148, 2, 0xCE5A39 }, { 148, 45, 0xCE5A39 },
                                      { 200, 1, 0xF78C00 }, { 200, 45, 0xF78C00 }, { 180, 5, 0x4A5A63 }, { 160, 25, 0x5A6B6B } };
 /* the MegaMan screen's cursor (a 16x16 sprite at x 88, Japan's at 96), by
