@@ -1,5 +1,7 @@
 # Changelog
 
+## v1.5.3 (not yet released)
+
 ## v1.5.2 (2026-11-13)
 
 ### New
