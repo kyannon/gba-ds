@@ -4076,6 +4076,120 @@ static uint32_t ls_virt(Emu* e, uint32_t addr) {
 	return 0;
 }
 
+/* ------------------------------ Banjo-Kazooie: Grunty's Revenge
+ *
+ * Every release (USA and Europe, Europe's English, French and German, Italy,
+ * Spain) has the same RAM. Found by comparing dumps (the owner's two 100%
+ * saves, a new game, the title and the intro):
+ * - BK_PLAY, the byte at 0x0200030C: 0 at the title, the file screen and
+ *   the intro's scenes, 1 or 2 everywhere Banjo is about (a conversation
+ *   too);
+ * - BK_PAUSE, the word at 0x02000318: 0xFFFFFFFF while the pause screen
+ *   (or a page of it: Totals, Options, Save) is up, else 0;
+ * - BK_AREA, the byte at 0x02000004: the area (Spiral Mountain 0x0D, Spiral
+ *   Rise 0x0E, Cliff Farm's first area 0x06...).
+ * The pause screen (START) is all sprites over the level, which it darkens:
+ * the health bar and the notes along the top, the eggs, feathers and Hollow
+ * Honeycombs down the left, the Jiggies, Jinjos and the rest down the right,
+ * and its menu in the middle (CONTINUE, TOTALS, OPTIONS, SAVE, each with a
+ * Jiggy beside it: the Jiggies 16x16 at x 52, the words from x 72 (to 149
+ * in English, further in French and Spanish), rows 36,
+ * 60, 84 and 108, 16 high). Its counts come in one after another: the
+ * screen is still ~90 frames after START, and takes the menu's buttons
+ * from then. TOTALS opens the current world's page (its name on top, its
+ * Hollow Honeycombs, notes, Jiggies, Jinjos, Mumbo Totems and the rest of
+ * its own things), still ~115 frames later. The selected item is drawn
+ * white, the others grey. */
+#define BK_PLAY 0x0200030C
+#define BK_PAUSE 0x02000318
+#define BK_AREA 0x02000004
+#define BK_MENU_X0 50
+#define BK_MENU_X1 186
+#define BK_MENU_Y0 34
+#define BK_MENU_Y1 125
+
+/* white pixels in a menu row (the selected item is white, the others grey) */
+static int bk_white(const uint32_t* fb, int y0) {
+	int n = 0;
+	for (int y = y0; y < y0 + 16; ++y) {
+		for (int x = 72; x < 150; ++x) {
+			uint32_t c = fb[y * GBA_W + x];
+			if ((c & 0xFF) > 0xE0 && ((c >> 8) & 0xFF) > 0xE0 && ((c >> 16) & 0xFF) > 0xE0) ++n;
+		}
+	}
+	return n;
+}
+
+static bool bk_paused(Emu* s) {
+	return emu_read32(s, BK_PAUSE) == 0xFFFFFFFF;
+}
+
+/* frames (the level's layers off: only the pause screen's sprites, on
+ * black) until the picture has held still for 3 with the pause screen up;
+ * false if not within limit */
+static bool bk_settle(Emu* s, int limit) {
+	static uint32_t prev[GBA_W * GBA_H];
+	int still = 0;
+	for (int f = 0; f < limit; ++f) {
+		emu_write16(s, 0x05000000, 0);
+		emu_frame(s, 0);
+		if (!bk_paused(s)) return false;
+		still = f && !memcmp(prev, s->fb, sizeof(prev)) ? still + 1 : 0;
+		if (still >= 12) return true; /* (the counts come in with pauses of a few frames) */
+		memcpy(prev, s->fb, sizeof(prev));
+	}
+	return false;
+}
+
+static void bk_copy(Emu* s, uint32_t* out, int w, int h) {
+	int cw = w < GBA_W ? w : GBA_W;
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (size_t) cw * 4);
+}
+
+/* Two pages, 5 seconds each (BK-2): the pause screen without its menu, then
+ * the current world's Totals. Where START doesn't bring up the pause screen
+ * (a conversation, a scene), the quick failure: the last pictures stay
+ * (BK-4). */
+static const char* bk_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+	int max = *nOut;
+	*nOut = 1;
+	*step = 300;
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	if (bk_paused(s)) return "screen already looks like the map";
+	aw_run(s, K_START, 4);
+	int f = 0;
+	while (f < 20 && !bk_paused(s)) emu_frame(s, 0), ++f;
+	if (!bk_paused(s)) return "map button did nothing";
+	if (!bk_settle(s, 200)) return "the pause screen didn't settle";
+	/* (the menu's first row selected: the pause screen as it opens) */
+	if (bk_white(s->fb, 36) < 40 || bk_white(s->fb, 60) > 0) return "not the pause screen";
+	bk_copy(s, out[0], w, h);
+	/* the menu taken out: its Jiggies and words, the backdrop's black */
+	uint32_t black = s->fb[(GBA_H - 1) * GBA_W];
+	for (int y = BK_MENU_Y0; y <= BK_MENU_Y1 && y < h; ++y) {
+		for (int x = BK_MENU_X0; x <= BK_MENU_X1 && x < w; ++x) out[0][y * w + x] = black;
+	}
+	if (max < 2) return NULL;
+	/* TOTALS: down a row, then A */
+	for (int tries = 0; tries < 3 && bk_white(s->fb, 60) < 40; ++tries) {
+		aw_run(s, K_DOWN, 4);
+		aw_run(s, 0, 8);
+	}
+	if (bk_white(s->fb, 60) < 40) return NULL; /* (the first page alone) */
+	aw_run(s, K_A, 4);
+	for (f = 0; f < 60 && bk_paused(s) && (bk_white(s->fb, 36) >= 40 || bk_white(s->fb, 60) >= 40); ++f) {
+		emu_write16(s, 0x05000000, 0);
+		emu_frame(s, 0);
+	}
+	if (!bk_settle(s, 240)) return NULL;
+	/* (not the pause screen again: its menu's first Jiggy, gone) */
+	if (bk_white(s->fb, 36) >= 40 || bk_white(s->fb, 60) >= 40) return NULL;
+	bk_copy(s, out[1], w, h);
+	*nOut = 2;
+	return NULL;
+}
+
 /* Wario Land 4 (both releases): the screen the game is on, 0x03000C3A
  * (0 scenes, 1 the hub, a passage's level select, the vortex and tally,
  * 2 in a level, 4 the pause screen up, 9 the file screen), what it's
@@ -6893,6 +7007,31 @@ static const MapProfile profiles[] = {
 		.hideWhen = { { LS_V_PLAY, 0, 1, 1 } },
 	},
 	{
+		/* Banjo-Kazooie: Grunty's Revenge (USA and Europe; Europe's
+		 * English, French and German BKZX, Italy's BKZI and Spain's BKZS
+		 * are variants, the same RAM). See bk_compose. */
+		.codes = { "BKZE" },
+		.title = "Banjo-Kazooie: Grunty's Revenge",
+		/* the title's lettering, BG1 (its glow blends with the scene
+		 * behind; Press START is a sprite) (BK-1) */
+		.logo = { .steps = { { 0, 1300 } }, .layer = 1 },
+		/* the pause screen and the world's Totals, as pages (BK-2, BK-3) */
+		.composePages = bk_compose,
+		.stillPick = STILL_FIRST,
+		.crop_w = GBA_W,
+		.crop_h = GBA_H,
+		/* sprites only, on black: the level the pause screen darkens is
+		 * the game screen's (BK-2) */
+		.captureLayers = 0x10,
+		/* about (BK_PLAY), not paused (the player's own pause screen
+		 * stays on the game screen, the last pictures kept: BK-5) */
+		.live = { { BK_PLAY, 0xFF, 1, 1, true, 0xFF, true }, { BK_PAUSE, 0xFFFFFFFF, 0, 4 } },
+		/* the title, the file screen, the intro: the logo (BK-4) */
+		.menu = { { BK_PLAY, 0xFF, 0, 1 } },
+		/* another area: a capture at once (GEN-6) */
+		.room = { { BK_AREA, 0xFF, 0, 1 } },
+	},
+	{
 		/* Ninja Five-O (USA; Europe, Ninja Cop: the ANXP variant). No
 		 * screen of the game's own holds its status (its pause is a menu
 		 * over the stage), so the HUD moves: see NFO_HUD below. */
@@ -7701,6 +7840,13 @@ static void insert_steps(MacroStep* steps, int max, int at, const MacroStep* add
  * selected): wait for it and press A, then boot as the USA release does. */
 static const MacroStep LANGUAGE_A[] = { { 0, 60 }, { K_A, 4 } };
 
+/* Banjo-Kazooie: Grunty's Revenge, Europe's English, French and German
+ * release: the language list (A: English) before the title (BK-1) */
+static void bk_lang(MapProfile* p) {
+	static const MacroStep steps[] = { { 0, 1200 }, { K_A, 4 }, { 0, 150 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+}
 static void lang_menu(MapProfile* p) {
 	insert_steps(p->logo.steps, 24, 0, LANGUAGE_A, 2);
 }
@@ -8051,6 +8197,11 @@ static const Variant variants[] = {
 	{ "AT3D", "AT3E", 0, thps3_ger },
 	{ "ASEJ", "ASEE", 0, smm_jpn },
 	{ "ALDP", "ALDE", 0, NULL },
+	/* Banjo-Kazooie: Grunty's Revenge: the same RAM; Europe's English,
+	 * French and German release asks for a language first (BK-1) */
+	{ "BKZX", "BKZE", 0, bk_lang },
+	{ "BKZI", "BKZE", 0, NULL },
+	{ "BKZS", "BKZE", 0, NULL },
 	{ "ANXP", "ANXE", 0, nfo_eur },
 	{ "AWAJ", "AWAE", 0, NULL },
 	/* Super Mario Advance 3 in Europe: its language menu first */
