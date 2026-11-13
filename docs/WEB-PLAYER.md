@@ -260,13 +260,15 @@ when one is dropped.
 
 - Map captures and logo extraction run inline (the web build has no
   threads), so a capture can make a frame late, as in State Saver's tab.
-- The first time the game list opens with new games (a folder of the
-  player's, most of all), it takes each one's logo before it shows: about
-  0.6 s a game measured in Node (Nov 13, 2026), more on a phone, all at
-  once, as logo.c runs its queue inline where there are no threads. The
-  logos are kept (`states/logos/`), so it's once per game. Memory stays at
-  one game at a time. Spreading them over frames (logo.c, `#ifdef
-  __wasi__`) would let the list show first.
+- The first time the game list shows new games (a folder of the
+  player's, most of all), it takes each one's logo, one a frame (logo.c
+  `logo_step`, `#ifdef __wasi__`: the web build has no thread for them;
+  only a game's own logo, asked for while it's played, is taken at once).
+  The list shows at once and the logos fill in, the ones on screen first,
+  but each holds the list up while it's taken: measured Nov 13, 2026 in
+  Node with 12 games, the list's first frame after 0.14 s (before, after
+  every logo), then frames of 0.6-2 s while the logos came, none on the
+  next run (the logos are kept in `states/logos/`). Slower on a phone.
 - Memory, measured Nov 13, 2026 (Node, Superstar Saga, 5 minutes): the
   wasm memory levels at 104 MB once the 30 s of rewind are full, the same
   with the game read from a folder or given whole; the file isn't read

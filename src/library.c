@@ -1644,7 +1644,13 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 	int restartIn = -1; /* frames until the restart into an installed update */
 #endif
 
+#ifdef __wasi__
+	int listFrames = 0;
+#endif
 	while (!quit && chosen < 0) {
+#ifdef __wasi__
+		if (listFrames++) logo_step(); /* (the web build: a logo a frame, from the list's second) */
+#endif
 		{
 			static unsigned crcSeen;
 			unsigned cg = rom_crc_generation();
