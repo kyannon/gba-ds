@@ -5381,6 +5381,19 @@ static const char* m3_compose(Emu* s, const void* state, uint32_t* const* out, i
 	return NULL;
 }
 
+/* Mario vs. Donkey Kong: the game's state (decomp camthesaxman/mariovsdk,
+ * gMainState; Europe's 0x40 lower: mvdk_eur): 0x0D a level (its opening pan
+ * too), 0x0E a life lost, 0x0F the mute after, 0x10 paused, 0x11 a help
+ * screen, 0x21 the level viewer (MVDK-2 to MVDK-7) */
+#define MVDK_STATE 0x030009C0u
+#define MVDK_PLAY 0x0D
+#define MVDK_PAUSE 0x10
+#define MVDK_HELP 0x11
+#define MVDK_VIEWER 0x21
+/* the HUD's sprite shapes: all but 32x32 (shape 0 size 2) and 8x32 (shape
+ * 2 size 1) */
+#define MVDK_HUD_SHAPES (0xFFFu & ~(1u << 2 | 1u << 9))
+
 static const MapProfile profiles[] = {
 	{
 		.codes = { "A2CE" },
@@ -7653,6 +7666,43 @@ static const MapProfile profiles[] = {
 		          .layer = 2, .maxY = 120 },
 	},
 	{
+		/* Mario vs. Donkey Kong (USA and Australia; Europe and Japan:
+		 * the BM5P and BM5J variants). The game has no status screen
+		 * (START's box names the level and its high score), so the HUD
+		 * moves, as Ninja Five-O's: see MVDK_STATE below (MVDK-2). */
+		.codes = { "BM5E" },
+		.title = "Mario vs. Donkey Kong",
+		/* the title's lettering, cut out of the title by its sky
+		 * (tools/make_logo_masks.py mvdk): START at 600 skips the
+		 * opening film, the title up from about 120 frames on (MVDK-1) */
+		.logo = { .steps = { { 0, 600 }, { K_START, 4 }, { 0, 300 } }, .mask = &logoMaskMVDK },
+		.logoOnly = true,
+		.hud = {
+			/* a level played (its pan and HERE WE GO too: no HUD sprites
+			 * yet, so the logo, emptyIsOff; MVDK-3) or paused, its HUD
+			 * held on the second screen while the box is up (MVDK-2,
+			 * MVDK-6) */
+			.on = { { MVDK_STATE, 0xFF, MVDK_PLAY, 1, true, MVDK_PAUSE } },
+			.freeze = { { MVDK_STATE, 0xFF, MVDK_PAUSE, 1 } },
+			/* the level viewer (L+R): the same, as in play (MVDK-5) */
+			.alt = { .on = { { MVDK_STATE, 0xFF, MVDK_VIEWER, 1 } }, .bgMask = 0 },
+			/* a life lost, the mute after it, a help sign's screen: the
+			 * last HUD picture (MVDK-6) */
+			.keep = { { MVDK_STATE, 0xFF, MVDK_PLAY + 1, 1, true, MVDK_HELP, true } },
+			/* the HUD: priority-0 sprites with their top in rows 0-17
+			 * (to 20 for slack); not the fights' rope (8x32, at the top
+			 * too) or the viewer's arrows (32x32) (MVDK-4) */
+			.objs = { { -32, -16, 239, 20, 0, 1023, 0, 0, 0, MVDK_HUD_SHAPES } },
+			/* the HUD from the second screen's top row (the game's
+			 * starts at row 3), the logo (130 rows) below its lowest
+			 * row (the Mini-Marios', 30 there, 27 moved) */
+			.moves = { { 0, 0, 239, 40, 0, 0, 'T', 0 } },
+			.logoBelow = true,
+			.logoTop = 28,
+			.emptyIsOff = true,
+		},
+	},
+	{
 		/* MOTHER 3 (Japan only; the fan translations are mods of it):
 		 * walking about, the area's map or the Status: see m3_compose */
 		.codes = { "A3UJ" },
@@ -8013,6 +8063,26 @@ static void hpa_jpn(MapProfile* p) {
 	                              .layer = 2, .maxY = 120 };
 }
 
+/* Mario vs. Donkey Kong in Europe: its state 0x40 lower (romxref), its
+ * language list first (START: English), then START skips the film
+ * (MVDK-1, MVDK-8) */
+static void mvdk_eur(MapProfile* p) {
+	p->hud.on[0].addr -= 0x40;
+	p->hud.freeze[0].addr -= 0x40;
+	p->hud.alt.on[0].addr -= 0x40;
+	p->hud.keep[0].addr -= 0x40;
+	p->logo.steps[1] = (MacroStep) { K_START, 4 };
+	p->logo.steps[2] = (MacroStep) { 0, 200 };
+	p->logo.steps[3] = (MacroStep) { K_START, 4 };
+	p->logo.steps[4] = (MacroStep) { 0, 300 };
+}
+
+/* Mario vs. Donkey Kong in Japan: the same state address; its own title,
+ * the katakana lettering (MVDK-1) */
+static void mvdk_jpn(MapProfile* p) {
+	p->logo.mask = &logoMaskMVDKJ;
+}
+
 static const Variant variants[] = {
 	{ "AGSD", "AGSE", 0, gs_ger },
 	/* Golden Sun: The Lost Age's other releases */
@@ -8053,6 +8123,8 @@ static const Variant variants[] = {
 	{ "ALDP", "ALDE", 0, NULL },
 	{ "ANXP", "ANXE", 0, nfo_eur },
 	{ "AWAJ", "AWAE", 0, NULL },
+	{ "BM5P", "BM5E", -0x40, mvdk_eur },
+	{ "BM5J", "BM5E", 0, mvdk_jpn },
 	/* Super Mario Advance 3 in Europe: its language menu first */
 	{ "A3AP", "A3AE", 0, sm3_eur },
 	/* (Fire Emblem's addresses: FeRegion) */
