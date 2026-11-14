@@ -1070,12 +1070,12 @@ static bool debug;
 
 /* ---------------------------------------------------------------- menu */
 
-enum MenuItem { M_RESUME, M_CHEATS, M_PATCHES, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND, M_AUTOSAVE, M_AUTOLOAD, M_BUG, M_SLOT, M_SHAPES, M_FF, M_COLOR, M_GHOST, M_BUTTONS, M_PIXLOGO };
+enum MenuItem { M_RESUME, M_CHEATS, M_PATCHES, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND, M_AUTOSAVE, M_AUTOLOAD, M_BUG, M_SLOT, M_SHAPES, M_FF, M_COLOR, M_GHOST, M_BUTTONS, M_PIXLOGO, M_PLACE };
 static const char* menuLabels[] = {
 	/* title case: drawn in Futura from the built-in images (tools/make_brand.py) */
 	[M_RESUME] = "Resume", [M_SWAP] = "Swap Screens", [M_SAVE] = "Save State", [M_SCALE] = "", [M_LCD] = "", [M_FPS] = "", [M_FRAMEBUF] = "", [M_OVERLAY] = "", [M_LOGO] = "", [M_MATCH] = "", [M_REWIND] = "", [M_RESTART] = "Restart Game",
 	[M_LOAD] = "Load State", [M_CHEATS] = "Cheats", [M_PATCHES] = "Patches", [M_BUTTONS] = "Buttons", [M_ACH] = "Achievements", [M_SHOT] = "Take Screenshot", [M_LIBRARY] = "Close Game", [M_EXIT] = "Close GBA DS",
-	[M_AUTOSAVE] = "", [M_AUTOLOAD] = "", [M_BUG] = "Submit a Bug Report", [M_SLOT] = "", [M_FF] = "", [M_COLOR] = "", [M_GHOST] = "", [M_PIXLOGO] = "",
+	[M_AUTOSAVE] = "", [M_AUTOLOAD] = "", [M_BUG] = "Submit a Bug Report", [M_SLOT] = "", [M_FF] = "", [M_COLOR] = "", [M_GHOST] = "", [M_PIXLOGO] = "", [M_PLACE] = "",
 };
 static int menuItems[12], nMenuItems;
 /* Some buttons are half as wide, two to a row (Save State | Load State):
@@ -1152,6 +1152,7 @@ static const char* const allLabels[] = {
 	"Map Animations: On", "Map Animations: Off", "Map Refresh: Every 3 s", "Map Refresh: Every 1.5 s",
 	"Map Refresh: Every 1 s", "Map Refresh: Every 0.5 s", "Map Refresh: Custom", "Frame Buffer: On",
 	"Frame Buffer: Off", "Match Display Rate: On", "Match Display Rate: Off",
+	"Screen Placement: Centered", "Screen Placement: Closest to Gap",
 	"\u2039   Slot 0: Sep 30, 12:59 PM   \u203A", /* (the slot row, with its arrows) */
 };
 /* the labels of the half-width buttons, which fit in half the width */
@@ -1253,6 +1254,7 @@ static void slot_step(int d) {
 static bool item_enabled(int item) {
 	if (item == M_CHEATS) return cheats.n > 0;
 	if (item == M_SHAPES) return ui_screens_differ(); /* (two screens of a shape: nothing to match) */
+	if (item == M_PLACE) return nScreens == 2;         /* (one screen: no gap) */
 	if (item == M_FRAMEBUF) return !tallProf;          /* (always on in the pinball games' two-screen view) */
 	return item != M_LOAD || file_exists(gp.slot[stateSlot]);
 }
@@ -3484,6 +3486,7 @@ static void draw_menu(void) {
 		if (menuItems[i] == M_MATCH) label = cfg->matchDisplay ? "Match Display Rate: On" : "Match Display Rate: Off";
 		if (menuItems[i] == M_SHAPES) label = !en || !strcmp(cfg->screenMatch, "keep") ? "Keep device aspect ratios" :
 		                                      !strcmp(cfg->screenMatch, "aspect") ? "Match screen aspect ratios" : "Match screen sizes and aspect ratios";
+		if (menuItems[i] == M_PLACE) label = en && !strcmp(cfg->screenPlace, "gap") ? "Screen Placement: Closest to Gap" : "Screen Placement: Centered";
 		if (menuItems[i] == M_PIXLOGO) label = cfg->customLogos == CL_OFF ? "Custom Logos: Do Not Use" : cfg->customLogos == CL_FULL ? "Custom Logos: Full Detail" : "Custom Logos: Pixelated";
 		if (menuItems[i] == M_LOGO) label = cfg->showLogo ? "No Second Screen: Show Logo" : "No Second Screen: Keep Blank";
 		if (menuItems[i] == M_OVERLAY) {
@@ -6340,7 +6343,7 @@ static void save_prefs(void) {
 		        (const char* const[]) { "off", "generated", "custom" }[SDL_clamp(cfg->overlayMode, 0, 2)],
 		        cfg->frameBuffer ? 1 : 0, cfg->matchDisplay ? 1 : 0, cfg->rewind ? 1 : 0, cfg->fastForward ? 1 : 0, ff_speed_name(),
 		        cfg->autoSave ? 1 : 0, cfg->autoLoad ? 1 : 0, cfg->barPinned ? 1 : 0);
-		fprintf(f, "screen_match = %s\n", cfg->screenMatch);
+		fprintf(f, "screen_match = %s\nscreen_placement = %s\n", cfg->screenMatch, cfg->screenPlace);
 		fprintf(f, "custom_logos = %s\n", cfg->customLogos == CL_OFF ? "off" : cfg->customLogos == CL_FULL ? "full" : "pixelated");
 		fprintf(f, "overlay_screens = %s\nbezel_logo = %d\nbezel_inner = %s\nbezel_outer = %s\n",
 		        cfg->overlays == OVL_TOP ? "top" : cfg->overlays == OVL_BOTTOM ? "bottom" : "both", cfg->bezelLogo, cfg->bezelInner, cfg->bezelOuter);
@@ -6403,7 +6406,8 @@ static SDL_Color borderColor;
  *   <CODE>-<screen>-<scale>, <CODE>-<screen>,
  *   (the second screen only, older names: <CODE>-<scale>, <CODE>)
  *   <screen>-<scale>-<match>, <screen>-<match>, <screen>-<scale>, <screen>
- * wiki/Overlays.md explains them for players (top and bottom only). */
+ * each with "-gap" after it while Screen Placement moves the picture
+ * (load_overlay). wiki/Overlays.md explains them for players (top and bottom only). */
 static void overlays_reload(void) {
 	overlayMode[0][0] = overlayMode[1][0] = 0;
 	bezelKey[0][0] = bezelKey[1][0] = 0;
@@ -6413,8 +6417,13 @@ static void overlays_reload(void) {
 static void load_overlay(int s, int which) {
 	const char* scale = which ? cfg->mapScale : cfg->scale;
 	const char* match = strcmp(cfg->screenMatch, "keep") && ui_screens_differ() ? cfg->screenMatch : NULL;
+	/* Screen Placement: Closest to Gap moves the picture where it doesn't
+	 * fill the screen's height (Pixel Perfect, Full Width): an overlay made
+	 * for it has "-gap" at the end of its name, and ones without it are left
+	 * alone (their hole is where a centred picture goes) */
+	const char* place = nScreens == 2 && !strcmp(cfg->screenPlace, "gap") && (!strcmp(scale, "integer") || !strcmp(scale, "fit")) ? "-gap" : "";
 	char key[sizeof(overlayMode[0])];
-	snprintf(key, sizeof(key), "%d|%s|%s", which, scale, match ? match : "");
+	snprintf(key, sizeof(key), "%d|%s|%s|%s", which, scale, match ? match : "", place);
 	if (!strcmp(overlayMode[s], key)) return;
 	snprintf(overlayMode[s], sizeof(overlayMode[s]), "%s", key);
 	ui_free_image(overlayTex[s]);
@@ -6435,7 +6444,7 @@ static void load_overlay(int s, int which) {
 	}
 	char path[1200];
 	for (int i = 0; i < n; ++i) {
-		snprintf(path, sizeof(path), "%s/overlays/%s.png", cfg->assetDir, names[i]);
+		snprintf(path, sizeof(path), "%s/overlays/%s%s.png", cfg->assetDir, names[i], place);
 		if (ui_load_image(path, overlayTex[s], &overlayW[s], &overlayH[s], true)) {
 			if (debug) fprintf(stderr, "overlay (%s screen): %s\n", sides[0], path);
 			return;
@@ -6901,6 +6910,19 @@ static bool activate(int item, enum GameExit* exitTo) {
 		save_prefs();
 		break;
 	}
+	case M_PLACE:
+		/* issue #46: both screens' pictures centred, or against the edges nearest each other */
+		if (!item_enabled(M_PLACE)) {
+			snprintf(menuNote, sizeof(menuNote), "Only one screen: nothing to move");
+			break;
+		}
+		snprintf(cfg->screenPlace, sizeof(cfg->screenPlace), "%s", !strcmp(cfg->screenPlace, "gap") ? "center" : "gap");
+		ui_layout_pictures();
+		overlays_reload(); /* (Custom overlays have their own names for it) */
+		gameTexAll = true;
+		snprintf(menuNote, sizeof(menuNote), "%s", !strcmp(cfg->screenPlace, "gap") ? "The pictures as close to each other as they go" : "Each picture in the middle of its screen");
+		save_prefs();
+		break;
 	case M_MATCH:
 		cfg->matchDisplay = !cfg->matchDisplay;
 		pacing_update();
@@ -7257,6 +7279,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	pages[1][pageLen[1]++] = M_FRAMEBUF;
 	pages[1][pageLen[1]++] = M_MATCH;
 	pages[1][pageLen[1]++] = M_SHAPES;
+	pages[1][pageLen[1]++] = M_PLACE;
 	{
 		/* the game has the player's own or a scraped logo (GEN-11) */
 		if (ui_logo_custom(cfg, romPath, emu.gameCode)) pages[1][pageLen[1]++] = M_PIXLOGO;
