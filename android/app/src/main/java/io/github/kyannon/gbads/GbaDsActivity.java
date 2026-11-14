@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInstaller;
 import android.graphics.Point;
 import android.hardware.display.DisplayManager;
@@ -66,6 +67,9 @@ public class GbaDsActivity extends SDLActivity {
                 + Build.MODEL + " (" + Build.HARDWARE + "), Android " + Build.VERSION.RELEASE + " (API "
                 + Build.VERSION.SDK_INT + "), ABIs " + java.util.Arrays.toString(Build.SUPPORTED_ABIS)
                 + ", data in " + home);
+        /* before the window is laid out: on a Surface Duo a landscape lock
+         * here takes a spanned app back to one screen (issue #48) */
+        setRequestedOrientation(orientationWanted());
         super.onCreate(state);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         LauncherActivity.launchLog(this, mBrokenLibraries ? "native libraries didn't load (SDL shows why)" : "native libraries loaded");
@@ -157,6 +161,37 @@ public class GbaDsActivity extends SDLActivity {
         switchTo = new Intent(this, LauncherActivity.class).putExtra("rom", rom).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         /* the game saves its resume point and returns from main; SDL then finishes this activity */
         SDLActivity.nativeSendQuit();
+    }
+
+    /* ------------------------------------------------------------ orientation */
+
+    /** Another display beside this activity's (the one openSecondScreen uses). */
+    private boolean hasSecondDisplay() {
+        DisplayManager dm = (DisplayManager) getSystemService(Context.DISPLAY_SERVICE);
+        int mine = getWindowManager().getDefaultDisplay().getDisplayId();
+        for (Display d : dm.getDisplays()) if (d.getDisplayId() != mine) return true;
+        return false;
+    }
+
+    /**
+     * Two displays (RG DS, AYN Thor, Retroid Pocket Duo...): landscape, as
+     * before. One display (a phone, or a Surface Duo, whose two screens are
+     * one display; issue #48): whichever way the player holds it, both ways
+     * round (a controller's cable can be on either side), keeping the
+     * player's rotation lock. The native side lays the screens out from the
+     * window's shape (ui.c layout_screens).
+     */
+    private int orientationWanted() {
+        boolean two = hasSecondDisplay();
+        int o = two ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE : ActivityInfo.SCREEN_ORIENTATION_FULL_USER;
+        Log.i(TAG, two ? "two displays: landscape" : "one display: any orientation (the rotation lock is kept)");
+        return o;
+    }
+
+    /** SDL asks when it makes the window (its hint: LandscapeLeft, ui.c). */
+    @Override
+    public void setOrientationBis(int w, int h, boolean resizable, String hint) {
+        setRequestedOrientation(orientationWanted());
     }
 
     private void openSecondScreen() {

@@ -95,33 +95,33 @@
   <form method="dialog" class="panel-in">
     <header><h2>Settings</h2><button class="x" value="close" aria-label="Close">×</button></header>
     <section>
-      <h3>Device</h3>
-      <label class="row"><span>Screens of</span><select id="device"></select></label>
+      <h3>Screens</h3>
+      <label class="row"><span>Resolution</span><select id="device"></select></label>
       <div class="custom" id="customDevice" hidden>
         <div class="custom-row"><span>Top</span><input type="number" id="cTopW" min="240" max="3840" aria-label="Top width"> × <input type="number" id="cTopH" min="160" max="2160" aria-label="Top height"> px, <input type="number" id="cTopIn" min="1" max="20" step="0.1" aria-label="Top size in inches"> in</div>
         <div class="custom-row"><span>Bottom</span><input type="number" id="cBotW" min="240" max="3840" aria-label="Bottom width"> × <input type="number" id="cBotH" min="160" max="2160" aria-label="Bottom height"> px, <input type="number" id="cBotIn" min="1" max="20" step="0.1" aria-label="Bottom size in inches"> in</div>
       </div>
-      <p class="note">GBA DS lays itself out for these screens, as on the device. Changing them restarts the game where it is.</p>
+      <p class="note">GBA DS lays itself out for screens of this resolution, as on a handheld that has them. Changing it restarts the game where it is.</p>
     </section>
     <section>
-      <h3>Screens on this computer</h3>
+      <h3>Layout</h3>
       <label class="row"><span>Arrangement</span>
-        <select id="arrange"><option value="auto">Whichever fits bigger</option><option value="stack">Top over bottom</option><option value="side">Side by side</option></select></label>
+        <select id="arrange"><option value="rotate">Follow screen rotation</option><option value="stack">Top over bottom</option><option value="side">Side by side</option></select></label>
       <label class="row"><span>Sizes</span>
-        <select id="sizes"><option value="device">As on the device (by inches)</option><option value="pixels">By pixels</option></select></label>
-      <label class="row"><span>Gap between them</span><input type="range" id="gap" min="0" max="12" step="1"></label>
+        <select id="sizes"><option value="device">By inches</option><option value="pixels">By pixels</option></select></label>
+      <label class="row"><span>Screen gap</span><input type="range" id="gap" min="0" max="12" step="1"></label>
       <label class="row"><span>Picture</span>
         <select id="smooth"><option value="1">Smooth</option><option value="0">Sharp pixels</option></select></label>
-      <label class="row"><span>Resolution</span>
-        <select id="scale"><option value="0.5">Half the device's (fastest)</option><option value="0.75">Three quarters</option><option value="1">The device's (sharpest; slower)</option></select></label>
-      <p class="note">GBA DS draws its screens at this size and your graphics card scales them to fit. Half is still over twice the game's own pixels.</p>
+      <label class="row"><span>Detail</span>
+        <select id="scale"><option value="0.5">Half the resolution (fastest)</option><option value="0.75">Three quarters</option><option value="1">The whole resolution (sharpest; slower)</option></select></label>
+      <p class="note">Follow screen rotation: upright, the screens stack; on its side, they sit side by side. GBA DS draws its screens at the detail chosen and your graphics card scales them to fit. Half is still over twice the game's own pixels.</p>
     </section>
     <section>
       <h3>On-screen controls</h3>
       <label class="row"><span>Show them</span>
         <select id="touchShow"><option value="auto">On touchscreens, until a controller connects</option><option value="always">Always</option><option value="never">Never</option></select></label>
       <label class="row"><span>Placement</span>
-        <select id="touchPlace"><option value="below">Below the screens</option><option value="beside">Beside the screens</option></select></label>
+        <select id="touchPlace"><option value="rotate">Follow screen rotation</option><option value="below">Below the screens</option><option value="beside">Beside the screens</option></select></label>
       <label class="row"><span>Size</span><input type="range" id="touchSize" min="70" max="140" step="5"></label>
       <label class="check"><input type="checkbox" id="touchVibrate"> Vibrate on each press (where the phone can)</label>
     </section>
@@ -131,8 +131,14 @@
       <label class="check"><input type="checkbox" id="pauseHidden"> Pause when this tab is hidden</label>
     </section>
     <section>
-      <h3>Kept in this browser</h3>
-      <p class="note" id="keptNote">Battery saves, states and GBA DS's own settings are kept here between visits.</p>
+      <h3>Your files</h3>
+      <p class="note" id="folderNote"></p>
+      <div class="buttons" id="folderBtns">
+        <button type="button" class="ghost" id="folderPick">Choose a folder…</button>
+        <button type="button" class="ghost" id="folderReconnect" hidden>Reconnect</button>
+        <button type="button" class="ghost" id="folderForget" hidden>Stop using the folder</button>
+      </div>
+      <p class="note" id="keptNote">Battery saves, states and GBA DS's own settings are also kept in this browser between visits.</p>
       <div class="buttons">
         <button type="button" class="ghost" id="exportSave">Download this game's save</button>
         <button type="button" class="ghost" id="forgetBuild">Forget the dropped build</button>

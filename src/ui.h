@@ -190,6 +190,8 @@ bool ui_load_logo(const Config* cfg, const char* rom, const char* code, SDL_Text
 bool ui_logo_provisional(void);
 /* Where the game's logo comes from (GEN-11); path: its file. */
 enum { LOGO_EXTRACTED, LOGO_OWN, LOGO_SCRAPED };
+/* The last logo choice in words (which file, or why a custom one wasn't used). */
+const char* ui_logo_note(void);
 int ui_logo_source(const Config* c, const char* rom, const char* code, char* path, size_t n);
 /* The game has an own or scraped logo, used or not (custom_logos off). */
 bool ui_logo_custom(const Config* c, const char* rom, const char* code);
