@@ -6471,13 +6471,21 @@ static void draw_bezel(int s, const char* mode, bool defaults) {
 		if (pickWhich == 1) out = pick_rgb();
 	}
 	bool bottom = s == 1 && nScreens == 2;
+	/* the logo by the hinge (below the top screen's picture, above the
+	 * bottom one's); Screen Placement: Closest to Gap leaves no room there,
+	 * so it's on the bottom screen only, below the picture (GEN-12) */
+	bool above = bottom;
+	if (nScreens == 2 && !strcmp(cfg->screenPlace, "no_gap")) {
+		if (!bottom) logo = false;
+		above = false;
+	}
 	char key[96];
-	snprintf(key, sizeof(key), "%dx%d %d,%d,%d,%d %d %06X %06X %d", sr.w, sr.h, r.x, r.y, r.w, r.h, bottom, (unsigned) in, (unsigned) out, logo);
+	snprintf(key, sizeof(key), "%dx%d %d,%d,%d,%d %d%d %06X %06X %d", sr.w, sr.h, r.x, r.y, r.w, r.h, bottom, above, (unsigned) in, (unsigned) out, logo);
 	if (strcmp(key, bezelKey[s])) {
 		snprintf(bezelKey[s], sizeof(bezelKey[s]), "%s", key);
 		ui_free_image(bezelTex[s]);
 		Uint64 t0 = SDL_GetPerformanceCounter();
-		SDL_Surface* srf = bezel_surface(sr.w, sr.h, r, bottom, in, out, logo);
+		SDL_Surface* srf = bezel_surface(sr.w, sr.h, r, above, in, out, logo);
 		if (srf) ui_load_surface(srf, bezelTex[s], &bezelW[s], &bezelH[s], false);
 		if (debug) fprintf(stderr, "bezel (%s screen): %s, %.1f ms\n", bottom ? "bottom" : "top", key,
 		                   (SDL_GetPerformanceCounter() - t0) * 1000.0 / SDL_GetPerformanceFrequency());

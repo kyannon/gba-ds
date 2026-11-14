@@ -10,7 +10,7 @@ While you're on that screen, the other screen isn't dimmed, so you see the bezel
 
 ## GBA DS's own bezel
 
-Out of the box, GBA DS draws a bezel round the picture: a dark grey bezel (`#1A1A1A`) on the navy of the GBA DS logo's outline (`#102060`), with the logo in the bezel by the hinge (below the picture on the top screen, above it on the bottom screen). It's drawn whatever the screen shows, the second screen's logo too.
+Out of the box, GBA DS draws a bezel round the picture: a dark grey bezel (`#1A1A1A`) on the navy of the GBA DS logo's outline (`#102060`), with the logo in the bezel by the hinge (below the picture on the top screen, above it on the bottom screen; with **Screen Placement: Closest to Gap**, once, below the picture on the bottom screen). It's drawn whatever the screen shows, the second screen's logo too.
 
 It's drawn by the app for your screens and the scaling you use, so it fits any device and any setting. Where there's little room (Full Width, or the sides in Pixel Perfect on a 4:3 screen), you see only the part of the bezel that fits, and the logo shrinks or is left out; with Stretch, or Zoom on a 4:3 screen, the picture fills the screen and there's no bezel.
 
