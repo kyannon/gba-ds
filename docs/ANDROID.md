@@ -341,17 +341,23 @@ CHANGELOG until someone tests them on a more capable device.
   with another game (or the game list), GbaDsActivity.onNewIntent sends
   SDL a quit (the game saves its resume point), and onDestroy starts the
   launcher again with the new game before exiting the process.
-  ES-DE (custom systems):
-    es_find_rules.xml:
-      <emulator name="GBA-DS">
-          <!-- Game Boy Advance, dual screen: GBA DS -->
-          <rule type="androidpackage">
-              <entry>io.github.kyannon.gbads/.LauncherActivity</entry>
-          </rule>
-      </emulator>
-    es_systems.xml, in the gba system:
-      <command label="GBA DS (Standalone)">%EMULATOR_GBA-DS% %ACTIVITY_CLEAR_TASK% %ACTIVITY_CLEAR_TOP% %DATA%=%ROMSAF%</command>
-    (or %EXTRA_rom%=%ROM% instead of %DATA%=%ROMSAF%)
+  ES-DE: Settings > "GBA DS in ES-DE" (src/esde.c, the row only when
+    ES-DE's folder is found: /storage/emulated/0/ES-DE, else
+    /storage/<volume>/ES-DE, with settings/es_settings.xml;
+    GBADS_ESDE_DIR overrides for the desktop test kit) writes into
+    ES-DE/custom_systems: the GBA-DS find rule (androidpackage
+    io.github.kyannon.gbads/.LauncherActivity) in es_find_rules.xml, and
+    `<command label="GBA DS (Standalone)">%EMULATOR_GBA-DS%
+    %ACTIVITY_CLEAR_TASK% %ACTIVITY_CLEAR_TOP% %EXTRA_rom%=%ROM%</command>`
+    first in es_systems.xml's gba system (the default emulator): into the
+    player's own gba system, else a copy of ES-DE's (esde.c GBA_BODY, from
+    ES-DE's resources/systems/android/es_systems.xml; its RetroArch lines
+    end in %ROMSAF% when es_settings.xml has RetroArchSAFMode on, as
+    es_systems_saf.xml does), marked with a "gba-ds:" comment. main.c
+    refreshes it at start; Off takes out only GBA DS's parts (a file left
+    with no system / emulator is deleted). %EXTRA_rom%=%ROM% (a path, not
+    %ROMSAF%) so patches beside the game apply. When ES-DE changes its own
+    gba system, update GBA_BODY (the copy is rewritten at the next start).
   Daijisho player: package io.github.kyannon.gbads, activity
   .LauncherActivity, `-a android.intent.action.VIEW -d {file.uri}` (or
   `-e rom {file.path}`).
@@ -663,8 +669,42 @@ data_dir_now is elsewhere, and launch.log follows data_dir_now
 `data_dir` in `<app>/data-folder.cfg` (moving only GBA DS's own folders).
 Not tried on the device yet.
 
+## One display: phones and the Surface Duo (issue #48, Nov 14, 2026)
+
+The owner's Surface Duo: its two screens are one Android display
+(2784x1800 spanned, an 84-pixel hinge between two 1350x1800 screens;
+Duo 2: 2754 = 1344 + 66 + 1344). Two problems: the activity was locked
+to landscape (manifest `screenOrientation="landscape"` and SDL's
+`LandscapeLeft` hint), which on a Duo takes a spanned app back to one
+screen (Microsoft: by design for orientation-locked apps) and holds it
+one way round only (upside down with the controller's cable on the left).
+
+- The manifest no longer locks the orientation. GbaDsActivity sets it
+  itself (`orientationWanted`, before super.onCreate, and again from SDL's
+  `setOrientationBis`, overridden): landscape when there's another display
+  (RG DS, Thor, RP Duo: unchanged), else SCREEN_ORIENTATION_FULL_USER (any
+  way round, the player's rotation lock kept).
+- ui.c layout_screens, one window: `android_hinge_gap` (android.c, by
+  `ro.product.model` "Surface Duo" / "Surface Duo 2" and the window's long
+  side 2784 / 2754, i.e. spanned) leaves the hinge's pixels out between
+  the two screens; with a hinge, auto is span-v when held tall (screens
+  above each other, as a DS) and span-h when held wide. Without one, as
+  before (span-h from 1.8:1, span-v from 1:1.2, else single). The log
+  says `screens: one window, WxH LAYOUT gap N`.
+- tools/androidtest: `STUB_SECOND=none`, `STUB_HINGE` / `STUB_HINGE_LONG`;
+  GBADS_WINDOW now sizes the window there (SDL's offscreen driver made a
+  full-screen one 1024x768 whatever it said).
+- Not known yet: whether the Duo keeps the game spanned when started
+  from the launcher (LauncherActivity starts GbaDsActivity in a task of
+  its own; if the Duo opens that on one screen, that's next).
+  Held wide (two tall screens side by side), the game list's top bar is
+  cut off at 1350 wide.
+
 ## For the next release
 
 Player-facing Android changes since the last release, for the main session
 to move into CHANGELOG.md and the release notes (see CLAUDE.md, "More than
 one session"). Empty after each release.
+
+- ES-DE: Settings > "GBA DS in ES-DE" makes GBA DS the emulator for Game Boy Advance games in ES-DE (quit ES-DE and open it again to see it). ES-DE's other emulators stay in its list, so a game GBA DS doesn't support can be switched to one of them in ES-DE (the game's metadata > Alternative emulator).
+- Surface Duo and other one-display devices: the app turns with the device, both ways round, and keeps your rotation lock; spanned over both screens of a Surface Duo, the game and the menus go either side of the hinge (issue #48).

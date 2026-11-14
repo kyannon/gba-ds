@@ -62,7 +62,6 @@
             android:launchMode="singleTask"
             android:taskAffinity="io.github.kyannon.gbads.game"
             android:alwaysRetainTaskState="true"
-            android:screenOrientation="landscape"
             android:preferMinimalPostProcessing="true"
             android:configChanges="layoutDirection|locale|orientation|uiMode|screenLayout|screenSize|smallestScreenSize|keyboard|keyboardHidden|navigation|density" />
     </application>

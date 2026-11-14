@@ -8,6 +8,7 @@
  */
 #include "android.h"
 #include "config.h"
+#include "esde.h"
 #include "esinteg.h"
 #include "game.h"
 #include "library.h"
@@ -190,6 +191,9 @@ int main(int argc, char** argv) {
 	/* keep EmulationStation's entry for GBA DS current, if it's switched on */
 	es_integration_refresh(&cfg);
 	banana_integration_refresh();
+#else
+	/* and ES-DE's, on Android (ES-DE's RetroArch SAF mode may have changed) */
+	esde_integration_refresh();
 #endif
 
 #if defined(__linux__) && !defined(__ANDROID__) && defined(__GLIBC__)

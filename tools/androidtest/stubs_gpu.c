@@ -21,6 +21,7 @@ int android_take_picked_folder(char* o, size_t n) {
 }
 bool android_second_size(int* w, int* h) {
 	*w = 1024, *h = 768;
+	if (getenv("STUB_SECOND") && !strcmp(getenv("STUB_SECOND"), "none")) return false; /* one display (Surface Duo) */
 	if (getenv("STUB_SECOND")) sscanf(getenv("STUB_SECOND"), "%dx%d", w, h);
 	return true;
 }

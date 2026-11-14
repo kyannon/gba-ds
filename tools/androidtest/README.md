@@ -17,7 +17,10 @@ Run it like the desktop app, with these on top:
     build/host/gba-ds-android --state-dir=DIR/st --rom-dir=ROMS --input-script=SCRIPT
 
 - `GBADS_WINDOW` is the activity's window (screen 1, the touch screen);
-  `STUB_SECOND=WxH` the second display (default 1024x768). Each frame drawn
+  `STUB_SECOND=WxH` the second display (default 1024x768).
+  `STUB_SECOND=none`: one display only (a phone, a Surface Duo); with
+  `STUB_HINGE=84 STUB_HINGE_LONG=2784`, a hinge of 84 pixels across the
+  middle when the window's long side is 2784 (a Duo spanned, issue #48). Each frame drawn
   on the second display is saved as `SHOTDIR/second-NNNN.bmp`; the script's
   `SHOT:` captures the activity's window only.
 - `PICKED=PATH`: what Android's folder picker answers (Settings > Folders).
