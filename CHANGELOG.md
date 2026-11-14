@@ -2,6 +2,9 @@
 
 ## v1.5.3 (not yet released)
 
+### Changes
+- **Saves in a folder of your own** (issue #47): `gba-ds.cfg` and the wiki now explain how to keep battery saves in another folder, such as one you sync with other devices. Set `save_dir` to the folder, and add `save_ext = srm` if those devices run RetroArch. GBA DS makes the folder if it isn't there, and copies each game's save from next to the ROM the first time you play it.
+
 ## v1.5.2 (2026-11-13)
 
 ### New
