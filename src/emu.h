@@ -88,16 +88,32 @@ void emu_rewind_append(Emu* e);
 bool emu_rewind_step(Emu* e);
 size_t emu_rewind_count(void);
 
-/* Persist full savestates (including battery data) to disk. */
-bool emu_state_save_file(Emu* e, const char* path);
+/* Full savestates (including battery data) on disk. Loading (and the
+ * functions below) take GBA DS's / mGBA's own files and RetroArch's (and
+ * BananaFront's: RASTATE, compressed or not) with its mGBA core's state. */
+typedef enum {
+	STATE_FORMAT_MGBA,           /* mGBA's own (GBA DS's states) */
+	STATE_FORMAT_RETROARCH,      /* RetroArch's, uncompressed */
+	STATE_FORMAT_RETROARCH_RZIP, /* RetroArch's, compressed (its savestate_file_compression) */
+} StateFormat;
+typedef enum {
+	STATE_FILE_NONE,       /* no such file */
+	STATE_FILE_MGBA,       /* mGBA's own */
+	STATE_FILE_RETROARCH,  /* RetroArch's, with its mGBA core's state */
+	STATE_FILE_OTHER_CORE, /* another emulator's (RetroArch's gpSP, VBA-M...): not loadable */
+	STATE_FILE_UNREADABLE, /* compressed in a way GBA DS can't read, or damaged */
+} StateFileKind;
+bool emu_state_save_file(Emu* e, const char* path); /* (mGBA's format, nothing of GBA DS's own) */
+/* extra: GBA DS's own data kept inside it (mGBA's extra data, a tag of
+ * its own: other emulators skip it), or NULL */
+bool emu_state_save_file_as(Emu* e, const char* path, const void* extra, size_t extraN, StateFormat fmt);
 bool emu_state_load_file(Emu* e, const char* path);
+/* what's in a state file; *fromGbads (may be NULL): it has GBA DS's own data (saved by GBA DS) */
+StateFileKind emu_state_file_kind(Emu* e, const char* path, bool* fromGbads);
 /* The CRC32 of the ROM a state file was saved with (mGBA keeps it in the
  * state's header); false if it isn't a GBA state */
 bool emu_state_file_rom_crc(const char* path, uint32_t* crc);
-/* GBA DS's own data kept inside a state file (mGBA's extra data, a tag of
- * its own: other emulators skip it): written after the state (path saved
- * just before), read back as a malloc'd copy (NULL: none) */
-bool emu_state_file_put_extra(Emu* e, const char* path, const void* data, size_t n);
+/* GBA DS's own data kept inside a state file, as a malloc'd copy (NULL: none) */
 void* emu_state_file_get_extra(Emu* e, const char* path, size_t* n);
 
 /* The whole ROM file (inside a .zip / .7z too), malloc'd; NULL on failure. */

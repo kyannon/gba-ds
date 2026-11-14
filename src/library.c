@@ -891,6 +891,8 @@ static void save_library_cfg(const Config* cfg) {
 	FILE* f = fopen(file, "w");
 	if (!f) return;
 	fprintf(f, "# written by the game list\nlibrary_view = %s\n", listMode ? "list" : "grid");
+	/* (Settings > Save States: shared with RetroArch or not, issue #39) */
+	fprintf(f, "state_folder = %s\n", strcmp(cfg->stateFolder, "retroarch") ? "gbads" : "retroarch");
 #ifdef __ANDROID__
 	fprintf(f, "rom_dir = %s\n", cfg->romDir);
 	/* (Settings > Folders; empty: next to the games) */
@@ -1039,7 +1041,7 @@ static int updatesSel;
 #define SETTINGS_MAX 6
 static int nRows = 1; /* rows shown (Back is row nRows) */
 /* (Hotkeys shares Map Buttons' line: the right half of it, under one text) */
-enum { ROW_BANANA, ROW_ES, ROW_MAP, ROW_HOTKEYS, ROW_UPDATES, ROW_FOLDERS, ROW_RA, ROW_ESDE };
+enum { ROW_BANANA, ROW_ES, ROW_MAP, ROW_HOTKEYS, ROW_UPDATES, ROW_FOLDERS, ROW_RA, ROW_ESDE, ROW_STATES };
 static int rowKind[SETTINGS_MAX];
 
 #ifdef __ANDROID__
@@ -1069,6 +1071,7 @@ static void settings_rows(const Config* cfg) {
 #endif
 	rowKind[nRows++] = ROW_MAP;
 	rowKind[nRows++] = ROW_HOTKEYS;
+	rowKind[nRows++] = ROW_STATES; /* (save states shared with RetroArch: issue #39) */
 #ifdef GBADS_UPDATES
 	rowKind[nRows++] = ROW_UPDATES;
 #endif
@@ -1096,6 +1099,10 @@ static SettingsGeom settings_geom(int scr) {
 	int gap = lines > 4 ? px * 17 : lines > 3 ? px * 24 : lines > 2 ? px * 28 : px * 44; /* room for each row's text under it */
 	int y = g.panel.y + (lines > 4 ? px * 20 : lines > 3 ? px * 22 : px * 26);
 	int textGap = lines > 4 ? px * 3 : px * 8;
+#ifndef __ANDROID__
+	/* (Linux, four lines: with Save States, closer together) */
+	if (lines > 3) rowH = px * 10, textGap = px * 3, y = g.panel.y + px * 20;
+#endif
 	for (int i = 0; i < nRows; ++i) {
 		if (rowKind[i] == ROW_HOTKEYS && i > 0) {
 			/* the right half of the line above, Map Buttons the left */
@@ -1110,7 +1117,8 @@ static SettingsGeom settings_geom(int scr) {
 		g.textY[i] = g.row[i].y + rowH + textGap;
 #ifndef __ANDROID__
 		/* Linux, three rows: room for each one's text (lines of about 8 units) */
-		if (lines > 2) gap = px * (rowKind[i] == ROW_BANANA ? 46 : rowKind[i] == ROW_ES ? 38 : rowKind[i] == ROW_MAP ? 27 : 22);
+		if (lines > 3) gap = px * (rowKind[i] == ROW_BANANA ? 40 : rowKind[i] == ROW_ES ? 32 : rowKind[i] == ROW_MAP || rowKind[i] == ROW_STATES ? 24 : 22);
+		else if (lines > 2) gap = px * (rowKind[i] == ROW_BANANA ? 46 : rowKind[i] == ROW_ES ? 38 : rowKind[i] == ROW_MAP ? 27 : rowKind[i] == ROW_STATES ? 30 : 22);
 #endif
 		y += rowH + gap;
 	}
@@ -1502,15 +1510,57 @@ static bool folders_input(Config* cfg, int ls) {
 #else
 static int settingsMsgRow; /* the row settingsMsg is about: shown in place of its text */
 
+/* Settings > Save States (issue #39): slots 0-9 and the automatic state in
+ * GBA DS's own folder, or shared with RetroArch (its own files, in its
+ * folder: a game goes on in either). The folder shown is the selected
+ * game's (RetroArch's can depend on the game's). */
+static const char* states_rom(void) {
+	return thumbFor >= 0 && thumbFor < nGames ? games[thumbFor].path : NULL; /* (the game shown in the list) */
+}
+static void states_text(const Config* cfg, char* out, size_t n) {
+	char dir[1024];
+	bool compress;
+	bool found = retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress);
+	if (!found)
+		snprintf(out, n, "Slots 0-9 and the automatic state are GBA DS's own. RetroArch's settings weren't found here, so they "
+		                 "can't be shared with it.");
+	else if (strcmp(cfg->stateFolder, "retroarch"))
+		snprintf(out, n, "Slots 0-9 and the automatic state are GBA DS's own. Shared, they're RetroArch's (its mGBA core's, "
+		                 "in %s): a game goes on in either.", dir);
+	else
+		snprintf(out, n, "Slots 0-9 and the automatic state are RetroArch's, in %s: a game goes on in either. Its GBA core needs "
+		                 "to be mGBA. The quick state stays GBA DS's.", dir);
+}
+static void states_switch(Config* cfg) {
+	char dir[1024];
+	bool compress;
+	bool shared = !strcmp(cfg->stateFolder, "retroarch");
+	if (!shared && !retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress)) {
+		snprintf(settingsMsg, sizeof(settingsMsg),
+		         "RetroArch's settings weren't found. If it's installed, put its state folder in gba-ds.cfg (retroarch_state_dir).");
+		return;
+	}
+	snprintf(cfg->stateFolder, sizeof(cfg->stateFolder), "%s", shared ? "gbads" : "retroarch");
+	save_library_cfg(cfg);
+	fprintf(stderr, "library: save states %s\n", shared ? "in GBA DS's own folder" : "shared with RetroArch");
+	snprintf(settingsMsg, sizeof(settingsMsg), "%s",
+	         shared ? "Slots 0-9 and the automatic state are GBA DS's own again. The states saved in RetroArch's folder stay there."
+	                : "Slots 0-9 and the automatic state are now RetroArch's. GBA DS's own states stay in its folder, for when this is switched back.");
+}
+
 static void draw_settings(const Config* cfg, int scr, int sel) {
 	SettingsGeom g = settings_geom(scr);
 	float px = g.px;
 	const char* labels[SETTINGS_MAX];
+	bool shared = !strcmp(cfg->stateFolder, "retroarch");
+	char statesText[1400];
+	states_text(cfg, statesText, sizeof(statesText));
 	for (int i = 0; i < nRows; ++i) {
 		labels[i] = rowKind[i] == ROW_BANANA ? (banana_integration_on() ? "GBA DS in BananaOS's GBA list: On" : "GBA DS in BananaOS's GBA list: Off")
 		          : rowKind[i] == ROW_ES     ? (es_integration_on(cfg) ? "GBA DS in EmulationStation: On" : "GBA DS in EmulationStation: Off")
 		          : rowKind[i] == ROW_MAP    ? "Map Buttons"
 		          : rowKind[i] == ROW_HOTKEYS ? "Hotkeys"
+		          : rowKind[i] == ROW_STATES ? (shared ? "Save States: Shared with RetroArch" : "Save States: GBA DS's Own")
 		                                     : "Updates";
 	}
 	draw_settings_frame(scr, &g, sel, labels);
@@ -1531,6 +1581,7 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 		                   : rowKind[i] == ROW_MAP
 		                       ? "Map Buttons sets which of this device's buttons does what. "
 		                         "Hotkeys sets the shortcuts: the hotkey button held with another."
+		                   : rowKind[i] == ROW_STATES ? statesText
 		                       : "This is v" GBADS_VERSION ". Look for a new version, and download and install it.";
 		/* a message from switching a row (settings_activate): in place of
 		 * its text, where there's room for it */
@@ -1553,6 +1604,7 @@ static void settings_activate(Config* cfg, int row) {
 	else if (rowKind[row] == ROW_BANANA) banana_integration_set(!banana_integration_on(), settingsMsg, sizeof(settingsMsg));
 	else if (rowKind[row] == ROW_ES) es_integration_set(cfg, !es_integration_on(cfg), settingsMsg, sizeof(settingsMsg));
 	else if (rowKind[row] == ROW_HOTKEYS) hotkeys_run(cfg);
+	else if (rowKind[row] == ROW_STATES) states_switch(cfg);
 	else mapper_run(cfg);
 }
 

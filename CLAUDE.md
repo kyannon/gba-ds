@@ -404,6 +404,21 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   `emu_hud_band`, also the layers whose BGxCNT has given values on a line:
   Advance Wars' conversations). The harness has `split BGMASK PRIO` /
   `split off` and `hudshot NAME`.
+  State files (issue #39): loading (and `emu_state_file_kind` /
+  `_rom_crc` / `_get_extra`) takes mGBA's own files and RetroArch's /
+  BananaFront's (`RASTATE`, RZIP-compressed or not, its mGBA core's bytes in
+  the MEM block); `emu_state_save_file_as` writes either, with GBA DS's
+  second-screen block (EXTDATA_GBADS) inside the mGBA bytes. Save States
+  shared with RetroArch (`state_folder = retroarch`, game list Settings >
+  Save States, Linux): paths.c `retroarch_state_dir` works out RetroArch's
+  folder from its retroarch.cfg as RetroArch does (ROCKNIX: setsettings.sh's
+  `/storage/roms/savestates/<system>`), game_paths points slots 0-9 and the
+  auto state at `.state`, `.state1`-`.state9`, `.state.auto` there
+  (`gp.raDir`), with a `<state>.png` thumbnail and the `.ra` progress in
+  `<state_dir>/retroarch/`. The quick state and patched games' own states
+  stay GBA DS's. Checked: both ways byte-identical 120 frames on against
+  mGBA's libretro core, and BananaFront's statefile.c reads and writes the
+  same files.
 - `profiles.c/.h` everything game-specific (MapProfile; Advance Wars 1 and
   2 share their code, addresses in `awRegions`; Final Fantasy Tactics
   Advance's first second screen, with its UI-sprite tagging ROM patch, is
