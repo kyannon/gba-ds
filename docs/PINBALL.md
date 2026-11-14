@@ -62,6 +62,10 @@ down (the whole lower table on the two screens).
   and scroll for its own camera); then `twin_hide` and the HUD split's fixed
   sprites; then `twin_second` runs this frame alongside the game's, and its
   picture is shown. Each copy on its own worker thread (`twin_work_*`).
+  The first frame is run without drawing (`emu_frame_blind`, Nov 14, 2026):
+  its picture is never shown, and drawing is about half a frame's work
+  (12% less time over 1500 frames on the host; the regression pictures
+  identical). Sonic Pinball Party's carry path alike.
   Cost: up to four extra frames of emulation a frame, but on a 4-core device
   the wall time is about two frames (the copies' first frames side by side,
   then the game and their second frames side by side). Host (2 cores):
@@ -253,6 +257,12 @@ PP-13). Travel: the lane hit set (`S+0x6BC` = 1), the ball into the centre hole 
 
 ## Not done
 
+- **Match Display Rate** (presenting in step with the display) leaves no
+  slack: a frame late for its refresh waits a whole refresh and the time
+  is lost (a player's report, Nov 2026: slowdown in Pokémon Pinball). game.c
+  falls back to the GBA's rate after three seconds in a row with 3 or more
+  missed refreshes (`pacedFallback`; logged as "N frame(s) missed the
+  display's refresh" and a new "frame pacing:" line).
 - **Speed:** full speed on the device only with the frame buffer on, so
   game.c forces it on for `tall` profiles (v1.4.2; the pause menu shows
   "Always on here"). That delays the keys by a frame, so the tests' inputs
