@@ -341,17 +341,23 @@ CHANGELOG until someone tests them on a more capable device.
   with another game (or the game list), GbaDsActivity.onNewIntent sends
   SDL a quit (the game saves its resume point), and onDestroy starts the
   launcher again with the new game before exiting the process.
-  ES-DE (custom systems):
-    es_find_rules.xml:
-      <emulator name="GBA-DS">
-          <!-- Game Boy Advance, dual screen: GBA DS -->
-          <rule type="androidpackage">
-              <entry>io.github.kyannon.gbads/.LauncherActivity</entry>
-          </rule>
-      </emulator>
-    es_systems.xml, in the gba system:
-      <command label="GBA DS (Standalone)">%EMULATOR_GBA-DS% %ACTIVITY_CLEAR_TASK% %ACTIVITY_CLEAR_TOP% %DATA%=%ROMSAF%</command>
-    (or %EXTRA_rom%=%ROM% instead of %DATA%=%ROMSAF%)
+  ES-DE: Settings > "GBA DS in ES-DE" (src/esde.c, the row only when
+    ES-DE's folder is found: /storage/emulated/0/ES-DE, else
+    /storage/<volume>/ES-DE, with settings/es_settings.xml;
+    GBADS_ESDE_DIR overrides for the desktop test kit) writes into
+    ES-DE/custom_systems: the GBA-DS find rule (androidpackage
+    io.github.kyannon.gbads/.LauncherActivity) in es_find_rules.xml, and
+    `<command label="GBA DS (Standalone)">%EMULATOR_GBA-DS%
+    %ACTIVITY_CLEAR_TASK% %ACTIVITY_CLEAR_TOP% %EXTRA_rom%=%ROM%</command>`
+    first in es_systems.xml's gba system (the default emulator): into the
+    player's own gba system, else a copy of ES-DE's (esde.c GBA_BODY, from
+    ES-DE's resources/systems/android/es_systems.xml; its RetroArch lines
+    end in %ROMSAF% when es_settings.xml has RetroArchSAFMode on, as
+    es_systems_saf.xml does), marked with a "gba-ds:" comment. main.c
+    refreshes it at start; Off takes out only GBA DS's parts (a file left
+    with no system / emulator is deleted). %EXTRA_rom%=%ROM% (a path, not
+    %ROMSAF%) so patches beside the game apply. When ES-DE changes its own
+    gba system, update GBA_BODY (the copy is rewritten at the next start).
   Daijisho player: package io.github.kyannon.gbads, activity
   .LauncherActivity, `-a android.intent.action.VIEW -d {file.uri}` (or
   `-e rom {file.path}`).
@@ -700,4 +706,5 @@ Player-facing Android changes since the last release, for the main session
 to move into CHANGELOG.md and the release notes (see CLAUDE.md, "More than
 one session"). Empty after each release.
 
+- ES-DE: Settings > "GBA DS in ES-DE" makes GBA DS the emulator for Game Boy Advance games in ES-DE (quit ES-DE and open it again to see it). ES-DE's other emulators stay in its list, so a game GBA DS doesn't support can be switched to one of them in ES-DE (the game's metadata > Alternative emulator).
 - Surface Duo and other one-display devices: the app turns with the device, both ways round, and keeps your rotation lock; spanned over both screens of a Surface Duo, the game and the menus go either side of the hinge (issue #48).

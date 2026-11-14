@@ -7,6 +7,7 @@
 #include "logo.h"
 #include "brand.h"
 #include "emu.h"
+#include "esde.h"
 #include "esinteg.h"
 #include "hotkeys.h"
 #include "mapper.h"
@@ -878,19 +879,30 @@ static int updatesSel;
  * Linux: GBA DS in EmulationStation (ROCKNIX) or in BananaOS's list, where
  * there's one; Map Buttons and Hotkeys; Updates. Android: Folders,
  * RetroAchievements, Map Buttons and Hotkeys, Updates. */
-#define SETTINGS_MAX 5
+#define SETTINGS_MAX 6
 static int nRows = 1; /* rows shown (Back is row nRows) */
 /* (Hotkeys shares Map Buttons' line: the right half of it, under one text) */
-enum { ROW_BANANA, ROW_ES, ROW_MAP, ROW_HOTKEYS, ROW_UPDATES, ROW_FOLDERS, ROW_RA };
+enum { ROW_BANANA, ROW_ES, ROW_MAP, ROW_HOTKEYS, ROW_UPDATES, ROW_FOLDERS, ROW_RA, ROW_ESDE };
 static int rowKind[SETTINGS_MAX];
+
+#ifdef __ANDROID__
+/* the row showing kind (0 if none) */
+static int row_of(int kind) {
+	for (int i = 0; i < nRows; ++i) {
+		if (rowKind[i] == kind) return i;
+	}
+	return 0;
+}
+#endif
 
 static void settings_rows(const Config* cfg) {
 #ifdef __ANDROID__
 	(void) cfg;
-	/* (the indexes draw_settings and settings_activate use on Android) */
 	static const int android[] = { ROW_FOLDERS, ROW_RA, ROW_MAP, ROW_HOTKEYS, ROW_UPDATES };
-	nRows = 5;
-	memcpy(rowKind, android, sizeof(android));
+	nRows = 0;
+	/* ES-DE's folder found: GBA DS in its emulator list (esde.c) */
+	if (esde_present()) rowKind[nRows++] = ROW_ESDE;
+	for (size_t i = 0; i < sizeof(android) / sizeof(android[0]); ++i) rowKind[nRows++] = android[i];
 #else
 	nRows = 0;
 #ifndef GBADS_SIDE
@@ -921,10 +933,12 @@ static SettingsGeom settings_geom(int scr) {
 	int lines = nRows;
 	for (int i = 0; i < nRows; ++i) lines -= rowKind[i] == ROW_HOTKEYS;
 	/* (four lines: Android's, each with a line or two of text) */
-	int m = px * 6, rowH = lines > 3 ? px * 12 : lines > 2 ? px * 14 : px * 18;
+	/* (five: Android's with GBA DS in ES-DE, closer together) */
+	int m = px * 6, rowH = lines > 4 ? px * 10 : lines > 3 ? px * 12 : lines > 2 ? px * 14 : px * 18;
 	g.panel = (SDL_Rect) { m, m, r.w - m * 2, r.h - m * 2 };
-	int gap = lines > 3 ? px * 24 : lines > 2 ? px * 28 : px * 44; /* room for each row's text under it */
-	int y = g.panel.y + (lines > 3 ? px * 22 : px * 26);
+	int gap = lines > 4 ? px * 17 : lines > 3 ? px * 24 : lines > 2 ? px * 28 : px * 44; /* room for each row's text under it */
+	int y = g.panel.y + (lines > 4 ? px * 20 : lines > 3 ? px * 22 : px * 26);
+	int textGap = lines > 4 ? px * 3 : px * 8;
 	for (int i = 0; i < nRows; ++i) {
 		if (rowKind[i] == ROW_HOTKEYS && i > 0) {
 			/* the right half of the line above, Map Buttons the left */
@@ -936,7 +950,7 @@ static SettingsGeom settings_geom(int scr) {
 			continue;
 		}
 		g.row[i] = (SDL_Rect) { g.panel.x + px * 6, y, g.panel.w - px * 12, rowH };
-		g.textY[i] = g.row[i].y + rowH + px * 8;
+		g.textY[i] = g.row[i].y + rowH + textGap;
 #ifndef __ANDROID__
 		/* Linux, three rows: room for each one's text (lines of about 8 units) */
 		if (lines > 2) gap = px * (rowKind[i] == ROW_BANANA ? 46 : rowKind[i] == ROW_ES ? 38 : rowKind[i] == ROW_MAP ? 27 : 22);
@@ -1003,11 +1017,34 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 	                      ra == RA_ACCOUNT_BUSY   ? "RetroAchievements: Signing In..." :
 	                      ra == RA_ACCOUNT_OFF    ? "RetroAchievements: Off" :
 	                                                "RetroAchievements: Sign In";
-	const char* labels[SETTINGS_MAX] = { "Folders", raLabel, "Map Buttons", "Hotkeys", "Updates" };
+	const char* labels[SETTINGS_MAX];
+	int rFolders = 0, rRa = 0, rMap = 0, rUpdates = 0, rEsde = -1;
+	for (int i = 0; i < nRows; ++i) {
+		int k = rowKind[i];
+		labels[i] = k == ROW_ESDE    ? (esde_integration_on() ? "GBA DS in ES-DE: On" : "GBA DS in ES-DE: Off")
+		          : k == ROW_FOLDERS ? "Folders"
+		          : k == ROW_RA      ? raLabel
+		          : k == ROW_MAP     ? "Map Buttons"
+		          : k == ROW_HOTKEYS ? "Hotkeys"
+		                             : "Updates";
+		if (k == ROW_ESDE) rEsde = i;
+		if (k == ROW_FOLDERS) rFolders = i;
+		if (k == ROW_RA) rRa = i;
+		if (k == ROW_MAP) rMap = i;
+		if (k == ROW_UPDATES) rUpdates = i;
+	}
 	draw_settings_frame(scr, &g, sel, labels);
 	int tx = g.row[0].x + px * 2, tw = g.row[0].w - px * 4;
 	char line[1400];
-	draw_wrapped(scr, tx, g.textY[0], tw, px,
+	if (rEsde >= 0) {
+		if (settingsMsg[0] && settingsMsgRow == rEsde) draw_wrapped(scr, tx, g.textY[rEsde], tw, px, settingsMsg, C_GOLD);
+		else
+			draw_wrapped(scr, tx, g.textY[rEsde], tw, px,
+			             "Makes GBA DS the emulator for Game Boy Advance games in ES-DE. For a game it doesn't support, "
+			             "choose another in ES-DE (the game's metadata > Alternative emulator).",
+			             C_DIM);
+	}
+	draw_wrapped(scr, tx, g.textY[rFolders], tw, px,
 	             cfg->saveDir[0] ? "Where games are read from, and the folder their saves are kept in."
 	                             : "Where games are read from. Their saves are kept next to them.",
 	             C_DIM);
@@ -1028,13 +1065,13 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 		         "Earn achievements in casual mode with your retroachievements.org account. GBA DS keeps a sign-in token, "
 		         "not your password.");
 	}
-	if (settingsMsg[0] && settingsMsgRow == 1) draw_wrapped(scr, tx, g.textY[1], tw, px, settingsMsg, C_GOLD);
-	else draw_wrapped(scr, tx, g.textY[1], tw, px, line, ra == RA_ACCOUNT_FAILED ? C_GOLD : C_DIM);
-	draw_wrapped(scr, tx, g.textY[2], tw, px,
+	if (settingsMsg[0] && settingsMsgRow == rRa) draw_wrapped(scr, tx, g.textY[rRa], tw, px, settingsMsg, C_GOLD);
+	else draw_wrapped(scr, tx, g.textY[rRa], tw, px, line, ra == RA_ACCOUNT_FAILED ? C_GOLD : C_DIM);
+	draw_wrapped(scr, tx, g.textY[rMap], tw, px,
 	             "Map Buttons sets which of this device's buttons does what. "
 	             "Hotkeys sets the shortcuts: the hotkey button held with another.",
 	             C_DIM);
-	draw_wrapped(scr, tx, g.textY[4], tw, px, "This is v" GBADS_VERSION ". Look for a new version, and download and install it.",
+	draw_wrapped(scr, tx, g.textY[rUpdates], tw, px, "This is v" GBADS_VERSION ". Look for a new version, and download and install it.",
 	             C_DIM);
 }
 
@@ -1042,21 +1079,24 @@ static void settings_activate(Config* cfg, int row) {
 	(void) cfg;
 	settingsMsg[0] = 0;
 	settingsMsgRow = row;
-	if (row == 0) {
+	switch (rowKind[row]) {
+	case ROW_ESDE:
+		esde_integration_set(!esde_integration_on(), settingsMsg, sizeof(settingsMsg));
+		return;
+	case ROW_FOLDERS:
 		foldersOpen = true, foldersSel = 0;
 		return;
-	}
-	if (row == 2) {
+	case ROW_MAP:
 		mapper_run(cfg);
 		return;
-	}
-	if (row == 3) {
+	case ROW_HOTKEYS:
 		hotkeys_run(cfg);
 		return;
-	}
-	if (row == 4) {
+	case ROW_UPDATES:
 		updatesOpen = true, updatesNotice = false, updatesSel = 0;
 		return;
+	default:
+		break;
 	}
 	char user[128], err[256];
 	int ra = ra_account(user, sizeof(user), err, sizeof(err));
@@ -1133,7 +1173,7 @@ static void data_folder_picked(const char* path) {
  * True if the ROM folder changed. */
 static bool settings_poll(Config* cfg) {
 	if (raDialogPending) {
-		settingsMsgRow = 1;
+		settingsMsgRow = row_of(ROW_RA);
 		char user[128], pass[256];
 		int st = android_take_ra_credentials(user, sizeof(user), pass, sizeof(pass));
 		if (st) raDialogPending = false;
@@ -1146,7 +1186,7 @@ static bool settings_poll(Config* cfg) {
 	int st = android_take_picked_folder(path, sizeof(path));
 	if (!st) return false;
 	pickPending = false;
-	settingsMsgRow = 0;
+	settingsMsgRow = row_of(ROW_FOLDERS);
 	if (st < 0) {
 		snprintf(settingsMsg, sizeof(settingsMsg), "No folder chosen.");
 		return false;
