@@ -531,7 +531,8 @@ static void twin_first_carry(Twin* tw) {
 
 	emu_write16(&tw->e, C->cam, (uint16_t) tw->cam);
 	bool fresh = !tw->carried;
-	emu_frame(&tw->e, twinKeys[twinCur] & 0x3FF);
+	/* (not drawn: only its second frame's picture is shown) */
+	emu_frame_blind(&tw->e, twinKeys[twinCur] & 0x3FF);
 	carry_take(tw);
 	/* (starting again: its own sprites are the ones it just drew, not
 	 * what it kept from when it last ran, on another table or before a
@@ -555,7 +556,10 @@ static void twin_first(void* arg) {
 	uint32_t T = twin_hold(tw, tw->row, tw->panStep);
 	if (!T) return;
 	twin_jump(&tw->e, T, tw->row + (int8_t) emu_read8(&tw->e, T + L->shake));
-	emu_frame(&tw->e, twinKeys[twinCur] & 0x3FF);
+	/* not drawn: its picture is never shown (twin_second's is), and
+	 * drawing is about half of a frame's work, on the frame's critical
+	 * path (twins[1]'s runs before the game's frame, on its thread) */
+	emu_frame_blind(&tw->e, twinKeys[twinCur] & 0x3FF);
 	/* (how far its pans moved it: put right next frame) */
 	int at = (int16_t) emu_read16(&tw->e, L->view) - (int8_t) emu_read8(&tw->e, T + L->shake);
 	tw->panStep += at - tw->row;
@@ -1129,6 +1133,7 @@ static int menuSel;
 static int menuPressed = -1;      /* item under a finger that went down in the menu */
 static bool ignorePointerUp;      /* the tap that opened the menu */
 static char menuNote[64];
+static bool pacedFallback; /* Match Display Rate fell back to the GBA's rate (pacing_update) */
 
 static const SDL_Color C_BTN = { 34, 30, 58, 240 };
 static const SDL_Color C_BTN_SEL = { 92, 52, 140, 250 };
@@ -3481,7 +3486,7 @@ static void draw_menu(void) {
 			else if (cfg->fastForward) snprintf(ffLabel, sizeof(ffLabel), "Fast Forward: %dx", cfg->ffSpeed);
 			label = cfg->fastForward ? ffLabel : "Fast Forward: Off";
 		}
-		if (menuItems[i] == M_MATCH) label = cfg->matchDisplay ? "Match Display Rate: On" : "Match Display Rate: Off";
+		if (menuItems[i] == M_MATCH) label = !cfg->matchDisplay ? "Match Display Rate: Off" : pacedFallback ? "Match Display Rate: Off for now" : "Match Display Rate: On";
 		if (menuItems[i] == M_SHAPES) label = !en || !strcmp(cfg->screenMatch, "keep") ? "Keep device aspect ratios" :
 		                                      !strcmp(cfg->screenMatch, "aspect") ? "Match screen aspect ratios" : "Match screen sizes and aspect ratios";
 		if (menuItems[i] == M_PIXLOGO) label = cfg->customLogos == CL_OFF ? "Custom Logos: Do Not Use" : cfg->customLogos == CL_FULL ? "Custom Logos: Full Detail" : "Custom Logos: Pixelated";
@@ -6294,15 +6299,23 @@ static int game_screen(void) {
 static double frameSec = 1.0 / GBA_FPS;
 static double pacedHz;    /* the display's rate when matched, else 0 */
 static double audioSpeed = 1.0; /* emulated time per real time */
+/* Matched, a frame that misses its refresh waits for the next one, and the
+ * time is never made up: the game slows down (the GBA's rate catches up
+ * after a slow frame). A game that keeps missing (three seconds in a row
+ * with 3 or more) goes back to the GBA's rate until the setting is turned
+ * on again or the game is started again (pacedFallback). */
+static int pacedMisses, pacedMissSecs;
 
 static void pacing_update(void) {
 	double hz = nScreens > 0 ? ui_display_hz(screens[game_screen()].view) : 0;
 	pacedHz = 0;
-	if (cfg->matchDisplay && hz > 0 && fabs(hz / GBA_FPS - 1) <= 0.015) pacedHz = hz;
+	pacedMisses = pacedMissSecs = 0;
+	if (cfg->matchDisplay && !pacedFallback && hz > 0 && fabs(hz / GBA_FPS - 1) <= 0.015) pacedHz = hz;
 	frameSec = 1.0 / (pacedHz > 0 ? pacedHz : GBA_FPS);
 	audioSpeed = pacedHz > 0 ? pacedHz / GBA_FPS : 1.0;
 	fprintf(stderr, "frame pacing: display %.3f Hz, game %.3f frames a second (%s)\n", hz, 1.0 / frameSec,
-	        pacedHz > 0 ? "matched to the display" : cfg->matchDisplay ? "display too far off to match" : "the GBA's rate");
+	        pacedHz > 0 ? "matched to the display" : cfg->matchDisplay && pacedFallback ? "the GBA's rate: frames kept missing the display's refresh" :
+	        cfg->matchDisplay ? "display too far off to match" : "the GBA's rate");
 }
 
 /* Rewind (hold L2): mGBA's rewind buffer, a state every second frame,
@@ -6902,7 +6915,9 @@ static bool activate(int item, enum GameExit* exitTo) {
 		break;
 	}
 	case M_MATCH:
+		/* (fallen back: the label says "Off for now", so a press turns it off) */
 		cfg->matchDisplay = !cfg->matchDisplay;
+		pacedFallback = false;
 		pacing_update();
 		if (!cfg->matchDisplay) snprintf(menuNote, sizeof(menuNote), "The GBA's own %.2f frames a second", GBA_FPS);
 		else if (pacedHz > 0) snprintf(menuNote, sizeof(menuNote), "%.2f frames a second, %.1f%% faster", pacedHz, (pacedHz / GBA_FPS - 1) * 100);
@@ -7366,6 +7381,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	bool done = false;
 	bool wasMenu = false;
 
+	pacedFallback = false; /* (a new game: matched again, if it's on) */
 	pacing_update();
 	const double freq = (double) SDL_GetPerformanceFrequency();
 	double next = SDL_GetPerformanceCounter() / freq;
@@ -7966,6 +7982,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			next = SDL_GetPerformanceCounter() / freq;
 			fpsT0 = next;
 			fpsFrames = 0;
+			pacedMisses = pacedMissSecs = 0; /* (the menu's time isn't the game's) */
 			forceMap = true;
 		}
 		wasMenu = menuOpen;
@@ -8398,6 +8415,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			double total = (double) (drawT1 - workT0) * msPer;
 			/* matched, each frame includes the wait for the display's refresh:
 			 * only one that missed its refresh (about two frames long) is slow */
+			if (!ff && !rewinding && pacedHz > 0 && total > frameSec * 1000.0 * 1.4) ++pacedMisses;
 			if (!ff && total > frameSec * 1000.0 * (pacedHz > 0 ? 1.4 : 1.0)) {
 				SlowFrame f = { total, (double) (emuT0 - workT0) * msPer, (double) (emuT1 - emuT0 - raT) * msPer, (double) raT * msPer,
 					            (double) (drawT0 - emuT1) * msPer, (double) (drawT1 - drawT0) * msPer, 0, 0, 0,
@@ -8438,6 +8456,16 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			if (debug) fprintf(stderr, "speed %.1f fps (%.0f%%)\n", fps, speedPct);
 			fpsFrames = 0;
 			fpsT0 = now;
+			if (pacedHz > 0) {
+				pacedMissSecs = pacedMisses >= 3 ? pacedMissSecs + 1 : 0;
+				if (pacedMisses >= 3) fprintf(stderr, "frame %llu: %d frame(s) missed the display's refresh in the last second\n", (unsigned long long) frameCount, pacedMisses);
+				pacedMisses = 0;
+				if (pacedMissSecs >= 3) {
+					pacedFallback = true;
+					pacing_update(); /* (logs the "frame pacing:" line again) */
+					next = now;
+				}
+			}
 		}
 		/* fast-forward is paced too: ff_speed frames per real frame. Matched to
 		 * the display, presenting in step with it sets the pace; the clock runs
