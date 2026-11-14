@@ -12,9 +12,9 @@
 #define BEZEL_OUTER_DEFAULT 0x102060
 
 /* A screen of sw x sh whose picture is pic: RGBA32, transparent inside
- * the picture. bottom: the bottom screen's design (the logo above the
- * picture, by the hinge); inner, outer: RRGGBB; logo: the GBA DS logo in
+ * the picture. above: the logo above the picture (the bottom screen's
+ * design, by the hinge), else below it; inner, outer: RRGGBB; logo: the GBA DS logo in
  * the bezel. NULL if out of memory. */
-SDL_Surface* bezel_surface(int sw, int sh, SDL_Rect pic, bool bottom, uint32_t inner, uint32_t outer, bool logo);
+SDL_Surface* bezel_surface(int sw, int sh, SDL_Rect pic, bool above, uint32_t inner, uint32_t outer, bool logo);
 
 #endif

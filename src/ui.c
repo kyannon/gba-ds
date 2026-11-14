@@ -619,9 +619,16 @@ float ui_screen_ppi(int screen) {
  * picture that goes on over both (Pokémon Pinball's table) carries on
  * across. Nothing when the shapes already match. */
 void ui_layout_pictures(void) {
-	for (int i = 0; i < nScreens; ++i) screens[i].pic = (SDL_Rect) { 0, 0, screens[i].rect.w, screens[i].rect.h };
+	/* screen_placement = no_gap (issue #46): with two screens, the top one's
+	 * pictures against its bottom edge and the bottom one's against its
+	 * top, so the two are as close together as they can be */
+	bool gap = !strcmp(cfg->screenPlace, "no_gap") && nScreens == 2;
+	for (int i = 0; i < nScreens; ++i) {
+		screens[i].pic = (SDL_Rect) { 0, 0, screens[i].rect.w, screens[i].rect.h };
+		screens[i].align = gap ? (i == 0 ? 1 : -1) : 0;
+	}
 	bool aspect = !strcmp(cfg->screenMatch, "aspect"), size = !strcmp(cfg->screenMatch, "size");
-	static char logged[64];
+	static char logged[96];
 	char note[64] = "";
 	if ((aspect || size) && ui_screens_differ()) {
 		double a0 = (double) screens[0].rect.w / screens[0].rect.h, a1 = (double) screens[1].rect.w / screens[1].rect.h;
@@ -639,8 +646,8 @@ void ui_layout_pictures(void) {
 		screens[wide].pic = (SDL_Rect) { (W->w - w) / 2, y, w, h };
 		snprintf(note + strlen(note), sizeof(note) - strlen(note), " %dx%d on screen %d", w, h, wide);
 	}
-	char line[64];
-	snprintf(line, sizeof(line), "%s%s", cfg->screenMatch, note);
+	char line[96];
+	snprintf(line, sizeof(line), "%s%s, placement %s", cfg->screenMatch, note, gap ? "no_gap" : "center");
 	if (strcmp(line, logged)) {
 		snprintf(logged, sizeof(logged), "%s", line);
 		fprintf(stderr, "screen shapes: %s (ppi %.0f / %.0f)\n", line, ui_screen_ppi(0), ui_screen_ppi(1));
@@ -1727,7 +1734,8 @@ SDL_Renderer* ui_ren(int screen) {
 	return views[screens[screen].view].ren;
 }
 
-static void fit_rect(const SDL_Rect* area, int w, int h, const char* mode, SDL_Rect* out) {
+/* align: where a picture shorter than the area goes (Screen.align) */
+static void fit_rect_at(const SDL_Rect* area, int w, int h, const char* mode, int align, SDL_Rect* out) {
 	if (!strcmp(mode, "stretch")) {
 		*out = *area;
 		return;
@@ -1740,7 +1748,10 @@ static void fit_rect(const SDL_Rect* area, int w, int h, const char* mode, SDL_R
 	out->w = (int) (w * s);
 	out->h = (int) (h * s);
 	out->x = area->x + (area->w - out->w) / 2;
-	out->y = area->y + (area->h - out->h) / 2;
+	out->y = area->y + (align > 0 ? area->h - out->h : align < 0 ? 0 : (area->h - out->h) / 2);
+}
+static void fit_rect(const SDL_Rect* area, int w, int h, const char* mode, SDL_Rect* out) {
+	fit_rect_at(area, w, h, mode, 0, out);
 }
 
 void ui_image(int screen, SDL_Texture* const* texPerView, int w, int h, const char* mode, const SDL_Rect* areaLocal) {
@@ -1968,7 +1979,7 @@ void ui_image_pixels(int screen, SDL_Texture* const* texPerView, int w, int h, c
 	SDL_Renderer* ren = views[v].ren;
 	SDL_Texture* src = texPerView[v];
 	SDL_Rect dst, pic = { s->rect.x + s->pic.x, s->rect.y + s->pic.y, s->pic.w, s->pic.h };
-	fit_rect(&pic, w, h, mode, &dst);
+	fit_rect_at(&pic, w, h, mode, s->align, &dst);
 	/* zoom can be wider than the screen: keep it off the other screen */
 	bool clip = dst.x < s->rect.x || dst.y < s->rect.y || dst.x + dst.w > s->rect.x + s->rect.w ||
 	            dst.y + dst.h > s->rect.y + s->rect.h;
@@ -2044,7 +2055,7 @@ static void draw_pixels(SDL_Renderer* ren, int v, SDL_Texture* src, int w, int h
 
 SDL_Rect ui_image_rect(int screen, int w, int h, const char* mode) {
 	SDL_Rect area = screens[screen].pic, dst;
-	fit_rect(&area, w, h, mode, &dst);
+	fit_rect_at(&area, w, h, mode, screens[screen].align, &dst);
 	return dst;
 }
 

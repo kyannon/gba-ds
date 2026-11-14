@@ -2,6 +2,9 @@
 
 ## v1.5.3 (not yet released)
 
+### New
+- **Screen Placement** (issue #46): a new setting on the pause menu's Display page. **Closest to Gap** puts the two screens' pictures against the hinge, the top one at the bottom of its screen and the bottom one at the top of its screen, so they sit as close together as they go, as on a DS. Pokémon Pinball's table then carries on across the hinge without a black band in the middle. **Centered**, the default, keeps each picture in the middle of its screen. It moves pictures only with Pixel Perfect and Full Width (Zoom and Stretch already fill the screen's height). With Closest to Gap, the Generated bezel shows its logo once, below the picture on the bottom screen, and Custom overlays are looked for with `-no_gap` at the end of their names, since one made for a centred picture would cover part of the game (see Overlays in the wiki). In `gba-ds.cfg`: `screen_placement = center` or `no_gap`.
+
 ### Changes
 - **Saves in a folder of your own** (issue #47): `gba-ds.cfg` and the wiki now explain how to keep battery saves in another folder, such as one you sync with other devices. Set `save_dir` to the folder, and add `save_ext = srm` if those devices run RetroArch. GBA DS makes the folder if it isn't there, and copies each game's save from next to the ROM the first time you play it.
 

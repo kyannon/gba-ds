@@ -29,6 +29,10 @@ typedef struct {
 	 * whole screen, or with screen_match the part matching the other
 	 * screen (local coordinates) */
 	SDL_Rect pic;
+	/* where in pic a picture that doesn't fill it goes, top to bottom:
+	 * 0 centred, 1 against pic's bottom, -1 against its top
+	 * (screen_placement = gap: each screen's against the other) */
+	int align;
 } Screen;
 
 extern View views[2];
@@ -70,7 +74,8 @@ uint64_t ui_ticks(void);
 /* The two screens' shapes differ (by more than 2%): screen_match can do
  * something. */
 bool ui_screens_differ(void);
-/* Works out the screens' picture areas again (screen_match changed). */
+/* Works out the screens' picture areas again (screen_match or
+ * screen_placement changed). */
 void ui_layout_pictures(void);
 /* The pixels per inch of each screen, if known (0 if not). */
 float ui_screen_ppi(int screen);

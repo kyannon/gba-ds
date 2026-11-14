@@ -818,6 +818,106 @@
      "frac": 0.05
     }
    ]
+  },
+  {
+   "id": "fe-us-placement-gap",
+   "rom": "AE7E",
+   "state": "fire-emblem/us-hud.ss",
+   "desc": "Screen Placement: Closest to Gap: the game at the top screen's bottom, the HUD at the bottom screen's top",
+   "rules": [
+    "GEN-12"
+   ],
+   "config": {
+    "screen_placement": "no_gap"
+   },
+   "shots": {
+    "end": 200
+   },
+   "checks": [
+    {
+     "rule": "GEN-12",
+     "what": "placement logged",
+     "type": "log",
+     "match": "placement no_gap"
+    },
+    {
+     "rule": "GEN-12",
+     "what": "nothing above the game",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "game",
+     "rect": [
+      0,
+      0,
+      1024,
+      128
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "GEN-12",
+     "what": "the game down to the top screen's bottom edge",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "game",
+     "rect": [
+      32,
+      700,
+      992,
+      768
+     ],
+     "color": "000000",
+     "frac": 0.97
+    },
+    {
+     "rule": "GEN-12",
+     "what": "nothing below the second screen's picture",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      0,
+      640,
+      1024,
+      768
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "GEN-12",
+     "what": "the second screen's picture from its top edge",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      32,
+      0,
+      992,
+      60
+     ],
+     "color": "000000",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "fe-us-placement-fit-swapped",
+   "rom": "AE7E",
+   "state": "fire-emblem/us-hud.ss",
+   "desc": "Closest to Gap with Full Width and the screens swapped: still against the hinge",
+   "rules": [
+    "GEN-12"
+   ],
+   "config": {
+    "screen_placement": "no_gap",
+    "scale": "fit",
+    "map_scale": "fit",
+    "swap": "1"
+   },
+   "shots": {
+    "end": 200
+   },
+   "checks": []
   }
  ]
 }
