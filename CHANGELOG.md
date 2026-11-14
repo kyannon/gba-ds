@@ -18,6 +18,7 @@
 - **The game list opens faster with a big library** (issue #49): GBA DS remembers what it found in your ROM folder, so it opens sooner, and going back to the list from a game no longer reads the whole folder again unless something in it has changed. While a big folder is read, the screens say "Loading games..." instead of staying black.
 - **Match Display Rate no longer slows a game down.** With it on, a frame that came too late for the screen's refresh had to wait for the next one, and the game lost that time: Pokémon Pinball slowed down (thanks to the player who reported it). Now, if that keeps happening for three seconds, GBA DS goes back to the GBA's own rate for the rest of the game, and the menu shows "Match Display Rate: Off for now". Choose it twice to try matching again.
 - **The pinball games' two-screen view takes less work** (Pokémon Pinball, Sonic Pinball Party, Muppet Pinball Mayhem), leaving more room for full speed.
+- **ROCKNIX: smoother games and sound when EmulationStation's CPU governor isn't "performance"** (issue #50): GBA DS now holds the CPU and memory at full clock while it runs, as EmulationStation does for its own emulators by default, and puts your governor choice back when it closes. With a governor that lets the clock drop between frames, games could stutter and the sound break up (reported on an RG DS). `cpu_performance = 0` in `gba-ds.cfg` turns this off. The log now says which governors were in use.
 
 ## v1.5.2 (2026-11-13)
 
