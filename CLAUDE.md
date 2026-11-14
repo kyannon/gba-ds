@@ -455,7 +455,15 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
 - `library.c` the game list and its Settings screen (and the selected
   game's ROM checksum, read once per file on a worker thread and kept in
   `<state_dir>/roms.cache`: "Romhack: ..." / "Modified ROM" under its logo,
-  GEN-8; regress.py's `"kind": "library"` cases); `esinteg.c` the
+  GEN-8; regress.py's `"kind": "library"` cases). The scan (issue #49):
+  every ROM's game code is kept in `<state_dir>/codes.cache` by path, size
+  and date (`archives.cache` before v1.5.3, archives only), patches are
+  looked for only for games that are listed, and "Loading games..." shows
+  from 0.3 s into a slow scan (not with GBADS_SYNC). Back from a game, the
+  list is kept when no ROM folder's time changed (and rom_dir, show_all,
+  name_tags are the same); only the game just played is looked at again
+  (log: "folders unchanged"). A ROM replaced in place, same name, keeps
+  its old entry until the app starts again; `esinteg.c` the
   EmulationStation integration; `cheats.c` RetroArch .cht files;
   `ui.c` SDL windows, input, drawing, the pause-menu text images.
 

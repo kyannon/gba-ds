@@ -43,7 +43,7 @@ typedef struct {
 } GameEntry;
 
 static GameEntry* games;
-static int nGames;
+static int nGames, capGames;
 
 static const SDL_Color C_BG = { 14, 14, 26, 255 };
 static const SDL_Color C_HEADER = { 30, 26, 52, 255 };
@@ -58,9 +58,11 @@ static int cmp_games(const void* a, const void* b) {
 	return strcasecmp(((const GameEntry*) a)->name, ((const GameEntry*) b)->name);
 }
 
-/* Game codes of archived ROMs, remembered by path, size and date: reading
- * one means unpacking the whole ROM, which is slow for a .7z. Saved as
- * <state_dir>/archives.cache, lines "size mtime code path". */
+/* Game codes of the ROMs, remembered by path, size and date: reading one
+ * means opening the file (unpacking the whole ROM for a .7z), which adds up
+ * in a big library, above all on Android's shared storage (issue #49).
+ * Saved as <state_dir>/codes.cache, lines "size mtime code path" (before
+ * v1.5.3: archives.cache, archives only, read when codes.cache isn't there). */
 typedef struct {
 	long long size, mtime;
 	char code[5];
@@ -68,18 +70,53 @@ typedef struct {
 	bool used;
 } CodeCache;
 static CodeCache* codeCache;
-static int nCodeCache;
+static int nCodeCache, capCodeCache;
 static bool codeCacheDirty;
+static int* codeIndex; /* open addressing over codeCache by path: -1 empty */
+static int nCodeIndex;  /* (a power of two, at least twice nCodeCache) */
 
-static void code_cache_load(const Config* cfg) {
-	free(codeCache);
-	codeCache = NULL;
-	nCodeCache = 0;
-	codeCacheDirty = false;
-	char path[1100];
-	snprintf(path, sizeof(path), "%s/archives.cache", cfg->stateDir);
+static unsigned path_hash(const char* s) {
+	unsigned h = 2166136261u;
+	while (*s) h = (h ^ (unsigned char) *s++) * 16777619u;
+	return h;
+}
+
+static void code_index_put(int i) {
+	unsigned m = (unsigned) nCodeIndex - 1, k = path_hash(codeCache[i].path) & m;
+	while (codeIndex[k] >= 0) k = (k + 1) & m;
+	codeIndex[k] = i;
+}
+
+static void code_cache_add(const CodeCache* c) {
+	if (nCodeCache == capCodeCache) {
+		capCodeCache = capCodeCache ? capCodeCache * 2 : 256;
+		codeCache = realloc(codeCache, sizeof(*codeCache) * capCodeCache);
+	}
+	codeCache[nCodeCache++] = *c;
+	if (nCodeCache * 2 > nCodeIndex) {
+		nCodeIndex = nCodeIndex ? nCodeIndex * 2 : 512;
+		while (nCodeCache * 2 > nCodeIndex) nCodeIndex *= 2;
+		free(codeIndex);
+		codeIndex = malloc(sizeof(*codeIndex) * nCodeIndex);
+		for (int i = 0; i < nCodeIndex; ++i) codeIndex[i] = -1;
+		for (int i = 0; i < nCodeCache; ++i) code_index_put(i);
+	} else {
+		code_index_put(nCodeCache - 1);
+	}
+}
+
+static CodeCache* code_cache_find(const char* path) {
+	if (!nCodeIndex) return NULL;
+	unsigned m = (unsigned) nCodeIndex - 1;
+	for (unsigned k = path_hash(path) & m; codeIndex[k] >= 0; k = (k + 1) & m) {
+		if (!strcmp(codeCache[codeIndex[k]].path, path)) return &codeCache[codeIndex[k]];
+	}
+	return NULL;
+}
+
+static bool code_cache_read(const char* path) {
 	FILE* f = fopen(path, "r");
-	if (!f) return;
+	if (!f) return false;
 	char line[1200];
 	while (fgets(line, sizeof(line), f)) {
 		CodeCache c = { 0 };
@@ -87,10 +124,25 @@ static void code_cache_load(const Config* cfg) {
 		if (sscanf(line, "%lld %lld %4s %n", &c.size, &c.mtime, c.code, &off) < 3 || !off) continue;
 		line[strcspn(line, "\n")] = 0;
 		snprintf(c.path, sizeof(c.path), "%s", line + off);
-		codeCache = realloc(codeCache, sizeof(*codeCache) * (nCodeCache + 1));
-		codeCache[nCodeCache++] = c;
+		if (!code_cache_find(c.path)) code_cache_add(&c);
 	}
 	fclose(f);
+	return true;
+}
+
+static void code_cache_load(const Config* cfg) {
+	free(codeCache);
+	free(codeIndex);
+	codeCache = NULL;
+	codeIndex = NULL;
+	nCodeCache = capCodeCache = nCodeIndex = 0;
+	codeCacheDirty = false;
+	char path[1100];
+	snprintf(path, sizeof(path), "%s/codes.cache", cfg->stateDir);
+	if (!code_cache_read(path)) {
+		snprintf(path, sizeof(path), "%s/archives.cache", cfg->stateDir);
+		codeCacheDirty = code_cache_read(path); /* (written again as codes.cache) */
+	}
 }
 
 static void code_cache_save(const Config* cfg) {
@@ -98,7 +150,7 @@ static void code_cache_save(const Config* cfg) {
 	for (int i = 0; i < nCodeCache; ++i) unused |= !codeCache[i].used;
 	if (!codeCacheDirty && !unused) return;
 	char path[1100];
-	snprintf(path, sizeof(path), "%s/archives.cache", cfg->stateDir);
+	snprintf(path, sizeof(path), "%s/codes.cache", cfg->stateDir);
 	FILE* f = fopen(path, "w");
 	if (!f) return;
 	for (int i = 0; i < nCodeCache; ++i) {
@@ -109,20 +161,15 @@ static void code_cache_save(const Config* cfg) {
 
 /* The 4-letter game code from the ROM header (offset 0xAC). */
 static bool game_code(const char* path, const struct stat* st, char code[5]) {
-	bool archive = emu_is_archive_name(path);
-	if (archive) {
-		for (int i = 0; i < nCodeCache; ++i) {
-			CodeCache* c = &codeCache[i];
-			if (c->size == (long long) st->st_size && c->mtime == (long long) st->st_mtime && !strcmp(c->path, path)) {
-				c->used = true;
-				memcpy(code, c->code, 5);
-				return true;
-			}
-		}
+	CodeCache* c = code_cache_find(path);
+	if (c && c->size == (long long) st->st_size && c->mtime == (long long) st->st_mtime) {
+		c->used = true;
+		memcpy(code, c->code, 5);
+		return true;
 	}
 	uint8_t hdr[0xB0];
 	if (!emu_rom_header(path, hdr, sizeof(hdr))) {
-		if (archive) fprintf(stderr, "library: no GBA ROM in %s\n", path);
+		if (emu_is_archive_name(path)) fprintf(stderr, "library: no GBA ROM in %s\n", path);
 		return false;
 	}
 	memcpy(code, hdr + 0xAC, 4);
@@ -130,35 +177,93 @@ static bool game_code(const char* path, const struct stat* st, char code[5]) {
 	for (int i = 0; i < 4; ++i) {
 		if (!code[i] || !isprint((unsigned char) code[i])) code[i] = '_';
 	}
-	if (archive) {
-		CodeCache c = { st->st_size, st->st_mtime, "", "", true };
-		memcpy(c.code, code, 5);
-		snprintf(c.path, sizeof(c.path), "%s", path);
-		codeCache = realloc(codeCache, sizeof(*codeCache) * (nCodeCache + 1));
-		codeCache[nCodeCache++] = c;
-		codeCacheDirty = true;
+	if (c) { /* (the file changed) */
+		c->size = st->st_size, c->mtime = st->st_mtime, c->used = true;
+		memcpy(c->code, code, 5);
+	} else {
+		CodeCache n = { st->st_size, st->st_mtime, "", "", true };
+		memcpy(n.code, code, 5);
+		snprintf(n.path, sizeof(n.path), "%s", path);
+		code_cache_add(&n);
 	}
+	codeCacheDirty = true;
 	return true;
 }
 
 /* Folders read in this scan, by identity: the same folder can be listed
  * twice under different names (Android's shared storage ignores case, so
- * ROMs/gba is ROMs/GBA; a symlink; a repeated rom_dir entry). */
+ * ROMs/gba is ROMs/GBA; a symlink; a repeated rom_dir entry). With their
+ * times, and the rom_dir folders that couldn't be read: back from a game,
+ * the list is kept as it is when none of them changed (issue #49). */
+#define SCANNED_MAX 256
 static struct {
 	dev_t dev;
 	ino_t ino;
-} seenDirs[256];
+	long long mtime, mtimeNs; /* (-1: wasn't there) */
+	char path[1024];
+} seenDirs[SCANNED_MAX];
 static int nSeenDirs;
+static bool seenOverflow; /* (more folders than that: always scanned again) */
 
-static bool dir_seen(const char* d) {
-	struct stat st;
-	if (stat(d, &st) != 0) return false;
-	for (int i = 0; i < nSeenDirs; ++i) {
-		if (seenDirs[i].dev == st.st_dev && seenDirs[i].ino == st.st_ino) return true;
+static void dir_time(const struct stat* st, long long* s, long long* ns) {
+	*s = (long long) st->st_mtime;
+#if defined(__linux__) || defined(__ANDROID__) || defined(__wasi__)
+	*ns = (long long) st->st_mtim.tv_nsec;
+#else
+	*ns = 0;
+#endif
+}
+
+static void dir_note(const char* d, const struct stat* st) {
+	if (nSeenDirs >= SCANNED_MAX) {
+		seenOverflow = true;
+		return;
 	}
-	if (nSeenDirs < 256) seenDirs[nSeenDirs].dev = st.st_dev, seenDirs[nSeenDirs].ino = st.st_ino, ++nSeenDirs;
+	seenDirs[nSeenDirs].dev = st ? st->st_dev : 0;
+	seenDirs[nSeenDirs].ino = st ? st->st_ino : 0;
+	if (st) dir_time(st, &seenDirs[nSeenDirs].mtime, &seenDirs[nSeenDirs].mtimeNs);
+	else seenDirs[nSeenDirs].mtime = seenDirs[nSeenDirs].mtimeNs = -1;
+	snprintf(seenDirs[nSeenDirs].path, sizeof(seenDirs[0].path), "%s", d);
+	++nSeenDirs;
+}
+
+static bool dir_seen(const char* d, const struct stat* st) {
+	for (int i = 0; i < nSeenDirs; ++i) {
+		if (seenDirs[i].mtime >= 0 && seenDirs[i].dev == st->st_dev && seenDirs[i].ino == st->st_ino) return true;
+	}
 	return false;
 }
+
+/* What the last full scan listed with (anything else: scan again) */
+static bool scanned;
+static char scannedRomDir[sizeof(((Config*) 0)->romDir)];
+static bool scannedShowAll, scannedNameTags;
+
+/* Has anything the list was made from changed since the last scan? */
+static bool library_changed(const Config* cfg) {
+	if (!scanned || seenOverflow || strcmp(scannedRomDir, cfg->romDir) || scannedShowAll != cfg->showAll ||
+	    scannedNameTags != cfg->nameTags)
+		return true;
+	for (int i = 0; i < nSeenDirs; ++i) {
+		struct stat st;
+		bool there = stat(seenDirs[i].path, &st) == 0 && S_ISDIR(st.st_mode);
+		if (!there || seenDirs[i].mtime < 0) {
+			if (there != (seenDirs[i].mtime >= 0)) return true;
+			continue;
+		}
+		long long t, ns;
+		dir_time(&st, &t, &ns);
+		if (st.st_dev != seenDirs[i].dev || st.st_ino != seenDirs[i].ino || t != seenDirs[i].mtime || ns != seenDirs[i].mtimeNs)
+			return true;
+	}
+	return false;
+}
+
+/* A slow scan (a big library, a slow card) shows that it's under way
+ * instead of a black screen (issue #49): from 0.3 s in, ten times a second. */
+static Uint32 scanStart, scanDrawn;
+static int scanFiles;
+static void scan_progress(void);
 
 /* Drops the tags from a file name, "(USA)", "(En,Fr,De)", "[!]" and the
  * like (name_tags = 1 keeps them): the flag tells regional copies apart.
@@ -184,21 +289,76 @@ static void strip_tags(char* name) {
 	if (out[0]) strcpy(name, out);
 }
 
+/* Its patches (GEN-9): beside it, and the ones switched on in its folder;
+ * their sizes and times (and the choice's) in its ROM checksum's key.
+ * `file` is the ROM's file name. */
+static void entry_patches(const Config* cfg, GameEntry* g, const char* file, long long size, long long mtime) {
+	g->size = size;
+	g->mtime = mtime;
+	g->patch[0] = 0;
+	char pp[1100];
+	struct stat ps;
+	if (patch_find(g->path, pp, sizeof(pp)) && stat(pp, &ps) == 0) {
+		snprintf(g->patch, sizeof(g->patch), "%s", patch_name(pp));
+		g->size += (long long) ps.st_size;
+		if ((long long) ps.st_mtime > g->mtime) g->mtime = (long long) ps.st_mtime;
+	}
+	GamePaths gpx;
+	char base[256];
+	snprintf(base, sizeof(base), "%s", file);
+	char* dot = strrchr(base, '.');
+	if (dot) *dot = 0;
+	snprintf(gpx.patches, sizeof(gpx.patches), "%s/%s.patches", cfg->stateDir, base);
+	patch_choice_load(gpx.patches, &g->patchOn);
+	if (g->patchOn.nOn) {
+		char dir[1024], pf[1400];
+		patch_folder(cfg, g->path, g->code, dir, sizeof(dir), false);
+		bool any = false;
+		for (int i = 0; i < g->patchOn.nOn; ++i) {
+			snprintf(pf, sizeof(pf), "%s/%s", dir, g->patchOn.on[i]);
+			if (stat(pf, &ps) != 0) continue;
+			size_t l = strlen(g->patch);
+			snprintf(g->patch + l, sizeof(g->patch) - l, "%s%s", l ? " + " : "", g->patchOn.on[i]);
+			g->size += (long long) ps.st_size;
+			if ((long long) ps.st_mtime > g->mtime) g->mtime = (long long) ps.st_mtime;
+			any = true;
+		}
+		/* (the choice's time too: the same patches in another order) */
+		if (any && stat(gpx.patches, &ps) == 0 && (long long) ps.st_mtime > g->mtime) g->mtime = (long long) ps.st_mtime;
+	}
+}
+
 static void scan_dir(Config* cfg, const char* d, int depth) {
-	if (dir_seen(d)) {
+	struct stat ds;
+	if (stat(d, &ds) != 0 || !S_ISDIR(ds.st_mode)) {
+		if (depth == 0) {
+			fprintf(stderr, "library: cannot open %s\n", d);
+			dir_note(d, NULL); /* (listed if it turns up) */
+		}
+		return;
+	}
+	if (dir_seen(d, &ds)) {
 		fprintf(stderr, "library: %s already listed\n", d);
 		return;
 	}
 	DIR* dir = opendir(d);
 	if (!dir) {
 		if (depth == 0) fprintf(stderr, "library: cannot open %s\n", d);
+		dir_note(d, NULL);
 		return;
 	}
+	dir_note(d, &ds);
 	struct dirent* de;
 	while ((de = readdir(dir))) {
 		if (de->d_name[0] == '.') continue;
+		++scanFiles;
+		scan_progress();
 		char full[1024];
 		snprintf(full, sizeof(full), "%s/%s", d, de->d_name);
+#ifdef DT_REG
+		/* (a file that isn't a ROM, a save or a picture: no need to look at it) */
+		if (de->d_type == DT_REG && !emu_is_rom_name(de->d_name)) continue;
+#endif
 		struct stat st;
 		if (stat(full, &st) != 0) continue;
 		if (S_ISDIR(st.st_mode)) {
@@ -215,47 +375,12 @@ static void scan_dir(Config* cfg, const char* d, int depth) {
 		snprintf(g.path, sizeof(g.path), "%s", full);
 		if (!game_code(g.path, &st, g.code)) continue;
 		g.supported = profile_find(g.code) != NULL;
-		g.size = (long long) st.st_size;
-		g.mtime = (long long) st.st_mtime;
-		{
-			/* its patches (GEN-9): beside it, and the one switched on in its
-			 * folder; their sizes and times (and the choice's) in the key */
-			char pp[1100];
-			struct stat ps;
-			if (patch_find(g.path, pp, sizeof(pp)) && stat(pp, &ps) == 0) {
-				snprintf(g.patch, sizeof(g.patch), "%s", patch_name(pp));
-				g.size += (long long) ps.st_size;
-				if ((long long) ps.st_mtime > g.mtime) g.mtime = (long long) ps.st_mtime;
-			}
-			GamePaths gpx;
-			char base[256];
-			snprintf(base, sizeof(base), "%s", de->d_name);
-			char* dot = strrchr(base, '.');
-			if (dot) *dot = 0;
-			snprintf(gpx.patches, sizeof(gpx.patches), "%s/%s.patches", cfg->stateDir, base);
-			patch_choice_load(gpx.patches, &g.patchOn);
-			if (g.patchOn.nOn) {
-				char dir[1024], file[1400];
-				patch_folder(cfg, g.path, g.code, dir, sizeof(dir), false);
-				bool any = false;
-				for (int i = 0; i < g.patchOn.nOn; ++i) {
-					snprintf(file, sizeof(file), "%s/%s", dir, g.patchOn.on[i]);
-					if (stat(file, &ps) != 0) continue;
-					size_t l = strlen(g.patch);
-					snprintf(g.patch + l, sizeof(g.patch) - l, "%s%s", l ? " + " : "", g.patchOn.on[i]);
-					g.size += (long long) ps.st_size;
-					if ((long long) ps.st_mtime > g.mtime) g.mtime = (long long) ps.st_mtime;
-					any = true;
-				}
-				/* (the choice's time too: the same patches in another order) */
-				if (any && stat(gpx.patches, &ps) == 0 && (long long) ps.st_mtime > g.mtime) g.mtime = (long long) ps.st_mtime;
-			}
-		}
 #ifdef GBADS_SIDE_CODES
 		/* a side build lists only its game's releases (the Makefile's SIDE_CODES) */
 		if (!strstr(GBADS_SIDE_CODES, g.code)) continue;
 #endif
-		if (!g.supported && !cfg->showAll) continue;
+		if (!g.supported && !cfg->showAll) continue; /* (before its patches are looked for: issue #49) */
+		entry_patches(cfg, &g, de->d_name, (long long) st.st_size, (long long) st.st_mtime);
 		int n = (int) (ext - de->d_name);
 		if (n >= (int) sizeof(g.name)) n = sizeof(g.name) - 1;
 		memcpy(g.name, de->d_name, n);
@@ -265,7 +390,10 @@ static void scan_dir(Config* cfg, const char* d, int depth) {
 		const MapProfile* prof = profile_find(g.code);
 		if (prof && prof->listName) snprintf(g.name, sizeof(g.name), "%s", prof->listName);
 		if (!cfg->nameTags) strip_tags(g.name);
-		games = realloc(games, sizeof(*games) * (nGames + 1));
+		if (nGames == capGames) {
+			capGames = capGames ? capGames * 2 : 64;
+			games = realloc(games, sizeof(*games) * capGames);
+		}
 		games[nGames++] = g;
 	}
 	closedir(dir);
@@ -442,14 +570,38 @@ static unsigned rom_crc_generation(void) {
 	return g;
 }
 
+static void scan_progress(void) {
+	if (getenv("GBADS_SYNC") && atoi(getenv("GBADS_SYNC"))) return; /* (tests: exact frames) */
+	Uint32 now = SDL_GetTicks();
+	if (now - scanStart < 300 || now - scanDrawn < 100) return;
+	scanDrawn = now;
+	ui_events(); /* (keeps the system from thinking the app has hung) */
+	ui_clear();
+	for (int scr = 0; scr < nScreens; ++scr) {
+		SDL_Rect r = screens[scr].rect;
+		float px = ui_px(scr);
+		ui_fill(scr, (SDL_Rect) { 0, 0, r.w, r.h }, C_BG);
+		ui_label(scr, r.w / 2, r.h / 2 - px * 6, px * 6, "Loading games...", C_TEXT);
+		char line[96];
+		snprintf(line, sizeof(line), "%d file%s checked, %d game%s found", scanFiles, scanFiles == 1 ? "" : "s", nGames,
+		         nGames == 1 ? "" : "s");
+		ui_font_text(scr, TF_BODY, r.w / 2, r.h / 2 + px * 8, px * 4, line, C_DIM, 0);
+	}
+	ui_present();
+}
+
 static void scan(Config* cfg) {
 	free(games);
 	games = NULL;
-	nGames = 0;
+	nGames = capGames = 0;
 	char dirs[1024];
 	snprintf(dirs, sizeof(dirs), "%s", cfg->romDir);
 	char* save;
 	nSeenDirs = 0;
+	seenOverflow = false;
+	scanStart = SDL_GetTicks();
+	scanDrawn = 0;
+	scanFiles = 0;
 	code_cache_load(cfg);
 	rom_crc_load(cfg);
 	crcCfg = cfg;
@@ -471,7 +623,12 @@ static void scan(Config* cfg) {
 		}
 	}
 	for (int i = 0; i < nGames; ++i) ui_logo_queue(cfg, games[i].path, games[i].code);
-	fprintf(stderr, "library: %d game(s)\n", nGames);
+	scanned = true;
+	snprintf(scannedRomDir, sizeof(scannedRomDir), "%s", cfg->romDir);
+	scannedShowAll = cfg->showAll;
+	scannedNameTags = cfg->nameTags;
+	fprintf(stderr, "library: %d game(s), %d file(s) in %d folder(s), %llu ms\n", nGames, scanFiles, nSeenDirs,
+	        (unsigned long long) (SDL_GetTicks() - scanStart));
 }
 
 /* -------------------------------------------------------------- preview */
@@ -1649,10 +1806,8 @@ static int keep_visible(int scr, int sel, int scroll) {
 
 bool library_run(Config* cfg, char* outPath, size_t outSize) {
 	storage_check(cfg);
-	scan(cfg);
-	thumbFor = -2;
 
-	/* reselect the last game played */
+	/* the last game played (reselected) */
 	char lastFile[1100], last[1024] = "";
 	snprintf(lastFile, sizeof(lastFile), "%s/last_game.txt", cfg->stateDir);
 	FILE* f = fopen(lastFile, "r");
@@ -1660,6 +1815,25 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 		if (fgets(last, sizeof(last), f)) last[strcspn(last, "\n")] = 0;
 		fclose(f);
 	}
+
+	/* The whole library is read at start, and again when a ROM folder has
+	 * changed; back from a game with the folders as they were, the list is
+	 * kept and only the game just played is looked at again (its patches
+	 * can be switched in the game: GEN-9). Issue #49: a big library took a
+	 * while each time. */
+	if (library_changed(cfg)) {
+		scan(cfg);
+	} else {
+		for (int i = 0; i < nGames; ++i) {
+			struct stat st;
+			if (strcmp(games[i].path, last) || stat(games[i].path, &st) != 0) continue;
+			const char* file = strrchr(games[i].path, '/');
+			entry_patches(cfg, &games[i], file ? file + 1 : games[i].path, (long long) st.st_size, (long long) st.st_mtime);
+		}
+		fprintf(stderr, "library: %d game(s), folders unchanged\n", nGames);
+	}
+	thumbFor = -2;
+
 	int sel = nGames ? 0 : -1;
 	for (int i = 0; i < nGames; ++i) {
 		if (!strcmp(games[i].path, last)) sel = i;
