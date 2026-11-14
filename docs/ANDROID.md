@@ -663,8 +663,41 @@ data_dir_now is elsewhere, and launch.log follows data_dir_now
 `data_dir` in `<app>/data-folder.cfg` (moving only GBA DS's own folders).
 Not tried on the device yet.
 
+## One display: phones and the Surface Duo (issue #48, Nov 14, 2026)
+
+The owner's Surface Duo: its two screens are one Android display
+(2784x1800 spanned, an 84-pixel hinge between two 1350x1800 screens;
+Duo 2: 2754 = 1344 + 66 + 1344). Two problems: the activity was locked
+to landscape (manifest `screenOrientation="landscape"` and SDL's
+`LandscapeLeft` hint), which on a Duo takes a spanned app back to one
+screen (Microsoft: by design for orientation-locked apps) and holds it
+one way round only (upside down with the controller's cable on the left).
+
+- The manifest no longer locks the orientation. GbaDsActivity sets it
+  itself (`orientationWanted`, before super.onCreate, and again from SDL's
+  `setOrientationBis`, overridden): landscape when there's another display
+  (RG DS, Thor, RP Duo: unchanged), else SCREEN_ORIENTATION_FULL_USER (any
+  way round, the player's rotation lock kept).
+- ui.c layout_screens, one window: `android_hinge_gap` (android.c, by
+  `ro.product.model` "Surface Duo" / "Surface Duo 2" and the window's long
+  side 2784 / 2754, i.e. spanned) leaves the hinge's pixels out between
+  the two screens; with a hinge, auto is span-v when held tall (screens
+  above each other, as a DS) and span-h when held wide. Without one, as
+  before (span-h from 1.8:1, span-v from 1:1.2, else single). The log
+  says `screens: one window, WxH LAYOUT gap N`.
+- tools/androidtest: `STUB_SECOND=none`, `STUB_HINGE` / `STUB_HINGE_LONG`;
+  GBADS_WINDOW now sizes the window there (SDL's offscreen driver made a
+  full-screen one 1024x768 whatever it said).
+- Not known yet: whether the Duo keeps the game spanned when started
+  from the launcher (LauncherActivity starts GbaDsActivity in a task of
+  its own; if the Duo opens that on one screen, that's next).
+  Held wide (two tall screens side by side), the game list's top bar is
+  cut off at 1350 wide.
+
 ## For the next release
 
 Player-facing Android changes since the last release, for the main session
 to move into CHANGELOG.md and the release notes (see CLAUDE.md, "More than
 one session"). Empty after each release.
+
+- Surface Duo and other one-display devices: the app turns with the device, both ways round, and keeps your rotation lock; spanned over both screens of a Surface Duo, the game and the menus go either side of the hinge (issue #48).

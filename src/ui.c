@@ -427,7 +427,9 @@ bool ui_init(Config* c, bool wantDual) {
 	 * Presentation window in Java (android.c). It's view 1, drawn at
 	 * ui_present: with the GPU (the game screen's renderer, made to draw into
 	 * the other window), or failing that with a software renderer. */
-	if (!create_view(&views[0], 0, "GBA DS", true, 1024, 768)) return false;
+	/* (GBADS_WINDOW: tools/androidtest, a window of that size, as SDL's
+	 * offscreen driver makes a full-screen one 1024x768) */
+	if (!create_view(&views[0], 0, "GBA DS", !getenv("GBADS_WINDOW"), 1024, 768)) return false;
 	nViews = 1;
 	int sw, sh, w0, h0;
 	SDL_RendererInfo ri;
@@ -692,17 +694,31 @@ static void layout_screens(void) {
 		return;
 	}
 	const char* lay = cfg->layout;
+	/* a hinge across the middle of one display (Surface Duo spanned over
+	 * both screens, issue #48): a screen each side of it, the hinge's
+	 * pixels left out */
+	int gap = 0;
+#ifdef __ANDROID__
+	gap = android_hinge_gap(w, h);
+#endif
 	if (!strcmp(lay, "auto") || !strcmp(lay, "dual")) {
-		lay = w >= h * 18 / 10 ? "span-h" : h >= w * 12 / 10 ? "span-v" : "single";
+		if (gap > 0) lay = h > w ? "span-v" : "span-h";
+		else lay = w >= h * 18 / 10 ? "span-h" : h >= w * 12 / 10 ? "span-v" : "single";
 	}
+	static char logged[48];
+	char line[48];
+	snprintf(line, sizeof(line), "%dx%d %s gap %d", w, h, lay, gap);
+	if (strcmp(line, logged)) snprintf(logged, sizeof(logged), "%s", line), fprintf(stderr, "screens: one window, %s\n", line);
 	if (!strcmp(lay, "span-h")) {
 		nScreens = 2;
-		screens[0] = (Screen) { 0, { 0, 0, w / 2, h } };
-		screens[1] = (Screen) { 0, { w / 2, 0, w - w / 2, h } };
+		int s = (w - gap) / 2;
+		screens[0] = (Screen) { 0, { 0, 0, s, h } };
+		screens[1] = (Screen) { 0, { s + gap, 0, w - s - gap, h } };
 	} else if (!strcmp(lay, "span-v")) {
 		nScreens = 2;
-		screens[0] = (Screen) { 0, { 0, 0, w, h / 2 } };
-		screens[1] = (Screen) { 0, { 0, h / 2, w, h - h / 2 } };
+		int s = (h - gap) / 2;
+		screens[0] = (Screen) { 0, { 0, 0, w, s } };
+		screens[1] = (Screen) { 0, { 0, s + gap, w, h - s - gap } };
 	} else {
 		nScreens = 1;
 		screens[0] = (Screen) { 0, { 0, 0, w, h } };

@@ -18,3 +18,11 @@ bool android_data_record(char* out, size_t size) {
 	return true;
 }
 void android_data_setup(void) {}
+/* a hinge across one display (issue #48): STUB_HINGE=PIXELS when the
+ * window's long side is STUB_HINGE_LONG (a Surface Duo spanned: 84, 2784) */
+int android_hinge_gap(int w, int h) {
+	const char* g = getenv("STUB_HINGE");
+	const char* l = getenv("STUB_HINGE_LONG");
+	int lw = w > h ? w : h;
+	return g && (!l || atoi(l) == lw) ? atoi(g) : 0;
+}
