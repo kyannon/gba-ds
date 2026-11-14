@@ -5542,6 +5542,371 @@ static const char* m3_compose(Emu* s, const void* state, uint32_t* const* out, i
 	return NULL;
 }
 
+/* ---------------------------------------------------------------- Baldur's Gate: Dark Alliance
+ *
+ * docs/games/baldurs-gate-dark-alliance.md. The game has no map: GBA DS
+ * makes one of each area (BGD-10, an exception), shown by bgd_live_view
+ * at a quarter of its size around the hero, a red X where he is (BGD-11); the logo on the
+ * title (BGD-5) and at GAME OVER (BGD-9). (Until Nov 13, 2026 START's
+ * character tab instead, BGD-1 to BGD-4 and BGD-8, retired.) Both releases
+ * use these addresses:
+ *   BGD_DISPCNT the display: mode 0 in play (walking, fights, conversations,
+ *               a save book: BG0-BG2 hold the area), 3 on the title, the
+ *               language list, the class choice, the abilities screen and
+ *               START's menu, 4 in black scenes and GAME OVER
+ *   BGD_MENU    0x40 while START's menu is up: the title is mode 3 without it.
+ *               (0x030077D8, 1 in a game started new, stays 0x14 all
+ *               through one continued from a save)
+ *   BGD_CONTROL 1 walking about (or in a conversation), 2 in a fight (or
+ *               a scene in the world, or dying), 0 from START on, a
+ *               black-screen scene, GAME OVER
+ *   BGD_HP      health (0 from the hero's death on)
+ *   BGD_HEROX/Y where the hero's feet are in the area (1/256 px): the follow
+ *               routine keeps the camera 120 px left of and 100 px above
+ *               them (his feet at 120, 100 on the game screen)
+ *   BGD_CAMX/Y  the camera (words, pixels): the screen's top left in the area
+ *   BGD_DX/DY   the camera's pending move (halves): each frame the game's
+ *               scroll (0x086A1600) adds them to the camera, draws the 16-px
+ *               strips of each layer newly shown (one a frame: 16 px a step
+ *               at most) and clears them. The follow routine (0x08690E60)
+ *               sets them from the hero, with the three stores in bgdFollow;
+ *               another pushes the camera back toward him once he's off
+ *               screen, after the scroll
+ *   BGD_LEVEL   the area's header: per layer a rectangle in 16-px blocks at
+ *               header + 2 + 4 * the half at header + 0x10 + 2 * layer. The
+ *               camera goes from its top left to a pixel short of its size
+ *               less the screen's (exactly there, the scroll stops for good)
+ * A copy of the game (its own Emu, on its own thread; inline in exact runs
+ * and where there are no threads) is given the live game's state once the
+ * hero has been in a new area under his control for half a second, the
+ * follow routine's stores blanked in it (its own copy of the ROM: mGBA
+ * copies a core's ROM before its first write), and its camera moved over
+ * the area a screen at a time (the hero's health kept as it was, so that
+ * nothing kills him on the way); at each stop BG0-BG2 alone (floors and
+ * walls, furniture and wall pieces in front, lamps, upper edges and raised
+ * floors; no sprites) go into the area's picture where the camera is
+ * (tools/scout/bgdpan.c, the experiment). */
+#define BGD_DISPCNT 0x04000000
+#define BGD_MENU 0x03004161
+#define BGD_CONTROL 0x03002C02
+#define BGD_HP 0x03000B54
+#define BGD_HEROX 0x03001520   /* where his feet are (words, 1/256 px; the camera's target) */
+#define BGD_HEROY 0x03001524
+#define BGD_CAMX 0x030017D0
+#define BGD_CAMY 0x030016B0
+#define BGD_DX 0x03003538
+#define BGD_DY 0x03002BF0
+#define BGD_LEVEL 0x030035B4
+#define BGD_V_LOGO 0xF0000090  /* not in a game (BGD-5), or GAME OVER (BGD-9) */
+#define BGD_V_NEVER 0xF0000091 /* (no captures: the map is drawn live) */
+#define BGD_SETTLE 30          /* frames under control in an area before it's mapped */
+#define BGD_MAX 8192           /* the largest area mapped, each way (pixels) */
+#define BGD_Z 4                /* the map's scale: a quarter (BGD-10) */
+#define BGD_SLOT 0x0844E0CA    /* the empty quick slot: 16x16, 4 bpp (BGD-11) */
+#define BGD_SLOT_PAL 0x0860900C /* its palette; the X is entry 2 */
+static const uint32_t bgdFollow[] = { 0x08690FD2, 0x0869108A, 0x0869109C };
+
+/* the title, the language list, the class choice, the abilities screen
+ * (BGD-5): the display in mode 3 without START's menu */
+static bool bgd_title(Emu* e) {
+	return (emu_read16(e, BGD_DISPCNT) & 7) == 3 && emu_read8(e, BGD_MENU) != 0x40;
+}
+
+/* the game showing the area itself (BG0-BG2 hold it): mode 0 */
+static bool bgd_area_shown(Emu* e) {
+	return (emu_read16(e, BGD_DISPCNT) & 7) == 0;
+}
+
+static uint32_t bgd_virt(Emu* e, uint32_t addr) {
+	if (addr == BGD_V_LOGO) {
+		if (bgd_title(e)) return 1;
+		/* GAME OVER: the screen gone black after the hero's fall */
+		return emu_read16(e, BGD_HP) == 0 && emu_read8(e, BGD_CONTROL) == 0;
+	}
+	return 0;
+}
+
+/* the area: its header's address and its rectangle (pixels); false if none */
+static bool bgd_level(Emu* e, uint32_t* hdr, int* x0, int* y0, int* x1, int* y1) {
+	uint32_t h = emu_read32(e, BGD_LEVEL);
+	if (h < 0x02000000 || h >= 0x0203FF00) return false;
+	uint32_t r = h + 2 + 4 * emu_read16(e, h + 0x10);
+	if (r < 0x02000000 || r >= 0x0203FFF8) return false;
+	*hdr = h;
+	*x0 = 16 * emu_read16(e, r), *y0 = 16 * emu_read16(e, r + 2);
+	*x1 = 16 * emu_read16(e, r + 4), *y1 = 16 * emu_read16(e, r + 6);
+	return *x1 - *x0 >= GBA_W && *y1 - *y0 >= GBA_H && *x1 - *x0 <= BGD_MAX && *y1 - *y0 <= BGD_MAX;
+}
+
+/* which area: its rectangle and its header's first bytes */
+static uint32_t bgd_area_key(Emu* e) {
+	uint32_t h;
+	int x0, y0, x1, y1;
+	if (!bgd_level(e, &h, &x0, &y0, &x1, &y1)) return 0;
+	uint32_t k = 2166136261u ^ h;
+	for (int i = 0; i < 0x20; i += 2) k = (k ^ emu_read16(e, h + i)) * 16777619u;
+	return (k ^ (uint32_t) (x1 << 16 | y1)) | 1;
+}
+
+typedef struct {
+	uint32_t key;
+	bool done, failed;
+	int x0, y0, w, h;         /* the area's top left (camera coordinates) and size */
+	int ex0, ey0, ex1, ey1;   /* what's drawn on it: its edges (ex1 / ey1 past them) */
+	uint32_t* px;             /* 0: nothing there */
+} BgdMap;
+static BgdMap bgdMap;
+static pthread_t bgdThread;
+static volatile bool bgdBusy, bgdStop;
+static uint8_t* bgdJob;
+static size_t bgdJobSize;
+static char bgdRom[1024];
+static Emu bgdEmu;
+static bool bgdEmuOpen;
+
+/* the copy's camera moved to x, y, a step at most each way a frame (the
+ * hero's health kept at hp); false if it stops short */
+static bool bgd_go(Emu* e, int x, int y, uint16_t hp) {
+	int stuck = 0, lx = (int32_t) emu_read32(e, BGD_CAMX), ly = (int32_t) emu_read32(e, BGD_CAMY);
+	for (int f = 0; f < 4000 && !bgdStop; ++f) {
+		int cx = (int32_t) emu_read32(e, BGD_CAMX), cy = (int32_t) emu_read32(e, BGD_CAMY);
+		if (cx == x && cy == y) return true;
+		if (cx != lx || cy != ly) stuck = 0;
+		else if (++stuck > 30) return false;
+		lx = cx, ly = cy;
+		int dx = x - cx, dy = y - cy;
+		dx = dx > 16 ? 16 : dx < -16 ? -16 : dx;
+		dy = dy > 16 ? 16 : dy < -16 ? -16 : dy;
+		/* (every frame: the push back toward the hero sets them after the scroll) */
+		emu_write16(e, BGD_DX, (uint16_t) dx);
+		emu_write16(e, BGD_DY, (uint16_t) dy);
+		emu_write16(e, BGD_HP, hp);
+		emu_frame_blind(e, 0);
+	}
+	return false;
+}
+
+static void* bgd_worker(void* arg) {
+	(void) arg;
+	Emu* e = &bgdEmu;
+	BgdMap* m = &bgdMap;
+	struct timespec t0;
+	clock_gettime(CLOCK_MONOTONIC, &t0);
+	const char* why = NULL;
+	int stops = 0, missed = 0;
+	void* st = NULL;
+	if (!bgdEmuOpen) bgdEmuOpen = emu_open(e, bgdRom, NULL, false);
+	if (!bgdEmuOpen && (why = "the ROM didn't open")) goto out;
+	emu_layers(e, 0x1F);
+	if (!emu_state_load(e, bgdJob) && (why = "the game's moment didn't load")) goto out;
+	/* the camera held still: the follow routine's stores blanked (mov r8, r8) */
+	for (size_t i = 0; i < sizeof(bgdFollow) / sizeof(bgdFollow[0]); ++i) emu_write16(e, bgdFollow[i], 0x46C0);
+	uint16_t hp = emu_read16(e, BGD_HP);
+	for (int i = 0; i < 2; ++i) emu_frame_blind(e, 0);
+	int X1 = m->x0 + m->w - GBA_W - 1, Y1 = m->y0 + m->h - GBA_H - 1;
+	st = malloc(emu_state_size(e));
+	if (!st && (why = "out of memory")) goto out;
+	/* a screen at a time, row by row, each row the other way */
+	for (int y = m->y0, row = 0; !bgdStop; y += GBA_H, ++row) {
+		if (y > Y1) y = Y1;
+		int n = (X1 - m->x0 + GBA_W - 1) / GBA_W + 1;
+		for (int k = 0; k < n && !bgdStop; ++k) {
+			int x = m->x0 + (row & 1 ? n - 1 - k : k) * GBA_W;
+			if (x > X1) x = X1;
+			if (!bgd_go(e, x, y, hp)) {
+				++missed;
+				continue;
+			}
+			for (int i = 0; i < 2; ++i) emu_frame_blind(e, 0); /* (its last strips drawn) */
+			int cx = (int32_t) emu_read32(e, BGD_CAMX), cy = (int32_t) emu_read32(e, BGD_CAMY);
+			emu_state_save(e, st);
+			emu_layers(e, 0x07);
+			emu_state_load(e, st);
+			emu_frame(e, 0);
+			for (int r = 0; r < GBA_H; ++r) {
+				int py = cy - m->y0 + r;
+				if (py < 0 || py >= m->h) continue;
+				for (int c = 0; c < GBA_W; ++c) {
+					int qx = cx - m->x0 + c;
+					if (qx >= 0 && qx < m->w) m->px[(size_t) py * m->w + qx] = e->fb[r * GBA_W + c] & 0xFFFFFF;
+				}
+			}
+			emu_layers(e, 0x1F);
+			emu_state_load(e, st);
+			++stops;
+		}
+		if (y == Y1) break;
+	}
+	if (!stops && !bgdStop && (why = "the camera wouldn't move")) goto out;
+	if (!bgdStop) {
+		/* the area's edges: its last drawn pixels (the rest is black) */
+		m->ex0 = m->w, m->ey0 = m->h, m->ex1 = m->ey1 = 0;
+		for (int y = 0; y < m->h; ++y)
+			for (int x = 0; x < m->w; ++x)
+				if (m->px[(size_t) y * m->w + x]) {
+					if (x < m->ex0) m->ex0 = x;
+					if (x >= m->ex1) m->ex1 = x + 1;
+					if (y < m->ey0) m->ey0 = y;
+					if (y >= m->ey1) m->ey1 = y + 1;
+				}
+		if (m->ex1 <= m->ex0 && (why = "nothing drawn")) goto out;
+		m->done = true;
+		struct timespec t1;
+		clock_gettime(CLOCK_MONOTONIC, &t1);
+		fprintf(stderr, "Baldur's Gate: Dark Alliance: area mapped (%dx%d, %d screens%s, %ld ms)\n", m->w, m->h, stops,
+		        missed ? ", some out of reach" : "", (long) ((t1.tv_sec - t0.tv_sec) * 1000 + (t1.tv_nsec - t0.tv_nsec) / 1000000));
+	}
+out:
+	free(st);
+	if (why) {
+		m->done = m->failed = true;
+		fprintf(stderr, "Baldur's Gate: Dark Alliance: area not mapped: %s\n", why);
+	}
+	bgdBusy = false;
+	return NULL;
+}
+
+/* the map dropped (called off first if it's still being made: false until it's stopped) */
+static bool bgd_drop(void) {
+	BgdMap* m = &bgdMap;
+	if (bgdBusy) {
+		bgdStop = true;
+		return false;
+	}
+	if (bgdThread) pthread_join(bgdThread, NULL), bgdThread = 0;
+	free(m->px);
+	memset(m, 0, sizeof(*m));
+	return true;
+}
+
+/* the marker (BGD-11): the empty quick slot's picture as the cartridge holds
+ * it, its X (the entry-2 pixels joined to its middle) and the pixels of its
+ * dark face touching the X; the rest transparent (0). Read once */
+static const uint32_t* bgd_x(Emu* e) {
+	static uint32_t x[16 * 16];
+	static bool made;
+	if (made) return x;
+	uint8_t px[16 * 16];
+	for (int t = 0; t < 4; ++t)
+		for (int r = 0; r < 8; ++r)
+			for (int c = 0; c < 8; ++c) {
+				uint8_t b = emu_read8(e, BGD_SLOT + t * 32 + r * 4 + c / 2);
+				px[((t >> 1) * 8 + r) * 16 + (t & 1) * 8 + c] = c & 1 ? b >> 4 : b & 15;
+			}
+	/* the X alone: the entry-2 pixels joined to its middle (the cartridge's
+	 * last byte, a transparent corner on screen, holds an entry 2 too) */
+	bool isx[16 * 16] = { false };
+	int stack[16 * 16], n = 0;
+	if (px[7 * 16 + 7] == 2) isx[7 * 16 + 7] = true, stack[n++] = 7 * 16 + 7;
+	while (n) {
+		int i = stack[--n], r = i / 16, c = i % 16;
+		for (int dy = -1; dy <= 1; ++dy)
+			for (int dx = -1; dx <= 1; ++dx) {
+				int y = r + dy, x = c + dx;
+				if (y >= 0 && y < 16 && x >= 0 && x < 16 && px[y * 16 + x] == 2 && !isx[y * 16 + x]) isx[y * 16 + x] = true, stack[n++] = y * 16 + x;
+			}
+	}
+	for (int i = 0; i < 16 * 16; ++i) {
+		int r = i / 16, c = i % 16;
+		bool keep = isx[i];
+		for (int dy = -1; dy <= 1 && !keep && px[i]; ++dy)
+			for (int dx = -1; dx <= 1; ++dx)
+				if (r + dy >= 0 && r + dy < 16 && c + dx >= 0 && c + dx < 16 && isx[(r + dy) * 16 + c + dx]) keep = true;
+		if (!keep) continue;
+		uint16_t v = emu_read16(e, BGD_SLOT_PAL + 2 * px[i]);
+		uint32_t R = v & 31, G = (v >> 5) & 31, B = (v >> 10) & 31;
+		x[i] = 0xFF000000 | (B << 3 | B >> 2) << 16 | (G << 3 | G >> 2) << 8 | (R << 3 | R >> 2);
+	}
+	made = true;
+	return x;
+}
+
+/* the area's map, at a quarter of its size around the hero, a red X where he
+ * is (BGD-10, BGD-11); a new area's map made beside the game */
+static const uint32_t* bgd_live_view(Emu* live, const char* rom) {
+	static uint32_t out[GBA_W * GBA_H];
+	BgdMap* m = &bgdMap;
+	/* the title (BGD-5; the map kept for when its area comes back), GAME
+	 * OVER (BGD-9): the logo */
+	if (bgd_virt(live, BGD_V_LOGO)) return NULL;
+	/* a new area is mapped once the game has shown it for half a second,
+	 * from a moment it shows it (in START's menu, BG0-BG2 hold the menu's
+	 * pictures; a conversation's words are sprites) */
+	static uint32_t settledKey;
+	static int settledFor;
+	uint32_t key = bgd_area_key(live);
+	bool shown = bgd_area_shown(live);
+	if (key != settledKey) settledKey = key, settledFor = 0;
+	else if (shown) ++settledFor;
+	if ((m->px || bgdBusy) && m->key != key && key) {
+		if (!bgd_drop()) return NULL;
+	}
+	if (!m->px) {
+		if (!key || settledFor < BGD_SETTLE || !shown || bgdBusy) return NULL;
+		if (bgdThread) pthread_join(bgdThread, NULL), bgdThread = 0;
+		uint32_t h;
+		int x0, y0, x1, y1;
+		if (!bgd_level(live, &h, &x0, &y0, &x1, &y1)) return NULL;
+		m->key = key;
+		m->x0 = x0, m->y0 = y0, m->w = x1 - x0, m->h = y1 - y0;
+		if (!(m->px = calloc((size_t) m->w * m->h, 4))) {
+			memset(m, 0, sizeof(*m));
+			return NULL;
+		}
+		size_t sz = emu_state_size(live);
+		if (sz > bgdJobSize) free(bgdJob), bgdJob = malloc(sz), bgdJobSize = bgdJob ? sz : 0;
+		if (!bgdJob || !emu_state_save(live, bgdJob)) {
+			free(m->px);
+			memset(m, 0, sizeof(*m));
+			return NULL;
+		}
+		snprintf(bgdRom, sizeof(bgdRom), "%s", rom);
+		bgdStop = false;
+		bgdBusy = true;
+		/* in exact runs (the tests), and with no threads, made here */
+		if (getenv("GBADS_SYNC") || pthread_create(&bgdThread, NULL, bgd_worker, NULL)) bgdThread = 0, bgd_worker(NULL);
+	}
+	if (m->failed || !m->done) return NULL; /* (the logo meanwhile) */
+	/* a quarter of the size: each pixel the mean of 4x4 of the picture's,
+	 * centred on his feet, kept within the area's edges; an area smaller
+	 * than the screen in its middle */
+	enum { Z = BGD_Z };
+	int camx = (int32_t) emu_read32(live, BGD_HEROX) / 256 - m->x0, camy = (int32_t) emu_read32(live, BGD_HEROY) / 256 - m->y0;
+	int left = camx - GBA_W * Z / 2, top = camy - GBA_H * Z / 2;
+	if (m->ex1 - m->ex0 <= GBA_W * Z) left = (m->ex0 + m->ex1) / 2 - GBA_W * Z / 2;
+	else if (left < m->ex0) left = m->ex0;
+	else if (left > m->ex1 - GBA_W * Z) left = m->ex1 - GBA_W * Z;
+	if (m->ey1 - m->ey0 <= GBA_H * Z) top = (m->ey0 + m->ey1) / 2 - GBA_H * Z / 2;
+	else if (top < m->ey0) top = m->ey0;
+	else if (top > m->ey1 - GBA_H * Z) top = m->ey1 - GBA_H * Z;
+	for (int oy = 0; oy < GBA_H; ++oy) {
+		int py = top + oy * Z;
+		for (int ox = 0; ox < GBA_W; ++ox) {
+			int qx = left + ox * Z;
+			unsigned r = 0, g = 0, b = 0;
+			for (int dy = 0; dy < Z; ++dy) {
+				if (py + dy < 0 || py + dy >= m->h) continue;
+				for (int dx = 0; dx < Z; ++dx) {
+					if (qx + dx < 0 || qx + dx >= m->w) continue;
+					uint32_t px = m->px[(size_t) (py + dy) * m->w + qx + dx];
+					r += px & 0xFF, g += (px >> 8) & 0xFF, b += (px >> 16) & 0xFF;
+				}
+			}
+			out[oy * GBA_W + ox] = 0xFF000000 | (b / (Z * Z)) << 16 | (g / (Z * Z)) << 8 | r / (Z * Z);
+		}
+	}
+	/* X marks the spot: the red X of an unusable quick slot, at the game's
+	 * size, its middle where his feet are (BGD-11) */
+	const uint32_t* x = bgd_x(live);
+	int hx = (camx - left) / Z - 8, hy = (camy - top) / Z - 8;
+	for (int r = 0; r < 16; ++r) {
+		if (hy + r < 0 || hy + r >= GBA_H) continue;
+		for (int c = 0; c < 16; ++c)
+			if (x[r * 16 + c] && hx + c >= 0 && hx + c < GBA_W) out[(hy + r) * GBA_W + hx + c] = x[r * 16 + c];
+	}
+	return out;
+}
+
 /* Mario vs. Donkey Kong: the game's state (decomp camthesaxman/mariovsdk,
  * gMainState; Europe's 0x40 lower: mvdk_eur): 0x0D a level (its opening pan
  * too), 0x0E a life lost, 0x0F the mute after, 0x10 paused, 0x11 a help
@@ -7958,6 +8323,25 @@ static const MapProfile profiles[] = {
 		},
 		.room = { { ER_V_PLACE, 0xFF, 0, 4 } },
 		.logo = { .steps = { { 0, 100 }, { K_A, 4 }, { 0, 1100 } }, .mask = &logoMaskER, .rev = 1 },
+	},
+	{
+		/* Baldur's Gate: Dark Alliance (USA, Europe: the same addresses).
+		 * The area's map, made on a copy and drawn live: see
+		 * bgd_live_view (docs/games/baldurs-gate-dark-alliance.md) */
+		.codes = { "BGDE", "BGDP" },
+		.title = "Baldur's Gate: Dark Alliance",
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		.virt = bgd_virt,
+		.liveView = bgd_live_view,
+		/* (no captures: the map is the live view's) */
+		.live = { { BGD_V_NEVER, 0xFF, 1, 1 } },
+		/* the title, the language list, the class choice, GAME OVER: the
+		 * logo (BGD-5, BGD-9) */
+		.menu = { { BGD_V_LOGO, 0xFF, 1, 4 } },
+		/* the lettering on its piece of the title's parchment map, BG2 a
+		 * bitmap (BGD-6; the European language list is sprites, left out) */
+		.logo = { .wait = 1500, .layers = 0x4, .minX = 32, .maxX = 212, .minY = 6, .maxY = 97 },
 	},
 	{
 		/* Harry Potter and the Prisoner of Azkaban (USA and Europe, one
