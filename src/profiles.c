@@ -5389,9 +5389,13 @@ static const char* m3_compose(Emu* s, const void* state, uint32_t* const* out, i
  * title (BGD-5) and at GAME OVER (BGD-9). (Until Nov 13, 2026 START's
  * character tab instead, BGD-1 to BGD-4 and BGD-8, retired.) Both releases
  * use these addresses:
- *   BGD_INGAME  1 in a game (from the abilities screen on), else on the
- *               title, the language list and the class choice (and again
- *               after Quit Game): 0x14 USA, 0x07 Europe
+ *   BGD_DISPCNT the display: mode 0 in play (walking, fights, conversations,
+ *               a save book: BG0-BG2 hold the area), 3 on the title, the
+ *               language list, the class choice, the abilities screen and
+ *               START's menu, 4 in black scenes and GAME OVER
+ *   BGD_MENU    0x40 while START's menu is up: the title is mode 3 without it.
+ *               (0x030077D8, 1 in a game started new, stays 0x14 all
+ *               through one continued from a save)
  *   BGD_CONTROL 1 walking about (or in a conversation), 2 in a fight (or
  *               a scene in the world, or dying), 0 from START on, a
  *               black-screen scene, GAME OVER
@@ -5421,7 +5425,8 @@ static const char* m3_compose(Emu* s, const void* state, uint32_t* const* out, i
  * walls, furniture and wall pieces in front, lamps, upper edges and raised
  * floors; no sprites) go into the area's picture where the camera is
  * (tools/scout/bgdpan.c, the experiment). */
-#define BGD_INGAME 0x030077D8
+#define BGD_DISPCNT 0x04000000
+#define BGD_MENU 0x03004161
 #define BGD_CONTROL 0x03002C02
 #define BGD_HP 0x03000B54
 #define BGD_HEROX 0x03001520   /* where his feet are (words, 1/256 px; the camera's target) */
@@ -5440,9 +5445,20 @@ static const char* m3_compose(Emu* s, const void* state, uint32_t* const* out, i
 #define BGD_SLOT_PAL 0x0860900C /* its palette; the X is entry 2 */
 static const uint32_t bgdFollow[] = { 0x08690FD2, 0x0869108A, 0x0869109C };
 
+/* the title, the language list, the class choice, the abilities screen
+ * (BGD-5): the display in mode 3 without START's menu */
+static bool bgd_title(Emu* e) {
+	return (emu_read16(e, BGD_DISPCNT) & 7) == 3 && emu_read8(e, BGD_MENU) != 0x40;
+}
+
+/* the game showing the area itself (BG0-BG2 hold it): mode 0 */
+static bool bgd_area_shown(Emu* e) {
+	return (emu_read16(e, BGD_DISPCNT) & 7) == 0;
+}
+
 static uint32_t bgd_virt(Emu* e, uint32_t addr) {
 	if (addr == BGD_V_LOGO) {
-		if (emu_read8(e, BGD_INGAME) != 1) return 1;
+		if (bgd_title(e)) return 1;
 		/* GAME OVER: the screen gone black after the hero's fall */
 		return emu_read16(e, BGD_HP) == 0 && emu_read8(e, BGD_CONTROL) == 0;
 	}
@@ -5649,26 +5665,23 @@ static const uint32_t* bgd_x(Emu* e) {
 static const uint32_t* bgd_live_view(Emu* live, const char* rom) {
 	static uint32_t out[GBA_W * GBA_H];
 	BgdMap* m = &bgdMap;
-	if (emu_read8(live, BGD_INGAME) != 1) {
-		/* the title: the map from before dropped (BGD-5) */
-		if (m->px || bgdBusy) bgd_drop();
-		return NULL;
-	}
-	if (bgd_virt(live, BGD_V_LOGO)) return NULL; /* GAME OVER (BGD-9) */
-	/* a new area is mapped once he's been in it under his control for half
-	 * a second, from a moment under his control (in START's menu, BG0-BG2
-	 * hold the menu's pictures; a conversation's words are sprites) */
+	/* the title (BGD-5; the map kept for when its area comes back), GAME
+	 * OVER (BGD-9): the logo */
+	if (bgd_virt(live, BGD_V_LOGO)) return NULL;
+	/* a new area is mapped once the game has shown it for half a second,
+	 * from a moment it shows it (in START's menu, BG0-BG2 hold the menu's
+	 * pictures; a conversation's words are sprites) */
 	static uint32_t settledKey;
 	static int settledFor;
 	uint32_t key = bgd_area_key(live);
-	int c = emu_read8(live, BGD_CONTROL);
+	bool shown = bgd_area_shown(live);
 	if (key != settledKey) settledKey = key, settledFor = 0;
-	else if (c == 1 || c == 2) ++settledFor;
+	else if (shown) ++settledFor;
 	if ((m->px || bgdBusy) && m->key != key && key) {
 		if (!bgd_drop()) return NULL;
 	}
 	if (!m->px) {
-		if (!key || settledFor < BGD_SETTLE || (c != 1 && c != 2) || bgdBusy) return NULL;
+		if (!key || settledFor < BGD_SETTLE || !shown || bgdBusy) return NULL;
 		if (bgdThread) pthread_join(bgdThread, NULL), bgdThread = 0;
 		uint32_t h;
 		int x0, y0, x1, y1;

@@ -425,6 +425,62 @@
    ]
   },
   {
+   "id": "bgd-us-forge",
+   "rom": "BGDE",
+   "state": "baldurs-gate-dark-alliance/us-forge.ss",
+   "desc": "the Black Forge in a game continued from the owner's endgame save, standing at its save book (control 3): mapped (a continued game isn't the title); walking left, the map and the X follow (its floor repeats, so few pixels change)",
+   "rules": [
+    "BGD-5",
+    "BGD-10"
+   ],
+   "input": [
+    [
+     100,
+     "LEFT"
+    ],
+    [
+     240,
+     "-"
+    ]
+   ],
+   "shots": {
+    "map": 60,
+    "walked": 260
+   },
+   "checks": [
+    {
+     "rule": "BGD-10",
+     "what": "the whole forge mapped",
+     "type": "log",
+     "match": "area mapped \\(2192x2048, 130 screens, "
+    },
+    {
+     "rule": "BGD-10",
+     "what": "the map follows him",
+     "type": "differs",
+     "a": {
+      "shot": "map",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "walked",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.002
+    }
+   ]
+  },
+  {
    "id": "bgd-us-death",
    "rom": "BGDE",
    "state": "baldurs-gate-dark-alliance/us-rats.ss",
