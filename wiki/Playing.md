@@ -222,7 +222,7 @@ Your own logos and scraped ones are made as tall as the logo GBA DS took from th
 
 | What | ROCKNIX | Android |
 |---|---|---|
-| Battery saves (`.sav`) | next to the ROM (`save_dir` changes it). On first launch an existing RetroArch `Game.srm` is copied to `Game.sav`; the `.srm` is left alone. | next to the ROM |
+| Battery saves (`.sav`) | next to the ROM, or the folder you name in `save_dir` (see [Settings](Settings#files-and-folders); `save_ext = srm` keeps them as RetroArch's `.srm`). On first launch an existing RetroArch `Game.srm` is copied to `Game.sav`; the `.srm` is left alone. | next to the ROM (**Settings** → **Folders** changes it) |
 | Save states (`<game>.quick.state` for the quick bar, `<game>.slot0.state` to `.slot9.state` for the pause menu's slots), resume points (`<game>.auto.state`), with `.ra` beside them | `/storage/roms/ports/gba-ds/states/` (`state_dir`) | `GBA DS/states/` |
 | Menu settings (`prefs.cfg`), game list settings (`library.cfg`) | `gba-ds/states/` | `GBA DS/states/` |
 | Cheat choices (`<game>.cheats`), patch choices (`<game>.patches`) | `gba-ds/states/` | `GBA DS/states/` |
