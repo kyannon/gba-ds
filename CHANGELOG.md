@@ -2,6 +2,9 @@
 
 ## v1.5.3 (not yet released)
 
+### New
+- **Mega Man Battle Network 2** (USA, Europe, and Japan's Battle Network Rockman EXE 2), as the first game: walking about, MegaMan's status (level, HP, style, buster) with your money; in battles, his status as he went in; on the net, a map of the area with MegaMan's head marking where he is.
+
 ### Changes
 - **Saves in a folder of your own** (issue #47): `gba-ds.cfg` and the wiki now explain how to keep battery saves in another folder, such as one you sync with other devices. Set `save_dir` to the folder, and add `save_ext = srm` if those devices run RetroArch. GBA DS makes the folder if it isn't there, and copies each game's save from next to the ROM the first time you play it.
 

@@ -29,6 +29,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Mario & Luigi: Superstar Saga (Mario & Luigi RPG in Japan) | `A88E` `A88P` `A88J` | Bros. Info of the brother you're controlling; in battles, the boxes and meters | [Superstar Saga+](#mario--luigi-superstar-saga) v1.5 (100%; its 80% and 60% versions untested) |
 | Mario vs. Donkey Kong | `BM5E` `BM5P` `BM5J` | in levels: the HUD (lives, score, presents or TOY blocks, Mini-Marios, Donkey Kong's hits, time), and the level with its high score | |
 | Mega Man Battle Network (Battle Network Rockman EXE in Japan) | `AREE` `AREP` `AREJ` | MegaMan's status (level, HP, armor, buster) with your money, in battles too; on the net, a map of the area | |
+| Mega Man Battle Network 2 (Battle Network Rockman EXE 2 in Japan) | `AE2E` `AM2P` `AE2J` | MegaMan's status (level, HP, style, buster) with your money, in battles too; on the net, a map of the area | |
 | Metroid Fusion | `AMTE` `AMTP` `AMTJ` | map | Color improvement (USA) |
 | Metroid: Zero Mission | `BMXE` `BMXP` `BMXJ` | map | Color improvement v1 and v2 (USA) |
 | MOTHER 3 | `A3UJ` (Japan only) | walking about: the area map where R opens one, else the Status screen, each party member in turn | Translations into English (v1.3, v1.3a), Brazilian Portuguese, Italian, German, Simplified Chinese, Polish, French, Catalan (v1.0, v1.0.2) and Dutch; MusicTheorist's HQ audio mix (Japanese and English) |
@@ -329,6 +330,16 @@ On the net, the second screen shows a map of the area you're in, at a third of t
 Battles play on the game screen as the game draws them: the field, the custom screen with its chips and cursor, the tutorials' messages and arrows, and the results. The second screen shows MegaMan's status and money as they were when the battle began (his HP there is the one he went in with; his HP in the battle is on the game screen), taken again as the battle ends. In conversations, scenes, the PET's menus and shops it keeps the last picture; at the title and on the game over screen, the logo.
 
 Known issues: the later tutorial battles, boss battles and link-cable net battles haven't been tried.
+
+## Mega Man Battle Network 2
+
+The USA, European and Japanese (Battle Network Rockman EXE 2) releases, and the USA's Wii U Virtual Console release, as Mega Man Battle Network.
+
+Walking about in the real world, the second screen shows the PET's MegaMan screen with your money above it, kept up to date about once a second (and at once when your HP, money or area changes): MegaMan's level, his HP, his style once he has one (with its V2 or V3) and his buster's Attack, Rapid and Charge, with the money from the PET's menu. They're put together in one frame edged with the money box's own orange border; the MegaMan screen's question box and cursor are left out, and lights the game flashes while you have a PowerUP to use are shown steady.
+
+On the net, the second screen shows a map of the area you're in, at a third of the game's size, centred on MegaMan and following him, stopping at the area's edges; his head, facing you, marks where he is. Navis, viruses, Mystery Data and the net's sky aren't on it; on a homepage, its patterned floor is part of the sky, so only the floor's outline is. Battles play on the game screen as the game draws them; the second screen shows MegaMan's status and money as they were when the battle began. In conversations, scenes, the PET's menus and shops it keeps the last picture; at the title and on the game over screen, the logo.
+
+Known issues: boss battles, Hard mode and link-cable net battles haven't been tried. On the Japanese release's logo, a few pixels of the title's grid stay above ロ.
 
 ## Metroid: Zero Mission and Metroid Fusion
 
