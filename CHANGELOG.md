@@ -6,6 +6,7 @@
 - **Saves in a folder of your own** (issue #47): `gba-ds.cfg` and the wiki now explain how to keep battery saves in another folder, such as one you sync with other devices. Set `save_dir` to the folder, and add `save_ext = srm` if those devices run RetroArch. GBA DS makes the folder if it isn't there, and copies each game's save from next to the ROM the first time you play it.
 
 ### Fixes
+- **The game list opens faster with a big library** (issue #49): GBA DS remembers what it found in your ROM folder, so it opens sooner, and going back to the list from a game no longer reads the whole folder again unless something in it has changed. While a big folder is read, the screens say "Loading games..." instead of staying black.
 - **Match Display Rate no longer slows a game down.** With it on, a frame that came too late for the screen's refresh had to wait for the next one, and the game lost that time: Pokémon Pinball slowed down (thanks to the player who reported it). Now, if that keeps happening for three seconds, GBA DS goes back to the GBA's own rate for the rest of the game, and the menu shows "Match Display Rate: Off for now". Choose it twice to try matching again.
 - **The pinball games' two-screen view takes less work** (Pokémon Pinball, Sonic Pinball Party, Muppet Pinball Mayhem), leaving more room for full speed.
 
