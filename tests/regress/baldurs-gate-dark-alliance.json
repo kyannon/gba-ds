@@ -481,6 +481,48 @@
    ]
   },
   {
+   "id": "bgd-us-town",
+   "rom": "BGDE",
+   "state": "baldurs-gate-dark-alliance/us-town.ss",
+   "desc": "the city of Baldur's Gate (area 3), the owner's endgame save continued into it: the first outdoor area mapped",
+   "rules": [
+    "BGD-10",
+    "BGD-11"
+   ],
+   "shots": {
+    "map": 60
+   },
+   "checks": [
+    {
+     "rule": "BGD-10",
+     "what": "the whole area mapped",
+     "type": "log",
+     "match": "area mapped \\(1600x1600, 70 screens, "
+    }
+   ]
+  },
+  {
+   "id": "bgd-us-eldrith",
+   "rom": "BGDE",
+   "state": "baldurs-gate-dark-alliance/us-eldrith.ss",
+   "desc": "Eldrith's Watch (area 25), the last boss's arena, the owner's endgame save continued into it: its 9 screens mapped; the backdrop round it (blue, BG3's picture left out) shown as the game's own colour",
+   "rules": [
+    "BGD-10",
+    "BGD-11"
+   ],
+   "shots": {
+    "map": 60
+   },
+   "checks": [
+    {
+     "rule": "BGD-10",
+     "what": "the whole area mapped",
+     "type": "log",
+     "match": "area mapped \\(608x464, 9 screens, "
+    }
+   ]
+  },
+  {
    "id": "bgd-us-death",
    "rom": "BGDE",
    "state": "baldurs-gate-dark-alliance/us-rats.ss",
