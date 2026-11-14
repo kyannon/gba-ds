@@ -671,7 +671,8 @@ Not tried on the device yet.
 
 ## One display: phones and the Surface Duo (issue #48, Nov 14, 2026)
 
-The owner's Surface Duo: its two screens are one Android display
+A player's Surface Duo (reported through the owner, who has no Duo to
+try it on): its two screens are one Android display
 (2784x1800 spanned, an 84-pixel hinge between two 1350x1800 screens;
 Duo 2: 2754 = 1344 + 66 + 1344). Two problems: the activity was locked
 to landscape (manifest `screenOrientation="landscape"` and SDL's
@@ -694,9 +695,13 @@ one way round only (upside down with the controller's cable on the left).
 - tools/androidtest: `STUB_SECOND=none`, `STUB_HINGE` / `STUB_HINGE_LONG`;
   GBADS_WINDOW now sizes the window there (SDL's offscreen driver made a
   full-screen one 1024x768 whatever it said).
-- Not known yet: whether the Duo keeps the game spanned when started
-  from the launcher (LauncherActivity starts GbaDsActivity in a task of
-  its own; if the Duo opens that on one screen, that's next).
+- Checked on the RG DS Plus (GammaOS, Nov 14): unchanged, still landscape.
+- Not tried on a Duo yet: the questions are with the player on the issue.
+  The owner's call (Nov 14): it ships with the next release whether or not
+  the player has answered by then, and is iterated on from their report.
+  Not known: whether the Duo keeps the game spanned when started from the
+  launcher (LauncherActivity starts GbaDsActivity in a task of its own; if
+  the Duo opens that on one screen, that's next).
   Held wide (two tall screens side by side), the game list's top bar is
   cut off at 1350 wide.
 
