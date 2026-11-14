@@ -44,9 +44,9 @@ def logo_png():
 
 
 def app_icon(size, pad=0.14):
-    """The Home Screen icon: the logo on the player's navy, square."""
+    """The Home Screen icon: the logo on the logo's blue, square."""
     from PIL import Image
-    im = Image.new("RGBA", (size, size), (19, 33, 95, 255))
+    im = Image.new("RGBA", (size, size), (16, 32, 96, 255))
     logo = Image.open(LOGO).convert("RGBA")
     w = round(size * (1 - pad * 2))
     logo = logo.resize((w, round(logo.height * w / logo.width)), Image.LANCZOS)
@@ -64,8 +64,8 @@ MANIFEST = """{{
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#070b24",
-  "theme_color": "#070b24",
+  "background_color": "#102060",
+  "theme_color": "#102060",
   "icons": [
     {{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }},
     {{ "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }},

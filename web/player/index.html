@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="color-scheme" content="dark">
-<meta name="theme-color" content="#070b24">
+<meta name="theme-color" content="#102060">
 <title>GBA DS web player</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -30,8 +30,6 @@
     <nav class="tools" aria-label="Player">
       <button class="tool" id="openBtn" title="Open files (or drop them anywhere)" aria-label="Open files"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></button>
       <span class="sep"></span>
-      <button class="tool game-only" id="pauseBtn" title="Pause" aria-label="Pause"><svg class="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg><svg class="i-play" viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z"/></svg></button>
-      <button class="tool game-only" id="resetBtn" title="Restart the game" aria-label="Restart the game"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4"/></svg></button>
       <button class="tool game-only" id="stateBtn" title="Save a state (downloads a .ss file)" aria-label="Save a state"><svg viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5zM8 4v5h7V4M8 20v-6h8v6"/></svg></button>
       <button class="tool game-only" id="shotBtn" title="Screenshot (both screens)" aria-label="Screenshot"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
       <button class="tool game-only" id="closeBtn" title="Close the game" aria-label="Close the game"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
@@ -83,7 +81,6 @@
     </section>
 
     <div class="drop-veil" id="dropVeil" hidden><div><strong>Drop to open</strong><span>Builds, games, saves, states and bug reports</span></div></div>
-    <div class="fps" id="fps" aria-live="off"></div>
   </main>
 </div>
 

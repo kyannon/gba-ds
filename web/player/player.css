@@ -2,7 +2,7 @@
 @font-face { font-family: "Jost"; font-style: italic; font-weight: 700; font-display: swap; src: url("jost-bold-italic.ttf") format("truetype"); }
 
 :root {
-  --bg: #070b24;
+  --bg: #102060; /* the logo's blue */
   --bg2: #0c1238;
   --panel: #10174a;
   --panel2: #18215e;
@@ -36,7 +36,7 @@ button { cursor: pointer; }
 #app > #stage { grid-row: 2; min-width: 0; min-height: 0; }
 
 /* ---- the bar */
-.bar { display: flex; align-items: center; gap: 16px; padding: 8px 12px 8px 16px; border-bottom: 1px solid var(--line); background: linear-gradient(var(--bg2), var(--bg)); min-height: 52px; }
+.bar { display: flex; align-items: center; gap: 16px; padding: 8px 12px 8px 16px; border-bottom: 1px solid var(--line); background: var(--bg); min-height: 52px; }
 .brand { display: flex; align-items: center; gap: 10px; flex: none; }
 .logo { height: 22px; width: auto; display: block; }
 .product { font: italic 700 17px/1 var(--display); letter-spacing: 0.01em; }
@@ -56,14 +56,13 @@ button { cursor: pointer; }
 body:not(.playing) .game-only { display: none; }
 
 /* ---- the stage */
-#stage { position: relative; overflow: hidden; background: radial-gradient(120% 90% at 50% 40%, #121a52 0%, var(--bg) 70%); touch-action: none; }
+#stage { position: relative; overflow: hidden; background: var(--bg); touch-action: none; }
 #screen { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 #bezels { position: absolute; inset: 0; pointer-events: none; }
 .bezel { position: absolute; border-radius: 4px; background: #000; box-shadow: 0 0 0 1px rgba(255,255,255,0.07), 0 18px 50px -12px rgba(0,0,0,0.8), 0 0 0 7px rgba(8,10,30,0.9), 0 0 0 8px rgba(255,255,255,0.05); }
 body.playing #screen.touch { cursor: crosshair; }
 .paused-veil { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(5, 8, 28, 0.55); backdrop-filter: blur(2px); pointer-events: none; }
 .paused-veil span { font: italic 700 28px var(--display); letter-spacing: 0.02em; padding: 10px 22px; border-radius: 99px; background: rgba(16,23,74,0.8); border: 1px solid var(--line2); }
-.fps { position: absolute; right: 12px; bottom: 10px; font: 12px var(--mono); color: var(--faint); pointer-events: none; }
 
 /* ---- the start screen */
 .start { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px 16px; overflow: auto; }
@@ -176,25 +175,29 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 #touch { position: absolute; inset: 0; pointer-events: none; z-index: 3; --u: 1; }
 #touch .tc { position: absolute; pointer-events: auto; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 #touch .tc span { pointer-events: none; }
-/* the D-pad: a cross, an arrow lit for each direction held */
-#touch .dpad .arm { position: absolute; background: linear-gradient(#26306e, #1a2257); border: 1px solid rgba(190,205,255,0.16); box-shadow: 0 calc(3px * var(--u)) 0 #0b1035; }
+/* light grey like the GBA's own buttons, the lettering pressed in (a darker grey, lit from above) */
+#touch { --key: #d4d5da; --key2: #b9bbc2; --keyedge: #8d8f98; --ink: #9a9ca6; --inkon: #6a6c76; }
+/* the D-pad: a cross, an arrow pressed in for each direction, darker while held */
+#touch .dpad .arm { position: absolute; background: linear-gradient(var(--key), var(--key2)); border: 1px solid rgba(0,0,0,0.12); box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 calc(3px * var(--u)) 0 var(--keyedge); }
 #touch .dpad .arm.v { left: 33%; width: 34%; top: 0; height: 100%; border-radius: calc(9px * var(--u)); }
 #touch .dpad .arm.h { top: 33%; height: 34%; left: 0; width: 100%; border-radius: calc(9px * var(--u)); }
-#touch .dpad .hub { position: absolute; left: 33.5%; top: 33.5%; width: 33%; height: 33%; background: #1f286a; border-radius: 50%; box-shadow: inset 0 0 0 calc(5px * var(--u)) #222b6c, inset 0 1px 6px rgba(0,0,0,0.5); }
-#touch .dpad .ar { position: absolute; width: 0; height: 0; border: calc(8px * var(--u)) solid transparent; opacity: 0.55; transition: opacity .06s; }
-#touch .dpad .ar.u { left: 50%; top: 8%; transform: translateX(-50%); border-bottom-color: #c9d2ff; border-top-width: 0; }
-#touch .dpad .ar.d { left: 50%; bottom: 8%; transform: translateX(-50%); border-top-color: #c9d2ff; border-bottom-width: 0; }
-#touch .dpad .ar.l { top: 50%; left: 8%; transform: translateY(-50%); border-right-color: #c9d2ff; border-left-width: 0; }
-#touch .dpad .ar.r { top: 50%; right: 8%; transform: translateY(-50%); border-left-color: #c9d2ff; border-right-width: 0; }
-#touch .dpad .ar.on { opacity: 1; filter: drop-shadow(0 0 6px #8fb0ff); }
+#touch .dpad .hub { position: absolute; left: 33.5%; top: 33.5%; width: 33%; height: 33%; background: var(--key2); border-radius: 50%; box-shadow: inset 0 1px 3px rgba(0,0,0,0.25), 0 1px 0 rgba(255,255,255,0.5); }
+#touch .dpad .ar { position: absolute; width: 0; height: 0; border: calc(8px * var(--u)) solid transparent; filter: drop-shadow(0 1px 0 rgba(255,255,255,0.75)) drop-shadow(0 -1px 0 rgba(0,0,0,0.18)); transition: border-color .06s; }
+#touch .dpad .ar.u { left: 50%; top: 8%; transform: translateX(-50%); border-bottom-color: var(--ink); border-top-width: 0; }
+#touch .dpad .ar.d { left: 50%; bottom: 8%; transform: translateX(-50%); border-top-color: var(--ink); border-bottom-width: 0; }
+#touch .dpad .ar.l { top: 50%; left: 8%; transform: translateY(-50%); border-right-color: var(--ink); border-left-width: 0; }
+#touch .dpad .ar.r { top: 50%; right: 8%; transform: translateY(-50%); border-left-color: var(--ink); border-right-width: 0; }
+#touch .dpad .ar.u.on { border-bottom-color: var(--inkon); }
+#touch .dpad .ar.d.on { border-top-color: var(--inkon); }
+#touch .dpad .ar.l.on { border-right-color: var(--inkon); }
+#touch .dpad .ar.r.on { border-left-color: var(--inkon); }
 /* buttons */
-#touch .face, #touch .shoulder, #touch .pill { display: grid; place-items: center; color: #dfe5ff; background: linear-gradient(#2b3678, #1c2459); border: 1px solid rgba(190,205,255,0.18); box-shadow: 0 calc(3px * var(--u)) 0 #0b1035; transition: transform .05s, background .05s; }
+#touch .face, #touch .shoulder, #touch .pill { display: grid; place-items: center; color: var(--ink); text-shadow: 0 1px 0 rgba(255,255,255,0.75), 0 -1px 0 rgba(0,0,0,0.2); background: linear-gradient(var(--key), var(--key2)); border: 1px solid rgba(0,0,0,0.12); box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 calc(3px * var(--u)) 0 var(--keyedge); transition: transform .05s, background .05s; }
 #touch .face { border-radius: 50%; font: italic 700 calc(19px * var(--u)) var(--display); }
-#touch .face.f-a, #touch .face.f-b { background: linear-gradient(#3a4794, #263070); }
 #touch .shoulder { border-radius: calc(16px * var(--u)) calc(16px * var(--u)) calc(7px * var(--u)) calc(7px * var(--u)); font: italic 700 calc(15px * var(--u)) var(--display); }
-#touch .shoulder.s2 { font-size: calc(13px * var(--u)); color: #aab4e6; background: linear-gradient(#232c66, #181f4f); }
-#touch .pill { border-radius: 99px; font: 600 calc(10.5px * var(--u)) var(--ui); letter-spacing: 0.04em; text-transform: uppercase; color: #aab4e6; }
-#touch .tc.on { transform: translateY(calc(2px * var(--u))); box-shadow: 0 calc(1px * var(--u)) 0 #0b1035; background: linear-gradient(#5568c4, #3a4aa0); color: #fff; }
+#touch .shoulder.s2 { font-size: calc(13px * var(--u)); }
+#touch .pill { border-radius: 99px; font: 600 calc(10.5px * var(--u)) var(--ui); letter-spacing: 0.04em; text-transform: uppercase; }
+#touch .tc.on { transform: translateY(calc(2px * var(--u))); box-shadow: inset 0 1px 2px rgba(0,0,0,0.2), 0 calc(1px * var(--u)) 0 var(--keyedge); background: linear-gradient(var(--key2), #a9abb3); color: var(--inkon); }
 
 /* ---- phones */
 :root { --sat: env(safe-area-inset-top, 0px); --sar: env(safe-area-inset-right, 0px); --sab: env(safe-area-inset-bottom, 0px); --sal: env(safe-area-inset-left, 0px); }
@@ -222,5 +225,3 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 }
 .notice { margin: 0 0 14px; padding: 10px 12px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent); background: color-mix(in srgb, var(--warn) 9%, transparent); font-size: 13px; display: flex; gap: 10px; align-items: flex-start; }
 .notice button { margin-left: auto; border: 0; background: none; color: var(--muted); font-size: 18px; line-height: 1; padding: 0 2px; }
-/* (with the on-screen controls up, the fps counter goes to the top, out of their way) */
-#stage:has(#touch:not([hidden])) .fps { top: 6px; bottom: auto; }

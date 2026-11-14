@@ -771,7 +771,6 @@ function onWorker(worker, m) {
     // (the pictures' buffer, back to the capture worker to be used again)
     case "capreturn": if (CAP.w) CAP.w.postMessage(m, [m.buf]); break;
     case "log": addLog(m.line); break;
-    case "fps": $("fps").textContent = Math.round(m.fps) + " fps"; break;
     case "started":
       P.caps = m;
       break;
@@ -796,7 +795,6 @@ function showStopped() {
   GBATouch.release();
   document.body.classList.remove("playing");
   $("start").hidden = false;
-  $("fps").textContent = "";
   showPaused(); showNow(); showSlots(); relayout();
 }
 // again, from this moment (device or resolution changed, a new build)
@@ -816,8 +814,6 @@ function setPaused(on, auto) {
 }
 function showPaused() {
   $("pausedVeil").hidden = !(P.running && P.paused);
-  $("pauseBtn").classList.toggle("on", P.paused);
-  $("pauseBtn").title = P.paused ? "Resume" : "Pause";
 }
 function showNow(library) {
   $("nowPlaying").hidden = !P.running;
@@ -895,8 +891,6 @@ window.addEventListener("drop", (e) => {
 });
 
 /* ================================================================ toolbar */
-$("pauseBtn").onclick = () => setPaused(!P.paused);
-$("resetBtn").onclick = async () => { await request({ t: "sync" }); boot({ library: P.library }); };
 $("closeBtn").onclick = async () => { await stopRun(); showStopped(); };
 $("stateBtn").onclick = async () => {
   const r = await request({ t: "saveState" });
