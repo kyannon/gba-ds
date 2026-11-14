@@ -5603,8 +5603,8 @@ static bool bgd_drop(void) {
 }
 
 /* the marker (BGD-11): the empty quick slot's picture as the cartridge holds
- * it, its X (entry 2) and the pixels of its dark face touching the X; the
- * rest transparent (0). Read once */
+ * it, its X (the entry-2 pixels joined to its middle) and the pixels of its
+ * dark face touching the X; the rest transparent (0). Read once */
 static const uint32_t* bgd_x(Emu* e) {
 	static uint32_t x[16 * 16];
 	static bool made;
@@ -5616,12 +5616,25 @@ static const uint32_t* bgd_x(Emu* e) {
 				uint8_t b = emu_read8(e, BGD_SLOT + t * 32 + r * 4 + c / 2);
 				px[((t >> 1) * 8 + r) * 16 + (t & 1) * 8 + c] = c & 1 ? b >> 4 : b & 15;
 			}
+	/* the X alone: the entry-2 pixels joined to its middle (the cartridge's
+	 * last byte, a transparent corner on screen, holds an entry 2 too) */
+	bool isx[16 * 16] = { false };
+	int stack[16 * 16], n = 0;
+	if (px[7 * 16 + 7] == 2) isx[7 * 16 + 7] = true, stack[n++] = 7 * 16 + 7;
+	while (n) {
+		int i = stack[--n], r = i / 16, c = i % 16;
+		for (int dy = -1; dy <= 1; ++dy)
+			for (int dx = -1; dx <= 1; ++dx) {
+				int y = r + dy, x = c + dx;
+				if (y >= 0 && y < 16 && x >= 0 && x < 16 && px[y * 16 + x] == 2 && !isx[y * 16 + x]) isx[y * 16 + x] = true, stack[n++] = y * 16 + x;
+			}
+	}
 	for (int i = 0; i < 16 * 16; ++i) {
 		int r = i / 16, c = i % 16;
-		bool keep = px[i] == 2;
+		bool keep = isx[i];
 		for (int dy = -1; dy <= 1 && !keep && px[i]; ++dy)
 			for (int dx = -1; dx <= 1; ++dx)
-				if (r + dy >= 0 && r + dy < 16 && c + dx >= 0 && c + dx < 16 && px[(r + dy) * 16 + c + dx] == 2) keep = true;
+				if (r + dy >= 0 && r + dy < 16 && c + dx >= 0 && c + dx < 16 && isx[(r + dy) * 16 + c + dx]) keep = true;
 		if (!keep) continue;
 		uint16_t v = emu_read16(e, BGD_SLOT_PAL + 2 * px[i]);
 		uint32_t R = v & 31, G = (v >> 5) & 31, B = (v >> 10) & 31;
