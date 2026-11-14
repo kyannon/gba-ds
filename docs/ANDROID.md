@@ -358,6 +358,7 @@ CHANGELOG until someone tests them on a more capable device.
     with no system / emulator is deleted). %EXTRA_rom%=%ROM% (a path, not
     %ROMSAF%) so patches beside the game apply. When ES-DE changes its own
     gba system, update GBA_BODY (the copy is rewritten at the next start).
+    Checked on the RG DS Plus (GammaOS + ES-DE, Nov 14, 2026).
   Daijisho player: package io.github.kyannon.gbads, activity
   .LauncherActivity, `-a android.intent.action.VIEW -d {file.uri}` (or
   `-e rom {file.path}`).
