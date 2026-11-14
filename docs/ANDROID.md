@@ -712,5 +712,3 @@ Player-facing Android changes since the last release, for the main session
 to move into CHANGELOG.md and the release notes (see CLAUDE.md, "More than
 one session"). Empty after each release.
 
-- ES-DE: Settings > "GBA DS in ES-DE" makes GBA DS the emulator for Game Boy Advance games in ES-DE (quit ES-DE and open it again to see it). ES-DE's other emulators stay in its list, so a game GBA DS doesn't support can be switched to one of them in ES-DE (the game's metadata > Alternative emulator).
-- Surface Duo and other one-display devices: the app turns with the device, both ways round, and keeps your rotation lock; spanned over both screens of a Surface Duo, the game and the menus go either side of the hinge (issue #48).
