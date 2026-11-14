@@ -2307,7 +2307,7 @@
     "GEN-12"
    ],
    "config": {
-    "screen_placement": "gap"
+    "screen_placement": "no_gap"
    },
    "shots": {
     "start": 60,

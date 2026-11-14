@@ -617,10 +617,10 @@ float ui_screen_ppi(int screen) {
  * picture that goes on over both (Pokémon Pinball's table) carries on
  * across. Nothing when the shapes already match. */
 void ui_layout_pictures(void) {
-	/* screen_placement = gap (issue #46): with two screens, the top one's
+	/* screen_placement = no_gap (issue #46): with two screens, the top one's
 	 * pictures against its bottom edge and the bottom one's against its
 	 * top, so the two are as close together as they can be */
-	bool gap = !strcmp(cfg->screenPlace, "gap") && nScreens == 2;
+	bool gap = !strcmp(cfg->screenPlace, "no_gap") && nScreens == 2;
 	for (int i = 0; i < nScreens; ++i) {
 		screens[i].pic = (SDL_Rect) { 0, 0, screens[i].rect.w, screens[i].rect.h };
 		screens[i].align = gap ? (i == 0 ? 1 : -1) : 0;
@@ -645,7 +645,7 @@ void ui_layout_pictures(void) {
 		snprintf(note + strlen(note), sizeof(note) - strlen(note), " %dx%d on screen %d", w, h, wide);
 	}
 	char line[96];
-	snprintf(line, sizeof(line), "%s%s, placement %s", cfg->screenMatch, note, gap ? "gap" : "center");
+	snprintf(line, sizeof(line), "%s%s, placement %s", cfg->screenMatch, note, gap ? "no_gap" : "center");
 	if (strcmp(line, logged)) {
 		snprintf(logged, sizeof(logged), "%s", line);
 		fprintf(stderr, "screen shapes: %s (ppi %.0f / %.0f)\n", line, ui_screen_ppi(0), ui_screen_ppi(1));

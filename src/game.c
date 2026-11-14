@@ -3486,7 +3486,7 @@ static void draw_menu(void) {
 		if (menuItems[i] == M_MATCH) label = cfg->matchDisplay ? "Match Display Rate: On" : "Match Display Rate: Off";
 		if (menuItems[i] == M_SHAPES) label = !en || !strcmp(cfg->screenMatch, "keep") ? "Keep device aspect ratios" :
 		                                      !strcmp(cfg->screenMatch, "aspect") ? "Match screen aspect ratios" : "Match screen sizes and aspect ratios";
-		if (menuItems[i] == M_PLACE) label = en && !strcmp(cfg->screenPlace, "gap") ? "Screen Placement: Closest to Gap" : "Screen Placement: Centered";
+		if (menuItems[i] == M_PLACE) label = en && !strcmp(cfg->screenPlace, "no_gap") ? "Screen Placement: Closest to Gap" : "Screen Placement: Centered";
 		if (menuItems[i] == M_PIXLOGO) label = cfg->customLogos == CL_OFF ? "Custom Logos: Do Not Use" : cfg->customLogos == CL_FULL ? "Custom Logos: Full Detail" : "Custom Logos: Pixelated";
 		if (menuItems[i] == M_LOGO) label = cfg->showLogo ? "No Second Screen: Show Logo" : "No Second Screen: Keep Blank";
 		if (menuItems[i] == M_OVERLAY) {
@@ -6406,7 +6406,7 @@ static SDL_Color borderColor;
  *   <CODE>-<screen>-<scale>, <CODE>-<screen>,
  *   (the second screen only, older names: <CODE>-<scale>, <CODE>)
  *   <screen>-<scale>-<match>, <screen>-<match>, <screen>-<scale>, <screen>
- * each with "-gap" after it while Screen Placement moves the picture
+ * each with "-no_gap" after it while Screen Placement moves the picture
  * (load_overlay). wiki/Overlays.md explains them for players (top and bottom only). */
 static void overlays_reload(void) {
 	overlayMode[0][0] = overlayMode[1][0] = 0;
@@ -6419,9 +6419,9 @@ static void load_overlay(int s, int which) {
 	const char* match = strcmp(cfg->screenMatch, "keep") && ui_screens_differ() ? cfg->screenMatch : NULL;
 	/* Screen Placement: Closest to Gap moves the picture where it doesn't
 	 * fill the screen's height (Pixel Perfect, Full Width): an overlay made
-	 * for it has "-gap" at the end of its name, and ones without it are left
+	 * for it has "-no_gap" at the end of its name, and ones without it are left
 	 * alone (their hole is where a centred picture goes) */
-	const char* place = nScreens == 2 && !strcmp(cfg->screenPlace, "gap") && (!strcmp(scale, "integer") || !strcmp(scale, "fit")) ? "-gap" : "";
+	const char* place = nScreens == 2 && !strcmp(cfg->screenPlace, "no_gap") && (!strcmp(scale, "integer") || !strcmp(scale, "fit")) ? "-no_gap" : "";
 	char key[sizeof(overlayMode[0])];
 	snprintf(key, sizeof(key), "%d|%s|%s|%s", which, scale, match ? match : "", place);
 	if (!strcmp(overlayMode[s], key)) return;
@@ -6916,11 +6916,11 @@ static bool activate(int item, enum GameExit* exitTo) {
 			snprintf(menuNote, sizeof(menuNote), "Only one screen: nothing to move");
 			break;
 		}
-		snprintf(cfg->screenPlace, sizeof(cfg->screenPlace), "%s", !strcmp(cfg->screenPlace, "gap") ? "center" : "gap");
+		snprintf(cfg->screenPlace, sizeof(cfg->screenPlace), "%s", !strcmp(cfg->screenPlace, "no_gap") ? "center" : "no_gap");
 		ui_layout_pictures();
 		overlays_reload(); /* (Custom overlays have their own names for it) */
 		gameTexAll = true;
-		snprintf(menuNote, sizeof(menuNote), "%s", !strcmp(cfg->screenPlace, "gap") ? "The pictures as close to each other as they go" : "Each picture in the middle of its screen");
+		snprintf(menuNote, sizeof(menuNote), "%s", !strcmp(cfg->screenPlace, "no_gap") ? "The pictures as close to each other as they go" : "Each picture in the middle of its screen");
 		save_prefs();
 		break;
 	case M_MATCH:

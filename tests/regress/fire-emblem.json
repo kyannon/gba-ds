@@ -828,7 +828,7 @@
     "GEN-12"
    ],
    "config": {
-    "screen_placement": "gap"
+    "screen_placement": "no_gap"
    },
    "shots": {
     "end": 200
@@ -838,7 +838,7 @@
      "rule": "GEN-12",
      "what": "placement logged",
      "type": "log",
-     "match": "placement gap"
+     "match": "placement no_gap"
     },
     {
      "rule": "GEN-12",
@@ -909,7 +909,7 @@
     "GEN-12"
    ],
    "config": {
-    "screen_placement": "gap",
+    "screen_placement": "no_gap",
     "scale": "fit",
     "map_scale": "fit",
     "swap": "1"
