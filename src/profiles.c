@@ -4636,6 +4636,7 @@ static const Probe mmbn2Money[8] = { { 146, 0, 0x313939 }, { 146, 47, 0x313939 }
 #define MMBN2_CURSOR_X0 72
 #define MMBN2_CURSOR_X1 119
 #define MMBN2_CURSOR_Y0 16
+#define MMBN2_LIGHT 0x10AD21    /* the stats' lights' dark green (21AD10), as the frame buffer holds it */
 static bool mmbn2_megaman_up(Emu* s) {
 	return emu_read8(s, MMBN2_STATE) == 0x18 && emu_read8(s, MMBN2_MENU) == 0x0C && emu_read8(s, MMBN2_MENU + 1) == 4 &&
 	       !emu_read8(s, MMBN2_FADING);
@@ -4682,11 +4683,25 @@ static const char* mmbn2_compose(Emu* s, const void* state, uint32_t* out, int w
 	aw_run(s, 0, 4); /* (its values printed) */
 	if (emu_cancelled(s)) return "called off";
 	if (!som_probes(s, mmbn2Panel, 8, 8, 8)) return "not the MegaMan screen";
-	/* the panel, then the cursor (a sprite, by the rows) from a frame
-	 * drawn without sprites there (MegaMan's are left of it) */
+	/* the panel, its flashing lights steady (MMBN2-2: with a PowerUP to use,
+	 * some flash in a 16-frame cycle, 8 frames bright, 8 as they are): taken
+	 * twice, 8 frames apart, the one with more of the lights' dark green
+	 * kept; then the cursor (a sprite, by the rows) from a frame drawn
+	 * without sprites there (MegaMan's are left of it) */
 	static uint32_t panel[MMBN_PANEL_ROWS * GBA_W];
+	static uint8_t tmp2[0x80000];
 	memcpy(panel, s->fb, sizeof(panel));
 	if (!emu_state_save(s, tmp)) return "state save failed";
+	int dark[2] = { 0, 0 };
+	for (int i = 0; i < MMBN_PANEL_ROWS * GBA_W; ++i) dark[0] += (panel[i] & 0xFFFFFF) == MMBN2_LIGHT;
+	aw_run(s, 0, 8);
+	if (emu_cancelled(s)) return "called off";
+	for (int i = 0; i < MMBN_PANEL_ROWS * GBA_W; ++i) dark[1] += (s->fb[i] & 0xFFFFFF) == MMBN2_LIGHT;
+	if (dark[1] > dark[0] && mmbn2_megaman_up(s) && som_probes(s, mmbn2Panel, 8, 8, 8)) {
+		memcpy(panel, s->fb, sizeof(panel));
+		if (!emu_state_save(s, tmp2)) return "state save failed";
+		memcpy(tmp, tmp2, sizeof(tmp));
+	}
 	emu_layers(s, 0x0F);
 	emu_state_load(s, tmp);
 	emu_frame(s, 0);

@@ -150,12 +150,15 @@
    "id": "mmbn2-us-style",
    "rom": "AE2E",
    "state": "mega-man-battle-network-2/us-style.ss",
-   "desc": "MegaMan in HeatGuts with a PowerUP to use (12345 zenny, 340 HP): the Style row; the cursor by it left out",
+   "desc": "MegaMan in HeatGuts with a PowerUP to use (12345 zenny, 340 HP): the Style row; the cursor by it left out; the lights the game flashes shown steady, the same each time the picture is taken",
    "rules": [
     "MMBN2-2"
    ],
    "shots": {
-    "status": 90
+    "status": 90,
+    "again": 150,
+    "again2": 210,
+    "again3": 270
    },
    "checks": [
     {
@@ -219,6 +222,75 @@
       236
      ],
      "color": "5A6B6B"
+    },
+    {
+     "rule": "MMBN2-2",
+     "what": "the flashing lights steady: the same picture a second later",
+     "type": "same",
+     "a": {
+      "shot": "status",
+      "rect": [
+       0,
+       768,
+       1024,
+       1536
+      ]
+     },
+     "b": {
+      "shot": "again",
+      "rect": [
+       0,
+       768,
+       1024,
+       1536
+      ]
+     }
+    },
+    {
+     "rule": "MMBN2-2",
+     "what": "the flashing lights steady: the same picture a second later",
+     "type": "same",
+     "a": {
+      "shot": "status",
+      "rect": [
+       0,
+       768,
+       1024,
+       1536
+      ]
+     },
+     "b": {
+      "shot": "again2",
+      "rect": [
+       0,
+       768,
+       1024,
+       1536
+      ]
+     }
+    },
+    {
+     "rule": "MMBN2-2",
+     "what": "the flashing lights steady: the same picture a second later",
+     "type": "same",
+     "a": {
+      "shot": "status",
+      "rect": [
+       0,
+       768,
+       1024,
+       1536
+      ]
+     },
+     "b": {
+      "shot": "again3",
+      "rect": [
+       0,
+       768,
+       1024,
+       1536
+      ]
+     }
     }
    ]
   },
