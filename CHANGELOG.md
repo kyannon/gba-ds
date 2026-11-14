@@ -1,17 +1,45 @@
 # Changelog
 
-## v1.5.1 (not yet released)
+## v1.5.3 (not yet released)
+
+### New
+- **Screen Placement** (issue #46): a new setting on the pause menu's Display page. **Closest to Gap** puts the two screens' pictures against the hinge, the top one at the bottom of its screen and the bottom one at the top of its screen, so they sit as close together as they go, as on a DS. Pokémon Pinball's table then carries on across the hinge without a black band in the middle. **Centered**, the default, keeps each picture in the middle of its screen. It moves pictures only with Pixel Perfect and Full Width (Zoom and Stretch already fill the screen's height). With Closest to Gap, the Generated bezel shows its logo once, below the picture on the bottom screen, and Custom overlays are looked for with `-no_gap` at the end of their names, since one made for a centred picture would cover part of the game (see Overlays in the wiki). In `gba-ds.cfg`: `screen_placement = center` or `no_gap`.
+
+### Changes
+- **Saves in a folder of your own** (issue #47): `gba-ds.cfg` and the wiki now explain how to keep battery saves in another folder, such as one you sync with other devices. Set `save_dir` to the folder, and add `save_ext = srm` if those devices run RetroArch. GBA DS makes the folder if it isn't there, and copies each game's save from next to the ROM the first time you play it.
+
+### Fixes
+- **The game list opens faster with a big library** (issue #49): GBA DS remembers what it found in your ROM folder, so it opens sooner, and going back to the list from a game no longer reads the whole folder again unless something in it has changed. While a big folder is read, the screens say "Loading games..." instead of staying black.
+- **Match Display Rate no longer slows a game down.** With it on, a frame that came too late for the screen's refresh had to wait for the next one, and the game lost that time: Pokémon Pinball slowed down (thanks to the player who reported it). Now, if that keeps happening for three seconds, GBA DS goes back to the GBA's own rate for the rest of the game, and the menu shows "Match Display Rate: Off for now". Choose it twice to try matching again.
+- **The pinball games' two-screen view takes less work** (Pokémon Pinball, Sonic Pinball Party, Muppet Pinball Mayhem), leaving more room for full speed.
+
+## v1.5.2 (2026-11-13)
+
+### New
+- **Fast-forward speed** (issue #44): Fast Forward in the pause menu's Extras page now sets how fast holding R2 plays, 2x, 3x (the default), 4x, 5x or Max (as fast as your device can run the game), as well as turning it off. Each press goes on to the next.
+- **Web player: a folder for your files.** Keep your games, saves, states, settings, screenshots, cheats, overlays, logos and patches in a folder on your device (Settings → Your files; Chrome and Edge, Chrome on Android too), as GBA DS does on a handheld: they stay if the browser's data is cleared, and you can add your own overlays, cheats and patches there. GBA DS's game list plays the folder's games straight from it, reading each only as it's needed, and appears at once, the logos filling in.
+- **Web player: L2 and R2** on the on-screen controls: hold them to rewind and fast-forward, as on the device.
+
+### Changes
+- **Web player: screens.** Settings → Screens → Resolution (was "Screens of") lists each pair of screen resolutions once, without device names, and starts on Two GBA screens. The screens and the on-screen controls follow your phone's or tablet's rotation by default: upright, the screens stack with the controls below; on its side, they sit side by side with the controls beside them. "Screen gap" (was "Gap between them") starts at none, and the setting for how sharply GBA DS draws is now called Detail.
+
+### Fixes
+- **ROCKNIX on the RG DS:** the buttons now work in the game list, in games and in Map Buttons. With both screens on, GBA DS's window could end up without focus, and its buttons were ignored until then (issue #45; thanks to MarcJKolb for finding the fix).
+- **Fast-forward with HOME** (issue #44): holding HOME + R2 fast-forwards as R2 alone does, with the other buttons still reaching the game, so A can skip text. Before, holding HOME kept every button from the game, and letting go of it opened the menu.
+
+## v1.5.1 (2026-11-13)
 
 ### New games
+- **Mario vs. Donkey Kong** (USA, Europe and Japan): in a level, the HUD leaves the game screen for the top of the second screen (Mario's lives, the score, the presents or T, O and Y blocks, the Mini-Marios and Donkey Kong's hits in the fights, and the time), so nothing at the top of the level is hidden; in the middle of the second screen, the pause box's LEVEL and HI SCORE lines say which level you're on and the score to beat for its star. The level's opening pan, the title, the menus, films, results and bonus games show the logo; paused or at a help sign, the second screen stays as it was. Not tried yet: the Expert and e-Reader levels, and Europe in a language other than English.
 - **MOTHER 3** (Japan, and its fan translations: English v1.3 and v1.3a, with or without MusicTheorist's HQ audio mix, and Brazilian Portuguese, Italian, German, Simplified Chinese, Polish, French, Catalan and Dutch): walking about, the second screen shows the map of the area you're in where R opens one, with the party's marker, kept up to date as you walk; elsewhere (indoors, the Empire Porky Building...) the Status screen, a page for each party member every 5 seconds. The map's scroll arrows and the Status's L and R badges and help line are left out. Battles, scenes, chapter cards, the title and file screens show the logo; conversations you start keep the last picture. The translations' patches (UPS, BPS and the Dutch xdelta) can be switched on in Extras → Patches. Known limitations: the translation and the HQ audio mix can't both be switched on as patches (each is made for one exact ROM): use a ROM patched with both; battles have only been tried on the English translation.
 
 ### New
 - **xdelta patches:** `.xdelta` files work too, beside the ROM or in Extras → Patches, like `.ips`, `.ups` and `.bps`. One made with xdelta3's compression option (`-S`) can't be read: the Patches menu says so, and the ROM can be patched with it beforehand instead.
 - **Buttons**, in the pause menu's Extras page (issue #41): choose which GBA button each face button gives the game you're playing: A (right), B (bottom), X (top) and Y (left) can each be GBA A, B, L, R or nothing, so jump can go on B and attack on Y, for instance. Each game keeps its own choices; Reset Buttons goes back to the usual layout (`ab_swap` included). GBA DS's menus and the hotkeys don't change. In Super Mario Advance 2 and 3 and Tony Hawk's Pro Skater 2 and 3, the SNES or four-button layout under Controls decides the face buttons wherever it's in use.
-- **Custom logos** (issue #38): set `logo_folder` in `gba-ds.cfg` to a folder of logos a scraper downloaded (EmulationStation's marquees, Skraper's wheels), PNG or JPG, and each game uses the one named after its ROM instead of the logo GBA DS takes from the game. Names are matched whatever the region or other details in brackets: `Golden Sun.png` and `Golden Sun-marquee.jpg` both go with `Golden Sun (USA, Europe).gba`. Your own `logos/<CODE>.png` still comes first. Custom logos are made as tall as the game's own logo, so they sit in the same place and nothing else on the second screen moves (a wide logo can come out shorter, to fit the screen's width). **Custom Logos** in the pause menu's Display page (there when the game has one) picks **Pixelated** (shrunk to the GBA's pixels, the default), **Full Detail** (the same size, smooth) or **Do Not Use** (back to the game's own logo). A JPG has no transparency, so its background shows as a box behind the logo. If the folder mixes box art with logos, a game with no logo there may get its box art.
+- **Custom logos** (issue #38): set `logo_folder` in `gba-ds.cfg` to a folder of logos a scraper downloaded (EmulationStation's marquees, Skraper's wheels), PNG, JPG or WebP (a WebP saved with a `.png` name works too), and each game uses the one named after its ROM instead of the logo GBA DS takes from the game. Names are matched whatever the region or other details in brackets: `Golden Sun.png` and `Golden Sun-marquee.jpg` both go with `Golden Sun (USA, Europe).gba`. Your own `logos/<CODE>.png` still comes first. Custom logos are made as tall as the game's own logo, so they sit in the same place and nothing else on the second screen moves (a wide logo can come out shorter, to fit the screen's width). **Custom Logos** in the pause menu's Display page (there when the game has one) picks **Pixelated** (shrunk to the GBA's pixels, the default), **Full Detail** (the same size, smooth) or **Do Not Use** (back to the game's own logo). A JPG has no transparency, so its background shows as a box behind the logo. If the folder mixes box art with logos, a game with no logo there may get its box art.
 
 ### Changes
-- **Your own logos** (`logos/<CODE>.png`) are now made as tall as the game's own logo too, instead of being shown at their own size, and can be JPG.
+- **Your own logos** (`logos/<CODE>.png`) are now made as tall as the game's own logo too, instead of being shown at their own size, and can be JPG or WebP.
 
 ### Fixes
 - **BananaOS:** the game list now also shows the games on the RG DS Plus's second SD card (its `roms/gba` folder), as Banana's own list does. Before, only the games on the card BananaOS runs from were listed.

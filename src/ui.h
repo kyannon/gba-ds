@@ -29,6 +29,10 @@ typedef struct {
 	 * whole screen, or with screen_match the part matching the other
 	 * screen (local coordinates) */
 	SDL_Rect pic;
+	/* where in pic a picture that doesn't fill it goes, top to bottom:
+	 * 0 centred, 1 against pic's bottom, -1 against its top
+	 * (screen_placement = gap: each screen's against the other) */
+	int align;
 } Screen;
 
 extern View views[2];
@@ -70,7 +74,8 @@ uint64_t ui_ticks(void);
 /* The two screens' shapes differ (by more than 2%): screen_match can do
  * something. */
 bool ui_screens_differ(void);
-/* Works out the screens' picture areas again (screen_match changed). */
+/* Works out the screens' picture areas again (screen_match or
+ * screen_placement changed). */
 void ui_layout_pictures(void);
 /* The pixels per inch of each screen, if known (0 if not). */
 float ui_screen_ppi(int screen);
@@ -190,6 +195,8 @@ bool ui_load_logo(const Config* cfg, const char* rom, const char* code, SDL_Text
 bool ui_logo_provisional(void);
 /* Where the game's logo comes from (GEN-11); path: its file. */
 enum { LOGO_EXTRACTED, LOGO_OWN, LOGO_SCRAPED };
+/* The last logo choice in words (which file, or why a custom one wasn't used). */
+const char* ui_logo_note(void);
 int ui_logo_source(const Config* c, const char* rom, const char* code, char* path, size_t n);
 /* The game has an own or scraped logo, used or not (custom_logos off). */
 bool ui_logo_custom(const Config* c, const char* rom, const char* code);

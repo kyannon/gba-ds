@@ -145,7 +145,9 @@ function setButtons(mask) {
 
 /* ------------------------------------------------------------ files the player keeps */
 // battery saves, states and the menu's settings (states/prefs.cfg), and the home folder
-const KEEP = /^\/(saves|states|home)\//;
+// (kept in the browser); screenshots and GBA DS's data folders (cheats, overlays, logos,
+// patches, bug reports: in /gba-ds, the app's folder) too, for a folder of the player's
+const KEEP = /^\/(saves|states|home|shots)\/|^\/gba-ds\/(cheats|overlays|logos|patches|bug-reports)\//;
 const seen = new Map();
 function changedFiles(all) {
   const files = [], deleted = [];
@@ -260,7 +262,7 @@ function serveTick() {
 }
 async function bootCapture(m) {
   const fs = new GBADS.MemFS();
-  for (const [p, b] of m.files) fs.write(p, b);
+  for (const [p, b, t] of m.files) fs.write(p, b, t);
   log("$ " + Object.entries(m.env).filter(([k]) => /CAPTURE/.test(k)).map(([k, v]) => k + "=" + v).join(" ") + " " + m.args.join(" "));
   try {
     serve.h = await GBADS.start({
@@ -285,7 +287,7 @@ async function boot(m) {
   if (m.layout) setLayout(m.layout, m.canvas);
   attachAudio(m.audioPort || null);
   const fs = new GBADS.MemFS();
-  for (const [p, b] of m.files) fs.write(p, b);
+  for (const [p, b, t] of m.files) fs.write(p, b, t);
   for (const [p] of m.files) if (KEEP.test(p)) { const n = fs.nodes.get(p); seen.set(p, n.size + ":" + (n.mtime || 0)); }
   for (const d of ["/states", "/saves", "/shots", "/home", "/roms"]) fs.mkdirs(d);
   log("$ " + m.args.join(" "));

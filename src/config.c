@@ -27,6 +27,7 @@ void config_defaults(Config* c) {
 	strcpy(c->touchScreen, "second");
 	strcpy(c->topScreen, "auto");
 	strcpy(c->screenMatch, "keep");
+	strcpy(c->screenPlace, "center");
 	strcpy(c->touchMap, "window");
 	c->touchRotate = -1;
 	c->map = true;
@@ -192,6 +193,7 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	STR("touch_screen", touchScreen)
 	STR("top_screen", topScreen)
 	STR("screen_match", screenMatch)
+	STR("screen_placement", screenPlace)
 	STR("screen_ppi", screenPpi)
 	STR("touch_map", touchMap)
 	STR("touch_device", touchDevice)
@@ -325,7 +327,7 @@ void config_usage(const char* argv0) {
 	        "  --show-fps\n"
 	        "  --no-sway              don't ask sway to span both outputs\n"
 	        "  --audio-latency=MS     (64)\n"
-	        "  --ff-speed=N           fast-forward multiplier (3)\n"
+	        "  --ff-speed=N|max       fast-forward multiplier (3)\n"
 	        "  --save-dir=DIR         battery saves (next to the ROM)\n"
 	        "  --state-dir=DIR        save states and thumbnails (<data folder>/states)\n"
 	        "  --data-dir=DIR         GBA DS's data folder: states, cheats, overlays, logos...\n"

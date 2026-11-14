@@ -523,6 +523,10 @@ typedef struct MapProfile {
 		 * below it, at its own size (Super Mario Advance 2), instead of a
 		 * backdrop. */
 		bool logoBelow;
+		/* The last map picture (a full GBA screen) behind the HUD instead
+		 * of the logo, as alt.mapBelow does on the other layer (Mario vs.
+		 * Donkey Kong: its pause box's top lines over the HUD) */
+		bool mapBelow;
 		/* While every one of these matches, the HUD picture on the second
 		 * screen isn't drawn again: the last one stays (Super Mario
 		 * Advance 4: World-e's status bar sliding off and back as the

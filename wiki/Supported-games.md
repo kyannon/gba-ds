@@ -27,6 +27,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | The Legend of Zelda: A Link to the Past & Four Swords | `AZLE` `AZLP` `AZLJ` | world and dungeon maps | Voice removal (USA, Europe) |
 | Mario Kart: Super Circuit (Mario Kart Advance in Japan) | `AMKE` `AMKP` `AMKJ` | the race HUD, results and podium | Better colors (USA, Europe) |
 | Mario & Luigi: Superstar Saga (Mario & Luigi RPG in Japan) | `A88E` `A88P` `A88J` | Bros. Info of the brother you're controlling; in battles, the boxes and meters | [Superstar Saga+](#mario--luigi-superstar-saga) v1.5 (100%; its 80% and 60% versions untested) |
+| Mario vs. Donkey Kong | `BM5E` `BM5P` `BM5J` | in levels: the HUD (lives, score, presents or TOY blocks, Mini-Marios, Donkey Kong's hits, time), and the level with its high score | |
 | Mega Man Battle Network (Battle Network Rockman EXE in Japan) | `AREE` `AREP` `AREJ` | MegaMan's status (level, HP, armor, buster) with your money, in battles too; on the net, a map of the area | |
 | Metroid Fusion | `AMTE` `AMTP` `AMTJ` | map | Color improvement (USA) |
 | Metroid: Zero Mission | `BMXE` `BMXP` `BMXJ` | map | Color improvement v1 and v2 (USA) |
@@ -302,6 +303,20 @@ The USA, European and Japanese (Mario & Luigi RPG) releases.
 - On the title, the second screen shows the logo; in scenes, conversations and the game's own menus it keeps its picture.
 - Not tried yet: the European and Japanese releases beyond the Koopa Cruiser (walking about and its battles were tried in both).
 - **Superstar Saga+** (the romhack, v1.5, its 100% patch for the USA release; its 80% and 60% versions haven't been tried) works the same, with the mod's own names and numbers on Bros. Info and in the battle boxes (its items, its attacks' BP). Don't load a save state made on the unchanged game into the mod, or the other way round: a conversation in progress comes out garbled. Battery saves are fine.
+
+## Mario vs. Donkey Kong
+
+The USA, European and Japanese releases.
+
+The game has no status screen of its own, so in a level its HUD is moved off the game screen rather than copied: the game screen shows the whole level, so a switch, a ladder or a ledge at the top is never hidden.
+
+- **In a level** (both parts of each level, the Mini-Mario levels, the Donkey Kong fights, the Plus worlds and the last fights): the second screen has the **HUD** along its top as the game draws it: Mario's **lives**, the **score** with the **presents** found under it (the **T, O and Y blocks** in a Mini-Mario level), the **time**, and in the fights and Mini-Mario levels the **Mini-Marios** and Donkey Kong's **hits** left.
+- In the middle of the second screen is the pause box's **LEVEL** and **HI SCORE** lines: which level you're on and the score to beat for its star. It's opened in the background on a silent copy of the game as each level starts; your game is never paused. CONTINUE, RETRY and EXIT LEVEL are left out, and so is the star the game spins beside LEVEL.
+- As a level starts (the camera's pan and HERE WE GO!) the second screen shows the logo, then the HUD as soon as the game puts it up.
+- **Paused** (START), at a **help sign** and as you lose a life, the second screen stays as it was. In the **level viewer** (L+R) the HUD stays on the second screen and the arrows on the game screen.
+- Everywhere else (the opening and other films, the title, the menus, the level select, the how-to demo before a level, results, the bonus games) the second screen shows the logo.
+
+Known issues: the Expert and e-Reader levels haven't been tried yet, nor Europe in a language other than English. The Plus worlds' last fight can't be paused for its first few seconds, so the LEVEL box comes a few seconds after the HUD there.
 
 ## Mega Man Battle Network
 

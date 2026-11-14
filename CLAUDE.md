@@ -76,7 +76,10 @@ it lives here:
   longer matches. Add the Co-Authored-By / Claude-Session trailers the
   session asks for. Commits before Oct 16, 2026 were made as kyannon alone
   and stay that way (never rewrite pushed history).
-- **VERSION** holds `X.Y.Z-dev` (or `X.Y-dev`) on `dev`; CHANGELOG.md has a
+- **VERSION** holds `X.Y.Z-dev` (or `X.Y-dev`) on `dev`; a release may also
+  be `X.Y.Z.W` (update.c compares up to four numbers from v1.5.2 on; v1.5.1
+  and earlier read three, so they'd never be offered a four-number release:
+  the v1.5.1 hotfix was named v1.5.2 for that reason). CHANGELOG.md has a
   `## vX.Y.Z (not yet released)` section on top. Add a line there for every
   user-visible change, written for players (not implementation notes).
 - **Release:** merge `android` into `dev` if it has anything new. Set
@@ -452,7 +455,15 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
 - `library.c` the game list and its Settings screen (and the selected
   game's ROM checksum, read once per file on a worker thread and kept in
   `<state_dir>/roms.cache`: "Romhack: ..." / "Modified ROM" under its logo,
-  GEN-8; regress.py's `"kind": "library"` cases); `esinteg.c` the
+  GEN-8; regress.py's `"kind": "library"` cases). The scan (issue #49):
+  every ROM's game code is kept in `<state_dir>/codes.cache` by path, size
+  and date (`archives.cache` before v1.5.3, archives only), patches are
+  looked for only for games that are listed, and "Loading games..." shows
+  from 0.3 s into a slow scan (not with GBADS_SYNC). Back from a game, the
+  list is kept when no ROM folder's time changed (and rom_dir, show_all,
+  name_tags are the same); only the game just played is looked at again
+  (log: "folders unchanged"). A ROM replaced in place, same name, keeps
+  its old entry until the app starts again; `esinteg.c` the
   EmulationStation integration; `cheats.c` RetroArch .cht files;
   `ui.c` SDL windows, input, drawing, the pause-menu text images.
 
@@ -551,10 +562,14 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   check on the device; known limitations said plainly. When a game's
   behaviour changes, the rule in `docs/games/` changes first.
 - **Open by-hand checks** (`tools/regress.py --uncovered`): none open
-  beyond the list it prints. Checked on the device for v1.4.2: AW2-4/5,
-  LTTP-5, GEN-2 (Super Mario World), GEN-6, PP-6, PP-9 (60 fps), Linux
-  updates (BananaOS), Android's update download (its install is still to
-  try), Pinball's two-screen view on Android.
+  beyond the list it prints; as of v1.5.1 every rule it lists has been
+  checked (each rule's note says when). Checked on the device for v1.4.2:
+  AW2-4/5, LTTP-5, GEN-2 (Super Mario World), GEN-6, PP-6, PP-9 (60 fps),
+  Linux updates (BananaOS), Android's update download (its install is
+  still to try), Pinball's two-screen view on Android. For v1.5.1:
+  MMBN-6, MPM-6, NFO-7, SM4-7, SMB2-3 on the device, GEN-4 by two full
+  runs. A new by-hand rule (or one whose game changed) is open until the
+  owner checks it again.
 - **Won't fix / not issues** (don't list them as outstanding): Advance Wars
   and Game Boy Wars' Field Training keeps the logo (won't fix); Mario
   Kart's course map at 2x is intended; Pokémon Pinball's bonus stages on

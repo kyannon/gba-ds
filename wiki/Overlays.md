@@ -10,7 +10,7 @@ While you're on that screen, the other screen isn't dimmed, so you see the bezel
 
 ## GBA DS's own bezel
 
-Out of the box, GBA DS draws a bezel round the picture: a dark grey bezel (`#1A1A1A`) on the navy of the GBA DS logo's outline (`#102060`), with the logo in the bezel by the hinge (below the picture on the top screen, above it on the bottom screen). It's drawn whatever the screen shows, the second screen's logo too.
+Out of the box, GBA DS draws a bezel round the picture: a dark grey bezel (`#1A1A1A`) on the navy of the GBA DS logo's outline (`#102060`), with the logo in the bezel by the hinge (below the picture on the top screen, above it on the bottom screen; with **Screen Placement: Closest to Gap**, once, below the picture on the bottom screen). It's drawn whatever the screen shows, the second screen's logo too.
 
 It's drawn by the app for your screens and the scaling you use, so it fits any device and any setting. Where there's little room (Full Width, or the sides in Pixel Perfect on a 4:3 screen), you see only the part of the bezel that fits, and the logo shrinks or is left out; with Stretch, or Zoom on a 4:3 screen, the picture fills the screen and there's no bezel.
 
@@ -51,6 +51,8 @@ For each screen the most specific file found is used, so a game's own overlay be
 | every game | `top.png` | `bottom.png` |
 
 For example, on an AYN Thor with Stretch and **Match screen aspect ratios**: on the top screen, `top-stretch-aspect.png` is used if you have it, then `top-aspect.png`, then `top-stretch.png`, then `top.png`.
+
+**With Screen Placement: Closest to Gap** (pause menu → Display) and Pixel Perfect or Full Width, the pictures sit against the hinge instead of in the middle, so an overlay made for a centred picture would cover part of the game. While that's on, every name above gets `-no_gap` at the end (`top-no_gap.png`, `bottom-integer-no_gap.png`, `<CODE>-top-fit-no_gap.png`...), and overlays without it are left alone; a screen with none of its `-no_gap` files gets the Generated bezel in its usual colours, which follows the picture. On the RG DS Plus, the transparent area is then x=32, y=128, 960×640 on the top screen and x=32, y=0, 960×640 on the bottom one with Pixel Perfect, and x=0, y=86 / y=0, 1024×682 with Full Width; on the RG DS, x=80, y=160 / y=0, 480×320, and x=0, y=54 / y=0, 640×426. With Zoom or Stretch the picture fills the screen's height and doesn't move, so the usual names are used.
 
 Overlays named the old way still work: `primary` (the game's screen) and `secondary` (the second screen) in place of `top` and `bottom`, and these follow their picture when you swap screens. At each step, a `top` / `bottom` file is used first.
 

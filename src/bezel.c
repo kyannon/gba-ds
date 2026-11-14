@@ -6,7 +6,9 @@
  * 12u round the picture with 3u corners (out to the screen's edge where
  * less than 2u of the outer colour would be left), the GBA DS logo (black
  * outline, dimmed letters) in the bezel by the hinge: below the picture on
- * the top screen, above it on the bottom one, 56% of the bezel's band tall
+ * the top screen, above it on the bottom one (Screen Placement: Closest
+ * to Gap: below it on the bottom screen only, game.c draw_bezel), 56% of
+ * the bezel's band tall
  * (smaller where the band is cut off; left out under 9 screen pixels), and
  * the picture itself transparent.
  *
@@ -94,7 +96,7 @@ static void draw_logo(uint8_t* px, int pitch, int sw, int sh, int dx, int dy, in
 	free(mid);
 }
 
-SDL_Surface* bezel_surface(int sw, int sh, SDL_Rect pic, bool bottom, uint32_t inner, uint32_t outer, bool logo) {
+SDL_Surface* bezel_surface(int sw, int sh, SDL_Rect pic, bool above, uint32_t inner, uint32_t outer, bool logo) {
 	SDL_Surface* s = SDL_CreateRGBSurfaceWithFormat(0, sw, sh, 32, SDL_PIXELFORMAT_RGBA32);
 	if (!s) return NULL;
 	uint8_t* px = s->pixels;
@@ -124,9 +126,9 @@ SDL_Surface* bezel_surface(int sw, int sh, SDL_Rect pic, bool bottom, uint32_t i
 			p[3] = 255;
 		}
 	}
-	/* the logo, in the band between the picture and the bezel's edge by the hinge */
+	/* the logo, in the band between the picture and the bezel's edge above or below it */
 	if (logo) {
-		float t0 = bottom ? fmaxf(0, by0) : pic.y + pic.h, t1 = bottom ? pic.y : fminf(sh, by1);
+		float t0 = above ? fmaxf(0, by0) : pic.y + pic.h, t1 = above ? pic.y : fminf(sh, by1);
 		float band = t1 - t0, h = fminf(LOGO_H * MARGIN * u, 0.8f * band);
 		if (band > 0 && h >= MIN_LOGO && logo_ready()) {
 			int th = (int) lroundf(h), tw = (int) lroundf(logoW * h / logoH);

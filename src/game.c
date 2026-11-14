@@ -85,6 +85,7 @@ static int current_cpu(void) {
 }
 
 #define GBA_FPS (16777216.0 / 280896.0)
+#define FF_MAX_RUNS 30 /* fast-forward at Max: at most this many frames a display frame */
 
 static Config* cfg;
 static Emu emu;
@@ -530,7 +531,8 @@ static void twin_first_carry(Twin* tw) {
 
 	emu_write16(&tw->e, C->cam, (uint16_t) tw->cam);
 	bool fresh = !tw->carried;
-	emu_frame(&tw->e, twinKeys[twinCur] & 0x3FF);
+	/* (not drawn: only its second frame's picture is shown) */
+	emu_frame_blind(&tw->e, twinKeys[twinCur] & 0x3FF);
 	carry_take(tw);
 	/* (starting again: its own sprites are the ones it just drew, not
 	 * what it kept from when it last ran, on another table or before a
@@ -554,7 +556,10 @@ static void twin_first(void* arg) {
 	uint32_t T = twin_hold(tw, tw->row, tw->panStep);
 	if (!T) return;
 	twin_jump(&tw->e, T, tw->row + (int8_t) emu_read8(&tw->e, T + L->shake));
-	emu_frame(&tw->e, twinKeys[twinCur] & 0x3FF);
+	/* not drawn: its picture is never shown (twin_second's is), and
+	 * drawing is about half of a frame's work, on the frame's critical
+	 * path (twins[1]'s runs before the game's frame, on its thread) */
+	emu_frame_blind(&tw->e, twinKeys[twinCur] & 0x3FF);
 	/* (how far its pans moved it: put right next frame) */
 	int at = (int16_t) emu_read16(&tw->e, L->view) - (int8_t) emu_read8(&tw->e, T + L->shake);
 	tw->panStep += at - tw->row;
@@ -1069,12 +1074,12 @@ static bool debug;
 
 /* ---------------------------------------------------------------- menu */
 
-enum MenuItem { M_RESUME, M_CHEATS, M_PATCHES, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND, M_AUTOSAVE, M_AUTOLOAD, M_BUG, M_SLOT, M_SHAPES, M_FF, M_COLOR, M_GHOST, M_BUTTONS, M_PIXLOGO };
+enum MenuItem { M_RESUME, M_CHEATS, M_PATCHES, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND, M_AUTOSAVE, M_AUTOLOAD, M_BUG, M_SLOT, M_SHAPES, M_FF, M_COLOR, M_GHOST, M_BUTTONS, M_PIXLOGO, M_PLACE };
 static const char* menuLabels[] = {
 	/* title case: drawn in Futura from the built-in images (tools/make_brand.py) */
 	[M_RESUME] = "Resume", [M_SWAP] = "Swap Screens", [M_SAVE] = "Save State", [M_SCALE] = "", [M_LCD] = "", [M_FPS] = "", [M_FRAMEBUF] = "", [M_OVERLAY] = "", [M_LOGO] = "", [M_MATCH] = "", [M_REWIND] = "", [M_RESTART] = "Restart Game",
 	[M_LOAD] = "Load State", [M_CHEATS] = "Cheats", [M_PATCHES] = "Patches", [M_BUTTONS] = "Buttons", [M_ACH] = "Achievements", [M_SHOT] = "Take Screenshot", [M_LIBRARY] = "Close Game", [M_EXIT] = "Close GBA DS",
-	[M_AUTOSAVE] = "", [M_AUTOLOAD] = "", [M_BUG] = "Submit a Bug Report", [M_SLOT] = "", [M_FF] = "", [M_COLOR] = "", [M_GHOST] = "", [M_PIXLOGO] = "",
+	[M_AUTOSAVE] = "", [M_AUTOLOAD] = "", [M_BUG] = "Submit a Bug Report", [M_SLOT] = "", [M_FF] = "", [M_COLOR] = "", [M_GHOST] = "", [M_PIXLOGO] = "", [M_PLACE] = "",
 };
 static int menuItems[12], nMenuItems;
 /* Some buttons are half as wide, two to a row (Save State | Load State):
@@ -1128,6 +1133,7 @@ static int menuSel;
 static int menuPressed = -1;      /* item under a finger that went down in the menu */
 static bool ignorePointerUp;      /* the tap that opened the menu */
 static char menuNote[64];
+static bool pacedFallback; /* Match Display Rate fell back to the GBA's rate (pacing_update) */
 
 static const SDL_Color C_BTN = { 34, 30, 58, 240 };
 static const SDL_Color C_BTN_SEL = { 92, 52, 140, 250 };
@@ -1151,12 +1157,13 @@ static const char* const allLabels[] = {
 	"Map Animations: On", "Map Animations: Off", "Map Refresh: Every 3 s", "Map Refresh: Every 1.5 s",
 	"Map Refresh: Every 1 s", "Map Refresh: Every 0.5 s", "Map Refresh: Custom", "Frame Buffer: On",
 	"Frame Buffer: Off", "Match Display Rate: On", "Match Display Rate: Off",
+	"Screen Placement: Centered", "Screen Placement: Closest to Gap",
 	"\u2039   Slot 0: Sep 30, 12:59 PM   \u203A", /* (the slot row, with its arrows) */
 };
 /* the labels of the half-width buttons, which fit in half the width */
 static const char* const halfLabels[] = {
 	"Save State", "Load State", "Save State 0", "Load State 0", "Save on Quit: On", "Save on Quit: Off", "Auto-Load: On", "Auto-Load: Off",
-	"Rewind: On", "Rewind: Off", "Fast Forward: On", "Fast Forward: Off",
+	"Rewind: On", "Rewind: Off", "Fast Forward: 2x", "Fast Forward: 3x", "Fast Forward: 4x", "Fast Forward: 5x", "Fast Forward: Max", "Fast Forward: Off",
 	"Color Correction: On", "Color Correction: Off", "LCD Ghosting: On", "LCD Ghosting: Off",
 };
 
@@ -1252,6 +1259,7 @@ static void slot_step(int d) {
 static bool item_enabled(int item) {
 	if (item == M_CHEATS) return cheats.n > 0;
 	if (item == M_SHAPES) return ui_screens_differ(); /* (two screens of a shape: nothing to match) */
+	if (item == M_PLACE) return nScreens == 2;         /* (one screen: no gap) */
 	if (item == M_FRAMEBUF) return !tallProf;          /* (always on in the pinball games' two-screen view) */
 	return item != M_LOAD || file_exists(gp.slot[stateSlot]);
 }
@@ -3474,10 +3482,16 @@ static void draw_menu(void) {
 		if (menuItems[i] == M_FPS) label = cfg->showFps ? "Show FPS: On" : "Show FPS: Off";
 		if (menuItems[i] == M_FRAMEBUF) label = tallProf ? "Frame Buffer: Always on here" : cfg->frameBuffer ? "Frame Buffer: On" : "Frame Buffer: Off";
 		if (menuItems[i] == M_REWIND) label = cfg->rewind ? "Rewind: On" : "Rewind: Off";
-		if (menuItems[i] == M_FF) label = cfg->fastForward ? "Fast Forward: On" : "Fast Forward: Off";
-		if (menuItems[i] == M_MATCH) label = cfg->matchDisplay ? "Match Display Rate: On" : "Match Display Rate: Off";
+		if (menuItems[i] == M_FF) {
+			static char ffLabel[32];
+			if (cfg->fastForward && cfg->ffSpeed <= 0) snprintf(ffLabel, sizeof(ffLabel), "Fast Forward: Max");
+			else if (cfg->fastForward) snprintf(ffLabel, sizeof(ffLabel), "Fast Forward: %dx", cfg->ffSpeed);
+			label = cfg->fastForward ? ffLabel : "Fast Forward: Off";
+		}
+		if (menuItems[i] == M_MATCH) label = !cfg->matchDisplay ? "Match Display Rate: Off" : pacedFallback ? "Match Display Rate: Off for now" : "Match Display Rate: On";
 		if (menuItems[i] == M_SHAPES) label = !en || !strcmp(cfg->screenMatch, "keep") ? "Keep device aspect ratios" :
 		                                      !strcmp(cfg->screenMatch, "aspect") ? "Match screen aspect ratios" : "Match screen sizes and aspect ratios";
+		if (menuItems[i] == M_PLACE) label = en && !strcmp(cfg->screenPlace, "no_gap") ? "Screen Placement: Closest to Gap" : "Screen Placement: Centered";
 		if (menuItems[i] == M_PIXLOGO) label = cfg->customLogos == CL_OFF ? "Custom Logos: Do Not Use" : cfg->customLogos == CL_FULL ? "Custom Logos: Full Detail" : "Custom Logos: Pixelated";
 		if (menuItems[i] == M_LOGO) label = cfg->showLogo ? "No Second Screen: Show Logo" : "No Second Screen: Keep Blank";
 		if (menuItems[i] == M_OVERLAY) {
@@ -4032,8 +4046,8 @@ static void hud_compose(void) {
 	if (hudScene) {
 		if (!hudLogoDone) hud_make_logo_back();
 		memcpy(hudCanvas, hudLogoBack, sizeof(hudCanvas));
-	} else if (hudAlt && h->alt.mapBelow && mapShownIdx >= 0 && mapW == GBA_W && mapH == GBA_H && map_px(mapShownIdx)) {
-		/* (hud.alt.mapBelow: the map picture behind, at the game's size) */
+	} else if ((hudAlt ? h->alt.mapBelow : h->mapBelow) && mapShownIdx >= 0 && mapW == GBA_W && mapH == GBA_H && map_px(mapShownIdx)) {
+		/* (hud.mapBelow, hud.alt.mapBelow: the map picture behind, at the game's size) */
 		const uint32_t* mp = map_px(mapShownIdx);
 		for (int y = 0; y < GBA_H; ++y) {
 			for (int x = 0; x < GBA_W; ++x) {
@@ -5615,6 +5629,8 @@ static void bug_info(Text* t, const char* date, uint64_t back) {
 	         cfg->swap, cfg->scale, cfg->mapScale, shaderNames[cfg->shader], cfg->colorCorrection, cfg->ghosting, cfg->smooth, cfg->overlayMode, cfg->overlays, cfg->bezelLogo, cfg->bezelInner, cfg->bezelOuter, cfg->borderColor);
 	text_add(t, "map %d, map_animations %d, map_interval %d, show_logo %d, pinball_live %d\n", cfg->map, cfg->mapAnim,
 	         cfg->mapInterval, cfg->showLogo, cfg->tallLive);
+	text_add(t, "logo_folder %s, custom_logos %s; logo: %s\n", cfg->logoFolder[0] ? cfg->logoFolder : "(not set)",
+	         cfg->customLogos == CL_OFF ? "off" : cfg->customLogos == CL_FULL ? "full" : "pixelated", ui_logo_note());
 	text_add(t, "frame_buffer %d, match_display %d, vsync %d, audio_latency %d, rewind %d (%d s), fast_forward %d, ff_speed %d\n", cfg->frameBuffer,
 	         cfg->matchDisplay, cfg->vsync, cfg->audioLatency, cfg->rewind, cfg->rewindSeconds, cfg->fastForward, cfg->ffSpeed);
 	text_add(t, "hotkey %s, menu_combo %s, home_button %d, ab_swap %d, touch_map %s, touch_screen %s\n", cfg->hotkey, cfg->menuCombo,
@@ -6286,15 +6302,23 @@ static int game_screen(void) {
 static double frameSec = 1.0 / GBA_FPS;
 static double pacedHz;    /* the display's rate when matched, else 0 */
 static double audioSpeed = 1.0; /* emulated time per real time */
+/* Matched, a frame that misses its refresh waits for the next one, and the
+ * time is never made up: the game slows down (the GBA's rate catches up
+ * after a slow frame). A game that keeps missing (three seconds in a row
+ * with 3 or more) goes back to the GBA's rate until the setting is turned
+ * on again or the game is started again (pacedFallback). */
+static int pacedMisses, pacedMissSecs;
 
 static void pacing_update(void) {
 	double hz = nScreens > 0 ? ui_display_hz(screens[game_screen()].view) : 0;
 	pacedHz = 0;
-	if (cfg->matchDisplay && hz > 0 && fabs(hz / GBA_FPS - 1) <= 0.015) pacedHz = hz;
+	pacedMisses = pacedMissSecs = 0;
+	if (cfg->matchDisplay && !pacedFallback && hz > 0 && fabs(hz / GBA_FPS - 1) <= 0.015) pacedHz = hz;
 	frameSec = 1.0 / (pacedHz > 0 ? pacedHz : GBA_FPS);
 	audioSpeed = pacedHz > 0 ? pacedHz / GBA_FPS : 1.0;
 	fprintf(stderr, "frame pacing: display %.3f Hz, game %.3f frames a second (%s)\n", hz, 1.0 / frameSec,
-	        pacedHz > 0 ? "matched to the display" : cfg->matchDisplay ? "display too far off to match" : "the GBA's rate");
+	        pacedHz > 0 ? "matched to the display" : cfg->matchDisplay && pacedFallback ? "the GBA's rate: frames kept missing the display's refresh" :
+	        cfg->matchDisplay ? "display too far off to match" : "the GBA's rate");
 }
 
 /* Rewind (hold L2): mGBA's rewind buffer, a state every second frame,
@@ -6312,6 +6336,14 @@ static void rewind_setup(void) {
 	fprintf(stderr, "rewind: %d s (%d states)\n", secs, secs * 30);
 }
 
+/* ff_speed as gba-ds.cfg writes it: a number, or max (0, as atoi reads it) */
+static const char* ff_speed_name(void) {
+	static char s[12];
+	if (cfg->ffSpeed <= 0) return "max";
+	snprintf(s, sizeof(s), "%d", cfg->ffSpeed);
+	return s;
+}
+
 /* Display choices made in the menu are remembered for next time. */
 static void save_prefs(void) {
 	char prefs[1100];
@@ -6319,12 +6351,12 @@ static void save_prefs(void) {
 	FILE* f = fopen(prefs, "w");
 	if (f) {
 		fprintf(f, "# written by gba-ds's pause menu; overrides gba-ds.cfg\n");
-		fprintf(f, "swap = %d\nscale = %s\nmap_scale = %s\nshader = %s\ncolor_correction = %d\nlcd_ghosting = %d\noverlays = %s\nframe_buffer = %d\nmatch_display = %d\nrewind = %d\nfast_forward = %d\nsave_on_quit = %d\nauto_load = %d\nquick_bar_pinned = %d\n",
+		fprintf(f, "swap = %d\nscale = %s\nmap_scale = %s\nshader = %s\ncolor_correction = %d\nlcd_ghosting = %d\noverlays = %s\nframe_buffer = %d\nmatch_display = %d\nrewind = %d\nfast_forward = %d\nff_speed = %s\nsave_on_quit = %d\nauto_load = %d\nquick_bar_pinned = %d\n",
 		        cfg->swap ? 1 : 0, cfg->scale, cfg->mapScale, shaderNames[cfg->shader], cfg->colorCorrection ? 1 : 0, cfg->ghosting ? 1 : 0,
 		        (const char* const[]) { "off", "generated", "custom" }[SDL_clamp(cfg->overlayMode, 0, 2)],
-		        cfg->frameBuffer ? 1 : 0, cfg->matchDisplay ? 1 : 0, cfg->rewind ? 1 : 0, cfg->fastForward ? 1 : 0,
+		        cfg->frameBuffer ? 1 : 0, cfg->matchDisplay ? 1 : 0, cfg->rewind ? 1 : 0, cfg->fastForward ? 1 : 0, ff_speed_name(),
 		        cfg->autoSave ? 1 : 0, cfg->autoLoad ? 1 : 0, cfg->barPinned ? 1 : 0);
-		fprintf(f, "screen_match = %s\n", cfg->screenMatch);
+		fprintf(f, "screen_match = %s\nscreen_placement = %s\n", cfg->screenMatch, cfg->screenPlace);
 		fprintf(f, "custom_logos = %s\n", cfg->customLogos == CL_OFF ? "off" : cfg->customLogos == CL_FULL ? "full" : "pixelated");
 		fprintf(f, "overlay_screens = %s\nbezel_logo = %d\nbezel_inner = %s\nbezel_outer = %s\n",
 		        cfg->overlays == OVL_TOP ? "top" : cfg->overlays == OVL_BOTTOM ? "bottom" : "both", cfg->bezelLogo, cfg->bezelInner, cfg->bezelOuter);
@@ -6387,7 +6419,8 @@ static SDL_Color borderColor;
  *   <CODE>-<screen>-<scale>, <CODE>-<screen>,
  *   (the second screen only, older names: <CODE>-<scale>, <CODE>)
  *   <screen>-<scale>-<match>, <screen>-<match>, <screen>-<scale>, <screen>
- * wiki/Overlays.md explains them for players (top and bottom only). */
+ * each with "-no_gap" after it while Screen Placement moves the picture
+ * (load_overlay). wiki/Overlays.md explains them for players (top and bottom only). */
 static void overlays_reload(void) {
 	overlayMode[0][0] = overlayMode[1][0] = 0;
 	bezelKey[0][0] = bezelKey[1][0] = 0;
@@ -6397,8 +6430,13 @@ static void overlays_reload(void) {
 static void load_overlay(int s, int which) {
 	const char* scale = which ? cfg->mapScale : cfg->scale;
 	const char* match = strcmp(cfg->screenMatch, "keep") && ui_screens_differ() ? cfg->screenMatch : NULL;
+	/* Screen Placement: Closest to Gap moves the picture where it doesn't
+	 * fill the screen's height (Pixel Perfect, Full Width): an overlay made
+	 * for it has "-no_gap" at the end of its name, and ones without it are left
+	 * alone (their hole is where a centred picture goes) */
+	const char* place = nScreens == 2 && !strcmp(cfg->screenPlace, "no_gap") && (!strcmp(scale, "integer") || !strcmp(scale, "fit")) ? "-no_gap" : "";
 	char key[sizeof(overlayMode[0])];
-	snprintf(key, sizeof(key), "%d|%s|%s", which, scale, match ? match : "");
+	snprintf(key, sizeof(key), "%d|%s|%s|%s", which, scale, match ? match : "", place);
 	if (!strcmp(overlayMode[s], key)) return;
 	snprintf(overlayMode[s], sizeof(overlayMode[s]), "%s", key);
 	ui_free_image(overlayTex[s]);
@@ -6419,7 +6457,7 @@ static void load_overlay(int s, int which) {
 	}
 	char path[1200];
 	for (int i = 0; i < n; ++i) {
-		snprintf(path, sizeof(path), "%s/overlays/%s.png", cfg->assetDir, names[i]);
+		snprintf(path, sizeof(path), "%s/overlays/%s%s.png", cfg->assetDir, names[i], place);
 		if (ui_load_image(path, overlayTex[s], &overlayW[s], &overlayH[s], true)) {
 			if (debug) fprintf(stderr, "overlay (%s screen): %s\n", sides[0], path);
 			return;
@@ -6446,13 +6484,21 @@ static void draw_bezel(int s, const char* mode, bool defaults) {
 		if (pickWhich == 1) out = pick_rgb();
 	}
 	bool bottom = s == 1 && nScreens == 2;
+	/* the logo by the hinge (below the top screen's picture, above the
+	 * bottom one's); Screen Placement: Closest to Gap leaves no room there,
+	 * so it's on the bottom screen only, below the picture (GEN-12) */
+	bool above = bottom;
+	if (nScreens == 2 && !strcmp(cfg->screenPlace, "no_gap")) {
+		if (!bottom) logo = false;
+		above = false;
+	}
 	char key[96];
-	snprintf(key, sizeof(key), "%dx%d %d,%d,%d,%d %d %06X %06X %d", sr.w, sr.h, r.x, r.y, r.w, r.h, bottom, (unsigned) in, (unsigned) out, logo);
+	snprintf(key, sizeof(key), "%dx%d %d,%d,%d,%d %d%d %06X %06X %d", sr.w, sr.h, r.x, r.y, r.w, r.h, bottom, above, (unsigned) in, (unsigned) out, logo);
 	if (strcmp(key, bezelKey[s])) {
 		snprintf(bezelKey[s], sizeof(bezelKey[s]), "%s", key);
 		ui_free_image(bezelTex[s]);
 		Uint64 t0 = SDL_GetPerformanceCounter();
-		SDL_Surface* srf = bezel_surface(sr.w, sr.h, r, bottom, in, out, logo);
+		SDL_Surface* srf = bezel_surface(sr.w, sr.h, r, above, in, out, logo);
 		if (srf) ui_load_surface(srf, bezelTex[s], &bezelW[s], &bezelH[s], false);
 		if (debug) fprintf(stderr, "bezel (%s screen): %s, %.1f ms\n", bottom ? "bottom" : "top", key,
 		                   (SDL_GetPerformanceCounter() - t0) * 1000.0 / SDL_GetPerformanceFrequency());
@@ -6857,8 +6903,15 @@ static bool activate(int item, enum GameExit* exitTo) {
 		save_prefs();
 		break;
 	case M_FF:
-		cfg->fastForward = !cfg->fastForward;
-		if (cfg->fastForward) snprintf(menuNote, sizeof(menuNote), "Hold R2 to play %dx as fast", SDL_max(1, cfg->ffSpeed));
+		/* each press: 2x, 3x, 4x, 5x, max, off, 2x... (an ff_speed above 5
+		 * from gba-ds.cfg: max next) */
+		if (!cfg->fastForward) cfg->fastForward = true, cfg->ffSpeed = FF_SPEED_MIN;
+		else if (cfg->ffSpeed <= 0) cfg->fastForward = false;
+		else if (cfg->ffSpeed < FF_SPEED_MIN) cfg->ffSpeed = FF_SPEED_MIN;
+		else if (cfg->ffSpeed < FF_SPEED_MAX) ++cfg->ffSpeed;
+		else cfg->ffSpeed = 0;
+		if (cfg->fastForward && cfg->ffSpeed <= 0) snprintf(menuNote, sizeof(menuNote), "Hold R2 to play as fast as this device can");
+		else if (cfg->fastForward) snprintf(menuNote, sizeof(menuNote), "Hold R2 to play %dx as fast", cfg->ffSpeed);
 		else snprintf(menuNote, sizeof(menuNote), "R2 does nothing: no skipping ahead by mistake");
 		save_prefs();
 		break;
@@ -6878,8 +6931,23 @@ static bool activate(int item, enum GameExit* exitTo) {
 		save_prefs();
 		break;
 	}
+	case M_PLACE:
+		/* issue #46: both screens' pictures centred, or against the edges nearest each other */
+		if (!item_enabled(M_PLACE)) {
+			snprintf(menuNote, sizeof(menuNote), "Only one screen: nothing to move");
+			break;
+		}
+		snprintf(cfg->screenPlace, sizeof(cfg->screenPlace), "%s", !strcmp(cfg->screenPlace, "no_gap") ? "center" : "no_gap");
+		ui_layout_pictures();
+		overlays_reload(); /* (Custom overlays have their own names for it) */
+		gameTexAll = true;
+		snprintf(menuNote, sizeof(menuNote), "%s", !strcmp(cfg->screenPlace, "no_gap") ? "The pictures as close to each other as they go" : "Each picture in the middle of its screen");
+		save_prefs();
+		break;
 	case M_MATCH:
+		/* (fallen back: the label says "Off for now", so a press turns it off) */
 		cfg->matchDisplay = !cfg->matchDisplay;
+		pacedFallback = false;
 		pacing_update();
 		if (!cfg->matchDisplay) snprintf(menuNote, sizeof(menuNote), "The GBA's own %.2f frames a second", GBA_FPS);
 		else if (pacedHz > 0) snprintf(menuNote, sizeof(menuNote), "%.2f frames a second, %.1f%% faster", pacedHz, (pacedHz / GBA_FPS - 1) * 100);
@@ -7234,6 +7302,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	pages[1][pageLen[1]++] = M_FRAMEBUF;
 	pages[1][pageLen[1]++] = M_MATCH;
 	pages[1][pageLen[1]++] = M_SHAPES;
+	pages[1][pageLen[1]++] = M_PLACE;
 	{
 		/* the game has the player's own or a scraped logo (GEN-11) */
 		if (ui_logo_custom(cfg, romPath, emu.gameCode)) pages[1][pageLen[1]++] = M_PIXLOGO;
@@ -7333,7 +7402,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	/* SELECT or START as the hotkey: a GBA button, held back from the game
 	 * while it's down and handed over if it comes up with nothing pressed */
 	const bool modIsGame = modBtn == B_SELECT || modBtn == B_START;
-	bool comboUsed = false;
+	bool comboUsed = false, ffModUsed = false; /* (ffModUsed: hotkey + R2 fast-forwarded) */
 	int comboHold = -1, comboFrames = 0; /* menu combo: the button held back, frames since */
 	int comboPulse[2] = { 0, 0 };        /* SELECT, START handed to the game late */
 	int modPulse = 0; /* the hotkey button (SELECT or START), tapped alone: handed to the game */
@@ -7343,6 +7412,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	bool done = false;
 	bool wasMenu = false;
 
+	pacedFallback = false; /* (a new game: matched again, if it's on) */
 	pacing_update();
 	const double freq = (double) SDL_GetPerformanceFrequency();
 	double next = SDL_GetPerformanceCounter() / freq;
@@ -7748,7 +7818,17 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 
 		/* ---- HOME (or the hotkey modifier) alone toggles the menu; with a button it's a hotkey */
 		bool mod = btnNow[modBtn];
-		if (mod && !menuOpen) {
+		/* Hotkey + R2 (R2 no action's button): fast-forward, as R2 alone,
+		 * with the game's buttons going through, so text can still be
+		 * skipped (RetroArch's habit; issue #44). No hotkeys meanwhile,
+		 * and letting go of the hotkey doesn't open the menu. */
+		bool ffMod = false;
+		if (mod && !menuOpen && cfg->fastForward && btnNow[B_R2] && !(cfg->rewind && btnNow[B_L2])) {
+			ffMod = true;
+			for (int i = 0; i < HK_COUNT; ++i) ffMod = ffMod && hkBtn[i] != B_R2;
+			if (ffMod) comboUsed = ffModUsed = true;
+		}
+		if (mod && !menuOpen && !ffMod) {
 			for (int i = 0; i < HK_COUNT; ++i) {
 				if (hkBtn[i] < 0 || !btn_pressed(hkBtn[i])) continue;
 				comboUsed = true;
@@ -7776,10 +7856,10 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			else open_menu();
 		}
 		if (btn_released(modBtn)) {
-			if (comboUsed) suppress_held();
+			if (comboUsed && !ffModUsed) suppress_held(); /* (not after hotkey + R2: the game had them) */
 			else if (!menuOpen && modIsGame) modPulse = 4; /* tapped alone: the game gets it */
 			else if (!menuOpen && modBtn == B_L3) bar_toggle();
-			comboUsed = false;
+			comboUsed = ffModUsed = false;
 		}
 		if (done) break;
 
@@ -7933,6 +8013,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			next = SDL_GetPerformanceCounter() / freq;
 			fpsT0 = next;
 			fpsFrames = 0;
+			pacedMisses = pacedMissSecs = 0; /* (the menu's time isn't the game's) */
 			forceMap = true;
 		}
 		wasMenu = menuOpen;
@@ -7962,7 +8043,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				if (hkBtn[i] >= 0 && btnNow[hkBtn[i]]) suppress[hkBtn[i]] = true;
 			}
 		}
-		if (!btnNow[modBtn] || modIsGame) {
+		if (!btnNow[modBtn] || modIsGame || ffMod) {
 			/* the SNES layout only where it applies (Super Mario Advance 2: in
 			 * a level; on the world map R switches Mario and Luigi, and only A
 			 * enters a level) */
@@ -8020,7 +8101,13 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		bool rewinding = cfg->rewind && btnNow[B_L2];
 		bool ff = cfg->fastForward && btnNow[B_R2] && !rewinding;
 		ffBox = ff;
-		int runs = ff ? SDL_max(1, cfg->ffSpeed) : 1;
+		/* Max (ff_speed 0): as many frames as fit in about 70% of a display
+		 * frame (the rest for drawing it), up to FF_MAX_RUNS; the sound
+		 * thinned out by the last count */
+		const bool ffMax = ff && cfg->ffSpeed <= 0;
+		static int maxRan = 4;
+		int runs = ffMax ? FF_MAX_RUNS : ff ? cfg->ffSpeed : 1;
+		int thin = ffMax ? maxRan : runs; /* every thin-th sound sample kept */
 		/* Audio keeps flowing during fast-forward: every runs-th sample is kept,
 		 * so the device gets real-time worth of (sped-up) sound. Starving it
 		 * makes PulseAudio/PipeWire grow their buffers after each underrun,
@@ -8084,7 +8171,10 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			rewindBox = 0;
 			forceMap = true; /* the map, as of where the rewind stopped */
 		}
+		int ran = 0;
 		for (int i = 0; i < (rewinding ? 0 : runs); ++i) {
+			if (ffMax && i > 0 && (SDL_GetPerformanceCounter() - emuT0) / freq > frameSec * 0.7) break;
+			++ran;
 			if (i == 0 && aheadReady) aheadReady = false; /* emulated by the worker while the last frame was shown */
 			else run_frame(keys);
 			Uint64 raT0 = SDL_GetPerformanceCounter();
@@ -8094,10 +8184,10 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			size_t got;
 			while ((got = emu_audio_read(&emu, samples, 4096)) > 0) {
 				if (!audio || dropAudio) continue;
-				if (runs > 1) {
+				if (thin > 1) {
 					size_t outN = 0;
 					for (size_t f = 0; f < got; ++f) {
-						if (ffPhase++ % runs == 0) {
+						if (ffPhase++ % thin == 0) {
 							samples[outN * 2] = samples[f * 2];
 							samples[outN * 2 + 1] = samples[f * 2 + 1];
 							++outN;
@@ -8143,6 +8233,8 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			}
 			audT += SDL_GetPerformanceCounter() - audT0;
 		}
+		if (ffMax) maxRan = SDL_max(1, ran);
+		runs = rewinding ? runs : SDL_max(1, ran); /* (the frames run, for the rewind buffer and the speed) */
 		Uint64 emuT1 = SDL_GetPerformanceCounter();
 		double emuCpu1 = thread_cpu_ms();
 		emuTicks += emuT1 - emuT0;
@@ -8354,6 +8446,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			double total = (double) (drawT1 - workT0) * msPer;
 			/* matched, each frame includes the wait for the display's refresh:
 			 * only one that missed its refresh (about two frames long) is slow */
+			if (!ff && !rewinding && pacedHz > 0 && total > frameSec * 1000.0 * 1.4) ++pacedMisses;
 			if (!ff && total > frameSec * 1000.0 * (pacedHz > 0 ? 1.4 : 1.0)) {
 				SlowFrame f = { total, (double) (emuT0 - workT0) * msPer, (double) (emuT1 - emuT0 - raT) * msPer, (double) raT * msPer,
 					            (double) (drawT0 - emuT1) * msPer, (double) (drawT1 - drawT0) * msPer, 0, 0, 0,
@@ -8394,6 +8487,16 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			if (debug) fprintf(stderr, "speed %.1f fps (%.0f%%)\n", fps, speedPct);
 			fpsFrames = 0;
 			fpsT0 = now;
+			if (pacedHz > 0) {
+				pacedMissSecs = pacedMisses >= 3 ? pacedMissSecs + 1 : 0;
+				if (pacedMisses >= 3) fprintf(stderr, "frame %llu: %d frame(s) missed the display's refresh in the last second\n", (unsigned long long) frameCount, pacedMisses);
+				pacedMisses = 0;
+				if (pacedMissSecs >= 3) {
+					pacedFallback = true;
+					pacing_update(); /* (logs the "frame pacing:" line again) */
+					next = now;
+				}
+			}
 		}
 		/* fast-forward is paced too: ff_speed frames per real frame. Matched to
 		 * the display, presenting in step with it sets the pace; the clock runs
@@ -8413,6 +8516,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 #ifdef __wasi__
 		/* the web build: back to the page every frame, for the wait or not */
 		web_sleep(wait > 0 ? (unsigned) (wait * 1000) : 0);
+		logo_step(); /* (a logo a frame: the game's own, started without the game list) */
 #else
 		if (wait > 0) {
 			struct timespec ts = { 0, (long) (wait * 1e9) };

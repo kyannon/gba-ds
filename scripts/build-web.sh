@@ -62,8 +62,12 @@ APP="src/main.c src/config.c src/font.c src/ui.c src/library.c src/mapper.c src/
 mkdir -p "$OUT/obj"
 VERSION=$(cat "$ROOT/VERSION")
 # shellcheck disable=SC2086
-printf '%s\n' $APP | xargs -P "$JOBS" -I{} sh -c 'clang $1 -std=gnu11 -DPATH_MAX=4096 -DGBADS_VERSION="\"$2\"" $3 -I"$8/mgba-flags" -I"$4/deps/mgba/include" -I"$5/mgba-build/include" -I"$6" -Wno-everything -c "$4/$7" -o "$8/obj/$(basename "$7" .c).o"' \
+printf '%s\n' $APP | xargs -P "$JOBS" -I{} sh -c 'clang $1 -std=gnu11 -DPATH_MAX=4096 -DGBADS_VERSION="\"$2\"" $3 -I"$8/mgba-flags" -I"$4/deps/mgba/include" -I"$5/mgba-build/include" -I"$6" -I"$4/third_party/libwebp" -Wno-everything -c "$4/$7" -o "$8/obj/$(basename "$7" .c).o"' \
 	_ "$CFLAGS_W" "$VERSION" "$DEFS" "$ROOT" "$W" "$SI" {} "$OUT"
+# WebP logos: libwebp's decoder (BSD), vendored (its file names are unique, so obj/ holds them too)
+# shellcheck disable=SC2086
+ls "$ROOT"/third_party/libwebp/src/dec/*.c "$ROOT"/third_party/libwebp/src/dsp/*.c "$ROOT"/third_party/libwebp/src/utils/*.c |
+	xargs -P "$JOBS" -I{} sh -c 'clang $1 -std=gnu11 -I"$2" -Wno-everything -c "$3" -o "$4/obj/webp-$(basename "$3" .c).o"' _ "$CFLAGS_W" "$ROOT/third_party/libwebp" {} "$OUT"
 # shellcheck disable=SC2086
 clang $CFLAGS_W -o "$OUT/gba-ds-noasync.wasm" "$OUT"/obj/*.o "$W/mgba-build/libmgba.a" "$OUT/libSDL2.a" \
 	"$M/src/util/vfs/vfs-fd.c" "$M/src/util/vfs/vfs-dirent.c" -DENABLE_VFS_FD -DPATH_MAX=4096 $DEFS -I"$M/include" -I"$W/mgba-build/include" \
