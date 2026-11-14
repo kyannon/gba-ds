@@ -27,6 +27,7 @@ void config_defaults(Config* c) {
 	strcpy(c->touchScreen, "second");
 	strcpy(c->topScreen, "auto");
 	strcpy(c->screenMatch, "keep");
+	strcpy(c->screenPlace, "center");
 	strcpy(c->touchMap, "window");
 	c->touchRotate = -1;
 	c->map = true;
@@ -192,6 +193,7 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	STR("touch_screen", touchScreen)
 	STR("top_screen", topScreen)
 	STR("screen_match", screenMatch)
+	STR("screen_placement", screenPlace)
 	STR("screen_ppi", screenPpi)
 	STR("touch_map", touchMap)
 	STR("touch_device", touchDevice)

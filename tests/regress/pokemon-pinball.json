@@ -2297,6 +2297,58 @@
      "match": "out of step"
     }
    ]
+  },
+  {
+   "id": "pp-us-placement-gap",
+   "rom": "BPPE",
+   "state": "pokemon-pinball/us-ruby-top.ss",
+   "desc": "Closest to Gap: the table carries on across the hinge",
+   "rules": [
+    "GEN-12"
+   ],
+   "config": {
+    "screen_placement": "no_gap"
+   },
+   "shots": {
+    "start": 60,
+    "end": 400
+   },
+   "checks": [
+    {
+     "rule": "PP-1",
+     "what": "the live view came up",
+     "type": "log",
+     "match": "live view"
+    },
+    {
+     "rule": "GEN-12",
+     "what": "nothing above the table on the top screen",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "game",
+     "rect": [
+      0,
+      0,
+      1024,
+      128
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "GEN-12",
+     "what": "nothing below it on the bottom screen",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      0,
+      640,
+      1024,
+      768
+     ],
+     "color": "000000"
+    }
+   ]
   }
  ]
 }

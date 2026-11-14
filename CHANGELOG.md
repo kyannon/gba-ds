@@ -3,6 +3,7 @@
 ## v1.5.3 (not yet released)
 
 ### New
+- **Screen Placement** (issue #46): a new setting on the pause menu's Display page. **Closest to Gap** puts the two screens' pictures against the hinge, the top one at the bottom of its screen and the bottom one at the top of its screen, so they sit as close together as they go, as on a DS. Pokémon Pinball's table then carries on across the hinge without a black band in the middle. **Centered**, the default, keeps each picture in the middle of its screen. It moves pictures only with Pixel Perfect and Full Width (Zoom and Stretch already fill the screen's height). With Closest to Gap, the Generated bezel shows its logo once, below the picture on the bottom screen, and Custom overlays are looked for with `-no_gap` at the end of their names, since one made for a centred picture would cover part of the game (see Overlays in the wiki). In `gba-ds.cfg`: `screen_placement = center` or `no_gap`.
 - **Mega Man Battle Network 2** (USA, Europe, and Japan's Battle Network Rockman EXE 2), as the first game: walking about, MegaMan's status (level, HP, style, buster) with your money; in battles, his status as he went in; on the net, a map of the area with MegaMan's head marking where he is.
 
 ### Changes
