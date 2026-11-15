@@ -722,6 +722,11 @@ typedef struct MapProfile {
 	 * Metroids' corner mini-map; Lady Sia's HUD, piece by piece). At most
 	 * 12, emu_hide_sprites' limit. */
 	SpriteRule hideSprites[12];
+	/* hideSprites only in groups: the run of matching sprites at the start
+	 * of the sprite table, or a run in one palette that matches throughout
+	 * (emu_hide_grouped; Lady Sia's HUD, not a level's thing that passes
+	 * its places) */
+	bool hideGrouped;
 	/* hideSprites only while these all match, checked every frame (none:
 	 * always): Lady Sia's HUD only in play, so its menus, credits and
 	 * own pause screen are drawn whole */
@@ -730,6 +735,10 @@ typedef struct MapProfile {
 	 * game draws over the map as sprites (Fusion's "A OBJECTIVE"), so the map
 	 * underneath shows instead. */
 	SpriteRule captureHide[6];
+	/* The capture draws only the sprites that match one of these (map_crop
+	 * on or off): Lady Sia's pause screen, without a level's thing the game
+	 * left in the sprite table (a platform). */
+	SpriteRule captureKeep[12];
 	/* The capture shows only these BG layers (bit i: BG i) and sprites, over
 	 * black, with captureHide always applied (0: the whole screen, sprites
 	 * hidden only with map_crop): Tony Hawk's Pro Skater 3's goal list,

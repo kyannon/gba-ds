@@ -134,6 +134,8 @@ bool write_png(const char* path, const uint32_t* px, int w, int h, int stride);
 /* Hide sprites matching any of the n rules (n = 0 turns it off). Display only:
  * the game's memory and state are untouched. One emulator at a time. */
 void emu_hide_sprites(Emu* e, const SpriteRule* rules, int n);
+void emu_keep_sprites(Emu* e, const SpriteRule* rules, int n);
+void emu_hide_grouped(Emu* e, bool on);
 /* Also hide the sprites whose attributes 0-2 are exactly one of these
  * (Pokemon Pinball's live view: what the other copy draws on its screen). */
 void emu_hide_exact(Emu* e, const uint16_t (*attrs)[3], int n);
