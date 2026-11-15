@@ -100,19 +100,31 @@ with the same heap, not the 124 MiB an emulator would give.
 
 On a New 3DS (2026-11-12, one console): the game list with 124 files,
 Castlevania: Circle of the Moon at 60 frames a second with its map on the
-bottom screen, save states and fast-forward.
+bottom screen, save states and fast-forward. Pokémon Pinball froze on its table
+with 0.0.1-alpha; 0.0.2-alpha's fix (see "What isn't there") has been checked in
+Azahar, not yet on a console.
 
-In the Azahar emulator (`make -C 3ds azahar-test ROMS=...`) and on the desktop
-build (`make -C 3ds sim`), with Pokémon Emerald and a profile made for the
-purpose (`GBADS_TEST_PROFILE` in `src/profiles.c`): the menus' options (scale,
-shader, color correction, LCD ghosting, overlays, frame buffer, swapped
-screens, screenshots), save states, a map capture on the hidden copy, and the
-HUD split (desktop only).
+Every supported game, on the desktop build of the app on armGBA
+(`3ds/sim/app.mk`) against the same app on libmgba, with
+`3ds/test/dualrun.py` and a script per game in `3ds/test/play/` (2026-11-15,
+GBA DS 1.5.4-dev). Most scripts get into play (a level, a race, a town or a
+battle); some stop at a name entry, an intro or an attract demo (the Dragon Ball
+Z games, Fire Emblem, Golden Sun: The Lost Age, Sword of Mana, Sonic Advance 1
+and 3, Tony Hawk's Pro Skater 3), so their games' in-play rules weren't seen.
+Each opens GBA DS's menu, saves and loads a state and swaps the screens. In all of them the app on armGBA
+draws both screens exactly the same with and without its render thread, and
+its second screen shows what it does on libmgba (the same captures succeed,
+within a capture or two where the two emulators' runs drift a few frames
+apart). Two games' second screens were wrong on armGBA and are fixed (Harry
+Potter and the Prisoner of Azkaban's, Super Mario Advance's). In Azahar: the
+game list, Pokémon Pinball on its table, and the menus' options.
 
-Not tested: **the other 55 profiles**, and a 32 MiB game with a hidden copy
-(there is not the memory for both: the game runs, the second screen may not).
-Where a profile depends on exactly how mGBA draws or times something, armGBA
-may differ.
+Not tested on a console: most games' speed. Where a profile depends on exactly
+how mGBA times something, armGBA may differ: the two emulators drift a few
+frames apart within a minute of play (a game's timing, not its picture), so a
+second screen that changes on a particular frame may change a frame or two
+later. A 32 MiB game with a hidden copy hasn't been tried (there may not be the
+memory for both: the game runs, the second screen may not).
 
 ## armGBA
 
