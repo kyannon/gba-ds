@@ -37,6 +37,7 @@ import argparse, json, os, shutil, signal, subprocess, sys, time, zipfile
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 APPS = {"mgba": "build/host/gba-ds", "armgba": "build/sim-perf/gba-ds", "armgba-thr": "build/sim-perf/gba-ds"}
 WINDOW, SCREENS = "400x480", "400x240,320x240"
+BIOS = None
 
 
 def compile_play(path):
@@ -127,6 +128,11 @@ def run_app(name, rom, script_lines, outdir, last_tick, state):
                GBADS_WINDOW=WINDOW, GBADS_SCREENS=SCREENS)
     if name == "armgba-thr":
         env["GBADS_RENDER_THREAD"] = "1"
+    # The same BIOS on both emulators (else mGBA's stand-in and armGBA's time its calls differently and the
+    # runs drift apart), and the pause menu's clock fixed.
+    if BIOS:
+        env["GBADS_BIOS"] = BIOS
+    env["GBADS_CLOCK"] = "12:00"
     args = [os.path.join(REPO, APPS[name]), f"--state-dir={d}/states", f"--save_dir={d}/saves",
             "--quick_bar_hint=0", "--overlays=off", "--input-script=script.txt"]
     if state:
@@ -155,15 +161,20 @@ def main():
     ap.add_argument("--runs", default="mgba,armgba,armgba-thr")
     ap.add_argument("--rom-dir", default=os.environ.get("GBADS_ROM_DIR", "/mnt/storage/Games/roms/gba"))
     ap.add_argument("--state", help="a save state to start from (the app's --load-state)")
+    ap.add_argument("--bios", default=os.environ.get("GBADS_BIOS", os.path.join(REPO, "build", "gba_bios.bin")),
+                    help="a GBA BIOS both emulators boot (default build/gba_bios.bin, if there; never committed)")
     o = ap.parse_args()
     o.outdir = os.path.abspath(o.outdir)
+    global BIOS
+    BIOS = os.path.abspath(o.bios) if o.bios and os.path.exists(o.bios) else None
     from PIL import Image, ImageChops
 
     rom = find_rom(o.game, o.rom_dir)
     lines, shots, last = compile_play(o.script)
     os.makedirs(o.outdir, exist_ok=True)
     runs = o.runs.split(",")
-    rep = {"game": o.game, "rom": os.path.basename(rom), "frames": last, "runs": {}, "shots": []}
+    rep = {"game": o.game, "rom": os.path.basename(rom), "frames": last, "bios": "file" if BIOS else "each emulator's own",
+           "runs": {}, "shots": []}
     for r in runs:
         d, code, secs = run_app(r, rom, lines, o.outdir, last, o.state)
         log = open(os.path.join(d, "log.txt"), errors="replace").read().splitlines()

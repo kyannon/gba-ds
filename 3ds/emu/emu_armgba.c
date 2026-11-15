@@ -524,6 +524,16 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	c->hooks.context = c;
 	renderSetHooks(gba, &c->hooks);
 	gbaLoadBios(gba, armgbaBios, SIZE_BIOS);
+#ifndef __3DS__
+	{
+		/* GBADS_BIOS=<a GBA BIOS> (tests: the same BIOS on libmgba and armGBA, 3ds/test/dualrun.py) */
+		static uint8_t file[SIZE_BIOS];
+		FILE* bf = getenv("GBADS_BIOS") ? fopen(getenv("GBADS_BIOS"), "rb") : NULL;
+		if (bf && fread(file, 1, sizeof(file), bf) == sizeof(file)) gbaLoadBios(gba, file, SIZE_BIOS);
+		else if (getenv("GBADS_BIOS")) fprintf(stderr, "GBADS_BIOS: can't load %s\n", getenv("GBADS_BIOS"));
+		if (bf) fclose(bf);
+	}
+#endif
 
 	size_t size = 0;
 	uint8_t* rom = NULL;

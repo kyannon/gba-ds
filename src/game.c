@@ -2381,6 +2381,7 @@ static void draw_battery(void) {
 	struct tm tm;
 	if (localtime_r(&now, &tm)) {
 		snprintf(buf, sizeof(buf), "%02d:%02d", tm.tm_hour, tm.tm_min);
+		if (getenv("GBADS_CLOCK")) snprintf(buf, sizeof(buf), "%.5s", getenv("GBADS_CLOCK")); /* (tests: the same picture each run) */
 		draw_status(buf, -1);
 	}
 	int pct = battery_percent();
@@ -2734,6 +2735,7 @@ static void draw_bar(void) {
 	time_t now = time(NULL);
 	struct tm tm;
 	if (localtime_r(&now, &tm)) snprintf(buf[0], sizeof(buf[0]), "%02d:%02d", tm.tm_hour, tm.tm_min);
+	if (getenv("GBADS_CLOCK")) snprintf(buf[0], sizeof(buf[0]), "%.5s", getenv("GBADS_CLOCK")); /* (tests: the same picture each run) */
 	int pct = battery_percent();
 	if (fps > 0) snprintf(buf[1], sizeof(buf[1]), "%.1f FPS", fps);
 	else snprintf(buf[1], sizeof(buf[1]), "\u2014 FPS"); /* (the first second) */

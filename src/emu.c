@@ -319,9 +319,15 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 		return false;
 	}
 	mCoreInitConfig(e->core, NULL);
-	struct mCoreOptions opts = { .useBios = false, .volume = 0x100, .audioBuffers = 1024 };
+	/* GBADS_BIOS=<a GBA BIOS> (tests: the same BIOS on libmgba and armGBA, 3ds/test/dualrun.py) */
+	const char* biosFile = getenv("GBADS_BIOS");
+	struct mCoreOptions opts = { .useBios = biosFile != NULL, .skipBios = true, .volume = 0x100, .audioBuffers = 1024 };
 	mCoreConfigLoadDefaults(&e->core->config, &opts);
 	mCoreLoadConfig(e->core);
+	if (biosFile) {
+		struct VFile* bf = VFileOpen(biosFile, O_RDONLY);
+		if (!bf || !e->core->loadBIOS(e->core, bf, 0)) fprintf(stderr, "GBADS_BIOS: can't load %s\n", biosFile);
+	}
 
 	e->fb = calloc(GBA_W * GBA_H, sizeof(uint32_t));
 	e->core->setVideoBuffer(e->core, (mColor*) e->fb, GBA_W);
