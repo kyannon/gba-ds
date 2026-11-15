@@ -4,6 +4,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 |---|---|---|---|
 | Advance Wars (Game Boy Wars Advance in Japan) | `AWRE` `AWRP` `BGWJ` (Japan: on Game Boy Wars Advance 1+2, with Advance Wars 2) | in battles: the intel of the unit under the cursor, or the battle intel | |
 | Advance Wars 2: Black Hole Rising (Game Boy Wars Advance 2 in Japan) | `AW2E` `AW2P` `BGWJ` (Japan: on Game Boy Wars Advance 1+2, with Advance Wars) | in battles: the intel of the unit under the cursor, or the battle intel | |
+| Baldur's Gate: Dark Alliance | `BGDE` `BGDP` | the area's map (made from the game's own screens), a red X where you are | |
 | Castlevania: Aria of Sorrow | `A2CE` `A2CP` `A2CJ` | map | JonataGuitar's Recolor v1.02 and Symphony of the Colors (USA) |
 | Castlevania: Circle of the Moon | `AAME` `AAMP` `AAMJ` | map, with the completion rate | |
 | Castlevania: Harmony of Dissonance | `ACHE` `ACHP` `ACHJ` | map | Recolor by JonataGuitar and sorrow (USA) |
@@ -86,6 +87,14 @@ The USA and European releases of both, and in Japan Game Boy Wars Advance 1+2, w
 - **In a fight,** on the title and menus, and on a battle's results pages, the second screen shows the game's logo.
 - **Known issue (won't fix):** in Advance Wars' **Field Training** missions the second screen keeps the logo: the tutorial blocks the menus it's built from (SELECT and START). It works fully in Campaign and Versus.
 - **Game Boy Wars Advance 1+2** (Japan): GBA DS notices which of the two games you pick from the cartridge's menu and sets the second screen up as for that game (Game Boy Wars Advance as Advance Wars, Game Boy Wars Advance 2 as Advance Wars 2). On the cartridge's own title and menu, and on both games' titles, the second screen shows the cartridge's logo. Both games have been tried in battles (Game Boy Wars Advance's unit intel and the computer's turn too); Game Boy Wars Advance 2's computer's turn hasn't been seen yet.
+
+## Baldur's Gate: Dark Alliance
+
+The USA and European releases.
+
+The game has no map, so GBA DS makes one. Each time you arrive in an area, a copy of the game, running silently beside yours, looks over the whole area a screen at a time; the second screen then shows the area's floors, walls and furniture at a quarter of their size, following you and stopping at the area's edges, with a red X where you are: the one the game puts on an unusable quick slot. Rooms you haven't reached yet are on it too. Enemies, barrels and pots aren't. The logo shows on the title, while the map is being made, and at GAME OVER.
+
+Known issues: making a big area's map takes up to about 2 seconds on the RG DS Plus, and the game pauses for that moment as you arrive; doors you open aren't shown open until you come back to the area. Eldrith's Watch, the last boss's arena, is shown on the game's blue background colour, as the scenery behind it isn't part of the map.
 
 ## Castlevania: Aria of Sorrow, Harmony of Dissonance, Circle of the Moon
 

@@ -209,6 +209,15 @@ GBA DS applies patches (`.ips`, `.ups`, `.bps` and `.xdelta` files: romhacks, co
 - A patch named as the ROM, beside it (`Mario & Luigi.ips` beside `Mario & Luigi.gba`), the way RetroArch uses them, is always on: it shows in the list as "Always".
 - A ROM you've patched yourself works as well, with no patch file.
 
+### Known issues with patches
+
+- An `.ips` patch can't say which version of a game it's made for. GBA DS warns when it knows the patch, but an unknown one made for another version is applied all the same and may break the game.
+- A romhack with its own title screen still shows the original game's logo on the second screen.
+- Two patches that change the same part of the game are only warned about (the one lower in the list wins there); whether they really clash can't be known until you play.
+- Metroid: Zero Mission's colour patches work on their own; stacked with another patch, its map may not come up.
+- After switching a colour patch without a restart, colours already on the screen stay until the game draws them again.
+- Android: games started from a frontend that passes a link rather than a file get no patches.
+
 ## RetroAchievements
 
 GBA DS earns [RetroAchievements](https://retroachievements.org) in **casual (softcore) mode**.

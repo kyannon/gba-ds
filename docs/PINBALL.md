@@ -115,6 +115,28 @@ down (the whole lower table on the two screens).
   bottom screen shows the game's picture plus its score bar; the top screen
   the table's rows, or, while those would be the game's picture too, the
   top screen from before it came up (`lastTop`).
+- **Banners (Nov 14, 2026, PP-10):** in the lower view the game's
+  screen-fixed sprites (BALL SAVE, Latios/Latias) go to the screen the ball
+  is on when they come up (`tallFixedBot`, from the ball's table row against
+  `v + 160`), at their place on the game's screen, held there until none has
+  shown for 20 frames; the BG0 part (the catch timer) stays on the top
+  screen. The sprites' pixels are told from BG0's by the boxes of
+  `tallFixed` (update_tall). Log: "banners on the bottom screen (the ball's
+  there)".
+- **PP-11's top screen (Nov 14, 2026):** `twin_step` holds `twins[0]` at
+  `u - 160` while PP-11's screen is up (`tallMsg`, last frame's), and the
+  top screen shows those rows (the table just above the game's screen,
+  which is on the bottom one); with `u < 160`, the logo (`tallTopLogo`).
+  Until the copy is at its place, the top screen's last picture (`prevTop`).
+  Before, the top screen showed the lower view's rows, mostly the game's
+  own again (the owner: "the two screens out of sync").
+- **Seam (Nov 14, 2026):** a copy's pans' step is guessed from last frame's
+  (`panStep`); when the game's view starts or stops moving (4 rows a frame,
+  the ball let go from a trap) the guess was a frame out and the copy's
+  picture 4 rows off, leaving 4 rows where the screens meet from no picture
+  (black) or another. `twin_first` now runs the frame again with the step it
+  really took (a second blind frame, a few times a minute). Log: "copy N:
+  M row(s) off, run again". Case `pp-us-sapphire-seam`.
 - `GBADS_TALL_TRACE=1` logs a line a frame (the view, each copy's rows,
   sprites hidden, pixels laid over).
 

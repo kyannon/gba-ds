@@ -3542,6 +3542,32 @@
    "patch_on": "mlssplus-v1.5-100.ips"
   },
   {
+   "id": "mlp-us-mine-carts",
+   "rom": "A88E+mlssplus-100",
+   "state": "mario-and-luigi-superstar-saga/us-mine-carts-mlssplus.ss",
+   "desc": "Superstar Saga+ (100%), Mysterious Mine Carts (the player's own save, issue #51): the whole minigame on the game screen, the logo alone on the second screen",
+   "rules": [
+    "ML-3",
+    "ML-6",
+    "ML-7"
+   ],
+   "input": [
+    [
+     260,
+     "A"
+    ],
+    [
+     263,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 200,
+    "riding": 500,
+    "jump": 900
+   }
+  },
+  {
    "id": "ml-patches-stack",
    "rom": "A88E",
    "patch_folder": [
@@ -3947,6 +3973,31 @@
      "match": "load state: .* was saved with Superstar Saga\\+ v1\\.5 \\(100%\\) \\(ROM CRC32 ba4791f4, playing e718d850\\)"
     }
    ]
+  },
+  {
+   "id": "ml-us-mine-carts",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-mine-carts.ss",
+   "desc": "Mysterious Mine Carts on Hoohoo Mountain (from a player's save, issue #51), the brothers just in their carts: the whole minigame on the game screen, START and the diamonds count too, the logo alone on the second screen",
+   "rules": [
+    "ML-3",
+    "ML-7"
+   ],
+   "input": [
+    [
+     260,
+     "A"
+    ],
+    [
+     263,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 200,
+    "riding": 500,
+    "jump": 900
+   }
   }
  ]
 }

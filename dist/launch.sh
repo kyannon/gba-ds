@@ -4,6 +4,12 @@
 #   launch.sh /path/Game.gba       play one game directly
 #   (any --option=value from gba-ds.cfg can be appended)
 # Output goes to gba-ds.log next to this script.
+# GBA DS's own output reaches the log through a pipe and a separate cat
+# (> >(exec cat >> LOG)), so the game never waits on the card, or ROCKNIX's
+# merged /storage/roms folder, to write a log line (issue #50: a write held
+# up there froze the game and broke the sound). The pipe holds 64 KB; cat
+# writes everything out after GBA DS ends or crashes. GBA DS keeps its own
+# exit status and process (exec on BananaOS).
 
 . /etc/profile >/dev/null 2>&1
 
@@ -137,7 +143,7 @@ if [ -d /etc/banana ]; then
 	mkdir -p /data/screenshots /data/saves/gba 2>/dev/null
 	echo "Banana paths: ${B[*]//--ra-password=*/--ra-password=...}" >> "$LOG"
 	[ -n "$EXEC_NOTE" ] && echo "$EXEC_NOTE" >> "$LOG"
-	exec "$GBADS" "${B[@]}" "$@" >> "$LOG" 2>&1
+	exec "$GBADS" "${B[@]}" "$@" > >(exec cat >> "$LOG") 2>&1
 fi
 
 # Any other system (the RG DS Plus's Stock Linux OS, ...): neither
@@ -228,8 +234,10 @@ if ! grep -qi rocknix /etc/os-release 2>/dev/null && [ ! -d /storage/.config/sys
 		} >> "$LOG" 2>&1
 	) &
 	[ -n "$EXEC_NOTE" ] && echo "$EXEC_NOTE" >> "$LOG"
-	"$GBADS" "${O[@]}" "$@" >> "$LOG" 2>&1
-	exit $?
+	"$GBADS" "${O[@]}" "$@" > >(exec cat >> "$LOG") 2>&1
+	st=$?
+	wait $! 2>/dev/null # (the log written out before the traps add to it)
+	exit $st
 fi
 
 # Second screen on and in place for the run (stock ROCKNIX keeps it off),
@@ -241,7 +249,50 @@ bash "$DIR/screens.sh" on > "$DIR/gba-ds.log" 2>&1
 	echo "sound: XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-unset} SDL_AUDIODRIVER=${SDL_AUDIODRIVER:-unset} PULSE_SERVER=${PULSE_SERVER:-unset}"
 	command -v wpctl >/dev/null && timeout 2 wpctl status 2>&1 | sed -n '/^Audio/,/^Video/p' | head -n 30
 } >> "$DIR/gba-ds.log" 2>&1
-trap 'bash "$DIR/screens.sh" off >> "$DIR/gba-ds.log" 2>&1' EXIT
+# CPU and memory clocks for the run (issue #50: video and sound kept
+# breaking up on an RG DS). GBA DS runs more than one copy of the game (the
+# hidden one for the map, the pinball tables' two more) and sleeps between
+# frames; under ROCKNIX's schedutil / ondemand governors the clock drops in
+# those sleeps and the next busy frame comes too late. runemu.sh starts in
+# performance but then applies the governor chosen in EmulationStation, if
+# any. As banana-play.sh does on BananaOS: performance while GBA DS runs, the
+# governors as they were afterwards. cpu_performance = 0 in gba-ds.cfg
+# leaves them alone. What they were goes into the log either way.
+GOV_STATE=/tmp/gba-ds-governors.state
+cfgval() { sed -n "s/^$1 *= *//p" "$DIR/gba-ds.cfg" 2>/dev/null | tail -n 1; }
+rm -f "$GOV_STATE"
+{
+	GOVS=
+	for g in /sys/devices/system/cpu/cpufreq/policy*/scaling_governor "${DMC_FREQ:-/sys/class/devfreq/dmc}/governor"; do
+		[ -r "$g" ] || continue
+		was=$(cat "$g" 2>/dev/null)
+		max=$(cat "$(dirname "$g")/scaling_max_freq" 2>/dev/null)
+		GOVS="$GOVS ${g#/sys/devices/}=$was${max:+ (max ${max} kHz)}"
+		[ "$was" = performance ] && continue
+		case "$(cfgval cpu_performance)" in 0|off|false|no) continue ;; esac
+		[ -w "$g" ] || continue
+		# (the memory controller's governor may be named dmc_ / simple_)
+		for p in performance dmc_performance simple_performance; do
+			if echo "$p" > "$g" 2>/dev/null; then
+				printf '%s\t%s\n' "$g" "$was" >> "$GOV_STATE"
+				break
+			fi
+		done
+	done
+	echo "device: ${QUIRK_DEVICE:-unknown}; clock governors:${GOVS:- none found}"
+	[ -s "$GOV_STATE" ] && echo "clock governors set to performance for the run (cpu_performance = 0 in gba-ds.cfg leaves them alone)"
+} >> "$DIR/gba-ds.log" 2>&1
+restore_governors() {
+	[ -f "$GOV_STATE" ] || return 0
+	while IFS=$'\t' read -r g was; do
+		[ -n "$g" ] && [ -n "$was" ] && echo "$was" > "$g" 2>/dev/null
+	done < "$GOV_STATE"
+	rm -f "$GOV_STATE"
+}
+trap 'restore_governors; bash "$DIR/screens.sh" off >> "$DIR/gba-ds.log" 2>&1' EXIT
 trap 'exit 143' TERM INT HUP
 
-"$GBADS" "$@" >> "$DIR/gba-ds.log" 2>&1
+"$GBADS" "$@" > >(exec cat >> "$DIR/gba-ds.log") 2>&1
+st=$?
+wait $! 2>/dev/null # (the log written out before the trap adds to it)
+exit $st
