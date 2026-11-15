@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.5.3 (not yet released)
+## v1.5.3 (2026-11-15)
 
 ### New games
 - **Mega Man Battle Network 2** (USA, Europe, and Battle Network Rockman EXE 2 in Japan; the Wii U Virtual Console release too), as Mega Man Battle Network: walking about, the second screen shows the PET's MegaMan screen (his level, HP, style and buster) with your money above it, kept up to date; lights the game flashes while you have a PowerUP to use are shown steady. Battles play on the game screen, and the second screen keeps MegaMan's status as it was when the battle began. On the net, it shows a map of the area you're in, following MegaMan, with his head marking where he is. Conversations, scenes, the PET's menus and shops keep the last picture; the title and game over show the logo. Not yet tried: boss battles, Hard mode and link-cable net battles.
@@ -26,6 +26,7 @@
 - **Pokémon Pinball: no more wrong rows where the screens meet** for a moment when the table starts or stops scrolling, such as when the ball is let go from a trap.
 - **Linux: no more short freezes and sound gaps when the game saves or the log is written** (issue #50): writing a battery save to the card, and GBA DS's own log lines, could hold the game up for a moment on a slow SD card, a hitch in the picture and a gap in the sound. Both now happen beside the game instead (as battery saves already did on Android). Closing a game still waits for its save to be written.
 - **ROCKNIX: smoother games and sound when EmulationStation's CPU governor isn't "performance"** (issue #50): GBA DS now holds the CPU and memory at full clock while it runs, as EmulationStation does for its own emulators by default, and puts your governor choice back when it closes. With a governor that lets the clock drop between frames, games could stutter and the sound break up (reported on an RG DS). `cpu_performance = 0` in `gba-ds.cfg` turns this off. The log now says which governors were in use.
+- **Android: Surface Duo opens spanned** (issue #48): with GBA DS set to span both screens, it now opens over both of them, instead of on one screen and having to be spanned again by hand.
 
 ## v1.5.2 (2026-11-13)
 

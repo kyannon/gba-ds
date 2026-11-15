@@ -736,7 +736,3 @@ Player-facing Android changes since the last release, for the main session
 to move into CHANGELOG.md and the release notes (see CLAUDE.md, "More than
 one session"). Empty after each release.
 
-- Fixes: Surface Duo: with the app set to span both screens, GBA DS now
-  opens spanned (it opened on one screen and had to be spanned again by
-  hand; issue #48).
-
