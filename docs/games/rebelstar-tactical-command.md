@@ -18,7 +18,7 @@ The game is a turn-based squad battle on an isometric field, with the soldier un
 
 ## Rules
 
-**RS-1. Logo.** The title's lettering, *rebelstar* with the teal star and TACTICAL COMMAND under it, as the strip of the title picture it's painted into (the planet and space behind it, rows 8-66; not the TM or Press START). The title has no layer of its own for the lettering, so cutting it out of the picture would need an outline drawn for it (as Eragon's).
+**RS-1. Logo.** The title's lettering, *rebelstar* with the teal star and TACTICAL COMMAND under it, cut out of the title picture it's painted into (the planet and space behind it left out; not the TM or Press START) by the owner's copy of the logo (tools/logo_stencils/rs.png), scaled and placed on the title's letters. (Until the first test build's second version, the strip of the title picture behind the lettering, rows 8-66.)
 
 **RS-2. Out of battle: the logo.** The title and the opening, the main menu and its save slots, Skirmish's setup, the story's scenes and chapter cards, Mission Loading, the screens before a battle (Deployment, Equip Squad, placing the soldiers) and the end of a battle (VICTORY TO THE REBELS, a defeat): the logo, and nothing from the last battle is kept.
 
@@ -52,6 +52,7 @@ For later sessions; all addresses USA.
 - **On the battle object:** +0x28 the unit under the cursor (0xFF for none, and for an enemy the player can't see), +0x24 the unit the menu is for, +0x5C the action menu, +0x60 the START menu. A menu: +0x0C its visible items, +0x10 its cursor, its labels from +0x18, 30 bytes each (START's in the order shown, Objectives the fifth; the action menu's are every action, of which the unit's are shown, Status always the last but one, before Cancel). A long action menu (an armed soldier's) scrolls and doesn't wrap; a short one wraps.
 - **Units:** 0x48 bytes each from `0x0200F434` (the cheat file's codes write +0x1C on), the square at +0x0D, +0x11, the side at +0x1C (0 the player's), AP +0x1E / +0x1F, HP +0x20 / +0x21.
 - **Training missions:** their instructions are green boxes on BG1, palette 8, filled with its colour 4 (the unit and menu boxes on the same layer and palette are filled with colour 1, blue); their tiles move about, so the tiles' pixels are looked at (`rs_green_box`). While they guide, the battle object also lists the squares the game points to with blue arrows (+0x48 on: pointers, and the square, as at +0x54). The game's own lock on the buttons wasn't found in memory; the hidden copy finds it by trying (RS-7).
+- **The logo:** the title (BG3, a picture) has the lettering painted in, its greys and dark outlines the same as the planet's and space's behind it, so the outline is the owner's copy of the logo, scaled to 0.21 and placed at 7.5, 10.5 (the best correlation with the title's pixels, 0.90, by search): `tools/make_logo_masks.py RS=<the title frame>` (the frame isn't read: `GBADS_LOGO_DEBUG=1` harness `logo` writes it).
 - **The Status screen:** the D-pad marks are BG1's only tiles there, so the pages are taken with BG1 off (the renderer takes a layer change at a state load: the page is saved and loaded again around the picture).
 
 ## For the merge

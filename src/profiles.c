@@ -8697,9 +8697,10 @@ static const MapProfile profiles[] = {
 		/* another soldier under the cursor, or none, or the field back:
 		 * taken again at once (RS-3, RS-4) */
 		.room = { { RS_V_KEY, 0, 0, 4 } },
-		/* the title's lettering, painted into its picture (BG3): its strip
-		 * of the picture (RS-1) */
-		.logo = { .wait = 400, .layer = 3, .minX = 4, .maxX = 236, .minY = 8, .maxY = 67 },
+		/* the title's lettering and star, painted into its picture, cut
+		 * out by the owner's copy of the logo (RS-1; tools/make_logo_masks.py,
+		 * rs). rev 1: the strip of the picture before */
+		.logo = { .wait = 400, .mask = &logoMaskRS, .rev = 1 },
 	},
 };
 
