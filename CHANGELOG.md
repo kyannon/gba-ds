@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.5.4 (not yet released)
+## v1.5.3.1 (2026-11-15)
 
 ### New
 - **Performance** (#50), in the game list's Settings on Linux (not BananaOS, which sets its own): **Let the System Decide** leaves the processor, memory and graphics speed to the system, as for its other emulators; **Set to Max** holds all three at full speed while GBA DS is open and puts the system's choice back when it closes. Try Set to Max if games stutter or the sound breaks up on your device; the battery runs down faster and the device gets warmer. v1.5.3 held the processor and memory at full speed on ROCKNIX every time; now the system decides unless you choose Set to Max, and the graphics are included. (`cpu_performance` in `gba-ds.cfg` is no longer used.)
@@ -9,7 +9,7 @@
 - **The log now says where any pause in play went** (#50): when a frame takes longer than a tenth of a second, `gba-ds.log` gets a line saying how long it took and what GBA DS was doing (emulating, drawing either screen, handing over sound, waiting), at most a few lines every 5 seconds. If the game or its sound stutters on your device, send that log with your report.
 
 ### Fixes
-- **An update installed from the game list now counts in full straight away** (ROCKNIX and other Linux systems; BananaOS already did): GBA DS used to restart into the new version but keep the old version's way of starting it until you quit and opened it again, so part of a fix could be missing until then (v1.5.3's sound fixes for #50, for one). Now the new version starts the way it would from Ports. This works for updates installed from v1.5.4 on; updating to v1.5.4 itself, quit GBA DS and start it again once.
+- **An update installed from the game list now counts in full straight away** (ROCKNIX and other Linux systems; BananaOS already did): GBA DS used to restart into the new version but keep the old version's way of starting it until you quit and opened it again, so part of a fix could be missing until then (v1.5.3's sound fixes for #50, for one). Now the new version starts the way it would from Ports. This works for updates installed from v1.5.3.1 on; updating to v1.5.3.1 itself, quit GBA DS and start it again once.
 - **Web player: the build that comes with it is always there.** After "Delete everything kept here", the player could come back with no build at all if it was also open in another tab, or as a Home Screen app at the same time, until that one was closed. Now the other copy lets go of what it kept, the player starts with the build that comes with it straight away, and the other copy says its things were deleted. If an older copy of the player still holds on, the build comes back after a few seconds anyway, with a note to close the other copy to see your games and saves.
 - **Web player: a clearer message when a game stops.** If the browser stops a game without saying why, the player now says that, instead of "GBA DS stopped: undefined", and it shows the reason whenever the browser gives one.
 

@@ -693,7 +693,7 @@ void update_notice_seen(void) {
 
 int update_restart_if_installed(void) {
 	if (!U.lock || U.info.state != UPD_DONE || !U.exePath[0] || !U.argv) return 0;
-	/* launch.sh (ROCKNIX and other systems, from v1.5.4) starts the new
+	/* launch.sh (ROCKNIX and other systems, from v1.5.3.1) starts the new
 	 * version itself, with the new launch.sh: its changes count from the
 	 * first run, not the next start (issue #50: v1.5.3's clock and log
 	 * changes were in launch.sh, and a player updating in the app kept
