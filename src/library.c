@@ -13,6 +13,8 @@
 #include "mapper.h"
 #include "ra.h"
 #include "update.h"
+#include "clocks.h"
+#include "game.h"
 
 
 #include <ctype.h>
@@ -1034,12 +1036,13 @@ static int updatesSel;
 
 /* Settings: a row of buttons, each with its text below, then Back.
  * Linux: GBA DS in EmulationStation (ROCKNIX) or in BananaOS's list, where
- * there's one; Map Buttons and Hotkeys; Updates. Android: Folders,
+ * there's one; Map Buttons and Hotkeys; Performance, where GBA DS can set
+ * the clock governors (clocks.c); Updates. Android: Folders,
  * RetroAchievements, Map Buttons and Hotkeys, Updates. */
 #define SETTINGS_MAX 6
 static int nRows = 1; /* rows shown (Back is row nRows) */
 /* (Hotkeys shares Map Buttons' line: the right half of it, under one text) */
-enum { ROW_BANANA, ROW_ES, ROW_MAP, ROW_HOTKEYS, ROW_UPDATES, ROW_FOLDERS, ROW_RA, ROW_ESDE };
+enum { ROW_BANANA, ROW_ES, ROW_MAP, ROW_HOTKEYS, ROW_UPDATES, ROW_FOLDERS, ROW_RA, ROW_ESDE, ROW_PERF };
 static int rowKind[SETTINGS_MAX];
 
 #ifdef __ANDROID__
@@ -1069,6 +1072,7 @@ static void settings_rows(const Config* cfg) {
 #endif
 	rowKind[nRows++] = ROW_MAP;
 	rowKind[nRows++] = ROW_HOTKEYS;
+	if (clocks_available()) rowKind[nRows++] = ROW_PERF;
 #ifdef GBADS_UPDATES
 	rowKind[nRows++] = ROW_UPDATES;
 #endif
@@ -1096,6 +1100,9 @@ static SettingsGeom settings_geom(int scr) {
 	int gap = lines > 4 ? px * 17 : lines > 3 ? px * 24 : lines > 2 ? px * 28 : px * 44; /* room for each row's text under it */
 	int y = g.panel.y + (lines > 4 ? px * 20 : lines > 3 ? px * 22 : px * 26);
 	int textGap = lines > 4 ? px * 3 : px * 8;
+#ifndef __ANDROID__
+	if (lines > 3) textGap = px * 4; /* (Linux, four lines: EmulationStation, Map Buttons, Performance, Updates) */
+#endif
 	for (int i = 0; i < nRows; ++i) {
 		if (rowKind[i] == ROW_HOTKEYS && i > 0) {
 			/* the right half of the line above, Map Buttons the left */
@@ -1110,7 +1117,8 @@ static SettingsGeom settings_geom(int scr) {
 		g.textY[i] = g.row[i].y + rowH + textGap;
 #ifndef __ANDROID__
 		/* Linux, three rows: room for each one's text (lines of about 8 units) */
-		if (lines > 2) gap = px * (rowKind[i] == ROW_BANANA ? 46 : rowKind[i] == ROW_ES ? 38 : rowKind[i] == ROW_MAP ? 27 : 22);
+		if (lines > 3) gap = px * (rowKind[i] == ROW_BANANA ? 40 : rowKind[i] == ROW_ES ? 29 : 24);
+		else if (lines > 2) gap = px * (rowKind[i] == ROW_BANANA ? 46 : rowKind[i] == ROW_ES ? 38 : rowKind[i] == ROW_MAP ? 27 : rowKind[i] == ROW_PERF ? 27 : 22);
 #endif
 		y += rowH + gap;
 	}
@@ -1511,6 +1519,7 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 		          : rowKind[i] == ROW_ES     ? (es_integration_on(cfg) ? "GBA DS in EmulationStation: On" : "GBA DS in EmulationStation: Off")
 		          : rowKind[i] == ROW_MAP    ? "Map Buttons"
 		          : rowKind[i] == ROW_HOTKEYS ? "Hotkeys"
+		          : rowKind[i] == ROW_PERF   ? (cfg->perfMax ? "Performance: Set to Max" : "Performance: Let the System Decide")
 		                                     : "Updates";
 	}
 	draw_settings_frame(scr, &g, sel, labels);
@@ -1531,6 +1540,11 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 		                   : rowKind[i] == ROW_MAP
 		                       ? "Map Buttons sets which of this device's buttons does what. "
 		                         "Hotkeys sets the shortcuts: the hotkey button held with another."
+		                   : rowKind[i] == ROW_PERF
+		                       ? (cfg->perfMax ? "The processor, memory and graphics run at full speed while GBA DS is open: "
+		                                         "the smoothest play, but the battery runs down faster and the device gets warmer."
+		                                       : "The system sets the speed, as for its other emulators. If games stutter or "
+		                                         "the sound breaks up, try Set to Max.")
 		                       : "This is v" GBADS_VERSION ". Look for a new version, and download and install it.";
 		/* a message from switching a row (settings_activate): in place of
 		 * its text, where there's room for it */
@@ -1553,7 +1567,11 @@ static void settings_activate(Config* cfg, int row) {
 	else if (rowKind[row] == ROW_BANANA) banana_integration_set(!banana_integration_on(), settingsMsg, sizeof(settingsMsg));
 	else if (rowKind[row] == ROW_ES) es_integration_set(cfg, !es_integration_on(cfg), settingsMsg, sizeof(settingsMsg));
 	else if (rowKind[row] == ROW_HOTKEYS) hotkeys_run(cfg);
-	else mapper_run(cfg);
+	else if (rowKind[row] == ROW_PERF) {
+		cfg->perfMax = !cfg->perfMax;
+		clocks_set(cfg->perfMax);
+		prefs_save(cfg);
+	} else mapper_run(cfg);
 }
 
 static bool settings_poll(Config* cfg) {

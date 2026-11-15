@@ -6452,15 +6452,20 @@ static void rewind_setup(void) {
 }
 
 /* ff_speed as gba-ds.cfg writes it: a number, or max (0, as atoi reads it) */
-static const char* ff_speed_name(void) {
+static const char* ff_speed_name(const Config* c) {
 	static char s[12];
-	if (cfg->ffSpeed <= 0) return "max";
-	snprintf(s, sizeof(s), "%d", cfg->ffSpeed);
+	if (c->ffSpeed <= 0) return "max";
+	snprintf(s, sizeof(s), "%d", c->ffSpeed);
 	return s;
 }
 
-/* Display choices made in the menu are remembered for next time. */
+/* Display choices made in the menu are remembered for next time (and the
+ * game list's Performance setting: prefs_save from library.c). */
 static void save_prefs(void) {
+	prefs_save(cfg);
+}
+
+void prefs_save(Config* cfg) {
 	char prefs[1100];
 	snprintf(prefs, sizeof(prefs), "%s/prefs.cfg", cfg->stateDir);
 	FILE* f = fopen(prefs, "w");
@@ -6469,13 +6474,14 @@ static void save_prefs(void) {
 		fprintf(f, "swap = %d\nscale = %s\nmap_scale = %s\nshader = %s\ncolor_correction = %d\nlcd_ghosting = %d\noverlays = %s\nframe_buffer = %d\nmatch_display = %d\nrewind = %d\nfast_forward = %d\nff_speed = %s\nsave_on_quit = %d\nauto_load = %d\nquick_bar_pinned = %d\n",
 		        cfg->swap ? 1 : 0, cfg->scale, cfg->mapScale, shaderNames[cfg->shader], cfg->colorCorrection ? 1 : 0, cfg->ghosting ? 1 : 0,
 		        (const char* const[]) { "off", "generated", "custom" }[SDL_clamp(cfg->overlayMode, 0, 2)],
-		        cfg->frameBuffer ? 1 : 0, cfg->matchDisplay ? 1 : 0, cfg->rewind ? 1 : 0, cfg->fastForward ? 1 : 0, ff_speed_name(),
+		        cfg->frameBuffer ? 1 : 0, cfg->matchDisplay ? 1 : 0, cfg->rewind ? 1 : 0, cfg->fastForward ? 1 : 0, ff_speed_name(cfg),
 		        cfg->autoSave ? 1 : 0, cfg->autoLoad ? 1 : 0, cfg->barPinned ? 1 : 0);
 		fprintf(f, "screen_match = %s\nscreen_placement = %s\n", cfg->screenMatch, cfg->screenPlace);
 		fprintf(f, "custom_logos = %s\n", cfg->customLogos == CL_OFF ? "off" : cfg->customLogos == CL_FULL ? "full" : "pixelated");
 		fprintf(f, "overlay_screens = %s\nbezel_logo = %d\nbezel_inner = %s\nbezel_outer = %s\n",
 		        cfg->overlays == OVL_TOP ? "top" : cfg->overlays == OVL_BOTTOM ? "bottom" : "both", cfg->bezelLogo, cfg->bezelInner, cfg->bezelOuter);
 		fprintf(f, "shader_last = %s\n", shaderNames[cfg->shaderLast > SH_OFF && cfg->shaderLast < SH_COUNT ? cfg->shaderLast : SH_GRID]);
+		fprintf(f, "performance = %s\n", cfg->perfMax ? "max" : "system");
 		fclose(f);
 	}
 }

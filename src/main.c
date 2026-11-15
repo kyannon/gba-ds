@@ -17,6 +17,7 @@
 #include "ui.h"
 #include "ra.h"
 #include "update.h"
+#include "clocks.h"
 #ifdef __wasi__
 #include "mapcap.h"
 #endif
@@ -203,6 +204,8 @@ int main(int argc, char** argv) {
 	signal(SIGFPE, on_crash);
 	signal(SIGABRT, on_crash);
 #endif
+	/* the Performance setting (clocks.c; the game list's Settings) */
+	if (cfg.perfMax || clocks_available()) clocks_set(cfg.perfMax);
 	signal(SIGTERM, on_signal);
 	signal(SIGINT, on_signal);
 	signal(SIGHUP, on_signal);
@@ -229,6 +232,6 @@ int main(int argc, char** argv) {
 	logo_shutdown();
 	ra_shutdown();
 	ui_shutdown();
-	update_restart_if_installed(); /* an update was installed: start it */
-	return 0;
+	if (cfg.perfMax) clocks_set(false); /* (the governors as they were) */
+	return update_restart_if_installed(); /* an update was installed: start it */
 }
