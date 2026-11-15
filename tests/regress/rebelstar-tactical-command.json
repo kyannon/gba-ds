@@ -1,0 +1,557 @@
+{
+ "game": "Rebelstar: Tactical Command",
+ "rules": "docs/games/rebelstar-tactical-command.md",
+ "cases": [
+  {
+   "id": "rs-logo",
+   "kind": "logo",
+   "rom": "BRLE",
+   "desc": "the title's lettering, its strip of the title picture",
+   "rules": [
+    "RS-1"
+   ],
+   "checks": []
+  },
+  {
+   "id": "rs-us-title",
+   "rom": "BRLE",
+   "state": "rebelstar-tactical-command/us-title.ss",
+   "desc": "the title screen: the logo, no captures",
+   "rules": [
+    "RS-1",
+    "RS-2"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 400
+   },
+   "checks": [
+    {
+     "rule": "RS-2",
+     "what": "no captures on the title",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "rule": "RS-2",
+     "what": "the logo stays",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "later",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.0
+    }
+   ]
+  },
+  {
+   "id": "rs-us-skirmish-field",
+   "rom": "BRLE",
+   "state": "rebelstar-tactical-command/us-skirmish-field.ss",
+   "desc": "a Skirmish battle, the cursor on Zak (unarmed): his Status, three pages; LEFT to Jorel (two rifles): his; UP to an empty square: the Objectives; START's menu: kept; End Turn: the logo",
+   "rules": [
+    "RS-3",
+    "RS-4",
+    "RS-5",
+    "RS-6",
+    "RS-9",
+    "RS-8"
+   ],
+   "input": [
+    [
+     600,
+     "LEFT"
+    ],
+    [
+     604,
+     "-"
+    ],
+    [
+     800,
+     "UP"
+    ],
+    [
+     804,
+     "-"
+    ],
+    [
+     1000,
+     "START"
+    ],
+    [
+     1004,
+     "-"
+    ],
+    [
+     1100,
+     "A"
+    ],
+    [
+     1104,
+     "-"
+    ]
+   ],
+   "shots": {
+    "equipment": 60,
+    "attributes": 210,
+    "skills": 360,
+    "again": 510,
+    "jorel": 700,
+    "objectives": 900,
+    "menu": 1080,
+    "enemy": 1200
+   },
+   "checks": [
+    {
+     "rule": "RS-3",
+     "what": "three pages",
+     "type": "log",
+     "match": "map updated \\(3 frame\\(s\\) 150 apart"
+    },
+    {
+     "rule": "RS-3",
+     "what": "the next page after 2.5 seconds",
+     "type": "differs",
+     "a": {
+      "shot": "equipment",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "attributes",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.02
+    },
+    {
+     "rule": "RS-3",
+     "what": "the third page",
+     "type": "differs",
+     "a": {
+      "shot": "attributes",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "skills",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.02
+    },
+    {
+     "rule": "RS-3",
+     "what": "back to the first after the third",
+     "type": "same",
+     "a": {
+      "shot": "equipment",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "again",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "RS-3",
+     "what": "another soldier: his own",
+     "type": "differs",
+     "a": {
+      "shot": "again",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "jorel",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.02
+    },
+    {
+     "rule": "RS-4",
+     "what": "an empty square: the Objectives",
+     "type": "log",
+     "match": "map updated \\(1 frame"
+    },
+    {
+     "rule": "RS-5",
+     "what": "START's menu: the Objectives stay",
+     "type": "same",
+     "a": {
+      "shot": "objectives",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "menu",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "RS-6",
+     "what": "the enemy's turn: the idle logo on dark grey",
+     "type": "pixels",
+     "shot": "enemy",
+     "probes": [
+      [
+       40,
+       72,
+       "303030"
+      ],
+      [
+       980,
+       690,
+       "303030"
+      ],
+      [
+       512,
+       120,
+       "303030"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rs-us-skirmish-banner",
+   "rom": "BRLE",
+   "state": "rebelstar-tactical-command/us-skirmish-banner.ss",
+   "desc": "the player's turn banner (Turn: 2/100): the logo; START: the field, Zak's Status at once",
+   "rules": [
+    "RS-3",
+    "RS-6"
+   ],
+   "input": [
+    [
+     120,
+     "START"
+    ],
+    [
+     124,
+     "-"
+    ]
+   ],
+   "shots": {
+    "banner": 60,
+    "field": 240
+   },
+   "checks": [
+    {
+     "rule": "RS-6",
+     "what": "the banner: the logo",
+     "type": "pixels",
+     "shot": "banner",
+     "probes": [
+      [
+       40,
+       72,
+       "303030"
+      ],
+      [
+       980,
+       690,
+       "303030"
+      ]
+     ]
+    },
+    {
+     "rule": "RS-6",
+     "what": "the field: the Status at once",
+     "type": "differs",
+     "a": {
+      "shot": "banner",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "field",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "rs-us-skirmish-victory",
+   "rom": "BRLE",
+   "state": "rebelstar-tactical-command/us-skirmish-last-banner.ss",
+   "desc": "the turn banner before a won Skirmish (the enemy set to 0 HP for the test), then VICTORY TO THE REBELS: the logo, no captures",
+   "rules": [
+    "RS-2",
+    "RS-6"
+   ],
+   "input": [
+    [
+     120,
+     "START"
+    ],
+    [
+     124,
+     "-"
+    ]
+   ],
+   "shots": {
+    "banner": 60,
+    "victory": 400
+   },
+   "checks": [
+    {
+     "rule": "RS-2",
+     "what": "no captures",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "rule": "RS-2",
+     "what": "the victory screen: the logo",
+     "type": "pixels",
+     "shot": "victory",
+     "probes": [
+      [
+       40,
+       72,
+       "303030"
+      ],
+      [
+       980,
+       690,
+       "303030"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rs-us-boot-camp-box",
+   "rom": "BRLE",
+   "state": "rebelstar-tactical-command/us-boot-camp-box.ss",
+   "desc": "Boot Camp, turn 2: a green instruction box over the field (Characters use Action Points...): the logo, no captures",
+   "rules": [
+    "RS-7"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "RS-7",
+     "what": "no captures",
+     "type": "no_log",
+     "match": "map updated|map capture failed"
+    },
+    {
+     "rule": "RS-7",
+     "what": "the logo",
+     "type": "pixels",
+     "shot": "later",
+     "probes": [
+      [
+       40,
+       72,
+       "303030"
+      ],
+      [
+       980,
+       690,
+       "303030"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rs-us-boot-camp-locked",
+   "rom": "BRLE",
+   "state": "rebelstar-tactical-command/us-boot-camp-locked.ss",
+   "desc": "Boot Camp, waiting for Jorel to be chosen (no box up): the game won't let the menu's cursor leave Move, so the logo stays",
+   "rules": [
+    "RS-7"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "RS-7",
+     "what": "no picture",
+     "type": "no_log",
+     "match": "map updated"
+    },
+    {
+     "rule": "RS-7",
+     "what": "the copy was refused",
+     "type": "log",
+     "match": "map capture failed .*cursor didn't move"
+    },
+    {
+     "rule": "RS-7",
+     "what": "the logo",
+     "type": "pixels",
+     "shot": "later",
+     "probes": [
+      [
+       40,
+       72,
+       "303030"
+      ],
+      [
+       980,
+       690,
+       "303030"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rs-us-chapter-card",
+   "rom": "BRLE",
+   "state": "rebelstar-tactical-command/us-chapter-card.ss",
+   "desc": "CHAPTER 1 Boot Camp, then the story's opening scene: the logo, no captures",
+   "rules": [
+    "RS-2"
+   ],
+   "shots": {
+    "card": 60,
+    "scene": 400
+   },
+   "checks": [
+    {
+     "rule": "RS-2",
+     "what": "no captures",
+     "type": "no_log",
+     "match": "map updated|map capture failed"
+    },
+    {
+     "rule": "RS-2",
+     "what": "the logo",
+     "type": "pixels",
+     "shot": "scene",
+     "probes": [
+      [
+       40,
+       72,
+       "303030"
+      ],
+      [
+       980,
+       690,
+       "303030"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rs-us-skirmish-deploy",
+   "rom": "BRLE",
+   "state": "rebelstar-tactical-command/us-skirmish-deploy.ss",
+   "desc": "placing soldiers before a Skirmish battle: the logo, no captures",
+   "rules": [
+    "RS-2"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "RS-2",
+     "what": "no captures",
+     "type": "no_log",
+     "match": "map updated|map capture failed"
+    },
+    {
+     "rule": "RS-2",
+     "what": "the logo",
+     "type": "pixels",
+     "shot": "later",
+     "probes": [
+      [
+       40,
+       72,
+       "303030"
+      ],
+      [
+       980,
+       690,
+       "303030"
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}
