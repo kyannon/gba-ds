@@ -120,6 +120,7 @@ What `map_crop` changes in the Metroid map screens:
 | Option | Default | |
 |---|---|---|
 | `audio_latency` | `64` | Sound buffer in milliseconds. Raise it if the sound crackles; lower is snappier. |
+| `cpu_performance` | `1` | ROCKNIX only: the CPU and memory run at full clock (the "performance" governor) while GBA DS is open, and the governors chosen in EmulationStation come back when it closes. GBA DS runs more than one copy of the game (the hidden one for the map), so a governor that lets the clock drop between frames can make games stutter and the sound break up. `0` leaves the governors alone. |
 
 ## Android only
 
