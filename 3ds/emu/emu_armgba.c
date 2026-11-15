@@ -1169,6 +1169,26 @@ void emu_hide_sprites(Emu* e, const SpriteRule* rules, int n) {
 	hooks_changed(c);
 }
 
+/* The opposite: only the sprites that match one of the rules are drawn (Lady
+ * Sia's pause screen, src/emu.c). */
+void emu_keep_sprites(Emu* e, const SpriteRule* rules, int n) {
+	ArmCore* c = AC(e);
+	c->nRules = n > 12 ? 12 : n;
+	if (c->nRules) memcpy(c->rules, rules, sizeof(*rules) * c->nRules);
+	c->keepOnly = n > 0;
+	hooks_changed(c);
+}
+
+/* src/emu.c hides a matching sprite only where it is part of a group (its run
+ * in the sprite table): armGBA's hook is asked about one sprite at a time, on
+ * whichever thread draws, without its place in the table, so here every
+ * matching sprite is hidden, as GBA DS did before 1.5.4 (Lady Sia's
+ * scenery that shares a HUD piece's place and shape: 3ds/README.md). */
+void emu_hide_grouped(Emu* e, bool on) {
+	(void) e;
+	(void) on;
+}
+
 void emu_hide_exact(Emu* e, const uint16_t (*attrs)[3], int n) {
 	ArmCore* c = AC(e);
 	c->nExact = n > 128 ? 128 : n;
