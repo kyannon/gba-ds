@@ -7213,6 +7213,7 @@ static void ss_setup(const char* rom, const char* code) {
 			hideWhenProf = prof && nRules && prof->hideWhen[0].addr ? prof : NULL;
 			hideWhenN = nRules, hideWhenOn = false;
 			emu_hide_sprites(&emu, prof && !hideWhenProf ? prof->hideSprites : NULL, hideWhenProf ? 0 : nRules);
+			emu_hide_grouped(&emu, prof && prof->hideGrouped);
 		} else if (!logoOnly) {
 			fprintf(stderr, "no map profile for %s\n", code);
 		}
