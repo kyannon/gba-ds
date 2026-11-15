@@ -5,6 +5,10 @@
 ### Changes
 - **The log now says where any pause in play went** (#50): when a frame takes longer than a tenth of a second, `gba-ds.log` gets a line saying how long it took and what GBA DS was doing (emulating, drawing either screen, handing over sound, waiting), at most a few lines every 5 seconds. If the game or its sound stutters on your device, send that log with your report.
 
+### Fixes
+- **Web player: the build that comes with it is always there.** After "Delete everything kept here", the player could come back with no build at all if it was also open in another tab, or as a Home Screen app at the same time, until that one was closed. Now the other copy lets go of what it kept, the player starts with the build that comes with it straight away, and the other copy says its things were deleted. If an older copy of the player still holds on, the build comes back after a few seconds anyway, with a note to close the other copy to see your games and saves.
+- **Web player: a clearer message when a game stops.** If the browser stops a game without saying why, the player now says that, instead of "GBA DS stopped: undefined", and it shows the reason whenever the browser gives one.
+
 ## v1.5.3 (2026-11-15)
 
 ### New games
