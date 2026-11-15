@@ -457,8 +457,8 @@ frontend launch intents.
   futimens + msync + fsync, on the game thread; fsync on Android's shared
   storage is slow). emu.c now wraps the save's VFile on Android
   (async_save_open): still the mapped file, but sync hands the fsync to a
-  worker thread; close waits for it. Desktop: -DGBADS_ASYNC_SAVE turns it
-  on (tested: same .sav as without). Also early in that session, a few
+  worker thread; close waits for it. Since v1.5.3 every build but the web
+  one does this (issue #50, ROCKNIX); it gave the same .sav as without. Also early in that session, a few
   100-600 ms draws of one screen (frames 670-1090), cause unknown.
 - Aria of Sorrow log (owner, 2026-10-15), first ~90 s with the map screen
   static (logo / no map yet: bottom redrawn 5 of 300 frames), then the map

@@ -39,13 +39,15 @@ static void quiet_log(struct mLogger* l, int cat, enum mLogLevel level, const ch
 }
 static struct mLogger quietLogger = { .log = quiet_log };
 
-#if defined(__ANDROID__) || defined(GBADS_ASYNC_SAVE)
+#ifndef __wasi__ /* (the web build has no threads) */
 /* ------------------------------------------------- battery saves, async
  * When a game writes its save, mGBA flushes it from the emulation thread a
  * few frames later: futimens + msync + fsync. On Android's shared storage
  * the fsync took ~200 ms, a visible freeze at every save point. The save
  * stays a mapped file as before (so what the game writes is in the file
- * right away); only the flush to the card moves to a worker thread. */
+ * right away); only the flush to the card moves to a worker thread.
+ * Linux too since v1.5.3 (issue #50): on ROCKNIX an SD card, or the merged
+ * /storage/roms folder, can hold an fsync just as long. */
 #include <unistd.h>
 #include <sys/stat.h>
 #ifdef __ANDROID__
@@ -343,7 +345,7 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 		return false;
 	}
 	if (savePath) {
-#if defined(__ANDROID__) || defined(GBADS_ASYNC_SAVE)
+#ifndef __wasi__
 		struct VFile* vf = async_save_open(savePath);
 #else
 		struct VFile* vf = VFileOpen(savePath, O_CREAT | O_RDWR);
