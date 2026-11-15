@@ -51,15 +51,18 @@ void update_info(UpdateInfo* out);
  * the notice. update_notice_seen() once it's shown. */
 bool update_notice_pending(void);
 void update_notice_seen(void);
-/* After everything is shut down: start the new version (returns only if
- * it couldn't). */
-void update_restart_if_installed(void);
+/* After everything is shut down: start the new version. Under a launch.sh
+ * that can start it itself (GBADS_RELAUNCH_STATUS: its new launch.sh too),
+ * returns that exit status for main() to end with; else execs the new
+ * binary in place and returns 0 only if it couldn't. 0 when there's no
+ * update to start. */
+int update_restart_if_installed(void);
 #else
 static inline void update_init(const Config* cfg, const char* exeDir, int argc, char** argv) { (void) cfg, (void) exeDir, (void) argc, (void) argv; }
 static inline void update_auto_check(void) {}
 static inline bool update_notice_pending(void) { return false; }
 static inline void update_notice_seen(void) {}
-static inline void update_restart_if_installed(void) {}
+static inline int update_restart_if_installed(void) { return 0; }
 #endif
 
 #endif
