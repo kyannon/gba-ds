@@ -33,7 +33,10 @@ No devkitPro needed on the machine: the builds run in the
   folder: `rom_dir` in `sdmc:/3ds/gba-ds/gba-ds.cfg`, which is written with
   the 3DS's defaults the first time the app runs.
 - Only games GBA DS has second-screen support for are listed, as everywhere;
-  `show_all = 1` in `gba-ds.cfg` lists every game.
+  `show_all = 1` in `gba-ds.cfg` lists every game. A game is known by the
+  four-letter code in its header: a translation or romhack that kept the
+  original's code is listed (and treated as that release), one with a code of
+  its own only with `show_all = 1`, on one screen.
 - Sound needs the DSP firmware dump (`sdmc:/3ds/dspfirm.cdc`), as all 3DS
   homebrew does.
 - Saves are beside the ROMs (`.sav`), save states and settings in
@@ -79,6 +82,11 @@ when the app closes. Build without `LOG_URL` again
 - Save states are armGBA's, not mGBA's: states from GBA DS on another system
   don't load here, nor these there. Battery saves (`.sav`) are the same.
 - Screenshots of the screens as drawn (the GPU's picture isn't read back).
+- The pinball games' table over both screens (Pokémon Pinball, Sonic Pinball
+  Party, Muppet Pinball Mayhem): it runs up to three copies of the game a frame,
+  far beyond a New 3DS (0.0.1-alpha ran out of memory opening it and froze).
+  They play on the top screen with their logo on the bottom one, whatever
+  `pinball_live` says.
 
 ## Memory
 
@@ -108,7 +116,8 @@ may differ.
 
 ## armGBA
 
-`third_party/armgba` is armGBA as it is (its `3ds-v0.0.3-alpha` release).
+`third_party/armgba` is armGBA-3DS: armGBA's main with the 3DS port on top
+(ratherDashing/armGBA).
 What GBA DS uses of it that other frontends don't:
 
 - `struct RenderHooks` (`src/video/render.h`): layers and sprites left out

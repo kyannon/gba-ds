@@ -981,9 +981,21 @@ uint8_t* emu_memory(Emu* e, int region, size_t* size) {
 
 /* Reads see memory as it is, with no side effects (the save memory's chips
  * aren't driven: its bytes are read where they lie). */
+/* The write-only I/O registers (the backgrounds' offsets and affine
+ * parameters, the windows, mosaic, the blend's fade, the DMA addresses),
+ * which a read on the bus gives the open bus for. */
+static bool io_write_only(uint32_t off) {
+	return (off >= 0x010 && off <= 0x046) || off == 0x04C || off == 0x054 || (off >= 0x0A0 && off <= 0x0A7) ||
+	       (off >= 0x0B0 && off <= 0x0B7) || (off >= 0x0BC && off <= 0x0C3) || (off >= 0x0C8 && off <= 0x0CF) ||
+	       (off >= 0x0D4 && off <= 0x0DB);
+}
+
 uint8_t emu_read8(Emu* e, uint32_t a) {
 	struct GBA* gba = AC(e)->gba;
 	if (a >> 24 == 0xE) return gba->savedata.storage[a & (SIZE_FLASH1M - 1)];
+	/* Profiles read registers as mGBA's debug view gives them (src/emu.c's
+	 * rawRead): a write-only one as last written, not the open bus. */
+	if (a >> 24 == 0x4 && io_write_only(a & 0xFFFFFF)) return (uint8_t) (gba->io[(a & 0x3FE) >> 1] >> ((a & 1) * 8));
 	return (uint8_t) (memoryView32(gba, a & ~3u) >> ((a & 3) * 8));
 }
 uint16_t emu_read16(Emu* e, uint32_t a) {
