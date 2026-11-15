@@ -4,6 +4,12 @@
 #   launch.sh /path/Game.gba       play one game directly
 #   (any --option=value from gba-ds.cfg can be appended)
 # Output goes to gba-ds.log next to this script.
+# GBA DS's own output reaches the log through a pipe and a separate cat
+# (> >(exec cat >> LOG)), so the game never waits on the card, or ROCKNIX's
+# merged /storage/roms folder, to write a log line (issue #50: a write held
+# up there froze the game and broke the sound). The pipe holds 64 KB; cat
+# writes everything out after GBA DS ends or crashes. GBA DS keeps its own
+# exit status and process (exec on BananaOS).
 
 . /etc/profile >/dev/null 2>&1
 
@@ -137,7 +143,7 @@ if [ -d /etc/banana ]; then
 	mkdir -p /data/screenshots /data/saves/gba 2>/dev/null
 	echo "Banana paths: ${B[*]//--ra-password=*/--ra-password=...}" >> "$LOG"
 	[ -n "$EXEC_NOTE" ] && echo "$EXEC_NOTE" >> "$LOG"
-	exec "$GBADS" "${B[@]}" "$@" >> "$LOG" 2>&1
+	exec "$GBADS" "${B[@]}" "$@" > >(exec cat >> "$LOG") 2>&1
 fi
 
 # Any other system (the RG DS Plus's Stock Linux OS, ...): neither
@@ -228,8 +234,10 @@ if ! grep -qi rocknix /etc/os-release 2>/dev/null && [ ! -d /storage/.config/sys
 		} >> "$LOG" 2>&1
 	) &
 	[ -n "$EXEC_NOTE" ] && echo "$EXEC_NOTE" >> "$LOG"
-	"$GBADS" "${O[@]}" "$@" >> "$LOG" 2>&1
-	exit $?
+	"$GBADS" "${O[@]}" "$@" > >(exec cat >> "$LOG") 2>&1
+	st=$?
+	wait $! 2>/dev/null # (the log written out before the traps add to it)
+	exit $st
 fi
 
 # Second screen on and in place for the run (stock ROCKNIX keeps it off),
@@ -284,4 +292,7 @@ restore_governors() {
 trap 'restore_governors; bash "$DIR/screens.sh" off >> "$DIR/gba-ds.log" 2>&1' EXIT
 trap 'exit 143' TERM INT HUP
 
-"$GBADS" "$@" >> "$DIR/gba-ds.log" 2>&1
+"$GBADS" "$@" > >(exec cat >> "$DIR/gba-ds.log") 2>&1
+st=$?
+wait $! 2>/dev/null # (the log written out before the trap adds to it)
+exit $st
