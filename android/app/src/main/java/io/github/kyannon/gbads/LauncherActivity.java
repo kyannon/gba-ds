@@ -7,6 +7,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.hardware.display.DisplayManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -191,10 +192,33 @@ public class LauncherActivity extends Activity {
     }
 
     private void launchGame(String rom) {
-        Intent game = new Intent(this, GbaDsActivity.class);
+        GbaDsActivity now = GbaDsActivity.running;
+        /* One display (a phone, a Surface Duo; issue #48): the game in this
+         * task, which keeps this window: a Duo opens a new task on one screen,
+         * so a game in a task of its own came up on one screen when the player
+         * had spanned the app. Only when this task is the launcher's own (the
+         * app icon, or a frontend that asked for a new task): in a frontend's
+         * task the game would become part of the frontend's. A game already
+         * running gets the request where it is. */
+        boolean here = now != null ? now instanceof GbaDsHereActivity : !hasSecondDisplay() && isTaskRoot();
+        Intent game = new Intent(this, here ? GbaDsHereActivity.class : GbaDsActivity.class);
         if (rom != null) {
             launchLog(this, "game from the launch request: " + rom);
             game.putExtra("rom", rom);
+        }
+        if (here) {
+            /* (running: NEW_TASK finds its task, the app's usual one; CLEAR_TOP
+             * and SINGLE_TOP hand it the request, onNewIntent) */
+            if (now != null) game.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            launchLog(this, now != null ? "the game is running in the launcher's task: handing it the request"
+                    : "one display: starting the game in the launcher's task (task " + getTaskId() + ")");
+            try {
+                startActivity(game);
+            } catch (RuntimeException e) {
+                launchLog(this, "couldn't start the game: " + e);
+            }
+            finish();
+            return;
         }
         /* A task of its own (see taskAffinity in the manifest): started inside
          * this launcher's task, it would open on whatever display the launcher
@@ -215,6 +239,15 @@ public class LauncherActivity extends Activity {
             }
         }
         finish();
+    }
+
+    /** Another display besides the main one (RG DS, AYN Thor, Retroid Pocket
+     * Duo...), where the game puts its second screen. A Surface Duo's two
+     * screens are one display. */
+    private boolean hasSecondDisplay() {
+        DisplayManager dm = (DisplayManager) getSystemService(Context.DISPLAY_SERVICE);
+        for (Display d : dm.getDisplays()) if (d.getDisplayId() != Display.DEFAULT_DISPLAY) return true;
+        return false;
     }
 
     /* ------------------------------------------------------------ the ROM from an intent */
