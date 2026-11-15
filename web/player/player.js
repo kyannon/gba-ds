@@ -723,7 +723,7 @@ async function boot(opts) {
   P.worker = worker;
   P.caps = null;
   worker.onmessage = (e) => onWorker(worker, e.data);
-  worker.onerror = (e) => { if (P.worker === worker) { addLog("worker error: " + e.message); toast("GBA DS stopped: " + e.message, true); endRun(worker); } };
+  worker.onerror = (e) => { if (P.worker === worker) { const why = workerError(e); addLog("worker error: " + why + " (" + navigator.userAgent + ")"); toast("GBA DS stopped: " + why, true); endRun(worker); } };
   const canvas = freshCanvas().transferControlToOffscreen();
   document.body.classList.add("playing");
   $("start").hidden = true;
@@ -738,6 +738,12 @@ async function boot(opts) {
   if (A.node) linkSound();
   P.booting = false;
   lastMask = -1;
+}
+// a worker's error event: some browsers give no message (its script didn't load, or the error wasn't an Error)
+function workerError(e) {
+  if (e && e.message) return e.message + (e.filename ? " (" + e.filename.replace(/^.*\//, "") + ":" + e.lineno + ")" : "");
+  if (e && e.error) return String(e.error.stack || e.error);
+  return "the browser gave no reason (its worker may not have been allowed to start" + (location.protocol === "file:" ? " from a file on disk: try the player on its website" : "") + ")";
 }
 /* ---- map captures in a worker of their own (a second copy of the app) */
 const CAP = { w: null, key: "", busy: false, next: null, dead: false };
@@ -755,7 +761,7 @@ function captureJob(m) {
     catch (e) { captureFailed("the capture worker didn't start: " + e.message); return; }
     Object.assign(CAP, { w, key, busy: false, next: null });
     w.onmessage = (e) => onCapture(w, e.data);
-    w.onerror = (e) => { if (CAP.w === w) captureFailed(e.message); };
+    w.onerror = (e) => { if (CAP.w === w) captureFailed(workerError(e)); };
     const env = Object.assign({}, P.capEnv, { GBADS_CAPTURE_SERVE: m.code, GBADS_CAPTURE_TIGHT: m.tight ? "1" : "0" });
     const mine = P.capFiles.some(([p]) => p === m.rom);
     const files = P.capFiles.filter(([p]) => !p.startsWith("/roms/") || !mine || p === m.rom);

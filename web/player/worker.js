@@ -15,6 +15,11 @@ let paused = false;
 let legacyMask = 0;
 
 const post = (m, transfer) => postMessage(m, transfer || []);
+// a promise that failed with nobody waiting on it never reaches the page's onerror: say what it was
+self.addEventListener("unhandledrejection", (e) => {
+  const r = e.reason;
+  post({ t: "exit", code: -1, error: r && (r.stack || r.message) || String(r) });
+});
 const log = (line) => post({ t: "log", line });
 
 /* ------------------------------------------------------------ video */
