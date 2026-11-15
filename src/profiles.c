@@ -8347,9 +8347,10 @@ static const MapProfile profiles[] = {
 		/* the title, the language list, the class choice, GAME OVER: the
 		 * logo (BGD-5, BGD-9) */
 		.menu = { { BGD_V_LOGO, 0xFF, 1, 4 } },
-		/* the lettering on its piece of the title's parchment map, BG2 a
-		 * bitmap (BGD-6; the European language list is sprites, left out) */
-		.logo = { .wait = 1500, .layers = 0x4, .minX = 32, .maxX = 212, .minY = 6, .maxY = 97 },
+		/* the title's lettering cut out of its parchment map along the
+		 * logo artwork's outline (BGD-6; the European language list, sprites
+		 * below the lettering, is outside it) */
+		.logo = { .wait = 1500, .mask = &logoMaskBGD, .rev = 1 },
 	},
 	{
 		/* Harry Potter and the Prisoner of Azkaban (USA and Europe, one
