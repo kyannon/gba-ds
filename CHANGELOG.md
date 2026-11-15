@@ -2,6 +2,9 @@
 
 ## v1.5.4 (not yet released)
 
+### Changes
+- **The log now says where any pause in play went** (#50): when a frame takes longer than a tenth of a second, `gba-ds.log` gets a line saying how long it took and what GBA DS was doing (emulating, drawing either screen, handing over sound, waiting), at most a few lines every 5 seconds. If the game or its sound stutters on your device, send that log with your report.
+
 ## v1.5.3 (2026-11-15)
 
 ### New games
