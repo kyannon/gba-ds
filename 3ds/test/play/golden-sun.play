@@ -1,0 +1,86 @@
+# fourth pass: from Vale's field, walk the grass for random battles (GS-7, GS-8), then the menu and HOME
+wait 180
+mash START 4 40
+mash A 25 60
+wait 240
+mash A 40 60
+mash A 40 60
+wait 120
+mash B 10 40
+wait 60
+hold DOWN 200
+hold RIGHT 200
+hold DOWN 200
+hold LEFT 200
+hold UP 200
+hold RIGHT 200
+hold DOWN 200
+hold LEFT 200
+shot grass0
+hold UP 200
+hold RIGHT 200
+hold DOWN 200
+hold LEFT 200
+hold UP 200
+hold RIGHT 200
+shot grass1
+hold DOWN 200
+hold LEFT 200
+hold UP 200
+hold RIGHT 200
+hold DOWN 200
+hold LEFT 200
+hold UP 200
+shot grass2
+hold RIGHT 200
+hold DOWN 200
+hold LEFT 200
+hold UP 200
+hold RIGHT 200
+hold DOWN 200
+shot grass3
+hold LEFT 200
+hold UP 200
+hold RIGHT 200
+hold DOWN 200
+hold LEFT 200
+hold UP 200
+shot grass4
+# walk on through the grass; no A (the first pass's A opened the Psynergy menu)
+hold UP 200
+hold LEFT 200
+hold DOWN 200
+hold RIGHT 200
+hold UP 200
+hold LEFT 200
+shot battle0
+hold DOWN 200
+hold RIGHT 200
+hold UP 200
+hold LEFT 200
+hold DOWN 200
+hold RIGHT 200
+shot battle1
+hold LEFT 200
+hold UP 200
+hold RIGHT 200
+hold DOWN 200
+hold LEFT 200
+hold UP 200
+shot battle2
+press SELECT 4
+wait 60
+shot menu
+press B 4
+wait 60
+press HOME 6
+wait 30
+shot homemenu
+press HOME 6
+wait 30
+press HOME+Y 6
+wait 20
+shot swapped
+press HOME+Y 6
+wait 20
+shot back

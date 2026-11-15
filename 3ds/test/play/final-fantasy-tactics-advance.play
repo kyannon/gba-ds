@@ -1,0 +1,23 @@
+# third pass: through the opening into the first battle (if reached), cursor, Status, pause, hotkeys
+wait 240
+mash START 6 40
+mash A 150 40
+shot opening
+mash A 60 40
+shot later
+press START 4
+wait 60
+shot menu
+press B 4
+wait 30
+press HOME 6
+wait 30
+shot homemenu
+press HOME 6
+wait 30
+press HOME+Y 6
+wait 20
+shot swapped
+press HOME+Y 6
+wait 20
+shot back

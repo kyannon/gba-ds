@@ -1,0 +1,44 @@
+wait 180
+mash START 4 40
+mash A 12 40
+wait 240
+mash A 60 40
+wait 120
+shot intro
+mash A 60 40
+wait 120
+shot field
+hold RIGHT 90
+shot walk
+press START 4
+wait 90
+press A 4
+wait 120
+shot startmenu
+press B 4
+wait 60
+press B 4
+wait 90
+press SELECT 4
+wait 30
+shot select
+press B 4
+wait 60
+press HOME+R 6
+hold UP 60
+hold LEFT 60
+shot moved
+press HOME+L 6
+wait 20
+shot loaded
+press HOME 6
+wait 30
+shot menu
+press HOME 6
+wait 30
+press HOME+Y 6
+wait 20
+shot swapped
+press HOME+Y 6
+wait 20
+shot back

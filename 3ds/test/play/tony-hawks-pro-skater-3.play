@@ -1,0 +1,24 @@
+wait 300
+press START 6
+wait 120
+mash A 12 120
+wait 600
+shot level
+hold UP 240
+shot run
+press START 6
+wait 60
+shot pause
+press START 6
+wait 120
+press HOME+R 6
+hold RIGHT 120
+press HOME+L 6
+wait 10
+shot loaded
+press HOME+Y 6
+wait 20
+shot swapped
+press HOME+Y 6
+wait 20
+shot back

@@ -1,0 +1,43 @@
+# second pass: the title, the menus (Grand Prix, a machine, a course), into a race, drive, then HOME
+wait 180
+mash START 4 40
+mash A 20 60
+shot menu1
+mash A 20 60
+shot menu2
+mash A 25 60
+wait 240
+shot menu3
+mash A 25 60
+wait 240
+shot race0
+hold A 400
+shot race1
+hold A+LEFT 150
+hold A 300
+shot race2
+hold A+RIGHT 150
+hold A 400
+shot race3
+press START 4
+wait 60
+shot pause
+press B 4
+wait 90
+press HOME+R 6
+hold A 200
+shot moved
+press HOME+L 6
+wait 10
+shot loaded
+press HOME 6
+wait 30
+shot homemenu
+press HOME 6
+wait 30
+press HOME+Y 6
+wait 20
+shot swapped
+press HOME+Y 6
+wait 20
+shot back

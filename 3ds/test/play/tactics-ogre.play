@@ -1,0 +1,34 @@
+wait 300
+mash START 3 60
+mash A 30 60
+wait 300
+shot a-title
+mash A 60 40
+wait 300
+shot b-intro
+mash A 60 40
+wait 300
+shot c-after
+press START 6
+wait 90
+shot d-menu
+press B 6
+wait 60
+press HOME+R 6
+wait 30
+hold RIGHT 90
+shot hk-moved
+press HOME+L 6
+wait 60
+shot hk-loaded
+press HOME 6
+wait 30
+shot hk-menu
+press HOME 6
+wait 30
+press HOME+Y 6
+wait 20
+shot hk-swapped
+press HOME+Y 6
+wait 20
+shot hk-back

@@ -1,0 +1,39 @@
+wait 240
+mash START 4 40
+mash A 10 40
+wait 300
+press START 6
+wait 60
+press A 6
+wait 60
+mash A 60 40
+wait 200
+mash A 60 40
+wait 200
+shot a-room
+hold RIGHT 300
+wait 120
+shot b-next
+mash START 3 60
+wait 120
+shot c-pause
+press B 6
+wait 60
+press HOME 6
+wait 30
+shot d-home
+press HOME 6
+wait 30
+press HOME+R 6
+wait 30
+hold RIGHT 120
+shot e-moved
+press HOME+L 6
+wait 60
+shot f-loaded
+press HOME+Y 6
+wait 20
+shot g-swapped
+press HOME+Y 6
+wait 20
+shot h-back

@@ -1,0 +1,36 @@
+# third pass: through the cutscenes to the hub and into Inferno Island's race, then drive it to the finish
+wait 180
+mash START 4 40
+mash A 25 40
+wait 240
+mash A 40 60
+mash A 40 60
+wait 180
+mash A 40 60
+wait 240
+mash A 20 60
+shot race0
+hold UP 1500
+hold LEFT 60
+hold UP 1200
+shot race1
+hold UP 1500
+hold RIGHT 60
+hold UP 1200
+shot race2
+hold UP 1500
+hold LEFT 60
+hold UP 1500
+shot race3
+hold UP 1500
+hold RIGHT 60
+hold UP 1500
+shot race4
+hold UP 1500
+hold UP 1500
+shot race5
+wait 300
+shot end
+mash A 20 60
+wait 60
+shot after

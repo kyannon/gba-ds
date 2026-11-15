@@ -1,0 +1,51 @@
+# second pass (the one that works): START at the title, then A through the language and Arcade menus into a table (Neo Green Hill Zone);
+# the flippers, the plunger, pause, HOME
+wait 200
+mash START 4 90
+wait 120
+mash A 2 100
+mash START 2 100
+mash A 2 100
+mash A 2 100
+mash A 3 100
+mash START 3 100
+mash A 3 100
+mash A 3 100
+mash A 3 100
+wait 200
+shot table0
+mash A 2 60
+wait 120
+shot launch
+hold A 30
+wait 120
+shot table1
+mash L 8 30
+mash R 8 30
+shot flip
+mash L 10 20
+mash R 10 20
+wait 200
+shot table2
+press START 4
+wait 60
+shot pause
+press START 4
+wait 60
+press HOME+R 6
+hold L 40
+shot moved
+press HOME+L 6
+wait 10
+shot loaded
+press HOME 6
+wait 30
+shot homemenu
+press HOME 6
+wait 30
+press HOME+Y 6
+wait 20
+shot swapped
+press HOME+Y 6
+wait 20
+shot back

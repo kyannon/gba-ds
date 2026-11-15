@@ -1,0 +1,26 @@
+wait 300
+mash START 8 120
+wait 120
+shot title
+mash A 40 120
+wait 200
+shot after
+mash A 40 120
+wait 200
+shot later
+press HOME 6
+wait 30
+shot home_menu
+press HOME 6
+wait 30
+press HOME+R 6
+wait 30
+press HOME+L 6
+wait 30
+shot loaded
+press HOME+Y 6
+wait 20
+shot swapped
+press HOME+Y 6
+wait 20
+shot back

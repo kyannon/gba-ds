@@ -1,0 +1,53 @@
+wait 180
+mash START 4 40
+mash A 6 40
+wait 120
+mash A 8 60
+wait 120
+mash A 6 40
+press A 4
+wait 120
+mash START 4 40
+mash A 60 40
+wait 120
+shot game1
+mash A 60 40
+wait 180
+shot map
+mash START 3 40
+wait 120
+shot menu
+press B 4
+wait 60
+press B 4
+wait 60
+hold RIGHT 60
+shot cursor
+press R 6
+wait 30
+shot intel
+press B 4
+wait 30
+hold DOWN 60
+press R 6
+wait 30
+shot intel2
+press B 4
+wait 30
+press HOME+R 6
+hold DOWN 60
+shot moved
+press HOME+L 6
+wait 20
+shot loaded
+press HOME 6
+wait 30
+shot hmenu
+press HOME 6
+wait 30
+press HOME+Y 6
+wait 20
+shot swapped
+press HOME+Y 6
+wait 20
+shot back

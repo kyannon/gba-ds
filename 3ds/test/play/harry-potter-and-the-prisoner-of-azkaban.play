@@ -1,0 +1,42 @@
+wait 300
+press A 6
+wait 400
+mash START 8 120
+wait 120
+shot file
+press A 8
+wait 400
+press A 8
+wait 400
+mash A 30 120
+wait 200
+shot intro
+mash A 30 120
+wait 200
+shot field
+hold RIGHT 100
+wait 30
+shot walked
+press START 6
+wait 60
+shot menu
+press B 6
+wait 40
+press HOME 6
+wait 30
+shot home_menu
+press HOME 6
+wait 30
+press HOME+R 6
+wait 30
+hold LEFT 60
+wait 30
+press HOME+L 6
+wait 30
+shot loaded
+press HOME+Y 6
+wait 20
+shot swapped
+press HOME+Y 6
+wait 20
+shot back

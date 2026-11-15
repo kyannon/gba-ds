@@ -1,0 +1,35 @@
+wait 240
+shot title
+mash START 3 40
+mash A 30 60
+wait 120
+shot intro
+mash A 60 60
+wait 120
+shot story
+mash A 60 60
+wait 120
+shot map
+press START 6
+wait 60
+shot menu
+press B 6
+wait 40
+press HOME 6
+wait 30
+shot home_menu
+press HOME 6
+wait 30
+press HOME+R 6
+wait 30
+hold RIGHT 40
+wait 30
+press HOME+L 6
+wait 30
+shot loaded
+press HOME+Y 6
+wait 20
+shot swapped
+press HOME+Y 6
+wait 20
+shot back

@@ -1,0 +1,36 @@
+# fourth pass: press through the story (A and START), then walk the first area, Scouter, pause, hotkeys
+wait 240
+mash START 6 40
+mash A 200 30
+mash START 40 60
+shot field
+hold DOWN 90
+hold RIGHT 120
+shot walking
+press SELECT 6
+wait 60
+shot scouter
+press SELECT 6
+wait 30
+press START 4
+wait 60
+shot pause
+press B 4
+wait 30
+press HOME 6
+wait 30
+shot homemenu
+press HOME 6
+wait 30
+press HOME+R 6
+hold RIGHT 60
+shot moved
+press HOME+L 6
+wait 10
+shot loaded
+press HOME+Y 6
+wait 20
+shot swapped
+press HOME+Y 6
+wait 20
+shot back

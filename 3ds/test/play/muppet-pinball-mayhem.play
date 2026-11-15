@@ -1,0 +1,29 @@
+wait 240
+mash START 4 60
+mash A 8 60
+wait 300
+mash A 8 90
+wait 300
+shot table
+hold DOWN 90
+wait 200
+shot ball
+hold DOWN 40
+wait 400
+press L 6
+press R 6
+hold L 60
+hold R 60
+wait 200
+shot play
+press START 6
+wait 60
+shot pause
+press START 6
+wait 60
+press HOME+Y 6
+wait 20
+shot swapped
+press HOME+Y 6
+wait 20
+shot back

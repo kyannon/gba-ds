@@ -1,0 +1,38 @@
+wait 240
+mash START 4 60
+mash A 6 60
+wait 300
+mash A 4 60
+wait 600
+mash A 70 90
+wait 300
+mash A 10 60
+wait 120
+shot ingame
+hold RIGHT 150
+wait 60
+shot walked
+press START 6
+wait 120
+shot pause
+press START 6
+wait 120
+hold RIGHT 200
+wait 120
+shot room2
+press HOME+R 6
+hold RIGHT 150
+press HOME+L 6
+wait 10
+shot loaded
+press HOME 6
+wait 30
+shot homemenu
+press HOME 6
+wait 30
+press HOME+Y 6
+wait 20
+shot swapped
+press HOME+Y 6
+wait 20
+shot back

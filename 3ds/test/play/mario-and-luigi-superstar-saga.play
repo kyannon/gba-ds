@@ -1,0 +1,50 @@
+# fourth pass: the first room, SELECT held longer and tried after a step; then out of the room
+wait 180
+mash START 4 40
+mash A 25 60
+wait 240
+mash A 40 60
+mash A 40 60
+wait 240
+mash A 40 60
+mash A 30 60
+wait 120
+mash A 20 60
+wait 120
+hold UP 60
+hold RIGHT 60
+press SELECT 12
+wait 40
+shot selD
+press B 4
+wait 60
+mash A 12 60
+wait 60
+hold DOWN 200
+hold LEFT 200
+hold DOWN 200
+hold RIGHT 200
+press SELECT 12
+wait 40
+shot selE
+press B 4
+wait 60
+press B 4
+wait 60
+press HOME+R 6
+hold UP 100
+shot moved
+press HOME+L 6
+wait 10
+shot loaded
+press HOME 6
+wait 30
+shot homemenu
+press HOME 6
+wait 30
+press HOME+Y 6
+wait 20
+shot swapped
+press HOME+Y 6
+wait 20
+shot back
