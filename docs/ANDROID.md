@@ -700,15 +700,42 @@ one way round only (upside down with the controller's cable on the left).
 - Not tried on a Duo yet: the questions are with the player on the issue.
   The owner's call (Nov 14): it ships with the next release whether or not
   the player has answered by then, and is iterated on from their report.
-  Not known: whether the Duo keeps the game spanned when started from the
-  launcher (LauncherActivity starts GbaDsActivity in a task of its own; if
-  the Duo opens that on one screen, that's next).
+  The player's first answer (Nov 15, on the v1.5.3-dev build): it turns
+  the right way round now (they also have a MacroDroid rule forcing a
+  rotation, so not certain which did it), but it still opens on one
+  screen when the app is set to span. Fixed on branch `issue-48` (below).
   Held wide (two tall screens side by side), the game list's top bar is
   cut off at 1350 wide.
+
+### Opening spanned (branch `issue-48`, Nov 15, 2026)
+
+The app icon starts LauncherActivity (translucent, excludeFromRecents),
+which the Duo spans when the player has set the app to span; it then
+started GbaDsActivity in a task of its own (taskAffinity `...gbads.game`,
+singleTask: needed with two displays, where GammaOS put the launcher's
+task on either display), and the Duo opens a new task on one screen.
+
+- `GbaDsHereActivity` (a subclass of GbaDsActivity, nothing else
+  different) has the app's usual task affinity and singleTop. LauncherActivity
+  starts it, in its own task and without launch options, when there's no
+  display besides the main one and the launcher is its task's root (the
+  icon, or a frontend that asked for a new task; in a frontend's own task
+  the old path is kept, so the game doesn't become part of the frontend's
+  task). It takes the task back into Recents (`AppTask.setExcludeFromRecents(false)`,
+  as the launcher at its root left it out).
+- `GbaDsActivity.running`: a game already running gets a new request in
+  its own task (the Here one: NEW_TASK | CLEAR_TOP | SINGLE_TOP, so
+  onNewIntent), never a second activity beside it.
+- Two displays: unchanged (GbaDsActivity in its own task on display 0).
+- launch.log says "one display: starting the game in the launcher's task".
 
 ## For the next release
 
 Player-facing Android changes since the last release, for the main session
 to move into CHANGELOG.md and the release notes (see CLAUDE.md, "More than
 one session"). Empty after each release.
+
+- Fixes: Surface Duo: with the app set to span both screens, GBA DS now
+  opens spanned (it opened on one screen and had to be spanned again by
+  hand; issue #48).
 

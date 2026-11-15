@@ -49,8 +49,14 @@ public class GbaDsActivity extends SDLActivity {
     private static final String TAG = "GBADS";
     private SecondScreen second;
 
+    /** The game activity in this process, if one is running (this class or
+     * {@link GbaDsHereActivity}): the launcher sends a new request to it,
+     * in its task, rather than starting a second one. */
+    static volatile GbaDsActivity running;
+
     @Override
     protected void onCreate(Bundle state) {
+        running = this;
         /* before SDL starts the native thread: where config, states and the log go */
         File home = dataFolder();
         try {
@@ -465,6 +471,7 @@ public class GbaDsActivity extends SDLActivity {
             second = null;
         }
         boolean finishing = isFinishing();
+        if (running == this) running = null;
         super.onDestroy();
         /* the native side keeps its state in statics: start fresh next time
          * (with the game a frontend asked for, if that's why we closed) */
