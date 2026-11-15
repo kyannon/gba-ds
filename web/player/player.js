@@ -500,6 +500,19 @@ function appWindow() {
     args: same ? [] : ["--screen_ppi=" + ppi(tw, th, d.top[2]) + "," + ppi(bw, bh, d.bottom[2])],
   };
 }
+// GBA DS's settings file for the web: the build's, then the player's own defaults, which
+// come after it so they win; the pause menu's choices (states/prefs.cfg) still win over both.
+// Full Width: the pictures fill the screens' width at any resolution and detail (Pixel
+// Perfect's whole-number scale leaves a border round them, a wide one at half the detail).
+const WEB_DEFAULTS = "\n# the web player's defaults\nscale = fit\nmap_scale = fit\n";
+function webConfig() {
+  const own = P.build.files.find(([rel]) => rel === "gba-ds.cfg");
+  const add = new TextEncoder().encode(WEB_DEFAULTS);
+  if (!own) return add;
+  const out = new Uint8Array(own[1].length + add.length);
+  out.set(own[1]); out.set(add, own[1].length);
+  return out;
+}
 // where the two screens go on the page (CSS px), for the arrangement and sizes chosen
 function placeScreens(win, W, H) {
   const [a, b] = win.screens;
@@ -664,7 +677,8 @@ async function boot(opts) {
   const win = appWindow();
   P.win = win;
   const files = [];
-  for (const [rel, b] of P.build.files) files.push(["/gba-ds/" + rel, b]);
+  for (const [rel, b] of P.build.files) if (rel !== "gba-ds.cfg") files.push(["/gba-ds/" + rel, b]);
+  files.push(["/gba-ds/gba-ds.cfg", webConfig()]);
   // the folder's files when there is one (the browser's home folder still), else the browser's
   for (const [p, b] of await allFiles()) if (!useFolder || p.startsWith("/home/")) files.push([p, b]);
   if (useFolder) { try { for (const f of await folderFiles(!!opts.library)) files.push(f); } catch (e) { folderFailed(e); } }
