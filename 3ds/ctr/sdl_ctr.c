@@ -180,6 +180,14 @@ void SDL_FreeSurface(SDL_Surface* s) {
 	free(s);
 }
 
+SDL_Surface* SDL_DuplicateSurface(SDL_Surface* s) {
+	if (!s) return NULL;
+	SDL_Surface* d = SDL_CreateRGBSurfaceWithFormat(0, s->w, s->h, 32, s->format->format);
+	if (!d) return NULL;
+	for (int y = 0; y < s->h; ++y) memcpy((Uint8*) d->pixels + y * d->pitch, (const Uint8*) s->pixels + y * s->pitch, (size_t) s->w * 4);
+	return d;
+}
+
 Uint32 SDL_MapRGBA(const SDL_PixelFormat* f, Uint8 r, Uint8 g, Uint8 b, Uint8 a) {
 	if (f->format == SDL_PIXELFORMAT_ARGB8888) return (Uint32) a << 24 | (Uint32) r << 16 | (Uint32) g << 8 | b;
 	return (Uint32) a << 24 | (Uint32) b << 16 | (Uint32) g << 8 | r;

@@ -10,6 +10,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <string.h>
 
 typedef uint8_t Uint8;
@@ -27,6 +28,8 @@ typedef enum { SDL_FALSE, SDL_TRUE } SDL_bool;
 #define SDL_clamp(x, a, b) (((x) < (a)) ? (a) : (((x) > (b)) ? (b) : (x)))
 #define SDL_arraysize(a) (sizeof(a) / sizeof((a)[0]))
 #define SDL_free free
+#define SDL_tolower tolower
+#define SDL_toupper toupper
 
 typedef struct SDL_Rect { int x, y, w, h; } SDL_Rect;
 typedef struct SDL_Point { int x, y; } SDL_Point;
@@ -50,6 +53,7 @@ const char* SDL_GetPlatform(void);
 #define SDL_HINT_RENDER_SCALE_QUALITY "SDL_RENDER_SCALE_QUALITY"
 #define SDL_HINT_ORIENTATIONS "SDL_IOS_ORIENTATIONS"
 #define SDL_HINT_ANDROID_TRAP_BACK_BUTTON "SDL_ANDROID_TRAP_BACK_BUTTON"
+#define SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS "SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS"
 SDL_bool SDL_SetHint(const char* name, const char* value);
 #define SDL_DISABLE 0
 int SDL_ShowCursor(int toggle);
@@ -92,6 +96,7 @@ typedef struct SDL_Surface {
 SDL_Surface* SDL_CreateRGBSurfaceWithFormat(Uint32 flags, int w, int h, int depth, Uint32 format);
 SDL_Surface* SDL_CreateRGBSurfaceWithFormatFrom(void* pixels, int w, int h, int depth, int pitch, Uint32 format);
 void SDL_FreeSurface(SDL_Surface* s);
+SDL_Surface* SDL_DuplicateSurface(SDL_Surface* s);
 static inline int SDL_LockSurface(SDL_Surface* s) { (void) s; return 0; }
 static inline void SDL_UnlockSurface(SDL_Surface* s) { (void) s; }
 Uint32 SDL_MapRGBA(const SDL_PixelFormat* f, Uint8 r, Uint8 g, Uint8 b, Uint8 a);
