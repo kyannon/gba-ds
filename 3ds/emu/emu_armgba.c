@@ -51,6 +51,7 @@ typedef struct ArmCore {
 	SpriteRule rules[12];
 	int nRules;
 	bool keepOnly; /* hide every sprite that matches none of the rules instead */
+	bool grouped;  /* a matching sprite hidden only as part of a group (emu_hide_grouped) */
 	uint16_t exact[128][3];
 	int nExact;
 	bool exactKeep;
@@ -1118,12 +1119,7 @@ void emu_oam_write(Emu* e, const uint16_t* src) {
 
 /* armGBA's renderer asks this of each sprite as it lists them (its
  * RenderHooks, third_party/armgba src/video/render.h). */
-static bool sprite_hidden(void* context, uint16_t a, uint16_t b, uint16_t attrC) {
-	const ArmCore* c = context;
-	for (int i = 0; i < c->nExact; ++i) {
-		if (c->exact[i][0] == a && c->exact[i][1] == b && c->exact[i][2] == attrC) return !c->exactKeep;
-	}
-	if (!c->nRules && !c->keepOnly) return false;
+static bool rules_match(const ArmCore* c, uint16_t a, uint16_t b, uint16_t attrC) {
 	int x = (int) ((uint32_t) (b & 0x1FF) << 23) >> 23;
 	int y = a & 0xFF;
 	if (y >= 160) y -= 256;
@@ -1137,14 +1133,97 @@ static bool sprite_hidden(void* context, uint16_t a, uint16_t b, uint16_t attrC)
 		if (x >= r->x0 && x <= r->x1 && y >= r->y0 && y <= r->y1 && tile >= r->tileMin && tile <= r->tileMax &&
 		    (r->prio < 0 || prio == r->prio) && (!r->palMask || (r->palMask >> pal & 1)) &&
 		    (!r->tagged || (!transformed && (b & r->tagged))) && (!r->shapes || (r->shapes >> (shape * 4 + size) & 1))) {
-			return !c->keepOnly;
+			return true;
 		}
 	}
-	return c->keepOnly;
+	return false;
+}
+
+/* emu_hide_grouped (src/emu.c's hide_grouped; Lady Sia): of the sprites the
+ * rules match, only those in the run of matching sprites at the start of the
+ * table, or in a run of sprites in one palette that all match, are hidden.
+ * armGBA tells the frontend the table as the game picture's sprites are listed
+ * (spriteTable, on the thread that draws), then asks about each listed sprite
+ * in order (sprite_hidden): the list and its choices are made here as armGBA
+ * will list them, kept per thread. */
+static const uint8_t objSizes[16][2] = { { 8, 8 }, { 16, 16 }, { 32, 32 }, { 64, 64 }, { 16, 8 }, { 32, 8 }, { 32, 16 }, { 64, 32 },
+	                                     { 8, 16 }, { 8, 32 }, { 16, 32 }, { 32, 64 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 } };
+static _Thread_local struct {
+	const ArmCore* core;
+	int n, next;
+	uint16_t attr[128][3];
+	bool hide[128];
+} groups;
+
+static void sprite_table(void* context, const uint8_t* oam) {
+	const ArmCore* c = context;
+	groups.core = c;
+	groups.n = groups.next = 0;
+	if (!c->grouped || c->keepOnly || !c->nRules) return;
+	bool match[128];
+	int pal[128];
+	/* the sprites armGBA lists (render.c cleanOam): switched on, and on the
+	 * screen's lines and columns */
+	for (int i = 0; i < 128; ++i) {
+		uint16_t a = (uint16_t) (oam[i * 8] | oam[i * 8 + 1] << 8);
+		uint16_t b = (uint16_t) (oam[i * 8 + 2] | oam[i * 8 + 3] << 8);
+		uint16_t cc = (uint16_t) (oam[i * 8 + 4] | oam[i * 8 + 5] << 8);
+		bool transformed = (a >> 8) & 1;
+		if (!transformed && ((a >> 9) & 1)) continue;
+		int w = objSizes[((a >> 14) & 3) * 4 + ((b >> 14) & 3)][0];
+		int h = objSizes[((a >> 14) & 3) * 4 + ((b >> 14) & 3)][1];
+		int x = (int) ((uint32_t) (b & 0x1FF) << 23) >> 23;
+		if (transformed) {
+			int dbl = (a >> 9) & 1;
+			w <<= dbl;
+			h <<= dbl;
+		} else if (x < 0 && x + w < 0) {
+			continue;
+		}
+		if ((a & 0xFF) >= 160 && (a & 0xFF) + h < 228) continue;
+		if ((b & 0x1FF) >= 240 && (b & 0x1FF) + w < 512) continue;
+		int k = groups.n++;
+		groups.attr[k][0] = a, groups.attr[k][1] = b, groups.attr[k][2] = cc;
+		match[k] = rules_match(c, a, b, cc);
+		pal[k] = cc >> 12;
+		groups.hide[k] = false;
+	}
+	/* the run at the start */
+	for (int k = 0; k < groups.n && match[k]; ++k) groups.hide[k] = true;
+	/* runs in one palette */
+	for (int k = 0; k < groups.n;) {
+		int j = k;
+		bool all = true;
+		for (; j < groups.n && pal[j] == pal[k]; ++j) all = all && match[j];
+		for (int m = k; m < j; ++m) groups.hide[m] = groups.hide[m] || all;
+		k = j;
+	}
+}
+
+/* armGBA's renderer asks this of each sprite as it lists them (its
+ * RenderHooks, third_party/armgba src/video/render.h). */
+static bool sprite_hidden(void* context, uint16_t a, uint16_t b, uint16_t attrC) {
+	const ArmCore* c = context;
+	for (int i = 0; i < c->nExact; ++i) {
+		if (c->exact[i][0] == a && c->exact[i][1] == b && c->exact[i][2] == attrC) return !c->exactKeep;
+	}
+	if (!c->nRules && !c->keepOnly) return false;
+	if (c->grouped && !c->keepOnly && groups.core == c) {
+		/* the next listed sprite: found from where the last one was */
+		for (int t = 0; t < groups.n; ++t) {
+			int k = (groups.next + t) % groups.n;
+			if (groups.attr[k][0] == a && groups.attr[k][1] == b && groups.attr[k][2] == attrC) {
+				groups.next = k + 1;
+				return groups.hide[k];
+			}
+		}
+	}
+	return rules_match(c, a, b, attrC) != c->keepOnly;
 }
 
 static void hooks_changed(ArmCore* c) {
 	c->hooks.hideSprite = c->nRules || c->keepOnly || c->nExact ? sprite_hidden : NULL;
+	c->hooks.spriteTable = c->grouped ? sprite_table : NULL;
 	c->hooks.context = c;
 	++c->hooks.generation;
 }
@@ -1179,14 +1258,11 @@ void emu_keep_sprites(Emu* e, const SpriteRule* rules, int n) {
 	hooks_changed(c);
 }
 
-/* src/emu.c hides a matching sprite only where it is part of a group (its run
- * in the sprite table): armGBA's hook is asked about one sprite at a time, on
- * whichever thread draws, without its place in the table, so here every
- * matching sprite is hidden, as GBA DS did before 1.5.4 (Lady Sia's
- * scenery that shares a HUD piece's place and shape: 3ds/README.md). */
+/* A matching sprite hidden only as part of a group (sprite_table above). */
 void emu_hide_grouped(Emu* e, bool on) {
-	(void) e;
-	(void) on;
+	ArmCore* c = AC(e);
+	c->grouped = on;
+	hooks_changed(c);
 }
 
 void emu_hide_exact(Emu* e, const uint16_t (*attrs)[3], int n) {

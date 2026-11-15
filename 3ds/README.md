@@ -82,11 +82,6 @@ when the app closes. Build without `LOG_URL` again
 - Save states are armGBA's, not mGBA's: states from GBA DS on another system
   don't load here, nor these there. Battery saves (`.sav`) are the same.
 - Screenshots of the screens as drawn (the GPU's picture isn't read back).
-- Lady Sia's game screen as GBA DS 1.5.3 had it: a level's sprite that has a
-  HUD piece's place and shape (the first village's well) can be left out of
-  the game screen with the HUD. GBA DS 1.5.4 tells them apart by where they
-  are in the sprite table (`emu_hide_grouped`), which armGBA's render hook
-  doesn't give.
 - The pinball games' table over both screens (Pokémon Pinball, Sonic Pinball
   Party, Muppet Pinball Mayhem): it runs up to three copies of the game a frame,
   far beyond a New 3DS (0.0.1-alpha ran out of memory opening it and froze).
