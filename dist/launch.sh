@@ -276,6 +276,7 @@ bash "$DIR/screens.sh" on >> "$DIR/gba-ds.log" 2>&1
 # putting them back (a crash, being killed), this does. What they are goes
 # into the log, for reports.
 GOV_STATE=/tmp/gba-ds-governors.state
+cfgval() { sed -n "s/^$1 *= *//p" "$DIR/gba-ds.cfg" 2>/dev/null | tail -n 1; }
 restore_governors() {
 	[ -f "$GOV_STATE" ] || return 0
 	while IFS=$'\t' read -r g was; do
@@ -291,13 +292,61 @@ restore_governors() {
 		[ -r "$g" ] && GOVS="$GOVS ${g#/sys/}=$(cat "$g" 2>/dev/null)"
 	done
 	echo "device: ${QUIRK_DEVICE:-unknown}; clock governors:${GOVS:- none found}"
+	echo "system: $(sed -n 's/^PRETTY_NAME=//p' /etc/os-release 2>/dev/null | tr -d '"') $(sed -n 's/^BUILD_ID=//p' /etc/os-release 2>/dev/null | tr -d '"'), $(uname -r)"
 } >> "$DIR/gba-ds.log" 2>&1
-trap '{ restore_governors; bash "$DIR/screens.sh" off; } >> "$DIR/gba-ds.log" 2>&1' EXIT
+
+# What the system does while GBA DS runs (issue #50: on one player's RG DS
+# Plus, presenting a frame stalled for half a second, in pairs 2.5 s apart
+# about every 10 s, standing still or not): kernel messages, the journal,
+# and sway's output, window and input events, each stamped with the system
+# clock in seconds (the kernel's and the journal's monotonic clock; sway's
+# from /proc/uptime, the same unless the device slept), as GBA DS's
+# "stall:" lines are, so a stall can be matched with what happened then.
+# At most 200 lines from each. watch_system = 0 in gba-ds.cfg turns it off.
+WATCH_PIDS=
+# each line as it comes (head would hold them back), 200 at most
+watch_lines() {
+	local n=0 l
+	while [ $n -lt 200 ] && IFS= read -r l; do
+		if [ "$2" = uptime ]; then echo "$1$(cut -d' ' -f1 /proc/uptime) s: ${l:0:300}"; else echo "$1${l:0:300}"; fi
+		n=$((n + 1))
+	done
+}
+watch_start() {
+	case "$(cfgval watch_system)" in 0|off|false|no) return ;; esac
+	local L="$DIR/gba-ds.log"
+	if dmesg --help 2>&1 | grep -q -- --follow-new; then
+		( dmesg -W 2>/dev/null | watch_lines "kernel: " ) >> "$L" 2>&1 &
+		WATCH_PIDS="$WATCH_PIDS $!"
+	fi
+	if command -v journalctl >/dev/null; then
+		( journalctl -f -n 0 -o short-monotonic --no-pager 2>/dev/null | watch_lines "journal: " ) >> "$L" 2>&1 &
+		WATCH_PIDS="$WATCH_PIDS $!"
+	fi
+	if [ -n "$SWAYSOCK" ] && command -v swaymsg >/dev/null; then
+		( swaymsg -m -r -t subscribe '["output","window","input","workspace","mode"]' 2>/dev/null | watch_lines "sway event at " uptime ) >> "$L" 2>&1 &
+		WATCH_PIDS="$WATCH_PIDS $!"
+	fi
+	[ -n "$WATCH_PIDS" ] && echo "watching the system during the run (kernel, journal, sway events; watch_system = 0 in gba-ds.cfg: off)" >> "$L"
+}
+watch_stop() {
+	local p
+	for p in $WATCH_PIDS; do
+		kill $(pgrep -P "$p" 2>/dev/null) "$p" 2>/dev/null
+	done
+	WATCH_PIDS=
+}
+trap 'watch_stop; { restore_governors; bash "$DIR/screens.sh" off; } >> "$DIR/gba-ds.log" 2>&1' EXIT
 trap 'exit 143' TERM INT HUP
 
+watch_start
+BEFORE=$!
 GBADS_RELAUNCH_STATUS=$RELAUNCH "$GBADS" "$@" > >(exec cat >> "$DIR/gba-ds.log") 2>&1
 st=$?
-wait $! 2>/dev/null # (the log written out before the trap adds to it)
+watch_stop
+# (the log written out before the trap adds to it: $! is the log's cat
+# here, unless this bash doesn't give it, then still a watcher's)
+[ "$!" != "$BEFORE" ] && wait $! 2>/dev/null
 if [ $st = $RELAUNCH ]; then
 	# an update: everything put back as the EXIT trap would, then the new
 	# launch.sh (which sets the screens up again)
