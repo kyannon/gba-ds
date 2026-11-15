@@ -4,6 +4,8 @@ mash A 8 60
 wait 300
 mash A 30 90
 wait 300
+mash A 8 40
+wait 120
 shot level
 hold RIGHT 200
 shot walked
