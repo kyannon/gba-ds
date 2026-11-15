@@ -38,7 +38,9 @@ const GBATouch = (() => {
     ctl.push({ el: el("shoulder sr", "<span>R</span>", B.r), kind: "btn", bits: B.r });
     ctl.push({ el: el("shoulder s2 sl2", "<span>L2</span>", B.l2), kind: "btn", bits: B.l2 });
     ctl.push({ el: el("shoulder s2 sr2", "<span>R2</span>", B.r2), kind: "btn", bits: B.r2 });
-    for (const [k, label] of [["select", "Select"], ["start", "Start"], ["home", "Menu"]]) ctl.push({ el: el("pill p-" + k, "<span>" + label + "</span>", B[k]), kind: "btn", bits: B[k] });
+    // Start and Select as on a GBA: a small round button at the end of a recess with its name in it
+    for (const [k, label] of [["start", "Start"], ["select", "Select"]]) ctl.push({ el: el("plate p-" + k, '<i class="well"><span>' + label + '</span></i><i class="dot"></i>', B[k]), kind: "btn", bits: B[k] });
+    ctl.push({ el: el("pill p-home", "<span>Menu</span>", B.home), kind: "btn", bits: B.home });
     root.addEventListener("pointerdown", down);
     root.addEventListener("pointermove", move);
     root.addEventListener("pointerup", up);
@@ -62,11 +64,11 @@ const GBATouch = (() => {
     const s = Object.assign({ top: 0, right: 0, bottom: 0, left: 0 }, o.safe || {});
     // sizes in CSS px at 100 %, scaled to the screen and the setting, then down to fit
     let u = (o.size || 1) * Math.max(0.78, Math.min(1.25, Math.min(W, H) / 400));
-    const size = (u) => ({ D: 128 * u, F: 138 * u, fb: 52 * u, SW: 76 * u, S2: 56 * u, SH: 32 * u, PW: 56 * u, PH: 24 * u, g: 10 * u, pad: 12 * u });
+    const size = (u) => ({ D: 128 * u, F: 138 * u, fb: 52 * u, SW: 76 * u, S2: 56 * u, SH: 32 * u, PW: 92 * u, PH: 30 * u, MW: 56 * u, MH: 24 * u, g: 10 * u, pad: 12 * u });
     let z = size(u), box;
     if (o.placement === "beside") {
-      // a column each side: L and L2, the D-pad, Select and Menu | R2 and R, the face buttons, Start
-      const colW = (z) => z.pad * 2 + Math.max(z.D, z.F, z.PW * 2 + z.g, z.SW + z.g + z.S2);
+      // a column each side: L and L2, the D-pad, Start over Select | R2 and R, the face buttons, Menu
+      const colW = (z) => z.pad * 2 + Math.max(z.D, z.F, z.PW, z.SW + z.g + z.S2);
       const avail = W - s.left - s.right;
       if (colW(z) * 2 > avail * 0.62) { u *= avail * 0.62 / (colW(z) * 2); z = size(u); }
       const cw = colW(z), top = s.top + z.pad, bot = H - s.bottom - z.pad;
@@ -77,13 +79,13 @@ const GBATouch = (() => {
       put(find("sr2"), rx + cw - z.pad - z.SW - z.g - z.S2, top, z.S2, z.SH);
       put(find("dpad"), lx + (cw - z.D) / 2, mid - z.D / 2, z.D, z.D);
       face(rx + (cw - z.F) / 2, mid - z.F / 2, z);
-      put(find("p-select"), lx + cw / 2 - z.PW - z.g / 2, bot - z.PH, z.PW, z.PH);
-      put(find("p-home"), lx + cw / 2 + z.g / 2, bot - z.PH, z.PW, z.PH);
-      put(find("p-start"), rx + (cw - z.PW) / 2, bot - z.PH, z.PW, z.PH);
+      put(find("p-start"), lx + (cw - z.PW) / 2, bot - z.PH * 2 - z.g / 2, z.PW, z.PH);
+      put(find("p-select"), lx + (cw - z.PW) / 2, bot - z.PH, z.PW, z.PH);
+      put(find("p-home"), rx + (cw - z.MW) / 2, bot - z.MH, z.MW, z.MH);
       box = { x: lx + cw, y: s.top, w: rx - lx - cw, h: H - s.top - s.bottom };
     } else {
-      // a band below: L, L2, Menu, R2, R | the D-pad, Select over Start, the face buttons
-      const need = (z) => z.pad * 2 + Math.max(z.D + z.F + z.PW + z.g * 4, (z.SW + z.g + z.S2) * 2 + z.PW + z.g * 2);
+      // a band below: L, L2, Menu, R2, R | the D-pad, Start over Select, the face buttons
+      const need = (z) => z.pad * 2 + Math.max(z.D + z.F + z.PW + z.g * 4, (z.SW + z.g + z.S2) * 2 + z.MW + z.g * 2);
       const avail = W - s.left - s.right;
       if (need(z) > avail) { u *= avail / need(z); z = size(u); }
       const band = z.pad + z.SH + z.g + Math.max(z.D, z.F) + z.pad + s.bottom;
@@ -93,11 +95,11 @@ const GBATouch = (() => {
       put(find("sr"), x1 - z.pad - z.SW, y0 + z.pad, z.SW, z.SH);
       put(find("sl2"), x0 + z.pad + z.SW + z.g, y0 + z.pad, z.S2, z.SH);
       put(find("sr2"), x1 - z.pad - z.SW - z.g - z.S2, y0 + z.pad, z.S2, z.SH);
-      put(find("p-home"), cx - z.PW / 2, y0 + z.pad + (z.SH - z.PH) / 2, z.PW, z.PH);
+      put(find("p-home"), cx - z.MW / 2, y0 + z.pad + (z.SH - z.MH) / 2, z.MW, z.MH);
       put(find("dpad"), x0 + z.pad, ry + (rh - z.D) / 2, z.D, z.D);
       face(x1 - z.pad - z.F, ry + (rh - z.F) / 2, z);
-      put(find("p-select"), cx - z.PW / 2, ry + rh / 2 - z.PH - z.g / 2, z.PW, z.PH);
-      put(find("p-start"), cx - z.PW / 2, ry + rh / 2 + z.g / 2, z.PW, z.PH);
+      put(find("p-start"), cx - z.PW / 2, ry + rh / 2 - z.PH - z.g / 2, z.PW, z.PH);
+      put(find("p-select"), cx - z.PW / 2, ry + rh / 2 + z.g / 2, z.PW, z.PH);
       box = { x: s.left, y: s.top, w: W - s.left - s.right, h: y0 - s.top };
     }
     root.style.setProperty("--u", u);
