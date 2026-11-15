@@ -2,7 +2,7 @@ Settings live in **`gba-ds.cfg`**: `/storage/roms/ports/gba-ds/gba-ds.cfg` on RO
 
 Four files are read in order, later ones winning:
 1. `gba-ds.cfg`;
-2. `states/prefs.cfg`: what you chose in the pause menu (screens swapped, scaling, shader, color correction, LCD ghosting, overlays and the bezel, frame buffer, match display rate, screen shapes, screen placement, rewind, fast forward and its speed, save on quit, auto-load, the quick bar's pin). GBA DS rewrites this file; to change those settings, use the menu, or delete the line from `prefs.cfg`.
+2. `states/prefs.cfg`: what you chose in the pause menu (screens swapped, scaling, shader, color correction, LCD ghosting, overlays and the bezel, frame buffer, match display rate, screen shapes, screen placement, rewind, fast forward and its speed, save on quit, auto-load, the quick bar's pin) and the game list's Settings > Performance. GBA DS rewrites this file; to change those settings, use the menu, or delete the line from `prefs.cfg`.
 3. `states/library.cfg`: the game list's view (list or grid) and, on Android, the ROM folder, the save folder and the saves' type (Settings > Folders);
 4. `states/hotkeys.cfg`: what you chose in Settings > Hotkeys.
 
@@ -120,7 +120,7 @@ What `map_crop` changes in the Metroid map screens:
 | Option | Default | |
 |---|---|---|
 | `audio_latency` | `64` | Sound buffer in milliseconds. Raise it if the sound crackles; lower is snappier. |
-| `cpu_performance` | `1` | ROCKNIX only: the CPU and memory run at full clock (the "performance" governor) while GBA DS is open, and the governors chosen in EmulationStation come back when it closes. GBA DS runs more than one copy of the game (the hidden one for the map), so a governor that lets the clock drop between frames can make games stutter and the sound break up. `0` leaves the governors alone. |
+| `performance` | `system` | Linux (not BananaOS, which sets its own): **Performance** in the game list's Settings. `system` (**Let the System Decide**) leaves the CPU, memory and graphics speed to the system, as for its other emulators. `max` (**Set to Max**) holds them at full speed while GBA DS is open and puts them back when it closes: smoother on devices where games stutter or the sound breaks up, but the battery runs down faster and the device gets warmer. Kept in `states/prefs.cfg`. (`cpu_performance`, from v1.5.3, is no longer used.) |
 
 ## Android only
 

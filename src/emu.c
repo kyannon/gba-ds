@@ -649,6 +649,8 @@ typedef struct {
 	uint16_t exact[128][3]; /* and sprites exactly like these (emu_hide_exact) */
 	int nExact;
 	bool exactKeep; /* the exact ones are kept instead (emu_hud_keep_exact) */
+	bool grouped; /* a matching sprite is hidden only as part of a group
+	               * (emu_hide_grouped) */
 } HideSlot;
 static HideSlot hideSlots[8];
 static pthread_mutex_t hideLock = PTHREAD_MUTEX_INITIALIZER;
@@ -682,6 +684,54 @@ static bool hidden(const HideSlot* s, const struct GBAObj* obj) {
 	return s->keepOnly;
 }
 
+/* emu_hide_grouped: of the sprites that match the rules, only those that are
+ * part of the run of matching sprites at the start of the sprite table, or
+ * whose run of sprites in one palette (one after another in the table)
+ * matches the rules throughout, are hidden. Sprites wholly off the screen's
+ * sides are passed over (they draw nothing). Lady Sia: the game puts its
+ * HUD first (level 2 puts Sia among it, in her own palette), and a level's
+ * thing is several sprites in one palette, some of which pass a HUD
+ * piece's place with its shape (the first village's well). */
+static bool groupHide[128];
+static void hide_grouped(const HideSlot* s, const struct GBAVideoRendererSprite* sp, int n) {
+	bool match[128], shown[128];
+	if (n > 128) n = 128;
+	for (int i = 0; i < n; ++i) {
+		const struct GBAObj* o = &sp[i].obj;
+		int x = (int) (GBAObjAttributesBGetX(o->b) << 23) >> 23;
+		int w = GBAVideoObjSizes[GBAObjAttributesAGetShape(o->a) * 4 + GBAObjAttributesBGetSize(o->b)][0];
+		if (GBAObjAttributesAIsTransformed(o->a)) w <<= GBAObjAttributesAGetDoubleSize(o->a);
+		shown[i] = x < GBA_W && x + w > 0;
+		match[i] = hidden(s, o);
+		groupHide[i] = false;
+	}
+	/* the run at the start */
+	for (int i = 0; i < n; ++i) {
+		if (!shown[i]) continue;
+		if (!match[i]) break;
+		groupHide[i] = true;
+	}
+	/* runs in one palette */
+	for (int i = 0; i < n;) {
+		if (!shown[i]) {
+			++i;
+			continue;
+		}
+		int pal = GBAObjAttributesCGetPalette(sp[i].obj.c), j = i, end = i;
+		bool all = true;
+		for (; j < n; ++j) {
+			if (!shown[j]) continue;
+			if (GBAObjAttributesCGetPalette(sp[j].obj.c) != pal) break;
+			all = all && match[j];
+			end = j;
+		}
+		for (int k = i; k <= end; ++k) {
+			if (shown[k] && all) groupHide[k] = true;
+		}
+		i = j;
+	}
+}
+
 /* Runs before the software renderer's own scanline code: when the sprite table
  * has changed, build the renderer's sprite list the way it would, minus the
  * hidden sprites, and mark it clean so the renderer uses ours. */
@@ -692,8 +742,15 @@ static void filtered_draw_scanline(struct GBAVideoRenderer* renderer, int y) {
 	if ((s->n || s->keepOnly || s->nExact) && sw->oamDirty) {
 		int n = GBAVideoRendererCleanOAM(sw->d.oam->obj, sw->sprites, sw->objOffsetY);
 		int kept = 0;
-		for (int i = 0; i < n; ++i) {
-			if (!hidden(s, &sw->sprites[i].obj)) sw->sprites[kept++] = sw->sprites[i];
+		if (s->grouped && !s->keepOnly) {
+			hide_grouped(s, sw->sprites, n);
+			for (int i = 0; i < n; ++i) {
+				if (!groupHide[i]) sw->sprites[kept++] = sw->sprites[i];
+			}
+		} else {
+			for (int i = 0; i < n; ++i) {
+				if (!hidden(s, &sw->sprites[i].obj)) sw->sprites[kept++] = sw->sprites[i];
+			}
 		}
 		sw->oamMax = kept;
 		sw->oamDirty = false;
@@ -738,6 +795,34 @@ void emu_hide_sprites(Emu* e, const SpriteRule* rules, int n) {
 			r->drawScanline = filtered_draw_scanline;
 		}
 	}
+	pthread_mutex_unlock(&hideLock);
+	((struct GBAVideoSoftwareRenderer*) r)->oamDirty = true;
+}
+
+/* The sprites the rules match are hidden only in groups (hide_grouped).
+ * Kept until the game closes. */
+void emu_hide_grouped(Emu* e, bool on) {
+	struct GBA* gba = e->core->board;
+	struct GBAVideoRenderer* r = gba->video.renderer;
+	if (!r) return;
+	pthread_mutex_lock(&hideLock);
+	HideSlot* s = slot_for(r);
+	if (s) s->grouped = on;
+	pthread_mutex_unlock(&hideLock);
+	((struct GBAVideoSoftwareRenderer*) r)->oamDirty = true;
+}
+
+/* The opposite of emu_hide_sprites: only the sprites that match one of the
+ * rules are drawn (Lady Sia's pause screen, captured without what the
+ * level left in the sprite table). */
+void emu_keep_sprites(Emu* e, const SpriteRule* rules, int n) {
+	emu_hide_sprites(e, rules, n);
+	struct GBA* gba = e->core->board;
+	struct GBAVideoRenderer* r = gba->video.renderer;
+	if (!r) return;
+	pthread_mutex_lock(&hideLock);
+	HideSlot* s = slot_for(r);
+	if (s) s->keepOnly = n > 0;
 	pthread_mutex_unlock(&hideLock);
 	((struct GBAVideoSoftwareRenderer*) r)->oamDirty = true;
 }

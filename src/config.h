@@ -67,6 +67,7 @@ typedef struct Config {
 	bool showFps;
 	bool sway;         /* ask sway to fullscreen the window across all outputs */
 	int audioLatency;  /* ms */
+	bool perfMax;      /* Linux: CPU, memory and GPU clocks held at their fastest while GBA DS runs (clocks.c); off: the system decides */
 	int ffSpeed;       /* fast-forward multiplier (the menu cycles FF_SPEED_MIN..MAX) */
 	int ffMute;        /* ff_mute: no sound while fast-forwarding (the 3DS's default) */
 	char saveDir[512]; /* battery saves; default: next to the ROM */

@@ -691,8 +691,20 @@ void update_notice_seen(void) {
 	SDL_UnlockMutex(U.lock);
 }
 
-void update_restart_if_installed(void) {
-	if (!U.lock || U.info.state != UPD_DONE || !U.exePath[0] || !U.argv) return;
+int update_restart_if_installed(void) {
+	if (!U.lock || U.info.state != UPD_DONE || !U.exePath[0] || !U.argv) return 0;
+	/* launch.sh (ROCKNIX and other systems, from v1.5.3.1) starts the new
+	 * version itself, with the new launch.sh: its changes count from the
+	 * first run, not the next start (issue #50: v1.5.3's clock and log
+	 * changes were in launch.sh, and a player updating in the app kept
+	 * playing under v1.5.2's) */
+	const char* rs = getenv("GBADS_RELAUNCH_STATUS");
+	int status = rs ? atoi(rs) : 0;
+	if (status > 0 && status < 256) {
+		fprintf(stderr, "update: back to launch.sh to start the new version (exit %d)\n", status);
+		fflush(stderr);
+		return status;
+	}
 	char exe[1024];
 	snprintf(exe, sizeof(exe), "%s", U.exePath);
 	char* del = strstr(exe, " (deleted)");
@@ -701,6 +713,7 @@ void update_restart_if_installed(void) {
 	fflush(stderr);
 	execv(exe, U.argv);
 	fprintf(stderr, "update: couldn't restart: %s\n", strerror(errno));
+	return 0;
 }
 
 #endif

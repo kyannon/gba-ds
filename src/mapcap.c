@@ -796,6 +796,11 @@ MapCapture* mapcap_create(const char* romPath, const char* gameCode, bool tight)
 		while (n < 6 && p->captureHide[n].x1) ++n;
 		emu_hide_sprites(&mc->shadow, p->captureHide, n);
 	}
+	if (p->captureKeep[0].x1) {
+		int n = 0;
+		while (n < 12 && p->captureKeep[n].x1) ++n;
+		emu_keep_sprites(&mc->shadow, p->captureKeep, n);
+	}
 	if (p->captureLayers) emu_layers(&mc->shadow, (p->captureLayers & 0xF) | 0x10);
 	if (mc->tight) {
 		mc->cx = p->tight_x, mc->cy = p->tight_y, mc->cw = p->tight_w, mc->ch = p->tight_h;

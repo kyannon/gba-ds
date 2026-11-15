@@ -108,7 +108,12 @@ Games are never published: players bring their own.
 - `player.js` (the page): files dropped or chosen (`takeFiles`: a dev zip,
   a game or zipped game, `.sav` / `.srm`, `.ss` / `.state`, a bug report zip,
   whose `GAME-DATE.state` it loads), IndexedDB (`gba-ds-player`: the last
-  dropped build, the last 10 games, and the app's own files), the screens'
+  dropped build, the last 10 games, and the app's own files; each connection
+  closes on `versionchange`, so "Delete everything kept here" isn't held up
+  by the player open in another tab or as a Home Screen app, and start-up
+  waits at most 3 s for the saved build (`kvGetSoon`) before taking the
+  bundled one: an older copy elsewhere may still hold the database, and
+  every open waits behind the delete until it lets go), the screens'
   resolution (`DEVICES`, from src/ui.c knownDevices, offered as
   `RESOLUTIONS`: each pair of resolutions once, the first device with it
   giving its inches and id, the others' ids aliased to it; plus custom ones)
