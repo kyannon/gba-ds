@@ -2,6 +2,9 @@
 
 ## v1.5.4 (not yet released)
 
+### Fixes
+- **Web player: the build that comes with it is always there.** After "Delete everything kept here", the player could come back with no build at all if it was also open in another tab, or as a Home Screen app at the same time, until that one was closed. Now the other copy lets go of what it kept, the player starts with the build that comes with it straight away, and the other copy says its things were deleted. If an older copy of the player still holds on, the build comes back after a few seconds anyway, with a note to close the other copy to see your games and saves.
+
 ## v1.5.3 (2026-11-15)
 
 ### New games

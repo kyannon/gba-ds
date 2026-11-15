@@ -114,12 +114,21 @@ function db() {
     let r;
     try { r = indexedDB.open("gba-ds-player", 1); } catch (e) { rej(e); return; }
     r.onupgradeneeded = () => { for (const s of ["kv", "roms", "files"]) if (!r.result.objectStoreNames.contains(s)) r.result.createObjectStore(s); };
-    r.onsuccess = () => res(r.result);
+    r.onsuccess = () => {
+      const d = r.result;
+      // "Delete everything kept here" in another tab or window: let go, or its delete (and its page) waits for this one
+      d.onversionchange = () => { d.close(); if (dbp === p) dbp = null; toast("Everything this player kept was deleted in another window."); };
+      res(d);
+    };
     r.onerror = () => rej(r.error);
   });
+  const p = dbp;
   dbp.catch(() => {});
   return dbp;
 }
+// at start: storage that doesn't answer (an older copy of the player open elsewhere holding it) mustn't keep the build away
+const kvGetSoon = (k, ms) => Promise.race([kvGet(k), new Promise((r) => setTimeout(() => r(STORAGE_BUSY), ms))]);
+const STORAGE_BUSY = {};
 async function idb(store, mode, fn) {
   const d = await db();
   return new Promise((res, rej) => {
@@ -1324,9 +1333,10 @@ async function loadBundled() {
 (async () => {
   showSlots(); showSound();
   // the player's folder, if one was chosen (allowed already, or asked for at Play)
-  if (canFolder) { const h = await kvGet("folder"); if (h && h.queryPermission) { F.handle = h; await folderAccess(false); } }
-  const saved = await kvGet("build");
+  const saved = await kvGetSoon("build", 3000);
   if (!(saved && saved.bytes && await takeBuild(saved.name, saved.bytes, {}))) await loadBundled();
+  if (saved === STORAGE_BUSY) { toast("This player is open in another tab or window: close it to see your games and saves here.", true); return; }
+  if (canFolder) { const h = await kvGet("folder"); if (h && h.queryPermission) { F.handle = h; await folderAccess(false); } }
   const recent = (await kvGet("recent")) || [];
   if (recent.length && !P.rom) {
     const b = await idb("roms", "readonly", (s) => s.get(recent[0].name)).catch(() => null);
