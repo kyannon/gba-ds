@@ -7014,9 +7014,14 @@ static bool activate(int item, enum GameExit* exitTo) {
 		else if (cfg->ffSpeed < FF_SPEED_MIN) cfg->ffSpeed = FF_SPEED_MIN;
 		else if (cfg->ffSpeed < FF_SPEED_MAX) ++cfg->ffSpeed;
 		else cfg->ffSpeed = 0;
-		if (cfg->fastForward && cfg->ffSpeed <= 0) snprintf(menuNote, sizeof(menuNote), "Hold R2 to play as fast as this device can%s", cfg->ffMute ? ", without sound" : "");
-		else if (cfg->fastForward) snprintf(menuNote, sizeof(menuNote), "Hold R2 to play %dx as fast%s", cfg->ffSpeed, cfg->ffMute ? ", without sound" : "");
-		else snprintf(menuNote, sizeof(menuNote), "R2 does nothing: no skipping ahead by mistake");
+#ifdef __3DS__
+		const char* ffKey = "ZR"; /* (the 3DS's R2) */
+#else
+		const char* ffKey = "R2";
+#endif
+		if (cfg->fastForward && cfg->ffSpeed <= 0) snprintf(menuNote, sizeof(menuNote), "Hold %s to play as fast as this device can%s", ffKey, cfg->ffMute ? ", without sound" : "");
+		else if (cfg->fastForward) snprintf(menuNote, sizeof(menuNote), "Hold %s to play %dx as fast%s", ffKey, cfg->ffSpeed, cfg->ffMute ? ", without sound" : "");
+		else snprintf(menuNote, sizeof(menuNote), "%s does nothing: no skipping ahead by mistake", ffKey);
 		save_prefs();
 		break;
 	case M_SHAPES: {
@@ -7152,6 +7157,11 @@ static void ss_setup(const char* rom, const char* code) {
 		logoOnly = lp && lp->logoOnly;
 		snapProf = logoOnly && lp->snap.showMin ? lp : NULL;
 		tallProf = logoOnly && lp->tall.on[0].addr && cfg->tallLive ? lp : NULL;
+#ifdef __3DS__
+		/* (never on the 3DS, whatever pinball_live says: up to three copies of
+		 * the game a frame are far beyond a New 3DS; PP-9) */
+		tallProf = NULL;
+#endif
 		if (tallProf && nScreens > 1) twin_open(rom, tallProf);
 		else twin_close();
 		/* the HUD moves only when there's another screen to put it on */
