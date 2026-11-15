@@ -200,6 +200,13 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 #touch .shoulder.s2 { font-size: calc(13px * var(--u)); }
 #touch .pill { border-radius: 99px; font: 600 calc(10.5px * var(--u)) var(--ui); letter-spacing: 0.04em; text-transform: uppercase; }
 #touch .tc.on { transform: translateY(calc(2px * var(--u))); box-shadow: inset 0 1px 2px rgba(0,0,0,0.2), 0 calc(1px * var(--u)) 0 var(--keyedge); background: linear-gradient(var(--key2), #a9abb3); color: var(--inkon); }
+/* Start and Select: a recess in the body with the name pressed into it, a small round button at its right end */
+#touch .plate { --d: calc(26px * var(--u)); }
+#touch .plate .well { position: absolute; left: 0; right: calc(var(--d) / 2); top: 50%; height: calc(20px * var(--u)); transform: translateY(-50%); border-radius: 99px; background: rgba(0,0,0,0.16); border: 1px solid rgba(190,205,255,0.28); box-shadow: inset 0 1px 3px rgba(0,0,0,0.45), 0 1px 0 rgba(255,255,255,0.08); display: flex; align-items: center; padding-left: calc(10px * var(--u)); }
+#touch .plate .well span { font: italic 700 calc(11px * var(--u)) var(--display); letter-spacing: 0.05em; text-transform: uppercase; color: rgba(170,182,230,0.75); text-shadow: 0 -1px 0 rgba(0,0,0,0.45), 0 1px 0 rgba(255,255,255,0.12); }
+#touch .plate .dot { position: absolute; right: 0; top: 50%; width: var(--d); height: var(--d); transform: translateY(-50%); border-radius: 50%; background: linear-gradient(var(--key), var(--key2)); border: 1px solid rgba(0,0,0,0.12); box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 calc(2px * var(--u)) 0 var(--keyedge); transition: transform .05s; }
+#touch .plate.on { transform: none; background: none; box-shadow: none; }
+#touch .plate.on .dot { transform: translateY(calc(-50% + 2px * var(--u))); box-shadow: inset 0 1px 2px rgba(0,0,0,0.2), 0 0 0 var(--keyedge); background: linear-gradient(var(--key2), #a9abb3); }
 
 /* ---- phones */
 :root { --sat: env(safe-area-inset-top, 0px); --sar: env(safe-area-inset-right, 0px); --sab: env(safe-area-inset-bottom, 0px); --sal: env(safe-area-inset-left, 0px); }
