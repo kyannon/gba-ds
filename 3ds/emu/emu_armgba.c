@@ -1077,10 +1077,32 @@ const uint16_t* emu_vram(Emu* e) {
 	return (const uint16_t*) AC(e)->gba->vram;
 }
 
+/* As mGBA's (src/emu.c): the bytes as they are. Through the bus a halfword at
+ * a time: a byte stored to background VRAM is written to both halves of its
+ * halfword, as on the GBA, which garbled the tiles Sonic Pinball Party's
+ * copies carry over (tall.live.carry). An odd byte at either end keeps its
+ * neighbour. */
 void emu_vram_write(Emu* e, uint32_t off, const void* src, size_t n) {
+	struct GBA* gba = AC(e)->gba;
 	const uint8_t* p = src;
 	int cycles = 0;
-	for (size_t i = 0; i < n && off + i < SIZE_VRAM; ++i) memoryStore8(AC(e)->gba, 0x06000000 + off + (uint32_t) i, p[i], &cycles);
+	if (off >= SIZE_VRAM) return;
+	if (n > SIZE_VRAM - off) n = SIZE_VRAM - off;
+	for (size_t i = 0; i < n;) {
+		uint32_t const a = off + (uint32_t) i;
+		uint16_t half = (uint16_t) (gba->vram[a & ~1u] | gba->vram[(a & ~1u) + 1] << 8);
+		if (a & 1) {
+			half = (uint16_t) ((half & 0x00FF) | p[i] << 8);
+			i += 1;
+		} else if (i + 1 < n) {
+			half = (uint16_t) (p[i] | p[i + 1] << 8);
+			i += 2;
+		} else {
+			half = (uint16_t) ((half & 0xFF00) | p[i]);
+			i += 1;
+		}
+		memoryStore16(gba, 0x06000000 + (a & ~1u), half, &cycles);
+	}
 }
 
 void emu_oam_read(Emu* e, uint16_t* out) {
