@@ -190,6 +190,9 @@ static const MapProfile* twinProf;
 static bool tallTrace; /* GBADS_TALL_TRACE: a line a frame about the live view */
 static int twinShakeNow, twinShakeNext; /* the game's screen shake in this frame's picture / the next's */
 static bool tallMsg, tallGameTop; /* (for the log: PP-11's screen, the top screen's picture) */
+static bool tallTopLogo; /* PP-11's screen up with no table rows above it: the logo on the top screen */
+static bool tallFixedBot; /* PP-10: the game's banners on the bottom screen (the ball's there) */
+static int tallFixedHold; /* frames the banners stay where they went with none shown */
 static uint32_t lastTop[GBA_W * GBA_H]; /* the top screen before PP-11's screen came up */
 static bool haveLastTop;
 
@@ -309,6 +312,12 @@ static int obj_height(uint16_t a0, uint16_t a1) {
 	static const uint8_t h[3][4] = { { 8, 16, 32, 64 }, { 8, 8, 16, 32 }, { 16, 32, 32, 64 } };
 	int s = a0 >> 14;
 	int v = s < 3 ? h[s][a1 >> 14] : 8;
+	return (a0 & 0x0300) == 0x0300 ? v * 2 : v;
+}
+static int obj_width(uint16_t a0, uint16_t a1) {
+	static const uint8_t w[3][4] = { { 8, 16, 32, 64 }, { 16, 32, 32, 64 }, { 8, 8, 16, 32 } };
+	int s = a0 >> 14;
+	int v = s < 3 ? w[s][a1 >> 14] : 8;
 	return (a0 & 0x0300) == 0x0300 ? v * 2 : v;
 }
 /* the game's sprites at the same place on the screen whatever the camera,
@@ -552,18 +561,28 @@ static void twin_first(void* arg) {
 	}
 	const typeof(twinProf->tall.live)* L = &twinProf->tall.live;
 	tw->up = false;
-	if (!emu_state_load(&tw->e, twinStates[twinCur])) return;
-	uint32_t T = twin_hold(tw, tw->row, tw->panStep);
-	if (!T) return;
-	twin_jump(&tw->e, T, tw->row + (int8_t) emu_read8(&tw->e, T + L->shake));
-	/* not drawn: its picture is never shown (twin_second's is), and
-	 * drawing is about half of a frame's work, on the frame's critical
-	 * path (twins[1]'s runs before the game's frame, on its thread) */
-	emu_frame_blind(&tw->e, twinKeys[twinCur] & 0x3FF);
-	/* (how far its pans moved it: put right next frame) */
-	int at = (int16_t) emu_read16(&tw->e, L->view) - (int8_t) emu_read8(&tw->e, T + L->shake);
-	tw->panStep += at - tw->row;
-	if (tw->panStep > 8 || tw->panStep < -8) tw->panStep = 0;
+	/* (its pans' step is guessed from last frame's; when the game's view
+	 * starts or stops moving (the ball let go from a trap) the guess is a
+	 * frame out, the copy's picture a few rows off its place and the rows
+	 * between the screens wrong: then the frame is run again with the step
+	 * it really took) */
+	for (int again = 0; again < 2; ++again) {
+		if (!emu_state_load(&tw->e, twinStates[twinCur])) return;
+		uint32_t T = twin_hold(tw, tw->row, tw->panStep);
+		if (!T) return;
+		twin_jump(&tw->e, T, tw->row + (int8_t) emu_read8(&tw->e, T + L->shake));
+		/* not drawn: its picture is never shown (twin_second's is), and
+		 * drawing is about half of a frame's work, on the frame's critical
+		 * path (twins[1]'s runs before the game's frame, on its thread) */
+		emu_frame_blind(&tw->e, twinKeys[twinCur] & 0x3FF);
+		/* (how far its pans moved it: put right) */
+		int at = (int16_t) emu_read16(&tw->e, L->view) - (int8_t) emu_read8(&tw->e, T + L->shake);
+		int miss = at - tw->row;
+		tw->panStep += miss;
+		if (tw->panStep > 8 || tw->panStep < -8) tw->panStep = 0;
+		if (!miss) break;
+		if (tallTrace || debug) fprintf(stderr, "copy %d: %d row(s) off, run again\n", (int) (tw - twins), miss);
+	}
 	tw->up = true;
 }
 /* With the game's frame: this frame, whose picture it shows */
@@ -637,6 +656,11 @@ static void twin_step(void) {
 	twinShakeNow = twinShakeNext, twinShakeNext = k;
 	int u = (int16_t) emu_read16(&emu, L->view) - k, vmax = twinProf->tall.rows - 2 * GBA_H;
 	int want[TWINS] = { vmax, SDL_max(SDL_min(u, vmax), 0) + GBA_H };
+	/* (PP-11: the game's whole screen is on the bottom one; the top screen
+	 * shows the rows just above it, from twins[0] held there, when the
+	 * table has them) */
+	bool above = tallMsg && u - GBA_H >= 0;
+	if (above) want[0] = u - GBA_H;
 	for (int i = 0; i < TWINS; ++i) {
 		if (twins[i].row != want[i] && !twins[i].up) twins[i].panStep = 0;
 		twins[i].row = want[i];
@@ -644,7 +668,7 @@ static void twin_step(void) {
 	/* (in the table's upper part the game itself is on the top screen:
 	 * twins[0] isn't needed, and since the copies are taken from the game
 	 * every frame, it's back at once when it is) */
-	twins[0].need = u > vmax, twins[1].need = true;
+	twins[0].need = u > vmax || above, twins[1].need = true;
 	twinRun = true;
 }
 
@@ -4709,6 +4733,7 @@ static void update_tall(void) {
 		tallOn = on;
 		copied = false;
 		tallMsg = haveLastTop = false;
+		tallTopLogo = tallFixedBot = false, tallFixedHold = 0;
 		tallLive = false;
 		mapShownIdx = -1;
 		/* (carry: the copies start again from the game's: what they kept,
@@ -4777,12 +4802,20 @@ static void update_tall(void) {
 	 * its own view, which with the lower view is another part of the
 	 * table); the copies' have the table) */
 	int gf = carry && L->carry.gameFrom ? L->carry.gameFrom - 1 : 0;
+	/* (what the top screen showed last frame, for a frame whose rows aren't
+	 * all there: below) */
+	static uint32_t prevTop[GBA_W * GBA_H];
+	memcpy(prevTop, tallTop, sizeof(prevTop));
+	bool havePrevTop = tallLive && !firstLive;
+	int topMissing = 0;
 	for (int y = 0; y < GBA_H; ++y) {
 		if (y < gf) memcpy(&tallTop[y * GBA_W], &emu.fb[y * GBA_W], sizeof(uint32_t) * GBA_W);
 		else if (gf && y == gf) for (int x = 0; x < GBA_W; ++x) tallTop[y * GBA_W + x] = 0xFF000000u;
-		else missing += !tall_line(&tallTop[y * GBA_W], v + y, topSrc, 3);
+		else topMissing += !tall_line(&tallTop[y * GBA_W], v + y, topSrc, 3);
 		missing += !tall_line(&tallBot[y * GBA_W], v + GBA_H + y, botSrc, 3);
 	}
+	missing += topMissing;
+	if (carry) topMissing = 0; /* (carry keeps its own rows: tallKeep) */
 	/* PP-11: the game dims its screen (paused, the Mart: brightness down)
 	 * or shows a message box: its whole screen on the bottom one */
 	uint16_t bld = emu_io16(&emu, 0x50);
@@ -4794,9 +4827,32 @@ static void update_tall(void) {
 		}
 		msg = n > L->msg.min;
 	}
-	/* (the top screen: the table's rows, or while that would be the game's
-	 * screen again, as they were before it) */
-	if (msg && gameOnTop && haveLastTop) memcpy(tallTop, lastTop, sizeof(tallTop));
+	if (msg && !carry) {
+		/* (the top screen: the table's rows just above the game's screen,
+		 * from twins[0] held there (twin_step); none above it (the game's
+		 * view near the table's top): the logo, as the rows it would show
+		 * are the game's own again. Until the copy is there, what the top
+		 * screen showed last) */
+		if (s - k - GBA_H < top) {
+			for (int i = 0; i < GBA_W * GBA_H; ++i) tallTop[i] = SCREEN_GREY;
+			logo_draw(tallTop, GBA_W, GBA_H, 1, 0, 128 /* LOGO_IDLE */);
+			tallTopLogo = true;
+		} else {
+			int off = 0;
+			for (int y = 0; y < GBA_H; ++y) off += !tall_line(&tallTop[y * GBA_W], s - GBA_H + y, &a, 1);
+			if (off) memcpy(tallTop, prevTop, sizeof(tallTop));
+			else tallTopLogo = false;
+		}
+	} else {
+		/* (the top screen: the table's rows, or while that would be the game's
+		 * screen again, as they were before it) */
+		if (msg && gameOnTop && haveLastTop) memcpy(tallTop, lastTop, sizeof(tallTop));
+		/* (a copy not yet back at its place (just after PP-11's screen, which
+		 * held it elsewhere): what the top screen showed last, for the frame
+		 * or two it takes) */
+		if (!msg && topMissing && havePrevTop) memcpy(tallTop, prevTop, sizeof(tallTop));
+		else if (!msg) tallTopLogo = false;
+	}
 	if (msg) memcpy(tallBot, emu.fb, sizeof(tallBot)); /* (and its score bar, below) */
 	if (msg != tallMsg && debug) fprintf(stderr, "frame %llu: %s\n", (unsigned long long) frameCount, msg ? "the game's screen on the bottom one (dimmed or a message)" : "the table on both screens again");
 	tallMsg = msg;
@@ -4812,8 +4868,43 @@ static void update_tall(void) {
 		 * run_frame). (Drawn on their own: the copies' pictures can differ
 		 * a little from the game's, so it can't be found by comparing.) */
 		uint32_t clear = emu_hud_clear();
+		/* (the game's sprites among it (banners such as BALL SAVE): on the
+		 * screen with the ball, at their place on the game's screen. Which
+		 * screen is settled as they come up, from where the ball is then,
+		 * and kept while they're up: they never move between the screens) */
+		static uint8_t box[GBA_W * GBA_H];
+		bool anyFixed = false;
+		if (!carry) {
+			memset(box, 0, sizeof(box));
+			for (int f = 0; f < nTallFixed; ++f) {
+				uint16_t a0 = tallFixed[f][0], a1 = tallFixed[f][1];
+				int y0 = a0 & 0xFF, x0 = a1 & 0x1FF, h = obj_height(a0, a1), w = obj_width(a0, a1);
+				if (y0 >= GBA_H) y0 -= 256;
+				if (x0 >= GBA_W) x0 -= 512;
+				for (int y = SDL_max(y0, 0); y < SDL_min(y0 + h, t->hudRow); ++y)
+					for (int x = SDL_max(x0, 0); x < SDL_min(x0 + w, GBA_W); ++x) {
+						if ((hudPx[y * GBA_W + x] & 0xFFFFFF) == clear) continue;
+						box[y * GBA_W + x] = 1, anyFixed = true;
+					}
+			}
+			if (anyFixed) {
+				if (!tallFixedHold) {
+					uint32_t S = emu_read32(&emu, L->state);
+					int32_t bx, by;
+					bool bot = twin_ball(&emu, S, &bx, &by) && (by >> 8) >= v + GBA_H - k;
+					if (bot != tallFixedBot && debug) fprintf(stderr, "frame %llu: banners on the %s screen (the ball's there)\n", (unsigned long long) frameCount, bot ? "bottom" : "top");
+					tallFixedBot = bot;
+				}
+				tallFixedHold = 20;
+			} else if (tallFixedHold) {
+				--tallFixedHold;
+			}
+		}
 		for (int i = 0; i < GBA_W * t->hudRow; ++i) {
-			if ((hudPx[i] & 0xFFFFFF) != clear) tallTop[i] = hudPx[i] | 0xFF000000, ++laid;
+			if ((hudPx[i] & 0xFFFFFF) == clear) continue;
+			if (!carry && box[i] && tallFixedBot) tallBot[i] = hudPx[i] | 0xFF000000;
+			else tallTop[i] = hudPx[i] | 0xFF000000;
+			++laid;
 		}
 	}
 	if (carry) {
@@ -4894,10 +4985,11 @@ static void update_tall(void) {
 		}
 	}
 	char* tl = tallLog[tallLogN++ % TALL_LOG];
-	snprintf(tl, sizeof(tallLog[0]), "T %llu s %d v %d top %s a %d%s%s b %d%s%s hid %d/%d missing %d laid %d band %d-%d fixed %d/%d same %d noobj %d",
+	snprintf(tl, sizeof(tallLog[0]), "T %llu s %d v %d top %s a %d%s%s b %d%s%s hid %d/%d missing %d laid %d band %d-%d fixed %d/%d same %d noobj %d%s%s",
 	         (unsigned long long) frameCount, s, v, gameOnTop ? "game" : "copy", twins[0].picRow, twins[0].havePic ? "" : " away",
 	         twins[0].up ? "" : " down", twins[1].picRow, twins[1].havePic ? "" : " away", twins[1].up ? "" : " down", twins[0].hidden,
-	         twins[1].hidden, missing, laid, tallBandY0, tallBandY1, nTallBandFixed, nTallFixed, same, (int) twinNoObj);
+	         twins[1].hidden, missing, laid, tallBandY0, tallBandY1, nTallBandFixed, nTallFixed, same, (int) twinNoObj,
+	         tallFixedHold && tallFixedBot ? " banners below" : "", msg && tallTopLogo ? " logo above" : "");
 	if (tallTrace) fprintf(stderr, "%s\n", tl);
 	if (!tallLive) fprintf(stderr, "frame %llu: live view\n", (unsigned long long) frameCount);
 	tallLive = true;
