@@ -10,6 +10,7 @@
 #include "esde.h"
 #include "esinteg.h"
 #include "hotkeys.h"
+#include "folderpick.h"
 #include "mapper.h"
 #include "ra.h"
 #include "update.h"
@@ -893,6 +894,8 @@ static void save_library_cfg(const Config* cfg) {
 	fprintf(f, "# written by the game list\nlibrary_view = %s\n", listMode ? "list" : "grid");
 	/* (Settings > Save States: shared with RetroArch or not, issue #39) */
 	fprintf(f, "state_folder = %s\n", strcmp(cfg->stateFolder, "retroarch") ? "gbads" : "retroarch");
+	/* (Settings > RetroArch's Folder: one chosen by hand, or empty: found from RetroArch's settings) */
+	fprintf(f, "retroarch_state_dir = %s\n", cfg->raStateDir);
 #ifdef __ANDROID__
 	fprintf(f, "rom_dir = %s\n", cfg->romDir);
 	/* (Settings > Folders; empty: next to the games) */
@@ -1041,7 +1044,11 @@ static int updatesSel;
 #define SETTINGS_MAX 6
 static int nRows = 1; /* rows shown (Back is row nRows) */
 /* (Hotkeys shares Map Buttons' line: the right half of it, under one text) */
-enum { ROW_BANANA, ROW_ES, ROW_MAP, ROW_HOTKEYS, ROW_UPDATES, ROW_FOLDERS, ROW_RA, ROW_ESDE, ROW_STATES };
+enum { ROW_BANANA, ROW_ES, ROW_MAP, ROW_HOTKEYS, ROW_UPDATES, ROW_FOLDERS, ROW_RA, ROW_ESDE, ROW_STATES, ROW_STATES_DIR };
+/* (two buttons on one line: Hotkeys right of Map Buttons, RetroArch's Folder right of Save States) */
+static bool row_right_half(int kind) {
+	return kind == ROW_HOTKEYS || kind == ROW_STATES_DIR;
+}
 static int rowKind[SETTINGS_MAX];
 
 #ifdef __ANDROID__
@@ -1072,6 +1079,7 @@ static void settings_rows(const Config* cfg) {
 	rowKind[nRows++] = ROW_MAP;
 	rowKind[nRows++] = ROW_HOTKEYS;
 	rowKind[nRows++] = ROW_STATES; /* (save states shared with RetroArch: issue #39) */
+	rowKind[nRows++] = ROW_STATES_DIR;
 #ifdef GBADS_UPDATES
 	rowKind[nRows++] = ROW_UPDATES;
 #endif
@@ -1091,7 +1099,7 @@ static SettingsGeom settings_geom(int scr) {
 	g.px = px;
 	/* lines of buttons (Linux: Map Buttons and Hotkeys share one) */
 	int lines = nRows;
-	for (int i = 0; i < nRows; ++i) lines -= rowKind[i] == ROW_HOTKEYS;
+	for (int i = 0; i < nRows; ++i) lines -= row_right_half(rowKind[i]);
 	/* (four lines: Android's, each with a line or two of text) */
 	/* (five: Android's with GBA DS in ES-DE, closer together) */
 	int m = px * 6, rowH = lines > 4 ? px * 10 : lines > 3 ? px * 12 : lines > 2 ? px * 14 : px * 18;
@@ -1104,8 +1112,8 @@ static SettingsGeom settings_geom(int scr) {
 	if (lines > 3) rowH = px * 10, textGap = px * 3, y = g.panel.y + px * 20;
 #endif
 	for (int i = 0; i < nRows; ++i) {
-		if (rowKind[i] == ROW_HOTKEYS && i > 0) {
-			/* the right half of the line above, Map Buttons the left */
+		if (row_right_half(rowKind[i]) && i > 0) {
+			/* the right half of the line above, Map Buttons (Save States) the left */
 			SDL_Rect* left = &g.row[i - 1];
 			int half = (left->w - px * 6) / 2;
 			g.row[i] = (SDL_Rect) { left->x + half + px * 6, left->y, left->w - half - px * 6, left->h };
@@ -1514,6 +1522,20 @@ static int settingsMsgRow; /* the row settingsMsg is about: shown in place of it
  * GBA DS's own folder, or shared with RetroArch (its own files, in its
  * folder: a game goes on in either). The folder shown is the selected
  * game's (RetroArch's can depend on the game's). */
+/* a long path's last parts (…/savestates/gba; whole up to 40 characters), for a line of text */
+static const char* path_tail(const char* path) {
+	const char* p = path;
+	int parts = 0;
+	for (const char* c = path + strlen(path); strlen(path) > 40 && c > path; --c) {
+		if (*c == '/' && ++parts == 3) {
+			p = c;
+			break;
+		}
+	}
+	static char out[1100];
+	snprintf(out, sizeof(out), "%s%s", p != path ? "\xe2\x80\xa6" : "", p);
+	return out;
+}
 static const char* states_rom(void) {
 	return thumbFor >= 0 && thumbFor < nGames ? games[thumbFor].path : NULL; /* (the game shown in the list) */
 }
@@ -1522,22 +1544,52 @@ static void states_text(const Config* cfg, char* out, size_t n) {
 	bool compress;
 	bool found = retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress);
 	if (!found)
-		snprintf(out, n, "Slots 0-9 and the automatic state are GBA DS's own. RetroArch's settings weren't found here, so they "
-		                 "can't be shared with it.");
+		snprintf(out, n, "Slots 0-9 and the automatic state are GBA DS's own. RetroArch's settings weren't found here: choose "
+		                 "RetroArch's state folder to share them with it.");
 	else if (strcmp(cfg->stateFolder, "retroarch"))
 		snprintf(out, n, "Slots 0-9 and the automatic state are GBA DS's own. Shared, they're RetroArch's (its mGBA core's, "
-		                 "in %s): a game goes on in either.", dir);
+		                 "in %s): a game goes on in either.", path_tail(dir));
 	else
 		snprintf(out, n, "Slots 0-9 and the automatic state are RetroArch's, in %s: a game goes on in either. Its GBA core needs "
-		                 "to be mGBA. The quick state stays GBA DS's.", dir);
+		                 "to be mGBA. The quick state stays GBA DS's.", path_tail(dir));
+}
+/* Settings > RetroArch's Folder: its state folder chosen by hand (kept as
+ * retroarch_state_dir in library.cfg), or found from its settings again
+ * (Automatic). Choosing one shares the states with RetroArch. */
+static void states_dir_pick(Config* cfg) {
+	char dir[1024] = "", chosen[1024];
+	bool compress;
+	bool found = retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress);
+	bool byHand = cfg->raStateDir[0] != 0;
+	/* (opens at the folder now, else where ROCKNIX or BananaOS keep RetroArch's states; else home) */
+	const char* start = found ? dir : file_exists("/storage/roms") ? "/storage/roms/savestates" : "/data/states";
+	FolderPick r = folder_pick("RetroArch's State Folder", start, ".state", "RetroArch state", byHand ? "Automatic" : NULL, chosen,
+	                           sizeof(chosen));
+	if (r == FOLDER_CANCEL) return;
+	if (r == FOLDER_CHOSEN) {
+		snprintf(cfg->raStateDir, sizeof(cfg->raStateDir), "%s", chosen);
+		snprintf(cfg->stateFolder, sizeof(cfg->stateFolder), "retroarch");
+		snprintf(settingsMsg, sizeof(settingsMsg), "Slots 0-9 and the automatic state are now shared with RetroArch, in %s.", path_tail(chosen));
+	} else {
+		cfg->raStateDir[0] = 0;
+		if (retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress)) {
+			snprintf(settingsMsg, sizeof(settingsMsg), "RetroArch's state folder is found from its settings again: %s.", path_tail(dir));
+		} else {
+			snprintf(cfg->stateFolder, sizeof(cfg->stateFolder), "gbads");
+			snprintf(settingsMsg, sizeof(settingsMsg), "RetroArch's settings weren't found, so slots 0-9 and the automatic state are GBA DS's own again.");
+		}
+	}
+	save_library_cfg(cfg);
+	fprintf(stderr, "library: RetroArch's state folder %s%s, states %s\n", cfg->raStateDir[0] ? "chosen: " : "from its settings",
+	        cfg->raStateDir, strcmp(cfg->stateFolder, "retroarch") ? "GBA DS's own" : "shared");
 }
 static void states_switch(Config* cfg) {
 	char dir[1024];
 	bool compress;
 	bool shared = !strcmp(cfg->stateFolder, "retroarch");
 	if (!shared && !retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress)) {
-		snprintf(settingsMsg, sizeof(settingsMsg),
-		         "RetroArch's settings weren't found. If it's installed, put its state folder in gba-ds.cfg (retroarch_state_dir).");
+		/* (RetroArch's settings not found: where are its states?) */
+		states_dir_pick(cfg);
 		return;
 	}
 	snprintf(cfg->stateFolder, sizeof(cfg->stateFolder), "%s", shared ? "gbads" : "retroarch");
@@ -1560,7 +1612,8 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 		          : rowKind[i] == ROW_ES     ? (es_integration_on(cfg) ? "GBA DS in EmulationStation: On" : "GBA DS in EmulationStation: Off")
 		          : rowKind[i] == ROW_MAP    ? "Map Buttons"
 		          : rowKind[i] == ROW_HOTKEYS ? "Hotkeys"
-		          : rowKind[i] == ROW_STATES ? (shared ? "Save States: Shared with RetroArch" : "Save States: GBA DS's Own")
+		          : rowKind[i] == ROW_STATES ? (shared ? "Save States: Shared" : "Save States: GBA DS")
+		          : rowKind[i] == ROW_STATES_DIR ? "RetroArch's Folder"
 		                                     : "Updates";
 	}
 	draw_settings_frame(scr, &g, sel, labels);
@@ -1569,8 +1622,8 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 	int y = 0;
 	for (int i = 0; i < nRows; ++i) {
 		/* (Hotkeys: under Map Buttons' text, unless it has a message) */
-		if (rowKind[i] == ROW_HOTKEYS && !(settingsMsg[0] && settingsMsgRow == i)) continue;
-		if (rowKind[i] == ROW_MAP && settingsMsg[0] && i + 1 < nRows && settingsMsgRow == i + 1) continue;
+		if (row_right_half(rowKind[i]) && !(settingsMsg[0] && settingsMsgRow == i)) continue;
+		if (settingsMsg[0] && i + 1 < nRows && row_right_half(rowKind[i + 1]) && settingsMsgRow == i + 1) continue;
 		const char* text = rowKind[i] == ROW_BANANA
 		                       ? "Games picked in BananaOS's own Game Boy Advance list start in GBA DS when it has "
 		                         "second-screen support for them. Restart BananaOS after switching this."
@@ -1605,6 +1658,7 @@ static void settings_activate(Config* cfg, int row) {
 	else if (rowKind[row] == ROW_ES) es_integration_set(cfg, !es_integration_on(cfg), settingsMsg, sizeof(settingsMsg));
 	else if (rowKind[row] == ROW_HOTKEYS) hotkeys_run(cfg);
 	else if (rowKind[row] == ROW_STATES) states_switch(cfg);
+	else if (rowKind[row] == ROW_STATES_DIR) states_dir_pick(cfg);
 	else mapper_run(cfg);
 }
 
@@ -2035,8 +2089,8 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 			if (btn_pressed(B_UP)) settingsSel = (settingsSel + nRows) % (nRows + 1);
 			/* (Map Buttons and Hotkeys side by side) */
 			if ((btn_pressed(B_LEFT) || btn_pressed(B_RIGHT)) && settingsSel < nRows) {
-				if (rowKind[settingsSel] == ROW_HOTKEYS) --settingsSel;
-				else if (rowKind[settingsSel] == ROW_MAP && settingsSel + 1 < nRows && rowKind[settingsSel + 1] == ROW_HOTKEYS) ++settingsSel;
+				if (row_right_half(rowKind[settingsSel])) --settingsSel;
+				else if (settingsSel + 1 < nRows && row_right_half(rowKind[settingsSel + 1])) ++settingsSel;
 			}
 			if (btn_pressed(B_A) || btn_pressed(B_START)) {
 				if (settingsSel < nRows) settings_activate(cfg, settingsSel);

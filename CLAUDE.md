@@ -416,7 +416,11 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   auto state at `.state`, `.state1`-`.state9`, `.state.auto` there
   (`gp.raDir`), with a `<state>.png` thumbnail and the `.ra` progress in
   `<state_dir>/retroarch/`. The quick state and patched games' own states
-  stay GBA DS's. Checked: both ways byte-identical 120 frames on against
+  stay GBA DS's. Settings > RetroArch's Folder (beside Save States, a
+  `row_right_half` like Hotkeys) opens `folderpick.c`'s `folder_pick` (a
+  screen of its own, Linux: folders only, B up, a count of `.state` files,
+  Use This Folder / Automatic) and keeps `retroarch_state_dir` in
+  library.cfg. Checked: both ways byte-identical 120 frames on against
   mGBA's libretro core, and BananaFront's statefile.c reads and writes the
   same files.
 - `profiles.c/.h` everything game-specific (MapProfile; Advance Wars 1 and

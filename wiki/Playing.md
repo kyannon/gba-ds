@@ -25,7 +25,7 @@ Leaving a game saves its state automatically, and launching it again picks up ex
 
 ## Save states shared with RetroArch
 
-On ROCKNIX, BananaOS and other Linux systems, GBA DS can share its save states with RetroArch, so you can save in one and go on in the other. In the game list, open **Settings** (SELECT) and choose **Save States** to switch between **GBA DS's Own** (the default) and **Shared with RetroArch**. The text under it says which folder RetroArch keeps its states in.
+On ROCKNIX, BananaOS and other Linux systems, GBA DS can share its save states with RetroArch, so you can save in one and go on in the other. In the game list, open **Settings** (SELECT) and choose **Save States** to switch between **GBA DS** (its own, the default) and **Shared** (with RetroArch). The text under it says which folder RetroArch keeps its states in. **RetroArch's Folder**, beside it, lets you choose that folder yourself, if GBA DS didn't find RetroArch or you keep its states somewhere else: open folders with A (or a tap), go up with B, and choose **Use This Folder**. It says how many RetroArch states are in the folder you're looking at. **Automatic** goes back to the folder RetroArch's settings give.
 
 When they're shared:
 
@@ -38,7 +38,7 @@ When they're shared:
 - GBA DS's own states stay in its folder while sharing is on, for when you switch back.
 - RetroAchievements progress isn't shared: each app keeps its own with its states.
 
-GBA DS works out RetroArch's state folder from RetroArch's own settings, the way RetroArch does: on ROCKNIX `/storage/roms/savestates/gba`, on BananaOS `/data/states/mGBA`. If RetroArch is somewhere GBA DS doesn't look, set `retroarch_state_dir` in `gba-ds.cfg` (see [Settings](Settings#files-and-folders)).
+GBA DS works out RetroArch's state folder from RetroArch's own settings, the way RetroArch does: on ROCKNIX `/storage/roms/savestates/gba`, on BananaOS `/data/states/mGBA`. If RetroArch is somewhere GBA DS doesn't look, choose its folder with **RetroArch's Folder**.
 
 ## Updates
 
