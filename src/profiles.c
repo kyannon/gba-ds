@@ -2303,6 +2303,12 @@ static const char* bf_compose(Emu* s, const void* state, uint32_t* out, int w, i
 #define ML_MODE 0x02000009 /* with state 8: 21 walking about, 10 SELECT's menu opening, 26 the menus */
 #define ML_PAGE 0x0200000D /* in the menus: 9 SELECT's menu, 12 Bros. Info (Mario's page), 14 Luigi's */
 #define ML_WALKING 0x1508 /* ML_STATE and ML_MODE as a halfword, walking about */
+/* ML_STATE and ML_MODE as a halfword in a battle (USA, Europe, Japan: set
+ * at once from walking about, kept to the battle's end, results and
+ * level-ups too). The mine cart minigame (Mysterious Mine Carts, Hoohoo
+ * Mountain) is state 3 too but mode 0x1C (0x1C03): no battle boxes there,
+ * the whole minigame on the game screen (ML-7, issue #51) */
+#define ML_BATTLE 0x5A03
 #define ML_CURSOR(e) (0x030040A9 + ((e)->gameCode[3] == 'J' ? 0x20 : 0))
 #define ML_LEAD 0x02004F4C /* the brother in front: 0 Mario, 1 Luigi (START swaps) */
 /* BG3's tile map entry inside the results' red EXP panel (row 7, column 9):
@@ -7745,8 +7751,10 @@ static const MapProfile profiles[] = {
 		          .edgeClear = { 0x6BBDD6, 0x635242, 0x73634A }, .rev = 1 },
 		.hud = {
 			/* in a battle, before its results (ML-5): those stay on the
-			 * game screen whole, the logo alone on the second screen */
-			.on = { { ML_STATE, 0xFF, 3, 1 }, { ML_RESULTS, 0xFFFF, 0, 2 } },
+			 * game screen whole, the logo alone on the second screen
+			 * (only the battle's own screen, not the mine carts' state
+			 * 3: ML-7, issue #51) */
+			.on = { { ML_STATE, 0xFFFF, ML_BATTLE, 2 }, { ML_RESULTS, 0xFFFF, 0, 2 } },
 			/* and once the results are up, off to the battle's end: a
 			 * level-up after them clears their panels before its own
 			 * (the brother jumping, his level, the star), and stays on
