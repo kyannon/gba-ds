@@ -240,13 +240,26 @@ bool renderThreadHostCreate(pthread_t* thread, void* (*function)(void*), void* a
 	return true;
 }
 
-// GBA DS keeps the fourth core for the hidden copy of the game: one render worker draws every line.
+// A second render worker (render_workers = 2 in gba-ds.cfg; armGBA asks every time): on the fourth
+// core, at the game thread's priority, a step above the hidden copy's thread there. Each worker
+// then draws every other line.
 bool renderThreadHostCreateSecond(pthread_t* thread, void* (*function)(void*), void* argument) {
-	(void) thread;
-	(void) function;
-	(void) argument;
 	renderThreadSecond = false;
-	return false;
+	// (armGBA asks on the 3DS whatever it was started with: the setting is GBA DS's, emu.h)
+	extern int emuRenderWorkers;
+	if (renderThreadCore != 2 || emuRenderWorkers != 2) {
+		return false;
+	}
+	s32 priority = 0x30;
+	svcGetThreadPriority(&priority, CUR_THREAD_HANDLE);
+	Thread t = threadCreate((ThreadFunc) (void*) function, argument, 256 * 1024, priority, 3, false);
+	logLine("second render thread on core 3: %s", t ? "started" : "refused");
+	if (!t) {
+		return false;
+	}
+	renderThreadSecond = true;
+	*thread = (pthread_t) t;
+	return true;
 }
 
 // The sound thread beside the render worker, one step above it: it sleeps until it has a batch to

@@ -37,6 +37,12 @@ No devkitPro needed on the machine: the builds run in the
   four-letter code in its header: a translation or romhack that kept the
   original's code is listed (and treated as that release), one with a code of
   its own only with `show_all = 1`, on one screen.
+- `render_workers = 2` in `gba-ds.cfg` draws the game on two threads (the
+  third and fourth cores, each every other line) instead of one, as
+  armGBA-3DS does. Off by default until it has been timed on a console: the
+  fourth core is also the hidden copy's (map captures), a step below. The
+  picture is the same either way (checked on the desktop build, both
+  screens, the HUD split included).
 - Sound needs the DSP firmware dump (`sdmc:/3ds/dspfirm.cdc`), as all 3DS
   homebrew does.
 - Saves are beside the ROMs (`.sav`), save states and settings in

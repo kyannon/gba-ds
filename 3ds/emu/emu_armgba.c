@@ -492,6 +492,8 @@ static void close_core(ArmCore* c) {
 	free(c);
 }
 
+int emuRenderWorkers = 1;
+
 bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	memset(e, 0, sizeof(*e));
 	ArmCore* c = calloc(1, sizeof(*c));
@@ -658,12 +660,15 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	gba->savedata.dirty = false;
 #ifdef __3DS__
 	if (audio) {
-		if (renderThreadStart(gba, false, false)) renderSetHooks(gba, &c->hooks);
+		/* (render_workers = 2: a second thread draws every other line, on the
+		 * fourth core beside the hidden copy) */
+		if (renderThreadStart(gba, false, emuRenderWorkers == 2)) renderSetHooks(gba, &c->hooks);
 		audioThreadStart(gba);
 	}
 #else
-	/* (GBADS_RENDER_THREAD=1, tests: drawn on a thread as the console's game is) */
-	if (getenv("GBADS_RENDER_THREAD") && renderThreadStart(gba, false, false)) renderSetHooks(gba, &c->hooks);
+	/* (GBADS_RENDER_THREAD=1, tests: drawn on a thread as the console's game is;
+	 * 2: on two, each drawing every other line) */
+	if (getenv("GBADS_RENDER_THREAD") && renderThreadStart(gba, false, atoi(getenv("GBADS_RENDER_THREAD")) == 2)) renderSetHooks(gba, &c->hooks);
 #endif
 
 	e->fb = calloc(GBA_W * GBA_H, sizeof(uint32_t));

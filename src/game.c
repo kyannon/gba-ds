@@ -7371,6 +7371,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	game_paths(cfg, rom, &gp);
 	patches_setup(rom); /* GEN-9: the patches folder, what's on, and the plan every core opens the ROM with */
 	profile_set_rom(NULL, 0);
+	emuRenderWorkers = cfg->renderWorkers == 2 ? 2 : 1;
 	if (!emu_open(&emu, rom, gp.sav, true)) {
 		ui_osd("Couldn't load the game");
 		return fromLibrary ? GAME_TO_LIBRARY : GAME_QUIT_APP;

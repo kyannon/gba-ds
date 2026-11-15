@@ -35,7 +35,8 @@ ZL), R2 fast-forward. The window is the 3DS's: 400x240 over 320x240.
 import argparse, json, os, shutil, signal, subprocess, sys, time, zipfile
 
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-APPS = {"mgba": "build/host/gba-ds", "armgba": "build/sim-perf/gba-ds", "armgba-thr": "build/sim-perf/gba-ds"}
+APPS = {"mgba": "build/host/gba-ds", "armgba": "build/sim-perf/gba-ds", "armgba-thr": "build/sim-perf/gba-ds",
+        "armgba-thr2": "build/sim-thr2/gba-ds"}
 WINDOW, SCREENS = "400x480", "400x240,320x240"
 BIOS = None
 
@@ -128,6 +129,8 @@ def run_app(name, rom, script_lines, outdir, last_tick, state):
                GBADS_WINDOW=WINDOW, GBADS_SCREENS=SCREENS)
     if name == "armgba-thr":
         env["GBADS_RENDER_THREAD"] = "1"
+    if name == "armgba-thr2":
+        env["GBADS_RENDER_THREAD"] = "2"
     # The same BIOS on both emulators (else mGBA's stand-in and armGBA's time its calls differently and the
     # runs drift apart), and the pause menu's clock fixed.
     if BIOS:
@@ -209,7 +212,7 @@ def main():
 
     sheets, row_imgs = [], []
     for s in shots:
-        a, m, t = load("mgba", s), load("armgba", s), load("armgba-thr", s)
+        a, m, t = load("mgba", s), load("armgba", s), load("armgba-thr", s) or load("armgba-thr2", s)
         am, mt = differ(a, m), differ(m, t)
         entry = {"shot": s}
         if am:
