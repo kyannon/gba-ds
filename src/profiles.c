@@ -4522,6 +4522,23 @@ static const uint32_t* mmbn_live_view(Emu* live, const char* rom) {
 	return out;
 }
 
+/* A state of the hidden copy's for a composer that takes the picture apart and
+ * puts the copy back: as large as the emulator's states (armGBA's are larger
+ * than mGBA's; a fixed buffer of mGBA's size failed every capture there, or
+ * was written past). Two (slot 0 and 1); composers run one at a time, on the
+ * capture's thread. */
+static uint8_t* compose_state(Emu* s, int slot) {
+	static uint8_t* buf[2];
+	static size_t cap[2];
+	size_t n = emu_state_size(s);
+	if (n > cap[slot]) {
+		free(buf[slot]);
+		buf[slot] = malloc(n);
+		cap[slot] = buf[slot] ? n : 0;
+	}
+	return buf[slot];
+}
+
 static const char* mmbn_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
 	if (w != GBA_W || h != GBA_H) return "not a GBA screen";
 	if (!emu_state_load(s, state)) return "state load failed";
@@ -4539,8 +4556,8 @@ static const char* mmbn_compose(Emu* s, const void* state, uint32_t* out, int w,
 	/* the counter's frame rows and inside, kept: from a frame drawn with
 	 * the menu's layer (BG0) alone (whatever is behind the counter, the
 	 * net's paths, a Navi walking by, shows through it in places) */
-	static uint8_t tmp[0x80000];
-	if (emu_state_size(s) > sizeof(tmp) || !emu_state_save(s, tmp)) return "state save failed";
+	uint8_t* tmp = compose_state(s, 0);
+	if (!tmp || !emu_state_save(s, tmp)) return "state save failed";
 	emu_layers(s, 0x01);
 	emu_state_load(s, tmp); /* (the layers take effect as the display registers are loaded) */
 	emu_frame(s, 0);
@@ -4664,8 +4681,8 @@ static const char* mmbn2_compose(Emu* s, const void* state, uint32_t* out, int w
 	aw_run(s, 0, 3); /* (drawn) */
 	if (emu_cancelled(s)) return "called off";
 	/* the box, from a frame drawn with the menu's layer (BG0) alone */
-	static uint8_t tmp[0x80000];
-	if (emu_state_size(s) > sizeof(tmp) || !emu_state_save(s, tmp)) return "state save failed";
+	uint8_t* tmp = compose_state(s, 0);
+	if (!tmp || !emu_state_save(s, tmp)) return "state save failed";
 	emu_layers(s, 0x01);
 	emu_state_load(s, tmp); /* (the layers take effect as the display registers are loaded) */
 	emu_frame(s, 0);
@@ -4697,7 +4714,7 @@ static const char* mmbn2_compose(Emu* s, const void* state, uint32_t* out, int w
 	 * kept; then the cursor (a sprite, by the rows) from a frame drawn
 	 * without sprites there (MegaMan's are left of it) */
 	static uint32_t panel[MMBN_PANEL_ROWS * GBA_W];
-	static uint8_t tmp2[0x80000];
+	uint8_t* tmp2 = compose_state(s, 1);
 	memcpy(panel, s->fb, sizeof(panel));
 	if (!emu_state_save(s, tmp)) return "state save failed";
 	int dark[2] = { 0, 0 };
@@ -4707,8 +4724,8 @@ static const char* mmbn2_compose(Emu* s, const void* state, uint32_t* out, int w
 	for (int i = 0; i < MMBN_PANEL_ROWS * GBA_W; ++i) dark[1] += (s->fb[i] & 0xFFFFFF) == MMBN2_LIGHT;
 	if (dark[1] > dark[0] && mmbn2_megaman_up(s) && som_probes(s, mmbn2Panel, 8, 8, 8)) {
 		memcpy(panel, s->fb, sizeof(panel));
-		if (!emu_state_save(s, tmp2)) return "state save failed";
-		memcpy(tmp, tmp2, sizeof(tmp));
+		if (!tmp2 || !emu_state_save(s, tmp2)) return "state save failed";
+		memcpy(tmp, tmp2, emu_state_size(s));
 	}
 	emu_layers(s, 0x0F);
 	emu_state_load(s, tmp);
@@ -4835,8 +4852,8 @@ static const char* hpa_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	if (emu_cancelled(s)) return "called off";
 	if (!som_probes(s, hpaStatus, 6, 6, 8)) return "not the Status/Equip screen";
 	/* drawn without its sprites: the wand cursor and its sparkles */
-	static uint8_t tmp[0x80000];
-	if (emu_state_size(s) > sizeof(tmp) || !emu_state_save(s, tmp)) return "state save failed";
+	uint8_t* tmp = compose_state(s, 0);
+	if (!tmp || !emu_state_save(s, tmp)) return "state save failed";
 	emu_layers(s, 0x0F);
 	emu_state_load(s, tmp); /* (the layers take effect as the display registers are loaded) */
 	emu_frame(s, 0);
