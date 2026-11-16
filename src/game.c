@@ -58,6 +58,14 @@ static double thread_cpu_ms(void) {
 #endif
 	return t.tv_sec * 1000.0 + t.tv_nsec / 1e6;
 }
+/* CLOCK_MONOTONIC in seconds: the time the kernel log and the journal's
+ * monotonic stamps use, so a stall can be matched with what the system did
+ * (launch.sh logs both on ROCKNIX) */
+static double mono_seconds(void) {
+	struct timespec t;
+	if (clock_gettime(CLOCK_MONOTONIC, &t) != 0) return 0;
+	return t.tv_sec + t.tv_nsec / 1e9;
+}
 static int cpu_mhz(int cpu) {
 #ifdef __linux__
 	if (cpu < 0) return 0;
@@ -7566,12 +7574,13 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 					fprintf(stderr,
 					        "frame %llu: stall: %.0f ms between frames: waiting for the frame buffer %.1f, input and menu %.1f, emulating %.1f "
 					        "(sound hand-off %.1f), second screen %.1f, drawing %.1f (top screen %.1f, bottom %.1f), after drawing %.1f, "
-					        "sleeping %.1f (of %.1f asked); ran %.1f ms of it, preempted %ld time(s); sound queue %d -> %d ms\n",
+					        "sleeping %.1f (of %.1f asked); ran %.1f ms of it, preempted %ld time(s); sound queue %d -> %d ms; "
+					        "ended at %.3f s on the system clock (as the kernel's and the journal's)\n",
 					        p->frame, gap, (double) (p->synced - p->top) * msPer, (double) (p->emu0 - p->synced) * msPer,
 					        (double) (p->emu1 - p->emu0) * msPer, p->audio, (double) (p->draw0 - p->emu1) * msPer,
 					        (double) (p->draw1 - p->draw0) * msPer, p->presentTop, p->presentBottom, (double) (p->sleep0 - p->draw1) * msPer,
 					        (double) (p->end - p->sleep0) * msPer, p->sleepWant * 1000.0, thread_cpu_ms() - p->cpuMs,
-					        thread_preemptions() - p->preempt, p->queueMs, queueMs);
+					        thread_preemptions() - p->preempt, p->queueMs, queueMs, mono_seconds());
 				}
 			}
 			loopCur = (LoopMarks) { .top = t, .cpuMs = thread_cpu_ms(), .preempt = thread_preemptions(), .queueMs = queueMs, .frame = (unsigned long long) frameCount };
