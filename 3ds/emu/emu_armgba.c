@@ -635,6 +635,12 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	/* (the game's own core is the one with sound: the large share of the
 	 * recompiler's memory, and the console's other cores to draw and mix on) */
 	pthread_mutex_lock(&sharedLock);
+	/* (the ROM's buffer, set aside before the recompiler's code memory and
+	 * the machine are made, and given back just before the ROM is read into
+	 * it: after a while in the game list (the logos' copies coming and going)
+	 * the heap had 30 MiB free but not 8 in one piece once the game's code
+	 * memory was placed, and Pokémon Pinball didn't start) */
+	void* romRoom = NULL;
 	{
 		/* (the ROM is read after the machine is made: its size, so that the
 		 * recompiler leaves it room; a .zip's isn't known, taken as 16 MiB) */
@@ -643,7 +649,10 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 		for (int i = 0; i < SHARED_MAX; ++i) held |= sharedRoms[i].users && !strcmp(sharedRoms[i].path, romPath);
 		struct stat rst;
 		if (!held) toLoad = emu_is_archive_name(romPath) || stat(romPath, &rst) ? 16u << 20 : (size_t) rst.st_size;
-		host_jit_main(audio, toLoad);
+		if (toLoad) romRoom = malloc(gbaRomBufferSize(toLoad));
+		/* (set aside already: the heap free doesn't count it, so nothing more
+		 * is kept for it) */
+		host_jit_main(audio, romRoom ? 0 : toLoad);
 	}
 	c->gba = gbaCreate();
 	pthread_mutex_unlock(&sharedLock);
@@ -707,6 +716,9 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	}
 #endif
 	if (!s) {
+#ifdef __3DS__
+		free(romRoom), romRoom = NULL;
+#endif
 		rom = emu_rom_read_played(romPath, &size, &e->patch, e->patchName, &e->fileCrc);
 		{
 			/* (the names of the ones left out, as src/emu.c reports them) */
@@ -782,6 +794,9 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 		}
 	}
 
+#ifdef __3DS__
+	free(romRoom), romRoom = NULL; /* (a cartridge borrowed from another core: not needed) */
+#endif
 	gba->savedata.backed = true;
 	if (savePath) {
 		c->savePath = strdup(savePath);
@@ -818,6 +833,9 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 #endif
 	return true;
 fail:
+#ifdef __3DS__
+	free(romRoom);
+#endif
 	close_core(c);
 	e->core = NULL;
 	free(e->fb);
