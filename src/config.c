@@ -46,7 +46,14 @@ void config_defaults(Config* c) {
 	c->bezelLogo = true;
 	strcpy(c->bezelInner, "1A1A1A");
 	strcpy(c->bezelOuter, "102060");
+#ifdef __3DS__
+	/* (every second, the hidden copy's captures took a core of the New 3DS's
+	 * memory most of the time: Yoshi's Island's status screen made the game
+	 * hitch; every 3 s it's busy a third as often) */
+	c->mapInterval = 180;
+#else
 	c->mapInterval = 60;
+#endif
 	c->sway = true;
 	c->audioLatency = 64;
 	c->keepSound = true;

@@ -647,8 +647,18 @@ static int pow2(int v) {
 	return p;
 }
 
-static u32* stage; /* (whole pictures on their way to the GPU's copy engine) */
-static size_t stageSize;
+/* Whole pictures on their way to the GPU's copy engine: two buffers, used in
+ * turn. C3D_SyncDisplayTransfer can return with its copy still under way: it
+ * waits for the GPU's PPF event, which the frame's own copies to the screens
+ * have left set. With one buffer, the next picture (the game's, uploaded
+ * right after the second screen's) was written over it while the copy engine
+ * still read the last one, whose lower rows came out as the game's (on the
+ * console; Azahar's copies finish at once). A buffer is filled again two
+ * uploads later, after the upload between has waited for the GPU's queue
+ * (C3D_SyncDisplayTransfer does that first), its copy with it. */
+static u32* stages[2];
+static size_t stageSizes[2];
+static int stageNext;
 
 /* Texel (x, y) of a w-wide texture in the GPU's layout: 8x8 tiles, row by
  * row, Morton order inside a tile; the first row is the picture's top. */
@@ -776,11 +786,14 @@ int SDL_UpdateTexture(SDL_Texture* t, const SDL_Rect* rect, const void* pixels, 
 		 * (the transfer would land in its command list) */
 		u32 h8 = (u32) (rect->h + 7) & ~7u;
 		size_t need = (size_t) texW * h8 * 4;
-		if (need > stageSize) {
-			if (stage) linearFree(stage);
-			stage = linearAlloc(need);
-			stageSize = stage ? need : 0;
+		int k = stageNext;
+		if (need > stageSizes[k]) {
+			if (stages[k]) linearFree(stages[k]);
+			stages[k] = linearAlloc(need);
+			stageSizes[k] = stages[k] ? need : 0;
 		}
+		u32* stage = stages[k];
+		if (stage) stageNext ^= 1;
 		if (stage) {
 			for (int y = 0; y < rect->h; ++y) {
 				const Uint32* src = (const Uint32*) ((const Uint8*) pixels + (size_t) y * pitch);
