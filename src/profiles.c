@@ -5900,6 +5900,33 @@ static const MapProfile profiles[] = {
 		.logo = { .wait = 1440, .layer = 1, .maxY = 140, .lightEdgeClear = true },
 	},
 	{
+		/* Japanese release (BPPJ): same EWRAM layout under S and gMain,
+		 * shifted gCurrentPinballGame (0x02030440), limits (0x02030480),
+		 * and camera store ROM addresses. */
+		.codes = { "BPPJ" },
+		.title = "Pokemon Pinball: Ruby & Sapphire",
+		.logoOnly = true,
+		.tall = {
+			.on = { { 0x04000008, 0xFFFF, 0x8404, 2 }, { 0x0400000E, 0xFFFF, 0x804B, 2 } },
+			.hudBg = 0x01,
+			.rows = 432,
+			.hudRow = 144,
+			.live = { .state = 0x02030440, .cam = 0x54, .camRow = 0x4E,
+			          .nop = { 0x0804B896, 0x0804B8A6, 0x0804B5E8, 0x0804B5F8 },
+			          .bound = 0x02030498, .boundFrom = 0x164,
+			          .ball = 0x1330, .oam = 0x03005000,
+			          .view = 0x0200B3B6, .viewBg = 3, .shake = 0x121,
+			          .msg = { .map = 0x06002000, .row0 = 10, .rows = 18, .blank = 0x1FF, .min = 40 },
+			          .idle = { { 0x020005FC, 0xFFFF, 0, 2 } },
+			          .jump = { .ring = 0x06008000, .slots = 22, .slotOff = 10,
+			                    .src = { 0x0200FBB0, 0x020030A0 }, .split = 32, .tileRows = 56,
+			                    .last = 0x64, .scroll = { 0x5A, 0x68, 0x6A, 0xCC },
+			                    .scrollAt = { 0x0200B3AE, 0x0200B3B2, 0x0200B3B6 },
+			                    .scrollVofs = 0x0E, .plus16 = 0x03007ED8 } },
+		},
+		.logo = { .wait = 1440, .layer = 1, .maxY = 140, .lightEdgeClear = true },
+	},
+	{
 		/* the table over both screens, live (see profiles.h tall; the two
 		 * releases differ only in their header): the score bar (BG3, rows
 		 * 0-23) on the top screen, the message line (BG2, rows 150-159) at
