@@ -1151,9 +1151,21 @@ static int layout_rows(const int* items, int n, int* row, int* side) {
 	}
 	return rows;
 }
-/* two pages, switched with L1/R1 or the tabs */
-#define N_PAGES 3
+/* Seven pages, switched with L1/R1 or the tabs: Game and Tools hold buttons
+ * (actions); the other five are rows of settings (docs/MENUS.md), the same
+ * categories as the game list's Settings, each changed for this game (A) or
+ * for all games (Y), kept in states/<game>.cfg or states/prefs.cfg. */
+#define N_PAGES 7
+enum { PG_GAME, PG_TOOLS, PG_DISPLAY, PG_SCREENS, PG_CONTROLS, PG_SPEED, PG_MAP };
 static int pages[N_PAGES][12], pageLen[N_PAGES], curPage;
+static const char* rowKeys[N_PAGES][10]; /* a settings page's rows: the settings' keys, or "@name" for a button that opens something */
+static int rowN[N_PAGES];
+static int rowSel;     /* 0: the This game / All games bar; 1...: the rows */
+static bool scopeAll;  /* the bar: changes go to all games */
+static int rowPressed = -1;
+static bool page_is_rows(int p) {
+	return p >= PG_DISPLAY;
+}
 /* Buttons still held when the menu closes (or after a HOME combo) are kept
  * from the game until released, so e.g. the A that picked "Save state"
  * doesn't make Samus jump. */
@@ -1166,12 +1178,13 @@ static int hkBtn[HK_COUNT];
 static void suppress_held(void) {
 	for (int b = 0; b < B_COUNT; ++b) suppress[b] = btnNow[b];
 }
-static const char* pageNames[N_PAGES] = { "Game", "Display", "Extras" };
+static const char* pageNames[N_PAGES] = { "Game", "Tools", "Display", "Screens", "Controls", "Speed", "Map" };
 /* Restart Game, Close Game and Close GBA DS ask first: chosen once, the
  * button says "Are You Sure?" (and the note what happens); chosen again,
  * it's done. Another page, another button or closing the menu calls it off. */
 static int armedItem = -1;
 static void rebuild_textures(void);
+static void commit_current(const char* key);
 static bool confirm_item(int item) {
 	return item == M_RESTART || item == M_LIBRARY || item == M_EXIT;
 }
@@ -1196,22 +1209,13 @@ static SDL_Rect ach_area(int scr);
 /* Every label a pause-menu button can show, for sizing the text so the
  * widest fits (item_label gives the current one). */
 static const char* const allLabels[] = {
-	"Resume", "Restart Game", "Are You Sure?", "Save State", "Load State", "Cheats", "Buttons", "Achievements",
-	"Take Screenshot", "Close Game", "Close GBA DS", "Swap Screens", "Scale: Pixel Perfect", "Scale: Full Width",
-	"Scale: Zoom", "Scale: Stretch", "Shader: Off", "Shader: LCD Grid", "Shader: Scanlines", "Shader: Soft Cells",
-	"Shader: Subpixels (Light)", "Shader: Subpixels", "Shader: Subpixels (Strong)", "Overlays: Off", "Overlays: Generated",
-	"Overlays: Custom", "Submit a Bug Report",
-	"Map Animations: On", "Map Animations: Off", "Map Refresh: Every 3 s", "Map Refresh: Every 1.5 s",
-	"Map Refresh: Every 1 s", "Map Refresh: Every 0.5 s", "Map Refresh: Custom", "Frame Buffer: On",
-	"Frame Buffer: Off", "Match Display Rate: On", "Match Display Rate: Off",
-	"Screen Placement: Centered", "Screen Placement: Closest to Gap",
+	"Resume", "Restart Game", "Are You Sure?", "Save State", "Load State", "Cheats", "Patches", "Achievements",
+	"Take Screenshot", "Close Game", "Close GBA DS", "Submit a Bug Report",
 	"\u2039   Slot 0: Sep 30, 12:59 PM   \u203A", /* (the slot row, with its arrows) */
 };
 /* the labels of the half-width buttons, which fit in half the width */
 static const char* const halfLabels[] = {
-	"Save State", "Load State", "Save State 0", "Load State 0", "Save on Quit: On", "Save on Quit: Off", "Auto-Load: On", "Auto-Load: Off",
-	"Rewind: On", "Rewind: Off", "Fast Forward: 2x", "Fast Forward: 3x", "Fast Forward: 4x", "Fast Forward: 5x", "Fast Forward: Max", "Fast Forward: Off",
-	"Color Correction: On", "Color Correction: Off", "LCD Ghosting: On", "LCD Ghosting: Off",
+	"Save State", "Load State", "Save State 0", "Load State 0",
 };
 
 /* The pause menu's layout: buttons across the whole screen (a small margin
@@ -1233,7 +1237,7 @@ static MenuGeom menu_geom(int scr) {
 	int n = 1;
 	for (int p = 0; p < N_PAGES; ++p) {
 		int row[12], side[12];
-		n = SDL_max(n, layout_rows(pages[p], pageLen[p], row, side));
+		n = SDL_max(n, page_is_rows(p) ? rowN[p] + 1 : layout_rows(pages[p], pageLen[p], row, side));
 	}
 	if (r.w == cw && r.h == ch && n == cn) return cache;
 	MenuGeom g;
@@ -2800,6 +2804,8 @@ static void set_page(int page) {
 	menuPressed = -1;
 	menuNote[0] = 0;
 	armedItem = -1;
+	rowSel = page_is_rows(page) ? 1 : 0;
+	rowPressed = -1;
 }
 
 /* D-pad up / down: the row above or below (round at the ends), the same side of a split row */
@@ -3280,6 +3286,9 @@ static void ovl_activate(int i, int dir) {
 		snprintf(cfg->bezelOuter, sizeof(cfg->bezelOuter), "%06X", BEZEL_OUTER_DEFAULT);
 		break;
 	}
+	commit_current("overlays"); /* (the layer in force) */
+	commit_current("overlay_screens");
+	commit_current("bezel_logo");
 	save_prefs();
 }
 static void ovl_close_all(void) {
@@ -3289,38 +3298,34 @@ static void ovl_close_all(void) {
 	pickDrag = 0;
 }
 
-/* ---------------------------------------------------------------- Extras > Buttons
+/* ---------------------------------------------------------------- face buttons
  *
- * GEN-10: which GBA button each face button gives the game, per game. A
- * screen of its own (as Overlays): a row per face button, by position
- * (right, bottom, top, left), stepping through GBA A / B / L / R / Nothing,
- * then Reset Buttons. Kept in <state_dir>/<game>.buttons ("right a" lines);
- * with no file, ab_swap's layout. Only the game's keys change (run loop,
- * the GBA layout's branch): GBA DS's own screens keep B_A / B_B. In games
- * with a layout picker (profile `controls`), the SNES / four-button layout
- * decides the face buttons wherever it's in use. */
+ * GEN-10: which GBA button each face button gives the game, by position
+ * (right, bottom, top, left): GBA A / B / L / R, Start, Select, Turbo A /
+ * Turbo B or nothing. Controls > the four button rows (button_right ... in
+ * gba-ds.cfg, for this game or for all games); with none chosen, ab_swap's
+ * layout. Before v1.5.4 a game's choices were kept in <game>.buttons: read
+ * once into the game's own settings (fb_load). Only the game's keys change
+ * (run loop, the GBA layout's branch): GBA DS's own screens keep B_A / B_B.
+ * In games with a layout picker (profile `controls`), the SNES / four-button
+ * layout decides the face buttons wherever it's in use. */
 enum { FB_RIGHT, FB_BOTTOM, FB_TOP, FB_LEFT, FB_COUNT };
 enum { FG_A, FG_B, FG_L, FG_R, FG_START, FG_SELECT, FG_TURBO_A, FG_TURBO_B, FG_NONE, FG_COUNT };
 static const char* const fbNames[FB_COUNT] = { "right", "bottom", "top", "left" };
-static const char* const fbLabels[FB_COUNT] = { "A (Right)", "B (Bottom)", "X (Top)", "Y (Left)" };
 static const char* const fgNames[FG_COUNT] = { "a", "b", "l", "r", "start", "select", "turbo_a", "turbo_b", "none" };
 static const char* const fgLabels[FG_COUNT] = { "GBA A", "GBA B", "GBA L", "GBA R", "Start", "Select", "Turbo A", "Turbo B", "Nothing" };
 static int fbMap[FB_COUNT]; /* each face button's FG_ */
-static bool fbSet;          /* the player's own (else ab_swap's) */
-static char fbPath[1400];
-static bool btnsOpen;
-static int btnsSel, btnsPress = -1;
-#define BTNS_ROWS (FB_COUNT + 1) /* + Reset Buttons */
+static bool fbSet;          /* a choice in force (else ab_swap's) */
 
+/* from the settings in force (called again whenever one changes) */
 static void fb_default(void) {
 	fbMap[FB_RIGHT] = cfg->abSwap ? FG_B : FG_A;
 	fbMap[FB_BOTTOM] = cfg->abSwap ? FG_A : FG_B;
 	fbMap[FB_TOP] = fbMap[FB_LEFT] = FG_NONE;
-	/* button_right ... button_left (Settings > Controls, or gba-ds.cfg): for all games */
+	fbSet = false;
 	for (int i = 0; i < FB_COUNT; ++i)
 		for (int j = 0; j < FG_COUNT && cfg->faceBtn[i][0]; ++j)
-			if (!strcmp(cfg->faceBtn[i], fgNames[j])) fbMap[i] = j;
-	fbSet = false;
+			if (!strcmp(cfg->faceBtn[i], fgNames[j])) fbMap[i] = j, fbSet = true;
 }
 
 /* "right GBA A, bottom GBA B, ..." for the log and bug reports */
@@ -3332,33 +3337,36 @@ static const char* fb_describe(void) {
 	return s;
 }
 
+static void game_keys_reload(void);
 static void fb_load(void) {
-	fb_default();
-	snprintf(fbPath, sizeof(fbPath), "%s/%s.buttons", cfg->stateDir, gp.base);
-	FILE* f = fopen(fbPath, "r");
-	if (!f) return;
-	char k[16], v[16];
-	while (fscanf(f, "%15s %15s", k, v) == 2) {
-		for (int i = 0; i < FB_COUNT; ++i) {
-			if (strcmp(k, fbNames[i])) continue;
-			for (int j = 0; j < FG_COUNT; ++j)
-				if (!strcmp(v, fgNames[j])) fbMap[i] = j, fbSet = true;
+	/* a game's <game>.buttons from before v1.5.4: moved into its own settings */
+	char old[1400];
+	snprintf(old, sizeof(old), "%s/%s.buttons", cfg->stateDir, gp.base);
+	FILE* f = fopen(old, "r");
+	if (f) {
+		char k[16], v[16], lines[FB_COUNT][2][24];
+		const char* kv[FB_COUNT][2];
+		int n = 0;
+		while (fscanf(f, "%15s %15s", k, v) == 2 && n < FB_COUNT) {
+			for (int i = 0; i < FB_COUNT; ++i) {
+				if (strcmp(k, fbNames[i])) continue;
+				snprintf(lines[n][0], 24, "button_%s", fbNames[i]);
+				snprintf(lines[n][1], 24, "%s", v);
+				kv[n][0] = lines[n][0], kv[n][1] = lines[n][1];
+				++n;
+			}
 		}
-	}
-	fclose(f);
-	if (fbSet) fprintf(stderr, "buttons: %s\n", fb_describe());
-}
-
-static void fb_save(void) {
-	if (!fbSet) {
-		remove(fbPath);
-	} else {
-		FILE* f = fopen(fbPath, "w");
-		if (!f) return;
-		for (int i = 0; i < FB_COUNT; ++i) fprintf(f, "%s %s\n", fbNames[i], fgNames[fbMap[i]]);
 		fclose(f);
+		if (n) {
+			config_kv_update(gp.settings, "# this game's own settings: they win over the ones for all games", n, kv);
+			config_load_game_file(cfg, gp.settings); /* (put over the settings now) */
+			fprintf(stderr, "buttons: %s.buttons moved into %s\n", gp.base, gp.settings);
+		}
+		remove(old);
+		game_keys_reload();
 	}
-	fprintf(stderr, "buttons: %s%s\n", fb_describe(), fbSet ? "" : " (the default)");
+	fb_default();
+	if (fbSet) fprintf(stderr, "buttons: %s\n", fb_describe());
 }
 
 /* the GBA keys the face buttons give the game (the GBA layout) */
@@ -3375,57 +3383,117 @@ static uint32_t fb_keys(void) {
 	return keys;
 }
 
-static SDL_Rect btns_row_rect(int scr, int i) {
-	MenuGeom g = menu_geom(scr);
-	return (SDL_Rect) { g.margin, g.top + i * (g.h + g.gap), g.w, g.h };
-}
-
-static void btns_activate(int i, int dir) {
-	if (i < 0 || i >= BTNS_ROWS) return;
-	if (i == FB_COUNT) {
-		fb_default(); /* Reset Buttons */
-	} else {
-		fbMap[i] = (fbMap[i] + (dir < 0 ? FG_COUNT - 1 : 1)) % FG_COUNT;
-		fbSet = true;
-	}
-	fb_save();
-}
-
-static void draw_buttons_menu(int scr) {
-	MenuGeom mg = menu_geom(scr);
-	int rad = mg.rad, cap = mg.cap;
-	SDL_Rect b = tab_rect(scr, 0), t = tab_rect(scr, 1);
-	ui_fill_round(scr, b, C_BTN, rad);
-	ui_label(scr, b.x + b.w / 2, b.y + b.h / 2, cap, "Back", C_TEXT);
-	ui_fill_round(scr, t, C_BTN_EDGE, rad);
-	ui_label(scr, t.x + t.w / 2, t.y + t.h / 2, cap, "Buttons", (SDL_Color) { 20, 16, 36, 255 });
-	for (int i = 0; i < BTNS_ROWS; ++i) {
-		SDL_Rect r = btns_row_rect(scr, i);
-		bool sel = i == btnsSel;
-		int e = SDL_max(1, mg.h / 28);
-		if (sel) ui_fill_round(scr, (SDL_Rect) { r.x - e, r.y - e, r.w + e * 2, r.h + e * 2 }, C_BTN_EDGE, rad + e);
-		ui_fill_round(scr, r, sel ? C_BTN_SEL : C_BTN, rad);
-		char label[64];
-		if (i < FB_COUNT) snprintf(label, sizeof(label), "%s: %s", fbLabels[i], fgLabels[fbMap[i]]);
-		else snprintf(label, sizeof(label), "Reset Buttons");
-		int lc = SDL_min(cap, cap * (r.w - mg.pad * 2) / SDL_max(1, ui_label_width(scr, cap, label)));
-		ui_label(scr, r.x + r.w / 2, r.y + r.h / 2, lc, label, i < FB_COUNT && fbMap[i] == FG_NONE ? C_DIS : C_TEXT);
-	}
-	const char* note = NULL;
-	if (ctlProf && ctlProf->controls.snes.bottom)
-		note = "With SNES picked under Controls in the quick bar, the SNES layout replaces these in levels.";
-	else if (ctlProf)
-		note = "With Four buttons picked under Controls in the quick bar (or Auto, while you're skating), the four-button layout replaces these.";
-	if (note) {
-		SDL_Rect last = btns_row_rect(scr, BTNS_ROWS - 1);
-		ui_font_wrap(scr, TF_BODY, mg.margin + mg.pad, last.y + last.h + mg.gap * 2, mg.w - mg.pad * 2, mg.noteCap, note, C_DIS);
-	}
-}
-
 static const char* scale_label(const char* scale) {
 	return !strcmp(scale, "fit")       ? "Scale: Full Width" :
 	       !strcmp(scale, "zoom")      ? "Scale: Zoom" :
 	       !strcmp(scale, "stretch")   ? "Scale: Stretch" : "Scale: Pixel Perfect";
+}
+
+/* ---------------------------------------------------------------- settings pages
+ *
+ * Display, Screens, Controls, Speed and Map are rows of settings (config.c's
+ * table), each changed for this game (A, or a tap with "This game" lit) or
+ * for all games (Y, or "All games" lit): this game's go to states/<game>.cfg,
+ * all games' to states/prefs.cfg. A row with a value of its own for this game
+ * wears a "Game" tag; X (or a tap on the tag) takes it away. Row 0 is the
+ * This game / All games bar. */
+static char gameKeys[48][40]; /* the keys states/<game>.cfg holds */
+static int nGameKeys;
+static bool game_has_key(const char* k) {
+	for (int i = 0; i < nGameKeys; ++i)
+		if (!strcmp(gameKeys[i], k)) return true;
+	return false;
+}
+static bool game_has(const Setting* st) {
+	return st->field == SF_FF ? game_has_key("fast_forward") || game_has_key("ff_speed") : game_has_key(st->key);
+}
+
+static SDL_Rect srow_rect(int scr, int i) {
+	MenuGeom g = menu_geom(scr);
+	return (SDL_Rect) { g.margin, g.top + i * (g.h + g.gap), g.w, g.h };
+}
+static SDL_Rect scope_rect(int scr, int half) {
+	MenuGeom g = menu_geom(scr);
+	SDL_Rect r = srow_rect(scr, 0);
+	int hw = (r.w - g.gap) / 2;
+	return (SDL_Rect) { r.x + half * (r.w - hw), r.y, hw, r.h };
+}
+static SDL_Rect rowTag[12], rowBack[12]; /* where the last drawing put each row's Game tag and left arrow (for touch) */
+static bool rowTagOn[12];
+
+/* why a row can't be changed here, or NULL */
+static const char* row_disabled(const char* key) {
+	if (!strcmp(key, "frame_buffer") && tallProf) return "Always on in this game: it needs it for full speed";
+	if (!strcmp(key, "screen_match") && !ui_screens_differ()) return "Your screens are the same shape: nothing to match";
+	if (!strcmp(key, "screen_placement") && nScreens != 2) return "Only one screen: nothing to move";
+	return NULL;
+}
+
+static void draw_rows_page(int scr, const MenuGeom* mg) {
+	int cap = mg->cap, rad = mg->rad, n = rowN[curPage];
+	int e = SDL_max(1, mg->h / 28);
+	/* the bar */
+	for (int h = 0; h < 2; ++h) {
+		SDL_Rect r = scope_rect(scr, h);
+		bool on = (h == 1) == scopeAll;
+		if (on && rowSel == 0) ui_fill_round(scr, (SDL_Rect) { r.x - e, r.y - e, r.w + e * 2, r.h + e * 2 }, C_BTN_EDGE, rad + e);
+		ui_fill_round(scr, r, on ? C_BTN_SEL : C_BTN, rad);
+		ui_label(scr, r.x + r.w / 2, r.y + r.h / 2, cap, h ? "All games" : "This game", on ? C_TEXT : C_DIS);
+	}
+	const char* note = NULL;
+	bool noteGold = false;
+	for (int i = 1; i <= n; ++i) {
+		SDL_Rect r = srow_rect(scr, i);
+		bool sel = i == rowSel;
+		if (sel) ui_fill_round(scr, (SDL_Rect) { r.x - e, r.y - e, r.w + e * 2, r.h + e * 2 }, C_BTN_EDGE, rad + e);
+		ui_fill_round(scr, r, sel ? C_BTN_SEL : C_BTN, rad);
+		const char* key = rowKeys[curPage][i - 1];
+		rowTagOn[i] = false;
+		int cy = r.y + r.h / 2, lc = cap * 9 / 10;
+		if (key[0] == '@') {
+			ui_font_text(scr, TF_BOLD, r.x + mg->pad, cy, lc, "Overlay colors and logo", C_TEXT, -1);
+			ui_font_text(scr, TF_BOLD, r.x + r.w - mg->pad, cy, cap, "›", sel ? C_TEXT : C_DIS, 1);
+			if (sel) note = "Opens the bezel's own page, for whichever the game or all games have";
+			continue;
+		}
+		const Setting* st = config_setting(key);
+		if (!st) continue;
+		const char* off = row_disabled(key);
+		char val[48];
+		config_setting_text(cfg, st, val, sizeof(val));
+		if (off && !strcmp(key, "frame_buffer")) snprintf(val, sizeof(val), "Always on here");
+		bool has = game_has(st);
+		SDL_Color vc = off ? C_DIS : C_GOLD;
+		ui_font_text(scr, TF_BOLD, r.x + mg->pad, cy, lc, st->label, off ? C_DIS : C_TEXT, -1);
+		int lw = ui_font_width(TF_BOLD, lc, st->label);
+		int ax = r.x + r.w - mg->pad;
+		ui_font_text(scr, TF_BOLD, ax, cy, cap, "›", sel ? C_TEXT : C_DIS, 1);
+		int vw = ui_font_width(TF_BOLD, lc, val);
+		ui_font_text(scr, TF_BOLD, ax - cap, cy, lc, val, vc, 1);
+		int bx = ax - cap * 2 - vw;
+		ui_font_text(scr, TF_BOLD, bx, cy, cap, "‹", sel ? C_TEXT : C_DIS, 1);
+		rowBack[i] = (SDL_Rect) { bx - cap * 2, r.y, cap * 3, r.h };
+		if (has) {
+			/* the Game tag, after the label */
+			int tc = SDL_max(6, cap * 5 / 8), tw = ui_font_width(TF_BOLD, tc, "Game") + mg->pad;
+			rowTag[i] = (SDL_Rect) { r.x + mg->pad + lw + mg->pad / 2, cy - tc, tw, tc * 2 };
+			ui_fill_round(scr, rowTag[i], C_GOLD, tc / 2);
+			ui_font_text(scr, TF_BOLD, rowTag[i].x + tw / 2, cy, tc, "Game", (SDL_Color) { 20, 16, 36, 255 }, 0);
+			rowTagOn[i] = true;
+		}
+		if (sel) {
+			const char* ctl = (!strncmp(key, "button_", 7) && ctlProf) ? (ctlProf->controls.snes.bottom ? "With SNES picked under Controls in the quick bar, the SNES layout replaces these in levels."
+			                                                                                      : "With Four buttons picked under Controls in the quick bar, the four-button layout replaces these.") : NULL;
+			note = off ? off : has ? "This game has its own value. X: use the one for all games" : ctl ? ctl : st->note;
+		}
+	}
+	if (menuNote[0]) note = menuNote, noteGold = true;
+	else if (rowSel == 0) note = "A: the one lit above. Y: all games. X: undo this game's value";
+	if (note) {
+		SDL_Rect last = srow_rect(scr, n);
+		int nc = SDL_min(mg->noteCap, mg->noteCap * mg->w / SDL_max(1, ui_font_width(TF_BOLD, mg->noteCap, note)));
+		ui_font_text(scr, TF_BOLD, screens[scr].rect.w / 2, last.y + last.h + mg->h * 3 / 5, nc, note, noteGold ? C_GOLD : C_DIS, 0);
+	}
 }
 
 static void draw_menu(void) {
@@ -3474,14 +3542,6 @@ static void draw_menu(void) {
 		}
 		return;
 	}
-	if (btnsOpen) {
-		draw_buttons_menu(scr);
-		if (nScreens > 1) {
-			int o = ui_other_screen();
-			ui_label(o, screens[o].rect.w / 2, screens[o].rect.h / 2, (ui_px(o) + 1) * 7 * 34 / 35, "Paused", C_GOLD);
-		}
-		return;
-	}
 	if (preview) {
 		if (hexOpen) draw_hex(scr);
 		else if (pickWhich >= 0) draw_picker(scr);
@@ -3518,6 +3578,14 @@ static void draw_menu(void) {
 	} else {
 		ui_text(scr, t0.x - px * 14, t0.y + (t0.h - px * 7) / 2, px, "L1", C_DIS);
 		ui_text(scr, t1.x + t1.w + px * 3, t1.y + (t1.h - px * 7) / 2, px, "R1", C_DIS);
+	}
+	if (page_is_rows(curPage)) {
+		draw_rows_page(scr, &mg);
+		if (nScreens > 1) {
+			int o = ui_other_screen();
+			ui_label(o, screens[o].rect.w / 2, screens[o].rect.h / 2, (ui_px(o) + 1) * 7 * 34 / 35, "Paused", C_GOLD);
+		}
+		return;
 	}
 	for (int i = 0; i < nMenuItems; ++i) {
 		SDL_Rect r = item_rect(scr, i);
@@ -6473,40 +6541,19 @@ static void save_prefs(void) {
 }
 
 void prefs_save(Config* cfg) {
-	/* the pause menu's settings, with every other line kept (the ones the game
-	 * list's Settings wrote: config_kv_update) */
+	/* what the settings table doesn't hold (it writes its own lines: the game
+	 * list's Settings, the pause menu): the quick bar's pin, the shader the
+	 * hotkey turns back on, the generated bezel's colours. Every other line
+	 * stays (config_kv_update). */
 	char prefs[1100];
 	snprintf(prefs, sizeof(prefs), "%s/prefs.cfg", cfg->stateDir);
-	char v[32][24];
-	const char* kv[32][2];
-	int n = 0;
-#define KV(k, ...) (snprintf(v[n], sizeof(v[n]), __VA_ARGS__), kv[n][0] = (k), kv[n][1] = v[n], ++n)
-	KV("swap", "%d", cfg->swap ? 1 : 0);
-	kv[n][0] = "scale", kv[n++][1] = cfg->scale;
-	kv[n][0] = "map_scale", kv[n++][1] = cfg->mapScale;
-	kv[n][0] = "shader", kv[n++][1] = shaderNames[cfg->shader];
-	KV("color_correction", "%d", cfg->colorCorrection ? 1 : 0);
-	KV("lcd_ghosting", "%d", cfg->ghosting ? 1 : 0);
-	kv[n][0] = "overlays", kv[n++][1] = (const char* const[]) { "off", "generated", "custom" }[SDL_clamp(cfg->overlayMode, 0, 2)];
-	KV("frame_buffer", "%d", cfg->frameBuffer ? 1 : 0);
-	KV("match_display", "%d", cfg->matchDisplay ? 1 : 0);
-	KV("rewind", "%d", cfg->rewind ? 1 : 0);
-	KV("fast_forward", "%d", cfg->fastForward ? 1 : 0);
-	kv[n][0] = "ff_speed", kv[n++][1] = ff_speed_name(cfg);
-	KV("save_on_quit", "%d", cfg->autoSave ? 1 : 0);
-	KV("auto_load", "%d", cfg->autoLoad ? 1 : 0);
-	KV("quick_bar_pinned", "%d", cfg->barPinned ? 1 : 0);
-	kv[n][0] = "screen_match", kv[n++][1] = cfg->screenMatch;
-	kv[n][0] = "screen_placement", kv[n++][1] = cfg->screenPlace;
-	kv[n][0] = "custom_logos", kv[n++][1] = cfg->customLogos == CL_OFF ? "off" : cfg->customLogos == CL_FULL ? "full" : "pixelated";
-	kv[n][0] = "overlay_screens", kv[n++][1] = cfg->overlays == OVL_TOP ? "top" : cfg->overlays == OVL_BOTTOM ? "bottom" : "both";
-	KV("bezel_logo", "%d", cfg->bezelLogo ? 1 : 0);
-	kv[n][0] = "bezel_inner", kv[n++][1] = cfg->bezelInner;
-	kv[n][0] = "bezel_outer", kv[n++][1] = cfg->bezelOuter;
-	kv[n][0] = "shader_last", kv[n++][1] = shaderNames[cfg->shaderLast > SH_OFF && cfg->shaderLast < SH_COUNT ? cfg->shaderLast : SH_GRID];
-	kv[n][0] = "performance", kv[n++][1] = cfg->perfMax ? "max" : "system";
-#undef KV
-	config_kv_update(prefs, "# written by gba-ds's menus; overrides gba-ds.cfg", n, kv);
+	const char* kv[4][2] = {
+		{ "quick_bar_pinned", cfg->barPinned ? "1" : "0" },
+		{ "shader_last", shaderNames[cfg->shaderLast > SH_OFF && cfg->shaderLast < SH_COUNT ? cfg->shaderLast : SH_GRID] },
+		{ "bezel_inner", cfg->bezelInner },
+		{ "bezel_outer", cfg->bezelOuter },
+	};
+	config_kv_update(prefs, "# written by gba-ds's menus; overrides gba-ds.cfg", 4, kv);
 }
 
 static bool gameTexAll = true; /* upload the game's frame to every view next time */
@@ -6522,7 +6569,7 @@ static void swap_screens(void) {
 		return;
 	}
 	cfg->swap = !cfg->swap;
-	save_prefs();
+	commit_current("swap"); /* (the layer in force: this game's own, or all games') */
 }
 
 /* Display > Shader, or the shader hotkey: the pattern over the pixels */
@@ -6532,6 +6579,7 @@ static void set_shader(int sh) {
 	if (sh != SH_OFF) cfg->shaderLast = sh;
 	ui_shader(cfg->shader);
 	if (subBefore || cfg->shader >= SH_SUB_LIGHT) rebuild_textures(); /* (the subpixels' brightening is in the colour table) */
+	commit_current("shader");
 	save_prefs();
 }
 
@@ -6900,15 +6948,192 @@ static void open_menu(void) {
 	barShown = 0;
 	cheatsOpen = false;
 	patchesOpen = false;
-	btnsOpen = false;
 	ovl_close_all();
 	close_ach();
+	scopeAll = false;
 	set_page(0);
 	menuOpen = true;
 	menuSel = 0;
 	menuPressed = -1;
 	menuNote[0] = 0;
 	armedItem = -1;
+}
+
+/* ---- settings in layers (docs/MENUS.md): states/prefs.cfg for all games,
+ * states/<game>.cfg over it for this one. uniCfg holds the settings for all
+ * games while the game runs (cfg has this game's put over them). */
+static Config uniCfg;
+static const char* const gameHeader = "# this game's own settings: they win over the ones for all games";
+static const char* const prefsHeader = "# written by gba-ds's menus; overrides gba-ds.cfg";
+
+static void game_keys_reload(void) {
+	nGameKeys = config_kv_keys(gp.settings, 48, gameKeys);
+}
+
+static void write_setting(const char* path, const char* header, const Config* c, const Setting* st) {
+	char lines[2][2][24];
+	const char* kv[2][2];
+	int n = config_setting_lines(c, st, lines);
+	for (int i = 0; i < n; ++i) kv[i][0] = lines[i][0], kv[i][1] = lines[i][1];
+	config_kv_update(path, header, n, kv);
+}
+static void prefs_file(char* out, size_t n) {
+	snprintf(out, n, "%s/prefs.cfg", cfg->stateDir);
+}
+
+/* a choice made some other way (the hotkeys, the overlay page): kept in the layer
+ * in force, this game's own file if it has a value there, else all games' */
+static void commit_current(const char* key) {
+	const Setting* st = config_setting(key);
+	if (!st) return;
+	if (game_has(st)) {
+		write_setting(gp.settings, gameHeader, cfg, st);
+	} else {
+		char path[1100];
+		prefs_file(path, sizeof(path));
+		config_setting_copy(&uniCfg, cfg, st);
+		write_setting(path, prefsHeader, &uniCfg, st);
+	}
+}
+
+/* put a changed setting to use in the game now */
+static void setting_applied(const Setting* st) {
+	const char* k = st->key;
+	if (!strcmp(k, "shader") || !strcmp(k, "lcd_strength")) {
+		if (cfg->shader != SH_OFF) cfg->shaderLast = cfg->shader;
+		ui_shader(cfg->shader);
+		rebuild_textures();
+	} else if (!strcmp(k, "color_correction")) {
+		ui_color_correction(cfg->colorCorrection);
+		rebuild_textures(); /* (every picture given again, through it or not) */
+	} else if (!strcmp(k, "lcd_ghosting")) {
+		ghostHave = false;
+	} else if (!strcmp(k, "swap")) {
+		if (emu.fb) {
+			for (int i = 0; i < nViews; ++i) ui_update_texture(gameTex[i], emu.fb, GBA_W * 4);
+		}
+	} else if (!strcmp(k, "screen_match") || !strcmp(k, "screen_placement")) {
+		ui_layout_pictures();
+		overlays_reload(); /* (overlays can be made for each: overlay files) */
+		gameTexAll = true;
+	} else if (!strcmp(k, "match_display")) {
+		pacedFallback = false;
+		pacing_update();
+	} else if (!strcmp(k, "rewind") || !strcmp(k, "rewind_seconds")) {
+		rewind_setup();
+	} else if (!strcmp(k, "custom_logos")) {
+		logo_refresh();
+	} else if (!strcmp(k, "ab_swap") || !strncmp(k, "button_", 7)) {
+		fb_default();
+	} else if (!strcmp(k, "pinball_live")) {
+		snprintf(menuNote, sizeof(menuNote), "Takes effect when the game starts again");
+	}
+}
+
+static void rows_note(const char* what, bool all, bool kept) {
+	if (menuNote[0] && !strncmp(menuNote, "Takes", 5)) return;
+	snprintf(menuNote, sizeof(menuNote), "%s%s", all ? "Saved for all games" : "Saved for this game", kept ? ": this game keeps its own value" : "");
+	(void) what;
+}
+
+/* step row `key` by dir, for all games or this game */
+static void row_change(const char* key, int dir, bool all) {
+	menuNote[0] = 0;
+	if (!strcmp(key, "@overlay")) {
+		ovlOpen = true;
+		ovlSel = 0;
+		ovlPress = -1;
+		return;
+	}
+	const Setting* st = config_setting(key);
+	if (!st) return;
+	const char* off = row_disabled(key);
+	if (off) {
+		snprintf(menuNote, sizeof(menuNote), "%s", off);
+		return;
+	}
+	char path[1100];
+	if (all) {
+		if (!config_setting_step(&uniCfg, st, dir)) return;
+		prefs_file(path, sizeof(path));
+		write_setting(path, prefsHeader, &uniCfg, st);
+		bool kept = game_has(st);
+		if (!kept) {
+			config_setting_copy(cfg, &uniCfg, st);
+			setting_applied(st);
+		}
+		rows_note(key, true, kept);
+	} else {
+		if (!config_setting_step(cfg, st, dir)) return;
+		write_setting(gp.settings, gameHeader, cfg, st);
+		game_keys_reload();
+		setting_applied(st);
+		rows_note(key, false, false);
+	}
+	fprintf(stderr, "setting: %s = %s (%s)\n", key, st->choices ? st->choices[config_setting_index(cfg, st) < 0 ? 0 : config_setting_index(cfg, st)].value : "?", all ? "all games" : "this game");
+}
+
+/* X: this game goes back to the value for all games */
+static void row_reset(const char* key) {
+	menuNote[0] = 0;
+	const Setting* st = config_setting(key);
+	if (!st) return;
+	if (!game_has(st)) {
+		snprintf(menuNote, sizeof(menuNote), "Already the value for all games");
+		return;
+	}
+	char lines[2][2][24];
+	const char* keys[2];
+	int n = config_setting_lines(cfg, st, lines);
+	for (int i = 0; i < n; ++i) keys[i] = lines[i][0];
+	config_kv_remove(gp.settings, n, keys);
+	game_keys_reload();
+	config_setting_copy(cfg, &uniCfg, st);
+	setting_applied(st);
+	snprintf(menuNote, sizeof(menuNote), "This game uses the value for all games again");
+}
+
+/* the controller on a settings page (the bar, then the rows) */
+static void rows_input(void) {
+	int n = rowN[curPage];
+	if (btn_pressed(B_DOWN)) rowSel = (rowSel + 1) % (n + 1), menuNote[0] = 0;
+	if (btn_pressed(B_UP)) rowSel = (rowSel + n) % (n + 1), menuNote[0] = 0;
+	if (rowSel == 0) {
+		if (btn_pressed(B_LEFT)) scopeAll = false;
+		if (btn_pressed(B_RIGHT)) scopeAll = true;
+		if (btn_pressed(B_A)) scopeAll = !scopeAll;
+		return;
+	}
+	const char* key = rowKeys[curPage][rowSel - 1];
+	bool all = scopeAll || btnNow[B_Y]; /* (Y held with a button: all games) */
+	int dir = btn_pressed(B_LEFT) ? -1 : (btn_pressed(B_RIGHT) || btn_pressed(B_A)) ? 1 : 0;
+	if (!dir && btn_pressed(B_Y)) dir = 1, all = true;
+	if (dir) row_change(key, dir, all);
+	if (btn_pressed(B_X) && key[0] != '@') row_reset(key);
+}
+
+/* a touch on a settings page, on its own: the bar sets which it changes, a row is
+ * changed when the finger lifts on it (the left arrow steps back, the Game tag
+ * takes this game's value away, the rest steps forward) */
+static void rows_touch(const Pointer* p) {
+	int n = rowN[curPage];
+	if (p->kind == 1) {
+		ignorePointerUp = false;
+		rowPressed = -1;
+		for (int h = 0; h < 2; ++h)
+			if (in_rect(scope_rect(p->screen, h), p->x, p->y)) scopeAll = h == 1, rowSel = 0, menuNote[0] = 0, ignorePointerUp = true;
+		for (int i = 1; i <= n; ++i)
+			if (in_rect(srow_rect(p->screen, i), p->x, p->y)) rowPressed = i, rowSel = i;
+	} else if (p->kind == 2) {
+		int i = rowPressed;
+		if (!ignorePointerUp && i >= 1 && in_rect(srow_rect(p->screen, i), p->x, p->y)) {
+			const char* key = rowKeys[curPage][i - 1];
+			if (key[0] != '@' && rowTagOn[i] && in_rect(rowTag[i], p->x, p->y)) row_reset(key);
+			else row_change(key, key[0] != '@' && in_rect(rowBack[i], p->x, p->y) ? -1 : 1, scopeAll);
+		}
+		rowPressed = -1;
+		ignorePointerUp = false;
+	}
 }
 
 /* Returns true if the session should end (*exitTo set). */
@@ -6940,42 +7165,6 @@ static bool activate(int item, enum GameExit* exitTo) {
 		break;
 	case M_PATCHES:
 		open_patches();
-		break;
-	case M_BUTTONS:
-		/* its own screen: Extras > Buttons (GEN-10) */
-		btnsOpen = true;
-		btnsSel = 0;
-		btnsPress = -1;
-		break;
-	case M_SWAP:
-		swap_screens();
-		snprintf(menuNote, sizeof(menuNote), "Screens swapped");
-		break;
-	case M_SCALE: {
-		/* Pixel Perfect, Full Width, Zoom, Stretch */
-		const char* next = !strcmp(cfg->scale, "integer") ? "fit" : !strcmp(cfg->scale, "fit") ? "zoom" :
-		                   !strcmp(cfg->scale, "zoom")    ? "stretch" : "integer";
-		snprintf(cfg->scale, sizeof(cfg->scale), "%s", next);
-		snprintf(cfg->mapScale, sizeof(cfg->mapScale), "%s", next);
-		save_prefs();
-		break;
-	}
-	case M_LCD:
-		set_shader((cfg->shader + 1) % SH_COUNT);
-		snprintf(menuNote, sizeof(menuNote), "%s", shaderNotes[cfg->shader]);
-		break;
-	case M_GHOST:
-		cfg->ghosting = !cfg->ghosting;
-		ghostHave = false;
-		snprintf(menuNote, sizeof(menuNote), "%s", cfg->ghosting ? "Moving things leave a short trail, as on a GBA" : "Each frame shown on its own");
-		save_prefs();
-		break;
-	case M_COLOR:
-		cfg->colorCorrection = !cfg->colorCorrection;
-		ui_color_correction(cfg->colorCorrection);
-		rebuild_textures(); /* (every picture given again, through it or not) */
-		snprintf(menuNote, sizeof(menuNote), "%s", cfg->colorCorrection ? "Colors as on a Game Boy Advance's screen" : "The game's colors as they are");
-		save_prefs();
 		break;
 	case M_SLOT:
 		slot_step(1);
@@ -7010,108 +7199,6 @@ static bool activate(int item, enum GameExit* exitTo) {
 		else snprintf(menuNote, sizeof(menuNote), "%s", what);
 		break;
 	}
-	case M_AUTOSAVE:
-		cfg->autoSave = !cfg->autoSave;
-		snprintf(menuNote, sizeof(menuNote), "%s", cfg->autoSave ? "Closing the game saves where you are" : "Closing the game doesn't save a state");
-		save_prefs();
-		break;
-	case M_AUTOLOAD:
-		cfg->autoLoad = !cfg->autoLoad;
-		snprintf(menuNote, sizeof(menuNote), "%s", cfg->autoLoad ? "Starting the game picks up where you closed it" : "The game starts from its title screen");
-		save_prefs();
-		break;
-	case M_OVERLAY:
-		/* its own screen: Display > Overlays */
-		ovlOpen = true;
-		ovlSel = 0;
-		ovlPress = -1;
-		break;
-	case M_FPS:
-		cfg->showFps = !cfg->showFps;
-		save_prefs();
-		break;
-	case M_FRAMEBUF:
-		if (!item_enabled(M_FRAMEBUF)) {
-			/* (greyed out: the setting, for the other games, stays as it is) */
-			snprintf(menuNote, sizeof(menuNote), "Always on in this game: it needs it for full speed");
-			break;
-		}
-		cfg->frameBuffer = !cfg->frameBuffer;
-		snprintf(menuNote, sizeof(menuNote), "%s", cfg->frameBuffer ? "Smoother, one frame more input delay" : "Least input delay");
-		save_prefs();
-		break;
-	case M_REWIND:
-		cfg->rewind = !cfg->rewind;
-		rewind_setup();
-		snprintf(menuNote, sizeof(menuNote), "%s", cfg->rewind ? "Hold L2 to go back in time" : "No rewind buffer: a little less work");
-		save_prefs();
-		break;
-	case M_FF:
-		/* each press: 2x, 3x, 4x, 5x, max, off, 2x... (an ff_speed above 5
-		 * from gba-ds.cfg: max next) */
-		if (!cfg->fastForward) cfg->fastForward = true, cfg->ffSpeed = FF_SPEED_MIN;
-		else if (cfg->ffSpeed <= 0) cfg->fastForward = false;
-		else if (cfg->ffSpeed < FF_SPEED_MIN) cfg->ffSpeed = FF_SPEED_MIN;
-		else if (cfg->ffSpeed < FF_SPEED_MAX) ++cfg->ffSpeed;
-		else cfg->ffSpeed = 0;
-		if (cfg->fastForward && cfg->ffSpeed <= 0) snprintf(menuNote, sizeof(menuNote), "Hold R2 to play as fast as this device can");
-		else if (cfg->fastForward) snprintf(menuNote, sizeof(menuNote), "Hold R2 to play %dx as fast", cfg->ffSpeed);
-		else snprintf(menuNote, sizeof(menuNote), "R2 does nothing: no skipping ahead by mistake");
-		save_prefs();
-		break;
-	case M_SHAPES: {
-		if (!item_enabled(M_SHAPES)) {
-			snprintf(menuNote, sizeof(menuNote), "Your screens are the same shape: nothing to match");
-			break;
-		}
-		/* keep, aspect, size (experimental: not tried on a widescreen device yet) */
-		const char* next = !strcmp(cfg->screenMatch, "keep") ? "aspect" : !strcmp(cfg->screenMatch, "aspect") ? "size" : "keep";
-		snprintf(cfg->screenMatch, sizeof(cfg->screenMatch), "%s", next);
-		ui_layout_pictures();
-		overlays_reload(); /* (overlays can be made for each: overlay files) */
-		gameTexAll = true;
-		if (!strcmp(next, "size") && !(ui_screen_ppi(0) > 0 && ui_screen_ppi(1) > 0)) snprintf(menuNote, sizeof(menuNote), "The screens' sizes aren't known here: shapes only");
-		else snprintf(menuNote, sizeof(menuNote), "%s", !strcmp(next, "keep") ? "Each screen as it is" : "Experimental: tell us how it looks on your device");
-		save_prefs();
-		break;
-	}
-	case M_PLACE:
-		/* issue #46: both screens' pictures centred, or against the edges nearest each other */
-		if (!item_enabled(M_PLACE)) {
-			snprintf(menuNote, sizeof(menuNote), "Only one screen: nothing to move");
-			break;
-		}
-		snprintf(cfg->screenPlace, sizeof(cfg->screenPlace), "%s", !strcmp(cfg->screenPlace, "no_gap") ? "center" : "no_gap");
-		ui_layout_pictures();
-		overlays_reload(); /* (Custom overlays have their own names for it) */
-		gameTexAll = true;
-		snprintf(menuNote, sizeof(menuNote), "%s", !strcmp(cfg->screenPlace, "no_gap") ? "The pictures as close to each other as they go" : "Each picture in the middle of its screen");
-		save_prefs();
-		break;
-	case M_MATCH:
-		/* (fallen back: the label says "Off for now", so a press turns it off) */
-		cfg->matchDisplay = !cfg->matchDisplay;
-		pacedFallback = false;
-		pacing_update();
-		if (!cfg->matchDisplay) snprintf(menuNote, sizeof(menuNote), "The GBA's own %.2f frames a second", GBA_FPS);
-		else if (pacedHz > 0) snprintf(menuNote, sizeof(menuNote), "%.2f frames a second, %.1f%% faster", pacedHz, (pacedHz / GBA_FPS - 1) * 100);
-		else snprintf(menuNote, sizeof(menuNote), "The display's rate isn't close enough to match");
-		save_prefs();
-		break;
-	case M_PIXLOGO:
-		/* GEN-11: the player's own or a scraped logo at GBA pixels, at full
-		 * detail, or not used (the game's own) */
-		cfg->customLogos = (cfg->customLogos + 1) % 3;
-		snprintf(menuNote, sizeof(menuNote), "%s",
-		         cfg->customLogos == CL_OFF  ? "The logo GBA DS takes from the game" :
-		         cfg->customLogos == CL_FULL ? "With all its detail, at the same size" : "Shrunk to the GBA's pixels");
-		logo_refresh();
-		save_prefs();
-		break;
-	case M_LOGO:
-		cfg->showLogo = !cfg->showLogo;
-		save_prefs();
-		break;
 	case M_RESTART:
 		emu_reset(&emu);
 		aheadReady = false;
@@ -7375,19 +7462,23 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	Config before = *c;
 	int n = config_load_game_file(c, p.settings);
 	Config after = *c;
+	uniCfg = before;
 	if (n) {
 		fprintf(stderr, "game settings: %d from %s\n", n, p.settings);
 		ui_layout_pictures();
 	}
 	enum GameExit x = game_run_inner(c, rom, fromLibrary);
 	ui_stick_dpad(true);
-	if (n) {
-		const unsigned char *b = (const unsigned char*) &before, *a = (const unsigned char*) &after;
-		unsigned char* cur = (unsigned char*) c;
-		for (size_t i = 0; i < sizeof(Config); ++i)
-			if (a[i] != b[i] && cur[i] == a[i]) cur[i] = b[i];
-		ui_layout_pictures();
+	/* back to the settings for all games (with what was changed for them meanwhile) */
+	const unsigned char *b = (const unsigned char*) &before, *a = (const unsigned char*) &after;
+	unsigned char* cur = (unsigned char*) c;
+	for (size_t i = 0; i < sizeof(Config); ++i)
+		if (a[i] != b[i] && cur[i] == a[i]) cur[i] = b[i];
+	for (int i = 0; i < config_setting_count(); ++i) {
+		const Setting* st = config_setting_at(i);
+		if (config_key_per_game(st->key)) config_setting_copy(c, &uniCfg, st);
 	}
+	ui_layout_pictures();
 	return x;
 }
 
@@ -7396,6 +7487,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	debug = getenv("GBADS_DEBUG") != NULL;
 	romPath = rom, lastLoop = 0;
 	game_paths(cfg, rom, &gp);
+	game_keys_reload();
 	patches_setup(rom); /* GEN-9: the patches folder, what's on, and the plan every core opens the ROM with */
 	profile_set_rom(NULL, 0);
 	if (!emu_open(&emu, rom, gp.sav, true)) {
@@ -7420,7 +7512,6 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	if (cheats_on(&cheats)) cheats_apply(&cheats, &emu);
 	cheatsOpen = false;
 	patchesOpen = false;
-	btnsOpen = false;
 	ovl_close_all();
 	ui_on_background(on_background);
 	ui_on_foreground(on_foreground);
@@ -7452,39 +7543,57 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	logoProvisional = ui_logo_provisional();
 
 	memset(pageLen, 0, sizeof(pageLen));
-	pages[0][pageLen[0]++] = M_RESUME;
-	pages[0][pageLen[0]++] = M_RESTART;
-	pages[0][pageLen[0]++] = M_SAVE;
-	pages[0][pageLen[0]++] = M_LOAD;
-	pages[0][pageLen[0]++] = M_SLOT;
-	pages[2][pageLen[2]++] = M_SWAP; /* (on Extras since v1.4.6: Display has Screen shapes) */
-	pages[2][pageLen[2]++] = M_CHEATS;
-	pages[2][pageLen[2]++] = M_PATCHES;
-	pages[2][pageLen[2]++] = M_BUTTONS; /* GEN-10 */
-	if (ra_enabled()) pages[2][pageLen[2]++] = M_ACH;
-	pages[2][pageLen[2]++] = M_SHOT;
-	if (fromLibrary) pages[0][pageLen[0]++] = M_LIBRARY;
-	pages[0][pageLen[0]++] = M_EXIT;
+	memset(rowN, 0, sizeof(rowN));
+	pages[PG_GAME][pageLen[PG_GAME]++] = M_RESUME;
+	pages[PG_GAME][pageLen[PG_GAME]++] = M_RESTART;
+	pages[PG_GAME][pageLen[PG_GAME]++] = M_SAVE;
+	pages[PG_GAME][pageLen[PG_GAME]++] = M_LOAD;
+	pages[PG_GAME][pageLen[PG_GAME]++] = M_SLOT;
+	if (fromLibrary) pages[PG_GAME][pageLen[PG_GAME]++] = M_LIBRARY;
+	pages[PG_GAME][pageLen[PG_GAME]++] = M_EXIT;
+	pages[PG_TOOLS][pageLen[PG_TOOLS]++] = M_CHEATS;
+	pages[PG_TOOLS][pageLen[PG_TOOLS]++] = M_PATCHES;
+	if (ra_enabled()) pages[PG_TOOLS][pageLen[PG_TOOLS]++] = M_ACH;
+	pages[PG_TOOLS][pageLen[PG_TOOLS]++] = M_SHOT;
+	pages[PG_TOOLS][pageLen[PG_TOOLS]++] = M_BUG;
 	ui_color_correction(cfg->colorCorrection); /* (Display > Color Correction, for this session's pictures) */
 	ui_shader(cfg->shader);
-	pages[1][pageLen[1]++] = M_SCALE;
-	pages[1][pageLen[1]++] = M_LCD;
-	pages[1][pageLen[1]++] = M_COLOR;
-	pages[1][pageLen[1]++] = M_GHOST;
-	pages[1][pageLen[1]++] = M_OVERLAY;
-	pages[1][pageLen[1]++] = M_FRAMEBUF;
-	pages[1][pageLen[1]++] = M_MATCH;
-	pages[1][pageLen[1]++] = M_SHAPES;
-	pages[1][pageLen[1]++] = M_PLACE;
-	{
-		/* the game has the player's own or a scraped logo (GEN-11) */
-		if (ui_logo_custom(cfg, romPath, emu.gameCode)) pages[1][pageLen[1]++] = M_PIXLOGO;
-	}
-	pages[2][pageLen[2]++] = M_REWIND;
-	pages[2][pageLen[2]++] = M_FF;
-	pages[2][pageLen[2]++] = M_AUTOSAVE;
-	pages[2][pageLen[2]++] = M_AUTOLOAD;
-	pages[2][pageLen[2]++] = M_BUG;
+#define ROW(pg, key) rowKeys[pg][rowN[pg]++] = key
+	ROW(PG_DISPLAY, "scale");
+	ROW(PG_DISPLAY, "map_scale");
+	ROW(PG_DISPLAY, "shader");
+	ROW(PG_DISPLAY, "lcd_strength");
+	ROW(PG_DISPLAY, "color_correction");
+	ROW(PG_DISPLAY, "lcd_ghosting");
+	if (ui_logo_custom(cfg, romPath, emu.gameCode)) ROW(PG_DISPLAY, "custom_logos"); /* the game has the player's own or a scraped logo (GEN-11) */
+	if (nScreens >= 2) ROW(PG_SCREENS, "swap");
+	ROW(PG_SCREENS, "screen_match");
+	ROW(PG_SCREENS, "screen_placement");
+	ROW(PG_SCREENS, "overlays");
+	ROW(PG_SCREENS, "overlay_screens");
+	ROW(PG_SCREENS, "@overlay");
+	ROW(PG_SCREENS, "show_fps");
+	ROW(PG_CONTROLS, "left_stick_dpad");
+	ROW(PG_CONTROLS, "ab_swap");
+	ROW(PG_CONTROLS, "button_right");
+	ROW(PG_CONTROLS, "button_bottom");
+	ROW(PG_CONTROLS, "button_top");
+	ROW(PG_CONTROLS, "button_left");
+	ROW(PG_CONTROLS, "turbo_rate");
+	ROW(PG_SPEED, "match_display");
+	ROW(PG_SPEED, "frame_buffer");
+	ROW(PG_SPEED, "rewind");
+	ROW(PG_SPEED, "rewind_seconds");
+	ROW(PG_SPEED, "fast_forward");
+	ROW(PG_SPEED, "save_on_quit");
+	ROW(PG_SPEED, "auto_load");
+	ROW(PG_MAP, "map");
+	ROW(PG_MAP, "map_interval");
+	ROW(PG_MAP, "map_crop");
+	ROW(PG_MAP, "map_animations");
+	ROW(PG_MAP, "show_logo");
+	ROW(PG_MAP, "pinball_live");
+#undef ROW
 	set_page(0);
 	slot_pick_newest();
 
@@ -7888,25 +7997,6 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 				}
 				continue;
 			}
-			if (btnsOpen) {
-				if (p.kind == 1) {
-					ignorePointerUp = false;
-					btnsPress = -1;
-					if (tab_at(p.screen, p.x, p.y, 2) == 0) {
-						btnsOpen = false; /* Back */
-						ignorePointerUp = true;
-						continue;
-					}
-					for (int i = 0; i < BTNS_ROWS; ++i)
-						if (in_rect(btns_row_rect(p.screen, i), p.x, p.y)) btnsPress = i, btnsSel = i;
-				} else if (p.kind == 2) {
-					for (int i = 0; i < BTNS_ROWS; ++i)
-						if (!ignorePointerUp && i == btnsPress && in_rect(btns_row_rect(p.screen, i), p.x, p.y)) btns_activate(i, 1);
-					btnsPress = -1;
-					ignorePointerUp = false;
-				}
-				continue;
-			}
 			if (ovlOpen) {
 				if (p.kind == 1) {
 					ignorePointerUp = false;
@@ -7966,6 +8056,10 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 					ignorePointerUp = true;
 					continue;
 				}
+			}
+			if (page_is_rows(curPage)) {
+				rows_touch(&p);
+				continue;
 			}
 			int it = item_at(p.screen, p.x, p.y);
 			if (p.kind == 1) {
@@ -8150,15 +8244,6 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			else if (btn_pressed(B_A)) pick_close(true);
 			else if (btn_pressed(B_B)) pick_close(false);
 			else if (btn_pressed(B_START)) pick_close(true), ovl_close_all(), menuOpen = false;
-		} else if (menuOpen && btnsOpen) {
-			if (btn_pressed(B_DOWN)) btnsSel = SDL_min(BTNS_ROWS - 1, btnsSel + 1);
-			if (btn_pressed(B_UP)) btnsSel = SDL_max(0, btnsSel - 1);
-			bool cycles = btnsSel < FB_COUNT;
-			if (cycles && btn_pressed(B_LEFT)) btns_activate(btnsSel, -1);
-			else if (cycles && btn_pressed(B_RIGHT)) btns_activate(btnsSel, 1);
-			else if (btn_pressed(B_A)) btns_activate(btnsSel, 1);
-			else if (btn_pressed(B_B)) btnsOpen = false;
-			else if (btn_pressed(B_START)) btnsOpen = false, menuOpen = false;
 		} else if (menuOpen && ovlOpen) {
 			int rows[8], n = ovl_rows(rows);
 			if (btn_pressed(B_DOWN)) ovlSel = SDL_min(n - 1, ovlSel + 1);
@@ -8188,6 +8273,10 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			if (!comboOpened) { /* (START just opened it: not also a close) */
 				if (btn_pressed(B_L) && curPage > 0) set_page(curPage - 1);
 				if (btn_pressed(B_R) && curPage < N_PAGES - 1) set_page(curPage + 1);
+				if (page_is_rows(curPage)) {
+					rows_input();
+					if (btn_pressed(B_B) || btn_pressed(B_START)) menuOpen = false;
+				} else {
 				if (btn_pressed(B_DOWN)) menu_move(1);
 				if (btn_pressed(B_UP)) menu_move(-1);
 				if (menuItems[menuSel] == M_SLOT && (btn_pressed(B_LEFT) || btn_pressed(B_RIGHT))) slot_step(btn_pressed(B_LEFT) ? -1 : 1);
@@ -8199,6 +8288,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 				}
 				if (btn_pressed(B_B) || btn_pressed(B_START)) menuOpen = false;
 				else if (btn_pressed(B_A) && activate(menuItems[menuSel], &exitTo)) break;
+				}
 			}
 			if (menuOpen && !wasMenu && audio) {
 				SDL_PauseAudioDevice(audio, 1);

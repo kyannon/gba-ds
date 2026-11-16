@@ -621,3 +621,69 @@ void config_kv_update(const char* path, const char* header, int n, const char* c
 	}
 	free(kept);
 }
+
+int config_setting_count(void) {
+	return (int) (sizeof(settingsTable) / sizeof(settingsTable[0]));
+}
+
+const Setting* config_setting_at(int i) {
+	return i >= 0 && i < config_setting_count() ? &settingsTable[i] : NULL;
+}
+
+void config_setting_copy(Config* dst, const Config* src, const Setting* s) {
+	if (s->field == SF_FF) {
+		dst->fastForward = src->fastForward;
+		dst->ffSpeed = src->ffSpeed;
+		return;
+	}
+	memcpy((char*) dst + s->off, (const char*) src + s->off, s->size);
+}
+
+int config_kv_keys(const char* path, int max, char keys[][40]) {
+	int n = 0;
+	FILE* f = fopen(path, "r");
+	if (!f) return 0;
+	char line[1100];
+	while (n < max && fgets(line, sizeof(line), f)) {
+		const char* q = line;
+		while (isspace((unsigned char) *q)) ++q;
+		if (!*q || *q == '#' || *q == ';') continue;
+		size_t k = strcspn(q, "= \t\r\n");
+		snprintf(keys[n++], 40, "%.*s", (int) (k < 39 ? k : 39), q);
+	}
+	fclose(f);
+	return n;
+}
+
+void config_kv_remove(const char* path, int n, const char* const keys[]) {
+	char kept[8192] = "";
+	size_t len = 0;
+	bool real = false;
+	FILE* f = fopen(path, "r");
+	if (!f) return;
+	char line[1100];
+	while (fgets(line, sizeof(line), f)) {
+		const char* q = line;
+		while (isspace((unsigned char) *q)) ++q;
+		bool drop = false;
+		if (*q && *q != '#' && *q != ';') {
+			size_t k = strcspn(q, "= \t\r\n");
+			for (int i = 0; i < n; ++i)
+				if (strlen(keys[i]) == k && !strncmp(q, keys[i], k)) drop = true;
+			if (!drop) real = true;
+		}
+		if (drop) continue;
+		size_t l = strlen(line);
+		if (len + l < sizeof(kept)) memcpy(kept + len, line, l), len += l, kept[len] = 0;
+	}
+	fclose(f);
+	if (!real) {
+		remove(path); /* nothing of the game's own left */
+		return;
+	}
+	f = fopen(path, "w");
+	if (f) {
+		fputs(kept, f);
+		fclose(f);
+	}
+}

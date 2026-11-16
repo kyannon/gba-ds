@@ -146,6 +146,10 @@ typedef struct {
 	const char* note; /* one line, for the selected row */
 } Setting;
 const Setting* config_setting(const char* key);
+int config_setting_count(void);
+const Setting* config_setting_at(int i);
+/* copy the setting's field(s) from src to dst (fast forward: both of its fields) */
+void config_setting_copy(Config* dst, const Config* src, const Setting* s);
 /* the choice the setting is at, or -1 (a number off the list, or none) */
 int config_setting_index(const Config* c, const Setting* s);
 /* the value as the row shows it ("Pixel Perfect", "On", "30 s") */
@@ -157,6 +161,10 @@ int config_setting_lines(const Config* c, const Setting* s, char lines[2][2][24]
 /* Updates (or adds) key = value lines in a file of the app's own (prefs.cfg), keeping
  * every other line. */
 void config_kv_update(const char* path, const char* header, int n, const char* const kv[][2]);
+/* Takes the lines for these keys out of the file (it's removed when nothing but a comment is left) */
+void config_kv_remove(const char* path, int n, const char* const keys[]);
+/* The keys a file holds, up to max of size 40: returns how many */
+int config_kv_keys(const char* path, int max, char keys[][40]);
 /* Loads key=value lines; missing file is not an error. */
 void config_load_file(Config* c, const char* path);
 /* A game's own settings (issue #53): the lines of its file (states/<game>.cfg)
