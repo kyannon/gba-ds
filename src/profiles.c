@@ -8407,9 +8407,10 @@ static const MapProfile profiles[] = {
 		/* the title, the language list, the class choice, GAME OVER: the
 		 * logo (BGD-5, BGD-9) */
 		.menu = { { BGD_V_LOGO, 0xFF, 1, 4 } },
-		/* the lettering on its piece of the title's parchment map, BG2 a
-		 * bitmap (BGD-6; the European language list is sprites, left out) */
-		.logo = { .wait = 1500, .layers = 0x4, .minX = 32, .maxX = 212, .minY = 6, .maxY = 97 },
+		/* the title's lettering cut out of its parchment map along the
+		 * logo artwork's outline (BGD-6; the European language list, sprites
+		 * below the lettering, is outside it) */
+		.logo = { .wait = 1500, .mask = &logoMaskBGD, .rev = 1 },
 	},
 	{
 		/* Harry Potter and the Prisoner of Azkaban (USA and Europe, one
@@ -8878,6 +8879,47 @@ static void mvdk_jpn(MapProfile* p) {
 	p->logo.mask = &logoMaskMVDKJ;
 }
 
+/* Pokémon Pinball: Ruby & Sapphire in Japan (BPPJ; the original, CRC32
+ * 8af1ec73, and its Rev 1, 925a5684): the same table, score bar and EWRAM
+ * layout under S and gMain as BPPE, found by matching the code round BPPE's
+ * stores and literal pools (docs/PINBALL.md); only the game's state pointer
+ * (0x10A0 lower: gCurrentPinballGame) with the camera's limit after it, and
+ * the ROM's camera stores (the main routine's and catch mode's) differ
+ * (PP-14). Rev 1's code has moved again (`rev`), its RAM is the original's. */
+static void pp_jpn(MapProfile* p) {
+	p->tall.live.state = 0x02030440;
+	p->tall.live.bound = 0x02030498;
+	p->tall.live.nop[0] = 0x0804B896, p->tall.live.nop[1] = 0x0804B8A6;
+	p->tall.live.nop[2] = 0x0804B5E8, p->tall.live.nop[3] = 0x0804B5F8;
+	p->tall.live.rev.crc = 0x925a5684;
+	p->tall.live.rev.nop[0] = 0x0804B5DE, p->tall.live.rev.nop[1] = 0x0804B5EE;
+	p->tall.live.rev.nop[2] = 0x0804B330, p->tall.live.rev.nop[3] = 0x0804B340;
+}
+
+/* Pokémon Pinball: Ruby & Sapphire in Europe (BPPP, a 16 MB dump with the
+ * same game and five languages): its state pointer 0x120 higher and its
+ * camera stores elsewhere (PP-15) */
+static void pp_eur(MapProfile* p) {
+	p->tall.live.state = 0x02031600;
+	p->tall.live.bound = 0x02031658;
+	p->tall.live.nop[0] = 0x08053B26, p->tall.live.nop[1] = 0x08053B36;
+	p->tall.live.nop[2] = 0x08053880, p->tall.live.nop[3] = 0x08053890;
+	/* gMain has a field more before the scroll shadows: they and the string
+	 * after them are 4 bytes higher (BG1 / 2 / 3 VOFS 0x0200B3B2 / B6 / BA);
+	 * the stack slot with the row + 16 holds a pointer into a table at
+	 * 0x0894BED4 in place of the USA ROM's 0x086B0000 */
+	p->tall.live.view = 0x0200B3BA;
+	p->tall.live.jump.scrollAt[0] = 0x0200B3B2, p->tall.live.jump.scrollAt[1] = 0x0200B3B6;
+	p->tall.live.jump.scrollAt[2] = 0x0200B3BA;
+	p->tall.live.jump.plus16Base = 0xBED4;
+	/* the language menu comes first (English selected, A), then the title
+	 * as the USA release's: its logo waits (PP-4, PP-15) */
+	static const MacroStep steps[] = { { 0, 400 }, { K_A, 4 }, { 0, 1440 } };
+	p->logo.wait = 0;
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+}
+
 static const Variant variants[] = {
 	{ "AGSD", "AGSE", 0, gs_ger },
 	/* Golden Sun: The Lost Age's other releases */
@@ -8954,6 +8996,10 @@ static const Variant variants[] = {
 	{ "AREJ", "AREE", 0, mmbn_jpn },
 	{ "AM2P", "AE2E", 0, NULL },
 	{ "AE2J", "AE2E", 0, mmbn2_jpn },
+	/* (Pokémon Pinball's cheats: its state moved, so the memory shift is only
+	 * for profile_ram_moved; the profile reads nothing at the shifted addresses) */
+	{ "BPPJ", "BPPE", -0x10A0, pp_jpn },
+	{ "BPPP", "BPPE", 0x120, pp_eur },
 };
 #define N_VARIANTS (sizeof(variants) / sizeof(*variants))
 static MapProfile variantProfiles[N_VARIANTS];

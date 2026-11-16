@@ -473,68 +473,269 @@ size_t emu_rewind_count(void) {
 	return rewindOwner ? rewindCtx.size : 0;
 }
 
-bool emu_state_save_file(Emu* e, const char* path) {
-	struct VFile* vf = VFileOpen(path, O_CREAT | O_TRUNC | O_RDWR);
-	if (!vf) {
-		return false;
-	}
-	bool ok = mCoreSaveStateNamed(e->core, vf, SAVESTATE_SAVEDATA | SAVESTATE_RTC | SAVESTATE_METADATA);
-	vf->close(vf);
-	return ok;
-}
-
-bool emu_state_load_file(Emu* e, const char* path) {
-	struct VFile* vf = VFileOpen(path, O_RDONLY);
-	if (!vf) {
-		return false;
-	}
-	bool ok = mCoreLoadStateNamed(e->core, vf, SAVESTATE_RTC);
-	vf->close(vf);
-	split_resync(e);
-	return ok;
-}
-
-bool emu_state_file_rom_crc(const char* path, uint32_t* crc) {
-	uint8_t h[12];
-	FILE* f = fopen(path, "rb");
-	if (!f) return false;
-	bool ok = fread(h, 1, sizeof(h), f) == sizeof(h);
-	fclose(f);
-	/* GBASerializedState: versionMagic (0x01000000 + version), biosChecksum, romCrc32 */
-	if (!ok || h[3] != 0x01) return false;
-	*crc = (uint32_t) h[8] | (uint32_t) h[9] << 8 | (uint32_t) h[10] << 16 | (uint32_t) h[11] << 24;
-	return true;
-}
+/* ---------------------------------------------------------------- state files
+ *
+ * GBA DS's state files are mGBA's own: the state, then mGBA's extra data
+ * (the battery save, the clock, when it was saved, and GBA DS's second
+ * screen, EXTDATA_GBADS below).
+ *
+ * RetroArch's (and BananaFront's: the same files) wrap a core's state
+ * (issue #39): "RASTATE" and version 1, then blocks (a 4-character tag, a
+ * u32 size, the data, zeros to a multiple of 8) up to "END ": MEM the
+ * core's own bytes (for its mGBA core, the same as GBA DS's states:
+ * checked byte for byte), ACHV RetroAchievements progress, RPLY a replay.
+ * Usually compressed (savestate_file_compression, on by default):
+ * "#RZIPv" 1 "#", u32 chunk size, u64 size, then each chunk as a u32 size
+ * and zlib's data. (RZIP version 2, zstd, isn't read.) Loading takes any
+ * of these; saving writes the format asked for. All numbers little-endian. */
 
 /* (in mGBA's subsystem range, which it doesn't use for the GBA) */
 #define EXTDATA_GBADS ((enum mStateExtdataTag) (EXTDATA_SUBSYSTEM_START + 0x3D))
 
-bool emu_state_file_put_extra(Emu* e, const char* path, const void* data, size_t n) {
-	struct VFile* vf = VFileOpen(path, O_RDWR);
-	if (!vf) return false;
-	struct mStateExtdata ext;
-	mStateExtdataInit(&ext);
-	mCoreExtractExtdata(e->core, vf, &ext);
-	void* copy = malloc(n ? n : 1);
-	bool ok = copy != NULL;
-	if (ok) {
-		memcpy(copy, data, n);
-		struct mStateExtdataItem item = { .size = (int32_t) n, .data = copy, .clean = free };
-		mStateExtdataPut(&ext, EXTDATA_GBADS, &item);
-		size_t sz = e->core->stateSize(e->core);
-		vf->truncate(vf, sz);
-		vf->seek(vf, sz, SEEK_SET);
-		ok = mStateExtdataSerialize(&ext, vf);
+#ifdef USE_ZLIB
+/* (zlib's, linked with libmgba; its header isn't on every build's include path) */
+int compress2(unsigned char* dest, unsigned long* destLen, const unsigned char* source, unsigned long sourceLen, int level);
+int uncompress(unsigned char* dest, unsigned long* destLen, const unsigned char* source, unsigned long sourceLen);
+unsigned long compressBound(unsigned long sourceLen);
+#endif
+
+static const uint8_t RZIP_MAGIC[8] = { '#', 'R', 'Z', 'I', 'P', 'v', 1, '#' };
+#define RZIP_CHUNK (128 * 1024) /* (RetroArch's) */
+#define STATE_FILE_MAX (64 * 1024 * 1024)
+
+static uint32_t le32(const uint8_t* p) {
+	return (uint32_t) p[0] | (uint32_t) p[1] << 8 | (uint32_t) p[2] << 16 | (uint32_t) p[3] << 24;
+}
+static void put_le32(uint8_t* p, uint32_t v) {
+	for (int i = 0; i < 4; ++i) p[i] = (uint8_t) (v >> (8 * i));
+}
+
+/* mGBA's state for the GBA: versionMagic 0x01000000 + version */
+static bool is_mgba_state(const uint8_t* b, size_t n) {
+	return n >= 12 && b[1] == 0 && b[2] == 0 && b[3] == 0x01;
+}
+
+/* A state file read whole with RetroArch's wrapping taken off: the core's
+ * bytes (malloc'd, *n) and what the file was. NULL when there's nothing
+ * to load (*kind says why). */
+static uint8_t* state_file_read(const char* path, size_t* n, StateFileKind* kind) {
+	*n = 0;
+	*kind = STATE_FILE_NONE;
+	FILE* f = fopen(path, "rb");
+	if (!f) return NULL;
+	*kind = STATE_FILE_UNREADABLE;
+	fseek(f, 0, SEEK_END);
+	long len = ftell(f);
+	fseek(f, 0, SEEK_SET);
+	uint8_t* b = len > 0 && len <= STATE_FILE_MAX ? malloc((size_t) len) : NULL;
+	bool ok = b && fread(b, 1, (size_t) len, f) == (size_t) len;
+	fclose(f);
+	if (!ok) {
+		free(b);
+		return NULL;
 	}
-	mStateExtdataDeinit(&ext);
+	size_t bn = (size_t) len;
+	bool wrapped = false;
+	if (bn >= 20 && !memcmp(b, RZIP_MAGIC, 6) && b[7] == '#') {
+		uint8_t* out = NULL;
+		size_t got = 0;
+#ifdef USE_ZLIB
+		uint32_t chunk = le32(b + 8);
+		uint64_t total = (uint64_t) le32(b + 12) | (uint64_t) le32(b + 16) << 32;
+		if (b[6] == 1 && chunk && total && total <= STATE_FILE_MAX) out = malloc((size_t) total);
+		size_t at = 20;
+		while (out && got < total) {
+			unsigned long dl = (unsigned long) (total - got < chunk ? total - got : chunk);
+			uint32_t zn = at + 4 <= bn ? le32(b + at) : 0;
+			if (!zn || zn > bn - at - 4 || uncompress(out + got, &dl, b + at + 4, zn) != 0 || !dl) {
+				free(out);
+				out = NULL;
+				break;
+			}
+			got += dl, at += 4 + zn;
+		}
+#endif
+		free(b);
+		if (!out) return NULL; /* (zstd, damaged, or no zlib in this build) */
+		b = out;
+		bn = got;
+		wrapped = true;
+	}
+	if (bn >= 8 && !memcmp(b, "RASTATE", 7)) {
+		size_t at = 8, memAt = 0, memN = 0;
+		bool have = false;
+		while (b[7] == 1 && at + 8 <= bn) {
+			uint32_t sz = le32(b + at + 4);
+			if (!memcmp(b + at, "END ", 4) || sz > bn - at - 8) break;
+			if (!memcmp(b + at, "MEM ", 4)) memAt = at + 8, memN = sz, have = true;
+			size_t adv = 8 + (((size_t) sz + 7) & ~(size_t) 7);
+			if (adv > bn - at) break;
+			at += adv;
+		}
+		if (!have || !memN) {
+			free(b);
+			return NULL;
+		}
+		memmove(b, b + memAt, memN);
+		bn = memN;
+		wrapped = true;
+	}
+	/* (compressed with no RASTATE inside: RetroArch's older files, the core's bytes alone) */
+	bool mgba = is_mgba_state(b, bn);
+	*kind = !mgba ? STATE_FILE_OTHER_CORE : wrapped ? STATE_FILE_RETROARCH : STATE_FILE_MGBA;
+	*n = bn;
+	return b;
+}
+
+/* written beside, then put in its place: a state is never half written */
+static bool write_whole(const char* path, const void* data, size_t n) {
+	char tmp[1100];
+	snprintf(tmp, sizeof(tmp), "%s.tmp", path);
+	FILE* f = fopen(tmp, "wb");
+	if (!f) return false;
+	bool ok = fwrite(data, 1, n, f) == n;
+	ok = fclose(f) == 0 && ok;
+	if (ok) ok = rename(tmp, path) == 0;
+	if (!ok) remove(tmp);
+	return ok;
+}
+
+/* the core's bytes in RetroArch's file: malloc'd, *outN */
+static uint8_t* retroarch_wrap(const uint8_t* core, size_t n, bool compress, size_t* outN) {
+	size_t pad = (n + 7) & ~(size_t) 7, pn = 8 + 8 + pad + 8;
+	uint8_t* p = calloc(1, pn);
+	if (!p) return NULL;
+	memcpy(p, "RASTATE", 7), p[7] = 1;
+	memcpy(p + 8, "MEM ", 4), put_le32(p + 12, (uint32_t) n), memcpy(p + 16, core, n);
+	memcpy(p + 16 + pad, "END ", 4); /* (size 0) */
+	*outN = pn;
+#ifdef USE_ZLIB
+	if (!compress) return p;
+	size_t chunks = (pn + RZIP_CHUNK - 1) / RZIP_CHUNK, bound = compressBound(RZIP_CHUNK);
+	uint8_t* z = malloc(20 + chunks * (4 + bound));
+	if (!z) {
+		free(p);
+		return NULL;
+	}
+	memcpy(z, RZIP_MAGIC, 8);
+	put_le32(z + 8, RZIP_CHUNK), put_le32(z + 12, (uint32_t) pn), put_le32(z + 16, 0);
+	size_t at = 20;
+	for (size_t off = 0; off < pn; off += RZIP_CHUNK) {
+		unsigned long zn = bound;
+		size_t sn = pn - off < RZIP_CHUNK ? pn - off : RZIP_CHUNK;
+		if (compress2(z + at + 4, &zn, p + off, sn, 6) != 0) {
+			free(p), free(z);
+			return NULL;
+		}
+		put_le32(z + at, (uint32_t) zn);
+		at += 4 + zn;
+	}
+	free(p);
+	*outN = at;
+	return z;
+#else
+	(void) compress; /* (no zlib here: uncompressed, which RetroArch reads too) */
+	return p;
+#endif
+}
+
+bool emu_state_save_file_as(Emu* e, const char* path, const void* extra, size_t extraN, StateFormat fmt) {
+	struct VFile* vf = VFileMemChunk(NULL, 0);
+	if (!vf) return false;
+	bool ok = mCoreSaveStateNamed(e->core, vf, SAVESTATE_SAVEDATA | SAVESTATE_RTC | SAVESTATE_METADATA);
+	if (ok && extra) {
+		/* GBA DS's own data, put in with mGBA's (other emulators skip it) */
+		struct mStateExtdata ext;
+		mStateExtdataInit(&ext);
+		mCoreExtractExtdata(e->core, vf, &ext);
+		void* copy = malloc(extraN ? extraN : 1);
+		if (copy) {
+			memcpy(copy, extra, extraN);
+			struct mStateExtdataItem item = { .size = (int32_t) extraN, .data = copy, .clean = free };
+			mStateExtdataPut(&ext, EXTDATA_GBADS, &item);
+			size_t sz = e->core->stateSize(e->core);
+			vf->truncate(vf, sz);
+			vf->seek(vf, sz, SEEK_SET);
+			if (!mStateExtdataSerialize(&ext, vf)) fprintf(stderr, "save state: GBA DS's own data not kept with it\n");
+		}
+		mStateExtdataDeinit(&ext);
+	}
+	size_t n = ok ? (size_t) vf->size(vf) : 0;
+	uint8_t* core = n ? malloc(n) : NULL;
+	ok = core && vf->seek(vf, 0, SEEK_SET) == 0 && vf->read(vf, core, n) == (ssize_t) n;
 	vf->close(vf);
+	uint8_t* out = core;
+	size_t outN = n;
+	if (ok && fmt != STATE_FORMAT_MGBA) ok = (out = retroarch_wrap(core, n, fmt == STATE_FORMAT_RETROARCH_RZIP, &outN)) != NULL;
+	if (ok) ok = write_whole(path, out, outN);
+	if (out != core) free(out);
+	free(core);
+	return ok;
+}
+
+bool emu_state_save_file(Emu* e, const char* path) {
+	return emu_state_save_file_as(e, path, NULL, 0, STATE_FORMAT_MGBA);
+}
+
+bool emu_state_load_file(Emu* e, const char* path) {
+	size_t n;
+	StateFileKind kind;
+	uint8_t* b = state_file_read(path, &n, &kind);
+	if (!b) return false;
+	bool ok = false;
+	if (kind == STATE_FILE_MGBA || kind == STATE_FILE_RETROARCH) {
+		struct VFile* vf = VFileFromConstMemory(b, n);
+		if (vf) {
+			ok = mCoreLoadStateNamed(e->core, vf, SAVESTATE_RTC);
+			vf->close(vf);
+		}
+		split_resync(e);
+	}
+	free(b);
+	return ok;
+}
+
+StateFileKind emu_state_file_kind(Emu* e, const char* path, bool* fromGbads) {
+	if (fromGbads) *fromGbads = false;
+	size_t n;
+	StateFileKind kind;
+	uint8_t* b = state_file_read(path, &n, &kind);
+	if (b && fromGbads && e && (kind == STATE_FILE_MGBA || kind == STATE_FILE_RETROARCH)) {
+		struct VFile* vf = VFileFromConstMemory(b, n);
+		struct mStateExtdata ext;
+		mStateExtdataInit(&ext);
+		struct mStateExtdataItem item;
+		/* (Get says yes for a tag that isn't there too: its size says) */
+		if (vf && mCoreExtractExtdata(e->core, vf, &ext) && mStateExtdataGet(&ext, EXTDATA_GBADS, &item) && item.size > 0 && item.data)
+			*fromGbads = true;
+		mStateExtdataDeinit(&ext);
+		if (vf) vf->close(vf);
+	}
+	free(b);
+	return kind;
+}
+
+bool emu_state_file_rom_crc(const char* path, uint32_t* crc) {
+	size_t n;
+	StateFileKind kind;
+	uint8_t* h = state_file_read(path, &n, &kind);
+	/* GBASerializedState: versionMagic (0x01000000 + version), biosChecksum, romCrc32 */
+	bool ok = h && is_mgba_state(h, n);
+	if (ok) *crc = le32(h + 8);
+	free(h);
 	return ok;
 }
 
 void* emu_state_file_get_extra(Emu* e, const char* path, size_t* n) {
 	*n = 0;
-	struct VFile* vf = VFileOpen(path, O_RDONLY);
-	if (!vf) return NULL;
+	size_t bn;
+	StateFileKind kind;
+	uint8_t* b = state_file_read(path, &bn, &kind);
+	struct VFile* vf = b ? VFileFromConstMemory(b, bn) : NULL;
+	if (!vf) {
+		free(b);
+		return NULL;
+	}
 	struct mStateExtdata ext;
 	mStateExtdataInit(&ext);
 	void* out = NULL;
@@ -545,6 +746,7 @@ void* emu_state_file_get_extra(Emu* e, const char* path, size_t* n) {
 	}
 	mStateExtdataDeinit(&ext);
 	vf->close(vf);
+	free(b);
 	return out;
 }
 

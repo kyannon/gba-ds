@@ -3,7 +3,9 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stddef.h>
 #include <string.h>
+#include <strings.h>
 
 const char* const shaderNames[SH_COUNT] = { "off", "grid", "scanlines", "soft", "subpixels-light", "subpixels", "subpixels-strong" };
 const char* const hotkeyNames[HK_COUNT] = { "quit", "save_state", "load_state", "quick_menu", "swap_screens", "shader" };
@@ -13,6 +15,7 @@ void config_defaults(Config* c) {
 	memset(c, 0, sizeof(*c));
 	strcpy(c->layout, "auto");
 	strcpy(c->saveExt, "sav");
+	strcpy(c->stateFolder, "gbads");
 	strcpy(c->scale, "integer");
 	strcpy(c->mapScale, "integer");
 	strcpy(c->hotkey, "home");
@@ -46,6 +49,7 @@ void config_defaults(Config* c) {
 	c->mapInterval = 60;
 	c->sway = true;
 	c->audioLatency = 64;
+	c->keepSound = true;
 	c->ffSpeed = 3;
 	#ifdef __3DS__
 	c->ffMute = 1;
@@ -66,6 +70,8 @@ void config_defaults(Config* c) {
 	strcpy(c->raMode, "auto");
 	strcpy(c->raSystemCfg, "/storage/.config/system/configs/system.cfg");
 	c->homeButton = -1;
+	c->leftStickDpad = true;
+	c->turboRate = 15;
 	c->lcdStrength = 35;
 	strcpy(c->borderColor, "000000");
 }
@@ -161,6 +167,7 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	}
 	BOOL("match_display", matchDisplay)
 	BOOL("rewind", rewind)
+	BOOL("keep_sound", keepSound)
 	INT("rewind_seconds", rewindSeconds)
 	INT("map_interval", mapInterval)
 	BOOL("ab_swap", abSwap)
@@ -193,6 +200,9 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	STR("save_ext", saveExt)
 	STR("save_from", saveFrom)
 	STR("state_dir", stateDir)
+	STR("state_folder", stateFolder)
+	STR("retroarch_state_dir", raStateDir)
+	STR("retroarch_cfg", raCfg)
 	STR("rom_dir", romDir)
 	STR("cheat_dir", cheatDir)
 	STR("patch_dir", patchDir)
@@ -203,6 +213,8 @@ static bool set_option(Config* c, const char* key, const char* val) {
 		c->perfMax = !strcmp(val, "max");
 		return true;
 	}
+	if (!strcmp(key, "pause_services")) return true; /* (read by launch.sh on ROCKNIX: services in the way stopped for the run) */
+	if (!strcmp(key, "watch_system")) return true; /* (read by launch.sh on ROCKNIX: kernel, journal and sway events in the log) */
 	if (!strcmp(key, "cpu_performance")) return true; /* (v1.5.3, launch.sh's: always on unless 0; now performance, off by default) */
 	if (!strcmp(key, "data_dir_now")) return true; /* (data-folder.cfg: where the data is, written by the app) */
 	STR("touch_screen", touchScreen)
@@ -223,6 +235,21 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	BOOL("quick_bar_pinned", barPinned)
 	BOOL("quick_bar_hint", barHint)
 	BOOL("show_all", showAll)
+	BOOL("left_stick_dpad", leftStickDpad)
+	if (!strcmp(key, "theme")) {
+		c->lightTheme = !strcmp(val, "light") || parse_bool(val);
+		return true;
+	}
+	INT("turbo_rate", turboRate)
+	if (!strncmp(key, "button_", 7)) {
+		static const char* const faces[4] = { "right", "bottom", "top", "left" };
+		for (int i = 0; i < 4; ++i) {
+			if (strcmp(key + 7, faces[i])) continue;
+			snprintf(c->faceBtn[i], sizeof(c->faceBtn[i]), "%s", val);
+			for (char* q = c->faceBtn[i]; *q; ++q) *q = (char) tolower((unsigned char) *q);
+			return true;
+		}
+	}
 	BOOL("name_tags", nameTags)
 	STR("retroachievements", raMode)
 	STR("ra_username", raUser)
@@ -242,10 +269,39 @@ static bool set_option(Config* c, const char* key, const char* val) {
 #undef INT
 }
 
-void config_load_file(Config* c, const char* path) {
+/* the keys given on the command line: they win over a game's own file too */
+static char cliKeys[48][64];
+static int nCliKeys;
+
+/* Settings a game's own file (states/<game>.cfg, issue #53) may hold: the
+ * ones that are read when a game starts or while it plays. Everything else
+ * (folders, accounts, updates, how the screens are found, hotkeys, the
+ * touch panel) is for all games. */
+static const char* const perGameKeys[] = {
+	"swap", "scale", "map_scale", "smooth", "border_color", "overlays", "overlay_screens", "bezel_logo", "bezel_inner",
+	"bezel_outer", "shader", "lcd_strength", "color_correction", "lcd_ghosting", "frame_buffer", "match_display", "map",
+	"map_crop", "map_animations", "map_interval", "show_logo", "custom_logos", "pinball_live", "rewind", "rewind_seconds",
+	"fast_forward", "ff_speed", "ab_swap", "show_fps", "audio_latency", "screen_match", "screen_placement",
+	"save_on_quit", "auto_load", "left_stick_dpad", "turbo_rate", "button_right", "button_bottom", "button_top", "button_left",
+};
+
+bool config_key_per_game(const char* key) {
+	for (size_t i = 0; i < sizeof(perGameKeys) / sizeof(perGameKeys[0]); ++i)
+		if (!strcmp(key, perGameKeys[i])) return true;
+	return false;
+}
+
+static bool cli_has(const char* key) {
+	for (int i = 0; i < nCliKeys; ++i)
+		if (!strcmp(cliKeys[i], key)) return true;
+	return false;
+}
+
+static int load_file(Config* c, const char* path, bool game) {
+	int applied = 0;
 	FILE* f = fopen(path, "r");
 	if (!f) {
-		return;
+		return 0;
 	}
 	char line[1024];
 	while (fgets(line, sizeof(line), f)) {
@@ -262,11 +318,27 @@ void config_load_file(Config* c, const char* path) {
 		while (isspace((unsigned char) *val)) ++val;
 		end = val + strlen(val) - 1;
 		while (end >= val && isspace((unsigned char) *end)) *end-- = 0;
+		if (game && !config_key_per_game(key)) {
+			fprintf(stderr, "%s: '%s' is for all games: ignored here\n", path, key);
+			continue;
+		}
+		if (game && cli_has(key)) continue; /* (given on the command line: that wins) */
 		if (!set_option(c, key, val)) {
 			fprintf(stderr, "%s: unknown option '%s'\n", path, key);
+		} else {
+			++applied;
 		}
 	}
 	fclose(f);
+	return applied;
+}
+
+void config_load_file(Config* c, const char* path) {
+	load_file(c, path, false);
+}
+
+int config_load_game_file(Config* c, const char* path) {
+	return load_file(c, path, true);
 }
 
 bool config_parse_args(Config* c, int argc, char** argv) {
@@ -296,6 +368,7 @@ bool config_parse_args(Config* c, int argc, char** argv) {
 				fprintf(stderr, "unknown option %s\n", a);
 				return false;
 			}
+			if (nCliKeys < (int) (sizeof(cliKeys) / sizeof(cliKeys[0]))) snprintf(cliKeys[nCliKeys++], sizeof(cliKeys[0]), "%s", key);
 		} else {
 			snprintf(c->rom, sizeof(c->rom), "%s", a);
 		}
@@ -352,4 +425,298 @@ void config_usage(const char* argv0) {
 	        "  script lines: 'TICK TOKEN' with TOKEN a button combo held until the next\n"
 	        "  line (A+RIGHT, -), HOME, TAP:x,y (0..1 window coords), SHOT:file.bmp, QUIT\n",
 	        argv0);
+}
+
+/* ---------------------------------------------------------------- settings table */
+
+#define OFFB(f) offsetof(Config, f), sizeof(((Config*) 0)->f)
+#define ARR(a) a, (int) (sizeof(a) / sizeof(a[0]))
+static const SettingChoice chTheme[] = { { "dark", "Dark", 0 }, { "light", "Light", 1 } };
+static const SettingChoice chOnOff[] = { { "0", "Off", 0 }, { "1", "On", 1 } };
+static const SettingChoice chShown[] = { { "0", "Supported games only", 0 }, { "1", "All games", 1 } };
+static const SettingChoice chTags[] = { { "0", "Plain", 0 }, { "1", "With tags, like (USA)", 1 } };
+static const SettingChoice chLogos[] = { { "pixelated", "Pixelated", CL_PIXELATED }, { "full", "Full detail", CL_FULL }, { "off", "Not used", CL_OFF } };
+static const SettingChoice chScale[] = { { "integer", "Pixel Perfect", 0 }, { "fit", "Full Width", 0 }, { "zoom", "Zoom", 0 }, { "stretch", "Stretch", 0 } };
+static const SettingChoice chShader[] = {
+	{ "off", "Off", SH_OFF }, { "grid", "LCD Grid", SH_GRID }, { "scanlines", "Scanlines", SH_SCANLINES }, { "soft", "Soft Cells", SH_SOFT },
+	{ "subpixels-light", "Subpixels (Light)", SH_SUB_LIGHT }, { "subpixels", "Subpixels", SH_SUB }, { "subpixels-strong", "Subpixels (Strong)", SH_SUB_STRONG },
+};
+static const SettingChoice chSwap[] = { { "0", "Game on top", 0 }, { "1", "Game below", 1 } };
+static const SettingChoice chMatch[] = { { "keep", "Keep device shapes", 0 }, { "aspect", "Match aspect ratios", 0 }, { "size", "Match sizes and shapes", 0 } };
+static const SettingChoice chPlace[] = { { "center", "Centered", 0 }, { "no_gap", "Closest to gap", 0 } };
+static const SettingChoice chOverlays[] = { { "off", "Off", OVM_OFF }, { "generated", "Generated", OVM_GENERATED }, { "custom", "Custom", OVM_CUSTOM } };
+static const SettingChoice chOvlScreens[] = { { "both", "Both screens", OVL_BOTH }, { "top", "Top screen", OVL_TOP }, { "bottom", "Bottom screen", OVL_BOTTOM } };
+static const SettingChoice chAB[] = { { "0", "Like a GBA", 0 }, { "1", "Swapped", 1 } };
+static const SettingChoice chFace[] = {
+	{ "a", "GBA A", 0 }, { "b", "GBA B", 0 }, { "l", "GBA L", 0 }, { "r", "GBA R", 0 }, { "start", "Start", 0 },
+	{ "select", "Select", 0 }, { "turbo_a", "Turbo A", 0 }, { "turbo_b", "Turbo B", 0 }, { "none", "Nothing", 0 },
+};
+static const SettingChoice chTurbo[] = { { "10", "Slow (10 a second)", 10 }, { "15", "Medium (15 a second)", 15 }, { "20", "Fast (20 a second)", 20 } };
+static const SettingChoice chFF[] = { { "off", "Off", 0 }, { "2", "2x", 2 }, { "3", "3x", 3 }, { "4", "4x", 4 }, { "5", "5x", 5 }, { "max", "As fast as it goes", 0 } };
+static const SettingChoice chRewind[] = { { "10", "10 s", 10 }, { "15", "15 s", 15 }, { "30", "30 s", 30 }, { "60", "1 minute", 60 }, { "120", "2 minutes", 120 }, { "300", "5 minutes", 300 } };
+static const SettingChoice chLatency[] = { { "32", "32 ms", 32 }, { "64", "64 ms", 64 }, { "96", "96 ms", 96 }, { "128", "128 ms", 128 }, { "192", "192 ms", 192 } };
+static const SettingChoice chPerf[] = { { "system", "Let the System Decide", 0 }, { "max", "Set to Max", 1 } };
+static const SettingChoice chInterval[] = { { "30", "Every 0.5 s", 30 }, { "60", "Every second", 60 }, { "90", "Every 1.5 s", 90 }, { "180", "Every 3 s", 180 } };
+
+static const Setting settingsTable[] = {
+	{ "show_all", "Games shown", SF_BOOL, OFFB(showAll), ARR(chShown), 0, 0, 0, NULL, "Games without second-screen support play on one screen." },
+	{ "name_tags", "Game names", SF_BOOL, OFFB(nameTags), ARR(chTags), 0, 0, 0, NULL, "Tags in a ROM's file name, like (USA) or (En,Fr,De)." },
+	{ "save_on_quit", "Save on quit", SF_BOOL, OFFB(autoSave), ARR(chOnOff), 0, 0, 0, NULL, "Closing a game saves where you are." },
+	{ "auto_load", "Auto-load", SF_BOOL, OFFB(autoLoad), ARR(chOnOff), 0, 0, 0, NULL, "Starting a game picks up where you closed it." },
+	{ "custom_logos", "Custom logos", SF_INT, OFFB(customLogos), ARR(chLogos), 0, 0, 0, NULL, "Your own and scraped logos on the second screen." },
+	{ "quick_bar_hint", "Quick bar hint", SF_BOOL, OFFB(barHint), ARR(chOnOff), 0, 0, 0, NULL, "\"Swipe up for quick menu\" at a game's start." },
+
+	{ "scale", "Game screen scale", SF_STR, OFFB(scale), ARR(chScale), 0, 0, 0, NULL, "How the game's picture fills its screen." },
+	{ "map_scale", "Second screen scale", SF_STR, OFFB(mapScale), ARR(chScale), 0, 0, 0, NULL, "How the map or logo fills its screen." },
+	{ "shader", "Shader", SF_INT, OFFB(shader), ARR(chShader), 0, 0, 0, NULL, "A pattern over every pixel, on both screens." },
+	{ "lcd_strength", "Pattern strength", SF_INT, OFFB(lcdStrength), NULL, 0, 0, 100, 5, "%", "How dark the grid, scanlines and soft cells are." },
+	{ "color_correction", "Color correction", SF_BOOL, OFFB(colorCorrection), ARR(chOnOff), 0, 0, 0, NULL, "Colors as a Game Boy Advance's screen showed them." },
+	{ "lcd_ghosting", "LCD ghosting", SF_BOOL, OFFB(ghosting), ARR(chOnOff), 0, 0, 0, NULL, "Moving things leave a short trail, as on a GBA." },
+	{ "smooth", "Smooth scaling", SF_BOOL, OFFB(smooth), ARR(chOnOff), 0, 0, 0, NULL, "Blurry instead of sharp: usually leave off." },
+
+	{ "swap", "Screens", SF_BOOL, OFFB(swap), ARR(chSwap), 0, 0, 0, NULL, "Which screen the game is on." },
+	{ "screen_match", "Screen shapes", SF_STR, OFFB(screenMatch), ARR(chMatch), 0, 0, 0, NULL, "Only when your two screens differ in shape. Experimental." },
+	{ "screen_placement", "Screen placement", SF_STR, OFFB(screenPlace), ARR(chPlace), 0, 0, 0, NULL, "Pictures in the middle of their screens, or close together." },
+	{ "overlays", "Overlays", SF_INT, OFFB(overlayMode), ARR(chOverlays), 0, 0, 0, NULL, "GBA DS's bezel, or your own PNGs, round the picture." },
+	{ "overlay_screens", "Overlays on", SF_INT, OFFB(overlays), ARR(chOvlScreens), 0, 0, 0, NULL, "Which screens have them." },
+	{ "bezel_logo", "Bezel logo", SF_BOOL, OFFB(bezelLogo), ARR(chOnOff), 0, 0, 0, NULL, "The GBA DS logo in the generated bezel." },
+	{ "show_fps", "Show FPS", SF_BOOL, OFFB(showFps), ARR(chOnOff), 0, 0, 0, NULL, "Frames a second above the game, all the time." },
+
+	{ "theme", "Theme", SF_BOOL, OFFB(lightTheme), ARR(chTheme), 0, 0, 0, NULL, "The look of the menus' buttons: dark grey, or light grey like the web player's." },
+	{ "left_stick_dpad", "Left stick as D-pad", SF_BOOL, OFFB(leftStickDpad), ARR(chOnOff), 0, 0, 0, NULL, "Off: the left stick does nothing in games." },
+	{ "ab_swap", "A and B buttons", SF_BOOL, OFFB(abSwap), ARR(chAB), 0, 0, 0, NULL, "GBA A on the right button, or on the bottom one." },
+	{ "button_right", "A (right) button", SF_STR, OFFB(faceBtn[0]), ARR(chFace), 0, 0, 0, NULL, "What the right face button gives the game." },
+	{ "button_bottom", "B (bottom) button", SF_STR, OFFB(faceBtn[1]), ARR(chFace), 0, 0, 0, NULL, "What the bottom face button gives the game." },
+	{ "button_top", "X (top) button", SF_STR, OFFB(faceBtn[2]), ARR(chFace), 0, 0, 0, NULL, "What the top face button gives the game." },
+	{ "button_left", "Y (left) button", SF_STR, OFFB(faceBtn[3]), ARR(chFace), 0, 0, 0, NULL, "What the left face button gives the game." },
+	{ "turbo_rate", "Turbo speed", SF_INT, OFFB(turboRate), ARR(chTurbo), 0, 0, 0, NULL, "How fast Turbo A and Turbo B press." },
+
+	{ "match_display", "Match display rate", SF_BOOL, OFFB(matchDisplay), ARR(chOnOff), 0, 0, 0, NULL, "Run at the display's rate: no small regular stutter." },
+	{ "frame_buffer", "Frame buffer", SF_BOOL, OFFB(frameBuffer), ARR(chOnOff), 0, 0, 0, NULL, "Smoother, one frame more input delay." },
+#ifdef __3DS__
+	/* (each step back a state of 0.8 MiB: 30 seconds of them are the console's memory many times over; game.c's rewind_setup keeps it off) */
+	{ "rewind", "Rewind", SF_BOOL, OFFB(rewind), ARR(chOnOff), 0, 0, 0, NULL, "Not on the 3DS: there's no memory for it." },
+#else
+	{ "rewind", "Rewind", SF_BOOL, OFFB(rewind), ARR(chOnOff), 0, 0, 0, NULL, "Hold L2 to go back in time." },
+#endif
+	{ "rewind_seconds", "Rewind length", SF_INT, OFFB(rewindSeconds), ARR(chRewind), 0, 0, 0, " s", "How far back it goes." },
+#ifdef __3DS__
+	{ "fast_forward", "Fast forward", SF_FF, OFFB(fastForward), ARR(chFF), 0, 0, 0, NULL, "Hold ZR to play faster." },
+#else
+	{ "fast_forward", "Fast forward", SF_FF, OFFB(fastForward), ARR(chFF), 0, 0, 0, NULL, "Hold R2 to play faster." },
+#endif
+	{ "audio_latency", "Sound delay", SF_INT, OFFB(audioLatency), ARR(chLatency), 0, 0, 0, " ms", "Raise it if the sound crackles." },
+	{ "performance", "Performance", SF_BOOL, OFFB(perfMax), ARR(chPerf), 0, 0, 0, NULL, "Max: full speed, a warmer device and a shorter battery." },
+
+	{ "map", "Second screen", SF_BOOL, OFFB(map), ARR(chOnOff), 0, 0, 0, NULL, "Off: every game plays like an ordinary GBA game." },
+	{ "map_interval", "Map refresh", SF_INT, OFFB(mapInterval), ARR(chInterval), 0, 0, 0, NULL, "Shorter can make the sound crackle on a slow device." },
+	{ "map_crop", "Tidy map screens", SF_BOOL, OFFB(mapCrop), ARR(chOnOff), 0, 0, 0, NULL, "Labels and prompts erased from the Metroid maps." },
+	{ "map_animations", "Map animations", SF_BOOL, OFFB(mapAnim), ARR(chOnOff), 0, 0, 0, NULL, "Blinking map markers." },
+	{ "show_logo", "Logo when blank", SF_BOOL, OFFB(showLogo), ARR(chOnOff), 0, 0, 0, NULL, "The game's logo when there's no map to show." },
+	{ "pinball_live", "Pinball two-screen view", SF_BOOL, OFFB(tallLive), ARR(chOnOff), 0, 0, 0, NULL, "Off for slower devices: the table on one screen." },
+};
+
+const Setting* config_setting(const char* key) {
+	for (size_t i = 0; i < sizeof(settingsTable) / sizeof(settingsTable[0]); ++i)
+		if (!strcmp(settingsTable[i].key, key)) return &settingsTable[i];
+	return NULL;
+}
+
+/* what a face button gives the game with nothing chosen: ab_swap's layout */
+static const char* face_default(const Config* c, int i) {
+	return i == 0 ? (c->abSwap ? "b" : "a") : i == 1 ? (c->abSwap ? "a" : "b") : "none";
+}
+
+int config_setting_index(const Config* c, const Setting* s) {
+	const char* p = (const char*) c + s->off;
+	if (s->field == SF_FF) {
+		if (!c->fastForward) return 0;
+		return c->ffSpeed <= 0 ? 5 : c->ffSpeed < 2 ? 1 : c->ffSpeed > 5 ? 5 : c->ffSpeed - 1;
+	}
+	if (s->field == SF_STR) {
+		const char* v = p;
+		if (!strncmp(s->key, "button_", 7) && !*v) {
+			int f = !strcmp(s->key + 7, "right") ? 0 : !strcmp(s->key + 7, "bottom") ? 1 : !strcmp(s->key + 7, "top") ? 2 : 3;
+			v = face_default(c, f);
+		}
+		for (int i = 0; i < s->nChoices; ++i)
+			if (!strcasecmp(v, s->choices[i].value)) return i;
+		return -1;
+	}
+	int v = s->field == SF_BOOL ? (int) *(const bool*) p : *(const int*) p;
+	for (int i = 0; i < s->nChoices; ++i)
+		if (s->choices[i].ival == v) return i;
+	return -1;
+}
+
+void config_setting_text(const Config* c, const Setting* s, char* out, size_t n) {
+	int i = config_setting_index(c, s);
+	if (i >= 0) {
+		snprintf(out, n, "%s", s->choices[i].label);
+	} else if (s->field == SF_INT) {
+		snprintf(out, n, "%d%s", *(const int*) ((const char*) c + s->off), s->unit ? s->unit : "");
+	} else {
+		snprintf(out, n, "?");
+	}
+}
+
+static void setting_set_index(Config* c, const Setting* s, int i) {
+	char* p = (char*) c + s->off;
+	const SettingChoice* ch = &s->choices[i];
+	if (s->field == SF_BOOL) *(bool*) p = ch->ival != 0;
+	else if (s->field == SF_INT) *(int*) p = ch->ival;
+	else if (s->field == SF_STR) snprintf(p, s->size, "%s", ch->value);
+	else if (s->field == SF_FF) {
+		c->fastForward = i != 0;
+		if (i) c->ffSpeed = i == 5 ? 0 : i + 1;
+	}
+}
+
+bool config_setting_step(Config* c, const Setting* s, int dir) {
+	if (!s->nChoices) {
+		int* v = (int*) ((char*) c + s->off);
+		int to = *v + dir * s->step;
+		if (to < s->min) to = s->max;
+		if (to > s->max) to = s->min;
+		if (to == *v) return false;
+		*v = to;
+		return true;
+	}
+	int i = config_setting_index(c, s), to;
+	if (i < 0 && s->field == SF_INT) {
+		/* a number gba-ds.cfg gave that isn't on the list: the next one up or down */
+		int v = *(const int*) ((const char*) c + s->off);
+		to = dir > 0 ? 0 : s->nChoices - 1;
+		for (int k = 0; k < s->nChoices; ++k) {
+			if (dir > 0 && s->choices[k].ival > v) { to = k; break; }
+			if (dir < 0 && s->choices[s->nChoices - 1 - k].ival < v) { to = s->nChoices - 1 - k; break; }
+		}
+	} else {
+		to = i < 0 ? 0 : (i + dir + s->nChoices) % s->nChoices;
+	}
+	if (to == i) return false;
+	setting_set_index(c, s, to);
+	return true;
+}
+
+int config_setting_lines(const Config* c, const Setting* s, char lines[2][2][24]) {
+	snprintf(lines[0][0], 24, "%s", s->key);
+	if (s->field == SF_FF) {
+		int i = config_setting_index(c, s);
+		snprintf(lines[0][1], 24, "%d", i != 0);
+		snprintf(lines[1][0], 24, "ff_speed");
+		if (c->ffSpeed <= 0) snprintf(lines[1][1], 24, "max");
+		else snprintf(lines[1][1], 24, "%d", c->ffSpeed);
+		return 2;
+	}
+	int i = config_setting_index(c, s);
+	if (i >= 0) snprintf(lines[0][1], 24, "%s", s->choices[i].value);
+	else snprintf(lines[0][1], 24, "%d", *(const int*) ((const char*) c + s->off));
+	return 1;
+}
+
+void config_kv_update(const char* path, const char* header, int n, const char* const kv[][2]) {
+	/* the file's other lines, as they are */
+	char* kept = calloc(1, 1);
+	size_t keptLen = 0;
+	bool any = false;
+	FILE* f = fopen(path, "r");
+	if (f) {
+		char line[1100];
+		while (fgets(line, sizeof(line), f)) {
+			char key[64] = "";
+			const char* q = line;
+			while (isspace((unsigned char) *q)) ++q;
+			if (*q && *q != '#' && *q != ';') {
+				size_t k = strcspn(q, "= \t\r\n");
+				snprintf(key, sizeof(key), "%.*s", (int) (k < 63 ? k : 63), q);
+			}
+			bool replaced = false;
+			for (int i = 0; i < n && key[0]; ++i)
+				if (!strcmp(key, kv[i][0])) replaced = true;
+			if (replaced) continue;
+			size_t l = strlen(line);
+			kept = realloc(kept, keptLen + l + 2);
+			memcpy(kept + keptLen, line, l);
+			keptLen += l;
+			if (!l || line[l - 1] != '\n') kept[keptLen++] = '\n';
+			kept[keptLen] = 0;
+			any = true;
+		}
+		fclose(f);
+	}
+	f = fopen(path, "w");
+	if (f) {
+		if (!any && header) fprintf(f, "%s\n", header);
+		fputs(kept, f);
+		for (int i = 0; i < n; ++i) fprintf(f, "%s = %s\n", kv[i][0], kv[i][1]);
+		fclose(f);
+	}
+	free(kept);
+}
+
+int config_setting_count(void) {
+	return (int) (sizeof(settingsTable) / sizeof(settingsTable[0]));
+}
+
+const Setting* config_setting_at(int i) {
+	return i >= 0 && i < config_setting_count() ? &settingsTable[i] : NULL;
+}
+
+void config_setting_copy(Config* dst, const Config* src, const Setting* s) {
+	if (s->field == SF_FF) {
+		dst->fastForward = src->fastForward;
+		dst->ffSpeed = src->ffSpeed;
+		return;
+	}
+	memcpy((char*) dst + s->off, (const char*) src + s->off, s->size);
+}
+
+int config_kv_keys(const char* path, int max, char keys[][40]) {
+	int n = 0;
+	FILE* f = fopen(path, "r");
+	if (!f) return 0;
+	char line[1100];
+	while (n < max && fgets(line, sizeof(line), f)) {
+		const char* q = line;
+		while (isspace((unsigned char) *q)) ++q;
+		if (!*q || *q == '#' || *q == ';') continue;
+		size_t k = strcspn(q, "= \t\r\n");
+		snprintf(keys[n++], 40, "%.*s", (int) (k < 39 ? k : 39), q);
+	}
+	fclose(f);
+	return n;
+}
+
+void config_kv_remove(const char* path, int n, const char* const keys[]) {
+	char kept[8192] = "";
+	size_t len = 0;
+	bool real = false;
+	FILE* f = fopen(path, "r");
+	if (!f) return;
+	char line[1100];
+	while (fgets(line, sizeof(line), f)) {
+		const char* q = line;
+		while (isspace((unsigned char) *q)) ++q;
+		bool drop = false;
+		if (*q && *q != '#' && *q != ';') {
+			size_t k = strcspn(q, "= \t\r\n");
+			for (int i = 0; i < n; ++i)
+				if (strlen(keys[i]) == k && !strncmp(q, keys[i], k)) drop = true;
+			if (!drop) real = true;
+		}
+		if (drop) continue;
+		size_t l = strlen(line);
+		if (len + l < sizeof(kept)) memcpy(kept + len, line, l), len += l, kept[len] = 0;
+	}
+	fclose(f);
+	if (!real) {
+		remove(path); /* nothing of the game's own left */
+		return;
+	}
+	f = fopen(path, "w");
+	if (f) {
+		fputs(kept, f);
+		fclose(f);
+	}
 }

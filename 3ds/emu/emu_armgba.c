@@ -1008,7 +1008,7 @@ bool emu_state_load(Emu* e, const void* buf) {
 }
 
 /* A state file: a header, armGBA's state (which holds the battery save as it
- * was), then GBA DS's own data (emu_state_file_put_extra). Not mGBA's
+ * was), then GBA DS's own data (emu_state_save_file_as's extra). Not mGBA's
  * format: the other builds' states don't load here, nor these there. */
 #define STATE_FILE_MAGIC 0x33534447u /* "GDS3" */
 typedef struct {
@@ -1018,17 +1018,42 @@ typedef struct {
 	uint32_t extraSize;
 } StateFileHeader;
 
-bool emu_state_save_file(Emu* e, const char* path) {
+/* (fmt: only armGBA's own here; a RetroArch state would hold an mGBA core's
+ * state, which this isn't) */
+bool emu_state_save_file_as(Emu* e, const char* path, const void* extra, size_t extraN, StateFormat fmt) {
+	if (fmt != STATE_FORMAT_MGBA) {
+		fprintf(stderr, "state %s: RetroArch's format isn't made on the 3DS (armGBA's states aren't mGBA's)\n", path);
+		return false;
+	}
 	size_t n = gbaStateSize();
 	void* buf = malloc(n);
 	if (!buf) return false;
 	gbaSaveState(AC(e)->gba, buf);
-	StateFileHeader h = { STATE_FILE_MAGIC, e->romCrc, (uint32_t) n, 0 };
+	StateFileHeader h = { STATE_FILE_MAGIC, e->romCrc, (uint32_t) n, extra ? (uint32_t) extraN : 0 };
 	FILE* f = fopen(path, "wb");
-	bool ok = f && fwrite(&h, sizeof(h), 1, f) == 1 && fwrite(buf, 1, n, f) == n;
+	bool ok = f && fwrite(&h, sizeof(h), 1, f) == 1 && fwrite(buf, 1, n, f) == n && (!extra || !extraN || fwrite(extra, 1, extraN, f) == extraN);
 	if (f) ok = fclose(f) == 0 && ok;
 	free(buf);
 	return ok;
+}
+
+bool emu_state_save_file(Emu* e, const char* path) {
+	return emu_state_save_file_as(e, path, NULL, 0, STATE_FORMAT_MGBA);
+}
+
+/* armGBA's own states (GBA DS 3DS's) load; any other file is another
+ * emulator's to this build */
+StateFileKind emu_state_file_kind(Emu* e, const char* path, bool* fromGbads) {
+	(void) e;
+	if (fromGbads) *fromGbads = false;
+	FILE* f = fopen(path, "rb");
+	if (!f) return STATE_FILE_NONE;
+	StateFileHeader h;
+	bool ours = fread(&h, sizeof(h), 1, f) == 1 && h.magic == STATE_FILE_MAGIC;
+	fclose(f);
+	if (!ours) return STATE_FILE_OTHER_CORE;
+	if (fromGbads) *fromGbads = h.extraSize > 0;
+	return h.stateSize == gbaStateSize() ? STATE_FILE_MGBA : STATE_FILE_UNREADABLE;
 }
 
 bool emu_state_load_file(Emu* e, const char* path) {
@@ -1071,21 +1096,6 @@ bool emu_state_file_rom_crc(const char* path, uint32_t* crc) {
 	bool ok = fread(&h, sizeof(h), 1, f) == 1 && h.magic == STATE_FILE_MAGIC;
 	fclose(f);
 	if (ok) *crc = h.romCrc;
-	return ok;
-}
-
-bool emu_state_file_put_extra(Emu* e, const char* path, const void* data, size_t n) {
-	(void) e;
-	StateFileHeader h;
-	FILE* f = fopen(path, "r+b");
-	if (!f) return false;
-	bool ok = fread(&h, sizeof(h), 1, f) == 1 && h.magic == STATE_FILE_MAGIC;
-	if (ok) {
-		h.extraSize = (uint32_t) n;
-		ok = fseek(f, 0, SEEK_SET) == 0 && fwrite(&h, sizeof(h), 1, f) == 1 &&
-		     fseek(f, (long) (sizeof(h) + h.stateSize), SEEK_SET) == 0 && fwrite(data, 1, n, f) == n;
-	}
-	ok = fclose(f) == 0 && ok;
 	return ok;
 }
 

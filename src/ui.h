@@ -77,6 +77,8 @@ bool ui_screens_differ(void);
 /* Works out the screens' picture areas again (screen_match or
  * screen_placement changed). */
 void ui_layout_pictures(void);
+/* the left stick as the D-pad (issue #57); on in the menus whatever the setting */
+void ui_stick_dpad(bool on);
 /* The pixels per inch of each screen, if known (0 if not). */
 float ui_screen_ppi(int screen);
 int ui_touch_screen(void); /* index into screens[] */
@@ -110,6 +112,8 @@ double ui_last_present_ms(int view);
  * a little late); -1 for none. Elsewhere: nothing. */
 void ui_sync_view(int view);
 bool ui_script_quiet(void);
+/* an input script is running (tests: frame-exact, so nothing may run frames on its own) */
+bool ui_scripted(void);
 /* The refresh rate (Hz) of the display a view is on; 0 if unknown. */
 double ui_display_hz(int view);
 
@@ -150,6 +154,13 @@ void ui_shader(int sh);
 uint32_t ui_color_correct(uint32_t abgr);
 /* Filled box with rounded corners (radius in pixels). */
 void ui_fill_round(int screen, SDL_Rect local, SDL_Color c, int radius);
+/* the menus' buttons: a raised key (see ui.c), in the dark or light theme */
+enum { KEY_PLAIN, KEY_SEL, KEY_LIT };
+void ui_key(int screen, SDL_Rect local, int radius, int state);
+void ui_theme(int light);
+bool ui_theme_light(void);
+SDL_Color ui_key_ink(void);          /* text and icons on a key */
+SDL_Color ui_key_mid(int state);    /* about the key's colour (for cut-outs) */
 /* Text in Jost (textfont.h: TF_BOLD for labels and headings, TF_BODY for
  * longer text), any UTF-8 string, capitals capPx tall and centred on cy.
  * align: -1 starts at x, 0 is centred on x, 1 ends at x. */

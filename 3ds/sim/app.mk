@@ -14,7 +14,7 @@ SDL_PREFIX ?= $(REPO)/deps/sdl-host
 CC ?= cc
 S := $(REPO)/src
 APP_SRC := $(addprefix $(S)/,main.c config.c font.c ui.c library.c mapper.c hotkeys.c game.c paths.c image.c brand_data.c \
-	bezel.c bezel_logo.c logo.c cheats.c esinteg.c clocks.c textfont.c fonts_data.c ra.c sha256.c patch.c mapcap.c \
+	bezel.c bezel_logo.c logo.c cheats.c folderpick.c esinteg.c clocks.c textfont.c fonts_data.c ra.c sha256.c patch.c mapcap.c \
 	profiles.c logo_masks.c) $(REPO)/3ds/emu/emu_armgba.c
 # WebP logos: libwebp's decoder, as ../../Makefile builds it
 WEBP_DIR := $(REPO)/third_party/libwebp
