@@ -1,27 +1,47 @@
+# power on -> file -> name entry (START jumps to OK) -> intro cutscene (mash A) -> the castle courtyard
+# (Juste, then the game's armoured boss at the gate; the map there is one room). Bottom screen = pause-screen map (CVH-1)
 wait 240
 mash START 4 60
 mash A 6 60
-wait 300
-mash A 4 60
-wait 600
-mash A 70 90
-wait 300
+wait 120
+press START 4
+wait 60
+shot name
+press A 4
+wait 120
 mash A 10 60
+wait 300
+shot intro
+mash A 70 60
+wait 300
+shot fadein
+mash A 40 60
 wait 120
 shot ingame
+mash A 3 60
 hold RIGHT 150
 wait 60
 shot walked
-press START 6
+hold RIGHT 400
+shot walked2
+wait 200
+shot walked3
+# the game's own map on the game screen (SELECT), then back
+press SELECT 8
 wait 120
+shot mapopen
+press SELECT 8
+wait 120
+shot mapclosed
+# pause screen and back
+press START 8
+wait 90
 shot pause
-press START 6
-wait 120
-hold RIGHT 200
-wait 120
-shot room2
+press B 8
+wait 90
+shot after-pause
 press HOME+R 6
-hold RIGHT 150
+wait 20
 press HOME+L 6
 wait 10
 shot loaded
@@ -36,10 +56,3 @@ shot swapped
 press HOME+Y 6
 wait 20
 shot back
-# added: open the game's map (SELECT, the profile's open key) in play, then shoot it
-press SELECT 10
-wait 180
-shot mapopen
-press SELECT 10
-wait 120
-shot mapclosed

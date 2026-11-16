@@ -1,3 +1,4 @@
+# power on -> file -> name -> intro -> in the castle (field). Bottom screen = pause-screen map captured on the hidden copy (CVC-1)
 wait 180
 mash START 4 40
 mash A 4 40
@@ -12,16 +13,31 @@ shot intro
 mash A 60 40
 wait 120
 shot field
-hold RIGHT 150
+wait 120
+shot field2
+hold RIGHT 200
+wait 120
 shot walk
-press START 4
+hold RIGHT 200
+wait 120
+shot walk2
+hold LEFT 300
+wait 120
+shot room
+# the game's own map on the game screen (SELECT), then back
+press SELECT 8
+wait 120
+shot map-open
+press SELECT 8
+wait 120
+shot map-closed
+# pause screen (START, shown 90 frames in) and back
+press START 8
 wait 90
 shot pause
-press B 4
-wait 60
-hold RIGHT 120
-hold LEFT 60
-shot room
+press B 8
+wait 90
+shot after-pause
 press HOME+R 6
 hold RIGHT 90
 shot moved
@@ -39,18 +55,3 @@ shot swapped
 press HOME+Y 6
 wait 20
 shot back
-# added by the 3DS check (SELECT is the profile's map key, profiles.c AAME: open = SELECT); the map never opened above
-press SELECT 4
-wait 120
-shot map
-press SELECT 4
-wait 120
-shot map-after
-# added by the 3DS check, try 2: the pause screen first, then SELECT for the map there
-press START 4
-wait 60
-press SELECT 4
-wait 150
-shot map-pause
-press B 4
-wait 60
