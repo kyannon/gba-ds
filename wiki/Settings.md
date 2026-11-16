@@ -10,12 +10,14 @@ Four files are read in order, later ones winning:
 
 Updating from the game list (Settings > Updates) keeps your `gba-ds.cfg`. Unzipping a new release by hand replaces it, so keep a copy of your changes first.
 
+In the game list's Settings > System, **Reset settings to defaults** puts every setting back to its default (folders, accounts, hotkeys and each game's own settings stay) and **Delete per-game settings** removes every game's own settings file (`states/<game>.cfg`). Both ask "Are you sure?" first.
+
 ## Game list
 
 | Option | Default | |
 |---|---|---|
 | `rom_dir` | `/storage/roms/gba` (Android: `ROMs/gba`) | Folders to list, subfolders included. Several: separate with `:`. |
-| `show_all` | `0` | `1` lists every GBA ROM, not just games with second-screen support. The others play on one screen. |
+| `show_all` | `0` | `1` lists every GBA ROM, not just games with second-screen support. The others play on one screen. The **Supported** / **All** button in the game list switches it. |
 | `name_tags` | `0` | `1` keeps tags like `(USA)` and `(En,Fr,De)` in game names. |
 | `theme` | `dark` | The look of the menus' buttons: `dark` (dark grey keys with a heavy edge) or `light` (light grey, like the web player's). The sun / moon button in the game list switches it, and Settings > Games has it. For all games (not a game's own file). |
 | `library_view` | `list` | `list` (names) or `grid` (logos). Also switched with X in the list; remembered in `library.cfg`. |
@@ -30,6 +32,7 @@ Updating from the game list (Settings > Updates) keeps your `gba-ds.cfg`. Unzipp
 | Option | Default | |
 |---|---|---|
 | `layout` | `auto` | `auto` detects the screens. On ROCKNIX's sway, GBA DS makes its window full screen across both outputs and splits it. `span-h` / `span-v`: one window over two screens side by side / stacked. `dual`: one window per display. `single`: one screen; HOME + Y (or the menu's Swap Screens) flips between game and second screen. |
+| `brightness_top`, `brightness_bottom` | `100` | How bright each screen is, `20` to `100` (steps of 10). It darkens GBA DS's picture only: it's separate from the device's own brightness, which it doesn't change or exceed. The pause menu's Screens tab sets them per game or for all games. |
 | `swap` | `0` | `1` puts the second screen first (top) and the game second. The menu's Swap Screens and its hotkey (HOME + Y) are remembered in `prefs.cfg` and win over this. |
 | `touch_screen` | `second` | `first` or `second`: the screen with the touch panel. The menu and game list are drawn there. |
 | `screen_match` | `keep` | **Experimental.** When your two screens' shapes differ (a widescreen top screen over a narrower bottom one, as on the AYN Thor): `keep` draws each screen's picture as its own screen's shape allows; `aspect` gives the wider screen's picture the other screen's shape (black bars at the sides); `size` gives it the other screen's real size too, at the edge nearest the other screen, so a picture that carries on across both (Pokémon Pinball's table) lines up. The pause menu's **Display** page has it as Keep device aspect ratios / Match screen aspect ratios / Match screen sizes and aspect ratios. Does nothing on two screens of a shape. |

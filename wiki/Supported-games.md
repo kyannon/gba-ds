@@ -18,6 +18,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Final Fantasy Tactics Advance | `AFXE` `AFXP` `AFXJ` | in battles: the Status of the unit under the cursor, or the turn order and Laws; on the world map: today's Laws | |
 | Fire Emblem (Rekka no Ken in Japan) | `AE7E` `AE7X` (English, French, German) `AE7Y` (English, Spanish, Italian) `AE7J` | on the map: the status of the unit under the cursor | |
 | Fire Emblem: The Sacred Stones (Seima no Kouseki in Japan) | `BE8E` `BE8P` `BE8J` | on the map: the status of the unit under the cursor | |
+| Fire Emblem: Fuuin no Tsurugi (The Binding Blade) | `AFEJ` (Japan only) | on the map: the status of the unit under the cursor | FE6 Localization v1.2.1 (English) |
 | Golden Sun (Ougon no Taiyou: Hirakareshi Fuuin in Japan) | `AGSE` `AGSD` `AGSF` `AGSI` `AGSS` `AGSJ` | the Status screen, each party member in turn; in battle, the one choosing | |
 | Golden Sun: The Lost Age (Ougon no Taiyou: Ushinawareshi Toki in Japan) | `AGFE` `AGFD` `AGFF` `AGFI` `AGFS` `AGFJ` | the Status screen, each party member in turn; in battle, the one choosing | |
 | GT Advance 3: Pro Concept Racing (Advance GT2 in Japan) | `A2GE` `A2GP` `A2GJ` | the race's HUD, with the course map twice as big | |
@@ -210,6 +211,16 @@ The USA, European and Japanese (Seima no Kouseki) releases, tried in the prologu
 - It works as in **Fire Emblem**: with the cursor on a unit, the second screen is that unit's **status screen**, turning through its three pages every 5 seconds; otherwise (no unit there, a unit selected, fights, the other armies' turns, story scenes, the title and menus) the game's logo.
 - Nothing leaves the game screen.
 - Not tried yet: later chapters, the world map between chapters (it shows the logo), the Tower of Valni and the creature campaign.
+
+## Fire Emblem: Fuuin no Tsurugi
+
+The Japanese game, and in English as The Binding Blade with the FE6 Localization fan translation (v1.2.1), tried from chapter 22 to chapter 23 so far.
+
+- It works as in **Fire Emblem**: with the cursor on a unit, yours or an enemy's, the second screen is that unit's **status screen**, turning through its three pages every 5 seconds; otherwise (no unit there, a unit selected, fights, the other armies' turns, story scenes, the preparations, the title and menus) the game's logo.
+- Nothing leaves the game screen.
+- The translation works as a ROM already patched, or with its `.ups` patch on the Japanese ROM (beside the ROM, or switched on in Extras → Patches); its status screens are in English.
+- The logo is made once, from whichever of the Japanese game and the translation you start first, so both then show that one's title.
+- Not tried yet: the early chapters, fog of war and the trial maps.
 
 ## Golden Sun
 

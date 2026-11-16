@@ -72,6 +72,7 @@ void config_defaults(Config* c) {
 	c->homeButton = -1;
 	c->leftStickDpad = true;
 	c->turboRate = 15;
+	c->brightTop = c->brightBottom = 100;
 	c->lcdStrength = 35;
 	strcpy(c->borderColor, "000000");
 }
@@ -241,6 +242,8 @@ static bool set_option(Config* c, const char* key, const char* val) {
 		return true;
 	}
 	INT("turbo_rate", turboRate)
+	INT("brightness_top", brightTop)
+	INT("brightness_bottom", brightBottom)
 	if (!strncmp(key, "button_", 7)) {
 		static const char* const faces[4] = { "right", "bottom", "top", "left" };
 		for (int i = 0; i < 4; ++i) {
@@ -282,7 +285,7 @@ static const char* const perGameKeys[] = {
 	"bezel_outer", "shader", "lcd_strength", "color_correction", "lcd_ghosting", "frame_buffer", "match_display", "map",
 	"map_crop", "map_animations", "map_interval", "show_logo", "custom_logos", "pinball_live", "rewind", "rewind_seconds",
 	"fast_forward", "ff_speed", "ab_swap", "show_fps", "audio_latency", "screen_match", "screen_placement",
-	"save_on_quit", "auto_load", "left_stick_dpad", "turbo_rate", "button_right", "button_bottom", "button_top", "button_left",
+	"save_on_quit", "auto_load", "left_stick_dpad", "turbo_rate", "brightness_top", "brightness_bottom", "button_right", "button_bottom", "button_top", "button_left",
 };
 
 bool config_key_per_game(const char* key) {
@@ -483,6 +486,8 @@ static const Setting settingsTable[] = {
 	{ "show_fps", "Show FPS", SF_BOOL, OFFB(showFps), ARR(chOnOff), 0, 0, 0, NULL, "Frames a second above the game, all the time." },
 
 	{ "theme", "Theme", SF_BOOL, OFFB(lightTheme), ARR(chTheme), 0, 0, 0, NULL, "The look of the menus' buttons: dark grey, or light grey like the web player's." },
+	{ "brightness_top", "Top screen brightness", SF_INT, OFFB(brightTop), NULL, 0, 20, 100, 10, "%", "Darkens the top screen, in this app only: the device's own brightness is left alone (and this can't go above it)." },
+	{ "brightness_bottom", "Bottom screen brightness", SF_INT, OFFB(brightBottom), NULL, 0, 20, 100, 10, "%", "Darkens the bottom screen, in this app only: the device's own brightness is left alone (and this can't go above it)." },
 	{ "left_stick_dpad", "Left stick as D-pad", SF_BOOL, OFFB(leftStickDpad), ARR(chOnOff), 0, 0, 0, NULL, "Off: the left stick does nothing in games." },
 	{ "ab_swap", "A and B buttons", SF_BOOL, OFFB(abSwap), ARR(chAB), 0, 0, 0, NULL, "GBA A on the right button, or on the bottom one." },
 	{ "button_right", "A (right) button", SF_STR, OFFB(faceBtn[0]), ARR(chFace), 0, 0, 0, NULL, "What the right face button gives the game." },
