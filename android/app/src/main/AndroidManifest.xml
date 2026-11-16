@@ -62,7 +62,16 @@
             android:launchMode="singleTask"
             android:taskAffinity="io.github.kyannon.gbads.game"
             android:alwaysRetainTaskState="true"
-            android:screenOrientation="landscape"
+            android:preferMinimalPostProcessing="true"
+            android:configChanges="layoutDirection|locale|orientation|uiMode|screenLayout|screenSize|smallestScreenSize|keyboard|keyboardHidden|navigation|density" />
+
+        <!-- The same game in the launcher's own task, on devices with one
+             display (phones, Surface Duo: a new task opens on one screen
+             there, so a spanned app lost its span; issue #48) -->
+        <activity
+            android:name=".GbaDsHereActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
             android:preferMinimalPostProcessing="true"
             android:configChanges="layoutDirection|locale|orientation|uiMode|screenLayout|screenSize|smallestScreenSize|keyboard|keyboardHidden|navigation|density" />
     </application>

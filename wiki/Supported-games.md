@@ -4,6 +4,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 |---|---|---|---|
 | Advance Wars (Game Boy Wars Advance in Japan) | `AWRE` `AWRP` `BGWJ` (Japan: on Game Boy Wars Advance 1+2, with Advance Wars 2) | in battles: the intel of the unit under the cursor, or the battle intel | |
 | Advance Wars 2: Black Hole Rising (Game Boy Wars Advance 2 in Japan) | `AW2E` `AW2P` `BGWJ` (Japan: on Game Boy Wars Advance 1+2, with Advance Wars) | in battles: the intel of the unit under the cursor, or the battle intel | |
+| Baldur's Gate: Dark Alliance | `BGDE` `BGDP` | the area's map (made from the game's own screens), a red X where you are | |
 | Castlevania: Aria of Sorrow | `A2CE` `A2CP` `A2CJ` | map | JonataGuitar's Recolor v1.02 and Symphony of the Colors (USA) |
 | Castlevania: Circle of the Moon | `AAME` `AAMP` `AAMJ` | map, with the completion rate | |
 | Castlevania: Harmony of Dissonance | `ACHE` `ACHP` `ACHJ` | map | Recolor by JonataGuitar and sorrow (USA) |
@@ -17,6 +18,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Final Fantasy Tactics Advance | `AFXE` `AFXP` `AFXJ` | in battles: the Status of the unit under the cursor, or the turn order and Laws; on the world map: today's Laws | |
 | Fire Emblem (Rekka no Ken in Japan) | `AE7E` `AE7X` (English, French, German) `AE7Y` (English, Spanish, Italian) `AE7J` | on the map: the status of the unit under the cursor | |
 | Fire Emblem: The Sacred Stones (Seima no Kouseki in Japan) | `BE8E` `BE8P` `BE8J` | on the map: the status of the unit under the cursor | |
+| Fire Emblem: Fuuin no Tsurugi (The Binding Blade) | `AFEJ` (Japan only) | on the map: the status of the unit under the cursor | FE6 Localization v1.2.1 (English) |
 | Golden Sun (Ougon no Taiyou: Hirakareshi Fuuin in Japan) | `AGSE` `AGSD` `AGSF` `AGSI` `AGSS` `AGSJ` | the Status screen, each party member in turn; in battle, the one choosing | |
 | Golden Sun: The Lost Age (Ougon no Taiyou: Ushinawareshi Toki in Japan) | `AGFE` `AGFD` `AGFF` `AGFI` `AGFS` `AGFJ` | the Status screen, each party member in turn; in battle, the one choosing | |
 | GT Advance 3: Pro Concept Racing (Advance GT2 in Japan) | `A2GE` `A2GP` `A2GJ` | the race's HUD, with the course map twice as big | |
@@ -27,13 +29,15 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | The Legend of Zelda: A Link to the Past & Four Swords | `AZLE` `AZLP` `AZLJ` | world and dungeon maps | Voice removal (USA, Europe) |
 | Mario Kart: Super Circuit (Mario Kart Advance in Japan) | `AMKE` `AMKP` `AMKJ` | the race HUD, results and podium | Better colors (USA, Europe) |
 | Mario & Luigi: Superstar Saga (Mario & Luigi RPG in Japan) | `A88E` `A88P` `A88J` | Bros. Info of the brother you're controlling; in battles, the boxes and meters | [Superstar Saga+](#mario--luigi-superstar-saga) v1.5 (100%; its 80% and 60% versions untested) |
+| Mario vs. Donkey Kong | `BM5E` `BM5P` `BM5J` | in levels: the HUD (lives, score, presents or TOY blocks, Mini-Marios, Donkey Kong's hits, time), and the level with its high score | |
 | Mega Man Battle Network (Battle Network Rockman EXE in Japan) | `AREE` `AREP` `AREJ` | MegaMan's status (level, HP, armor, buster) with your money, in battles too; on the net, a map of the area | |
+| Mega Man Battle Network 2 (Battle Network Rockman EXE 2 in Japan) | `AE2E` `AM2P` `AE2J` | MegaMan's status (level, HP, style, buster) with your money, in battles too; on the net, a map of the area | |
 | Metroid Fusion | `AMTE` `AMTP` `AMTJ` | map | Color improvement (USA) |
 | Metroid: Zero Mission | `BMXE` `BMXP` `BMXJ` | map | Color improvement v1 and v2 (USA) |
 | MOTHER 3 | `A3UJ` (Japan only) | walking about: the area map where R opens one, else the Status screen, each party member in turn | Translations into English (v1.3, v1.3a), Brazilian Portuguese, Italian, German, Simplified Chinese, Polish, French, Catalan (v1.0, v1.0.2) and Dutch; MusicTheorist's HQ audio mix (Japanese and English) |
 | Muppet Pinball Mayhem | `AMWE` `AMWP` (no Japanese release) | the table twice as tall over both screens, live, with the score bar | |
 | Ninja Five-O (Ninja Cop in Europe) | `ANXE` `ANXP` (no Japanese release) | in stages: the HUD (bars, score or time, the boss's bar, the shuriken's level, keys and hostages) | |
-| Pokémon Pinball: Ruby & Sapphire | `BPPE` | the table twice as tall over both screens, live, with the score bar | |
+| Pokémon Pinball: Ruby & Sapphire | `BPPE` `BPPP` `BPPJ` (Japan: the original and Rev 1) | the table twice as tall over both screens, live, with the score bar | |
 | River City Ransom EX (Downtown Nekketsu Monogatari EX in Japan) | `BDTE` `BDTJ` (no European release) | the Status screen, with the top bar moved off the game screen | |
 | Sonic Advance | `ASOE` `ASOP` `ASOJ` | the zone card, with the rings, score, time and lives | |
 | Sonic Advance 2 | `A2NE` `A2NP` `A2NJ` | the zone card, with the rings, score, time and lives | |
@@ -84,6 +88,14 @@ The USA and European releases of both, and in Japan Game Boy Wars Advance 1+2, w
 - **In a fight,** on the title and menus, and on a battle's results pages, the second screen shows the game's logo.
 - **Known issue (won't fix):** in Advance Wars' **Field Training** missions the second screen keeps the logo: the tutorial blocks the menus it's built from (SELECT and START). It works fully in Campaign and Versus.
 - **Game Boy Wars Advance 1+2** (Japan): GBA DS notices which of the two games you pick from the cartridge's menu and sets the second screen up as for that game (Game Boy Wars Advance as Advance Wars, Game Boy Wars Advance 2 as Advance Wars 2). On the cartridge's own title and menu, and on both games' titles, the second screen shows the cartridge's logo. Both games have been tried in battles (Game Boy Wars Advance's unit intel and the computer's turn too); Game Boy Wars Advance 2's computer's turn hasn't been seen yet.
+
+## Baldur's Gate: Dark Alliance
+
+The USA and European releases.
+
+The game has no map, so GBA DS makes one. Each time you arrive in an area, a copy of the game, running silently beside yours, looks over the whole area a screen at a time; the second screen then shows the area's floors, walls and furniture at a quarter of their size, following you and stopping at the area's edges, with a red X where you are: the one the game puts on an unusable quick slot. Rooms you haven't reached yet are on it too. Enemies, barrels and pots aren't. The logo shows on the title, while the map is being made, and at GAME OVER.
+
+Known issues: making a big area's map takes up to about 2 seconds on the RG DS Plus, and the game pauses for that moment as you arrive; doors you open aren't shown open until you come back to the area. Eldrith's Watch, the last boss's arena, is shown on the game's blue background colour, as the scenery behind it isn't part of the map.
 
 ## Castlevania: Aria of Sorrow, Harmony of Dissonance, Circle of the Moon
 
@@ -200,6 +212,16 @@ The USA, European and Japanese (Seima no Kouseki) releases, tried in the prologu
 - Nothing leaves the game screen.
 - Not tried yet: later chapters, the world map between chapters (it shows the logo), the Tower of Valni and the creature campaign.
 
+## Fire Emblem: Fuuin no Tsurugi
+
+The Japanese game, and in English as The Binding Blade with the FE6 Localization fan translation (v1.2.1), tried from chapter 22 to chapter 23 so far.
+
+- It works as in **Fire Emblem**: with the cursor on a unit, yours or an enemy's, the second screen is that unit's **status screen**, turning through its three pages every 5 seconds; otherwise (no unit there, a unit selected, fights, the other armies' turns, story scenes, the preparations, the title and menus) the game's logo.
+- Nothing leaves the game screen.
+- The translation works as a ROM already patched, or with its `.ups` patch on the Japanese ROM (beside the ROM, or switched on in Extras → Patches); its status screens are in English.
+- The logo is made once, from whichever of the Japanese game and the translation you start first, so both then show that one's title.
+- Not tried yet: the early chapters, fog of war and the trial maps.
+
 ## Golden Sun
 
 Every release has been tried walking about (USA / Europe, German, French, Italian, Spanish, Japanese), and battles in the USA / Europe and German ones; if a battle in another release doesn't work, its second screen keeps the logo.
@@ -303,6 +325,20 @@ The USA, European and Japanese (Mario & Luigi RPG) releases.
 - Not tried yet: the European and Japanese releases beyond the Koopa Cruiser (walking about and its battles were tried in both).
 - **Superstar Saga+** (the romhack, v1.5, its 100% patch for the USA release; its 80% and 60% versions haven't been tried) works the same, with the mod's own names and numbers on Bros. Info and in the battle boxes (its items, its attacks' BP). Don't load a save state made on the unchanged game into the mod, or the other way round: a conversation in progress comes out garbled. Battery saves are fine.
 
+## Mario vs. Donkey Kong
+
+The USA, European and Japanese releases.
+
+The game has no status screen of its own, so in a level its HUD is moved off the game screen rather than copied: the game screen shows the whole level, so a switch, a ladder or a ledge at the top is never hidden.
+
+- **In a level** (both parts of each level, the Mini-Mario levels, the Donkey Kong fights, the Plus worlds and the last fights): the second screen has the **HUD** along its top as the game draws it: Mario's **lives**, the **score** with the **presents** found under it (the **T, O and Y blocks** in a Mini-Mario level), the **time**, and in the fights and Mini-Mario levels the **Mini-Marios** and Donkey Kong's **hits** left.
+- In the middle of the second screen is the pause box's **LEVEL** and **HI SCORE** lines: which level you're on and the score to beat for its star. It's opened in the background on a silent copy of the game as each level starts; your game is never paused. CONTINUE, RETRY and EXIT LEVEL are left out, and so is the star the game spins beside LEVEL.
+- As a level starts (the camera's pan and HERE WE GO!) the second screen shows the logo, then the HUD as soon as the game puts it up.
+- **Paused** (START), at a **help sign** and as you lose a life, the second screen stays as it was. In the **level viewer** (L+R) the HUD stays on the second screen and the arrows on the game screen.
+- Everywhere else (the opening and other films, the title, the menus, the level select, the how-to demo before a level, results, the bonus games) the second screen shows the logo.
+
+Known issues: the Expert and e-Reader levels haven't been tried yet, nor Europe in a language other than English. The Plus worlds' last fight can't be paused for its first few seconds, so the LEVEL box comes a few seconds after the HUD there.
+
 ## Mega Man Battle Network
 
 The USA, European and Japanese (Battle Network Rockman EXE) releases.
@@ -314,6 +350,16 @@ On the net, the second screen shows a map of the area you're in, at a third of t
 Battles play on the game screen as the game draws them: the field, the custom screen with its chips and cursor, the tutorials' messages and arrows, and the results. The second screen shows MegaMan's status and money as they were when the battle began (his HP there is the one he went in with; his HP in the battle is on the game screen), taken again as the battle ends. In conversations, scenes, the PET's menus and shops it keeps the last picture; at the title and on the game over screen, the logo.
 
 Known issues: the later tutorial battles, boss battles and link-cable net battles haven't been tried.
+
+## Mega Man Battle Network 2
+
+The USA, European and Japanese (Battle Network Rockman EXE 2) releases, and the USA's Wii U Virtual Console release, as Mega Man Battle Network.
+
+Walking about in the real world, the second screen shows the PET's MegaMan screen with your money above it, kept up to date about once a second (and at once when your HP, money or area changes): MegaMan's level, his HP, his style once he has one (with its V2 or V3) and his buster's Attack, Rapid and Charge, with the money from the PET's menu. They're put together in one frame edged with the money box's own orange border; the MegaMan screen's question box and cursor are left out, and lights the game flashes while you have a PowerUP to use are shown steady.
+
+On the net, the second screen shows a map of the area you're in, at a third of the game's size, centred on MegaMan and following him, stopping at the area's edges; his head, facing you, marks where he is. Navis, viruses, Mystery Data and the net's sky aren't on it; on a homepage, its patterned floor is part of the sky, so only the floor's outline is. Battles play on the game screen as the game draws them; the second screen shows MegaMan's status and money as they were when the battle began. In conversations, scenes, the PET's menus and shops it keeps the last picture; at the title and on the game over screen, the logo.
+
+Known issues: boss battles, Hard mode and link-cable net battles haven't been tried. On the Japanese release's logo, a few pixels of the title's grid stay above ロ.
 
 ## Metroid: Zero Mission and Metroid Fusion
 
@@ -365,7 +411,7 @@ Known issues: the end of a stage (the red door), a boss's defeat, a mission's en
 
 ## Pokémon Pinball: Ruby & Sapphire
 
-The USA release.
+The USA, European and Japanese releases (the Japanese one's Rev 1 too), all the same. A hacked copy whose code differs plays on one screen, with the logo on the other.
 
 - **On a table,** the two screens together show twice as much of it, **live**, as if they were one tall screen: GBA DS runs two more copies of the game alongside yours, drawing the parts of the table your game's view doesn't, so the flippers, the Pokémon and everything else move on both screens. Your game itself is never changed.
 - The view scrolls smoothly with the ball and never jumps. While the ball is in the table's upper part, your game is on the top screen with the next part of the table below it. Further down, the two screens show the whole lower table, and the ball is on the bottom screen only when it's down by the flippers.

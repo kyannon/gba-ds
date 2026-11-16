@@ -20,7 +20,7 @@ Modelled on Super Mario Advance 2 and 4 ([SMA rules](super-mario-advance-2.md), 
 
 **SMB2-2. What stays in a level.** The pause box (START: PAUSE, the Ace Coin percentage, Continue, Save and Continue, Save and Quit, Try Again), drawn on the status bar's layer below it, stays on the game screen; the status bar stays on the second screen while it's open.
 
-**SMB2-3. Through doors, jars and Subspace.** The status bar stays on the second screen through doors, jars, Subspace, rocket rides and boss rooms (the game keeps it on the same layer everywhere in a level), and through the dark moment between rooms, when the game blanks its screen: the last picture stays then rather than the logo flashing up. *By hand: the tests have no state in a door, jar, Subspace or boss room yet (see "Not covered yet"); check on the device.*
+**SMB2-3. Through doors, jars and Subspace.** The status bar stays on the second screen through doors, jars, Subspace, rocket rides and boss rooms (the game keeps it on the same layer everywhere in a level), and through the dark moment between rooms, when the game blanks its screen: the last picture stays then rather than the logo flashing up. *By hand: the tests have no state in a door, jar, Subspace or boss room yet (see "Not covered yet"); check on the device. (checked on the device for v1.5.1)*
 
 **SMB2-4. Between levels: the logo.** The character select (CHOOSE A PLAYER), the course board (the 20 levels with their Ace Coins, shown before each level), the level card (WORLD 1-1 and its picture), the Bonus Chance slot machine and the game over screen are the game's whole picture on the game screen; the second screen shows the logo at half strength (nothing live to show, GEN-1).
 

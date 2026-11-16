@@ -1,20 +1,25 @@
 Settings live in **`gba-ds.cfg`**: `/storage/roms/ports/gba-ds/gba-ds.cfg` on ROCKNIX (commented, with the main options; the rest are below), `GBA DS/gba-ds.cfg` on Android (create it, with just the lines you want to change). Lines are `key = value`; lines starting with `#` are ignored. Every option can also be given on the command line with dashes for underscores, e.g. `launch.sh --map-interval=60 --swap`.
 
+Most of these can also be changed in the app: **Settings** in the game list (all games), kept in `states/prefs.cfg`. A game can have settings of its own too: lines in `states/<game>.cfg` (the ROM's file name without its extension, `Golden Sun (USA).cfg`), put over the others while that game runs. They can hold the options that make sense for one game: `swap`, `scale`, `map_scale`, `smooth`, `shader`, `lcd_strength`, `color_correction`, `lcd_ghosting`, `overlays`, `overlay_screens`, `bezel_logo`, `bezel_inner`, `bezel_outer`, `border_color`, `frame_buffer`, `match_display`, `screen_match`, `screen_placement`, `map`, `map_crop`, `map_animations`, `map_interval`, `show_logo`, `custom_logos`, `pinball_live`, `rewind`, `rewind_seconds`, `fast_forward`, `ff_speed`, `ab_swap`, `show_fps`, `audio_latency`, `save_on_quit`, `auto_load`, `left_stick_dpad`, `turbo_rate` and `button_right`, `button_bottom`, `button_top`, `button_left`. Folders, accounts, updates and the like are for all games, and are ignored there. An option given on the command line wins over it.
+
 Four files are read in order, later ones winning:
 1. `gba-ds.cfg`;
-2. `states/prefs.cfg`: what you chose in the pause menu (screens swapped, scaling, shader, color correction, LCD ghosting, overlays and the bezel, frame buffer, match display rate, screen shapes, rewind, fast forward, save on quit, auto-load, the quick bar's pin). GBA DS rewrites this file; to change those settings, use the menu, or delete the line from `prefs.cfg`.
+2. `states/prefs.cfg`: what you chose in the pause menu (screens swapped, scaling, shader, color correction, LCD ghosting, overlays and the bezel, frame buffer, match display rate, screen shapes, screen placement, rewind, fast forward and its speed, save on quit, auto-load, the quick bar's pin) and the game list's Settings > Performance. GBA DS rewrites this file; to change those settings, use the menu, or delete the line from `prefs.cfg`.
 3. `states/library.cfg`: the game list's view (list or grid) and, on Android, the ROM folder, the save folder and the saves' type (Settings > Folders);
 4. `states/hotkeys.cfg`: what you chose in Settings > Hotkeys.
 
 Updating from the game list (Settings > Updates) keeps your `gba-ds.cfg`. Unzipping a new release by hand replaces it, so keep a copy of your changes first.
+
+In the game list's Settings > System, **Reset settings to defaults** puts every setting back to its default (folders, accounts, hotkeys and each game's own settings stay) and **Delete per-game settings** removes every game's own settings file (`states/<game>.cfg`). Both ask "Are you sure?" first.
 
 ## Game list
 
 | Option | Default | |
 |---|---|---|
 | `rom_dir` | `/storage/roms/gba` (Android: `ROMs/gba`) | Folders to list, subfolders included. Several: separate with `:`. |
-| `show_all` | `0` | `1` lists every GBA ROM, not just games with second-screen support. The others play on one screen. |
+| `show_all` | `0` | `1` lists every GBA ROM, not just games with second-screen support. The others play on one screen. The **Supported** / **All** button in the game list switches it. |
 | `name_tags` | `0` | `1` keeps tags like `(USA)` and `(En,Fr,De)` in game names. |
+| `theme` | `dark` | The look of the menus' buttons: `dark` (dark grey keys with a heavy edge) or `light` (light grey, like the web player's). The sun / moon button in the game list switches it, and Settings > Games has it. For all games (not a game's own file). |
 | `library_view` | `list` | `list` (names) or `grid` (logos). Also switched with X in the list; remembered in `library.cfg`. |
 | `save_on_quit` | `1` | Save a state (a resume point) when you leave a game. Also in the pause menu. |
 | `quick_bar_hint` | `1` | At a game's start, "Swipe up for quick menu" at the bottom of the touchscreen for 3 seconds (or until you touch it); `0` turns it off. |
@@ -27,9 +32,11 @@ Updating from the game list (Settings > Updates) keeps your `gba-ds.cfg`. Unzipp
 | Option | Default | |
 |---|---|---|
 | `layout` | `auto` | `auto` detects the screens. On ROCKNIX's sway, GBA DS makes its window full screen across both outputs and splits it. `span-h` / `span-v`: one window over two screens side by side / stacked. `dual`: one window per display. `single`: one screen; HOME + Y (or the menu's Swap Screens) flips between game and second screen. |
+| `brightness_top`, `brightness_bottom` | `100` | How bright each screen is, `20` to `100` (steps of 10). It darkens GBA DS's picture only: it's separate from the device's own brightness, which it doesn't change or exceed. The pause menu's Screens tab sets them per game or for all games. |
 | `swap` | `0` | `1` puts the second screen first (top) and the game second. The menu's Swap Screens and its hotkey (HOME + Y) are remembered in `prefs.cfg` and win over this. |
 | `touch_screen` | `second` | `first` or `second`: the screen with the touch panel. The menu and game list are drawn there. |
 | `screen_match` | `keep` | **Experimental.** When your two screens' shapes differ (a widescreen top screen over a narrower bottom one, as on the AYN Thor): `keep` draws each screen's picture as its own screen's shape allows; `aspect` gives the wider screen's picture the other screen's shape (black bars at the sides); `size` gives it the other screen's real size too, at the edge nearest the other screen, so a picture that carries on across both (Pokémon Pinball's table) lines up. The pause menu's **Display** page has it as Keep device aspect ratios / Match screen aspect ratios / Match screen sizes and aspect ratios. Does nothing on two screens of a shape. |
+| `screen_placement` | `center` | With two screens: `center` puts each screen's picture in the middle of its screen; `no_gap` puts the top screen's picture against its bottom edge and the bottom screen's against its top, as close together as they go. Only moves pictures that don't fill the screen's height (Pixel Perfect, Full Width). The pause menu's **Display** page has it as **Screen Placement**. |
 | `screen_ppi` | (unset) | `top,bottom`, e.g. `367,419`: your screens' pixels per inch, for `screen_match = size`. GBA DS knows them for the AYN Thor, Retroid Pocket Duo and Duo Lite, AYANEO Pocket DS and Anbernic RG DDS (recognised by their screens' resolutions; the Duo and Duo Lite by the nearer of the two to what Android reports); on other devices it uses what the system reports. Set this if the size match comes out wrong on yours. |
 | `top_screen` | `auto` | Android only: which display is the top screen. `auto`: the larger one when they differ in size (the AYN Thor's 1920x1080 screen), else the second display (the RG DS). `app`: the display GBA DS opens on. `second`: the other one. Set it if the game and the second screen come up the wrong way round, or Pokémon Pinball's table is upside down. |
 | `sway` | `1` | On ROCKNIX, ask the sway compositor to make the window full screen across both outputs. `0` leaves the window as it is. |
@@ -53,7 +60,7 @@ Updating from the game list (Settings > Updates) keeps your `gba-ds.cfg`. Unzipp
 | `bezel_outer` | `102060` | The generated bezel's colour outside that (RRGGBB). |
 | `border_color` | `000000` | Colour behind the map image where nothing else is drawn (RRGGBB). |
 | `show_fps` | `0` | Frames per second and % of full speed above the game, all the time. The quick bar (HOME + X) shows the frames per second whenever it's up. |
-| `match_display` | `0` | **Match Display Rate**: run the game at the display's refresh rate instead of the GBA's 59.73 frames a second, when the two are within 1.5% (a 60 Hz screen: 0.46% faster, sound resampled to match, which you can't hear), and present each frame in step with the display. The GBA's own rate on a 60 Hz screen shows one frame twice about every 3.7 seconds, a small regular stutter; matched, every frame gets exactly one refresh. Also in the pause menu. |
+| `match_display` | `0` | **Match Display Rate**: run the game at the display's refresh rate instead of the GBA's 59.73 frames a second, when the two are within 1.5% (a 60 Hz screen: 0.46% faster, sound resampled to match, which you can't hear), and present each frame in step with the display. The GBA's own rate on a 60 Hz screen shows one frame twice about every 3.7 seconds, a small regular stutter; matched, every frame gets exactly one refresh. A game that can't keep up (frames late for their refresh three seconds in a row) goes back to the GBA's rate until it's started again or the setting is turned on again (the menu says "Off for now"). Also in the pause menu. |
 | `rewind` | `1` | Keep a rewind buffer: hold **L2** to go back in time. Also in the pause menu (Extras). |
 | `rewind_seconds` | `30` | How far back rewind goes (5-300). The buffer holds the differences between states, about 1 MB a second. |
 | `frame_buffer` | `0` | Prepare the next frame while the current one is shown: smoother, one frame (about 17 ms) more input delay. Also in the pause menu. Always on in the pinball games' two-screen tables (Pokémon Pinball, Sonic Pinball Party, Muppet Pinball Mayhem), which need it for full speed. |
@@ -66,7 +73,7 @@ Updating from the game list (Settings > Updates) keeps your `gba-ds.cfg`. Unzipp
 | `map_interval` | `60` | Frames (60 a second) between map refreshes: 60 is every second. The map also refreshes right after every room transition. Each refresh runs the hidden copy of the game for a moment on another CPU core, so on a slower device very short intervals can make the sound crackle (the log reports it). |
 | `map_crop` | `1` | The Metroid map screens, tidied (labels erased, prompts and minimap removed; see [[Supported games]]), and Lady Sia's pause screen without its menu lines. `0` shows them exactly as the games draw them. |
 | `show_logo` | `1` | The game's logo on the second screen when there's nothing else to show (title screens, menus, before the first map). `0` keeps it blank. |
-| `logo_folder` | empty | A folder of scraped logos (EmulationStation's marquees, Skraper's wheels), found by the ROM's file name whatever the details in brackets (`Golden Sun.png`, `Golden Sun (USA)-marquee.jpg`...), PNG or JPG. Used instead of the logo GBA DS takes from the game, at its height. See [Playing](Playing#logos). |
+| `logo_folder` | empty | A folder of scraped logos (EmulationStation's marquees, Skraper's wheels), found by the ROM's file name whatever the details in brackets (`Golden Sun.png`, `Golden Sun (USA)-marquee.jpg`...), PNG, JPG or WebP. Used instead of the logo GBA DS takes from the game, at its height. See [Playing](Playing#logos). |
 | `custom_logos` | `pixelated` | Your own and scraped logos: `pixelated` shrinks them to the GBA's pixels, drawn like the game's own; `full` keeps their detail, at the same size; `off` doesn't use them (the logo GBA DS takes from the game instead). Also in the pause menu (Display > Custom Logos). |
 | `map_animations` | `1` | Blinking map markers. `0` shows one still frame, with every marker that blinks showing. A Link to the Past's map is always still that way. |
 | `pinball_live` | `1` | Pokémon Pinball, Sonic Pinball Party and Muppet Pinball Mayhem: two more copies of the game draw the rest of the table live on both screens. `0` turns them off (for slower devices): the game plays on one screen, with the logo on the other. |
@@ -79,7 +86,10 @@ What `map_crop` changes in the Metroid map screens:
 
 | Option | Default | |
 |---|---|---|
-| `ab_swap` | `0` | GBA A is the right face button and GBA B the bottom one, like a GBA. `1` flips them. A game's own choices in the pause menu (Extras > Buttons, see [Playing](Playing#changing-the-face-buttons-for-a-game)) replace this for that game. |
+| `left_stick_dpad` | `1` | `0`: the left stick does nothing in games (it still moves around the menus). Settings > Controls. |
+| `button_right`, `button_bottom`, `button_top`, `button_left` | by `ab_swap` | What each face button gives the game: `a`, `b`, `l`, `r`, `start`, `select`, `turbo_a`, `turbo_b` or `none`. By default the right and bottom ones are GBA A and B, the top and left ones nothing. A game's own choices in the pause menu (Controls tab) replace them for that game. Settings > Controls. |
+| `turbo_rate` | `15` | How many times a second Turbo A and Turbo B press: `10`, `15` or `20`. |
+| `ab_swap` | `0` | GBA A is the right face button and GBA B the bottom one, like a GBA. `1` flips them. A game's own choices in the pause menu (Controls tab, see [Playing](Playing#changing-the-face-buttons-for-a-game)) replace this for that game. |
 | `hotkey` | `home` | The hotkey button, held with another button for a shortcut (see [[Playing#hotkeys]]): `home`, `select`, `start` or `l3`. SELECT or START as the hotkey still reach the game when tapped on their own, and L3 tapped on its own still opens the quick bar. HOME always opens the menu. (`guide` and `back`, the names before v1.5, still work.) |
 | `hotkey_quit` | `start` | The button held with the hotkey to quit GBA DS (`select` when the hotkey is START). Each shortcut takes one of `a`, `b`, `x`, `y`, `l`, `r`, `l2`, `r2`, `select`, `start`, `l3`, `up`, `down`, `left`, `right`, or `none` to turn it off. |
 | `hotkey_save_state` | `r` | Hotkey + this button saves the quick state (the quick bar's, not the resume point or the menu's slots). |
@@ -90,17 +100,20 @@ What `map_crop` changes in the Metroid map screens:
 | `home_button` | `-1` | If HOME does nothing: launch once with `GBADS_DEBUG=1` (see [[Troubleshooting]]), press HOME, and put the "raw joystick ... button N" number from `gba-ds.log` here. |
 | `menu_combo` | `none` (Android: `select+start`) | `select+start`: SELECT and START pressed together also open the menu. The game doesn't see the pair; either button alone still reaches the game. |
 | `fast_forward` | `1` | Hold **R2** to fast-forward. `0`: R2 does nothing. Also in the pause menu (Extras). |
-| `ff_speed` | `3` | Fast-forward speed (hold R2). |
+| `ff_speed` | `3` | Fast-forward speed (hold R2): how many times as fast, or `max` for as fast as the device can. Fast Forward in the pause menu goes through 2 to 5 and Max. |
 
 ## Files and folders
 
 | Option | Default | |
 |---|---|---|
-| `save_dir` | empty | Battery saves (`.sav`). Empty: next to the ROM. An existing RetroArch `.srm` is copied to `.sav` the first time you play a game, and so is a save next to the ROM when this is another folder. Android: Settings > Folders. |
+| `save_dir` | empty | Battery saves (`.sav`). Empty: next to the ROM. Any other folder is made if it isn't there, so you can keep saves where you sync them to other devices (for example `/storage/roms/saves/gba`, with `save_ext = srm` if those devices run RetroArch). An existing RetroArch `.srm` is copied to `.sav` the first time you play a game, and so is a save next to the ROM when this is another folder (the one next to the ROM is left there). Android: Settings > Folders. |
 | `save_ext` | `sav` | The battery saves' extension: `sav`, or `srm` to use RetroArch's own save files in `save_dir` (BananaOS: `srm` in `/data/saves/gba`, set by GBA DS's launcher). An existing save in the other form is copied the first time you play a game. |
 | `save_from` | empty | A folder where GBA DS kept its `.sav` saves before (BananaOS: `/data/saves`). A game's save there is carried over the first time you start it, or when it's newer than the one in `save_dir` (that one kept as `.bak`). |
 | `data_dir` | empty | GBA DS's own folder for its files: `states/`, `cheats/`, `overlays/`, `logos/`, `patches/`, `bug-reports/`. Empty: the app's folder (`gba-ds/`). Set it in a file of its own, `data-folder.cfg` beside `gba-ds.cfg` (one line, for example `data_dir = /storage/roms/gba-ds-data`; the folder it goes in must already exist, and GBA DS makes the last folder itself), which updates and unzipping a new version leave alone. GBA DS moves its files there the next time it starts, and back if you take the line out. If the folder's card isn't in, GBA DS says so in the game list and uses the app's folder for that run. Android: Settings > Folders > Choose GBA DS folder. |
 | `state_dir` | empty | Save states, resume points, menu settings and extracted art. Empty: `states` in the data folder (`gba-ds/states`). |
+| `state_folder` | `gbads` | `retroarch` shares the pause menu's slots and the resume point with RetroArch (see [[Playing#save-states-shared-with-retroarch]]). Set by Settings > Save States in the game list (kept in `library.cfg`). Linux only. |
+| `retroarch_state_dir` | empty | RetroArch's state folder, for when GBA DS doesn't find it from RetroArch's settings. Empty: worked out from `retroarch.cfg`. Set by Settings > RetroArch's Folder in the game list (kept in `library.cfg`). |
+| `retroarch_cfg` | empty | RetroArch's settings file. Empty: ROCKNIX's, BananaOS's, or `~/.config/retroarch/retroarch.cfg`. |
 | `screenshot_dir` | `/storage/roms/screenshots` | Where Take Screenshot saves its PNGs. |
 | `cheat_dir` | RetroArch's cheat folders | RetroArch's `.cht` folders, searched two levels deep, `:`-separated. GBA DS's own `cheats` folder (`gba-ds/cheats`) is always searched first. |
 | `asset_dir` | empty | The folder holding your `logos/`, `overlays/` and `patches/`. Empty: the data folder (`data_dir`). |
@@ -119,6 +132,10 @@ What `map_crop` changes in the Metroid map screens:
 | Option | Default | |
 |---|---|---|
 | `audio_latency` | `64` | Sound buffer in milliseconds. Raise it if the sound crackles; lower is snappier. |
+| `keep_sound` | `1` | If the system holds the screen up for a moment (on some setups the display pauses for half a second every few seconds), the game and its sound carry on and the picture catches up. `0`: the game waits for the screen, and the sound breaks up while it does. |
+| `performance` | `system` | Linux (not BananaOS, which sets its own): **Performance** in the game list's Settings. `system` (**Let the System Decide**) leaves the CPU, memory and graphics speed to the system, as for its other emulators. `max` (**Set to Max**) holds them at full speed while GBA DS is open and puts them back when it closes: smoother on devices where games stutter or the sound breaks up, but the battery runs down faster and the device gets warmer. Kept in `states/prefs.cfg`. (`cpu_performance`, from v1.5.3, is no longer used.) |
+| `watch_system` | `1` | ROCKNIX only: while GBA DS runs, `gba-ds.log` also gets kernel messages, system services' messages and the screens' events (at most 200 lines of each), timed like GBA DS's own notes on pauses, for reports of stutters. `0` leaves them out. |
+| `pause_services` | `1` | ROCKNIX only: background services that get in GBA DS's way are stopped while it runs and started again when it closes. That's add-ons (installed under `/storage`) that keep crashing and restarting, and ones known to fight over the second screen (RetroDualStation's control center, which held the screen up every few seconds on one player's device). ROCKNIX's own services are never stopped. `gba-ds.log` lists what was stopped and anything else that looked in the way. `0`: only logged. |
 
 ## Android only
 

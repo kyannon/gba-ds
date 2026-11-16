@@ -81,6 +81,8 @@ What this means in practice:
   - a game's own window rearranged where there's no other way to show all of what it holds on one GBA screen, as the game would let the player see it by scrolling: its list split into columns, its heading bar or frame made wider from its own end and middle pieces, its own transparency kept over the background it sits on (Final Fantasy Tactics Advance's turn order in two columns, with the Laws below);
   - Final Fantasy Tactics Advance's Laws on the world map, on the Status screen's checkerboard, so they look as they do in a battle;
   - Mega Man Battle Network's status screen and money counter, from two of the PET's screens, in one frame edged with the counter's own orange border;
-  - Mega Man Battle Network's maps of the net, which the game doesn't have, drawn from each area's own layout in the game's own tiles, with MegaMan's head marking where he is.
+  - Mega Man Battle Network's maps of the net, which the game doesn't have, drawn from each area's own layout in the game's own tiles, with MegaMan's head marking where he is;
+  - Mega Man Battle Network 2's status screen and money, and its maps of the net, as the first game's (the money box's HP line left out, the status below showing it);
+  - Baldur's Gate: Dark Alliance's maps, made from the game's own screens by a copy of the game, and the red X from its quick slots marking where you are.
 - **Optional where it can be.** Where an exception changes how the game plays or looks, there's a way back to the original: GBA is the default control layout, and `pinball_live = 0` turns off the pinball games' tall view.
 - **Scope is a feature.** Every change has to be built, tested on the real device and maintained by one person. A smaller, solid feature beats a bigger, fragile one, and that's often the honest answer to a feature request: not "never", but "not at the cost of everything else working".

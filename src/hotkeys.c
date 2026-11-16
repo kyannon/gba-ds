@@ -97,8 +97,7 @@ static void draw(int scr, const View_* v) {
 	for (int i = 0; i < N_ROWS; ++i) {
 		SDL_Rect b = row_rect(scr, i);
 		bool on = i == v->sel;
-		if (on) ui_fill_round(scr, (SDL_Rect) { b.x - px, b.y - px, b.w + px * 2, b.h + px * 2 }, C_EDGE, px * 4);
-		ui_fill_round(scr, b, on ? C_SEL : C_ROW, px * 3);
+		ui_key(scr, b, px * 3, on ? KEY_SEL : KEY_PLAIN);
 		if (i >= R_RESET) {
 			ui_label(scr, b.x + b.w / 2, b.y + b.h / 2, px * 5, i == R_DONE ? "Done" : "Reset", C_TEXT);
 			continue;

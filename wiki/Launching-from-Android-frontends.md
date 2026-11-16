@@ -41,7 +41,20 @@ Daijisho uses the same template language as GammaOS, so the GammaOS template abo
 
 ## ES-DE
 
-Add GBA DS as a custom emulator. In `ES-DE/custom_systems/es_find_rules.xml` (create it if needed, with `<ruleList>` around the entry):
+In GBA DS's game list, open **Settings** and switch on **GBA DS in ES-DE**. Then quit ES-DE and open it again: Game Boy Advance games start in GBA DS.
+
+ES-DE keeps its other emulators in the list. For a game GBA DS doesn't support, choose another one in ES-DE: open the game's metadata editor, then **Alternative emulator**.
+
+The row is there when GBA DS finds ES-DE's folder (`ES-DE` on the internal storage or an SD card). It puts GBA DS into two files in `ES-DE/custom_systems`:
+
+- `es_find_rules.xml`: where to find GBA DS.
+- `es_systems.xml`: **GBA DS (Standalone)** first in the `gba` system's list of emulators. If you already have your own `gba` system there, GBA DS is added to it. If you don't, GBA DS adds a copy of ES-DE's own `gba` system.
+
+Switching it off takes out only what GBA DS added, and deletes either file if nothing else is left in it.
+
+### By hand
+
+To set it up yourself instead, put this in `ES-DE/custom_systems/es_find_rules.xml` (create it if needed, with `<ruleList>` around the entry):
 
 ```xml
 <emulator name="GBA-DS">
@@ -52,19 +65,13 @@ Add GBA DS as a custom emulator. In `ES-DE/custom_systems/es_find_rules.xml` (cr
 </emulator>
 ```
 
-In `ES-DE/custom_systems/es_systems.xml`, copy the `gba` system from ES-DE's bundled `es_systems.xml` and add this `<command>` line to it (ES-DE lists the commands as alternative emulators):
-
-```xml
-<command label="GBA DS (Standalone)">%EMULATOR_GBA-DS% %ACTIVITY_CLEAR_TASK% %ACTIVITY_CLEAR_TOP% %DATA%=%ROMSAF%</command>
-```
-
-If the game doesn't start, try the path as an extra instead of the data URI:
+In `ES-DE/custom_systems/es_systems.xml`, copy the `gba` system from ES-DE's bundled `es_systems.xml` and add this `<command>` line to it. The first `<command>` is the default emulator:
 
 ```xml
 <command label="GBA DS (Standalone)">%EMULATOR_GBA-DS% %ACTIVITY_CLEAR_TASK% %ACTIVITY_CLEAR_TOP% %EXTRA_rom%=%ROM%</command>
 ```
 
-Then pick **GBA DS (Standalone)** as the emulator for the GBA system, or for single games, in ES-DE's menus.
+This passes the game's path, so patches next to the game work. (With `%DATA%=%ROMSAF%` instead, they don't.)
 
 ## Cocoon
 

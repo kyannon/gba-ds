@@ -432,12 +432,77 @@ def er(a):
     return ndimage.binary_dilation(m, iterations=1)
 
 
+def _mvdk_cut(a, below):
+    """The lettering of Mario vs. Donkey Kong's title: its sky (light blue
+    and white, with its stars and white band; the band's blue stripes)
+    cleared from the frame's edges; of what's left, anything touching an
+    edge (Mario's and Donkey Kong's faces in the corners, Japan's top
+    stripe) or from row `below` down goes, and specks under 40 pixels
+    (the TM); then the greys and whites left outside the black outline."""
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    sky = ((a.min(axis=2) >= 0x90) & (b >= r - 8)) | ((b >= 0xC0) & (r < 0x80) & (g >= 0x90))
+    lab, _ = ndimage.label(sky)
+    edge = set(np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]]))) - {0}
+    logo = ~np.isin(lab, list(edge))
+    logo[below:] = False
+    lab2, n = ndimage.label(logo)
+    border = set(np.unique(np.concatenate([lab2[0], lab2[-1], lab2[:, 0], lab2[:, -1]]))) - {0}
+    sizes = ndimage.sum(logo, lab2, range(1, n + 1))
+    keep = np.isin(lab2, [i + 1 for i, s in enumerate(sizes) if s >= 40 and (i + 1) not in border])
+    # the greys and whites outside the black outline (where it blends into
+    # the sky, Japan's white rim round マリオ), peeled off the edge until
+    # the black is the edge all round
+    grey = (a.min(axis=2) >= 0x30) & (a.max(axis=2) - a.min(axis=2) < 48)
+    for _ in range(12):
+        peel = grey & keep & ~ndimage.binary_erosion(keep, border_value=0)
+        if not peel.any():
+            break
+        keep &= ~peel
+    return keep
+
+
+def mvdk(a):
+    """Mario vs. Donkey Kong (USA, Europe: the same title): MARIO, vs. and
+    DONKEY KONG with their black shadows and outlines, without the sky,
+    the faces, the TM, PRESS START or the copyright line (rows 146 on)."""
+    return _mvdk_cut(a, 146)
+
+
+def mvdk_jpn(a):
+    """Mario vs. Donkey Kong (Japan): its katakana lettering and vs.
+    burst, without the black MARIO vs. DONKEYKONG line under it (rows 88
+    on: unreadable on the second screen's dark), the sky, the stripes,
+    PRESS START, the Mini-Marios or the copyright line."""
+    return _mvdk_cut(a, 88)
+
+
+def bgd(a):
+    """Baldur's Gate: Dark Alliance (USA, Europe: the same title picture):
+    FORGOTTEN REALMS on its plaque, Baldur's Gate, the red crescent and
+    DARK ALLIANCE, painted into the title's parchment map with soft edges
+    that no colour rule follows. The outline is a stencil,
+    tools/logo_stencils/bgd.png: the owner's full-size logo artwork's
+    silhouette (1312x592, Nov 15, 2026), each part scaled and placed on
+    the title's lettering on its own, as the game draws them a little
+    apart (frame x = tx + sx * artwork x, y = ty + sy * artwork y): the
+    plaque 0.1670 x 0.1667 at 9.92, 7.50 (its box measured: the frame,
+    its outer border and the ornament); Baldur's Gate 0.1641 x 0.1757 at
+    5.61, 4.05; the crescent with DARK 0.1251 x 0.1341 at 35.09, 12.43;
+    ALLIANCE 0.1278 x 0.1369 at 38.51, 11.58 (the last three where their
+    edges best follow the title's). A pixel is in where the artwork
+    covers 30% of it or more, so the letters' dark rims and the
+    crescent's red edge come along; the TMs aren't in the artwork and
+    are left out. Only its outline is used; the pixels are the title's."""
+    return np.asarray(Image.open(os.path.join(ROOT, "tools", "logo_stencils", "bgd.png")).convert("L")) > 127
+
+
 MASKS = (("THPS2", thps2), ("SK8", sk8), ("THPS3", thps3), ("DBZ", dbz),
          ("GS2E", gs2), ("GS2D", gs2_dial), ("GS2F", gs2_dial), ("GS2I", gs2), ("GS2S", gs2_dial),
          ("GS2J", gs2), ("CNK", cnk), ("CNKJ", cnk_jpn),
          ("DBZ2", dbz2), ("DBZ2J", dbz2_jpn), ("BF", bf),
          ("VR3", vr3), ("VR3J", vr3), ("GT3", gt3), ("GT3J", gt3_jpn),
-         ("NFO", nfo), ("NFOP", nfo_eur), ("AMW", amw), ("ER", er))
+         ("NFO", nfo), ("NFOP", nfo_eur), ("AMW", amw), ("ER", er),
+         ("MVDK", mvdk), ("MVDKJ", mvdk_jpn), ("BGD", bgd))
 
 
 def runs(mask):

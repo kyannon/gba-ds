@@ -341,17 +341,24 @@ CHANGELOG until someone tests them on a more capable device.
   with another game (or the game list), GbaDsActivity.onNewIntent sends
   SDL a quit (the game saves its resume point), and onDestroy starts the
   launcher again with the new game before exiting the process.
-  ES-DE (custom systems):
-    es_find_rules.xml:
-      <emulator name="GBA-DS">
-          <!-- Game Boy Advance, dual screen: GBA DS -->
-          <rule type="androidpackage">
-              <entry>io.github.kyannon.gbads/.LauncherActivity</entry>
-          </rule>
-      </emulator>
-    es_systems.xml, in the gba system:
-      <command label="GBA DS (Standalone)">%EMULATOR_GBA-DS% %ACTIVITY_CLEAR_TASK% %ACTIVITY_CLEAR_TOP% %DATA%=%ROMSAF%</command>
-    (or %EXTRA_rom%=%ROM% instead of %DATA%=%ROMSAF%)
+  ES-DE: Settings > "GBA DS in ES-DE" (src/esde.c, the row only when
+    ES-DE's folder is found: /storage/emulated/0/ES-DE, else
+    /storage/<volume>/ES-DE, with settings/es_settings.xml;
+    GBADS_ESDE_DIR overrides for the desktop test kit) writes into
+    ES-DE/custom_systems: the GBA-DS find rule (androidpackage
+    io.github.kyannon.gbads/.LauncherActivity) in es_find_rules.xml, and
+    `<command label="GBA DS (Standalone)">%EMULATOR_GBA-DS%
+    %ACTIVITY_CLEAR_TASK% %ACTIVITY_CLEAR_TOP% %EXTRA_rom%=%ROM%</command>`
+    first in es_systems.xml's gba system (the default emulator): into the
+    player's own gba system, else a copy of ES-DE's (esde.c GBA_BODY, from
+    ES-DE's resources/systems/android/es_systems.xml; its RetroArch lines
+    end in %ROMSAF% when es_settings.xml has RetroArchSAFMode on, as
+    es_systems_saf.xml does), marked with a "gba-ds:" comment. main.c
+    refreshes it at start; Off takes out only GBA DS's parts (a file left
+    with no system / emulator is deleted). %EXTRA_rom%=%ROM% (a path, not
+    %ROMSAF%) so patches beside the game apply. When ES-DE changes its own
+    gba system, update GBA_BODY (the copy is rewritten at the next start).
+    Checked on the RG DS Plus (GammaOS + ES-DE, Nov 14, 2026).
   Daijisho player: package io.github.kyannon.gbads, activity
   .LauncherActivity, `-a android.intent.action.VIEW -d {file.uri}` (or
   `-e rom {file.path}`).
@@ -450,8 +457,8 @@ frontend launch intents.
   futimens + msync + fsync, on the game thread; fsync on Android's shared
   storage is slow). emu.c now wraps the save's VFile on Android
   (async_save_open): still the mapped file, but sync hands the fsync to a
-  worker thread; close waits for it. Desktop: -DGBADS_ASYNC_SAVE turns it
-  on (tested: same .sav as without). Also early in that session, a few
+  worker thread; close waits for it. Since v1.5.3 every build but the web
+  one does this (issue #50, ROCKNIX); it gave the same .sav as without. Also early in that session, a few
   100-600 ms draws of one screen (frames 670-1090), cause unknown.
 - Aria of Sorrow log (owner, 2026-10-15), first ~90 s with the map screen
   static (logo / no map yet: bottom redrawn 5 of 300 frames), then the map
@@ -663,8 +670,123 @@ data_dir_now is elsewhere, and launch.log follows data_dir_now
 `data_dir` in `<app>/data-folder.cfg` (moving only GBA DS's own folders).
 Not tried on the device yet.
 
+## One display: phones and the Surface Duo (issue #48, Nov 14, 2026)
+
+A player's Surface Duo (reported through the owner, who has no Duo to
+try it on): its two screens are one Android display
+(2784x1800 spanned, an 84-pixel hinge between two 1350x1800 screens;
+Duo 2: 2754 = 1344 + 66 + 1344). Two problems: the activity was locked
+to landscape (manifest `screenOrientation="landscape"` and SDL's
+`LandscapeLeft` hint), which on a Duo takes a spanned app back to one
+screen (Microsoft: by design for orientation-locked apps) and holds it
+one way round only (upside down with the controller's cable on the left).
+
+- The manifest no longer locks the orientation. GbaDsActivity sets it
+  itself (`orientationWanted`, before super.onCreate, and again from SDL's
+  `setOrientationBis`, overridden): landscape when there's another display
+  (RG DS, Thor, RP Duo: unchanged), else SCREEN_ORIENTATION_FULL_USER (any
+  way round, the player's rotation lock kept).
+- ui.c layout_screens, one window: `android_hinge_gap` (android.c, by
+  `ro.product.model` "Surface Duo" / "Surface Duo 2" and the window's long
+  side 2784 / 2754, i.e. spanned) leaves the hinge's pixels out between
+  the two screens; with a hinge, auto is span-v when held tall (screens
+  above each other, as a DS) and span-h when held wide. Without one, as
+  before (span-h from 1.8:1, span-v from 1:1.2, else single). The log
+  says `screens: one window, WxH LAYOUT gap N`.
+- tools/androidtest: `STUB_SECOND=none`, `STUB_HINGE` / `STUB_HINGE_LONG`;
+  GBADS_WINDOW now sizes the window there (SDL's offscreen driver made a
+  full-screen one 1024x768 whatever it said).
+- Checked on the RG DS Plus (GammaOS, Nov 14): unchanged, still landscape.
+- Not tried on a Duo yet: the questions are with the player on the issue.
+  The owner's call (Nov 14): it ships with the next release whether or not
+  the player has answered by then, and is iterated on from their report.
+  The player's first answer (Nov 15, on the v1.5.3-dev build): it turns
+  the right way round now (they also have a MacroDroid rule forcing a
+  rotation, so not certain which did it), but it still opens on one
+  screen when the app is set to span. Fixed on branch `issue-48`, merged
+  into `dev` Nov 15 (below); not yet tried on a Duo.
+  Held wide (two tall screens side by side), the game list's top bar is
+  cut off at 1350 wide.
+
+### Opening spanned (branch `issue-48`, merged into `dev` Nov 15, 2026)
+
+The app icon starts LauncherActivity (translucent, excludeFromRecents),
+which the Duo spans when the player has set the app to span; it then
+started GbaDsActivity in a task of its own (taskAffinity `...gbads.game`,
+singleTask: needed with two displays, where GammaOS put the launcher's
+task on either display), and the Duo opens a new task on one screen.
+
+- `GbaDsHereActivity` (a subclass of GbaDsActivity, nothing else
+  different) has the app's usual task affinity and singleTop. LauncherActivity
+  starts it, in its own task and without launch options, when there's no
+  display besides the main one and the launcher is its task's root (the
+  icon, or a frontend that asked for a new task; in a frontend's own task
+  the old path is kept, so the game doesn't become part of the frontend's
+  task). It takes the task back into Recents (`AppTask.setExcludeFromRecents(false)`,
+  as the launcher at its root left it out).
+- `GbaDsActivity.running`: a game already running gets a new request in
+  its own task (the Here one: NEW_TASK | CLEAR_TOP | SINGLE_TOP, so
+  onNewIntent), never a second activity beside it.
+- Two displays: unchanged (GbaDsActivity in its own task on display 0).
+- launch.log says "one display: starting the game in the launcher's task".
+
+## To pick up: save states shared with RetroArch (issue #39; planned Nov 16, 2026)
+
+Done for Linux on the branch `retroarch-states` (going into `dev`): the
+pause menu's slots 0-9 and the resume point can be RetroArch's own
+`<game>.state`, `.state1`-`.state9` and `.state.auto` (RetroArch's format,
+compressed, with a `<state>.png` thumbnail), and loading takes RetroArch's
+files (emu.c, shared: already works on Android for any file it can read).
+What's Linux-only: `retroarch_state_dir` (paths.c) looks for retroarch.cfg
+on ROCKNIX / BananaOS / ~/.config, and the Settings rows (Save States,
+RetroArch's Folder with the SDL picker `folderpick.c`) are in library.c's
+Linux branch. See wiki/Playing.md, "Save states shared with RetroArch".
+
+**The owner's plan for Android** (agreed Nov 16): look for RetroArch's
+folders; where its states can be reached, use them (asking through Android's
+folder picker when needed, Android 11 and 12 included); where they can't
+(Android 13 and later, states under `Android/data`), say so plainly and
+point to the fix in RetroArch.
+
+Facts (RetroArch's frontend/drivers/platform_unix.c, checked Nov 16):
+
+- RetroArch on Android keeps its states in `<storage>/RetroArch/states`
+  (by core: `.../states/mGBA`, sort_savestates_enable on by default) when
+  it can write to shared storage (the website / F-Droid builds, with All
+  files access), else in its own `Android/data/com.retroarch.../files/states`
+  (likely the Play Store build), else its private data folder. Its config:
+  `Android/data/com.retroarch.../files/retroarch.cfg` (savestate_directory
+  says which, unless the player changed it).
+- `<storage>/RetroArch/...` is readable with GBA DS's All files access, or
+  can be granted through ACTION_OPEN_DOCUMENT_TREE (as Settings > Folders >
+  Choose GBA DS folder does, issue #34).
+- `Android/data/<other app>`: not readable on Android 11+, All files access
+  or not. Android 11-12: ACTION_OPEN_DOCUMENT_TREE with EXTRA_INITIAL_URI
+  set to `content://com.android.externalstorage.documents/document/primary%3AAndroid%2Fdata%2Fcom.retroarch...`
+  lets the player grant that folder (file managers used this; keep it with
+  takePersistableUriPermission). Android 13+: the picker refuses folders
+  under Android/data; no prompt grants it (only Shizuku or root: not to
+  build on). Then: tell the player to set RetroArch's Settings > Directory >
+  Save States to a shared folder (such as `/storage/emulated/0/RetroArch/states`)
+  and choose that folder in GBA DS.
+- A granted tree is a content URI, not a path: the states would go through
+  SAF (read / write by document URI) or a copy, not fopen; game_paths'
+  slot paths and emu.c's file functions take paths today.
+
+To check on a device first: which RetroArch build the owner's GammaOS /
+players use and where it writes; whether the Play Store build can write a
+shared folder at all; what the picker does on the device's Android version
+(the RG DS Plus on GammaOS, and a phone on 13+).
+
+Pieces: retroarch.cfg's whereabouts and the state folder (paths.c, under
+`#ifdef __ANDROID__`), Settings rows on Android (Folders, or a row of its
+own, with the system picker instead of folderpick.c), SAF access if the
+folder is a granted tree, the Android-13 message. The quick state stays
+GBA DS's; RetroAchievements progress isn't shared (owner, Nov 14).
+
 ## For the next release
 
 Player-facing Android changes since the last release, for the main session
 to move into CHANGELOG.md and the release notes (see CLAUDE.md, "More than
 one session"). Empty after each release.
+

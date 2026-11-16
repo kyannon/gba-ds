@@ -71,6 +71,9 @@ int android_raise_thread(void);
 void android_pin_game_thread(void);
 void android_pin_worker_thread(const char* what); /* what: for the log */
 
+/* Pixels hidden by a hinge across the middle of the activity's window of
+ * w x h (a Surface Duo spanned over both screens), 0 if none. */
+int android_hinge_gap(int w, int h);
 /* Size of the second display, if there is one. */
 bool android_second_size(int* w, int* h);
 /* A display's pixels per inch (view 0: the activity's, 1: the second), as
