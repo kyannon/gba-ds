@@ -16,7 +16,7 @@ GBA DS opens on a game list on the touchscreen (the bottom screen on the RG DS P
 | A or Start, or tap a game | Play |
 | Drag | Scroll |
 | X, or tap the button left of Settings | Switch between list and grid |
-| SELECT, or tap **Settings** | Settings (ROCKNIX: GBA DS in EmulationStation; BananaOS: GBA DS in its GBA list; Linux: Map Buttons, Hotkeys, Updates; Android: Folders (ROMs and saves), RetroAchievements sign-in, Map Buttons, Hotkeys, Updates) |
+| SELECT, or tap **Settings** | Settings (ROCKNIX: GBA DS in EmulationStation; BananaOS: GBA DS in its GBA list; Controls has Map Buttons and Hotkeys; System has Updates (Linux) or Folders, RetroAchievements sign-in and Updates (Android)) |
 | B or HOME | Back to EmulationStation / the launcher |
 
 ## Resume points
@@ -116,7 +116,7 @@ If HOME doesn't open the menu on your device, see `home_button` in [[Settings]];
 
 ### Hotkeys
 
-The HOME + button shortcuts above are hotkeys: hold the hotkey button, then press the other one. To change them, open **Settings** in the game list and choose **Hotkeys** (beside Map Buttons):
+The HOME + button shortcuts above are hotkeys: hold the hotkey button, then press the other one. To change them, open **Settings** in the game list and open **Controls** and choose **Hotkeys** (under Map buttons):
 
 - **Hotkey button**: HOME (the default), SELECT, START or L3. With SELECT or START, the button still reaches the game when you tap it on its own; with L3, a tap on its own still opens the quick bar. HOME opens the menu whichever is the hotkey.
 - **Quit**, **Quick save state**, **Quick load state**, **Open quick menu** (the quick bar), **Swap screens** and **Toggle selected shader** (off, and back on to the one picked in the pause menu's Shader): the button for each.
@@ -134,7 +134,7 @@ On Linux (ROCKNIX, the Stock Linux OS and others; not BananaOS, which sets its o
 
 ## Mapping the buttons
 
-If buttons do the wrong thing on your device (or a controller isn't recognised), open **Settings** in the game list (tap it, or SELECT) and choose **Map Buttons** (every system, Android included). GBA DS asks for each button in turn, by where it sits on a GBA-style layout:
+If buttons do the wrong thing on your device (or a controller isn't recognised), open **Settings** in the game list (tap it, or SELECT) and open **Controls** and choose **Map buttons** (every system, Android included). GBA DS asks for each button in turn, by where it sits on a GBA-style layout:
 
 - the D-pad's four directions;
 - **A** (the right face button), **B** (bottom), **X** (top), **Y** (left);
@@ -147,9 +147,9 @@ The new mapping works straight away and is kept in `states/controllers.txt` for 
 
 ### Changing the face buttons for a game
 
-Pause menu → Extras → **Buttons** sets which GBA button each face button gives this game: **A (Right)**, **B (Bottom)**, **X (Top)** and **Y (Left)** can each be GBA A, GBA B, GBA L, GBA R or Nothing (LEFT / RIGHT, A or a tap to change one; B to go back). For example, B (Bottom) as GBA A and Y (Left) as GBA B puts jump on the bottom button and attack on the left one, as in many SNES games. Two buttons can give the same GBA button.
+Pause menu → **Controls** tab sets which GBA button each face button gives (**A (right) button** and so on; A for this game, Y for all games): **A (Right)**, **B (Bottom)**, **X (Top)** and **Y (Left)** can each be GBA A, GBA B, GBA L, GBA R or Nothing (LEFT / RIGHT, A or a tap to change one; B to go back). For example, B (Bottom) as GBA A and Y (Left) as GBA B puts jump on the bottom button and attack on the left one, as in many SNES games. Two buttons can give the same GBA button.
 
-Changes work straight away and are kept for that game only (`states/<game>.buttons`). **Reset Buttons** goes back to the default (the table above, `ab_swap` included). GBA DS's own menus keep A to choose and B to go back, L1 / R1 stay GBA L / R, and the hotkeys don't change.
+Changes work straight away and are kept in `states/<game>.cfg` for this game, or in `states/prefs.cfg` for all. **X** on a row (or a touch on its gold Game tag) goes back to the value for all games. GBA DS's own menus keep A to choose and B to go back, L1 / R1 stay GBA L / R, and the hotkeys don't change.
 
 In games with a layout under **Controls** in the quick bar (below), the four-button or SNES layout decides the face buttons wherever it's in use, and your Buttons choices everywhere else.
 

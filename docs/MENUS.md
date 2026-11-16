@@ -117,7 +117,7 @@ by dragging or with L1/R1... (page up / down), with a thin scroll bar.
 
 ## Pause menu (this game, or all)
 
-Five tabs (L1 / R1 and taps, as now), each at most one screen where it can:
+Seven tabs (Game, Tools, Display, Screens, Controls, Speed, Map; L1 / R1 and taps), each at most one screen where it can:
 
 | Tab | Holds |
 |---|---|
@@ -158,7 +158,7 @@ second line, always visible on the four settings tabs.
 2. **Rows widget and the game list's Settings categories**, with the new
    settings that need no drawing work: Show all, Left stick (#57), Turbo
    and the new face-button choices (#55). Prefs written as changed keys.
-3. **Pause menu**: five tabs, the scope pill, A / Y / X, the Game tag.
+3. **Pause menu** (done): seven tabs, the This game / All games bar, A / Y / X, the Game tag. The Buttons screen became four Controls rows. Settings > System is in the same row style, Map Buttons and Hotkeys moved to Controls.
 4. **Brightness** (#56) and the Supported / All switch in the game list (#54).
 5. Wiki (Settings, Playing), changelog, regression cases for the file
    layering and the new settings, Android check.
