@@ -6062,12 +6062,13 @@ done:
 	return err;
 }
 
-/* ---------------------------------------------------------- Pokémon (preliminary: FireRed / LeafGreen, Ruby / Sapphire)
+/* ---------------------------------------------------------- Pokémon (preliminary: FireRed / LeafGreen, Ruby / Sapphire / Emerald)
  *
  * Experiment for the branch pokemon-preliminary (docs/pokemon-ideas.md). The
- * second screen is the game's own Party screen, Trainer Card and (Ruby /
- * Sapphire) Pokénav map, opened on the shadow core through the START menu
- * and shown in turn. Nothing here is the game's data: no tables, no
+ * second screen is the game's own Party screen and region map (the Pokénav's
+ * in Ruby / Sapphire / Emerald, the Town Map from the Bag in FireRed /
+ * LeafGreen), opened on the shadow core through the START menu and shown in
+ * turn. Nothing here is the game's data: no tables, no
  * addresses of a particular ROM, so a romhack built on the same engine
  * needs no work of its own.
  *
@@ -6077,9 +6078,11 @@ done:
  *    entry (DOWN until it wraps to the top: a cursor that moves up the
  *    panel's rows only changes pixels in two bands, far apart when it
  *    wraps), then moved by counting: POKéMON is the first or second entry
- *    (tried in turn; the screen that comes up is checked), the Trainer
- *    Card (the player's name) and BAG / POKéNAV are the 4th and 5th from
- *    the end in every game.
+ *    (tried in turn; the screen that comes up is checked), BAG / POKéNAV
+ *    are the 5th from the end in every game. FireRed / LeafGreen's Town
+ *    Map is a key item whose row depends on what the player owns: each row
+ *    of the Key Items pocket is tried (USE) until the map's registers come
+ *    up, and the row that worked is tried first the next time.
  *  - Which screen came up is told by the display registers (DISPCNT and
  *    BG0-3CNT), which belong to the engine, not to a romhack's changes
  *    (three engines: FireRed / LeafGreen, Ruby / Sapphire, Emerald).
@@ -6089,33 +6092,44 @@ done:
  */
 typedef struct { uint16_t r[5]; } PkSig; /* DISPCNT, BG0CNT ... BG3CNT; r[0] 0: none */
 typedef struct {
-	PkSig party, card, nav, map;
+	PkSig party, nav, map, bag;
 	/* the Party's message box and CANCEL: rows from here down are the
 	 * background's, taken from the left edge */
 	/* the START menu's panel ends here (FireRed has a description box below it) */
 	int menuBottom;
 	int partyClean, partyFrom;
-	/* the map's button prompts: the bar they're in, from x0 to x1, y0 to y1,
-	 * filled from the pixel at (fx, y0) */
-	int mapClean[5];
+	/* the map's button prompts: each is a box x0 to x1, y0 to y1, filled row
+	 * by row from the pixel at column fx of that row */
+	int mapClean[3][5];
 } PkFam;
 static const PkFam pkFrlg = {
 	.party = { { 0x1740, 0x1F01, 0x1E02, 0x5C00, 0x0000 } },
-	.card = { { 0x3F40, 0x9B02, 0x1D08, 0x1E03, 0x1F01 } },
+	.bag = { { 0x3340, 0x1F00, 0x1E0D, 0x0000, 0x0000 } },
+	.map = { { 0x3B40, 0x1E02, 0x0F07, 0x0000, 0x1F0C } }, /* the Town Map */
 	.partyClean = 130, .partyFrom = 182, .menuBottom = 112,
+	.mapClean = { { 140, 178, 0, 14, 100 },     /* "+MOVE" on the blue strip */
+	              { 194, 214, 131, 149, 192 } }, /* the exit button */
 };
 static const PkFam pkRs = {
 	.party = { { 0x1F40, 0x1E06, 0x0703, 0x0F08, 0x0602 } },
-	.card = { { 0x1F40, 0x1E08, 0x0801, 0x0902, 0x0A03 } },
 	.nav = { { 0x3F40, 0x1F01, 0x1B0C, 0x1D0A, 0x1C0B } },
 	.map = { { 0x1741, 0x1F01, 0x1B0C, 0xBC8A, 0x1C0B } },
 	.partyClean = 130, .partyFrom = 193, .menuBottom = 158,
-	.mapClean = { 0, 118, 146, 159, 122 },
+	.mapClean = { { 0, 118, 144, 159, 122 } },
+};
+/* Emerald: the Party is FireRed's screen, the Pokénav its own */
+static const PkFam pkEm = {
+	.party = { { 0x1740, 0x1F01, 0x1E02, 0x5C00, 0x0000 } },
+	.nav = { { 0x3F40, 0x0500, 0x0F05, 0x170A, 0x1F0F } },
+	.map = { { 0x1741, 0x0500, 0x1F05, 0xA68A, 0x1F0F } },
+	.partyClean = 128, .partyFrom = 183, .menuBottom = 158,
+	.mapClean = { { 0, 112, 144, 159, 118 } },
 };
 static const PkFam* pk_fam(const Emu* e) {
 	const char* c = e->gameCode;
 	if (!strncmp(c, "BPR", 3) || !strncmp(c, "BPG", 3)) return &pkFrlg;
 	if (!strncmp(c, "AXP", 3) || !strncmp(c, "AXV", 3)) return &pkRs;
+	if (!strncmp(c, "BPE", 3)) return &pkEm;
 	return NULL;
 }
 static bool pk_is(Emu* s, const PkSig* g) {
@@ -6221,19 +6235,21 @@ static const char* pk_party(Emu* s, const PkFam* f, const void* state, uint32_t*
 	}
 	return "the Party didn't open";
 }
-static const char* pk_card(Emu* s, const PkFam* f, const void* state, uint32_t* out, int w, int h) {
-	const char* err = pk_menu_top(s, f, state);
-	if (err) return err;
-	pk_go(s, -4); /* the player's name: 4th from the end */
-	pk_tap(s, K_A);
-	if (!pk_wait(s, &f->card, 90)) return "the Trainer Card didn't open";
-	aw_run(s, 0, 70); /* (the card slides and flips in) */
-	if (!pk_is(s, &f->card)) return "the Trainer Card went away";
-	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
-	return NULL;
+/* the clean-ups, then the picture */
+static void pk_map_clean(Emu* s, const PkFam* f, uint32_t* out, int w, int h) {
+	for (int k = 0; k < 3; ++k) {
+		const int* c = f->mapClean[k];
+		for (int y = c[2]; y <= c[3] && y < h; ++y) {
+			for (int x = c[0]; x <= c[1] && x < w; ++x) out[y * w + x] = s->fb[y * GBA_W + c[4]];
+		}
+	}
 }
-static const char* pk_map(Emu* s, const PkFam* f, const void* state, uint32_t* out, int w, int h) {
-	if (!f->map.r[0]) return "no map here";
+static void pk_map_copy(Emu* s, const PkFam* f, uint32_t* out, int w, int h) {
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+	pk_map_clean(s, f, out, w, h);
+}
+/* Ruby / Sapphire / Emerald: POKéNAV, whose first entry is the region map */
+static const char* pk_nav_map(Emu* s, const PkFam* f, const void* state, uint32_t* out, int w, int h) {
 	const char* err = pk_menu_top(s, f, state);
 	if (err) return err;
 	pk_go(s, -5); /* POKéNAV: 5th from the end */
@@ -6243,39 +6259,69 @@ static const char* pk_map(Emu* s, const PkFam* f, const void* state, uint32_t* o
 	pk_tap(s, K_A); /* its first entry, the region map */
 	if (!pk_wait(s, &f->map, 120)) return "the map didn't open";
 	aw_run(s, 0, 40);
-	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
-	/* the button prompts' bar, filled from beside them */
-	const int* c = f->mapClean;
-	for (int y = c[2]; y <= c[3] && y < h; ++y) {
-		for (int x = c[0]; x <= c[1] && x < w; ++x) out[y * w + x] = s->fb[y * GBA_W + c[4]];
-	}
+	pk_map_copy(s, f, out, w, h);
 	return NULL;
 }
+/* FireRed / LeafGreen: the Town Map is a key item. BAG (5th from the end),
+ * the Key Items pocket (the pockets are in a row: all the way left, then
+ * once right), the cursor to the top, then down row by row, USE on each
+ * until the map's registers come up (the copy is loaded afresh each time,
+ * so whatever another item does is gone). The row that worked is the first
+ * to try next time. */
+#define PK_KEY_ROWS 10
+#define PK_MAP_EVERY 5 /* captures (about 15 s) between the map's */
+static const char* pk_town_map(Emu* s, const PkFam* f, const void* state, uint32_t* out, int w, int h) {
+	static int first;
+	for (int t = 0; t < PK_KEY_ROWS; ++t) {
+		int row = (first + t) % PK_KEY_ROWS;
+		const char* err = pk_menu_top(s, f, state);
+		if (err) return err;
+		pk_go(s, -5); /* BAG */
+		pk_tap(s, K_A);
+		if (!pk_wait(s, &f->bag, 90)) return "the Bag didn't open";
+		aw_run(s, 0, 30);
+		pk_tap(s, K_LEFT);
+		pk_tap(s, K_LEFT);
+		pk_tap(s, K_RIGHT);
+		aw_run(s, 0, 10);
+		for (int i = 0; i < PK_KEY_ROWS + 2; ++i) pk_tap(s, K_UP);
+		for (int i = 0; i < row; ++i) pk_tap(s, K_DOWN);
+		pk_tap(s, K_A); /* its menu: USE first */
+		aw_run(s, 0, 10);
+		pk_tap(s, K_A);
+		if (!pk_wait(s, &f->map, 150)) continue;
+		aw_run(s, 0, 110); /* (the registers are right while it's still fading in from white) */
+		if (!pk_is(s, &f->map)) continue;
+		first = row;
+		pk_map_copy(s, f, out, w, h);
+		return NULL;
+	}
+	return "no Town Map in the Bag";
+}
+static const char* pk_map(Emu* s, const PkFam* f, const void* state, uint32_t* out, int w, int h) {
+	return f->bag.r[0] ? pk_town_map(s, f, state, out, w, h) : pk_nav_map(s, f, state, out, w, h);
+}
 static const char* pk_pages(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
-	/* The Party is taken every time (it's what changes); the Trainer Card and
-	 * the map only now and then, and kept between: each costs a menu's worth of
-	 * frames on the hidden copy */
-	static uint32_t keep[2][GBA_W * GBA_H];
-	static bool have[2];
-	static int tick;
+	/* The Party is taken every time (it's what changes). The map costs a
+	 * menu's worth of frames or several (the Bag: a row at a time), so it's
+	 * kept and taken again only now and then (where the player is changes
+	 * slowly); when there's none (before the Pokénav or the Town Map, or a
+	 * game that has none) it's not tried for a while. */
+	static uint32_t keep[GBA_W * GBA_H];
+	static bool have;
+	static int tick, wait;
 	const PkFam* f = pk_fam(s);
 	if (!f) return "not a Pokémon game this knows";
-	int max = *nOut < 4 ? *nOut : 4, n = 0;
 	*step = 300; /* 5 seconds a page */
-	const char* err = pk_party(s, f, state, out[n], w, h);
+	const char* err = pk_party(s, f, state, out[0], w, h);
 	if (err) return err; /* (no Party: no second screen to keep) */
-	++n;
-	bool again = tick++ % 12 == 0;
-	for (int k = 0; k < 2 && n < max; ++k) {
-		if (again || !have[k]) {
-			err = k ? pk_map(s, f, state, keep[k], GBA_W, GBA_H) : pk_card(s, f, state, keep[k], GBA_W, GBA_H);
-			have[k] = !err;
-		}
-		if (!have[k] || w != GBA_W || h != GBA_H || n + 2 > max) continue;
-		/* the Party between the others: it's what the player watches, so it's up half the time */
-		if (n > 1) memcpy(out[n++], out[0], sizeof(keep[k]));
-		memcpy(out[n++], keep[k], sizeof(keep[k]));
+	int n = 1;
+	if (tick++ % PK_MAP_EVERY == 0) wait = 0;
+	if (!wait && (tick % PK_MAP_EVERY == 1 || !have) && w == GBA_W && h == GBA_H) {
+		if (!pk_map(s, f, state, keep, GBA_W, GBA_H)) have = true;
+		else if (!emu_cancelled(s)) have = false, wait = 1; /* (a capture called off says nothing about the map) */
 	}
+	if (have && *nOut >= 2 && w == GBA_W && h == GBA_H) memcpy(out[n++], keep, sizeof(keep));
 	*nOut = n;
 	return NULL;
 }
@@ -6347,17 +6393,21 @@ static uint32_t pk_virt(Emu* e, uint32_t addr) {
 }
 
 static const MapProfile profiles[] = {
-	{
-		/* PRELIMINARY (pokemon-preliminary): see docs/pokemon-ideas.md */
-		.codes = { "BPRE", "AXPE" },
-		.title = "Pokemon FireRed / Sapphire (preliminary)",
-		.composePages = pk_pages,
-		.virt = pk_virt,
-		.interval = 180,
-		.room = { { PK_VIRT, 0xFFFFFFFF, 0, 4 } },
-		.crop_w = GBA_W,
-		.crop_h = GBA_H,
+	/* PRELIMINARY (pokemon-preliminary): see docs/pokemon-ideas.md. One entry per engine (the USA and Europe releases) */
+#define PK_PROFILE(TITLE, ...) \
+	{ \
+		.codes = { __VA_ARGS__ }, \
+		.title = TITLE, \
+		.composePages = pk_pages, \
+		.virt = pk_virt, \
+		.interval = 180, \
+		.room = { { PK_VIRT, 0xFFFFFFFF, 0, 4 } }, \
+		.crop_w = GBA_W, \
+		.crop_h = GBA_H, \
 	},
+	PK_PROFILE("Pokemon FireRed / LeafGreen (preliminary)", "BPRE", "BPRP", "BPGE", "BPGP")
+	PK_PROFILE("Pokemon Ruby / Sapphire (preliminary)", "AXVE", "AXVP", "AXPE", "AXPP")
+	PK_PROFILE("Pokemon Emerald (preliminary)", "BPEE", "BPEP")
 	{
 		.codes = { "A2CE" },
 		.title = "Castlevania: Aria of Sorrow",
