@@ -77,6 +77,8 @@ bool ui_screens_differ(void);
 /* Works out the screens' picture areas again (screen_match or
  * screen_placement changed). */
 void ui_layout_pictures(void);
+/* the left stick as the D-pad (issue #57); on in the menus whatever the setting */
+void ui_stick_dpad(bool on);
 /* The pixels per inch of each screen, if known (0 if not). */
 float ui_screen_ppi(int screen);
 int ui_touch_screen(void); /* index into screens[] */

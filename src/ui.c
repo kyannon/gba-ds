@@ -1,4 +1,11 @@
 #include "ui.h"
+
+/* the left stick presses the D-pad (issue #57): game.c turns it off for a game
+ * with left_stick_dpad = 0, and on again for its menus and the game list */
+static bool stickDpad = true;
+void ui_stick_dpad(bool on) {
+	stickDpad = on;
+}
 #include "android.h"
 #include "brand.h"
 #include "font.h"
@@ -1180,10 +1187,12 @@ void ui_read_buttons(void) {
 #endif
 		int lx = SDL_GameControllerGetAxis(gc, SDL_CONTROLLER_AXIS_LEFTX);
 		int ly = SDL_GameControllerGetAxis(gc, SDL_CONTROLLER_AXIS_LEFTY);
-		if (lx < -16000) phys[SDL_CONTROLLER_BUTTON_DPAD_LEFT] = true;
-		if (lx > 16000) phys[SDL_CONTROLLER_BUTTON_DPAD_RIGHT] = true;
-		if (ly < -16000) phys[SDL_CONTROLLER_BUTTON_DPAD_UP] = true;
-		if (ly > 16000) phys[SDL_CONTROLLER_BUTTON_DPAD_DOWN] = true;
+		if (stickDpad) { /* (left_stick_dpad: off in a game, the stick does nothing there) */
+			if (lx < -16000) phys[SDL_CONTROLLER_BUTTON_DPAD_LEFT] = true;
+			if (lx > 16000) phys[SDL_CONTROLLER_BUTTON_DPAD_RIGHT] = true;
+			if (ly < -16000) phys[SDL_CONTROLLER_BUTTON_DPAD_UP] = true;
+			if (ly > 16000) phys[SDL_CONTROLLER_BUTTON_DPAD_DOWN] = true;
+		}
 	}
 	bool rawHome = false;
 	if (cfg->homeButton >= 0) {

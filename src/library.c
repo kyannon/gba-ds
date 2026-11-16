@@ -1072,7 +1072,6 @@ static void settings_rows(const Config* cfg) {
 #endif
 	rowKind[nRows++] = ROW_MAP;
 	rowKind[nRows++] = ROW_HOTKEYS;
-	if (clocks_available()) rowKind[nRows++] = ROW_PERF;
 #ifdef GBADS_UPDATES
 	rowKind[nRows++] = ROW_UPDATES;
 #endif
@@ -1143,6 +1142,203 @@ static void draw_settings_frame(int scr, const SettingsGeom* g, int sel, const c
 		ui_fill_round(scr, b, i == sel ? C_SEL : C_ROW, px * 3);
 		ui_label(scr, b.x + b.w / 2, b.y + b.h / 2, px * 5, i < nRows ? labels[i] : "Back", C_TEXT);
 	}
+}
+
+/* ---- Settings: a page of categories, each a page of rows (docs/MENUS.md).
+ * The rows come from config.c's settings table; a change is kept in
+ * states/prefs.cfg, for all games (a game's own file is for the pause menu).
+ * System is the older panel: GBA DS in EmulationStation / BananaOS's list,
+ * Map Buttons, Hotkeys, Updates, and on Android Folders and RetroAchievements. */
+enum { SP_HOME = -1, SP_SYSTEM = 6, SP_COUNT = 7 };
+typedef struct {
+	const char* name;
+	const char* sub;
+	const char* keys[8];
+} SetPage;
+static const SetPage setPages[SP_SYSTEM] = {
+	{ "Games", "Which games, names, saving", { "show_all", "name_tags", "save_on_quit", "auto_load", "custom_logos", "quick_bar_hint" } },
+	{ "Display", "Scale, shader, colors", { "scale", "map_scale", "shader", "lcd_strength", "color_correction", "lcd_ghosting", "smooth" } },
+	{ "Screens", "Placement, overlays", { "swap", "screen_match", "screen_placement", "overlays", "overlay_screens", "bezel_logo", "show_fps" } },
+	{ "Controls", "Stick, buttons, turbo", { "left_stick_dpad", "ab_swap", "button_right", "button_bottom", "button_top", "button_left", "turbo_rate" } },
+	{ "Speed and sound", "Rewind, fast forward", { "match_display", "frame_buffer", "rewind", "rewind_seconds", "fast_forward", "audio_latency", "performance" } },
+	{ "Second screen", "The map and the logo", { "map", "map_interval", "map_crop", "map_animations", "show_logo", "pinball_live" } },
+};
+static int setPage = SP_HOME; /* SP_HOME, a category, or SP_SYSTEM (the older panel) */
+static int setSel;
+static bool setRescan; /* the games shown changed: list them again */
+
+static int page_settings(int page, const Setting** out) {
+	int n = 0;
+	for (int i = 0; i < 8 && setPages[page].keys[i]; ++i) {
+		const Setting* st = config_setting(setPages[page].keys[i]);
+		if (!st || (!strcmp(st->key, "performance") && !clocks_available())) continue;
+		out[n++] = st;
+	}
+	return n;
+}
+
+/* the panel, as the older Settings has it */
+static SDL_Rect set_panel(int scr) {
+	SDL_Rect r = screens[scr].rect;
+	int m = (int) ui_px(scr) * 6;
+	return (SDL_Rect) { m, m, r.w - m * 2, r.h - m * 2 };
+}
+
+/* home: 2 x 4 tiles, the categories, System, Back */
+static SDL_Rect set_tile(int scr, int i) {
+	int px = (int) ui_px(scr);
+	SDL_Rect p = set_panel(scr);
+	int top = p.y + px * 22, gap = px * 4, rows = 4;
+	int w = (p.w - px * 12 - gap) / 2, h = (p.y + p.h - px * 6 - top - gap * (rows - 1)) / rows;
+	return (SDL_Rect) { p.x + px * 6 + (i % 2) * (w + gap), top + (i / 2) * (h + gap), w, h };
+}
+
+/* a page: n rows, then Back */
+static SDL_Rect set_row(int scr, int n, int i) {
+	int px = (int) ui_px(scr);
+	SDL_Rect p = set_panel(scr);
+	int top = p.y + px * 20, gap = px * 2;
+	int noteH = px * 12, backH = px * 14;
+	int avail = p.y + p.h - px * 6 - backH - noteH - top;
+	int h = SDL_min(px * 16, avail / SDL_max(1, n) - gap);
+	if (i == n) return (SDL_Rect) { p.x + (p.w - px * 60) / 2, p.y + p.h - px * 5 - backH, px * 60, backH };
+	return (SDL_Rect) { p.x + px * 6, top + i * (h + gap), p.w - px * 12, h };
+}
+
+static void draw_set_home(int scr, int sel) {
+	int px = (int) ui_px(scr);
+	SDL_Rect p = set_panel(scr);
+	ui_dim(scr, 200);
+	ui_fill_round(scr, p, C_HEADER, px * 4);
+	ui_label(scr, p.x + p.w / 2, p.y + px * 12, px * 6, "Settings", C_TEXT);
+	for (int i = 0; i < 8; ++i) {
+		SDL_Rect t = set_tile(scr, i);
+		if (i == sel) ui_fill_round(scr, (SDL_Rect) { t.x - px, t.y - px, t.w + px * 2, t.h + px * 2 }, C_EDGE, px * 4);
+		ui_fill_round(scr, t, i == sel ? C_SEL : C_ROW, px * 3);
+		const char* name = i < SP_SYSTEM ? setPages[i].name : i == SP_SYSTEM ? "System" : "Back";
+		const char* sub = i < SP_SYSTEM ? setPages[i].sub : i == SP_SYSTEM ? "Buttons, updates, accounts" : NULL;
+#ifdef __ANDROID__
+		if (i == SP_SYSTEM) sub = "Folders, accounts, updates";
+#endif
+		ui_label(scr, t.x + t.w / 2, t.y + t.h / 2 - (sub ? px * 4 : 0), px * 6, name, C_TEXT);
+		if (sub) ui_font_text(scr, TF_BODY, t.x + t.w / 2, t.y + t.h / 2 + px * 7, px * 4, sub, C_DIM, 0);
+	}
+}
+
+static void draw_set_page(const Config* cfg, int scr, int page, int sel) {
+	int px = (int) ui_px(scr);
+	SDL_Rect p = set_panel(scr);
+	const Setting* rows[8];
+	int n = page_settings(page, rows);
+	ui_dim(scr, 200);
+	ui_fill_round(scr, p, C_HEADER, px * 4);
+	ui_label(scr, p.x + p.w / 2, p.y + px * 11, px * 6, setPages[page].name, C_TEXT);
+	for (int i = 0; i <= n; ++i) {
+		SDL_Rect r = set_row(scr, n, i);
+		if (i == sel) ui_fill_round(scr, (SDL_Rect) { r.x - px, r.y - px, r.w + px * 2, r.h + px * 2 }, C_EDGE, px * 4);
+		ui_fill_round(scr, r, i == sel ? C_SEL : C_ROW, px * 3);
+		if (i == n) {
+			ui_label(scr, r.x + r.w / 2, r.y + r.h / 2, px * 5, "Back", C_TEXT);
+			continue;
+		}
+		char val[48];
+		config_setting_text(cfg, rows[i], val, sizeof(val));
+		ui_font_text(scr, TF_BOLD, r.x + px * 6, r.y + r.h / 2, px * 5, rows[i]->label, C_TEXT, -1);
+		int ax = r.x + r.w - px * 6;
+		ui_font_text(scr, TF_BOLD, ax, r.y + r.h / 2, px * 6, "›", i == sel ? C_TEXT : C_DIM, 1);
+		int vw = ui_font_width(TF_BOLD, px * 5, val);
+		ui_font_text(scr, TF_BOLD, ax - px * 8, r.y + r.h / 2, px * 5, val, C_GOLD, 1);
+		ui_font_text(scr, TF_BOLD, ax - px * 16 - vw, r.y + r.h / 2, px * 6, "‹", i == sel ? C_TEXT : C_DIM, 1);
+	}
+	if (sel < n && rows[sel]->note) {
+		SDL_Rect last = set_row(scr, n, n - 1);
+		ui_font_wrap(scr, TF_BODY, p.x + px * 8, last.y + last.h + px * 3, p.w - px * 16, px * 4, rows[sel]->note, C_DIM);
+	}
+}
+
+/* a setting changed in the menu: kept in prefs.cfg (for all games) and put to use */
+static void setting_changed(Config* cfg, const Setting* st) {
+	char lines[2][2][24];
+	const char* kv[2][2];
+	int n = config_setting_lines(cfg, st, lines);
+	for (int i = 0; i < n; ++i) kv[i][0] = lines[i][0], kv[i][1] = lines[i][1];
+	char path[1100];
+	mkdirs(cfg->stateDir);
+	snprintf(path, sizeof(path), "%s/prefs.cfg", cfg->stateDir);
+	config_kv_update(path, "# written by gba-ds's menus; overrides gba-ds.cfg", n, kv);
+	if (!strcmp(st->key, "performance")) clocks_set(cfg->perfMax);
+	if (!strcmp(st->key, "show_all") || !strcmp(st->key, "name_tags")) setRescan = true;
+	if (!strcmp(st->key, "screen_match") || !strcmp(st->key, "screen_placement")) ui_layout_pictures();
+	fprintf(stderr, "setting: %s = %s (all games)\n", lines[0][0], lines[0][1]);
+}
+
+/* one frame of input for the pages; false when Settings should close */
+static bool settings_pages_input(Config* cfg, int ls) {
+	const Setting* rows[8];
+	int n = setPage >= 0 && setPage < SP_SYSTEM ? page_settings(setPage, rows) : 0;
+	bool back = btn_pressed(B_B) || btn_pressed(B_SELECT) || btn_released(B_HOME);
+	if (setPage == SP_HOME) {
+		if (btn_pressed(B_DOWN)) setSel = (setSel + 2) % 8;
+		if (btn_pressed(B_UP)) setSel = (setSel + 6) % 8;
+		if (btn_pressed(B_RIGHT) || btn_pressed(B_LEFT)) setSel ^= 1;
+		if (btn_pressed(B_A) || btn_pressed(B_START)) {
+			if (setSel == 7) return false;
+			setPage = setSel;
+			setSel = 0;
+			if (setPage == SP_SYSTEM) settings_rows(cfg);
+		}
+		if (back) return false;
+	} else {
+		int dir = 0;
+		if (btn_pressed(B_DOWN)) setSel = (setSel + 1) % (n + 1);
+		if (btn_pressed(B_UP)) setSel = (setSel + n) % (n + 1);
+		if (btn_pressed(B_LEFT)) dir = -1;
+		if (btn_pressed(B_RIGHT) || btn_pressed(B_A) || btn_pressed(B_START)) dir = 1;
+		if (setSel == n) {
+			if (dir && !btn_pressed(B_LEFT) && !btn_pressed(B_RIGHT)) setPage = SP_HOME, setSel = 0;
+		} else if (dir && config_setting_step(cfg, rows[setSel], dir)) {
+			setting_changed(cfg, rows[setSel]);
+		}
+		if (back) setSel = setPage, setPage = SP_HOME;
+	}
+	Pointer pt;
+	while (ui_next_pointer(&pt)) {
+		if (pt.screen != ls || pt.kind != 1) continue;
+		SDL_Point q = { pt.x, pt.y };
+		SDL_Rect panel = set_panel(ls);
+		if (setPage == SP_HOME) {
+			int hit = -1;
+			for (int i = 0; i < 8; ++i) {
+				SDL_Rect t = set_tile(ls, i);
+				if (SDL_PointInRect(&q, &t)) hit = i;
+			}
+			if (hit == 7 || (hit < 0 && !SDL_PointInRect(&q, &panel))) return false;
+			if (hit >= 0) {
+				setPage = hit;
+				setSel = 0;
+				if (setPage == SP_SYSTEM) settings_rows(cfg);
+			}
+			continue;
+		}
+		SDL_Rect b = set_row(ls, n, n);
+		if (SDL_PointInRect(&q, &b)) {
+			setSel = setPage, setPage = SP_HOME;
+			continue;
+		}
+		if (!SDL_PointInRect(&q, &panel)) {
+			setSel = setPage, setPage = SP_HOME;
+			continue;
+		}
+		for (int i = 0; i < n; ++i) {
+			SDL_Rect r = set_row(ls, n, i);
+			if (!SDL_PointInRect(&q, &r)) continue;
+			setSel = i;
+			/* the left part of the value steps back, the rest forward */
+			int d = q.x > r.x + r.w * 62 / 100 && q.x < r.x + r.w * 75 / 100 ? -1 : 1;
+			if (config_setting_step(cfg, rows[i], d)) setting_changed(cfg, rows[i]);
+		}
+	}
+	return true;
 }
 
 #ifdef __ANDROID__
@@ -1986,6 +2182,29 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 			continue;
 		}
 #endif
+		if (settingsOpen && setPage != SP_SYSTEM) {
+			if (!settings_pages_input(cfg, ls)) {
+				settingsOpen = false;
+				if (setRescan) {
+					setRescan = false;
+					free_thumbs();
+					free_tiles();
+					scan(cfg);
+					thumbFor = -2;
+					sel = nGames ? 0 : -1;
+					scroll = 0;
+				}
+			}
+			pressed = false;
+			ui_clear();
+			draw_list(cfg, ls, sel, scroll);
+			if (settingsOpen && setPage == SP_HOME) draw_set_home(ls, setSel);
+			else if (settingsOpen && setPage < SP_SYSTEM) draw_set_page(cfg, ls, setPage, setSel);
+			if (nScreens > 1) draw_preview(cfg, ui_other_screen(), sel);
+			ui_present();
+			SDL_Delay(15);
+			continue;
+		}
 		if (settingsOpen) {
 			if (settings_poll(cfg)) {
 				/* a new ROM folder: list it */
@@ -2006,9 +2225,9 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 			}
 			if (btn_pressed(B_A) || btn_pressed(B_START)) {
 				if (settingsSel < nRows) settings_activate(cfg, settingsSel);
-				else settingsOpen = false;
+				else setPage = SP_HOME, setSel = SP_SYSTEM;
 			}
-			if (btn_pressed(B_B) || btn_pressed(B_SELECT) || btn_released(B_HOME)) settingsOpen = false;
+			if (btn_pressed(B_B) || btn_pressed(B_SELECT) || btn_released(B_HOME)) setPage = SP_HOME, setSel = SP_SYSTEM;
 			Pointer p;
 			while (ui_next_pointer(&p)) {
 				if (p.screen != ls || p.kind != 1) continue;
@@ -2019,7 +2238,7 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 					if (SDL_PointInRect(&pt, &sg.row[i])) hit = i;
 				}
 				if (hit >= 0) settingsSel = hit, settings_activate(cfg, hit);
-				else if (SDL_PointInRect(&pt, &sg.back) || !SDL_PointInRect(&pt, &sg.panel)) settingsSel = nRows, settingsOpen = false;
+				else if (SDL_PointInRect(&pt, &sg.back) || !SDL_PointInRect(&pt, &sg.panel)) settingsSel = nRows, setPage = SP_HOME, setSel = SP_SYSTEM;
 			}
 			pressed = false;
 			ui_clear();
@@ -2037,7 +2256,7 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 		}
 		if (btn_pressed(B_SELECT)) {
 			settingsOpen = true;
-			settings_rows(cfg);
+			setPage = SP_HOME, setSel = 0;
 			settingsSel = 0;
 			settingsMsg[0] = 0;
 			continue;
@@ -2080,7 +2299,7 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 				}
 				if (SDL_PointInRect(&pt, &sb)) {
 					settingsOpen = true;
-					settings_rows(cfg);
+					setPage = SP_HOME, setSel = 0;
 					settingsSel = 0;
 					settingsMsg[0] = 0;
 					pressed = false;

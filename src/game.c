@@ -3300,11 +3300,11 @@ static void ovl_close_all(void) {
  * with a layout picker (profile `controls`), the SNES / four-button layout
  * decides the face buttons wherever it's in use. */
 enum { FB_RIGHT, FB_BOTTOM, FB_TOP, FB_LEFT, FB_COUNT };
-enum { FG_A, FG_B, FG_L, FG_R, FG_NONE, FG_COUNT };
+enum { FG_A, FG_B, FG_L, FG_R, FG_START, FG_SELECT, FG_TURBO_A, FG_TURBO_B, FG_NONE, FG_COUNT };
 static const char* const fbNames[FB_COUNT] = { "right", "bottom", "top", "left" };
 static const char* const fbLabels[FB_COUNT] = { "A (Right)", "B (Bottom)", "X (Top)", "Y (Left)" };
-static const char* const fgNames[FG_COUNT] = { "a", "b", "l", "r", "none" };
-static const char* const fgLabels[FG_COUNT] = { "GBA A", "GBA B", "GBA L", "GBA R", "Nothing" };
+static const char* const fgNames[FG_COUNT] = { "a", "b", "l", "r", "start", "select", "turbo_a", "turbo_b", "none" };
+static const char* const fgLabels[FG_COUNT] = { "GBA A", "GBA B", "GBA L", "GBA R", "Start", "Select", "Turbo A", "Turbo B", "Nothing" };
 static int fbMap[FB_COUNT]; /* each face button's FG_ */
 static bool fbSet;          /* the player's own (else ab_swap's) */
 static char fbPath[1400];
@@ -3316,6 +3316,10 @@ static void fb_default(void) {
 	fbMap[FB_RIGHT] = cfg->abSwap ? FG_B : FG_A;
 	fbMap[FB_BOTTOM] = cfg->abSwap ? FG_A : FG_B;
 	fbMap[FB_TOP] = fbMap[FB_LEFT] = FG_NONE;
+	/* button_right ... button_left (Settings > Controls, or gba-ds.cfg): for all games */
+	for (int i = 0; i < FB_COUNT; ++i)
+		for (int j = 0; j < FG_COUNT && cfg->faceBtn[i][0]; ++j)
+			if (!strcmp(cfg->faceBtn[i], fgNames[j])) fbMap[i] = j;
 	fbSet = false;
 }
 
@@ -3359,12 +3363,15 @@ static void fb_save(void) {
 
 /* the GBA keys the face buttons give the game (the GBA layout) */
 static uint32_t fb_keys(void) {
-	static const uint32_t key[FG_COUNT] = { K_A, K_B, K_L, K_R, 0 };
+	static const uint32_t key[FG_COUNT] = { K_A, K_B, K_L, K_R, K_START, K_SELECT, K_A, K_B, 0 };
+	/* Turbo A / B (#55): the key goes down and up turbo_rate times a second (60 frames a second) */
+	int period = SDL_clamp(60 / SDL_max(1, cfg->turboRate), 2, 12);
+	bool turboOn = (frameCount % (uint64_t) period) < (uint64_t) (period / 2);
 	/* (ui.c puts the bottom button on B_A with ab_swap: by position again) */
 	int phys[FB_COUNT] = { cfg->abSwap ? B_B : B_A, cfg->abSwap ? B_A : B_B, B_X, B_Y };
 	uint32_t keys = 0;
 	for (int i = 0; i < FB_COUNT; ++i)
-		if (HELD(phys[i])) keys |= key[fbMap[i]];
+		if (HELD(phys[i]) && (fbMap[i] != FG_TURBO_A && fbMap[i] != FG_TURBO_B ? true : turboOn)) keys |= key[fbMap[i]];
 	return keys;
 }
 
@@ -6466,24 +6473,40 @@ static void save_prefs(void) {
 }
 
 void prefs_save(Config* cfg) {
+	/* the pause menu's settings, with every other line kept (the ones the game
+	 * list's Settings wrote: config_kv_update) */
 	char prefs[1100];
 	snprintf(prefs, sizeof(prefs), "%s/prefs.cfg", cfg->stateDir);
-	FILE* f = fopen(prefs, "w");
-	if (f) {
-		fprintf(f, "# written by gba-ds's pause menu; overrides gba-ds.cfg\n");
-		fprintf(f, "swap = %d\nscale = %s\nmap_scale = %s\nshader = %s\ncolor_correction = %d\nlcd_ghosting = %d\noverlays = %s\nframe_buffer = %d\nmatch_display = %d\nrewind = %d\nfast_forward = %d\nff_speed = %s\nsave_on_quit = %d\nauto_load = %d\nquick_bar_pinned = %d\n",
-		        cfg->swap ? 1 : 0, cfg->scale, cfg->mapScale, shaderNames[cfg->shader], cfg->colorCorrection ? 1 : 0, cfg->ghosting ? 1 : 0,
-		        (const char* const[]) { "off", "generated", "custom" }[SDL_clamp(cfg->overlayMode, 0, 2)],
-		        cfg->frameBuffer ? 1 : 0, cfg->matchDisplay ? 1 : 0, cfg->rewind ? 1 : 0, cfg->fastForward ? 1 : 0, ff_speed_name(cfg),
-		        cfg->autoSave ? 1 : 0, cfg->autoLoad ? 1 : 0, cfg->barPinned ? 1 : 0);
-		fprintf(f, "screen_match = %s\nscreen_placement = %s\n", cfg->screenMatch, cfg->screenPlace);
-		fprintf(f, "custom_logos = %s\n", cfg->customLogos == CL_OFF ? "off" : cfg->customLogos == CL_FULL ? "full" : "pixelated");
-		fprintf(f, "overlay_screens = %s\nbezel_logo = %d\nbezel_inner = %s\nbezel_outer = %s\n",
-		        cfg->overlays == OVL_TOP ? "top" : cfg->overlays == OVL_BOTTOM ? "bottom" : "both", cfg->bezelLogo, cfg->bezelInner, cfg->bezelOuter);
-		fprintf(f, "shader_last = %s\n", shaderNames[cfg->shaderLast > SH_OFF && cfg->shaderLast < SH_COUNT ? cfg->shaderLast : SH_GRID]);
-		fprintf(f, "performance = %s\n", cfg->perfMax ? "max" : "system");
-		fclose(f);
-	}
+	char v[32][24];
+	const char* kv[32][2];
+	int n = 0;
+#define KV(k, ...) (snprintf(v[n], sizeof(v[n]), __VA_ARGS__), kv[n][0] = (k), kv[n][1] = v[n], ++n)
+	KV("swap", "%d", cfg->swap ? 1 : 0);
+	kv[n][0] = "scale", kv[n++][1] = cfg->scale;
+	kv[n][0] = "map_scale", kv[n++][1] = cfg->mapScale;
+	kv[n][0] = "shader", kv[n++][1] = shaderNames[cfg->shader];
+	KV("color_correction", "%d", cfg->colorCorrection ? 1 : 0);
+	KV("lcd_ghosting", "%d", cfg->ghosting ? 1 : 0);
+	kv[n][0] = "overlays", kv[n++][1] = (const char* const[]) { "off", "generated", "custom" }[SDL_clamp(cfg->overlayMode, 0, 2)];
+	KV("frame_buffer", "%d", cfg->frameBuffer ? 1 : 0);
+	KV("match_display", "%d", cfg->matchDisplay ? 1 : 0);
+	KV("rewind", "%d", cfg->rewind ? 1 : 0);
+	KV("fast_forward", "%d", cfg->fastForward ? 1 : 0);
+	kv[n][0] = "ff_speed", kv[n++][1] = ff_speed_name(cfg);
+	KV("save_on_quit", "%d", cfg->autoSave ? 1 : 0);
+	KV("auto_load", "%d", cfg->autoLoad ? 1 : 0);
+	KV("quick_bar_pinned", "%d", cfg->barPinned ? 1 : 0);
+	kv[n][0] = "screen_match", kv[n++][1] = cfg->screenMatch;
+	kv[n][0] = "screen_placement", kv[n++][1] = cfg->screenPlace;
+	kv[n][0] = "custom_logos", kv[n++][1] = cfg->customLogos == CL_OFF ? "off" : cfg->customLogos == CL_FULL ? "full" : "pixelated";
+	kv[n][0] = "overlay_screens", kv[n++][1] = cfg->overlays == OVL_TOP ? "top" : cfg->overlays == OVL_BOTTOM ? "bottom" : "both";
+	KV("bezel_logo", "%d", cfg->bezelLogo ? 1 : 0);
+	kv[n][0] = "bezel_inner", kv[n++][1] = cfg->bezelInner;
+	kv[n][0] = "bezel_outer", kv[n++][1] = cfg->bezelOuter;
+	kv[n][0] = "shader_last", kv[n++][1] = shaderNames[cfg->shaderLast > SH_OFF && cfg->shaderLast < SH_COUNT ? cfg->shaderLast : SH_GRID];
+	kv[n][0] = "performance", kv[n++][1] = cfg->perfMax ? "max" : "system";
+#undef KV
+	config_kv_update(prefs, "# written by gba-ds's menus; overrides gba-ds.cfg", n, kv);
 }
 
 static bool gameTexAll = true; /* upload the game's frame to every view next time */
@@ -7357,6 +7380,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		ui_layout_pictures();
 	}
 	enum GameExit x = game_run_inner(c, rom, fromLibrary);
+	ui_stick_dpad(true);
 	if (n) {
 		const unsigned char *b = (const unsigned char*) &before, *a = (const unsigned char*) &after;
 		unsigned char* cur = (unsigned char*) c;
@@ -7628,6 +7652,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			}
 			lastLoop = SDL_GetTicks();
 		}
+		ui_stick_dpad(cfg->leftStickDpad || menuOpen || barShown > 0); /* (#57: off for the game only) */
 		if (!ui_events()) {
 			exitTo = GAME_QUIT_APP;
 			break;

@@ -2,6 +2,12 @@
 
 ## v1.5.4 (not yet released)
 
+### New
+- **A new Settings in the game list** (#54, #57 and more): a page of categories (Games, Display, Screens, Controls, Speed and sound, Second screen, and System with what Settings had before), each a short page of rows with the value between arrows: touch an arrow to step, touch the row to go on to the next choice, or use the D-pad and A. Nearly everything that `gba-ds.cfg` could set is here now, kept in `states/prefs.cfg`, for all games. **Games shown** switches between supported games only and every GBA game. Map refresh, map animations, Show FPS and the logo when blank can be changed here too (before, only `gba-ds.cfg` could).
+- **Left stick as D-pad: on or off** (#57), in Settings > Controls (`left_stick_dpad`). Off, the left stick does nothing in games; it still moves around the menus.
+- **Turbo A, Turbo B, Start and Select on the face buttons** (#55): Extras > Buttons in the pause menu has them as choices for each face button, and Settings > Controls sets them for all games (`button_right`, `button_bottom`, `button_top`, `button_left`). Turbo presses 10, 15 or 20 times a second (`turbo_rate`, Turbo speed).
+- **A game's own settings** (#53), in a file of its own, `states/<game>.cfg` (the ROM's file name without its extension): the lines of `gba-ds.cfg` that make sense for one game, such as `scale`, `shader`, `swap` or `screen_placement`, count for that game only. Menus for choosing them in the app, with A for this game and Y for all, come in a later version.
+
 ### Changes
 - **Baldur's Gate: Dark Alliance's logo is the lettering alone**: the second screen used to show the title's lettering on a box of the parchment map behind it. Now it shows only the lettering, Forgotten Realms on its plaque, Baldur's Gate and Dark Alliance with its red crescent, cut out along the shape of the game's logo artwork. The ™ marks are left out. The logo is made again the first time you start the game after updating.
 
