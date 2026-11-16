@@ -7269,6 +7269,8 @@ static void setting_applied(const Setting* st) {
 		ui_layout_pictures();
 		overlays_reload(); /* (overlays can be made for each: overlay files) */
 		gameTexAll = true;
+	} else if (!strcmp(k, "brightness_top") || !strcmp(k, "brightness_bottom")) {
+		ui_brightness(cfg->brightTop, cfg->brightBottom);
 	} else if (!strcmp(k, "match_display")) {
 		pacedFallback = false;
 		pacing_update();
@@ -7749,6 +7751,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		if (config_key_per_game(st->key)) config_setting_copy(c, &uniCfg, st);
 	}
 	ui_layout_pictures();
+	ui_brightness(c->brightTop, c->brightBottom);
 	return x;
 }
 
@@ -7757,6 +7760,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	debug = getenv("GBADS_DEBUG") != NULL;
 	romPath = rom, lastLoop = 0;
 	game_paths(cfg, rom, &gp);
+	ui_brightness(cfg->brightTop, cfg->brightBottom); /* (this game's own, if it has them) */
 	game_keys_reload();
 	patches_setup(rom); /* GEN-9: the patches folder, what's on, and the plan every core opens the ROM with */
 	profile_set_rom(NULL, 0);
@@ -7842,6 +7846,8 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	ROW(PG_SCREENS, "overlays");
 	ROW(PG_SCREENS, "overlay_screens");
 	ROW(PG_SCREENS, "@overlay");
+	ROW(PG_SCREENS, "brightness_top");
+	if (nScreens >= 2) ROW(PG_SCREENS, "brightness_bottom");
 	ROW(PG_SCREENS, "show_fps");
 	ROW(PG_CONTROLS, "left_stick_dpad");
 	ROW(PG_CONTROLS, "ab_swap");

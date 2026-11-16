@@ -136,9 +136,14 @@ second line, always visible on the four settings tabs.
   shapes, placement, swap, overlays) is all per game.
 - **#54** `show_all` is a row in Games, and the game list gets a
   **Supported / All** switch beside the list / grid button: the list shows
-  one or the other (the first is today's), remembered in `library.cfg`. Games
-  without second-screen support get the logo-less single-screen play they
+  one or the other (the first is today's), kept as `show_all` in `prefs.cfg`.
+  Games without second-screen support get the logo-less single-screen play they
   have now. (`show_all = 1` in `gba-ds.cfg` keeps meaning All.)
+- **#56** `brightness_top` / `brightness_bottom` (20-100, steps of 10), rows
+  in Screens (both menus; per game or all games). `ui_brightness` puts a
+  black layer over each screen at the end of the frame (`ui_present`, once per
+  cleared frame, after screenshots), so it's never the system's brightness and
+  never brighter than it.
 - **#55** the four face buttons gain choices: GBA A, B, L, R, Start,
   Select, **Turbo A**, **Turbo B**, Nothing. Turbo repeats at `turbo_rate`
   presses a second (Slow 10, Medium 15, Fast 20, default Medium: a 60 Hz

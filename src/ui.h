@@ -156,6 +156,7 @@ void ui_fill_round(int screen, SDL_Rect local, SDL_Color c, int radius);
 enum { KEY_PLAIN, KEY_SEL, KEY_LIT };
 void ui_key(int screen, SDL_Rect local, int radius, int state);
 void ui_theme(int light);
+void ui_brightness(int top, int bottom); /* each screen's brightness, 20..100: dims this app's picture only */
 bool ui_theme_light(void);
 SDL_Color ui_key_ink(void);          /* text and icons on a key */
 SDL_Color ui_key_mid(int state);    /* about the key's colour (for cut-outs) */

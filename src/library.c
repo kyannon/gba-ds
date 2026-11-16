@@ -854,11 +854,19 @@ static SDL_Rect settings_button(int scr) {
 	return (SDL_Rect) { r.w - w - px * 4, (px * 20 - h) / 2, w, h };
 }
 
-/* square button left of Settings: switches between list and grid */
-static SDL_Rect view_button(int scr) {
+/* left of Settings: "Supported" (games with a second screen) or "All" (every GBA game) */
+static SDL_Rect games_button(int scr) {
 	SDL_Rect sb = settings_button(scr);
 	float px = ui_px(scr);
-	return (SDL_Rect) { sb.x - px * 3 - sb.h, sb.y, sb.h, sb.h };
+	int w = px * 38;
+	return (SDL_Rect) { sb.x - px * 3 - w, sb.y, w, sb.h };
+}
+
+/* square button left of that: switches between list and grid */
+static SDL_Rect view_button(int scr) {
+	SDL_Rect gb = games_button(scr);
+	float px = ui_px(scr);
+	return (SDL_Rect) { gb.x - px * 3 - gb.h, gb.y, gb.h, gb.h };
 }
 
 /* square button left of the list / grid one: the dark or light theme */
@@ -888,6 +896,13 @@ static void draw_theme_button(int scr) {
 			ui_fill_round(scr, (SDL_Rect) { cx + dx[i] * k - d / 2, cy + dy[i] * k - d / 2, d, d }, ink, d / 2);
 		}
 	}
+}
+
+static void draw_games_button(const Config* cfg, int scr) {
+	SDL_Rect b = games_button(scr);
+	float px = ui_px(scr);
+	ui_key(scr, b, px * 3, KEY_PLAIN);
+	ui_label(scr, b.x + b.w / 2, b.y + b.h / 2, px * 5, cfg->showAll ? "All" : "Supported", C_TEXT);
 }
 
 /* Four squares (in the list: switch to the grid) or three lines (in the
@@ -1060,6 +1075,7 @@ static void draw_list(Config* cfg, int scr, int sel, int scroll) {
 	}
 	draw_theme_button(scr);
 	draw_view_button(scr);
+	draw_games_button(cfg, scr);
 	ui_key(scr, sb, px * 3, KEY_PLAIN);
 	ui_label(scr, sb.x + sb.w / 2, sb.y + sb.h / 2, px * 5, "Settings", C_TEXT);
 }
@@ -1177,7 +1193,7 @@ typedef struct {
 static const SetPage setPages[SP_SYSTEM] = {
 	{ "Games", "Which games, names, saving", { "show_all", "name_tags", "theme", "save_on_quit", "auto_load", "custom_logos", "quick_bar_hint" } },
 	{ "Display", "Scale, shader, colors", { "scale", "map_scale", "shader", "lcd_strength", "color_correction", "lcd_ghosting", "smooth" } },
-	{ "Screens", "Placement, overlays", { "swap", "screen_match", "screen_placement", "overlays", "overlay_screens", "bezel_logo", "show_fps" } },
+	{ "Screens", "Placement, overlays", { "swap", "screen_match", "screen_placement", "overlays", "overlay_screens", "bezel_logo", "brightness_top", "brightness_bottom", "show_fps" } },
 	{ "Controls", "Stick, buttons, hotkeys", { "left_stick_dpad", "ab_swap", "button_right", "button_bottom", "button_top", "button_left", "turbo_rate", "@map", "@hotkeys" } },
 	{ "Speed and sound", "Rewind, fast forward", { "match_display", "frame_buffer", "rewind", "rewind_seconds", "fast_forward", "audio_latency", "performance" } },
 	{ "Second screen", "The map and the logo", { "map", "map_interval", "map_crop", "map_animations", "show_logo", "pinball_live" } },
@@ -1303,6 +1319,7 @@ static void setting_changed(Config* cfg, const Setting* st) {
 	config_kv_update(path, "# written by gba-ds's menus; overrides gba-ds.cfg", n, kv);
 	if (!strcmp(st->key, "performance")) clocks_set(cfg->perfMax);
 	if (!strcmp(st->key, "theme")) ui_theme(cfg->lightTheme);
+	if (!strncmp(st->key, "brightness_", 11)) ui_brightness(cfg->brightTop, cfg->brightBottom);
 	if (!strcmp(st->key, "show_all") || !strcmp(st->key, "name_tags")) setRescan = true;
 	if (!strcmp(st->key, "screen_match") || !strcmp(st->key, "screen_placement")) ui_layout_pictures();
 	fprintf(stderr, "setting: %s = %s (all games)\n", lines[0][0], lines[0][1]);
@@ -2300,8 +2317,22 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 		while (ui_next_pointer(&p)) {
 			if (p.screen != ls) continue;
 			if (p.kind == 1) {
-				SDL_Rect sb = settings_button(ls), vb = view_button(ls), tb = theme_button(ls);
+				SDL_Rect sb = settings_button(ls), vb = view_button(ls), tb = theme_button(ls), gb = games_button(ls);
 				SDL_Point pt = { p.x, p.y };
+				if (SDL_PointInRect(&pt, &gb)) {
+					/* Supported / All: kept for all games (show_all), the list made again */
+					cfg->showAll = !cfg->showAll;
+					setting_changed(cfg, config_setting("show_all"));
+					setRescan = false;
+					free_thumbs();
+					free_tiles();
+					scan(cfg);
+					thumbFor = -2;
+					sel = nGames ? 0 : -1;
+					scroll = 0;
+					pressed = false;
+					break;
+				}
 				if (SDL_PointInRect(&pt, &tb)) {
 					toggle_theme(cfg);
 					pressed = false;
