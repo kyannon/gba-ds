@@ -40,6 +40,12 @@ Pages turn every 5 s (Fire Emblem's precedent): Party, Map. The map is kept betw
 | Town Map in the 2nd Key Items row (Bicycle first) | not tried | ok | n/a | n/a | n/a |
 | in the app: heal / poison tick updates the bottom | ok | ok | ok | ok | ok |
 
+### Every release (43 ROMs: all that No-Intro lists for the five games' USA/Europe, Japanese, German, French, Italian and Spanish releases, minus the Japanese Rev 1s, the Box and debug dumps and the Switch dumps; fixtures in `gba-ds-tests`)
+
+Each ROM got a new-game state (its intro scripted until the START menu opens), a poked party and flags (the party and save block 1 addresses found by `tools/romxref.py` from the English ROM: they move in several releases, e.g. Ruby / Sapphire's party is 0x03004370 in German, French, Italian and Spanish, 0x03004290 in Japanese), and the capture run: **43 of 43 captured both pages (Party and Map), and the pictures were looked at**, in every language: Ruby, Sapphire and Emerald's Pokénav map, FireRed and LeafGreen's Town Map found in the Key Items list, and the Japanese games' narrower menus and 8 MB Ruby / Sapphire included.
+
+One thing it found: in German, French, Italian, Spanish and Japanese the Town Map's move prompt is longer than "+MOVE", and the first fill left its last letters on the blue strip; the fill is wider now (checked on all 14 FireRed / LeafGreen ROMs). Only the "normal" case was run per language (not the cursor / no-Pokédex / one-Pokémon variants), on poked states, in the harness (not the app), and not on real saves. Scripts: `tools/pokemon/matrix/`.
+
 Gen 3's save blocks are allocated differently per game: Emerald moves them around in RAM (its pointer is read from 0x03005D8C), which only mattered for making test states; the capture itself uses no addresses except the party scan.
 
 Cost: a capture is ~250 frames for the Party alone (about 0.2 s on this machine's core); the map adds ~220 (Ruby/Sapphire/Emerald) or ~600 per Key Items row tried (FireRed/LeafGreen: the first time only, then the row is remembered). START does nothing in battles, conversations, menus: "map button did nothing", the last picture stays (GEN-3).
@@ -67,7 +73,7 @@ What carries over: the START menu structure, the party screen and the maps (hack
 
 - (Answered: Party and Map only, no Trainer Card.)
 - Party half the time (as built) or the map only when the player asks for it somehow? Philosophy 5 rules out touch, so a timer is the only switch there is.
-- The Japanese, German, French, Italian and Spanish releases are left out of `.codes` (not measured; the START menu's order is the same but the Pokénav/Bag screens may differ). Say if any matter.
+- (Answered: all releases covered; now in `.codes`, all 43 pass the capture. The Europe English "P" codes are gone: No-Intro has Europe's English release under the USA's code.)
 
 ## Tools made
 

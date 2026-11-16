@@ -6107,7 +6107,7 @@ static const PkFam pkFrlg = {
 	.bag = { { 0x3340, 0x1F00, 0x1E0D, 0x0000, 0x0000 } },
 	.map = { { 0x3B40, 0x1E02, 0x0F07, 0x0000, 0x1F0C } }, /* the Town Map */
 	.partyClean = 130, .partyFrom = 182, .menuBottom = 112,
-	.mapClean = { { 140, 178, 0, 14, 100 },     /* "+MOVE" on the blue strip */
+	.mapClean = { { 130, 205, 0, 14, 100 },     /* the move prompt on the blue strip (longer in other languages) */
 	              { 194, 214, 131, 149, 192 } }, /* the exit button */
 };
 static const PkFam pkRs = {
@@ -6405,9 +6405,15 @@ static const MapProfile profiles[] = {
 		.crop_w = GBA_W, \
 		.crop_h = GBA_H, \
 	},
-	PK_PROFILE("Pokemon FireRed / LeafGreen (preliminary)", "BPRE", "BPRP", "BPGE", "BPGP")
-	PK_PROFILE("Pokemon Ruby / Sapphire (preliminary)", "AXVE", "AXVP", "AXPE", "AXPP")
-	PK_PROFILE("Pokemon Emerald (preliminary)", "BPEE", "BPEP")
+	/* every release No-Intro lists (E = USA and Europe, J, D, F, I, S); codes[] holds four, so a few entries each */
+	PK_PROFILE("Pokemon FireRed / LeafGreen (preliminary)", "BPRE", "BPGE", "BPRJ", "BPGJ")
+	PK_PROFILE("Pokemon FireRed / LeafGreen (preliminary, German, French)", "BPRD", "BPGD", "BPRF", "BPGF")
+	PK_PROFILE("Pokemon FireRed / LeafGreen (preliminary, Italian, Spanish)", "BPRI", "BPGI", "BPRS", "BPGS")
+	PK_PROFILE("Pokemon Ruby / Sapphire (preliminary)", "AXVE", "AXPE", "AXVJ", "AXPJ")
+	PK_PROFILE("Pokemon Ruby / Sapphire (preliminary, German, French)", "AXVD", "AXPD", "AXVF", "AXPF")
+	PK_PROFILE("Pokemon Ruby / Sapphire (preliminary, Italian, Spanish)", "AXVI", "AXPI", "AXVS", "AXPS")
+	PK_PROFILE("Pokemon Emerald (preliminary)", "BPEE", "BPEJ", "BPED", "BPEF")
+	PK_PROFILE("Pokemon Emerald (preliminary, Italian, Spanish)", "BPEI", "BPES")
 	{
 		.codes = { "A2CE" },
 		.title = "Castlevania: Aria of Sorrow",
