@@ -1,3 +1,5 @@
+# Aria of Sorrow: power-on, through the opening (Mina's talk), then walk right through the first rooms; the map (CVA-1) grows on the bottom screen.
+# SELECT (the profile's open key) shows the game's own map on the game screen for comparison.
 wait 240
 mash START 4 40
 mash A 10 40
@@ -10,43 +12,46 @@ mash A 60 40
 wait 200
 mash A 60 40
 wait 200
+mash A 100 30
+wait 200
 shot a-room
+hold RIGHT 200
+mash A 60 30
 hold RIGHT 300
-wait 120
-shot b-next
-mash START 3 60
-wait 120
-shot c-pause
-press B 6
-wait 60
-press HOME 6
+shot x0
+mash A 20 30
+hold RIGHT 300
 wait 30
-shot d-home
-press HOME 6
-wait 30
-press HOME+R 6
-wait 30
-hold RIGHT 120
-shot e-moved
-press HOME+L 6
-wait 60
-shot f-loaded
-press HOME+Y 6
-wait 20
-shot g-swapped
-press HOME+Y 6
-wait 20
-shot h-back
-# added by the 3DS check: SELECT opens the map (profile's open key); try it in play
-wait 120
+shot w1
 press SELECT 6
 wait 150
-shot i-map
+shot m1
 press SELECT 6
-wait 120
-hold LEFT 200
-wait 120
-shot j-moved-map
+wait 60
+mash A 20 30
+hold RIGHT 300
+wait 30
+shot w2
 press SELECT 6
 wait 150
-shot k-map2
+shot m2
+press SELECT 6
+wait 60
+mash A 20 30
+hold RIGHT 300
+wait 30
+shot w3
+press SELECT 6
+wait 150
+shot m3
+press SELECT 6
+wait 60
+mash A 20 30
+hold RIGHT 300
+wait 30
+shot w4
+press SELECT 6
+wait 150
+shot m4
+press SELECT 6
+wait 60
