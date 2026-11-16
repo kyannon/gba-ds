@@ -295,6 +295,75 @@ restore_governors() {
 	echo "system: $(sed -n 's/^PRETTY_NAME=//p' /etc/os-release 2>/dev/null | tr -d '"') $(sed -n 's/^BUILD_ID=//p' /etc/os-release 2>/dev/null | tr -d '"'), $(uname -r)"
 } >> "$DIR/gba-ds.log" 2>&1
 
+# Services that get in GBA DS's way (issue #50: on one player's RG DS Plus,
+# the RetroDualStation add-on, `rds-controlcenter`, crashed and restarted
+# every ~11 s, adding and removing a virtual keyboard each time; sway held
+# the screen up for half a second at every change). One systemctl call
+# lists every loaded service. Stopped for the run, and started again when
+# GBA DS closes:
+# - a service that keeps restarting (3 restarts or more and still at it)
+#   that the user added (its unit file under /storage);
+# - the ones known to get in the way (SVC_KNOWN), running or not: they also
+#   drive the second screen.
+# ROCKNIX's own services are only logged, restarting or not (stopping them
+# could take hotkeys or the volume keys away). Stops don't wait (--no-block),
+# so start-up isn't held up. What was stopped is in SVC_STATE until it's
+# started again: a run that ended without doing so is caught by the next
+# start, and an update's restart keeps them stopped through the new
+# launch.sh. pause_services = 0 in gba-ds.cfg: logged, nothing stopped.
+SVC_STATE=/tmp/gba-ds-paused-services.state
+SVC_KNOWN=" rds-controlcenter.service "
+services_restore() {
+	[ -s "$SVC_STATE" ] || { rm -f "$SVC_STATE"; return 0; }
+	local u list=
+	while read -r u; do
+		[ -n "$u" ] || continue
+		systemctl reset-failed "$u" 2>/dev/null
+		systemctl start --no-block "$u" 2>/dev/null
+		list="$list $u"
+	done < "$SVC_STATE"
+	rm -f "$SVC_STATE"
+	echo "services started again:$list"
+}
+services_pause() {
+	command -v systemctl >/dev/null || return 0
+	local t0 t1 off= id nr act sub frag stopped= seen=
+	t0=$(date +%s%N 2>/dev/null)
+	case "$(cfgval pause_services)" in 0|off|false|no) off=1 ;; esac
+	[ -f "$SVC_STATE" ] && echo "services still stopped from the last run: $(tr '\n' ' ' < "$SVC_STATE")"
+	while IFS='|' read -r id nr act sub frag; do
+		[ -n "$id" ] || continue
+		local known= looping=
+		case "$SVC_KNOWN" in *" $id "*) known=1 ;; esac
+		[ "${nr:-0}" -ge 3 ] 2>/dev/null && [ "$act" != inactive ] && [ "$act" != failed ] && looping=1
+		[ -n "$known" ] || [ -n "$looping" ] || continue
+		[ "$act" = inactive ] || [ "$act" = failed ] && [ -z "$looping" ] && continue
+		local why
+		if [ -n "$known" ]; then why="known to get in GBA DS's way"; else why="restarting over and over ($nr restarts, $act/$sub)"; fi
+		if [ -n "$off" ]; then
+			seen="$seen; $id: $why (not stopped: pause_services = 0)"
+		elif [ -n "$known" ] || [ "${frag#/storage/}" != "$frag" ]; then
+			if systemctl stop --no-block "$id" 2>/dev/null; then
+				grep -qx "$id" "$SVC_STATE" 2>/dev/null || echo "$id" >> "$SVC_STATE"
+				stopped="$stopped; $id: $why"
+			fi
+		else
+			seen="$seen; $id: $why (not stopped: part of the system)"
+		fi
+	done < <(systemctl show '*.service' -p Id,NRestarts,ActiveState,SubState,FragmentPath 2>/dev/null |
+		awk -F= '/^$/ { if (id != "") print id "|" nr "|" act "|" st "|" frag; id = nr = act = st = frag = ""; next }
+			$1 == "Id" { id = $2 } $1 == "NRestarts" { nr = $2 } $1 == "ActiveState" { act = $2 }
+			$1 == "SubState" { st = $2 } $1 == "FragmentPath" { frag = $2 }
+			END { if (id != "") print id "|" nr "|" act "|" st "|" frag }')
+	t1=$(date +%s%N 2>/dev/null)
+	local ms=
+	[ -n "$t0" ] && [ -n "$t1" ] && [ "${t0%N}" = "$t0" ] && ms=" ($(( (t1 - t0) / 1000000 )) ms)"
+	if [ -n "$stopped" ]; then echo "services stopped for the run$ms:${stopped#;}"; fi
+	if [ -n "$seen" ]; then echo "services that may get in the way$ms:${seen#;}"; fi
+	[ -z "$stopped$seen" ] && echo "services: none in the way$ms"
+}
+{ services_pause; } >> "$DIR/gba-ds.log" 2>&1
+
 # What the system does while GBA DS runs (issue #50: on one player's RG DS
 # Plus, presenting a frame stalled for half a second, in pairs 2.5 s apart
 # about every 10 s, standing still or not): kernel messages, the journal,
@@ -306,8 +375,8 @@ restore_governors() {
 WATCH_PIDS=
 # each line as it comes (head would hold them back), 200 at most
 watch_lines() {
-	local n=0 l
-	while [ $n -lt 200 ] && IFS= read -r l; do
+	local n=0 l max=${3:-200}
+	while [ $n -lt $max ] && IFS= read -r l; do
 		if [ "$2" = uptime ]; then echo "$1$(cut -d' ' -f1 /proc/uptime) s: ${l:0:300}"; else echo "$1${l:0:300}"; fi
 		n=$((n + 1))
 	done
@@ -320,7 +389,7 @@ watch_start() {
 		WATCH_PIDS="$WATCH_PIDS $!"
 	fi
 	if command -v journalctl >/dev/null; then
-		( journalctl -f -n 0 -o short-monotonic --no-pager 2>/dev/null | watch_lines "journal: " ) >> "$L" 2>&1 &
+		( journalctl -f -n 0 -o short-monotonic --no-pager 2>/dev/null | watch_lines "journal: " "" 1000 ) >> "$L" 2>&1 &
 		WATCH_PIDS="$WATCH_PIDS $!"
 	fi
 	if [ -n "$SWAYSOCK" ] && command -v swaymsg >/dev/null; then
@@ -336,7 +405,7 @@ watch_stop() {
 	done
 	WATCH_PIDS=
 }
-trap 'watch_stop; { restore_governors; bash "$DIR/screens.sh" off; } >> "$DIR/gba-ds.log" 2>&1' EXIT
+trap 'watch_stop; { restore_governors; services_restore; bash "$DIR/screens.sh" off; } >> "$DIR/gba-ds.log" 2>&1' EXIT
 trap 'exit 143' TERM INT HUP
 
 watch_start
@@ -348,8 +417,10 @@ watch_stop
 # here, unless this bash doesn't give it, then still a watcher's)
 [ "$!" != "$BEFORE" ] && wait $! 2>/dev/null
 if [ $st = $RELAUNCH ]; then
-	# an update: everything put back as the EXIT trap would, then the new
-	# launch.sh (which sets the screens up again)
+	# an update: everything put back as the EXIT trap would (but the
+	# services: they stay stopped through the new launch.sh, which starts
+	# them when GBA DS closes), then the new launch.sh (which sets the
+	# screens up again)
 	{ restore_governors; bash "$DIR/screens.sh" off; } >> "$DIR/gba-ds.log" 2>&1
 	trap - EXIT
 	GBADS_RELAUNCHED=1 exec bash "$DIR/launch.sh" "$@"
