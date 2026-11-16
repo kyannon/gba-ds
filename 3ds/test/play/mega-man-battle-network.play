@@ -1,59 +1,40 @@
+# New game: through the title and the opening to Lan's room, take the PET from beside the cabinet,
+# then START opens the PET and the second screen shows MegaMan's status (MMBN-2)
 wait 300
-mash START 8 120
+press START 10
+wait 120
+press START 10
 wait 120
 shot title
-mash A 40 120
-wait 200
-shot intro
-mash A 40 120
-wait 200
-shot after
-hold RIGHT 90
-wait 30
+mash A 40 64
+wait 60
+shot room
+hold RIGHT 40
+hold DOWN 40
+hold RIGHT 40
+hold UP 20
+hold RIGHT 20
+hold RIGHT 20
+hold UP 10
+press A 4
+wait 60
+press A 4
+wait 60
+press A 4
+wait 60
+shot gotpet
+mash A 8 60
+mash B 4 30
+wait 60
+shot clear
+press START 8
+wait 90
+shot pet_menu
+press B 8
+wait 90
+shot after_pet
+wait 240
+shot later
+hold DOWN 30
+wait 60
 shot walked
-press START 6
-wait 60
-shot menu
-press B 6
-wait 40
-press HOME 6
-wait 30
-shot home_menu
-press HOME 6
-wait 30
-press HOME+R 6
-wait 30
-hold LEFT 60
-wait 30
-press HOME+L 6
-wait 30
-shot loaded
-press HOME+Y 6
-wait 20
-shot swapped
-press HOME+Y 6
-wait 20
-shot back
-# added: walk about the room, then open the PET (START, held longer) and go to MegaMan's screen (its first item)
-mash B 10 40
-hold DOWN 60
-hold LEFT 60
-hold UP 60
-wait 60
-press START 10
-wait 90
-shot pet
-press A 6
-wait 90
-press A 6
-wait 90
-shot petmenu
-press A 6
-wait 90
-shot megaman
-# added (third try): clear any text box with B, then open the PET again and shoot
-mash B 20 60
-wait 120
-press START 10
-wait 120
-shot pet2
