@@ -6069,7 +6069,7 @@ done:
  * three pages in turn (RS-3), or, on anything else, the mission's Objectives
  * (RS-4); both opened on the hidden copy from the field (A, Status; START,
  * Objectives). Everything the game does goes through a state object: the
- * word at RS_TOP points to the one running, whose first word is its class
+ * word at `top` points to the one running, whose first word is its class
  * (a table of functions, copied to EWRAM: the same address in every
  * battle). The battle's own object keeps its class while the field is up
  * and changes it for the action menu, moving, aiming, the START menu, the
@@ -6078,27 +6078,31 @@ done:
  * object is told by its action list (the halfwords 3, 4 at +0x0C). On it:
  * +0x28 the unit under the field cursor (0xFF none, or one the player
  * can't see), +0x5C the action menu, +0x60 the START menu: a menu's
- * visible items at +0x0C, its cursor at +0x10, its labels from +0x18,
- * 30 bytes each (the START menu's in the order shown; the action menu's
- * are all the actions, of which the unit's are shown, Status always the
- * last but one, before Cancel). Units: 0x48 bytes each from RS_UNITS, the
- * side at +0x1C (0 the player's). Addresses found with the harness
+ * visible items at +0x0C, its cursor at +0x10 (START's: End Turn, Quit
+ * Mission, Save Game, Options, Objectives, then Cancel in the story; the
+ * action menu's Status always the last but one, before Cancel). Units:
+ * 0x48 bytes each from `units`, the side at +0x1C (0 the player's).
+ * Europe's release is the same game, its code and data moved (the classes
+ * by 0x8E0-0x960, the variables by 0x960 or so) and its menus' labels
+ * longer and in five languages, so nothing is looked up by its text.
+ * Addresses found with the harness and tools/romxref.py
  * (docs/games/rebelstar-tactical-command.md, "Finding the game's state"). */
-#define RS_TOP 0x02013368
-#define RS_CURSOR 0x02002008 /* the field cursor's object (0 outside battles and their deployment) */
-#define RS_UNITS 0x0200F434
+typedef struct {
+	uint32_t top;    /* the running object */
+	uint32_t cursor; /* the field cursor's object (0 outside battles and their deployment) */
+	uint32_t units;
+	/* classes: the field (the cursor free), a unit's action menu, START's
+	 * menu, the enemy's turn, placing soldiers before a battle, a side's
+	 * turn banner; pushed over the battle: a Status, the Objectives,
+	 * SELECT's help, Options, Quit Mission's QUIT GAME */
+	uint32_t field, action, start, enemy, deploy, banner, status, objectives, help, options, quit;
+} RsRelease;
+static const RsRelease rsUsa = { 0x02013368, 0x02002008, 0x0200F434, 0x02004EF0, 0x02005180, 0x02005F08, 0x02004C20,
+                                 0x02004AE8, 0x02003934, 0x02003A78, 0x02005540, 0x020049E8, 0x02005580, 0x02003E38 };
+static const RsRelease rsEur = { 0x02013CC8, 0x02001F8C, 0x0200FD94, 0x02005810, 0x02005AA0, 0x02006868, 0x02005540,
+                                 0x02005408, 0x02004214, 0x02004358, 0x02005EA0, 0x02005308, 0x02005EE0, 0x02004718 };
 #define RS_UNIT_SIZE 0x48
-#define RS_VT_FIELD 0x02004EF0   /* the field, the cursor free */
-#define RS_VT_ACTION 0x02005180  /* a unit's action menu */
-#define RS_VT_START 0x02005F08   /* START's menu (End Turn ... Objectives) */
-#define RS_VT_ENEMY 0x02004C20   /* the enemy's turn */
-#define RS_VT_DEPLOY 0x02004AE8  /* placing soldiers before a battle */
-#define RS_VT_BANNER 0x02003934  /* a side's turn banner (Turn: n/m, PRESS START) */
-#define RS_VT_STATUS 0x02003A78  /* a soldier's Status (over the battle) */
-#define RS_VT_OBJECTIVES 0x02005540
-#define RS_VT_HELP 0x020049E8    /* SELECT's help pages */
-#define RS_VT_OPTIONS 0x02005580
-#define RS_VT_QUIT 0x02003E38    /* Quit Mission's QUIT GAME? */
+#define RS_OBJECTIVES_ITEM 4 /* START's menu: End Turn, Quit Mission, Save Game, Options, Objectives */
 /* virtual addresses (rs_virt) */
 #define RS_V_MODE 0xF00000A0  /* RS_OUT, RS_FIELD, RS_BUSY or RS_IDLE */
 #define RS_V_KEY 0xF00000A1   /* what the second screen is about (the room key) */
@@ -6109,35 +6113,35 @@ enum { RS_OUT, RS_FIELD, RS_BUSY, RS_IDLE };
 static bool rs_ewram(uint32_t p) {
 	return p >= 0x02000000 && p < 0x0203FF00;
 }
-static uint32_t rs_vt(Emu* e) {
-	uint32_t p = emu_read32(e, RS_TOP);
+static uint32_t rs_vt(const RsRelease* r, Emu* e) {
+	uint32_t p = emu_read32(e, r->top);
 	return rs_ewram(p) ? emu_read32(e, p) : 0;
 }
-static int rs_mode(Emu* e) {
-	uint32_t p = emu_read32(e, RS_TOP);
+static int rs_mode(const RsRelease* r, Emu* e) {
+	uint32_t p = emu_read32(e, r->top);
 	if (!rs_ewram(p)) return RS_OUT;
 	uint32_t vt = emu_read32(e, p);
 	/* the enemy's turn and the turn banners: the logo, the pictures kept
 	 * for the player's turn (RS-6) */
-	if (vt == RS_VT_ENEMY || vt == RS_VT_BANNER) return RS_IDLE;
+	if (vt == r->enemy || vt == r->banner) return RS_IDLE;
 	if (emu_read32(e, p + 0x0C) == 0x00040003) {
-		if (vt == RS_VT_FIELD) return RS_FIELD;
-		return vt == RS_VT_DEPLOY ? RS_OUT : RS_BUSY;
+		if (vt == r->field) return RS_FIELD;
+		return vt == r->deploy ? RS_OUT : RS_BUSY;
 	}
 	/* screens opened over the battle: the last pictures stay (RS-5) */
-	if ((vt == RS_VT_STATUS || vt == RS_VT_OBJECTIVES || vt == RS_VT_HELP || vt == RS_VT_OPTIONS || vt == RS_VT_QUIT) &&
-	    rs_ewram(emu_read32(e, RS_CURSOR)))
+	if ((vt == r->status || vt == r->objectives || vt == r->help || vt == r->options || vt == r->quit) &&
+	    rs_ewram(emu_read32(e, r->cursor)))
 		return RS_BUSY;
 	return RS_OUT;
 }
 /* the unit under the field cursor if it's one of the player's soldiers,
  * else RS_OBJ_KEY (an empty square, an enemy) */
-static int rs_subject(Emu* e) {
-	uint32_t p = emu_read32(e, RS_TOP);
+static int rs_subject(const RsRelease* r, Emu* e) {
+	uint32_t p = emu_read32(e, r->top);
 	if (!rs_ewram(p)) return RS_OBJ_KEY;
 	uint8_t u = emu_read8(e, p + 0x28);
 	if (u >= 16) return RS_OBJ_KEY;
-	return emu_read8(e, RS_UNITS + u * RS_UNIT_SIZE + 0x1C) == 0 ? u : RS_OBJ_KEY;
+	return emu_read8(e, r->units + u * RS_UNIT_SIZE + 0x1C) == 0 ? u : RS_OBJ_KEY;
 }
 /* A training mission's instructions: a green box on BG1, its inside tiles
  * all colour 4 of palette 8 (green; the unit and menu boxes on the same
@@ -6162,14 +6166,20 @@ static bool rs_green_box(Emu* e) {
 	}
 	return false;
 }
-static uint32_t rs_virt(Emu* e, uint32_t addr) {
-	if (addr == RS_V_MODE) return rs_mode(e);
-	if (addr == RS_V_TUTOR) return rs_mode(e) == RS_FIELD && rs_green_box(e);
+static uint32_t rs_virt_for(const RsRelease* r, Emu* e, uint32_t addr) {
+	if (addr == RS_V_MODE) return rs_mode(r, e);
+	if (addr == RS_V_TUTOR) return rs_mode(r, e) == RS_FIELD && rs_green_box(e);
 	if (addr == RS_V_KEY) {
-		int m = rs_mode(e);
-		return m == RS_FIELD ? (uint32_t) rs_subject(e) : 0x100u + m;
+		int m = rs_mode(r, e);
+		return m == RS_FIELD ? (uint32_t) rs_subject(r, e) : 0x100u + m;
 	}
 	return 0;
+}
+static uint32_t rs_virt(Emu* e, uint32_t addr) {
+	return rs_virt_for(&rsUsa, e, addr);
+}
+static uint32_t rs_virt_eur(Emu* e, uint32_t addr) {
+	return rs_virt_for(&rsEur, e, addr);
 }
 
 static void rs_tap(Emu* s, uint32_t keys) {
@@ -6177,9 +6187,9 @@ static void rs_tap(Emu* s, uint32_t keys) {
 	aw_run(s, 0, 4);
 }
 /* up to n frames until the running object's class is vt */
-static bool rs_wait_vt(Emu* s, uint32_t vt, int n) {
-	for (int f = 0; f < n && rs_vt(s) != vt; ++f) emu_frame_blind(s, 0);
-	return rs_vt(s) == vt;
+static bool rs_wait_vt(const RsRelease* r, Emu* s, uint32_t vt, int n) {
+	for (int f = 0; f < n && rs_vt(r, s) != vt; ++f) emu_frame_blind(s, 0);
+	return rs_vt(r, s) == vt;
 }
 /* up to n frames until the picture has held still for 3 frames (a screen
  * fades in over a few) */
@@ -6228,16 +6238,24 @@ static void rs_copy_page(Emu* s, uint32_t* out, int w, int h) {
 }
 /* RS-3: A on the soldier, Status (the action menu's last item but one),
  * then its pages: Equipment, Attributes (RIGHT), Skills (RIGHT) */
-static const char* rs_status(Emu* s, uint32_t* const* out, int max, int* nOut, int w, int h) {
+static const char* rs_status(const RsRelease* r, Emu* s, uint32_t* const* out, int max, int* nOut, int w, int h) {
 	aw_run(s, K_A, 2);
-	if (!rs_wait_vt(s, RS_VT_ACTION, 30)) return "the action menu didn't open";
-	uint32_t m = emu_read32(s, emu_read32(s, RS_TOP) + 0x5C);
+	if (!rs_wait_vt(r, s, r->action, 30)) return "the action menu didn't open";
+	/* (the menu's own object is set up a frame or two after the class
+	 * changes) */
+	uint32_t m = 0;
+	int n = 0;
+	for (int f = 0; f < 20; ++f) {
+		m = emu_read32(s, emu_read32(s, r->top) + 0x5C);
+		n = rs_ewram(m) ? emu_read16(s, m + 0x0C) : 0;
+		if (n >= 3 && n <= 16) break;
+		emu_frame_blind(s, 0);
+	}
 	if (!rs_ewram(m)) return "no action menu";
-	int n = emu_read16(s, m + 0x0C);
 	if (n < 3 || n > 16) return "not an action menu";
 	if (!rs_menu_to(s, m, n - 2)) return "the menu's cursor didn't move";
 	aw_run(s, K_A, 2);
-	if (!rs_wait_vt(s, RS_VT_STATUS, 30)) return "the Status didn't open";
+	if (!rs_wait_vt(r, s, r->status, 30)) return "the Status didn't open";
 	if (!rs_settle(s, 40)) return "the Status didn't settle";
 	if (emu_cancelled(s)) return "called off";
 	int pages = max < 3 ? max : 3;
@@ -6246,46 +6264,51 @@ static const char* rs_status(Emu* s, uint32_t* const* out, int max, int* nOut, i
 		aw_run(s, K_RIGHT, 2);
 		aw_run(s, 0, 4);
 		if (!rs_settle(s, 40)) return "a page didn't settle";
-		if (rs_vt(s) != RS_VT_STATUS) return "the Status closed";
+		if (rs_vt(r, s) != r->status) return "the Status closed";
 		if (emu_cancelled(s)) return "called off";
 		rs_copy_page(s, out[k], w, h);
 	}
 	*nOut = pages;
 	return NULL;
 }
-/* RS-4: START, Objectives */
-static const char* rs_objectives(Emu* s, uint32_t* out, int w, int h) {
+/* RS-4: START, Objectives (its fifth item, in every language; the class
+ * of the screen it opens says it was) */
+static const char* rs_objectives(const RsRelease* r, Emu* s, uint32_t* out, int w, int h) {
 	aw_run(s, K_START, 2);
-	if (!rs_wait_vt(s, RS_VT_START, 30)) return "START's menu didn't open";
-	uint32_t m = emu_read32(s, emu_read32(s, RS_TOP) + 0x60);
-	if (!rs_ewram(m)) return "no START menu";
-	int want = -1;
-	for (int k = 0; k < 8 && want < 0; ++k) {
-		char label[12];
-		for (int i = 0; i < 11; ++i) label[i] = (char) emu_read8(s, m + 0x18 + k * 30 + i);
-		label[11] = 0;
-		if (!strcmp(label, "Objectives")) want = k;
+	if (!rs_wait_vt(r, s, r->start, 30)) return "START's menu didn't open";
+	uint32_t m = 0;
+	for (int f = 0; f < 20; ++f) {
+		m = emu_read32(s, emu_read32(s, r->top) + 0x60);
+		if (rs_ewram(m) && emu_read16(s, m + 0x0C) > RS_OBJECTIVES_ITEM && emu_read16(s, m + 0x0C) <= 8) break;
+		emu_frame_blind(s, 0);
 	}
-	if (want < 0) return "no Objectives in START's menu";
-	if (!rs_menu_to(s, m, want)) return "the menu's cursor didn't move";
+	if (!rs_ewram(m)) return "no START menu";
+	if (emu_read16(s, m + 0x0C) <= RS_OBJECTIVES_ITEM) return "no Objectives in START's menu";
+	if (!rs_menu_to(s, m, RS_OBJECTIVES_ITEM)) return "the menu's cursor didn't move";
 	aw_run(s, K_A, 2);
-	if (!rs_wait_vt(s, RS_VT_OBJECTIVES, 30)) return "the Objectives didn't open";
+	if (!rs_wait_vt(r, s, r->objectives, 30)) return "the Objectives didn't open";
 	if (!rs_settle(s, 40)) return "the Objectives didn't settle";
 	if (emu_cancelled(s)) return "called off";
 	rs_copy(s, out, w, h);
 	return NULL;
 }
-static const char* rs_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+static const char* rs_compose_for(const RsRelease* r, Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
 	int max = *nOut;
 	*nOut = 1;
 	*step = 150; /* 2.5 seconds a page */
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
-	if (rs_mode(s) != RS_FIELD) return "not the field";
+	if (rs_mode(r, s) != RS_FIELD) return "not the field";
 	/* (a training mission's instructions: the game waits for what they
 	 * ask, RS-7) */
 	if (rs_green_box(s)) return "a training box is up";
-	return rs_subject(s) == RS_OBJ_KEY ? rs_objectives(s, out[0], w, h) : rs_status(s, out, max, nOut, w, h);
+	return rs_subject(r, s) == RS_OBJ_KEY ? rs_objectives(r, s, out[0], w, h) : rs_status(r, s, out, max, nOut, w, h);
+}
+static const char* rs_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+	return rs_compose_for(&rsUsa, s, state, out, nOut, step, w, h);
+}
+static const char* rs_compose_eur(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+	return rs_compose_for(&rsEur, s, state, out, nOut, step, w, h);
 }
 
 static const MapProfile profiles[] = {
@@ -8676,7 +8699,7 @@ static const MapProfile profiles[] = {
 		.logo = { .steps = { { 0, 200 }, { K_A, 4 }, { 0, 400 }, { K_A, 4 }, { 0, 1800 } }, .layer = 3, .maxY = 160, .blackIsClear = true },
 	},
 	{
-		/* Rebelstar: Tactical Command (USA only). In a battle, the
+		/* Rebelstar: Tactical Command (USA; Europe: below). In a battle, the
 		 * soldier's Status or the mission's Objectives from the field:
 		 * see rs_compose (docs/games/rebelstar-tactical-command.md) */
 		.codes = { "BRLE" },
@@ -8701,6 +8724,24 @@ static const MapProfile profiles[] = {
 		 * out by the owner's copy of the logo (RS-1; tools/make_logo_masks.py,
 		 * rs). rev 1: the strip of the picture before */
 		.logo = { .wait = 400, .mask = &logoMaskRS, .rev = 1 },
+	},
+	{
+		/* Rebelstar: Tactical Command (Europe, in English, French, German,
+		 * Spanish and Italian): the same, at its own addresses (rsEur) */
+		.codes = { "BRLP" },
+		.title = "Rebelstar: Tactical Command",
+		.composePages = rs_compose_eur,
+		.stillPick = STILL_FIRST,
+		.virt = rs_virt_eur,
+		.crop_w = GBA_W,
+		.crop_h = GBA_H,
+		.live = { { RS_V_MODE, 0xFF, RS_FIELD, 4 }, { RS_V_TUTOR, 0xFF, 0, 4 } },
+		.menu = { { RS_V_MODE, 0xFF, RS_OUT, 4 } },
+		.logoIf = { { RS_V_MODE, 0xFF, RS_IDLE, 4 } },
+		.room = { { RS_V_KEY, 0, 0, 4 } },
+		/* the same title picture, past the language list (A: English;
+		 * without a battery save it comes first) */
+		.logo = { .steps = { { 0, 60 }, { K_A, 4 }, { 0, 400 } }, .mask = &logoMaskRS, .rev = 1 },
 	},
 };
 
