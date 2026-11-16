@@ -8586,6 +8586,8 @@ static const MapProfile profiles[] = {
 		/* captures only while playing: not in the menus, the pause or on
 		 * the title (BK-3) */
 		.live = { { BK_MENU, 0xFF, 0, 1 } },
+		/* back on the title or the file menu (0 there, 40 while in the game) */
+		.menu = { { 0x02001B38, 0xFF, 0, 1 } },
 		/* the title's lettering (BG3) and its banner (sprites), over the
 		 * sun, above its PUSH START line; the first start asks for the sensor and the
 		 * clock first (A through them, START to end), then the Konami
@@ -9007,6 +9009,9 @@ static void pp_eur(MapProfile* p) {
 
 static const Variant variants[] = {
 	{ "AGSD", "AGSE", 0, gs_ger },
+	/* Boktai: Europe and Japan (the USA release's addresses: bk_compose) */
+	{ "U3IP", "U3IE", 0, NULL },
+	{ "U3IJ", "U3IE", 0, NULL },
 	/* Golden Sun: The Lost Age's other releases */
 	{ "AGFD", "AGFE", 0, gs2_ger },
 	{ "AGFF", "AGFE", 0, gs2_fra },
