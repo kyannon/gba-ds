@@ -214,8 +214,10 @@ void emu_oam_read(Emu* e, uint16_t* out);
 void emu_oam_write(Emu* e, const uint16_t* src);
 bool emu_hud_grabbed(void);
 /* Whether a new HUD picture came in since the last ask (armGBA on the 3DS
- * draws it one frame in six; libmgba every frame). */
+ * draws it one frame in five; libmgba every frame). */
 bool emu_hud_fresh(void);
+/* One frame in how many the HUD picture is drawn (1: every frame). */
+int emu_hud_every(void);
 /* Work the core can do in a frame's spare time, one piece a call (armGBA on
  * the 3DS: compiling the code an earlier run of the game ran, before the game
  * gets to it); false when there's none. */

@@ -1333,6 +1333,10 @@ bool emu_idle_step(Emu* e) {
 	return false;
 }
 
+int emu_hud_every(void) {
+	return 1;
+}
+
 bool emu_hud_fresh(void) {
 	return true; /* (libmgba draws the HUD picture every frame) */
 }

@@ -1764,11 +1764,14 @@ bool emu_hud_split(Emu* e, bool on, unsigned bgMask, const SpriteRule* objs, int
 		c->hooks.secondBackdrop = HUD_CLEAR_555;
 		c->hooks.line = split_line;
 #ifdef __3DS__
-		/* the HUD drawn 10 times a second, not 60: the second screen
+		/* the HUD drawn 12 times a second, not 60: the second screen
 		 * doesn't need more, and the game does the time (the HUD's
 		 * picture took the drawing thread about 3 ms a frame, and GBA DS
-		 * 4.4 ms to make it and 3.2 to upload it each time) */
-		c->hooks.secondEvery = 6;
+		 * 4.4 ms to make it and 3.2 to upload it each time). One frame in
+		 * an odd number: F-Zero draws its map every other frame, and with
+		 * 6 every picture fell on the same kind (after a state was loaded,
+		 * the frames without it: no map) */
+		c->hooks.secondEvery = 5;
 #else
 		/* (GBADS_SECOND_EVERY=6, tests: as the console draws it) */
 		if (getenv("GBADS_SECOND_EVERY")) c->hooks.secondEvery = (uint8_t) atoi(getenv("GBADS_SECOND_EVERY"));
@@ -1879,6 +1882,10 @@ void emu_hud_grab(Emu* e, unsigned bgMask, uint32_t* buf) {
 void emu_hud_grab_cnt(Emu* e, uint16_t cnt, uint32_t* buf) {
 	emu_hud_grab(e, 0, buf);
 	split.grabCnt = cnt;
+}
+
+int emu_hud_every(void) {
+	return split.core && split.core->hooks.secondEvery > 1 ? split.core->hooks.secondEvery : 1;
 }
 
 bool emu_hud_fresh(void) {

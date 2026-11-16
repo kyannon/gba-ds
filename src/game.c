@@ -4011,6 +4011,7 @@ static const uint32_t* card_logo(void) {
  * frame */
 static uint32_t mapHeld[GBA_W * GBA_H];
 static bool mapHeldOk;
+static bool hudPicNew = true; /* (this frame's HUD picture is a new one: emu_hud_fresh) */
 static int mapUndrawn; /* frames since the map was last drawn */
 static uint16_t mapDots[32][3];
 static int nMapDots;
@@ -4083,7 +4084,11 @@ static void map_hold_update(const typeof(hudProf->hud)* h, uint32_t clear) {
 			if (!mask[y * bw + x] && (hudPx[(y + y0) * GBA_W + x + x0] & 0xFFFFFF) != clear) ++other;
 		}
 	}
-	if (other < 16) { /* (the dots alone: the map isn't drawn this frame) */
+	/* (the dots alone: the map isn't drawn this frame. Where the HUD
+	 * picture is from a few frames back (armGBA on the 3DS: emu_hud_fresh
+	 * isn't every frame), its dots aren't where the sprites read now are:
+	 * a course's outline is thousands of pixels, a few dots tens) */
+	if (other < (emu_hud_every() > 1 ? 256 : 16)) {
 		++mapUndrawn;
 		return;
 	}
@@ -4151,7 +4156,9 @@ static void hud_compose(int band) {
 	}
 	/* (hud.mapAt.holdTile: the map held between the frames it's drawn in) */
 	bool hold = bigMap && h->mapAt.holdTile;
-	if (hold && first) map_hold_update(h, clear);
+	/* (once a HUD picture: mapUndrawn counts pictures, and armGBA on the 3DS
+	 * draws one every few frames) */
+	if (hold && first && hudPicNew) map_hold_update(h, clear);
 	/* the sign: only when nothing else of the HUD is on its rows nearby */
 	bool sign = false;
 	if (racing && h->sign.x1) {
@@ -4690,8 +4697,9 @@ static void update_hud(void) {
 			bool grabbed = emu_hud_grabbed();
 			if (grabbed) hud_make_backdrop(); /* (that frame drew no HUD: the last one is reused) */
 			/* (the picture made again only when there's a new one to make it
-			 * from: armGBA on the 3DS draws the HUD one frame in six) */
+			 * from: armGBA on the 3DS draws the HUD one frame in five) */
 			bool fresh = emu_hud_fresh();
+			hudPicNew = fresh;
 #if HUD_TEX_SHARED
 			/* (the 3DS: a new HUD picture made and uploaded a third at a time
 			 * over the next three frames, as making it (4.4 ms) and moving
