@@ -104,6 +104,15 @@ with the same heap, not the 124 MiB an emulator would give.
 
 ## What has and hasn't been tested
 
+Every supported game (2026-11-16), on the desktop build drawn as the 3DS draws
+(`3ds/test/dualrun.py --runs mgba,armgba-3ds`: two threads, a frame late, the
+HUD split one frame in five) against GBA DS on libmgba: each game's script in
+`3ds/test/play/` plays from power-on to its second screen (the map, status
+screen or HUD its rules describe; Dragon Ball Z: The Legacy of Goku II's
+Scouter through the game's Debug menu, `--cheats 3ds/test/cheats`; Mother 3 run
+with the English translation's ROM by path), and the second screens match.
+Fire Emblem: Fuuin no Tsurugi, new in GBA DS since, hasn't a script yet.
+
 On a New 3DS (2026-11-16, one console): Mario Kart: Super Circuit's races
 at 60 frames a second, several in a row (Peach Circuit, Boo Lake and others),
 with the HUD and the course map on the bottom screen; the speed work is below.
