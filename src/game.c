@@ -3480,7 +3480,7 @@ static void draw_rows_page(int scr, const MenuGeom* mg) {
 		if (sel) {
 			const char* ctl = (!strncmp(key, "button_", 7) && ctlProf) ? (ctlProf->controls.snes.bottom ? "With SNES picked under Controls in the quick bar, the SNES layout replaces these in levels."
 			                                                                                      : "With Four buttons picked under Controls in the quick bar, the four-button layout replaces these.") : NULL;
-			note = off ? off : has ? "This game has its own value. X: use the one for all games" : ctl ? ctl : st->note;
+			note = off ? off : has ? "This game has its own value. X, or going on past the last choice: same as all games" : ctl ? ctl : st->note;
 		}
 	}
 	if (menuNote[0]) note = menuNote, noteGold = true;
@@ -3488,7 +3488,10 @@ static void draw_rows_page(int scr, const MenuGeom* mg) {
 	if (note) {
 		SDL_Rect last = srow_rect(scr, n);
 		int nc = SDL_min(mg->noteCap, mg->noteCap * mg->w / SDL_max(1, ui_font_width(TF_BOLD, mg->noteCap, note)));
-		ui_font_text(scr, TF_BOLD, screens[scr].rect.w / 2, last.y + last.h + mg->h * 3 / 5, nc, note, noteGold ? C_GOLD : C_DIS, 0);
+		/* on a dark panel: the bezel's logo (or the game's picture) can be behind the line */
+		int ny = last.y + last.h + mg->h * 3 / 5, nh = nc * 3;
+		ui_fill_round(scr, (SDL_Rect) { last.x, ny - nh / 2, last.w, nh }, (SDL_Color) { 8, 6, 18, 245 }, rad);
+		ui_font_text(scr, TF_BOLD, screens[scr].rect.w / 2, ny, nc, note, noteGold ? C_GOLD : (SDL_Color) { 190, 186, 205, 255 }, 0);
 	}
 }
 
@@ -7113,7 +7116,17 @@ static void rows_note(const char* what, bool all, bool kept) {
 	(void) what;
 }
 
-/* step row `key` by dir, for all games or this game */
+/* where a setting stands on its list (or its number), to tell when a step wrapped round */
+static int step_pos(const Config* c, const Setting* st) {
+	if (st->nChoices) return config_setting_index(c, st);
+	return *(const int*) ((const char*) c + st->off);
+}
+
+/* step row `key` by dir, for all games or this game. For this game the list has
+ * one more place, "same as all games": stepping past either end of the list
+ * from a value of this game's own takes it away (row_reset) */
+
+static void row_reset(const char* key);
 static void row_change(const char* key, int dir, bool all) {
 	menuNote[0] = 0;
 	if (!strcmp(key, "@overlay")) {
@@ -7141,7 +7154,14 @@ static void row_change(const char* key, int dir, bool all) {
 		}
 		rows_note(key, true, kept);
 	} else {
+		int before = step_pos(cfg, st);
+		bool had = game_has(st);
 		if (!config_setting_step(cfg, st, dir)) return;
+		int after = step_pos(cfg, st);
+		if (had && (dir > 0 ? after < before : after > before)) {
+			row_reset(key); /* (round the end of the list: back to the value for all games) */
+			return;
+		}
 		write_setting(gp.settings, gameHeader, cfg, st);
 		game_keys_reload();
 		setting_applied(st);
@@ -7167,7 +7187,7 @@ static void row_reset(const char* key) {
 	game_keys_reload();
 	config_setting_copy(cfg, &uniCfg, st);
 	setting_applied(st);
-	snprintf(menuNote, sizeof(menuNote), "This game uses the value for all games again");
+	snprintf(menuNote, sizeof(menuNote), "Same as all games again");
 }
 
 /* the controller on a settings page (the bar, then the rows) */
