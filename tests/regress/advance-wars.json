@@ -1316,7 +1316,7 @@
    "id": "aw-us-retroarch-slots",
    "rom": "AWRE",
    "state": "advance-wars/us-co-screen.ss",
-   "desc": "save states shared with RetroArch, in the pause menu: slot 3 saved by RetroArch says \", RetroArch\"; slot 5, another core's, says \"Another emulator's\" and loading it is refused with a note; slot 3 then loads",
+   "desc": "save states shared with RetroArch, in the pause menu: slot 3 saved by RetroArch says \", RetroArch\"; slot 5, another core's, says \"Another emulator's\" and loading it is refused with a note; slot 3 then loads (golden_frac: the game behind the menu may be a frame apart when the suite runs busy; a changed label is far more)",
    "rules": [
     "GEN-13"
    ],
@@ -1467,7 +1467,8 @@
      "rule": "GEN-13",
      "what": "slot 3, RetroArch's, loaded"
     }
-   ]
+   ],
+   "golden_frac": 0.001
   },
   {
    "id": "aw-retroarch-settings",
