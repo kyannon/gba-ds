@@ -7527,6 +7527,19 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	patches_setup(rom); /* GEN-9: the patches folder, what's on, and the plan every core opens the ROM with */
 	profile_set_rom(NULL, 0);
 	emuRenderWorkers = cfg->renderWorkers == 2 ? 2 : 1;
+#ifdef __3DS__
+	{
+		/* the second drawing thread is on the fourth core, a step above the
+		 * hidden copy there: with one, Yoshi's Island's status screen took
+		 * 6-11 s to capture (50 ms on its own), caught half drawn. So two only
+		 * for a game without a hidden copy (Mario Kart: logo only, a HUD) */
+		uint8_t hdr[0xB0];
+		char code[5] = "";
+		if (emu_rom_header(rom, hdr, sizeof(hdr))) memcpy(code, hdr + 0xAC, 4);
+		const MapProfile* wp = code[0] ? profile_find(code) : NULL;
+		if (cfg->map && wp && !wp->logoOnly) emuRenderWorkers = 1;
+	}
+#endif
 	if (!emu_open(&emu, rom, gp.sav, true)) {
 		ui_osd("Couldn't load the game");
 		return fromLibrary ? GAME_TO_LIBRARY : GAME_QUIT_APP;

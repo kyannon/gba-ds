@@ -817,7 +817,9 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 #else
 	/* (GBADS_RENDER_THREAD=1, tests: drawn on a thread as the console's game is;
 	 * 2: on two, each drawing every other line) */
-	if (getenv("GBADS_RENDER_THREAD") && renderThreadStart(gba, getenv("GBADS_RENDER_LATE") != NULL, atoi(getenv("GBADS_RENDER_THREAD")) == 2)) renderSetHooks(gba, &c->hooks);
+	/* (GBADS_RENDER_LATE=1: the game itself a frame late, as on the 3DS; its
+	 * hidden copies aren't) */
+	if (getenv("GBADS_RENDER_THREAD") && renderThreadStart(gba, audio && getenv("GBADS_RENDER_LATE") != NULL, atoi(getenv("GBADS_RENDER_THREAD")) == 2)) renderSetHooks(gba, &c->hooks);
 #endif
 
 	e->fb = calloc(GBA_W * GBA_H, sizeof(uint32_t));
@@ -1489,7 +1491,7 @@ void emu_hide_exact(Emu* e, const uint16_t (*attrs)[3], int n) {
 #define SPLIT_LATE 1
 #else
 /* (GBADS_RENDER_LATE=1, tests: drawn a frame late as the console's game is) */
-#define SPLIT_LATE (getenv("GBADS_RENDER_LATE") != NULL)
+#define SPLIT_LATE (getenv("GBADS_RENDER_LATE") != NULL) /* (the HUD split is the game's own core's) */
 #endif
 
 static struct {

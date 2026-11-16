@@ -9,6 +9,8 @@ GAME is a game code (AMKE: the ROM is found in --rom-dir by its header) or a ROM
     mgba        build/host/gba-ds          the reference (scripts/setup-host.sh)
     armgba      build/sim-perf/gba-ds      the app on armGBA (3ds/sim/app.mk), as the 3DS runs it
     armgba-thr  the same with armGBA's render thread (GBADS_RENDER_THREAD=1)
+    armgba-3ds  drawn as the 3DS draws (two threads, a frame late, the HUD split one frame in six), in the
+                armgba column when that isn't run: --runs mgba,armgba-3ds
 
 armgba-thr must match armgba exactly, every screenshot of both screens: armGBA's core is deterministic, however
 it draws. A difference there is a bug (in armGBA, or in how GBA DS uses it). armgba against mgba may differ
@@ -36,7 +38,7 @@ import argparse, json, os, shutil, signal, subprocess, sys, time, zipfile
 
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 APPS = {"mgba": "build/host/gba-ds", "armgba": "build/sim-perf/gba-ds", "armgba-thr": "build/sim-perf/gba-ds",
-        "armgba-thr2": "build/sim-thr2/gba-ds"}
+        "armgba-thr2": "build/sim-thr2/gba-ds", "armgba-3ds": "build/sim-perf/gba-ds"}
 WINDOW, SCREENS = "400x480", "400x240,320x240"
 BIOS = None
 
@@ -131,6 +133,9 @@ def run_app(name, rom, script_lines, outdir, last_tick, state):
         env["GBADS_RENDER_THREAD"] = "1"
     if name == "armgba-thr2":
         env["GBADS_RENDER_THREAD"] = "2"
+    if name == "armgba-3ds":
+        # drawn as the 3DS draws: two threads, a frame late, the HUD split's picture one frame in six
+        env.update(GBADS_RENDER_THREAD="2", GBADS_RENDER_LATE="1", GBADS_SECOND_EVERY="6")
     # The same BIOS on both emulators (else mGBA's stand-in and armGBA's time its calls differently and the
     # runs drift apart), and the pause menu's clock fixed.
     if BIOS:
@@ -212,7 +217,7 @@ def main():
 
     sheets, row_imgs = [], []
     for s in shots:
-        a, m, t = load("mgba", s), load("armgba", s), load("armgba-thr", s) or load("armgba-thr2", s)
+        a, m, t = load("mgba", s), load("armgba", s) or load("armgba-3ds", s), load("armgba-thr", s) or load("armgba-thr2", s)
         am, mt = differ(a, m), differ(m, t)
         entry = {"shot": s}
         if am:
