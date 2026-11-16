@@ -2328,7 +2328,7 @@
     "MOTHER_3_Dutch_compressed.xdelta",
     "MOTHER_3_French.ups"
    ],
-   "desc": "the pause menu's Extras > Patches with the Dutch xdelta, a copy whose header says it's compressed, and the French UPS: the xdelta \"Known translation patch, tested: Dutch\" with its type (xdelta), then the compressed one \"An xdelta made with compression, which GBA DS can't read\"",
+   "desc": "the pause menu's Tools > Patches with the Dutch xdelta, a copy whose header says it's compressed, and the French UPS: the xdelta \"Known translation patch, tested: Dutch\" with its type (xdelta), then the compressed one \"An xdelta made with compression, which GBA DS can't read\"",
    "rules": [
     "GEN-9",
     "M3-12"
@@ -2347,27 +2347,11 @@
      "-"
     ],
     [
-     140,
-     "R"
-    ],
-    [
-     144,
-     "-"
-    ],
-    [
      150,
      "DOWN"
     ],
     [
      152,
-     "-"
-    ],
-    [
-     156,
-     "DOWN"
-    ],
-    [
-     158,
      "-"
     ],
     [
