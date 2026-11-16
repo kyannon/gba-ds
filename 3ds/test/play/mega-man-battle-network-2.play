@@ -1,0 +1,54 @@
+# New game: title (logo, MMBN2-1), through the opening to Lan's room (the PET is already his), then
+# START > MegaMan opens the PET's MegaMan screen; the second screen shows MegaMan's status and money (MMBN2-2, 3)
+wait 300
+shot title_a
+press START 10
+wait 100
+shot title_b
+press START 10
+wait 100
+mash A 90 30
+wait 120
+shot room
+wait 120
+shot room_later
+press START 6
+wait 60
+shot start_menu
+press DOWN 4
+press DOWN 4
+press DOWN 4
+wait 20
+shot cursor_megaman
+press A 4
+wait 90
+shot megaman_screen
+press B 6
+wait 40
+press B 6
+wait 90
+shot closed
+wait 240
+shot later
+press HOME+R 6
+wait 20
+hold DOWN 30
+hold LEFT 30
+wait 60
+shot walked
+wait 120
+shot walked_later
+press HOME+L 6
+wait 20
+shot loaded
+press HOME 6
+wait 30
+shot hmenu
+press HOME 6
+wait 30
+press HOME+Y 6
+wait 20
+shot swapped
+press HOME+Y 6
+wait 20
+shot back
