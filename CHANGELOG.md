@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.5.4 (not yet released)
+## v1.5.4 (2026-11-16)
 
 ### New games
 - **Fire Emblem: Fuuin no Tsurugi** (Japan), and its English fan translation (FE6 Localization v1.2.1, The Binding Blade), as a patched ROM or with its patch in the Patches menu: with the cursor on a unit, yours or an enemy's, the second screen shows its status screen, turning through its three pages, as in the other Fire Emblem games; the logo everywhere else. The logo is made from whichever of the Japanese game and the translation you start first, and both then show that one.
