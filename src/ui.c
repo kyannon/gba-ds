@@ -2715,6 +2715,8 @@ void ui_key(int screen, SDL_Rect r, int radius, int state) {
 	ui_fill_round(screen, (SDL_Rect) { r.x + 1, r.y + 1, r.w - 2, r.h - 2 }, rim, SDL_max(1, radius - 1));
 	int in = state == KEY_PLAIN && !themeLight ? 2 : 1;
 	ui_fill_round(screen, (SDL_Rect) { r.x + in + 1, r.y + in + 1, r.w - (in + 1) * 2, r.h - (in + 1) * 2 }, lo, SDL_max(1, radius - in - 1));
+	/* (a flat face: only 30% of the way from lo to hi at the top) */
+	hi = (SDL_Color) { lo.r + (hi.r - lo.r) * 3 / 10, lo.g + (hi.g - lo.g) * 3 / 10, lo.b + (hi.b - lo.b) * 3 / 10, 255 };
 	/* the body's gradient from the top: lo, then bands of colour closer to hi, shorter each time */
 	int bh = r.h - (in + 1) * 2, bx = r.x + in + 1, by = r.y + in + 1, bw = r.w - (in + 1) * 2;
 	for (int i = 1; i <= 6; ++i) {
