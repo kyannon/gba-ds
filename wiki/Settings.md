@@ -120,6 +120,7 @@ What `map_crop` changes in the Metroid map screens:
 | Option | Default | |
 |---|---|---|
 | `audio_latency` | `64` | Sound buffer in milliseconds. Raise it if the sound crackles; lower is snappier. |
+| `keep_sound` | `1` | If the system holds the screen up for a moment (on some setups the display pauses for half a second every few seconds), the game and its sound carry on and the picture catches up. `0`: the game waits for the screen, and the sound breaks up while it does. |
 | `performance` | `system` | Linux (not BananaOS, which sets its own): **Performance** in the game list's Settings. `system` (**Let the System Decide**) leaves the CPU, memory and graphics speed to the system, as for its other emulators. `max` (**Set to Max**) holds them at full speed while GBA DS is open and puts them back when it closes: smoother on devices where games stutter or the sound breaks up, but the battery runs down faster and the device gets warmer. Kept in `states/prefs.cfg`. (`cpu_performance`, from v1.5.3, is no longer used.) |
 | `watch_system` | `1` | ROCKNIX only: while GBA DS runs, `gba-ds.log` also gets kernel messages, system services' messages and the screens' events (at most 200 lines of each), timed like GBA DS's own notes on pauses, for reports of stutters. `0` leaves them out. |
 

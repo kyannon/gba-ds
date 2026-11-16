@@ -150,6 +150,8 @@ void ui_load_script(const char* path) {
  * hit areas are worked out as it's drawn). The game, map and HUD
  * pictures are still made every frame; only the screens aren't put
  * together. */
+bool ui_scripted(void) { return scriptLen > 0; }
+
 bool ui_script_quiet(void) {
 	static int on = -1;
 	if (on < 0) on = getenv("GBADS_DRAW_SHOTS_ONLY") != NULL;
@@ -1650,6 +1652,17 @@ double ui_display_hz(int view) {
 }
 
 void ui_present(void) {
+	{
+		/* testing (issue #50): GBADS_TEST_PRESENT_STALL=MS,EVERY holds every
+		 * EVERY-th present up for MS ms, as one player's system did */
+		static int stallMs = -1, stallEvery, presents;
+		if (stallMs < 0) {
+			const char* e = getenv("GBADS_TEST_PRESENT_STALL");
+			stallMs = 0;
+			if (e && sscanf(e, "%d,%d", &stallMs, &stallEvery) != 2) stallMs = 0;
+		}
+		if (stallMs > 0 && stallEvery > 0 && ++presents % stallEvery == 0) SDL_Delay((Uint32) stallMs);
+	}
 	if (pendingShot[0]) {
 		ui_screenshot(pendingShot);
 		pendingShot[0] = 0;

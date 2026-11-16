@@ -46,6 +46,7 @@ void config_defaults(Config* c) {
 	c->mapInterval = 60;
 	c->sway = true;
 	c->audioLatency = 64;
+	c->keepSound = true;
 	c->ffSpeed = 3;
 	c->fastForward = true;
 	c->pinCores = false; /* tried on the RG DS Plus: no better (docs/ANDROID.md) */
@@ -153,6 +154,7 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	}
 	BOOL("match_display", matchDisplay)
 	BOOL("rewind", rewind)
+	BOOL("keep_sound", keepSound)
 	INT("rewind_seconds", rewindSeconds)
 	INT("map_interval", mapInterval)
 	BOOL("ab_swap", abSwap)
