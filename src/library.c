@@ -1092,10 +1092,10 @@ static int updatesSel;
  * there's one; Map Buttons and Hotkeys; Performance, where GBA DS can set
  * the clock governors (clocks.c); Updates. Android: Folders,
  * RetroAchievements, Map Buttons and Hotkeys, Updates. */
-#define SETTINGS_MAX 6
+#define SETTINGS_MAX 8
 static int nRows = 1; /* rows shown (Back is row nRows) */
 /* (Hotkeys shares Map Buttons' line: the right half of it, under one text) */
-enum { ROW_BANANA, ROW_ES, ROW_MAP, ROW_HOTKEYS, ROW_UPDATES, ROW_FOLDERS, ROW_RA, ROW_ESDE, ROW_PERF };
+enum { ROW_BANANA, ROW_ES, ROW_MAP, ROW_HOTKEYS, ROW_UPDATES, ROW_FOLDERS, ROW_RA, ROW_ESDE, ROW_PERF, ROW_RESET, ROW_DELCFG };
 static int rowKind[SETTINGS_MAX];
 
 #ifdef __ANDROID__
@@ -1116,6 +1116,8 @@ static void settings_rows(const Config* cfg) {
 	/* ES-DE's folder found: GBA DS in its emulator list (esde.c) */
 	if (esde_present()) rowKind[nRows++] = ROW_ESDE;
 	for (size_t i = 0; i < sizeof(android) / sizeof(android[0]); ++i) rowKind[nRows++] = android[i];
+	rowKind[nRows++] = ROW_RESET;
+	rowKind[nRows++] = ROW_DELCFG;
 #else
 	nRows = 0;
 #ifndef GBADS_SIDE
@@ -1126,6 +1128,8 @@ static void settings_rows(const Config* cfg) {
 #ifdef GBADS_UPDATES
 	rowKind[nRows++] = ROW_UPDATES;
 #endif
+	rowKind[nRows++] = ROW_RESET;
+	rowKind[nRows++] = ROW_DELCFG;
 #endif
 }
 
@@ -1325,6 +1329,79 @@ static void setting_changed(Config* cfg, const Setting* st) {
 	fprintf(stderr, "setting: %s = %s (all games)\n", lines[0][0], lines[0][1]);
 }
 
+
+/* System > Reset settings to defaults / Delete per-game settings: each asks to be
+ * touched again before it does anything (confirmRow: the row asked) */
+#define RESET_NOTE "Puts every setting in Settings back to GBA DS's own default: the theme, brightness, screens, controls and so on. " \
+                   "Folders, accounts, hotkeys, button mapping and each game's own settings stay."
+#define DELCFG_NOTE "Removes the settings every game has kept for itself (from the pause menu's This game), so all games " \
+                    "use the settings for all games again. States, saves and cheats stay."
+static int confirmRow = -1;
+
+static int reset_settings(Config* cfg) {
+	Config def;
+	config_defaults(&def);
+	const char* keys[200];
+	char names[200][40];
+	int n = 0;
+	for (int i = 0; i < config_setting_count() && n < 200; ++i) {
+		const Setting* st = config_setting_at(i);
+		config_setting_copy(cfg, &def, st);
+		snprintf(names[n], sizeof(names[n]), "%s", st->key);
+		keys[n] = names[n];
+		++n;
+	}
+	char path[1100];
+	snprintf(path, sizeof(path), "%s/prefs.cfg", cfg->stateDir);
+	config_kv_remove(path, n, keys);
+	ui_theme(cfg->lightTheme);
+	ui_brightness(cfg->brightTop, cfg->brightBottom);
+	clocks_set(cfg->perfMax);
+	ui_layout_pictures();
+	setRescan = true;
+	return n;
+}
+
+static int delete_game_settings(const Config* cfg) {
+	static const char* const keep[] = { "prefs.cfg", "library.cfg", "hotkeys.cfg", "update.cfg" };
+	DIR* d = opendir(cfg->stateDir);
+	if (!d) return 0;
+	int n = 0;
+	struct dirent* e;
+	while ((e = readdir(d))) {
+		size_t len = strlen(e->d_name);
+		if (len < 5 || strcmp(e->d_name + len - 4, ".cfg")) continue;
+		bool kept = false;
+		for (size_t i = 0; i < sizeof(keep) / sizeof(*keep); ++i) kept |= !strcmp(e->d_name, keep[i]);
+		if (kept) continue;
+		char path[1400];
+		snprintf(path, sizeof(path), "%s/%s", cfg->stateDir, e->d_name);
+		if (remove(path) == 0) ++n;
+	}
+	closedir(d);
+	return n;
+}
+
+static void system_action(Config* cfg, int row) {
+	if (confirmRow != row) {
+		confirmRow = row;
+		snprintf(settingsMsg, sizeof(settingsMsg), "Are you sure? Touch it again to %s. Anything else cancels.",
+		         rowKind[row] == ROW_RESET ? "put every setting back to its default" : "delete every game's own settings");
+		return;
+	}
+	confirmRow = -1;
+	if (rowKind[row] == ROW_RESET) {
+		int n = reset_settings(cfg);
+		snprintf(settingsMsg, sizeof(settingsMsg), "Settings are back to their defaults.");
+		fprintf(stderr, "settings: reset to defaults (%d settings)\n", n);
+	} else {
+		int n = delete_game_settings(cfg);
+		snprintf(settingsMsg, sizeof(settingsMsg), n == 0 ? "No game has settings of its own."
+		         : n == 1 ? "Deleted the settings of 1 game." : "Deleted the settings of %d games.", n);
+		fprintf(stderr, "settings: deleted %d per-game settings files\n", n);
+	}
+}
+
 /* one frame of input for the pages; false when Settings should close */
 static bool settings_pages_input(Config* cfg, int ls) {
 	const Setting* rows[10];
@@ -1339,7 +1416,7 @@ static bool settings_pages_input(Config* cfg, int ls) {
 			if (setSel == 7) return false;
 			setPage = setSel;
 			setSel = 0;
-			if (setPage == SP_SYSTEM) settings_rows(cfg);
+			if (setPage == SP_SYSTEM) settings_rows(cfg), confirmRow = -1;
 		}
 		if (back) return false;
 	} else {
@@ -1372,7 +1449,7 @@ static bool settings_pages_input(Config* cfg, int ls) {
 			if (hit >= 0) {
 				setPage = hit;
 				setSel = 0;
-				if (setPage == SP_SYSTEM) settings_rows(cfg);
+				if (setPage == SP_SYSTEM) settings_rows(cfg), confirmRow = -1;
 			}
 			continue;
 		}
@@ -1430,6 +1507,7 @@ static void folders_text(const Config* cfg, char* line, size_t n) {
 }
 
 static void draw_settings(const Config* cfg, int scr, int sel) {
+	if (sel != confirmRow) confirmRow = -1; /* moved off the row: no longer asked */
 	SettingsGeom g = settings_geom(scr);
 	char user[128], err[256];
 	int ra = ra_account(user, sizeof(user), err, sizeof(err));
@@ -1443,6 +1521,8 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 		labels[i] = k == ROW_ESDE    ? (esde_integration_on() ? "GBA DS in ES-DE: On" : "GBA DS in ES-DE: Off")
 		          : k == ROW_FOLDERS ? "Folders"
 		          : k == ROW_RA      ? raLabel
+		          : k == ROW_RESET   ? (confirmRow == i ? "Are you sure? Reset settings" : "Reset settings to defaults")
+		          : k == ROW_DELCFG  ? (confirmRow == i ? "Are you sure? Delete them" : "Delete per-game settings")
 		                             : "Updates";
 	}
 	draw_settings_frame(scr, &g, sel, labels);
@@ -1454,6 +1534,12 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 	case ROW_ESDE:
 		text = "Makes GBA DS the emulator for Game Boy Advance games in ES-DE. For a game it doesn't support, "
 		       "choose another in ES-DE (the game's metadata > Alternative emulator).";
+		break;
+	case ROW_RESET:
+		text = RESET_NOTE;
+		break;
+	case ROW_DELCFG:
+		text = DELCFG_NOTE;
 		break;
 	case ROW_FOLDERS:
 		text = cfg->saveDir[0] ? "Where games are read from, and the folder their saves are kept in."
@@ -1489,9 +1575,13 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 }
 
 static void settings_activate(Config* cfg, int row) {
-	(void) cfg;
 	settingsMsg[0] = 0;
 	settingsMsgRow = row;
+	if (rowKind[row] == ROW_RESET || rowKind[row] == ROW_DELCFG) {
+		system_action(cfg, row);
+		return;
+	}
+	confirmRow = -1;
 	switch (rowKind[row]) {
 	case ROW_ESDE:
 		esde_integration_set(!esde_integration_on(), settingsMsg, sizeof(settingsMsg));
@@ -1752,12 +1842,15 @@ static bool folders_input(Config* cfg, int ls) {
 static int settingsMsgRow; /* the row settingsMsg is about: shown in place of its text */
 
 static void draw_settings(const Config* cfg, int scr, int sel) {
+	if (sel != confirmRow) confirmRow = -1; /* moved off the row: no longer asked */
 	SettingsGeom g = settings_geom(scr);
 	float px = g.px;
 	const char* labels[SETTINGS_MAX];
 	for (int i = 0; i < nRows; ++i) {
 		labels[i] = rowKind[i] == ROW_BANANA ? (banana_integration_on() ? "GBA DS in BananaOS's GBA list: On" : "GBA DS in BananaOS's GBA list: Off")
 		          : rowKind[i] == ROW_ES     ? (es_integration_on(cfg) ? "GBA DS in EmulationStation: On" : "GBA DS in EmulationStation: Off")
+		          : rowKind[i] == ROW_RESET  ? (confirmRow == i ? "Are you sure? Reset settings" : "Reset settings to defaults")
+		          : rowKind[i] == ROW_DELCFG ? (confirmRow == i ? "Are you sure? Delete them" : "Delete per-game settings")
 		          : rowKind[i] == ROW_PERF   ? (cfg->perfMax ? "Performance: Set to Max" : "Performance: Let the System Decide")
 		                                     : "Updates";
 	}
@@ -1771,6 +1864,8 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 	                       ? "Adds GBA DS to the emulators for Game Boy Advance games in EmulationStation. Pick it for one game "
 	                         "(its Advanced Game Options > Emulator) or for all of them (the system's advanced settings). "
 	                         "The other emulators keep working as before."
+	                   : rowKind[i] == ROW_RESET ? RESET_NOTE
+	                   : rowKind[i] == ROW_DELCFG ? DELCFG_NOTE
 	                   : rowKind[i] == ROW_PERF
 	                       ? (cfg->perfMax ? "The processor, memory and graphics run at full speed while GBA DS is open: "
 	                                         "the smoothest play, but the battery runs down faster and the device gets warmer."
@@ -1794,6 +1889,11 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 static void settings_activate(Config* cfg, int row) {
 	settingsMsg[0] = 0;
 	settingsMsgRow = row;
+	if (rowKind[row] == ROW_RESET || rowKind[row] == ROW_DELCFG) {
+		system_action(cfg, row);
+		return;
+	}
+	confirmRow = -1;
 	if (rowKind[row] == ROW_UPDATES) updatesOpen = true, updatesNotice = false, updatesSel = 0;
 	else if (rowKind[row] == ROW_BANANA) banana_integration_set(!banana_integration_on(), settingsMsg, sizeof(settingsMsg));
 	else if (rowKind[row] == ROW_ES) es_integration_set(cfg, !es_integration_on(cfg), settingsMsg, sizeof(settingsMsg));

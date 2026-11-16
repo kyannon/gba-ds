@@ -10,6 +10,8 @@ Four files are read in order, later ones winning:
 
 Updating from the game list (Settings > Updates) keeps your `gba-ds.cfg`. Unzipping a new release by hand replaces it, so keep a copy of your changes first.
 
+In the game list's Settings > System, **Reset settings to defaults** puts every setting back to its default (folders, accounts, hotkeys and each game's own settings stay) and **Delete per-game settings** removes every game's own settings file (`states/<game>.cfg`). Both ask "Are you sure?" first.
+
 ## Game list
 
 | Option | Default | |

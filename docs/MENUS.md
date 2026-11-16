@@ -179,3 +179,7 @@ second line, always visible on the four settings tabs.
    stay as they are (they count as changed).
 4. Text rows (paths, RetroAchievements password) stay read-only in the app
    in this version; Android's folder pickers and the sign-in box stay.
+
+## System: reset and delete
+
+`Reset settings to defaults` (every key of the settings table removed from `prefs.cfg`, the in-memory values set from `config_defaults`, paths and other files untouched) and `Delete per-game settings` (every `*.cfg` in the state folder except prefs, library, hotkeys and update). Both use `confirmRow`: the first activation says "Are you sure?", the second acts; moving off the row or activating another cancels.
