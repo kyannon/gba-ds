@@ -136,6 +136,8 @@ void ui_clip(int screen, const SDL_Rect* clip);
 /* SDL_UpdateTexture (whole texture) that ui.c notices: use it for anything
  * drawn on the screens, so the second screen on Android redraws. */
 void ui_update_texture(SDL_Texture* t, const void* px, int pitch);
+/* Only rows y0 .. y0 + rows - 1 of it (px is still the whole picture). */
+void ui_update_texture_rows(SDL_Texture* t, const void* px, int pitch, int y0, int rows);
 /* Colour correction for everything given to ui_update_texture (the game's
  * pictures, ABGR8888): the GBA's own screen, as mGBA's GBA Color shader
  * (sRGB profile, Darken Screen 0.5) draws it. */

@@ -105,7 +105,9 @@ enum {
 	// Kept for what is made after the game's code memory: the machines themselves and their render
 	// and sound threads' copies, the map pictures, and
 	// the hidden copy with its code.
-	HEAP_LATER = 20 << 20,
+	// (20 MiB left the game 10 MiB of code memory, which Mario Kart filled in two minutes of a
+	// race; the heap still had 13-16 MiB free in it: 15 gives it about 14)
+	HEAP_LATER = 15 << 20,
 };
 
 bool jitHostMemoryLow(void) {
@@ -240,7 +242,7 @@ bool renderThreadHostCreate(pthread_t* thread, void* (*function)(void*), void* a
 	return true;
 }
 
-// A second render worker (render_workers = 2 in gba-ds.cfg; armGBA asks every time): on the fourth
+// A second render worker (render_workers = 2, the default; armGBA asks every time): on the fourth
 // core, at the game thread's priority, a step above the hidden copy's thread there. Each worker
 // then draws every other line.
 bool renderThreadHostCreateSecond(pthread_t* thread, void* (*function)(void*), void* argument) {

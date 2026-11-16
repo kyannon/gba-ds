@@ -287,7 +287,15 @@ int main(void) {
 	/* the last run's log kept: what to attach to a bug report */
 	remove(APP_DIR "/log-prev.txt");
 	rename(APP_DIR "/log.txt", APP_DIR "/log-prev.txt");
+#ifdef GBADS_LOG_URL
+	/* (a diagnosis build logs a lot: each line written to the SD card as it
+	 * came cost a 50 ms hitch a second; kept in memory, written when full
+	 * and before the upload) */
+	static char logBuf[1 << 20];
+	if (freopen(APP_DIR "/log.txt", "w", stderr)) setvbuf(stderr, logBuf, _IOFBF, sizeof(logBuf));
+#else
 	if (freopen(APP_DIR "/log.txt", "w", stderr)) setvbuf(stderr, NULL, _IOLBF, 1024);
+#endif
 	/* the 3DS's own defaults, in a file to change them in: where the games
 	 * are; each picture as large as its screen takes; no rewind (the memory
 	 * is the game's and the recompiler's) */
@@ -299,6 +307,9 @@ int main(void) {
 		fclose(f);
 	}
 	setenv("GBADS_HOME", APP_DIR, 1);
+#ifdef GBADS_LOG_URL
+	setenv("GBADS_DEBUG", "1", 1); /* capture times and the like, for the diagnosis */
+#endif
 	logLine("GBA DS for the 3DS %s (GBA DS %s)%s", GBADS_VERSION, GBADS_UPSTREAM,
 #ifdef GBADS_LOG_URL
 	        ", diagnosis build: logs to " GBADS_LOG_URL

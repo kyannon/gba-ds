@@ -50,7 +50,11 @@ void config_defaults(Config* c) {
 	#ifdef __3DS__
 	c->ffMute = 1;
 #endif
+#ifdef __3DS__
+	c->renderWorkers = 2; /* (timed on a New 3DS: Mario Kart's races faster on two) */
+#else
 	c->renderWorkers = 1;
+#endif
 	c->fastForward = true;
 	c->pinCores = false; /* tried on the RG DS Plus: no better (docs/ANDROID.md) */
 	c->autoSave = true;

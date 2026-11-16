@@ -1324,6 +1324,19 @@ bool emu_hud_grabbed(void) {
 	return g;
 }
 
+void emu_tidy(Emu* e) {
+	(void) e;
+}
+
+bool emu_idle_step(Emu* e) {
+	(void) e;
+	return false;
+}
+
+bool emu_hud_fresh(void) {
+	return true; /* (libmgba draws the HUD picture every frame) */
+}
+
 /* ---------------------------------------------------------------- cheats */
 
 void emu_cheats_clear(Emu* e) {

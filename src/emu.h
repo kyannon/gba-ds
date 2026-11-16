@@ -213,6 +213,17 @@ void emu_vram_write(Emu* e, uint32_t off, const void* src, size_t n);
 void emu_oam_read(Emu* e, uint16_t* out);
 void emu_oam_write(Emu* e, const uint16_t* src);
 bool emu_hud_grabbed(void);
+/* Whether a new HUD picture came in since the last ask (armGBA on the 3DS
+ * draws it one frame in six; libmgba every frame). */
+bool emu_hud_fresh(void);
+/* Work the core can do in a frame's spare time, one piece a call (armGBA on
+ * the 3DS: compiling the code an earlier run of the game ran, before the game
+ * gets to it); false when there's none. */
+bool emu_idle_step(Emu* e);
+/* A moment where a hitch doesn't matter (Mario Kart: off the race): the core
+ * may tidy up (armGBA: its code memory emptied if it's over 40% full, rather
+ * than when it fills in a race). */
+void emu_tidy(Emu* e);
 
 /* Cheats. emu_cheats_clear removes them all; emu_cheats_add adds one set
  * (applied every frame) from codes in RetroArch's .cht form: hex words

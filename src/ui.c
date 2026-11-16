@@ -1344,14 +1344,36 @@ uint32_t ui_color_correct(uint32_t p) {
 	return ccLut[key] | (p & 0xFF000000u);
 }
 
+static void update_rows(SDL_Texture* t, const void* px, int pitch, int y0, int rows);
+
 void ui_update_texture(SDL_Texture* t, const void* px, int pitch) {
+	update_rows(t, px, pitch, 0, -1);
+}
+
+void ui_update_texture_rows(SDL_Texture* t, const void* px, int pitch, int y0, int rows) {
+	update_rows(t, px, pitch, y0, rows);
+}
+
+/* (rows < 0: the whole picture; else those rows of it, px still the whole) */
+static void update_rows(SDL_Texture* t, const void* px, int pitch, int y0, int rows) {
 	if (!t) return;
+	int tw = 0, th = 0;
+	SDL_Rect part;
+	if (rows >= 0) {
+		SDL_QueryTexture(t, NULL, NULL, &tw, &th);
+		if (y0 < 0) rows += y0, y0 = 0;
+		if (y0 + rows > th) rows = th - y0;
+		if (rows <= 0) return;
+		part = (SDL_Rect) { 0, y0, tw, rows };
+		px = (const uint8_t*) px + (size_t) y0 * pitch;
+	}
 	if (ccOn) {
 		/* (through the colour correction's table, alpha kept) */
 		static uint32_t* buf;
 		static size_t bufN;
 		int w, h;
 		if (SDL_QueryTexture(t, NULL, NULL, &w, &h) == 0 && pitch >= w * 4) {
+			if (rows >= 0) h = rows;
 			size_t n = (size_t) (pitch / 4) * h;
 			if (n > bufN) {
 				uint32_t* nb = realloc(buf, n * sizeof(uint32_t));
@@ -1367,7 +1389,7 @@ void ui_update_texture(SDL_Texture* t, const void* px, int pitch) {
 			}
 		}
 	}
-	SDL_UpdateTexture(t, NULL, px, pitch);
+	SDL_UpdateTexture(t, rows >= 0 ? &part : NULL, px, pitch);
 	int slot = -1;
 	for (int i = 0; i < TEXVER_N && slot < 0; ++i) {
 		if (texVer[i].t == t) slot = i;

@@ -39,6 +39,7 @@ typedef struct ArmCore {
 	 * have been quiet */
 	char* savePath;
 	int saveQuiet;
+	char warmPath[64]; /* (the game itself: its warm list's file) */
 	bool savePending;
 	/* sound not yet read (emu_audio_read): stereo frames in a ring */
 	int16_t* ring;
@@ -412,6 +413,7 @@ static void shared_key(const char* romPath, const char* patchName, char* key, si
 
 static void split_release(ArmCore* c);
 static void split_frame(ArmCore* c);
+static bool hudFresh; /* (a new HUD picture since emu_hud_fresh last asked) */
 
 /* ---------------------------------------------- battery save */
 
@@ -429,26 +431,98 @@ static void save_read(ArmCore* c) {
 }
 
 /* Written to a new file, then put in the old one's place. */
-static bool save_write(ArmCore* c) {
-	size_t n = save_size(c->gba);
-	if (!c->savePath || !n) return false;
-	size_t len = strlen(c->savePath) + 8;
+static bool save_file(const char* path, const void* data, size_t n) {
+	size_t len = strlen(path) + 8;
 	char* tmp = malloc(len);
 	if (!tmp) return false;
-	snprintf(tmp, len, "%s.new", c->savePath);
+	snprintf(tmp, len, "%s.new", path);
 	FILE* f = fopen(tmp, "wb");
-	bool ok = f && fwrite(c->gba->savedata.storage, 1, n, f) == n;
+	bool ok = f && fwrite(data, 1, n, f) == n;
 	if (f) ok = fclose(f) == 0 && ok;
 	if (ok) {
-		remove(c->savePath); /* (FAT: rename doesn't replace) */
-		ok = rename(tmp, c->savePath) == 0;
+		remove(path); /* (FAT: rename doesn't replace) */
+		ok = rename(tmp, path) == 0;
 	}
 	if (!ok) {
-		fprintf(stderr, "save: couldn't write %s\n", c->savePath);
+		fprintf(stderr, "save: couldn't write %s\n", path);
 		remove(tmp);
 	}
 	free(tmp);
 	return ok;
+}
+
+/* Writes made while playing go to a thread of their own: on the 3DS a save
+ * written to the SD card took the game about 150 ms (Mario Kart writes its
+ * save in races: a hitch each time). The newest copy waiting replaces an
+ * older one not started yet. */
+static struct {
+	pthread_mutex_t lock;
+	pthread_cond_t wake, idle;
+	bool started, busy;
+	char* path; /* (waiting: the file and a copy of the save) */
+	void* data;
+	size_t n;
+} saver = { PTHREAD_MUTEX_INITIALIZER, PTHREAD_COND_INITIALIZER, PTHREAD_COND_INITIALIZER, false, false, NULL, NULL, 0 };
+
+static void* saver_main(void* arg) {
+	(void) arg;
+	pthread_mutex_lock(&saver.lock);
+	for (;;) {
+		while (!saver.path) pthread_cond_wait(&saver.wake, &saver.lock);
+		char* path = saver.path;
+		void* data = saver.data;
+		size_t n = saver.n;
+		saver.path = NULL, saver.data = NULL;
+		saver.busy = true;
+		pthread_mutex_unlock(&saver.lock);
+		save_file(path, data, n);
+		free(path);
+		free(data);
+		pthread_mutex_lock(&saver.lock);
+		saver.busy = false;
+		pthread_cond_broadcast(&saver.idle);
+	}
+	return NULL;
+}
+
+/* Until every write handed over is on the card. */
+static void saver_wait(void) {
+	pthread_mutex_lock(&saver.lock);
+	while (saver.path || saver.busy) pthread_cond_wait(&saver.idle, &saver.lock);
+	pthread_mutex_unlock(&saver.lock);
+}
+
+static bool save_write(ArmCore* c) {
+	size_t n = save_size(c->gba);
+	if (!c->savePath || !n) return false;
+	saver_wait();
+	return save_file(c->savePath, c->gba->savedata.storage, n);
+}
+
+static void save_write_later(ArmCore* c) {
+	size_t n = save_size(c->gba);
+	if (!c->savePath || !n) return;
+	char* path = strdup(c->savePath);
+	void* data = malloc(n);
+	pthread_mutex_lock(&saver.lock);
+	if (!saver.started && path && data) {
+		pthread_t th;
+		saver.started = pthread_create(&th, NULL, saver_main, NULL) == 0;
+		if (saver.started) pthread_detach(th);
+	}
+	if (!saver.started || !path || !data) {
+		pthread_mutex_unlock(&saver.lock);
+		free(path);
+		free(data);
+		save_write(c);
+		return;
+	}
+	memcpy(data, c->gba->savedata.storage, n);
+	free(saver.path);
+	free(saver.data);
+	saver.path = path, saver.data = data, saver.n = n;
+	pthread_cond_signal(&saver.wake);
+	pthread_mutex_unlock(&saver.lock);
 }
 
 /* The game's writes to its save go to the file once they've stopped for a
@@ -461,16 +535,73 @@ static void save_tick(ArmCore* c) {
 		c->saveQuiet = 0;
 	} else if (c->savePending && ++c->saveQuiet >= 15) {
 		c->savePending = false;
-		save_write(c);
+		save_write_later(c);
 	}
 }
+
+/* ---------------------------------------------- the warm list */
+
+/* armGBA's list of the cartridge code the game ran compiled, kept between
+ * runs (as armGBA-3DS keeps it): the next run compiles it in the frames'
+ * spare time before the game gets there, not in a burst when it does (a race
+ * in Mario Kart reached new code for minutes: 50-150 ms frames). */
+#ifdef __3DS__
+#define WARM_DIR "/3ds/gba-ds/warm"
+#define WARM_MAGIC 0x4D524157u /* "WARM" */
+#define WARM_MOST (1 << 16)
+
+static void warm_load(ArmCore* c, uint32_t romCrc) {
+	snprintf(c->warmPath, sizeof(c->warmPath), WARM_DIR "/%08lX.warm", (unsigned long) romCrc);
+	FILE* f = fopen(c->warmPath, "rb");
+	if (!f) return;
+	uint32_t head[2];
+	uint32_t* pairs = NULL;
+	if (fread(head, 4, 2, f) == 2 && head[0] == WARM_MAGIC && head[1] <= WARM_MOST) {
+		pairs = malloc((size_t) head[1] * 8 + 8);
+		if (pairs && fread(pairs, 8, head[1], f) == head[1]) {
+			jitWarmGive(c->gba, pairs, head[1]);
+			fprintf(stderr, "warm list: %lu blocks from %s\n", (unsigned long) head[1], c->warmPath);
+		}
+	}
+	free(pairs);
+	fclose(f);
+}
+
+static void warm_save(ArmCore* c) {
+	if (!c->warmPath[0] || !c->gba->jit) return;
+	uint32_t* data = malloc(8 + (size_t) WARM_MOST * 8);
+	if (!data) return;
+	size_t n = jitWarmTake(c->gba, data + 2, WARM_MOST);
+	data[0] = WARM_MAGIC;
+	data[1] = (uint32_t) n;
+	if (n) {
+		mkdir(WARM_DIR, 0777);
+		char tmp[80];
+		snprintf(tmp, sizeof(tmp), "%s.new", c->warmPath);
+		FILE* f = fopen(tmp, "wb");
+		bool ok = f && fwrite(data, 1, 8 + n * 8, f) == 8 + n * 8;
+		if (f) ok = fclose(f) == 0 && ok;
+		if (ok) {
+			remove(c->warmPath);
+			ok = rename(tmp, c->warmPath) == 0;
+		}
+		if (!ok) remove(tmp);
+		fprintf(stderr, "warm list: %lu blocks to %s%s\n", (unsigned long) n, c->warmPath, ok ? "" : " (couldn't write it)");
+	}
+	free(data);
+}
+#else
+static void warm_save(ArmCore* c) { (void) c; }
+#endif
 
 /* ---------------------------------------------- open, close, frames */
 
 static void close_core(ArmCore* c) {
 	if (!c) return;
 	if (c->gba) {
+		warm_save(c);
 		if (c->savePath && (c->savePending || c->gba->savedata.dirty)) save_write(c);
+		else if (c->savePath) saver_wait(); /* (the last one handed over, on the card before the app can end) */
 		if (c->cheatsOn) cheatsClear(&c->cheats, c->gba);
 		if (c->shared) {
 			pthread_mutex_lock(&sharedLock);
@@ -661,14 +792,17 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 #ifdef __3DS__
 	if (audio) {
 		/* (render_workers = 2: a second thread draws every other line, on the
-		 * fourth core beside the hidden copy) */
-		if (renderThreadStart(gba, false, emuRenderWorkers == 2)) renderSetHooks(gba, &c->hooks);
+		 * fourth core beside the hidden copy. Late: each frame is shown one
+		 * frame after it's made, so the game never waits for the drawing; the
+		 * HUD picture, drawn one frame in hooks.secondEvery (6), with it) */
+		if (renderThreadStart(gba, true, emuRenderWorkers == 2)) renderSetHooks(gba, &c->hooks);
 		audioThreadStart(gba);
+		warm_load(c, e->romCrc);
 	}
 #else
 	/* (GBADS_RENDER_THREAD=1, tests: drawn on a thread as the console's game is;
 	 * 2: on two, each drawing every other line) */
-	if (getenv("GBADS_RENDER_THREAD") && renderThreadStart(gba, false, atoi(getenv("GBADS_RENDER_THREAD")) == 2)) renderSetHooks(gba, &c->hooks);
+	if (getenv("GBADS_RENDER_THREAD") && renderThreadStart(gba, getenv("GBADS_RENDER_LATE") != NULL, atoi(getenv("GBADS_RENDER_THREAD")) == 2)) renderSetHooks(gba, &c->hooks);
 #endif
 
 	e->fb = calloc(GBA_W * GBA_H, sizeof(uint32_t));
@@ -726,6 +860,18 @@ static void run_frame(Emu* e, uint32_t keys, bool draw) {
 	gbaSetKeys(gba, (uint16_t) keys);
 	videoDrawSkipped = !draw;
 	uint32_t const frame = gba->video.frameCounter;
+#ifdef __3DS__
+	if (c->ring) {
+		/* (the game: past 1.5 ms of compiling in a frame, code met for the
+		 * first times is stepped through a few times more before it's
+		 * compiled, and compiled in a later frame if it doesn't come round
+		 * again; a Mario Kart race frame has about that much to spare: 4 ms
+		 * made 18-22 ms frames) */
+		extern uint64_t jitCompileTicks, jitCompileBudget, jitCompileFrameStart;
+		jitCompileFrameStart = jitCompileTicks;
+		jitCompileBudget = 268111 * 3 / 2;
+	}
+#endif
 	do {
 		gbaRunPart(gba);
 	} while (gba->video.frameCounter == frame);
@@ -750,6 +896,39 @@ static void run_frame(Emu* e, uint32_t keys, bool draw) {
 	}
 	gba->audio.outCount = 0;
 	save_tick(c);
+}
+
+void emu_tidy(Emu* e) {
+	ArmCore* c = AC(e);
+	size_t size = 0;
+	size_t used = c && c->gba ? jitCodeUsed(c->gba, &size) : 0;
+	if (size && (used > size / 10 * 4 || getenv("GBADS_TIDY_ALWAYS"))) { /* (GBADS_TIDY_ALWAYS: tests) */
+		/* (what it had compiled goes back on the warm list, for the frames'
+		 * spare time to compile again before the race) */
+		enum { MOST = 1 << 16 };
+		uint32_t* list = malloc((size_t) MOST * 8);
+		size_t n = list ? jitWarmTake(c->gba, list, MOST) : 0;
+		jitFlush(c->gba);
+		if (n) jitWarmGive(c->gba, list, n);
+		free(list);
+		fprintf(stderr, "code memory emptied off the race: %lu of %lu KiB used, %lu blocks to compile again\n", (unsigned long) (used >> 10),
+		        (unsigned long) (size >> 10), (unsigned long) n);
+	}
+}
+
+bool emu_idle_step(Emu* e) {
+#ifdef __3DS__
+	ArmCore* c = AC(e);
+	size_t size = 0;
+	/* (the list into at most 20% of the code memory: the rest for what the
+	 * game compiles as it goes, 7-9 MiB in a race of Mario Kart's; armGBA's
+	 * own limit is half) */
+	if (c && c->gba && c->ring && jitCodeUsed(c->gba, &size) > size / 10 * 2) return false;
+	return c && c->gba && c->ring && jitWarmStep(c->gba);
+#else
+	(void) e;
+	return false;
+#endif
 }
 
 void emu_frame(Emu* e, uint32_t keys) {
@@ -1287,6 +1466,13 @@ void emu_hide_exact(Emu* e, const uint16_t (*attrs)[3], int n) {
  * are decided line by line (split_line, called by whichever thread draws)
  * from the video registers as that line has them. */
 #define HUD_CLEAR_555 0x0401
+/* (the 3DS draws on threads a frame late: renderThreadStart's late) */
+#ifdef __3DS__
+#define SPLIT_LATE 1
+#else
+/* (GBADS_RENDER_LATE=1, tests: drawn a frame late as the console's game is) */
+#define SPLIT_LATE (getenv("GBADS_RENDER_LATE") != NULL)
+#endif
 
 static struct {
 	ArmCore* core; /* the core it's on (NULL: not installed) */
@@ -1304,6 +1490,8 @@ static struct {
 	unsigned grabMask;
 	uint16_t grabCnt;
 	bool grabbing, grabbed;
+	uint32_t grabNeed; /* (hooks.secondCount the grab's picture has) */
+	uint32_t hudNeed; /* (and the first HUD picture after the split changed) */
 	int prioBelow;
 	unsigned keepBgs;
 	unsigned baseMask, memLayers;
@@ -1462,6 +1650,10 @@ static void split_line(void* context, struct RenderLine* l) {
 	if (y == 0 && split.grabBuf) {
 		if (split.grabCnt) split.grabMask = bgs_with_cnt(io, split.grabCnt);
 		/* this frame: the grab layers into grabBuf, no sprites */
+		/* (the first picture drawn wholly from here: drawn late, the one
+		 * finished before this frame may not be counted yet; set once, as
+		 * this line comes round each frame until the grab has its picture) */
+		if (!split.grabbing) split.grabNeed = split.core->hooks.secondCount + (SPLIT_LATE ? 2 : 1);
 		split.grabbing = true;
 		split_layers(split.grabMask, false);
 	}
@@ -1504,9 +1696,17 @@ static void split_line(void* context, struct RenderLine* l) {
  * buffer (or, once, the grab's). */
 static void split_frame(ArmCore* c) {
 	if (c != split.core || !split.active) return;
+	/* (only a new picture: armGBA draws it one frame in hooks.secondEvery;
+	 * a grab waits for the next one) */
+	static uint32_t lastCount;
+	if (c->hooks.secondEvery > 1 && c->hooks.secondCount == lastCount) return;
+	lastCount = c->hooks.secondCount;
+	if (split.grabbing && c->hooks.secondEvery > 1 && (int32_t) (c->hooks.secondCount - split.grabNeed) < 0) return;
+	if (!split.grabbing && (int32_t) (c->hooks.secondCount - split.hudNeed) < 0) return;
 	if (bandOn) lastBandY0 = split.bandY0, lastBandY1 = split.bandY1;
 	uint32_t* dst = split.grabbing ? split.grabBuf : split.hudBuf;
 	for (int i = 0; dst && i < GBA_W * GBA_H; ++i) dst[i] = colour_8888(split.frame[i]);
+	if (!split.grabbing) hudFresh = true;
 	if (split.grabbing) {
 		split.grabbing = false;
 		split.grabBuf = NULL;
@@ -1543,8 +1743,26 @@ bool emu_hud_split(Emu* e, bool on, unsigned bgMask, const SpriteRule* objs, int
 		c->hooks.secondBackdropSet = true;
 		c->hooks.secondBackdrop = HUD_CLEAR_555;
 		c->hooks.line = split_line;
+#ifdef __3DS__
+		/* the HUD drawn 10 times a second, not 60: the second screen
+		 * doesn't need more, and the game does the time (the HUD's
+		 * picture took the drawing thread about 3 ms a frame, and GBA DS
+		 * 4.4 ms to make it and 3.2 to upload it each time) */
+		c->hooks.secondEvery = 6;
+#else
+		/* (GBADS_SECOND_EVERY=6, tests: as the console draws it) */
+		if (getenv("GBADS_SECOND_EVERY")) c->hooks.secondEvery = (uint8_t) atoi(getenv("GBADS_SECOND_EVERY"));
+#endif
 	}
 	if (split.core != c) return false;
+	if (on && (!split.active || bgMask != split.bgMask) && (SPLIT_LATE || c->hooks.secondEvery > 1)) {
+		/* (switched on, or other layers: a picture drawn before this, or
+		 * being drawn, isn't the HUD's; until the first drawn wholly after,
+		 * the HUD is clear) */
+		split.hudNeed = c->hooks.secondCount + (SPLIT_LATE ? 2 : 1);
+		uint32_t clear = colour_8888(HUD_CLEAR_555);
+		for (int i = 0; hud && i < GBA_W * GBA_H; ++i) hud[i] = clear;
+	}
 	split.hudBuf = hud;
 	split.bgMask = split.baseMask = bgMask;
 	split.lineHud = split.lineGame = bgMask;
@@ -1641,6 +1859,12 @@ void emu_hud_grab(Emu* e, unsigned bgMask, uint32_t* buf) {
 void emu_hud_grab_cnt(Emu* e, uint16_t cnt, uint32_t* buf) {
 	emu_hud_grab(e, 0, buf);
 	split.grabCnt = cnt;
+}
+
+bool emu_hud_fresh(void) {
+	bool f = hudFresh || !split.core || split.core->hooks.secondEvery <= 1;
+	hudFresh = false;
+	return f;
 }
 
 bool emu_hud_grabbed(void) {

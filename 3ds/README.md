@@ -37,12 +37,11 @@ No devkitPro needed on the machine: the builds run in the
   four-letter code in its header: a translation or romhack that kept the
   original's code is listed (and treated as that release), one with a code of
   its own only with `show_all = 1`, on one screen.
-- `render_workers = 2` in `gba-ds.cfg` draws the game on two threads (the
-  third and fourth cores, each every other line) instead of one, as
-  armGBA-3DS does. Off by default until it has been timed on a console: the
-  fourth core is also the hidden copy's (map captures), a step below. The
-  picture is the same either way (checked on the desktop build, both
-  screens, the HUD split included).
+- The game is drawn on two threads (the third and fourth cores, each every
+  other line), as armGBA-3DS does, one frame behind the game, so the game
+  never waits for the drawing. `render_workers = 1` in `gba-ds.cfg` draws
+  it on one. The fourth core is also the hidden copy's (map captures), a
+  step below.
 - Sound needs the DSP firmware dump (`sdmc:/3ds/dspfirm.cdc`), as all 3DS
   homebrew does.
 - Saves are beside the ROMs (`.sav`), save states and settings in
@@ -98,11 +97,16 @@ when the app closes. Build without `LOG_URL` again
 
 A New 3DS gives homebrew 64 MiB: about 46 MiB of heap here, after 12 MiB of
 linear memory for the GPU and the sound. The game's ROM, the recompiler's
-code (what is left after the ROM and 20 MiB kept for the rest, up to 16 MiB),
+code (what is left after the ROM and 15 MiB kept for the rest, up to 16 MiB:
+about 13 MiB with Mario Kart),
 the hidden copy and its code (up to 4 MiB) share it. The emulator tests run
 with the same heap, not the 124 MiB an emulator would give.
 
 ## What has and hasn't been tested
+
+On a New 3DS (2026-11-16, one console): Mario Kart: Super Circuit's races
+at 60 frames a second, several in a row (Peach Circuit, Boo Lake and others),
+with the HUD and the course map on the bottom screen; the speed work is below.
 
 On a New 3DS (2026-11-12, one console): the game list with 124 files,
 Castlevania: Circle of the Moon at 60 frames a second with its map on the
@@ -132,6 +136,31 @@ second screen that changes on a particular frame may change a frame or two
 later. A 32 MiB game with a hidden copy hasn't been tried (there may not be the
 memory for both: the game runs, the second screen may not).
 
+## Speed (Mario Kart)
+
+Mario Kart: Super Circuit is the heaviest game on the 3DS: the game, its HUD
+split (a second picture of every frame) and the recompiler's new code. What
+gets its races to 60 frames a second on a New 3DS:
+
+- The game drawn on two threads, one frame behind the game, so the game never
+  waits for them; the HUD's picture drawn one frame in six (10 a second), and
+  made and uploaded a third at a time over three frames; the pieces that go
+  back on the game screen (the place, the item box) copied every frame.
+- Textures uploaded by the GPU's copy engine, or by the CPU without a
+  division per pixel; the HUD's two views on one texture.
+- The recompiler: a warm list per game (`sdmc:/3ds/gba-ds/warm/`, the code
+  the game ran, compiled in the frames' spare time next time, up to 20% of the
+  code memory); at most 1.5 ms of compiling in a frame; the code memory
+  emptied between races once it's 40% full (when it's full the recompiler
+  empties it itself, a 100-300 ms frame). armGBA's side: no blocks compiled
+  from where an interrupt returns or an event falls, and careful copies only
+  for blocks events fall in often.
+- The game's battery save written to the SD card on a thread of its own.
+- The HUD's backdrop scaled in whole numbers (floats took 76 ms).
+
+A race still has the odd frame of 18-22 ms here and there, in busy stretches
+(about 9 ms of emulating on average, the HUD 2-4, drawing 2.5).
+
 ## armGBA
 
 `third_party/armgba` is armGBA-3DS: armGBA's main with the 3DS port on top
@@ -141,7 +170,8 @@ What GBA DS uses of it that other frontends don't:
 - `struct RenderHooks` (`src/video/render.h`): layers and sprites left out
   of the picture, a callback before each line, and a second picture drawn by
   a renderer of its own beside the first (the HUD split). Kept beside the
-  machine, not in it: states are unchanged.
+  machine, not in it: states are unchanged. The second picture can be drawn
+  one frame in `secondEvery` (`secondCount` says when there's a new one).
 - `videoDrawSkipped` per thread (the hidden copy runs frames it doesn't draw
   on a thread of its own).
 
