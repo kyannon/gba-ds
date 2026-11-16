@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Plays one input script in GBA DS on libmgba and on armGBA, headless, and compares what both screens show.
 
-    3ds/test/dualrun.py GAME SCRIPT OUTDIR [--runs mgba,armgba,armgba-thr] [--rom-dir DIR] [--state STATE]
+    3ds/test/dualrun.py GAME SCRIPT OUTDIR [--runs mgba,armgba,armgba-thr] [--rom-dir DIR] [--state STATE] [--cheats DIR]
 
 GAME is a game code (AMKE: the ROM is found in --rom-dir by its header) or a ROM path. SCRIPT is a .play file
 (below). Three runs by default, each with its own state and save folders under OUTDIR:
@@ -116,7 +116,7 @@ def find_rom(game, rom_dir):
     return os.path.join(rom_dir, pick)
 
 
-def run_app(name, rom, script_lines, outdir, last_tick, state):
+def run_app(name, rom, script_lines, outdir, last_tick, state, cheats=None):
     d = os.path.join(outdir, name)
     shutil.rmtree(d, ignore_errors=True)
     os.makedirs(os.path.join(d, "states"))
@@ -145,6 +145,8 @@ def run_app(name, rom, script_lines, outdir, last_tick, state):
             "--quick_bar_hint=0", "--overlays=off", "--input-script=script.txt"]
     if state:
         args.append(f"--load-state={os.path.abspath(state)}")
+    if cheats:
+        args.append(f"--cheat-dir={os.path.abspath(cheats)}")
     args.append(local)
     t0 = time.time()
     with open(os.path.join(d, "log.txt"), "w") as log:
@@ -169,6 +171,8 @@ def main():
     ap.add_argument("--runs", default="mgba,armgba,armgba-thr")
     ap.add_argument("--rom-dir", default=os.environ.get("GBADS_ROM_DIR", "/mnt/storage/Games/roms/gba"))
     ap.add_argument("--state", help="a save state to start from (the app's --load-state)")
+    ap.add_argument("--cheats", help="a folder of RetroArch .cht files (the app's --cheat-dir): the cheats marked cheatN_enable = true "
+                    "in the game's file are on from the start, on every run")
     ap.add_argument("--bios", default=os.environ.get("GBADS_BIOS", os.path.join(REPO, "build", "gba_bios.bin")),
                     help="a GBA BIOS both emulators boot (default build/gba_bios.bin, if there; never committed)")
     o = ap.parse_args()
@@ -184,7 +188,7 @@ def main():
     rep = {"game": o.game, "rom": os.path.basename(rom), "frames": last, "bios": "file" if BIOS else "each emulator's own",
            "runs": {}, "shots": []}
     for r in runs:
-        d, code, secs = run_app(r, rom, lines, o.outdir, last, o.state)
+        d, code, secs = run_app(r, rom, lines, o.outdir, last, o.state, o.cheats)
         log = open(os.path.join(d, "log.txt"), errors="replace").read().splitlines()
         missing = [s for s in shots if not os.path.exists(os.path.join(d, s + ".bmp"))]
         for s in shots:

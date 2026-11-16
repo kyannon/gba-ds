@@ -1,0 +1,4 @@
+cheats = 1
+cheat0_desc = "Debug menu (press START twice on the title)"
+cheat0_code = "3202B32D 0002"
+cheat0_enable = true
