@@ -1071,7 +1071,7 @@ static void draw_list(Config* cfg, int scr, int sel, int scroll) {
 		fit_text(line, sizeof(line), TF_BOLD, px * 4, storageMsg, theme_button(scr).x - px * 8);
 		ui_font_text(scr, TF_BOLD, theme_button(scr).x / 2, g.headerH / 2, px * 4, line, C_GOLD, 0);
 	} else {
-		ui_label(scr, theme_button(scr).x / 2, g.headerH / 2, px * 5, "Touch or use the D-Pad to select a game", C_TEXT);
+		ui_label(scr, theme_button(scr).x / 2, g.headerH / 2, px * 5, "Touch or use the D-Pad", C_TEXT);
 	}
 	draw_theme_button(scr);
 	draw_view_button(scr);
