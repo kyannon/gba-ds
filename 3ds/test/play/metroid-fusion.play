@@ -1,63 +1,817 @@
-wait 300
-mash START 6 60
-mash A 10 60
-wait 300
-shot a-intro
+# Metroid Fusion from power-on: the intro text is advanced with A (about 400 presses) until Samus stands in the ship; then walk and pause (START shows the map)
+wait 600
+hold START 6
+wait 120
+hold A 6
+wait 120
+hold A 6
+wait 120
+hold A 6
+wait 120
+hold A 6
+wait 120
+hold A 6
+wait 120
+hold A 6
+wait 120
+hold A 6
+wait 120
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+shot ship
 hold RIGHT 200
-wait 60
-shot b-walk
-press START 6
+shot walk
+hold START 6
 wait 90
-shot c-pause
-press B 6
-wait 60
-press HOME+R 6
-wait 30
-hold RIGHT 90
-shot hk-moved
-press HOME+L 6
-wait 60
-shot hk-loaded
-press HOME 6
-wait 30
-shot hk-menu
-press HOME 6
-wait 30
-press HOME+Y 6
-wait 20
-shot hk-swapped
-press HOME+Y 6
-wait 20
-shot hk-back
-# added: the script ends in the intro; skip the cutscene, start the game and walk about
-mash START 10 60
-mash A 30 60
-wait 300
-mash START 6 60
-mash A 30 60
-wait 300
-hold RIGHT 120
-wait 60
-shot g-play
-hold LEFT 90
-press START 6
+shot pause_map
+hold START 6
 wait 90
-shot h-pause2
-press START 6
+shot unpaused
+hold LEFT 100
 wait 60
-hold RIGHT 90
-shot i-play2
-# added (third try): the cutscene's text is still up; advance it with A and START until the game takes over
-mash A 120 40
-mash START 20 40
-mash A 60 40
-wait 300
-hold RIGHT 120
+shot walk_left
+hold RIGHT 150
 wait 60
-shot j-play3
-hold LEFT 90
-press START 6
+hold START 6
 wait 90
-shot k-pause3
-press START 6
-wait 60
+shot pause_map2
+hold START 6
+wait 90

@@ -1,65 +1,117 @@
+# Game Boy Wars Advance 1+2: game 1 picked, name entry, talk, mode menu -> Vs. battle (the Operation Room tutorial blocks SELECT/START)
 wait 180
-mash START 4 40
-mash A 6 40
-wait 120
-mash A 8 60
-wait 120
-mash A 6 40
-press A 4
-wait 120
-mash START 4 40
-mash A 60 40
-wait 120
-shot game1
-mash A 60 40
-wait 180
-shot map
-mash START 3 40
-wait 120
-shot menu
-press B 4
+hold START 6
 wait 60
-press B 4
+hold A 6
 wait 60
-hold RIGHT 60
-shot cursor
-press R 6
-wait 30
-shot intel
-press B 4
-wait 30
-hold DOWN 60
-press R 6
-wait 30
-shot intel2
-press B 4
-wait 30
-press HOME+R 6
-hold DOWN 60
-shot moved
-press HOME+L 6
-wait 20
-shot loaded
-press HOME 6
-wait 30
-shot hmenu
-press HOME 6
-wait 30
-press HOME+Y 6
-wait 20
-shot swapped
-press HOME+Y 6
-wait 20
-shot back
-# added: dismiss the talk, then bring up the intel of the unit under the cursor (R)
-mash B 10 40
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+hold A 6
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 100
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 40
+hold START 6
 wait 60
-press R 6
-wait 60
-shot intel3
-press B 4
+hold A 6
+wait 90
+hold A 6
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 100
+shot mode_menu
+hold UP 6
 wait 30
-hold LEFT 40
-press R 6
-wait 60
-shot intel4
+hold UP 6
+wait 30
+hold A 6
+wait 150
+hold A 6
+wait 150
+hold A 6
+wait 150
+hold A 6
+wait 150
+hold A 6
+wait 150
+hold A 6
+wait 150
+shot day1
+wait 120
+shot cursor0
+hold UP 6
+wait 30
+shot up
+hold RIGHT 6
+wait 30
+hold RIGHT 6
+wait 30
+shot right
+hold UP 6
+wait 30
+hold UP 6
+wait 30
+shot up2
+hold DOWN 6
+wait 30
+hold DOWN 6
+wait 30
+shot down
+hold LEFT 6
+wait 30
+shot left
+wait 120
+shot left_later
+hold UP 6
+wait 30
+hold RIGHT 6
+wait 120
+shot unit2
+hold DOWN 6
+wait 120
+shot unit3
+hold START 6
+wait 40
+shot start_menu
+hold B 6
+wait 40
+shot closed
