@@ -6077,6 +6077,60 @@ done:
 	return err;
 }
 
+/* ---------------------------------------------- Boktai: The Sun Is in Your Hand
+ *
+ * Boktai's second screen (docs/games/boktai-the-sun-is-in-your-hand.md): the
+ * Map page of SELECT's menu, opened on the shadow core from the live state at
+ * every capture. The addresses (the USA release's):
+ *   BK_MENU (byte) 0 while playing, 1 while SELECT's menu is up, 2 while
+ *              START's pause menu is
+ *   BK_PAGE (byte) the menu's page: 0 Item, 1 Weapon, 2 Map (the menu opens
+ *              on the page last used, so the copy turns to the Map with L / R)
+ * The Map page's sprites: the L and R ends of its title and the A + up /
+ * down glyph beside the floor are button prompts, and the little arrows at
+ * the map's edges say it scrolls: all left out (BK-2).
+ */
+#define BK_MENU 0x02001B3A
+#define BK_PAGE 0x020034DC
+static const SpriteRule bkPrompts[] = {
+	/* (by place and shape: the tiles and palette differ from area to area) */
+	{ 0, 0, 0, 0, 0, 1023, -1, 0, 0, 0x2 },       /* the title's L end (16x16) */
+	{ 88, 0, 88, 0, 0, 1023, -1, 0, 0, 0x2 },     /* its R end */
+	{ 188, 134, 196, 138, 0, 1023, -1, 0, 0, 0x2 },  /* the A + up / down glyph, its top (16x16) */
+	{ 188, 150, 196, 154, 0, 1023, -1, 0, 0, 0x10 }, /* and its foot (16x8) */
+	/* the arrows at the map's edges, which say it scrolls (8x8) */
+	{ 0, 64, 12, 80, 0, 1023, -1, 0, 0, 0x1 },
+	{ 216, 64, 232, 80, 0, 1023, -1, 0, 0, 0x1 },
+	{ 112, 4, 128, 16, 0, 1023, -1, 0, 0, 0x1 },
+	{ 112, 124, 128, 140, 0, 1023, -1, 0, 0, 0x1 },
+};
+static bool bk_map_up(Emu* s) {
+	return emu_read8(s, BK_MENU) == 1 && emu_read8(s, BK_PAGE) == 2;
+}
+static const char* bk_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	if (emu_read8(s, BK_MENU) != 0) return "not playing";
+	emu_hide_sprites(s, bkPrompts, sizeof(bkPrompts) / sizeof(bkPrompts[0]));
+	const char* err = NULL;
+	aw_run(s, K_SELECT, 3);
+	for (int f = 0; f < 60 && emu_read8(s, BK_MENU) != 1; ++f) emu_frame_blind(s, 0);
+	if (emu_read8(s, BK_MENU) != 1) {
+		err = "SELECT opened no menu";
+	} else {
+		/* (Item: L is the Map; Weapon: R is) */
+		for (int tries = 0; tries < 3 && emu_read8(s, BK_PAGE) != 2; ++tries) {
+			aw_run(s, emu_read8(s, BK_PAGE) == 0 ? K_L : K_R, 3);
+			for (int f = 0; f < 30 && emu_read8(s, BK_PAGE) != 2; ++f) emu_frame_blind(s, 0);
+		}
+		if (!aw_settle(s, bk_map_up, 240)) err = "the Map did not open";
+	}
+	emu_hide_sprites(s, NULL, 0);
+	if (err) return err;
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+	return NULL;
+}
+
 static const MapProfile profiles[] = {
 	{
 		.codes = { "A2CE" },
@@ -8520,6 +8574,26 @@ static const MapProfile profiles[] = {
 		/* the title's lettering (BG3, over black), past the health
 		 * warning (A) and, in the translations, their title card (A) */
 		.logo = { .steps = { { 0, 200 }, { K_A, 4 }, { 0, 400 }, { K_A, 4 }, { 0, 1800 } }, .layer = 3, .maxY = 160, .blackIsClear = true },
+	},
+	{
+		/* Boktai: The Sun Is in Your Hand (USA; the other releases are
+		 * variants): the Map page of SELECT's menu, see bk_compose */
+		.codes = { "U3IE" },
+		.title = "Boktai: The Sun Is in Your Hand",
+		.compose = bk_compose,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* captures only while playing: not in the menus, the pause or on
+		 * the title (BK-3) */
+		.live = { { BK_MENU, 0xFF, 0, 1 } },
+		/* the title's lettering (BG3) and its banner (sprites), over the
+		 * sun, above its PUSH START line; the first start asks for the sensor and the
+		 * clock first (A through them, START to end), then the Konami
+		 * logos and the caution take until the title (BK-5) */
+		.logo = { .steps = { { 0, 600 }, { K_A, 3 }, { 0, 90 }, { K_A, 3 }, { 0, 90 }, { K_A, 3 }, { 0, 90 }, { K_A, 3 }, { 0, 90 },
+		                     { K_A, 3 }, { 0, 90 }, { K_A, 3 }, { 0, 90 }, { K_A, 3 }, { 0, 90 }, { K_A, 3 }, { 0, 90 },
+		                     { K_START, 3 }, { 0, 1100 } },
+		          .layers = 0x18, .maxY = 120 },
 	},
 };
 

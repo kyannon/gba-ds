@@ -47,6 +47,7 @@ void config_defaults(Config* c) {
 	strcpy(c->bezelInner, "1A1A1A");
 	strcpy(c->bezelOuter, "102060");
 	c->mapInterval = 60;
+	c->solarLevel = 6;
 	c->sway = true;
 	c->audioLatency = 64;
 	c->keepSound = true;
@@ -163,6 +164,7 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	BOOL("keep_sound", keepSound)
 	INT("rewind_seconds", rewindSeconds)
 	INT("map_interval", mapInterval)
+	INT("solar_level", solarLevel)
 	BOOL("ab_swap", abSwap)
 	STR("hotkey", hotkey)
 	if (!strcmp(key, "hotkey_fps")) return true; /* (a test build's: the quick menu has the FPS counter) */

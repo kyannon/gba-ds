@@ -170,6 +170,7 @@ int main(int argc, char** argv) {
 	snprintf(path, sizeof(path), "%s/hotkeys.cfg", cfg.stateDir);
 	config_load_file(&cfg, path);
 	config_parse_args(&cfg, argc, argv);
+	emu_solar_level = cfg.solarLevel; /* (the sun sensor's reading, Boktai) */
 	if (cfg.overlayMode == OVM_LEGACY) {
 		/* overlays = top / both... from before v1.5 (the player's PNGs, which
 		 * had no bezel to fall back on): Custom if overlays/ has any, else

@@ -306,6 +306,22 @@ uint8_t* emu_rom_read_played(const char* path, size_t* size, int* patch, char* p
 	return rom;
 }
 
+/* The game cartridge's sun sensor (Boktai): there's none on the device, so
+ * the sunlight the games are given is a setting (solar_level, 0-10, as
+ * mGBA's own levels). Every core reads it: the game, the hidden copies, the
+ * logo's. */
+int emu_solar_level = 6;
+static void lux_sample(struct GBALuminanceSource* lux) {
+	(void) lux;
+}
+static uint8_t lux_read(struct GBALuminanceSource* lux) {
+	(void) lux;
+	int level = emu_solar_level < 0 ? 0 : emu_solar_level > 10 ? 10 : emu_solar_level;
+	int value = 0x16 + (level > 0 ? GBA_LUX_LEVELS[level - 1] : 0);
+	return (uint8_t) (0xFF - value);
+}
+static struct GBALuminanceSource luxSource = { .sample = lux_sample, .readLuminance = lux_read };
+
 bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	memset(e, 0, sizeof(*e));
 	mLogSetDefaultLogger(&quietLogger);
@@ -325,6 +341,7 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 
 	e->fb = calloc(GBA_W * GBA_H, sizeof(uint32_t));
 	e->core->setVideoBuffer(e->core, (mColor*) e->fb, GBA_W);
+	e->core->setPeripheral(e->core, mPERIPH_GBA_LUMINANCE, &luxSource);
 	e->audio = audio;
 	if (audio) {
 		e->core->setAudioBufferSize(e->core, 2048);
