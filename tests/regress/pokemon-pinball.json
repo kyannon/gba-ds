@@ -2351,6 +2351,28 @@
    ]
   },
   {
+   "id": "pp-us-ruby-catch-ball-save",
+   "rom": "BPPE",
+   "state": "pokemon-pinball/us-ruby-catch-ball-save.ss",
+   "desc": "Catch mode with the ball saver: Latios flies up across the catch timer; the timer stays whole on the top screen, the banner on the bottom one",
+   "rules": [
+    "PP-10"
+   ],
+   "shots": {
+    "banner": 284,
+    "over": 292,
+    "gone": 304
+   },
+   "checks": [
+    {
+     "rule": "PP-10",
+     "what": "the banners went to the bottom screen",
+     "type": "log",
+     "match": "banners on the bottom screen"
+    }
+   ]
+  },
+  {
    "id": "pp-us-ruby-ball-save",
    "rom": "BPPE",
    "state": "pokemon-pinball/us-ruby-top.ss",

@@ -14,6 +14,7 @@
 - **Baldur's Gate: Dark Alliance's logo is the lettering alone**: the second screen used to show the title's lettering on a box of the parchment map behind it. Now it shows only the lettering, Forgotten Realms on its plaque, Baldur's Gate and Dark Alliance with its red crescent, cut out along the shape of the game's logo artwork. The ™ marks are left out. The logo is made again the first time you start the game after updating.
 
 ### Fixes
+- **Pokémon Pinball: the catch timer is no longer cut off by BALL SAVE**: when BALL SAVE came up during Catch 'Em mode, Latios flying across the top right could take part of the timer with it onto the bottom screen. The timer now stays whole on the top screen.
 - **Lady Sia: no more flickering scenery, and no platform on the second screen** (thanks to the player who reported it): GBA DS keeps the game's lives, gems, ring and heart off the game screen, and parts of a level that passed where they go could vanish for a moment too, such as the well in the first village and the columns of rock in the caves. They now stay. The second screen's status picture could also show a floating platform from the caves over the ring, which the game leaves under its own pause screen; the picture now has only the pause screen's own pieces.
 
 ## v1.5.3.1 (2026-11-15)
