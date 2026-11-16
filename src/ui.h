@@ -112,6 +112,8 @@ double ui_last_present_ms(int view);
  * a little late); -1 for none. Elsewhere: nothing. */
 void ui_sync_view(int view);
 bool ui_script_quiet(void);
+/* an input script is running (tests: frame-exact, so nothing may run frames on its own) */
+bool ui_scripted(void);
 /* The refresh rate (Hz) of the display a view is on; 0 if unknown. */
 double ui_display_hz(int view);
 
