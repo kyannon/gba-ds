@@ -232,10 +232,39 @@ static bool set_option(Config* c, const char* key, const char* val) {
 #undef INT
 }
 
-void config_load_file(Config* c, const char* path) {
+/* the keys given on the command line: they win over a game's own file too */
+static char cliKeys[48][64];
+static int nCliKeys;
+
+/* Settings a game's own file (states/<game>.cfg, issue #53) may hold: the
+ * ones that are read when a game starts or while it plays. Everything else
+ * (folders, accounts, updates, how the screens are found, hotkeys, the
+ * touch panel) is for all games. */
+static const char* const perGameKeys[] = {
+	"swap", "scale", "map_scale", "smooth", "border_color", "overlays", "overlay_screens", "bezel_logo", "bezel_inner",
+	"bezel_outer", "shader", "lcd_strength", "color_correction", "lcd_ghosting", "frame_buffer", "match_display", "map",
+	"map_crop", "map_animations", "map_interval", "show_logo", "custom_logos", "pinball_live", "rewind", "rewind_seconds",
+	"fast_forward", "ff_speed", "ab_swap", "show_fps", "audio_latency", "screen_match", "screen_placement",
+	"save_on_quit", "auto_load",
+};
+
+bool config_key_per_game(const char* key) {
+	for (size_t i = 0; i < sizeof(perGameKeys) / sizeof(perGameKeys[0]); ++i)
+		if (!strcmp(key, perGameKeys[i])) return true;
+	return false;
+}
+
+static bool cli_has(const char* key) {
+	for (int i = 0; i < nCliKeys; ++i)
+		if (!strcmp(cliKeys[i], key)) return true;
+	return false;
+}
+
+static int load_file(Config* c, const char* path, bool game) {
+	int applied = 0;
 	FILE* f = fopen(path, "r");
 	if (!f) {
-		return;
+		return 0;
 	}
 	char line[1024];
 	while (fgets(line, sizeof(line), f)) {
@@ -252,11 +281,27 @@ void config_load_file(Config* c, const char* path) {
 		while (isspace((unsigned char) *val)) ++val;
 		end = val + strlen(val) - 1;
 		while (end >= val && isspace((unsigned char) *end)) *end-- = 0;
+		if (game && !config_key_per_game(key)) {
+			fprintf(stderr, "%s: '%s' is for all games: ignored here\n", path, key);
+			continue;
+		}
+		if (game && cli_has(key)) continue; /* (given on the command line: that wins) */
 		if (!set_option(c, key, val)) {
 			fprintf(stderr, "%s: unknown option '%s'\n", path, key);
+		} else {
+			++applied;
 		}
 	}
 	fclose(f);
+	return applied;
+}
+
+void config_load_file(Config* c, const char* path) {
+	load_file(c, path, false);
+}
+
+int config_load_game_file(Config* c, const char* path) {
+	return load_file(c, path, true);
 }
 
 bool config_parse_args(Config* c, int argc, char** argv) {
@@ -286,6 +331,7 @@ bool config_parse_args(Config* c, int argc, char** argv) {
 				fprintf(stderr, "unknown option %s\n", a);
 				return false;
 			}
+			if (nCliKeys < (int) (sizeof(cliKeys) / sizeof(cliKeys[0]))) snprintf(cliKeys[nCliKeys++], sizeof(cliKeys[0]), "%s", key);
 		} else {
 			snprintf(c->rom, sizeof(c->rom), "%s", a);
 		}

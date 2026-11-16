@@ -7340,7 +7340,34 @@ static void logo_refresh(void) {
 	}
 }
 
+static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary);
+
+/* A game's own settings (issue #53, states/<game>.cfg) are put over the
+ * settings for the length of the game: what the file changed goes back to
+ * what it was when the game ends, unless it was changed again meanwhile
+ * (a menu choice for all games, which is saved already). */
 enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
+	GamePaths p;
+	game_paths(c, rom, &p);
+	Config before = *c;
+	int n = config_load_game_file(c, p.settings);
+	Config after = *c;
+	if (n) {
+		fprintf(stderr, "game settings: %d from %s\n", n, p.settings);
+		ui_layout_pictures();
+	}
+	enum GameExit x = game_run_inner(c, rom, fromLibrary);
+	if (n) {
+		const unsigned char *b = (const unsigned char*) &before, *a = (const unsigned char*) &after;
+		unsigned char* cur = (unsigned char*) c;
+		for (size_t i = 0; i < sizeof(Config); ++i)
+			if (a[i] != b[i] && cur[i] == a[i]) cur[i] = b[i];
+		ui_layout_pictures();
+	}
+	return x;
+}
+
+static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary) {
 	cfg = c;
 	debug = getenv("GBADS_DEBUG") != NULL;
 	romPath = rom, lastLoop = 0;

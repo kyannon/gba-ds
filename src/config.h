@@ -120,6 +120,12 @@ typedef struct Config {
 void config_defaults(Config* c);
 /* Loads key=value lines; missing file is not an error. */
 void config_load_file(Config* c, const char* path);
+/* A game's own settings (issue #53): the lines of its file (states/<game>.cfg)
+ * that are for one game only (config_key_per_game), put over the settings
+ * as they are, except what was given on the command line. Returns how many
+ * lines were used. */
+int config_load_game_file(Config* c, const char* path);
+bool config_key_per_game(const char* key);
 /* Parses --key=value / --flag arguments and an optional ROM path. Returns false on error. */
 bool config_parse_args(Config* c, int argc, char** argv);
 void config_usage(const char* argv0);
