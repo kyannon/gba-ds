@@ -62,10 +62,6 @@ down (the whole lower table on the two screens).
   and scroll for its own camera); then `twin_hide` and the HUD split's fixed
   sprites; then `twin_second` runs this frame alongside the game's, and its
   picture is shown. Each copy on its own worker thread (`twin_work_*`).
-  The first frame is run without drawing (`emu_frame_blind`, Nov 14, 2026):
-  its picture is never shown, and drawing is about half a frame's work
-  (12% less time over 1500 frames on the host; the regression pictures
-  identical). Sonic Pinball Party's carry path alike.
   Cost: up to four extra frames of emulation a frame, but on a 4-core device
   the wall time is about two frames (the copies' first frames side by side,
   then the game and their second frames side by side). Host (2 cores):
@@ -115,28 +111,6 @@ down (the whole lower table on the two screens).
   bottom screen shows the game's picture plus its score bar; the top screen
   the table's rows, or, while those would be the game's picture too, the
   top screen from before it came up (`lastTop`).
-- **Banners (Nov 14, 2026, PP-10):** in the lower view the game's
-  screen-fixed sprites (BALL SAVE, Latios/Latias) go to the screen the ball
-  is on when they come up (`tallFixedBot`, from the ball's table row against
-  `v + 160`), at their place on the game's screen, held there until none has
-  shown for 20 frames; the BG0 part (the catch timer) stays on the top
-  screen. The sprites' pixels are told from BG0's by the boxes of
-  `tallFixed` (update_tall). Log: "banners on the bottom screen (the ball's
-  there)".
-- **PP-11's top screen (Nov 14, 2026):** `twin_step` holds `twins[0]` at
-  `u - 160` while PP-11's screen is up (`tallMsg`, last frame's), and the
-  top screen shows those rows (the table just above the game's screen,
-  which is on the bottom one); with `u < 160`, the logo (`tallTopLogo`).
-  Until the copy is at its place, the top screen's last picture (`prevTop`).
-  Before, the top screen showed the lower view's rows, mostly the game's
-  own again (the owner: "the two screens out of sync").
-- **Seam (Nov 14, 2026):** a copy's pans' step is guessed from last frame's
-  (`panStep`); when the game's view starts or stops moving (4 rows a frame,
-  the ball let go from a trap) the guess was a frame out and the copy's
-  picture 4 rows off, leaving 4 rows where the screens meet from no picture
-  (black) or another. `twin_first` now runs the frame again with the step it
-  really took (a second blind frame, a few times a minute). Log: "copy N:
-  M row(s) off, run again". Case `pp-us-sapphire-seam`.
 - `GBADS_TALL_TRACE=1` logs a line a frame (the view, each copy's rows,
   sprites hidden, pixels laid over).
 
@@ -203,6 +177,21 @@ down (the whole lower table on the two screens).
 | Lights | small DMAs straight into the ring (`0x0804ECxx`-`0x0804F8xx`), called from `0x0804E814` by ranges of `S+0x6A` |
 | Raster effects | only BG0HOFS/VOFS at line 144 (VCount IRQ, DISPSTAT `0x9029`) for the score bar. DMA1/2 are the sound FIFOs |
 | Sprites | each object writes its own shadow-OAM entries (220 references to `0x03005000` in the ROM). Objects far off the screen are left out, with a margin |
+
+### Other releases (BPPJ, BPPJ Rev 1, BPPP)
+
+All three are the same game and table as `BPPE` (the profile is `BPPE`'s with a `variants[]` row each: `pp_jpn`, `pp_eur`). The Japanese original's addresses are shigehiro's (pull request #58); the others were found the same way and every one checked by the tests (`pp-jp-*`, `pp-jp1-*`, `pp-eu-*`). How: the camera's stores are matched by the code round each of `BPPE`'s four (masked Thumb opcodes: loads from literal pools and branches wild), and the RAM by the literal-pool words the same code loads. What matched in every release: gMain (`0x0200B0C0`), shadow OAM (`0x03005000`), BG3 table tiles (`0x0200FBB0`, `0x020030A0`), and `S` (the game's struct, `0x02000000`, with its offsets: `tools/pinball_events.py` steers the events by them and works on all three).
+
+| What | BPPE | BPPJ (`8af1ec73`) | BPPJ Rev 1 (`925a5684`) | BPPP (`a53ac14b`, 16 MB) |
+|---|---|---|---|---|
+| State pointer | `0x020314E0` | `0x02030440` | `0x02030440` | `0x02031600` |
+| Camera limits (`bound`, pointer + `0x58`) | `0x02031538` | `0x02030498` | `0x02030498` | `0x02031658` |
+| Camera stores, main routine (`str`, `strh` row) | `0x0804DCFA`, `0x0804DD0A` | `0x0804B896`, `0x0804B8A6` | `0x0804B5DE`, `0x0804B5EE` | `0x08053B26`, `0x08053B36` |
+| Camera stores, catch mode | `0x0804DA54`, `0x0804DA64` | `0x0804B5E8`, `0x0804B5F8` | `0x0804B330`, `0x0804B340` | `0x08053880`, `0x08053890` |
+| BG1 / 2 / 3 VOFS shadows (`view` is BG3's) | `0x0200B3AE`, `B2`, `B6` | same | same | `0x0200B3B2`, `B6`, `BA` (gMain has a field more: its block is 4 bytes higher) |
+| The stack slot with the row + 16 (`plus16`, `0x03007ED8`) | `0x086B0000` + row + 16 | same | same | `0x0894BED4` + row + 16 (`plus16Base`; the halfword only is written) |
+
+Rev 1's stores are chosen by its CRC32 (`live.rev`), because it shares the code `BPPJ`. `twin_open` (game.c) checks the four stores it's about to NOP are Thumb `str` / `strh` (top bits 6 / 8) and turns the copies off otherwise, so a dump of a release nobody has looked at gets the logo, not a copy with broken code. Two things only the pictures showed (the checks passed): the European top screen stayed black until the VOFS shadows and the table pointer were right (the log's "copy 0: 152 row(s) off, run again", every frame).
 
 ## Reaching events (tools/pinball_events.py)
 
@@ -279,12 +268,6 @@ PP-13). Travel: the lane hit set (`S+0x6BC` = 1), the ball into the centre hole 
 
 ## Not done
 
-- **Match Display Rate** (presenting in step with the display) leaves no
-  slack: a frame late for its refresh waits a whole refresh and the time
-  is lost (a player's report, Nov 2026: slowdown in Pokémon Pinball). game.c
-  falls back to the GBA's rate after three seconds in a row with 3 or more
-  missed refreshes (`pacedFallback`; logged as "N frame(s) missed the
-  display's refresh" and a new "frame pacing:" line).
 - **Speed:** full speed on the device only with the frame buffer on, so
   game.c forces it on for `tall` profiles (v1.4.2; the pause menu shows
   "Always on here"). That delays the keys by a frame, so the tests' inputs

@@ -311,7 +311,7 @@ static void twin_jump(Emu* e, uint32_t T, int row) {
 	for (int i = 0; i < 4; ++i) if (J->scroll[i]) emu_write16(e, T + J->scroll[i], (uint16_t) row);
 	for (int i = 0; i < 3; ++i) if (J->scrollAt[i]) emu_write16(e, J->scrollAt[i], (uint16_t) row);
 	for (int bg = 0; bg < 4; ++bg) if ((J->scrollVofs >> bg) & 1) emu_write16(e, 0x04000012 + bg * 4, (uint16_t) row);
-	if (J->plus16) emu_write16(e, J->plus16, (uint16_t) (row + 16));
+	if (J->plus16) emu_write16(e, J->plus16, (uint16_t) (J->plus16Base + row + 16));
 }
 
 /* A sprite's height from its attribute 0 and 1 (double for an affine one
@@ -711,8 +711,21 @@ static void twin_open(const char* rom, const MapProfile* p) {
 		for (int i = 0; i < 2; ++i) free(twinStates[i]), twinStates[i] = NULL;
 		return;
 	}
+	/* The camera's stores (a dump of its own: its Rev's set, by CRC32) are Thumb
+	 * STR / STRH with an immediate offset (top bits 6 / 8). A ROM whose code is
+	 * elsewhere (an untried dump of the release) has something else there: no
+	 * copies (the logo on the other screen), not a copy with its code broken. */
+	const uint32_t* nops = p->tall.live.rev.crc && p->tall.live.rev.crc == emu.romCrc ? p->tall.live.rev.nop : p->tall.live.nop;
+	for (int i = 0; i < 4 && nops[i]; ++i) {
+		unsigned op = emu_read16(&twins[0].e, nops[i]) >> 12;
+		if (op == 6 || op == 8) continue;
+		fprintf(stderr, "live view: not this ROM's camera store at %08x (%04x), copies off\n", nops[i], emu_read16(&twins[0].e, nops[i]));
+		for (int j = 0; j < opened; ++j) emu_close(&twins[j].e);
+		for (int j = 0; j < 2; ++j) free(twinStates[j]), twinStates[j] = NULL;
+		return;
+	}
 	for (int k = 0; k < TWINS; ++k) {
-		for (int i = 0; i < 4 && p->tall.live.nop[i]; ++i) emu_write16(&twins[k].e, p->tall.live.nop[i], 0x46C0); /* mov r8, r8 */
+		for (int i = 0; i < 4 && nops[i]; ++i) emu_write16(&twins[k].e, nops[i], 0x46C0); /* mov r8, r8 */
 		for (int i = 0; i < 16 && p->tall.live.carry.patch[i].addr; ++i) emu_write16(&twins[k].e, p->tall.live.carry.patch[i].addr, p->tall.live.carry.patch[i].v);
 		emu_layers(&twins[k].e, 0x1F & ~p->tall.hudBg); /* (its score bar's layers: fixed to the screen, the game's are shown) */
 	}

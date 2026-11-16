@@ -3,12 +3,20 @@
 game's events, by steering the game through its own code paths with the
 harness (no in-game play needed):
 
-  tools/pinball_events.py ROM FIXTURE_STATES_DIR OUTDIR [NAME...]
+  tools/pinball_events.py [--prefix=XX] ROM FIXTURE_STATES_DIR OUTDIR [NAME...]
 
-ROM is the USA release (gba-ds-tests' roms/BPPE.zip, unzipped); the
-harness runs a copy of it in OUTDIR. FIXTURE_STATES_DIR is gba-ds-tests' states/pokemon-pinball (us-ruby-top.ss
-and us-sapphire-play.ss are the starting points). Writes OUTDIR/NAME.ss for
+ROM is one release (gba-ds-tests' roms/CODE.zip, unzipped); the harness runs
+a copy of it in OUTDIR. FIXTURE_STATES_DIR is gba-ds-tests' states/pokemon-pinball
+(XX-ruby-top.ss and XX-sapphire-play.ss are the starting points, XX being
+--prefix: us (the default, BPPE), jp, jp1 (Japan's Rev 1), eu...). For a
+release with no such states, the ones named by `boot` below are made from
+the ROM alone first (the boot's key presses; Europe's language menu too:
+English), and the starting points are those. Writes OUTDIR/NAME.ss for
 each of (default: all):
+
+  boot                XX-title, XX-field-select, XX-sapphire-start,
+                      XX-ruby-bottom, XX-ruby-top, XX-sapphire-play,
+                      XX-ruby-pause, XX-ruby-catch (CATCH 'EM mode)
 
   ruby-egg-wander     egg hatch mode, the hatched Pokemon wandering
   ruby-egg-catch      ... hit twice: its catch animation
@@ -227,34 +235,70 @@ def bonus(g, base, field, name):
     return g.run(L, [(GMAIN_FIELD, 1)])[0] == field
 
 
+def rom_europe(path):
+    with open(path, "rb") as f:
+        f.seek(0xAF)
+        return f.read(1) == b"P"  # (the game code's region letter: a language menu comes first)
+
+
+def boot(g, p, europe):
+    """The states a release's cases start from, made from the ROM alone."""
+    ss = lambda n: "./%s-%s.ss" % (p, n)
+    L = ["wait 400", "tap A 1", "wait 120", "tap START 1", "wait 150"] if europe else ["wait 300", "tap START 1", "wait 120"]
+    L += ["save " + ss("title"), "tap START 1", "wait 120", "tap A 1", "wait 90", "save " + ss("field-select")]
+    g.run(L)
+    ruby = ["load " + ss("field-select"), "tap A 1", "wait 90", "tap A 1", "wait 90", "tap A 1", "wait 200",
+            "hold A 50", "wait 360", "save " + ss("ruby-bottom")]
+    g.run(ruby)
+    g.run(["load " + ss("field-select"), "tap RIGHT 1", "wait 30", "tap A 1", "wait 90", "tap A 1", "wait 90", "tap A 1",
+           "wait 60", "save " + ss("sapphire-start")])
+    top = ["load " + ss("ruby-bottom"), "wait 2"] + tp(*HOLD) + ["wait 120", "save " + ss("ruby-top")]
+    g.run(top)
+    sapphire_default(g, "%s-sapphire-start.ss" % p, "%s-sapphire-play" % p)
+    g.run(["load " + ss("ruby-bottom"), "tap START 1", "wait 30", "save " + ss("ruby-pause")])
+    g.run(["load " + ss("ruby-top")] + request(4) + tp(*HOLD) + ["wait 300", "save " + ss("ruby-catch")])
+    return all(os.path.exists(os.path.join(g.dir, "%s-%s.ss" % (p, n)))
+               for n in ("title", "field-select", "sapphire-start", "ruby-bottom", "ruby-top", "sapphire-play", "ruby-pause", "ruby-catch"))
+
+
 def main():
-    if len(sys.argv) < 4:
+    args = [a for a in sys.argv[1:] if not a.startswith("--prefix=")]
+    prefix = ([a[9:] for a in sys.argv[1:] if a.startswith("--prefix=")] or ["us"])[0]
+    if len(args) < 3:
         sys.exit(__doc__)
-    rom, fixtures, out = (os.path.abspath(a) for a in sys.argv[1:4])
-    want = set(sys.argv[4:])
+    rom, fixtures, out = (os.path.abspath(a) for a in args[:3])
+    want = set(args[3:])
     os.makedirs(out, exist_ok=True)
-    for n in ("us-ruby-top.ss", "us-sapphire-play.ss"):
-        shutil.copy(os.path.join(fixtures, n), out)
+    starts = ("%s-ruby-top.ss" % prefix, "%s-sapphire-play.ss" % prefix)
+    for n in starts:
+        if os.path.exists(os.path.join(fixtures, n)) and os.path.abspath(fixtures) != out:
+            shutil.copy(os.path.join(fixtures, n), out)
     # (a copy: the harness writes the battery save beside the ROM)
     work_rom = os.path.join(out, "pinball.gba")
     shutil.copy(rom, work_rom)
     g = Game(work_rom, out)
-    jobs = [("ruby-egg-wander ruby-egg-catch", lambda: egg(g, "us-ruby-top.ss", "ruby-egg-wander", "ruby-egg-catch")),
-            ("ruby-evolution", lambda: evolution(g, "us-ruby-top.ss", "ruby-evolution")),
-            ("ruby-travel", lambda: travel(g, "us-ruby-top.ss", "ruby-travel")),
-            ("ruby-jirachi ruby-jirachi-catch", lambda: jirachi(g, "us-ruby-top.ss", "ruby-jirachi", "ruby-jirachi-catch")),
-            ("sapphire-default", lambda: sapphire_default(g, "us-sapphire-play.ss", "sapphire-default")),
+    boot_only = want == {"boot"}
+    if "boot" in want or not all(os.path.exists(os.path.join(out, n)) for n in starts):
+        print("%-40s %s" % ("boot", "ok" if boot(g, prefix, rom_europe(rom)) else "FAILED"))
+        want.discard("boot")
+    if boot_only:
+        want = {"-"}  # (no event jobs)
+    jobs = [("ruby-egg-wander ruby-egg-catch", lambda: egg(g, starts[0], "ruby-egg-wander", "ruby-egg-catch")),
+            ("ruby-evolution", lambda: evolution(g, starts[0], "ruby-evolution")),
+            ("ruby-travel", lambda: travel(g, starts[0], "ruby-travel")),
+            ("ruby-jirachi ruby-jirachi-catch", lambda: jirachi(g, starts[0], "ruby-jirachi", "ruby-jirachi-catch")),
+            ("sapphire-default", lambda: sapphire_default(g, starts[1], "sapphire-default")),
             ("sapphire-egg-wander sapphire-egg-catch", lambda: egg(g, "sapphire-default.ss", "sapphire-egg-wander", "sapphire-egg-catch")),
             ("sapphire-evolution", lambda: evolution(g, "sapphire-default.ss", "sapphire-evolution"))]
-    jobs += [("bonus-" + f, (lambda f=f: bonus(g, "us-ruby-top.ss", FIELDS[f], "bonus-" + f))) for f in FIELDS]
+    jobs += [("bonus-" + f, (lambda f=f: bonus(g, starts[0], FIELDS[f], "bonus-" + f))) for f in FIELDS]
     for names, job in jobs:
         if want and not want & set(names.split()):
             continue
         if names.startswith("sapphire-") and names != "sapphire-default" and not os.path.exists(os.path.join(out, "sapphire-default.ss")):
-            sapphire_default(g, "us-sapphire-play.ss", "sapphire-default")
+            sapphire_default(g, starts[1], "sapphire-default")
         ok = job()
         print("%-40s %s" % (names, "ok" if ok else "FAILED"))
-    for n in ("steps.txt", "pinball.gba", "pinball.sav", "us-ruby-top.ss", "us-sapphire-play.ss"):
+    for n in ("steps.txt", "pinball.gba", "pinball.sav"):
         if os.path.exists(os.path.join(out, n)):
             os.remove(os.path.join(out, n))
 
