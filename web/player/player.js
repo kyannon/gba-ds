@@ -57,22 +57,54 @@ const DEVICES = [
   { id: "rgdds", name: "Anbernic RG DDS", top: [1200, 720, 4.7], bottom: [960, 720, 4.0] },
   { id: "gba", name: "Two GBA screens (240×160, 3×)", top: [720, 480, 2.9], bottom: [720, 480, 2.9] },
 ];
+// what Settings offers: each pair of resolutions once (the first device with it gives its
+// inches and id), named by the resolutions, not the devices; Two GBA screens first
+const RESOLUTIONS = (() => {
+  const out = [], byKey = new Map(), alias = {};
+  const key = (d) => d.top.slice(0, 2).join("x") + "+" + d.bottom.slice(0, 2).join("x");
+  for (const d of DEVICES) {
+    const k = key(d);
+    if (byKey.has(k)) { alias[d.id] = byKey.get(k).id; continue; }
+    const [tw, th] = d.top, [bw, bh] = d.bottom;
+    const name = d.id === "gba" ? "Two GBA screens" : tw === bw && th === bh ? "Two " + tw + "×" + th + " screens" : tw + "×" + th + " and " + bw + "×" + bh;
+    const r = { id: d.id, name, hint: d.id === "gba" ? "240×160 at 3×" : "", top: d.top, bottom: d.bottom };
+    byKey.set(k, r); out.push(r);
+  }
+  const area = (r) => r.top[0] * r.top[1] + r.bottom[0] * r.bottom[1];
+  out.sort((a, b) => (b.id === "gba") - (a.id === "gba") || area(a) - area(b));
+  return { list: out, alias };
+})();
 
 /* ================================================================ settings */
 const SET_KEY = "gbadsPlayer.settings", CTL_KEY = "gbadsPlayer.controls";
-const DEFAULTS = { device: "rgdsplus", custom: { top: [1024, 768, 4.3], bottom: [1024, 768, 4.3] }, arrange: "auto", sizes: "device",
-  gap: 4, smooth: true, scale: 0.5, volume: 80, muted: false, pauseHidden: true,
-  touchShow: "auto", touchPlace: "below", touchSize: 100, touchVibrate: true };
+const DEFAULTS = { device: "gba", custom: { top: [1024, 768, 4.3], bottom: [1024, 768, 4.3] }, arrange: "rotate", sizes: "device",
+  gap: 0, smooth: true, scale: 0.5, volume: 80, muted: false, pauseHidden: true,
+  touchShow: "auto", touchPlace: "rotate", touchSize: 100, touchVibrate: true };
 const readJSON = (k) => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } };
 const writeJSON = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
 const S = Object.assign({}, DEFAULTS, readJSON(SET_KEY) || {});
-// (settings v2, Nov 10, 2026: half the device's resolution by default, a quarter of
-// the drawing; settings saved before then had the device's whole, so they move once)
-if ((S.v || 1) < 2) { S.scale = DEFAULTS.scale; S.v = 2; try { localStorage.setItem(SET_KEY, JSON.stringify(S)); } catch (e) {} }
-const saveSettings = () => writeJSON(SET_KEY, S);
+function migrateSettings(s) {
+  // (settings v2, Nov 10, 2026: half the device's resolution by default, a quarter of
+  // the drawing; settings saved before then had the device's whole, so they move once)
+  if ((s.v || 1) < 2) { s.scale = DEFAULTS.scale; s.v = 2; }
+  // (v3, Nov 13, 2026: Two GBA screens, no gap, and arrangement and controls following
+  // the screen's rotation by default; what was still at the old defaults moves once)
+  if (s.v < 3) {
+    if (s.device === "rgdsplus") s.device = DEFAULTS.device;
+    if (s.arrange === "auto") s.arrange = DEFAULTS.arrange;
+    if (s.gap === 4) s.gap = DEFAULTS.gap;
+    if (s.touchPlace === "below") s.touchPlace = DEFAULTS.touchPlace;
+    s.v = 3;
+  }
+  if (!["rotate", "stack", "side"].includes(s.arrange)) s.arrange = DEFAULTS.arrange;
+  if (RESOLUTIONS.alias[s.device]) s.device = RESOLUTIONS.alias[s.device];
+  return s;
+}
+if ((S.v || 1) < 3) { migrateSettings(S); writeJSON(SET_KEY, S); } else migrateSettings(S);
+const saveSettings = () => { writeJSON(SET_KEY, S); folderKeepSettings(); };
 const ctl = Object.assign({ keys: null, pads: {} }, readJSON(CTL_KEY) || {});
 const keyMap = () => ctl.keys || KEY_DEFAULTS;
-const saveControls = () => writeJSON(CTL_KEY, ctl);
+const saveControls = () => { writeJSON(CTL_KEY, ctl); folderKeepSettings(); };
 
 /* ================================================================ storage (IndexedDB) */
 let dbp = null;
@@ -82,12 +114,21 @@ function db() {
     let r;
     try { r = indexedDB.open("gba-ds-player", 1); } catch (e) { rej(e); return; }
     r.onupgradeneeded = () => { for (const s of ["kv", "roms", "files"]) if (!r.result.objectStoreNames.contains(s)) r.result.createObjectStore(s); };
-    r.onsuccess = () => res(r.result);
+    r.onsuccess = () => {
+      const d = r.result;
+      // "Delete everything kept here" in another tab or window: let go, or its delete (and its page) waits for this one
+      d.onversionchange = () => { d.close(); if (dbp === p) dbp = null; toast("Everything this player kept was deleted in another window."); };
+      res(d);
+    };
     r.onerror = () => rej(r.error);
   });
+  const p = dbp;
   dbp.catch(() => {});
   return dbp;
 }
+// at start: storage that doesn't answer (an older copy of the player open elsewhere holding it) mustn't keep the build away
+const kvGetSoon = (k, ms) => Promise.race([kvGet(k), new Promise((r) => setTimeout(() => r(STORAGE_BUSY), ms))]);
+const STORAGE_BUSY = {};
 async function idb(store, mode, fn) {
   const d = await db();
   return new Promise((res, rej) => {
@@ -112,9 +153,171 @@ async function allFiles() {
     });
   } catch (e) { return []; }
 }
+// what the app wrote: battery saves, states and the home folder into the browser; everything into the player's folder
+const BROWSER_KEEPS = /^\/(saves|states|home)\//;
 function keepFiles(files, deleted) {
   if (!files.length && !deleted.length) return;
+  folderWrite(files, deleted);
+  files = files.filter(([p]) => BROWSER_KEEPS.test(p)); deleted = deleted.filter((p) => BROWSER_KEEPS.test(p));
+  if (!files.length && !deleted.length) return;
   idb("files", "readwrite", (s) => { for (const [p, b] of files) s.put(b, p); for (const p of deleted) s.delete(p); }).catch(() => {});
+}
+
+/* ================================================================ a folder of the player's
+   As GBA DS's data folder on a handheld (Linux: data-folder.cfg; Android:
+   Settings > Folders): the player's games, battery saves, states (with GBA
+   DS's settings), screenshots, cheats, overlays, logos, patches, bug reports
+   and the web player's own settings, in a folder on this device that the
+   player chooses (File System Access: Chrome and Edge on computers, Chrome
+   on Android 132 and later; not Firefox or Safari). The browser keeps its
+   copy as before; with the folder, the folder is what a run starts from. */
+const canFolder = typeof window.showDirectoryPicker === "function";
+// the app's paths -> the folder's (as on a handheld; the app's own folder, /gba-ds, has the data folders)
+const FOLDER_MAP = [["/roms/", "roms/"], ["/saves/", "saves/"], ["/states/", "states/"], ["/shots/", "screenshots/"],
+  ["/gba-ds/cheats/", "cheats/"], ["/gba-ds/overlays/", "overlays/"], ["/gba-ds/logos/", "logos/"], ["/gba-ds/patches/", "patches/"], ["/gba-ds/bug-reports/", "bug-reports/"]];
+const FOLDER_SETTINGS = "web-player-settings.json";
+const F = { handle: null, ok: false, queue: Promise.resolve(), lost: false, settingsTimer: 0 };
+const toFolder = (p) => { for (const [a, b] of FOLDER_MAP) if (p.startsWith(a)) return b + p.slice(a.length); return null; };
+// read and write permission for the folder (asking needs a click or a key: Play, Reconnect)
+async function folderAccess(ask) {
+  if (!F.handle) return false;
+  try {
+    let s = await F.handle.queryPermission({ mode: "readwrite" });
+    if (s !== "granted" && ask) s = await F.handle.requestPermission({ mode: "readwrite" });
+    F.ok = s === "granted";
+  } catch (e) { F.ok = false; }
+  if (F.ok) F.lost = false;
+  showFolder();
+  return F.ok;
+}
+async function folderDir(rel, create) {
+  let d = F.handle;
+  for (const part of rel.split("/").slice(0, -1)) if (part) d = await d.getDirectoryHandle(part, { create });
+  return d;
+}
+function folderFailed(e) {
+  console.warn("folder:", e);
+  if (F.lost || !e || (e.name !== "NotAllowedError" && e.name !== "SecurityError")) return;
+  F.lost = true; F.ok = false;
+  toast("GBA DS lost access to your folder: reconnect it in Settings (this browser still keeps your saves).", true);
+  showFolder();
+}
+// files from the app ([path, bytes]) into the folder, and files it deleted out of it, in order
+function folderWrite(files, deleted) {
+  if (!F.ok) return F.queue;
+  const put = files.map(([p, b]) => [toFolder(p), b]).filter((x) => x[0]);
+  const del = (deleted || []).map(toFolder).filter(Boolean);
+  if (!put.length && !del.length) return F.queue;
+  F.queue = F.queue.then(async () => {
+    for (const [rel, b] of put) {
+      try {
+        const fh = await (await folderDir(rel, true)).getFileHandle(rel.split("/").pop(), { create: true });
+        const w = await fh.createWritable();
+        await w.write(b); await w.close();
+      } catch (e) { folderFailed(e); if (F.lost) return; }
+    }
+    for (const rel of del) { try { await (await folderDir(rel, false)).removeEntry(rel.split("/").pop()); } catch (e) {} }
+  });
+  return F.queue;
+}
+const isRomName = (n) => /\.(gba|agb|bin|zip|7z)$/i.test(n);
+// what the folder has, as the app's paths, [path, bytes, modified] (games only when asked, and as
+// files GBA DS reads from the folder when it opens them: never all in memory; never screenshots
+// or bug reports: the app only writes those). The real dates keep GBA DS's roms.cache good between runs.
+async function folderFiles(withRoms) {
+  const out = [];
+  async function walk(d, vp) {
+    for await (const [name, h] of d.entries()) {
+      if (name.startsWith(".")) continue;
+      if (h.kind === "directory") { await walk(h, vp + name + "/"); continue; }
+      if (vp === "/roms/" && !isRomName(name)) continue;
+      const f = await h.getFile();
+      out.push([vp + name, vp === "/roms/" ? f : new Uint8Array(await f.arrayBuffer()), f.lastModified]);
+    }
+  }
+  for (const [vp, rel] of FOLDER_MAP) {
+    if ((vp === "/roms/" && !withRoms) || vp === "/shots/" || vp === "/gba-ds/bug-reports/") continue;
+    let d;
+    try { d = await F.handle.getDirectoryHandle(rel.slice(0, -1)); } catch (e) { continue; }
+    try { await walk(d, vp); } catch (e) { folderFailed(e); }
+  }
+  return out;
+}
+async function folderHas(rel) {
+  try { await (await folderDir(rel, false)).getFileHandle(rel.split("/").pop()); return true; } catch (e) { return false; }
+}
+// the web player's own settings (screens, layout, controls) beside GBA DS's
+function folderKeepSettings() {
+  if (!F.ok) return;
+  clearTimeout(F.settingsTimer);
+  F.settingsTimer = setTimeout(() => {
+    const b = new TextEncoder().encode(JSON.stringify({ settings: S, controls: ctl }, null, 1));
+    F.queue = F.queue.then(async () => {
+      try { const w = await (await F.handle.getFileHandle(FOLDER_SETTINGS, { create: true })).createWritable(); await w.write(b); await w.close(); }
+      catch (e) { folderFailed(e); }
+    });
+  }, 300);
+}
+async function folderTakeSettings() {
+  try {
+    const j = JSON.parse(await (await (await F.handle.getFileHandle(FOLDER_SETTINGS)).getFile()).text());
+    if (j.settings) { Object.assign(S, j.settings); migrateSettings(S); writeJSON(SET_KEY, S); }
+    if (j.controls) { Object.assign(ctl, j.controls); writeJSON(CTL_KEY, ctl); }
+    return true;
+  } catch (e) { return false; }
+}
+async function chooseFolder() {
+  let h;
+  try { h = await window.showDirectoryPicker({ id: "gba-ds", mode: "readwrite", startIn: "documents" }); }
+  catch (e) { if (e.name !== "AbortError") toast("No folder: " + e.message, true); return; }
+  if (P.worker) await request({ t: "sync" });
+  F.handle = h; F.ok = true; F.lost = false;
+  await kvSet("folder", h);
+  // a folder used before (here or in another browser) brings its settings; else ours go in
+  const had = await folderTakeSettings();
+  if (!had) folderKeepSettings();
+  // what this browser kept goes in too, where the folder hasn't its own (one file at a
+  // time, each written before the next is read: never ten games in memory at once)
+  let copied = 0;
+  for (const [p, b] of await allFiles()) { const rel = toFolder(p); if (rel && !(await folderHas(rel))) { await folderWrite([[p, b]]); copied++; } }
+  for (const r of (await kvGet("recent")) || []) {
+    const rel = "roms/" + r.name.replace(/[\/\\]/g, "_");
+    if (await folderHas(rel)) continue;
+    const b = await idb("roms", "readonly", (s) => s.get(r.name)).catch(() => null);
+    if (b) { await folderWrite([["/" + rel, b]]); copied++; }
+  }
+  await F.queue;
+  showFolder(); showSettings(); showRecent();
+  toast("GBA DS keeps its files in “" + h.name + "” from now on" + (copied ? " (" + copied + " copied from this browser)." : "."));
+  if (P.running) restart(true, "Restarted to use your folder.");
+  else if (had) { P.win = null; relayout(); }
+}
+async function forgetFolder() {
+  await F.queue;
+  await idb("kv", "readwrite", (s) => s.delete("folder")).catch(() => {});
+  const name = F.handle ? F.handle.name : "";
+  Object.assign(F, { handle: null, ok: false, lost: false });
+  showFolder(); showRecent();
+  toast("The folder" + (name ? " “" + name + "”" : "") + " keeps its files; this browser's copy is used from now on.");
+}
+function showFolder() {
+  const n = $("folderNote");
+  if (!n) return;
+  const name = F.handle ? "“" + F.handle.name + "”" : "";
+  $("folderPick").hidden = !canFolder;
+  $("folderPick").textContent = F.handle ? "Choose another folder…" : "Choose a folder…";
+  $("folderReconnect").hidden = !F.handle || F.ok;
+  $("folderForget").hidden = !F.handle;
+  n.textContent = !canFolder
+    ? "Your games, saves and states are kept in this browser. In Chrome or Edge (Chrome on Android too) you can keep them in a folder on this device instead."
+    : !F.handle
+    ? "Keep your games, saves, states, settings, screenshots, cheats, overlays, logos and patches in a folder on this device, as GBA DS does on a handheld. They stay if this browser's data is cleared, and you can add your own overlays, cheats and patches there."
+    : F.ok
+    ? "Kept in your folder " + name + ": roms, saves, states (with GBA DS's settings), screenshots, cheats, overlays, logos, patches and bug-reports, and this player's settings."
+    : "Your folder " + name + " needs your permission again: press Reconnect, or Play asks for it.";
+  $("keptNote").textContent = F.handle
+    ? "This browser keeps a copy of your battery saves, states and GBA DS's settings too."
+    : "Battery saves, states and GBA DS's own settings are kept here between visits.";
 }
 
 /* ================================================================ little things */
@@ -209,16 +412,17 @@ async function takeBareWasm(name, bytes) {
   showSlots();
   return true;
 }
-function takeRom(name, bytes, remember) {
-  P.rom = { name, bytes, code: romCode(bytes), title: romTitle(bytes) || baseName(name) };
+function takeRom(name, bytes, remember, mtime) {
+  P.rom = { name, bytes, mtime: mtime || 0, code: romCode(bytes), title: romTitle(bytes) || baseName(name) };
   if (remember !== false) rememberRom(P.rom);
   showSlots();
 }
 async function rememberRom(r) {
   try {
     await idb("roms", "readwrite", (s) => s.put(r.bytes, r.name));
+    folderWrite([["/roms/" + r.name.replace(/[\/\\]/g, "_"), r.bytes]]);
     const list = ((await kvGet("recent")) || []).filter((x) => x.name !== r.name);
-    list.unshift({ name: r.name, code: r.code, title: r.title, t: Date.now() });
+    list.unshift({ name: r.name, code: r.code, title: r.title, t: Date.now(), mtime: r.mtime || 0 });
     for (const old of list.splice(10)) idb("roms", "readwrite", (s) => s.delete(old.name)).catch(() => {});
     await kvSet("recent", list);
     showRecent();
@@ -228,7 +432,7 @@ async function rememberRom(r) {
 // what dropped files are, in an order that lets each make sense: builds, games, saves, states
 async function takeFiles(list) {
   const items = [];
-  for (const f of list) items.push({ name: f.name, bytes: new Uint8Array(await f.arrayBuffer()) });
+  for (const f of list) items.push({ name: f.name, bytes: new Uint8Array(await f.arrayBuffer()), mtime: f.lastModified || 0 });
   let newGame = false, newBuild = false, newState = null;
   for (const it of items) {
     const ext = extOf(it.name);
@@ -243,12 +447,12 @@ async function takeFiles(list) {
           continue;
         }
         const romE = entries.find((e) => /\.(gba|agb|bin)$/i.test(e.name) && !e.dir);
-        if (romE) { const b = await romE.read(); if (looksLikeRom(b)) { takeRom(romE.name.split("/").pop(), b); newGame = true; continue; } }
+        if (romE) { const b = await romE.read(); if (looksLikeRom(b)) { takeRom(romE.name.split("/").pop(), b, true, it.mtime); newGame = true; continue; } }
         toast(it.name + ": no GBA DS build, game or bug report inside.", true);
       } else if (ext === "wasm") {
         if (await takeBareWasm(it.name, it.bytes)) { newBuild = true; toast("Web build loaded (no settings file with it: GBA DS's defaults)."); warnCaps(P.build); }
       } else if (["gba", "agb", "bin"].includes(ext) || looksLikeRom(it.bytes)) {
-        takeRom(it.name, it.bytes); newGame = true;
+        takeRom(it.name, it.bytes, true, it.mtime); newGame = true;
       } else if (["sav", "srm"].includes(ext)) {
         P.save = { name: it.name, bytes: it.bytes }; showSlots();
       } else if (/^(ss\d?|state)$/.test(ext)) {
@@ -272,9 +476,24 @@ async function takeFiles(list) {
 
 /* ================================================================ the screens */
 function device() {
-  if (S.device === "custom") return { id: "custom", name: "Custom", top: S.custom.top, bottom: S.custom.bottom };
-  return DEVICES.find((d) => d.id === S.device) || DEVICES[0];
+  if (S.device === "custom") return { id: "custom", name: "Custom screens", top: S.custom.top, bottom: S.custom.bottom };
+  return RESOLUTIONS.list.find((d) => d.id === S.device) || RESOLUTIONS.list[0];
 }
+// which way the screen is turned: the device's reported orientation, else its
+// rotation angle, else its reported resolution (?rotation=portrait|landscape for tests)
+function rotation() {
+  const q = location.search.match(/[?&]rotation=(portrait|landscape)\b/);
+  if (q) return q[1];
+  const o = screen.orientation && screen.orientation.type;
+  if (o) return o.startsWith("portrait") ? "portrait" : "landscape";
+  if (typeof window.orientation === "number") return Math.abs(window.orientation) === 90 ? "landscape" : "portrait";
+  return screen.width < screen.height ? "portrait" : "landscape";
+}
+// "Follow screen rotation": upright, the screens stacked and the controls below; on its side, side by side, the controls beside
+const arrangement = () => S.arrange === "rotate" ? (rotation() === "portrait" ? "stack" : "side") : S.arrange;
+const touchPlacement = () => S.touchPlace === "rotate" ? (rotation() === "portrait" ? "below" : "beside") : S.touchPlace;
+if (screen.orientation && screen.orientation.addEventListener) screen.orientation.addEventListener("change", () => relayout());
+window.addEventListener("orientationchange", () => setTimeout(relayout, 50));
 // the window GBA DS gets: both screens stacked, the top one first, each centred across it
 function appWindow() {
   const d = device(), k = Number(S.scale) || 1;
@@ -289,6 +508,19 @@ function appWindow() {
     env: same ? {} : { GBADS_SCREENS: tw + "x" + th + "," + bw + "x" + bh },
     args: same ? [] : ["--screen_ppi=" + ppi(tw, th, d.top[2]) + "," + ppi(bw, bh, d.bottom[2])],
   };
+}
+// GBA DS's settings file for the web: the build's, then the player's own defaults, which
+// come after it so they win; the pause menu's choices (states/prefs.cfg) still win over both.
+// Full Width: the pictures fill the screens' width at any resolution and detail (Pixel
+// Perfect's whole-number scale leaves a border round them, a wide one at half the detail).
+const WEB_DEFAULTS = "\n# the web player's defaults\nscale = fit\nmap_scale = fit\n";
+function webConfig() {
+  const own = P.build.files.find(([rel]) => rel === "gba-ds.cfg");
+  const add = new TextEncoder().encode(WEB_DEFAULTS);
+  if (!own) return add;
+  const out = new Uint8Array(own[1].length + add.length);
+  out.set(own[1]); out.set(add, own[1].length);
+  return out;
 }
 // where the two screens go on the page (CSS px), for the arrangement and sizes chosen
 function placeScreens(win, W, H) {
@@ -306,8 +538,7 @@ function placeScreens(win, W, H) {
       : [{ x: ox + (tw - aw) * k / 2, y: oy, w: aw * k, h: ah * k }, { x: ox + (tw - bw) * k / 2, y: oy + (ah + g) * k, w: bw * k, h: bh * k }];
     return { k, r };
   };
-  const pick = S.arrange === "side" ? try_(true) : S.arrange === "stack" ? try_(false) : (() => { const s = try_(true), t = try_(false); return s.k > t.k * 1.02 ? s : t; })();
-  return pick.r;
+  return try_(arrangement() === "side").r;
 }
 // the on-screen controls: on a touchscreen without a controller (or always, or never), while playing
 const coarse = matchMedia("(pointer: coarse)");
@@ -330,7 +561,7 @@ function relayout() {
   const stage = $("stage"), W = stage.clientWidth, H = stage.clientHeight;
   if (!W || !H) return;
   const win = P.win || appWindow();
-  const box = GBATouch.place(W, H, { show: touchShown(), placement: S.touchPlace, size: S.touchSize / 100, vibrate: !!S.touchVibrate, safe: safeArea() });
+  const box = GBATouch.place(W, H, { show: touchShown(), placement: touchPlacement(), size: S.touchSize / 100, vibrate: !!S.touchVibrate, safe: safeArea() });
   const rects = placeScreens(win, box.w, box.h).map((r) => ({ x: r.x + box.x, y: r.y + box.y, w: r.w, h: r.h }));
   P.rects = rects;
   const dpr = window.devicePixelRatio || 1;
@@ -441,6 +672,9 @@ async function boot(opts) {
   if (!P.rom && !opts.library) { toast("Now drop a GBA game (.gba).", true); showSlots(); return; }
   if (P.booting) return;
   P.booting = true;
+  // (asked first, while the click that started this still counts)
+  const useFolder = !!F.handle && await folderAccess(true);
+  if (F.handle && !useFolder) toast("Your folder “" + F.handle.name + "” wasn't allowed: playing from this browser's copy. Reconnect it in Settings.", true);
   const state = opts.state || (P.state && P.state.bytes) || null;
   P.state = null;
   await stopRun();
@@ -452,15 +686,24 @@ async function boot(opts) {
   const win = appWindow();
   P.win = win;
   const files = [];
-  for (const [rel, b] of P.build.files) files.push(["/gba-ds/" + rel, b]);
-  for (const [p, b] of await allFiles()) files.push([p, b]);
+  for (const [rel, b] of P.build.files) if (rel !== "gba-ds.cfg") files.push(["/gba-ds/" + rel, b]);
+  files.push(["/gba-ds/gba-ds.cfg", webConfig()]);
+  // the folder's files when there is one (the browser's home folder still), else the browser's
+  for (const [p, b] of await allFiles()) if (!useFolder || p.startsWith("/home/")) files.push([p, b]);
+  if (useFolder) { try { for (const f of await folderFiles(!!opts.library)) files.push(f); } catch (e) { folderFailed(e); } }
   const args = ["/gba-ds/gba-ds", "--asset-dir=/gba-ds", "--state-dir=/states", "--save-dir=/saves", "--screenshot-dir=/shots", "--rom-dir=/roms", ...win.args];
   if (opts.library) {
     const recent = (await kvGet("recent")) || [];
-    for (const r of recent) { const b = await idb("roms", "readonly", (s) => s.get(r.name)).catch(() => null); if (b) files.push(["/roms/" + r.name.replace(/[\/\\]/g, "_"), b]); }
+    const have = new Set(files.map(([p]) => p));
+    for (const r of recent) {
+      const p = "/roms/" + r.name.replace(/[\/\\]/g, "_");
+      if (have.has(p)) continue;
+      const b = await idb("roms", "readonly", (s) => s.get(r.name)).catch(() => null);
+      if (b) files.push([p, b, r.mtime || 0]);
+    }
   } else {
     const romName = P.rom.name.replace(/[\/\\]/g, "_");
-    files.push(["/roms/" + romName, P.rom.bytes]);
+    files.push(["/roms/" + romName, P.rom.bytes, P.rom.mtime]);
     if (P.save) { files.push(["/saves/" + baseName(romName) + ".sav", P.save.bytes]); P.save = null; }
     if (state) { files.push(["/load.ss", state]); args.push("--load-state=/load.ss"); }
     args.push("/roms/" + romName);
@@ -480,7 +723,7 @@ async function boot(opts) {
   P.worker = worker;
   P.caps = null;
   worker.onmessage = (e) => onWorker(worker, e.data);
-  worker.onerror = (e) => { if (P.worker === worker) { addLog("worker error: " + e.message); toast("GBA DS stopped: " + e.message, true); endRun(worker); } };
+  worker.onerror = (e) => { if (P.worker === worker) { const why = workerError(e); addLog("worker error: " + why + " (" + navigator.userAgent + ")"); toast("GBA DS stopped: " + why, true); endRun(worker); } };
   const canvas = freshCanvas().transferControlToOffscreen();
   document.body.classList.add("playing");
   $("start").hidden = true;
@@ -495,6 +738,12 @@ async function boot(opts) {
   if (A.node) linkSound();
   P.booting = false;
   lastMask = -1;
+}
+// a worker's error event: some browsers give no message (its script didn't load, or the error wasn't an Error)
+function workerError(e) {
+  if (e && e.message) return e.message + (e.filename ? " (" + e.filename.replace(/^.*\//, "") + ":" + e.lineno + ")" : "");
+  if (e && e.error) return String(e.error.stack || e.error);
+  return "the browser gave no reason (its worker may not have been allowed to start" + (location.protocol === "file:" ? " from a file on disk: try the player on its website" : "") + ")";
 }
 /* ---- map captures in a worker of their own (a second copy of the app) */
 const CAP = { w: null, key: "", busy: false, next: null, dead: false };
@@ -512,9 +761,11 @@ function captureJob(m) {
     catch (e) { captureFailed("the capture worker didn't start: " + e.message); return; }
     Object.assign(CAP, { w, key, busy: false, next: null });
     w.onmessage = (e) => onCapture(w, e.data);
-    w.onerror = (e) => { if (CAP.w === w) captureFailed(e.message); };
+    w.onerror = (e) => { if (CAP.w === w) captureFailed(workerError(e)); };
     const env = Object.assign({}, P.capEnv, { GBADS_CAPTURE_SERVE: m.code, GBADS_CAPTURE_TIGHT: m.tight ? "1" : "0" });
-    w.postMessage({ t: "bootCapture", wasm: P.build.module, files: P.capFiles, args: ["/gba-ds/gba-ds", "--asset-dir=/gba-ds", m.rom], env });
+    const mine = P.capFiles.some(([p]) => p === m.rom);
+    const files = P.capFiles.filter(([p]) => !p.startsWith("/roms/") || !mine || p === m.rom);
+    w.postMessage({ t: "bootCapture", wasm: P.build.module, files, args: ["/gba-ds/gba-ds", "--asset-dir=/gba-ds", m.rom], env });
   }
   // (one at a time: a newer job waiting replaces an older one)
   if (CAP.busy) { CAP.next = m; return; }
@@ -549,7 +800,6 @@ function onWorker(worker, m) {
     // (the pictures' buffer, back to the capture worker to be used again)
     case "capreturn": if (CAP.w) CAP.w.postMessage(m, [m.buf]); break;
     case "log": addLog(m.line); break;
-    case "fps": $("fps").textContent = Math.round(m.fps) + " fps"; break;
     case "started":
       P.caps = m;
       break;
@@ -574,7 +824,6 @@ function showStopped() {
   GBATouch.release();
   document.body.classList.remove("playing");
   $("start").hidden = false;
-  $("fps").textContent = "";
   showPaused(); showNow(); showSlots(); relayout();
 }
 // again, from this moment (device or resolution changed, a new build)
@@ -594,8 +843,6 @@ function setPaused(on, auto) {
 }
 function showPaused() {
   $("pausedVeil").hidden = !(P.running && P.paused);
-  $("pauseBtn").classList.toggle("on", P.paused);
-  $("pauseBtn").title = P.paused ? "Resume" : "Pause";
 }
 function showNow(library) {
   $("nowPlaying").hidden = !P.running;
@@ -629,7 +876,7 @@ function showSlots() {
 async function showRecent() {
   const list = (await kvGet("recent")) || [];
   $("recent").hidden = !list.length;
-  $("listBtn").hidden = !list.length || !P.build;
+  $("listBtn").hidden = !(list.length || F.handle) || !P.build;
   const ul = $("recentList");
   ul.textContent = "";
   for (const it of list) {
@@ -642,7 +889,7 @@ async function showRecent() {
     pick.onclick = async () => {
       const bytes = await idb("roms", "readonly", (s) => s.get(it.name)).catch(() => null);
       if (!bytes) { toast("That game isn't kept any more: drop it again.", true); return; }
-      takeRom(it.name, bytes, true);
+      takeRom(it.name, bytes, true, it.mtime);
       if (P.build) boot();
     };
     const rm = document.createElement("button");
@@ -673,8 +920,6 @@ window.addEventListener("drop", (e) => {
 });
 
 /* ================================================================ toolbar */
-$("pauseBtn").onclick = () => setPaused(!P.paused);
-$("resetBtn").onclick = async () => { await request({ t: "sync" }); boot({ library: P.library }); };
 $("closeBtn").onclick = async () => { await stopRun(); showStopped(); };
 $("stateBtn").onclick = async () => {
   const r = await request({ t: "saveState" });
@@ -976,11 +1221,10 @@ $("resetKeys").onclick = () => { ctl.keys = null; saveControls(); showControls()
 $("resetPad").onclick = () => { if (padSel) { delete ctl.pads[padSel]; saveControls(); showControls(); } };
 
 /* ================================================================ settings panel */
-for (const d of [...DEVICES, { id: "custom", name: "Custom screens…" }]) {
+for (const d of [...RESOLUTIONS.list, { id: "custom", name: "Custom…" }]) {
   const o = document.createElement("option");
   o.value = d.id;
-  if (d.top) { const [tw, th] = d.top, [bw, bh] = d.bottom; o.textContent = d.name + " · " + (tw === bw && th === bh ? tw + "×" + th + " ×2" : tw + "×" + th + " + " + bw + "×" + bh); }
-  else o.textContent = d.name;
+  o.textContent = d.name + (d.hint ? " (" + d.hint + ")" : "");
   $("device").appendChild(o);
 }
 const CUSTOM = [["cTopW", "top", 0], ["cTopH", "top", 1], ["cTopIn", "top", 2], ["cBotW", "bottom", 0], ["cBotH", "bottom", 1], ["cBotIn", "bottom", 2]];
@@ -993,13 +1237,14 @@ function showSettings() {
   $("volume").value = S.volume; $("pauseHidden").checked = !!S.pauseHidden;
   $("touchShow").value = S.touchShow; $("touchPlace").value = S.touchPlace; $("touchSize").value = S.touchSize; $("touchVibrate").checked = !!S.touchVibrate;
   $("exportSave").disabled = !P.rom;
+  showFolder();
   $("forgetBuild").hidden = !P.build || P.build.bundled;
   $("aboutNote").textContent = "Player " + VERSION + (P.build ? " · GBA DS " + P.build.version : "") +
     (P.caps ? " · sound " + (P.caps.hasAudio ? "yes" : "no") + ", every button " + (P.caps.hasButtons ? "yes" : "no") : "") + " · " + navigator.userAgent.replace(/^Mozilla\/5\.0 /, "");
 }
 let restartTimer = 0;
 const restartSoon = (note) => { clearTimeout(restartTimer); restartTimer = setTimeout(() => { if (P.running) restart(true, note); else { P.win = null; relayout(); } }, 500); };
-$("device").onchange = () => { S.device = $("device").value; saveSettings(); showSettings(); P.win = null; restartSoon("Restarted for the " + device().name + "'s screens."); };
+$("device").onchange = () => { S.device = $("device").value; saveSettings(); showSettings(); P.win = null; restartSoon("Restarted for " + device().name.replace(/^Two/, "two") + "."); };
 for (const [id, k, i] of CUSTOM) $(id).onchange = () => {
   const v = Number($(id).value);
   if (!(v > 0)) return;
@@ -1018,6 +1263,13 @@ $("touchSize").oninput = () => { S.touchSize = Number($("touchSize").value); sav
 $("touchVibrate").onchange = () => { S.touchVibrate = $("touchVibrate").checked; saveSettings(); relayout(); };
 $("pauseHidden").onchange = () => { S.pauseHidden = $("pauseHidden").checked; saveSettings(); };
 $("settingsBtn").onclick = () => { showSettings(); $("settings").showModal(); };
+$("folderPick").onclick = () => chooseFolder();
+$("folderReconnect").onclick = async () => {
+  if (!(await folderAccess(true))) { toast("The folder wasn't allowed.", true); return; }
+  toast("Reconnected to “" + F.handle.name + "”.");
+  if (P.running) restart(true, "Restarted to use your folder.");
+};
+$("folderForget").onclick = () => forgetFolder();
 $("exportSave").onclick = async () => {
   if (!P.rom) return;
   if (P.worker) await request({ t: "sync" });
@@ -1046,7 +1298,7 @@ $("logBtn").onclick = () => { $("logText").textContent = P.log.join("\n") || "(n
 $("logCopy").onclick = () => navigator.clipboard.writeText(P.log.join("\n")).then(() => toast("Log copied."), () => toast("Couldn't copy.", true));
 
 // for tests and the console: what's loaded and running (read it, don't change it)
-window.gbadsPlayer = { P, S, sound: A, capture: CAP, currentMask: () => currentMask() };
+window.gbadsPlayer = { P, S, F, sound: A, capture: CAP, currentMask: () => currentMask(), rotation: () => rotation() };
 
 /* ================================================================ phones */
 // on their side, the bar hides while playing; the pill at the top brings it back
@@ -1086,12 +1338,15 @@ async function loadBundled() {
 }
 (async () => {
   showSlots(); showSound();
-  const saved = await kvGet("build");
+  // the player's folder, if one was chosen (allowed already, or asked for at Play)
+  const saved = await kvGetSoon("build", 3000);
   if (!(saved && saved.bytes && await takeBuild(saved.name, saved.bytes, {}))) await loadBundled();
+  if (saved === STORAGE_BUSY) { toast("This player is open in another tab or window: close it to see your games and saves here.", true); return; }
+  if (canFolder) { const h = await kvGet("folder"); if (h && h.queryPermission) { F.handle = h; await folderAccess(false); } }
   const recent = (await kvGet("recent")) || [];
   if (recent.length && !P.rom) {
     const b = await idb("roms", "readonly", (s) => s.get(recent[0].name)).catch(() => null);
-    if (b) takeRom(recent[0].name, b, false);
+    if (b) takeRom(recent[0].name, b, false, recent[0].mtime);
   }
   showSlots(); showRecent();
   if (!navigator.storage || !navigator.storage.persist) return;

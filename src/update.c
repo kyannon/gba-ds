@@ -75,20 +75,23 @@ static void load_state_file(void) {
 
 /* ------------------------------------------------------------ versions */
 
-/* "v1.3.1", "1.3", "1.3.2-dev" -> parts; a -suffix sorts before the release */
-static void parse_version(const char* s, int v[4]) {
+/* "v1.3.1", "1.3", "1.3.2-dev", "1.5.1.1" -> parts (up to four numbers, the
+ * missing ones 0); a -suffix sorts before the release. Versions before 1.5.2
+ * read only three numbers, so they'd see 1.5.1.1 as 1.5.1: a four-number
+ * release is only offered from 1.5.2 on. */
+static void parse_version(const char* s, int v[5]) {
 	if (*s == 'v' || *s == 'V') ++s;
-	v[0] = v[1] = v[2] = 0;
-	v[3] = 1;
-	sscanf(s, "%d.%d.%d", &v[0], &v[1], &v[2]);
-	if (strchr(s, '-')) v[3] = 0;
+	v[0] = v[1] = v[2] = v[3] = 0;
+	v[4] = 1;
+	sscanf(s, "%d.%d.%d.%d", &v[0], &v[1], &v[2], &v[3]);
+	if (strchr(s, '-')) v[4] = 0;
 }
 
 static int compare_versions(const char* a, const char* b) {
-	int x[4], y[4];
+	int x[5], y[5];
 	parse_version(a, x);
 	parse_version(b, y);
-	for (int i = 0; i < 4; ++i) {
+	for (int i = 0; i < 5; ++i) {
 		if (x[i] != y[i]) return x[i] < y[i] ? -1 : 1;
 	}
 	return 0;
@@ -688,8 +691,20 @@ void update_notice_seen(void) {
 	SDL_UnlockMutex(U.lock);
 }
 
-void update_restart_if_installed(void) {
-	if (!U.lock || U.info.state != UPD_DONE || !U.exePath[0] || !U.argv) return;
+int update_restart_if_installed(void) {
+	if (!U.lock || U.info.state != UPD_DONE || !U.exePath[0] || !U.argv) return 0;
+	/* launch.sh (ROCKNIX and other systems, from v1.5.3.1) starts the new
+	 * version itself, with the new launch.sh: its changes count from the
+	 * first run, not the next start (issue #50: v1.5.3's clock and log
+	 * changes were in launch.sh, and a player updating in the app kept
+	 * playing under v1.5.2's) */
+	const char* rs = getenv("GBADS_RELAUNCH_STATUS");
+	int status = rs ? atoi(rs) : 0;
+	if (status > 0 && status < 256) {
+		fprintf(stderr, "update: back to launch.sh to start the new version (exit %d)\n", status);
+		fflush(stderr);
+		return status;
+	}
 	char exe[1024];
 	snprintf(exe, sizeof(exe), "%s", U.exePath);
 	char* del = strstr(exe, " (deleted)");
@@ -698,6 +713,7 @@ void update_restart_if_installed(void) {
 	fflush(stderr);
 	execv(exe, U.argv);
 	fprintf(stderr, "update: couldn't restart: %s\n", strerror(errno));
+	return 0;
 }
 
 #endif

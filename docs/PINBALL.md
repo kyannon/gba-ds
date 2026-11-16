@@ -178,6 +178,21 @@ down (the whole lower table on the two screens).
 | Raster effects | only BG0HOFS/VOFS at line 144 (VCount IRQ, DISPSTAT `0x9029`) for the score bar. DMA1/2 are the sound FIFOs |
 | Sprites | each object writes its own shadow-OAM entries (220 references to `0x03005000` in the ROM). Objects far off the screen are left out, with a margin |
 
+### Other releases (BPPJ, BPPJ Rev 1, BPPP)
+
+All three are the same game and table as `BPPE` (the profile is `BPPE`'s with a `variants[]` row each: `pp_jpn`, `pp_eur`). The Japanese original's addresses are shigehiro's (pull request #58); the others were found the same way and every one checked by the tests (`pp-jp-*`, `pp-jp1-*`, `pp-eu-*`). How: the camera's stores are matched by the code round each of `BPPE`'s four (masked Thumb opcodes: loads from literal pools and branches wild), and the RAM by the literal-pool words the same code loads. What matched in every release: gMain (`0x0200B0C0`), shadow OAM (`0x03005000`), BG3 table tiles (`0x0200FBB0`, `0x020030A0`), and `S` (the game's struct, `0x02000000`, with its offsets: `tools/pinball_events.py` steers the events by them and works on all three).
+
+| What | BPPE | BPPJ (`8af1ec73`) | BPPJ Rev 1 (`925a5684`) | BPPP (`a53ac14b`, 16 MB) |
+|---|---|---|---|---|
+| State pointer | `0x020314E0` | `0x02030440` | `0x02030440` | `0x02031600` |
+| Camera limits (`bound`, pointer + `0x58`) | `0x02031538` | `0x02030498` | `0x02030498` | `0x02031658` |
+| Camera stores, main routine (`str`, `strh` row) | `0x0804DCFA`, `0x0804DD0A` | `0x0804B896`, `0x0804B8A6` | `0x0804B5DE`, `0x0804B5EE` | `0x08053B26`, `0x08053B36` |
+| Camera stores, catch mode | `0x0804DA54`, `0x0804DA64` | `0x0804B5E8`, `0x0804B5F8` | `0x0804B330`, `0x0804B340` | `0x08053880`, `0x08053890` |
+| BG1 / 2 / 3 VOFS shadows (`view` is BG3's) | `0x0200B3AE`, `B2`, `B6` | same | same | `0x0200B3B2`, `B6`, `BA` (gMain has a field more: its block is 4 bytes higher) |
+| The stack slot with the row + 16 (`plus16`, `0x03007ED8`) | `0x086B0000` + row + 16 | same | same | `0x0894BED4` + row + 16 (`plus16Base`; the halfword only is written) |
+
+Rev 1's stores are chosen by its CRC32 (`live.rev`), because it shares the code `BPPJ`. `twin_open` (game.c) checks the four stores it's about to NOP are Thumb `str` / `strh` (top bits 6 / 8) and turns the copies off otherwise, so a dump of a release nobody has looked at gets the logo, not a copy with broken code. Two things only the pictures showed (the checks passed): the European top screen stayed black until the VOFS shadows and the table pointer were right (the log's "copy 0: 152 row(s) off, run again", every frame).
+
 ## Reaching events (tools/pinball_events.py)
 
 The game's events and bonus stages can be reached without playing, by

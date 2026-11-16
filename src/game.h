@@ -13,5 +13,7 @@ enum GameExit {
 
 /* Plays one game until the player exits. fromLibrary adds a "Game list" menu item. */
 enum GameExit game_run(Config* cfg, const char* rom, bool fromLibrary);
+/* states/prefs.cfg: the pause menu's choices and the game list's Performance setting */
+void prefs_save(Config* cfg);
 
 #endif

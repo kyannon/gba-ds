@@ -10,7 +10,7 @@ here=tools/androidtest
 cmd=$(make -n -B build/host/gba-ds 2>/dev/null | grep -- "-o build/host/gba-ds" | head -1)
 [ -n "$cmd" ] || { echo "no link command from make (run scripts/setup-host.sh and make first)" >&2; exit 1; }
 extra=""
-for f in src/http.c src/update.c src/sha256.c; do
+for f in src/http.c src/update.c src/sha256.c src/esde.c; do
 	case " $cmd " in *" $f "*) ;; *) extra="$extra $f" ;; esac
 done
 libs=""

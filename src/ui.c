@@ -1,4 +1,11 @@
 #include "ui.h"
+
+/* the left stick presses the D-pad (issue #57): game.c turns it off for a game
+ * with left_stick_dpad = 0, and on again for its menus and the game list */
+static bool stickDpad = true;
+void ui_stick_dpad(bool on) {
+	stickDpad = on;
+}
 #include "android.h"
 #include "brand.h"
 #include "font.h"
@@ -150,6 +157,8 @@ void ui_load_script(const char* path) {
  * hit areas are worked out as it's drawn). The game, map and HUD
  * pictures are still made every frame; only the screens aren't put
  * together. */
+bool ui_scripted(void) { return scriptLen > 0; }
+
 bool ui_script_quiet(void) {
 	static int on = -1;
 	if (on < 0) on = getenv("GBADS_DRAW_SHOTS_ONLY") != NULL;
@@ -396,6 +405,12 @@ bool ui_init(Config* c, bool wantDual) {
 #ifdef __ANDROID__
 	SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft");
 	SDL_SetHint(SDL_HINT_ANDROID_TRAP_BACK_BUTTON, "1"); /* BACK opens the menu instead of closing the app */
+#else
+	/* SDL drops controller events while the window isn't focused. Under sway
+	 * with both panels (stock ROCKNIX on the RG DS, issue #45) our window may
+	 * never get focus, and a tap doesn't give it any: keep the buttons
+	 * coming regardless. The environment variable still overrides this. */
+	SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
 #endif
 	setenv("SDL_VIDEO_WAYLAND_WMCLASS", "gba-ds", 0);
 	/* (the web build's sound too: web/sdl_audio_web.c, pulled by the page) */
@@ -421,7 +436,9 @@ bool ui_init(Config* c, bool wantDual) {
 	 * Presentation window in Java (android.c). It's view 1, drawn at
 	 * ui_present: with the GPU (the game screen's renderer, made to draw into
 	 * the other window), or failing that with a software renderer. */
-	if (!create_view(&views[0], 0, "GBA DS", true, 1024, 768)) return false;
+	/* (GBADS_WINDOW: tools/androidtest, a window of that size, as SDL's
+	 * offscreen driver makes a full-screen one 1024x768) */
+	if (!create_view(&views[0], 0, "GBA DS", !getenv("GBADS_WINDOW"), 1024, 768)) return false;
 	nViews = 1;
 	int sw, sh, w0, h0;
 	SDL_RendererInfo ri;
@@ -611,9 +628,16 @@ float ui_screen_ppi(int screen) {
  * picture that goes on over both (Pokémon Pinball's table) carries on
  * across. Nothing when the shapes already match. */
 void ui_layout_pictures(void) {
-	for (int i = 0; i < nScreens; ++i) screens[i].pic = (SDL_Rect) { 0, 0, screens[i].rect.w, screens[i].rect.h };
+	/* screen_placement = no_gap (issue #46): with two screens, the top one's
+	 * pictures against its bottom edge and the bottom one's against its
+	 * top, so the two are as close together as they can be */
+	bool gap = !strcmp(cfg->screenPlace, "no_gap") && nScreens == 2;
+	for (int i = 0; i < nScreens; ++i) {
+		screens[i].pic = (SDL_Rect) { 0, 0, screens[i].rect.w, screens[i].rect.h };
+		screens[i].align = gap ? (i == 0 ? 1 : -1) : 0;
+	}
 	bool aspect = !strcmp(cfg->screenMatch, "aspect"), size = !strcmp(cfg->screenMatch, "size");
-	static char logged[64];
+	static char logged[96];
 	char note[64] = "";
 	if ((aspect || size) && ui_screens_differ()) {
 		double a0 = (double) screens[0].rect.w / screens[0].rect.h, a1 = (double) screens[1].rect.w / screens[1].rect.h;
@@ -631,8 +655,8 @@ void ui_layout_pictures(void) {
 		screens[wide].pic = (SDL_Rect) { (W->w - w) / 2, y, w, h };
 		snprintf(note + strlen(note), sizeof(note) - strlen(note), " %dx%d on screen %d", w, h, wide);
 	}
-	char line[64];
-	snprintf(line, sizeof(line), "%s%s", cfg->screenMatch, note);
+	char line[96];
+	snprintf(line, sizeof(line), "%s%s, placement %s", cfg->screenMatch, note, gap ? "no_gap" : "center");
 	if (strcmp(line, logged)) {
 		snprintf(logged, sizeof(logged), "%s", line);
 		fprintf(stderr, "screen shapes: %s (ppi %.0f / %.0f)\n", line, ui_screen_ppi(0), ui_screen_ppi(1));
@@ -686,17 +710,31 @@ static void layout_screens(void) {
 		return;
 	}
 	const char* lay = cfg->layout;
+	/* a hinge across the middle of one display (Surface Duo spanned over
+	 * both screens, issue #48): a screen each side of it, the hinge's
+	 * pixels left out */
+	int gap = 0;
+#ifdef __ANDROID__
+	gap = android_hinge_gap(w, h);
+#endif
 	if (!strcmp(lay, "auto") || !strcmp(lay, "dual")) {
-		lay = w >= h * 18 / 10 ? "span-h" : h >= w * 12 / 10 ? "span-v" : "single";
+		if (gap > 0) lay = h > w ? "span-v" : "span-h";
+		else lay = w >= h * 18 / 10 ? "span-h" : h >= w * 12 / 10 ? "span-v" : "single";
 	}
+	static char logged[48];
+	char line[48];
+	snprintf(line, sizeof(line), "%dx%d %s gap %d", w, h, lay, gap);
+	if (strcmp(line, logged)) snprintf(logged, sizeof(logged), "%s", line), fprintf(stderr, "screens: one window, %s\n", line);
 	if (!strcmp(lay, "span-h")) {
 		nScreens = 2;
-		screens[0] = (Screen) { 0, { 0, 0, w / 2, h } };
-		screens[1] = (Screen) { 0, { w / 2, 0, w - w / 2, h } };
+		int s = (w - gap) / 2;
+		screens[0] = (Screen) { 0, { 0, 0, s, h } };
+		screens[1] = (Screen) { 0, { s + gap, 0, w - s - gap, h } };
 	} else if (!strcmp(lay, "span-v")) {
 		nScreens = 2;
-		screens[0] = (Screen) { 0, { 0, 0, w, h / 2 } };
-		screens[1] = (Screen) { 0, { 0, h / 2, w, h - h / 2 } };
+		int s = (h - gap) / 2;
+		screens[0] = (Screen) { 0, { 0, 0, w, s } };
+		screens[1] = (Screen) { 0, { 0, s + gap, w, h - s - gap } };
 	} else {
 		nScreens = 1;
 		screens[0] = (Screen) { 0, { 0, 0, w, h } };
@@ -1151,10 +1189,12 @@ void ui_read_buttons(void) {
 #endif
 		int lx = SDL_GameControllerGetAxis(gc, SDL_CONTROLLER_AXIS_LEFTX);
 		int ly = SDL_GameControllerGetAxis(gc, SDL_CONTROLLER_AXIS_LEFTY);
-		if (lx < -16000) phys[SDL_CONTROLLER_BUTTON_DPAD_LEFT] = true;
-		if (lx > 16000) phys[SDL_CONTROLLER_BUTTON_DPAD_RIGHT] = true;
-		if (ly < -16000) phys[SDL_CONTROLLER_BUTTON_DPAD_UP] = true;
-		if (ly > 16000) phys[SDL_CONTROLLER_BUTTON_DPAD_DOWN] = true;
+		if (stickDpad) { /* (left_stick_dpad: off in a game, the stick does nothing there) */
+			if (lx < -16000) phys[SDL_CONTROLLER_BUTTON_DPAD_LEFT] = true;
+			if (lx > 16000) phys[SDL_CONTROLLER_BUTTON_DPAD_RIGHT] = true;
+			if (ly < -16000) phys[SDL_CONTROLLER_BUTTON_DPAD_UP] = true;
+			if (ly > 16000) phys[SDL_CONTROLLER_BUTTON_DPAD_DOWN] = true;
+		}
 	}
 	bool rawHome = false;
 	if (cfg->homeButton >= 0) {
@@ -1515,7 +1555,13 @@ void ui_clip(int screen, const SDL_Rect* clip) {
 	SDL_RenderSetClipRect(views[screens[screen].view].ren, clip);
 }
 
+static int keyCount[2];
+static bool inKey;
+static bool dimmed[2]; /* this frame's brightness layer is on (a present without a redraw must not add it again) */
+static void key_layer(int screen, SDL_Rect r, SDL_Color c);
 void ui_clear(void) {
+	keyCount[0] = keyCount[1] = 0;
+	dimmed[0] = dimmed[1] = false;
 	for (int i = 0; i < nViews; ++i) {
 		if (views[i].retained) continue; /* keeps its last picture; see sw_render */
 		SDL_SetRenderDrawColor(views[i].ren, 0, 0, 0, 255);
@@ -1620,10 +1666,33 @@ double ui_display_hz(int view) {
 	return hz;
 }
 
+/* This app's brightness for each screen (issue #56), 20..100: a black layer over
+ * everything at the end of the frame (not in screenshots), never the system's
+ * own brightness. */
+static int brightPct[2] = { 100, 100 };
+void ui_brightness(int top, int bottom) {
+	brightPct[0] = SDL_clamp(top, 20, 100);
+	brightPct[1] = SDL_clamp(bottom, 20, 100);
+}
+
 void ui_present(void) {
+	{
+		/* testing (issue #50): GBADS_TEST_PRESENT_STALL=MS,EVERY holds every
+		 * EVERY-th present up for MS ms, as one player's system did */
+		static int stallMs = -1, stallEvery, presents;
+		if (stallMs < 0) {
+			const char* e = getenv("GBADS_TEST_PRESENT_STALL");
+			stallMs = 0;
+			if (e && sscanf(e, "%d,%d", &stallMs, &stallEvery) != 2) stallMs = 0;
+		}
+		if (stallMs > 0 && stallEvery > 0 && ++presents % stallEvery == 0) SDL_Delay((Uint32) stallMs);
+	}
 	if (pendingShot[0]) {
 		ui_screenshot(pendingShot);
 		pendingShot[0] = 0;
+	}
+	for (int s = 0; s < nScreens && s < 2; ++s) {
+		if (brightPct[s] < 100 && !dimmed[s]) dimmed[s] = true, ui_dim(s, (Uint8) (255 * (100 - brightPct[s]) / 100));
 	}
 #ifdef __ANDROID__
 	static Uint64 handover;
@@ -1705,7 +1774,8 @@ SDL_Renderer* ui_ren(int screen) {
 	return views[screens[screen].view].ren;
 }
 
-static void fit_rect(const SDL_Rect* area, int w, int h, const char* mode, SDL_Rect* out) {
+/* align: where a picture shorter than the area goes (Screen.align) */
+static void fit_rect_at(const SDL_Rect* area, int w, int h, const char* mode, int align, SDL_Rect* out) {
 	if (!strcmp(mode, "stretch")) {
 		*out = *area;
 		return;
@@ -1718,7 +1788,10 @@ static void fit_rect(const SDL_Rect* area, int w, int h, const char* mode, SDL_R
 	out->w = (int) (w * s);
 	out->h = (int) (h * s);
 	out->x = area->x + (area->w - out->w) / 2;
-	out->y = area->y + (area->h - out->h) / 2;
+	out->y = area->y + (align > 0 ? area->h - out->h : align < 0 ? 0 : (area->h - out->h) / 2);
+}
+static void fit_rect(const SDL_Rect* area, int w, int h, const char* mode, SDL_Rect* out) {
+	fit_rect_at(area, w, h, mode, 0, out);
 }
 
 void ui_image(int screen, SDL_Texture* const* texPerView, int w, int h, const char* mode, const SDL_Rect* areaLocal) {
@@ -1946,7 +2019,7 @@ void ui_image_pixels(int screen, SDL_Texture* const* texPerView, int w, int h, c
 	SDL_Renderer* ren = views[v].ren;
 	SDL_Texture* src = texPerView[v];
 	SDL_Rect dst, pic = { s->rect.x + s->pic.x, s->rect.y + s->pic.y, s->pic.w, s->pic.h };
-	fit_rect(&pic, w, h, mode, &dst);
+	fit_rect_at(&pic, w, h, mode, s->align, &dst);
 	/* zoom can be wider than the screen: keep it off the other screen */
 	bool clip = dst.x < s->rect.x || dst.y < s->rect.y || dst.x + dst.w > s->rect.x + s->rect.w ||
 	            dst.y + dst.h > s->rect.y + s->rect.h;
@@ -2022,11 +2095,12 @@ static void draw_pixels(SDL_Renderer* ren, int v, SDL_Texture* src, int w, int h
 
 SDL_Rect ui_image_rect(int screen, int w, int h, const char* mode) {
 	SDL_Rect area = screens[screen].pic, dst;
-	fit_rect(&area, w, h, mode, &dst);
+	fit_rect_at(&area, w, h, mode, screens[screen].align, &dst);
 	return dst;
 }
 
 void ui_fill(int screen, SDL_Rect r, SDL_Color c) {
+	if (!inKey) key_layer(screen, r, c);
 	RECORD(screen, OP_FILL) {
 		o->r = r, o->col = c;
 		return;
@@ -2087,6 +2161,7 @@ void ui_text_center(int screen, int cx, int y, int px, const char* s, SDL_Color 
 }
 
 SDL_Surface* image_load(const char* path); /* image.c */
+const char* image_why(const char* path); /* image.c */
 
 SDL_Surface* image_load_mem(const unsigned char* data, size_t size); /* image.c */
 
@@ -2136,10 +2211,10 @@ static void extracted_path(const Config* c, const char* code, char* path, size_t
 	else snprintf(path, n, "%s/logos/%.4s.png", c->stateDir, code);
 }
 
-/* The player's own logo for the game: <asset_dir>/logos/<CODE>.png|.bmp|.jpg. */
+/* The player's own logo for the game: <asset_dir>/logos/<CODE>.png|.bmp|.jpg|.webp. */
 static bool own_logo(const Config* c, const char* code, char* path, size_t n) {
-	const char* exts[] = { "png", "bmp", "jpg", "jpeg" };
-	for (int i = 0; i < 4; ++i) {
+	const char* exts[] = { "png", "bmp", "jpg", "jpeg", "webp" };
+	for (int i = 0; i < 5; ++i) {
 		snprintf(path, n, "%s/logos/%.4s.%s", c->assetDir, code, exts[i]);
 		if (file_there(path)) return true;
 	}
@@ -2179,7 +2254,7 @@ static void logo_dir_list(const char* dir) {
 	struct dirent* e;
 	while ((e = readdir(d))) {
 		const char* dot = strrchr(e->d_name, '.');
-		if (!dot || (strcasecmp(dot, ".png") && strcasecmp(dot, ".jpg") && strcasecmp(dot, ".jpeg"))) continue;
+		if (!dot || (strcasecmp(dot, ".png") && strcasecmp(dot, ".jpg") && strcasecmp(dot, ".jpeg") && strcasecmp(dot, ".webp"))) continue;
 		if (logoDir.n == cap) {
 			cap = cap ? cap * 2 : 256;
 			char** nn = realloc(logoDir.names, sizeof(char*) * cap);
@@ -2196,7 +2271,7 @@ static void logo_dir_list(const char* dir) {
  * "Game Name.jpg" and "Game Name-marquee.png" all go with
  * "Game Name (USA) (Rev 1).gba". Best first: the ROM's whole name, then
  * the same title, then the title with -marquee / -wheel / -logo, then with
- * any other -suffix; PNG before JPG (it can be transparent); then by name. */
+ * any other -suffix; PNG or WebP before JPG (they can be transparent); then by name. */
 static bool scraped_logo(const Config* c, const char* rom, char* path, size_t n) {
 	if (!c->logoFolder[0] || !rom || !rom[0]) return false;
 	const char* base = strrchr(rom, '/');
@@ -2222,7 +2297,7 @@ static bool scraped_logo(const Config* c, const char* rom, char* path, size_t n)
 			const char* tail = fkey + klen + 1;
 			rank = !strcmp(tail, "marquee") || !strcmp(tail, "wheel") || !strcmp(tail, "logo") ? 2 : 3;
 		} else continue;
-		int score = rank * 2 + (strcasecmp(fdot, ".png") ? 1 : 0);
+		int score = rank * 2 + (strcasecmp(fdot, ".png") && strcasecmp(fdot, ".webp") ? 1 : 0); /* PNG and WebP can be transparent */
 		if (score < bestScore || (score == bestScore && strcmp(f, logoDir.names[best]) < 0)) best = i, bestScore = score;
 	}
 	if (best < 0) return false;
@@ -2296,6 +2371,25 @@ SDL_Surface* ui_resample(const SDL_Surface* s, int w, int h) {
 	return o;
 }
 
+/* What the last logo choice was, for the log (once per change) and bug
+ * reports: which file, or why a custom one wasn't used. */
+static char logoNote[1400];
+static char logoBad[1200]; /* the last custom logo that couldn't be read */
+static void logo_note(const char* fmt, ...) {
+	char s[sizeof(logoNote)];
+	va_list ap;
+	va_start(ap, fmt);
+	vsnprintf(s, sizeof(s), fmt, ap);
+	va_end(ap);
+	if (!strcmp(s, logoNote)) return;
+	snprintf(logoNote, sizeof(logoNote), "%s", s);
+	fprintf(stderr, "logo: %s\n", s);
+}
+
+const char* ui_logo_note(void) {
+	return logoNote[0] ? logoNote : "none yet";
+}
+
 /* The last scraped logo made, kept: making it means reading a big PNG. */
 static struct {
 	char src[1200];
@@ -2324,7 +2418,11 @@ static SDL_Surface* sized_surface(const Config* c, const char* src, const char* 
 		return SDL_DuplicateSurface(scrapedCache.s);
 	}
 	SDL_Surface* img = image_load(src);
-	if (!img) return NULL;
+	if (!img) {
+		snprintf(logoBad, sizeof(logoBad), "%s", src);
+		logo_note("%s can't be read: %s; the game's own logo instead", src, image_why(src));
+		return NULL;
+	}
 	const char* ext = strrchr(src, '.');
 	img = trim_alpha(img, ext && (!strcasecmp(ext, ".jpg") || !strcasecmp(ext, ".jpeg")));
 	float gw, gh; /* the size in GBA pixels */
@@ -2366,9 +2464,26 @@ bool ui_logo_provisional(void) {
  * the extracted one (path its file, which may not exist yet). */
 int ui_logo_source(const Config* c, const char* rom, const char* code, char* path, size_t n) {
 	if (c->customLogos != CL_OFF) {
-		if (own_logo(c, code, path, n)) return LOGO_OWN;
-		if (scraped_logo(c, rom, path, n)) return LOGO_SCRAPED;
+		/* (one that couldn't be read keeps saying so: sized_surface falls back) */
+		if (own_logo(c, code, path, n)) {
+			if (strcmp(path, logoBad)) logo_note("own %s", path);
+			return LOGO_OWN;
+		}
+		if (scraped_logo(c, rom, path, n)) {
+			if (strcmp(path, logoBad)) logo_note("scraped %s", path);
+			return LOGO_SCRAPED;
+		}
 	}
+	if (c->customLogos == CL_OFF) logo_note("the game's own (custom_logos = off)");
+	else if (c->logoFolder[0]) {
+		struct stat st;
+		const char* base = rom ? strrchr(rom, '/') : NULL;
+		if (stat(c->logoFolder, &st) != 0 || !S_ISDIR(st.st_mode))
+			logo_note("the game's own: logo_folder %s isn't a folder", c->logoFolder);
+		else
+			logo_note("the game's own: nothing in %s (%d images) named after %s, and no logos/%.4s.png", c->logoFolder,
+			          logoDir.n, base ? base + 1 : rom ? rom : "?", code);
+	} else logo_note("the game's own (no logos/%.4s.png, logo_folder not set)", code);
 	extracted_path(c, code, path, n);
 	return LOGO_EXTRACTED;
 }
@@ -2538,6 +2653,7 @@ static SDL_Texture* disc_texture(int view) {
 }
 
 void ui_fill_round(int screen, SDL_Rect r, SDL_Color c, int radius) {
+	if (!inKey) key_layer(screen, r, c);
 	RECORD(screen, OP_ROUND) {
 		o->r = r, o->col = c, o->a = radius;
 		return;
@@ -2562,6 +2678,102 @@ void ui_fill_round(int screen, SDL_Rect r, SDL_Color c, int radius) {
 	SDL_Rect dst[4] = { { ox, oy, radius, radius }, { ox + r.w - radius, oy, radius, radius },
 		                { ox, oy + r.h - radius, radius, radius }, { ox + r.w - radius, oy + r.h - radius, radius, radius } };
 	for (int i = 0; i < 4; ++i) SDL_RenderCopy(views[s->view].ren, t, &src[i], &dst[i]);
+}
+
+
+/* ---------------------------------------------------------- keys and the theme
+ * The menus' buttons look like a GBA's: a raised key with an edge under it.
+ * Dark (the default): dark grey keys with a light rim and a heavy dark edge.
+ * Light: the web player's pale grey keys. Text on a plain key in the light
+ * theme is drawn in dark ink: ui_key notes where the keys are, and
+ * ui_font_text turns light colours inside one into ink. */
+static int themeLight;
+void ui_theme(int light) {
+	themeLight = light != 0;
+}
+bool ui_theme_light(void) {
+	return themeLight;
+}
+SDL_Color ui_key_ink(void) {
+	return themeLight ? (SDL_Color) { 69, 71, 90, 255 } : (SDL_Color) { 238, 240, 255, 255 };
+}
+SDL_Color ui_key_mid(int state) {
+	if (state == KEY_SEL) return (SDL_Color) { 102, 55, 153, 255 };
+	if (state == KEY_LIT) return (SDL_Color) { 168, 145, 227, 255 };
+	return themeLight ? (SDL_Color) { 205, 206, 212, 255 } : (SDL_Color) { 53, 54, 62, 255 };
+}
+
+/* What was drawn this frame that decides how text on it is coloured, in drawing
+ * order: plain keys (ink on them in the light theme) and anything else big
+ * enough to be what the text is on (a panel, a selected key): the last one under
+ * the text wins, so a panel over the game list isn't "a key" for its text. */
+#define KEYS_MAX 240
+typedef struct { SDL_Rect r; bool plain; } KeyLayer;
+static KeyLayer keyRects[2][KEYS_MAX];
+
+static void key_add(int screen, SDL_Rect r, bool plain) {
+	if (!themeLight || screen < 0 || screen > 1) return;
+	if (keyCount[screen] >= KEYS_MAX) return;
+	keyRects[screen][keyCount[screen]++] = (KeyLayer) { r, plain };
+}
+/* a big opaque fill that isn't a key: a panel, the dimming */
+static void key_layer(int screen, SDL_Rect r, SDL_Color c) {
+	if (c.a >= 190 && r.w * r.h > 90000) key_add(screen, r, false);
+}
+
+static SDL_Color key_text_color(int screen, int x, int y, SDL_Color c) {
+	if (!themeLight || screen < 0 || screen > 1) return c;
+	bool in = false;
+	for (int i = keyCount[screen] - 1; i >= 0; --i) {
+		SDL_Rect r = keyRects[screen][i].r;
+		if (x >= r.x - 2 && x <= r.x + r.w + 2 && y >= r.y && y <= r.y + r.h) {
+			in = keyRects[screen][i].plain;
+			break;
+		}
+	}
+	if (!in) return c;
+	int lum = (c.r + c.g + c.b) / 3;
+	if (c.r > 190 && c.g > 140 && c.b < 150 && c.r - c.b > 70) return (SDL_Color) { 122, 82, 0, c.a }; /* gold */
+	if (lum >= 170) return (SDL_Color) { 69, 71, 90, c.a };
+	if (lum >= 90) return (SDL_Color) { 108, 110, 128, c.a }; /* (the ink itself, at 77, stays) */
+	return c;
+}
+
+void ui_key(int screen, SDL_Rect r, int radius, int state) {
+	inKey = true;
+	int lift = SDL_max(2, SDL_min(r.h / 14, 5));
+	SDL_Color border, rim, hi, lo, edge;
+	if (state == KEY_SEL) {
+		border = (SDL_Color) { 20, 0, 40, 255 }, rim = (SDL_Color) { 20, 0, 40, 255 };
+		hi = (SDL_Color) { 118, 66, 172, 255 }, lo = (SDL_Color) { 90, 47, 138, 255 }, edge = (SDL_Color) { 44, 22, 80, 255 };
+		int e = SDL_max(2, lift);
+		ui_fill_round(screen, (SDL_Rect) { r.x - e, r.y - e, r.w + e * 2, r.h + e * 2 + lift }, (SDL_Color) { 169, 139, 224, 255 }, radius + e);
+	} else if (state == KEY_LIT) {
+		border = (SDL_Color) { 60, 40, 110, 255 }, rim = border;
+		hi = (SDL_Color) { 188, 166, 240, 255 }, lo = (SDL_Color) { 154, 130, 216, 255 }, edge = (SDL_Color) { 75, 58, 130, 255 };
+	} else if (themeLight) {
+		border = (SDL_Color) { 171, 173, 181, 255 }, rim = border;
+		hi = (SDL_Color) { 222, 223, 228, 255 }, lo = (SDL_Color) { 190, 192, 199, 255 }, edge = (SDL_Color) { 141, 143, 152, 255 };
+	} else {
+		border = (SDL_Color) { 12, 12, 16, 255 }, rim = (SDL_Color) { 94, 95, 107, 255 };
+		hi = (SDL_Color) { 66, 67, 76, 255 }, lo = (SDL_Color) { 44, 45, 52, 255 }, edge = (SDL_Color) { 5, 5, 8, 255 };
+	}
+	/* the edge under the key, then the key: border, rim, the body in two tones, a highlight along the top */
+	ui_fill_round(screen, (SDL_Rect) { r.x, r.y + lift, r.w, r.h }, edge, radius);
+	ui_fill_round(screen, r, border, radius);
+	ui_fill_round(screen, (SDL_Rect) { r.x + 1, r.y + 1, r.w - 2, r.h - 2 }, rim, SDL_max(1, radius - 1));
+	int in = state == KEY_PLAIN && !themeLight ? 2 : 1;
+	ui_fill_round(screen, (SDL_Rect) { r.x + in + 1, r.y + in + 1, r.w - (in + 1) * 2, r.h - (in + 1) * 2 }, lo, SDL_max(1, radius - in - 1));
+	/* (a flat face: only 30% of the way from lo to hi at the top) */
+	hi = (SDL_Color) { lo.r + (hi.r - lo.r) * 3 / 10, lo.g + (hi.g - lo.g) * 3 / 10, lo.b + (hi.b - lo.b) * 3 / 10, 255 };
+	/* the body's gradient from the top: lo, then bands of colour closer to hi, shorter each time */
+	int bh = r.h - (in + 1) * 2, bx = r.x + in + 1, by = r.y + in + 1, bw = r.w - (in + 1) * 2;
+	for (int i = 1; i <= 6; ++i) {
+		SDL_Color m = { (lo.r * (6 - i) + hi.r * i) / 6, (lo.g * (6 - i) + hi.g * i) / 6, (lo.b * (6 - i) + hi.b * i) / 6, 255 };
+		ui_fill_round(screen, (SDL_Rect) { bx, by, bw, bh * (7 - i) * 11 / 100 + 1 }, m, SDL_max(1, radius - in - 1));
+	}
+	inKey = false;
+	key_add(screen, r, state == KEY_PLAIN);
 }
 
 /* ---------------------------------------------------------- text in Jost
@@ -2657,6 +2869,7 @@ int ui_font_width(int font, int capPx, const char* text) {
 
 void ui_font_text(int screen, int font, int x, int cy, int capPx, const char* text, SDL_Color c, int align) {
 	if (!text || !text[0] || capPx <= 0) return;
+	c = key_text_color(screen, x, cy, c);
 	RECORD(screen, OP_LABEL) {
 		o->a = x, o->b = cy, o->c = capPx, o->d = font | ((align + 1) << 4), o->col = c;
 		snprintf(o->text, sizeof(o->text), "%s", text);

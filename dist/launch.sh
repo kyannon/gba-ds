@@ -4,10 +4,29 @@
 #   launch.sh /path/Game.gba       play one game directly
 #   (any --option=value from gba-ds.cfg can be appended)
 # Output goes to gba-ds.log next to this script.
+# GBA DS's own output reaches the log through a pipe and a separate cat
+# (> >(exec cat >> LOG)), so the game never waits on the card, or ROCKNIX's
+# merged /storage/roms folder, to write a log line (issue #50: a write held
+# up there froze the game and broke the sound). The pipe holds 64 KB; cat
+# writes everything out after GBA DS ends or crashes. GBA DS keeps its own
+# exit status and process (exec on BananaOS).
+# After an update installed in the app, GBA DS ends with
+# $GBADS_RELAUNCH_STATUS and this script starts the new launch.sh (the
+# new GBA DS with it), the log carried on: the new launch.sh's changes
+# count from then, not from the next start (ROCKNIX and other systems;
+# on BananaOS, where GBA DS is exec'd, it restarts itself).
+RELAUNCH=75
 
 . /etc/profile >/dev/null 2>&1
 
 DIR="$(cd "$(dirname "$0")" && pwd)"
+# the log: started afresh, or carried on after an update's restart
+if [ -n "$GBADS_RELAUNCHED" ]; then
+	echo "--- launch.sh again after the update" >> "$DIR/gba-ds.log"
+else
+	: > "$DIR/gba-ds.log"
+fi
+unset GBADS_RELAUNCHED
 
 # Controller mappings shipped with ROCKNIX
 for db in /storage/.config/SDL-GameControllerDB/gamecontrollerdb.txt \
@@ -91,7 +110,7 @@ fi
 if [ -d /etc/banana ]; then
 	LOG="$DIR/gba-ds.log"
 	VIDEO=${GBADS_BANANA_VIDEO:-kmsdrm}
-	echo "BananaOS, video: $VIDEO" > "$LOG"
+	echo "BananaOS, video: $VIDEO" >> "$LOG"
 	B=()
 	cfgval() { sed -n "s/^$1 *= *//p" "$DIR/gba-ds.cfg" 2>/dev/null | tail -n 1; }
 	if [ "$VIDEO" = kmsdrm ]; then
@@ -137,7 +156,7 @@ if [ -d /etc/banana ]; then
 	mkdir -p /data/screenshots /data/saves/gba 2>/dev/null
 	echo "Banana paths: ${B[*]//--ra-password=*/--ra-password=...}" >> "$LOG"
 	[ -n "$EXEC_NOTE" ] && echo "$EXEC_NOTE" >> "$LOG"
-	exec "$GBADS" "${B[@]}" "$@" >> "$LOG" 2>&1
+	exec "$GBADS" "${B[@]}" "$@" > >(exec cat >> "$LOG") 2>&1
 fi
 
 # Any other system (the RG DS Plus's Stock Linux OS, ...): neither
@@ -148,7 +167,7 @@ fi
 # system is like goes into gba-ds.log, for reports.
 if ! grep -qi rocknix /etc/os-release 2>/dev/null && [ ! -d /storage/.config/system ]; then
 	LOG="$DIR/gba-ds.log"
-	echo "another system (not ROCKNIX or BananaOS)" > "$LOG"
+	echo "another system (not ROCKNIX or BananaOS)" >> "$LOG"
 	O=()
 	cfgval() { sed -n "s/^$1 *= *//p" "$DIR/gba-ds.cfg" 2>/dev/null | tail -n 1; }
 	if [ "$(cfgval rom_dir)" = /storage/roms/gba ]; then
@@ -228,20 +247,182 @@ if ! grep -qi rocknix /etc/os-release 2>/dev/null && [ ! -d /storage/.config/sys
 		} >> "$LOG" 2>&1
 	) &
 	[ -n "$EXEC_NOTE" ] && echo "$EXEC_NOTE" >> "$LOG"
-	"$GBADS" "${O[@]}" "$@" >> "$LOG" 2>&1
-	exit $?
+	GBADS_RELAUNCH_STATUS=$RELAUNCH "$GBADS" "${O[@]}" "$@" > >(exec cat >> "$LOG") 2>&1
+	st=$?
+	wait $! 2>/dev/null # (the log written out before the traps add to it)
+	if [ $st = $RELAUNCH ]; then
+		# an update: the touchscreen as it was, then the new launch.sh
+		[ "$TP_WAS" = 1 ] && echo 1 > "$TP" 2>/dev/null
+		[ "$INH_WAS" = 1 ] && echo 1 > "$INH" 2>/dev/null
+		trap - EXIT
+		GBADS_RELAUNCHED=1 exec bash "$DIR/launch.sh" "$@"
+	fi
+	exit $st
 fi
 
 # Second screen on and in place for the run (stock ROCKNIX keeps it off),
 # put back afterwards; see screens.sh. The trap also covers being killed.
-bash "$DIR/screens.sh" on > "$DIR/gba-ds.log" 2>&1
+bash "$DIR/screens.sh" on >> "$DIR/gba-ds.log" 2>&1
 [ -n "$EXEC_NOTE" ] && echo "$EXEC_NOTE" >> "$DIR/gba-ds.log"
 # what the sound goes through, for reports of no sound
 {
 	echo "sound: XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-unset} SDL_AUDIODRIVER=${SDL_AUDIODRIVER:-unset} PULSE_SERVER=${PULSE_SERVER:-unset}"
 	command -v wpctl >/dev/null && timeout 2 wpctl status 2>&1 | sed -n '/^Audio/,/^Video/p' | head -n 30
 } >> "$DIR/gba-ds.log" 2>&1
-trap 'bash "$DIR/screens.sh" off >> "$DIR/gba-ds.log" 2>&1' EXIT
+# Clock governors (issue #50): GBA DS's Performance setting (the game
+# list's Settings; performance = max in states/prefs.cfg) holds the CPU,
+# memory and GPU at performance while it runs and puts them back itself.
+# What it changed is in GOV_STATE until then: if GBA DS ends without
+# putting them back (a crash, being killed), this does. What they are goes
+# into the log, for reports.
+GOV_STATE=/tmp/gba-ds-governors.state
+cfgval() { sed -n "s/^$1 *= *//p" "$DIR/gba-ds.cfg" 2>/dev/null | tail -n 1; }
+restore_governors() {
+	[ -f "$GOV_STATE" ] || return 0
+	while IFS=$'\t' read -r g was; do
+		[ -n "$g" ] && [ -n "$was" ] && echo "$was" > "$g" 2>/dev/null
+	done < "$GOV_STATE"
+	rm -f "$GOV_STATE"
+	echo "clock governors put back after GBA DS ended without doing so"
+}
+{
+	restore_governors # (left from a run that ended without putting them back)
+	GOVS=
+	for g in /sys/devices/system/cpu/cpufreq/policy*/scaling_governor /sys/class/devfreq/*dmc*/governor /sys/class/devfreq/*gpu*/governor; do
+		[ -r "$g" ] && GOVS="$GOVS ${g#/sys/}=$(cat "$g" 2>/dev/null)"
+	done
+	echo "device: ${QUIRK_DEVICE:-unknown}; clock governors:${GOVS:- none found}"
+	echo "system: $(sed -n 's/^PRETTY_NAME=//p' /etc/os-release 2>/dev/null | tr -d '"') $(sed -n 's/^BUILD_ID=//p' /etc/os-release 2>/dev/null | tr -d '"'), $(uname -r)"
+} >> "$DIR/gba-ds.log" 2>&1
+
+# Services that get in GBA DS's way (issue #50: on one player's RG DS Plus,
+# the RetroDualStation add-on, `rds-controlcenter`, crashed and restarted
+# every ~11 s, adding and removing a virtual keyboard each time; sway held
+# the screen up for half a second at every change). One systemctl call
+# lists every loaded service. Stopped for the run, and started again when
+# GBA DS closes:
+# - a service that keeps restarting (3 restarts or more and still at it)
+#   that the user added (its unit file under /storage);
+# - the ones known to get in the way (SVC_KNOWN), running or not: they also
+#   drive the second screen.
+# ROCKNIX's own services are only logged, restarting or not (stopping them
+# could take hotkeys or the volume keys away). Stops don't wait (--no-block),
+# so start-up isn't held up. What was stopped is in SVC_STATE until it's
+# started again: a run that ended without doing so is caught by the next
+# start, and an update's restart keeps them stopped through the new
+# launch.sh. pause_services = 0 in gba-ds.cfg: logged, nothing stopped.
+SVC_STATE=/tmp/gba-ds-paused-services.state
+SVC_KNOWN=" rds-controlcenter.service "
+services_restore() {
+	[ -s "$SVC_STATE" ] || { rm -f "$SVC_STATE"; return 0; }
+	local u list=
+	while read -r u; do
+		[ -n "$u" ] || continue
+		systemctl reset-failed "$u" 2>/dev/null
+		systemctl start --no-block "$u" 2>/dev/null
+		list="$list $u"
+	done < "$SVC_STATE"
+	rm -f "$SVC_STATE"
+	echo "services started again:$list"
+}
+services_pause() {
+	command -v systemctl >/dev/null || return 0
+	local t0 t1 off= id nr act sub frag stopped= seen=
+	t0=$(date +%s%N 2>/dev/null)
+	case "$(cfgval pause_services)" in 0|off|false|no) off=1 ;; esac
+	[ -f "$SVC_STATE" ] && echo "services still stopped from the last run: $(tr '\n' ' ' < "$SVC_STATE")"
+	while IFS='|' read -r id nr act sub frag; do
+		[ -n "$id" ] || continue
+		local known= looping=
+		case "$SVC_KNOWN" in *" $id "*) known=1 ;; esac
+		[ "${nr:-0}" -ge 3 ] 2>/dev/null && [ "$act" != inactive ] && [ "$act" != failed ] && looping=1
+		[ -n "$known" ] || [ -n "$looping" ] || continue
+		[ "$act" = inactive ] || [ "$act" = failed ] && [ -z "$looping" ] && continue
+		local why
+		if [ -n "$known" ]; then why="known to get in GBA DS's way"; else why="restarting over and over ($nr restarts, $act/$sub)"; fi
+		if [ -n "$off" ]; then
+			seen="$seen; $id: $why (not stopped: pause_services = 0)"
+		elif [ -n "$known" ] || [ "${frag#/storage/}" != "$frag" ]; then
+			if systemctl stop --no-block "$id" 2>/dev/null; then
+				grep -qx "$id" "$SVC_STATE" 2>/dev/null || echo "$id" >> "$SVC_STATE"
+				stopped="$stopped; $id: $why"
+			fi
+		else
+			seen="$seen; $id: $why (not stopped: part of the system)"
+		fi
+	done < <(systemctl show '*.service' -p Id,NRestarts,ActiveState,SubState,FragmentPath 2>/dev/null |
+		awk -F= '/^$/ { if (id != "") print id "|" nr "|" act "|" st "|" frag; id = nr = act = st = frag = ""; next }
+			$1 == "Id" { id = $2 } $1 == "NRestarts" { nr = $2 } $1 == "ActiveState" { act = $2 }
+			$1 == "SubState" { st = $2 } $1 == "FragmentPath" { frag = $2 }
+			END { if (id != "") print id "|" nr "|" act "|" st "|" frag }')
+	t1=$(date +%s%N 2>/dev/null)
+	local ms=
+	[ -n "$t0" ] && [ -n "$t1" ] && [ "${t0%N}" = "$t0" ] && ms=" ($(( (t1 - t0) / 1000000 )) ms)"
+	if [ -n "$stopped" ]; then echo "services stopped for the run$ms:${stopped#;}"; fi
+	if [ -n "$seen" ]; then echo "services that may get in the way$ms:${seen#;}"; fi
+	[ -z "$stopped$seen" ] && echo "services: none in the way$ms"
+}
+{ services_pause; } >> "$DIR/gba-ds.log" 2>&1
+
+# What the system does while GBA DS runs (issue #50: on one player's RG DS
+# Plus, presenting a frame stalled for half a second, in pairs 2.5 s apart
+# about every 10 s, standing still or not): kernel messages, the journal,
+# and sway's output, window and input events, each stamped with the system
+# clock in seconds (the kernel's and the journal's monotonic clock; sway's
+# from /proc/uptime, the same unless the device slept), as GBA DS's
+# "stall:" lines are, so a stall can be matched with what happened then.
+# At most 200 lines from each. watch_system = 0 in gba-ds.cfg turns it off.
+WATCH_PIDS=
+# each line as it comes (head would hold them back), 200 at most
+watch_lines() {
+	local n=0 l max=${3:-200}
+	while [ $n -lt $max ] && IFS= read -r l; do
+		if [ "$2" = uptime ]; then echo "$1$(cut -d' ' -f1 /proc/uptime) s: ${l:0:300}"; else echo "$1${l:0:300}"; fi
+		n=$((n + 1))
+	done
+}
+watch_start() {
+	case "$(cfgval watch_system)" in 0|off|false|no) return ;; esac
+	local L="$DIR/gba-ds.log"
+	if dmesg --help 2>&1 | grep -q -- --follow-new; then
+		( dmesg -W 2>/dev/null | watch_lines "kernel: " ) >> "$L" 2>&1 &
+		WATCH_PIDS="$WATCH_PIDS $!"
+	fi
+	if command -v journalctl >/dev/null; then
+		( journalctl -f -n 0 -o short-monotonic --no-pager 2>/dev/null | watch_lines "journal: " "" 1000 ) >> "$L" 2>&1 &
+		WATCH_PIDS="$WATCH_PIDS $!"
+	fi
+	if [ -n "$SWAYSOCK" ] && command -v swaymsg >/dev/null; then
+		( swaymsg -m -r -t subscribe '["output","window","input","workspace","mode"]' 2>/dev/null | watch_lines "sway event at " uptime ) >> "$L" 2>&1 &
+		WATCH_PIDS="$WATCH_PIDS $!"
+	fi
+	[ -n "$WATCH_PIDS" ] && echo "watching the system during the run (kernel, journal, sway events; watch_system = 0 in gba-ds.cfg: off)" >> "$L"
+}
+watch_stop() {
+	local p
+	for p in $WATCH_PIDS; do
+		kill $(pgrep -P "$p" 2>/dev/null) "$p" 2>/dev/null
+	done
+	WATCH_PIDS=
+}
+trap 'watch_stop; { restore_governors; services_restore; bash "$DIR/screens.sh" off; } >> "$DIR/gba-ds.log" 2>&1' EXIT
 trap 'exit 143' TERM INT HUP
 
-"$GBADS" "$@" >> "$DIR/gba-ds.log" 2>&1
+watch_start
+BEFORE=$!
+GBADS_RELAUNCH_STATUS=$RELAUNCH "$GBADS" "$@" > >(exec cat >> "$DIR/gba-ds.log") 2>&1
+st=$?
+watch_stop
+# (the log written out before the trap adds to it: $! is the log's cat
+# here, unless this bash doesn't give it, then still a watcher's)
+[ "$!" != "$BEFORE" ] && wait $! 2>/dev/null
+if [ $st = $RELAUNCH ]; then
+	# an update: everything put back as the EXIT trap would (but the
+	# services: they stay stopped through the new launch.sh, which starts
+	# them when GBA DS closes), then the new launch.sh (which sets the
+	# screens up again)
+	{ restore_governors; bash "$DIR/screens.sh" off; } >> "$DIR/gba-ds.log" 2>&1
+	trap - EXIT
+	GBADS_RELAUNCHED=1 exec bash "$DIR/launch.sh" "$@"
+fi
+exit $st

@@ -1710,9 +1710,17 @@ typedef struct {
 	/* the player phase's positions: the minimap and map menu, the cursor
 	 * free, a unit's menu, a fight */
 	uint16_t atMini, atIdle, atMenu, atFight;
+	/* a unit's x, y bytes in its data, and how many units there are (Fire
+	 * Emblem: Fuuin no Tsurugi's units keep them 2 bytes earlier, and it
+	 * has fewer) */
+	uint8_t unitXY, nUnits;
 } FeRegion;
-#define FE7_AT .atMini = 0x50, .atIdle = 0x70, .atMenu = 0xD0, .atFight = 0xF0
-#define FE8_AT .atMini = 0x60, .atIdle = 0x80, .atMenu = 0xE8, .atFight = 0x108
+#define FE7_AT .atMini = 0x50, .atIdle = 0x70, .atMenu = 0xD0, .atFight = 0xF0, .unitXY = 0x10, .nUnits = 144
+#define FE8_AT .atMini = 0x60, .atIdle = 0x80, .atMenu = 0xE8, .atFight = 0x108, .unitXY = 0x10, .nUnits = 144
+/* (Fuuin no Tsurugi: its player phase script from the fireemblem6j
+ * decompilation, ProcScr_PlayerPhase; the map menu opens from the cursor
+ * free, so atMini is the idle loop's label, unused) */
+#define FE6_AT .atMini = 0x50, .atIdle = 0x70, .atMenu = 0xC8, .atFight = 0xE8, .unitXY = 0x0E, .nUnits = 62 + 50 + 20 + 5
 static const FeRegion feRegions[] = {
 	{ '7', 'E', 0x0202BBF8, 0x02024E28, 0x0202BBCC, 0x0202BD50, 0x08B93374, 0x08B90D88, 0x08B9A99C, 0x08B937AC, 0x08CC1F5C, 0, FE7_AT },
 	{ '7', 'Y', 0x0202BBF8, 0x02024E28, 0x0202BBCC, 0x0202BD50, 0x08C57730, 0x08C54ECC, 0x08C5ECE8, 0x08C57B8C, 0x08D88F1C, 0x08DC195C, FE7_AT },
@@ -1729,6 +1737,13 @@ static const FeRegion feRegions[] = {
 	 * Their scripts found by the USA ones' commands) */
 	{ '8', 'P', 0x0202BCF0, 0x02024E68, 0x0202BCC4, 0x0202BE4C, 0x087ABDB8, 0x087A2ADC, 0x087DBBCC, 0x087AC29C, 0x08A8EE00, 0, FE8_AT },
 	{ '8', 'J', 0x0202BCEC, 0x02024E68, 0x0202BCC0, 0x0202BE48, 0x085C2F58, 0x085B98A0, 0x085E3538, 0x085C3400, 0x08A72A90, 0, FE8_AT },
+	/* Fire Emblem: Fuuin no Tsurugi (Japan only; AFEJ: 'E', 'J'): its RAM
+	 * mapped from Rekka no Ken's by tools/romxref.py (gPlaySt, the units)
+	 * and the process slots by their free list; its scripts by matching
+	 * the fireemblem6j decompilation's (ProcScr_PlayerPhase, ProcScr_Event,
+	 * ProcScr_EkrBattle, ProcScr_PhaseIntro, ProcScr_StatScreen). The fan
+	 * translation (FE6 Localization) keeps all of them. */
+	{ 'E', 'J', 0x0202AA48, 0x02023CC4, 0x0202AA1C, 0x0202AB78, 0x085C56A8, 0x085C40A4, 0x085CB528, 0x085C5AA0, 0x08677680, 0, FE6_AT },
 };
 static const FeRegion* fe_r = &feRegions[0];
 static void fe_region(Emu* e) {
@@ -1852,7 +1867,7 @@ static uint32_t fe_virt(Emu* e, uint32_t addr) {
 #define FE_P_STATUS (fe_r->status) /* a unit's status screen */
 #define FE_PAGES 3
 #define FE_UNITS (fe_r->units)
-#define FE_UNITS_LEN (0x48 * 144)
+#define FE_UNITS_LEN (0x48 * fe_r->nUnits)
 static uint32_t pageKey;
 static int pageN;
 
@@ -1903,7 +1918,7 @@ static const char* fe_compose(Emu* s, const void* state, uint32_t* const* out, i
 			bool unit = false;
 			uint32_t cur = emu_read32(s, FE_CURSOR);
 			for (uint32_t a = FE_UNITS; a < FE_UNITS + FE_UNITS_LEN && !unit; a += 0x48) {
-				unit = emu_read8(s, a + 3) == 8 && emu_read8(s, a + 0x10) == (cur & 0xFF) && emu_read8(s, a + 0x11) == ((cur >> 16) & 0xFF);
+				unit = emu_read8(s, a + 3) == 8 && emu_read8(s, a + fe_r->unitXY) == (cur & 0xFF) && emu_read8(s, a + fe_r->unitXY + 1) == ((cur >> 16) & 0xFF);
 			}
 			if (emu_cancelled(s)) return "called off";
 			memcpy(page, fresh, sizeof(page[0]) * (size_t) pages);
@@ -2303,6 +2318,12 @@ static const char* bf_compose(Emu* s, const void* state, uint32_t* out, int w, i
 #define ML_MODE 0x02000009 /* with state 8: 21 walking about, 10 SELECT's menu opening, 26 the menus */
 #define ML_PAGE 0x0200000D /* in the menus: 9 SELECT's menu, 12 Bros. Info (Mario's page), 14 Luigi's */
 #define ML_WALKING 0x1508 /* ML_STATE and ML_MODE as a halfword, walking about */
+/* ML_STATE and ML_MODE as a halfword in a battle (USA, Europe, Japan: set
+ * at once from walking about, kept to the battle's end, results and
+ * level-ups too). The mine cart minigame (Mysterious Mine Carts, Hoohoo
+ * Mountain) is state 3 too but mode 0x1C (0x1C03): no battle boxes there,
+ * the whole minigame on the game screen (ML-7, issue #51) */
+#define ML_BATTLE 0x5A03
 #define ML_CURSOR(e) (0x030040A9 + ((e)->gameCode[3] == 'J' ? 0x20 : 0))
 #define ML_LEAD 0x02004F4C /* the brother in front: 0 Mario, 1 Luigi (START swaps) */
 /* BG3's tile map entry inside the results' red EXP panel (row 7, column 9):
@@ -4301,6 +4322,20 @@ static bool mmbn_megaman_up(Emu* s) {
  * its size around the live camera. */
 #define MMBN_CAM 0x02004950     /* gCamera: cameraX (+4), cameraY (+6), playerRealPos (+0x10), bounds (+0x14..0x23) */
 #define MMBN_BGDM 0x02009A50    /* gBgDataManager: the layout's width (+0) and height (+1) in tiles */
+/* Mega Man Battle Network 2 (docs/games/mega-man-battle-network-2.md) is
+ * the same engine, its structures elsewhere: the maps' addresses by game */
+typedef struct {
+	uint32_t state, area, fading, cam, bgdm;
+	const char* title;
+} MmbnNet;
+static const MmbnNet mmbnNet[2] = {
+	{ MMBN_STATE, MMBN_AREA, MMBN_FADING, MMBN_CAM, MMBN_BGDM, "Mega Man Battle Network" },
+	{ 0x02009078, 0x02000DC4, 0x02009073, 0x02006370, 0x0200C1F0, "Mega Man Battle Network 2" },
+};
+static const MmbnNet* mmbn_net(const Emu* e) {
+	return &mmbnNet[e->gameCode[2] == '2']; /* (AE2E, AM2P, AE2J; the first game AREx) */
+}
+static const MmbnNet* mmbnN = &mmbnNet[0]; /* the live game's, set as a map is asked for */
 #define MMBN_SETTLE 4           /* frames from setting him down to the screen drawn */
 typedef struct {
 	uint16_t area;
@@ -4328,13 +4363,14 @@ static bool mmbn_area_net(uint16_t area) {
 /* the copy's camera brought to (cx, cy), as near as the game takes it, and
  * a frame of `layers` drawn there; false if the game stopped walking about */
 static bool mmbn_look(Emu* e, uint16_t area, uint32_t pos, int cx, int cy, unsigned layers, int* camx, int* camy) {
+	const MmbnNet* N = mmbnN;
 	/* (layers take effect as a state's registers load) */
 	emu_layers(e, layers);
 	emu_state_load(e, mmbnJob);
-	emu_write32(e, MMBN_CAM + 0x14, (uint32_t) (-30000 * 65536));
-	emu_write32(e, MMBN_CAM + 0x18, (uint32_t) (30000 * 65536));
-	emu_write32(e, MMBN_CAM + 0x1C, (uint32_t) (30000 * 65536));
-	emu_write32(e, MMBN_CAM + 0x20, (uint32_t) (-30000 * 65536));
+	emu_write32(e, N->cam + 0x14, (uint32_t) (-30000 * 65536));
+	emu_write32(e, N->cam + 0x18, (uint32_t) (30000 * 65536));
+	emu_write32(e, N->cam + 0x1C, (uint32_t) (30000 * 65536));
+	emu_write32(e, N->cam + 0x20, (uint32_t) (-30000 * 65536));
 	int x = (cx - 2 * cy) / 2, y = (cx + 2 * cy) / 2;
 	emu_write32(e, pos, (uint32_t) (x * 65536));
 	emu_write32(e, pos + 4, (uint32_t) (y * 65536));
@@ -4342,8 +4378,8 @@ static bool mmbn_look(Emu* e, uint16_t area, uint32_t pos, int cx, int cy, unsig
 	for (int f = 0; f < MMBN_SETTLE; ++f) emu_frame_blind(e, 0);
 	emu_write16(e, 0x05000000, 0x7C1F); /* (magenta) */
 	emu_frame(e, 0);
-	*camx = (int16_t) emu_read16(e, MMBN_CAM + 4), *camy = (int16_t) emu_read16(e, MMBN_CAM + 6);
-	return emu_read8(e, MMBN_STATE) == 4 && emu_read16(e, MMBN_AREA) == area;
+	*camx = (int16_t) emu_read16(e, N->cam + 4), *camy = (int16_t) emu_read16(e, N->cam + 6);
+	return emu_read8(e, N->state) == 4 && emu_read16(e, N->area) == area;
 }
 
 /* MegaMan's head, the marker on the map: in the copy, set down in a corner
@@ -4351,13 +4387,14 @@ static bool mmbn_look(Emu* e, uint16_t area, uint32_t pos, int cx, int cy, unsig
  * standing for 20 frames, sprites alone; his sprite above his feet, from
  * its top to its narrowest row below the face (his chin; 16 rows at most) */
 static void mmbn_head(Emu* e, uint16_t area, uint32_t pos, MmbnMap* m, uint32_t magenta) {
+	const MmbnNet* N = mmbnN;
 	m->headW = m->headH = 0;
 	emu_layers(e, 0x10);
 	emu_state_load(e, mmbnJob);
-	emu_write32(e, MMBN_CAM + 0x14, (uint32_t) (-30000 * 65536));
-	emu_write32(e, MMBN_CAM + 0x18, (uint32_t) (30000 * 65536));
-	emu_write32(e, MMBN_CAM + 0x1C, (uint32_t) (30000 * 65536));
-	emu_write32(e, MMBN_CAM + 0x20, (uint32_t) (-30000 * 65536));
+	emu_write32(e, N->cam + 0x14, (uint32_t) (-30000 * 65536));
+	emu_write32(e, N->cam + 0x18, (uint32_t) (30000 * 65536));
+	emu_write32(e, N->cam + 0x1C, (uint32_t) (30000 * 65536));
+	emu_write32(e, N->cam + 0x20, (uint32_t) (-30000 * 65536));
 	int cx = m->x0 + 40, cy = m->y0 + 60, x = (cx - 2 * cy) / 2, y = (cx + 2 * cy) / 2;
 	emu_write32(e, pos, (uint32_t) (x * 65536));
 	emu_write32(e, pos + 4, (uint32_t) (y * 65536));
@@ -4367,9 +4404,9 @@ static void mmbn_head(Emu* e, uint16_t area, uint32_t pos, MmbnMap* m, uint32_t 
 	emu_write16(e, 0x05000000, 0x7C1F);
 	emu_frame(e, 0);
 	emu_layers(e, 0x1F);
-	if (emu_read8(e, MMBN_STATE) != 4 || emu_read16(e, MMBN_AREA) != area) return;
+	if (emu_read8(e, N->state) != 4 || emu_read16(e, N->area) != area) return;
 	x = (int32_t) emu_read32(e, pos) >> 16, y = (int32_t) emu_read32(e, pos + 4) >> 16;
-	int camx = (int16_t) emu_read16(e, MMBN_CAM + 4), camy = (int16_t) emu_read16(e, MMBN_CAM + 6);
+	int camx = (int16_t) emu_read16(e, N->cam + 4), camy = (int16_t) emu_read16(e, N->cam + 6);
 	int fx = x + y - camx + GBA_W / 2, fy = (y - x) / 2 - camy + GBA_H / 2; /* his feet on the screen */
 	if (fx < 12 || fx > GBA_W - 12 || fy < 48 || fy > GBA_H) return;
 	int top = -1, wid[16] = { 0 };
@@ -4400,6 +4437,7 @@ static void mmbn_head(Emu* e, uint16_t area, uint32_t pos, MmbnMap* m, uint32_t 
 }
 
 static void* mmbn_worker(void* arg) {
+	const MmbnNet* N = mmbnN;
 	(void) arg;
 	Emu* e = &mmbnEmu;
 	MmbnMap* m = &mmbnMap;
@@ -4410,7 +4448,7 @@ static void* mmbn_worker(void* arg) {
 	if (!mmbnEmuOpen && (why = "the ROM didn't open")) goto out;
 	if (!emu_state_load(e, mmbnJob) && (why = "the game's moment didn't load")) goto out;
 	uint16_t area = m->area;
-	uint32_t pos = emu_read32(e, MMBN_CAM + 0x10);
+	uint32_t pos = emu_read32(e, N->cam + 0x10);
 	if ((pos < 0x02000000 || pos >= 0x02040000) && (why = "no position")) goto out;
 	int W = m->w, H = m->h, X0 = m->x0, Y0 = m->y0, cx, cy;
 	/* the copy's magenta, as its renderer puts it out */
@@ -4453,8 +4491,8 @@ static void* mmbn_worker(void* arg) {
 				}
 				if (!mmbn_look(e, area, pos, tx, ty, layers, &cx, &cy)) {
 					if (getenv("GBADS_DEBUG"))
-						fprintf(stderr, "mmbn map: no screen at %d,%d (state %d, area %04X)\n", tx, ty, emu_read8(e, MMBN_STATE),
-						        emu_read16(e, MMBN_AREA));
+						fprintf(stderr, "mmbn map: no screen at %d,%d (state %d, area %04X)\n", tx, ty, emu_read8(e, N->state),
+						        emu_read16(e, N->area));
 					continue;
 				}
 				for (int sy = 0; sy < GBA_H; ++sy) {
@@ -4486,14 +4524,14 @@ static void* mmbn_worker(void* arg) {
 		m->done = true;
 		struct timespec t1;
 		clock_gettime(CLOCK_MONOTONIC, &t1);
-		fprintf(stderr, "Mega Man Battle Network: area %04X mapped (%dx%d, layers %X, %ld ms)\n", area, W, H, layers,
+		fprintf(stderr, "%s: area %04X mapped (%dx%d, layers %X, %ld ms)\n", N->title, area, W, H, layers,
 		        (long) ((t1.tv_sec - t0.tv_sec) * 1000 + (t1.tv_nsec - t0.tv_nsec) / 1000000));
 	}
 out:
 	if (why) {
 		m->done = m->failed = true;
 		/* (always logged: why the second screen keeps the logo on the net) */
-		fprintf(stderr, "Mega Man Battle Network: area %04X not mapped: %s\n", m->area, why);
+		fprintf(stderr, "%s: area %04X not mapped: %s\n", N->title, m->area, why);
 	}
 	mmbnBusy = false;
 	return NULL;
@@ -4503,15 +4541,16 @@ out:
  * camera (MMBN-6); a new area's map made beside the game */
 static const uint32_t* mmbn_live_view(Emu* live, const char* rom) {
 	static uint32_t out[GBA_W * GBA_H];
-	uint8_t st = emu_read8(live, MMBN_STATE);
-	uint16_t area = emu_read16(live, MMBN_AREA);
+	const MmbnNet* N = mmbnN = mmbn_net(live);
+	uint8_t st = emu_read8(live, N->state);
+	uint16_t area = emu_read16(live, N->area);
 	if ((st != 4 && st != 0x18) || !mmbn_area_net(area)) return NULL;
 	/* a warp: the area's number changes before its layout is in; a new map
 	 * waits for half a second of the same area, walking, no fade */
 	static uint16_t settledArea;
 	static int settledFor;
 	if (area != settledArea) settledArea = area, settledFor = 0;
-	else if (st == 4 && !emu_read8(live, MMBN_FADING)) ++settledFor;
+	else if (st == 4 && !emu_read8(live, N->fading)) ++settledFor;
 	else settledFor = 0;
 	MmbnMap* m = &mmbnMap;
 	if (m->px && m->area != area) {
@@ -4527,7 +4566,7 @@ static const uint32_t* mmbn_live_view(Emu* live, const char* rom) {
 	if (!m->px) {
 		if (st != 4 || settledFor < 30 || mmbnBusy) return NULL;
 		if (mmbnThread) pthread_join(mmbnThread, NULL), mmbnThread = 0;
-		int tw = emu_read8(live, MMBN_BGDM), th = emu_read8(live, MMBN_BGDM + 1);
+		int tw = emu_read8(live, N->bgdm), th = emu_read8(live, N->bgdm + 1);
 		if (tw < 30 || th < 20) return NULL;
 		m->area = area;
 		m->w = tw * 8, m->h = th * 8, m->x0 = -tw * 4, m->y0 = -th * 4;
@@ -4567,8 +4606,8 @@ static const uint32_t* mmbn_live_view(Emu* live, const char* rom) {
 	 * kept within the area's edges; an area smaller than the screen in
 	 * its middle */
 	enum { Z = 3 };
-	int camx = (int16_t) emu_read16(live, MMBN_CAM + 4), camy = (int16_t) emu_read16(live, MMBN_CAM + 6);
-	uint32_t pos = emu_read32(live, MMBN_CAM + 0x10);
+	int camx = (int16_t) emu_read16(live, N->cam + 4), camy = (int16_t) emu_read16(live, N->cam + 6);
+	uint32_t pos = emu_read32(live, N->cam + 0x10);
 	if (pos >= 0x02000000 && pos < 0x02040000) {
 		int x = (int32_t) emu_read32(live, pos) >> 16, y = (int32_t) emu_read32(live, pos + 4) >> 16;
 		int z = (int32_t) emu_read32(live, pos + 8) >> 16; /* (his height: on a raised floor, higher up) */
@@ -4690,6 +4729,149 @@ static const char* mmbn_compose(Emu* s, const void* state, uint32_t* out, int w,
 		for (int x = 0; x < GBA_W; ++x) o[x] = x < MMBN_MONEY_X || m[x] == light ? head : m[x];
 	}
 	memcpy(&out[(y0 + MMBN_EDGE + MMBN_MONEY_H) * GBA_W], panel, sizeof(panel));
+	return NULL;
+}
+
+/* ---------------------------------------------------------- Mega Man Battle Network 2
+ *
+ * The first game's second screen (docs/games/mega-man-battle-network-2.md):
+ * walking about, MegaMan's status and money in one frame (MMBN2-2),
+ * mmbn2_compose on the shadow core: START's menu opened, the money from its
+ * box at the top right (its HP line left out), then the MegaMan screen's
+ * panel (rows 0-95) with its cursor (a sprite) left out; put together as
+ * the first game's, the box's orange edge across the screen above and
+ * below. On the net, the area's map (MMBN2-6): mmbn_live_view, shared with
+ * the first game (mmbnNet). Every release has the same RAM addresses. */
+#define MMBN2_STATE 0x02009078  /* gManager.gameState: 4 walking about, 8 battle, 0x18 a PET menu */
+#define MMBN2_FADING 0x02009073 /* gManager: a fade going */
+#define MMBN2_AREA 0x02000DC4   /* gWorld: the area (halfword) */
+#define MMBN2_HP 0x02001130     /* HP, then its maximum (what the MegaMan screen prints; gWorld +0x20 a copy) */
+#define MMBN2_ZENNY 0x02000E34  /* gWorld: the money (word) */
+#define MMBN2_SMENU 0x0200D580  /* START's menu: state (+0, 4 open), cursor (+6, 3 MegaMan) */
+#define MMBN2_MENU 0x02007EA0   /* the PET's menus: which (+0, 0x0C MegaMan), step (+1, 4 open) */
+/* START's box (BG0): x 146-239, rows 0-47; its outline and orange frame
+ * rows 0-3 and 44-47, columns 146-151; inside x 152-239: the dark band
+ * rows 4-7, HP rows 10-22, the money rows 26-38 */
+#define MMBN2_BOX_X 152
+#define MMBN2_BAND_Y 4
+#define MMBN2_BAND_H 4
+#define MMBN2_MONEY_Y 23        /* the money's rows, 3 above it to 4 below */
+#define MMBN2_MONEY_H 20
+#define MMBN2_BOX_H 48
+#define MMBN2_EDGE 4
+#define MMBN2_GLOW_X 160        /* its edges' glow, x 160-231 (72 wide), with plain orange either side */
+#define MMBN2_GLOW_W 72
+#define MMBN2_PLAIN_X 154
+static const Probe mmbn2Panel[8] = { { 5, 5, 0x5A6B6B }, { 120, 3, 0x5A6B6B }, { 238, 10, 0x5A6B6B }, { 2, 50, 0x313939 },
+                                     { 236, 60, 0x5A6B6B }, { 230, 90, 0x313939 }, { 120, 92, 0x313939 }, { 150, 94, 0x313939 } };
+static const Probe mmbn2Money[8] = { { 146, 0, 0x313939 }, { 146, 47, 0x313939 }, { 148, 2, 0xCE5A39 }, { 148, 45, 0xCE5A39 },
+                                     { 200, 1, 0xF78C00 }, { 200, 45, 0xF78C00 }, { 180, 5, 0x4A5A63 }, { 160, 25, 0x5A6B6B } };
+/* the MegaMan screen's cursor (a 16x16 sprite at x 88, Japan's at 96), by
+ * the STYLE / ATTACK / RAPID / CHARGE rows; MegaMan's sprites left of it */
+#define MMBN2_CURSOR_X0 72
+#define MMBN2_CURSOR_X1 119
+#define MMBN2_CURSOR_Y0 16
+#define MMBN2_LIGHT 0x10AD21    /* the stats' lights' dark green (21AD10), as the frame buffer holds it */
+static bool mmbn2_megaman_up(Emu* s) {
+	return emu_read8(s, MMBN2_STATE) == 0x18 && emu_read8(s, MMBN2_MENU) == 0x0C && emu_read8(s, MMBN2_MENU + 1) == 4 &&
+	       !emu_read8(s, MMBN2_FADING);
+}
+static const char* mmbn2_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	if (w != GBA_W || h != GBA_H) return "not a GBA screen";
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame_blind(s, 0);
+	if (emu_read8(s, MMBN2_STATE) != 4) return "not walking about";
+	/* (on the net too: the map's shown there while walking about, MMBN2-6,
+	 * the status in its battles, MMBN2-4) */
+	mmbn_tap(s, K_START);
+	int f = 0;
+	while (f < 40 && emu_read8(s, MMBN2_SMENU) != 4) emu_frame_blind(s, 0), ++f;
+	if (emu_cancelled(s)) return "called off";
+	if (emu_read8(s, MMBN2_SMENU) != 4) return "START opened nothing";
+	aw_run(s, 0, 3); /* (drawn) */
+	if (emu_cancelled(s)) return "called off";
+	/* the box, from a frame drawn with the menu's layer (BG0) alone */
+	static uint8_t tmp[0x80000];
+	if (emu_state_size(s) > sizeof(tmp) || !emu_state_save(s, tmp)) return "state save failed";
+	emu_layers(s, 0x01);
+	emu_state_load(s, tmp); /* (the layers take effect as the display registers are loaded) */
+	emu_frame(s, 0);
+	static uint32_t box[MMBN2_BOX_H * GBA_W];
+	memcpy(box, s->fb, sizeof(box));
+	emu_layers(s, 0x1F);
+	emu_state_load(s, tmp); /* every layer back on */
+	if (emu_cancelled(s)) return "called off";
+	for (int i = 0; i < 8; ++i) {
+		uint32_t c = box[mmbn2Money[i].y * GBA_W + mmbn2Money[i].x], want = mmbn2Money[i].rgb;
+		if (abs((int) (c & 0xFF) - (int) (want >> 16)) > 8 || abs((int) ((c >> 8) & 0xFF) - (int) ((want >> 8) & 0xFF)) > 8 ||
+		    abs((int) ((c >> 16) & 0xFF) - (int) (want & 0xFF)) > 8)
+			return "no money box";
+	}
+	for (int i = 0; i < 10 && emu_read8(s, MMBN2_SMENU + 6) != 3; ++i)
+		mmbn_tap(s, emu_read8(s, MMBN2_SMENU + 6) < 3 ? K_DOWN : K_UP);
+	if (emu_read8(s, MMBN2_SMENU + 6) != 3) return "MegaMan not reached in the menu";
+	mmbn_tap(s, K_A);
+	f = 0;
+	while (f < 90 && !mmbn2_megaman_up(s)) emu_frame_blind(s, 0), ++f;
+	if (emu_cancelled(s)) return "called off";
+	if (!mmbn2_megaman_up(s)) return "the MegaMan screen didn't open";
+	aw_run(s, 0, 4); /* (its values printed) */
+	if (emu_cancelled(s)) return "called off";
+	if (!som_probes(s, mmbn2Panel, 8, 8, 8)) return "not the MegaMan screen";
+	/* the panel, its flashing lights steady (MMBN2-2: with a PowerUP to use,
+	 * some flash in a 16-frame cycle, 8 frames bright, 8 as they are): taken
+	 * twice, 8 frames apart, the one with more of the lights' dark green
+	 * kept; then the cursor (a sprite, by the rows) from a frame drawn
+	 * without sprites there (MegaMan's are left of it) */
+	static uint32_t panel[MMBN_PANEL_ROWS * GBA_W];
+	static uint8_t tmp2[0x80000];
+	memcpy(panel, s->fb, sizeof(panel));
+	if (!emu_state_save(s, tmp)) return "state save failed";
+	int dark[2] = { 0, 0 };
+	for (int i = 0; i < MMBN_PANEL_ROWS * GBA_W; ++i) dark[0] += (panel[i] & 0xFFFFFF) == MMBN2_LIGHT;
+	aw_run(s, 0, 8);
+	if (emu_cancelled(s)) return "called off";
+	for (int i = 0; i < MMBN_PANEL_ROWS * GBA_W; ++i) dark[1] += (s->fb[i] & 0xFFFFFF) == MMBN2_LIGHT;
+	if (dark[1] > dark[0] && mmbn2_megaman_up(s) && som_probes(s, mmbn2Panel, 8, 8, 8)) {
+		memcpy(panel, s->fb, sizeof(panel));
+		if (!emu_state_save(s, tmp2)) return "state save failed";
+		memcpy(tmp, tmp2, sizeof(tmp));
+	}
+	emu_layers(s, 0x0F);
+	emu_state_load(s, tmp);
+	emu_frame(s, 0);
+	for (int y = MMBN2_CURSOR_Y0; y < MMBN_PANEL_ROWS; ++y)
+		for (int x = MMBN2_CURSOR_X0; x <= MMBN2_CURSOR_X1; ++x) panel[y * GBA_W + x] = s->fb[y * GBA_W + x];
+	emu_layers(s, 0x1F);
+	emu_state_load(s, tmp); /* every layer back on */
+	/* the frame: edge, money, panel, edge, centred top to bottom */
+	for (int i = 0; i < GBA_W * GBA_H; ++i) out[i] = 0xFF000000;
+	int all = 2 * MMBN2_EDGE + MMBN2_BAND_H + MMBN2_MONEY_H + MMBN_PANEL_ROWS, y0 = (GBA_H - all) / 2;
+	int glow0 = (GBA_W - MMBN2_GLOW_W) / 2; /* (the glow in the middle) */
+	for (int e = 0; e < 2; ++e) {
+		int from = e ? MMBN2_BOX_H - MMBN2_EDGE : 0, to = e ? y0 + all - MMBN2_EDGE : y0;
+		for (int r = 0; r < MMBN2_EDGE; ++r) {
+			const uint32_t* src = &box[(from + r) * GBA_W];
+			for (int x = 0; x < GBA_W; ++x) {
+				int g = x - glow0;
+				out[(to + r) * GBA_W + x] = g >= 0 && g < MMBN2_GLOW_W ? src[MMBN2_GLOW_X + g] : src[MMBN2_PLAIN_X];
+			}
+		}
+	}
+	/* the box's dark band carried across the screen, then the money's rows
+	 * in the panel's top row's colour (the box's lighter grey too), so the
+	 * two read as one piece */
+	uint32_t head = panel[2 * GBA_W + 2], light = box[(MMBN2_MONEY_Y + 1) * GBA_W + MMBN2_BOX_X + 2];
+	int y = y0 + MMBN2_EDGE;
+	for (int r = 0; r < MMBN2_BAND_H; ++r, ++y) {
+		const uint32_t* m = &box[(MMBN2_BAND_Y + r) * GBA_W];
+		for (int x = 0; x < GBA_W; ++x) out[y * GBA_W + x] = m[x < MMBN2_BOX_X ? MMBN2_BOX_X : x];
+	}
+	for (int r = 0; r < MMBN2_MONEY_H; ++r, ++y) {
+		const uint32_t* m = &box[(MMBN2_MONEY_Y + r) * GBA_W];
+		for (int x = 0; x < GBA_W; ++x) out[y * GBA_W + x] = x < MMBN2_BOX_X || m[x] == light ? head : m[x];
+	}
+	memcpy(&out[y * GBA_W], panel, sizeof(panel));
 	return NULL;
 }
 
@@ -5493,6 +5675,520 @@ static const char* m3_compose(Emu* s, const void* state, uint32_t* const* out, i
 		m3_no_help(out[k], w);
 	}
 	return NULL;
+}
+
+/* ---------------------------------------------------------------- Baldur's Gate: Dark Alliance
+ *
+ * docs/games/baldurs-gate-dark-alliance.md. The game has no map: GBA DS
+ * makes one of each area (BGD-10, an exception), shown by bgd_live_view
+ * at a quarter of its size around the hero, a red X where he is (BGD-11); the logo on the
+ * title (BGD-5) and at GAME OVER (BGD-9). (Until Nov 13, 2026 START's
+ * character tab instead, BGD-1 to BGD-4 and BGD-8, retired.) Both releases
+ * use these addresses:
+ *   BGD_DISPCNT the display: mode 0 in play (walking, fights, conversations,
+ *               a save book: BG0-BG2 hold the area), 3 on the title, the
+ *               language list, the class choice, the abilities screen and
+ *               START's menu, 4 in black scenes and GAME OVER
+ *   BGD_MENU    0x40 while START's menu is up: the title is mode 3 without it.
+ *               (0x030077D8, 1 in a game started new, stays 0x14 all
+ *               through one continued from a save)
+ *   BGD_CONTROL 1 walking about (or in a conversation), 2 in a fight (or
+ *               a scene in the world, or dying), 0 from START on, a
+ *               black-screen scene, GAME OVER
+ *   BGD_HP      health (0 from the hero's death on)
+ *   BGD_HEROX/Y where the hero's feet are in the area (1/256 px): the follow
+ *               routine keeps the camera 120 px left of and 100 px above
+ *               them (his feet at 120, 100 on the game screen)
+ *   BGD_CAMX/Y  the camera (words, pixels): the screen's top left in the area
+ *   BGD_DX/DY   the camera's pending move (halves): each frame the game's
+ *               scroll (0x086A1600) adds them to the camera, draws the 16-px
+ *               strips of each layer newly shown (one a frame: 16 px a step
+ *               at most) and clears them. The follow routine (0x08690E60)
+ *               sets them from the hero, with the three stores in bgdFollow;
+ *               another pushes the camera back toward him once he's off
+ *               screen, after the scroll
+ *   BGD_LEVEL   the area's header: per layer a rectangle in 16-px blocks at
+ *               header + 2 + 4 * the half at header + 0x10 + 2 * layer. The
+ *               camera goes from its top left to a pixel short of its size
+ *               less the screen's (exactly there, the scroll stops for good)
+ * A copy of the game (its own Emu, on its own thread; inline in exact runs
+ * and where there are no threads) is given the live game's state once the
+ * hero has been in a new area under his control for half a second, the
+ * follow routine's stores blanked in it (its own copy of the ROM: mGBA
+ * copies a core's ROM before its first write), and its camera moved over
+ * the area a screen at a time (the hero's health kept as it was, so that
+ * nothing kills him on the way); at each stop BG0-BG2 alone (floors and
+ * walls, furniture and wall pieces in front, lamps, upper edges and raised
+ * floors; no sprites) go into the area's picture where the camera is
+ * (tools/scout/bgdpan.c, the experiment). */
+#define BGD_DISPCNT 0x04000000
+#define BGD_MENU 0x03004161
+#define BGD_CONTROL 0x03002C02
+#define BGD_HP 0x03000B54
+#define BGD_HEROX 0x03001520   /* where his feet are (words, 1/256 px; the camera's target) */
+#define BGD_HEROY 0x03001524
+#define BGD_CAMX 0x030017D0
+#define BGD_CAMY 0x030016B0
+#define BGD_DX 0x03003538
+#define BGD_DY 0x03002BF0
+#define BGD_LEVEL 0x030035B4
+#define BGD_V_LOGO 0xF0000090  /* not in a game (BGD-5), or GAME OVER (BGD-9) */
+#define BGD_V_NEVER 0xF0000091 /* (no captures: the map is drawn live) */
+#define BGD_SETTLE 30          /* frames under control in an area before it's mapped */
+#define BGD_MAX 8192           /* the largest area mapped, each way (pixels) */
+#define BGD_Z 4                /* the map's scale: a quarter (BGD-10) */
+#define BGD_SLOT 0x0844E0CA    /* the empty quick slot: 16x16, 4 bpp (BGD-11) */
+#define BGD_SLOT_PAL 0x0860900C /* its palette; the X is entry 2 */
+static const uint32_t bgdFollow[] = { 0x08690FD2, 0x0869108A, 0x0869109C };
+
+/* the title, the language list, the class choice, the abilities screen
+ * (BGD-5): the display in mode 3 without START's menu */
+static bool bgd_title(Emu* e) {
+	return (emu_read16(e, BGD_DISPCNT) & 7) == 3 && emu_read8(e, BGD_MENU) != 0x40;
+}
+
+/* the game showing the area itself (BG0-BG2 hold it): mode 0 */
+static bool bgd_area_shown(Emu* e) {
+	return (emu_read16(e, BGD_DISPCNT) & 7) == 0;
+}
+
+static uint32_t bgd_virt(Emu* e, uint32_t addr) {
+	if (addr == BGD_V_LOGO) {
+		if (bgd_title(e)) return 1;
+		/* GAME OVER: the screen gone black after the hero's fall */
+		return emu_read16(e, BGD_HP) == 0 && emu_read8(e, BGD_CONTROL) == 0;
+	}
+	return 0;
+}
+
+/* the area: its header's address and its rectangle (pixels); false if none */
+static bool bgd_level(Emu* e, uint32_t* hdr, int* x0, int* y0, int* x1, int* y1) {
+	uint32_t h = emu_read32(e, BGD_LEVEL);
+	if (h < 0x02000000 || h >= 0x0203FF00) return false;
+	uint32_t r = h + 2 + 4 * emu_read16(e, h + 0x10);
+	if (r < 0x02000000 || r >= 0x0203FFF8) return false;
+	*hdr = h;
+	*x0 = 16 * emu_read16(e, r), *y0 = 16 * emu_read16(e, r + 2);
+	*x1 = 16 * emu_read16(e, r + 4), *y1 = 16 * emu_read16(e, r + 6);
+	return *x1 - *x0 >= GBA_W && *y1 - *y0 >= GBA_H && *x1 - *x0 <= BGD_MAX && *y1 - *y0 <= BGD_MAX;
+}
+
+/* which area: its rectangle and its header's first bytes */
+static uint32_t bgd_area_key(Emu* e) {
+	uint32_t h;
+	int x0, y0, x1, y1;
+	if (!bgd_level(e, &h, &x0, &y0, &x1, &y1)) return 0;
+	uint32_t k = 2166136261u ^ h;
+	for (int i = 0; i < 0x20; i += 2) k = (k ^ emu_read16(e, h + i)) * 16777619u;
+	return (k ^ (uint32_t) (x1 << 16 | y1)) | 1;
+}
+
+typedef struct {
+	uint32_t key;
+	bool done, failed;
+	int x0, y0, w, h;         /* the area's top left (camera coordinates) and size */
+	int ex0, ey0, ex1, ey1;   /* what's drawn on it: its edges (ex1 / ey1 past them) */
+	uint32_t* px;             /* 0: nothing there */
+} BgdMap;
+static BgdMap bgdMap;
+static pthread_t bgdThread;
+static volatile bool bgdBusy, bgdStop;
+static uint8_t* bgdJob;
+static size_t bgdJobSize;
+static char bgdRom[1024];
+static Emu bgdEmu;
+static bool bgdEmuOpen;
+
+/* the copy's camera moved to x, y, a step at most each way a frame (the
+ * hero's health kept at hp); false if it stops short */
+static bool bgd_go(Emu* e, int x, int y, uint16_t hp) {
+	int stuck = 0, lx = (int32_t) emu_read32(e, BGD_CAMX), ly = (int32_t) emu_read32(e, BGD_CAMY);
+	for (int f = 0; f < 4000 && !bgdStop; ++f) {
+		int cx = (int32_t) emu_read32(e, BGD_CAMX), cy = (int32_t) emu_read32(e, BGD_CAMY);
+		if (cx == x && cy == y) return true;
+		if (cx != lx || cy != ly) stuck = 0;
+		else if (++stuck > 30) return false;
+		lx = cx, ly = cy;
+		int dx = x - cx, dy = y - cy;
+		dx = dx > 16 ? 16 : dx < -16 ? -16 : dx;
+		dy = dy > 16 ? 16 : dy < -16 ? -16 : dy;
+		/* (every frame: the push back toward the hero sets them after the scroll) */
+		emu_write16(e, BGD_DX, (uint16_t) dx);
+		emu_write16(e, BGD_DY, (uint16_t) dy);
+		emu_write16(e, BGD_HP, hp);
+		emu_frame_blind(e, 0);
+	}
+	return false;
+}
+
+static void* bgd_worker(void* arg) {
+	(void) arg;
+	Emu* e = &bgdEmu;
+	BgdMap* m = &bgdMap;
+	struct timespec t0;
+	clock_gettime(CLOCK_MONOTONIC, &t0);
+	const char* why = NULL;
+	int stops = 0, missed = 0;
+	void* st = NULL;
+	if (!bgdEmuOpen) bgdEmuOpen = emu_open(e, bgdRom, NULL, false);
+	if (!bgdEmuOpen && (why = "the ROM didn't open")) goto out;
+	emu_layers(e, 0x1F);
+	if (!emu_state_load(e, bgdJob) && (why = "the game's moment didn't load")) goto out;
+	/* the camera held still: the follow routine's stores blanked (mov r8, r8) */
+	for (size_t i = 0; i < sizeof(bgdFollow) / sizeof(bgdFollow[0]); ++i) emu_write16(e, bgdFollow[i], 0x46C0);
+	uint16_t hp = emu_read16(e, BGD_HP);
+	for (int i = 0; i < 2; ++i) emu_frame_blind(e, 0);
+	int X1 = m->x0 + m->w - GBA_W - 1, Y1 = m->y0 + m->h - GBA_H - 1;
+	st = malloc(emu_state_size(e));
+	if (!st && (why = "out of memory")) goto out;
+	/* a screen at a time, row by row, each row the other way */
+	for (int y = m->y0, row = 0; !bgdStop; y += GBA_H, ++row) {
+		if (y > Y1) y = Y1;
+		int n = (X1 - m->x0 + GBA_W - 1) / GBA_W + 1;
+		for (int k = 0; k < n && !bgdStop; ++k) {
+			int x = m->x0 + (row & 1 ? n - 1 - k : k) * GBA_W;
+			if (x > X1) x = X1;
+			if (!bgd_go(e, x, y, hp)) {
+				++missed;
+				continue;
+			}
+			for (int i = 0; i < 2; ++i) emu_frame_blind(e, 0); /* (its last strips drawn) */
+			int cx = (int32_t) emu_read32(e, BGD_CAMX), cy = (int32_t) emu_read32(e, BGD_CAMY);
+			emu_state_save(e, st);
+			emu_layers(e, 0x07);
+			emu_state_load(e, st);
+			emu_frame(e, 0);
+			for (int r = 0; r < GBA_H; ++r) {
+				int py = cy - m->y0 + r;
+				if (py < 0 || py >= m->h) continue;
+				for (int c = 0; c < GBA_W; ++c) {
+					int qx = cx - m->x0 + c;
+					if (qx >= 0 && qx < m->w) m->px[(size_t) py * m->w + qx] = e->fb[r * GBA_W + c] & 0xFFFFFF;
+				}
+			}
+			emu_layers(e, 0x1F);
+			emu_state_load(e, st);
+			++stops;
+		}
+		if (y == Y1) break;
+	}
+	if (!stops && !bgdStop && (why = "the camera wouldn't move")) goto out;
+	if (!bgdStop) {
+		/* the area's edges: its last drawn pixels (the rest is black) */
+		m->ex0 = m->w, m->ey0 = m->h, m->ex1 = m->ey1 = 0;
+		for (int y = 0; y < m->h; ++y)
+			for (int x = 0; x < m->w; ++x)
+				if (m->px[(size_t) y * m->w + x]) {
+					if (x < m->ex0) m->ex0 = x;
+					if (x >= m->ex1) m->ex1 = x + 1;
+					if (y < m->ey0) m->ey0 = y;
+					if (y >= m->ey1) m->ey1 = y + 1;
+				}
+		if (m->ex1 <= m->ex0 && (why = "nothing drawn")) goto out;
+		m->done = true;
+		struct timespec t1;
+		clock_gettime(CLOCK_MONOTONIC, &t1);
+		fprintf(stderr, "Baldur's Gate: Dark Alliance: area mapped (%dx%d, %d screens%s, %ld ms)\n", m->w, m->h, stops,
+		        missed ? ", some out of reach" : "", (long) ((t1.tv_sec - t0.tv_sec) * 1000 + (t1.tv_nsec - t0.tv_nsec) / 1000000));
+	}
+out:
+	free(st);
+	if (why) {
+		m->done = m->failed = true;
+		fprintf(stderr, "Baldur's Gate: Dark Alliance: area not mapped: %s\n", why);
+	}
+	bgdBusy = false;
+	return NULL;
+}
+
+/* the map dropped (called off first if it's still being made: false until it's stopped) */
+static bool bgd_drop(void) {
+	BgdMap* m = &bgdMap;
+	if (bgdBusy) {
+		bgdStop = true;
+		return false;
+	}
+	if (bgdThread) pthread_join(bgdThread, NULL), bgdThread = 0;
+	free(m->px);
+	memset(m, 0, sizeof(*m));
+	return true;
+}
+
+/* the marker (BGD-11): the empty quick slot's picture as the cartridge holds
+ * it, its X (the entry-2 pixels joined to its middle) and the pixels of its
+ * dark face touching the X; the rest transparent (0). Read once */
+static const uint32_t* bgd_x(Emu* e) {
+	static uint32_t x[16 * 16];
+	static bool made;
+	if (made) return x;
+	uint8_t px[16 * 16];
+	for (int t = 0; t < 4; ++t)
+		for (int r = 0; r < 8; ++r)
+			for (int c = 0; c < 8; ++c) {
+				uint8_t b = emu_read8(e, BGD_SLOT + t * 32 + r * 4 + c / 2);
+				px[((t >> 1) * 8 + r) * 16 + (t & 1) * 8 + c] = c & 1 ? b >> 4 : b & 15;
+			}
+	/* the X alone: the entry-2 pixels joined to its middle (the cartridge's
+	 * last byte, a transparent corner on screen, holds an entry 2 too) */
+	bool isx[16 * 16] = { false };
+	int stack[16 * 16], n = 0;
+	if (px[7 * 16 + 7] == 2) isx[7 * 16 + 7] = true, stack[n++] = 7 * 16 + 7;
+	while (n) {
+		int i = stack[--n], r = i / 16, c = i % 16;
+		for (int dy = -1; dy <= 1; ++dy)
+			for (int dx = -1; dx <= 1; ++dx) {
+				int y = r + dy, x = c + dx;
+				if (y >= 0 && y < 16 && x >= 0 && x < 16 && px[y * 16 + x] == 2 && !isx[y * 16 + x]) isx[y * 16 + x] = true, stack[n++] = y * 16 + x;
+			}
+	}
+	for (int i = 0; i < 16 * 16; ++i) {
+		int r = i / 16, c = i % 16;
+		bool keep = isx[i];
+		for (int dy = -1; dy <= 1 && !keep && px[i]; ++dy)
+			for (int dx = -1; dx <= 1; ++dx)
+				if (r + dy >= 0 && r + dy < 16 && c + dx >= 0 && c + dx < 16 && isx[(r + dy) * 16 + c + dx]) keep = true;
+		if (!keep) continue;
+		uint16_t v = emu_read16(e, BGD_SLOT_PAL + 2 * px[i]);
+		uint32_t R = v & 31, G = (v >> 5) & 31, B = (v >> 10) & 31;
+		x[i] = 0xFF000000 | (B << 3 | B >> 2) << 16 | (G << 3 | G >> 2) << 8 | (R << 3 | R >> 2);
+	}
+	made = true;
+	return x;
+}
+
+/* the area's map, at a quarter of its size around the hero, a red X where he
+ * is (BGD-10, BGD-11); a new area's map made beside the game */
+static const uint32_t* bgd_live_view(Emu* live, const char* rom) {
+	static uint32_t out[GBA_W * GBA_H];
+	BgdMap* m = &bgdMap;
+	/* the title (BGD-5; the map kept for when its area comes back), GAME
+	 * OVER (BGD-9): the logo */
+	if (bgd_virt(live, BGD_V_LOGO)) return NULL;
+	/* a new area is mapped once the game has shown it for half a second,
+	 * from a moment it shows it (in START's menu, BG0-BG2 hold the menu's
+	 * pictures; a conversation's words are sprites) */
+	static uint32_t settledKey;
+	static int settledFor;
+	uint32_t key = bgd_area_key(live);
+	bool shown = bgd_area_shown(live);
+	if (key != settledKey) settledKey = key, settledFor = 0;
+	else if (shown) ++settledFor;
+	if ((m->px || bgdBusy) && m->key != key && key) {
+		if (!bgd_drop()) return NULL;
+	}
+	if (!m->px) {
+		if (!key || settledFor < BGD_SETTLE || !shown || bgdBusy) return NULL;
+		if (bgdThread) pthread_join(bgdThread, NULL), bgdThread = 0;
+		uint32_t h;
+		int x0, y0, x1, y1;
+		if (!bgd_level(live, &h, &x0, &y0, &x1, &y1)) return NULL;
+		m->key = key;
+		m->x0 = x0, m->y0 = y0, m->w = x1 - x0, m->h = y1 - y0;
+		if (!(m->px = calloc((size_t) m->w * m->h, 4))) {
+			memset(m, 0, sizeof(*m));
+			return NULL;
+		}
+		size_t sz = emu_state_size(live);
+		if (sz > bgdJobSize) free(bgdJob), bgdJob = malloc(sz), bgdJobSize = bgdJob ? sz : 0;
+		if (!bgdJob || !emu_state_save(live, bgdJob)) {
+			free(m->px);
+			memset(m, 0, sizeof(*m));
+			return NULL;
+		}
+		snprintf(bgdRom, sizeof(bgdRom), "%s", rom);
+		bgdStop = false;
+		bgdBusy = true;
+		/* in exact runs (the tests), and with no threads, made here */
+		if (getenv("GBADS_SYNC") || pthread_create(&bgdThread, NULL, bgd_worker, NULL)) bgdThread = 0, bgd_worker(NULL);
+	}
+	if (m->failed || !m->done) return NULL; /* (the logo meanwhile) */
+	/* a quarter of the size: each pixel the mean of 4x4 of the picture's,
+	 * centred on his feet, kept within the area's edges; an area smaller
+	 * than the screen in its middle */
+	enum { Z = BGD_Z };
+	int camx = (int32_t) emu_read32(live, BGD_HEROX) / 256 - m->x0, camy = (int32_t) emu_read32(live, BGD_HEROY) / 256 - m->y0;
+	int left = camx - GBA_W * Z / 2, top = camy - GBA_H * Z / 2;
+	if (m->ex1 - m->ex0 <= GBA_W * Z) left = (m->ex0 + m->ex1) / 2 - GBA_W * Z / 2;
+	else if (left < m->ex0) left = m->ex0;
+	else if (left > m->ex1 - GBA_W * Z) left = m->ex1 - GBA_W * Z;
+	if (m->ey1 - m->ey0 <= GBA_H * Z) top = (m->ey0 + m->ey1) / 2 - GBA_H * Z / 2;
+	else if (top < m->ey0) top = m->ey0;
+	else if (top > m->ey1 - GBA_H * Z) top = m->ey1 - GBA_H * Z;
+	for (int oy = 0; oy < GBA_H; ++oy) {
+		int py = top + oy * Z;
+		for (int ox = 0; ox < GBA_W; ++ox) {
+			int qx = left + ox * Z;
+			unsigned r = 0, g = 0, b = 0;
+			for (int dy = 0; dy < Z; ++dy) {
+				if (py + dy < 0 || py + dy >= m->h) continue;
+				for (int dx = 0; dx < Z; ++dx) {
+					if (qx + dx < 0 || qx + dx >= m->w) continue;
+					uint32_t px = m->px[(size_t) (py + dy) * m->w + qx + dx];
+					r += px & 0xFF, g += (px >> 8) & 0xFF, b += (px >> 16) & 0xFF;
+				}
+			}
+			out[oy * GBA_W + ox] = 0xFF000000 | (b / (Z * Z)) << 16 | (g / (Z * Z)) << 8 | r / (Z * Z);
+		}
+	}
+	/* X marks the spot: the red X of an unusable quick slot, at the game's
+	 * size, its middle where his feet are (BGD-11) */
+	const uint32_t* x = bgd_x(live);
+	int hx = (camx - left) / Z - 8, hy = (camy - top) / Z - 8;
+	for (int r = 0; r < 16; ++r) {
+		if (hy + r < 0 || hy + r >= GBA_H) continue;
+		for (int c = 0; c < 16; ++c)
+			if (x[r * 16 + c] && hx + c >= 0 && hx + c < GBA_W) out[(hy + r) * GBA_W + hx + c] = x[r * 16 + c];
+	}
+	return out;
+}
+
+/* Mario vs. Donkey Kong: the game's state (decomp camthesaxman/mariovsdk,
+ * gMainState; Europe's 0x40 lower: mvdk_eur): 0x0D a level (its opening pan
+ * too), 0x0E a life lost, 0x0F the mute after, 0x10 paused, 0x11 a help
+ * screen, 0x21 the level viewer (MVDK-2 to MVDK-7) */
+#define MVDK_STATE 0x030009C0u
+#define MVDK_PLAY 0x0D
+#define MVDK_PAUSE 0x10
+#define MVDK_HELP 0x11
+#define MVDK_VIEWER 0x21
+/* the HUD's sprite shapes: all but 32x32 (shape 0 size 2) and 8x32 (shape
+ * 2 size 1) */
+#define MVDK_HUD_SHAPES (0xFFFu & ~(1u << 2 | 1u << 9))
+/* the HUD along the second screen's top, from row MVDK_HUD_TOP (the
+ * game's from row 3); the pause box closed up (MVDK-9: its frame and LEVEL
+ * and HI SCORE lines, 26 rows, and its bottom edge, 5) in the middle */
+#define MVDK_HUD_TOP 6
+#define MVDK_BOX_ROWS 31
+#define MVDK_BOX_TOP ((GBA_H - MVDK_BOX_ROWS) / 2)
+#define MVDK_LEVEL 0x0300010Cu /* the world, the level's kind, Plus (every release) */
+#define MVDK_V_PLAY 0xF0000080u  /* a level played with its HUD up (mvdk_hud_up), not paused (the box can be taken) */
+#define MVDK_V_LOGO 0xF0000081u  /* no level shown: the logo, the box forgotten */
+#define MVDK_V_LEVEL 0xF0000082u /* the level (MVDK_LEVEL's word) */
+
+/* the state's address in this release (Europe's 0x40 lower) */
+static uint32_t mvdk_state(Emu* e) {
+	return e->gameCode[3] == 'P' ? MVDK_STATE - 0x40 : MVDK_STATE;
+}
+
+/* the game's own "playing" flag: 0 through a level's opening pan and
+ * HERE WE GO, TIME'S UP and a life lost, 1 from the frame the HUD appears
+ * (and straight on as a help box closes, where the HUD's sprites come back
+ * a few frames after the state does) */
+static bool mvdk_hud_up(Emu* e) {
+	char r = e->gameCode[3];
+	return emu_read8(e, r == 'P' ? 0x030009ACu : r == 'J' ? 0x030009ECu : 0x030009E8u) != 0;
+}
+
+static uint32_t mvdk_virt(Emu* e, uint32_t addr) {
+	int st = emu_read8(e, mvdk_state(e));
+	if (addr == MVDK_V_LEVEL) return emu_read32(e, MVDK_LEVEL);
+	bool shown = ((st == MVDK_PLAY || st == MVDK_PAUSE || st == MVDK_VIEWER) && mvdk_hud_up(e)) ||
+	             (st > MVDK_PLAY && st <= MVDK_HELP && st != MVDK_PAUSE); /* (a life lost, a help screen: kept) */
+	if (addr == MVDK_V_PLAY) return st == MVDK_PLAY && mvdk_hud_up(e);
+	if (addr == MVDK_V_LOGO) return !shown;
+	return 0;
+}
+
+static bool mvdk_rgb(uint32_t c, uint32_t rgb) {
+	/* (framebuffer ABGR: R in the low byte) */
+	return (c & 0xFF) == (rgb >> 16 & 0xFF) && (c >> 8 & 0xFF) == (rgb >> 8 & 0xFF) && (c >> 16 & 0xFF) == (rgb & 0xFF);
+}
+
+/* The level's box (MVDK-9): START on the hidden copy, the pause box's
+ * priority-0 sprites alone (the level, and its things behind the box,
+ * left out, and the star), its frame and LEVEL and HI SCORE lines and then
+ * its bottom edge, in the middle of a black GBA screen. Checked as it's cut
+ * (GEN-3): the frame's black top (a run of 60 or more) and bottom, the two
+ * lines' grey bars 6 in from its side with lavender between and after. */
+static const char* mvdk_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	if (w != GBA_W || h != GBA_H) return "wrong size";
+	if (!emu_state_load(s, state)) return "state load failed";
+	uint32_t sa = mvdk_state(s);
+	emu_frame(s, 0);
+	if (emu_read8(s, sa) != MVDK_PLAY) return "not playing";
+	aw_run(s, K_START, 4);
+	for (int f = 0; f < 40 && emu_read8(s, sa) != MVDK_PAUSE && !emu_cancelled(s); ++f) aw_run(s, 0, 1);
+	if (emu_read8(s, sa) != MVDK_PAUSE) return "START didn't pause";
+	aw_run(s, 0, 6);
+	size_t sz = emu_state_size(s);
+	void* paused = malloc(sz);
+	uint32_t* spr = malloc(GBA_W * GBA_H * 4);
+	uint32_t* back = malloc(GBA_W * GBA_H * 4);
+	const char* err = NULL;
+	if (!paused || !spr || !back || !emu_state_save(s, paused)) {
+		err = "out of memory";
+		goto done;
+	}
+	/* the box's sprites alone, then the backdrop alone (layer switches
+	 * take effect as the registers are written: loading the state again) */
+	/* (and the star beside LEVEL once its high score is beaten, palette 10:
+	 * the box itself is palette 6) */
+	static const SpriteRule behind[4] = { { -512, -256, 511, 255, 0, 1023, 1 }, { -512, -256, 511, 255, 0, 1023, 2 },
+	                                      { -512, -256, 511, 255, 0, 1023, 3 },
+	                                      { -512, -256, 511, 255, 0, 1023, 0, 1u << 10 } };
+	emu_hide_sprites(s, behind, 4);
+	emu_layers(s, 0x10);
+	emu_state_load(s, paused);
+	emu_frame(s, 0);
+	memcpy(spr, s->fb, GBA_W * GBA_H * 4);
+	emu_layers(s, 0);
+	emu_state_load(s, paused);
+	emu_frame(s, 0);
+	memcpy(back, s->fb, GBA_W * GBA_H * 4);
+	emu_layers(s, 0x1F);
+	emu_hide_sprites(s, NULL, 0);
+	{
+#define MVDK_SPR(x, y) (spr[(y) * GBA_W + (x)] != back[(y) * GBA_W + (x)])
+#define MVDK_IS(x, y, rgb) (MVDK_SPR(x, y) && mvdk_rgb(spr[(y) * GBA_W + (x)], rgb))
+		/* the frame's top: a row of 60 or more black pixels (82 in the
+		 * box; it's centred, or in a Mini-Mario level more to the side) */
+		int top = -1, bottom = -1, x0 = 0, x1 = 0;
+		for (int y = 0; y < GBA_H - 60 && top < 0; ++y) {
+			int run = 0;
+			for (int x = 0; x <= GBA_W && top < 0; ++x) {
+				if (x < GBA_W && MVDK_IS(x, y, 0x000000)) {
+					++run;
+					continue;
+				}
+				if (run >= 60) top = y, x0 = x - run - 5, x1 = x - 1 + 5;
+				run = 0;
+			}
+		}
+		int cx = (x0 + x1) / 2;
+		for (int y = top + 40; top >= 0 && y < GBA_H - 1 && bottom < 0; ++y)
+			if (MVDK_IS(cx, y, 0x000000) && !MVDK_SPR(cx, y + 1)) bottom = y;
+		/* the two bars, 6 in from the box's side: grey, lavender, grey,
+		 * lavender */
+		int edges[4], n = 0;
+		const uint32_t want[4] = { 0xC6C6C6, 0xE7CEFF, 0xC6C6C6, 0xE7CEFF };
+		for (int y = top + 1; top >= 0 && x0 >= 0 && y < top + 30 && n < 4; ++y)
+			if (MVDK_IS(x0 + 6, y, want[n])) edges[n++] = y;
+		if (top < 0 || bottom < 0 || n < 4 || x0 < 0 || x1 >= GBA_W) {
+			err = "no pause box";
+			goto done;
+		}
+		/* down to the lavender row after HI SCORE and one more, then the
+		 * box's bottom edge (its last 5 rows); centred */
+		int upper = edges[3] + 2 - top;
+		if (upper + 5 != MVDK_BOX_ROWS) {
+			err = "pause box of another size";
+			goto done;
+		}
+		int dx = (GBA_W - (x1 - x0 + 1)) / 2 - x0;
+		for (int i = 0; i < w * h; ++i) out[i] = 0xFF000000;
+		for (int r = 0; r < MVDK_BOX_ROWS; ++r) {
+			int sy = r < upper ? top + r : bottom - (MVDK_BOX_ROWS - 1 - r);
+			for (int x = x0; x <= x1; ++x)
+				if (MVDK_SPR(x, sy)) out[(MVDK_BOX_TOP + r) * GBA_W + x + dx] = spr[sy * GBA_W + x] | 0xFF000000;
+		}
+#undef MVDK_SPR
+#undef MVDK_IS
+	}
+done:
+	free(paused);
+	free(spr);
+	free(back);
+	return err;
 }
 
 static const MapProfile profiles[] = {
@@ -7005,6 +7701,33 @@ static const MapProfile profiles[] = {
 		 * floating past the HUD's places) and the game's own pause screen
 		 * are drawn whole (LS-6) */
 		.hideWhen = { { LS_V_PLAY, 0, 1, 1 } },
+		/* ... and only the HUD's own: the game puts its pieces first in the
+		 * sprite table (level 2 puts Sia, in her own palette, among them),
+		 * and a level's thing is several sprites in one palette, one after
+		 * another. A HUD-shaped piece is hidden in the run at the start of
+		 * the table or in a run of one palette that's all HUD pieces; a
+		 * level's thing that passes a HUD piece's place with its shape (the
+		 * first village's well, a column of rock in the caves: players' bug
+		 * reports) has its other pieces beside it, so it stays (LS-6). */
+		.hideGrouped = true,
+		/* the pause screen's own pieces, the rest left out of the status
+		 * picture: the game leaves some level things in the sprite table
+		 * under its pause screen (a floating platform in the caves, in a
+		 * player's bug report), drawn over the ring (LS-2). The arrows
+		 * either side of the choice (they slide), the 64x64 text blocks of
+		 * the time, Pause and the choice, then the HUD's places as above
+		 * (the ring's glow pieces too: the probes see it as before). */
+		.captureKeep = { { -10, 95, 220, 99, 0, 1023, -1, 0, 0, LS_SHAPE(1, 2) },
+		                 { 0, 48, 192, 48, 0, 1023, -1, 0, 0, LS_SHAPE(0, 3) },
+		                 { 2, 7, 2, 7, 0, 1023, -1, 0, 0, LS_SHAPE(0, 2) },
+		                 { 94, 3, 94, 3, 0, 1023, -1, 0, 0, LS_SHAPE(0, 2) },
+		                 { 193, 1, 193, 1, 0, 1023, -1, 0, 0, LS_SHAPE(0, 2) },
+		                 { 31, 10, 232, 10, 0, 1023, -1, 0, 0, LS_SHAPE(2, 0) },
+		                 { 38, 124, 44, 129, 0, 1023, -1, 0, 0, LS_SHAPE(0, 2) },
+		                 { 68, 125, 77, 132, 0, 1023, -1, 0, 0, LS_SHAPE(2, 2) | LS_SHAPE(2, 1) },
+		                 { 51, 152, 53, 154, 0, 1023, -1, 0, 0, LS_SHAPE(1, 1) },
+		                 { 164, 130, 171, 133, 0, 1023, -1, 0, 0, LS_SHAPE(0, 1) | LS_SHAPE(2, 0) },
+		                 { 167, 143, 170, 146, 0, 1023, -1, 0, 0, LS_SHAPE(1, 0) | LS_SHAPE(0, 1) } },
 	},
 	{
 		/* Banjo-Kazooie: Grunty's Revenge (USA and Europe; Europe's
@@ -7209,8 +7932,10 @@ static const MapProfile profiles[] = {
 		          .edgeClear = { 0x6BBDD6, 0x635242, 0x73634A }, .rev = 1 },
 		.hud = {
 			/* in a battle, before its results (ML-5): those stay on the
-			 * game screen whole, the logo alone on the second screen */
-			.on = { { ML_STATE, 0xFF, 3, 1 }, { ML_RESULTS, 0xFFFF, 0, 2 } },
+			 * game screen whole, the logo alone on the second screen
+			 * (only the battle's own screen, not the mine carts' state
+			 * 3: ML-7, issue #51) */
+			.on = { { ML_STATE, 0xFFFF, ML_BATTLE, 2 }, { ML_RESULTS, 0xFFFF, 0, 2 } },
 			/* and once the results are up, off to the battle's end: a
 			 * level-up after them clears their panels before its own
 			 * (the brother jumping, his level, the star), and stays on
@@ -7475,6 +8200,35 @@ static const MapProfile profiles[] = {
 		.logo = { .steps = { { 0, 200 }, { K_A, 4 }, { 0, 700 }, { K_START, 4 }, { 0, 90 } }, .layers = 0x11, .maxY = 119 },
 	},
 	{
+		/* Japan (its only release; most play it with the FE6 Localization
+		 * fan translation, a mod of it): as Fire Emblem (the same engine
+		 * and second screen: see fe_compose; its addresses in feRegions) */
+		.codes = { "AFEJ" },
+		.title = "Fire Emblem: Fuuin no Tsurugi",
+		.virt = fe_virt,
+		.composePages = fe_compose,
+		.stillPick = STILL_FIRST,
+		.room = { { FE_V_CURSOR, 0, 0, 4 }, { FE_V_FREE, 0, 0, 4 } },
+		.crop_w = GBA_W,
+		.crop_h = GBA_H,
+		.live = { FE_IN_CHAPTER, { FE_V_TURN, 0xFF, 0, 1 } },
+		.menu = { { FE_V_OFFMAP, 0xFF, 1, 4 } },
+		.hud = {
+			.on = { FE_IN_CHAPTER },
+			.overMap = true,
+			.mapClear = MAP_BG_NAVY,
+			.logoUnder = true,
+			.logoAlways = true,
+		},
+		.combat = { { FE_V_FIGHT, 0xFF, 1, 4 } },
+		.combatOr = { FE_IN_CHAPTER, { FE_V_TURN, 0xFF, 0x40, 1, true, 0xFF, true } },
+		/* the title (START past the intro): the lettering (BG0), its
+		 * shadow (BG1) and the sword (BG2), with FIRE EMBLEM and the
+		 * subtitle's ribbon (sprites, above Press start from row 121 and
+		 * the copyright line) */
+		.logo = { .wait = 300, .pressStart = true, .wait2 = 150, .layers = 0x17, .maxY = 119 },
+	},
+	{
 		/* USA; the second screen is put together by aw_compose */
 		.codes = { "AWRE" },
 		.title = "Advance Wars",
@@ -7714,6 +8468,30 @@ static const MapProfile profiles[] = {
 		.logo = { .wait = 400, .layers = 0x8, .maxY = 96 },
 	},
 	{
+		/* Mega Man Battle Network 2 (USA, the Wii U's too; Europe AM2P,
+		 * Japan Battle Network Rockman EXE 2: variants). As the first
+		 * game: walking about, the PET's MegaMan screen with the money
+		 * (mmbn2_compose, MMBN2-2), kept through battles (MMBN2-4); on the
+		 * net the area's map (MMBN2-6) */
+		.codes = { "AE2E" },
+		.title = "Mega Man Battle Network 2",
+		.compose = mmbn2_compose,
+		.liveView = mmbn_live_view,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* walking about (scenes too: START opens nothing there, the last
+		 * picture stays, MMBN2-3) */
+		.live = { { MMBN2_STATE, 0xFF, 4, 1 } },
+		/* the title, game over (0x20): the logo, the status forgotten
+		 * (MMBN2-1); in a battle the status from before it stays (MMBN2-4) */
+		.menu = { { MMBN2_STATE, 0xFF, 0, 1, true, 0x20 } },
+		/* HP, its maximum, the area, the money: taken again at once (MMBN2-2) */
+		.room = { { MMBN2_HP, 0xFFFF, 0, 2 }, { MMBN2_HP + 2, 0xFFFF, 0, 2 }, { MMBN2_AREA, 0xFFFF, 0, 2 }, { MMBN2_ZENNY, 0, 0, 4 } },
+		/* the title's lettering and emblem (BG3) above PRESS START, the
+		 * grid of lines behind it on the same layer left out */
+		.logo = { .wait = 420, .layers = 0x8, .maxY = 112, .edgeClear = { 0x006B00, 0x52B500, 0x84D600, 0xCEFF00 } },
+	},
+	{
 		/* the overworld's map, or the Party screen in towns and dungeons:
 		 * see er_compose (docs/games/eragon.md) */
 		.codes = { "BENE" },
@@ -7765,6 +8543,26 @@ static const MapProfile profiles[] = {
 		.logo = { .steps = { { 0, 100 }, { K_A, 4 }, { 0, 1100 } }, .mask = &logoMaskER, .rev = 1 },
 	},
 	{
+		/* Baldur's Gate: Dark Alliance (USA, Europe: the same addresses).
+		 * The area's map, made on a copy and drawn live: see
+		 * bgd_live_view (docs/games/baldurs-gate-dark-alliance.md) */
+		.codes = { "BGDE", "BGDP" },
+		.title = "Baldur's Gate: Dark Alliance",
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		.virt = bgd_virt,
+		.liveView = bgd_live_view,
+		/* (no captures: the map is the live view's) */
+		.live = { { BGD_V_NEVER, 0xFF, 1, 1 } },
+		/* the title, the language list, the class choice, GAME OVER: the
+		 * logo (BGD-5, BGD-9) */
+		.menu = { { BGD_V_LOGO, 0xFF, 1, 4 } },
+		/* the title's lettering cut out of its parchment map along the
+		 * logo artwork's outline (BGD-6; the European language list, sprites
+		 * below the lettering, is outside it) */
+		.logo = { .wait = 1500, .mask = &logoMaskBGD, .rev = 1 },
+	},
+	{
 		/* Harry Potter and the Prisoner of Azkaban (USA and Europe, one
 		 * release in seven languages). Walking about, the party's summary
 		 * and the task: see hpa_compose (HPA-1) */
@@ -7790,6 +8588,57 @@ static const MapProfile profiles[] = {
 		.logo = { .steps = { { 0, 600 }, { K_A, 4 }, { 0, 100 }, { K_START, 4 }, { 0, 90 }, { K_START, 4 }, { 0, 90 },
 		                     { K_START, 4 }, { 0, 90 }, { K_START, 4 }, { 0, 90 }, { K_START, 4 }, { 0, 240 } },
 		          .layer = 2, .maxY = 120 },
+	},
+	{
+		/* Mario vs. Donkey Kong (USA and Australia; Europe and Japan:
+		 * the BM5P and BM5J variants). The game has no status screen, so
+		 * the HUD moves, as Ninja Five-O's, under the pause box's LEVEL
+		 * and HI SCORE lines from the hidden copy: see mvdk_compose
+		 * (MVDK-2, MVDK-9). */
+		.codes = { "BM5E" },
+		.title = "Mario vs. Donkey Kong",
+		/* the title's lettering, cut out of the title by its sky
+		 * (tools/make_logo_masks.py mvdk): START at 600 skips the
+		 * opening film, the title up from about 120 frames on (MVDK-1).
+		 * rev 1: the greys outside the black outline left out */
+		.logo = { .steps = { { 0, 600 }, { K_START, 4 }, { 0, 300 } }, .mask = &logoMaskMVDK, .rev = 1 },
+		.compose = mvdk_compose,
+		.crop_w = GBA_W, /* a GBA screen: the box at its top, black below */
+		.crop_h = GBA_H,
+		.virt = mvdk_virt,
+		/* the box taken while the HUD is up and not paused (MVDK-9) */
+		.live = { { MVDK_V_PLAY, 0xFF, 1, 4 } },
+		/* no level being shown (outside levels, a level's opening pan):
+		 * the logo, the box forgotten (MVDK-3, MVDK-7) */
+		.menu = { { MVDK_V_LOGO, 0xFF, 1, 4 } },
+		.logoIf = { { MVDK_V_LOGO, 0xFF, 1, 4 } },
+		/* another level or part (the HUD back after its pan): the box
+		 * taken again at once (MVDK-9) */
+		.room = { { MVDK_V_LEVEL, 0, 0, 4 }, { MVDK_V_PLAY, 0, 0, 4 } },
+		.hud = {
+			/* a level played (its pan and HERE WE GO too: no HUD sprites
+			 * yet, so the logo, emptyIsOff; MVDK-3) or paused, its HUD
+			 * held on the second screen while the box is up (MVDK-2,
+			 * MVDK-6) */
+			.on = { { MVDK_STATE, 0xFF, MVDK_PLAY, 1, true, MVDK_PAUSE } },
+			.freeze = { { MVDK_STATE, 0xFF, MVDK_PAUSE, 1 } },
+			/* the level viewer (L+R): the same, as in play (MVDK-5) */
+			.alt = { .on = { { MVDK_STATE, 0xFF, MVDK_VIEWER, 1 } }, .bgMask = 0, .mapBelow = true },
+			/* a life lost, the mute after it, a help sign's screen: the
+			 * last HUD picture (MVDK-6) */
+			.keep = { { MVDK_STATE, 0xFF, MVDK_PLAY + 1, 1, true, MVDK_HELP, true } },
+			/* the HUD: priority-0 sprites with their top in rows 0-17
+			 * (to 20 for slack); not the fights' rope (8x32, at the top
+			 * too) or the viewer's arrows (32x32) (MVDK-4) */
+			.objs = { { -32, -16, 239, 20, 0, 1023, 0, 0, 0, MVDK_HUD_SHAPES } },
+			/* the HUD along the top: its top (the game's row 3) at row
+			 * MVDK_HUD_TOP, over the box in the middle (MVDK-2) */
+			.moves = { { 0, 0, 239, 40, 0, 0, 'T', MVDK_HUD_TOP } },
+			/* the box (the map picture) behind it; black without one */
+			.mapBelow = true,
+			.black = true,
+			.emptyIsOff = true,
+		},
 	},
 	{
 		/* MOTHER 3 (Japan only; the fan translations are mods of it):
@@ -8144,6 +8993,14 @@ static void hm_jpn(MapProfile* p) {
 
 /* Battle Network Rockman EXE (Japan): its logo, ロックマン エグゼ, fills
  * BG3 with the blue behind it (MMBN-1) */
+/* Battle Network Rockman EXE 2 (Japan; its Rev 1 the same): the title's
+ * logo on BG3 over its own dark grid, which comes in later */
+static void mmbn2_jpn(MapProfile* p) {
+	p->logo.wait = 560;
+	p->logo.maxY = 140;
+	p->logo.edgeClear[0] = 0x080808, p->logo.edgeClear[1] = 0x214A29;
+	p->logo.edgeClear[2] = 0x316329, p->logo.edgeClear[3] = 0x4A7B39;
+}
 static void mmbn_jpn(MapProfile* p) {
 	p->logo.maxY = GBA_H;
 	p->logo.edgeClear[0] = 0x52B5FF;
@@ -8157,6 +9014,67 @@ static void hpa_jpn(MapProfile* p) {
 	p->room[0].addr += 0x60;
 	p->logo = (typeof(p->logo)) { .steps = { { 0, 360 }, { K_START, 4 }, { 0, 86 }, { K_START, 4 }, { 0, 86 }, { K_START, 4 }, { 0, 286 } },
 	                              .layer = 2, .maxY = 120 };
+}
+
+/* Mario vs. Donkey Kong in Europe: its state 0x40 lower (romxref), its
+ * language list first (START: English), then START skips the film
+ * (MVDK-1, MVDK-8) */
+static void mvdk_eur(MapProfile* p) {
+	p->hud.on[0].addr -= 0x40;
+	p->hud.freeze[0].addr -= 0x40;
+	p->hud.alt.on[0].addr -= 0x40;
+	p->hud.keep[0].addr -= 0x40;
+	p->logo.steps[1] = (MacroStep) { K_START, 4 };
+	p->logo.steps[2] = (MacroStep) { 0, 200 };
+	p->logo.steps[3] = (MacroStep) { K_START, 4 };
+	p->logo.steps[4] = (MacroStep) { 0, 300 };
+}
+
+/* Mario vs. Donkey Kong in Japan: the same state address; its own title,
+ * the katakana lettering (MVDK-1) */
+static void mvdk_jpn(MapProfile* p) {
+	p->logo.mask = &logoMaskMVDKJ;
+}
+
+/* Pokémon Pinball: Ruby & Sapphire in Japan (BPPJ; the original, CRC32
+ * 8af1ec73, and its Rev 1, 925a5684): the same table, score bar and EWRAM
+ * layout under S and gMain as BPPE, found by matching the code round BPPE's
+ * stores and literal pools (docs/PINBALL.md); only the game's state pointer
+ * (0x10A0 lower: gCurrentPinballGame) with the camera's limit after it, and
+ * the ROM's camera stores (the main routine's and catch mode's) differ
+ * (PP-14). Rev 1's code has moved again (`rev`), its RAM is the original's. */
+static void pp_jpn(MapProfile* p) {
+	p->tall.live.state = 0x02030440;
+	p->tall.live.bound = 0x02030498;
+	p->tall.live.nop[0] = 0x0804B896, p->tall.live.nop[1] = 0x0804B8A6;
+	p->tall.live.nop[2] = 0x0804B5E8, p->tall.live.nop[3] = 0x0804B5F8;
+	p->tall.live.rev.crc = 0x925a5684;
+	p->tall.live.rev.nop[0] = 0x0804B5DE, p->tall.live.rev.nop[1] = 0x0804B5EE;
+	p->tall.live.rev.nop[2] = 0x0804B330, p->tall.live.rev.nop[3] = 0x0804B340;
+}
+
+/* Pokémon Pinball: Ruby & Sapphire in Europe (BPPP, a 16 MB dump with the
+ * same game and five languages): its state pointer 0x120 higher and its
+ * camera stores elsewhere (PP-15) */
+static void pp_eur(MapProfile* p) {
+	p->tall.live.state = 0x02031600;
+	p->tall.live.bound = 0x02031658;
+	p->tall.live.nop[0] = 0x08053B26, p->tall.live.nop[1] = 0x08053B36;
+	p->tall.live.nop[2] = 0x08053880, p->tall.live.nop[3] = 0x08053890;
+	/* gMain has a field more before the scroll shadows: they and the string
+	 * after them are 4 bytes higher (BG1 / 2 / 3 VOFS 0x0200B3B2 / B6 / BA);
+	 * the stack slot with the row + 16 holds a pointer into a table at
+	 * 0x0894BED4 in place of the USA ROM's 0x086B0000 */
+	p->tall.live.view = 0x0200B3BA;
+	p->tall.live.jump.scrollAt[0] = 0x0200B3B2, p->tall.live.jump.scrollAt[1] = 0x0200B3B6;
+	p->tall.live.jump.scrollAt[2] = 0x0200B3BA;
+	p->tall.live.jump.plus16Base = 0xBED4;
+	/* the language menu comes first (English selected, A), then the title
+	 * as the USA release's: its logo waits (PP-4, PP-15) */
+	static const MacroStep steps[] = { { 0, 400 }, { K_A, 4 }, { 0, 1440 } };
+	p->logo.wait = 0;
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
 }
 
 static const Variant variants[] = {
@@ -8204,6 +9122,8 @@ static const Variant variants[] = {
 	{ "BKZS", "BKZE", 0, NULL },
 	{ "ANXP", "ANXE", 0, nfo_eur },
 	{ "AWAJ", "AWAE", 0, NULL },
+	{ "BM5P", "BM5E", 0, mvdk_eur }, /* (its state moved: mvdk_eur, mvdk_state) */
+	{ "BM5J", "BM5E", 0, mvdk_jpn },
 	/* Super Mario Advance 3 in Europe: its language menu first */
 	{ "A3AP", "A3AE", 0, sm3_eur },
 	/* (Fire Emblem's addresses: FeRegion) */
@@ -8236,6 +9156,12 @@ static const Variant variants[] = {
 	{ "AREP", "AREE", 0, NULL },
 	{ "BHTJ", "BHTE", 0, hpa_jpn },
 	{ "AREJ", "AREE", 0, mmbn_jpn },
+	{ "AM2P", "AE2E", 0, NULL },
+	{ "AE2J", "AE2E", 0, mmbn2_jpn },
+	/* (Pokémon Pinball's cheats: its state moved, so the memory shift is only
+	 * for profile_ram_moved; the profile reads nothing at the shifted addresses) */
+	{ "BPPJ", "BPPE", -0x10A0, pp_jpn },
+	{ "BPPP", "BPPE", 0x120, pp_eur },
 };
 #define N_VARIANTS (sizeof(variants) / sizeof(*variants))
 static MapProfile variantProfiles[N_VARIANTS];

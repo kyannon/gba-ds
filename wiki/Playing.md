@@ -2,9 +2,9 @@
 
 GBA DS opens on a game list on the touchscreen (the bottom screen on the RG DS Plus), with the selected game's logo and resume picture on the other screen.
 
-- **Two views:** a list of names (the default) or a two-column grid of the games' logos. Switch with **X** or the button left of **Settings**; GBA DS remembers which you chose.
+- **Two views:** a list of names (the default) or a two-column grid of the games' logos. Switch with **X** or the square button left of the **Supported** / **All** button; GBA DS remembers which you chose.
 - **Names** come from the file names, without tags like `(USA)` or `(En,Fr,De)`. When you have more than one regional copy of a game, a flag tells them apart. `name_tags = 1` in `gba-ds.cfg` keeps the tags.
-- **Which games:** only games with second-screen support are listed (see [[Supported games]]). `show_all = 1` lists every GBA ROM; the others play normally on one screen.
+- **Which games:** the button between the view button and **Settings** says **Supported** (only games with second-screen support, see [[Supported games]]) or **All** (every GBA ROM; the others play normally on one screen). Touch it to switch; GBA DS remembers it (`show_all`).
 - **The other screen** shows the selected game's logo, and the picture where it will resume once you've played it.
 - The list is rebuilt from the ROM folder each time it opens, so games you add or remove show up with nothing to re-run.
 - **First run:** each game's logo is pulled out of the ROM in the background, once. The selected game and the ones on screen go first. Tiles say "Loading thumbnail..." until their logo is ready. You don't have to wait for all of them: if you start a game before its own logo is ready, a "Preparing the game" screen waits for just that one (a few seconds; B goes back). While you play, the rest wait, so the game doesn't start with crackling sound; they carry on when you're back in the game list.
@@ -16,12 +16,29 @@ GBA DS opens on a game list on the touchscreen (the bottom screen on the RG DS P
 | A or Start, or tap a game | Play |
 | Drag | Scroll |
 | X, or tap the button left of Settings | Switch between list and grid |
-| SELECT, or tap **Settings** | Settings (ROCKNIX: GBA DS in EmulationStation; BananaOS: GBA DS in its GBA list; Linux: Map Buttons, Hotkeys, Updates; Android: Folders (ROMs and saves), RetroAchievements sign-in, Map Buttons, Hotkeys, Updates) |
+| SELECT, or tap **Settings** | Settings (ROCKNIX: GBA DS in EmulationStation; BananaOS: GBA DS in its GBA list; Controls has Map Buttons and Hotkeys; System has [Save States](#save-states-shared-with-retroarch), RetroArch's State Folder and Updates (Linux) or Folders, RetroAchievements sign-in and Updates (Android)) |
 | B or HOME | Back to EmulationStation / the launcher |
 
 ## Resume points
 
 Leaving a game saves its state automatically, and launching it again picks up exactly there; the game list shows where. **Save on Quit** and **Auto-Load** on the pause menu's Extras page switch each half off (`save_on_quit = 0`, `auto_load = 0` in `gba-ds.cfg`). With Save on Quit off and Auto-Load on, the game picks up from the last resume point that was saved. Battery saves (in-game saves) are written as usual too, so they're never at risk.
+
+## Save states shared with RetroArch
+
+On ROCKNIX, BananaOS and other Linux systems, GBA DS can share its save states with RetroArch, so you can save in one and go on in the other. In the game list, open **Settings** (SELECT) > **System** and choose **Save States** to switch between **GBA DS's Own** (the default) and **Shared with RetroArch**. **RetroArch's State Folder**, under it, says which folder RetroArch keeps its states in, and lets you choose it yourself, if GBA DS didn't find RetroArch or you keep its states somewhere else: open folders with A (or a tap), go up with B, and choose **Use This Folder**. It says how many RetroArch states are in the folder you're looking at. **Automatic** goes back to the folder RetroArch's settings give.
+
+When they're shared:
+
+- The pause menu's slots 0 to 9 are RetroArch's slots 0 to 9, and the resume point is RetroArch's automatic state (its `<game>.state`, `.state1` to `.state9` and `.state.auto`). There's one copy of each, in RetroArch's folder, so nothing has to be copied across and a folder you sync to other devices just works.
+- GBA DS saves them as RetroArch does (compressed, unless RetroArch's "Save State Compression" is off), with a thumbnail beside each for RetroArch's menu.
+- A slot's label says **RetroArch** when it was saved there (for example "Slot 3: Nov 14, 5:27 PM, RetroArch").
+- RetroArch's Game Boy Advance core has to be **mGBA**, since GBA DS is mGBA inside. A state saved with another core (gpSP, VBA-M...) can't be loaded: its slot says "Another emulator's". On BananaOS, whose own choice is gpSP, set it in Settings > Other systems > Emulators (BananaFront, which BananaOS often plays GBA games in, uses the same core and the same state files). On ROCKNIX, in EmulationStation: the game's Advanced Game Options > Core, or the system's advanced settings.
+- The quick state (the quick bar's, HOME + R1 / L1) stays GBA DS's own.
+- A game with patches on and its own save states (see [Patches](#patches)) keeps them in GBA DS's folder, as RetroArch has none for it.
+- GBA DS's own states stay in its folder while sharing is on, for when you switch back.
+- RetroAchievements progress isn't shared: each app keeps its own with its states.
+
+GBA DS works out RetroArch's state folder from RetroArch's own settings, the way RetroArch does: on ROCKNIX `/storage/roms/savestates/gba`, on BananaOS `/data/states/mGBA`. If RetroArch is somewhere GBA DS doesn't look, choose its folder with **RetroArch's State Folder**.
 
 ## Updates
 
@@ -31,6 +48,7 @@ GBA DS can update itself on ROCKNIX, BananaOS, the Stock Linux OS and Android. I
 - **By hand:** game list > **Settings** > **Updates** shows your version and when GBA DS last checked, with **Check now** and **Automatic checks: On / Off**.
 - **Update now** downloads the release's zip (B or **Cancel** stops it), checks it against the checksum GitHub publishes, installs it over the GBA DS folder and restarts into the new version. Everything in `gba-ds/states/` is kept, and so is your `gba-ds.cfg` (a new version's options keep their defaults until you add them; see [[Settings]]).
 - The **GBA DS** entry in Ports (`GBA DS.sh`) and its image are updated too.
+- Updating from v1.5.3 or earlier: some of the new version's changes (in how GBA DS is started) only count once you quit GBA DS and start it again from Ports. From v1.5.3.1 on, the restart after an update takes care of that.
 - **On Android**, Update now downloads the release's APK, checks it the same way and hands it to Android's installer, which asks you to confirm (the first time, Android may ask you to allow GBA DS to install apps: allow it, then go back). Android closes GBA DS while it installs; open it again afterwards. Your games, saves, states and settings are kept. If Android says the app is signed differently, your copy is a test build: uninstall it and install the new APK from the [Releases page](https://github.com/kyannon/gba-ds/releases) by hand (the files in the `GBA DS` folder stay).
 
 ## The pause menu
@@ -52,9 +70,10 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 - **Color Correction**: off by default. On, the game's colours are shown as a Game Boy Advance's own screen showed them: darker and less saturated, as mGBA's GBA Color shader draws them (its sRGB profile, Darken Screen at its usual 0.5). On both screens: the game, and the maps, logos and status screens taken from it. Remembered for next time.
 - **Overlays**: a screen of its own. Off, Generated (GBA DS's bezel round the picture, in colours you pick, with or without its logo) or Custom (your own PNGs in `overlays/`), and which screens have them. See [[Overlays]].
 - **Frame Buffer**: off by default. On, the next frame is prepared while the current one is on screen, which smooths out the odd stutter at the cost of one frame (about 17 ms) of input delay. In the pinball games it's always on, needed for full speed, so it's greyed out there.
-- **Match Display Rate**: off by default. On, the game runs at the screen's refresh rate (60 Hz: 0.5% faster than a GBA, too little to notice, with the sound adjusted to match) and each frame is shown for exactly one refresh. Off, a 60 Hz screen shows one frame twice about every 3.7 seconds: a small, regular stutter.
+- **Match Display Rate**: off by default. On, the game runs at the screen's refresh rate (60 Hz: 0.5% faster than a GBA, too little to notice, with the sound adjusted to match) and each frame is shown for exactly one refresh. Off, a 60 Hz screen shows one frame twice about every 3.7 seconds: a small, regular stutter. Matched, a frame that comes too late for its refresh waits for the next one and the game slows down, so if that keeps happening (three seconds in a row), GBA DS goes back to the GBA's own rate for the rest of the game, and the menu shows **Match Display Rate: Off for now**. Choosing it turns it off; choosing it again tries again.
 - **Custom Logos**: only for a game whose logo can be your own or a scraped one ([Logos](#logos)). **Pixelated** (the default) shrinks it to the GBA's pixels; **Full Detail** keeps its detail, at the same size; **Do Not Use** shows the logo GBA DS takes from the game instead.
 - **Screen shapes** (experimental; only on devices whose two screens are different shapes, such as the AYN Thor and the Retroid Pocket Duo, greyed out elsewhere): **Keep device aspect ratios** (each screen's picture as its own shape allows), **Match screen aspect ratios** (the wider screen's picture takes the other screen's shape, with black bars at its sides) or **Match screen sizes and aspect ratios** (the same, at the other screen's real size, against the edge nearest it). With Stretch and either match, both screens show the same shape, so Pokémon Pinball's table carries on across them. Overlays can be made for each: see [[Overlays]].
+- **Screen Placement**: **Centered** (the default: each screen's picture in the middle of its screen) or **Closest to Gap** (the top screen's picture against its bottom edge and the bottom screen's against its top, so the two are as close together as they go, as on a DS; Pokémon Pinball's table then carries on across the hinge without a jump). It moves the picture only where it doesn't fill the screen's height: Pixel Perfect and Full Width. With Closest to Gap, the Generated bezel has no room for its logo by the hinge, so it's shown once, on the bottom screen below the picture. Greyed out with one screen. Remembered for next time.
 
 **Extras** (Swap Screens, Rewind, Fast Forward, Save on Quit and Auto-Load are remembered for next time)
 - **Swap Screens**: game and second screen trade places (also HOME + Y).
@@ -63,9 +82,9 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 - **Achievements**: when signed in to RetroAchievements; see [below](#retroachievements).
 - **Take Screenshot**: both screens as they look right now, with your display settings, stacked top to bottom into one PNG in `/storage/roms/screenshots` (Android: `GBA DS/screenshots`); `screenshot_dir` changes the folder.
 - **Submit a Bug Report**: the same as the quick bar's bug button (see [below](#the-quick-bar-and-bug-reports)), for the moment you opened the menu.
-- **Rewind: On / Off** and **Fast Forward: On / Off**, side by side.
+- **Rewind: On / Off** and **Fast Forward** (its speed, or Off), side by side.
 - **Rewind**: on by default. Hold **L2** to go back in time, up to 30 seconds (`rewind_seconds`), at double speed and without sound, with **Rewinding...** in the middle of the second screen (**Can't rewind further** once you reach the start of the buffer); let go to play on from there. Off saves the little work it takes to keep the buffer.
-- **Fast Forward**: on by default. Hold **R2** to play 3 times as fast (`ff_speed`), with **Fast forwarding...** in the middle of the second screen. Off, R2 does nothing, so a trigger pressed by accident can't skip you ahead.
+- **Fast Forward**: 3x by default. Hold **R2** to play that many times as fast, with **Fast forwarding...** in the middle of the second screen; all the other buttons still work meanwhile, so you can press A through text. Each press of the button goes on to the next speed: 2x, 3x, 4x, 5x, Max (as fast as your device can run the game; how fast that is depends on the device and the game, and the sound gets choppy), then Off (R2 does nothing, so a trigger pressed by accident can't skip you ahead), then 2x again. HOME + R2 fast-forwards too, the same way, if you're used to it from RetroArch.
 - **Save on Quit: On / Off** and **Auto-Load: On / Off**, side by side: whether closing the game saves a resume point, and whether starting it picks up from one (see Resume points above). Remembered for next time.
 
 ## The quick bar and bug reports
@@ -103,7 +122,7 @@ From these, what you did can be played back exactly, frame by frame. So when som
 | HOME, or tap the touchscreen | Pause menu (Android: SELECT + START, or BACK) |
 | L2 (hold) | Rewind |
 | L3 (press the left stick) | Quick bar (as swiping up; again to put it away) |
-| R2 (hold) | Fast-forward (`ff_speed`, default 3×; Fast Forward in Extras turns it off) |
+| R2 (hold) | Fast-forward (default 3×; Fast Forward in Extras sets the speed or turns it off). HOME + R2 too |
 | HOME + R1 / L1 | Quick save / load state (the same state as the quick bar's buttons) |
 | HOME + Start | Quit |
 | HOME + X | Quick bar (it shows the FPS too) |
@@ -114,7 +133,7 @@ If HOME doesn't open the menu on your device, see `home_button` in [[Settings]];
 
 ### Hotkeys
 
-The HOME + button shortcuts above are hotkeys: hold the hotkey button, then press the other one. To change them, open **Settings** in the game list and choose **Hotkeys** (beside Map Buttons):
+The HOME + button shortcuts above are hotkeys: hold the hotkey button, then press the other one. To change them, open **Settings** in the game list and open **Controls** and choose **Hotkeys** (under Map buttons):
 
 - **Hotkey button**: HOME (the default), SELECT, START or L3. With SELECT or START, the button still reaches the game when you tap it on its own; with L3, a tap on its own still opens the quick bar. HOME opens the menu whichever is the hotkey.
 - **Quit**, **Quick save state**, **Quick load state**, **Open quick menu** (the quick bar), **Swap screens** and **Toggle selected shader** (off, and back on to the one picked in the pause menu's Shader): the button for each.
@@ -123,9 +142,16 @@ Pick a row (tap it, or the D-pad and A), then press the button you want for it. 
 
 With START as the hotkey, quitting is START + SELECT. With SELECT or START as the hotkey, the buttons you've given to shortcuts don't reach the game while the hotkey is held; the others do. If `menu_combo = select+start` is on too, SELECT + START opens the menu rather than doing a hotkey.
 
+## Performance
+
+On Linux (ROCKNIX, the Stock Linux OS and others; not BananaOS, which sets its own), game list > **Settings** > **Performance** chooses how fast the device runs while GBA DS is open:
+
+- **Let the System Decide** (the default): the system sets the processor, memory and graphics speed, as it does for its other emulators. It slows them down between frames to save battery.
+- **Set to Max**: all three run at full speed while GBA DS is open, and go back to the system's choice when it closes. Try it if games stutter or the sound breaks up on your device; the battery runs down faster and the device gets warmer.
+
 ## Mapping the buttons
 
-If buttons do the wrong thing on your device (or a controller isn't recognised), open **Settings** in the game list (tap it, or SELECT) and choose **Map Buttons** (every system, Android included). GBA DS asks for each button in turn, by where it sits on a GBA-style layout:
+If buttons do the wrong thing on your device (or a controller isn't recognised), open **Settings** in the game list (tap it, or SELECT) and open **Controls** and choose **Map buttons** (every system, Android included). GBA DS asks for each button in turn, by where it sits on a GBA-style layout:
 
 - the D-pad's four directions;
 - **A** (the right face button), **B** (bottom), **X** (top), **Y** (left);
@@ -138,9 +164,9 @@ The new mapping works straight away and is kept in `states/controllers.txt` for 
 
 ### Changing the face buttons for a game
 
-Pause menu → Extras → **Buttons** sets which GBA button each face button gives this game: **A (Right)**, **B (Bottom)**, **X (Top)** and **Y (Left)** can each be GBA A, GBA B, GBA L, GBA R or Nothing (LEFT / RIGHT, A or a tap to change one; B to go back). For example, B (Bottom) as GBA A and Y (Left) as GBA B puts jump on the bottom button and attack on the left one, as in many SNES games. Two buttons can give the same GBA button.
+Pause menu → **Controls** tab sets which GBA button each face button gives (**A (right) button** and so on; A for this game, Y for all games): **A (Right)**, **B (Bottom)**, **X (Top)** and **Y (Left)** can each be GBA A, GBA B, GBA L, GBA R or Nothing (LEFT / RIGHT, A or a tap to change one; B to go back). For example, B (Bottom) as GBA A and Y (Left) as GBA B puts jump on the bottom button and attack on the left one, as in many SNES games. Two buttons can give the same GBA button.
 
-Changes work straight away and are kept for that game only (`states/<game>.buttons`). **Reset Buttons** goes back to the default (the table above, `ab_swap` included). GBA DS's own menus keep A to choose and B to go back, L1 / R1 stay GBA L / R, and the hotkeys don't change.
+Changes work straight away and are kept in `states/<game>.cfg` for this game, or in `states/prefs.cfg` for all. **X** on a row (or a touch on its gold Game tag) goes back to the value for all games. GBA DS's own menus keep A to choose and B to go back, L1 / R1 stay GBA L / R, and the hotkeys don't change.
 
 In games with a layout under **Controls** in the quick bar (below), the four-button or SNES layout decides the face buttons wherever it's in use, and your Buttons choices everywhere else.
 
@@ -191,6 +217,15 @@ GBA DS applies patches (`.ips`, `.ups`, `.bps` and `.xdelta` files: romhacks, co
 - A patch named as the ROM, beside it (`Mario & Luigi.ips` beside `Mario & Luigi.gba`), the way RetroArch uses them, is always on: it shows in the list as "Always".
 - A ROM you've patched yourself works as well, with no patch file.
 
+### Known issues with patches
+
+- An `.ips` patch can't say which version of a game it's made for. GBA DS warns when it knows the patch, but an unknown one made for another version is applied all the same and may break the game.
+- A romhack with its own title screen still shows the original game's logo on the second screen.
+- Two patches that change the same part of the game are only warned about (the one lower in the list wins there); whether they really clash can't be known until you play.
+- Metroid: Zero Mission's colour patches work on their own; stacked with another patch, its map may not come up.
+- After switching a colour patch without a restart, colours already on the screen stay until the game draws them again.
+- Android: games started from a frontend that passes a link rather than a file get no patches.
+
 ## RetroAchievements
 
 GBA DS earns [RetroAchievements](https://retroachievements.org) in **casual (softcore) mode**.
@@ -210,9 +245,9 @@ GBA DS earns [RetroAchievements](https://retroachievements.org) in **casual (sof
 
 Until the second screen has something to show (title screen, intro, menus), it shows the game's logo. No logo files are shipped: the first time a game appears in the list, GBA DS boots it silently in the background, runs it to its title screen and renders just the layer that holds the logo, at the game's own resolution with transparency. It's saved as `states/logos/<CODE>.png`. The logo is drawn like a second GBA screen: at its own size, centred on dark grey in a GBA-sized picture (at half strength while it's all there is to show), with the second screen's scaling and the LCD grid, so its pixels match the game beside it. Everything else GBA DS puts on the second screen (maps, status screens, windows) is drawn the same way, at the game's own size. `show_logo = 0` in `gba-ds.cfg` leaves the second screen black instead.
 
-To use your own art instead, put `<CODE>.png` (or `.bmp` or `.jpg`) in `gba-ds/logos/` (Android: `GBA DS/logos/`). `<CODE>` is the game's four-letter code, listed in [[Supported games]].
+To use your own art instead, put `<CODE>.png` (or `.bmp`, `.jpg` or `.webp`) in `gba-ds/logos/` (Android: `GBA DS/logos/`). `<CODE>` is the game's four-letter code, listed in [[Supported games]].
 
-**Scraped logos.** If a scraper has downloaded logos for your games (EmulationStation's marquees, Skraper's wheels), set `logo_folder` in `gba-ds.cfg` to that folder, for example `logo_folder = /storage/roms/gba/images`. GBA DS picks the image named after the ROM, whatever region or other details in brackets either name has: `Golden Sun.png`, `Golden Sun (USA).jpg` and `Golden Sun-marquee.png` all go with `Golden Sun (USA, Europe).gba`. If there are several, it prefers the ROM's exact name, then the plain title, then a marquee, wheel or logo, and PNG over JPG. Point it at a folder of logos rather than one that mixes in box art, or the box art may be picked for a game with no logo. A JPG has no transparency, so its background shows as a box around the logo (the plain border outside it is cut off); a PNG looks better if your scraper offers one. A `logos/<CODE>.png` of your own still wins.
+**Scraped logos.** If a scraper has downloaded logos for your games (EmulationStation's marquees, Skraper's wheels), set `logo_folder` in `gba-ds.cfg` to that folder, for example `logo_folder = /storage/roms/gba/images`. GBA DS picks the image named after the ROM, whatever region or other details in brackets either name has: `Golden Sun.png`, `Golden Sun (USA).jpg` and `Golden Sun-marquee.png` all go with `Golden Sun (USA, Europe).gba`. If there are several, it prefers the ROM's exact name, then the plain title, then a marquee, wheel or logo, and PNG or WebP over JPG. WebP images work whatever their name ends in (some scrapers save them as `.png`). Point it at a folder of logos rather than one that mixes in box art, or the box art may be picked for a game with no logo. A JPG has no transparency, so its background shows as a box around the logo (the plain border outside it is cut off); a PNG or WebP looks better if your scraper offers one. A `logos/<CODE>.png` of your own still wins. If a logo you've added isn't used, GBA DS's log (`gba-ds.log`) and its bug reports say why on their `logo:` line: no file with a matching name, a folder that isn't there, or a file it can't read (GIF and animated WebP images aren't supported, whatever their name says).
 
 Your own logos and scraped ones are made as tall as the logo GBA DS took from the game, so they sit in the same place and nothing else on the second screen moves. **Custom Logos** in the pause menu's Display page (there only when the game has one of these) switches between **Pixelated**, shrunk to the GBA's own pixels to look like the game drew it, **Full Detail**, at the same size, and **Do Not Use**, which goes back to the logo GBA DS takes from the game, for every game.
 
@@ -222,8 +257,8 @@ Your own logos and scraped ones are made as tall as the logo GBA DS took from th
 
 | What | ROCKNIX | Android |
 |---|---|---|
-| Battery saves (`.sav`) | next to the ROM (`save_dir` changes it). On first launch an existing RetroArch `Game.srm` is copied to `Game.sav`; the `.srm` is left alone. | next to the ROM |
-| Save states (`<game>.quick.state` for the quick bar, `<game>.slot0.state` to `.slot9.state` for the pause menu's slots), resume points (`<game>.auto.state`), with `.ra` beside them | `/storage/roms/ports/gba-ds/states/` (`state_dir`) | `GBA DS/states/` |
+| Battery saves (`.sav`) | next to the ROM, or the folder you name in `save_dir` (see [Settings](Settings#files-and-folders); `save_ext = srm` keeps them as RetroArch's `.srm`). On first launch an existing RetroArch `Game.srm` is copied to `Game.sav`; the `.srm` is left alone. | next to the ROM (**Settings** → **Folders** changes it) |
+| Save states (`<game>.quick.state` for the quick bar, `<game>.slot0.state` to `.slot9.state` for the pause menu's slots), resume points (`<game>.auto.state`), with `.ra` beside them | `/storage/roms/ports/gba-ds/states/` (`state_dir`); slots and resume points shared with RetroArch: RetroArch's state folder (see [above](#save-states-shared-with-retroarch)), their `.ra` in `states/retroarch/` | `GBA DS/states/` |
 | Menu settings (`prefs.cfg`), game list settings (`library.cfg`) | `gba-ds/states/` | `GBA DS/states/` |
 | Cheat choices (`<game>.cheats`), patch choices (`<game>.patches`) | `gba-ds/states/` | `GBA DS/states/` |
 | Hotkeys (`hotkeys.cfg`), Map Buttons (`controllers.txt`) | `gba-ds/states/` | `GBA DS/states/` |

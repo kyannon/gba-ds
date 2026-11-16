@@ -76,7 +76,10 @@ it lives here:
   longer matches. Add the Co-Authored-By / Claude-Session trailers the
   session asks for. Commits before Oct 16, 2026 were made as kyannon alone
   and stay that way (never rewrite pushed history).
-- **VERSION** holds `X.Y.Z-dev` (or `X.Y-dev`) on `dev`; CHANGELOG.md has a
+- **VERSION** holds `X.Y.Z-dev` (or `X.Y-dev`) on `dev`; a release may also
+  be `X.Y.Z.W` (update.c compares up to four numbers from v1.5.2 on; v1.5.1
+  and earlier read three, so they'd never be offered a four-number release:
+  the v1.5.1 hotfix was named v1.5.2 for that reason). CHANGELOG.md has a
   `## vX.Y.Z (not yet released)` section on top. Add a line there for every
   user-visible change, written for players (not implementation notes).
 - **Release:** merge `android` into `dev` if it has anything new. Set
@@ -401,6 +404,29 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   `emu_hud_band`, also the layers whose BGxCNT has given values on a line:
   Advance Wars' conversations). The harness has `split BGMASK PRIO` /
   `split off` and `hudshot NAME`.
+  State files (issue #39): loading (and `emu_state_file_kind` /
+  `_rom_crc` / `_get_extra`) takes mGBA's own files and RetroArch's /
+  BananaFront's (`RASTATE`, RZIP-compressed or not, its mGBA core's bytes in
+  the MEM block); `emu_state_save_file_as` writes either, with GBA DS's
+  second-screen block (EXTDATA_GBADS) inside the mGBA bytes. Save States
+  shared with RetroArch (`state_folder = retroarch`, game list Settings >
+  Save States, Linux): paths.c `retroarch_state_dir` works out RetroArch's
+  folder from its retroarch.cfg as RetroArch does (ROCKNIX: setsettings.sh's
+  `/storage/roms/savestates/<system>`), game_paths points slots 0-9 and the
+  auto state at `.state`, `.state1`-`.state9`, `.state.auto` there
+  (`gp.raDir`), with a `<state>.png` thumbnail and the `.ra` progress in
+  `<state_dir>/retroarch/`. The quick state and patched games' own states
+  stay GBA DS's. Settings > System has Save States and RetroArch's State
+  Folder (library.c ROW_STATES / ROW_STATES_DIR); the folder row opens `folderpick.c`'s `folder_pick` (a
+  screen of its own, Linux: folders only, B up, a count of `.state` files,
+  Use This Folder / Automatic) and keeps `retroarch_state_dir` in
+  library.cfg. Checked: both ways byte-identical 120 frames on against
+  mGBA's libretro core, and BananaFront's statefile.c reads and writes the
+  same files. Rule GEN-13 (docs/games/README.md); cases `aw-*retroarch*`
+  (regress.py's `retroarch` field: a stand-in retroarch.cfg and state
+  folder; `file` / `no_file` checks). Every load logs `load state: PATH:
+  loaded / not loaded (KIND)`; bug reports' info.txt has a "Save states:"
+  line (shared or not, the folder).
 - `profiles.c/.h` everything game-specific (MapProfile; Advance Wars 1 and
   2 share their code, addresses in `awRegions`; Final Fantasy Tactics
   Advance's first second screen, with its UI-sprite tagging ROM patch, is
@@ -452,7 +478,15 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
 - `library.c` the game list and its Settings screen (and the selected
   game's ROM checksum, read once per file on a worker thread and kept in
   `<state_dir>/roms.cache`: "Romhack: ..." / "Modified ROM" under its logo,
-  GEN-8; regress.py's `"kind": "library"` cases); `esinteg.c` the
+  GEN-8; regress.py's `"kind": "library"` cases). The scan (issue #49):
+  every ROM's game code is kept in `<state_dir>/codes.cache` by path, size
+  and date (`archives.cache` before v1.5.3, archives only), patches are
+  looked for only for games that are listed, and "Loading games..." shows
+  from 0.3 s into a slow scan (not with GBADS_SYNC). Back from a game, the
+  list is kept when no ROM folder's time changed (and rom_dir, show_all,
+  name_tags are the same); only the game just played is looked at again
+  (log: "folders unchanged"). A ROM replaced in place, same name, keeps
+  its old entry until the app starts again; `esinteg.c` the
   EmulationStation integration; `cheats.c` RetroArch .cht files;
   `ui.c` SDL windows, input, drawing, the pause-menu text images.
 
@@ -551,10 +585,14 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   check on the device; known limitations said plainly. When a game's
   behaviour changes, the rule in `docs/games/` changes first.
 - **Open by-hand checks** (`tools/regress.py --uncovered`): none open
-  beyond the list it prints. Checked on the device for v1.4.2: AW2-4/5,
-  LTTP-5, GEN-2 (Super Mario World), GEN-6, PP-6, PP-9 (60 fps), Linux
-  updates (BananaOS), Android's update download (its install is still to
-  try), Pinball's two-screen view on Android.
+  beyond the list it prints; as of v1.5.1 every rule it lists has been
+  checked (each rule's note says when). Checked on the device for v1.4.2:
+  AW2-4/5, LTTP-5, GEN-2 (Super Mario World), GEN-6, PP-6, PP-9 (60 fps),
+  Linux updates (BananaOS), Android's update download (its install is
+  still to try), Pinball's two-screen view on Android. For v1.5.1:
+  MMBN-6, MPM-6, NFO-7, SM4-7, SMB2-3 on the device, GEN-4 by two full
+  runs. A new by-hand rule (or one whose game changed) is open until the
+  owner checks it again.
 - **Won't fix / not issues** (don't list them as outstanding): Advance Wars
   and Game Boy Wars' Field Training keeps the logo (won't fix); Mario
   Kart's course map at 2x is intended; Pokémon Pinball's bonus stages on

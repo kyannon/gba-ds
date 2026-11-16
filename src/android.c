@@ -15,6 +15,7 @@
 #include <dlfcn.h>
 #include <errno.h>
 #include <sys/resource.h>
+#include <sys/system_properties.h>
 #include <android/native_window.h>
 #include <android/native_window_jni.h>
 #include <jni.h>
@@ -562,6 +563,19 @@ static pthread_cond_t bufCond = PTHREAD_COND_INITIALIZER;
 static uint8_t *back, *front;
 static int bufW, bufH;
 static bool fresh;
+
+/* Surface Duo spanned over both screens is one display with the hinge's
+ * pixels in the middle of its long side (Microsoft's figures: 2784 = 1350 +
+ * 84 + 1350 on the first Duo, 2754 = 1344 + 66 + 1344 on the Duo 2). Only
+ * when the window is exactly that long, i.e. spanned (issue #48). */
+int android_hinge_gap(int w, int h) {
+	static char model[PROP_VALUE_MAX];
+	if (!model[0] && __system_property_get("ro.product.model", model) <= 0) strcpy(model, "?");
+	int l = w > h ? w : h;
+	if (!strncmp(model, "Surface Duo 2", 13)) return l == 2754 ? 66 : 0;
+	if (!strncmp(model, "Surface Duo", 11)) return l == 2784 ? 84 : 0;
+	return 0;
+}
 
 bool android_second_size(int* w, int* h) {
 	pthread_mutex_lock(&winLock);

@@ -86,6 +86,7 @@ void game_paths(const Config* cfg, const char* rom, GamePaths* o) {
 	snprintf(o->mapThumb, sizeof(o->mapThumb), "%s/%s.map.bmp", cfg->stateDir, o->base);
 	snprintf(o->cheats, sizeof(o->cheats), "%s/%s.cheats", cfg->stateDir, o->base);
 	snprintf(o->patches, sizeof(o->patches), "%s/%s.patches", cfg->stateDir, o->base);
+	snprintf(o->settings, sizeof(o->settings), "%s/%s.cfg", cfg->stateDir, o->base);
 
 	/* GBA DS's own save from where it kept them before (save_from: on
 	 * BananaOS, /data/saves/<game>.sav, now the GBA list's own
@@ -151,6 +152,162 @@ void game_paths(const Config* cfg, const char* rom, GamePaths* o) {
 			if (file_exists(old) && rename(old, o->quick) != 0) copy_file(old, o->quick);
 		}
 	}
+
+	/* Save states shared with RetroArch (issue #39): slots 0-9 and the
+	 * automatic state are its own files (after the carrying over above,
+	 * which is GBA DS's own) */
+	o->raDir[0] = 0;
+	o->raCompress = true;
+	if (!strcmp(cfg->stateFolder, "retroarch") && retroarch_state_dir(cfg, rom, o->raDir, sizeof(o->raDir), &o->raCompress)) {
+		snprintf(o->slot[0], sizeof(o->slot[0]), "%s/%s.state", o->raDir, o->base);
+		for (int i = 1; i < 10; ++i) snprintf(o->slot[i], sizeof(o->slot[i]), "%s/%s.state%d", o->raDir, o->base, i);
+		snprintf(o->autoState, sizeof(o->autoState), "%s/%s.state.auto", o->raDir, o->base);
+	}
+}
+
+/* ------------------------------------------------ RetroArch's save states (issue #39) */
+
+/* retroarch.cfg's text, read again only when the file changes */
+static const char* ra_cfg_text(const char* path) {
+	static char* text;
+	static char textPath[1024];
+	static time_t textTime;
+	static off_t textSize;
+	struct stat st;
+	if (stat(path, &st) != 0 || st.st_size > 4 * 1024 * 1024) return NULL;
+	if (text && !strcmp(textPath, path) && st.st_mtime == textTime && st.st_size == textSize) return text;
+	FILE* f = fopen(path, "rb");
+	if (!f) return NULL;
+	char* t = malloc((size_t) st.st_size + 1);
+	size_t got = t ? fread(t, 1, (size_t) st.st_size, f) : 0;
+	fclose(f);
+	if (!t) return NULL;
+	t[got] = 0;
+	free(text);
+	text = t;
+	snprintf(textPath, sizeof(textPath), "%s", path);
+	textTime = st.st_mtime, textSize = st.st_size;
+	return text;
+}
+
+/* a setting in retroarch.cfg's text (key = "value"); the last line for it wins */
+static bool ra_cfg_value(const char* text, const char* key, char* out, size_t n) {
+	bool found = false;
+	size_t k = strlen(key);
+	for (const char* line = text; line && *line;) {
+		const char* p = line;
+		const char* eol = strchr(p, '\n');
+		line = eol ? eol + 1 : NULL;
+		while (*p == ' ' || *p == '\t') ++p;
+		if (strncmp(p, key, k) || (p[k] != ' ' && p[k] != '\t' && p[k] != '=')) continue;
+		p += k;
+		while (*p == ' ' || *p == '\t') ++p;
+		if (*p++ != '=') continue;
+		while (*p == ' ' || *p == '\t') ++p;
+		bool quoted = *p == '"';
+		if (quoted) ++p;
+		size_t len = 0;
+		while (p[len] && p[len] != '\n' && p[len] != '\r' && !(quoted && p[len] == '"')) ++len;
+		while (!quoted && len && (p[len - 1] == ' ' || p[len - 1] == '\t')) --len;
+		if (len >= n) continue;
+		memcpy(out, p, len);
+		out[len] = 0;
+		found = true;
+	}
+	return found;
+}
+
+static bool ra_cfg_bool(const char* text, const char* key, bool def) {
+	char v[16];
+	return ra_cfg_value(text, key, v, sizeof(v)) ? !strcmp(v, "true") : def;
+}
+
+/* ROCKNIX: RetroArch's settings, and where its setsettings.sh puts every
+ * system's states at each start (savestate_directory: <roms>/savestates/<system>,
+ * whatever retroarch.cfg says from the last system played) */
+#define ROCKNIX_RA_CFG "/storage/.config/retroarch/retroarch.cfg"
+#define ROCKNIX_ROMS "/storage/roms"
+
+/* retroarch.cfg: gba-ds.cfg's retroarch_cfg, else ROCKNIX's, BananaOS's
+ * (its own copy, or the one it starts from before RetroArch's first
+ * start), the usual one in the home folder or Flatpak's */
+static bool ra_cfg_find(const Config* cfg, char* out, size_t n, bool* rocknix) {
+	*rocknix = false;
+	if (cfg->raCfg[0]) {
+		snprintf(out, n, "%s", cfg->raCfg);
+		return file_exists(out);
+	}
+	if (file_exists(ROCKNIX_RA_CFG)) {
+		snprintf(out, n, "%s", ROCKNIX_RA_CFG);
+		*rocknix = true;
+		return true;
+	}
+	const char* home = getenv("HOME");
+	const char* const paths[] = { "/data/retroarch/retroarch.cfg", "/etc/banana/retroarch.cfg", "~/.config/retroarch/retroarch.cfg",
+		                          "~/.var/app/org.libretro.RetroArch/config/retroarch/retroarch.cfg" };
+	for (size_t i = 0; i < sizeof(paths) / sizeof(paths[0]); ++i) {
+		if (paths[i][0] == '~') {
+			if (!home) continue;
+			snprintf(out, n, "%s%s", home, paths[i] + 1);
+		} else {
+			snprintf(out, n, "%s", paths[i]);
+		}
+		if (file_exists(out)) return true;
+	}
+	return false;
+}
+
+bool retroarch_state_dir(const Config* cfg, const char* rom, char* out, size_t n, bool* compress) {
+	char cfgPath[1024], v[1024], dir[1100];
+	bool rocknix;
+	const char* text = ra_cfg_find(cfg, cfgPath, sizeof(cfgPath), &rocknix) ? ra_cfg_text(cfgPath) : NULL;
+	*compress = !text || ra_cfg_bool(text, "savestate_file_compression", true);
+	if (cfg->raStateDir[0]) {
+		snprintf(out, n, "%s", cfg->raStateDir);
+		return true;
+	}
+	if (!text) return false;
+	char cfgDir[1024], romDir[1024] = "", romFolder[256] = "";
+	snprintf(cfgDir, sizeof(cfgDir), "%s", cfgPath);
+	char* slash = strrchr(cfgDir, '/');
+	if (slash) *slash = 0;
+	if (rom) {
+		snprintf(romDir, sizeof(romDir), "%s", rom);
+		slash = strrchr(romDir, '/');
+		if (slash) *slash = 0, snprintf(romFolder, sizeof(romFolder), "%s", strrchr(romDir, '/') ? strrchr(romDir, '/') + 1 : romDir);
+	}
+	/* RetroArch's own working out (runloop.c): savestate_directory (empty,
+	 * or savestates_in_content_dir: the game's folder), then the game's
+	 * folder name (sort_savestates_by_content_enable), then the core's
+	 * (sort_savestates_enable, on unless switched off) */
+	if (ra_cfg_bool(text, "savestates_in_content_dir", false) && romDir[0]) {
+		snprintf(dir, sizeof(dir), "%s", romDir);
+	} else if (rocknix) {
+		/* (the system: the folder under <roms> the game is in) */
+		char sys[256] = "gba";
+		size_t rn = strlen(ROCKNIX_ROMS "/");
+		if (rom && !strncmp(rom, ROCKNIX_ROMS "/", rn) && strchr(rom + rn, '/')) {
+			snprintf(sys, sizeof(sys), "%.*s", (int) (strchr(rom + rn, '/') - (rom + rn)), rom + rn);
+			for (char* c = sys; *c; ++c) *c = (char) tolower((unsigned char) *c);
+		}
+		snprintf(dir, sizeof(dir), ROCKNIX_ROMS "/savestates/%s", sys);
+	} else if (ra_cfg_value(text, "savestate_directory", v, sizeof(v)) && v[0] && strcmp(v, "default")) {
+		const char* home = getenv("HOME");
+		if (v[0] == '~' && home) snprintf(dir, sizeof(dir), "%s%s", home, v + 1);
+		else if (v[0] == ':') snprintf(dir, sizeof(dir), "%s%s", cfgDir, v + 1); /* (RetroArch's own folder: its config's here) */
+		else snprintf(dir, sizeof(dir), "%s", v);
+	} else if (ra_cfg_value(text, "savestate_directory", v, sizeof(v)) && !v[0] && romDir[0]) {
+		snprintf(dir, sizeof(dir), "%s", romDir);
+	} else {
+		snprintf(dir, sizeof(dir), "%s/states", cfgDir);
+	}
+	size_t l = strlen(dir);
+	while (l > 1 && dir[l - 1] == '/') dir[--l] = 0;
+	if (ra_cfg_bool(text, "sort_savestates_by_content_enable", false) && romFolder[0])
+		l += snprintf(dir + l, sizeof(dir) - l, "/%s", romFolder);
+	if (ra_cfg_bool(text, "sort_savestates_enable", true) && l < sizeof(dir)) snprintf(dir + l, sizeof(dir) - l, "/mGBA");
+	snprintf(out, n, "%s", dir);
+	return true;
 }
 
 /* ------------------------------------------------ patches (GEN-9) */
@@ -261,6 +418,9 @@ void game_paths_patched(const Config* cfg, GamePaths* o, const PatchChoice* c) {
 		}
 	}
 	if (c->sepStates) {
+		/* (GBA DS's own folder even when states are shared with RetroArch:
+		 * RetroArch has no states of its own for a patched game) */
+		o->raDir[0] = 0;
 		snprintf(o->quick, sizeof(o->quick), "%s/%s.quick.state", cfg->stateDir, base);
 		for (int i = 0; i < 10; ++i) snprintf(o->slot[i], sizeof(o->slot[i]), "%s/%s.slot%d.state", cfg->stateDir, base, i);
 		snprintf(o->autoState, sizeof(o->autoState), "%s/%s.auto.state", cfg->stateDir, base);
