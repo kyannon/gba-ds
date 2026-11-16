@@ -86,6 +86,7 @@ void game_paths(const Config* cfg, const char* rom, GamePaths* o) {
 	snprintf(o->mapThumb, sizeof(o->mapThumb), "%s/%s.map.bmp", cfg->stateDir, o->base);
 	snprintf(o->cheats, sizeof(o->cheats), "%s/%s.cheats", cfg->stateDir, o->base);
 	snprintf(o->patches, sizeof(o->patches), "%s/%s.patches", cfg->stateDir, o->base);
+	snprintf(o->settings, sizeof(o->settings), "%s/%s.cfg", cfg->stateDir, o->base);
 
 	/* GBA DS's own save from where it kept them before (save_from: on
 	 * BananaOS, /data/saves/<game>.sav, now the GBA list's own

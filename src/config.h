@@ -2,6 +2,7 @@
 #define GBADS_CONFIG_H
 
 #include <stdbool.h>
+#include <stddef.h>
 
 /* Display > Overlays: off, GBA DS's own bezel drawn by the app in the
  * player's colours (bezel.c), or the player's PNGs in overlays/ (a screen
@@ -67,6 +68,7 @@ typedef struct Config {
 	bool showFps;
 	bool sway;         /* ask sway to fullscreen the window across all outputs */
 	int audioLatency;  /* ms */
+	bool keepSound;    /* the game and its sound go on while the system holds up a frame's present (game.c keeper) */
 	bool perfMax;      /* Linux: CPU, memory and GPU clocks held at their fastest while GBA DS runs (clocks.c); off: the system decides */
 	int ffSpeed;       /* fast-forward multiplier (the menu cycles FF_SPEED_MIN..MAX) */
 	char saveDir[512]; /* battery saves; default: next to the ROM */
@@ -101,6 +103,10 @@ typedef struct Config {
 	bool barHint;         /* "Swipe up for quick menu" at a game's start (quick_bar_hint) */
 	bool nameTags;        /* library keeps (USA), (En,Fr) etc. in game names */
 	bool showAll;         /* library lists games without a map profile too */
+	bool lightTheme;      /* the light theme for the menus' buttons (theme = light) */
+	bool leftStickDpad;   /* the left stick also presses the D-pad in games (left_stick_dpad, issue #57) */
+	int turboRate;        /* Turbo A / Turbo B: presses a second, 10, 15 or 20 (turbo_rate, issue #55) */
+	char faceBtn[4][12];  /* what each face button gives the game (button_right, _bottom, _top, _left: a, b, l, r, start, select, turbo_a, turbo_b, none); empty: ab_swap's layout */
 	/* RetroAchievements (casual mode): auto = on when ROCKNIX has an account
 	 * signed in (EmulationStation's RetroAchievements settings), 1, 0 */
 	char raMode[8];
@@ -118,8 +124,57 @@ typedef struct Config {
 } Config;
 
 void config_defaults(Config* c);
+
+/* ---- the settings the menus offer (docs/MENUS.md): the game list's Settings
+ * (for all games) and, later, the pause menu (this game or all) show the same
+ * rows, from this table. A setting is a bool, an int or a string in Config
+ * with a list of choices (each with the text gba-ds.cfg uses), or a number
+ * in a range; fast forward is two keys in one row. */
+enum { SF_BOOL, SF_INT, SF_STR, SF_FF };
+typedef struct {
+	const char* value; /* as gba-ds.cfg writes it */
+	const char* label; /* as the menu says it */
+	int ival;          /* SF_BOOL / SF_INT: the field's value for it */
+} SettingChoice;
+typedef struct {
+	const char* key;
+	const char* label;
+	int field;
+	size_t off, size; /* the field in Config */
+	const SettingChoice* choices;
+	int nChoices;     /* 0: a number from min to max in steps */
+	int min, max, step;
+	const char* unit; /* after a number: "%" or " s" */
+	const char* note; /* one line, for the selected row */
+} Setting;
+const Setting* config_setting(const char* key);
+int config_setting_count(void);
+const Setting* config_setting_at(int i);
+/* copy the setting's field(s) from src to dst (fast forward: both of its fields) */
+void config_setting_copy(Config* dst, const Config* src, const Setting* s);
+/* the choice the setting is at, or -1 (a number off the list, or none) */
+int config_setting_index(const Config* c, const Setting* s);
+/* the value as the row shows it ("Pixel Perfect", "On", "30 s") */
+void config_setting_text(const Config* c, const Setting* s, char* out, size_t n);
+/* step by dir (+1 / -1), round at the ends; false if nothing changed */
+bool config_setting_step(Config* c, const Setting* s, int dir);
+/* the lines gba-ds.cfg would hold for the setting's value: [n][2] key, value; returns n */
+int config_setting_lines(const Config* c, const Setting* s, char lines[2][2][24]);
+/* Updates (or adds) key = value lines in a file of the app's own (prefs.cfg), keeping
+ * every other line. */
+void config_kv_update(const char* path, const char* header, int n, const char* const kv[][2]);
+/* Takes the lines for these keys out of the file (it's removed when nothing but a comment is left) */
+void config_kv_remove(const char* path, int n, const char* const keys[]);
+/* The keys a file holds, up to max of size 40: returns how many */
+int config_kv_keys(const char* path, int max, char keys[][40]);
 /* Loads key=value lines; missing file is not an error. */
 void config_load_file(Config* c, const char* path);
+/* A game's own settings (issue #53): the lines of its file (states/<game>.cfg)
+ * that are for one game only (config_key_per_game), put over the settings
+ * as they are, except what was given on the command line. Returns how many
+ * lines were used. */
+int config_load_game_file(Config* c, const char* path);
+bool config_key_per_game(const char* key);
 /* Parses --key=value / --flag arguments and an optional ROM path. Returns false on error. */
 bool config_parse_args(Config* c, int argc, char** argv);
 void config_usage(const char* argv0);

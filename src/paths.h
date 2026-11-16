@@ -16,6 +16,7 @@ typedef struct {
 	char mapThumb[1024];  /* last map frame, for the library */
 	char cheats[1024];    /* which cheats are switched on */
 	char patches[1024];   /* which patch is switched on, and its saves' switches (GEN-9) */
+	char settings[1024];  /* this game's own settings, over the others (issue #53): <state_dir>/<game>.cfg */
 } GamePaths;
 
 void game_paths(const Config* cfg, const char* rom, GamePaths* out);
