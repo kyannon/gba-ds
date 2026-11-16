@@ -33,3 +33,17 @@ shot hk-swapped
 press HOME+Y 6
 wait 20
 shot hk-back
+# added: the script ends in the Old Man's talk; close it, walk out, open the town map
+mash B 20 40
+wait 120
+hold UP 120
+wait 60
+press L+START 8
+wait 120
+shot e-townmap2
+press B 6
+wait 60
+hold DOWN 90
+press L+START 8
+wait 120
+shot f-townmap3

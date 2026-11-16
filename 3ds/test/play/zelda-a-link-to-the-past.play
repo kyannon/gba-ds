@@ -39,3 +39,13 @@ shot hk-swapped
 press HOME+Y 6
 wait 20
 shot hk-back
+# added by the 3DS check (try 1): no map capture ran in either emulator (no "capture:" line in the logs); walk out of the
+# house onto the field and hold L (the world map, LTTP-1) there, twice
+hold DOWN 120
+hold L 90
+wait 60
+shot e-map
+hold UP 60
+hold L 90
+wait 60
+shot f-map

@@ -29,3 +29,13 @@ shot moved
 press HOME+L 6
 wait 10
 shot loaded
+# added by the 3DS check: get past the rest of the prologue's text onto the first turn, then the cursor on a unit
+mash A 60 40
+wait 120
+shot turn1
+mash A 40 40
+wait 120
+shot turn2
+hold DOWN 20
+wait 40
+shot cursor2

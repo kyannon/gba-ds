@@ -34,3 +34,17 @@ shot swapped
 press HOME+Y 6
 wait 20
 shot back
+# added by the 3DS check: the story's dialogue is still up here; press on through it, then walk and open the Scouter
+mash A 60 40
+mash START 10 60
+wait 120
+mash A 30 40
+wait 60
+hold UP 60
+hold LEFT 60
+shot field2
+press SELECT 6
+wait 60
+shot scouter2
+press SELECT 6
+wait 30

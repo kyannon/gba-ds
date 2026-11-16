@@ -36,3 +36,10 @@ shot swapped
 press HOME+Y 6
 wait 20
 shot back
+# added: open the game's map (SELECT, the profile's open key) in play, then shoot it
+press SELECT 10
+wait 180
+shot mapopen
+press SELECT 10
+wait 120
+shot mapclosed

@@ -21,3 +21,37 @@ shot swapped
 press HOME+Y 6
 wait 20
 shot back
+# added by the 3DS check: stuck at the name entry; confirm the name and go on through the opening
+press START 6
+wait 60
+press A 6
+wait 120
+mash A 60 60
+wait 600
+mash A 80 60
+wait 600
+shot p-after-name
+mash A 80 60
+mash START 10 60
+wait 600
+shot q-after2
+mash A 100 50
+wait 300
+shot r-after3
+# added by the 3DS check (try 3): the name screen kept coming back; move to OK and press it, then mash on
+press DOWN 6
+press RIGHT 6
+press RIGHT 6
+press A 6
+wait 200
+press START 6
+wait 200
+mash A 60 60
+wait 600
+mash START 6 60
+mash A 80 60
+wait 900
+shot s-after4
+mash A 100 60
+wait 600
+shot t-after5

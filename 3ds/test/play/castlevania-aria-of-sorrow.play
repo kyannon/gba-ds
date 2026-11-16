@@ -37,3 +37,16 @@ shot g-swapped
 press HOME+Y 6
 wait 20
 shot h-back
+# added by the 3DS check: SELECT opens the map (profile's open key); try it in play
+wait 120
+press SELECT 6
+wait 150
+shot i-map
+press SELECT 6
+wait 120
+hold LEFT 200
+wait 120
+shot j-moved-map
+press SELECT 6
+wait 150
+shot k-map2

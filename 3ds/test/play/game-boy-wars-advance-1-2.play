@@ -51,3 +51,15 @@ shot swapped
 press HOME+Y 6
 wait 20
 shot back
+# added: dismiss the talk, then bring up the intel of the unit under the cursor (R)
+mash B 10 40
+wait 60
+press R 6
+wait 60
+shot intel3
+press B 4
+wait 30
+hold LEFT 40
+press R 6
+wait 60
+shot intel4

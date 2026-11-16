@@ -38,3 +38,23 @@ shot hk-swapped
 press HOME+Y 6
 wait 20
 shot hk-back
+# added by the 3DS check (try 1): the script stayed on the name / settings prompt ("Are these the settings you want to use?"):
+# choose Yes, then go on through the opening until a map is in play
+press LEFT 6
+wait 30
+press A 6
+wait 600
+mash A 80 40
+wait 300
+shot e-after
+mash A 80 40
+wait 300
+shot f-after
+mash A 80 40
+wait 300
+shot g-after
+press START 6
+wait 90
+shot h-menu
+press B 6
+wait 60

@@ -34,3 +34,26 @@ shot swapped
 press HOME+Y 6
 wait 20
 shot back
+# added: walk about the room, then open the PET (START, held longer) and go to MegaMan's screen (its first item)
+mash B 10 40
+hold DOWN 60
+hold LEFT 60
+hold UP 60
+wait 60
+press START 10
+wait 90
+shot pet
+press A 6
+wait 90
+press A 6
+wait 90
+shot petmenu
+press A 6
+wait 90
+shot megaman
+# added (third try): clear any text box with B, then open the PET again and shoot
+mash B 20 60
+wait 120
+press START 10
+wait 120
+shot pet2

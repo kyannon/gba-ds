@@ -44,3 +44,36 @@ shot swapped
 press HOME+Y 6
 wait 20
 shot back
+# added by the 3DS check: still at the name screen; finish the name, then go on through the opening
+press START 6
+wait 120
+press A 6
+wait 300
+mash A 60 60
+wait 600
+mash START 6 60
+mash A 60 60
+wait 600
+mash A 80 60
+wait 600
+shot p-later
+mash A 80 60
+mash START 6 60
+wait 600
+shot q-later2
+# added by the 3DS check (try 3): the menu's option chosen above was the password screen; back out and pick a new game
+mash B 12 60
+wait 200
+mash START 4 90
+wait 200
+mash A 20 90
+wait 400
+mash A 40 90
+wait 600
+mash A 60 60
+wait 600
+shot r-newgame
+mash A 60 60
+mash START 6 60
+wait 600
+shot s-newgame2

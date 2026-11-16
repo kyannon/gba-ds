@@ -28,3 +28,17 @@ shot swapped
 press HOME+Y 6
 wait 20
 shot back
+# added: name entry, then through the intro to a map
+press A 6
+wait 30
+press START 6
+wait 120
+mash A 30 120
+shot name_done
+mash A 60 150
+shot intro
+mash START 6 120
+mash A 60 150
+shot intro2
+mash A 60 150
+shot intro3

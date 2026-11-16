@@ -29,3 +29,35 @@ shot hk-swapped
 press HOME+Y 6
 wait 20
 shot hk-back
+# added: the script ends in the intro; skip the cutscene, start the game and walk about
+mash START 10 60
+mash A 30 60
+wait 300
+mash START 6 60
+mash A 30 60
+wait 300
+hold RIGHT 120
+wait 60
+shot g-play
+hold LEFT 90
+press START 6
+wait 90
+shot h-pause2
+press START 6
+wait 60
+hold RIGHT 90
+shot i-play2
+# added (third try): the cutscene's text is still up; advance it with A and START until the game takes over
+mash A 120 40
+mash START 20 40
+mash A 60 40
+wait 300
+hold RIGHT 120
+wait 60
+shot j-play3
+hold LEFT 90
+press START 6
+wait 90
+shot k-pause3
+press START 6
+wait 60

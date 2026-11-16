@@ -48,3 +48,22 @@ shot swapped
 press HOME+Y 6
 wait 20
 shot back
+# added by the 3DS check (try 1): the capture's own route to Bros. Info (profiles.c mario-and-luigi: SELECT's menu,
+# DOWN to its third icon, A). Walk first so SELECT is taken on the field, not in a scene.
+hold RIGHT 90
+hold UP 60
+press SELECT 6
+wait 120
+shot i-menu
+press DOWN 6
+wait 30
+press DOWN 6
+wait 30
+shot i-icon
+press A 6
+wait 180
+shot j-bros
+press B 6
+wait 60
+hold LEFT 90
+shot k-walk

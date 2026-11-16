@@ -33,3 +33,28 @@ shot swapped
 press HOME+Y 6
 wait 20
 shot back
+# added: skip the prologue's text and reach the battle map, then look at a unit (the cursor on a unit shows its status on R)
+mash A 120 40
+wait 300
+shot later1
+mash A 120 40
+wait 300
+shot later2
+mash A 120 40
+wait 300
+shot later3
+press R 6
+wait 60
+shot unitstatus
+# added (third try): dismiss the conversation, move the cursor about the map, shoot at each stop
+mash A 80 40
+wait 200
+shot cursor1
+hold DOWN 30
+hold RIGHT 30
+wait 30
+shot cursor2
+hold RIGHT 60
+hold UP 30
+wait 30
+shot cursor3
