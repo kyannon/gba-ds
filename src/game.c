@@ -1285,21 +1285,52 @@ static void slot_pick_newest(void) {
 		if (stat(gp.slot[i], &st) == 0 && st.st_mtime > best) best = st.st_mtime, stateSlot = i;
 	}
 }
-/* "Slot 3: Oct 31, 1:45 PM" (when it was saved), or "Slot 3: Empty" */
+/* What's in a slot shared with RetroArch (issue #39), looked at again
+ * only when the file changes */
+static StateFileKind slot_kind(const struct stat* st, bool* fromGbads) {
+	static struct {
+		char path[1024];
+		time_t time;
+		off_t size;
+		StateFileKind kind;
+		bool gbads;
+	} seen[10];
+	int i = stateSlot;
+	if (strcmp(seen[i].path, gp.slot[i]) || seen[i].time != st->st_mtime || seen[i].size != st->st_size) {
+		snprintf(seen[i].path, sizeof(seen[i].path), "%s", gp.slot[i]);
+		seen[i].time = st->st_mtime, seen[i].size = st->st_size;
+		seen[i].kind = emu_state_file_kind(&emu, gp.slot[i], &seen[i].gbads);
+	}
+	*fromGbads = seen[i].gbads;
+	return seen[i].kind;
+}
+/* "Slot 3: Oct 31, 1:45 PM" (when it was saved), or "Slot 3: Empty";
+ * shared with RetroArch, also who saved it: "Slot 3: Oct 31, 1:45 PM, RetroArch",
+ * "Slot 3: Another emulator's" */
 static const char* slot_label(void) {
-	static char buf[64];
+	static char buf[80];
 	struct stat st;
 	if (stat(gp.slot[stateSlot], &st) != 0) {
 		snprintf(buf, sizeof(buf), "Slot %d: Empty", stateSlot);
 		return buf;
+	}
+	const char* by = "";
+	if (gp.raDir[0]) {
+		bool fromGbads;
+		StateFileKind k = slot_kind(&st, &fromGbads);
+		if (k == STATE_FILE_OTHER_CORE || k == STATE_FILE_UNREADABLE) {
+			snprintf(buf, sizeof(buf), "Slot %d: %s", stateSlot, k == STATE_FILE_OTHER_CORE ? "Another emulator's" : "Can't be read");
+			return buf;
+		}
+		if (!fromGbads) by = ", RetroArch";
 	}
 	struct tm t, now;
 	time_t n = time(NULL);
 	localtime_r(&st.st_mtime, &t);
 	localtime_r(&n, &now);
 	static const char* const mon[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-	if (t.tm_year != now.tm_year) snprintf(buf, sizeof(buf), "Slot %d: %s %d, %d", stateSlot, mon[t.tm_mon], t.tm_mday, t.tm_year + 1900);
-	else snprintf(buf, sizeof(buf), "Slot %d: %s %d, %d:%02d %s", stateSlot, mon[t.tm_mon], t.tm_mday, (t.tm_hour + 11) % 12 + 1, t.tm_min, t.tm_hour < 12 ? "AM" : "PM");
+	if (t.tm_year != now.tm_year) snprintf(buf, sizeof(buf), "Slot %d: %s %d, %d%s", stateSlot, mon[t.tm_mon], t.tm_mday, t.tm_year + 1900, by);
+	else snprintf(buf, sizeof(buf), "Slot %d: %s %d, %d:%02d %s%s", stateSlot, mon[t.tm_mon], t.tm_mday, (t.tm_hour + 11) % 12 + 1, t.tm_min, t.tm_hour < 12 ? "AM" : "PM", by);
 	return buf;
 }
 static void slot_step(int d) {
@@ -4893,6 +4924,24 @@ static bool tall_line(uint32_t* dst, int row, const TallSrc* src, int n) {
 	if (!tallKeep) for (int x = 0; x < GBA_W; ++x) dst[x] = 0xFF000000;
 	return false;
 }
+/* Whether the game's BG0 has a pixel at screen (x, y) above the score bar
+ * (its map from the profile's msg.map, row0 being the map row of screen row
+ * 0; no horizontal scroll): the catch timer's digits. PP-10: the banner
+ * boxes take only what isn't BG0's, so a banner flying across the timer
+ * doesn't carry part of it to the bottom screen. */
+static bool tall_bg0_pixel(uint32_t map, int row0, int x, int y) {
+	uint16_t cnt = emu_io16(&emu, 0x08);
+	uint32_t chr = 0x06000000 + ((cnt >> 2) & 3) * 0x4000;
+	uint16_t e = emu_read16(&emu, map + (((row0 + (y >> 3)) & 31) * 32 + (x >> 3)) * 2);
+	int px = x & 7, py = y & 7;
+	if (e & 0x400) px = 7 - px;
+	if (e & 0x800) py = 7 - py;
+	uint32_t t = e & 0x3FF;
+	if (cnt & 0x80) return emu_read8(&emu, chr + t * 64 + py * 8 + px) != 0;
+	uint8_t b = emu_read8(&emu, chr + t * 32 + py * 4 + px / 2);
+	return (px & 1 ? b >> 4 : b & 15) != 0;
+}
+
 static void update_tall(void) {
 	const typeof(tallProf->tall)* t = &tallProf->tall;
 	const typeof(t->live)* L = &t->live;
@@ -5055,6 +5104,7 @@ static void update_tall(void) {
 				for (int y = SDL_max(y0, 0); y < SDL_min(y0 + h, t->hudRow); ++y)
 					for (int x = SDL_max(x0, 0); x < SDL_min(x0 + w, GBA_W); ++x) {
 						if ((hudPx[y * GBA_W + x] & 0xFFFFFF) == clear) continue;
+						if (L->msg.map && tall_bg0_pixel(L->msg.map, L->msg.row0, x, y)) continue; /* (BG0's: the timer) */
 						box[y * GBA_W + x] = 1, anyFixed = true;
 					}
 			}
@@ -5462,13 +5512,37 @@ static void* screen_blob(size_t* n) {
 	*n = b.n;
 	return b.p;
 }
+/* a slot or the automatic state in RetroArch's folder (shared with it: issue #39) */
+static bool state_is_retroarch(const char* path) {
+	size_t n = strlen(gp.raDir);
+	return n && !strncmp(path, gp.raDir, n) && path[n] == '/';
+}
+/* RetroArch's thumbnail beside a state (<state>.png, for its menu): the
+ * game's picture as it is now, at the GBA's size */
+static void state_thumbnail(const char* path) {
+	uint8_t* px = malloc((size_t) GBA_W * GBA_H * 4);
+	if (!px) return;
+	memcpy(px, emu.fb, (size_t) GBA_W * GBA_H * 4); /* (bytes R, G, B, X) */
+	for (size_t i = 0; i < (size_t) GBA_W * GBA_H; ++i) px[i * 4 + 3] = 255;
+	char png[1100], tmp[1110];
+	snprintf(png, sizeof(png), "%s.png", path);
+	snprintf(tmp, sizeof(tmp), "%s.tmp.png", path);
+	if (!stbi_write_png(tmp, GBA_W, GBA_H, 4, px, GBA_W * 4) || rename(tmp, png) != 0) {
+		remove(tmp);
+		fprintf(stderr, "save state: no thumbnail %s\n", png);
+	}
+	free(px);
+}
 static bool state_file_save(const char* path) {
-	if (!emu_state_save_file(&emu, path)) return false;
 	size_t n;
 	void* blob = screen_blob(&n);
-	if (blob && !emu_state_file_put_extra(&emu, path, blob, n)) fprintf(stderr, "save state: the second screen not kept with it\n");
+	bool ra = state_is_retroarch(path);
+	StateFormat fmt = !ra ? STATE_FORMAT_MGBA : gp.raCompress ? STATE_FORMAT_RETROARCH_RZIP : STATE_FORMAT_RETROARCH;
+	if (ra) mkdirs(gp.raDir);
+	bool ok = emu_state_save_file_as(&emu, path, blob, blob ? n : 0, fmt);
 	free(blob);
-	return true;
+	if (ok && ra) state_thumbnail(path);
+	return ok;
 }
 static uint8_t* screenRestore; /* a loaded state's block, put back at the next frame */
 static size_t screenRestoreN;
@@ -5550,10 +5624,19 @@ static void screen_restore_apply(void) {
 	                   blob_find(b, n, "HELD", &sz) ? " held" : "");
 }
 
-/* Save states, with the RetroAchievements progress beside them. */
+/* Save states, with the RetroAchievements progress beside them (<state>.ra;
+ * for one in RetroArch's folder, in GBA DS's own: <state_dir>/retroarch/) */
+static const char* state_ra_side(const char* path) {
+	static char side[1200];
+	if (!state_is_retroarch(path)) return path;
+	snprintf(side, sizeof(side), "%s/retroarch", cfg->stateDir);
+	mkdirs(side);
+	snprintf(side, sizeof(side), "%s/retroarch/%s", cfg->stateDir, strrchr(path, '/') + 1);
+	return side;
+}
 static bool state_save(const char* path) {
 	bool ok = state_file_save(path);
-	if (ok) ra_state_saved(path);
+	if (ok) ra_state_saved(state_ra_side(path));
 	return ok;
 }
 
@@ -5583,11 +5666,29 @@ static void state_rom_check(const char* path) {
 	stateWarned = true;
 }
 
+static StateFileKind stateLoadKind; /* (what the last state_load found: why it failed) */
 static bool state_load(const char* path) {
+	bool fromGbads = false;
+	stateLoadKind = emu_state_file_kind(&emu, path, &fromGbads);
 	bool ok = emu_state_load_file(&emu, path);
+	{
+		static const char* const kinds[] = { "no file", "GBA DS's / mGBA's", "RetroArch's", "another emulator's", "unreadable" };
+		fprintf(stderr, "load state: %s: %s (%s%s)\n", path, ok ? "loaded" : "not loaded", kinds[stateLoadKind],
+		        stateLoadKind == STATE_FILE_RETROARCH ? (fromGbads ? ", saved by GBA DS" : ", saved by RetroArch") : "");
+	}
 	stateWarned = false;
 	if (ok && !stateNoCheck) state_rom_check(path);
-	if (ok) ra_state_loaded(path);
+	if (ok) {
+		/* (saved by RetroArch over one of GBA DS's: the progress kept with
+		 * that one is another moment's, so achievements start over) */
+		const char* side = state_ra_side(path);
+		if (side != path && !fromGbads) {
+			char ra[1210];
+			snprintf(ra, sizeof(ra), "%s.ra", side);
+			remove(ra);
+		}
+		ra_state_loaded(side);
+	}
 	/* (the second screen kept with it: put back at the next frame) */
 	if (ok) {
 		free(screenRestore);
@@ -5886,6 +5987,13 @@ static void bug_info(Text* t, const char* date, uint64_t back) {
 	text_add(t, "Controls: %s. Cheats on: %d. RetroAchievements: %s\n", ctlProf ? ctl_name(ctlMode) : "GBA", cheats_on(&cheats),
 	         ra_enabled() ? "signed in" : "off");
 	text_add(t, "The rewound state is %llu frames before the other\n", (unsigned long long) back);
+	/* (issue #39: slots 0-9 and the resume point shared with RetroArch, and where) */
+	if (gp.raDir[0])
+		text_add(t, "Save states: shared with RetroArch in %s (%s, %s); slot %d\n", gp.raDir, cfg->raStateDir[0] ? "chosen by hand" : "from its settings",
+		         gp.raCompress ? "compressed" : "uncompressed", stateSlot);
+	else
+		text_add(t, "Save states: GBA DS's own%s; slot %d\n", !strcmp(cfg->stateFolder, "retroarch") ? " (shared with RetroArch, but its folder wasn't found)" : "",
+		         stateSlot);
 
 	text_add(t, "\n== Settings\n");
 	text_add(t, "layout %s, swap %d, scale %s, map_scale %s, shader %s, color_correction %d, lcd_ghosting %d, smooth %d, overlays %d (screens %d, logo %d, %s / %s), border_color %s\n", cfg->layout,
@@ -7278,6 +7386,12 @@ static bool activate(int item, enum GameExit* exitTo) {
 			if (!stateWarned) ui_osd(m);
 			menuOpen = false;
 			return false;
+		} else if (stateLoadKind == STATE_FILE_OTHER_CORE) {
+			/* (RetroArch's, from another of its GBA cores: issue #39) */
+			/* (Settings > Save States says RetroArch's core has to be mGBA) */
+			snprintf(menuNote, sizeof(menuNote), "Saved by another emulator: can't load it");
+		} else if (stateLoadKind == STATE_FILE_UNREADABLE) {
+			snprintf(menuNote, sizeof(menuNote), "This state can't be read");
 		} else {
 			snprintf(menuNote, sizeof(menuNote), "Load failed");
 		}
@@ -7701,6 +7815,9 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	} else if (cfg->autoLoad && !patchReload && file_exists(gp.autoState)) { /* (not right after switching a patch) */
 		if (state_load(gp.autoState)) {
 			if (!stateWarned) ui_osd("Resumed. Tap or HOME for the menu");
+		} else if (stateLoadKind == STATE_FILE_OTHER_CORE) {
+			/* (RetroArch's automatic state, from another of its GBA cores) */
+			ui_osd_long("Not resumed: RetroArch's automatic state is from another of its GBA cores. To share states, set RetroArch's GBA core to mGBA.");
 		}
 	} else {
 		ui_osd("Tap the screen or press HOME for the menu");

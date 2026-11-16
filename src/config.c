@@ -15,6 +15,7 @@ void config_defaults(Config* c) {
 	memset(c, 0, sizeof(*c));
 	strcpy(c->layout, "auto");
 	strcpy(c->saveExt, "sav");
+	strcpy(c->stateFolder, "gbads");
 	strcpy(c->scale, "integer");
 	strcpy(c->mapScale, "integer");
 	strcpy(c->hotkey, "home");
@@ -187,6 +188,9 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	STR("save_ext", saveExt)
 	STR("save_from", saveFrom)
 	STR("state_dir", stateDir)
+	STR("state_folder", stateFolder)
+	STR("retroarch_state_dir", raStateDir)
+	STR("retroarch_cfg", raCfg)
 	STR("rom_dir", romDir)
 	STR("cheat_dir", cheatDir)
 	STR("patch_dir", patchDir)

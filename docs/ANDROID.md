@@ -730,6 +730,60 @@ task on either display), and the Duo opens a new task on one screen.
 - Two displays: unchanged (GbaDsActivity in its own task on display 0).
 - launch.log says "one display: starting the game in the launcher's task".
 
+## To pick up: save states shared with RetroArch (issue #39; planned Nov 16, 2026)
+
+Done for Linux on the branch `retroarch-states` (going into `dev`): the
+pause menu's slots 0-9 and the resume point can be RetroArch's own
+`<game>.state`, `.state1`-`.state9` and `.state.auto` (RetroArch's format,
+compressed, with a `<state>.png` thumbnail), and loading takes RetroArch's
+files (emu.c, shared: already works on Android for any file it can read).
+What's Linux-only: `retroarch_state_dir` (paths.c) looks for retroarch.cfg
+on ROCKNIX / BananaOS / ~/.config, and the Settings rows (Save States,
+RetroArch's Folder with the SDL picker `folderpick.c`) are in library.c's
+Linux branch. See wiki/Playing.md, "Save states shared with RetroArch".
+
+**The owner's plan for Android** (agreed Nov 16): look for RetroArch's
+folders; where its states can be reached, use them (asking through Android's
+folder picker when needed, Android 11 and 12 included); where they can't
+(Android 13 and later, states under `Android/data`), say so plainly and
+point to the fix in RetroArch.
+
+Facts (RetroArch's frontend/drivers/platform_unix.c, checked Nov 16):
+
+- RetroArch on Android keeps its states in `<storage>/RetroArch/states`
+  (by core: `.../states/mGBA`, sort_savestates_enable on by default) when
+  it can write to shared storage (the website / F-Droid builds, with All
+  files access), else in its own `Android/data/com.retroarch.../files/states`
+  (likely the Play Store build), else its private data folder. Its config:
+  `Android/data/com.retroarch.../files/retroarch.cfg` (savestate_directory
+  says which, unless the player changed it).
+- `<storage>/RetroArch/...` is readable with GBA DS's All files access, or
+  can be granted through ACTION_OPEN_DOCUMENT_TREE (as Settings > Folders >
+  Choose GBA DS folder does, issue #34).
+- `Android/data/<other app>`: not readable on Android 11+, All files access
+  or not. Android 11-12: ACTION_OPEN_DOCUMENT_TREE with EXTRA_INITIAL_URI
+  set to `content://com.android.externalstorage.documents/document/primary%3AAndroid%2Fdata%2Fcom.retroarch...`
+  lets the player grant that folder (file managers used this; keep it with
+  takePersistableUriPermission). Android 13+: the picker refuses folders
+  under Android/data; no prompt grants it (only Shizuku or root: not to
+  build on). Then: tell the player to set RetroArch's Settings > Directory >
+  Save States to a shared folder (such as `/storage/emulated/0/RetroArch/states`)
+  and choose that folder in GBA DS.
+- A granted tree is a content URI, not a path: the states would go through
+  SAF (read / write by document URI) or a copy, not fopen; game_paths'
+  slot paths and emu.c's file functions take paths today.
+
+To check on a device first: which RetroArch build the owner's GammaOS /
+players use and where it writes; whether the Play Store build can write a
+shared folder at all; what the picker does on the device's Android version
+(the RG DS Plus on GammaOS, and a phone on 13+).
+
+Pieces: retroarch.cfg's whereabouts and the state folder (paths.c, under
+`#ifdef __ANDROID__`), Settings rows on Android (Folders, or a row of its
+own, with the system picker instead of folderpick.c), SAF access if the
+folder is a granted tree, the Android-13 message. The quick state stays
+GBA DS's; RetroAchievements progress isn't shared (owner, Nov 14).
+
 ## For the next release
 
 Player-facing Android changes since the last release, for the main session

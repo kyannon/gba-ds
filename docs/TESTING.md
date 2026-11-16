@@ -154,6 +154,18 @@ app case runs with its own `--patch_dir`.
   load would, with the second screen kept: the way to test a rule about
   keeping an earlier picture (show it from one state, then load the moment
   where it must stay).
+- `retroarch` (GEN-13) runs the case with save states shared with a
+  stand-in RetroArch (`--state_folder=retroarch`): `cfg` is its
+  retroarch.cfg's text, where `{states}` is its state folder in the case's
+  own folder (default: `savestate_directory = "{states}"`, so the states go
+  in its `mGBA/` folder); `states` maps names in that folder
+  (`"mGBA/AWRE.state3"`) to fixtures under `states/`, given times a minute
+  apart from noon UTC on Jan 1, 2020 in the order listed (the last the
+  newest, which the pause menu opens on; slot labels read "Jan 1, 2020"
+  anywhere). The RetroArch-format fixtures (`advance-wars/us-retroarch-*.state`)
+  were packed with BananaFront's own `statefile.c`, one around mGBA's
+  libretro core's state, one around bytes that aren't mGBA's (another
+  core's).
 - `shots` names the screenshots and their frames. Every shot is compared
   with its golden unless the case lists `golden` (the shots to compare).
   `golden_tol` (per channel) and `golden_frac` (share of pixels) allow
@@ -170,6 +182,7 @@ Check types:
 | `uniform` / `not_uniform` | at least / under `frac` (default 0.99) of `rect` (`[x0, y0, x1, y1]`) is `color` |
 | `same` / `differs` | rect `a` of one shot and rect `b` of another differ in at most / more than `frac` (default 1%) of their pixels |
 | `log` / `no_log` | the app's log (`GBADS_DEBUG=1`) matches / doesn't match the regex `match` (e.g. `map updated`) |
+| `file` / `no_file` | `path` in a `retroarch` case's state folder is there and starts with `starts` (its bytes as Latin-1: `"#RZIPv\u0001#"`, `"RASTATE\u0001"`, `"\u0089PNG"`) / isn't there |
 
 Rule checks say *why* a picture is right and keep passing through
 harmless changes elsewhere; goldens catch everything else. A case can
