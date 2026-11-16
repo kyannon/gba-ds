@@ -422,7 +422,11 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   Use This Folder / Automatic) and keeps `retroarch_state_dir` in
   library.cfg. Checked: both ways byte-identical 120 frames on against
   mGBA's libretro core, and BananaFront's statefile.c reads and writes the
-  same files.
+  same files. Rule GEN-13 (docs/games/README.md); cases `aw-*retroarch*`
+  (regress.py's `retroarch` field: a stand-in retroarch.cfg and state
+  folder; `file` / `no_file` checks). Every load logs `load state: PATH:
+  loaded / not loaded (KIND)`; bug reports' info.txt has a "Save states:"
+  line (shared or not, the folder).
 - `profiles.c/.h` everything game-specific (MapProfile; Advance Wars 1 and
   2 share their code, addresses in `awRegions`; Final Fantasy Tactics
   Advance's first second screen, with its UI-sprite tagging ROM patch, is

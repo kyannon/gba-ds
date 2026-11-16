@@ -5523,6 +5523,11 @@ static bool state_load(const char* path) {
 	bool fromGbads = false;
 	stateLoadKind = emu_state_file_kind(&emu, path, &fromGbads);
 	bool ok = emu_state_load_file(&emu, path);
+	{
+		static const char* const kinds[] = { "no file", "GBA DS's / mGBA's", "RetroArch's", "another emulator's", "unreadable" };
+		fprintf(stderr, "load state: %s: %s (%s%s)\n", path, ok ? "loaded" : "not loaded", kinds[stateLoadKind],
+		        stateLoadKind == STATE_FILE_RETROARCH ? (fromGbads ? ", saved by GBA DS" : ", saved by RetroArch") : "");
+	}
 	stateWarned = false;
 	if (ok && !stateNoCheck) state_rom_check(path);
 	if (ok) {
@@ -5834,6 +5839,13 @@ static void bug_info(Text* t, const char* date, uint64_t back) {
 	text_add(t, "Controls: %s. Cheats on: %d. RetroAchievements: %s\n", ctlProf ? ctl_name(ctlMode) : "GBA", cheats_on(&cheats),
 	         ra_enabled() ? "signed in" : "off");
 	text_add(t, "The rewound state is %llu frames before the other\n", (unsigned long long) back);
+	/* (issue #39: slots 0-9 and the resume point shared with RetroArch, and where) */
+	if (gp.raDir[0])
+		text_add(t, "Save states: shared with RetroArch in %s (%s, %s); slot %d\n", gp.raDir, cfg->raStateDir[0] ? "chosen by hand" : "from its settings",
+		         gp.raCompress ? "compressed" : "uncompressed", stateSlot);
+	else
+		text_add(t, "Save states: GBA DS's own%s; slot %d\n", !strcmp(cfg->stateFolder, "retroarch") ? " (shared with RetroArch, but its folder wasn't found)" : "",
+		         stateSlot);
 
 	text_add(t, "\n== Settings\n");
 	text_add(t, "layout %s, swap %d, scale %s, map_scale %s, shader %s, color_correction %d, lcd_ghosting %d, smooth %d, overlays %d (screens %d, logo %d, %s / %s), border_color %s\n", cfg->layout,
