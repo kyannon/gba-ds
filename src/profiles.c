@@ -7572,6 +7572,33 @@ static const MapProfile profiles[] = {
 		 * floating past the HUD's places) and the game's own pause screen
 		 * are drawn whole (LS-6) */
 		.hideWhen = { { LS_V_PLAY, 0, 1, 1 } },
+		/* ... and only the HUD's own: the game puts its pieces first in the
+		 * sprite table (level 2 puts Sia, in her own palette, among them),
+		 * and a level's thing is several sprites in one palette, one after
+		 * another. A HUD-shaped piece is hidden in the run at the start of
+		 * the table or in a run of one palette that's all HUD pieces; a
+		 * level's thing that passes a HUD piece's place with its shape (the
+		 * first village's well, a column of rock in the caves: players' bug
+		 * reports) has its other pieces beside it, so it stays (LS-6). */
+		.hideGrouped = true,
+		/* the pause screen's own pieces, the rest left out of the status
+		 * picture: the game leaves some level things in the sprite table
+		 * under its pause screen (a floating platform in the caves, in a
+		 * player's bug report), drawn over the ring (LS-2). The arrows
+		 * either side of the choice (they slide), the 64x64 text blocks of
+		 * the time, Pause and the choice, then the HUD's places as above
+		 * (the ring's glow pieces too: the probes see it as before). */
+		.captureKeep = { { -10, 95, 220, 99, 0, 1023, -1, 0, 0, LS_SHAPE(1, 2) },
+		                 { 0, 48, 192, 48, 0, 1023, -1, 0, 0, LS_SHAPE(0, 3) },
+		                 { 2, 7, 2, 7, 0, 1023, -1, 0, 0, LS_SHAPE(0, 2) },
+		                 { 94, 3, 94, 3, 0, 1023, -1, 0, 0, LS_SHAPE(0, 2) },
+		                 { 193, 1, 193, 1, 0, 1023, -1, 0, 0, LS_SHAPE(0, 2) },
+		                 { 31, 10, 232, 10, 0, 1023, -1, 0, 0, LS_SHAPE(2, 0) },
+		                 { 38, 124, 44, 129, 0, 1023, -1, 0, 0, LS_SHAPE(0, 2) },
+		                 { 68, 125, 77, 132, 0, 1023, -1, 0, 0, LS_SHAPE(2, 2) | LS_SHAPE(2, 1) },
+		                 { 51, 152, 53, 154, 0, 1023, -1, 0, 0, LS_SHAPE(1, 1) },
+		                 { 164, 130, 171, 133, 0, 1023, -1, 0, 0, LS_SHAPE(0, 1) | LS_SHAPE(2, 0) },
+		                 { 167, 143, 170, 146, 0, 1023, -1, 0, 0, LS_SHAPE(1, 0) | LS_SHAPE(0, 1) } },
 	},
 	{
 		/* Ninja Five-O (USA; Europe, Ninja Cop: the ANXP variant). No
@@ -8347,9 +8374,10 @@ static const MapProfile profiles[] = {
 		/* the title, the language list, the class choice, GAME OVER: the
 		 * logo (BGD-5, BGD-9) */
 		.menu = { { BGD_V_LOGO, 0xFF, 1, 4 } },
-		/* the lettering on its piece of the title's parchment map, BG2 a
-		 * bitmap (BGD-6; the European language list is sprites, left out) */
-		.logo = { .wait = 1500, .layers = 0x4, .minX = 32, .maxX = 212, .minY = 6, .maxY = 97 },
+		/* the title's lettering cut out of its parchment map along the
+		 * logo artwork's outline (BGD-6; the European language list, sprites
+		 * below the lettering, is outside it) */
+		.logo = { .wait = 1500, .mask = &logoMaskBGD, .rev = 1 },
 	},
 	{
 		/* Harry Potter and the Prisoner of Azkaban (USA and Europe, one

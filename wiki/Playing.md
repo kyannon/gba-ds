@@ -48,6 +48,7 @@ GBA DS can update itself on ROCKNIX, BananaOS, the Stock Linux OS and Android. I
 - **By hand:** game list > **Settings** > **Updates** shows your version and when GBA DS last checked, with **Check now** and **Automatic checks: On / Off**.
 - **Update now** downloads the release's zip (B or **Cancel** stops it), checks it against the checksum GitHub publishes, installs it over the GBA DS folder and restarts into the new version. Everything in `gba-ds/states/` is kept, and so is your `gba-ds.cfg` (a new version's options keep their defaults until you add them; see [[Settings]]).
 - The **GBA DS** entry in Ports (`GBA DS.sh`) and its image are updated too.
+- Updating from v1.5.3 or earlier: some of the new version's changes (in how GBA DS is started) only count once you quit GBA DS and start it again from Ports. From v1.5.3.1 on, the restart after an update takes care of that.
 - **On Android**, Update now downloads the release's APK, checks it the same way and hands it to Android's installer, which asks you to confirm (the first time, Android may ask you to allow GBA DS to install apps: allow it, then go back). Android closes GBA DS while it installs; open it again afterwards. Your games, saves, states and settings are kept. If Android says the app is signed differently, your copy is a test build: uninstall it and install the new APK from the [Releases page](https://github.com/kyannon/gba-ds/releases) by hand (the files in the `GBA DS` folder stay).
 
 ## The pause menu
@@ -140,6 +141,13 @@ The HOME + button shortcuts above are hotkeys: hold the hotkey button, then pres
 Pick a row (tap it, or the D-pad and A), then press the button you want for it. Tapping the touchscreen instead gives a shortcut no button (or keeps the hotkey button as it was). A button already used by another shortcut moves to the new one, and the other is left without. **Reset** goes back to HOME and the buttons above; **Done** (or B) keeps your choices for every game, in `states/hotkeys.cfg`. They can also be set in `gba-ds.cfg` (see the Buttons section of [[Settings]]), but once you've used Hotkeys in Settings, its choices win until you delete `hotkeys.cfg`. On Android, HOME is the BACK button (Android keeps HOME for itself), and Hotkeys calls it Back.
 
 With START as the hotkey, quitting is START + SELECT. With SELECT or START as the hotkey, the buttons you've given to shortcuts don't reach the game while the hotkey is held; the others do. If `menu_combo = select+start` is on too, SELECT + START opens the menu rather than doing a hotkey.
+
+## Performance
+
+On Linux (ROCKNIX, the Stock Linux OS and others; not BananaOS, which sets its own), game list > **Settings** > **Performance** chooses how fast the device runs while GBA DS is open:
+
+- **Let the System Decide** (the default): the system sets the processor, memory and graphics speed, as it does for its other emulators. It slows them down between frames to save battery.
+- **Set to Max**: all three run at full speed while GBA DS is open, and go back to the system's choice when it closes. Try it if games stutter or the sound breaks up on your device; the battery runs down faster and the device gets warmer.
 
 ## Mapping the buttons
 

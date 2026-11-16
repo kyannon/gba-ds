@@ -10,10 +10,23 @@
 # up there froze the game and broke the sound). The pipe holds 64 KB; cat
 # writes everything out after GBA DS ends or crashes. GBA DS keeps its own
 # exit status and process (exec on BananaOS).
+# After an update installed in the app, GBA DS ends with
+# $GBADS_RELAUNCH_STATUS and this script starts the new launch.sh (the
+# new GBA DS with it), the log carried on: the new launch.sh's changes
+# count from then, not from the next start (ROCKNIX and other systems;
+# on BananaOS, where GBA DS is exec'd, it restarts itself).
+RELAUNCH=75
 
 . /etc/profile >/dev/null 2>&1
 
 DIR="$(cd "$(dirname "$0")" && pwd)"
+# the log: started afresh, or carried on after an update's restart
+if [ -n "$GBADS_RELAUNCHED" ]; then
+	echo "--- launch.sh again after the update" >> "$DIR/gba-ds.log"
+else
+	: > "$DIR/gba-ds.log"
+fi
+unset GBADS_RELAUNCHED
 
 # Controller mappings shipped with ROCKNIX
 for db in /storage/.config/SDL-GameControllerDB/gamecontrollerdb.txt \
@@ -97,7 +110,7 @@ fi
 if [ -d /etc/banana ]; then
 	LOG="$DIR/gba-ds.log"
 	VIDEO=${GBADS_BANANA_VIDEO:-kmsdrm}
-	echo "BananaOS, video: $VIDEO" > "$LOG"
+	echo "BananaOS, video: $VIDEO" >> "$LOG"
 	B=()
 	cfgval() { sed -n "s/^$1 *= *//p" "$DIR/gba-ds.cfg" 2>/dev/null | tail -n 1; }
 	if [ "$VIDEO" = kmsdrm ]; then
@@ -154,7 +167,7 @@ fi
 # system is like goes into gba-ds.log, for reports.
 if ! grep -qi rocknix /etc/os-release 2>/dev/null && [ ! -d /storage/.config/system ]; then
 	LOG="$DIR/gba-ds.log"
-	echo "another system (not ROCKNIX or BananaOS)" > "$LOG"
+	echo "another system (not ROCKNIX or BananaOS)" >> "$LOG"
 	O=()
 	cfgval() { sed -n "s/^$1 *= *//p" "$DIR/gba-ds.cfg" 2>/dev/null | tail -n 1; }
 	if [ "$(cfgval rom_dir)" = /storage/roms/gba ]; then
@@ -234,65 +247,62 @@ if ! grep -qi rocknix /etc/os-release 2>/dev/null && [ ! -d /storage/.config/sys
 		} >> "$LOG" 2>&1
 	) &
 	[ -n "$EXEC_NOTE" ] && echo "$EXEC_NOTE" >> "$LOG"
-	"$GBADS" "${O[@]}" "$@" > >(exec cat >> "$LOG") 2>&1
+	GBADS_RELAUNCH_STATUS=$RELAUNCH "$GBADS" "${O[@]}" "$@" > >(exec cat >> "$LOG") 2>&1
 	st=$?
 	wait $! 2>/dev/null # (the log written out before the traps add to it)
+	if [ $st = $RELAUNCH ]; then
+		# an update: the touchscreen as it was, then the new launch.sh
+		[ "$TP_WAS" = 1 ] && echo 1 > "$TP" 2>/dev/null
+		[ "$INH_WAS" = 1 ] && echo 1 > "$INH" 2>/dev/null
+		trap - EXIT
+		GBADS_RELAUNCHED=1 exec bash "$DIR/launch.sh" "$@"
+	fi
 	exit $st
 fi
 
 # Second screen on and in place for the run (stock ROCKNIX keeps it off),
 # put back afterwards; see screens.sh. The trap also covers being killed.
-bash "$DIR/screens.sh" on > "$DIR/gba-ds.log" 2>&1
+bash "$DIR/screens.sh" on >> "$DIR/gba-ds.log" 2>&1
 [ -n "$EXEC_NOTE" ] && echo "$EXEC_NOTE" >> "$DIR/gba-ds.log"
 # what the sound goes through, for reports of no sound
 {
 	echo "sound: XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-unset} SDL_AUDIODRIVER=${SDL_AUDIODRIVER:-unset} PULSE_SERVER=${PULSE_SERVER:-unset}"
 	command -v wpctl >/dev/null && timeout 2 wpctl status 2>&1 | sed -n '/^Audio/,/^Video/p' | head -n 30
 } >> "$DIR/gba-ds.log" 2>&1
-# CPU and memory clocks for the run (issue #50: video and sound kept
-# breaking up on an RG DS). GBA DS runs more than one copy of the game (the
-# hidden one for the map, the pinball tables' two more) and sleeps between
-# frames; under ROCKNIX's schedutil / ondemand governors the clock drops in
-# those sleeps and the next busy frame comes too late. runemu.sh starts in
-# performance but then applies the governor chosen in EmulationStation, if
-# any. As banana-play.sh does on BananaOS: performance while GBA DS runs, the
-# governors as they were afterwards. cpu_performance = 0 in gba-ds.cfg
-# leaves them alone. What they were goes into the log either way.
+# Clock governors (issue #50): GBA DS's Performance setting (the game
+# list's Settings; performance = max in states/prefs.cfg) holds the CPU,
+# memory and GPU at performance while it runs and puts them back itself.
+# What it changed is in GOV_STATE until then: if GBA DS ends without
+# putting them back (a crash, being killed), this does. What they are goes
+# into the log, for reports.
 GOV_STATE=/tmp/gba-ds-governors.state
-cfgval() { sed -n "s/^$1 *= *//p" "$DIR/gba-ds.cfg" 2>/dev/null | tail -n 1; }
-rm -f "$GOV_STATE"
-{
-	GOVS=
-	for g in /sys/devices/system/cpu/cpufreq/policy*/scaling_governor "${DMC_FREQ:-/sys/class/devfreq/dmc}/governor"; do
-		[ -r "$g" ] || continue
-		was=$(cat "$g" 2>/dev/null)
-		max=$(cat "$(dirname "$g")/scaling_max_freq" 2>/dev/null)
-		GOVS="$GOVS ${g#/sys/devices/}=$was${max:+ (max ${max} kHz)}"
-		[ "$was" = performance ] && continue
-		case "$(cfgval cpu_performance)" in 0|off|false|no) continue ;; esac
-		[ -w "$g" ] || continue
-		# (the memory controller's governor may be named dmc_ / simple_)
-		for p in performance dmc_performance simple_performance; do
-			if echo "$p" > "$g" 2>/dev/null; then
-				printf '%s\t%s\n' "$g" "$was" >> "$GOV_STATE"
-				break
-			fi
-		done
-	done
-	echo "device: ${QUIRK_DEVICE:-unknown}; clock governors:${GOVS:- none found}"
-	[ -s "$GOV_STATE" ] && echo "clock governors set to performance for the run (cpu_performance = 0 in gba-ds.cfg leaves them alone)"
-} >> "$DIR/gba-ds.log" 2>&1
 restore_governors() {
 	[ -f "$GOV_STATE" ] || return 0
 	while IFS=$'\t' read -r g was; do
 		[ -n "$g" ] && [ -n "$was" ] && echo "$was" > "$g" 2>/dev/null
 	done < "$GOV_STATE"
 	rm -f "$GOV_STATE"
+	echo "clock governors put back after GBA DS ended without doing so"
 }
-trap 'restore_governors; bash "$DIR/screens.sh" off >> "$DIR/gba-ds.log" 2>&1' EXIT
+{
+	restore_governors # (left from a run that ended without putting them back)
+	GOVS=
+	for g in /sys/devices/system/cpu/cpufreq/policy*/scaling_governor /sys/class/devfreq/*dmc*/governor /sys/class/devfreq/*gpu*/governor; do
+		[ -r "$g" ] && GOVS="$GOVS ${g#/sys/}=$(cat "$g" 2>/dev/null)"
+	done
+	echo "device: ${QUIRK_DEVICE:-unknown}; clock governors:${GOVS:- none found}"
+} >> "$DIR/gba-ds.log" 2>&1
+trap '{ restore_governors; bash "$DIR/screens.sh" off; } >> "$DIR/gba-ds.log" 2>&1' EXIT
 trap 'exit 143' TERM INT HUP
 
-"$GBADS" "$@" > >(exec cat >> "$DIR/gba-ds.log") 2>&1
+GBADS_RELAUNCH_STATUS=$RELAUNCH "$GBADS" "$@" > >(exec cat >> "$DIR/gba-ds.log") 2>&1
 st=$?
 wait $! 2>/dev/null # (the log written out before the trap adds to it)
+if [ $st = $RELAUNCH ]; then
+	# an update: everything put back as the EXIT trap would, then the new
+	# launch.sh (which sets the screens up again)
+	{ restore_governors; bash "$DIR/screens.sh" off; } >> "$DIR/gba-ds.log" 2>&1
+	trap - EXIT
+	GBADS_RELAUNCHED=1 exec bash "$DIR/launch.sh" "$@"
+fi
 exit $st

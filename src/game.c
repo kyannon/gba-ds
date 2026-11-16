@@ -1070,6 +1070,29 @@ typedef struct {
 static SlowFrame slowWorst;
 static int slowCount;
 
+/* Stalls (issue #50): a loop iteration over STALL_MS from top to top, any
+ * build, no GBADS_DEBUG needed. Each part of the iteration is timed, the
+ * wait before the frame and the sleep after it included (slow frames above
+ * only see the work in between), so one line in a player's log says where
+ * the time went. At most STALL_LINES lines per 5 s; the 5 s report counts
+ * them all. */
+#define STALL_MS 100
+#define STALL_LINES 4
+typedef struct {
+	Uint64 top, synced, work, emu0, emu1, draw0, draw1, sleep0, end;
+	double sleepWant;  /* s */
+	double audio;      /* ms handing sound to SDL */
+	double presentTop, presentBottom;
+	double cpuMs;      /* the thread's CPU time at the top */
+	long preempt;      /* its involuntary switches at the top */
+	int queueMs;       /* the sound queue at the top */
+	unsigned long long frame;
+	bool valid;
+} LoopMarks;
+static LoopMarks loopCur;
+static int stallCount, stallLogged;
+static double stallWorst;
+
 static void slow_frame_note(SlowFrame f) {
 	++slowCount;
 	if (f.total > slowWorst.total) slowWorst = f;
@@ -4753,6 +4776,24 @@ static bool tall_line(uint32_t* dst, int row, const TallSrc* src, int n) {
 	if (!tallKeep) for (int x = 0; x < GBA_W; ++x) dst[x] = 0xFF000000;
 	return false;
 }
+/* Whether the game's BG0 has a pixel at screen (x, y) above the score bar
+ * (its map from the profile's msg.map, row0 being the map row of screen row
+ * 0; no horizontal scroll): the catch timer's digits. PP-10: the banner
+ * boxes take only what isn't BG0's, so a banner flying across the timer
+ * doesn't carry part of it to the bottom screen. */
+static bool tall_bg0_pixel(uint32_t map, int row0, int x, int y) {
+	uint16_t cnt = emu_io16(&emu, 0x08);
+	uint32_t chr = 0x06000000 + ((cnt >> 2) & 3) * 0x4000;
+	uint16_t e = emu_read16(&emu, map + (((row0 + (y >> 3)) & 31) * 32 + (x >> 3)) * 2);
+	int px = x & 7, py = y & 7;
+	if (e & 0x400) px = 7 - px;
+	if (e & 0x800) py = 7 - py;
+	uint32_t t = e & 0x3FF;
+	if (cnt & 0x80) return emu_read8(&emu, chr + t * 64 + py * 8 + px) != 0;
+	uint8_t b = emu_read8(&emu, chr + t * 32 + py * 4 + px / 2);
+	return (px & 1 ? b >> 4 : b & 15) != 0;
+}
+
 static void update_tall(void) {
 	const typeof(tallProf->tall)* t = &tallProf->tall;
 	const typeof(t->live)* L = &t->live;
@@ -4915,6 +4956,7 @@ static void update_tall(void) {
 				for (int y = SDL_max(y0, 0); y < SDL_min(y0 + h, t->hudRow); ++y)
 					for (int x = SDL_max(x0, 0); x < SDL_min(x0 + w, GBA_W); ++x) {
 						if ((hudPx[y * GBA_W + x] & 0xFFFFFF) == clear) continue;
+						if (L->msg.map && tall_bg0_pixel(L->msg.map, L->msg.row0, x, y)) continue; /* (BG0's: the timer) */
 						box[y * GBA_W + x] = 1, anyFixed = true;
 					}
 			}
@@ -6506,15 +6548,20 @@ static void rewind_setup(void) {
 }
 
 /* ff_speed as gba-ds.cfg writes it: a number, or max (0, as atoi reads it) */
-static const char* ff_speed_name(void) {
+static const char* ff_speed_name(const Config* c) {
 	static char s[12];
-	if (cfg->ffSpeed <= 0) return "max";
-	snprintf(s, sizeof(s), "%d", cfg->ffSpeed);
+	if (c->ffSpeed <= 0) return "max";
+	snprintf(s, sizeof(s), "%d", c->ffSpeed);
 	return s;
 }
 
-/* Display choices made in the menu are remembered for next time. */
+/* Display choices made in the menu are remembered for next time (and the
+ * game list's Performance setting: prefs_save from library.c). */
 static void save_prefs(void) {
+	prefs_save(cfg);
+}
+
+void prefs_save(Config* cfg) {
 	char prefs[1100];
 	snprintf(prefs, sizeof(prefs), "%s/prefs.cfg", cfg->stateDir);
 	FILE* f = fopen(prefs, "w");
@@ -6523,13 +6570,14 @@ static void save_prefs(void) {
 		fprintf(f, "swap = %d\nscale = %s\nmap_scale = %s\nshader = %s\ncolor_correction = %d\nlcd_ghosting = %d\noverlays = %s\nframe_buffer = %d\nmatch_display = %d\nrewind = %d\nfast_forward = %d\nff_speed = %s\nsave_on_quit = %d\nauto_load = %d\nquick_bar_pinned = %d\n",
 		        cfg->swap ? 1 : 0, cfg->scale, cfg->mapScale, shaderNames[cfg->shader], cfg->colorCorrection ? 1 : 0, cfg->ghosting ? 1 : 0,
 		        (const char* const[]) { "off", "generated", "custom" }[SDL_clamp(cfg->overlayMode, 0, 2)],
-		        cfg->frameBuffer ? 1 : 0, cfg->matchDisplay ? 1 : 0, cfg->rewind ? 1 : 0, cfg->fastForward ? 1 : 0, ff_speed_name(),
+		        cfg->frameBuffer ? 1 : 0, cfg->matchDisplay ? 1 : 0, cfg->rewind ? 1 : 0, cfg->fastForward ? 1 : 0, ff_speed_name(cfg),
 		        cfg->autoSave ? 1 : 0, cfg->autoLoad ? 1 : 0, cfg->barPinned ? 1 : 0);
 		fprintf(f, "screen_match = %s\nscreen_placement = %s\n", cfg->screenMatch, cfg->screenPlace);
 		fprintf(f, "custom_logos = %s\n", cfg->customLogos == CL_OFF ? "off" : cfg->customLogos == CL_FULL ? "full" : "pixelated");
 		fprintf(f, "overlay_screens = %s\nbezel_logo = %d\nbezel_inner = %s\nbezel_outer = %s\n",
 		        cfg->overlays == OVL_TOP ? "top" : cfg->overlays == OVL_BOTTOM ? "bottom" : "both", cfg->bezelLogo, cfg->bezelInner, cfg->bezelOuter);
 		fprintf(f, "shader_last = %s\n", shaderNames[cfg->shaderLast > SH_OFF && cfg->shaderLast < SH_COUNT ? cfg->shaderLast : SH_GRID]);
+		fprintf(f, "performance = %s\n", cfg->perfMax ? "max" : "system");
 		fclose(f);
 	}
 }
@@ -7273,6 +7321,7 @@ static void ss_setup(const char* rom, const char* code) {
 			hideWhenProf = prof && nRules && prof->hideWhen[0].addr ? prof : NULL;
 			hideWhenN = nRules, hideWhenOn = false;
 			emu_hide_sprites(&emu, prof && !hideWhenProf ? prof->hideSprites : NULL, hideWhenProf ? 0 : nRules);
+			emu_hide_grouped(&emu, prof && prof->hideGrouped);
 		} else if (!logoOnly) {
 			fprintf(stderr, "no map profile for %s\n", code);
 		}
@@ -7607,7 +7656,33 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	android_pin_game_thread();
 #endif
 	while (!done) {
+		{
+			/* the last iteration, if it was a stall (issue #50) */
+			Uint64 t = SDL_GetPerformanceCounter();
+			const double msPer = 1000.0 / (double) SDL_GetPerformanceFrequency();
+			const LoopMarks* p = &loopCur;
+			int queueMs = audio ? (int) (SDL_GetQueuedAudioSize(audio) / 4 * 1000 / want.freq) : 0;
+			double gap = p->valid ? (double) (t - p->top) * msPer : 0;
+			if (gap > STALL_MS && gap < 5000) {
+				++stallCount;
+				if (gap > stallWorst) stallWorst = gap;
+				if (stallLogged < STALL_LINES) {
+					++stallLogged;
+					fprintf(stderr,
+					        "frame %llu: stall: %.0f ms between frames: waiting for the frame buffer %.1f, input and menu %.1f, emulating %.1f "
+					        "(sound hand-off %.1f), second screen %.1f, drawing %.1f (top screen %.1f, bottom %.1f), after drawing %.1f, "
+					        "sleeping %.1f (of %.1f asked); ran %.1f ms of it, preempted %ld time(s); sound queue %d -> %d ms\n",
+					        p->frame, gap, (double) (p->synced - p->top) * msPer, (double) (p->emu0 - p->synced) * msPer,
+					        (double) (p->emu1 - p->emu0) * msPer, p->audio, (double) (p->draw0 - p->emu1) * msPer,
+					        (double) (p->draw1 - p->draw0) * msPer, p->presentTop, p->presentBottom, (double) (p->sleep0 - p->draw1) * msPer,
+					        (double) (p->end - p->sleep0) * msPer, p->sleepWant * 1000.0, thread_cpu_ms() - p->cpuMs,
+					        thread_preemptions() - p->preempt, p->queueMs, queueMs);
+				}
+			}
+			loopCur = (LoopMarks) { .top = t, .cpuMs = thread_cpu_ms(), .preempt = thread_preemptions(), .queueMs = queueMs, .frame = (unsigned long long) frameCount };
+		}
 		ahead_sync(); /* the core is the loop's again */
+		loopCur.synced = SDL_GetPerformanceCounter();
 		screen_restore_apply();
 		bug_tick();
 		Uint64 workT0 = SDL_GetPerformanceCounter(); /* this frame's work, without the wait at the end */
@@ -8296,7 +8371,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		 * underruns (the queue ran dry = a crackle), slow loop iterations, and
 		 * how often the background map capture was running. */
 		{
-			static int underruns, slow, captureBusy, n;
+			static int underruns, slow, captureBusy, dropped, n;
 			static long preemptT0 = -1;
 			if (preemptT0 < 0) preemptT0 = thread_preemptions();
 			static Uint64 lastIter;
@@ -8305,20 +8380,25 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			lastIter = nowT;
 			if (audio && frameCount > 120 && queuedNow == 0 && !ff) ++underruns;
 			if (mc && mapcap_busy(mc)) ++captureBusy;
+			if (dropAudio && !ff) ++dropped; /* (the queue over 3x its target: this frame's sound thrown away, a gap) */
 			if (++n >= 300) {
 #ifdef __ANDROID__
 				const bool report = true; /* performance on Android devices is still being measured */
 #else
-				const bool report = underruns || slow || debug;
+				const bool report = underruns || slow || dropped || stallCount || debug;
 #endif
 				if (report) {
 					double ms = 1000.0 / SDL_GetPerformanceFrequency() / n;
 					fprintf(stderr, "frame %llu: last 5 s: %.1f fps, %d audio underrun(s), %d slow frame(s), map capture busy %d%%, "
-					                "audio queue %d ms; per frame: emulating %.2f ms, drawing %.2f ms; game thread preempted %ld time(s)\n",
+					                "audio queue %d ms; per frame: emulating %.2f ms, drawing %.2f ms; game thread preempted %ld time(s)",
 					        (unsigned long long) frameCount, fps, underruns, slow, captureBusy * 100 / n,
 					        queuedNow * 1000 / want.freq, emuTicks * ms, drawTicks * ms, thread_preemptions() - preemptT0);
+					if (stallCount) fprintf(stderr, "; %d stall(s) over %d ms, the longest %.0f ms", stallCount, STALL_MS, stallWorst);
+					if (dropped) fprintf(stderr, "; sound thrown away on %d frame(s) (queue too long)", dropped);
+					fputc('\n', stderr);
 				}
-				underruns = slow = captureBusy = n = 0;
+				underruns = slow = captureBusy = dropped = n = 0;
+				stallCount = stallLogged = 0, stallWorst = 0;
 				preemptT0 = thread_preemptions();
 				emuTicks = drawTicks = 0;
 			}
@@ -8620,6 +8700,15 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		Uint64 drawT1 = SDL_GetPerformanceCounter();
 		drawTicks += drawT1 - drawT0;
 		{
+			const double msPer = 1000.0 / (double) SDL_GetPerformanceFrequency();
+			int vTop = screens[0].view, vBot = nScreens > 1 ? screens[1].view : vTop;
+			loopCur.emu0 = emuT0, loopCur.emu1 = emuT1, loopCur.draw0 = drawT0, loopCur.draw1 = drawT1;
+			loopCur.audio = (double) audT * msPer;
+			loopCur.presentTop = ui_last_present_ms(vTop);
+			loopCur.presentBottom = vBot != vTop ? ui_last_present_ms(vBot) : 0;
+			loopCur.valid = !ff && !rewinding; /* (fast-forward and rewind run their own way) */
+		}
+		{
 			double msPer = 1000.0 / (double) SDL_GetPerformanceFrequency();
 			double total = (double) (drawT1 - workT0) * msPer;
 			/* matched, each frame includes the wait for the display's refresh:
@@ -8691,6 +8780,8 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		android_perf_report((int64_t) ((SDL_GetPerformanceCounter() - workT0) * 1e9 / freq));
 #endif
 		double wait = next - now;
+		loopCur.sleep0 = SDL_GetPerformanceCounter();
+		loopCur.sleepWant = wait > 0 ? wait : 0;
 #ifdef __wasi__
 		/* the web build: back to the page every frame, for the wait or not */
 		web_sleep(wait > 0 ? (unsigned) (wait * 1000) : 0);
@@ -8701,6 +8792,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			nanosleep(&ts, NULL);
 		}
 #endif
+		loopCur.end = SDL_GetPerformanceCounter();
 	}
 
 	ahead_stop(); /* before anything else touches the core */

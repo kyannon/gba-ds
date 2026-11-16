@@ -193,7 +193,11 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	STR("screenshot_dir", screenshotDir)
 	STR("asset_dir", assetDir)
 	STR("data_dir", dataDir)
-	if (!strcmp(key, "cpu_performance")) return true; /* (read by launch.sh on ROCKNIX: the clock governors for the run, issue #50) */
+	if (!strcmp(key, "performance")) {
+		c->perfMax = !strcmp(val, "max");
+		return true;
+	}
+	if (!strcmp(key, "cpu_performance")) return true; /* (v1.5.3, launch.sh's: always on unless 0; now performance, off by default) */
 	if (!strcmp(key, "data_dir_now")) return true; /* (data-folder.cfg: where the data is, written by the app) */
 	STR("touch_screen", touchScreen)
 	STR("top_screen", topScreen)

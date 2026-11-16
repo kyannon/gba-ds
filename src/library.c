@@ -14,6 +14,8 @@
 #include "mapper.h"
 #include "ra.h"
 #include "update.h"
+#include "clocks.h"
+#include "game.h"
 
 
 #include <ctype.h>
@@ -1039,12 +1041,13 @@ static int updatesSel;
 
 /* Settings: a row of buttons, each with its text below, then Back.
  * Linux: GBA DS in EmulationStation (ROCKNIX) or in BananaOS's list, where
- * there's one; Map Buttons and Hotkeys; Updates. Android: Folders,
+ * there's one; Map Buttons and Hotkeys; Performance, where GBA DS can set
+ * the clock governors (clocks.c); Updates. Android: Folders,
  * RetroAchievements, Map Buttons and Hotkeys, Updates. */
-#define SETTINGS_MAX 6
+#define SETTINGS_MAX 8 /* (Linux: EmulationStation, Map Buttons + Hotkeys, Save States + RetroArch's Folder, Performance, Updates) */
 static int nRows = 1; /* rows shown (Back is row nRows) */
 /* (Hotkeys shares Map Buttons' line: the right half of it, under one text) */
-enum { ROW_BANANA, ROW_ES, ROW_MAP, ROW_HOTKEYS, ROW_UPDATES, ROW_FOLDERS, ROW_RA, ROW_ESDE, ROW_STATES, ROW_STATES_DIR };
+enum { ROW_BANANA, ROW_ES, ROW_MAP, ROW_HOTKEYS, ROW_UPDATES, ROW_FOLDERS, ROW_RA, ROW_ESDE, ROW_PERF, ROW_STATES, ROW_STATES_DIR };
 /* (two buttons on one line: Hotkeys right of Map Buttons, RetroArch's Folder right of Save States) */
 static bool row_right_half(int kind) {
 	return kind == ROW_HOTKEYS || kind == ROW_STATES_DIR;
@@ -1080,6 +1083,7 @@ static void settings_rows(const Config* cfg) {
 	rowKind[nRows++] = ROW_HOTKEYS;
 	rowKind[nRows++] = ROW_STATES; /* (save states shared with RetroArch: issue #39) */
 	rowKind[nRows++] = ROW_STATES_DIR;
+	if (clocks_available()) rowKind[nRows++] = ROW_PERF;
 #ifdef GBADS_UPDATES
 	rowKind[nRows++] = ROW_UPDATES;
 #endif
@@ -1108,8 +1112,10 @@ static SettingsGeom settings_geom(int scr) {
 	int y = g.panel.y + (lines > 4 ? px * 20 : lines > 3 ? px * 22 : px * 26);
 	int textGap = lines > 4 ? px * 3 : px * 8;
 #ifndef __ANDROID__
-	/* (Linux, four lines: with Save States, closer together) */
+	/* (Linux, four lines or five: EmulationStation or BananaOS, Map Buttons,
+	 * Save States, Performance, Updates; closer together) */
 	if (lines > 3) rowH = px * 10, textGap = px * 3, y = g.panel.y + px * 20;
+	if (lines > 4) rowH = px * 9, y = g.panel.y + px * 18;
 #endif
 	for (int i = 0; i < nRows; ++i) {
 		if (row_right_half(rowKind[i]) && i > 0) {
@@ -1125,8 +1131,10 @@ static SettingsGeom settings_geom(int scr) {
 		g.textY[i] = g.row[i].y + rowH + textGap;
 #ifndef __ANDROID__
 		/* Linux, three rows: room for each one's text (lines of about 8 units) */
-		if (lines > 3) gap = px * (rowKind[i] == ROW_BANANA ? 40 : rowKind[i] == ROW_ES ? 32 : rowKind[i] == ROW_MAP || rowKind[i] == ROW_STATES ? 24 : 22);
-		else if (lines > 2) gap = px * (rowKind[i] == ROW_BANANA ? 46 : rowKind[i] == ROW_ES ? 38 : rowKind[i] == ROW_MAP ? 27 : rowKind[i] == ROW_STATES ? 30 : 22);
+		/* (two lines of text: 22-27; EmulationStation's three, BananaOS's four) */
+		if (lines > 4) gap = px * (rowKind[i] == ROW_ES ? 26 : 21);
+		else if (lines > 3) gap = px * (rowKind[i] == ROW_BANANA ? 40 : rowKind[i] == ROW_ES ? 29 : 24);
+		else if (lines > 2) gap = px * (rowKind[i] == ROW_BANANA ? 46 : rowKind[i] == ROW_ES ? 38 : rowKind[i] == ROW_MAP || rowKind[i] == ROW_PERF || rowKind[i] == ROW_STATES ? 27 : 22);
 #endif
 		y += rowH + gap;
 	}
@@ -1544,14 +1552,11 @@ static void states_text(const Config* cfg, char* out, size_t n) {
 	bool compress;
 	bool found = retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress);
 	if (!found)
-		snprintf(out, n, "Slots 0-9 and the automatic state are GBA DS's own. RetroArch's settings weren't found here: choose "
-		                 "RetroArch's state folder to share them with it.");
+		snprintf(out, n, "Slots 0-9 and the resume point are GBA DS's own. To share them, choose RetroArch's state folder.");
 	else if (strcmp(cfg->stateFolder, "retroarch"))
-		snprintf(out, n, "Slots 0-9 and the automatic state are GBA DS's own. Shared, they're RetroArch's (its mGBA core's, "
-		                 "in %s): a game goes on in either.", path_tail(dir));
+		snprintf(out, n, "Slots 0-9 and the resume point are GBA DS's own. Shared, they're RetroArch's: %s.", path_tail(dir));
 	else
-		snprintf(out, n, "Slots 0-9 and the automatic state are RetroArch's, in %s: a game goes on in either. Its GBA core needs "
-		                 "to be mGBA. The quick state stays GBA DS's.", path_tail(dir));
+		snprintf(out, n, "Slots 0-9 and the resume point are RetroArch's (its GBA core set to mGBA): %s.", path_tail(dir));
 }
 /* Settings > RetroArch's Folder: its state folder chosen by hand (kept as
  * retroarch_state_dir in library.cfg), or found from its settings again
@@ -1614,6 +1619,7 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 		          : rowKind[i] == ROW_HOTKEYS ? "Hotkeys"
 		          : rowKind[i] == ROW_STATES ? (shared ? "Save States: Shared" : "Save States: GBA DS")
 		          : rowKind[i] == ROW_STATES_DIR ? "RetroArch's Folder"
+		          : rowKind[i] == ROW_PERF   ? (cfg->perfMax ? "Performance: Set to Max" : "Performance: Let the System Decide")
 		                                     : "Updates";
 	}
 	draw_settings_frame(scr, &g, sel, labels);
@@ -1635,6 +1641,11 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 		                       ? "Map Buttons sets which of this device's buttons does what. "
 		                         "Hotkeys sets the shortcuts: the hotkey button held with another."
 		                   : rowKind[i] == ROW_STATES ? statesText
+		                   : rowKind[i] == ROW_PERF
+		                       ? (cfg->perfMax ? "The processor, memory and graphics run at full speed while GBA DS is open: "
+		                                         "the smoothest play, but the battery runs down faster and the device gets warmer."
+		                                       : "The system sets the speed, as for its other emulators. If games stutter or "
+		                                         "the sound breaks up, try Set to Max.")
 		                       : "This is v" GBADS_VERSION ". Look for a new version, and download and install it.";
 		/* a message from switching a row (settings_activate): in place of
 		 * its text, where there's room for it */
@@ -1659,7 +1670,11 @@ static void settings_activate(Config* cfg, int row) {
 	else if (rowKind[row] == ROW_HOTKEYS) hotkeys_run(cfg);
 	else if (rowKind[row] == ROW_STATES) states_switch(cfg);
 	else if (rowKind[row] == ROW_STATES_DIR) states_dir_pick(cfg);
-	else mapper_run(cfg);
+	else if (rowKind[row] == ROW_PERF) {
+		cfg->perfMax = !cfg->perfMax;
+		clocks_set(cfg->perfMax);
+		prefs_save(cfg);
+	} else mapper_run(cfg);
 }
 
 static bool settings_poll(Config* cfg) {
