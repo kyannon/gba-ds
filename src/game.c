@@ -4758,6 +4758,24 @@ static bool tall_line(uint32_t* dst, int row, const TallSrc* src, int n) {
 	if (!tallKeep) for (int x = 0; x < GBA_W; ++x) dst[x] = 0xFF000000;
 	return false;
 }
+/* Whether the game's BG0 has a pixel at screen (x, y) above the score bar
+ * (its map from the profile's msg.map, row0 being the map row of screen row
+ * 0; no horizontal scroll): the catch timer's digits. PP-10: the banner
+ * boxes take only what isn't BG0's, so a banner flying across the timer
+ * doesn't carry part of it to the bottom screen. */
+static bool tall_bg0_pixel(uint32_t map, int row0, int x, int y) {
+	uint16_t cnt = emu_io16(&emu, 0x08);
+	uint32_t chr = 0x06000000 + ((cnt >> 2) & 3) * 0x4000;
+	uint16_t e = emu_read16(&emu, map + (((row0 + (y >> 3)) & 31) * 32 + (x >> 3)) * 2);
+	int px = x & 7, py = y & 7;
+	if (e & 0x400) px = 7 - px;
+	if (e & 0x800) py = 7 - py;
+	uint32_t t = e & 0x3FF;
+	if (cnt & 0x80) return emu_read8(&emu, chr + t * 64 + py * 8 + px) != 0;
+	uint8_t b = emu_read8(&emu, chr + t * 32 + py * 4 + px / 2);
+	return (px & 1 ? b >> 4 : b & 15) != 0;
+}
+
 static void update_tall(void) {
 	const typeof(tallProf->tall)* t = &tallProf->tall;
 	const typeof(t->live)* L = &t->live;
@@ -4920,6 +4938,7 @@ static void update_tall(void) {
 				for (int y = SDL_max(y0, 0); y < SDL_min(y0 + h, t->hudRow); ++y)
 					for (int x = SDL_max(x0, 0); x < SDL_min(x0 + w, GBA_W); ++x) {
 						if ((hudPx[y * GBA_W + x] & 0xFFFFFF) == clear) continue;
+						if (L->msg.map && tall_bg0_pixel(L->msg.map, L->msg.row0, x, y)) continue; /* (BG0's: the timer) */
 						box[y * GBA_W + x] = 1, anyFixed = true;
 					}
 			}
