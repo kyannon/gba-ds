@@ -3631,7 +3631,9 @@ static void snapshot_hiding_sprites_poke(const SpriteRule* hide, int n, const Sp
 	emu_hide_sprites(&emu, all, na);
 	emu_state_load(&emu, st);
 	if (pokeAt) emu_write16(&emu, pokeAt, pokeV);
-	emu_frame(&emu, 0);
+	/* (a core whose picture is a frame late (armGBA on the 3DS) runs another
+	 * for the first one's picture: the state is put back after either way) */
+	for (int i = 0, n = 1 + emu_frame_lag(&emu); i < n; ++i) emu_frame(&emu, 0);
 	memcpy(out, emu.fb, sizeof(raw));
 	emu_hide_sprites(&emu, nKept ? kept : NULL, nKept);
 	emu_state_load(&emu, st);

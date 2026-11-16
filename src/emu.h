@@ -218,6 +218,9 @@ bool emu_hud_grabbed(void);
 bool emu_hud_fresh(void);
 /* One frame in how many the HUD picture is drawn (1: every frame). */
 int emu_hud_every(void);
+/* How many frames behind the game the core's picture (e->fb) is: armGBA on
+ * the 3DS draws a frame late (1); libmgba 0. */
+int emu_frame_lag(Emu* e);
 /* Work the core can do in a frame's spare time, one piece a call (armGBA on
  * the 3DS: compiling the code an earlier run of the game ran, before the game
  * gets to it); false when there's none. */

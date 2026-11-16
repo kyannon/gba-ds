@@ -40,6 +40,7 @@ typedef struct ArmCore {
 	char* savePath;
 	int saveQuiet;
 	char warmPath[64]; /* (the game itself: its warm list's file) */
+	bool late; /* (drawn on a render thread a frame late) */
 	bool savePending;
 	/* sound not yet read (emu_audio_read): stereo frames in a ring */
 	int16_t* ring;
@@ -810,7 +811,7 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 		 * fourth core beside the hidden copy. Late: each frame is shown one
 		 * frame after it's made, so the game never waits for the drawing; the
 		 * HUD picture, drawn one frame in hooks.secondEvery (6), with it) */
-		if (renderThreadStart(gba, true, emuRenderWorkers == 2)) renderSetHooks(gba, &c->hooks);
+		if (renderThreadStart(gba, true, emuRenderWorkers == 2)) renderSetHooks(gba, &c->hooks), c->late = true;
 		audioThreadStart(gba);
 		warm_load(c, e->romCrc);
 	}
@@ -819,7 +820,8 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	 * 2: on two, each drawing every other line) */
 	/* (GBADS_RENDER_LATE=1: the game itself a frame late, as on the 3DS; its
 	 * hidden copies aren't) */
-	if (getenv("GBADS_RENDER_THREAD") && renderThreadStart(gba, audio && getenv("GBADS_RENDER_LATE") != NULL, atoi(getenv("GBADS_RENDER_THREAD")) == 2)) renderSetHooks(gba, &c->hooks);
+	if (getenv("GBADS_RENDER_THREAD") && renderThreadStart(gba, audio && getenv("GBADS_RENDER_LATE") != NULL, atoi(getenv("GBADS_RENDER_THREAD")) == 2))
+		renderSetHooks(gba, &c->hooks), c->late = audio && getenv("GBADS_RENDER_LATE") != NULL;
 #endif
 
 	e->fb = calloc(GBA_W * GBA_H, sizeof(uint32_t));
@@ -1882,6 +1884,11 @@ void emu_hud_grab(Emu* e, unsigned bgMask, uint32_t* buf) {
 void emu_hud_grab_cnt(Emu* e, uint16_t cnt, uint32_t* buf) {
 	emu_hud_grab(e, 0, buf);
 	split.grabCnt = cnt;
+}
+
+int emu_frame_lag(Emu* e) {
+	ArmCore* c = AC(e);
+	return c && c->late ? 1 : 0;
 }
 
 int emu_hud_every(void) {

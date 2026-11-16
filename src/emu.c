@@ -1333,6 +1333,11 @@ bool emu_idle_step(Emu* e) {
 	return false;
 }
 
+int emu_frame_lag(Emu* e) {
+	(void) e;
+	return 0;
+}
+
 int emu_hud_every(void) {
 	return 1;
 }
