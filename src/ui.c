@@ -1554,6 +1554,8 @@ void ui_clip(int screen, const SDL_Rect* clip) {
 }
 
 static int keyCount[2];
+static bool inKey;
+static void key_covered(int screen, SDL_Rect r);
 void ui_clear(void) {
 	keyCount[0] = keyCount[1] = 0;
 	for (int i = 0; i < nViews; ++i) {
@@ -2071,6 +2073,7 @@ SDL_Rect ui_image_rect(int screen, int w, int h, const char* mode) {
 }
 
 void ui_fill(int screen, SDL_Rect r, SDL_Color c) {
+	if (!inKey) key_covered(screen, r);
 	RECORD(screen, OP_FILL) {
 		o->r = r, o->col = c;
 		return;
@@ -2623,6 +2626,7 @@ static SDL_Texture* disc_texture(int view) {
 }
 
 void ui_fill_round(int screen, SDL_Rect r, SDL_Color c, int radius) {
+	if (!inKey) key_covered(screen, r);
 	RECORD(screen, OP_ROUND) {
 		o->r = r, o->col = c, o->a = radius;
 		return;
@@ -2675,6 +2679,17 @@ SDL_Color ui_key_mid(int state) {
 #define KEYS_MAX 160
 static SDL_Rect keyRects[2][KEYS_MAX];
 
+/* a fill that covers a whole key (a panel over the game list) takes it off the list:
+ * what is drawn on that panel isn't on the key */
+static void key_covered(int screen, SDL_Rect f) {
+	if (!themeLight || screen < 0 || screen > 1) return;
+	for (int i = 0; i < keyCount[screen];) {
+		SDL_Rect k = keyRects[screen][i];
+		if (k.x >= f.x && k.y >= f.y && k.x + k.w <= f.x + f.w && k.y + k.h <= f.y + f.h) keyRects[screen][i] = keyRects[screen][--keyCount[screen]];
+		else ++i;
+	}
+}
+
 /* inside a plain key of the light theme? then light text is turned to ink */
 static SDL_Color key_text_color(int screen, int x, int y, SDL_Color c) {
 	if (!themeLight || screen < 0 || screen > 1) return c;
@@ -2692,6 +2707,8 @@ static SDL_Color key_text_color(int screen, int x, int y, SDL_Color c) {
 }
 
 void ui_key(int screen, SDL_Rect r, int radius, int state) {
+	key_covered(screen, r); /* (a key over keys, as the pause menu over the list) */
+	inKey = true;
 	int lift = SDL_max(2, SDL_min(r.h / 14, 5));
 	SDL_Color border, rim, hi, lo, edge;
 	if (state == KEY_SEL) {
@@ -2723,6 +2740,7 @@ void ui_key(int screen, SDL_Rect r, int radius, int state) {
 		SDL_Color m = { (lo.r * (6 - i) + hi.r * i) / 6, (lo.g * (6 - i) + hi.g * i) / 6, (lo.b * (6 - i) + hi.b * i) / 6, 255 };
 		ui_fill_round(screen, (SDL_Rect) { bx, by, bw, bh * (7 - i) * 11 / 100 + 1 }, m, SDL_max(1, radius - in - 1));
 	}
+	inKey = false;
 	if (state == KEY_PLAIN && screen >= 0 && screen <= 1 && keyCount[screen] < KEYS_MAX && themeLight)
 		keyRects[screen][keyCount[screen]++] = r;
 }
