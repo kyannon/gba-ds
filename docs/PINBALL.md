@@ -178,6 +178,17 @@ down (the whole lower table on the two screens).
 | Raster effects | only BG0HOFS/VOFS at line 144 (VCount IRQ, DISPSTAT `0x9029`) for the score bar. DMA1/2 are the sound FIFOs |
 | Sprites | each object writes its own shadow-OAM entries (220 references to `0x03005000` in the ROM). Objects far off the screen are left out, with a margin |
 
+### Japanese release (BPPJ)
+
+CRC32 `0x8af1ec73`. The EWRAM layout under `S` and `gMain` (`0x0200B0C0`), shadow OAM (`0x03005000`), BG1–3 VOFS shadows (`0x0200B3AE`, `0x0200B3B2`, `0x0200B3B6`), BG3 table tiles (`0x0200FBB0`, `0x020030A0`), and `plus16` (`0x03007ED8`) match `BPPE`; only the EWRAM `.bss` pointers and ROM camera-store addresses shift:
+
+| What | Where / value (BPPJ) | BPPE |
+|---|---|---|
+| State pointer | `0x02030440` | `0x020314E0` |
+| Camera target limits (`bound`) | `0x02030498` (`0x02030480 + 0x18`) | `0x02031538` |
+| Camera stores, main routine | `0x0804B896` (`str`), `0x0804B8A6` (`strh` row) | `0x0804DCFA`, `0x0804DD0A` |
+| Camera stores, catch-mode routine | `0x0804B5E8` (`str`), `0x0804B5F8` (`strh` row) | `0x0804DA54`, `0x0804DA64` |
+
 ## Reaching events (tools/pinball_events.py)
 
 The game's events and bonus stages can be reached without playing, by
