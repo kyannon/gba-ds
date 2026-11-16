@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| Releases | `BPPE` USA · `BPPJ` Japan |
-| Dumps | `BPPE` cartridge `b992a3c0` (tested) · `BPPJ` cartridge `8af1ec73`, Rev 1 `925a5684` |
+| Releases | `BPPE` USA · `BPPP` Europe (English, French, German, Spanish, Italian) · `BPPJ` Japan |
+| Dumps | `BPPE` cartridge `b992a3c0` (tested) · `BPPP` cartridge `a53ac14b` (tested) · `BPPJ` cartridge `8af1ec73` (tested), Rev 1 `925a5684` (tested) |
 | Profile | `src/profiles.c`: the `BPPE` entry (logo-only, with `tall`: the table over both screens, game.c `update_tall`); `BPPJ` is a `variants[]` row of it (`pp_jpn`: the state pointer, its limit and the four camera stores) |
 | Tests | `tests/regress/pokemon-pinball.json` (`tools/regress.py pokemon-pinball`) |
 | Status | supported |
@@ -42,7 +42,9 @@ Unlike the other games, both screens show the table itself, live: two more copie
 
 **PP-13. Events.** The egg hatch (the hatched Pokémon wandering, then caught), an evolution (the EVOLUTION banners, the evolved Pokémon shown), Travel (its confirmation and the travel scene) and Jirachi's catch mode (Jirachi flying about, then caught) play on both screens like the rest of the table (PP-1), in step (PP-9); when the game dims its screen for them, PP-11. (Their test states are built by `tools/pinball_events.py`, which steers the game there through its own code: docs/PINBALL.md.)
 
-**PP-14. The Japanese release.** Pokémon Pinball: Ruby & Sapphire in Japan (`BPPJ`, the original cartridge dump) plays as the USA release does: PP-1 to PP-13 hold for it, the table over both screens, the score bar, the logo on the title and menus, and the bonus stages on one screen. Only where the game keeps its state and where its code moves the camera differ (docs/PINBALL.md, "Japanese release"). Its Rev 1, the other Japanese dump, isn't tested: if its camera code isn't where the profile expects it, the game plays on one screen with the logo on the other, as with `pinball_live = 0`, rather than with a broken second screen. (Added for pull request #58, from shigehirom, who checked the original on a device; the cases for it wait for the ROM in the fixtures.)
+**PP-14. The Japanese release.** Pokémon Pinball: Ruby & Sapphire in Japan (`BPPJ`: the original cartridge and its Rev 1) plays as the USA release does: PP-1 to PP-13 hold for it, the table over both screens, the score bar, the logo on the title and menus (the katakana one), and the bonus stages on one screen. Only where the game keeps its state and where its code moves the camera differ (docs/PINBALL.md, "Japanese release"; Rev 1's code sits elsewhere again, its RAM is the original's). If a ROM's camera code isn't where the profile expects it (a hack, say), the game plays on one screen with the logo on the other, as with `pinball_live = 0`, rather than with a broken second screen. (Added for pull request #58, from shigehiro, who found the original's addresses and checked it on a device.)
+
+**PP-15. The European release.** Pokémon Pinball: Ruby & Sapphire in Europe (`BPPP`, English, French, German, Spanish, Italian) plays as the USA release does: PP-1 to PP-13 hold, in whichever language is chosen. Its state, camera code, scroll copies and one table pointer are at their own places (docs/PINBALL.md, "European release"; the tests run it in English).
 
 ## Exceptions
 
@@ -51,11 +53,13 @@ PP-1 (the table over both screens, live, from two more copies of the game) is an
 
 ## Not covered yet
 
-PP-14 has no case yet: the Japanese ROM (`roms/BPPJ.zip`) and states for its title, a table at the top and bottom, a catch mode and the pause are not in the fixtures. Nothing else the owner wants changed. Events (evolution, hatching, the bonus-stage entrances) were checked on the device for v1.4.2. The catch animation's outline (the Pokémon flashing red as it's caught) shows on your game's screen but not always on a copy's (cosmetic). The game always runs with the frame buffer on (Settings' Frame Buffer is shown as always on here): without it the device doesn't reach full speed.
+Nothing the owner wants changed. Events (evolution, hatching, the bonus-stage entrances) were checked on the device for v1.4.2 (USA). The catch animation's outline (the Pokémon flashing red as it's caught) shows on your game's screen but not always on a copy's (cosmetic). The game always runs with the frame buffer on (Settings' Frame Buffer is shown as always on here): without it the device doesn't reach full speed.
+
+The Japanese and European releases are tested with states made from the ROMs alone (`tools/pinball_events.py`: the title, field select, the tables at the top and bottom, pause, the start of catch mode, the events and the bonus stages; Rev 1 with a smaller set). The USA's owner-saved moments have no twins yet there: the Wailmer spitting the ball out, the portrait's reveal, the catch loop, the ball saver's banner and the long seam run (PP-9, PP-10, PP-11 on those releases). Their rules are the same code; a player's report would say if one differed. Not checked on a device: PP-14 and PP-15 (by the owner, if the games are to hand).
 
 ## For the merge
 
-- Changelog line (under the open version): "Pokémon Pinball: Ruby & Sapphire works on the Japanese release too (the original cartridge dump), with the table over both screens like the USA one. Thanks to shigehiro, who found where its camera is. Its Rev 1 isn't tested: if its code differs, it plays on one screen with the logo on the other."
-- Wiki, Supported games (table row): codes `BPPE` `BPPJ`; the section's text unchanged, plus "The Japanese release's Rev 1 isn't tested."
+- Changelog line (under the open version): "Pokémon Pinball: Ruby & Sapphire works on the Japanese releases (the original and Rev 1) and the European one too, with the table over both screens like the USA one. Thanks to shigehiro, who found where the Japanese game's camera is."
+- Wiki, Supported games (table row): codes `BPPE` `BPPP` `BPPJ`; the section's text unchanged.
 - README: the game count doesn't change (no new game).
-- Needs `roms/BPPJ.zip` and its states in gba-ds-tests, the cases `pp-jp-*` (the USA cases' twins), then `tools/make_dumps.py` again (marks the dump tested).
+- `tools/make_dumps.py` has been run (the three fixtures' dumps are marked tested).

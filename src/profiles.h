@@ -187,6 +187,9 @@ typedef struct MapProfile {
 			uint32_t state;
 			uint16_t cam, camRow;
 			uint32_t nop[4];
+			/* another dump of the release whose code sits elsewhere (by CRC32):
+			 * its camera stores in place of nop's (Pokémon Pinball's Japanese Rev 1) */
+			struct { uint32_t crc; uint32_t nop[4]; } rev;
 			uint32_t bound;
 			uint16_t boundFrom;
 			uint16_t ball;
@@ -212,7 +215,9 @@ typedef struct MapProfile {
 			 * from it to it + slots - 1 are in the ring); scroll: S offsets,
 			 * scrollAt: addresses, of copies of the scroll's row (0: none);
 			 * scrollVofs: the BGs whose VOFS registers it is; plus16: an
-			 * address holding the row + 16 */
+			 * address whose low half holds the row + 16 (plus16Base added: the
+			 * low half of the table pointer there, in Pokémon Pinball's European
+			 * ROM, where the table isn't at the USA one's address) */
 			struct {
 				uint32_t ring;
 				int slots, slotOff;
@@ -223,6 +228,7 @@ typedef struct MapProfile {
 				uint32_t scrollAt[3];
 				unsigned scrollVofs;
 				uint32_t plus16;
+				uint16_t plus16Base;
 			} jump;
 			/* Instead of state/cam/jump (Sonic Pinball Party): the camera is a
 			 * row at `cam` (absolute; view = its row - camOff + the shake, a
