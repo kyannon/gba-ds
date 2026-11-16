@@ -58,6 +58,14 @@ static double thread_cpu_ms(void) {
 #endif
 	return t.tv_sec * 1000.0 + t.tv_nsec / 1e6;
 }
+/* CLOCK_MONOTONIC in seconds: the time the kernel log and the journal's
+ * monotonic stamps use, so a stall can be matched with what the system did
+ * (launch.sh logs both on ROCKNIX) */
+static double mono_seconds(void) {
+	struct timespec t;
+	if (clock_gettime(CLOCK_MONOTONIC, &t) != 0) return 0;
+	return t.tv_sec + t.tv_nsec / 1e9;
+}
 static int cpu_mhz(int cpu) {
 #ifdef __linux__
 	if (cpu < 0) return 0;
@@ -1087,10 +1095,12 @@ typedef struct {
 	long preempt;      /* its involuntary switches at the top */
 	int queueMs;       /* the sound queue at the top */
 	unsigned long long frame;
+	int kept;          /* frames the keeper ran during the present */
 	bool valid;
 } LoopMarks;
 static LoopMarks loopCur;
 static int stallCount, stallLogged;
+static unsigned keptTotal; /* frames the keeper ran (the 5 s report) */
 static double stallWorst;
 
 static void slow_frame_note(SlowFrame f) {
@@ -6436,6 +6446,157 @@ static int game_screen(void) {
 static double frameSec = 1.0 / GBA_FPS;
 static double pacedHz;    /* the display's rate when matched, else 0 */
 static double audioSpeed = 1.0; /* emulated time per real time */
+
+/* ---- Keeping the game and its sound going while a frame's present is held
+ * up (issue #50). On one player's RG DS Plus (ROCKNIX, a second SD card),
+ * presenting a frame stalled for half a second every few seconds: the
+ * graphics driver waiting for sway to give a buffer back. Nothing in GBA DS
+ * can make the screen take the frame sooner, but the emulator isn't needed
+ * for presenting: once a present has taken 1.5 frames, this thread runs the
+ * game's frames on time with the last keys held (run_frame, as the frame
+ * buffer's worker does, so the bug log keeps every frame's keys) and hands
+ * their sound over, until the present returns. The picture freezes for the
+ * stall and then carries on from where the game is; the sound doesn't
+ * break and the game doesn't fall behind. Not run: RetroAchievements'
+ * frame check (main thread only), the rewind buffer's states, the map's
+ * room checks; those carry on with the next frame. keep_sound = 0: off. */
+#ifndef __wasi__
+static struct {
+	pthread_t thread;
+	pthread_mutex_t lock;
+	pthread_cond_t cond;
+	bool started, quit, armed, running;
+	Uint64 armedAt;
+	uint32_t keys;
+	int ran;      /* frames run while armed */
+	int ahead;    /* frames already emulated ahead when armed (the frame buffer's) */
+	double ms;    /* how long the present took, as the keeper saw it */
+	SDL_AudioDeviceID audio;
+	int outRate, maxQueued;
+	SDL_AudioStream* conv;
+	int convFrom;
+} keeper = { .lock = PTHREAD_MUTEX_INITIALIZER, .cond = PTHREAD_COND_INITIALIZER };
+
+/* the frames' sound, converted as the main loop does (not fast-forwarding,
+ * not matched: none of its other adjustments apply) */
+static void keeper_audio(void) {
+	static int16_t in[4096 * 2], out[8192 * 2];
+	size_t got;
+	while ((got = emu_audio_read(&emu, in, 4096)) > 0) {
+		if (!keeper.audio) continue;
+		if ((int) (SDL_GetQueuedAudioSize(keeper.audio) / 4) > keeper.maxQueued) continue;
+		int rate = (int) lround(emu_audio_rate(&emu) * audioSpeed);
+		if (rate != keeper.convFrom || !keeper.conv) {
+			if (keeper.conv) SDL_FreeAudioStream(keeper.conv);
+			keeper.conv = SDL_NewAudioStream(AUDIO_S16SYS, 2, rate, AUDIO_S16SYS, 2, keeper.outRate);
+			keeper.convFrom = rate;
+		}
+		if (!keeper.conv) continue;
+		SDL_AudioStreamPut(keeper.conv, in, (int) got * 4);
+		int bytes;
+		while ((bytes = SDL_AudioStreamGet(keeper.conv, out, sizeof(out))) > 0) {
+			int vol = ui_volume();
+			if (vol < 100) {
+				int gain = vol * vol * 65536 / 10000;
+				for (int k = 0; k < bytes / 2; ++k) out[k] = (int16_t) (out[k] * gain >> 16);
+			}
+			SDL_QueueAudio(keeper.audio, out, bytes);
+		}
+	}
+}
+
+static void* keeper_worker(void* arg) {
+	(void) arg;
+	const double freq = (double) SDL_GetPerformanceFrequency();
+	pthread_mutex_lock(&keeper.lock);
+	for (;;) {
+		while (!keeper.armed && !keeper.quit) pthread_cond_wait(&keeper.cond, &keeper.lock);
+		if (keeper.quit) break;
+		Uint64 t0 = keeper.armedAt;
+		int n = 0;
+		while (keeper.armed && !keeper.quit) {
+			/* the first frame once the present has taken 1.5 frames (one more if the
+			 * frame buffer's worker already ran the next), then one a frame */
+			double due = (1.5 + keeper.ahead + n) * frameSec, now = (double) (SDL_GetPerformanceCounter() - t0) / freq;
+			if (now < due) {
+				struct timespec ts;
+				clock_gettime(CLOCK_REALTIME, &ts);
+				long ns = (long) ((due - now) * 1e9);
+				ts.tv_sec += (ts.tv_nsec + ns) / 1000000000L;
+				ts.tv_nsec = (ts.tv_nsec + ns) % 1000000000L;
+				pthread_cond_timedwait(&keeper.cond, &keeper.lock, &ts);
+				continue;
+			}
+			keeper.running = true;
+			uint32_t keys = keeper.keys;
+			pthread_mutex_unlock(&keeper.lock);
+			/* (a frame the frame buffer's worker is running comes first) */
+			pthread_mutex_lock(&ahead.lock);
+			while (ahead.busy) pthread_cond_wait(&ahead.cond, &ahead.lock);
+			pthread_mutex_unlock(&ahead.lock);
+			run_frame(keys);
+			keeper_audio();
+			pthread_mutex_lock(&keeper.lock);
+			keeper.running = false;
+			++keeper.ran;
+			++n;
+			pthread_cond_broadcast(&keeper.cond);
+		}
+	}
+	pthread_mutex_unlock(&keeper.lock);
+	return NULL;
+}
+
+/* Before a present: the keeper may run frames until keeper_disarm. */
+static void keeper_arm(uint32_t keys, SDL_AudioDeviceID audio, int outRate, int maxQueued, int ahead) {
+	pthread_mutex_lock(&keeper.lock);
+	if (!keeper.started) {
+		keeper.quit = false;
+		keeper.started = pthread_create(&keeper.thread, NULL, keeper_worker, NULL) == 0;
+	}
+	if (keeper.started) {
+		keeper.keys = keys;
+		keeper.audio = audio, keeper.outRate = outRate, keeper.maxQueued = maxQueued;
+		keeper.armedAt = SDL_GetPerformanceCounter();
+		keeper.ran = 0;
+		keeper.ahead = ahead;
+		keeper.armed = true;
+		pthread_cond_broadcast(&keeper.cond);
+	}
+	pthread_mutex_unlock(&keeper.lock);
+}
+
+/* After the present: the emulator is the loop's again; the frames run meanwhile. */
+static int keeper_disarm(void) {
+	pthread_mutex_lock(&keeper.lock);
+	keeper.armed = false;
+	pthread_cond_broadcast(&keeper.cond);
+	while (keeper.running) pthread_cond_wait(&keeper.cond, &keeper.lock);
+	int n = keeper.ran;
+	keeper.ran = 0;
+	pthread_mutex_unlock(&keeper.lock);
+	return n;
+}
+
+static void keeper_stop(void) {
+	pthread_mutex_lock(&keeper.lock);
+	bool started = keeper.started;
+	keeper.armed = false;
+	keeper.quit = true;
+	pthread_cond_broadcast(&keeper.cond);
+	pthread_mutex_unlock(&keeper.lock);
+	if (started) pthread_join(keeper.thread, NULL);
+	keeper.started = false;
+	if (keeper.conv) SDL_FreeAudioStream(keeper.conv);
+	keeper.conv = NULL, keeper.convFrom = 0;
+}
+#else
+static void keeper_arm(uint32_t keys, SDL_AudioDeviceID audio, int outRate, int maxQueued, int ahead) {
+	(void) keys, (void) audio, (void) outRate, (void) maxQueued, (void) ahead;
+}
+static int keeper_disarm(void) { return 0; }
+static void keeper_stop(void) {}
+#endif
 /* Matched, a frame that misses its refresh waits for the next one, and the
  * time is never made up: the game slows down (the GBA's rate catches up
  * after a slow frame). A game that keeps missing (three seconds in a row
@@ -7582,15 +7743,18 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 				if (gap > stallWorst) stallWorst = gap;
 				if (stallLogged < STALL_LINES) {
 					++stallLogged;
+					char keptNote[96] = "";
+					if (p->kept) snprintf(keptNote, sizeof(keptNote), "; the game and its sound went on meanwhile (%d frame(s))", p->kept);
 					fprintf(stderr,
 					        "frame %llu: stall: %.0f ms between frames: waiting for the frame buffer %.1f, input and menu %.1f, emulating %.1f "
 					        "(sound hand-off %.1f), second screen %.1f, drawing %.1f (top screen %.1f, bottom %.1f), after drawing %.1f, "
-					        "sleeping %.1f (of %.1f asked); ran %.1f ms of it, preempted %ld time(s); sound queue %d -> %d ms\n",
+					        "sleeping %.1f (of %.1f asked); ran %.1f ms of it, preempted %ld time(s); sound queue %d -> %d ms; "
+					        "ended at %.3f s on the system clock (as the kernel's and the journal's)%s\n",
 					        p->frame, gap, (double) (p->synced - p->top) * msPer, (double) (p->emu0 - p->synced) * msPer,
 					        (double) (p->emu1 - p->emu0) * msPer, p->audio, (double) (p->draw0 - p->emu1) * msPer,
 					        (double) (p->draw1 - p->draw0) * msPer, p->presentTop, p->presentBottom, (double) (p->sleep0 - p->draw1) * msPer,
 					        (double) (p->end - p->sleep0) * msPer, p->sleepWant * 1000.0, thread_cpu_ms() - p->cpuMs,
-					        thread_preemptions() - p->preempt, p->queueMs, queueMs);
+					        thread_preemptions() - p->preempt, p->queueMs, queueMs, mono_seconds(), p->kept ? keptNote : "");
 				}
 			}
 			loopCur = (LoopMarks) { .top = t, .cpuMs = thread_cpu_ms(), .preempt = thread_preemptions(), .queueMs = queueMs, .frame = (unsigned long long) frameCount };
@@ -8299,7 +8463,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 #ifdef __ANDROID__
 				const bool report = true; /* performance on Android devices is still being measured */
 #else
-				const bool report = underruns || slow || dropped || stallCount || debug;
+				const bool report = underruns || slow || dropped || stallCount || keptTotal || debug;
 #endif
 				if (report) {
 					double ms = 1000.0 / SDL_GetPerformanceFrequency() / n;
@@ -8309,10 +8473,12 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 					        queuedNow * 1000 / want.freq, emuTicks * ms, drawTicks * ms, thread_preemptions() - preemptT0);
 					if (stallCount) fprintf(stderr, "; %d stall(s) over %d ms, the longest %.0f ms", stallCount, STALL_MS, stallWorst);
 					if (dropped) fprintf(stderr, "; sound thrown away on %d frame(s) (queue too long)", dropped);
+					if (keptTotal) fprintf(stderr, "; %u frame(s) run while the screen held a frame up", keptTotal);
 					fputc('\n', stderr);
 				}
 				underruns = slow = captureBusy = dropped = n = 0;
 				stallCount = stallLogged = 0, stallWorst = 0;
+				keptTotal = 0;
 				preemptT0 = thread_preemptions();
 				emuTicks = drawTicks = 0;
 			}
@@ -8609,7 +8775,22 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 			draw_rewind();
 			draw_hint(); /* (under the bar, as it comes up) */
 			draw_bar();
+			/* (the keeper: the game and its sound go on if this is held up; not
+			 * for tests, whose frames are counted exactly) */
+			const bool keep = cfg->keepSound && audio && !ff && !rewinding && !noPace && !ui_scripted();
+			if (keep) keeper_arm(keys, audio, want.freq, targetQueued * 3, aheadInFlight ? 1 : 0);
 			ui_present();
+			if (keep) {
+				int kept = keeper_disarm();
+				if (kept) {
+					/* those frames are the game's time since: the next one is
+					 * due a frame after the last of them */
+					next += kept * (pacedHz > 0 ? frameSec / 1.005 : frameSec);
+					frameCount += (unsigned) kept;
+					loopCur.kept = kept;
+					keptTotal += kept;
+				}
+			}
 		}
 		Uint64 drawT1 = SDL_GetPerformanceCounter();
 		drawTicks += drawT1 - drawT0;
@@ -8709,6 +8890,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 		loopCur.end = SDL_GetPerformanceCounter();
 	}
 
+	keeper_stop();
 	ahead_stop(); /* before anything else touches the core */
 	ui_on_background(NULL);
 	ui_on_foreground(NULL);

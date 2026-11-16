@@ -46,6 +46,7 @@ void config_defaults(Config* c) {
 	c->mapInterval = 60;
 	c->sway = true;
 	c->audioLatency = 64;
+	c->keepSound = true;
 	c->ffSpeed = 3;
 	c->fastForward = true;
 	c->pinCores = false; /* tried on the RG DS Plus: no better (docs/ANDROID.md) */
@@ -153,6 +154,7 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	}
 	BOOL("match_display", matchDisplay)
 	BOOL("rewind", rewind)
+	BOOL("keep_sound", keepSound)
 	INT("rewind_seconds", rewindSeconds)
 	INT("map_interval", mapInterval)
 	BOOL("ab_swap", abSwap)
@@ -193,6 +195,8 @@ static bool set_option(Config* c, const char* key, const char* val) {
 		c->perfMax = !strcmp(val, "max");
 		return true;
 	}
+	if (!strcmp(key, "pause_services")) return true; /* (read by launch.sh on ROCKNIX: services in the way stopped for the run) */
+	if (!strcmp(key, "watch_system")) return true; /* (read by launch.sh on ROCKNIX: kernel, journal and sway events in the log) */
 	if (!strcmp(key, "cpu_performance")) return true; /* (v1.5.3, launch.sh's: always on unless 0; now performance, off by default) */
 	if (!strcmp(key, "data_dir_now")) return true; /* (data-folder.cfg: where the data is, written by the app) */
 	STR("touch_screen", touchScreen)

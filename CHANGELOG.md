@@ -3,9 +3,12 @@
 ## v1.5.4 (not yet released)
 
 ### Changes
+- **ROCKNIX: background services that get in the way are paused while GBA DS runs** (#50): add-ons that keep crashing and restarting, and RetroDualStation's control center (it held the screen up every few seconds on one player's device), are stopped while GBA DS runs and started again when it closes. ROCKNIX's own services are never touched. `gba-ds.log` says what was stopped; `pause_services = 0` in `gba-ds.cfg` turns it off.
+- **ROCKNIX: the log also says what the system did while you played** (#50): kernel messages, system services and the screens' events, on the same clock as GBA DS's notes on pauses, so a pause can be matched with its cause. `watch_system = 0` in `gba-ds.cfg` leaves them out.
 - **Baldur's Gate: Dark Alliance's logo is the lettering alone**: the second screen used to show the title's lettering on a box of the parchment map behind it. Now it shows only the lettering, Forgotten Realms on its plaque, Baldur's Gate and Dark Alliance with its red crescent, cut out along the shape of the game's logo artwork. The ™ marks are left out. The logo is made again the first time you start the game after updating.
 
 ### Fixes
+- **The sound no longer breaks up when the system holds the screen up** (#50): on some setups the display stops taking frames for a moment every few seconds. The game and its sound now carry on meanwhile, and the picture catches up. `keep_sound = 0` in `gba-ds.cfg` goes back to the old way.
 - **Pokémon Pinball: the catch timer is no longer cut off by BALL SAVE**: when BALL SAVE came up during Catch 'Em mode, Latios flying across the top right could take part of the timer with it onto the bottom screen. The timer now stays whole on the top screen.
 - **Lady Sia: no more flickering scenery, and no platform on the second screen** (thanks to the player who reported it): GBA DS keeps the game's lives, gems, ring and heart off the game screen, and parts of a level that passed where they go could vanish for a moment too, such as the well in the first village and the columns of rock in the caves. They now stay. The second screen's status picture could also show a floating platform from the caves over the ring, which the game leaves under its own pause screen; the picture now has only the pause screen's own pieces.
 
