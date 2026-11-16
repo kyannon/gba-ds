@@ -2687,7 +2687,7 @@ static SDL_Color key_text_color(int screen, int x, int y, SDL_Color c) {
 	int lum = (c.r + c.g + c.b) / 3;
 	if (c.r > 190 && c.g > 140 && c.b < 150 && c.r - c.b > 70) return (SDL_Color) { 122, 82, 0, c.a }; /* gold */
 	if (lum >= 170) return (SDL_Color) { 69, 71, 90, c.a };
-	if (lum >= 70) return (SDL_Color) { 108, 110, 128, c.a };
+	if (lum >= 90) return (SDL_Color) { 108, 110, 128, c.a }; /* (the ink itself, at 77, stays) */
 	return c;
 }
 

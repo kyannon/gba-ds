@@ -2376,6 +2376,16 @@ static int battery_percent(void) {
 	return pct;
 }
 
+/* "Paused" in the middle of the other screen, on a key */
+static void draw_paused_label(int o) {
+	float px = ui_px(o) + 1;
+	int cap = px * 7 * 34 / 35, tw = ui_font_width(TF_BOLD, cap, "Paused"), padX = px * 10, h = cap * 2 + px * 8;
+	SDL_Rect r = screens[o].rect;
+	SDL_Rect k = { (r.w - tw) / 2 - padX, (r.h - h) / 2, tw + padX * 2, h };
+	ui_key(o, k, px * 4, KEY_PLAIN);
+	ui_label(o, r.w / 2, r.h / 2, cap, "Paused", C_GOLD);
+}
+
 /* Status text on the top (first) screen while paused, with a drop shadow:
  * align -1 at the top left, 1 at the top right. */
 static void draw_status(const char* text, int align) {
@@ -2383,8 +2393,10 @@ static void draw_status(const char* text, int align) {
 	float px = ui_px(s);
 	int cap = px * 5;
 	int x = align < 0 ? (int) (px * 5) : screens[s].rect.w - (int) (px * 5), cy = px * 7;
-	int sh = SDL_max(1, (int) (px / 2));
-	ui_font_text(s, TF_BOLD, x + sh, cy + sh, cap, text, (SDL_Color) { 0, 0, 0, 255 }, align);
+	/* on a key, so it shows over the game's picture (dark or light, as the menus) */
+	int tw = ui_font_width(TF_BOLD, cap, text), padX = px * 4, h = cap * 2 + px * 3;
+	SDL_Rect k = { align < 0 ? x - padX : x - tw - padX, cy - h / 2, tw + padX * 2, h };
+	ui_key(s, k, px * 3, KEY_PLAIN);
 	ui_font_text(s, TF_BOLD, x, cy, cap, text, C_TEXT, align);
 }
 
@@ -2718,10 +2730,9 @@ static void draw_rewind(void) {
 	int w = padX + iw + gap + tw + padX, h = SDL_max(cap, ih) + padY * 2;
 	SDL_Rect r = screens[s].rect;
 	SDL_Rect b = { (r.w - w) / 2, (r.h - h) / 2, w, h };
-	SDL_Color bg = G_BG, edge = G_EDGE, fg = G_TEXT;
-	bg.a = (Uint8) (bg.a * rewindShown), edge.a = (Uint8) (edge.a * rewindShown), fg.a = (Uint8) (fg.a * rewindShown);
-	ui_fill_round(s, (SDL_Rect) { b.x - 1, b.y - 1, b.w + 2, b.h + 2 }, edge, px * 4 + 1);
-	ui_fill_round(s, b, bg, px * 4);
+	if (rewindShown < 0.35f) return; /* (a key doesn't fade: it goes) */
+	SDL_Color fg = ui_key_ink();
+	ui_key(s, b, px * 4, KEY_PLAIN);
 	/* the sign: two triangles side by side, pointing left (rewind) or right (fast-forward) */
 	int ix = b.x + padX, cy = b.y + b.h / 2, half = ih / 2, tri = iw / 2;
 	for (int t = 0; t < 2; ++t) {
@@ -3586,7 +3597,7 @@ static void draw_menu(void) {
 		ra_list_draw(scr, ach_area(scr));
 		if (nScreens > 1) {
 			int o = ui_other_screen();
-			ui_label(o, screens[o].rect.w / 2, screens[o].rect.h / 2, (ui_px(o) + 1) * 7 * 34 / 35, "Paused", C_GOLD);
+			draw_paused_label(o);
 		}
 		return;
 	}
@@ -3594,7 +3605,7 @@ static void draw_menu(void) {
 		draw_note(scr);
 		if (nScreens > 1) {
 			int o = ui_other_screen();
-			ui_label(o, screens[o].rect.w / 2, screens[o].rect.h / 2, (ui_px(o) + 1) * 7 * 34 / 35, "Paused", C_GOLD);
+			draw_paused_label(o);
 		}
 		return;
 	}
@@ -3602,7 +3613,7 @@ static void draw_menu(void) {
 		draw_patches(scr);
 		if (nScreens > 1) {
 			int o = ui_other_screen();
-			ui_label(o, screens[o].rect.w / 2, screens[o].rect.h / 2, (ui_px(o) + 1) * 7 * 34 / 35, "Paused", C_GOLD);
+			draw_paused_label(o);
 		}
 		return;
 	}
@@ -3616,7 +3627,7 @@ static void draw_menu(void) {
 		draw_cheats(scr);
 		if (nScreens > 1) {
 			int o = ui_other_screen();
-			ui_label(o, screens[o].rect.w / 2, screens[o].rect.h / 2, (ui_px(o) + 1) * 7 * 34 / 35, "Paused", C_GOLD);
+			draw_paused_label(o);
 		}
 		return;
 	}
@@ -3647,7 +3658,7 @@ static void draw_menu(void) {
 		draw_rows_page(scr, &mg);
 		if (nScreens > 1) {
 			int o = ui_other_screen();
-			ui_label(o, screens[o].rect.w / 2, screens[o].rect.h / 2, (ui_px(o) + 1) * 7 * 34 / 35, "Paused", C_GOLD);
+			draw_paused_label(o);
 		}
 		return;
 	}
@@ -3706,7 +3717,7 @@ static void draw_menu(void) {
 	}
 	if (nScreens > 1) {
 		int o = ui_other_screen();
-		ui_label(o, screens[o].rect.w / 2, screens[o].rect.h / 2, (ui_px(o) + 1) * 7 * 34 / 35, "Paused", C_GOLD);
+		draw_paused_label(o);
 	}
 }
 
