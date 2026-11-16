@@ -1,79 +1,39 @@
-wait 240
-mash START 3 60
-mash A 4 60
+# New game from power-on: START to the naming screen, START + A to confirm Felix's name, "Transfer data from Golden Sun?" answered No (RIGHT, A),
+# then the opening story and the Sol Sanctum scene by mashing A (about 960 presses; ~23000 frames) until Jenna can be walked about.
+# Worked out with the harness. Afterwards: B closes any menu A opened, then the field with the second screen's Status (GS2-1/2).
 wait 300
-mash A 3 60
+press START 4
 wait 60
-press DOWN 6
-press DOWN 6
-press DOWN 6
-press DOWN 6
-press RIGHT 6
-press RIGHT 6
-press RIGHT 6
-press RIGHT 6
-press RIGHT 6
-press A 6
+press START 4
+wait 100
+press START 4
+wait 100
+press A 4
 wait 120
-mash A 40 90
-wait 300
-shot intro
-press SELECT 6
-wait 60
-shot menu
-press A 6
-wait 60
-shot status
-press SELECT 6
-wait 60
-hold RIGHT 200
-wait 60
-shot walk
-press HOME+R 6
-hold DOWN 120
-press HOME+L 6
-wait 10
-shot loaded
-press HOME 6
+press RIGHT 4
 wait 30
-press HOME 6
-wait 30
-press HOME+Y 6
-wait 20
-shot swapped
-press HOME+Y 6
-wait 20
-shot back
-# added by the 3DS check: still at the name screen; finish the name, then go on through the opening
-press START 6
-wait 120
-press A 6
-wait 300
-mash A 60 60
-wait 600
-mash START 6 60
-mash A 60 60
-wait 600
-mash A 80 60
-wait 600
-shot p-later
-mash A 80 60
-mash START 6 60
-wait 600
-shot q-later2
-# added by the 3DS check (try 3): the menu's option chosen above was the password screen; back out and pick a new game
-mash B 12 60
+press A 4
+wait 100
+mash A 192 30
+mash A 192 30
+mash A 160 30
+shot story
+mash A 320 14
+mash A 55 14
+wait 100
+shot field0
+mash B 4 40
 wait 200
-mash START 4 90
-wait 200
-mash A 20 90
+shot field1
 wait 400
-mash A 40 90
-wait 600
-mash A 60 60
-wait 600
-shot r-newgame
-mash A 60 60
-mash START 6 60
-wait 600
-shot s-newgame2
+shot field2
+hold RIGHT 40
+wait 300
+shot walk
+press SELECT 4
+wait 100
+shot menu
+press B 4
+wait 100
+wait 400
+shot field3

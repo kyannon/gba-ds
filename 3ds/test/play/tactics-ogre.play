@@ -1,34 +1,79 @@
-wait 300
-mash START 3 60
-mash A 30 60
-wait 300
-shot a-title
-mash A 60 40
-wait 300
-shot b-intro
-mash A 60 40
-wait 300
-shot c-after
-press START 6
-wait 90
-shot d-menu
-press B 6
+# New game from power-on: title, name and birthday (START/A x8), the Six Fates questions, the intro and the story scenes (~600 A presses at 30 frames), then the first battle on the ship:
+# the unit details (TO-8) show on the second screen from shot b6 on (b1-b5: field, move range). Not reached: the world map, R menu, an empty square (TO-9).
+wait 400
+wait 400
+press START 4
+wait 30
+press A 4
 wait 60
-press HOME+R 6
+press START 4
 wait 30
-hold RIGHT 90
-shot hk-moved
-press HOME+L 6
+press A 4
 wait 60
-shot hk-loaded
-press HOME 6
+press START 4
 wait 30
-shot hk-menu
-press HOME 6
+press A 4
+wait 60
+press START 4
 wait 30
-press HOME+Y 6
-wait 20
-shot hk-swapped
-press HOME+Y 6
-wait 20
-shot hk-back
+press A 4
+wait 60
+press START 4
+wait 30
+press A 4
+wait 60
+press START 4
+wait 30
+press A 4
+wait 60
+press START 4
+wait 30
+press A 4
+wait 60
+press START 4
+wait 30
+press A 4
+wait 60
+mash A 400 30
+shot story1
+mash A 150 30
+shot story2
+mash A 40 30
+wait 100
+shot scene0
+mash A 20 30
+wait 100
+shot scene1
+mash A 20 30
+wait 100
+shot scene2
+mash A 6 30
+wait 100
+shot b0
+mash A 6 30
+wait 100
+shot b1
+mash A 6 30
+wait 100
+shot b2
+mash A 6 30
+wait 100
+shot b3
+mash A 6 30
+wait 100
+shot b4
+mash A 6 30
+wait 100
+shot b5
+mash A 6 30
+wait 100
+shot b6
+mash A 6 30
+wait 100
+shot b7
+mash A 6 30
+wait 100
+shot b8
+mash A 6 30
+wait 100
+shot b9

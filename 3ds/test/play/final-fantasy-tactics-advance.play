@@ -1,57 +1,66 @@
-# third pass: through the opening into the first battle (if reached), cursor, Status, pause, hotkeys
-wait 240
-mash START 6 40
-mash A 150 40
-shot opening
-mash A 60 40
-shot later
-press START 4
-wait 60
-shot menu
-press B 4
-wait 30
-press HOME 6
-wait 30
-shot homemenu
-press HOME 6
-wait 30
-press HOME+Y 6
-wait 20
-shot swapped
-press HOME+Y 6
-wait 20
-shot back
-# added by the 3DS check: stuck at the name entry; confirm the name and go on through the opening
+# New game from power-on: title, opening scene, name entry (START, LEFT, A = Yes), the snowball-fight tutorial (about 130 A presses), then the first battle: Ritz's menu and her Status (c5-c7 show it).
+# Worked out with the harness: the title needs ~1500 frames before START takes; the opening takes ~104 A presses to the name screen.
+wait 1500
+press START 6
+wait 100
+press START 6
+wait 100
+mash A 104 30
+wait 100
+shot name
 press START 6
 wait 60
+press LEFT 6
+wait 20
 press A 6
-wait 120
-mash A 60 60
-wait 600
-mash A 80 60
-wait 600
-shot p-after-name
-mash A 80 60
-mash START 10 60
-wait 600
-shot q-after2
-mash A 100 50
-wait 300
-shot r-after3
-# added by the 3DS check (try 3): the name screen kept coming back; move to OK and press it, then mash on
-press DOWN 6
-press RIGHT 6
-press RIGHT 6
-press A 6
-wait 200
-press START 6
-wait 200
-mash A 60 60
-wait 600
-mash START 6 60
-mash A 80 60
-wait 900
-shot s-after4
-mash A 100 60
-wait 600
-shot t-after5
+wait 90
+shot after-name
+mash A 30 40
+mash A 6 40
+wait 60
+shot b1
+mash A 6 40
+wait 60
+shot b2
+mash A 6 40
+wait 60
+shot b3
+mash A 6 40
+wait 60
+shot b4
+mash A 6 40
+wait 60
+shot b5
+mash A 6 40
+wait 60
+shot b6
+mash A 6 40
+wait 60
+shot b7
+mash A 6 40
+wait 60
+shot b8
+mash A 8 40
+wait 60
+shot c0
+mash A 8 40
+wait 60
+shot c1
+mash A 8 40
+wait 60
+shot c2
+mash A 8 40
+wait 60
+shot c3
+mash A 8 40
+wait 60
+shot c4
+mash A 8 40
+wait 60
+shot c5
+mash A 8 40
+wait 60
+shot c6
+mash A 8 40
+wait 60
+shot c7
