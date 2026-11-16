@@ -1557,9 +1557,11 @@ void ui_clip(int screen, const SDL_Rect* clip) {
 
 static int keyCount[2];
 static bool inKey;
+static bool dimmed[2]; /* this frame's brightness layer is on (a present without a redraw must not add it again) */
 static void key_layer(int screen, SDL_Rect r, SDL_Color c);
 void ui_clear(void) {
 	keyCount[0] = keyCount[1] = 0;
+	dimmed[0] = dimmed[1] = false;
 	for (int i = 0; i < nViews; ++i) {
 		if (views[i].retained) continue; /* keeps its last picture; see sw_render */
 		SDL_SetRenderDrawColor(views[i].ren, 0, 0, 0, 255);
@@ -1664,6 +1666,15 @@ double ui_display_hz(int view) {
 	return hz;
 }
 
+/* This app's brightness for each screen (issue #56), 20..100: a black layer over
+ * everything at the end of the frame (not in screenshots), never the system's
+ * own brightness. */
+static int brightPct[2] = { 100, 100 };
+void ui_brightness(int top, int bottom) {
+	brightPct[0] = SDL_clamp(top, 20, 100);
+	brightPct[1] = SDL_clamp(bottom, 20, 100);
+}
+
 void ui_present(void) {
 	{
 		/* testing (issue #50): GBADS_TEST_PRESENT_STALL=MS,EVERY holds every
@@ -1679,6 +1690,9 @@ void ui_present(void) {
 	if (pendingShot[0]) {
 		ui_screenshot(pendingShot);
 		pendingShot[0] = 0;
+	}
+	for (int s = 0; s < nScreens && s < 2; ++s) {
+		if (brightPct[s] < 100 && !dimmed[s]) dimmed[s] = true, ui_dim(s, (Uint8) (255 * (100 - brightPct[s]) / 100));
 	}
 #ifdef __ANDROID__
 	static Uint64 handover;

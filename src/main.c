@@ -202,6 +202,7 @@ int main(int argc, char** argv) {
 
 	if (!ui_init(&cfg, true)) return 1;
 	ui_theme(cfg.lightTheme);
+	ui_brightness(cfg.brightTop, cfg.brightBottom);
 	ra_init(&cfg); /* signs in to RetroAchievements in the background */
 	update_init(&cfg, exeDir, argc, argv);
 #ifdef __ANDROID__

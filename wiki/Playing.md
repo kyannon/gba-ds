@@ -2,9 +2,9 @@
 
 GBA DS opens on a game list on the touchscreen (the bottom screen on the RG DS Plus), with the selected game's logo and resume picture on the other screen.
 
-- **Two views:** a list of names (the default) or a two-column grid of the games' logos. Switch with **X** or the button left of **Settings**; GBA DS remembers which you chose.
+- **Two views:** a list of names (the default) or a two-column grid of the games' logos. Switch with **X** or the square button left of the **Supported** / **All** button; GBA DS remembers which you chose.
 - **Names** come from the file names, without tags like `(USA)` or `(En,Fr,De)`. When you have more than one regional copy of a game, a flag tells them apart. `name_tags = 1` in `gba-ds.cfg` keeps the tags.
-- **Which games:** only games with second-screen support are listed (see [[Supported games]]). `show_all = 1` lists every GBA ROM; the others play normally on one screen.
+- **Which games:** the button between the view button and **Settings** says **Supported** (only games with second-screen support, see [[Supported games]]) or **All** (every GBA ROM; the others play normally on one screen). Touch it to switch; GBA DS remembers it (`show_all`).
 - **The other screen** shows the selected game's logo, and the picture where it will resume once you've played it.
 - The list is rebuilt from the ROM folder each time it opens, so games you add or remove show up with nothing to re-run.
 - **First run:** each game's logo is pulled out of the ROM in the background, once. The selected game and the ones on screen go first. Tiles say "Loading thumbnail..." until their logo is ready. You don't have to wait for all of them: if you start a game before its own logo is ready, a "Preparing the game" screen waits for just that one (a few seconds; B goes back). While you play, the rest wait, so the game doesn't start with crackling sound; they carry on when you're back in the game list.
