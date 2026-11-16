@@ -86,6 +86,7 @@ class Run:
         self.shots = {}
         self.log = ""
         self.error = None
+        self.ra_states = None  # a "retroarch" case's stand-in state folder
 
     def screen(self, shot, name):
         img = self.shots[shot]
@@ -230,6 +231,32 @@ def run_app(case, args, workdir):
         os.makedirs(os.path.join(ad, "logos"))
         os.symlink(src, os.path.join(ad, "logos", case["rom"][:4] + os.path.splitext(src)[1]))
         extra.append("--asset_dir=" + ad)
+    # GEN-13: "retroarch" {"cfg": retroarch.cfg's text ("{states}": its state
+    # folder; default: savestate_directory = that folder), "states": {a name in
+    # that folder ("mGBA/AWRE.state3"): a fixture under states/, the last one
+    # listed the newest}}: a stand-in RetroArch, slots shared with it
+    if "retroarch" in case:
+        ra = case["retroarch"]
+        sd = os.path.join(workdir, "retroarch", "states")
+        os.makedirs(sd)
+        cfgfile = os.path.join(workdir, "retroarch", "retroarch.cfg")
+        with open(cfgfile, "w") as f:
+            f.write(ra.get("cfg", 'savestate_directory = "{states}"\n').replace("{states}", sd))
+        names = list(ra.get("states", {}).items())
+        for i, (name, fx) in enumerate(names):
+            src = os.path.join(args.fixtures, "states", fx)
+            if not os.path.exists(src):
+                r.error = "missing state fixture states/%s" % fx
+                return r
+            dst = os.path.join(sd, name)
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            shutil.copy(src, dst)  # (a copy: GBA DS may save over it)
+            # (in order, a minute apart, from noon UTC on Jan 1, 2020: slot
+            # labels show the same date on any machine, in any time zone)
+            t = 1577880000 + 60 * i
+            os.utime(dst, (t, t))
+        r.ra_states = sd
+        extra += ["--retroarch_cfg=" + cfgfile, "--state_folder=retroarch"]
     if case.get("save"):
         sav = os.path.join(args.fixtures, "saves", case["save"])
         if not os.path.exists(sav):
@@ -332,6 +359,16 @@ def check(run, chk):
     if t == "log":
         ok = re.search(chk["match"], run.log, re.M) is not None
         return ok, "log %s /%s/" % ("has" if ok else "lacks", chk["match"])
+    if t in ("file", "no_file"):  # a file in a "retroarch" case's state folder: there, starting with "starts"
+        path = os.path.join(run.ra_states or run.dir, chk["path"])
+        if t == "no_file":
+            return not os.path.exists(path), "%s %s" % (chk["path"], "is there" if os.path.exists(path) else "isn't there")
+        if not os.path.exists(path):
+            return False, "no %s" % chk["path"]
+        want = chk.get("starts", "").encode("latin-1")
+        with open(path, "rb") as f:
+            head = f.read(max(len(want), 8))
+        return head.startswith(want), "%s starts %r" % (chk["path"], head)
     if t == "no_log":
         m = re.search(chk["match"], run.log, re.M)
         return m is None, "log has %r" % m.group(0) if m else "log lacks /%s/" % chk["match"]

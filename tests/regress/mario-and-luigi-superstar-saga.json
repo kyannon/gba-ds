@@ -3424,7 +3424,7 @@
     "mlssplus-v1.5-100.ips",
     "mlssplus-v1.5-100.bps"
    ],
-   "desc": "the pause menu's Extras > Patches with Superstar Saga+ as an IPS and a BPS in the game's folder: both \"Tested romhack\", the IPS selected, then A once: \"Sure?\" and the note to save first",
+   "desc": "the pause menu's Tools > Patches with Superstar Saga+ as an IPS and a BPS in the game's folder: both \"Tested romhack\", the IPS selected, then A once: \"Sure?\" and the note to save first",
    "rules": [
     "GEN-9"
    ],
@@ -3442,27 +3442,11 @@
      "-"
     ],
     [
-     140,
-     "R"
-    ],
-    [
-     144,
-     "-"
-    ],
-    [
      150,
      "DOWN"
     ],
     [
      152,
-     "-"
-    ],
-    [
-     156,
-     "DOWN"
-    ],
-    [
-     158,
      "-"
     ],
     [
@@ -3596,27 +3580,11 @@
      "-"
     ],
     [
-     140,
-     "R"
-    ],
-    [
-     144,
-     "-"
-    ],
-    [
      150,
      "DOWN"
     ],
     [
      152,
-     "-"
-    ],
-    [
-     156,
-     "DOWN"
-    ],
-    [
-     158,
      "-"
     ],
     [
@@ -3736,27 +3704,11 @@
      "-"
     ],
     [
-     140,
-     "R"
-    ],
-    [
-     144,
-     "-"
-    ],
-    [
      150,
      "DOWN"
     ],
     [
      152,
-     "-"
-    ],
-    [
-     156,
-     "DOWN"
-    ],
-    [
-     158,
      "-"
     ],
     [
@@ -3893,27 +3845,11 @@
      "-"
     ],
     [
-     140,
-     "R"
-    ],
-    [
-     144,
-     "-"
-    ],
-    [
      150,
      "DOWN"
     ],
     [
      152,
-     "-"
-    ],
-    [
-     156,
-     "DOWN"
-    ],
-    [
-     158,
      "-"
     ],
     [

@@ -476,13 +476,33 @@ def mvdk_jpn(a):
     return _mvdk_cut(a, 88)
 
 
+def bgd(a):
+    """Baldur's Gate: Dark Alliance (USA, Europe: the same title picture):
+    FORGOTTEN REALMS on its plaque, Baldur's Gate, the red crescent and
+    DARK ALLIANCE, painted into the title's parchment map with soft edges
+    that no colour rule follows. The outline is a stencil,
+    tools/logo_stencils/bgd.png: the owner's full-size logo artwork's
+    silhouette (1312x592, Nov 15, 2026), each part scaled and placed on
+    the title's lettering on its own, as the game draws them a little
+    apart (frame x = tx + sx * artwork x, y = ty + sy * artwork y): the
+    plaque 0.1670 x 0.1667 at 9.92, 7.50 (its box measured: the frame,
+    its outer border and the ornament); Baldur's Gate 0.1641 x 0.1757 at
+    5.61, 4.05; the crescent with DARK 0.1251 x 0.1341 at 35.09, 12.43;
+    ALLIANCE 0.1278 x 0.1369 at 38.51, 11.58 (the last three where their
+    edges best follow the title's). A pixel is in where the artwork
+    covers 30% of it or more, so the letters' dark rims and the
+    crescent's red edge come along; the TMs aren't in the artwork and
+    are left out. Only its outline is used; the pixels are the title's."""
+    return np.asarray(Image.open(os.path.join(ROOT, "tools", "logo_stencils", "bgd.png")).convert("L")) > 127
+
+
 MASKS = (("THPS2", thps2), ("SK8", sk8), ("THPS3", thps3), ("DBZ", dbz),
          ("GS2E", gs2), ("GS2D", gs2_dial), ("GS2F", gs2_dial), ("GS2I", gs2), ("GS2S", gs2_dial),
          ("GS2J", gs2), ("CNK", cnk), ("CNKJ", cnk_jpn),
          ("DBZ2", dbz2), ("DBZ2J", dbz2_jpn), ("BF", bf),
          ("VR3", vr3), ("VR3J", vr3), ("GT3", gt3), ("GT3J", gt3_jpn),
          ("NFO", nfo), ("NFOP", nfo_eur), ("AMW", amw), ("ER", er),
-         ("MVDK", mvdk), ("MVDKJ", mvdk_jpn))
+         ("MVDK", mvdk), ("MVDKJ", mvdk_jpn), ("BGD", bgd))
 
 
 def runs(mask):
