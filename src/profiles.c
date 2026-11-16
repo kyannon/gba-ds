@@ -8879,6 +8879,12 @@ static void pp_eur(MapProfile* p) {
 	p->tall.live.jump.scrollAt[0] = 0x0200B3B2, p->tall.live.jump.scrollAt[1] = 0x0200B3B6;
 	p->tall.live.jump.scrollAt[2] = 0x0200B3BA;
 	p->tall.live.jump.plus16Base = 0xBED4;
+	/* the language menu comes first (English selected, A), then the title
+	 * as the USA release's: its logo waits (PP-4, PP-15) */
+	static const MacroStep steps[] = { { 0, 400 }, { K_A, 4 }, { 0, 1440 } };
+	p->logo.wait = 0;
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
 }
 
 static const Variant variants[] = {
