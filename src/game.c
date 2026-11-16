@@ -2163,13 +2163,9 @@ static SDL_Rect item_rect(int scr, int i) {
 static SDL_Rect top_box(int scr, int t, int n) {
 	MenuGeom g = menu_geom(scr);
 	if (n == N_PAGES) {
-		/* the page tabs between the L1 / R1 prompts: each as wide as its name needs, sharing the width */
+		/* the page tabs (icons, drawn by draw_tab_icon) between the L1 / R1 prompts, sharing the width */
 		int x = g.margin + g.prompt + g.gap, avail = g.w - (g.prompt + g.gap) * 2 - g.gap * (n - 1);
-		int need[N_PAGES], sum = 0;
-		for (int i = 0; i < n; ++i) sum += need[i] = ui_label_width(scr, g.tabCap, pageNames[i]) + g.pad * 2;
-		int used = 0;
-		for (int i = 0; i < t; ++i) used += need[i];
-		int x0 = x + used * avail / sum + t * g.gap, x1 = x + (used + need[t]) * avail / sum + t * g.gap;
+		int x0 = x + t * avail / n + t * g.gap, x1 = x + (t + 1) * avail / n + t * g.gap;
 		return (SDL_Rect) { x0, g.tabY, x1 - x0, g.h };
 	}
 	int tw = (g.w - g.gap * (n - 1)) / n;
@@ -3496,6 +3492,87 @@ static void draw_rows_page(int scr, const MenuGeom* mg) {
 	}
 }
 
+/* The tabs' pictures, drawn from rectangles on a 24 x 24 grid (nothing to
+ * load): Game a handheld, Tools a toolbox, Display a monitor, Screens two
+ * screens, Controls a gamepad, Speed fast forward, Map a pin. fg is the
+ * picture, bg what's behind it (its cut-outs). */
+static void icon_fill(int scr, SDL_Rect box, int size, float gx, float gy, float gw, float gh, float gr, SDL_Color c) {
+	float u = size / 24.0f;
+	int x0 = box.x + (box.w - size) / 2, y0 = box.y + (box.h - size) / 2;
+	int ix = x0 + (int) lroundf(gx * u), iy = y0 + (int) lroundf(gy * u);
+	int iw = SDL_max(1, (int) lroundf((gx + gw) * u) - (int) lroundf(gx * u)), ih = SDL_max(1, (int) lroundf((gy + gh) * u) - (int) lroundf(gy * u));
+	ui_fill_round(scr, (SDL_Rect) { ix, iy, iw, ih }, c, (int) lroundf(gr * u));
+}
+/* a triangle pointing right (dir 1) or down (dir 2), as one-row strips */
+static void icon_tri(int scr, SDL_Rect box, int size, float gx, float gy, float gw, float gh, int dir, SDL_Color c) {
+	float u = size / 24.0f;
+	int x0 = box.x + (box.w - size) / 2, y0 = box.y + (box.h - size) / 2;
+	int ix = x0 + (int) lroundf(gx * u), iy = y0 + (int) lroundf(gy * u), iw = (int) lroundf(gw * u), ih = (int) lroundf(gh * u);
+	if (dir == 1) {
+		for (int r = 0; r < ih; ++r) {
+			float t = fabsf((r + 0.5f) / ih * 2 - 1);
+			int w = SDL_max(1, (int) lroundf(iw * (1 - t)));
+			ui_fill(scr, (SDL_Rect) { ix, iy + r, w, 1 }, c);
+		}
+	} else {
+		for (int r = 0; r < ih; ++r) {
+			int w = SDL_max(1, (int) lroundf(iw * (1 - (r + 0.5f) / ih)));
+			ui_fill(scr, (SDL_Rect) { ix + (iw - w) / 2, iy + r, w, 1 }, c);
+		}
+	}
+}
+static void draw_tab_icon(int scr, int page, SDL_Rect box, SDL_Color fg, SDL_Color bg) {
+	int size = SDL_min(box.h * 68 / 100, box.w * 80 / 100);
+	SDL_Rect b = box;
+#define F(x, y, w, h, r, c) icon_fill(scr, b, size, x, y, w, h, r, c)
+	switch (page) {
+	case PG_GAME: /* a handheld: screen, D-pad, two buttons */
+		F(5, 2, 14, 20, 3, fg);
+		F(7, 4, 10, 8, 1, bg);
+		F(7.5f, 16.8f, 4, 1.4f, 0.5f, bg);
+		F(8.8f, 15.5f, 1.4f, 4, 0.5f, bg);
+		F(14, 15.2f, 2.4f, 2.4f, 1.2f, bg);
+		F(16.4f, 17.4f, 2.4f, 2.4f, 1.2f, bg);
+		break;
+	case PG_TOOLS: /* a toolbox */
+		F(8, 2.5f, 8, 6, 2.5f, fg);
+		F(10, 4.5f, 4, 4, 1, bg);
+		F(3, 8, 18, 13.5f, 2, fg);
+		F(3, 13.2f, 18, 1.4f, 0, bg);
+		F(10.2f, 11.5f, 3.6f, 4.8f, 1, fg);
+		break;
+	case PG_DISPLAY: /* a monitor */
+		F(2, 3.5f, 20, 14, 2, fg);
+		F(4, 5.5f, 16, 10, 1, bg);
+		F(10, 17.5f, 4, 3, 0, fg);
+		F(7, 20, 10, 2, 1, fg);
+		break;
+	case PG_SCREENS: /* two screens, one over the other */
+		F(4, 1.5f, 16, 9.5f, 1.5f, fg);
+		F(6, 3.5f, 12, 5.5f, 0.5f, bg);
+		F(4, 13, 16, 9.5f, 1.5f, fg);
+		F(6, 15, 12, 5.5f, 0.5f, bg);
+		break;
+	case PG_CONTROLS: /* a gamepad */
+		F(1, 6.5f, 22, 12, 6, fg);
+		F(4.5f, 11.6f, 6, 1.8f, 0.5f, bg);
+		F(6.6f, 9.5f, 1.8f, 6, 0.5f, bg);
+		F(14.2f, 9.2f, 3.2f, 3.2f, 1.6f, bg);
+		F(17.4f, 12.2f, 3.2f, 3.2f, 1.6f, bg);
+		break;
+	case PG_SPEED: /* fast forward */
+		icon_tri(scr, b, size, 2.5f, 5, 9.5f, 14, 1, fg);
+		icon_tri(scr, b, size, 12, 5, 9.5f, 14, 1, fg);
+		break;
+	case PG_MAP: /* a pin */
+		icon_tri(scr, b, size, 6.2f, 12, 11.6f, 10.5f, 2, fg);
+		F(4.5f, 1.5f, 15, 15, 7.5f, fg);
+		F(9, 6, 6, 6, 3, bg);
+		break;
+	}
+#undef F
+}
+
 static void draw_menu(void) {
 	static SDL_Texture* shoulderTex[2][2]; /* L1, R1 prompts, per view */
 	static int shoulderW, shoulderH;
@@ -3565,7 +3642,7 @@ static void draw_menu(void) {
 		SDL_Rect r = top_box(scr, t, N_PAGES);
 		bool on = t == curPage;
 		ui_fill_round(scr, r, on ? C_BTN_EDGE : C_BTN, rad);
-		ui_label(scr, r.x + r.w / 2, r.y + r.h / 2, mg.tabCap, pageNames[t], on ? (SDL_Color) { 20, 16, 36, 255 } : C_DIS);
+		draw_tab_icon(scr, t, r, on ? (SDL_Color) { 20, 16, 36, 255 } : C_DIS, on ? C_BTN_EDGE : C_BTN);
 	}
 	SDL_Rect t0 = top_box(scr, 0, N_PAGES), t1 = top_box(scr, N_PAGES - 1, N_PAGES);
 	/* L1 / R1 button prompts beside the tabs (the prompt art is 25:16) */
