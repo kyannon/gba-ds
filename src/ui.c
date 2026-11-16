@@ -1555,7 +1555,7 @@ void ui_clip(int screen, const SDL_Rect* clip) {
 
 static int keyCount[2];
 static bool inKey;
-static void key_covered(int screen, SDL_Rect r);
+static void key_layer(int screen, SDL_Rect r, SDL_Color c);
 void ui_clear(void) {
 	keyCount[0] = keyCount[1] = 0;
 	for (int i = 0; i < nViews; ++i) {
@@ -2073,7 +2073,7 @@ SDL_Rect ui_image_rect(int screen, int w, int h, const char* mode) {
 }
 
 void ui_fill(int screen, SDL_Rect r, SDL_Color c) {
-	if (!inKey) key_covered(screen, r);
+	if (!inKey) key_layer(screen, r, c);
 	RECORD(screen, OP_FILL) {
 		o->r = r, o->col = c;
 		return;
@@ -2626,7 +2626,7 @@ static SDL_Texture* disc_texture(int view) {
 }
 
 void ui_fill_round(int screen, SDL_Rect r, SDL_Color c, int radius) {
-	if (!inKey) key_covered(screen, r);
+	if (!inKey) key_layer(screen, r, c);
 	RECORD(screen, OP_ROUND) {
 		o->r = r, o->col = c, o->a = radius;
 		return;
@@ -2676,27 +2676,33 @@ SDL_Color ui_key_mid(int state) {
 	return themeLight ? (SDL_Color) { 205, 206, 212, 255 } : (SDL_Color) { 53, 54, 62, 255 };
 }
 
-#define KEYS_MAX 160
-static SDL_Rect keyRects[2][KEYS_MAX];
+/* What was drawn this frame that decides how text on it is coloured, in drawing
+ * order: plain keys (ink on them in the light theme) and anything else big
+ * enough to be what the text is on (a panel, a selected key): the last one under
+ * the text wins, so a panel over the game list isn't "a key" for its text. */
+#define KEYS_MAX 240
+typedef struct { SDL_Rect r; bool plain; } KeyLayer;
+static KeyLayer keyRects[2][KEYS_MAX];
 
-/* a fill that covers a whole key (a panel over the game list) takes it off the list:
- * what is drawn on that panel isn't on the key */
-static void key_covered(int screen, SDL_Rect f) {
+static void key_add(int screen, SDL_Rect r, bool plain) {
 	if (!themeLight || screen < 0 || screen > 1) return;
-	for (int i = 0; i < keyCount[screen];) {
-		SDL_Rect k = keyRects[screen][i];
-		if (k.x >= f.x && k.y >= f.y && k.x + k.w <= f.x + f.w && k.y + k.h <= f.y + f.h) keyRects[screen][i] = keyRects[screen][--keyCount[screen]];
-		else ++i;
-	}
+	if (keyCount[screen] >= KEYS_MAX) return;
+	keyRects[screen][keyCount[screen]++] = (KeyLayer) { r, plain };
+}
+/* a big opaque fill that isn't a key: a panel, the dimming */
+static void key_layer(int screen, SDL_Rect r, SDL_Color c) {
+	if (c.a >= 190 && r.w * r.h > 90000) key_add(screen, r, false);
 }
 
-/* inside a plain key of the light theme? then light text is turned to ink */
 static SDL_Color key_text_color(int screen, int x, int y, SDL_Color c) {
 	if (!themeLight || screen < 0 || screen > 1) return c;
 	bool in = false;
-	for (int i = 0; i < keyCount[screen] && !in; ++i) {
-		SDL_Rect r = keyRects[screen][i];
-		in = x >= r.x - 2 && x <= r.x + r.w + 2 && y >= r.y && y <= r.y + r.h;
+	for (int i = keyCount[screen] - 1; i >= 0; --i) {
+		SDL_Rect r = keyRects[screen][i].r;
+		if (x >= r.x - 2 && x <= r.x + r.w + 2 && y >= r.y && y <= r.y + r.h) {
+			in = keyRects[screen][i].plain;
+			break;
+		}
 	}
 	if (!in) return c;
 	int lum = (c.r + c.g + c.b) / 3;
@@ -2707,7 +2713,6 @@ static SDL_Color key_text_color(int screen, int x, int y, SDL_Color c) {
 }
 
 void ui_key(int screen, SDL_Rect r, int radius, int state) {
-	key_covered(screen, r); /* (a key over keys, as the pause menu over the list) */
 	inKey = true;
 	int lift = SDL_max(2, SDL_min(r.h / 14, 5));
 	SDL_Color border, rim, hi, lo, edge;
@@ -2741,8 +2746,7 @@ void ui_key(int screen, SDL_Rect r, int radius, int state) {
 		ui_fill_round(screen, (SDL_Rect) { bx, by, bw, bh * (7 - i) * 11 / 100 + 1 }, m, SDL_max(1, radius - in - 1));
 	}
 	inKey = false;
-	if (state == KEY_PLAIN && screen >= 0 && screen <= 1 && keyCount[screen] < KEYS_MAX && themeLight)
-		keyRects[screen][keyCount[screen]++] = r;
+	key_add(screen, r, state == KEY_PLAIN);
 }
 
 /* ---------------------------------------------------------- text in Jost
