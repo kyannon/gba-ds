@@ -703,6 +703,18 @@ static void twin_open(const char* rom, const MapProfile* p) {
 		for (int i = 0; i < 2; ++i) free(twinStates[i]), twinStates[i] = NULL;
 		return;
 	}
+	/* The camera's stores are Thumb STR / STRH with an immediate offset (top
+	 * bits 6 / 8). Another dump of the release, its code elsewhere (Pokémon
+	 * Pinball's Japanese Rev 1, say), has something else there: no copies
+	 * (the logo on the other screen), not a copy with its code broken. */
+	for (int i = 0; i < 4 && p->tall.live.nop[i]; ++i) {
+		unsigned op = emu_read16(&twins[0].e, p->tall.live.nop[i]) >> 12;
+		if (op == 6 || op == 8) continue;
+		fprintf(stderr, "live view: not this ROM's camera store at %08x (%04x), copies off\n", p->tall.live.nop[i], emu_read16(&twins[0].e, p->tall.live.nop[i]));
+		for (int j = 0; j < opened; ++j) emu_close(&twins[j].e);
+		for (int j = 0; j < 2; ++j) free(twinStates[j]), twinStates[j] = NULL;
+		return;
+	}
 	for (int k = 0; k < TWINS; ++k) {
 		for (int i = 0; i < 4 && p->tall.live.nop[i]; ++i) emu_write16(&twins[k].e, p->tall.live.nop[i], 0x46C0); /* mov r8, r8 */
 		for (int i = 0; i < 16 && p->tall.live.carry.patch[i].addr; ++i) emu_write16(&twins[k].e, p->tall.live.carry.patch[i].addr, p->tall.live.carry.patch[i].v);

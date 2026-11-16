@@ -8846,6 +8846,22 @@ static void mvdk_jpn(MapProfile* p) {
 	p->logo.mask = &logoMaskMVDKJ;
 }
 
+/* Pokémon Pinball: Ruby & Sapphire in Japan (BPPJ, the original, CRC32
+ * 8af1ec73): the same table, score bar and EWRAM layout under S and gMain
+ * as BPPE; only the game's state pointer (0x10A0 lower: gCurrentPinballGame)
+ * with the camera's limit in it, and the ROM's camera stores (the main
+ * routine's and catch mode's) differ (PP-14). Its Rev 1 (925a5684) has the
+ * same code, but nobody has looked at where its camera stores are: game.c's
+ * twin_open leaves the copies off when these four aren't where a store is. */
+static void pp_jpn(MapProfile* p) {
+	p->tall.live.state = 0x02030440;
+	p->tall.live.bound = 0x02030498;
+	p->tall.live.nop[0] = 0x0804B896;
+	p->tall.live.nop[1] = 0x0804B8A6;
+	p->tall.live.nop[2] = 0x0804B5E8;
+	p->tall.live.nop[3] = 0x0804B5F8;
+}
+
 static const Variant variants[] = {
 	{ "AGSD", "AGSE", 0, gs_ger },
 	/* Golden Sun: The Lost Age's other releases */
@@ -8922,6 +8938,9 @@ static const Variant variants[] = {
 	{ "AREJ", "AREE", 0, mmbn_jpn },
 	{ "AM2P", "AE2E", 0, NULL },
 	{ "AE2J", "AE2E", 0, mmbn2_jpn },
+	/* (Pokémon Pinball's cheats: its state moved 0x10A0, so the memory shift is only
+	 * for profile_ram_moved; the profile reads nothing at the shifted addresses) */
+	{ "BPPJ", "BPPE", -0x10A0, pp_jpn },
 };
 #define N_VARIANTS (sizeof(variants) / sizeof(*variants))
 static MapProfile variantProfiles[N_VARIANTS];

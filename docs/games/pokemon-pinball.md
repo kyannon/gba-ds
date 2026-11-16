@@ -2,9 +2,9 @@
 
 | | |
 |---|---|
-| Releases | `BPPE` USA |
-| Dumps | `BPPE` cartridge `b992a3c0` (tested) |
-| Profile | `src/profiles.c`: the `BPPE` entry (logo-only, with `tall`: the table over both screens, game.c `update_tall`) |
+| Releases | `BPPE` USA · `BPPJ` Japan |
+| Dumps | `BPPE` cartridge `b992a3c0` (tested) · `BPPJ` cartridge `8af1ec73`, Rev 1 `925a5684` |
+| Profile | `src/profiles.c`: the `BPPE` entry (logo-only, with `tall`: the table over both screens, game.c `update_tall`); `BPPJ` is a `variants[]` row of it (`pp_jpn`: the state pointer, its limit and the four camera stores) |
 | Tests | `tests/regress/pokemon-pinball.json` (`tools/regress.py pokemon-pinball`) |
 | Status | supported |
 
@@ -42,6 +42,8 @@ Unlike the other games, both screens show the table itself, live: two more copie
 
 **PP-13. Events.** The egg hatch (the hatched Pokémon wandering, then caught), an evolution (the EVOLUTION banners, the evolved Pokémon shown), Travel (its confirmation and the travel scene) and Jirachi's catch mode (Jirachi flying about, then caught) play on both screens like the rest of the table (PP-1), in step (PP-9); when the game dims its screen for them, PP-11. (Their test states are built by `tools/pinball_events.py`, which steers the game there through its own code: docs/PINBALL.md.)
 
+**PP-14. The Japanese release.** Pokémon Pinball: Ruby & Sapphire in Japan (`BPPJ`, the original cartridge dump) plays as the USA release does: PP-1 to PP-13 hold for it, the table over both screens, the score bar, the logo on the title and menus, and the bonus stages on one screen. Only where the game keeps its state and where its code moves the camera differ (docs/PINBALL.md, "Japanese release"). Its Rev 1, the other Japanese dump, isn't tested: if its camera code isn't where the profile expects it, the game plays on one screen with the logo on the other, as with `pinball_live = 0`, rather than with a broken second screen. (Added for pull request #58, from shigehirom, who checked the original on a device; the cases for it wait for the ROM in the fixtures.)
+
 ## Exceptions
 
 PP-1 (the table over both screens, live, from two more copies of the game) is an exception to the philosophy's GBA screen (a GBA has one 240x160 screen) and cost rules: the owner's request, and the first game to have it (Sonic Pinball Party's SPP-2 and Muppet Pinball Mayhem's MPM-2 follow it), with `pinball_live = 0` as the way back (the game on one screen, the logo on the other).
@@ -49,4 +51,11 @@ PP-1 (the table over both screens, live, from two more copies of the game) is an
 
 ## Not covered yet
 
-Nothing the owner wants changed. Events (evolution, hatching, the bonus-stage entrances) were checked on the device for v1.4.2. The catch animation's outline (the Pokémon flashing red as it's caught) shows on your game's screen but not always on a copy's (cosmetic). The game always runs with the frame buffer on (Settings' Frame Buffer is shown as always on here): without it the device doesn't reach full speed.
+PP-14 has no case yet: the Japanese ROM (`roms/BPPJ.zip`) and states for its title, a table at the top and bottom, a catch mode and the pause are not in the fixtures. Nothing else the owner wants changed. Events (evolution, hatching, the bonus-stage entrances) were checked on the device for v1.4.2. The catch animation's outline (the Pokémon flashing red as it's caught) shows on your game's screen but not always on a copy's (cosmetic). The game always runs with the frame buffer on (Settings' Frame Buffer is shown as always on here): without it the device doesn't reach full speed.
+
+## For the merge
+
+- Changelog line (under the open version): "Pokémon Pinball: Ruby & Sapphire works on the Japanese release too (the original cartridge dump), with the table over both screens like the USA one. Thanks to shigehiro, who found where its camera is. Its Rev 1 isn't tested: if its code differs, it plays on one screen with the logo on the other."
+- Wiki, Supported games (table row): codes `BPPE` `BPPJ`; the section's text unchanged, plus "The Japanese release's Rev 1 isn't tested."
+- README: the game count doesn't change (no new game).
+- Needs `roms/BPPJ.zip` and its states in gba-ds-tests, the cases `pp-jp-*` (the USA cases' twins), then `tools/make_dumps.py` again (marks the dump tested).

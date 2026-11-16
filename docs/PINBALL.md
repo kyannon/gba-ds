@@ -62,10 +62,6 @@ down (the whole lower table on the two screens).
   and scroll for its own camera); then `twin_hide` and the HUD split's fixed
   sprites; then `twin_second` runs this frame alongside the game's, and its
   picture is shown. Each copy on its own worker thread (`twin_work_*`).
-  The first frame is run without drawing (`emu_frame_blind`, Nov 14, 2026):
-  its picture is never shown, and drawing is about half a frame's work
-  (12% less time over 1500 frames on the host; the regression pictures
-  identical). Sonic Pinball Party's carry path alike.
   Cost: up to four extra frames of emulation a frame, but on a 4-core device
   the wall time is about two frames (the copies' first frames side by side,
   then the game and their second frames side by side). Host (2 cores):
@@ -115,28 +111,6 @@ down (the whole lower table on the two screens).
   bottom screen shows the game's picture plus its score bar; the top screen
   the table's rows, or, while those would be the game's picture too, the
   top screen from before it came up (`lastTop`).
-- **Banners (Nov 14, 2026, PP-10):** in the lower view the game's
-  screen-fixed sprites (BALL SAVE, Latios/Latias) go to the screen the ball
-  is on when they come up (`tallFixedBot`, from the ball's table row against
-  `v + 160`), at their place on the game's screen, held there until none has
-  shown for 20 frames; the BG0 part (the catch timer) stays on the top
-  screen. The sprites' pixels are told from BG0's by the boxes of
-  `tallFixed` (update_tall). Log: "banners on the bottom screen (the ball's
-  there)".
-- **PP-11's top screen (Nov 14, 2026):** `twin_step` holds `twins[0]` at
-  `u - 160` while PP-11's screen is up (`tallMsg`, last frame's), and the
-  top screen shows those rows (the table just above the game's screen,
-  which is on the bottom one); with `u < 160`, the logo (`tallTopLogo`).
-  Until the copy is at its place, the top screen's last picture (`prevTop`).
-  Before, the top screen showed the lower view's rows, mostly the game's
-  own again (the owner: "the two screens out of sync").
-- **Seam (Nov 14, 2026):** a copy's pans' step is guessed from last frame's
-  (`panStep`); when the game's view starts or stops moving (4 rows a frame,
-  the ball let go from a trap) the guess was a frame out and the copy's
-  picture 4 rows off, leaving 4 rows where the screens meet from no picture
-  (black) or another. `twin_first` now runs the frame again with the step it
-  really took (a second blind frame, a few times a minute). Log: "copy N:
-  M row(s) off, run again". Case `pp-us-sapphire-seam`.
 - `GBADS_TALL_TRACE=1` logs a line a frame (the view, each copy's rows,
   sprites hidden, pixels laid over).
 
@@ -203,6 +177,17 @@ down (the whole lower table on the two screens).
 | Lights | small DMAs straight into the ring (`0x0804ECxx`-`0x0804F8xx`), called from `0x0804E814` by ranges of `S+0x6A` |
 | Raster effects | only BG0HOFS/VOFS at line 144 (VCount IRQ, DISPSTAT `0x9029`) for the score bar. DMA1/2 are the sound FIFOs |
 | Sprites | each object writes its own shadow-OAM entries (220 references to `0x03005000` in the ROM). Objects far off the screen are left out, with a margin |
+
+### Japanese release (BPPJ)
+
+CRC32 `0x8af1ec73` (the original; No-Intro lists a Rev 1 too, `0x925a5684`, with the same code `BPPJ`, which hasn't been looked at: game.c's `twin_open` checks the four camera stores are Thumb `str` / `strh` and leaves the copies off if not). The profile is `BPPE`'s with `pp_jpn`'s four addresses (a `variants[]` row). The EWRAM layout under `S` and `gMain` (`0x0200B0C0`), shadow OAM (`0x03005000`), BG1–3 VOFS shadows (`0x0200B3AE`, `0x0200B3B2`, `0x0200B3B6`), BG3 table tiles (`0x0200FBB0`, `0x020030A0`), and `plus16` (`0x03007ED8`) match `BPPE`; only the EWRAM `.bss` pointers and ROM camera-store addresses shift:
+
+| What | Where / value (BPPJ) | BPPE |
+|---|---|---|
+| State pointer | `0x02030440` | `0x020314E0` |
+| Camera target limits (`bound`) | `0x02030498` (`0x02030480 + 0x18`) | `0x02031538` |
+| Camera stores, main routine | `0x0804B896` (`str`), `0x0804B8A6` (`strh` row) | `0x0804DCFA`, `0x0804DD0A` |
+| Camera stores, catch-mode routine | `0x0804B5E8` (`str`), `0x0804B5F8` (`strh` row) | `0x0804DA54`, `0x0804DA64` |
 
 ## Reaching events (tools/pinball_events.py)
 
@@ -279,12 +264,6 @@ PP-13). Travel: the lane hit set (`S+0x6BC` = 1), the ball into the centre hole 
 
 ## Not done
 
-- **Match Display Rate** (presenting in step with the display) leaves no
-  slack: a frame late for its refresh waits a whole refresh and the time
-  is lost (a player's report, Nov 2026: slowdown in Pokémon Pinball). game.c
-  falls back to the GBA's rate after three seconds in a row with 3 or more
-  missed refreshes (`pacedFallback`; logged as "N frame(s) missed the
-  display's refresh" and a new "frame pacing:" line).
 - **Speed:** full speed on the device only with the frame buffer on, so
   game.c forces it on for `tall` profiles (v1.4.2; the pause menu shows
   "Always on here"). That delays the keys by a frame, so the tests' inputs
