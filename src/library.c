@@ -861,26 +861,56 @@ static SDL_Rect view_button(int scr) {
 	return (SDL_Rect) { sb.x - px * 3 - sb.h, sb.y, sb.h, sb.h };
 }
 
+/* square button left of the list / grid one: the dark or light theme */
+static SDL_Rect theme_button(int scr) {
+	SDL_Rect vb = view_button(scr);
+	float px = ui_px(scr);
+	return (SDL_Rect) { vb.x - px * 3 - vb.w, vb.y, vb.w, vb.h };
+}
+
+/* a moon (the dark theme is on) or a sun (the light one) */
+static void draw_theme_button(int scr) {
+	SDL_Rect b = theme_button(scr);
+	float px = ui_px(scr);
+	ui_key(scr, b, px * 3, KEY_PLAIN);
+	SDL_Color ink = ui_key_ink(), mid = ui_key_mid(KEY_PLAIN);
+	int cx = b.x + b.w / 2, cy = b.y + b.h / 2, r = b.h * 13 / 56;
+	if (!ui_theme_light()) {
+		ui_fill_round(scr, (SDL_Rect) { cx - r, cy - r, r * 2, r * 2 }, ink, r);
+		ui_fill_round(scr, (SDL_Rect) { cx - r + r * 7 / 10, cy - r - r * 3 / 10, r * 2 * 85 / 100, r * 2 * 85 / 100 }, mid, r * 85 / 100);
+	} else {
+		int c = r * 62 / 100;
+		ui_fill_round(scr, (SDL_Rect) { cx - c, cy - c, c * 2, c * 2 }, ink, c);
+		int d = SDL_max(2, r * 4 / 10), far = r * 105 / 100, near = r * 75 / 100;
+		for (int i = 0; i < 8; ++i) {
+			static const int dx[8] = { 1, 1, 0, -1, -1, -1, 0, 1 }, dy[8] = { 0, 1, 1, 1, 0, -1, -1, -1 };
+			int k = (dx[i] && dy[i]) ? near * 7 / 10 + d / 2 : far;
+			ui_fill_round(scr, (SDL_Rect) { cx + dx[i] * k - d / 2, cy + dy[i] * k - d / 2, d, d }, ink, d / 2);
+		}
+	}
+}
+
 /* Four squares (in the list: switch to the grid) or three lines (in the
  * grid: switch to the list). */
 static void draw_view_button(int scr) {
 	SDL_Rect b = view_button(scr);
 	float px = ui_px(scr);
-	ui_fill_round(scr, b, C_ROW, px * 3);
+	ui_key(scr, b, px * 3, KEY_PLAIN);
+	SDL_Color ink = ui_key_ink();
 	int cx = b.x + b.w / 2, cy = b.y + b.h / 2;
 	if (listMode) {
 		int sq = b.h * 12 / 56, gap = b.h * 6 / 56;
 		for (int i = 0; i < 2; ++i) {
 			for (int j = 0; j < 2; ++j) {
 				SDL_Rect q = { cx - sq - gap / 2 + i * (sq + gap), cy - sq - gap / 2 + j * (sq + gap), sq, sq };
-				ui_fill_round(scr, q, C_TEXT, SDL_max(1, sq / 4));
+				ui_fill_round(scr, q, ink, SDL_max(1, sq / 4));
 			}
 		}
 	} else {
 		int lw = b.h * 28 / 56, lh = SDL_max(2, b.h * 5 / 56), gap = b.h * 7 / 56;
 		for (int j = -1; j <= 1; ++j) {
 			SDL_Rect l = { cx - lw / 2, cy + j * (lh + gap) - lh / 2, lw, lh };
-			ui_fill_round(scr, l, C_TEXT, lh / 2);
+			ui_fill_round(scr, l, ink, lh / 2);
 		}
 	}
 }
@@ -899,6 +929,13 @@ static void save_library_cfg(const Config* cfg) {
 	fprintf(f, "save_dir = %s\nsave_ext = %s\n", cfg->saveDir, cfg->saveExt[0] ? cfg->saveExt : "sav");
 #endif
 	fclose(f);
+}
+
+static void setting_changed(Config* cfg, const Setting* st);
+/* the theme button: dark or light, kept for all games (prefs.cfg) */
+static void toggle_theme(Config* cfg) {
+	cfg->lightTheme = !cfg->lightTheme;
+	setting_changed(cfg, config_setting("theme"));
 }
 
 static void toggle_view(Config* cfg) {
@@ -951,8 +988,7 @@ static void draw_list(Config* cfg, int scr, int sel, int scroll) {
 		SDL_Rect t = tile_rect(&g, i, scroll);
 		if (t.y + t.h <= g.headerH || t.y >= r.h) continue;
 		bool on = i == sel;
-		if (on) ui_fill_round(scr, (SDL_Rect) { t.x - px, t.y - px, t.w + px * 2, t.h + px * 2 }, C_EDGE, px * 4);
-		ui_fill_round(scr, t, on ? C_SEL : C_ROW, px * 3);
+		ui_key(scr, t, px * 3, on ? KEY_SEL : KEY_PLAIN);
 		if (listMode) {
 			/* name on the left; region flag and "Single screen only" on the right */
 			int right = t.x + t.w - px * 5;
@@ -1017,13 +1053,14 @@ static void draw_list(Config* cfg, int scr, int sel, int scroll) {
 	SDL_Rect sb = settings_button(scr);
 	if (storageMsg[0]) {
 		char line[300];
-		fit_text(line, sizeof(line), TF_BOLD, px * 4, storageMsg, view_button(scr).x - px * 8);
-		ui_font_text(scr, TF_BOLD, view_button(scr).x / 2, g.headerH / 2, px * 4, line, C_GOLD, 0);
+		fit_text(line, sizeof(line), TF_BOLD, px * 4, storageMsg, theme_button(scr).x - px * 8);
+		ui_font_text(scr, TF_BOLD, theme_button(scr).x / 2, g.headerH / 2, px * 4, line, C_GOLD, 0);
 	} else {
-		ui_label(scr, view_button(scr).x / 2, g.headerH / 2, px * 5, "Touch or use the D-Pad to select a game", C_TEXT);
+		ui_label(scr, theme_button(scr).x / 2, g.headerH / 2, px * 5, "Touch or use the D-Pad to select a game", C_TEXT);
 	}
+	draw_theme_button(scr);
 	draw_view_button(scr);
-	ui_fill_round(scr, sb, C_ROW, px * 3);
+	ui_key(scr, sb, px * 3, KEY_PLAIN);
 	ui_label(scr, sb.x + sb.w / 2, sb.y + sb.h / 2, px * 5, "Settings", C_TEXT);
 }
 
@@ -1108,8 +1145,7 @@ static void draw_settings_frame(int scr, const SettingsGeom* g, int sel, const c
 	ui_label(scr, g->panel.x + g->panel.w / 2, g->panel.y + px * 11, px * 6, "System", C_TEXT);
 	for (int i = 0; i <= nRows; ++i) {
 		SDL_Rect b = i < nRows ? g->row[i] : g->back;
-		if (i == sel) ui_fill_round(scr, (SDL_Rect) { b.x - px, b.y - px, b.w + px * 2, b.h + px * 2 }, C_EDGE, px * 4);
-		ui_fill_round(scr, b, i == sel ? C_SEL : C_ROW, px * 3);
+		ui_key(scr, b, px * 3, i == sel ? KEY_SEL : KEY_PLAIN);
 		if (i == nRows) {
 			ui_label(scr, b.x + b.w / 2, b.y + b.h / 2, px * 5, "Back", C_TEXT);
 			continue;
@@ -1139,7 +1175,7 @@ typedef struct {
 	const char* keys[10];
 } SetPage;
 static const SetPage setPages[SP_SYSTEM] = {
-	{ "Games", "Which games, names, saving", { "show_all", "name_tags", "save_on_quit", "auto_load", "custom_logos", "quick_bar_hint" } },
+	{ "Games", "Which games, names, saving", { "show_all", "name_tags", "theme", "save_on_quit", "auto_load", "custom_logos", "quick_bar_hint" } },
 	{ "Display", "Scale, shader, colors", { "scale", "map_scale", "shader", "lcd_strength", "color_correction", "lcd_ghosting", "smooth" } },
 	{ "Screens", "Placement, overlays", { "swap", "screen_match", "screen_placement", "overlays", "overlay_screens", "bezel_logo", "show_fps" } },
 	{ "Controls", "Stick, buttons, hotkeys", { "left_stick_dpad", "ab_swap", "button_right", "button_bottom", "button_top", "button_left", "turbo_rate", "@map", "@hotkeys" } },
@@ -1205,8 +1241,7 @@ static void draw_set_home(int scr, int sel) {
 	ui_label(scr, p.x + p.w / 2, p.y + px * 12, px * 6, "Settings", C_TEXT);
 	for (int i = 0; i < 8; ++i) {
 		SDL_Rect t = set_tile(scr, i);
-		if (i == sel) ui_fill_round(scr, (SDL_Rect) { t.x - px, t.y - px, t.w + px * 2, t.h + px * 2 }, C_EDGE, px * 4);
-		ui_fill_round(scr, t, i == sel ? C_SEL : C_ROW, px * 3);
+		ui_key(scr, t, px * 3, i == sel ? KEY_SEL : KEY_PLAIN);
 		const char* name = i < SP_SYSTEM ? setPages[i].name : i == SP_SYSTEM ? "System" : "Back";
 		const char* sub = i < SP_SYSTEM ? setPages[i].sub : i == SP_SYSTEM ? "Updates, integrations" : NULL;
 #ifdef __ANDROID__
@@ -1228,8 +1263,7 @@ static void draw_set_page(const Config* cfg, int scr, int page, int sel) {
 	ui_label(scr, p.x + p.w / 2, p.y + px * 11, px * 6, setPages[page].name, C_TEXT);
 	for (int i = 0; i <= n; ++i) {
 		SDL_Rect r = set_row(scr, n, i);
-		if (i == sel) ui_fill_round(scr, (SDL_Rect) { r.x - px, r.y - px, r.w + px * 2, r.h + px * 2 }, C_EDGE, px * 4);
-		ui_fill_round(scr, r, i == sel ? C_SEL : C_ROW, px * 3);
+		ui_key(scr, r, px * 3, i == sel ? KEY_SEL : KEY_PLAIN);
 		if (i == n) {
 			ui_label(scr, r.x + r.w / 2, r.y + r.h / 2, px * 5, "Back", C_TEXT);
 			continue;
@@ -1268,6 +1302,7 @@ static void setting_changed(Config* cfg, const Setting* st) {
 	snprintf(path, sizeof(path), "%s/prefs.cfg", cfg->stateDir);
 	config_kv_update(path, "# written by gba-ds's menus; overrides gba-ds.cfg", n, kv);
 	if (!strcmp(st->key, "performance")) clocks_set(cfg->perfMax);
+	if (!strcmp(st->key, "theme")) ui_theme(cfg->lightTheme);
 	if (!strcmp(st->key, "show_all") || !strcmp(st->key, "name_tags")) setRescan = true;
 	if (!strcmp(st->key, "screen_match") || !strcmp(st->key, "screen_placement")) ui_layout_pictures();
 	fprintf(stderr, "setting: %s = %s (all games)\n", lines[0][0], lines[0][1]);
@@ -1618,8 +1653,7 @@ static void draw_folders(const Config* cfg, int scr, int sel) {
 		                  : ids[i] == FB_TYPE   ? (srm_saves(cfg) ? "Save files: .srm (RetroArch's)" : "Save files: .sav")
 		                  : ids[i] == FB_DATA   ? "Choose GBA DS folder"
 		                                        : "Back";
-		if (i == sel) ui_fill_round(scr, (SDL_Rect) { b.x - px, b.y - px, b.w + px * 2, b.h + px * 2 }, C_EDGE, px * 4);
-		ui_fill_round(scr, b, i == sel ? C_SEL : C_ROW, px * 3);
+		ui_key(scr, b, px * 3, i == sel ? KEY_SEL : KEY_PLAIN);
 		ui_label(scr, b.x + b.w / 2, b.y + b.h / 2, px * 5, label, C_TEXT);
 	}
 	int tx = g.text.x, tw = g.text.w, y = g.text.y;
@@ -1834,8 +1868,7 @@ static void draw_updates(int scr, int sel) {
 		                  : ids[i] == UB_LATER  ? "Later"
 		                  : ids[i] == UB_SKIP   ? "Skip this version"
 		                                        : "Cancel";
-		if (i == sel) ui_fill_round(scr, (SDL_Rect) { b.x - px, b.y - px, b.w + px * 2, b.h + px * 2 }, C_EDGE, px * 4);
-		ui_fill_round(scr, b, i == sel ? C_SEL : C_ROW, px * 3);
+		ui_key(scr, b, px * 3, i == sel ? KEY_SEL : KEY_PLAIN);
 		ui_label(scr, b.x + b.w / 2, b.y + b.h / 2, px * 5, label, C_TEXT);
 	}
 	int tx = g.text.x, tw = g.text.w, y = g.text.y;
@@ -2267,8 +2300,13 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 		while (ui_next_pointer(&p)) {
 			if (p.screen != ls) continue;
 			if (p.kind == 1) {
-				SDL_Rect sb = settings_button(ls), vb = view_button(ls);
+				SDL_Rect sb = settings_button(ls), vb = view_button(ls), tb = theme_button(ls);
 				SDL_Point pt = { p.x, p.y };
+				if (SDL_PointInRect(&pt, &tb)) {
+					toggle_theme(cfg);
+					pressed = false;
+					break;
+				}
 				if (SDL_PointInRect(&pt, &vb)) {
 					toggle_view(cfg);
 					scroll = sel >= 0 ? keep_visible(ls, sel, 0) : 0;

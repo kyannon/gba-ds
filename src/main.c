@@ -201,6 +201,7 @@ int main(int argc, char** argv) {
 	signal(SIGHUP, on_signal);
 
 	if (!ui_init(&cfg, true)) return 1;
+	ui_theme(cfg.lightTheme);
 	ra_init(&cfg); /* signs in to RetroAchievements in the background */
 	update_init(&cfg, exeDir, argc, argv);
 #ifdef __ANDROID__

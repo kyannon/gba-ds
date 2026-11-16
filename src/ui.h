@@ -150,6 +150,13 @@ void ui_shader(int sh);
 uint32_t ui_color_correct(uint32_t abgr);
 /* Filled box with rounded corners (radius in pixels). */
 void ui_fill_round(int screen, SDL_Rect local, SDL_Color c, int radius);
+/* the menus' buttons: a raised key (see ui.c), in the dark or light theme */
+enum { KEY_PLAIN, KEY_SEL, KEY_LIT };
+void ui_key(int screen, SDL_Rect local, int radius, int state);
+void ui_theme(int light);
+bool ui_theme_light(void);
+SDL_Color ui_key_ink(void);          /* text and icons on a key */
+SDL_Color ui_key_mid(int state);    /* about the key's colour (for cut-outs) */
 /* Text in Jost (textfont.h: TF_BOLD for labels and headings, TF_BODY for
  * longer text), any UTF-8 string, capitals capPx tall and centred on cy.
  * align: -1 starts at x, 0 is centred on x, 1 ends at x. */

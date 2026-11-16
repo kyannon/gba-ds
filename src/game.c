@@ -1456,8 +1456,7 @@ static void draw_cheats(int scr) {
 		const Cheat* c = &cheats.items[cheatRows[i]];
 		bool sel = i == cheatSel;
 		SDL_Rect row = { g.x, y, g.w, g.rowH };
-		if (sel) ui_fill_round(scr, (SDL_Rect) { row.x - px / 2, row.y - px / 2, row.w + px, row.h + px }, C_BTN_EDGE, rad);
-		ui_fill_round(scr, row, sel ? C_BTN_SEL : C_BTN, rad);
+		ui_key(scr, row, rad, sel ? KEY_SEL : KEY_PLAIN);
 		fit_text(line, sizeof(line), TF_BODY, tcap, c->desc, nameW);
 		ui_font_text(scr, TF_BODY, g.x + px * 4, y + g.rowH / 2, tcap, line, C_TEXT, -1);
 		SDL_Rect pill = { g.x + g.w - pillW - px * 3, y + px * 2, pillW, g.rowH - px * 4 };
@@ -2108,8 +2107,7 @@ static void draw_patches(int scr) {
 		}
 		bool sel = i == patchSel;
 		SDL_Rect row = { g.x, y, g.w, g.rowH };
-		if (sel) ui_fill_round(scr, (SDL_Rect) { row.x - px / 2, row.y - px / 2, row.w + px, row.h + px }, C_BTN_EDGE, rad);
-		ui_fill_round(scr, row, sel ? C_BTN_SEL : C_BTN, rad);
+		ui_key(scr, row, rad, sel ? KEY_SEL : KEY_PLAIN);
 		bool on = patch_is_on(pr);
 		bool dim = pr->kind == PR_PATCH && !pr->usable && !on;
 		bool moving = sel && patchMoving;
@@ -2327,12 +2325,9 @@ static void draw_note(int scr) {
 			SDL_Rect k = note_key_rect(scr, r, c);
 			bool sel = r == noteRow && c == noteCol;
 			bool special = noteKeys[r][c][0] < ' ';
-			if (sel) {
-				int e = SDL_max(1, mg.h / 28);
-				ui_fill_round(scr, (SDL_Rect) { k.x - e, k.y - e, k.w + e * 2, k.h + e * 2 }, C_BTN_EDGE, rad + e);
-			}
 			bool lit = noteKeys[r][c][0] == '\x01' && noteShift;
-			ui_fill_round(scr, k, sel ? C_BTN_SEL : lit ? C_BTN_EDGE : special ? (SDL_Color) { 52, 44, 84, 240 } : C_BTN, rad);
+			(void) special; /* (the special keys look like the others) */
+			ui_key(scr, k, rad, sel ? KEY_SEL : lit ? KEY_LIT : KEY_PLAIN);
 			ui_label(scr, k.x + k.w / 2, k.y + k.h / 2, kc, note_key_label(r, c), lit ? (SDL_Color) { 20, 16, 36, 255 } : C_TEXT);
 		}
 	}
@@ -3144,9 +3139,7 @@ static void draw_ovl_menu(int scr) {
 	for (int i = 0; i < n; ++i) {
 		SDL_Rect r = ovl_row_rect(scr, i);
 		bool sel = i == ovlSel;
-		int e = SDL_max(1, mg.h / 28);
-		if (sel) ui_fill_round(scr, (SDL_Rect) { r.x - e, r.y - e, r.w + e * 2, r.h + e * 2 }, C_BTN_EDGE, rad + e);
-		ui_fill_round(scr, r, sel ? C_BTN_SEL : C_BTN, rad);
+		ui_key(scr, r, rad, sel ? KEY_SEL : KEY_PLAIN);
 		const char* label = ovl_row_label(rows[i]);
 		int lc = SDL_min(cap, cap * (r.w - mg.pad * 2) / SDL_max(1, ui_label_width(scr, cap, label)));
 		if (rows[i] == OR_INNER || rows[i] == OR_OUTER) {
@@ -3217,11 +3210,9 @@ static void draw_picker(int scr) {
 	if (tw > mg.w) hc = hc * mg.w / tw, tw = mg.w;
 	int x = (r.w - tw) / 2;
 	for (int i = 0; i < 4; ++i) x = draw_btn_hint(scr, x, p.hintY, hc, btn[i], words[i]);
-	ui_fill_round(scr, p.cancel, C_BTN, mg.rad);
+	ui_key(scr, p.cancel, mg.rad, KEY_PLAIN);
 	ui_label(scr, p.cancel.x + p.cancel.w / 2, p.cancel.y + p.cancel.h / 2, p.cap, "Cancel", C_TEXT);
-	int e = SDL_max(1, mg.h / 28);
-	ui_fill_round(scr, (SDL_Rect) { p.ok.x - e, p.ok.y - e, p.ok.w + e * 2, p.ok.h + e * 2 }, C_BTN_EDGE, mg.rad + e);
-	ui_fill_round(scr, p.ok, C_BTN_SEL, mg.rad);
+	ui_key(scr, p.ok, mg.rad, KEY_SEL);
 	ui_label(scr, p.ok.x + p.ok.w / 2, p.ok.y + p.ok.h / 2, p.cap, "OK", C_TEXT);
 }
 
@@ -3244,11 +3235,7 @@ static void draw_hex(int scr) {
 		for (int j = 0; j < hex_row_len(i); ++j) {
 			SDL_Rect k = hex_key_rect(scr, i, j);
 			bool sel = i == hexRow && j == hexCol;
-			if (sel) {
-				int e = SDL_max(1, mg.h / 28);
-				ui_fill_round(scr, (SDL_Rect) { k.x - e, k.y - e, k.w + e * 2, k.h + e * 2 }, C_BTN_EDGE, mg.rad + e);
-			}
-			ui_fill_round(scr, k, sel ? C_BTN_SEL : i == 2 ? (SDL_Color) { 52, 44, 84, 240 } : C_BTN, mg.rad);
+			ui_key(scr, k, mg.rad, sel ? KEY_SEL : KEY_PLAIN);
 			bool dim = i == 2 && j == 1 && !canDone;
 			ui_label(scr, k.x + k.w / 2, k.y + k.h / 2, SDL_min(mg.cap, k.h * 2 / 5), hexKeys[i][j], dim ? C_DIS : C_TEXT);
 		}
@@ -3427,22 +3414,19 @@ static const char* row_disabled(const char* key) {
 
 static void draw_rows_page(int scr, const MenuGeom* mg) {
 	int cap = mg->cap, rad = mg->rad, n = rowN[curPage];
-	int e = SDL_max(1, mg->h / 28);
 	/* the bar */
 	for (int h = 0; h < 2; ++h) {
 		SDL_Rect r = scope_rect(scr, h);
 		bool on = (h == 1) == scopeAll;
-		if (on && rowSel == 0) ui_fill_round(scr, (SDL_Rect) { r.x - e, r.y - e, r.w + e * 2, r.h + e * 2 }, C_BTN_EDGE, rad + e);
-		ui_fill_round(scr, r, on ? C_BTN_SEL : C_BTN, rad);
-		ui_label(scr, r.x + r.w / 2, r.y + r.h / 2, cap, h ? "All games" : "This game", on ? C_TEXT : C_DIS);
+		ui_key(scr, r, rad, on ? (rowSel == 0 ? KEY_SEL : KEY_LIT) : KEY_PLAIN);
+		ui_label(scr, r.x + r.w / 2, r.y + r.h / 2, cap, h ? "All games" : "This game", on ? (rowSel == 0 ? C_TEXT : (SDL_Color) { 20, 16, 36, 255 }) : C_DIS);
 	}
 	const char* note = NULL;
 	bool noteGold = false;
 	for (int i = 1; i <= n; ++i) {
 		SDL_Rect r = srow_rect(scr, i);
 		bool sel = i == rowSel;
-		if (sel) ui_fill_round(scr, (SDL_Rect) { r.x - e, r.y - e, r.w + e * 2, r.h + e * 2 }, C_BTN_EDGE, rad + e);
-		ui_fill_round(scr, r, sel ? C_BTN_SEL : C_BTN, rad);
+		ui_key(scr, r, rad, sel ? KEY_SEL : KEY_PLAIN);
 		const char* key = rowKeys[curPage][i - 1];
 		rowTagOn[i] = false;
 		int cy = r.y + r.h / 2, lc = cap * 9 / 10;
@@ -3644,8 +3628,8 @@ static void draw_menu(void) {
 	for (int t = 0; t < N_PAGES; ++t) {
 		SDL_Rect r = top_box(scr, t, N_PAGES);
 		bool on = t == curPage;
-		ui_fill_round(scr, r, on ? C_BTN_EDGE : C_BTN, rad);
-		draw_tab_icon(scr, t, r, on ? (SDL_Color) { 20, 16, 36, 255 } : C_DIS, on ? C_BTN_EDGE : C_BTN);
+		ui_key(scr, r, rad, on ? KEY_LIT : KEY_PLAIN);
+		draw_tab_icon(scr, t, r, on ? (SDL_Color) { 20, 16, 36, 255 } : ui_theme_light() ? (SDL_Color) { 92, 94, 112, 255 } : (SDL_Color) { 150, 152, 168, 255 }, ui_key_mid(on ? KEY_LIT : KEY_PLAIN));
 	}
 	SDL_Rect t0 = top_box(scr, 0, N_PAGES), t1 = top_box(scr, N_PAGES - 1, N_PAGES);
 	/* L1 / R1 button prompts beside the tabs (the prompt art is 25:16) */
@@ -3670,9 +3654,7 @@ static void draw_menu(void) {
 	for (int i = 0; i < nMenuItems; ++i) {
 		SDL_Rect r = item_rect(scr, i);
 		bool sel = i == menuSel;
-		int e = SDL_max(1, mg.h / 28); /* the selected button's edge */
-		if (sel) ui_fill_round(scr, (SDL_Rect) { r.x - e, r.y - e, r.w + e * 2, r.h + e * 2 }, C_BTN_EDGE, rad + e);
-		ui_fill_round(scr, r, sel ? C_BTN_SEL : C_BTN, rad);
+		ui_key(scr, r, rad, sel ? KEY_SEL : KEY_PLAIN);
 		bool en = item_enabled(menuItems[i]);
 		const char* label = menuLabels[menuItems[i]];
 		if (menuItems[i] == M_SCALE) label = scale_label(cfg->scale);

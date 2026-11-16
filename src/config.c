@@ -218,6 +218,10 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	BOOL("quick_bar_hint", barHint)
 	BOOL("show_all", showAll)
 	BOOL("left_stick_dpad", leftStickDpad)
+	if (!strcmp(key, "theme")) {
+		c->lightTheme = !strcmp(val, "light") || parse_bool(val);
+		return true;
+	}
 	INT("turbo_rate", turboRate)
 	if (!strncmp(key, "button_", 7)) {
 		static const char* const faces[4] = { "right", "bottom", "top", "left" };
@@ -409,6 +413,7 @@ void config_usage(const char* argv0) {
 
 #define OFFB(f) offsetof(Config, f), sizeof(((Config*) 0)->f)
 #define ARR(a) a, (int) (sizeof(a) / sizeof(a[0]))
+static const SettingChoice chTheme[] = { { "dark", "Dark", 0 }, { "light", "Light", 1 } };
 static const SettingChoice chOnOff[] = { { "0", "Off", 0 }, { "1", "On", 1 } };
 static const SettingChoice chShown[] = { { "0", "Supported games only", 0 }, { "1", "All games", 1 } };
 static const SettingChoice chTags[] = { { "0", "Plain", 0 }, { "1", "With tags, like (USA)", 1 } };
@@ -459,6 +464,7 @@ static const Setting settingsTable[] = {
 	{ "bezel_logo", "Bezel logo", SF_BOOL, OFFB(bezelLogo), ARR(chOnOff), 0, 0, 0, NULL, "The GBA DS logo in the generated bezel." },
 	{ "show_fps", "Show FPS", SF_BOOL, OFFB(showFps), ARR(chOnOff), 0, 0, 0, NULL, "Frames a second above the game, all the time." },
 
+	{ "theme", "Theme", SF_BOOL, OFFB(lightTheme), ARR(chTheme), 0, 0, 0, NULL, "The look of the menus' buttons: dark grey, or light grey like the web player's." },
 	{ "left_stick_dpad", "Left stick as D-pad", SF_BOOL, OFFB(leftStickDpad), ARR(chOnOff), 0, 0, 0, NULL, "Off: the left stick does nothing in games." },
 	{ "ab_swap", "A and B buttons", SF_BOOL, OFFB(abSwap), ARR(chAB), 0, 0, 0, NULL, "GBA A on the right button, or on the bottom one." },
 	{ "button_right", "A (right) button", SF_STR, OFFB(faceBtn[0]), ARR(chFace), 0, 0, 0, NULL, "What the right face button gives the game." },

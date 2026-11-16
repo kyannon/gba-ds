@@ -1553,7 +1553,9 @@ void ui_clip(int screen, const SDL_Rect* clip) {
 	SDL_RenderSetClipRect(views[screens[screen].view].ren, clip);
 }
 
+static int keyCount[2];
 void ui_clear(void) {
+	keyCount[0] = keyCount[1] = 0;
 	for (int i = 0; i < nViews; ++i) {
 		if (views[i].retained) continue; /* keeps its last picture; see sw_render */
 		SDL_SetRenderDrawColor(views[i].ren, 0, 0, 0, 255);
@@ -2647,6 +2649,82 @@ void ui_fill_round(int screen, SDL_Rect r, SDL_Color c, int radius) {
 	for (int i = 0; i < 4; ++i) SDL_RenderCopy(views[s->view].ren, t, &src[i], &dst[i]);
 }
 
+
+/* ---------------------------------------------------------- keys and the theme
+ * The menus' buttons look like a GBA's: a raised key with an edge under it.
+ * Dark (the default): dark grey keys with a light rim and a heavy dark edge.
+ * Light: the web player's pale grey keys. Text on a plain key in the light
+ * theme is drawn in dark ink: ui_key notes where the keys are, and
+ * ui_font_text turns light colours inside one into ink. */
+static int themeLight;
+void ui_theme(int light) {
+	themeLight = light != 0;
+}
+bool ui_theme_light(void) {
+	return themeLight;
+}
+SDL_Color ui_key_ink(void) {
+	return themeLight ? (SDL_Color) { 69, 71, 90, 255 } : (SDL_Color) { 238, 240, 255, 255 };
+}
+SDL_Color ui_key_mid(int state) {
+	if (state == KEY_SEL) return (SDL_Color) { 102, 55, 153, 255 };
+	if (state == KEY_LIT) return (SDL_Color) { 168, 145, 227, 255 };
+	return themeLight ? (SDL_Color) { 205, 206, 212, 255 } : (SDL_Color) { 53, 54, 62, 255 };
+}
+
+#define KEYS_MAX 160
+static SDL_Rect keyRects[2][KEYS_MAX];
+
+/* inside a plain key of the light theme? then light text is turned to ink */
+static SDL_Color key_text_color(int screen, int x, int y, SDL_Color c) {
+	if (!themeLight || screen < 0 || screen > 1) return c;
+	bool in = false;
+	for (int i = 0; i < keyCount[screen] && !in; ++i) {
+		SDL_Rect r = keyRects[screen][i];
+		in = x >= r.x - 2 && x <= r.x + r.w + 2 && y >= r.y && y <= r.y + r.h;
+	}
+	if (!in) return c;
+	int lum = (c.r + c.g + c.b) / 3;
+	if (c.r > 190 && c.g > 140 && c.b < 150 && c.r - c.b > 70) return (SDL_Color) { 122, 82, 0, c.a }; /* gold */
+	if (lum >= 170) return (SDL_Color) { 69, 71, 90, c.a };
+	if (lum >= 70) return (SDL_Color) { 108, 110, 128, c.a };
+	return c;
+}
+
+void ui_key(int screen, SDL_Rect r, int radius, int state) {
+	int lift = SDL_max(2, SDL_min(r.h / 14, 5));
+	SDL_Color border, rim, hi, lo, edge;
+	if (state == KEY_SEL) {
+		border = (SDL_Color) { 20, 0, 40, 255 }, rim = (SDL_Color) { 20, 0, 40, 255 };
+		hi = (SDL_Color) { 118, 66, 172, 255 }, lo = (SDL_Color) { 90, 47, 138, 255 }, edge = (SDL_Color) { 44, 22, 80, 255 };
+		int e = SDL_max(2, lift);
+		ui_fill_round(screen, (SDL_Rect) { r.x - e, r.y - e, r.w + e * 2, r.h + e * 2 + lift }, (SDL_Color) { 169, 139, 224, 255 }, radius + e);
+	} else if (state == KEY_LIT) {
+		border = (SDL_Color) { 60, 40, 110, 255 }, rim = border;
+		hi = (SDL_Color) { 188, 166, 240, 255 }, lo = (SDL_Color) { 154, 130, 216, 255 }, edge = (SDL_Color) { 75, 58, 130, 255 };
+	} else if (themeLight) {
+		border = (SDL_Color) { 171, 173, 181, 255 }, rim = border;
+		hi = (SDL_Color) { 222, 223, 228, 255 }, lo = (SDL_Color) { 190, 192, 199, 255 }, edge = (SDL_Color) { 141, 143, 152, 255 };
+	} else {
+		border = (SDL_Color) { 12, 12, 16, 255 }, rim = (SDL_Color) { 94, 95, 107, 255 };
+		hi = (SDL_Color) { 66, 67, 76, 255 }, lo = (SDL_Color) { 44, 45, 52, 255 }, edge = (SDL_Color) { 5, 5, 8, 255 };
+	}
+	/* the edge under the key, then the key: border, rim, the body in two tones, a highlight along the top */
+	ui_fill_round(screen, (SDL_Rect) { r.x, r.y + lift, r.w, r.h }, edge, radius);
+	ui_fill_round(screen, r, border, radius);
+	ui_fill_round(screen, (SDL_Rect) { r.x + 1, r.y + 1, r.w - 2, r.h - 2 }, rim, SDL_max(1, radius - 1));
+	int in = state == KEY_PLAIN && !themeLight ? 2 : 1;
+	ui_fill_round(screen, (SDL_Rect) { r.x + in + 1, r.y + in + 1, r.w - (in + 1) * 2, r.h - (in + 1) * 2 }, lo, SDL_max(1, radius - in - 1));
+	/* the body's gradient from the top: lo, then bands of colour closer to hi, shorter each time */
+	int bh = r.h - (in + 1) * 2, bx = r.x + in + 1, by = r.y + in + 1, bw = r.w - (in + 1) * 2;
+	for (int i = 1; i <= 6; ++i) {
+		SDL_Color m = { (lo.r * (6 - i) + hi.r * i) / 6, (lo.g * (6 - i) + hi.g * i) / 6, (lo.b * (6 - i) + hi.b * i) / 6, 255 };
+		ui_fill_round(screen, (SDL_Rect) { bx, by, bw, bh * (7 - i) * 11 / 100 + 1 }, m, SDL_max(1, radius - in - 1));
+	}
+	if (state == KEY_PLAIN && screen >= 0 && screen <= 1 && keyCount[screen] < KEYS_MAX && themeLight)
+		keyRects[screen][keyCount[screen]++] = r;
+}
+
 /* ---------------------------------------------------------- text in Jost
  * Rasterized by textfont.c, kept as white textures (tinted when drawn), per
  * view; the least recently drawn are dropped when the cache is full. */
@@ -2740,6 +2818,7 @@ int ui_font_width(int font, int capPx, const char* text) {
 
 void ui_font_text(int screen, int font, int x, int cy, int capPx, const char* text, SDL_Color c, int align) {
 	if (!text || !text[0] || capPx <= 0) return;
+	c = key_text_color(screen, x, cy, c);
 	RECORD(screen, OP_LABEL) {
 		o->a = x, o->b = cy, o->c = capPx, o->d = font | ((align + 1) << 4), o->col = c;
 		snprintf(o->text, sizeof(o->text), "%s", text);

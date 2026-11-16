@@ -102,6 +102,7 @@ typedef struct Config {
 	bool barHint;         /* "Swipe up for quick menu" at a game's start (quick_bar_hint) */
 	bool nameTags;        /* library keeps (USA), (En,Fr) etc. in game names */
 	bool showAll;         /* library lists games without a map profile too */
+	bool lightTheme;      /* the light theme for the menus' buttons (theme = light) */
 	bool leftStickDpad;   /* the left stick also presses the D-pad in games (left_stick_dpad, issue #57) */
 	int turboRate;        /* Turbo A / Turbo B: presses a second, 10, 15 or 20 (turbo_rate, issue #55) */
 	char faceBtn[4][12];  /* what each face button gives the game (button_right, _bottom, _top, _left: a, b, l, r, start, select, turbo_a, turbo_b, none); empty: ab_swap's layout */
