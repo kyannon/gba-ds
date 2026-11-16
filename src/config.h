@@ -75,6 +75,9 @@ typedef struct Config {
 	char saveExt[8];   /* their extension: sav, or srm (RetroArch's: BananaOS's GBA saves, shared) */
 	char saveFrom[512]; /* where GBA DS kept them before (<game>.sav), carried over: BananaOS */
 	char stateDir[512]; /* save states, thumbnails, prefs; default: <app>/states */
+	char stateFolder[12]; /* slots 0-9 and the automatic state: "gbads" (stateDir) or "retroarch" (RetroArch's own, shared: issue #39) */
+	char raStateDir[512]; /* RetroArch's state folder when it isn't found from its settings (retroarch_state_dir) */
+	char raCfg[512];      /* RetroArch's retroarch.cfg (retroarch_cfg; default: looked for) */
 	char romDir[1024]; /* library folders, ':'-separated */
 	char screenshotDir[512]; /* "Take Screenshot" saves here */
 	char cheatDir[1024]; /* RetroArch .cht folders, ':'-separated (searched two levels deep) */

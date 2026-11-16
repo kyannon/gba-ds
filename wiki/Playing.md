@@ -16,12 +16,29 @@ GBA DS opens on a game list on the touchscreen (the bottom screen on the RG DS P
 | A or Start, or tap a game | Play |
 | Drag | Scroll |
 | X, or tap the button left of Settings | Switch between list and grid |
-| SELECT, or tap **Settings** | Settings (ROCKNIX: GBA DS in EmulationStation; BananaOS: GBA DS in its GBA list; Controls has Map Buttons and Hotkeys; System has Updates (Linux) or Folders, RetroAchievements sign-in and Updates (Android)) |
+| SELECT, or tap **Settings** | Settings (ROCKNIX: GBA DS in EmulationStation; BananaOS: GBA DS in its GBA list; Controls has Map Buttons and Hotkeys; System has [Save States](#save-states-shared-with-retroarch), RetroArch's State Folder and Updates (Linux) or Folders, RetroAchievements sign-in and Updates (Android)) |
 | B or HOME | Back to EmulationStation / the launcher |
 
 ## Resume points
 
 Leaving a game saves its state automatically, and launching it again picks up exactly there; the game list shows where. **Save on Quit** and **Auto-Load** on the pause menu's Extras page switch each half off (`save_on_quit = 0`, `auto_load = 0` in `gba-ds.cfg`). With Save on Quit off and Auto-Load on, the game picks up from the last resume point that was saved. Battery saves (in-game saves) are written as usual too, so they're never at risk.
+
+## Save states shared with RetroArch
+
+On ROCKNIX, BananaOS and other Linux systems, GBA DS can share its save states with RetroArch, so you can save in one and go on in the other. In the game list, open **Settings** (SELECT) > **System** and choose **Save States** to switch between **GBA DS's Own** (the default) and **Shared with RetroArch**. **RetroArch's State Folder**, under it, says which folder RetroArch keeps its states in, and lets you choose it yourself, if GBA DS didn't find RetroArch or you keep its states somewhere else: open folders with A (or a tap), go up with B, and choose **Use This Folder**. It says how many RetroArch states are in the folder you're looking at. **Automatic** goes back to the folder RetroArch's settings give.
+
+When they're shared:
+
+- The pause menu's slots 0 to 9 are RetroArch's slots 0 to 9, and the resume point is RetroArch's automatic state (its `<game>.state`, `.state1` to `.state9` and `.state.auto`). There's one copy of each, in RetroArch's folder, so nothing has to be copied across and a folder you sync to other devices just works.
+- GBA DS saves them as RetroArch does (compressed, unless RetroArch's "Save State Compression" is off), with a thumbnail beside each for RetroArch's menu.
+- A slot's label says **RetroArch** when it was saved there (for example "Slot 3: Nov 14, 5:27 PM, RetroArch").
+- RetroArch's Game Boy Advance core has to be **mGBA**, since GBA DS is mGBA inside. A state saved with another core (gpSP, VBA-M...) can't be loaded: its slot says "Another emulator's". On BananaOS, whose own choice is gpSP, set it in Settings > Other systems > Emulators (BananaFront, which BananaOS often plays GBA games in, uses the same core and the same state files). On ROCKNIX, in EmulationStation: the game's Advanced Game Options > Core, or the system's advanced settings.
+- The quick state (the quick bar's, HOME + R1 / L1) stays GBA DS's own.
+- A game with patches on and its own save states (see [Patches](#patches)) keeps them in GBA DS's folder, as RetroArch has none for it.
+- GBA DS's own states stay in its folder while sharing is on, for when you switch back.
+- RetroAchievements progress isn't shared: each app keeps its own with its states.
+
+GBA DS works out RetroArch's state folder from RetroArch's own settings, the way RetroArch does: on ROCKNIX `/storage/roms/savestates/gba`, on BananaOS `/data/states/mGBA`. If RetroArch is somewhere GBA DS doesn't look, choose its folder with **RetroArch's State Folder**.
 
 ## Updates
 
@@ -241,7 +258,7 @@ Your own logos and scraped ones are made as tall as the logo GBA DS took from th
 | What | ROCKNIX | Android |
 |---|---|---|
 | Battery saves (`.sav`) | next to the ROM, or the folder you name in `save_dir` (see [Settings](Settings#files-and-folders); `save_ext = srm` keeps them as RetroArch's `.srm`). On first launch an existing RetroArch `Game.srm` is copied to `Game.sav`; the `.srm` is left alone. | next to the ROM (**Settings** → **Folders** changes it) |
-| Save states (`<game>.quick.state` for the quick bar, `<game>.slot0.state` to `.slot9.state` for the pause menu's slots), resume points (`<game>.auto.state`), with `.ra` beside them | `/storage/roms/ports/gba-ds/states/` (`state_dir`) | `GBA DS/states/` |
+| Save states (`<game>.quick.state` for the quick bar, `<game>.slot0.state` to `.slot9.state` for the pause menu's slots), resume points (`<game>.auto.state`), with `.ra` beside them | `/storage/roms/ports/gba-ds/states/` (`state_dir`); slots and resume points shared with RetroArch: RetroArch's state folder (see [above](#save-states-shared-with-retroarch)), their `.ra` in `states/retroarch/` | `GBA DS/states/` |
 | Menu settings (`prefs.cfg`), game list settings (`library.cfg`) | `gba-ds/states/` | `GBA DS/states/` |
 | Cheat choices (`<game>.cheats`), patch choices (`<game>.patches`) | `gba-ds/states/` | `GBA DS/states/` |
 | Hotkeys (`hotkeys.cfg`), Map Buttons (`controllers.txt`) | `gba-ds/states/` | `GBA DS/states/` |

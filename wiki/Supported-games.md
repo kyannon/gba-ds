@@ -36,7 +36,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | MOTHER 3 | `A3UJ` (Japan only) | walking about: the area map where R opens one, else the Status screen, each party member in turn | Translations into English (v1.3, v1.3a), Brazilian Portuguese, Italian, German, Simplified Chinese, Polish, French, Catalan (v1.0, v1.0.2) and Dutch; MusicTheorist's HQ audio mix (Japanese and English) |
 | Muppet Pinball Mayhem | `AMWE` `AMWP` (no Japanese release) | the table twice as tall over both screens, live, with the score bar | |
 | Ninja Five-O (Ninja Cop in Europe) | `ANXE` `ANXP` (no Japanese release) | in stages: the HUD (bars, score or time, the boss's bar, the shuriken's level, keys and hostages) | |
-| Pokémon Pinball: Ruby & Sapphire | `BPPE` | the table twice as tall over both screens, live, with the score bar | |
+| Pokémon Pinball: Ruby & Sapphire | `BPPE` `BPPP` `BPPJ` (Japan: the original and Rev 1) | the table twice as tall over both screens, live, with the score bar | |
 | River City Ransom EX (Downtown Nekketsu Monogatari EX in Japan) | `BDTE` `BDTJ` (no European release) | the Status screen, with the top bar moved off the game screen | |
 | Sonic Advance | `ASOE` `ASOP` `ASOJ` | the zone card, with the rings, score, time and lives | |
 | Sonic Advance 2 | `A2NE` `A2NP` `A2NJ` | the zone card, with the rings, score, time and lives | |
@@ -400,7 +400,7 @@ Known issues: the end of a stage (the red door), a boss's defeat, a mission's en
 
 ## Pokémon Pinball: Ruby & Sapphire
 
-The USA release.
+The USA, European and Japanese releases (the Japanese one's Rev 1 too), all the same. A hacked copy whose code differs plays on one screen, with the logo on the other.
 
 - **On a table,** the two screens together show twice as much of it, **live**, as if they were one tall screen: GBA DS runs two more copies of the game alongside yours, drawing the parts of the table your game's view doesn't, so the flippers, the Pokémon and everything else move on both screens. Your game itself is never changed.
 - The view scrolls smoothly with the ball and never jumps. While the ball is in the table's upper part, your game is on the top screen with the next part of the table below it. Further down, the two screens show the whole lower table, and the ball is on the bottom screen only when it's down by the flippers.

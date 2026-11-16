@@ -10,6 +10,7 @@
 #include "esde.h"
 #include "esinteg.h"
 #include "hotkeys.h"
+#include "folderpick.h"
 #include "mapper.h"
 #include "ra.h"
 #include "update.h"
@@ -938,6 +939,10 @@ static void save_library_cfg(const Config* cfg) {
 	FILE* f = fopen(file, "w");
 	if (!f) return;
 	fprintf(f, "# written by the game list\nlibrary_view = %s\n", listMode ? "list" : "grid");
+	/* (Settings > Save States: shared with RetroArch or not, issue #39) */
+	fprintf(f, "state_folder = %s\n", strcmp(cfg->stateFolder, "retroarch") ? "gbads" : "retroarch");
+	/* (Settings > RetroArch's Folder: one chosen by hand, or empty: found from RetroArch's settings) */
+	fprintf(f, "retroarch_state_dir = %s\n", cfg->raStateDir);
 #ifdef __ANDROID__
 	fprintf(f, "rom_dir = %s\n", cfg->romDir);
 	/* (Settings > Folders; empty: next to the games) */
@@ -1095,7 +1100,7 @@ static int updatesSel;
 #define SETTINGS_MAX 8
 static int nRows = 1; /* rows shown (Back is row nRows) */
 /* (Hotkeys shares Map Buttons' line: the right half of it, under one text) */
-enum { ROW_BANANA, ROW_ES, ROW_MAP, ROW_HOTKEYS, ROW_UPDATES, ROW_FOLDERS, ROW_RA, ROW_ESDE, ROW_PERF, ROW_RESET, ROW_DELCFG };
+enum { ROW_BANANA, ROW_ES, ROW_MAP, ROW_HOTKEYS, ROW_UPDATES, ROW_FOLDERS, ROW_RA, ROW_ESDE, ROW_PERF, ROW_STATES, ROW_STATES_DIR, ROW_RESET, ROW_DELCFG };
 static int rowKind[SETTINGS_MAX];
 
 #ifdef __ANDROID__
@@ -1125,6 +1130,8 @@ static void settings_rows(const Config* cfg) {
 	if (banana_present()) rowKind[nRows++] = ROW_BANANA;
 	else if (es_present(cfg)) rowKind[nRows++] = ROW_ES;
 #endif
+	rowKind[nRows++] = ROW_STATES; /* (save states shared with RetroArch: issue #39) */
+	rowKind[nRows++] = ROW_STATES_DIR;
 #ifdef GBADS_UPDATES
 	rowKind[nRows++] = ROW_UPDATES;
 #endif
@@ -1841,16 +1848,111 @@ static bool folders_input(Config* cfg, int ls) {
 #else
 static int settingsMsgRow; /* the row settingsMsg is about: shown in place of its text */
 
+/* Settings > Save States (issue #39): slots 0-9 and the automatic state in
+ * GBA DS's own folder, or shared with RetroArch (its own files, in its
+ * folder: a game goes on in either). The folder shown is the selected
+ * game's (RetroArch's can depend on the game's). */
+/* a long path's last parts (…/savestates/gba; whole up to 40 characters), for a line of text */
+static const char* path_tail(const char* path) {
+	const char* p = path;
+	int parts = 0;
+	for (const char* c = path + strlen(path); strlen(path) > 40 && c > path; --c) {
+		if (*c == '/' && ++parts == 3) {
+			p = c;
+			break;
+		}
+	}
+	static char out[1100];
+	snprintf(out, sizeof(out), "%s%s", p != path ? "\xe2\x80\xa6" : "", p);
+	return out;
+}
+static const char* states_rom(void) {
+	return thumbFor >= 0 && thumbFor < nGames ? games[thumbFor].path : NULL; /* (the game shown in the list) */
+}
+static void states_text(const Config* cfg, char* out, size_t n) {
+	char dir[1024];
+	bool compress;
+	bool found = retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress);
+	if (!found)
+		snprintf(out, n, "Slots 0-9 and the resume point are GBA DS's own. To share them, choose RetroArch's state folder.");
+	else if (strcmp(cfg->stateFolder, "retroarch"))
+		snprintf(out, n, "Slots 0-9 and the resume point are GBA DS's own. Shared, they're RetroArch's: %s.", path_tail(dir));
+	else
+		snprintf(out, n, "Slots 0-9 and the resume point are RetroArch's (its GBA core set to mGBA): %s.", path_tail(dir));
+}
+/* Settings > RetroArch's Folder: its state folder chosen by hand (kept as
+ * retroarch_state_dir in library.cfg), or found from its settings again
+ * (Automatic). Choosing one shares the states with RetroArch. */
+static void states_dir_pick(Config* cfg) {
+	char dir[1024] = "", chosen[1024];
+	bool compress;
+	bool found = retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress);
+	bool byHand = cfg->raStateDir[0] != 0;
+	/* (opens at the folder now, else where ROCKNIX or BananaOS keep RetroArch's states; else home) */
+	const char* start = found ? dir : file_exists("/storage/roms") ? "/storage/roms/savestates" : "/data/states";
+	FolderPick r = folder_pick("RetroArch's State Folder", start, ".state", "RetroArch state", byHand ? "Automatic" : NULL, chosen,
+	                           sizeof(chosen));
+	if (r == FOLDER_CANCEL) return;
+	if (r == FOLDER_CHOSEN) {
+		snprintf(cfg->raStateDir, sizeof(cfg->raStateDir), "%s", chosen);
+		snprintf(cfg->stateFolder, sizeof(cfg->stateFolder), "retroarch");
+		snprintf(settingsMsg, sizeof(settingsMsg), "Slots 0-9 and the automatic state are now shared with RetroArch, in %s.", path_tail(chosen));
+	} else {
+		cfg->raStateDir[0] = 0;
+		if (retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress)) {
+			snprintf(settingsMsg, sizeof(settingsMsg), "RetroArch's state folder is found from its settings again: %s.", path_tail(dir));
+		} else {
+			snprintf(cfg->stateFolder, sizeof(cfg->stateFolder), "gbads");
+			snprintf(settingsMsg, sizeof(settingsMsg), "RetroArch's settings weren't found, so slots 0-9 and the automatic state are GBA DS's own again.");
+		}
+	}
+	save_library_cfg(cfg);
+	fprintf(stderr, "library: RetroArch's state folder %s%s, states %s\n", cfg->raStateDir[0] ? "chosen: " : "from its settings",
+	        cfg->raStateDir, strcmp(cfg->stateFolder, "retroarch") ? "GBA DS's own" : "shared");
+}
+/* RetroArch's State Folder's note: the folder, and where it came from */
+static void states_dir_text(const Config* cfg, char* out, size_t n) {
+	char dir[1024];
+	bool compress;
+	if (!retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress))
+		snprintf(out, n, "RetroArch's settings weren't found here: choose the folder where it keeps its save states.");
+	else
+		snprintf(out, n, "%s %s. Choose another if RetroArch keeps its states somewhere else.",
+		         cfg->raStateDir[0] ? "Chosen here:" : "From RetroArch's settings:", path_tail(dir));
+}
+static void states_switch(Config* cfg) {
+	char dir[1024];
+	bool compress;
+	bool shared = !strcmp(cfg->stateFolder, "retroarch");
+	if (!shared && !retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress)) {
+		/* (RetroArch's settings not found: where are its states?) */
+		states_dir_pick(cfg);
+		return;
+	}
+	snprintf(cfg->stateFolder, sizeof(cfg->stateFolder), "%s", shared ? "gbads" : "retroarch");
+	save_library_cfg(cfg);
+	fprintf(stderr, "library: save states %s\n", shared ? "in GBA DS's own folder" : "shared with RetroArch");
+	snprintf(settingsMsg, sizeof(settingsMsg), "%s",
+	         shared ? "Slots 0-9 and the automatic state are GBA DS's own again. The states saved in RetroArch's folder stay there."
+	                : "Slots 0-9 and the automatic state are now RetroArch's. GBA DS's own states stay in its folder, for when this is switched back.");
+}
+
 static void draw_settings(const Config* cfg, int scr, int sel) {
 	if (sel != confirmRow) confirmRow = -1; /* moved off the row: no longer asked */
 	SettingsGeom g = settings_geom(scr);
 	float px = g.px;
 	const char* labels[SETTINGS_MAX];
+	bool shared = !strcmp(cfg->stateFolder, "retroarch");
+	char statesText[1400], statesDirText[1400];
+	states_text(cfg, statesText, sizeof(statesText));
+	states_dir_text(cfg, statesDirText, sizeof(statesDirText));
 	for (int i = 0; i < nRows; ++i) {
 		labels[i] = rowKind[i] == ROW_BANANA ? (banana_integration_on() ? "GBA DS in BananaOS's GBA list: On" : "GBA DS in BananaOS's GBA list: Off")
 		          : rowKind[i] == ROW_ES     ? (es_integration_on(cfg) ? "GBA DS in EmulationStation: On" : "GBA DS in EmulationStation: Off")
 		          : rowKind[i] == ROW_RESET  ? (confirmRow == i ? "Are you sure? Reset settings" : "Reset settings to defaults")
 		          : rowKind[i] == ROW_DELCFG ? (confirmRow == i ? "Are you sure? Delete them" : "Delete per-game settings")
+		          : rowKind[i] == ROW_STATES ? (shared ? "Save States: Shared with RetroArch" : "Save States: GBA DS's Own")
+		          : rowKind[i] == ROW_STATES_DIR ? "RetroArch's State Folder"
 		          : rowKind[i] == ROW_PERF   ? (cfg->perfMax ? "Performance: Set to Max" : "Performance: Let the System Decide")
 		                                     : "Updates";
 	}
@@ -1866,6 +1968,8 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 	                         "The other emulators keep working as before."
 	                   : rowKind[i] == ROW_RESET ? RESET_NOTE
 	                   : rowKind[i] == ROW_DELCFG ? DELCFG_NOTE
+	                   : rowKind[i] == ROW_STATES ? statesText
+	                   : rowKind[i] == ROW_STATES_DIR ? statesDirText
 	                   : rowKind[i] == ROW_PERF
 	                       ? (cfg->perfMax ? "The processor, memory and graphics run at full speed while GBA DS is open: "
 	                                         "the smoothest play, but the battery runs down faster and the device gets warmer."
@@ -1897,6 +2001,8 @@ static void settings_activate(Config* cfg, int row) {
 	if (rowKind[row] == ROW_UPDATES) updatesOpen = true, updatesNotice = false, updatesSel = 0;
 	else if (rowKind[row] == ROW_BANANA) banana_integration_set(!banana_integration_on(), settingsMsg, sizeof(settingsMsg));
 	else if (rowKind[row] == ROW_ES) es_integration_set(cfg, !es_integration_on(cfg), settingsMsg, sizeof(settingsMsg));
+	else if (rowKind[row] == ROW_STATES) states_switch(cfg);
+	else if (rowKind[row] == ROW_STATES_DIR) states_dir_pick(cfg);
 	else if (rowKind[row] == ROW_PERF) {
 		cfg->perfMax = !cfg->perfMax;
 		clocks_set(cfg->perfMax);
