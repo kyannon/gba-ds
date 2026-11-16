@@ -6062,7 +6062,302 @@ done:
 	return err;
 }
 
+/* ---------------------------------------------------------- Pokémon (preliminary: FireRed / LeafGreen, Ruby / Sapphire)
+ *
+ * Experiment for the branch pokemon-preliminary (docs/pokemon-ideas.md). The
+ * second screen is the game's own Party screen, Trainer Card and (Ruby /
+ * Sapphire) Pokénav map, opened on the shadow core through the START menu
+ * and shown in turn. Nothing here is the game's data: no tables, no
+ * addresses of a particular ROM, so a romhack built on the same engine
+ * needs no work of its own.
+ *
+ *  - Where things are is found on the screen, not in memory: START is
+ *    pressed on the hidden copy and the menu's panel looked for; the START
+ *    menu remembers its cursor, so the cursor is first put on the first
+ *    entry (DOWN until it wraps to the top: a cursor that moves up the
+ *    panel's rows only changes pixels in two bands, far apart when it
+ *    wraps), then moved by counting: POKéMON is the first or second entry
+ *    (tried in turn; the screen that comes up is checked), the Trainer
+ *    Card (the player's name) and BAG / POKéNAV are the 4th and 5th from
+ *    the end in every game.
+ *  - Which screen came up is told by the display registers (DISPCNT and
+ *    BG0-3CNT), which belong to the engine, not to a romhack's changes
+ *    (three engines: FireRed / LeafGreen, Ruby / Sapphire, Emerald).
+ *  - When to look again: pk_virt finds the party in RAM (records of 100
+ *    bytes whose checksum is right: nothing to configure) and gives a value
+ *    that changes with anyone's HP, status, level or species.
+ */
+typedef struct { uint16_t r[5]; } PkSig; /* DISPCNT, BG0CNT ... BG3CNT; r[0] 0: none */
+typedef struct {
+	PkSig party, card, nav, map;
+	/* the Party's message box and CANCEL: rows from here down are the
+	 * background's, taken from the left edge */
+	/* the START menu's panel ends here (FireRed has a description box below it) */
+	int menuBottom;
+	int partyClean, partyFrom;
+	/* the map's button prompts: the bar they're in, from x0 to x1, y0 to y1,
+	 * filled from the pixel at (fx, y0) */
+	int mapClean[5];
+} PkFam;
+static const PkFam pkFrlg = {
+	.party = { { 0x1740, 0x1F01, 0x1E02, 0x5C00, 0x0000 } },
+	.card = { { 0x3F40, 0x9B02, 0x1D08, 0x1E03, 0x1F01 } },
+	.partyClean = 130, .partyFrom = 182, .menuBottom = 112,
+};
+static const PkFam pkRs = {
+	.party = { { 0x1F40, 0x1E06, 0x0703, 0x0F08, 0x0602 } },
+	.card = { { 0x1F40, 0x1E08, 0x0801, 0x0902, 0x0A03 } },
+	.nav = { { 0x3F40, 0x1F01, 0x1B0C, 0x1D0A, 0x1C0B } },
+	.map = { { 0x1741, 0x1F01, 0x1B0C, 0xBC8A, 0x1C0B } },
+	.partyClean = 130, .partyFrom = 193, .menuBottom = 158,
+	.mapClean = { 0, 118, 146, 159, 122 },
+};
+static const PkFam* pk_fam(const Emu* e) {
+	const char* c = e->gameCode;
+	if (!strncmp(c, "BPR", 3) || !strncmp(c, "BPG", 3)) return &pkFrlg;
+	if (!strncmp(c, "AXP", 3) || !strncmp(c, "AXV", 3)) return &pkRs;
+	return NULL;
+}
+static bool pk_is(Emu* s, const PkSig* g) {
+	if (!g->r[0]) return false;
+	return emu_io16(s, 0x00) == g->r[0] && emu_io16(s, 0x08) == g->r[1] && emu_io16(s, 0x0A) == g->r[2] &&
+	       emu_io16(s, 0x0C) == g->r[3] && emu_io16(s, 0x0E) == g->r[4];
+}
+static bool pk_wait(Emu* s, const PkSig* g, int frames) {
+	for (int i = 0; i < frames; ++i) {
+		if (pk_is(s, g)) {
+			aw_run(s, 0, 2);
+			return true;
+		}
+		emu_frame_blind(s, 0);
+	}
+	return false;
+}
+/* the START menu's white panel (right side) is up: lots of white there and
+ * the picture differs from before */
+static bool pk_panel(Emu* s, const uint32_t* before) {
+	int white = 0, changed = 0;
+	for (int y = 4; y < 100; ++y) {
+		for (int x = 172; x < 236; ++x) {
+			uint32_t c = s->fb[y * GBA_W + x];
+			white += (c & 0xFF) >= 0xF0 && ((c >> 8) & 0xFF) >= 0xF0 && ((c >> 16) & 0xFF) >= 0xF0;
+			changed += c != before[y * GBA_W + x];
+		}
+	}
+	return white >= 1200 && changed >= 400;
+}
+/* After a DOWN on the menu: 0 nothing moved in the panel, 1 the cursor went
+ * down a row (its old and new places are bands side by side), 2 it went from
+ * the last entry to the first (bands far apart) */
+static int pk_moved(Emu* s, const uint32_t* before, int bottom) {
+	int first = -1, last = -1, gap = 0, run = 0;
+	for (int y = 0; y < bottom; ++y) {
+		bool ch = false;
+		for (int x = 172; x < 236 && !ch; ++x) ch = s->fb[y * GBA_W + x] != before[y * GBA_W + x];
+		if (ch) {
+			if (first < 0) first = y;
+			else if (run > gap) gap = run;
+			last = y;
+			run = 0;
+		} else if (first >= 0) {
+			++run;
+		}
+	}
+	if (first < 0) return 0;
+	(void) last;
+	return gap >= 18 ? 2 : 1;
+}
+/* a press these menus take every time: 3 frames down, 9 up (the last two drawn) */
+static void pk_tap(Emu* s, uint32_t key) {
+	aw_run(s, key, 3);
+	aw_run(s, 0, 9);
+}
+static void pk_keep(Emu* s, uint32_t* to) { memcpy(to, s->fb, GBA_W * GBA_H * sizeof(uint32_t)); }
+/* START pressed on the hidden copy, the menu up, its cursor on the first entry */
+static const char* pk_menu_top(Emu* s, const PkFam* f, const void* state) {
+	static uint32_t before[GBA_W * GBA_H];
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	pk_keep(s, before);
+	pk_tap(s, K_START);
+	bool up = false;
+	for (int i = 0; i < 24 && !(up = pk_panel(s, before)); ++i) emu_frame(s, 0);
+	if (!up) return "map button did nothing"; /* a scene, a conversation, a menu, a battle: quick */
+	aw_run(s, 0, 24); /* (the menu takes no input just as it opens) */
+	for (int i = 0; i < 12; ++i) {
+		pk_keep(s, before);
+		pk_tap(s, K_DOWN);
+		int m = pk_moved(s, before, f->menuBottom);
+		if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: DOWN %d -> %d (io %04X %04X)\n", i, m, emu_io16(s, 0), emu_io16(s, 8));
+		if (m == 2) return NULL;
+		if (m == 0) return "the menu's cursor didn't move";
+	}
+	return "the menu's cursor never wrapped";
+}
+/* from the first entry: n entries down (n > 0), or from the end up (n < 0:
+ * -1 is the last) */
+static void pk_go(Emu* s, int n) {
+	for (int i = 0; i < (n < 0 ? -n : n); ++i) pk_tap(s, n < 0 ? K_UP : K_DOWN);
+}
+static const char* pk_party(Emu* s, const PkFam* f, const void* state, uint32_t* out, int w, int h) {
+	static int row = 1; /* POKéMON is the second entry once there's a Pokédex */
+	for (int t = 0; t < 2; ++t, row ^= 1) {
+		const char* err = pk_menu_top(s, f, state);
+		if (err) return err;
+		pk_go(s, row);
+		pk_tap(s, K_A);
+		if (!pk_wait(s, &f->party, 90)) continue;
+		aw_run(s, 0, 60); /* (the screen builds itself and takes no input for a while) */
+		/* UP from the first slot: the cursor goes to CANCEL (left out below),
+		 * no Pokémon is lit */
+		pk_tap(s, K_UP);
+		aw_run(s, 0, 8);
+		for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+		/* the message box and CANCEL: the background's, taken from beside them */
+		for (int y = f->partyClean; y < h && y < GBA_H; ++y) {
+			for (int x = 0; x < w && x < GBA_W; ++x) out[y * w + x] = s->fb[y * GBA_W + f->partyFrom];
+		}
+		return NULL;
+	}
+	return "the Party didn't open";
+}
+static const char* pk_card(Emu* s, const PkFam* f, const void* state, uint32_t* out, int w, int h) {
+	const char* err = pk_menu_top(s, f, state);
+	if (err) return err;
+	pk_go(s, -4); /* the player's name: 4th from the end */
+	pk_tap(s, K_A);
+	if (!pk_wait(s, &f->card, 90)) return "the Trainer Card didn't open";
+	aw_run(s, 0, 70); /* (the card slides and flips in) */
+	if (!pk_is(s, &f->card)) return "the Trainer Card went away";
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+	return NULL;
+}
+static const char* pk_map(Emu* s, const PkFam* f, const void* state, uint32_t* out, int w, int h) {
+	if (!f->map.r[0]) return "no map here";
+	const char* err = pk_menu_top(s, f, state);
+	if (err) return err;
+	pk_go(s, -5); /* POKéNAV: 5th from the end */
+	pk_tap(s, K_A);
+	if (!pk_wait(s, &f->nav, 120)) return "the Pokénav didn't open";
+	aw_run(s, 0, 30);
+	pk_tap(s, K_A); /* its first entry, the region map */
+	if (!pk_wait(s, &f->map, 120)) return "the map didn't open";
+	aw_run(s, 0, 40);
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+	/* the button prompts' bar, filled from beside them */
+	const int* c = f->mapClean;
+	for (int y = c[2]; y <= c[3] && y < h; ++y) {
+		for (int x = c[0]; x <= c[1] && x < w; ++x) out[y * w + x] = s->fb[y * GBA_W + c[4]];
+	}
+	return NULL;
+}
+static const char* pk_pages(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+	/* The Party is taken every time (it's what changes); the Trainer Card and
+	 * the map only now and then, and kept between: each costs a menu's worth of
+	 * frames on the hidden copy */
+	static uint32_t keep[2][GBA_W * GBA_H];
+	static bool have[2];
+	static int tick;
+	const PkFam* f = pk_fam(s);
+	if (!f) return "not a Pokémon game this knows";
+	int max = *nOut < 4 ? *nOut : 4, n = 0;
+	*step = 300; /* 5 seconds a page */
+	const char* err = pk_party(s, f, state, out[n], w, h);
+	if (err) return err; /* (no Party: no second screen to keep) */
+	++n;
+	bool again = tick++ % 12 == 0;
+	for (int k = 0; k < 2 && n < max; ++k) {
+		if (again || !have[k]) {
+			err = k ? pk_map(s, f, state, keep[k], GBA_W, GBA_H) : pk_card(s, f, state, keep[k], GBA_W, GBA_H);
+			have[k] = !err;
+		}
+		if (!have[k] || w != GBA_W || h != GBA_H || n + 2 > max) continue;
+		/* the Party between the others: it's what the player watches, so it's up half the time */
+		if (n > 1) memcpy(out[n++], out[0], sizeof(keep[k]));
+		memcpy(out[n++], keep[k], sizeof(keep[k]));
+	}
+	*nOut = n;
+	return NULL;
+}
+
+/* Where the party is: 100-byte records (a Pokémon in a party: the personality
+ * value and trainer ID, 48 bytes of data encrypted with their xor and summed
+ * into a checksum) that check out, at 4-byte steps through EWRAM and IWRAM.
+ * Each Gen 3 game and romhack keeps its party somewhere (and the enemy's
+ * during a battle); the records are found whichever it is, once, and the
+ * value pk_virt returns changes when any of them changes (HP, status, level,
+ * species): the second screen's "look again". */
+#define PK_VIRT 0xF0000010
+#define PK_MAX 24
+static struct { uint32_t addr[PK_MAX]; int n; unsigned long scanned; bool have; } pkLoc;
+static uint32_t pk_rd32(const uint8_t* m, size_t i) { uint32_t v; memcpy(&v, m + i, 4); return v; }
+static bool pk_record(const uint8_t* r) {
+	uint32_t pers = pk_rd32(r, 0), key = pers ^ pk_rd32(r, 4);
+	if (!pers && !pk_rd32(r, 4)) return false;
+	unsigned sum = 0;
+	for (int i = 0; i < 12; ++i) {
+		uint32_t w = pk_rd32(r, 0x20 + i * 4) ^ key;
+		sum += (w & 0xFFFF) + (w >> 16);
+	}
+	if ((sum & 0xFFFF) != (unsigned) (r[0x1C] | r[0x1D] << 8)) return false;
+	unsigned lv = r[0x54], hp = r[0x56] | r[0x57] << 8, mhp = r[0x58] | r[0x59] << 8;
+	return lv >= 1 && lv <= 100 && mhp > 0 && mhp < 1000 && hp <= mhp;
+}
+static void pk_scan(Emu* e) {
+	pkLoc.n = 0;
+	for (int region = 2; region <= 3; ++region) {
+		size_t size = 0;
+		const uint8_t* m = emu_memory(e, region, &size);
+		if (!m) continue;
+		for (size_t i = 0; i + 100 <= size && pkLoc.n < PK_MAX; i += 4) {
+			if (pk_record(m + i)) pkLoc.addr[pkLoc.n++] = ((uint32_t) region << 24) + (uint32_t) i;
+		}
+	}
+	pkLoc.scanned = e->frames;
+	pkLoc.have = true;
+	if (getenv("GBADS_PKDBG")) {
+		fprintf(stderr, "pk: party scan found %d records:", pkLoc.n);
+		for (int i = 0; i < pkLoc.n; ++i) fprintf(stderr, " %08X", pkLoc.addr[i]);
+		fprintf(stderr, "\n");
+	}
+}
+static uint32_t pk_virt(Emu* e, uint32_t addr) {
+	if (addr != PK_VIRT) return 0;
+	/* (a record that stops checking out, or none yet: look again, at most
+	 * once a second) */
+	bool ok = pkLoc.have && pkLoc.n > 0;
+	for (int i = 0; ok && i < pkLoc.n; ++i) {
+		size_t size = 0;
+		const uint8_t* m = emu_memory(e, pkLoc.addr[i] >> 24, &size);
+		ok = m && pk_record(m + (pkLoc.addr[i] & 0xFFFFFF));
+	}
+	if (!ok && (!pkLoc.have || e->frames - pkLoc.scanned >= 60)) pk_scan(e);
+	uint32_t h = 2166136261u;
+	for (int i = 0; i < pkLoc.n; ++i) {
+		size_t size = 0;
+		const uint8_t* m = emu_memory(e, pkLoc.addr[i] >> 24, &size);
+		if (!m) continue;
+		const uint8_t* r = m + (pkLoc.addr[i] & 0xFFFFFF);
+		/* species is encrypted; the party's stats outside it say as much */
+		for (int b = 0x50; b < 0x5A; ++b) h = (h ^ r[b]) * 16777619u;
+		h = (h ^ r[0x1C]) * 16777619u;
+		h = (h ^ r[0x1D]) * 16777619u;
+	}
+	return h;
+}
+
 static const MapProfile profiles[] = {
+	{
+		/* PRELIMINARY (pokemon-preliminary): see docs/pokemon-ideas.md */
+		.codes = { "BPRE", "AXPE" },
+		.title = "Pokemon FireRed / Sapphire (preliminary)",
+		.composePages = pk_pages,
+		.virt = pk_virt,
+		.interval = 180,
+		.room = { { PK_VIRT, 0xFFFFFFFF, 0, 4 } },
+		.crop_w = GBA_W,
+		.crop_h = GBA_H,
+	},
 	{
 		.codes = { "A2CE" },
 		.title = "Castlevania: Aria of Sorrow",
