@@ -7,3 +7,4 @@ Scratch scripts (paths assume `/home/claude/work/all` and the host build; edit t
 3. `xref2.py ROM...` maps the party and save block 1 addresses from the English ROM (`tools/romxref.py`, slow: about two minutes per ROM), one json per ROM in `xr/`.
 4. `runone.py ROM` / `driver.py` poke a six-Pokémon party, the Pokédex / Pokémon (/ Pokénav) flags and, in FireRed / LeafGreen, a Town Map into the state (offsets are the same in every release: count, flags, key items; only the party and save block 1 addresses move), save `s_p.ss`, and run the harness `map` capture (the prototype's pages `pg.png`, `pg_f01.png`).
 5. `mksheet.py OUT.png CODE...` puts the pages of several ROMs side by side to look at.
+6. `full.py ROM...` (names without .gba): the five variants and a run of the real app per ROM, results in `full_results.json`; keeps four small thumbnails of the bottom screen per ROM (`keep_*.png`).
