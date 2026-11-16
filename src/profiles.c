@@ -249,6 +249,7 @@ static bool aw_minimap(Emu* s, const void* state, void* tmp, uint32_t* mm, int* 
 	aw_run(s, 0, 2);
 	if (!emu_state_save(s, tmp)) return false;
 	static uint32_t none[GBA_W * GBA_H];
+	emu_mark_backdrop(s, true); /* (a pixel the backdrop's colour is still the box's) */
 	emu_layers(s, 0);
 	emu_state_load(s, tmp);
 	emu_frame(s, 0);
@@ -281,6 +282,7 @@ static bool aw_minimap(Emu* s, const void* state, void* tmp, uint32_t* mm, int* 
 		*mh = y1 - y0 + 1;
 		for (int y = 0; y < *mh; ++y) memcpy(&mm[y * *mw], &s->fb[(y0 + y) * GBA_W + x0], *mw * sizeof(uint32_t));
 	}
+	emu_mark_backdrop(s, false);
 	emu_layers(s, 0x1F);
 	emu_state_load(s, tmp); /* every layer back on */
 	return ok;
@@ -323,6 +325,7 @@ static void aw_clean(Emu* s, void* tmp, uint32_t* pan, uint32_t* bg2) {
 		memcpy(pan, s->fb, GBA_W * GBA_H * sizeof(uint32_t));
 		return;
 	}
+	emu_mark_backdrop(s, true); /* (the panel's text the backdrop's black is still the panel's) */
 	emu_layers(s, 0);
 	emu_state_load(s, tmp);
 	emu_frame(s, 0);
@@ -342,6 +345,7 @@ static void aw_clean(Emu* s, void* tmp, uint32_t* pan, uint32_t* bg2) {
 	emu_state_load(s, tmp);
 	emu_frame(s, 0);
 	for (int i = 0; i < GBA_W * GBA_H; ++i) pan[i] = s->fb[i] == none[i] ? AW_BG : s->fb[i];
+	emu_mark_backdrop(s, false);
 	emu_hide_sprites(s, &rules[1], 2);
 	emu_layers(s, 0x1F);
 	emu_state_load(s, tmp);
@@ -1179,6 +1183,7 @@ static bool ft_status(Emu* s, const void* state, uint32_t page[2][GBA_W * GBA_H]
 static bool ft_cut(Emu* s, void* tmp, uint32_t* out, uint32_t* bg3, int* ow, int* oh, int minW, int maxW, int minH, int maxH) {
 	if (!emu_state_save(s, tmp)) return false;
 	static uint32_t none[GBA_W * GBA_H], only3[GBA_W * GBA_H];
+	emu_mark_backdrop(s, true);
 	emu_layers(s, 0);
 	emu_state_load(s, tmp);
 	emu_frame(s, 0);
@@ -1213,6 +1218,7 @@ static bool ft_cut(Emu* s, void* tmp, uint32_t* out, uint32_t* bg3, int* ow, int
 			}
 		}
 	}
+	emu_mark_backdrop(s, false);
 	emu_layers(s, 0x1F);
 	emu_state_load(s, tmp);
 	return ok;
@@ -6017,6 +6023,7 @@ static const char* mvdk_compose(Emu* s, const void* state, uint32_t* out, int w,
 	                                      { -512, -256, 511, 255, 0, 1023, 3 },
 	                                      { -512, -256, 511, 255, 0, 1023, 0, 1u << 10 } };
 	emu_hide_sprites(s, behind, 4);
+	emu_mark_backdrop(s, true);
 	emu_layers(s, 0x10);
 	emu_state_load(s, paused);
 	emu_frame(s, 0);
@@ -6025,6 +6032,7 @@ static const char* mvdk_compose(Emu* s, const void* state, uint32_t* out, int w,
 	emu_state_load(s, paused);
 	emu_frame(s, 0);
 	memcpy(back, s->fb, GBA_W * GBA_H * 4);
+	emu_mark_backdrop(s, false);
 	emu_layers(s, 0x1F);
 	emu_hide_sprites(s, NULL, 0);
 	{

@@ -161,6 +161,18 @@ void emu_hide_exact(Emu* e, const uint16_t (*attrs)[3], int n);
 /* Which layers are drawn: bits 0-3 BG0-3, bit 4 sprites (0x1F = all). Takes
  * effect when the display registers are next written (e.g. a state load). */
 void emu_layers(Emu* e, unsigned mask);
+/* Pictures compared pixel by pixel as a whole (a layer's picture against
+ * the backdrop's, emu_layers 0): the fourth byte of each pixel tells the
+ * backdrop's from a layer's or sprite's, so a pixel drawn the backdrop's
+ * colour still differs. mGBA's pictures always have it (its renderer's
+ * flags); armGBA's only between on and off (each frame drawn twice). */
+#ifdef GBADS_ARMGBA
+void emu_mark_backdrop(Emu* e, bool on);
+#else
+static inline void emu_mark_backdrop(Emu* e, bool on) {
+	(void) e, (void) on;
+}
+#endif
 /* HUD split (Mario Kart): while on, the BG layers in bgMask (bit 0 = BG0)
  * and the sprites matching any of objs are left out of the game picture and
  * drawn alone into hud (GBA_W x GBA_H, kept by the caller while the core is

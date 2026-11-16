@@ -93,6 +93,9 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 	uint32_t* fg = malloc(GBA_W * GBA_H * 4);
 	uint8_t* opaque = calloc(GBA_W * GBA_H, 1);
 	emu_state_save(&e, st);
+	/* (a pixel of the logo's layer the backdrop's colour is still the
+	 * logo's: Sonic Advance 3's white glow on white) */
+	emu_mark_backdrop(&e, true);
 	/* Layer switches only take effect when the display registers are
 	 * written; loading the state after setting them rewrites the registers
 	 * (some titles, e.g. Circle of the Moon JP, never rewrite them). */

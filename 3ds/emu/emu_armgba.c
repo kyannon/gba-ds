@@ -57,6 +57,9 @@ typedef struct ArmCore {
 	uint16_t exact[128][3];
 	int nExact;
 	bool exactKeep;
+	/* emu_mark_backdrop: the same picture drawn again on a backdrop of
+	 * MARK_555, where every pixel no layer or sprite drew stays MARK_555 */
+	uint16_t* markFrame;
 } ArmCore;
 
 static ArmCore* AC(const Emu* e) {
@@ -619,6 +622,7 @@ static void close_core(ArmCore* c) {
 		renderSetHooks(c->gba, NULL);
 		gbaDestroy(c->gba);
 	}
+	free(c->markFrame);
 	free(c->savePath);
 	free(c->ring);
 	free(c);
@@ -864,13 +868,17 @@ bool emu_cancelled(const Emu* e) {
 
 /* armGBA's picture is the GBA's own 15-bit colours; GBA DS wants mGBA's
  * 32-bit ones (bytes R, G, B, X), widened the way mGBA widens them. */
+#define MARK_555 0x7C1F
 static void take_picture(Emu* e) {
 	const uint16_t* src = (const uint16_t*) AC(e)->gba->renderer.frame;
+	const uint16_t* mark = AC(e)->markFrame;
 	uint32_t* dst = e->fb;
 	for (int i = 0; i < GBA_W * GBA_H; ++i) {
 		uint32_t v = src[i];
 		uint32_t c = ((v << 3) & 0xF8) | ((v << 6) & 0xF800) | ((v << 9) & 0xF80000);
-		dst[i] = c | ((c >> 5) & 0x070707) | 0xFF000000u;
+		/* (emu_mark_backdrop: the backdrop's pixels told apart by their
+		 * fourth byte, as mGBA's flags there tell them apart) */
+		dst[i] = c | ((c >> 5) & 0x070707) | (mark && mark[i] == MARK_555 ? 0xFC000000u : 0xFF000000u);
 	}
 }
 
@@ -1439,6 +1447,10 @@ static bool sprite_hidden(void* context, uint16_t a, uint16_t b, uint16_t attrC)
 
 static void hooks_changed(ArmCore* c) {
 	c->hooks.hideSprite = c->nRules || c->keepOnly || c->nExact ? sprite_hidden : NULL;
+	if (c->markFrame) {
+		c->hooks.secondHideLayers = c->hooks.hideLayers;
+		c->hooks.secondHideSprite = c->hooks.hideSprite;
+	}
 	c->hooks.spriteTable = c->grouped ? sprite_table : NULL;
 	c->hooks.context = c;
 	++c->hooks.generation;
@@ -1536,6 +1548,47 @@ static struct {
 	int bandY0, bandY1;
 	uint16_t frame[GBA_W * GBA_H];
 } split;
+
+/* Logo extraction (src/logo.c) tells the logo's layer from the backdrop
+ * behind it by comparing two pictures' pixels as a whole: on mGBA their
+ * fourth byte holds the software renderer's flags (FLAG_UNWRITTEN, 0xFC, on
+ * the backdrop; the layer, priority and blend targets where a layer drew),
+ * so a layer's pixel the colour of the backdrop (Sonic Advance 3's white
+ * glow on a white backdrop) still counts as the logo's. armGBA's picture
+ * has no such byte: with this on, each frame is drawn a second time (the
+ * renderer's second picture, the same layers and sprites) on a backdrop of
+ * MARK_555, never brightened or darkened, and the pixels left that colour
+ * there get 0xFC in their fourth byte, the others 0xFF. Not for a core with
+ * the HUD split (it has the second picture). On for the few frames a
+ * capture compares (src/logo.c, profiles.c's aw_clean...), as it doubles
+ * the drawing. */
+void emu_mark_backdrop(Emu* e, bool on) {
+	ArmCore* c = AC(e);
+	if (!c || split.core == c || on == (c->markFrame != NULL)) return;
+	if (on) {
+		c->markFrame = malloc(GBA_W * GBA_H * sizeof(uint16_t));
+		if (!c->markFrame) return;
+		for (int i = 0; i < GBA_W * GBA_H; ++i) c->markFrame[i] = MARK_555;
+		c->hooks.secondFrame = c->markFrame;
+		c->hooks.secondBackdropSet = true;
+		c->hooks.secondBackdrop = MARK_555;
+		c->hooks.secondEvery = 1;
+		c->hooks.second = true;
+	} else {
+		c->hooks.second = false;
+		c->hooks.secondBackdropSet = false;
+		c->hooks.secondFrame = NULL;
+		c->hooks.secondHideSprite = NULL;
+		c->hooks.secondHideLayers = 0;
+		free(c->markFrame);
+		c->markFrame = NULL;
+		/* (the second picture's machine, about 770 KiB, given back: hooks
+		 * set again on this core and its render thread's copies) */
+		renderSetHooks(c->gba, NULL);
+		renderSetHooks(c->gba, &c->hooks);
+	}
+	hooks_changed(c);
+}
 static uint32_t gameRegAddr;
 static uint16_t gameRegBits;
 static bool bandOn, bandCopy, bandWatch;
