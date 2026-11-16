@@ -41,7 +41,9 @@ extern const LogoMask logoMaskGT3, logoMaskGT3J;
 extern const LogoMask logoMaskER;
 /* Mario vs. Donkey Kong (USA, Europe), and Japan's */
 extern const LogoMask logoMaskMVDK, logoMaskMVDKJ;
-/* Rebelstar: Tactical Command (USA) */
+/* Baldur's Gate: Dark Alliance (USA, Europe) */
+extern const LogoMask logoMaskBGD;
+/* Rebelstar: Tactical Command (USA, Europe) */
 extern const LogoMask logoMaskRS;
 
 #endif

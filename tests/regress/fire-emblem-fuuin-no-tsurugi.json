@@ -1,0 +1,1184 @@
+{
+ "game": "Fire Emblem: Fuuin no Tsurugi",
+ "rules": "docs/games/fire-emblem-fuuin-no-tsurugi.md",
+ "cases": [
+  {
+   "id": "fe6-jp-title",
+   "rom": "AFEJ",
+   "state": "fire-emblem-fuuin-no-tsurugi/jp-title.ss",
+   "desc": "the title (Press start): the logo",
+   "rules": [
+    "FE6-1"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "FE6-1",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "FE6-1",
+     "what": "the tested dump",
+     "type": "log",
+     "match": "ROM: CRC32 d38763e1"
+    }
+   ]
+  },
+  {
+   "id": "fe6-jp-preparations",
+   "rom": "AFEJ",
+   "state": "fire-emblem-fuuin-no-tsurugi/jp-preparations.ss",
+   "desc": "chapter 23's preparations (MENU SELECT): the logo",
+   "rules": [
+    "FE6-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 400
+   },
+   "checks": [
+    {
+     "rule": "FE6-1",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "FE6-1",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "FE6-1",
+     "what": "no status taken",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "fe6-jp-roy",
+   "rom": "AFEJ",
+   "state": "fire-emblem-fuuin-no-tsurugi/jp-roy.ss",
+   "desc": "chapter 23's first turn, the cursor on Roy: his status, its three pages 5 seconds each; the unit and terrain windows stay on the game screen",
+   "rules": [
+    "FE6-2",
+    "FE6-5"
+   ],
+   "shots": {
+    "start": 200,
+    "page2": 520,
+    "page3": 820
+   },
+   "checks": [
+    {
+     "rule": "FE6-2",
+     "what": "the status fills the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.05
+    },
+    {
+     "rule": "FE6-2",
+     "what": "three pages, 5 seconds each",
+     "type": "log",
+     "match": "map updated \\(3 frame\\(s\\) 300 apart\\)"
+    },
+    {
+     "rule": "FE6-2",
+     "what": "the status turns to its next page",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "page2",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    },
+    {
+     "rule": "FE6-2",
+     "what": "the status turns to its next page",
+     "type": "differs",
+     "a": {
+      "shot": "page2",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "page3",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "fe6-jp-cursor-off",
+   "rom": "AFEJ",
+   "state": "fire-emblem-fuuin-no-tsurugi/jp-roy.ss",
+   "desc": "Roy's status, then the cursor moved off onto grass (UP 2): the logo; back onto him (DOWN 2): his status again",
+   "rules": [
+    "FE6-2",
+    "FE6-1"
+   ],
+   "input": [
+    [
+     300,
+     "UP"
+    ],
+    [
+     302,
+     "-"
+    ],
+    [
+     312,
+     "UP"
+    ],
+    [
+     314,
+     "-"
+    ],
+    [
+     600,
+     "DOWN"
+    ],
+    [
+     602,
+     "-"
+    ],
+    [
+     612,
+     "DOWN"
+    ],
+    [
+     614,
+     "-"
+    ]
+   ],
+   "shots": {
+    "roy": 200,
+    "grass": 500,
+    "back": 800
+   },
+   "checks": [
+    {
+     "rule": "FE6-2",
+     "what": "the status fills the second screen",
+     "type": "not_uniform",
+     "shot": "roy",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.05
+    },
+    {
+     "rule": "FE6-1",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "grass",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "FE6-2",
+     "what": "the status fills the second screen",
+     "type": "not_uniform",
+     "shot": "back",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.05
+    }
+   ]
+  },
+  {
+   "id": "fe6-jp-no-unit",
+   "rom": "AFEJ",
+   "state": "fire-emblem-fuuin-no-tsurugi/jp-no-unit.ss",
+   "desc": "the cursor on grass, no unit there: the logo",
+   "rules": [
+    "FE6-1"
+   ],
+   "shots": {
+    "start": 100,
+    "end": 400
+   },
+   "checks": [
+    {
+     "rule": "FE6-1",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "FE6-1",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "fe6-jp-ally",
+   "rom": "AFEJ",
+   "state": "fire-emblem-fuuin-no-tsurugi/jp-ally.ss",
+   "desc": "turn 3, the cursor on Wendy (next to two enemies): her status; then A selects her: the logo",
+   "rules": [
+    "FE6-2",
+    "FE6-1"
+   ],
+   "input": [
+    [
+     850,
+     "A"
+    ],
+    [
+     852,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 200,
+    "page2": 520,
+    "selected": 900
+   },
+   "checks": [
+    {
+     "rule": "FE6-2",
+     "what": "the status fills the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.05
+    },
+    {
+     "rule": "FE6-2",
+     "what": "the status turns to its next page",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "page2",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    },
+    {
+     "rule": "FE6-1",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "selected",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "fe6-jp-enemy",
+   "rom": "AFEJ",
+   "state": "fire-emblem-fuuin-no-tsurugi/jp-enemy.ss",
+   "desc": "the cursor on an enemy (a Bern soldier, a Dragon Knight): its status",
+   "rules": [
+    "FE6-2"
+   ],
+   "shots": {
+    "start": 200,
+    "page2": 520
+   },
+   "checks": [
+    {
+     "rule": "FE6-2",
+     "what": "the status fills the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.05
+    },
+    {
+     "rule": "FE6-2",
+     "what": "three pages, 5 seconds each",
+     "type": "log",
+     "match": "map updated \\(3 frame\\(s\\) 300 apart\\)"
+    },
+    {
+     "rule": "FE6-2",
+     "what": "the status turns to its next page",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "page2",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "fe6-jp-moving",
+   "rom": "AFEJ",
+   "state": "fire-emblem-fuuin-no-tsurugi/jp-moving.ss",
+   "desc": "Wendy selected, her move range shown: the logo",
+   "rules": [
+    "FE6-1",
+    "FE6-5"
+   ],
+   "shots": {
+    "start": 100,
+    "end": 400
+   },
+   "checks": [
+    {
+     "rule": "FE6-1",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "FE6-1",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "fe6-jp-unit-menu",
+   "rom": "AFEJ",
+   "state": "fire-emblem-fuuin-no-tsurugi/jp-unit-menu.ss",
+   "desc": "Wendy's menu (Attack, Items, Wait) open on the game screen: the logo",
+   "rules": [
+    "FE6-1",
+    "FE6-5"
+   ],
+   "shots": {
+    "start": 100,
+    "end": 400
+   },
+   "checks": [
+    {
+     "rule": "FE6-1",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "FE6-1",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "fe6-jp-fight",
+   "rom": "AFEJ",
+   "state": "fire-emblem-fuuin-no-tsurugi/jp-fight.ss",
+   "desc": "Wendy attacking a Dragon Knight in our phase: the logo through the fight",
+   "rules": [
+    "FE6-4",
+    "FE6-5"
+   ],
+   "shots": {
+    "fight": 100,
+    "later": 500
+   },
+   "checks": [
+    {
+     "rule": "FE6-4",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "fight",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "FE6-4",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "FE6-4",
+     "what": "the fight seen",
+     "type": "log",
+     "match": "fight on"
+    }
+   ]
+  },
+  {
+   "id": "fe6-jp-enemy-fight",
+   "rom": "AFEJ",
+   "state": "fire-emblem-fuuin-no-tsurugi/jp-enemy-fight.ss",
+   "desc": "a Dragon Knight attacking Wendy in the enemy phase: the logo",
+   "rules": [
+    "FE6-4"
+   ],
+   "shots": {
+    "fight": 100,
+    "later": 500
+   },
+   "checks": [
+    {
+     "rule": "FE6-4",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "fight",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "FE6-4",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "FE6-4",
+     "what": "no status taken",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "fe6-jp-enemy-turn",
+   "rom": "AFEJ",
+   "state": "fire-emblem-fuuin-no-tsurugi/jp-enemy-turn.ss",
+   "desc": "the enemy phase, its units moving across the map: the logo",
+   "rules": [
+    "FE6-4"
+   ],
+   "shots": {
+    "start": 100,
+    "end": 600
+   },
+   "checks": [
+    {
+     "rule": "FE6-4",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "FE6-4",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "FE6-4",
+     "what": "no status taken",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "fe6-jp-phase-banner",
+   "rom": "AFEJ",
+   "state": "fire-emblem-fuuin-no-tsurugi/jp-phase-banner.ss",
+   "desc": "ENEMY PHASE across the map: the logo, the banner on the game screen",
+   "rules": [
+    "FE6-4",
+    "FE6-5"
+   ],
+   "shots": {
+    "banner": 10,
+    "end": 300
+   },
+   "checks": [
+    {
+     "rule": "FE6-4",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "banner",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "FE6-4",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "fe6-jp-story-scene",
+   "rom": "AFEJ",
+   "state": "fire-emblem-fuuin-no-tsurugi/jp-story-scene.ss",
+   "desc": "the end of chapter 22: Roy talking in Bern's castle: the logo",
+   "rules": [
+    "FE6-3",
+    "FE6-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 400
+   },
+   "checks": [
+    {
+     "rule": "FE6-3",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "FE6-3",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "FE6-3",
+     "what": "no status taken",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "fe6-jp-turn-scene",
+   "rom": "AFEJ",
+   "state": "fire-emblem-fuuin-no-tsurugi/jp-turn-scene.ss",
+   "desc": "a story scene at the end of chapter 23's first turn (a village behind the talk): the logo",
+   "rules": [
+    "FE6-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 400
+   },
+   "checks": [
+    {
+     "rule": "FE6-3",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "FE6-3",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "FE6-3",
+     "what": "no status taken",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "fe6-logo-afej",
+   "kind": "logo",
+   "rom": "AFEJ",
+   "desc": "AFEJ logo extraction",
+   "rules": [
+    "GEN-1",
+    "FE6-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "fe6-en-title",
+   "rom": "AFEJ+en121",
+   "state": "fire-emblem-fuuin-no-tsurugi/en-title.ss",
+   "desc": "the translation's title: the logo (its English title)",
+   "rules": [
+    "FE6-6",
+    "FE6-1"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "FE6-6",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "FE6-6",
+     "what": "the translation, known and tested",
+     "type": "log",
+     "match": "ROM: CRC32 197de10b, a mod GBA DS is tested on"
+    }
+   ]
+  },
+  {
+   "id": "fe6-en-roy",
+   "rom": "AFEJ+en121",
+   "state": "fire-emblem-fuuin-no-tsurugi/en-roy.ss",
+   "desc": "the translation, chapter 23's first turn, the cursor on Roy: his status in English, three pages",
+   "rules": [
+    "FE6-6",
+    "FE6-2"
+   ],
+   "shots": {
+    "start": 200,
+    "page2": 520,
+    "page3": 820
+   },
+   "checks": [
+    {
+     "rule": "FE6-6",
+     "what": "the status fills the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.05
+    },
+    {
+     "rule": "FE6-6",
+     "what": "three pages, 5 seconds each",
+     "type": "log",
+     "match": "map updated \\(3 frame\\(s\\) 300 apart\\)"
+    },
+    {
+     "rule": "FE6-6",
+     "what": "the status turns to its next page",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "page2",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    },
+    {
+     "rule": "FE6-6",
+     "what": "the translation, known and tested",
+     "type": "log",
+     "match": "ROM: CRC32 197de10b, a mod GBA DS is tested on"
+    }
+   ]
+  },
+  {
+   "id": "fe6-en-story-scene",
+   "rom": "AFEJ+en121",
+   "state": "fire-emblem-fuuin-no-tsurugi/en-story-scene.ss",
+   "desc": "the translation, the end of chapter 22 (Roy: Zephiel has fallen): the logo",
+   "rules": [
+    "FE6-6",
+    "FE6-3"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 400
+   },
+   "checks": [
+    {
+     "rule": "FE6-6",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "FE6-6",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "FE6-6",
+     "what": "no status taken",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "fe6-en-map-menu",
+   "rom": "AFEJ+en121",
+   "state": "fire-emblem-fuuin-no-tsurugi/en-map-menu.ss",
+   "desc": "the translation, the map menu (Unit, Status, Options, Suspend, End) open: the logo",
+   "rules": [
+    "FE6-6",
+    "FE6-1",
+    "FE6-5"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 400
+   },
+   "checks": [
+    {
+     "rule": "FE6-6",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "FE6-6",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "fe6-en-roy-patch",
+   "rom": "AFEJ",
+   "state": "fire-emblem-fuuin-no-tsurugi/en-roy.ss",
+   "desc": "the translation's UPS beside the Japanese ROM: Roy's status in English",
+   "rules": [
+    "FE6-6",
+    "FE6-2"
+   ],
+   "patch": "FE6Localization_v1.2.1.ups",
+   "shots": {
+    "start": 200
+   },
+   "golden": [
+    "start"
+   ],
+   "checks": [
+    {
+     "rule": "FE6-6",
+     "what": "the status fills the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.05
+    },
+    {
+     "rule": "FE6-6",
+     "what": "three pages, 5 seconds each",
+     "type": "log",
+     "match": "map updated \\(3 frame\\(s\\) 300 apart\\)"
+    },
+    {
+     "rule": "FE6-6",
+     "what": "the translation, known and tested",
+     "type": "log",
+     "match": "ROM: CRC32 197de10b, a mod GBA DS is tested on[^\\n]*; patched as it started with"
+    }
+   ]
+  },
+  {
+   "id": "fe6-en-roy-patch-on",
+   "rom": "AFEJ",
+   "state": "fire-emblem-fuuin-no-tsurugi/en-roy.ss",
+   "desc": "the translation's UPS switched on in the Patches menu's folder: Roy's status in English",
+   "rules": [
+    "FE6-6",
+    "FE6-2"
+   ],
+   "patch_folder": [
+    "FE6Localization_v1.2.1.ups"
+   ],
+   "patch_on": "FE6Localization_v1.2.1.ups",
+   "shots": {
+    "start": 200
+   },
+   "golden": [
+    "start"
+   ],
+   "checks": [
+    {
+     "rule": "FE6-6",
+     "what": "the status fills the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.05
+    },
+    {
+     "rule": "FE6-6",
+     "what": "three pages, 5 seconds each",
+     "type": "log",
+     "match": "map updated \\(3 frame\\(s\\) 300 apart\\)"
+    },
+    {
+     "rule": "FE6-6",
+     "what": "the translation, known and tested",
+     "type": "log",
+     "match": "ROM: CRC32 197de10b, a mod GBA DS is tested on[^\\n]*; patched as it started with"
+    }
+   ]
+  },
+  {
+   "id": "fe6-logo-afej-en121",
+   "kind": "logo",
+   "rom": "AFEJ+en121",
+   "desc": "the translation's logo (its English title)",
+   "rules": [
+    "GEN-1",
+    "FE6-6"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

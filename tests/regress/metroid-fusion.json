@@ -255,7 +255,7 @@
    "id": "mf-us-patch-carry-on",
    "rom": "AMTE",
    "state": "metroid-fusion/us-play.ss",
-   "desc": "the game paused, Extras > Patches, the colour improvement switched on with the separate battery save and states switches off: \"Sure?\" says it carries on from here; A: the game reopens with it and goes on from that very moment (the menu was up: the game as it was, in the patch's colours where it draws them again)",
+   "desc": "the game paused, Tools > Patches, the colour improvement switched on with the separate battery save and states switches off: \"Sure?\" says it carries on from here; A: the game reopens with it and goes on from that very moment (the menu was up: the game as it was, in the patch's colours where it draws them again)",
    "rules": [
     "GEN-9"
    ],
@@ -273,27 +273,11 @@
      "-"
     ],
     [
-     140,
-     "R"
-    ],
-    [
-     144,
-     "-"
-    ],
-    [
      150,
      "DOWN"
     ],
     [
      152,
-     "-"
-    ],
-    [
-     156,
-     "DOWN"
-    ],
-    [
-     158,
      "-"
     ],
     [
@@ -390,27 +374,11 @@
      "-"
     ],
     [
-     140,
-     "R"
-    ],
-    [
-     144,
-     "-"
-    ],
-    [
      150,
      "DOWN"
     ],
     [
      152,
-     "-"
-    ],
-    [
-     156,
-     "DOWN"
-    ],
-    [
-     158,
      "-"
     ],
     [
@@ -489,7 +457,7 @@
    "id": "mf-us-buttons",
    "rom": "AMTE",
    "state": "metroid-fusion/us-play.ss",
-   "desc": "Extras > Buttons: B (Bottom) set to GBA A and Y (Left) to GBA B, then B and Y pressed in the game",
+   "desc": "Pause menu > Controls: B (bottom) set to GBA A and Y (left) to GBA B for this game, then B and Y pressed in the game",
    "rules": [
     "GEN-10"
    ],
@@ -516,11 +484,15 @@
     ],
     [
      120,
-     "TAP:0.5,0.737"
+     "R"
+    ],
+    [
+     124,
+     "-"
     ],
     [
      130,
-     "DOWN"
+     "R"
     ],
     [
      134,
@@ -528,7 +500,7 @@
     ],
     [
      140,
-     "LEFT"
+     "DOWN"
     ],
     [
      144,
@@ -552,7 +524,7 @@
     ],
     [
      170,
-     "RIGHT"
+     "LEFT"
     ],
     [
      174,
@@ -560,56 +532,86 @@
     ],
     [
      180,
-     "RIGHT"
+     "DOWN"
     ],
     [
      184,
      "-"
     ],
     [
+     190,
+     "DOWN"
+    ],
+    [
+     194,
+     "-"
+    ],
+    [
      200,
-     "START"
+     "RIGHT"
+    ],
+    [
+     204,
+     "-"
     ],
     [
      210,
+     "RIGHT"
+    ],
+    [
+     214,
      "-"
     ],
     [
      240,
-     "B"
+     "START"
     ],
     [
      250,
      "-"
     ],
     [
-     270,
-     "Y"
+     280,
+     "B"
     ],
     [
-     280,
+     290,
      "-"
     ],
     [
-     300,
+     310,
+     "Y"
+    ],
+    [
+     320,
+     "-"
+    ],
+    [
+     340,
      "X"
     ],
     [
-     310,
+     350,
      "-"
     ]
    ],
    "shots": {
-    "buttons": 190,
-    "end": 330
+    "buttons": 225,
+    "end": 370
    },
    "golden": [],
    "checks": [
     {
      "rule": "GEN-10",
+     "what": "B (bottom) set to GBA A",
+     "type": "log",
+     "match": "^setting: button_bottom = a \\(this game\\)$"
+    },
+    {
+     "rule": "GEN-10",
      "what": "the choices are kept for the game",
      "type": "log",
-     "match": "^buttons: right GBA A, bottom GBA A, top Nothing, left GBA B$"
+     "match": "^setting: button_left = b \\(this game\\)$"
     },
     {
      "rule": "GEN-10",

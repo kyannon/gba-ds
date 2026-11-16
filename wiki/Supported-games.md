@@ -18,6 +18,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Final Fantasy Tactics Advance | `AFXE` `AFXP` `AFXJ` | in battles: the Status of the unit under the cursor, or the turn order and Laws; on the world map: today's Laws | |
 | Fire Emblem (Rekka no Ken in Japan) | `AE7E` `AE7X` (English, French, German) `AE7Y` (English, Spanish, Italian) `AE7J` | on the map: the status of the unit under the cursor | |
 | Fire Emblem: The Sacred Stones (Seima no Kouseki in Japan) | `BE8E` `BE8P` `BE8J` | on the map: the status of the unit under the cursor | |
+| Fire Emblem: Fuuin no Tsurugi (The Binding Blade) | `AFEJ` (Japan only) | on the map: the status of the unit under the cursor | FE6 Localization v1.2.1 (English) |
 | Golden Sun (Ougon no Taiyou: Hirakareshi Fuuin in Japan) | `AGSE` `AGSD` `AGSF` `AGSI` `AGSS` `AGSJ` | the Status screen, each party member in turn; in battle, the one choosing | |
 | Golden Sun: The Lost Age (Ougon no Taiyou: Ushinawareshi Toki in Japan) | `AGFE` `AGFD` `AGFF` `AGFI` `AGFS` `AGFJ` | the Status screen, each party member in turn; in battle, the one choosing | |
 | GT Advance 3: Pro Concept Racing (Advance GT2 in Japan) | `A2GE` `A2GP` `A2GJ` | the race's HUD, with the course map twice as big | |
@@ -36,7 +37,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | MOTHER 3 | `A3UJ` (Japan only) | walking about: the area map where R opens one, else the Status screen, each party member in turn | Translations into English (v1.3, v1.3a), Brazilian Portuguese, Italian, German, Simplified Chinese, Polish, French, Catalan (v1.0, v1.0.2) and Dutch; MusicTheorist's HQ audio mix (Japanese and English) |
 | Muppet Pinball Mayhem | `AMWE` `AMWP` (no Japanese release) | the table twice as tall over both screens, live, with the score bar | |
 | Ninja Five-O (Ninja Cop in Europe) | `ANXE` `ANXP` (no Japanese release) | in stages: the HUD (bars, score or time, the boss's bar, the shuriken's level, keys and hostages) | |
-| Pokémon Pinball: Ruby & Sapphire | `BPPE` | the table twice as tall over both screens, live, with the score bar | |
+| Pokémon Pinball: Ruby & Sapphire | `BPPE` `BPPP` `BPPJ` (Japan: the original and Rev 1) | the table twice as tall over both screens, live, with the score bar | |
 | River City Ransom EX (Downtown Nekketsu Monogatari EX in Japan) | `BDTE` `BDTJ` (no European release) | the Status screen, with the top bar moved off the game screen | |
 | Sonic Advance | `ASOE` `ASOP` `ASOJ` | the zone card, with the rings, score, time and lives | |
 | Sonic Advance 2 | `A2NE` `A2NP` `A2NJ` | the zone card, with the rings, score, time and lives | |
@@ -210,6 +211,16 @@ The USA, European and Japanese (Seima no Kouseki) releases, tried in the prologu
 - It works as in **Fire Emblem**: with the cursor on a unit, the second screen is that unit's **status screen**, turning through its three pages every 5 seconds; otherwise (no unit there, a unit selected, fights, the other armies' turns, story scenes, the title and menus) the game's logo.
 - Nothing leaves the game screen.
 - Not tried yet: later chapters, the world map between chapters (it shows the logo), the Tower of Valni and the creature campaign.
+
+## Fire Emblem: Fuuin no Tsurugi
+
+The Japanese game, and in English as The Binding Blade with the FE6 Localization fan translation (v1.2.1), tried from chapter 22 to chapter 23 so far.
+
+- It works as in **Fire Emblem**: with the cursor on a unit, yours or an enemy's, the second screen is that unit's **status screen**, turning through its three pages every 5 seconds; otherwise (no unit there, a unit selected, fights, the other armies' turns, story scenes, the preparations, the title and menus) the game's logo.
+- Nothing leaves the game screen.
+- The translation works as a ROM already patched, or with its `.ups` patch on the Japanese ROM (beside the ROM, or switched on in Extras → Patches); its status screens are in English.
+- The logo is made once, from whichever of the Japanese game and the translation you start first, so both then show that one's title.
+- Not tried yet: the early chapters, fog of war and the trial maps.
 
 ## Golden Sun
 
@@ -400,7 +411,7 @@ Known issues: the end of a stage (the red door), a boss's defeat, a mission's en
 
 ## Pokémon Pinball: Ruby & Sapphire
 
-The USA release.
+The USA, European and Japanese releases (the Japanese one's Rev 1 too), all the same. A hacked copy whose code differs plays on one screen, with the logo on the other.
 
 - **On a table,** the two screens together show twice as much of it, **live**, as if they were one tall screen: GBA DS runs two more copies of the game alongside yours, drawing the parts of the table your game's view doesn't, so the flippers, the Pokémon and everything else move on both screens. Your game itself is never changed.
 - The view scrolls smoothly with the ball and never jumps. While the ball is in the table's upper part, your game is on the top screen with the next part of the table below it. Further down, the two screens show the whole lower table, and the ball is on the bottom screen only when it's down by the flippers.
