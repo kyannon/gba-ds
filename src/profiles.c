@@ -4101,12 +4101,19 @@ static uint32_t ls_virt(Emu* e, uint32_t addr) {
  *
  * Every release (USA and Europe, Europe's English, French and German, Italy,
  * Spain) has the same RAM. Found by comparing dumps (the owner's two 100%
- * saves, a new game, the title and the intro):
- * - BK_PLAY, the byte at 0x0200030C: 0 at the title, the file screen and
- *   the intro's scenes, 1 or 2 everywhere Banjo is about (a conversation
- *   too);
- * - BK_PAUSE, the word at 0x02000318: 0xFFFFFFFF while the pause screen
- *   (or a page of it: Totals, Options, Save) is up, else 0;
+ * saves, a new game, the title and the intro; then 65 moments of play,
+ * jumps and the owner's state after Bozzeye's Pack Whack among them, 15
+ * paused, 32 at the title and in the story):
+ * - BK_OBJS, the word at 0x02000188: a pointer into EWRAM (0x02xxxxxx)
+ *   wherever Banjo is about (a conversation too, mid-jump too, through an
+ *   area change frame by frame), 0 at the title, the file screen and the
+ *   opening story. (The first build's 0x0200030C is 0 mid-jump: the logo
+ *   flashed up at each jump. Its 0x02000318, taken for "paused", isn't 0
+ *   again after the Pack Whack scene: no more pictures.)
+ * - BK_PAUSE, the byte at 0x0203F4D8 (0x0203F4DC in Europe's, Italy's
+ *   and Spain's: BK_PAUSE_EU, by tools/romxref.py, checked in each): 1
+ *   from the frame START is pressed while the pause screen (or a page of
+ *   it: Totals, Options, Save) is up, else 0;
  * - BK_AREA, the byte at 0x02000004: the area (Spiral Mountain 0x0D, Spiral
  *   Rise 0x0E, Cliff Farm's first area 0x06...).
  * The pause screen (START) is all sprites over the level, which it darkens:
@@ -4121,13 +4128,17 @@ static uint32_t ls_virt(Emu* e, uint32_t addr) {
  * Hollow Honeycombs, notes, Jiggies, Jinjos, Mumbo Totems and the rest of
  * its own things), still ~115 frames later. The selected item is drawn
  * white, the others grey. */
-#define BK_PLAY 0x0200030C
-#define BK_PAUSE 0x02000318
+#define BK_OBJS 0x02000188
+#define BK_PAUSE 0x0203F4D8
+#define BK_PAUSE_EU 0x0203F4DC
 #define BK_AREA 0x02000004
-#define BK_MENU_X0 50
-#define BK_MENU_X1 186
-#define BK_MENU_Y0 34
-#define BK_MENU_Y1 125
+/* the health bar (Banjo's head and his honeycombs) on the pause screen:
+ * x 4 to ~123 with the 100% file's ten honeycombs, rows 12-27; the Totals
+ * page's world name, rows 12-22 (its rows start at 36): BK_TOP rows, the
+ * name's band and the health's */
+#define BK_TOP_Y0 8
+#define BK_TOP_Y1 31
+#define BK_HEALTH_X1 150 /* (the notes start at x 184) */
 
 /* white pixels in a menu row (the selected item is white, the others grey) */
 static int bk_white(const uint32_t* fb, int y0) {
@@ -4142,7 +4153,8 @@ static int bk_white(const uint32_t* fb, int y0) {
 }
 
 static bool bk_paused(Emu* s) {
-	return emu_read32(s, BK_PAUSE) == 0xFFFFFFFF;
+	/* (the release's from its game code's last letter, in the ROM header) */
+	return emu_read8(s, emu_read8(s, 0x080000AF) == 'E' ? BK_PAUSE : BK_PAUSE_EU) != 0;
 }
 
 /* frames (the level's layers off: only the pause screen's sprites, on
@@ -4167,14 +4179,16 @@ static void bk_copy(Emu* s, uint32_t* out, int w, int h) {
 	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (size_t) cw * 4);
 }
 
-/* Two pages, 5 seconds each (BK-2): the pause screen without its menu, then
- * the current world's Totals. Where START doesn't bring up the pause screen
- * (a conversation, a scene), the quick failure: the last pictures stay
- * (BK-4). */
+/* One picture (BK-2): the current world's Totals page, its name left out,
+ * the pause screen's health bar centred at the top in its place. Where
+ * START doesn't bring up the pause screen (a conversation, a scene), the
+ * quick failure: the last picture stays (BK-4). Either page not as
+ * expected: nothing (GEN-3). */
 static const char* bk_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
-	int max = *nOut;
+	static uint32_t health[(BK_TOP_Y1 - BK_TOP_Y0 + 1) * GBA_W];
 	*nOut = 1;
-	*step = 300;
+	*step = 0;
+	if (w < GBA_W || h < GBA_H) return "picture too small";
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
 	if (bk_paused(s)) return "screen already looks like the map";
@@ -4185,29 +4199,44 @@ static const char* bk_compose(Emu* s, const void* state, uint32_t* const* out, i
 	if (!bk_settle(s, 200)) return "the pause screen didn't settle";
 	/* (the menu's first row selected: the pause screen as it opens) */
 	if (bk_white(s->fb, 36) < 40 || bk_white(s->fb, 60) > 0) return "not the pause screen";
-	bk_copy(s, out[0], w, h);
-	/* the menu taken out: its Jiggies and words, the backdrop's black */
+	/* the health bar: what's lit in its band, left of the notes */
 	uint32_t black = s->fb[(GBA_H - 1) * GBA_W];
-	for (int y = BK_MENU_Y0; y <= BK_MENU_Y1 && y < h; ++y) {
-		for (int x = BK_MENU_X0; x <= BK_MENU_X1 && x < w; ++x) out[0][y * w + x] = black;
+	int hx0 = GBA_W, hx1 = -1;
+	for (int y = BK_TOP_Y0; y <= BK_TOP_Y1; ++y) {
+		for (int x = 0; x < BK_HEALTH_X1; ++x) {
+			uint32_t c = s->fb[y * GBA_W + x];
+			health[(y - BK_TOP_Y0) * GBA_W + x] = c;
+			int lit = (c & 0xFF) + ((c >> 8) & 0xFF) + ((c >> 16) & 0xFF);
+			if (lit > 60) {
+				if (x < hx0) hx0 = x;
+				if (x > hx1) hx1 = x;
+			}
+		}
 	}
-	if (max < 2) return NULL;
+	if (hx1 < 0) return "no health bar";
 	/* TOTALS: down a row, then A */
 	for (int tries = 0; tries < 3 && bk_white(s->fb, 60) < 40; ++tries) {
 		aw_run(s, K_DOWN, 4);
 		aw_run(s, 0, 8);
 	}
-	if (bk_white(s->fb, 60) < 40) return NULL; /* (the first page alone) */
+	if (bk_white(s->fb, 60) < 40) return "Totals not selected";
 	aw_run(s, K_A, 4);
 	for (f = 0; f < 60 && bk_paused(s) && (bk_white(s->fb, 36) >= 40 || bk_white(s->fb, 60) >= 40); ++f) {
 		emu_write16(s, 0x05000000, 0);
 		emu_frame(s, 0);
 	}
-	if (!bk_settle(s, 240)) return NULL;
-	/* (not the pause screen again: its menu's first Jiggy, gone) */
-	if (bk_white(s->fb, 36) >= 40 || bk_white(s->fb, 60) >= 40) return NULL;
-	bk_copy(s, out[1], w, h);
-	*nOut = 2;
+	if (!bk_settle(s, 240)) return "the Totals page didn't settle";
+	/* (not the pause screen again: its menu's first row, gone) */
+	if (bk_white(s->fb, 36) >= 40 || bk_white(s->fb, 60) >= 40) return "not the Totals page";
+	bk_copy(s, out[0], w, h);
+	/* the world's name out, the health bar centred in its band */
+	for (int y = BK_TOP_Y0; y <= BK_TOP_Y1; ++y) {
+		for (int x = 0; x < GBA_W; ++x) out[0][y * w + x] = black;
+	}
+	int hw = hx1 - hx0 + 1, dx = (GBA_W - hw) / 2;
+	for (int y = BK_TOP_Y0; y <= BK_TOP_Y1; ++y) {
+		for (int x = 0; x < hw; ++x) out[0][y * w + dx + x] = health[(y - BK_TOP_Y0) * GBA_W + hx0 + x];
+	}
 	return NULL;
 }
 
@@ -7738,19 +7767,19 @@ static const MapProfile profiles[] = {
 		/* the title's lettering, BG1 (its glow blends with the scene
 		 * behind; Press START is a sprite) (BK-1) */
 		.logo = { .steps = { { 0, 1300 } }, .layer = 1 },
-		/* the pause screen and the world's Totals, as pages (BK-2, BK-3) */
+		/* the world's Totals with the pause screen's health bar (BK-2,
+		 * BK-3) */
 		.composePages = bk_compose,
-		.stillPick = STILL_FIRST,
 		.crop_w = GBA_W,
 		.crop_h = GBA_H,
 		/* sprites only, on black: the level the pause screen darkens is
 		 * the game screen's (BK-2) */
 		.captureLayers = 0x10,
-		/* about (BK_PLAY), not paused (the player's own pause screen
-		 * stays on the game screen, the last pictures kept: BK-5) */
-		.live = { { BK_PLAY, 0xFF, 1, 1, true, 0xFF, true }, { BK_PAUSE, 0xFFFFFFFF, 0, 4 } },
+		/* about (BK_OBJS), not paused (the player's own pause screen
+		 * stays on the game screen, the last picture kept: BK-5) */
+		.live = { { BK_OBJS, 0xFF000000, 0x02000000, 4 }, { BK_PAUSE, 0xFF, 0, 1 } },
 		/* the title, the file screen, the intro: the logo (BK-4) */
-		.menu = { { BK_PLAY, 0xFF, 0, 1 } },
+		.menu = { { BK_OBJS, 0xFFFFFFFF, 0, 4 } },
 		/* another area: a capture at once (GEN-6) */
 		.room = { { BK_AREA, 0xFF, 0, 1 } },
 	},
@@ -8691,10 +8720,15 @@ static const MacroStep LANGUAGE_A[] = { { 0, 60 }, { K_A, 4 } };
 
 /* Banjo-Kazooie: Grunty's Revenge, Europe's English, French and German
  * release: the language list (A: English) before the title (BK-1) */
+static void bk_eu(MapProfile* p) {
+	/* the pause byte 4 further on (Europe, Italy, Spain) */
+	p->live[1].addr = BK_PAUSE_EU;
+}
 static void bk_lang(MapProfile* p) {
 	static const MacroStep steps[] = { { 0, 1200 }, { K_A, 4 }, { 0, 150 } };
 	memset(p->logo.steps, 0, sizeof(p->logo.steps));
 	memcpy(p->logo.steps, steps, sizeof(steps));
+	bk_eu(p);
 }
 static void lang_menu(MapProfile* p) {
 	insert_steps(p->logo.steps, 24, 0, LANGUAGE_A, 2);
@@ -9115,11 +9149,12 @@ static const Variant variants[] = {
 	{ "AT3D", "AT3E", 0, thps3_ger },
 	{ "ASEJ", "ASEE", 0, smm_jpn },
 	{ "ALDP", "ALDE", 0, NULL },
-	/* Banjo-Kazooie: Grunty's Revenge: the same RAM; Europe's English,
-	 * French and German release asks for a language first (BK-1) */
+	/* Banjo-Kazooie: Grunty's Revenge: the same RAM but the pause byte
+	 * (bk_eu); Europe's English, French and German release asks for a
+	 * language first (BK-1) */
 	{ "BKZX", "BKZE", 0, bk_lang },
-	{ "BKZI", "BKZE", 0, NULL },
-	{ "BKZS", "BKZE", 0, NULL },
+	{ "BKZI", "BKZE", 0, bk_eu },
+	{ "BKZS", "BKZE", 0, bk_eu },
 	{ "ANXP", "ANXE", 0, nfo_eur },
 	{ "AWAJ", "AWAE", 0, NULL },
 	{ "BM5P", "BM5E", 0, mvdk_eur }, /* (its state moved: mvdk_eur, mvdk_state) */
