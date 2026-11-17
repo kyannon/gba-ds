@@ -266,7 +266,7 @@ static void draw(int scr, const View_* v, bool touch) {
 		ui_font_text(scr, TF_BODY, here ? px * 10 : r.w / 2, r.h - px * 16, px * 4, foot, C_DIM, here ? -1 : 0);
 		if (here) {
 			SDL_Rect c = cancel_rect(scr);
-			ui_fill_round(scr, c, C_ROW, px * 3);
+			ui_key(scr, c, px * 3, KEY_PLAIN);
 			ui_label(scr, c.x + c.w / 2, c.y + c.h / 2, px * 5, "Cancel", C_TEXT);
 		}
 	}

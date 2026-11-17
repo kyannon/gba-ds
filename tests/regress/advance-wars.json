@@ -1212,6 +1212,345 @@
      "frac": 0.97
     }
    ]
+  },
+  {
+   "id": "aw-us-retroarch-resume",
+   "rom": "AWRE",
+   "desc": "save states shared with RetroArch: GBA DS resumes from RetroArch's automatic state, saved by its mGBA core (compressed, as RetroArch saves it): the game as it was there",
+   "rules": [
+    "GEN-13"
+   ],
+   "config": {
+    "auto_load": 1
+   },
+   "retroarch": {
+    "states": {
+     "mGBA/AWRE.state.auto": "advance-wars/us-retroarch-mgba.state"
+    }
+   },
+   "shots": {
+    "resumed": 60
+   },
+   "checks": [
+    {
+     "type": "log",
+     "match": "load state: .*AWRE\\.state\\.auto: loaded \\(RetroArch's, saved by RetroArch\\)",
+     "rule": "GEN-13",
+     "what": "resumed from RetroArch's automatic state"
+    }
+   ]
+  },
+  {
+   "id": "aw-us-retroarch-save",
+   "rom": "AWRE",
+   "state": "advance-wars/us-co-screen.ss",
+   "desc": "save states shared with RetroArch: the resume point saved on quitting is RetroArch's .state.auto, in its folder for its mGBA core, compressed as RetroArch saves it, with its thumbnail beside it",
+   "rules": [
+    "GEN-13"
+   ],
+   "config": {
+    "save_on_quit": 1
+   },
+   "retroarch": {},
+   "shots": {
+    "end": 60
+   },
+   "checks": [
+    {
+     "type": "file",
+     "path": "mGBA/AWRE.state.auto",
+     "starts": "#RZIPv\u0001#",
+     "rule": "GEN-13",
+     "what": "RetroArch's automatic state, compressed (RZIP)"
+    },
+    {
+     "type": "file",
+     "path": "mGBA/AWRE.state.auto.png",
+     "starts": "PNG",
+     "rule": "GEN-13",
+     "what": "its thumbnail"
+    },
+    {
+     "type": "no_file",
+     "path": "AWRE.state.auto",
+     "rule": "GEN-13",
+     "what": "nothing outside the core's folder"
+    }
+   ]
+  },
+  {
+   "id": "aw-us-retroarch-save-plain",
+   "rom": "AWRE",
+   "state": "advance-wars/us-co-screen.ss",
+   "desc": "save states shared with RetroArch, its Save State Compression off and its folders not sorted by core: the resume point uncompressed (RASTATE), in the folder itself",
+   "rules": [
+    "GEN-13"
+   ],
+   "config": {
+    "save_on_quit": 1
+   },
+   "retroarch": {
+    "cfg": "savestate_directory = \"{states}\"\nsort_savestates_enable = \"false\"\nsavestate_file_compression = \"false\"\n"
+   },
+   "shots": {
+    "end": 60
+   },
+   "checks": [
+    {
+     "type": "file",
+     "path": "AWRE.state.auto",
+     "starts": "RASTATE\u0001",
+     "rule": "GEN-13",
+     "what": "RetroArch's automatic state, uncompressed"
+    },
+    {
+     "type": "file",
+     "path": "AWRE.state.auto.png",
+     "starts": "PNG",
+     "rule": "GEN-13",
+     "what": "its thumbnail"
+    }
+   ]
+  },
+  {
+   "id": "aw-us-retroarch-slots",
+   "rom": "AWRE",
+   "state": "advance-wars/us-co-screen.ss",
+   "desc": "save states shared with RetroArch, in the pause menu: slot 3 saved by RetroArch says \", RetroArch\"; slot 5, another core's, says \"Another emulator's\" and loading it is refused with a note; slot 3 then loads (the menus' keys; the clock's corner masked, it shows the real time; golden_frac: the game behind the menu may be a frame apart when the suite runs busy; a changed label is far more)",
+   "rules": [
+    "GEN-13"
+   ],
+   "retroarch": {
+    "states": {
+     "mGBA/AWRE.state5": "advance-wars/us-retroarch-other-core.state",
+     "mGBA/AWRE.state3": "advance-wars/us-retroarch-mgba.state"
+    }
+   },
+   "input": [
+    [
+     30,
+     "HOME"
+    ],
+    [
+     36,
+     "-"
+    ],
+    [
+     60,
+     "DOWN"
+    ],
+    [
+     66,
+     "-"
+    ],
+    [
+     72,
+     "DOWN"
+    ],
+    [
+     78,
+     "-"
+    ],
+    [
+     84,
+     "DOWN"
+    ],
+    [
+     90,
+     "-"
+    ],
+    [
+     96,
+     "RIGHT"
+    ],
+    [
+     102,
+     "-"
+    ],
+    [
+     108,
+     "RIGHT"
+    ],
+    [
+     114,
+     "-"
+    ],
+    [
+     140,
+     "UP"
+    ],
+    [
+     146,
+     "-"
+    ],
+    [
+     152,
+     "RIGHT"
+    ],
+    [
+     158,
+     "-"
+    ],
+    [
+     164,
+     "A"
+    ],
+    [
+     170,
+     "-"
+    ],
+    [
+     200,
+     "DOWN"
+    ],
+    [
+     206,
+     "-"
+    ],
+    [
+     212,
+     "LEFT"
+    ],
+    [
+     218,
+     "-"
+    ],
+    [
+     224,
+     "LEFT"
+    ],
+    [
+     230,
+     "-"
+    ],
+    [
+     236,
+     "UP"
+    ],
+    [
+     242,
+     "-"
+    ],
+    [
+     248,
+     "RIGHT"
+    ],
+    [
+     254,
+     "-"
+    ],
+    [
+     260,
+     "A"
+    ],
+    [
+     266,
+     "-"
+    ]
+   ],
+   "shots": {
+    "slot3-keys": 54,
+    "slot5-keys": 130,
+    "refused-keys": 190,
+    "loaded-keys": 330
+   },
+   "checks": [
+    {
+     "type": "log",
+     "match": "load state: .*AWRE\\.state5: not loaded \\(another emulator's\\)",
+     "rule": "GEN-13",
+     "what": "slot 5, another core's, refused"
+    },
+    {
+     "type": "log",
+     "match": "load state: .*AWRE\\.state3: loaded \\(RetroArch's, saved by RetroArch\\)",
+     "rule": "GEN-13",
+     "what": "slot 3, RetroArch's, loaded"
+    }
+   ],
+   "golden_frac": 0.001,
+   "golden_mask": [
+    [
+     0,
+     0,
+     200,
+     60
+    ]
+   ]
+  },
+  {
+   "id": "aw-retroarch-settings",
+   "kind": "library",
+   "rom": "AWRE",
+   "desc": "the game list's Settings > System with save states shared with RetroArch: Save States: Shared with RetroArch and its note; RetroArch's State Folder and its note, the folder RetroArch's settings give",
+   "rules": [
+    "GEN-13"
+   ],
+   "retroarch": {
+    "cfg": "savestate_directory = \"/storage/roms/savestates/gba\"\nsort_savestates_enable = \"false\"\n"
+   },
+   "input": [
+    [
+     30,
+     "SELECT"
+    ],
+    [
+     36,
+     "-"
+    ],
+    [
+     44,
+     "DOWN"
+    ],
+    [
+     48,
+     "-"
+    ],
+    [
+     52,
+     "DOWN"
+    ],
+    [
+     56,
+     "-"
+    ],
+    [
+     60,
+     "DOWN"
+    ],
+    [
+     64,
+     "-"
+    ],
+    [
+     70,
+     "A"
+    ],
+    [
+     74,
+     "-"
+    ],
+    [
+     100,
+     "DOWN"
+    ],
+    [
+     104,
+     "-"
+    ]
+   ],
+   "shots": {
+    "system": 96,
+    "system-folder": 130
+   },
+   "golden_mask": [
+    [
+     870,
+     725,
+     1010,
+     750
+    ]
+   ]
   }
  ]
 }

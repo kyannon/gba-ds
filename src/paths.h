@@ -16,9 +16,24 @@ typedef struct {
 	char mapThumb[1024];  /* last map frame, for the library */
 	char cheats[1024];    /* which cheats are switched on */
 	char patches[1024];   /* which patch is switched on, and its saves' switches (GEN-9) */
+	char settings[1024];  /* this game's own settings, over the others (issue #53): <state_dir>/<game>.cfg */
+	/* Save states shared with RetroArch (state_folder = retroarch, issue
+	 * #39): its folder, where slots 0-9 are RetroArch's <game>.state,
+	 * .state1 ... .state9 and the automatic state its .state.auto (in its
+	 * format, compressed when raCompress); empty: GBA DS's own. The quick
+	 * state stays GBA DS's. */
+	char raDir[1024];
+	bool raCompress;
 } GamePaths;
 
 void game_paths(const Config* cfg, const char* rom, GamePaths* out);
+
+/* RetroArch's folder for a game's states (rom: its path), as RetroArch
+ * works it out from its retroarch.cfg, found on ROCKNIX, BananaOS or in
+ * ~/.config/retroarch (or retroarch_state_dir in gba-ds.cfg). *compress:
+ * its savestate_file_compression. False if RetroArch's settings weren't
+ * found. */
+bool retroarch_state_dir(const Config* cfg, const char* rom, char* out, size_t n, bool* compress);
 
 /* ------------------------------------------------ patches (GEN-9) */
 /* What's switched on for a ROM (<state_dir>/<game>.patches) */

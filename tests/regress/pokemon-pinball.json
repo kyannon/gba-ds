@@ -2351,6 +2351,28 @@
    ]
   },
   {
+   "id": "pp-us-ruby-catch-ball-save",
+   "rom": "BPPE",
+   "state": "pokemon-pinball/us-ruby-catch-ball-save.ss",
+   "desc": "Catch mode with the ball saver: Latios flies up across the catch timer; the timer stays whole on the top screen, the banner on the bottom one",
+   "rules": [
+    "PP-10"
+   ],
+   "shots": {
+    "banner": 284,
+    "over": 292,
+    "gone": 304
+   },
+   "checks": [
+    {
+     "rule": "PP-10",
+     "what": "the banners went to the bottom screen",
+     "type": "log",
+     "match": "banners on the bottom screen"
+    }
+   ]
+  },
+  {
    "id": "pp-us-ruby-ball-save",
    "rom": "BPPE",
    "state": "pokemon-pinball/us-ruby-top.ss",
@@ -3331,6 +3353,2491 @@
      "what": "a copy's frame was run again",
      "type": "log",
      "match": "run again"
+    }
+   ]
+  },
+  {
+   "id": "pp-jp-title",
+   "rom": "BPPJ",
+   "state": "pokemon-pinball/jp-title.ss",
+   "desc": "the title (Japan)",
+   "rules": [
+    "PP-4",
+    "PP-14"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 300
+   },
+   "checks": [
+    {
+     "rule": "PP-4",
+     "what": "no table",
+     "type": "no_log",
+     "match": "table up"
+    }
+   ]
+  },
+  {
+   "id": "pp-jp-field-select",
+   "rom": "BPPJ",
+   "state": "pokemon-pinball/jp-field-select.ss",
+   "desc": "the field select (Japan)",
+   "rules": [
+    "PP-4",
+    "PP-14"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 300
+   },
+   "checks": [
+    {
+     "rule": "PP-4",
+     "what": "no table",
+     "type": "no_log",
+     "match": "table up"
+    }
+   ]
+  },
+  {
+   "id": "pp-jp-sapphire-start",
+   "rom": "BPPJ",
+   "state": "pokemon-pinball/jp-sapphire-start.ss",
+   "desc": "Sapphire picked: the opening sweep (logo below), then the live view (Japan)",
+   "rules": [
+    "PP-1",
+    "PP-3",
+    "PP-9",
+    "PP-14"
+   ],
+   "input": [
+    [
+     4,
+     "A"
+    ],
+    [
+     6,
+     "-"
+    ]
+   ],
+   "shots": {
+    "sweep": 200,
+    "bottom": 420,
+    "end": 900
+   },
+   "checks": [
+    {
+     "rule": "PP-1",
+     "what": "the live view came up",
+     "type": "log",
+     "match": "live view"
+    },
+    {
+     "rule": "PP-9",
+     "what": "and stayed in step",
+     "type": "no_log",
+     "match": "out of step"
+    },
+    {
+     "rule": "PP-9",
+     "what": "during the sweep, the logo on the second screen (its dark background along the bottom)",
+     "type": "uniform",
+     "shot": "sweep",
+     "screen": "second",
+     "rect": [
+      20,
+      730,
+      1000,
+      764
+     ],
+     "color": "000000",
+     "frac": 0.99
+    },
+    {
+     "rule": "PP-1",
+     "what": "the table live on the second screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      40,
+      40,
+      980,
+      560
+     ],
+     "color": "000000",
+     "frac": 0.97
+    },
+    {
+     "rule": "PP-3",
+     "what": "the score bar on the second screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      20,
+      660,
+      1000,
+      740
+     ],
+     "color": "000000",
+     "frac": 0.6
+    }
+   ]
+  },
+  {
+   "id": "pp-jp-no-copy",
+   "rom": "BPPJ",
+   "state": "pokemon-pinball/jp-sapphire-start.ss",
+   "desc": "pinball_live = 0: one screen, the logo on the other (Japan)",
+   "rules": [
+    "PP-9",
+    "PP-14"
+   ],
+   "input": [
+    [
+     5,
+     "A"
+    ],
+    [
+     7,
+     "-"
+    ]
+   ],
+   "shots": {
+    "sweep": 200,
+    "bottom": 420,
+    "end": 900
+   },
+   "checks": [
+    {
+     "rule": "PP-9",
+     "what": "no copy",
+     "type": "no_log",
+     "match": "live view"
+    },
+    {
+     "rule": "PP-9",
+     "what": "the logo's dark background along the bottom",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      20,
+      730,
+      1000,
+      764
+     ],
+     "color": "000000",
+     "frac": 0.99
+    }
+   ],
+   "config": {
+    "pinball_live": "0"
+   }
+  },
+  {
+   "id": "pp-jp-ruby-bottom",
+   "rom": "BPPJ",
+   "state": "pokemon-pinball/jp-ruby-bottom.ss",
+   "desc": "Ruby, a state loaded with the camera at the bottom (Japan)",
+   "rules": [
+    "PP-1",
+    "PP-3",
+    "PP-9",
+    "PP-14"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 400
+   },
+   "checks": [
+    {
+     "rule": "PP-1",
+     "what": "the live view came up",
+     "type": "log",
+     "match": "live view"
+    },
+    {
+     "rule": "PP-9",
+     "what": "and stayed in step",
+     "type": "no_log",
+     "match": "out of step"
+    },
+    {
+     "rule": "PP-1",
+     "what": "the table on the game screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "game",
+     "rect": [
+      40,
+      40,
+      980,
+      700
+     ],
+     "color": "000000",
+     "frac": 0.97
+    },
+    {
+     "rule": "PP-1",
+     "what": "and live on the second screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      40,
+      40,
+      980,
+      560
+     ],
+     "color": "000000",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "pp-jp-ruby-top",
+   "rom": "BPPJ",
+   "state": "pokemon-pinball/jp-ruby-top.ss",
+   "desc": "Ruby, the camera at the top, the ball falling to the flippers (Japan)",
+   "rules": [
+    "PP-1",
+    "PP-3",
+    "PP-9",
+    "PP-14"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 400
+   },
+   "checks": [
+    {
+     "rule": "PP-1",
+     "what": "the live view came up",
+     "type": "log",
+     "match": "live view"
+    },
+    {
+     "rule": "PP-9",
+     "what": "and stayed in step",
+     "type": "no_log",
+     "match": "out of step"
+    },
+    {
+     "rule": "PP-1",
+     "what": "the table on the game screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "game",
+     "rect": [
+      40,
+      40,
+      980,
+      700
+     ],
+     "color": "000000",
+     "frac": 0.97
+    },
+    {
+     "rule": "PP-1",
+     "what": "and live on the second screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      40,
+      40,
+      980,
+      560
+     ],
+     "color": "000000",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "pp-jp-ruby-catch",
+   "rom": "BPPJ",
+   "state": "pokemon-pinball/jp-ruby-catch.ss",
+   "desc": "catch mode just begun (state made by tools/pinball_events.py): the timer laid over the table (Japan)",
+   "rules": [
+    "PP-1",
+    "PP-9",
+    "PP-10",
+    "PP-14"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 400
+   },
+   "checks": [
+    {
+     "rule": "PP-1",
+     "what": "the live view came up",
+     "type": "log",
+     "match": "live view"
+    },
+    {
+     "rule": "PP-9",
+     "what": "taken from the game every frame: never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-jp-ruby-pause",
+   "rom": "BPPJ",
+   "state": "pokemon-pinball/jp-ruby-pause.ss",
+   "desc": "paused on Ruby (the owner's State Saver state \"Pause screen\", saved paused): the game's whole screen on the bottom one (Japan)",
+   "rules": [
+    "PP-11",
+    "PP-14"
+   ],
+   "shots": {
+    "paused": 60
+   },
+   "checks": [
+    {
+     "rule": "PP-1",
+     "what": "the live view came up",
+     "type": "log",
+     "match": "live view"
+    },
+    {
+     "rule": "PP-11",
+     "what": "the game's whole screen on the bottom one",
+     "type": "log",
+     "match": "the game's screen on the bottom one"
+    },
+    {
+     "rule": "PP-11",
+     "what": "with its score bar at the bottom",
+     "type": "not_uniform",
+     "shot": "paused",
+     "screen": "second",
+     "rect": [
+      40,
+      700,
+      980,
+      760
+     ],
+     "color": "000000",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "pp-jp-swapped",
+   "rom": "BPPJ",
+   "state": "pokemon-pinball/jp-sapphire-start.ss",
+   "desc": "swapped screens (Japan)",
+   "rules": [
+    "PP-5",
+    "PP-14"
+   ],
+   "config": {
+    "swap": "1"
+   },
+   "input": [
+    [
+     4,
+     "A"
+    ],
+    [
+     6,
+     "-"
+    ]
+   ],
+   "shots": {
+    "end": 900
+   },
+   "checks": []
+  },
+  {
+   "id": "pp-logo-bppj",
+   "kind": "logo",
+   "rom": "BPPJ",
+   "desc": "BPPE logo extraction (Japan)",
+   "rules": [
+    "GEN-1",
+    "PP-4",
+    "PP-14"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "pp-jp-sapphire-play",
+   "rom": "BPPJ",
+   "state": "pokemon-pinball/jp-sapphire-play.ss",
+   "desc": "a table past its start (the owner's bug report, its keys played back): the opening sweep, then the table over both screens (Japan)",
+   "rules": [
+    "PP-1",
+    "PP-9",
+    "PP-14"
+   ],
+   "input": [
+    [
+     0,
+     "-"
+    ]
+   ],
+   "shots": {
+    "sweep": 200,
+    "table": 601,
+    "end": 661
+   },
+   "checks": [
+    {
+     "rule": "PP-9",
+     "what": "never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-jp-ruby-egg-wander",
+   "rom": "BPPJ",
+   "state": "pokemon-pinball/jp-ruby-egg-wander.ss",
+   "desc": "Ruby: egg hatch mode, the hatched Pokemon wandering (built by tools/pinball_events.py): the table over both screens (Japan)",
+   "rules": [
+    "PP-13",
+    "PP-1",
+    "PP-14"
+   ],
+   "shots": {
+    "wander": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "PP-1",
+     "what": "the live view came up",
+     "type": "log",
+     "match": "^frame \\d+: live view"
+    },
+    {
+     "rule": "PP-9",
+     "what": "never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-jp-ruby-egg-catch",
+   "rom": "BPPJ",
+   "state": "pokemon-pinball/jp-ruby-egg-catch.ss",
+   "desc": "Ruby: the hatched Pokemon hit twice: its catch animation, the screen dimmed (PP-11), then the table again (tools/pinball_events.py) (Japan)",
+   "rules": [
+    "PP-13",
+    "PP-11",
+    "PP-14"
+   ],
+   "shots": {
+    "catch": 60,
+    "caught": 200,
+    "after": 400
+   },
+   "checks": [
+    {
+     "rule": "PP-9",
+     "what": "never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-jp-ruby-evolution",
+   "rom": "BPPJ",
+   "state": "pokemon-pinball/jp-ruby-evolution.ss",
+   "desc": "Ruby: EVO mode's three items collected, the ball in the centre hole: the EVOLUTION banners, then the evolved Pokemon (tools/pinball_events.py) (Japan)",
+   "rules": [
+    "PP-13",
+    "PP-10",
+    "PP-14"
+   ],
+   "shots": {
+    "banner": 60,
+    "evolving": 200,
+    "evolved": 600
+   },
+   "checks": [
+    {
+     "rule": "PP-9",
+     "what": "never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-jp-sapphire-egg-wander",
+   "rom": "BPPJ",
+   "state": "pokemon-pinball/jp-sapphire-egg-wander.ss",
+   "desc": "Sapphire: egg hatch mode, the hatched Pokemon wandering (built by tools/pinball_events.py): the table over both screens (Japan)",
+   "rules": [
+    "PP-13",
+    "PP-1",
+    "PP-14"
+   ],
+   "shots": {
+    "wander": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "PP-1",
+     "what": "the live view came up",
+     "type": "log",
+     "match": "^frame \\d+: live view"
+    },
+    {
+     "rule": "PP-9",
+     "what": "never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-jp-sapphire-egg-catch",
+   "rom": "BPPJ",
+   "state": "pokemon-pinball/jp-sapphire-egg-catch.ss",
+   "desc": "Sapphire: the hatched Pokemon hit twice: its catch animation, the screen dimmed (PP-11), then the table again (tools/pinball_events.py) (Japan)",
+   "rules": [
+    "PP-13",
+    "PP-11",
+    "PP-14"
+   ],
+   "shots": {
+    "catch": 60,
+    "caught": 200,
+    "after": 400
+   },
+   "checks": [
+    {
+     "rule": "PP-9",
+     "what": "never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-jp-sapphire-evolution",
+   "rom": "BPPJ",
+   "state": "pokemon-pinball/jp-sapphire-evolution.ss",
+   "desc": "Sapphire: EVO mode's three items collected, the ball in the centre hole: the EVOLUTION banners, then the evolved Pokemon (tools/pinball_events.py) (Japan)",
+   "rules": [
+    "PP-13",
+    "PP-10",
+    "PP-14"
+   ],
+   "shots": {
+    "banner": 60,
+    "evolving": 200,
+    "evolved": 600
+   },
+   "checks": [
+    {
+     "rule": "PP-9",
+     "what": "never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-jp-bonus-dusclops",
+   "rom": "BPPJ",
+   "state": "pokemon-pinball/jp-bonus-dusclops.ss",
+   "desc": "the Dusclops bonus stage (reached from Ruby's centre hole by tools/pinball_events.py): one screen, the logo on the other (Japan)",
+   "rules": [
+    "PP-12",
+    "PP-14"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "PP-12",
+     "what": "no live view on a bonus table",
+     "type": "no_log",
+     "match": "^frame \\d+: live view"
+    }
+   ]
+  },
+  {
+   "id": "pp-jp-bonus-kecleon",
+   "rom": "BPPJ",
+   "state": "pokemon-pinball/jp-bonus-kecleon.ss",
+   "desc": "the Kecleon bonus stage (reached from Ruby's centre hole by tools/pinball_events.py): one screen, the logo on the other (Japan)",
+   "rules": [
+    "PP-12",
+    "PP-14"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "PP-12",
+     "what": "no live view on a bonus table",
+     "type": "no_log",
+     "match": "^frame \\d+: live view"
+    }
+   ]
+  },
+  {
+   "id": "pp-jp-bonus-kyogre",
+   "rom": "BPPJ",
+   "state": "pokemon-pinball/jp-bonus-kyogre.ss",
+   "desc": "the Kyogre bonus stage (reached from Ruby's centre hole by tools/pinball_events.py): one screen, the logo on the other (Japan)",
+   "rules": [
+    "PP-12",
+    "PP-14"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 900
+   },
+   "checks": [
+    {
+     "rule": "PP-12",
+     "what": "no live view on a bonus table",
+     "type": "no_log",
+     "match": "^frame \\d+: live view"
+    }
+   ]
+  },
+  {
+   "id": "pp-jp-bonus-groudon",
+   "rom": "BPPJ",
+   "state": "pokemon-pinball/jp-bonus-groudon.ss",
+   "desc": "the Groudon bonus stage (reached from Ruby's centre hole by tools/pinball_events.py): one screen, the logo on the other (Japan)",
+   "rules": [
+    "PP-12",
+    "PP-14"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 900
+   },
+   "checks": [
+    {
+     "rule": "PP-12",
+     "what": "no live view on a bonus table",
+     "type": "no_log",
+     "match": "^frame \\d+: live view"
+    }
+   ]
+  },
+  {
+   "id": "pp-jp-bonus-rayquaza",
+   "rom": "BPPJ",
+   "state": "pokemon-pinball/jp-bonus-rayquaza.ss",
+   "desc": "the Rayquaza bonus stage (reached from Ruby's centre hole by tools/pinball_events.py): one screen, the logo on the other (Japan)",
+   "rules": [
+    "PP-12",
+    "PP-14"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "PP-12",
+     "what": "no live view on a bonus table",
+     "type": "no_log",
+     "match": "^frame \\d+: live view"
+    }
+   ]
+  },
+  {
+   "id": "pp-jp-bonus-spheal",
+   "rom": "BPPJ",
+   "state": "pokemon-pinball/jp-bonus-spheal.ss",
+   "desc": "the Spheal bonus stage (reached from Ruby's centre hole by tools/pinball_events.py): one screen, the logo on the other (Japan)",
+   "rules": [
+    "PP-12",
+    "PP-14"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "PP-12",
+     "what": "no live view on a bonus table",
+     "type": "no_log",
+     "match": "^frame \\d+: live view"
+    }
+   ]
+  },
+  {
+   "id": "pp-jp-ruby-travel",
+   "rom": "BPPJ",
+   "state": "pokemon-pinball/jp-ruby-travel.ss",
+   "desc": "Ruby: Travel mode's confirmation, A, the travel scene to a new area, then play again (tools/pinball_events.py) (Japan)",
+   "rules": [
+    "PP-13",
+    "PP-11",
+    "PP-14"
+   ],
+   "input": [
+    [
+     10,
+     "A"
+    ],
+    [
+     12,
+     "-"
+    ],
+    [
+     14,
+     "A"
+    ],
+    [
+     16,
+     "-"
+    ],
+    [
+     18,
+     "A"
+    ],
+    [
+     20,
+     "-"
+    ],
+    [
+     22,
+     "A"
+    ],
+    [
+     24,
+     "-"
+    ],
+    [
+     26,
+     "A"
+    ],
+    [
+     28,
+     "-"
+    ],
+    [
+     30,
+     "A"
+    ],
+    [
+     32,
+     "-"
+    ],
+    [
+     34,
+     "A"
+    ],
+    [
+     36,
+     "-"
+    ],
+    [
+     38,
+     "A"
+    ],
+    [
+     40,
+     "-"
+    ],
+    [
+     42,
+     "A"
+    ],
+    [
+     44,
+     "-"
+    ],
+    [
+     46,
+     "A"
+    ],
+    [
+     48,
+     "-"
+    ],
+    [
+     50,
+     "A"
+    ],
+    [
+     52,
+     "-"
+    ],
+    [
+     54,
+     "A"
+    ],
+    [
+     56,
+     "-"
+    ],
+    [
+     58,
+     "A"
+    ],
+    [
+     60,
+     "-"
+    ],
+    [
+     62,
+     "A"
+    ],
+    [
+     64,
+     "-"
+    ],
+    [
+     66,
+     "A"
+    ],
+    [
+     68,
+     "-"
+    ],
+    [
+     70,
+     "A"
+    ],
+    [
+     72,
+     "-"
+    ],
+    [
+     74,
+     "A"
+    ],
+    [
+     76,
+     "-"
+    ],
+    [
+     78,
+     "A"
+    ],
+    [
+     80,
+     "-"
+    ],
+    [
+     82,
+     "A"
+    ],
+    [
+     84,
+     "-"
+    ],
+    [
+     86,
+     "A"
+    ],
+    [
+     88,
+     "-"
+    ]
+   ],
+   "shots": {
+    "confirm": 8,
+    "travelling": 200,
+    "arrived": 600
+   },
+   "checks": [
+    {
+     "rule": "PP-9",
+     "what": "never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-jp-ruby-jirachi",
+   "rom": "BPPJ",
+   "state": "pokemon-pinball/jp-ruby-jirachi.ss",
+   "desc": "Ruby: Jirachi's catch mode (the slot's prize), Jirachi flying about over the table (tools/pinball_events.py) (Japan)",
+   "rules": [
+    "PP-13",
+    "PP-1",
+    "PP-14"
+   ],
+   "shots": {
+    "flying": 60,
+    "later": 200
+   },
+   "checks": [
+    {
+     "rule": "PP-9",
+     "what": "never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-jp-ruby-jirachi-catch",
+   "rom": "BPPJ",
+   "state": "pokemon-pinball/jp-ruby-jirachi-catch.ss",
+   "desc": "Ruby: Jirachi hit three times: its catch scene, the screen dimmed (PP-11), CATCH! (tools/pinball_events.py) (Japan)",
+   "rules": [
+    "PP-13",
+    "PP-11",
+    "PP-14"
+   ],
+   "shots": {
+    "catch": 30,
+    "ball": 150,
+    "caught": 450
+   },
+   "checks": [
+    {
+     "rule": "PP-9",
+     "what": "never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-jp-placement-gap",
+   "rom": "BPPJ",
+   "state": "pokemon-pinball/jp-ruby-top.ss",
+   "desc": "Closest to Gap: the table carries on across the hinge (Japan)",
+   "rules": [
+    "GEN-12",
+    "PP-14"
+   ],
+   "config": {
+    "screen_placement": "no_gap"
+   },
+   "shots": {
+    "start": 60,
+    "end": 400
+   },
+   "checks": [
+    {
+     "rule": "PP-1",
+     "what": "the live view came up",
+     "type": "log",
+     "match": "live view"
+    },
+    {
+     "rule": "GEN-12",
+     "what": "nothing above the table on the top screen",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "game",
+     "rect": [
+      0,
+      0,
+      1024,
+      128
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "GEN-12",
+     "what": "nothing below it on the bottom screen",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      0,
+      640,
+      1024,
+      768
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "pp-eu-title",
+   "rom": "BPPP",
+   "state": "pokemon-pinball/eu-title.ss",
+   "desc": "the title (Europe)",
+   "rules": [
+    "PP-4",
+    "PP-15"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 300
+   },
+   "checks": [
+    {
+     "rule": "PP-4",
+     "what": "no table",
+     "type": "no_log",
+     "match": "table up"
+    }
+   ]
+  },
+  {
+   "id": "pp-eu-field-select",
+   "rom": "BPPP",
+   "state": "pokemon-pinball/eu-field-select.ss",
+   "desc": "the field select (Europe)",
+   "rules": [
+    "PP-4",
+    "PP-15"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 300
+   },
+   "checks": [
+    {
+     "rule": "PP-4",
+     "what": "no table",
+     "type": "no_log",
+     "match": "table up"
+    }
+   ]
+  },
+  {
+   "id": "pp-eu-sapphire-start",
+   "rom": "BPPP",
+   "state": "pokemon-pinball/eu-sapphire-start.ss",
+   "desc": "Sapphire picked: the opening sweep (logo below), then the live view (Europe)",
+   "rules": [
+    "PP-1",
+    "PP-3",
+    "PP-9",
+    "PP-15"
+   ],
+   "input": [
+    [
+     4,
+     "A"
+    ],
+    [
+     6,
+     "-"
+    ]
+   ],
+   "shots": {
+    "sweep": 200,
+    "bottom": 420,
+    "end": 900
+   },
+   "checks": [
+    {
+     "rule": "PP-1",
+     "what": "the live view came up",
+     "type": "log",
+     "match": "live view"
+    },
+    {
+     "rule": "PP-9",
+     "what": "and stayed in step",
+     "type": "no_log",
+     "match": "out of step"
+    },
+    {
+     "rule": "PP-9",
+     "what": "during the sweep, the logo on the second screen (its dark background along the bottom)",
+     "type": "uniform",
+     "shot": "sweep",
+     "screen": "second",
+     "rect": [
+      20,
+      730,
+      1000,
+      764
+     ],
+     "color": "000000",
+     "frac": 0.99
+    },
+    {
+     "rule": "PP-1",
+     "what": "the table live on the second screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      40,
+      40,
+      980,
+      560
+     ],
+     "color": "000000",
+     "frac": 0.97
+    },
+    {
+     "rule": "PP-3",
+     "what": "the score bar on the second screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      20,
+      660,
+      1000,
+      740
+     ],
+     "color": "000000",
+     "frac": 0.6
+    }
+   ]
+  },
+  {
+   "id": "pp-eu-no-copy",
+   "rom": "BPPP",
+   "state": "pokemon-pinball/eu-sapphire-start.ss",
+   "desc": "pinball_live = 0: one screen, the logo on the other (Europe)",
+   "rules": [
+    "PP-9",
+    "PP-15"
+   ],
+   "input": [
+    [
+     5,
+     "A"
+    ],
+    [
+     7,
+     "-"
+    ]
+   ],
+   "shots": {
+    "sweep": 200,
+    "bottom": 420,
+    "end": 900
+   },
+   "checks": [
+    {
+     "rule": "PP-9",
+     "what": "no copy",
+     "type": "no_log",
+     "match": "live view"
+    },
+    {
+     "rule": "PP-9",
+     "what": "the logo's dark background along the bottom",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      20,
+      730,
+      1000,
+      764
+     ],
+     "color": "000000",
+     "frac": 0.99
+    }
+   ],
+   "config": {
+    "pinball_live": "0"
+   }
+  },
+  {
+   "id": "pp-eu-ruby-bottom",
+   "rom": "BPPP",
+   "state": "pokemon-pinball/eu-ruby-bottom.ss",
+   "desc": "Ruby, a state loaded with the camera at the bottom (Europe)",
+   "rules": [
+    "PP-1",
+    "PP-3",
+    "PP-9",
+    "PP-15"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 400
+   },
+   "checks": [
+    {
+     "rule": "PP-1",
+     "what": "the live view came up",
+     "type": "log",
+     "match": "live view"
+    },
+    {
+     "rule": "PP-9",
+     "what": "and stayed in step",
+     "type": "no_log",
+     "match": "out of step"
+    },
+    {
+     "rule": "PP-1",
+     "what": "the table on the game screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "game",
+     "rect": [
+      40,
+      40,
+      980,
+      700
+     ],
+     "color": "000000",
+     "frac": 0.97
+    },
+    {
+     "rule": "PP-1",
+     "what": "and live on the second screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      40,
+      40,
+      980,
+      560
+     ],
+     "color": "000000",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "pp-eu-ruby-top",
+   "rom": "BPPP",
+   "state": "pokemon-pinball/eu-ruby-top.ss",
+   "desc": "Ruby, the camera at the top, the ball falling to the flippers (Europe)",
+   "rules": [
+    "PP-1",
+    "PP-3",
+    "PP-9",
+    "PP-15"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 400
+   },
+   "checks": [
+    {
+     "rule": "PP-1",
+     "what": "the live view came up",
+     "type": "log",
+     "match": "live view"
+    },
+    {
+     "rule": "PP-9",
+     "what": "and stayed in step",
+     "type": "no_log",
+     "match": "out of step"
+    },
+    {
+     "rule": "PP-1",
+     "what": "the table on the game screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "game",
+     "rect": [
+      40,
+      40,
+      980,
+      700
+     ],
+     "color": "000000",
+     "frac": 0.97
+    },
+    {
+     "rule": "PP-1",
+     "what": "and live on the second screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      40,
+      40,
+      980,
+      560
+     ],
+     "color": "000000",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "pp-eu-ruby-catch",
+   "rom": "BPPP",
+   "state": "pokemon-pinball/eu-ruby-catch.ss",
+   "desc": "catch mode just begun (state made by tools/pinball_events.py): the timer laid over the table (Europe)",
+   "rules": [
+    "PP-1",
+    "PP-9",
+    "PP-10",
+    "PP-15"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 400
+   },
+   "checks": [
+    {
+     "rule": "PP-1",
+     "what": "the live view came up",
+     "type": "log",
+     "match": "live view"
+    },
+    {
+     "rule": "PP-9",
+     "what": "taken from the game every frame: never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-eu-ruby-pause",
+   "rom": "BPPP",
+   "state": "pokemon-pinball/eu-ruby-pause.ss",
+   "desc": "paused on Ruby (the owner's State Saver state \"Pause screen\", saved paused): the game's whole screen on the bottom one (Europe)",
+   "rules": [
+    "PP-11",
+    "PP-15"
+   ],
+   "shots": {
+    "paused": 60
+   },
+   "checks": [
+    {
+     "rule": "PP-1",
+     "what": "the live view came up",
+     "type": "log",
+     "match": "live view"
+    },
+    {
+     "rule": "PP-11",
+     "what": "the game's whole screen on the bottom one",
+     "type": "log",
+     "match": "the game's screen on the bottom one"
+    },
+    {
+     "rule": "PP-11",
+     "what": "with its score bar at the bottom",
+     "type": "not_uniform",
+     "shot": "paused",
+     "screen": "second",
+     "rect": [
+      40,
+      700,
+      980,
+      760
+     ],
+     "color": "000000",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "pp-eu-swapped",
+   "rom": "BPPP",
+   "state": "pokemon-pinball/eu-sapphire-start.ss",
+   "desc": "swapped screens (Europe)",
+   "rules": [
+    "PP-5",
+    "PP-15"
+   ],
+   "config": {
+    "swap": "1"
+   },
+   "input": [
+    [
+     4,
+     "A"
+    ],
+    [
+     6,
+     "-"
+    ]
+   ],
+   "shots": {
+    "end": 900
+   },
+   "checks": []
+  },
+  {
+   "id": "pp-logo-bppp",
+   "kind": "logo",
+   "rom": "BPPP",
+   "desc": "BPPE logo extraction (Europe)",
+   "rules": [
+    "GEN-1",
+    "PP-4",
+    "PP-15"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "pp-eu-sapphire-play",
+   "rom": "BPPP",
+   "state": "pokemon-pinball/eu-sapphire-play.ss",
+   "desc": "a table past its start (the owner's bug report, its keys played back): the opening sweep, then the table over both screens (Europe)",
+   "rules": [
+    "PP-1",
+    "PP-9",
+    "PP-15"
+   ],
+   "input": [
+    [
+     0,
+     "-"
+    ]
+   ],
+   "shots": {
+    "sweep": 200,
+    "table": 601,
+    "end": 661
+   },
+   "checks": [
+    {
+     "rule": "PP-9",
+     "what": "never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-eu-ruby-egg-wander",
+   "rom": "BPPP",
+   "state": "pokemon-pinball/eu-ruby-egg-wander.ss",
+   "desc": "Ruby: egg hatch mode, the hatched Pokemon wandering (built by tools/pinball_events.py): the table over both screens (Europe)",
+   "rules": [
+    "PP-13",
+    "PP-1",
+    "PP-15"
+   ],
+   "shots": {
+    "wander": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "PP-1",
+     "what": "the live view came up",
+     "type": "log",
+     "match": "^frame \\d+: live view"
+    },
+    {
+     "rule": "PP-9",
+     "what": "never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-eu-ruby-egg-catch",
+   "rom": "BPPP",
+   "state": "pokemon-pinball/eu-ruby-egg-catch.ss",
+   "desc": "Ruby: the hatched Pokemon hit twice: its catch animation, the screen dimmed (PP-11), then the table again (tools/pinball_events.py) (Europe)",
+   "rules": [
+    "PP-13",
+    "PP-11",
+    "PP-15"
+   ],
+   "shots": {
+    "catch": 60,
+    "caught": 200,
+    "after": 400
+   },
+   "checks": [
+    {
+     "rule": "PP-9",
+     "what": "never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-eu-ruby-evolution",
+   "rom": "BPPP",
+   "state": "pokemon-pinball/eu-ruby-evolution.ss",
+   "desc": "Ruby: EVO mode's three items collected, the ball in the centre hole: the EVOLUTION banners, then the evolved Pokemon (tools/pinball_events.py) (Europe)",
+   "rules": [
+    "PP-13",
+    "PP-10",
+    "PP-15"
+   ],
+   "shots": {
+    "banner": 60,
+    "evolving": 200,
+    "evolved": 600
+   },
+   "checks": [
+    {
+     "rule": "PP-9",
+     "what": "never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-eu-sapphire-egg-wander",
+   "rom": "BPPP",
+   "state": "pokemon-pinball/eu-sapphire-egg-wander.ss",
+   "desc": "Sapphire: egg hatch mode, the hatched Pokemon wandering (built by tools/pinball_events.py): the table over both screens (Europe)",
+   "rules": [
+    "PP-13",
+    "PP-1",
+    "PP-15"
+   ],
+   "shots": {
+    "wander": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "PP-1",
+     "what": "the live view came up",
+     "type": "log",
+     "match": "^frame \\d+: live view"
+    },
+    {
+     "rule": "PP-9",
+     "what": "never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-eu-sapphire-egg-catch",
+   "rom": "BPPP",
+   "state": "pokemon-pinball/eu-sapphire-egg-catch.ss",
+   "desc": "Sapphire: the hatched Pokemon hit twice: its catch animation, the screen dimmed (PP-11), then the table again (tools/pinball_events.py) (Europe)",
+   "rules": [
+    "PP-13",
+    "PP-11",
+    "PP-15"
+   ],
+   "shots": {
+    "catch": 60,
+    "caught": 200,
+    "after": 400
+   },
+   "checks": [
+    {
+     "rule": "PP-9",
+     "what": "never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-eu-sapphire-evolution",
+   "rom": "BPPP",
+   "state": "pokemon-pinball/eu-sapphire-evolution.ss",
+   "desc": "Sapphire: EVO mode's three items collected, the ball in the centre hole: the EVOLUTION banners, then the evolved Pokemon (tools/pinball_events.py) (Europe)",
+   "rules": [
+    "PP-13",
+    "PP-10",
+    "PP-15"
+   ],
+   "shots": {
+    "banner": 60,
+    "evolving": 200,
+    "evolved": 600
+   },
+   "checks": [
+    {
+     "rule": "PP-9",
+     "what": "never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-eu-bonus-dusclops",
+   "rom": "BPPP",
+   "state": "pokemon-pinball/eu-bonus-dusclops.ss",
+   "desc": "the Dusclops bonus stage (reached from Ruby's centre hole by tools/pinball_events.py): one screen, the logo on the other (Europe)",
+   "rules": [
+    "PP-12",
+    "PP-15"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "PP-12",
+     "what": "no live view on a bonus table",
+     "type": "no_log",
+     "match": "^frame \\d+: live view"
+    }
+   ]
+  },
+  {
+   "id": "pp-eu-bonus-kecleon",
+   "rom": "BPPP",
+   "state": "pokemon-pinball/eu-bonus-kecleon.ss",
+   "desc": "the Kecleon bonus stage (reached from Ruby's centre hole by tools/pinball_events.py): one screen, the logo on the other (Europe)",
+   "rules": [
+    "PP-12",
+    "PP-15"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "PP-12",
+     "what": "no live view on a bonus table",
+     "type": "no_log",
+     "match": "^frame \\d+: live view"
+    }
+   ]
+  },
+  {
+   "id": "pp-eu-bonus-kyogre",
+   "rom": "BPPP",
+   "state": "pokemon-pinball/eu-bonus-kyogre.ss",
+   "desc": "the Kyogre bonus stage (reached from Ruby's centre hole by tools/pinball_events.py): one screen, the logo on the other (Europe)",
+   "rules": [
+    "PP-12",
+    "PP-15"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 900
+   },
+   "checks": [
+    {
+     "rule": "PP-12",
+     "what": "no live view on a bonus table",
+     "type": "no_log",
+     "match": "^frame \\d+: live view"
+    }
+   ]
+  },
+  {
+   "id": "pp-eu-bonus-groudon",
+   "rom": "BPPP",
+   "state": "pokemon-pinball/eu-bonus-groudon.ss",
+   "desc": "the Groudon bonus stage (reached from Ruby's centre hole by tools/pinball_events.py): one screen, the logo on the other (Europe)",
+   "rules": [
+    "PP-12",
+    "PP-15"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 900
+   },
+   "checks": [
+    {
+     "rule": "PP-12",
+     "what": "no live view on a bonus table",
+     "type": "no_log",
+     "match": "^frame \\d+: live view"
+    }
+   ]
+  },
+  {
+   "id": "pp-eu-bonus-rayquaza",
+   "rom": "BPPP",
+   "state": "pokemon-pinball/eu-bonus-rayquaza.ss",
+   "desc": "the Rayquaza bonus stage (reached from Ruby's centre hole by tools/pinball_events.py): one screen, the logo on the other (Europe)",
+   "rules": [
+    "PP-12",
+    "PP-15"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "PP-12",
+     "what": "no live view on a bonus table",
+     "type": "no_log",
+     "match": "^frame \\d+: live view"
+    }
+   ]
+  },
+  {
+   "id": "pp-eu-bonus-spheal",
+   "rom": "BPPP",
+   "state": "pokemon-pinball/eu-bonus-spheal.ss",
+   "desc": "the Spheal bonus stage (reached from Ruby's centre hole by tools/pinball_events.py): one screen, the logo on the other (Europe)",
+   "rules": [
+    "PP-12",
+    "PP-15"
+   ],
+   "shots": {
+    "start": 60,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "PP-12",
+     "what": "no live view on a bonus table",
+     "type": "no_log",
+     "match": "^frame \\d+: live view"
+    }
+   ]
+  },
+  {
+   "id": "pp-eu-ruby-travel",
+   "rom": "BPPP",
+   "state": "pokemon-pinball/eu-ruby-travel.ss",
+   "desc": "Ruby: Travel mode's confirmation, A, the travel scene to a new area, then play again (tools/pinball_events.py) (Europe)",
+   "rules": [
+    "PP-13",
+    "PP-11",
+    "PP-15"
+   ],
+   "input": [
+    [
+     10,
+     "A"
+    ],
+    [
+     12,
+     "-"
+    ],
+    [
+     14,
+     "A"
+    ],
+    [
+     16,
+     "-"
+    ],
+    [
+     18,
+     "A"
+    ],
+    [
+     20,
+     "-"
+    ],
+    [
+     22,
+     "A"
+    ],
+    [
+     24,
+     "-"
+    ],
+    [
+     26,
+     "A"
+    ],
+    [
+     28,
+     "-"
+    ],
+    [
+     30,
+     "A"
+    ],
+    [
+     32,
+     "-"
+    ],
+    [
+     34,
+     "A"
+    ],
+    [
+     36,
+     "-"
+    ],
+    [
+     38,
+     "A"
+    ],
+    [
+     40,
+     "-"
+    ],
+    [
+     42,
+     "A"
+    ],
+    [
+     44,
+     "-"
+    ],
+    [
+     46,
+     "A"
+    ],
+    [
+     48,
+     "-"
+    ],
+    [
+     50,
+     "A"
+    ],
+    [
+     52,
+     "-"
+    ],
+    [
+     54,
+     "A"
+    ],
+    [
+     56,
+     "-"
+    ],
+    [
+     58,
+     "A"
+    ],
+    [
+     60,
+     "-"
+    ],
+    [
+     62,
+     "A"
+    ],
+    [
+     64,
+     "-"
+    ],
+    [
+     66,
+     "A"
+    ],
+    [
+     68,
+     "-"
+    ],
+    [
+     70,
+     "A"
+    ],
+    [
+     72,
+     "-"
+    ],
+    [
+     74,
+     "A"
+    ],
+    [
+     76,
+     "-"
+    ],
+    [
+     78,
+     "A"
+    ],
+    [
+     80,
+     "-"
+    ],
+    [
+     82,
+     "A"
+    ],
+    [
+     84,
+     "-"
+    ],
+    [
+     86,
+     "A"
+    ],
+    [
+     88,
+     "-"
+    ]
+   ],
+   "shots": {
+    "confirm": 8,
+    "travelling": 200,
+    "arrived": 600
+   },
+   "checks": [
+    {
+     "rule": "PP-9",
+     "what": "never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-eu-ruby-jirachi",
+   "rom": "BPPP",
+   "state": "pokemon-pinball/eu-ruby-jirachi.ss",
+   "desc": "Ruby: Jirachi's catch mode (the slot's prize), Jirachi flying about over the table (tools/pinball_events.py) (Europe)",
+   "rules": [
+    "PP-13",
+    "PP-1",
+    "PP-15"
+   ],
+   "shots": {
+    "flying": 60,
+    "later": 200
+   },
+   "checks": [
+    {
+     "rule": "PP-9",
+     "what": "never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-eu-ruby-jirachi-catch",
+   "rom": "BPPP",
+   "state": "pokemon-pinball/eu-ruby-jirachi-catch.ss",
+   "desc": "Ruby: Jirachi hit three times: its catch scene, the screen dimmed (PP-11), CATCH! (tools/pinball_events.py) (Europe)",
+   "rules": [
+    "PP-13",
+    "PP-11",
+    "PP-15"
+   ],
+   "shots": {
+    "catch": 30,
+    "ball": 150,
+    "caught": 450
+   },
+   "checks": [
+    {
+     "rule": "PP-9",
+     "what": "never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-eu-placement-gap",
+   "rom": "BPPP",
+   "state": "pokemon-pinball/eu-ruby-top.ss",
+   "desc": "Closest to Gap: the table carries on across the hinge (Europe)",
+   "rules": [
+    "GEN-12",
+    "PP-15"
+   ],
+   "config": {
+    "screen_placement": "no_gap"
+   },
+   "shots": {
+    "start": 60,
+    "end": 400
+   },
+   "checks": [
+    {
+     "rule": "PP-1",
+     "what": "the live view came up",
+     "type": "log",
+     "match": "live view"
+    },
+    {
+     "rule": "GEN-12",
+     "what": "nothing above the table on the top screen",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "game",
+     "rect": [
+      0,
+      0,
+      1024,
+      128
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "GEN-12",
+     "what": "nothing below it on the bottom screen",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      0,
+      640,
+      1024,
+      768
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "pp-jp1-sapphire-start",
+   "rom": "BPPJ+rev1",
+   "state": "pokemon-pinball/jp1-sapphire-start.ss",
+   "desc": "Sapphire picked: the opening sweep (logo below), then the live view (Japan, Rev 1)",
+   "rules": [
+    "PP-1",
+    "PP-3",
+    "PP-9",
+    "PP-14"
+   ],
+   "input": [
+    [
+     4,
+     "A"
+    ],
+    [
+     6,
+     "-"
+    ]
+   ],
+   "shots": {
+    "sweep": 200,
+    "bottom": 420,
+    "end": 900
+   },
+   "checks": [
+    {
+     "rule": "PP-1",
+     "what": "the live view came up",
+     "type": "log",
+     "match": "live view"
+    },
+    {
+     "rule": "PP-9",
+     "what": "and stayed in step",
+     "type": "no_log",
+     "match": "out of step"
+    },
+    {
+     "rule": "PP-9",
+     "what": "during the sweep, the logo on the second screen (its dark background along the bottom)",
+     "type": "uniform",
+     "shot": "sweep",
+     "screen": "second",
+     "rect": [
+      20,
+      730,
+      1000,
+      764
+     ],
+     "color": "000000",
+     "frac": 0.99
+    },
+    {
+     "rule": "PP-1",
+     "what": "the table live on the second screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      40,
+      40,
+      980,
+      560
+     ],
+     "color": "000000",
+     "frac": 0.97
+    },
+    {
+     "rule": "PP-3",
+     "what": "the score bar on the second screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      20,
+      660,
+      1000,
+      740
+     ],
+     "color": "000000",
+     "frac": 0.6
+    }
+   ]
+  },
+  {
+   "id": "pp-jp1-no-copy",
+   "rom": "BPPJ+rev1",
+   "state": "pokemon-pinball/jp1-sapphire-start.ss",
+   "desc": "pinball_live = 0: one screen, the logo on the other (Japan, Rev 1)",
+   "rules": [
+    "PP-9",
+    "PP-14"
+   ],
+   "input": [
+    [
+     5,
+     "A"
+    ],
+    [
+     7,
+     "-"
+    ]
+   ],
+   "shots": {
+    "sweep": 200,
+    "bottom": 420,
+    "end": 900
+   },
+   "checks": [
+    {
+     "rule": "PP-9",
+     "what": "no copy",
+     "type": "no_log",
+     "match": "live view"
+    },
+    {
+     "rule": "PP-9",
+     "what": "the logo's dark background along the bottom",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      20,
+      730,
+      1000,
+      764
+     ],
+     "color": "000000",
+     "frac": 0.99
+    }
+   ],
+   "config": {
+    "pinball_live": "0"
+   }
+  },
+  {
+   "id": "pp-jp1-ruby-bottom",
+   "rom": "BPPJ+rev1",
+   "state": "pokemon-pinball/jp1-ruby-bottom.ss",
+   "desc": "Ruby, a state loaded with the camera at the bottom (Japan, Rev 1)",
+   "rules": [
+    "PP-1",
+    "PP-3",
+    "PP-9",
+    "PP-14"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 400
+   },
+   "checks": [
+    {
+     "rule": "PP-1",
+     "what": "the live view came up",
+     "type": "log",
+     "match": "live view"
+    },
+    {
+     "rule": "PP-9",
+     "what": "and stayed in step",
+     "type": "no_log",
+     "match": "out of step"
+    },
+    {
+     "rule": "PP-1",
+     "what": "the table on the game screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "game",
+     "rect": [
+      40,
+      40,
+      980,
+      700
+     ],
+     "color": "000000",
+     "frac": 0.97
+    },
+    {
+     "rule": "PP-1",
+     "what": "and live on the second screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      40,
+      40,
+      980,
+      560
+     ],
+     "color": "000000",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "pp-jp1-ruby-top",
+   "rom": "BPPJ+rev1",
+   "state": "pokemon-pinball/jp1-ruby-top.ss",
+   "desc": "Ruby, the camera at the top, the ball falling to the flippers (Japan, Rev 1)",
+   "rules": [
+    "PP-1",
+    "PP-3",
+    "PP-9",
+    "PP-14"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 400
+   },
+   "checks": [
+    {
+     "rule": "PP-1",
+     "what": "the live view came up",
+     "type": "log",
+     "match": "live view"
+    },
+    {
+     "rule": "PP-9",
+     "what": "and stayed in step",
+     "type": "no_log",
+     "match": "out of step"
+    },
+    {
+     "rule": "PP-1",
+     "what": "the table on the game screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "game",
+     "rect": [
+      40,
+      40,
+      980,
+      700
+     ],
+     "color": "000000",
+     "frac": 0.97
+    },
+    {
+     "rule": "PP-1",
+     "what": "and live on the second screen",
+     "type": "not_uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      40,
+      40,
+      980,
+      560
+     ],
+     "color": "000000",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "pp-jp1-ruby-catch",
+   "rom": "BPPJ+rev1",
+   "state": "pokemon-pinball/jp1-ruby-catch.ss",
+   "desc": "catch mode just begun (state made by tools/pinball_events.py): the timer laid over the table (Japan, Rev 1)",
+   "rules": [
+    "PP-1",
+    "PP-9",
+    "PP-10",
+    "PP-14"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 400
+   },
+   "checks": [
+    {
+     "rule": "PP-1",
+     "what": "the live view came up",
+     "type": "log",
+     "match": "live view"
+    },
+    {
+     "rule": "PP-9",
+     "what": "taken from the game every frame: never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-jp1-ruby-pause",
+   "rom": "BPPJ+rev1",
+   "state": "pokemon-pinball/jp1-ruby-pause.ss",
+   "desc": "paused on Ruby (the owner's State Saver state \"Pause screen\", saved paused): the game's whole screen on the bottom one (Japan, Rev 1)",
+   "rules": [
+    "PP-11",
+    "PP-14"
+   ],
+   "shots": {
+    "paused": 60
+   },
+   "checks": [
+    {
+     "rule": "PP-1",
+     "what": "the live view came up",
+     "type": "log",
+     "match": "live view"
+    },
+    {
+     "rule": "PP-11",
+     "what": "the game's whole screen on the bottom one",
+     "type": "log",
+     "match": "the game's screen on the bottom one"
+    },
+    {
+     "rule": "PP-11",
+     "what": "with its score bar at the bottom",
+     "type": "not_uniform",
+     "shot": "paused",
+     "screen": "second",
+     "rect": [
+      40,
+      700,
+      980,
+      760
+     ],
+     "color": "000000",
+     "frac": 0.97
+    }
+   ]
+  },
+  {
+   "id": "pp-jp1-swapped",
+   "rom": "BPPJ+rev1",
+   "state": "pokemon-pinball/jp1-sapphire-start.ss",
+   "desc": "swapped screens (Japan, Rev 1)",
+   "rules": [
+    "PP-5",
+    "PP-14"
+   ],
+   "config": {
+    "swap": "1"
+   },
+   "input": [
+    [
+     4,
+     "A"
+    ],
+    [
+     6,
+     "-"
+    ]
+   ],
+   "shots": {
+    "end": 900
+   },
+   "checks": []
+  },
+  {
+   "id": "pp-logo-bppj-rev1",
+   "kind": "logo",
+   "rom": "BPPJ+rev1",
+   "desc": "BPPE logo extraction (Japan, Rev 1)",
+   "rules": [
+    "GEN-1",
+    "PP-4",
+    "PP-14"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "pp-jp1-sapphire-play",
+   "rom": "BPPJ+rev1",
+   "state": "pokemon-pinball/jp1-sapphire-play.ss",
+   "desc": "a table past its start (the owner's bug report, its keys played back): the opening sweep, then the table over both screens (Japan, Rev 1)",
+   "rules": [
+    "PP-1",
+    "PP-9",
+    "PP-14"
+   ],
+   "input": [
+    [
+     0,
+     "-"
+    ]
+   ],
+   "shots": {
+    "sweep": 200,
+    "table": 601,
+    "end": 661
+   },
+   "checks": [
+    {
+     "rule": "PP-9",
+     "what": "never out of step",
+     "type": "no_log",
+     "match": "out of step"
+    }
+   ]
+  },
+  {
+   "id": "pp-jp1-placement-gap",
+   "rom": "BPPJ+rev1",
+   "state": "pokemon-pinball/jp1-ruby-top.ss",
+   "desc": "Closest to Gap: the table carries on across the hinge (Japan, Rev 1)",
+   "rules": [
+    "GEN-12",
+    "PP-14"
+   ],
+   "config": {
+    "screen_placement": "no_gap"
+   },
+   "shots": {
+    "start": 60,
+    "end": 400
+   },
+   "checks": [
+    {
+     "rule": "PP-1",
+     "what": "the live view came up",
+     "type": "log",
+     "match": "live view"
+    },
+    {
+     "rule": "GEN-12",
+     "what": "nothing above the table on the top screen",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "game",
+     "rect": [
+      0,
+      0,
+      1024,
+      128
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "GEN-12",
+     "what": "nothing below it on the bottom screen",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      0,
+      640,
+      1024,
+      768
+     ],
+     "color": "000000"
     }
    ]
   }

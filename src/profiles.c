@@ -1710,9 +1710,17 @@ typedef struct {
 	/* the player phase's positions: the minimap and map menu, the cursor
 	 * free, a unit's menu, a fight */
 	uint16_t atMini, atIdle, atMenu, atFight;
+	/* a unit's x, y bytes in its data, and how many units there are (Fire
+	 * Emblem: Fuuin no Tsurugi's units keep them 2 bytes earlier, and it
+	 * has fewer) */
+	uint8_t unitXY, nUnits;
 } FeRegion;
-#define FE7_AT .atMini = 0x50, .atIdle = 0x70, .atMenu = 0xD0, .atFight = 0xF0
-#define FE8_AT .atMini = 0x60, .atIdle = 0x80, .atMenu = 0xE8, .atFight = 0x108
+#define FE7_AT .atMini = 0x50, .atIdle = 0x70, .atMenu = 0xD0, .atFight = 0xF0, .unitXY = 0x10, .nUnits = 144
+#define FE8_AT .atMini = 0x60, .atIdle = 0x80, .atMenu = 0xE8, .atFight = 0x108, .unitXY = 0x10, .nUnits = 144
+/* (Fuuin no Tsurugi: its player phase script from the fireemblem6j
+ * decompilation, ProcScr_PlayerPhase; the map menu opens from the cursor
+ * free, so atMini is the idle loop's label, unused) */
+#define FE6_AT .atMini = 0x50, .atIdle = 0x70, .atMenu = 0xC8, .atFight = 0xE8, .unitXY = 0x0E, .nUnits = 62 + 50 + 20 + 5
 static const FeRegion feRegions[] = {
 	{ '7', 'E', 0x0202BBF8, 0x02024E28, 0x0202BBCC, 0x0202BD50, 0x08B93374, 0x08B90D88, 0x08B9A99C, 0x08B937AC, 0x08CC1F5C, 0, FE7_AT },
 	{ '7', 'Y', 0x0202BBF8, 0x02024E28, 0x0202BBCC, 0x0202BD50, 0x08C57730, 0x08C54ECC, 0x08C5ECE8, 0x08C57B8C, 0x08D88F1C, 0x08DC195C, FE7_AT },
@@ -1729,6 +1737,13 @@ static const FeRegion feRegions[] = {
 	 * Their scripts found by the USA ones' commands) */
 	{ '8', 'P', 0x0202BCF0, 0x02024E68, 0x0202BCC4, 0x0202BE4C, 0x087ABDB8, 0x087A2ADC, 0x087DBBCC, 0x087AC29C, 0x08A8EE00, 0, FE8_AT },
 	{ '8', 'J', 0x0202BCEC, 0x02024E68, 0x0202BCC0, 0x0202BE48, 0x085C2F58, 0x085B98A0, 0x085E3538, 0x085C3400, 0x08A72A90, 0, FE8_AT },
+	/* Fire Emblem: Fuuin no Tsurugi (Japan only; AFEJ: 'E', 'J'): its RAM
+	 * mapped from Rekka no Ken's by tools/romxref.py (gPlaySt, the units)
+	 * and the process slots by their free list; its scripts by matching
+	 * the fireemblem6j decompilation's (ProcScr_PlayerPhase, ProcScr_Event,
+	 * ProcScr_EkrBattle, ProcScr_PhaseIntro, ProcScr_StatScreen). The fan
+	 * translation (FE6 Localization) keeps all of them. */
+	{ 'E', 'J', 0x0202AA48, 0x02023CC4, 0x0202AA1C, 0x0202AB78, 0x085C56A8, 0x085C40A4, 0x085CB528, 0x085C5AA0, 0x08677680, 0, FE6_AT },
 };
 static const FeRegion* fe_r = &feRegions[0];
 static void fe_region(Emu* e) {
@@ -1852,7 +1867,7 @@ static uint32_t fe_virt(Emu* e, uint32_t addr) {
 #define FE_P_STATUS (fe_r->status) /* a unit's status screen */
 #define FE_PAGES 3
 #define FE_UNITS (fe_r->units)
-#define FE_UNITS_LEN (0x48 * 144)
+#define FE_UNITS_LEN (0x48 * fe_r->nUnits)
 static uint32_t pageKey;
 static int pageN;
 
@@ -1903,7 +1918,7 @@ static const char* fe_compose(Emu* s, const void* state, uint32_t* const* out, i
 			bool unit = false;
 			uint32_t cur = emu_read32(s, FE_CURSOR);
 			for (uint32_t a = FE_UNITS; a < FE_UNITS + FE_UNITS_LEN && !unit; a += 0x48) {
-				unit = emu_read8(s, a + 3) == 8 && emu_read8(s, a + 0x10) == (cur & 0xFF) && emu_read8(s, a + 0x11) == ((cur >> 16) & 0xFF);
+				unit = emu_read8(s, a + 3) == 8 && emu_read8(s, a + fe_r->unitXY) == (cur & 0xFF) && emu_read8(s, a + fe_r->unitXY + 1) == ((cur >> 16) & 0xFF);
 			}
 			if (emu_cancelled(s)) return "called off";
 			memcpy(page, fresh, sizeof(page[0]) * (size_t) pages);
@@ -8397,6 +8412,35 @@ static const MapProfile profiles[] = {
 		.logo = { .steps = { { 0, 200 }, { K_A, 4 }, { 0, 700 }, { K_START, 4 }, { 0, 90 } }, .layers = 0x11, .maxY = 119 },
 	},
 	{
+		/* Japan (its only release; most play it with the FE6 Localization
+		 * fan translation, a mod of it): as Fire Emblem (the same engine
+		 * and second screen: see fe_compose; its addresses in feRegions) */
+		.codes = { "AFEJ" },
+		.title = "Fire Emblem: Fuuin no Tsurugi",
+		.virt = fe_virt,
+		.composePages = fe_compose,
+		.stillPick = STILL_FIRST,
+		.room = { { FE_V_CURSOR, 0, 0, 4 }, { FE_V_FREE, 0, 0, 4 } },
+		.crop_w = GBA_W,
+		.crop_h = GBA_H,
+		.live = { FE_IN_CHAPTER, { FE_V_TURN, 0xFF, 0, 1 } },
+		.menu = { { FE_V_OFFMAP, 0xFF, 1, 4 } },
+		.hud = {
+			.on = { FE_IN_CHAPTER },
+			.overMap = true,
+			.mapClear = MAP_BG_NAVY,
+			.logoUnder = true,
+			.logoAlways = true,
+		},
+		.combat = { { FE_V_FIGHT, 0xFF, 1, 4 } },
+		.combatOr = { FE_IN_CHAPTER, { FE_V_TURN, 0xFF, 0x40, 1, true, 0xFF, true } },
+		/* the title (START past the intro): the lettering (BG0), its
+		 * shadow (BG1) and the sword (BG2), with FIRE EMBLEM and the
+		 * subtitle's ribbon (sprites, above Press start from row 121 and
+		 * the copyright line) */
+		.logo = { .wait = 300, .pressStart = true, .wait2 = 150, .layers = 0x17, .maxY = 119 },
+	},
+	{
 		/* USA; the second screen is put together by aw_compose */
 		.codes = { "AWRE" },
 		.title = "Advance Wars",
@@ -9197,6 +9241,47 @@ static void mvdk_jpn(MapProfile* p) {
 	p->logo.mask = &logoMaskMVDKJ;
 }
 
+/* Pokémon Pinball: Ruby & Sapphire in Japan (BPPJ; the original, CRC32
+ * 8af1ec73, and its Rev 1, 925a5684): the same table, score bar and EWRAM
+ * layout under S and gMain as BPPE, found by matching the code round BPPE's
+ * stores and literal pools (docs/PINBALL.md); only the game's state pointer
+ * (0x10A0 lower: gCurrentPinballGame) with the camera's limit after it, and
+ * the ROM's camera stores (the main routine's and catch mode's) differ
+ * (PP-14). Rev 1's code has moved again (`rev`), its RAM is the original's. */
+static void pp_jpn(MapProfile* p) {
+	p->tall.live.state = 0x02030440;
+	p->tall.live.bound = 0x02030498;
+	p->tall.live.nop[0] = 0x0804B896, p->tall.live.nop[1] = 0x0804B8A6;
+	p->tall.live.nop[2] = 0x0804B5E8, p->tall.live.nop[3] = 0x0804B5F8;
+	p->tall.live.rev.crc = 0x925a5684;
+	p->tall.live.rev.nop[0] = 0x0804B5DE, p->tall.live.rev.nop[1] = 0x0804B5EE;
+	p->tall.live.rev.nop[2] = 0x0804B330, p->tall.live.rev.nop[3] = 0x0804B340;
+}
+
+/* Pokémon Pinball: Ruby & Sapphire in Europe (BPPP, a 16 MB dump with the
+ * same game and five languages): its state pointer 0x120 higher and its
+ * camera stores elsewhere (PP-15) */
+static void pp_eur(MapProfile* p) {
+	p->tall.live.state = 0x02031600;
+	p->tall.live.bound = 0x02031658;
+	p->tall.live.nop[0] = 0x08053B26, p->tall.live.nop[1] = 0x08053B36;
+	p->tall.live.nop[2] = 0x08053880, p->tall.live.nop[3] = 0x08053890;
+	/* gMain has a field more before the scroll shadows: they and the string
+	 * after them are 4 bytes higher (BG1 / 2 / 3 VOFS 0x0200B3B2 / B6 / BA);
+	 * the stack slot with the row + 16 holds a pointer into a table at
+	 * 0x0894BED4 in place of the USA ROM's 0x086B0000 */
+	p->tall.live.view = 0x0200B3BA;
+	p->tall.live.jump.scrollAt[0] = 0x0200B3B2, p->tall.live.jump.scrollAt[1] = 0x0200B3B6;
+	p->tall.live.jump.scrollAt[2] = 0x0200B3BA;
+	p->tall.live.jump.plus16Base = 0xBED4;
+	/* the language menu comes first (English selected, A), then the title
+	 * as the USA release's: its logo waits (PP-4, PP-15) */
+	static const MacroStep steps[] = { { 0, 400 }, { K_A, 4 }, { 0, 1440 } };
+	p->logo.wait = 0;
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+}
+
 static const Variant variants[] = {
 	{ "AGSD", "AGSE", 0, gs_ger },
 	/* Golden Sun: The Lost Age's other releases */
@@ -9273,6 +9358,10 @@ static const Variant variants[] = {
 	{ "AREJ", "AREE", 0, mmbn_jpn },
 	{ "AM2P", "AE2E", 0, NULL },
 	{ "AE2J", "AE2E", 0, mmbn2_jpn },
+	/* (Pokémon Pinball's cheats: its state moved, so the memory shift is only
+	 * for profile_ram_moved; the profile reads nothing at the shifted addresses) */
+	{ "BPPJ", "BPPE", -0x10A0, pp_jpn },
+	{ "BPPP", "BPPE", 0x120, pp_eur },
 };
 #define N_VARIANTS (sizeof(variants) / sizeof(*variants))
 static MapProfile variantProfiles[N_VARIANTS];
