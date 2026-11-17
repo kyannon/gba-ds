@@ -8061,7 +8061,8 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		char code[5] = "";
 		if (emu_rom_header(rom, hdr, sizeof(hdr))) memcpy(code, hdr + 0xAC, 4);
 		const MapProfile* wp = code[0] ? profile_find(code) : NULL;
-		if (cfg->map && wp && !wp->logoOnly) emuRenderWorkers = 1;
+		emuHiddenCopy = cfg->map && wp && !wp->logoOnly;
+		if (emuHiddenCopy) emuRenderWorkers = 1;
 	}
 #endif
 	if (!emu_open(&emu, rom, gp.sav, true)) {

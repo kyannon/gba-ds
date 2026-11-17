@@ -23,7 +23,7 @@ void host_log_checkpoint(void);
 void host_ui_busy(void);
 void host_fs_yield(void);
 void host_mem_note(const char* what);
-void host_jit_main(bool main, size_t romToLoad);
+void host_jit_main(bool main, size_t romToLoad, bool hiddenCopy);
 /* A folder on the SD card listed in one go: its entries (malloc'd, the
  * caller frees them), each with whether it's a folder and a file's size.
  * Returns how many, or -1 if the folder can't be read. */

@@ -61,9 +61,11 @@ static void take(void) {
 // romToLoad: what the game's ROM will take of the heap once this machine is made (0 if it is
 // already in memory).
 static size_t romPending;
-void host_jit_main(bool main, size_t romToLoad) {
+static bool hiddenPending;
+void host_jit_main(bool main, size_t romToLoad, bool hiddenCopy) {
 	wantMain = main;
 	romPending = romToLoad;
+	hiddenPending = hiddenCopy;
 }
 
 static bool makeExecutable(uint8_t* code, size_t size, bool* protected) {
@@ -108,14 +110,22 @@ enum {
 	// (20 MiB left the game 10 MiB of code memory, which Mario Kart filled in two minutes of a
 	// race; the heap still had 13-16 MiB free in it: 15 gives it about 14)
 	HEAP_LATER = 15 << 20,
+	// More when the game has a hidden copy (map captures), which takes its own machine, code and
+	// state loads from the heap: with 15, Yoshi's Island's heap sat under HEAP_LOW with 1 MiB of
+	// its 13 MiB of code used, and the recompiler threw it all away every few seconds, 100-200 ms
+	// to compile it again each time (2026-11-16).
+	HEAP_LATER_HIDDEN = 21 << 20,
 };
 
 bool jitHostMemoryLow(void) {
 	// mallinfo walks the heap's free lists, so only every so often. A flush helps only if
-	// compiling has taken memory since the last one.
-	static int calls;
-	static bool low;
-	static size_t most;
+	// compiling has taken memory since the last one. Each machine's thread keeps its own count:
+	// shared, the hidden copy's thread saw the heap low first, flushed its own small code and
+	// started the count again from there, so the game's never did and compiled the heap away to
+	// nothing (a crash in Yoshi's Island, 2026-11-16).
+	static __thread int calls;
+	static __thread bool low;
+	static __thread size_t most;
 	if (low || (calls++ & 15) == 0) {
 		size_t const avail = host_heap_free();
 		if (avail > most) {
@@ -123,6 +133,8 @@ bool jitHostMemoryLow(void) {
 		}
 		low = avail < HEAP_LOW && most > avail + (1 << 20);
 		if (low) {
+			logLine("jit: heap low (%u KiB free, %u KiB at most since the last flush): flushing (thread %p)", (unsigned) (avail >> 10),
+			        (unsigned) (most >> 10), (void*) threadGetCurrent());
 			most = 0;
 		}
 	}
@@ -146,11 +158,12 @@ void* jitHostAllocCode(size_t* size) {
 		logLine("jit: %u KiB of the heap free, %u KiB wanted (%s)", (unsigned) (avail >> 10), (unsigned) (*size >> 10), main ? "the game" : "a copy");
 		// The game: what is left once its ROM is loaded and the later machines have theirs. A copy:
 		// half of what there is.
-		size_t const reserve = main ? HEAP_LATER + romPending : HEAP_LOW;
+		size_t const reserve = main ? (hiddenPending ? HEAP_LATER_HIDDEN : HEAP_LATER) + romPending : HEAP_LOW;
 		// (5/7: what the recompiler keeps about the code, 0.4 bytes a byte, comes out of the same heap
 		// as the code fills)
 		size_t spare = avail > reserve ? (main ? (avail - reserve) / 7 * 5 : (avail - reserve) / 2) : 0;
 		romPending = 0;
+		hiddenPending = false;
 		spare &= ~(size_t) 0xFFFFF;
 		size_t const most = main ? MAIN_MAX : OTHER_MAX;
 		size_t const least = main ? MAIN_MIN : OTHER_MIN;

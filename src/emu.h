@@ -64,6 +64,9 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio);
 /* armGBA (the 3DS): how many threads draw the game opened with sound next, 1 or 2
  * (render_workers); libmgba draws on the emulator's thread and leaves it be. */
 extern int emuRenderWorkers;
+/* (3DS: the game will have a hidden copy (map captures): its recompiler leaves
+ * the heap more room, set before emu_open) */
+extern bool emuHiddenCopy;
 /* ROMs may also be in a .zip or .7z (the first GBA ROM inside is used). */
 bool emu_is_rom_name(const char* name);   /* .gba, .zip, .7z */
 bool emu_is_archive_name(const char* name); /* .zip, .7z */

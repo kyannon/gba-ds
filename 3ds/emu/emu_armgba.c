@@ -629,6 +629,7 @@ static void close_core(ArmCore* c) {
 }
 
 int emuRenderWorkers = 1;
+bool emuHiddenCopy;
 
 bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	memset(e, 0, sizeof(*e));
@@ -657,7 +658,7 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 		if (toLoad) romRoom = malloc(gbaRomBufferSize(toLoad));
 		/* (set aside already: the heap free doesn't count it, so nothing more
 		 * is kept for it) */
-		host_jit_main(audio, romRoom ? 0 : toLoad);
+		host_jit_main(audio, romRoom ? 0 : toLoad, emuHiddenCopy);
 	}
 	c->gba = gbaCreate();
 	pthread_mutex_unlock(&sharedLock);
