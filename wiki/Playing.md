@@ -48,7 +48,7 @@ GBA DS can update itself on ROCKNIX, BananaOS, the Stock Linux OS and Android. I
 - **By hand:** game list > **Settings** > **Updates** shows your version and when GBA DS last checked, with **Check now** and **Automatic checks: On / Off**.
 - **Update now** downloads the release's zip (B or **Cancel** stops it), checks it against the checksum GitHub publishes, installs it over the GBA DS folder and restarts into the new version. Everything in `gba-ds/states/` is kept, and so is your `gba-ds.cfg` (a new version's options keep their defaults until you add them; see [[Settings]]).
 - The **GBA DS** entry in Ports (`GBA DS.sh`) and its image are updated too.
-- Updating from v1.5.3 or earlier: some of the new version's changes (in how GBA DS is started) only count once you quit GBA DS and start it again from Ports. From v1.5.3.1 on, the restart after an update takes care of that.
+- Updating from v1.5.3 or earlier: some of the new version's changes (in how GBA DS is started) only count once you quit GBA DS and start it again from Ports. From v1.5.4 on, the restart after an update takes care of that.
 - **On Android**, Update now downloads the release's APK, checks it the same way and hands it to Android's installer, which asks you to confirm (the first time, Android may ask you to allow GBA DS to install apps: allow it, then go back). Android closes GBA DS while it installs; open it again afterwards. Your games, saves, states and settings are kept. If Android says the app is signed differently, your copy is a test build: uninstall it and install the new APK from the [Releases page](https://github.com/kyannon/gba-ds/releases) by hand (the files in the `GBA DS` folder stay).
 
 ## The pause menu

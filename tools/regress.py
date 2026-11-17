@@ -642,6 +642,8 @@ def main():
             for _, keys in c.get("input", []):
                 if keys.startswith("LOAD:"):
                     need.add("states/" + keys[5:])
+            for fx in c.get("retroarch", {}).get("states", {}).values():  # (GEN-13's stand-in RetroArch folder)
+                need.add("states/" + fx)
         print("\n".join(sorted(need)))
         return
     if args.list:
