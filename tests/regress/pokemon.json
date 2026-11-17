@@ -1,0 +1,467 @@
+{
+ "game": "Pokemon FireRed, LeafGreen, Ruby, Sapphire and Emerald",
+ "rules": "docs/games/pokemon.md",
+ "cases": [
+  {
+   "id": "pk-fr-us",
+   "rom": "BPRE",
+   "state": "pokemon/fr-us-party.ss",
+   "desc": "FireRed (USA): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 300
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-lg-us",
+   "rom": "BPGE",
+   "state": "pokemon/lg-us-party.ss",
+   "desc": "LeafGreen (USA): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 300
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-ruby-us",
+   "rom": "AXVE",
+   "state": "pokemon/ruby-us-party.ss",
+   "desc": "Ruby (USA): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 300
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-sapphire-us",
+   "rom": "AXPE",
+   "state": "pokemon/sapphire-us-party.ss",
+   "desc": "Sapphire (USA): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 300
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-emerald-us",
+   "rom": "BPEE",
+   "state": "pokemon/emerald-us-party.ss",
+   "desc": "Emerald (USA): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 300
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-fr-de",
+   "rom": "BPRD",
+   "state": "pokemon/fr-de-party.ss",
+   "desc": "Feuerrote Edition (German): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 300
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-ruby-jp",
+   "rom": "AXVJ",
+   "state": "pokemon/ruby-jp-party.ss",
+   "desc": "Ruby (Japan): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 300
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-fr-radicalred",
+   "rom": "BPRE+radicalred",
+   "state": "pokemon/fr-radicalred-party.ss",
+   "desc": "Radical Red 4.1, a romhack of FireRed on a ROM of its own: the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4",
+    "PK-7"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 300
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-fr-us-nopokemon",
+   "rom": "BPRE",
+   "state": "pokemon/fr-us-nopokemon.ss",
+   "desc": "FireRed (USA), no Pok\u00e9mon yet: the logo",
+   "rules": [
+    "PK-1"
+   ],
+   "shots": {
+    "start": 200,
+    "end": 800
+   },
+   "checks": [
+    {
+     "rule": "PK-1",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-1",
+     "what": "no Party taken",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  }
+ ]
+}
