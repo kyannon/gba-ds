@@ -4139,6 +4139,12 @@ static uint32_t ls_virt(Emu* e, uint32_t addr) {
 #define BK_TOP_Y0 8
 #define BK_TOP_Y1 31
 #define BK_HEALTH_X1 150 /* (the notes start at x 184) */
+/* the pause menu's block (its Jiggies at x 52, its words from x 72, to
+ * ~170 in French and German) */
+#define BK_MENU_X0 50
+#define BK_MENU_X1 186
+#define BK_MENU_Y0 34
+#define BK_MENU_Y1 125
 
 /* white pixels in a menu row (the selected item is white, the others grey) */
 static int bk_white(const uint32_t* fb, int y0) {
@@ -4179,15 +4185,16 @@ static void bk_copy(Emu* s, uint32_t* out, int w, int h) {
 	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (size_t) cw * 4);
 }
 
-/* One picture (BK-2): the current world's Totals page, its name left out,
- * the pause screen's health bar centred at the top in its place. Where
- * START doesn't bring up the pause screen (a conversation, a scene), the
- * quick failure: the last picture stays (BK-4). Either page not as
- * expected: nothing (GEN-3). */
+/* Two pages, 5 seconds each (BK-2): the pause screen without its menu,
+ * then the current world's Totals, its name left out and the pause
+ * screen's health bar in its place, where the pause screen has it (held
+ * still as the pages turn). Where START doesn't bring up the pause screen
+ * (a conversation, a scene), the quick failure: the last pictures stay
+ * (BK-4). The Totals page not as expected: the first page alone (GEN-3). */
 static const char* bk_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
-	static uint32_t health[(BK_TOP_Y1 - BK_TOP_Y0 + 1) * GBA_W];
+	int max = *nOut;
 	*nOut = 1;
-	*step = 0;
+	*step = 300;
 	if (w < GBA_W || h < GBA_H) return "picture too small";
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
@@ -4199,44 +4206,35 @@ static const char* bk_compose(Emu* s, const void* state, uint32_t* const* out, i
 	if (!bk_settle(s, 200)) return "the pause screen didn't settle";
 	/* (the menu's first row selected: the pause screen as it opens) */
 	if (bk_white(s->fb, 36) < 40 || bk_white(s->fb, 60) > 0) return "not the pause screen";
-	/* the health bar: what's lit in its band, left of the notes */
+	bk_copy(s, out[0], w, h);
+	/* the menu taken out: its Jiggies and words, the backdrop's black */
 	uint32_t black = s->fb[(GBA_H - 1) * GBA_W];
-	int hx0 = GBA_W, hx1 = -1;
-	for (int y = BK_TOP_Y0; y <= BK_TOP_Y1; ++y) {
-		for (int x = 0; x < BK_HEALTH_X1; ++x) {
-			uint32_t c = s->fb[y * GBA_W + x];
-			health[(y - BK_TOP_Y0) * GBA_W + x] = c;
-			int lit = (c & 0xFF) + ((c >> 8) & 0xFF) + ((c >> 16) & 0xFF);
-			if (lit > 60) {
-				if (x < hx0) hx0 = x;
-				if (x > hx1) hx1 = x;
-			}
-		}
+	for (int y = BK_MENU_Y0; y <= BK_MENU_Y1; ++y) {
+		for (int x = BK_MENU_X0; x <= BK_MENU_X1; ++x) out[0][y * w + x] = black;
 	}
-	if (hx1 < 0) return "no health bar";
+	if (max < 2) return NULL;
 	/* TOTALS: down a row, then A */
 	for (int tries = 0; tries < 3 && bk_white(s->fb, 60) < 40; ++tries) {
 		aw_run(s, K_DOWN, 4);
 		aw_run(s, 0, 8);
 	}
-	if (bk_white(s->fb, 60) < 40) return "Totals not selected";
+	if (bk_white(s->fb, 60) < 40) return NULL; /* (the first page alone) */
 	aw_run(s, K_A, 4);
 	for (f = 0; f < 60 && bk_paused(s) && (bk_white(s->fb, 36) >= 40 || bk_white(s->fb, 60) >= 40); ++f) {
 		emu_write16(s, 0x05000000, 0);
 		emu_frame(s, 0);
 	}
-	if (!bk_settle(s, 240)) return "the Totals page didn't settle";
+	if (!bk_settle(s, 240)) return NULL;
 	/* (not the pause screen again: its menu's first row, gone) */
-	if (bk_white(s->fb, 36) >= 40 || bk_white(s->fb, 60) >= 40) return "not the Totals page";
-	bk_copy(s, out[0], w, h);
-	/* the world's name out, the health bar centred in its band */
+	if (bk_white(s->fb, 36) >= 40 || bk_white(s->fb, 60) >= 40) return NULL;
+	bk_copy(s, out[1], w, h);
+	/* the world's name out, the health bar from the first page in its
+	 * place, where it is there */
 	for (int y = BK_TOP_Y0; y <= BK_TOP_Y1; ++y) {
-		for (int x = 0; x < GBA_W; ++x) out[0][y * w + x] = black;
+		for (int x = 0; x < GBA_W; ++x) out[1][y * w + x] = black;
+		for (int x = 0; x < BK_HEALTH_X1; ++x) out[1][y * w + x] = out[0][y * w + x];
 	}
-	int hw = hx1 - hx0 + 1, dx = (GBA_W - hw) / 2;
-	for (int y = BK_TOP_Y0; y <= BK_TOP_Y1; ++y) {
-		for (int x = 0; x < hw; ++x) out[0][y * w + dx + x] = health[(y - BK_TOP_Y0) * GBA_W + hx0 + x];
-	}
+	*nOut = 2;
 	return NULL;
 }
 
@@ -7767,9 +7765,10 @@ static const MapProfile profiles[] = {
 		/* the title's lettering, BG1 (its glow blends with the scene
 		 * behind; Press START is a sprite) (BK-1) */
 		.logo = { .steps = { { 0, 1300 } }, .layer = 1 },
-		/* the world's Totals with the pause screen's health bar (BK-2,
-		 * BK-3) */
+		/* the pause screen and the world's Totals, as pages, the health
+		 * bar on both (BK-2, BK-3) */
 		.composePages = bk_compose,
+		.stillPick = STILL_FIRST,
 		.crop_w = GBA_W,
 		.crop_h = GBA_H,
 		/* sprites only, on black: the level the pause screen darkens is

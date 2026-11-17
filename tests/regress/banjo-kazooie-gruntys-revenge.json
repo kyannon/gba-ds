@@ -103,7 +103,7 @@
    "id": "bk-us-file-screen",
    "rom": "BKZE",
    "state": "banjo-kazooie-gruntys-revenge/us-file-screen.ss",
-   "desc": "the file screen (the owner's 100% file): the logo; A, into Spiral Rise: the status picture begins",
+   "desc": "the file screen (the owner's 100% file): the logo; A, into Spiral Rise: the status pages begin",
    "rules": [
     "BK-2",
     "BK-4"
@@ -145,14 +145,14 @@
     },
     {
      "rule": "BK-2",
-     "what": "the health bar at the top once playing",
+     "what": "the health bar top left once playing",
      "type": "not_uniform",
      "shot": "playing",
      "rect": [
-      432,
-      104,
-      595,
-      183
+      48,
+      112,
+      275,
+      175
      ],
      "color": "000000"
     }
@@ -305,76 +305,87 @@
    "id": "bk-us-spiral-rise",
    "rom": "BKZE",
    "state": "banjo-kazooie-gruntys-revenge/us-spiral-rise.ss",
-   "desc": "a 100% file in Spiral Rise: Spiral Mountain's Totals without its name, the health bar centred above",
+   "desc": "a 100% file in Spiral Rise: the pause screen without its menu, then Spiral Mountain's Totals with the health bar in place of the name",
    "rules": [
     "BK-2"
    ],
    "shots": {
     "status": 120,
-    "later": 420
+    "totals": 420,
+    "status2": 720
    },
    "checks": [
     {
      "rule": "BK-2",
-     "what": "a status picture",
+     "what": "status pictures",
      "type": "log",
      "match": "map updated"
     },
     {
      "rule": "BK-2",
-     "what": "the health bar at the top, centred",
-     "type": "not_uniform",
-     "shot": "status",
-     "rect": [
-      432,
-      104,
-      595,
-      183
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "BK-2",
-     "what": "nothing else in the top band (the world's name left out; the health bar centred)",
+     "what": "the pause screen's menu left out (its rows black)",
      "type": "uniform",
      "shot": "status",
      "rect": [
-      32,
-      96,
-      235,
-      191
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "BK-2",
-     "what": "nothing else in the top band, right",
-     "type": "uniform",
-     "shot": "status",
-     "rect": [
-      792,
-      96,
-      991,
-      191
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "BK-2",
-     "what": "the Totals' rows below",
-     "type": "not_uniform",
-     "shot": "status",
-     "rect": [
-      32,
+      232,
       200,
-      991,
-      703
+      779,
+      567
      ],
      "color": "000000"
     },
     {
      "rule": "BK-2",
-     "what": "one picture, no pages turning",
+     "what": "the health bar top left on the pause screen's page",
+     "type": "not_uniform",
+     "shot": "status",
+     "rect": [
+      48,
+      112,
+      275,
+      175
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "BK-2",
+     "what": "the Totals page: the world's name left out",
+     "type": "uniform",
+     "shot": "totals",
+     "rect": [
+      632,
+      96,
+      991,
+      191
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "BK-2",
+     "what": "the health bar held still: the same on both pages",
+     "type": "same",
+     "a": {
+      "shot": "status",
+      "rect": [
+       32,
+       96,
+       631,
+       191
+      ]
+     },
+     "b": {
+      "shot": "totals",
+      "rect": [
+       32,
+       96,
+       631,
+       191
+      ]
+     }
+    },
+    {
+     "rule": "BK-2",
+     "what": "the pages turn: the pause screen's page again",
      "type": "same",
      "a": {
       "shot": "status",
@@ -386,10 +397,33 @@
       ]
      },
      "b": {
-      "shot": "later",
+      "shot": "status2",
       "rect": [
        32,
        64,
+       991,
+       703
+      ]
+     }
+    },
+    {
+     "rule": "BK-2",
+     "what": "two different pages",
+     "type": "differs",
+     "a": {
+      "shot": "status",
+      "rect": [
+       32,
+       192,
+       991,
+       703
+      ]
+     },
+     "b": {
+      "shot": "totals",
+      "rect": [
+       32,
+       192,
        991,
        703
       ]
@@ -401,76 +435,87 @@
    "id": "bk-us-cliff-farm",
    "rom": "BKZE",
    "state": "banjo-kazooie-gruntys-revenge/us-cliff-farm.ss",
-   "desc": "a 100% file in Cliff Farm: Cliff Farm's Totals (its chicks too) without its name, the health bar above",
+   "desc": "a 100% file in Cliff Farm: the pause screen without its menu, then Cliff Farm's Totals (its chicks too), the health bar held still",
    "rules": [
     "BK-2"
    ],
    "shots": {
     "status": 120,
-    "later": 420
+    "totals": 420,
+    "status2": 720
    },
    "checks": [
     {
      "rule": "BK-2",
-     "what": "a status picture",
+     "what": "status pictures",
      "type": "log",
      "match": "map updated"
     },
     {
      "rule": "BK-2",
-     "what": "the health bar at the top, centred",
-     "type": "not_uniform",
-     "shot": "status",
-     "rect": [
-      432,
-      104,
-      595,
-      183
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "BK-2",
-     "what": "nothing else in the top band (the world's name left out; the health bar centred)",
+     "what": "the pause screen's menu left out (its rows black)",
      "type": "uniform",
      "shot": "status",
      "rect": [
-      32,
-      96,
-      235,
-      191
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "BK-2",
-     "what": "nothing else in the top band, right",
-     "type": "uniform",
-     "shot": "status",
-     "rect": [
-      792,
-      96,
-      991,
-      191
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "BK-2",
-     "what": "the Totals' rows below",
-     "type": "not_uniform",
-     "shot": "status",
-     "rect": [
-      32,
+      232,
       200,
-      991,
-      703
+      779,
+      567
      ],
      "color": "000000"
     },
     {
      "rule": "BK-2",
-     "what": "one picture, no pages turning",
+     "what": "the health bar top left on the pause screen's page",
+     "type": "not_uniform",
+     "shot": "status",
+     "rect": [
+      48,
+      112,
+      275,
+      175
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "BK-2",
+     "what": "the Totals page: the world's name left out",
+     "type": "uniform",
+     "shot": "totals",
+     "rect": [
+      632,
+      96,
+      991,
+      191
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "BK-2",
+     "what": "the health bar held still: the same on both pages",
+     "type": "same",
+     "a": {
+      "shot": "status",
+      "rect": [
+       32,
+       96,
+       631,
+       191
+      ]
+     },
+     "b": {
+      "shot": "totals",
+      "rect": [
+       32,
+       96,
+       631,
+       191
+      ]
+     }
+    },
+    {
+     "rule": "BK-2",
+     "what": "the pages turn: the pause screen's page again",
      "type": "same",
      "a": {
       "shot": "status",
@@ -482,10 +527,33 @@
       ]
      },
      "b": {
-      "shot": "later",
+      "shot": "status2",
       "rect": [
        32,
        64,
+       991,
+       703
+      ]
+     }
+    },
+    {
+     "rule": "BK-2",
+     "what": "two different pages",
+     "type": "differs",
+     "a": {
+      "shot": "status",
+      "rect": [
+       32,
+       192,
+       991,
+       703
+      ]
+     },
+     "b": {
+      "shot": "totals",
+      "rect": [
+       32,
+       192,
        991,
        703
       ]
@@ -572,8 +640,7 @@
     "j1": 160,
     "j2": 200,
     "j3": 245,
-    "j4": 290,
-    "after": 500
+    "j4": 290
    },
    "checks": [
     {
@@ -667,29 +734,6 @@
        703
       ]
      }
-    },
-    {
-     "rule": "BK-2",
-     "what": "the same picture mid-jump (after)",
-     "type": "same",
-     "a": {
-      "shot": "before",
-      "rect": [
-       32,
-       64,
-       991,
-       703
-      ]
-     },
-     "b": {
-      "shot": "after",
-      "rect": [
-       32,
-       64,
-       991,
-       703
-      ]
-     }
     }
    ]
   },
@@ -697,77 +741,88 @@
    "id": "bk-us-after-pack-whack",
    "rom": "BKZE",
    "state": "banjo-kazooie-gruntys-revenge/us-after-pack-whack.ss",
-   "desc": "the owner's state after Bozzeye teaches Pack Whack (the first test build took no more pictures from there): the Totals and health",
+   "desc": "the owner's state after Bozzeye teaches Pack Whack (the first test build took no more pictures from there): both pages",
    "rules": [
     "BK-2",
     "BK-4"
    ],
    "shots": {
     "status": 120,
-    "later": 420
+    "totals": 420,
+    "status2": 720
    },
    "checks": [
     {
      "rule": "BK-2",
-     "what": "a status picture",
+     "what": "status pictures",
      "type": "log",
      "match": "map updated"
     },
     {
      "rule": "BK-2",
-     "what": "the health bar at the top, centred",
-     "type": "not_uniform",
-     "shot": "status",
-     "rect": [
-      432,
-      104,
-      595,
-      183
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "BK-2",
-     "what": "nothing else in the top band (the world's name left out; the health bar centred)",
+     "what": "the pause screen's menu left out (its rows black)",
      "type": "uniform",
      "shot": "status",
      "rect": [
-      32,
-      96,
-      235,
-      191
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "BK-2",
-     "what": "nothing else in the top band, right",
-     "type": "uniform",
-     "shot": "status",
-     "rect": [
-      792,
-      96,
-      991,
-      191
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "BK-2",
-     "what": "the Totals' rows below",
-     "type": "not_uniform",
-     "shot": "status",
-     "rect": [
-      32,
+      232,
       200,
-      991,
-      703
+      779,
+      567
      ],
      "color": "000000"
     },
     {
      "rule": "BK-2",
-     "what": "one picture, no pages turning",
+     "what": "the health bar top left on the pause screen's page",
+     "type": "not_uniform",
+     "shot": "status",
+     "rect": [
+      48,
+      112,
+      275,
+      175
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "BK-2",
+     "what": "the Totals page: the world's name left out",
+     "type": "uniform",
+     "shot": "totals",
+     "rect": [
+      632,
+      96,
+      991,
+      191
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "BK-2",
+     "what": "the health bar held still: the same on both pages",
+     "type": "same",
+     "a": {
+      "shot": "status",
+      "rect": [
+       32,
+       96,
+       631,
+       191
+      ]
+     },
+     "b": {
+      "shot": "totals",
+      "rect": [
+       32,
+       96,
+       631,
+       191
+      ]
+     }
+    },
+    {
+     "rule": "BK-2",
+     "what": "the pages turn: the pause screen's page again",
      "type": "same",
      "a": {
       "shot": "status",
@@ -779,10 +834,33 @@
       ]
      },
      "b": {
-      "shot": "later",
+      "shot": "status2",
       "rect": [
        32,
        64,
+       991,
+       703
+      ]
+     }
+    },
+    {
+     "rule": "BK-2",
+     "what": "two different pages",
+     "type": "differs",
+     "a": {
+      "shot": "status",
+      "rect": [
+       32,
+       192,
+       991,
+       703
+      ]
+     },
+     "b": {
+      "shot": "totals",
+      "rect": [
+       32,
+       192,
        991,
        703
       ]
@@ -794,7 +872,7 @@
    "id": "bk-us-into-cliff-farm",
    "rom": "BKZE",
    "state": "banjo-kazooie-gruntys-revenge/us-spiral-mountain.ss",
-   "desc": "Spiral Mountain's Totals, then Banjo walks into Cliff Farm: a new picture at once, Cliff Farm's Totals",
+   "desc": "Spiral Mountain's Totals page, then Banjo walks into Cliff Farm: a new picture at once, Cliff Farm's Totals",
    "rules": [
     "BK-2",
     "BK-3"
@@ -815,7 +893,7 @@
    ],
    "shots": {
     "mountain": 320,
-    "farm": 700
+    "farm": 1000
    },
    "checks": [
     {
@@ -847,7 +925,7 @@
    "id": "bk-us-paused",
    "rom": "BKZE",
    "state": "banjo-kazooie-gruntys-revenge/us-cliff-farm.ss",
-   "desc": "Cliff Farm's picture, then the game's own pause screen (a quick load of that moment): it stays on the game screen, the second screen keeps its picture",
+   "desc": "Cliff Farm's picture, then the game's own pause screen (a quick load of that moment): it stays on the game screen, the second screen keeps its pictures",
    "rules": [
     "BK-5"
    ],
@@ -903,90 +981,7 @@
     },
     {
      "rule": "BK-5",
-     "what": "still the same picture later",
-     "type": "same",
-     "a": {
-      "shot": "before",
-      "rect": [
-       32,
-       64,
-       991,
-       703
-      ]
-     },
-     "b": {
-      "shot": "later",
-      "rect": [
-       32,
-       64,
-       991,
-       703
-      ]
-     }
-    }
-   ]
-  },
-  {
-   "id": "bk-us-new-game",
-   "rom": "BKZE",
-   "state": "banjo-kazooie-gruntys-revenge/us-new-game.ss",
-   "desc": "a new game, free after Bozzeye: nothing found yet in Spiral Mountain, so the health bar alone",
-   "rules": [
-    "BK-2"
-   ],
-   "shots": {
-    "status": 120,
-    "later": 420
-   },
-   "checks": [
-    {
-     "rule": "BK-2",
-     "what": "a status picture",
-     "type": "log",
-     "match": "map updated"
-    },
-    {
-     "rule": "BK-2",
-     "what": "the health bar at the top, centred",
-     "type": "not_uniform",
-     "shot": "status",
-     "rect": [
-      432,
-      104,
-      595,
-      183
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "BK-2",
-     "what": "nothing else in the top band (the world's name left out; the health bar centred)",
-     "type": "uniform",
-     "shot": "status",
-     "rect": [
-      32,
-      96,
-      235,
-      191
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "BK-2",
-     "what": "nothing else in the top band, right",
-     "type": "uniform",
-     "shot": "status",
-     "rect": [
-      792,
-      96,
-      991,
-      191
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "BK-2",
-     "what": "one picture, no pages turning",
+     "what": "the pages still turn: the pause screen's page again",
      "type": "same",
      "a": {
       "shot": "status",
@@ -1010,10 +1005,117 @@
    ]
   },
   {
+   "id": "bk-us-new-game",
+   "rom": "BKZE",
+   "state": "banjo-kazooie-gruntys-revenge/us-new-game.ss",
+   "desc": "a new game, free after Bozzeye: the pause screen has only the health; the Totals page, nothing found yet, the health bar alone",
+   "rules": [
+    "BK-2"
+   ],
+   "shots": {
+    "status": 120,
+    "totals": 420,
+    "status2": 720
+   },
+   "checks": [
+    {
+     "rule": "BK-2",
+     "what": "status pictures",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "BK-2",
+     "what": "the pause screen's menu left out (its rows black)",
+     "type": "uniform",
+     "shot": "status",
+     "rect": [
+      232,
+      200,
+      779,
+      567
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "BK-2",
+     "what": "the health bar top left on the pause screen's page",
+     "type": "not_uniform",
+     "shot": "status",
+     "rect": [
+      48,
+      112,
+      275,
+      175
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "BK-2",
+     "what": "the Totals page: the world's name left out",
+     "type": "uniform",
+     "shot": "totals",
+     "rect": [
+      632,
+      96,
+      991,
+      191
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "BK-2",
+     "what": "the health bar held still: the same on both pages",
+     "type": "same",
+     "a": {
+      "shot": "status",
+      "rect": [
+       32,
+       96,
+       631,
+       191
+      ]
+     },
+     "b": {
+      "shot": "totals",
+      "rect": [
+       32,
+       96,
+       631,
+       191
+      ]
+     }
+    },
+    {
+     "rule": "BK-2",
+     "what": "the pages turn: the pause screen's page again",
+     "type": "same",
+     "a": {
+      "shot": "status",
+      "rect": [
+       32,
+       64,
+       991,
+       703
+      ]
+     },
+     "b": {
+      "shot": "status2",
+      "rect": [
+       32,
+       64,
+       991,
+       703
+      ]
+     }
+    }
+   ]
+  },
+  {
    "id": "bk-us-bozzeye",
    "rom": "BKZE",
    "state": "banjo-kazooie-gruntys-revenge/us-new-game.ss",
-   "desc": "a new game's picture, then a conversation with Bozzeye (a quick load of it): START opens nothing there, the last picture stay",
+   "desc": "a new game's picture, then a conversation with Bozzeye (a quick load of it): START opens nothing there, the last pictures stay",
    "rules": [
     "BK-4"
    ],
@@ -1055,10 +1157,10 @@
     },
     {
      "rule": "BK-4",
-     "what": "still the same picture later",
+     "what": "the pages still turn: the pause screen's page again",
      "type": "same",
      "a": {
-      "shot": "before",
+      "shot": "status",
       "rect": [
        32,
        64,
@@ -1082,76 +1184,87 @@
    "id": "bk-eu-french",
    "rom": "BKZX",
    "state": "banjo-kazooie-gruntys-revenge/eu-spiral-rise-french.ss",
-   "desc": "Europe, played in French (the 100% save): the French release's pause byte (0x0203F4DC), the Totals with the health bar",
+   "desc": "Europe, played in French (the 100% save; the release's own pause byte, 0x0203F4DC): both pages, the menu's longer words left out too",
    "rules": [
     "BK-2"
    ],
    "shots": {
     "status": 120,
-    "later": 420
+    "totals": 420,
+    "status2": 720
    },
    "checks": [
     {
      "rule": "BK-2",
-     "what": "a status picture",
+     "what": "status pictures",
      "type": "log",
      "match": "map updated"
     },
     {
      "rule": "BK-2",
-     "what": "the health bar at the top, centred",
-     "type": "not_uniform",
-     "shot": "status",
-     "rect": [
-      432,
-      104,
-      595,
-      183
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "BK-2",
-     "what": "nothing else in the top band (the world's name left out; the health bar centred)",
+     "what": "the pause screen's menu left out (its rows black)",
      "type": "uniform",
      "shot": "status",
      "rect": [
-      32,
-      96,
-      235,
-      191
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "BK-2",
-     "what": "nothing else in the top band, right",
-     "type": "uniform",
-     "shot": "status",
-     "rect": [
-      792,
-      96,
-      991,
-      191
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "BK-2",
-     "what": "the Totals' rows below",
-     "type": "not_uniform",
-     "shot": "status",
-     "rect": [
-      32,
+      232,
       200,
-      991,
-      703
+      779,
+      567
      ],
      "color": "000000"
     },
     {
      "rule": "BK-2",
-     "what": "one picture, no pages turning",
+     "what": "the health bar top left on the pause screen's page",
+     "type": "not_uniform",
+     "shot": "status",
+     "rect": [
+      48,
+      112,
+      275,
+      175
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "BK-2",
+     "what": "the Totals page: the world's name left out",
+     "type": "uniform",
+     "shot": "totals",
+     "rect": [
+      632,
+      96,
+      991,
+      191
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "BK-2",
+     "what": "the health bar held still: the same on both pages",
+     "type": "same",
+     "a": {
+      "shot": "status",
+      "rect": [
+       32,
+       96,
+       631,
+       191
+      ]
+     },
+     "b": {
+      "shot": "totals",
+      "rect": [
+       32,
+       96,
+       631,
+       191
+      ]
+     }
+    },
+    {
+     "rule": "BK-2",
+     "what": "the pages turn: the pause screen's page again",
      "type": "same",
      "a": {
       "shot": "status",
@@ -1163,10 +1276,33 @@
       ]
      },
      "b": {
-      "shot": "later",
+      "shot": "status2",
       "rect": [
        32,
        64,
+       991,
+       703
+      ]
+     }
+    },
+    {
+     "rule": "BK-2",
+     "what": "two different pages",
+     "type": "differs",
+     "a": {
+      "shot": "status",
+      "rect": [
+       32,
+       192,
+       991,
+       703
+      ]
+     },
+     "b": {
+      "shot": "totals",
+      "rect": [
+       32,
+       192,
        991,
        703
       ]
@@ -1178,54 +1314,55 @@
    "id": "bk-eu-german",
    "rom": "BKZX",
    "state": "banjo-kazooie-gruntys-revenge/eu-new-game-german.ss",
-   "desc": "Europe, a new game in German: the health bar alone (nothing found yet in Spiral Mountain)",
+   "desc": "Europe, a new game in German: the pause screen has only the health; the Totals page, nothing found yet, the health bar alone",
    "rules": [
     "BK-2"
    ],
    "shots": {
     "status": 120,
-    "later": 420
+    "totals": 420,
+    "status2": 720
    },
    "checks": [
     {
      "rule": "BK-2",
-     "what": "a status picture",
+     "what": "status pictures",
      "type": "log",
      "match": "map updated"
     },
     {
      "rule": "BK-2",
-     "what": "the health bar at the top, centred",
+     "what": "the pause screen's menu left out (its rows black)",
+     "type": "uniform",
+     "shot": "status",
+     "rect": [
+      232,
+      200,
+      779,
+      567
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "BK-2",
+     "what": "the health bar top left on the pause screen's page",
      "type": "not_uniform",
      "shot": "status",
      "rect": [
-      432,
-      104,
-      595,
-      183
+      48,
+      112,
+      275,
+      175
      ],
      "color": "000000"
     },
     {
      "rule": "BK-2",
-     "what": "nothing else in the top band (the world's name left out; the health bar centred)",
+     "what": "the Totals page: the world's name left out",
      "type": "uniform",
-     "shot": "status",
+     "shot": "totals",
      "rect": [
-      32,
-      96,
-      235,
-      191
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "BK-2",
-     "what": "nothing else in the top band, right",
-     "type": "uniform",
-     "shot": "status",
-     "rect": [
-      792,
+      632,
       96,
       991,
       191
@@ -1234,7 +1371,30 @@
     },
     {
      "rule": "BK-2",
-     "what": "one picture, no pages turning",
+     "what": "the health bar held still: the same on both pages",
+     "type": "same",
+     "a": {
+      "shot": "status",
+      "rect": [
+       32,
+       96,
+       631,
+       191
+      ]
+     },
+     "b": {
+      "shot": "totals",
+      "rect": [
+       32,
+       96,
+       631,
+       191
+      ]
+     }
+    },
+    {
+     "rule": "BK-2",
+     "what": "the pages turn: the pause screen's page again",
      "type": "same",
      "a": {
       "shot": "status",
@@ -1246,7 +1406,7 @@
       ]
      },
      "b": {
-      "shot": "later",
+      "shot": "status2",
       "rect": [
        32,
        64,
@@ -1261,54 +1421,55 @@
    "id": "bk-it-new-game",
    "rom": "BKZI",
    "state": "banjo-kazooie-gruntys-revenge/it-new-game.ss",
-   "desc": "Italy, a new game: the health bar alone (nothing found yet in Spiral Mountain)",
+   "desc": "Italy, a new game: the pause screen has only the health; the Totals page, nothing found yet, the health bar alone",
    "rules": [
     "BK-2"
    ],
    "shots": {
     "status": 120,
-    "later": 420
+    "totals": 420,
+    "status2": 720
    },
    "checks": [
     {
      "rule": "BK-2",
-     "what": "a status picture",
+     "what": "status pictures",
      "type": "log",
      "match": "map updated"
     },
     {
      "rule": "BK-2",
-     "what": "the health bar at the top, centred",
+     "what": "the pause screen's menu left out (its rows black)",
+     "type": "uniform",
+     "shot": "status",
+     "rect": [
+      232,
+      200,
+      779,
+      567
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "BK-2",
+     "what": "the health bar top left on the pause screen's page",
      "type": "not_uniform",
      "shot": "status",
      "rect": [
-      432,
-      104,
-      595,
-      183
+      48,
+      112,
+      275,
+      175
      ],
      "color": "000000"
     },
     {
      "rule": "BK-2",
-     "what": "nothing else in the top band (the world's name left out; the health bar centred)",
+     "what": "the Totals page: the world's name left out",
      "type": "uniform",
-     "shot": "status",
+     "shot": "totals",
      "rect": [
-      32,
-      96,
-      235,
-      191
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "BK-2",
-     "what": "nothing else in the top band, right",
-     "type": "uniform",
-     "shot": "status",
-     "rect": [
-      792,
+      632,
       96,
       991,
       191
@@ -1317,7 +1478,30 @@
     },
     {
      "rule": "BK-2",
-     "what": "one picture, no pages turning",
+     "what": "the health bar held still: the same on both pages",
+     "type": "same",
+     "a": {
+      "shot": "status",
+      "rect": [
+       32,
+       96,
+       631,
+       191
+      ]
+     },
+     "b": {
+      "shot": "totals",
+      "rect": [
+       32,
+       96,
+       631,
+       191
+      ]
+     }
+    },
+    {
+     "rule": "BK-2",
+     "what": "the pages turn: the pause screen's page again",
      "type": "same",
      "a": {
       "shot": "status",
@@ -1329,7 +1513,7 @@
       ]
      },
      "b": {
-      "shot": "later",
+      "shot": "status2",
       "rect": [
        32,
        64,
@@ -1344,54 +1528,55 @@
    "id": "bk-es-new-game",
    "rom": "BKZS",
    "state": "banjo-kazooie-gruntys-revenge/es-new-game.ss",
-   "desc": "Spain, a new game: the health bar alone (nothing found yet in Spiral Mountain)",
+   "desc": "Spain, a new game: the pause screen has only the health; the Totals page, nothing found yet, the health bar alone",
    "rules": [
     "BK-2"
    ],
    "shots": {
     "status": 120,
-    "later": 420
+    "totals": 420,
+    "status2": 720
    },
    "checks": [
     {
      "rule": "BK-2",
-     "what": "a status picture",
+     "what": "status pictures",
      "type": "log",
      "match": "map updated"
     },
     {
      "rule": "BK-2",
-     "what": "the health bar at the top, centred",
+     "what": "the pause screen's menu left out (its rows black)",
+     "type": "uniform",
+     "shot": "status",
+     "rect": [
+      232,
+      200,
+      779,
+      567
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "BK-2",
+     "what": "the health bar top left on the pause screen's page",
      "type": "not_uniform",
      "shot": "status",
      "rect": [
-      432,
-      104,
-      595,
-      183
+      48,
+      112,
+      275,
+      175
      ],
      "color": "000000"
     },
     {
      "rule": "BK-2",
-     "what": "nothing else in the top band (the world's name left out; the health bar centred)",
+     "what": "the Totals page: the world's name left out",
      "type": "uniform",
-     "shot": "status",
+     "shot": "totals",
      "rect": [
-      32,
-      96,
-      235,
-      191
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "BK-2",
-     "what": "nothing else in the top band, right",
-     "type": "uniform",
-     "shot": "status",
-     "rect": [
-      792,
+      632,
       96,
       991,
       191
@@ -1400,7 +1585,30 @@
     },
     {
      "rule": "BK-2",
-     "what": "one picture, no pages turning",
+     "what": "the health bar held still: the same on both pages",
+     "type": "same",
+     "a": {
+      "shot": "status",
+      "rect": [
+       32,
+       96,
+       631,
+       191
+      ]
+     },
+     "b": {
+      "shot": "totals",
+      "rect": [
+       32,
+       96,
+       631,
+       191
+      ]
+     }
+    },
+    {
+     "rule": "BK-2",
+     "what": "the pages turn: the pause screen's page again",
      "type": "same",
      "a": {
       "shot": "status",
@@ -1412,7 +1620,7 @@
       ]
      },
      "b": {
-      "shot": "later",
+      "shot": "status2",
       "rect": [
        32,
        64,
