@@ -6094,7 +6094,7 @@ done:
  *    panel's rows only changes pixels in two bands, far apart when it
  *    wraps), then moved by counting: POKéMON is the first or second entry
  *    (tried in turn; the screen that comes up is checked), BAG / POKéNAV
- *    are the 5th from the end in every game. FireRed / LeafGreen's Town
+ *    are found by trying each row (a romhack drops SAVE or EXIT). FireRed / LeafGreen's Town
  *    Map is a key item whose row depends on what the player owns: each row
  *    of the Key Items pocket is tried (USE) until the map's registers come
  *    up, and the row that worked is tried first the next time.
@@ -6196,6 +6196,26 @@ static int pk_moved(Emu* s, const uint32_t* before, int bottom) {
 	(void) last;
 	return gap >= 18 ? 2 : 1;
 }
+/* The same for a bar of icons along the bottom (Unbound's START menu): RIGHT
+ * moves along it, the picture changes only in that strip; 2 when the cursor
+ * went from the last icon back to the first (the changes far apart) */
+static int pk_moved_h(Emu* s, const uint32_t* before) {
+	int first = -1, gap = 0, run = 0;
+	for (int x = 0; x < GBA_W; ++x) {
+		bool ch = false;
+		for (int y = 112; y < GBA_H && !ch; ++y) ch = s->fb[y * GBA_W + x] != before[y * GBA_W + x];
+		if (ch) {
+			if (first < 0) first = x;
+			else if (run > gap) gap = run;
+			run = 0;
+		} else if (first >= 0) {
+			++run;
+		}
+	}
+	if (first < 0) return 0;
+	return gap >= 100 ? 2 : 1;
+}
+static uint32_t pkNext = K_DOWN; /* the key to the next entry: DOWN, or RIGHT along a bar */
 /* a press these menus take every time: 3 frames down, 9 up (the last two drawn) */
 static void pk_tap(Emu* s, uint32_t key) {
 	aw_run(s, key, 3);
@@ -6211,13 +6231,21 @@ static const char* pk_menu_top(Emu* s, const PkFam* f, const void* state) {
 	pk_tap(s, K_START);
 	bool up = false;
 	for (int i = 0; i < 24 && !(up = pk_panel(s, before)); ++i) emu_frame(s, 0);
-	if (!up) return "map button did nothing"; /* a scene, a conversation, a menu, a battle: quick */
+	bool bar = false;
+	if (!up) { /* a bar of icons along the bottom instead of a panel? */
+		int changed = 0;
+		for (int y = 112; y < GBA_H; ++y)
+			for (int x = 0; x < GBA_W; ++x) changed += s->fb[y * GBA_W + x] != before[y * GBA_W + x];
+		bar = changed >= 3000;
+	}
+	pkNext = bar ? K_RIGHT : K_DOWN;
+	if (!up && !bar) return "map button did nothing"; /* a scene, a conversation, a menu, a battle: quick */
 	aw_run(s, 0, 24); /* (the menu takes no input just as it opens) */
 	for (int i = 0; i < 12; ++i) {
 		pk_keep(s, before);
-		pk_tap(s, K_DOWN);
-		int m = pk_moved(s, before, f->menuBottom);
-		if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: DOWN %d -> %d (io %04X %04X)\n", i, m, emu_io16(s, 0), emu_io16(s, 8));
+		pk_tap(s, pkNext);
+		int m = bar ? pk_moved_h(s, before) : pk_moved(s, before, f->menuBottom);
+		if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: next %d -> %d (io %04X %04X)\n", i, m, emu_io16(s, 0), emu_io16(s, 8));
 		if (m == 2) return NULL;
 		if (m == 0) return "the menu's cursor didn't move";
 	}
@@ -6226,7 +6254,7 @@ static const char* pk_menu_top(Emu* s, const PkFam* f, const void* state) {
 /* from the first entry: n entries down (n > 0), or from the end up (n < 0:
  * -1 is the last) */
 static void pk_go(Emu* s, int n) {
-	for (int i = 0; i < (n < 0 ? -n : n); ++i) pk_tap(s, n < 0 ? K_UP : K_DOWN);
+	for (int i = 0; i < (n < 0 ? -n : n); ++i) pk_tap(s, n < 0 ? K_UP : pkNext);
 }
 static const char* pk_party(Emu* s, const PkFam* f, const void* state, uint32_t* out, int w, int h) {
 	static int row = 1; /* POKéMON is the second entry once there's a Pokédex */
@@ -6250,6 +6278,29 @@ static const char* pk_party(Emu* s, const PkFam* f, const void* state, uint32_t*
 	}
 	return "the Party didn't open";
 }
+/* A menu entry that opens the screen `sig` (the Bag, the Pokénav): its row
+ * isn't counted from the end (a romhack drops SAVE or EXIT, adds a clock or
+ * its own entries), each row is tried from the top, the screen that comes up
+ * told by the registers, and the row that worked tried first next time.
+ * Returns the row, or -1 (err says why); the screen is up when it returns. */
+static int pk_open(Emu* s, const PkFam* f, const void* state, const PkSig* sig, int* good, int frames, const char** err) {
+	enum { ROWS = 9 };
+	for (int t = 0; t < ROWS; ++t) {
+		int k = (*good + t) % ROWS;
+		*err = pk_menu_top(s, f, state);
+		if (*err) return -1;
+		pk_go(s, k);
+		pk_tap(s, K_A);
+		if (pk_wait(s, sig, frames)) {
+			*good = k;
+			if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: row %d opened the screen\n", k);
+			return k;
+		}
+		if (emu_cancelled(s)) break;
+	}
+	*err = "the menu has no such entry";
+	return -1;
+}
 /* the clean-ups, then the picture */
 static void pk_map_clean(Emu* s, const PkFam* f, uint32_t* out, int w, int h) {
 	for (int k = 0; k < 3; ++k) {
@@ -6265,11 +6316,9 @@ static void pk_map_copy(Emu* s, const PkFam* f, uint32_t* out, int w, int h) {
 }
 /* Ruby / Sapphire / Emerald: POKéNAV, whose first entry is the region map */
 static const char* pk_nav_map(Emu* s, const PkFam* f, const void* state, uint32_t* out, int w, int h) {
-	const char* err = pk_menu_top(s, f, state);
-	if (err) return err;
-	pk_go(s, -5); /* POKéNAV: 5th from the end */
-	pk_tap(s, K_A);
-	if (!pk_wait(s, &f->nav, 120)) return "the Pokénav didn't open";
+	static int good;
+	const char* err;
+	if (pk_open(s, f, state, &f->nav, &good, 60, &err) < 0) return err;
 	aw_run(s, 0, 30);
 	pk_tap(s, K_A); /* its first entry, the region map */
 	if (!pk_wait(s, &f->map, 120)) return "the map didn't open";
@@ -6277,7 +6326,7 @@ static const char* pk_nav_map(Emu* s, const PkFam* f, const void* state, uint32_
 	pk_map_copy(s, f, out, w, h);
 	return NULL;
 }
-/* FireRed / LeafGreen: the Town Map is a key item. BAG (5th from the end),
+/* FireRed / LeafGreen: the Town Map is a key item. BAG (its row found by trying them),
  * the Key Items pocket (the pockets are in a row: all the way left, then
  * once right), the cursor to the top, then down row by row, USE on each
  * until the map's registers come up (the copy is loaded afresh each time,
@@ -6286,15 +6335,12 @@ static const char* pk_nav_map(Emu* s, const PkFam* f, const void* state, uint32_
 #define PK_KEY_ROWS 10
 #define PK_MAP_EVERY 5 /* captures (about 15 s) between the map's */
 static const char* pk_town_map(Emu* s, const PkFam* f, const void* state, uint32_t* out, int w, int h) {
-	static int first;
+	static int first, goodBag;
 	for (int t = 0; t < PK_KEY_ROWS; ++t) {
 		int row = (first + t) % PK_KEY_ROWS;
-		const char* err = pk_menu_top(s, f, state);
-		if (err) return err;
-		pk_go(s, -5); /* BAG */
-		pk_tap(s, K_A);
-		if (!pk_wait(s, &f->bag, 90)) return "the Bag didn't open";
-		aw_run(s, 0, 30);
+		const char* err;
+		if (pk_open(s, f, state, &f->bag, &goodBag, 60, &err) < 0) return err;
+		aw_run(s, 0, 90); /* (a romhack's Bag can take longer to take input) */
 		pk_tap(s, K_LEFT);
 		pk_tap(s, K_LEFT);
 		pk_tap(s, K_RIGHT);
@@ -6304,6 +6350,7 @@ static const char* pk_town_map(Emu* s, const PkFam* f, const void* state, uint32
 		pk_tap(s, K_A); /* its menu: USE first */
 		aw_run(s, 0, 10);
 		pk_tap(s, K_A);
+		if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: key row %d, io %04X %04X %04X %04X %04X\n", row, emu_io16(s, 0), emu_io16(s, 8), emu_io16(s, 10), emu_io16(s, 12), emu_io16(s, 14));
 		if (!pk_wait(s, &f->map, 150)) continue;
 		aw_run(s, 0, 110); /* (the registers are right while it's still fading in from white) */
 		if (!pk_is(s, &f->map)) continue;
@@ -6407,9 +6454,30 @@ static uint32_t pk_virt(Emu* e, uint32_t addr) {
 	return h;
 }
 
+/* The title screen's logo (every release and romhack has its own, so the
+ * logo is per ROM file: logoPerRom): START every 100 frames skips the intros
+ * (some titles need it a number of times), then the title is up and holds
+ * until START; the logo is BG0 in FireRed / LeafGreen (the version's name is
+ * in it), BG2 and the sprites above row 100 in Ruby / Sapphire / Emerald
+ * (the version's name is a sprite; PRESS START and the copyright line,
+ * below, are left out). A romhack with a title of its own way gets a line in
+ * pkLogos (by its ROM file's CRC32) */
+#define PK_S3 { { 0, 100 }, { K_START, 3 }, { 0, 100 }, { K_START, 3 }, { 0, 100 }, { K_START, 3 } }
+#define PK_S4 { { 0, 100 }, { K_START, 3 }, { 0, 100 }, { K_START, 3 }, { 0, 100 }, { K_START, 3 }, { 0, 100 }, { K_START, 3 } }
+#define PK_LOGO_FRLG { .steps = PK_S3, .wait = 100, .layer = 0, .rev = 1 }
+#define PK_LOGO_RSE3 { .steps = PK_S3, .wait = 100, .layers = 0x14, .maxY = 100, .rev = 1 }
+#define PK_LOGO_RS4 { .steps = PK_S4, .wait = 100, .layers = 0x14, .maxY = 100, .rev = 1 }
+static const LogoFor pkLogos[] = {
+	/* Pokémon Emerald Rogue EX: a splash and a logo screen before its title (six STARTs) */
+	{ 0x4CC15B8D, "Pokemon Emerald Rogue EX v2.1.1", { .steps = { { 0, 100 }, { K_START, 3 }, { 0, 100 }, { K_START, 3 }, { 0, 100 }, { K_START, 3 }, { 0, 100 }, { K_START, 3 }, { 0, 100 }, { K_START, 3 }, { 0, 100 }, { K_START, 3 } }, .wait = 100, .layers = 0x14, .maxY = 100, .rev = 1 } },
+	/* Saiph: one START, then its title fades in for about 400 frames */
+	{ 0x32B2929C, "Pokemon Saiph", { .steps = { { 0, 100 }, { K_START, 3 } }, .wait = 450, .layer = 0, .rev = 1 } },
+	/* Light Platinum: its subtitle sits lower */
+	{ 0x41D07817, "Pokemon Light Platinum", { .steps = PK_S4, .wait = 100, .layers = 0x14, .maxY = 118, .rev = 1 } },
+};
 static const MapProfile profiles[] = {
 	/* PRELIMINARY (pokemon-preliminary): see docs/pokemon-ideas.md. One entry per engine (the USA and Europe releases) */
-#define PK_PROFILE(TITLE, ...) \
+#define PK_PROFILE(ENGINE_LOGO, TITLE, ...) \
 	{ \
 		.codes = { __VA_ARGS__ }, \
 		.title = TITLE, \
@@ -6419,16 +6487,19 @@ static const MapProfile profiles[] = {
 		.room = { { PK_VIRT, 0xFFFFFFFF, 0, 4 } }, \
 		.crop_w = GBA_W, \
 		.crop_h = GBA_H, \
+		.logo = ENGINE_LOGO, \
+		.logoPerRom = true, \
+		.logoFor = pkLogos, \
+		.nLogoFor = (int) (sizeof(pkLogos) / sizeof(pkLogos[0])), \
 	},
-	/* every release No-Intro lists (E = USA and Europe, J, D, F, I, S); codes[] holds four, so a few entries each */
-	PK_PROFILE("Pokemon FireRed / LeafGreen (preliminary)", "BPRE", "BPGE", "BPRJ", "BPGJ")
-	PK_PROFILE("Pokemon FireRed / LeafGreen (preliminary, German, French)", "BPRD", "BPGD", "BPRF", "BPGF")
-	PK_PROFILE("Pokemon FireRed / LeafGreen (preliminary, Italian, Spanish)", "BPRI", "BPGI", "BPRS", "BPGS")
-	PK_PROFILE("Pokemon Ruby / Sapphire (preliminary)", "AXVE", "AXPE", "AXVJ", "AXPJ")
-	PK_PROFILE("Pokemon Ruby / Sapphire (preliminary, German, French)", "AXVD", "AXPD", "AXVF", "AXPF")
-	PK_PROFILE("Pokemon Ruby / Sapphire (preliminary, Italian, Spanish)", "AXVI", "AXPI", "AXVS", "AXPS")
-	PK_PROFILE("Pokemon Emerald (preliminary)", "BPEE", "BPEJ", "BPED", "BPEF")
-	PK_PROFILE("Pokemon Emerald (preliminary, Italian, Spanish)", "BPEI", "BPES")
+	PK_PROFILE(PK_LOGO_FRLG, "Pokemon FireRed / LeafGreen (preliminary)", "BPRE", "BPGE", "BPRJ", "BPGJ")
+	PK_PROFILE(PK_LOGO_FRLG, "Pokemon FireRed / LeafGreen (preliminary, German, French)", "BPRD", "BPGD", "BPRF", "BPGF")
+	PK_PROFILE(PK_LOGO_FRLG, "Pokemon FireRed / LeafGreen (preliminary, Italian, Spanish)", "BPRI", "BPGI", "BPRS", "BPGS")
+	PK_PROFILE(PK_LOGO_RS4, "Pokemon Ruby / Sapphire (preliminary)", "AXVE", "AXPE", "AXVJ", "AXPJ")
+	PK_PROFILE(PK_LOGO_RS4, "Pokemon Ruby / Sapphire (preliminary, German, French)", "AXVD", "AXPD", "AXVF", "AXPF")
+	PK_PROFILE(PK_LOGO_RS4, "Pokemon Ruby / Sapphire (preliminary, Italian, Spanish)", "AXVI", "AXPI", "AXVS", "AXPS")
+	PK_PROFILE(PK_LOGO_RSE3, "Pokemon Emerald (preliminary)", "BPEE", "BPEJ", "BPED", "BPEF")
+	PK_PROFILE(PK_LOGO_RSE3, "Pokemon Emerald (preliminary, Italian, Spanish)", "BPEI", "BPES")
 	{
 		.codes = { "A2CE" },
 		.title = "Castlevania: Aria of Sorrow",
@@ -9497,6 +9568,12 @@ typedef struct {
 	const char* name;
 } KnownDump;
 #include "dumps_data.h"
+
+const LogoSpec* profile_logo_spec(const MapProfile* p, uint32_t fileCrc) {
+	for (int i = 0; p && i < p->nLogoFor; ++i)
+		if (p->logoFor[i].crc == fileCrc) return &p->logoFor[i].logo;
+	return p ? &p->logo : NULL;
+}
 
 DumpKind profile_dump(const char* gameCode, uint32_t crc, const char** name) {
 	bool listed = false;

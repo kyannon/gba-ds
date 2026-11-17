@@ -78,3 +78,63 @@ What carries over: the START menu structure, the party screen and the maps (hack
 ## Tools made
 
 `harness` has a `pokes ADDR HEX` command; `tools/pokemon/` builds Gen 3 Pokémon and finds them in RAM dumps (addresses of every game's party, flags and key items in its README).
+
+
+## Romhacks (Nov 16)
+
+Eleven hacks checked: Radical Red 4.1, Unbound 2.1.1.1, Gaia, Saiph, Fuligin (FireRed), Light Platinum (Ruby),
+Flora Sky, Glazed 9.1.0, Theta Emerald EX (Emerald), Super MarioMon 1.5.1 and Emerald Rogue EX 2.1.1 (Emerald,
+rebuilt from source). Header codes are the base game's (BPRE, BPEE, AXVE) for all of them.
+
+| Hack | Base | Party | Map | Own logo | As a patch |
+|---|---|---|---|---|---|
+| Radical Red | FireRed | yes | yes | yes | yes |
+| Unbound | FireRed | yes | yes | yes | yes |
+| Gaia | FireRed | yes (see below) | yes | yes | yes |
+| Saiph | FireRed | yes | yes | yes | yes |
+| Fuligin | FireRed | yes | yes | yes | yes |
+| Light Platinum | Ruby | yes | yes | yes | yes |
+| Flora Sky | Emerald | yes | yes | yes | yes |
+| Glazed | Emerald | yes | yes | yes | yes |
+| Theta Emerald EX | Emerald | yes | yes | yes | yes |
+| Super MarioMon | Emerald, from source | not tested | not tested | yes | a patch is a whole ROM |
+| Emerald Rogue EX | Emerald, from source | not tested | not tested | yes | a patch is a whole ROM |
+
+*Party and Map* are the prototype's captures, on a new-game state with a poked party, the Pokédex / Pokémon flags and
+(FireRed) a Town Map: the vanilla RAM layout holds for every hack built on the original ROM, so the base game's
+addresses worked as they are (Radical Red / Unbound / Gaia keep the key items elsewhere: see `tools/pokemon/hacks`).
+
+What the hacks changed in the profile:
+- **The Bag and the Pokénav are found by trying each START menu row** (the screen that comes up is told by the display
+  registers) instead of counting "5th from the end": Radical Red has no SAVE row (it autosaves), Rogue and MarioMon have
+  no EXIT, Light Platinum / Glazed / Flora Sky add entries. The row that worked is tried first next time.
+- **A START menu that is a bar of icons along the bottom** (Unbound): when no white panel comes up but the bottom 48 rows
+  change, RIGHT walks along it (wrap detected as the changes jumping from the last icon to the first), and rows are
+  tried the same way.
+- **The Bag needs 90 frames before it takes input** (Gaia's is slower than FireRed's; 30 made USE miss).
+
+*Logos.* The title's logo is taken per ROM file for these games (`logoPerRom`): `logos/CODE-CRC32.png`, the CRC32 of the
+file itself. Hacks share their base's game code, so a per-code file would give every hack FireRed's. A patched game is
+its base ROM file, so it has the base's logo (no capture of its own, and none is made while a patch is on: a patched
+copy's title never goes in the base's file). The recipe is the engine's (`PK_LOGO_FRLG`: START three times, then BG0;
+`PK_LOGO_RS4` / `PK_LOGO_RSE3`: BG2 and the sprites above row 100), checked on all 43 official releases and on every
+hack; the three whose title comes another way have a line in `pkLogos` by CRC32 (Rogue EX: six STARTs; Saiph: its title
+fades in for 400 frames; Light Platinum: a lower subtitle). A hack not listed gets the engine's recipe and a logo of
+the title as it comes (the player's own logos, GEN-11, replace a wrong one).
+
+*Patches.* A UPS from the base ROM to each of the nine hacks built on the original ROM was applied by the app's own
+patcher (`src/patch.c`): the ROM bytes equal the hack's (sampled across 16 / 32 MB). Super MarioMon and Rogue EX share
+under 0.5 % of their bytes with Emerald (they're compiled from source, pokeemerald-expansion and its relatives), so a
+patch would be the whole ROM: they are separate ROMs only.
+
+**Not tested: Super MarioMon and Rogue EX.** Their RAM layout moved (the party isn't at 0x020244EC; candidates were found
+from the ROM's literal pools, 0x02024D98 and 0x0201C76C, and the save block 1 pointers at 0x03004BCC / 0x0300363C), and
+with no Pokémon at the start their START menu has no Pokémon entry; none of my pokes made it appear (a party at the
+candidate addresses, bit 0-2 of the flag byte at the vanilla offset, then every byte of the first 32 KB of save block 1
+set), so the flags (or the party) aren't where I looked. Reaching a first Pokémon by playing the intro is the way left
+(Rogue starts at its hub; MarioMon in a bedroom). The capture itself makes no assumption about addresses (it finds the party
+by checksum), so it is expected to work once the game has a Pokémon, but that is not shown.
+
+**Gaia's Party page** shows black vertical bars by the first slots. They are in the game's own screen (checked by
+opening it by hand, same bars), not a capture artefact; whether they come from the test party's species (poked by
+number, not played) isn't known.
