@@ -320,6 +320,16 @@ static uint8_t lux_read(struct GBALuminanceSource* lux) {
 	int value = 0x16 + (level > 0 ? GBA_LUX_LEVELS[level - 1] : 0);
 	return (uint8_t) (0xFF - value);
 }
+/* (testing: GBADS_RTC_FIXED=<unix seconds> holds the cartridge clock still, for games
+ * that look at the time of day: Boktai's areas change with it. A state carries its
+ * clock's setting, so this is applied again after each load.) */
+static void rtc_pin(Emu* e) {
+	const char* t = getenv("GBADS_RTC_FIXED");
+	if (!t) return;
+	e->core->rtc.override = RTC_FIXED;
+	e->core->rtc.value = atoll(t) * 1000;
+}
+
 static struct GBALuminanceSource luxSource = { .sample = lux_sample, .readLuminance = lux_read };
 
 bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
@@ -342,6 +352,9 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	e->fb = calloc(GBA_W * GBA_H, sizeof(uint32_t));
 	e->core->setVideoBuffer(e->core, (mColor*) e->fb, GBA_W);
 	e->core->setPeripheral(e->core, mPERIPH_GBA_LUMINANCE, &luxSource);
+	/* (testing: GBADS_RTC_FIXED=<unix seconds> holds the cartridge clock still, for games
+	 * that look at the time of day: Boktai's areas change with it) */
+	rtc_pin(e);
 	e->audio = audio;
 	if (audio) {
 		e->core->setAudioBufferSize(e->core, 2048);
@@ -446,6 +459,7 @@ bool emu_state_save(Emu* e, void* buf) {
 
 bool emu_state_load(Emu* e, const void* buf) {
 	bool ok = e->core->loadState(e->core, buf);
+	rtc_pin(e);
 	split_resync(e);
 	return ok;
 }
@@ -696,6 +710,7 @@ bool emu_state_load_file(Emu* e, const char* path) {
 		struct VFile* vf = VFileFromConstMemory(b, n);
 		if (vf) {
 			ok = mCoreLoadStateNamed(e->core, vf, SAVESTATE_RTC);
+			rtc_pin(e);
 			vf->close(vf);
 		}
 		split_resync(e);

@@ -40,8 +40,8 @@ Changelog line: Boktai: The Sun Is in Your Hand: the second screen shows the gam
 
 Wiki section (Supported-games): **Boktai: The Sun Is in Your Hand.** The second screen shows the Map page, taken from a hidden copy of the game while you walk about; in conversations and menus the last Map stays, and on the title screen the logo. The cartridge's sun sensor is set to a middle level. Known: Europe and Japan are checked on their logos and by start-up only.
 
-Shared code touched (full suite has to run at the merge): `src/emu.c` / `emu.h` (the light source), `src/config.c` / `config.h` (`solar_level`), `src/main.c`.
+Shared code touched (full suite has to run at the merge): `src/emu.c` / `emu.h` (the light source), `src/config.c` / `config.h` (`solar_level`), `src/main.c`, and the test clock: `GBADS_RTC_FIXED` in `src/emu.c` (applied again after every state load) set to noon by `tools/regress.py`, since Boktai tints its areas by the time of day.
 
 ## Facts about the game
 
-USA addresses (EWRAM): `0x02001B3A` menu open (0 = playing, 1 = SELECT's menu), `0x020034DC` its page (2 = Map), `0x02001B38` 0 on the title and file menu, 40 in the game. SELECT's menu remembers its last page, so the capture presses L or R until the Map shows. The cartridge's light sensor is GPIO; mGBA's levels give the reading 0xFF - (0x16 + level table).
+USA addresses (EWRAM): `0x02001B3A` menu open (0 = playing, 1 = SELECT's menu), `0x020034DC` its page (2 = Map), `0x02001B38` 0 on the title and file menu, 40 in the game. SELECT's menu remembers its last page, so the capture presses L or R until the Map shows. The areas' colours follow the cartridge clock (day roughly 8:00 to 17:59, dusk, night), so the tests pin the clock. The cartridge's light sensor is GPIO; mGBA's levels give the reading 0xFF - (0x16 + level table).
