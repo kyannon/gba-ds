@@ -986,6 +986,7 @@ static bool logoOnly; /* the game has a profile but no map: logo on the second s
 static const MapProfile* snapProf; /* logo-only game with screens copied to the second screen */
 static const MapProfile* tallProf; /* logo-only game with a table over both screens (profile.tall) */
 static uint32_t tallTop[GBA_W * GBA_H], tallBot[GBA_W * GBA_H];
+static bool tallLiveAtStart; /* pinball_live as this game started with it: a change counts only after a new start */
 static bool tallLive;      /* the live view: the table over both screens (update_tall) */
 /* Mario Kart: the race HUD on the second screen (profile .hud) */
 static const MapProfile* hudProf;
@@ -1156,7 +1157,7 @@ static int menuItems[12], nMenuItems;
  * each item's row and side (-1: the whole row, 0 left, 1 right). */
 static int itemRow[12], itemSide[12], nMenuRows;
 static bool half_item(int item) {
-	return item == M_SAVE || item == M_LOAD || item == M_AUTOSAVE || item == M_AUTOLOAD || item == M_REWIND || item == M_FF ||
+	return item == M_RESUME || item == M_RESTART || item == M_SAVE || item == M_LOAD || item == M_AUTOSAVE || item == M_AUTOLOAD || item == M_REWIND || item == M_FF ||
 	       item == M_COLOR || item == M_GHOST;
 }
 /* rows, sides and the row count for a page's items (two half items in a row share it) */
@@ -1174,18 +1175,24 @@ static int layout_rows(const int* items, int n, int* row, int* side) {
 	}
 	return rows;
 }
-/* Seven pages, switched with L1/R1 or the tabs: Game and Tools hold buttons
+/* Six pages, switched with L1/R1 or the tabs: Game holds buttons
  * (actions); the other five are rows of settings (docs/MENUS.md), the same
  * categories as the game list's Settings, each changed for this game (A) or
  * for all games (Y), kept in states/<game>.cfg or states/prefs.cfg. */
-#define N_PAGES 7
-enum { PG_GAME, PG_TOOLS, PG_DISPLAY, PG_SCREENS, PG_CONTROLS, PG_SPEED, PG_MAP };
+#define N_PAGES 6
+enum { PG_GAME, PG_DISPLAY, PG_SCREENS, PG_CONTROLS, PG_SPEED, PG_MAP };
+#define ICON_SYSTEM 100 /* a toolbox: Settings > System (not a page) */
 static int pages[N_PAGES][12], pageLen[N_PAGES], curPage;
-static const char* rowKeys[N_PAGES][10]; /* a settings page's rows: the settings' keys, or "@name" for a button that opens something */
+#define ROW_MAX 16 /* settings on a page */
+#define ROW_VIS 8  /* most shown at once: more scroll */
+static const char* rowKeys[N_PAGES][ROW_MAX]; /* a settings page's rows: the settings' keys, or "@name" for a button that opens something */
 static int rowN[N_PAGES];
 static int rowSel;     /* 0: the This game / All games bar; 1...: the rows */
+static int rowTop;     /* the first row shown (0-based; the rows before it are scrolled off) */
 static bool scopeAll;  /* the bar: changes go to all games */
 static int rowPressed = -1;
+static int rowDragY;       /* where a finger last moved the list from */
+static bool rowDragged;    /* the finger scrolled the list: not a tap */
 static bool page_is_rows(int p) {
 	return p >= PG_DISPLAY;
 }
@@ -1201,7 +1208,7 @@ static int hkBtn[HK_COUNT];
 static void suppress_held(void) {
 	for (int b = 0; b < B_COUNT; ++b) suppress[b] = btnNow[b];
 }
-static const char* pageNames[N_PAGES] = { "Game", "Tools", "Display", "Screens", "Controls", "Speed", "Map" };
+static const char* pageNames[N_PAGES] = { "Game", "Display", "Screens", "Controls", "Speed", "Map" };
 /* Restart Game, Close Game and Close GBA DS ask first: chosen once, the
  * button says "Are You Sure?" (and the note what happens); chosen again,
  * it's done. Another page, another button or closing the menu calls it off. */
@@ -1218,12 +1225,12 @@ static bool ignorePointerUp;      /* the tap that opened the menu */
 static char menuNote[64];
 static bool pacedFallback; /* Match Display Rate fell back to the GBA's rate (pacing_update) */
 
-static const SDL_Color C_BTN = { 34, 30, 58, 240 };
-static const SDL_Color C_BTN_SEL = { 92, 52, 140, 250 };
-static const SDL_Color C_BTN_EDGE = { 150, 120, 210, 255 };
+#define C_BTN ui_accent_color(AC_BTN)
+#define C_BTN_SEL ui_accent_color(AC_BTN_SEL)
+#define C_BTN_EDGE ui_accent_color(AC_EDGE)
 static const SDL_Color C_TEXT = { 236, 236, 244, 255 };
 static const SDL_Color C_DIS = { 100, 100, 120, 255 };
-static const SDL_Color C_GOLD = { 232, 200, 120, 255 };
+#define C_GOLD ui_accent_color(AC_HI)
 
 static Cheats cheats;
 static SDL_Rect tab_rect(int scr, int t);
@@ -1238,7 +1245,7 @@ static const char* const allLabels[] = {
 };
 /* the labels of the half-width buttons, which fit in half the width */
 static const char* const halfLabels[] = {
-	"Save State", "Load State", "Save State 0", "Load State 0",
+	"Save State", "Load State", "Save State 0", "Load State 0", "Resume", "Restart Game", "Are You Sure?",
 };
 
 /* The pause menu's layout: buttons across the whole screen (a small margin
@@ -1260,7 +1267,7 @@ static MenuGeom menu_geom(int scr) {
 	int n = 1;
 	for (int p = 0; p < N_PAGES; ++p) {
 		int row[12], side[12];
-		n = SDL_max(n, page_is_rows(p) ? rowN[p] + 1 : layout_rows(pages[p], pageLen[p], row, side));
+		n = SDL_max(n, page_is_rows(p) ? SDL_min(rowN[p], ROW_VIS) + 1 : SDL_min(layout_rows(pages[p], pageLen[p], row, side), ROW_VIS));
 	}
 	if (r.w == cw && r.h == ch && n == cn) return cache;
 	MenuGeom g;
@@ -2199,9 +2206,20 @@ static void draw_patches(int scr) {
 	if (foot[0]) ui_font_wrap(scr, TF_BODY, px * 6, g.footY - tcap / 2, r.w - px * 12, tcap, foot, C_GOLD);
 }
 
+/* a button page with more rows than ROW_VIS scrolls: itemTop is its first row shown */
+static int itemTop;
+static bool item_shown(int i) {
+	return itemRow[i] >= itemTop && itemRow[i] < itemTop + ROW_VIS;
+}
+/* the selected button kept on screen */
+static void items_scroll_to_sel(void) {
+	if (itemRow[menuSel] < itemTop) itemTop = itemRow[menuSel];
+	if (itemRow[menuSel] >= itemTop + ROW_VIS) itemTop = itemRow[menuSel] - ROW_VIS + 1;
+	itemTop = SDL_clamp(itemTop, 0, SDL_max(0, nMenuRows - ROW_VIS));
+}
 static SDL_Rect item_rect(int scr, int i) {
 	MenuGeom g = menu_geom(scr);
-	SDL_Rect r = { g.margin, g.top + itemRow[i] * (g.h + g.gap), g.w, g.h };
+	SDL_Rect r = { g.margin, g.top + (itemRow[i] - itemTop) * (g.h + g.gap), g.w, g.h };
 	if (itemSide[i] >= 0) {
 		int hw = (g.w - g.gap) / 2;
 		r.x += itemSide[i] * (g.w - hw);
@@ -2437,7 +2455,7 @@ static void draw_paused_label(int o) {
 	SDL_Rect r = screens[o].rect;
 	SDL_Rect k = { (r.w - tw) / 2 - padX, (r.h - h) / 2, tw + padX * 2, h };
 	ui_key(o, k, px * 4, KEY_PLAIN);
-	ui_label(o, r.w / 2, r.h / 2, cap, "Paused", C_GOLD);
+	ui_label(o, r.w / 2, r.h / 2, cap, "Paused", ui_theme_light() ? ui_key_ink() : C_GOLD); /* (dark grey on the light theme's keys) */
 }
 
 /* Status text on the top (first) screen while paused, with a drop shadow:
@@ -2857,10 +2875,12 @@ static void set_page(int page) {
 	memcpy(menuItems, pages[page], sizeof(int) * nMenuItems);
 	nMenuRows = layout_rows(menuItems, nMenuItems, itemRow, itemSide);
 	menuSel = 0;
+	itemTop = 0;
 	menuPressed = -1;
 	menuNote[0] = 0;
 	armedItem = -1;
 	rowSel = page_is_rows(page) ? 1 : 0;
+	rowTop = 0;
 	rowPressed = -1;
 }
 
@@ -2873,6 +2893,7 @@ static void menu_move(int dir) {
 		if (to < 0 || itemSide[i] == side) to = i;
 	}
 	if (to >= 0) menuSel = to;
+	items_scroll_to_sel();
 }
 
 static int tab_at(int scr, int x, int y, int n) {
@@ -2885,6 +2906,7 @@ static int tab_at(int scr, int x, int y, int n) {
 
 static int item_at(int scr, int x, int y) {
 	for (int i = 0; i < nMenuItems; ++i) {
+		if (!item_shown(i)) continue;
 		SDL_Rect r = item_rect(scr, i);
 		if (x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h) return i;
 	}
@@ -3357,11 +3379,11 @@ static void ovl_close_all(void) {
  * (run loop, the GBA layout's branch): GBA DS's own screens keep B_A / B_B.
  * In games with a layout picker (profile `controls`), the SNES / four-button
  * layout decides the face buttons wherever it's in use. */
-enum { FB_RIGHT, FB_BOTTOM, FB_TOP, FB_LEFT, FB_COUNT };
-enum { FG_A, FG_B, FG_L, FG_R, FG_START, FG_SELECT, FG_TURBO_A, FG_TURBO_B, FG_NONE, FG_COUNT };
-static const char* const fbNames[FB_COUNT] = { "right", "bottom", "top", "left" };
-static const char* const fgNames[FG_COUNT] = { "a", "b", "l", "r", "start", "select", "turbo_a", "turbo_b", "none" };
-static const char* const fgLabels[FG_COUNT] = { "GBA A", "GBA B", "GBA L", "GBA R", "Start", "Select", "Turbo A", "Turbo B", "Nothing" };
+enum { FB_RIGHT, FB_BOTTOM, FB_TOP, FB_LEFT, FB_FACES, FB_L = FB_FACES, FB_R, FB_UP, FB_DOWN, FB_PADLEFT, FB_PADRIGHT, FB_COUNT };
+enum { FG_A, FG_B, FG_L, FG_R, FG_UP, FG_DOWN, FG_LEFT, FG_RIGHT, FG_START, FG_SELECT, FG_TURBO_A, FG_TURBO_B, FG_NONE, FG_COUNT };
+static const char* const fbNames[FB_COUNT] = { "right", "bottom", "top", "left", "l", "r", "dpad_up", "dpad_down", "dpad_left", "dpad_right" };
+static const char* const fgNames[FG_COUNT] = { "a", "b", "l", "r", "up", "down", "left", "right", "start", "select", "turbo_a", "turbo_b", "none" };
+static const char* const fgLabels[FG_COUNT] = { "GBA A", "GBA B", "GBA L", "GBA R", "GBA Up", "GBA Down", "GBA Left", "GBA Right", "Start", "Select", "Turbo A", "Turbo B", "Nothing" };
 static int fbMap[FB_COUNT]; /* each face button's FG_ */
 static bool fbSet;          /* a choice in force (else ab_swap's) */
 
@@ -3370,6 +3392,7 @@ static void fb_default(void) {
 	fbMap[FB_RIGHT] = cfg->abSwap ? FG_B : FG_A;
 	fbMap[FB_BOTTOM] = cfg->abSwap ? FG_A : FG_B;
 	fbMap[FB_TOP] = fbMap[FB_LEFT] = FG_NONE;
+	fbMap[FB_L] = FG_L, fbMap[FB_R] = FG_R, fbMap[FB_UP] = FG_UP, fbMap[FB_DOWN] = FG_DOWN, fbMap[FB_PADLEFT] = FG_LEFT, fbMap[FB_PADRIGHT] = FG_RIGHT;
 	fbSet = false;
 	for (int i = 0; i < FB_COUNT; ++i)
 		for (int j = 0; j < FG_COUNT && cfg->faceBtn[i][0]; ++j)
@@ -3378,7 +3401,7 @@ static void fb_default(void) {
 
 /* "right GBA A, bottom GBA B, ..." for the log and bug reports */
 static const char* fb_describe(void) {
-	static char s[128];
+	static char s[320];
 	s[0] = 0;
 	for (int i = 0; i < FB_COUNT; ++i)
 		snprintf(s + strlen(s), sizeof(s) - strlen(s), "%s%s %s", i ? ", " : "", fbNames[i], fgLabels[fbMap[i]]);
@@ -3418,15 +3441,16 @@ static void fb_load(void) {
 }
 
 /* the GBA keys the face buttons give the game (the GBA layout) */
-static uint32_t fb_keys(void) {
-	static const uint32_t key[FG_COUNT] = { K_A, K_B, K_L, K_R, K_START, K_SELECT, K_A, K_B, 0 };
+static uint32_t fb_keys(bool faces) {
+	static const uint32_t key[FG_COUNT] = { K_A, K_B, K_L, K_R, K_UP, K_DOWN, K_LEFT, K_RIGHT, K_START, K_SELECT, K_A, K_B, 0 };
 	/* Turbo A / B (#55): the key goes down and up turbo_rate times a second (60 frames a second) */
 	int period = SDL_clamp(60 / SDL_max(1, cfg->turboRate), 2, 12);
 	bool turboOn = (frameCount % (uint64_t) period) < (uint64_t) (period / 2);
 	/* (ui.c puts the bottom button on B_A with ab_swap: by position again) */
-	int phys[FB_COUNT] = { cfg->abSwap ? B_B : B_A, cfg->abSwap ? B_A : B_B, B_X, B_Y };
+	int phys[FB_COUNT] = { cfg->abSwap ? B_B : B_A, cfg->abSwap ? B_A : B_B, B_X, B_Y, B_L, B_R, B_UP, B_DOWN, B_LEFT, B_RIGHT };
 	uint32_t keys = 0;
-	for (int i = 0; i < FB_COUNT; ++i)
+	/* faces only, or the shoulders and the D-pad (only = false) */
+	for (int i = faces ? 0 : FB_FACES; i < (faces ? FB_FACES : FB_COUNT); ++i)
 		if (HELD(phys[i]) && (fbMap[i] != FG_TURBO_A && fbMap[i] != FG_TURBO_B ? true : turboOn)) keys |= key[fbMap[i]];
 	return keys;
 }
@@ -3456,9 +3480,20 @@ static bool game_has(const Setting* st) {
 	return st->field == SF_FF ? game_has_key("fast_forward") || game_has_key("ff_speed") : game_has_key(st->key);
 }
 
+/* row i (0 the bar, 1... the settings) on screen; a row scrolled off sits above or below the rows shown */
 static SDL_Rect srow_rect(int scr, int i) {
 	MenuGeom g = menu_geom(scr);
-	return (SDL_Rect) { g.margin, g.top + i * (g.h + g.gap), g.w, g.h };
+	int slot = i == 0 ? 0 : i - rowTop;
+	return (SDL_Rect) { g.margin, g.top + slot * (g.h + g.gap), g.w, g.h };
+}
+static bool srow_shown(int i) {
+	return i == 0 || (i > rowTop && i <= rowTop + ROW_VIS);
+}
+/* the selected row kept on screen */
+static void rows_scroll_to_sel(void) {
+	if (rowSel >= 1 && rowSel <= rowTop) rowTop = rowSel - 1;
+	if (rowSel > rowTop + ROW_VIS) rowTop = rowSel - ROW_VIS;
+	rowTop = SDL_clamp(rowTop, 0, SDL_max(0, rowN[curPage] - ROW_VIS));
 }
 static SDL_Rect scope_rect(int scr, int half) {
 	MenuGeom g = menu_geom(scr);
@@ -3466,8 +3501,8 @@ static SDL_Rect scope_rect(int scr, int half) {
 	int hw = (r.w - g.gap) / 2;
 	return (SDL_Rect) { r.x + half * (r.w - hw), r.y, hw, r.h };
 }
-static SDL_Rect rowTag[12], rowBack[12]; /* where the last drawing put each row's Game tag and left arrow (for touch) */
-static bool rowTagOn[12];
+static SDL_Rect rowTag[ROW_MAX + 1], rowBack[ROW_MAX + 1]; /* where the last drawing put each row's Game tag and left arrow (for touch) */
+static bool rowTagOn[ROW_MAX + 1];
 
 /* why a row can't be changed here, or NULL */
 static const char* row_disabled(const char* key) {
@@ -3488,12 +3523,14 @@ static void draw_rows_page(int scr, const MenuGeom* mg) {
 	}
 	const char* note = NULL;
 	bool noteGold = false;
+	rowTop = SDL_clamp(rowTop, 0, SDL_max(0, n - ROW_VIS));
 	for (int i = 1; i <= n; ++i) {
+		rowTagOn[i] = false;
+		if (!srow_shown(i)) continue;
 		SDL_Rect r = srow_rect(scr, i);
 		bool sel = i == rowSel;
 		ui_key(scr, r, rad, sel ? KEY_SEL : KEY_PLAIN);
 		const char* key = rowKeys[curPage][i - 1];
-		rowTagOn[i] = false;
 		int cy = r.y + r.h / 2, lc = cap * 9 / 10;
 		if (key[0] == '@') {
 			ui_font_text(scr, TF_BOLD, r.x + mg->pad, cy, lc, "Overlay colors and logo", C_TEXT, -1);
@@ -3526,6 +3563,17 @@ static void draw_rows_page(int scr, const MenuGeom* mg) {
 			ui_font_text(scr, TF_BOLD, rowTag[i].x + tw / 2, cy, tc, "Game", (SDL_Color) { 20, 16, 36, 255 }, 0);
 			rowTagOn[i] = true;
 		}
+		if (!strcmp(key, "pinball_live") && cfg->tallLive != tallLiveAtStart) {
+			/* changed since GBA DS started: it only counts once GBA DS is closed and started again */
+			int tc = SDL_max(6, cap * 5 / 8), gp2 = mg->pad / 2;
+			int px0 = r.x + mg->pad + lw + gp2 + (has ? ui_font_width(TF_BOLD, tc, "Game") + mg->pad + gp2 : 0);
+			const char* txt = "Restart required";
+			int tw = ui_font_width(TF_BOLD, tc, txt) + mg->pad;
+			if (px0 + tw > bx - cap) txt = "Restart", tw = ui_font_width(TF_BOLD, tc, txt) + mg->pad;
+			SDL_Rect pr = { px0, cy - tc, tw, tc * 2 };
+			ui_fill_round(scr, pr, C_GOLD, tc / 2);
+			ui_font_text(scr, TF_BOLD, pr.x + tw / 2, cy, tc, txt, (SDL_Color) { 20, 16, 36, 255 }, 0);
+		}
 		if (sel) {
 			const char* ctl = (!strncmp(key, "button_", 7) && ctlProf) ? (ctlProf->controls.snes.bottom ? "With SNES picked under Controls in the quick bar, the SNES layout replaces these in levels."
 			                                                                                      : "With Four buttons picked under Controls in the quick bar, the four-button layout replaces these.") : NULL;
@@ -3534,8 +3582,17 @@ static void draw_rows_page(int scr, const MenuGeom* mg) {
 	}
 	if (menuNote[0]) note = menuNote, noteGold = true;
 	else if (rowSel == 0) note = "A: the one lit above. Y: all games. X: undo this game's value";
+	if (n > ROW_VIS) {
+		/* more rows than fit: a bar at the right edge, where the rows are in the list */
+		SDL_Rect a = srow_rect(scr, rowTop + 1), z = srow_rect(scr, rowTop + ROW_VIS);
+		int bw = SDL_max(2, mg->margin / 2), bx = screens[scr].rect.w - mg->margin + (mg->margin - bw) / 2;
+		int th = z.y + z.h - a.y;
+		ui_fill_round(scr, (SDL_Rect) { bx, a.y, bw, th }, (SDL_Color) { 60, 56, 84, 255 }, bw / 2);
+		int bh = SDL_max(bw * 3, th * ROW_VIS / n), by = a.y + (th - bh) * rowTop / SDL_max(1, n - ROW_VIS);
+		ui_fill_round(scr, (SDL_Rect) { bx, by, bw, bh }, C_GOLD, bw / 2);
+	}
 	if (note) {
-		SDL_Rect last = srow_rect(scr, n);
+		SDL_Rect last = srow_rect(scr, SDL_min(n, rowTop + ROW_VIS));
 		int nc = SDL_min(mg->noteCap, mg->noteCap * mg->w / SDL_max(1, ui_font_width(TF_BOLD, mg->noteCap, note)));
 		/* on a dark panel: the bezel's logo (or the game's picture) can be behind the line */
 		int ny = last.y + last.h + mg->h * 3 / 5, nh = nc * 3;
@@ -3586,7 +3643,7 @@ static void draw_tab_icon(int scr, int page, SDL_Rect box, SDL_Color fg, SDL_Col
 		F(14, 15.2f, 2.4f, 2.4f, 1.2f, bg);
 		F(16.4f, 17.4f, 2.4f, 2.4f, 1.2f, bg);
 		break;
-	case PG_TOOLS: /* a toolbox */
+	case ICON_SYSTEM: /* a toolbox */
 		F(8, 2.5f, 8, 6, 2.5f, fg);
 		F(10, 4.5f, 4, 4, 1, bg);
 		F(3, 8, 18, 13.5f, 2, fg);
@@ -3623,6 +3680,10 @@ static void draw_tab_icon(int scr, int page, SDL_Rect box, SDL_Color fg, SDL_Col
 		break;
 	}
 #undef F
+}
+
+void game_page_icon(int scr, int icon, SDL_Rect box, SDL_Color fg, SDL_Color bg) {
+	draw_tab_icon(scr, icon, box, fg, bg);
 }
 
 static void draw_menu(void) {
@@ -3716,7 +3777,17 @@ static void draw_menu(void) {
 		}
 		return;
 	}
+	itemTop = SDL_clamp(itemTop, 0, SDL_max(0, nMenuRows - ROW_VIS));
+	if (nMenuRows > ROW_VIS) {
+		/* more buttons than fit: a bar at the right edge */
+		SDL_Rect a = { 0, mg.top, 0, 0 };
+		int th = ROW_VIS * (mg.h + mg.gap) - mg.gap, bw = SDL_max(2, mg.margin / 2), bx = screens[scr].rect.w - mg.margin + (mg.margin - bw) / 2;
+		ui_fill_round(scr, (SDL_Rect) { bx, a.y, bw, th }, (SDL_Color) { 60, 56, 84, 255 }, bw / 2);
+		int bh = SDL_max(bw * 3, th * ROW_VIS / nMenuRows), by = a.y + (th - bh) * itemTop / SDL_max(1, nMenuRows - ROW_VIS);
+		ui_fill_round(scr, (SDL_Rect) { bx, by, bw, bh }, C_GOLD, bw / 2);
+	}
 	for (int i = 0; i < nMenuItems; ++i) {
+		if (!item_shown(i)) continue;
 		SDL_Rect r = item_rect(scr, i);
 		bool sel = i == menuSel;
 		ui_key(scr, r, rad, sel ? KEY_SEL : KEY_PLAIN);
@@ -3742,7 +3813,6 @@ static void draw_menu(void) {
 		                                      !strcmp(cfg->screenMatch, "aspect") ? "Match screen aspect ratios" : "Match screen sizes and aspect ratios";
 		if (menuItems[i] == M_PLACE) label = en && !strcmp(cfg->screenPlace, "no_gap") ? "Screen Placement: Closest to Gap" : "Screen Placement: Centered";
 		if (menuItems[i] == M_PIXLOGO) label = cfg->customLogos == CL_OFF ? "Custom Logos: Do Not Use" : cfg->customLogos == CL_FULL ? "Custom Logos: Full Detail" : "Custom Logos: Pixelated";
-		if (menuItems[i] == M_LOGO) label = cfg->showLogo ? "No Second Screen: Show Logo" : "No Second Screen: Keep Blank";
 		if (menuItems[i] == M_OVERLAY) {
 			static const char* const ovl[3] = { "Overlays: Off", "Overlays: Generated", "Overlays: Custom" };
 			label = ovl[SDL_clamp(cfg->overlayMode, 0, 2)];
@@ -3764,7 +3834,8 @@ static void draw_menu(void) {
 		ui_label(scr, r.x + r.w / 2, r.y + r.h / 2, cap, label, en ? C_TEXT : C_DIS);
 	}
 	if (menuNote[0]) {
-		SDL_Rect last = item_rect(scr, nMenuItems - 1);
+		int lastRow = SDL_min(nMenuRows, ROW_VIS) - 1;
+		SDL_Rect last = { 0, mg.top + lastRow * (mg.h + mg.gap), 0, mg.h };
 		int nc = SDL_min(mg.noteCap, mg.noteCap * mg.w / SDL_max(1, ui_font_width(TF_BOLD, mg.noteCap, menuNote)));
 		/* (the last item is always a whole row: Close GBA DS, Show FPS...) */
 		ui_font_text(scr, TF_BOLD, screens[scr].rect.w / 2, last.y + last.h + mg.h * 3 / 5, nc, menuNote, C_GOLD, 0);
@@ -6021,8 +6092,7 @@ static void bug_info(Text* t, const char* date, uint64_t back) {
 	text_add(t, "\n== Settings\n");
 	text_add(t, "layout %s, swap %d, scale %s, map_scale %s, shader %s, color_correction %d, lcd_ghosting %d, smooth %d, overlays %d (screens %d, logo %d, %s / %s), border_color %s\n", cfg->layout,
 	         cfg->swap, cfg->scale, cfg->mapScale, shaderNames[cfg->shader], cfg->colorCorrection, cfg->ghosting, cfg->smooth, cfg->overlayMode, cfg->overlays, cfg->bezelLogo, cfg->bezelInner, cfg->bezelOuter, cfg->borderColor);
-	text_add(t, "map %d, map_animations %d, map_interval %d, show_logo %d, pinball_live %d\n", cfg->map, cfg->mapAnim,
-	         cfg->mapInterval, cfg->showLogo, cfg->tallLive);
+	text_add(t, "map %d, map_interval %d, pinball_live %d\n", cfg->map, cfg->mapInterval, cfg->tallLive);
 	text_add(t, "logo_folder %s, custom_logos %s; logo: %s\n", cfg->logoFolder[0] ? cfg->logoFolder : "(not set)",
 	         cfg->customLogos == CL_OFF ? "off" : cfg->customLogos == CL_FULL ? "full" : "pixelated", ui_logo_note());
 	text_add(t, "frame_buffer %d, match_display %d, vsync %d, audio_latency %d, rewind %d (%d s), fast_forward %d, ff_speed %d\n", cfg->frameBuffer,
@@ -6602,10 +6672,10 @@ static void compose_still(const MapResult* r, int pick, uint32_t* out, unsigned 
  * another point of its loop) keeps the old still, so it doesn't jump around
  * every time the map is refreshed. Returns true if the still changed. */
 static bool stillStale; /* stillPx is from an older map (built only when it's shown) */
-/* The map animates (Map Animations: On), unless the game's is always still */
+/* The map animates, unless the game's is always still */
 static bool map_anim(void) {
 	const MapProfile* p = mc ? mapcap_profile(mc) : NULL;
-	return cfg->mapAnim && !(p && p->mapStill);
+	return !(p && p->mapStill);
 }
 
 static bool update_still(void) {
@@ -7254,8 +7324,6 @@ static void draw_game(void) {
 		} else if (mapShownIdx >= 0 && !logoForced) {
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
 			ui_image_pixels(s, mapTex, mapW, mapH, cfg->mapScale, SHADER_ON);
-		} else if (!cfg->showLogo) {
-			/* nothing to show: the screen stays blank */
 		} else if ((logoCanvasTex[0] || logoCanvasTex[1]) && logoSub > 1) {
 			/* a scraped logo at full resolution (GEN-11): its picture made at
 			 * LOGO_SUB pixels per GBA pixel, onto where the GBA picture goes */
@@ -7383,7 +7451,7 @@ static void setting_applied(const Setting* st) {
 	} else if (!strcmp(k, "ab_swap") || !strncmp(k, "button_", 7)) {
 		fb_default();
 	} else if (!strcmp(k, "pinball_live")) {
-		snprintf(menuNote, sizeof(menuNote), "Takes effect when the game starts again");
+		snprintf(menuNote, sizeof(menuNote), "Takes effect after you close and restart GBA DS");
 	}
 }
 
@@ -7472,6 +7540,7 @@ static void rows_input(void) {
 	int n = rowN[curPage];
 	if (btn_pressed(B_DOWN)) rowSel = (rowSel + 1) % (n + 1), menuNote[0] = 0;
 	if (btn_pressed(B_UP)) rowSel = (rowSel + n) % (n + 1), menuNote[0] = 0;
+	rows_scroll_to_sel();
 	if (rowSel == 0) {
 		if (btn_pressed(B_LEFT)) scopeAll = false;
 		if (btn_pressed(B_RIGHT)) scopeAll = true;
@@ -7497,10 +7566,19 @@ static void rows_touch(const Pointer* p) {
 		for (int h = 0; h < 2; ++h)
 			if (in_rect(scope_rect(p->screen, h), p->x, p->y)) scopeAll = h == 1, rowSel = 0, menuNote[0] = 0, ignorePointerUp = true;
 		for (int i = 1; i <= n; ++i)
-			if (in_rect(srow_rect(p->screen, i), p->x, p->y)) rowPressed = i, rowSel = i;
+			if (srow_shown(i) && in_rect(srow_rect(p->screen, i), p->x, p->y)) rowPressed = i, rowSel = i, rowDragY = p->y, rowDragged = false;
+		if (rowPressed < 0) rowDragY = p->y, rowDragged = false;
+	} else if (p->kind == 3 && n > ROW_VIS) {
+		/* a finger dragged up or down moves the list a row at a time, and no longer counts as a tap */
+		int step = SDL_max(1, srow_rect(p->screen, 2).y - srow_rect(p->screen, 1).y);
+		if (abs(p->y - rowDragY) >= step) {
+			rowTop = SDL_clamp(rowTop + (p->y < rowDragY ? 1 : -1), 0, n - ROW_VIS);
+			rowDragY = p->y, rowDragged = true;
+			ignorePointerUp = true;
+		}
 	} else if (p->kind == 2) {
 		int i = rowPressed;
-		if (!ignorePointerUp && i >= 1 && in_rect(srow_rect(p->screen, i), p->x, p->y)) {
+		if (!ignorePointerUp && !rowDragged && i >= 1 && srow_shown(i) && in_rect(srow_rect(p->screen, i), p->x, p->y)) {
 			const char* key = rowKeys[curPage][i - 1];
 			if (key[0] != '@' && rowTagOn[i] && in_rect(rowTag[i], p->x, p->y)) row_reset(key);
 			else row_change(key, key[0] != '@' && in_rect(rowBack[i], p->x, p->y) ? -1 : 1, scopeAll);
@@ -7653,7 +7731,7 @@ static void ss_setup(const char* rom, const char* code) {
 #ifdef __ANDROID__
 		android_set_pinning(cfg->pinCores);
 #endif
-		mc = mapcap_create(rom, code, cfg->mapCrop);
+		mc = mapcap_create(rom, code, true);
 		const MapProfile* lp = profile_find(code);
 		memprobe_virtual = lp ? lp->virt : NULL;
 		logoOnly = lp && lp->logoOnly;
@@ -7865,6 +7943,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 
 static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary) {
 	cfg = c;
+	tallLiveAtStart = cfg->tallLive;
 	debug = getenv("GBADS_DEBUG") != NULL;
 	romPath = rom, lastLoop = 0;
 	game_paths(cfg, rom, &gp);
@@ -7931,13 +8010,13 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	pages[PG_GAME][pageLen[PG_GAME]++] = M_SAVE;
 	pages[PG_GAME][pageLen[PG_GAME]++] = M_LOAD;
 	pages[PG_GAME][pageLen[PG_GAME]++] = M_SLOT;
+	pages[PG_GAME][pageLen[PG_GAME]++] = M_CHEATS;
+	pages[PG_GAME][pageLen[PG_GAME]++] = M_PATCHES;
+	if (ra_enabled()) pages[PG_GAME][pageLen[PG_GAME]++] = M_ACH;
+	pages[PG_GAME][pageLen[PG_GAME]++] = M_SHOT;
+	pages[PG_GAME][pageLen[PG_GAME]++] = M_BUG;
 	if (fromLibrary) pages[PG_GAME][pageLen[PG_GAME]++] = M_LIBRARY;
 	pages[PG_GAME][pageLen[PG_GAME]++] = M_EXIT;
-	pages[PG_TOOLS][pageLen[PG_TOOLS]++] = M_CHEATS;
-	pages[PG_TOOLS][pageLen[PG_TOOLS]++] = M_PATCHES;
-	if (ra_enabled()) pages[PG_TOOLS][pageLen[PG_TOOLS]++] = M_ACH;
-	pages[PG_TOOLS][pageLen[PG_TOOLS]++] = M_SHOT;
-	pages[PG_TOOLS][pageLen[PG_TOOLS]++] = M_BUG;
 	ui_color_correction(cfg->colorCorrection); /* (Display > Color Correction, for this session's pictures) */
 	ui_shader(cfg->shader);
 #define ROW(pg, key) rowKeys[pg][rowN[pg]++] = key
@@ -7956,14 +8035,20 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	ROW(PG_SCREENS, "@overlay");
 	ROW(PG_SCREENS, "brightness_top");
 	if (nScreens >= 2) ROW(PG_SCREENS, "brightness_bottom");
-	ROW(PG_SCREENS, "show_fps");
 	ROW(PG_CONTROLS, "left_stick_dpad");
 	ROW(PG_CONTROLS, "ab_swap");
 	ROW(PG_CONTROLS, "button_right");
 	ROW(PG_CONTROLS, "button_bottom");
 	ROW(PG_CONTROLS, "button_top");
 	ROW(PG_CONTROLS, "button_left");
+	ROW(PG_CONTROLS, "button_l");
+	ROW(PG_CONTROLS, "button_r");
+	ROW(PG_CONTROLS, "button_dpad_up");
+	ROW(PG_CONTROLS, "button_dpad_down");
+	ROW(PG_CONTROLS, "button_dpad_left");
+	ROW(PG_CONTROLS, "button_dpad_right");
 	ROW(PG_CONTROLS, "turbo_rate");
+	ROW(PG_SPEED, "show_fps");
 	ROW(PG_SPEED, "match_display");
 	ROW(PG_SPEED, "frame_buffer");
 	ROW(PG_SPEED, "rewind");
@@ -7973,9 +8058,6 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	ROW(PG_SPEED, "auto_load");
 	ROW(PG_MAP, "map");
 	ROW(PG_MAP, "map_interval");
-	ROW(PG_MAP, "map_crop");
-	ROW(PG_MAP, "map_animations");
-	ROW(PG_MAP, "show_logo");
 	ROW(PG_MAP, "pinball_live");
 #undef ROW
 	set_page(0);
@@ -8454,8 +8536,12 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			int it = item_at(p.screen, p.x, p.y);
 			if (p.kind == 1) {
 				ignorePointerUp = false;
-				menuPressed = it;
+				menuPressed = it, rowDragY = p.y;
 				if (it >= 0) menuSel = it;
+			} else if (p.kind == 3 && nMenuRows > ROW_VIS && menuPressed >= 0 && abs(p.y - rowDragY) >= menu_geom(p.screen).h + menu_geom(p.screen).gap) {
+				/* a finger dragged up or down moves the list a row at a time: no longer a tap */
+				itemTop = SDL_clamp(itemTop + (p.y < rowDragY ? 1 : -1), 0, nMenuRows - ROW_VIS);
+				rowDragY = p.y, menuPressed = -1, ignorePointerUp = true;
 			} else if (p.kind == 3 && menuPressed >= 0 && it >= 0) {
 				menuSel = it;
 			} else if (p.kind == 2) {
@@ -8746,7 +8832,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 				if (HELD(B_Y)) keys |= K_L;
 				if (HELD(right)) keys |= K_R;
 			} else {
-				keys |= fb_keys(); /* the player's choices (GEN-10), else ab_swap's */
+				keys |= fb_keys(true); /* the player's choices (GEN-10), else ab_swap's */
 			}
 			if (HELD(B_START) && modBtn != B_START && comboHold != B_START) keys |= K_START;
 			if (HELD(B_SELECT) && modBtn != B_SELECT && comboHold != B_SELECT) keys |= K_SELECT;
@@ -8755,8 +8841,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 				if (HELD(B_L)) keys |= K_L | KX_PAN_L;
 				else if (HELD(B_R)) keys |= K_L | KX_PAN_R;
 			} else {
-				if (HELD(B_L)) keys |= K_L;
-				if (HELD(B_R)) keys |= K_R;
+				keys |= fb_keys(false); /* L, R and the D-pad, as chosen (GEN-10) */
 				static bool told;
 				if (!told && ctl_four() && ctl_snes() && (HELD(B_L) || HELD(B_R))) {
 					told = true; /* (for reports: once) */
@@ -8764,10 +8849,12 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 					        emu_read8(&emu, ctlProf->controls.snes.when[0].addr), emu_read8(&emu, ctlProf->controls.snes.when[2].addr));
 				}
 			}
-			if (HELD(B_UP)) keys |= K_UP;
-			if (HELD(B_DOWN)) keys |= K_DOWN;
-			if (HELD(B_LEFT)) keys |= K_LEFT;
-			if (HELD(B_RIGHT)) keys |= K_RIGHT;
+			if (snes) {
+				if (HELD(B_UP)) keys |= K_UP;
+				if (HELD(B_DOWN)) keys |= K_DOWN;
+				if (HELD(B_LEFT)) keys |= K_LEFT;
+				if (HELD(B_RIGHT)) keys |= K_RIGHT;
+			}
 		}
 		if (modPulse > 0) keys |= modBtn == B_START ? K_START : K_SELECT, --modPulse;
 		if (comboPulse[0] > 0) keys |= K_SELECT, --comboPulse[0];

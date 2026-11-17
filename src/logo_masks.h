@@ -43,5 +43,7 @@ extern const LogoMask logoMaskER;
 extern const LogoMask logoMaskMVDK, logoMaskMVDKJ;
 /* Baldur's Gate: Dark Alliance (USA, Europe) */
 extern const LogoMask logoMaskBGD;
+/* Rebelstar: Tactical Command (USA, Europe) */
+extern const LogoMask logoMaskRS;
 
 #endif
