@@ -2696,7 +2696,7 @@ static bool accentValid;
 /* Purple is the original look; the other colours are its colours turned to
  * another hue, then darkened where needed so white text and the highlight read
  * on what's selected (and a little deeper still in the light theme, whose keys
- * are pale). The highlight is gold on purple, a pale tint of the hue on the others. */
+ * are pale). The highlight is a pale tint of the hue (a light purple on purple). */
 static const SDL_Color accBase[AC_COUNT] = {
 	[AC_BG] = { 14, 14, 26, 255 }, [AC_HEADER] = { 30, 26, 52, 255 }, [AC_ROW] = { 22, 22, 38, 255 },
 	[AC_BTN] = { 34, 30, 58, 240 }, [AC_BTN_SEL] = { 92, 52, 140, 250 }, [AC_EDGE] = { 150, 120, 210, 255 },
@@ -2749,11 +2749,9 @@ static void accent_build(void) {
 	float shift = accents[accentIdx].hue - accents[0].hue;
 	/* the selected key's family: a lightness scale small enough for white text and the highlight to read on its body */
 	float f = themeLight ? 0.92f : 1.f;
-	SDL_Color hi = accBase[AC_HI], hiInk = accBase[AC_HI_INK];
-	if (accentIdx) {
-		hi = hsl_to_rgb(accents[accentIdx].hue, 0.85f, 0.80f, 255);
-		hiInk = hsl_to_rgb(accents[accentIdx].hue, 0.80f, 0.24f, 255);
-	}
+	SDL_Color hi, hiInk;
+	hi = hsl_to_rgb(accents[accentIdx].hue, 0.85f, 0.80f, 255);
+	hiInk = hsl_to_rgb(accents[accentIdx].hue, 0.80f, 0.24f, 255);
 	SDL_Color white = { 255, 255, 255, 255 };
 	for (;;) {
 		SDL_Color body = accent_turn(accBase[AC_SEL_LO], shift, f);
