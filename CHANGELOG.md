@@ -2,6 +2,9 @@
 
 ## v1.5.5 (not yet released)
 
+### Fixes
+- **Web player: closing GBA DS now clears the screen.** The game's last picture used to stay behind the start page, making its text hard to read.
+
 ## v1.5.4 (2026-11-16)
 
 ### New games

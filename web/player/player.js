@@ -823,6 +823,8 @@ function showStopped() {
   P.running = false; P.paused = false;
   GBATouch.release();
   document.body.classList.remove("playing");
+  // the canvas keeps the game's last picture (the worker owns it): swap in a blank one
+  freshCanvas();
   $("start").hidden = false;
   showPaused(); showNow(); showSlots(); relayout();
 }
