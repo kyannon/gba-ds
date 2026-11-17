@@ -113,8 +113,9 @@ enum {
 	// More when the game has a hidden copy (map captures), which takes its own machine, code and
 	// state loads from the heap: with 15, Yoshi's Island's heap sat under HEAP_LOW with 1 MiB of
 	// its 13 MiB of code used, and the recompiler threw it all away every few seconds, 100-200 ms
-	// to compile it again each time (2026-11-16).
-	HEAP_LATER_HIDDEN = 21 << 20,
+	// to compile it again each time (2026-11-16). 21 still left the heap low once in 2 minutes with
+	// the code memory near full (9 MiB): 22 gives it 8.
+	HEAP_LATER_HIDDEN = 22 << 20,
 };
 
 bool jitHostMemoryLow(void) {
