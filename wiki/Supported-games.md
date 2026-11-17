@@ -38,6 +38,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Muppet Pinball Mayhem | `AMWE` `AMWP` (no Japanese release) | the table twice as tall over both screens, live, with the score bar | |
 | Ninja Five-O (Ninja Cop in Europe) | `ANXE` `ANXP` (no Japanese release) | in stages: the HUD (bars, score or time, the boss's bar, the shuriken's level, keys and hostages) | |
 | Pokémon Pinball: Ruby & Sapphire | `BPPE` `BPPP` `BPPJ` (Japan: the original and Rev 1) | the table twice as tall over both screens, live, with the score bar | |
+| Rebelstar: Tactical Command | `BRLE` `BRLP` (no Japanese release) | in battles: the Status of the soldier under the cursor, or the mission's Objectives | |
 | River City Ransom EX (Downtown Nekketsu Monogatari EX in Japan) | `BDTE` `BDTJ` (no European release) | the Status screen, with the top bar moved off the game screen | |
 | Sonic Advance | `ASOE` `ASOP` `ASOJ` | the zone card, with the rings, score, time and lives | |
 | Sonic Advance 2 | `A2NE` `A2NP` `A2NJ` | the zone card, with the rings, score, time and lives | |
@@ -422,6 +423,15 @@ The USA, European and Japanese releases (the Japanese one's Rev 1 too), all the 
 - On the title and menus, the second screen shows the logo.
 - The **bonus stages** play on one screen, with the logo on the other.
 - The frame buffer is always on in this game: it needs it to run at full speed.
+
+## Rebelstar: Tactical Command
+
+The USA and European releases (the European one in English, French, German, Spanish and Italian).
+
+- **In a battle,** with the cursor on one of your soldiers, the second screen shows their **Status**, the game's own screen, its three pages in turn, 2.5 seconds each: Equipment, Attributes and Skills. Anywhere else on the field (an empty square, an enemy), it shows the mission's **Objectives**. They're opened in the background on a silent copy of the game as you move the cursor; your game is never paused.
+- With a menu open, while moving, aiming or shooting, and in conversations during a battle, the last picture stays. Through the enemy's turn, the second screen shows the logo.
+- Outside battles (the title, menus, story scenes, deployment and the end of a mission) the second screen shows the logo: the title's lettering.
+- Known issue: the training missions (Boot Camp to Team Work) take over the buttons while their green instruction boxes guide you, so the second screen shows the logo for most of their guided turns.
 
 ## River City Ransom EX
 

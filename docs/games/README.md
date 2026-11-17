@@ -54,6 +54,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [MOTHER 3](mother-3.md) | M3 | `A3UJ` |
 | [Baldur's Gate: Dark Alliance](baldurs-gate-dark-alliance.md) | BGD | `BGDE` + 1 |
 | [Fire Emblem: Fuuin no Tsurugi (The Binding Blade)](fire-emblem-fuuin-no-tsurugi.md) | FE6 | `AFEJ` |
+| [Rebelstar: Tactical Command](rebelstar-tactical-command.md) | RS | `BRLE` + 1 |
 
 ## General rules
 

@@ -2,6 +2,9 @@
 
 ## v1.5.5 (not yet released)
 
+### New games
+- **Rebelstar: Tactical Command** (USA and Europe): in battles, the second screen shows the Status of the soldier under the cursor, its Equipment, Attributes and Skills pages in turn, or the mission's Objectives elsewhere on the field. The logo shows outside battles and through the enemy's turn. Known issue: the training missions take over the buttons while they teach, so the second screen mostly shows the logo through their guided turns.
+
 ## v1.5.4 (2026-11-16)
 
 ### New games

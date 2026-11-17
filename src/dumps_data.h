@@ -235,6 +235,8 @@ static const KnownDump knownDumps[] = {
 	{ "BPPJ", 0x8af1ec73, true, false, "Pokemon Pinball - Ruby & Sapphire (Japan)" },
 	{ "BPPJ", 0x925a5684, true, false, "Pokemon Pinball - Ruby & Sapphire (Japan) (Rev 1)" },
 	{ "BPPP", 0xa53ac14b, true, false, "Pokemon Pinball - Ruby & Sapphire (Europe) (En,Fr,De,Es,It)" },
+	{ "BRLE", 0xfb6c590f, true, false, "Rebelstar - Tactical Command (USA)" },
+	{ "BRLP", 0xe448c5d4, true, false, "Rebelstar - Tactical Command (Europe) (En,Fr,De,Es,It)" },
 	{ "BSKE", 0x1eac1f48, true, false, "Summon Night - Swordcraft Story 2 (USA)" },
 	{ "BSKJ", 0x8cd98f6f, true, false, "Summon Night - Craft Sword Monogatari 2 (Japan)" },
 	{ "A2CE", 0x00d0fddf, true, true, "Symphony of the Colors v1.0 (JonataGuitar)" },
