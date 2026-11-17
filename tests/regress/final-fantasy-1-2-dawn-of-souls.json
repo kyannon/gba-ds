@@ -82,7 +82,7 @@
    "id": "ff1-world",
    "rom": "BFFE",
    "state": "final-fantasy-1-2-dawn-of-souls/us-ff1-world.ss",
-   "desc": "Final Fantasy, on the world map outside Cornelia: the world map's parchment, the party's marker by Cornelia",
+   "desc": "Final Fantasy, on the world map outside Cornelia: the Enlarged Map over the whole screen, the party's sparkle in the middle",
    "rules": [
     "FF-4",
     "FF-9"
@@ -99,29 +99,47 @@
     },
     {
      "rule": "FF-4",
-     "what": "black either side of the parchment",
-     "type": "uniform",
+     "what": "the map reaches the screen's left edge (not black)",
+     "type": "not_uniform",
      "shot": "start",
      "rect": [
       32,
       64,
-      252,
+      112,
       704
      ],
      "color": "000000"
     },
     {
      "rule": "FF-4",
-     "what": "black either side of the parchment",
-     "type": "uniform",
+     "what": "the map reaches the screen's right edge (not black)",
+     "type": "not_uniform",
      "shot": "start",
      "rect": [
-      772,
+      912,
       64,
       992,
       704
      ],
      "color": "000000"
+    },
+    {
+     "rule": "FF-4",
+     "what": "not START's menu",
+     "type": "not_pixels",
+     "shot": "start",
+     "probes": [
+      [
+       38,
+       386,
+       "CECECE"
+      ],
+      [
+       42,
+       386,
+       "212121"
+      ]
+     ]
     }
    ]
   },
@@ -192,7 +210,7 @@
    "id": "ff1-battle",
    "rom": "BFFE",
    "state": "final-fantasy-1-2-dawn-of-souls/us-ff1-battle.ss",
-   "desc": "Final Fantasy, a battle with goblins: the logo, no captures",
+   "desc": "Final Fantasy, a battle with goblins loaded straight away, no party kept yet: the logo, no captures",
    "rules": [
     "FF-8"
    ],
@@ -289,6 +307,778 @@
      "what": "no captures in a battle",
      "type": "no_log",
      "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ff1-battle-party",
+   "rom": "BFFE",
+   "state": "final-fantasy-1-2-dawn-of-souls/us-ff1-world.ss",
+   "desc": "Final Fantasy: walking on the world map (the party kept), then a battle with goblins loaded: the party kept, the command window left out, the party window's own frame where it was",
+   "rules": [
+    "FF-8",
+    "FF-12"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:final-fantasy-1-2-dawn-of-souls/us-ff1-battle.ss"
+    ]
+   ],
+   "shots": {
+    "map": 150,
+    "battle": 400
+   },
+   "checks": [
+    {
+     "rule": "FF-8",
+     "what": "the party: the party window's left edge and the gil window",
+     "type": "pixels",
+     "shot": "battle",
+     "probes": [
+      [
+       38,
+       386,
+       "CECECE"
+      ],
+      [
+       42,
+       386,
+       "212121"
+      ],
+      [
+       834,
+       354,
+       "FFFFFF"
+      ]
+     ]
+    },
+    {
+     "rule": "FF-12",
+     "what": "no command window (its left edge)",
+     "type": "not_pixels",
+     "shot": "battle",
+     "probes": [
+      [
+       642,
+       186,
+       "FFFFFF"
+      ],
+      [
+       646,
+       186,
+       "CECECE"
+      ]
+     ]
+    },
+    {
+     "rule": "FF-12",
+     "what": "the party window's top edge runs on over where the commands were",
+     "type": "pixels",
+     "shot": "battle",
+     "probes": [
+      [
+       834,
+       66,
+       "FFFFFF"
+      ],
+      [
+       834,
+       70,
+       "CECECE"
+      ],
+      [
+       834,
+       74,
+       "212121"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ff1-battle-end",
+   "rom": "BFFE",
+   "state": "final-fantasy-1-2-dawn-of-souls/us-ff1-world.ss",
+   "desc": "Final Fantasy: the battle with goblins fought to its end (A): the party through it, the map again after",
+   "rules": [
+    "FF-8"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:final-fantasy-1-2-dawn-of-souls/us-ff1-battle.ss"
+    ],
+    [
+     260,
+     "A"
+    ],
+    [
+     264,
+     "-"
+    ],
+    [
+     280,
+     "A"
+    ],
+    [
+     284,
+     "-"
+    ],
+    [
+     300,
+     "A"
+    ],
+    [
+     304,
+     "-"
+    ],
+    [
+     320,
+     "A"
+    ],
+    [
+     324,
+     "-"
+    ],
+    [
+     340,
+     "A"
+    ],
+    [
+     344,
+     "-"
+    ],
+    [
+     360,
+     "A"
+    ],
+    [
+     364,
+     "-"
+    ],
+    [
+     380,
+     "A"
+    ],
+    [
+     384,
+     "-"
+    ],
+    [
+     400,
+     "A"
+    ],
+    [
+     404,
+     "-"
+    ],
+    [
+     420,
+     "A"
+    ],
+    [
+     424,
+     "-"
+    ],
+    [
+     440,
+     "A"
+    ],
+    [
+     444,
+     "-"
+    ],
+    [
+     460,
+     "A"
+    ],
+    [
+     464,
+     "-"
+    ],
+    [
+     480,
+     "A"
+    ],
+    [
+     484,
+     "-"
+    ],
+    [
+     500,
+     "A"
+    ],
+    [
+     504,
+     "-"
+    ],
+    [
+     520,
+     "A"
+    ],
+    [
+     524,
+     "-"
+    ],
+    [
+     540,
+     "A"
+    ],
+    [
+     544,
+     "-"
+    ],
+    [
+     560,
+     "A"
+    ],
+    [
+     564,
+     "-"
+    ],
+    [
+     580,
+     "A"
+    ],
+    [
+     584,
+     "-"
+    ],
+    [
+     600,
+     "A"
+    ],
+    [
+     604,
+     "-"
+    ],
+    [
+     620,
+     "A"
+    ],
+    [
+     624,
+     "-"
+    ],
+    [
+     640,
+     "A"
+    ],
+    [
+     644,
+     "-"
+    ],
+    [
+     660,
+     "A"
+    ],
+    [
+     664,
+     "-"
+    ],
+    [
+     680,
+     "A"
+    ],
+    [
+     684,
+     "-"
+    ],
+    [
+     700,
+     "A"
+    ],
+    [
+     704,
+     "-"
+    ],
+    [
+     720,
+     "A"
+    ],
+    [
+     724,
+     "-"
+    ],
+    [
+     740,
+     "A"
+    ],
+    [
+     744,
+     "-"
+    ],
+    [
+     760,
+     "A"
+    ],
+    [
+     764,
+     "-"
+    ],
+    [
+     780,
+     "A"
+    ],
+    [
+     784,
+     "-"
+    ],
+    [
+     800,
+     "A"
+    ],
+    [
+     804,
+     "-"
+    ],
+    [
+     820,
+     "A"
+    ],
+    [
+     824,
+     "-"
+    ],
+    [
+     840,
+     "A"
+    ],
+    [
+     844,
+     "-"
+    ],
+    [
+     860,
+     "A"
+    ],
+    [
+     864,
+     "-"
+    ],
+    [
+     880,
+     "A"
+    ],
+    [
+     884,
+     "-"
+    ],
+    [
+     900,
+     "A"
+    ],
+    [
+     904,
+     "-"
+    ],
+    [
+     920,
+     "A"
+    ],
+    [
+     924,
+     "-"
+    ],
+    [
+     940,
+     "A"
+    ],
+    [
+     944,
+     "-"
+    ],
+    [
+     960,
+     "A"
+    ],
+    [
+     964,
+     "-"
+    ],
+    [
+     980,
+     "A"
+    ],
+    [
+     984,
+     "-"
+    ],
+    [
+     1000,
+     "A"
+    ],
+    [
+     1004,
+     "-"
+    ],
+    [
+     1020,
+     "A"
+    ],
+    [
+     1024,
+     "-"
+    ],
+    [
+     1040,
+     "A"
+    ],
+    [
+     1044,
+     "-"
+    ],
+    [
+     1060,
+     "A"
+    ],
+    [
+     1064,
+     "-"
+    ],
+    [
+     1080,
+     "A"
+    ],
+    [
+     1084,
+     "-"
+    ],
+    [
+     1100,
+     "A"
+    ],
+    [
+     1104,
+     "-"
+    ],
+    [
+     1120,
+     "A"
+    ],
+    [
+     1124,
+     "-"
+    ],
+    [
+     1140,
+     "A"
+    ],
+    [
+     1144,
+     "-"
+    ],
+    [
+     1160,
+     "A"
+    ],
+    [
+     1164,
+     "-"
+    ],
+    [
+     1180,
+     "A"
+    ],
+    [
+     1184,
+     "-"
+    ],
+    [
+     1200,
+     "A"
+    ],
+    [
+     1204,
+     "-"
+    ],
+    [
+     1220,
+     "A"
+    ],
+    [
+     1224,
+     "-"
+    ],
+    [
+     1240,
+     "A"
+    ],
+    [
+     1244,
+     "-"
+    ],
+    [
+     1260,
+     "A"
+    ],
+    [
+     1264,
+     "-"
+    ],
+    [
+     1280,
+     "A"
+    ],
+    [
+     1284,
+     "-"
+    ],
+    [
+     1300,
+     "A"
+    ],
+    [
+     1304,
+     "-"
+    ],
+    [
+     1320,
+     "A"
+    ],
+    [
+     1324,
+     "-"
+    ],
+    [
+     1340,
+     "A"
+    ],
+    [
+     1344,
+     "-"
+    ],
+    [
+     1360,
+     "A"
+    ],
+    [
+     1364,
+     "-"
+    ],
+    [
+     1380,
+     "A"
+    ],
+    [
+     1384,
+     "-"
+    ],
+    [
+     1400,
+     "A"
+    ],
+    [
+     1404,
+     "-"
+    ],
+    [
+     1420,
+     "A"
+    ],
+    [
+     1424,
+     "-"
+    ],
+    [
+     1440,
+     "A"
+    ],
+    [
+     1444,
+     "-"
+    ],
+    [
+     1460,
+     "A"
+    ],
+    [
+     1464,
+     "-"
+    ],
+    [
+     1480,
+     "A"
+    ],
+    [
+     1484,
+     "-"
+    ],
+    [
+     1500,
+     "A"
+    ],
+    [
+     1504,
+     "-"
+    ],
+    [
+     1520,
+     "A"
+    ],
+    [
+     1524,
+     "-"
+    ],
+    [
+     1540,
+     "A"
+    ],
+    [
+     1544,
+     "-"
+    ],
+    [
+     1560,
+     "A"
+    ],
+    [
+     1564,
+     "-"
+    ],
+    [
+     1580,
+     "A"
+    ],
+    [
+     1584,
+     "-"
+    ],
+    [
+     1600,
+     "A"
+    ],
+    [
+     1604,
+     "-"
+    ],
+    [
+     1620,
+     "A"
+    ],
+    [
+     1624,
+     "-"
+    ],
+    [
+     1640,
+     "A"
+    ],
+    [
+     1644,
+     "-"
+    ],
+    [
+     1660,
+     "A"
+    ],
+    [
+     1664,
+     "-"
+    ],
+    [
+     1680,
+     "A"
+    ],
+    [
+     1684,
+     "-"
+    ],
+    [
+     1700,
+     "A"
+    ],
+    [
+     1704,
+     "-"
+    ],
+    [
+     1720,
+     "A"
+    ],
+    [
+     1724,
+     "-"
+    ],
+    [
+     1740,
+     "A"
+    ],
+    [
+     1744,
+     "-"
+    ],
+    [
+     1760,
+     "A"
+    ],
+    [
+     1764,
+     "-"
+    ],
+    [
+     1780,
+     "A"
+    ],
+    [
+     1784,
+     "-"
+    ]
+   ],
+   "shots": {
+    "battle": 700,
+    "after": 1700
+   },
+   "checks": [
+    {
+     "rule": "FF-8",
+     "what": "the party in the battle",
+     "type": "pixels",
+     "shot": "battle",
+     "probes": [
+      [
+       38,
+       386,
+       "CECECE"
+      ],
+      [
+       42,
+       386,
+       "212121"
+      ]
+     ]
+    },
+    {
+     "rule": "FF-8",
+     "what": "the map after the battle, not the party",
+     "type": "not_pixels",
+     "shot": "after",
+     "probes": [
+      [
+       38,
+       386,
+       "CECECE"
+      ],
+      [
+       42,
+       386,
+       "212121"
+      ]
+     ]
+    },
+    {
+     "rule": "FF-8",
+     "what": "the map after the battle (not black at the edges)",
+     "type": "not_uniform",
+     "shot": "after",
+     "rect": [
+      32,
+      64,
+      112,
+      704
+     ],
+     "color": "000000"
     }
    ]
   },
@@ -780,171 +1570,236 @@
     {
      "rule": "FF-4",
      "what": "the map, not the menu, at frame 150",
-     "type": "uniform",
+     "type": "not_pixels",
      "shot": "w150",
-     "rect": [
-      32,
-      64,
-      252,
-      704
-     ],
-     "color": "000000"
+     "probes": [
+      [
+       38,
+       386,
+       "CECECE"
+      ],
+      [
+       42,
+       386,
+       "212121"
+      ]
+     ]
     },
     {
      "rule": "FF-4",
      "what": "the map, not the menu, at frame 210",
-     "type": "uniform",
+     "type": "not_pixels",
      "shot": "w210",
-     "rect": [
-      32,
-      64,
-      252,
-      704
-     ],
-     "color": "000000"
+     "probes": [
+      [
+       38,
+       386,
+       "CECECE"
+      ],
+      [
+       42,
+       386,
+       "212121"
+      ]
+     ]
     },
     {
      "rule": "FF-4",
      "what": "the map, not the menu, at frame 270",
-     "type": "uniform",
+     "type": "not_pixels",
      "shot": "w270",
-     "rect": [
-      32,
-      64,
-      252,
-      704
-     ],
-     "color": "000000"
+     "probes": [
+      [
+       38,
+       386,
+       "CECECE"
+      ],
+      [
+       42,
+       386,
+       "212121"
+      ]
+     ]
     },
     {
      "rule": "FF-4",
      "what": "the map, not the menu, at frame 330",
-     "type": "uniform",
+     "type": "not_pixels",
      "shot": "w330",
-     "rect": [
-      32,
-      64,
-      252,
-      704
-     ],
-     "color": "000000"
+     "probes": [
+      [
+       38,
+       386,
+       "CECECE"
+      ],
+      [
+       42,
+       386,
+       "212121"
+      ]
+     ]
     },
     {
      "rule": "FF-4",
      "what": "the map, not the menu, at frame 390",
-     "type": "uniform",
+     "type": "not_pixels",
      "shot": "w390",
-     "rect": [
-      32,
-      64,
-      252,
-      704
-     ],
-     "color": "000000"
+     "probes": [
+      [
+       38,
+       386,
+       "CECECE"
+      ],
+      [
+       42,
+       386,
+       "212121"
+      ]
+     ]
     },
     {
      "rule": "FF-4",
      "what": "the map, not the menu, at frame 450",
-     "type": "uniform",
+     "type": "not_pixels",
      "shot": "w450",
-     "rect": [
-      32,
-      64,
-      252,
-      704
-     ],
-     "color": "000000"
+     "probes": [
+      [
+       38,
+       386,
+       "CECECE"
+      ],
+      [
+       42,
+       386,
+       "212121"
+      ]
+     ]
     },
     {
      "rule": "FF-4",
      "what": "the map, not the menu, at frame 510",
-     "type": "uniform",
+     "type": "not_pixels",
      "shot": "w510",
-     "rect": [
-      32,
-      64,
-      252,
-      704
-     ],
-     "color": "000000"
+     "probes": [
+      [
+       38,
+       386,
+       "CECECE"
+      ],
+      [
+       42,
+       386,
+       "212121"
+      ]
+     ]
     },
     {
      "rule": "FF-4",
      "what": "the map, not the menu, at frame 570",
-     "type": "uniform",
+     "type": "not_pixels",
      "shot": "w570",
-     "rect": [
-      32,
-      64,
-      252,
-      704
-     ],
-     "color": "000000"
+     "probes": [
+      [
+       38,
+       386,
+       "CECECE"
+      ],
+      [
+       42,
+       386,
+       "212121"
+      ]
+     ]
     },
     {
      "rule": "FF-4",
      "what": "the map, not the menu, at frame 630",
-     "type": "uniform",
+     "type": "not_pixels",
      "shot": "w630",
-     "rect": [
-      32,
-      64,
-      252,
-      704
-     ],
-     "color": "000000"
+     "probes": [
+      [
+       38,
+       386,
+       "CECECE"
+      ],
+      [
+       42,
+       386,
+       "212121"
+      ]
+     ]
     },
     {
      "rule": "FF-4",
      "what": "the map, not the menu, at frame 690",
-     "type": "uniform",
+     "type": "not_pixels",
      "shot": "w690",
-     "rect": [
-      32,
-      64,
-      252,
-      704
-     ],
-     "color": "000000"
+     "probes": [
+      [
+       38,
+       386,
+       "CECECE"
+      ],
+      [
+       42,
+       386,
+       "212121"
+      ]
+     ]
     },
     {
      "rule": "FF-4",
      "what": "the map, not the menu, at frame 750",
-     "type": "uniform",
+     "type": "not_pixels",
      "shot": "w750",
-     "rect": [
-      32,
-      64,
-      252,
-      704
-     ],
-     "color": "000000"
+     "probes": [
+      [
+       38,
+       386,
+       "CECECE"
+      ],
+      [
+       42,
+       386,
+       "212121"
+      ]
+     ]
     },
     {
      "rule": "FF-4",
      "what": "the map, not the menu, at frame 810",
-     "type": "uniform",
+     "type": "not_pixels",
      "shot": "w810",
-     "rect": [
-      32,
-      64,
-      252,
-      704
-     ],
-     "color": "000000"
+     "probes": [
+      [
+       38,
+       386,
+       "CECECE"
+      ],
+      [
+       42,
+       386,
+       "212121"
+      ]
+     ]
     },
     {
      "rule": "FF-4",
      "what": "the map, not the menu, at frame 870",
-     "type": "uniform",
+     "type": "not_pixels",
      "shot": "w870",
-     "rect": [
-      32,
-      64,
-      252,
-      704
-     ],
-     "color": "000000"
+     "probes": [
+      [
+       38,
+       386,
+       "CECECE"
+      ],
+      [
+       42,
+       386,
+       "212121"
+      ]
+     ]
     }
    ]
   }

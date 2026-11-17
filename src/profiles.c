@@ -5591,7 +5591,7 @@ static const FfRegion ffRegions[] = {
 	{ "BFFJ", 0x020004F8, 0x02000904 },
 };
 #define FF_BATTLE 0x02000000
-#define FF_V_LOGO 0xF0000080 /* outside the games, or a battle (FF-2, FF-8) */
+#define FF_V_LOGO 0xF0000080 /* outside the games, or a battle with no party to show (FF-2, FF-8) */
 #define FF_V_MAP 0xF0000084 /* Final Fantasy's map number */
 #define FF_MAP_W 128 /* the map screen's map, at its left, below the help window */
 #define FF2_WORLD 0x11C4 /* Final Fantasy II: 4 on the world map (past its base) */
@@ -5611,6 +5611,21 @@ static const int ffMap[][3] = { { 128, 40, 0xFFFFFF }, { 129, 40, 0xCECECE }, { 
 /* the hand at the menu's command list; the one on the map's parchment */
 static const SpriteRule ffMenuHand = { 136, -16, 200, 100, 0, 1023, -1, 0, 0, 1u << 1 };
 static const SpriteRule ffMapHand = { -16, -16, FF_MAP_W - 1, 159, 0, 1023, -1, 0, 0, 1u << 1 };
+/* Final Fantasy's Enlarged Map, over the whole screen: every sprite but the
+ * 8x8 marks on the map (the party's, the vehicles'): the hands and button
+ * icons (16x16), the command list's scroll arrows (8x8, priority 0) */
+static const SpriteRule ffEnlHide[] = { { -64, -64, 511, 255, 0, 1023, -1, 0, 0, ~1u },
+                                        { -64, -64, 511, 255, 0, 1023, 0, 0, 0, 0 } };
+/* the marker's place on the second screen: its middle at the screen's */
+#define FF_ENL_X (GBA_W / 2 - 4)
+#define FF_ENL_Y (GBA_H / 2 - 4)
+#define FF_CMD_ROWS 72 /* START's menu: the command window's rows (FF-12) */
+#define FF_PARTY_EVERY 4 /* on the world map, the party kept every 4th capture */
+/* the party kept for battles (FF-12): written by the composer, read (the
+ * flag) by ff_virt */
+static uint32_t ffParty[GBA_W * GBA_H];
+static volatile bool ffPartyOk;
+static int ffWorldCaptures;
 
 static const FfRegion* ff_r(Emu* e) {
 	for (size_t i = 0; i < sizeof(ffRegions) / sizeof(*ffRegions); ++i) {
@@ -5632,7 +5647,18 @@ static int ff_game(Emu* e) {
 }
 
 static uint32_t ff_virt(Emu* e, uint32_t addr) {
-	if (addr == FF_V_LOGO) return !ff_game(e) || emu_read8(e, FF_BATTLE) == 1;
+	if (addr == FF_V_LOGO) {
+		/* outside the games: the logo, and the party kept dropped (FF-2,
+		 * FF-12); a battle: Final Fantasy's party kept, else the logo
+		 * (FF-8) */
+		int g = ff_game(e);
+		if (!g) {
+			ffPartyOk = false;
+			return 1;
+		}
+		if (emu_read8(e, FF_BATTLE) != 1) return 0;
+		return g != 1 || !ffPartyOk;
+	}
 	/* Final Fantasy's map number, Final Fantasy II's world map flag (4)
 	 * (FF-5, FF-10) */
 	if (addr == FF_V_MAP) {
@@ -5703,6 +5729,174 @@ static bool ff_settle_right(Emu* s, int n) {
 	return still >= 3;
 }
 
+/* a buffer for the composer's states */
+static uint8_t* ff_tmp(Emu* s) {
+	static uint8_t* tmp;
+	static size_t tmpSize;
+	size_t need = emu_state_size(s);
+	if (need > tmpSize) {
+		free(tmp);
+		tmp = malloc(need);
+		tmpSize = tmp ? need : 0;
+	}
+	return tmp;
+}
+
+/* the frame drawn again with only the given layers, then the state as it
+ * was (the layers take effect as the display registers are written) */
+static void ff_draw_layers(Emu* s, const uint8_t* tmp, unsigned layers, uint32_t* to) {
+	emu_layers(s, layers);
+	emu_state_load(s, tmp);
+	emu_frame(s, 0);
+	memcpy(to, s->fb, GBA_W * GBA_H * sizeof(uint32_t));
+	emu_layers(s, 0x1F);
+	emu_state_load(s, tmp);
+}
+
+/* START's menu brought up (from one of its screens, B first, as often as it
+ * takes: FF-6) and settled, its hand hidden */
+static const char* ff_open_menu(Emu* s, int game) {
+	emu_hide_sprites(s, &ffMenuHand, 1);
+	bool up = false;
+	for (int tries = 0; tries < 3 && !up; ++tries) {
+		if (tries) {
+			aw_run(s, K_B, 4);
+			aw_run(s, 0, 40);
+		}
+		aw_run(s, K_START, 4);
+		for (int f = 0; f < 90 && !up; f += 2) {
+			aw_run(s, 0, 2);
+			up = ff_menu_up(s, game);
+		}
+	}
+	if (!up) return "the menu didn't open"; /* (FF-7) */
+	if (!ff_settle(s, 120)) return "the menu didn't settle";
+	if (!ff_menu_up(s, game)) return "the menu closed";
+	if (emu_cancelled(s)) return "called off";
+	return NULL;
+}
+
+/* Final Fantasy's party kept for battles from START's menu, up: its top
+ * rows without BG1 (the command window), the party window under it (FF-12) */
+static void ff_keep_party(Emu* s) {
+	static uint32_t keep[GBA_W * GBA_H], bg0[GBA_W * GBA_H];
+	uint8_t* tmp = ff_tmp(s);
+	if (!tmp || !emu_state_save(s, tmp)) return;
+	memcpy(keep, s->fb, sizeof(keep));
+	ff_draw_layers(s, tmp, 0x11, bg0);
+	memcpy(keep, bg0, FF_CMD_ROWS * GBA_W * sizeof(uint32_t));
+	if (emu_cancelled(s)) return;
+	memcpy(ffParty, keep, sizeof(ffParty));
+	ffPartyOk = true;
+}
+
+static bool ff_oam(Emu* s, int i, int* x, int* y, int* sz, int* prio) {
+	uint16_t a0 = emu_read16(s, 0x07000000 + i * 8), a1 = emu_read16(s, 0x07000002 + i * 8);
+	uint16_t a2 = emu_read16(s, 0x07000004 + i * 8);
+	if ((a0 & 0x0300) == 0x0200) return false; /* (off) */
+	*x = a1 & 0x1FF;
+	*y = a0 & 0xFF;
+	if (*x >= 256) *x -= 512;
+	if (*y >= 160) *y -= 256;
+	*sz = (a0 >> 14) * 4 + (a1 >> 14);
+	*prio = a2 >> 10 & 3;
+	return true;
+}
+
+/* the party's marker on the Enlarged Map: the 8x8 sprite beside the map's
+ * hand cursor (16x16, priority 1; it starts where the party is); -1 if none */
+static int ff_marker(Emu* s) {
+	int hx = 0, hy = 0, x, y, sz, prio;
+	bool hand = false;
+	for (int i = 0; i < 128 && !hand; ++i) {
+		hand = ff_oam(s, i, &x, &y, &sz, &prio) && sz == 1 && prio == 1;
+		if (hand) hx = x + 15, hy = y + 1;
+	}
+	if (!hand) return -1;
+	int best = -1, bestD = 24 * 24;
+	for (int i = 0; i < 128; ++i) {
+		if (!ff_oam(s, i, &x, &y, &sz, &prio) || sz != 0 || prio == 0) continue;
+		int d = (x - hx) * (x - hx) + (y - hy) * (y - hy);
+		if (d < bestD) best = i, bestD = d;
+	}
+	return best;
+}
+
+/* Final Fantasy's Enlarged Map up on the hidden copy: BG2 reaches right of
+ * the Full Map's parchment (the Full Map leaves it empty there) */
+static bool ff_enlarged(Emu* s, const uint8_t* tmp) {
+	static uint32_t bg2[GBA_W * GBA_H];
+	ff_draw_layers(s, tmp, 0x04, bg2);
+	int differ = 0;
+	for (int y = 40; y < GBA_H; y += 8) {
+		for (int x = FF_MAP_W + 8; x < GBA_W; ++x) differ += bg2[y * GBA_W + x] != bg2[40 * GBA_W + FF_MAP_W + 8];
+	}
+	return differ > 40;
+}
+
+/* Final Fantasy's world map: the Enlarged Map over the whole screen, the
+ * party's marker in the middle (FF-4); the map is up and settled */
+static const char* ff_world1(Emu* s, uint32_t* out, int w, int h) {
+	static uint32_t bare[GBA_W * GBA_H], pic[GBA_W * GBA_H];
+	uint8_t* tmp = ff_tmp(s);
+	if (!tmp || !emu_state_save(s, tmp)) return "state save failed";
+	/* the Enlarged Map (the game opens whichever was used last) */
+	for (int tries = 0; tries < 2 && !ff_enlarged(s, tmp); ++tries) {
+		if (tries) aw_run(s, K_UP, 4); /* (its command cursor elsewhere) */
+		aw_run(s, K_A, 4);
+		aw_run(s, 0, 30);
+		if (!ff_settle_right(s, 120)) return "the map didn't settle";
+		if (!emu_state_save(s, tmp)) return "state save failed";
+	}
+	if (!ff_enlarged(s, tmp)) return "no Enlarged Map";
+	if (emu_cancelled(s)) return "called off";
+	/* the marker to the middle, as a player scrolls it (R + pad) */
+	int mark = ff_marker(s), mx, my, sz, prio;
+	for (int f = 0; f < 240 && mark >= 0 && ff_oam(s, mark, &mx, &my, &sz, &prio); ++f) {
+		unsigned keys = 0;
+		if (mx < FF_ENL_X - 1) keys |= K_LEFT;
+		if (mx > FF_ENL_X + 1) keys |= K_RIGHT;
+		if (my < FF_ENL_Y - 1) keys |= K_UP;
+		if (my > FF_ENL_Y + 1) keys |= K_DOWN;
+		if (!keys) break;
+		aw_run(s, K_R | keys, 1);
+	}
+	aw_run(s, 0, 4);
+	if (emu_cancelled(s)) return "called off";
+	if (!emu_state_save(s, tmp)) return "state save failed";
+	/* BG2 alone, then with the marker where it's largest (it pulses) */
+	ff_draw_layers(s, tmp, 0x04, bare);
+	emu_hide_sprites(s, ffEnlHide, 2);
+	emu_layers(s, 0x14);
+	emu_state_load(s, tmp);
+	int best = -1;
+	for (int k = 0; k < 24; ++k) {
+		emu_frame(s, 0);
+		int n = 0;
+		for (int i = 0; i < GBA_W * GBA_H; ++i) n += s->fb[i] != bare[i];
+		if (n > best) {
+			best = n;
+			memcpy(pic, s->fb, sizeof(pic));
+		}
+	}
+	emu_layers(s, 0x1F);
+	emu_hide_sprites(s, NULL, 0);
+	emu_state_load(s, tmp);
+	if (emu_cancelled(s)) return "called off";
+	for (int y = 0; y < h; ++y) {
+		for (int x = 0; x < w; ++x) out[y * w + x] = y < GBA_H && x < GBA_W ? pic[y * GBA_W + x] : 0xFF000000;
+	}
+	/* the party kept for battles, now and then (FF-12): the map closed,
+	 * START's menu */
+	if (!ffPartyOk || ++ffWorldCaptures >= FF_PARTY_EVERY) {
+		ffWorldCaptures = 0;
+		aw_run(s, K_B, 4);
+		aw_run(s, 0, 40);
+		if (!ff_open_menu(s, 1)) ff_keep_party(s);
+	}
+	return NULL;
+}
+
 static const char* ff_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
 	static uint32_t pic[GBA_W * GBA_H];
 	emu_hide_sprites(s, NULL, 0);
@@ -5711,7 +5905,14 @@ static const char* ff_compose(Emu* s, const void* state, uint32_t* out, int w, i
 	emu_frame(s, 0);
 	int game = ff_game(s);
 	if (!game) return "not in a game"; /* (FF-2) */
-	if (emu_read8(s, FF_BATTLE) == 1) return "a battle"; /* (FF-8) */
+	if (emu_read8(s, FF_BATTLE) == 1) {
+		/* Final Fantasy: the party kept (FF-8, FF-12) */
+		if (game != 1 || !ffPartyOk) return "a battle";
+		for (int y = 0; y < h; ++y) {
+			for (int x = 0; x < w; ++x) out[y * w + x] = y < GBA_H && x < GBA_W ? ffParty[y * GBA_W + x] : 0xFF000000;
+		}
+		return NULL;
+	}
 	/* back to walking about from the menu or the map (FF-6) */
 	for (int i = 0; i < 4; ++i) {
 		bool map = ff_map_up(s);
@@ -5737,6 +5938,11 @@ static const char* ff_compose(Emu* s, const void* state, uint32_t* out, int w, i
 		/* the world map never shows the menu: the last picture stays
 		 * instead (FF-4, FF-11) */
 		if (!map) return "the map didn't open";
+		if (game == 1) {
+			if (!ff_settle_right(s, 120)) return "the map didn't settle";
+			if (emu_cancelled(s)) return "called off";
+			return ff_world1(s, out, w, h);
+		}
 		{
 			/* faded in: the windows at its right still (the parchment's
 			 * marker pulses) */
@@ -5755,10 +5961,9 @@ static const char* ff_compose(Emu* s, const void* state, uint32_t* out, int w, i
 			}
 			if (!tmp || !emu_state_save(s, tmp)) return "state save failed";
 			static uint32_t bare[GBA_W * GBA_H];
-			/* (Final Fantasy's map on BG2; Final Fantasy II's on BG1, its
-			 * sea's edges on BG3) */
-			unsigned layers = game == 1 ? 0x04 : 0x0A;
-			int top = game == 1 ? 28 : 24;
+			/* (Final Fantasy II's map on BG1, its sea's edges on BG3) */
+			unsigned layers = 0x0A;
+			int top = 24;
 			emu_layers(s, layers);
 			emu_state_load(s, tmp);
 			emu_frame(s, 0);
@@ -5794,26 +5999,11 @@ static const char* ff_compose(Emu* s, const void* state, uint32_t* out, int w, i
 		}
 	}
 
-	/* START's menu (FF-5, FF-10); from one of its screens (Status, Items...),
-	 * B first (FF-6), as often as it takes */
-	emu_hide_sprites(s, &ffMenuHand, 1);
-	bool up = false;
-	for (int tries = 0; tries < 3 && !up; ++tries) {
-		if (tries) {
-			aw_run(s, K_B, 4);
-			aw_run(s, 0, 40);
-		}
-		aw_run(s, K_START, 4);
-		for (int f = 0; f < 90 && !up; f += 2) {
-			aw_run(s, 0, 2);
-			up = ff_menu_up(s, game);
-		}
-	}
-	if (!up) return "the menu didn't open"; /* (FF-7) */
-	if (!ff_settle(s, 120)) return "the menu didn't settle";
-	if (!ff_menu_up(s, game)) return "the menu closed";
-	if (emu_cancelled(s)) return "called off";
+	/* START's menu (FF-5, FF-10) */
+	const char* err = ff_open_menu(s, game);
+	if (err) return err;
 	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+	if (game == 1) ff_keep_party(s); /* (FF-12) */
 	return NULL;
 }
 
