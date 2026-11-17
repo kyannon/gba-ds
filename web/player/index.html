@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="color-scheme" content="dark">
-<meta name="theme-color" content="#102060">
+<meta name="theme-color" content="#1e1a34">
 <title>GBA DS web player</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -13,6 +13,10 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icon-192.png">
+<script>
+// the theme before the first paint (the player's settings are in localStorage)
+try { var t = JSON.parse(localStorage.getItem("gbadsPlayer.settings") || "null"); document.documentElement.dataset.theme = t && t.theme === "light" ? "light" : "dark"; } catch (e) { document.documentElement.dataset.theme = "dark"; }
+</script>
 <link rel="stylesheet" href="player.css">
 </head>
 <body>
@@ -34,9 +38,10 @@
       <button class="tool game-only" id="shotBtn" title="Screenshot (both screens)" aria-label="Screenshot"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
       <button class="tool game-only" id="closeBtn" title="Close the game" aria-label="Close the game"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       <span class="sep game-only"></span>
+      <button class="tool" id="themeBtn" title="Light theme" aria-label="Switch theme"><svg class="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6L7 7M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/></svg><svg class="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></button>
       <button class="tool" id="soundBtn" title="Sound" aria-label="Sound"><svg class="i-on" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4zM16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg><svg class="i-off" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4zM17 9l5 6M22 9l-5 6"/></svg></button>
       <button class="tool" id="controlsBtn" title="Controls" aria-label="Controls"><svg viewBox="0 0 24 24"><path d="M7 8h10a5 5 0 0 1 4.6 7l-1 2.3a2 2 0 0 1-3.4.4L15 15H9l-2.2 2.7a2 2 0 0 1-3.4-.4l-1-2.3A5 5 0 0 1 7 8zM8 10.5v3M6.5 12h3"/><circle cx="16" cy="11" r=".6"/><circle cx="17.5" cy="13" r=".6"/></svg></button>
-      <button class="tool" id="settingsBtn" title="Settings" aria-label="Settings"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
+      <button class="tool" id="settingsBtn" title="Web player settings" aria-label="Web player settings"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
       <button class="tool" id="fullBtn" title="Full screen" aria-label="Full screen"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
     </nav>
   </header>
@@ -50,25 +55,38 @@
     <section class="start" id="start">
       <div class="start-card">
         <div class="notice" id="iosNotice" hidden><span>On iPhone and iPad, add this page to your Home Screen (Share, then Add to Home Screen) and open it from there: Safari can clear what a page keeps, your saves included, when it isn't opened for a while.</span><button type="button" id="iosNoticeX" aria-label="Dismiss">×</button></div>
-        <h1>GBA DS in your browser</h1>
-        <p class="lede">Choose a GBA game, or drop it anywhere on this page. Your games and saves stay on this device.</p>
         <div class="slots">
           <button class="slot" id="slotGame" type="button">
             <span class="slot-k">Game</span>
             <span class="slot-v" id="gameName">No game yet</span>
-            <span class="slot-h" id="gameHint">A GBA game (.gba, or zipped)</span>
-          </button>
-          <button class="slot optional" id="slotSave" type="button">
-            <span class="slot-k">Save <em>optional</em></span>
-            <span class="slot-v" id="saveName">The player keeps your saves</span>
-            <span class="slot-h">A battery save (.sav, .srm) or a state (.ss) to start from</span>
-          </button>
-          <button class="slot optional" id="slotBuild" type="button">
-            <span class="slot-k">GBA DS</span>
-            <span class="slot-v" id="buildName">No build yet</span>
-            <span class="slot-h" id="buildHint">A GBA DS build (.zip) with a web build inside</span>
+            <span class="slot-h" id="gameHint">Drag and drop or choose a game</span>
           </button>
         </div>
+        <section class="files-card" aria-labelledby="filesH">
+          <h2 id="filesH">Your files</h2>
+      <p class="note" id="folderNote"></p>
+      <div class="buttons" id="folderBtns">
+        <button type="button" class="ghost" id="folderPick">Choose a folder…</button>
+        <button type="button" class="ghost" id="folderReconnect" hidden>Reconnect</button>
+        <button type="button" class="ghost" id="folderForget" hidden>Stop using the folder</button>
+      </div>
+      <p class="note" id="keptNote">Battery saves, states and GBA DS's own settings are also kept in this browser between visits.</p>
+      <div class="buttons">
+        <button type="button" class="ghost" id="exportSave">Download this game's save</button>
+        <button type="button" class="ghost" id="forgetBuild">Forget the dropped build</button>
+        <button type="button" class="ghost danger" id="clearAll">Delete everything kept here</button>
+      </div>
+        </section>
+        <div class="slots build-slot">
+          <button class="slot" id="slotBuild" type="button">
+            <span class="slot-k">GBA DS Build</span>
+            <span class="slot-v">No build yet</span>
+          </button>
+        </div>
+        <section class="files-card build-card" id="buildCard" aria-labelledby="buildH" hidden>
+          <h2 id="buildH">GBA DS Build<span id="buildName"></span></h2>
+          <div class="buttons"><button type="button" class="ghost" id="newBuild">Select a new build…</button></div>
+        </section>
         <div class="go">
           <button class="primary" id="playBtn" type="button" disabled>Play</button>
           <button class="ghost" id="listBtn" type="button" hidden>Open GBA DS's game list</button>
@@ -90,7 +108,12 @@
 <!-- Settings -->
 <dialog class="panel" id="settings">
   <form method="dialog" class="panel-in">
-    <header><h2>Settings</h2><button class="x" value="close" aria-label="Close">×</button></header>
+    <header><h2>Web player settings</h2><button class="x" value="close" aria-label="Close">×</button></header>
+    <section>
+      <h3>Look</h3>
+      <label class="row"><span>Theme</span>
+        <select id="theme"><option value="dark">Dark keys</option><option value="light">Light keys</option></select></label>
+    </section>
     <section>
       <h3>Screens</h3>
       <label class="row"><span>Resolution</span><select id="device"></select></label>
@@ -103,15 +126,13 @@
     <section>
       <h3>Layout</h3>
       <label class="row"><span>Arrangement</span>
-        <select id="arrange"><option value="rotate">Follow screen rotation</option><option value="stack">Top over bottom</option><option value="side">Side by side</option></select></label>
-      <label class="row"><span>Sizes</span>
-        <select id="sizes"><option value="device">By inches</option><option value="pixels">By pixels</option></select></label>
+        <select id="arrange"><option value="stack">Top over bottom</option><option value="rotate">Follow screen rotation</option><option value="side">Side by side</option></select></label>
       <label class="row"><span>Screen gap</span><input type="range" id="gap" min="0" max="12" step="1"></label>
       <label class="row"><span>Picture</span>
         <select id="smooth"><option value="1">Smooth</option><option value="0">Sharp pixels</option></select></label>
       <label class="row"><span>Detail</span>
-        <select id="scale"><option value="0.5">Half the resolution (fastest)</option><option value="0.75">Three quarters</option><option value="1">The whole resolution (sharpest; slower)</option></select></label>
-      <p class="note">Follow screen rotation: upright, the screens stack; on its side, they sit side by side. GBA DS draws its screens at the detail chosen and your graphics card scales them to fit. Half is still over twice the game's own pixels.</p>
+        <select id="scale"><option value="0.3333333333333333">A third of the resolution (fastest)</option><option value="0.5">Half the resolution</option><option value="0.6666666666666666">Two thirds of the resolution</option><option value="0.75">Three quarters</option><option value="1">The whole resolution (sharpest; slower)</option></select></label>
+      <p class="note">Follow screen rotation: upright, the screens stack; on its side, they sit side by side. GBA DS draws its screens at the detail chosen and your graphics card scales them to fit. On Two GBA screens a third draws every game pixel once, two thirds twice and the whole resolution three times, all exact; half and three quarters (1.5× and 2.25×) make some pixels wider than their neighbours.</p>
     </section>
     <section>
       <h3>On-screen controls</h3>
@@ -126,21 +147,6 @@
       <h3>Sound and play</h3>
       <label class="row"><span>Volume</span><input type="range" id="volume" min="0" max="100" step="1"></label>
       <label class="check"><input type="checkbox" id="pauseHidden"> Pause when this tab is hidden</label>
-    </section>
-    <section>
-      <h3>Your files</h3>
-      <p class="note" id="folderNote"></p>
-      <div class="buttons" id="folderBtns">
-        <button type="button" class="ghost" id="folderPick">Choose a folder…</button>
-        <button type="button" class="ghost" id="folderReconnect" hidden>Reconnect</button>
-        <button type="button" class="ghost" id="folderForget" hidden>Stop using the folder</button>
-      </div>
-      <p class="note" id="keptNote">Battery saves, states and GBA DS's own settings are also kept in this browser between visits.</p>
-      <div class="buttons">
-        <button type="button" class="ghost" id="exportSave">Download this game's save</button>
-        <button type="button" class="ghost" id="forgetBuild">Forget the dropped build</button>
-        <button type="button" class="ghost danger" id="clearAll">Delete everything kept here</button>
-      </div>
     </section>
     <section>
       <h3>Troubleshooting</h3>

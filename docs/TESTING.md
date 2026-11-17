@@ -24,7 +24,7 @@ ROMs and save states never go in this repository.
 ```sh
 make && make tools                          # build/host/gba-ds and harness
 git clone https://github.com/kyannon/gba-ds-tests ../gba-ds-tests
-tools/regress.py                            # every case (about 8 minutes with 2 cores)
+tools/regress.py                            # every case (once per release; see "When to run what")
 tools/regress.py fire-emblem                # one game
 tools/regress.py 'fe-us-*' som-us-forest    # case ids or globs
 tools/regress.py --list [GAME]              # the cases and the rules they cover
@@ -43,6 +43,19 @@ The exit status is 0 only when every case passes. Run the suite before
 sending a build that touches `profiles.c`, `game.c`, `mapcap.c`, `emu.c`,
 or `logo.c`.
 
+### When to run what
+
+Run only the cases the work can affect, and the full suite once per
+release (CLAUDE.md, "Regression tests" has the rule):
+
+- game work: the game's own cases (and any new ones for its new rules),
+  plus the cases of shared code the work changed;
+- issues and PRs: only the cases of shared code the fix changed;
+- test builds, the final one before a release included: the same, for
+  what changed since the last build;
+- a release: every case, once, when the owner asks to cut it, on the
+  last commit before the release commit.
+
 ### Only what changed
 
 `--changed [BASE]` (tools/regress_changed.py) runs only the games a change
@@ -58,10 +71,40 @@ prints each changed file and what it picked:
   dozen games, `fe_compose` the two Fire Emblems). Regional variants count
   for their base profile's games. A line in shared machinery (variants,
   `profile_find`...) runs every game;
-- docs, the wiki, the README, the changelog, Android-only code, State
-  Saver: nothing;
-- anything else (the app's sources, the Makefile, build scripts,
-  regress.py): every game.
+- docs, the wiki, the README, the changelog, VERSION, Android-only code,
+  State Saver: nothing;
+- the app's other sources (`src/*.c`, `*.h`): the games that run the
+  functions changed, from the dependency map (below), or every game when
+  the map isn't there;
+- anything else (the Makefile, build scripts, regress.py): every game.
+
+### Which games run a shared file
+
+`dependencies.json` in the fixtures repo (`DEPENDENCIES.md` beside it is
+the same thing for reading: per game, the files and functions it runs)
+lists, for every function of `src/`, the games whose cases execute it
+(`"*"`: all of them; `[]`: none does). It's measured: the app is built with
+gcov (`make OUT=build/cov OPTFLAGS="-O0 -g --coverage" build/cov/gba-ds`)
+and `tools/regress_deps.py measure` runs each game's cases on it
+(`GCOV_PREFIX` keeps the games' counters apart), then `build` merges the
+results into the two files. `--changed` uses it for changes to `src/`:
+
+- a change inside a function: that function's games;
+- a change outside any function (a table, a macro), to a function the map
+  doesn't know (new, renamed), or to a file it knows no function of that
+  runs: every game that runs the file; a header, a file the map doesn't
+  know, or no map at all: every game. It only ever widens, never narrows.
+- `src/profiles.c` keeps its own, finer tracing (above).
+
+`tools/regress_deps.py show GAME` lists the files a game relies on, `show
+FILE` the games that run it, `check` the functions added since the
+measurement. The map goes stale when code starts calling something it
+didn't (the caller's change picks the caller's games; the callee's map
+entry doesn't know them yet): measure again after a release's full run, or
+when `check` lists more than a handful of new functions, and commit the new
+files to the fixtures repo. The cases that fail on the coverage build are
+the ones failing normally (a golden behind the code): the code they ran is
+still recorded.
 
 A change to the fixtures alone isn't seen: name the game, or run them all.
 
@@ -71,8 +114,10 @@ A change to the fixtures alone isn't seen: name the game, or run them all.
 `android` and `game/*`: the games `--changed` picks since the push's
 previous commit, split over up to six runners (`--shard I/N`), each
 fetching only the fixtures its cases use (`--fixture-paths`, a sparse
-checkout). A "Release vX.Y.Z" commit, or "Run workflow" with "full"
-ticked, runs every game. The fixtures come in with the repository secret
+checkout). Only "Run workflow" with "full"
+ticked runs every game: once per release, on the commit before the release
+commit (a "Release vX.Y.Z" commit changes only VERSION and the changelog's
+date, so it runs nothing). The fixtures come in with the repository secret
 `GBA_DS_TESTS_TOKEN` (a fine-grained token, Contents: read-only on
 kyannon/gba-ds-tests). The run's summary lists what was picked and why,
 each share's failures, and the releases tested only on their logo; a

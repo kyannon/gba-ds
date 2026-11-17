@@ -496,13 +496,34 @@ def bgd(a):
     return np.asarray(Image.open(os.path.join(ROOT, "tools", "logo_stencils", "bgd.png")).convert("L")) > 127
 
 
+def rs(a):
+    """Rebelstar: Tactical Command (USA, Europe: the same title picture): rebelstar, the star and TACTICAL
+    COMMAND, painted into the title picture over a planet and space with
+    the same greys and dark outlines, so no rule on colours cuts them out.
+    The outline is a stencil instead, tools/logo_stencils/rs.png: the
+    silhouette of the owner's copy of the logo (its transparency), scaled
+    to 0.21 of its size with its top left at 7.5, 10.5 (where it best
+    matches the title's lettering, a correlation of 0.90 over the stencil:
+    found by search). Only its outline is used; the pixels are the
+    title's. Not the TM or Press START."""
+    st = np.asarray(Image.open(os.path.join(ROOT, "tools", "logo_stencils", "rs.png")).convert("L")) >= 128
+    ss, x0, y0, scale = 4, 7.5, 10.5, 0.21
+    sw, sh = int(round(st.shape[1] * scale * ss)), int(round(st.shape[0] * scale * ss))
+    big = np.zeros((H * ss, W * ss))
+    ox, oy = int(round(x0 * ss)), int(round(y0 * ss))
+    sm = np.asarray(Image.fromarray(st.astype(np.uint8) * 255).resize((sw, sh), Image.BILINEAR)) / 255
+    hh, ww = min(sh, H * ss - oy), min(sw, W * ss - ox)
+    big[oy:oy + hh, ox:ox + ww] = sm[:hh, :ww]
+    return big.reshape(H, ss, W, ss).mean(axis=(1, 3)) >= 0.5
+
+
 MASKS = (("THPS2", thps2), ("SK8", sk8), ("THPS3", thps3), ("DBZ", dbz),
          ("GS2E", gs2), ("GS2D", gs2_dial), ("GS2F", gs2_dial), ("GS2I", gs2), ("GS2S", gs2_dial),
          ("GS2J", gs2), ("CNK", cnk), ("CNKJ", cnk_jpn),
          ("DBZ2", dbz2), ("DBZ2J", dbz2_jpn), ("BF", bf),
          ("VR3", vr3), ("VR3J", vr3), ("GT3", gt3), ("GT3J", gt3_jpn),
          ("NFO", nfo), ("NFOP", nfo_eur), ("AMW", amw), ("ER", er),
-         ("MVDK", mvdk), ("MVDKJ", mvdk_jpn), ("BGD", bgd))
+         ("MVDK", mvdk), ("MVDKJ", mvdk_jpn), ("BGD", bgd), ("RS", rs))
 
 
 def runs(mask):

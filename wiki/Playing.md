@@ -162,9 +162,9 @@ Press each one when it's asked for. **Tap the touchscreen to skip** a button you
 
 The new mapping works straight away and is kept in `states/controllers.txt` for that controller. The log (`gba-ds.log`) has the same line: send it in an issue and it can be built into GBA DS for everyone with that device and system. Running Map Buttons again replaces it; deleting `controllers.txt` goes back to the built-in mappings.
 
-### Changing the face buttons for a game
+### Changing the buttons for a game
 
-Pause menu → **Controls** tab sets which GBA button each face button gives (**A (right) button** and so on; A for this game, Y for all games): **A (Right)**, **B (Bottom)**, **X (Top)** and **Y (Left)** can each be GBA A, GBA B, GBA L, GBA R or Nothing (LEFT / RIGHT, A or a tap to change one; B to go back). For example, B (Bottom) as GBA A and Y (Left) as GBA B puts jump on the bottom button and attack on the left one, as in many SNES games. Two buttons can give the same GBA button.
+Pause menu → **Controls** tab sets which GBA button each button gives (**A (right) button** and so on; A for this game, Y for all games): **A (Right)**, **B (Bottom)**, **X (Top)**, **Y (Left)**, **L**, **R** and the four **D-pad** directions can each be GBA A, B, L, R, Up, Down, Left, Right, Start, Select, Turbo A, Turbo B or Nothing (LEFT / RIGHT, A or a tap to change one; B to go back). The list scrolls: the D-pad moves down it, or drag it with a finger. For example, B (Bottom) as GBA A and Y (Left) as GBA B puts jump on the bottom button and attack on the left one, as in many SNES games. Two buttons can give the same GBA button.
 
 Changes work straight away and are kept in `states/<game>.cfg` for this game, or in `states/prefs.cfg` for all. **X** on a row (or a touch on its gold Game tag) goes back to the value for all games. GBA DS's own menus keep A to choose and B to go back, L1 / R1 stay GBA L / R, and the hotkeys don't change.
 
@@ -243,7 +243,7 @@ GBA DS earns [RetroAchievements](https://retroachievements.org) in **casual (sof
 
 ## Logos
 
-Until the second screen has something to show (title screen, intro, menus), it shows the game's logo. No logo files are shipped: the first time a game appears in the list, GBA DS boots it silently in the background, runs it to its title screen and renders just the layer that holds the logo, at the game's own resolution with transparency. It's saved as `states/logos/<CODE>.png`. The logo is drawn like a second GBA screen: at its own size, centred on dark grey in a GBA-sized picture (at half strength while it's all there is to show), with the second screen's scaling and the LCD grid, so its pixels match the game beside it. Everything else GBA DS puts on the second screen (maps, status screens, windows) is drawn the same way, at the game's own size. `show_logo = 0` in `gba-ds.cfg` leaves the second screen black instead.
+Until the second screen has something to show (title screen, intro, menus), it shows the game's logo. No logo files are shipped: the first time a game appears in the list, GBA DS boots it silently in the background, runs it to its title screen and renders just the layer that holds the logo, at the game's own resolution with transparency. It's saved as `states/logos/<CODE>.png`. The logo is drawn like a second GBA screen: at its own size, centred on dark grey in a GBA-sized picture (at half strength while it's all there is to show), with the second screen's scaling and the LCD grid, so its pixels match the game beside it. Everything else GBA DS puts on the second screen (maps, status screens, windows) is drawn the same way, at the game's own size.
 
 To use your own art instead, put `<CODE>.png` (or `.bmp`, `.jpg` or `.webp`) in `gba-ds/logos/` (Android: `GBA DS/logos/`). `<CODE>` is the game's four-letter code, listed in [[Supported games]].
 

@@ -3,9 +3,10 @@
 #
 # On a push to dev, android or a game/* branch: only the games the push
 # changes (regress.py --changed: a game's own files, or the part of
-# profiles.c its profile uses; shared code runs every game; docs, the wiki
-# and Android-only code run nothing). A "Release vX.Y.Z" commit, or
-# "Run workflow" from the Actions tab with "full" ticked, runs every game.
+# profiles.c its profile uses; shared code runs every game; docs, the wiki,
+# VERSION and Android-only code run nothing). Only "Run workflow" from the
+# Actions tab with "full" ticked runs every game: once per release, on the
+# commit before the release commit (CLAUDE.md, "Release").
 #
 # The fixtures (kyannon/gba-ds-tests: ROMs, states, goldens) are private:
 # the repository secret GBA_DS_TESTS_TOKEN, a fine-grained token with
@@ -42,27 +43,50 @@ jobs:
         with:
           fetch-depth: 0
 
+      # The measured map of which functions each game's cases run
+      # (tools/regress_deps.py, dependencies.json in the fixtures repo), so a
+      # change to shared code picks only the games that run it. Fetched beside
+      # the checkout, where regress.py looks for the fixtures; without it
+      # (no token, not reachable) shared code runs every game.
+      - name: Dependency map
+        env:
+          TOKEN: ${{ secrets.GBA_DS_TESTS_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then echo "No token: no dependency map, shared code runs every game."; exit 0; fi
+          mkdir -p ../gba-ds-tests && cd ../gba-ds-tests
+          git init -q
+          git remote add origin "https://x-access-token:${TOKEN}@github.com/kyannon/gba-ds-tests.git"
+          git sparse-checkout set --no-cone /dependencies.json
+          if git fetch -q --depth 1 --filter=blob:none origin main && git checkout -q FETCH_HEAD; then
+            echo "Dependency map from gba-ds commit $(python3 -c 'import json; print(json.load(open("dependencies.json"))["commit"][:9])')"
+          else
+            echo "::warning title=No dependency map::Couldn't fetch dependencies.json from kyannon/gba-ds-tests; shared code runs every game."
+          fi
+
       - name: Pick the games
         id: pick
         env:
           BEFORE: ${{ github.event.before }}
-          FULL: ${{ github.event_name == 'workflow_dispatch' && inputs.full || startsWith(github.event.head_commit.message, 'Release v') }}
+          FULL: ${{ github.event_name == 'workflow_dispatch' && inputs.full }}
         run: |
           pip install --quiet --break-system-packages pillow
+          # (the files below go in build/, which git ignores: regress.py counts untracked files as changes,
+          # and a selection.txt in the checkout made every push "shared code")
+          mkdir -p build
           if [ "$FULL" = "true" ]; then
-            echo '"all"' > games.json
-            echo "Every game (a release, or asked for)." | tee -a "$GITHUB_STEP_SUMMARY"
+            echo '"all"' > build/games.json
+            echo "Every game (asked for)." | tee -a "$GITHUB_STEP_SUMMARY"
           else
             # (the push's previous commit; a new branch, or a manual run: where it left dev)
             base="$BEFORE"
             if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$base^{commit}" 2>/dev/null; then
               base=$(git merge-base HEAD origin/dev)
             fi
-            python3 tools/regress.py --changed "$base" --games-json games.json | tee selection.txt
-            { echo '### What changed'; echo '```'; cat selection.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+            python3 tools/regress.py --changed "$base" --games-json build/games.json | tee build/selection.txt
+            { echo '### What changed'; echo '```'; cat build/selection.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
           fi
-          games=$(cat games.json)
-          if [ "$games" = '"all"' ]; then sel=""; else sel=$(python3 -c 'import json,sys; print(" ".join(json.load(open("games.json"))))'); fi
+          games=$(cat build/games.json)
+          if [ "$games" = '"all"' ]; then sel=""; else sel=$(python3 -c 'import json,sys; print(" ".join(json.load(open("build/games.json"))))'); fi
           if [ "$games" != '"all"' ] && [ -z "$sel" ]; then
             echo "games=" >> "$GITHUB_OUTPUT"; echo "shards=[]" >> "$GITHUB_OUTPUT"
             echo "Nothing to test: no change affects a game." >> "$GITHUB_STEP_SUMMARY"

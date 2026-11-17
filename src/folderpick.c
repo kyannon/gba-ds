@@ -13,10 +13,10 @@
 /* (Settings > Hotkeys' look; rows and buttons are the menus' keys, ui_key) */
 static const SDL_Color C_BG = { 14, 14, 26, 255 };
 static const SDL_Color C_ROW = { 22, 22, 38, 255 };
-static const SDL_Color C_EDGE = { 150, 120, 210, 255 };
+#define C_EDGE ui_accent_color(AC_EDGE)
 static const SDL_Color C_TEXT = { 236, 236, 244, 255 };
 static const SDL_Color C_DIM = { 140, 140, 172, 255 };
-static const SDL_Color C_GOLD = { 232, 200, 120, 255 };
+#define C_GOLD ui_accent_color(AC_HI)
 
 #define MAX_DIRS 2048
 #define VIS 7 /* list rows on screen */

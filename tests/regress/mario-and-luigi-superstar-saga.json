@@ -3424,7 +3424,7 @@
     "mlssplus-v1.5-100.ips",
     "mlssplus-v1.5-100.bps"
    ],
-   "desc": "the pause menu's Tools > Patches with Superstar Saga+ as an IPS and a BPS in the game's folder: both \"Tested romhack\", the IPS selected, then A once: \"Sure?\" and the note to save first",
+   "desc": "the pause menu's Patches (on the Game tab) with Superstar Saga+ as an IPS and a BPS in the game's folder: both \"Tested romhack\", the IPS selected, then A once: \"Sure?\" and the note to save first",
    "rules": [
     "GEN-9"
    ],
@@ -3434,19 +3434,35 @@
      "TAP:0.5,0.3"
     ],
     [
-     130,
-     "R"
-    ],
-    [
-     134,
-     "-"
-    ],
-    [
-     150,
+     126,
      "DOWN"
     ],
     [
-     152,
+     129,
+     "-"
+    ],
+    [
+     132,
+     "DOWN"
+    ],
+    [
+     135,
+     "-"
+    ],
+    [
+     138,
+     "DOWN"
+    ],
+    [
+     141,
+     "-"
+    ],
+    [
+     144,
+     "DOWN"
+    ],
+    [
+     147,
      "-"
     ],
     [
@@ -3572,19 +3588,35 @@
      "TAP:0.5,0.3"
     ],
     [
-     130,
-     "R"
-    ],
-    [
-     134,
-     "-"
-    ],
-    [
-     150,
+     126,
      "DOWN"
     ],
     [
-     152,
+     129,
+     "-"
+    ],
+    [
+     132,
+     "DOWN"
+    ],
+    [
+     135,
+     "-"
+    ],
+    [
+     138,
+     "DOWN"
+    ],
+    [
+     141,
+     "-"
+    ],
+    [
+     144,
+     "DOWN"
+    ],
+    [
+     147,
      "-"
     ],
     [
@@ -3696,19 +3728,35 @@
      "TAP:0.5,0.3"
     ],
     [
-     130,
-     "R"
-    ],
-    [
-     134,
-     "-"
-    ],
-    [
-     150,
+     126,
      "DOWN"
     ],
     [
-     152,
+     129,
+     "-"
+    ],
+    [
+     132,
+     "DOWN"
+    ],
+    [
+     135,
+     "-"
+    ],
+    [
+     138,
+     "DOWN"
+    ],
+    [
+     141,
+     "-"
+    ],
+    [
+     144,
+     "DOWN"
+    ],
+    [
+     147,
      "-"
     ],
     [
@@ -3837,19 +3885,35 @@
      "TAP:0.5,0.3"
     ],
     [
-     130,
-     "R"
-    ],
-    [
-     134,
-     "-"
-    ],
-    [
-     150,
+     126,
      "DOWN"
     ],
     [
-     152,
+     129,
+     "-"
+    ],
+    [
+     132,
+     "DOWN"
+    ],
+    [
+     135,
+     "-"
+    ],
+    [
+     138,
+     "DOWN"
+    ],
+    [
+     141,
+     "-"
+    ],
+    [
+     144,
+     "DOWN"
+    ],
+    [
+     147,
      "-"
     ],
     [
