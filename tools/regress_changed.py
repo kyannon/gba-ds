@@ -39,6 +39,7 @@ NO_EFFECT = (
     ".github/workflows/wiki.yml", "dist/screens.sh", "dist/launch.sh", "dist/banana-play.sh",
     # (what picks the tests, not what they run)
     "tools/regress_changed.py", "tools/regress_deps.py", ".github/workflows/regress.yml",
+    "selection.txt", "games.json",  # (what CI's select job writes: older workflow versions put them in the checkout)
 )
 
 

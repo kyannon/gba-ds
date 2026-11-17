@@ -70,8 +70,11 @@ jobs:
           FULL: ${{ github.event_name == 'workflow_dispatch' && inputs.full }}
         run: |
           pip install --quiet --break-system-packages pillow
+          # (the files below go in build/, which git ignores: regress.py counts untracked files as changes,
+          # and a selection.txt in the checkout made every push "shared code")
+          mkdir -p build
           if [ "$FULL" = "true" ]; then
-            echo '"all"' > games.json
+            echo '"all"' > build/games.json
             echo "Every game (asked for)." | tee -a "$GITHUB_STEP_SUMMARY"
           else
             # (the push's previous commit; a new branch, or a manual run: where it left dev)
@@ -79,11 +82,11 @@ jobs:
             if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$base^{commit}" 2>/dev/null; then
               base=$(git merge-base HEAD origin/dev)
             fi
-            python3 tools/regress.py --changed "$base" --games-json games.json | tee selection.txt
-            { echo '### What changed'; echo '```'; cat selection.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+            python3 tools/regress.py --changed "$base" --games-json build/games.json | tee build/selection.txt
+            { echo '### What changed'; echo '```'; cat build/selection.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
           fi
-          games=$(cat games.json)
-          if [ "$games" = '"all"' ]; then sel=""; else sel=$(python3 -c 'import json,sys; print(" ".join(json.load(open("games.json"))))'); fi
+          games=$(cat build/games.json)
+          if [ "$games" = '"all"' ]; then sel=""; else sel=$(python3 -c 'import json,sys; print(" ".join(json.load(open("build/games.json"))))'); fi
           if [ "$games" != '"all"' ] && [ -z "$sel" ]; then
             echo "games=" >> "$GITHUB_OUTPUT"; echo "shards=[]" >> "$GITHUB_OUTPUT"
             echo "Nothing to test: no change affects a game." >> "$GITHUB_STEP_SUMMARY"
