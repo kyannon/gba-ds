@@ -130,7 +130,7 @@ Games are never published: players bring their own.
 - Kept between visits: everything under `/saves`, `/states` (with GBA DS's
   `prefs.cfg`) and `/home`, synced to IndexedDB every 4 s, on pause and on
   closing.
-- **A folder of the player's** (Settings > Your files; File System Access:
+- **A folder of the player's** (the start screen's Your files box; File System Access:
   Chrome and Edge on computers, Chrome on Android 132+, not Firefox or
   Safari), as GBA DS's data folder on a handheld: `roms/`, `saves/`,
   `states/`, `screenshots/` (the app's `/shots`), `cheats/`, `overlays/`,

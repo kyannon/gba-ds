@@ -77,7 +77,7 @@ const RESOLUTIONS = (() => {
 
 /* ================================================================ settings */
 const SET_KEY = "gbadsPlayer.settings", CTL_KEY = "gbadsPlayer.controls";
-const DEFAULTS = { device: "gba", custom: { top: [1024, 768, 4.3], bottom: [1024, 768, 4.3] }, arrange: "rotate", sizes: "device",
+const DEFAULTS = { device: "gba", custom: { top: [1024, 768, 4.3], bottom: [1024, 768, 4.3] }, arrange: "stack", sizes: "device",
   gap: 0, smooth: true, scale: 0.5, volume: 80, muted: false, pauseHidden: true,
   touchShow: "auto", touchPlace: "rotate", touchSize: 100, touchVibrate: true, theme: "dark" };
 const readJSON = (k) => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } };
@@ -96,11 +96,16 @@ function migrateSettings(s) {
     if (s.touchPlace === "below") s.touchPlace = DEFAULTS.touchPlace;
     s.v = 3;
   }
+  // (v4, Nov 17, 2026: Top over bottom by default; "follow rotation" was the default, so it moves once)
+  if (s.v < 4) {
+    if (s.arrange === "rotate") s.arrange = DEFAULTS.arrange;
+    s.v = 4;
+  }
   if (!["rotate", "stack", "side"].includes(s.arrange)) s.arrange = DEFAULTS.arrange;
   if (RESOLUTIONS.alias[s.device]) s.device = RESOLUTIONS.alias[s.device];
   return s;
 }
-if ((S.v || 1) < 3) { migrateSettings(S); writeJSON(SET_KEY, S); } else migrateSettings(S);
+if ((S.v || 1) < 4) { migrateSettings(S); writeJSON(SET_KEY, S); } else migrateSettings(S);
 // the theme: the keys' look (the app's Settings > Games > Theme); the page stays dark, as in the app
 function applyTheme() {
   const light = S.theme === "light";
@@ -889,10 +894,10 @@ function showSlots() {
   $("buildHint").classList.toggle("warn", !!b && !(b.caps.hasAudio && b.caps.hasButtons));
   $("slotGame").classList.toggle("have", !!r);
   $("gameName").textContent = r ? r.title : "No game yet";
-  $("gameHint").textContent = r ? r.code + " · " + r.name : "A GBA game (.gba, or zipped)";
-  const extra = P.state || P.save;
-  $("slotSave").classList.toggle("have", !!extra);
-  $("saveName").textContent = P.state ? "State: " + P.state.name : P.save ? "Save: " + P.save.name : "The player keeps your saves";
+  $("gameHint").textContent = r ? r.code + " · " + r.name + (P.state ? " · State: " + P.state.name : P.save ? " · Save: " + P.save.name : "") : "Drag and drop or choose a game";
+  $("exportSave").disabled = !r;
+  showFolder();
+  $("forgetBuild").hidden = !b || b.bundled;
   $("playBtn").disabled = !(b && r);
   $("playBtn").textContent = r ? "Play " + r.title : "Play";
 }
@@ -926,7 +931,7 @@ async function showRecent() {
     ul.appendChild(li);
   }
 }
-for (const id of ["slotBuild", "slotGame", "slotSave", "openBtn"]) $(id).onclick = () => $("fileInput").click();
+for (const id of ["slotBuild", "slotGame", "openBtn"]) $(id).onclick = () => $("fileInput").click();
 $("fileInput").onchange = (e) => { const f = [...e.target.files]; e.target.value = ""; if (f.length) takeFiles(f); };
 $("playBtn").onclick = () => boot();
 $("listBtn").onclick = () => boot({ library: true });
@@ -1260,9 +1265,6 @@ function showSettings() {
   $("theme").value = S.theme === "light" ? "light" : "dark";
   $("volume").value = S.volume; $("pauseHidden").checked = !!S.pauseHidden;
   $("touchShow").value = S.touchShow; $("touchPlace").value = S.touchPlace; $("touchSize").value = S.touchSize; $("touchVibrate").checked = !!S.touchVibrate;
-  $("exportSave").disabled = !P.rom;
-  showFolder();
-  $("forgetBuild").hidden = !P.build || P.build.bundled;
   $("aboutNote").textContent = "Player " + VERSION + (P.build ? " · GBA DS " + P.build.version : "") +
     (P.caps ? " · sound " + (P.caps.hasAudio ? "yes" : "no") + ", every button " + (P.caps.hasButtons ? "yes" : "no") : "") + " · " + navigator.userAgent.replace(/^Mozilla\/5\.0 /, "");
 }
