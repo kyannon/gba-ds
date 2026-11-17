@@ -1100,7 +1100,7 @@ static int updatesSel;
 #define SETTINGS_MAX 8
 static int nRows = 1; /* rows shown (Back is row nRows) */
 /* (Hotkeys shares Map Buttons' line: the right half of it, under one text) */
-enum { ROW_BANANA, ROW_ES, ROW_MAP, ROW_HOTKEYS, ROW_UPDATES, ROW_FOLDERS, ROW_RA, ROW_ESDE, ROW_PERF, ROW_STATES, ROW_STATES_DIR, ROW_RESET, ROW_DELCFG };
+enum { ROW_BANANA, ROW_ES, ROW_MAP, ROW_HOTKEYS, ROW_UPDATES, ROW_FOLDERS, ROW_RA, ROW_ESDE, ROW_PERF, ROW_STATES, ROW_STATES_DIR, ROW_RESET, ROW_DELCFG, ROW_ROTATION };
 static int rowKind[SETTINGS_MAX];
 
 #ifdef __ANDROID__
@@ -1120,7 +1120,11 @@ static void settings_rows(const Config* cfg) {
 	nRows = 0;
 	/* ES-DE's folder found: GBA DS in its emulator list (esde.c) */
 	if (esde_present()) rowKind[nRows++] = ROW_ESDE;
-	for (size_t i = 0; i < sizeof(android) / sizeof(android[0]); ++i) rowKind[nRows++] = android[i];
+	for (size_t i = 0; i < sizeof(android) / sizeof(android[0]); ++i) {
+		rowKind[nRows++] = android[i];
+		/* one display (a phone, a Surface Duo): hold the window portrait or landscape (issue #60) */
+		if (android[i] == ROW_RA && android_one_display()) rowKind[nRows++] = ROW_ROTATION;
+	}
 	rowKind[nRows++] = ROW_RESET;
 	rowKind[nRows++] = ROW_DELCFG;
 #else
@@ -1528,6 +1532,8 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 		labels[i] = k == ROW_ESDE    ? (esde_integration_on() ? "GBA DS in ES-DE: On" : "GBA DS in ES-DE: Off")
 		          : k == ROW_FOLDERS ? "Folders"
 		          : k == ROW_RA      ? raLabel
+		          : k == ROW_ROTATION ? (android_rotation_get() == 1 ? "Rotation: Portrait"
+		                               : android_rotation_get() == 2 ? "Rotation: Landscape" : "Rotation: Auto")
 		          : k == ROW_RESET   ? (confirmRow == i ? "Are you sure? Reset settings" : "Reset settings to defaults")
 		          : k == ROW_DELCFG  ? (confirmRow == i ? "Are you sure? Delete them" : "Delete per-game settings")
 		                             : "Updates";
@@ -1547,6 +1553,11 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 		break;
 	case ROW_DELCFG:
 		text = DELCFG_NOTE;
+		break;
+	case ROW_ROTATION:
+		text = android_rotation_get() == 1 ? "Held upright: the two screens one above the other. Either way up."
+		       : android_rotation_get() == 2 ? "Held on its side: the two screens side by side. Either way round."
+		                                     : "Follows how you hold the phone, and Android's own rotation lock.";
 		break;
 	case ROW_FOLDERS:
 		text = cfg->saveDir[0] ? "Where games are read from, and the folder their saves are kept in."
@@ -1592,6 +1603,9 @@ static void settings_activate(Config* cfg, int row) {
 	switch (rowKind[row]) {
 	case ROW_ESDE:
 		esde_integration_set(!esde_integration_on(), settingsMsg, sizeof(settingsMsg));
+		return;
+	case ROW_ROTATION:
+		android_rotation_set((android_rotation_get() + 1) % 3);
 		return;
 	case ROW_FOLDERS:
 		foldersOpen = true, foldersSel = 0;

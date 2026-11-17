@@ -790,3 +790,25 @@ Player-facing Android changes since the last release, for the main session
 to move into CHANGELOG.md and the release notes (see CLAUDE.md, "More than
 one session"). Empty after each release.
 
+
+- **Rotation setting for phones and the Surface Duo (issue #60).** With one
+  display, Settings > System > Rotation holds the window upright (the two
+  screens one above the other), on its side (side by side), or leaves it to
+  the phone (Auto, the default: follows Android's rotation lock as before).
+  Portrait and landscape still turn either way up. Not shown on devices with
+  two displays.
+
+### Notes for sessions: Rotation (issue #60, `android`)
+
+- The choice is `rotation.cfg` (one word: auto / portrait / landscape) in the
+  app's own storage (`GBADS_APP_FILES`, like `data-folder.cfg`), so Java can
+  read it in `onCreate` before the window exists (`GbaDsActivity.rotationMode`,
+  used by `orientationWanted`: SENSOR_PORTRAIT / SENSOR_LANDSCAPE / FULL_USER).
+  `android_rotation_set` (android.c) writes it and calls `applyRotation`, which
+  re-applies the orientation at once. The row is `ROW_ROTATION` in library.c,
+  after RetroAchievements, only when `android_one_display()`.
+- Not tried on a device yet. On a Surface Duo, locking landscape may take a
+  spanned app back to one screen (issue #48 saw that with a hard landscape
+  lock); Auto stays the default for that reason.
+- Desktop kit: `STUB_SECOND=none` shows the row; `stubs_extra.c` keeps the
+  mode in memory.

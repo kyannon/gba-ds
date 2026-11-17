@@ -458,6 +458,43 @@ static bool call_activity(const char* name, const char* arg) {
 	return ok;
 }
 
+/* ---- Settings > Rotation (issue #60): rotation.cfg in the app's own
+ * storage, "auto" | "portrait" | "landscape" on one line; GbaDsActivity
+ * reads it before the window exists and applyRotation changes it live. */
+static bool rotation_file(char* out, size_t size) {
+	const char* files = getenv("GBADS_APP_FILES");
+	if (!files || !*files) return false;
+	snprintf(out, size, "%s/rotation.cfg", files);
+	return true;
+}
+
+bool android_one_display(void) {
+	int w, h;
+	return !android_second_size(&w, &h);
+}
+
+int android_rotation_get(void) {
+	char path[1100], line[32] = "";
+	if (!rotation_file(path, sizeof(path))) return 0;
+	FILE* f = fopen(path, "r");
+	if (!f) return 0;
+	if (!fgets(line, sizeof(line), f)) line[0] = 0;
+	fclose(f);
+	return !strncmp(line, "portrait", 8) ? 1 : !strncmp(line, "landscape", 9) ? 2 : 0;
+}
+
+void android_rotation_set(int mode) {
+	static const char* const names[] = { "auto", "portrait", "landscape" };
+	char path[1100];
+	if (mode < 0 || mode > 2 || !rotation_file(path, sizeof(path))) return;
+	FILE* f = fopen(path, "w");
+	if (f) {
+		fprintf(f, "%s\n", names[mode]);
+		fclose(f);
+	}
+	call_activity("applyRotation", names[mode]);
+}
+
 bool android_ra_dialog(const char* user) {
 	pthread_mutex_lock(&raLock);
 	raState = 0;
