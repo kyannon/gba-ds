@@ -933,7 +933,10 @@ void emu_tidy(Emu* e) {
 	ArmCore* c = AC(e);
 	size_t size = 0;
 	size_t used = c && c->gba ? jitCodeUsed(c->gba, &size) : 0;
-	if (size && (used > size / 10 * 4 || getenv("GBADS_TIDY_ALWAYS"))) { /* (GBADS_TIDY_ALWAYS: tests) */
+	/* (three quarters: since armGBA reuses a full stretch part's room and caps careful
+	 * copies, Mario Kart's code levels off at about 60% of its 13 MiB, and emptying it at
+	 * 40% only cost a 120 ms frame between races, 2026-11-16) */
+	if (size && (used > size / 4 * 3 || getenv("GBADS_TIDY_ALWAYS"))) { /* (GBADS_TIDY_ALWAYS: tests) */
 		/* (what it had compiled goes back on the warm list, for the frames'
 		 * spare time to compile again before the race) */
 		enum { MOST = 1 << 16 };
