@@ -140,7 +140,7 @@ Games are never published: players bring their own.
   change to the folder and the saves / states / home ones to IndexedDB as
   before (`keepFiles`), so the browser keeps a copy. With a folder, a run
   starts from the folder's files (plus IndexedDB's `/home`), the game list
-  from its `roms/` too; screenshots and bug reports are only written.
+  from its `roms/` too; screenshots and bug reports are only written (a saved bug report's .zip is also handed to the browser as a download: `downloadBugReports` in player.js).
   The folder's games aren't copied into memory: each goes to the worker as
   a `File` (from `getFile()`), and the runtime (`MemFS.write` with a Blob)
   reads only what the app reads, when it reads it, with the worker's

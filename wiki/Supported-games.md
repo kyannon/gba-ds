@@ -5,6 +5,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Advance Wars (Game Boy Wars Advance in Japan) | `AWRE` `AWRP` `BGWJ` (Japan: on Game Boy Wars Advance 1+2, with Advance Wars 2) | in battles: the intel of the unit under the cursor, or the battle intel | |
 | Advance Wars 2: Black Hole Rising (Game Boy Wars Advance 2 in Japan) | `AW2E` `AW2P` `BGWJ` (Japan: on Game Boy Wars Advance 1+2, with Advance Wars) | in battles: the intel of the unit under the cursor, or the battle intel | |
 | Baldur's Gate: Dark Alliance | `BGDE` `BGDP` | the area's map (made from the game's own screens), a red X where you are | |
+| Banjo-Kazooie: Grunty's Revenge | `BKZE` (USA and Europe) `BKZX` `BKZI` `BKZS` (no Japanese release) | the pause screen and the world's Totals, in turn, Banjo's health on both | |
 | Castlevania: Aria of Sorrow | `A2CE` `A2CP` `A2CJ` | map | JonataGuitar's Recolor v1.02 and Symphony of the Colors (USA) |
 | Castlevania: Circle of the Moon | `AAME` `AAMP` `AAMJ` | map, with the completion rate | |
 | Castlevania: Harmony of Dissonance | `ACHE` `ACHP` `ACHJ` | map | Recolor by JonataGuitar and sorrow (USA) |
@@ -97,6 +98,15 @@ The USA and European releases.
 The game has no map, so GBA DS makes one. Each time you arrive in an area, a copy of the game, running silently beside yours, looks over the whole area a screen at a time; the second screen then shows the area's floors, walls and furniture at a quarter of their size, following you and stopping at the area's edges, with a red X where you are: the one the game puts on an unusable quick slot. Rooms you haven't reached yet are on it too. Enemies, barrels and pots aren't. The logo shows on the title, while the map is being made, and at GAME OVER.
 
 Known issues: making a big area's map takes up to about 2 seconds on the RG DS Plus, and the game pauses for that moment as you arrive; doors you open aren't shown open until you come back to the area. Eldrith's Watch, the last boss's arena, is shown on the game's blue background colour, as the scenery behind it isn't part of the map.
+
+## Banjo-Kazooie: Grunty's Revenge
+
+The USA and Europe release, Europe's English, French and German release, and the Italian and Spanish releases.
+
+- **While you play,** the second screen shows two of the game's own screens in turn, five seconds each: the **pause screen** (START) without its menu, with Banjo's health, the notes, eggs, feathers, Hollow Honeycombs, Jiggies, Jinjos and the rest; and the **Totals** page for the world you're in (what you've found there out of what there is), with Banjo's health bar at the top left in place of the world's name, so it stays put as the pages turn. They're opened in the background on a silent copy of the game about once a second, and again as soon as you go into another area; your game is never paused. Both are shown on black, without the level behind them.
+- Pausing in the game, and conversations and scenes, keep the last pictures on the second screen.
+- At the title, on the file screen and in the opening story, the second screen shows the logo: the title's lettering.
+- Not tried yet: the mini-games, the boss fights and Mumbo's transformations.
 
 ## Castlevania: Aria of Sorrow, Harmony of Dissonance, Circle of the Moon
 
