@@ -118,12 +118,11 @@ by dragging or with L1/R1... (page up / down), with a thin scroll bar.
 
 ## Pause menu (this game, or all)
 
-Seven tabs (Game, Tools, Display, Screens, Controls, Speed, Map; L1 / R1 and taps), each at most one screen where it can:
+Six tabs (Game, Display, Screens, Controls, Speed, Map; L1 / R1 and taps); a page shows at most 8 rows and scrolls past that (D-pad or a finger dragged). The Settings screens carry the same pictures as the tabs (Settings > System: a toolbox):
 
 | Tab | Holds |
 |---|---|
-| **Game** | Resume, Restart, Save State / Load State, slot, Close Game, Close GBA DS (actions, as now) |
-| **Tools** | Cheats, Patches, Achievements, Take Screenshot, Submit a Bug Report (actions) |
+| **Game** | Resume / Restart Game and Save State / Load State (two to a row), the slot, then Cheats, Patches, Achievements, Take Screenshot, Submit a Bug Report, then Close Game and Close GBA DS last (actions) |
 | **Display** | the Display category's rows; Overlays opens its screen as now |
 | **Controls** | the Controls category's rows; Face buttons becomes four rows here instead of its own screen |
 | **More** | Speed and sound, Second screen and Saves rows that make sense for one game |

@@ -1149,7 +1149,7 @@ typedef struct {
 static SDL_Rect set_panel(int scr);
 static SDL_Rect set_row(int scr, int n, int i);
 static SDL_Rect set_row_gap(int scr, int n, int i, int gapAt);
-static void draw_set_heading(int scr, SDL_Rect p, const char* title);
+static void draw_set_heading(int scr, SDL_Rect p, const char* title, int icon);
 static int set_note_wrap(int scr, int n, int y, const char* text, SDL_Color c, int font);
 static SettingsGeom settings_geom(int scr) {
 	/* the same rows as the other pages (set_row), the older panel's text now a
@@ -1175,7 +1175,7 @@ static void draw_settings_frame(int scr, const SettingsGeom* g, int sel, const c
 	float px = g->px;
 	ui_dim(scr, 200);
 	ui_fill_round(scr, g->panel, C_HEADER, px * 4);
-	draw_set_heading(scr, g->panel, "System");
+	draw_set_heading(scr, g->panel, "System", GAME_ICON_SYSTEM);
 	for (int i = 0; i <= nRows; ++i) {
 		SDL_Rect b = i < nRows ? g->row[i] : g->back;
 		ui_key(scr, b, px * 3, i == sel ? KEY_SEL : KEY_PLAIN);
@@ -1292,11 +1292,19 @@ static int set_note_wrap(int scr, int n, int y, const char* text, SDL_Color c, i
 }
 
 /* the heading of every Settings page: large, filling the strip above the rows */
-static void draw_set_heading(int scr, SDL_Rect p, const char* title) {
+static void draw_set_heading(int scr, SDL_Rect p, const char* title, int icon) {
 	int px = (int) ui_px(scr), cap = px * 10;
 	int w = ui_label_width(scr, cap, title), maxW = p.w - px * 12;
 	if (w > maxW) cap = cap * maxW / w;
-	ui_label(scr, p.x + p.w / 2, p.y + px * 11, cap, title, C_TEXT);
+	int tx = p.x + p.w / 2;
+	if (icon >= 0) {
+		/* the pause menu's picture for the page, before the title */
+		int is = cap * 2, gap = cap / 2, tw = ui_label_width(scr, cap, title);
+		SDL_Rect ib = { tx - (tw + gap + is) / 2, p.y + px * 11 - is / 2, is, is };
+		game_page_icon(scr, icon, ib, C_TEXT, C_HEADER);
+		tx = ib.x + is + gap + tw / 2;
+	}
+	ui_label(scr, tx, p.y + px * 11, cap, title, C_TEXT);
 }
 
 static void draw_set_home(int scr, int sel) {
@@ -1304,7 +1312,7 @@ static void draw_set_home(int scr, int sel) {
 	SDL_Rect p = set_panel(scr);
 	ui_dim(scr, 200);
 	ui_fill_round(scr, p, C_HEADER, px * 4);
-	draw_set_heading(scr, p, "GBA DS Settings");
+	draw_set_heading(scr, p, "GBA DS Settings", -1);
 	for (int i = 0; i < 8; ++i) {
 		SDL_Rect t = set_tile(scr, i);
 		ui_key(scr, t, px * 3, i == sel ? KEY_SEL : KEY_PLAIN);
@@ -1313,8 +1321,15 @@ static void draw_set_home(int scr, int sel) {
 #ifdef __ANDROID__
 		if (i == SP_SYSTEM) sub = "Folders, accounts, updates";
 #endif
-		ui_label(scr, t.x + t.w / 2, t.y + t.h / 2 - (sub ? px * 4 : 0), px * 6, name, C_TEXT);
-		if (sub) ui_font_text(scr, TF_BODY, t.x + t.w / 2, t.y + t.h / 2 + px * 7, px * 4, sub, C_DIM, 0);
+		int cx = t.x + t.w / 2; /* the text's centre: the tile's, or the part right of the picture */
+		if (i <= SP_SYSTEM) {
+			/* the pause menu's picture for the page, at the tile's left */
+			SDL_Rect ib = { t.x + px * 4, t.y, t.h * 6 / 10, t.h };
+			game_page_icon(scr, i == SP_SYSTEM ? GAME_ICON_SYSTEM : i, ib, i == sel || !ui_theme_light() ? C_TEXT : ui_key_ink(), ui_key_mid(i == sel ? KEY_SEL : KEY_PLAIN));
+			cx = (ib.x + ib.w + t.x + t.w) / 2;
+		}
+		ui_label(scr, cx, t.y + t.h / 2 - (sub ? px * 4 : 0), px * 6, name, C_TEXT);
+		if (sub) ui_font_text(scr, TF_BODY, cx, t.y + t.h / 2 + px * 7, px * 4, sub, C_DIM, 0);
 	}
 }
 
@@ -1327,7 +1342,7 @@ static void draw_set_page(const Config* cfg, int scr, int page, int sel) {
 	setTop = SDL_clamp(setTop, 0, SDL_max(0, n - SET_VIS));
 	ui_dim(scr, 200);
 	ui_fill_round(scr, p, C_HEADER, px * 4);
-	draw_set_heading(scr, p, setPages[page].name);
+	draw_set_heading(scr, p, setPages[page].name, page);
 	for (int s = 0; s <= nv; ++s) {
 		int i = s == nv ? n : setTop + s;
 		SDL_Rect r = set_row(scr, nv, s);

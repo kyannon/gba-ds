@@ -1157,7 +1157,7 @@ static int menuItems[12], nMenuItems;
  * each item's row and side (-1: the whole row, 0 left, 1 right). */
 static int itemRow[12], itemSide[12], nMenuRows;
 static bool half_item(int item) {
-	return item == M_SAVE || item == M_LOAD || item == M_AUTOSAVE || item == M_AUTOLOAD || item == M_REWIND || item == M_FF ||
+	return item == M_RESUME || item == M_RESTART || item == M_SAVE || item == M_LOAD || item == M_AUTOSAVE || item == M_AUTOLOAD || item == M_REWIND || item == M_FF ||
 	       item == M_COLOR || item == M_GHOST;
 }
 /* rows, sides and the row count for a page's items (two half items in a row share it) */
@@ -1175,12 +1175,13 @@ static int layout_rows(const int* items, int n, int* row, int* side) {
 	}
 	return rows;
 }
-/* Seven pages, switched with L1/R1 or the tabs: Game and Tools hold buttons
+/* Six pages, switched with L1/R1 or the tabs: Game holds buttons
  * (actions); the other five are rows of settings (docs/MENUS.md), the same
  * categories as the game list's Settings, each changed for this game (A) or
  * for all games (Y), kept in states/<game>.cfg or states/prefs.cfg. */
-#define N_PAGES 7
-enum { PG_GAME, PG_TOOLS, PG_DISPLAY, PG_SCREENS, PG_CONTROLS, PG_SPEED, PG_MAP };
+#define N_PAGES 6
+enum { PG_GAME, PG_DISPLAY, PG_SCREENS, PG_CONTROLS, PG_SPEED, PG_MAP };
+#define ICON_SYSTEM 100 /* a toolbox: Settings > System (not a page) */
 static int pages[N_PAGES][12], pageLen[N_PAGES], curPage;
 #define ROW_MAX 16 /* settings on a page */
 #define ROW_VIS 8  /* most shown at once: more scroll */
@@ -1207,7 +1208,7 @@ static int hkBtn[HK_COUNT];
 static void suppress_held(void) {
 	for (int b = 0; b < B_COUNT; ++b) suppress[b] = btnNow[b];
 }
-static const char* pageNames[N_PAGES] = { "Game", "Tools", "Display", "Screens", "Controls", "Speed", "Map" };
+static const char* pageNames[N_PAGES] = { "Game", "Display", "Screens", "Controls", "Speed", "Map" };
 /* Restart Game, Close Game and Close GBA DS ask first: chosen once, the
  * button says "Are You Sure?" (and the note what happens); chosen again,
  * it's done. Another page, another button or closing the menu calls it off. */
@@ -1244,7 +1245,7 @@ static const char* const allLabels[] = {
 };
 /* the labels of the half-width buttons, which fit in half the width */
 static const char* const halfLabels[] = {
-	"Save State", "Load State", "Save State 0", "Load State 0",
+	"Save State", "Load State", "Save State 0", "Load State 0", "Resume", "Restart Game", "Are You Sure?",
 };
 
 /* The pause menu's layout: buttons across the whole screen (a small margin
@@ -1266,7 +1267,7 @@ static MenuGeom menu_geom(int scr) {
 	int n = 1;
 	for (int p = 0; p < N_PAGES; ++p) {
 		int row[12], side[12];
-		n = SDL_max(n, page_is_rows(p) ? SDL_min(rowN[p], ROW_VIS) + 1 : layout_rows(pages[p], pageLen[p], row, side));
+		n = SDL_max(n, page_is_rows(p) ? SDL_min(rowN[p], ROW_VIS) + 1 : SDL_min(layout_rows(pages[p], pageLen[p], row, side), ROW_VIS));
 	}
 	if (r.w == cw && r.h == ch && n == cn) return cache;
 	MenuGeom g;
@@ -2205,9 +2206,20 @@ static void draw_patches(int scr) {
 	if (foot[0]) ui_font_wrap(scr, TF_BODY, px * 6, g.footY - tcap / 2, r.w - px * 12, tcap, foot, C_GOLD);
 }
 
+/* a button page with more rows than ROW_VIS scrolls: itemTop is its first row shown */
+static int itemTop;
+static bool item_shown(int i) {
+	return itemRow[i] >= itemTop && itemRow[i] < itemTop + ROW_VIS;
+}
+/* the selected button kept on screen */
+static void items_scroll_to_sel(void) {
+	if (itemRow[menuSel] < itemTop) itemTop = itemRow[menuSel];
+	if (itemRow[menuSel] >= itemTop + ROW_VIS) itemTop = itemRow[menuSel] - ROW_VIS + 1;
+	itemTop = SDL_clamp(itemTop, 0, SDL_max(0, nMenuRows - ROW_VIS));
+}
 static SDL_Rect item_rect(int scr, int i) {
 	MenuGeom g = menu_geom(scr);
-	SDL_Rect r = { g.margin, g.top + itemRow[i] * (g.h + g.gap), g.w, g.h };
+	SDL_Rect r = { g.margin, g.top + (itemRow[i] - itemTop) * (g.h + g.gap), g.w, g.h };
 	if (itemSide[i] >= 0) {
 		int hw = (g.w - g.gap) / 2;
 		r.x += itemSide[i] * (g.w - hw);
@@ -2863,6 +2875,7 @@ static void set_page(int page) {
 	memcpy(menuItems, pages[page], sizeof(int) * nMenuItems);
 	nMenuRows = layout_rows(menuItems, nMenuItems, itemRow, itemSide);
 	menuSel = 0;
+	itemTop = 0;
 	menuPressed = -1;
 	menuNote[0] = 0;
 	armedItem = -1;
@@ -2880,6 +2893,7 @@ static void menu_move(int dir) {
 		if (to < 0 || itemSide[i] == side) to = i;
 	}
 	if (to >= 0) menuSel = to;
+	items_scroll_to_sel();
 }
 
 static int tab_at(int scr, int x, int y, int n) {
@@ -2892,6 +2906,7 @@ static int tab_at(int scr, int x, int y, int n) {
 
 static int item_at(int scr, int x, int y) {
 	for (int i = 0; i < nMenuItems; ++i) {
+		if (!item_shown(i)) continue;
 		SDL_Rect r = item_rect(scr, i);
 		if (x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h) return i;
 	}
@@ -3628,7 +3643,7 @@ static void draw_tab_icon(int scr, int page, SDL_Rect box, SDL_Color fg, SDL_Col
 		F(14, 15.2f, 2.4f, 2.4f, 1.2f, bg);
 		F(16.4f, 17.4f, 2.4f, 2.4f, 1.2f, bg);
 		break;
-	case PG_TOOLS: /* a toolbox */
+	case ICON_SYSTEM: /* a toolbox */
 		F(8, 2.5f, 8, 6, 2.5f, fg);
 		F(10, 4.5f, 4, 4, 1, bg);
 		F(3, 8, 18, 13.5f, 2, fg);
@@ -3665,6 +3680,10 @@ static void draw_tab_icon(int scr, int page, SDL_Rect box, SDL_Color fg, SDL_Col
 		break;
 	}
 #undef F
+}
+
+void game_page_icon(int scr, int icon, SDL_Rect box, SDL_Color fg, SDL_Color bg) {
+	draw_tab_icon(scr, icon, box, fg, bg);
 }
 
 static void draw_menu(void) {
@@ -3758,7 +3777,17 @@ static void draw_menu(void) {
 		}
 		return;
 	}
+	itemTop = SDL_clamp(itemTop, 0, SDL_max(0, nMenuRows - ROW_VIS));
+	if (nMenuRows > ROW_VIS) {
+		/* more buttons than fit: a bar at the right edge */
+		SDL_Rect a = { 0, mg.top, 0, 0 };
+		int th = ROW_VIS * (mg.h + mg.gap) - mg.gap, bw = SDL_max(2, mg.margin / 2), bx = screens[scr].rect.w - mg.margin + (mg.margin - bw) / 2;
+		ui_fill_round(scr, (SDL_Rect) { bx, a.y, bw, th }, (SDL_Color) { 60, 56, 84, 255 }, bw / 2);
+		int bh = SDL_max(bw * 3, th * ROW_VIS / nMenuRows), by = a.y + (th - bh) * itemTop / SDL_max(1, nMenuRows - ROW_VIS);
+		ui_fill_round(scr, (SDL_Rect) { bx, by, bw, bh }, C_GOLD, bw / 2);
+	}
 	for (int i = 0; i < nMenuItems; ++i) {
+		if (!item_shown(i)) continue;
 		SDL_Rect r = item_rect(scr, i);
 		bool sel = i == menuSel;
 		ui_key(scr, r, rad, sel ? KEY_SEL : KEY_PLAIN);
@@ -3805,7 +3834,8 @@ static void draw_menu(void) {
 		ui_label(scr, r.x + r.w / 2, r.y + r.h / 2, cap, label, en ? C_TEXT : C_DIS);
 	}
 	if (menuNote[0]) {
-		SDL_Rect last = item_rect(scr, nMenuItems - 1);
+		int lastRow = SDL_min(nMenuRows, ROW_VIS) - 1;
+		SDL_Rect last = { 0, mg.top + lastRow * (mg.h + mg.gap), 0, mg.h };
 		int nc = SDL_min(mg.noteCap, mg.noteCap * mg.w / SDL_max(1, ui_font_width(TF_BOLD, mg.noteCap, menuNote)));
 		/* (the last item is always a whole row: Close GBA DS, Show FPS...) */
 		ui_font_text(scr, TF_BOLD, screens[scr].rect.w / 2, last.y + last.h + mg.h * 3 / 5, nc, menuNote, C_GOLD, 0);
@@ -7980,13 +8010,13 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	pages[PG_GAME][pageLen[PG_GAME]++] = M_SAVE;
 	pages[PG_GAME][pageLen[PG_GAME]++] = M_LOAD;
 	pages[PG_GAME][pageLen[PG_GAME]++] = M_SLOT;
+	pages[PG_GAME][pageLen[PG_GAME]++] = M_CHEATS;
+	pages[PG_GAME][pageLen[PG_GAME]++] = M_PATCHES;
+	if (ra_enabled()) pages[PG_GAME][pageLen[PG_GAME]++] = M_ACH;
+	pages[PG_GAME][pageLen[PG_GAME]++] = M_SHOT;
+	pages[PG_GAME][pageLen[PG_GAME]++] = M_BUG;
 	if (fromLibrary) pages[PG_GAME][pageLen[PG_GAME]++] = M_LIBRARY;
 	pages[PG_GAME][pageLen[PG_GAME]++] = M_EXIT;
-	pages[PG_TOOLS][pageLen[PG_TOOLS]++] = M_CHEATS;
-	pages[PG_TOOLS][pageLen[PG_TOOLS]++] = M_PATCHES;
-	if (ra_enabled()) pages[PG_TOOLS][pageLen[PG_TOOLS]++] = M_ACH;
-	pages[PG_TOOLS][pageLen[PG_TOOLS]++] = M_SHOT;
-	pages[PG_TOOLS][pageLen[PG_TOOLS]++] = M_BUG;
 	ui_color_correction(cfg->colorCorrection); /* (Display > Color Correction, for this session's pictures) */
 	ui_shader(cfg->shader);
 #define ROW(pg, key) rowKeys[pg][rowN[pg]++] = key
@@ -8506,8 +8536,12 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			int it = item_at(p.screen, p.x, p.y);
 			if (p.kind == 1) {
 				ignorePointerUp = false;
-				menuPressed = it;
+				menuPressed = it, rowDragY = p.y;
 				if (it >= 0) menuSel = it;
+			} else if (p.kind == 3 && nMenuRows > ROW_VIS && menuPressed >= 0 && abs(p.y - rowDragY) >= menu_geom(p.screen).h + menu_geom(p.screen).gap) {
+				/* a finger dragged up or down moves the list a row at a time: no longer a tap */
+				itemTop = SDL_clamp(itemTop + (p.y < rowDragY ? 1 : -1), 0, nMenuRows - ROW_VIS);
+				rowDragY = p.y, menuPressed = -1, ignorePointerUp = true;
 			} else if (p.kind == 3 && menuPressed >= 0 && it >= 0) {
 				menuSel = it;
 			} else if (p.kind == 2) {
