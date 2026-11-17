@@ -144,47 +144,6 @@
    ]
   },
   {
-   "id": "wl4-us-hall-crop0",
-   "rom": "AWAE",
-   "state": "wario-land-4/us-hall.ss",
-   "desc": "map_crop = 0: the whole pause screen, its menu too",
-   "rules": [
-    "WL4-2"
-   ],
-   "shots": {
-    "start": 60
-   },
-   "checks": [
-    {
-     "rule": "WL4-2",
-     "what": "the menu's frames at the top",
-     "type": "pixels",
-     "shot": "start",
-     "screen": "second",
-     "probes": [
-      [
-       272,
-       137,
-       "5AFFFF"
-      ],
-      [
-       512,
-       137,
-       "5AFFFF"
-      ],
-      [
-       832,
-       137,
-       "5AFFFF"
-      ]
-     ]
-    }
-   ],
-   "config": {
-    "map_crop": "0"
-   }
-  },
-  {
    "id": "wl4-us-paused",
    "rom": "AWAE",
    "state": "wario-land-4/us-hall.ss",

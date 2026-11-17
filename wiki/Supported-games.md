@@ -5,6 +5,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Advance Wars (Game Boy Wars Advance in Japan) | `AWRE` `AWRP` `BGWJ` (Japan: on Game Boy Wars Advance 1+2, with Advance Wars 2) | in battles: the intel of the unit under the cursor, or the battle intel | |
 | Advance Wars 2: Black Hole Rising (Game Boy Wars Advance 2 in Japan) | `AW2E` `AW2P` `BGWJ` (Japan: on Game Boy Wars Advance 1+2, with Advance Wars) | in battles: the intel of the unit under the cursor, or the battle intel | |
 | Baldur's Gate: Dark Alliance | `BGDE` `BGDP` | the area's map (made from the game's own screens), a red X where you are | |
+| Banjo-Kazooie: Grunty's Revenge | `BKZE` (USA and Europe) `BKZX` `BKZI` `BKZS` (no Japanese release) | the pause screen and the world's Totals, in turn, Banjo's health on both | |
 | Castlevania: Aria of Sorrow | `A2CE` `A2CP` `A2CJ` | map | JonataGuitar's Recolor v1.02 and Symphony of the Colors (USA) |
 | Castlevania: Circle of the Moon | `AAME` `AAMP` `AAMJ` | map, with the completion rate | |
 | Castlevania: Harmony of Dissonance | `ACHE` `ACHP` `ACHJ` | map | Recolor by JonataGuitar and sorrow (USA) |
@@ -38,6 +39,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Muppet Pinball Mayhem | `AMWE` `AMWP` (no Japanese release) | the table twice as tall over both screens, live, with the score bar | |
 | Ninja Five-O (Ninja Cop in Europe) | `ANXE` `ANXP` (no Japanese release) | in stages: the HUD (bars, score or time, the boss's bar, the shuriken's level, keys and hostages) | |
 | Pokémon Pinball: Ruby & Sapphire | `BPPE` `BPPP` `BPPJ` (Japan: the original and Rev 1) | the table twice as tall over both screens, live, with the score bar | |
+| Rebelstar: Tactical Command | `BRLE` `BRLP` (no Japanese release) | in battles: the Status of the soldier under the cursor, or the mission's Objectives | |
 | River City Ransom EX (Downtown Nekketsu Monogatari EX in Japan) | `BDTE` `BDTJ` (no European release) | the Status screen, with the top bar moved off the game screen | |
 | Sonic Advance | `ASOE` `ASOP` `ASOJ` | the zone card, with the rings, score, time and lives | |
 | Sonic Advance 2 | `A2NE` `A2NP` `A2NJ` | the zone card, with the rings, score, time and lives | |
@@ -96,6 +98,15 @@ The USA and European releases.
 The game has no map, so GBA DS makes one. Each time you arrive in an area, a copy of the game, running silently beside yours, looks over the whole area a screen at a time; the second screen then shows the area's floors, walls and furniture at a quarter of their size, following you and stopping at the area's edges, with a red X where you are: the one the game puts on an unusable quick slot. Rooms you haven't reached yet are on it too. Enemies, barrels and pots aren't. The logo shows on the title, while the map is being made, and at GAME OVER.
 
 Known issues: making a big area's map takes up to about 2 seconds on the RG DS Plus, and the game pauses for that moment as you arrive; doors you open aren't shown open until you come back to the area. Eldrith's Watch, the last boss's arena, is shown on the game's blue background colour, as the scenery behind it isn't part of the map.
+
+## Banjo-Kazooie: Grunty's Revenge
+
+The USA and Europe release, Europe's English, French and German release, and the Italian and Spanish releases.
+
+- **While you play,** the second screen shows two of the game's own screens in turn, five seconds each: the **pause screen** (START) without its menu, with Banjo's health, the notes, eggs, feathers, Hollow Honeycombs, Jiggies, Jinjos and the rest; and the **Totals** page for the world you're in (what you've found there out of what there is), with Banjo's health bar at the top left in place of the world's name, so it stays put as the pages turn. They're opened in the background on a silent copy of the game about once a second, and again as soon as you go into another area; your game is never paused. Both are shown on black, without the level behind them.
+- Pausing in the game, and conversations and scenes, keep the last pictures on the second screen.
+- At the title, on the file screen and in the opening story, the second screen shows the logo: the title's lettering.
+- Not tried yet: the mini-games, the boss fights and Mumbo's transformations.
 
 ## Castlevania: Aria of Sorrow, Harmony of Dissonance, Circle of the Moon
 
@@ -284,7 +295,7 @@ The USA, European and Japanese releases, tried in Traverse Town.
 
 The USA and European releases (one each, in English, French, German, Spanish, Italian and Dutch). Every level has been tried; the spells (water, fire and air) and the bonus levels haven't been yet.
 
-- **In a level,** the second screen shows the game's own **pause screen** (START) as a status screen: Sia's lives, the gems and the rescued villagers, the level's time, the ring and the heart (her health). It's opened in the background on a silent copy of the game about once a second; your game is never paused. The pause menu's lines (Pause and its choice, with the arrows) are left out (`map_crop = 0` shows them), and the ring is shown without the glow the game pulses round it.
+- **In a level,** the second screen shows the game's own **pause screen** (START) as a status screen: Sia's lives, the gems and the rescued villagers, the level's time, the ring and the heart (her health). It's opened in the background on a silent copy of the game about once a second; your game is never paused. The pause menu's lines (Pause and its choice, with the arrows) are left out, and the ring is shown without the glow the game pulses round it.
 - **The HUD leaves the game screen:** the lives, gems, villagers, ring and heart the game puts up during play (for a few seconds as a level starts, as Sia picks something up, the heart while she's hurt) aren't drawn on the game screen, since the second screen has them. Only while you play: the game's own pause screen, the menus, the scenes and the credits are drawn whole.
 - Pausing in the game, and conversations that don't let the pause screen open, keep the last picture on the second screen.
 - At the title, in the menus and story scenes, on the maps between levels, in the jail ("Continue?") and in the credits, the second screen shows the logo: the title's lettering.
@@ -364,12 +375,12 @@ Known issues: boss battles, Hard mode and link-cable net battles haven't been tr
 ## Metroid: Zero Mission and Metroid Fusion
 
 - **Mini-map:** with the full map always up, the small 3×3 mini-map in the top-right corner of the game screen is hidden. It's left out when the picture is drawn, so the game itself is unchanged; `map = 0` brings it back along with the normal one-screen view.
-- **Map screens** show the pause screen's map in its frame, tidied up (`map_crop`, on by default):
+- **Map screens** show the pause screen's map in its frame, tidied up:
   - the button labels and area name are erased, and the scroll arrows and play-time clock left out;
   - Fusion's "A OBJECTIVE" prompt and its row of ticked item icons are left out, and the map grid behind them rebuilt;
   - Zero Mission's corner minimap gives way to the map underneath, with its "SELECT / CHANGE AREAS" prompt covered by a piece of the bezel;
   - the coloured plates are recoloured to the frame's greys so they don't stand out.
-- `map_crop = 0` shows the pause screens exactly as the games draw them. The European versions' label erasing was checked in English and German.
+- The European versions' label erasing was checked in English and German.
 - Zero Mission's colour patches (Color improvement v1 and v2) work on their own; with another patch on as well, its map may not come up.
 
 ## MOTHER 3
@@ -422,6 +433,15 @@ The USA, European and Japanese releases (the Japanese one's Rev 1 too), all the 
 - On the title and menus, the second screen shows the logo.
 - The **bonus stages** play on one screen, with the logo on the other.
 - The frame buffer is always on in this game: it needs it to run at full speed.
+
+## Rebelstar: Tactical Command
+
+The USA and European releases (the European one in English, French, German, Spanish and Italian).
+
+- **In a battle,** with the cursor on one of your soldiers, the second screen shows their **Status**, the game's own screen, its three pages in turn, 2.5 seconds each: Equipment, Attributes and Skills. Anywhere else on the field (an empty square, an enemy), it shows the mission's **Objectives**. They're opened in the background on a silent copy of the game as you move the cursor; your game is never paused.
+- With a menu open, while moving, aiming or shooting, and in conversations during a battle, the last picture stays. Through the enemy's turn, the second screen shows the logo.
+- Outside battles (the title, menus, story scenes, deployment and the end of a mission) the second screen shows the logo: the title's lettering.
+- Known issue: the training missions (Boot Camp to Team Work) take over the buttons while their green instruction boxes guide you, so the second screen shows the logo for most of their guided turns.
 
 ## River City Ransom EX
 

@@ -1266,7 +1266,7 @@
     {
      "type": "file",
      "path": "mGBA/AWRE.state.auto.png",
-     "starts": "PNG",
+     "starts": "\u0089PNG",
      "rule": "GEN-13",
      "what": "its thumbnail"
     },
@@ -1306,7 +1306,7 @@
     {
      "type": "file",
      "path": "AWRE.state.auto.png",
-     "starts": "PNG",
+     "starts": "\u0089PNG",
      "rule": "GEN-13",
      "what": "its thumbnail"
     }
@@ -1349,14 +1349,6 @@
     ],
     [
      78,
-     "-"
-    ],
-    [
-     84,
-     "DOWN"
-    ],
-    [
-     90,
      "-"
     ],
     [
