@@ -286,3 +286,7 @@ when one is dropped.
 - The browser may not show a Bluetooth controller until one of its buttons
   is pressed with the page open.
 - Sound starts with the first click or key on the page (browsers' rule).
+
+## Look and theme
+
+The player's look follows the app's menus (docs/MENUS.md): the page is the app's near-black purple, every button a GBA-style key (`player.css`, the shared rule at the top: border, rim, flat face, edge underneath, sinking when pressed), purple for what's selected, gold for what's on. `theme` (`dark` or `light`, in the player's settings, so also in the folder's `web-player-settings.json`) is the keys', as in the app: dark grey keys with a light rim, or the pale grey ones with dark ink; the page stays dark. The toolbar's sun / moon button and Settings > Look change it (`applyTheme` in player.js; a small script in index.html's head sets it before the first paint). The on-screen controls follow it through the `--key` variables on `#touch`.

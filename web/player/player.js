@@ -79,7 +79,7 @@ const RESOLUTIONS = (() => {
 const SET_KEY = "gbadsPlayer.settings", CTL_KEY = "gbadsPlayer.controls";
 const DEFAULTS = { device: "gba", custom: { top: [1024, 768, 4.3], bottom: [1024, 768, 4.3] }, arrange: "rotate", sizes: "device",
   gap: 0, smooth: true, scale: 0.5, volume: 80, muted: false, pauseHidden: true,
-  touchShow: "auto", touchPlace: "rotate", touchSize: 100, touchVibrate: true };
+  touchShow: "auto", touchPlace: "rotate", touchSize: 100, touchVibrate: true, theme: "dark" };
 const readJSON = (k) => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } };
 const writeJSON = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
 const S = Object.assign({}, DEFAULTS, readJSON(SET_KEY) || {});
@@ -101,6 +101,14 @@ function migrateSettings(s) {
   return s;
 }
 if ((S.v || 1) < 3) { migrateSettings(S); writeJSON(SET_KEY, S); } else migrateSettings(S);
+// the theme: the keys' look (the app's Settings > Games > Theme); the page stays dark, as in the app
+function applyTheme() {
+  const light = S.theme === "light";
+  document.documentElement.dataset.theme = light ? "light" : "dark";
+  const b = $("themeBtn");
+  if (b) { b.title = light ? "Dark theme" : "Light theme"; b.setAttribute("aria-label", b.title); }
+  if ($("theme")) $("theme").value = light ? "light" : "dark";
+}
 const saveSettings = () => { writeJSON(SET_KEY, S); folderKeepSettings(); };
 const ctl = Object.assign({ keys: null, pads: {} }, readJSON(CTL_KEY) || {});
 const keyMap = () => ctl.keys || KEY_DEFAULTS;
@@ -274,7 +282,7 @@ function folderKeepSettings() {
 async function folderTakeSettings() {
   try {
     const j = JSON.parse(await (await (await F.handle.getFileHandle(FOLDER_SETTINGS)).getFile()).text());
-    if (j.settings) { Object.assign(S, j.settings); migrateSettings(S); writeJSON(SET_KEY, S); }
+    if (j.settings) { Object.assign(S, j.settings); migrateSettings(S); writeJSON(SET_KEY, S); applyTheme(); }
     if (j.controls) { Object.assign(ctl, j.controls); writeJSON(CTL_KEY, ctl); }
     return true;
   } catch (e) { return false; }
@@ -1249,6 +1257,7 @@ function showSettings() {
   for (const [id, k, i] of CUSTOM) $(id).value = S.custom[k][i];
   $("arrange").value = S.arrange; $("sizes").value = S.sizes; $("gap").value = S.gap;
   $("smooth").value = S.smooth ? "1" : "0"; $("scale").value = String(S.scale);
+  $("theme").value = S.theme === "light" ? "light" : "dark";
   $("volume").value = S.volume; $("pauseHidden").checked = !!S.pauseHidden;
   $("touchShow").value = S.touchShow; $("touchPlace").value = S.touchPlace; $("touchSize").value = S.touchSize; $("touchVibrate").checked = !!S.touchVibrate;
   $("exportSave").disabled = !P.rom;
@@ -1271,6 +1280,10 @@ $("sizes").onchange = () => { S.sizes = $("sizes").value; saveSettings(); relayo
 $("gap").oninput = () => { S.gap = Number($("gap").value); saveSettings(); relayout(); };
 $("smooth").onchange = () => { S.smooth = $("smooth").value === "1"; saveSettings(); relayout(); };
 $("scale").onchange = () => { S.scale = Number($("scale").value); saveSettings(); restartSoon("Restarted at the new resolution."); };
+const setTheme = (t) => { S.theme = t === "light" ? "light" : "dark"; saveSettings(); applyTheme(); };
+$("themeBtn").onclick = () => setTheme(S.theme === "light" ? "dark" : "light");
+$("theme").onchange = () => setTheme($("theme").value);
+applyTheme();
 $("volume").oninput = () => { S.volume = Number($("volume").value); S.muted = false; saveSettings(); showSound(); };
 $("touchShow").onchange = () => { S.touchShow = $("touchShow").value; saveSettings(); relayout(); };
 $("touchPlace").onchange = () => { S.touchPlace = $("touchPlace").value; saveSettings(); relayout(); };
