@@ -77,7 +77,7 @@ const RESOLUTIONS = (() => {
 
 /* ================================================================ settings */
 const SET_KEY = "gbadsPlayer.settings", CTL_KEY = "gbadsPlayer.controls";
-const DEFAULTS = { device: "gba", custom: { top: [1024, 768, 4.3], bottom: [1024, 768, 4.3] }, arrange: "stack", sizes: "device",
+const DEFAULTS = { device: "gba", custom: { top: [1024, 768, 4.3], bottom: [1024, 768, 4.3] }, arrange: "stack",
   gap: 0, smooth: true, scale: 2 / 3, volume: 80, muted: false, pauseHidden: true,
   touchShow: "auto", touchPlace: "rotate", touchSize: 100, touchVibrate: true, theme: "dark" };
 const readJSON = (k) => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } };
@@ -553,10 +553,10 @@ function webConfig() {
   out.set(own[1]); out.set(add, own[1].length);
   return out;
 }
-// where the two screens go on the page (CSS px), for the arrangement and sizes chosen
+// where the two screens go on the page (CSS px), for the arrangement chosen, by their pixels (a screen with more pixels is drawn larger)
 function placeScreens(win, W, H) {
   const [a, b] = win.screens;
-  const dims = (s) => S.sizes === "device" ? (() => { const ppi = Math.hypot(s.w, s.h) / s.inch; return [s.w / ppi, s.h / ppi]; })() : [s.w, s.h];
+  const dims = (s) => [s.w, s.h]; // by pixels: a screen with more pixels is drawn larger
   const [aw, ah] = dims(a), [bw, bh] = dims(b);
   const pad = Math.min(W, H) < 500 ? 8 : 24;
   const try_ = (side) => {
@@ -1265,7 +1265,7 @@ function showSettings() {
   $("device").value = S.device;
   $("customDevice").hidden = S.device !== "custom";
   for (const [id, k, i] of CUSTOM) $(id).value = S.custom[k][i];
-  $("arrange").value = S.arrange; $("sizes").value = S.sizes; $("gap").value = S.gap;
+  $("arrange").value = S.arrange; $("gap").value = S.gap;
   $("smooth").value = S.smooth ? "1" : "0"; $("scale").value = String(S.scale);
   $("theme").value = S.theme === "light" ? "light" : "dark";
   $("volume").value = S.volume; $("pauseHidden").checked = !!S.pauseHidden;
@@ -1283,7 +1283,6 @@ for (const [id, k, i] of CUSTOM) $(id).onchange = () => {
   if (S.device === "custom") restartSoon("Restarted for the custom screens.");
 };
 $("arrange").onchange = () => { S.arrange = $("arrange").value; saveSettings(); relayout(); };
-$("sizes").onchange = () => { S.sizes = $("sizes").value; saveSettings(); relayout(); };
 $("gap").oninput = () => { S.gap = Number($("gap").value); saveSettings(); relayout(); };
 $("smooth").onchange = () => { S.smooth = $("smooth").value === "1"; saveSettings(); relayout(); };
 $("scale").onchange = () => { S.scale = Number($("scale").value); saveSettings(); restartSoon("Restarted at the new resolution."); };

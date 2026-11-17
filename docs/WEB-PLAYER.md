@@ -123,7 +123,7 @@ Games are never published: players bring their own.
   OffscreenCanvas) with WebGL2, uploading the window's pixels straight from
   the wasm memory (XRGB8888 swapped to RGB in the shader), and draws each
   screen into its place, so the arrangement (stacked or side by side), gap,
-  and sizes (by inches, as on the device, or by pixels) need no restart.
+  need no restart; the screens are sized by their pixels (the former "Sizes" choice, by inches or by pixels, is gone).
   The device or the resolution changes the window GBA DS gets
   (`GBADS_WINDOW`, `GBADS_SCREENS`, `--screen_ppi`), so those restart it
   from the same moment (a state).
