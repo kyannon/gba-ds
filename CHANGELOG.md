@@ -2,6 +2,9 @@
 
 ## v1.5.5 (not yet released)
 
+### New games
+- **Banjo-Kazooie: Grunty's Revenge** (USA and Europe, Europe's English, French and German release, Italy and Spain): the second screen shows, five seconds each, the game's pause screen without its menu (health, notes, eggs, feathers, Hollow Honeycombs, Jiggies, Jinjos and the rest) and the Totals of the world Banjo is in (what's been found there out of what there is), with the health bar held still at the top left on both, kept up to date about once a second. The logo is the title's lettering, shown at the title, on the file screen and in the opening story. Not tried yet: the mini-games, the boss fights and Mumbo's transformations.
+
 ### Fixes
 - **Web player: closing GBA DS now clears the screen.** The game's last picture used to stay behind the start page, making its text hard to read.
 - **Web player: a bug report downloads as a normal .zip.** When a report is saved (after the note or Skip), the browser downloads it, so you can keep it outside the player's own storage and send it.
