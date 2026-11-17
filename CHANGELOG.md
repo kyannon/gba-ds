@@ -2,6 +2,10 @@
 
 ## v1.5.5 (not yet released)
 
+### Fixes
+- **Web player: closing GBA DS now clears the screen.** The game's last picture used to stay behind the start page, making its text hard to read.
+- **Web player: a bug report downloads as a normal .zip.** When a report is saved (after the note or Skip), the browser downloads it, so you can keep it outside the player's own storage and send it.
+
 ## v1.5.4 (2026-11-16)
 
 ### New games
