@@ -12,22 +12,33 @@ untracked files included. Each changed file is sorted into one of:
   "Releases" rows in docs/games/*.md). A line outside any definition, or
   a definition no profile reaches, counts as shared code;
 - files that can't change what the app does (the wiki, the README, the
-  changelog, Android-only code, State Saver, other docs): nothing;
-- anything else (the app's other sources, the Makefile, the build
-  scripts, regress.py itself...): shared code, so every game.
+  changelog, VERSION, Android-only code, State Saver, other docs): nothing;
+- the app's other sources (src/*.c, *.h), when the fixtures repo has
+  dependencies.json (tools/regress_deps.py: measured with gcov, which
+  functions each game's cases run): the games running the functions the
+  change is in. A change outside any function, to a function the map
+  doesn't know, or to a file it doesn't know, picks every game running
+  the file (a header, or an unknown file: every game);
+- anything else (without the map, the app's sources too; the Makefile,
+  the build scripts, regress.py itself...): shared code, so every game.
 
 select() returns (slugs or None for every game, reasons).
 """
-import glob, os, re, subprocess
+import glob, os, re, subprocess, sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import regress_deps
 
 ROOT = os.environ.get("GBADS_ROOT") or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROFILES = "src/profiles.c"
 
 # paths (prefixes or globs) that can't change what the app does under test
 NO_EFFECT = (
-    "wiki/", "README.md", "CHANGELOG.md", "CLAUDE.md", "LICENSE", "android/", "src/android.c",
+    "wiki/", "README.md", "CHANGELOG.md", "CLAUDE.md", "VERSION", "LICENSE", "android/", "src/android.c",
     "tools/statesaver/", "tools/scout/", "docs/", "assets/brand/", ".github/workflows/android.yml",
     ".github/workflows/wiki.yml", "dist/screens.sh", "dist/launch.sh", "dist/banana-play.sh",
+    # (what picks the tests, not what they run)
+    "tools/regress_changed.py", "tools/regress_deps.py", ".github/workflows/regress.yml",
 )
 
 
@@ -177,10 +188,43 @@ def profile_games(src, defs, codes, mentions):
     return reach
 
 
-def select(base=None):
+def deps_games(deps, base, path):
+    """The games a change to a file of src/ can affect, from the measured
+    map of what each game's cases run (regress_deps.py): the games running
+    each changed function; a change outside a function, or to one the map
+    doesn't know, the games running the file (a header: every game).
+    (games, text saying which functions), or None: every game."""
+    full = os.path.join(ROOT, path)
+    if path not in deps["files"] or not os.path.exists(full):
+        return None
+    funcs = regress_deps.c_functions(open(full, errors="replace").read())
+    known = deps["files"][path]["functions"]
+    games, names = set(), []
+    for ln in sorted(changed_lines(base, path)):
+        fn = next((f for f in funcs if f[1] <= ln <= f[2]), None)
+        if fn:
+            g = regress_deps.games_of(deps, path, fn[0])
+            label = fn[0] if fn[0] in known else fn[0] + " (not in the map)"
+        elif path.endswith(".h"):
+            return None
+        else:
+            g = regress_deps.games_of(deps, path)
+            label = "outside any function"
+        if g is None:
+            return None
+        if label not in names:
+            names.append(label)
+        games |= g
+    return games, ", ".join(names)
+
+
+def select(base=None, fixtures=None):
     base = base or default_base()
     codes, mentions = release_slugs()
+    deps = regress_deps.load(fixtures)
     slugs, reasons, everything = set(), [], False
+    if deps:
+        reasons.append("dependency map: gba-ds commit %s, %s" % (deps["commit"][:9], deps["date"]))
     for path in changed_files(base):
         m = re.match(r"(?:docs/games|tests/regress)/([\w-]+)\.(?:md|json)$", path)
         if m and m.group(1) != "README":
@@ -210,6 +254,13 @@ def select(base=None):
         if path.startswith(NO_EFFECT) or path.startswith("docs/games/README"):
             reasons.append("%s: no effect" % path)
             continue
+        if deps and path.startswith("src/") and path.endswith((".c", ".h")):
+            hit = deps_games(deps, base, path)
+            if hit:
+                slugs |= hit[0]
+                reasons.append("%s: %s -> %s" % (path, hit[1], "no game runs it" if not hit[0] else
+                               "%d game%s" % (len(hit[0]), "" if len(hit[0]) == 1 else "s")))
+                continue
         everything = True
         reasons.append("%s: shared code" % path)
     return (None if everything else sorted(slugs)), reasons, base
