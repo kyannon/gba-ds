@@ -98,8 +98,10 @@ when the app closes. Build without `LOG_URL` again
 A New 3DS gives homebrew 64 MiB: about 46 MiB of heap here, after 12 MiB of
 linear memory for the GPU and the sound. The game's ROM, the recompiler's
 code (what is left after the ROM and 15 MiB kept for the rest, up to 16 MiB:
-about 13 MiB with Mario Kart),
-the hidden copy and its code (up to 4 MiB) share it. The emulator tests run
+about 13 MiB with Mario Kart; 22 MiB kept for a game with a hidden copy:
+about 8 MiB with Yoshi's Island), the hidden copy and its code (up to 4 MiB)
+share it. When the heap runs low, each machine's recompiler empties its own
+code memory (`jitHostMemoryLow`, counted per thread). The emulator tests run
 with the same heap, not the 124 MiB an emulator would give.
 
 ## What has and hasn't been tested
@@ -160,15 +162,31 @@ gets its races to 60 frames a second on a New 3DS:
 - The recompiler: a warm list per game (`sdmc:/3ds/gba-ds/warm/`, the code
   the game ran, compiled in the frames' spare time next time, up to 20% of the
   code memory); at most 1.5 ms of compiling in a frame; the code memory
-  emptied between races once it's 40% full (when it's full the recompiler
+  emptied between races once it's 75% full (when it's full the recompiler
   empties it itself, a 100-300 ms frame). armGBA's side: no blocks compiled
-  from where an interrupt returns or an event falls, and careful copies only
-  for blocks events fall in often.
+  from where an interrupt returns or an event falls, careful copies only
+  for blocks events fall in often and in at most a third of the code
+  memory, and a full part of a stretch's leftover room used as a stretch of
+  its own; a race's code levels off at about 8 of its 13 MiB.
 - The game's battery save written to the SD card on a thread of its own.
 - The HUD's backdrop scaled in whole numbers (floats took 76 ms).
 
 A race still has the odd frame of 18-22 ms here and there, in busy stretches
 (about 9 ms of emulating on average, the HUD 2-4, drawing 2.5).
+
+## Speed (Yoshi's Island)
+
+Yoshi's Island's status screen is captured on the hidden copy every 3
+seconds on the 3DS (`map_interval` 180; every second elsewhere): every
+second, the captures kept that copy busy most of the time and slowed the
+game. Its events fall inside its code so often that careful copies took half
+of what it compiled, and the code memory filled every 20-40 s; with armGBA
+0.0.6's changes, 4 minutes ran with no frame over 100 ms after starting.
+
+Pictures go to the GPU's copy engine through two buffers in turn
+(`SDL_UpdateTexture`): with one, the game's picture was written over the
+second screen's while the copy was still reading it (a torn status screen on
+the console; Azahar's copies finish at once).
 
 ## armGBA
 
