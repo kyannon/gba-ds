@@ -128,8 +128,8 @@ try { var t = JSON.parse(localStorage.getItem("gbadsPlayer.settings") || "null")
       <label class="row"><span>Picture</span>
         <select id="smooth"><option value="1">Smooth</option><option value="0">Sharp pixels</option></select></label>
       <label class="row"><span>Detail</span>
-        <select id="scale"><option value="0.3333333333333333">A third of the resolution (fastest)</option><option value="0.5">Half the resolution</option><option value="0.75">Three quarters</option><option value="1">The whole resolution (sharpest; slower)</option></select></label>
-      <p class="note">Follow screen rotation: upright, the screens stack; on its side, they sit side by side. GBA DS draws its screens at the detail chosen and your graphics card scales them to fit. On Two GBA screens a third draws every game pixel once and the whole resolution draws it 3×, both exact; half and three quarters (1.5× and 2.25×) make some pixels wider than their neighbours.</p>
+        <select id="scale"><option value="0.3333333333333333">A third of the resolution (fastest)</option><option value="0.5">Half the resolution</option><option value="0.6666666666666666">Two thirds of the resolution</option><option value="0.75">Three quarters</option><option value="1">The whole resolution (sharpest; slower)</option></select></label>
+      <p class="note">Follow screen rotation: upright, the screens stack; on its side, they sit side by side. GBA DS draws its screens at the detail chosen and your graphics card scales them to fit. On Two GBA screens a third draws every game pixel once, two thirds twice and the whole resolution three times, all exact; half and three quarters (1.5× and 2.25×) make some pixels wider than their neighbours.</p>
     </section>
     <section>
       <h3>On-screen controls</h3>

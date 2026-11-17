@@ -78,7 +78,7 @@ const RESOLUTIONS = (() => {
 /* ================================================================ settings */
 const SET_KEY = "gbadsPlayer.settings", CTL_KEY = "gbadsPlayer.controls";
 const DEFAULTS = { device: "gba", custom: { top: [1024, 768, 4.3], bottom: [1024, 768, 4.3] }, arrange: "stack", sizes: "device",
-  gap: 0, smooth: true, scale: 0.5, volume: 80, muted: false, pauseHidden: true,
+  gap: 0, smooth: true, scale: 2 / 3, volume: 80, muted: false, pauseHidden: true,
   touchShow: "auto", touchPlace: "rotate", touchSize: 100, touchVibrate: true, theme: "dark" };
 const readJSON = (k) => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } };
 const writeJSON = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
@@ -101,11 +101,16 @@ function migrateSettings(s) {
     if (s.arrange === "rotate") s.arrange = DEFAULTS.arrange;
     s.v = 4;
   }
+  // (v5, Nov 17, 2026: two thirds of the resolution by default, 2x of the game's pixels on Two GBA screens; the old default, half, moves once)
+  if (s.v < 5) {
+    if (s.scale === 0.5) s.scale = DEFAULTS.scale;
+    s.v = 5;
+  }
   if (!["rotate", "stack", "side"].includes(s.arrange)) s.arrange = DEFAULTS.arrange;
   if (RESOLUTIONS.alias[s.device]) s.device = RESOLUTIONS.alias[s.device];
   return s;
 }
-if ((S.v || 1) < 4) { migrateSettings(S); writeJSON(SET_KEY, S); } else migrateSettings(S);
+if ((S.v || 1) < 5) { migrateSettings(S); writeJSON(SET_KEY, S); } else migrateSettings(S);
 // the theme: the keys' look (the app's Settings > Games > Theme); the page stays dark, as in the app
 function applyTheme() {
   const light = S.theme === "light";
