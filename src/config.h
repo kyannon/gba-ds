@@ -50,14 +50,11 @@ typedef struct Config {
 	bool frameBuffer; /* emulate a frame ahead on a second thread: smoother, a frame more input delay */
 	bool pinCores; /* Android: the game thread on a core of its own, the map capture off it (off by default) */
 	bool map;          /* enable the second-screen map */
-	bool mapCrop;      /* crop map bezels/prompts where the profile knows how */
 	bool tallLive;     /* Pokemon Pinball: a second copy of the game draws the bottom screen live */
-	bool mapAnim;      /* cycle the map's animation frames (off: one still frame) */
 	bool rewind;       /* keep a rewind buffer (hold L2 to rewind) */
 	int rewindSeconds; /* how far back */
 	bool fastForward;  /* hold R2 to fast-forward */
 	bool matchDisplay; /* run at the display's refresh rate (if close to the GBA's) instead of 59.73 Hz */
-	bool showLogo;     /* the game's logo on the second screen when it has nothing else (off: blank) */
 	int mapInterval;   /* frames between periodic map refreshes */
 	int solarLevel;    /* the sunlight a sun sensor (Boktai) reads, 0-10 */
 	bool abSwap;       /* GBA A on the bottom face button instead of the right one */
@@ -108,10 +105,11 @@ typedef struct Config {
 	bool nameTags;        /* library keeps (USA), (En,Fr) etc. in game names */
 	bool showAll;         /* library lists games without a map profile too */
 	int brightTop, brightBottom; /* this app's brightness for each screen, 20..100 (brightness_top / _bottom, issue #56): a dimming layer, not the system's */
+	char accent[16];      /* the menus' colour: purple | blue | teal | green | red | orange | pink (accent) */
 	bool lightTheme;      /* the light theme for the menus' buttons (theme = light) */
 	bool leftStickDpad;   /* the left stick also presses the D-pad in games (left_stick_dpad, issue #57) */
 	int turboRate;        /* Turbo A / Turbo B: presses a second, 10, 15 or 20 (turbo_rate, issue #55) */
-	char faceBtn[4][12];  /* what each face button gives the game (button_right, _bottom, _top, _left: a, b, l, r, start, select, turbo_a, turbo_b, none); empty: ab_swap's layout */
+	char faceBtn[10][12]; /* what each button gives the game (button_right, _bottom, _top, _left, _l, _r, _dpad_up, _dpad_down, _dpad_left, _dpad_right: a, b, l, r, up, down, left, right, start, select, turbo_a, turbo_b, none); empty: the GBA's own (ab_swap's for A and B) */
 	/* RetroAchievements (casual mode): auto = on when ROCKNIX has an account
 	 * signed in (EmulationStation's RetroAchievements settings), 1, 0 */
 	char raMode[8];

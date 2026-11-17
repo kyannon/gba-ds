@@ -3,14 +3,14 @@
  "rules": "docs/games/boktai-the-sun-is-in-your-hand.md",
  "cases": [
   {
-   "id": "bk-us-castle",
+   "id": "bt-us-castle",
    "rom": "U3IE",
    "state": "boktai-the-sun-is-in-your-hand/us-castle.ss",
    "desc": "walking about in a castle",
    "rules": [
-    "BK-1",
-    "BK-2",
-    "BK-6"
+    "BT-1",
+    "BT-2",
+    "BT-6"
    ],
    "shots": {
     "start": 120,
@@ -18,13 +18,13 @@
    },
    "checks": [
     {
-     "rule": "BK-1",
+     "rule": "BT-1",
      "what": "the Map",
      "type": "log",
      "match": "map updated"
     },
     {
-     "rule": "BK-6",
+     "rule": "BT-6",
      "what": "game screen untouched",
      "type": "no_log",
      "match": "HUD on the second screen"
@@ -32,20 +32,20 @@
    ]
   },
   {
-   "id": "bk-us-forest",
+   "id": "bt-us-forest",
    "rom": "U3IE",
    "state": "boktai-the-sun-is-in-your-hand/us-forest.ss",
    "desc": "walking about in a forest (an area where the Map's tabs sit elsewhere)",
    "rules": [
-    "BK-1",
-    "BK-2"
+    "BT-1",
+    "BT-2"
    ],
    "shots": {
     "start": 120
    },
    "checks": [
     {
-     "rule": "BK-1",
+     "rule": "BT-1",
      "what": "the Map",
      "type": "log",
      "match": "map updated"
@@ -53,19 +53,19 @@
    ]
   },
   {
-   "id": "bk-us-map-open",
+   "id": "bt-us-map-open",
    "rom": "U3IE",
    "state": "boktai-the-sun-is-in-your-hand/us-castle-map-open.ss",
    "desc": "the Map open on the game screen",
    "rules": [
-    "BK-3"
+    "BT-3"
    ],
    "shots": {
     "start": 120
    },
    "checks": [
     {
-     "rule": "BK-3",
+     "rule": "BT-3",
      "what": "no capture while the menu is open",
      "type": "no_log",
      "match": "map updated"
@@ -73,19 +73,19 @@
    ]
   },
   {
-   "id": "bk-us-opening",
+   "id": "bt-us-opening",
    "rom": "U3IE",
    "state": "boktai-the-sun-is-in-your-hand/us-opening-dialogue.ss",
    "desc": "a conversation in the opening",
    "rules": [
-    "BK-3"
+    "BT-3"
    ],
    "shots": {
     "start": 120
    },
    "checks": [
     {
-     "rule": "BK-3",
+     "rule": "BT-3",
      "what": "nothing half-drawn: no map taken",
      "type": "no_log",
      "match": "map updated"
@@ -93,19 +93,19 @@
    ]
   },
   {
-   "id": "bk-us-title",
+   "id": "bt-us-title",
    "rom": "U3IE",
    "state": "boktai-the-sun-is-in-your-hand/us-title.ss",
    "desc": "the title screen",
    "rules": [
-    "BK-4"
+    "BT-4"
    ],
    "shots": {
     "start": 60
    },
    "checks": [
     {
-     "rule": "BK-4",
+     "rule": "BT-4",
      "what": "no capture tried",
      "type": "no_log",
      "match": "map updated"
@@ -113,19 +113,19 @@
    ]
   },
   {
-   "id": "bk-us-file-select",
+   "id": "bt-us-file-select",
    "rom": "U3IE",
    "state": "boktai-the-sun-is-in-your-hand/us-file-select.ss",
    "desc": "the file menu",
    "rules": [
-    "BK-4"
+    "BT-4"
    ],
    "shots": {
     "start": 60
    },
    "checks": [
     {
-     "rule": "BK-4",
+     "rule": "BT-4",
      "what": "no capture tried",
      "type": "no_log",
      "match": "map updated"
@@ -133,39 +133,39 @@
    ]
   },
   {
-   "id": "bk-logo-u3ie",
+   "id": "bt-logo-u3ie",
    "kind": "logo",
    "rom": "U3IE",
    "desc": "U3IE logo extraction",
    "rules": [
     "GEN-1",
-    "BK-5"
+    "BT-5"
    ],
    "golden": [
     "logo"
    ]
   },
   {
-   "id": "bk-logo-u3ip",
+   "id": "bt-logo-u3ip",
    "kind": "logo",
    "rom": "U3IP",
    "desc": "U3IP logo extraction",
    "rules": [
     "GEN-1",
-    "BK-5"
+    "BT-5"
    ],
    "golden": [
     "logo"
    ]
   },
   {
-   "id": "bk-logo-u3ij",
+   "id": "bt-logo-u3ij",
    "kind": "logo",
    "rom": "U3IJ",
    "desc": "U3IJ logo extraction",
    "rules": [
     "GEN-1",
-    "BK-5"
+    "BT-5"
    ],
    "golden": [
     "logo"

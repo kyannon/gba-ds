@@ -160,8 +160,7 @@ int main(int argc, char** argv) {
 	if (!cfg.stateDir[0]) snprintf(cfg.stateDir, sizeof(cfg.stateDir), "%s/states", dataDir);
 	mkdirs(cfg.stateDir);
 	snprintf(path, sizeof(path), "%s/prefs.cfg", cfg.stateDir);
-	/* (map_animations, map_interval, show_fps and show_logo were left to gba-ds.cfg
-	 * until v1.5.4; the game list's Settings can change them now) */
+	/* (map_interval and show_fps were left to gba-ds.cfg until v1.5.4; the game list's Settings can change them now) */
 	config_load_file(&cfg, path);
 	/* the game list's Settings (Android: the ROM folder) */
 	snprintf(path, sizeof(path), "%s/library.cfg", cfg.stateDir);
@@ -202,6 +201,7 @@ int main(int argc, char** argv) {
 	signal(SIGHUP, on_signal);
 
 	if (!ui_init(&cfg, true)) return 1;
+	ui_accent(cfg.accent);
 	ui_theme(cfg.lightTheme);
 	ui_brightness(cfg.brightTop, cfg.brightBottom);
 	ra_init(&cfg); /* signs in to RetroAchievements in the background */

@@ -4,7 +4,7 @@
 |---|---|
 | Releases | `U3IE` USA · `U3IP` Europe (English, French, German, Spanish, Italian) · `U3IJ` Japan (the USA release walked about in; Europe and Japan on their logos and the same addresses) |
 | Dumps | `U3IE` cartridge `e715ac45` (tested) · `U3IP` cartridge `9686c36b` (tested) · `U3IJ` cartridge `a09c0807` (tested) |
-| Profile | `src/profiles.c`: the `U3IE` entry (bk_compose; the Map page of SELECT's menu); variants `U3IP`, `U3IJ` (as `U3IE`) |
+| Profile | `src/profiles.c`: the `U3IE` entry (bt_compose; the Map page of SELECT's menu); variants `U3IP`, `U3IJ` (as `U3IE`) |
 | Tests | `tests/regress/boktai-the-sun-is-in-your-hand.json` (`tools/regress.py boktai-the-sun-is-in-your-hand`) |
 | Status | in progress (side build) |
 
@@ -14,25 +14,25 @@ Every game also follows the [general rules](README.md#general-rules). The game d
 
 ## Rules
 
-**BK-1. Map.** While Django walks about (no menu, no conversation), the second screen shows the Map page of the game's SELECT menu, the whole screen at the game screen's size, as the game draws it: the area's map with its name below and the arrow for Django. It is opened on the hidden copy (SELECT, then L or R to the Map page), about once a second, so the arrow follows him.
+**BT-1. Map.** While Django walks about (no menu, no conversation), the second screen shows the Map page of the game's SELECT menu, the whole screen at the game screen's size, as the game draws it: the area's map with its name below and the arrow for Django. It is opened on the hidden copy (SELECT, then L or R to the Map page), about once a second, so the arrow follows him.
 
-**BK-2. No prompts.** The Map's button prompts (the L and R tabs at the title's ends, the A + up / down glyph) and the arrows at its edges that say it scrolls are left out (black there), as nothing on the second screen should make the player look twice.
+**BT-2. No prompts.** The Map's button prompts (the L and R tabs at the title's ends, the A + up / down glyph) and the arrows at its edges that say it scrolls are left out (black there), as nothing on the second screen should make the player look twice.
 
-**BK-3. Last one stays.** Where the menu can't be opened (a conversation, a scene, the area's title card), or with the game's own menu or Map open on the game screen, the last Map stays; before the first, the logo.
+**BT-3. Last one stays.** Where the menu can't be opened (a conversation, a scene, the area's title card), or with the game's own menu or Map open on the game screen, the last Map stays; before the first, the logo.
 
-**BK-4. Title.** On the title screen, the file menu and the first start's set-up (sensor and clock notes, Konami logos, caution), the second screen shows the logo, and no captures are tried.
+**BT-4. Title.** On the title screen, the file menu and the first start's set-up (sensor and clock notes, Konami logos, caution), the second screen shows the logo, and no captures are tried.
 
-**BK-5. Logo.** The logo is the title's lettering (boktai, ボクらの太陽 in Japan) with its banner, cut out of the sun behind it; PUSH START, the copyright line and the sun are left out. The first start asks about the sensor and the clock before the title, so the hidden copy answers those (A through them, START to end).
+**BT-5. Logo.** The logo is the title's lettering (boktai, ボクらの太陽 in Japan) with its banner, cut out of the sun behind it; PUSH START, the copyright line and the sun are left out. The first start asks about the sensor and the clock before the title, so the hidden copy answers those (A through them, START to end).
 
-**BK-6. Game screen untouched.** Nothing leaves the game screen.
+**BT-6. Game screen untouched.** Nothing leaves the game screen.
 
-**BK-7. The sun.** The cartridge's solar sensor reads a fixed level, 6 of 10 (the `solar_level` setting in `gba-ds.cfg`, 0 to 10; 0 is dark), so the sun gauge isn't empty. This is shared code (the emulator hands the core a light level); the game list has no row for it yet.
+**BT-7. The sun.** The cartridge's solar sensor reads a fixed level, 6 of 10 (the `solar_level` setting in `gba-ds.cfg`, 0 to 10; 0 is dark), so the sun gauge isn't empty. This is shared code (the emulator hands the core a light level); the game list has no row for it yet.
 
 ## Not covered yet
 
 - Europe's and Japan's walking about: they share the USA release's addresses (checked: the Map opens, the logos extract); only their logos have cases until a state from each arrives.
-- Bosses, the Solar Station and the World map: not reached; the Map is only taken where SELECT opens it, and BK-3 covers the rest.
-- A fixed area key for refreshing the moment the area changes: none found, so BK-1 refreshes about once a second.
+- Bosses, the Solar Station and the World map: not reached; the Map is only taken where SELECT opens it, and BT-3 covers the rest.
+- A fixed area key for refreshing the moment the area changes: none found, so BT-1 refreshes about once a second.
 
 ## For the merge
 
