@@ -155,8 +155,21 @@ async function allFiles() {
 }
 // what the app wrote: battery saves, states and the home folder into the browser; everything into the player's folder
 const BROWSER_KEEPS = /^\/(saves|states|home)\//;
+// a bug report's .zip, saved by the app into its bug-reports folder: handed to the browser as a download too,
+// so it can be kept outside the player's own storage (and sent)
+const BUG_ZIP = /^\/gba-ds\/bug-reports\/([^\/]+\.zip)$/, bugSent = new Map();
+function downloadBugReports(files) {
+  for (const [p, b] of files) {
+    const m = BUG_ZIP.exec(p);
+    if (!m || bugSent.get(p) === b.length) continue;
+    bugSent.set(p, b.length);
+    download(m[1], b, "application/zip");
+    toast("Bug report saved as " + m[1] + ": the browser is downloading it.");
+  }
+}
 function keepFiles(files, deleted) {
   if (!files.length && !deleted.length) return;
+  downloadBugReports(files);
   folderWrite(files, deleted);
   files = files.filter(([p]) => BROWSER_KEEPS.test(p)); deleted = deleted.filter((p) => BROWSER_KEEPS.test(p));
   if (!files.length && !deleted.length) return;
