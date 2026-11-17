@@ -6,6 +6,7 @@
 #endif
 
 #include "android.h"
+#include "clocks.h"
 #include "emu.h"
 #include "paths.h"
 #include "profiles.h"
@@ -177,6 +178,9 @@ typedef struct APerformanceHintManager APerformanceHintManager;
 typedef struct APerformanceHintSession APerformanceHintSession;
 static APerformanceHintSession* hintSession;
 static int (*hintReport)(APerformanceHintSession*, int64_t);
+static int (*hintUpdate)(APerformanceHintSession*, int64_t);
+static int64_t hintBaseNs;   /* the usual target (android_perf_init's) */
+static bool perfMax;         /* Settings > Speed and sound > Performance: Set to Max */
 
 /* as high as the system lets an app go, short of audio's: other threads of
  * ours and ordinary system work wait for the game */
@@ -197,6 +201,8 @@ void android_perf_init(int64_t targetNs) {
 	APerformanceHintSession* (*create)(APerformanceHintManager*, const int32_t*, size_t, int64_t) =
 		lib ? dlsym(lib, "APerformanceHint_createSession") : NULL;
 	hintReport = lib ? dlsym(lib, "APerformanceHint_reportActualWorkDuration") : NULL;
+	hintUpdate = lib ? dlsym(lib, "APerformanceHint_updateTargetWorkDuration") : NULL;
+	hintBaseNs = targetNs;
 	if (!getManager || !create || !hintReport) {
 		fprintf(stderr, "performance hint: not available on this Android version\n");
 		return;
@@ -208,8 +214,31 @@ void android_perf_init(int64_t targetNs) {
 	if (got) fprintf(stderr, "game thread priority raised (nice %d)\n", got);
 	else fprintf(stderr, "game thread priority: %s\n", strerror(errno));
 	APerformanceHintManager* m = getManager();
-	hintSession = m ? create(m, &tid, 1, targetNs) : NULL;
+	hintSession = m ? create(m, &tid, 1, perfMax ? targetNs * 3 / 10 : targetNs) : NULL;
 	fprintf(stderr, "performance hint: %s\n", hintSession ? "on (game thread)" : "refused by the system");
+	if (hintSession && perfMax) fprintf(stderr, "performance: set to max (the hint's target is %lld us)\n", (long long) (targetNs * 3 / 10 / 1000));
+}
+
+/* Settings > Speed and sound > Performance (the same setting as on Linux,
+ * where it holds the clock governors; clocks.h). An app can't set Android's
+ * clocks, only ask: Max gives the hint session a target about a third of
+ * the usual one, so the system, which clocks the CPU so a frame's work
+ * takes about the target (docs/ANDROID.md), keeps it near full speed. */
+bool clocks_available(void) {
+	return true;
+}
+
+void clocks_set(bool max) {
+	if (max == perfMax) return;
+	perfMax = max;
+	if (!hintSession || !hintUpdate || hintBaseNs <= 0) {
+		fprintf(stderr, "performance: %s (applies when the hint session starts%s)\n", max ? "set to max" : "left to the system",
+		        hintSession ? "; this Android can't change its target" : "");
+		return;
+	}
+	int64_t t = max ? hintBaseNs * 3 / 10 : hintBaseNs;
+	hintUpdate(hintSession, t);
+	fprintf(stderr, "performance: %s (the hint's target is %lld us)\n", max ? "set to max" : "left to the system", (long long) (t / 1000));
 }
 
 /* ------------------------------------------------------------- cores */

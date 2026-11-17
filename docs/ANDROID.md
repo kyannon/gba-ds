@@ -812,3 +812,30 @@ one session"). Empty after each release.
   lock); Auto stays the default for that reason.
 - Desktop kit: `STUB_SECOND=none` shows the row; `stubs_extra.c` keeps the
   mode in memory.
+
+- **Performance setting on Android.** Settings > Speed and sound > Performance:
+  **Let the System Decide** (the default) or **Set to Max**, the same setting
+  as on ROCKNIX. Android doesn't let an app set the processor's speed, so Max
+  asks for it: it keeps the processor at a high clock while GBA DS runs, for
+  a smoother game and steadier sound, at the cost of a warmer device and a
+  shorter battery. Try it if games stutter. (The system can still hold it back
+  if the device gets hot.)
+
+### Notes for sessions: Performance (`android`)
+
+- Reuses the shared `performance` setting (`perfMax`, config.c; its row shows
+  on the Speed and sound page where `clocks_available()` is true). clocks.h
+  declares the two functions for Android and android.c implements them:
+  `clocks_set(true)` gives the ADPF hint session a target of 30% of the usual
+  one (`hintBaseNs`, 50% of a frame: about 2.5 ms against the 11 ms of work a
+  frame takes), through `APerformanceHint_updateTargetWorkDuration` (looked
+  up at run time like the rest), so the system, which clocks the CPU so the
+  work takes about the target (see the 65% / 50% notes above), keeps it high.
+  Set before the session exists (the setting is read at start), it applies
+  when `android_perf_init` creates it. Android 13+ only, like the hint.
+- Not tried on a device: whether Max measurably cuts slow frames on the RG
+  DS Plus (compare the log's "slow frames" lines with it on and off; the log
+  says "performance: set to max (the hint's target is N us)"). Considered and
+  left out: `Window.setSustainedPerformanceMode`, which holds clocks steady
+  for heat rather than raising them; `pin_cores` (no difference, see above).
+- Desktop kit: `stubs_gpu.c` has stand-ins that log the change.
