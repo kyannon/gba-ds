@@ -156,6 +156,15 @@ void ui_fill_round(int screen, SDL_Rect local, SDL_Color c, int radius);
 enum { KEY_PLAIN, KEY_SEL, KEY_LIT };
 void ui_key(int screen, SDL_Rect local, int radius, int state);
 void ui_theme(int light);
+/* The menus' accent colour (Settings > Display > Color): what's selected, the
+ * edges and glows, the panels' tint and the highlight for chosen values,
+ * pills and bars. Each has a dark and a light version (the theme's), made to
+ * read on the keys and panels they sit on. */
+enum { AC_BG, AC_HEADER, AC_ROW, AC_BTN, AC_BTN_SEL, AC_EDGE, AC_HI, AC_HI_INK, AC_SEL_MID, AC_LIT_MID,
+       AC_SEL_HI, AC_SEL_LO, AC_SEL_EDGE, AC_SEL_BORDER, AC_SEL_RING, AC_LIT_BORDER, AC_LIT_HI, AC_LIT_LO, AC_LIT_EDGE, AC_COUNT };
+#define ACCENT_COUNT 7
+void ui_accent(const char* id);              /* by its name in the config ("purple"...); unknown: purple */
+SDL_Color ui_accent_color(int role);
 void ui_brightness(int top, int bottom); /* each screen's brightness, 20..100: dims this app's picture only */
 bool ui_theme_light(void);
 SDL_Color ui_key_ink(void);          /* text and icons on a key */

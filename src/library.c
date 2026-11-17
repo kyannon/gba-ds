@@ -48,13 +48,14 @@ typedef struct {
 static GameEntry* games;
 static int nGames, capGames;
 
-static const SDL_Color C_BG = { 14, 14, 26, 255 };
-static const SDL_Color C_HEADER = { 30, 26, 52, 255 };
-static const SDL_Color C_ROW = { 22, 22, 38, 255 };
-static const SDL_Color C_SEL = { 92, 52, 140, 255 };
+/* (the accent's colours: Settings > Display > Color) */
+#define C_BG ui_accent_color(AC_BG)
+#define C_HEADER ui_accent_color(AC_HEADER)
+#define C_ROW ui_accent_color(AC_ROW)
+#define C_SEL ui_accent_color(AC_BTN_SEL)
 static const SDL_Color C_TEXT = { 236, 236, 244, 255 };
 static const SDL_Color C_DIM = { 140, 140, 172, 255 };
-static const SDL_Color C_GOLD = { 232, 200, 120, 255 };
+#define C_GOLD ui_accent_color(AC_HI)
 static const SDL_Color C_TAG = { 52, 120, 96, 255 };
 
 static int cmp_games(const void* a, const void* b) {
@@ -799,7 +800,7 @@ static void draw_preview(Config* cfg, int scr, int sel) {
 
 /* -------------------------------------------------------------- list: a grid of logos */
 
-static const SDL_Color C_EDGE = { 150, 120, 210, 255 };
+#define C_EDGE ui_accent_color(AC_EDGE)
 
 typedef struct {
 	int headerH, listH, m, gap, tileW, tileH, rowH, cols, visibleRows;
@@ -1209,8 +1210,8 @@ typedef struct {
 	const char* keys[20];
 } SetPage;
 static const SetPage setPages[SP_SYSTEM] = {
-	{ "Games", "Which games, names, saving", { "show_all", "name_tags", "theme", "save_on_quit", "auto_load", "custom_logos", "quick_bar_hint" } },
-	{ "Display", "Scale, shader, colors", { "scale", "map_scale", "shader", "lcd_strength", "color_correction", "lcd_ghosting", "smooth" } },
+	{ "Games", "Which games, names, saving", { "show_all", "name_tags", "save_on_quit", "auto_load", "custom_logos", "quick_bar_hint" } },
+	{ "Display", "Scale, shader, theme, color", { "scale", "map_scale", "shader", "lcd_strength", "color_correction", "lcd_ghosting", "smooth", "theme", "accent" } },
 	{ "Screens", "Placement, overlays", { "swap", "screen_match", "screen_placement", "overlays", "overlay_screens", "bezel_logo", "brightness_top", "brightness_bottom" } },
 	{ "Controls", "Stick, buttons, hotkeys", { "left_stick_dpad", "ab_swap", "button_right", "button_bottom", "button_top", "button_left", "button_l", "button_r", "button_dpad_up", "button_dpad_down", "button_dpad_left", "button_dpad_right", "turbo_rate", "@map", "@hotkeys" } },
 	{ "Speed and sound", "Rewind, fast forward", { "show_fps", "match_display", "frame_buffer", "rewind", "rewind_seconds", "fast_forward", "audio_latency", "performance" } },
@@ -1321,15 +1322,19 @@ static void draw_set_home(int scr, int sel) {
 #ifdef __ANDROID__
 		if (i == SP_SYSTEM) sub = "Folders, accounts, updates";
 #endif
-		int cx = t.x + t.w / 2; /* the text's centre: the tile's, or the part right of the picture */
 		if (i <= SP_SYSTEM) {
-			/* the pause menu's picture for the page, at the tile's left */
-			SDL_Rect ib = { t.x + px * 4, t.y, t.h * 6 / 10, t.h };
+			/* the pause menu's picture for the page, then the text left-aligned beside it: the two together centred in the button */
+			int iw = t.h * 6 / 10, gap = px * 3;
+			int tw = SDL_max(ui_label_width(scr, px * 6, name), sub ? ui_font_width(TF_BODY, px * 4, sub) : 0);
+			int x0 = t.x + (t.w - (iw + gap + tw)) / 2;
+			SDL_Rect ib = { x0, t.y, iw, t.h };
 			game_page_icon(scr, i == SP_SYSTEM ? GAME_ICON_SYSTEM : i, ib, i == sel || !ui_theme_light() ? C_TEXT : ui_key_ink(), ui_key_mid(i == sel ? KEY_SEL : KEY_PLAIN));
-			cx = (ib.x + ib.w + t.x + t.w) / 2;
+			int tx = x0 + iw + gap;
+			ui_font_text(scr, TF_BOLD, tx, t.y + t.h / 2 - (sub ? px * 4 : 0), px * 6, name, C_TEXT, -1);
+			if (sub) ui_font_text(scr, TF_BODY, tx, t.y + t.h / 2 + px * 7, px * 4, sub, C_DIM, -1);
+		} else {
+			ui_label(scr, t.x + t.w / 2, t.y + t.h / 2, px * 6, name, C_TEXT);
 		}
-		ui_label(scr, cx, t.y + t.h / 2 - (sub ? px * 4 : 0), px * 6, name, C_TEXT);
-		if (sub) ui_font_text(scr, TF_BODY, cx, t.y + t.h / 2 + px * 7, px * 4, sub, C_DIM, 0);
 	}
 }
 
@@ -1394,6 +1399,7 @@ static void setting_changed(Config* cfg, const Setting* st) {
 	config_kv_update(path, "# written by gba-ds's menus; overrides gba-ds.cfg", n, kv);
 	if (!strcmp(st->key, "performance")) clocks_set(cfg->perfMax);
 	if (!strcmp(st->key, "theme")) ui_theme(cfg->lightTheme);
+	if (!strcmp(st->key, "accent")) ui_accent(cfg->accent), ui_theme(cfg->lightTheme);
 	if (!strncmp(st->key, "brightness_", 11)) ui_brightness(cfg->brightTop, cfg->brightBottom);
 	if (!strcmp(st->key, "show_all") || !strcmp(st->key, "name_tags")) setRescan = true;
 	if (!strcmp(st->key, "screen_match") || !strcmp(st->key, "screen_placement")) ui_layout_pictures();
@@ -1421,6 +1427,7 @@ static int reset_settings(Config* cfg) {
 	char path[1100];
 	snprintf(path, sizeof(path), "%s/prefs.cfg", cfg->stateDir);
 	config_kv_remove(path, n, keys);
+	ui_accent(cfg->accent);
 	ui_theme(cfg->lightTheme);
 	ui_brightness(cfg->brightTop, cfg->brightBottom);
 	clocks_set(cfg->perfMax);

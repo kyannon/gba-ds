@@ -200,6 +200,7 @@ int main(int argc, char** argv) {
 	signal(SIGHUP, on_signal);
 
 	if (!ui_init(&cfg, true)) return 1;
+	ui_accent(cfg.accent);
 	ui_theme(cfg.lightTheme);
 	ui_brightness(cfg.brightTop, cfg.brightBottom);
 	ra_init(&cfg); /* signs in to RetroAchievements in the background */

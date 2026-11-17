@@ -18,6 +18,7 @@ void config_defaults(Config* c) {
 	strcpy(c->stateFolder, "gbads");
 	strcpy(c->scale, "integer");
 	strcpy(c->mapScale, "integer");
+	strcpy(c->accent, "purple");
 	strcpy(c->hotkey, "home");
 	for (int i = 0; i < HK_COUNT; ++i) strcpy(c->hotkeyBtn[i], hotkeyDefaults[i]);
 	c->shaderLast = SH_GRID;
@@ -221,6 +222,7 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	BOOL("quick_bar_hint", barHint)
 	BOOL("show_all", showAll)
 	BOOL("left_stick_dpad", leftStickDpad)
+	STR("accent", accent)
 	if (!strcmp(key, "theme")) {
 		c->lightTheme = !strcmp(val, "light") || parse_bool(val);
 		return true;
@@ -420,6 +422,9 @@ void config_usage(const char* argv0) {
 #define OFFB(f) offsetof(Config, f), sizeof(((Config*) 0)->f)
 #define ARR(a) a, (int) (sizeof(a) / sizeof(a[0]))
 static const SettingChoice chTheme[] = { { "dark", "Dark", 0 }, { "light", "Light", 1 } };
+static const SettingChoice chAccent[] = {
+	{ "purple", "Purple", 0 }, { "blue", "Blue", 0 }, { "teal", "Teal", 0 }, { "green", "Green", 0 }, { "red", "Red", 0 }, { "orange", "Orange", 0 }, { "pink", "Pink", 0 },
+};
 static const SettingChoice chOnOff[] = { { "0", "Off", 0 }, { "1", "On", 1 } };
 static const SettingChoice chShown[] = { { "0", "Supported games only", 0 }, { "1", "All games", 1 } };
 static const SettingChoice chTags[] = { { "0", "Plain", 0 }, { "1", "With tags, like (USA)", 1 } };
@@ -471,7 +476,8 @@ static const Setting settingsTable[] = {
 	{ "bezel_logo", "Bezel logo", SF_BOOL, OFFB(bezelLogo), ARR(chOnOff), 0, 0, 0, NULL, "The GBA DS logo in the generated bezel." },
 	{ "show_fps", "Show FPS", SF_BOOL, OFFB(showFps), ARR(chOnOff), 0, 0, 0, NULL, "Frames a second above the game, all the time." },
 
-	{ "theme", "Theme", SF_BOOL, OFFB(lightTheme), ARR(chTheme), 0, 0, 0, NULL, "The look of the menus' buttons: dark grey, or light grey like the web player's." },
+	{ "theme", "Light/dark mode", SF_BOOL, OFFB(lightTheme), ARR(chTheme), 0, 0, 0, NULL, "The menus' buttons: dark grey, or light grey like the web player's." },
+	{ "accent", "Color", SF_STR, OFFB(accent), ARR(chAccent), 0, 0, 0, NULL, "The menus' color for what's selected, with a dark and a light version of each." },
 	{ "brightness_top", "Top screen brightness", SF_INT, OFFB(brightTop), NULL, 0, 20, 100, 10, "%", "Darkens the top screen, in this app only: the device's own brightness is left alone (and this can't go above it)." },
 	{ "brightness_bottom", "Bottom screen brightness", SF_INT, OFFB(brightBottom), NULL, 0, 20, 100, 10, "%", "Darkens the bottom screen, in this app only: the device's own brightness is left alone (and this can't go above it)." },
 	{ "left_stick_dpad", "Left stick as D-pad", SF_BOOL, OFFB(leftStickDpad), ARR(chOnOff), 0, 0, 0, NULL, "Off: the left stick does nothing in games." },

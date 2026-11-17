@@ -1225,12 +1225,12 @@ static bool ignorePointerUp;      /* the tap that opened the menu */
 static char menuNote[64];
 static bool pacedFallback; /* Match Display Rate fell back to the GBA's rate (pacing_update) */
 
-static const SDL_Color C_BTN = { 34, 30, 58, 240 };
-static const SDL_Color C_BTN_SEL = { 92, 52, 140, 250 };
-static const SDL_Color C_BTN_EDGE = { 150, 120, 210, 255 };
+#define C_BTN ui_accent_color(AC_BTN)
+#define C_BTN_SEL ui_accent_color(AC_BTN_SEL)
+#define C_BTN_EDGE ui_accent_color(AC_EDGE)
 static const SDL_Color C_TEXT = { 236, 236, 244, 255 };
 static const SDL_Color C_DIS = { 100, 100, 120, 255 };
-static const SDL_Color C_GOLD = { 232, 200, 120, 255 };
+#define C_GOLD ui_accent_color(AC_HI)
 
 static Cheats cheats;
 static SDL_Rect tab_rect(int scr, int t);
