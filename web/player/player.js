@@ -896,7 +896,7 @@ function showSlots() {
   // no build: a key to choose one; a build: a card like Your files, with a button for another
   $("slotBuild").parentElement.hidden = !!b;
   $("buildCard").hidden = !b;
-  $("buildName").textContent = b ? "Version " + b.version + (b.bundled ? ", the one that comes with this player" : "") : "";
+  $("buildName").textContent = b ? ": Version " + b.version : "";
   $("slotGame").classList.toggle("have", !!r);
   $("gameName").textContent = r ? r.title : "No game yet";
   $("gameHint").textContent = r ? r.code + " · " + r.name + (P.state ? " · State: " + P.state.name : P.save ? " · Save: " + P.save.name : "") : "Drag and drop or choose a game";

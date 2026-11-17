@@ -109,6 +109,7 @@ body.playing #screen.touch { cursor: crosshair; }
 .slots { display: grid; grid-template-columns: 1fr; gap: 14px; margin-bottom: 14px; }
 .slots.build-slot { margin: 14px 0 0; }
 .build-card { margin-top: 14px; }
+.build-card h2 { margin-bottom: 4px; }
 .slot { text-align: left; display: grid; gap: 4px; align-content: start; padding: 14px 14px 13px; min-height: 112px; border-radius: var(--radius); }
 .slot-k { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--k-sub); }
 .slot-k em { font-style: normal; font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--k-faint); margin-left: 4px; }

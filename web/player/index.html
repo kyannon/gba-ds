@@ -79,13 +79,12 @@ try { var t = JSON.parse(localStorage.getItem("gbadsPlayer.settings") || "null")
         </section>
         <div class="slots build-slot">
           <button class="slot" id="slotBuild" type="button">
-            <span class="slot-k">GBA DS</span>
+            <span class="slot-k">GBA DS Build</span>
             <span class="slot-v">No build yet</span>
           </button>
         </div>
         <section class="files-card build-card" id="buildCard" aria-labelledby="buildH" hidden>
-          <h2 id="buildH">GBA DS</h2>
-          <p class="note" id="buildName"></p>
+          <h2 id="buildH">GBA DS Build<span id="buildName"></span></h2>
           <div class="buttons"><button type="button" class="ghost" id="newBuild">Select a new build…</button></div>
         </section>
         <div class="go">
