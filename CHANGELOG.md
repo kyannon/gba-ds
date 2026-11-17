@@ -9,7 +9,7 @@
 ### Menus and interface
 - **Every button can be remapped.** The pause menu's Controls tab (and the game list's Settings > Controls) now has rows for L, R and the four D-pad directions as well as the face buttons, and every row can give GBA A, B, L, R, Up, Down, Left, Right, Start, Select, Turbo A, Turbo B or Nothing. Settings pages show 8 rows at a time and scroll (D-pad, or drag with a finger), with a bar at the right edge.
 - **Rows are a little taller.** With at most 8 rows on a page, the pause menu's buttons have more height and padding.
-- **Settings looks tidier.** Every Settings page is headed "GBA DS Settings" in larger letters, and its Back button sits at the bottom right with the help text flowing round it. In System, Reset settings and Delete per-game settings sit apart from the rows above and no longer show a help text. Opening System no longer flashes the game list for a frame.
+- **Settings looks tidier.** The main Settings screen is headed "GBA DS Settings", and every Settings heading is in larger letters. Each page's Back button sits at the bottom right with the help text flowing round it. In System, Reset settings and Delete per-game settings sit apart from the rows above and no longer show a help text. Opening System no longer flashes the game list for a frame.
 - **Show FPS** moved from the Screens tab to Speed.
 - **"Restart required" tag.** Changing Pinball two-screen view in the pause menu marks the row "Restart required", and says it takes effect after you close and restart GBA DS (it used to say "when the game starts again").
 - **"Paused" is dark grey** on the light theme (it was orange).

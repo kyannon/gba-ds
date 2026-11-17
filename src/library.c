@@ -1149,7 +1149,7 @@ typedef struct {
 static SDL_Rect set_panel(int scr);
 static SDL_Rect set_row(int scr, int n, int i);
 static SDL_Rect set_row_gap(int scr, int n, int i, int gapAt);
-static void draw_set_heading(int scr, SDL_Rect p);
+static void draw_set_heading(int scr, SDL_Rect p, const char* title);
 static int set_note_wrap(int scr, int n, int y, const char* text, SDL_Color c, int font);
 static SettingsGeom settings_geom(int scr) {
 	/* the same rows as the other pages (set_row), the older panel's text now a
@@ -1175,7 +1175,7 @@ static void draw_settings_frame(int scr, const SettingsGeom* g, int sel, const c
 	float px = g->px;
 	ui_dim(scr, 200);
 	ui_fill_round(scr, g->panel, C_HEADER, px * 4);
-	draw_set_heading(scr, g->panel);
+	draw_set_heading(scr, g->panel, "System");
 	for (int i = 0; i <= nRows; ++i) {
 		SDL_Rect b = i < nRows ? g->row[i] : g->back;
 		ui_key(scr, b, px * 3, i == sel ? KEY_SEL : KEY_PLAIN);
@@ -1292,9 +1292,8 @@ static int set_note_wrap(int scr, int n, int y, const char* text, SDL_Color c, i
 }
 
 /* the heading of every Settings page: large, filling the strip above the rows */
-static void draw_set_heading(int scr, SDL_Rect p) {
+static void draw_set_heading(int scr, SDL_Rect p, const char* title) {
 	int px = (int) ui_px(scr), cap = px * 10;
-	const char* title = "GBA DS Settings";
 	int w = ui_label_width(scr, cap, title), maxW = p.w - px * 12;
 	if (w > maxW) cap = cap * maxW / w;
 	ui_label(scr, p.x + p.w / 2, p.y + px * 11, cap, title, C_TEXT);
@@ -1305,7 +1304,7 @@ static void draw_set_home(int scr, int sel) {
 	SDL_Rect p = set_panel(scr);
 	ui_dim(scr, 200);
 	ui_fill_round(scr, p, C_HEADER, px * 4);
-	draw_set_heading(scr, p);
+	draw_set_heading(scr, p, "GBA DS Settings");
 	for (int i = 0; i < 8; ++i) {
 		SDL_Rect t = set_tile(scr, i);
 		ui_key(scr, t, px * 3, i == sel ? KEY_SEL : KEY_PLAIN);
@@ -1328,7 +1327,7 @@ static void draw_set_page(const Config* cfg, int scr, int page, int sel) {
 	setTop = SDL_clamp(setTop, 0, SDL_max(0, n - SET_VIS));
 	ui_dim(scr, 200);
 	ui_fill_round(scr, p, C_HEADER, px * 4);
-	draw_set_heading(scr, p);
+	draw_set_heading(scr, p, setPages[page].name);
 	for (int s = 0; s <= nv; ++s) {
 		int i = s == nv ? n : setTop + s;
 		SDL_Rect r = set_row(scr, nv, s);
