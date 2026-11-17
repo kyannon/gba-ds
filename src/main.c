@@ -161,7 +161,7 @@ int main(int argc, char** argv) {
 	mkdirs(cfg.stateDir);
 	snprintf(path, sizeof(path), "%s/prefs.cfg", cfg.stateDir);
 	/* (map_animations, map_interval, show_fps and show_logo were left to gba-ds.cfg
-	 * until v1.5.3.1; the game list's Settings can change them now) */
+	 * until v1.5.4; the game list's Settings can change them now) */
 	config_load_file(&cfg, path);
 	/* the game list's Settings (Android: the ROM folder) */
 	snprintf(path, sizeof(path), "%s/library.cfg", cfg.stateDir);
