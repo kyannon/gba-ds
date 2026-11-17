@@ -415,8 +415,9 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   GitHub run keeps). By
   default regress.py also runs the app unpaced (`GBADS_NOPACE=1`) and
   drawing only screenshot and touch frames (`GBADS_DRAW_SHOTS_ONLY=1`),
-  the CPU count + 1 cases at a time: the full suite takes 10-15 minutes
-  on a session's 2 cores (more drawing every frame). `--paced` runs as
+  the CPU count + 1 cases at a time: the full suite takes about 27 minutes
+  on a session's 2 cores (1421 cases, Nov 16, 2026; it grows with the
+  cases; more drawing every frame). `--paced` runs as
   players do. The container's disk can fill up: clear `build/regress` and
   old `dist/` zips. A check that a screen shows nothing there (GEN-1): on
   a live second screen (a HUD over the logo, a card, a podium) it looks
