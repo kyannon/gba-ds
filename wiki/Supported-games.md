@@ -295,7 +295,7 @@ The USA, European and Japanese releases, tried in Traverse Town.
 
 The USA and European releases (one each, in English, French, German, Spanish, Italian and Dutch). Every level has been tried; the spells (water, fire and air) and the bonus levels haven't been yet.
 
-- **In a level,** the second screen shows the game's own **pause screen** (START) as a status screen: Sia's lives, the gems and the rescued villagers, the level's time, the ring and the heart (her health). It's opened in the background on a silent copy of the game about once a second; your game is never paused. The pause menu's lines (Pause and its choice, with the arrows) are left out (`map_crop = 0` shows them), and the ring is shown without the glow the game pulses round it.
+- **In a level,** the second screen shows the game's own **pause screen** (START) as a status screen: Sia's lives, the gems and the rescued villagers, the level's time, the ring and the heart (her health). It's opened in the background on a silent copy of the game about once a second; your game is never paused. The pause menu's lines (Pause and its choice, with the arrows) are left out, and the ring is shown without the glow the game pulses round it.
 - **The HUD leaves the game screen:** the lives, gems, villagers, ring and heart the game puts up during play (for a few seconds as a level starts, as Sia picks something up, the heart while she's hurt) aren't drawn on the game screen, since the second screen has them. Only while you play: the game's own pause screen, the menus, the scenes and the credits are drawn whole.
 - Pausing in the game, and conversations that don't let the pause screen open, keep the last picture on the second screen.
 - At the title, in the menus and story scenes, on the maps between levels, in the jail ("Continue?") and in the credits, the second screen shows the logo: the title's lettering.
@@ -375,12 +375,12 @@ Known issues: boss battles, Hard mode and link-cable net battles haven't been tr
 ## Metroid: Zero Mission and Metroid Fusion
 
 - **Mini-map:** with the full map always up, the small 3×3 mini-map in the top-right corner of the game screen is hidden. It's left out when the picture is drawn, so the game itself is unchanged; `map = 0` brings it back along with the normal one-screen view.
-- **Map screens** show the pause screen's map in its frame, tidied up (`map_crop`, on by default):
+- **Map screens** show the pause screen's map in its frame, tidied up:
   - the button labels and area name are erased, and the scroll arrows and play-time clock left out;
   - Fusion's "A OBJECTIVE" prompt and its row of ticked item icons are left out, and the map grid behind them rebuilt;
   - Zero Mission's corner minimap gives way to the map underneath, with its "SELECT / CHANGE AREAS" prompt covered by a piece of the bezel;
   - the coloured plates are recoloured to the frame's greys so they don't stand out.
-- `map_crop = 0` shows the pause screens exactly as the games draw them. The European versions' label erasing was checked in English and German.
+- The European versions' label erasing was checked in English and German.
 - Zero Mission's colour patches (Color improvement v1 and v2) work on their own; with another patch on as well, its map may not come up.
 
 ## MOTHER 3

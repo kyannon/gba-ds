@@ -1,3 +1,4 @@
+#include <limits.h>
 #include "ui.h"
 
 /* the left stick presses the D-pad (issue #57): game.c turns it off for a game
@@ -2934,10 +2935,16 @@ void ui_label(int screen, int cx, int cy, int capPx, const char* text, SDL_Color
 }
 
 int ui_font_wrap(int screen, int font, int x, int y, int width, int capPx, const char* text, SDL_Color c) {
-	int lineH = capPx * 2;
+	return ui_font_wrap_around(screen, font, x, y, width, capPx, text, c, INT_MAX, width);
+}
+
+int ui_font_wrap_around(int screen, int font, int x, int y, int width, int capPx, const char* text, SDL_Color c, int narrowY, int narrowW) {
+	int lineH = capPx * 2, fullW = width;
 	char line[512];
 	const char* p = text;
 	while (*p) {
+		/* a line whose box reaches the one on the right is narrower */
+		width = y + lineH > narrowY ? narrowW : fullW;
 		/* as many words as fit */
 		int n = 0, fit = 0;
 		while (p[n]) {
