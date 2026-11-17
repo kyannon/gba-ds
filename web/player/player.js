@@ -893,10 +893,10 @@ window.addEventListener("pagehide", () => { if (P.worker) P.worker.postMessage({
 /* ================================================================ the start screen */
 function showSlots() {
   const b = P.build, r = P.rom;
-  $("slotBuild").classList.toggle("have", !!b);
-  $("buildName").textContent = b ? "GBA DS " + b.version : "No build yet";
-  $("buildHint").textContent = b ? (!b.caps.hasAudio ? "No sound in this build's web version" : !b.caps.hasButtons ? "Keyboard only: no X or Y" : b.bundled ? "Comes with this player · drop another build (.zip) to try it" : b.name) : "A GBA DS build (.zip) with a web build inside";
-  $("buildHint").classList.toggle("warn", !!b && !(b.caps.hasAudio && b.caps.hasButtons));
+  // no build: a key to choose one; a build: a card like Your files, with a button for another
+  $("slotBuild").parentElement.hidden = !!b;
+  $("buildCard").hidden = !b;
+  $("buildName").textContent = b ? "Version " + b.version + (b.bundled ? ", the one that comes with this player" : "") : "";
   $("slotGame").classList.toggle("have", !!r);
   $("gameName").textContent = r ? r.title : "No game yet";
   $("gameHint").textContent = r ? r.code + " · " + r.name + (P.state ? " · State: " + P.state.name : P.save ? " · Save: " + P.save.name : "") : "Drag and drop or choose a game";
@@ -936,7 +936,7 @@ async function showRecent() {
     ul.appendChild(li);
   }
 }
-for (const id of ["slotBuild", "slotGame", "openBtn"]) $(id).onclick = () => $("fileInput").click();
+for (const id of ["slotBuild", "newBuild", "slotGame", "openBtn"]) $(id).onclick = () => $("fileInput").click();
 $("fileInput").onchange = (e) => { const f = [...e.target.files]; e.target.value = ""; if (f.length) takeFiles(f); };
 $("playBtn").onclick = () => boot();
 $("listBtn").onclick = () => boot({ library: true });

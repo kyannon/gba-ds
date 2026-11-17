@@ -61,11 +61,6 @@ try { var t = JSON.parse(localStorage.getItem("gbadsPlayer.settings") || "null")
             <span class="slot-v" id="gameName">No game yet</span>
             <span class="slot-h" id="gameHint">Drag and drop or choose a game</span>
           </button>
-          <button class="slot optional" id="slotBuild" type="button">
-            <span class="slot-k">GBA DS</span>
-            <span class="slot-v" id="buildName">No build yet</span>
-            <span class="slot-h" id="buildHint">A GBA DS build (.zip) with a web build inside</span>
-          </button>
         </div>
         <section class="files-card" aria-labelledby="filesH">
           <h2 id="filesH">Your files</h2>
@@ -81,6 +76,17 @@ try { var t = JSON.parse(localStorage.getItem("gbadsPlayer.settings") || "null")
         <button type="button" class="ghost" id="forgetBuild">Forget the dropped build</button>
         <button type="button" class="ghost danger" id="clearAll">Delete everything kept here</button>
       </div>
+        </section>
+        <div class="slots build-slot">
+          <button class="slot" id="slotBuild" type="button">
+            <span class="slot-k">GBA DS</span>
+            <span class="slot-v">No build yet</span>
+          </button>
+        </div>
+        <section class="files-card build-card" id="buildCard" aria-labelledby="buildH" hidden>
+          <h2 id="buildH">GBA DS</h2>
+          <p class="note" id="buildName"></p>
+          <div class="buttons"><button type="button" class="ghost" id="newBuild">Select a new build…</button></div>
         </section>
         <div class="go">
           <button class="primary" id="playBtn" type="button" disabled>Play</button>
