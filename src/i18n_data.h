@@ -13,5 +13,7 @@
 #define I18N_PSEUDO_CHOICE
 #endif
 #define I18N_CHOICES I18N_PSEUDO_CHOICE \
+	{ "de", "Deutsch", 0 }, \
+	{ "es", "Espa\303\261ol", 0 }, \
 
 #endif

@@ -1501,8 +1501,9 @@ static int delete_game_settings(const Config* cfg) {
 static void system_action(Config* cfg, int row) {
 	if (confirmRow != row) {
 		confirmRow = row;
-		snprintf(settingsMsg, sizeof(settingsMsg), tr("Are you sure? Touch it again to %s. Anything else cancels."),
-		         rowKind[row] == ROW_RESET ? "put every setting back to its default" : "delete every game's own settings");
+		snprintf(settingsMsg, sizeof(settingsMsg), "%s",
+		         rowKind[row] == ROW_RESET ? tr("Are you sure? Touch it again to put every setting back to its default. Anything else cancels.")
+		                                   : tr("Are you sure? Touch it again to delete every game's own settings. Anything else cancels."));
 		return;
 	}
 	confirmRow = -1;
