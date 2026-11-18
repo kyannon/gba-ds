@@ -118,6 +118,7 @@ typedef struct Config {
 	bool updateCheck;     /* look for a new release once a day (the game list's Settings can switch it) */
 	char updateUrl[256];  /* testing: the release API to ask instead of GitHub's */
 	char rom[512];        /* launch straight into this game (skips the library) */
+	char language[10];    /* the interface's language (i18n.c): auto (the system's), en, zh or zh-tw */
 
 	/* testing / automation */
 	char loadState[512];

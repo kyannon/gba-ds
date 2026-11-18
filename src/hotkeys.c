@@ -1,6 +1,7 @@
 #include "hotkeys.h"
 
 #include "ui.h"
+#include "i18n.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -125,14 +126,15 @@ static void draw(int scr, const View_* v) {
 	if (v->note[0]) {
 		foot = v->note, fc = C_GOLD;
 	} else if (v->listen >= 0) {
-		if (v->secondsLeft >= 0) snprintf(line, sizeof(line), "Kept as it was in %d s if nothing is pressed", v->secondsLeft), foot = line;
-		else foot = v->listen == R_MOD ? HOME_TITLE ", Select, Start or L3. Tap to keep it as it is" : "Tap to set none";
+		if (v->secondsLeft >= 0) snprintf(line, sizeof(line), tr("Kept as it was in %d s if nothing is pressed"), v->secondsLeft), foot = line;
+		else if (v->listen == R_MOD) snprintf(line, sizeof(line), tr("%s, Select, Start or L3. Tap to keep it as it is"), HOME_TITLE), foot = line;
+		else foot = tr("Tap to set none");
 	} else if (v->sel == R_MOD) {
-		foot = "Select or Start still reach the game when tapped on their own, L3 still opens the quick menu";
+		foot = tr("Select or Start still reach the game when tapped on their own, L3 still opens the quick menu");
 	} else if (v->sel == R_RESET) {
-		foot = HOME_TITLE " as the hotkey button, with Start, R1, L1, X, Y and B";
+		snprintf(line, sizeof(line), tr("%s as the hotkey button, with Start, R1, L1, X, Y and B"), HOME_TITLE), foot = line;
 	} else if (v->sel == R_DONE) {
-		foot = "Kept for every game";
+		foot = tr("Kept for every game");
 	}
 	if (foot) ui_font_text(scr, TF_BODY, r.w / 2, px * 154, px * 4, foot, fc, 0);
 }
@@ -149,7 +151,7 @@ static bool all_released(void) {
 static bool assign(View_* v, int row, int b) {
 	if (row == R_MOD) {
 		if (b != B_HOME && b != B_SELECT && b != B_START && b != B_L3) {
-			snprintf(v->note, sizeof(v->note), "The hotkey button can be " HOME_TITLE ", Select, Start or L3");
+			snprintf(v->note, sizeof(v->note), tr("The hotkey button can be %s, Select, Start or L3"), HOME_TITLE);
 			return false;
 		}
 		v->mod = b;
@@ -165,24 +167,24 @@ static bool assign(View_* v, int row, int b) {
 				}
 			}
 			v->btn[i] = to;
-			if (to >= 0) snprintf(v->note, sizeof(v->note), "%s is now Start + Select", actionTitles[i]);
-			else snprintf(v->note, sizeof(v->note), "%s has no button now", actionTitles[i]);
+			if (to >= 0) snprintf(v->note, sizeof(v->note), tr("%s is now Start + Select"), tr(actionTitles[i]));
+			else snprintf(v->note, sizeof(v->note), tr("%s has no button now"), tr(actionTitles[i]));
 		}
 		return true;
 	}
 	if (b == B_HOME) {
-		snprintf(v->note, sizeof(v->note), HOME_TITLE " opens the menu: press another button");
+		snprintf(v->note, sizeof(v->note), tr("%s opens the menu: press another button"), HOME_TITLE);
 		return false;
 	}
 	if (b == v->mod) {
-		snprintf(v->note, sizeof(v->note), "That's the hotkey button: press another");
+		snprintf(v->note, sizeof(v->note), "%s", tr("That's the hotkey button: press another"));
 		return false;
 	}
 	int a = row - 1;
 	for (int i = 0; i < HK_COUNT; ++i) {
 		if (i != a && v->btn[i] == b) {
 			v->btn[i] = -1;
-			snprintf(v->note, sizeof(v->note), "%s was %s's: that has no button now", btnTitles[b], actionTitles[i]);
+			snprintf(v->note, sizeof(v->note), tr("%s was %s's: that has no button now"), btnTitles[b], tr(actionTitles[i]));
 		}
 	}
 	v->btn[a] = b;
@@ -289,7 +291,7 @@ void hotkeys_run(Config* cfg) {
 				Config d;
 				config_defaults(&d);
 				hotkeys_resolve(&d, &v.mod, v.btn, false);
-				snprintf(v.note, sizeof(v.note), "Back to " HOME_TITLE " and the buttons it started with");
+				snprintf(v.note, sizeof(v.note), tr("Back to %s and the buttons it started with"), HOME_TITLE);
 			} else if (act >= 0) {
 				v.listen = act;
 				v.note[0] = 0;

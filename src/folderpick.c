@@ -1,6 +1,7 @@
 #include "folderpick.h"
 
 #include "ui.h"
+#include "i18n.h"
 
 #include <dirent.h>
 #include <stdio.h>
@@ -165,7 +166,7 @@ static void draw(int scr, const View_* v, const char* title, const char* countWh
 				*slash = 0;
 				parent = strrchr(tmp, '/') + 1;
 			}
-			snprintf(up, sizeof(up), "Up to %s", parent);
+			snprintf(up, sizeof(up), tr("Up to %s"), parent);
 			ui_font_text(scr, TF_BODY, b.x + px * 6, b.y + b.h / 2, px * 5, up, on ? C_TEXT : ink, -1);
 		} else {
 			ui_font_text(scr, TF_BOLD, b.x + px * 6, b.y + b.h / 2, px * 5, v->names[i - (v->up ? 1 : 0)], on ? C_TEXT : ink, -1);
@@ -187,8 +188,8 @@ static void draw(int scr, const View_* v, const char* title, const char* countWh
 	if (v->note[0]) {
 		snprintf(foot, sizeof(foot), "%s", v->note), fc = C_GOLD;
 	} else if (countWhat) {
-		if (v->counted) snprintf(foot, sizeof(foot), "%d %s%s here", v->counted, countWhat, v->counted == 1 ? "" : "s");
-		else snprintf(foot, sizeof(foot), "No %ss here", countWhat);
+		if (v->counted) snprintf(foot, sizeof(foot), tr("%d %s%s here"), v->counted, countWhat, i18n_plural(v->counted));
+		else snprintf(foot, sizeof(foot), tr("No %ss here"), countWhat);
 	} else {
 		foot[0] = 0;
 	}
@@ -199,7 +200,7 @@ static void draw(int scr, const View_* v, const char* title, const char* countWh
 		SDL_Rect br = btn_rect(scr, v, b);
 		bool on = v->sel < 0 && v->btn == b;
 		ui_key(scr, br, px * 3, on ? KEY_SEL : KEY_PLAIN);
-		ui_label(scr, br.x + br.w / 2, br.y + br.h / 2, px * 5, b == BTN_CANCEL ? "Cancel" : b == BTN_USE ? "Use This Folder" : autoLabel,
+		ui_label(scr, br.x + br.w / 2, br.y + br.h / 2, px * 5, b == BTN_CANCEL ? tr("Cancel") : b == BTN_USE ? tr("Use This Folder") : autoLabel,
 		         on ? C_TEXT : ink);
 	}
 }

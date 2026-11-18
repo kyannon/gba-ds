@@ -15,6 +15,7 @@ void ui_stick_dpad(bool on) {
 #include "paths.h"
 #include "profiles.h"
 #include "emu.h"
+#include "i18n.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -2889,6 +2890,16 @@ static void text_cache_drop(void) {
 }
 static uint64_t textUse;
 
+/* The font text is drawn in: Jost in English, the Chinese font when the
+ * interface is Chinese (textfont.h's TF_ZH_*). The menus only use TF_BOLD
+ * and TF_BODY, so these two are the whole mapping. */
+static int lang_font(int font) {
+	int l = i18n_lang();
+	if (l == LANG_EN) return font;
+	if (l == LANG_ZT) return font == TF_BOLD ? TF_ZT_BOLD : font == TF_BODY ? TF_ZT_BODY : font;
+	return font == TF_BOLD ? TF_ZH_BOLD : font == TF_BODY ? TF_ZH_BODY : font;
+}
+
 static TextEntry* text_entry(int view, int font, int cap, const char* text) {
 	TextEntry* slot = NULL;
 	for (int i = 0; i < TEXT_CACHE; ++i) {
@@ -2937,14 +2948,17 @@ static struct {
 } widthCache[WIDTH_CACHE];
 
 static int text_width(int font, int capPx, const char* text) {
-	uint64_t h = 1469598103934665603ull ^ (uint64_t) (font * 131 + capPx);
+	if (!text) return 0;
+	text = tr(text);
+	int lg = i18n_lang(); /* (the same string can be wider in one font than the other) */
+	uint64_t h = 1469598103934665603ull ^ (uint64_t) (font * 131 + capPx) ^ (uint64_t) (lg * 7919);
 	for (const unsigned char* p = (const unsigned char*) text; *p; ++p) h = (h ^ *p) * 1099511628211ull;
 	unsigned slot = (unsigned) (h ^ (h >> 32)) % WIDTH_CACHE;
 	if (widthCache[slot].text && widthCache[slot].hash == h && widthCache[slot].font == font &&
 	    widthCache[slot].cap == capPx && !strcmp(widthCache[slot].text, text)) {
 		return widthCache[slot].w;
 	}
-	int w = tf_width(font, capPx, text);
+	int w = tf_width(lang_font(font), capPx, text);
 	char* copy = strdup(text);
 	if (copy) {
 		free(widthCache[slot].text);
@@ -2960,6 +2974,7 @@ int ui_font_width(int font, int capPx, const char* text) {
 
 void ui_font_text(int screen, int font, int x, int cy, int capPx, const char* text, SDL_Color c, int align) {
 	if (!text || !text[0] || capPx <= 0) return;
+	text = tr(text);
 	c = key_text_color(screen, x, cy, c);
 	RECORD(screen, OP_LABEL) {
 		o->a = x, o->b = cy, o->c = capPx, o->d = font | ((align + 1) << 4), o->col = c;
@@ -2967,7 +2982,7 @@ void ui_font_text(int screen, int font, int x, int cy, int capPx, const char* te
 		return;
 	}
 	Screen* s = &screens[screen];
-	TextEntry* e = text_entry(s->view, font, capPx, text);
+	TextEntry* e = text_entry(s->view, lang_font(font), capPx, text);
 	if (!e->tex) return;
 	int w = align < 0 ? 0 : text_width(font, capPx, text);
 	int left = align < 0 ? x : align > 0 ? x - w : x - w / 2;
@@ -3024,36 +3039,123 @@ void ui_label(int screen, int cx, int cy, int capPx, const char* text, SDL_Color
 	ui_font_text(screen, TF_BOLD, cx, cy, capPx, text, c, 0);
 }
 
+/* ---- wrapping (English breaks at spaces; Chinese has none, so a line can
+ * break after any of its characters, but not before a closing one) ---- */
+
+/* The code point at p (a bad byte comes out as itself), and its bytes. */
+static int cp_at(const char* p, int* len) {
+	const unsigned char* s = (const unsigned char*) p;
+	int c = s[0];
+	int extra = (c & 0xE0) == 0xC0 ? 1 : (c & 0xF0) == 0xE0 ? 2 : (c & 0xF8) == 0xF0 ? 3 : 0;
+	if (!extra) {
+		*len = 1;
+		return c;
+	}
+	int v = c & (0x3F >> extra);
+	for (int i = 1; i <= extra; ++i) {
+		if ((s[i] & 0xC0) != 0x80) {
+			*len = 1;
+			return c;
+		}
+		v = (v << 6) | (s[i] & 0x3F);
+	}
+	*len = extra + 1;
+	return v;
+}
+
+/* A character that starts a line of its own (Chinese, Japanese, Korean: a
+ * line may break before or after any of them). */
+static bool cp_cjk(int c) {
+	return (c >= 0x2E80 && c <= 0x9FFF) || (c >= 0xAC00 && c <= 0xD7AF) || (c >= 0xF900 && c <= 0xFAFF) ||
+	       (c >= 0xFE30 && c <= 0xFE4F) || (c >= 0xFF00 && c <= 0xFF60);
+}
+
+/* Punctuation that can't start a line: it stays with the character before. */
+static bool cp_no_start(int c) {
+	if (c == ',' || c == '.' || c == '!' || c == '?' || c == ':' || c == ';' || c == ')' || c == ']' || c == '}' ||
+	    c == '%' || c == 0x2026 || c == 0x2014 || c == 0x00B7)
+		return true;
+	return c == 0x3001 || c == 0x3002 || (c >= 0xFF01 && c <= 0xFF20) || (c >= 0xFF3B && c <= 0xFF40) ||
+	       (c >= 0xFF5B && c <= 0xFF65) || c == 0x300D || c == 0x300F || c == 0x3011 || c == 0x3009 ||
+	       c == 0x300B || c == 0x3015 || c == 0x201D || c == 0x2019;
+}
+
+/* Where the next piece of a line ends: a word up to a space, or one Chinese
+ * character with the closing punctuation after it. */
+static int piece_len(const char* p) {
+	int len, c = cp_at(p, &len);
+	const char* q = p + len;
+	if (cp_cjk(c)) {
+		while (*q) {
+			int l2, c2 = cp_at(q, &l2);
+			if (!cp_no_start(c2)) break;
+			q += l2;
+		}
+		return (int) (q - p);
+	}
+	while (*q) {
+		int l2, c2 = cp_at(q, &l2);
+		if (c2 == ' ' || cp_cjk(c2)) break;
+		q += l2;
+	}
+	return (int) (q - p);
+}
+
 int ui_font_wrap(int screen, int font, int x, int y, int width, int capPx, const char* text, SDL_Color c) {
 	return ui_font_wrap_around(screen, font, x, y, width, capPx, text, c, INT_MAX, width);
 }
 
+/* Word-wrapped like ui_font_wrap, but a line whose box would reach the one on
+ * the right (above narrowY) is narrower, narrowW wide: Settings' help text
+ * flows round its Back button. draw: draw the lines, or only work out the
+ * height (ui_font_wrap_height). Chinese has no spaces, so a line may break
+ * between its characters (keeping closing punctuation with the one before it),
+ * which is why this isn't a loop over words any more. */
 static int wrap_impl(int screen, int font, int x, int y, int width, int capPx, const char* text, SDL_Color c, int narrowY, int narrowW, bool draw) {
 	int lineH = capPx * 2, fullW = width;
-	char line[512];
+	if (!text) return y;
+	text = tr(text);
 	const char* p = text;
 	while (*p) {
-		/* a line whose box reaches the one on the right is narrower */
+		while (*p == ' ') ++p;
+		if (!*p) break;
 		width = y + lineH > narrowY ? narrowW : fullW;
-		/* as many words as fit */
-		int n = 0, fit = 0;
-		while (p[n]) {
-			int e = n;
-			while (p[e] && p[e] != ' ') ++e;
-			if (e >= (int) sizeof(line)) break;
-			memcpy(line, p, e);
-			line[e] = 0;
-			if (fit && text_width(font, capPx, line) > width) break;
-			fit = e;
-			n = e;
-			while (p[n] == ' ') ++n;
+		char line[512];
+		int n = 0, w = 0;
+		bool latin = false; /* the piece before was a word: a space goes between words */
+		const char* q = p;
+		while (*q) {
+			int len = piece_len(q);
+			if (len <= 0) break;
+			char piece[256];
+			int take = len < (int) sizeof(piece) ? len : (int) sizeof(piece) - 1;
+			memcpy(piece, q, (size_t) take);
+			piece[take] = 0;
+			int l2, c2 = cp_at(q, &l2);
+			bool thisLatin = !cp_cjk(c2);
+			int gap = n && latin && thisLatin ? ui_font_width(font, capPx, " ") : 0;
+			int pw = ui_font_width(font, capPx, piece);
+			if (n && (w + gap + pw > width || n + gap + take >= (int) sizeof(line))) break;
+			if (gap) line[n++] = ' ';
+			memcpy(line + n, piece, (size_t) take);
+			n += take;
+			line[n] = 0;
+			w += gap + pw;
+			latin = thisLatin;
+			q += len;
 		}
-		if (!fit) fit = n ? n : (int) strlen(p);
-		snprintf(line, sizeof(line), "%.*s", fit, p);
+		if (!n) {
+			/* one piece wider than the width (a long word): it goes alone */
+			int len = piece_len(p);
+			if (len <= 0) break;
+			if (len >= (int) sizeof(line)) len = (int) sizeof(line) - 1;
+			memcpy(line, p, (size_t) len);
+			line[len] = 0;
+			q = p + len;
+		}
 		if (draw) ui_font_text(screen, font, x, y + capPx / 2, capPx, line, c, -1);
 		y += lineH;
-		p += fit;
-		while (*p == ' ') ++p;
+		p = q;
 	}
 	return y;
 }

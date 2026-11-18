@@ -1,4 +1,5 @@
 #include "esde.h"
+#include "i18n.h"
 
 #include <dirent.h>
 #include <stdio.h>
@@ -435,7 +436,7 @@ bool esde_integration_set(bool on, char* msg, size_t msgSize) {
 		if (ok) edit(dir, "es_find_rules.xml", rules_remove, false);
 	}
 	if (!ok)
-		snprintf(msg, msgSize, "Couldn't change the files in %s/custom_systems: allow GBA DS All files access in Android's settings.", dir);
+		snprintf(msg, msgSize, tr("Couldn't change the files in %s/custom_systems: allow GBA DS All files access in Android's settings."), dir);
 	else if (on)
 		snprintf(msg, msgSize, "GBA DS is now ES-DE's emulator for Game Boy Advance games. Quit ES-DE and open it again to see it.");
 	else

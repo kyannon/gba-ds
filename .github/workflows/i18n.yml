@@ -1,0 +1,59 @@
+name: i18n
+
+# The Chinese catalogues and the fonts generated from them: the tables must
+# match the code's strings, and the generated files must be the ones the tools
+# write (nobody edits src/i18n_zh.c, src/i18n_zt.c or src/fonts_data.c by
+# hand). See docs/I18N.md.
+
+on:
+  push:
+    paths:
+      - 'assets/i18n/**'
+      - 'assets/fonts/**'
+      - 'src/i18n*'
+      - 'src/fonts_data*'
+      - 'src/ui.c'
+      - 'src/game.c'
+      - 'src/library.c'
+      - 'src/config.c'
+      - 'tools/make_i18n.py'
+      - 'tools/make_zh_font.py'
+      - 'tools/embed_fonts.py'
+      - '.github/workflows/i18n.yml'
+  pull_request:
+    paths:
+      - 'assets/i18n/**'
+      - 'assets/fonts/**'
+      - 'src/i18n*'
+      - 'src/fonts_data*'
+      - 'src/ui.c'
+      - 'src/game.c'
+      - 'src/library.c'
+      - 'src/config.c'
+      - 'tools/make_i18n.py'
+      - 'tools/make_zh_font.py'
+      - 'tools/embed_fonts.py'
+      - '.github/workflows/i18n.yml'
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      # the catalogues against the code (formats, duplicates, missing lines)
+      - name: The catalogues
+        run: python3 tools/make_i18n.py --check
+      # ...and the generated tables are what the tool writes now
+      - name: The tables are generated
+        run: |
+          python3 tools/make_i18n.py
+          git diff --exit-code -- src/i18n_zh.c src/i18n_zh.h src/i18n_zt.c src/i18n_zt.h
+      # the embedded fonts are the ones in assets/fonts (no fontTools needed)
+      - name: The fonts are embedded
+        run: |
+          python3 tools/embed_fonts.py
+          git diff --exit-code -- src/fonts_data.c

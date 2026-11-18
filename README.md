@@ -1,5 +1,7 @@
 # GBA DS
 
+**English** · [中文](README.zh-CN.md)
+
 <p align="center"><img src="docs/lineup.png" width="100%" alt="GBA DS on three dual-screen handhelds: Metroid: Zero Mission with its map on a DS-style handheld, Pokémon Pinball's table across both screens of one with a wide top screen, and Golden Sun with its menu on another"></p>
 
 A Game Boy Advance emulator for dual-screen handhelds (built for the Anbernic RG DS Plus, on ROCKNIX and on Android with GammaOS). The game runs on one screen, and the game's own map stays up on the other screen and keeps itself current as you explore, the way the DS Castlevanias work.
@@ -19,6 +21,12 @@ The idea here is "what if the Game Boy Advance had a second screen" -- part of w
 GBA DS supports 58 games, with their regional releases and some romhacks of them: see [Supported games](https://github.com/kyannon/gba-ds/wiki/Supported-games) in the wiki for the list and what each one shows on the second screen. Any other GBA game also runs; it just plays on one screen. Romhacks and other patches (`.ips`, `.ups`, `.bps`, `.xdelta`) can be switched on for each game in the pause menu (Extras → Patches).
 
 **Documentation is in the [wiki](https://github.com/kyannon/gba-ds/wiki):** [Playing](https://github.com/kyannon/gba-ds/wiki/Playing) · [Supported games](https://github.com/kyannon/gba-ds/wiki/Supported-games) · [Overlays](https://github.com/kyannon/gba-ds/wiki/Overlays) · [Settings](https://github.com/kyannon/gba-ds/wiki/Settings) · [Troubleshooting](https://github.com/kyannon/gba-ds/wiki/Troubleshooting) · [Adding second-screen compatibility for a game](https://github.com/kyannon/gba-ds/wiki/Adding-second-screen-compatibility-for-a-game) · [Philosophy](https://github.com/kyannon/gba-ds/wiki/Philosophy)
+
+## Chinese interface (this branch)
+
+This branch, `zh-cn`, is GBA DS with a Chinese interface (简体中文, and 繁體中文 for Taiwan, Hong Kong and Macau). The game list, Settings, the pause menu, the quick bar, Cheats, Patches, overlays, Hotkeys, Map Buttons, updates and the app's own messages are in Chinese; **Settings > Games > Language** picks the language: Automatic (the system's, English when that isn't Chinese), English, 中文（简体） or 中文（繁體）. It switches at once and English is unchanged.
+
+The Chinese is set in Noto Sans SC and Noto Sans TC (SIL Open Font License 1.1, in `assets/fonts/`), cut down to the characters the interface uses; a Chinese paragraph wraps between characters. Achievement names and descriptions come from RetroAchievements and stay in English, as do game names and paths. **How the text and the fonts are made: [docs/I18N.md](docs/I18N.md).** The rest of this README, the wiki and the releases are the upstream project's.
 
 ## How it works
 

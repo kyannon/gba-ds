@@ -1,5 +1,18 @@
 # Changelog
 
+## Chinese interface (this branch, not a release)
+
+### New
+
+- **The interface in Chinese**: the game list, Settings, the pause menu, the quick bar, Cheats, Patches, the overlays screen, Hotkeys, Map Buttons, the folder picker, updates, RetroAchievements' own messages, bug reports and the messages over a game, in Simplified (简体中文) or Traditional (繁體中文, Hong Kong and Macau too). **Settings > Games > Language** picks it: Automatic (the system's language, and English when that isn't Chinese), English, 中文（简体） or 中文（繁體）. It changes at once, without a restart, and English is unchanged.
+- The Chinese is drawn in **Noto Sans SC** and **Noto Sans TC** (SIL Open Font License 1.1), cut down to the characters the interface uses; a paragraph of Chinese now breaks between characters, which it couldn't before (lines broke at spaces only).
+- A setting's name, its choices and its note read in the language chosen; a save slot's date is written the Chinese way in Chinese ("存档位 3：10月31日 13:45").
+
+### Known issues
+
+- RetroAchievements' achievement names and descriptions come from the server and stay in English, as do game names and paths.
+- The notes at the top of `gba-ds.log` and the README written into a bug report stay in English.
+
 ## v1.5.5 (not yet released)
 
 ### New games

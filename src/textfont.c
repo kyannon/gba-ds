@@ -20,9 +20,19 @@ static int capUnits[TF_COUNT]; /* height of "H" in font units */
 static bool ready[TF_COUNT];
 static pthread_once_t once = PTHREAD_ONCE_INIT;
 
+/* the embedded font each of TF_* is */
+static const int fontData[TF_COUNT] = {
+	[TF_BOLD] = EMBEDDED_JOST_BOLD_ITALIC,
+	[TF_BODY] = EMBEDDED_JOST_MEDIUM_ITALIC,
+	[TF_ZH_BOLD] = EMBEDDED_NOTO_SANS_SC_BOLD,
+	[TF_ZH_BODY] = EMBEDDED_NOTO_SANS_SC_REGULAR,
+	[TF_ZT_BOLD] = EMBEDDED_NOTO_SANS_TC_BOLD,
+	[TF_ZT_BODY] = EMBEDDED_NOTO_SANS_TC_REGULAR,
+};
+
 static void init(void) {
 	for (int f = 0; f < TF_COUNT; ++f) {
-		const EmbeddedFont* e = &embeddedFonts[f == TF_BOLD ? EMBEDDED_JOST_BOLD_ITALIC : EMBEDDED_JOST_MEDIUM_ITALIC];
+		const EmbeddedFont* e = &embeddedFonts[fontData[f]];
 		if (!stbtt_InitFont(&fonts[f], e->ttf, stbtt_GetFontOffsetForIndex(e->ttf, 0))) continue;
 		int x0, y0, x1, y1;
 		if (!stbtt_GetCodepointBox(&fonts[f], 'H', &x0, &y0, &x1, &y1) || y1 <= 0) continue;

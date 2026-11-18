@@ -20,6 +20,7 @@ extern void web_sleep(unsigned ms) __attribute__((import_module("env"), import_n
 #include "profiles.h"
 #include "patch.h"
 #include "cheats.h"
+#include "i18n.h"
 
 #include <pthread.h>
 #include <stdarg.h>
@@ -1341,7 +1342,7 @@ static const char* slot_label(void) {
 	static char buf[80];
 	struct stat st;
 	if (stat(gp.slot[stateSlot], &st) != 0) {
-		snprintf(buf, sizeof(buf), "Slot %d: Empty", stateSlot);
+		snprintf(buf, sizeof(buf), tr("Slot %d: Empty"), stateSlot);
 		return buf;
 	}
 	const char* by = "";
@@ -1349,18 +1350,27 @@ static const char* slot_label(void) {
 		bool fromGbads;
 		StateFileKind k = slot_kind(&st, &fromGbads);
 		if (k == STATE_FILE_OTHER_CORE || k == STATE_FILE_UNREADABLE) {
-			snprintf(buf, sizeof(buf), "Slot %d: %s", stateSlot, k == STATE_FILE_OTHER_CORE ? "Another emulator's" : "Can't be read");
+			snprintf(buf, sizeof(buf), tr("Slot %d: %s"), stateSlot, tr(k == STATE_FILE_OTHER_CORE ? "Another emulator's" : "Can't be read"));
 			return buf;
 		}
-		if (!fromGbads) by = ", RetroArch";
+		if (!fromGbads) by = tr(", RetroArch");
 	}
 	struct tm t, now;
 	time_t n = time(NULL);
 	localtime_r(&st.st_mtime, &t);
 	localtime_r(&n, &now);
 	static const char* const mon[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-	if (t.tm_year != now.tm_year) snprintf(buf, sizeof(buf), "Slot %d: %s %d, %d%s", stateSlot, mon[t.tm_mon], t.tm_mday, t.tm_year + 1900, by);
-	else snprintf(buf, sizeof(buf), "Slot %d: %s %d, %d:%02d %s%s", stateSlot, mon[t.tm_mon], t.tm_mday, (t.tm_hour + 11) % 12 + 1, t.tm_min, t.tm_hour < 12 ? "AM" : "PM", by);
+	/* Chinese writes the date and the time its own way (and the clock 24
+	 * hours round); its months are numbers ("10月"), so they follow the day */
+	if (i18n_lang() == LANG_ZH) {
+		if (t.tm_year != now.tm_year)
+			snprintf(buf, sizeof(buf), "存档位 %d：%s%d日 %d:%02d，%d年%s", stateSlot, tr(mon[t.tm_mon]), t.tm_mday, t.tm_hour, t.tm_min,
+			         t.tm_year + 1900, by);
+		else snprintf(buf, sizeof(buf), "存档位 %d：%s%d日 %d:%02d%s", stateSlot, tr(mon[t.tm_mon]), t.tm_mday, t.tm_hour, t.tm_min, by);
+		return buf;
+	}
+	if (t.tm_year != now.tm_year) snprintf(buf, sizeof(buf), tr("Slot %d: %s %d, %d%s"), stateSlot, tr(mon[t.tm_mon]), t.tm_mday, t.tm_year + 1900, by);
+	else snprintf(buf, sizeof(buf), tr("Slot %d: %s %d, %d:%02d %s%s"), stateSlot, tr(mon[t.tm_mon]), t.tm_mday, (t.tm_hour + 11) % 12 + 1, t.tm_min, t.tm_hour < 12 ? "AM" : "PM", by);
 	return buf;
 }
 static void slot_step(int d) {
@@ -1478,6 +1488,7 @@ static int cheat_row_at(int scr, int x, int y) {
 /* fits s into maxChars, ending in "..." when cut */
 /* s in Jost, cut short with "..." if it's wider than maxW. */
 static void fit_text(char* out, size_t size, int font, int capPx, const char* s, int maxW) {
+	s = tr(s);
 	snprintf(out, size, "%s", s);
 	if (ui_font_width(font, capPx, out) <= maxW) return;
 	size_t n = strlen(out);
@@ -1541,7 +1552,7 @@ static void draw_cheats(int scr) {
 		             C_GOLD);
 	}
 	char count[48];
-	snprintf(count, sizeof(count), "%d on", cheats_on(&cheats));
+	snprintf(count, sizeof(count), tr("%d on"), cheats_on(&cheats));
 	ui_font_text(scr, TF_BODY, r.w - px * 4, r.h - g.tpx * 5, tcap, count, C_DIS, 1);
 }
 
@@ -1690,11 +1701,11 @@ static bool patch_overlap(const PatchInfo* a, const PatchInfo* b) {
 static void patch_result_text(const uint8_t* out, size_t outN, char* note, size_t size) {
 	const char* name = NULL;
 	switch (profile_dump(emu.gameCode, doCrc32(out, outN), &name)) {
-	case DUMP_MOD_TESTED: snprintf(note, size, "Tested romhack: %s", name); break;
-	case DUMP_MOD: snprintf(note, size, "Known romhack: %s, untested", name); break;
+	case DUMP_MOD_TESTED: snprintf(note, size, tr("Tested romhack: %s"), name); break;
+	case DUMP_MOD: snprintf(note, size, tr("Known romhack: %s, untested"), name); break;
 	case DUMP_TESTED:
-	case DUMP_OFFICIAL: snprintf(note, size, "Turns this ROM into another official release: %s", name ? name : ""); break;
-	default: snprintf(note, size, "Untested: the second screen may not work with it"); break;
+	case DUMP_OFFICIAL: snprintf(note, size, tr("Turns this ROM into another official release: %s"), name ? name : ""); break;
+	default: snprintf(note, size, "%s", tr("Untested: the second screen may not work with it")); break;
 	}
 }
 
@@ -1702,8 +1713,8 @@ static void patch_result_text(const uint8_t* out, size_t outN, char* note, size_
 static void patch_known_text(const KnownPatch* k, const uint8_t* out, size_t outN, char* note, size_t size) {
 	const char* name = NULL;
 	DumpKind d = out ? profile_dump(emu.gameCode, doCrc32(out, outN), &name) : DUMP_MODIFIED;
-	if (d == DUMP_MOD_TESTED) snprintf(note, size, "Known %s patch, tested: %s", k->kind, k->name);
-	else snprintf(note, size, "Known %s patch, untested: %s. The second screen may not work with it", k->kind, k->name);
+	if (d == DUMP_MOD_TESTED) snprintf(note, size, tr("Known %s patch, tested: %s"), k->kind, k->name);
+	else snprintf(note, size, tr("Known %s patch, untested: %s. The second screen may not work with it"), k->kind, k->name);
 }
 
 /* what a patch does to this ROM, on its own */
@@ -1729,18 +1740,18 @@ static void patch_describe(const uint8_t* rom, size_t romN, uint32_t romCrc, con
 	pi->usable = r == PATCH_APPLIED;
 	if (pi->known && r == PATCH_APPLIED) patch_known_text(pi->known, out, outN, pi->okNote, sizeof(pi->okNote));
 	if (r == PATCH_WRONG_ROM && pi->known) {
-		snprintf(pi->note, sizeof(pi->note), "Known %s patch: %s, made for %s: it can't be switched on for this ROM", pi->known->kind,
+		snprintf(pi->note, sizeof(pi->note), tr("Known %s patch: %s, made for %s: it can't be switched on for this ROM"), pi->known->kind,
 		         pi->known->name, pi->known->baseName);
 	} else if (r == PATCH_WRONG_ROM) {
-		snprintf(pi->note, sizeof(pi->note), "Made for another version of the game: it can't be switched on for this ROM");
+		snprintf(pi->note, sizeof(pi->note), "%s", tr("Made for another version of the game: it can't be switched on for this ROM"));
 	} else if (r != PATCH_APPLIED && compressed) {
 		snprintf(pi->note, sizeof(pi->note),
-		         "An xdelta made with compression, which GBA DS can't read: patch the ROM with it beforehand, or make it again without (xdelta3 -S none)");
+		         "%s", tr("An xdelta made with compression, which GBA DS can't read: patch the ROM with it beforehand, or make it again without (xdelta3 -S none)"));
 	} else if (r != PATCH_APPLIED) {
-		snprintf(pi->note, sizeof(pi->note), "Can't be read: not a patch, or damaged");
+		snprintf(pi->note, sizeof(pi->note), "%s", tr("Can't be read: not a patch, or damaged"));
 	} else if (pi->known && !pi->baseOk) {
 		/* an IPS can't say which ROM it's for: the list knows */
-		snprintf(pi->note, sizeof(pi->note), "Known %s patch: %s, made for %s. This ROM is another version: it may break the game",
+		snprintf(pi->note, sizeof(pi->note), tr("Known %s patch: %s, made for %s. This ROM is another version: it may break the game"),
 		         pi->known->kind, pi->known->name, pi->known->baseName);
 	} else if (pi->known) {
 		snprintf(pi->note, sizeof(pi->note), "%s", pi->okNote);
@@ -1783,7 +1794,7 @@ static void patch_rebuild(void) {
 	              "With a patch on, the game keeps its own save states: off, it uses the original's (a state can come out garbled in the other)", true);
 	char folder[300];
 	const char* slash = strrchr(patchDir, '/');
-	snprintf(folder, sizeof(folder), "In patches/%s", slash ? slash + 1 : patchDir);
+	snprintf(folder, sizeof(folder), tr("In patches/%s"), slash ? slash + 1 : patchDir);
 	patch_row_add(PR_HEADER, NULL, folder, NULL, false);
 	int summaryAt = nPatchRows;
 	int nApply = (patchBesideAt0 ? 1 : 0) + patchChoice.nOn;
@@ -1791,8 +1802,8 @@ static void patch_rebuild(void) {
 	if (patchBesideAt0) {
 		PatchInfo* pi = &patchInfo[0];
 		char label[300], full[600];
-		snprintf(label, sizeof(label), "%s (beside the ROM)", pi->file);
-		snprintf(full, sizeof(full), "Always on, applied first (RetroArch's way: a patch named as the ROM). %s", pi->note);
+		snprintf(label, sizeof(label), tr("%s (beside the ROM)"), pi->file);
+		snprintf(full, sizeof(full), tr("Always on, applied first (RetroArch's way: a patch named as the ROM). %s"), pi->note);
 		patch_row_add(PR_BESIDE, pi->file, label, full, false);
 	}
 	/* the ones on, in order */
@@ -1816,7 +1827,7 @@ static void patch_rebuild(void) {
 	}
 	if (nPatchInfo == first) {
 		char note[1300];
-		snprintf(note, sizeof(note), "Put .ips, .ups, .bps or .xdelta files in %s", patchDir);
+		snprintf(note, sizeof(note), tr("Put .ips, .ups, .bps or .xdelta files in %s"), patchDir);
 		patch_row_add(PR_EMPTY, NULL, "No patches here yet", note, false);
 	}
 	/* together, in order, as the game will apply them */
@@ -1878,7 +1889,7 @@ static void patch_rebuild(void) {
 		char res[300] = "";
 		if (rom) patch_result_text(rom, romN, res, sizeof(res));
 		free(rom);
-		snprintf(patchRows[summaryAt].label, sizeof(patchRows[0].label), "Together: %s", res);
+		snprintf(patchRows[summaryAt].label, sizeof(patchRows[0].label), tr("Together: %s"), res);
 		snprintf(patchRows[summaryAt].note, sizeof(patchRows[0].note), "%s", res);
 	}
 	/* the selection where it was */
@@ -2077,7 +2088,7 @@ static bool patch_choose(int row, bool later) {
 		return false;
 	}
 	if (!on && patchChoice.nOn >= PATCH_ON_MAX) {
-		snprintf(patchNote, sizeof(patchNote), "Up to %d patches can be on at once", PATCH_ON_MAX);
+		snprintf(patchNote, sizeof(patchNote), tr("Up to %d patches can be on at once"), PATCH_ON_MAX);
 		return false;
 	}
 	if (patchArmed != row) {
@@ -2093,12 +2104,12 @@ static bool patch_choose(int row, bool later) {
 		bool live = patch_live_ok();
 		patchChoice = keep;
 		if (live)
-			snprintf(patchNote, sizeof(patchNote), "Are you sure? A: switch it %s now and carry on from here. Y: not yet (more changes first). B: call it off",
-			         on ? "off" : "on");
+			snprintf(patchNote, sizeof(patchNote), tr("Are you sure? A: switch it %s now and carry on from here. Y: not yet (more changes first). B: call it off"),
+			         tr(on ? "off" : "on"));
 		else
 			snprintf(patchNote, sizeof(patchNote),
-			         "Are you sure? Save your game first. A: restart %s it now. Y: not yet (more changes first). B: call it off",
-			         on ? "without" : "with");
+			         tr("Are you sure? Save your game first. A: restart %s it now. Y: not yet (more changes first). B: call it off"),
+			         tr(on ? "without" : "with"));
 		return false;
 	}
 	patchArmed = -1;
@@ -3804,8 +3815,8 @@ static void draw_menu(void) {
 		if (menuItems[i] == M_REWIND) label = cfg->rewind ? "Rewind: On" : "Rewind: Off";
 		if (menuItems[i] == M_FF) {
 			static char ffLabel[32];
-			if (cfg->fastForward && cfg->ffSpeed <= 0) snprintf(ffLabel, sizeof(ffLabel), "Fast Forward: Max");
-			else if (cfg->fastForward) snprintf(ffLabel, sizeof(ffLabel), "Fast Forward: %dx", cfg->ffSpeed);
+			if (cfg->fastForward && cfg->ffSpeed <= 0) snprintf(ffLabel, sizeof(ffLabel), "%s", tr("Fast Forward: Max"));
+			else if (cfg->fastForward) snprintf(ffLabel, sizeof(ffLabel), tr("Fast Forward: %dx"), cfg->ffSpeed);
 			label = cfg->fastForward ? ffLabel : "Fast Forward: Off";
 		}
 		if (menuItems[i] == M_MATCH) label = !cfg->matchDisplay ? "Match Display Rate: Off" : pacedFallback ? "Match Display Rate: Off for now" : "Match Display Rate: On";
@@ -3822,7 +3833,7 @@ static void draw_menu(void) {
 		static char slotBtn[2][24];
 		if (menuItems[i] == M_SAVE || menuItems[i] == M_LOAD) {
 			int k = menuItems[i] == M_LOAD;
-			snprintf(slotBtn[k], sizeof(slotBtn[k]), "%s State %d", k ? "Load" : "Save", stateSlot);
+			snprintf(slotBtn[k], sizeof(slotBtn[k]), tr(k ? "Load State %d" : "Save State %d"), stateSlot);
 			label = slotBtn[k];
 		}
 		if (menuItems[i] == M_SLOT) {
@@ -5746,17 +5757,17 @@ static void state_rom_check(const char* path) {
 	DumpKind k = profile_dump(emu.gameCode, crc, &name);
 	char what[300];
 	bool patched = emu.patch == PATCH_APPLIED || emu.patch == PATCH_PARTIAL;
-	if (patched && crc == emu.fileCrc) snprintf(what, sizeof(what), "without the patches on");
-	else if (name && (k == DUMP_MOD || k == DUMP_MOD_TESTED)) snprintf(what, sizeof(what), "with %s", name);
+	if (patched && crc == emu.fileCrc) snprintf(what, sizeof(what), "%s", tr("without the patches on"));
+	else if (name && (k == DUMP_MOD || k == DUMP_MOD_TESTED)) snprintf(what, sizeof(what), tr("with %s"), name);
 	else if (name) {
 		/* (an official dump: the unchanged game, if this one's changed) */
 		DumpKind now = profile_dump(emu.gameCode, emu.romCrc, NULL);
 		bool changed = patched || now == DUMP_MOD || now == DUMP_MOD_TESTED || now == DUMP_MODIFIED;
-		snprintf(what, sizeof(what), changed ? "with the unchanged game (%s)" : "with another dump of the game (%s)", name);
+		snprintf(what, sizeof(what), tr(changed ? "with the unchanged game (%s)" : "with another dump of the game (%s)"), name);
 	}
-	else snprintf(what, sizeof(what), "with another version of the game (other patches, or another ROM)");
+	else snprintf(what, sizeof(what), "%s", tr("with another version of the game (other patches, or another ROM)"));
 	fprintf(stderr, "load state: %s was saved %s (ROM CRC32 %08x, playing %08x)\n", path, what, crc, emu.romCrc);
-	ui_osd_long("This state was saved %s: it may not work", what);
+	ui_osd_long(tr("This state was saved %s: it may not work"), what);
 	stateWarned = true;
 }
 
@@ -7592,9 +7603,9 @@ static void rows_touch(const Pointer* p) {
 static bool activate(int item, enum GameExit* exitTo) {
 	if (confirm_item(item) && armedItem != item) {
 		armedItem = item;
-		const char* lost = cfg->autoSave ? "your place is saved" : "unsaved progress is lost";
-		if (item == M_RESTART) snprintf(menuNote, sizeof(menuNote), "Choose it again to restart: unsaved progress is lost");
-		else snprintf(menuNote, sizeof(menuNote), "Choose it again to close %s: %s", item == M_EXIT ? "GBA DS" : "the game", lost);
+		const char* lost = tr(cfg->autoSave ? "your place is saved" : "unsaved progress is lost");
+		if (item == M_RESTART) snprintf(menuNote, sizeof(menuNote), "%s", tr("Choose it again to restart: unsaved progress is lost"));
+		else snprintf(menuNote, sizeof(menuNote), tr("Choose it again to close %s: %s"), tr(item == M_EXIT ? "GBA DS" : "the game"), lost);
 		return false;
 	}
 	armedItem = -1;
@@ -7624,7 +7635,7 @@ static bool activate(int item, enum GameExit* exitTo) {
 	case M_SAVE:
 		if (state_save(gp.slot[stateSlot])) {
 			char m[40];
-			snprintf(m, sizeof(m), "State saved to slot %d", stateSlot);
+			snprintf(m, sizeof(m), tr("State saved to slot %d"), stateSlot);
 			ui_osd(m);
 			menuOpen = false;
 		} else {
@@ -7633,10 +7644,10 @@ static bool activate(int item, enum GameExit* exitTo) {
 		break;
 	case M_LOAD:
 		if (!item_enabled(M_LOAD)) {
-			snprintf(menuNote, sizeof(menuNote), "Nothing saved in slot %d yet", stateSlot);
+			snprintf(menuNote, sizeof(menuNote), tr("Nothing saved in slot %d yet"), stateSlot);
 		} else if (state_load(gp.slot[stateSlot])) {
 			char m[40];
-			snprintf(m, sizeof(m), "Slot %d loaded", stateSlot);
+			snprintf(m, sizeof(m), tr("Slot %d loaded"), stateSlot);
 			if (!stateWarned) ui_osd(m);
 			menuOpen = false;
 			return false;
