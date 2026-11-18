@@ -732,10 +732,13 @@ static void draw_preview(Config* cfg, int scr, int sel) {
 	int gy = ty + px * 7 / 2 - d / 2;
 	int cap = px * 5, cy = gy + d / 2, wordW = px * 18;
 	bx += draw_brand(scr, BRAND_BTN_A, bx, gy, d) + px * 2;
-	ui_label(scr, bx + wordW / 2, cy, cap, "Play", C_TEXT);
-	bx += wordW + px * 8;
+	{ /* (a word wider than its slot, as in German, makes the slot wider) */
+		int ww = SDL_max(wordW, ui_label_width(scr, cap, "Play"));
+		ui_label(scr, bx + ww / 2, cy, cap, "Play", C_TEXT);
+		bx += ww + px * 8;
+	}
 	bx += draw_brand(scr, BRAND_BTN_B, bx, gy, d) + px * 2;
-	ui_label(scr, bx + wordW / 2, cy, cap, "Quit", C_TEXT);
+	ui_label(scr, bx + SDL_max(wordW, ui_label_width(scr, cap, "Quit")) / 2, cy, cap, "Quit", C_TEXT);
 
 	{
 		int vpx = SDL_max(1, px / 2);
@@ -1207,6 +1210,13 @@ static SettingsGeom settings_geom(int scr) {
 	return g;
 }
 
+/* The size for text to fit maxW (never below 45% of cap: past that, a longer text is better cut off than unreadable). */
+static int fit_cap(int face, int cap, int maxW, const char* text) {
+	int w = ui_font_width(face, cap, text), c = cap;
+	if (w > maxW && w > 0) c = (int) ((long long) cap * maxW / w);
+	return SDL_max(c, cap * 45 / 100);
+}
+
 /* Body text in Jost, word-wrapped; returns the y below it. */
 static int draw_wrapped(int scr, int x, int y, int width, float px, const char* text, SDL_Color c) {
 	return ui_font_wrap(scr, TF_BODY, x, y, width, px * 4, text, c);
@@ -1227,8 +1237,15 @@ static void draw_settings_frame(int scr, const SettingsGeom* g, int sel, const c
 		}
 		/* (a half-width row's longer label is set a little smaller to fit) */
 		int cap = (int) (px * 5), room = b.w - (int) (px * 16), lw = ui_font_width(TF_BOLD, cap, labels[i]);
-		if (lw > room) cap = cap * room / lw;
-		ui_font_text(scr, TF_BOLD, b.x + px * 6, b.y + b.h / 2, cap, labels[i], C_TEXT, -1);
+		if (lw > room && cap * room / lw < cap * 75 / 100) {
+			/* much too long even smaller (a German label): two lines, at a size that fits the button */
+			int c2 = cap * 85 / 100, h2 = ui_font_wrap_height(TF_BOLD, room, c2, labels[i]);
+			while (h2 > b.h - (int) px * 3 && c2 > cap / 2) c2 = c2 * 9 / 10, h2 = ui_font_wrap_height(TF_BOLD, room, c2, labels[i]);
+			ui_font_wrap(scr, TF_BOLD, b.x + px * 6, b.y + b.h / 2 - h2 / 2 + (int) px * 2, room, c2, labels[i], C_TEXT);
+		} else {
+			if (lw > room) cap = cap * room / lw;
+			ui_font_text(scr, TF_BOLD, b.x + px * 6, b.y + b.h / 2, cap, labels[i], C_TEXT, -1);
+		}
 		ui_font_text(scr, TF_BOLD, b.x + b.w - px * 6, b.y + b.h / 2, px * 6, "\u203A", i == sel ? C_TEXT : C_DIM, 1);
 	}
 }
@@ -1238,8 +1255,17 @@ static void draw_settings_frame(int scr, const SettingsGeom* g, int sel, const c
 static void set_notes(int scr, SDL_Rect panel, SDL_Rect back, const char* t1, SDL_Color c1, int f1, const char* t2, SDL_Color c2, int f2) {
 	int px = (int) ui_px(scr), cap = px * 4;
 	int x = panel.x + px * 8, w = back.x - px * 4 - x;
-	int h1 = t1 ? ui_font_wrap_height(f1, w, cap, t1) : 0, h2 = t2 ? ui_font_wrap_height(f2, w, cap, t2) : 0;
 	int gap = t1 && t2 ? px * 3 : 0;
+	/* (the block is centred on Back's height and may use the room down to the panel's edge: a longer text,
+	 * as in German, is set smaller until it fits, then wrapped) */
+	int room = 2 * (panel.y + panel.h - px * 4 - (back.y + back.h / 2));
+	int h1 = 0, h2 = 0;
+	for (int c = cap; ; c = c * 9 / 10) {
+		cap = c;
+		h1 = t1 ? ui_font_wrap_height(f1, w, cap, t1) : 0;
+		h2 = t2 ? ui_font_wrap_height(f2, w, cap, t2) : 0;
+		if (h1 + gap + h2 <= room || c * 100 < px * 4 * 55) break;
+	}
 	int y = back.y + back.h / 2 - (h1 + gap + h2) / 2;
 	if (t1) y = ui_font_wrap(scr, f1, x, y, w, cap, t1, c1) + gap;
 	if (t2) ui_font_wrap(scr, f2, x, y, w, cap, t2, c2);
@@ -1376,8 +1402,9 @@ static void draw_set_home(int scr, int sel) {
 			SDL_Rect ib = { x0, t.y, iw, t.h };
 			game_page_icon(scr, i == SP_SYSTEM ? GAME_ICON_SYSTEM : i, ib, i == sel || !ui_theme_light() ? C_TEXT : ui_key_ink(), ui_key_mid(i == sel ? KEY_SEL : KEY_PLAIN));
 		}
-		ui_font_text(scr, TF_BOLD, tx, t.y + t.h / 2 - (sub ? px * 4 : 0), px * 6, name, C_TEXT, -1);
-		if (sub) ui_font_text(scr, TF_BODY, tx, t.y + t.h / 2 + px * 7, px * 4, sub, C_DIM, -1);
+		int tw = t.x + t.w - px * 5 - tx; /* (the room for the text; a longer one is set smaller) */
+		ui_font_text(scr, TF_BOLD, tx, t.y + t.h / 2 - (sub ? px * 4 : 0), fit_cap(TF_BOLD, px * 6, tw, name), name, C_TEXT, -1);
+		if (sub) ui_font_text(scr, TF_BODY, tx, t.y + t.h / 2 + px * 7, fit_cap(TF_BODY, px * 4, tw, sub), sub, C_DIM, -1);
 	}
 }
 
@@ -1406,11 +1433,13 @@ static void draw_set_page(const Config* cfg, int scr, int page, int sel) {
 		}
 		char val[48];
 		config_setting_text(cfg, rows[i], val, sizeof(val));
-		ui_font_text(scr, TF_BOLD, r.x + px * 6, r.y + r.h / 2, px * 5, rows[i]->label, C_TEXT, -1);
 		int ax = r.x + r.w - px * 6;
+		/* (the value keeps at most 55% of the row, the label the rest: either is set smaller to fit) */
+		int vcap = fit_cap(TF_BOLD, px * 5, r.w * 55 / 100, val), vw = ui_font_width(TF_BOLD, vcap, val);
+		int lroom = (ax - px * 16 - vw) - (r.x + px * 6) - px * 8;
+		ui_font_text(scr, TF_BOLD, r.x + px * 6, r.y + r.h / 2, fit_cap(TF_BOLD, px * 5, lroom, rows[i]->label), rows[i]->label, C_TEXT, -1);
 		ui_font_text(scr, TF_BOLD, ax, r.y + r.h / 2, px * 6, "›", i == sel ? C_TEXT : C_DIM, 1);
-		int vw = ui_font_width(TF_BOLD, px * 5, val);
-		ui_font_text(scr, TF_BOLD, ax - px * 8, r.y + r.h / 2, px * 5, val, C_GOLD, 1);
+		ui_font_text(scr, TF_BOLD, ax - px * 8, r.y + r.h / 2, vcap, val, C_GOLD, 1);
 		ui_font_text(scr, TF_BOLD, ax - px * 16 - vw, r.y + r.h / 2, px * 6, "‹", i == sel ? C_TEXT : C_DIM, 1);
 	}
 	if (n > SET_VIS) {
