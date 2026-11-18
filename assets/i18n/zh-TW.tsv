@@ -11,7 +11,6 @@
 
 # ---- the pause menu: pages and buttons -------------------------------------
 Game	遊戲
-Tools	工具
 Display	顯示
 Screens	螢幕
 Controls	控制
@@ -83,8 +82,6 @@ Screen Placement: Centered	螢幕位置：居中
 Custom Logos: Do Not Use	自訂標誌：不使用
 Custom Logos: Full Detail	自訂標誌：完整細節
 Custom Logos: Pixelated	自訂標誌：畫素化
-No Second Screen: Show Logo	副屏無內容：顯示標誌
-No Second Screen: Keep Blank	副屏無內容：留空
 Overlays: Off	覆蓋層：關
 Overlays: Generated	覆蓋層：生成
 Overlays: Custom	覆蓋層：自訂
@@ -109,7 +106,6 @@ Same as all games again	已恢復為與所有遊戲相同
 Already the value for all games	已經是所有遊戲的值
 Saved for all games	已儲存給所有遊戲
 Saved for this game	已儲存給本遊戲
-Takes effect when the game starts again	遊戲重新開始後生效
 Takes	取得
 Always on here	此處始終開啟
 Your screens are the same shape: nothing to match	兩塊螢幕形狀相同：無需匹配
@@ -282,7 +278,6 @@ Updates	更新
 Updates, integrations	更新、整合
 Folders, accounts, updates	資料夾、賬戶、更新
 Which games, names, saving	遊戲、名稱、存檔
-Scale, shader, colors	縮放、濾鏡、顏色
 Placement, overlays	擺放、覆蓋層
 Stick, buttons, hotkeys	搖桿、按鍵、熱鍵
 Rewind, fast forward	倒帶、快進
@@ -328,8 +323,6 @@ Bezel logo	邊框標誌
 The GBA DS logo in the generated bezel.	生成的邊框裡的 GBA DS 標誌。
 Show FPS	顯示幀率
 Frames a second above the game, all the time.	遊戲上方一直顯示每秒幀數。
-Theme	主題
-The look of the menus' buttons: dark grey, or light grey like the web player's.	選單按鍵的外觀：深灰，或像網頁版那樣的淺灰。
 Top screen brightness	上屏亮度
 Darkens the top screen, in this app only: the device's own brightness is left alone (and this can't go above it).	只調暗本應用的上屏：不動機器本身的亮度（也不能超過它）。
 Bottom screen brightness	下屏亮度
@@ -366,14 +359,7 @@ Second screen	副屏
 Off: every game plays like an ordinary GBA game.	關：所有遊戲都像普通 GBA 遊戲一樣玩。
 Map refresh	地圖重新整理
 Shorter can make the sound crackle on a slow device.	在慢的機器上調短可能讓聲音有雜音。
-Tidy map screens	清理地圖畫面
-Labels and prompts erased from the Metroid maps.	擦掉銀河戰士地圖上的文字和提示。
-Map animations	地圖動畫
-Blinking map markers.	閃爍的地圖示記。
-Logo when blank	空白時顯示標誌
-The game's logo when there's no map to show.	沒有地圖可顯示時顯示遊戲的標誌。
 Pinball two-screen view	彈珠檯雙屏檢視
-Off for slower devices: the table on one screen.	慢的機器可以關掉：球檯只顯示在一屏。
 
 # ---- Settings: the choices ------------------------------------------------
 Dark	深色
@@ -453,8 +439,6 @@ Save States: GBA DS's Own	即時存檔：GBA DS 自己的
 RetroArch's State Folder	RetroArch 的狀態資料夾
 Performance: Set to Max	效能：設為最高
 Performance: Let the System Decide	效能：由系統決定
-Puts every setting in Settings back to GBA DS's own default: the theme, brightness, screens, controls and so on. Folders, accounts, hotkeys, button mapping and each game's own settings stay.	把設定裡的每一項都恢復到 GBA DS 的預設值：主題、亮度、螢幕、控制等等。資料夾、賬戶、熱鍵、按鍵對映和各遊戲自己的設定都保留。
-Removes the settings every game has kept for itself (from the pause menu's This game), so all games use the settings for all games again. States, saves and cheats stay.	刪除每個遊戲為自己儲存的設定（來自暫停選單的“本遊戲”），讓所有遊戲重新使用“所有遊戲”的設定。即時存檔、存檔和金手指都保留。
 Makes GBA DS the emulator for Game Boy Advance games in ES-DE. For a game it doesn't support, choose another in ES-DE (the game's metadata > Alternative emulator).	讓 GBA DS 成為 ES-DE 中 Game Boy Advance 遊戲的模擬器。遇到它不支援的遊戲，在 ES-DE 裡另選一個（遊戲後設資料 > 替代模擬器）。
 Where games are read from, and the folder their saves are kept in.	從哪裡讀取遊戲，以及存檔儲存在哪個資料夾。
 Where games are read from. Their saves are kept next to them.	從哪裡讀取遊戲。存檔儲存在遊戲旁邊。
@@ -671,3 +655,48 @@ Settings are back to their defaults.	設定已恢復預設。
 No game has settings of its own.	沒有遊戲儲存自己的設定。
 Deleted the settings of 1 game.	已刪除 1 個遊戲的設定。
 Deleted the settings of %d games.	已刪除 %d 個遊戲的設定。
+
+# ---- new in v1.5.5: the menus' Light/dark mode, Color, every button remappable
+Light/dark mode	淺色/深色模式
+The menus' buttons: dark grey, or light grey like the web player's.	選單按鍵：深灰，或像網頁版那樣的淺灰。
+Color	強調色
+The menus' color for what's selected, with a dark and a light version of each.	選單裡選取項目的顏色，每種都有深色和淺色兩版。
+Purple	紫
+Blue	藍
+Teal	青
+Green	綠
+Red	紅
+Orange	橙
+Pink	粉
+L button	L 鍵
+R button	R 鍵
+D-pad up	十字鍵 上
+D-pad down	十字鍵 下
+D-pad left	十字鍵 左
+D-pad right	十字鍵 右
+What the L shoulder button gives the game.	L 肩鍵給遊戲什麼。
+What the R shoulder button gives the game.	R 肩鍵給遊戲什麼。
+What D-pad up gives the game.	十字鍵上給遊戲什麼。
+What D-pad down gives the game.	十字鍵下給遊戲什麼。
+What D-pad left gives the game.	十字鍵左給遊戲什麼。
+What D-pad right gives the game.	十字鍵右給遊戲什麼。
+Off for slower devices: the table on one screen. Close and restart GBA DS to apply.	慢的機器可以關掉：球台只顯示在一屏。關閉並重新啟動 GBA DS 後生效。
+GBA Up	GBA 上
+GBA Down	GBA 下
+GBA Left	GBA 左
+GBA Right	GBA 右
+Restart required	需要重啟
+Takes effect after you close and restart GBA DS	關閉並重新啟動 GBA DS 後生效
+Scale, shader, theme, color	縮放、濾鏡、主題、顏色
+GBA DS Settings	GBA DS 設定
+
+# ---- the Settings rows' own choice labels (v1.5.5 menu rework)
+Pixel Perfect	像素精確
+Full Width	全寬
+Zoom	放大
+Stretch	拉伸
+GBA A	GBA A
+GBA B	GBA B
+GBA L	GBA L
+GBA R	GBA R
+Chinese (Traditional)	中文（繁體）

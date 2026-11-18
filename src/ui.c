@@ -1,3 +1,4 @@
+#include <limits.h>
 #include "ui.h"
 
 /* the left stick presses the D-pad (issue #57): game.c turns it off for a game
@@ -2689,8 +2690,96 @@ void ui_fill_round(int screen, SDL_Rect r, SDL_Color c, int radius) {
  * theme is drawn in dark ink: ui_key notes where the keys are, and
  * ui_font_text turns light colours inside one into ink. */
 static int themeLight;
+static int accentIdx;
+static SDL_Color accentSet[AC_COUNT];
+static bool accentValid;
+
+/* Purple is the original look; the other colours are its colours turned to
+ * another hue, then darkened where needed so white text and the highlight read
+ * on what's selected (and a little deeper still in the light theme, whose keys
+ * are pale). The highlight is a pale tint of the hue (a light purple on purple). */
+static const SDL_Color accBase[AC_COUNT] = {
+	[AC_BG] = { 14, 14, 26, 255 }, [AC_HEADER] = { 30, 26, 52, 255 }, [AC_ROW] = { 22, 22, 38, 255 },
+	[AC_BTN] = { 34, 30, 58, 240 }, [AC_BTN_SEL] = { 92, 52, 140, 250 }, [AC_EDGE] = { 150, 120, 210, 255 },
+	[AC_HI] = { 232, 200, 120, 255 }, [AC_HI_INK] = { 122, 82, 0, 255 },
+	[AC_SEL_MID] = { 102, 55, 153, 255 }, [AC_LIT_MID] = { 168, 145, 227, 255 },
+	[AC_SEL_HI] = { 118, 66, 172, 255 }, [AC_SEL_LO] = { 90, 47, 138, 255 }, [AC_SEL_EDGE] = { 44, 22, 80, 255 },
+	[AC_SEL_BORDER] = { 20, 0, 40, 255 }, [AC_SEL_RING] = { 169, 139, 224, 255 },
+	[AC_LIT_BORDER] = { 60, 40, 110, 255 }, [AC_LIT_HI] = { 188, 166, 240, 255 }, [AC_LIT_LO] = { 154, 130, 216, 255 },
+	[AC_LIT_EDGE] = { 75, 58, 130, 255 },
+};
+static const struct { const char* id; float hue; } accents[ACCENT_COUNT] = {
+	{ "purple", 268 }, { "blue", 215 }, { "teal", 175 }, { "green", 135 }, { "red", 352 }, { "orange", 24 }, { "pink", 322 },
+};
+
+static void rgb_to_hsl(SDL_Color c, float* h, float* s, float* l) {
+	float r = c.r / 255.f, g = c.g / 255.f, b = c.b / 255.f;
+	float mx = SDL_max(r, SDL_max(g, b)), mn = SDL_min(r, SDL_min(g, b)), d = mx - mn;
+	*l = (mx + mn) / 2;
+	*s = d == 0 ? 0 : d / (1 - SDL_fabsf(2 * *l - 1));
+	if (d == 0) *h = 0;
+	else if (mx == r) *h = 60 * fmodf((g - b) / d + 6, 6);
+	else if (mx == g) *h = 60 * ((b - r) / d + 2);
+	else *h = 60 * ((r - g) / d + 4);
+}
+static SDL_Color hsl_to_rgb(float h, float s, float l, int a) {
+	float c = (1 - SDL_fabsf(2 * l - 1)) * s, hp = fmodf(h + 720, 360) / 60, x = c * (1 - SDL_fabsf(fmodf(hp, 2) - 1)), r = 0, g = 0, b = 0;
+	if (hp < 1) r = c, g = x; else if (hp < 2) r = x, g = c; else if (hp < 3) g = c, b = x;
+	else if (hp < 4) g = x, b = c; else if (hp < 5) r = x, b = c; else r = c, b = x;
+	float m = l - c / 2;
+	return (SDL_Color) { (Uint8) SDL_clamp((int) ((r + m) * 255 + .5f), 0, 255), (Uint8) SDL_clamp((int) ((g + m) * 255 + .5f), 0, 255),
+	                     (Uint8) SDL_clamp((int) ((b + m) * 255 + .5f), 0, 255), (Uint8) a };
+}
+static float rel_lum(SDL_Color c) {
+	float v[3] = { c.r / 255.f, c.g / 255.f, c.b / 255.f };
+	for (int i = 0; i < 3; ++i) v[i] = v[i] <= 0.03928f ? v[i] / 12.92f : powf((v[i] + 0.055f) / 1.055f, 2.4f);
+	return 0.2126f * v[0] + 0.7152f * v[1] + 0.0722f * v[2];
+}
+static float contrast(SDL_Color a, SDL_Color b) {
+	float la = rel_lum(a), lb = rel_lum(b);
+	return (SDL_max(la, lb) + 0.05f) / (SDL_min(la, lb) + 0.05f);
+}
+/* a colour turned to a hue (shift degrees) with its lightness scaled */
+static SDL_Color accent_turn(SDL_Color c, float shift, float lScale) {
+	float h, s, l;
+	rgb_to_hsl(c, &h, &s, &l);
+	return hsl_to_rgb(h + shift, s, SDL_min(1.f, l * lScale), c.a);
+}
+
+static void accent_build(void) {
+	float shift = accents[accentIdx].hue - accents[0].hue;
+	/* the selected key's family: a lightness scale small enough for white text and the highlight to read on its body */
+	float f = themeLight ? 0.92f : 1.f;
+	SDL_Color hi, hiInk;
+	hi = hsl_to_rgb(accents[accentIdx].hue, 0.85f, 0.80f, 255);
+	hiInk = hsl_to_rgb(accents[accentIdx].hue, 0.80f, 0.24f, 255);
+	SDL_Color white = { 255, 255, 255, 255 };
+	for (;;) {
+		SDL_Color body = accent_turn(accBase[AC_SEL_LO], shift, f);
+		if ((contrast(white, body) >= 6.f && contrast(hi, body) >= 4.8f) || f < 0.4f) break;
+		f *= 0.96f;
+	}
+	for (int i = 0; i < AC_COUNT; ++i) {
+		bool sel = i == AC_BTN_SEL || i == AC_SEL_MID || i == AC_SEL_HI || i == AC_SEL_LO || i == AC_SEL_EDGE || i == AC_SEL_BORDER || i == AC_SEL_RING;
+		accentSet[i] = !accentIdx && !themeLight ? accBase[i] : accent_turn(accBase[i], shift, sel ? f : 1.f);
+	}
+	accentSet[AC_HI] = hi;
+	accentSet[AC_HI_INK] = hiInk;
+	accentValid = true;
+}
+void ui_accent(const char* id) {
+	int n = 0;
+	for (int i = 0; id && i < ACCENT_COUNT; ++i) if (!strcmp(id, accents[i].id)) n = i;
+	accentIdx = n;
+	accentValid = false;
+}
+SDL_Color ui_accent_color(int role) {
+	if (!accentValid) accent_build();
+	return accentSet[SDL_clamp(role, 0, AC_COUNT - 1)];
+}
 void ui_theme(int light) {
 	themeLight = light != 0;
+	accentValid = false;
 }
 bool ui_theme_light(void) {
 	return themeLight;
@@ -2699,8 +2788,8 @@ SDL_Color ui_key_ink(void) {
 	return themeLight ? (SDL_Color) { 69, 71, 90, 255 } : (SDL_Color) { 238, 240, 255, 255 };
 }
 SDL_Color ui_key_mid(int state) {
-	if (state == KEY_SEL) return (SDL_Color) { 102, 55, 153, 255 };
-	if (state == KEY_LIT) return (SDL_Color) { 168, 145, 227, 255 };
+	if (state == KEY_SEL) return ui_accent_color(AC_SEL_MID);
+	if (state == KEY_LIT) return ui_accent_color(AC_LIT_MID);
 	return themeLight ? (SDL_Color) { 205, 206, 212, 255 } : (SDL_Color) { 53, 54, 62, 255 };
 }
 
@@ -2734,6 +2823,8 @@ static SDL_Color key_text_color(int screen, int x, int y, SDL_Color c) {
 	}
 	if (!in) return c;
 	int lum = (c.r + c.g + c.b) / 3;
+	SDL_Color hiC = ui_accent_color(AC_HI);
+	if (c.r == hiC.r && c.g == hiC.g && c.b == hiC.b) return (SDL_Color) { ui_accent_color(AC_HI_INK).r, ui_accent_color(AC_HI_INK).g, ui_accent_color(AC_HI_INK).b, c.a }; /* the highlight */
 	if (c.r > 190 && c.g > 140 && c.b < 150 && c.r - c.b > 70) return (SDL_Color) { 122, 82, 0, c.a }; /* gold */
 	if (lum >= 170) return (SDL_Color) { 69, 71, 90, c.a };
 	if (lum >= 90) return (SDL_Color) { 108, 110, 128, c.a }; /* (the ink itself, at 77, stays) */
@@ -2745,13 +2836,13 @@ void ui_key(int screen, SDL_Rect r, int radius, int state) {
 	int lift = SDL_max(2, SDL_min(r.h / 14, 5));
 	SDL_Color border, rim, hi, lo, edge;
 	if (state == KEY_SEL) {
-		border = (SDL_Color) { 20, 0, 40, 255 }, rim = (SDL_Color) { 20, 0, 40, 255 };
-		hi = (SDL_Color) { 118, 66, 172, 255 }, lo = (SDL_Color) { 90, 47, 138, 255 }, edge = (SDL_Color) { 44, 22, 80, 255 };
+		border = rim = ui_accent_color(AC_SEL_BORDER);
+		hi = ui_accent_color(AC_SEL_HI), lo = ui_accent_color(AC_SEL_LO), edge = ui_accent_color(AC_SEL_EDGE);
 		int e = SDL_max(2, lift);
-		ui_fill_round(screen, (SDL_Rect) { r.x - e, r.y - e, r.w + e * 2, r.h + e * 2 + lift }, (SDL_Color) { 169, 139, 224, 255 }, radius + e);
+		ui_fill_round(screen, (SDL_Rect) { r.x - e, r.y - e, r.w + e * 2, r.h + e * 2 + lift }, ui_accent_color(AC_SEL_RING), radius + e);
 	} else if (state == KEY_LIT) {
-		border = (SDL_Color) { 60, 40, 110, 255 }, rim = border;
-		hi = (SDL_Color) { 188, 166, 240, 255 }, lo = (SDL_Color) { 154, 130, 216, 255 }, edge = (SDL_Color) { 75, 58, 130, 255 };
+		border = rim = ui_accent_color(AC_LIT_BORDER);
+		hi = ui_accent_color(AC_LIT_HI), lo = ui_accent_color(AC_LIT_LO), edge = ui_accent_color(AC_LIT_EDGE);
 	} else if (themeLight) {
 		border = (SDL_Color) { 171, 173, 181, 255 }, rim = border;
 		hi = (SDL_Color) { 222, 223, 228, 255 }, lo = (SDL_Color) { 190, 192, 199, 255 }, edge = (SDL_Color) { 141, 143, 152, 255 };
@@ -3011,13 +3102,23 @@ static int piece_len(const char* p) {
 }
 
 int ui_font_wrap(int screen, int font, int x, int y, int width, int capPx, const char* text, SDL_Color c) {
-	int lineH = capPx * 2;
+	return ui_font_wrap_around(screen, font, x, y, width, capPx, text, c, INT_MAX, width);
+}
+
+/* Word-wrapped like ui_font_wrap, but a line whose box would reach the one on
+ * the right (above narrowY) is narrower, narrowW wide: the help text beside
+ * Settings' Back button flows round it. Chinese has no spaces, so a line may
+ * break between its characters (keeping closing punctuation with the one
+ * before it), which is why this isn't a loop over words any more. */
+int ui_font_wrap_around(int screen, int font, int x, int y, int width, int capPx, const char* text, SDL_Color c, int narrowY, int narrowW) {
+	int lineH = capPx * 2, fullW = width;
 	if (!text) return y;
 	text = tr(text);
 	const char* p = text;
 	while (*p) {
 		while (*p == ' ') ++p;
 		if (!*p) break;
+		width = y + lineH > narrowY ? narrowW : fullW;
 		char line[512];
 		int n = 0, w = 0;
 		bool latin = false; /* the piece before was a word: a space goes between words */

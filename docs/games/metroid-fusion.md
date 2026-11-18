@@ -16,7 +16,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **MF-1. Map during play.** While the game is being played, the second screen shows the pause screen's map in its frame, captured on the hidden copy every `map_interval` frames (60: every second) and after each room transition.
 
-**MF-2. Tidied map (map_crop on).** With `map_crop` on, the button labels and area name are erased, the scroll arrows and clock left out, the A OBJECTIVE prompt and its row of item icons left out with the grid rebuilt behind them, and the coloured plates recoloured to the frame's greys.
+**MF-2. Tidied map.** The button labels and area name are erased, the scroll arrows and clock left out, the A OBJECTIVE prompt and its row of item icons left out with the grid rebuilt behind them, and the coloured plates recoloured to the frame's greys.
 
 **MF-3. No mini-map on the game screen.** While the map is shown, the game's mini-map in the game screen's top-right corner is hidden.
 

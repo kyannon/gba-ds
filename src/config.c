@@ -18,6 +18,7 @@ void config_defaults(Config* c) {
 	strcpy(c->stateFolder, "gbads");
 	strcpy(c->scale, "integer");
 	strcpy(c->mapScale, "integer");
+	strcpy(c->accent, "purple");
 	strcpy(c->hotkey, "home");
 	for (int i = 0; i < HK_COUNT; ++i) strcpy(c->hotkeyBtn[i], hotkeyDefaults[i]);
 	c->shaderLast = SH_GRID;
@@ -34,10 +35,7 @@ void config_defaults(Config* c) {
 	strcpy(c->touchMap, "window");
 	c->touchRotate = -1;
 	c->map = true;
-	c->mapCrop = true;
-	c->mapAnim = true;
 	c->tallLive = true;
-	c->showLogo = true;
 	c->customLogos = CL_PIXELATED;
 	c->rewind = true;
 	c->rewindSeconds = 30;
@@ -147,10 +145,7 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	BOOL("pin_cores", pinCores)
 	BOOL("frame_buffer", frameBuffer)
 	BOOL("map", map)
-	BOOL("map_crop", mapCrop)
-	BOOL("map_animations", mapAnim)
 	BOOL("pinball_live", tallLive)
-	BOOL("show_logo", showLogo)
 	STR("logo_folder", logoFolder)
 	if (!strcmp(key, "custom_logos")) {
 		c->customLogos = !strcmp(val, "off") ? CL_OFF : !strcmp(val, "full") ? CL_FULL : CL_PIXELATED;
@@ -229,6 +224,7 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	BOOL("quick_bar_hint", barHint)
 	BOOL("show_all", showAll)
 	BOOL("left_stick_dpad", leftStickDpad)
+	STR("accent", accent)
 	if (!strcmp(key, "theme")) {
 		c->lightTheme = !strcmp(val, "light") || parse_bool(val);
 		return true;
@@ -237,8 +233,8 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	INT("brightness_top", brightTop)
 	INT("brightness_bottom", brightBottom)
 	if (!strncmp(key, "button_", 7)) {
-		static const char* const faces[4] = { "right", "bottom", "top", "left" };
-		for (int i = 0; i < 4; ++i) {
+		static const char* const faces[10] = { "right", "bottom", "top", "left", "l", "r", "dpad_up", "dpad_down", "dpad_left", "dpad_right" };
+		for (int i = 0; i < 10; ++i) {
 			if (strcmp(key + 7, faces[i])) continue;
 			snprintf(c->faceBtn[i], sizeof(c->faceBtn[i]), "%s", val);
 			for (char* q = c->faceBtn[i]; *q; ++q) *q = (char) tolower((unsigned char) *q);
@@ -275,9 +271,10 @@ static int nCliKeys;
 static const char* const perGameKeys[] = {
 	"swap", "scale", "map_scale", "smooth", "border_color", "overlays", "overlay_screens", "bezel_logo", "bezel_inner",
 	"bezel_outer", "shader", "lcd_strength", "color_correction", "lcd_ghosting", "frame_buffer", "match_display", "map",
-	"map_crop", "map_animations", "map_interval", "show_logo", "custom_logos", "pinball_live", "rewind", "rewind_seconds",
+	"map_interval", "custom_logos", "pinball_live", "rewind", "rewind_seconds",
 	"fast_forward", "ff_speed", "ab_swap", "show_fps", "audio_latency", "screen_match", "screen_placement",
 	"save_on_quit", "auto_load", "left_stick_dpad", "turbo_rate", "brightness_top", "brightness_bottom", "button_right", "button_bottom", "button_top", "button_left",
+	"button_l", "button_r", "button_dpad_up", "button_dpad_down", "button_dpad_left", "button_dpad_right",
 };
 
 bool config_key_per_game(const char* key) {
@@ -427,6 +424,9 @@ void config_usage(const char* argv0) {
 #define OFFB(f) offsetof(Config, f), sizeof(((Config*) 0)->f)
 #define ARR(a) a, (int) (sizeof(a) / sizeof(a[0]))
 static const SettingChoice chTheme[] = { { "dark", "Dark", 0 }, { "light", "Light", 1 } };
+static const SettingChoice chAccent[] = {
+	{ "purple", "Purple", 0 }, { "blue", "Blue", 0 }, { "teal", "Teal", 0 }, { "green", "Green", 0 }, { "red", "Red", 0 }, { "orange", "Orange", 0 }, { "pink", "Pink", 0 },
+};
 static const SettingChoice chOnOff[] = { { "0", "Off", 0 }, { "1", "On", 1 } };
 static const SettingChoice chShown[] = { { "0", "Supported games only", 0 }, { "1", "All games", 1 } };
 static const SettingChoice chTags[] = { { "0", "Plain", 0 }, { "1", "With tags, like (USA)", 1 } };
@@ -443,7 +443,8 @@ static const SettingChoice chOverlays[] = { { "off", "Off", OVM_OFF }, { "genera
 static const SettingChoice chOvlScreens[] = { { "both", "Both screens", OVL_BOTH }, { "top", "Top screen", OVL_TOP }, { "bottom", "Bottom screen", OVL_BOTTOM } };
 static const SettingChoice chAB[] = { { "0", "Like a GBA", 0 }, { "1", "Swapped", 1 } };
 static const SettingChoice chFace[] = {
-	{ "a", "GBA A", 0 }, { "b", "GBA B", 0 }, { "l", "GBA L", 0 }, { "r", "GBA R", 0 }, { "start", "Start", 0 },
+	{ "a", "GBA A", 0 }, { "b", "GBA B", 0 }, { "l", "GBA L", 0 }, { "r", "GBA R", 0 },
+	{ "up", "GBA Up", 0 }, { "down", "GBA Down", 0 }, { "left", "GBA Left", 0 }, { "right", "GBA Right", 0 }, { "start", "Start", 0 },
 	{ "select", "Select", 0 }, { "turbo_a", "Turbo A", 0 }, { "turbo_b", "Turbo B", 0 }, { "none", "Nothing", 0 },
 };
 static const SettingChoice chTurbo[] = { { "10", "Slow (10 a second)", 10 }, { "15", "Medium (15 a second)", 15 }, { "20", "Fast (20 a second)", 20 } };
@@ -479,7 +480,8 @@ static const Setting settingsTable[] = {
 	{ "bezel_logo", "Bezel logo", SF_BOOL, OFFB(bezelLogo), ARR(chOnOff), 0, 0, 0, NULL, "The GBA DS logo in the generated bezel." },
 	{ "show_fps", "Show FPS", SF_BOOL, OFFB(showFps), ARR(chOnOff), 0, 0, 0, NULL, "Frames a second above the game, all the time." },
 
-	{ "theme", "Theme", SF_BOOL, OFFB(lightTheme), ARR(chTheme), 0, 0, 0, NULL, "The look of the menus' buttons: dark grey, or light grey like the web player's." },
+	{ "theme", "Light/dark mode", SF_BOOL, OFFB(lightTheme), ARR(chTheme), 0, 0, 0, NULL, "The menus' buttons: dark grey, or light grey like the web player's." },
+	{ "accent", "Color", SF_STR, OFFB(accent), ARR(chAccent), 0, 0, 0, NULL, "The menus' color for what's selected, with a dark and a light version of each." },
 	{ "brightness_top", "Top screen brightness", SF_INT, OFFB(brightTop), NULL, 0, 20, 100, 10, "%", "Darkens the top screen, in this app only: the device's own brightness is left alone (and this can't go above it)." },
 	{ "brightness_bottom", "Bottom screen brightness", SF_INT, OFFB(brightBottom), NULL, 0, 20, 100, 10, "%", "Darkens the bottom screen, in this app only: the device's own brightness is left alone (and this can't go above it)." },
 	{ "left_stick_dpad", "Left stick as D-pad", SF_BOOL, OFFB(leftStickDpad), ARR(chOnOff), 0, 0, 0, NULL, "Off: the left stick does nothing in games." },
@@ -488,6 +490,12 @@ static const Setting settingsTable[] = {
 	{ "button_bottom", "B (bottom) button", SF_STR, OFFB(faceBtn[1]), ARR(chFace), 0, 0, 0, NULL, "What the bottom face button gives the game." },
 	{ "button_top", "X (top) button", SF_STR, OFFB(faceBtn[2]), ARR(chFace), 0, 0, 0, NULL, "What the top face button gives the game." },
 	{ "button_left", "Y (left) button", SF_STR, OFFB(faceBtn[3]), ARR(chFace), 0, 0, 0, NULL, "What the left face button gives the game." },
+	{ "button_l", "L button", SF_STR, OFFB(faceBtn[4]), ARR(chFace), 0, 0, 0, NULL, "What the L shoulder button gives the game." },
+	{ "button_r", "R button", SF_STR, OFFB(faceBtn[5]), ARR(chFace), 0, 0, 0, NULL, "What the R shoulder button gives the game." },
+	{ "button_dpad_up", "D-pad up", SF_STR, OFFB(faceBtn[6]), ARR(chFace), 0, 0, 0, NULL, "What D-pad up gives the game." },
+	{ "button_dpad_down", "D-pad down", SF_STR, OFFB(faceBtn[7]), ARR(chFace), 0, 0, 0, NULL, "What D-pad down gives the game." },
+	{ "button_dpad_left", "D-pad left", SF_STR, OFFB(faceBtn[8]), ARR(chFace), 0, 0, 0, NULL, "What D-pad left gives the game." },
+	{ "button_dpad_right", "D-pad right", SF_STR, OFFB(faceBtn[9]), ARR(chFace), 0, 0, 0, NULL, "What D-pad right gives the game." },
 	{ "turbo_rate", "Turbo speed", SF_INT, OFFB(turboRate), ARR(chTurbo), 0, 0, 0, NULL, "How fast Turbo A and Turbo B press." },
 
 	{ "match_display", "Match display rate", SF_BOOL, OFFB(matchDisplay), ARR(chOnOff), 0, 0, 0, NULL, "Run at the display's rate: no small regular stutter." },
@@ -500,10 +508,7 @@ static const Setting settingsTable[] = {
 
 	{ "map", "Second screen", SF_BOOL, OFFB(map), ARR(chOnOff), 0, 0, 0, NULL, "Off: every game plays like an ordinary GBA game." },
 	{ "map_interval", "Map refresh", SF_INT, OFFB(mapInterval), ARR(chInterval), 0, 0, 0, NULL, "Shorter can make the sound crackle on a slow device." },
-	{ "map_crop", "Tidy map screens", SF_BOOL, OFFB(mapCrop), ARR(chOnOff), 0, 0, 0, NULL, "Labels and prompts erased from the Metroid maps." },
-	{ "map_animations", "Map animations", SF_BOOL, OFFB(mapAnim), ARR(chOnOff), 0, 0, 0, NULL, "Blinking map markers." },
-	{ "show_logo", "Logo when blank", SF_BOOL, OFFB(showLogo), ARR(chOnOff), 0, 0, 0, NULL, "The game's logo when there's no map to show." },
-	{ "pinball_live", "Pinball two-screen view", SF_BOOL, OFFB(tallLive), ARR(chOnOff), 0, 0, 0, NULL, "Off for slower devices: the table on one screen." },
+	{ "pinball_live", "Pinball two-screen view", SF_BOOL, OFFB(tallLive), ARR(chOnOff), 0, 0, 0, NULL, "Off for slower devices: the table on one screen. Close and restart GBA DS to apply." },
 };
 
 const Setting* config_setting(const char* key) {
@@ -514,7 +519,8 @@ const Setting* config_setting(const char* key) {
 
 /* what a face button gives the game with nothing chosen: ab_swap's layout */
 static const char* face_default(const Config* c, int i) {
-	return i == 0 ? (c->abSwap ? "b" : "a") : i == 1 ? (c->abSwap ? "a" : "b") : "none";
+	static const char* const own[10] = { "a", "b", "none", "none", "l", "r", "up", "down", "left", "right" };
+	return i == 0 ? (c->abSwap ? "b" : "a") : i == 1 ? (c->abSwap ? "a" : "b") : own[i];
 }
 
 int config_setting_index(const Config* c, const Setting* s) {
@@ -526,8 +532,7 @@ int config_setting_index(const Config* c, const Setting* s) {
 	if (s->field == SF_STR) {
 		const char* v = p;
 		if (!strncmp(s->key, "button_", 7) && !*v) {
-			int f = !strcmp(s->key + 7, "right") ? 0 : !strcmp(s->key + 7, "bottom") ? 1 : !strcmp(s->key + 7, "top") ? 2 : 3;
-			v = face_default(c, f);
+			v = face_default(c, (int) ((s->off - offsetof(Config, faceBtn)) / sizeof(c->faceBtn[0])));
 		}
 		for (int i = 0; i < s->nChoices; ++i)
 			if (!strcasecmp(v, s->choices[i].value)) return i;

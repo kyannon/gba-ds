@@ -9,6 +9,6 @@
 #include <string.h>
 
 extern const I18nEntry i18nZtTable[];
-extern const int i18nZtCount; /* 625 */
+extern const int i18nZtCount; /* 650 */
 
 #endif

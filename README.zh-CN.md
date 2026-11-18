@@ -20,7 +20,7 @@
 
 <sub>上下叠放的屏幕、像素精确缩放、开启 LCD 网格。</sub>
 
-GBA DS 支持 56 款游戏（含各区域版本和其中一些改版）：完整列表以及每款游戏在副屏上显示什么，见 wiki 的[支持的游戏](https://github.com/kyannon/gba-ds/wiki/Supported-games)。其他任何 GBA 游戏也能运行，只是只在单屏上玩。改版和其他补丁（`.ips`、`.ups`、`.bps`、`.xdelta`）可以在暂停菜单（Extras → Patches）里为每个游戏分别开启。
+GBA DS 支持 58 款游戏（含各区域版本和其中一些改版）：完整列表以及每款游戏在副屏上显示什么，见 wiki 的[支持的游戏](https://github.com/kyannon/gba-ds/wiki/Supported-games)。其他任何 GBA 游戏也能运行，只是只在单屏上玩。改版和其他补丁（`.ips`、`.ups`、`.bps`、`.xdelta`）可以在暂停菜单（Extras → Patches）里为每个游戏分别开启。
 
 **文档都在 [wiki](https://github.com/kyannon/gba-ds/wiki) 里：** [游玩](https://github.com/kyannon/gba-ds/wiki/Playing) · [支持的游戏](https://github.com/kyannon/gba-ds/wiki/Supported-games) · [覆盖层](https://github.com/kyannon/gba-ds/wiki/Overlays) · [设置](https://github.com/kyannon/gba-ds/wiki/Settings) · [疑难解答](https://github.com/kyannon/gba-ds/wiki/Troubleshooting) · [为游戏添加副屏支持](https://github.com/kyannon/gba-ds/wiki/Adding-second-screen-compatibility-for-a-game) · [理念](https://github.com/kyannon/gba-ds/wiki/Philosophy)
 

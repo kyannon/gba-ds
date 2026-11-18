@@ -16,7 +16,7 @@ Every game also follows the [general rules](README.md#general-rules) (GEN-1 to G
 
 **MZM-1. Map during play.** While the game is being played, the second screen shows the pause screen's map in its frame, captured on the hidden copy every `map_interval` frames (60: every second) and after each room transition.
 
-**MZM-2. Tidied map (map_crop on).** With `map_crop` on (the default) the button labels and area name are erased, the scroll arrows and play-time clock left out, the corner minimap gives way to the map underneath with its SELECT / CHANGE AREAS prompt covered by bezel, and the coloured plates are recoloured to the frame's greys.
+**MZM-2. Tidied map.** The button labels and area name are erased, the scroll arrows and play-time clock left out, the corner minimap gives way to the map underneath with its SELECT / CHANGE AREAS prompt covered by bezel, and the coloured plates are recoloured to the frame's greys.
 
 **MZM-3. No mini-map on the game screen.** While the map is shown, the game's 3x3 mini-map in the game screen's top-right corner is hidden (left out of the drawing, the game itself unchanged).
 

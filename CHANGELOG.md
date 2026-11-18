@@ -13,6 +13,29 @@
 - RetroAchievements' achievement names and descriptions come from the server and stay in English, as do game names and paths.
 - The notes at the top of `gba-ds.log` and the README written into a bug report stay in English.
 
+## v1.5.5 (not yet released)
+
+### New games
+- **Banjo-Kazooie: Grunty's Revenge** (USA and Europe, Europe's English, French and German release, Italy and Spain): the second screen shows, five seconds each, the game's pause screen without its menu (health, notes, eggs, feathers, Hollow Honeycombs, Jiggies, Jinjos and the rest) and the Totals of the world Banjo is in (what's been found there out of what there is), with the health bar held still at the top left on both, kept up to date about once a second. The logo is the title's lettering, shown at the title, on the file screen and in the opening story. Not tried yet: the mini-games, the boss fights and Mumbo's transformations.
+- **Rebelstar: Tactical Command** (USA and Europe): in battles, the second screen shows the Status of the soldier under the cursor, its Equipment, Attributes and Skills pages in turn, or the mission's Objectives elsewhere on the field. The logo shows outside battles and through the enemy's turn. Known issue: the training missions take over the buttons while they teach, so the second screen mostly shows the logo through their guided turns.
+
+### Menus and interface
+- **Every button can be remapped.** The pause menu's Controls tab (and the game list's Settings > Controls) now has rows for L, R and the four D-pad directions as well as the face buttons, and every row can give GBA A, B, L, R, Up, Down, Left, Right, Start, Select, Turbo A, Turbo B or Nothing. Settings pages show 8 rows at a time and scroll (D-pad, or drag with a finger), with a bar at the right edge.
+- **Rows are a little taller.** With at most 8 rows on a page, the pause menu's buttons have more height and padding.
+- **Settings looks tidier.** The main Settings screen is headed "GBA DS Settings", and every Settings heading is in larger letters. Each page's Back button sits at the bottom right with the help text flowing round it. In System, Reset settings and Delete per-game settings sit apart from the rows above and no longer show a help text. Opening System no longer flashes the game list for a frame.
+- **Menu colors.** Settings > Display has two new rows where Theme was (it has moved there from Games): **Light/dark mode**, which works as Theme did, and **Color**: purple (the look so far, now with a light purple instead of gold for chosen values), blue, teal, green, red, orange or pink. A color changes what's selected, the edges and glows, the panels' tint and the highlight on chosen values and pills, with a dark and a light version of each made to read in either mode (`accent = blue`, for all games). On the main Settings screen, each button's picture and text now sit side by side, left-aligned.
+- **The pause menu has one tab fewer.** Cheats, Patches, Achievements, Take Screenshot and Submit a Bug Report (the old Tools tab) are now on the Game tab, below the save slot, with Close GBA DS still last. Resume and Restart Game share a row, like Save State and Load State. If the Game tab has more than 8 buttons it scrolls.
+- **Settings has the pause menu's pictures.** Each Settings button and page heading shows the same picture as its pause-menu tab (System has a toolbox).
+- **Show FPS** moved from the Screens tab to Speed.
+- **"Restart required" tag.** Changing Pinball two-screen view in the pause menu marks the row "Restart required", and says it takes effect after you close and restart GBA DS (it used to say "when the game starts again").
+- **"Paused" is dark grey** on the light theme (it was orange).
+- **Removed the Tidy map screens, Logo when blank and Map animations settings** (and `map_crop`, `show_logo`, `map_animations` in the config files, which are now ignored): maps are always tidied and animated, and the logo always shows when there's nothing else for the second screen.
+- **Web player: a new look to match the app's menus.** The same near-black purple page, GBA-style keys with an edge underneath, purple for what's selected and gold for what's on, across the toolbar, the start screen, Settings, Controls and the on-screen controls. A sun / moon button left of the sound button (and Settings > Look > Theme) switches between dark keys and the pale grey ones, as the app's theme does, and the player remembers it. Settings > Look > Color has the app's seven colors (purple, blue, teal, green, red, orange, pink), the same ones as the app's Display > Color. The start screen is simpler too: Game and GBA DS boxes, then Your files (moved here from Settings) and a centred Play button; a save or state can still be dropped on the page or opened with the toolbar's folder button. Top over bottom is the default arrangement, and Detail has a new "a third of the resolution" choice, which on Two GBA screens draws the game's own pixels exactly (half and three quarters can make some pixels wider than their neighbours).
+
+### Fixes
+- **Web player: closing GBA DS now clears the screen.** The game's last picture used to stay behind the start page, making its text hard to read.
+- **Web player: a bug report downloads as a normal .zip.** When a report is saved (after the note or Skip), the browser downloads it, so you can keep it outside the player's own storage and send it.
+
 ## v1.5.4 (2026-11-16)
 
 ### New games

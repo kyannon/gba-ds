@@ -102,11 +102,18 @@ it lives here:
   SHA-256" annotation, readable from the run page or the public API:
   check-runs/<job id>/annotations) and send them with the zip.
   Then bump `dev` to the next `-dev` version with an empty changelog
-  section, but only once the release commit's regression run (the full
-  suite, on `dev`) has finished: a push to `dev` cancels the run still
-  going there (regress.yml's concurrency), as happened to v1.4.11's and
-  v1.4.12's. If it was cancelled, run it on `main` by hand ("Run
-  workflow", full).
+  section.
+  **The full regression suite runs once per release, when the owner asks to
+  cut it,** and nowhere else (see "Regression tests" below). Dispatch it on
+  `dev` ("Run workflow", full) on the last commit before the release commit:
+  after `android` is merged in and the changelog and docs are done. Wait
+  for it to finish green before pushing the release commit: a push to `dev`
+  cancels the run still going there (regress.yml's concurrency), as
+  happened to v1.4.11's and v1.4.12's. The release commit changes only
+  VERSION and the changelog's date line (check it with `git show --stat`),
+  so it needs no run of its own and CI starts none. If anything else has to
+  change after the full run, run the full suite again on the new last
+  commit.
 - Test builds for the device: `dist/gba-ds-vX.Y.Z-dev-linux-aarch64.zip`,
   sent to the owner after each change; Android test APKs are the artifacts
   of the workflow runs on `android` / `dev` (link the run).
@@ -171,7 +178,7 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   EmulationStation / BananaOS integration (the system's GBA games would
   start it). Send that zip after each change, never a plain build from the
   branch.
-- **Tests on the branch: only the game's own.** Write its rules
+- **Tests on the branch: only the work's own.** Write its rules
   (`docs/games/<slug>.md`), cases (`tests/regress/<slug>.json`), fixtures and
   goldens as usual, and run `tools/regress.py <slug>`, not the whole suite.
   Fixtures go to `gba-ds-tests`' `main` as usual (only this game's cases use
@@ -180,7 +187,7 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   alters a shared picture, give it a new shot name instead. Keep to the game's profile and its own composer: a change to shared
   code (`game.c`, `emu.c`, `mapcap.c`, `logo.c`, other games' profiles) is
   for `dev`. If the game really needs one, keep it small, say so in the
-  commit message, and say at the merge that the full suite has to run.
+  commit message, and say at the merge which shared-code cases have to run.
 - **Don't edit CHANGELOG.md, README.md or the wiki's game list on the
   branch** (they'd conflict with `dev`). Keep the changelog line and the
   wiki's section for the game ready in the game's rules file under a
@@ -190,9 +197,11 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   one step. In that same merge, the changelog line goes under the open
   version, the game into `wiki/Supported-games.md` (table and section) and
   the README's count, and the "For the merge" heading comes out of the rules
-  file. Then run the full suite on `dev` (the only full run for the game's
-  work), build a normal test zip from `dev` and send it. Tell the owner the
-  branch can be deleted.
+  file. Then run only the cases the merge needs (the game's own, plus the
+  cases of any shared code the branch changed: `tools/regress.py --changed`
+  against the merge's first parent), never the full suite (that runs once,
+  at release). Build a normal test zip from `dev` and send it. Tell the
+  owner the branch can be deleted.
 
 ## Building
 
@@ -377,16 +386,44 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   `tests/regress/<game>.json` with `tools/regress.py` (see docs/TESTING.md).
   Fixtures (ROMs as `roms/CODE.zip`, states, saves, golden screenshots) are
   in the private repo kyannon/gba-ds-tests, cloned to `../gba-ds-tests`
-  (attach it with add_repo). Run the suite before sending a build that
-  touches profiles.c, game.c, mapcap.c, emu.c or logo.c. For an
-  intended change: rule first, then profile, then `--update CASES` after
+  (attach it with add_repo; its `dependencies.json` is described below). **When to run what** (the owner's rule, Nov 17,
+  2026): run only the cases the work can affect, and the full suite once
+  per release.
+  - *Game work* (a new game, or compatibility work on one): the game's own
+    cases, including new ones for its new rules, plus the cases of any
+    shared code the work changed (`game.c`, `emu.c`, `mapcap.c`, `logo.c`,
+    `ui.c`, shared parts of `profiles.c`...).
+  - *GitHub issues and PRs*: only the cases that involve shared code the
+    fix changed; a fix that touches none runs none.
+  - *Test builds*, the final test zip before a release included: the same,
+    only cases for shared code changed or new game rules since the last
+    build.
+  - *A release*: the full suite, once, when the owner asks to cut it (see
+    "Release"). Not for a game's merge, not for a test zip, not for a
+    version bump.
+  **Which games run a shared file** is measured, not guessed:
+  `gba-ds-tests/dependencies.json` (`DEPENDENCIES.md` beside it is the
+  readable form: per game, the files and functions it runs) maps each
+  function of `src/` to the games whose cases execute it, from a gcov run
+  of every game (`tools/regress_deps.py`). `--changed` reads it, so a
+  change inside `game.c`'s `update_tall` picks the pinball games, not all
+  fifty-odd. A change the map can't place (outside any function, a new
+  function, a header, a file it doesn't know) picks every game that runs
+  the file, or every game: never fewer. `tools/regress_deps.py show
+  GAME|FILE` answers "what does this game rely on" / "who runs this
+  file"; `check` says how far `src/` has moved on from the measurement.
+  The map goes stale when code starts calling something it didn't: after
+  a release's full run, or when `check` lists more than a handful of new
+  functions, `measure` (a full run on the coverage build, about as long as
+  the suite) and `build`, and commit the result to the fixtures repo.
+  For an intended change: rule first, then profile, then `--update CASES` after
   looking at every differing picture in build/regress/index.html; commit the
   goldens in the fixtures repo saying which rule changed. Before a release,
   `--uncovered` lists the rules marked *By hand:* to check on the device
   (and the releases tested only on their logo). `--changed` runs only the
   games a change touches (docs/TESTING.md); GitHub runs that on every push
   to dev / android / game/* (`.github/workflows/regress.yml`; the full
-  suite for a "Release vX.Y.Z" commit or "Run workflow" with "full"). `GBADS_SYNC=1`
+  suite only for "Run workflow" with "full", once per release). `GBADS_SYNC=1`
   makes captures and logo extraction run inline, so runs are exact; the app
   draws with SDL's software renderer (`SDL_RENDER_DRIVER=software`, set by
   regress.py), the same on every machine (through Mesa's OpenGL, blended
@@ -395,8 +432,9 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   GitHub run keeps). By
   default regress.py also runs the app unpaced (`GBADS_NOPACE=1`) and
   drawing only screenshot and touch frames (`GBADS_DRAW_SHOTS_ONLY=1`),
-  the CPU count + 1 cases at a time: the full suite takes 10-15 minutes
-  on a session's 2 cores (more drawing every frame). `--paced` runs as
+  the CPU count + 1 cases at a time: the full suite takes about 27 minutes
+  on a session's 2 cores (1421 cases, Nov 16, 2026; it grows with the
+  cases; more drawing every frame). `--paced` runs as
   players do. The container's disk can fill up: clear `build/regress` and
   old `dist/` zips. A check that a screen shows nothing there (GEN-1): on
   a live second screen (a HUD over the logo, a card, a podium) it looks

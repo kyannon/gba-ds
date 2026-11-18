@@ -4097,6 +4097,147 @@ static uint32_t ls_virt(Emu* e, uint32_t addr) {
 	return 0;
 }
 
+/* ------------------------------ Banjo-Kazooie: Grunty's Revenge
+ *
+ * Every release (USA and Europe, Europe's English, French and German, Italy,
+ * Spain) has the same RAM. Found by comparing dumps (the owner's two 100%
+ * saves, a new game, the title and the intro; then 65 moments of play,
+ * jumps and the owner's state after Bozzeye's Pack Whack among them, 15
+ * paused, 32 at the title and in the story):
+ * - BK_OBJS, the word at 0x02000188: a pointer into EWRAM (0x02xxxxxx)
+ *   wherever Banjo is about (a conversation too, mid-jump too, through an
+ *   area change frame by frame), 0 at the title, the file screen and the
+ *   opening story. (The first build's 0x0200030C is 0 mid-jump: the logo
+ *   flashed up at each jump. Its 0x02000318, taken for "paused", isn't 0
+ *   again after the Pack Whack scene: no more pictures.)
+ * - BK_PAUSE, the byte at 0x0203F4D8 (0x0203F4DC in Europe's, Italy's
+ *   and Spain's: BK_PAUSE_EU, by tools/romxref.py, checked in each): 1
+ *   from the frame START is pressed while the pause screen (or a page of
+ *   it: Totals, Options, Save) is up, else 0;
+ * - BK_AREA, the byte at 0x02000004: the area (Spiral Mountain 0x0D, Spiral
+ *   Rise 0x0E, Cliff Farm's first area 0x06...).
+ * The pause screen (START) is all sprites over the level, which it darkens:
+ * the health bar and the notes along the top, the eggs, feathers and Hollow
+ * Honeycombs down the left, the Jiggies, Jinjos and the rest down the right,
+ * and its menu in the middle (CONTINUE, TOTALS, OPTIONS, SAVE, each with a
+ * Jiggy beside it: the Jiggies 16x16 at x 52, the words from x 72 (to 149
+ * in English, further in French and Spanish), rows 36,
+ * 60, 84 and 108, 16 high). Its counts come in one after another: the
+ * screen is still ~90 frames after START, and takes the menu's buttons
+ * from then. TOTALS opens the current world's page (its name on top, its
+ * Hollow Honeycombs, notes, Jiggies, Jinjos, Mumbo Totems and the rest of
+ * its own things), still ~115 frames later. The selected item is drawn
+ * white, the others grey. */
+#define BK_OBJS 0x02000188
+#define BK_PAUSE 0x0203F4D8
+#define BK_PAUSE_EU 0x0203F4DC
+#define BK_AREA 0x02000004
+/* the health bar (Banjo's head and his honeycombs) on the pause screen:
+ * x 4 to ~123 with the 100% file's ten honeycombs, rows 12-27; the Totals
+ * page's world name, rows 12-22 (its rows start at 36): BK_TOP rows, the
+ * name's band and the health's */
+#define BK_TOP_Y0 8
+#define BK_TOP_Y1 31
+#define BK_HEALTH_X1 150 /* (the notes start at x 184) */
+/* the pause menu's block (its Jiggies at x 52, its words from x 72, to
+ * ~170 in French and German) */
+#define BK_MENU_X0 50
+#define BK_MENU_X1 186
+#define BK_MENU_Y0 34
+#define BK_MENU_Y1 125
+
+/* white pixels in a menu row (the selected item is white, the others grey) */
+static int bk_white(const uint32_t* fb, int y0) {
+	int n = 0;
+	for (int y = y0; y < y0 + 16; ++y) {
+		for (int x = 72; x < 150; ++x) {
+			uint32_t c = fb[y * GBA_W + x];
+			if ((c & 0xFF) > 0xE0 && ((c >> 8) & 0xFF) > 0xE0 && ((c >> 16) & 0xFF) > 0xE0) ++n;
+		}
+	}
+	return n;
+}
+
+static bool bk_paused(Emu* s) {
+	/* (the release's from its game code's last letter, in the ROM header) */
+	return emu_read8(s, emu_read8(s, 0x080000AF) == 'E' ? BK_PAUSE : BK_PAUSE_EU) != 0;
+}
+
+/* frames (the level's layers off: only the pause screen's sprites, on
+ * black) until the picture has held still for 3 with the pause screen up;
+ * false if not within limit */
+static bool bk_settle(Emu* s, int limit) {
+	static uint32_t prev[GBA_W * GBA_H];
+	int still = 0;
+	for (int f = 0; f < limit; ++f) {
+		emu_write16(s, 0x05000000, 0);
+		emu_frame(s, 0);
+		if (!bk_paused(s)) return false;
+		still = f && !memcmp(prev, s->fb, sizeof(prev)) ? still + 1 : 0;
+		if (still >= 12) return true; /* (the counts come in with pauses of a few frames) */
+		memcpy(prev, s->fb, sizeof(prev));
+	}
+	return false;
+}
+
+static void bk_copy(Emu* s, uint32_t* out, int w, int h) {
+	int cw = w < GBA_W ? w : GBA_W;
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (size_t) cw * 4);
+}
+
+/* Two pages, 5 seconds each (BK-2): the pause screen without its menu,
+ * then the current world's Totals, its name left out and the pause
+ * screen's health bar in its place, where the pause screen has it (held
+ * still as the pages turn). Where START doesn't bring up the pause screen
+ * (a conversation, a scene), the quick failure: the last pictures stay
+ * (BK-4). The Totals page not as expected: the first page alone (GEN-3). */
+static const char* bk_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+	int max = *nOut;
+	*nOut = 1;
+	*step = 300;
+	if (w < GBA_W || h < GBA_H) return "picture too small";
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	if (bk_paused(s)) return "screen already looks like the map";
+	aw_run(s, K_START, 4);
+	int f = 0;
+	while (f < 20 && !bk_paused(s)) emu_frame(s, 0), ++f;
+	if (!bk_paused(s)) return "map button did nothing";
+	if (!bk_settle(s, 200)) return "the pause screen didn't settle";
+	/* (the menu's first row selected: the pause screen as it opens) */
+	if (bk_white(s->fb, 36) < 40 || bk_white(s->fb, 60) > 0) return "not the pause screen";
+	bk_copy(s, out[0], w, h);
+	/* the menu taken out: its Jiggies and words, the backdrop's black */
+	uint32_t black = s->fb[(GBA_H - 1) * GBA_W];
+	for (int y = BK_MENU_Y0; y <= BK_MENU_Y1; ++y) {
+		for (int x = BK_MENU_X0; x <= BK_MENU_X1; ++x) out[0][y * w + x] = black;
+	}
+	if (max < 2) return NULL;
+	/* TOTALS: down a row, then A */
+	for (int tries = 0; tries < 3 && bk_white(s->fb, 60) < 40; ++tries) {
+		aw_run(s, K_DOWN, 4);
+		aw_run(s, 0, 8);
+	}
+	if (bk_white(s->fb, 60) < 40) return NULL; /* (the first page alone) */
+	aw_run(s, K_A, 4);
+	for (f = 0; f < 60 && bk_paused(s) && (bk_white(s->fb, 36) >= 40 || bk_white(s->fb, 60) >= 40); ++f) {
+		emu_write16(s, 0x05000000, 0);
+		emu_frame(s, 0);
+	}
+	if (!bk_settle(s, 240)) return NULL;
+	/* (not the pause screen again: its menu's first row, gone) */
+	if (bk_white(s->fb, 36) >= 40 || bk_white(s->fb, 60) >= 40) return NULL;
+	bk_copy(s, out[1], w, h);
+	/* the world's name out, the health bar from the first page in its
+	 * place, where it is there */
+	for (int y = BK_TOP_Y0; y <= BK_TOP_Y1; ++y) {
+		for (int x = 0; x < GBA_W; ++x) out[1][y * w + x] = black;
+		for (int x = 0; x < BK_HEALTH_X1; ++x) out[1][y * w + x] = out[0][y * w + x];
+	}
+	*nOut = 2;
+	return NULL;
+}
+
 /* Wario Land 4 (both releases): the screen the game is on, 0x03000C3A
  * (0 scenes, 1 the hub, a passage's level select, the vortex and tally,
  * 2 in a level, 4 the pause screen up, 9 the file screen), what it's
@@ -6077,6 +6218,255 @@ done:
 	return err;
 }
 
+/* ---------------------------------------------------------- Rebelstar: Tactical Command
+ *
+ * In a battle, with the field cursor free (the player's turn, no menu), the
+ * second screen shows the Status screen of the soldier under the cursor, its
+ * three pages in turn (RS-3), or, on anything else, the mission's Objectives
+ * (RS-4); both opened on the hidden copy from the field (A, Status; START,
+ * Objectives). Everything the game does goes through a state object: the
+ * word at `top` points to the one running, whose first word is its class
+ * (a table of functions, copied to EWRAM: the same address in every
+ * battle). The battle's own object keeps its class while the field is up
+ * and changes it for the action menu, moving, aiming, the START menu, the
+ * enemy's turn...; the screens opened from it (a Status, the Objectives,
+ * help, options) are objects of their own pushed over it. The battle
+ * object is told by its action list (the halfwords 3, 4 at +0x0C). On it:
+ * +0x28 the unit under the field cursor (0xFF none, or one the player
+ * can't see), +0x5C the action menu, +0x60 the START menu: a menu's
+ * visible items at +0x0C, its cursor at +0x10 (START's: End Turn, Quit
+ * Mission, Save Game, Options, Objectives, then Cancel in the story; the
+ * action menu's Status always the last but one, before Cancel). Units:
+ * 0x48 bytes each from `units`, the side at +0x1C (0 the player's).
+ * Europe's release is the same game, its code and data moved (the classes
+ * by 0x8E0-0x960, the variables by 0x960 or so) and its menus' labels
+ * longer and in five languages, so nothing is looked up by its text.
+ * Addresses found with the harness and tools/romxref.py
+ * (docs/games/rebelstar-tactical-command.md, "Finding the game's state"). */
+typedef struct {
+	uint32_t top;    /* the running object */
+	uint32_t cursor; /* the field cursor's object (0 outside battles and their deployment) */
+	uint32_t units;
+	/* classes: the field (the cursor free), a unit's action menu, START's
+	 * menu, the enemy's turn, placing soldiers before a battle, a side's
+	 * turn banner; pushed over the battle: a Status, the Objectives,
+	 * SELECT's help, Options, Quit Mission's QUIT GAME */
+	uint32_t field, action, start, enemy, deploy, banner, status, objectives, help, options, quit;
+} RsRelease;
+static const RsRelease rsUsa = { 0x02013368, 0x02002008, 0x0200F434, 0x02004EF0, 0x02005180, 0x02005F08, 0x02004C20,
+                                 0x02004AE8, 0x02003934, 0x02003A78, 0x02005540, 0x020049E8, 0x02005580, 0x02003E38 };
+static const RsRelease rsEur = { 0x02013CC8, 0x02001F8C, 0x0200FD94, 0x02005810, 0x02005AA0, 0x02006868, 0x02005540,
+                                 0x02005408, 0x02004214, 0x02004358, 0x02005EA0, 0x02005308, 0x02005EE0, 0x02004718 };
+#define RS_UNIT_SIZE 0x48
+#define RS_OBJECTIVES_ITEM 4 /* START's menu: End Turn, Quit Mission, Save Game, Options, Objectives */
+/* virtual addresses (rs_virt) */
+#define RS_V_MODE 0xF00000A0  /* RS_OUT, RS_FIELD, RS_BUSY or RS_IDLE */
+#define RS_V_KEY 0xF00000A1   /* what the second screen is about (the room key) */
+#define RS_V_TUTOR 0xF00000A2 /* 1 while a training mission's green box is up */
+enum { RS_OUT, RS_FIELD, RS_BUSY, RS_IDLE };
+#define RS_OBJ_KEY 0xFE /* rs_subject: no soldier of the player's under the cursor */
+
+static bool rs_ewram(uint32_t p) {
+	return p >= 0x02000000 && p < 0x0203FF00;
+}
+static uint32_t rs_vt(const RsRelease* r, Emu* e) {
+	uint32_t p = emu_read32(e, r->top);
+	return rs_ewram(p) ? emu_read32(e, p) : 0;
+}
+static int rs_mode(const RsRelease* r, Emu* e) {
+	uint32_t p = emu_read32(e, r->top);
+	if (!rs_ewram(p)) return RS_OUT;
+	uint32_t vt = emu_read32(e, p);
+	/* the enemy's turn and the turn banners: the logo, the pictures kept
+	 * for the player's turn (RS-6) */
+	if (vt == r->enemy || vt == r->banner) return RS_IDLE;
+	if (emu_read32(e, p + 0x0C) == 0x00040003) {
+		if (vt == r->field) return RS_FIELD;
+		return vt == r->deploy ? RS_OUT : RS_BUSY;
+	}
+	/* screens opened over the battle: the last pictures stay (RS-5) */
+	if ((vt == r->status || vt == r->objectives || vt == r->help || vt == r->options || vt == r->quit) &&
+	    rs_ewram(emu_read32(e, r->cursor)))
+		return RS_BUSY;
+	return RS_OUT;
+}
+/* the unit under the field cursor if it's one of the player's soldiers,
+ * else RS_OBJ_KEY (an empty square, an enemy) */
+static int rs_subject(const RsRelease* r, Emu* e) {
+	uint32_t p = emu_read32(e, r->top);
+	if (!rs_ewram(p)) return RS_OBJ_KEY;
+	uint8_t u = emu_read8(e, p + 0x28);
+	if (u >= 16) return RS_OBJ_KEY;
+	return emu_read8(e, r->units + u * RS_UNIT_SIZE + 0x1C) == 0 ? u : RS_OBJ_KEY;
+}
+/* A training mission's instructions: a green box on BG1, its inside tiles
+ * all colour 4 of palette 8 (green; the unit and menu boxes on the same
+ * layer and palette are filled with colour 1, blue). Their tiles are
+ * wherever the game puts them, so the tiles themselves are looked at. */
+static bool rs_green_box(Emu* e) {
+	if (!(emu_io16(e, 0x00) & 0x0200)) return false;
+	uint16_t cnt = emu_io16(e, 0x0A);
+	if (cnt & 0x80) return false; /* (256 colours: not the battle's boxes) */
+	uint16_t green = emu_read16(e, 0x05000000 + (8 * 16 + 4) * 2);
+	int r = green & 31, g = (green >> 5) & 31, b = (green >> 10) & 31;
+	if (!(g > r + 4 && g > b + 4)) return false;
+	uint32_t map = 0x06000000 + ((cnt >> 8) & 0x1F) * 0x800, chr = 0x06000000 + ((cnt >> 2) & 3) * 0x4000;
+	int n = 0;
+	for (int i = 0; i < 32 * 20; ++i) {
+		uint16_t m = emu_read16(e, map + i * 2);
+		if (m >> 12 != 8 || !(m & 0x3FF)) continue;
+		uint32_t t = chr + (m & 0x3FF) * 32;
+		bool fill = true;
+		for (int k = 0; k < 32 && fill; k += 4) fill = emu_read32(e, t + k) == 0x44444444u;
+		if (fill && ++n >= 4) return true;
+	}
+	return false;
+}
+static uint32_t rs_virt_for(const RsRelease* r, Emu* e, uint32_t addr) {
+	if (addr == RS_V_MODE) return rs_mode(r, e);
+	if (addr == RS_V_TUTOR) return rs_mode(r, e) == RS_FIELD && rs_green_box(e);
+	if (addr == RS_V_KEY) {
+		int m = rs_mode(r, e);
+		return m == RS_FIELD ? (uint32_t) rs_subject(r, e) : 0x100u + m;
+	}
+	return 0;
+}
+static uint32_t rs_virt(Emu* e, uint32_t addr) {
+	return rs_virt_for(&rsUsa, e, addr);
+}
+static uint32_t rs_virt_eur(Emu* e, uint32_t addr) {
+	return rs_virt_for(&rsEur, e, addr);
+}
+
+static void rs_tap(Emu* s, uint32_t keys) {
+	aw_run(s, keys, 2);
+	aw_run(s, 0, 4);
+}
+/* up to n frames until the running object's class is vt */
+static bool rs_wait_vt(const RsRelease* r, Emu* s, uint32_t vt, int n) {
+	for (int f = 0; f < n && rs_vt(r, s) != vt; ++f) emu_frame_blind(s, 0);
+	return rs_vt(r, s) == vt;
+}
+/* up to n frames until the picture has held still for 3 frames (a screen
+ * fades in over a few) */
+static bool rs_settle(Emu* s, int n) {
+	static uint32_t prev[GBA_W * GBA_H];
+	int still = 0;
+	emu_frame(s, 0);
+	for (int f = 0; f < n && still < 3; ++f) {
+		memcpy(prev, s->fb, sizeof(prev));
+		emu_frame(s, 0);
+		still = memcmp(prev, s->fb, sizeof(prev)) ? 0 : still + 1;
+	}
+	return still >= 3;
+}
+/* a menu (at the battle object's +off) moved to item `want` */
+static bool rs_menu_to(Emu* s, uint32_t m, int want) {
+	for (int i = 0; i < 16 && emu_read16(s, m + 0x10) != want; ++i) {
+		rs_tap(s, emu_read16(s, m + 0x10) < want ? K_DOWN : K_UP);
+		if (emu_cancelled(s)) return false;
+	}
+	return emu_read16(s, m + 0x10) == want;
+}
+static void rs_copy(Emu* s, uint32_t* out, int w, int h) {
+	for (int y = 0; y < h && y < GBA_H; ++y)
+		for (int x = 0; x < w && x < GBA_W; ++x) out[y * w + x] = s->fb[y * GBA_W + x] | 0xFF000000;
+}
+/* the page as drawn, without BG1: the D-pad marks in its top corners that
+ * turn the pages (RS-3), BG1's only tiles there. */
+static void rs_copy_page(Emu* s, uint32_t* out, int w, int h) {
+	/* (the renderer takes the layers on as the display registers are
+	 * written: a state saved and loaded again writes them all) */
+	size_t sz = emu_state_size(s);
+	void* st = malloc(sz);
+	if (!st || !emu_state_save(s, st)) {
+		free(st);
+		rs_copy(s, out, w, h);
+		return;
+	}
+	emu_layers(s, 0x1D);
+	emu_state_load(s, st);
+	emu_frame(s, 0);
+	rs_copy(s, out, w, h);
+	emu_layers(s, 0x1F);
+	emu_state_load(s, st);
+	free(st);
+}
+/* RS-3: A on the soldier, Status (the action menu's last item but one),
+ * then its pages: Equipment, Attributes (RIGHT), Skills (RIGHT) */
+static const char* rs_status(const RsRelease* r, Emu* s, uint32_t* const* out, int max, int* nOut, int w, int h) {
+	aw_run(s, K_A, 2);
+	if (!rs_wait_vt(r, s, r->action, 30)) return "the action menu didn't open";
+	/* (the menu's own object is set up a frame or two after the class
+	 * changes) */
+	uint32_t m = 0;
+	int n = 0;
+	for (int f = 0; f < 20; ++f) {
+		m = emu_read32(s, emu_read32(s, r->top) + 0x5C);
+		n = rs_ewram(m) ? emu_read16(s, m + 0x0C) : 0;
+		if (n >= 3 && n <= 16) break;
+		emu_frame_blind(s, 0);
+	}
+	if (!rs_ewram(m)) return "no action menu";
+	if (n < 3 || n > 16) return "not an action menu";
+	if (!rs_menu_to(s, m, n - 2)) return "the menu's cursor didn't move";
+	aw_run(s, K_A, 2);
+	if (!rs_wait_vt(r, s, r->status, 30)) return "the Status didn't open";
+	if (!rs_settle(s, 40)) return "the Status didn't settle";
+	if (emu_cancelled(s)) return "called off";
+	int pages = max < 3 ? max : 3;
+	rs_copy_page(s, out[0], w, h);
+	for (int k = 1; k < pages; ++k) {
+		aw_run(s, K_RIGHT, 2);
+		aw_run(s, 0, 4);
+		if (!rs_settle(s, 40)) return "a page didn't settle";
+		if (rs_vt(r, s) != r->status) return "the Status closed";
+		if (emu_cancelled(s)) return "called off";
+		rs_copy_page(s, out[k], w, h);
+	}
+	*nOut = pages;
+	return NULL;
+}
+/* RS-4: START, Objectives (its fifth item, in every language; the class
+ * of the screen it opens says it was) */
+static const char* rs_objectives(const RsRelease* r, Emu* s, uint32_t* out, int w, int h) {
+	aw_run(s, K_START, 2);
+	if (!rs_wait_vt(r, s, r->start, 30)) return "START's menu didn't open";
+	uint32_t m = 0;
+	for (int f = 0; f < 20; ++f) {
+		m = emu_read32(s, emu_read32(s, r->top) + 0x60);
+		if (rs_ewram(m) && emu_read16(s, m + 0x0C) > RS_OBJECTIVES_ITEM && emu_read16(s, m + 0x0C) <= 8) break;
+		emu_frame_blind(s, 0);
+	}
+	if (!rs_ewram(m)) return "no START menu";
+	if (emu_read16(s, m + 0x0C) <= RS_OBJECTIVES_ITEM) return "no Objectives in START's menu";
+	if (!rs_menu_to(s, m, RS_OBJECTIVES_ITEM)) return "the menu's cursor didn't move";
+	aw_run(s, K_A, 2);
+	if (!rs_wait_vt(r, s, r->objectives, 30)) return "the Objectives didn't open";
+	if (!rs_settle(s, 40)) return "the Objectives didn't settle";
+	if (emu_cancelled(s)) return "called off";
+	rs_copy(s, out, w, h);
+	return NULL;
+}
+static const char* rs_compose_for(const RsRelease* r, Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+	int max = *nOut;
+	*nOut = 1;
+	*step = 150; /* 2.5 seconds a page */
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	if (rs_mode(r, s) != RS_FIELD) return "not the field";
+	/* (a training mission's instructions: the game waits for what they
+	 * ask, RS-7) */
+	if (rs_green_box(s)) return "a training box is up";
+	return rs_subject(r, s) == RS_OBJ_KEY ? rs_objectives(r, s, out[0], w, h) : rs_status(r, s, out, max, nOut, w, h);
+}
+static const char* rs_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+	return rs_compose_for(&rsUsa, s, state, out, nOut, step, w, h);
+}
+static const char* rs_compose_eur(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+	return rs_compose_for(&rsEur, s, state, out, nOut, step, w, h);
+}
+
 static const MapProfile profiles[] = {
 	{
 		.codes = { "A2CE" },
@@ -7616,6 +8006,32 @@ static const MapProfile profiles[] = {
 		                 { 167, 143, 170, 146, 0, 1023, -1, 0, 0, LS_SHAPE(1, 0) | LS_SHAPE(0, 1) } },
 	},
 	{
+		/* Banjo-Kazooie: Grunty's Revenge (USA and Europe; Europe's
+		 * English, French and German BKZX, Italy's BKZI and Spain's BKZS
+		 * are variants, the same RAM). See bk_compose. */
+		.codes = { "BKZE" },
+		.title = "Banjo-Kazooie: Grunty's Revenge",
+		/* the title's lettering, BG1 (its glow blends with the scene
+		 * behind; Press START is a sprite) (BK-1) */
+		.logo = { .steps = { { 0, 1300 } }, .layer = 1 },
+		/* the pause screen and the world's Totals, as pages, the health
+		 * bar on both (BK-2, BK-3) */
+		.composePages = bk_compose,
+		.stillPick = STILL_FIRST,
+		.crop_w = GBA_W,
+		.crop_h = GBA_H,
+		/* sprites only, on black: the level the pause screen darkens is
+		 * the game screen's (BK-2) */
+		.captureLayers = 0x10,
+		/* about (BK_OBJS), not paused (the player's own pause screen
+		 * stays on the game screen, the last picture kept: BK-5) */
+		.live = { { BK_OBJS, 0xFF000000, 0x02000000, 4 }, { BK_PAUSE, 0xFF, 0, 1 } },
+		/* the title, the file screen, the intro: the logo (BK-4) */
+		.menu = { { BK_OBJS, 0xFFFFFFFF, 0, 4 } },
+		/* another area: a capture at once (GEN-6) */
+		.room = { { BK_AREA, 0xFF, 0, 1 } },
+	},
+	{
 		/* Ninja Five-O (USA; Europe, Ninja Cop: the ANXP variant). No
 		 * screen of the game's own holds its status (its pause is a menu
 		 * over the stage), so the HUD moves: see NFO_HUD below. */
@@ -8521,6 +8937,51 @@ static const MapProfile profiles[] = {
 		 * warning (A) and, in the translations, their title card (A) */
 		.logo = { .steps = { { 0, 200 }, { K_A, 4 }, { 0, 400 }, { K_A, 4 }, { 0, 1800 } }, .layer = 3, .maxY = 160, .blackIsClear = true },
 	},
+	{
+		/* Rebelstar: Tactical Command (USA; Europe: below). In a battle, the
+		 * soldier's Status or the mission's Objectives from the field:
+		 * see rs_compose (docs/games/rebelstar-tactical-command.md) */
+		.codes = { "BRLE" },
+		.title = "Rebelstar: Tactical Command",
+		.composePages = rs_compose,
+		.stillPick = STILL_FIRST, /* (Map Animations off: the first page) */
+		.virt = rs_virt,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* taken only from the field, no training box up (RS-3, RS-4,
+		 * RS-7) */
+		.live = { { RS_V_MODE, 0xFF, RS_FIELD, 4 }, { RS_V_TUTOR, 0xFF, 0, 4 } },
+		/* out of the battles: the logo, the pictures dropped (RS-2) */
+		.menu = { { RS_V_MODE, 0xFF, RS_OUT, 4 } },
+		/* the enemy's turn, the turn banners: the logo, the pictures
+		 * kept (RS-6) */
+		.logoIf = { { RS_V_MODE, 0xFF, RS_IDLE, 4 } },
+		/* another soldier under the cursor, or none, or the field back:
+		 * taken again at once (RS-3, RS-4) */
+		.room = { { RS_V_KEY, 0, 0, 4 } },
+		/* the title's lettering and star, painted into its picture, cut
+		 * out by the owner's copy of the logo (RS-1; tools/make_logo_masks.py,
+		 * rs). rev 1: the strip of the picture before */
+		.logo = { .wait = 400, .mask = &logoMaskRS, .rev = 1 },
+	},
+	{
+		/* Rebelstar: Tactical Command (Europe, in English, French, German,
+		 * Spanish and Italian): the same, at its own addresses (rsEur) */
+		.codes = { "BRLP" },
+		.title = "Rebelstar: Tactical Command",
+		.composePages = rs_compose_eur,
+		.stillPick = STILL_FIRST,
+		.virt = rs_virt_eur,
+		.crop_w = GBA_W,
+		.crop_h = GBA_H,
+		.live = { { RS_V_MODE, 0xFF, RS_FIELD, 4 }, { RS_V_TUTOR, 0xFF, 0, 4 } },
+		.menu = { { RS_V_MODE, 0xFF, RS_OUT, 4 } },
+		.logoIf = { { RS_V_MODE, 0xFF, RS_IDLE, 4 } },
+		.room = { { RS_V_KEY, 0, 0, 4 } },
+		/* the same title picture, past the language list (A: English;
+		 * without a battery save it comes first) */
+		.logo = { .steps = { { 0, 60 }, { K_A, 4 }, { 0, 400 } }, .mask = &logoMaskRS, .rev = 1 },
+	},
 };
 
 /* ---------------------------------------------------------------- regions
@@ -8550,6 +9011,18 @@ static void insert_steps(MacroStep* steps, int max, int at, const MacroStep* add
  * selected): wait for it and press A, then boot as the USA release does. */
 static const MacroStep LANGUAGE_A[] = { { 0, 60 }, { K_A, 4 } };
 
+/* Banjo-Kazooie: Grunty's Revenge, Europe's English, French and German
+ * release: the language list (A: English) before the title (BK-1) */
+static void bk_eu(MapProfile* p) {
+	/* the pause byte 4 further on (Europe, Italy, Spain) */
+	p->live[1].addr = BK_PAUSE_EU;
+}
+static void bk_lang(MapProfile* p) {
+	static const MacroStep steps[] = { { 0, 1200 }, { K_A, 4 }, { 0, 150 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+	bk_eu(p);
+}
 static void lang_menu(MapProfile* p) {
 	insert_steps(p->logo.steps, 24, 0, LANGUAGE_A, 2);
 }
@@ -8969,6 +9442,12 @@ static const Variant variants[] = {
 	{ "AT3D", "AT3E", 0, thps3_ger },
 	{ "ASEJ", "ASEE", 0, smm_jpn },
 	{ "ALDP", "ALDE", 0, NULL },
+	/* Banjo-Kazooie: Grunty's Revenge: the same RAM but the pause byte
+	 * (bk_eu); Europe's English, French and German release asks for a
+	 * language first (BK-1) */
+	{ "BKZX", "BKZE", 0, bk_lang },
+	{ "BKZI", "BKZE", 0, bk_eu },
+	{ "BKZS", "BKZE", 0, bk_eu },
 	{ "ANXP", "ANXE", 0, nfo_eur },
 	{ "AWAJ", "AWAE", 0, NULL },
 	{ "BM5P", "BM5E", 0, mvdk_eur }, /* (its state moved: mvdk_eur, mvdk_state) */

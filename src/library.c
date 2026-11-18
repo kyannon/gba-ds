@@ -49,13 +49,14 @@ typedef struct {
 static GameEntry* games;
 static int nGames, capGames;
 
-static const SDL_Color C_BG = { 14, 14, 26, 255 };
-static const SDL_Color C_HEADER = { 30, 26, 52, 255 };
-static const SDL_Color C_ROW = { 22, 22, 38, 255 };
-static const SDL_Color C_SEL = { 92, 52, 140, 255 };
+/* (the accent's colours: Settings > Display > Color) */
+#define C_BG ui_accent_color(AC_BG)
+#define C_HEADER ui_accent_color(AC_HEADER)
+#define C_ROW ui_accent_color(AC_ROW)
+#define C_SEL ui_accent_color(AC_BTN_SEL)
 static const SDL_Color C_TEXT = { 236, 236, 244, 255 };
 static const SDL_Color C_DIM = { 140, 140, 172, 255 };
-static const SDL_Color C_GOLD = { 232, 200, 120, 255 };
+#define C_GOLD ui_accent_color(AC_HI)
 static const SDL_Color C_TAG = { 52, 120, 96, 255 };
 
 static int cmp_games(const void* a, const void* b) {
@@ -801,7 +802,7 @@ static void draw_preview(Config* cfg, int scr, int sel) {
 
 /* -------------------------------------------------------------- list: a grid of logos */
 
-static const SDL_Color C_EDGE = { 150, 120, 210, 255 };
+#define C_EDGE ui_accent_color(AC_EDGE)
 
 typedef struct {
 	int headerH, listH, m, gap, tileW, tileH, rowH, cols, visibleRows;
@@ -1150,14 +1151,20 @@ typedef struct {
 
 static SDL_Rect set_panel(int scr);
 static SDL_Rect set_row(int scr, int n, int i);
+static SDL_Rect set_row_gap(int scr, int n, int i, int gapAt);
+static void draw_set_heading(int scr, SDL_Rect p, const char* title, int icon);
+static int set_note_wrap(int scr, int n, int y, const char* text, SDL_Color c, int font);
 static SettingsGeom settings_geom(int scr) {
 	/* the same rows as the other pages (set_row), the older panel's text now a
 	 * line under them for the row chosen */
 	SettingsGeom g;
 	g.px = ui_px(scr);
 	g.panel = set_panel(scr);
-	for (int i = 0; i < nRows; ++i) g.row[i] = set_row(scr, nRows, i), g.textY[i] = 0;
-	g.back = set_row(scr, nRows, nRows);
+	int gapAt = -1;
+	for (int i = 0; i < nRows && gapAt < 0; ++i)
+		if (rowKind[i] == ROW_RESET) gapAt = i;
+	for (int i = 0; i < nRows; ++i) g.row[i] = set_row_gap(scr, nRows, i, gapAt), g.textY[i] = 0;
+	g.back = set_row_gap(scr, nRows, nRows, gapAt);
 	return g;
 }
 
@@ -1171,7 +1178,7 @@ static void draw_settings_frame(int scr, const SettingsGeom* g, int sel, const c
 	float px = g->px;
 	ui_dim(scr, 200);
 	ui_fill_round(scr, g->panel, C_HEADER, px * 4);
-	ui_label(scr, g->panel.x + g->panel.w / 2, g->panel.y + px * 11, px * 6, "System", C_TEXT);
+	draw_set_heading(scr, g->panel, "System", GAME_ICON_SYSTEM);
 	for (int i = 0; i <= nRows; ++i) {
 		SDL_Rect b = i < nRows ? g->row[i] : g->back;
 		ui_key(scr, b, px * 3, i == sel ? KEY_SEL : KEY_PLAIN);
@@ -1189,7 +1196,8 @@ static void draw_system_note(int scr, const SettingsGeom* g, const char* text, S
 	float px = g->px;
 	if (nRows < 1 || !text) return;
 	SDL_Rect last = g->row[nRows - 1];
-	ui_font_wrap(scr, TF_BODY, g->panel.x + px * 8, last.y + last.h + px * 3, g->panel.w - px * 16, px * 4, text, c);
+	int x = g->panel.x + px * 8;
+	ui_font_wrap_around(scr, TF_BODY, x, last.y + last.h + px * 3, g->panel.w - px * 16, px * 4, text, c, g->back.y - px * 2, g->back.x - px * 4 - x);
 }
 
 /* ---- Settings: a page of categories, each a page of rows (docs/MENUS.md).
@@ -1201,25 +1209,35 @@ enum { SP_HOME = -1, SP_SYSTEM = 6, SP_COUNT = 7 };
 typedef struct {
 	const char* name;
 	const char* sub;
-	const char* keys[10];
+	const char* keys[20];
 } SetPage;
 static const SetPage setPages[SP_SYSTEM] = {
-	{ "Games", "Which games, names, saving", { "language", "show_all", "name_tags", "theme", "save_on_quit", "auto_load", "custom_logos", "quick_bar_hint" } },
-	{ "Display", "Scale, shader, colors", { "scale", "map_scale", "shader", "lcd_strength", "color_correction", "lcd_ghosting", "smooth" } },
-	{ "Screens", "Placement, overlays", { "swap", "screen_match", "screen_placement", "overlays", "overlay_screens", "bezel_logo", "brightness_top", "brightness_bottom", "show_fps" } },
-	{ "Controls", "Stick, buttons, hotkeys", { "left_stick_dpad", "ab_swap", "button_right", "button_bottom", "button_top", "button_left", "turbo_rate", "@map", "@hotkeys" } },
-	{ "Speed and sound", "Rewind, fast forward", { "match_display", "frame_buffer", "rewind", "rewind_seconds", "fast_forward", "audio_latency", "performance" } },
-	{ "Second screen", "The map and the logo", { "map", "map_interval", "map_crop", "map_animations", "show_logo", "pinball_live" } },
+	{ "Games", "Which games, names, saving", { "language", "show_all", "name_tags", "save_on_quit", "auto_load", "custom_logos", "quick_bar_hint" } },
+	{ "Display", "Scale, shader, theme, color", { "scale", "map_scale", "shader", "lcd_strength", "color_correction", "lcd_ghosting", "smooth", "theme", "accent" } },
+	{ "Screens", "Placement, overlays", { "swap", "screen_match", "screen_placement", "overlays", "overlay_screens", "bezel_logo", "brightness_top", "brightness_bottom" } },
+	{ "Controls", "Stick, buttons, hotkeys", { "left_stick_dpad", "ab_swap", "button_right", "button_bottom", "button_top", "button_left", "button_l", "button_r", "button_dpad_up", "button_dpad_down", "button_dpad_left", "button_dpad_right", "turbo_rate", "@map", "@hotkeys" } },
+	{ "Speed and sound", "Rewind, fast forward", { "show_fps", "match_display", "frame_buffer", "rewind", "rewind_seconds", "fast_forward", "audio_latency", "performance" } },
+	{ "Second screen", "The map and the logo", { "map", "map_interval", "pinball_live" } },
 };
 static int setPage = SP_HOME; /* SP_HOME, a category, or SP_SYSTEM (the older panel) */
 static int setSel;
+#define SET_VIS 8 /* most rows shown at once: more scroll */
+static int setTop;     /* the first row shown */
+static int setDragY;   /* where a finger last moved the list from */
+static int setNVis(int n) { return SDL_min(n, SET_VIS); }
+/* the row chosen kept on screen (Back, after the last row, needs none) */
+static void set_scroll(int n) {
+	if (setSel < n && setSel < setTop) setTop = setSel;
+	if (setSel < n && setSel >= setTop + SET_VIS) setTop = setSel - SET_VIS + 1;
+	setTop = SDL_clamp(setTop, 0, SDL_max(0, n - SET_VIS));
+}
 static bool setRescan; /* the games shown changed: list them again */
 
 /* the rows of a page: out[i] its setting, or NULL for a row that opens a screen
  * (ids[i] is "@map" or "@hotkeys") */
 static int page_settings(int page, const Setting** out, const char** ids) {
 	int n = 0;
-	for (int i = 0; i < 10 && setPages[page].keys[i]; ++i) {
+	for (int i = 0; i < 20 && setPages[page].keys[i]; ++i) {
 		const char* k = setPages[page].keys[i];
 		const Setting* st = k[0] == '@' ? NULL : config_setting(k);
 		if (k[0] != '@' && (!st || (!strcmp(st->key, "performance") && !clocks_available()))) continue;
@@ -1250,16 +1268,46 @@ static SDL_Rect set_tile(int scr, int i) {
 	return (SDL_Rect) { p.x + px * 6 + (i % 2) * (w + gap), top + (i / 2) * (h + gap), w, h };
 }
 
-/* a page: n rows, then Back */
-static SDL_Rect set_row(int scr, int n, int i) {
+/* a page: n rows, then Back, at the right of the strip under the rows (the note
+ * flows round it). gapAt: a row with a little more room above it (System: before
+ * Reset settings), or -1 */
+static SDL_Rect set_row_gap(int scr, int n, int i, int gapAt) {
 	int px = (int) ui_px(scr);
 	SDL_Rect p = set_panel(scr);
-	int top = p.y + px * 20, gap = px * 2;
-	int noteH = px * 12, backH = px * 14;
-	int avail = p.y + p.h - px * 6 - backH - noteH - top;
-	int h = SDL_min(px * 16, avail / SDL_max(1, n) - gap);
-	if (i == n) return (SDL_Rect) { p.x + (p.w - px * 60) / 2, p.y + p.h - px * 5 - backH, px * 60, backH };
-	return (SDL_Rect) { p.x + px * 6, top + i * (h + gap), p.w - px * 12, h };
+	int top = p.y + px * 22, gap = px * 2;
+	int extra = gapAt > 0 && gapAt < n ? px * 6 : 0;
+	int backW = px * 40, backH = px * 14, strip = px * 28;
+	int avail = p.y + p.h - px * 5 - strip - top - extra;
+	int h = SDL_min(px * 18, avail / SDL_max(1, n) - gap);
+	if (i == n) return (SDL_Rect) { p.x + p.w - px * 6 - backW, p.y + p.h - px * 5 - backH, backW, backH };
+	return (SDL_Rect) { p.x + px * 6, top + i * (h + gap) + (gapAt > 0 && i >= gapAt ? extra : 0), p.w - px * 12, h };
+}
+static SDL_Rect set_row(int scr, int n, int i) {
+	return set_row_gap(scr, n, i, -1);
+}
+
+/* a note under the rows (y the top of its first line), flowing round Back */
+static int set_note_wrap(int scr, int n, int y, const char* text, SDL_Color c, int font) {
+	int px = (int) ui_px(scr);
+	SDL_Rect p = set_panel(scr), back = set_row(scr, n, n);
+	int x = p.x + px * 8;
+	return ui_font_wrap_around(scr, font, x, y, p.w - px * 16, px * 4, text, c, back.y - px * 2, back.x - px * 4 - x);
+}
+
+/* the heading of every Settings page: large, filling the strip above the rows */
+static void draw_set_heading(int scr, SDL_Rect p, const char* title, int icon) {
+	int px = (int) ui_px(scr), cap = px * 10;
+	int w = ui_label_width(scr, cap, title), maxW = p.w - px * 12;
+	if (w > maxW) cap = cap * maxW / w;
+	int tx = p.x + p.w / 2;
+	if (icon >= 0) {
+		/* the pause menu's picture for the page, before the title */
+		int is = cap * 2, gap = cap / 2, tw = ui_label_width(scr, cap, title);
+		SDL_Rect ib = { tx - (tw + gap + is) / 2, p.y + px * 11 - is / 2, is, is };
+		game_page_icon(scr, icon, ib, C_TEXT, C_HEADER);
+		tx = ib.x + is + gap + tw / 2;
+	}
+	ui_label(scr, tx, p.y + px * 11, cap, title, C_TEXT);
 }
 
 static void draw_set_home(int scr, int sel) {
@@ -1267,7 +1315,7 @@ static void draw_set_home(int scr, int sel) {
 	SDL_Rect p = set_panel(scr);
 	ui_dim(scr, 200);
 	ui_fill_round(scr, p, C_HEADER, px * 4);
-	ui_label(scr, p.x + p.w / 2, p.y + px * 12, px * 6, "Settings", C_TEXT);
+	draw_set_heading(scr, p, "GBA DS Settings", -1);
 	for (int i = 0; i < 8; ++i) {
 		SDL_Rect t = set_tile(scr, i);
 		ui_key(scr, t, px * 3, i == sel ? KEY_SEL : KEY_PLAIN);
@@ -1276,22 +1324,30 @@ static void draw_set_home(int scr, int sel) {
 #ifdef __ANDROID__
 		if (i == SP_SYSTEM) sub = "Folders, accounts, updates";
 #endif
-		ui_label(scr, t.x + t.w / 2, t.y + t.h / 2 - (sub ? px * 4 : 0), px * 6, name, C_TEXT);
-		if (sub) ui_font_text(scr, TF_BODY, t.x + t.w / 2, t.y + t.h / 2 + px * 7, px * 4, sub, C_DIM, 0);
+		/* the pause menu's picture (not on Back), then the text, all left-aligned in the button */
+		int iw = t.h * 6 / 10, gap = px * 3, x0 = t.x + px * 5, tx = x0 + iw + gap;
+		if (i <= SP_SYSTEM) {
+			SDL_Rect ib = { x0, t.y, iw, t.h };
+			game_page_icon(scr, i == SP_SYSTEM ? GAME_ICON_SYSTEM : i, ib, i == sel || !ui_theme_light() ? C_TEXT : ui_key_ink(), ui_key_mid(i == sel ? KEY_SEL : KEY_PLAIN));
+		}
+		ui_font_text(scr, TF_BOLD, tx, t.y + t.h / 2 - (sub ? px * 4 : 0), px * 6, name, C_TEXT, -1);
+		if (sub) ui_font_text(scr, TF_BODY, tx, t.y + t.h / 2 + px * 7, px * 4, sub, C_DIM, -1);
 	}
 }
 
 static void draw_set_page(const Config* cfg, int scr, int page, int sel) {
 	int px = (int) ui_px(scr);
 	SDL_Rect p = set_panel(scr);
-	const Setting* rows[10];
-	const char* ids[10];
-	int n = page_settings(page, rows, ids);
+	const Setting* rows[20];
+	const char* ids[20];
+	int n = page_settings(page, rows, ids), nv = setNVis(n);
+	setTop = SDL_clamp(setTop, 0, SDL_max(0, n - SET_VIS));
 	ui_dim(scr, 200);
 	ui_fill_round(scr, p, C_HEADER, px * 4);
-	ui_label(scr, p.x + p.w / 2, p.y + px * 11, px * 6, setPages[page].name, C_TEXT);
-	for (int i = 0; i <= n; ++i) {
-		SDL_Rect r = set_row(scr, n, i);
+	draw_set_heading(scr, p, setPages[page].name, page);
+	for (int s = 0; s <= nv; ++s) {
+		int i = s == nv ? n : setTop + s;
+		SDL_Rect r = set_row(scr, nv, s);
 		ui_key(scr, r, px * 3, i == sel ? KEY_SEL : KEY_PLAIN);
 		if (i == n) {
 			ui_label(scr, r.x + r.w / 2, r.y + r.h / 2, px * 5, "Back", C_TEXT);
@@ -1311,12 +1367,20 @@ static void draw_set_page(const Config* cfg, int scr, int page, int sel) {
 		ui_font_text(scr, TF_BOLD, ax - px * 8, r.y + r.h / 2, px * 5, val, C_GOLD, 1);
 		ui_font_text(scr, TF_BOLD, ax - px * 16 - vw, r.y + r.h / 2, px * 6, "‹", i == sel ? C_TEXT : C_DIM, 1);
 	}
+	if (n > SET_VIS) {
+		/* more rows than fit: a bar down the panel's right edge */
+		SDL_Rect a = set_row(scr, nv, 0), z = set_row(scr, nv, nv - 1);
+		int bw = px * 2, bx = p.x + p.w - px * 4, th = z.y + z.h - a.y;
+		ui_fill_round(scr, (SDL_Rect) { bx, a.y, bw, th }, (SDL_Color) { 60, 56, 84, 255 }, px);
+		int bh = SDL_max(bw * 3, th * SET_VIS / n), by = a.y + (th - bh) * setTop / SDL_max(1, n - SET_VIS);
+		ui_fill_round(scr, (SDL_Rect) { bx, by, bw, bh }, C_GOLD, px);
+	}
 	const char* note = sel >= n ? NULL : rows[sel] ? rows[sel]->note
 	                 : !strcmp(ids[sel], "@map") ? "Sets which of this device's buttons does what."
 	                                             : "Sets the shortcuts: the hotkey button held with another.";
 	if (note) {
-		SDL_Rect last = set_row(scr, n, n - 1);
-		ui_font_wrap(scr, TF_BODY, p.x + px * 8, last.y + last.h + px * 3, p.w - px * 16, px * 4, note, C_DIM);
+		SDL_Rect last = set_row(scr, nv, nv - 1);
+		set_note_wrap(scr, nv, last.y + last.h + px * 3, note, C_DIM, TF_BODY);
 	}
 }
 
@@ -1332,6 +1396,7 @@ static void setting_changed(Config* cfg, const Setting* st) {
 	config_kv_update(path, "# written by gba-ds's menus; overrides gba-ds.cfg", n, kv);
 	if (!strcmp(st->key, "performance")) clocks_set(cfg->perfMax);
 	if (!strcmp(st->key, "theme")) ui_theme(cfg->lightTheme);
+	if (!strcmp(st->key, "accent")) ui_accent(cfg->accent), ui_theme(cfg->lightTheme);
 	if (!strncmp(st->key, "brightness_", 11)) ui_brightness(cfg->brightTop, cfg->brightBottom);
 	if (!strcmp(st->key, "show_all") || !strcmp(st->key, "name_tags")) setRescan = true;
 	if (!strcmp(st->key, "language")) i18n_set(cfg->language);
@@ -1342,10 +1407,6 @@ static void setting_changed(Config* cfg, const Setting* st) {
 
 /* System > Reset settings to defaults / Delete per-game settings: each asks to be
  * touched again before it does anything (confirmRow: the row asked) */
-#define RESET_NOTE "Puts every setting in Settings back to GBA DS's own default: the theme, brightness, screens, controls and so on. " \
-                   "Folders, accounts, hotkeys, button mapping and each game's own settings stay."
-#define DELCFG_NOTE "Removes the settings every game has kept for itself (from the pause menu's This game), so all games " \
-                    "use the settings for all games again. States, saves and cheats stay."
 static int confirmRow = -1;
 
 static int reset_settings(Config* cfg) {
@@ -1364,6 +1425,7 @@ static int reset_settings(Config* cfg) {
 	char path[1100];
 	snprintf(path, sizeof(path), "%s/prefs.cfg", cfg->stateDir);
 	config_kv_remove(path, n, keys);
+	ui_accent(cfg->accent);
 	ui_theme(cfg->lightTheme);
 	ui_brightness(cfg->brightTop, cfg->brightBottom);
 	clocks_set(cfg->perfMax);
@@ -1424,8 +1486,8 @@ static void system_action(Config* cfg, int row) {
 
 /* one frame of input for the pages; false when Settings should close */
 static bool settings_pages_input(Config* cfg, int ls) {
-	const Setting* rows[10];
-	const char* ids[10];
+	const Setting* rows[20];
+	const char* ids[20];
 	int n = setPage >= 0 && setPage < SP_SYSTEM ? page_settings(setPage, rows, ids) : 0;
 	bool back = btn_pressed(B_B) || btn_pressed(B_SELECT) || btn_released(B_HOME);
 	if (setPage == SP_HOME) {
@@ -1436,6 +1498,7 @@ static bool settings_pages_input(Config* cfg, int ls) {
 			if (setSel == 7) return false;
 			setPage = setSel;
 			setSel = 0;
+			setTop = 0;
 			if (setPage == SP_SYSTEM) settings_rows(cfg), confirmRow = -1;
 		}
 		if (back) return false;
@@ -1443,6 +1506,7 @@ static bool settings_pages_input(Config* cfg, int ls) {
 		int dir = 0;
 		if (btn_pressed(B_DOWN)) setSel = (setSel + 1) % (n + 1);
 		if (btn_pressed(B_UP)) setSel = (setSel + n) % (n + 1);
+		set_scroll(n);
 		if (btn_pressed(B_LEFT)) dir = -1;
 		if (btn_pressed(B_RIGHT) || btn_pressed(B_A) || btn_pressed(B_START)) dir = 1;
 		if (setSel == n) {
@@ -1456,7 +1520,14 @@ static bool settings_pages_input(Config* cfg, int ls) {
 	}
 	Pointer pt;
 	while (ui_next_pointer(&pt)) {
+		if (pt.screen == ls && pt.kind == 3 && setPage >= 0 && setPage < SP_SYSTEM && n > SET_VIS) {
+			/* a finger dragged up or down moves the list a row at a time */
+			int step = SDL_max(1, set_row(ls, setNVis(n), 1).y - set_row(ls, setNVis(n), 0).y);
+			if (abs(pt.y - setDragY) >= step) setTop = SDL_clamp(setTop + (pt.y < setDragY ? 1 : -1), 0, n - SET_VIS), setDragY = pt.y;
+			continue;
+		}
 		if (pt.screen != ls || pt.kind != 1) continue;
+		setDragY = pt.y;
 		SDL_Point q = { pt.x, pt.y };
 		SDL_Rect panel = set_panel(ls);
 		if (setPage == SP_HOME) {
@@ -1469,11 +1540,13 @@ static bool settings_pages_input(Config* cfg, int ls) {
 			if (hit >= 0) {
 				setPage = hit;
 				setSel = 0;
+				setTop = 0;
 				if (setPage == SP_SYSTEM) settings_rows(cfg), confirmRow = -1;
 			}
 			continue;
 		}
-		SDL_Rect b = set_row(ls, n, n);
+		int nv = setNVis(n);
+		SDL_Rect b = set_row(ls, nv, nv);
 		if (SDL_PointInRect(&q, &b)) {
 			setSel = setPage, setPage = SP_HOME;
 			continue;
@@ -1482,8 +1555,8 @@ static bool settings_pages_input(Config* cfg, int ls) {
 			setSel = setPage, setPage = SP_HOME;
 			continue;
 		}
-		for (int i = 0; i < n; ++i) {
-			SDL_Rect r = set_row(ls, n, i);
+		for (int i = setTop; i < setTop + nv; ++i) {
+			SDL_Rect r = set_row(ls, nv, i - setTop);
 			if (!SDL_PointInRect(&q, &r)) continue;
 			setSel = i;
 			if (!rows[i]) {
@@ -1556,10 +1629,8 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 		       "choose another in ES-DE (the game's metadata > Alternative emulator).";
 		break;
 	case ROW_RESET:
-		text = RESET_NOTE;
-		break;
 	case ROW_DELCFG:
-		text = DELCFG_NOTE;
+		text = NULL; /* (the label says it; asks again before doing it) */
 		break;
 	case ROW_FOLDERS:
 		text = cfg->saveDir[0] ? "Where games are read from, and the folder their saves are kept in."
@@ -1979,8 +2050,7 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 	                       ? "Adds GBA DS to the emulators for Game Boy Advance games in EmulationStation. Pick it for one game "
 	                         "(its Advanced Game Options > Emulator) or for all of them (the system's advanced settings). "
 	                         "The other emulators keep working as before."
-	                   : rowKind[i] == ROW_RESET ? RESET_NOTE
-	                   : rowKind[i] == ROW_DELCFG ? DELCFG_NOTE
+	                   : rowKind[i] == ROW_RESET || rowKind[i] == ROW_DELCFG ? NULL
 	                   : rowKind[i] == ROW_STATES ? statesText
 	                   : rowKind[i] == ROW_STATES_DIR ? statesDirText
 	                   : rowKind[i] == ROW_PERF
@@ -1996,10 +2066,11 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 	/* the trade-off, set apart and in bold so it isn't missed */
 	if (rowKind[i] == ROW_BANANA && !msg) {
 		SDL_Rect last = g.row[nRows - 1];
-		ui_font_wrap(scr, TF_BOLD, g.panel.x + px * 8, last.y + last.h + px * 28, g.panel.w - px * 16, px * 4,
-		             "NOTE: Unsupported games will play in RetroArch, but without BananaOS's own "
-		             "second screen (its game panel and companions).",
-		             C_TEXT);
+		int bx0 = g.panel.x + px * 8;
+		ui_font_wrap_around(scr, TF_BOLD, bx0, last.y + last.h + px * 28, g.panel.w - px * 16, px * 4,
+		                    "NOTE: Unsupported games will play in RetroArch, but without BananaOS's own "
+		                    "second screen (its game panel and companions).",
+		                    C_TEXT, g.back.y - px * 2, g.back.x - px * 4 - bx0);
 	}
 }
 
@@ -2447,11 +2518,13 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 					scroll = 0;
 				}
 			}
+			if (settingsOpen && setPage == SP_SYSTEM) settingsSel = 0; /* (just opened) */
 			pressed = false;
 			ui_clear();
 			draw_list(cfg, ls, sel, scroll);
 			if (settingsOpen && setPage == SP_HOME) draw_set_home(ls, setSel);
 			else if (settingsOpen && setPage < SP_SYSTEM) draw_set_page(cfg, ls, setPage, setSel);
+			else if (settingsOpen) draw_settings(cfg, ls, settingsSel); /* System, just opened: its panel from the first frame */
 			if (nScreens > 1) draw_preview(cfg, ui_other_screen(), sel);
 			ui_present();
 			SDL_Delay(15);
