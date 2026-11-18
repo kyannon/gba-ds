@@ -688,7 +688,7 @@ def compile_c(langs, pot):
     ]
     shown = [L for L in langs if L.status != "test"]
     for L in shown:
-        hdr.append("\t{ %s, %s, 0 }, \\" % (c_str(L.code), c_str(L.autonym)))
+        hdr.append("\t{ %s, %s, 0 }, \\" % (c_str(L.code), c_str(L.autonym + (" (machine translated)" if L.status == "machine" else ""))))
     hdr.append("")
     hdr.append("#endif")
     hdr.append("")
