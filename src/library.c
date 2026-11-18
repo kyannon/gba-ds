@@ -1322,19 +1322,14 @@ static void draw_set_home(int scr, int sel) {
 #ifdef __ANDROID__
 		if (i == SP_SYSTEM) sub = "Folders, accounts, updates";
 #endif
+		/* the pause menu's picture (not on Back), then the text, all left-aligned in the button */
+		int iw = t.h * 6 / 10, gap = px * 3, x0 = t.x + px * 5, tx = x0 + iw + gap;
 		if (i <= SP_SYSTEM) {
-			/* the pause menu's picture for the page, then the text left-aligned beside it: the two together centred in the button */
-			int iw = t.h * 6 / 10, gap = px * 3;
-			int tw = SDL_max(ui_label_width(scr, px * 6, name), sub ? ui_font_width(TF_BODY, px * 4, sub) : 0);
-			int x0 = t.x + (t.w - (iw + gap + tw)) / 2;
 			SDL_Rect ib = { x0, t.y, iw, t.h };
 			game_page_icon(scr, i == SP_SYSTEM ? GAME_ICON_SYSTEM : i, ib, i == sel || !ui_theme_light() ? C_TEXT : ui_key_ink(), ui_key_mid(i == sel ? KEY_SEL : KEY_PLAIN));
-			int tx = x0 + iw + gap;
-			ui_font_text(scr, TF_BOLD, tx, t.y + t.h / 2 - (sub ? px * 4 : 0), px * 6, name, C_TEXT, -1);
-			if (sub) ui_font_text(scr, TF_BODY, tx, t.y + t.h / 2 + px * 7, px * 4, sub, C_DIM, -1);
-		} else {
-			ui_label(scr, t.x + t.w / 2, t.y + t.h / 2, px * 6, name, C_TEXT);
 		}
+		ui_font_text(scr, TF_BOLD, tx, t.y + t.h / 2 - (sub ? px * 4 : 0), px * 6, name, C_TEXT, -1);
+		if (sub) ui_font_text(scr, TF_BODY, tx, t.y + t.h / 2 + px * 7, px * 4, sub, C_DIM, -1);
 	}
 }
 
