@@ -182,4 +182,6 @@ second line, always visible on the four settings tabs.
 
 ## System: reset and delete
 
+System's layout (library.c `settings_geom`, slots from `row_slot` / `row_second`): Updates; room; Save States | RetroArch's State Folder; the OS's integration row; room; Reset | Delete. Left / Right switch between the two on a row, Up / Down go by slot. Every Settings page's help text is wrapped beside Back and centred on its height (`set_notes`); BananaOS's long text raises Back a little.
+
 `Reset settings to defaults` (every key of the settings table removed from `prefs.cfg`, the in-memory values set from `config_defaults`, paths and other files untouched) and `Delete per-game settings` (every `*.cfg` in the state folder except prefs, library, hotkeys and update). Both use `confirmRow`: the first activation says "Are you sure?", the second acts; moving off the row or activating another cancels.
