@@ -1,0 +1,40 @@
+# New game: through the title and the opening to Lan's room, take the PET from beside the cabinet,
+# then START opens the PET and the second screen shows MegaMan's status (MMBN-2)
+wait 300
+press START 10
+wait 120
+press START 10
+wait 120
+shot title
+mash A 40 64
+wait 60
+shot room
+hold RIGHT 40
+hold DOWN 40
+hold RIGHT 40
+hold UP 20
+hold RIGHT 20
+hold RIGHT 20
+hold UP 10
+press A 4
+wait 60
+press A 4
+wait 60
+press A 4
+wait 60
+shot gotpet
+mash A 8 60
+mash B 4 30
+wait 60
+shot clear
+press START 8
+wait 90
+shot pet_menu
+press B 8
+wait 90
+shot after_pet
+wait 240
+shot later
+hold DOWN 30
+wait 60
+shot walked

@@ -1,0 +1,28 @@
+# Summon Night 2: power-on, START through the intro to the title, then A through name entry and the opening talk to the field.
+# SN2-3 logo until the first Status; SN2-2 Status on the bottom once walking about (~4 minutes in).
+wait 300
+mash START 8 120
+shot title
+mash A 15 60
+shot p1
+mash A 15 60
+shot p2
+mash A 15 60
+shot p3
+mash A 15 60
+shot p4
+mash A 15 60
+shot p5
+mash A 15 60
+shot p6
+hold RIGHT 90
+wait 60
+shot walked
+press START 6
+wait 90
+shot menu
+press B 6
+wait 90
+hold DOWN 90
+wait 90
+shot walked2

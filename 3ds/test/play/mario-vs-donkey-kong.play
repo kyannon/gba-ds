@@ -1,0 +1,130 @@
+# New game on file A: title and Select Data (MVDK-1, MVDK-7 logo), the opening skipped, level 1-1's pan (MVDK-3, logo at half strength),
+# then the HUD on the second screen with the level's box (MVDK-2, MVDK-9), START's pause box (MVDK-6), the level viewer (MVDK-5),
+# walking (MVDK-2 live HUD), EXIT LEVEL to the level select (MVDK-7 logo)
+wait 500
+shot title0
+wait 120
+shot title
+press START 10
+wait 200
+shot select
+press A 10
+wait 60
+shot opening
+press START 6
+wait 54
+press A 6
+wait 54
+press START 6
+wait 54
+press START 6
+wait 54
+press START 6
+wait 54
+press A 6
+wait 54
+press START 6
+wait 54
+press START 6
+wait 54
+press START 6
+wait 54
+press A 6
+wait 54
+press START 6
+wait 54
+press START 6
+wait 54
+shot skip2
+press START 6
+wait 54
+press A 6
+wait 54
+press START 6
+wait 54
+press START 6
+wait 54
+shot skip3
+press START 6
+wait 54
+press A 6
+wait 54
+press START 6
+wait 54
+press START 6
+wait 54
+shot skip4
+press START 6
+wait 54
+press A 6
+wait 54
+press START 6
+wait 54
+press START 6
+wait 54
+shot skip5
+wait 120
+shot level
+press START 8
+wait 60
+shot pause
+press START 8
+wait 60
+shot resumed
+press L+R 8
+wait 40
+shot viewer
+press B 8
+wait 40
+hold RIGHT 60
+wait 20
+shot walk1
+hold LEFT 30
+hold A 20
+wait 60
+shot walk2
+hold RIGHT 40
+hold UP 40
+wait 60
+shot walk3
+wait 200
+shot walk4
+press START 8
+wait 60
+press DOWN 8
+wait 10
+press DOWN 8
+wait 10
+press A 8
+wait 200
+shot exit
+wait 200
+shot exit2
+press A 8
+wait 200
+shot select_level
+wait 200
+shot demo
+press B 8
+wait 300
+shot level2
+wait 200
+shot level3
+press HOME+R 6
+hold RIGHT 40
+wait 40
+shot moved
+press HOME+L 6
+wait 20
+shot loaded
+press HOME 6
+wait 30
+shot hmenu
+press HOME 6
+wait 30
+press HOME+Y 6
+wait 20
+shot swapped
+press HOME+Y 6
+wait 20
+shot back

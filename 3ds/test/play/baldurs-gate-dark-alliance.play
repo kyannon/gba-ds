@@ -1,0 +1,229 @@
+# New game: Nintendo/publisher screens, title (BGD-5 logo), class choice and abilities (BGD-5 logo),
+# the opening, then the Elfsong Tavern: the area's map with the red X (BGD-10, BGD-11), START's menu (map stays)
+wait 800
+shot title0
+press START 10
+wait 200
+shot title
+press A 10
+wait 200
+shot class
+press A 10
+wait 120
+press A 6
+wait 15
+press A 6
+wait 15
+press DOWN 6
+wait 15
+press A 6
+wait 15
+press A 6
+wait 15
+press DOWN 6
+wait 15
+press A 6
+wait 15
+press A 6
+wait 15
+press DOWN 6
+wait 15
+press A 6
+wait 15
+press A 6
+wait 15
+press DOWN 6
+wait 15
+press A 6
+wait 15
+press A 6
+wait 15
+press DOWN 6
+wait 15
+press A 6
+wait 15
+press A 6
+wait 15
+press DOWN 6
+wait 15
+shot abilities
+press A 6
+wait 15
+press A 6
+wait 15
+wait 300
+shot opening
+press A 6
+wait 300
+press A 6
+wait 300
+press A 6
+wait 300
+press A 6
+wait 300
+press A 6
+wait 300
+press A 6
+wait 50
+press START 6
+wait 50
+press A 6
+wait 50
+press START 6
+wait 50
+press A 6
+wait 50
+press START 6
+wait 50
+press A 6
+wait 50
+press START 6
+wait 50
+press A 6
+wait 50
+press START 6
+wait 50
+press A 6
+wait 50
+press START 6
+wait 50
+press A 6
+wait 50
+press START 6
+wait 50
+press A 6
+wait 50
+press START 6
+wait 50
+press A 6
+wait 50
+press START 6
+wait 50
+press A 6
+wait 50
+press START 6
+wait 50
+press A 6
+wait 50
+press START 6
+wait 50
+press A 6
+wait 50
+press START 6
+wait 50
+press A 6
+wait 50
+press START 6
+wait 50
+press A 6
+wait 50
+press START 6
+wait 50
+press A 6
+wait 50
+press START 6
+wait 50
+press A 6
+wait 50
+press START 6
+wait 50
+press A 6
+wait 50
+press START 6
+wait 50
+press A 6
+wait 50
+press START 6
+wait 50
+shot intro
+press A 6
+wait 100
+press A 6
+wait 100
+press A 6
+wait 100
+press A 6
+wait 100
+press A 6
+wait 100
+press A 6
+wait 100
+press A 6
+wait 100
+press A 6
+wait 100
+press A 6
+wait 100
+press A 6
+wait 100
+press A 6
+wait 100
+press A 6
+wait 100
+press A 6
+wait 100
+press A 6
+wait 100
+press A 6
+wait 100
+press A 6
+wait 100
+press A 6
+wait 100
+press A 6
+wait 100
+press A 6
+wait 100
+press A 6
+wait 100
+press A 6
+wait 100
+press A 6
+wait 100
+press A 6
+wait 100
+press A 6
+wait 100
+press A 6
+wait 100
+wait 200
+shot tavern
+press START 8
+wait 120
+shot start_menu
+press START 8
+wait 60
+press B 8
+wait 60
+shot closed
+hold DOWN 30
+hold LEFT 40
+wait 60
+shot walk1
+hold DOWN 40
+wait 60
+shot walk2
+hold RIGHT 40
+hold UP 60
+wait 60
+shot walk3
+wait 120
+shot walk4
+press HOME+R 6
+hold DOWN 60
+wait 60
+shot moved
+press HOME+L 6
+wait 20
+shot loaded
+press HOME 6
+wait 30
+shot hmenu
+press HOME 6
+wait 30
+press HOME+Y 6
+wait 20
+shot swapped
+press HOME+Y 6
+wait 20
+shot back

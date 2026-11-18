@@ -1,0 +1,28 @@
+# second pass: as hk.play, into the race, then the pause menu and the HOME hotkeys
+wait 240
+mash START 6 40
+mash A 18 40
+wait 300
+shot race
+press HOME+R 6
+hold A+UP 200
+shot moved
+press HOME+L 6
+wait 10
+shot loaded
+press START 4
+wait 60
+shot pause
+press B 4
+wait 60
+press HOME 6
+wait 30
+shot homemenu
+press HOME 6
+wait 30
+press HOME+Y 6
+wait 20
+shot swapped
+press HOME+Y 6
+wait 20
+shot back

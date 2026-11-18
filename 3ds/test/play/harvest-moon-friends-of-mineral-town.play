@@ -1,0 +1,703 @@
+# Harvest Moon: new game from power-on. Names are typed with one letter (A) then START (jumps to End) and A;
+# the question after each name is answered with A (Yes). The opening scenes are skipped with A.
+wait 900
+hold START 6
+wait 120
+hold A 6
+wait 60
+hold START 6
+wait 40
+hold A 6
+wait 60
+hold A 6
+wait 90
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 90
+hold A 6
+wait 60
+hold START 6
+wait 40
+hold A 6
+wait 60
+hold A 6
+wait 90
+hold A 6
+wait 60
+hold START 6
+wait 40
+hold A 6
+wait 60
+hold A 6
+wait 90
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+shot house
+hold L+START 8
+wait 120
+shot house_map
+hold B 6
+wait 60
+# out of the house: down, left to the door, down
+hold DOWN 100
+hold LEFT 30
+hold DOWN 60
+wait 120
+shot out_talk
+hold A 6
+wait 50
+hold A 6
+wait 50
+hold A 6
+wait 50
+hold A 6
+wait 50
+hold A 6
+wait 50
+hold A 6
+wait 50
+hold A 6
+wait 50
+hold A 6
+wait 50
+hold A 6
+wait 50
+hold A 6
+wait 50
+hold A 6
+wait 50
+hold A 6
+wait 50
+hold A 6
+wait 50
+hold A 6
+wait 50
+hold A 6
+wait 50
+# "Do you want even more instruction?": No
+hold DOWN 6
+wait 30
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+# then Zack walks up and shows the shipping box (about 25 more presses)
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 90
+wait 200
+shot after_talk
+hold L+START 8
+wait 120
+shot townmap
+hold B 6
+wait 60
+hold DOWN 60
+wait 60
+shot walk1
+wait 60
+hold L+START 8
+wait 120
+shot townmap2
+hold B 6
+wait 60
+hold RIGHT 90
+hold UP 90
+wait 60
+shot walk2
+wait 60
+shot walk3

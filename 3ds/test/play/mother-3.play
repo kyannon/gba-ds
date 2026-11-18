@@ -1,0 +1,356 @@
+# Run with the English ROM by path (the Japanese one has the same code A3UJ, and its kana name entry stops this script):
+#   3ds/test/dualrun.py "<rom dir>/Mother 3 (Eng v1.2).gba" 3ds/test/play/mother-3.play OUT
+#   ... then out of the house, the Prologue (Status outdoors, no map yet), Chapter 1 to Mapson, and Tazmily's area map (M3-2)
+# New game (English fan translation): the health warning, the logos and the title (M3-1), the names, the long opening;
+# then walking about in Lucas's house (Status, M3-3), START's menu (M3-4), a conversation (last picture stays, M3-5)
+wait 200
+shot warning
+press A 6
+wait 100
+press A 6
+wait 700
+shot logos
+press A 6
+wait 500
+shot title_card
+press START 6
+wait 150
+shot title
+press A 6
+wait 300
+press A 6
+wait 200
+shot names
+wait 150
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold A 8
+wait 100
+hold RIGHT 16
+wait 24
+hold RIGHT 16
+wait 24
+hold A 8
+wait 200
+shot name0
+wait 150
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold A 8
+wait 100
+hold RIGHT 16
+wait 24
+hold RIGHT 16
+wait 24
+hold A 8
+wait 200
+wait 150
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold A 8
+wait 100
+hold RIGHT 16
+wait 24
+hold RIGHT 16
+wait 24
+hold A 8
+wait 200
+wait 150
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold A 8
+wait 100
+hold RIGHT 16
+wait 24
+hold RIGHT 16
+wait 24
+hold A 8
+wait 200
+wait 150
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold A 8
+wait 100
+hold RIGHT 16
+wait 24
+hold RIGHT 16
+wait 24
+hold A 8
+wait 200
+wait 150
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold A 8
+wait 100
+hold RIGHT 16
+wait 24
+hold RIGHT 16
+wait 24
+hold A 8
+wait 200
+wait 150
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+hold A 8
+wait 100
+hold RIGHT 16
+wait 24
+hold RIGHT 16
+wait 24
+hold A 8
+wait 200
+shot name6
+wait 200
+shot options
+hold DOWN 16
+wait 24
+hold DOWN 16
+wait 24
+shot end_row
+mash A 40 30
+shot okay
+mash A 40 30
+shot intro
+mash A 45 30
+shot opening_a
+mash A 45 30
+shot opening_b
+mash A 45 30
+shot opening_c
+mash A 20 30
+shot opening_d
+wait 60
+shot bedroom
+press START 6
+wait 90
+shot start_menu
+press B 6
+wait 40
+press B 6
+wait 90
+shot menu_closed
+hold RIGHT 30
+hold RIGHT 30
+hold DOWN 30
+hold RIGHT 40
+hold RIGHT 40
+hold LEFT 30
+hold UP 90
+hold RIGHT 50
+hold LEFT 14
+hold DOWN 60
+wait 120
+hold DOWN 40
+wait 200
+shot downstairs
+hold DOWN 60
+hold LEFT 60
+wait 60
+shot near_door
+hold DOWN 60
+wait 60
+shot door_a
+wait 60
+shot door_b
+mash A 10 40
+wait 200
+shot talked
+wait 200
+shot pajamas_back_upstairs
+hold LEFT 20
+hold UP 40
+wait 100
+shot walked_again
+# Lucas is dressed now (going back upstairs after Hinawa's "pajamas" line changes his clothes): down the ladder and out
+hold UP 60
+hold RIGHT 90
+hold LEFT 12
+hold DOWN 80
+wait 150
+hold DOWN 40
+wait 100
+hold DOWN 60
+hold LEFT 60
+hold DOWN 60
+wait 180
+hold DOWN 60
+wait 200
+shot outdoors_alec
+# outdoors in the Prologue: R opens no map yet (no map until Mapson gives Flint one in Chapter 1): Status, M3-3
+mash A 12 54
+press R 6
+wait 90
+press B 6
+wait 30
+hold DOWN 70
+hold RIGHT 60
+hold UP 60
+hold RIGHT 120
+hold DOWN 40
+hold RIGHT 60
+hold DOWN 40
+hold RIGHT 120
+hold DOWN 60
+hold RIGHT 60
+hold DOWN 50
+hold RIGHT 90
+hold RIGHT 90
+hold RIGHT 90
+hold UP 30
+hold RIGHT 90
+wait 90
+shot claus_dragos
+# Claus and the Dragos (a scene, M3-10), Alec explains dashing: tackle the Drago, talk to Claus
+mash A 58 60
+hold RIGHT 18
+hold UP 2
+hold B 40
+wait 120
+mash A 20 60
+hold LEFT 30
+hold DOWN 30
+# the Mole Cricket (a story battle, M3-11), dinner, Hinawa's letter, the title, Chapter 1's opening
+mash A 30 40
+shot mole_cricket
+mash A 580 40
+shot flint_home
+# Flint at home: to the door (Thomas, the fire), out, round the cliff and north to the village square
+hold DOWN 30
+hold RIGHT 10
+hold DOWN 60
+mash A 100 40
+hold DOWN 30
+hold RIGHT 200
+hold DOWN 60
+hold LEFT 10
+hold DOWN 80
+hold RIGHT 100
+hold RIGHT 60
+hold UP 100
+hold UP 100
+hold UP 100
+wait 60
+hold UP 100
+hold LEFT 100
+hold UP 100
+hold LEFT 60
+hold UP 100
+hold UP 100
+hold UP 100
+wait 60
+hold UP 30
+hold RIGHT 60
+hold UP 100
+wait 60
+hold UP 40
+hold UP 50
+hold UP 60
+hold LEFT 100
+hold RIGHT 200
+hold UP 80
+shot square_no_map
+# Mapson on his bench gives the map: from here R opens Tazmily's map, and the second screen shows it (M3-2)
+hold LEFT 16
+hold UP 70
+mash A 26 40
+mash B 12 40
+hold DOWN 30
+wait 240
+shot square_map
+press R 6
+wait 90
+shot r_map_open
+press B 6
+wait 120
+hold LEFT 60
+hold DOWN 60
+wait 240
+shot walked_map
+press HOME+R 6
+wait 20
+hold DOWN 40
+wait 60
+press HOME+L 6
+wait 20
+shot loaded
+press HOME 6
+wait 30
+shot hmenu
+press HOME 6
+wait 30
+press HOME+Y 6
+wait 20
+shot swapped
+press HOME+Y 6
+wait 20
+shot back

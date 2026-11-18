@@ -1,0 +1,50 @@
+# fourth pass: press through the story (A and START), then walk the first area, Scouter, pause, hotkeys
+wait 240
+mash START 6 40
+mash A 200 30
+mash START 40 60
+shot field
+hold DOWN 90
+hold RIGHT 120
+shot walking
+press SELECT 6
+wait 60
+shot scouter
+press SELECT 6
+wait 30
+press START 4
+wait 60
+shot pause
+press B 4
+wait 30
+press HOME 6
+wait 30
+shot homemenu
+press HOME 6
+wait 30
+press HOME+R 6
+hold RIGHT 60
+shot moved
+press HOME+L 6
+wait 10
+shot loaded
+press HOME+Y 6
+wait 20
+shot swapped
+press HOME+Y 6
+wait 20
+shot back
+# added by the 3DS check: the story's dialogue is still up here; press on through it, then walk and open the Scouter
+mash A 60 40
+mash START 10 60
+wait 120
+mash A 30 40
+wait 60
+hold UP 60
+hold LEFT 60
+shot field2
+press SELECT 6
+wait 60
+shot scouter2
+press SELECT 6
+wait 30

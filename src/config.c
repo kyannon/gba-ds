@@ -44,11 +44,26 @@ void config_defaults(Config* c) {
 	c->bezelLogo = true;
 	strcpy(c->bezelInner, "1A1A1A");
 	strcpy(c->bezelOuter, "102060");
+#ifdef __3DS__
+	/* (every second, the hidden copy's captures took a core of the New 3DS's
+	 * memory most of the time: Yoshi's Island's status screen made the game
+	 * hitch; every 3 s it's busy a third as often) */
+	c->mapInterval = 180;
+#else
 	c->mapInterval = 60;
+#endif
 	c->sway = true;
 	c->audioLatency = 64;
 	c->keepSound = true;
 	c->ffSpeed = 3;
+	#ifdef __3DS__
+	c->ffMute = 1;
+#endif
+#ifdef __3DS__
+	c->renderWorkers = 2; /* (timed on a New 3DS: Mario Kart's races faster on two) */
+#else
+	c->renderWorkers = 1;
+#endif
 	c->fastForward = true;
 	c->pinCores = false; /* tried on the RG DS Plus: no better (docs/ANDROID.md) */
 	c->autoSave = true;
@@ -181,6 +196,8 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	BOOL("sway", sway)
 	INT("audio_latency", audioLatency)
 	INT("ff_speed", ffSpeed)
+	INT("ff_mute", ffMute)
+	INT("render_workers", renderWorkers)
 	BOOL("fast_forward", fastForward)
 	STR("save_dir", saveDir)
 	STR("save_ext", saveExt)
@@ -496,9 +513,18 @@ static const Setting settingsTable[] = {
 
 	{ "match_display", "Match display rate", SF_BOOL, OFFB(matchDisplay), ARR(chOnOff), 0, 0, 0, NULL, "Run at the display's rate: no small regular stutter." },
 	{ "frame_buffer", "Frame buffer", SF_BOOL, OFFB(frameBuffer), ARR(chOnOff), 0, 0, 0, NULL, "Smoother, one frame more input delay." },
+#ifdef __3DS__
+	/* (each step back a state of 0.8 MiB: 30 seconds of them are the console's memory many times over; game.c's rewind_setup keeps it off) */
+	{ "rewind", "Rewind", SF_BOOL, OFFB(rewind), ARR(chOnOff), 0, 0, 0, NULL, "Not on the 3DS: there's no memory for it." },
+#else
 	{ "rewind", "Rewind", SF_BOOL, OFFB(rewind), ARR(chOnOff), 0, 0, 0, NULL, "Hold L2 to go back in time." },
+#endif
 	{ "rewind_seconds", "Rewind length", SF_INT, OFFB(rewindSeconds), ARR(chRewind), 0, 0, 0, " s", "How far back it goes." },
+#ifdef __3DS__
+	{ "fast_forward", "Fast forward", SF_FF, OFFB(fastForward), ARR(chFF), 0, 0, 0, NULL, "Hold ZR to play faster." },
+#else
 	{ "fast_forward", "Fast forward", SF_FF, OFFB(fastForward), ARR(chFF), 0, 0, 0, NULL, "Hold R2 to play faster." },
+#endif
 	{ "audio_latency", "Sound delay", SF_INT, OFFB(audioLatency), ARR(chLatency), 0, 0, 0, " ms", "Raise it if the sound crackles." },
 	{ "performance", "Performance", SF_BOOL, OFFB(perfMax), ARR(chPerf), 0, 0, 0, NULL, "Max: full speed, a warmer device and a shorter battery." },
 

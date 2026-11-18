@@ -1,0 +1,73 @@
+# Advance Wars: Vs. Mode battle (the campaign is locked until Field Training is done, and Field Training
+# blocks SELECT/START, so Vs. Mode is the way to a battle). Written as a harness script, so frames match.
+wait 300
+hold A 6
+wait 400
+hold START 6
+wait 120
+hold START 6
+wait 120
+hold A 6
+wait 60
+hold A 6
+wait 300
+shot name_entry
+# name entry: A types one letter, START asks "Is this correct?", A says yes
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold START 6
+wait 60
+hold A 6
+wait 120
+# Nell's talk: 22 presses of A, then the mode menu (Vs. Mode is two up from Field Training)
+mash A 22 106
+shot mode_menu
+hold UP 6
+wait 30
+hold UP 6
+wait 30
+hold A 6
+wait 150
+mash A 6 144
+shot battle_day1
+wait 120
+hold B 6
+wait 30
+shot battle_cursor0
+hold UP 6
+wait 30
+shot unit_up
+hold RIGHT 6
+wait 30
+shot unit_right
+hold RIGHT 6
+wait 30
+hold UP 6
+wait 30
+shot unit_other
+hold DOWN 6
+wait 30
+hold LEFT 6
+wait 30
+hold LEFT 6
+wait 60
+shot unit_back
+hold A 6
+wait 40
+shot unit_menu
+hold B 6
+wait 40
+shot unit_menu_closed
+hold START 6
+wait 40
+shot start_menu
+hold B 6
+wait 40
+# the HOME menu (state save / load / swap) on the battle
+press HOME 6
+wait 30
+shot home_menu
+press HOME 6
+wait 30

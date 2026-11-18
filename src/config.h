@@ -68,6 +68,8 @@ typedef struct Config {
 	bool keepSound;    /* the game and its sound go on while the system holds up a frame's present (game.c keeper) */
 	bool perfMax;      /* Linux: CPU, memory and GPU clocks held at their fastest while GBA DS runs (clocks.c); off: the system decides */
 	int ffSpeed;       /* fast-forward multiplier (the menu cycles FF_SPEED_MIN..MAX) */
+	int ffMute;        /* ff_mute: no sound while fast-forwarding (the 3DS's default) */
+	int renderWorkers; /* render_workers: armGBA's drawing threads (the 3DS), 1 or 2 */
 	char saveDir[512]; /* battery saves; default: next to the ROM */
 	char saveExt[8];   /* their extension: sav, or srm (RetroArch's: BananaOS's GBA saves, shared) */
 	char saveFrom[512]; /* where GBA DS kept them before (<game>.sav), carried over: BananaOS */

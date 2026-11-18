@@ -1,0 +1,272 @@
+# power on -> language / name entry (START, A) -> title -> menu -> single player -> Sonic & Tails -> story text
+# (A mashed, START) -> Route 99's hub (zone 1), standing on the grey block right of the start.
+# Then up to Act 1's ring (the big "1" ring floating above the block top at about x 768, y 264) with the tag
+# action: hold R 100 frames (Tails jumps into Sonic's hands), jump with R still held, let go of R in the air
+# (Tails flies, carrying Sonic), tap A to flap up, then right while flapping: up the pulley shaft, over the
+# boost arrows and up the wall onto the block top. Right against the step at its end, back left under the
+# ring and jump into it.
+# "wait -1" after a hold takes back its one released frame, so the buttons change without letting go
+# (a frame without R on the ground fires the ground tag action instead). Worked out in the harness.
+wait 180
+hold START 4
+wait 56
+hold A 4
+wait 56
+hold START 4
+wait 56
+hold A 4
+wait 56
+hold START 4
+wait 56
+hold A 4
+wait 56
+hold START 4
+wait 56
+hold A 4
+wait 56
+hold START 4
+wait 56
+hold A 4
+wait 56
+hold START 4
+wait 56
+hold A 4
+wait 56
+hold START 4
+wait 56
+hold A 4
+wait 56
+hold START 4
+wait 56
+hold A 4
+wait 56
+hold START 4
+wait 56
+hold A 4
+wait 56
+hold START 4
+wait 56
+hold A 4
+wait 56
+shot a-charselect-ish
+mash A 36 60
+shot b-story
+hold START 4
+wait 56
+hold A 4
+wait 176
+hold START 4
+wait 56
+hold A 4
+wait 176
+hold START 4
+wait 56
+hold A 4
+wait 176
+wait 200
+shot c-hub
+# tag action: charge, then jump holding R
+hold R 100
+wait -1
+hold R+A 24
+wait 3
+shot d-tag-fly
+# flap up
+hold A 3
+wait 4
+hold A 3
+wait 4
+hold A 3
+wait 4
+hold A 3
+wait 4
+hold A 3
+wait 4
+hold A 3
+wait 4
+hold A 3
+wait 4
+hold A 3
+wait 4
+hold A 3
+wait 4
+hold A 3
+wait 4
+hold A 3
+wait 4
+hold A 3
+wait 4
+# right while flapping
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+hold RIGHT+A 3
+wait -1
+hold RIGHT 5
+wait -1
+wait 60
+shot e-blocktop
+# wherever it landed: right against the step at the block top's right end (x 855), then a fixed walk left
+# to under the ring (any LEFT from 44 to 75 frames hits it) and a full jump into it
+hold RIGHT 150
+wait 30
+shot e-step
+hold LEFT 58
+hold A 20
+wait 80
+shot f-card-in
+wait 30
+shot f-card-name
+wait 60
+shot f-card-centred
+wait 90
+shot g-card-settled
+wait 60
+shot h-card-taken-act1
+hold RIGHT 90
+shot i-run
+hold RIGHT 90
+shot i-run2
+press START 4
+wait 60
+shot j-pause
+press START 4
+wait 60
+shot j-unpause

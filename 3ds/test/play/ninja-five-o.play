@@ -1,0 +1,49 @@
+# second pass: Konami/Nintendo screens, the title, the menus, into a mission's stage, play it, then HOME
+wait 180
+mash START 4 40
+mash A 20 60
+shot title
+mash A 25 60
+wait 120
+shot menu
+mash A 25 60
+wait 240
+shot brief
+mash A 30 60
+wait 120
+shot stage0
+hold RIGHT 120
+press A 4
+hold RIGHT 120
+shot stage1
+hold RIGHT 150
+press B 4
+hold RIGHT 150
+press A 4
+shot stage2
+hold LEFT 150
+press A 4
+hold UP 100
+shot stage3
+press START 4
+wait 60
+shot pause
+press START 4
+wait 60
+press HOME+R 6
+hold RIGHT 150
+shot moved
+press HOME+L 6
+wait 10
+shot loaded
+press HOME 6
+wait 30
+shot homemenu
+press HOME 6
+wait 30
+press HOME+Y 6
+wait 20
+shot swapped
+press HOME+Y 6
+wait 20
+shot back

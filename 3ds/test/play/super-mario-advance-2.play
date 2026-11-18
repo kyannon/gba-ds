@@ -1,0 +1,44 @@
+wait 180
+mash START 4 40
+mash A 6 40
+wait 240
+shot title
+press START 4
+wait 200
+mash A 8 60
+wait 240
+shot worldmap
+press SELECT 4
+wait 120
+shot selectlist
+press B 4
+wait 60
+hold RIGHT 60
+wait 60
+mash A 6 60
+wait 240
+shot level
+hold RIGHT 90
+shot walk
+press SELECT 4
+wait 90
+shot levelmenu
+press B 4
+wait 60
+press HOME+R 6
+hold RIGHT 60
+shot moved
+press HOME+L 6
+wait 20
+shot loaded
+press HOME 6
+wait 30
+shot hmenu
+press HOME 6
+wait 30
+press HOME+Y 6
+wait 20
+shot swapped
+press HOME+Y 6
+wait 20
+shot back

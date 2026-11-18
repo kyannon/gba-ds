@@ -306,6 +306,9 @@ uint8_t* emu_rom_read_played(const char* path, size_t* size, int* patch, char* p
 	return rom;
 }
 
+int emuRenderWorkers = 1;
+bool emuHiddenCopy;
+
 bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	memset(e, 0, sizeof(*e));
 	mLogSetDefaultLogger(&quietLogger);
@@ -319,9 +322,15 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 		return false;
 	}
 	mCoreInitConfig(e->core, NULL);
-	struct mCoreOptions opts = { .useBios = false, .volume = 0x100, .audioBuffers = 1024 };
+	/* GBADS_BIOS=<a GBA BIOS> (tests: the same BIOS on libmgba and armGBA, 3ds/test/dualrun.py) */
+	const char* biosFile = getenv("GBADS_BIOS");
+	struct mCoreOptions opts = { .useBios = biosFile != NULL, .skipBios = true, .volume = 0x100, .audioBuffers = 1024 };
 	mCoreConfigLoadDefaults(&e->core->config, &opts);
 	mCoreLoadConfig(e->core);
+	if (biosFile) {
+		struct VFile* bf = VFileOpen(biosFile, O_RDONLY);
+		if (!bf || !e->core->loadBIOS(e->core, bf, 0)) fprintf(stderr, "GBADS_BIOS: can't load %s\n", biosFile);
+	}
 
 	e->fb = calloc(GBA_W * GBA_H, sizeof(uint32_t));
 	e->core->setVideoBuffer(e->core, (mColor*) e->fb, GBA_W);
@@ -1516,6 +1525,28 @@ bool emu_hud_grabbed(void) {
 	bool g = split.grabbed;
 	split.grabbed = false;
 	return g;
+}
+
+void emu_tidy(Emu* e) {
+	(void) e;
+}
+
+bool emu_idle_step(Emu* e) {
+	(void) e;
+	return false;
+}
+
+int emu_frame_lag(Emu* e) {
+	(void) e;
+	return 0;
+}
+
+int emu_hud_every(void) {
+	return 1;
+}
+
+bool emu_hud_fresh(void) {
+	return true; /* (libmgba draws the HUD picture every frame) */
 }
 
 /* ---------------------------------------------------------------- cheats */

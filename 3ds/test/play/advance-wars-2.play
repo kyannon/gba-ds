@@ -1,0 +1,41 @@
+# third pass: through the prologue's text into the first battle, cursor and menu, pause, hotkeys
+wait 240
+mash START 6 40
+mash A 120 40
+shot prologue
+mash A 60 40
+shot battle
+hold RIGHT 30
+press A 4
+wait 60
+shot cursor
+press B 4
+wait 30
+press HOME 6
+wait 30
+shot homemenu
+press HOME 6
+wait 30
+press HOME+Y 6
+wait 20
+shot swapped
+press HOME+Y 6
+wait 20
+shot back
+# save / load (HOME+R, move, HOME+L)
+press HOME+R 6
+hold RIGHT 60
+shot moved
+press HOME+L 6
+wait 10
+shot loaded
+# added by the 3DS check: get past the rest of the prologue's text onto the first turn, then the cursor on a unit
+mash A 60 40
+wait 120
+shot turn1
+mash A 40 40
+wait 120
+shot turn2
+hold DOWN 20
+wait 40
+shot cursor2

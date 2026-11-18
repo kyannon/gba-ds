@@ -1,0 +1,117 @@
+# Game Boy Wars Advance 1+2: game 1 picked, name entry, talk, mode menu -> Vs. battle (the Operation Room tutorial blocks SELECT/START)
+wait 180
+hold START 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+hold A 6
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 100
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 40
+hold START 6
+wait 60
+hold A 6
+wait 90
+hold A 6
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 100
+hold A 6
+wait 100
+shot mode_menu
+hold UP 6
+wait 30
+hold UP 6
+wait 30
+hold A 6
+wait 150
+hold A 6
+wait 150
+hold A 6
+wait 150
+hold A 6
+wait 150
+hold A 6
+wait 150
+hold A 6
+wait 150
+shot day1
+wait 120
+shot cursor0
+hold UP 6
+wait 30
+shot up
+hold RIGHT 6
+wait 30
+hold RIGHT 6
+wait 30
+shot right
+hold UP 6
+wait 30
+hold UP 6
+wait 30
+shot up2
+hold DOWN 6
+wait 30
+hold DOWN 6
+wait 30
+shot down
+hold LEFT 6
+wait 30
+shot left
+wait 120
+shot left_later
+hold UP 6
+wait 30
+hold RIGHT 6
+wait 120
+shot unit2
+hold DOWN 6
+wait 120
+shot unit3
+hold START 6
+wait 40
+shot start_menu
+hold B 6
+wait 40
+shot closed

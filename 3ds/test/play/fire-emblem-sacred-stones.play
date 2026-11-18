@@ -1,0 +1,435 @@
+# New game: title, story, the prologue's tutorial fight and chapter 1's tutorials, played by mashing A (and the few moves
+# the tutorial asks for: Franz's items, a trade, B to back out). It ends on the chapter 1 map with the cursor free on Seth,
+# where the second screen shows his status (FE8-2); shots then walk the cursor about the map.
+wait 300
+press START 10
+wait 100
+press START 10
+wait 100
+press A 4
+wait 60
+shot menu
+mash A 960 14
+shot story_end
+mash A 480 14
+shot prologue_end
+mash A 800 14
+shot ch1_start
+mash A 700 14
+shot compare_window
+wait 60
+# armGBA reaches the window later than mGBA: keep pressing right until it moves
+press RIGHT 3
+wait 90
+press RIGHT 3
+wait 90
+press RIGHT 3
+wait 90
+press RIGHT 3
+wait 90
+press RIGHT 3
+wait 90
+press RIGHT 3
+wait 90
+press RIGHT 3
+wait 90
+press RIGHT 3
+wait 90
+press RIGHT 3
+wait 90
+press RIGHT 3
+wait 90
+press RIGHT 3
+wait 90
+press RIGHT 3
+wait 90
+mash A 4 40
+press A 4
+wait 40
+press A 4
+wait 40
+press DOWN 3
+wait 20
+press DOWN 3
+wait 20
+press A 4
+wait 40
+shot trade
+mash A 6 30
+mash B 6 30
+shot trade_done
+mash A 380 14
+shot after_trade
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+shot free_10
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+shot free_20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+shot free_30
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+shot free_40
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+shot free_50
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+press B 4
+wait 20
+press A 4
+wait 20
+press B 4
+wait 20
+shot free_60
+# the status screen turns its pages every 5 s
+wait 300
+shot page2
+wait 300
+shot page3
+wait 300
+shot page1_again
