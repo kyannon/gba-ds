@@ -20,6 +20,12 @@ GBA DS supports 56 games, with their regional releases and some romhacks of them
 
 **Documentation is in the [wiki](https://github.com/kyannon/gba-ds/wiki):** [Playing](https://github.com/kyannon/gba-ds/wiki/Playing) · [Supported games](https://github.com/kyannon/gba-ds/wiki/Supported-games) · [Overlays](https://github.com/kyannon/gba-ds/wiki/Overlays) · [Settings](https://github.com/kyannon/gba-ds/wiki/Settings) · [Troubleshooting](https://github.com/kyannon/gba-ds/wiki/Troubleshooting) · [Adding second-screen compatibility for a game](https://github.com/kyannon/gba-ds/wiki/Adding-second-screen-compatibility-for-a-game) · [Philosophy](https://github.com/kyannon/gba-ds/wiki/Philosophy)
 
+## Chinese interface (this branch)
+
+This branch, `zh-cn`, is GBA DS with a Chinese interface (简体中文, and 繁體中文 for Taiwan, Hong Kong and Macau). The game list, Settings, the pause menu, the quick bar, Cheats, Patches, overlays, Hotkeys, Map Buttons, updates and the app's own messages are in Chinese; **Settings > Games > Language** picks the language: Automatic (the system's, English when that isn't Chinese), English, 中文（简体） or 中文（繁體）. It switches at once and English is unchanged.
+
+The Chinese is set in Noto Sans SC and Noto Sans TC (SIL Open Font License 1.1, in `assets/fonts/`), cut down to the characters the interface uses; a Chinese paragraph wraps between characters. Achievement names and descriptions come from RetroAchievements and stay in English, as do game names and paths. **How the text and the fonts are made: [docs/I18N.md](docs/I18N.md).** The rest of this README, the wiki and the releases are the upstream project's.
+
 ## How it works
 
 Emulation is [libmgba](https://mgba.io). GBA DS runs a second, silent copy of the emulator next to the real one. About every second (`map_interval` in `gba-ds.cfg`), and right after each room transition (detected as a fade to black), it does the following:

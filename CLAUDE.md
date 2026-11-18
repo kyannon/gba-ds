@@ -212,7 +212,24 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   `ui_font_wrap` (TF_BOLD or TF_BODY, any UTF-8). New text is just a string;
   write it in normal sentence case. The pixel font (`ui_text`) is left for
   the FPS counter and version number.
-- Generated sources: `src/fonts_data.c` (above), `src/brand_data.c` (artwork
+- **The Chinese interface** (this branch; `docs/I18N.md` has the whole
+  story): the language is `language` (`auto`, `en`, `zh`, `zh-tw`, Settings >
+  Games > Language) and `src/i18n.c`'s `tr()` translates. `ui.c` translates
+  what it draws and measures, so a table's or a structure's label needs no
+  code change; a sentence the code builds does, at the `snprintf`:
+  `snprintf(buf, n, tr("Slot %d: Empty"), slot)`. Formats keep the English's
+  arguments in order (a translation may leave out its trailing ones).
+  `assets/i18n/zh-CN.tsv` and `zh-TW.tsv` are the text, one
+  `English<TAB>Chinese` line each, and `tools/make_i18n.py` writes
+  `src/i18n_zh.c` and `i18n_zt.c` from them (never edit those);
+  `tools/make_i18n.py --check` reports a format that doesn't match, a line
+  the code doesn't have, and a `tr("...")` no catalogue has. The Chinese is
+  drawn in Noto Sans SC / TC (`assets/fonts/*-subset.ttf`, cut to the
+  characters the catalogues use by `tools/make_zh_font.py`, which needs
+  fontTools and the 17 MB source fonts). `.github/workflows/i18n.yml` checks
+  the tables and the embedding are what the tools write.
+- Generated sources: `src/fonts_data.c` (above), `src/i18n_zh.c` /
+  `src/i18n_zt.c` (the Chinese above), `src/brand_data.c` (artwork
   only: the logo, button prompts and flags; `tools/make_brand.py` needs the
   Futura Bold Italic and Gamecuben fonts, which aren't in the repo: ask the
   owner for them), `src/logo_masks.c` (`tools/make_logo_masks.py`) and
