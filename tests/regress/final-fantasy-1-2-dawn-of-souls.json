@@ -3441,6 +3441,162 @@
      ]
     }
    ]
+  },
+  {
+   "id": "ff2-eu-world",
+   "rom": "BFFP",
+   "state": "final-fantasy-1-2-dawn-of-souls/eu-ff2-world.ss",
+   "desc": "Europe: Final Fantasy II just outside Altair (no map yet): the party screen",
+   "rules": [
+    "FF-11",
+    "FF-10"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "FF-11",
+     "what": "a picture was taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF-11",
+     "what": "the party screen",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       834,
+       66,
+       "FFFFFF"
+      ],
+      [
+       834,
+       70,
+       "CECECE"
+      ]
+     ]
+    },
+    {
+     "rule": "FF-10",
+     "what": "no command window (its left edge), the party window's top edge running on",
+     "type": "not_pixels",
+     "shot": "start",
+     "probes": [
+      [
+       610,
+       186,
+       "FFFFFF"
+      ],
+      [
+       614,
+       186,
+       "CECECE"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ff2-eu-battle",
+   "rom": "BFFP",
+   "state": "final-fantasy-1-2-dawn-of-souls/eu-ff2-world.ss",
+   "desc": "Europe: Final Fantasy II's party kept outside Altair, then a battle with hornets loaded: the party (Europe's battle memory, FF-13 not fooled)",
+   "rules": [
+    "FF-8",
+    "FF-13"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:final-fantasy-1-2-dawn-of-souls/eu-ff2-world-battle.ss"
+    ]
+   ],
+   "shots": {
+    "battle": 400
+   },
+   "checks": [
+    {
+     "rule": "FF-8",
+     "what": "the party in the battle, not the logo",
+     "type": "not_pixels",
+     "shot": "battle",
+     "probes": [
+      [
+       42,
+       74,
+       "303030"
+      ]
+     ]
+    },
+    {
+     "rule": "FF-8",
+     "what": "the party screen",
+     "type": "pixels",
+     "shot": "battle",
+     "probes": [
+      [
+       834,
+       66,
+       "FFFFFF"
+      ],
+      [
+       834,
+       70,
+       "CECECE"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ff2-eu-defeat",
+   "rom": "BFFP",
+   "state": "final-fantasy-1-2-dawn-of-souls/eu-ff2-world.ss",
+   "desc": "Europe: Final Fantasy II's party kept, then a battle loaded where Guy, the last one standing at 1 HP, has just attacked himself: the party, then the logo",
+   "rules": [
+    "FF-13"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:final-fantasy-1-2-dawn-of-souls/eu-ff2-defeat.ss"
+    ]
+   ],
+   "shots": {
+    "battle": 260,
+    "defeated": 900
+   },
+   "checks": [
+    {
+     "rule": "FF-8",
+     "what": "the party before the defeat",
+     "type": "not_pixels",
+     "shot": "battle",
+     "probes": [
+      [
+       42,
+       74,
+       "303030"
+      ]
+     ]
+    },
+    {
+     "rule": "FF-13",
+     "what": "the logo once the party is defeated",
+     "type": "pixels",
+     "shot": "defeated",
+     "probes": [
+      [
+       42,
+       74,
+       "303030"
+      ]
+     ]
+    }
+   ]
   }
  ]
 }

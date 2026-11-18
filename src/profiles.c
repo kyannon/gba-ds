@@ -5718,8 +5718,8 @@ static const char* m3_compose(Emu* s, const void* state, uint32_t* const* out, i
  *             numbers of the game's event list)
  *   base + FF2_WORLD  Final Fantasy II: the map's tile set, FF2_WORLD_SET on
  *             the world map (also with its map or START's menu open), 5 the
- *             Rebel Hideout, 6 towns, 8 Pandaemonium, 2 in a battle (the USA
- *             and Japanese releases; assumed in Europe's)
+ *             Rebel Hideout, 6 towns, 8 Pandaemonium, 2 in a battle (all
+ *             three releases)
  * START's menu and the world map screen are told by their windows' frames
  * (ffMenu1 / ffMenu2, ffMap); the hand cursor is a 16x16 sprite, at the
  * menu's command list or over the map's parchment (where the party's
@@ -5739,7 +5739,7 @@ typedef struct {
 } FfRegion;
 static const FfRegion ffRegions[] = {
 	{ "BFFE", 0x02000584, 0x0200099C, 12, 0x48, 0x7E8, 0x60, 0x7250 },
-	{ "BFFP", 0x020004D0, 0x0200080C, 12, 0x48, 0x7E8, 0x60, 0x7250 },
+	{ "BFFP", 0x020004D0, 0x0200080C, 12, 0x48, 0x7E8, 0x60, 0x7274 },
 	{ "BFFJ", 0x020004F8, 0x02000904, 8, 0x44, 0x7D8, 0x5C, 0x7240 },
 };
 #define FF_NAMES 0x7AC
@@ -5755,7 +5755,7 @@ static const FfRegion ffRegions[] = {
  * allocates for the battle (found by its word at FfRegion.blkSelf holding
  * its own address), from FF1_BLK_HP, one every FfRegion.blkStride bytes;
  * Final Fantasy II's at its memory's base + FfRegion.ff2BatHp, one every
- * 0x1F8 bytes (the USA and Japanese releases'; Europe's assumed the USA's) */
+ * 0x1F8 bytes (seen in all three releases) */
 #define FF1_BLK_HP 0x100
 #define FF2_BAT_STRIDE 0x1F8
 #define FF_V_MAP 0xF0000084 /* Final Fantasy's map number */
