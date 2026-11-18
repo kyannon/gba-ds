@@ -16,7 +16,7 @@
    "id": "fv-logo-eu",
    "kind": "logo",
    "rom": "BZ5P",
-   "desc": "Europe: the same logo",
+   "desc": "Europe: the same logo (its language menu first)",
    "rules": [
     "FV-1"
    ],
@@ -146,84 +146,10 @@
    "id": "fv-world",
    "rom": "BZ5E",
    "state": "final-fantasy-v-advance/us-world.ss",
-   "desc": "on the world map: the party screen without the commands",
+   "desc": "on the world map: the game's world map (R opened on the hidden copy)",
    "rules": [
     "FV-3",
     "FV-9"
-   ],
-   "shots": {
-    "start": 300
-   },
-   "checks": [
-    {
-     "rule": "FV-3",
-     "what": "the party was taken",
-     "type": "log",
-     "match": "map updated"
-    },
-    {
-     "rule": "FV-3",
-     "what": "the party window's left edge and the gil window",
-     "type": "pixels",
-     "shot": "start",
-     "probes": [
-      [
-       36,
-       384,
-       "CECECE"
-      ],
-      [
-       40,
-       384,
-       "212121"
-      ],
-      [
-       980,
-       624,
-       "FFFFFF"
-      ]
-     ]
-    },
-    {
-     "rule": "FV-3",
-     "what": "the commands' place left black",
-     "type": "pixels",
-     "shot": "start",
-     "probes": [
-      [
-       832,
-       224,
-       "000000"
-      ],
-      [
-       900,
-       100,
-       "000000"
-      ]
-     ]
-    },
-    {
-     "rule": "FV-3",
-     "what": "the party screen, not the logo",
-     "type": "not_pixels",
-     "shot": "start",
-     "probes": [
-      [
-       42,
-       74,
-       "303030"
-      ]
-     ]
-    }
-   ]
-  },
-  {
-   "id": "fv-lethe",
-   "rom": "BZ5E",
-   "state": "final-fantasy-v-advance/us-lethe.ss",
-   "desc": "in Lethe Court (another map): the party screen",
-   "rules": [
-    "FV-3"
    ],
    "shots": {
     "start": 300
@@ -237,6 +163,67 @@
     },
     {
      "rule": "FV-3",
+     "what": "the game's world map: its sea and its parchment border, the margins black",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       272,
+       464,
+       "10319C"
+      ],
+      [
+       512,
+       664,
+       "7B8442"
+      ],
+      [
+       52,
+       84,
+       "000000"
+      ]
+     ]
+    },
+    {
+     "rule": "FV-3",
+     "what": "not the party screen",
+     "type": "not_pixels",
+     "shot": "start",
+     "probes": [
+      [
+       36,
+       384,
+       "CECECE"
+      ],
+      [
+       980,
+       624,
+       "FFFFFF"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "fv-lethe",
+   "rom": "BZ5E",
+   "state": "final-fantasy-v-advance/us-lethe.ss",
+   "desc": "in Lethe Court (R opens nothing): the party screen with the commands' place a window of the game's own pieces",
+   "rules": [
+    "FV-10"
+   ],
+   "shots": {
+    "start": 300
+   },
+   "checks": [
+    {
+     "rule": "FV-10",
+     "what": "taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FV-10",
      "what": "the party window's left edge and the gil window",
      "type": "pixels",
      "shot": "start",
@@ -259,26 +246,77 @@
      ]
     },
     {
-     "rule": "FV-3",
-     "what": "the commands' place left black",
+     "rule": "FV-10",
+     "what": "the commands' place made one window: its edges (left white, gray, dark; right white)",
      "type": "pixels",
      "shot": "start",
      "probes": [
       [
-       832,
+       640,
        224,
-       "000000"
+       "FFFFFF"
       ],
       [
-       900,
-       100,
+       644,
+       224,
+       "CECECE"
+      ],
+      [
+       648,
+       224,
+       "212121"
+      ],
+      [
+       980,
+       224,
+       "FFFFFF"
+      ]
+     ]
+    },
+    {
+     "rule": "FV-10",
+     "what": "the window's inside is the gradient, not black",
+     "type": "not_pixels",
+     "shot": "start",
+     "probes": [
+      [
+       792,
+       224,
        "000000"
       ]
      ]
     },
     {
-     "rule": "FV-3",
-     "what": "the party screen, not the logo",
+     "rule": "FV-10",
+     "what": "the window's top and bottom edges join the location window's: its first white line stays",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       792,
+       64,
+       "FFFFFF"
+      ],
+      [
+       792,
+       404,
+       "FFFFFF"
+      ],
+      [
+       792,
+       412,
+       "212121"
+      ],
+      [
+       792,
+       416,
+       "FFFFFF"
+      ]
+     ]
+    },
+    {
+     "rule": "FV-10",
+     "what": "the party screen, not the logo or the map",
      "type": "not_pixels",
      "shot": "start",
      "probes": [
@@ -286,6 +324,11 @@
        42,
        74,
        "303030"
+      ],
+      [
+       272,
+       464,
+       "10319C"
       ]
      ]
     }
@@ -295,9 +338,10 @@
    "id": "fv-menu-open",
    "rom": "BZ5E",
    "state": "final-fantasy-v-advance/us-menu.ss",
-   "desc": "START's menu open in the game: the party screen all the same, no commands, no hand",
+   "desc": "START's menu open on the world map: closed first, then the world map as walking about",
    "rules": [
-    "FV-4"
+    "FV-4",
+    "FV-3"
    ],
    "shots": {
     "start": 300
@@ -311,8 +355,31 @@
     },
     {
      "rule": "FV-3",
-     "what": "the party window's left edge and the gil window",
+     "what": "the game's world map: its sea and its parchment border, the margins black",
      "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       272,
+       464,
+       "10319C"
+      ],
+      [
+       512,
+       664,
+       "7B8442"
+      ],
+      [
+       52,
+       84,
+       "000000"
+      ]
+     ]
+    },
+    {
+     "rule": "FV-3",
+     "what": "not the party screen",
+     "type": "not_pixels",
      "shot": "start",
      "probes": [
       [
@@ -321,45 +388,9 @@
        "CECECE"
       ],
       [
-       40,
-       384,
-       "212121"
-      ],
-      [
        980,
        624,
        "FFFFFF"
-      ]
-     ]
-    },
-    {
-     "rule": "FV-3",
-     "what": "the commands' place left black",
-     "type": "pixels",
-     "shot": "start",
-     "probes": [
-      [
-       832,
-       224,
-       "000000"
-      ],
-      [
-       900,
-       100,
-       "000000"
-      ]
-     ]
-    },
-    {
-     "rule": "FV-3",
-     "what": "the party screen, not the logo",
-     "type": "not_pixels",
-     "shot": "start",
-     "probes": [
-      [
-       42,
-       74,
-       "303030"
       ]
      ]
     }
@@ -369,22 +400,22 @@
    "id": "fv-eu-rift",
    "rom": "BZ5P",
    "state": "final-fantasy-v-advance/eu-rift.ss",
-   "desc": "Europe: in the Rift (its addresses differ): the party screen",
+   "desc": "Europe: in the Rift (its addresses differ; R opens nothing): the party screen",
    "rules": [
-    "FV-3"
+    "FV-10"
    ],
    "shots": {
     "start": 300
    },
    "checks": [
     {
-     "rule": "FV-3",
+     "rule": "FV-10",
      "what": "taken",
      "type": "log",
      "match": "map updated"
     },
     {
-     "rule": "FV-3",
+     "rule": "FV-10",
      "what": "the party window's left edge and the gil window",
      "type": "pixels",
      "shot": "start",
@@ -407,26 +438,77 @@
      ]
     },
     {
-     "rule": "FV-3",
-     "what": "the commands' place left black",
+     "rule": "FV-10",
+     "what": "the commands' place made one window: its edges (left white, gray, dark; right white)",
      "type": "pixels",
      "shot": "start",
      "probes": [
       [
-       832,
+       640,
        224,
-       "000000"
+       "FFFFFF"
       ],
       [
-       900,
-       100,
+       644,
+       224,
+       "CECECE"
+      ],
+      [
+       648,
+       224,
+       "212121"
+      ],
+      [
+       980,
+       224,
+       "FFFFFF"
+      ]
+     ]
+    },
+    {
+     "rule": "FV-10",
+     "what": "the window's inside is the gradient, not black",
+     "type": "not_pixels",
+     "shot": "start",
+     "probes": [
+      [
+       792,
+       224,
        "000000"
       ]
      ]
     },
     {
-     "rule": "FV-3",
-     "what": "the party screen, not the logo",
+     "rule": "FV-10",
+     "what": "the window's top and bottom edges join the location window's: its first white line stays",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       792,
+       64,
+       "FFFFFF"
+      ],
+      [
+       792,
+       404,
+       "FFFFFF"
+      ],
+      [
+       792,
+       412,
+       "212121"
+      ],
+      [
+       792,
+       416,
+       "FFFFFF"
+      ]
+     ]
+    },
+    {
+     "rule": "FV-10",
+     "what": "the party screen, not the logo or the map",
      "type": "not_pixels",
      "shot": "start",
      "probes": [
@@ -434,6 +516,11 @@
        42,
        74,
        "303030"
+      ],
+      [
+       272,
+       464,
+       "10319C"
       ]
      ]
     }
@@ -443,7 +530,7 @@
    "id": "fv-jp-airship",
    "rom": "BZ5J",
    "state": "final-fantasy-v-advance/jp-airship.ss",
-   "desc": "Japan: on the airship: the party screen in Japanese",
+   "desc": "Japan: on the airship: the game's world map",
    "rules": [
     "FV-3"
    ],
@@ -459,8 +546,31 @@
     },
     {
      "rule": "FV-3",
-     "what": "the party window's left edge and the gil window",
+     "what": "the game's world map: its sea and its parchment border, the margins black",
      "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       272,
+       464,
+       "10319C"
+      ],
+      [
+       512,
+       664,
+       "7B8442"
+      ],
+      [
+       52,
+       84,
+       "000000"
+      ]
+     ]
+    },
+    {
+     "rule": "FV-3",
+     "what": "not the party screen",
+     "type": "not_pixels",
      "shot": "start",
      "probes": [
       [
@@ -469,45 +579,9 @@
        "CECECE"
       ],
       [
-       40,
-       384,
-       "212121"
-      ],
-      [
        980,
        624,
        "FFFFFF"
-      ]
-     ]
-    },
-    {
-     "rule": "FV-3",
-     "what": "the commands' place left black",
-     "type": "pixels",
-     "shot": "start",
-     "probes": [
-      [
-       832,
-       224,
-       "000000"
-      ],
-      [
-       900,
-       100,
-       "000000"
-      ]
-     ]
-    },
-    {
-     "rule": "FV-3",
-     "what": "the party screen, not the logo",
-     "type": "not_pixels",
-     "shot": "start",
-     "probes": [
-      [
-       42,
-       74,
-       "303030"
       ]
      ]
     }
@@ -517,10 +591,11 @@
    "id": "fv-battle-party",
    "rom": "BZ5E",
    "state": "final-fantasy-v-advance/us-world.ss",
-   "desc": "USA: the party kept, then a battle loaded: the party kept (FV-6)",
+   "desc": "USA: the party kept (the map shown, the party taken with it), then a battle loaded: the party screen kept (FV-6)",
    "rules": [
     "FV-6",
-    "FV-7"
+    "FV-7",
+    "FV-10"
    ],
    "input": [
     [
@@ -534,7 +609,7 @@
    },
    "checks": [
     {
-     "rule": "FV-3",
+     "rule": "FV-6",
      "what": "the party window's left edge and the gil window",
      "type": "pixels",
      "shot": "battle",
@@ -557,26 +632,77 @@
      ]
     },
     {
-     "rule": "FV-3",
-     "what": "the commands' place left black",
+     "rule": "FV-10",
+     "what": "the commands' place made one window: its edges (left white, gray, dark; right white)",
      "type": "pixels",
      "shot": "battle",
      "probes": [
       [
-       832,
+       640,
        224,
-       "000000"
+       "FFFFFF"
       ],
       [
-       900,
-       100,
+       644,
+       224,
+       "CECECE"
+      ],
+      [
+       648,
+       224,
+       "212121"
+      ],
+      [
+       980,
+       224,
+       "FFFFFF"
+      ]
+     ]
+    },
+    {
+     "rule": "FV-10",
+     "what": "the window's inside is the gradient, not black",
+     "type": "not_pixels",
+     "shot": "battle",
+     "probes": [
+      [
+       792,
+       224,
        "000000"
       ]
      ]
     },
     {
-     "rule": "FV-3",
-     "what": "the party screen, not the logo",
+     "rule": "FV-10",
+     "what": "the window's top and bottom edges join the location window's: its first white line stays",
+     "type": "pixels",
+     "shot": "battle",
+     "probes": [
+      [
+       792,
+       64,
+       "FFFFFF"
+      ],
+      [
+       792,
+       404,
+       "FFFFFF"
+      ],
+      [
+       792,
+       412,
+       "212121"
+      ],
+      [
+       792,
+       416,
+       "FFFFFF"
+      ]
+     ]
+    },
+    {
+     "rule": "FV-10",
+     "what": "the party screen, not the logo or the map",
      "type": "not_pixels",
      "shot": "battle",
      "probes": [
@@ -584,6 +710,11 @@
        42,
        74,
        "303030"
+      ],
+      [
+       272,
+       464,
+       "10319C"
       ]
      ]
     }
@@ -660,10 +791,11 @@
    "id": "fv-eu-battle-party",
    "rom": "BZ5P",
    "state": "final-fantasy-v-advance/eu-rift.ss",
-   "desc": "Europe: the party kept, then a battle loaded: the party kept (FV-6)",
+   "desc": "Europe: the party kept, then a battle loaded: the party screen kept (FV-6)",
    "rules": [
     "FV-6",
-    "FV-7"
+    "FV-7",
+    "FV-10"
    ],
    "input": [
     [
@@ -677,7 +809,7 @@
    },
    "checks": [
     {
-     "rule": "FV-3",
+     "rule": "FV-6",
      "what": "the party window's left edge and the gil window",
      "type": "pixels",
      "shot": "battle",
@@ -700,26 +832,77 @@
      ]
     },
     {
-     "rule": "FV-3",
-     "what": "the commands' place left black",
+     "rule": "FV-10",
+     "what": "the commands' place made one window: its edges (left white, gray, dark; right white)",
      "type": "pixels",
      "shot": "battle",
      "probes": [
       [
-       832,
+       640,
        224,
-       "000000"
+       "FFFFFF"
       ],
       [
-       900,
-       100,
+       644,
+       224,
+       "CECECE"
+      ],
+      [
+       648,
+       224,
+       "212121"
+      ],
+      [
+       980,
+       224,
+       "FFFFFF"
+      ]
+     ]
+    },
+    {
+     "rule": "FV-10",
+     "what": "the window's inside is the gradient, not black",
+     "type": "not_pixels",
+     "shot": "battle",
+     "probes": [
+      [
+       792,
+       224,
        "000000"
       ]
      ]
     },
     {
-     "rule": "FV-3",
-     "what": "the party screen, not the logo",
+     "rule": "FV-10",
+     "what": "the window's top and bottom edges join the location window's: its first white line stays",
+     "type": "pixels",
+     "shot": "battle",
+     "probes": [
+      [
+       792,
+       64,
+       "FFFFFF"
+      ],
+      [
+       792,
+       404,
+       "FFFFFF"
+      ],
+      [
+       792,
+       412,
+       "212121"
+      ],
+      [
+       792,
+       416,
+       "FFFFFF"
+      ]
+     ]
+    },
+    {
+     "rule": "FV-10",
+     "what": "the party screen, not the logo or the map",
      "type": "not_pixels",
      "shot": "battle",
      "probes": [
@@ -727,6 +910,11 @@
        42,
        74,
        "303030"
+      ],
+      [
+       272,
+       464,
+       "10319C"
       ]
      ]
     }
@@ -803,10 +991,11 @@
    "id": "fv-jp-battle-party",
    "rom": "BZ5J",
    "state": "final-fantasy-v-advance/jp-airship.ss",
-   "desc": "Japan: the party kept, then a battle loaded: the party kept (FV-6)",
+   "desc": "Japan: the party kept (the map shown, the party taken with it), then a battle loaded: the party screen kept (FV-6)",
    "rules": [
     "FV-6",
-    "FV-7"
+    "FV-7",
+    "FV-10"
    ],
    "input": [
     [
@@ -820,7 +1009,7 @@
    },
    "checks": [
     {
-     "rule": "FV-3",
+     "rule": "FV-6",
      "what": "the party window's left edge and the gil window",
      "type": "pixels",
      "shot": "battle",
@@ -843,26 +1032,77 @@
      ]
     },
     {
-     "rule": "FV-3",
-     "what": "the commands' place left black",
+     "rule": "FV-10",
+     "what": "the commands' place made one window: its edges (left white, gray, dark; right white)",
      "type": "pixels",
      "shot": "battle",
      "probes": [
       [
-       832,
+       640,
        224,
-       "000000"
+       "FFFFFF"
       ],
       [
-       900,
-       100,
+       644,
+       224,
+       "CECECE"
+      ],
+      [
+       648,
+       224,
+       "212121"
+      ],
+      [
+       980,
+       224,
+       "FFFFFF"
+      ]
+     ]
+    },
+    {
+     "rule": "FV-10",
+     "what": "the window's inside is the gradient, not black",
+     "type": "not_pixels",
+     "shot": "battle",
+     "probes": [
+      [
+       792,
+       224,
        "000000"
       ]
      ]
     },
     {
-     "rule": "FV-3",
-     "what": "the party screen, not the logo",
+     "rule": "FV-10",
+     "what": "the window's top and bottom edges join the location window's: its first white line stays",
+     "type": "pixels",
+     "shot": "battle",
+     "probes": [
+      [
+       792,
+       64,
+       "FFFFFF"
+      ],
+      [
+       792,
+       404,
+       "FFFFFF"
+      ],
+      [
+       792,
+       412,
+       "212121"
+      ],
+      [
+       792,
+       416,
+       "FFFFFF"
+      ]
+     ]
+    },
+    {
+     "rule": "FV-10",
+     "what": "the party screen, not the logo or the map",
      "type": "not_pixels",
      "shot": "battle",
      "probes": [
@@ -870,6 +1110,11 @@
        42,
        74,
        "303030"
+      ],
+      [
+       272,
+       464,
+       "10319C"
       ]
      ]
     }

@@ -6315,27 +6315,30 @@ static const char* ff_compose(Emu* s, const void* state, uint32_t* out, int w, i
  *               is loaded or started (title, Load Game screen)
  *   FFV_BATTLE  0x02000EC0: non-zero from a battle's first frame to the end
  *               of its results
- *   FFV_MAP     0x0200EA7E (half word): the map
+ *   FFV_SCREEN  (per release) what the game shows: 5 walking about, 7 START's
+ *               menu, 0x0C the world map (R opens it), 0x0A a battle
  * Per release (FfvRegion): the party's records (character id, job at +8, +9,
  * one every 0x64 bytes) and the battle's block of HP (HP, maximum HP, MP,
  * maximum MP, 8 bytes a character). */
 typedef struct {
 	const char* code;
-	uint32_t party, hp;
+	uint32_t party, hp, screen, room;
 } FfvRegion;
 static const FfvRegion ffvRegions[] = {
-	{ "BZ5E", 0x0200DAB4, 0x0201E1A0 },
-	{ "BZ5P", 0x0200D868, 0x0201DF54 },
-	{ "BZ5J", 0x0200DAB4, 0x0201E1A0 },
+	{ "BZ5E", 0x0200DAB4, 0x0201E1A0, 0x020096E0, 0x0200E2AE },
+	{ "BZ5P", 0x0200D868, 0x0201DF54, 0x02009464, 0x0200E062 },
+	{ "BZ5J", 0x0200DAB4, 0x0201E1A0, 0x020096E0, 0x0200E2AE },
 };
+#define FFV_SCREEN_MAP 0x0C /* the byte at `screen`: 5 walking about, 7 START's menu, 0x0C the world map, 0x0A a battle */
 #define FFV_LOADED 0x02000924
 #define FFV_BATTLE 0x02000EC0
-#define FFV_MAP 0x0200EA7E
 #define FFV_V_LOGO 0xF00000A0  /* outside the game (FV-2), or the party defeated (FV-8) */
 #define FFV_V_MAP 0xF00000A4   /* the map (FV-3) */
 #define FFV_V_BATTLE 0xF00000A8 /* a battle (FV-6) */
 #define FFV_CMD_X 152 /* START's menu: the command windows' place, top right (FV-3) */
-#define FFV_CMD_ROWS 89
+#define FFV_CMD_ROWS 88 /* (the rows above the location window) */
+#define FFV_WIN_X0 152 /* the commands' window, one: its frame's left and right edges */
+#define FFV_WIN_X1 239
 /* START's menu, up: its windows' frames (x, y, 0xRRGGBB) */
 static const int ffvMenu[][3] = { { 152, 10, 0xFFFFFF }, { 153, 10, 0xCECECE }, { 154, 10, 0x212121 },
                                   { 152, 50, 0xFFFFFF }, { 237, 10, 0xFFFFFF }, { 190, 85, 0xFFFFFF },
@@ -6344,6 +6347,8 @@ static const int ffvMenu[][3] = { { 152, 10, 0xFFFFFF }, { 153, 10, 0xCECECE }, 
 /* the hand cursor: tiles 900 and up */
 static const SpriteRule ffvHand = { -16, -16, 255, 255, 900, 1023, -1, 0, 0, 0 };
 static uint32_t ffvParty[GBA_W * GBA_H];
+static uint32_t ffvMap[GBA_W * GBA_H];
+static unsigned ffvTakes;
 static bool ffvPartyOk;
 static uint32_t ffvPartyId;
 
@@ -6366,7 +6371,7 @@ static bool ffv_defeated(Emu* e) {
 
 static uint32_t ffv_virt(Emu* e, uint32_t addr) {
 	if (addr == FFV_V_LOGO) return !emu_read32(e, FFV_LOADED) || ffv_defeated(e);
-	if (addr == FFV_V_MAP) return emu_read16(e, FFV_MAP);
+	if (addr == FFV_V_MAP) return emu_read16(e, ffv_r(e)->room);
 	if (addr == FFV_V_BATTLE) return emu_read32(e, FFV_BATTLE) != 0;
 	return 0;
 }
@@ -6412,6 +6417,33 @@ static const char* ffv_open_menu(Emu* s) {
 	return NULL;
 }
 
+static uint8_t ffv_screen(Emu* s) { return emu_read8(s, ffv_r(s)->screen); }
+
+/* the party screen out of START's menu, up: the commands' place filled with
+ * one window of the game's own pieces (FV-3): its top edge (the Job window's)
+ * and bottom edge (the commands window's) with their corners, straight sides
+ * from a plain row, the screen's own gradient between */
+static void ffv_party_take(Emu* s) {
+	for (int y = 0; y < GBA_H; ++y) {
+		for (int x = 0; x < GBA_W; ++x) {
+			uint32_t c = s->fb[y * GBA_W + x];
+			if (x >= FFV_WIN_X0 && x <= FFV_WIN_X1 && y >= 4 && y < FFV_CMD_ROWS - 4) {
+				bool side = x < FFV_WIN_X0 + 4 || x > FFV_WIN_X1 - 4;
+				c = side ? s->fb[8 * GBA_W + x] : s->fb[y * GBA_W + 4];
+			}
+			ffvParty[y * GBA_W + x] = c | 0xFF000000;
+		}
+	}
+	ffvPartyId = ffv_party_id(s);
+	ffvPartyOk = true;
+}
+
+static void ffv_show(uint32_t* out, int w, int h, const uint32_t* pic) {
+	for (int y = 0; y < h; ++y) {
+		for (int x = 0; x < w; ++x) out[y * w + x] = y < GBA_H && x < GBA_W ? pic[y * GBA_W + x] : 0xFF000000;
+	}
+}
+
 static const char* ffv_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
 	emu_hide_sprites(s, NULL, 0);
 	emu_layers(s, 0x1F);
@@ -6421,31 +6453,46 @@ static const char* ffv_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	if (emu_read32(s, FFV_BATTLE)) {
 		/* the party kept, if it's this party (FV-6, FV-7); else the last picture */
 		if (!ffvPartyOk || ffvPartyId != ffv_party_id(s)) return "a battle: no picture of this party kept";
-		for (int y = 0; y < h; ++y) {
-			for (int x = 0; x < w; ++x) out[y * w + x] = y < GBA_H && x < GBA_W ? ffvParty[y * GBA_W + x] : 0xFF000000;
-		}
+		ffv_show(out, w, h, ffvParty);
 		return NULL;
 	}
-	/* back to walking about from the menu (FV-4) */
-	for (int i = 0; i < 4 && ffv_menu_up(s); ++i) {
+	/* back to walking about from the menu or the map (FV-4) */
+	for (int i = 0; i < 4 && (ffv_menu_up(s) || ffv_screen(s) == FFV_SCREEN_MAP); ++i) {
 		aw_run(s, K_B, 4);
 		aw_run(s, 0, 40);
 	}
 	if (emu_cancelled(s)) return "called off";
-	const char* err = ffv_open_menu(s);
-	if (err) return err;
-	/* the party screen: the command windows' place left black (FV-3) */
-	for (int y = 0; y < GBA_H; ++y) {
-		for (int x = 0; x < GBA_W; ++x) {
-			bool cmd = x >= FFV_CMD_X && y < FFV_CMD_ROWS;
-			ffvParty[y * GBA_W + x] = cmd ? 0xFF000000 : s->fb[y * GBA_W + x] | 0xFF000000;
+	/* the world map, where R opens it (FV-3): the game's own picture of it */
+	bool map = false;
+	for (int tries = 0; tries < 2 && ffv_screen(s) != FFV_SCREEN_MAP; ++tries) {
+		aw_run(s, 0, 30); /* (the menu or map just closed: the game takes a few frames to listen) */
+		aw_run(s, K_R, 4);
+		for (int f = 0; f < 60 && ffv_screen(s) != FFV_SCREEN_MAP; f += 2) aw_run(s, 0, 2);
+	}
+	if (ffv_screen(s) == FFV_SCREEN_MAP) {
+		aw_run(s, 0, 90);
+		if (ffv_screen(s) == FFV_SCREEN_MAP) {
+			for (int i = 0; i < GBA_W * GBA_H; ++i) ffvMap[i] = s->fb[i] | 0xFF000000;
+			map = true;
+		}
+		for (int i = 0; i < 3 && ffv_screen(s) == FFV_SCREEN_MAP; ++i) {
+			aw_run(s, K_B, 4);
+			aw_run(s, 0, 40);
 		}
 	}
-	ffvPartyId = ffv_party_id(s);
-	ffvPartyOk = true;
-	for (int y = 0; y < h; ++y) {
-		for (int x = 0; x < w; ++x) out[y * w + x] = y < GBA_H && x < GBA_W ? ffvParty[y * GBA_W + x] : 0xFF000000;
+	if (emu_cancelled(s)) return "called off";
+	/* the party screen: taken when it's what is shown, and for battles (FV-6)
+	 * with the map: for a first capture, another party, and every fourth */
+	if (!map || !ffvPartyOk || ffvPartyId != ffv_party_id(s) || ffvTakes % 4 == 0) {
+		const char* err = ffv_open_menu(s);
+		if (err) {
+			if (!map) return err;
+		} else {
+			ffv_party_take(s);
+		}
 	}
+	++ffvTakes;
+	ffv_show(out, w, h, map ? ffvMap : ffvParty);
 	return NULL;
 }
 
