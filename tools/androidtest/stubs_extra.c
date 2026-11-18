@@ -11,6 +11,7 @@ int android_raise_thread(void) { return 0; }
  * else none; the move itself isn't run here (android.c's android_data_setup) */
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 bool android_data_record(char* out, size_t size) {
 	const char* files = getenv("GBADS_APP_FILES");
 	if (!files || !*files) return false;
@@ -26,3 +27,12 @@ int android_hinge_gap(int w, int h) {
 	int lw = w > h ? w : h;
 	return g && (!l || atoi(l) == lw) ? atoi(g) : 0;
 }
+
+/* Settings > Rotation (issue #60): STUB_SECOND=none is one display; the mode is kept in memory */
+static int stubRotation;
+bool android_one_display(void) {
+	const char* v = getenv("STUB_SECOND");
+	return v && !strcmp(v, "none");
+}
+int android_rotation_get(void) { return stubRotation; }
+void android_rotation_set(int mode) { stubRotation = mode; }

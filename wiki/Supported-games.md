@@ -16,6 +16,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Eragon | `BENE` `BENP` (no Japanese release) | the Party screen, every card lit; the map where L opens one; in battles, the party's HP bars | |
 | F-Zero: GP Legend (F-Zero: Falcon Densetsu in Japan) | `BFZE` `BFZP` `BFZJ` | the race HUD, with the course map twice as big | |
 | F-Zero: Maximum Velocity (F-Zero for Game Boy Advance in Japan) | `AFZE` (USA and Europe) `AFZJ` (China: `AFZC`) | the race HUD, with the course map twice as big | |
+| Final Fantasy I & II: Dawn of Souls (Final Fantasy I, II Advance in Japan) | `BFFE` `BFFP` `BFFJ` | the Enlarged Map on the world map, the party screen elsewhere and in battles (both games) | |
 | Final Fantasy Tactics Advance | `AFXE` `AFXP` `AFXJ` | in battles: the Status of the unit under the cursor, or the turn order and Laws; on the world map: today's Laws | |
 | Fire Emblem (Rekka no Ken in Japan) | `AE7E` `AE7X` (English, French, German) `AE7Y` (English, Spanish, Italian) `AE7J` | on the map: the status of the unit under the cursor | |
 | Fire Emblem: The Sacred Stones (Seima no Kouseki in Japan) | `BE8E` `BE8P` `BE8J` | on the map: the status of the unit under the cursor | |
@@ -196,6 +197,12 @@ The same second screen as F-Zero: GP Legend's: the HUD is moved off the game scr
 - Everywhere else (the title and menus, the course name as a race fades in, the end of a race once the HUD's gone, while the camera circles a destroyed machine, the results) the second screen shows the logo, the title's lettering.
 - With one screen (`layout = single`), the HUD stays where the game draws it.
 - The USA / Europe, Japanese and Chinese releases have all been tried in Grand Prix and Training; the link-cable modes and the hidden Champion series haven't.
+
+## Final Fantasy I & II: Dawn of Souls
+
+Both games on the cartridge. In Final Fantasy, walking about on the world map, the second screen shows the game's Enlarged Map over the whole screen with the party in the middle; anywhere else, the party screen from START's menu (without its list of commands) with the whole party, the gil, play time, crystals and where you are. In a battle it shows the party as it was just before (the HP and play time don't change until the battle's over). Final Fantasy II and Soul of Rebirth show their own Enlarged Map, party screen and battles the same way (the map's blinking marks shown at one step, with a thin black outline). Early in Final Fantasy II the game has no map yet, so on the world map the second screen shows the party screen until it does. Both are taken again every second or so, so they keep up as you play. On the cartridge's own menus, in the Bestiary and from a game over on, the second screen shows the logo; in conversations, shops and scenes, the last picture stays.
+
+Late in Final Fantasy the game opens its map in dungeons too; the second screen shows the party screen there, where HP and MP matter more.
 
 ## Final Fantasy Tactics Advance
 
