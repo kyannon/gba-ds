@@ -58,6 +58,12 @@ static float scale_for(int font, int capPx) {
 	return (float) capPx / (float) capUnits[font];
 }
 
+bool tf_has_codepoint(int font, unsigned cp) {
+	pthread_once(&once, init);
+	if (font < 0 || font >= TF_COUNT || !ready[font]) return false;
+	return stbtt_FindGlyphIndex(&fonts[font], (int) cp) != 0;
+}
+
 int tf_width(int font, int capPx, const char* text) {
 	pthread_once(&once, init);
 	if (font < 0 || font >= TF_COUNT || !ready[font] || !text) return 0;

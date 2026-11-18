@@ -2900,6 +2900,54 @@ static int lang_font(int font) {
 	return font == TF_BOLD ? TF_ZH_BOLD : font == TF_BODY ? TF_ZH_BODY : font;
 }
 
+static int cp_at(const char* p, int* len);
+
+static int face_missing(int face, const char* text) {
+	int missing = 0;
+	for (const char* p = text; *p;) {
+		int len, cp = cp_at(p, &len);
+		if (len <= 0) break;
+		if (!tf_has_codepoint(face, (unsigned) cp)) ++missing;
+		p += len;
+	}
+	return missing;
+}
+
+/* The face text is actually drawn in: the language's, unless the string has a
+ * character that face hasn't got. The game list draws the player's own ROM
+ * names, so an English interface meets Chinese names (Jost has no Chinese at
+ * all) and a Traditional one meets Simplified names (Noto Sans TC has no
+ * Simplified glyphs): the same weight's other faces are tried, then the other
+ * weight's, and the one missing the fewest characters wins — a name that can
+ * be drawn, even in another face, rather than a row of boxes. Text with no
+ * byte above 0x7F is the menus' own and needs no check (every face has ASCII). */
+static int face_for(int font, const char* text) {
+	int face = lang_font(font);
+	if (!text || !text[0]) return face;
+	bool ascii = true;
+	for (const unsigned char* p = (const unsigned char*) text; *p; ++p) {
+		if (*p >= 0x80) { ascii = false; break; }
+	}
+	if (ascii) return face;
+	int best = face, bestMissing = face_missing(face, text);
+	if (!bestMissing) return face;
+	static const int bold[] = { TF_BOLD, TF_ZH_BOLD, TF_ZT_BOLD };
+	static const int body[] = { TF_BODY, TF_ZH_BODY, TF_ZT_BODY };
+	bool isBold = face == TF_BOLD || face == TF_ZH_BOLD || face == TF_ZT_BOLD;
+	for (int pass = 0; pass < 2; ++pass) {
+		const int* cand = (pass == 0) == isBold ? bold : body;
+		for (int i = 0; i < 3; ++i) {
+			if (cand[i] == face) continue;
+			int m = face_missing(cand[i], text);
+			if (m < bestMissing) {
+				best = cand[i], bestMissing = m;
+				if (!m) return best;
+			}
+		}
+	}
+	return best;
+}
+
 static TextEntry* text_entry(int view, int font, int cap, const char* text) {
 	TextEntry* slot = NULL;
 	for (int i = 0; i < TEXT_CACHE; ++i) {
@@ -2958,7 +3006,7 @@ static int text_width(int font, int capPx, const char* text) {
 	    widthCache[slot].cap == capPx && !strcmp(widthCache[slot].text, text)) {
 		return widthCache[slot].w;
 	}
-	int w = tf_width(lang_font(font), capPx, text);
+	int w = tf_width(face_for(font, text), capPx, text);
 	char* copy = strdup(text);
 	if (copy) {
 		free(widthCache[slot].text);
@@ -2982,7 +3030,7 @@ void ui_font_text(int screen, int font, int x, int cy, int capPx, const char* te
 		return;
 	}
 	Screen* s = &screens[screen];
-	TextEntry* e = text_entry(s->view, lang_font(font), capPx, text);
+	TextEntry* e = text_entry(s->view, face_for(font, text), capPx, text);
 	if (!e->tex) return;
 	int w = align < 0 ? 0 : text_width(font, capPx, text);
 	int left = align < 0 ? x : align > 0 ? x - w : x - w / 2;
@@ -3115,6 +3163,7 @@ static int wrap_impl(int screen, int font, int x, int y, int width, int capPx, c
 	int lineH = capPx * 2, fullW = width;
 	if (!text) return y;
 	text = tr(text);
+	font = face_for(font, text); /* one face for the whole paragraph: its lines measure and draw alike */
 	const char* p = text;
 	while (*p) {
 		while (*p == ' ') ++p;

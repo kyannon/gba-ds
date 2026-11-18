@@ -14,6 +14,11 @@ enum { TF_BOLD, TF_BODY, TF_ZH_BOLD, TF_ZH_BODY, TF_ZT_BOLD, TF_ZT_BODY, TF_COUN
 /* Advance width in pixels of text whose capital letters are capPx tall. */
 int tf_width(int font, int capPx, const char* text);
 
+/* Whether this face has a glyph for a code point. ui.c asks when it draws a
+ * player's own text (a ROM's name, a folder): a Chinese name in English, or a
+ * Simplified one in Traditional, needs a face that can draw it. */
+bool tf_has_codepoint(int font, unsigned cp);
+
 /* Rasterized text: 8-bit coverage, w * h. The baseline is `baseline` pixels
  * from the top and the text starts `left` pixels from the left edge (italic
  * and overhanging glyphs can reach a little either side of the advance). */

@@ -12,7 +12,7 @@ version numbers) and Chinese punctuation.
 
 The bold face draws the game list's names, which are the player's own ROM
 filenames, so it also carries a common-character set: GB2312's whole hanzi set for
-Simplified (6763 characters), Big5's first level for Traditional (5401, about 99.7% of running text).
+Simplified (6763 characters), Big5's whole hanzi set for Traditional (13147), so a rare name like 鎧甲的呼喚 draws too.
 Without it a Chinese-named ROM draws as boxes. A character outside both sets
 still can't be drawn; the app's own text is always inside the catalogue's.
 
@@ -79,15 +79,16 @@ def gb2312_all():
     return out
 
 
-def big5_level1():
-    """Big5's first level: the 5401 hanzi of everyday Traditional text."""
+def big5_all():
+    """Big5's hanzi, both levels: 13147 characters (rows A4-F9)."""
     out = set()
-    for row in range(0xA4, 0xC7):
-        for col in list(range(0x40, 0x7F)) + list(range(0xA1, 0xFF)):
-            try:
-                out.add(bytes([row, col]).decode("big5"))
-            except UnicodeDecodeError:
-                pass
+    for first, last in ((0xA4, 0xC6), (0xC9, 0xF9)):
+        for row in range(first, last + 1):
+            for col in list(range(0x40, 0x7F)) + list(range(0xA1, 0xFF)):
+                try:
+                    out.add(bytes([row, col]).decode("big5"))
+                except UnicodeDecodeError:
+                    pass
     return out
 
 
@@ -105,7 +106,7 @@ def main():
             return 1
         wanted = sorted(chars | set(BASE))
         # the bold face draws the game list's names: the player's own filenames
-        common = gb2312_all() if family["name"] == "Simplified" else big5_level1()
+        common = gb2312_all() if family["name"] == "Simplified" else big5_all()
         print(f"{family['name']}: {count} strings, {len(chars)} Chinese characters")
         for weight, name in family["out"].items():
             set_ = wanted if weight != 700 else sorted(chars | set(BASE) | common)
