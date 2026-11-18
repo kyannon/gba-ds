@@ -32,10 +32,13 @@ OUT_H = os.path.join(SRC, "i18n_data.h")
 
 SKIP_SRC = {"fonts_data.c", "brand_data.c", "bezel_logo.c", "logo_masks.c", "i18n_data.c", "i18n.c"}
 
-# function -> index of its text argument
+# function -> indexes of its text arguments (the function translates them where it draws them)
 DRAW_CALLS = {
-    "ui_label": 4, "ui_font_text": 5, "ui_font_wrap": 6, "ui_font_wrap_around": 6,
-    "ui_font_wrap_height": 5, "ui_label_width": 2, "ui_font_width": 2, "ui_title_block": 2,
+    "ui_label": [4], "ui_font_text": [5], "ui_font_wrap": [6], "ui_font_wrap_around": [6],
+    "ui_font_wrap_height": [5], "ui_label_width": [2], "ui_font_width": [2], "ui_title_block": [2],
+    "ui_osd": [0], "ui_osd_long": [0],        # formats: translated before the arguments go in
+    "draw_set_heading": [2], "draw_wrapped": [5], "set_notes": [3, 6],   # library.c
+    "patch_row_add": [2, 3], "folder_pick": [0, 4], "note": [0, 1],      # game.c, folderpick.c, ra.c
 }
 # macro -> (number of context literals, number of message literals)
 MACROS = {"tr": (0, 1), "trc": (1, 1), "trn": (0, 2), "trnc": (1, 2), "N_": (0, 1), "NC_": (1, 1)}
@@ -66,8 +69,9 @@ ESC = {"n": "\n", "t": "\t", '"': '"', "\\": "\\", "'": "'", "r": "\r", "0": "\0
 
 
 def parse_c_string(s, i):
-    """Concatenated string literals starting at s[i] (after whitespace/comments): (value, end) or None."""
-    out, found = [], False
+    """Concatenated string literals starting at s[i] (after whitespace/comments): (value, end) or None.
+    \\xNN and \\NNN escapes are bytes (UTF-8: "\\xC2\\xB7" is a middle dot), \\uXXXX a character."""
+    out, found = bytearray(), False
     n = len(s)
     while True:
         while i < n and s[i] in " \t\r\n":
@@ -86,19 +90,27 @@ def parse_c_string(s, i):
             while i < n and s[i] != '"':
                 if s[i] == "\\" and i + 1 < n:
                     c = s[i + 1]
+                    m = re.match(r"x([0-9A-Fa-f]{1,2})", s[i + 1:i + 4])
+                    o = re.match(r"([0-7]{1,3})", s[i + 1:i + 4])
                     if c == "u" and re.fullmatch(r"[0-9A-Fa-f]{4}", s[i + 2:i + 6]):
-                        out.append(chr(int(s[i + 2:i + 6], 16)))
+                        out += chr(int(s[i + 2:i + 6], 16)).encode("utf-8")
                         i += 6
-                        continue
-                    out.append(ESC.get(c, "\\" + c))
-                    i += 2
+                    elif m:
+                        out.append(int(m.group(1), 16))
+                        i += 1 + len(m.group(0))
+                    elif o and c in "01234567":
+                        out.append(int(o.group(1), 8) & 255)
+                        i += 1 + len(o.group(1))
+                    else:
+                        out += ESC.get(c, "\\" + c).encode("utf-8")
+                        i += 2
                 else:
-                    out.append(s[i])
+                    out += s[i].encode("utf-8")
                     i += 1
             i += 1
             continue
         break
-    return ("".join(out), i) if found else None
+    return (out.decode("utf-8", errors="replace"), i) if found else None
 
 
 def split_args(s, i):
@@ -134,6 +146,63 @@ def only_literal(arg):
     if r and not arg[r[1]:].strip():
         return r[0]
     return None
+
+
+def split_top(s, seps):
+    """s split at the separator characters that sit outside strings and brackets."""
+    parts, depth, start, i, n = [], 0, 0, 0, len(s)
+    while i < n:
+        c = s[i]
+        if c == '"':
+            i += 1
+            while i < n and s[i] != '"':
+                i += 2 if s[i] == "\\" else 1
+        elif c in "([{":
+            depth += 1
+        elif c in ")]}":
+            depth -= 1
+        elif c in seps and depth == 0:
+            parts.append(s[start:i])
+            start = i + 1
+        i += 1
+    parts.append(s[start:])
+    return parts
+
+
+def closes_at_end(a):
+    """True if the '(' that a starts with is closed by its last character."""
+    depth, i, n = 0, 0, len(a)
+    while i < n:
+        c = a[i]
+        if c == '"':
+            i += 1
+            while i < n and a[i] != '"':
+                i += 2 if a[i] == "\\" else 1
+        elif c == "(":
+            depth += 1
+        elif c == ")":
+            depth -= 1
+            if depth == 0:
+                return i == n - 1
+        i += 1
+    return False
+
+
+def literals_of(arg):
+    """The string(s) an argument can be: a literal, or the results of a ternary (cond ? "a" : "b", nested)."""
+    v = only_literal(arg)
+    if v is not None:
+        return [v]
+    a = arg.strip()
+    while a.startswith("(") and a.endswith(")") and closes_at_end(a):
+        a = a[1:-1].strip()  # (the whole argument in one pair of parentheses)
+    q = split_top(a, "?")
+    if len(q) < 2:
+        return []
+    out = []
+    for branch in split_top("?".join(q[1:]), ":"):
+        out += literals_of(branch)
+    return out
 
 
 def line_of(s, pos):
@@ -210,11 +279,11 @@ def extract_source(name, text, msgs):
             ctx = lits[0] if nctx else ""
             add(ctx, lits[nctx], lits[nctx + 1] if nmsg == 2 else None, m.start())
         else:
-            idx = DRAW_CALLS[fn]
-            if idx < len(args):
-                v = only_literal(args[idx])
-                if v:
-                    add("", v, None, m.start())
+            for idx in DRAW_CALLS[fn]:
+                if idx < len(args):
+                    for v in literals_of(args[idx]):
+                        if v:
+                            add("", v, None, m.start())
     if name == "config.c":
         extract_config_tables(s, ref, msgs, text)
 
@@ -714,6 +783,7 @@ def self_test():
     assert check_format("Found %d game", "%d Spiele", True) is None
     assert check_format("Found %d game", "%d %s", True) is not None
     assert parse_c_string('"a" "b\\n" x', 0)[0] == "a" + "b\n"
+    assert parse_c_string('"R \\xC2\\xB7 C \\303\\251 \\u2039 \\0"', 0)[0].startswith("R \u00b7 C \u00e9 \u2039 ")
     assert po_quote('a"b\n') == '"a\\"b\\n"'
     assert pseudo_text("Open %s") == "Õpéñ %s ·", pseudo_text("Open %s")
     s = strip_comments('x = tr("a"); /* tr("b") */ // tr("c")\n')
@@ -723,6 +793,10 @@ def self_test():
     m = {}
     extract_source("t.c", 'f(trc("menu", "Back"), trn("%d game", "%d games", n), ui_label(0, 1, 2, 3, "Play", c));', m)
     assert ("menu", "Back") in m and ("", "%d game") in m and m[("", "%d game")].plural == "%d games" and ("", "Play") in m
+    m = {}
+    extract_source("t.c", 'ui_osd(ok ? "Saved." : "Failed"); ui_font_text(0, 1, 2, 3, 4, !strcmp(x, "@map") ? "Map buttons" : "Hotkeys", c, 0); ui_osd(ok ? "A %s" : (b ? "B" : "C"), n);', m)
+    assert closes_at_end("(a) ? (b) : (c)") is False and closes_at_end("(a ? b : c)") is True
+    assert sorted(k[1] for k in m) == ["A %s", "B", "C", "Failed", "Hotkeys", "Map buttons", "Saved."], sorted(m)
     print("ok")
 
 

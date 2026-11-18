@@ -2601,7 +2601,7 @@ bool ui_screenshot_stacked(const char* pngPath) {
 void ui_osd(const char* fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
-	vsnprintf(osdText, sizeof(osdText), fmt, ap);
+	vsnprintf(osdText, sizeof(osdText), tr(fmt), ap);
 	va_end(ap);
 	osdUntil = ticks + 120;
 }
@@ -2609,7 +2609,7 @@ void ui_osd(const char* fmt, ...) {
 void ui_osd_long(const char* fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
-	vsnprintf(osdText, sizeof(osdText), fmt, ap);
+	vsnprintf(osdText, sizeof(osdText), tr(fmt), ap);
 	va_end(ap);
 	osdUntil = ticks + 300;
 }

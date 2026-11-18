@@ -4,874 +4,2845 @@ msgid ""
 msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 
-#: src/config.c:467
+#: src/library.c:773
+msgid " (patch)"
+msgstr ""
+
+#: src/library.c:2259
+msgid " Checking for a new version..."
+msgstr ""
+
+#: src/library.c:2260
+msgid " It's the newest version."
+msgstr ""
+
+#: src/config.c:509
+msgid " ms"
+msgstr ""
+
+#: src/config.c:507
+msgid " s"
+msgstr ""
+
+#: src/config.c:468
 msgid "\"Swipe up for quick menu\" at a game's start."
 msgstr ""
 
-#: src/config.c:453
+#: src/mapper.c:114
+#, c-format
+msgid "%ca%d"
+msgstr ""
+
+#: src/library.c:593
+#, c-format
+msgid "%d file checked"
+msgid_plural "%d files checked"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/library.c:594
+#, c-format
+msgid "%d game found"
+msgid_plural "%d games found"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/library.c:2517 src/library.c:2565
+#, c-format
+msgid "%d game found."
+msgid_plural "%d games found."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/mapper.c:254
+#, c-format
+msgid "%d of %d"
+msgstr ""
+
+#: src/mapper.c:430
+#, c-format
+msgid "%d of %d set for %s, kept in controllers.txt beside GBA DS's save states. The line for it is in gba-ds.log too: send it in to have it built into GBA DS for this device."
+msgstr ""
+
+#: src/game.c:1550
+#, c-format
+msgid "%d on"
+msgstr ""
+
+#: src/folderpick.c:191
+#, c-format
+msgid "%d RetroArch state here"
+msgid_plural "%d RetroArch states here"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/game.c:6385 src/game.c:8311 src/game.c:8619
+#, c-format
+msgid "%s"
+msgstr ""
+
+#: src/library.c:2039
+#, c-format
+msgid "%s %s. Choose another if RetroArch keeps its states somewhere else."
+msgstr ""
+
+#: src/game.c:1800
+#, c-format
+msgid "%s (beside the ROM)"
+msgstr ""
+
+#: src/hotkeys.c:135
+#, c-format
+msgid "%s as the hotkey button, with Start, R1, L1, X, Y and B"
+msgstr ""
+
+#: src/hotkeys.c:171
+#, c-format
+msgid "%s has no button now"
+msgstr ""
+
+#: src/hotkeys.c:170
+#, c-format
+msgid "%s is now Start + Select"
+msgstr ""
+
+#: src/hotkeys.c:176
+#, c-format
+msgid "%s opens the menu: press another button"
+msgstr ""
+
+#: src/library.c:2246
+#, c-format
+msgid "%s v%s. Restarting..."
+msgstr ""
+
+#: src/hotkeys.c:187
+#, c-format
+msgid "%s was %s's: that has no button now"
+msgstr ""
+
+#: src/library.c:595
+#, c-format
+msgid "%s, %s"
+msgstr ""
+
+#: src/hotkeys.c:130
+#, c-format
+msgid "%s, Select, Start or L3. Tap to keep it as it is"
+msgstr ""
+
+#: src/ra.c:785
+#, c-format
+msgid "%u of %u achievements unlocked"
+msgstr ""
+
+#: src/game.c:1361
+msgid ", RetroArch"
+msgstr ""
+
+#: src/config.c:454
 msgid "1 minute"
 msgstr ""
 
-#: src/config.c:453
+#: src/config.c:454
 msgid "10 s"
 msgstr ""
 
-#: src/config.c:454
+#: src/config.c:455
 msgid "128 ms"
 msgstr ""
 
-#: src/config.c:453
+#: src/config.c:454
 msgid "15 s"
 msgstr ""
 
-#: src/config.c:454
+#: src/config.c:455
 msgid "192 ms"
 msgstr ""
 
-#: src/config.c:453
+#: src/config.c:454
 msgid "2 minutes"
 msgstr ""
 
-#: src/config.c:452
+#: src/config.c:453
 msgid "2x"
 msgstr ""
 
-#: src/config.c:453
+#: src/config.c:454
 msgid "30 s"
 msgstr ""
 
-#: src/config.c:454
+#: src/config.c:455
 msgid "32 ms"
 msgstr ""
 
-#: src/config.c:452
+#: src/config.c:453
 msgid "3x"
 msgstr ""
 
-#: src/config.c:452
+#: src/config.c:453
 msgid "4x"
 msgstr ""
 
-#: src/config.c:453
+#: src/config.c:454
 msgid "5 minutes"
 msgstr ""
 
-#: src/config.c:452
+#: src/config.c:453
 msgid "5x"
 msgstr ""
 
-#: src/config.c:454
+#: src/config.c:455
 msgid "64 ms"
 msgstr ""
 
-#: src/config.c:454
+#: src/config.c:455
 msgid "96 ms"
 msgstr ""
 
-#: src/config.c:491
+#: src/config.c:492
 msgid "A (right) button"
 msgstr ""
 
-#: src/config.c:490
+#: src/config.c:491
 msgid "A and B buttons"
 msgstr ""
 
-#: src/config.c:471
+#: src/game.c:2926
+msgid "A dark line under each row of pixels"
+msgstr ""
+
+#: src/library.c:1910
+msgid "A game's save already next to it, or in the other type, is copied over the first time you play it. .srm is the type RetroArch uses: choose its saves folder too to share each game's save with it."
+msgstr ""
+
+#: src/library.c:2194
+msgid "A new version of GBA DS"
+msgstr ""
+
+#: src/config.c:472
 msgid "A pattern over every pixel, on both screens."
+msgstr ""
+
+#: src/game.c:3584
+msgid "A: the one lit above. Y: all games. X: undo this game's value"
+msgstr ""
+
+#: src/ra.c:820
+msgid "ACHIEVEMENT UNLOCKED"
 msgstr ""
 
 #: src/game.c:3711
 msgid "Achievements"
 msgstr ""
 
-#: src/game.c:2385
+#: src/game.c:2386
 msgid "Add a note (optional): what happened, and what you expected to happen."
 msgstr ""
 
-#: src/config.c:432
+#: src/library.c:2082
+msgid "Adds GBA DS to the emulators for Game Boy Advance games in EmulationStation. Pick it for one game (its Advanced Game Options > Emulator) or for all of them (the system's advanced settings). The other emulators keep working as before."
+msgstr ""
+
+#: src/library.c:912
+msgid "All"
+msgstr ""
+
+#: src/ra.c:783 src/ra.c:828
+#, c-format
+msgid "All %u achievements unlocked"
+msgstr ""
+
+#: src/config.c:433 src/game.c:3523
 msgid "All games"
 msgstr ""
 
-#: src/config.c:452
+#: src/game.c:7524
+msgid "Already the value for all games"
+msgstr ""
+
+#: src/game.c:2183
+msgid "Always"
+msgstr ""
+
+#: src/game.c:3547
+msgid "Always on here"
+msgstr ""
+
+#: src/game.c:3510
+msgid "Always on in this game: it needs it for full speed"
+msgstr ""
+
+#: src/game.c:1801
+#, c-format
+msgid "Always on, applied first (RetroArch's way: a patch named as the ROM). %s"
+msgstr ""
+
+#: src/game.c:1369
+msgid "AM"
+msgstr ""
+
+#: src/game.c:1744
+msgid "An xdelta made with compression, which GBA DS can't read: patch the ROM with it beforehand, or make it again without (xdelta3 -S none)"
+msgstr ""
+
+#: src/android.c:436
+msgid "Android's installer couldn't be reached"
+msgstr ""
+
+#: src/game.c:1358
+msgid "Another emulator's"
+msgstr ""
+
+#: src/game.c:1367
+msgid "Apr"
+msgstr ""
+
+#: src/game.c:1243 src/game.c:1249 src/game.c:3820
+msgid "Are You Sure?"
+msgstr ""
+
+#: src/game.c:2101
+#, c-format
+msgid "Are you sure? A: switch it %s now and carry on from here. Y: not yet (more changes first). B: call it off"
+msgstr ""
+
+#: src/game.c:2072
+msgid "Are you sure? A: use them now and carry on from here. B: call it off"
+msgstr ""
+
+#: src/library.c:1652 src/library.c:2070
+msgid "Are you sure? Delete them"
+msgstr ""
+
+#: src/library.c:1651 src/library.c:2069
+msgid "Are you sure? Reset settings"
+msgstr ""
+
+#: src/game.c:2105
+#, c-format
+msgid "Are you sure? Save your game first. A: restart %s it now. Y: not yet (more changes first). B: call it off"
+msgstr ""
+
+#: src/game.c:2072
+msgid "Are you sure? Save your game first. A: restart now. B: call it off"
+msgstr ""
+
+#: src/library.c:1504
+#, c-format
+msgid "Are you sure? Touch it again to %s. Anything else cancels."
+msgstr ""
+
+#: src/config.c:453
 msgid "As fast as it goes"
+msgstr ""
+
+#: src/game.c:2004 src/game.c:2124
+msgid "As the game started"
+msgstr ""
+
+#: src/game.c:1367
+msgid "Aug"
 msgstr ""
 
 #: src/game.c:5506
 msgid "Auto"
 msgstr ""
 
-#: src/config.c:465
+#: src/config.c:466
 msgid "Auto-load"
 msgstr ""
 
-#: src/config.c:457
+#: src/game.c:3801
+msgid "Auto-Load: Off"
+msgstr ""
+
+#: src/game.c:3801
+msgid "Auto-Load: On"
+msgstr ""
+
+#: src/config.c:458 src/library.c:2012
 msgid "Automatic"
 msgstr ""
 
-#: src/config.c:461
+#: src/library.c:2198
+msgid "Automatic checks: Off"
+msgstr ""
+
+#: src/library.c:2198
+msgid "Automatic checks: On"
+msgstr ""
+
+#: src/config.c:462
 msgid "Automatic follows the system. Text that isn't translated yet stays in English."
 msgstr ""
 
-#: src/config.c:492
+#: src/config.c:493
 msgid "B (bottom) button"
 msgstr ""
 
-#: src/game.c:1499 src/game.c:2150 src/game.c:3221 src/game.c:3312 ...
+#: src/game.c:1505 src/game.c:2154 src/game.c:3222 src/game.c:3313 ...
 msgid "Back"
 msgstr ""
 
-#: src/config.c:482
+#: src/ra.c:840
+msgid "Back online"
+msgstr ""
+
+#: src/hotkeys.c:294
+#, c-format
+msgid "Back to %s and the buttons it started with"
+msgstr ""
+
+#: src/esinteg.c:339
+msgid "BananaOS's systems list has no Game Boy Advance entry."
+msgstr ""
+
+#: src/config.c:483
 msgid "Bezel logo"
 msgstr ""
 
-#: src/config.c:429
+#: src/config.c:430
 msgid "Blue"
 msgstr ""
 
-#: src/config.c:475
+#: src/config.c:476
 msgid "Blurry instead of sharp: usually leave off."
 msgstr ""
 
-#: src/config.c:444
+#: src/config.c:445
 msgid "Both screens"
 msgstr ""
 
-#: src/config.c:444
+#: src/config.c:445
 msgid "Bottom screen"
 msgstr ""
 
-#: src/config.c:488
+#: src/config.c:489
 msgid "Bottom screen brightness"
 msgstr ""
 
-#: src/game.c:2378
+#: src/game.c:2379
 msgid "Bug Report"
 msgstr ""
 
-#: src/game.c:3301 src/mapper.c:270
+#: src/game.c:6387
+msgid "Bug report saved in bug-reports"
+msgstr ""
+
+#: src/game.c:6385
+msgid "Bug report saved in bug-reports."
+msgstr ""
+
+#: src/game.c:1153
+msgid "Buttons"
+msgstr ""
+
+#: src/mapper.c:246
+msgid "Buttons mapped"
+msgstr ""
+
+#: src/game.c:1358
+msgid "Can't be read"
+msgstr ""
+
+#: src/game.c:1746
+msgid "Can't be read: not a patch, or damaged"
+msgstr ""
+
+#: src/esinteg.c:171
+msgid "Can't find the GBA DS folder."
+msgstr ""
+
+#: src/paths.c:676
+#, c-format
+msgid "Can't reach GBA DS's folder, using %s for now: %s"
+msgstr ""
+
+#: src/game.c:2790
+msgid "Can't rewind further"
+msgstr ""
+
+#: src/library.c:994
+msgid "Can't save files here: no states, logos or screenshots"
+msgstr ""
+
+#: src/paths.c:706
+#, c-format
+msgid "Can't save in the chosen folder, files not moved: %s"
+msgstr ""
+
+#: src/folderpick.c:203 src/game.c:3302 src/mapper.c:271
 msgid "Cancel"
 msgstr ""
 
-#: src/config.c:442
+#: src/config.c:443
 msgid "Centered"
 msgstr ""
 
-#: src/game.c:1501
+#: src/game.c:1867
+#, c-format
+msgid "Changes some of the same bytes as %s, and goes over it there: they may not work together"
+msgstr ""
+
+#: src/game.c:1507
 msgid "Cheats"
 msgstr ""
 
-#: src/config.c:442
+#: src/library.c:2198
+msgid "Check now"
+msgstr ""
+
+#: src/ra.c:719 src/ra.c:722
+msgid "Check ra_username and ra_password in gba-ds.cfg"
+msgstr ""
+
+#: src/ra.c:722
+msgid "Check the account in EmulationStation's RetroAchievements settings"
+msgstr ""
+
+#: src/library.c:1896
+msgid "Choose a folder in Android's file picker..."
+msgstr ""
+
+#: src/library.c:1888
+msgid "Choose GBA DS folder"
+msgstr ""
+
+#: src/game.c:7597
+#, c-format
+msgid "Choose it again to close %s: %s"
+msgstr ""
+
+#: src/game.c:7596
+msgid "Choose it again to restart: unsaved progress is lost"
+msgstr ""
+
+#: src/library.c:1887
+msgid "Choose ROM folder"
+msgstr ""
+
+#: src/library.c:1887
+msgid "Choose save folder"
+msgstr ""
+
+#: src/paths.c:703
+#, c-format
+msgid "Chosen folder is inside GBA DS's own, files not moved: %s"
+msgstr ""
+
+#: src/paths.c:700
+#, c-format
+msgid "Chosen folder not found, files not moved: %s"
+msgstr ""
+
+#: src/library.c:2040
+msgid "Chosen here:"
+msgstr ""
+
+#: src/game.c:1153 src/game.c:1244
+msgid "Close Game"
+msgstr ""
+
+#: src/game.c:1153 src/game.c:1244
+msgid "Close GBA DS"
+msgstr ""
+
+#: src/config.c:443
 msgid "Closest to gap"
 msgstr ""
 
-#: src/config.c:464
+#: src/config.c:465
 msgid "Closing a game saves where you are."
 msgstr ""
 
-#: src/config.c:486
+#: src/config.c:487
 msgid "Color"
 msgstr ""
 
-#: src/config.c:473
+#: src/game.c:3295
+msgid "color"
+msgstr ""
+
+#: src/config.c:474
 msgid "Color correction"
 msgstr ""
 
-#: src/config.c:473
+#: src/game.c:3798
+msgid "Color Correction: Off"
+msgstr ""
+
+#: src/game.c:3798
+msgid "Color Correction: On"
+msgstr ""
+
+#: src/config.c:474
 msgid "Colors as a Game Boy Advance's screen showed them."
+msgstr ""
+
+#: src/library.c:2237
+#, c-format
+msgid "Confirm the update to v%s in Android's installer. Android closes GBA DS while it installs; open it again afterwards. If Android asks first, allow GBA DS to install apps."
+msgstr ""
+
+#: src/mapper.c:248
+msgid "Connect a controller and try again."
 msgstr ""
 
 #: src/game.c:5450 src/game.c:5477
 msgid "Controls"
 msgstr ""
 
-#: src/config.c:443
+#: src/esinteg.c:422
+#, c-format
+msgid "Couldn't change %s."
+msgstr ""
+
+#: src/esde.c:439
+#, c-format
+msgid "Couldn't change the files in %s/custom_systems: allow GBA DS All files access in Android's settings."
+msgstr ""
+
+#: src/ra.c:691
+msgid "Couldn't connect"
+msgstr ""
+
+#: src/esinteg.c:331
+msgid "Couldn't find GBA DS's folder."
+msgstr ""
+
+#: src/library.c:1780 src/library.c:1791
+msgid "Couldn't keep that choice."
+msgstr ""
+
+#: src/ra.c:765
+msgid "Couldn't load the achievements"
+msgstr ""
+
+#: src/game.c:7955
+msgid "Couldn't load the game"
+msgstr ""
+
+#: src/paths.c:719
+#, c-format
+msgid "Couldn't move GBA DS's files, they stay in %s"
+msgstr ""
+
+#: src/library.c:1945
+msgid "Couldn't open the file picker."
+msgstr ""
+
+#: src/library.c:1735
+msgid "Couldn't open the sign-in box."
+msgstr ""
+
+#: src/esinteg.c:275
+msgid "Couldn't remove the setting file."
+msgstr ""
+
+#: src/mapper.c:246
+msgid "Couldn't save"
+msgstr ""
+
+#: src/game.c:6309 src/game.c:6329 src/game.c:6364
+msgid "Couldn't save the bug report."
+msgstr ""
+
+#: src/library.c:1685
+#, c-format
+msgid "Couldn't sign in as %s%s%s. Sign in to try again."
+msgstr ""
+
+#: src/esinteg.c:377
+#, c-format
+msgid "Couldn't write %s."
+msgstr ""
+
+#: src/esinteg.c:259
+#, c-format
+msgid "Couldn't write to %s."
+msgstr ""
+
+#: src/config.c:444
 msgid "Custom"
 msgstr ""
 
-#: src/config.c:466
+#: src/config.c:467
 msgid "Custom logos"
 msgstr ""
 
-#: src/config.c:498
-msgid "D-pad down"
+#: src/game.c:3815
+msgid "Custom Logos: Do Not Use"
+msgstr ""
+
+#: src/game.c:3815
+msgid "Custom Logos: Full Detail"
+msgstr ""
+
+#: src/game.c:3815
+msgid "Custom Logos: Pixelated"
+msgstr ""
+
+#: src/game.c:3294
+msgid "D-pad"
 msgstr ""
 
 #: src/config.c:499
-msgid "D-pad left"
+msgid "D-pad down"
 msgstr ""
 
 #: src/config.c:500
-msgid "D-pad right"
-msgstr ""
-
-#: src/config.c:497
-msgid "D-pad up"
-msgstr ""
-
-#: src/config.c:427
-msgid "Dark"
-msgstr ""
-
-#: src/config.c:488
-msgid "Darkens the bottom screen, in this app only: the device's own brightness is left alone (and this can't go above it)."
-msgstr ""
-
-#: src/config.c:487
-msgid "Darkens the top screen, in this app only: the device's own brightness is left alone (and this can't go above it)."
-msgstr ""
-
-#: src/config.c:457
-msgid "English"
-msgstr ""
-
-#: src/config.c:458
-msgid "Every 0.5 s"
-msgstr ""
-
-#: src/config.c:458
-msgid "Every 1.5 s"
-msgstr ""
-
-#: src/config.c:458
-msgid "Every 3 s"
-msgstr ""
-
-#: src/config.c:458
-msgid "Every second"
-msgstr ""
-
-#: src/config.c:451
-msgid "Fast (20 a second)"
-msgstr ""
-
-#: src/config.c:507
-msgid "Fast forward"
-msgstr ""
-
-#: src/library.c:2343
-msgid "First run only. B: back"
-msgstr ""
-
-#: src/library.c:1879
-msgid "Folders"
-msgstr ""
-
-#: src/config.c:504
-msgid "Frame buffer"
-msgstr ""
-
-#: src/config.c:483
-msgid "Frames a second above the game, all the time."
-msgstr ""
-
-#: src/config.c:434
-msgid "Full detail"
-msgstr ""
-
-#: src/config.c:435
-msgid "Full Width"
-msgstr ""
-
-#: src/game.c:3560 src/game.c:3563 src/game.c:3569
-msgid "Game"
-msgstr ""
-
-#: src/config.c:440
-msgid "Game below"
-msgstr ""
-
-#: src/config.c:463
-msgid "Game names"
-msgstr ""
-
-#: src/config.c:440
-msgid "Game on top"
-msgstr ""
-
-#: src/config.c:469
-msgid "Game screen scale"
-msgstr ""
-
-#: src/config.c:462
-msgid "Games shown"
-msgstr ""
-
-#: src/config.c:462
-msgid "Games without second-screen support play on one screen."
-msgstr ""
-
-#: src/config.c:447
-msgid "GBA A"
-msgstr ""
-
-#: src/config.c:490
-msgid "GBA A on the right button, or on the bottom one."
-msgstr ""
-
-#: src/config.c:447
-msgid "GBA B"
-msgstr ""
-
-#: src/config.c:448
-msgid "GBA Down"
-msgstr ""
-
-#: src/config.c:480
-msgid "GBA DS's bezel, or your own PNGs, round the picture."
-msgstr ""
-
-#: src/config.c:447
-msgid "GBA L"
-msgstr ""
-
-#: src/config.c:448
-msgid "GBA Left"
-msgstr ""
-
-#: src/config.c:447
-msgid "GBA R"
-msgstr ""
-
-#: src/config.c:448
-msgid "GBA Right"
-msgstr ""
-
-#: src/config.c:448
-msgid "GBA Up"
-msgstr ""
-
-#: src/config.c:443
-msgid "Generated"
-msgstr ""
-
-#: src/config.c:429
-msgid "Green"
-msgstr ""
-
-#: src/game.c:3314
-msgid "Hex Color"
-msgstr ""
-
-#: src/config.c:505
-msgid "Hold L2 to go back in time."
-msgstr ""
-
-#: src/config.c:507
-msgid "Hold R2 to play faster."
-msgstr ""
-
-#: src/hotkeys.c:95
-msgid "Hotkeys"
-msgstr ""
-
-#: src/config.c:472
-msgid "How dark the grid, scanlines and soft cells are."
-msgstr ""
-
-#: src/config.c:506
-msgid "How far back it goes."
+msgid "D-pad left"
 msgstr ""
 
 #: src/config.c:501
-msgid "How fast Turbo A and Turbo B press."
+msgid "D-pad right"
 msgstr ""
 
-#: src/config.c:469
-msgid "How the game's picture fills its screen."
+#: src/config.c:498
+msgid "D-pad up"
 msgstr ""
 
-#: src/config.c:470
-msgid "How the map or logo fills its screen."
-msgstr ""
-
-#: src/hotkeys.c:96
-msgid "In a game, hold the hotkey button and press another"
-msgstr ""
-
-#: src/config.c:441
-msgid "Keep device shapes"
-msgstr ""
-
-#: src/config.c:495
-msgid "L button"
-msgstr ""
-
-#: src/config.c:461
-msgid "Language"
-msgstr ""
-
-#: src/config.c:474
-msgid "LCD ghosting"
-msgstr ""
-
-#: src/config.c:437
-msgid "LCD Grid"
+#: src/config.c:428
+msgid "Dark"
 msgstr ""
 
 #: src/config.c:489
+msgid "Darkens the bottom screen, in this app only: the device's own brightness is left alone (and this can't go above it)."
+msgstr ""
+
+#: src/config.c:488
+msgid "Darkens the top screen, in this app only: the device's own brightness is left alone (and this can't go above it)."
+msgstr ""
+
+#: src/game.c:1367
+msgid "Dec"
+msgstr ""
+
+#: src/game.c:2317 src/game.c:3156
+msgid "Del"
+msgstr ""
+
+#: src/library.c:1652 src/library.c:2070
+msgid "Delete per-game settings"
+msgstr ""
+
+#: src/library.c:1515
+#, c-format
+msgid "Deleted the settings of %d games."
+msgstr ""
+
+#: src/library.c:1515
+msgid "Deleted the settings of 1 game."
+msgstr ""
+
+#: src/game.c:1212 src/library.c:1266
+msgid "Display"
+msgstr ""
+
+#: src/game.c:2319 src/game.c:3156 src/hotkeys.c:103
+msgid "Done"
+msgstr ""
+
+#: src/game.c:2319
+msgid "Done (No Note)"
+msgstr ""
+
+#: src/hotkeys.c:20 src/mapper.c:31
+msgid "Down"
+msgstr ""
+
+#: src/library.c:2242 src/library.c:2244
+msgid "Downloading"
+msgstr ""
+
+#: src/game.c:2927
+msgid "Each pixel a little darker toward its edges"
+msgstr ""
+
+#: src/library.c:1691
+msgid "Earn achievements in casual mode with your retroachievements.org account. GBA DS keeps a sign-in token, not your password."
+msgstr ""
+
+#: src/config.c:458
+msgid "English"
+msgstr ""
+
+#: src/library.c:1808
+msgid "Enter both your username and your password."
+msgstr ""
+
+#: src/library.c:1677
+msgid "Enter your account in the sign-in box..."
+msgstr ""
+
+#: src/esde.c:426
+msgid "ES-DE's folder wasn't found."
+msgstr ""
+
+#: src/config.c:459
+msgid "Every 0.5 s"
+msgstr ""
+
+#: src/config.c:459
+msgid "Every 1.5 s"
+msgstr ""
+
+#: src/config.c:459
+msgid "Every 3 s"
+msgstr ""
+
+#: src/mapper.c:401
+msgid "Every button was skipped, so nothing changed."
+msgstr ""
+
+#: src/config.c:459
+msgid "Every second"
+msgstr ""
+
+#: src/game.c:2183 src/game.c:2185
+msgid "Fails"
+msgstr ""
+
+#: src/config.c:452
+msgid "Fast (20 a second)"
+msgstr ""
+
+#: src/config.c:508
+msgid "Fast forward"
+msgstr ""
+
+#: src/game.c:3808
+#, c-format
+msgid "Fast Forward: %dx"
+msgstr ""
+
+#: src/game.c:3807
+msgid "Fast Forward: Max"
+msgstr ""
+
+#: src/game.c:3809
+msgid "Fast Forward: Off"
+msgstr ""
+
+#: src/game.c:2794
+msgid "Fast forwarding..."
+msgstr ""
+
+#: src/game.c:1367
+msgid "Feb"
+msgstr ""
+
+#: src/library.c:2336
+msgid "First run only. B: back"
+msgstr ""
+
+#: src/library.c:1884
+msgid "Folders"
+msgstr ""
+
+#: src/library.c:1371
+msgid "Folders, accounts, updates"
+msgstr ""
+
+#: src/library.c:1670
+msgid "Follows how you hold the phone, and Android's own rotation lock."
+msgstr ""
+
+#: src/config.c:505
+msgid "Frame buffer"
+msgstr ""
+
+#: src/game.c:3803
+msgid "Frame Buffer: Always on here"
+msgstr ""
+
+#: src/game.c:3803
+msgid "Frame Buffer: Off"
+msgstr ""
+
+#: src/game.c:3803
+msgid "Frame Buffer: On"
+msgstr ""
+
+#: src/config.c:484
+msgid "Frames a second above the game, all the time."
+msgstr ""
+
+#: src/library.c:2040
+msgid "From RetroArch's settings:"
+msgstr ""
+
+#: src/config.c:435
+msgid "Full detail"
+msgstr ""
+
+#: src/config.c:436
+msgid "Full Width"
+msgstr ""
+
+#: src/game.c:3561 src/game.c:3564 src/game.c:3570
+msgid "Game"
+msgstr ""
+
+#: src/config.c:441
+msgid "Game below"
+msgstr ""
+
+#: src/config.c:464
+msgid "Game names"
+msgstr ""
+
+#: src/config.c:441
+msgid "Game on top"
+msgstr ""
+
+#: src/game.c:7667
+msgid "Game restarted"
+msgstr ""
+
+#: src/config.c:470
+msgid "Game screen scale"
+msgstr ""
+
+#: src/library.c:1265
+msgid "Games"
+msgstr ""
+
+#: src/library.c:1631
+#, c-format
+msgid "Games are read from %s (subfolders too). Saves (%s) are kept in %s."
+msgstr ""
+
+#: src/library.c:1632
+#, c-format
+msgid "Games are read from %s (subfolders too). Saves (%s) are kept next to the games."
+msgstr ""
+
+#: src/library.c:2080
+msgid "Games picked in BananaOS's own Game Boy Advance list start in GBA DS when it has second-screen support for them. Restart BananaOS after switching this."
+msgstr ""
+
+#: src/config.c:463
+msgid "Games shown"
+msgstr ""
+
+#: src/config.c:463
+msgid "Games without second-screen support play on one screen."
+msgstr ""
+
+#: src/game.c:5492 src/paths.c:372
+msgid "GBA"
+msgstr ""
+
+#: src/config.c:448
+msgid "GBA A"
+msgstr ""
+
+#: src/config.c:491
+msgid "GBA A on the right button, or on the bottom one."
+msgstr ""
+
+#: src/config.c:448
+msgid "GBA B"
+msgstr ""
+
+#: src/config.c:449
+msgid "GBA Down"
+msgstr ""
+
+#: src/library.c:1789 src/library.c:1828
+msgid "GBA DS can't save files there: allow it All files access in Android's settings, or choose another folder."
+msgstr ""
+
+#: src/library.c:2067
+msgid "GBA DS in BananaOS's GBA list: Off"
+msgstr ""
+
+#: src/library.c:2067
+msgid "GBA DS in BananaOS's GBA list: On"
+msgstr ""
+
+#: src/library.c:2068
+msgid "GBA DS in EmulationStation: Off"
+msgstr ""
+
+#: src/library.c:2068
+msgid "GBA DS in EmulationStation: On"
+msgstr ""
+
+#: src/library.c:1647
+msgid "GBA DS in ES-DE: Off"
+msgstr ""
+
+#: src/library.c:1647
+msgid "GBA DS in ES-DE: On"
+msgstr ""
+
+#: src/esde.c:441
+msgid "GBA DS is now ES-DE's emulator for Game Boy Advance games. Quit ES-DE and open it again to see it."
+msgstr ""
+
+#: src/esde.c:443
+msgid "GBA DS is out of ES-DE's emulator list. Quit ES-DE and open it again to see it."
+msgstr ""
+
+#: src/game.c:2991
+msgid "GBA DS Logo: Hide"
+msgstr ""
+
+#: src/game.c:2991
+msgid "GBA DS Logo: Show"
+msgstr ""
+
+#: src/library.c:1364
+msgid "GBA DS Settings"
+msgstr ""
+
+#: src/library.c:2211
+#, c-format
+msgid "GBA DS v%s is out (this is v%s). Update now to download it (%.1f MB) and install it: Android asks you to confirm. Your games, saves, states and settings are kept."
+msgstr ""
+
+#: src/library.c:2215
+#, c-format
+msgid "GBA DS v%s is out (this is v%s). Update now to download it (%.1f MB) and restart into it; your games, saves, states and settings are kept."
+msgstr ""
+
+#: src/config.c:481
+msgid "GBA DS's bezel, or your own PNGs, round the picture."
+msgstr ""
+
+#: src/library.c:1784
+msgid "GBA DS's files are kept there already."
+msgstr ""
+
+#: src/library.c:1794
+#, c-format
+msgid "GBA DS's files go to %s the next time it starts: close GBA DS and open it again."
+msgstr ""
+
+#: src/library.c:1904
+#, c-format
+msgid "GBA DS's own files (states, settings, cheats, overlays) are in %s, moving to %s at the next start."
+msgstr ""
+
+#: src/library.c:1906
+#, c-format
+msgid "GBA DS's own files (states, settings, cheats, overlays) are in %s."
+msgstr ""
+
+#: src/config.c:448
+msgid "GBA L"
+msgstr ""
+
+#: src/config.c:449
+msgid "GBA Left"
+msgstr ""
+
+#: src/config.c:448
+msgid "GBA R"
+msgstr ""
+
+#: src/config.c:449
+msgid "GBA Right"
+msgstr ""
+
+#: src/config.c:449
+msgid "GBA Up"
+msgstr ""
+
+#: src/config.c:444
+msgid "Generated"
+msgstr ""
+
+#: src/config.c:430
+msgid "Green"
+msgstr ""
+
+#: src/library.c:1670
+msgid "Held on its side: the two screens side by side. Either way round."
+msgstr ""
+
+#: src/library.c:1670
+msgid "Held upright: the two screens one above the other. Either way up."
+msgstr ""
+
+#: src/game.c:3295
+msgid "hex"
+msgstr ""
+
+#: src/game.c:3315
+msgid "Hex Color"
+msgstr ""
+
+#: src/config.c:506
+msgid "Hold L2 to go back in time."
+msgstr ""
+
+#: src/config.c:508
+msgid "Hold R2 to play faster."
+msgstr ""
+
+#: src/mapper.c:44
+msgid "Home"
+msgstr ""
+
+#: src/hotkeys.c:106
+msgid "Hotkey button"
+msgstr ""
+
+#: src/hotkeys.c:96 src/library.c:1403
+msgid "Hotkeys"
+msgstr ""
+
+#: src/config.c:473
+msgid "How dark the grid, scanlines and soft cells are."
+msgstr ""
+
+#: src/config.c:507
+msgid "How far back it goes."
+msgstr ""
+
+#: src/config.c:502
+msgid "How fast Turbo A and Turbo B press."
+msgstr ""
+
+#: src/config.c:470
+msgid "How the game's picture fills its screen."
+msgstr ""
+
+#: src/config.c:471
+msgid "How the map or logo fills its screen."
+msgstr ""
+
+#: src/game.c:3295
+msgid "hue"
+msgstr ""
+
+#: src/hotkeys.c:97
+msgid "In a game, hold the hotkey button and press another"
+msgstr ""
+
+#: src/game.c:1792
+#, c-format
+msgid "In patches/%s"
+msgstr ""
+
+#: src/game.c:2992 src/game.c:3265
+msgid "Inner Bezel Color"
+msgstr ""
+
+#: src/library.c:2244
+msgid "Installed"
+msgstr ""
+
+#: src/library.c:2242 src/library.c:2244
+msgid "Installing"
+msgstr ""
+
+#: src/game.c:1367
+msgid "Jan"
+msgstr ""
+
+#: src/game.c:1367
+msgid "Jul"
+msgstr ""
+
+#: src/game.c:1367
+msgid "Jun"
+msgstr ""
+
+#: src/game.c:3812
+msgid "Keep device aspect ratios"
+msgstr ""
+
+#: src/config.c:442
+msgid "Keep device shapes"
+msgstr ""
+
+#: src/library.c:1887
+msgid "Keep saves next to the games"
+msgstr ""
+
+#: src/hotkeys.c:129
+#, c-format
+msgid "Kept as it was in %d s if nothing is pressed"
+msgstr ""
+
+#: src/hotkeys.c:137
+msgid "Kept for every game"
+msgstr ""
+
+#: src/game.c:1711
+#, c-format
+msgid "Known %s patch, tested: %s"
+msgstr ""
+
+#: src/game.c:1712
+#, c-format
+msgid "Known %s patch, untested: %s. The second screen may not work with it"
+msgstr ""
+
+#: src/game.c:1749
+#, c-format
+msgid "Known %s patch: %s, made for %s. This ROM is another version: it may break the game"
+msgstr ""
+
+#: src/game.c:1738
+#, c-format
+msgid "Known %s patch: %s, made for %s: it can't be switched on for this ROM"
+msgstr ""
+
+#: src/game.c:1700
+#, c-format
+msgid "Known romhack: %s, untested"
+msgstr ""
+
+#: src/config.c:496
+msgid "L button"
+msgstr ""
+
+#: src/config.c:462
+msgid "Language"
+msgstr ""
+
+#: src/library.c:2267
+#, c-format
+msgid "Last checked %s."
+msgstr ""
+
+#: src/library.c:2200
+msgid "Later"
+msgstr ""
+
+#: src/config.c:475
+msgid "LCD ghosting"
+msgstr ""
+
+#: src/game.c:3799
+msgid "LCD Ghosting: Off"
+msgstr ""
+
+#: src/game.c:3799
+msgid "LCD Ghosting: On"
+msgstr ""
+
+#: src/config.c:438
+msgid "LCD Grid"
+msgstr ""
+
+#: src/hotkeys.c:20 src/mapper.c:32
+msgid "Left"
+msgstr ""
+
+#: src/game.c:1877
+msgid "Left out where it is: it's made for the unchanged ROM, so it has to be first (only one such patch can be on). Move it up with X"
+msgstr ""
+
+#: src/config.c:490
 msgid "Left stick as D-pad"
 msgstr ""
 
-#: src/config.c:455
+#: src/mapper.c:47
+msgid "Left stick: left"
+msgstr ""
+
+#: src/mapper.c:46
+msgid "Left stick: up"
+msgstr ""
+
+#: src/config.c:456
 msgid "Let the System Decide"
 msgstr ""
 
-#: src/config.c:427
+#: src/config.c:428
 msgid "Light"
 msgstr ""
 
-#: src/config.c:485
+#: src/config.c:486
 msgid "Light/dark mode"
 msgstr ""
 
-#: src/config.c:445
+#: src/config.c:446
 msgid "Like a GBA"
+msgstr ""
+
+#: src/game.c:2925
+msgid "Lines between the pixels, like a GBA's screen"
+msgstr ""
+
+#: src/game.c:7650
+msgid "Load failed"
+msgstr ""
+
+#: src/game.c:8303 src/game.c:8613
+msgid "Load failed."
+msgstr ""
+
+#: src/game.c:1153 src/game.c:1243 src/game.c:1249
+msgid "Load State"
+msgstr ""
+
+#: src/game.c:1296 src/game.c:3825
+#, c-format
+msgid "Load State %d"
 msgstr ""
 
 #: src/library.c:589
 msgid "Loading games..."
 msgstr ""
 
-#: src/library.c:1053
+#: src/ra.c:1014 src/ra.c:1200
+msgid "Loading the achievements..."
+msgstr ""
+
+#: src/library.c:1057
 msgid "Loading thumbnail..."
 msgstr ""
 
-#: src/mapper.c:241
+#: src/game.c:1741
+msgid "Made for another version of the game: it can't be switched on for this ROM"
+msgstr ""
+
+#: src/library.c:1662
+msgid "Makes GBA DS the emulator for Game Boy Advance games in ES-DE. For a game it doesn't support, choose another in ES-DE (the game's metadata > Alternative emulator)."
+msgstr ""
+
+#: src/game.c:1212
+msgid "Map"
+msgstr ""
+
+#: src/mapper.c:242
 msgid "Map Buttons"
 msgstr ""
 
-#: src/config.c:512
+#: src/library.c:1403
+msgid "Map buttons"
+msgstr ""
+
+#: src/config.c:513
 msgid "Map refresh"
 msgstr ""
 
-#: src/config.c:441
+#: src/game.c:1367
+msgid "Mar"
+msgstr ""
+
+#: src/config.c:442
 msgid "Match aspect ratios"
 msgstr ""
 
-#: src/config.c:503
+#: src/config.c:504
 msgid "Match display rate"
 msgstr ""
 
-#: src/config.c:441
+#: src/game.c:3811
+msgid "Match Display Rate: Off"
+msgstr ""
+
+#: src/game.c:3811
+msgid "Match Display Rate: Off for now"
+msgstr ""
+
+#: src/game.c:3811
+msgid "Match Display Rate: On"
+msgstr ""
+
+#: src/game.c:3813
+msgid "Match screen aspect ratios"
+msgstr ""
+
+#: src/game.c:3813
+msgid "Match screen sizes and aspect ratios"
+msgstr ""
+
+#: src/config.c:442
 msgid "Match sizes and shapes"
 msgstr ""
 
-#: src/config.c:509
+#: src/config.c:510
 msgid "Max: full speed, a warmer device and a shorter battery."
 msgstr ""
 
-#: src/config.c:451
+#: src/game.c:1367
+msgid "May"
+msgstr ""
+
+#: src/config.c:452
 msgid "Medium (15 a second)"
 msgstr ""
 
-#: src/config.c:474
-msgid "Moving things leave a short trail, as on a GBA."
+#: src/library.c:787
+msgid "Modified ROM: the second screen may not work"
 msgstr ""
 
-#: src/game.c:3279
-msgid "New"
+#: src/game.c:2182
+msgid "Move"
 msgstr ""
 
-#: src/folderpick.c:175
-msgid "No folders in this one"
-msgstr ""
-
-#: src/library.c:742
-msgid "No games found"
-msgstr ""
-
-#: src/library.c:798
-msgid "no save state yet!"
-msgstr ""
-
-#: src/library.c:999
-msgid "No supported games in"
-msgstr ""
-
-#: src/config.c:434
-msgid "Not used"
-msgstr ""
-
-#: src/config.c:449
-msgid "Nothing"
-msgstr ""
-
-#: src/game.c:3278
-msgid "Now"
-msgstr ""
-
-#: src/config.c:431 src/config.c:437 src/config.c:443 src/config.c:452 ...
-msgid "Off"
-msgstr ""
-
-#: src/config.c:513
-msgid "Off for slower devices: the table on one screen. Close and restart GBA DS to apply."
-msgstr ""
-
-#: src/config.c:511
-msgid "Off: every game plays like an ordinary GBA game."
-msgstr ""
-
-#: src/config.c:489
-msgid "Off: the left stick does nothing in games."
-msgstr ""
-
-#: src/game.c:3303
-msgid "OK"
-msgstr ""
-
-#: src/config.c:431
-msgid "On"
-msgstr ""
-
-#: src/library.c:1003
-msgid "Only games with a map screen are listed (show_all = 1 lists every one)"
-msgstr ""
-
-#: src/config.c:478
-msgid "Only when your two screens differ in shape. Experimental."
-msgstr ""
-
-#: src/config.c:429
-msgid "Orange"
-msgstr ""
-
-#: src/game.c:3536
-msgid "Overlay colors and logo"
-msgstr ""
-
-#: src/config.c:480 src/game.c:3223
-msgid "Overlays"
-msgstr ""
-
-#: src/config.c:481
-msgid "Overlays on"
-msgstr ""
-
-#: src/game.c:2152
-msgid "Patches"
-msgstr ""
-
-#: src/config.c:472
-msgid "Pattern strength"
-msgstr ""
-
-#: src/game.c:2454 src/game.c:2458
-msgid "Paused"
-msgstr ""
-
-#: src/config.c:509
-msgid "Performance"
-msgstr ""
-
-#: src/config.c:479
-msgid "Pictures in the middle of their screens, or close together."
-msgstr ""
-
-#: src/config.c:513
-msgid "Pinball two-screen view"
-msgstr ""
-
-#: src/config.c:429
-msgid "Pink"
-msgstr ""
-
-#: src/config.c:435
-msgid "Pixel Perfect"
-msgstr ""
-
-#: src/config.c:434
-msgid "Pixelated"
-msgstr ""
-
-#: src/config.c:433
-msgid "Plain"
-msgstr ""
-
-#: src/library.c:731
-msgid "Play"
-msgstr ""
-
-#: src/library.c:2339
-msgid "Preparing the game..."
-msgstr ""
-
-#: src/config.c:429
-msgid "Purple"
-msgstr ""
-
-#: src/config.c:467
-msgid "Quick bar hint"
-msgstr ""
-
-#: src/library.c:734
-msgid "Quit"
-msgstr ""
-
-#: src/config.c:496
-msgid "R button"
-msgstr ""
-
-#: src/config.c:508
-msgid "Raise it if the sound crackles."
-msgstr ""
-
-#: src/config.c:429
-msgid "Red"
-msgstr ""
-
-#: src/game.c:2156
-msgid "Restart"
-msgstr ""
-
-#: src/config.c:505
-msgid "Rewind"
-msgstr ""
-
-#: src/config.c:506
-msgid "Rewind length"
-msgstr ""
-
-#: src/config.c:503
-msgid "Run at the display's rate: no small regular stutter."
-msgstr ""
-
-#: src/config.c:464
-msgid "Save on quit"
-msgstr ""
-
-#: src/config.c:437
-msgid "Scanlines"
-msgstr ""
-
-#: src/config.c:479
-msgid "Screen placement"
-msgstr ""
-
-#: src/config.c:478
-msgid "Screen shapes"
-msgstr ""
-
-#: src/config.c:477
-msgid "Screens"
-msgstr ""
-
-#: src/config.c:511
-msgid "Second screen"
-msgstr ""
-
-#: src/config.c:470
-msgid "Second screen scale"
-msgstr ""
-
-#: src/config.c:449
-msgid "Select"
-msgstr ""
-
-#: src/config.c:455
-msgid "Set to Max"
-msgstr ""
-
-#: src/library.c:1087
-msgid "Settings"
-msgstr ""
-
-#: src/config.c:471
-msgid "Shader"
-msgstr ""
-
-#: src/config.c:512
-msgid "Shorter can make the sound crackle on a slow device."
-msgstr ""
-
-#: src/config.c:483
-msgid "Show FPS"
-msgstr ""
-
-#: src/library.c:1024 src/library.c:1027 src/library.c:1067 src/library.c:1070
-msgid "Single screen only"
-msgstr ""
-
-#: src/library.c:762
-msgid "Single screen only: plays normally"
-msgstr ""
-
-#: src/game.c:2376
-msgid "Skip"
-msgstr ""
-
-#: src/config.c:451
-msgid "Slow (10 a second)"
+#: src/game.c:2014
+msgid "Moving it: Up / Down or tap where it goes, then A (or tap it again). The one lower in the list is applied later"
 msgstr ""
 
 #: src/config.c:475
-msgid "Smooth scaling"
+msgid "Moving things leave a short trail, as on a GBA."
 msgstr ""
 
-#: src/config.c:504
-msgid "Smoother, one frame more input delay."
+#: src/game.c:3280
+msgid "New"
 msgstr ""
 
-#: src/config.c:437
-msgid "Soft Cells"
+#: src/ra.c:762
+#, c-format
+msgid "No achievements for this ROM (MD5 %s)"
 msgstr ""
 
-#: src/config.c:508
-msgid "Sound delay"
+#: src/game.c:7615
+msgid "No cheats found (see Cheats in the wiki)"
 msgstr ""
 
-#: src/config.c:448
-msgid "Start"
+#: src/mapper.c:246
+msgid "No controller found"
 msgstr ""
 
-#: src/config.c:465
-msgid "Starting a game picks up where you closed it."
+#: src/esinteg.c:177
+msgid "No es_systems.cfg found."
+msgstr ""
+
+#: src/library.c:1818
+msgid "No folder chosen."
+msgstr ""
+
+#: src/folderpick.c:176
+msgid "No folders in this one"
+msgstr ""
+
+#: src/library.c:1515
+msgid "No game has settings of its own."
+msgstr ""
+
+#: src/library.c:746
+msgid "No games found"
+msgstr ""
+
+#: src/game.c:1826
+msgid "No patches here yet"
+msgstr ""
+
+#: src/game.c:8301 src/game.c:8611
+msgid "No quick state saved yet."
+msgstr ""
+
+#: src/folderpick.c:192
+msgid "No RetroArch states here"
+msgstr ""
+
+#: src/library.c:802
+msgid "no save state yet!"
+msgstr ""
+
+#: src/library.c:1003
+msgid "No supported games in"
+msgstr ""
+
+#: src/hotkeys.c:116
+msgid "None"
+msgstr ""
+
+#: src/game.c:1811
+msgid "Not in the folder any more: it's left out"
+msgstr ""
+
+#: src/game.c:8082
+msgid "Not resumed: RetroArch's automatic state is from another of its GBA cores. To share states, set RetroArch's GBA core to mGBA."
 msgstr ""
 
 #: src/config.c:435
-msgid "Stretch"
+msgid "Not used"
 msgstr ""
 
-#: src/config.c:438
-msgid "Subpixels"
+#: src/library.c:2097
+msgid "NOTE: Unsupported games will play in RetroArch, but without BananaOS's own second screen (its game panel and companions)."
 msgstr ""
 
-#: src/config.c:438
-msgid "Subpixels (Light)"
+#: src/config.c:450
+msgid "Nothing"
 msgstr ""
 
-#: src/config.c:438
-msgid "Subpixels (Strong)"
+#: src/mapper.c:246
+msgid "Nothing mapped"
 msgstr ""
 
-#: src/config.c:432
-msgid "Supported games only"
+#: src/game.c:7636
+#, c-format
+msgid "Nothing saved in slot %d yet"
 msgstr ""
 
-#: src/config.c:445
-msgid "Swapped"
+#: src/game.c:6152
+msgid "Nothing to report yet."
 msgstr ""
 
-#: src/config.c:463
-msgid "Tags in a ROM's file name, like (USA) or (En,Fr,De)."
+#: src/game.c:1367
+msgid "Nov"
 msgstr ""
 
-#: src/config.c:429
-msgid "Teal"
+#: src/game.c:3279
+msgid "Now"
+msgstr ""
+
+#: src/game.c:1367
+msgid "Oct"
+msgstr ""
+
+#: src/config.c:432 src/config.c:438 src/config.c:444 src/config.c:453 ...
+msgid "Off"
+msgstr ""
+
+#: src/config.c:12 src/config.c:435 src/config.c:438 src/config.c:444 ...
+msgid "off"
+msgstr ""
+
+#: src/config.c:514
+msgid "Off for slower devices: the table on one screen. Close and restart GBA DS to apply."
+msgstr ""
+
+#: src/ra.c:1041
+msgid "Off while a patch is on"
+msgstr ""
+
+#: src/esinteg.c:389
+msgid "Off."
+msgstr ""
+
+#: src/esinteg.c:422
+msgid "Off. Restart BananaOS (Settings > System) for its menu to use it."
+msgstr ""
+
+#: src/esinteg.c:275
+msgid "Off. Restart EmulationStation to apply."
+msgstr ""
+
+#: src/config.c:512
+msgid "Off: every game plays like an ordinary GBA game."
+msgstr ""
+
+#: src/config.c:490
+msgid "Off: the left stick does nothing in games."
+msgstr ""
+
+#: src/ra.c:837
+msgid "Offline"
+msgstr ""
+
+#: src/game.c:3304
+msgid "OK"
+msgstr ""
+
+#: src/config.c:432 src/game.c:1531
+msgid "On"
+msgstr ""
+
+#: src/game.c:2102
+msgid "on"
+msgstr ""
+
+#: src/esinteg.c:429
+msgid "On."
+msgstr ""
+
+#: src/esinteg.c:381
+msgid "On. Restart BananaOS (Settings > System) for its menu to use it."
+msgstr ""
+
+#: src/esinteg.c:264
+msgid "On. Restart EmulationStation to see it."
+msgstr ""
+
+#: src/library.c:1007
+msgid "Only games with a map screen are listed (show_all = 1 lists every one)"
+msgstr ""
+
+#: src/game.c:3512
+msgid "Only one screen: nothing to move"
+msgstr ""
+
+#: src/game.c:2010
+msgid "Only patches that are on have an order, and this is the only one"
+msgstr ""
+
+#: src/config.c:479
+msgid "Only when your two screens differ in shape. Experimental."
+msgstr ""
+
+#: src/hotkeys.c:21
+msgid "Open quick menu"
+msgstr ""
+
+#: src/game.c:3539
+msgid "Opens the bezel's own page, for whichever the game or all games have"
+msgstr ""
+
+#: src/config.c:430
+msgid "Orange"
+msgstr ""
+
+#: src/game.c:2993 src/game.c:3265
+msgid "Outer Bezel Color"
+msgstr ""
+
+#: src/game.c:3537
+msgid "Overlay colors and logo"
+msgstr ""
+
+#: src/config.c:481 src/game.c:3224
+msgid "Overlays"
 msgstr ""
 
 #: src/config.c:482
-msgid "The GBA DS logo in the generated bezel."
+msgid "Overlays on"
 msgstr ""
 
-#: src/config.c:485
-msgid "The menus' buttons: dark grey, or light grey like the web player's."
+#: src/game.c:3817
+msgid "Overlays: Custom"
 msgstr ""
 
-#: src/config.c:486
-msgid "The menus' color for what's selected, with a dark and a light version of each."
+#: src/game.c:2987
+msgid "Overlays: Custom (in /overlays)"
 msgstr ""
 
-#: src/config.c:444
-msgid "Top screen"
+#: src/game.c:2987 src/game.c:3817
+msgid "Overlays: Generated"
 msgstr ""
 
-#: src/config.c:487
-msgid "Top screen brightness"
+#: src/game.c:2987 src/game.c:3817
+msgid "Overlays: Off"
 msgstr ""
 
-#: src/library.c:1081
-msgid "Touch or use the D-Pad"
+#: src/library.c:780
+#, c-format
+msgid "Patch not applied: %s can't be read"
 msgstr ""
 
-#: src/config.c:449
-msgid "Turbo A"
+#: src/library.c:778
+#, c-format
+msgid "Patch not applied: %s is for another ROM"
 msgstr ""
 
-#: src/config.c:449
-msgid "Turbo B"
+#: src/library.c:776
+msgid "Patched, but a patch was left out: see Patches in the game's menu"
 msgstr ""
 
-#: src/config.c:501
-msgid "Turbo speed"
+#: src/library.c:786
+msgid "Patched: the second screen may not work"
 msgstr ""
 
-#: src/config.c:498
-msgid "What D-pad down gives the game."
+#: src/game.c:2156
+msgid "Patches"
 msgstr ""
 
-#: src/config.c:499
-msgid "What D-pad left gives the game."
+#: src/game.c:8076
+msgid "Patches changed"
 msgstr ""
 
-#: src/config.c:500
-msgid "What D-pad right gives the game."
+#: src/game.c:1784
+msgid "Patches changed since the game started"
 msgstr ""
 
-#: src/config.c:497
-msgid "What D-pad up gives the game."
+#: src/game.c:8076
+msgid "Patches changed: carrying on from where you were"
 msgstr ""
 
-#: src/config.c:492
-msgid "What the bottom face button gives the game."
+#: src/config.c:473
+msgid "Pattern strength"
 msgstr ""
 
-#: src/config.c:495
-msgid "What the L shoulder button gives the game."
+#: src/game.c:2455 src/game.c:2459
+msgid "Paused"
 msgstr ""
 
-#: src/config.c:494
-msgid "What the left face button gives the game."
+#: src/config.c:510
+msgid "Performance"
 msgstr ""
 
-#: src/config.c:496
-msgid "What the R shoulder button gives the game."
+#: src/library.c:2073
+msgid "Performance: Let the System Decide"
 msgstr ""
 
-#: src/config.c:491
-msgid "What the right face button gives the game."
+#: src/library.c:2073
+msgid "Performance: Set to Max"
 msgstr ""
 
-#: src/config.c:493
-msgid "What the top face button gives the game."
+#: src/config.c:480
+msgid "Pictures in the middle of their screens, or close together."
 msgstr ""
 
-#: src/config.c:477
-msgid "Which screen the game is on."
+#: src/config.c:514
+msgid "Pinball two-screen view"
 msgstr ""
 
-#: src/config.c:481
-msgid "Which screens have them."
+#: src/config.c:430
+msgid "Pink"
 msgstr ""
 
-#: src/config.c:433
-msgid "With tags, like (USA)"
+#: src/game.c:8328
+msgid "Pinned: the bar stays up."
 msgstr ""
 
-#: src/config.c:493
-msgid "X (top) button"
-msgstr ""
-
-#: src/config.c:494
-msgid "Y (left) button"
-msgstr ""
-
-#: src/config.c:466
-msgid "Your own and scraped logos on the second screen."
-msgstr ""
-
-#: src/game.c:3253
-msgid "Your own PNGs in gba-ds/overlays/. A screen without one gets the generated bezel in its default colors."
+#: src/config.c:436
+msgid "Pixel Perfect"
 msgstr ""
 
 #: src/config.c:435
+msgid "Pixelated"
+msgstr ""
+
+#: src/library.c:1267
+msgid "Placement, overlays"
+msgstr ""
+
+#: src/config.c:434
+msgid "Plain"
+msgstr ""
+
+#: src/library.c:735
+msgid "Play"
+msgstr ""
+
+#: src/ra.c:691
+msgid "Playing without achievements this time"
+msgstr ""
+
+#: src/game.c:1369
+msgid "PM"
+msgstr ""
+
+#: src/ra.c:584 src/ra.c:1271
+msgid "point"
+msgstr ""
+
+#: src/ra.c:584 src/ra.c:1271
+msgid "points"
+msgstr ""
+
+#: src/library.c:2332
+msgid "Preparing the game..."
+msgstr ""
+
+#: src/game.c:3295
+msgid "presets"
+msgstr ""
+
+#: src/mapper.c:257
+#, c-format
+msgid "Press %s"
+msgstr ""
+
+#: src/hotkeys.c:112
+msgid "Press a button"
+msgstr ""
+
+#: src/mapper.c:250
+msgid "Press A or tap to close"
+msgstr ""
+
+#: src/mapper.c:250
+msgid "Press A to close"
+msgstr ""
+
+#: src/mapper.c:45
+msgid "press the left stick in"
+msgstr ""
+
+#: src/config.c:430
+msgid "Purple"
+msgstr ""
+
+#: src/mapper.c:47
+msgid "push the left stick left"
+msgstr ""
+
+#: src/mapper.c:46
+msgid "push the left stick up"
+msgstr ""
+
+#: src/mapper.c:351
+msgid "Push the stick: buttons don't count for this one."
+msgstr ""
+
+#: src/game.c:1825
+#, c-format
+msgid "Put .ips, .ups, .bps or .xdelta files in %s"
+msgstr ""
+
+#: src/config.c:468
+msgid "Quick bar hint"
+msgstr ""
+
+#: src/hotkeys.c:21
+msgid "Quick load state"
+msgstr ""
+
+#: src/hotkeys.c:21
+msgid "Quick save state"
+msgstr ""
+
+#: src/library.c:738
+msgid "Quit"
+msgstr ""
+
+#: src/config.c:497
+msgid "R button"
+msgstr ""
+
+#: src/config.c:509
+msgid "Raise it if the sound crackles."
+msgstr ""
+
+#: src/config.c:430
+msgid "Red"
+msgstr ""
+
+#: src/game.c:2928
+msgid "Red, green and blue stripes, gentle: for dim screens"
+msgstr ""
+
+#: src/game.c:2929
+msgid "Red, green and blue stripes, like a GBA's screen"
+msgstr ""
+
+#: src/game.c:2930
+msgid "Red, green and blue stripes, strong: for bright screens"
+msgstr ""
+
+#: src/hotkeys.c:103
+msgid "Reset"
+msgstr ""
+
+#: src/game.c:2994
+msgid "Reset Bezels"
+msgstr ""
+
+#: src/library.c:1651 src/library.c:2069
+msgid "Reset settings to defaults"
+msgstr ""
+
+#: src/game.c:2160
+msgid "Restart"
+msgstr ""
+
+#: src/game.c:2124
+msgid "Restart from the top row to play with it (or it's used from the next start)"
+msgstr ""
+
+#: src/game.c:2004
+msgid "Restart from the top row to play with this order"
+msgstr ""
+
+#: src/game.c:1152 src/game.c:1243 src/game.c:1249
+msgid "Restart Game"
+msgstr ""
+
+#: src/game.c:3571
+msgid "Restart required"
+msgstr ""
+
+#: src/game.c:1152 src/game.c:1243 src/game.c:1249
+msgid "Resume"
+msgstr ""
+
+#: src/game.c:8079
+msgid "Resumed. Tap or HOME for the menu"
+msgstr ""
+
+#: src/ra.c:961
+msgid "RetroAchievements couldn't start"
+msgstr ""
+
+#: src/ra.c:1041
+msgid "RetroAchievements doesn't allow patched games"
+msgstr ""
+
+#: src/ra.c:1200
+msgid "RetroAchievements is off"
+msgstr ""
+
+#: src/ra.c:787
+msgid "RETROACHIEVEMENTS · CASUAL"
+msgstr ""
+
+#: src/library.c:1642
+msgid "RetroAchievements: Off"
+msgstr ""
+
+#: src/library.c:1643
+msgid "RetroAchievements: Sign In"
+msgstr ""
+
+#: src/library.c:1640
+msgid "RetroAchievements: Sign Out"
+msgstr ""
+
+#: src/library.c:1641
+msgid "RetroAchievements: Signing In..."
+msgstr ""
+
+#: src/library.c:2037
+msgid "RetroArch's settings weren't found here: choose the folder where it keeps its save states."
+msgstr ""
+
+#: src/library.c:2025
+msgid "RetroArch's settings weren't found, so slots 0-9 and the automatic state are GBA DS's own again."
+msgstr ""
+
+#: src/library.c:2012
+msgid "RetroArch's State Folder"
+msgstr ""
+
+#: src/library.c:2022
+#, c-format
+msgid "RetroArch's state folder is found from its settings again: %s."
+msgstr ""
+
+#: src/config.c:506
+msgid "Rewind"
+msgstr ""
+
+#: src/config.c:507
+msgid "Rewind length"
+msgstr ""
+
+#: src/library.c:1269
+msgid "Rewind, fast forward"
+msgstr ""
+
+#: src/game.c:3804
+msgid "Rewind: Off"
+msgstr ""
+
+#: src/game.c:3804
+msgid "Rewind: On"
+msgstr ""
+
+#: src/game.c:2784 src/game.c:2790
+msgid "Rewinding..."
+msgstr ""
+
+#: src/hotkeys.c:20 src/mapper.c:33
+msgid "Right"
+msgstr ""
+
+#: src/library.c:783
+#, c-format
+msgid "Romhack: %s%s"
+msgstr ""
+
+#: src/library.c:784
+#, c-format
+msgid "Romhack: %s%s, untested"
+msgstr ""
+
+#: src/library.c:1650
+msgid "Rotation: Auto"
+msgstr ""
+
+#: src/library.c:1650
+msgid "Rotation: Landscape"
+msgstr ""
+
+#: src/library.c:1650
+msgid "Rotation: Portrait"
+msgstr ""
+
+#: src/config.c:504
+msgid "Run at the display's rate: no small regular stutter."
+msgstr ""
+
+#: src/game.c:7535
+msgid "Same as all games again"
+msgstr ""
+
+#: src/game.c:7631
+msgid "Save failed"
+msgstr ""
+
+#: src/game.c:8298 src/game.c:8609
+msgid "Save failed."
+msgstr ""
+
+#: src/library.c:1887
+msgid "Save files: .sav"
+msgstr ""
+
+#: src/library.c:1887
+msgid "Save files: .srm (RetroArch's)"
+msgstr ""
+
+#: src/config.c:465
+msgid "Save on quit"
+msgstr ""
+
+#: src/game.c:3800
+msgid "Save on Quit: Off"
+msgstr ""
+
+#: src/game.c:3800
+msgid "Save on Quit: On"
+msgstr ""
+
+#: src/game.c:1152 src/game.c:1243 src/game.c:1249
+msgid "Save State"
+msgstr ""
+
+#: src/game.c:1296 src/game.c:3825
+#, c-format
+msgid "Save State %d"
+msgstr ""
+
+#: src/library.c:2071
+msgid "Save States: GBA DS's Own"
+msgstr ""
+
+#: src/library.c:2071
+msgid "Save States: Shared with RetroArch"
+msgstr ""
+
+#: src/game.c:7646
+msgid "Saved by another emulator: can't load it"
+msgstr ""
+
+#: src/game.c:7460
+msgid "Saved for all games"
+msgstr ""
+
+#: src/game.c:7460
+msgid "Saved for this game"
+msgstr ""
+
+#: src/game.c:2064
+msgid "Saved for when a patch is on"
+msgstr ""
+
+#: src/library.c:1950
+msgid "Saves will be kept next to the games."
+msgstr ""
+
+#: src/library.c:1833
+msgid "Saves will be kept there."
+msgstr ""
+
+#: src/library.c:1266
+msgid "Scale, shader, theme, color"
+msgstr ""
+
+#: src/game.c:3460
+msgid "Scale: Full Width"
+msgstr ""
+
+#: src/game.c:3462
+msgid "Scale: Pixel Perfect"
+msgstr ""
+
+#: src/game.c:3462
+msgid "Scale: Stretch"
+msgstr ""
+
+#: src/game.c:3461
+msgid "Scale: Zoom"
+msgstr ""
+
+#: src/config.c:438
+msgid "Scanlines"
+msgstr ""
+
+#: src/config.c:480
+msgid "Screen placement"
+msgstr ""
+
+#: src/game.c:3814
+msgid "Screen Placement: Centered"
+msgstr ""
+
+#: src/game.c:3814
+msgid "Screen Placement: Closest to Gap"
+msgstr ""
+
+#: src/config.c:479
+msgid "Screen shapes"
+msgstr ""
+
+#: src/config.c:478
+msgid "Screens"
+msgstr ""
+
+#: src/game.c:7697
+msgid "Screenshot failed"
+msgstr ""
+
+#: src/game.c:7697
+msgid "Screenshot saved"
+msgstr ""
+
+#: src/config.c:512
+msgid "Second screen"
+msgstr ""
+
+#: src/config.c:471
+msgid "Second screen scale"
+msgstr ""
+
+#: src/config.c:450
+msgid "Select"
+msgstr ""
+
+#: src/hotkeys.c:133
+msgid "Select or Start still reach the game when tapped on their own, L3 still opens the quick menu"
+msgstr ""
+
+#: src/game.c:1367
+msgid "Sep"
+msgstr ""
+
+#: src/game.c:1786
+msgid "Separate battery save"
+msgstr ""
+
+#: src/game.c:1788
+msgid "Separate save states"
+msgstr ""
+
+#: src/mapper.c:434
+#, c-format
+msgid "Set for now, but %s couldn't be written."
+msgstr ""
+
+#: src/config.c:456
+msgid "Set to Max"
+msgstr ""
+
+#: src/library.c:1425
+msgid "Sets the shortcuts: the hotkey button held with another."
+msgstr ""
+
+#: src/library.c:1425
+msgid "Sets which of this device's buttons does what."
+msgstr ""
+
+#: src/library.c:1091
+msgid "Settings"
+msgstr ""
+
+#: src/library.c:1511
+msgid "Settings are back to their defaults."
+msgstr ""
+
+#: src/config.c:472
+msgid "Shader"
+msgstr ""
+
+#: src/game.c:2920
+msgid "Shader: LCD Grid"
+msgstr ""
+
+#: src/game.c:2920
+msgid "Shader: Off"
+msgstr ""
+
+#: src/game.c:2920
+msgid "Shader: Scanlines"
+msgstr ""
+
+#: src/game.c:2920
+msgid "Shader: Soft Cells"
+msgstr ""
+
+#: src/game.c:2921
+msgid "Shader: Subpixels"
+msgstr ""
+
+#: src/game.c:2921
+msgid "Shader: Subpixels (Light)"
+msgstr ""
+
+#: src/game.c:2921
+msgid "Shader: Subpixels (Strong)"
+msgstr ""
+
+#: src/config.c:513
+msgid "Shorter can make the sound crackle on a slow device."
+msgstr ""
+
+#: src/config.c:484
+msgid "Show FPS"
+msgstr ""
+
+#: src/game.c:3802
+msgid "Show FPS: Off"
+msgstr ""
+
+#: src/game.c:3802
+msgid "Show FPS: On"
+msgstr ""
+
+#: src/ra.c:719
+msgid "Sign in again in the game list's Settings"
+msgstr ""
+
+#: src/ra.c:719 src/ra.c:722
+msgid "Sign-in failed"
+msgstr ""
+
+#: src/library.c:1679
+#, c-format
+msgid "Signed in as %s. Achievements are earned in casual mode."
+msgstr ""
+
+#: src/library.c:1732
+msgid "Signed out of RetroAchievements."
+msgstr ""
+
+#: src/library.c:1681
+#, c-format
+msgid "Signing in as %s..."
+msgstr ""
+
+#: src/library.c:1028 src/library.c:1031 src/library.c:1071 src/library.c:1074
+msgid "Single screen only"
+msgstr ""
+
+#: src/library.c:766
+msgid "Single screen only: plays normally"
+msgstr ""
+
+#: src/game.c:2377
+msgid "Skip"
+msgstr ""
+
+#: src/library.c:2200
+msgid "Skip this version"
+msgstr ""
+
+#: src/mapper.c:275
+#, c-format
+msgid "Skipped in %d s if nothing is pressed"
+msgstr ""
+
+#: src/game.c:7639
+#, c-format
+msgid "Slot %d loaded"
+msgstr ""
+
+#: src/game.c:1358
+#, c-format
+msgid "Slot %d: %s"
+msgstr ""
+
+#: src/game.c:1368
+#, c-format
+msgid "Slot %d: %s %d, %d%s"
+msgstr ""
+
+#: src/game.c:1369
+#, c-format
+msgid "Slot %d: %s %d, %d:%02d %s%s"
+msgstr ""
+
+#: src/game.c:1350
+#, c-format
+msgid "Slot %d: Empty"
+msgstr ""
+
+#: src/library.c:2055
+msgid "Slots 0-9 and the automatic state are GBA DS's own again. The states saved in RetroArch's folder stay there."
+msgstr ""
+
+#: src/library.c:2055
+msgid "Slots 0-9 and the automatic state are now RetroArch's. GBA DS's own states stay in its folder, for when this is switched back."
+msgstr ""
+
+#: src/library.c:2018
+#, c-format
+msgid "Slots 0-9 and the automatic state are now shared with RetroArch, in %s."
+msgstr ""
+
+#: src/library.c:1998
+#, c-format
+msgid "Slots 0-9 and the resume point are GBA DS's own. Shared, they're RetroArch's: %s."
+msgstr ""
+
+#: src/library.c:1996
+msgid "Slots 0-9 and the resume point are GBA DS's own. To share them, choose RetroArch's state folder."
+msgstr ""
+
+#: src/library.c:2000
+#, c-format
+msgid "Slots 0-9 and the resume point are RetroArch's (its GBA core set to mGBA): %s."
+msgstr ""
+
+#: src/config.c:452
+msgid "Slow (10 a second)"
+msgstr ""
+
+#: src/config.c:476
+msgid "Smooth scaling"
+msgstr ""
+
+#: src/config.c:505
+msgid "Smoother, one frame more input delay."
+msgstr ""
+
+#: src/game.c:5492
+msgid "SNES"
+msgstr ""
+
+#: src/config.c:438
+msgid "Soft Cells"
+msgstr ""
+
+#: src/paths.c:751
+#, c-format
+msgid "Some files couldn't be moved, they're still in %s"
+msgstr ""
+
+#: src/config.c:509
+msgid "Sound delay"
+msgstr ""
+
+#: src/game.c:2318
+msgid "Space"
+msgstr ""
+
+#: src/game.c:1212
+msgid "Speed"
+msgstr ""
+
+#: src/library.c:1269
+msgid "Speed and sound"
+msgstr ""
+
+#: src/config.c:449
+msgid "Start"
+msgstr ""
+
+#: src/config.c:466
+msgid "Starting a game picks up where you closed it."
+msgstr ""
+
+#: src/game.c:8302 src/game.c:8612
+msgid "State loaded."
+msgstr ""
+
+#: src/game.c:7627
+#, c-format
+msgid "State saved to slot %d"
+msgstr ""
+
+#: src/game.c:8298 src/game.c:8609
+msgid "State saved."
+msgstr ""
+
+#: src/library.c:1268
+msgid "Stick, buttons, hotkeys"
+msgstr ""
+
+#: src/config.c:436
+msgid "Stretch"
+msgstr ""
+
+#: src/game.c:1154 src/game.c:1244
+msgid "Submit a Bug Report"
+msgstr ""
+
+#: src/config.c:439
+msgid "Subpixels"
+msgstr ""
+
+#: src/config.c:439
+msgid "Subpixels (Light)"
+msgstr ""
+
+#: src/config.c:439
+msgid "Subpixels (Strong)"
+msgstr ""
+
+#: src/library.c:912
+msgid "Supported"
+msgstr ""
+
+#: src/config.c:433
+msgid "Supported games only"
+msgstr ""
+
+#: src/game.c:2182
+msgid "Sure?"
+msgstr ""
+
+#: src/game.c:1152
+msgid "Swap Screens"
+msgstr ""
+
+#: src/hotkeys.c:21
+msgid "Swap screens"
+msgstr ""
+
+#: src/config.c:446
+msgid "Swapped"
+msgstr ""
+
+#: src/game.c:2753
+msgid "Swipe up for quick menu"
+msgstr ""
+
+#: src/library.c:1688
+msgid "Switched off in gba-ds.cfg (retroachievements = 0)."
+msgstr ""
+
+#: src/library.c:1220
+msgid "System"
+msgstr ""
+
+#: src/config.c:464
+msgid "Tags in a ROM's file name, like (USA) or (En,Fr,De)."
+msgstr ""
+
+#: src/game.c:1153 src/game.c:1244
+msgid "Take Screenshot"
+msgstr ""
+
+#: src/game.c:7454
+msgid "Takes effect after you close and restart GBA DS"
+msgstr ""
+
+#: src/game.c:8315
+msgid "Tap again to close GBA DS."
+msgstr ""
+
+#: src/game.c:8085
+msgid "Tap the screen or press HOME for the menu"
+msgstr ""
+
+#: src/mapper.c:266
+msgid "Tap the touchscreen to skip a button this device doesn't have"
+msgstr ""
+
+#: src/hotkeys.c:131
+msgid "Tap to set none"
+msgstr ""
+
+#: src/mapper.c:266
+msgid "Tap to skip a button this device doesn't have"
+msgstr ""
+
+#: src/config.c:430
+msgid "Teal"
+msgstr ""
+
+#: src/game.c:1699
+#, c-format
+msgid "Tested romhack: %s"
+msgstr ""
+
+#: src/mapper.c:344
+msgid "That one comes as a keyboard key here: it can't be mapped. Tap to skip."
+msgstr ""
+
+#: src/mapper.c:359
+#, c-format
+msgid "That one is already %s. Press another, or tap to skip."
+msgstr ""
+
+#: src/library.c:1786
+msgid "That's inside GBA DS's own folder: choose one outside it."
+msgstr ""
+
+#: src/hotkeys.c:180
+msgid "That's the hotkey button: press another"
+msgstr ""
+
+#: src/mapper.c:35
+msgid "the bottom face button"
+msgstr ""
+
+#: src/mapper.c:44
+msgid "the button that opens GBA DS's menu (Home, Menu or Function)"
+msgstr ""
+
+#: src/game.c:7597
+msgid "the game"
+msgstr ""
+
+#: src/game.c:2924
+msgid "The game's pixels as they are"
+msgstr ""
+
+#: src/config.c:483
+msgid "The GBA DS logo in the generated bezel."
+msgstr ""
+
+#: src/hotkeys.c:154
+#, c-format
+msgid "The hotkey button can be %s, Select, Start or L3"
+msgstr ""
+
+#: src/mapper.c:37
+msgid "the left face button"
+msgstr ""
+
+#: src/mapper.c:38
+msgid "the left shoulder button"
+msgstr ""
+
+#: src/library.c:1270
+msgid "The map and the logo"
+msgstr ""
+
+#: src/config.c:486
+msgid "The menus' buttons: dark grey, or light grey like the web player's."
+msgstr ""
+
+#: src/config.c:487
+msgid "The menus' color for what's selected, with a dark and a light version of each."
+msgstr ""
+
+#: src/game.c:1865
+msgid "the patch beside the ROM"
+msgstr ""
+
+#: src/game.c:1784
+msgid "The patches aren't as the game started: restart it to play with them (or they're used from the next start)"
+msgstr ""
+
+#: src/library.c:2088
+msgid "The processor, memory and graphics run at full speed while GBA DS is open: the smoothest play, but the battery runs down faster and the device gets warmer."
+msgstr ""
+
+#: src/mapper.c:34
+msgid "the right face button"
+msgstr ""
+
+#: src/mapper.c:39
+msgid "the right shoulder button"
+msgstr ""
+
+#: src/mapper.c:40
+msgid "the second left shoulder button"
+msgstr ""
+
+#: src/mapper.c:41
+msgid "the second right shoulder button"
+msgstr ""
+
+#: src/library.c:2089
+msgid "The system sets the speed, as for its other emulators. If games stutter or the sound breaks up, try Set to Max."
+msgstr ""
+
+#: src/mapper.c:36
+msgid "the top face button"
+msgstr ""
+
+#: src/folderpick.c:73
+msgid "This folder can't be opened"
+msgstr ""
+
+#: src/game.c:3523
+msgid "This game"
+msgstr ""
+
+#: src/game.c:3580
+msgid "This game has its own value. X, or going on past the last choice: same as all games"
+msgstr ""
+
+#: src/ra.c:781 src/ra.c:1209
+msgid "This game has no achievements yet"
+msgstr ""
+
+#: src/library.c:2258
+#, c-format
+msgid "This is GBA DS v%s."
+msgstr ""
+
+#: src/library.c:1167
+#, c-format
+msgid "This is v%s. Look for a new version, and download and install it."
+msgstr ""
+
+#: src/game.c:7648
+msgid "This state can't be read"
+msgstr ""
+
+#: src/game.c:5759
+#, c-format
+msgid "This state was saved %s: it may not work"
+msgstr ""
+
+#: src/game.c:1887
+#, c-format
+msgid "Together: %s"
+msgstr ""
+
+#: src/hotkeys.c:22
+msgid "Toggle selected shader"
+msgstr ""
+
+#: src/config.c:445
+msgid "Top screen"
+msgstr ""
+
+#: src/config.c:488
+msgid "Top screen brightness"
+msgstr ""
+
+#: src/library.c:1085
+msgid "Touch or use the D-Pad"
+msgstr ""
+
+#: src/config.c:450
+msgid "Turbo A"
+msgstr ""
+
+#: src/config.c:450
+msgid "Turbo B"
+msgstr ""
+
+#: src/config.c:502
+msgid "Turbo speed"
+msgstr ""
+
+#: src/game.c:1702
+#, c-format
+msgid "Turns this ROM into another official release: %s"
+msgstr ""
+
+#: src/esinteg.c:191
+msgid "Unexpected es_systems.cfg (see the log)."
+msgstr ""
+
+#: src/ra.c:763
+msgid "Unknown version of this game"
+msgstr ""
+
+#: src/ra.c:1271
+msgid "Unlocked"
+msgstr ""
+
+#: src/ra.c:840
+msgid "Unlocks sent"
+msgstr ""
+
+#: src/ra.c:837
+msgid "Unlocks will be sent when the connection is back"
+msgstr ""
+
+#: src/game.c:8328
+msgid "Unpinned: the bar hides after 5 seconds."
+msgstr ""
+
+#: src/game.c:7595
+msgid "unsaved progress is lost"
+msgstr ""
+
+#: src/game.c:1703
+msgid "Untested: the second screen may not work with it"
+msgstr ""
+
+#: src/hotkeys.c:20 src/mapper.c:30
+msgid "Up"
+msgstr ""
+
+#: src/game.c:2085
+#, c-format
+msgid "Up to %d patches can be on at once"
+msgstr ""
+
+#: src/folderpick.c:169
+#, c-format
+msgid "Up to %s"
+msgstr ""
+
+#: src/library.c:2200
+msgid "Update now"
+msgstr ""
+
+#: src/library.c:1653 src/library.c:2074 src/library.c:2194
+msgid "Updates"
+msgstr ""
+
+#: src/library.c:1369
+msgid "Updates, integrations"
+msgstr ""
+
+#: src/folderpick.c:203
+msgid "Use This Folder"
+msgstr ""
+
+#: src/game.c:2064
+msgid "Used from the next time the game starts"
+msgstr ""
+
+#: src/ui.c:972
+#, c-format
+msgid "Volume %d%%"
+msgstr ""
+
+#: src/config.c:499
+msgid "What D-pad down gives the game."
+msgstr ""
+
+#: src/config.c:500
+msgid "What D-pad left gives the game."
+msgstr ""
+
+#: src/config.c:501
+msgid "What D-pad right gives the game."
+msgstr ""
+
+#: src/config.c:498
+msgid "What D-pad up gives the game."
+msgstr ""
+
+#: src/config.c:493
+msgid "What the bottom face button gives the game."
+msgstr ""
+
+#: src/config.c:496
+msgid "What the L shoulder button gives the game."
+msgstr ""
+
+#: src/config.c:495
+msgid "What the left face button gives the game."
+msgstr ""
+
+#: src/config.c:497
+msgid "What the R shoulder button gives the game."
+msgstr ""
+
+#: src/config.c:492
+msgid "What the right face button gives the game."
+msgstr ""
+
+#: src/config.c:494
+msgid "What the top face button gives the game."
+msgstr ""
+
+#: src/library.c:1673
+msgid "Where games are read from, and the folder their saves are kept in."
+msgstr ""
+
+#: src/library.c:1673
+msgid "Where games are read from. Their saves are kept next to them."
+msgstr ""
+
+#: src/library.c:1265
+msgid "Which games, names, saving"
+msgstr ""
+
+#: src/config.c:478
+msgid "Which screen the game is on."
+msgstr ""
+
+#: src/game.c:2990
+msgid "Which Screen: Both"
+msgstr ""
+
+#: src/game.c:2990
+msgid "Which Screen: Bottom Only"
+msgstr ""
+
+#: src/game.c:2990
+msgid "Which Screen: Top Only"
+msgstr ""
+
+#: src/config.c:482
+msgid "Which screens have them."
+msgstr ""
+
+#: src/game.c:2106
+msgid "with"
+msgstr ""
+
+#: src/game.c:5750
+#, c-format
+msgid "with %s"
+msgstr ""
+
+#: src/game.c:1786
+msgid "With a patch on, the game keeps its own battery save (\"<game> + <patch>\"): off, it uses the original's"
+msgstr ""
+
+#: src/game.c:1788
+msgid "With a patch on, the game keeps its own save states: off, it uses the original's (a state can come out garbled in the other)"
+msgstr ""
+
+#: src/game.c:5755
+#, c-format
+msgid "with another dump of the game (%s)"
+msgstr ""
+
+#: src/game.c:5757
+msgid "with another version of the game (other patches, or another ROM)"
+msgstr ""
+
+#: src/library.c:2270
+msgid "With automatic checks on, GBA DS looks for a new version once a day when the game list opens, and asks before downloading anything. Updates come from the releases on github.com/kyannon/gba-ds."
+msgstr ""
+
+#: src/game.c:3579
+msgid "With Four buttons picked under Controls in the quick bar, the four-button layout replaces these."
+msgstr ""
+
+#: src/game.c:3579
+msgid "With SNES picked under Controls in the quick bar, the SNES layout replaces these in levels."
+msgstr ""
+
+#: src/config.c:434
+msgid "With tags, like (USA)"
+msgstr ""
+
+#: src/game.c:5755
+#, c-format
+msgid "with the unchanged game (%s)"
+msgstr ""
+
+#: src/game.c:2106
+msgid "without"
+msgstr ""
+
+#: src/game.c:5749
+msgid "without the patches on"
+msgstr ""
+
+#: src/config.c:494
+msgid "X (top) button"
+msgstr ""
+
+#: src/config.c:495
+msgid "Y (left) button"
+msgstr ""
+
+#: src/config.c:467
+msgid "Your own and scraped logos on the second screen."
+msgstr ""
+
+#: src/game.c:3254
+msgid "Your own PNGs in gba-ds/overlays/. A screen without one gets the generated bezel in its default colors."
+msgstr ""
+
+#: src/game.c:7595
+msgid "your place is saved"
+msgstr ""
+
+#: src/game.c:3511
+msgid "Your screens are the same shape: nothing to match"
+msgstr ""
+
+#: src/config.c:436
 msgid "Zoom"
 msgstr ""
 
-#: src/game.c:3556 src/game.c:3831 src/library.c:1403
+#: src/game.c:3557 src/game.c:3831 src/library.c:1414
 msgid "‹"
 msgstr ""
 
-#: src/game.c:3537 src/game.c:3552 src/game.c:3832 src/library.c:1221 ...
+#: src/game.c:3538 src/game.c:3553 src/game.c:3832 src/library.c:1232 ...
 msgid "›"
 msgstr ""
