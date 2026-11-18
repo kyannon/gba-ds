@@ -1,5 +1,6 @@
 #include "textfont.h"
 #include "fonts_data.h"
+#include "inflate.h"
 
 #pragma GCC diagnostic ignored "-Wunused-function" /* stb_truetype has many we don't call */
 #pragma GCC diagnostic push
@@ -18,7 +19,8 @@
 static stbtt_fontinfo fonts[TF_COUNT];
 static int capUnits[TF_COUNT]; /* height of "H" in font units */
 static bool ready[TF_COUNT];
-static pthread_once_t once = PTHREAD_ONCE_INIT;
+static unsigned char* heap[TF_COUNT]; /* a decoded font, kept for the session */
+static pthread_mutex_t fontLock = PTHREAD_MUTEX_INITIALIZER;
 
 /* the embedded font each of TF_* is */
 static const int fontData[TF_COUNT] = {
@@ -30,15 +32,34 @@ static const int fontData[TF_COUNT] = {
 	[TF_ZT_BODY] = EMBEDDED_NOTO_SANS_TC_REGULAR,
 };
 
-static void init(void) {
-	for (int f = 0; f < TF_COUNT; ++f) {
+/* Decodes and parses a face the first time it is drawn with: English's two
+ * are 200 KB together, and a Chinese one is only decoded if the language uses
+ * it (the bold ones carry a whole character set, about 2 MB and 4.7 MB). */
+static bool face(int f) {
+	if (f < 0 || f >= TF_COUNT) return false;
+	if (ready[f]) return true;
+	pthread_mutex_lock(&fontLock);
+	if (!ready[f]) {
 		const EmbeddedFont* e = &embeddedFonts[fontData[f]];
-		if (!stbtt_InitFont(&fonts[f], e->ttf, stbtt_GetFontOffsetForIndex(e->ttf, 0))) continue;
+		const unsigned char* ttf = e->ttf;
+		if (e->raw) {
+			unsigned char* buf = malloc(e->raw);
+			if (buf && zlib_inflate(e->ttf, e->size, buf, e->raw)) {
+				heap[f] = buf;
+				ttf = buf;
+			} else {
+				free(buf);
+			}
+		}
 		int x0, y0, x1, y1;
-		if (!stbtt_GetCodepointBox(&fonts[f], 'H', &x0, &y0, &x1, &y1) || y1 <= 0) continue;
-		capUnits[f] = y1;
-		ready[f] = true;
+		if (ttf && stbtt_InitFont(&fonts[f], ttf, stbtt_GetFontOffsetForIndex(ttf, 0)) &&
+		    stbtt_GetCodepointBox(&fonts[f], 'H', &x0, &y0, &x1, &y1) && y1 > 0) {
+			capUnits[f] = y1;
+			ready[f] = true;
+		}
 	}
+	pthread_mutex_unlock(&fontLock);
+	return ready[f];
 }
 
 /* Next code point from UTF-8 (invalid bytes come out as themselves). */
@@ -59,14 +80,12 @@ static float scale_for(int font, int capPx) {
 }
 
 bool tf_has_codepoint(int font, unsigned cp) {
-	pthread_once(&once, init);
-	if (font < 0 || font >= TF_COUNT || !ready[font]) return false;
+	if (!face(font)) return false;
 	return stbtt_FindGlyphIndex(&fonts[font], (int) cp) != 0;
 }
 
 int tf_width(int font, int capPx, const char* text) {
-	pthread_once(&once, init);
-	if (font < 0 || font >= TF_COUNT || !ready[font] || !text) return 0;
+	if (!text || !face(font)) return 0;
 	stbtt_fontinfo* fi = &fonts[font];
 	float sc = scale_for(font, capPx), x = 0;
 	int prev = 0;
@@ -83,9 +102,8 @@ int tf_width(int font, int capPx, const char* text) {
 }
 
 bool tf_render(int font, int capPx, const char* text, TfBitmap* out) {
-	pthread_once(&once, init);
 	memset(out, 0, sizeof(*out));
-	if (font < 0 || font >= TF_COUNT || !ready[font] || !text || capPx <= 0) return false;
+	if (!text || capPx <= 0 || !face(font)) return false;
 	stbtt_fontinfo* fi = &fonts[font];
 	float sc = scale_for(font, capPx);
 	int ascent, descent, gap;

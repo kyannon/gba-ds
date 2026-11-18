@@ -17,8 +17,9 @@ enum {
 };
 
 typedef struct {
-	const unsigned char* ttf;
+	const unsigned char* ttf; /* a zlib stream of the font's bytes */
 	size_t size;
+	size_t raw; /* how many bytes it decodes to */
 } EmbeddedFont;
 
 extern const EmbeddedFont embeddedFonts[EMBEDDED_FONT_COUNT];

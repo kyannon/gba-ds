@@ -52,17 +52,17 @@ jobs:
         run: |
           python3 tools/make_i18n.py
           git diff --exit-code -- src/i18n_zh.c src/i18n_zh.h src/i18n_zt.c src/i18n_zt.h
-      # the embedded fonts are the ones in assets/fonts (no fontTools needed)
+      # the embedded fonts decode to the ones in assets/fonts (no fontTools
+      # needed; the check decodes the arrays, so it doesn't care which zlib
+      # wrote the streams)
       - name: The fonts are embedded
-        run: |
-          python3 tools/embed_fonts.py
-          git diff --exit-code -- src/fonts_data.c
-      # every build has to compile the tables tr() links: the Makefile, the
-      # Android CMakeLists and the web build (the link failed once without them)
-      - name: The builds list the tables
+        run: python3 tools/embed_fonts.py --check
+      # every build has to compile the tables tr() links and the inflate the
+      # fonts need: the Makefile, the Android CMakeLists and the web build
+      - name: The builds list the sources
         run: |
           for f in Makefile android/app/src/main/cpp/CMakeLists.txt scripts/build-web.sh; do
-            for s in i18n.c i18n_zh.c i18n_zt.c; do
+            for s in i18n.c i18n_zh.c i18n_zt.c inflate.c; do
               grep -q "$s" "$f" || { echo "$f doesn't build $s"; exit 1; }
             done
             echo "$f: ok"
