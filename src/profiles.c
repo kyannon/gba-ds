@@ -5729,11 +5729,14 @@ typedef struct {
 	 * FF_NAMES, this long, then two bytes ending in the class; one record
 	 * every this many bytes (FF-12) */
 	int nameLen, stride;
+	/* Final Fantasy's battle block (FF-13): where its own address is, and
+	 * how far apart the characters' HP are */
+	uint32_t blkSelf, blkStride;
 } FfRegion;
 static const FfRegion ffRegions[] = {
-	{ "BFFE", 0x02000584, 0x0200099C, 12, 0x48 },
-	{ "BFFP", 0x020004D0, 0x0200080C, 12, 0x48 },
-	{ "BFFJ", 0x020004F8, 0x02000904, 8, 0x44 },
+	{ "BFFE", 0x02000584, 0x0200099C, 12, 0x48, 0x7E8, 0x60 },
+	{ "BFFP", 0x020004D0, 0x0200080C, 12, 0x48, 0x7E8, 0x60 },
+	{ "BFFJ", 0x020004F8, 0x02000904, 8, 0x44, 0x7D8, 0x5C },
 };
 #define FF_NAMES 0x7AC
 /* Final Fantasy II's characters: their names (Shift-JIS, up to 12 bytes,
@@ -5743,7 +5746,15 @@ static const FfRegion ffRegions[] = {
 #define FF2_STRIDE 0x80
 #define FF2_MARK_TILE 0x87 /* the marks' step with a one-pixel black outline (FF-11) */
 #define FF_BATTLE 0x02000000
-#define FF_V_LOGO 0xF0000080 /* outside the games (FF-2) */
+#define FF_V_LOGO 0xF0000080 /* outside the games (FF-2), or the party defeated (FF-13) */
+/* the party's HP in a battle (FF-13): Final Fantasy's in a block the game
+ * allocates for the battle (found by its word at FfRegion.blkSelf holding
+ * its own address), from FF1_BLK_HP, one every FfRegion.blkStride bytes;
+ * Final Fantasy II's at its memory's base + FF2_BAT_HP, one every 0x1F8
+ * bytes (the USA release's; assumed in the others) */
+#define FF1_BLK_HP 0x100
+#define FF2_BAT_HP 0x7250
+#define FF2_BAT_STRIDE 0x1F8
 #define FF_V_MAP 0xF0000084 /* Final Fantasy's map number */
 #define FF_MAP_W 128 /* the map screen's map, at its left, below the help window */
 #define FF2_WORLD 0x11C4 /* Final Fantasy II: 4 on the world map (past its base) */
@@ -5800,11 +5811,47 @@ static int ff_game(Emu* e) {
 	return 0;
 }
 
+/* Final Fantasy's battle block (FF-13): kept from one look to the next,
+ * looked for again when it no longer holds its own address. (The live
+ * side's own: the composer never looks at it) */
+static uint32_t ff1_block(Emu* e) {
+	static uint32_t blk;
+	const FfRegion* r = ff_r(e);
+	if (blk && emu_read32(e, blk + r->blkSelf) == blk) return blk;
+	blk = 0;
+	for (uint32_t a = 0x02000000; a + r->blkSelf + 4 <= 0x02040000; a += 4) {
+		if (emu_read32(e, a + r->blkSelf) != a) continue;
+		bool ok = true;
+		for (int c = 0; c < 4 && ok; ++c) ok = emu_read16(e, a + FF1_BLK_HP + 2 + c * r->blkStride) != 0; /* (max HP) */
+		if (ok) return blk = a;
+	}
+	return 0;
+}
+
+/* the whole party down in a battle: every HP 0 (FF-13) */
+static bool ff_defeated(Emu* e, int game) {
+	if (emu_read8(e, FF_BATTLE) != 1) return false;
+	uint32_t a, stride;
+	if (game == 2) {
+		uint32_t base = emu_read32(e, ff_r(e)->game2);
+		a = base + FF2_BAT_HP, stride = FF2_BAT_STRIDE;
+	} else {
+		if (!(a = ff1_block(e))) return false;
+		a += FF1_BLK_HP, stride = ff_r(e)->blkStride;
+	}
+	for (int c = 0; c < 4; ++c) {
+		if (emu_read16(e, a + c * stride)) return false;
+	}
+	return true;
+}
+
 static uint32_t ff_virt(Emu* e, uint32_t addr) {
 	if (addr == FF_V_LOGO) {
-		/* outside the games: the logo (FF-2); battles: captures, the
-		 * composer shows the party kept (FF-8) */
-		return !ff_game(e);
+		/* outside the games: the logo (FF-2); the party defeated: the
+		 * logo (FF-13); other battles: captures, the composer shows the
+		 * party kept (FF-8) */
+		int g = ff_game(e);
+		return !g || ff_defeated(e, g);
 	}
 	/* Final Fantasy's map number, Final Fantasy II's world map flag (4)
 	 * (FF-5, FF-10) */

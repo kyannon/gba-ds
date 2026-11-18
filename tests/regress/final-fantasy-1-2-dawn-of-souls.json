@@ -2528,6 +2528,724 @@
      "color": "000000"
     }
    ]
+  },
+  {
+   "id": "ff1-defeat",
+   "rom": "BFFE",
+   "state": "final-fantasy-1-2-dawn-of-souls/us-ff1-world.ss",
+   "desc": "Final Fantasy: the party kept on the world map, then a battle with goblins loaded (Desh at 1 HP, the others fallen) and fought (A) until the party is defeated: the party, then the logo from the defeat on",
+   "rules": [
+    "FF-13",
+    "FF-8"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:final-fantasy-1-2-dawn-of-souls/us-ff1-defeat.ss"
+    ],
+    [
+     300,
+     "A"
+    ],
+    [
+     350,
+     "A"
+    ],
+    [
+     400,
+     "A"
+    ],
+    [
+     450,
+     "A"
+    ],
+    [
+     500,
+     "A"
+    ],
+    [
+     550,
+     "A"
+    ],
+    [
+     600,
+     "A"
+    ],
+    [
+     650,
+     "A"
+    ],
+    [
+     700,
+     "A"
+    ],
+    [
+     750,
+     "A"
+    ],
+    [
+     800,
+     "A"
+    ],
+    [
+     850,
+     "A"
+    ],
+    [
+     900,
+     "A"
+    ],
+    [
+     950,
+     "A"
+    ],
+    [
+     1000,
+     "A"
+    ],
+    [
+     1050,
+     "A"
+    ],
+    [
+     1100,
+     "A"
+    ],
+    [
+     1150,
+     "A"
+    ],
+    [
+     1200,
+     "A"
+    ],
+    [
+     1250,
+     "A"
+    ],
+    [
+     1300,
+     "A"
+    ]
+   ],
+   "shots": {
+    "battle": 290,
+    "defeated": 700,
+    "later": 1250
+   },
+   "checks": [
+    {
+     "rule": "FF-8",
+     "what": "the party in the battle, not the logo",
+     "type": "not_pixels",
+     "shot": "battle",
+     "probes": [
+      [
+       42,
+       74,
+       "303030"
+      ]
+     ]
+    },
+    {
+     "rule": "FF-13",
+     "what": "the logo once the party is defeated",
+     "type": "pixels",
+     "shot": "defeated",
+     "probes": [
+      [
+       42,
+       74,
+       "303030"
+      ]
+     ]
+    },
+    {
+     "rule": "FF-13",
+     "what": "the logo stays",
+     "type": "pixels",
+     "shot": "later",
+     "probes": [
+      [
+       42,
+       74,
+       "303030"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ff2-defeat",
+   "rom": "BFFE",
+   "state": "final-fantasy-1-2-dawn-of-souls/us-ff2-pandaemonium.ss",
+   "desc": "Final Fantasy II: the party kept in Pandaemonium, then a battle with Fire Gigas loaded (everyone at 1 HP) and fought (A) until the party is defeated: the party, then the logo, on the game's own title too",
+   "rules": [
+    "FF-13",
+    "FF-8"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:final-fantasy-1-2-dawn-of-souls/us-ff2-defeat.ss"
+    ],
+    [
+     300,
+     "A"
+    ],
+    [
+     340,
+     "A"
+    ],
+    [
+     380,
+     "A"
+    ],
+    [
+     420,
+     "A"
+    ],
+    [
+     460,
+     "A"
+    ],
+    [
+     500,
+     "A"
+    ],
+    [
+     540,
+     "A"
+    ],
+    [
+     580,
+     "A"
+    ],
+    [
+     620,
+     "A"
+    ],
+    [
+     660,
+     "A"
+    ],
+    [
+     700,
+     "A"
+    ],
+    [
+     740,
+     "A"
+    ],
+    [
+     780,
+     "A"
+    ],
+    [
+     820,
+     "A"
+    ],
+    [
+     860,
+     "A"
+    ],
+    [
+     900,
+     "A"
+    ],
+    [
+     940,
+     "A"
+    ],
+    [
+     980,
+     "A"
+    ],
+    [
+     1020,
+     "A"
+    ],
+    [
+     1060,
+     "A"
+    ],
+    [
+     1100,
+     "A"
+    ],
+    [
+     1140,
+     "A"
+    ],
+    [
+     1180,
+     "A"
+    ],
+    [
+     1220,
+     "A"
+    ],
+    [
+     1260,
+     "A"
+    ],
+    [
+     1300,
+     "A"
+    ],
+    [
+     1340,
+     "A"
+    ],
+    [
+     1380,
+     "A"
+    ],
+    [
+     1420,
+     "A"
+    ],
+    [
+     1460,
+     "A"
+    ],
+    [
+     1500,
+     "A"
+    ]
+   ],
+   "shots": {
+    "battle": 290,
+    "title": 1300,
+    "later": 1600
+   },
+   "checks": [
+    {
+     "rule": "FF-8",
+     "what": "the party in the battle, not the logo",
+     "type": "not_pixels",
+     "shot": "battle",
+     "probes": [
+      [
+       42,
+       74,
+       "303030"
+      ]
+     ]
+    },
+    {
+     "rule": "FF-13",
+     "what": "the logo after the defeat, on the game's title",
+     "type": "pixels",
+     "shot": "title",
+     "probes": [
+      [
+       42,
+       74,
+       "303030"
+      ]
+     ]
+    },
+    {
+     "rule": "FF-13",
+     "what": "the logo stays",
+     "type": "pixels",
+     "shot": "later",
+     "probes": [
+      [
+       42,
+       74,
+       "303030"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ff1-eu-defeat",
+   "rom": "BFFP",
+   "state": "final-fantasy-1-2-dawn-of-souls/eu-ff1-world.ss",
+   "desc": "Europe, in English: Final Fantasy's party kept on the world map, then a battle with goblins loaded (the leader at 1 HP, the others fallen) and fought (A) to the party's defeat: the party, then the logo",
+   "rules": [
+    "FF-13",
+    "FF-8"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:final-fantasy-1-2-dawn-of-souls/eu-ff1-defeat.ss"
+    ],
+    [
+     300,
+     "A"
+    ],
+    [
+     350,
+     "A"
+    ],
+    [
+     400,
+     "A"
+    ],
+    [
+     450,
+     "A"
+    ],
+    [
+     500,
+     "A"
+    ],
+    [
+     550,
+     "A"
+    ],
+    [
+     600,
+     "A"
+    ],
+    [
+     650,
+     "A"
+    ],
+    [
+     700,
+     "A"
+    ],
+    [
+     750,
+     "A"
+    ],
+    [
+     800,
+     "A"
+    ],
+    [
+     850,
+     "A"
+    ],
+    [
+     900,
+     "A"
+    ],
+    [
+     950,
+     "A"
+    ],
+    [
+     1000,
+     "A"
+    ],
+    [
+     1050,
+     "A"
+    ],
+    [
+     1100,
+     "A"
+    ],
+    [
+     1150,
+     "A"
+    ],
+    [
+     1200,
+     "A"
+    ],
+    [
+     1250,
+     "A"
+    ],
+    [
+     1300,
+     "A"
+    ]
+   ],
+   "shots": {
+    "battle": 290,
+    "defeated": 700
+   },
+   "checks": [
+    {
+     "rule": "FF-8",
+     "what": "the party in the battle, not the logo",
+     "type": "not_pixels",
+     "shot": "battle",
+     "probes": [
+      [
+       42,
+       74,
+       "303030"
+      ]
+     ]
+    },
+    {
+     "rule": "FF-13",
+     "what": "the logo once the party is defeated",
+     "type": "pixels",
+     "shot": "defeated",
+     "probes": [
+      [
+       42,
+       74,
+       "303030"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ff2-eu-hideout",
+   "rom": "BFFP",
+   "state": "final-fantasy-1-2-dawn-of-souls/eu-ff2-hideout.ss",
+   "desc": "Europe, in English: Final Fantasy II in the Rebel Hideout: the party screen (no command window), as in the USA release",
+   "rules": [
+    "FF-10"
+   ],
+   "shots": {
+    "start": 90
+   },
+   "checks": [
+    {
+     "rule": "FF-10",
+     "what": "the menu was taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF-10",
+     "what": "no command window (its left edge), the party window's top edge running on",
+     "type": "not_pixels",
+     "shot": "start",
+     "probes": [
+      [
+       610,
+       186,
+       "FFFFFF"
+      ],
+      [
+       614,
+       186,
+       "CECECE"
+      ]
+     ]
+    },
+    {
+     "rule": "FF-12",
+     "what": "the party window's top edge over where the commands were",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       834,
+       66,
+       "FFFFFF"
+      ],
+      [
+       834,
+       70,
+       "CECECE"
+      ],
+      [
+       834,
+       74,
+       "212121"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ff1-jp-defeat",
+   "rom": "BFFJ",
+   "state": "final-fantasy-1-2-dawn-of-souls/jp-ff1-world.ss",
+   "desc": "Japan: Final Fantasy's party kept on the world map, then a battle with goblins loaded (the leader at 1 HP, the others fallen) and fought (A) to the party's defeat: the party, then the logo",
+   "rules": [
+    "FF-13",
+    "FF-8"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:final-fantasy-1-2-dawn-of-souls/jp-ff1-defeat.ss"
+    ],
+    [
+     300,
+     "A"
+    ],
+    [
+     350,
+     "A"
+    ],
+    [
+     400,
+     "A"
+    ],
+    [
+     450,
+     "A"
+    ],
+    [
+     500,
+     "A"
+    ],
+    [
+     550,
+     "A"
+    ],
+    [
+     600,
+     "A"
+    ],
+    [
+     650,
+     "A"
+    ],
+    [
+     700,
+     "A"
+    ],
+    [
+     750,
+     "A"
+    ],
+    [
+     800,
+     "A"
+    ],
+    [
+     850,
+     "A"
+    ],
+    [
+     900,
+     "A"
+    ],
+    [
+     950,
+     "A"
+    ],
+    [
+     1000,
+     "A"
+    ],
+    [
+     1050,
+     "A"
+    ],
+    [
+     1100,
+     "A"
+    ],
+    [
+     1150,
+     "A"
+    ],
+    [
+     1200,
+     "A"
+    ],
+    [
+     1250,
+     "A"
+    ],
+    [
+     1300,
+     "A"
+    ]
+   ],
+   "shots": {
+    "battle": 290,
+    "defeated": 700
+   },
+   "checks": [
+    {
+     "rule": "FF-8",
+     "what": "the party in the battle, not the logo",
+     "type": "not_pixels",
+     "shot": "battle",
+     "probes": [
+      [
+       42,
+       74,
+       "303030"
+      ]
+     ]
+    },
+    {
+     "rule": "FF-13",
+     "what": "the logo once the party is defeated",
+     "type": "pixels",
+     "shot": "defeated",
+     "probes": [
+      [
+       42,
+       74,
+       "303030"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ff2-jp-hideout",
+   "rom": "BFFJ",
+   "state": "final-fantasy-1-2-dawn-of-souls/jp-ff2-hideout.ss",
+   "desc": "Japan: Final Fantasy II in the Rebel Hideout: the party screen (no command window), as in the USA release",
+   "rules": [
+    "FF-10"
+   ],
+   "shots": {
+    "start": 90
+   },
+   "checks": [
+    {
+     "rule": "FF-10",
+     "what": "the menu was taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF-10",
+     "what": "no command window (its left edge), the party window's top edge running on",
+     "type": "not_pixels",
+     "shot": "start",
+     "probes": [
+      [
+       610,
+       186,
+       "FFFFFF"
+      ],
+      [
+       614,
+       186,
+       "CECECE"
+      ]
+     ]
+    },
+    {
+     "rule": "FF-12",
+     "what": "the party window's top edge over where the commands were",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       834,
+       66,
+       "FFFFFF"
+      ],
+      [
+       834,
+       70,
+       "CECECE"
+      ],
+      [
+       834,
+       74,
+       "212121"
+      ]
+     ]
+    }
+   ]
   }
  ]
 }
