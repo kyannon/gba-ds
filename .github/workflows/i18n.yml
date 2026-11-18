@@ -57,3 +57,35 @@ jobs:
         run: |
           python3 tools/embed_fonts.py
           git diff --exit-code -- src/fonts_data.c
+      # every build has to compile the tables tr() links: the Makefile, the
+      # Android CMakeLists and the web build (the link failed once without them)
+      - name: The builds list the tables
+        run: |
+          for f in Makefile android/app/src/main/cpp/CMakeLists.txt scripts/build-web.sh; do
+            for s in i18n.c i18n_zh.c i18n_zt.c; do
+              grep -q "$s" "$f" || { echo "$f doesn't build $s"; exit 1; }
+            done
+            echo "$f: ok"
+          done
+      # ...and they link and answer (a plain cc: no SDL or mGBA needed)
+      - name: The tables link and answer
+        run: |
+          cat > /tmp/t.c <<'EOF'
+          #include <string.h>
+          #include "i18n.h"
+          int main(void) {
+              i18n_init("en");
+              if (strcmp(tr("Cheats"), "Cheats")) return 1;      /* English is the identity */
+              if (strcmp(i18n_plural(2), "s")) return 2;
+              i18n_init("zh");
+              if (strlen(tr("Cheats")) != 9) return 3;            /* 金手指: 9 UTF-8 bytes */
+              if (i18n_plural(2)[0]) return 4;
+              i18n_init("zh-tw");
+              if (strlen(tr("Settings")) != 6) return 5;          /* 設定: 6 bytes */
+              if (i18n_entry_count() != 650) return 6;
+              return 0;
+          }
+          EOF
+          cc -O1 -I src /tmp/t.c src/i18n.c src/i18n_zh.c src/i18n_zt.c -o /tmp/t
+          /tmp/t
+
