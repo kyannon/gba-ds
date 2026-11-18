@@ -2999,10 +2999,13 @@ void ui_language_changed(void) {
 	tf_fallback_clear();
 	/* (Simplified Chinese is chained for every language, after Traditional's own: the Language list shows each
 	 * language's own name, and a game's name can have Chinese in it) */
-	bool trad = i18n_script() == SCRIPT_HAN_TC;
-	if (trad) {
+	int script = i18n_script();
+	if (script == SCRIPT_HAN_TC) {
 		tf_fallback_add(TF_BOLD, embeddedFonts[EMBEDDED_NOTO_TC_BOLD].ttf);
 		tf_fallback_add(TF_BODY, embeddedFonts[EMBEDDED_NOTO_TC_REGULAR].ttf);
+	} else if (script == SCRIPT_JP) { /* (Japanese shapes for the kanji, and the kana) */
+		tf_fallback_add(TF_BOLD, embeddedFonts[EMBEDDED_NOTO_JP_BOLD].ttf);
+		tf_fallback_add(TF_BODY, embeddedFonts[EMBEDDED_NOTO_JP_REGULAR].ttf);
 	}
 	tf_fallback_add(TF_BOLD, embeddedFonts[EMBEDDED_NOTO_SC_BOLD].ttf);
 	tf_fallback_add(TF_BODY, embeddedFonts[EMBEDDED_NOTO_SC_REGULAR].ttf);
@@ -3076,6 +3079,10 @@ static bool cp_no_start(int cp) { /* closing and sentence punctuation, which sta
 		case 0x3001: case 0x3002: case 0xFF0C: case 0xFF0E: case 0xFF1A: case 0xFF1B: case 0xFF1F: case 0xFF01: case 0xFF09:
 		case 0x3009: case 0x300B: case 0x300D: case 0x300F: case 0x3011: case 0x2026: case 0x2014: case 0xFF05: case 0x30FC:
 		case 0x201D: case 0x2019: case 0x00B7: case 0x203A:
+		/* Japanese: the long-vowel mark, the middle dot and the small kana stay with the kana before them */
+		case 0x30FB: case 0x3041: case 0x3043: case 0x3045: case 0x3047: case 0x3049: case 0x3063: case 0x3083: case 0x3085:
+		case 0x3087: case 0x308E: case 0x30A1: case 0x30A3: case 0x30A5: case 0x30A7: case 0x30A9: case 0x30C3: case 0x30E3:
+		case 0x30E5: case 0x30E7: case 0x30EE: case 0x301C:
 			return true;
 	}
 	return false;

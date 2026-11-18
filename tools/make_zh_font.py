@@ -45,6 +45,10 @@ FAMILIES = [
      "out": {400: "NotoSansSC-Regular-subset.ttf", 700: "NotoSansSC-Bold-subset.ttf"}},
     {"name": "Traditional", "source": "NotoSansTC[wght].ttf", "po": "zh_TW.po",
      "out": {400: "NotoSansTC-Regular-subset.ttf", 700: "NotoSansTC-Bold-subset.ttf"}},
+    # Japanese: all of hiragana and katakana too (they're few), so a new kana never needs a new subset
+    {"name": "Japanese", "source": "NotoSansJP[wght].ttf", "po": "ja.po",
+     "extra": "".join(chr(c) for c in list(range(0x3041, 0x3097)) + list(range(0x30A1, 0x30FD))),
+     "out": {400: "NotoSansJP-Regular-subset.ttf", 700: "NotoSansJP-Bold-subset.ttf"}},
 ]
 
 
@@ -78,7 +82,7 @@ def main():
             if fn.endswith(".po"):
                 hdr, _ = i18n.parse_po(os.path.join(I18N, fn))
                 autonyms |= set(hdr.get("X-GBADS-Autonym", ""))
-        wanted = sorted(chars | set(BASE) | {c for c in autonyms if ord(c) > 0x7F})
+        wanted = sorted(chars | set(BASE) | set(family.get("extra", "")) | {c for c in autonyms if ord(c) > 0x7F})
         print(f"{family['name']}: {count} strings, {len(chars)} Chinese characters")
         for weight, name in family["out"].items():
             font = TTFont(source)

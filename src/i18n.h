@@ -21,7 +21,7 @@
 /* how a language says one, few, many: the index into a plural entry's forms */
 enum { PL_NONE, PL_ONE_OTHER, PL_FRENCH, PL_EAST_SLAVIC, PL_POLISH, PL_CZECH };
 /* the script a language is drawn in: which fallback fonts it needs (textfont.h) */
-enum { SCRIPT_LATIN, SCRIPT_HAN_SC, SCRIPT_HAN_TC, SCRIPT_COUNT }; /* (the order of SCRIPTS in tools/i18n.py) */
+enum { SCRIPT_LATIN, SCRIPT_HAN_SC, SCRIPT_HAN_TC, SCRIPT_JP, SCRIPT_COUNT }; /* (the order of SCRIPTS in tools/i18n.py) */
 /* how far a catalogue got: machine-made, checked by a person, or for testing */
 enum { I18N_UNKNOWN, I18N_MACHINE, I18N_REVIEWED, I18N_TEST };
 
