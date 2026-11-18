@@ -48,6 +48,10 @@ Dawn of Souls' START menu is one picture with its command window on a separate l
 
 All from the owner's GameShark saves (`saves/BZ5E-endgame.sav`, `BZ5P-endgame.sav`, `BZ5J-endgame.sav`, converted with `tools/sharkport.py`), loaded in the app (the harness has no battery save): file 1, on the world map, and the quicksave (Lethe Court, the Stairs of Destiny), then played on in the harness (a battle from the world map, the defeat by setting the battle HP to 0, a settled 250 frames).
 
+## Cross-checked against
+
+samurai goroh's GameFAQs RAM list for the USA release (v2.3, 2019; the owner's copy, not kept in the repo), after the profile was written: the party records (base 0x0200DAB4 + 8: sprite/id, job, level, HP and MP at +0x10..+0x16, stride 0x64) and the battle's true character structs (HP at 0x0201EE04, stride 0x94) match it. Its screen byte 0x020096E0 (03 title, 12 Load Game, 05 field and the opening scenes, 07 START's menu, 0A battle) agrees with FV-2, FV-5 and FV-6 on the USA and Japan states. Its room words (0x0200E2AE / E2B0) number the maps differently from the 0x0200EA7E the profile watches, which works the same in all three releases. The list is for the USA release only: Europe's addresses (shifted) were found by experiment.
+
 ## For the merge
 
 - Changelog (under the open version, What's new): "Final Fantasy V Advance (USA, Europe, Japan): the second screen shows the party screen from START's menu (the party with their jobs, levels, HP and MP, the place, the play time and the gil, without the list of commands) while you walk about, and in battles the party as it was just before. Outside the game, and from a game over on, it shows the logo; in conversations, shops and scenes it keeps the last picture."
