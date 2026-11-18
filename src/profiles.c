@@ -6337,7 +6337,7 @@ static const FfvRegion ffvRegions[] = {
 #define FFV_V_BATTLE 0xF00000A8 /* a battle (FV-6) */
 #define FFV_CMD_X 152 /* START's menu: the command windows' place, top right (FV-3) */
 #define FFV_CMD_ROWS 88 /* (the rows above the location window) */
-#define FFV_WIN_X0 152 /* the commands' window, one: its frame's left and right edges */
+#define FFV_WIN_X0 152 /* the commands' place: its left column, and the right edge's (x 236..239) */
 #define FFV_WIN_X1 239
 /* START's menu, up: its windows' frames (x, y, 0xRRGGBB) */
 static const int ffvMenu[][3] = { { 152, 10, 0xFFFFFF }, { 153, 10, 0xCECECE }, { 154, 10, 0x212121 },
@@ -6419,17 +6419,18 @@ static const char* ffv_open_menu(Emu* s) {
 
 static uint8_t ffv_screen(Emu* s) { return emu_read8(s, ffv_r(s)->screen); }
 
-/* the party screen out of START's menu, up: the commands' place filled with
- * one window of the game's own pieces (FV-3): its top edge (the Job window's)
- * and bottom edge (the commands window's) with their corners, straight sides
- * from a plain row, the screen's own gradient between */
+/* the party screen out of START's menu, up: the commands' place isn't a
+ * window of its own any more but the big party window going on (FV-10): its
+ * top edge carried across from the left, its right edge straight down, and
+ * the screen's own gradient inside (no frame between the party and the right) */
 static void ffv_party_take(Emu* s) {
 	for (int y = 0; y < GBA_H; ++y) {
 		for (int x = 0; x < GBA_W; ++x) {
 			uint32_t c = s->fb[y * GBA_W + x];
-			if (x >= FFV_WIN_X0 && x <= FFV_WIN_X1 && y >= 4 && y < FFV_CMD_ROWS - 4) {
-				bool side = x < FFV_WIN_X0 + 4 || x > FFV_WIN_X1 - 4;
-				c = side ? s->fb[8 * GBA_W + x] : s->fb[y * GBA_W + 4];
+			if (x >= FFV_WIN_X0 && x <= FFV_WIN_X1 && y < FFV_CMD_ROWS) {
+				bool corner = x > FFV_WIN_X1 - 4; /* the right edge: the game's own, straight down below its corner */
+				if (y < 4) c = corner ? c : s->fb[y * GBA_W + FFV_WIN_X0 - 2];
+				else c = corner ? s->fb[8 * GBA_W + x] : s->fb[y * GBA_W + 4];
 			}
 			ffvParty[y * GBA_W + x] = c | 0xFF000000;
 		}

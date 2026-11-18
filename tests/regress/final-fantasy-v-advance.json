@@ -247,8 +247,8 @@
     },
     {
      "rule": "FV-10",
-     "what": "the commands' place made one window: its edges (left white, gray, dark; right white)",
-     "type": "pixels",
+     "what": "no box in the top right: no frame where the commands' window was (its left edge, its bottom edge), the party window's right edge straight down",
+     "type": "not_pixels",
      "shot": "start",
      "probes": [
       [
@@ -262,14 +262,47 @@
        "CECECE"
       ],
       [
-       648,
-       224,
-       "212121"
+       792,
+       404,
+       "FFFFFF"
       ],
+      [
+       792,
+       408,
+       "CECECE"
+      ]
+     ]
+    },
+    {
+     "rule": "FV-10",
+     "what": "the right edge and the top edge carried across",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
       [
        980,
        224,
        "FFFFFF"
+      ],
+      [
+       980,
+       412,
+       "FFFFFF"
+      ],
+      [
+       792,
+       64,
+       "FFFFFF"
+      ],
+      [
+       792,
+       68,
+       "CECECE"
+      ],
+      [
+       792,
+       72,
+       "212121"
       ]
      ]
     },
@@ -288,25 +321,10 @@
     },
     {
      "rule": "FV-10",
-     "what": "the window's top and bottom edges join the location window's: its first white line stays",
+     "what": "the location window's top line stays (row 88)",
      "type": "pixels",
      "shot": "start",
      "probes": [
-      [
-       792,
-       64,
-       "FFFFFF"
-      ],
-      [
-       792,
-       404,
-       "FFFFFF"
-      ],
-      [
-       792,
-       412,
-       "212121"
-      ],
       [
        792,
        416,
@@ -439,8 +457,8 @@
     },
     {
      "rule": "FV-10",
-     "what": "the commands' place made one window: its edges (left white, gray, dark; right white)",
-     "type": "pixels",
+     "what": "no box in the top right: no frame where the commands' window was (its left edge, its bottom edge), the party window's right edge straight down",
+     "type": "not_pixels",
      "shot": "start",
      "probes": [
       [
@@ -454,14 +472,47 @@
        "CECECE"
       ],
       [
-       648,
-       224,
-       "212121"
+       792,
+       404,
+       "FFFFFF"
       ],
+      [
+       792,
+       408,
+       "CECECE"
+      ]
+     ]
+    },
+    {
+     "rule": "FV-10",
+     "what": "the right edge and the top edge carried across",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
       [
        980,
        224,
        "FFFFFF"
+      ],
+      [
+       980,
+       412,
+       "FFFFFF"
+      ],
+      [
+       792,
+       64,
+       "FFFFFF"
+      ],
+      [
+       792,
+       68,
+       "CECECE"
+      ],
+      [
+       792,
+       72,
+       "212121"
       ]
      ]
     },
@@ -480,25 +531,10 @@
     },
     {
      "rule": "FV-10",
-     "what": "the window's top and bottom edges join the location window's: its first white line stays",
+     "what": "the location window's top line stays (row 88)",
      "type": "pixels",
      "shot": "start",
      "probes": [
-      [
-       792,
-       64,
-       "FFFFFF"
-      ],
-      [
-       792,
-       404,
-       "FFFFFF"
-      ],
-      [
-       792,
-       412,
-       "212121"
-      ],
       [
        792,
        416,
@@ -633,8 +669,8 @@
     },
     {
      "rule": "FV-10",
-     "what": "the commands' place made one window: its edges (left white, gray, dark; right white)",
-     "type": "pixels",
+     "what": "no box in the top right: no frame where the commands' window was (its left edge, its bottom edge), the party window's right edge straight down",
+     "type": "not_pixels",
      "shot": "battle",
      "probes": [
       [
@@ -648,14 +684,47 @@
        "CECECE"
       ],
       [
-       648,
-       224,
-       "212121"
+       792,
+       404,
+       "FFFFFF"
       ],
+      [
+       792,
+       408,
+       "CECECE"
+      ]
+     ]
+    },
+    {
+     "rule": "FV-10",
+     "what": "the right edge and the top edge carried across",
+     "type": "pixels",
+     "shot": "battle",
+     "probes": [
       [
        980,
        224,
        "FFFFFF"
+      ],
+      [
+       980,
+       412,
+       "FFFFFF"
+      ],
+      [
+       792,
+       64,
+       "FFFFFF"
+      ],
+      [
+       792,
+       68,
+       "CECECE"
+      ],
+      [
+       792,
+       72,
+       "212121"
       ]
      ]
     },
@@ -674,25 +743,10 @@
     },
     {
      "rule": "FV-10",
-     "what": "the window's top and bottom edges join the location window's: its first white line stays",
+     "what": "the location window's top line stays (row 88)",
      "type": "pixels",
      "shot": "battle",
      "probes": [
-      [
-       792,
-       64,
-       "FFFFFF"
-      ],
-      [
-       792,
-       404,
-       "FFFFFF"
-      ],
-      [
-       792,
-       412,
-       "212121"
-      ],
       [
        792,
        416,
@@ -833,8 +887,8 @@
     },
     {
      "rule": "FV-10",
-     "what": "the commands' place made one window: its edges (left white, gray, dark; right white)",
-     "type": "pixels",
+     "what": "no box in the top right: no frame where the commands' window was (its left edge, its bottom edge), the party window's right edge straight down",
+     "type": "not_pixels",
      "shot": "battle",
      "probes": [
       [
@@ -848,14 +902,47 @@
        "CECECE"
       ],
       [
-       648,
-       224,
-       "212121"
+       792,
+       404,
+       "FFFFFF"
       ],
+      [
+       792,
+       408,
+       "CECECE"
+      ]
+     ]
+    },
+    {
+     "rule": "FV-10",
+     "what": "the right edge and the top edge carried across",
+     "type": "pixels",
+     "shot": "battle",
+     "probes": [
       [
        980,
        224,
        "FFFFFF"
+      ],
+      [
+       980,
+       412,
+       "FFFFFF"
+      ],
+      [
+       792,
+       64,
+       "FFFFFF"
+      ],
+      [
+       792,
+       68,
+       "CECECE"
+      ],
+      [
+       792,
+       72,
+       "212121"
       ]
      ]
     },
@@ -874,25 +961,10 @@
     },
     {
      "rule": "FV-10",
-     "what": "the window's top and bottom edges join the location window's: its first white line stays",
+     "what": "the location window's top line stays (row 88)",
      "type": "pixels",
      "shot": "battle",
      "probes": [
-      [
-       792,
-       64,
-       "FFFFFF"
-      ],
-      [
-       792,
-       404,
-       "FFFFFF"
-      ],
-      [
-       792,
-       412,
-       "212121"
-      ],
       [
        792,
        416,
@@ -1033,8 +1105,8 @@
     },
     {
      "rule": "FV-10",
-     "what": "the commands' place made one window: its edges (left white, gray, dark; right white)",
-     "type": "pixels",
+     "what": "no box in the top right: no frame where the commands' window was (its left edge, its bottom edge), the party window's right edge straight down",
+     "type": "not_pixels",
      "shot": "battle",
      "probes": [
       [
@@ -1048,14 +1120,47 @@
        "CECECE"
       ],
       [
-       648,
-       224,
-       "212121"
+       792,
+       404,
+       "FFFFFF"
       ],
+      [
+       792,
+       408,
+       "CECECE"
+      ]
+     ]
+    },
+    {
+     "rule": "FV-10",
+     "what": "the right edge and the top edge carried across",
+     "type": "pixels",
+     "shot": "battle",
+     "probes": [
       [
        980,
        224,
        "FFFFFF"
+      ],
+      [
+       980,
+       412,
+       "FFFFFF"
+      ],
+      [
+       792,
+       64,
+       "FFFFFF"
+      ],
+      [
+       792,
+       68,
+       "CECECE"
+      ],
+      [
+       792,
+       72,
+       "212121"
       ]
      ]
     },
@@ -1074,25 +1179,10 @@
     },
     {
      "rule": "FV-10",
-     "what": "the window's top and bottom edges join the location window's: its first white line stays",
+     "what": "the location window's top line stays (row 88)",
      "type": "pixels",
      "shot": "battle",
      "probes": [
-      [
-       792,
-       64,
-       "FFFFFF"
-      ],
-      [
-       792,
-       404,
-       "FFFFFF"
-      ],
-      [
-       792,
-       412,
-       "212121"
-      ],
       [
        792,
        416,
