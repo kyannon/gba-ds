@@ -3597,6 +3597,100 @@
      ]
     }
    ]
+  },
+  {
+   "id": "ff2-eu-late-world",
+   "rom": "BFFP",
+   "state": "final-fantasy-1-2-dawn-of-souls/eu-ff2-late-world.ss",
+   "desc": "Europe: Final Fantasy II late in the game, on the world map by Mysidia (a GameFAQs save, in German): the Enlarged Map over the whole screen, the party's mark in the middle; it follows the party walking west",
+   "rules": [
+    "FF-11"
+   ],
+   "input": [
+    [
+     200,
+     "LEFT"
+    ],
+    [
+     230,
+     "LEFT"
+    ],
+    [
+     260,
+     "LEFT"
+    ],
+    [
+     290,
+     "LEFT"
+    ],
+    [
+     320,
+     "LEFT"
+    ],
+    [
+     220,
+     "-"
+    ],
+    [
+     250,
+     "-"
+    ],
+    [
+     280,
+     "-"
+    ],
+    [
+     310,
+     "-"
+    ],
+    [
+     340,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 150,
+    "walked": 500
+   },
+   "checks": [
+    {
+     "rule": "FF-11",
+     "what": "the map was taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF-11",
+     "what": "map to the left edge (not black)",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      32,
+      64,
+      112,
+      704
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "FF-11",
+     "what": "not the party screen",
+     "type": "not_pixels",
+     "shot": "start",
+     "probes": [
+      [
+       834,
+       66,
+       "FFFFFF"
+      ],
+      [
+       834,
+       70,
+       "CECECE"
+      ]
+     ]
+    }
+   ]
   }
  ]
 }
