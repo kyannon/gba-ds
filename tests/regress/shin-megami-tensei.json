@@ -8,7 +8,8 @@
    "desc": "the Cathedral of Shadows 1F: the game's automap on the second screen, with its compass and the floor's name",
    "rules": [
     "SMT-2",
-    "SMT-6"
+    "SMT-6",
+    "SMT-8"
    ],
    "state": "shin-megami-tensei/jp-cathedral.ss",
    "save": "AAUJ.sav",
@@ -23,34 +24,49 @@
      "shot": "start",
      "screen": "second",
      "rect": [
-      32,
-      174,
-      992,
-      594
+      0,
+      792,
+      1024,
+      1512
      ],
      "color": "303030",
      "frac": 0.5
     },
     {
-     "rule": "SMT-2",
-     "what": "the party panels aren't on the second screen: black under the map",
-     "type": "uniform",
+     "rule": "SMT-8",
+     "what": "the space above the map is the game's grid, not black",
+     "type": "not_uniform",
      "shot": "start",
      "screen": "second",
      "rect": [
       32,
-      600,
+      792,
       992,
-      704
+      880
      ],
      "color": "000000",
-     "frac": 0.99
+     "frac": 0.5
     },
     {
      "rule": "SMT-1",
      "what": "the tested dump",
      "type": "log",
      "match": "ROM: CRC32 b857c3c5"
+    },
+    {
+     "rule": "SMT-8",
+     "what": "the space below the map, above the floor's name, is the game's grid, not black",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      1280,
+      992,
+      1420
+     ],
+     "color": "000000",
+     "frac": 0.5
     }
    ]
   },
@@ -60,7 +76,8 @@
    "desc": "the Shibuya building 1F: the game's automap on the second screen, with its compass and the floor's name",
    "rules": [
     "SMT-2",
-    "SMT-6"
+    "SMT-6",
+    "SMT-8"
    ],
    "state": "shin-megami-tensei/jp-shibuya.ss",
    "save": "AAUJ.sav",
@@ -75,28 +92,43 @@
      "shot": "start",
      "screen": "second",
      "rect": [
-      32,
-      174,
-      992,
-      594
+      0,
+      792,
+      1024,
+      1512
      ],
      "color": "303030",
      "frac": 0.5
     },
     {
-     "rule": "SMT-2",
-     "what": "the party panels aren't on the second screen: black under the map",
-     "type": "uniform",
+     "rule": "SMT-8",
+     "what": "the space above the map is the game's grid, not black",
+     "type": "not_uniform",
      "shot": "start",
      "screen": "second",
      "rect": [
       32,
-      600,
+      792,
       992,
-      704
+      880
      ],
      "color": "000000",
-     "frac": 0.99
+     "frac": 0.5
+    },
+    {
+     "rule": "SMT-8",
+     "what": "the space below the map, above the floor's name, is the game's grid, not black",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      1280,
+      992,
+      1420
+     ],
+     "color": "000000",
+     "frac": 0.5
     }
    ]
   },
@@ -106,7 +138,8 @@
    "desc": "Shinagawa 1F: the game's automap on the second screen, with its compass and the floor's name",
    "rules": [
     "SMT-2",
-    "SMT-6"
+    "SMT-6",
+    "SMT-8"
    ],
    "state": "shin-megami-tensei/jp-shinagawa.ss",
    "save": "AAUJ.sav",
@@ -121,28 +154,43 @@
      "shot": "start",
      "screen": "second",
      "rect": [
-      32,
-      174,
-      992,
-      594
+      0,
+      792,
+      1024,
+      1512
      ],
      "color": "303030",
      "frac": 0.5
     },
     {
-     "rule": "SMT-2",
-     "what": "the party panels aren't on the second screen: black under the map",
-     "type": "uniform",
+     "rule": "SMT-8",
+     "what": "the space above the map is the game's grid, not black",
+     "type": "not_uniform",
      "shot": "start",
      "screen": "second",
      "rect": [
       32,
-      600,
+      792,
       992,
-      704
+      880
      ],
      "color": "000000",
-     "frac": 0.99
+     "frac": 0.5
+    },
+    {
+     "rule": "SMT-8",
+     "what": "the space below the map, above the floor's name, is the game's grid, not black",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      1280,
+      992,
+      1420
+     ],
+     "color": "000000",
+     "frac": 0.5
     }
    ]
   },
@@ -177,10 +225,10 @@
      "shot": "turned",
      "screen": "second",
      "rect": [
-      32,
-      174,
-      992,
-      594
+      0,
+      792,
+      1024,
+      1512
      ],
      "color": "303030",
      "frac": 0.5
@@ -224,10 +272,10 @@
      "shot": "stepped",
      "screen": "second",
      "rect": [
-      32,
-      174,
-      992,
-      594
+      0,
+      792,
+      1024,
+      1512
      ],
      "color": "303030",
      "frac": 0.5
@@ -268,10 +316,10 @@
      "shot": "start",
      "screen": "second",
      "rect": [
-      32,
-      174,
-      992,
-      594
+      0,
+      792,
+      1024,
+      1512
      ],
      "color": "303030",
      "frac": 0.5
@@ -284,20 +332,20 @@
       "shot": "start",
       "screen": "second",
       "rect": [
-       32,
-       174,
-       992,
-       594
+       0,
+       792,
+       1024,
+       1512
       ]
      },
      "b": {
       "shot": "fight",
       "screen": "second",
       "rect": [
-       32,
-       174,
-       992,
-       594
+       0,
+       792,
+       1024,
+       1512
       ]
      }
     }
@@ -336,10 +384,10 @@
      "shot": "start",
      "screen": "second",
      "rect": [
-      32,
-      174,
-      992,
-      594
+      0,
+      792,
+      1024,
+      1512
      ],
      "color": "303030",
      "frac": 0.5
@@ -352,20 +400,20 @@
       "shot": "start",
       "screen": "second",
       "rect": [
-       32,
-       174,
-       992,
-       594
+       0,
+       792,
+       1024,
+       1512
       ]
      },
      "b": {
       "shot": "bar",
       "screen": "second",
       "rect": [
-       32,
-       174,
-       992,
-       594
+       0,
+       792,
+       1024,
+       1512
       ]
      }
     },
@@ -377,20 +425,20 @@
       "shot": "start",
       "screen": "second",
       "rect": [
-       32,
-       174,
-       992,
-       594
+       0,
+       792,
+       1024,
+       1512
       ]
      },
      "b": {
       "shot": "sysmenu",
       "screen": "second",
       "rect": [
-       32,
-       174,
-       992,
-       594
+       0,
+       792,
+       1024,
+       1512
       ]
      }
     }
@@ -417,10 +465,10 @@
      "shot": "start",
      "screen": "second",
      "rect": [
-      32,
-      174,
-      992,
-      594
+      0,
+      792,
+      1024,
+      1512
      ],
      "color": "303030",
      "frac": 0.5
@@ -454,10 +502,10 @@
      "shot": "start",
      "screen": "second",
      "rect": [
-      32,
-      174,
-      992,
-      594
+      0,
+      792,
+      1024,
+      1512
      ],
      "color": "303030",
      "frac": 0.5
@@ -485,10 +533,10 @@
      "shot": "start",
      "screen": "second",
      "rect": [
-      32,
-      174,
-      992,
-      594
+      0,
+      792,
+      1024,
+      1512
      ],
      "color": "303030",
      "frac": 0.5
@@ -522,10 +570,10 @@
      "shot": "start",
      "screen": "second",
      "rect": [
-      32,
-      174,
-      992,
-      594
+      0,
+      792,
+      1024,
+      1512
      ],
      "color": "303030",
      "frac": 0.5
@@ -554,10 +602,10 @@
      "shot": "start",
      "screen": "second",
      "rect": [
-      32,
-      174,
-      992,
-      594
+      0,
+      792,
+      1024,
+      1512
      ],
      "color": "303030",
      "frac": 0.5
@@ -599,10 +647,10 @@
      "shot": "start",
      "screen": "second",
      "rect": [
-      32,
-      174,
-      992,
-      594
+      0,
+      792,
+      1024,
+      1512
      ],
      "color": "303030",
      "frac": 0.5
@@ -626,7 +674,8 @@
    ],
    "golden": [
     "logo"
-   ]
+   ],
+   "checks": []
   },
   {
    "id": "smt-logo-en",
@@ -639,7 +688,8 @@
    ],
    "golden": [
     "logo"
-   ]
+   ],
+   "checks": []
   },
   {
    "id": "smt-logo-fh",
@@ -652,7 +702,8 @@
    ],
    "golden": [
     "logo"
-   ]
+   ],
+   "checks": []
   },
   {
    "id": "smt-jp-title",
