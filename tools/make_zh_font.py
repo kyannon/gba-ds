@@ -11,8 +11,8 @@ zh-TW.tsv (Traditional), the ASCII the menus already have (names, numbers,
 version numbers) and Chinese punctuation.
 
 The bold face draws the game list's names, which are the player's own ROM
-filenames, so it also carries a common-character set: GB2312's level 1 for
-Simplified, Big5's level 1 for Traditional (about 99.7% of running text).
+filenames, so it also carries a common-character set: GB2312's whole hanzi set for
+Simplified (6763 characters), Big5's first level for Traditional (5401, about 99.7% of running text).
 Without it a Chinese-named ROM draws as boxes. A character outside both sets
 still can't be drawn; the app's own text is always inside the catalogue's.
 
@@ -67,10 +67,10 @@ def translations(tsv):
     return chars, count
 
 
-def gb2312_level1():
-    """GB2312's first level: the 3755 hanzi of everyday text (rows B0-D7)."""
+def gb2312_all():
+    """GB2312's hanzi, both levels: 6763 characters (rows B0-F7)."""
     out = set()
-    for row in range(0xB0, 0xD8):
+    for row in range(0xB0, 0xF8):
         for col in range(0xA1, 0xFF):
             try:
                 out.add(bytes([row, col]).decode("gb2312"))
@@ -105,7 +105,7 @@ def main():
             return 1
         wanted = sorted(chars | set(BASE))
         # the bold face draws the game list's names: the player's own filenames
-        common = gb2312_level1() if family["name"] == "Simplified" else big5_level1()
+        common = gb2312_all() if family["name"] == "Simplified" else big5_level1()
         print(f"{family['name']}: {count} strings, {len(chars)} Chinese characters")
         for weight, name in family["out"].items():
             set_ = wanted if weight != 700 else sorted(chars | set(BASE) | common)
