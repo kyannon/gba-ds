@@ -32,8 +32,13 @@ SIDE_DEF   += -DGBADS_SIDE_CODES='"$(SIDE_CODES)"'
 endif
 endif
 OPTFLAGS   ?= -O2 -g
+# the pseudo-language (i18n.h) is a choice in Settings only in -dev builds
+ifneq (,$(findstring -dev,$(VERSION)))
+I18N_DEF := -DGBADS_I18N_PSEUDO
+endif
+
 override CFLAGS := $(OPTFLAGS) -std=gnu11 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers \
-              -DGBADS_VERSION='"$(VERSION)"' $(SIDE_DEF) $(MGBA_DEFS) -I$(MGBA_SRC)/include -I$(MGBA_BUILD)/include -I$(SDL_PREFIX)/include/SDL2 -D_REENTRANT
+              -DGBADS_VERSION='"$(VERSION)"' $(SIDE_DEF) $(I18N_DEF) $(MGBA_DEFS) -I$(MGBA_SRC)/include -I$(MGBA_BUILD)/include -I$(SDL_PREFIX)/include/SDL2 -D_REENTRANT
 LDFLAGS    += -L$(SDL_PREFIX)/lib -Wl,-rpath-link,$(SDL_PREFIX)/lib
 # mGBA's bundled zlib (for .zip ROMs), when it was built with it
 ZLIB_A     := $(wildcard $(MGBA_BUILD)/zlib/libz.a)
@@ -49,7 +54,7 @@ WEBP_DIR   := third_party/libwebp
 WEBP_SRC   := $(wildcard $(WEBP_DIR)/src/dec/*.c $(WEBP_DIR)/src/dsp/*.c $(WEBP_DIR)/src/utils/*.c)
 WEBP_OBJ   := $(patsubst $(WEBP_DIR)/src/%.c,$(OUT)/libwebp/%.o,$(WEBP_SRC))
 
-APP_SRC    := src/main.c src/config.c src/font.c src/ui.c src/library.c src/mapper.c src/hotkeys.c src/folderpick.c src/game.c src/paths.c src/image.c src/brand_data.c src/bezel.c src/bezel_logo.c src/logo.c src/cheats.c src/esinteg.c src/textfont.c src/fonts_data.c src/ra.c src/http.c src/sha256.c src/update.c src/clocks.c $(CORE_SRC)
+APP_SRC    := src/main.c src/config.c src/i18n.c src/i18n_data.c src/font.c src/ui.c src/library.c src/mapper.c src/hotkeys.c src/folderpick.c src/game.c src/paths.c src/image.c src/brand_data.c src/bezel.c src/bezel_logo.c src/logo.c src/cheats.c src/esinteg.c src/textfont.c src/fonts_data.c src/ra.c src/http.c src/sha256.c src/update.c src/clocks.c $(CORE_SRC)
 
 all: $(OUT)/gba-ds
 
@@ -76,3 +81,10 @@ clean:
 	rm -rf build
 
 .PHONY: all tools clean
+
+# tests for the interface's language and its fonts (tools/test_i18n.c); DejaVu Sans is
+# only the stand-in fallback face for the font part
+test-i18n: tools/test_i18n.c src/i18n.c src/textfont.c src/fonts_data.c
+	@mkdir -p $(OUT)
+	$(CC) $(CFLAGS) -o $(OUT)/test-i18n $^ -lm -lpthread
+	$(OUT)/test-i18n $(firstword $(wildcard /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf))

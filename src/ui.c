@@ -15,6 +15,7 @@ void ui_stick_dpad(bool on) {
 #include "paths.h"
 #include "profiles.h"
 #include "emu.h"
+#include "i18n.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1392,6 +1393,8 @@ void ui_update_texture(SDL_Texture* t, const void* px, int pitch) {
 	++texVer[slot].v;
 }
 
+static void font_text_raw(int screen, int font, int x, int cy, int capPx, const char* text, SDL_Color c, int align);
+
 /* Retained views (Android: both screens). A view's draw calls are recorded
  * instead of drawn, and at ui_present they're replayed only if they differ
  * from that view's last frame (same calls, same texture contents), with a
@@ -1515,7 +1518,7 @@ static bool sw_render(int v) {
 		case OP_FILL: ui_fill(o->screen, o->r, o->col); break;
 		case OP_ROUND: ui_fill_round(o->screen, o->r, o->col, o->a); break;
 		case OP_TEXT: ui_text(o->screen, o->a, o->b, o->c, o->text, o->col); break;
-		case OP_LABEL: ui_font_text(o->screen, o->d & 15, o->a, o->b, o->c, o->text, o->col, (o->d >> 4) - 1); break;
+		case OP_LABEL: font_text_raw(o->screen, o->d & 15, o->a, o->b, o->c, o->text, o->col, (o->d >> 4) - 1); break;
 		case OP_CLIP: ui_clip(o->screen, &o->r); break;
 		case OP_NOCLIP: ui_clip(o->screen, NULL); break;
 		}
@@ -2955,10 +2958,12 @@ static int text_width(int font, int capPx, const char* text) {
 }
 
 int ui_font_width(int font, int capPx, const char* text) {
-	return text_width(font, capPx, text);
+	return text_width(font, capPx, tr(text));
 }
 
-void ui_font_text(int screen, int font, int x, int cy, int capPx, const char* text, SDL_Color c, int align) {
+/* Text as it is: ui_font_text (what the interface says: translated) and
+ * ui_title_block (a game's title: the player's own) both end here. */
+static void font_text_raw(int screen, int font, int x, int cy, int capPx, const char* text, SDL_Color c, int align) {
 	if (!text || !text[0] || capPx <= 0) return;
 	c = key_text_color(screen, x, cy, c);
 	RECORD(screen, OP_LABEL) {
@@ -2978,6 +2983,22 @@ void ui_font_text(int screen, int font, int x, int cy, int capPx, const char* te
 	SDL_RenderCopy(views[s->view].ren, e->tex, NULL, &dst);
 }
 
+void ui_font_text(int screen, int font, int x, int cy, int capPx, const char* text, SDL_Color c, int align) {
+	font_text_raw(screen, font, x, cy, capPx, tr(text), c, align);
+}
+
+/* The language changed (i18n_set): the pictures and widths of the old text are
+ * dropped, and the fonts the new language's script needs are the fallbacks. */
+void ui_language_changed(void) {
+	text_cache_drop();
+	for (int i = 0; i < WIDTH_CACHE; ++i) {
+		free(widthCache[i].text);
+		memset(&widthCache[i], 0, sizeof(widthCache[i]));
+	}
+	tf_fallback_clear();
+	/* (SCRIPT_LATIN needs none: Jost has it. Other scripts add their fonts here.) */
+}
+
 void ui_title_block(int screen, SDL_Rect area, const char* text, int capMax, SDL_Color c) {
 	if (!text || !text[0] || area.w <= 0 || area.h <= 0) return;
 	/* one line if it fits at a good size, else the break that leaves the
@@ -2988,7 +3009,7 @@ void ui_title_block(int screen, SDL_Rect area, const char* text, int capMax, SDL
 	for (int i = 1; one[i]; ++i) {
 		if (one[i] != ' ') continue;
 		snprintf(two[0], sizeof(two[0]), "%.*s", i, one);
-		int w = SDL_max(ui_font_width(TF_BOLD, 100, two[0]), ui_font_width(TF_BOLD, 100, one + i + 1));
+		int w = SDL_max(text_width(TF_BOLD, 100, two[0]), text_width(TF_BOLD, 100, one + i + 1));
 		if (best < 0 || w < bestW) best = i, bestW = w;
 	}
 	/* a subtitle after a colon goes on its own line */
@@ -2996,28 +3017,28 @@ void ui_title_block(int screen, SDL_Rect area, const char* text, int capMax, SDL
 	if (colon) {
 		best = (int) (colon - one) + 1;
 		snprintf(two[0], sizeof(two[0]), "%.*s", best, one);
-		bestW = SDL_max(ui_font_width(TF_BOLD, 100, two[0]), ui_font_width(TF_BOLD, 100, one + best + 1));
+		bestW = SDL_max(text_width(TF_BOLD, 100, two[0]), text_width(TF_BOLD, 100, one + best + 1));
 	}
-	int oneW = ui_font_width(TF_BOLD, 100, one);
+	int oneW = text_width(TF_BOLD, 100, one);
 	/* capitals at most capMax, a line's width at most the area's; two lines
 	 * need 3.2 capitals of height */
 	int capOne = SDL_min(capMax, SDL_min(area.w * 100 / SDL_max(1, oneW), area.h * 10 / 18));
 	int capTwo = best < 0 ? 0 : SDL_min(capMax, SDL_min(area.w * 100 / SDL_max(1, bestW), area.h * 10 / 32));
 	int cx = area.x + area.w / 2, cy = area.y + area.h / 2;
 	if (capOne >= capTwo * 9 / 10 || best < 0) {
-		ui_font_text(screen, TF_BOLD, cx, cy, capOne, one, c, 0);
+		font_text_raw(screen, TF_BOLD, cx, cy, capOne, one, c, 0);
 		return;
 	}
 	snprintf(two[0], sizeof(two[0]), "%.*s", best, one);
 	snprintf(two[1], sizeof(two[1]), "%s", one + best + 1);
 	int gap = capTwo * 8 / 10;
-	ui_font_text(screen, TF_BOLD, cx, cy - (capTwo + gap) / 2, capTwo, two[0], c, 0);
-	ui_font_text(screen, TF_BOLD, cx, cy + (capTwo + gap) / 2, capTwo, two[1], c, 0);
+	font_text_raw(screen, TF_BOLD, cx, cy - (capTwo + gap) / 2, capTwo, two[0], c, 0);
+	font_text_raw(screen, TF_BOLD, cx, cy + (capTwo + gap) / 2, capTwo, two[1], c, 0);
 }
 
 int ui_label_width(int screen, int capPx, const char* text) {
 	(void) screen;
-	return text_width(TF_BOLD, capPx, text);
+	return text_width(TF_BOLD, capPx, tr(text));
 }
 
 void ui_label(int screen, int cx, int cy, int capPx, const char* text, SDL_Color c) {
@@ -3031,7 +3052,7 @@ int ui_font_wrap(int screen, int font, int x, int y, int width, int capPx, const
 static int wrap_impl(int screen, int font, int x, int y, int width, int capPx, const char* text, SDL_Color c, int narrowY, int narrowW, bool draw) {
 	int lineH = capPx * 2, fullW = width;
 	char line[512];
-	const char* p = text;
+	const char* p = tr(text); /* (the lines below are drawn as they are) */
 	while (*p) {
 		/* a line whose box reaches the one on the right is narrower */
 		width = y + lineH > narrowY ? narrowW : fullW;
@@ -3050,7 +3071,7 @@ static int wrap_impl(int screen, int font, int x, int y, int width, int capPx, c
 		}
 		if (!fit) fit = n ? n : (int) strlen(p);
 		snprintf(line, sizeof(line), "%.*s", fit, p);
-		if (draw) ui_font_text(screen, font, x, y + capPx / 2, capPx, line, c, -1);
+		if (draw) font_text_raw(screen, font, x, y + capPx / 2, capPx, line, c, -1);
 		y += lineH;
 		p += fit;
 		while (*p == ' ') ++p;

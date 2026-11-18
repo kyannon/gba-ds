@@ -1,4 +1,5 @@
 #include "config.h"
+#include "i18n_data.h"
 
 #include <ctype.h>
 #include <stdio.h>
@@ -65,6 +66,7 @@ void config_defaults(Config* c) {
 	c->brightTop = c->brightBottom = 100;
 	c->lcdStrength = 35;
 	strcpy(c->borderColor, "000000");
+	strcpy(c->language, "auto");
 }
 
 static bool parse_bool(const char* v) {
@@ -138,6 +140,7 @@ static bool set_option(Config* c, const char* key, const char* val) {
 		return true;
 	}
 	STR("border_color", borderColor)
+	STR("language", language)
 	INT("lcd_strength", lcdStrength)
 	BOOL("vsync", vsync)
 	BOOL("pin_cores", pinCores)
@@ -450,9 +453,12 @@ static const SettingChoice chFF[] = { { "off", "Off", 0 }, { "2", "2x", 2 }, { "
 static const SettingChoice chRewind[] = { { "10", "10 s", 10 }, { "15", "15 s", 15 }, { "30", "30 s", 30 }, { "60", "1 minute", 60 }, { "120", "2 minutes", 120 }, { "300", "5 minutes", 300 } };
 static const SettingChoice chLatency[] = { { "32", "32 ms", 32 }, { "64", "64 ms", 64 }, { "96", "96 ms", 96 }, { "128", "128 ms", 128 }, { "192", "192 ms", 192 } };
 static const SettingChoice chPerf[] = { { "system", "Let the System Decide", 0 }, { "max", "Set to Max", 1 } };
+/* Automatic, English, then every catalogue by its own name (i18n_data.h: made from assets/i18n/*.po) */
+static const SettingChoice chLanguage[] = { { "auto", "Automatic", 0 }, { "en", "English", 0 }, I18N_CHOICES };
 static const SettingChoice chInterval[] = { { "30", "Every 0.5 s", 30 }, { "60", "Every second", 60 }, { "90", "Every 1.5 s", 90 }, { "180", "Every 3 s", 180 } };
 
 static const Setting settingsTable[] = {
+	{ "language", "Language", SF_STR, OFFB(language), ARR(chLanguage), 0, 0, 0, NULL, "Automatic follows the system. Text that isn't translated yet stays in English." },
 	{ "show_all", "Games shown", SF_BOOL, OFFB(showAll), ARR(chShown), 0, 0, 0, NULL, "Games without second-screen support play on one screen." },
 	{ "name_tags", "Game names", SF_BOOL, OFFB(nameTags), ARR(chTags), 0, 0, 0, NULL, "Tags in a ROM's file name, like (USA) or (En,Fr,De)." },
 	{ "save_on_quit", "Save on quit", SF_BOOL, OFFB(autoSave), ARR(chOnOff), 0, 0, 0, NULL, "Closing a game saves where you are." },
