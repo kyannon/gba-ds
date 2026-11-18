@@ -55,7 +55,7 @@ PLURAL_RULES = {
     "nplurals=3;plural=(n==1)?0:(n>=2&&n<=4)?1:2;": ("PL_CZECH", 3),
     "nplurals=3;plural=(n==1?0:(n>=2&&n<=4)?1:2);": ("PL_CZECH", 3),
 }
-SCRIPTS = ["latin"]  # step 1: Jost only; scripts are added with their fonts (CJK, Cyrillic...)
+SCRIPTS = ["latin", "han-sc", "han-tc"]  # the scripts a language can be drawn in (src/i18n.h SCRIPT_*), each with its fallback fonts
 STATUSES = ("machine", "reviewed", "test")
 
 

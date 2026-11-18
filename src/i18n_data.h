@@ -15,5 +15,7 @@
 #define I18N_CHOICES I18N_PSEUDO_CHOICE \
 	{ "de", "Deutsch (machine translated)", 0 }, \
 	{ "es", "Espa\303\261ol (machine translated)", 0 }, \
+	{ "zh_CN", "\347\256\200\344\275\223\344\270\255\346\226\207 (machine translated)", 0 }, \
+	{ "zh_TW", "\347\271\201\351\253\224\344\270\255\346\226\207 (machine translated)", 0 }, \
 
 #endif

@@ -204,6 +204,7 @@ int main(int argc, char** argv) {
 	i18n_init(cfg.language);
 
 	if (!ui_init(&cfg, true)) return 1;
+	ui_language_changed(); /* (the fonts the language's script needs) */
 	ui_accent(cfg.accent);
 	ui_theme(cfg.lightTheme);
 	ui_brightness(cfg.brightTop, cfg.brightBottom);

@@ -11,6 +11,7 @@ void ui_stick_dpad(bool on) {
 #include "brand.h"
 #include "font.h"
 #include "textfont.h"
+#include "fonts_data.h"
 #include "logo.h"
 #include "paths.h"
 #include "profiles.h"
@@ -2996,7 +2997,15 @@ void ui_language_changed(void) {
 		memset(&widthCache[i], 0, sizeof(widthCache[i]));
 	}
 	tf_fallback_clear();
-	/* (SCRIPT_LATIN needs none: Jost has it. Other scripts add their fonts here.) */
+	/* (Simplified Chinese is chained for every language, after Traditional's own: the Language list shows each
+	 * language's own name, and a game's name can have Chinese in it) */
+	bool trad = i18n_script() == SCRIPT_HAN_TC;
+	if (trad) {
+		tf_fallback_add(TF_BOLD, embeddedFonts[EMBEDDED_NOTO_TC_BOLD].ttf);
+		tf_fallback_add(TF_BODY, embeddedFonts[EMBEDDED_NOTO_TC_REGULAR].ttf);
+	}
+	tf_fallback_add(TF_BOLD, embeddedFonts[EMBEDDED_NOTO_SC_BOLD].ttf);
+	tf_fallback_add(TF_BODY, embeddedFonts[EMBEDDED_NOTO_SC_REGULAR].ttf);
 }
 
 void ui_title_block(int screen, SDL_Rect area, const char* text, int capMax, SDL_Color c) {
@@ -3049,6 +3058,52 @@ int ui_font_wrap(int screen, int font, int x, int y, int width, int capPx, const
 	return ui_font_wrap_around(screen, font, x, y, width, capPx, text, c, INT_MAX, width);
 }
 
+/* Line breaking: a Latin word is one piece, a Chinese character (with the closing punctuation that
+ * may not start a line after it, and an opening mark with the character it opens) is one piece. */
+static int utf8_cp(const char* p, int* len) {
+	unsigned char c = (unsigned char) p[0];
+	int n = c < 0x80 ? 1 : c < 0xE0 ? 2 : c < 0xF0 ? 3 : 4, cp = n == 1 ? c : c & (0xFF >> (n + 1));
+	for (int i = 1; i < n; ++i) {
+		if (!p[i]) { n = i; break; }
+		cp = cp << 6 | (p[i] & 0x3F);
+	}
+	*len = n;
+	return cp;
+}
+static bool cp_cjk(int cp) { return (cp >= 0x2E80 && cp <= 0xA4CF) || (cp >= 0xF900 && cp <= 0xFAFF) || (cp >= 0xFE30 && cp <= 0xFE4F) || (cp >= 0xFF00 && cp <= 0xFFEF); }
+static bool cp_no_start(int cp) { /* closing and sentence punctuation, which stays with the character before */
+	switch (cp) {
+		case 0x3001: case 0x3002: case 0xFF0C: case 0xFF0E: case 0xFF1A: case 0xFF1B: case 0xFF1F: case 0xFF01: case 0xFF09:
+		case 0x3009: case 0x300B: case 0x300D: case 0x300F: case 0x3011: case 0x2026: case 0x2014: case 0xFF05: case 0x30FC:
+		case 0x201D: case 0x2019: case 0x00B7: case 0x203A:
+			return true;
+	}
+	return false;
+}
+static bool cp_no_end(int cp) { /* opening marks, which stay with the character after */
+	return cp == 0xFF08 || cp == 0x3008 || cp == 0x300A || cp == 0x300C || cp == 0x300E || cp == 0x3010 || cp == 0x201C || cp == 0x2018;
+}
+static int piece_end(const char* p, int n) {
+	int len, cp = utf8_cp(p + n, &len);
+	int e = n;
+	if (cp_cjk(cp) || cp_no_end(cp)) {
+		e = n + len;
+		while (p[e]) { /* closing marks join; an opening mark needs the next character too */
+			int l2, c2 = utf8_cp(p + e, &l2);
+			if (cp_no_start(c2)) e += l2;
+			else if (cp_no_end(cp) && cp_cjk(c2) && e == n + len) { e += l2; cp = 0; }
+			else break;
+		}
+		return e;
+	}
+	while (p[e] && p[e] != ' ') {
+		int l2, c2 = utf8_cp(p + e, &l2);
+		if (e > n && cp_cjk(c2) && !cp_no_start(c2)) break; /* a Latin word ends where Chinese starts */
+		e += l2;
+	}
+	return e;
+}
+
 static int wrap_impl(int screen, int font, int x, int y, int width, int capPx, const char* text, SDL_Color c, int narrowY, int narrowW, bool draw) {
 	int lineH = capPx * 2, fullW = width;
 	char line[512];
@@ -3059,8 +3114,7 @@ static int wrap_impl(int screen, int font, int x, int y, int width, int capPx, c
 		/* as many words as fit */
 		int n = 0, fit = 0;
 		while (p[n]) {
-			int e = n;
-			while (p[e] && p[e] != ' ') ++e;
+			int e = piece_end(p, n);
 			if (e >= (int) sizeof(line)) break;
 			memcpy(line, p, e);
 			line[e] = 0;
