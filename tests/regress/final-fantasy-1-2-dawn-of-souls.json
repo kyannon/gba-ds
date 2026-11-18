@@ -249,7 +249,7 @@
    "id": "ff2-hideout",
    "rom": "BFFE",
    "state": "final-fantasy-1-2-dawn-of-souls/us-ff2-hideout.ss",
-   "desc": "Final Fantasy II in the Rebel Hideout: START's menu without its hand",
+   "desc": "Final Fantasy II in the Rebel Hideout: the party screen (no command window)",
    "rules": [
     "FF-10",
     "FF-9"
@@ -263,6 +263,47 @@
      "what": "the menu was taken",
      "type": "log",
      "match": "map updated"
+    },
+    {
+     "rule": "FF-10",
+     "what": "no command window (its left edge), the party window's top edge running on",
+     "type": "not_pixels",
+     "shot": "start",
+     "probes": [
+      [
+       610,
+       186,
+       "FFFFFF"
+      ],
+      [
+       614,
+       186,
+       "CECECE"
+      ]
+     ]
+    },
+    {
+     "rule": "FF-12",
+     "what": "the party window's top edge over where the commands were",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       834,
+       66,
+       "FFFFFF"
+      ],
+      [
+       834,
+       70,
+       "CECECE"
+      ],
+      [
+       834,
+       74,
+       "212121"
+      ]
+     ]
     }
    ]
   },
@@ -270,7 +311,7 @@
    "id": "ff2-menu-open",
    "rom": "BFFE",
    "state": "final-fantasy-1-2-dawn-of-souls/us-ff2-menu-open.ss",
-   "desc": "Final Fantasy II with its menu open: the menu, closed and opened again on the hidden copy",
+   "desc": "Final Fantasy II with its menu open: the party screen, the menu closed and opened again on the hidden copy",
    "rules": [
     "FF-10",
     "FF-6"
@@ -284,6 +325,47 @@
      "what": "the menu was taken",
      "type": "log",
      "match": "map updated"
+    },
+    {
+     "rule": "FF-10",
+     "what": "no command window (its left edge), the party window's top edge running on",
+     "type": "not_pixels",
+     "shot": "start",
+     "probes": [
+      [
+       610,
+       186,
+       "FFFFFF"
+      ],
+      [
+       614,
+       186,
+       "CECECE"
+      ]
+     ]
+    },
+    {
+     "rule": "FF-12",
+     "what": "the party window's top edge over where the commands were",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       834,
+       66,
+       "FFFFFF"
+      ],
+      [
+       834,
+       70,
+       "CECECE"
+      ],
+      [
+       834,
+       74,
+       "212121"
+      ]
+     ]
     }
    ]
   },
@@ -291,7 +373,7 @@
    "id": "ff2-altair",
    "rom": "BFFE",
    "state": "final-fantasy-1-2-dawn-of-souls/us-ff2-altair.ss",
-   "desc": "Final Fantasy II in Altair: START's menu",
+   "desc": "Final Fantasy II in Altair: the party screen (no command window)",
    "rules": [
     "FF-10"
    ],
@@ -304,6 +386,47 @@
      "what": "the menu was taken",
      "type": "log",
      "match": "map updated"
+    },
+    {
+     "rule": "FF-10",
+     "what": "no command window (its left edge), the party window's top edge running on",
+     "type": "not_pixels",
+     "shot": "start",
+     "probes": [
+      [
+       610,
+       186,
+       "FFFFFF"
+      ],
+      [
+       614,
+       186,
+       "CECECE"
+      ]
+     ]
+    },
+    {
+     "rule": "FF-12",
+     "what": "the party window's top edge over where the commands were",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       834,
+       66,
+       "FFFFFF"
+      ],
+      [
+       834,
+       70,
+       "CECECE"
+      ],
+      [
+       834,
+       74,
+       "212121"
+      ]
+     ]
     }
    ]
   },
@@ -311,7 +434,7 @@
    "id": "ff2-battle",
    "rom": "BFFE",
    "state": "final-fantasy-1-2-dawn-of-souls/us-ff2-battle.ss",
-   "desc": "Final Fantasy II's opening battle with the Black Knights: the logo, no captures",
+   "desc": "Final Fantasy II's opening battle with the Black Knights, loaded straight in: no party kept, so the logo stays",
    "rules": [
     "FF-8"
    ],
@@ -1349,7 +1472,7 @@
    "id": "ff2-world",
    "rom": "BFFE",
    "state": "final-fantasy-1-2-dawn-of-souls/us-ff2-world.ss",
-   "desc": "Final Fantasy II's world map (an endgame save, teleported out of Pandaemonium): its map, the party's marker by the Jade passage",
+   "desc": "Final Fantasy II's world map (an endgame save, teleported out of Pandaemonium): the Enlarged Map over the whole screen, the party's marker (by the Jade passage) in the middle, its marks with a one-pixel outline",
    "rules": [
     "FF-11",
     "FF-9"
@@ -1366,16 +1489,29 @@
     },
     {
      "rule": "FF-11",
-     "what": "black either side of the map",
-     "type": "uniform",
+     "what": "map to the left edge (not black)",
+     "type": "not_uniform",
      "shot": "start",
      "rect": [
       32,
       64,
-      252,
+      112,
       704
      ],
      "color": "000000"
+    },
+    {
+     "rule": "FF-11",
+     "what": "the party's white disc in the middle",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       514,
+       386,
+       "C6C6C6"
+      ]
+     ]
     }
    ]
   },
@@ -1425,7 +1561,7 @@
    "id": "ff2-pandaemonium",
    "rom": "BFFE",
    "state": "final-fantasy-1-2-dawn-of-souls/us-ff2-pandaemonium.ss",
-   "desc": "Final Fantasy II in Pandaemonium 10F (an endgame save): START's menu",
+   "desc": "Final Fantasy II in Pandaemonium 10F (an endgame save): the party screen (no command window)",
    "rules": [
     "FF-10"
    ],
@@ -1438,6 +1574,47 @@
      "what": "the menu was taken",
      "type": "log",
      "match": "map updated"
+    },
+    {
+     "rule": "FF-10",
+     "what": "no command window (its left edge), the party window's top edge running on",
+     "type": "not_pixels",
+     "shot": "start",
+     "probes": [
+      [
+       610,
+       186,
+       "FFFFFF"
+      ],
+      [
+       614,
+       186,
+       "CECECE"
+      ]
+     ]
+    },
+    {
+     "rule": "FF-12",
+     "what": "the party window's top edge over where the commands were",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       834,
+       66,
+       "FFFFFF"
+      ],
+      [
+       834,
+       70,
+       "CECECE"
+      ],
+      [
+       834,
+       74,
+       "212121"
+      ]
+     ]
     }
    ]
   },
@@ -1445,7 +1622,7 @@
    "id": "sor-machanon",
    "rom": "BFFE",
    "state": "final-fantasy-1-2-dawn-of-souls/us-sor-machanon.ss",
-   "desc": "Soul of Rebirth in Machanon: START's menu, as in Final Fantasy II",
+   "desc": "Soul of Rebirth in Machanon: the party screen (no command window), as in Final Fantasy II",
    "rules": [
     "FF-10"
    ],
@@ -1458,6 +1635,47 @@
      "what": "the menu was taken",
      "type": "log",
      "match": "map updated"
+    },
+    {
+     "rule": "FF-10",
+     "what": "no command window (its left edge), the party window's top edge running on",
+     "type": "not_pixels",
+     "shot": "start",
+     "probes": [
+      [
+       610,
+       186,
+       "FFFFFF"
+      ],
+      [
+       614,
+       186,
+       "CECECE"
+      ]
+     ]
+    },
+    {
+     "rule": "FF-12",
+     "what": "the party window's top edge over where the commands were",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       834,
+       66,
+       "FFFFFF"
+      ],
+      [
+       834,
+       70,
+       "CECECE"
+      ],
+      [
+       834,
+       74,
+       "212121"
+      ]
+     ]
     }
    ]
   },
@@ -1965,6 +2183,349 @@
      "what": "the map was taken",
      "type": "log",
      "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ff2-battle-party",
+   "rom": "BFFE",
+   "state": "final-fantasy-1-2-dawn-of-souls/us-ff2-world.ss",
+   "desc": "Final Fantasy II: on the world map (the party kept), then a battle with Pit Fiends loaded: the party kept, without the command window",
+   "rules": [
+    "FF-8",
+    "FF-12"
+   ],
+   "input": [
+    [
+     260,
+     "LOAD:final-fantasy-1-2-dawn-of-souls/us-ff2-world-battle.ss"
+    ]
+   ],
+   "shots": {
+    "map": 250,
+    "battle": 500
+   },
+   "checks": [
+    {
+     "rule": "FF-10",
+     "what": "no command window (its left edge), the party window's top edge running on",
+     "type": "not_pixels",
+     "shot": "battle",
+     "probes": [
+      [
+       610,
+       186,
+       "FFFFFF"
+      ],
+      [
+       614,
+       186,
+       "CECECE"
+      ]
+     ]
+    },
+    {
+     "rule": "FF-12",
+     "what": "the party window's top edge over where the commands were",
+     "type": "pixels",
+     "shot": "battle",
+     "probes": [
+      [
+       834,
+       66,
+       "FFFFFF"
+      ],
+      [
+       834,
+       70,
+       "CECECE"
+      ],
+      [
+       834,
+       74,
+       "212121"
+      ]
+     ]
+    },
+    {
+     "rule": "FF-8",
+     "what": "the party: the time window's frame",
+     "type": "pixels",
+     "shot": "battle",
+     "probes": [
+      [
+       962,
+       514,
+       "FFFFFF"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ff2-battle-end",
+   "rom": "BFFE",
+   "state": "final-fantasy-1-2-dawn-of-souls/us-ff2-world.ss",
+   "desc": "Final Fantasy II: the battle with Pit Fiends fought to its end (A): the party through it, the Enlarged Map again after",
+   "rules": [
+    "FF-8"
+   ],
+   "input": [
+    [
+     260,
+     "LOAD:final-fantasy-1-2-dawn-of-souls/us-ff2-world-battle.ss"
+    ],
+    [
+     520,
+     "A"
+    ],
+    [
+     560,
+     "A"
+    ],
+    [
+     600,
+     "A"
+    ],
+    [
+     640,
+     "A"
+    ],
+    [
+     680,
+     "A"
+    ],
+    [
+     720,
+     "A"
+    ],
+    [
+     760,
+     "A"
+    ],
+    [
+     800,
+     "A"
+    ],
+    [
+     840,
+     "A"
+    ],
+    [
+     880,
+     "A"
+    ],
+    [
+     920,
+     "A"
+    ],
+    [
+     960,
+     "A"
+    ],
+    [
+     1000,
+     "A"
+    ],
+    [
+     1040,
+     "A"
+    ],
+    [
+     1080,
+     "A"
+    ],
+    [
+     1120,
+     "A"
+    ],
+    [
+     1160,
+     "A"
+    ],
+    [
+     1200,
+     "A"
+    ],
+    [
+     1240,
+     "A"
+    ],
+    [
+     1280,
+     "A"
+    ],
+    [
+     1320,
+     "A"
+    ],
+    [
+     1360,
+     "A"
+    ],
+    [
+     1400,
+     "A"
+    ],
+    [
+     1440,
+     "A"
+    ],
+    [
+     1480,
+     "A"
+    ],
+    [
+     1520,
+     "A"
+    ],
+    [
+     1560,
+     "A"
+    ],
+    [
+     1600,
+     "A"
+    ],
+    [
+     1640,
+     "A"
+    ],
+    [
+     1680,
+     "A"
+    ],
+    [
+     1720,
+     "A"
+    ],
+    [
+     1760,
+     "A"
+    ],
+    [
+     1800,
+     "A"
+    ],
+    [
+     1840,
+     "A"
+    ],
+    [
+     1880,
+     "A"
+    ],
+    [
+     1920,
+     "A"
+    ],
+    [
+     1960,
+     "A"
+    ],
+    [
+     2000,
+     "A"
+    ],
+    [
+     2040,
+     "A"
+    ],
+    [
+     2080,
+     "A"
+    ],
+    [
+     2120,
+     "A"
+    ],
+    [
+     2160,
+     "A"
+    ],
+    [
+     2200,
+     "A"
+    ],
+    [
+     2240,
+     "A"
+    ],
+    [
+     2280,
+     "A"
+    ],
+    [
+     2320,
+     "A"
+    ],
+    [
+     2360,
+     "A"
+    ],
+    [
+     2400,
+     "A"
+    ]
+   ],
+   "shots": {
+    "battle": 700,
+    "after": 2500
+   },
+   "checks": [
+    {
+     "rule": "FF-12",
+     "what": "the party window's top edge over where the commands were",
+     "type": "pixels",
+     "shot": "battle",
+     "probes": [
+      [
+       834,
+       66,
+       "FFFFFF"
+      ],
+      [
+       834,
+       70,
+       "CECECE"
+      ],
+      [
+       834,
+       74,
+       "212121"
+      ]
+     ]
+    },
+    {
+     "rule": "FF-8",
+     "what": "the map after the battle, not the party screen",
+     "type": "not_pixels",
+     "shot": "after",
+     "probes": [
+      [
+       834,
+       66,
+       "FFFFFF"
+      ],
+      [
+       834,
+       70,
+       "CECECE"
+      ]
+     ]
+    },
+    {
+     "rule": "FF-8",
+     "what": "the map after the battle (not black at the edges)",
+     "type": "not_uniform",
+     "shot": "after",
+     "rect": [
+      32,
+      64,
+      112,
+      704
+     ],
+     "color": "000000"
     }
    ]
   }
