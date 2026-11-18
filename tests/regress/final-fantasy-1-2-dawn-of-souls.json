@@ -1802,6 +1802,52 @@
      ]
     }
    ]
+  },
+  {
+   "id": "ff1-battle-other-party",
+   "rom": "BFFE",
+   "state": "final-fantasy-1-2-dawn-of-souls/us-ff1-airship.ss",
+   "desc": "Final Fantasy: the endgame party's map and party kept on the airship, then a battle of another file's party (the new game's goblins) loaded: the airship's map stays, never the other party",
+   "rules": [
+    "FF-8",
+    "FF-12"
+   ],
+   "input": [
+    [
+     300,
+     "LOAD:final-fantasy-1-2-dawn-of-souls/us-ff1-battle.ss"
+    ]
+   ],
+   "shots": {
+    "before": 290,
+    "battle": 500
+   },
+   "checks": [
+    {
+     "rule": "FF-12",
+     "what": "the last picture (the map) stays: no other file's party",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "battle",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.0
+    }
+   ]
   }
  ]
 }

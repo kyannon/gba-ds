@@ -5725,14 +5725,19 @@ static const char* m3_compose(Emu* s, const void* state, uint32_t* const* out, i
 typedef struct {
 	const char* code;
 	uint32_t game1, game2;
+	/* Final Fantasy's characters: their names (Shift-JIS) from base +
+	 * FF_NAMES, this long, then two bytes ending in the class; one record
+	 * every this many bytes (FF-12) */
+	int nameLen, stride;
 } FfRegion;
 static const FfRegion ffRegions[] = {
-	{ "BFFE", 0x02000584, 0x0200099C },
-	{ "BFFP", 0x020004D0, 0x0200080C },
-	{ "BFFJ", 0x020004F8, 0x02000904 },
+	{ "BFFE", 0x02000584, 0x0200099C, 12, 0x48 },
+	{ "BFFP", 0x020004D0, 0x0200080C, 12, 0x48 },
+	{ "BFFJ", 0x020004F8, 0x02000904, 8, 0x44 },
 };
+#define FF_NAMES 0x7AC
 #define FF_BATTLE 0x02000000
-#define FF_V_LOGO 0xF0000080 /* outside the games, or a battle with no party to show (FF-2, FF-8) */
+#define FF_V_LOGO 0xF0000080 /* outside the games, or a Final Fantasy II battle (FF-2, FF-8) */
 #define FF_V_MAP 0xF0000084 /* Final Fantasy's map number */
 #define FF_MAP_W 128 /* the map screen's map, at its left, below the help window */
 #define FF2_WORLD 0x11C4 /* Final Fantasy II: 4 on the world map (past its base) */
@@ -5762,10 +5767,12 @@ static const SpriteRule ffEnlHide[] = { { -64, -64, 511, 255, 0, 1023, -1, 0, 0,
 #define FF_ENL_Y (GBA_H / 2 - 4)
 #define FF_CMD_ROWS 72 /* START's menu: the command window's rows (FF-12) */
 #define FF_PARTY_EVERY 4 /* on the world map, the party kept every 4th capture */
-/* the party kept for battles (FF-12): written by the composer, read (the
- * flag) by ff_virt */
+/* the party kept for battles (FF-12), and which party it is: the
+ * composer's own (in the web player it runs apart from the game, so the
+ * live side never looks at these) */
 static uint32_t ffParty[GBA_W * GBA_H];
-static volatile bool ffPartyOk;
+static bool ffPartyOk;
+static uint32_t ffPartyId;
 static int ffWorldCaptures;
 
 static const FfRegion* ff_r(Emu* e) {
@@ -5789,16 +5796,12 @@ static int ff_game(Emu* e) {
 
 static uint32_t ff_virt(Emu* e, uint32_t addr) {
 	if (addr == FF_V_LOGO) {
-		/* outside the games: the logo, and the party kept dropped (FF-2,
-		 * FF-12); a battle: Final Fantasy's party kept, else the logo
-		 * (FF-8) */
+		/* outside the games: the logo (FF-2); Final Fantasy II's battles
+		 * too; Final Fantasy's: captures, the composer shows the party
+		 * kept (FF-8) */
 		int g = ff_game(e);
-		if (!g) {
-			ffPartyOk = false;
-			return 1;
-		}
-		if (emu_read8(e, FF_BATTLE) != 1) return 0;
-		return g != 1 || !ffPartyOk;
+		if (!g) return 1;
+		return g == 2 && emu_read8(e, FF_BATTLE) == 1;
 	}
 	/* Final Fantasy's map number, Final Fantasy II's world map flag (4)
 	 * (FF-5, FF-10) */
@@ -5917,6 +5920,17 @@ static const char* ff_open_menu(Emu* s, int game) {
 	return NULL;
 }
 
+/* which party Final Fantasy has: its characters' names and classes, which
+ * a battle doesn't change (FF-12) */
+static uint32_t ff_party_id(Emu* s) {
+	const FfRegion* r = ff_r(s);
+	uint32_t base = emu_read32(s, r->game1), h = 2166136261u;
+	for (int c = 0; c < 4; ++c) {
+		for (int i = 0; i < r->nameLen + 2; ++i) h = (h ^ emu_read8(s, base + FF_NAMES + c * r->stride + i)) * 16777619u;
+	}
+	return h;
+}
+
 /* Final Fantasy's party kept for battles from START's menu, up: its top
  * rows without BG1 (the command window), the party window under it (FF-12) */
 static void ff_keep_party(Emu* s) {
@@ -5928,6 +5942,7 @@ static void ff_keep_party(Emu* s) {
 	memcpy(keep, bg0, FF_CMD_ROWS * GBA_W * sizeof(uint32_t));
 	if (emu_cancelled(s)) return;
 	memcpy(ffParty, keep, sizeof(ffParty));
+	ffPartyId = ff_party_id(s);
 	ffPartyOk = true;
 }
 
@@ -6029,7 +6044,7 @@ static const char* ff_world1(Emu* s, uint32_t* out, int w, int h) {
 	}
 	/* the party kept for battles, now and then (FF-12): the map closed,
 	 * START's menu */
-	if (!ffPartyOk || ++ffWorldCaptures >= FF_PARTY_EVERY) {
+	if (!ffPartyOk || ffPartyId != ff_party_id(s) || ++ffWorldCaptures >= FF_PARTY_EVERY) {
 		ffWorldCaptures = 0;
 		aw_run(s, K_B, 4);
 		aw_run(s, 0, 40);
@@ -6047,8 +6062,10 @@ static const char* ff_compose(Emu* s, const void* state, uint32_t* out, int w, i
 	int game = ff_game(s);
 	if (!game) return "not in a game"; /* (FF-2) */
 	if (emu_read8(s, FF_BATTLE) == 1) {
-		/* Final Fantasy: the party kept (FF-8, FF-12) */
-		if (game != 1 || !ffPartyOk) return "a battle";
+		/* Final Fantasy: the party kept, if it's this party (FF-8,
+		 * FF-12); else the last picture */
+		if (game != 1) return "a battle";
+		if (!ffPartyOk || ffPartyId != ff_party_id(s)) return "a battle: no picture of this party kept";
 		for (int y = 0; y < h; ++y) {
 			for (int x = 0; x < w; ++x) out[y * w + x] = y < GBA_H && x < GBA_W ? ffParty[y * GBA_W + x] : 0xFF000000;
 		}
@@ -9391,9 +9408,8 @@ static const MapProfile profiles[] = {
 		.virt = ff_virt,
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
-		/* outside the games, and battles with no party kept (Final
-		 * Fantasy) or any (Final Fantasy II): the logo, the pictures
-		 * dropped, no captures (FF-2, FF-8) */
+		/* outside the games and in Final Fantasy II's battles: the
+		 * logo, the pictures dropped, no captures (FF-2, FF-8) */
 		.live = { { FF_V_LOGO, 0xFF, 0, 4 } },
 		.menu = { { FF_V_LOGO, 0xFF, 1, 4 } },
 		/* another map, a battle over: taken again at once (FF-5, FF-8) */
