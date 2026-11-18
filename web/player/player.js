@@ -79,7 +79,7 @@ const RESOLUTIONS = (() => {
 const SET_KEY = "gbadsPlayer.settings", CTL_KEY = "gbadsPlayer.controls";
 const DEFAULTS = { device: "gba", custom: { top: [1024, 768, 4.3], bottom: [1024, 768, 4.3] }, arrange: "stack",
   gap: 0, smooth: true, scale: 2 / 3, volume: 80, muted: false, pauseHidden: true,
-  touchShow: "auto", touchPlace: "rotate", touchSize: 100, touchVibrate: true, theme: "dark" };
+  touchShow: "auto", touchPlace: "rotate", touchSize: 100, touchVibrate: true, theme: "dark", accent: "purple" };
 const readJSON = (k) => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } };
 const writeJSON = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
 const S = Object.assign({}, DEFAULTS, readJSON(SET_KEY) || {});
@@ -118,6 +118,9 @@ function applyTheme() {
   const b = $("themeBtn");
   if (b) { b.title = light ? "Dark theme" : "Light theme"; b.setAttribute("aria-label", b.title); }
   if ($("theme")) $("theme").value = light ? "light" : "dark";
+  if (!GBAAccent.ids.includes(S.accent)) S.accent = "purple";
+  GBAAccent.apply(S.accent, light);
+  if ($("accent")) $("accent").value = S.accent;
 }
 const saveSettings = () => { writeJSON(SET_KEY, S); folderKeepSettings(); };
 const ctl = Object.assign({ keys: null, pads: {} }, readJSON(CTL_KEY) || {});
@@ -1289,6 +1292,7 @@ $("scale").onchange = () => { S.scale = Number($("scale").value); saveSettings()
 const setTheme = (t) => { S.theme = t === "light" ? "light" : "dark"; saveSettings(); applyTheme(); };
 $("themeBtn").onclick = () => setTheme(S.theme === "light" ? "dark" : "light");
 $("theme").onchange = () => setTheme($("theme").value);
+$("accent").onchange = () => { S.accent = $("accent").value; saveSettings(); applyTheme(); };
 applyTheme();
 $("volume").oninput = () => { S.volume = Number($("volume").value); S.muted = false; saveSettings(); showSound(); };
 $("touchShow").onchange = () => { S.touchShow = $("touchShow").value; saveSettings(); relayout(); };

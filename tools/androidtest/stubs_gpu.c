@@ -61,3 +61,6 @@ void android_second_restore(void) { if (onPb) { eglMakeCurrent(sd, sdraw, sread,
 void android_second_log_timing(int frames) { fprintf(stderr, "stub: %d switches to the second surface, %d back\n", switches, restores); switches = restores = 0; }
 void android_perf_init(int64_t t) { (void) t; }
 void android_perf_report(int64_t w) { (void) w; }
+/* Settings > Performance on Android (android.c): the stand-in logs the change */
+bool clocks_available(void) { return true; }
+void clocks_set(bool max) { fprintf(stderr, "performance: %s\n", max ? "set to max" : "left to the system"); }
