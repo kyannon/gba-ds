@@ -10,7 +10,8 @@
    "rules": [
     "BT-1",
     "BT-2",
-    "BT-6"
+    "BT-6",
+    "BT-8"
    ],
    "shots": {
     "start": 120,
@@ -38,7 +39,8 @@
    "desc": "walking about in a forest (an area where the Map's tabs sit elsewhere)",
    "rules": [
     "BT-1",
-    "BT-2"
+    "BT-2",
+    "BT-8"
    ],
    "shots": {
     "start": 120

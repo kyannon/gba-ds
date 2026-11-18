@@ -22,11 +22,13 @@ Every game also follows the [general rules](README.md#general-rules). The game d
 
 **BT-4. Title.** On the title screen, the file menu and the first start's set-up (sensor and clock notes, Konami logos, caution), the second screen shows the logo, and no captures are tried.
 
-**BT-5. Logo.** The logo is the title's lettering (boktai, ボクらの太陽 in Japan) with its banner, cut out of the sun behind it; PUSH START, the copyright line and the sun are left out. The first start asks about the sensor and the clock before the title, so the hidden copy answers those (A through them, START to end).
+**BT-5. Logo.** The logo is the title's lettering (boktai, ボクらの太陽 in Japan) with its banner, cut out of the sun behind it, the tan blends along the yellow outline left out so that the outline is its edge; PUSH START, the copyright line and the sun are left out. The first start asks about the sensor and the clock before the title, so the hidden copy answers those (A through them, START to end).
 
 **BT-6. Game screen untouched.** Nothing leaves the game screen.
 
 **BT-7. The sun.** The cartridge's solar sensor reads a fixed level, 6 of 10 (the `solar_level` setting in `gba-ds.cfg`, 0 to 10; 0 is dark), so the sun gauge isn't empty. This is shared code (the emulator hands the core a light level); the game list has no row for it yet.
+
+**BT-8. Clock.** With the Map, the second screen has the game's clock (the time the ITEM page shows above its health bar, which the game shows nowhere else) at the top right, as its own digits: just the numbers and their yellow outline, nothing of the page behind them. It is cut out of the ITEM page on the hidden copy, in the same capture as the Map, so it follows the time as the Map follows Django; where it can't be found, the Map has none. It is a deliberate exception to the Philosophy's "nothing on both screens", for the moment the ITEM page is open on the game screen (the second screen keeps its last Map and clock then, BT-3), and not drawn by GBA DS (rule 4): the game's own sprites, copied.
 
 ## Not covered yet
 
@@ -39,6 +41,8 @@ Every game also follows the [general rules](README.md#general-rules). The game d
 Changelog line: Boktai: The Sun Is in Your Hand: the second screen shows the game's own Map (SELECT, Map page), following Django; the sun sensor reads a fixed level (solar_level in gba-ds.cfg, 6 by default). USA, Europe and Japan.
 
 Wiki section (Supported-games): **Boktai: The Sun Is in Your Hand.** The second screen shows the Map page, taken from a hidden copy of the game while you walk about; in conversations and menus the last Map stays, and on the title screen the logo. The cartridge's sun sensor is set to a middle level. Known: Europe and Japan are checked on their logos and by start-up only.
+
+Philosophy's list of exceptions (rule 6) gets: Boktai's clock, from the ITEM page, beside its Map.
 
 Shared code touched (full suite has to run at the merge): `src/emu.c` / `emu.h` (the light source), `src/config.c` / `config.h` (`solar_level`), `src/main.c`, and the test clock: `GBADS_RTC_FIXED` in `src/emu.c` (applied again after every state load) set to noon by `tools/regress.py`, since Boktai tints its areas by the time of day.
 

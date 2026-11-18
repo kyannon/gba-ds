@@ -6847,6 +6847,41 @@ static const SpriteRule btPrompts[] = {
 static bool bt_map_up(Emu* s) {
 	return emu_read8(s, BT_MENU) == 1 && emu_read8(s, BT_PAGE) == 2;
 }
+/* The ITEM page is page 0; its clock is sprites in two colours only: the
+ * digits' brown and their pale yellow outline, nothing else on the page is
+ * either (BT-8). */
+static bool bt_item_up(Emu* s) { return emu_read8(s, BT_MENU) == 1 && emu_read8(s, BT_PAGE) == 0; }
+#define BT_RGB(r, g, b) ((uint32_t) (b) << 16 | (uint32_t) (g) << 8 | (uint32_t) (r))
+#define BT_CLOCK_X0 48
+#define BT_CLOCK_X1 104
+#define BT_CLOCK_Y0 112
+#define BT_CLOCK_Y1 134
+/* The clock's pixels from the ITEM page's picture, laid at the top right of
+ * out (a margin of 2): nothing if there are none. */
+static void bt_clock(const Emu* s, uint32_t* out, int w, int h) {
+	const uint32_t digit = BT_RGB(156, 66, 24), edge = BT_RGB(255, 255, 140);
+	int x0 = GBA_W, x1 = -1, y0 = GBA_H, y1 = -1, n = 0;
+	for (int y = BT_CLOCK_Y0; y <= BT_CLOCK_Y1; ++y) {
+		for (int x = BT_CLOCK_X0; x <= BT_CLOCK_X1; ++x) {
+			uint32_t c = s->fb[y * GBA_W + x] & 0xFFFFFF; /* (the fourth byte is unused) */
+			if (c != digit && c != edge) continue;
+			++n;
+			if (x < x0) x0 = x;
+			if (x > x1) x1 = x;
+			if (y < y0) y0 = y;
+			if (y > y1) y1 = y;
+		}
+	}
+	if (n < 40) return; /* (five digits' worth at least: not a stray pixel or two) */
+	int dx = w - 2 - 1 - x1, dy = 2 - y0;
+	for (int y = y0; y <= y1; ++y) {
+		for (int x = x0; x <= x1; ++x) {
+			uint32_t c = s->fb[y * GBA_W + x], k = c & 0xFFFFFF;
+			int X = x + dx, Y = y + dy;
+			if ((k == digit || k == edge) && X >= 0 && X < w && Y >= 0 && Y < h) out[Y * w + X] = c;
+		}
+	}
+}
 static const char* bt_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
@@ -6865,9 +6900,19 @@ static const char* bt_compose(Emu* s, const void* state, uint32_t* out, int w, i
 		}
 		if (!aw_settle(s, bt_map_up, 240)) err = "the Map did not open";
 	}
-	emu_hide_sprites(s, NULL, 0);
-	if (err) return err;
+	if (err) {
+		emu_hide_sprites(s, NULL, 0);
+		return err;
+	}
 	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+	/* the clock, from the ITEM page beside the Map (R): the prompts' rules
+	 * off for it, and a Map without a clock if the page doesn't come up */
+	emu_hide_sprites(s, NULL, 0);
+	for (int tries = 0; tries < 2 && emu_read8(s, BT_PAGE) != 0; ++tries) {
+		aw_run(s, K_R, 3);
+		for (int f = 0; f < 30 && emu_read8(s, BT_PAGE) != 0; ++f) emu_frame_blind(s, 0);
+	}
+	if (aw_settle(s, bt_item_up, 240)) bt_clock(s, out, w, h);
 	return NULL;
 }
 
@@ -9610,7 +9655,11 @@ static const MapProfile profiles[] = {
 		.logo = { .steps = { { 0, 600 }, { K_A, 3 }, { 0, 90 }, { K_A, 3 }, { 0, 90 }, { K_A, 3 }, { 0, 90 }, { K_A, 3 }, { 0, 90 },
 		                     { K_A, 3 }, { 0, 90 }, { K_A, 3 }, { 0, 90 }, { K_A, 3 }, { 0, 90 }, { K_A, 3 }, { 0, 90 },
 		                     { K_START, 3 }, { 0, 1100 } },
-		          .layers = 0x18, .maxY = 120 },
+		          .layers = 0x18, .maxY = 120,
+		          /* the tan and brown blends round the yellow outline (the
+		           * sun's colours dithered in) are clear, so the outline
+		           * is the edge (BT-5) */
+		          .edgeClear = { 0x8C634A, 0xC68C63, 0x7B524A, 0xDEA542 }, .rev = 1 },
 	},
 	{
 		/* Final Fantasy I & II: Dawn of Souls (two games, each with its
