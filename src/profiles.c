@@ -5716,8 +5716,10 @@ static const char* m3_compose(Emu* s, const void* state, uint32_t* const* out, i
  *   base + 0  Final Fantasy's map number (0 the world map, also on its own
  *             title and New Game screens; 0x38 Castle Cornelia 1F...: the
  *             numbers of the game's event list)
- *   base + FF2_WORLD  Final Fantasy II: 4 on the world map, 0 elsewhere (seen
- *             in the USA release; the same past the base assumed elsewhere)
+ *   base + FF2_WORLD  Final Fantasy II: the map's tile set, FF2_WORLD_SET on
+ *             the world map (also with its map or START's menu open), 5 the
+ *             Rebel Hideout, 6 towns, 8 Pandaemonium, 2 in a battle (the USA
+ *             and Japanese releases; assumed in Europe's)
  * START's menu and the world map screen are told by their windows' frames
  * (ffMenu1 / ffMenu2, ffMap); the hand cursor is a 16x16 sprite, at the
  * menu's command list or over the map's parchment (where the party's
@@ -5732,11 +5734,13 @@ typedef struct {
 	/* Final Fantasy's battle block (FF-13): where its own address is, and
 	 * how far apart the characters' HP are */
 	uint32_t blkSelf, blkStride;
+	/* Final Fantasy II's party HP in a battle, past its base (FF-13) */
+	uint32_t ff2BatHp;
 } FfRegion;
 static const FfRegion ffRegions[] = {
-	{ "BFFE", 0x02000584, 0x0200099C, 12, 0x48, 0x7E8, 0x60 },
-	{ "BFFP", 0x020004D0, 0x0200080C, 12, 0x48, 0x7E8, 0x60 },
-	{ "BFFJ", 0x020004F8, 0x02000904, 8, 0x44, 0x7D8, 0x5C },
+	{ "BFFE", 0x02000584, 0x0200099C, 12, 0x48, 0x7E8, 0x60, 0x7250 },
+	{ "BFFP", 0x020004D0, 0x0200080C, 12, 0x48, 0x7E8, 0x60, 0x7250 },
+	{ "BFFJ", 0x020004F8, 0x02000904, 8, 0x44, 0x7D8, 0x5C, 0x7240 },
 };
 #define FF_NAMES 0x7AC
 /* Final Fantasy II's characters: their names (Shift-JIS, up to 12 bytes,
@@ -5750,14 +5754,14 @@ static const FfRegion ffRegions[] = {
 /* the party's HP in a battle (FF-13): Final Fantasy's in a block the game
  * allocates for the battle (found by its word at FfRegion.blkSelf holding
  * its own address), from FF1_BLK_HP, one every FfRegion.blkStride bytes;
- * Final Fantasy II's at its memory's base + FF2_BAT_HP, one every 0x1F8
- * bytes (the USA release's; assumed in the others) */
+ * Final Fantasy II's at its memory's base + FfRegion.ff2BatHp, one every
+ * 0x1F8 bytes (the USA and Japanese releases'; Europe's assumed the USA's) */
 #define FF1_BLK_HP 0x100
-#define FF2_BAT_HP 0x7250
 #define FF2_BAT_STRIDE 0x1F8
 #define FF_V_MAP 0xF0000084 /* Final Fantasy's map number */
 #define FF_MAP_W 128 /* the map screen's map, at its left, below the help window */
-#define FF2_WORLD 0x11C4 /* Final Fantasy II: 4 on the world map (past its base) */
+#define FF2_WORLD 0x1192 /* Final Fantasy II: the map's tile set (past its base) */
+#define FF2_WORLD_SET 7 /* (the world map's) */
 /* START's menu, faded in: its windows' frames (x, y, 0xRRGGBB) */
 /* (Final Fantasy: the command window's lower frame, in every release, and
  * the party window's left edge) */
@@ -5791,6 +5795,8 @@ static uint32_t ffParty[GBA_W * GBA_H];
 static bool ffPartyOk;
 static uint32_t ffPartyId;
 static int ffWorldCaptures;
+/* the Final Fantasy II party whose map has opened (FF-11): the composer's */
+static uint32_t ffMapParty;
 
 static const FfRegion* ff_r(Emu* e) {
 	for (size_t i = 0; i < sizeof(ffRegions) / sizeof(*ffRegions); ++i) {
@@ -5834,7 +5840,7 @@ static bool ff_defeated(Emu* e, int game) {
 	uint32_t a, stride;
 	if (game == 2) {
 		uint32_t base = emu_read32(e, ff_r(e)->game2);
-		a = base + FF2_BAT_HP, stride = FF2_BAT_STRIDE;
+		a = base + ff_r(e)->ff2BatHp, stride = FF2_BAT_STRIDE;
 	} else {
 		if (!(a = ff1_block(e))) return false;
 		a += FF1_BLK_HP, stride = ff_r(e)->blkStride;
@@ -5853,7 +5859,7 @@ static uint32_t ff_virt(Emu* e, uint32_t addr) {
 		int g = ff_game(e);
 		return !g || ff_defeated(e, g);
 	}
-	/* Final Fantasy's map number, Final Fantasy II's world map flag (4)
+	/* Final Fantasy's map number, Final Fantasy II's tile set (7 on the world map)
 	 * (FF-5, FF-10) */
 	if (addr == FF_V_MAP) {
 		int g = ff_game(e);
@@ -6174,7 +6180,7 @@ static const char* ff_compose(Emu* s, const void* state, uint32_t* out, int w, i
 	if (emu_cancelled(s)) return "called off";
 
 	/* the world map (FF-4, FF-11): hold B, then SELECT */
-	if (ff_virt(s, FF_V_MAP) == (game == 1 ? 0u : 4u)) {
+	if (ff_virt(s, FF_V_MAP) == (game == 1 ? 0u : (uint32_t) FF2_WORLD_SET)) {
 		/* (a press mid-step can go unseen: tried again, up to three
 		 * times) */
 		bool map = false;
@@ -6186,12 +6192,18 @@ static const char* ff_compose(Emu* s, const void* state, uint32_t* out, int w, i
 				map = ff_map_up(s);
 			}
 		}
-		/* the world map never shows the menu: the last picture stays
-		 * instead (FF-4, FF-11) */
-		if (!map) return "the map didn't open";
-		if (!ff_settle_right(s, 120)) return "the map didn't settle";
+		/* once the map has opened, the world map never shows the menu:
+		 * the last picture stays instead (FF-4, FF-11). Final Fantasy II
+		 * has no map early on: until it has opened for this party, the
+		 * party screen (FF-11) */
+		if (!map && (game == 1 || ffMapParty == ff_party_id(s, game))) return "the map didn't open";
+		if (map) {
+			if (game == 2) ffMapParty = ff_party_id(s, game);
+			if (!ff_settle_right(s, 120)) return "the map didn't settle";
+			if (emu_cancelled(s)) return "called off";
+			return ff_world(s, game, out, w, h);
+		}
 		if (emu_cancelled(s)) return "called off";
-		return ff_world(s, game, out, w, h);
 	}
 
 	/* START's menu (FF-5, FF-10) */
