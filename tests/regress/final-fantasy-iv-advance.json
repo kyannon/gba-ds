@@ -1061,6 +1061,62 @@
    ]
   },
   {
+   "id": "ff4-eu-gameover",
+   "rom": "BZ4P",
+   "state": "final-fantasy-iv-advance/eu-late.ss",
+   "desc": "Europe: the party taken, then every character falls: the party stays through \"The party was defeated.\" and the fade, then the title shows the logo",
+   "rules": [
+    "FF4-4",
+    "FF4-2"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:final-fantasy-iv-advance/eu-defeated.ss"
+    ]
+   ],
+   "shots": {
+    "message": 260,
+    "title": 1500
+   },
+   "checks": [
+    {
+     "rule": "FF4-4",
+     "what": "the party screen was taken before",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF4-4",
+     "what": "still the party at the defeat message (not the logo)",
+     "type": "not_uniform",
+     "shot": "message",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      980,
+      170
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "FF4-2",
+     "what": "the title after the game over: the logo alone",
+     "type": "uniform",
+     "shot": "title",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      980,
+      170
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
    "id": "ff4-jp-late",
    "rom": "BZ4J",
    "state": "final-fantasy-iv-advance/jp-late.ss",

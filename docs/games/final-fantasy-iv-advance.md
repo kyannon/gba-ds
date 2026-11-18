@@ -36,7 +36,7 @@ The game has no map the second screen could show; making one would be drawing so
 
 ## Not covered yet
 
-- **Game over**: after a defeat the last party screen stays until the game's title, which has the logo. (Dawn of Souls shows the logo from the moment the party falls: ask the owner if wanted here too.)
+- **Game over (known issue)**: the owner asked for the logo from the moment the party falls, as in Dawn of Souls (FF-13). It can't be told reliably: the game keeps its battle memory in a heap, so the party's HP is at a different address in each battle (seen at 0x020240B0 in one Europe battle and near 0x02024A2C in a USA one), and nothing else found tells a wipe. So the party stays through "The party was defeated." and the fade (a few seconds), then the title shows the logo (FF4-2). Case `ff4-eu-gameover`.
 - **Bosses, the airship and other vehicles, the Lunar Subterrane's rooms**: the same START menu works there; only some are in the cases.
 - **Japan, Rev 1**: the same profile (`BZ4J`); the cases check its logo and party screen.
 
