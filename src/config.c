@@ -550,7 +550,15 @@ int config_setting_index(const Config* c, const Setting* s) {
 void config_setting_text(const Config* c, const Setting* s, char* out, size_t n) {
 	int i = config_setting_index(c, s);
 	if (i >= 0) {
-		snprintf(out, n, "%s", s->choices[i].label);
+		const char* label = s->choices[i].label;
+		/* (a machine-translated language's name ends with " (machine translated)", tools/i18n.py: that
+		 * note is said in the language in use) */
+		static const char note[] = " (machine translated)";
+		size_t len = strlen(label), nl = sizeof(note) - 1;
+		if (len > nl && !strcmp(label + len - nl, note))
+			snprintf(out, n, "%.*s (%s)", (int) (len - nl), label, tr("machine translated"));
+		else
+			snprintf(out, n, "%s", label);
 	} else if (s->field == SF_INT) {
 		snprintf(out, n, "%d%s", *(const int*) ((const char*) c + s->off), s->unit ? s->unit : "");
 	} else {

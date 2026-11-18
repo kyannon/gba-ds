@@ -2073,3 +2073,6 @@ msgstr "‹"
 
 msgid "›"
 msgstr "›"
+
+msgid "machine translated"
+msgstr "traducción automática"

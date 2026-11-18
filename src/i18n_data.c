@@ -656,37 +656,38 @@ static const char* const lang_de_f651[] = { "Zoom" };
 static const char* const lang_de_f652[] = { "Farbe" };
 static const char* const lang_de_f653[] = { "hex" };
 static const char* const lang_de_f654[] = { "Farbton" };
-static const char* const lang_de_f655[] = { "noch kein Spielstand gespeichert!" };
-static const char* const lang_de_f656[] = { "aus" };
-static const char* const lang_de_f657[] = { "ein" };
-static const char* const lang_de_f658[] = { "Punkt" };
-static const char* const lang_de_f659[] = { "Punkte" };
-static const char* const lang_de_f660[] = { "Voreinstellungen" };
-static const char* const lang_de_f661[] = { "dr\303\274cke den linken Stick" };
-static const char* const lang_de_f662[] = { "schiebe den linken Stick nach links" };
-static const char* const lang_de_f663[] = { "schiebe den linken Stick nach oben" };
-static const char* const lang_de_f664[] = { "die untere Taste" };
-static const char* const lang_de_f665[] = { "die Taste, die das Men\303\274 von GBA DS \303\266ffnet (Home, Menu oder Function)" };
-static const char* const lang_de_f666[] = { "das Spiel" };
-static const char* const lang_de_f667[] = { "die linke Taste" };
-static const char* const lang_de_f668[] = { "die linke Schultertaste" };
-static const char* const lang_de_f669[] = { "der Patch neben der ROM" };
-static const char* const lang_de_f670[] = { "die rechte Taste" };
-static const char* const lang_de_f671[] = { "die rechte Schultertaste" };
-static const char* const lang_de_f672[] = { "die zweite linke Schultertaste" };
-static const char* const lang_de_f673[] = { "die zweite rechte Schultertaste" };
-static const char* const lang_de_f674[] = { "die obere Taste" };
-static const char* const lang_de_f675[] = { "nicht gespeicherter Fortschritt geht verloren" };
-static const char* const lang_de_f676[] = { "mit ihm" };
-static const char* const lang_de_f677[] = { "mit %s" };
-static const char* const lang_de_f678[] = { "mit einem anderen Dump des Spiels (%s)" };
-static const char* const lang_de_f679[] = { "mit einer anderen Version des Spiels (andere Patches oder eine andere ROM)" };
-static const char* const lang_de_f680[] = { "mit dem unver\303\244nderten Spiel (%s)" };
-static const char* const lang_de_f681[] = { "ohne ihn" };
-static const char* const lang_de_f682[] = { "ohne die aktiven Patches" };
-static const char* const lang_de_f683[] = { "deine Position ist gespeichert" };
-static const char* const lang_de_f684[] = { "\342\200\271" };
-static const char* const lang_de_f685[] = { "\342\200\272" };
+static const char* const lang_de_f655[] = { "maschinell \303\274bersetzt" };
+static const char* const lang_de_f656[] = { "noch kein Spielstand gespeichert!" };
+static const char* const lang_de_f657[] = { "aus" };
+static const char* const lang_de_f658[] = { "ein" };
+static const char* const lang_de_f659[] = { "Punkt" };
+static const char* const lang_de_f660[] = { "Punkte" };
+static const char* const lang_de_f661[] = { "Voreinstellungen" };
+static const char* const lang_de_f662[] = { "dr\303\274cke den linken Stick" };
+static const char* const lang_de_f663[] = { "schiebe den linken Stick nach links" };
+static const char* const lang_de_f664[] = { "schiebe den linken Stick nach oben" };
+static const char* const lang_de_f665[] = { "die untere Taste" };
+static const char* const lang_de_f666[] = { "die Taste, die das Men\303\274 von GBA DS \303\266ffnet (Home, Menu oder Function)" };
+static const char* const lang_de_f667[] = { "das Spiel" };
+static const char* const lang_de_f668[] = { "die linke Taste" };
+static const char* const lang_de_f669[] = { "die linke Schultertaste" };
+static const char* const lang_de_f670[] = { "der Patch neben der ROM" };
+static const char* const lang_de_f671[] = { "die rechte Taste" };
+static const char* const lang_de_f672[] = { "die rechte Schultertaste" };
+static const char* const lang_de_f673[] = { "die zweite linke Schultertaste" };
+static const char* const lang_de_f674[] = { "die zweite rechte Schultertaste" };
+static const char* const lang_de_f675[] = { "die obere Taste" };
+static const char* const lang_de_f676[] = { "nicht gespeicherter Fortschritt geht verloren" };
+static const char* const lang_de_f677[] = { "mit ihm" };
+static const char* const lang_de_f678[] = { "mit %s" };
+static const char* const lang_de_f679[] = { "mit einem anderen Dump des Spiels (%s)" };
+static const char* const lang_de_f680[] = { "mit einer anderen Version des Spiels (andere Patches oder eine andere ROM)" };
+static const char* const lang_de_f681[] = { "mit dem unver\303\244nderten Spiel (%s)" };
+static const char* const lang_de_f682[] = { "ohne ihn" };
+static const char* const lang_de_f683[] = { "ohne die aktiven Patches" };
+static const char* const lang_de_f684[] = { "deine Position ist gespeichert" };
+static const char* const lang_de_f685[] = { "\342\200\271" };
+static const char* const lang_de_f686[] = { "\342\200\272" };
 static const I18nEntry lang_de_entries[] = {
 	{ " (patch)", lang_de_f0, 1 },
 	{ " Checking for a new version...", lang_de_f1, 1 },
@@ -1343,37 +1344,38 @@ static const I18nEntry lang_de_entries[] = {
 	{ "color", lang_de_f652, 1 },
 	{ "hex", lang_de_f653, 1 },
 	{ "hue", lang_de_f654, 1 },
-	{ "no save state yet!", lang_de_f655, 1 },
-	{ "off", lang_de_f656, 1 },
-	{ "on", lang_de_f657, 1 },
-	{ "point", lang_de_f658, 1 },
-	{ "points", lang_de_f659, 1 },
-	{ "presets", lang_de_f660, 1 },
-	{ "press the left stick in", lang_de_f661, 1 },
-	{ "push the left stick left", lang_de_f662, 1 },
-	{ "push the left stick up", lang_de_f663, 1 },
-	{ "the bottom face button", lang_de_f664, 1 },
-	{ "the button that opens GBA DS's menu (Home, Menu or Function)", lang_de_f665, 1 },
-	{ "the game", lang_de_f666, 1 },
-	{ "the left face button", lang_de_f667, 1 },
-	{ "the left shoulder button", lang_de_f668, 1 },
-	{ "the patch beside the ROM", lang_de_f669, 1 },
-	{ "the right face button", lang_de_f670, 1 },
-	{ "the right shoulder button", lang_de_f671, 1 },
-	{ "the second left shoulder button", lang_de_f672, 1 },
-	{ "the second right shoulder button", lang_de_f673, 1 },
-	{ "the top face button", lang_de_f674, 1 },
-	{ "unsaved progress is lost", lang_de_f675, 1 },
-	{ "with", lang_de_f676, 1 },
-	{ "with %s", lang_de_f677, 1 },
-	{ "with another dump of the game (%s)", lang_de_f678, 1 },
-	{ "with another version of the game (other patches, or another ROM)", lang_de_f679, 1 },
-	{ "with the unchanged game (%s)", lang_de_f680, 1 },
-	{ "without", lang_de_f681, 1 },
-	{ "without the patches on", lang_de_f682, 1 },
-	{ "your place is saved", lang_de_f683, 1 },
-	{ "\342\200\271", lang_de_f684, 1 },
-	{ "\342\200\272", lang_de_f685, 1 },
+	{ "machine translated", lang_de_f655, 1 },
+	{ "no save state yet!", lang_de_f656, 1 },
+	{ "off", lang_de_f657, 1 },
+	{ "on", lang_de_f658, 1 },
+	{ "point", lang_de_f659, 1 },
+	{ "points", lang_de_f660, 1 },
+	{ "presets", lang_de_f661, 1 },
+	{ "press the left stick in", lang_de_f662, 1 },
+	{ "push the left stick left", lang_de_f663, 1 },
+	{ "push the left stick up", lang_de_f664, 1 },
+	{ "the bottom face button", lang_de_f665, 1 },
+	{ "the button that opens GBA DS's menu (Home, Menu or Function)", lang_de_f666, 1 },
+	{ "the game", lang_de_f667, 1 },
+	{ "the left face button", lang_de_f668, 1 },
+	{ "the left shoulder button", lang_de_f669, 1 },
+	{ "the patch beside the ROM", lang_de_f670, 1 },
+	{ "the right face button", lang_de_f671, 1 },
+	{ "the right shoulder button", lang_de_f672, 1 },
+	{ "the second left shoulder button", lang_de_f673, 1 },
+	{ "the second right shoulder button", lang_de_f674, 1 },
+	{ "the top face button", lang_de_f675, 1 },
+	{ "unsaved progress is lost", lang_de_f676, 1 },
+	{ "with", lang_de_f677, 1 },
+	{ "with %s", lang_de_f678, 1 },
+	{ "with another dump of the game (%s)", lang_de_f679, 1 },
+	{ "with another version of the game (other patches, or another ROM)", lang_de_f680, 1 },
+	{ "with the unchanged game (%s)", lang_de_f681, 1 },
+	{ "without", lang_de_f682, 1 },
+	{ "without the patches on", lang_de_f683, 1 },
+	{ "your place is saved", lang_de_f684, 1 },
+	{ "\342\200\271", lang_de_f685, 1 },
+	{ "\342\200\272", lang_de_f686, 1 },
 };
 
 static const char* const lang_es_f0[] = { " (parche)" };
@@ -2031,37 +2033,38 @@ static const char* const lang_es_f651[] = { "Zoom" };
 static const char* const lang_es_f652[] = { "color" };
 static const char* const lang_es_f653[] = { "hex" };
 static const char* const lang_es_f654[] = { "tono" };
-static const char* const lang_es_f655[] = { "\302\241a\303\272n no hay estado guardado!" };
-static const char* const lang_es_f656[] = { "desactivado" };
-static const char* const lang_es_f657[] = { "activado" };
-static const char* const lang_es_f658[] = { "punto" };
-static const char* const lang_es_f659[] = { "puntos" };
-static const char* const lang_es_f660[] = { "preajustes" };
-static const char* const lang_es_f661[] = { "pulsa el stick izquierdo" };
-static const char* const lang_es_f662[] = { "empuja el stick izquierdo a la izquierda" };
-static const char* const lang_es_f663[] = { "empuja el stick izquierdo hacia arriba" };
-static const char* const lang_es_f664[] = { "el bot\303\263n inferior" };
-static const char* const lang_es_f665[] = { "el bot\303\263n que abre el men\303\272 de GBA DS (Home, Menu o Function)" };
-static const char* const lang_es_f666[] = { "el juego" };
-static const char* const lang_es_f667[] = { "el bot\303\263n izquierdo" };
-static const char* const lang_es_f668[] = { "el bot\303\263n de hombro izquierdo" };
-static const char* const lang_es_f669[] = { "el parche junto a la ROM" };
-static const char* const lang_es_f670[] = { "el bot\303\263n derecho" };
-static const char* const lang_es_f671[] = { "el bot\303\263n de hombro derecho" };
-static const char* const lang_es_f672[] = { "el segundo bot\303\263n de hombro izquierdo" };
-static const char* const lang_es_f673[] = { "el segundo bot\303\263n de hombro derecho" };
-static const char* const lang_es_f674[] = { "el bot\303\263n superior" };
-static const char* const lang_es_f675[] = { "se pierde el progreso sin guardar" };
-static const char* const lang_es_f676[] = { "con \303\251l" };
-static const char* const lang_es_f677[] = { "con %s" };
-static const char* const lang_es_f678[] = { "con otra copia del juego (%s)" };
-static const char* const lang_es_f679[] = { "con otra versi\303\263n del juego (otros parches u otra ROM)" };
-static const char* const lang_es_f680[] = { "con el juego sin cambios (%s)" };
-static const char* const lang_es_f681[] = { "sin \303\251l" };
-static const char* const lang_es_f682[] = { "sin los parches activados" };
-static const char* const lang_es_f683[] = { "tu posici\303\263n est\303\241 guardada" };
-static const char* const lang_es_f684[] = { "\342\200\271" };
-static const char* const lang_es_f685[] = { "\342\200\272" };
+static const char* const lang_es_f655[] = { "traducci\303\263n autom\303\241tica" };
+static const char* const lang_es_f656[] = { "\302\241a\303\272n no hay estado guardado!" };
+static const char* const lang_es_f657[] = { "desactivado" };
+static const char* const lang_es_f658[] = { "activado" };
+static const char* const lang_es_f659[] = { "punto" };
+static const char* const lang_es_f660[] = { "puntos" };
+static const char* const lang_es_f661[] = { "preajustes" };
+static const char* const lang_es_f662[] = { "pulsa el stick izquierdo" };
+static const char* const lang_es_f663[] = { "empuja el stick izquierdo a la izquierda" };
+static const char* const lang_es_f664[] = { "empuja el stick izquierdo hacia arriba" };
+static const char* const lang_es_f665[] = { "el bot\303\263n inferior" };
+static const char* const lang_es_f666[] = { "el bot\303\263n que abre el men\303\272 de GBA DS (Home, Menu o Function)" };
+static const char* const lang_es_f667[] = { "el juego" };
+static const char* const lang_es_f668[] = { "el bot\303\263n izquierdo" };
+static const char* const lang_es_f669[] = { "el bot\303\263n de hombro izquierdo" };
+static const char* const lang_es_f670[] = { "el parche junto a la ROM" };
+static const char* const lang_es_f671[] = { "el bot\303\263n derecho" };
+static const char* const lang_es_f672[] = { "el bot\303\263n de hombro derecho" };
+static const char* const lang_es_f673[] = { "el segundo bot\303\263n de hombro izquierdo" };
+static const char* const lang_es_f674[] = { "el segundo bot\303\263n de hombro derecho" };
+static const char* const lang_es_f675[] = { "el bot\303\263n superior" };
+static const char* const lang_es_f676[] = { "se pierde el progreso sin guardar" };
+static const char* const lang_es_f677[] = { "con \303\251l" };
+static const char* const lang_es_f678[] = { "con %s" };
+static const char* const lang_es_f679[] = { "con otra copia del juego (%s)" };
+static const char* const lang_es_f680[] = { "con otra versi\303\263n del juego (otros parches u otra ROM)" };
+static const char* const lang_es_f681[] = { "con el juego sin cambios (%s)" };
+static const char* const lang_es_f682[] = { "sin \303\251l" };
+static const char* const lang_es_f683[] = { "sin los parches activados" };
+static const char* const lang_es_f684[] = { "tu posici\303\263n est\303\241 guardada" };
+static const char* const lang_es_f685[] = { "\342\200\271" };
+static const char* const lang_es_f686[] = { "\342\200\272" };
 static const I18nEntry lang_es_entries[] = {
 	{ " (patch)", lang_es_f0, 1 },
 	{ " Checking for a new version...", lang_es_f1, 1 },
@@ -2718,37 +2721,38 @@ static const I18nEntry lang_es_entries[] = {
 	{ "color", lang_es_f652, 1 },
 	{ "hex", lang_es_f653, 1 },
 	{ "hue", lang_es_f654, 1 },
-	{ "no save state yet!", lang_es_f655, 1 },
-	{ "off", lang_es_f656, 1 },
-	{ "on", lang_es_f657, 1 },
-	{ "point", lang_es_f658, 1 },
-	{ "points", lang_es_f659, 1 },
-	{ "presets", lang_es_f660, 1 },
-	{ "press the left stick in", lang_es_f661, 1 },
-	{ "push the left stick left", lang_es_f662, 1 },
-	{ "push the left stick up", lang_es_f663, 1 },
-	{ "the bottom face button", lang_es_f664, 1 },
-	{ "the button that opens GBA DS's menu (Home, Menu or Function)", lang_es_f665, 1 },
-	{ "the game", lang_es_f666, 1 },
-	{ "the left face button", lang_es_f667, 1 },
-	{ "the left shoulder button", lang_es_f668, 1 },
-	{ "the patch beside the ROM", lang_es_f669, 1 },
-	{ "the right face button", lang_es_f670, 1 },
-	{ "the right shoulder button", lang_es_f671, 1 },
-	{ "the second left shoulder button", lang_es_f672, 1 },
-	{ "the second right shoulder button", lang_es_f673, 1 },
-	{ "the top face button", lang_es_f674, 1 },
-	{ "unsaved progress is lost", lang_es_f675, 1 },
-	{ "with", lang_es_f676, 1 },
-	{ "with %s", lang_es_f677, 1 },
-	{ "with another dump of the game (%s)", lang_es_f678, 1 },
-	{ "with another version of the game (other patches, or another ROM)", lang_es_f679, 1 },
-	{ "with the unchanged game (%s)", lang_es_f680, 1 },
-	{ "without", lang_es_f681, 1 },
-	{ "without the patches on", lang_es_f682, 1 },
-	{ "your place is saved", lang_es_f683, 1 },
-	{ "\342\200\271", lang_es_f684, 1 },
-	{ "\342\200\272", lang_es_f685, 1 },
+	{ "machine translated", lang_es_f655, 1 },
+	{ "no save state yet!", lang_es_f656, 1 },
+	{ "off", lang_es_f657, 1 },
+	{ "on", lang_es_f658, 1 },
+	{ "point", lang_es_f659, 1 },
+	{ "points", lang_es_f660, 1 },
+	{ "presets", lang_es_f661, 1 },
+	{ "press the left stick in", lang_es_f662, 1 },
+	{ "push the left stick left", lang_es_f663, 1 },
+	{ "push the left stick up", lang_es_f664, 1 },
+	{ "the bottom face button", lang_es_f665, 1 },
+	{ "the button that opens GBA DS's menu (Home, Menu or Function)", lang_es_f666, 1 },
+	{ "the game", lang_es_f667, 1 },
+	{ "the left face button", lang_es_f668, 1 },
+	{ "the left shoulder button", lang_es_f669, 1 },
+	{ "the patch beside the ROM", lang_es_f670, 1 },
+	{ "the right face button", lang_es_f671, 1 },
+	{ "the right shoulder button", lang_es_f672, 1 },
+	{ "the second left shoulder button", lang_es_f673, 1 },
+	{ "the second right shoulder button", lang_es_f674, 1 },
+	{ "the top face button", lang_es_f675, 1 },
+	{ "unsaved progress is lost", lang_es_f676, 1 },
+	{ "with", lang_es_f677, 1 },
+	{ "with %s", lang_es_f678, 1 },
+	{ "with another dump of the game (%s)", lang_es_f679, 1 },
+	{ "with another version of the game (other patches, or another ROM)", lang_es_f680, 1 },
+	{ "with the unchanged game (%s)", lang_es_f681, 1 },
+	{ "without", lang_es_f682, 1 },
+	{ "without the patches on", lang_es_f683, 1 },
+	{ "your place is saved", lang_es_f684, 1 },
+	{ "\342\200\271", lang_es_f685, 1 },
+	{ "\342\200\272", lang_es_f686, 1 },
 };
 
 static const char* const lang_pseudo_f0[] = { " (p\303\240t\303\247h) \302\267\302\267" };
@@ -3406,37 +3410,38 @@ static const char* const lang_pseudo_f651[] = { "Z\303\265\303\265m \302\267" };
 static const char* const lang_pseudo_f652[] = { "\303\247\303\265l\303\265r \302\267\302\267" };
 static const char* const lang_pseudo_f653[] = { "h\303\251x \302\267" };
 static const char* const lang_pseudo_f654[] = { "h\303\274\303\251 \302\267" };
-static const char* const lang_pseudo_f655[] = { "\303\261\303\265 \305\241\303\240v\303\251 \305\241t\303\240t\303\251 \303\275\303\251t! \302\267\302\267\302\267\302\267\302\267" };
-static const char* const lang_pseudo_f656[] = { "\303\265ff \302\267" };
-static const char* const lang_pseudo_f657[] = { "\303\265\303\261 \302\267" };
-static const char* const lang_pseudo_f658[] = { "p\303\265\303\256\303\261t \302\267\302\267" };
-static const char* const lang_pseudo_f659[] = { "p\303\265\303\256\303\261t\305\241 \302\267\302\267" };
-static const char* const lang_pseudo_f660[] = { "pr\303\251\305\241\303\251t\305\241 \302\267\302\267" };
-static const char* const lang_pseudo_f661[] = { "pr\303\251\305\241\305\241 th\303\251 l\303\251ft \305\241t\303\256\303\247k \303\256\303\261 \302\267\302\267\302\267\302\267\302\267\302\267\302\267" };
-static const char* const lang_pseudo_f662[] = { "p\303\274\305\241h th\303\251 l\303\251ft \305\241t\303\256\303\247k l\303\251ft \302\267\302\267\302\267\302\267\302\267\302\267\302\267" };
-static const char* const lang_pseudo_f663[] = { "p\303\274\305\241h th\303\251 l\303\251ft \305\241t\303\256\303\247k \303\274p \302\267\302\267\302\267\302\267\302\267\302\267" };
-static const char* const lang_pseudo_f664[] = { "th\303\251 b\303\265tt\303\265m f\303\240\303\247\303\251 b\303\274tt\303\265\303\261 \302\267\302\267\302\267\302\267\302\267\302\267\302\267" };
-static const char* const lang_pseudo_f665[] = { "th\303\251 b\303\274tt\303\265\303\261 th\303\240t \303\265p\303\251\303\261\305\241 GB\303\200 DS'\305\241 m\303\251\303\261\303\274 (H\303\265m\303\251, M\303\251\303\261\303\274 \303\265r F\303\274\303\261\303\247t\303\256\303\265\303\261) \302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267" };
-static const char* const lang_pseudo_f666[] = { "th\303\251 g\303\240m\303\251 \302\267\302\267" };
-static const char* const lang_pseudo_f667[] = { "th\303\251 l\303\251ft f\303\240\303\247\303\251 b\303\274tt\303\265\303\261 \302\267\302\267\302\267\302\267\302\267\302\267" };
-static const char* const lang_pseudo_f668[] = { "th\303\251 l\303\251ft \305\241h\303\265\303\274ld\303\251r b\303\274tt\303\265\303\261 \302\267\302\267\302\267\302\267\302\267\302\267\302\267" };
-static const char* const lang_pseudo_f669[] = { "th\303\251 p\303\240t\303\247h b\303\251\305\241\303\256d\303\251 th\303\251 R\303\225M \302\267\302\267\302\267\302\267\302\267\302\267\302\267" };
-static const char* const lang_pseudo_f670[] = { "th\303\251 r\303\256ght f\303\240\303\247\303\251 b\303\274tt\303\265\303\261 \302\267\302\267\302\267\302\267\302\267\302\267" };
-static const char* const lang_pseudo_f671[] = { "th\303\251 r\303\256ght \305\241h\303\265\303\274ld\303\251r b\303\274tt\303\265\303\261 \302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267" };
-static const char* const lang_pseudo_f672[] = { "th\303\251 \305\241\303\251\303\247\303\265\303\261d l\303\251ft \305\241h\303\265\303\274ld\303\251r b\303\274tt\303\265\303\261 \302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267" };
-static const char* const lang_pseudo_f673[] = { "th\303\251 \305\241\303\251\303\247\303\265\303\261d r\303\256ght \305\241h\303\265\303\274ld\303\251r b\303\274tt\303\265\303\261 \302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267" };
-static const char* const lang_pseudo_f674[] = { "th\303\251 t\303\265p f\303\240\303\247\303\251 b\303\274tt\303\265\303\261 \302\267\302\267\302\267\302\267\302\267\302\267" };
-static const char* const lang_pseudo_f675[] = { "\303\274\303\261\305\241\303\240v\303\251d pr\303\265gr\303\251\305\241\305\241 \303\256\305\241 l\303\265\305\241t \302\267\302\267\302\267\302\267\302\267\302\267\302\267" };
-static const char* const lang_pseudo_f676[] = { "w\303\256th \302\267" };
-static const char* const lang_pseudo_f677[] = { "w\303\256th %s \302\267" };
-static const char* const lang_pseudo_f678[] = { "w\303\256th \303\240\303\261\303\265th\303\251r d\303\274mp \303\265f th\303\251 g\303\240m\303\251 (%s) \302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267" };
-static const char* const lang_pseudo_f679[] = { "w\303\256th \303\240\303\261\303\265th\303\251r v\303\251r\305\241\303\256\303\265\303\261 \303\265f th\303\251 g\303\240m\303\251 (\303\265th\303\251r p\303\240t\303\247h\303\251\305\241, \303\265r \303\240\303\261\303\265th\303\251r R\303\225M) \302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267" };
-static const char* const lang_pseudo_f680[] = { "w\303\256th th\303\251 \303\274\303\261\303\247h\303\240\303\261g\303\251d g\303\240m\303\251 (%s) \302\267\302\267\302\267\302\267\302\267\302\267\302\267" };
-static const char* const lang_pseudo_f681[] = { "w\303\256th\303\265\303\274t \302\267\302\267" };
-static const char* const lang_pseudo_f682[] = { "w\303\256th\303\265\303\274t th\303\251 p\303\240t\303\247h\303\251\305\241 \303\265\303\261 \302\267\302\267\302\267\302\267\302\267\302\267\302\267" };
-static const char* const lang_pseudo_f683[] = { "\303\275\303\265\303\274r pl\303\240\303\247\303\251 \303\256\305\241 \305\241\303\240v\303\251d \302\267\302\267\302\267\302\267\302\267\302\267" };
-static const char* const lang_pseudo_f684[] = { "\342\200\271" };
-static const char* const lang_pseudo_f685[] = { "\342\200\272" };
+static const char* const lang_pseudo_f655[] = { "m\303\240\303\247h\303\256\303\261\303\251 tr\303\240\303\261\305\241l\303\240t\303\251d \302\267\302\267\302\267\302\267\302\267\302\267" };
+static const char* const lang_pseudo_f656[] = { "\303\261\303\265 \305\241\303\240v\303\251 \305\241t\303\240t\303\251 \303\275\303\251t! \302\267\302\267\302\267\302\267\302\267" };
+static const char* const lang_pseudo_f657[] = { "\303\265ff \302\267" };
+static const char* const lang_pseudo_f658[] = { "\303\265\303\261 \302\267" };
+static const char* const lang_pseudo_f659[] = { "p\303\265\303\256\303\261t \302\267\302\267" };
+static const char* const lang_pseudo_f660[] = { "p\303\265\303\256\303\261t\305\241 \302\267\302\267" };
+static const char* const lang_pseudo_f661[] = { "pr\303\251\305\241\303\251t\305\241 \302\267\302\267" };
+static const char* const lang_pseudo_f662[] = { "pr\303\251\305\241\305\241 th\303\251 l\303\251ft \305\241t\303\256\303\247k \303\256\303\261 \302\267\302\267\302\267\302\267\302\267\302\267\302\267" };
+static const char* const lang_pseudo_f663[] = { "p\303\274\305\241h th\303\251 l\303\251ft \305\241t\303\256\303\247k l\303\251ft \302\267\302\267\302\267\302\267\302\267\302\267\302\267" };
+static const char* const lang_pseudo_f664[] = { "p\303\274\305\241h th\303\251 l\303\251ft \305\241t\303\256\303\247k \303\274p \302\267\302\267\302\267\302\267\302\267\302\267" };
+static const char* const lang_pseudo_f665[] = { "th\303\251 b\303\265tt\303\265m f\303\240\303\247\303\251 b\303\274tt\303\265\303\261 \302\267\302\267\302\267\302\267\302\267\302\267\302\267" };
+static const char* const lang_pseudo_f666[] = { "th\303\251 b\303\274tt\303\265\303\261 th\303\240t \303\265p\303\251\303\261\305\241 GB\303\200 DS'\305\241 m\303\251\303\261\303\274 (H\303\265m\303\251, M\303\251\303\261\303\274 \303\265r F\303\274\303\261\303\247t\303\256\303\265\303\261) \302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267" };
+static const char* const lang_pseudo_f667[] = { "th\303\251 g\303\240m\303\251 \302\267\302\267" };
+static const char* const lang_pseudo_f668[] = { "th\303\251 l\303\251ft f\303\240\303\247\303\251 b\303\274tt\303\265\303\261 \302\267\302\267\302\267\302\267\302\267\302\267" };
+static const char* const lang_pseudo_f669[] = { "th\303\251 l\303\251ft \305\241h\303\265\303\274ld\303\251r b\303\274tt\303\265\303\261 \302\267\302\267\302\267\302\267\302\267\302\267\302\267" };
+static const char* const lang_pseudo_f670[] = { "th\303\251 p\303\240t\303\247h b\303\251\305\241\303\256d\303\251 th\303\251 R\303\225M \302\267\302\267\302\267\302\267\302\267\302\267\302\267" };
+static const char* const lang_pseudo_f671[] = { "th\303\251 r\303\256ght f\303\240\303\247\303\251 b\303\274tt\303\265\303\261 \302\267\302\267\302\267\302\267\302\267\302\267" };
+static const char* const lang_pseudo_f672[] = { "th\303\251 r\303\256ght \305\241h\303\265\303\274ld\303\251r b\303\274tt\303\265\303\261 \302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267" };
+static const char* const lang_pseudo_f673[] = { "th\303\251 \305\241\303\251\303\247\303\265\303\261d l\303\251ft \305\241h\303\265\303\274ld\303\251r b\303\274tt\303\265\303\261 \302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267" };
+static const char* const lang_pseudo_f674[] = { "th\303\251 \305\241\303\251\303\247\303\265\303\261d r\303\256ght \305\241h\303\265\303\274ld\303\251r b\303\274tt\303\265\303\261 \302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267" };
+static const char* const lang_pseudo_f675[] = { "th\303\251 t\303\265p f\303\240\303\247\303\251 b\303\274tt\303\265\303\261 \302\267\302\267\302\267\302\267\302\267\302\267" };
+static const char* const lang_pseudo_f676[] = { "\303\274\303\261\305\241\303\240v\303\251d pr\303\265gr\303\251\305\241\305\241 \303\256\305\241 l\303\265\305\241t \302\267\302\267\302\267\302\267\302\267\302\267\302\267" };
+static const char* const lang_pseudo_f677[] = { "w\303\256th \302\267" };
+static const char* const lang_pseudo_f678[] = { "w\303\256th %s \302\267" };
+static const char* const lang_pseudo_f679[] = { "w\303\256th \303\240\303\261\303\265th\303\251r d\303\274mp \303\265f th\303\251 g\303\240m\303\251 (%s) \302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267" };
+static const char* const lang_pseudo_f680[] = { "w\303\256th \303\240\303\261\303\265th\303\251r v\303\251r\305\241\303\256\303\265\303\261 \303\265f th\303\251 g\303\240m\303\251 (\303\265th\303\251r p\303\240t\303\247h\303\251\305\241, \303\265r \303\240\303\261\303\265th\303\251r R\303\225M) \302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267" };
+static const char* const lang_pseudo_f681[] = { "w\303\256th th\303\251 \303\274\303\261\303\247h\303\240\303\261g\303\251d g\303\240m\303\251 (%s) \302\267\302\267\302\267\302\267\302\267\302\267\302\267" };
+static const char* const lang_pseudo_f682[] = { "w\303\256th\303\265\303\274t \302\267\302\267" };
+static const char* const lang_pseudo_f683[] = { "w\303\256th\303\265\303\274t th\303\251 p\303\240t\303\247h\303\251\305\241 \303\265\303\261 \302\267\302\267\302\267\302\267\302\267\302\267\302\267" };
+static const char* const lang_pseudo_f684[] = { "\303\275\303\265\303\274r pl\303\240\303\247\303\251 \303\256\305\241 \305\241\303\240v\303\251d \302\267\302\267\302\267\302\267\302\267\302\267" };
+static const char* const lang_pseudo_f685[] = { "\342\200\271" };
+static const char* const lang_pseudo_f686[] = { "\342\200\272" };
 static const I18nEntry lang_pseudo_entries[] = {
 	{ " (patch)", lang_pseudo_f0, 1 },
 	{ " Checking for a new version...", lang_pseudo_f1, 1 },
@@ -4093,37 +4098,38 @@ static const I18nEntry lang_pseudo_entries[] = {
 	{ "color", lang_pseudo_f652, 1 },
 	{ "hex", lang_pseudo_f653, 1 },
 	{ "hue", lang_pseudo_f654, 1 },
-	{ "no save state yet!", lang_pseudo_f655, 1 },
-	{ "off", lang_pseudo_f656, 1 },
-	{ "on", lang_pseudo_f657, 1 },
-	{ "point", lang_pseudo_f658, 1 },
-	{ "points", lang_pseudo_f659, 1 },
-	{ "presets", lang_pseudo_f660, 1 },
-	{ "press the left stick in", lang_pseudo_f661, 1 },
-	{ "push the left stick left", lang_pseudo_f662, 1 },
-	{ "push the left stick up", lang_pseudo_f663, 1 },
-	{ "the bottom face button", lang_pseudo_f664, 1 },
-	{ "the button that opens GBA DS's menu (Home, Menu or Function)", lang_pseudo_f665, 1 },
-	{ "the game", lang_pseudo_f666, 1 },
-	{ "the left face button", lang_pseudo_f667, 1 },
-	{ "the left shoulder button", lang_pseudo_f668, 1 },
-	{ "the patch beside the ROM", lang_pseudo_f669, 1 },
-	{ "the right face button", lang_pseudo_f670, 1 },
-	{ "the right shoulder button", lang_pseudo_f671, 1 },
-	{ "the second left shoulder button", lang_pseudo_f672, 1 },
-	{ "the second right shoulder button", lang_pseudo_f673, 1 },
-	{ "the top face button", lang_pseudo_f674, 1 },
-	{ "unsaved progress is lost", lang_pseudo_f675, 1 },
-	{ "with", lang_pseudo_f676, 1 },
-	{ "with %s", lang_pseudo_f677, 1 },
-	{ "with another dump of the game (%s)", lang_pseudo_f678, 1 },
-	{ "with another version of the game (other patches, or another ROM)", lang_pseudo_f679, 1 },
-	{ "with the unchanged game (%s)", lang_pseudo_f680, 1 },
-	{ "without", lang_pseudo_f681, 1 },
-	{ "without the patches on", lang_pseudo_f682, 1 },
-	{ "your place is saved", lang_pseudo_f683, 1 },
-	{ "\342\200\271", lang_pseudo_f684, 1 },
-	{ "\342\200\272", lang_pseudo_f685, 1 },
+	{ "machine translated", lang_pseudo_f655, 1 },
+	{ "no save state yet!", lang_pseudo_f656, 1 },
+	{ "off", lang_pseudo_f657, 1 },
+	{ "on", lang_pseudo_f658, 1 },
+	{ "point", lang_pseudo_f659, 1 },
+	{ "points", lang_pseudo_f660, 1 },
+	{ "presets", lang_pseudo_f661, 1 },
+	{ "press the left stick in", lang_pseudo_f662, 1 },
+	{ "push the left stick left", lang_pseudo_f663, 1 },
+	{ "push the left stick up", lang_pseudo_f664, 1 },
+	{ "the bottom face button", lang_pseudo_f665, 1 },
+	{ "the button that opens GBA DS's menu (Home, Menu or Function)", lang_pseudo_f666, 1 },
+	{ "the game", lang_pseudo_f667, 1 },
+	{ "the left face button", lang_pseudo_f668, 1 },
+	{ "the left shoulder button", lang_pseudo_f669, 1 },
+	{ "the patch beside the ROM", lang_pseudo_f670, 1 },
+	{ "the right face button", lang_pseudo_f671, 1 },
+	{ "the right shoulder button", lang_pseudo_f672, 1 },
+	{ "the second left shoulder button", lang_pseudo_f673, 1 },
+	{ "the second right shoulder button", lang_pseudo_f674, 1 },
+	{ "the top face button", lang_pseudo_f675, 1 },
+	{ "unsaved progress is lost", lang_pseudo_f676, 1 },
+	{ "with", lang_pseudo_f677, 1 },
+	{ "with %s", lang_pseudo_f678, 1 },
+	{ "with another dump of the game (%s)", lang_pseudo_f679, 1 },
+	{ "with another version of the game (other patches, or another ROM)", lang_pseudo_f680, 1 },
+	{ "with the unchanged game (%s)", lang_pseudo_f681, 1 },
+	{ "without", lang_pseudo_f682, 1 },
+	{ "without the patches on", lang_pseudo_f683, 1 },
+	{ "your place is saved", lang_pseudo_f684, 1 },
+	{ "\342\200\271", lang_pseudo_f685, 1 },
+	{ "\342\200\272", lang_pseudo_f686, 1 },
 };
 
 static const char* const lang_zh_CN_f0[] = { "\357\274\210\350\241\245\344\270\201\357\274\211" };
@@ -4781,37 +4787,38 @@ static const char* const lang_zh_CN_f651[] = { "\346\224\276\345\244\247" };
 static const char* const lang_zh_CN_f652[] = { "\351\242\234\350\211\262" };
 static const char* const lang_zh_CN_f653[] = { "\345\215\201\345\205\255\350\277\233\345\210\266" };
 static const char* const lang_zh_CN_f654[] = { "\350\211\262\347\233\270" };
-static const char* const lang_zh_CN_f655[] = { "\350\277\230\346\262\241\346\234\211\345\215\263\346\227\266\345\255\230\346\241\243\357\274\201" };
-static const char* const lang_zh_CN_f656[] = { "\345\205\263" };
-static const char* const lang_zh_CN_f657[] = { "\345\274\200" };
-static const char* const lang_zh_CN_f658[] = { "\345\210\206" };
+static const char* const lang_zh_CN_f655[] = { "\346\234\272\345\231\250\347\277\273\350\257\221" };
+static const char* const lang_zh_CN_f656[] = { "\350\277\230\346\262\241\346\234\211\345\215\263\346\227\266\345\255\230\346\241\243\357\274\201" };
+static const char* const lang_zh_CN_f657[] = { "\345\205\263" };
+static const char* const lang_zh_CN_f658[] = { "\345\274\200" };
 static const char* const lang_zh_CN_f659[] = { "\345\210\206" };
-static const char* const lang_zh_CN_f660[] = { "\351\242\204\350\256\276" };
-static const char* const lang_zh_CN_f661[] = { "\346\212\212\345\267\246\346\221\207\346\235\206\346\214\211\344\270\213\345\216\273" };
-static const char* const lang_zh_CN_f662[] = { "\346\212\212\345\267\246\346\221\207\346\235\206\345\276\200\345\267\246\346\216\250" };
-static const char* const lang_zh_CN_f663[] = { "\346\212\212\345\267\246\346\221\207\346\235\206\345\276\200\344\270\212\346\216\250" };
-static const char* const lang_zh_CN_f664[] = { "\344\270\213\351\235\242\347\232\204\344\270\273\346\214\211\351\224\256" };
-static const char* const lang_zh_CN_f665[] = { "\346\211\223\345\274\200 GBA DS \350\217\234\345\215\225\347\232\204\351\224\256\357\274\210Home\343\200\201Menu \346\210\226 Function\357\274\211" };
-static const char* const lang_zh_CN_f666[] = { "\346\270\270\346\210\217" };
-static const char* const lang_zh_CN_f667[] = { "\345\267\246\350\276\271\347\232\204\344\270\273\346\214\211\351\224\256" };
-static const char* const lang_zh_CN_f668[] = { "\345\267\246\350\202\251\351\224\256" };
-static const char* const lang_zh_CN_f669[] = { "ROM \346\227\201\350\276\271\347\232\204\350\241\245\344\270\201" };
-static const char* const lang_zh_CN_f670[] = { "\345\217\263\350\276\271\347\232\204\344\270\273\346\214\211\351\224\256" };
-static const char* const lang_zh_CN_f671[] = { "\345\217\263\350\202\251\351\224\256" };
-static const char* const lang_zh_CN_f672[] = { "\345\267\246\350\276\271\347\254\254\344\272\214\344\270\252\350\202\251\351\224\256" };
-static const char* const lang_zh_CN_f673[] = { "\345\217\263\350\276\271\347\254\254\344\272\214\344\270\252\350\202\251\351\224\256" };
-static const char* const lang_zh_CN_f674[] = { "\344\270\212\351\235\242\347\232\204\344\270\273\346\214\211\351\224\256" };
-static const char* const lang_zh_CN_f675[] = { "\346\234\252\344\277\235\345\255\230\347\232\204\350\277\233\345\272\246\344\274\232\344\270\242\345\244\261" };
-static const char* const lang_zh_CN_f676[] = { "\345\270\246" };
-static const char* const lang_zh_CN_f677[] = { "%s" };
-static const char* const lang_zh_CN_f678[] = { "\350\277\231\344\270\252\346\270\270\346\210\217\347\232\204\345\217\246\344\270\200\344\270\252 dump\357\274\210%s\357\274\211" };
-static const char* const lang_zh_CN_f679[] = { "\345\217\246\344\270\200\344\270\252\347\211\210\346\234\254\347\232\204\346\270\270\346\210\217\357\274\210\345\205\266\344\273\226\350\241\245\344\270\201\357\274\214\346\210\226\345\217\246\344\270\200\344\270\252 ROM\357\274\211" };
-static const char* const lang_zh_CN_f680[] = { "\346\234\252\346\224\271\345\212\250\347\232\204\346\270\270\346\210\217\357\274\210%s\357\274\211" };
-static const char* const lang_zh_CN_f681[] = { "\344\270\215\345\270\246" };
-static const char* const lang_zh_CN_f682[] = { "\346\262\241\345\274\200\350\241\245\344\270\201\347\232\204 ROM" };
-static const char* const lang_zh_CN_f683[] = { "\345\275\223\345\211\215\344\275\215\347\275\256\345\267\262\344\277\235\345\255\230" };
-static const char* const lang_zh_CN_f684[] = { "\342\200\271" };
-static const char* const lang_zh_CN_f685[] = { "\342\200\272" };
+static const char* const lang_zh_CN_f660[] = { "\345\210\206" };
+static const char* const lang_zh_CN_f661[] = { "\351\242\204\350\256\276" };
+static const char* const lang_zh_CN_f662[] = { "\346\212\212\345\267\246\346\221\207\346\235\206\346\214\211\344\270\213\345\216\273" };
+static const char* const lang_zh_CN_f663[] = { "\346\212\212\345\267\246\346\221\207\346\235\206\345\276\200\345\267\246\346\216\250" };
+static const char* const lang_zh_CN_f664[] = { "\346\212\212\345\267\246\346\221\207\346\235\206\345\276\200\344\270\212\346\216\250" };
+static const char* const lang_zh_CN_f665[] = { "\344\270\213\351\235\242\347\232\204\344\270\273\346\214\211\351\224\256" };
+static const char* const lang_zh_CN_f666[] = { "\346\211\223\345\274\200 GBA DS \350\217\234\345\215\225\347\232\204\351\224\256\357\274\210Home\343\200\201Menu \346\210\226 Function\357\274\211" };
+static const char* const lang_zh_CN_f667[] = { "\346\270\270\346\210\217" };
+static const char* const lang_zh_CN_f668[] = { "\345\267\246\350\276\271\347\232\204\344\270\273\346\214\211\351\224\256" };
+static const char* const lang_zh_CN_f669[] = { "\345\267\246\350\202\251\351\224\256" };
+static const char* const lang_zh_CN_f670[] = { "ROM \346\227\201\350\276\271\347\232\204\350\241\245\344\270\201" };
+static const char* const lang_zh_CN_f671[] = { "\345\217\263\350\276\271\347\232\204\344\270\273\346\214\211\351\224\256" };
+static const char* const lang_zh_CN_f672[] = { "\345\217\263\350\202\251\351\224\256" };
+static const char* const lang_zh_CN_f673[] = { "\345\267\246\350\276\271\347\254\254\344\272\214\344\270\252\350\202\251\351\224\256" };
+static const char* const lang_zh_CN_f674[] = { "\345\217\263\350\276\271\347\254\254\344\272\214\344\270\252\350\202\251\351\224\256" };
+static const char* const lang_zh_CN_f675[] = { "\344\270\212\351\235\242\347\232\204\344\270\273\346\214\211\351\224\256" };
+static const char* const lang_zh_CN_f676[] = { "\346\234\252\344\277\235\345\255\230\347\232\204\350\277\233\345\272\246\344\274\232\344\270\242\345\244\261" };
+static const char* const lang_zh_CN_f677[] = { "\345\270\246" };
+static const char* const lang_zh_CN_f678[] = { "%s" };
+static const char* const lang_zh_CN_f679[] = { "\350\277\231\344\270\252\346\270\270\346\210\217\347\232\204\345\217\246\344\270\200\344\270\252 dump\357\274\210%s\357\274\211" };
+static const char* const lang_zh_CN_f680[] = { "\345\217\246\344\270\200\344\270\252\347\211\210\346\234\254\347\232\204\346\270\270\346\210\217\357\274\210\345\205\266\344\273\226\350\241\245\344\270\201\357\274\214\346\210\226\345\217\246\344\270\200\344\270\252 ROM\357\274\211" };
+static const char* const lang_zh_CN_f681[] = { "\346\234\252\346\224\271\345\212\250\347\232\204\346\270\270\346\210\217\357\274\210%s\357\274\211" };
+static const char* const lang_zh_CN_f682[] = { "\344\270\215\345\270\246" };
+static const char* const lang_zh_CN_f683[] = { "\346\262\241\345\274\200\350\241\245\344\270\201\347\232\204 ROM" };
+static const char* const lang_zh_CN_f684[] = { "\345\275\223\345\211\215\344\275\215\347\275\256\345\267\262\344\277\235\345\255\230" };
+static const char* const lang_zh_CN_f685[] = { "\342\200\271" };
+static const char* const lang_zh_CN_f686[] = { "\342\200\272" };
 static const I18nEntry lang_zh_CN_entries[] = {
 	{ " (patch)", lang_zh_CN_f0, 1 },
 	{ " Checking for a new version...", lang_zh_CN_f1, 1 },
@@ -5468,37 +5475,38 @@ static const I18nEntry lang_zh_CN_entries[] = {
 	{ "color", lang_zh_CN_f652, 1 },
 	{ "hex", lang_zh_CN_f653, 1 },
 	{ "hue", lang_zh_CN_f654, 1 },
-	{ "no save state yet!", lang_zh_CN_f655, 1 },
-	{ "off", lang_zh_CN_f656, 1 },
-	{ "on", lang_zh_CN_f657, 1 },
-	{ "point", lang_zh_CN_f658, 1 },
-	{ "points", lang_zh_CN_f659, 1 },
-	{ "presets", lang_zh_CN_f660, 1 },
-	{ "press the left stick in", lang_zh_CN_f661, 1 },
-	{ "push the left stick left", lang_zh_CN_f662, 1 },
-	{ "push the left stick up", lang_zh_CN_f663, 1 },
-	{ "the bottom face button", lang_zh_CN_f664, 1 },
-	{ "the button that opens GBA DS's menu (Home, Menu or Function)", lang_zh_CN_f665, 1 },
-	{ "the game", lang_zh_CN_f666, 1 },
-	{ "the left face button", lang_zh_CN_f667, 1 },
-	{ "the left shoulder button", lang_zh_CN_f668, 1 },
-	{ "the patch beside the ROM", lang_zh_CN_f669, 1 },
-	{ "the right face button", lang_zh_CN_f670, 1 },
-	{ "the right shoulder button", lang_zh_CN_f671, 1 },
-	{ "the second left shoulder button", lang_zh_CN_f672, 1 },
-	{ "the second right shoulder button", lang_zh_CN_f673, 1 },
-	{ "the top face button", lang_zh_CN_f674, 1 },
-	{ "unsaved progress is lost", lang_zh_CN_f675, 1 },
-	{ "with", lang_zh_CN_f676, 1 },
-	{ "with %s", lang_zh_CN_f677, 1 },
-	{ "with another dump of the game (%s)", lang_zh_CN_f678, 1 },
-	{ "with another version of the game (other patches, or another ROM)", lang_zh_CN_f679, 1 },
-	{ "with the unchanged game (%s)", lang_zh_CN_f680, 1 },
-	{ "without", lang_zh_CN_f681, 1 },
-	{ "without the patches on", lang_zh_CN_f682, 1 },
-	{ "your place is saved", lang_zh_CN_f683, 1 },
-	{ "\342\200\271", lang_zh_CN_f684, 1 },
-	{ "\342\200\272", lang_zh_CN_f685, 1 },
+	{ "machine translated", lang_zh_CN_f655, 1 },
+	{ "no save state yet!", lang_zh_CN_f656, 1 },
+	{ "off", lang_zh_CN_f657, 1 },
+	{ "on", lang_zh_CN_f658, 1 },
+	{ "point", lang_zh_CN_f659, 1 },
+	{ "points", lang_zh_CN_f660, 1 },
+	{ "presets", lang_zh_CN_f661, 1 },
+	{ "press the left stick in", lang_zh_CN_f662, 1 },
+	{ "push the left stick left", lang_zh_CN_f663, 1 },
+	{ "push the left stick up", lang_zh_CN_f664, 1 },
+	{ "the bottom face button", lang_zh_CN_f665, 1 },
+	{ "the button that opens GBA DS's menu (Home, Menu or Function)", lang_zh_CN_f666, 1 },
+	{ "the game", lang_zh_CN_f667, 1 },
+	{ "the left face button", lang_zh_CN_f668, 1 },
+	{ "the left shoulder button", lang_zh_CN_f669, 1 },
+	{ "the patch beside the ROM", lang_zh_CN_f670, 1 },
+	{ "the right face button", lang_zh_CN_f671, 1 },
+	{ "the right shoulder button", lang_zh_CN_f672, 1 },
+	{ "the second left shoulder button", lang_zh_CN_f673, 1 },
+	{ "the second right shoulder button", lang_zh_CN_f674, 1 },
+	{ "the top face button", lang_zh_CN_f675, 1 },
+	{ "unsaved progress is lost", lang_zh_CN_f676, 1 },
+	{ "with", lang_zh_CN_f677, 1 },
+	{ "with %s", lang_zh_CN_f678, 1 },
+	{ "with another dump of the game (%s)", lang_zh_CN_f679, 1 },
+	{ "with another version of the game (other patches, or another ROM)", lang_zh_CN_f680, 1 },
+	{ "with the unchanged game (%s)", lang_zh_CN_f681, 1 },
+	{ "without", lang_zh_CN_f682, 1 },
+	{ "without the patches on", lang_zh_CN_f683, 1 },
+	{ "your place is saved", lang_zh_CN_f684, 1 },
+	{ "\342\200\271", lang_zh_CN_f685, 1 },
+	{ "\342\200\272", lang_zh_CN_f686, 1 },
 };
 
 static const char* const lang_zh_TW_f0[] = { "\357\274\210\350\243\234\344\270\201\357\274\211" };
@@ -6156,37 +6164,38 @@ static const char* const lang_zh_TW_f651[] = { "\346\224\276\345\244\247" };
 static const char* const lang_zh_TW_f652[] = { "\351\241\217\350\211\262" };
 static const char* const lang_zh_TW_f653[] = { "\345\215\201\345\205\255\351\200\262\344\275\215\345\210\266" };
 static const char* const lang_zh_TW_f654[] = { "\350\211\262\347\233\270" };
-static const char* const lang_zh_TW_f655[] = { "\351\202\204\346\262\222\346\234\211\345\215\263\346\231\202\345\255\230\346\252\224\357\274\201" };
-static const char* const lang_zh_TW_f656[] = { "\351\227\234" };
-static const char* const lang_zh_TW_f657[] = { "\351\226\213" };
-static const char* const lang_zh_TW_f658[] = { "\345\210\206" };
+static const char* const lang_zh_TW_f655[] = { "\346\251\237\345\231\250\347\277\273\350\255\257" };
+static const char* const lang_zh_TW_f656[] = { "\351\202\204\346\262\222\346\234\211\345\215\263\346\231\202\345\255\230\346\252\224\357\274\201" };
+static const char* const lang_zh_TW_f657[] = { "\351\227\234" };
+static const char* const lang_zh_TW_f658[] = { "\351\226\213" };
 static const char* const lang_zh_TW_f659[] = { "\345\210\206" };
-static const char* const lang_zh_TW_f660[] = { "\351\240\220\350\250\255" };
-static const char* const lang_zh_TW_f661[] = { "\346\212\212\345\267\246\346\220\226\346\241\277\346\214\211\344\270\213\345\216\273" };
-static const char* const lang_zh_TW_f662[] = { "\346\212\212\345\267\246\346\220\226\346\241\277\345\276\200\345\267\246\346\216\250" };
-static const char* const lang_zh_TW_f663[] = { "\346\212\212\345\267\246\346\220\226\346\241\277\345\276\200\344\270\212\346\216\250" };
-static const char* const lang_zh_TW_f664[] = { "\344\270\213\351\235\242\347\232\204\344\270\273\346\214\211\351\215\265" };
-static const char* const lang_zh_TW_f665[] = { "\351\226\213\345\225\237 GBA DS \351\201\270\345\226\256\347\232\204\351\215\265\357\274\210Home\343\200\201Menu \346\210\226 Function\357\274\211" };
-static const char* const lang_zh_TW_f666[] = { "\351\201\212\346\210\262" };
-static const char* const lang_zh_TW_f667[] = { "\345\267\246\351\202\212\347\232\204\344\270\273\346\214\211\351\215\265" };
-static const char* const lang_zh_TW_f668[] = { "\345\267\246\350\202\251\351\215\265" };
-static const char* const lang_zh_TW_f669[] = { "ROM \346\227\201\351\202\212\347\232\204\350\243\234\344\270\201" };
-static const char* const lang_zh_TW_f670[] = { "\345\217\263\351\202\212\347\232\204\344\270\273\346\214\211\351\215\265" };
-static const char* const lang_zh_TW_f671[] = { "\345\217\263\350\202\251\351\215\265" };
-static const char* const lang_zh_TW_f672[] = { "\345\267\246\351\202\212\347\254\254\344\272\214\345\200\213\350\202\251\351\215\265" };
-static const char* const lang_zh_TW_f673[] = { "\345\217\263\351\202\212\347\254\254\344\272\214\345\200\213\350\202\251\351\215\265" };
-static const char* const lang_zh_TW_f674[] = { "\344\270\212\351\235\242\347\232\204\344\270\273\346\214\211\351\215\265" };
-static const char* const lang_zh_TW_f675[] = { "\346\234\252\345\204\262\345\255\230\347\232\204\351\200\262\345\272\246\346\234\203\344\270\237\345\244\261" };
-static const char* const lang_zh_TW_f676[] = { "\345\270\266" };
-static const char* const lang_zh_TW_f677[] = { "%s" };
-static const char* const lang_zh_TW_f678[] = { "\351\200\231\345\200\213\351\201\212\346\210\262\347\232\204\345\217\246\344\270\200\345\200\213 dump\357\274\210%s\357\274\211" };
-static const char* const lang_zh_TW_f679[] = { "\345\217\246\344\270\200\345\200\213\347\211\210\346\234\254\347\232\204\351\201\212\346\210\262\357\274\210\345\205\266\344\273\226\350\243\234\344\270\201\357\274\214\346\210\226\345\217\246\344\270\200\345\200\213 ROM\357\274\211" };
-static const char* const lang_zh_TW_f680[] = { "\346\234\252\346\224\271\345\213\225\347\232\204\351\201\212\346\210\262\357\274\210%s\357\274\211" };
-static const char* const lang_zh_TW_f681[] = { "\344\270\215\345\270\266" };
-static const char* const lang_zh_TW_f682[] = { "\346\262\222\351\226\213\350\243\234\344\270\201\347\232\204 ROM" };
-static const char* const lang_zh_TW_f683[] = { "\347\225\266\345\211\215\344\275\215\347\275\256\345\267\262\345\204\262\345\255\230" };
-static const char* const lang_zh_TW_f684[] = { "\342\200\271" };
-static const char* const lang_zh_TW_f685[] = { "\342\200\272" };
+static const char* const lang_zh_TW_f660[] = { "\345\210\206" };
+static const char* const lang_zh_TW_f661[] = { "\351\240\220\350\250\255" };
+static const char* const lang_zh_TW_f662[] = { "\346\212\212\345\267\246\346\220\226\346\241\277\346\214\211\344\270\213\345\216\273" };
+static const char* const lang_zh_TW_f663[] = { "\346\212\212\345\267\246\346\220\226\346\241\277\345\276\200\345\267\246\346\216\250" };
+static const char* const lang_zh_TW_f664[] = { "\346\212\212\345\267\246\346\220\226\346\241\277\345\276\200\344\270\212\346\216\250" };
+static const char* const lang_zh_TW_f665[] = { "\344\270\213\351\235\242\347\232\204\344\270\273\346\214\211\351\215\265" };
+static const char* const lang_zh_TW_f666[] = { "\351\226\213\345\225\237 GBA DS \351\201\270\345\226\256\347\232\204\351\215\265\357\274\210Home\343\200\201Menu \346\210\226 Function\357\274\211" };
+static const char* const lang_zh_TW_f667[] = { "\351\201\212\346\210\262" };
+static const char* const lang_zh_TW_f668[] = { "\345\267\246\351\202\212\347\232\204\344\270\273\346\214\211\351\215\265" };
+static const char* const lang_zh_TW_f669[] = { "\345\267\246\350\202\251\351\215\265" };
+static const char* const lang_zh_TW_f670[] = { "ROM \346\227\201\351\202\212\347\232\204\350\243\234\344\270\201" };
+static const char* const lang_zh_TW_f671[] = { "\345\217\263\351\202\212\347\232\204\344\270\273\346\214\211\351\215\265" };
+static const char* const lang_zh_TW_f672[] = { "\345\217\263\350\202\251\351\215\265" };
+static const char* const lang_zh_TW_f673[] = { "\345\267\246\351\202\212\347\254\254\344\272\214\345\200\213\350\202\251\351\215\265" };
+static const char* const lang_zh_TW_f674[] = { "\345\217\263\351\202\212\347\254\254\344\272\214\345\200\213\350\202\251\351\215\265" };
+static const char* const lang_zh_TW_f675[] = { "\344\270\212\351\235\242\347\232\204\344\270\273\346\214\211\351\215\265" };
+static const char* const lang_zh_TW_f676[] = { "\346\234\252\345\204\262\345\255\230\347\232\204\351\200\262\345\272\246\346\234\203\344\270\237\345\244\261" };
+static const char* const lang_zh_TW_f677[] = { "\345\270\266" };
+static const char* const lang_zh_TW_f678[] = { "%s" };
+static const char* const lang_zh_TW_f679[] = { "\351\200\231\345\200\213\351\201\212\346\210\262\347\232\204\345\217\246\344\270\200\345\200\213 dump\357\274\210%s\357\274\211" };
+static const char* const lang_zh_TW_f680[] = { "\345\217\246\344\270\200\345\200\213\347\211\210\346\234\254\347\232\204\351\201\212\346\210\262\357\274\210\345\205\266\344\273\226\350\243\234\344\270\201\357\274\214\346\210\226\345\217\246\344\270\200\345\200\213 ROM\357\274\211" };
+static const char* const lang_zh_TW_f681[] = { "\346\234\252\346\224\271\345\213\225\347\232\204\351\201\212\346\210\262\357\274\210%s\357\274\211" };
+static const char* const lang_zh_TW_f682[] = { "\344\270\215\345\270\266" };
+static const char* const lang_zh_TW_f683[] = { "\346\262\222\351\226\213\350\243\234\344\270\201\347\232\204 ROM" };
+static const char* const lang_zh_TW_f684[] = { "\347\225\266\345\211\215\344\275\215\347\275\256\345\267\262\345\204\262\345\255\230" };
+static const char* const lang_zh_TW_f685[] = { "\342\200\271" };
+static const char* const lang_zh_TW_f686[] = { "\342\200\272" };
 static const I18nEntry lang_zh_TW_entries[] = {
 	{ " (patch)", lang_zh_TW_f0, 1 },
 	{ " Checking for a new version...", lang_zh_TW_f1, 1 },
@@ -6843,44 +6852,45 @@ static const I18nEntry lang_zh_TW_entries[] = {
 	{ "color", lang_zh_TW_f652, 1 },
 	{ "hex", lang_zh_TW_f653, 1 },
 	{ "hue", lang_zh_TW_f654, 1 },
-	{ "no save state yet!", lang_zh_TW_f655, 1 },
-	{ "off", lang_zh_TW_f656, 1 },
-	{ "on", lang_zh_TW_f657, 1 },
-	{ "point", lang_zh_TW_f658, 1 },
-	{ "points", lang_zh_TW_f659, 1 },
-	{ "presets", lang_zh_TW_f660, 1 },
-	{ "press the left stick in", lang_zh_TW_f661, 1 },
-	{ "push the left stick left", lang_zh_TW_f662, 1 },
-	{ "push the left stick up", lang_zh_TW_f663, 1 },
-	{ "the bottom face button", lang_zh_TW_f664, 1 },
-	{ "the button that opens GBA DS's menu (Home, Menu or Function)", lang_zh_TW_f665, 1 },
-	{ "the game", lang_zh_TW_f666, 1 },
-	{ "the left face button", lang_zh_TW_f667, 1 },
-	{ "the left shoulder button", lang_zh_TW_f668, 1 },
-	{ "the patch beside the ROM", lang_zh_TW_f669, 1 },
-	{ "the right face button", lang_zh_TW_f670, 1 },
-	{ "the right shoulder button", lang_zh_TW_f671, 1 },
-	{ "the second left shoulder button", lang_zh_TW_f672, 1 },
-	{ "the second right shoulder button", lang_zh_TW_f673, 1 },
-	{ "the top face button", lang_zh_TW_f674, 1 },
-	{ "unsaved progress is lost", lang_zh_TW_f675, 1 },
-	{ "with", lang_zh_TW_f676, 1 },
-	{ "with %s", lang_zh_TW_f677, 1 },
-	{ "with another dump of the game (%s)", lang_zh_TW_f678, 1 },
-	{ "with another version of the game (other patches, or another ROM)", lang_zh_TW_f679, 1 },
-	{ "with the unchanged game (%s)", lang_zh_TW_f680, 1 },
-	{ "without", lang_zh_TW_f681, 1 },
-	{ "without the patches on", lang_zh_TW_f682, 1 },
-	{ "your place is saved", lang_zh_TW_f683, 1 },
-	{ "\342\200\271", lang_zh_TW_f684, 1 },
-	{ "\342\200\272", lang_zh_TW_f685, 1 },
+	{ "machine translated", lang_zh_TW_f655, 1 },
+	{ "no save state yet!", lang_zh_TW_f656, 1 },
+	{ "off", lang_zh_TW_f657, 1 },
+	{ "on", lang_zh_TW_f658, 1 },
+	{ "point", lang_zh_TW_f659, 1 },
+	{ "points", lang_zh_TW_f660, 1 },
+	{ "presets", lang_zh_TW_f661, 1 },
+	{ "press the left stick in", lang_zh_TW_f662, 1 },
+	{ "push the left stick left", lang_zh_TW_f663, 1 },
+	{ "push the left stick up", lang_zh_TW_f664, 1 },
+	{ "the bottom face button", lang_zh_TW_f665, 1 },
+	{ "the button that opens GBA DS's menu (Home, Menu or Function)", lang_zh_TW_f666, 1 },
+	{ "the game", lang_zh_TW_f667, 1 },
+	{ "the left face button", lang_zh_TW_f668, 1 },
+	{ "the left shoulder button", lang_zh_TW_f669, 1 },
+	{ "the patch beside the ROM", lang_zh_TW_f670, 1 },
+	{ "the right face button", lang_zh_TW_f671, 1 },
+	{ "the right shoulder button", lang_zh_TW_f672, 1 },
+	{ "the second left shoulder button", lang_zh_TW_f673, 1 },
+	{ "the second right shoulder button", lang_zh_TW_f674, 1 },
+	{ "the top face button", lang_zh_TW_f675, 1 },
+	{ "unsaved progress is lost", lang_zh_TW_f676, 1 },
+	{ "with", lang_zh_TW_f677, 1 },
+	{ "with %s", lang_zh_TW_f678, 1 },
+	{ "with another dump of the game (%s)", lang_zh_TW_f679, 1 },
+	{ "with another version of the game (other patches, or another ROM)", lang_zh_TW_f680, 1 },
+	{ "with the unchanged game (%s)", lang_zh_TW_f681, 1 },
+	{ "without", lang_zh_TW_f682, 1 },
+	{ "without the patches on", lang_zh_TW_f683, 1 },
+	{ "your place is saved", lang_zh_TW_f684, 1 },
+	{ "\342\200\271", lang_zh_TW_f685, 1 },
+	{ "\342\200\272", lang_zh_TW_f686, 1 },
 };
 
 const I18nLang i18nLangs[] = {
-	{ "de", "Deutsch", "", PL_ONE_OTHER, 0, 1, lang_de_entries, 686 },
-	{ "es", "Espa\303\261ol", "", PL_ONE_OTHER, 0, 1, lang_es_entries, 686 },
-	{ "pseudo", "Pseudo (testing)", "", PL_ONE_OTHER, 0, 3, lang_pseudo_entries, 686 },
-	{ "zh_CN", "\347\256\200\344\275\223\344\270\255\346\226\207", "zh_CN zh_SG zh_Hans zh", PL_NONE, 1, 1, lang_zh_CN_entries, 686 },
-	{ "zh_TW", "\347\271\201\351\253\224\344\270\255\346\226\207", "zh_TW zh_HK zh_MO zh_Hant", PL_NONE, 2, 1, lang_zh_TW_entries, 686 },
+	{ "de", "Deutsch", "", PL_ONE_OTHER, 0, 1, lang_de_entries, 687 },
+	{ "es", "Espa\303\261ol", "", PL_ONE_OTHER, 0, 1, lang_es_entries, 687 },
+	{ "pseudo", "Pseudo (testing)", "", PL_ONE_OTHER, 0, 3, lang_pseudo_entries, 687 },
+	{ "zh_CN", "\347\256\200\344\275\223\344\270\255\346\226\207", "zh_CN zh_SG zh_Hans zh", PL_NONE, 1, 1, lang_zh_CN_entries, 687 },
+	{ "zh_TW", "\347\271\201\351\253\224\344\270\255\346\226\207", "zh_TW zh_HK zh_MO zh_Hant", PL_NONE, 2, 1, lang_zh_TW_entries, 687 },
 };
 const int i18nLangCount = 5;
