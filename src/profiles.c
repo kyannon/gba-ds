@@ -6303,6 +6303,96 @@ static const char* ff_compose(Emu* s, const void* state, uint32_t* out, int w, i
 	return NULL;
 }
 
+/* ---------------------------------------------------------------- Final Fantasy IV Advance
+ *
+ * docs/games/final-fantasy-iv-advance.md. The game has no map screen: the
+ * second screen is START's menu as a party screen (the party, the place,
+ * the play time and gil), taken on the hidden copy without its command
+ * list (FF4-3); in a battle, scenes and conversations the last one stays
+ * (FF4-4, FF4-5); the logo on the title (FF4-2). All three releases (BZ4E,
+ * BZ4P, BZ4J in both revisions) draw the same windows in the same places.
+ *   FF4_V_LOGO  1 while the title is up: the title is video mode 1, the
+ *               game's other screens modes 0 and 2
+ */
+#define FF4_V_LOGO 0xF0000090
+/* START's menu, faded in: the command window's lower frame and the party
+ * window's right one (x, y, 0xRRGGBB); the Load Game screen has the same
+ * windows, told apart by its title window's lower frame at ff4LoadFrame */
+static const int ff4Menu[][3] = { { 200, 85, 0xFFFFFF }, { 200, 86, 0xCECECE }, { 200, 87, 0x212121 },
+                                  { 200, 88, 0xFFFFFF }, { 200, 90, 0x212121 }, { 152, 40, 0xFFFFFF },
+                                  { 153, 40, 0xCECECE }, { 154, 40, 0x212121 } };
+static const int ff4LoadFrame[2] = { 225, 21 };
+/* a battle: its bottom windows' frames */
+static const int ff4Battle[][3] = { { 100, 112, 0xFFFFFF }, { 100, 113, 0xCECECE }, { 100, 114, 0x212121 },
+                                    { 200, 112, 0xFFFFFF }, { 200, 113, 0xCECECE }, { 200, 114, 0x212121 } };
+/* the hand at the menu's command list */
+static const SpriteRule ff4MenuHand = { 136, -16, 200, 100, 0, 1023, -1, 0, 0, 0 };
+
+static uint32_t ff4_virt(Emu* e, uint32_t addr) {
+	if (addr == FF4_V_LOGO) return (emu_io16(e, 0) & 7) == 1; /* (FF4-2) */
+	return 0;
+}
+
+static bool ff4_menu_up(Emu* s) {
+	if (!ff_probes(s, ff4Menu, sizeof(ff4Menu) / sizeof(*ff4Menu))) return false;
+	return !ff_is(s->fb[ff4LoadFrame[1] * GBA_W + ff4LoadFrame[0]], 0xFFFFFF);
+}
+
+/* START's menu brought up on the hidden copy (B first, as often as it
+ * takes to leave one of its screens, a dialogue: FF4-5) and settled, its
+ * hand hidden */
+static const char* ff4_open_menu(Emu* s) {
+	emu_hide_sprites(s, &ff4MenuHand, 1);
+	bool up = false;
+	for (int tries = 0; tries < 4 && !up; ++tries) {
+		if (tries) {
+			aw_run(s, K_B, 4);
+			aw_run(s, 0, 40);
+		}
+		aw_run(s, K_START, 4);
+		for (int f = 0; f < 90 && !up; f += 2) {
+			aw_run(s, 0, 2);
+			up = ff4_menu_up(s);
+		}
+	}
+	if (!up) return "the menu didn't open"; /* (FF4-5) */
+	if (!ff_settle(s, 120)) return "the menu didn't settle";
+	if (!ff4_menu_up(s)) return "the menu closed";
+	if (emu_cancelled(s)) return "called off";
+	return NULL;
+}
+
+/* Final Fantasy IV Advance in Europe: the language screen first (A:
+ * English), then the health warning, both logos and the intro to skip with
+ * START (FF4-1) */
+static void ff4_eur(MapProfile* p) {
+	static const MacroStep steps[] = { { 0, 200 }, { K_A, 4 }, { 0, 146 }, { K_START, 4 }, { 0, 146 }, { K_START, 4 }, { 0, 146 },
+	                                   { K_START, 4 }, { 0, 146 }, { K_START, 4 }, { 0, 400 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+}
+
+static const char* ff4_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	static uint32_t pic[GBA_W * GBA_H];
+	emu_hide_sprites(s, NULL, 0);
+	emu_layers(s, 0x1F);
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	/* a battle: the party kept stays (FF4-4) */
+	if (ff_probes(s, ff4Battle, sizeof(ff4Battle) / sizeof(*ff4Battle))) return "a battle";
+	const char* err = ff4_open_menu(s);
+	if (err) return err;
+	/* the party screen: the menu without the command list (BG1) (FF4-3) */
+	uint8_t* tmp = ff_tmp(s);
+	if (!tmp || !emu_state_save(s, tmp)) return "called off";
+	ff_draw_layers(s, tmp, 0x11, pic);
+	if (emu_cancelled(s)) return "called off";
+	for (int y = 0; y < h; ++y) {
+		for (int x = 0; x < w; ++x) out[y * w + x] = y < GBA_H && x < GBA_W ? pic[y * GBA_W + x] : 0xFF000000;
+	}
+	return NULL;
+}
+
 /* ---------------------------------------------------------------- Baldur's Gate: Dark Alliance
  *
  * docs/games/baldurs-gate-dark-alliance.md. The game has no map: GBA DS
@@ -9556,6 +9646,22 @@ static const MapProfile profiles[] = {
 		.logo = { .steps = { { 0, 1000 } }, .layers = 0x0A, .maxY = 130 },
 	},
 	{
+		/* Final Fantasy IV Advance (BZ4E; BZ4P, BZ4J below): START's menu
+		 * as a party screen: see ff4_compose */
+		.codes = { "BZ4E" },
+		.title = "Final Fantasy IV Advance",
+		.compose = ff4_compose,
+		.virt = ff4_virt,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* the title: the logo, the pictures dropped, no captures (FF4-2) */
+		.live = { { FF4_V_LOGO, 0xFF, 0, 4 } },
+		.menu = { { FF4_V_LOGO, 0xFF, 1, 4 } },
+		/* the title's art and lettering (BG2) */
+		.logo = { .steps = { { 0, 200 }, { K_START, 4 }, { 0, 146 }, { K_START, 4 }, { 0, 146 }, { K_START, 4 }, { 0, 146 },
+		                     { K_START, 4 }, { 0, 400 } }, .layers = 0x04, .maxY = 110, .lightEdgeClear = true },
+	},
+	{
 		/* Rebelstar: Tactical Command (USA; Europe: below). In a battle, the
 		 * soldier's Status or the mission's Objectives from the field:
 		 * see rs_compose (docs/games/rebelstar-tactical-command.md) */
@@ -10116,6 +10222,9 @@ static const Variant variants[] = {
 	/* (Final Fantasy I & II's addresses: FfRegion) */
 	{ "BFFP", "BFFE", 0, ff_eur },
 	{ "BFFJ", "BFFE", 0, ff_jpn },
+	/* (Final Fantasy IV Advance: the same addresses and windows in every release) */
+	{ "BZ4P", "BZ4E", 0, ff4_eur },
+	{ "BZ4J", "BZ4E", 0, NULL },
 	{ "AM2P", "AE2E", 0, NULL },
 	{ "AE2J", "AE2E", 0, mmbn2_jpn },
 	/* (Pokémon Pinball's cheats: its state moved, so the memory shift is only
