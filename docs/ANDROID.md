@@ -790,13 +790,9 @@ Player-facing Android changes since the last release, for the main session
 to move into CHANGELOG.md and the release notes (see CLAUDE.md, "More than
 one session"). Empty after each release.
 
+(Empty: Rotation and Performance went into v1.5.5's changelog.)
 
-- **Rotation setting for phones and the Surface Duo (issue #60).** With one
-  display, Settings > System > Rotation holds the window upright (the two
-  screens one above the other), on its side (side by side), or leaves it to
-  the phone (Auto, the default: follows Android's rotation lock as before).
-  Portrait and landscape still turn either way up. Not shown on devices with
-  two displays.
+## Rotation, and Performance (issue #60, Nov 2026; in v1.5.5)
 
 ### Notes for sessions: Rotation (issue #60, `android`)
 
