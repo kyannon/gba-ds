@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.5.5 (not yet released)
+## v1.5.5 (2026-11-18)
 
 ### New games
 - **Final Fantasy I & II: Dawn of Souls** (USA, Europe, Japan): in Final Fantasy, the second screen shows the game's Enlarged Map over the whole screen with the party in the middle while on the world map, the party screen (the party, gil, time, crystals, where you are; START's menu without its list of commands) elsewhere, and in battles the party as it was just before the battle (its HP and play time from then). Final Fantasy II and Soul of Rebirth the same: the Enlarged Map, with its blinking marks shown steady, the party screen and the party in battles; early in Final Fantasy II, before the game has a map, the party screen on the world map too. Outside the games, on the cartridge's menus, in the Bestiary and from a game over on, it shows the logo; in conversations the last picture stays.
