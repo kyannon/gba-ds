@@ -6303,6 +6303,152 @@ static const char* ff_compose(Emu* s, const void* state, uint32_t* out, int w, i
 	return NULL;
 }
 
+/* ---------------------------------------------------------------- Final Fantasy V Advance
+ *
+ * docs/games/final-fantasy-v-advance.md. The game has no map screen: the
+ * second screen is the party screen, START's menu opened on the hidden copy
+ * without its command windows (FV-3, FV-4), kept for battles (FV-6, FV-7),
+ * the logo outside the game and after a game over (FV-2, FV-8). START's menu
+ * draws every window on BG0; the command windows (the top right) are left
+ * black in the picture. Words, in all three releases:
+ *   FFV_LOADED  0x02000924: the first character's pointer, 0 until a game
+ *               is loaded or started (title, Load Game screen)
+ *   FFV_BATTLE  0x02000EC0: non-zero from a battle's first frame to the end
+ *               of its results
+ *   FFV_MAP     0x0200EA7E (half word): the map
+ * Per release (FfvRegion): the party's records (character id, job at +8, +9,
+ * one every 0x64 bytes) and the battle's block of HP (HP, maximum HP, MP,
+ * maximum MP, 8 bytes a character). */
+typedef struct {
+	const char* code;
+	uint32_t party, hp;
+} FfvRegion;
+static const FfvRegion ffvRegions[] = {
+	{ "BZ5E", 0x0200DAB4, 0x0201E1A0 },
+	{ "BZ5P", 0x0200D868, 0x0201DF54 },
+	{ "BZ5J", 0x0200DAB4, 0x0201E1A0 },
+};
+#define FFV_LOADED 0x02000924
+#define FFV_BATTLE 0x02000EC0
+#define FFV_MAP 0x0200EA7E
+#define FFV_V_LOGO 0xF00000A0  /* outside the game (FV-2), or the party defeated (FV-8) */
+#define FFV_V_MAP 0xF00000A4   /* the map (FV-3) */
+#define FFV_V_BATTLE 0xF00000A8 /* a battle (FV-6) */
+#define FFV_CMD_X 152 /* START's menu: the command windows' place, top right (FV-3) */
+#define FFV_CMD_ROWS 89
+/* START's menu, up: its windows' frames (x, y, 0xRRGGBB) */
+static const int ffvMenu[][3] = { { 152, 10, 0xFFFFFF }, { 153, 10, 0xCECECE }, { 154, 10, 0x212121 },
+                                  { 152, 50, 0xFFFFFF }, { 237, 10, 0xFFFFFF }, { 190, 85, 0xFFFFFF },
+                                  { 190, 86, 0xCECECE }, { 152, 100, 0xFFFFFF }, { 237, 140, 0xFFFFFF },
+                                  { 1, 80, 0xCECECE }, { 2, 80, 0x212121 } };
+/* the hand cursor: tiles 900 and up */
+static const SpriteRule ffvHand = { -16, -16, 255, 255, 900, 1023, -1, 0, 0, 0 };
+static uint32_t ffvParty[GBA_W * GBA_H];
+static bool ffvPartyOk;
+static uint32_t ffvPartyId;
+
+static const FfvRegion* ffv_r(Emu* e) {
+	for (size_t i = 0; i < sizeof(ffvRegions) / sizeof(*ffvRegions); ++i) {
+		if (!strncmp(e->gameCode, ffvRegions[i].code, 4)) return &ffvRegions[i];
+	}
+	return &ffvRegions[0];
+}
+
+/* the whole party down in a battle: every HP 0 (FV-8) */
+static bool ffv_defeated(Emu* e) {
+	if (!emu_read32(e, FFV_BATTLE)) return false;
+	for (int c = 0; c < 4; ++c) {
+		uint32_t a = ffv_r(e)->hp + c * 8;
+		if (emu_read16(e, a) || !emu_read16(e, a + 2)) return false; /* (alive, or no character) */
+	}
+	return true;
+}
+
+static uint32_t ffv_virt(Emu* e, uint32_t addr) {
+	if (addr == FFV_V_LOGO) return !emu_read32(e, FFV_LOADED) || ffv_defeated(e);
+	if (addr == FFV_V_MAP) return emu_read16(e, FFV_MAP);
+	if (addr == FFV_V_BATTLE) return emu_read32(e, FFV_BATTLE) != 0;
+	return 0;
+}
+
+static bool ffv_menu_up(Emu* s) {
+	for (size_t i = 0; i < sizeof(ffvMenu) / sizeof(*ffvMenu); ++i) {
+		if (!ff_is(s->fb[ffvMenu[i][1] * GBA_W + ffvMenu[i][0]], ffvMenu[i][2])) return false;
+	}
+	return true;
+}
+
+/* which party: the characters' ids and jobs (FV-7) */
+static uint32_t ffv_party_id(Emu* s) {
+	uint32_t h = 2166136261u;
+	for (int c = 0; c < 4; ++c) {
+		uint32_t a = ffv_r(s)->party + c * 0x64 + 8;
+		h = (h ^ emu_read8(s, a)) * 16777619u;
+		h = (h ^ emu_read8(s, a + 1)) * 16777619u;
+	}
+	return h;
+}
+
+/* START's menu brought up (from one of its screens, B first, as often as it
+ * takes: FV-4) and settled, its hand hidden */
+static const char* ffv_open_menu(Emu* s) {
+	emu_hide_sprites(s, &ffvHand, 1);
+	bool up = false;
+	for (int tries = 0; tries < 3 && !up; ++tries) {
+		if (tries) {
+			aw_run(s, K_B, 4);
+			aw_run(s, 0, 40);
+		}
+		aw_run(s, K_START, 4);
+		for (int f = 0; f < 90 && !up; f += 2) {
+			aw_run(s, 0, 2);
+			up = ffv_menu_up(s);
+		}
+	}
+	if (!up) return "the menu didn't open"; /* (FV-5) */
+	if (!ff_settle(s, 120)) return "the menu didn't settle";
+	if (!ffv_menu_up(s)) return "the menu closed";
+	if (emu_cancelled(s)) return "called off";
+	return NULL;
+}
+
+static const char* ffv_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	emu_hide_sprites(s, NULL, 0);
+	emu_layers(s, 0x1F);
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	if (!emu_read32(s, FFV_LOADED)) return "not in a game"; /* (FV-2) */
+	if (emu_read32(s, FFV_BATTLE)) {
+		/* the party kept, if it's this party (FV-6, FV-7); else the last picture */
+		if (!ffvPartyOk || ffvPartyId != ffv_party_id(s)) return "a battle: no picture of this party kept";
+		for (int y = 0; y < h; ++y) {
+			for (int x = 0; x < w; ++x) out[y * w + x] = y < GBA_H && x < GBA_W ? ffvParty[y * GBA_W + x] : 0xFF000000;
+		}
+		return NULL;
+	}
+	/* back to walking about from the menu (FV-4) */
+	for (int i = 0; i < 4 && ffv_menu_up(s); ++i) {
+		aw_run(s, K_B, 4);
+		aw_run(s, 0, 40);
+	}
+	if (emu_cancelled(s)) return "called off";
+	const char* err = ffv_open_menu(s);
+	if (err) return err;
+	/* the party screen: the command windows' place left black (FV-3) */
+	for (int y = 0; y < GBA_H; ++y) {
+		for (int x = 0; x < GBA_W; ++x) {
+			bool cmd = x >= FFV_CMD_X && y < FFV_CMD_ROWS;
+			ffvParty[y * GBA_W + x] = cmd ? 0xFF000000 : s->fb[y * GBA_W + x] | 0xFF000000;
+		}
+	}
+	ffvPartyId = ffv_party_id(s);
+	ffvPartyOk = true;
+	for (int y = 0; y < h; ++y) {
+		for (int x = 0; x < w; ++x) out[y * w + x] = y < GBA_H && x < GBA_W ? ffvParty[y * GBA_W + x] : 0xFF000000;
+	}
+	return NULL;
+}
+
 /* ---------------------------------------------------------------- Baldur's Gate: Dark Alliance
  *
  * docs/games/baldurs-gate-dark-alliance.md. The game has no map: GBA DS
@@ -9556,6 +9702,25 @@ static const MapProfile profiles[] = {
 		.logo = { .steps = { { 0, 1000 } }, .layers = 0x0A, .maxY = 130 },
 	},
 	{
+		/* Final Fantasy V Advance: the party screen, START's menu without
+		 * its commands: see ffv_compose
+		 * (docs/games/final-fantasy-v-advance.md) */
+		.codes = { "BZ5E" },
+		.title = "Final Fantasy V Advance",
+		.compose = ffv_compose,
+		.virt = ffv_virt,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* outside the game and at a game over: the logo, the pictures
+		 * dropped, no captures (FV-2, FV-8) */
+		.live = { { FFV_V_LOGO, 0xFF, 0, 4 } },
+		.menu = { { FFV_V_LOGO, 0xFF, 1, 4 } },
+		/* another map, a battle begun or over: taken again at once (FV-3, FV-6) */
+		.room = { { FFV_V_MAP, 0xFFFF, 0, 4 }, { FFV_V_BATTLE, 0xFF, 0, 4 } },
+		/* the title's lettering and dragon (BG2) on its white background */
+		.logo = { .steps = { { 0, 300 }, { K_A, 4 }, { 0, 1000 }, { K_A, 4 }, { 0, 300 } }, .layer = 2, .maxY = 110, .lightEdgeClear = true },
+	},
+	{
 		/* Rebelstar: Tactical Command (USA; Europe: below). In a battle, the
 		 * soldier's Status or the mission's Objectives from the field:
 		 * see rs_compose (docs/games/rebelstar-tactical-command.md) */
@@ -9649,6 +9814,12 @@ static void lang_menu(MapProfile* p) {
  * (BG2) and the katakana under it (BG3) (FF-1) */
 static void ff_eur(MapProfile* p) {
 	static const MacroStep steps[] = { { 0, 300 }, { K_A, 4 }, { 0, 1000 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+}
+/* Final Fantasy V Advance in Europe: the language menu first (A: English) */
+static void ffv_eur(MapProfile* p) {
+	static const MacroStep steps[] = { { 0, 300 }, { K_A, 4 }, { 0, 300 }, { K_A, 4 }, { 0, 1000 }, { K_A, 4 }, { 0, 300 } };
 	memset(p->logo.steps, 0, sizeof(p->logo.steps));
 	memcpy(p->logo.steps, steps, sizeof(steps));
 }
@@ -10116,6 +10287,9 @@ static const Variant variants[] = {
 	/* (Final Fantasy I & II's addresses: FfRegion) */
 	{ "BFFP", "BFFE", 0, ff_eur },
 	{ "BFFJ", "BFFE", 0, ff_jpn },
+	/* (Final Fantasy V Advance's addresses: FfvRegion) */
+	{ "BZ5P", "BZ5E", 0, ffv_eur },
+	{ "BZ5J", "BZ5E", 0, NULL },
 	{ "AM2P", "AE2E", 0, NULL },
 	{ "AE2J", "AE2E", 0, mmbn2_jpn },
 	/* (Pokémon Pinball's cheats: its state moved, so the memory shift is only
