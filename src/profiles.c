@@ -6467,6 +6467,16 @@ static const char* rs_compose_eur(Emu* s, const void* state, uint32_t* const* ou
 	return rs_compose_for(&rsEur, s, state, out, nOut, step, w, h);
 }
 
+/* Shin Megami Tensei (Japan, and Gymzatan's translation of it): the game's
+ * mode byte (0 title and file lists, 1 walking, 0xA the command bar and START
+ * menu, 0x10 the map, 0x15 a fight, 0x19 the name entry), the party's place
+ * (x, y; the facing 0 N, 1 E, 2 S, 3 W) and the area's number */
+#define SMT_MODE   0x03004470
+#define SMT_FACING 0x03004472
+#define SMT_X      0x03004482
+#define SMT_Y      0x03004484
+#define SMT_AREA   0x030044EC
+
 static const MapProfile profiles[] = {
 	{
 		.codes = { "A2CE" },
@@ -8981,6 +8991,37 @@ static const MapProfile profiles[] = {
 		/* the same title picture, past the language list (A: English;
 		 * without a battery save it comes first) */
 		.logo = { .steps = { { 0, 60 }, { K_A, 4 }, { 0, 400 } }, .mask = &logoMaskRS, .rev = 1 },
+	},
+	{
+		/* Shin Megami Tensei (Japan; played in English with Gymzatan's
+		 * translation, the same addresses): the automap, L in the
+		 * first-person view (docs/games/shin-megami-tensei.md). The game's
+		 * mode byte: 0 title and file lists, 1 walking, 0xA the command bar
+		 * and START menu, 0x10 the map, 0x15 a fight, 0x19 the name entry. */
+		.codes = { "AAUJ" },
+		.title = "Shin Megami Tensei",
+		.open = { { K_L, 4 } },
+		/* the map draws itself in steps with pauses between them, the floor's
+		 * name box last, about 52 frames after L: the probe at its right
+		 * end is the last piece (SMT-2) */
+		.settleMax = 200, .openWithin = 140, .stableFrames = 4, .maxDiff = 700,
+		/* the map's part of the screen: the grid, the compass and the floor's
+		 * name; the party's panels under it stay on the game screen (SMT-2) */
+		.crop_x = 0, .crop_y = 0, .crop_w = 240, .crop_h = 105,
+		.probes = { { 10, 3, 0x31316B }, { 10, 60, 0x42429C }, { 212, 6, 0x492BE7 }, { 205, 10, 0xE74200 },
+		            { 216, 98, 0x73738C }, { 232, 60, 0x292929 } },
+		.tolerance = 8,
+		.mem = { { SMT_MODE, 0xFF, 0x10, 1 } },
+		/* only while walking about (SMT-4); the title and file lists: the
+		 * logo, the map dropped (SMT-5) */
+		.live = { { SMT_MODE, 0xFF, 0x01, 1 } },
+		.menu = { { SMT_MODE, 0xFF, 0x00, 1 } },
+		/* a step, a turn, another floor: a new map at once (SMT-3) */
+		.room = { { SMT_X, 0, 0, 1 }, { SMT_Y, 0, 0, 1 }, { SMT_FACING, 0, 0, 1 }, { SMT_AREA, 0, 0, 1 } },
+		/* the title's lettering, BG1 above the menu (SMT-1) */
+		.logo = { .steps = { { 0, 300 }, { K_START, 4 }, { 0, 60 }, { K_START, 4 }, { 0, 60 }, { K_START, 4 },
+		                     { 0, 60 }, { K_START, 4 }, { 0, 200 } },
+		          .layer = 1, .maxY = 100 },
 	},
 };
 

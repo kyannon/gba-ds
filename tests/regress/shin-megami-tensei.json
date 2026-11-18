@@ -1,0 +1,725 @@
+{
+ "game": "Shin Megami Tensei",
+ "rules": "docs/games/shin-megami-tensei.md",
+ "cases": [
+  {
+   "id": "smt-jp-cathedral-map",
+   "rom": "AAUJ",
+   "desc": "the Cathedral of Shadows 1F: the game's automap on the second screen, with its compass and the floor's name",
+   "rules": [
+    "SMT-2",
+    "SMT-6"
+   ],
+   "state": "shin-megami-tensei/jp-cathedral.ss",
+   "save": "AAUJ.sav",
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "SMT-2",
+     "what": "the map fills the second screen: its grid, floor and compass",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      174,
+      992,
+      594
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SMT-2",
+     "what": "the party panels aren't on the second screen: black under the map",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      600,
+      992,
+      704
+     ],
+     "color": "000000",
+     "frac": 0.99
+    },
+    {
+     "rule": "SMT-1",
+     "what": "the tested dump",
+     "type": "log",
+     "match": "ROM: CRC32 b857c3c5"
+    }
+   ]
+  },
+  {
+   "id": "smt-jp-shibuya-map",
+   "rom": "AAUJ",
+   "desc": "the Shibuya building 1F: the game's automap on the second screen, with its compass and the floor's name",
+   "rules": [
+    "SMT-2",
+    "SMT-6"
+   ],
+   "state": "shin-megami-tensei/jp-shibuya.ss",
+   "save": "AAUJ.sav",
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "SMT-2",
+     "what": "the map fills the second screen: its grid, floor and compass",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      174,
+      992,
+      594
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SMT-2",
+     "what": "the party panels aren't on the second screen: black under the map",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      600,
+      992,
+      704
+     ],
+     "color": "000000",
+     "frac": 0.99
+    }
+   ]
+  },
+  {
+   "id": "smt-jp-shinagawa-map",
+   "rom": "AAUJ",
+   "desc": "Shinagawa 1F: the game's automap on the second screen, with its compass and the floor's name",
+   "rules": [
+    "SMT-2",
+    "SMT-6"
+   ],
+   "state": "shin-megami-tensei/jp-shinagawa.ss",
+   "save": "AAUJ.sav",
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "SMT-2",
+     "what": "the map fills the second screen: its grid, floor and compass",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      174,
+      992,
+      594
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SMT-2",
+     "what": "the party panels aren't on the second screen: black under the map",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      600,
+      992,
+      704
+     ],
+     "color": "000000",
+     "frac": 0.99
+    }
+   ]
+  },
+  {
+   "id": "smt-jp-cathedral-turn",
+   "rom": "AAUJ",
+   "desc": "a turn on the spot: the arrow on the map turns at once",
+   "rules": [
+    "SMT-3"
+   ],
+   "state": "shin-megami-tensei/jp-cathedral.ss",
+   "save": "AAUJ.sav",
+   "input": [
+    [
+     170,
+     "LEFT"
+    ],
+    [
+     174,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 150,
+    "turned": 330
+   },
+   "checks": [
+    {
+     "rule": "SMT-3",
+     "what": "the map fills the second screen: its grid, floor and compass",
+     "type": "not_uniform",
+     "shot": "turned",
+     "screen": "second",
+     "rect": [
+      32,
+      174,
+      992,
+      594
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SMT-3",
+     "what": "a new map after the turn",
+     "type": "log",
+     "match": "frame (1[6-9][0-9]|2[0-9][0-9]|3[0-2][0-9]): map updated"
+    }
+   ]
+  },
+  {
+   "id": "smt-jp-shibuya-step",
+   "rom": "AAUJ",
+   "desc": "a step forward: the arrow moves on the map at once",
+   "rules": [
+    "SMT-3"
+   ],
+   "state": "shin-megami-tensei/jp-shibuya.ss",
+   "save": "AAUJ.sav",
+   "input": [
+    [
+     170,
+     "UP"
+    ],
+    [
+     174,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 150,
+    "stepped": 330
+   },
+   "checks": [
+    {
+     "rule": "SMT-3",
+     "what": "the map fills the second screen: its grid, floor and compass",
+     "type": "not_uniform",
+     "shot": "stepped",
+     "screen": "second",
+     "rect": [
+      32,
+      174,
+      992,
+      594
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SMT-3",
+     "what": "a new map after the step",
+     "type": "log",
+     "match": "frame (1[6-9][0-9]|2[0-9][0-9]|3[0-2][0-9]): map updated"
+    }
+   ]
+  },
+  {
+   "id": "smt-jp-battle",
+   "rom": "AAUJ",
+   "desc": "a fight starts: the map stays, the fight is on the game screen only",
+   "rules": [
+    "SMT-4",
+    "SMT-6"
+   ],
+   "state": "shin-megami-tensei/jp-shibuya.ss",
+   "save": "AAUJ.sav",
+   "input": [
+    [
+     200,
+     "LOAD:shin-megami-tensei/jp-battle.ss"
+    ]
+   ],
+   "shots": {
+    "start": 150,
+    "fight": 420
+   },
+   "checks": [
+    {
+     "rule": "SMT-4",
+     "what": "the map fills the second screen: its grid, floor and compass",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      174,
+      992,
+      594
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SMT-4",
+     "what": "the map is kept through the fight",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "screen": "second",
+      "rect": [
+       32,
+       174,
+       992,
+       594
+      ]
+     },
+     "b": {
+      "shot": "fight",
+      "screen": "second",
+      "rect": [
+       32,
+       174,
+       992,
+       594
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "smt-jp-menus",
+   "rom": "AAUJ",
+   "desc": "the command bar and the START menu over the view: the map stays",
+   "rules": [
+    "SMT-4",
+    "SMT-6"
+   ],
+   "state": "shin-megami-tensei/jp-cathedral.ss",
+   "save": "AAUJ.sav",
+   "input": [
+    [
+     200,
+     "LOAD:shin-megami-tensei/jp-bar.ss"
+    ],
+    [
+     400,
+     "LOAD:shin-megami-tensei/jp-start.ss"
+    ]
+   ],
+   "shots": {
+    "start": 150,
+    "bar": 350,
+    "sysmenu": 550
+   },
+   "checks": [
+    {
+     "rule": "SMT-4",
+     "what": "the map fills the second screen: its grid, floor and compass",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      174,
+      992,
+      594
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SMT-4",
+     "what": "the map is kept with the command bar up",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "screen": "second",
+      "rect": [
+       32,
+       174,
+       992,
+       594
+      ]
+     },
+     "b": {
+      "shot": "bar",
+      "screen": "second",
+      "rect": [
+       32,
+       174,
+       992,
+       594
+      ]
+     }
+    },
+    {
+     "rule": "SMT-4",
+     "what": "the map is kept with the START menu up",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "screen": "second",
+      "rect": [
+       32,
+       174,
+       992,
+       594
+      ]
+     },
+     "b": {
+      "shot": "sysmenu",
+      "screen": "second",
+      "rect": [
+       32,
+       174,
+       992,
+       594
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "smt-en-cathedral-map",
+   "rom": "AAUJ+en13b",
+   "state": "shin-megami-tensei/en-cathedral.ss",
+   "save": "AAUJ.sav",
+   "desc": "the translation's ROM: the same map",
+   "rules": [
+    "SMT-7",
+    "SMT-2"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "SMT-7",
+     "what": "the map fills the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      174,
+      992,
+      594
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SMT-7",
+     "what": "the translation is a known mod, tested",
+     "type": "log",
+     "match": "ROM: CRC32 f74db49f"
+    }
+   ]
+  },
+  {
+   "id": "smt-en-shibuya-map",
+   "rom": "AAUJ+en13b",
+   "state": "shin-megami-tensei/en-shibuya.ss",
+   "save": "AAUJ.sav",
+   "desc": "the translation, Shibuya",
+   "rules": [
+    "SMT-7",
+    "SMT-2"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "SMT-7",
+     "what": "the map fills the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      174,
+      992,
+      594
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "smt-fh-cathedral-map",
+   "rom": "AAUJ+en13b-font",
+   "state": "shin-megami-tensei/fh-cathedral.ss",
+   "save": "AAUJ.sav",
+   "desc": "the translation with the font hack: the same map",
+   "rules": [
+    "SMT-7",
+    "SMT-2"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "SMT-7",
+     "what": "the map fills the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      174,
+      992,
+      594
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SMT-7",
+     "what": "the font hack is a known mod, tested",
+     "type": "log",
+     "match": "ROM: CRC32 2050b471"
+    }
+   ]
+  },
+  {
+   "id": "smt-fh-shinagawa-map",
+   "rom": "AAUJ+en13b-font",
+   "state": "shin-megami-tensei/fh-shinagawa.ss",
+   "save": "AAUJ.sav",
+   "desc": "the font hack, Shinagawa",
+   "rules": [
+    "SMT-7",
+    "SMT-2"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "SMT-7",
+     "what": "the map fills the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      174,
+      992,
+      594
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "smt-en-cathedral-patch",
+   "rom": "AAUJ",
+   "state": "shin-megami-tensei/en-cathedral.ss",
+   "save": "AAUJ.sav",
+   "desc": "the translation's BPS beside the Japanese ROM: the map",
+   "rules": [
+    "SMT-7",
+    "SMT-2"
+   ],
+   "patch": "SMT_T-En_Gymzatan_v1.3b_iOS_Localized.bps",
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "SMT-7",
+     "what": "the map fills the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      174,
+      992,
+      594
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SMT-7",
+     "what": "the patched result is the known translation",
+     "type": "log",
+     "match": "ROM: CRC32 f74db49f"
+    }
+   ]
+  },
+  {
+   "id": "smt-fh-cathedral-patch",
+   "rom": "AAUJ",
+   "state": "shin-megami-tensei/fh-cathedral.ss",
+   "save": "AAUJ.sav",
+   "desc": "the BPS with the font hack's IPS on it, both on in the Patches folder: the map",
+   "rules": [
+    "SMT-7",
+    "SMT-2"
+   ],
+   "patch_folder": [
+    "SMT_T-En_Gymzatan_v1.3b_iOS_Localized.bps",
+    "SMT_T-En_Gymzatan_v1.3b_Font_Hack.ips"
+   ],
+   "patch_on": [
+    "SMT_T-En_Gymzatan_v1.3b_iOS_Localized.bps",
+    "SMT_T-En_Gymzatan_v1.3b_Font_Hack.ips"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "SMT-7",
+     "what": "the map fills the second screen",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      174,
+      992,
+      594
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SMT-7",
+     "what": "the result is the known font hack",
+     "type": "log",
+     "match": "ROM: CRC32 2050b471"
+    }
+   ]
+  },
+  {
+   "id": "smt-logo-jp",
+   "kind": "logo",
+   "rom": "AAUJ",
+   "desc": "the title lettering as the logo (jp)",
+   "rules": [
+    "GEN-1",
+    "SMT-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "smt-logo-en",
+   "kind": "logo",
+   "rom": "AAUJ+en13b",
+   "desc": "the title lettering as the logo (en)",
+   "rules": [
+    "GEN-1",
+    "SMT-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "smt-logo-fh",
+   "kind": "logo",
+   "rom": "AAUJ+en13b-font",
+   "desc": "the title lettering as the logo (fh)",
+   "rules": [
+    "GEN-1",
+    "SMT-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "smt-jp-title",
+   "rom": "AAUJ",
+   "save": "AAUJ.sav",
+   "desc": "the title and file list: the logo on the second screen, no map",
+   "rules": [
+    "SMT-1",
+    "SMT-5"
+   ],
+   "input": [
+    [
+     300,
+     "START"
+    ],
+    [
+     304,
+     "-"
+    ],
+    [
+     360,
+     "START"
+    ],
+    [
+     364,
+     "-"
+    ],
+    [
+     420,
+     "START"
+    ],
+    [
+     424,
+     "-"
+    ],
+    [
+     480,
+     "START"
+    ],
+    [
+     484,
+     "-"
+    ]
+   ],
+   "shots": {
+    "title": 900
+   },
+   "golden": [
+    "title"
+   ],
+   "checks": [
+    {
+     "rule": "SMT-5",
+     "what": "the logo, not a map: nothing in the lower part of the second screen",
+     "type": "uniform",
+     "shot": "title",
+     "screen": "second",
+     "rect": [
+      32,
+      560,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.97
+    }
+   ]
+  }
+ ]
+}

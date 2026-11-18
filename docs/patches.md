@@ -129,3 +129,5 @@ the repo. Fixtures for the tested ones are in the fixtures repo's
 | Wario Land 4 | `AWAE` | Color palette enhancement 1.1 (Piggy Chan!) | colour | Wario Land 4 Color Palette Enhancement 1.1.ips | 42658 | `e6ae60dd` | `d6141609` | `c0ce2370` | yes |
 | The Legend of Zelda: A Link to the Past | `AZLE` | Voice removal v0.1 | voice removal | lozalttpgba_voice removal(U)0.1.ips | 3850 | `18ef1718` | `8e91cd13` | `abd1a38b` | yes |
 | The Legend of Zelda: A Link to the Past | `AZLP` | Voice removal v0.1 | voice removal | lozalttpgba_voice removal(E)0.1.ips | 3850 | `58129d2d` | `5a164321` | `72e519b7` | yes |
+| Shin Megami Tensei | `AAUJ` | English v1.3b iOS Localized (Gymzatan; made from the translated ROM: the published patch isn't in hand) | translation | SMT_T-En_Gymzatan_v1.3b_iOS_Localized.bps | 1145166 | `3d110b00` | `b857c3c5` | `f74db49f` | yes |
+| Shin Megami Tensei | `AAUJ` | English v1.3b font hack (Gymzatan; optional, on the translation; made from the font hack ROM) | font | SMT_T-En_Gymzatan_v1.3b_Font_Hack.ips | 732 | `2986ea39` | `f74db49f` | `2050b471` | yes |
