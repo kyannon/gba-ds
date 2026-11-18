@@ -3,7 +3,7 @@
 ## v1.5.6 (not yet released)
 
 ### Menus and interface
-- The pause menu's Game page now fits on the screen without scrolling: Cheats and Patches share a row, and so do Take Screenshot and Submit a Bug Report.
+- The pause menu's Game page now fits on the screen without scrolling: Cheats and Patches share a row, and so do Take Screenshot and Submit a Bug Report. Close Game and Close GBA DS are now double-height buttons side by side (Close GBA DS alone is full width when the game didn't start from the game list), with bigger text.
 
 ## v1.5.5 (2026-11-18)
 
