@@ -23,6 +23,7 @@
 - **[[Supported games]]**: what each game shows on the second screen, and per-game details.
 - **[[Overlays]]**: GBA DS's bezel round the picture, and your own overlay images.
 - **[[Settings]]**: every option in `gba-ds.cfg`, explained.
+- **[[Languages]]**: the interface's languages, and how to fix or add one.
 - **[[Troubleshooting]]**: logs, and what to do when something doesn't work.
 - **[[Philosophy]]**: what GBA DS is meant to be, and why some feature requests get a no.
 

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Machine translated; see docs/I18N.md. app_name stays in values/. -->
+<resources>
+    <string name="files_title">Zugriff auf alle Dateien erlauben</string>
+    <string name="files_why">GBA DS liest deine Spiele aus deinem ROM-Ordner und speichert Spielstände, Screenshots, Cheats und Spiellogos in einem Ordner \"GBA DS\" auf deinem Speicher. Android nennt diese Berechtigung \"Zugriff auf alle Dateien\".\n\nAktiviere sie auf dem nächsten Bildschirm für GBA DS und komm dann zurück.</string>
+    <string name="files_open">Weiter</string>
+    <string name="files_not_now">Nicht jetzt</string>
+    <string name="need_files">GBA DS benötigt \"Zugriff auf alle Dateien\", um deinen ROM-Ordner zu lesen. Aktiviere ihn und komm dann zurück.</string>
+</resources>

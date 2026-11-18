@@ -2,6 +2,15 @@
 
 ## v1.5.6 (not yet released)
 
+### New
+- **The interface speaks more languages.** Settings > Games > Language (Automatic follows the system's language) switches the menus, game list, messages and the Android permission screen between English, Español, Deutsch, Français, Italiano, Português (Brasil), 日本語, 한국어, 简体中文 and 繁體中文. Everything is built into the zip and the APK, so there is nothing to download. The Chinese translations come from DokiOnjouji's pull request (#62); the other languages are machine translations to start with, marked "(machine translated)" in the Language list (said in the language in use) until a speaker has reviewed them. Anyone can improve or add a language: see the [Languages page](https://github.com/kyannon/gba-ds/wiki/Languages) on the wiki.
+- **Longer text fits.** Where a translation is longer than English, buttons and help lines shrink the text or break onto a second line instead of running over the edge.
+
+### Known issues
+- Translations are machine-made and not yet reviewed by native speakers: expect awkward wording. Text that isn't translated yet stays in English.
+- Only the characters used by the translations are built into the Chinese, Japanese and Korean fonts, so game or file names written in those scripts still draw as boxes.
+- Game names, file paths, RetroAchievements' own text and the log stay as they are.
+
 ## v1.5.5 (2026-11-18)
 
 ### New games

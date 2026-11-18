@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Machine translated; see docs/I18N.md. app_name stays in values/. -->
+<resources>
+    <string name="files_title">모든 파일 액세스 허용</string>
+    <string name="files_why">GBA DS는 ROM 폴더에서 게임을 읽고, 저장소의 \"GBA DS\" 폴더에 상태, 스크린샷, 치트, 게임 로고를 보관합니다. Android에서는 이 권한을 \"모든 파일 액세스\"라고 부릅니다.\n\n다음 화면에서 GBA DS에 대해 켠 다음 돌아오세요.</string>
+    <string name="files_open">계속</string>
+    <string name="files_not_now">나중에</string>
+    <string name="need_files">GBA DS가 ROM 폴더를 읽으려면 \"모든 파일 액세스\"가 필요합니다. 켠 다음 돌아오세요.</string>
+</resources>
