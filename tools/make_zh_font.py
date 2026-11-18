@@ -8,8 +8,16 @@ Noto Sans SC and Noto Sans TC are under the SIL Open Font License 1.1
 Each whole font is 12-17 MB, so this cuts them down to the characters its
 interface can show: the translations in assets/i18n/zh-CN.tsv (Simplified) and
 zh-TW.tsv (Traditional), the ASCII the menus already have (names, numbers,
-version numbers) and Chinese punctuation. A character that isn't in the font
-would draw as nothing, so this stops if one is missing.
+version numbers) and Chinese punctuation.
+
+The bold face draws the game list's names, which are the player's own ROM
+filenames, so it also carries a common-character set: GB2312's level 1 for
+Simplified, Big5's level 1 for Traditional (about 99.7% of running text).
+Without it a Chinese-named ROM draws as boxes. A character outside both sets
+still can't be drawn; the app's own text is always inside the catalogue's.
+
+A character that isn't in the font would draw as nothing, so this stops if one
+is missing.
 
 Run it again after adding a translation with a character that wasn't used
 before, then tools/embed_fonts.py.
@@ -59,6 +67,30 @@ def translations(tsv):
     return chars, count
 
 
+def gb2312_level1():
+    """GB2312's first level: the 3755 hanzi of everyday text (rows B0-D7)."""
+    out = set()
+    for row in range(0xB0, 0xD8):
+        for col in range(0xA1, 0xFF):
+            try:
+                out.add(bytes([row, col]).decode("gb2312"))
+            except UnicodeDecodeError:
+                pass
+    return out
+
+
+def big5_level1():
+    """Big5's first level: the 5401 hanzi of everyday Traditional text."""
+    out = set()
+    for row in range(0xA4, 0xC7):
+        for col in list(range(0x40, 0x7F)) + list(range(0xA1, 0xFF)):
+            try:
+                out.add(bytes([row, col]).decode("big5"))
+            except UnicodeDecodeError:
+                pass
+    return out
+
+
 def main():
     failed = False
     for family in FAMILIES:
@@ -72,8 +104,11 @@ def main():
             print(f"{family['tsv']} has no lines")
             return 1
         wanted = sorted(chars | set(BASE))
+        # the bold face draws the game list's names: the player's own filenames
+        common = gb2312_level1() if family["name"] == "Simplified" else big5_level1()
         print(f"{family['name']}: {count} strings, {len(chars)} Chinese characters")
         for weight, name in family["out"].items():
+            set_ = wanted if weight != 700 else sorted(chars | set(BASE) | common)
             font = TTFont(source)
             font = instantiateVariableFont(font, {"wght": weight}, inplace=False, updateFontNames=True)
             cmap = font.getBestCmap()
@@ -82,6 +117,7 @@ def main():
                 print(f"  {weight}: not in the font: {''.join(missing)}")
                 failed = True
                 continue
+            have_common = len(common) - sum(1 for c in common if ord(c) not in cmap)
             opts = subset.Options()
             opts.hinting = False
             opts.desubroutinize = True
@@ -91,14 +127,15 @@ def main():
             opts.recalc_bounds = False
             opts.drop_tables += ["DSIG"]
             sub = subset.Subsetter(options=opts)
-            sub.populate(unicodes=[ord(c) for c in wanted])
+            sub.populate(unicodes=[ord(c) for c in set_])
             sub.subset(font)
             # the same bytes every run (a save would stamp the time into head)
             font.recalcTimestamp = False
             font["head"].created = font["head"].modified = 0
             out = os.path.join(FONTS, name)
             font.save(out, reorderTables=True)
-            print(f"  {name}: {len(wanted)} characters, {os.path.getsize(out) / 1024:.0f} KB")
+            extra = f" ({have_common} of the {len(common)} common ones, for game names)" if weight == 700 else ""
+            print(f"  {name}: {len(set_)} characters{extra}, {os.path.getsize(out) / 1024:.0f} KB")
     if failed:
         print("nothing written for the families that failed: fix that first")
         return 1
