@@ -986,6 +986,81 @@
    ]
   },
   {
+   "id": "ff4-eu-battle",
+   "rom": "BZ4P",
+   "state": "final-fantasy-iv-advance/eu-battle.ss",
+   "desc": "Europe: a battle with the Gold Dragon loaded straight away: no picture yet, so the logo",
+   "rules": [
+    "FF4-4"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "FF4-4",
+     "what": "the logo alone on the idle grey",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      980,
+      170
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "FF4-4",
+     "what": "no capture tried",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ff4-eu-battle-kept",
+   "rom": "BZ4P",
+   "state": "final-fantasy-iv-advance/eu-late.ss",
+   "desc": "Europe: the late party taken in the Lunar Subterrane, then a battle starts: the party stays",
+   "rules": [
+    "FF4-4"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:final-fantasy-iv-advance/eu-battle.ss"
+    ]
+   ],
+   "shots": {
+    "start": 150,
+    "battle": 400
+   },
+   "checks": [
+    {
+     "rule": "FF4-4",
+     "what": "the party screen was taken before",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF4-4",
+     "what": "still the party in the battle (not the logo)",
+     "type": "not_uniform",
+     "shot": "battle",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      980,
+      170
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
    "id": "ff4-jp-late",
    "rom": "BZ4J",
    "state": "final-fantasy-iv-advance/jp-late.ss",

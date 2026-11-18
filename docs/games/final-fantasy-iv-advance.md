@@ -37,11 +37,12 @@ The game has no map the second screen could show; making one would be drawing so
 ## Not covered yet
 
 - **Game over**: after a defeat the last party screen stays until the game's title, which has the logo. (Dawn of Souls shows the logo from the moment the party falls: ask the owner if wanted here too.)
-- **Europe's battles**: no Europe battle state could be made (no encounter was reached), so only the USA's and Japan's battles are in the cases; the same profile code runs.
 - **Bosses, the airship and other vehicles, the Lunar Subterrane's rooms**: the same START menu works there; only some are in the cases.
 - **Japan, Rev 1**: the same profile (`BZ4J`); the cases check its logo and party screen.
 
 ## How the states were made
+
+Europe's battle (a Gold Dragon in the Lunar Subterrane) was reached by walking the corridor away from the save pad in the harness: the pad's own room has no encounters.
 
 All in the harness from a title state made in the app (the game's battery save goes in the state): the game's Load Game, then the data slot. USA: the GameFAQs saves "AK FF4 Saves Volume I" (slot 1 near the start on the world map, 2 characters; slot 2 in the Lunar Subterrane, 5 characters, in the green window colour). Europe: a GameFAQs save in the Lunar Subterrane B7 at level 99. Japan: a save at the start. The saves work in every release: the Europe one loaded in the Japanese ROM gives the Japanese menu late in the game. (The two `.duc` files in the owner's upload are Nintendo DS saves, for Final Fantasy IV DS: not used.)
 
