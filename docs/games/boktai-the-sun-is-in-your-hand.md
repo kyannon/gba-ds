@@ -14,9 +14,9 @@ Every game also follows the [general rules](README.md#general-rules). The game d
 
 ## Rules
 
-**BT-1. Map.** While Django walks about (no menu, no conversation), the second screen shows the Map page of the game's SELECT menu, the whole screen at the game screen's size, as the game draws it: the area's map with its name below and the arrow for Django. It is opened on the hidden copy (SELECT, then L or R to the Map page), about once a second, so the arrow follows him.
+**BT-1. Map.** While Django walks about (no menu, no conversation), the second screen shows the Map page of the game's SELECT menu, the whole screen at the game screen's size, as the game draws it: the area's map with its name below and the arrow for Django (and, at the top, BT-8's lines). It is opened on the hidden copy (SELECT, then L or R to the Map page), about once a second, so the arrow follows him.
 
-**BT-2. No prompts.** The Map's button prompts (the L and R tabs at the title's ends, the A + up / down glyph) and the arrows at its edges that say it scrolls are left out (black there), as nothing on the second screen should make the player look twice.
+**BT-2. No prompts.** The Map's button prompts (its title bar with the L and R tabs at its ends, the A + up / down glyph) and the arrows at its edges that say it scrolls are left out, so the Map shows whole (what lies under the title bar is the Map itself) and nothing on the second screen makes the player look twice.
 
 **BT-3. Last one stays.** Where the menu can't be opened (a conversation, a scene, the area's title card), or with the game's own menu or Map open on the game screen, the last Map stays; before the first, the logo.
 
@@ -28,7 +28,7 @@ Every game also follows the [general rules](README.md#general-rules). The game d
 
 **BT-7. The sun.** The cartridge's solar sensor reads a fixed level, 6 of 10 (the `solar_level` setting in `gba-ds.cfg`, 0 to 10; 0 is dark), so the sun gauge isn't empty. This is shared code (the emulator hands the core a light level); the game list has no row for it yet.
 
-**BT-8. Clock.** With the Map, the second screen has the game's clock (the time the ITEM page shows above its health bar, which the game shows nowhere else) at the top right, as its own digits: just the numbers and their yellow outline, nothing of the page behind them. It is cut out of the ITEM page on the hidden copy, in the same capture as the Map, so it follows the time as the Map follows Django; where it can't be found, the Map has none. It is a deliberate exception to the Philosophy's "nothing on both screens", for the moment the ITEM page is open on the game screen (the second screen keeps its last Map and clock then, BT-3), and not drawn by GBA DS (rule 4): the game's own sprites, copied.
+**BT-8. Clock, sunrise and sunset.** With the Map, the second screen has three of the game's own lines of text, as its own digits and letters (just the glyphs and their yellow outline, nothing of the page behind them): the clock at the top left, and SUNRISE and SUNSET with their times stacked at the top right, the sunrise above. They are the lines the ITEM page shows above its health bar (the clock; START on it turns it into the sunrise time, START again into the sunset), cut out on the hidden copy, so GBA DS draws none of it (rule 4). The space around them is equal: the clock is as far from the screen's left edge as the sunrise and sunset lines are from its right edge, and the topmost of them from its top edge (four pixels of the game's screen each); the clock sits on the same line as the sunrise's times. They are looked at about every 30 seconds (the Map's capture itself runs about once a second), and a line the game doesn't give is left out. It is a deliberate exception to the Philosophy's "nothing on both screens" for the moment the ITEM page is open on the game screen (the second screen keeps its last Map and lines then, BT-3).
 
 ## Not covered yet
 
@@ -42,7 +42,7 @@ Changelog line: Boktai: The Sun Is in Your Hand: the second screen shows the gam
 
 Wiki section (Supported-games): **Boktai: The Sun Is in Your Hand.** The second screen shows the Map page, taken from a hidden copy of the game while you walk about; in conversations and menus the last Map stays, and on the title screen the logo. The cartridge's sun sensor is set to a middle level. Known: Europe and Japan are checked on their logos and by start-up only.
 
-Philosophy's list of exceptions (rule 6) gets: Boktai's clock, from the ITEM page, beside its Map.
+Philosophy's list of exceptions (rule 6) gets: Boktai's clock, sunrise and sunset, from the ITEM page, beside its Map (its title bar left out).
 
 Shared code touched (full suite has to run at the merge): `src/emu.c` / `emu.h` (the light source), `src/config.c` / `config.h` (`solar_level`), `src/main.c`, and the test clock: `GBADS_RTC_FIXED` in `src/emu.c` (applied again after every state load) set to noon by `tools/regress.py`, since Boktai tints its areas by the time of day.
 

@@ -6834,8 +6834,9 @@ done:
 #define BT_PAGE 0x020034DC
 static const SpriteRule btPrompts[] = {
 	/* (by place and shape: the tiles and palette differ from area to area) */
-	{ 0, 0, 0, 0, 0, 1023, -1, 0, 0, 0x2 },       /* the title's L end (16x16) */
-	{ 88, 0, 88, 0, 0, 1023, -1, 0, 0, 0x2 },     /* its R end */
+	/* the title bar, its L and R ends and tabs, all sprites over the Map's own
+	 * picture (BT-2): everything whose corner is in the top left */
+	{ 0, 0, 116, 12, 0, 1023, -1, 0, 0, 0 },
 	{ 188, 134, 196, 138, 0, 1023, -1, 0, 0, 0x2 },  /* the A + up / down glyph, its top (16x16) */
 	{ 188, 150, 196, 154, 0, 1023, -1, 0, 0, 0x10 }, /* and its foot (16x8) */
 	/* the arrows at the map's edges, which say it scrolls (8x8) */
@@ -6847,24 +6848,41 @@ static const SpriteRule btPrompts[] = {
 static bool bt_map_up(Emu* s) {
 	return emu_read8(s, BT_MENU) == 1 && emu_read8(s, BT_PAGE) == 2;
 }
-/* The ITEM page is page 0; its clock is sprites in two colours only: the
- * digits' brown and their pale yellow outline, nothing else on the page is
- * either (BT-8). */
+/* BT-8. The ITEM page is page 0; its clock, and with START the sunrise and
+ * the sunset, are sprites in two colours only: the digits' and letters'
+ * brown and their pale yellow outline (nothing else in their band is
+ * either). */
 static bool bt_item_up(Emu* s) { return emu_read8(s, BT_MENU) == 1 && emu_read8(s, BT_PAGE) == 0; }
 #define BT_RGB(r, g, b) ((uint32_t) (b) << 16 | (uint32_t) (g) << 8 | (uint32_t) (r))
-#define BT_CLOCK_X0 48
-#define BT_CLOCK_X1 104
-#define BT_CLOCK_Y0 112
-#define BT_CLOCK_Y1 134
-/* The clock's pixels from the ITEM page's picture, laid at the top right of
- * out (a margin of 2): nothing if there are none. */
-static void bt_clock(const Emu* s, uint32_t* out, int w, int h) {
-	const uint32_t digit = BT_RGB(156, 66, 24), edge = BT_RGB(255, 255, 140);
+#define BT_BAND_X0 0
+#define BT_BAND_X1 100 /* (the text box's ")" is beyond it) */
+#define BT_BAND_Y0 119
+#define BT_BAND_Y1 128
+#define BT_PAD 4 /* the space round the lines on the second screen */
+#define BT_REFRESH_MS 30000
+typedef struct BtCut {
+	int w, h;
+	uint32_t c[(BT_BAND_X1 - BT_BAND_X0 + 1) * (BT_BAND_Y1 - BT_BAND_Y0 + 1)];
+	uint8_t on[(BT_BAND_X1 - BT_BAND_X0 + 1) * (BT_BAND_Y1 - BT_BAND_Y0 + 1)];
+} BtCut;
+/* (kept from capture to capture: they change by the minute, so the hidden
+ * copy visits the ITEM page every BT_REFRESH_MS, not with every Map) */
+static BtCut btClock, btRise, btSet;
+static long btCutAt = -1;
+static long bt_ms(void) {
+	struct timespec ts;
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+	return (long) (ts.tv_sec * 1000L + ts.tv_nsec / 1000000L);
+}
+/* The glyph pixels in the band: false if there are fewer than minPix or
+ * they are narrower than minW (the clock is 39 wide, the others 88). */
+static bool bt_cut(const Emu* s, BtCut* o, int minPix, int minW) {
+	const uint32_t brown = BT_RGB(156, 66, 24), edge = BT_RGB(255, 255, 140);
 	int x0 = GBA_W, x1 = -1, y0 = GBA_H, y1 = -1, n = 0;
-	for (int y = BT_CLOCK_Y0; y <= BT_CLOCK_Y1; ++y) {
-		for (int x = BT_CLOCK_X0; x <= BT_CLOCK_X1; ++x) {
+	for (int y = BT_BAND_Y0; y <= BT_BAND_Y1; ++y) {
+		for (int x = BT_BAND_X0; x <= BT_BAND_X1; ++x) {
 			uint32_t c = s->fb[y * GBA_W + x] & 0xFFFFFF; /* (the fourth byte is unused) */
-			if (c != digit && c != edge) continue;
+			if (c != brown && c != edge) continue;
 			++n;
 			if (x < x0) x0 = x;
 			if (x > x1) x1 = x;
@@ -6872,15 +6890,64 @@ static void bt_clock(const Emu* s, uint32_t* out, int w, int h) {
 			if (y > y1) y1 = y;
 		}
 	}
-	if (n < 40) return; /* (five digits' worth at least: not a stray pixel or two) */
-	int dx = w - 2 - 1 - x1, dy = 2 - y0;
+	if (n < minPix || x1 - x0 + 1 < minW) return false;
+	o->w = x1 - x0 + 1;
+	o->h = y1 - y0 + 1;
+	memset(o->on, 0, sizeof(o->on));
 	for (int y = y0; y <= y1; ++y) {
 		for (int x = x0; x <= x1; ++x) {
 			uint32_t c = s->fb[y * GBA_W + x], k = c & 0xFFFFFF;
-			int X = x + dx, Y = y + dy;
-			if ((k == digit || k == edge) && X >= 0 && X < w && Y >= 0 && Y < h) out[Y * w + X] = c;
+			if (k == brown || k == edge) {
+				o->c[(y - y0) * o->w + (x - x0)] = c;
+				o->on[(y - y0) * o->w + (x - x0)] = 1;
+			}
 		}
 	}
+	return true;
+}
+static void bt_lay(const BtCut* o, uint32_t* out, int w, int h, int X, int Y) {
+	if (o->w <= 0) return;
+	for (int y = 0; y < o->h; ++y) {
+		for (int x = 0; x < o->w; ++x) {
+			int dx = X + x, dy = Y + y;
+			if (o->on[y * o->w + x] && dx >= 0 && dx < w && dy >= 0 && dy < h) out[dy * w + dx] = o->c[y * o->w + x];
+		}
+	}
+}
+/* The clock at the top left, the sunrise and the sunset stacked at the top
+ * right: BT_PAD from the left, the right and the top; the clock on the
+ * sunrise's line (the bottoms of their digits level). */
+static void bt_lines(uint32_t* out, int w, int h) {
+	int lineH = btRise.w > 0 ? btRise.h : btClock.h;
+	/* (the sunrise and the sunset keep the game's own columns: left-aligned
+	 * with each other, the wider one BT_PAD from the right edge) */
+	int blockW = btRise.w > btSet.w ? btRise.w : btSet.w;
+	bt_lay(&btClock, out, w, h, BT_PAD, BT_PAD + (lineH > btClock.h ? lineH - btClock.h : 0));
+	bt_lay(&btRise, out, w, h, w - BT_PAD - blockW, BT_PAD);
+	bt_lay(&btSet, out, w, h, w - BT_PAD - blockW, BT_PAD + (btRise.w > 0 ? btRise.h : btSet.h) + 1);
+}
+/* From the ITEM page's picture, then START (the sunrise), START (the sunset). */
+static void bt_visit_item(Emu* s) {
+	for (int tries = 0; tries < 2 && emu_read8(s, BT_PAGE) != 0; ++tries) {
+		aw_run(s, K_R, 3);
+		for (int f = 0; f < 30 && emu_read8(s, BT_PAGE) != 0; ++f) emu_frame_blind(s, 0);
+	}
+	if (!aw_settle(s, bt_item_up, 240)) return;
+	BtCut c;
+	if (bt_cut(s, &c, 40, 30) && c.w < 60) btClock = c;
+	/* (the two lines have a label as well: far more pixels than the clock) */
+	BtCut* to[2] = { &btRise, &btSet };
+	for (int i = 0; i < 2; ++i) {
+		aw_run(s, K_START, 3);
+		bool got = false;
+		for (int f = 0; f < 8 && !got; ++f) {
+			emu_frame(s, 0);
+			got = bt_cut(s, &c, 150, 70);
+		}
+		if (!got) return;
+		*to[i] = c;
+	}
+	btCutAt = bt_ms();
 }
 static const char* bt_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
 	if (!emu_state_load(s, state)) return "state load failed";
@@ -6905,14 +6972,11 @@ static const char* bt_compose(Emu* s, const void* state, uint32_t* out, int w, i
 		return err;
 	}
 	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
-	/* the clock, from the ITEM page beside the Map (R): the prompts' rules
-	 * off for it, and a Map without a clock if the page doesn't come up */
+	/* BT-8: the lines from the ITEM page beside the Map, now and then (the
+	 * prompts' rules off for it) */
 	emu_hide_sprites(s, NULL, 0);
-	for (int tries = 0; tries < 2 && emu_read8(s, BT_PAGE) != 0; ++tries) {
-		aw_run(s, K_R, 3);
-		for (int f = 0; f < 30 && emu_read8(s, BT_PAGE) != 0; ++f) emu_frame_blind(s, 0);
-	}
-	if (aw_settle(s, bt_item_up, 240)) bt_clock(s, out, w, h);
+	if (btCutAt < 0 || bt_ms() - btCutAt >= BT_REFRESH_MS) bt_visit_item(s);
+	bt_lines(out, w, h);
 	return NULL;
 }
 
