@@ -5933,17 +5933,18 @@ static uint32_t ff_party_id(Emu* s) {
 
 /* Final Fantasy's party kept for battles from START's menu, up: its top
  * rows without BG1 (the command window), the party window under it (FF-12) */
-static void ff_keep_party(Emu* s) {
+static bool ff_keep_party(Emu* s) {
 	static uint32_t keep[GBA_W * GBA_H], bg0[GBA_W * GBA_H];
 	uint8_t* tmp = ff_tmp(s);
-	if (!tmp || !emu_state_save(s, tmp)) return;
+	if (!tmp || !emu_state_save(s, tmp)) return false;
 	memcpy(keep, s->fb, sizeof(keep));
 	ff_draw_layers(s, tmp, 0x11, bg0);
 	memcpy(keep, bg0, FF_CMD_ROWS * GBA_W * sizeof(uint32_t));
-	if (emu_cancelled(s)) return;
+	if (emu_cancelled(s)) return false;
 	memcpy(ffParty, keep, sizeof(ffParty));
 	ffPartyId = ff_party_id(s);
 	ffPartyOk = true;
+	return true;
 }
 
 static bool ff_oam(Emu* s, int i, int* x, int* y, int* sz, int* prio) {
@@ -5959,23 +5960,29 @@ static bool ff_oam(Emu* s, int i, int* x, int* y, int* sz, int* prio) {
 	return true;
 }
 
-/* the party's marker on the Enlarged Map: the 8x8 sprite beside the map's
- * hand cursor (16x16, priority 1; it starts where the party is); -1 if none */
-static int ff_marker(Emu* s) {
-	int hx = 0, hy = 0, x, y, sz, prio;
-	bool hand = false;
-	for (int i = 0; i < 128 && !hand; ++i) {
-		hand = ff_oam(s, i, &x, &y, &sz, &prio) && sz == 1 && prio == 1;
-		if (hand) hx = x + 15, hy = y + 1;
-	}
-	if (!hand) return -1;
-	int best = -1, bestD = 24 * 24;
+/* the 8x8 mark (the party's, a vehicle's: not the scroll arrows, priority
+ * 0) nearest (x, y), within r pixels; false if none */
+static bool ff_mark_near(Emu* s, int x, int y, int r, int* mx, int* my) {
+	int bestD = r * r + 1, sx, sy, sz, prio;
 	for (int i = 0; i < 128; ++i) {
-		if (!ff_oam(s, i, &x, &y, &sz, &prio) || sz != 0 || prio == 0) continue;
-		int d = (x - hx) * (x - hx) + (y - hy) * (y - hy);
-		if (d < bestD) best = i, bestD = d;
+		if (!ff_oam(s, i, &sx, &sy, &sz, &prio) || sz != 0 || prio == 0) continue;
+		int d = (sx - x) * (sx - x) + (sy - y) * (sy - y);
+		if (d < bestD) bestD = d, *mx = sx, *my = sy;
 	}
-	return best;
+	return bestD <= r * r;
+}
+
+/* the party's mark on the Enlarged Map as it opens: the one the map's hand
+ * cursor (16x16, priority 1; it opens on the party) points at, 15 pixels
+ * right of the hand. (Scrolling moves the marks but not the hand, and the
+ * game hands its sprites round as marks scroll in and out of view: the mark
+ * is followed by where it is, not by the hand or a sprite slot.) */
+static bool ff_party_mark(Emu* s, int* mx, int* my) {
+	int x, y, sz, prio;
+	for (int i = 0; i < 128; ++i) {
+		if (ff_oam(s, i, &x, &y, &sz, &prio) && sz == 1 && prio == 1) return ff_mark_near(s, x + 15, y + 1, 6, mx, my);
+	}
+	return false;
 }
 
 /* Final Fantasy's Enlarged Map up on the hidden copy: BG2 reaches right of
@@ -6007,15 +6014,18 @@ static const char* ff_world1(Emu* s, uint32_t* out, int w, int h) {
 	if (!ff_enlarged(s, tmp)) return "no Enlarged Map";
 	if (emu_cancelled(s)) return "called off";
 	/* the marker to the middle, as a player scrolls it (R + pad) */
-	int mark = ff_marker(s), mx, my, sz, prio;
-	for (int f = 0; f < 240 && mark >= 0 && ff_oam(s, mark, &mx, &my, &sz, &prio); ++f) {
+	int mx, my;
+	bool found = ff_party_mark(s, &mx, &my);
+	for (int f = 0; f < 240 && found; ++f) {
 		unsigned keys = 0;
-		if (mx < FF_ENL_X - 1) keys |= K_LEFT;
-		if (mx > FF_ENL_X + 1) keys |= K_RIGHT;
-		if (my < FF_ENL_Y - 1) keys |= K_UP;
-		if (my > FF_ENL_Y + 1) keys |= K_DOWN;
+		int ex = mx, ey = my; /* (where it should be next: 1 pixel a frame) */
+		if (mx < FF_ENL_X - 1) keys |= K_LEFT, ++ex;
+		if (mx > FF_ENL_X + 1) keys |= K_RIGHT, --ex;
+		if (my < FF_ENL_Y - 1) keys |= K_UP, ++ey;
+		if (my > FF_ENL_Y + 1) keys |= K_DOWN, --ey;
 		if (!keys) break;
 		aw_run(s, K_R | keys, 1);
+		if (!ff_mark_near(s, ex, ey, 3, &mx, &my)) mx = ex, my = ey;
 	}
 	aw_run(s, 0, 4);
 	if (emu_cancelled(s)) return "called off";
@@ -6160,8 +6170,16 @@ static const char* ff_compose(Emu* s, const void* state, uint32_t* out, int w, i
 	/* START's menu (FF-5, FF-10) */
 	const char* err = ff_open_menu(s, game);
 	if (err) return err;
+	/* Final Fantasy: the party screen, without the command window (FF-5,
+	 * FF-12); Final Fantasy II: the menu as it is (FF-10) */
+	if (game == 1) {
+		if (!ff_keep_party(s)) return "called off";
+		for (int y = 0; y < h; ++y) {
+			for (int x = 0; x < w; ++x) out[y * w + x] = y < GBA_H && x < GBA_W ? ffParty[y * GBA_W + x] : 0xFF000000;
+		}
+		return NULL;
+	}
 	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
-	if (game == 1) ff_keep_party(s); /* (FF-12) */
 	return NULL;
 }
 

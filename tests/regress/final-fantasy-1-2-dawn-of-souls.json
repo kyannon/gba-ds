@@ -189,7 +189,7 @@
    "id": "ff1-castle",
    "rom": "BFFE",
    "state": "final-fantasy-1-2-dawn-of-souls/us-ff1-castle.ss",
-   "desc": "Final Fantasy in Castle Cornelia 1F: START's menu without its hand",
+   "desc": "Final Fantasy in Castle Cornelia 1F: the party screen (no command window)",
    "rules": [
     "FF-5",
     "FF-9"
@@ -203,6 +203,24 @@
      "what": "the menu was taken",
      "type": "log",
      "match": "map updated"
+    },
+    {
+     "rule": "FF-5",
+     "what": "no command window (its left edge), the party window's top edge running on",
+     "type": "not_pixels",
+     "shot": "start",
+     "probes": [
+      [
+       642,
+       186,
+       "FFFFFF"
+      ],
+      [
+       646,
+       186,
+       "CECECE"
+      ]
+     ]
     }
    ]
   },
@@ -1100,6 +1118,24 @@
      "what": "the menu was taken",
      "type": "log",
      "match": "map updated"
+    },
+    {
+     "rule": "FF-5",
+     "what": "no command window (its left edge), the party window's top edge running on",
+     "type": "not_pixels",
+     "shot": "start",
+     "probes": [
+      [
+       642,
+       186,
+       "FFFFFF"
+      ],
+      [
+       646,
+       186,
+       "CECECE"
+      ]
+     ]
     }
    ]
   },
@@ -1217,7 +1253,7 @@
    "id": "ff1-eu-castle",
    "rom": "BFFP",
    "state": "final-fantasy-1-2-dawn-of-souls/eu-ff1-castle.ss",
-   "desc": "Europe, in English: Final Fantasy in Castle Cornelia 1F: START's menu",
+   "desc": "Europe, in English: Final Fantasy in Castle Cornelia 1F: the party screen (no command window)",
    "rules": [
     "FF-5"
    ],
@@ -1230,6 +1266,24 @@
      "what": "the menu was taken",
      "type": "log",
      "match": "map updated"
+    },
+    {
+     "rule": "FF-5",
+     "what": "no command window (its left edge), the party window's top edge running on",
+     "type": "not_pixels",
+     "shot": "start",
+     "probes": [
+      [
+       642,
+       186,
+       "FFFFFF"
+      ],
+      [
+       646,
+       186,
+       "CECECE"
+      ]
+     ]
     }
    ]
   },
@@ -1257,7 +1311,7 @@
    "id": "ff1-jp-castle",
    "rom": "BFFJ",
    "state": "final-fantasy-1-2-dawn-of-souls/jp-ff1-castle.ss",
-   "desc": "Japan: Final Fantasy in Castle Cornelia 1F: START's menu",
+   "desc": "Japan: Final Fantasy in Castle Cornelia 1F: the party screen (no command window)",
    "rules": [
     "FF-5"
    ],
@@ -1270,6 +1324,24 @@
      "what": "the menu was taken",
      "type": "log",
      "match": "map updated"
+    },
+    {
+     "rule": "FF-5",
+     "what": "no command window (its left edge), the party window's top edge running on",
+     "type": "not_pixels",
+     "shot": "start",
+     "probes": [
+      [
+       642,
+       186,
+       "FFFFFF"
+      ],
+      [
+       646,
+       186,
+       "CECECE"
+      ]
+     ]
     }
    ]
   },
@@ -1413,7 +1485,7 @@
    "id": "ff1-chaos-shrine",
    "rom": "BFFE",
    "state": "final-fantasy-1-2-dawn-of-souls/us-ff1-chaos-shrine-b1.ss",
-   "desc": "Final Fantasy in the Chaos Shrine's past, B1 (an endgame save; the game would open its map here too): START's menu, the four crystals lit",
+   "desc": "Final Fantasy in the Chaos Shrine's past, B1 (an endgame save; the game would open its map here too): the party screen (no command window), the four crystals lit",
    "rules": [
     "FF-5"
    ],
@@ -1426,6 +1498,24 @@
      "what": "the menu was taken",
      "type": "log",
      "match": "map updated"
+    },
+    {
+     "rule": "FF-5",
+     "what": "no command window (its left edge), the party window's top edge running on",
+     "type": "not_pixels",
+     "shot": "start",
+     "probes": [
+      [
+       642,
+       186,
+       "FFFFFF"
+      ],
+      [
+       646,
+       186,
+       "CECECE"
+      ]
+     ]
     }
    ]
   },
@@ -1846,6 +1936,35 @@
       ]
      },
      "frac": 0.0
+    }
+   ]
+  },
+  {
+   "id": "ff1-airship-flight",
+   "rom": "BFFE",
+   "state": "final-fantasy-1-2-dawn-of-souls/us-ff1-airship.ss",
+   "desc": "Final Fantasy, flying the airship west for 20 s (other vehicles' marks scrolling in and out of view): every map centred on the party's mark, never a vehicle's",
+   "rules": [
+    "FF-4"
+   ],
+   "input": [
+    [
+     60,
+     "LEFT"
+    ]
+   ],
+   "shots": {
+    "f300": 300,
+    "f600": 600,
+    "f900": 900,
+    "f1200": 1200
+   },
+   "checks": [
+    {
+     "rule": "FF-4",
+     "what": "the map was taken",
+     "type": "log",
+     "match": "map updated"
     }
    ]
   }
