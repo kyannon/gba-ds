@@ -1,6 +1,7 @@
 #include "mapper.h"
 
 #include "ui.h"
+#include "i18n.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -250,10 +251,10 @@ static void draw(int scr, const View_* v, bool touch) {
 		return;
 	}
 	char line[96];
-	snprintf(line, sizeof(line), "%d of %d", v->step + 1, N_STEPS);
+	snprintf(line, sizeof(line), tr("%d of %d"), v->step + 1, N_STEPS);
 	ui_font_text(scr, TF_BODY, r.w / 2, px * 26, px * 4, line, C_DIM, 0);
 	const Step* st = &steps[v->step];
-	snprintf(line, sizeof(line), st->stick ? "%s" : "Press %s", st->title);
+	snprintf(line, sizeof(line), st->stick ? "%s" : tr("Press %s"), tr(st->title));
 	ui_label(scr, r.w / 2, r.h / 2 - px * 14, px * 14, line, C_TEXT);
 	if (st->hint[0]) ui_font_text(scr, TF_BODY, r.w / 2, r.h / 2 + px * 8, px * 5, st->hint, C_DIM, 0);
 	if (v->note) {
@@ -271,7 +272,7 @@ static void draw(int scr, const View_* v, bool touch) {
 		}
 	}
 	if (v->secondsLeft >= 0) {
-		snprintf(line, sizeof(line), "Skipped in %d s if nothing is pressed", v->secondsLeft);
+		snprintf(line, sizeof(line), tr("Skipped in %d s if nothing is pressed"), v->secondsLeft);
 		ui_font_text(scr, TF_BODY, r.w / 2, r.h - px * 16, px * 4, line, C_DIM, 0);
 	}
 }
@@ -355,7 +356,7 @@ void mapper_run(const Config* cfg) {
 						if (!strcmp(bind[i], b)) dup = i;
 					}
 					if (dup >= 0) {
-						snprintf(v.noteBuf, sizeof(v.noteBuf), "That one is already %s. Press another, or tap to skip.", steps[dup].title);
+						snprintf(v.noteBuf, sizeof(v.noteBuf), tr("That one is already %s. Press another, or tap to skip."), tr(steps[dup].title));
 						v.note = v.noteBuf;
 						continue;
 					}
@@ -397,7 +398,7 @@ void mapper_run(const Config* cfg) {
 				SDL_Joystick* j = joy_of(locked);
 				if (!n || !j) {
 					v.nothing = true;
-					snprintf(v.doneText, sizeof(v.doneText), "Every button was skipped, so nothing changed.");
+					snprintf(v.doneText, sizeof(v.doneText), "%s", tr("Every button was skipped, so nothing changed."));
 					continue;
 				}
 				char guid[64], name[128];
@@ -426,11 +427,11 @@ void mapper_run(const Config* cfg) {
 				fprintf(stderr, "button mapping (%s):\n%s\n", comment, line);
 				if (v.saved) {
 					snprintf(v.doneText, sizeof(v.doneText),
-					         "%d of %d set for %s, kept in controllers.txt beside GBA DS's save states. "
-					         "The line for it is in gba-ds.log too: send it in to have it built into GBA DS for this device.",
+					         tr("%d of %d set for %s, kept in controllers.txt beside GBA DS's save states. "
+					            "The line for it is in gba-ds.log too: send it in to have it built into GBA DS for this device."),
 					         n, N_STEPS, name);
 				} else {
-					snprintf(v.doneText, sizeof(v.doneText), "Set for now, but %s couldn't be written.", path);
+					snprintf(v.doneText, sizeof(v.doneText), tr("Set for now, but %s couldn't be written."), path);
 				}
 			}
 		}

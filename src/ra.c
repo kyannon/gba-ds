@@ -5,6 +5,7 @@
 #include "paths.h"
 #include "textfont.h"
 #include "ui.h"
+#include "i18n.h"
 
 #include "rc_client.h"
 #include "rc_util.h"

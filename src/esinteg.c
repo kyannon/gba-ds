@@ -1,4 +1,5 @@
 #include "esinteg.h"
+#include "i18n.h"
 
 #include <errno.h>
 #include <limits.h>
@@ -255,7 +256,7 @@ static bool install(const Config* cfg, char* msg, size_t msgSize) {
 	free(out);
 	if (!ok) {
 		fprintf(stderr, "es: writing %s: %s\n", cfgPath, strerror(errno));
-		snprintf(msg, msgSize, "Couldn't write to %s.", cfg->esConfigDir);
+		snprintf(msg, msgSize, tr("Couldn't write to %s."), cfg->esConfigDir);
 		unlink(cfgPath);
 		return false;
 	}
@@ -271,7 +272,7 @@ bool es_integration_set(const Config* cfg, bool on, char* msg, size_t msgSize) {
 	bool ok = unlink(p) == 0 || errno == ENOENT;
 	join(p, sizeof(p), cfg->esConfigDir, SCRIPT_NAME);
 	unlink(p);
-	snprintf(msg, msgSize, ok ? "Off. Restart EmulationStation to apply." : "Couldn't remove the setting file.");
+	snprintf(msg, msgSize, "%s", tr(ok ? "Off. Restart EmulationStation to apply." : "Couldn't remove the setting file."));
 	return ok;
 }
 
@@ -373,7 +374,7 @@ static bool banana_on(char* msg, size_t msgSize) {
 	free(out);
 	free(t);
 	if (!ok) {
-		snprintf(msg, msgSize, "Couldn't write %s.", BANANA_USER);
+		snprintf(msg, msgSize, tr("Couldn't write %s."), BANANA_USER);
 		return false;
 	}
 	fprintf(stderr, "banana: GBA DS set for the Game Boy Advance list in %s\n", BANANA_USER);
@@ -418,7 +419,7 @@ static bool banana_off(char* msg, size_t msgSize) {
 	free(def);
 	free(out);
 	free(t);
-	snprintf(msg, msgSize, ok ? "Off. Restart BananaOS (Settings > System) for its menu to use it." : "Couldn't change %s.",
+	snprintf(msg, msgSize, tr(ok ? "Off. Restart BananaOS (Settings > System) for its menu to use it." : "Couldn't change %s."),
 	         BANANA_USER);
 	return ok;
 }

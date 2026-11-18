@@ -18,6 +18,7 @@
 #include "ra.h"
 #include "update.h"
 #include "clocks.h"
+#include "i18n.h"
 #ifdef __wasi__
 #include "mapcap.h"
 #endif
@@ -199,6 +200,10 @@ int main(int argc, char** argv) {
 	signal(SIGTERM, on_signal);
 	signal(SIGINT, on_signal);
 	signal(SIGHUP, on_signal);
+
+	/* the interface's language (Settings > Games > Language): before anything
+	 * draws, and before the game list reads its game names */
+	i18n_init(cfg.language);
 
 	if (!ui_init(&cfg, true)) return 1;
 	ui_theme(cfg.lightTheme);

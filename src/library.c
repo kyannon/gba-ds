@@ -16,6 +16,7 @@
 #include "update.h"
 #include "clocks.h"
 #include "game.h"
+#include "i18n.h"
 
 
 #include <ctype.h>
@@ -586,8 +587,8 @@ static void scan_progress(void) {
 		ui_fill(scr, (SDL_Rect) { 0, 0, r.w, r.h }, C_BG);
 		ui_label(scr, r.w / 2, r.h / 2 - px * 6, px * 6, "Loading games...", C_TEXT);
 		char line[96];
-		snprintf(line, sizeof(line), "%d file%s checked, %d game%s found", scanFiles, scanFiles == 1 ? "" : "s", nGames,
-		         nGames == 1 ? "" : "s");
+		snprintf(line, sizeof(line), tr("%d file%s checked, %d game%s found"), scanFiles, i18n_plural(scanFiles), nGames,
+		         i18n_plural(nGames));
 		ui_font_text(scr, TF_BODY, r.w / 2, r.h / 2 + px * 8, px * 4, line, C_DIM, 0);
 	}
 	ui_present();
@@ -668,6 +669,7 @@ static int draw_brand(int scr, int id, int x, int y, int h) {
 
 /* s, cut short with "..." if it's wider than maxW in that font and size. */
 static void fit_text(char* out, size_t outSize, int font, int capPx, const char* s, int maxW) {
+	s = tr(s);
 	snprintf(out, outSize, "%s", s);
 	if (ui_font_width(font, capPx, out) <= maxW) return;
 	size_t n = strlen(out);
@@ -764,21 +766,21 @@ static void draw_preview(Config* cfg, int scr, int sel) {
 	int patch = PATCH_NONE;
 	if (game_crc(g, &crc, &patch)) {
 		const char* name;
-		const char* from = patch == PATCH_APPLIED ? " (patch)" : "";
+		const char* from = patch == PATCH_APPLIED ? tr(" (patch)") : "";
 		char line[400] = "";
 		if (patch == PATCH_PARTIAL) {
-			snprintf(line, sizeof(line), "Patched, but a patch was left out: see Patches in the game's menu");
+			snprintf(line, sizeof(line), "%s", tr("Patched, but a patch was left out: see Patches in the game's menu"));
 		} else if (patch == PATCH_WRONG_ROM) {
-			snprintf(line, sizeof(line), "Patch not applied: %s is for another ROM", g->patch);
+			snprintf(line, sizeof(line), tr("Patch not applied: %s is for another ROM"), g->patch);
 		} else if (patch == PATCH_UNREADABLE) {
-			snprintf(line, sizeof(line), "Patch not applied: %s can't be read", g->patch);
+			snprintf(line, sizeof(line), tr("Patch not applied: %s can't be read"), g->patch);
 		} else {
 			switch (profile_dump(g->code, crc, &name)) {
-			case DUMP_MOD_TESTED: snprintf(line, sizeof(line), "Romhack: %s%s", name, from); break;
-			case DUMP_MOD: snprintf(line, sizeof(line), "Romhack: %s%s, untested", name, from); break;
+			case DUMP_MOD_TESTED: snprintf(line, sizeof(line), tr("Romhack: %s%s"), name, from); break;
+			case DUMP_MOD: snprintf(line, sizeof(line), tr("Romhack: %s%s, untested"), name, from); break;
 			case DUMP_MODIFIED:
-				if (patch == PATCH_APPLIED) snprintf(line, sizeof(line), "Patched: the second screen may not work");
-				else snprintf(line, sizeof(line), "Modified ROM: the second screen may not work");
+				if (patch == PATCH_APPLIED) snprintf(line, sizeof(line), "%s", tr("Patched: the second screen may not work"));
+				else snprintf(line, sizeof(line), "%s", tr("Modified ROM: the second screen may not work"));
 				break;
 			default: break;
 			}
@@ -1202,7 +1204,7 @@ typedef struct {
 	const char* keys[10];
 } SetPage;
 static const SetPage setPages[SP_SYSTEM] = {
-	{ "Games", "Which games, names, saving", { "show_all", "name_tags", "theme", "save_on_quit", "auto_load", "custom_logos", "quick_bar_hint" } },
+	{ "Games", "Which games, names, saving", { "language", "show_all", "name_tags", "theme", "save_on_quit", "auto_load", "custom_logos", "quick_bar_hint" } },
 	{ "Display", "Scale, shader, colors", { "scale", "map_scale", "shader", "lcd_strength", "color_correction", "lcd_ghosting", "smooth" } },
 	{ "Screens", "Placement, overlays", { "swap", "screen_match", "screen_placement", "overlays", "overlay_screens", "bezel_logo", "brightness_top", "brightness_bottom", "show_fps" } },
 	{ "Controls", "Stick, buttons, hotkeys", { "left_stick_dpad", "ab_swap", "button_right", "button_bottom", "button_top", "button_left", "turbo_rate", "@map", "@hotkeys" } },
@@ -1332,6 +1334,7 @@ static void setting_changed(Config* cfg, const Setting* st) {
 	if (!strcmp(st->key, "theme")) ui_theme(cfg->lightTheme);
 	if (!strncmp(st->key, "brightness_", 11)) ui_brightness(cfg->brightTop, cfg->brightBottom);
 	if (!strcmp(st->key, "show_all") || !strcmp(st->key, "name_tags")) setRescan = true;
+	if (!strcmp(st->key, "language")) i18n_set(cfg->language);
 	if (!strcmp(st->key, "screen_match") || !strcmp(st->key, "screen_placement")) ui_layout_pictures();
 	fprintf(stderr, "setting: %s = %s (all games)\n", lines[0][0], lines[0][1]);
 }
@@ -1365,6 +1368,7 @@ static int reset_settings(Config* cfg) {
 	ui_brightness(cfg->brightTop, cfg->brightBottom);
 	clocks_set(cfg->perfMax);
 	ui_layout_pictures();
+	i18n_set(cfg->language);
 	setRescan = true;
 	return n;
 }
@@ -1389,22 +1393,31 @@ static int delete_game_settings(const Config* cfg) {
 	return n;
 }
 
+/* "This is v1.5.4. Look for a new version, and download and install it.":
+ * the note under Settings > System's Updates row */
+static const char* version_text(void) {
+	static char text[200];
+	snprintf(text, sizeof(text), tr("This is v%s. Look for a new version, and download and install it."), GBADS_VERSION);
+	return text;
+}
+
 static void system_action(Config* cfg, int row) {
 	if (confirmRow != row) {
 		confirmRow = row;
-		snprintf(settingsMsg, sizeof(settingsMsg), "Are you sure? Touch it again to %s. Anything else cancels.",
-		         rowKind[row] == ROW_RESET ? "put every setting back to its default" : "delete every game's own settings");
+		snprintf(settingsMsg, sizeof(settingsMsg), tr("Are you sure? Touch it again to %s. Anything else cancels."),
+		         tr(rowKind[row] == ROW_RESET ? "put every setting back to its default" : "delete every game's own settings"));
 		return;
 	}
 	confirmRow = -1;
 	if (rowKind[row] == ROW_RESET) {
 		int n = reset_settings(cfg);
-		snprintf(settingsMsg, sizeof(settingsMsg), "Settings are back to their defaults.");
+		snprintf(settingsMsg, sizeof(settingsMsg), "%s", tr("Settings are back to their defaults."));
 		fprintf(stderr, "settings: reset to defaults (%d settings)\n", n);
 	} else {
 		int n = delete_game_settings(cfg);
-		snprintf(settingsMsg, sizeof(settingsMsg), n == 0 ? "No game has settings of its own."
-		         : n == 1 ? "Deleted the settings of 1 game." : "Deleted the settings of %d games.", n);
+		if (n == 0) snprintf(settingsMsg, sizeof(settingsMsg), "%s", tr("No game has settings of its own."));
+		else if (n == 1) snprintf(settingsMsg, sizeof(settingsMsg), "%s", tr("Deleted the settings of 1 game."));
+		else snprintf(settingsMsg, sizeof(settingsMsg), tr("Deleted the settings of %d games."), n);
 		fprintf(stderr, "settings: deleted %d per-game settings files\n", n);
 	}
 }
@@ -1509,8 +1522,8 @@ static void folders_text(const Config* cfg, char* line, size_t n) {
 		if (*p == ':') *p = ' ';
 	}
 	const char* type = srm_saves(cfg) ? ".srm" : ".sav";
-	if (cfg->saveDir[0]) snprintf(line, n, "Games are read from %s (subfolders too). Saves (%s) are kept in %s.", dirs, type, cfg->saveDir);
-	else snprintf(line, n, "Games are read from %s (subfolders too). Saves (%s) are kept next to the games.", dirs, type);
+	if (cfg->saveDir[0]) snprintf(line, n, tr("Games are read from %s (subfolders too). Saves (%s) are kept in %s."), dirs, type, cfg->saveDir);
+	else snprintf(line, n, tr("Games are read from %s (subfolders too). Saves (%s) are kept next to the games."), dirs, type);
 }
 
 static void draw_settings(const Config* cfg, int scr, int sel) {
@@ -1556,16 +1569,16 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 		if (raDialogPending) {
 			snprintf(line, sizeof(line), "Enter your account in the sign-in box...");
 		} else if (ra == RA_ACCOUNT_OK) {
-			snprintf(line, sizeof(line), "Signed in as %s. Achievements are earned in casual mode.", user);
+			snprintf(line, sizeof(line), tr("Signed in as %s. Achievements are earned in casual mode."), user);
 		} else if (ra == RA_ACCOUNT_BUSY) {
-			snprintf(line, sizeof(line), "Signing in as %s...", user);
+			snprintf(line, sizeof(line), tr("Signing in as %s..."), user);
 		} else if (ra == RA_ACCOUNT_FAILED) {
 			size_t n = strlen(err);
 			while (n && (err[n - 1] == '.' || err[n - 1] == ' ')) err[--n] = 0; /* the server's own full stop */
-			snprintf(line, sizeof(line), "Couldn't sign in as %s%s%s. Sign in to try again.", user, err[0] ? ": " : "", err);
+			snprintf(line, sizeof(line), tr("Couldn't sign in as %s%s%s. Sign in to try again."), user, err[0] ? ": " : "", err);
 			col = C_GOLD;
 		} else if (ra == RA_ACCOUNT_OFF) {
-			snprintf(line, sizeof(line), "Switched off in gba-ds.cfg (retroachievements = 0).");
+			snprintf(line, sizeof(line), "%s", tr("Switched off in gba-ds.cfg (retroachievements = 0)."));
 		} else {
 			snprintf(line, sizeof(line),
 			         "Earn achievements in casual mode with your retroachievements.org account. GBA DS keeps a sign-in token, "
@@ -1574,7 +1587,7 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 		text = line;
 		break;
 	default:
-		text = "This is v" GBADS_VERSION ". Look for a new version, and download and install it.";
+		text = version_text();
 		break;
 	}
 	if (settingsMsg[0] && settingsMsgRow == sel) text = settingsMsg, col = C_GOLD;
@@ -1782,9 +1795,9 @@ static void draw_folders(const Config* cfg, int scr, int sel) {
 	const char* home = android_home();
 	if (home) {
 		if (data_folder_wanted(want, sizeof(want)) && strcmp(want, home))
-			snprintf(line, sizeof(line), "GBA DS's own files (states, settings, cheats, overlays) are in %s, moving to %s at the next start.", home, want);
+			snprintf(line, sizeof(line), tr("GBA DS's own files (states, settings, cheats, overlays) are in %s, moving to %s at the next start."), home, want);
 		else
-			snprintf(line, sizeof(line), "GBA DS's own files (states, settings, cheats, overlays) are in %s.", home);
+			snprintf(line, sizeof(line), tr("GBA DS's own files (states, settings, cheats, overlays) are in %s."), home);
 		y = draw_wrapped(scr, tx, y + px * 3, tw, px, line, C_TEXT);
 	}
 	if (settingsMsg[0]) y = draw_wrapped(scr, tx, y + px * 3, tw, px, settingsMsg, C_GOLD);
@@ -1874,11 +1887,11 @@ static void states_text(const Config* cfg, char* out, size_t n) {
 	bool compress;
 	bool found = retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress);
 	if (!found)
-		snprintf(out, n, "Slots 0-9 and the resume point are GBA DS's own. To share them, choose RetroArch's state folder.");
+		snprintf(out, n, "%s", tr("Slots 0-9 and the resume point are GBA DS's own. To share them, choose RetroArch's state folder."));
 	else if (strcmp(cfg->stateFolder, "retroarch"))
-		snprintf(out, n, "Slots 0-9 and the resume point are GBA DS's own. Shared, they're RetroArch's: %s.", path_tail(dir));
+		snprintf(out, n, tr("Slots 0-9 and the resume point are GBA DS's own. Shared, they're RetroArch's: %s."), path_tail(dir));
 	else
-		snprintf(out, n, "Slots 0-9 and the resume point are RetroArch's (its GBA core set to mGBA): %s.", path_tail(dir));
+		snprintf(out, n, tr("Slots 0-9 and the resume point are RetroArch's (its GBA core set to mGBA): %s."), path_tail(dir));
 }
 /* Settings > RetroArch's Folder: its state folder chosen by hand (kept as
  * retroarch_state_dir in library.cfg), or found from its settings again
@@ -1896,14 +1909,14 @@ static void states_dir_pick(Config* cfg) {
 	if (r == FOLDER_CHOSEN) {
 		snprintf(cfg->raStateDir, sizeof(cfg->raStateDir), "%s", chosen);
 		snprintf(cfg->stateFolder, sizeof(cfg->stateFolder), "retroarch");
-		snprintf(settingsMsg, sizeof(settingsMsg), "Slots 0-9 and the automatic state are now shared with RetroArch, in %s.", path_tail(chosen));
+		snprintf(settingsMsg, sizeof(settingsMsg), tr("Slots 0-9 and the automatic state are now shared with RetroArch, in %s."), path_tail(chosen));
 	} else {
 		cfg->raStateDir[0] = 0;
 		if (retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress)) {
-			snprintf(settingsMsg, sizeof(settingsMsg), "RetroArch's state folder is found from its settings again: %s.", path_tail(dir));
+			snprintf(settingsMsg, sizeof(settingsMsg), tr("RetroArch's state folder is found from its settings again: %s."), path_tail(dir));
 		} else {
 			snprintf(cfg->stateFolder, sizeof(cfg->stateFolder), "gbads");
-			snprintf(settingsMsg, sizeof(settingsMsg), "RetroArch's settings weren't found, so slots 0-9 and the automatic state are GBA DS's own again.");
+			snprintf(settingsMsg, sizeof(settingsMsg), "%s", tr("RetroArch's settings weren't found, so slots 0-9 and the automatic state are GBA DS's own again."));
 		}
 	}
 	save_library_cfg(cfg);
@@ -1915,10 +1928,10 @@ static void states_dir_text(const Config* cfg, char* out, size_t n) {
 	char dir[1024];
 	bool compress;
 	if (!retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress))
-		snprintf(out, n, "RetroArch's settings weren't found here: choose the folder where it keeps its save states.");
+		snprintf(out, n, "%s", tr("RetroArch's settings weren't found here: choose the folder where it keeps its save states."));
 	else
-		snprintf(out, n, "%s %s. Choose another if RetroArch keeps its states somewhere else.",
-		         cfg->raStateDir[0] ? "Chosen here:" : "From RetroArch's settings:", path_tail(dir));
+		snprintf(out, n, tr("%s %s. Choose another if RetroArch keeps its states somewhere else."),
+		         cfg->raStateDir[0] ? tr("Chosen here:") : tr("From RetroArch's settings:"), path_tail(dir));
 }
 static void states_switch(Config* cfg) {
 	char dir[1024];
@@ -1933,8 +1946,8 @@ static void states_switch(Config* cfg) {
 	save_library_cfg(cfg);
 	fprintf(stderr, "library: save states %s\n", shared ? "in GBA DS's own folder" : "shared with RetroArch");
 	snprintf(settingsMsg, sizeof(settingsMsg), "%s",
-	         shared ? "Slots 0-9 and the automatic state are GBA DS's own again. The states saved in RetroArch's folder stay there."
-	                : "Slots 0-9 and the automatic state are now RetroArch's. GBA DS's own states stay in its folder, for when this is switched back.");
+	         shared ? tr("Slots 0-9 and the automatic state are GBA DS's own again. The states saved in RetroArch's folder stay there.")
+	                : tr("Slots 0-9 and the automatic state are now RetroArch's. GBA DS's own states stay in its folder, for when this is switched back."));
 }
 
 static void draw_settings(const Config* cfg, int scr, int sel) {
@@ -1975,7 +1988,7 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 	                                         "the smoothest play, but the battery runs down faster and the device gets warmer."
 	                                       : "The system sets the speed, as for its other emulators. If games stutter or "
 	                                         "the sound breaks up, try Set to Max.")
-	                       : "This is v" GBADS_VERSION ". Look for a new version, and download and install it.";
+	                       : version_text();
 	/* a message from switching a row (settings_activate): in place of its text */
 	bool msg = settingsMsg[0] && settingsMsgRow == i;
 	if (msg) text = settingsMsg;
@@ -2101,12 +2114,12 @@ static void draw_updates(int scr, int sel) {
 	switch (u.state) {
 	case UPD_AVAILABLE:
 #ifdef __ANDROID__
-		snprintf(line, sizeof(line), "GBA DS v%s is out (this is v%s). Update now to download it (%.1f MB) and install "
-		         "it: Android asks you to confirm. Your games, saves, states and settings are kept.", u.version,
+		snprintf(line, sizeof(line), tr("GBA DS v%s is out (this is v%s). Update now to download it (%.1f MB) and install "
+		         "it: Android asks you to confirm. Your games, saves, states and settings are kept."), u.version,
 		         GBADS_VERSION, u.size / 1048576.0);
 #else
-		snprintf(line, sizeof(line), "GBA DS v%s is out (this is v%s). Update now to download it (%.1f MB) and restart "
-		         "into it; your games, saves, states and settings are kept.", u.version, GBADS_VERSION, u.size / 1048576.0);
+		snprintf(line, sizeof(line), tr("GBA DS v%s is out (this is v%s). Update now to download it (%.1f MB) and restart "
+		         "into it; your games, saves, states and settings are kept."), u.version, GBADS_VERSION, u.size / 1048576.0);
 #endif
 		y = draw_wrapped(scr, tx, y, tw, px, line, C_TEXT) + px * 2;
 		/* the release notes: a heading or a bullet point a line */
@@ -2127,16 +2140,16 @@ static void draw_updates(int scr, int sel) {
 		if (u.state == UPD_DONE) {
 			/* Android's installer is asking; it closes GBA DS while it installs */
 			snprintf(line, sizeof(line),
-			         "Confirm the update to v%s in Android's installer. Android closes GBA DS while it installs; open it "
-			         "again afterwards. If Android asks first, allow GBA DS to install apps.", u.version);
+			         tr("Confirm the update to v%s in Android's installer. Android closes GBA DS while it installs; open it "
+			            "again afterwards. If Android asks first, allow GBA DS to install apps."), u.version);
 			draw_wrapped(scr, tx, y, tw, px, line, C_TEXT);
 			break;
 		}
-		const char* what = u.state == UPD_DOWNLOADING ? "Downloading" : "Installing";
+		const char* what = u.state == UPD_DOWNLOADING ? tr("Downloading") : tr("Installing");
 #else
-		const char* what = u.state == UPD_DOWNLOADING ? "Downloading" : u.state == UPD_INSTALLING ? "Installing" : "Installed";
+		const char* what = u.state == UPD_DOWNLOADING ? tr("Downloading") : u.state == UPD_INSTALLING ? tr("Installing") : tr("Installed");
 #endif
-		snprintf(line, sizeof(line), u.state == UPD_DONE ? "%s v%s. Restarting..." : "%s v%s...", what, u.version);
+		snprintf(line, sizeof(line), tr(u.state == UPD_DONE ? "%s v%s. Restarting..." : "%s v%s..."), what, u.version);
 		ui_label(scr, g.panel.x + g.panel.w / 2, g.bar.y - px * 10, px * 5, line, C_TEXT);
 		int pc = u.state == UPD_DOWNLOADING ? u.percent : 100;
 		ui_fill(scr, g.bar, C_ROW);
@@ -2148,16 +2161,16 @@ static void draw_updates(int scr, int sel) {
 		break;
 	}
 	default: {
-		snprintf(line, sizeof(line), "This is GBA DS v%s.", GBADS_VERSION);
-		if (u.state == UPD_CHECKING) snprintf(line + strlen(line), sizeof(line) - strlen(line), " Checking for a new version...");
-		else if (u.state == UPD_LATEST) snprintf(line + strlen(line), sizeof(line) - strlen(line), " It's the newest version.");
+		snprintf(line, sizeof(line), tr("This is GBA DS v%s."), GBADS_VERSION);
+		if (u.state == UPD_CHECKING) snprintf(line + strlen(line), sizeof(line) - strlen(line), "%s", tr(" Checking for a new version..."));
+		else if (u.state == UPD_LATEST) snprintf(line + strlen(line), sizeof(line) - strlen(line), "%s", tr(" It's the newest version."));
 		y = draw_wrapped(scr, tx, y, tw, px, line, C_TEXT);
 		if (u.state == UPD_ERROR) y = draw_wrapped(scr, tx, y + px * 3, tw, px, u.error, C_GOLD);
 		if (u.lastCheck > 0) {
 			time_t t = (time_t) u.lastCheck;
 			char when[64];
 			strftime(when, sizeof(when), "%e %B %Y, %H:%M", localtime(&t));
-			snprintf(line, sizeof(line), "Last checked %s.", when[0] == ' ' ? when + 1 : when);
+			snprintf(line, sizeof(line), tr("Last checked %s."), when[0] == ' ' ? when + 1 : when);
 			y = draw_wrapped(scr, tx, y + px * 3, tw, px, line, C_DIM);
 		}
 		draw_wrapped(scr, tx, y + px * 3, tw, px,
@@ -2407,7 +2420,7 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 				thumbFor = -2;
 				sel = nGames ? 0 : -1;
 				scroll = 0;
-				snprintf(settingsMsg, sizeof(settingsMsg), "%d game%s found.", nGames, nGames == 1 ? "" : "s");
+				snprintf(settingsMsg, sizeof(settingsMsg), tr("%d game%s found."), nGames, i18n_plural(nGames));
 			}
 			if (!pickPending && !folders_input(cfg, ls)) foldersOpen = false;
 			pressed = false;
@@ -2453,7 +2466,7 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 				thumbFor = -2;
 				sel = nGames ? 0 : -1;
 				scroll = 0;
-				snprintf(settingsMsg, sizeof(settingsMsg), "%d game%s found.", nGames, nGames == 1 ? "" : "s");
+				snprintf(settingsMsg, sizeof(settingsMsg), tr("%d game%s found."), nGames, i18n_plural(nGames));
 			}
 			if (btn_pressed(B_DOWN)) settingsSel = (settingsSel + 1) % (nRows + 1);
 			if (btn_pressed(B_UP)) settingsSel = (settingsSel + nRows) % (nRows + 1);
