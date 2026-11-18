@@ -3028,7 +3028,7 @@ int ui_font_wrap(int screen, int font, int x, int y, int width, int capPx, const
 	return ui_font_wrap_around(screen, font, x, y, width, capPx, text, c, INT_MAX, width);
 }
 
-int ui_font_wrap_around(int screen, int font, int x, int y, int width, int capPx, const char* text, SDL_Color c, int narrowY, int narrowW) {
+static int wrap_impl(int screen, int font, int x, int y, int width, int capPx, const char* text, SDL_Color c, int narrowY, int narrowW, bool draw) {
 	int lineH = capPx * 2, fullW = width;
 	char line[512];
 	const char* p = text;
@@ -3050,10 +3050,16 @@ int ui_font_wrap_around(int screen, int font, int x, int y, int width, int capPx
 		}
 		if (!fit) fit = n ? n : (int) strlen(p);
 		snprintf(line, sizeof(line), "%.*s", fit, p);
-		ui_font_text(screen, font, x, y + capPx / 2, capPx, line, c, -1);
+		if (draw) ui_font_text(screen, font, x, y + capPx / 2, capPx, line, c, -1);
 		y += lineH;
 		p += fit;
 		while (*p == ' ') ++p;
 	}
 	return y;
+}
+int ui_font_wrap_around(int screen, int font, int x, int y, int width, int capPx, const char* text, SDL_Color c, int narrowY, int narrowW) {
+	return wrap_impl(screen, font, x, y, width, capPx, text, c, narrowY, narrowW, true);
+}
+int ui_font_wrap_height(int font, int width, int capPx, const char* text) {
+	return wrap_impl(0, font, 0, 0, width, capPx, text, (SDL_Color) { 0, 0, 0, 0 }, 0, width, false);
 }

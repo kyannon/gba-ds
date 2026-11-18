@@ -178,6 +178,8 @@ int ui_font_width(int font, int capPx, const char* text);
 int ui_font_wrap(int screen, int font, int x, int y, int width, int capPx, const char* text, SDL_Color c);
 /* the same, flowing round a box on the right: the lines from narrowY down are only narrowW wide */
 int ui_font_wrap_around(int screen, int font, int x, int y, int width, int capPx, const char* text, SDL_Color c, int narrowY, int narrowW);
+/* The height ui_font_wrap would take (lines x twice the cap height), without drawing. */
+int ui_font_wrap_height(int font, int width, int capPx, const char* text);
 /* A title fitted into area (bold, centred, at most capMax tall, on one line
  * or broken in two at a space): a placeholder for a game's logo. */
 void ui_title_block(int screen, SDL_Rect area, const char* text, int capMax, SDL_Color c);
