@@ -1158,7 +1158,7 @@ static int menuItems[12], nMenuItems;
 static int itemRow[12], itemSide[12], nMenuRows;
 static bool half_item(int item) {
 	return item == M_RESUME || item == M_RESTART || item == M_SAVE || item == M_LOAD || item == M_AUTOSAVE || item == M_AUTOLOAD || item == M_REWIND || item == M_FF ||
-	       item == M_COLOR || item == M_GHOST;
+	       item == M_COLOR || item == M_GHOST || item == M_CHEATS || item == M_PATCHES || item == M_SHOT || item == M_BUG;
 }
 /* rows, sides and the row count for a page's items (two half items in a row share it) */
 static int layout_rows(const int* items, int n, int* row, int* side) {
@@ -1246,6 +1246,7 @@ static const char* const allLabels[] = {
 /* the labels of the half-width buttons, which fit in half the width */
 static const char* const halfLabels[] = {
 	"Save State", "Load State", "Save State 0", "Load State 0", "Resume", "Restart Game", "Are You Sure?",
+	"Cheats", "Patches", "Take Screenshot", "Submit a Bug Report",
 };
 
 /* The pause menu's layout: buttons across the whole screen (a small margin

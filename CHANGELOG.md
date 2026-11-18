@@ -2,6 +2,9 @@
 
 ## v1.5.6 (not yet released)
 
+### Menus and interface
+- The pause menu's Game page now fits on the screen without scrolling: Cheats and Patches share a row, and so do Take Screenshot and Submit a Bug Report.
+
 ## v1.5.5 (2026-11-18)
 
 ### New games
