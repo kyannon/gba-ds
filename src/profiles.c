@@ -6070,14 +6070,84 @@ static int ff_mark_tile(Emu* s, int x, int y) {
 
 /* the Enlarged Map up on the hidden copy (either game): BG2 reaches right
  * of the Full Map's parchment (the Full Map leaves it empty there) */
-static bool ff_enlarged(Emu* s, const uint8_t* tmp) {
+static bool ff_enlarged(Emu* s, int game, const uint8_t* tmp) {
 	static uint32_t bg2[GBA_W * GBA_H];
 	ff_draw_layers(s, tmp, 0x04, bg2);
 	int differ = 0;
+	/* (Final Fantasy II's Full Map isn't on BG2 at all, and Japan's
+	 * Enlarged Map stops at the command window's edge: any picture) */
+	int x0 = game == 2 ? 0 : FF_MAP_W + 8;
 	for (int y = 40; y < GBA_H; y += 8) {
-		for (int x = FF_MAP_W + 8; x < GBA_W; ++x) differ += bg2[y * GBA_W + x] != bg2[40 * GBA_W + FF_MAP_W + 8];
+		for (int x = x0; x < GBA_W; ++x) differ += bg2[y * GBA_W + x] != bg2[40 * GBA_W + GBA_W - 1];
 	}
 	return differ > 40;
+}
+
+/* where the game leaves BG2 empty under its windows (FF-11: Japan's
+ * Final Fantasy II): columns gx.. and rows ..gy-1 one colour */
+static void ff_gaps(const uint32_t* bg2, int* gx, int* gy) {
+	uint32_t c = bg2[GBA_H / 2 * GBA_W + GBA_W - 1];
+	*gx = GBA_W;
+	while (*gx > GBA_W / 2) {
+		bool same = true;
+		for (int y = 0; y < GBA_H && same; ++y) same = bg2[y * GBA_W + *gx - 1] == c;
+		if (!same) break;
+		--*gx;
+	}
+	c = bg2[0];
+	*gy = 0;
+	while (*gy < 40) {
+		bool same = true;
+		for (int x = 0; x < *gx && same; ++x) same = bg2[*gy * GBA_W + x] == c;
+		if (!same) break;
+		++*gy;
+	}
+}
+
+/* the map scrolled by (dx, dy) pixels (view right / down), the party's
+ * mark followed from (*mx, *my) */
+static void ff_scroll(Emu* s, int game, int dx, int dy, int* mx, int* my) {
+	int step = game == 2 ? 2 : 1;
+	while ((dx || dy) && !emu_cancelled(s)) {
+		unsigned keys = 0;
+		int ex = *mx, ey = *my;
+		if (dx >= step) keys |= K_RIGHT, ex -= step, dx -= step;
+		else if (dx <= -step) keys |= K_LEFT, ex += step, dx += step;
+		else dx = 0;
+		if (dy >= step) keys |= K_DOWN, ey -= step, dy -= step;
+		else if (dy <= -step) keys |= K_UP, ey += step, dy += step;
+		else dy = 0;
+		if (!keys) break;
+		aw_run(s, K_R | keys, 1);
+		if (game == 2) aw_run(s, K_R, 1);
+		if (!ff_mark_near(s, ex, ey, 3, mx, my)) *mx = ex, *my = ey;
+	}
+	aw_run(s, 0, 4);
+	ff_mark_near(s, *mx, *my, 3, mx, my);
+}
+
+/* the map with its marks (BG2 and the marks alone): Final Fantasy's where
+ * the party's is largest (it pulses); Final Fantasy II's at their step
+ * with a one-pixel black outline (they blink: FF-11) */
+static void ff_snap(Emu* s, int game, uint8_t* tmp, const uint32_t* bare, bool found, int mx, int my, uint32_t* pic) {
+	emu_hide_sprites(s, ffEnlHide, 2);
+	emu_layers(s, 0x14);
+	emu_state_load(s, tmp);
+	int best = -1;
+	for (int k = 0; k < (game == 2 ? 40 : 24); ++k) {
+		emu_frame(s, 0);
+		int n = 0;
+		if (game == 2) n = found && ff_mark_tile(s, mx, my) == FF2_MARK_TILE;
+		else for (int i = 0; i < GBA_W * GBA_H; ++i) n += s->fb[i] != bare[i];
+		if (n > best) {
+			best = n;
+			memcpy(pic, s->fb, GBA_W * GBA_H * sizeof(uint32_t));
+		}
+		if (game == 2 && n) break;
+	}
+	emu_layers(s, 0x1F);
+	emu_hide_sprites(s, NULL, 0);
+	emu_state_load(s, tmp);
 }
 
 /* the world map: the Enlarged Map over the whole screen, the party's
@@ -6087,14 +6157,14 @@ static const char* ff_world(Emu* s, int game, uint32_t* out, int w, int h) {
 	uint8_t* tmp = ff_tmp(s);
 	if (!tmp || !emu_state_save(s, tmp)) return "state save failed";
 	/* the Enlarged Map (the game opens whichever was used last) */
-	for (int tries = 0; tries < 2 && !ff_enlarged(s, tmp); ++tries) {
+	for (int tries = 0; tries < 2 && !ff_enlarged(s, game, tmp); ++tries) {
 		if (tries) aw_run(s, K_UP, 4); /* (its command cursor elsewhere) */
 		aw_run(s, K_A, 4);
 		aw_run(s, 0, 30);
 		if (!ff_settle_right(s, 120)) return "the map didn't settle";
 		if (!emu_state_save(s, tmp)) return "state save failed";
 	}
-	if (!ff_enlarged(s, tmp)) return "no Enlarged Map";
+	if (!ff_enlarged(s, game, tmp)) return "no Enlarged Map";
 	if (emu_cancelled(s)) return "called off";
 	/* the marker to the middle, as a player scrolls it (R + pad) */
 	int mx, my;
@@ -6117,31 +6187,47 @@ static const char* ff_world(Emu* s, int game, uint32_t* out, int w, int h) {
 	aw_run(s, 0, 4);
 	if (emu_cancelled(s)) return "called off";
 	if (!emu_state_save(s, tmp)) return "state save failed";
-	/* BG2 alone, then with the marks: Final Fantasy's where the party's is
-	 * largest (it pulses); Final Fantasy II's at their step with a
-	 * one-pixel black outline (they blink: FF-11) */
+	/* BG2 alone, then with the marks */
 	ff_draw_layers(s, tmp, 0x04, bare);
-	emu_hide_sprites(s, ffEnlHide, 2);
-	emu_layers(s, 0x14);
-	emu_state_load(s, tmp);
-	int best = -1;
-	for (int k = 0; k < (game == 2 ? 40 : 24); ++k) {
-		emu_frame(s, 0);
-		int n = 0;
-		if (game == 2) n = found && ff_mark_tile(s, mx, my) == FF2_MARK_TILE;
-		else for (int i = 0; i < GBA_W * GBA_H; ++i) n += s->fb[i] != bare[i];
-		if (n > best) {
-			best = n;
-			memcpy(pic, s->fb, sizeof(pic));
-		}
-		if (game == 2 && n) break;
-	}
-	emu_layers(s, 0x1F);
-	emu_hide_sprites(s, NULL, 0);
-	emu_state_load(s, tmp);
+	ff_snap(s, game, tmp, bare, found, mx, my, pic);
 	if (emu_cancelled(s)) return "called off";
 	for (int y = 0; y < h; ++y) {
 		for (int x = 0; x < w; ++x) out[y * w + x] = y < GBA_H && x < GBA_W ? pic[y * GBA_W + x] : 0xFF000000;
+	}
+	/* where the game leaves BG2 empty under its windows (Japan's Final
+	 * Fantasy II: right of x 128, above y 24), the map scrolled there and
+	 * taken again, up to three times, each placed by how far the party's
+	 * mark moved (FF-11) */
+	int gx, gy;
+	ff_gaps(bare, &gx, &gy);
+	if (found && (gx < GBA_W || gy > 0)) {
+		static uint32_t more[GBA_W * GBA_H];
+		static bool done[GBA_W * GBA_H];
+		for (int y = 0; y < GBA_H; ++y) {
+			for (int x = 0; x < GBA_W; ++x) done[y * GBA_W + x] = x < gx && y >= gy;
+		}
+		int sx = gx < GBA_W ? (GBA_W - gx + 1) & ~1 : 0, sy = gy > 0 ? -((gy + 1) & ~1) : 0;
+		const int at[3][2] = { { sx, 0 }, { sx, sy }, { 0, sy } };
+		int cx = 0, cy = 0, kx = mx, ky = my;
+		for (int k = 0; k < 3; ++k) {
+			if ((!at[k][0] && !at[k][1]) || (k == 1 && (!sx || !sy))) continue;
+			ff_scroll(s, game, at[k][0] - cx, at[k][1] - cy, &kx, &ky);
+			cx = at[k][0], cy = at[k][1];
+			if (emu_cancelled(s)) return "called off";
+			if (!emu_state_save(s, tmp)) return "state save failed";
+			ff_snap(s, game, tmp, bare, true, kx, ky, more);
+			int ox = mx - kx, oy = my - ky; /* (how far the view moved) */
+			for (int y = 0; y < GBA_H && y < h; ++y) {
+				for (int x = 0; x < GBA_W && x < w; ++x) {
+					int qx = x - ox, qy = y - oy;
+					/* (not a scrolled picture's first 8 columns: a mark half off
+					 * its edge is cut there; another picture has them) */
+					if (done[y * GBA_W + x] || qx < (ox > 0 ? 8 : 0) || qx >= gx || qy < gy || qy >= GBA_H) continue;
+					out[y * w + x] = more[qy * GBA_W + qx];
+					done[y * GBA_W + x] = true;
+				}
+			}
+		}
 	}
 	/* the party kept for battles, now and then (FF-12): the map closed,
 	 * START's menu */

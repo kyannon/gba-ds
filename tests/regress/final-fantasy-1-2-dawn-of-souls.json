@@ -3691,6 +3691,95 @@
      ]
     }
    ]
+  },
+  {
+   "id": "ff2-jp-late-world",
+   "rom": "BFFJ",
+   "state": "final-fantasy-1-2-dawn-of-souls/jp-ff2-late-world.ss",
+   "desc": "Japan: Final Fantasy II late in the game by Mysidia (Europe's GameFAQs save rebuilt for Japan): the Enlarged Map over the whole screen, pieced together where the game leaves it out (right of x 128, above y 24); it follows the party walking west",
+   "rules": [
+    "FF-11"
+   ],
+   "input": [
+    [
+     200,
+     "LEFT"
+    ],
+    [
+     230,
+     "LEFT"
+    ],
+    [
+     260,
+     "LEFT"
+    ],
+    [
+     290,
+     "LEFT"
+    ],
+    [
+     320,
+     "LEFT"
+    ],
+    [
+     220,
+     "-"
+    ],
+    [
+     250,
+     "-"
+    ],
+    [
+     280,
+     "-"
+    ],
+    [
+     310,
+     "-"
+    ],
+    [
+     340,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 150,
+    "walked": 500
+   },
+   "checks": [
+    {
+     "rule": "FF-11",
+     "what": "the map was taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF-11",
+     "what": "map at the right edge (not one colour)",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      832,
+      64,
+      992,
+      704
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "FF-11",
+     "what": "map along the top (not one colour)",
+     "type": "not_uniform",
+     "shot": "start",
+     "rect": [
+      32,
+      64,
+      992,
+      144
+     ],
+     "color": "000000"
+    }
+   ]
   }
  ]
 }
