@@ -3106,11 +3106,12 @@ int ui_font_wrap(int screen, int font, int x, int y, int width, int capPx, const
 }
 
 /* Word-wrapped like ui_font_wrap, but a line whose box would reach the one on
- * the right (above narrowY) is narrower, narrowW wide: the help text beside
- * Settings' Back button flows round it. Chinese has no spaces, so a line may
- * break between its characters (keeping closing punctuation with the one
- * before it), which is why this isn't a loop over words any more. */
-int ui_font_wrap_around(int screen, int font, int x, int y, int width, int capPx, const char* text, SDL_Color c, int narrowY, int narrowW) {
+ * the right (above narrowY) is narrower, narrowW wide: Settings' help text
+ * flows round its Back button. draw: draw the lines, or only work out the
+ * height (ui_font_wrap_height). Chinese has no spaces, so a line may break
+ * between its characters (keeping closing punctuation with the one before it),
+ * which is why this isn't a loop over words any more. */
+static int wrap_impl(int screen, int font, int x, int y, int width, int capPx, const char* text, SDL_Color c, int narrowY, int narrowW, bool draw) {
 	int lineH = capPx * 2, fullW = width;
 	if (!text) return y;
 	text = tr(text);
@@ -3152,9 +3153,15 @@ int ui_font_wrap_around(int screen, int font, int x, int y, int width, int capPx
 			line[len] = 0;
 			q = p + len;
 		}
-		ui_font_text(screen, font, x, y + capPx / 2, capPx, line, c, -1);
+		if (draw) ui_font_text(screen, font, x, y + capPx / 2, capPx, line, c, -1);
 		y += lineH;
 		p = q;
 	}
 	return y;
+}
+int ui_font_wrap_around(int screen, int font, int x, int y, int width, int capPx, const char* text, SDL_Color c, int narrowY, int narrowW) {
+	return wrap_impl(screen, font, x, y, width, capPx, text, c, narrowY, narrowW, true);
+}
+int ui_font_wrap_height(int font, int width, int capPx, const char* text) {
+	return wrap_impl(0, font, 0, 0, width, capPx, text, (SDL_Color) { 0, 0, 0, 0 }, 0, width, false);
 }

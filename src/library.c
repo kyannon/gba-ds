@@ -1119,8 +1119,9 @@ static int row_of(int kind) {
 static void settings_rows(const Config* cfg) {
 #ifdef __ANDROID__
 	(void) cfg;
-	static const int android[] = { ROW_FOLDERS, ROW_RA, ROW_UPDATES };
+	static const int android[] = { ROW_FOLDERS, ROW_RA };
 	nRows = 0;
+	rowKind[nRows++] = ROW_UPDATES;
 	/* ES-DE's folder found: GBA DS in its emulator list (esde.c) */
 	if (esde_present()) rowKind[nRows++] = ROW_ESDE;
 	for (size_t i = 0; i < sizeof(android) / sizeof(android[0]); ++i) rowKind[nRows++] = android[i];
@@ -1128,15 +1129,15 @@ static void settings_rows(const Config* cfg) {
 	rowKind[nRows++] = ROW_DELCFG;
 #else
 	nRows = 0;
+#ifdef GBADS_UPDATES
+	rowKind[nRows++] = ROW_UPDATES;
+#endif
+	rowKind[nRows++] = ROW_STATES; /* (save states shared with RetroArch: issue #39) */
+	rowKind[nRows++] = ROW_STATES_DIR;
 #ifndef GBADS_SIDE
 	/* (not in a side build: the system's GBA games would start it) */
 	if (banana_present()) rowKind[nRows++] = ROW_BANANA;
 	else if (es_present(cfg)) rowKind[nRows++] = ROW_ES;
-#endif
-	rowKind[nRows++] = ROW_STATES; /* (save states shared with RetroArch: issue #39) */
-	rowKind[nRows++] = ROW_STATES_DIR;
-#ifdef GBADS_UPDATES
-	rowKind[nRows++] = ROW_UPDATES;
 #endif
 	rowKind[nRows++] = ROW_RESET;
 	rowKind[nRows++] = ROW_DELCFG;
@@ -1152,19 +1153,43 @@ typedef struct {
 static SDL_Rect set_panel(int scr);
 static SDL_Rect set_row(int scr, int n, int i);
 static SDL_Rect set_row_gap(int scr, int n, int i, int gapAt);
+static SDL_Rect set_row_gaps(int scr, int n, int i, int gaps);
 static void draw_set_heading(int scr, SDL_Rect p, const char* title, int icon);
-static int set_note_wrap(int scr, int n, int y, const char* text, SDL_Color c, int font);
+static void set_notes(int scr, SDL_Rect panel, SDL_Rect back, const char* t1, SDL_Color c1, int f1, const char* t2, SDL_Color c2, int f2);
+/* System's layout: Updates, a little room, the rows (Save States | RetroArch's State Folder side by
+ * side, then the OS's integration), a little room, Reset | Delete side by side. A row that shares the
+ * one before's slot is its second half. */
+static bool row_second(int i) {
+	return i > 0 && ((rowKind[i] == ROW_STATES_DIR && rowKind[i - 1] == ROW_STATES) || (rowKind[i] == ROW_DELCFG && rowKind[i - 1] == ROW_RESET));
+}
+static int row_slot(int i) { /* i == nRows: Back's */
+	int slot = -1;
+	for (int k = 0; k <= i && k < nRows; ++k) slot += row_second(k) ? 0 : 1;
+	return i >= nRows ? slot + 1 : slot;
+}
 static SettingsGeom settings_geom(int scr) {
-	/* the same rows as the other pages (set_row), the older panel's text now a
-	 * line under them for the row chosen */
 	SettingsGeom g;
 	g.px = ui_px(scr);
 	g.panel = set_panel(scr);
-	int gapAt = -1;
-	for (int i = 0; i < nRows && gapAt < 0; ++i)
-		if (rowKind[i] == ROW_RESET) gapAt = i;
-	for (int i = 0; i < nRows; ++i) g.row[i] = set_row_gap(scr, nRows, i, gapAt), g.textY[i] = 0;
-	g.back = set_row_gap(scr, nRows, nRows, gapAt);
+	int slots = row_slot(nRows) , gaps = 0;
+	/* room before the first row after Updates, and before Reset */
+	for (int i = 0; i < nRows; ++i) {
+		if (row_second(i)) continue;
+		int sl = row_slot(i);
+		if ((sl == 1 && rowKind[0] == ROW_UPDATES) || rowKind[i] == ROW_RESET) gaps |= 1 << sl;
+	}
+	for (int i = 0; i < nRows; ++i) {
+		g.row[i] = set_row_gaps(scr, slots, row_slot(i), gaps), g.textY[i] = 0;
+		if ((i + 1 < nRows && row_second(i + 1)) || row_second(i)) {
+			int half = (g.row[i].w - g.px * 3) / 2;
+			g.row[i].w = half;
+			if (row_second(i)) g.row[i].x += half + g.px * 3;
+		}
+	}
+	g.back = set_row_gaps(scr, slots, slots, gaps);
+	/* BananaOS's note is long (and its NOTE under it): Back sits a little higher so the text, centred on it, stays in the panel */
+	for (int i = 0; i < nRows; ++i)
+		if (rowKind[i] == ROW_BANANA) g.back.y -= g.px * 12;
 	return g;
 }
 
@@ -1186,18 +1211,29 @@ static void draw_settings_frame(int scr, const SettingsGeom* g, int sel, const c
 			ui_label(scr, b.x + b.w / 2, b.y + b.h / 2, px * 5, "Back", C_TEXT);
 			continue;
 		}
-		ui_font_text(scr, TF_BOLD, b.x + px * 6, b.y + b.h / 2, px * 5, labels[i], C_TEXT, -1);
+		/* (a half-width row's longer label is set a little smaller to fit) */
+		int cap = (int) (px * 5), room = b.w - (int) (px * 16), lw = ui_font_width(TF_BOLD, cap, labels[i]);
+		if (lw > room) cap = cap * room / lw;
+		ui_font_text(scr, TF_BOLD, b.x + px * 6, b.y + b.h / 2, cap, labels[i], C_TEXT, -1);
 		ui_font_text(scr, TF_BOLD, b.x + b.w - px * 6, b.y + b.h / 2, px * 6, "\u203A", i == sel ? C_TEXT : C_DIM, 1);
 	}
 }
 
-/* the line under the rows, for the row chosen (a message from it in gold) */
+/* a page's helper text: beside Back (to its left, wrapped), the block centred on Back's height;
+ * a second part (bold) goes under the first */
+static void set_notes(int scr, SDL_Rect panel, SDL_Rect back, const char* t1, SDL_Color c1, int f1, const char* t2, SDL_Color c2, int f2) {
+	int px = (int) ui_px(scr), cap = px * 4;
+	int x = panel.x + px * 8, w = back.x - px * 4 - x;
+	int h1 = t1 ? ui_font_wrap_height(f1, w, cap, t1) : 0, h2 = t2 ? ui_font_wrap_height(f2, w, cap, t2) : 0;
+	int gap = t1 && t2 ? px * 3 : 0;
+	int y = back.y + back.h / 2 - (h1 + gap + h2) / 2;
+	if (t1) y = ui_font_wrap(scr, f1, x, y, w, cap, t1, c1) + gap;
+	if (t2) ui_font_wrap(scr, f2, x, y, w, cap, t2, c2);
+}
+
 static void draw_system_note(int scr, const SettingsGeom* g, const char* text, SDL_Color c) {
-	float px = g->px;
 	if (nRows < 1 || !text) return;
-	SDL_Rect last = g->row[nRows - 1];
-	int x = g->panel.x + px * 8;
-	ui_font_wrap_around(scr, TF_BODY, x, last.y + last.h + px * 3, g->panel.w - px * 16, px * 4, text, c, g->back.y - px * 2, g->back.x - px * 4 - x);
+	set_notes(scr, g->panel, g->back, text, c, TF_BODY, NULL, c, TF_BODY);
 }
 
 /* ---- Settings: a page of categories, each a page of rows (docs/MENUS.md).
@@ -1271,27 +1307,23 @@ static SDL_Rect set_tile(int scr, int i) {
 /* a page: n rows, then Back, at the right of the strip under the rows (the note
  * flows round it). gapAt: a row with a little more room above it (System: before
  * Reset settings), or -1 */
-static SDL_Rect set_row_gap(int scr, int n, int i, int gapAt) {
+static SDL_Rect set_row_gaps(int scr, int n, int i, int gaps) {
 	int px = (int) ui_px(scr);
 	SDL_Rect p = set_panel(scr);
-	int top = p.y + px * 22, gap = px * 2;
-	int extra = gapAt > 0 && gapAt < n ? px * 6 : 0;
+	int top = p.y + px * 22, gap = px * 2, extra = px * 6;
+	int nGaps = __builtin_popcount(gaps & ((1 << n) - 1)); /* (a bit per slot with room before it) */
 	int backW = px * 40, backH = px * 14, strip = px * 28;
-	int avail = p.y + p.h - px * 5 - strip - top - extra;
+	int avail = p.y + p.h - px * 5 - strip - top - extra * nGaps;
 	int h = SDL_min(px * 18, avail / SDL_max(1, n) - gap);
 	if (i == n) return (SDL_Rect) { p.x + p.w - px * 6 - backW, p.y + p.h - px * 5 - backH, backW, backH };
-	return (SDL_Rect) { p.x + px * 6, top + i * (h + gap) + (gapAt > 0 && i >= gapAt ? extra : 0), p.w - px * 12, h };
+	int before = __builtin_popcount(gaps & ((2 << i) - 1) & ((1 << n) - 1));
+	return (SDL_Rect) { p.x + px * 6, top + i * (h + gap) + before * extra, p.w - px * 12, h };
+}
+static SDL_Rect set_row_gap(int scr, int n, int i, int gapAt) {
+	return set_row_gaps(scr, n, i, gapAt > 0 && gapAt < n ? 1 << gapAt : 0);
 }
 static SDL_Rect set_row(int scr, int n, int i) {
 	return set_row_gap(scr, n, i, -1);
-}
-
-/* a note under the rows (y the top of its first line), flowing round Back */
-static int set_note_wrap(int scr, int n, int y, const char* text, SDL_Color c, int font) {
-	int px = (int) ui_px(scr);
-	SDL_Rect p = set_panel(scr), back = set_row(scr, n, n);
-	int x = p.x + px * 8;
-	return ui_font_wrap_around(scr, font, x, y, p.w - px * 16, px * 4, text, c, back.y - px * 2, back.x - px * 4 - x);
 }
 
 /* the heading of every Settings page: large, filling the strip above the rows */
@@ -1379,8 +1411,7 @@ static void draw_set_page(const Config* cfg, int scr, int page, int sel) {
 	                 : !strcmp(ids[sel], "@map") ? "Sets which of this device's buttons does what."
 	                                             : "Sets the shortcuts: the hotkey button held with another.";
 	if (note) {
-		SDL_Rect last = set_row(scr, nv, nv - 1);
-		set_note_wrap(scr, nv, last.y + last.h + px * 3, note, C_DIM, TF_BODY);
+		set_notes(scr, p, set_row(scr, nv, nv), note, C_DIM, TF_BODY, NULL, C_DIM, TF_BODY);
 	}
 }
 
@@ -2024,7 +2055,6 @@ static void states_switch(Config* cfg) {
 static void draw_settings(const Config* cfg, int scr, int sel) {
 	if (sel != confirmRow) confirmRow = -1; /* moved off the row: no longer asked */
 	SettingsGeom g = settings_geom(scr);
-	float px = g.px;
 	const char* labels[SETTINGS_MAX];
 	bool shared = !strcmp(cfg->stateFolder, "retroarch");
 	char statesText[1400], statesDirText[1400];
@@ -2062,16 +2092,13 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 	/* a message from switching a row (settings_activate): in place of its text */
 	bool msg = settingsMsg[0] && settingsMsgRow == i;
 	if (msg) text = settingsMsg;
-	draw_system_note(scr, &g, text, msg ? C_GOLD : C_DIM);
-	/* the trade-off, set apart and in bold so it isn't missed */
-	if (rowKind[i] == ROW_BANANA && !msg) {
-		SDL_Rect last = g.row[nRows - 1];
-		int bx0 = g.panel.x + px * 8;
-		ui_font_wrap_around(scr, TF_BOLD, bx0, last.y + last.h + px * 28, g.panel.w - px * 16, px * 4,
-		                    "NOTE: Unsupported games will play in RetroArch, but without BananaOS's own "
-		                    "second screen (its game panel and companions).",
-		                    C_TEXT, g.back.y - px * 2, g.back.x - px * 4 - bx0);
-	}
+	/* (BananaOS: the trade-off set apart and in bold so it isn't missed) */
+	if (rowKind[i] == ROW_BANANA && !msg)
+		set_notes(scr, g.panel, g.back, text, C_DIM, TF_BODY,
+		          "NOTE: Unsupported games will play in RetroArch, but without BananaOS's own "
+		          "second screen (its game panel and companions).", C_TEXT, TF_BOLD);
+	else
+		draw_system_note(scr, &g, text, msg ? C_GOLD : C_DIM);
 }
 
 static void settings_activate(Config* cfg, int row) {
@@ -2541,8 +2568,22 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 				scroll = 0;
 				snprintf(settingsMsg, sizeof(settingsMsg), tr("%d game%s found."), nGames, i18n_plural(nGames));
 			}
-			if (btn_pressed(B_DOWN)) settingsSel = (settingsSel + 1) % (nRows + 1);
-			if (btn_pressed(B_UP)) settingsSel = (settingsSel + nRows) % (nRows + 1);
+			/* rows sharing a slot (Save States | RetroArch's State Folder, Reset | Delete): Left / Right
+			 * between them, Up / Down to the slot above or below (Back's is the last) */
+			{
+				int sl = row_slot(settingsSel), nSl = row_slot(nRows) + 1;
+				if (settingsSel < nRows && (btn_pressed(B_LEFT) || btn_pressed(B_RIGHT))) {
+					int other = row_second(settingsSel) ? settingsSel - 1 : (settingsSel + 1 < nRows && row_second(settingsSel + 1) ? settingsSel + 1 : settingsSel);
+					settingsSel = other;
+				}
+				int dy = btn_pressed(B_DOWN) ? 1 : btn_pressed(B_UP) ? -1 : 0;
+				if (dy) {
+					int want = (sl + dy + nSl) % nSl, pick = nRows;
+					for (int i = 0; i < nRows; ++i)
+						if (row_slot(i) == want && !row_second(i)) { pick = i; break; }
+					settingsSel = pick;
+				}
+			}
 			if (btn_pressed(B_A) || btn_pressed(B_START)) {
 				if (settingsSel < nRows) settings_activate(cfg, settingsSel);
 				else setPage = SP_HOME, setSel = SP_SYSTEM;
