@@ -790,3 +790,52 @@ Player-facing Android changes since the last release, for the main session
 to move into CHANGELOG.md and the release notes (see CLAUDE.md, "More than
 one session"). Empty after each release.
 
+
+- **Rotation setting for phones and the Surface Duo (issue #60).** With one
+  display, Settings > System > Rotation holds the window upright (the two
+  screens one above the other), on its side (side by side), or leaves it to
+  the phone (Auto, the default: follows Android's rotation lock as before).
+  Portrait and landscape still turn either way up. Not shown on devices with
+  two displays.
+
+### Notes for sessions: Rotation (issue #60, `android`)
+
+- The choice is `rotation.cfg` (one word: auto / portrait / landscape) in the
+  app's own storage (`GBADS_APP_FILES`, like `data-folder.cfg`), so Java can
+  read it in `onCreate` before the window exists (`GbaDsActivity.rotationMode`,
+  used by `orientationWanted`: SENSOR_PORTRAIT / SENSOR_LANDSCAPE / FULL_USER).
+  `android_rotation_set` (android.c) writes it and calls `applyRotation`, which
+  re-applies the orientation at once. The row is `ROW_ROTATION` in library.c,
+  after RetroAchievements, only when `android_one_display()`.
+- Not tried on a device yet. On a Surface Duo, locking landscape may take a
+  spanned app back to one screen (issue #48 saw that with a hard landscape
+  lock); Auto stays the default for that reason.
+- Desktop kit: `STUB_SECOND=none` shows the row; `stubs_extra.c` keeps the
+  mode in memory.
+
+- **Performance setting on Android.** Settings > Speed and sound > Performance:
+  **Let the System Decide** (the default) or **Set to Max**, the same setting
+  as on ROCKNIX. Android doesn't let an app set the processor's speed, so Max
+  asks for it: it keeps the processor at a high clock while GBA DS runs, for
+  a smoother game and steadier sound, at the cost of a warmer device and a
+  shorter battery. Try it if games stutter. (The system can still hold it back
+  if the device gets hot.)
+
+### Notes for sessions: Performance (`android`)
+
+- Reuses the shared `performance` setting (`perfMax`, config.c; its row shows
+  on the Speed and sound page where `clocks_available()` is true). clocks.h
+  declares the two functions for Android and android.c implements them:
+  `clocks_set(true)` gives the ADPF hint session a target of 30% of the usual
+  one (`hintBaseNs`, 50% of a frame: about 2.5 ms against the 11 ms of work a
+  frame takes), through `APerformanceHint_updateTargetWorkDuration` (looked
+  up at run time like the rest), so the system, which clocks the CPU so the
+  work takes about the target (see the 65% / 50% notes above), keeps it high.
+  Set before the session exists (the setting is read at start), it applies
+  when `android_perf_init` creates it. Android 13+ only, like the hint.
+- Not tried on a device: whether Max measurably cuts slow frames on the RG
+  DS Plus (compare the log's "slow frames" lines with it on and off; the log
+  says "performance: set to max (the hint's target is N us)"). Considered and
+  left out: `Window.setSustainedPerformanceMode`, which holds clocks steady
+  for heat rather than raising them; `pin_cores` (no difference, see above).
+- Desktop kit: `stubs_gpu.c` has stand-ins that log the change.

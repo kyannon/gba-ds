@@ -14,8 +14,63 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icon-192.png">
 <script>
-// the theme before the first paint (the player's settings are in localStorage)
-try { var t = JSON.parse(localStorage.getItem("gbadsPlayer.settings") || "null"); document.documentElement.dataset.theme = t && t.theme === "light" ? "light" : "dark"; } catch (e) { document.documentElement.dataset.theme = "dark"; }
+// the colors, as the app's (ui.c accent_build): its seven accents, each the purple turned to another hue, darker where white text and the
+// highlight have to read on what's selected (and a little deeper in the light theme). apply() sets the page's CSS variables.
+window.GBAAccent = (function () {
+  const ids = ["purple", "blue", "teal", "green", "red", "orange", "pink"], hues = [268, 215, 175, 135, 352, 24, 322];
+  const base = { bg: [14, 14, 26], header: [30, 26, 52], row: [22, 22, 38], btnSel: [92, 52, 140], edge: [150, 120, 210],
+    selHi: [118, 66, 172], selLo: [90, 47, 138], selEdge: [44, 22, 80], selBorder: [20, 0, 40], selRing: [169, 139, 224] };
+  const rgbToHsl = ([r, g, b]) => {
+    r /= 255; g /= 255; b /= 255;
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn, l = (mx + mn) / 2, s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+    let h = 0;
+    if (d !== 0) h = mx === r ? 60 * (((g - b) / d + 6) % 6) : mx === g ? 60 * ((b - r) / d + 2) : 60 * ((r - g) / d + 4);
+    return [h, s, l];
+  };
+  const hslToRgb = (h, s, l) => {
+    const c = (1 - Math.abs(2 * l - 1)) * s, hp = (((h % 360) + 720) % 360) / 60, x = c * (1 - Math.abs((hp % 2) - 1));
+    let r = 0, g = 0, b = 0;
+    if (hp < 1) { r = c; g = x; } else if (hp < 2) { r = x; g = c; } else if (hp < 3) { g = c; b = x; }
+    else if (hp < 4) { g = x; b = c; } else if (hp < 5) { r = x; b = c; } else { r = c; b = x; }
+    const m = l - c / 2;
+    return [r, g, b].map((v) => Math.max(0, Math.min(255, Math.floor((v + m) * 255 + 0.5))));
+  };
+  const lum = (c) => { const v = c.map((x) => { x /= 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); }); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]; };
+  const contrast = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+  const turn = (c, shift, k) => { const [h, s, l] = rgbToHsl(c); return hslToRgb(h + shift, s, Math.min(1, l * k)); };
+  const css = (c) => "rgb(" + c.join(",") + ")", rgba = (c, a) => "rgba(" + c.join(",") + "," + a + ")";
+  const mix = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * t));
+  function apply(id, light) {
+    let n = ids.indexOf(id); if (n < 0) n = 0;
+    const shift = hues[n] - hues[0], hue = hues[n];
+    const hi = hslToRgb(hue, 0.85, 0.80), hiInk = hslToRgb(hue, 0.80, 0.24);
+    let f = light ? 0.92 : 1;
+    for (;;) {
+      const body = turn(base.selLo, shift, f);
+      if ((contrast([255, 255, 255], body) >= 6 && contrast(hi, body) >= 4.8) || f < 0.4) break;
+      f *= 0.96;
+    }
+    const plain = (k) => (n === 0 && !light ? base[k] : turn(base[k], shift, 1));
+    const sel = (k) => (n === 0 && !light ? base[k] : turn(base[k], shift, f));
+    const v = {
+      "--bg": css(plain("bg")), "--bg2": css(turn(base.bg, shift, 0.7)), "--panel": css(plain("row")), "--panel2": css(plain("header")),
+      "--brand": css(plain("header")), "--line": rgba(plain("edge"), 0.13), "--line2": rgba(plain("edge"), 0.26),
+      "--accent": css(sel("selRing")), "--sel": css(sel("btnSel")), "--warn": css(hi),
+      "--k-gold": css(light ? hiInk : hi),
+      "--s-top": css(mix(sel("selLo"), sel("selHi"), 0.3)), "--s-lo": css(sel("selLo")), "--s-bd": css(sel("selBorder")),
+      "--s-edge": css(sel("selEdge")), "--s-ring": css(sel("selRing")), "--s-sub": css(hslToRgb(hue, 0.6, 0.88)), "--s-hi": css(hi),
+    };
+    const st = document.documentElement.style;
+    for (const k in v) st.setProperty(k, v[k]);
+  }
+  return { ids, apply };
+})();
+// the theme and the color before the first paint (the player's settings are in localStorage)
+try {
+  var t = JSON.parse(localStorage.getItem("gbadsPlayer.settings") || "null"), lt = !!t && t.theme === "light";
+  document.documentElement.dataset.theme = lt ? "light" : "dark";
+  GBAAccent.apply(t && t.accent, lt);
+} catch (e) { document.documentElement.dataset.theme = "dark"; }
 </script>
 <link rel="stylesheet" href="player.css">
 </head>
@@ -113,6 +168,8 @@ try { var t = JSON.parse(localStorage.getItem("gbadsPlayer.settings") || "null")
       <h3>Look</h3>
       <label class="row"><span>Theme</span>
         <select id="theme"><option value="dark">Dark keys</option><option value="light">Light keys</option></select></label>
+      <label class="row"><span>Color</span>
+        <select id="accent"><option value="purple">Purple</option><option value="blue">Blue</option><option value="teal">Teal</option><option value="green">Green</option><option value="red">Red</option><option value="orange">Orange</option><option value="pink">Pink</option></select></label>
     </section>
     <section>
       <h3>Screens</h3>

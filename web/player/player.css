@@ -17,6 +17,8 @@
   --brand: #1e1a34;
   --accent: #a98be0;
   --sel: #5c348c;
+  /* the selected key and its highlight (the accent's; GBAAccent.apply in index.html sets them all) */
+  --s-top: #623494; --s-lo: #5a2f8a; --s-bd: #140028; --s-edge: #2c1650; --s-ring: #a98be0; --s-sub: #d9c9f5; --s-hi: #e8c878;
   --ok: #5fd4a0;
   --warn: #e8c878;
   --err: #ff7a7a;
@@ -32,7 +34,7 @@
 /* a key, light theme: the pale grey of the GBA's own buttons, dark ink */
 html[data-theme="light"] {
   --k-top: #c8c9d0; --k-lo: #bec0c7; --k-bd: #abadb5; --k-rim: #abadb5; --k-rimw: 1px; --k-edge: #8d8f98;
-  --k-ink: #45475a; --k-sub: #666880; --k-faint: #76788e; --k-gold: #7a5200; --k-err: #a3201a; --k-hot: 1.06;
+  --k-ink: #45475a; --k-sub: #666880; --k-faint: #76788e; --k-err: #a3201a; --k-hot: 1.06;
 }
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }
@@ -65,11 +67,11 @@ button { cursor: pointer; }
 }
 /* the selected key: purple, with a lilac halo (the app's KEY_SEL) */
 .primary, .slot.have {
-  background: linear-gradient(#623494, #5a2f8a); color: #fff;
-  border-color: #140028; box-shadow: inset 0 0 0 1px #140028, 0 var(--lift) 0 #2c1650, 0 0 0 3px #a98be0;
+  background: linear-gradient(var(--s-top), var(--s-lo)); color: #fff;
+  border-color: var(--s-bd); box-shadow: inset 0 0 0 1px var(--s-bd), 0 var(--lift) 0 var(--s-edge), 0 0 0 3px var(--s-ring);
 }
-.primary:active:not(:disabled), .slot.have:active { box-shadow: inset 0 0 0 1px #140028, 0 1px 0 #2c1650, 0 0 0 3px #a98be0; }
-.primary:disabled { opacity: 0.4; cursor: default; box-shadow: inset 0 0 0 1px #140028, 0 var(--lift) 0 #2c1650; }
+.primary:active:not(:disabled), .slot.have:active { box-shadow: inset 0 0 0 1px var(--s-bd), 0 1px 0 var(--s-edge), 0 0 0 3px var(--s-ring); }
+.primary:disabled { opacity: 0.4; cursor: default; box-shadow: inset 0 0 0 1px var(--s-bd), 0 var(--lift) 0 var(--s-edge); }
 
 /* ================================================================ the bar (the app's header) */
 .bar { display: flex; align-items: center; gap: 16px; padding: 8px 12px 10px 16px; border-bottom: 1px solid var(--line); background: var(--panel2); min-height: 56px; }
@@ -113,13 +115,13 @@ body.playing #screen.touch { cursor: crosshair; }
 .slot { text-align: left; display: grid; gap: 4px; align-content: start; padding: 14px 14px 13px; min-height: 112px; border-radius: var(--radius); }
 .slot-k { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--k-sub); }
 .slot-k em { font-style: normal; font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--k-faint); margin-left: 4px; }
-.slot.have .slot-k { color: #d9c9f5; }
+.slot.have .slot-k { color: var(--s-sub); }
 .slot.have .slot-k::after { content: " ✓"; color: #9ff0c8; }
 .slot-v { font-weight: 600; font-size: 15px; overflow-wrap: anywhere; }
 .slot-h { color: var(--k-sub); font-size: 12.5px; }
-.slot.have .slot-h { color: #d9c9f5; }
+.slot.have .slot-h { color: var(--s-sub); }
 .slot-h.warn { color: var(--k-gold); }
-.slot.have .slot-h.warn { color: #ffe29a; }
+.slot.have .slot-h.warn { color: var(--s-hi); }
 .files-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 4px 14px 14px; }
 .files-card h2 { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); margin: 12px 0 0; }
 .files-card .note { margin: 8px 0; }
@@ -175,7 +177,7 @@ input[type="range"]::-moz-range-track { height: 7px; border-radius: 99px; backgr
 input[type="range"]::-moz-range-thumb { width: 18px; height: 20px; border-radius: 7px; background: linear-gradient(var(--k-top), var(--k-lo)); border: 1px solid var(--k-bd); box-shadow: inset 0 0 0 var(--k-rimw) var(--k-rim), 0 2px 0 var(--k-edge); }
 .check { display: flex; gap: 12px; align-items: center; margin: 6px 0; padding: 8px 10px; background: var(--panel); border-radius: 10px; }
 .check input { appearance: none; -webkit-appearance: none; width: 22px; height: 22px; flex: none; border-radius: 7px; margin: 0; cursor: pointer; display: grid; place-items: center; --lift: 2px; }
-.check input:checked { background: linear-gradient(#623494, #5a2f8a); border-color: #140028; box-shadow: inset 0 0 0 1px #140028, 0 2px 0 #2c1650; }
+.check input:checked { background: linear-gradient(var(--s-top), var(--s-lo)); border-color: var(--s-bd); box-shadow: inset 0 0 0 1px var(--s-bd), 0 2px 0 var(--s-edge); }
 .check input:checked::after { content: ""; width: 5px; height: 10px; margin-top: -2px; border: solid #fff; border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); }
 .custom { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; margin: 4px 0 8px; }
 .custom-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 6px 0; color: var(--muted); }
@@ -256,8 +258,8 @@ html[data-theme="light"] #touch { --key: #d4d5da; --key2: #b9bbc2; --keyedge: #8
 #touch .tc.on { transform: translateY(calc(2px * var(--u))); box-shadow: inset 0 1px 2px rgba(0,0,0,0.3), 0 calc(1px * var(--u)) 0 var(--keyedge); background: linear-gradient(var(--key2), var(--keypress)); color: var(--inkon); }
 /* Start and Select: a recess in the body with the name pressed into it, a small round button at its right end */
 #touch .plate { --d: calc(26px * var(--u)); }
-#touch .plate .well { position: absolute; left: 0; right: calc(var(--d) / 2); top: 50%; height: calc(20px * var(--u)); transform: translateY(-50%); border-radius: 99px; background: rgba(0,0,0,0.3); border: 1px solid rgba(190,170,240,0.3); box-shadow: inset 0 1px 3px rgba(0,0,0,0.55), 0 1px 0 rgba(255,255,255,0.08); display: flex; align-items: center; padding-left: calc(10px * var(--u)); }
-#touch .plate .well span { font: italic 700 calc(11px * var(--u)) var(--display); letter-spacing: 0.05em; text-transform: uppercase; color: rgba(185,175,235,0.78); text-shadow: 0 -1px 0 rgba(0,0,0,0.45), 0 1px 0 rgba(255,255,255,0.12); }
+#touch .plate .well { position: absolute; left: 0; right: calc(var(--d) / 2); top: 50%; height: calc(20px * var(--u)); transform: translateY(-50%); border-radius: 99px; background: rgba(0,0,0,0.3); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); box-shadow: inset 0 1px 3px rgba(0,0,0,0.55), 0 1px 0 rgba(255,255,255,0.08); display: flex; align-items: center; padding-left: calc(10px * var(--u)); }
+#touch .plate .well span { font: italic 700 calc(11px * var(--u)) var(--display); letter-spacing: 0.05em; text-transform: uppercase; color: color-mix(in srgb, var(--s-sub) 78%, transparent); text-shadow: 0 -1px 0 rgba(0,0,0,0.45), 0 1px 0 rgba(255,255,255,0.12); }
 #touch .plate .dot { position: absolute; right: 0; top: 50%; width: var(--d); height: var(--d); transform: translateY(-50%); border-radius: 50%; background: linear-gradient(var(--key), var(--key2)); border: 1px solid var(--tb); box-shadow: inset 0 1px 0 var(--hl), 0 calc(2px * var(--u)) 0 var(--keyedge); transition: transform .05s; }
 #touch .plate.on { transform: none; background: none; box-shadow: none; }
 #touch .plate.on .dot { transform: translateY(calc(-50% + 2px * var(--u))); box-shadow: inset 0 1px 2px rgba(0,0,0,0.3), 0 0 0 var(--keyedge); background: linear-gradient(var(--key2), var(--keypress)); }
@@ -285,6 +287,6 @@ html[data-theme="light"] #touch { --key: #d4d5da; --key2: #b9bbc2; --keyedge: #8
 @media (max-height: 500px) and (pointer: coarse) {
   body.playing:not(.showbar) .bar { display: none; }
   body.playing:not(.showbar) #app { grid-template-rows: 0 1fr; }
-  body.playing .bar-pill { display: block; position: absolute; top: 4px; left: 50%; transform: translateX(-50%); z-index: 6; width: 44px; height: 18px; border: 0; border-radius: 99px; background: rgba(169,139,224,0.28); }
-  body.playing .bar-pill::after { content: ""; position: absolute; left: 12px; right: 12px; top: 8px; height: 2px; border-radius: 2px; background: #d9c9f5; }
+  body.playing .bar-pill { display: block; position: absolute; top: 4px; left: 50%; transform: translateX(-50%); z-index: 6; width: 44px; height: 18px; border: 0; border-radius: 99px; background: color-mix(in srgb, var(--accent) 28%, transparent); }
+  body.playing .bar-pill::after { content: ""; position: absolute; left: 12px; right: 12px; top: 8px; height: 2px; border-radius: 2px; background: var(--s-sub); }
 }

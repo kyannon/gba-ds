@@ -189,9 +189,39 @@ public class GbaDsActivity extends SDLActivity {
      */
     private int orientationWanted() {
         boolean two = hasSecondDisplay();
-        int o = two ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE : ActivityInfo.SCREEN_ORIENTATION_FULL_USER;
-        Log.i(TAG, two ? "two displays: landscape" : "one display: any orientation (the rotation lock is kept)");
+        String mode = rotationMode();
+        int o;
+        if (two) o = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
+        else if (mode.equals("portrait")) o = ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT;
+        else if (mode.equals("landscape")) o = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE;
+        else o = ActivityInfo.SCREEN_ORIENTATION_FULL_USER;
+        Log.i(TAG, two ? "two displays: landscape"
+                : "one display: " + (mode.equals("auto") ? "any orientation (the rotation lock is kept)" : mode + " (Settings > Rotation)"));
         return o;
+    }
+
+    /**
+     * Settings > Rotation (issue #60): "auto" (follow the phone, the default),
+     * "portrait" or "landscape", kept in rotation.cfg in the app's own storage
+     * (read here before the native side starts; the native side writes it, as
+     * with data-folder.cfg). Only used with one display.
+     */
+    private String rotationMode() {
+        try (java.io.BufferedReader r = new java.io.BufferedReader(new java.io.FileReader(new File(getFilesDir(), "rotation.cfg")))) {
+            String l = r.readLine();
+            if (l != null) {
+                l = l.trim();
+                if (l.equals("portrait") || l.equals("landscape")) return l;
+            }
+        } catch (java.io.IOException e) {
+            /* none: auto */
+        }
+        return "auto";
+    }
+
+    /** Called by the native side when Settings > Rotation changes (the file is written already). */
+    public void applyRotation(String mode) {
+        runOnUiThread(() -> setRequestedOrientation(orientationWanted()));
     }
 
     /** SDL asks when it makes the window (its hint: LandscapeLeft, ui.c). */
