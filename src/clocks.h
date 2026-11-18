@@ -12,6 +12,11 @@ bool clocks_available(void);
  * launch.sh puts back if GBA DS ends without doing so); else the ones
  * changed put back. Logged. */
 void clocks_set(bool max);
+#elif defined(__ANDROID__)
+/* android.c: Android's clocks aren't ours to set; Max asks the system for them
+ * through the performance hint's target (docs/ANDROID.md) */
+bool clocks_available(void);
+void clocks_set(bool max);
 #else
 static inline bool clocks_available(void) { return false; }
 static inline void clocks_set(bool max) { (void) max; }

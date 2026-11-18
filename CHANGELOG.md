@@ -1,8 +1,11 @@
 # Changelog
 
-## v1.5.5 (not yet released)
+## v1.5.6 (not yet released)
+
+## v1.5.5 (2026-11-18)
 
 ### New games
+- **Final Fantasy I & II: Dawn of Souls** (USA, Europe, Japan): in Final Fantasy, the second screen shows the game's Enlarged Map over the whole screen with the party in the middle while on the world map, the party screen (the party, gil, time, crystals, where you are; START's menu without its list of commands) elsewhere, and in battles the party as it was just before the battle (its HP and play time from then). Final Fantasy II and Soul of Rebirth the same: the Enlarged Map, with its blinking marks shown steady, the party screen and the party in battles; early in Final Fantasy II, before the game has a map, the party screen on the world map too. Outside the games, on the cartridge's menus, in the Bestiary and from a game over on, it shows the logo; in conversations the last picture stays.
 - **Banjo-Kazooie: Grunty's Revenge** (USA and Europe, Europe's English, French and German release, Italy and Spain): the second screen shows, five seconds each, the game's pause screen without its menu (health, notes, eggs, feathers, Hollow Honeycombs, Jiggies, Jinjos and the rest) and the Totals of the world Banjo is in (what's been found there out of what there is), with the health bar held still at the top left on both, kept up to date about once a second. The logo is the title's lettering, shown at the title, on the file screen and in the opening story. Not tried yet: the mini-games, the boss fights and Mumbo's transformations.
 - **Rebelstar: Tactical Command** (USA and Europe): in battles, the second screen shows the Status of the soldier under the cursor, its Equipment, Attributes and Skills pages in turn, or the mission's Objectives elsewhere on the field. The logo shows outside battles and through the enemy's turn. Known issue: the training missions take over the buttons while they teach, so the second screen mostly shows the logo through their guided turns.
 
@@ -19,6 +22,10 @@
 - **"Paused" is dark grey** on the light theme (it was orange).
 - **Removed the Tidy map screens, Logo when blank and Map animations settings** (and `map_crop`, `show_logo`, `map_animations` in the config files, which are now ignored): maps are always tidied and animated, and the logo always shows when there's nothing else for the second screen.
 - **Web player: a new look to match the app's menus.** The same near-black purple page, GBA-style keys with an edge underneath, purple for what's selected and gold for what's on, across the toolbar, the start screen, Settings, Controls and the on-screen controls. A sun / moon button left of the sound button (and Settings > Look > Theme) switches between dark keys and the pale grey ones, as the app's theme does, and the player remembers it. Settings > Look > Color has the app's seven colors (purple, blue, teal, green, red, orange, pink), the same ones as the app's Display > Color. The start screen is simpler too: Game and GBA DS boxes, then Your files (moved here from Settings) and a centred Play button; a save or state can still be dropped on the page or opened with the toolbar's folder button. Top over bottom is the default arrangement, and Detail has a new "a third of the resolution" choice, which on Two GBA screens draws the game's own pixels exactly (half and three quarters can make some pixels wider than their neighbours).
+
+### New
+- **Android: Performance** (#50), in Settings > Speed and sound: **Let the System Decide** (the default) or **Set to Max**, the same setting as on ROCKNIX. Android doesn't let an app set the processor's speed, so Set to Max asks for it: it keeps the processor at a high clock while GBA DS runs, for a smoother game and steadier sound, at the cost of a warmer device and a shorter battery. Try it if games stutter. The system can still hold it back if the device gets hot, and it needs Android 13 or later.
+- **Android: Rotation for phones and the Surface Duo** (#60): with one display, Settings > System > **Rotation** holds GBA DS upright (the two screens one above the other), on its side (side by side), or leaves it to the phone (**Auto**, the default: follows Android's rotation lock as before). Portrait and landscape still turn either way up. It isn't shown on devices with two displays. Not tried yet on a Surface Duo: if locking landscape takes a spanned app back to one screen, leave it on Auto.
 
 ### Fixes
 - **Web player: closing GBA DS now clears the screen.** The game's last picture used to stay behind the start page, making its text hard to read.
