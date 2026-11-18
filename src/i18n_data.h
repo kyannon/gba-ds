@@ -15,7 +15,11 @@
 #define I18N_CHOICES I18N_PSEUDO_CHOICE \
 	{ "de", "Deutsch (machine translated)", 0 }, \
 	{ "es", "Espa\303\261ol (machine translated)", 0 }, \
+	{ "fr", "Fran\303\247ais (machine translated)", 0 }, \
+	{ "it", "Italiano (machine translated)", 0 }, \
 	{ "ja", "\346\227\245\346\234\254\350\252\236 (machine translated)", 0 }, \
+	{ "ko", "\355\225\234\352\265\255\354\226\264 (machine translated)", 0 }, \
+	{ "pt", "Portugu\303\252s (machine translated)", 0 }, \
 	{ "zh_CN", "\347\256\200\344\275\223\344\270\255\346\226\207 (machine translated)", 0 }, \
 	{ "zh_TW", "\347\271\201\351\253\224\344\270\255\346\226\207 (machine translated)", 0 }, \
 

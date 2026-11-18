@@ -1,0 +1,2075 @@
+# GBA DS: Korean (machine translation, not yet reviewed).
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: ko\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-GBADS-Autonym: 한국어\n"
+"X-GBADS-Script: ko\n"
+"X-GBADS-Status: machine\n"
+"X-GBADS-Locales: ko_KR ko\n"
+
+msgid " (patch)"
+msgstr " (패치)"
+
+msgid " Checking for a new version..."
+msgstr " 새 버전을 확인하는 중..."
+
+msgid " It's the newest version."
+msgstr " 최신 버전입니다."
+
+msgid " ms"
+msgstr " ms"
+
+msgid " s"
+msgstr " s"
+
+msgid "\"Swipe up for quick menu\" at a game's start."
+msgstr "게임을 시작할 때 \"위로 스와이프하여 빠른 메뉴\"."
+
+msgid "%ca%d"
+msgstr "%ca%d"
+
+msgid "%d file checked"
+msgid_plural "%d files checked"
+msgstr[0] "파일 %d개 확인"
+
+msgid "%d game found"
+msgid_plural "%d games found"
+msgstr[0] "게임 %d개 발견"
+
+msgid "%d game found."
+msgid_plural "%d games found."
+msgstr[0] "게임 %d개 발견."
+
+msgid "%d of %d"
+msgstr "%d / %d"
+
+msgid "%d of %d set for %s, kept in controllers.txt beside GBA DS's save states. The line for it is in gba-ds.log too: send it in to have it built into GBA DS for this device."
+msgstr "%3$s에 %2$d개 중 %1$d개를 설정했습니다. GBA DS 상태 파일 옆의 controllers.txt에 저장됩니다. 해당 줄은 gba-ds.log에도 있으니, 이 기기용으로 GBA DS에 반영할 수 있게 보내 주세요."
+
+msgid "%d on"
+msgstr "%d개 켜짐"
+
+msgid "%d RetroArch state here"
+msgid_plural "%d RetroArch states here"
+msgstr[0] "여기에 RetroArch 상태 %d개"
+
+msgid "%s"
+msgstr "%s"
+
+msgid "%s %s. Choose another if RetroArch keeps its states somewhere else."
+msgstr "%s %s. RetroArch가 상태를 다른 곳에 보관한다면 다른 폴더를 선택하세요."
+
+msgid "%s (beside the ROM)"
+msgstr "%s (ROM 옆)"
+
+msgid "%s as the hotkey button, with Start, R1, L1, X, Y and B"
+msgstr "%s을(를) 핫키 버튼으로 사용 (Start, R1, L1, X, Y, B와 함께)"
+
+msgid "%s has no button now"
+msgstr "%s에 할당된 버튼이 없습니다"
+
+msgid "%s is now Start + Select"
+msgstr "%s은(는) 이제 Start + Select입니다"
+
+msgid "%s opens the menu: press another button"
+msgstr "%s(으)로 메뉴를 엽니다. 다른 버튼을 누르세요"
+
+msgid "%s v%s. Restarting..."
+msgstr "%s v%s. 다시 시작하는 중..."
+
+msgid "%s was %s's: that has no button now"
+msgstr "%s은(는) %s의 것이었습니다. 이제 할당된 버튼이 없습니다"
+
+msgid "%s, %s"
+msgstr "%s, %s"
+
+msgid "%s, Select, Start or L3. Tap to keep it as it is"
+msgstr "%s, Select, Start 또는 L3. 눌러서 그대로 두기"
+
+msgid "%u of %u achievements unlocked"
+msgstr "업적 %u개 중 %u개 달성"
+
+msgid ", RetroArch"
+msgstr ", RetroArch"
+
+msgid "1 minute"
+msgstr "1분"
+
+msgid "10 s"
+msgstr "10 s"
+
+msgid "128 ms"
+msgstr "128 ms"
+
+msgid "15 s"
+msgstr "15 s"
+
+msgid "192 ms"
+msgstr "192 ms"
+
+msgid "2 minutes"
+msgstr "2분"
+
+msgid "2x"
+msgstr "2x"
+
+msgid "30 s"
+msgstr "30 s"
+
+msgid "32 ms"
+msgstr "32 ms"
+
+msgid "3x"
+msgstr "3x"
+
+msgid "4x"
+msgstr "4x"
+
+msgid "5 minutes"
+msgstr "5분"
+
+msgid "5x"
+msgstr "5x"
+
+msgid "64 ms"
+msgstr "64 ms"
+
+msgid "96 ms"
+msgstr "96 ms"
+
+msgid "A (right) button"
+msgstr "A 버튼 (오른쪽)"
+
+msgid "A and B buttons"
+msgstr "A 및 B 버튼"
+
+msgid "A dark line under each row of pixels"
+msgstr "각 픽셀 줄 아래에 어두운 선"
+
+msgid "A game's save already next to it, or in the other type, is copied over the first time you play it. .srm is the type RetroArch uses: choose its saves folder too to share each game's save with it."
+msgstr "옆에 이미 있거나 다른 형식인 게임 저장 데이터는 처음 플레이할 때 복사됩니다. .srm은 RetroArch가 쓰는 형식입니다. RetroArch의 저장 폴더도 선택하면 각 게임의 저장 데이터를 공유할 수 있습니다."
+
+msgid "A new version of GBA DS"
+msgstr "GBA DS 새 버전"
+
+msgid "A pattern over every pixel, on both screens."
+msgstr "모든 픽셀 위에 패턴을 입힙니다 (두 화면 모두)."
+
+msgid "A: the one lit above. Y: all games. X: undo this game's value"
+msgstr "A: 위에서 강조된 값. Y: 모든 게임. X: 이 게임의 값 되돌리기"
+
+msgid "ACHIEVEMENT UNLOCKED"
+msgstr "업적 달성"
+
+msgid "Achievements"
+msgstr "업적"
+
+msgid "Add a note (optional): what happened, and what you expected to happen."
+msgstr "메모를 추가하세요 (선택): 무슨 일이 있었고 어떻게 되길 기대했는지."
+
+msgid "Adds GBA DS to the emulators for Game Boy Advance games in EmulationStation. Pick it for one game (its Advanced Game Options > Emulator) or for all of them (the system's advanced settings). The other emulators keep working as before."
+msgstr "EmulationStation의 게임보이 어드밴스 에뮬레이터에 GBA DS를 추가합니다. 게임 하나(고급 게임 옵션 > 에뮬레이터)나 전체(시스템 고급 설정)에 선택할 수 있습니다. 다른 에뮬레이터는 그대로 작동합니다."
+
+msgid "All"
+msgstr "모두"
+
+msgid "All %u achievements unlocked"
+msgstr "업적 %u개 모두 달성"
+
+msgid "All games"
+msgstr "모든 게임"
+
+msgid "Already the value for all games"
+msgstr "이미 모든 게임의 값입니다"
+
+msgid "Always"
+msgstr "항상"
+
+msgid "Always on here"
+msgstr "여기서는 항상 켜짐"
+
+msgid "Always on in this game: it needs it for full speed"
+msgstr "이 게임에서는 항상 켜짐: 최고 속도로 실행하려면 필요합니다"
+
+msgid "Always on, applied first (RetroArch's way: a patch named as the ROM). %s"
+msgstr "항상 켜짐, 가장 먼저 적용 (RetroArch 방식: ROM과 같은 이름의 패치). %s"
+
+msgid "AM"
+msgstr "AM"
+
+msgid "An xdelta made with compression, which GBA DS can't read: patch the ROM with it beforehand, or make it again without (xdelta3 -S none)"
+msgstr "압축으로 만든 xdelta는 GBA DS에서 읽을 수 없습니다. 먼저 ROM에 패치를 적용하거나 압축 없이 다시 만드세요 (xdelta3 -S none)"
+
+msgid "Android's installer couldn't be reached"
+msgstr "Android 설치 프로그램에 연결할 수 없습니다"
+
+msgid "Another emulator's"
+msgstr "다른 에뮬레이터의"
+
+msgid "Apr"
+msgstr "4월"
+
+msgid "Are You Sure?"
+msgstr "확실한가요?"
+
+msgid "Are you sure? A: switch it %s now and carry on from here. Y: not yet (more changes first). B: call it off"
+msgstr "확실한가요? A: 지금 %s(으)로 바꾸고 여기서 계속. Y: 아직 아님 (먼저 다른 변경). B: 취소"
+
+msgid "Are you sure? A: use them now and carry on from here. B: call it off"
+msgstr "확실한가요? A: 지금 사용하고 여기서 계속. B: 취소"
+
+msgid "Are you sure? Delete them"
+msgstr "확실한가요? 삭제"
+
+msgid "Are you sure? Reset settings"
+msgstr "확실한가요? 설정 초기화"
+
+msgid "Are you sure? Save your game first. A: restart %s it now. Y: not yet (more changes first). B: call it off"
+msgstr "확실한가요? 먼저 게임을 저장하세요. A: 지금 %s 다시 시작. Y: 아직 아님 (먼저 다른 변경). B: 취소"
+
+msgid "Are you sure? Save your game first. A: restart now. B: call it off"
+msgstr "확실한가요? 먼저 게임을 저장하세요. A: 지금 다시 시작. B: 취소"
+
+msgid "Are you sure? Touch it again to delete every game's own settings. Anything else cancels."
+msgstr "정말로 하시겠습니까? 한 번 더 누르면 게임별 설정을 모두 삭제합니다. 다른 곳을 누르면 취소됩니다."
+
+msgid "Are you sure? Touch it again to put every setting back to its default. Anything else cancels."
+msgstr "정말로 하시겠습니까? 한 번 더 누르면 모든 설정을 기본값으로 되돌립니다. 다른 곳을 누르면 취소됩니다."
+
+msgid "As fast as it goes"
+msgstr "가능한 한 빠르게"
+
+msgid "As the game started"
+msgstr "게임을 시작했을 때 그대로"
+
+msgid "Aug"
+msgstr "8월"
+
+msgid "Auto"
+msgstr "자동"
+
+msgid "Auto-load"
+msgstr "자동 불러오기"
+
+msgid "Auto-Load: Off"
+msgstr "자동 불러오기: 끔"
+
+msgid "Auto-Load: On"
+msgstr "자동 불러오기: 켬"
+
+msgid "Automatic"
+msgstr "자동"
+
+msgid "Automatic checks: Off"
+msgstr "자동 확인: 끔"
+
+msgid "Automatic checks: On"
+msgstr "자동 확인: 켬"
+
+msgid "Automatic follows the system. Text that isn't translated yet stays in English."
+msgstr "자동은 시스템 언어를 따릅니다. 아직 번역되지 않은 텍스트는 영어로 표시됩니다."
+
+msgid "B (bottom) button"
+msgstr "B 버튼 (아래)"
+
+msgid "Back"
+msgstr "뒤로"
+
+msgid "Back online"
+msgstr "다시 온라인"
+
+msgid "Back to %s and the buttons it started with"
+msgstr "%s 및 처음 버튼으로 되돌리기"
+
+msgid "BananaOS's systems list has no Game Boy Advance entry."
+msgstr "BananaOS 시스템 목록에 게임보이 어드밴스 항목이 없습니다."
+
+msgid "Bezel logo"
+msgstr "베젤 로고"
+
+msgid "Blue"
+msgstr "파랑"
+
+msgid "Blurry instead of sharp: usually leave off."
+msgstr "선명하지 않고 흐릿하게: 보통은 끈 채로 두세요."
+
+msgid "Both screens"
+msgstr "두 화면 모두"
+
+msgid "Bottom screen"
+msgstr "아래 화면"
+
+msgid "Bottom screen brightness"
+msgstr "아래 화면 밝기"
+
+msgid "Bug Report"
+msgstr "버그 보고서"
+
+msgid "Bug report saved in bug-reports"
+msgstr "버그 보고서를 bug-reports에 저장했습니다"
+
+msgid "Bug report saved in bug-reports."
+msgstr "버그 보고서를 bug-reports에 저장했습니다."
+
+msgid "Buttons"
+msgstr "버튼"
+
+msgid "Buttons mapped"
+msgstr "버튼 매핑 완료"
+
+msgid "Can't be read"
+msgstr "읽을 수 없음"
+
+msgid "Can't be read: not a patch, or damaged"
+msgstr "읽을 수 없음: 패치가 아니거나 손상됨"
+
+msgid "Can't find the GBA DS folder."
+msgstr "GBA DS 폴더를 찾을 수 없습니다."
+
+msgid "Can't reach GBA DS's folder, using %s for now: %s"
+msgstr "GBA DS 폴더에 접근할 수 없어 당분간 %s을(를) 사용합니다: %s"
+
+msgid "Can't rewind further"
+msgstr "더 이상 되감을 수 없습니다"
+
+msgid "Can't save files here: no states, logos or screenshots"
+msgstr "여기에는 파일을 저장할 수 없습니다: 상태, 로고, 스크린샷 없음"
+
+msgid "Can't save in the chosen folder, files not moved: %s"
+msgstr "선택한 폴더에 저장할 수 없어 파일을 옮기지 않았습니다: %s"
+
+msgid "Cancel"
+msgstr "취소"
+
+msgid "Centered"
+msgstr "가운데"
+
+msgid "Changes some of the same bytes as %s, and goes over it there: they may not work together"
+msgstr "%s과(와) 같은 바이트 일부를 변경하여 덮어씁니다. 함께 작동하지 않을 수 있습니다"
+
+msgid "Cheats"
+msgstr "치트"
+
+msgid "Check now"
+msgstr "지금 확인"
+
+msgid "Check ra_username and ra_password in gba-ds.cfg"
+msgstr "gba-ds.cfg의 ra_username과 ra_password를 확인하세요"
+
+msgid "Check the account in EmulationStation's RetroAchievements settings"
+msgstr "EmulationStation의 RetroAchievements 설정에서 계정을 확인하세요"
+
+msgid "Choose a folder in Android's file picker..."
+msgstr "Android 파일 선택기에서 폴더를 선택하세요..."
+
+msgid "Choose GBA DS folder"
+msgstr "GBA DS 폴더 선택"
+
+msgid "Choose it again to close %s: %s"
+msgstr "%s을(를) 닫으려면 다시 선택하세요: %s"
+
+msgid "Choose it again to restart: unsaved progress is lost"
+msgstr "다시 시작하려면 다시 선택하세요: 저장하지 않은 진행 상황은 사라집니다"
+
+msgid "Choose ROM folder"
+msgstr "ROM 폴더 선택"
+
+msgid "Choose save folder"
+msgstr "저장 폴더 선택"
+
+msgid "Chosen folder is inside GBA DS's own, files not moved: %s"
+msgstr "선택한 폴더가 GBA DS 자체 폴더 안에 있어 파일을 옮기지 않았습니다: %s"
+
+msgid "Chosen folder not found, files not moved: %s"
+msgstr "선택한 폴더를 찾을 수 없어 파일을 옮기지 않았습니다: %s"
+
+msgid "Chosen here:"
+msgstr "여기서 선택됨:"
+
+msgid "Close Game"
+msgstr "게임 닫기"
+
+msgid "Close GBA DS"
+msgstr "GBA DS 닫기"
+
+msgid "Closest to gap"
+msgstr "틈에 가깝게"
+
+msgid "Closing a game saves where you are."
+msgstr "게임을 닫으면 현재 위치가 저장됩니다."
+
+msgid "Color"
+msgstr "색상"
+
+msgid "color"
+msgstr "색상"
+
+msgid "Color correction"
+msgstr "색 보정"
+
+msgid "Color Correction: Off"
+msgstr "색 보정: 끔"
+
+msgid "Color Correction: On"
+msgstr "색 보정: 켬"
+
+msgid "Colors as a Game Boy Advance's screen showed them."
+msgstr "게임보이 어드밴스 화면이 보여 주던 색상입니다."
+
+msgid "Confirm the update to v%s in Android's installer. Android closes GBA DS while it installs; open it again afterwards. If Android asks first, allow GBA DS to install apps."
+msgstr "Android 설치 프로그램에서 v%s 업데이트를 확인하세요. 설치하는 동안 Android가 GBA DS를 종료합니다. 끝나면 다시 여세요. Android가 먼저 묻는다면 GBA DS의 앱 설치를 허용하세요."
+
+msgid "Connect a controller and try again."
+msgstr "컨트롤러를 연결한 뒤 다시 시도하세요."
+
+msgid "Controls"
+msgstr "조작"
+
+msgid "Couldn't change %s."
+msgstr "%s을(를) 변경할 수 없었습니다."
+
+msgid "Couldn't change the files in %s/custom_systems: allow GBA DS All files access in Android's settings."
+msgstr "%s/custom_systems의 파일을 변경할 수 없었습니다. Android 설정에서 GBA DS에 모든 파일 접근 권한을 허용하세요."
+
+msgid "Couldn't connect"
+msgstr "연결할 수 없었습니다"
+
+msgid "Couldn't find GBA DS's folder."
+msgstr "GBA DS 폴더를 찾을 수 없었습니다."
+
+msgid "Couldn't keep that choice."
+msgstr "그 선택을 유지할 수 없었습니다."
+
+msgid "Couldn't load the achievements"
+msgstr "업적을 불러올 수 없었습니다"
+
+msgid "Couldn't load the game"
+msgstr "게임을 불러올 수 없었습니다"
+
+msgid "Couldn't move GBA DS's files, they stay in %s"
+msgstr "GBA DS 파일을 옮길 수 없어 %s에 남아 있습니다"
+
+msgid "Couldn't open the file picker."
+msgstr "파일 선택기를 열 수 없었습니다."
+
+msgid "Couldn't open the sign-in box."
+msgstr "로그인 창을 열 수 없었습니다."
+
+msgid "Couldn't remove the setting file."
+msgstr "설정 파일을 삭제할 수 없었습니다."
+
+msgid "Couldn't save"
+msgstr "저장할 수 없었습니다"
+
+msgid "Couldn't save the bug report."
+msgstr "버그 보고서를 저장할 수 없었습니다."
+
+msgid "Couldn't sign in as %s%s%s. Sign in to try again."
+msgstr "%s%s%s(으)로 로그인할 수 없었습니다. 다시 시도하려면 로그인하세요."
+
+msgid "Couldn't write %s."
+msgstr "%s에 쓸 수 없었습니다."
+
+msgid "Couldn't write to %s."
+msgstr "%s에 쓸 수 없었습니다."
+
+msgid "Custom"
+msgstr "사용자 지정"
+
+msgid "Custom logos"
+msgstr "사용자 지정 로고"
+
+msgid "Custom Logos: Do Not Use"
+msgstr "사용자 지정 로고: 사용 안 함"
+
+msgid "Custom Logos: Full Detail"
+msgstr "사용자 지정 로고: 전체 디테일"
+
+msgid "Custom Logos: Pixelated"
+msgstr "사용자 지정 로고: 도트"
+
+msgid "D-pad"
+msgstr "십자키"
+
+msgid "D-pad down"
+msgstr "십자키 아래"
+
+msgid "D-pad left"
+msgstr "십자키 왼쪽"
+
+msgid "D-pad right"
+msgstr "십자키 오른쪽"
+
+msgid "D-pad up"
+msgstr "십자키 위"
+
+msgid "Dark"
+msgstr "어두움"
+
+msgid "Darkens the bottom screen, in this app only: the device's own brightness is left alone (and this can't go above it)."
+msgstr "이 앱에서만 아래 화면을 어둡게 합니다. 기기 자체 밝기는 그대로이며 이 값이 그보다 높아질 수 없습니다."
+
+msgid "Darkens the top screen, in this app only: the device's own brightness is left alone (and this can't go above it)."
+msgstr "이 앱에서만 위 화면을 어둡게 합니다. 기기 자체 밝기는 그대로이며 이 값이 그보다 높아질 수 없습니다."
+
+msgid "Dec"
+msgstr "12월"
+
+msgid "Del"
+msgstr "삭제"
+
+msgid "Delete per-game settings"
+msgstr "게임별 설정 삭제"
+
+msgid "Deleted the settings of %d games."
+msgstr "게임 %d개의 설정을 삭제했습니다."
+
+msgid "Deleted the settings of 1 game."
+msgstr "게임 1개의 설정을 삭제했습니다."
+
+msgid "Display"
+msgstr "화면 표시"
+
+msgid "Done"
+msgstr "완료"
+
+msgid "Done (No Note)"
+msgstr "완료 (메모 없음)"
+
+msgid "Down"
+msgstr "아래"
+
+msgid "Downloading"
+msgstr "다운로드 중"
+
+msgid "Each pixel a little darker toward its edges"
+msgstr "가장자리로 갈수록 각 픽셀이 약간 어두워짐"
+
+msgid "Earn achievements in casual mode with your retroachievements.org account. GBA DS keeps a sign-in token, not your password."
+msgstr "retroachievements.org 계정으로 캐주얼 모드에서 업적을 달성하세요. GBA DS는 비밀번호가 아닌 로그인 토큰을 보관합니다."
+
+msgid "English"
+msgstr "English"
+
+msgid "Enter both your username and your password."
+msgstr "사용자 이름과 비밀번호를 모두 입력하세요."
+
+msgid "Enter your account in the sign-in box..."
+msgstr "로그인 창에 계정을 입력하세요..."
+
+msgid "ES-DE's folder wasn't found."
+msgstr "ES-DE 폴더를 찾을 수 없었습니다."
+
+msgid "Every 0.5 s"
+msgstr "0.5초마다"
+
+msgid "Every 1.5 s"
+msgstr "1.5초마다"
+
+msgid "Every 3 s"
+msgstr "3초마다"
+
+msgid "Every button was skipped, so nothing changed."
+msgstr "모든 버튼을 건너뛰어서 아무것도 바뀌지 않았습니다."
+
+msgid "Every second"
+msgstr "1초마다"
+
+msgid "Fails"
+msgstr "실패"
+
+msgid "Fast (20 a second)"
+msgstr "빠름 (초당 20회)"
+
+msgid "Fast forward"
+msgstr "빨리 감기"
+
+msgid "Fast Forward: %dx"
+msgstr "빨리 감기: %dx"
+
+msgid "Fast Forward: Max"
+msgstr "빨리 감기: 최대"
+
+msgid "Fast Forward: Off"
+msgstr "빨리 감기: 끔"
+
+msgid "Fast forwarding..."
+msgstr "빨리 감는 중..."
+
+msgid "Feb"
+msgstr "2월"
+
+msgid "First run only. B: back"
+msgstr "처음 한 번만. B: 뒤로"
+
+msgid "Folders"
+msgstr "폴더"
+
+msgid "Folders, accounts, updates"
+msgstr "폴더, 계정, 업데이트"
+
+msgid "Follows how you hold the phone, and Android's own rotation lock."
+msgstr "휴대전화를 잡는 방향과 Android의 회전 잠금을 따릅니다."
+
+msgid "Frame buffer"
+msgstr "프레임 버퍼"
+
+msgid "Frame Buffer: Always on here"
+msgstr "프레임 버퍼: 여기서는 항상 켜짐"
+
+msgid "Frame Buffer: Off"
+msgstr "프레임 버퍼: 끔"
+
+msgid "Frame Buffer: On"
+msgstr "프레임 버퍼: 켬"
+
+msgid "Frames a second above the game, all the time."
+msgstr "게임 위에 초당 프레임 수를 항상 표시합니다."
+
+msgid "From RetroArch's settings:"
+msgstr "RetroArch 설정에서:"
+
+msgid "Full detail"
+msgstr "전체 디테일"
+
+msgid "Full Width"
+msgstr "전체 너비"
+
+msgid "Game"
+msgstr "게임"
+
+msgid "Game below"
+msgstr "게임을 아래에"
+
+msgid "Game names"
+msgstr "게임 이름"
+
+msgid "Game on top"
+msgstr "게임을 위에"
+
+msgid "Game restarted"
+msgstr "게임을 다시 시작했습니다"
+
+msgid "Game screen scale"
+msgstr "게임 화면 배율"
+
+msgid "Games"
+msgstr "게임"
+
+msgid "Games are read from %s (subfolders too). Saves (%s) are kept in %s."
+msgstr "게임은 %s에서 읽어 옵니다 (하위 폴더 포함). 저장 데이터(%s)는 %s에 보관됩니다."
+
+msgid "Games are read from %s (subfolders too). Saves (%s) are kept next to the games."
+msgstr "게임은 %s에서 읽어 옵니다 (하위 폴더 포함). 저장 데이터(%s)는 게임 옆에 보관됩니다."
+
+msgid "Games picked in BananaOS's own Game Boy Advance list start in GBA DS when it has second-screen support for them. Restart BananaOS after switching this."
+msgstr "BananaOS 자체 게임보이 어드밴스 목록에서 고른 게임은, GBA DS가 해당 게임의 두 번째 화면을 지원하면 GBA DS에서 시작됩니다. 이것을 바꾼 뒤에는 BananaOS를 다시 시작하세요."
+
+msgid "Games shown"
+msgstr "표시할 게임"
+
+msgid "Games without second-screen support play on one screen."
+msgstr "두 번째 화면을 지원하지 않는 게임은 한 화면으로 실행됩니다."
+
+msgid "GBA"
+msgstr "GBA"
+
+msgid "GBA A"
+msgstr "GBA A"
+
+msgid "GBA A on the right button, or on the bottom one."
+msgstr "GBA A를 오른쪽 버튼에 또는 아래쪽 버튼에."
+
+msgid "GBA B"
+msgstr "GBA B"
+
+msgid "GBA Down"
+msgstr "GBA 아래"
+
+msgid "GBA DS can't save files there: allow it All files access in Android's settings, or choose another folder."
+msgstr "GBA DS가 그곳에 파일을 저장할 수 없습니다. Android 설정에서 모든 파일 접근을 허용하거나 다른 폴더를 선택하세요."
+
+msgid "GBA DS in BananaOS's GBA list: Off"
+msgstr "BananaOS GBA 목록의 GBA DS: 끔"
+
+msgid "GBA DS in BananaOS's GBA list: On"
+msgstr "BananaOS GBA 목록의 GBA DS: 켬"
+
+msgid "GBA DS in EmulationStation: Off"
+msgstr "EmulationStation의 GBA DS: 끔"
+
+msgid "GBA DS in EmulationStation: On"
+msgstr "EmulationStation의 GBA DS: 켬"
+
+msgid "GBA DS in ES-DE: Off"
+msgstr "ES-DE의 GBA DS: 끔"
+
+msgid "GBA DS in ES-DE: On"
+msgstr "ES-DE의 GBA DS: 켬"
+
+msgid "GBA DS is now ES-DE's emulator for Game Boy Advance games. Quit ES-DE and open it again to see it."
+msgstr "이제 GBA DS가 ES-DE의 게임보이 어드밴스 에뮬레이터입니다. 확인하려면 ES-DE를 종료한 뒤 다시 여세요."
+
+msgid "GBA DS is out of ES-DE's emulator list. Quit ES-DE and open it again to see it."
+msgstr "GBA DS가 ES-DE의 에뮬레이터 목록에서 빠졌습니다. 확인하려면 ES-DE를 종료한 뒤 다시 여세요."
+
+msgid "GBA DS Logo: Hide"
+msgstr "GBA DS 로고: 숨김"
+
+msgid "GBA DS Logo: Show"
+msgstr "GBA DS 로고: 표시"
+
+msgid "GBA DS Settings"
+msgstr "GBA DS 설정"
+
+msgid "GBA DS v%s is out (this is v%s). Update now to download it (%.1f MB) and install it: Android asks you to confirm. Your games, saves, states and settings are kept."
+msgstr "GBA DS v%s이(가) 나왔습니다 (현재 v%s). 지금 업데이트를 누르면 다운로드(%.1f MB)하여 설치합니다. Android가 확인을 요청합니다. 게임, 저장 데이터, 상태, 설정은 유지됩니다."
+
+msgid "GBA DS v%s is out (this is v%s). Update now to download it (%.1f MB) and restart into it; your games, saves, states and settings are kept."
+msgstr "GBA DS v%s이(가) 나왔습니다 (현재 v%s). 지금 업데이트를 누르면 다운로드(%.1f MB)한 뒤 다시 시작합니다. 게임, 저장 데이터, 상태, 설정은 유지됩니다."
+
+msgid "GBA DS's bezel, or your own PNGs, round the picture."
+msgstr "GBA DS 베젤 또는 직접 만든 PNG를 화면 주위에 표시합니다."
+
+msgid "GBA DS's files are kept there already."
+msgstr "GBA DS 파일은 이미 그곳에 있습니다."
+
+msgid "GBA DS's files go to %s the next time it starts: close GBA DS and open it again."
+msgstr "GBA DS 파일은 다음 시작 때 %s(으)로 이동합니다. GBA DS를 닫고 다시 여세요."
+
+msgid "GBA DS's own files (states, settings, cheats, overlays) are in %s, moving to %s at the next start."
+msgstr "GBA DS 자체 파일(상태, 설정, 치트, 오버레이)은 %s에 있으며, 다음 시작 때 %s(으)로 이동합니다."
+
+msgid "GBA DS's own files (states, settings, cheats, overlays) are in %s."
+msgstr "GBA DS 자체 파일(상태, 설정, 치트, 오버레이)은 %s에 있습니다."
+
+msgid "GBA L"
+msgstr "GBA L"
+
+msgid "GBA Left"
+msgstr "GBA 왼쪽"
+
+msgid "GBA R"
+msgstr "GBA R"
+
+msgid "GBA Right"
+msgstr "GBA 오른쪽"
+
+msgid "GBA Up"
+msgstr "GBA 위"
+
+msgid "Generated"
+msgstr "생성됨"
+
+msgid "Green"
+msgstr "초록"
+
+msgid "Held on its side: the two screens side by side. Either way round."
+msgstr "가로로 잡기: 두 화면이 나란히. 어느 방향이든 가능."
+
+msgid "Held upright: the two screens one above the other. Either way up."
+msgstr "세로로 잡기: 두 화면이 위아래로. 어느 방향이든 가능."
+
+msgid "hex"
+msgstr "hex"
+
+msgid "Hex Color"
+msgstr "16진수 색상"
+
+msgid "Hold L2 to go back in time."
+msgstr "L2를 누르고 있으면 시간을 되감습니다."
+
+msgid "Hold R2 to play faster."
+msgstr "R2를 누르고 있으면 더 빠르게 플레이합니다."
+
+msgid "Home"
+msgstr "홈"
+
+msgid "Hotkey button"
+msgstr "핫키 버튼"
+
+msgid "Hotkeys"
+msgstr "핫키"
+
+msgid "How dark the grid, scanlines and soft cells are."
+msgstr "격자, 주사선, 부드러운 셀의 어두운 정도."
+
+msgid "How far back it goes."
+msgstr "얼마나 뒤로 갈 수 있는지."
+
+msgid "How fast Turbo A and Turbo B press."
+msgstr "터보 A와 터보 B가 눌리는 속도."
+
+msgid "How the game's picture fills its screen."
+msgstr "게임 화면이 자기 화면을 채우는 방식."
+
+msgid "How the map or logo fills its screen."
+msgstr "지도 또는 로고가 자기 화면을 채우는 방식."
+
+msgid "hue"
+msgstr "색조"
+
+msgid "In a game, hold the hotkey button and press another"
+msgstr "게임 중 핫키 버튼을 누른 채 다른 버튼을 누르세요"
+
+msgid "In patches/%s"
+msgstr "patches/%s 안"
+
+msgid "Inner Bezel Color"
+msgstr "안쪽 베젤 색상"
+
+msgid "Installed"
+msgstr "설치됨"
+
+msgid "Installing"
+msgstr "설치 중"
+
+msgid "Jan"
+msgstr "1월"
+
+msgid "Jul"
+msgstr "7월"
+
+msgid "Jun"
+msgstr "6월"
+
+msgid "Keep device aspect ratios"
+msgstr "기기 화면 비율 유지"
+
+msgid "Keep device shapes"
+msgstr "기기 모양 유지"
+
+msgid "Keep saves next to the games"
+msgstr "저장 데이터를 게임 옆에 보관"
+
+msgid "Kept as it was in %d s if nothing is pressed"
+msgstr "아무것도 누르지 않으면 %d초 후 원래대로 유지됩니다"
+
+msgid "Kept for every game"
+msgstr "모든 게임에 유지됨"
+
+msgid "Known %s patch, tested: %s"
+msgstr "알려진 %s 패치, 테스트됨: %s"
+
+msgid "Known %s patch, untested: %s. The second screen may not work with it"
+msgstr "알려진 %s 패치, 테스트 안 됨: %s. 두 번째 화면이 작동하지 않을 수 있습니다"
+
+msgid "Known %s patch: %s, made for %s. This ROM is another version: it may break the game"
+msgstr "알려진 %s 패치: %s (%s용). 이 ROM은 다른 버전입니다. 게임이 망가질 수 있습니다"
+
+msgid "Known %s patch: %s, made for %s: it can't be switched on for this ROM"
+msgstr "알려진 %s 패치: %s (%s용). 이 ROM에서는 켤 수 없습니다"
+
+msgid "Known romhack: %s, untested"
+msgstr "알려진 롬핵: %s, 테스트 안 됨"
+
+msgid "L button"
+msgstr "L 버튼"
+
+msgid "Language"
+msgstr "언어"
+
+msgid "Last checked %s."
+msgstr "마지막 확인: %s."
+
+msgid "Later"
+msgstr "나중에"
+
+msgid "LCD ghosting"
+msgstr "LCD 잔상"
+
+msgid "LCD Ghosting: Off"
+msgstr "LCD 잔상: 끔"
+
+msgid "LCD Ghosting: On"
+msgstr "LCD 잔상: 켬"
+
+msgid "LCD Grid"
+msgstr "LCD 격자"
+
+msgid "Left"
+msgstr "왼쪽"
+
+msgid "Left out where it is: it's made for the unchanged ROM, so it has to be first (only one such patch can be on). Move it up with X"
+msgstr "있는 자리에서 제외됨: 변경되지 않은 ROM용으로 만들어져 가장 먼저 와야 합니다 (이런 패치는 하나만 켤 수 있음). X로 위로 옮기세요"
+
+msgid "Left stick as D-pad"
+msgstr "왼쪽 스틱을 십자키로"
+
+msgid "Left stick: left"
+msgstr "왼쪽 스틱: 왼쪽"
+
+msgid "Left stick: up"
+msgstr "왼쪽 스틱: 위"
+
+msgid "Let the System Decide"
+msgstr "시스템이 결정"
+
+msgid "Light"
+msgstr "밝음"
+
+msgid "Light/dark mode"
+msgstr "밝은/어두운 모드"
+
+msgid "Like a GBA"
+msgstr "GBA처럼"
+
+msgid "Lines between the pixels, like a GBA's screen"
+msgstr "GBA 화면처럼 픽셀 사이에 선"
+
+msgid "Load failed"
+msgstr "불러오기 실패"
+
+msgid "Load failed."
+msgstr "불러오기에 실패했습니다."
+
+msgid "Load State"
+msgstr "상태 불러오기"
+
+msgid "Load State %d"
+msgstr "상태 %d 불러오기"
+
+msgid "Loading games..."
+msgstr "게임을 불러오는 중..."
+
+msgid "Loading the achievements..."
+msgstr "업적을 불러오는 중..."
+
+msgid "Loading thumbnail..."
+msgstr "썸네일을 불러오는 중..."
+
+msgid "machine translated"
+msgstr "기계 번역"
+
+msgid "Made for another version of the game: it can't be switched on for this ROM"
+msgstr "게임의 다른 버전용으로 만들어져 이 ROM에서는 켤 수 없습니다"
+
+msgid "Makes GBA DS the emulator for Game Boy Advance games in ES-DE. For a game it doesn't support, choose another in ES-DE (the game's metadata > Alternative emulator)."
+msgstr "ES-DE에서 GBA DS를 게임보이 어드밴스 게임용 에뮬레이터로 만듭니다. 지원하지 않는 게임은 ES-DE에서 다른 것을 선택하세요 (게임 메타데이터 > 대체 에뮬레이터)."
+
+msgid "Map"
+msgstr "지도"
+
+msgid "Map Buttons"
+msgstr "버튼 매핑"
+
+msgid "Map buttons"
+msgstr "버튼 매핑"
+
+msgid "Map refresh"
+msgstr "지도 갱신"
+
+msgid "Mar"
+msgstr "3월"
+
+msgid "Match aspect ratios"
+msgstr "화면 비율 맞추기"
+
+msgid "Match display rate"
+msgstr "화면 주사율 맞추기"
+
+msgid "Match Display Rate: Off"
+msgstr "화면 주사율 맞추기: 끔"
+
+msgid "Match Display Rate: Off for now"
+msgstr "화면 주사율 맞추기: 지금은 끔"
+
+msgid "Match Display Rate: On"
+msgstr "화면 주사율 맞추기: 켬"
+
+msgid "Match screen aspect ratios"
+msgstr "화면들의 비율 맞추기"
+
+msgid "Match screen sizes and aspect ratios"
+msgstr "화면들의 크기와 비율 맞추기"
+
+msgid "Match sizes and shapes"
+msgstr "크기와 모양 맞추기"
+
+msgid "Max: full speed, a warmer device and a shorter battery."
+msgstr "최대: 최고 속도, 기기가 더 뜨거워지고 배터리가 더 빨리 닳습니다."
+
+msgid "May"
+msgstr "5월"
+
+msgid "Medium (15 a second)"
+msgstr "보통 (초당 15회)"
+
+msgid "Modified ROM: the second screen may not work"
+msgstr "수정된 ROM: 두 번째 화면이 작동하지 않을 수 있습니다"
+
+msgid "Move"
+msgstr "이동"
+
+msgid "Moving it: Up / Down or tap where it goes, then A (or tap it again). The one lower in the list is applied later"
+msgstr "이동 중: 위 / 아래 또는 갈 위치를 누른 뒤 A (또는 다시 누르기). 목록에서 아래에 있는 것이 나중에 적용됩니다"
+
+msgid "Moving things leave a short trail, as on a GBA."
+msgstr "움직이는 것이 GBA처럼 짧은 잔상을 남깁니다."
+
+msgid "New"
+msgstr "새로 만들기"
+
+msgid "No achievements for this ROM (MD5 %s)"
+msgstr "이 ROM에는 업적이 없습니다 (MD5 %s)"
+
+msgid "No cheats found (see Cheats in the wiki)"
+msgstr "치트를 찾을 수 없습니다 (위키의 Cheats 참조)"
+
+msgid "No controller found"
+msgstr "컨트롤러를 찾을 수 없습니다"
+
+msgid "No es_systems.cfg found."
+msgstr "es_systems.cfg를 찾을 수 없습니다."
+
+msgid "No folder chosen."
+msgstr "선택한 폴더가 없습니다."
+
+msgid "No folders in this one"
+msgstr "이 폴더 안에 폴더가 없습니다"
+
+msgid "No game has settings of its own."
+msgstr "자체 설정이 있는 게임이 없습니다."
+
+msgid "No games found"
+msgstr "게임을 찾을 수 없습니다"
+
+msgid "No patches here yet"
+msgstr "아직 여기에 패치가 없습니다"
+
+msgid "No quick state saved yet."
+msgstr "아직 저장된 빠른 상태가 없습니다."
+
+msgid "No RetroArch states here"
+msgstr "여기에 RetroArch 상태가 없습니다"
+
+msgid "no save state yet!"
+msgstr "아직 저장된 상태가 없습니다!"
+
+msgid "No supported games in"
+msgstr "지원되는 게임이 없습니다:"
+
+msgid "None"
+msgstr "없음"
+
+msgid "Not in the folder any more: it's left out"
+msgstr "더 이상 폴더에 없음: 제외됩니다"
+
+msgid "Not resumed: RetroArch's automatic state is from another of its GBA cores. To share states, set RetroArch's GBA core to mGBA."
+msgstr "이어하지 않음: RetroArch의 자동 상태는 RetroArch의 다른 GBA 코어에서 온 것입니다. 상태를 공유하려면 RetroArch의 GBA 코어를 mGBA로 설정하세요."
+
+msgid "Not used"
+msgstr "사용 안 함"
+
+msgid "NOTE: Unsupported games will play in RetroArch, but without BananaOS's own second screen (its game panel and companions)."
+msgstr "참고: 지원되지 않는 게임은 RetroArch에서 실행되지만 BananaOS 자체의 두 번째 화면(게임 패널과 동반 기능)은 쓸 수 없습니다."
+
+msgid "Nothing"
+msgstr "없음"
+
+msgid "Nothing mapped"
+msgstr "할당된 것 없음"
+
+msgid "Nothing saved in slot %d yet"
+msgstr "슬롯 %d에 아직 저장된 것이 없습니다"
+
+msgid "Nothing to report yet."
+msgstr "아직 보고할 것이 없습니다."
+
+msgid "Nov"
+msgstr "11월"
+
+msgid "Now"
+msgstr "지금"
+
+msgid "Oct"
+msgstr "10월"
+
+msgid "Off"
+msgstr "끔"
+
+msgid "off"
+msgstr "꺼짐"
+
+msgid "Off for slower devices: the table on one screen. Close and restart GBA DS to apply."
+msgstr "느린 기기용으로 꺼짐: 테이블을 한 화면에. 적용하려면 GBA DS를 닫고 다시 시작하세요."
+
+msgid "Off while a patch is on"
+msgstr "패치가 켜져 있는 동안 꺼짐"
+
+msgid "Off."
+msgstr "아니요."
+
+msgid "Off. Restart BananaOS (Settings > System) for its menu to use it."
+msgstr "아니요. 메뉴에 반영하려면 BananaOS(설정 > 시스템)를 다시 시작하세요."
+
+msgid "Off. Restart EmulationStation to apply."
+msgstr "아니요. 적용하려면 EmulationStation을 다시 시작하세요."
+
+msgid "Off: every game plays like an ordinary GBA game."
+msgstr "아니요: 모든 게임이 일반 GBA 게임처럼 실행됩니다."
+
+msgid "Off: the left stick does nothing in games."
+msgstr "아니요: 왼쪽 스틱은 게임에서 아무 일도 하지 않습니다."
+
+msgid "Offline"
+msgstr "오프라인"
+
+msgid "OK"
+msgstr "확인"
+
+msgid "On"
+msgstr "예"
+
+msgid "on"
+msgstr "켜짐"
+
+msgid "On."
+msgstr "예."
+
+msgid "On. Restart BananaOS (Settings > System) for its menu to use it."
+msgstr "예. 메뉴에 반영하려면 BananaOS(설정 > 시스템)를 다시 시작하세요."
+
+msgid "On. Restart EmulationStation to see it."
+msgstr "예. 확인하려면 EmulationStation을 다시 시작하세요."
+
+msgid "Only games with a map screen are listed (show_all = 1 lists every one)"
+msgstr "지도 화면이 있는 게임만 표시됩니다 (show_all = 1이면 모두 표시)"
+
+msgid "Only one screen: nothing to move"
+msgstr "화면이 하나뿐입니다: 옮길 것이 없습니다"
+
+msgid "Only patches that are on have an order, and this is the only one"
+msgstr "켜진 패치에만 순서가 있으며, 이것이 유일합니다"
+
+msgid "Only when your two screens differ in shape. Experimental."
+msgstr "두 화면의 모양이 다를 때만 적용됩니다. 실험적 기능."
+
+msgid "Open quick menu"
+msgstr "빠른 메뉴 열기"
+
+msgid "Opens the bezel's own page, for whichever the game or all games have"
+msgstr "게임 또는 모든 게임에 있는 베젤 자체 페이지를 엽니다"
+
+msgid "Orange"
+msgstr "주황"
+
+msgid "Outer Bezel Color"
+msgstr "바깥쪽 베젤 색상"
+
+msgid "Overlay colors and logo"
+msgstr "오버레이 색상과 로고"
+
+msgid "Overlays"
+msgstr "오버레이"
+
+msgid "Overlays on"
+msgstr "오버레이 켜짐"
+
+msgid "Overlays: Custom"
+msgstr "오버레이: 사용자 지정"
+
+msgid "Overlays: Custom (in /overlays)"
+msgstr "오버레이: 사용자 지정 (/overlays 안)"
+
+msgid "Overlays: Generated"
+msgstr "오버레이: 생성됨"
+
+msgid "Overlays: Off"
+msgstr "오버레이: 끔"
+
+msgid "Patch not applied: %s can't be read"
+msgstr "패치가 적용되지 않음: %s을(를) 읽을 수 없습니다"
+
+msgid "Patch not applied: %s is for another ROM"
+msgstr "패치가 적용되지 않음: %s은(는) 다른 ROM용입니다"
+
+msgid "Patched, but a patch was left out: see Patches in the game's menu"
+msgstr "패치는 적용되었지만 하나는 제외되었습니다: 게임 메뉴의 패치를 확인하세요"
+
+msgid "Patched: the second screen may not work"
+msgstr "패치됨: 두 번째 화면이 작동하지 않을 수 있습니다"
+
+msgid "Patches"
+msgstr "패치"
+
+msgid "Patches changed"
+msgstr "패치 변경됨"
+
+msgid "Patches changed since the game started"
+msgstr "게임을 시작한 뒤 패치가 변경되었습니다"
+
+msgid "Patches changed: carrying on from where you were"
+msgstr "패치 변경됨: 있던 곳에서 계속합니다"
+
+msgid "Pattern strength"
+msgstr "패턴 강도"
+
+msgid "Paused"
+msgstr "일시정지됨"
+
+msgid "Performance"
+msgstr "성능"
+
+msgid "Performance: Let the System Decide"
+msgstr "성능: 시스템이 결정"
+
+msgid "Performance: Set to Max"
+msgstr "성능: 최대"
+
+msgid "Pictures in the middle of their screens, or close together."
+msgstr "화면 가운데 또는 함께 놓는 그림."
+
+msgid "Pinball two-screen view"
+msgstr "핀볼 두 화면 보기"
+
+msgid "Pink"
+msgstr "분홍"
+
+msgid "Pinned: the bar stays up."
+msgstr "고정됨: 바가 계속 보입니다."
+
+msgid "Pixel Perfect"
+msgstr "픽셀 퍼펙트"
+
+msgid "Pixelated"
+msgstr "도트"
+
+msgid "Placement, overlays"
+msgstr "배치, 오버레이"
+
+msgid "Plain"
+msgstr "단순"
+
+msgid "Play"
+msgstr "플레이"
+
+msgid "Playing without achievements this time"
+msgstr "이번에는 업적 없이 플레이합니다"
+
+msgid "PM"
+msgstr "PM"
+
+msgid "point"
+msgstr "점"
+
+msgid "points"
+msgstr "점"
+
+msgid "Preparing the game..."
+msgstr "게임을 준비하는 중..."
+
+msgid "presets"
+msgstr "프리셋"
+
+msgid "Press %s"
+msgstr "%s을(를) 누르세요"
+
+msgid "Press a button"
+msgstr "버튼을 누르세요"
+
+msgid "Press A or tap to close"
+msgstr "A를 누르거나 탭하여 닫기"
+
+msgid "Press A to close"
+msgstr "A를 눌러 닫기"
+
+msgid "press the left stick in"
+msgstr "왼쪽 스틱을 누르세요"
+
+msgid "Purple"
+msgstr "보라"
+
+msgid "push the left stick left"
+msgstr "왼쪽 스틱을 왼쪽으로 미세요"
+
+msgid "push the left stick up"
+msgstr "왼쪽 스틱을 위로 미세요"
+
+msgid "Push the stick: buttons don't count for this one."
+msgstr "스틱을 미세요: 이것에는 버튼을 쓸 수 없습니다."
+
+msgid "Put .ips, .ups, .bps or .xdelta files in %s"
+msgstr ".ips, .ups, .bps 또는 .xdelta 파일을 %s에 넣으세요"
+
+msgid "Quick bar hint"
+msgstr "빠른 바 힌트"
+
+msgid "Quick load state"
+msgstr "빠른 상태 불러오기"
+
+msgid "Quick save state"
+msgstr "빠른 상태 저장"
+
+msgid "Quit"
+msgstr "종료"
+
+msgid "R button"
+msgstr "R 버튼"
+
+msgid "Raise it if the sound crackles."
+msgstr "소리가 갈라지면 올리세요."
+
+msgid "Red"
+msgstr "빨강"
+
+msgid "Red, green and blue stripes, gentle: for dim screens"
+msgstr "빨강, 초록, 파랑 줄무늬, 부드럽게: 어두운 화면용"
+
+msgid "Red, green and blue stripes, like a GBA's screen"
+msgstr "GBA 화면처럼 빨강, 초록, 파랑 줄무늬"
+
+msgid "Red, green and blue stripes, strong: for bright screens"
+msgstr "빨강, 초록, 파랑 줄무늬, 강하게: 밝은 화면용"
+
+msgid "Reset"
+msgstr "초기화"
+
+msgid "Reset Bezels"
+msgstr "베젤 초기화"
+
+msgid "Reset settings to defaults"
+msgstr "설정을 기본값으로 초기화"
+
+msgid "Restart"
+msgstr "다시 시작"
+
+msgid "Restart from the top row to play with it (or it's used from the next start)"
+msgstr "위 줄에서 다시 시작하여 이 패치로 플레이하세요 (또는 다음 시작부터 사용됩니다)"
+
+msgid "Restart from the top row to play with this order"
+msgstr "위 줄에서 다시 시작하여 이 순서로 플레이하세요"
+
+msgid "Restart Game"
+msgstr "게임 다시 시작"
+
+msgid "Restart required"
+msgstr "다시 시작 필요"
+
+msgid "Resume"
+msgstr "계속"
+
+msgid "Resumed. Tap or HOME for the menu"
+msgstr "이어서 플레이합니다. 탭하거나 HOME으로 메뉴"
+
+msgid "RetroAchievements couldn't start"
+msgstr "RetroAchievements couldn't start"
+
+msgid "RetroAchievements doesn't allow patched games"
+msgstr "RetroAchievements를 시작할 수 없었습니다"
+
+msgid "RetroAchievements is off"
+msgstr "RetroAchievements는 패치된 게임을 허용하지 않습니다"
+
+msgid "RETROACHIEVEMENTS · CASUAL"
+msgstr "RetroAchievements가 꺼져 있습니다"
+
+msgid "RetroAchievements: Off"
+msgstr "RetroAchievements: 끔"
+
+msgid "RetroAchievements: Sign In"
+msgstr "RetroAchievements: 로그인"
+
+msgid "RetroAchievements: Sign Out"
+msgstr "RetroAchievements: 로그아웃"
+
+msgid "RetroAchievements: Signing In..."
+msgstr "RetroAchievements: 로그인하는 중..."
+
+msgid "RetroArch's settings weren't found here: choose the folder where it keeps its save states."
+msgstr "여기서 RetroArch 설정을 찾을 수 없습니다. RetroArch가 상태를 보관하는 폴더를 선택하세요."
+
+msgid "RetroArch's settings weren't found, so slots 0-9 and the automatic state are GBA DS's own again."
+msgstr "RetroArch 설정을 찾을 수 없어 슬롯 0-9와 자동 상태가 다시 GBA DS 자체 것이 됩니다."
+
+msgid "RetroArch's State Folder"
+msgstr "RetroArch 상태 폴더"
+
+msgid "RetroArch's state folder is found from its settings again: %s."
+msgstr "RetroArch 상태 폴더를 다시 RetroArch 설정에서 찾았습니다: %s."
+
+msgid "Rewind"
+msgstr "되감기"
+
+msgid "Rewind length"
+msgstr "되감기 길이"
+
+msgid "Rewind, fast forward"
+msgstr "되감기, 빨리 감기"
+
+msgid "Rewind: Off"
+msgstr "되감기: 끔"
+
+msgid "Rewind: On"
+msgstr "되감기: 켬"
+
+msgid "Rewinding..."
+msgstr "되감는 중..."
+
+msgid "Right"
+msgstr "오른쪽"
+
+msgid "Romhack: %s%s"
+msgstr "롬핵: %s%s"
+
+msgid "Romhack: %s%s, untested"
+msgstr "롬핵: %s%s, 테스트 안 됨"
+
+msgid "Rotation: Auto"
+msgstr "회전: 자동"
+
+msgid "Rotation: Landscape"
+msgstr "회전: 가로"
+
+msgid "Rotation: Portrait"
+msgstr "회전: 세로"
+
+msgid "Run at the display's rate: no small regular stutter."
+msgstr "화면 주사율로 실행: 규칙적인 미세한 끊김이 없습니다."
+
+msgid "Same as all games again"
+msgstr "모든 게임과 같게 되돌렸습니다"
+
+msgid "Save failed"
+msgstr "저장 실패"
+
+msgid "Save failed."
+msgstr "저장에 실패했습니다."
+
+msgid "Save files: .sav"
+msgstr "저장 파일: .sav"
+
+msgid "Save files: .srm (RetroArch's)"
+msgstr "저장 파일: .srm (RetroArch)"
+
+msgid "Save on quit"
+msgstr "종료 시 저장"
+
+msgid "Save on Quit: Off"
+msgstr "종료 시 저장: 끔"
+
+msgid "Save on Quit: On"
+msgstr "종료 시 저장: 켬"
+
+msgid "Save State"
+msgstr "상태 저장"
+
+msgid "Save State %d"
+msgstr "상태 %d 저장"
+
+msgid "Save States: GBA DS's Own"
+msgstr "상태: GBA DS 자체"
+
+msgid "Save States: Shared with RetroArch"
+msgstr "상태: RetroArch와 공유"
+
+msgid "Saved by another emulator: can't load it"
+msgstr "다른 에뮬레이터에서 저장됨: 불러올 수 없습니다"
+
+msgid "Saved for all games"
+msgstr "모든 게임에 저장됨"
+
+msgid "Saved for this game"
+msgstr "이 게임에 저장됨"
+
+msgid "Saved for when a patch is on"
+msgstr "패치가 켜져 있을 때를 위해 저장됨"
+
+msgid "Saves will be kept next to the games."
+msgstr "저장 데이터는 게임 옆에 보관됩니다."
+
+msgid "Saves will be kept there."
+msgstr "저장 데이터는 그곳에 보관됩니다."
+
+msgid "Scale, shader, theme, color"
+msgstr "배율, 셰이더, 테마, 색상"
+
+msgid "Scale: Full Width"
+msgstr "배율: 전체 너비"
+
+msgid "Scale: Pixel Perfect"
+msgstr "배율: 픽셀 퍼펙트"
+
+msgid "Scale: Stretch"
+msgstr "배율: 늘이기"
+
+msgid "Scale: Zoom"
+msgstr "배율: 확대"
+
+msgid "Scanlines"
+msgstr "주사선"
+
+msgid "Screen placement"
+msgstr "화면 배치"
+
+msgid "Screen Placement: Centered"
+msgstr "화면 배치: 가운데"
+
+msgid "Screen Placement: Closest to Gap"
+msgstr "화면 배치: 틈에 가깝게"
+
+msgid "Screen shapes"
+msgstr "화면 모양"
+
+msgid "Screens"
+msgstr "화면"
+
+msgid "Screenshot failed"
+msgstr "스크린샷 실패"
+
+msgid "Screenshot saved"
+msgstr "스크린샷 저장됨"
+
+msgid "Second screen"
+msgstr "두 번째 화면"
+
+msgid "Second screen scale"
+msgstr "두 번째 화면 배율"
+
+msgid "Select"
+msgstr "Select"
+
+msgid "Select or Start still reach the game when tapped on their own, L3 still opens the quick menu"
+msgstr "Select나 Start를 단독으로 누르면 여전히 게임에 전달되고, L3는 여전히 빠른 메뉴를 엽니다"
+
+msgid "Sep"
+msgstr "9월"
+
+msgid "Separate battery save"
+msgstr "배터리 저장 데이터 분리"
+
+msgid "Separate save states"
+msgstr "상태 분리"
+
+msgid "Set for now, but %s couldn't be written."
+msgstr "지금은 설정되었지만 %s에 쓸 수 없었습니다."
+
+msgid "Set to Max"
+msgstr "최대로 설정"
+
+msgid "Sets the shortcuts: the hotkey button held with another."
+msgstr "핫키를 설정합니다: 핫키 버튼을 누른 채 다른 버튼."
+
+msgid "Sets which of this device's buttons does what."
+msgstr "이 기기의 각 버튼이 하는 일을 설정합니다."
+
+msgid "Settings"
+msgstr "설정"
+
+msgid "Settings are back to their defaults."
+msgstr "설정이 기본값으로 돌아갔습니다."
+
+msgid "Shader"
+msgstr "셰이더"
+
+msgid "Shader: LCD Grid"
+msgstr "셰이더: LCD 격자"
+
+msgid "Shader: Off"
+msgstr "셰이더: 끔"
+
+msgid "Shader: Scanlines"
+msgstr "셰이더: 주사선"
+
+msgid "Shader: Soft Cells"
+msgstr "셰이더: 부드러운 셀"
+
+msgid "Shader: Subpixels"
+msgstr "셰이더: 서브픽셀"
+
+msgid "Shader: Subpixels (Light)"
+msgstr "셰이더: 서브픽셀 (약하게)"
+
+msgid "Shader: Subpixels (Strong)"
+msgstr "셰이더: 서브픽셀 (강하게)"
+
+msgid "Shorter can make the sound crackle on a slow device."
+msgstr "낮추면 느린 기기에서 소리가 갈라질 수 있습니다."
+
+msgid "Show FPS"
+msgstr "FPS 표시"
+
+msgid "Show FPS: Off"
+msgstr "FPS 표시: 끔"
+
+msgid "Show FPS: On"
+msgstr "FPS 표시: 켬"
+
+msgid "Sign in again in the game list's Settings"
+msgstr "게임 목록 설정에서 다시 로그인하세요"
+
+msgid "Sign-in failed"
+msgstr "로그인 실패"
+
+msgid "Signed in as %s. Achievements are earned in casual mode."
+msgstr "%s(으)로 로그인했습니다. 업적은 캐주얼 모드로 달성됩니다."
+
+msgid "Signed out of RetroAchievements."
+msgstr "RetroAchievements에서 로그아웃했습니다."
+
+msgid "Signing in as %s..."
+msgstr "%s(으)로 로그인하는 중..."
+
+msgid "Single screen only"
+msgstr "한 화면만"
+
+msgid "Single screen only: plays normally"
+msgstr "한 화면만: 평소처럼 플레이합니다"
+
+msgid "Skip"
+msgstr "건너뛰기"
+
+msgid "Skip this version"
+msgstr "이 버전 건너뛰기"
+
+msgid "Skipped in %d s if nothing is pressed"
+msgstr "아무것도 누르지 않으면 %d초 후 건너뜁니다"
+
+msgid "Slot %d loaded"
+msgstr "슬롯 %d 불러옴"
+
+msgid "Slot %d: %s"
+msgstr "슬롯 %d: %s"
+
+msgid "Slot %d: %s %d, %d%s"
+msgstr "슬롯 %1$d: %4$d년 %2$s %3$d일%5$s"
+
+msgid "Slot %d: %s %d, %d:%02d %s%s"
+msgstr "슬롯 %1$d: %4$d년 %2$s %3$d일 %6$s %4$d:%5$02d%7$s"
+
+msgid "Slot %d: Empty"
+msgstr "슬롯 %d: 비어 있음"
+
+msgid "Slots 0-9 and the automatic state are GBA DS's own again. The states saved in RetroArch's folder stay there."
+msgstr "슬롯 0-9와 자동 상태가 다시 GBA DS 자체 것이 됩니다. RetroArch 폴더에 저장된 상태는 그곳에 남습니다."
+
+msgid "Slots 0-9 and the automatic state are now RetroArch's. GBA DS's own states stay in its folder, for when this is switched back."
+msgstr "슬롯 0-9와 자동 상태가 이제 RetroArch 것입니다. GBA DS 자체 상태는 이것을 되돌릴 때를 위해 GBA DS 폴더에 남습니다."
+
+msgid "Slots 0-9 and the automatic state are now shared with RetroArch, in %s."
+msgstr "슬롯 0-9와 자동 상태는 이제 %s에서 RetroArch와 공유됩니다."
+
+msgid "Slots 0-9 and the resume point are GBA DS's own. Shared, they're RetroArch's: %s."
+msgstr "슬롯 0-9와 이어하기 지점은 GBA DS 자체 것입니다. 공유하면 RetroArch 것이 됩니다: %s."
+
+msgid "Slots 0-9 and the resume point are GBA DS's own. To share them, choose RetroArch's state folder."
+msgstr "슬롯 0-9와 이어하기 지점은 GBA DS 자체 것입니다. 공유하려면 RetroArch의 상태 폴더를 선택하세요."
+
+msgid "Slots 0-9 and the resume point are RetroArch's (its GBA core set to mGBA): %s."
+msgstr "슬롯 0-9와 이어하기 지점은 RetroArch 것입니다 (RetroArch의 GBA 코어를 mGBA로 설정): %s."
+
+msgid "Slow (10 a second)"
+msgstr "느림 (초당 10회)"
+
+msgid "Smooth scaling"
+msgstr "부드러운 배율"
+
+msgid "Smoother, one frame more input delay."
+msgstr "더 부드럽지만 입력 지연이 한 프레임 늘어납니다."
+
+msgid "SNES"
+msgstr "SNES"
+
+msgid "Soft Cells"
+msgstr "부드러운 셀"
+
+msgid "Some files couldn't be moved, they're still in %s"
+msgstr "일부 파일을 옮길 수 없어 %s에 남아 있습니다"
+
+msgid "Sound delay"
+msgstr "소리 지연"
+
+msgid "Space"
+msgstr "공백"
+
+msgid "Speed"
+msgstr "속도"
+
+msgid "Speed and sound"
+msgstr "속도와 소리"
+
+msgid "Start"
+msgstr "Start"
+
+msgid "Starting a game picks up where you closed it."
+msgstr "게임을 시작하면 닫았던 곳에서 이어집니다."
+
+msgid "State loaded."
+msgstr "상태를 불러왔습니다."
+
+msgid "State saved to slot %d"
+msgstr "슬롯 %d에 상태를 저장했습니다"
+
+msgid "State saved."
+msgstr "상태를 저장했습니다."
+
+msgid "Stick, buttons, hotkeys"
+msgstr "스틱, 버튼, 핫키"
+
+msgid "Stretch"
+msgstr "늘이기"
+
+msgid "Submit a Bug Report"
+msgstr "버그 보고서 제출"
+
+msgid "Subpixels"
+msgstr "서브픽셀"
+
+msgid "Subpixels (Light)"
+msgstr "서브픽셀 (약하게)"
+
+msgid "Subpixels (Strong)"
+msgstr "서브픽셀 (강하게)"
+
+msgid "Supported"
+msgstr "지원됨"
+
+msgid "Supported games only"
+msgstr "지원되는 게임만"
+
+msgid "Sure?"
+msgstr "확실한가요?"
+
+msgid "Swap Screens"
+msgstr "화면 바꾸기"
+
+msgid "Swap screens"
+msgstr "화면 바꾸기"
+
+msgid "Swapped"
+msgstr "바뀜"
+
+msgid "Swipe up for quick menu"
+msgstr "위로 스와이프하여 빠른 메뉴"
+
+msgid "Switched off in gba-ds.cfg (retroachievements = 0)."
+msgstr "gba-ds.cfg에서 꺼져 있습니다 (retroachievements = 0)."
+
+msgid "System"
+msgstr "시스템"
+
+msgid "Tags in a ROM's file name, like (USA) or (En,Fr,De)."
+msgstr "ROM 파일 이름의 태그, 예: (USA) 또는 (En,Fr,De)."
+
+msgid "Take Screenshot"
+msgstr "스크린샷 찍기"
+
+msgid "Takes effect after you close and restart GBA DS"
+msgstr "GBA DS를 닫고 다시 시작한 뒤에 적용됩니다"
+
+msgid "Tap again to close GBA DS."
+msgstr "GBA DS를 닫으려면 다시 탭하세요."
+
+msgid "Tap the screen or press HOME for the menu"
+msgstr "메뉴는 화면을 탭하거나 HOME을 누르세요"
+
+msgid "Tap the touchscreen to skip a button this device doesn't have"
+msgstr "이 기기에 없는 버튼은 터치스크린을 탭하여 건너뛰세요"
+
+msgid "Tap to set none"
+msgstr "탭하여 아무것도 지정하지 않기"
+
+msgid "Tap to skip a button this device doesn't have"
+msgstr "이 기기에 없는 버튼은 탭하여 건너뛰세요"
+
+msgid "Teal"
+msgstr "청록"
+
+msgid "Tested romhack: %s"
+msgstr "테스트된 롬핵: %s"
+
+msgid "That one comes as a keyboard key here: it can't be mapped. Tap to skip."
+msgstr "이것은 키보드 키로 전달되므로 매핑할 수 없습니다. 탭하여 건너뛰세요."
+
+msgid "That one is already %s. Press another, or tap to skip."
+msgstr "이것은 이미 %s입니다. 다른 것을 누르거나 탭하여 건너뛰세요."
+
+msgid "That's inside GBA DS's own folder: choose one outside it."
+msgstr "이곳은 GBA DS 폴더 안입니다: 그 밖의 폴더를 선택하세요."
+
+msgid "That's the hotkey button: press another"
+msgstr "그것은 핫키 버튼입니다: 다른 것을 누르세요"
+
+msgid "the bottom face button"
+msgstr "아래 버튼"
+
+msgid "the button that opens GBA DS's menu (Home, Menu or Function)"
+msgstr "GBA DS 메뉴를 여는 버튼 (Home, Menu 또는 Function)"
+
+msgid "the game"
+msgstr "게임"
+
+msgid "The game's pixels as they are"
+msgstr "게임의 픽셀을 있는 그대로"
+
+msgid "The GBA DS logo in the generated bezel."
+msgstr "생성된 베젤의 GBA DS 로고."
+
+msgid "The hotkey button can be %s, Select, Start or L3"
+msgstr "핫키 버튼은 %s, Select, Start 또는 L3일 수 있습니다"
+
+msgid "the left face button"
+msgstr "왼쪽 버튼"
+
+msgid "the left shoulder button"
+msgstr "왼쪽 어깨 버튼"
+
+msgid "The map and the logo"
+msgstr "지도와 로고"
+
+msgid "The menus' buttons: dark grey, or light grey like the web player's."
+msgstr "메뉴 버튼: 어두운 회색, 또는 웹 플레이어처럼 밝은 회색."
+
+msgid "The menus' color for what's selected, with a dark and a light version of each."
+msgstr "선택된 항목의 메뉴 색상. 각각 어두운 버전과 밝은 버전이 있습니다."
+
+msgid "the patch beside the ROM"
+msgstr "ROM 옆의 패치"
+
+msgid "The patches aren't as the game started: restart it to play with them (or they're used from the next start)"
+msgstr "패치가 게임을 시작했을 때와 다릅니다: 다시 시작하여 적용하세요 (또는 다음 시작부터 사용됩니다)"
+
+msgid "The processor, memory and graphics run at full speed while GBA DS is open: the smoothest play, but the battery runs down faster and the device gets warmer."
+msgstr "GBA DS가 열려 있는 동안 프로세서, 메모리, 그래픽이 최고 속도로 동작합니다. 게임은 더 부드럽지만 배터리가 더 빨리 닳고 기기가 더 뜨거워집니다."
+
+msgid "the right face button"
+msgstr "오른쪽 버튼"
+
+msgid "the right shoulder button"
+msgstr "오른쪽 어깨 버튼"
+
+msgid "the second left shoulder button"
+msgstr "두 번째 왼쪽 어깨 버튼"
+
+msgid "the second right shoulder button"
+msgstr "두 번째 오른쪽 어깨 버튼"
+
+msgid "The system sets the speed, as for its other emulators. If games stutter or the sound breaks up, try Set to Max."
+msgstr "시스템이 다른 에뮬레이터와 마찬가지로 속도를 정합니다. 게임이 끊기거나 소리가 불안정하면 최대로 설정을 시도하세요."
+
+msgid "the top face button"
+msgstr "위 버튼"
+
+msgid "This folder can't be opened"
+msgstr "이 폴더를 열 수 없습니다"
+
+msgid "This game"
+msgstr "이 게임"
+
+msgid "This game has its own value. X, or going on past the last choice: same as all games"
+msgstr "이 게임에는 자체 값이 있습니다. X 또는 마지막 옵션을 넘어서면: 모든 게임과 같게"
+
+msgid "This game has no achievements yet"
+msgstr "이 게임에는 아직 업적이 없습니다"
+
+msgid "This is GBA DS v%s."
+msgstr "GBA DS v%s입니다."
+
+msgid "This is v%s. Look for a new version, and download and install it."
+msgstr "현재 v%s입니다. 새 버전을 확인하고 다운로드하여 설치합니다."
+
+msgid "This state can't be read"
+msgstr "이 상태는 읽을 수 없습니다"
+
+msgid "This state was saved %s: it may not work"
+msgstr "이 상태는 %s에 저장되었습니다: 작동하지 않을 수 있습니다"
+
+msgid "Together: %s"
+msgstr "함께: %s"
+
+msgid "Toggle selected shader"
+msgstr "선택한 셰이더 전환"
+
+msgid "Top screen"
+msgstr "위 화면"
+
+msgid "Top screen brightness"
+msgstr "위 화면 밝기"
+
+msgid "Touch or use the D-Pad"
+msgstr "탭하거나 십자키 사용"
+
+msgid "Turbo A"
+msgstr "Turbo A"
+
+msgid "Turbo B"
+msgstr "Turbo B"
+
+msgid "Turbo speed"
+msgstr "터보 속도"
+
+msgid "Turns this ROM into another official release: %s"
+msgstr "이 ROM을 다른 공식 버전으로 바꿉니다: %s"
+
+msgid "Unexpected es_systems.cfg (see the log)."
+msgstr "예상치 못한 es_systems.cfg입니다 (로그 참조)."
+
+msgid "Unknown version of this game"
+msgstr "이 게임의 알 수 없는 버전"
+
+msgid "Unlocked"
+msgstr "달성함"
+
+msgid "Unlocks sent"
+msgstr "달성 내역을 전송함"
+
+msgid "Unlocks will be sent when the connection is back"
+msgstr "연결이 돌아오면 달성 내역을 전송합니다"
+
+msgid "Unpinned: the bar hides after 5 seconds."
+msgstr "고정 해제됨: 바가 5초 후 숨겨집니다."
+
+msgid "unsaved progress is lost"
+msgstr "저장하지 않은 진행 상황은 사라집니다"
+
+msgid "Untested: the second screen may not work with it"
+msgstr "테스트되지 않음: 두 번째 화면이 작동하지 않을 수 있습니다"
+
+msgid "Up"
+msgstr "위"
+
+msgid "Up to %d patches can be on at once"
+msgstr "한 번에 최대 %d개의 패치를 켤 수 있습니다"
+
+msgid "Up to %s"
+msgstr "최대 %s"
+
+msgid "Update now"
+msgstr "지금 업데이트"
+
+msgid "Updates"
+msgstr "업데이트"
+
+msgid "Updates, integrations"
+msgstr "업데이트, 연동"
+
+msgid "Use This Folder"
+msgstr "이 폴더 사용"
+
+msgid "Used from the next time the game starts"
+msgstr "다음에 게임을 시작할 때부터 사용됩니다"
+
+msgid "Volume %d%%"
+msgstr "볼륨 %d%%"
+
+msgid "What D-pad down gives the game."
+msgstr "십자키 아래가 게임에 주는 것."
+
+msgid "What D-pad left gives the game."
+msgstr "십자키 왼쪽이 게임에 주는 것."
+
+msgid "What D-pad right gives the game."
+msgstr "십자키 오른쪽이 게임에 주는 것."
+
+msgid "What D-pad up gives the game."
+msgstr "십자키 위가 게임에 주는 것."
+
+msgid "What the bottom face button gives the game."
+msgstr "아래 버튼이 게임에 주는 것."
+
+msgid "What the L shoulder button gives the game."
+msgstr "L 어깨 버튼이 게임에 주는 것."
+
+msgid "What the left face button gives the game."
+msgstr "왼쪽 버튼이 게임에 주는 것."
+
+msgid "What the R shoulder button gives the game."
+msgstr "R 어깨 버튼이 게임에 주는 것."
+
+msgid "What the right face button gives the game."
+msgstr "오른쪽 버튼이 게임에 주는 것."
+
+msgid "What the top face button gives the game."
+msgstr "위 버튼이 게임에 주는 것."
+
+msgid "Where games are read from, and the folder their saves are kept in."
+msgstr "게임을 읽어 오는 곳과 저장 데이터를 보관하는 폴더."
+
+msgid "Where games are read from. Their saves are kept next to them."
+msgstr "게임을 읽어 오는 곳. 저장 데이터는 게임 옆에 보관됩니다."
+
+msgid "Which games, names, saving"
+msgstr "표시할 게임, 이름, 저장"
+
+msgid "Which screen the game is on."
+msgstr "게임이 놓이는 화면."
+
+msgid "Which Screen: Both"
+msgstr "화면: 두 화면 모두"
+
+msgid "Which Screen: Bottom Only"
+msgstr "화면: 아래 화면만"
+
+msgid "Which Screen: Top Only"
+msgstr "화면: 위 화면만"
+
+msgid "Which screens have them."
+msgstr "어느 화면에 있는지."
+
+msgid "with"
+msgstr "패치와 함께"
+
+msgid "with %s"
+msgstr "%s와(과) 함께"
+
+msgid "With a patch on, the game keeps its own battery save (\"<game> + <patch>\"): off, it uses the original's"
+msgstr "패치를 켜면 게임이 자체 배터리 저장 데이터(\"<게임> + <패치>\")를 보관하고, 끄면 원본의 것을 사용합니다"
+
+msgid "With a patch on, the game keeps its own save states: off, it uses the original's (a state can come out garbled in the other)"
+msgstr "패치를 켜면 게임이 자체 상태를 보관하고, 끄면 원본의 것을 사용합니다 (상태가 다른 쪽에서 깨질 수 있음)"
+
+msgid "with another dump of the game (%s)"
+msgstr "게임의 다른 덤프와 함께 (%s)"
+
+msgid "with another version of the game (other patches, or another ROM)"
+msgstr "게임의 다른 버전과 함께 (다른 패치 또는 다른 ROM)"
+
+msgid "With automatic checks on, GBA DS looks for a new version once a day when the game list opens, and asks before downloading anything. Updates come from the releases on github.com/kyannon/gba-ds."
+msgstr "자동 확인을 켜면 GBA DS가 게임 목록을 열 때 하루에 한 번 새 버전을 확인하고, 다운로드하기 전에 먼저 묻습니다. 업데이트는 github.com/kyannon/gba-ds에 공개된 버전에서 가져옵니다."
+
+msgid "With Four buttons picked under Controls in the quick bar, the four-button layout replaces these."
+msgstr "빠른 바의 조작에서 4버튼을 선택하면 4버튼 배치가 이 설정을 대신합니다."
+
+msgid "With SNES picked under Controls in the quick bar, the SNES layout replaces these in levels."
+msgstr "빠른 바의 조작에서 SNES를 선택하면 스테이지에서 SNES 배치가 이 설정을 대신합니다."
+
+msgid "With tags, like (USA)"
+msgstr "태그 포함, 예: (USA)"
+
+msgid "with the unchanged game (%s)"
+msgstr "변경되지 않은 게임과 함께 (%s)"
+
+msgid "without"
+msgstr "패치 없이"
+
+msgid "without the patches on"
+msgstr "켜진 패치 없이"
+
+msgid "X (top) button"
+msgstr "X 버튼 (위)"
+
+msgid "Y (left) button"
+msgstr "Y 버튼 (왼쪽)"
+
+msgid "Your own and scraped logos on the second screen."
+msgstr "직접 만든 로고와 두 번째 화면에서 가져온 로고."
+
+msgid "Your own PNGs in gba-ds/overlays/. A screen without one gets the generated bezel in its default colors."
+msgstr "gba-ds/overlays/ 안의 직접 만든 PNG. PNG가 없는 화면에는 기본 색상의 생성된 베젤이 표시됩니다."
+
+msgid "your place is saved"
+msgstr "위치가 저장되어 있습니다"
+
+msgid "Your screens are the same shape: nothing to match"
+msgstr "화면의 모양이 같습니다: 맞출 것이 없습니다"
+
+msgid "Zoom"
+msgstr "확대"
+
+msgid "‹"
+msgstr "‹"
+
+msgid "›"
+msgstr "›"

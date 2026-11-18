@@ -49,6 +49,9 @@ FAMILIES = [
     {"name": "Japanese", "source": "NotoSansJP[wght].ttf", "po": "ja.po",
      "extra": "".join(chr(c) for c in list(range(0x3041, 0x3097)) + list(range(0x30A1, 0x30FD))),
      "out": {400: "NotoSansJP-Regular-subset.ttf", 700: "NotoSansJP-Bold-subset.ttf"}},
+    # Korean: the Hangul the catalogue uses (and the name 한국어, which every other language's Language list draws from this face)
+    {"name": "Korean", "source": "NotoSansKR[wght].ttf", "po": "ko.po",
+     "out": {400: "NotoSansKR-Regular-subset.ttf", 700: "NotoSansKR-Bold-subset.ttf"}},
 ]
 
 

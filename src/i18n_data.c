@@ -2755,6 +2755,2760 @@ static const I18nEntry lang_es_entries[] = {
 	{ "\342\200\272", lang_es_f686, 1 },
 };
 
+static const char* const lang_fr_f0[] = { " (patch)" };
+static const char* const lang_fr_f1[] = { " Recherche d'une nouvelle version..." };
+static const char* const lang_fr_f2[] = { " C'est la version la plus r\303\251cente." };
+static const char* const lang_fr_f3[] = { " ms" };
+static const char* const lang_fr_f4[] = { " s" };
+static const char* const lang_fr_f5[] = { "\302\253 Balayez vers le haut pour le menu rapide \302\273 au lancement d'un jeu." };
+static const char* const lang_fr_f6[] = { "%ca%d" };
+static const char* const lang_fr_f7[] = { "%d \303\251tat RetroArch ici", "%d \303\251tats RetroArch ici" };
+static const char* const lang_fr_f8[] = { "%d fichier v\303\251rifi\303\251", "%d fichiers v\303\251rifi\303\251s" };
+static const char* const lang_fr_f9[] = { "%d jeu trouv\303\251", "%d jeux trouv\303\251s" };
+static const char* const lang_fr_f10[] = { "%d jeu trouv\303\251.", "%d jeux trouv\303\251s." };
+static const char* const lang_fr_f11[] = { "%d sur %d" };
+static const char* const lang_fr_f12[] = { "%d sur %d d\303\251finis pour %s, enregistr\303\251s dans controllers.txt \303\240 c\303\264t\303\251 des \303\251tats de GBA DS. La ligne figure aussi dans gba-ds.log : envoyez-la pour qu'elle soit int\303\251gr\303\251e \303\240 GBA DS pour cet appareil." };
+static const char* const lang_fr_f13[] = { "%d activ\303\251s" };
+static const char* const lang_fr_f14[] = { "%s" };
+static const char* const lang_fr_f15[] = { "%s %s. Choisissez-en un autre si RetroArch garde ses \303\251tats ailleurs." };
+static const char* const lang_fr_f16[] = { "%s (\303\240 c\303\264t\303\251 de la ROM)" };
+static const char* const lang_fr_f17[] = { "%s comme touche de raccourci, avec Start, R1, L1, X, Y et B" };
+static const char* const lang_fr_f18[] = { "%s n'a plus de touche" };
+static const char* const lang_fr_f19[] = { "%s est maintenant Start + Select" };
+static const char* const lang_fr_f20[] = { "%s ouvre le menu : appuyez sur une autre touche" };
+static const char* const lang_fr_f21[] = { "%s v%s. Red\303\251marrage..." };
+static const char* const lang_fr_f22[] = { "%s \303\251tait \303\240 %s : il n'a plus de touche" };
+static const char* const lang_fr_f23[] = { "%s, %s" };
+static const char* const lang_fr_f24[] = { "%s, Select, Start ou L3. Touchez pour le laisser tel quel" };
+static const char* const lang_fr_f25[] = { "%u succ\303\250s sur %u d\303\251bloqu\303\251s" };
+static const char* const lang_fr_f26[] = { ", RetroArch" };
+static const char* const lang_fr_f27[] = { "1 minute" };
+static const char* const lang_fr_f28[] = { "10 s" };
+static const char* const lang_fr_f29[] = { "128 ms" };
+static const char* const lang_fr_f30[] = { "15 s" };
+static const char* const lang_fr_f31[] = { "192 ms" };
+static const char* const lang_fr_f32[] = { "2 minutes" };
+static const char* const lang_fr_f33[] = { "2x" };
+static const char* const lang_fr_f34[] = { "30 s" };
+static const char* const lang_fr_f35[] = { "32 ms" };
+static const char* const lang_fr_f36[] = { "3x" };
+static const char* const lang_fr_f37[] = { "4x" };
+static const char* const lang_fr_f38[] = { "5 minutes" };
+static const char* const lang_fr_f39[] = { "5x" };
+static const char* const lang_fr_f40[] = { "64 ms" };
+static const char* const lang_fr_f41[] = { "96 ms" };
+static const char* const lang_fr_f42[] = { "Bouton A (droite)" };
+static const char* const lang_fr_f43[] = { "Boutons A et B" };
+static const char* const lang_fr_f44[] = { "Une ligne sombre sous chaque rang\303\251e de pixels" };
+static const char* const lang_fr_f45[] = { "Une sauvegarde du jeu d\303\251j\303\240 \303\240 c\303\264t\303\251, ou de l'autre type, est copi\303\251e la premi\303\250re fois que vous y jouez. .srm est le type utilis\303\251 par RetroArch : choisissez aussi son dossier de sauvegardes pour partager celle de chaque jeu avec lui." };
+static const char* const lang_fr_f46[] = { "Une nouvelle version de GBA DS" };
+static const char* const lang_fr_f47[] = { "Une trame sur chaque pixel, sur les deux \303\251crans." };
+static const char* const lang_fr_f48[] = { "A : celle en surbrillance ci-dessus. Y : tous les jeux. X : annuler la valeur de ce jeu" };
+static const char* const lang_fr_f49[] = { "SUCC\303\210S D\303\211BLOQU\303\211" };
+static const char* const lang_fr_f50[] = { "AM" };
+static const char* const lang_fr_f51[] = { "Succ\303\250s" };
+static const char* const lang_fr_f52[] = { "Ajoutez une note (facultatif) : ce qui s'est pass\303\251 et ce que vous attendiez." };
+static const char* const lang_fr_f53[] = { "Ajoute GBA DS aux \303\251mulateurs de jeux Game Boy Advance dans EmulationStation. Choisissez-le pour un jeu (Options avanc\303\251es du jeu > \303\211mulateur) ou pour tous (r\303\251glages avanc\303\251s du syst\303\250me). Les autres \303\251mulateurs continuent de fonctionner comme avant." };
+static const char* const lang_fr_f54[] = { "Tous" };
+static const char* const lang_fr_f55[] = { "Les %u succ\303\250s d\303\251bloqu\303\251s" };
+static const char* const lang_fr_f56[] = { "Tous les jeux" };
+static const char* const lang_fr_f57[] = { "D\303\251j\303\240 la valeur de tous les jeux" };
+static const char* const lang_fr_f58[] = { "Toujours" };
+static const char* const lang_fr_f59[] = { "Toujours activ\303\251 ici" };
+static const char* const lang_fr_f60[] = { "Toujours activ\303\251 dans ce jeu : il en a besoin pour tourner \303\240 pleine vitesse" };
+static const char* const lang_fr_f61[] = { "Toujours activ\303\251, appliqu\303\251 en premier (comme RetroArch : un patch nomm\303\251 comme la ROM). %s" };
+static const char* const lang_fr_f62[] = { "Un xdelta cr\303\251\303\251 avec compression, que GBA DS ne sait pas lire : appliquez-le d'abord \303\240 la ROM, ou recr\303\251ez-le sans compression (xdelta3 -S none)" };
+static const char* const lang_fr_f63[] = { "Impossible de joindre l'installateur d'Android" };
+static const char* const lang_fr_f64[] = { "D'un autre \303\251mulateur" };
+static const char* const lang_fr_f65[] = { "avr." };
+static const char* const lang_fr_f66[] = { "\303\212tes-vous s\303\273r ?" };
+static const char* const lang_fr_f67[] = { "\303\212tes-vous s\303\273r ? A : le mettre sur \302\253 %s \302\273 maintenant et continuer d'ici. Y : pas encore (d'autres changements d'abord). B : annuler" };
+static const char* const lang_fr_f68[] = { "\303\212tes-vous s\303\273r ? A : les utiliser maintenant et continuer d'ici. B : annuler" };
+static const char* const lang_fr_f69[] = { "\303\212tes-vous s\303\273r ? Les supprimer" };
+static const char* const lang_fr_f70[] = { "\303\212tes-vous s\303\273r ? R\303\251initialiser les r\303\251glages" };
+static const char* const lang_fr_f71[] = { "\303\212tes-vous s\303\273r ? Sauvegardez d'abord votre partie. A : red\303\251marrer maintenant, %s. Y : pas encore (d'autres changements d'abord). B : annuler" };
+static const char* const lang_fr_f72[] = { "\303\212tes-vous s\303\273r ? Sauvegardez d'abord votre partie. A : red\303\251marrer maintenant. B : annuler" };
+static const char* const lang_fr_f73[] = { "\303\212tes-vous s\303\273r ? Touchez \303\240 nouveau pour supprimer les r\303\251glages propres \303\240 chaque jeu. Tout autre geste annule." };
+static const char* const lang_fr_f74[] = { "\303\212tes-vous s\303\273r ? Touchez \303\240 nouveau pour remettre tous les r\303\251glages par d\303\251faut. Tout autre geste annule." };
+static const char* const lang_fr_f75[] = { "Aussi vite que possible" };
+static const char* const lang_fr_f76[] = { "Comme au lancement du jeu" };
+static const char* const lang_fr_f77[] = { "ao\303\273t" };
+static const char* const lang_fr_f78[] = { "Auto" };
+static const char* const lang_fr_f79[] = { "Chargement auto : Non" };
+static const char* const lang_fr_f80[] = { "Chargement auto : Oui" };
+static const char* const lang_fr_f81[] = { "Chargement auto" };
+static const char* const lang_fr_f82[] = { "Automatique" };
+static const char* const lang_fr_f83[] = { "V\303\251rification automatique : Non" };
+static const char* const lang_fr_f84[] = { "V\303\251rification automatique : Oui" };
+static const char* const lang_fr_f85[] = { "Automatique suit la langue du syst\303\250me. Le texte non encore traduit reste en anglais." };
+static const char* const lang_fr_f86[] = { "Bouton B (bas)" };
+static const char* const lang_fr_f87[] = { "Retour" };
+static const char* const lang_fr_f88[] = { "De nouveau en ligne" };
+static const char* const lang_fr_f89[] = { "Retour \303\240 %s et aux boutons du d\303\251part" };
+static const char* const lang_fr_f90[] = { "La liste des syst\303\250mes de BananaOS n'a pas d'entr\303\251e Game Boy Advance." };
+static const char* const lang_fr_f91[] = { "Logo du cadre" };
+static const char* const lang_fr_f92[] = { "Bleu" };
+static const char* const lang_fr_f93[] = { "Flou au lieu de net : le plus souvent, laissez d\303\251sactiv\303\251." };
+static const char* const lang_fr_f94[] = { "Les deux \303\251crans" };
+static const char* const lang_fr_f95[] = { "\303\211cran du bas" };
+static const char* const lang_fr_f96[] = { "Luminosit\303\251 de l'\303\251cran du bas" };
+static const char* const lang_fr_f97[] = { "Rapport de bug" };
+static const char* const lang_fr_f98[] = { "Rapport de bug enregistr\303\251 dans bug-reports" };
+static const char* const lang_fr_f99[] = { "Rapport de bug enregistr\303\251 dans bug-reports." };
+static const char* const lang_fr_f100[] = { "Boutons" };
+static const char* const lang_fr_f101[] = { "Boutons assign\303\251s" };
+static const char* const lang_fr_f102[] = { "Illisible" };
+static const char* const lang_fr_f103[] = { "Illisible : ce n'est pas un patch, ou il est endommag\303\251" };
+static const char* const lang_fr_f104[] = { "Dossier de GBA DS introuvable." };
+static const char* const lang_fr_f105[] = { "Impossible d'acc\303\251der au dossier de GBA DS, %s est utilis\303\251 pour l'instant : %s" };
+static const char* const lang_fr_f106[] = { "Impossible de revenir plus loin en arri\303\250re" };
+static const char* const lang_fr_f107[] = { "Impossible d'enregistrer des fichiers ici : ni \303\251tats, ni logos, ni captures d'\303\251cran" };
+static const char* const lang_fr_f108[] = { "Impossible d'enregistrer dans le dossier choisi, fichiers non d\303\251plac\303\251s : %s" };
+static const char* const lang_fr_f109[] = { "Annuler" };
+static const char* const lang_fr_f110[] = { "Centr\303\251" };
+static const char* const lang_fr_f111[] = { "Modifie certains des m\303\252mes octets que %s et les \303\251crase : ils risquent de ne pas fonctionner ensemble" };
+static const char* const lang_fr_f112[] = { "Codes de triche" };
+static const char* const lang_fr_f113[] = { "V\303\251rifier maintenant" };
+static const char* const lang_fr_f114[] = { "V\303\251rifiez ra_username et ra_password dans gba-ds.cfg" };
+static const char* const lang_fr_f115[] = { "V\303\251rifiez le compte dans les r\303\251glages RetroAchievements d'EmulationStation" };
+static const char* const lang_fr_f116[] = { "Choisir le dossier de GBA DS" };
+static const char* const lang_fr_f117[] = { "Choisir le dossier des ROM" };
+static const char* const lang_fr_f118[] = { "Choisissez un dossier dans le s\303\251lecteur de fichiers d'Android..." };
+static const char* const lang_fr_f119[] = { "Choisissez-le \303\240 nouveau pour fermer %s : %s" };
+static const char* const lang_fr_f120[] = { "Choisissez-le \303\240 nouveau pour red\303\251marrer : la progression non sauvegard\303\251e est perdue" };
+static const char* const lang_fr_f121[] = { "Choisir le dossier de sauvegardes" };
+static const char* const lang_fr_f122[] = { "Le dossier choisi se trouve dans celui de GBA DS, fichiers non d\303\251plac\303\251s : %s" };
+static const char* const lang_fr_f123[] = { "Dossier choisi introuvable, fichiers non d\303\251plac\303\251s : %s" };
+static const char* const lang_fr_f124[] = { "Choisi ici :" };
+static const char* const lang_fr_f125[] = { "Fermer GBA DS" };
+static const char* const lang_fr_f126[] = { "Fermer le jeu" };
+static const char* const lang_fr_f127[] = { "Au plus pr\303\250s de l'\303\251cart" };
+static const char* const lang_fr_f128[] = { "Fermer un jeu sauvegarde l'endroit o\303\271 vous en \303\252tes." };
+static const char* const lang_fr_f129[] = { "Couleur" };
+static const char* const lang_fr_f130[] = { "Correction des couleurs : Non" };
+static const char* const lang_fr_f131[] = { "Correction des couleurs : Oui" };
+static const char* const lang_fr_f132[] = { "Correction des couleurs" };
+static const char* const lang_fr_f133[] = { "Les couleurs telles que l'\303\251cran d'une Game Boy Advance les affichait." };
+static const char* const lang_fr_f134[] = { "Confirmez la mise \303\240 jour vers v%s dans l'installateur d'Android. Android ferme GBA DS pendant l'installation ; rouvrez-le ensuite. Si Android demande d'abord une autorisation, autorisez GBA DS \303\240 installer des applications." };
+static const char* const lang_fr_f135[] = { "Branchez une manette et r\303\251essayez." };
+static const char* const lang_fr_f136[] = { "Commandes" };
+static const char* const lang_fr_f137[] = { "Impossible de modifier %s." };
+static const char* const lang_fr_f138[] = { "Impossible de modifier les fichiers de %s/custom_systems : autorisez GBA DS \303\240 acc\303\251der \303\240 tous les fichiers dans les r\303\251glages d'Android." };
+static const char* const lang_fr_f139[] = { "Connexion impossible" };
+static const char* const lang_fr_f140[] = { "Dossier de GBA DS introuvable." };
+static const char* const lang_fr_f141[] = { "Impossible de conserver ce choix." };
+static const char* const lang_fr_f142[] = { "Impossible de charger les succ\303\250s" };
+static const char* const lang_fr_f143[] = { "Impossible de charger le jeu" };
+static const char* const lang_fr_f144[] = { "Impossible de d\303\251placer les fichiers de GBA DS, ils restent dans %s" };
+static const char* const lang_fr_f145[] = { "Impossible d'ouvrir le s\303\251lecteur de fichiers." };
+static const char* const lang_fr_f146[] = { "Impossible d'ouvrir la fen\303\252tre de connexion." };
+static const char* const lang_fr_f147[] = { "Impossible de supprimer le fichier de r\303\251glages." };
+static const char* const lang_fr_f148[] = { "Sauvegarde impossible" };
+static const char* const lang_fr_f149[] = { "Impossible d'enregistrer le rapport de bug." };
+static const char* const lang_fr_f150[] = { "Connexion en tant que %s%s%s impossible. Connectez-vous pour r\303\251essayer." };
+static const char* const lang_fr_f151[] = { "Impossible d'\303\251crire %s." };
+static const char* const lang_fr_f152[] = { "Impossible d'\303\251crire dans %s." };
+static const char* const lang_fr_f153[] = { "Personnalis\303\251" };
+static const char* const lang_fr_f154[] = { "Logos personnalis\303\251s : ne pas utiliser" };
+static const char* const lang_fr_f155[] = { "Logos personnalis\303\251s : d\303\251tail complet" };
+static const char* const lang_fr_f156[] = { "Logos personnalis\303\251s : pix\303\251lis\303\251s" };
+static const char* const lang_fr_f157[] = { "Logos personnalis\303\251s" };
+static const char* const lang_fr_f158[] = { "Croix directionnelle" };
+static const char* const lang_fr_f159[] = { "Croix directionnelle bas" };
+static const char* const lang_fr_f160[] = { "Croix directionnelle gauche" };
+static const char* const lang_fr_f161[] = { "Croix directionnelle droite" };
+static const char* const lang_fr_f162[] = { "Croix directionnelle haut" };
+static const char* const lang_fr_f163[] = { "Sombre" };
+static const char* const lang_fr_f164[] = { "Assombrit l'\303\251cran du bas, dans cette appli seulement : la luminosit\303\251 propre \303\240 l'appareil n'est pas modifi\303\251e (et cette valeur ne peut pas la d\303\251passer)." };
+static const char* const lang_fr_f165[] = { "Assombrit l'\303\251cran du haut, dans cette appli seulement : la luminosit\303\251 propre \303\240 l'appareil n'est pas modifi\303\251e (et cette valeur ne peut pas la d\303\251passer)." };
+static const char* const lang_fr_f166[] = { "d\303\251c." };
+static const char* const lang_fr_f167[] = { "Suppr" };
+static const char* const lang_fr_f168[] = { "Supprimer les r\303\251glages par jeu" };
+static const char* const lang_fr_f169[] = { "Les r\303\251glages de %d jeux ont \303\251t\303\251 supprim\303\251s." };
+static const char* const lang_fr_f170[] = { "Les r\303\251glages de 1 jeu ont \303\251t\303\251 supprim\303\251s." };
+static const char* const lang_fr_f171[] = { "Affichage" };
+static const char* const lang_fr_f172[] = { "Termin\303\251" };
+static const char* const lang_fr_f173[] = { "Termin\303\251 (sans note)" };
+static const char* const lang_fr_f174[] = { "Bas" };
+static const char* const lang_fr_f175[] = { "T\303\251l\303\251chargement" };
+static const char* const lang_fr_f176[] = { "Le dossier d'ES-DE est introuvable." };
+static const char* const lang_fr_f177[] = { "Chaque pixel un peu plus sombre vers ses bords" };
+static const char* const lang_fr_f178[] = { "Obtenez des succ\303\250s en mode d\303\251contract\303\251 avec votre compte retroachievements.org. GBA DS conserve un jeton de connexion, pas votre mot de passe." };
+static const char* const lang_fr_f179[] = { "English" };
+static const char* const lang_fr_f180[] = { "Saisissez votre nom d'utilisateur et votre mot de passe." };
+static const char* const lang_fr_f181[] = { "Saisissez votre compte dans la fen\303\252tre de connexion..." };
+static const char* const lang_fr_f182[] = { "Toutes les 0,5 s" };
+static const char* const lang_fr_f183[] = { "Toutes les 1,5 s" };
+static const char* const lang_fr_f184[] = { "Toutes les 3 s" };
+static const char* const lang_fr_f185[] = { "Tous les boutons ont \303\251t\303\251 ignor\303\251s, rien n'a donc chang\303\251." };
+static const char* const lang_fr_f186[] = { "Chaque seconde" };
+static const char* const lang_fr_f187[] = { "\303\211checs" };
+static const char* const lang_fr_f188[] = { "Rapide (20 par seconde)" };
+static const char* const lang_fr_f189[] = { "Avance rapide : %dx" };
+static const char* const lang_fr_f190[] = { "Avance rapide : Max" };
+static const char* const lang_fr_f191[] = { "Avance rapide : Non" };
+static const char* const lang_fr_f192[] = { "Avance rapide" };
+static const char* const lang_fr_f193[] = { "Avance rapide..." };
+static const char* const lang_fr_f194[] = { "f\303\251vr." };
+static const char* const lang_fr_f195[] = { "Premi\303\250re ex\303\251cution seulement. B : retour" };
+static const char* const lang_fr_f196[] = { "Dossiers" };
+static const char* const lang_fr_f197[] = { "Dossiers, comptes, mises \303\240 jour" };
+static const char* const lang_fr_f198[] = { "Suit la fa\303\247on dont vous tenez le t\303\251l\303\251phone et le verrouillage de rotation d'Android." };
+static const char* const lang_fr_f199[] = { "Tampon d'image : toujours activ\303\251 ici" };
+static const char* const lang_fr_f200[] = { "Tampon d'image : Non" };
+static const char* const lang_fr_f201[] = { "Tampon d'image : Oui" };
+static const char* const lang_fr_f202[] = { "Tampon d'image" };
+static const char* const lang_fr_f203[] = { "Les images par seconde au-dessus du jeu, en permanence." };
+static const char* const lang_fr_f204[] = { "Depuis les r\303\251glages de RetroArch :" };
+static const char* const lang_fr_f205[] = { "Pleine largeur" };
+static const char* const lang_fr_f206[] = { "D\303\251tail complet" };
+static const char* const lang_fr_f207[] = { "GBA" };
+static const char* const lang_fr_f208[] = { "GBA A" };
+static const char* const lang_fr_f209[] = { "GBA A sur le bouton de droite, ou sur celui du bas." };
+static const char* const lang_fr_f210[] = { "GBA B" };
+static const char* const lang_fr_f211[] = { "Logo GBA DS : Masquer" };
+static const char* const lang_fr_f212[] = { "Logo GBA DS : Afficher" };
+static const char* const lang_fr_f213[] = { "R\303\251glages de GBA DS" };
+static const char* const lang_fr_f214[] = { "GBA DS ne peut pas enregistrer de fichiers l\303\240 : autorisez-lui l'acc\303\250s \303\240 tous les fichiers dans les r\303\251glages d'Android, ou choisissez un autre dossier." };
+static const char* const lang_fr_f215[] = { "GBA DS dans la liste GBA de BananaOS : Non" };
+static const char* const lang_fr_f216[] = { "GBA DS dans la liste GBA de BananaOS : Oui" };
+static const char* const lang_fr_f217[] = { "GBA DS dans ES-DE : Non" };
+static const char* const lang_fr_f218[] = { "GBA DS dans ES-DE : Oui" };
+static const char* const lang_fr_f219[] = { "GBA DS dans EmulationStation : Non" };
+static const char* const lang_fr_f220[] = { "GBA DS dans EmulationStation : Oui" };
+static const char* const lang_fr_f221[] = { "GBA DS est maintenant l'\303\251mulateur d'ES-DE pour les jeux Game Boy Advance. Quittez ES-DE et rouvrez-le pour le voir." };
+static const char* const lang_fr_f222[] = { "GBA DS n'est plus dans la liste des \303\251mulateurs d'ES-DE. Quittez ES-DE et rouvrez-le pour le voir." };
+static const char* const lang_fr_f223[] = { "GBA DS v%s est disponible (vous avez la v%s). Choisissez Mettre \303\240 jour pour la t\303\251l\303\251charger (%.1f Mo) et l'installer : Android demande confirmation. Vos jeux, sauvegardes, \303\251tats et r\303\251glages sont conserv\303\251s." };
+static const char* const lang_fr_f224[] = { "GBA DS v%s est disponible (vous avez la v%s). Choisissez Mettre \303\240 jour pour la t\303\251l\303\251charger (%.1f Mo) et red\303\251marrer dessus ; vos jeux, sauvegardes, \303\251tats et r\303\251glages sont conserv\303\251s." };
+static const char* const lang_fr_f225[] = { "Le cadre de GBA DS, ou vos propres PNG, autour de l'image." };
+static const char* const lang_fr_f226[] = { "Les fichiers de GBA DS s'y trouvent d\303\251j\303\240." };
+static const char* const lang_fr_f227[] = { "Les fichiers de GBA DS iront dans %s au prochain d\303\251marrage : fermez GBA DS et rouvrez-le." };
+static const char* const lang_fr_f228[] = { "Les fichiers propres \303\240 GBA DS (\303\251tats, r\303\251glages, codes de triche, surcouches) sont dans %s et seront d\303\251plac\303\251s vers %s au prochain d\303\251marrage." };
+static const char* const lang_fr_f229[] = { "Les fichiers propres \303\240 GBA DS (\303\251tats, r\303\251glages, codes de triche, surcouches) sont dans %s." };
+static const char* const lang_fr_f230[] = { "GBA Bas" };
+static const char* const lang_fr_f231[] = { "GBA L" };
+static const char* const lang_fr_f232[] = { "GBA Gauche" };
+static const char* const lang_fr_f233[] = { "GBA R" };
+static const char* const lang_fr_f234[] = { "GBA Droite" };
+static const char* const lang_fr_f235[] = { "GBA Haut" };
+static const char* const lang_fr_f236[] = { "Jeu" };
+static const char* const lang_fr_f237[] = { "Jeu en bas" };
+static const char* const lang_fr_f238[] = { "Noms des jeux" };
+static const char* const lang_fr_f239[] = { "Jeu en haut" };
+static const char* const lang_fr_f240[] = { "Jeu red\303\251marr\303\251" };
+static const char* const lang_fr_f241[] = { "\303\211chelle de l'\303\251cran de jeu" };
+static const char* const lang_fr_f242[] = { "Jeux" };
+static const char* const lang_fr_f243[] = { "Les jeux sont lus depuis %s (sous-dossiers compris). Les sauvegardes (%s) sont conserv\303\251es dans %s." };
+static const char* const lang_fr_f244[] = { "Les jeux sont lus depuis %s (sous-dossiers compris). Les sauvegardes (%s) sont conserv\303\251es \303\240 c\303\264t\303\251 des jeux." };
+static const char* const lang_fr_f245[] = { "Les jeux choisis dans la liste Game Boy Advance propre \303\240 BananaOS d\303\251marrent dans GBA DS quand il g\303\250re le deuxi\303\250me \303\251cran pour eux. Red\303\251marrez BananaOS apr\303\250s ce changement." };
+static const char* const lang_fr_f246[] = { "Jeux affich\303\251s" };
+static const char* const lang_fr_f247[] = { "Les jeux sans prise en charge du deuxi\303\250me \303\251cran se jouent sur un seul \303\251cran." };
+static const char* const lang_fr_f248[] = { "G\303\251n\303\251r\303\251" };
+static const char* const lang_fr_f249[] = { "Vert" };
+static const char* const lang_fr_f250[] = { "Tenu sur la tranche : les deux \303\251crans c\303\264te \303\240 c\303\264te. Dans un sens comme dans l'autre." };
+static const char* const lang_fr_f251[] = { "Tenu droit : les deux \303\251crans l'un au-dessus de l'autre. Dans un sens comme dans l'autre." };
+static const char* const lang_fr_f252[] = { "Couleur hexad\303\251cimale" };
+static const char* const lang_fr_f253[] = { "Maintenez L2 pour remonter dans le temps." };
+static const char* const lang_fr_f254[] = { "Maintenez R2 pour jouer plus vite." };
+static const char* const lang_fr_f255[] = { "Accueil" };
+static const char* const lang_fr_f256[] = { "Touche de raccourci" };
+static const char* const lang_fr_f257[] = { "Raccourcis" };
+static const char* const lang_fr_f258[] = { "L'intensit\303\251 de la grille, des lignes de balayage et des cellules douces." };
+static const char* const lang_fr_f259[] = { "Jusqu'o\303\271 on peut revenir en arri\303\250re." };
+static const char* const lang_fr_f260[] = { "La vitesse d'appui de Turbo A et Turbo B." };
+static const char* const lang_fr_f261[] = { "La fa\303\247on dont l'image du jeu remplit son \303\251cran." };
+static const char* const lang_fr_f262[] = { "La fa\303\247on dont la carte ou le logo remplit son \303\251cran." };
+static const char* const lang_fr_f263[] = { "En jeu, maintenez la touche de raccourci et appuyez sur une autre" };
+static const char* const lang_fr_f264[] = { "Dans patches/%s" };
+static const char* const lang_fr_f265[] = { "Couleur du cadre int\303\251rieur" };
+static const char* const lang_fr_f266[] = { "Install\303\251e" };
+static const char* const lang_fr_f267[] = { "Installation" };
+static const char* const lang_fr_f268[] = { "janv." };
+static const char* const lang_fr_f269[] = { "juil." };
+static const char* const lang_fr_f270[] = { "juin" };
+static const char* const lang_fr_f271[] = { "Conserver les proportions de l'appareil" };
+static const char* const lang_fr_f272[] = { "Conserver les formes de l'appareil" };
+static const char* const lang_fr_f273[] = { "Garder les sauvegardes \303\240 c\303\264t\303\251 des jeux" };
+static const char* const lang_fr_f274[] = { "Conserv\303\251 tel qu'avant dans %d s si rien n'est press\303\251" };
+static const char* const lang_fr_f275[] = { "Conserv\303\251 pour tous les jeux" };
+static const char* const lang_fr_f276[] = { "Patch %s connu, test\303\251 : %s" };
+static const char* const lang_fr_f277[] = { "Patch %s connu, non test\303\251 : %s. Le deuxi\303\250me \303\251cran peut ne pas fonctionner avec lui" };
+static const char* const lang_fr_f278[] = { "Patch %s connu : %s, con\303\247u pour %s. Cette ROM est une autre version : il peut casser le jeu" };
+static const char* const lang_fr_f279[] = { "Patch %s connu : %s, con\303\247u pour %s : il ne peut pas \303\252tre activ\303\251 pour cette ROM" };
+static const char* const lang_fr_f280[] = { "Romhack connu : %s, non test\303\251" };
+static const char* const lang_fr_f281[] = { "Bouton L" };
+static const char* const lang_fr_f282[] = { "R\303\251manence LCD : Non" };
+static const char* const lang_fr_f283[] = { "R\303\251manence LCD : Oui" };
+static const char* const lang_fr_f284[] = { "Grille LCD" };
+static const char* const lang_fr_f285[] = { "R\303\251manence LCD" };
+static const char* const lang_fr_f286[] = { "Langue" };
+static const char* const lang_fr_f287[] = { "Derni\303\250re v\303\251rification : %s." };
+static const char* const lang_fr_f288[] = { "Plus tard" };
+static const char* const lang_fr_f289[] = { "Gauche" };
+static const char* const lang_fr_f290[] = { "Laiss\303\251 de c\303\264t\303\251 l\303\240 o\303\271 il est : il est con\303\247u pour la ROM non modifi\303\251e, il doit donc \303\252tre en premier (un seul patch de ce genre peut \303\252tre activ\303\251). Montez-le avec X" };
+static const char* const lang_fr_f291[] = { "Stick gauche comme croix directionnelle" };
+static const char* const lang_fr_f292[] = { "Stick gauche : gauche" };
+static const char* const lang_fr_f293[] = { "Stick gauche : haut" };
+static const char* const lang_fr_f294[] = { "Laisser le syst\303\250me d\303\251cider" };
+static const char* const lang_fr_f295[] = { "Clair" };
+static const char* const lang_fr_f296[] = { "Mode clair/sombre" };
+static const char* const lang_fr_f297[] = { "Comme une GBA" };
+static const char* const lang_fr_f298[] = { "Des lignes entre les pixels, comme sur l'\303\251cran d'une GBA" };
+static const char* const lang_fr_f299[] = { "Charger l'\303\251tat" };
+static const char* const lang_fr_f300[] = { "Charger l'\303\251tat %d" };
+static const char* const lang_fr_f301[] = { "\303\211chec du chargement" };
+static const char* const lang_fr_f302[] = { "\303\211chec du chargement." };
+static const char* const lang_fr_f303[] = { "Chargement des jeux..." };
+static const char* const lang_fr_f304[] = { "Chargement des succ\303\250s..." };
+static const char* const lang_fr_f305[] = { "Chargement de la miniature..." };
+static const char* const lang_fr_f306[] = { "Con\303\247u pour une autre version du jeu : il ne peut pas \303\252tre activ\303\251 pour cette ROM" };
+static const char* const lang_fr_f307[] = { "Fait de GBA DS l'\303\251mulateur des jeux Game Boy Advance dans ES-DE. Pour un jeu qu'il ne g\303\250re pas, choisissez-en un autre dans ES-DE (m\303\251tadonn\303\251es du jeu > \303\211mulateur alternatif)." };
+static const char* const lang_fr_f308[] = { "Carte" };
+static const char* const lang_fr_f309[] = { "Assigner les boutons" };
+static const char* const lang_fr_f310[] = { "Assigner les boutons" };
+static const char* const lang_fr_f311[] = { "Actualisation de la carte" };
+static const char* const lang_fr_f312[] = { "mars" };
+static const char* const lang_fr_f313[] = { "Suivre la fr\303\251quence d'affichage : Non" };
+static const char* const lang_fr_f314[] = { "Suivre la fr\303\251quence d'affichage : Non pour l'instant" };
+static const char* const lang_fr_f315[] = { "Suivre la fr\303\251quence d'affichage : Oui" };
+static const char* const lang_fr_f316[] = { "Faire correspondre les proportions" };
+static const char* const lang_fr_f317[] = { "Suivre la fr\303\251quence d'affichage" };
+static const char* const lang_fr_f318[] = { "Faire correspondre les proportions des \303\251crans" };
+static const char* const lang_fr_f319[] = { "Faire correspondre les tailles et proportions des \303\251crans" };
+static const char* const lang_fr_f320[] = { "Faire correspondre tailles et formes" };
+static const char* const lang_fr_f321[] = { "Max : pleine vitesse, un appareil plus chaud et une batterie plus courte." };
+static const char* const lang_fr_f322[] = { "mai" };
+static const char* const lang_fr_f323[] = { "Moyenne (15 par seconde)" };
+static const char* const lang_fr_f324[] = { "ROM modifi\303\251e : le deuxi\303\250me \303\251cran peut ne pas fonctionner" };
+static const char* const lang_fr_f325[] = { "D\303\251placer" };
+static const char* const lang_fr_f326[] = { "D\303\251placement : Haut / Bas ou touchez l'endroit voulu, puis A (ou touchez-le \303\240 nouveau). Celui qui est plus bas dans la liste est appliqu\303\251 apr\303\250s" };
+static const char* const lang_fr_f327[] = { "Ce qui bouge laisse une courte tra\303\256n\303\251e, comme sur une GBA." };
+static const char* const lang_fr_f328[] = { "NOTE : les jeux non pris en charge se joueront dans RetroArch, mais sans le deuxi\303\250me \303\251cran propre \303\240 BananaOS (son panneau de jeu et ses compagnons)." };
+static const char* const lang_fr_f329[] = { "Nouveau" };
+static const char* const lang_fr_f330[] = { "Aucun \303\251tat RetroArch ici" };
+static const char* const lang_fr_f331[] = { "Aucun succ\303\250s pour cette ROM (MD5 %s)" };
+static const char* const lang_fr_f332[] = { "Aucun code de triche trouv\303\251 (voir Cheats dans le wiki)" };
+static const char* const lang_fr_f333[] = { "Aucune manette trouv\303\251e" };
+static const char* const lang_fr_f334[] = { "es_systems.cfg introuvable." };
+static const char* const lang_fr_f335[] = { "Aucun dossier choisi." };
+static const char* const lang_fr_f336[] = { "Aucun dossier dans celui-ci" };
+static const char* const lang_fr_f337[] = { "Aucun jeu n'a de r\303\251glages propres." };
+static const char* const lang_fr_f338[] = { "Aucun jeu trouv\303\251" };
+static const char* const lang_fr_f339[] = { "Pas encore de patchs ici" };
+static const char* const lang_fr_f340[] = { "Aucun \303\251tat rapide enregistr\303\251 pour l'instant." };
+static const char* const lang_fr_f341[] = { "Aucun jeu pris en charge dans" };
+static const char* const lang_fr_f342[] = { "Aucun" };
+static const char* const lang_fr_f343[] = { "Plus dans le dossier : il est laiss\303\251 de c\303\264t\303\251" };
+static const char* const lang_fr_f344[] = { "Non repris : l'\303\251tat automatique de RetroArch provient d'un autre de ses c\305\223urs GBA. Pour partager les \303\251tats, r\303\251glez le c\305\223ur GBA de RetroArch sur mGBA." };
+static const char* const lang_fr_f345[] = { "Non utilis\303\251" };
+static const char* const lang_fr_f346[] = { "Rien" };
+static const char* const lang_fr_f347[] = { "Rien d'assign\303\251" };
+static const char* const lang_fr_f348[] = { "Rien de sauvegard\303\251 dans l'emplacement %d pour l'instant" };
+static const char* const lang_fr_f349[] = { "Rien \303\240 signaler pour l'instant." };
+static const char* const lang_fr_f350[] = { "nov." };
+static const char* const lang_fr_f351[] = { "Maintenant" };
+static const char* const lang_fr_f352[] = { "OK" };
+static const char* const lang_fr_f353[] = { "oct." };
+static const char* const lang_fr_f354[] = { "Non" };
+static const char* const lang_fr_f355[] = { "D\303\251sactiv\303\251 pour les appareils lents : la table sur un seul \303\251cran. Fermez et red\303\251marrez GBA DS pour l'appliquer." };
+static const char* const lang_fr_f356[] = { "D\303\251sactiv\303\251 tant qu'un patch est activ\303\251" };
+static const char* const lang_fr_f357[] = { "Non." };
+static const char* const lang_fr_f358[] = { "Non. Red\303\251marrez BananaOS (R\303\251glages > Syst\303\250me) pour que son menu l'utilise." };
+static const char* const lang_fr_f359[] = { "Non. Red\303\251marrez EmulationStation pour l'appliquer." };
+static const char* const lang_fr_f360[] = { "Non : tous les jeux se jouent comme un jeu GBA ordinaire." };
+static const char* const lang_fr_f361[] = { "Non : le stick gauche ne fait rien dans les jeux." };
+static const char* const lang_fr_f362[] = { "Hors ligne" };
+static const char* const lang_fr_f363[] = { "Oui" };
+static const char* const lang_fr_f364[] = { "Oui." };
+static const char* const lang_fr_f365[] = { "Oui. Red\303\251marrez BananaOS (R\303\251glages > Syst\303\250me) pour que son menu l'utilise." };
+static const char* const lang_fr_f366[] = { "Oui. Red\303\251marrez EmulationStation pour le voir." };
+static const char* const lang_fr_f367[] = { "Seuls les jeux avec un \303\251cran de carte sont list\303\251s (show_all = 1 les liste tous)" };
+static const char* const lang_fr_f368[] = { "Un seul \303\251cran : rien \303\240 d\303\251placer" };
+static const char* const lang_fr_f369[] = { "Seuls les patchs activ\303\251s ont un ordre, et celui-ci est le seul" };
+static const char* const lang_fr_f370[] = { "Seulement quand vos deux \303\251crans diff\303\250rent de forme. Exp\303\251rimental." };
+static const char* const lang_fr_f371[] = { "Ouvrir le menu rapide" };
+static const char* const lang_fr_f372[] = { "Ouvre la page propre au cadre, pour celui qu'ont le jeu ou tous les jeux" };
+static const char* const lang_fr_f373[] = { "Orange" };
+static const char* const lang_fr_f374[] = { "Couleur du cadre ext\303\251rieur" };
+static const char* const lang_fr_f375[] = { "Couleurs et logo des surcouches" };
+static const char* const lang_fr_f376[] = { "Surcouches" };
+static const char* const lang_fr_f377[] = { "Surcouches activ\303\251es" };
+static const char* const lang_fr_f378[] = { "Surcouches : personnalis\303\251es" };
+static const char* const lang_fr_f379[] = { "Surcouches : personnalis\303\251es (dans /overlays)" };
+static const char* const lang_fr_f380[] = { "Surcouches : g\303\251n\303\251r\303\251es" };
+static const char* const lang_fr_f381[] = { "Surcouches : Non" };
+static const char* const lang_fr_f382[] = { "PM" };
+static const char* const lang_fr_f383[] = { "Patch non appliqu\303\251 : %s est illisible" };
+static const char* const lang_fr_f384[] = { "Patch non appliqu\303\251 : %s est pour une autre ROM" };
+static const char* const lang_fr_f385[] = { "Patch\303\251, mais un patch a \303\251t\303\251 laiss\303\251 de c\303\264t\303\251 : voir Patchs dans le menu du jeu" };
+static const char* const lang_fr_f386[] = { "Patch\303\251 : le deuxi\303\250me \303\251cran peut ne pas fonctionner" };
+static const char* const lang_fr_f387[] = { "Patchs" };
+static const char* const lang_fr_f388[] = { "Patchs modifi\303\251s" };
+static const char* const lang_fr_f389[] = { "Patchs modifi\303\251s depuis le lancement du jeu" };
+static const char* const lang_fr_f390[] = { "Patchs modifi\303\251s : reprise l\303\240 o\303\271 vous \303\251tiez" };
+static const char* const lang_fr_f391[] = { "Intensit\303\251 de la trame" };
+static const char* const lang_fr_f392[] = { "En pause" };
+static const char* const lang_fr_f393[] = { "Performances" };
+static const char* const lang_fr_f394[] = { "Performances : laisser le syst\303\250me d\303\251cider" };
+static const char* const lang_fr_f395[] = { "Performances : Max" };
+static const char* const lang_fr_f396[] = { "Images au milieu de leurs \303\251crans, ou rapproch\303\251es." };
+static const char* const lang_fr_f397[] = { "Vue \303\240 deux \303\251crans du flipper" };
+static const char* const lang_fr_f398[] = { "Rose" };
+static const char* const lang_fr_f399[] = { "\303\211pingl\303\251e : la barre reste affich\303\251e." };
+static const char* const lang_fr_f400[] = { "Pixel parfait" };
+static const char* const lang_fr_f401[] = { "Pix\303\251lis\303\251" };
+static const char* const lang_fr_f402[] = { "Placement, surcouches" };
+static const char* const lang_fr_f403[] = { "Simple" };
+static const char* const lang_fr_f404[] = { "Jouer" };
+static const char* const lang_fr_f405[] = { "Cette fois, on joue sans succ\303\250s" };
+static const char* const lang_fr_f406[] = { "Pr\303\251paration du jeu..." };
+static const char* const lang_fr_f407[] = { "Appuyez sur %s" };
+static const char* const lang_fr_f408[] = { "Appuyez sur A ou touchez pour fermer" };
+static const char* const lang_fr_f409[] = { "Appuyez sur A pour fermer" };
+static const char* const lang_fr_f410[] = { "Appuyez sur un bouton" };
+static const char* const lang_fr_f411[] = { "Violet" };
+static const char* const lang_fr_f412[] = { "Poussez le stick : les boutons ne comptent pas pour celui-ci." };
+static const char* const lang_fr_f413[] = { "Placez des fichiers .ips, .ups, .bps ou .xdelta dans %s" };
+static const char* const lang_fr_f414[] = { "Astuce de la barre rapide" };
+static const char* const lang_fr_f415[] = { "Chargement rapide d'\303\251tat" };
+static const char* const lang_fr_f416[] = { "Sauvegarde rapide d'\303\251tat" };
+static const char* const lang_fr_f417[] = { "Quitter" };
+static const char* const lang_fr_f418[] = { "Bouton R" };
+static const char* const lang_fr_f419[] = { "RetroAchievements est d\303\251sactiv\303\251" };
+static const char* const lang_fr_f420[] = { "Augmentez-le si le son gr\303\251sille." };
+static const char* const lang_fr_f421[] = { "Rouge" };
+static const char* const lang_fr_f422[] = { "Bandes rouges, vertes et bleues, douces : pour les \303\251crans sombres" };
+static const char* const lang_fr_f423[] = { "Bandes rouges, vertes et bleues, comme l'\303\251cran d'une GBA" };
+static const char* const lang_fr_f424[] = { "Bandes rouges, vertes et bleues, fortes : pour les \303\251crans lumineux" };
+static const char* const lang_fr_f425[] = { "R\303\251initialiser" };
+static const char* const lang_fr_f426[] = { "R\303\251initialiser les cadres" };
+static const char* const lang_fr_f427[] = { "Remettre les r\303\251glages par d\303\251faut" };
+static const char* const lang_fr_f428[] = { "Red\303\251marrer" };
+static const char* const lang_fr_f429[] = { "Red\303\251marrer le jeu" };
+static const char* const lang_fr_f430[] = { "Red\303\251marrez depuis la rang\303\251e du haut pour jouer avec (ou il sera utilis\303\251 au prochain d\303\251marrage)" };
+static const char* const lang_fr_f431[] = { "Red\303\251marrez depuis la rang\303\251e du haut pour jouer avec cet ordre" };
+static const char* const lang_fr_f432[] = { "Red\303\251marrage n\303\251cessaire" };
+static const char* const lang_fr_f433[] = { "Reprendre" };
+static const char* const lang_fr_f434[] = { "Repris. Touchez ou HOME pour le menu" };
+static const char* const lang_fr_f435[] = { "RetroAchievements couldn't start" };
+static const char* const lang_fr_f436[] = { "RetroAchievements n'a pas pu d\303\251marrer" };
+static const char* const lang_fr_f437[] = { "RetroAchievements n'autorise pas les jeux patch\303\251s" };
+static const char* const lang_fr_f438[] = { "RetroAchievements : Non" };
+static const char* const lang_fr_f439[] = { "RetroAchievements : se connecter" };
+static const char* const lang_fr_f440[] = { "RetroAchievements : se d\303\251connecter" };
+static const char* const lang_fr_f441[] = { "RetroAchievements : connexion..." };
+static const char* const lang_fr_f442[] = { "Dossier des \303\251tats de RetroArch" };
+static const char* const lang_fr_f443[] = { "Les r\303\251glages de RetroArch sont introuvables ici : choisissez le dossier o\303\271 il garde ses \303\251tats." };
+static const char* const lang_fr_f444[] = { "Les r\303\251glages de RetroArch sont introuvables, les emplacements 0-9 et l'\303\251tat automatique sont donc de nouveau propres \303\240 GBA DS." };
+static const char* const lang_fr_f445[] = { "Le dossier des \303\251tats de RetroArch est de nouveau trouv\303\251 depuis ses r\303\251glages : %s." };
+static const char* const lang_fr_f446[] = { "Retour arri\303\250re" };
+static const char* const lang_fr_f447[] = { "Dur\303\251e du retour arri\303\250re" };
+static const char* const lang_fr_f448[] = { "Retour arri\303\250re, avance rapide" };
+static const char* const lang_fr_f449[] = { "Retour arri\303\250re : Non" };
+static const char* const lang_fr_f450[] = { "Retour arri\303\250re : Oui" };
+static const char* const lang_fr_f451[] = { "Retour arri\303\250re..." };
+static const char* const lang_fr_f452[] = { "Droite" };
+static const char* const lang_fr_f453[] = { "Romhack : %s%s" };
+static const char* const lang_fr_f454[] = { "Romhack : %s%s, non test\303\251" };
+static const char* const lang_fr_f455[] = { "Rotation : automatique" };
+static const char* const lang_fr_f456[] = { "Rotation : paysage" };
+static const char* const lang_fr_f457[] = { "Rotation : portrait" };
+static const char* const lang_fr_f458[] = { "Fonctionne \303\240 la fr\303\251quence de l'\303\251cran : pas de petite saccade r\303\251guli\303\250re." };
+static const char* const lang_fr_f459[] = { "SNES" };
+static const char* const lang_fr_f460[] = { "De nouveau comme pour tous les jeux" };
+static const char* const lang_fr_f461[] = { "Sauvegarder l'\303\251tat" };
+static const char* const lang_fr_f462[] = { "Sauvegarder l'\303\251tat %d" };
+static const char* const lang_fr_f463[] = { "\303\211tats : propres \303\240 GBA DS" };
+static const char* const lang_fr_f464[] = { "\303\211tats : partag\303\251s avec RetroArch" };
+static const char* const lang_fr_f465[] = { "\303\211chec de la sauvegarde" };
+static const char* const lang_fr_f466[] = { "\303\211chec de la sauvegarde." };
+static const char* const lang_fr_f467[] = { "Fichiers de sauvegarde : .sav" };
+static const char* const lang_fr_f468[] = { "Fichiers de sauvegarde : .srm (de RetroArch)" };
+static const char* const lang_fr_f469[] = { "Sauvegarder en quittant : Non" };
+static const char* const lang_fr_f470[] = { "Sauvegarder en quittant : Oui" };
+static const char* const lang_fr_f471[] = { "Sauvegarder en quittant" };
+static const char* const lang_fr_f472[] = { "Sauvegard\303\251 par un autre \303\251mulateur : impossible de le charger" };
+static const char* const lang_fr_f473[] = { "Enregistr\303\251 pour tous les jeux" };
+static const char* const lang_fr_f474[] = { "Enregistr\303\251 pour ce jeu" };
+static const char* const lang_fr_f475[] = { "Enregistr\303\251 pour quand un patch est activ\303\251" };
+static const char* const lang_fr_f476[] = { "Les sauvegardes seront conserv\303\251es \303\240 c\303\264t\303\251 des jeux." };
+static const char* const lang_fr_f477[] = { "Les sauvegardes seront conserv\303\251es l\303\240." };
+static const char* const lang_fr_f478[] = { "\303\211chelle, shader, th\303\250me, couleur" };
+static const char* const lang_fr_f479[] = { "\303\211chelle : pleine largeur" };
+static const char* const lang_fr_f480[] = { "\303\211chelle : pixel parfait" };
+static const char* const lang_fr_f481[] = { "\303\211chelle : \303\251tirer" };
+static const char* const lang_fr_f482[] = { "\303\211chelle : zoom" };
+static const char* const lang_fr_f483[] = { "Lignes de balayage" };
+static const char* const lang_fr_f484[] = { "Placement des \303\251crans : centr\303\251" };
+static const char* const lang_fr_f485[] = { "Placement des \303\251crans : au plus pr\303\250s de l'\303\251cart" };
+static const char* const lang_fr_f486[] = { "Placement des \303\251crans" };
+static const char* const lang_fr_f487[] = { "Formes des \303\251crans" };
+static const char* const lang_fr_f488[] = { "\303\211crans" };
+static const char* const lang_fr_f489[] = { "\303\211chec de la capture d'\303\251cran" };
+static const char* const lang_fr_f490[] = { "Capture d'\303\251cran enregistr\303\251e" };
+static const char* const lang_fr_f491[] = { "Deuxi\303\250me \303\251cran" };
+static const char* const lang_fr_f492[] = { "\303\211chelle du deuxi\303\250me \303\251cran" };
+static const char* const lang_fr_f493[] = { "Select" };
+static const char* const lang_fr_f494[] = { "Select ou Start atteignent toujours le jeu quand on les touche seuls, et L3 ouvre toujours le menu rapide" };
+static const char* const lang_fr_f495[] = { "sept." };
+static const char* const lang_fr_f496[] = { "Sauvegarde de batterie s\303\251par\303\251e" };
+static const char* const lang_fr_f497[] = { "\303\211tats s\303\251par\303\251s" };
+static const char* const lang_fr_f498[] = { "D\303\251fini pour l'instant, mais %s n'a pas pu \303\252tre \303\251crit." };
+static const char* const lang_fr_f499[] = { "Mettre au max" };
+static const char* const lang_fr_f500[] = { "D\303\251finit les raccourcis : la touche de raccourci maintenue avec une autre." };
+static const char* const lang_fr_f501[] = { "D\303\251finit ce que fait chacun des boutons de cet appareil." };
+static const char* const lang_fr_f502[] = { "R\303\251glages" };
+static const char* const lang_fr_f503[] = { "Les r\303\251glages sont revenus par d\303\251faut." };
+static const char* const lang_fr_f504[] = { "Shader" };
+static const char* const lang_fr_f505[] = { "Shader : grille LCD" };
+static const char* const lang_fr_f506[] = { "Shader : Non" };
+static const char* const lang_fr_f507[] = { "Shader : lignes de balayage" };
+static const char* const lang_fr_f508[] = { "Shader : cellules douces" };
+static const char* const lang_fr_f509[] = { "Shader : sous-pixels" };
+static const char* const lang_fr_f510[] = { "Shader : sous-pixels (l\303\251ger)" };
+static const char* const lang_fr_f511[] = { "Shader : sous-pixels (fort)" };
+static const char* const lang_fr_f512[] = { "Plus court peut faire gr\303\251siller le son sur un appareil lent." };
+static const char* const lang_fr_f513[] = { "Afficher les FPS" };
+static const char* const lang_fr_f514[] = { "Afficher les FPS : Non" };
+static const char* const lang_fr_f515[] = { "Afficher les FPS : Oui" };
+static const char* const lang_fr_f516[] = { "Reconnectez-vous dans les R\303\251glages de la liste des jeux" };
+static const char* const lang_fr_f517[] = { "\303\211chec de la connexion" };
+static const char* const lang_fr_f518[] = { "Connect\303\251 en tant que %s. Les succ\303\250s s'obtiennent en mode d\303\251contract\303\251." };
+static const char* const lang_fr_f519[] = { "D\303\251connect\303\251 de RetroAchievements." };
+static const char* const lang_fr_f520[] = { "Connexion en tant que %s..." };
+static const char* const lang_fr_f521[] = { "Un seul \303\251cran" };
+static const char* const lang_fr_f522[] = { "Un seul \303\251cran : se joue normalement" };
+static const char* const lang_fr_f523[] = { "Ignorer" };
+static const char* const lang_fr_f524[] = { "Ignorer cette version" };
+static const char* const lang_fr_f525[] = { "Ignor\303\251 dans %d s si rien n'est press\303\251" };
+static const char* const lang_fr_f526[] = { "Emplacement %d charg\303\251" };
+static const char* const lang_fr_f527[] = { "Emplacement %d : %s" };
+static const char* const lang_fr_f528[] = { "Emplacement %1$d : %3$d %2$s %4$d%5$s" };
+static const char* const lang_fr_f529[] = { "Emplacement %1$d : %3$d %2$s, %4$d:%5$02d %6$s%7$s" };
+static const char* const lang_fr_f530[] = { "Emplacement %d : vide" };
+static const char* const lang_fr_f531[] = { "Les emplacements 0-9 et l'\303\251tat automatique sont de nouveau propres \303\240 GBA DS. Les \303\251tats enregistr\303\251s dans le dossier de RetroArch y restent." };
+static const char* const lang_fr_f532[] = { "Les emplacements 0-9 et l'\303\251tat automatique sont maintenant ceux de RetroArch. Les \303\251tats propres \303\240 GBA DS restent dans son dossier, au cas o\303\271 vous reviendriez en arri\303\250re." };
+static const char* const lang_fr_f533[] = { "Les emplacements 0-9 et l'\303\251tat automatique sont maintenant partag\303\251s avec RetroArch, dans %s." };
+static const char* const lang_fr_f534[] = { "Les emplacements 0-9 et le point de reprise sont propres \303\240 GBA DS. Partag\303\251s, ils sont ceux de RetroArch : %s." };
+static const char* const lang_fr_f535[] = { "Les emplacements 0-9 et le point de reprise sont propres \303\240 GBA DS. Pour les partager, choisissez le dossier des \303\251tats de RetroArch." };
+static const char* const lang_fr_f536[] = { "Les emplacements 0-9 et le point de reprise sont ceux de RetroArch (son c\305\223ur GBA r\303\251gl\303\251 sur mGBA) : %s." };
+static const char* const lang_fr_f537[] = { "Lente (10 par seconde)" };
+static const char* const lang_fr_f538[] = { "Lissage de l'\303\251chelle" };
+static const char* const lang_fr_f539[] = { "Plus doux, une image de plus de latence d'entr\303\251e." };
+static const char* const lang_fr_f540[] = { "Cellules douces" };
+static const char* const lang_fr_f541[] = { "Certains fichiers n'ont pas pu \303\252tre d\303\251plac\303\251s, ils sont toujours dans %s" };
+static const char* const lang_fr_f542[] = { "Latence du son" };
+static const char* const lang_fr_f543[] = { "Espace" };
+static const char* const lang_fr_f544[] = { "Vitesse" };
+static const char* const lang_fr_f545[] = { "Vitesse et son" };
+static const char* const lang_fr_f546[] = { "Start" };
+static const char* const lang_fr_f547[] = { "Lancer un jeu reprend l\303\240 o\303\271 vous l'aviez ferm\303\251." };
+static const char* const lang_fr_f548[] = { "\303\211tat charg\303\251." };
+static const char* const lang_fr_f549[] = { "\303\211tat sauvegard\303\251 dans l'emplacement %d" };
+static const char* const lang_fr_f550[] = { "\303\211tat sauvegard\303\251." };
+static const char* const lang_fr_f551[] = { "Stick, boutons, raccourcis" };
+static const char* const lang_fr_f552[] = { "\303\211tirer" };
+static const char* const lang_fr_f553[] = { "Envoyer un rapport de bug" };
+static const char* const lang_fr_f554[] = { "Sous-pixels" };
+static const char* const lang_fr_f555[] = { "Sous-pixels (l\303\251ger)" };
+static const char* const lang_fr_f556[] = { "Sous-pixels (fort)" };
+static const char* const lang_fr_f557[] = { "Pris en charge" };
+static const char* const lang_fr_f558[] = { "Jeux pris en charge seulement" };
+static const char* const lang_fr_f559[] = { "S\303\273r ?" };
+static const char* const lang_fr_f560[] = { "\303\211changer les \303\251crans" };
+static const char* const lang_fr_f561[] = { "\303\211changer les \303\251crans" };
+static const char* const lang_fr_f562[] = { "\303\211chang\303\251s" };
+static const char* const lang_fr_f563[] = { "Balayez vers le haut pour le menu rapide" };
+static const char* const lang_fr_f564[] = { "D\303\251sactiv\303\251 dans gba-ds.cfg (retroachievements = 0)." };
+static const char* const lang_fr_f565[] = { "Syst\303\250me" };
+static const char* const lang_fr_f566[] = { "Les \303\251tiquettes dans le nom de fichier d'une ROM, comme (USA) ou (En,Fr,De)." };
+static const char* const lang_fr_f567[] = { "Faire une capture d'\303\251cran" };
+static const char* const lang_fr_f568[] = { "Prend effet apr\303\250s la fermeture et le red\303\251marrage de GBA DS" };
+static const char* const lang_fr_f569[] = { "Touchez \303\240 nouveau pour fermer GBA DS." };
+static const char* const lang_fr_f570[] = { "Touchez l'\303\251cran ou appuyez sur HOME pour le menu" };
+static const char* const lang_fr_f571[] = { "Touchez l'\303\251cran tactile pour ignorer un bouton que cet appareil n'a pas" };
+static const char* const lang_fr_f572[] = { "Touchez pour n'en assigner aucun" };
+static const char* const lang_fr_f573[] = { "Touchez pour ignorer un bouton que cet appareil n'a pas" };
+static const char* const lang_fr_f574[] = { "Sarcelle" };
+static const char* const lang_fr_f575[] = { "Romhack test\303\251 : %s" };
+static const char* const lang_fr_f576[] = { "Celui-ci arrive ici comme une touche de clavier : il ne peut pas \303\252tre assign\303\251. Touchez pour ignorer." };
+static const char* const lang_fr_f577[] = { "Celui-ci est d\303\251j\303\240 %s. Appuyez sur un autre, ou touchez pour ignorer." };
+static const char* const lang_fr_f578[] = { "C'est dans le dossier propre \303\240 GBA DS : choisissez-en un en dehors." };
+static const char* const lang_fr_f579[] = { "C'est la touche de raccourci : appuyez sur une autre" };
+static const char* const lang_fr_f580[] = { "Le logo GBA DS dans le cadre g\303\251n\303\251r\303\251." };
+static const char* const lang_fr_f581[] = { "Les pixels du jeu tels quels" };
+static const char* const lang_fr_f582[] = { "La touche de raccourci peut \303\252tre %s, Select, Start ou L3" };
+static const char* const lang_fr_f583[] = { "La carte et le logo" };
+static const char* const lang_fr_f584[] = { "Les boutons des menus : gris fonc\303\251, ou gris clair comme le lecteur web." };
+static const char* const lang_fr_f585[] = { "La couleur des menus pour la s\303\251lection, avec une version sombre et une claire de chacune." };
+static const char* const lang_fr_f586[] = { "Les patchs ne sont pas ceux du lancement du jeu : red\303\251marrez-le pour jouer avec (ou ils seront utilis\303\251s au prochain d\303\251marrage)" };
+static const char* const lang_fr_f587[] = { "Le processeur, la m\303\251moire et le graphisme tournent \303\240 pleine vitesse tant que GBA DS est ouvert : le jeu le plus fluide, mais la batterie se vide plus vite et l'appareil chauffe davantage." };
+static const char* const lang_fr_f588[] = { "Le syst\303\250me r\303\250gle la vitesse, comme pour ses autres \303\251mulateurs. Si les jeux saccadent ou si le son se coupe, essayez Mettre au max." };
+static const char* const lang_fr_f589[] = { "Ce dossier ne peut pas \303\252tre ouvert" };
+static const char* const lang_fr_f590[] = { "Ce jeu" };
+static const char* const lang_fr_f591[] = { "Ce jeu a sa propre valeur. X, ou aller au-del\303\240 du dernier choix : comme tous les jeux" };
+static const char* const lang_fr_f592[] = { "Ce jeu n'a pas encore de succ\303\250s" };
+static const char* const lang_fr_f593[] = { "Voici GBA DS v%s." };
+static const char* const lang_fr_f594[] = { "Voici la v%s. Recherche une nouvelle version, puis la t\303\251l\303\251charge et l'installe." };
+static const char* const lang_fr_f595[] = { "Cet \303\251tat est illisible" };
+static const char* const lang_fr_f596[] = { "Cet \303\251tat a \303\251t\303\251 sauvegard\303\251 %s : il peut ne pas fonctionner" };
+static const char* const lang_fr_f597[] = { "Ensemble : %s" };
+static const char* const lang_fr_f598[] = { "Activer/d\303\251sactiver le shader s\303\251lectionn\303\251" };
+static const char* const lang_fr_f599[] = { "\303\211cran du haut" };
+static const char* const lang_fr_f600[] = { "Luminosit\303\251 de l'\303\251cran du haut" };
+static const char* const lang_fr_f601[] = { "Touchez ou utilisez la croix directionnelle" };
+static const char* const lang_fr_f602[] = { "Turbo A" };
+static const char* const lang_fr_f603[] = { "Turbo B" };
+static const char* const lang_fr_f604[] = { "Vitesse du turbo" };
+static const char* const lang_fr_f605[] = { "Transforme cette ROM en une autre version officielle : %s" };
+static const char* const lang_fr_f606[] = { "es_systems.cfg inattendu (voir le journal)." };
+static const char* const lang_fr_f607[] = { "Version inconnue de ce jeu" };
+static const char* const lang_fr_f608[] = { "D\303\251bloqu\303\251" };
+static const char* const lang_fr_f609[] = { "Succ\303\250s envoy\303\251s" };
+static const char* const lang_fr_f610[] = { "Les succ\303\250s seront envoy\303\251s quand la connexion reviendra" };
+static const char* const lang_fr_f611[] = { "D\303\251tach\303\251e : la barre se masque apr\303\250s 5 secondes." };
+static const char* const lang_fr_f612[] = { "Non test\303\251 : le deuxi\303\250me \303\251cran peut ne pas fonctionner avec lui" };
+static const char* const lang_fr_f613[] = { "Haut" };
+static const char* const lang_fr_f614[] = { "Jusqu'\303\240 %d patchs peuvent \303\252tre activ\303\251s en m\303\252me temps" };
+static const char* const lang_fr_f615[] = { "Jusqu'\303\240 %s" };
+static const char* const lang_fr_f616[] = { "Mettre \303\240 jour" };
+static const char* const lang_fr_f617[] = { "Mises \303\240 jour" };
+static const char* const lang_fr_f618[] = { "Mises \303\240 jour, int\303\251grations" };
+static const char* const lang_fr_f619[] = { "Utiliser ce dossier" };
+static const char* const lang_fr_f620[] = { "Utilis\303\251 \303\240 partir du prochain d\303\251marrage du jeu" };
+static const char* const lang_fr_f621[] = { "Volume %d%%" };
+static const char* const lang_fr_f622[] = { "Ce que la croix directionnelle bas donne au jeu." };
+static const char* const lang_fr_f623[] = { "Ce que la croix directionnelle gauche donne au jeu." };
+static const char* const lang_fr_f624[] = { "Ce que la croix directionnelle droite donne au jeu." };
+static const char* const lang_fr_f625[] = { "Ce que la croix directionnelle haut donne au jeu." };
+static const char* const lang_fr_f626[] = { "Ce que le bouton d'\303\251paule L donne au jeu." };
+static const char* const lang_fr_f627[] = { "Ce que le bouton d'\303\251paule R donne au jeu." };
+static const char* const lang_fr_f628[] = { "Ce que le bouton du bas donne au jeu." };
+static const char* const lang_fr_f629[] = { "Ce que le bouton de gauche donne au jeu." };
+static const char* const lang_fr_f630[] = { "Ce que le bouton de droite donne au jeu." };
+static const char* const lang_fr_f631[] = { "Ce que le bouton du haut donne au jeu." };
+static const char* const lang_fr_f632[] = { "D'o\303\271 les jeux sont lus, et le dossier o\303\271 sont conserv\303\251es leurs sauvegardes." };
+static const char* const lang_fr_f633[] = { "D'o\303\271 les jeux sont lus. Leurs sauvegardes sont conserv\303\251es \303\240 c\303\264t\303\251." };
+static const char* const lang_fr_f634[] = { "Quel \303\251cran : les deux" };
+static const char* const lang_fr_f635[] = { "Quel \303\251cran : bas seulement" };
+static const char* const lang_fr_f636[] = { "Quel \303\251cran : haut seulement" };
+static const char* const lang_fr_f637[] = { "Quels jeux, noms, sauvegarde" };
+static const char* const lang_fr_f638[] = { "Sur quel \303\251cran se trouve le jeu." };
+static const char* const lang_fr_f639[] = { "Quels \303\251crans les ont." };
+static const char* const lang_fr_f640[] = { "Quand Quatre boutons est choisi sous Commandes dans la barre rapide, la disposition \303\240 quatre boutons remplace ceux-ci." };
+static const char* const lang_fr_f641[] = { "Quand SNES est choisi sous Commandes dans la barre rapide, la disposition SNES remplace ceux-ci dans les niveaux." };
+static const char* const lang_fr_f642[] = { "Avec un patch activ\303\251, le jeu garde sa propre sauvegarde de batterie (\302\253 <jeu> + <patch> \302\273) : d\303\251sactiv\303\251, il utilise celle de l'original" };
+static const char* const lang_fr_f643[] = { "Avec un patch activ\303\251, le jeu garde ses propres \303\251tats : d\303\251sactiv\303\251, il utilise ceux de l'original (un \303\251tat peut sortir corrompu dans l'autre)" };
+static const char* const lang_fr_f644[] = { "Quand la v\303\251rification automatique est activ\303\251e, GBA DS cherche une nouvelle version une fois par jour \303\240 l'ouverture de la liste des jeux et demande avant de t\303\251l\303\251charger quoi que ce soit. Les mises \303\240 jour viennent des versions publi\303\251es sur github.com/kyannon/gba-ds." };
+static const char* const lang_fr_f645[] = { "Avec \303\251tiquettes, comme (USA)" };
+static const char* const lang_fr_f646[] = { "Bouton X (haut)" };
+static const char* const lang_fr_f647[] = { "Bouton Y (gauche)" };
+static const char* const lang_fr_f648[] = { "Vos propres PNG dans gba-ds/overlays/. Un \303\251cran sans PNG re\303\247oit le cadre g\303\251n\303\251r\303\251 dans ses couleurs par d\303\251faut." };
+static const char* const lang_fr_f649[] = { "Vos propres logos et ceux r\303\251cup\303\251r\303\251s sur le deuxi\303\250me \303\251cran." };
+static const char* const lang_fr_f650[] = { "Vos \303\251crans ont la m\303\252me forme : rien \303\240 faire correspondre" };
+static const char* const lang_fr_f651[] = { "Zoom" };
+static const char* const lang_fr_f652[] = { "couleur" };
+static const char* const lang_fr_f653[] = { "hex" };
+static const char* const lang_fr_f654[] = { "teinte" };
+static const char* const lang_fr_f655[] = { "traduction automatique" };
+static const char* const lang_fr_f656[] = { "pas encore d'\303\251tat sauvegard\303\251 !" };
+static const char* const lang_fr_f657[] = { "d\303\251sactiv\303\251" };
+static const char* const lang_fr_f658[] = { "activ\303\251" };
+static const char* const lang_fr_f659[] = { "point" };
+static const char* const lang_fr_f660[] = { "points" };
+static const char* const lang_fr_f661[] = { "pr\303\251r\303\251glages" };
+static const char* const lang_fr_f662[] = { "appuyez sur le stick gauche" };
+static const char* const lang_fr_f663[] = { "poussez le stick gauche vers la gauche" };
+static const char* const lang_fr_f664[] = { "poussez le stick gauche vers le haut" };
+static const char* const lang_fr_f665[] = { "le bouton du bas" };
+static const char* const lang_fr_f666[] = { "le bouton qui ouvre le menu de GBA DS (Home, Menu ou Function)" };
+static const char* const lang_fr_f667[] = { "le jeu" };
+static const char* const lang_fr_f668[] = { "le bouton de gauche" };
+static const char* const lang_fr_f669[] = { "le bouton d'\303\251paule gauche" };
+static const char* const lang_fr_f670[] = { "le patch \303\240 c\303\264t\303\251 de la ROM" };
+static const char* const lang_fr_f671[] = { "le bouton de droite" };
+static const char* const lang_fr_f672[] = { "le bouton d'\303\251paule droite" };
+static const char* const lang_fr_f673[] = { "le deuxi\303\250me bouton d'\303\251paule gauche" };
+static const char* const lang_fr_f674[] = { "le deuxi\303\250me bouton d'\303\251paule droite" };
+static const char* const lang_fr_f675[] = { "le bouton du haut" };
+static const char* const lang_fr_f676[] = { "la progression non sauvegard\303\251e est perdue" };
+static const char* const lang_fr_f677[] = { "avec le patch" };
+static const char* const lang_fr_f678[] = { "avec %s" };
+static const char* const lang_fr_f679[] = { "avec un autre dump du jeu (%s)" };
+static const char* const lang_fr_f680[] = { "avec une autre version du jeu (d'autres patchs, ou une autre ROM)" };
+static const char* const lang_fr_f681[] = { "avec le jeu non modifi\303\251 (%s)" };
+static const char* const lang_fr_f682[] = { "sans le patch" };
+static const char* const lang_fr_f683[] = { "sans les patchs activ\303\251s" };
+static const char* const lang_fr_f684[] = { "votre position est sauvegard\303\251e" };
+static const char* const lang_fr_f685[] = { "\342\200\271" };
+static const char* const lang_fr_f686[] = { "\342\200\272" };
+static const I18nEntry lang_fr_entries[] = {
+	{ " (patch)", lang_fr_f0, 1 },
+	{ " Checking for a new version...", lang_fr_f1, 1 },
+	{ " It's the newest version.", lang_fr_f2, 1 },
+	{ " ms", lang_fr_f3, 1 },
+	{ " s", lang_fr_f4, 1 },
+	{ "\"Swipe up for quick menu\" at a game's start.", lang_fr_f5, 1 },
+	{ "%ca%d", lang_fr_f6, 1 },
+	{ "%d RetroArch state here", lang_fr_f7, 2 },
+	{ "%d file checked", lang_fr_f8, 2 },
+	{ "%d game found", lang_fr_f9, 2 },
+	{ "%d game found.", lang_fr_f10, 2 },
+	{ "%d of %d", lang_fr_f11, 1 },
+	{ "%d of %d set for %s, kept in controllers.txt beside GBA DS's save states. The line for it is in gba-ds.log too: send it in to have it built into GBA DS for this device.", lang_fr_f12, 1 },
+	{ "%d on", lang_fr_f13, 1 },
+	{ "%s", lang_fr_f14, 1 },
+	{ "%s %s. Choose another if RetroArch keeps its states somewhere else.", lang_fr_f15, 1 },
+	{ "%s (beside the ROM)", lang_fr_f16, 1 },
+	{ "%s as the hotkey button, with Start, R1, L1, X, Y and B", lang_fr_f17, 1 },
+	{ "%s has no button now", lang_fr_f18, 1 },
+	{ "%s is now Start + Select", lang_fr_f19, 1 },
+	{ "%s opens the menu: press another button", lang_fr_f20, 1 },
+	{ "%s v%s. Restarting...", lang_fr_f21, 1 },
+	{ "%s was %s's: that has no button now", lang_fr_f22, 1 },
+	{ "%s, %s", lang_fr_f23, 1 },
+	{ "%s, Select, Start or L3. Tap to keep it as it is", lang_fr_f24, 1 },
+	{ "%u of %u achievements unlocked", lang_fr_f25, 1 },
+	{ ", RetroArch", lang_fr_f26, 1 },
+	{ "1 minute", lang_fr_f27, 1 },
+	{ "10 s", lang_fr_f28, 1 },
+	{ "128 ms", lang_fr_f29, 1 },
+	{ "15 s", lang_fr_f30, 1 },
+	{ "192 ms", lang_fr_f31, 1 },
+	{ "2 minutes", lang_fr_f32, 1 },
+	{ "2x", lang_fr_f33, 1 },
+	{ "30 s", lang_fr_f34, 1 },
+	{ "32 ms", lang_fr_f35, 1 },
+	{ "3x", lang_fr_f36, 1 },
+	{ "4x", lang_fr_f37, 1 },
+	{ "5 minutes", lang_fr_f38, 1 },
+	{ "5x", lang_fr_f39, 1 },
+	{ "64 ms", lang_fr_f40, 1 },
+	{ "96 ms", lang_fr_f41, 1 },
+	{ "A (right) button", lang_fr_f42, 1 },
+	{ "A and B buttons", lang_fr_f43, 1 },
+	{ "A dark line under each row of pixels", lang_fr_f44, 1 },
+	{ "A game's save already next to it, or in the other type, is copied over the first time you play it. .srm is the type RetroArch uses: choose its saves folder too to share each game's save with it.", lang_fr_f45, 1 },
+	{ "A new version of GBA DS", lang_fr_f46, 1 },
+	{ "A pattern over every pixel, on both screens.", lang_fr_f47, 1 },
+	{ "A: the one lit above. Y: all games. X: undo this game's value", lang_fr_f48, 1 },
+	{ "ACHIEVEMENT UNLOCKED", lang_fr_f49, 1 },
+	{ "AM", lang_fr_f50, 1 },
+	{ "Achievements", lang_fr_f51, 1 },
+	{ "Add a note (optional): what happened, and what you expected to happen.", lang_fr_f52, 1 },
+	{ "Adds GBA DS to the emulators for Game Boy Advance games in EmulationStation. Pick it for one game (its Advanced Game Options > Emulator) or for all of them (the system's advanced settings). The other emulators keep working as before.", lang_fr_f53, 1 },
+	{ "All", lang_fr_f54, 1 },
+	{ "All %u achievements unlocked", lang_fr_f55, 1 },
+	{ "All games", lang_fr_f56, 1 },
+	{ "Already the value for all games", lang_fr_f57, 1 },
+	{ "Always", lang_fr_f58, 1 },
+	{ "Always on here", lang_fr_f59, 1 },
+	{ "Always on in this game: it needs it for full speed", lang_fr_f60, 1 },
+	{ "Always on, applied first (RetroArch's way: a patch named as the ROM). %s", lang_fr_f61, 1 },
+	{ "An xdelta made with compression, which GBA DS can't read: patch the ROM with it beforehand, or make it again without (xdelta3 -S none)", lang_fr_f62, 1 },
+	{ "Android's installer couldn't be reached", lang_fr_f63, 1 },
+	{ "Another emulator's", lang_fr_f64, 1 },
+	{ "Apr", lang_fr_f65, 1 },
+	{ "Are You Sure?", lang_fr_f66, 1 },
+	{ "Are you sure? A: switch it %s now and carry on from here. Y: not yet (more changes first). B: call it off", lang_fr_f67, 1 },
+	{ "Are you sure? A: use them now and carry on from here. B: call it off", lang_fr_f68, 1 },
+	{ "Are you sure? Delete them", lang_fr_f69, 1 },
+	{ "Are you sure? Reset settings", lang_fr_f70, 1 },
+	{ "Are you sure? Save your game first. A: restart %s it now. Y: not yet (more changes first). B: call it off", lang_fr_f71, 1 },
+	{ "Are you sure? Save your game first. A: restart now. B: call it off", lang_fr_f72, 1 },
+	{ "Are you sure? Touch it again to delete every game's own settings. Anything else cancels.", lang_fr_f73, 1 },
+	{ "Are you sure? Touch it again to put every setting back to its default. Anything else cancels.", lang_fr_f74, 1 },
+	{ "As fast as it goes", lang_fr_f75, 1 },
+	{ "As the game started", lang_fr_f76, 1 },
+	{ "Aug", lang_fr_f77, 1 },
+	{ "Auto", lang_fr_f78, 1 },
+	{ "Auto-Load: Off", lang_fr_f79, 1 },
+	{ "Auto-Load: On", lang_fr_f80, 1 },
+	{ "Auto-load", lang_fr_f81, 1 },
+	{ "Automatic", lang_fr_f82, 1 },
+	{ "Automatic checks: Off", lang_fr_f83, 1 },
+	{ "Automatic checks: On", lang_fr_f84, 1 },
+	{ "Automatic follows the system. Text that isn't translated yet stays in English.", lang_fr_f85, 1 },
+	{ "B (bottom) button", lang_fr_f86, 1 },
+	{ "Back", lang_fr_f87, 1 },
+	{ "Back online", lang_fr_f88, 1 },
+	{ "Back to %s and the buttons it started with", lang_fr_f89, 1 },
+	{ "BananaOS's systems list has no Game Boy Advance entry.", lang_fr_f90, 1 },
+	{ "Bezel logo", lang_fr_f91, 1 },
+	{ "Blue", lang_fr_f92, 1 },
+	{ "Blurry instead of sharp: usually leave off.", lang_fr_f93, 1 },
+	{ "Both screens", lang_fr_f94, 1 },
+	{ "Bottom screen", lang_fr_f95, 1 },
+	{ "Bottom screen brightness", lang_fr_f96, 1 },
+	{ "Bug Report", lang_fr_f97, 1 },
+	{ "Bug report saved in bug-reports", lang_fr_f98, 1 },
+	{ "Bug report saved in bug-reports.", lang_fr_f99, 1 },
+	{ "Buttons", lang_fr_f100, 1 },
+	{ "Buttons mapped", lang_fr_f101, 1 },
+	{ "Can't be read", lang_fr_f102, 1 },
+	{ "Can't be read: not a patch, or damaged", lang_fr_f103, 1 },
+	{ "Can't find the GBA DS folder.", lang_fr_f104, 1 },
+	{ "Can't reach GBA DS's folder, using %s for now: %s", lang_fr_f105, 1 },
+	{ "Can't rewind further", lang_fr_f106, 1 },
+	{ "Can't save files here: no states, logos or screenshots", lang_fr_f107, 1 },
+	{ "Can't save in the chosen folder, files not moved: %s", lang_fr_f108, 1 },
+	{ "Cancel", lang_fr_f109, 1 },
+	{ "Centered", lang_fr_f110, 1 },
+	{ "Changes some of the same bytes as %s, and goes over it there: they may not work together", lang_fr_f111, 1 },
+	{ "Cheats", lang_fr_f112, 1 },
+	{ "Check now", lang_fr_f113, 1 },
+	{ "Check ra_username and ra_password in gba-ds.cfg", lang_fr_f114, 1 },
+	{ "Check the account in EmulationStation's RetroAchievements settings", lang_fr_f115, 1 },
+	{ "Choose GBA DS folder", lang_fr_f116, 1 },
+	{ "Choose ROM folder", lang_fr_f117, 1 },
+	{ "Choose a folder in Android's file picker...", lang_fr_f118, 1 },
+	{ "Choose it again to close %s: %s", lang_fr_f119, 1 },
+	{ "Choose it again to restart: unsaved progress is lost", lang_fr_f120, 1 },
+	{ "Choose save folder", lang_fr_f121, 1 },
+	{ "Chosen folder is inside GBA DS's own, files not moved: %s", lang_fr_f122, 1 },
+	{ "Chosen folder not found, files not moved: %s", lang_fr_f123, 1 },
+	{ "Chosen here:", lang_fr_f124, 1 },
+	{ "Close GBA DS", lang_fr_f125, 1 },
+	{ "Close Game", lang_fr_f126, 1 },
+	{ "Closest to gap", lang_fr_f127, 1 },
+	{ "Closing a game saves where you are.", lang_fr_f128, 1 },
+	{ "Color", lang_fr_f129, 1 },
+	{ "Color Correction: Off", lang_fr_f130, 1 },
+	{ "Color Correction: On", lang_fr_f131, 1 },
+	{ "Color correction", lang_fr_f132, 1 },
+	{ "Colors as a Game Boy Advance's screen showed them.", lang_fr_f133, 1 },
+	{ "Confirm the update to v%s in Android's installer. Android closes GBA DS while it installs; open it again afterwards. If Android asks first, allow GBA DS to install apps.", lang_fr_f134, 1 },
+	{ "Connect a controller and try again.", lang_fr_f135, 1 },
+	{ "Controls", lang_fr_f136, 1 },
+	{ "Couldn't change %s.", lang_fr_f137, 1 },
+	{ "Couldn't change the files in %s/custom_systems: allow GBA DS All files access in Android's settings.", lang_fr_f138, 1 },
+	{ "Couldn't connect", lang_fr_f139, 1 },
+	{ "Couldn't find GBA DS's folder.", lang_fr_f140, 1 },
+	{ "Couldn't keep that choice.", lang_fr_f141, 1 },
+	{ "Couldn't load the achievements", lang_fr_f142, 1 },
+	{ "Couldn't load the game", lang_fr_f143, 1 },
+	{ "Couldn't move GBA DS's files, they stay in %s", lang_fr_f144, 1 },
+	{ "Couldn't open the file picker.", lang_fr_f145, 1 },
+	{ "Couldn't open the sign-in box.", lang_fr_f146, 1 },
+	{ "Couldn't remove the setting file.", lang_fr_f147, 1 },
+	{ "Couldn't save", lang_fr_f148, 1 },
+	{ "Couldn't save the bug report.", lang_fr_f149, 1 },
+	{ "Couldn't sign in as %s%s%s. Sign in to try again.", lang_fr_f150, 1 },
+	{ "Couldn't write %s.", lang_fr_f151, 1 },
+	{ "Couldn't write to %s.", lang_fr_f152, 1 },
+	{ "Custom", lang_fr_f153, 1 },
+	{ "Custom Logos: Do Not Use", lang_fr_f154, 1 },
+	{ "Custom Logos: Full Detail", lang_fr_f155, 1 },
+	{ "Custom Logos: Pixelated", lang_fr_f156, 1 },
+	{ "Custom logos", lang_fr_f157, 1 },
+	{ "D-pad", lang_fr_f158, 1 },
+	{ "D-pad down", lang_fr_f159, 1 },
+	{ "D-pad left", lang_fr_f160, 1 },
+	{ "D-pad right", lang_fr_f161, 1 },
+	{ "D-pad up", lang_fr_f162, 1 },
+	{ "Dark", lang_fr_f163, 1 },
+	{ "Darkens the bottom screen, in this app only: the device's own brightness is left alone (and this can't go above it).", lang_fr_f164, 1 },
+	{ "Darkens the top screen, in this app only: the device's own brightness is left alone (and this can't go above it).", lang_fr_f165, 1 },
+	{ "Dec", lang_fr_f166, 1 },
+	{ "Del", lang_fr_f167, 1 },
+	{ "Delete per-game settings", lang_fr_f168, 1 },
+	{ "Deleted the settings of %d games.", lang_fr_f169, 1 },
+	{ "Deleted the settings of 1 game.", lang_fr_f170, 1 },
+	{ "Display", lang_fr_f171, 1 },
+	{ "Done", lang_fr_f172, 1 },
+	{ "Done (No Note)", lang_fr_f173, 1 },
+	{ "Down", lang_fr_f174, 1 },
+	{ "Downloading", lang_fr_f175, 1 },
+	{ "ES-DE's folder wasn't found.", lang_fr_f176, 1 },
+	{ "Each pixel a little darker toward its edges", lang_fr_f177, 1 },
+	{ "Earn achievements in casual mode with your retroachievements.org account. GBA DS keeps a sign-in token, not your password.", lang_fr_f178, 1 },
+	{ "English", lang_fr_f179, 1 },
+	{ "Enter both your username and your password.", lang_fr_f180, 1 },
+	{ "Enter your account in the sign-in box...", lang_fr_f181, 1 },
+	{ "Every 0.5 s", lang_fr_f182, 1 },
+	{ "Every 1.5 s", lang_fr_f183, 1 },
+	{ "Every 3 s", lang_fr_f184, 1 },
+	{ "Every button was skipped, so nothing changed.", lang_fr_f185, 1 },
+	{ "Every second", lang_fr_f186, 1 },
+	{ "Fails", lang_fr_f187, 1 },
+	{ "Fast (20 a second)", lang_fr_f188, 1 },
+	{ "Fast Forward: %dx", lang_fr_f189, 1 },
+	{ "Fast Forward: Max", lang_fr_f190, 1 },
+	{ "Fast Forward: Off", lang_fr_f191, 1 },
+	{ "Fast forward", lang_fr_f192, 1 },
+	{ "Fast forwarding...", lang_fr_f193, 1 },
+	{ "Feb", lang_fr_f194, 1 },
+	{ "First run only. B: back", lang_fr_f195, 1 },
+	{ "Folders", lang_fr_f196, 1 },
+	{ "Folders, accounts, updates", lang_fr_f197, 1 },
+	{ "Follows how you hold the phone, and Android's own rotation lock.", lang_fr_f198, 1 },
+	{ "Frame Buffer: Always on here", lang_fr_f199, 1 },
+	{ "Frame Buffer: Off", lang_fr_f200, 1 },
+	{ "Frame Buffer: On", lang_fr_f201, 1 },
+	{ "Frame buffer", lang_fr_f202, 1 },
+	{ "Frames a second above the game, all the time.", lang_fr_f203, 1 },
+	{ "From RetroArch's settings:", lang_fr_f204, 1 },
+	{ "Full Width", lang_fr_f205, 1 },
+	{ "Full detail", lang_fr_f206, 1 },
+	{ "GBA", lang_fr_f207, 1 },
+	{ "GBA A", lang_fr_f208, 1 },
+	{ "GBA A on the right button, or on the bottom one.", lang_fr_f209, 1 },
+	{ "GBA B", lang_fr_f210, 1 },
+	{ "GBA DS Logo: Hide", lang_fr_f211, 1 },
+	{ "GBA DS Logo: Show", lang_fr_f212, 1 },
+	{ "GBA DS Settings", lang_fr_f213, 1 },
+	{ "GBA DS can't save files there: allow it All files access in Android's settings, or choose another folder.", lang_fr_f214, 1 },
+	{ "GBA DS in BananaOS's GBA list: Off", lang_fr_f215, 1 },
+	{ "GBA DS in BananaOS's GBA list: On", lang_fr_f216, 1 },
+	{ "GBA DS in ES-DE: Off", lang_fr_f217, 1 },
+	{ "GBA DS in ES-DE: On", lang_fr_f218, 1 },
+	{ "GBA DS in EmulationStation: Off", lang_fr_f219, 1 },
+	{ "GBA DS in EmulationStation: On", lang_fr_f220, 1 },
+	{ "GBA DS is now ES-DE's emulator for Game Boy Advance games. Quit ES-DE and open it again to see it.", lang_fr_f221, 1 },
+	{ "GBA DS is out of ES-DE's emulator list. Quit ES-DE and open it again to see it.", lang_fr_f222, 1 },
+	{ "GBA DS v%s is out (this is v%s). Update now to download it (%.1f MB) and install it: Android asks you to confirm. Your games, saves, states and settings are kept.", lang_fr_f223, 1 },
+	{ "GBA DS v%s is out (this is v%s). Update now to download it (%.1f MB) and restart into it; your games, saves, states and settings are kept.", lang_fr_f224, 1 },
+	{ "GBA DS's bezel, or your own PNGs, round the picture.", lang_fr_f225, 1 },
+	{ "GBA DS's files are kept there already.", lang_fr_f226, 1 },
+	{ "GBA DS's files go to %s the next time it starts: close GBA DS and open it again.", lang_fr_f227, 1 },
+	{ "GBA DS's own files (states, settings, cheats, overlays) are in %s, moving to %s at the next start.", lang_fr_f228, 1 },
+	{ "GBA DS's own files (states, settings, cheats, overlays) are in %s.", lang_fr_f229, 1 },
+	{ "GBA Down", lang_fr_f230, 1 },
+	{ "GBA L", lang_fr_f231, 1 },
+	{ "GBA Left", lang_fr_f232, 1 },
+	{ "GBA R", lang_fr_f233, 1 },
+	{ "GBA Right", lang_fr_f234, 1 },
+	{ "GBA Up", lang_fr_f235, 1 },
+	{ "Game", lang_fr_f236, 1 },
+	{ "Game below", lang_fr_f237, 1 },
+	{ "Game names", lang_fr_f238, 1 },
+	{ "Game on top", lang_fr_f239, 1 },
+	{ "Game restarted", lang_fr_f240, 1 },
+	{ "Game screen scale", lang_fr_f241, 1 },
+	{ "Games", lang_fr_f242, 1 },
+	{ "Games are read from %s (subfolders too). Saves (%s) are kept in %s.", lang_fr_f243, 1 },
+	{ "Games are read from %s (subfolders too). Saves (%s) are kept next to the games.", lang_fr_f244, 1 },
+	{ "Games picked in BananaOS's own Game Boy Advance list start in GBA DS when it has second-screen support for them. Restart BananaOS after switching this.", lang_fr_f245, 1 },
+	{ "Games shown", lang_fr_f246, 1 },
+	{ "Games without second-screen support play on one screen.", lang_fr_f247, 1 },
+	{ "Generated", lang_fr_f248, 1 },
+	{ "Green", lang_fr_f249, 1 },
+	{ "Held on its side: the two screens side by side. Either way round.", lang_fr_f250, 1 },
+	{ "Held upright: the two screens one above the other. Either way up.", lang_fr_f251, 1 },
+	{ "Hex Color", lang_fr_f252, 1 },
+	{ "Hold L2 to go back in time.", lang_fr_f253, 1 },
+	{ "Hold R2 to play faster.", lang_fr_f254, 1 },
+	{ "Home", lang_fr_f255, 1 },
+	{ "Hotkey button", lang_fr_f256, 1 },
+	{ "Hotkeys", lang_fr_f257, 1 },
+	{ "How dark the grid, scanlines and soft cells are.", lang_fr_f258, 1 },
+	{ "How far back it goes.", lang_fr_f259, 1 },
+	{ "How fast Turbo A and Turbo B press.", lang_fr_f260, 1 },
+	{ "How the game's picture fills its screen.", lang_fr_f261, 1 },
+	{ "How the map or logo fills its screen.", lang_fr_f262, 1 },
+	{ "In a game, hold the hotkey button and press another", lang_fr_f263, 1 },
+	{ "In patches/%s", lang_fr_f264, 1 },
+	{ "Inner Bezel Color", lang_fr_f265, 1 },
+	{ "Installed", lang_fr_f266, 1 },
+	{ "Installing", lang_fr_f267, 1 },
+	{ "Jan", lang_fr_f268, 1 },
+	{ "Jul", lang_fr_f269, 1 },
+	{ "Jun", lang_fr_f270, 1 },
+	{ "Keep device aspect ratios", lang_fr_f271, 1 },
+	{ "Keep device shapes", lang_fr_f272, 1 },
+	{ "Keep saves next to the games", lang_fr_f273, 1 },
+	{ "Kept as it was in %d s if nothing is pressed", lang_fr_f274, 1 },
+	{ "Kept for every game", lang_fr_f275, 1 },
+	{ "Known %s patch, tested: %s", lang_fr_f276, 1 },
+	{ "Known %s patch, untested: %s. The second screen may not work with it", lang_fr_f277, 1 },
+	{ "Known %s patch: %s, made for %s. This ROM is another version: it may break the game", lang_fr_f278, 1 },
+	{ "Known %s patch: %s, made for %s: it can't be switched on for this ROM", lang_fr_f279, 1 },
+	{ "Known romhack: %s, untested", lang_fr_f280, 1 },
+	{ "L button", lang_fr_f281, 1 },
+	{ "LCD Ghosting: Off", lang_fr_f282, 1 },
+	{ "LCD Ghosting: On", lang_fr_f283, 1 },
+	{ "LCD Grid", lang_fr_f284, 1 },
+	{ "LCD ghosting", lang_fr_f285, 1 },
+	{ "Language", lang_fr_f286, 1 },
+	{ "Last checked %s.", lang_fr_f287, 1 },
+	{ "Later", lang_fr_f288, 1 },
+	{ "Left", lang_fr_f289, 1 },
+	{ "Left out where it is: it's made for the unchanged ROM, so it has to be first (only one such patch can be on). Move it up with X", lang_fr_f290, 1 },
+	{ "Left stick as D-pad", lang_fr_f291, 1 },
+	{ "Left stick: left", lang_fr_f292, 1 },
+	{ "Left stick: up", lang_fr_f293, 1 },
+	{ "Let the System Decide", lang_fr_f294, 1 },
+	{ "Light", lang_fr_f295, 1 },
+	{ "Light/dark mode", lang_fr_f296, 1 },
+	{ "Like a GBA", lang_fr_f297, 1 },
+	{ "Lines between the pixels, like a GBA's screen", lang_fr_f298, 1 },
+	{ "Load State", lang_fr_f299, 1 },
+	{ "Load State %d", lang_fr_f300, 1 },
+	{ "Load failed", lang_fr_f301, 1 },
+	{ "Load failed.", lang_fr_f302, 1 },
+	{ "Loading games...", lang_fr_f303, 1 },
+	{ "Loading the achievements...", lang_fr_f304, 1 },
+	{ "Loading thumbnail...", lang_fr_f305, 1 },
+	{ "Made for another version of the game: it can't be switched on for this ROM", lang_fr_f306, 1 },
+	{ "Makes GBA DS the emulator for Game Boy Advance games in ES-DE. For a game it doesn't support, choose another in ES-DE (the game's metadata > Alternative emulator).", lang_fr_f307, 1 },
+	{ "Map", lang_fr_f308, 1 },
+	{ "Map Buttons", lang_fr_f309, 1 },
+	{ "Map buttons", lang_fr_f310, 1 },
+	{ "Map refresh", lang_fr_f311, 1 },
+	{ "Mar", lang_fr_f312, 1 },
+	{ "Match Display Rate: Off", lang_fr_f313, 1 },
+	{ "Match Display Rate: Off for now", lang_fr_f314, 1 },
+	{ "Match Display Rate: On", lang_fr_f315, 1 },
+	{ "Match aspect ratios", lang_fr_f316, 1 },
+	{ "Match display rate", lang_fr_f317, 1 },
+	{ "Match screen aspect ratios", lang_fr_f318, 1 },
+	{ "Match screen sizes and aspect ratios", lang_fr_f319, 1 },
+	{ "Match sizes and shapes", lang_fr_f320, 1 },
+	{ "Max: full speed, a warmer device and a shorter battery.", lang_fr_f321, 1 },
+	{ "May", lang_fr_f322, 1 },
+	{ "Medium (15 a second)", lang_fr_f323, 1 },
+	{ "Modified ROM: the second screen may not work", lang_fr_f324, 1 },
+	{ "Move", lang_fr_f325, 1 },
+	{ "Moving it: Up / Down or tap where it goes, then A (or tap it again). The one lower in the list is applied later", lang_fr_f326, 1 },
+	{ "Moving things leave a short trail, as on a GBA.", lang_fr_f327, 1 },
+	{ "NOTE: Unsupported games will play in RetroArch, but without BananaOS's own second screen (its game panel and companions).", lang_fr_f328, 1 },
+	{ "New", lang_fr_f329, 1 },
+	{ "No RetroArch states here", lang_fr_f330, 1 },
+	{ "No achievements for this ROM (MD5 %s)", lang_fr_f331, 1 },
+	{ "No cheats found (see Cheats in the wiki)", lang_fr_f332, 1 },
+	{ "No controller found", lang_fr_f333, 1 },
+	{ "No es_systems.cfg found.", lang_fr_f334, 1 },
+	{ "No folder chosen.", lang_fr_f335, 1 },
+	{ "No folders in this one", lang_fr_f336, 1 },
+	{ "No game has settings of its own.", lang_fr_f337, 1 },
+	{ "No games found", lang_fr_f338, 1 },
+	{ "No patches here yet", lang_fr_f339, 1 },
+	{ "No quick state saved yet.", lang_fr_f340, 1 },
+	{ "No supported games in", lang_fr_f341, 1 },
+	{ "None", lang_fr_f342, 1 },
+	{ "Not in the folder any more: it's left out", lang_fr_f343, 1 },
+	{ "Not resumed: RetroArch's automatic state is from another of its GBA cores. To share states, set RetroArch's GBA core to mGBA.", lang_fr_f344, 1 },
+	{ "Not used", lang_fr_f345, 1 },
+	{ "Nothing", lang_fr_f346, 1 },
+	{ "Nothing mapped", lang_fr_f347, 1 },
+	{ "Nothing saved in slot %d yet", lang_fr_f348, 1 },
+	{ "Nothing to report yet.", lang_fr_f349, 1 },
+	{ "Nov", lang_fr_f350, 1 },
+	{ "Now", lang_fr_f351, 1 },
+	{ "OK", lang_fr_f352, 1 },
+	{ "Oct", lang_fr_f353, 1 },
+	{ "Off", lang_fr_f354, 1 },
+	{ "Off for slower devices: the table on one screen. Close and restart GBA DS to apply.", lang_fr_f355, 1 },
+	{ "Off while a patch is on", lang_fr_f356, 1 },
+	{ "Off.", lang_fr_f357, 1 },
+	{ "Off. Restart BananaOS (Settings > System) for its menu to use it.", lang_fr_f358, 1 },
+	{ "Off. Restart EmulationStation to apply.", lang_fr_f359, 1 },
+	{ "Off: every game plays like an ordinary GBA game.", lang_fr_f360, 1 },
+	{ "Off: the left stick does nothing in games.", lang_fr_f361, 1 },
+	{ "Offline", lang_fr_f362, 1 },
+	{ "On", lang_fr_f363, 1 },
+	{ "On.", lang_fr_f364, 1 },
+	{ "On. Restart BananaOS (Settings > System) for its menu to use it.", lang_fr_f365, 1 },
+	{ "On. Restart EmulationStation to see it.", lang_fr_f366, 1 },
+	{ "Only games with a map screen are listed (show_all = 1 lists every one)", lang_fr_f367, 1 },
+	{ "Only one screen: nothing to move", lang_fr_f368, 1 },
+	{ "Only patches that are on have an order, and this is the only one", lang_fr_f369, 1 },
+	{ "Only when your two screens differ in shape. Experimental.", lang_fr_f370, 1 },
+	{ "Open quick menu", lang_fr_f371, 1 },
+	{ "Opens the bezel's own page, for whichever the game or all games have", lang_fr_f372, 1 },
+	{ "Orange", lang_fr_f373, 1 },
+	{ "Outer Bezel Color", lang_fr_f374, 1 },
+	{ "Overlay colors and logo", lang_fr_f375, 1 },
+	{ "Overlays", lang_fr_f376, 1 },
+	{ "Overlays on", lang_fr_f377, 1 },
+	{ "Overlays: Custom", lang_fr_f378, 1 },
+	{ "Overlays: Custom (in /overlays)", lang_fr_f379, 1 },
+	{ "Overlays: Generated", lang_fr_f380, 1 },
+	{ "Overlays: Off", lang_fr_f381, 1 },
+	{ "PM", lang_fr_f382, 1 },
+	{ "Patch not applied: %s can't be read", lang_fr_f383, 1 },
+	{ "Patch not applied: %s is for another ROM", lang_fr_f384, 1 },
+	{ "Patched, but a patch was left out: see Patches in the game's menu", lang_fr_f385, 1 },
+	{ "Patched: the second screen may not work", lang_fr_f386, 1 },
+	{ "Patches", lang_fr_f387, 1 },
+	{ "Patches changed", lang_fr_f388, 1 },
+	{ "Patches changed since the game started", lang_fr_f389, 1 },
+	{ "Patches changed: carrying on from where you were", lang_fr_f390, 1 },
+	{ "Pattern strength", lang_fr_f391, 1 },
+	{ "Paused", lang_fr_f392, 1 },
+	{ "Performance", lang_fr_f393, 1 },
+	{ "Performance: Let the System Decide", lang_fr_f394, 1 },
+	{ "Performance: Set to Max", lang_fr_f395, 1 },
+	{ "Pictures in the middle of their screens, or close together.", lang_fr_f396, 1 },
+	{ "Pinball two-screen view", lang_fr_f397, 1 },
+	{ "Pink", lang_fr_f398, 1 },
+	{ "Pinned: the bar stays up.", lang_fr_f399, 1 },
+	{ "Pixel Perfect", lang_fr_f400, 1 },
+	{ "Pixelated", lang_fr_f401, 1 },
+	{ "Placement, overlays", lang_fr_f402, 1 },
+	{ "Plain", lang_fr_f403, 1 },
+	{ "Play", lang_fr_f404, 1 },
+	{ "Playing without achievements this time", lang_fr_f405, 1 },
+	{ "Preparing the game...", lang_fr_f406, 1 },
+	{ "Press %s", lang_fr_f407, 1 },
+	{ "Press A or tap to close", lang_fr_f408, 1 },
+	{ "Press A to close", lang_fr_f409, 1 },
+	{ "Press a button", lang_fr_f410, 1 },
+	{ "Purple", lang_fr_f411, 1 },
+	{ "Push the stick: buttons don't count for this one.", lang_fr_f412, 1 },
+	{ "Put .ips, .ups, .bps or .xdelta files in %s", lang_fr_f413, 1 },
+	{ "Quick bar hint", lang_fr_f414, 1 },
+	{ "Quick load state", lang_fr_f415, 1 },
+	{ "Quick save state", lang_fr_f416, 1 },
+	{ "Quit", lang_fr_f417, 1 },
+	{ "R button", lang_fr_f418, 1 },
+	{ "RETROACHIEVEMENTS \302\267 CASUAL", lang_fr_f419, 1 },
+	{ "Raise it if the sound crackles.", lang_fr_f420, 1 },
+	{ "Red", lang_fr_f421, 1 },
+	{ "Red, green and blue stripes, gentle: for dim screens", lang_fr_f422, 1 },
+	{ "Red, green and blue stripes, like a GBA's screen", lang_fr_f423, 1 },
+	{ "Red, green and blue stripes, strong: for bright screens", lang_fr_f424, 1 },
+	{ "Reset", lang_fr_f425, 1 },
+	{ "Reset Bezels", lang_fr_f426, 1 },
+	{ "Reset settings to defaults", lang_fr_f427, 1 },
+	{ "Restart", lang_fr_f428, 1 },
+	{ "Restart Game", lang_fr_f429, 1 },
+	{ "Restart from the top row to play with it (or it's used from the next start)", lang_fr_f430, 1 },
+	{ "Restart from the top row to play with this order", lang_fr_f431, 1 },
+	{ "Restart required", lang_fr_f432, 1 },
+	{ "Resume", lang_fr_f433, 1 },
+	{ "Resumed. Tap or HOME for the menu", lang_fr_f434, 1 },
+	{ "RetroAchievements couldn't start", lang_fr_f435, 1 },
+	{ "RetroAchievements doesn't allow patched games", lang_fr_f436, 1 },
+	{ "RetroAchievements is off", lang_fr_f437, 1 },
+	{ "RetroAchievements: Off", lang_fr_f438, 1 },
+	{ "RetroAchievements: Sign In", lang_fr_f439, 1 },
+	{ "RetroAchievements: Sign Out", lang_fr_f440, 1 },
+	{ "RetroAchievements: Signing In...", lang_fr_f441, 1 },
+	{ "RetroArch's State Folder", lang_fr_f442, 1 },
+	{ "RetroArch's settings weren't found here: choose the folder where it keeps its save states.", lang_fr_f443, 1 },
+	{ "RetroArch's settings weren't found, so slots 0-9 and the automatic state are GBA DS's own again.", lang_fr_f444, 1 },
+	{ "RetroArch's state folder is found from its settings again: %s.", lang_fr_f445, 1 },
+	{ "Rewind", lang_fr_f446, 1 },
+	{ "Rewind length", lang_fr_f447, 1 },
+	{ "Rewind, fast forward", lang_fr_f448, 1 },
+	{ "Rewind: Off", lang_fr_f449, 1 },
+	{ "Rewind: On", lang_fr_f450, 1 },
+	{ "Rewinding...", lang_fr_f451, 1 },
+	{ "Right", lang_fr_f452, 1 },
+	{ "Romhack: %s%s", lang_fr_f453, 1 },
+	{ "Romhack: %s%s, untested", lang_fr_f454, 1 },
+	{ "Rotation: Auto", lang_fr_f455, 1 },
+	{ "Rotation: Landscape", lang_fr_f456, 1 },
+	{ "Rotation: Portrait", lang_fr_f457, 1 },
+	{ "Run at the display's rate: no small regular stutter.", lang_fr_f458, 1 },
+	{ "SNES", lang_fr_f459, 1 },
+	{ "Same as all games again", lang_fr_f460, 1 },
+	{ "Save State", lang_fr_f461, 1 },
+	{ "Save State %d", lang_fr_f462, 1 },
+	{ "Save States: GBA DS's Own", lang_fr_f463, 1 },
+	{ "Save States: Shared with RetroArch", lang_fr_f464, 1 },
+	{ "Save failed", lang_fr_f465, 1 },
+	{ "Save failed.", lang_fr_f466, 1 },
+	{ "Save files: .sav", lang_fr_f467, 1 },
+	{ "Save files: .srm (RetroArch's)", lang_fr_f468, 1 },
+	{ "Save on Quit: Off", lang_fr_f469, 1 },
+	{ "Save on Quit: On", lang_fr_f470, 1 },
+	{ "Save on quit", lang_fr_f471, 1 },
+	{ "Saved by another emulator: can't load it", lang_fr_f472, 1 },
+	{ "Saved for all games", lang_fr_f473, 1 },
+	{ "Saved for this game", lang_fr_f474, 1 },
+	{ "Saved for when a patch is on", lang_fr_f475, 1 },
+	{ "Saves will be kept next to the games.", lang_fr_f476, 1 },
+	{ "Saves will be kept there.", lang_fr_f477, 1 },
+	{ "Scale, shader, theme, color", lang_fr_f478, 1 },
+	{ "Scale: Full Width", lang_fr_f479, 1 },
+	{ "Scale: Pixel Perfect", lang_fr_f480, 1 },
+	{ "Scale: Stretch", lang_fr_f481, 1 },
+	{ "Scale: Zoom", lang_fr_f482, 1 },
+	{ "Scanlines", lang_fr_f483, 1 },
+	{ "Screen Placement: Centered", lang_fr_f484, 1 },
+	{ "Screen Placement: Closest to Gap", lang_fr_f485, 1 },
+	{ "Screen placement", lang_fr_f486, 1 },
+	{ "Screen shapes", lang_fr_f487, 1 },
+	{ "Screens", lang_fr_f488, 1 },
+	{ "Screenshot failed", lang_fr_f489, 1 },
+	{ "Screenshot saved", lang_fr_f490, 1 },
+	{ "Second screen", lang_fr_f491, 1 },
+	{ "Second screen scale", lang_fr_f492, 1 },
+	{ "Select", lang_fr_f493, 1 },
+	{ "Select or Start still reach the game when tapped on their own, L3 still opens the quick menu", lang_fr_f494, 1 },
+	{ "Sep", lang_fr_f495, 1 },
+	{ "Separate battery save", lang_fr_f496, 1 },
+	{ "Separate save states", lang_fr_f497, 1 },
+	{ "Set for now, but %s couldn't be written.", lang_fr_f498, 1 },
+	{ "Set to Max", lang_fr_f499, 1 },
+	{ "Sets the shortcuts: the hotkey button held with another.", lang_fr_f500, 1 },
+	{ "Sets which of this device's buttons does what.", lang_fr_f501, 1 },
+	{ "Settings", lang_fr_f502, 1 },
+	{ "Settings are back to their defaults.", lang_fr_f503, 1 },
+	{ "Shader", lang_fr_f504, 1 },
+	{ "Shader: LCD Grid", lang_fr_f505, 1 },
+	{ "Shader: Off", lang_fr_f506, 1 },
+	{ "Shader: Scanlines", lang_fr_f507, 1 },
+	{ "Shader: Soft Cells", lang_fr_f508, 1 },
+	{ "Shader: Subpixels", lang_fr_f509, 1 },
+	{ "Shader: Subpixels (Light)", lang_fr_f510, 1 },
+	{ "Shader: Subpixels (Strong)", lang_fr_f511, 1 },
+	{ "Shorter can make the sound crackle on a slow device.", lang_fr_f512, 1 },
+	{ "Show FPS", lang_fr_f513, 1 },
+	{ "Show FPS: Off", lang_fr_f514, 1 },
+	{ "Show FPS: On", lang_fr_f515, 1 },
+	{ "Sign in again in the game list's Settings", lang_fr_f516, 1 },
+	{ "Sign-in failed", lang_fr_f517, 1 },
+	{ "Signed in as %s. Achievements are earned in casual mode.", lang_fr_f518, 1 },
+	{ "Signed out of RetroAchievements.", lang_fr_f519, 1 },
+	{ "Signing in as %s...", lang_fr_f520, 1 },
+	{ "Single screen only", lang_fr_f521, 1 },
+	{ "Single screen only: plays normally", lang_fr_f522, 1 },
+	{ "Skip", lang_fr_f523, 1 },
+	{ "Skip this version", lang_fr_f524, 1 },
+	{ "Skipped in %d s if nothing is pressed", lang_fr_f525, 1 },
+	{ "Slot %d loaded", lang_fr_f526, 1 },
+	{ "Slot %d: %s", lang_fr_f527, 1 },
+	{ "Slot %d: %s %d, %d%s", lang_fr_f528, 1 },
+	{ "Slot %d: %s %d, %d:%02d %s%s", lang_fr_f529, 1 },
+	{ "Slot %d: Empty", lang_fr_f530, 1 },
+	{ "Slots 0-9 and the automatic state are GBA DS's own again. The states saved in RetroArch's folder stay there.", lang_fr_f531, 1 },
+	{ "Slots 0-9 and the automatic state are now RetroArch's. GBA DS's own states stay in its folder, for when this is switched back.", lang_fr_f532, 1 },
+	{ "Slots 0-9 and the automatic state are now shared with RetroArch, in %s.", lang_fr_f533, 1 },
+	{ "Slots 0-9 and the resume point are GBA DS's own. Shared, they're RetroArch's: %s.", lang_fr_f534, 1 },
+	{ "Slots 0-9 and the resume point are GBA DS's own. To share them, choose RetroArch's state folder.", lang_fr_f535, 1 },
+	{ "Slots 0-9 and the resume point are RetroArch's (its GBA core set to mGBA): %s.", lang_fr_f536, 1 },
+	{ "Slow (10 a second)", lang_fr_f537, 1 },
+	{ "Smooth scaling", lang_fr_f538, 1 },
+	{ "Smoother, one frame more input delay.", lang_fr_f539, 1 },
+	{ "Soft Cells", lang_fr_f540, 1 },
+	{ "Some files couldn't be moved, they're still in %s", lang_fr_f541, 1 },
+	{ "Sound delay", lang_fr_f542, 1 },
+	{ "Space", lang_fr_f543, 1 },
+	{ "Speed", lang_fr_f544, 1 },
+	{ "Speed and sound", lang_fr_f545, 1 },
+	{ "Start", lang_fr_f546, 1 },
+	{ "Starting a game picks up where you closed it.", lang_fr_f547, 1 },
+	{ "State loaded.", lang_fr_f548, 1 },
+	{ "State saved to slot %d", lang_fr_f549, 1 },
+	{ "State saved.", lang_fr_f550, 1 },
+	{ "Stick, buttons, hotkeys", lang_fr_f551, 1 },
+	{ "Stretch", lang_fr_f552, 1 },
+	{ "Submit a Bug Report", lang_fr_f553, 1 },
+	{ "Subpixels", lang_fr_f554, 1 },
+	{ "Subpixels (Light)", lang_fr_f555, 1 },
+	{ "Subpixels (Strong)", lang_fr_f556, 1 },
+	{ "Supported", lang_fr_f557, 1 },
+	{ "Supported games only", lang_fr_f558, 1 },
+	{ "Sure?", lang_fr_f559, 1 },
+	{ "Swap Screens", lang_fr_f560, 1 },
+	{ "Swap screens", lang_fr_f561, 1 },
+	{ "Swapped", lang_fr_f562, 1 },
+	{ "Swipe up for quick menu", lang_fr_f563, 1 },
+	{ "Switched off in gba-ds.cfg (retroachievements = 0).", lang_fr_f564, 1 },
+	{ "System", lang_fr_f565, 1 },
+	{ "Tags in a ROM's file name, like (USA) or (En,Fr,De).", lang_fr_f566, 1 },
+	{ "Take Screenshot", lang_fr_f567, 1 },
+	{ "Takes effect after you close and restart GBA DS", lang_fr_f568, 1 },
+	{ "Tap again to close GBA DS.", lang_fr_f569, 1 },
+	{ "Tap the screen or press HOME for the menu", lang_fr_f570, 1 },
+	{ "Tap the touchscreen to skip a button this device doesn't have", lang_fr_f571, 1 },
+	{ "Tap to set none", lang_fr_f572, 1 },
+	{ "Tap to skip a button this device doesn't have", lang_fr_f573, 1 },
+	{ "Teal", lang_fr_f574, 1 },
+	{ "Tested romhack: %s", lang_fr_f575, 1 },
+	{ "That one comes as a keyboard key here: it can't be mapped. Tap to skip.", lang_fr_f576, 1 },
+	{ "That one is already %s. Press another, or tap to skip.", lang_fr_f577, 1 },
+	{ "That's inside GBA DS's own folder: choose one outside it.", lang_fr_f578, 1 },
+	{ "That's the hotkey button: press another", lang_fr_f579, 1 },
+	{ "The GBA DS logo in the generated bezel.", lang_fr_f580, 1 },
+	{ "The game's pixels as they are", lang_fr_f581, 1 },
+	{ "The hotkey button can be %s, Select, Start or L3", lang_fr_f582, 1 },
+	{ "The map and the logo", lang_fr_f583, 1 },
+	{ "The menus' buttons: dark grey, or light grey like the web player's.", lang_fr_f584, 1 },
+	{ "The menus' color for what's selected, with a dark and a light version of each.", lang_fr_f585, 1 },
+	{ "The patches aren't as the game started: restart it to play with them (or they're used from the next start)", lang_fr_f586, 1 },
+	{ "The processor, memory and graphics run at full speed while GBA DS is open: the smoothest play, but the battery runs down faster and the device gets warmer.", lang_fr_f587, 1 },
+	{ "The system sets the speed, as for its other emulators. If games stutter or the sound breaks up, try Set to Max.", lang_fr_f588, 1 },
+	{ "This folder can't be opened", lang_fr_f589, 1 },
+	{ "This game", lang_fr_f590, 1 },
+	{ "This game has its own value. X, or going on past the last choice: same as all games", lang_fr_f591, 1 },
+	{ "This game has no achievements yet", lang_fr_f592, 1 },
+	{ "This is GBA DS v%s.", lang_fr_f593, 1 },
+	{ "This is v%s. Look for a new version, and download and install it.", lang_fr_f594, 1 },
+	{ "This state can't be read", lang_fr_f595, 1 },
+	{ "This state was saved %s: it may not work", lang_fr_f596, 1 },
+	{ "Together: %s", lang_fr_f597, 1 },
+	{ "Toggle selected shader", lang_fr_f598, 1 },
+	{ "Top screen", lang_fr_f599, 1 },
+	{ "Top screen brightness", lang_fr_f600, 1 },
+	{ "Touch or use the D-Pad", lang_fr_f601, 1 },
+	{ "Turbo A", lang_fr_f602, 1 },
+	{ "Turbo B", lang_fr_f603, 1 },
+	{ "Turbo speed", lang_fr_f604, 1 },
+	{ "Turns this ROM into another official release: %s", lang_fr_f605, 1 },
+	{ "Unexpected es_systems.cfg (see the log).", lang_fr_f606, 1 },
+	{ "Unknown version of this game", lang_fr_f607, 1 },
+	{ "Unlocked", lang_fr_f608, 1 },
+	{ "Unlocks sent", lang_fr_f609, 1 },
+	{ "Unlocks will be sent when the connection is back", lang_fr_f610, 1 },
+	{ "Unpinned: the bar hides after 5 seconds.", lang_fr_f611, 1 },
+	{ "Untested: the second screen may not work with it", lang_fr_f612, 1 },
+	{ "Up", lang_fr_f613, 1 },
+	{ "Up to %d patches can be on at once", lang_fr_f614, 1 },
+	{ "Up to %s", lang_fr_f615, 1 },
+	{ "Update now", lang_fr_f616, 1 },
+	{ "Updates", lang_fr_f617, 1 },
+	{ "Updates, integrations", lang_fr_f618, 1 },
+	{ "Use This Folder", lang_fr_f619, 1 },
+	{ "Used from the next time the game starts", lang_fr_f620, 1 },
+	{ "Volume %d%%", lang_fr_f621, 1 },
+	{ "What D-pad down gives the game.", lang_fr_f622, 1 },
+	{ "What D-pad left gives the game.", lang_fr_f623, 1 },
+	{ "What D-pad right gives the game.", lang_fr_f624, 1 },
+	{ "What D-pad up gives the game.", lang_fr_f625, 1 },
+	{ "What the L shoulder button gives the game.", lang_fr_f626, 1 },
+	{ "What the R shoulder button gives the game.", lang_fr_f627, 1 },
+	{ "What the bottom face button gives the game.", lang_fr_f628, 1 },
+	{ "What the left face button gives the game.", lang_fr_f629, 1 },
+	{ "What the right face button gives the game.", lang_fr_f630, 1 },
+	{ "What the top face button gives the game.", lang_fr_f631, 1 },
+	{ "Where games are read from, and the folder their saves are kept in.", lang_fr_f632, 1 },
+	{ "Where games are read from. Their saves are kept next to them.", lang_fr_f633, 1 },
+	{ "Which Screen: Both", lang_fr_f634, 1 },
+	{ "Which Screen: Bottom Only", lang_fr_f635, 1 },
+	{ "Which Screen: Top Only", lang_fr_f636, 1 },
+	{ "Which games, names, saving", lang_fr_f637, 1 },
+	{ "Which screen the game is on.", lang_fr_f638, 1 },
+	{ "Which screens have them.", lang_fr_f639, 1 },
+	{ "With Four buttons picked under Controls in the quick bar, the four-button layout replaces these.", lang_fr_f640, 1 },
+	{ "With SNES picked under Controls in the quick bar, the SNES layout replaces these in levels.", lang_fr_f641, 1 },
+	{ "With a patch on, the game keeps its own battery save (\"<game> + <patch>\"): off, it uses the original's", lang_fr_f642, 1 },
+	{ "With a patch on, the game keeps its own save states: off, it uses the original's (a state can come out garbled in the other)", lang_fr_f643, 1 },
+	{ "With automatic checks on, GBA DS looks for a new version once a day when the game list opens, and asks before downloading anything. Updates come from the releases on github.com/kyannon/gba-ds.", lang_fr_f644, 1 },
+	{ "With tags, like (USA)", lang_fr_f645, 1 },
+	{ "X (top) button", lang_fr_f646, 1 },
+	{ "Y (left) button", lang_fr_f647, 1 },
+	{ "Your own PNGs in gba-ds/overlays/. A screen without one gets the generated bezel in its default colors.", lang_fr_f648, 1 },
+	{ "Your own and scraped logos on the second screen.", lang_fr_f649, 1 },
+	{ "Your screens are the same shape: nothing to match", lang_fr_f650, 1 },
+	{ "Zoom", lang_fr_f651, 1 },
+	{ "color", lang_fr_f652, 1 },
+	{ "hex", lang_fr_f653, 1 },
+	{ "hue", lang_fr_f654, 1 },
+	{ "machine translated", lang_fr_f655, 1 },
+	{ "no save state yet!", lang_fr_f656, 1 },
+	{ "off", lang_fr_f657, 1 },
+	{ "on", lang_fr_f658, 1 },
+	{ "point", lang_fr_f659, 1 },
+	{ "points", lang_fr_f660, 1 },
+	{ "presets", lang_fr_f661, 1 },
+	{ "press the left stick in", lang_fr_f662, 1 },
+	{ "push the left stick left", lang_fr_f663, 1 },
+	{ "push the left stick up", lang_fr_f664, 1 },
+	{ "the bottom face button", lang_fr_f665, 1 },
+	{ "the button that opens GBA DS's menu (Home, Menu or Function)", lang_fr_f666, 1 },
+	{ "the game", lang_fr_f667, 1 },
+	{ "the left face button", lang_fr_f668, 1 },
+	{ "the left shoulder button", lang_fr_f669, 1 },
+	{ "the patch beside the ROM", lang_fr_f670, 1 },
+	{ "the right face button", lang_fr_f671, 1 },
+	{ "the right shoulder button", lang_fr_f672, 1 },
+	{ "the second left shoulder button", lang_fr_f673, 1 },
+	{ "the second right shoulder button", lang_fr_f674, 1 },
+	{ "the top face button", lang_fr_f675, 1 },
+	{ "unsaved progress is lost", lang_fr_f676, 1 },
+	{ "with", lang_fr_f677, 1 },
+	{ "with %s", lang_fr_f678, 1 },
+	{ "with another dump of the game (%s)", lang_fr_f679, 1 },
+	{ "with another version of the game (other patches, or another ROM)", lang_fr_f680, 1 },
+	{ "with the unchanged game (%s)", lang_fr_f681, 1 },
+	{ "without", lang_fr_f682, 1 },
+	{ "without the patches on", lang_fr_f683, 1 },
+	{ "your place is saved", lang_fr_f684, 1 },
+	{ "\342\200\271", lang_fr_f685, 1 },
+	{ "\342\200\272", lang_fr_f686, 1 },
+};
+
+static const char* const lang_it_f0[] = { " (patch)" };
+static const char* const lang_it_f1[] = { " Controllo di una nuova versione..." };
+static const char* const lang_it_f2[] = { " \303\210 la versione pi\303\271 recente." };
+static const char* const lang_it_f3[] = { " ms" };
+static const char* const lang_it_f4[] = { " s" };
+static const char* const lang_it_f5[] = { "\302\253Scorri verso l'alto per il menu rapido\302\273 all'avvio di un gioco." };
+static const char* const lang_it_f6[] = { "%ca%d" };
+static const char* const lang_it_f7[] = { "%d stato RetroArch qui", "%d stati RetroArch qui" };
+static const char* const lang_it_f8[] = { "%d file controllato", "%d file controllati" };
+static const char* const lang_it_f9[] = { "%d gioco trovato", "%d giochi trovati" };
+static const char* const lang_it_f10[] = { "%d gioco trovato.", "%d giochi trovati." };
+static const char* const lang_it_f11[] = { "%d di %d" };
+static const char* const lang_it_f12[] = { "%d di %d impostati per %s, salvati in controllers.txt accanto agli stati di GBA DS. La riga \303\250 anche in gba-ds.log: inviala per farla integrare in GBA DS per questo dispositivo." };
+static const char* const lang_it_f13[] = { "%d attivi" };
+static const char* const lang_it_f14[] = { "%s" };
+static const char* const lang_it_f15[] = { "%s %s. Scegline un'altra se RetroArch tiene i suoi stati altrove." };
+static const char* const lang_it_f16[] = { "%s (accanto alla ROM)" };
+static const char* const lang_it_f17[] = { "%s come tasto scorciatoia, con Start, R1, L1, X, Y e B" };
+static const char* const lang_it_f18[] = { "%s non ha pi\303\271 un tasto" };
+static const char* const lang_it_f19[] = { "%s ora \303\250 Start + Select" };
+static const char* const lang_it_f20[] = { "%s apre il menu: premi un altro tasto" };
+static const char* const lang_it_f21[] = { "%s v%s. Riavvio..." };
+static const char* const lang_it_f22[] = { "%s era di %s: ora non ha pi\303\271 un tasto" };
+static const char* const lang_it_f23[] = { "%s, %s" };
+static const char* const lang_it_f24[] = { "%s, Select, Start o L3. Tocca per lasciarlo com'\303\250" };
+static const char* const lang_it_f25[] = { "%u obiettivi su %u sbloccati" };
+static const char* const lang_it_f26[] = { ", RetroArch" };
+static const char* const lang_it_f27[] = { "1 minuto" };
+static const char* const lang_it_f28[] = { "10 s" };
+static const char* const lang_it_f29[] = { "128 ms" };
+static const char* const lang_it_f30[] = { "15 s" };
+static const char* const lang_it_f31[] = { "192 ms" };
+static const char* const lang_it_f32[] = { "2 minuti" };
+static const char* const lang_it_f33[] = { "2x" };
+static const char* const lang_it_f34[] = { "30 s" };
+static const char* const lang_it_f35[] = { "32 ms" };
+static const char* const lang_it_f36[] = { "3x" };
+static const char* const lang_it_f37[] = { "4x" };
+static const char* const lang_it_f38[] = { "5 minuti" };
+static const char* const lang_it_f39[] = { "5x" };
+static const char* const lang_it_f40[] = { "64 ms" };
+static const char* const lang_it_f41[] = { "96 ms" };
+static const char* const lang_it_f42[] = { "Pulsante A (destra)" };
+static const char* const lang_it_f43[] = { "Pulsanti A e B" };
+static const char* const lang_it_f44[] = { "Una linea scura sotto ogni riga di pixel" };
+static const char* const lang_it_f45[] = { "Un salvataggio del gioco gi\303\240 accanto, o dell'altro tipo, viene copiato la prima volta che giochi. .srm \303\250 il tipo usato da RetroArch: scegli anche la sua cartella dei salvataggi per condividere quello di ogni gioco con lui." };
+static const char* const lang_it_f46[] = { "Una nuova versione di GBA DS" };
+static const char* const lang_it_f47[] = { "Una trama su ogni pixel, su entrambi gli schermi." };
+static const char* const lang_it_f48[] = { "A: quello evidenziato sopra. Y: tutti i giochi. X: annulla il valore di questo gioco" };
+static const char* const lang_it_f49[] = { "OBIETTIVO SBLOCCATO" };
+static const char* const lang_it_f50[] = { "AM" };
+static const char* const lang_it_f51[] = { "Obiettivi" };
+static const char* const lang_it_f52[] = { "Aggiungi una nota (facoltativa): cos'\303\250 successo e cosa ti aspettavi." };
+static const char* const lang_it_f53[] = { "Aggiunge GBA DS agli emulatori per i giochi Game Boy Advance in EmulationStation. Sceglilo per un gioco (Opzioni avanzate del gioco > Emulatore) o per tutti (impostazioni avanzate del sistema). Gli altri emulatori continuano a funzionare come prima." };
+static const char* const lang_it_f54[] = { "Tutti" };
+static const char* const lang_it_f55[] = { "Tutti i %u obiettivi sbloccati" };
+static const char* const lang_it_f56[] = { "Tutti i giochi" };
+static const char* const lang_it_f57[] = { "Gi\303\240 il valore di tutti i giochi" };
+static const char* const lang_it_f58[] = { "Sempre" };
+static const char* const lang_it_f59[] = { "Sempre attivo qui" };
+static const char* const lang_it_f60[] = { "Sempre attivo in questo gioco: ne ha bisogno per girare a piena velocit\303\240" };
+static const char* const lang_it_f61[] = { "Sempre attivo, applicato per primo (alla maniera di RetroArch: una patch con il nome della ROM). %s" };
+static const char* const lang_it_f62[] = { "Uno xdelta creato con compressione, che GBA DS non sa leggere: applicalo prima alla ROM, oppure ricrealo senza compressione (xdelta3 -S none)" };
+static const char* const lang_it_f63[] = { "Impossibile raggiungere il programma di installazione di Android" };
+static const char* const lang_it_f64[] = { "Di un altro emulatore" };
+static const char* const lang_it_f65[] = { "apr" };
+static const char* const lang_it_f66[] = { "Sei sicuro?" };
+static const char* const lang_it_f67[] = { "Sei sicuro? A: impostalo su \302\253%s\302\273 ora e continua da qui. Y: non ancora (prima altre modifiche). B: annulla" };
+static const char* const lang_it_f68[] = { "Sei sicuro? A: usale ora e continua da qui. B: annulla" };
+static const char* const lang_it_f69[] = { "Sei sicuro? Eliminali" };
+static const char* const lang_it_f70[] = { "Sei sicuro? Ripristina le impostazioni" };
+static const char* const lang_it_f71[] = { "Sei sicuro? Prima salva la partita. A: riavvia ora, %s. Y: non ancora (prima altre modifiche). B: annulla" };
+static const char* const lang_it_f72[] = { "Sei sicuro? Prima salva la partita. A: riavvia ora. B: annulla" };
+static const char* const lang_it_f73[] = { "Sei sicuro? Tocca di nuovo per eliminare le impostazioni specifiche di ogni gioco. Qualsiasi altro gesto annulla." };
+static const char* const lang_it_f74[] = { "Sei sicuro? Tocca di nuovo per riportare tutte le impostazioni ai valori predefiniti. Qualsiasi altro gesto annulla." };
+static const char* const lang_it_f75[] = { "Il pi\303\271 veloce possibile" };
+static const char* const lang_it_f76[] = { "Come all'avvio del gioco" };
+static const char* const lang_it_f77[] = { "ago" };
+static const char* const lang_it_f78[] = { "Auto" };
+static const char* const lang_it_f79[] = { "Caricamento automatico: No" };
+static const char* const lang_it_f80[] = { "Caricamento automatico: S\303\254" };
+static const char* const lang_it_f81[] = { "Caricamento automatico" };
+static const char* const lang_it_f82[] = { "Automatico" };
+static const char* const lang_it_f83[] = { "Controllo automatico: No" };
+static const char* const lang_it_f84[] = { "Controllo automatico: S\303\254" };
+static const char* const lang_it_f85[] = { "Automatico segue la lingua del sistema. Il testo non ancora tradotto resta in inglese." };
+static const char* const lang_it_f86[] = { "Pulsante B (basso)" };
+static const char* const lang_it_f87[] = { "Indietro" };
+static const char* const lang_it_f88[] = { "Di nuovo online" };
+static const char* const lang_it_f89[] = { "Torna a %s e ai pulsanti con cui era partito" };
+static const char* const lang_it_f90[] = { "L'elenco dei sistemi di BananaOS non ha una voce per Game Boy Advance." };
+static const char* const lang_it_f91[] = { "Logo della cornice" };
+static const char* const lang_it_f92[] = { "Blu" };
+static const char* const lang_it_f93[] = { "Sfocato invece che nitido: di solito lascialo disattivato." };
+static const char* const lang_it_f94[] = { "Entrambi gli schermi" };
+static const char* const lang_it_f95[] = { "Schermo in basso" };
+static const char* const lang_it_f96[] = { "Luminosit\303\240 dello schermo in basso" };
+static const char* const lang_it_f97[] = { "Segnalazione di bug" };
+static const char* const lang_it_f98[] = { "Segnalazione di bug salvata in bug-reports" };
+static const char* const lang_it_f99[] = { "Segnalazione di bug salvata in bug-reports." };
+static const char* const lang_it_f100[] = { "Pulsanti" };
+static const char* const lang_it_f101[] = { "Pulsanti assegnati" };
+static const char* const lang_it_f102[] = { "Illeggibile" };
+static const char* const lang_it_f103[] = { "Illeggibile: non \303\250 una patch, oppure \303\250 danneggiata" };
+static const char* const lang_it_f104[] = { "Impossibile trovare la cartella di GBA DS." };
+static const char* const lang_it_f105[] = { "Impossibile accedere alla cartella di GBA DS, per ora si usa %s: %s" };
+static const char* const lang_it_f106[] = { "Impossibile riavvolgere oltre" };
+static const char* const lang_it_f107[] = { "Impossibile salvare file qui: niente stati, loghi o screenshot" };
+static const char* const lang_it_f108[] = { "Impossibile salvare nella cartella scelta, file non spostati: %s" };
+static const char* const lang_it_f109[] = { "Annulla" };
+static const char* const lang_it_f110[] = { "Centrato" };
+static const char* const lang_it_f111[] = { "Modifica alcuni degli stessi byte di %s e li sovrascrive: potrebbero non funzionare insieme" };
+static const char* const lang_it_f112[] = { "Trucchi" };
+static const char* const lang_it_f113[] = { "Controlla ora" };
+static const char* const lang_it_f114[] = { "Controlla ra_username e ra_password in gba-ds.cfg" };
+static const char* const lang_it_f115[] = { "Controlla l'account nelle impostazioni RetroAchievements di EmulationStation" };
+static const char* const lang_it_f116[] = { "Scegli la cartella di GBA DS" };
+static const char* const lang_it_f117[] = { "Scegli la cartella delle ROM" };
+static const char* const lang_it_f118[] = { "Scegli una cartella nel selettore file di Android..." };
+static const char* const lang_it_f119[] = { "Sceglilo di nuovo per chiudere %s: %s" };
+static const char* const lang_it_f120[] = { "Sceglilo di nuovo per riavviare: i progressi non salvati vanno persi" };
+static const char* const lang_it_f121[] = { "Scegli la cartella dei salvataggi" };
+static const char* const lang_it_f122[] = { "La cartella scelta \303\250 dentro quella di GBA DS, file non spostati: %s" };
+static const char* const lang_it_f123[] = { "Cartella scelta non trovata, file non spostati: %s" };
+static const char* const lang_it_f124[] = { "Scelta qui:" };
+static const char* const lang_it_f125[] = { "Chiudi GBA DS" };
+static const char* const lang_it_f126[] = { "Chiudi il gioco" };
+static const char* const lang_it_f127[] = { "Il pi\303\271 vicino allo spazio" };
+static const char* const lang_it_f128[] = { "Chiudere un gioco salva il punto in cui sei." };
+static const char* const lang_it_f129[] = { "Colore" };
+static const char* const lang_it_f130[] = { "Correzione colore: No" };
+static const char* const lang_it_f131[] = { "Correzione colore: S\303\254" };
+static const char* const lang_it_f132[] = { "Correzione colore" };
+static const char* const lang_it_f133[] = { "I colori come li mostrava lo schermo di un Game Boy Advance." };
+static const char* const lang_it_f134[] = { "Conferma l'aggiornamento a v%s nel programma di installazione di Android. Android chiude GBA DS durante l'installazione; riaprilo dopo. Se Android chiede prima il permesso, consenti a GBA DS di installare app." };
+static const char* const lang_it_f135[] = { "Collega un controller e riprova." };
+static const char* const lang_it_f136[] = { "Comandi" };
+static const char* const lang_it_f137[] = { "Impossibile modificare %s." };
+static const char* const lang_it_f138[] = { "Impossibile modificare i file in %s/custom_systems: consenti a GBA DS l'accesso a tutti i file nelle impostazioni di Android." };
+static const char* const lang_it_f139[] = { "Impossibile connettersi" };
+static const char* const lang_it_f140[] = { "Impossibile trovare la cartella di GBA DS." };
+static const char* const lang_it_f141[] = { "Impossibile mantenere quella scelta." };
+static const char* const lang_it_f142[] = { "Impossibile caricare gli obiettivi" };
+static const char* const lang_it_f143[] = { "Impossibile caricare il gioco" };
+static const char* const lang_it_f144[] = { "Impossibile spostare i file di GBA DS, restano in %s" };
+static const char* const lang_it_f145[] = { "Impossibile aprire il selettore file." };
+static const char* const lang_it_f146[] = { "Impossibile aprire la finestra di accesso." };
+static const char* const lang_it_f147[] = { "Impossibile rimuovere il file delle impostazioni." };
+static const char* const lang_it_f148[] = { "Impossibile salvare" };
+static const char* const lang_it_f149[] = { "Impossibile salvare la segnalazione di bug." };
+static const char* const lang_it_f150[] = { "Impossibile accedere come %s%s%s. Accedi per riprovare." };
+static const char* const lang_it_f151[] = { "Impossibile scrivere %s." };
+static const char* const lang_it_f152[] = { "Impossibile scrivere in %s." };
+static const char* const lang_it_f153[] = { "Personalizzato" };
+static const char* const lang_it_f154[] = { "Loghi personalizzati: non usare" };
+static const char* const lang_it_f155[] = { "Loghi personalizzati: dettaglio completo" };
+static const char* const lang_it_f156[] = { "Loghi personalizzati: pixelati" };
+static const char* const lang_it_f157[] = { "Loghi personalizzati" };
+static const char* const lang_it_f158[] = { "Croce direzionale" };
+static const char* const lang_it_f159[] = { "Croce direzionale gi\303\271" };
+static const char* const lang_it_f160[] = { "Croce direzionale sinistra" };
+static const char* const lang_it_f161[] = { "Croce direzionale destra" };
+static const char* const lang_it_f162[] = { "Croce direzionale su" };
+static const char* const lang_it_f163[] = { "Scuro" };
+static const char* const lang_it_f164[] = { "Oscura lo schermo in basso, solo in questa app: la luminosit\303\240 del dispositivo non viene toccata (e questo valore non pu\303\262 superarla)." };
+static const char* const lang_it_f165[] = { "Oscura lo schermo in alto, solo in questa app: la luminosit\303\240 del dispositivo non viene toccata (e questo valore non pu\303\262 superarla)." };
+static const char* const lang_it_f166[] = { "dic" };
+static const char* const lang_it_f167[] = { "Canc" };
+static const char* const lang_it_f168[] = { "Elimina le impostazioni per gioco" };
+static const char* const lang_it_f169[] = { "Le impostazioni di %d giochi sono state eliminate." };
+static const char* const lang_it_f170[] = { "Le impostazioni di 1 gioco sono state eliminate." };
+static const char* const lang_it_f171[] = { "Schermo" };
+static const char* const lang_it_f172[] = { "Fatto" };
+static const char* const lang_it_f173[] = { "Fatto (senza nota)" };
+static const char* const lang_it_f174[] = { "Gi\303\271" };
+static const char* const lang_it_f175[] = { "Download in corso" };
+static const char* const lang_it_f176[] = { "Cartella di ES-DE non trovata." };
+static const char* const lang_it_f177[] = { "Ogni pixel un po' pi\303\271 scuro verso i bordi" };
+static const char* const lang_it_f178[] = { "Ottieni obiettivi in modalit\303\240 casual con il tuo account retroachievements.org. GBA DS conserva un token di accesso, non la tua password." };
+static const char* const lang_it_f179[] = { "English" };
+static const char* const lang_it_f180[] = { "Inserisci nome utente e password." };
+static const char* const lang_it_f181[] = { "Inserisci il tuo account nella finestra di accesso..." };
+static const char* const lang_it_f182[] = { "Ogni 0,5 s" };
+static const char* const lang_it_f183[] = { "Ogni 1,5 s" };
+static const char* const lang_it_f184[] = { "Ogni 3 s" };
+static const char* const lang_it_f185[] = { "Tutti i pulsanti sono stati saltati, quindi non \303\250 cambiato nulla." };
+static const char* const lang_it_f186[] = { "Ogni secondo" };
+static const char* const lang_it_f187[] = { "Falliscono" };
+static const char* const lang_it_f188[] = { "Veloce (20 al secondo)" };
+static const char* const lang_it_f189[] = { "Avanzamento rapido: %dx" };
+static const char* const lang_it_f190[] = { "Avanzamento rapido: Max" };
+static const char* const lang_it_f191[] = { "Avanzamento rapido: No" };
+static const char* const lang_it_f192[] = { "Avanzamento rapido" };
+static const char* const lang_it_f193[] = { "Avanzamento rapido..." };
+static const char* const lang_it_f194[] = { "feb" };
+static const char* const lang_it_f195[] = { "Solo la prima volta. B: indietro" };
+static const char* const lang_it_f196[] = { "Cartelle" };
+static const char* const lang_it_f197[] = { "Cartelle, account, aggiornamenti" };
+static const char* const lang_it_f198[] = { "Segue come tieni il telefono e il blocco rotazione di Android." };
+static const char* const lang_it_f199[] = { "Frame buffer: sempre attivo qui" };
+static const char* const lang_it_f200[] = { "Frame buffer: No" };
+static const char* const lang_it_f201[] = { "Frame buffer: S\303\254" };
+static const char* const lang_it_f202[] = { "Frame buffer" };
+static const char* const lang_it_f203[] = { "I fotogrammi al secondo sopra il gioco, sempre." };
+static const char* const lang_it_f204[] = { "Dalle impostazioni di RetroArch:" };
+static const char* const lang_it_f205[] = { "Larghezza intera" };
+static const char* const lang_it_f206[] = { "Dettaglio completo" };
+static const char* const lang_it_f207[] = { "GBA" };
+static const char* const lang_it_f208[] = { "GBA A" };
+static const char* const lang_it_f209[] = { "GBA A sul pulsante destro, o su quello in basso." };
+static const char* const lang_it_f210[] = { "GBA B" };
+static const char* const lang_it_f211[] = { "Logo GBA DS: Nascondi" };
+static const char* const lang_it_f212[] = { "Logo GBA DS: Mostra" };
+static const char* const lang_it_f213[] = { "Impostazioni di GBA DS" };
+static const char* const lang_it_f214[] = { "GBA DS non pu\303\262 salvare file l\303\254: consentigli l'accesso a tutti i file nelle impostazioni di Android, oppure scegli un'altra cartella." };
+static const char* const lang_it_f215[] = { "GBA DS nell'elenco GBA di BananaOS: No" };
+static const char* const lang_it_f216[] = { "GBA DS nell'elenco GBA di BananaOS: S\303\254" };
+static const char* const lang_it_f217[] = { "GBA DS in ES-DE: No" };
+static const char* const lang_it_f218[] = { "GBA DS in ES-DE: S\303\254" };
+static const char* const lang_it_f219[] = { "GBA DS in EmulationStation: No" };
+static const char* const lang_it_f220[] = { "GBA DS in EmulationStation: S\303\254" };
+static const char* const lang_it_f221[] = { "GBA DS \303\250 ora l'emulatore di ES-DE per i giochi Game Boy Advance. Esci da ES-DE e riaprilo per vederlo." };
+static const char* const lang_it_f222[] = { "GBA DS non \303\250 pi\303\271 nell'elenco degli emulatori di ES-DE. Esci da ES-DE e riaprilo per vederlo." };
+static const char* const lang_it_f223[] = { "GBA DS v%s \303\250 disponibile (questa \303\250 la v%s). Scegli Aggiorna ora per scaricarla (%.1f MB) e installarla: Android chiede conferma. Giochi, salvataggi, stati e impostazioni vengono conservati." };
+static const char* const lang_it_f224[] = { "GBA DS v%s \303\250 disponibile (questa \303\250 la v%s). Scegli Aggiorna ora per scaricarla (%.1f MB) e riavviare con essa; giochi, salvataggi, stati e impostazioni vengono conservati." };
+static const char* const lang_it_f225[] = { "La cornice di GBA DS, o i tuoi PNG, intorno all'immagine." };
+static const char* const lang_it_f226[] = { "I file di GBA DS sono gi\303\240 l\303\254." };
+static const char* const lang_it_f227[] = { "I file di GBA DS andranno in %s al prossimo avvio: chiudi GBA DS e riaprilo." };
+static const char* const lang_it_f228[] = { "I file propri di GBA DS (stati, impostazioni, trucchi, overlay) sono in %s e passeranno a %s al prossimo avvio." };
+static const char* const lang_it_f229[] = { "I file propri di GBA DS (stati, impostazioni, trucchi, overlay) sono in %s." };
+static const char* const lang_it_f230[] = { "GBA Gi\303\271" };
+static const char* const lang_it_f231[] = { "GBA L" };
+static const char* const lang_it_f232[] = { "GBA Sinistra" };
+static const char* const lang_it_f233[] = { "GBA R" };
+static const char* const lang_it_f234[] = { "GBA Destra" };
+static const char* const lang_it_f235[] = { "GBA Su" };
+static const char* const lang_it_f236[] = { "Gioco" };
+static const char* const lang_it_f237[] = { "Gioco sotto" };
+static const char* const lang_it_f238[] = { "Nomi dei giochi" };
+static const char* const lang_it_f239[] = { "Gioco sopra" };
+static const char* const lang_it_f240[] = { "Gioco riavviato" };
+static const char* const lang_it_f241[] = { "Scala dello schermo di gioco" };
+static const char* const lang_it_f242[] = { "Giochi" };
+static const char* const lang_it_f243[] = { "I giochi vengono letti da %s (sottocartelle comprese). I salvataggi (%s) sono conservati in %s." };
+static const char* const lang_it_f244[] = { "I giochi vengono letti da %s (sottocartelle comprese). I salvataggi (%s) sono conservati accanto ai giochi." };
+static const char* const lang_it_f245[] = { "I giochi scelti nell'elenco Game Boy Advance di BananaOS partono in GBA DS quando supporta il secondo schermo per loro. Riavvia BananaOS dopo averlo cambiato." };
+static const char* const lang_it_f246[] = { "Giochi mostrati" };
+static const char* const lang_it_f247[] = { "I giochi senza supporto per il secondo schermo si giocano su uno schermo solo." };
+static const char* const lang_it_f248[] = { "Generato" };
+static const char* const lang_it_f249[] = { "Verde" };
+static const char* const lang_it_f250[] = { "Tenuto di lato: i due schermi affiancati. In entrambi i versi." };
+static const char* const lang_it_f251[] = { "Tenuto in piedi: i due schermi uno sopra l'altro. In entrambi i versi." };
+static const char* const lang_it_f252[] = { "Colore esadecimale" };
+static const char* const lang_it_f253[] = { "Tieni premuto L2 per tornare indietro nel tempo." };
+static const char* const lang_it_f254[] = { "Tieni premuto R2 per giocare pi\303\271 veloce." };
+static const char* const lang_it_f255[] = { "Home" };
+static const char* const lang_it_f256[] = { "Tasto scorciatoia" };
+static const char* const lang_it_f257[] = { "Scorciatoie" };
+static const char* const lang_it_f258[] = { "Quanto sono scuri la griglia, le scanline e le celle morbide." };
+static const char* const lang_it_f259[] = { "Fino a dove si pu\303\262 tornare indietro." };
+static const char* const lang_it_f260[] = { "Quanto veloci premono Turbo A e Turbo B." };
+static const char* const lang_it_f261[] = { "Come l'immagine del gioco riempie il suo schermo." };
+static const char* const lang_it_f262[] = { "Come la mappa o il logo riempie il suo schermo." };
+static const char* const lang_it_f263[] = { "In gioco, tieni premuto il tasto scorciatoia e premi un altro" };
+static const char* const lang_it_f264[] = { "In patches/%s" };
+static const char* const lang_it_f265[] = { "Colore della cornice interna" };
+static const char* const lang_it_f266[] = { "Installata" };
+static const char* const lang_it_f267[] = { "Installazione in corso" };
+static const char* const lang_it_f268[] = { "gen" };
+static const char* const lang_it_f269[] = { "lug" };
+static const char* const lang_it_f270[] = { "giu" };
+static const char* const lang_it_f271[] = { "Mantieni le proporzioni del dispositivo" };
+static const char* const lang_it_f272[] = { "Mantieni le forme del dispositivo" };
+static const char* const lang_it_f273[] = { "Tieni i salvataggi accanto ai giochi" };
+static const char* const lang_it_f274[] = { "Resta com'era tra %d s se non si preme nulla" };
+static const char* const lang_it_f275[] = { "Mantenuto per tutti i giochi" };
+static const char* const lang_it_f276[] = { "Patch %s nota, testata: %s" };
+static const char* const lang_it_f277[] = { "Patch %s nota, non testata: %s. Il secondo schermo potrebbe non funzionare con essa" };
+static const char* const lang_it_f278[] = { "Patch %s nota: %s, fatta per %s. Questa ROM \303\250 un'altra versione: potrebbe rompere il gioco" };
+static const char* const lang_it_f279[] = { "Patch %s nota: %s, fatta per %s: non pu\303\262 essere attivata per questa ROM" };
+static const char* const lang_it_f280[] = { "Romhack noto: %s, non testato" };
+static const char* const lang_it_f281[] = { "Pulsante L" };
+static const char* const lang_it_f282[] = { "Ghosting LCD: No" };
+static const char* const lang_it_f283[] = { "Ghosting LCD: S\303\254" };
+static const char* const lang_it_f284[] = { "Griglia LCD" };
+static const char* const lang_it_f285[] = { "Ghosting LCD" };
+static const char* const lang_it_f286[] = { "Lingua" };
+static const char* const lang_it_f287[] = { "Ultimo controllo: %s." };
+static const char* const lang_it_f288[] = { "Pi\303\271 tardi" };
+static const char* const lang_it_f289[] = { "Sinistra" };
+static const char* const lang_it_f290[] = { "Lasciata fuori dove si trova: \303\250 fatta per la ROM non modificata, quindi deve venire per prima (pu\303\262 essere attiva una sola patch di questo tipo). Spostala su con X" };
+static const char* const lang_it_f291[] = { "Stick sinistro come croce direzionale" };
+static const char* const lang_it_f292[] = { "Stick sinistro: sinistra" };
+static const char* const lang_it_f293[] = { "Stick sinistro: su" };
+static const char* const lang_it_f294[] = { "Decide il sistema" };
+static const char* const lang_it_f295[] = { "Chiaro" };
+static const char* const lang_it_f296[] = { "Modalit\303\240 chiara/scura" };
+static const char* const lang_it_f297[] = { "Come un GBA" };
+static const char* const lang_it_f298[] = { "Linee tra i pixel, come sullo schermo di un GBA" };
+static const char* const lang_it_f299[] = { "Carica stato" };
+static const char* const lang_it_f300[] = { "Carica stato %d" };
+static const char* const lang_it_f301[] = { "Caricamento non riuscito" };
+static const char* const lang_it_f302[] = { "Caricamento non riuscito." };
+static const char* const lang_it_f303[] = { "Caricamento dei giochi..." };
+static const char* const lang_it_f304[] = { "Caricamento degli obiettivi..." };
+static const char* const lang_it_f305[] = { "Caricamento dell'anteprima..." };
+static const char* const lang_it_f306[] = { "Fatta per un'altra versione del gioco: non pu\303\262 essere attivata per questa ROM" };
+static const char* const lang_it_f307[] = { "Rende GBA DS l'emulatore per i giochi Game Boy Advance in ES-DE. Per un gioco che non supporta, scegline un altro in ES-DE (metadati del gioco > Emulatore alternativo)." };
+static const char* const lang_it_f308[] = { "Mappa" };
+static const char* const lang_it_f309[] = { "Assegna pulsanti" };
+static const char* const lang_it_f310[] = { "Assegna pulsanti" };
+static const char* const lang_it_f311[] = { "Aggiornamento della mappa" };
+static const char* const lang_it_f312[] = { "mar" };
+static const char* const lang_it_f313[] = { "Abbina la frequenza dello schermo: No" };
+static const char* const lang_it_f314[] = { "Abbina la frequenza dello schermo: No per ora" };
+static const char* const lang_it_f315[] = { "Abbina la frequenza dello schermo: S\303\254" };
+static const char* const lang_it_f316[] = { "Abbina le proporzioni" };
+static const char* const lang_it_f317[] = { "Abbina la frequenza dello schermo" };
+static const char* const lang_it_f318[] = { "Abbina le proporzioni degli schermi" };
+static const char* const lang_it_f319[] = { "Abbina dimensioni e proporzioni degli schermi" };
+static const char* const lang_it_f320[] = { "Abbina dimensioni e forme" };
+static const char* const lang_it_f321[] = { "Max: piena velocit\303\240, un dispositivo pi\303\271 caldo e una batteria pi\303\271 corta." };
+static const char* const lang_it_f322[] = { "mag" };
+static const char* const lang_it_f323[] = { "Media (15 al secondo)" };
+static const char* const lang_it_f324[] = { "ROM modificata: il secondo schermo potrebbe non funzionare" };
+static const char* const lang_it_f325[] = { "Sposta" };
+static const char* const lang_it_f326[] = { "Spostamento: Su / Gi\303\271 oppure tocca dove va, poi A (o toccalo di nuovo). Quello pi\303\271 in basso nell'elenco viene applicato dopo" };
+static const char* const lang_it_f327[] = { "Ci\303\262 che si muove lascia una breve scia, come su un GBA." };
+static const char* const lang_it_f328[] = { "NOTA: i giochi non supportati verranno giocati in RetroArch, ma senza il secondo schermo proprio di BananaOS (il suo pannello di gioco e i compagni)." };
+static const char* const lang_it_f329[] = { "Nuovo" };
+static const char* const lang_it_f330[] = { "Nessuno stato RetroArch qui" };
+static const char* const lang_it_f331[] = { "Nessun obiettivo per questa ROM (MD5 %s)" };
+static const char* const lang_it_f332[] = { "Nessun trucco trovato (vedi Cheats nel wiki)" };
+static const char* const lang_it_f333[] = { "Nessun controller trovato" };
+static const char* const lang_it_f334[] = { "es_systems.cfg non trovato." };
+static const char* const lang_it_f335[] = { "Nessuna cartella scelta." };
+static const char* const lang_it_f336[] = { "Nessuna cartella in questa" };
+static const char* const lang_it_f337[] = { "Nessun gioco ha impostazioni proprie." };
+static const char* const lang_it_f338[] = { "Nessun gioco trovato" };
+static const char* const lang_it_f339[] = { "Ancora nessuna patch qui" };
+static const char* const lang_it_f340[] = { "Nessuno stato rapido salvato finora." };
+static const char* const lang_it_f341[] = { "Nessun gioco supportato in" };
+static const char* const lang_it_f342[] = { "Nessuna" };
+static const char* const lang_it_f343[] = { "Non pi\303\271 nella cartella: viene lasciata fuori" };
+static const char* const lang_it_f344[] = { "Non ripreso: lo stato automatico di RetroArch viene da un altro dei suoi core GBA. Per condividere gli stati, imposta il core GBA di RetroArch su mGBA." };
+static const char* const lang_it_f345[] = { "Non usata" };
+static const char* const lang_it_f346[] = { "Niente" };
+static const char* const lang_it_f347[] = { "Niente assegnato" };
+static const char* const lang_it_f348[] = { "Ancora niente salvato nello slot %d" };
+static const char* const lang_it_f349[] = { "Ancora niente da segnalare." };
+static const char* const lang_it_f350[] = { "nov" };
+static const char* const lang_it_f351[] = { "Adesso" };
+static const char* const lang_it_f352[] = { "OK" };
+static const char* const lang_it_f353[] = { "ott" };
+static const char* const lang_it_f354[] = { "No" };
+static const char* const lang_it_f355[] = { "Disattivato per i dispositivi lenti: il tavolo su uno schermo. Chiudi e riavvia GBA DS per applicarlo." };
+static const char* const lang_it_f356[] = { "Disattivato finch\303\251 una patch \303\250 attiva" };
+static const char* const lang_it_f357[] = { "No." };
+static const char* const lang_it_f358[] = { "No. Riavvia BananaOS (Impostazioni > Sistema) perch\303\251 il suo menu lo usi." };
+static const char* const lang_it_f359[] = { "No. Riavvia EmulationStation per applicarlo." };
+static const char* const lang_it_f360[] = { "No: ogni gioco si gioca come un normale gioco GBA." };
+static const char* const lang_it_f361[] = { "No: lo stick sinistro non fa nulla nei giochi." };
+static const char* const lang_it_f362[] = { "Offline" };
+static const char* const lang_it_f363[] = { "S\303\254" };
+static const char* const lang_it_f364[] = { "S\303\254." };
+static const char* const lang_it_f365[] = { "S\303\254. Riavvia BananaOS (Impostazioni > Sistema) perch\303\251 il suo menu lo usi." };
+static const char* const lang_it_f366[] = { "S\303\254. Riavvia EmulationStation per vederlo." };
+static const char* const lang_it_f367[] = { "Sono elencati solo i giochi con una schermata mappa (show_all = 1 li elenca tutti)" };
+static const char* const lang_it_f368[] = { "Un solo schermo: niente da spostare" };
+static const char* const lang_it_f369[] = { "Solo le patch attive hanno un ordine, e questa \303\250 l'unica" };
+static const char* const lang_it_f370[] = { "Solo quando i tuoi due schermi hanno forme diverse. Sperimentale." };
+static const char* const lang_it_f371[] = { "Apri il menu rapido" };
+static const char* const lang_it_f372[] = { "Apre la pagina della cornice, per quella che hanno il gioco o tutti i giochi" };
+static const char* const lang_it_f373[] = { "Arancione" };
+static const char* const lang_it_f374[] = { "Colore della cornice esterna" };
+static const char* const lang_it_f375[] = { "Colori e logo degli overlay" };
+static const char* const lang_it_f376[] = { "Overlay" };
+static const char* const lang_it_f377[] = { "Overlay attivi" };
+static const char* const lang_it_f378[] = { "Overlay: personalizzati" };
+static const char* const lang_it_f379[] = { "Overlay: personalizzati (in /overlays)" };
+static const char* const lang_it_f380[] = { "Overlay: generati" };
+static const char* const lang_it_f381[] = { "Overlay: No" };
+static const char* const lang_it_f382[] = { "PM" };
+static const char* const lang_it_f383[] = { "Patch non applicata: %s non \303\250 leggibile" };
+static const char* const lang_it_f384[] = { "Patch non applicata: %s \303\250 per un'altra ROM" };
+static const char* const lang_it_f385[] = { "Patchato, ma una patch \303\250 stata lasciata fuori: vedi Patch nel menu del gioco" };
+static const char* const lang_it_f386[] = { "Patchato: il secondo schermo potrebbe non funzionare" };
+static const char* const lang_it_f387[] = { "Patch" };
+static const char* const lang_it_f388[] = { "Patch modificate" };
+static const char* const lang_it_f389[] = { "Patch modificate dall'avvio del gioco" };
+static const char* const lang_it_f390[] = { "Patch modificate: si prosegue da dove eri" };
+static const char* const lang_it_f391[] = { "Intensit\303\240 della trama" };
+static const char* const lang_it_f392[] = { "In pausa" };
+static const char* const lang_it_f393[] = { "Prestazioni" };
+static const char* const lang_it_f394[] = { "Prestazioni: decide il sistema" };
+static const char* const lang_it_f395[] = { "Prestazioni: Max" };
+static const char* const lang_it_f396[] = { "Immagini al centro dei loro schermi, o vicine tra loro." };
+static const char* const lang_it_f397[] = { "Vista a due schermi del flipper" };
+static const char* const lang_it_f398[] = { "Rosa" };
+static const char* const lang_it_f399[] = { "Fissata: la barra resta in alto." };
+static const char* const lang_it_f400[] = { "Pixel perfetto" };
+static const char* const lang_it_f401[] = { "Pixelato" };
+static const char* const lang_it_f402[] = { "Posizionamento, overlay" };
+static const char* const lang_it_f403[] = { "Semplice" };
+static const char* const lang_it_f404[] = { "Gioca" };
+static const char* const lang_it_f405[] = { "Questa volta si gioca senza obiettivi" };
+static const char* const lang_it_f406[] = { "Preparazione del gioco..." };
+static const char* const lang_it_f407[] = { "Premi %s" };
+static const char* const lang_it_f408[] = { "Premi A o tocca per chiudere" };
+static const char* const lang_it_f409[] = { "Premi A per chiudere" };
+static const char* const lang_it_f410[] = { "Premi un pulsante" };
+static const char* const lang_it_f411[] = { "Viola" };
+static const char* const lang_it_f412[] = { "Spingi lo stick: i pulsanti non contano per questo." };
+static const char* const lang_it_f413[] = { "Metti file .ips, .ups, .bps o .xdelta in %s" };
+static const char* const lang_it_f414[] = { "Suggerimento della barra rapida" };
+static const char* const lang_it_f415[] = { "Caricamento rapido dello stato" };
+static const char* const lang_it_f416[] = { "Salvataggio rapido dello stato" };
+static const char* const lang_it_f417[] = { "Esci" };
+static const char* const lang_it_f418[] = { "Pulsante R" };
+static const char* const lang_it_f419[] = { "RetroAchievements \303\250 disattivato" };
+static const char* const lang_it_f420[] = { "Aumentalo se l'audio gracchia." };
+static const char* const lang_it_f421[] = { "Rosso" };
+static const char* const lang_it_f422[] = { "Strisce rosse, verdi e blu, leggere: per schermi poco luminosi" };
+static const char* const lang_it_f423[] = { "Strisce rosse, verdi e blu, come lo schermo di un GBA" };
+static const char* const lang_it_f424[] = { "Strisce rosse, verdi e blu, forti: per schermi luminosi" };
+static const char* const lang_it_f425[] = { "Reimposta" };
+static const char* const lang_it_f426[] = { "Reimposta le cornici" };
+static const char* const lang_it_f427[] = { "Riporta le impostazioni ai valori predefiniti" };
+static const char* const lang_it_f428[] = { "Riavvia" };
+static const char* const lang_it_f429[] = { "Riavvia il gioco" };
+static const char* const lang_it_f430[] = { "Riavvia dalla riga in alto per giocare con essa (oppure viene usata dal prossimo avvio)" };
+static const char* const lang_it_f431[] = { "Riavvia dalla riga in alto per giocare con questo ordine" };
+static const char* const lang_it_f432[] = { "Riavvio necessario" };
+static const char* const lang_it_f433[] = { "Riprendi" };
+static const char* const lang_it_f434[] = { "Ripreso. Tocca o premi HOME per il menu" };
+static const char* const lang_it_f435[] = { "RetroAchievements couldn't start" };
+static const char* const lang_it_f436[] = { "RetroAchievements non \303\250 partito" };
+static const char* const lang_it_f437[] = { "RetroAchievements non consente i giochi patchati" };
+static const char* const lang_it_f438[] = { "RetroAchievements: No" };
+static const char* const lang_it_f439[] = { "RetroAchievements: accedi" };
+static const char* const lang_it_f440[] = { "RetroAchievements: esci" };
+static const char* const lang_it_f441[] = { "RetroAchievements: accesso in corso..." };
+static const char* const lang_it_f442[] = { "Cartella degli stati di RetroArch" };
+static const char* const lang_it_f443[] = { "Impostazioni di RetroArch non trovate qui: scegli la cartella in cui tiene i suoi stati." };
+static const char* const lang_it_f444[] = { "Impostazioni di RetroArch non trovate, quindi gli slot 0-9 e lo stato automatico tornano a essere propri di GBA DS." };
+static const char* const lang_it_f445[] = { "La cartella degli stati di RetroArch viene di nuovo trovata dalle sue impostazioni: %s." };
+static const char* const lang_it_f446[] = { "Riavvolgimento" };
+static const char* const lang_it_f447[] = { "Durata del riavvolgimento" };
+static const char* const lang_it_f448[] = { "Riavvolgimento, avanzamento rapido" };
+static const char* const lang_it_f449[] = { "Riavvolgimento: No" };
+static const char* const lang_it_f450[] = { "Riavvolgimento: S\303\254" };
+static const char* const lang_it_f451[] = { "Riavvolgimento..." };
+static const char* const lang_it_f452[] = { "Destra" };
+static const char* const lang_it_f453[] = { "Romhack: %s%s" };
+static const char* const lang_it_f454[] = { "Romhack: %s%s, non testato" };
+static const char* const lang_it_f455[] = { "Rotazione: automatica" };
+static const char* const lang_it_f456[] = { "Rotazione: orizzontale" };
+static const char* const lang_it_f457[] = { "Rotazione: verticale" };
+static const char* const lang_it_f458[] = { "Gira alla frequenza dello schermo: niente piccoli scatti regolari." };
+static const char* const lang_it_f459[] = { "SNES" };
+static const char* const lang_it_f460[] = { "Di nuovo come per tutti i giochi" };
+static const char* const lang_it_f461[] = { "Salva stato" };
+static const char* const lang_it_f462[] = { "Salva stato %d" };
+static const char* const lang_it_f463[] = { "Stati: propri di GBA DS" };
+static const char* const lang_it_f464[] = { "Stati: condivisi con RetroArch" };
+static const char* const lang_it_f465[] = { "Salvataggio non riuscito" };
+static const char* const lang_it_f466[] = { "Salvataggio non riuscito." };
+static const char* const lang_it_f467[] = { "File di salvataggio: .sav" };
+static const char* const lang_it_f468[] = { "File di salvataggio: .srm (di RetroArch)" };
+static const char* const lang_it_f469[] = { "Salva all'uscita: No" };
+static const char* const lang_it_f470[] = { "Salva all'uscita: S\303\254" };
+static const char* const lang_it_f471[] = { "Salva all'uscita" };
+static const char* const lang_it_f472[] = { "Salvato da un altro emulatore: impossibile caricarlo" };
+static const char* const lang_it_f473[] = { "Salvato per tutti i giochi" };
+static const char* const lang_it_f474[] = { "Salvato per questo gioco" };
+static const char* const lang_it_f475[] = { "Salvato per quando una patch \303\250 attiva" };
+static const char* const lang_it_f476[] = { "I salvataggi saranno tenuti accanto ai giochi." };
+static const char* const lang_it_f477[] = { "I salvataggi saranno tenuti l\303\254." };
+static const char* const lang_it_f478[] = { "Scala, shader, tema, colore" };
+static const char* const lang_it_f479[] = { "Scala: larghezza intera" };
+static const char* const lang_it_f480[] = { "Scala: pixel perfetto" };
+static const char* const lang_it_f481[] = { "Scala: allunga" };
+static const char* const lang_it_f482[] = { "Scala: zoom" };
+static const char* const lang_it_f483[] = { "Scanline" };
+static const char* const lang_it_f484[] = { "Posizionamento degli schermi: centrato" };
+static const char* const lang_it_f485[] = { "Posizionamento degli schermi: pi\303\271 vicino allo spazio" };
+static const char* const lang_it_f486[] = { "Posizionamento degli schermi" };
+static const char* const lang_it_f487[] = { "Forme degli schermi" };
+static const char* const lang_it_f488[] = { "Schermi" };
+static const char* const lang_it_f489[] = { "Screenshot non riuscito" };
+static const char* const lang_it_f490[] = { "Screenshot salvato" };
+static const char* const lang_it_f491[] = { "Secondo schermo" };
+static const char* const lang_it_f492[] = { "Scala del secondo schermo" };
+static const char* const lang_it_f493[] = { "Select" };
+static const char* const lang_it_f494[] = { "Select o Start raggiungono ancora il gioco se toccati da soli, e L3 apre ancora il menu rapido" };
+static const char* const lang_it_f495[] = { "set" };
+static const char* const lang_it_f496[] = { "Salvataggio batteria separato" };
+static const char* const lang_it_f497[] = { "Stati separati" };
+static const char* const lang_it_f498[] = { "Impostato per ora, ma %s non \303\250 stato possibile scriverlo." };
+static const char* const lang_it_f499[] = { "Imposta al massimo" };
+static const char* const lang_it_f500[] = { "Imposta le scorciatoie: il tasto scorciatoia tenuto premuto con un altro." };
+static const char* const lang_it_f501[] = { "Imposta quale dei pulsanti di questo dispositivo fa cosa." };
+static const char* const lang_it_f502[] = { "Impostazioni" };
+static const char* const lang_it_f503[] = { "Le impostazioni sono tornate ai valori predefiniti." };
+static const char* const lang_it_f504[] = { "Shader" };
+static const char* const lang_it_f505[] = { "Shader: griglia LCD" };
+static const char* const lang_it_f506[] = { "Shader: No" };
+static const char* const lang_it_f507[] = { "Shader: scanline" };
+static const char* const lang_it_f508[] = { "Shader: celle morbide" };
+static const char* const lang_it_f509[] = { "Shader: subpixel" };
+static const char* const lang_it_f510[] = { "Shader: subpixel (leggero)" };
+static const char* const lang_it_f511[] = { "Shader: subpixel (forte)" };
+static const char* const lang_it_f512[] = { "Pi\303\271 corto pu\303\262 far gracchiare l'audio su un dispositivo lento." };
+static const char* const lang_it_f513[] = { "Mostra FPS" };
+static const char* const lang_it_f514[] = { "Mostra FPS: No" };
+static const char* const lang_it_f515[] = { "Mostra FPS: S\303\254" };
+static const char* const lang_it_f516[] = { "Accedi di nuovo nelle Impostazioni dell'elenco giochi" };
+static const char* const lang_it_f517[] = { "Accesso non riuscito" };
+static const char* const lang_it_f518[] = { "Accesso effettuato come %s. Gli obiettivi si ottengono in modalit\303\240 casual." };
+static const char* const lang_it_f519[] = { "Uscito da RetroAchievements." };
+static const char* const lang_it_f520[] = { "Accesso come %s..." };
+static const char* const lang_it_f521[] = { "Un solo schermo" };
+static const char* const lang_it_f522[] = { "Un solo schermo: si gioca normalmente" };
+static const char* const lang_it_f523[] = { "Salta" };
+static const char* const lang_it_f524[] = { "Salta questa versione" };
+static const char* const lang_it_f525[] = { "Saltato tra %d s se non si preme nulla" };
+static const char* const lang_it_f526[] = { "Slot %d caricato" };
+static const char* const lang_it_f527[] = { "Slot %d: %s" };
+static const char* const lang_it_f528[] = { "Slot %1$d: %3$d %2$s %4$d%5$s" };
+static const char* const lang_it_f529[] = { "Slot %1$d: %3$d %2$s, %4$d:%5$02d %6$s%7$s" };
+static const char* const lang_it_f530[] = { "Slot %d: vuoto" };
+static const char* const lang_it_f531[] = { "Gli slot 0-9 e lo stato automatico tornano a essere propri di GBA DS. Gli stati salvati nella cartella di RetroArch restano l\303\254." };
+static const char* const lang_it_f532[] = { "Gli slot 0-9 e lo stato automatico sono ora di RetroArch. Gli stati propri di GBA DS restano nella sua cartella, per quando lo riporterai indietro." };
+static const char* const lang_it_f533[] = { "Gli slot 0-9 e lo stato automatico sono ora condivisi con RetroArch, in %s." };
+static const char* const lang_it_f534[] = { "Gli slot 0-9 e il punto di ripresa sono propri di GBA DS. Condivisi, sono di RetroArch: %s." };
+static const char* const lang_it_f535[] = { "Gli slot 0-9 e il punto di ripresa sono propri di GBA DS. Per condividerli, scegli la cartella degli stati di RetroArch." };
+static const char* const lang_it_f536[] = { "Gli slot 0-9 e il punto di ripresa sono di RetroArch (il suo core GBA impostato su mGBA): %s." };
+static const char* const lang_it_f537[] = { "Lenta (10 al secondo)" };
+static const char* const lang_it_f538[] = { "Scalatura morbida" };
+static const char* const lang_it_f539[] = { "Pi\303\271 morbido, un fotogramma in pi\303\271 di ritardo di input." };
+static const char* const lang_it_f540[] = { "Celle morbide" };
+static const char* const lang_it_f541[] = { "Alcuni file non \303\250 stato possibile spostarli, sono ancora in %s" };
+static const char* const lang_it_f542[] = { "Ritardo audio" };
+static const char* const lang_it_f543[] = { "Spazio" };
+static const char* const lang_it_f544[] = { "Velocit\303\240" };
+static const char* const lang_it_f545[] = { "Velocit\303\240 e audio" };
+static const char* const lang_it_f546[] = { "Start" };
+static const char* const lang_it_f547[] = { "Avviare un gioco riprende da dove l'avevi chiuso." };
+static const char* const lang_it_f548[] = { "Stato caricato." };
+static const char* const lang_it_f549[] = { "Stato salvato nello slot %d" };
+static const char* const lang_it_f550[] = { "Stato salvato." };
+static const char* const lang_it_f551[] = { "Stick, pulsanti, scorciatoie" };
+static const char* const lang_it_f552[] = { "Allunga" };
+static const char* const lang_it_f553[] = { "Invia una segnalazione di bug" };
+static const char* const lang_it_f554[] = { "Subpixel" };
+static const char* const lang_it_f555[] = { "Subpixel (leggero)" };
+static const char* const lang_it_f556[] = { "Subpixel (forte)" };
+static const char* const lang_it_f557[] = { "Supportato" };
+static const char* const lang_it_f558[] = { "Solo giochi supportati" };
+static const char* const lang_it_f559[] = { "Sicuro?" };
+static const char* const lang_it_f560[] = { "Scambia gli schermi" };
+static const char* const lang_it_f561[] = { "Scambia gli schermi" };
+static const char* const lang_it_f562[] = { "Scambiati" };
+static const char* const lang_it_f563[] = { "Scorri verso l'alto per il menu rapido" };
+static const char* const lang_it_f564[] = { "Disattivato in gba-ds.cfg (retroachievements = 0)." };
+static const char* const lang_it_f565[] = { "Sistema" };
+static const char* const lang_it_f566[] = { "I tag nel nome file di una ROM, come (USA) o (En,Fr,De)." };
+static const char* const lang_it_f567[] = { "Fai uno screenshot" };
+static const char* const lang_it_f568[] = { "Ha effetto dopo aver chiuso e riavviato GBA DS" };
+static const char* const lang_it_f569[] = { "Tocca di nuovo per chiudere GBA DS." };
+static const char* const lang_it_f570[] = { "Tocca lo schermo o premi HOME per il menu" };
+static const char* const lang_it_f571[] = { "Tocca il touchscreen per saltare un pulsante che questo dispositivo non ha" };
+static const char* const lang_it_f572[] = { "Tocca per non assegnarne nessuno" };
+static const char* const lang_it_f573[] = { "Tocca per saltare un pulsante che questo dispositivo non ha" };
+static const char* const lang_it_f574[] = { "Verde acqua" };
+static const char* const lang_it_f575[] = { "Romhack testato: %s" };
+static const char* const lang_it_f576[] = { "Questo qui arriva come tasto della tastiera: non pu\303\262 essere assegnato. Tocca per saltare." };
+static const char* const lang_it_f577[] = { "Questo \303\250 gi\303\240 %s. Premine un altro, oppure tocca per saltare." };
+static const char* const lang_it_f578[] = { "\303\210 dentro la cartella di GBA DS: scegline una fuori." };
+static const char* const lang_it_f579[] = { "\303\210 il tasto scorciatoia: premine un altro" };
+static const char* const lang_it_f580[] = { "Il logo GBA DS nella cornice generata." };
+static const char* const lang_it_f581[] = { "I pixel del gioco cos\303\254 come sono" };
+static const char* const lang_it_f582[] = { "Il tasto scorciatoia pu\303\262 essere %s, Select, Start o L3" };
+static const char* const lang_it_f583[] = { "La mappa e il logo" };
+static const char* const lang_it_f584[] = { "I pulsanti dei menu: grigio scuro, o grigio chiaro come il player web." };
+static const char* const lang_it_f585[] = { "Il colore dei menu per ci\303\262 che \303\250 selezionato, con una versione scura e una chiara di ciascuno." };
+static const char* const lang_it_f586[] = { "Le patch non sono quelle dell'avvio del gioco: riavvialo per giocare con esse (oppure vengono usate dal prossimo avvio)" };
+static const char* const lang_it_f587[] = { "Processore, memoria e grafica vanno a piena velocit\303\240 finch\303\251 GBA DS \303\250 aperto: il gioco pi\303\271 fluido, ma la batteria si scarica pi\303\271 in fretta e il dispositivo si scalda di pi\303\271." };
+static const char* const lang_it_f588[] = { "Il sistema imposta la velocit\303\240, come per i suoi altri emulatori. Se i giochi scattano o l'audio si interrompe, prova Imposta al massimo." };
+static const char* const lang_it_f589[] = { "Questa cartella non pu\303\262 essere aperta" };
+static const char* const lang_it_f590[] = { "Questo gioco" };
+static const char* const lang_it_f591[] = { "Questo gioco ha un valore proprio. X, o andare oltre l'ultima scelta: come tutti i giochi" };
+static const char* const lang_it_f592[] = { "Questo gioco non ha ancora obiettivi" };
+static const char* const lang_it_f593[] = { "Questa \303\250 GBA DS v%s." };
+static const char* const lang_it_f594[] = { "Questa \303\250 la v%s. Cerca una nuova versione, poi la scarica e la installa." };
+static const char* const lang_it_f595[] = { "Questo stato non pu\303\262 essere letto" };
+static const char* const lang_it_f596[] = { "Questo stato \303\250 stato salvato %s: potrebbe non funzionare" };
+static const char* const lang_it_f597[] = { "Insieme: %s" };
+static const char* const lang_it_f598[] = { "Attiva/disattiva lo shader selezionato" };
+static const char* const lang_it_f599[] = { "Schermo in alto" };
+static const char* const lang_it_f600[] = { "Luminosit\303\240 dello schermo in alto" };
+static const char* const lang_it_f601[] = { "Tocca o usa la croce direzionale" };
+static const char* const lang_it_f602[] = { "Turbo A" };
+static const char* const lang_it_f603[] = { "Turbo B" };
+static const char* const lang_it_f604[] = { "Velocit\303\240 del turbo" };
+static const char* const lang_it_f605[] = { "Trasforma questa ROM in un'altra versione ufficiale: %s" };
+static const char* const lang_it_f606[] = { "es_systems.cfg inatteso (vedi il log)." };
+static const char* const lang_it_f607[] = { "Versione sconosciuta di questo gioco" };
+static const char* const lang_it_f608[] = { "Sbloccato" };
+static const char* const lang_it_f609[] = { "Sblocchi inviati" };
+static const char* const lang_it_f610[] = { "Gli sblocchi verranno inviati quando torner\303\240 la connessione" };
+static const char* const lang_it_f611[] = { "Sganciata: la barra si nasconde dopo 5 secondi." };
+static const char* const lang_it_f612[] = { "Non testata: il secondo schermo potrebbe non funzionare con essa" };
+static const char* const lang_it_f613[] = { "Su" };
+static const char* const lang_it_f614[] = { "Si possono attivare fino a %d patch alla volta" };
+static const char* const lang_it_f615[] = { "Fino a %s" };
+static const char* const lang_it_f616[] = { "Aggiorna ora" };
+static const char* const lang_it_f617[] = { "Aggiornamenti" };
+static const char* const lang_it_f618[] = { "Aggiornamenti, integrazioni" };
+static const char* const lang_it_f619[] = { "Usa questa cartella" };
+static const char* const lang_it_f620[] = { "Usato dal prossimo avvio del gioco" };
+static const char* const lang_it_f621[] = { "Volume %d%%" };
+static const char* const lang_it_f622[] = { "Cosa d\303\240 la croce direzionale gi\303\271 al gioco." };
+static const char* const lang_it_f623[] = { "Cosa d\303\240 la croce direzionale sinistra al gioco." };
+static const char* const lang_it_f624[] = { "Cosa d\303\240 la croce direzionale destra al gioco." };
+static const char* const lang_it_f625[] = { "Cosa d\303\240 la croce direzionale su al gioco." };
+static const char* const lang_it_f626[] = { "Cosa d\303\240 il pulsante dorsale L al gioco." };
+static const char* const lang_it_f627[] = { "Cosa d\303\240 il pulsante dorsale R al gioco." };
+static const char* const lang_it_f628[] = { "Cosa d\303\240 il pulsante in basso al gioco." };
+static const char* const lang_it_f629[] = { "Cosa d\303\240 il pulsante a sinistra al gioco." };
+static const char* const lang_it_f630[] = { "Cosa d\303\240 il pulsante a destra al gioco." };
+static const char* const lang_it_f631[] = { "Cosa d\303\240 il pulsante in alto al gioco." };
+static const char* const lang_it_f632[] = { "Da dove vengono letti i giochi, e la cartella in cui sono tenuti i loro salvataggi." };
+static const char* const lang_it_f633[] = { "Da dove vengono letti i giochi. I loro salvataggi sono tenuti accanto a loro." };
+static const char* const lang_it_f634[] = { "Quale schermo: entrambi" };
+static const char* const lang_it_f635[] = { "Quale schermo: solo in basso" };
+static const char* const lang_it_f636[] = { "Quale schermo: solo in alto" };
+static const char* const lang_it_f637[] = { "Quali giochi, nomi, salvataggio" };
+static const char* const lang_it_f638[] = { "Su quale schermo sta il gioco." };
+static const char* const lang_it_f639[] = { "Quali schermi li hanno." };
+static const char* const lang_it_f640[] = { "Con Quattro pulsanti scelto in Comandi nella barra rapida, il layout a quattro pulsanti sostituisce questi." };
+static const char* const lang_it_f641[] = { "Con SNES scelto in Comandi nella barra rapida, il layout SNES sostituisce questi nei livelli." };
+static const char* const lang_it_f642[] = { "Con una patch attiva, il gioco tiene un proprio salvataggio della batteria (\302\253<gioco> + <patch>\302\273): disattivato, usa quello dell'originale" };
+static const char* const lang_it_f643[] = { "Con una patch attiva, il gioco tiene propri stati: disattivato, usa quelli dell'originale (uno stato pu\303\262 risultare corrotto nell'altro)" };
+static const char* const lang_it_f644[] = { "Con il controllo automatico attivo, GBA DS cerca una nuova versione una volta al giorno all'apertura dell'elenco giochi e chiede prima di scaricare qualsiasi cosa. Gli aggiornamenti arrivano dalle release su github.com/kyannon/gba-ds." };
+static const char* const lang_it_f645[] = { "Con i tag, come (USA)" };
+static const char* const lang_it_f646[] = { "Pulsante X (alto)" };
+static const char* const lang_it_f647[] = { "Pulsante Y (sinistra)" };
+static const char* const lang_it_f648[] = { "I tuoi PNG in gba-ds/overlays/. Uno schermo senza ne riceve la cornice generata nei suoi colori predefiniti." };
+static const char* const lang_it_f649[] = { "I tuoi loghi e quelli recuperati sul secondo schermo." };
+static const char* const lang_it_f650[] = { "I tuoi schermi hanno la stessa forma: niente da abbinare" };
+static const char* const lang_it_f651[] = { "Zoom" };
+static const char* const lang_it_f652[] = { "colore" };
+static const char* const lang_it_f653[] = { "hex" };
+static const char* const lang_it_f654[] = { "tonalit\303\240" };
+static const char* const lang_it_f655[] = { "traduzione automatica" };
+static const char* const lang_it_f656[] = { "nessuno stato salvato!" };
+static const char* const lang_it_f657[] = { "disattivato" };
+static const char* const lang_it_f658[] = { "attivato" };
+static const char* const lang_it_f659[] = { "punto" };
+static const char* const lang_it_f660[] = { "punti" };
+static const char* const lang_it_f661[] = { "preset" };
+static const char* const lang_it_f662[] = { "premi lo stick sinistro" };
+static const char* const lang_it_f663[] = { "spingi lo stick sinistro a sinistra" };
+static const char* const lang_it_f664[] = { "spingi lo stick sinistro in su" };
+static const char* const lang_it_f665[] = { "il pulsante in basso" };
+static const char* const lang_it_f666[] = { "il pulsante che apre il menu di GBA DS (Home, Menu o Function)" };
+static const char* const lang_it_f667[] = { "il gioco" };
+static const char* const lang_it_f668[] = { "il pulsante a sinistra" };
+static const char* const lang_it_f669[] = { "il pulsante dorsale sinistro" };
+static const char* const lang_it_f670[] = { "la patch accanto alla ROM" };
+static const char* const lang_it_f671[] = { "il pulsante a destra" };
+static const char* const lang_it_f672[] = { "il pulsante dorsale destro" };
+static const char* const lang_it_f673[] = { "il secondo pulsante dorsale sinistro" };
+static const char* const lang_it_f674[] = { "il secondo pulsante dorsale destro" };
+static const char* const lang_it_f675[] = { "il pulsante in alto" };
+static const char* const lang_it_f676[] = { "i progressi non salvati vanno persi" };
+static const char* const lang_it_f677[] = { "con la patch" };
+static const char* const lang_it_f678[] = { "con %s" };
+static const char* const lang_it_f679[] = { "con un altro dump del gioco (%s)" };
+static const char* const lang_it_f680[] = { "con un'altra versione del gioco (altre patch, o un'altra ROM)" };
+static const char* const lang_it_f681[] = { "con il gioco non modificato (%s)" };
+static const char* const lang_it_f682[] = { "senza la patch" };
+static const char* const lang_it_f683[] = { "senza le patch attive" };
+static const char* const lang_it_f684[] = { "la tua posizione \303\250 salvata" };
+static const char* const lang_it_f685[] = { "\342\200\271" };
+static const char* const lang_it_f686[] = { "\342\200\272" };
+static const I18nEntry lang_it_entries[] = {
+	{ " (patch)", lang_it_f0, 1 },
+	{ " Checking for a new version...", lang_it_f1, 1 },
+	{ " It's the newest version.", lang_it_f2, 1 },
+	{ " ms", lang_it_f3, 1 },
+	{ " s", lang_it_f4, 1 },
+	{ "\"Swipe up for quick menu\" at a game's start.", lang_it_f5, 1 },
+	{ "%ca%d", lang_it_f6, 1 },
+	{ "%d RetroArch state here", lang_it_f7, 2 },
+	{ "%d file checked", lang_it_f8, 2 },
+	{ "%d game found", lang_it_f9, 2 },
+	{ "%d game found.", lang_it_f10, 2 },
+	{ "%d of %d", lang_it_f11, 1 },
+	{ "%d of %d set for %s, kept in controllers.txt beside GBA DS's save states. The line for it is in gba-ds.log too: send it in to have it built into GBA DS for this device.", lang_it_f12, 1 },
+	{ "%d on", lang_it_f13, 1 },
+	{ "%s", lang_it_f14, 1 },
+	{ "%s %s. Choose another if RetroArch keeps its states somewhere else.", lang_it_f15, 1 },
+	{ "%s (beside the ROM)", lang_it_f16, 1 },
+	{ "%s as the hotkey button, with Start, R1, L1, X, Y and B", lang_it_f17, 1 },
+	{ "%s has no button now", lang_it_f18, 1 },
+	{ "%s is now Start + Select", lang_it_f19, 1 },
+	{ "%s opens the menu: press another button", lang_it_f20, 1 },
+	{ "%s v%s. Restarting...", lang_it_f21, 1 },
+	{ "%s was %s's: that has no button now", lang_it_f22, 1 },
+	{ "%s, %s", lang_it_f23, 1 },
+	{ "%s, Select, Start or L3. Tap to keep it as it is", lang_it_f24, 1 },
+	{ "%u of %u achievements unlocked", lang_it_f25, 1 },
+	{ ", RetroArch", lang_it_f26, 1 },
+	{ "1 minute", lang_it_f27, 1 },
+	{ "10 s", lang_it_f28, 1 },
+	{ "128 ms", lang_it_f29, 1 },
+	{ "15 s", lang_it_f30, 1 },
+	{ "192 ms", lang_it_f31, 1 },
+	{ "2 minutes", lang_it_f32, 1 },
+	{ "2x", lang_it_f33, 1 },
+	{ "30 s", lang_it_f34, 1 },
+	{ "32 ms", lang_it_f35, 1 },
+	{ "3x", lang_it_f36, 1 },
+	{ "4x", lang_it_f37, 1 },
+	{ "5 minutes", lang_it_f38, 1 },
+	{ "5x", lang_it_f39, 1 },
+	{ "64 ms", lang_it_f40, 1 },
+	{ "96 ms", lang_it_f41, 1 },
+	{ "A (right) button", lang_it_f42, 1 },
+	{ "A and B buttons", lang_it_f43, 1 },
+	{ "A dark line under each row of pixels", lang_it_f44, 1 },
+	{ "A game's save already next to it, or in the other type, is copied over the first time you play it. .srm is the type RetroArch uses: choose its saves folder too to share each game's save with it.", lang_it_f45, 1 },
+	{ "A new version of GBA DS", lang_it_f46, 1 },
+	{ "A pattern over every pixel, on both screens.", lang_it_f47, 1 },
+	{ "A: the one lit above. Y: all games. X: undo this game's value", lang_it_f48, 1 },
+	{ "ACHIEVEMENT UNLOCKED", lang_it_f49, 1 },
+	{ "AM", lang_it_f50, 1 },
+	{ "Achievements", lang_it_f51, 1 },
+	{ "Add a note (optional): what happened, and what you expected to happen.", lang_it_f52, 1 },
+	{ "Adds GBA DS to the emulators for Game Boy Advance games in EmulationStation. Pick it for one game (its Advanced Game Options > Emulator) or for all of them (the system's advanced settings). The other emulators keep working as before.", lang_it_f53, 1 },
+	{ "All", lang_it_f54, 1 },
+	{ "All %u achievements unlocked", lang_it_f55, 1 },
+	{ "All games", lang_it_f56, 1 },
+	{ "Already the value for all games", lang_it_f57, 1 },
+	{ "Always", lang_it_f58, 1 },
+	{ "Always on here", lang_it_f59, 1 },
+	{ "Always on in this game: it needs it for full speed", lang_it_f60, 1 },
+	{ "Always on, applied first (RetroArch's way: a patch named as the ROM). %s", lang_it_f61, 1 },
+	{ "An xdelta made with compression, which GBA DS can't read: patch the ROM with it beforehand, or make it again without (xdelta3 -S none)", lang_it_f62, 1 },
+	{ "Android's installer couldn't be reached", lang_it_f63, 1 },
+	{ "Another emulator's", lang_it_f64, 1 },
+	{ "Apr", lang_it_f65, 1 },
+	{ "Are You Sure?", lang_it_f66, 1 },
+	{ "Are you sure? A: switch it %s now and carry on from here. Y: not yet (more changes first). B: call it off", lang_it_f67, 1 },
+	{ "Are you sure? A: use them now and carry on from here. B: call it off", lang_it_f68, 1 },
+	{ "Are you sure? Delete them", lang_it_f69, 1 },
+	{ "Are you sure? Reset settings", lang_it_f70, 1 },
+	{ "Are you sure? Save your game first. A: restart %s it now. Y: not yet (more changes first). B: call it off", lang_it_f71, 1 },
+	{ "Are you sure? Save your game first. A: restart now. B: call it off", lang_it_f72, 1 },
+	{ "Are you sure? Touch it again to delete every game's own settings. Anything else cancels.", lang_it_f73, 1 },
+	{ "Are you sure? Touch it again to put every setting back to its default. Anything else cancels.", lang_it_f74, 1 },
+	{ "As fast as it goes", lang_it_f75, 1 },
+	{ "As the game started", lang_it_f76, 1 },
+	{ "Aug", lang_it_f77, 1 },
+	{ "Auto", lang_it_f78, 1 },
+	{ "Auto-Load: Off", lang_it_f79, 1 },
+	{ "Auto-Load: On", lang_it_f80, 1 },
+	{ "Auto-load", lang_it_f81, 1 },
+	{ "Automatic", lang_it_f82, 1 },
+	{ "Automatic checks: Off", lang_it_f83, 1 },
+	{ "Automatic checks: On", lang_it_f84, 1 },
+	{ "Automatic follows the system. Text that isn't translated yet stays in English.", lang_it_f85, 1 },
+	{ "B (bottom) button", lang_it_f86, 1 },
+	{ "Back", lang_it_f87, 1 },
+	{ "Back online", lang_it_f88, 1 },
+	{ "Back to %s and the buttons it started with", lang_it_f89, 1 },
+	{ "BananaOS's systems list has no Game Boy Advance entry.", lang_it_f90, 1 },
+	{ "Bezel logo", lang_it_f91, 1 },
+	{ "Blue", lang_it_f92, 1 },
+	{ "Blurry instead of sharp: usually leave off.", lang_it_f93, 1 },
+	{ "Both screens", lang_it_f94, 1 },
+	{ "Bottom screen", lang_it_f95, 1 },
+	{ "Bottom screen brightness", lang_it_f96, 1 },
+	{ "Bug Report", lang_it_f97, 1 },
+	{ "Bug report saved in bug-reports", lang_it_f98, 1 },
+	{ "Bug report saved in bug-reports.", lang_it_f99, 1 },
+	{ "Buttons", lang_it_f100, 1 },
+	{ "Buttons mapped", lang_it_f101, 1 },
+	{ "Can't be read", lang_it_f102, 1 },
+	{ "Can't be read: not a patch, or damaged", lang_it_f103, 1 },
+	{ "Can't find the GBA DS folder.", lang_it_f104, 1 },
+	{ "Can't reach GBA DS's folder, using %s for now: %s", lang_it_f105, 1 },
+	{ "Can't rewind further", lang_it_f106, 1 },
+	{ "Can't save files here: no states, logos or screenshots", lang_it_f107, 1 },
+	{ "Can't save in the chosen folder, files not moved: %s", lang_it_f108, 1 },
+	{ "Cancel", lang_it_f109, 1 },
+	{ "Centered", lang_it_f110, 1 },
+	{ "Changes some of the same bytes as %s, and goes over it there: they may not work together", lang_it_f111, 1 },
+	{ "Cheats", lang_it_f112, 1 },
+	{ "Check now", lang_it_f113, 1 },
+	{ "Check ra_username and ra_password in gba-ds.cfg", lang_it_f114, 1 },
+	{ "Check the account in EmulationStation's RetroAchievements settings", lang_it_f115, 1 },
+	{ "Choose GBA DS folder", lang_it_f116, 1 },
+	{ "Choose ROM folder", lang_it_f117, 1 },
+	{ "Choose a folder in Android's file picker...", lang_it_f118, 1 },
+	{ "Choose it again to close %s: %s", lang_it_f119, 1 },
+	{ "Choose it again to restart: unsaved progress is lost", lang_it_f120, 1 },
+	{ "Choose save folder", lang_it_f121, 1 },
+	{ "Chosen folder is inside GBA DS's own, files not moved: %s", lang_it_f122, 1 },
+	{ "Chosen folder not found, files not moved: %s", lang_it_f123, 1 },
+	{ "Chosen here:", lang_it_f124, 1 },
+	{ "Close GBA DS", lang_it_f125, 1 },
+	{ "Close Game", lang_it_f126, 1 },
+	{ "Closest to gap", lang_it_f127, 1 },
+	{ "Closing a game saves where you are.", lang_it_f128, 1 },
+	{ "Color", lang_it_f129, 1 },
+	{ "Color Correction: Off", lang_it_f130, 1 },
+	{ "Color Correction: On", lang_it_f131, 1 },
+	{ "Color correction", lang_it_f132, 1 },
+	{ "Colors as a Game Boy Advance's screen showed them.", lang_it_f133, 1 },
+	{ "Confirm the update to v%s in Android's installer. Android closes GBA DS while it installs; open it again afterwards. If Android asks first, allow GBA DS to install apps.", lang_it_f134, 1 },
+	{ "Connect a controller and try again.", lang_it_f135, 1 },
+	{ "Controls", lang_it_f136, 1 },
+	{ "Couldn't change %s.", lang_it_f137, 1 },
+	{ "Couldn't change the files in %s/custom_systems: allow GBA DS All files access in Android's settings.", lang_it_f138, 1 },
+	{ "Couldn't connect", lang_it_f139, 1 },
+	{ "Couldn't find GBA DS's folder.", lang_it_f140, 1 },
+	{ "Couldn't keep that choice.", lang_it_f141, 1 },
+	{ "Couldn't load the achievements", lang_it_f142, 1 },
+	{ "Couldn't load the game", lang_it_f143, 1 },
+	{ "Couldn't move GBA DS's files, they stay in %s", lang_it_f144, 1 },
+	{ "Couldn't open the file picker.", lang_it_f145, 1 },
+	{ "Couldn't open the sign-in box.", lang_it_f146, 1 },
+	{ "Couldn't remove the setting file.", lang_it_f147, 1 },
+	{ "Couldn't save", lang_it_f148, 1 },
+	{ "Couldn't save the bug report.", lang_it_f149, 1 },
+	{ "Couldn't sign in as %s%s%s. Sign in to try again.", lang_it_f150, 1 },
+	{ "Couldn't write %s.", lang_it_f151, 1 },
+	{ "Couldn't write to %s.", lang_it_f152, 1 },
+	{ "Custom", lang_it_f153, 1 },
+	{ "Custom Logos: Do Not Use", lang_it_f154, 1 },
+	{ "Custom Logos: Full Detail", lang_it_f155, 1 },
+	{ "Custom Logos: Pixelated", lang_it_f156, 1 },
+	{ "Custom logos", lang_it_f157, 1 },
+	{ "D-pad", lang_it_f158, 1 },
+	{ "D-pad down", lang_it_f159, 1 },
+	{ "D-pad left", lang_it_f160, 1 },
+	{ "D-pad right", lang_it_f161, 1 },
+	{ "D-pad up", lang_it_f162, 1 },
+	{ "Dark", lang_it_f163, 1 },
+	{ "Darkens the bottom screen, in this app only: the device's own brightness is left alone (and this can't go above it).", lang_it_f164, 1 },
+	{ "Darkens the top screen, in this app only: the device's own brightness is left alone (and this can't go above it).", lang_it_f165, 1 },
+	{ "Dec", lang_it_f166, 1 },
+	{ "Del", lang_it_f167, 1 },
+	{ "Delete per-game settings", lang_it_f168, 1 },
+	{ "Deleted the settings of %d games.", lang_it_f169, 1 },
+	{ "Deleted the settings of 1 game.", lang_it_f170, 1 },
+	{ "Display", lang_it_f171, 1 },
+	{ "Done", lang_it_f172, 1 },
+	{ "Done (No Note)", lang_it_f173, 1 },
+	{ "Down", lang_it_f174, 1 },
+	{ "Downloading", lang_it_f175, 1 },
+	{ "ES-DE's folder wasn't found.", lang_it_f176, 1 },
+	{ "Each pixel a little darker toward its edges", lang_it_f177, 1 },
+	{ "Earn achievements in casual mode with your retroachievements.org account. GBA DS keeps a sign-in token, not your password.", lang_it_f178, 1 },
+	{ "English", lang_it_f179, 1 },
+	{ "Enter both your username and your password.", lang_it_f180, 1 },
+	{ "Enter your account in the sign-in box...", lang_it_f181, 1 },
+	{ "Every 0.5 s", lang_it_f182, 1 },
+	{ "Every 1.5 s", lang_it_f183, 1 },
+	{ "Every 3 s", lang_it_f184, 1 },
+	{ "Every button was skipped, so nothing changed.", lang_it_f185, 1 },
+	{ "Every second", lang_it_f186, 1 },
+	{ "Fails", lang_it_f187, 1 },
+	{ "Fast (20 a second)", lang_it_f188, 1 },
+	{ "Fast Forward: %dx", lang_it_f189, 1 },
+	{ "Fast Forward: Max", lang_it_f190, 1 },
+	{ "Fast Forward: Off", lang_it_f191, 1 },
+	{ "Fast forward", lang_it_f192, 1 },
+	{ "Fast forwarding...", lang_it_f193, 1 },
+	{ "Feb", lang_it_f194, 1 },
+	{ "First run only. B: back", lang_it_f195, 1 },
+	{ "Folders", lang_it_f196, 1 },
+	{ "Folders, accounts, updates", lang_it_f197, 1 },
+	{ "Follows how you hold the phone, and Android's own rotation lock.", lang_it_f198, 1 },
+	{ "Frame Buffer: Always on here", lang_it_f199, 1 },
+	{ "Frame Buffer: Off", lang_it_f200, 1 },
+	{ "Frame Buffer: On", lang_it_f201, 1 },
+	{ "Frame buffer", lang_it_f202, 1 },
+	{ "Frames a second above the game, all the time.", lang_it_f203, 1 },
+	{ "From RetroArch's settings:", lang_it_f204, 1 },
+	{ "Full Width", lang_it_f205, 1 },
+	{ "Full detail", lang_it_f206, 1 },
+	{ "GBA", lang_it_f207, 1 },
+	{ "GBA A", lang_it_f208, 1 },
+	{ "GBA A on the right button, or on the bottom one.", lang_it_f209, 1 },
+	{ "GBA B", lang_it_f210, 1 },
+	{ "GBA DS Logo: Hide", lang_it_f211, 1 },
+	{ "GBA DS Logo: Show", lang_it_f212, 1 },
+	{ "GBA DS Settings", lang_it_f213, 1 },
+	{ "GBA DS can't save files there: allow it All files access in Android's settings, or choose another folder.", lang_it_f214, 1 },
+	{ "GBA DS in BananaOS's GBA list: Off", lang_it_f215, 1 },
+	{ "GBA DS in BananaOS's GBA list: On", lang_it_f216, 1 },
+	{ "GBA DS in ES-DE: Off", lang_it_f217, 1 },
+	{ "GBA DS in ES-DE: On", lang_it_f218, 1 },
+	{ "GBA DS in EmulationStation: Off", lang_it_f219, 1 },
+	{ "GBA DS in EmulationStation: On", lang_it_f220, 1 },
+	{ "GBA DS is now ES-DE's emulator for Game Boy Advance games. Quit ES-DE and open it again to see it.", lang_it_f221, 1 },
+	{ "GBA DS is out of ES-DE's emulator list. Quit ES-DE and open it again to see it.", lang_it_f222, 1 },
+	{ "GBA DS v%s is out (this is v%s). Update now to download it (%.1f MB) and install it: Android asks you to confirm. Your games, saves, states and settings are kept.", lang_it_f223, 1 },
+	{ "GBA DS v%s is out (this is v%s). Update now to download it (%.1f MB) and restart into it; your games, saves, states and settings are kept.", lang_it_f224, 1 },
+	{ "GBA DS's bezel, or your own PNGs, round the picture.", lang_it_f225, 1 },
+	{ "GBA DS's files are kept there already.", lang_it_f226, 1 },
+	{ "GBA DS's files go to %s the next time it starts: close GBA DS and open it again.", lang_it_f227, 1 },
+	{ "GBA DS's own files (states, settings, cheats, overlays) are in %s, moving to %s at the next start.", lang_it_f228, 1 },
+	{ "GBA DS's own files (states, settings, cheats, overlays) are in %s.", lang_it_f229, 1 },
+	{ "GBA Down", lang_it_f230, 1 },
+	{ "GBA L", lang_it_f231, 1 },
+	{ "GBA Left", lang_it_f232, 1 },
+	{ "GBA R", lang_it_f233, 1 },
+	{ "GBA Right", lang_it_f234, 1 },
+	{ "GBA Up", lang_it_f235, 1 },
+	{ "Game", lang_it_f236, 1 },
+	{ "Game below", lang_it_f237, 1 },
+	{ "Game names", lang_it_f238, 1 },
+	{ "Game on top", lang_it_f239, 1 },
+	{ "Game restarted", lang_it_f240, 1 },
+	{ "Game screen scale", lang_it_f241, 1 },
+	{ "Games", lang_it_f242, 1 },
+	{ "Games are read from %s (subfolders too). Saves (%s) are kept in %s.", lang_it_f243, 1 },
+	{ "Games are read from %s (subfolders too). Saves (%s) are kept next to the games.", lang_it_f244, 1 },
+	{ "Games picked in BananaOS's own Game Boy Advance list start in GBA DS when it has second-screen support for them. Restart BananaOS after switching this.", lang_it_f245, 1 },
+	{ "Games shown", lang_it_f246, 1 },
+	{ "Games without second-screen support play on one screen.", lang_it_f247, 1 },
+	{ "Generated", lang_it_f248, 1 },
+	{ "Green", lang_it_f249, 1 },
+	{ "Held on its side: the two screens side by side. Either way round.", lang_it_f250, 1 },
+	{ "Held upright: the two screens one above the other. Either way up.", lang_it_f251, 1 },
+	{ "Hex Color", lang_it_f252, 1 },
+	{ "Hold L2 to go back in time.", lang_it_f253, 1 },
+	{ "Hold R2 to play faster.", lang_it_f254, 1 },
+	{ "Home", lang_it_f255, 1 },
+	{ "Hotkey button", lang_it_f256, 1 },
+	{ "Hotkeys", lang_it_f257, 1 },
+	{ "How dark the grid, scanlines and soft cells are.", lang_it_f258, 1 },
+	{ "How far back it goes.", lang_it_f259, 1 },
+	{ "How fast Turbo A and Turbo B press.", lang_it_f260, 1 },
+	{ "How the game's picture fills its screen.", lang_it_f261, 1 },
+	{ "How the map or logo fills its screen.", lang_it_f262, 1 },
+	{ "In a game, hold the hotkey button and press another", lang_it_f263, 1 },
+	{ "In patches/%s", lang_it_f264, 1 },
+	{ "Inner Bezel Color", lang_it_f265, 1 },
+	{ "Installed", lang_it_f266, 1 },
+	{ "Installing", lang_it_f267, 1 },
+	{ "Jan", lang_it_f268, 1 },
+	{ "Jul", lang_it_f269, 1 },
+	{ "Jun", lang_it_f270, 1 },
+	{ "Keep device aspect ratios", lang_it_f271, 1 },
+	{ "Keep device shapes", lang_it_f272, 1 },
+	{ "Keep saves next to the games", lang_it_f273, 1 },
+	{ "Kept as it was in %d s if nothing is pressed", lang_it_f274, 1 },
+	{ "Kept for every game", lang_it_f275, 1 },
+	{ "Known %s patch, tested: %s", lang_it_f276, 1 },
+	{ "Known %s patch, untested: %s. The second screen may not work with it", lang_it_f277, 1 },
+	{ "Known %s patch: %s, made for %s. This ROM is another version: it may break the game", lang_it_f278, 1 },
+	{ "Known %s patch: %s, made for %s: it can't be switched on for this ROM", lang_it_f279, 1 },
+	{ "Known romhack: %s, untested", lang_it_f280, 1 },
+	{ "L button", lang_it_f281, 1 },
+	{ "LCD Ghosting: Off", lang_it_f282, 1 },
+	{ "LCD Ghosting: On", lang_it_f283, 1 },
+	{ "LCD Grid", lang_it_f284, 1 },
+	{ "LCD ghosting", lang_it_f285, 1 },
+	{ "Language", lang_it_f286, 1 },
+	{ "Last checked %s.", lang_it_f287, 1 },
+	{ "Later", lang_it_f288, 1 },
+	{ "Left", lang_it_f289, 1 },
+	{ "Left out where it is: it's made for the unchanged ROM, so it has to be first (only one such patch can be on). Move it up with X", lang_it_f290, 1 },
+	{ "Left stick as D-pad", lang_it_f291, 1 },
+	{ "Left stick: left", lang_it_f292, 1 },
+	{ "Left stick: up", lang_it_f293, 1 },
+	{ "Let the System Decide", lang_it_f294, 1 },
+	{ "Light", lang_it_f295, 1 },
+	{ "Light/dark mode", lang_it_f296, 1 },
+	{ "Like a GBA", lang_it_f297, 1 },
+	{ "Lines between the pixels, like a GBA's screen", lang_it_f298, 1 },
+	{ "Load State", lang_it_f299, 1 },
+	{ "Load State %d", lang_it_f300, 1 },
+	{ "Load failed", lang_it_f301, 1 },
+	{ "Load failed.", lang_it_f302, 1 },
+	{ "Loading games...", lang_it_f303, 1 },
+	{ "Loading the achievements...", lang_it_f304, 1 },
+	{ "Loading thumbnail...", lang_it_f305, 1 },
+	{ "Made for another version of the game: it can't be switched on for this ROM", lang_it_f306, 1 },
+	{ "Makes GBA DS the emulator for Game Boy Advance games in ES-DE. For a game it doesn't support, choose another in ES-DE (the game's metadata > Alternative emulator).", lang_it_f307, 1 },
+	{ "Map", lang_it_f308, 1 },
+	{ "Map Buttons", lang_it_f309, 1 },
+	{ "Map buttons", lang_it_f310, 1 },
+	{ "Map refresh", lang_it_f311, 1 },
+	{ "Mar", lang_it_f312, 1 },
+	{ "Match Display Rate: Off", lang_it_f313, 1 },
+	{ "Match Display Rate: Off for now", lang_it_f314, 1 },
+	{ "Match Display Rate: On", lang_it_f315, 1 },
+	{ "Match aspect ratios", lang_it_f316, 1 },
+	{ "Match display rate", lang_it_f317, 1 },
+	{ "Match screen aspect ratios", lang_it_f318, 1 },
+	{ "Match screen sizes and aspect ratios", lang_it_f319, 1 },
+	{ "Match sizes and shapes", lang_it_f320, 1 },
+	{ "Max: full speed, a warmer device and a shorter battery.", lang_it_f321, 1 },
+	{ "May", lang_it_f322, 1 },
+	{ "Medium (15 a second)", lang_it_f323, 1 },
+	{ "Modified ROM: the second screen may not work", lang_it_f324, 1 },
+	{ "Move", lang_it_f325, 1 },
+	{ "Moving it: Up / Down or tap where it goes, then A (or tap it again). The one lower in the list is applied later", lang_it_f326, 1 },
+	{ "Moving things leave a short trail, as on a GBA.", lang_it_f327, 1 },
+	{ "NOTE: Unsupported games will play in RetroArch, but without BananaOS's own second screen (its game panel and companions).", lang_it_f328, 1 },
+	{ "New", lang_it_f329, 1 },
+	{ "No RetroArch states here", lang_it_f330, 1 },
+	{ "No achievements for this ROM (MD5 %s)", lang_it_f331, 1 },
+	{ "No cheats found (see Cheats in the wiki)", lang_it_f332, 1 },
+	{ "No controller found", lang_it_f333, 1 },
+	{ "No es_systems.cfg found.", lang_it_f334, 1 },
+	{ "No folder chosen.", lang_it_f335, 1 },
+	{ "No folders in this one", lang_it_f336, 1 },
+	{ "No game has settings of its own.", lang_it_f337, 1 },
+	{ "No games found", lang_it_f338, 1 },
+	{ "No patches here yet", lang_it_f339, 1 },
+	{ "No quick state saved yet.", lang_it_f340, 1 },
+	{ "No supported games in", lang_it_f341, 1 },
+	{ "None", lang_it_f342, 1 },
+	{ "Not in the folder any more: it's left out", lang_it_f343, 1 },
+	{ "Not resumed: RetroArch's automatic state is from another of its GBA cores. To share states, set RetroArch's GBA core to mGBA.", lang_it_f344, 1 },
+	{ "Not used", lang_it_f345, 1 },
+	{ "Nothing", lang_it_f346, 1 },
+	{ "Nothing mapped", lang_it_f347, 1 },
+	{ "Nothing saved in slot %d yet", lang_it_f348, 1 },
+	{ "Nothing to report yet.", lang_it_f349, 1 },
+	{ "Nov", lang_it_f350, 1 },
+	{ "Now", lang_it_f351, 1 },
+	{ "OK", lang_it_f352, 1 },
+	{ "Oct", lang_it_f353, 1 },
+	{ "Off", lang_it_f354, 1 },
+	{ "Off for slower devices: the table on one screen. Close and restart GBA DS to apply.", lang_it_f355, 1 },
+	{ "Off while a patch is on", lang_it_f356, 1 },
+	{ "Off.", lang_it_f357, 1 },
+	{ "Off. Restart BananaOS (Settings > System) for its menu to use it.", lang_it_f358, 1 },
+	{ "Off. Restart EmulationStation to apply.", lang_it_f359, 1 },
+	{ "Off: every game plays like an ordinary GBA game.", lang_it_f360, 1 },
+	{ "Off: the left stick does nothing in games.", lang_it_f361, 1 },
+	{ "Offline", lang_it_f362, 1 },
+	{ "On", lang_it_f363, 1 },
+	{ "On.", lang_it_f364, 1 },
+	{ "On. Restart BananaOS (Settings > System) for its menu to use it.", lang_it_f365, 1 },
+	{ "On. Restart EmulationStation to see it.", lang_it_f366, 1 },
+	{ "Only games with a map screen are listed (show_all = 1 lists every one)", lang_it_f367, 1 },
+	{ "Only one screen: nothing to move", lang_it_f368, 1 },
+	{ "Only patches that are on have an order, and this is the only one", lang_it_f369, 1 },
+	{ "Only when your two screens differ in shape. Experimental.", lang_it_f370, 1 },
+	{ "Open quick menu", lang_it_f371, 1 },
+	{ "Opens the bezel's own page, for whichever the game or all games have", lang_it_f372, 1 },
+	{ "Orange", lang_it_f373, 1 },
+	{ "Outer Bezel Color", lang_it_f374, 1 },
+	{ "Overlay colors and logo", lang_it_f375, 1 },
+	{ "Overlays", lang_it_f376, 1 },
+	{ "Overlays on", lang_it_f377, 1 },
+	{ "Overlays: Custom", lang_it_f378, 1 },
+	{ "Overlays: Custom (in /overlays)", lang_it_f379, 1 },
+	{ "Overlays: Generated", lang_it_f380, 1 },
+	{ "Overlays: Off", lang_it_f381, 1 },
+	{ "PM", lang_it_f382, 1 },
+	{ "Patch not applied: %s can't be read", lang_it_f383, 1 },
+	{ "Patch not applied: %s is for another ROM", lang_it_f384, 1 },
+	{ "Patched, but a patch was left out: see Patches in the game's menu", lang_it_f385, 1 },
+	{ "Patched: the second screen may not work", lang_it_f386, 1 },
+	{ "Patches", lang_it_f387, 1 },
+	{ "Patches changed", lang_it_f388, 1 },
+	{ "Patches changed since the game started", lang_it_f389, 1 },
+	{ "Patches changed: carrying on from where you were", lang_it_f390, 1 },
+	{ "Pattern strength", lang_it_f391, 1 },
+	{ "Paused", lang_it_f392, 1 },
+	{ "Performance", lang_it_f393, 1 },
+	{ "Performance: Let the System Decide", lang_it_f394, 1 },
+	{ "Performance: Set to Max", lang_it_f395, 1 },
+	{ "Pictures in the middle of their screens, or close together.", lang_it_f396, 1 },
+	{ "Pinball two-screen view", lang_it_f397, 1 },
+	{ "Pink", lang_it_f398, 1 },
+	{ "Pinned: the bar stays up.", lang_it_f399, 1 },
+	{ "Pixel Perfect", lang_it_f400, 1 },
+	{ "Pixelated", lang_it_f401, 1 },
+	{ "Placement, overlays", lang_it_f402, 1 },
+	{ "Plain", lang_it_f403, 1 },
+	{ "Play", lang_it_f404, 1 },
+	{ "Playing without achievements this time", lang_it_f405, 1 },
+	{ "Preparing the game...", lang_it_f406, 1 },
+	{ "Press %s", lang_it_f407, 1 },
+	{ "Press A or tap to close", lang_it_f408, 1 },
+	{ "Press A to close", lang_it_f409, 1 },
+	{ "Press a button", lang_it_f410, 1 },
+	{ "Purple", lang_it_f411, 1 },
+	{ "Push the stick: buttons don't count for this one.", lang_it_f412, 1 },
+	{ "Put .ips, .ups, .bps or .xdelta files in %s", lang_it_f413, 1 },
+	{ "Quick bar hint", lang_it_f414, 1 },
+	{ "Quick load state", lang_it_f415, 1 },
+	{ "Quick save state", lang_it_f416, 1 },
+	{ "Quit", lang_it_f417, 1 },
+	{ "R button", lang_it_f418, 1 },
+	{ "RETROACHIEVEMENTS \302\267 CASUAL", lang_it_f419, 1 },
+	{ "Raise it if the sound crackles.", lang_it_f420, 1 },
+	{ "Red", lang_it_f421, 1 },
+	{ "Red, green and blue stripes, gentle: for dim screens", lang_it_f422, 1 },
+	{ "Red, green and blue stripes, like a GBA's screen", lang_it_f423, 1 },
+	{ "Red, green and blue stripes, strong: for bright screens", lang_it_f424, 1 },
+	{ "Reset", lang_it_f425, 1 },
+	{ "Reset Bezels", lang_it_f426, 1 },
+	{ "Reset settings to defaults", lang_it_f427, 1 },
+	{ "Restart", lang_it_f428, 1 },
+	{ "Restart Game", lang_it_f429, 1 },
+	{ "Restart from the top row to play with it (or it's used from the next start)", lang_it_f430, 1 },
+	{ "Restart from the top row to play with this order", lang_it_f431, 1 },
+	{ "Restart required", lang_it_f432, 1 },
+	{ "Resume", lang_it_f433, 1 },
+	{ "Resumed. Tap or HOME for the menu", lang_it_f434, 1 },
+	{ "RetroAchievements couldn't start", lang_it_f435, 1 },
+	{ "RetroAchievements doesn't allow patched games", lang_it_f436, 1 },
+	{ "RetroAchievements is off", lang_it_f437, 1 },
+	{ "RetroAchievements: Off", lang_it_f438, 1 },
+	{ "RetroAchievements: Sign In", lang_it_f439, 1 },
+	{ "RetroAchievements: Sign Out", lang_it_f440, 1 },
+	{ "RetroAchievements: Signing In...", lang_it_f441, 1 },
+	{ "RetroArch's State Folder", lang_it_f442, 1 },
+	{ "RetroArch's settings weren't found here: choose the folder where it keeps its save states.", lang_it_f443, 1 },
+	{ "RetroArch's settings weren't found, so slots 0-9 and the automatic state are GBA DS's own again.", lang_it_f444, 1 },
+	{ "RetroArch's state folder is found from its settings again: %s.", lang_it_f445, 1 },
+	{ "Rewind", lang_it_f446, 1 },
+	{ "Rewind length", lang_it_f447, 1 },
+	{ "Rewind, fast forward", lang_it_f448, 1 },
+	{ "Rewind: Off", lang_it_f449, 1 },
+	{ "Rewind: On", lang_it_f450, 1 },
+	{ "Rewinding...", lang_it_f451, 1 },
+	{ "Right", lang_it_f452, 1 },
+	{ "Romhack: %s%s", lang_it_f453, 1 },
+	{ "Romhack: %s%s, untested", lang_it_f454, 1 },
+	{ "Rotation: Auto", lang_it_f455, 1 },
+	{ "Rotation: Landscape", lang_it_f456, 1 },
+	{ "Rotation: Portrait", lang_it_f457, 1 },
+	{ "Run at the display's rate: no small regular stutter.", lang_it_f458, 1 },
+	{ "SNES", lang_it_f459, 1 },
+	{ "Same as all games again", lang_it_f460, 1 },
+	{ "Save State", lang_it_f461, 1 },
+	{ "Save State %d", lang_it_f462, 1 },
+	{ "Save States: GBA DS's Own", lang_it_f463, 1 },
+	{ "Save States: Shared with RetroArch", lang_it_f464, 1 },
+	{ "Save failed", lang_it_f465, 1 },
+	{ "Save failed.", lang_it_f466, 1 },
+	{ "Save files: .sav", lang_it_f467, 1 },
+	{ "Save files: .srm (RetroArch's)", lang_it_f468, 1 },
+	{ "Save on Quit: Off", lang_it_f469, 1 },
+	{ "Save on Quit: On", lang_it_f470, 1 },
+	{ "Save on quit", lang_it_f471, 1 },
+	{ "Saved by another emulator: can't load it", lang_it_f472, 1 },
+	{ "Saved for all games", lang_it_f473, 1 },
+	{ "Saved for this game", lang_it_f474, 1 },
+	{ "Saved for when a patch is on", lang_it_f475, 1 },
+	{ "Saves will be kept next to the games.", lang_it_f476, 1 },
+	{ "Saves will be kept there.", lang_it_f477, 1 },
+	{ "Scale, shader, theme, color", lang_it_f478, 1 },
+	{ "Scale: Full Width", lang_it_f479, 1 },
+	{ "Scale: Pixel Perfect", lang_it_f480, 1 },
+	{ "Scale: Stretch", lang_it_f481, 1 },
+	{ "Scale: Zoom", lang_it_f482, 1 },
+	{ "Scanlines", lang_it_f483, 1 },
+	{ "Screen Placement: Centered", lang_it_f484, 1 },
+	{ "Screen Placement: Closest to Gap", lang_it_f485, 1 },
+	{ "Screen placement", lang_it_f486, 1 },
+	{ "Screen shapes", lang_it_f487, 1 },
+	{ "Screens", lang_it_f488, 1 },
+	{ "Screenshot failed", lang_it_f489, 1 },
+	{ "Screenshot saved", lang_it_f490, 1 },
+	{ "Second screen", lang_it_f491, 1 },
+	{ "Second screen scale", lang_it_f492, 1 },
+	{ "Select", lang_it_f493, 1 },
+	{ "Select or Start still reach the game when tapped on their own, L3 still opens the quick menu", lang_it_f494, 1 },
+	{ "Sep", lang_it_f495, 1 },
+	{ "Separate battery save", lang_it_f496, 1 },
+	{ "Separate save states", lang_it_f497, 1 },
+	{ "Set for now, but %s couldn't be written.", lang_it_f498, 1 },
+	{ "Set to Max", lang_it_f499, 1 },
+	{ "Sets the shortcuts: the hotkey button held with another.", lang_it_f500, 1 },
+	{ "Sets which of this device's buttons does what.", lang_it_f501, 1 },
+	{ "Settings", lang_it_f502, 1 },
+	{ "Settings are back to their defaults.", lang_it_f503, 1 },
+	{ "Shader", lang_it_f504, 1 },
+	{ "Shader: LCD Grid", lang_it_f505, 1 },
+	{ "Shader: Off", lang_it_f506, 1 },
+	{ "Shader: Scanlines", lang_it_f507, 1 },
+	{ "Shader: Soft Cells", lang_it_f508, 1 },
+	{ "Shader: Subpixels", lang_it_f509, 1 },
+	{ "Shader: Subpixels (Light)", lang_it_f510, 1 },
+	{ "Shader: Subpixels (Strong)", lang_it_f511, 1 },
+	{ "Shorter can make the sound crackle on a slow device.", lang_it_f512, 1 },
+	{ "Show FPS", lang_it_f513, 1 },
+	{ "Show FPS: Off", lang_it_f514, 1 },
+	{ "Show FPS: On", lang_it_f515, 1 },
+	{ "Sign in again in the game list's Settings", lang_it_f516, 1 },
+	{ "Sign-in failed", lang_it_f517, 1 },
+	{ "Signed in as %s. Achievements are earned in casual mode.", lang_it_f518, 1 },
+	{ "Signed out of RetroAchievements.", lang_it_f519, 1 },
+	{ "Signing in as %s...", lang_it_f520, 1 },
+	{ "Single screen only", lang_it_f521, 1 },
+	{ "Single screen only: plays normally", lang_it_f522, 1 },
+	{ "Skip", lang_it_f523, 1 },
+	{ "Skip this version", lang_it_f524, 1 },
+	{ "Skipped in %d s if nothing is pressed", lang_it_f525, 1 },
+	{ "Slot %d loaded", lang_it_f526, 1 },
+	{ "Slot %d: %s", lang_it_f527, 1 },
+	{ "Slot %d: %s %d, %d%s", lang_it_f528, 1 },
+	{ "Slot %d: %s %d, %d:%02d %s%s", lang_it_f529, 1 },
+	{ "Slot %d: Empty", lang_it_f530, 1 },
+	{ "Slots 0-9 and the automatic state are GBA DS's own again. The states saved in RetroArch's folder stay there.", lang_it_f531, 1 },
+	{ "Slots 0-9 and the automatic state are now RetroArch's. GBA DS's own states stay in its folder, for when this is switched back.", lang_it_f532, 1 },
+	{ "Slots 0-9 and the automatic state are now shared with RetroArch, in %s.", lang_it_f533, 1 },
+	{ "Slots 0-9 and the resume point are GBA DS's own. Shared, they're RetroArch's: %s.", lang_it_f534, 1 },
+	{ "Slots 0-9 and the resume point are GBA DS's own. To share them, choose RetroArch's state folder.", lang_it_f535, 1 },
+	{ "Slots 0-9 and the resume point are RetroArch's (its GBA core set to mGBA): %s.", lang_it_f536, 1 },
+	{ "Slow (10 a second)", lang_it_f537, 1 },
+	{ "Smooth scaling", lang_it_f538, 1 },
+	{ "Smoother, one frame more input delay.", lang_it_f539, 1 },
+	{ "Soft Cells", lang_it_f540, 1 },
+	{ "Some files couldn't be moved, they're still in %s", lang_it_f541, 1 },
+	{ "Sound delay", lang_it_f542, 1 },
+	{ "Space", lang_it_f543, 1 },
+	{ "Speed", lang_it_f544, 1 },
+	{ "Speed and sound", lang_it_f545, 1 },
+	{ "Start", lang_it_f546, 1 },
+	{ "Starting a game picks up where you closed it.", lang_it_f547, 1 },
+	{ "State loaded.", lang_it_f548, 1 },
+	{ "State saved to slot %d", lang_it_f549, 1 },
+	{ "State saved.", lang_it_f550, 1 },
+	{ "Stick, buttons, hotkeys", lang_it_f551, 1 },
+	{ "Stretch", lang_it_f552, 1 },
+	{ "Submit a Bug Report", lang_it_f553, 1 },
+	{ "Subpixels", lang_it_f554, 1 },
+	{ "Subpixels (Light)", lang_it_f555, 1 },
+	{ "Subpixels (Strong)", lang_it_f556, 1 },
+	{ "Supported", lang_it_f557, 1 },
+	{ "Supported games only", lang_it_f558, 1 },
+	{ "Sure?", lang_it_f559, 1 },
+	{ "Swap Screens", lang_it_f560, 1 },
+	{ "Swap screens", lang_it_f561, 1 },
+	{ "Swapped", lang_it_f562, 1 },
+	{ "Swipe up for quick menu", lang_it_f563, 1 },
+	{ "Switched off in gba-ds.cfg (retroachievements = 0).", lang_it_f564, 1 },
+	{ "System", lang_it_f565, 1 },
+	{ "Tags in a ROM's file name, like (USA) or (En,Fr,De).", lang_it_f566, 1 },
+	{ "Take Screenshot", lang_it_f567, 1 },
+	{ "Takes effect after you close and restart GBA DS", lang_it_f568, 1 },
+	{ "Tap again to close GBA DS.", lang_it_f569, 1 },
+	{ "Tap the screen or press HOME for the menu", lang_it_f570, 1 },
+	{ "Tap the touchscreen to skip a button this device doesn't have", lang_it_f571, 1 },
+	{ "Tap to set none", lang_it_f572, 1 },
+	{ "Tap to skip a button this device doesn't have", lang_it_f573, 1 },
+	{ "Teal", lang_it_f574, 1 },
+	{ "Tested romhack: %s", lang_it_f575, 1 },
+	{ "That one comes as a keyboard key here: it can't be mapped. Tap to skip.", lang_it_f576, 1 },
+	{ "That one is already %s. Press another, or tap to skip.", lang_it_f577, 1 },
+	{ "That's inside GBA DS's own folder: choose one outside it.", lang_it_f578, 1 },
+	{ "That's the hotkey button: press another", lang_it_f579, 1 },
+	{ "The GBA DS logo in the generated bezel.", lang_it_f580, 1 },
+	{ "The game's pixels as they are", lang_it_f581, 1 },
+	{ "The hotkey button can be %s, Select, Start or L3", lang_it_f582, 1 },
+	{ "The map and the logo", lang_it_f583, 1 },
+	{ "The menus' buttons: dark grey, or light grey like the web player's.", lang_it_f584, 1 },
+	{ "The menus' color for what's selected, with a dark and a light version of each.", lang_it_f585, 1 },
+	{ "The patches aren't as the game started: restart it to play with them (or they're used from the next start)", lang_it_f586, 1 },
+	{ "The processor, memory and graphics run at full speed while GBA DS is open: the smoothest play, but the battery runs down faster and the device gets warmer.", lang_it_f587, 1 },
+	{ "The system sets the speed, as for its other emulators. If games stutter or the sound breaks up, try Set to Max.", lang_it_f588, 1 },
+	{ "This folder can't be opened", lang_it_f589, 1 },
+	{ "This game", lang_it_f590, 1 },
+	{ "This game has its own value. X, or going on past the last choice: same as all games", lang_it_f591, 1 },
+	{ "This game has no achievements yet", lang_it_f592, 1 },
+	{ "This is GBA DS v%s.", lang_it_f593, 1 },
+	{ "This is v%s. Look for a new version, and download and install it.", lang_it_f594, 1 },
+	{ "This state can't be read", lang_it_f595, 1 },
+	{ "This state was saved %s: it may not work", lang_it_f596, 1 },
+	{ "Together: %s", lang_it_f597, 1 },
+	{ "Toggle selected shader", lang_it_f598, 1 },
+	{ "Top screen", lang_it_f599, 1 },
+	{ "Top screen brightness", lang_it_f600, 1 },
+	{ "Touch or use the D-Pad", lang_it_f601, 1 },
+	{ "Turbo A", lang_it_f602, 1 },
+	{ "Turbo B", lang_it_f603, 1 },
+	{ "Turbo speed", lang_it_f604, 1 },
+	{ "Turns this ROM into another official release: %s", lang_it_f605, 1 },
+	{ "Unexpected es_systems.cfg (see the log).", lang_it_f606, 1 },
+	{ "Unknown version of this game", lang_it_f607, 1 },
+	{ "Unlocked", lang_it_f608, 1 },
+	{ "Unlocks sent", lang_it_f609, 1 },
+	{ "Unlocks will be sent when the connection is back", lang_it_f610, 1 },
+	{ "Unpinned: the bar hides after 5 seconds.", lang_it_f611, 1 },
+	{ "Untested: the second screen may not work with it", lang_it_f612, 1 },
+	{ "Up", lang_it_f613, 1 },
+	{ "Up to %d patches can be on at once", lang_it_f614, 1 },
+	{ "Up to %s", lang_it_f615, 1 },
+	{ "Update now", lang_it_f616, 1 },
+	{ "Updates", lang_it_f617, 1 },
+	{ "Updates, integrations", lang_it_f618, 1 },
+	{ "Use This Folder", lang_it_f619, 1 },
+	{ "Used from the next time the game starts", lang_it_f620, 1 },
+	{ "Volume %d%%", lang_it_f621, 1 },
+	{ "What D-pad down gives the game.", lang_it_f622, 1 },
+	{ "What D-pad left gives the game.", lang_it_f623, 1 },
+	{ "What D-pad right gives the game.", lang_it_f624, 1 },
+	{ "What D-pad up gives the game.", lang_it_f625, 1 },
+	{ "What the L shoulder button gives the game.", lang_it_f626, 1 },
+	{ "What the R shoulder button gives the game.", lang_it_f627, 1 },
+	{ "What the bottom face button gives the game.", lang_it_f628, 1 },
+	{ "What the left face button gives the game.", lang_it_f629, 1 },
+	{ "What the right face button gives the game.", lang_it_f630, 1 },
+	{ "What the top face button gives the game.", lang_it_f631, 1 },
+	{ "Where games are read from, and the folder their saves are kept in.", lang_it_f632, 1 },
+	{ "Where games are read from. Their saves are kept next to them.", lang_it_f633, 1 },
+	{ "Which Screen: Both", lang_it_f634, 1 },
+	{ "Which Screen: Bottom Only", lang_it_f635, 1 },
+	{ "Which Screen: Top Only", lang_it_f636, 1 },
+	{ "Which games, names, saving", lang_it_f637, 1 },
+	{ "Which screen the game is on.", lang_it_f638, 1 },
+	{ "Which screens have them.", lang_it_f639, 1 },
+	{ "With Four buttons picked under Controls in the quick bar, the four-button layout replaces these.", lang_it_f640, 1 },
+	{ "With SNES picked under Controls in the quick bar, the SNES layout replaces these in levels.", lang_it_f641, 1 },
+	{ "With a patch on, the game keeps its own battery save (\"<game> + <patch>\"): off, it uses the original's", lang_it_f642, 1 },
+	{ "With a patch on, the game keeps its own save states: off, it uses the original's (a state can come out garbled in the other)", lang_it_f643, 1 },
+	{ "With automatic checks on, GBA DS looks for a new version once a day when the game list opens, and asks before downloading anything. Updates come from the releases on github.com/kyannon/gba-ds.", lang_it_f644, 1 },
+	{ "With tags, like (USA)", lang_it_f645, 1 },
+	{ "X (top) button", lang_it_f646, 1 },
+	{ "Y (left) button", lang_it_f647, 1 },
+	{ "Your own PNGs in gba-ds/overlays/. A screen without one gets the generated bezel in its default colors.", lang_it_f648, 1 },
+	{ "Your own and scraped logos on the second screen.", lang_it_f649, 1 },
+	{ "Your screens are the same shape: nothing to match", lang_it_f650, 1 },
+	{ "Zoom", lang_it_f651, 1 },
+	{ "color", lang_it_f652, 1 },
+	{ "hex", lang_it_f653, 1 },
+	{ "hue", lang_it_f654, 1 },
+	{ "machine translated", lang_it_f655, 1 },
+	{ "no save state yet!", lang_it_f656, 1 },
+	{ "off", lang_it_f657, 1 },
+	{ "on", lang_it_f658, 1 },
+	{ "point", lang_it_f659, 1 },
+	{ "points", lang_it_f660, 1 },
+	{ "presets", lang_it_f661, 1 },
+	{ "press the left stick in", lang_it_f662, 1 },
+	{ "push the left stick left", lang_it_f663, 1 },
+	{ "push the left stick up", lang_it_f664, 1 },
+	{ "the bottom face button", lang_it_f665, 1 },
+	{ "the button that opens GBA DS's menu (Home, Menu or Function)", lang_it_f666, 1 },
+	{ "the game", lang_it_f667, 1 },
+	{ "the left face button", lang_it_f668, 1 },
+	{ "the left shoulder button", lang_it_f669, 1 },
+	{ "the patch beside the ROM", lang_it_f670, 1 },
+	{ "the right face button", lang_it_f671, 1 },
+	{ "the right shoulder button", lang_it_f672, 1 },
+	{ "the second left shoulder button", lang_it_f673, 1 },
+	{ "the second right shoulder button", lang_it_f674, 1 },
+	{ "the top face button", lang_it_f675, 1 },
+	{ "unsaved progress is lost", lang_it_f676, 1 },
+	{ "with", lang_it_f677, 1 },
+	{ "with %s", lang_it_f678, 1 },
+	{ "with another dump of the game (%s)", lang_it_f679, 1 },
+	{ "with another version of the game (other patches, or another ROM)", lang_it_f680, 1 },
+	{ "with the unchanged game (%s)", lang_it_f681, 1 },
+	{ "without", lang_it_f682, 1 },
+	{ "without the patches on", lang_it_f683, 1 },
+	{ "your place is saved", lang_it_f684, 1 },
+	{ "\342\200\271", lang_it_f685, 1 },
+	{ "\342\200\272", lang_it_f686, 1 },
+};
+
 static const char* const lang_ja_f0[] = { " (\343\203\221\343\203\203\343\203\201)" };
 static const char* const lang_ja_f1[] = { " \346\226\260\343\201\227\343\201\204\343\203\220\343\203\274\343\202\270\343\203\247\343\203\263\343\202\222\347\242\272\350\252\215\344\270\255..." };
 static const char* const lang_ja_f2[] = { " \346\234\200\346\226\260\343\203\220\343\203\274\343\202\270\343\203\247\343\203\263\343\201\247\343\201\231\343\200\202" };
@@ -4132,6 +6886,1383 @@ static const I18nEntry lang_ja_entries[] = {
 	{ "\342\200\272", lang_ja_f686, 1 },
 };
 
+static const char* const lang_ko_f0[] = { " (\355\214\250\354\271\230)" };
+static const char* const lang_ko_f1[] = { " \354\203\210 \353\262\204\354\240\204\354\235\204 \355\231\225\354\235\270\355\225\230\353\212\224 \354\244\221..." };
+static const char* const lang_ko_f2[] = { " \354\265\234\354\213\240 \353\262\204\354\240\204\354\236\205\353\213\210\353\213\244." };
+static const char* const lang_ko_f3[] = { " ms" };
+static const char* const lang_ko_f4[] = { " s" };
+static const char* const lang_ko_f5[] = { "\352\262\214\354\236\204\354\235\204 \354\213\234\354\236\221\355\225\240 \353\225\214 \"\354\234\204\353\241\234 \354\212\244\354\231\200\354\235\264\355\224\204\355\225\230\354\227\254 \353\271\240\353\245\270 \353\251\224\353\211\264\"." };
+static const char* const lang_ko_f6[] = { "%ca%d" };
+static const char* const lang_ko_f7[] = { "\354\227\254\352\270\260\354\227\220 RetroArch \354\203\201\355\203\234 %d\352\260\234" };
+static const char* const lang_ko_f8[] = { "\355\214\214\354\235\274 %d\352\260\234 \355\231\225\354\235\270" };
+static const char* const lang_ko_f9[] = { "\352\262\214\354\236\204 %d\352\260\234 \353\260\234\352\262\254" };
+static const char* const lang_ko_f10[] = { "\352\262\214\354\236\204 %d\352\260\234 \353\260\234\352\262\254." };
+static const char* const lang_ko_f11[] = { "%d / %d" };
+static const char* const lang_ko_f12[] = { "%3$s\354\227\220 %2$d\352\260\234 \354\244\221 %1$d\352\260\234\353\245\274 \354\204\244\354\240\225\355\226\210\354\212\265\353\213\210\353\213\244. GBA DS \354\203\201\355\203\234 \355\214\214\354\235\274 \354\230\206\354\235\230 controllers.txt\354\227\220 \354\240\200\354\236\245\353\220\251\353\213\210\353\213\244. \355\225\264\353\213\271 \354\244\204\354\235\200 gba-ds.log\354\227\220\353\217\204 \354\236\210\354\234\274\353\213\210, \354\235\264 \352\270\260\352\270\260\354\232\251\354\234\274\353\241\234 GBA DS\354\227\220 \353\260\230\354\230\201\355\225\240 \354\210\230 \354\236\210\352\262\214 \353\263\264\353\202\264 \354\243\274\354\204\270\354\232\224." };
+static const char* const lang_ko_f13[] = { "%d\352\260\234 \354\274\234\354\247\220" };
+static const char* const lang_ko_f14[] = { "%s" };
+static const char* const lang_ko_f15[] = { "%s %s. RetroArch\352\260\200 \354\203\201\355\203\234\353\245\274 \353\213\244\353\245\270 \352\263\263\354\227\220 \353\263\264\352\264\200\355\225\234\353\213\244\353\251\264 \353\213\244\353\245\270 \355\217\264\353\215\224\353\245\274 \354\204\240\355\203\235\355\225\230\354\204\270\354\232\224." };
+static const char* const lang_ko_f16[] = { "%s (ROM \354\230\206)" };
+static const char* const lang_ko_f17[] = { "%s\354\235\204(\353\245\274) \355\225\253\355\202\244 \353\262\204\355\212\274\354\234\274\353\241\234 \354\202\254\354\232\251 (Start, R1, L1, X, Y, B\354\231\200 \355\225\250\352\273\230)" };
+static const char* const lang_ko_f18[] = { "%s\354\227\220 \355\225\240\353\213\271\353\220\234 \353\262\204\355\212\274\354\235\264 \354\227\206\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f19[] = { "%s\354\235\200(\353\212\224) \354\235\264\354\240\234 Start + Select\354\236\205\353\213\210\353\213\244" };
+static const char* const lang_ko_f20[] = { "%s(\354\234\274)\353\241\234 \353\251\224\353\211\264\353\245\274 \354\227\275\353\213\210\353\213\244. \353\213\244\353\245\270 \353\262\204\355\212\274\354\235\204 \353\210\204\353\245\264\354\204\270\354\232\224" };
+static const char* const lang_ko_f21[] = { "%s v%s. \353\213\244\354\213\234 \354\213\234\354\236\221\355\225\230\353\212\224 \354\244\221..." };
+static const char* const lang_ko_f22[] = { "%s\354\235\200(\353\212\224) %s\354\235\230 \352\262\203\354\235\264\354\227\210\354\212\265\353\213\210\353\213\244. \354\235\264\354\240\234 \355\225\240\353\213\271\353\220\234 \353\262\204\355\212\274\354\235\264 \354\227\206\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f23[] = { "%s, %s" };
+static const char* const lang_ko_f24[] = { "%s, Select, Start \353\230\220\353\212\224 L3. \353\210\214\353\237\254\354\204\234 \352\267\270\353\214\200\353\241\234 \353\221\220\352\270\260" };
+static const char* const lang_ko_f25[] = { "\354\227\205\354\240\201 %u\352\260\234 \354\244\221 %u\352\260\234 \353\213\254\354\204\261" };
+static const char* const lang_ko_f26[] = { ", RetroArch" };
+static const char* const lang_ko_f27[] = { "1\353\266\204" };
+static const char* const lang_ko_f28[] = { "10 s" };
+static const char* const lang_ko_f29[] = { "128 ms" };
+static const char* const lang_ko_f30[] = { "15 s" };
+static const char* const lang_ko_f31[] = { "192 ms" };
+static const char* const lang_ko_f32[] = { "2\353\266\204" };
+static const char* const lang_ko_f33[] = { "2x" };
+static const char* const lang_ko_f34[] = { "30 s" };
+static const char* const lang_ko_f35[] = { "32 ms" };
+static const char* const lang_ko_f36[] = { "3x" };
+static const char* const lang_ko_f37[] = { "4x" };
+static const char* const lang_ko_f38[] = { "5\353\266\204" };
+static const char* const lang_ko_f39[] = { "5x" };
+static const char* const lang_ko_f40[] = { "64 ms" };
+static const char* const lang_ko_f41[] = { "96 ms" };
+static const char* const lang_ko_f42[] = { "A \353\262\204\355\212\274 (\354\230\244\353\245\270\354\252\275)" };
+static const char* const lang_ko_f43[] = { "A \353\260\217 B \353\262\204\355\212\274" };
+static const char* const lang_ko_f44[] = { "\352\260\201 \355\224\275\354\205\200 \354\244\204 \354\225\204\353\236\230\354\227\220 \354\226\264\353\221\220\354\232\264 \354\204\240" };
+static const char* const lang_ko_f45[] = { "\354\230\206\354\227\220 \354\235\264\353\257\270 \354\236\210\352\261\260\353\202\230 \353\213\244\353\245\270 \355\230\225\354\213\235\354\235\270 \352\262\214\354\236\204 \354\240\200\354\236\245 \353\215\260\354\235\264\355\204\260\353\212\224 \354\262\230\354\235\214 \355\224\214\353\240\210\354\235\264\355\225\240 \353\225\214 \353\263\265\354\202\254\353\220\251\353\213\210\353\213\244. .srm\354\235\200 RetroArch\352\260\200 \354\223\260\353\212\224 \355\230\225\354\213\235\354\236\205\353\213\210\353\213\244. RetroArch\354\235\230 \354\240\200\354\236\245 \355\217\264\353\215\224\353\217\204 \354\204\240\355\203\235\355\225\230\353\251\264 \352\260\201 \352\262\214\354\236\204\354\235\230 \354\240\200\354\236\245 \353\215\260\354\235\264\355\204\260\353\245\274 \352\263\265\354\234\240\355\225\240 \354\210\230 \354\236\210\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f46[] = { "GBA DS \354\203\210 \353\262\204\354\240\204" };
+static const char* const lang_ko_f47[] = { "\353\252\250\353\223\240 \355\224\275\354\205\200 \354\234\204\354\227\220 \355\214\250\355\204\264\354\235\204 \354\236\205\355\236\231\353\213\210\353\213\244 (\353\221\220 \355\231\224\353\251\264 \353\252\250\353\221\220)." };
+static const char* const lang_ko_f48[] = { "A: \354\234\204\354\227\220\354\204\234 \352\260\225\354\241\260\353\220\234 \352\260\222. Y: \353\252\250\353\223\240 \352\262\214\354\236\204. X: \354\235\264 \352\262\214\354\236\204\354\235\230 \352\260\222 \353\220\230\353\217\214\353\246\254\352\270\260" };
+static const char* const lang_ko_f49[] = { "\354\227\205\354\240\201 \353\213\254\354\204\261" };
+static const char* const lang_ko_f50[] = { "AM" };
+static const char* const lang_ko_f51[] = { "\354\227\205\354\240\201" };
+static const char* const lang_ko_f52[] = { "\353\251\224\353\252\250\353\245\274 \354\266\224\352\260\200\355\225\230\354\204\270\354\232\224 (\354\204\240\355\203\235): \353\254\264\354\212\250 \354\235\274\354\235\264 \354\236\210\354\227\210\352\263\240 \354\226\264\353\226\273\352\262\214 \353\220\230\352\270\270 \352\270\260\353\214\200\355\226\210\353\212\224\354\247\200." };
+static const char* const lang_ko_f53[] = { "EmulationStation\354\235\230 \352\262\214\354\236\204\353\263\264\354\235\264 \354\226\264\353\223\234\353\260\264\354\212\244 \354\227\220\353\256\254\353\240\210\354\235\264\355\204\260\354\227\220 GBA DS\353\245\274 \354\266\224\352\260\200\355\225\251\353\213\210\353\213\244. \352\262\214\354\236\204 \355\225\230\353\202\230(\352\263\240\352\270\211 \352\262\214\354\236\204 \354\230\265\354\205\230 > \354\227\220\353\256\254\353\240\210\354\235\264\355\204\260)\353\202\230 \354\240\204\354\262\264(\354\213\234\354\212\244\355\205\234 \352\263\240\352\270\211 \354\204\244\354\240\225)\354\227\220 \354\204\240\355\203\235\355\225\240 \354\210\230 \354\236\210\354\212\265\353\213\210\353\213\244. \353\213\244\353\245\270 \354\227\220\353\256\254\353\240\210\354\235\264\355\204\260\353\212\224 \352\267\270\353\214\200\353\241\234 \354\236\221\353\217\231\355\225\251\353\213\210\353\213\244." };
+static const char* const lang_ko_f54[] = { "\353\252\250\353\221\220" };
+static const char* const lang_ko_f55[] = { "\354\227\205\354\240\201 %u\352\260\234 \353\252\250\353\221\220 \353\213\254\354\204\261" };
+static const char* const lang_ko_f56[] = { "\353\252\250\353\223\240 \352\262\214\354\236\204" };
+static const char* const lang_ko_f57[] = { "\354\235\264\353\257\270 \353\252\250\353\223\240 \352\262\214\354\236\204\354\235\230 \352\260\222\354\236\205\353\213\210\353\213\244" };
+static const char* const lang_ko_f58[] = { "\355\225\255\354\203\201" };
+static const char* const lang_ko_f59[] = { "\354\227\254\352\270\260\354\204\234\353\212\224 \355\225\255\354\203\201 \354\274\234\354\247\220" };
+static const char* const lang_ko_f60[] = { "\354\235\264 \352\262\214\354\236\204\354\227\220\354\204\234\353\212\224 \355\225\255\354\203\201 \354\274\234\354\247\220: \354\265\234\352\263\240 \354\206\215\353\217\204\353\241\234 \354\213\244\355\226\211\355\225\230\353\240\244\353\251\264 \355\225\204\354\232\224\355\225\251\353\213\210\353\213\244" };
+static const char* const lang_ko_f61[] = { "\355\225\255\354\203\201 \354\274\234\354\247\220, \352\260\200\354\236\245 \353\250\274\354\240\200 \354\240\201\354\232\251 (RetroArch \353\260\251\354\213\235: ROM\352\263\274 \352\260\231\354\235\200 \354\235\264\353\246\204\354\235\230 \355\214\250\354\271\230). %s" };
+static const char* const lang_ko_f62[] = { "\354\225\225\354\266\225\354\234\274\353\241\234 \353\247\214\353\223\240 xdelta\353\212\224 GBA DS\354\227\220\354\204\234 \354\235\275\354\235\204 \354\210\230 \354\227\206\354\212\265\353\213\210\353\213\244. \353\250\274\354\240\200 ROM\354\227\220 \355\214\250\354\271\230\353\245\274 \354\240\201\354\232\251\355\225\230\352\261\260\353\202\230 \354\225\225\354\266\225 \354\227\206\354\235\264 \353\213\244\354\213\234 \353\247\214\353\223\234\354\204\270\354\232\224 (xdelta3 -S none)" };
+static const char* const lang_ko_f63[] = { "Android \354\204\244\354\271\230 \355\224\204\353\241\234\352\267\270\353\236\250\354\227\220 \354\227\260\352\262\260\355\225\240 \354\210\230 \354\227\206\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f64[] = { "\353\213\244\353\245\270 \354\227\220\353\256\254\353\240\210\354\235\264\355\204\260\354\235\230" };
+static const char* const lang_ko_f65[] = { "4\354\233\224" };
+static const char* const lang_ko_f66[] = { "\355\231\225\354\213\244\355\225\234\352\260\200\354\232\224?" };
+static const char* const lang_ko_f67[] = { "\355\231\225\354\213\244\355\225\234\352\260\200\354\232\224? A: \354\247\200\352\270\210 %s(\354\234\274)\353\241\234 \353\260\224\352\276\270\352\263\240 \354\227\254\352\270\260\354\204\234 \352\263\204\354\206\215. Y: \354\225\204\354\247\201 \354\225\204\353\213\230 (\353\250\274\354\240\200 \353\213\244\353\245\270 \353\263\200\352\262\275). B: \354\267\250\354\206\214" };
+static const char* const lang_ko_f68[] = { "\355\231\225\354\213\244\355\225\234\352\260\200\354\232\224? A: \354\247\200\352\270\210 \354\202\254\354\232\251\355\225\230\352\263\240 \354\227\254\352\270\260\354\204\234 \352\263\204\354\206\215. B: \354\267\250\354\206\214" };
+static const char* const lang_ko_f69[] = { "\355\231\225\354\213\244\355\225\234\352\260\200\354\232\224? \354\202\255\354\240\234" };
+static const char* const lang_ko_f70[] = { "\355\231\225\354\213\244\355\225\234\352\260\200\354\232\224? \354\204\244\354\240\225 \354\264\210\352\270\260\355\231\224" };
+static const char* const lang_ko_f71[] = { "\355\231\225\354\213\244\355\225\234\352\260\200\354\232\224? \353\250\274\354\240\200 \352\262\214\354\236\204\354\235\204 \354\240\200\354\236\245\355\225\230\354\204\270\354\232\224. A: \354\247\200\352\270\210 %s \353\213\244\354\213\234 \354\213\234\354\236\221. Y: \354\225\204\354\247\201 \354\225\204\353\213\230 (\353\250\274\354\240\200 \353\213\244\353\245\270 \353\263\200\352\262\275). B: \354\267\250\354\206\214" };
+static const char* const lang_ko_f72[] = { "\355\231\225\354\213\244\355\225\234\352\260\200\354\232\224? \353\250\274\354\240\200 \352\262\214\354\236\204\354\235\204 \354\240\200\354\236\245\355\225\230\354\204\270\354\232\224. A: \354\247\200\352\270\210 \353\213\244\354\213\234 \354\213\234\354\236\221. B: \354\267\250\354\206\214" };
+static const char* const lang_ko_f73[] = { "\354\240\225\353\247\220\353\241\234 \355\225\230\354\213\234\352\262\240\354\212\265\353\213\210\352\271\214? \355\225\234 \353\262\210 \353\215\224 \353\210\204\353\245\264\353\251\264 \352\262\214\354\236\204\353\263\204 \354\204\244\354\240\225\354\235\204 \353\252\250\353\221\220 \354\202\255\354\240\234\355\225\251\353\213\210\353\213\244. \353\213\244\353\245\270 \352\263\263\354\235\204 \353\210\204\353\245\264\353\251\264 \354\267\250\354\206\214\353\220\251\353\213\210\353\213\244." };
+static const char* const lang_ko_f74[] = { "\354\240\225\353\247\220\353\241\234 \355\225\230\354\213\234\352\262\240\354\212\265\353\213\210\352\271\214? \355\225\234 \353\262\210 \353\215\224 \353\210\204\353\245\264\353\251\264 \353\252\250\353\223\240 \354\204\244\354\240\225\354\235\204 \352\270\260\353\263\270\352\260\222\354\234\274\353\241\234 \353\220\230\353\217\214\353\246\275\353\213\210\353\213\244. \353\213\244\353\245\270 \352\263\263\354\235\204 \353\210\204\353\245\264\353\251\264 \354\267\250\354\206\214\353\220\251\353\213\210\353\213\244." };
+static const char* const lang_ko_f75[] = { "\352\260\200\353\212\245\355\225\234 \355\225\234 \353\271\240\353\245\264\352\262\214" };
+static const char* const lang_ko_f76[] = { "\352\262\214\354\236\204\354\235\204 \354\213\234\354\236\221\355\226\210\354\235\204 \353\225\214 \352\267\270\353\214\200\353\241\234" };
+static const char* const lang_ko_f77[] = { "8\354\233\224" };
+static const char* const lang_ko_f78[] = { "\354\236\220\353\217\231" };
+static const char* const lang_ko_f79[] = { "\354\236\220\353\217\231 \353\266\210\353\237\254\354\230\244\352\270\260: \353\201\224" };
+static const char* const lang_ko_f80[] = { "\354\236\220\353\217\231 \353\266\210\353\237\254\354\230\244\352\270\260: \354\274\254" };
+static const char* const lang_ko_f81[] = { "\354\236\220\353\217\231 \353\266\210\353\237\254\354\230\244\352\270\260" };
+static const char* const lang_ko_f82[] = { "\354\236\220\353\217\231" };
+static const char* const lang_ko_f83[] = { "\354\236\220\353\217\231 \355\231\225\354\235\270: \353\201\224" };
+static const char* const lang_ko_f84[] = { "\354\236\220\353\217\231 \355\231\225\354\235\270: \354\274\254" };
+static const char* const lang_ko_f85[] = { "\354\236\220\353\217\231\354\235\200 \354\213\234\354\212\244\355\205\234 \354\226\270\354\226\264\353\245\274 \353\224\260\353\246\205\353\213\210\353\213\244. \354\225\204\354\247\201 \353\262\210\354\227\255\353\220\230\354\247\200 \354\225\212\354\235\200 \355\205\215\354\212\244\355\212\270\353\212\224 \354\230\201\354\226\264\353\241\234 \355\221\234\354\213\234\353\220\251\353\213\210\353\213\244." };
+static const char* const lang_ko_f86[] = { "B \353\262\204\355\212\274 (\354\225\204\353\236\230)" };
+static const char* const lang_ko_f87[] = { "\353\222\244\353\241\234" };
+static const char* const lang_ko_f88[] = { "\353\213\244\354\213\234 \354\230\250\353\235\274\354\235\270" };
+static const char* const lang_ko_f89[] = { "%s \353\260\217 \354\262\230\354\235\214 \353\262\204\355\212\274\354\234\274\353\241\234 \353\220\230\353\217\214\353\246\254\352\270\260" };
+static const char* const lang_ko_f90[] = { "BananaOS \354\213\234\354\212\244\355\205\234 \353\252\251\353\241\235\354\227\220 \352\262\214\354\236\204\353\263\264\354\235\264 \354\226\264\353\223\234\353\260\264\354\212\244 \355\225\255\353\252\251\354\235\264 \354\227\206\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f91[] = { "\353\262\240\354\240\244 \353\241\234\352\263\240" };
+static const char* const lang_ko_f92[] = { "\355\214\214\353\236\221" };
+static const char* const lang_ko_f93[] = { "\354\204\240\353\252\205\355\225\230\354\247\200 \354\225\212\352\263\240 \355\235\220\353\246\277\355\225\230\352\262\214: \353\263\264\355\206\265\354\235\200 \353\201\210 \354\261\204\353\241\234 \353\221\220\354\204\270\354\232\224." };
+static const char* const lang_ko_f94[] = { "\353\221\220 \355\231\224\353\251\264 \353\252\250\353\221\220" };
+static const char* const lang_ko_f95[] = { "\354\225\204\353\236\230 \355\231\224\353\251\264" };
+static const char* const lang_ko_f96[] = { "\354\225\204\353\236\230 \355\231\224\353\251\264 \353\260\235\352\270\260" };
+static const char* const lang_ko_f97[] = { "\353\262\204\352\267\270 \353\263\264\352\263\240\354\204\234" };
+static const char* const lang_ko_f98[] = { "\353\262\204\352\267\270 \353\263\264\352\263\240\354\204\234\353\245\274 bug-reports\354\227\220 \354\240\200\354\236\245\355\226\210\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f99[] = { "\353\262\204\352\267\270 \353\263\264\352\263\240\354\204\234\353\245\274 bug-reports\354\227\220 \354\240\200\354\236\245\355\226\210\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f100[] = { "\353\262\204\355\212\274" };
+static const char* const lang_ko_f101[] = { "\353\262\204\355\212\274 \353\247\244\355\225\221 \354\231\204\353\243\214" };
+static const char* const lang_ko_f102[] = { "\354\235\275\354\235\204 \354\210\230 \354\227\206\354\235\214" };
+static const char* const lang_ko_f103[] = { "\354\235\275\354\235\204 \354\210\230 \354\227\206\354\235\214: \355\214\250\354\271\230\352\260\200 \354\225\204\353\213\210\352\261\260\353\202\230 \354\206\220\354\203\201\353\220\250" };
+static const char* const lang_ko_f104[] = { "GBA DS \355\217\264\353\215\224\353\245\274 \354\260\276\354\235\204 \354\210\230 \354\227\206\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f105[] = { "GBA DS \355\217\264\353\215\224\354\227\220 \354\240\221\352\267\274\355\225\240 \354\210\230 \354\227\206\354\226\264 \353\213\271\353\266\204\352\260\204 %s\354\235\204(\353\245\274) \354\202\254\354\232\251\355\225\251\353\213\210\353\213\244: %s" };
+static const char* const lang_ko_f106[] = { "\353\215\224 \354\235\264\354\203\201 \353\220\230\352\260\220\354\235\204 \354\210\230 \354\227\206\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f107[] = { "\354\227\254\352\270\260\354\227\220\353\212\224 \355\214\214\354\235\274\354\235\204 \354\240\200\354\236\245\355\225\240 \354\210\230 \354\227\206\354\212\265\353\213\210\353\213\244: \354\203\201\355\203\234, \353\241\234\352\263\240, \354\212\244\355\201\254\353\246\260\354\203\267 \354\227\206\354\235\214" };
+static const char* const lang_ko_f108[] = { "\354\204\240\355\203\235\355\225\234 \355\217\264\353\215\224\354\227\220 \354\240\200\354\236\245\355\225\240 \354\210\230 \354\227\206\354\226\264 \355\214\214\354\235\274\354\235\204 \354\230\256\352\270\260\354\247\200 \354\225\212\354\225\230\354\212\265\353\213\210\353\213\244: %s" };
+static const char* const lang_ko_f109[] = { "\354\267\250\354\206\214" };
+static const char* const lang_ko_f110[] = { "\352\260\200\354\232\264\353\215\260" };
+static const char* const lang_ko_f111[] = { "%s\352\263\274(\354\231\200) \352\260\231\354\235\200 \353\260\224\354\235\264\355\212\270 \354\235\274\353\266\200\353\245\274 \353\263\200\352\262\275\355\225\230\354\227\254 \353\215\256\354\226\264\354\224\201\353\213\210\353\213\244. \355\225\250\352\273\230 \354\236\221\353\217\231\355\225\230\354\247\200 \354\225\212\354\235\204 \354\210\230 \354\236\210\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f112[] = { "\354\271\230\355\212\270" };
+static const char* const lang_ko_f113[] = { "\354\247\200\352\270\210 \355\231\225\354\235\270" };
+static const char* const lang_ko_f114[] = { "gba-ds.cfg\354\235\230 ra_username\352\263\274 ra_password\353\245\274 \355\231\225\354\235\270\355\225\230\354\204\270\354\232\224" };
+static const char* const lang_ko_f115[] = { "EmulationStation\354\235\230 RetroAchievements \354\204\244\354\240\225\354\227\220\354\204\234 \352\263\204\354\240\225\354\235\204 \355\231\225\354\235\270\355\225\230\354\204\270\354\232\224" };
+static const char* const lang_ko_f116[] = { "GBA DS \355\217\264\353\215\224 \354\204\240\355\203\235" };
+static const char* const lang_ko_f117[] = { "ROM \355\217\264\353\215\224 \354\204\240\355\203\235" };
+static const char* const lang_ko_f118[] = { "Android \355\214\214\354\235\274 \354\204\240\355\203\235\352\270\260\354\227\220\354\204\234 \355\217\264\353\215\224\353\245\274 \354\204\240\355\203\235\355\225\230\354\204\270\354\232\224..." };
+static const char* const lang_ko_f119[] = { "%s\354\235\204(\353\245\274) \353\213\253\354\234\274\353\240\244\353\251\264 \353\213\244\354\213\234 \354\204\240\355\203\235\355\225\230\354\204\270\354\232\224: %s" };
+static const char* const lang_ko_f120[] = { "\353\213\244\354\213\234 \354\213\234\354\236\221\355\225\230\353\240\244\353\251\264 \353\213\244\354\213\234 \354\204\240\355\203\235\355\225\230\354\204\270\354\232\224: \354\240\200\354\236\245\355\225\230\354\247\200 \354\225\212\354\235\200 \354\247\204\355\226\211 \354\203\201\355\231\251\354\235\200 \354\202\254\353\235\274\354\247\221\353\213\210\353\213\244" };
+static const char* const lang_ko_f121[] = { "\354\240\200\354\236\245 \355\217\264\353\215\224 \354\204\240\355\203\235" };
+static const char* const lang_ko_f122[] = { "\354\204\240\355\203\235\355\225\234 \355\217\264\353\215\224\352\260\200 GBA DS \354\236\220\354\262\264 \355\217\264\353\215\224 \354\225\210\354\227\220 \354\236\210\354\226\264 \355\214\214\354\235\274\354\235\204 \354\230\256\352\270\260\354\247\200 \354\225\212\354\225\230\354\212\265\353\213\210\353\213\244: %s" };
+static const char* const lang_ko_f123[] = { "\354\204\240\355\203\235\355\225\234 \355\217\264\353\215\224\353\245\274 \354\260\276\354\235\204 \354\210\230 \354\227\206\354\226\264 \355\214\214\354\235\274\354\235\204 \354\230\256\352\270\260\354\247\200 \354\225\212\354\225\230\354\212\265\353\213\210\353\213\244: %s" };
+static const char* const lang_ko_f124[] = { "\354\227\254\352\270\260\354\204\234 \354\204\240\355\203\235\353\220\250:" };
+static const char* const lang_ko_f125[] = { "GBA DS \353\213\253\352\270\260" };
+static const char* const lang_ko_f126[] = { "\352\262\214\354\236\204 \353\213\253\352\270\260" };
+static const char* const lang_ko_f127[] = { "\355\213\210\354\227\220 \352\260\200\352\271\235\352\262\214" };
+static const char* const lang_ko_f128[] = { "\352\262\214\354\236\204\354\235\204 \353\213\253\354\234\274\353\251\264 \355\230\204\354\236\254 \354\234\204\354\271\230\352\260\200 \354\240\200\354\236\245\353\220\251\353\213\210\353\213\244." };
+static const char* const lang_ko_f129[] = { "\354\203\211\354\203\201" };
+static const char* const lang_ko_f130[] = { "\354\203\211 \353\263\264\354\240\225: \353\201\224" };
+static const char* const lang_ko_f131[] = { "\354\203\211 \353\263\264\354\240\225: \354\274\254" };
+static const char* const lang_ko_f132[] = { "\354\203\211 \353\263\264\354\240\225" };
+static const char* const lang_ko_f133[] = { "\352\262\214\354\236\204\353\263\264\354\235\264 \354\226\264\353\223\234\353\260\264\354\212\244 \355\231\224\353\251\264\354\235\264 \353\263\264\354\227\254 \354\243\274\353\215\230 \354\203\211\354\203\201\354\236\205\353\213\210\353\213\244." };
+static const char* const lang_ko_f134[] = { "Android \354\204\244\354\271\230 \355\224\204\353\241\234\352\267\270\353\236\250\354\227\220\354\204\234 v%s \354\227\205\353\215\260\354\235\264\355\212\270\353\245\274 \355\231\225\354\235\270\355\225\230\354\204\270\354\232\224. \354\204\244\354\271\230\355\225\230\353\212\224 \353\217\231\354\225\210 Android\352\260\200 GBA DS\353\245\274 \354\242\205\353\243\214\355\225\251\353\213\210\353\213\244. \353\201\235\353\202\230\353\251\264 \353\213\244\354\213\234 \354\227\254\354\204\270\354\232\224. Android\352\260\200 \353\250\274\354\240\200 \353\254\273\353\212\224\353\213\244\353\251\264 GBA DS\354\235\230 \354\225\261 \354\204\244\354\271\230\353\245\274 \355\227\210\354\232\251\355\225\230\354\204\270\354\232\224." };
+static const char* const lang_ko_f135[] = { "\354\273\250\355\212\270\353\241\244\353\237\254\353\245\274 \354\227\260\352\262\260\355\225\234 \353\222\244 \353\213\244\354\213\234 \354\213\234\353\217\204\355\225\230\354\204\270\354\232\224." };
+static const char* const lang_ko_f136[] = { "\354\241\260\354\236\221" };
+static const char* const lang_ko_f137[] = { "%s\354\235\204(\353\245\274) \353\263\200\352\262\275\355\225\240 \354\210\230 \354\227\206\354\227\210\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f138[] = { "%s/custom_systems\354\235\230 \355\214\214\354\235\274\354\235\204 \353\263\200\352\262\275\355\225\240 \354\210\230 \354\227\206\354\227\210\354\212\265\353\213\210\353\213\244. Android \354\204\244\354\240\225\354\227\220\354\204\234 GBA DS\354\227\220 \353\252\250\353\223\240 \355\214\214\354\235\274 \354\240\221\352\267\274 \352\266\214\355\225\234\354\235\204 \355\227\210\354\232\251\355\225\230\354\204\270\354\232\224." };
+static const char* const lang_ko_f139[] = { "\354\227\260\352\262\260\355\225\240 \354\210\230 \354\227\206\354\227\210\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f140[] = { "GBA DS \355\217\264\353\215\224\353\245\274 \354\260\276\354\235\204 \354\210\230 \354\227\206\354\227\210\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f141[] = { "\352\267\270 \354\204\240\355\203\235\354\235\204 \354\234\240\354\247\200\355\225\240 \354\210\230 \354\227\206\354\227\210\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f142[] = { "\354\227\205\354\240\201\354\235\204 \353\266\210\353\237\254\354\230\254 \354\210\230 \354\227\206\354\227\210\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f143[] = { "\352\262\214\354\236\204\354\235\204 \353\266\210\353\237\254\354\230\254 \354\210\230 \354\227\206\354\227\210\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f144[] = { "GBA DS \355\214\214\354\235\274\354\235\204 \354\230\256\352\270\270 \354\210\230 \354\227\206\354\226\264 %s\354\227\220 \353\202\250\354\225\204 \354\236\210\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f145[] = { "\355\214\214\354\235\274 \354\204\240\355\203\235\352\270\260\353\245\274 \354\227\264 \354\210\230 \354\227\206\354\227\210\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f146[] = { "\353\241\234\352\267\270\354\235\270 \354\260\275\354\235\204 \354\227\264 \354\210\230 \354\227\206\354\227\210\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f147[] = { "\354\204\244\354\240\225 \355\214\214\354\235\274\354\235\204 \354\202\255\354\240\234\355\225\240 \354\210\230 \354\227\206\354\227\210\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f148[] = { "\354\240\200\354\236\245\355\225\240 \354\210\230 \354\227\206\354\227\210\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f149[] = { "\353\262\204\352\267\270 \353\263\264\352\263\240\354\204\234\353\245\274 \354\240\200\354\236\245\355\225\240 \354\210\230 \354\227\206\354\227\210\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f150[] = { "%s%s%s(\354\234\274)\353\241\234 \353\241\234\352\267\270\354\235\270\355\225\240 \354\210\230 \354\227\206\354\227\210\354\212\265\353\213\210\353\213\244. \353\213\244\354\213\234 \354\213\234\353\217\204\355\225\230\353\240\244\353\251\264 \353\241\234\352\267\270\354\235\270\355\225\230\354\204\270\354\232\224." };
+static const char* const lang_ko_f151[] = { "%s\354\227\220 \354\223\270 \354\210\230 \354\227\206\354\227\210\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f152[] = { "%s\354\227\220 \354\223\270 \354\210\230 \354\227\206\354\227\210\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f153[] = { "\354\202\254\354\232\251\354\236\220 \354\247\200\354\240\225" };
+static const char* const lang_ko_f154[] = { "\354\202\254\354\232\251\354\236\220 \354\247\200\354\240\225 \353\241\234\352\263\240: \354\202\254\354\232\251 \354\225\210 \355\225\250" };
+static const char* const lang_ko_f155[] = { "\354\202\254\354\232\251\354\236\220 \354\247\200\354\240\225 \353\241\234\352\263\240: \354\240\204\354\262\264 \353\224\224\355\205\214\354\235\274" };
+static const char* const lang_ko_f156[] = { "\354\202\254\354\232\251\354\236\220 \354\247\200\354\240\225 \353\241\234\352\263\240: \353\217\204\355\212\270" };
+static const char* const lang_ko_f157[] = { "\354\202\254\354\232\251\354\236\220 \354\247\200\354\240\225 \353\241\234\352\263\240" };
+static const char* const lang_ko_f158[] = { "\354\213\255\354\236\220\355\202\244" };
+static const char* const lang_ko_f159[] = { "\354\213\255\354\236\220\355\202\244 \354\225\204\353\236\230" };
+static const char* const lang_ko_f160[] = { "\354\213\255\354\236\220\355\202\244 \354\231\274\354\252\275" };
+static const char* const lang_ko_f161[] = { "\354\213\255\354\236\220\355\202\244 \354\230\244\353\245\270\354\252\275" };
+static const char* const lang_ko_f162[] = { "\354\213\255\354\236\220\355\202\244 \354\234\204" };
+static const char* const lang_ko_f163[] = { "\354\226\264\353\221\220\354\233\200" };
+static const char* const lang_ko_f164[] = { "\354\235\264 \354\225\261\354\227\220\354\204\234\353\247\214 \354\225\204\353\236\230 \355\231\224\353\251\264\354\235\204 \354\226\264\353\221\241\352\262\214 \355\225\251\353\213\210\353\213\244. \352\270\260\352\270\260 \354\236\220\354\262\264 \353\260\235\352\270\260\353\212\224 \352\267\270\353\214\200\353\241\234\354\235\264\353\251\260 \354\235\264 \352\260\222\354\235\264 \352\267\270\353\263\264\353\213\244 \353\206\222\354\225\204\354\247\210 \354\210\230 \354\227\206\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f165[] = { "\354\235\264 \354\225\261\354\227\220\354\204\234\353\247\214 \354\234\204 \355\231\224\353\251\264\354\235\204 \354\226\264\353\221\241\352\262\214 \355\225\251\353\213\210\353\213\244. \352\270\260\352\270\260 \354\236\220\354\262\264 \353\260\235\352\270\260\353\212\224 \352\267\270\353\214\200\353\241\234\354\235\264\353\251\260 \354\235\264 \352\260\222\354\235\264 \352\267\270\353\263\264\353\213\244 \353\206\222\354\225\204\354\247\210 \354\210\230 \354\227\206\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f166[] = { "12\354\233\224" };
+static const char* const lang_ko_f167[] = { "\354\202\255\354\240\234" };
+static const char* const lang_ko_f168[] = { "\352\262\214\354\236\204\353\263\204 \354\204\244\354\240\225 \354\202\255\354\240\234" };
+static const char* const lang_ko_f169[] = { "\352\262\214\354\236\204 %d\352\260\234\354\235\230 \354\204\244\354\240\225\354\235\204 \354\202\255\354\240\234\355\226\210\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f170[] = { "\352\262\214\354\236\204 1\352\260\234\354\235\230 \354\204\244\354\240\225\354\235\204 \354\202\255\354\240\234\355\226\210\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f171[] = { "\355\231\224\353\251\264 \355\221\234\354\213\234" };
+static const char* const lang_ko_f172[] = { "\354\231\204\353\243\214" };
+static const char* const lang_ko_f173[] = { "\354\231\204\353\243\214 (\353\251\224\353\252\250 \354\227\206\354\235\214)" };
+static const char* const lang_ko_f174[] = { "\354\225\204\353\236\230" };
+static const char* const lang_ko_f175[] = { "\353\213\244\354\232\264\353\241\234\353\223\234 \354\244\221" };
+static const char* const lang_ko_f176[] = { "ES-DE \355\217\264\353\215\224\353\245\274 \354\260\276\354\235\204 \354\210\230 \354\227\206\354\227\210\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f177[] = { "\352\260\200\354\236\245\354\236\220\353\246\254\353\241\234 \352\260\210\354\210\230\353\241\235 \352\260\201 \355\224\275\354\205\200\354\235\264 \354\225\275\352\260\204 \354\226\264\353\221\220\354\233\214\354\247\220" };
+static const char* const lang_ko_f178[] = { "retroachievements.org \352\263\204\354\240\225\354\234\274\353\241\234 \354\272\220\354\243\274\354\226\274 \353\252\250\353\223\234\354\227\220\354\204\234 \354\227\205\354\240\201\354\235\204 \353\213\254\354\204\261\355\225\230\354\204\270\354\232\224. GBA DS\353\212\224 \353\271\204\353\260\200\353\262\210\355\230\270\352\260\200 \354\225\204\353\213\214 \353\241\234\352\267\270\354\235\270 \355\206\240\355\201\260\354\235\204 \353\263\264\352\264\200\355\225\251\353\213\210\353\213\244." };
+static const char* const lang_ko_f179[] = { "English" };
+static const char* const lang_ko_f180[] = { "\354\202\254\354\232\251\354\236\220 \354\235\264\353\246\204\352\263\274 \353\271\204\353\260\200\353\262\210\355\230\270\353\245\274 \353\252\250\353\221\220 \354\236\205\353\240\245\355\225\230\354\204\270\354\232\224." };
+static const char* const lang_ko_f181[] = { "\353\241\234\352\267\270\354\235\270 \354\260\275\354\227\220 \352\263\204\354\240\225\354\235\204 \354\236\205\353\240\245\355\225\230\354\204\270\354\232\224..." };
+static const char* const lang_ko_f182[] = { "0.5\354\264\210\353\247\210\353\213\244" };
+static const char* const lang_ko_f183[] = { "1.5\354\264\210\353\247\210\353\213\244" };
+static const char* const lang_ko_f184[] = { "3\354\264\210\353\247\210\353\213\244" };
+static const char* const lang_ko_f185[] = { "\353\252\250\353\223\240 \353\262\204\355\212\274\354\235\204 \352\261\264\353\204\210\353\233\260\354\226\264\354\204\234 \354\225\204\353\254\264\352\262\203\353\217\204 \353\260\224\353\200\214\354\247\200 \354\225\212\354\225\230\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f186[] = { "1\354\264\210\353\247\210\353\213\244" };
+static const char* const lang_ko_f187[] = { "\354\213\244\355\214\250" };
+static const char* const lang_ko_f188[] = { "\353\271\240\353\246\204 (\354\264\210\353\213\271 20\355\232\214)" };
+static const char* const lang_ko_f189[] = { "\353\271\250\353\246\254 \352\260\220\352\270\260: %dx" };
+static const char* const lang_ko_f190[] = { "\353\271\250\353\246\254 \352\260\220\352\270\260: \354\265\234\353\214\200" };
+static const char* const lang_ko_f191[] = { "\353\271\250\353\246\254 \352\260\220\352\270\260: \353\201\224" };
+static const char* const lang_ko_f192[] = { "\353\271\250\353\246\254 \352\260\220\352\270\260" };
+static const char* const lang_ko_f193[] = { "\353\271\250\353\246\254 \352\260\220\353\212\224 \354\244\221..." };
+static const char* const lang_ko_f194[] = { "2\354\233\224" };
+static const char* const lang_ko_f195[] = { "\354\262\230\354\235\214 \355\225\234 \353\262\210\353\247\214. B: \353\222\244\353\241\234" };
+static const char* const lang_ko_f196[] = { "\355\217\264\353\215\224" };
+static const char* const lang_ko_f197[] = { "\355\217\264\353\215\224, \352\263\204\354\240\225, \354\227\205\353\215\260\354\235\264\355\212\270" };
+static const char* const lang_ko_f198[] = { "\355\234\264\353\214\200\354\240\204\355\231\224\353\245\274 \354\236\241\353\212\224 \353\260\251\355\226\245\352\263\274 Android\354\235\230 \355\232\214\354\240\204 \354\236\240\352\270\210\354\235\204 \353\224\260\353\246\205\353\213\210\353\213\244." };
+static const char* const lang_ko_f199[] = { "\355\224\204\353\240\210\354\236\204 \353\262\204\355\215\274: \354\227\254\352\270\260\354\204\234\353\212\224 \355\225\255\354\203\201 \354\274\234\354\247\220" };
+static const char* const lang_ko_f200[] = { "\355\224\204\353\240\210\354\236\204 \353\262\204\355\215\274: \353\201\224" };
+static const char* const lang_ko_f201[] = { "\355\224\204\353\240\210\354\236\204 \353\262\204\355\215\274: \354\274\254" };
+static const char* const lang_ko_f202[] = { "\355\224\204\353\240\210\354\236\204 \353\262\204\355\215\274" };
+static const char* const lang_ko_f203[] = { "\352\262\214\354\236\204 \354\234\204\354\227\220 \354\264\210\353\213\271 \355\224\204\353\240\210\354\236\204 \354\210\230\353\245\274 \355\225\255\354\203\201 \355\221\234\354\213\234\355\225\251\353\213\210\353\213\244." };
+static const char* const lang_ko_f204[] = { "RetroArch \354\204\244\354\240\225\354\227\220\354\204\234:" };
+static const char* const lang_ko_f205[] = { "\354\240\204\354\262\264 \353\204\210\353\271\204" };
+static const char* const lang_ko_f206[] = { "\354\240\204\354\262\264 \353\224\224\355\205\214\354\235\274" };
+static const char* const lang_ko_f207[] = { "GBA" };
+static const char* const lang_ko_f208[] = { "GBA A" };
+static const char* const lang_ko_f209[] = { "GBA A\353\245\274 \354\230\244\353\245\270\354\252\275 \353\262\204\355\212\274\354\227\220 \353\230\220\353\212\224 \354\225\204\353\236\230\354\252\275 \353\262\204\355\212\274\354\227\220." };
+static const char* const lang_ko_f210[] = { "GBA B" };
+static const char* const lang_ko_f211[] = { "GBA DS \353\241\234\352\263\240: \354\210\250\352\271\200" };
+static const char* const lang_ko_f212[] = { "GBA DS \353\241\234\352\263\240: \355\221\234\354\213\234" };
+static const char* const lang_ko_f213[] = { "GBA DS \354\204\244\354\240\225" };
+static const char* const lang_ko_f214[] = { "GBA DS\352\260\200 \352\267\270\352\263\263\354\227\220 \355\214\214\354\235\274\354\235\204 \354\240\200\354\236\245\355\225\240 \354\210\230 \354\227\206\354\212\265\353\213\210\353\213\244. Android \354\204\244\354\240\225\354\227\220\354\204\234 \353\252\250\353\223\240 \355\214\214\354\235\274 \354\240\221\352\267\274\354\235\204 \355\227\210\354\232\251\355\225\230\352\261\260\353\202\230 \353\213\244\353\245\270 \355\217\264\353\215\224\353\245\274 \354\204\240\355\203\235\355\225\230\354\204\270\354\232\224." };
+static const char* const lang_ko_f215[] = { "BananaOS GBA \353\252\251\353\241\235\354\235\230 GBA DS: \353\201\224" };
+static const char* const lang_ko_f216[] = { "BananaOS GBA \353\252\251\353\241\235\354\235\230 GBA DS: \354\274\254" };
+static const char* const lang_ko_f217[] = { "ES-DE\354\235\230 GBA DS: \353\201\224" };
+static const char* const lang_ko_f218[] = { "ES-DE\354\235\230 GBA DS: \354\274\254" };
+static const char* const lang_ko_f219[] = { "EmulationStation\354\235\230 GBA DS: \353\201\224" };
+static const char* const lang_ko_f220[] = { "EmulationStation\354\235\230 GBA DS: \354\274\254" };
+static const char* const lang_ko_f221[] = { "\354\235\264\354\240\234 GBA DS\352\260\200 ES-DE\354\235\230 \352\262\214\354\236\204\353\263\264\354\235\264 \354\226\264\353\223\234\353\260\264\354\212\244 \354\227\220\353\256\254\353\240\210\354\235\264\355\204\260\354\236\205\353\213\210\353\213\244. \355\231\225\354\235\270\355\225\230\353\240\244\353\251\264 ES-DE\353\245\274 \354\242\205\353\243\214\355\225\234 \353\222\244 \353\213\244\354\213\234 \354\227\254\354\204\270\354\232\224." };
+static const char* const lang_ko_f222[] = { "GBA DS\352\260\200 ES-DE\354\235\230 \354\227\220\353\256\254\353\240\210\354\235\264\355\204\260 \353\252\251\353\241\235\354\227\220\354\204\234 \353\271\240\354\241\214\354\212\265\353\213\210\353\213\244. \355\231\225\354\235\270\355\225\230\353\240\244\353\251\264 ES-DE\353\245\274 \354\242\205\353\243\214\355\225\234 \353\222\244 \353\213\244\354\213\234 \354\227\254\354\204\270\354\232\224." };
+static const char* const lang_ko_f223[] = { "GBA DS v%s\354\235\264(\352\260\200) \353\202\230\354\231\224\354\212\265\353\213\210\353\213\244 (\355\230\204\354\236\254 v%s). \354\247\200\352\270\210 \354\227\205\353\215\260\354\235\264\355\212\270\353\245\274 \353\210\204\353\245\264\353\251\264 \353\213\244\354\232\264\353\241\234\353\223\234(%.1f MB)\355\225\230\354\227\254 \354\204\244\354\271\230\355\225\251\353\213\210\353\213\244. Android\352\260\200 \355\231\225\354\235\270\354\235\204 \354\232\224\354\262\255\355\225\251\353\213\210\353\213\244. \352\262\214\354\236\204, \354\240\200\354\236\245 \353\215\260\354\235\264\355\204\260, \354\203\201\355\203\234, \354\204\244\354\240\225\354\235\200 \354\234\240\354\247\200\353\220\251\353\213\210\353\213\244." };
+static const char* const lang_ko_f224[] = { "GBA DS v%s\354\235\264(\352\260\200) \353\202\230\354\231\224\354\212\265\353\213\210\353\213\244 (\355\230\204\354\236\254 v%s). \354\247\200\352\270\210 \354\227\205\353\215\260\354\235\264\355\212\270\353\245\274 \353\210\204\353\245\264\353\251\264 \353\213\244\354\232\264\353\241\234\353\223\234(%.1f MB)\355\225\234 \353\222\244 \353\213\244\354\213\234 \354\213\234\354\236\221\355\225\251\353\213\210\353\213\244. \352\262\214\354\236\204, \354\240\200\354\236\245 \353\215\260\354\235\264\355\204\260, \354\203\201\355\203\234, \354\204\244\354\240\225\354\235\200 \354\234\240\354\247\200\353\220\251\353\213\210\353\213\244." };
+static const char* const lang_ko_f225[] = { "GBA DS \353\262\240\354\240\244 \353\230\220\353\212\224 \354\247\201\354\240\221 \353\247\214\353\223\240 PNG\353\245\274 \355\231\224\353\251\264 \354\243\274\354\234\204\354\227\220 \355\221\234\354\213\234\355\225\251\353\213\210\353\213\244." };
+static const char* const lang_ko_f226[] = { "GBA DS \355\214\214\354\235\274\354\235\200 \354\235\264\353\257\270 \352\267\270\352\263\263\354\227\220 \354\236\210\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f227[] = { "GBA DS \355\214\214\354\235\274\354\235\200 \353\213\244\354\235\214 \354\213\234\354\236\221 \353\225\214 %s(\354\234\274)\353\241\234 \354\235\264\353\217\231\355\225\251\353\213\210\353\213\244. GBA DS\353\245\274 \353\213\253\352\263\240 \353\213\244\354\213\234 \354\227\254\354\204\270\354\232\224." };
+static const char* const lang_ko_f228[] = { "GBA DS \354\236\220\354\262\264 \355\214\214\354\235\274(\354\203\201\355\203\234, \354\204\244\354\240\225, \354\271\230\355\212\270, \354\230\244\353\262\204\353\240\210\354\235\264)\354\235\200 %s\354\227\220 \354\236\210\354\234\274\353\251\260, \353\213\244\354\235\214 \354\213\234\354\236\221 \353\225\214 %s(\354\234\274)\353\241\234 \354\235\264\353\217\231\355\225\251\353\213\210\353\213\244." };
+static const char* const lang_ko_f229[] = { "GBA DS \354\236\220\354\262\264 \355\214\214\354\235\274(\354\203\201\355\203\234, \354\204\244\354\240\225, \354\271\230\355\212\270, \354\230\244\353\262\204\353\240\210\354\235\264)\354\235\200 %s\354\227\220 \354\236\210\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f230[] = { "GBA \354\225\204\353\236\230" };
+static const char* const lang_ko_f231[] = { "GBA L" };
+static const char* const lang_ko_f232[] = { "GBA \354\231\274\354\252\275" };
+static const char* const lang_ko_f233[] = { "GBA R" };
+static const char* const lang_ko_f234[] = { "GBA \354\230\244\353\245\270\354\252\275" };
+static const char* const lang_ko_f235[] = { "GBA \354\234\204" };
+static const char* const lang_ko_f236[] = { "\352\262\214\354\236\204" };
+static const char* const lang_ko_f237[] = { "\352\262\214\354\236\204\354\235\204 \354\225\204\353\236\230\354\227\220" };
+static const char* const lang_ko_f238[] = { "\352\262\214\354\236\204 \354\235\264\353\246\204" };
+static const char* const lang_ko_f239[] = { "\352\262\214\354\236\204\354\235\204 \354\234\204\354\227\220" };
+static const char* const lang_ko_f240[] = { "\352\262\214\354\236\204\354\235\204 \353\213\244\354\213\234 \354\213\234\354\236\221\355\226\210\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f241[] = { "\352\262\214\354\236\204 \355\231\224\353\251\264 \353\260\260\354\234\250" };
+static const char* const lang_ko_f242[] = { "\352\262\214\354\236\204" };
+static const char* const lang_ko_f243[] = { "\352\262\214\354\236\204\354\235\200 %s\354\227\220\354\204\234 \354\235\275\354\226\264 \354\230\265\353\213\210\353\213\244 (\355\225\230\354\234\204 \355\217\264\353\215\224 \355\217\254\355\225\250). \354\240\200\354\236\245 \353\215\260\354\235\264\355\204\260(%s)\353\212\224 %s\354\227\220 \353\263\264\352\264\200\353\220\251\353\213\210\353\213\244." };
+static const char* const lang_ko_f244[] = { "\352\262\214\354\236\204\354\235\200 %s\354\227\220\354\204\234 \354\235\275\354\226\264 \354\230\265\353\213\210\353\213\244 (\355\225\230\354\234\204 \355\217\264\353\215\224 \355\217\254\355\225\250). \354\240\200\354\236\245 \353\215\260\354\235\264\355\204\260(%s)\353\212\224 \352\262\214\354\236\204 \354\230\206\354\227\220 \353\263\264\352\264\200\353\220\251\353\213\210\353\213\244." };
+static const char* const lang_ko_f245[] = { "BananaOS \354\236\220\354\262\264 \352\262\214\354\236\204\353\263\264\354\235\264 \354\226\264\353\223\234\353\260\264\354\212\244 \353\252\251\353\241\235\354\227\220\354\204\234 \352\263\240\353\245\270 \352\262\214\354\236\204\354\235\200, GBA DS\352\260\200 \355\225\264\353\213\271 \352\262\214\354\236\204\354\235\230 \353\221\220 \353\262\210\354\247\270 \355\231\224\353\251\264\354\235\204 \354\247\200\354\233\220\355\225\230\353\251\264 GBA DS\354\227\220\354\204\234 \354\213\234\354\236\221\353\220\251\353\213\210\353\213\244. \354\235\264\352\262\203\354\235\204 \353\260\224\352\276\274 \353\222\244\354\227\220\353\212\224 BananaOS\353\245\274 \353\213\244\354\213\234 \354\213\234\354\236\221\355\225\230\354\204\270\354\232\224." };
+static const char* const lang_ko_f246[] = { "\355\221\234\354\213\234\355\225\240 \352\262\214\354\236\204" };
+static const char* const lang_ko_f247[] = { "\353\221\220 \353\262\210\354\247\270 \355\231\224\353\251\264\354\235\204 \354\247\200\354\233\220\355\225\230\354\247\200 \354\225\212\353\212\224 \352\262\214\354\236\204\354\235\200 \355\225\234 \355\231\224\353\251\264\354\234\274\353\241\234 \354\213\244\355\226\211\353\220\251\353\213\210\353\213\244." };
+static const char* const lang_ko_f248[] = { "\354\203\235\354\204\261\353\220\250" };
+static const char* const lang_ko_f249[] = { "\354\264\210\353\241\235" };
+static const char* const lang_ko_f250[] = { "\352\260\200\353\241\234\353\241\234 \354\236\241\352\270\260: \353\221\220 \355\231\224\353\251\264\354\235\264 \353\202\230\353\236\200\355\236\210. \354\226\264\353\212\220 \353\260\251\355\226\245\354\235\264\353\223\240 \352\260\200\353\212\245." };
+static const char* const lang_ko_f251[] = { "\354\204\270\353\241\234\353\241\234 \354\236\241\352\270\260: \353\221\220 \355\231\224\353\251\264\354\235\264 \354\234\204\354\225\204\353\236\230\353\241\234. \354\226\264\353\212\220 \353\260\251\355\226\245\354\235\264\353\223\240 \352\260\200\353\212\245." };
+static const char* const lang_ko_f252[] = { "16\354\247\204\354\210\230 \354\203\211\354\203\201" };
+static const char* const lang_ko_f253[] = { "L2\353\245\274 \353\210\204\353\245\264\352\263\240 \354\236\210\354\234\274\353\251\264 \354\213\234\352\260\204\354\235\204 \353\220\230\352\260\220\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f254[] = { "R2\353\245\274 \353\210\204\353\245\264\352\263\240 \354\236\210\354\234\274\353\251\264 \353\215\224 \353\271\240\353\245\264\352\262\214 \355\224\214\353\240\210\354\235\264\355\225\251\353\213\210\353\213\244." };
+static const char* const lang_ko_f255[] = { "\355\231\210" };
+static const char* const lang_ko_f256[] = { "\355\225\253\355\202\244 \353\262\204\355\212\274" };
+static const char* const lang_ko_f257[] = { "\355\225\253\355\202\244" };
+static const char* const lang_ko_f258[] = { "\352\262\251\354\236\220, \354\243\274\354\202\254\354\204\240, \353\266\200\353\223\234\353\237\254\354\232\264 \354\205\200\354\235\230 \354\226\264\353\221\220\354\232\264 \354\240\225\353\217\204." };
+static const char* const lang_ko_f259[] = { "\354\226\274\353\247\210\353\202\230 \353\222\244\353\241\234 \352\260\210 \354\210\230 \354\236\210\353\212\224\354\247\200." };
+static const char* const lang_ko_f260[] = { "\355\204\260\353\263\264 A\354\231\200 \355\204\260\353\263\264 B\352\260\200 \353\210\214\353\246\254\353\212\224 \354\206\215\353\217\204." };
+static const char* const lang_ko_f261[] = { "\352\262\214\354\236\204 \355\231\224\353\251\264\354\235\264 \354\236\220\352\270\260 \355\231\224\353\251\264\354\235\204 \354\261\204\354\232\260\353\212\224 \353\260\251\354\213\235." };
+static const char* const lang_ko_f262[] = { "\354\247\200\353\217\204 \353\230\220\353\212\224 \353\241\234\352\263\240\352\260\200 \354\236\220\352\270\260 \355\231\224\353\251\264\354\235\204 \354\261\204\354\232\260\353\212\224 \353\260\251\354\213\235." };
+static const char* const lang_ko_f263[] = { "\352\262\214\354\236\204 \354\244\221 \355\225\253\355\202\244 \353\262\204\355\212\274\354\235\204 \353\210\204\353\245\270 \354\261\204 \353\213\244\353\245\270 \353\262\204\355\212\274\354\235\204 \353\210\204\353\245\264\354\204\270\354\232\224" };
+static const char* const lang_ko_f264[] = { "patches/%s \354\225\210" };
+static const char* const lang_ko_f265[] = { "\354\225\210\354\252\275 \353\262\240\354\240\244 \354\203\211\354\203\201" };
+static const char* const lang_ko_f266[] = { "\354\204\244\354\271\230\353\220\250" };
+static const char* const lang_ko_f267[] = { "\354\204\244\354\271\230 \354\244\221" };
+static const char* const lang_ko_f268[] = { "1\354\233\224" };
+static const char* const lang_ko_f269[] = { "7\354\233\224" };
+static const char* const lang_ko_f270[] = { "6\354\233\224" };
+static const char* const lang_ko_f271[] = { "\352\270\260\352\270\260 \355\231\224\353\251\264 \353\271\204\354\234\250 \354\234\240\354\247\200" };
+static const char* const lang_ko_f272[] = { "\352\270\260\352\270\260 \353\252\250\354\226\221 \354\234\240\354\247\200" };
+static const char* const lang_ko_f273[] = { "\354\240\200\354\236\245 \353\215\260\354\235\264\355\204\260\353\245\274 \352\262\214\354\236\204 \354\230\206\354\227\220 \353\263\264\352\264\200" };
+static const char* const lang_ko_f274[] = { "\354\225\204\353\254\264\352\262\203\353\217\204 \353\210\204\353\245\264\354\247\200 \354\225\212\354\234\274\353\251\264 %d\354\264\210 \355\233\204 \354\233\220\353\236\230\353\214\200\353\241\234 \354\234\240\354\247\200\353\220\251\353\213\210\353\213\244" };
+static const char* const lang_ko_f275[] = { "\353\252\250\353\223\240 \352\262\214\354\236\204\354\227\220 \354\234\240\354\247\200\353\220\250" };
+static const char* const lang_ko_f276[] = { "\354\225\214\353\240\244\354\247\204 %s \355\214\250\354\271\230, \355\205\214\354\212\244\355\212\270\353\220\250: %s" };
+static const char* const lang_ko_f277[] = { "\354\225\214\353\240\244\354\247\204 %s \355\214\250\354\271\230, \355\205\214\354\212\244\355\212\270 \354\225\210 \353\220\250: %s. \353\221\220 \353\262\210\354\247\270 \355\231\224\353\251\264\354\235\264 \354\236\221\353\217\231\355\225\230\354\247\200 \354\225\212\354\235\204 \354\210\230 \354\236\210\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f278[] = { "\354\225\214\353\240\244\354\247\204 %s \355\214\250\354\271\230: %s (%s\354\232\251). \354\235\264 ROM\354\235\200 \353\213\244\353\245\270 \353\262\204\354\240\204\354\236\205\353\213\210\353\213\244. \352\262\214\354\236\204\354\235\264 \353\247\235\352\260\200\354\247\210 \354\210\230 \354\236\210\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f279[] = { "\354\225\214\353\240\244\354\247\204 %s \355\214\250\354\271\230: %s (%s\354\232\251). \354\235\264 ROM\354\227\220\354\204\234\353\212\224 \354\274\244 \354\210\230 \354\227\206\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f280[] = { "\354\225\214\353\240\244\354\247\204 \353\241\254\355\225\265: %s, \355\205\214\354\212\244\355\212\270 \354\225\210 \353\220\250" };
+static const char* const lang_ko_f281[] = { "L \353\262\204\355\212\274" };
+static const char* const lang_ko_f282[] = { "LCD \354\236\224\354\203\201: \353\201\224" };
+static const char* const lang_ko_f283[] = { "LCD \354\236\224\354\203\201: \354\274\254" };
+static const char* const lang_ko_f284[] = { "LCD \352\262\251\354\236\220" };
+static const char* const lang_ko_f285[] = { "LCD \354\236\224\354\203\201" };
+static const char* const lang_ko_f286[] = { "\354\226\270\354\226\264" };
+static const char* const lang_ko_f287[] = { "\353\247\210\354\247\200\353\247\211 \355\231\225\354\235\270: %s." };
+static const char* const lang_ko_f288[] = { "\353\202\230\354\244\221\354\227\220" };
+static const char* const lang_ko_f289[] = { "\354\231\274\354\252\275" };
+static const char* const lang_ko_f290[] = { "\354\236\210\353\212\224 \354\236\220\353\246\254\354\227\220\354\204\234 \354\240\234\354\231\270\353\220\250: \353\263\200\352\262\275\353\220\230\354\247\200 \354\225\212\354\235\200 ROM\354\232\251\354\234\274\353\241\234 \353\247\214\353\223\244\354\226\264\354\240\270 \352\260\200\354\236\245 \353\250\274\354\240\200 \354\231\200\354\225\274 \355\225\251\353\213\210\353\213\244 (\354\235\264\353\237\260 \355\214\250\354\271\230\353\212\224 \355\225\230\353\202\230\353\247\214 \354\274\244 \354\210\230 \354\236\210\354\235\214). X\353\241\234 \354\234\204\353\241\234 \354\230\256\352\270\260\354\204\270\354\232\224" };
+static const char* const lang_ko_f291[] = { "\354\231\274\354\252\275 \354\212\244\355\213\261\354\235\204 \354\213\255\354\236\220\355\202\244\353\241\234" };
+static const char* const lang_ko_f292[] = { "\354\231\274\354\252\275 \354\212\244\355\213\261: \354\231\274\354\252\275" };
+static const char* const lang_ko_f293[] = { "\354\231\274\354\252\275 \354\212\244\355\213\261: \354\234\204" };
+static const char* const lang_ko_f294[] = { "\354\213\234\354\212\244\355\205\234\354\235\264 \352\262\260\354\240\225" };
+static const char* const lang_ko_f295[] = { "\353\260\235\354\235\214" };
+static const char* const lang_ko_f296[] = { "\353\260\235\354\235\200/\354\226\264\353\221\220\354\232\264 \353\252\250\353\223\234" };
+static const char* const lang_ko_f297[] = { "GBA\354\262\230\353\237\274" };
+static const char* const lang_ko_f298[] = { "GBA \355\231\224\353\251\264\354\262\230\353\237\274 \355\224\275\354\205\200 \354\202\254\354\235\264\354\227\220 \354\204\240" };
+static const char* const lang_ko_f299[] = { "\354\203\201\355\203\234 \353\266\210\353\237\254\354\230\244\352\270\260" };
+static const char* const lang_ko_f300[] = { "\354\203\201\355\203\234 %d \353\266\210\353\237\254\354\230\244\352\270\260" };
+static const char* const lang_ko_f301[] = { "\353\266\210\353\237\254\354\230\244\352\270\260 \354\213\244\355\214\250" };
+static const char* const lang_ko_f302[] = { "\353\266\210\353\237\254\354\230\244\352\270\260\354\227\220 \354\213\244\355\214\250\355\226\210\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f303[] = { "\352\262\214\354\236\204\354\235\204 \353\266\210\353\237\254\354\230\244\353\212\224 \354\244\221..." };
+static const char* const lang_ko_f304[] = { "\354\227\205\354\240\201\354\235\204 \353\266\210\353\237\254\354\230\244\353\212\224 \354\244\221..." };
+static const char* const lang_ko_f305[] = { "\354\215\270\353\204\244\354\235\274\354\235\204 \353\266\210\353\237\254\354\230\244\353\212\224 \354\244\221..." };
+static const char* const lang_ko_f306[] = { "\352\262\214\354\236\204\354\235\230 \353\213\244\353\245\270 \353\262\204\354\240\204\354\232\251\354\234\274\353\241\234 \353\247\214\353\223\244\354\226\264\354\240\270 \354\235\264 ROM\354\227\220\354\204\234\353\212\224 \354\274\244 \354\210\230 \354\227\206\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f307[] = { "ES-DE\354\227\220\354\204\234 GBA DS\353\245\274 \352\262\214\354\236\204\353\263\264\354\235\264 \354\226\264\353\223\234\353\260\264\354\212\244 \352\262\214\354\236\204\354\232\251 \354\227\220\353\256\254\353\240\210\354\235\264\355\204\260\353\241\234 \353\247\214\353\223\255\353\213\210\353\213\244. \354\247\200\354\233\220\355\225\230\354\247\200 \354\225\212\353\212\224 \352\262\214\354\236\204\354\235\200 ES-DE\354\227\220\354\204\234 \353\213\244\353\245\270 \352\262\203\354\235\204 \354\204\240\355\203\235\355\225\230\354\204\270\354\232\224 (\352\262\214\354\236\204 \353\251\224\355\203\200\353\215\260\354\235\264\355\204\260 > \353\214\200\354\262\264 \354\227\220\353\256\254\353\240\210\354\235\264\355\204\260)." };
+static const char* const lang_ko_f308[] = { "\354\247\200\353\217\204" };
+static const char* const lang_ko_f309[] = { "\353\262\204\355\212\274 \353\247\244\355\225\221" };
+static const char* const lang_ko_f310[] = { "\353\262\204\355\212\274 \353\247\244\355\225\221" };
+static const char* const lang_ko_f311[] = { "\354\247\200\353\217\204 \352\260\261\354\213\240" };
+static const char* const lang_ko_f312[] = { "3\354\233\224" };
+static const char* const lang_ko_f313[] = { "\355\231\224\353\251\264 \354\243\274\354\202\254\354\234\250 \353\247\236\354\266\224\352\270\260: \353\201\224" };
+static const char* const lang_ko_f314[] = { "\355\231\224\353\251\264 \354\243\274\354\202\254\354\234\250 \353\247\236\354\266\224\352\270\260: \354\247\200\352\270\210\354\235\200 \353\201\224" };
+static const char* const lang_ko_f315[] = { "\355\231\224\353\251\264 \354\243\274\354\202\254\354\234\250 \353\247\236\354\266\224\352\270\260: \354\274\254" };
+static const char* const lang_ko_f316[] = { "\355\231\224\353\251\264 \353\271\204\354\234\250 \353\247\236\354\266\224\352\270\260" };
+static const char* const lang_ko_f317[] = { "\355\231\224\353\251\264 \354\243\274\354\202\254\354\234\250 \353\247\236\354\266\224\352\270\260" };
+static const char* const lang_ko_f318[] = { "\355\231\224\353\251\264\353\223\244\354\235\230 \353\271\204\354\234\250 \353\247\236\354\266\224\352\270\260" };
+static const char* const lang_ko_f319[] = { "\355\231\224\353\251\264\353\223\244\354\235\230 \355\201\254\352\270\260\354\231\200 \353\271\204\354\234\250 \353\247\236\354\266\224\352\270\260" };
+static const char* const lang_ko_f320[] = { "\355\201\254\352\270\260\354\231\200 \353\252\250\354\226\221 \353\247\236\354\266\224\352\270\260" };
+static const char* const lang_ko_f321[] = { "\354\265\234\353\214\200: \354\265\234\352\263\240 \354\206\215\353\217\204, \352\270\260\352\270\260\352\260\200 \353\215\224 \353\234\250\352\261\260\354\233\214\354\247\200\352\263\240 \353\260\260\355\204\260\353\246\254\352\260\200 \353\215\224 \353\271\250\353\246\254 \353\213\263\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f322[] = { "5\354\233\224" };
+static const char* const lang_ko_f323[] = { "\353\263\264\355\206\265 (\354\264\210\353\213\271 15\355\232\214)" };
+static const char* const lang_ko_f324[] = { "\354\210\230\354\240\225\353\220\234 ROM: \353\221\220 \353\262\210\354\247\270 \355\231\224\353\251\264\354\235\264 \354\236\221\353\217\231\355\225\230\354\247\200 \354\225\212\354\235\204 \354\210\230 \354\236\210\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f325[] = { "\354\235\264\353\217\231" };
+static const char* const lang_ko_f326[] = { "\354\235\264\353\217\231 \354\244\221: \354\234\204 / \354\225\204\353\236\230 \353\230\220\353\212\224 \352\260\210 \354\234\204\354\271\230\353\245\274 \353\210\204\353\245\270 \353\222\244 A (\353\230\220\353\212\224 \353\213\244\354\213\234 \353\210\204\353\245\264\352\270\260). \353\252\251\353\241\235\354\227\220\354\204\234 \354\225\204\353\236\230\354\227\220 \354\236\210\353\212\224 \352\262\203\354\235\264 \353\202\230\354\244\221\354\227\220 \354\240\201\354\232\251\353\220\251\353\213\210\353\213\244" };
+static const char* const lang_ko_f327[] = { "\354\233\200\354\247\201\354\235\264\353\212\224 \352\262\203\354\235\264 GBA\354\262\230\353\237\274 \354\247\247\354\235\200 \354\236\224\354\203\201\354\235\204 \353\202\250\352\271\201\353\213\210\353\213\244." };
+static const char* const lang_ko_f328[] = { "\354\260\270\352\263\240: \354\247\200\354\233\220\353\220\230\354\247\200 \354\225\212\353\212\224 \352\262\214\354\236\204\354\235\200 RetroArch\354\227\220\354\204\234 \354\213\244\355\226\211\353\220\230\354\247\200\353\247\214 BananaOS \354\236\220\354\262\264\354\235\230 \353\221\220 \353\262\210\354\247\270 \355\231\224\353\251\264(\352\262\214\354\236\204 \355\214\250\353\204\220\352\263\274 \353\217\231\353\260\230 \352\270\260\353\212\245)\354\235\200 \354\223\270 \354\210\230 \354\227\206\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f329[] = { "\354\203\210\353\241\234 \353\247\214\353\223\244\352\270\260" };
+static const char* const lang_ko_f330[] = { "\354\227\254\352\270\260\354\227\220 RetroArch \354\203\201\355\203\234\352\260\200 \354\227\206\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f331[] = { "\354\235\264 ROM\354\227\220\353\212\224 \354\227\205\354\240\201\354\235\264 \354\227\206\354\212\265\353\213\210\353\213\244 (MD5 %s)" };
+static const char* const lang_ko_f332[] = { "\354\271\230\355\212\270\353\245\274 \354\260\276\354\235\204 \354\210\230 \354\227\206\354\212\265\353\213\210\353\213\244 (\354\234\204\355\202\244\354\235\230 Cheats \354\260\270\354\241\260)" };
+static const char* const lang_ko_f333[] = { "\354\273\250\355\212\270\353\241\244\353\237\254\353\245\274 \354\260\276\354\235\204 \354\210\230 \354\227\206\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f334[] = { "es_systems.cfg\353\245\274 \354\260\276\354\235\204 \354\210\230 \354\227\206\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f335[] = { "\354\204\240\355\203\235\355\225\234 \355\217\264\353\215\224\352\260\200 \354\227\206\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f336[] = { "\354\235\264 \355\217\264\353\215\224 \354\225\210\354\227\220 \355\217\264\353\215\224\352\260\200 \354\227\206\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f337[] = { "\354\236\220\354\262\264 \354\204\244\354\240\225\354\235\264 \354\236\210\353\212\224 \352\262\214\354\236\204\354\235\264 \354\227\206\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f338[] = { "\352\262\214\354\236\204\354\235\204 \354\260\276\354\235\204 \354\210\230 \354\227\206\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f339[] = { "\354\225\204\354\247\201 \354\227\254\352\270\260\354\227\220 \355\214\250\354\271\230\352\260\200 \354\227\206\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f340[] = { "\354\225\204\354\247\201 \354\240\200\354\236\245\353\220\234 \353\271\240\353\245\270 \354\203\201\355\203\234\352\260\200 \354\227\206\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f341[] = { "\354\247\200\354\233\220\353\220\230\353\212\224 \352\262\214\354\236\204\354\235\264 \354\227\206\354\212\265\353\213\210\353\213\244:" };
+static const char* const lang_ko_f342[] = { "\354\227\206\354\235\214" };
+static const char* const lang_ko_f343[] = { "\353\215\224 \354\235\264\354\203\201 \355\217\264\353\215\224\354\227\220 \354\227\206\354\235\214: \354\240\234\354\231\270\353\220\251\353\213\210\353\213\244" };
+static const char* const lang_ko_f344[] = { "\354\235\264\354\226\264\355\225\230\354\247\200 \354\225\212\354\235\214: RetroArch\354\235\230 \354\236\220\353\217\231 \354\203\201\355\203\234\353\212\224 RetroArch\354\235\230 \353\213\244\353\245\270 GBA \354\275\224\354\226\264\354\227\220\354\204\234 \354\230\250 \352\262\203\354\236\205\353\213\210\353\213\244. \354\203\201\355\203\234\353\245\274 \352\263\265\354\234\240\355\225\230\353\240\244\353\251\264 RetroArch\354\235\230 GBA \354\275\224\354\226\264\353\245\274 mGBA\353\241\234 \354\204\244\354\240\225\355\225\230\354\204\270\354\232\224." };
+static const char* const lang_ko_f345[] = { "\354\202\254\354\232\251 \354\225\210 \355\225\250" };
+static const char* const lang_ko_f346[] = { "\354\227\206\354\235\214" };
+static const char* const lang_ko_f347[] = { "\355\225\240\353\213\271\353\220\234 \352\262\203 \354\227\206\354\235\214" };
+static const char* const lang_ko_f348[] = { "\354\212\254\353\241\257 %d\354\227\220 \354\225\204\354\247\201 \354\240\200\354\236\245\353\220\234 \352\262\203\354\235\264 \354\227\206\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f349[] = { "\354\225\204\354\247\201 \353\263\264\352\263\240\355\225\240 \352\262\203\354\235\264 \354\227\206\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f350[] = { "11\354\233\224" };
+static const char* const lang_ko_f351[] = { "\354\247\200\352\270\210" };
+static const char* const lang_ko_f352[] = { "\355\231\225\354\235\270" };
+static const char* const lang_ko_f353[] = { "10\354\233\224" };
+static const char* const lang_ko_f354[] = { "\353\201\224" };
+static const char* const lang_ko_f355[] = { "\353\212\220\353\246\260 \352\270\260\352\270\260\354\232\251\354\234\274\353\241\234 \352\272\274\354\247\220: \355\205\214\354\235\264\353\270\224\354\235\204 \355\225\234 \355\231\224\353\251\264\354\227\220. \354\240\201\354\232\251\355\225\230\353\240\244\353\251\264 GBA DS\353\245\274 \353\213\253\352\263\240 \353\213\244\354\213\234 \354\213\234\354\236\221\355\225\230\354\204\270\354\232\224." };
+static const char* const lang_ko_f356[] = { "\355\214\250\354\271\230\352\260\200 \354\274\234\354\240\270 \354\236\210\353\212\224 \353\217\231\354\225\210 \352\272\274\354\247\220" };
+static const char* const lang_ko_f357[] = { "\354\225\204\353\213\210\354\232\224." };
+static const char* const lang_ko_f358[] = { "\354\225\204\353\213\210\354\232\224. \353\251\224\353\211\264\354\227\220 \353\260\230\354\230\201\355\225\230\353\240\244\353\251\264 BananaOS(\354\204\244\354\240\225 > \354\213\234\354\212\244\355\205\234)\353\245\274 \353\213\244\354\213\234 \354\213\234\354\236\221\355\225\230\354\204\270\354\232\224." };
+static const char* const lang_ko_f359[] = { "\354\225\204\353\213\210\354\232\224. \354\240\201\354\232\251\355\225\230\353\240\244\353\251\264 EmulationStation\354\235\204 \353\213\244\354\213\234 \354\213\234\354\236\221\355\225\230\354\204\270\354\232\224." };
+static const char* const lang_ko_f360[] = { "\354\225\204\353\213\210\354\232\224: \353\252\250\353\223\240 \352\262\214\354\236\204\354\235\264 \354\235\274\353\260\230 GBA \352\262\214\354\236\204\354\262\230\353\237\274 \354\213\244\355\226\211\353\220\251\353\213\210\353\213\244." };
+static const char* const lang_ko_f361[] = { "\354\225\204\353\213\210\354\232\224: \354\231\274\354\252\275 \354\212\244\355\213\261\354\235\200 \352\262\214\354\236\204\354\227\220\354\204\234 \354\225\204\353\254\264 \354\235\274\353\217\204 \355\225\230\354\247\200 \354\225\212\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f362[] = { "\354\230\244\355\224\204\353\235\274\354\235\270" };
+static const char* const lang_ko_f363[] = { "\354\230\210" };
+static const char* const lang_ko_f364[] = { "\354\230\210." };
+static const char* const lang_ko_f365[] = { "\354\230\210. \353\251\224\353\211\264\354\227\220 \353\260\230\354\230\201\355\225\230\353\240\244\353\251\264 BananaOS(\354\204\244\354\240\225 > \354\213\234\354\212\244\355\205\234)\353\245\274 \353\213\244\354\213\234 \354\213\234\354\236\221\355\225\230\354\204\270\354\232\224." };
+static const char* const lang_ko_f366[] = { "\354\230\210. \355\231\225\354\235\270\355\225\230\353\240\244\353\251\264 EmulationStation\354\235\204 \353\213\244\354\213\234 \354\213\234\354\236\221\355\225\230\354\204\270\354\232\224." };
+static const char* const lang_ko_f367[] = { "\354\247\200\353\217\204 \355\231\224\353\251\264\354\235\264 \354\236\210\353\212\224 \352\262\214\354\236\204\353\247\214 \355\221\234\354\213\234\353\220\251\353\213\210\353\213\244 (show_all = 1\354\235\264\353\251\264 \353\252\250\353\221\220 \355\221\234\354\213\234)" };
+static const char* const lang_ko_f368[] = { "\355\231\224\353\251\264\354\235\264 \355\225\230\353\202\230\353\277\220\354\236\205\353\213\210\353\213\244: \354\230\256\352\270\270 \352\262\203\354\235\264 \354\227\206\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f369[] = { "\354\274\234\354\247\204 \355\214\250\354\271\230\354\227\220\353\247\214 \354\210\234\354\204\234\352\260\200 \354\236\210\354\234\274\353\251\260, \354\235\264\352\262\203\354\235\264 \354\234\240\354\235\274\355\225\251\353\213\210\353\213\244" };
+static const char* const lang_ko_f370[] = { "\353\221\220 \355\231\224\353\251\264\354\235\230 \353\252\250\354\226\221\354\235\264 \353\213\244\353\245\274 \353\225\214\353\247\214 \354\240\201\354\232\251\353\220\251\353\213\210\353\213\244. \354\213\244\355\227\230\354\240\201 \352\270\260\353\212\245." };
+static const char* const lang_ko_f371[] = { "\353\271\240\353\245\270 \353\251\224\353\211\264 \354\227\264\352\270\260" };
+static const char* const lang_ko_f372[] = { "\352\262\214\354\236\204 \353\230\220\353\212\224 \353\252\250\353\223\240 \352\262\214\354\236\204\354\227\220 \354\236\210\353\212\224 \353\262\240\354\240\244 \354\236\220\354\262\264 \355\216\230\354\235\264\354\247\200\353\245\274 \354\227\275\353\213\210\353\213\244" };
+static const char* const lang_ko_f373[] = { "\354\243\274\355\231\251" };
+static const char* const lang_ko_f374[] = { "\353\260\224\352\271\245\354\252\275 \353\262\240\354\240\244 \354\203\211\354\203\201" };
+static const char* const lang_ko_f375[] = { "\354\230\244\353\262\204\353\240\210\354\235\264 \354\203\211\354\203\201\352\263\274 \353\241\234\352\263\240" };
+static const char* const lang_ko_f376[] = { "\354\230\244\353\262\204\353\240\210\354\235\264" };
+static const char* const lang_ko_f377[] = { "\354\230\244\353\262\204\353\240\210\354\235\264 \354\274\234\354\247\220" };
+static const char* const lang_ko_f378[] = { "\354\230\244\353\262\204\353\240\210\354\235\264: \354\202\254\354\232\251\354\236\220 \354\247\200\354\240\225" };
+static const char* const lang_ko_f379[] = { "\354\230\244\353\262\204\353\240\210\354\235\264: \354\202\254\354\232\251\354\236\220 \354\247\200\354\240\225 (/overlays \354\225\210)" };
+static const char* const lang_ko_f380[] = { "\354\230\244\353\262\204\353\240\210\354\235\264: \354\203\235\354\204\261\353\220\250" };
+static const char* const lang_ko_f381[] = { "\354\230\244\353\262\204\353\240\210\354\235\264: \353\201\224" };
+static const char* const lang_ko_f382[] = { "PM" };
+static const char* const lang_ko_f383[] = { "\355\214\250\354\271\230\352\260\200 \354\240\201\354\232\251\353\220\230\354\247\200 \354\225\212\354\235\214: %s\354\235\204(\353\245\274) \354\235\275\354\235\204 \354\210\230 \354\227\206\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f384[] = { "\355\214\250\354\271\230\352\260\200 \354\240\201\354\232\251\353\220\230\354\247\200 \354\225\212\354\235\214: %s\354\235\200(\353\212\224) \353\213\244\353\245\270 ROM\354\232\251\354\236\205\353\213\210\353\213\244" };
+static const char* const lang_ko_f385[] = { "\355\214\250\354\271\230\353\212\224 \354\240\201\354\232\251\353\220\230\354\227\210\354\247\200\353\247\214 \355\225\230\353\202\230\353\212\224 \354\240\234\354\231\270\353\220\230\354\227\210\354\212\265\353\213\210\353\213\244: \352\262\214\354\236\204 \353\251\224\353\211\264\354\235\230 \355\214\250\354\271\230\353\245\274 \355\231\225\354\235\270\355\225\230\354\204\270\354\232\224" };
+static const char* const lang_ko_f386[] = { "\355\214\250\354\271\230\353\220\250: \353\221\220 \353\262\210\354\247\270 \355\231\224\353\251\264\354\235\264 \354\236\221\353\217\231\355\225\230\354\247\200 \354\225\212\354\235\204 \354\210\230 \354\236\210\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f387[] = { "\355\214\250\354\271\230" };
+static const char* const lang_ko_f388[] = { "\355\214\250\354\271\230 \353\263\200\352\262\275\353\220\250" };
+static const char* const lang_ko_f389[] = { "\352\262\214\354\236\204\354\235\204 \354\213\234\354\236\221\355\225\234 \353\222\244 \355\214\250\354\271\230\352\260\200 \353\263\200\352\262\275\353\220\230\354\227\210\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f390[] = { "\355\214\250\354\271\230 \353\263\200\352\262\275\353\220\250: \354\236\210\353\215\230 \352\263\263\354\227\220\354\204\234 \352\263\204\354\206\215\355\225\251\353\213\210\353\213\244" };
+static const char* const lang_ko_f391[] = { "\355\214\250\355\204\264 \352\260\225\353\217\204" };
+static const char* const lang_ko_f392[] = { "\354\235\274\354\213\234\354\240\225\354\247\200\353\220\250" };
+static const char* const lang_ko_f393[] = { "\354\204\261\353\212\245" };
+static const char* const lang_ko_f394[] = { "\354\204\261\353\212\245: \354\213\234\354\212\244\355\205\234\354\235\264 \352\262\260\354\240\225" };
+static const char* const lang_ko_f395[] = { "\354\204\261\353\212\245: \354\265\234\353\214\200" };
+static const char* const lang_ko_f396[] = { "\355\231\224\353\251\264 \352\260\200\354\232\264\353\215\260 \353\230\220\353\212\224 \355\225\250\352\273\230 \353\206\223\353\212\224 \352\267\270\353\246\274." };
+static const char* const lang_ko_f397[] = { "\355\225\200\353\263\274 \353\221\220 \355\231\224\353\251\264 \353\263\264\352\270\260" };
+static const char* const lang_ko_f398[] = { "\353\266\204\355\231\215" };
+static const char* const lang_ko_f399[] = { "\352\263\240\354\240\225\353\220\250: \353\260\224\352\260\200 \352\263\204\354\206\215 \353\263\264\354\236\205\353\213\210\353\213\244." };
+static const char* const lang_ko_f400[] = { "\355\224\275\354\205\200 \355\215\274\355\216\231\355\212\270" };
+static const char* const lang_ko_f401[] = { "\353\217\204\355\212\270" };
+static const char* const lang_ko_f402[] = { "\353\260\260\354\271\230, \354\230\244\353\262\204\353\240\210\354\235\264" };
+static const char* const lang_ko_f403[] = { "\353\213\250\354\210\234" };
+static const char* const lang_ko_f404[] = { "\355\224\214\353\240\210\354\235\264" };
+static const char* const lang_ko_f405[] = { "\354\235\264\353\262\210\354\227\220\353\212\224 \354\227\205\354\240\201 \354\227\206\354\235\264 \355\224\214\353\240\210\354\235\264\355\225\251\353\213\210\353\213\244" };
+static const char* const lang_ko_f406[] = { "\352\262\214\354\236\204\354\235\204 \354\244\200\353\271\204\355\225\230\353\212\224 \354\244\221..." };
+static const char* const lang_ko_f407[] = { "%s\354\235\204(\353\245\274) \353\210\204\353\245\264\354\204\270\354\232\224" };
+static const char* const lang_ko_f408[] = { "A\353\245\274 \353\210\204\353\245\264\352\261\260\353\202\230 \355\203\255\355\225\230\354\227\254 \353\213\253\352\270\260" };
+static const char* const lang_ko_f409[] = { "A\353\245\274 \353\210\214\353\237\254 \353\213\253\352\270\260" };
+static const char* const lang_ko_f410[] = { "\353\262\204\355\212\274\354\235\204 \353\210\204\353\245\264\354\204\270\354\232\224" };
+static const char* const lang_ko_f411[] = { "\353\263\264\353\235\274" };
+static const char* const lang_ko_f412[] = { "\354\212\244\355\213\261\354\235\204 \353\257\270\354\204\270\354\232\224: \354\235\264\352\262\203\354\227\220\353\212\224 \353\262\204\355\212\274\354\235\204 \354\223\270 \354\210\230 \354\227\206\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f413[] = { ".ips, .ups, .bps \353\230\220\353\212\224 .xdelta \355\214\214\354\235\274\354\235\204 %s\354\227\220 \353\204\243\354\234\274\354\204\270\354\232\224" };
+static const char* const lang_ko_f414[] = { "\353\271\240\353\245\270 \353\260\224 \355\236\214\355\212\270" };
+static const char* const lang_ko_f415[] = { "\353\271\240\353\245\270 \354\203\201\355\203\234 \353\266\210\353\237\254\354\230\244\352\270\260" };
+static const char* const lang_ko_f416[] = { "\353\271\240\353\245\270 \354\203\201\355\203\234 \354\240\200\354\236\245" };
+static const char* const lang_ko_f417[] = { "\354\242\205\353\243\214" };
+static const char* const lang_ko_f418[] = { "R \353\262\204\355\212\274" };
+static const char* const lang_ko_f419[] = { "RetroAchievements\352\260\200 \352\272\274\354\240\270 \354\236\210\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f420[] = { "\354\206\214\353\246\254\352\260\200 \352\260\210\353\235\274\354\247\200\353\251\264 \354\230\254\353\246\254\354\204\270\354\232\224." };
+static const char* const lang_ko_f421[] = { "\353\271\250\352\260\225" };
+static const char* const lang_ko_f422[] = { "\353\271\250\352\260\225, \354\264\210\353\241\235, \355\214\214\353\236\221 \354\244\204\353\254\264\353\212\254, \353\266\200\353\223\234\353\237\275\352\262\214: \354\226\264\353\221\220\354\232\264 \355\231\224\353\251\264\354\232\251" };
+static const char* const lang_ko_f423[] = { "GBA \355\231\224\353\251\264\354\262\230\353\237\274 \353\271\250\352\260\225, \354\264\210\353\241\235, \355\214\214\353\236\221 \354\244\204\353\254\264\353\212\254" };
+static const char* const lang_ko_f424[] = { "\353\271\250\352\260\225, \354\264\210\353\241\235, \355\214\214\353\236\221 \354\244\204\353\254\264\353\212\254, \352\260\225\355\225\230\352\262\214: \353\260\235\354\235\200 \355\231\224\353\251\264\354\232\251" };
+static const char* const lang_ko_f425[] = { "\354\264\210\352\270\260\355\231\224" };
+static const char* const lang_ko_f426[] = { "\353\262\240\354\240\244 \354\264\210\352\270\260\355\231\224" };
+static const char* const lang_ko_f427[] = { "\354\204\244\354\240\225\354\235\204 \352\270\260\353\263\270\352\260\222\354\234\274\353\241\234 \354\264\210\352\270\260\355\231\224" };
+static const char* const lang_ko_f428[] = { "\353\213\244\354\213\234 \354\213\234\354\236\221" };
+static const char* const lang_ko_f429[] = { "\352\262\214\354\236\204 \353\213\244\354\213\234 \354\213\234\354\236\221" };
+static const char* const lang_ko_f430[] = { "\354\234\204 \354\244\204\354\227\220\354\204\234 \353\213\244\354\213\234 \354\213\234\354\236\221\355\225\230\354\227\254 \354\235\264 \355\214\250\354\271\230\353\241\234 \355\224\214\353\240\210\354\235\264\355\225\230\354\204\270\354\232\224 (\353\230\220\353\212\224 \353\213\244\354\235\214 \354\213\234\354\236\221\353\266\200\355\204\260 \354\202\254\354\232\251\353\220\251\353\213\210\353\213\244)" };
+static const char* const lang_ko_f431[] = { "\354\234\204 \354\244\204\354\227\220\354\204\234 \353\213\244\354\213\234 \354\213\234\354\236\221\355\225\230\354\227\254 \354\235\264 \354\210\234\354\204\234\353\241\234 \355\224\214\353\240\210\354\235\264\355\225\230\354\204\270\354\232\224" };
+static const char* const lang_ko_f432[] = { "\353\213\244\354\213\234 \354\213\234\354\236\221 \355\225\204\354\232\224" };
+static const char* const lang_ko_f433[] = { "\352\263\204\354\206\215" };
+static const char* const lang_ko_f434[] = { "\354\235\264\354\226\264\354\204\234 \355\224\214\353\240\210\354\235\264\355\225\251\353\213\210\353\213\244. \355\203\255\355\225\230\352\261\260\353\202\230 HOME\354\234\274\353\241\234 \353\251\224\353\211\264" };
+static const char* const lang_ko_f435[] = { "RetroAchievements couldn't start" };
+static const char* const lang_ko_f436[] = { "RetroAchievements\353\245\274 \354\213\234\354\236\221\355\225\240 \354\210\230 \354\227\206\354\227\210\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f437[] = { "RetroAchievements\353\212\224 \355\214\250\354\271\230\353\220\234 \352\262\214\354\236\204\354\235\204 \355\227\210\354\232\251\355\225\230\354\247\200 \354\225\212\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f438[] = { "RetroAchievements: \353\201\224" };
+static const char* const lang_ko_f439[] = { "RetroAchievements: \353\241\234\352\267\270\354\235\270" };
+static const char* const lang_ko_f440[] = { "RetroAchievements: \353\241\234\352\267\270\354\225\204\354\233\203" };
+static const char* const lang_ko_f441[] = { "RetroAchievements: \353\241\234\352\267\270\354\235\270\355\225\230\353\212\224 \354\244\221..." };
+static const char* const lang_ko_f442[] = { "RetroArch \354\203\201\355\203\234 \355\217\264\353\215\224" };
+static const char* const lang_ko_f443[] = { "\354\227\254\352\270\260\354\204\234 RetroArch \354\204\244\354\240\225\354\235\204 \354\260\276\354\235\204 \354\210\230 \354\227\206\354\212\265\353\213\210\353\213\244. RetroArch\352\260\200 \354\203\201\355\203\234\353\245\274 \353\263\264\352\264\200\355\225\230\353\212\224 \355\217\264\353\215\224\353\245\274 \354\204\240\355\203\235\355\225\230\354\204\270\354\232\224." };
+static const char* const lang_ko_f444[] = { "RetroArch \354\204\244\354\240\225\354\235\204 \354\260\276\354\235\204 \354\210\230 \354\227\206\354\226\264 \354\212\254\353\241\257 0-9\354\231\200 \354\236\220\353\217\231 \354\203\201\355\203\234\352\260\200 \353\213\244\354\213\234 GBA DS \354\236\220\354\262\264 \352\262\203\354\235\264 \353\220\251\353\213\210\353\213\244." };
+static const char* const lang_ko_f445[] = { "RetroArch \354\203\201\355\203\234 \355\217\264\353\215\224\353\245\274 \353\213\244\354\213\234 RetroArch \354\204\244\354\240\225\354\227\220\354\204\234 \354\260\276\354\225\230\354\212\265\353\213\210\353\213\244: %s." };
+static const char* const lang_ko_f446[] = { "\353\220\230\352\260\220\352\270\260" };
+static const char* const lang_ko_f447[] = { "\353\220\230\352\260\220\352\270\260 \352\270\270\354\235\264" };
+static const char* const lang_ko_f448[] = { "\353\220\230\352\260\220\352\270\260, \353\271\250\353\246\254 \352\260\220\352\270\260" };
+static const char* const lang_ko_f449[] = { "\353\220\230\352\260\220\352\270\260: \353\201\224" };
+static const char* const lang_ko_f450[] = { "\353\220\230\352\260\220\352\270\260: \354\274\254" };
+static const char* const lang_ko_f451[] = { "\353\220\230\352\260\220\353\212\224 \354\244\221..." };
+static const char* const lang_ko_f452[] = { "\354\230\244\353\245\270\354\252\275" };
+static const char* const lang_ko_f453[] = { "\353\241\254\355\225\265: %s%s" };
+static const char* const lang_ko_f454[] = { "\353\241\254\355\225\265: %s%s, \355\205\214\354\212\244\355\212\270 \354\225\210 \353\220\250" };
+static const char* const lang_ko_f455[] = { "\355\232\214\354\240\204: \354\236\220\353\217\231" };
+static const char* const lang_ko_f456[] = { "\355\232\214\354\240\204: \352\260\200\353\241\234" };
+static const char* const lang_ko_f457[] = { "\355\232\214\354\240\204: \354\204\270\353\241\234" };
+static const char* const lang_ko_f458[] = { "\355\231\224\353\251\264 \354\243\274\354\202\254\354\234\250\353\241\234 \354\213\244\355\226\211: \352\267\234\354\271\231\354\240\201\354\235\270 \353\257\270\354\204\270\355\225\234 \353\201\212\352\271\200\354\235\264 \354\227\206\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f459[] = { "SNES" };
+static const char* const lang_ko_f460[] = { "\353\252\250\353\223\240 \352\262\214\354\236\204\352\263\274 \352\260\231\352\262\214 \353\220\230\353\217\214\353\240\270\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f461[] = { "\354\203\201\355\203\234 \354\240\200\354\236\245" };
+static const char* const lang_ko_f462[] = { "\354\203\201\355\203\234 %d \354\240\200\354\236\245" };
+static const char* const lang_ko_f463[] = { "\354\203\201\355\203\234: GBA DS \354\236\220\354\262\264" };
+static const char* const lang_ko_f464[] = { "\354\203\201\355\203\234: RetroArch\354\231\200 \352\263\265\354\234\240" };
+static const char* const lang_ko_f465[] = { "\354\240\200\354\236\245 \354\213\244\355\214\250" };
+static const char* const lang_ko_f466[] = { "\354\240\200\354\236\245\354\227\220 \354\213\244\355\214\250\355\226\210\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f467[] = { "\354\240\200\354\236\245 \355\214\214\354\235\274: .sav" };
+static const char* const lang_ko_f468[] = { "\354\240\200\354\236\245 \355\214\214\354\235\274: .srm (RetroArch)" };
+static const char* const lang_ko_f469[] = { "\354\242\205\353\243\214 \354\213\234 \354\240\200\354\236\245: \353\201\224" };
+static const char* const lang_ko_f470[] = { "\354\242\205\353\243\214 \354\213\234 \354\240\200\354\236\245: \354\274\254" };
+static const char* const lang_ko_f471[] = { "\354\242\205\353\243\214 \354\213\234 \354\240\200\354\236\245" };
+static const char* const lang_ko_f472[] = { "\353\213\244\353\245\270 \354\227\220\353\256\254\353\240\210\354\235\264\355\204\260\354\227\220\354\204\234 \354\240\200\354\236\245\353\220\250: \353\266\210\353\237\254\354\230\254 \354\210\230 \354\227\206\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f473[] = { "\353\252\250\353\223\240 \352\262\214\354\236\204\354\227\220 \354\240\200\354\236\245\353\220\250" };
+static const char* const lang_ko_f474[] = { "\354\235\264 \352\262\214\354\236\204\354\227\220 \354\240\200\354\236\245\353\220\250" };
+static const char* const lang_ko_f475[] = { "\355\214\250\354\271\230\352\260\200 \354\274\234\354\240\270 \354\236\210\354\235\204 \353\225\214\353\245\274 \354\234\204\355\225\264 \354\240\200\354\236\245\353\220\250" };
+static const char* const lang_ko_f476[] = { "\354\240\200\354\236\245 \353\215\260\354\235\264\355\204\260\353\212\224 \352\262\214\354\236\204 \354\230\206\354\227\220 \353\263\264\352\264\200\353\220\251\353\213\210\353\213\244." };
+static const char* const lang_ko_f477[] = { "\354\240\200\354\236\245 \353\215\260\354\235\264\355\204\260\353\212\224 \352\267\270\352\263\263\354\227\220 \353\263\264\352\264\200\353\220\251\353\213\210\353\213\244." };
+static const char* const lang_ko_f478[] = { "\353\260\260\354\234\250, \354\205\260\354\235\264\353\215\224, \355\205\214\353\247\210, \354\203\211\354\203\201" };
+static const char* const lang_ko_f479[] = { "\353\260\260\354\234\250: \354\240\204\354\262\264 \353\204\210\353\271\204" };
+static const char* const lang_ko_f480[] = { "\353\260\260\354\234\250: \355\224\275\354\205\200 \355\215\274\355\216\231\355\212\270" };
+static const char* const lang_ko_f481[] = { "\353\260\260\354\234\250: \353\212\230\354\235\264\352\270\260" };
+static const char* const lang_ko_f482[] = { "\353\260\260\354\234\250: \355\231\225\353\214\200" };
+static const char* const lang_ko_f483[] = { "\354\243\274\354\202\254\354\204\240" };
+static const char* const lang_ko_f484[] = { "\355\231\224\353\251\264 \353\260\260\354\271\230: \352\260\200\354\232\264\353\215\260" };
+static const char* const lang_ko_f485[] = { "\355\231\224\353\251\264 \353\260\260\354\271\230: \355\213\210\354\227\220 \352\260\200\352\271\235\352\262\214" };
+static const char* const lang_ko_f486[] = { "\355\231\224\353\251\264 \353\260\260\354\271\230" };
+static const char* const lang_ko_f487[] = { "\355\231\224\353\251\264 \353\252\250\354\226\221" };
+static const char* const lang_ko_f488[] = { "\355\231\224\353\251\264" };
+static const char* const lang_ko_f489[] = { "\354\212\244\355\201\254\353\246\260\354\203\267 \354\213\244\355\214\250" };
+static const char* const lang_ko_f490[] = { "\354\212\244\355\201\254\353\246\260\354\203\267 \354\240\200\354\236\245\353\220\250" };
+static const char* const lang_ko_f491[] = { "\353\221\220 \353\262\210\354\247\270 \355\231\224\353\251\264" };
+static const char* const lang_ko_f492[] = { "\353\221\220 \353\262\210\354\247\270 \355\231\224\353\251\264 \353\260\260\354\234\250" };
+static const char* const lang_ko_f493[] = { "Select" };
+static const char* const lang_ko_f494[] = { "Select\353\202\230 Start\353\245\274 \353\213\250\353\217\205\354\234\274\353\241\234 \353\210\204\353\245\264\353\251\264 \354\227\254\354\240\204\355\236\210 \352\262\214\354\236\204\354\227\220 \354\240\204\353\213\254\353\220\230\352\263\240, L3\353\212\224 \354\227\254\354\240\204\355\236\210 \353\271\240\353\245\270 \353\251\224\353\211\264\353\245\274 \354\227\275\353\213\210\353\213\244" };
+static const char* const lang_ko_f495[] = { "9\354\233\224" };
+static const char* const lang_ko_f496[] = { "\353\260\260\355\204\260\353\246\254 \354\240\200\354\236\245 \353\215\260\354\235\264\355\204\260 \353\266\204\353\246\254" };
+static const char* const lang_ko_f497[] = { "\354\203\201\355\203\234 \353\266\204\353\246\254" };
+static const char* const lang_ko_f498[] = { "\354\247\200\352\270\210\354\235\200 \354\204\244\354\240\225\353\220\230\354\227\210\354\247\200\353\247\214 %s\354\227\220 \354\223\270 \354\210\230 \354\227\206\354\227\210\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f499[] = { "\354\265\234\353\214\200\353\241\234 \354\204\244\354\240\225" };
+static const char* const lang_ko_f500[] = { "\355\225\253\355\202\244\353\245\274 \354\204\244\354\240\225\355\225\251\353\213\210\353\213\244: \355\225\253\355\202\244 \353\262\204\355\212\274\354\235\204 \353\210\204\353\245\270 \354\261\204 \353\213\244\353\245\270 \353\262\204\355\212\274." };
+static const char* const lang_ko_f501[] = { "\354\235\264 \352\270\260\352\270\260\354\235\230 \352\260\201 \353\262\204\355\212\274\354\235\264 \355\225\230\353\212\224 \354\235\274\354\235\204 \354\204\244\354\240\225\355\225\251\353\213\210\353\213\244." };
+static const char* const lang_ko_f502[] = { "\354\204\244\354\240\225" };
+static const char* const lang_ko_f503[] = { "\354\204\244\354\240\225\354\235\264 \352\270\260\353\263\270\352\260\222\354\234\274\353\241\234 \353\217\214\354\225\204\352\260\224\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f504[] = { "\354\205\260\354\235\264\353\215\224" };
+static const char* const lang_ko_f505[] = { "\354\205\260\354\235\264\353\215\224: LCD \352\262\251\354\236\220" };
+static const char* const lang_ko_f506[] = { "\354\205\260\354\235\264\353\215\224: \353\201\224" };
+static const char* const lang_ko_f507[] = { "\354\205\260\354\235\264\353\215\224: \354\243\274\354\202\254\354\204\240" };
+static const char* const lang_ko_f508[] = { "\354\205\260\354\235\264\353\215\224: \353\266\200\353\223\234\353\237\254\354\232\264 \354\205\200" };
+static const char* const lang_ko_f509[] = { "\354\205\260\354\235\264\353\215\224: \354\204\234\353\270\214\355\224\275\354\205\200" };
+static const char* const lang_ko_f510[] = { "\354\205\260\354\235\264\353\215\224: \354\204\234\353\270\214\355\224\275\354\205\200 (\354\225\275\355\225\230\352\262\214)" };
+static const char* const lang_ko_f511[] = { "\354\205\260\354\235\264\353\215\224: \354\204\234\353\270\214\355\224\275\354\205\200 (\352\260\225\355\225\230\352\262\214)" };
+static const char* const lang_ko_f512[] = { "\353\202\256\354\266\224\353\251\264 \353\212\220\353\246\260 \352\270\260\352\270\260\354\227\220\354\204\234 \354\206\214\353\246\254\352\260\200 \352\260\210\353\235\274\354\247\210 \354\210\230 \354\236\210\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f513[] = { "FPS \355\221\234\354\213\234" };
+static const char* const lang_ko_f514[] = { "FPS \355\221\234\354\213\234: \353\201\224" };
+static const char* const lang_ko_f515[] = { "FPS \355\221\234\354\213\234: \354\274\254" };
+static const char* const lang_ko_f516[] = { "\352\262\214\354\236\204 \353\252\251\353\241\235 \354\204\244\354\240\225\354\227\220\354\204\234 \353\213\244\354\213\234 \353\241\234\352\267\270\354\235\270\355\225\230\354\204\270\354\232\224" };
+static const char* const lang_ko_f517[] = { "\353\241\234\352\267\270\354\235\270 \354\213\244\355\214\250" };
+static const char* const lang_ko_f518[] = { "%s(\354\234\274)\353\241\234 \353\241\234\352\267\270\354\235\270\355\226\210\354\212\265\353\213\210\353\213\244. \354\227\205\354\240\201\354\235\200 \354\272\220\354\243\274\354\226\274 \353\252\250\353\223\234\353\241\234 \353\213\254\354\204\261\353\220\251\353\213\210\353\213\244." };
+static const char* const lang_ko_f519[] = { "RetroAchievements\354\227\220\354\204\234 \353\241\234\352\267\270\354\225\204\354\233\203\355\226\210\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f520[] = { "%s(\354\234\274)\353\241\234 \353\241\234\352\267\270\354\235\270\355\225\230\353\212\224 \354\244\221..." };
+static const char* const lang_ko_f521[] = { "\355\225\234 \355\231\224\353\251\264\353\247\214" };
+static const char* const lang_ko_f522[] = { "\355\225\234 \355\231\224\353\251\264\353\247\214: \355\217\211\354\206\214\354\262\230\353\237\274 \355\224\214\353\240\210\354\235\264\355\225\251\353\213\210\353\213\244" };
+static const char* const lang_ko_f523[] = { "\352\261\264\353\204\210\353\233\260\352\270\260" };
+static const char* const lang_ko_f524[] = { "\354\235\264 \353\262\204\354\240\204 \352\261\264\353\204\210\353\233\260\352\270\260" };
+static const char* const lang_ko_f525[] = { "\354\225\204\353\254\264\352\262\203\353\217\204 \353\210\204\353\245\264\354\247\200 \354\225\212\354\234\274\353\251\264 %d\354\264\210 \355\233\204 \352\261\264\353\204\210\353\234\201\353\213\210\353\213\244" };
+static const char* const lang_ko_f526[] = { "\354\212\254\353\241\257 %d \353\266\210\353\237\254\354\230\264" };
+static const char* const lang_ko_f527[] = { "\354\212\254\353\241\257 %d: %s" };
+static const char* const lang_ko_f528[] = { "\354\212\254\353\241\257 %1$d: %4$d\353\205\204 %2$s %3$d\354\235\274%5$s" };
+static const char* const lang_ko_f529[] = { "\354\212\254\353\241\257 %1$d: %4$d\353\205\204 %2$s %3$d\354\235\274 %6$s %4$d:%5$02d%7$s" };
+static const char* const lang_ko_f530[] = { "\354\212\254\353\241\257 %d: \353\271\204\354\226\264 \354\236\210\354\235\214" };
+static const char* const lang_ko_f531[] = { "\354\212\254\353\241\257 0-9\354\231\200 \354\236\220\353\217\231 \354\203\201\355\203\234\352\260\200 \353\213\244\354\213\234 GBA DS \354\236\220\354\262\264 \352\262\203\354\235\264 \353\220\251\353\213\210\353\213\244. RetroArch \355\217\264\353\215\224\354\227\220 \354\240\200\354\236\245\353\220\234 \354\203\201\355\203\234\353\212\224 \352\267\270\352\263\263\354\227\220 \353\202\250\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f532[] = { "\354\212\254\353\241\257 0-9\354\231\200 \354\236\220\353\217\231 \354\203\201\355\203\234\352\260\200 \354\235\264\354\240\234 RetroArch \352\262\203\354\236\205\353\213\210\353\213\244. GBA DS \354\236\220\354\262\264 \354\203\201\355\203\234\353\212\224 \354\235\264\352\262\203\354\235\204 \353\220\230\353\217\214\353\246\264 \353\225\214\353\245\274 \354\234\204\355\225\264 GBA DS \355\217\264\353\215\224\354\227\220 \353\202\250\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f533[] = { "\354\212\254\353\241\257 0-9\354\231\200 \354\236\220\353\217\231 \354\203\201\355\203\234\353\212\224 \354\235\264\354\240\234 %s\354\227\220\354\204\234 RetroArch\354\231\200 \352\263\265\354\234\240\353\220\251\353\213\210\353\213\244." };
+static const char* const lang_ko_f534[] = { "\354\212\254\353\241\257 0-9\354\231\200 \354\235\264\354\226\264\355\225\230\352\270\260 \354\247\200\354\240\220\354\235\200 GBA DS \354\236\220\354\262\264 \352\262\203\354\236\205\353\213\210\353\213\244. \352\263\265\354\234\240\355\225\230\353\251\264 RetroArch \352\262\203\354\235\264 \353\220\251\353\213\210\353\213\244: %s." };
+static const char* const lang_ko_f535[] = { "\354\212\254\353\241\257 0-9\354\231\200 \354\235\264\354\226\264\355\225\230\352\270\260 \354\247\200\354\240\220\354\235\200 GBA DS \354\236\220\354\262\264 \352\262\203\354\236\205\353\213\210\353\213\244. \352\263\265\354\234\240\355\225\230\353\240\244\353\251\264 RetroArch\354\235\230 \354\203\201\355\203\234 \355\217\264\353\215\224\353\245\274 \354\204\240\355\203\235\355\225\230\354\204\270\354\232\224." };
+static const char* const lang_ko_f536[] = { "\354\212\254\353\241\257 0-9\354\231\200 \354\235\264\354\226\264\355\225\230\352\270\260 \354\247\200\354\240\220\354\235\200 RetroArch \352\262\203\354\236\205\353\213\210\353\213\244 (RetroArch\354\235\230 GBA \354\275\224\354\226\264\353\245\274 mGBA\353\241\234 \354\204\244\354\240\225): %s." };
+static const char* const lang_ko_f537[] = { "\353\212\220\353\246\274 (\354\264\210\353\213\271 10\355\232\214)" };
+static const char* const lang_ko_f538[] = { "\353\266\200\353\223\234\353\237\254\354\232\264 \353\260\260\354\234\250" };
+static const char* const lang_ko_f539[] = { "\353\215\224 \353\266\200\353\223\234\353\237\275\354\247\200\353\247\214 \354\236\205\353\240\245 \354\247\200\354\227\260\354\235\264 \355\225\234 \355\224\204\353\240\210\354\236\204 \353\212\230\354\226\264\353\202\251\353\213\210\353\213\244." };
+static const char* const lang_ko_f540[] = { "\353\266\200\353\223\234\353\237\254\354\232\264 \354\205\200" };
+static const char* const lang_ko_f541[] = { "\354\235\274\353\266\200 \355\214\214\354\235\274\354\235\204 \354\230\256\352\270\270 \354\210\230 \354\227\206\354\226\264 %s\354\227\220 \353\202\250\354\225\204 \354\236\210\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f542[] = { "\354\206\214\353\246\254 \354\247\200\354\227\260" };
+static const char* const lang_ko_f543[] = { "\352\263\265\353\260\261" };
+static const char* const lang_ko_f544[] = { "\354\206\215\353\217\204" };
+static const char* const lang_ko_f545[] = { "\354\206\215\353\217\204\354\231\200 \354\206\214\353\246\254" };
+static const char* const lang_ko_f546[] = { "Start" };
+static const char* const lang_ko_f547[] = { "\352\262\214\354\236\204\354\235\204 \354\213\234\354\236\221\355\225\230\353\251\264 \353\213\253\354\225\230\353\215\230 \352\263\263\354\227\220\354\204\234 \354\235\264\354\226\264\354\247\221\353\213\210\353\213\244." };
+static const char* const lang_ko_f548[] = { "\354\203\201\355\203\234\353\245\274 \353\266\210\353\237\254\354\231\224\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f549[] = { "\354\212\254\353\241\257 %d\354\227\220 \354\203\201\355\203\234\353\245\274 \354\240\200\354\236\245\355\226\210\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f550[] = { "\354\203\201\355\203\234\353\245\274 \354\240\200\354\236\245\355\226\210\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f551[] = { "\354\212\244\355\213\261, \353\262\204\355\212\274, \355\225\253\355\202\244" };
+static const char* const lang_ko_f552[] = { "\353\212\230\354\235\264\352\270\260" };
+static const char* const lang_ko_f553[] = { "\353\262\204\352\267\270 \353\263\264\352\263\240\354\204\234 \354\240\234\354\266\234" };
+static const char* const lang_ko_f554[] = { "\354\204\234\353\270\214\355\224\275\354\205\200" };
+static const char* const lang_ko_f555[] = { "\354\204\234\353\270\214\355\224\275\354\205\200 (\354\225\275\355\225\230\352\262\214)" };
+static const char* const lang_ko_f556[] = { "\354\204\234\353\270\214\355\224\275\354\205\200 (\352\260\225\355\225\230\352\262\214)" };
+static const char* const lang_ko_f557[] = { "\354\247\200\354\233\220\353\220\250" };
+static const char* const lang_ko_f558[] = { "\354\247\200\354\233\220\353\220\230\353\212\224 \352\262\214\354\236\204\353\247\214" };
+static const char* const lang_ko_f559[] = { "\355\231\225\354\213\244\355\225\234\352\260\200\354\232\224?" };
+static const char* const lang_ko_f560[] = { "\355\231\224\353\251\264 \353\260\224\352\276\270\352\270\260" };
+static const char* const lang_ko_f561[] = { "\355\231\224\353\251\264 \353\260\224\352\276\270\352\270\260" };
+static const char* const lang_ko_f562[] = { "\353\260\224\353\200\234" };
+static const char* const lang_ko_f563[] = { "\354\234\204\353\241\234 \354\212\244\354\231\200\354\235\264\355\224\204\355\225\230\354\227\254 \353\271\240\353\245\270 \353\251\224\353\211\264" };
+static const char* const lang_ko_f564[] = { "gba-ds.cfg\354\227\220\354\204\234 \352\272\274\354\240\270 \354\236\210\354\212\265\353\213\210\353\213\244 (retroachievements = 0)." };
+static const char* const lang_ko_f565[] = { "\354\213\234\354\212\244\355\205\234" };
+static const char* const lang_ko_f566[] = { "ROM \355\214\214\354\235\274 \354\235\264\353\246\204\354\235\230 \355\203\234\352\267\270, \354\230\210: (USA) \353\230\220\353\212\224 (En,Fr,De)." };
+static const char* const lang_ko_f567[] = { "\354\212\244\355\201\254\353\246\260\354\203\267 \354\260\215\352\270\260" };
+static const char* const lang_ko_f568[] = { "GBA DS\353\245\274 \353\213\253\352\263\240 \353\213\244\354\213\234 \354\213\234\354\236\221\355\225\234 \353\222\244\354\227\220 \354\240\201\354\232\251\353\220\251\353\213\210\353\213\244" };
+static const char* const lang_ko_f569[] = { "GBA DS\353\245\274 \353\213\253\354\234\274\353\240\244\353\251\264 \353\213\244\354\213\234 \355\203\255\355\225\230\354\204\270\354\232\224." };
+static const char* const lang_ko_f570[] = { "\353\251\224\353\211\264\353\212\224 \355\231\224\353\251\264\354\235\204 \355\203\255\355\225\230\352\261\260\353\202\230 HOME\354\235\204 \353\210\204\353\245\264\354\204\270\354\232\224" };
+static const char* const lang_ko_f571[] = { "\354\235\264 \352\270\260\352\270\260\354\227\220 \354\227\206\353\212\224 \353\262\204\355\212\274\354\235\200 \355\204\260\354\271\230\354\212\244\355\201\254\353\246\260\354\235\204 \355\203\255\355\225\230\354\227\254 \352\261\264\353\204\210\353\233\260\354\204\270\354\232\224" };
+static const char* const lang_ko_f572[] = { "\355\203\255\355\225\230\354\227\254 \354\225\204\353\254\264\352\262\203\353\217\204 \354\247\200\354\240\225\355\225\230\354\247\200 \354\225\212\352\270\260" };
+static const char* const lang_ko_f573[] = { "\354\235\264 \352\270\260\352\270\260\354\227\220 \354\227\206\353\212\224 \353\262\204\355\212\274\354\235\200 \355\203\255\355\225\230\354\227\254 \352\261\264\353\204\210\353\233\260\354\204\270\354\232\224" };
+static const char* const lang_ko_f574[] = { "\354\262\255\353\241\235" };
+static const char* const lang_ko_f575[] = { "\355\205\214\354\212\244\355\212\270\353\220\234 \353\241\254\355\225\265: %s" };
+static const char* const lang_ko_f576[] = { "\354\235\264\352\262\203\354\235\200 \355\202\244\353\263\264\353\223\234 \355\202\244\353\241\234 \354\240\204\353\213\254\353\220\230\353\257\200\353\241\234 \353\247\244\355\225\221\355\225\240 \354\210\230 \354\227\206\354\212\265\353\213\210\353\213\244. \355\203\255\355\225\230\354\227\254 \352\261\264\353\204\210\353\233\260\354\204\270\354\232\224." };
+static const char* const lang_ko_f577[] = { "\354\235\264\352\262\203\354\235\200 \354\235\264\353\257\270 %s\354\236\205\353\213\210\353\213\244. \353\213\244\353\245\270 \352\262\203\354\235\204 \353\210\204\353\245\264\352\261\260\353\202\230 \355\203\255\355\225\230\354\227\254 \352\261\264\353\204\210\353\233\260\354\204\270\354\232\224." };
+static const char* const lang_ko_f578[] = { "\354\235\264\352\263\263\354\235\200 GBA DS \355\217\264\353\215\224 \354\225\210\354\236\205\353\213\210\353\213\244: \352\267\270 \353\260\226\354\235\230 \355\217\264\353\215\224\353\245\274 \354\204\240\355\203\235\355\225\230\354\204\270\354\232\224." };
+static const char* const lang_ko_f579[] = { "\352\267\270\352\262\203\354\235\200 \355\225\253\355\202\244 \353\262\204\355\212\274\354\236\205\353\213\210\353\213\244: \353\213\244\353\245\270 \352\262\203\354\235\204 \353\210\204\353\245\264\354\204\270\354\232\224" };
+static const char* const lang_ko_f580[] = { "\354\203\235\354\204\261\353\220\234 \353\262\240\354\240\244\354\235\230 GBA DS \353\241\234\352\263\240." };
+static const char* const lang_ko_f581[] = { "\352\262\214\354\236\204\354\235\230 \355\224\275\354\205\200\354\235\204 \354\236\210\353\212\224 \352\267\270\353\214\200\353\241\234" };
+static const char* const lang_ko_f582[] = { "\355\225\253\355\202\244 \353\262\204\355\212\274\354\235\200 %s, Select, Start \353\230\220\353\212\224 L3\354\235\274 \354\210\230 \354\236\210\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f583[] = { "\354\247\200\353\217\204\354\231\200 \353\241\234\352\263\240" };
+static const char* const lang_ko_f584[] = { "\353\251\224\353\211\264 \353\262\204\355\212\274: \354\226\264\353\221\220\354\232\264 \355\232\214\354\203\211, \353\230\220\353\212\224 \354\233\271 \355\224\214\353\240\210\354\235\264\354\226\264\354\262\230\353\237\274 \353\260\235\354\235\200 \355\232\214\354\203\211." };
+static const char* const lang_ko_f585[] = { "\354\204\240\355\203\235\353\220\234 \355\225\255\353\252\251\354\235\230 \353\251\224\353\211\264 \354\203\211\354\203\201. \352\260\201\352\260\201 \354\226\264\353\221\220\354\232\264 \353\262\204\354\240\204\352\263\274 \353\260\235\354\235\200 \353\262\204\354\240\204\354\235\264 \354\236\210\354\212\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f586[] = { "\355\214\250\354\271\230\352\260\200 \352\262\214\354\236\204\354\235\204 \354\213\234\354\236\221\355\226\210\354\235\204 \353\225\214\354\231\200 \353\213\244\353\246\205\353\213\210\353\213\244: \353\213\244\354\213\234 \354\213\234\354\236\221\355\225\230\354\227\254 \354\240\201\354\232\251\355\225\230\354\204\270\354\232\224 (\353\230\220\353\212\224 \353\213\244\354\235\214 \354\213\234\354\236\221\353\266\200\355\204\260 \354\202\254\354\232\251\353\220\251\353\213\210\353\213\244)" };
+static const char* const lang_ko_f587[] = { "GBA DS\352\260\200 \354\227\264\353\240\244 \354\236\210\353\212\224 \353\217\231\354\225\210 \355\224\204\353\241\234\354\204\270\354\204\234, \353\251\224\353\252\250\353\246\254, \352\267\270\353\236\230\355\224\275\354\235\264 \354\265\234\352\263\240 \354\206\215\353\217\204\353\241\234 \353\217\231\354\236\221\355\225\251\353\213\210\353\213\244. \352\262\214\354\236\204\354\235\200 \353\215\224 \353\266\200\353\223\234\353\237\275\354\247\200\353\247\214 \353\260\260\355\204\260\353\246\254\352\260\200 \353\215\224 \353\271\250\353\246\254 \353\213\263\352\263\240 \352\270\260\352\270\260\352\260\200 \353\215\224 \353\234\250\352\261\260\354\233\214\354\247\221\353\213\210\353\213\244." };
+static const char* const lang_ko_f588[] = { "\354\213\234\354\212\244\355\205\234\354\235\264 \353\213\244\353\245\270 \354\227\220\353\256\254\353\240\210\354\235\264\355\204\260\354\231\200 \353\247\210\354\260\254\352\260\200\354\247\200\353\241\234 \354\206\215\353\217\204\353\245\274 \354\240\225\355\225\251\353\213\210\353\213\244. \352\262\214\354\236\204\354\235\264 \353\201\212\352\270\260\352\261\260\353\202\230 \354\206\214\353\246\254\352\260\200 \353\266\210\354\225\210\354\240\225\355\225\230\353\251\264 \354\265\234\353\214\200\353\241\234 \354\204\244\354\240\225\354\235\204 \354\213\234\353\217\204\355\225\230\354\204\270\354\232\224." };
+static const char* const lang_ko_f589[] = { "\354\235\264 \355\217\264\353\215\224\353\245\274 \354\227\264 \354\210\230 \354\227\206\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f590[] = { "\354\235\264 \352\262\214\354\236\204" };
+static const char* const lang_ko_f591[] = { "\354\235\264 \352\262\214\354\236\204\354\227\220\353\212\224 \354\236\220\354\262\264 \352\260\222\354\235\264 \354\236\210\354\212\265\353\213\210\353\213\244. X \353\230\220\353\212\224 \353\247\210\354\247\200\353\247\211 \354\230\265\354\205\230\354\235\204 \353\204\230\354\226\264\354\204\234\353\251\264: \353\252\250\353\223\240 \352\262\214\354\236\204\352\263\274 \352\260\231\352\262\214" };
+static const char* const lang_ko_f592[] = { "\354\235\264 \352\262\214\354\236\204\354\227\220\353\212\224 \354\225\204\354\247\201 \354\227\205\354\240\201\354\235\264 \354\227\206\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f593[] = { "GBA DS v%s\354\236\205\353\213\210\353\213\244." };
+static const char* const lang_ko_f594[] = { "\355\230\204\354\236\254 v%s\354\236\205\353\213\210\353\213\244. \354\203\210 \353\262\204\354\240\204\354\235\204 \355\231\225\354\235\270\355\225\230\352\263\240 \353\213\244\354\232\264\353\241\234\353\223\234\355\225\230\354\227\254 \354\204\244\354\271\230\355\225\251\353\213\210\353\213\244." };
+static const char* const lang_ko_f595[] = { "\354\235\264 \354\203\201\355\203\234\353\212\224 \354\235\275\354\235\204 \354\210\230 \354\227\206\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f596[] = { "\354\235\264 \354\203\201\355\203\234\353\212\224 %s\354\227\220 \354\240\200\354\236\245\353\220\230\354\227\210\354\212\265\353\213\210\353\213\244: \354\236\221\353\217\231\355\225\230\354\247\200 \354\225\212\354\235\204 \354\210\230 \354\236\210\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f597[] = { "\355\225\250\352\273\230: %s" };
+static const char* const lang_ko_f598[] = { "\354\204\240\355\203\235\355\225\234 \354\205\260\354\235\264\353\215\224 \354\240\204\355\231\230" };
+static const char* const lang_ko_f599[] = { "\354\234\204 \355\231\224\353\251\264" };
+static const char* const lang_ko_f600[] = { "\354\234\204 \355\231\224\353\251\264 \353\260\235\352\270\260" };
+static const char* const lang_ko_f601[] = { "\355\203\255\355\225\230\352\261\260\353\202\230 \354\213\255\354\236\220\355\202\244 \354\202\254\354\232\251" };
+static const char* const lang_ko_f602[] = { "Turbo A" };
+static const char* const lang_ko_f603[] = { "Turbo B" };
+static const char* const lang_ko_f604[] = { "\355\204\260\353\263\264 \354\206\215\353\217\204" };
+static const char* const lang_ko_f605[] = { "\354\235\264 ROM\354\235\204 \353\213\244\353\245\270 \352\263\265\354\213\235 \353\262\204\354\240\204\354\234\274\353\241\234 \353\260\224\352\277\211\353\213\210\353\213\244: %s" };
+static const char* const lang_ko_f606[] = { "\354\230\210\354\203\201\354\271\230 \353\252\273\355\225\234 es_systems.cfg\354\236\205\353\213\210\353\213\244 (\353\241\234\352\267\270 \354\260\270\354\241\260)." };
+static const char* const lang_ko_f607[] = { "\354\235\264 \352\262\214\354\236\204\354\235\230 \354\225\214 \354\210\230 \354\227\206\353\212\224 \353\262\204\354\240\204" };
+static const char* const lang_ko_f608[] = { "\353\213\254\354\204\261\355\225\250" };
+static const char* const lang_ko_f609[] = { "\353\213\254\354\204\261 \353\202\264\354\227\255\354\235\204 \354\240\204\354\206\241\355\225\250" };
+static const char* const lang_ko_f610[] = { "\354\227\260\352\262\260\354\235\264 \353\217\214\354\225\204\354\230\244\353\251\264 \353\213\254\354\204\261 \353\202\264\354\227\255\354\235\204 \354\240\204\354\206\241\355\225\251\353\213\210\353\213\244" };
+static const char* const lang_ko_f611[] = { "\352\263\240\354\240\225 \355\225\264\354\240\234\353\220\250: \353\260\224\352\260\200 5\354\264\210 \355\233\204 \354\210\250\352\262\250\354\247\221\353\213\210\353\213\244." };
+static const char* const lang_ko_f612[] = { "\355\205\214\354\212\244\355\212\270\353\220\230\354\247\200 \354\225\212\354\235\214: \353\221\220 \353\262\210\354\247\270 \355\231\224\353\251\264\354\235\264 \354\236\221\353\217\231\355\225\230\354\247\200 \354\225\212\354\235\204 \354\210\230 \354\236\210\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f613[] = { "\354\234\204" };
+static const char* const lang_ko_f614[] = { "\355\225\234 \353\262\210\354\227\220 \354\265\234\353\214\200 %d\352\260\234\354\235\230 \355\214\250\354\271\230\353\245\274 \354\274\244 \354\210\230 \354\236\210\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f615[] = { "\354\265\234\353\214\200 %s" };
+static const char* const lang_ko_f616[] = { "\354\247\200\352\270\210 \354\227\205\353\215\260\354\235\264\355\212\270" };
+static const char* const lang_ko_f617[] = { "\354\227\205\353\215\260\354\235\264\355\212\270" };
+static const char* const lang_ko_f618[] = { "\354\227\205\353\215\260\354\235\264\355\212\270, \354\227\260\353\217\231" };
+static const char* const lang_ko_f619[] = { "\354\235\264 \355\217\264\353\215\224 \354\202\254\354\232\251" };
+static const char* const lang_ko_f620[] = { "\353\213\244\354\235\214\354\227\220 \352\262\214\354\236\204\354\235\204 \354\213\234\354\236\221\355\225\240 \353\225\214\353\266\200\355\204\260 \354\202\254\354\232\251\353\220\251\353\213\210\353\213\244" };
+static const char* const lang_ko_f621[] = { "\353\263\274\353\245\250 %d%%" };
+static const char* const lang_ko_f622[] = { "\354\213\255\354\236\220\355\202\244 \354\225\204\353\236\230\352\260\200 \352\262\214\354\236\204\354\227\220 \354\243\274\353\212\224 \352\262\203." };
+static const char* const lang_ko_f623[] = { "\354\213\255\354\236\220\355\202\244 \354\231\274\354\252\275\354\235\264 \352\262\214\354\236\204\354\227\220 \354\243\274\353\212\224 \352\262\203." };
+static const char* const lang_ko_f624[] = { "\354\213\255\354\236\220\355\202\244 \354\230\244\353\245\270\354\252\275\354\235\264 \352\262\214\354\236\204\354\227\220 \354\243\274\353\212\224 \352\262\203." };
+static const char* const lang_ko_f625[] = { "\354\213\255\354\236\220\355\202\244 \354\234\204\352\260\200 \352\262\214\354\236\204\354\227\220 \354\243\274\353\212\224 \352\262\203." };
+static const char* const lang_ko_f626[] = { "L \354\226\264\352\271\250 \353\262\204\355\212\274\354\235\264 \352\262\214\354\236\204\354\227\220 \354\243\274\353\212\224 \352\262\203." };
+static const char* const lang_ko_f627[] = { "R \354\226\264\352\271\250 \353\262\204\355\212\274\354\235\264 \352\262\214\354\236\204\354\227\220 \354\243\274\353\212\224 \352\262\203." };
+static const char* const lang_ko_f628[] = { "\354\225\204\353\236\230 \353\262\204\355\212\274\354\235\264 \352\262\214\354\236\204\354\227\220 \354\243\274\353\212\224 \352\262\203." };
+static const char* const lang_ko_f629[] = { "\354\231\274\354\252\275 \353\262\204\355\212\274\354\235\264 \352\262\214\354\236\204\354\227\220 \354\243\274\353\212\224 \352\262\203." };
+static const char* const lang_ko_f630[] = { "\354\230\244\353\245\270\354\252\275 \353\262\204\355\212\274\354\235\264 \352\262\214\354\236\204\354\227\220 \354\243\274\353\212\224 \352\262\203." };
+static const char* const lang_ko_f631[] = { "\354\234\204 \353\262\204\355\212\274\354\235\264 \352\262\214\354\236\204\354\227\220 \354\243\274\353\212\224 \352\262\203." };
+static const char* const lang_ko_f632[] = { "\352\262\214\354\236\204\354\235\204 \354\235\275\354\226\264 \354\230\244\353\212\224 \352\263\263\352\263\274 \354\240\200\354\236\245 \353\215\260\354\235\264\355\204\260\353\245\274 \353\263\264\352\264\200\355\225\230\353\212\224 \355\217\264\353\215\224." };
+static const char* const lang_ko_f633[] = { "\352\262\214\354\236\204\354\235\204 \354\235\275\354\226\264 \354\230\244\353\212\224 \352\263\263. \354\240\200\354\236\245 \353\215\260\354\235\264\355\204\260\353\212\224 \352\262\214\354\236\204 \354\230\206\354\227\220 \353\263\264\352\264\200\353\220\251\353\213\210\353\213\244." };
+static const char* const lang_ko_f634[] = { "\355\231\224\353\251\264: \353\221\220 \355\231\224\353\251\264 \353\252\250\353\221\220" };
+static const char* const lang_ko_f635[] = { "\355\231\224\353\251\264: \354\225\204\353\236\230 \355\231\224\353\251\264\353\247\214" };
+static const char* const lang_ko_f636[] = { "\355\231\224\353\251\264: \354\234\204 \355\231\224\353\251\264\353\247\214" };
+static const char* const lang_ko_f637[] = { "\355\221\234\354\213\234\355\225\240 \352\262\214\354\236\204, \354\235\264\353\246\204, \354\240\200\354\236\245" };
+static const char* const lang_ko_f638[] = { "\352\262\214\354\236\204\354\235\264 \353\206\223\354\235\264\353\212\224 \355\231\224\353\251\264." };
+static const char* const lang_ko_f639[] = { "\354\226\264\353\212\220 \355\231\224\353\251\264\354\227\220 \354\236\210\353\212\224\354\247\200." };
+static const char* const lang_ko_f640[] = { "\353\271\240\353\245\270 \353\260\224\354\235\230 \354\241\260\354\236\221\354\227\220\354\204\234 4\353\262\204\355\212\274\354\235\204 \354\204\240\355\203\235\355\225\230\353\251\264 4\353\262\204\355\212\274 \353\260\260\354\271\230\352\260\200 \354\235\264 \354\204\244\354\240\225\354\235\204 \353\214\200\354\213\240\355\225\251\353\213\210\353\213\244." };
+static const char* const lang_ko_f641[] = { "\353\271\240\353\245\270 \353\260\224\354\235\230 \354\241\260\354\236\221\354\227\220\354\204\234 SNES\353\245\274 \354\204\240\355\203\235\355\225\230\353\251\264 \354\212\244\355\205\214\354\235\264\354\247\200\354\227\220\354\204\234 SNES \353\260\260\354\271\230\352\260\200 \354\235\264 \354\204\244\354\240\225\354\235\204 \353\214\200\354\213\240\355\225\251\353\213\210\353\213\244." };
+static const char* const lang_ko_f642[] = { "\355\214\250\354\271\230\353\245\274 \354\274\234\353\251\264 \352\262\214\354\236\204\354\235\264 \354\236\220\354\262\264 \353\260\260\355\204\260\353\246\254 \354\240\200\354\236\245 \353\215\260\354\235\264\355\204\260(\"<\352\262\214\354\236\204> + <\355\214\250\354\271\230>\")\353\245\274 \353\263\264\352\264\200\355\225\230\352\263\240, \353\201\204\353\251\264 \354\233\220\353\263\270\354\235\230 \352\262\203\354\235\204 \354\202\254\354\232\251\355\225\251\353\213\210\353\213\244" };
+static const char* const lang_ko_f643[] = { "\355\214\250\354\271\230\353\245\274 \354\274\234\353\251\264 \352\262\214\354\236\204\354\235\264 \354\236\220\354\262\264 \354\203\201\355\203\234\353\245\274 \353\263\264\352\264\200\355\225\230\352\263\240, \353\201\204\353\251\264 \354\233\220\353\263\270\354\235\230 \352\262\203\354\235\204 \354\202\254\354\232\251\355\225\251\353\213\210\353\213\244 (\354\203\201\355\203\234\352\260\200 \353\213\244\353\245\270 \354\252\275\354\227\220\354\204\234 \352\271\250\354\247\210 \354\210\230 \354\236\210\354\235\214)" };
+static const char* const lang_ko_f644[] = { "\354\236\220\353\217\231 \355\231\225\354\235\270\354\235\204 \354\274\234\353\251\264 GBA DS\352\260\200 \352\262\214\354\236\204 \353\252\251\353\241\235\354\235\204 \354\227\264 \353\225\214 \355\225\230\353\243\250\354\227\220 \355\225\234 \353\262\210 \354\203\210 \353\262\204\354\240\204\354\235\204 \355\231\225\354\235\270\355\225\230\352\263\240, \353\213\244\354\232\264\353\241\234\353\223\234\355\225\230\352\270\260 \354\240\204\354\227\220 \353\250\274\354\240\200 \353\254\273\354\212\265\353\213\210\353\213\244. \354\227\205\353\215\260\354\235\264\355\212\270\353\212\224 github.com/kyannon/gba-ds\354\227\220 \352\263\265\352\260\234\353\220\234 \353\262\204\354\240\204\354\227\220\354\204\234 \352\260\200\354\240\270\354\230\265\353\213\210\353\213\244." };
+static const char* const lang_ko_f645[] = { "\355\203\234\352\267\270 \355\217\254\355\225\250, \354\230\210: (USA)" };
+static const char* const lang_ko_f646[] = { "X \353\262\204\355\212\274 (\354\234\204)" };
+static const char* const lang_ko_f647[] = { "Y \353\262\204\355\212\274 (\354\231\274\354\252\275)" };
+static const char* const lang_ko_f648[] = { "gba-ds/overlays/ \354\225\210\354\235\230 \354\247\201\354\240\221 \353\247\214\353\223\240 PNG. PNG\352\260\200 \354\227\206\353\212\224 \355\231\224\353\251\264\354\227\220\353\212\224 \352\270\260\353\263\270 \354\203\211\354\203\201\354\235\230 \354\203\235\354\204\261\353\220\234 \353\262\240\354\240\244\354\235\264 \355\221\234\354\213\234\353\220\251\353\213\210\353\213\244." };
+static const char* const lang_ko_f649[] = { "\354\247\201\354\240\221 \353\247\214\353\223\240 \353\241\234\352\263\240\354\231\200 \353\221\220 \353\262\210\354\247\270 \355\231\224\353\251\264\354\227\220\354\204\234 \352\260\200\354\240\270\354\230\250 \353\241\234\352\263\240." };
+static const char* const lang_ko_f650[] = { "\355\231\224\353\251\264\354\235\230 \353\252\250\354\226\221\354\235\264 \352\260\231\354\212\265\353\213\210\353\213\244: \353\247\236\354\266\234 \352\262\203\354\235\264 \354\227\206\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f651[] = { "\355\231\225\353\214\200" };
+static const char* const lang_ko_f652[] = { "\354\203\211\354\203\201" };
+static const char* const lang_ko_f653[] = { "hex" };
+static const char* const lang_ko_f654[] = { "\354\203\211\354\241\260" };
+static const char* const lang_ko_f655[] = { "\352\270\260\352\263\204 \353\262\210\354\227\255" };
+static const char* const lang_ko_f656[] = { "\354\225\204\354\247\201 \354\240\200\354\236\245\353\220\234 \354\203\201\355\203\234\352\260\200 \354\227\206\354\212\265\353\213\210\353\213\244!" };
+static const char* const lang_ko_f657[] = { "\352\272\274\354\247\220" };
+static const char* const lang_ko_f658[] = { "\354\274\234\354\247\220" };
+static const char* const lang_ko_f659[] = { "\354\240\220" };
+static const char* const lang_ko_f660[] = { "\354\240\220" };
+static const char* const lang_ko_f661[] = { "\355\224\204\353\246\254\354\205\213" };
+static const char* const lang_ko_f662[] = { "\354\231\274\354\252\275 \354\212\244\355\213\261\354\235\204 \353\210\204\353\245\264\354\204\270\354\232\224" };
+static const char* const lang_ko_f663[] = { "\354\231\274\354\252\275 \354\212\244\355\213\261\354\235\204 \354\231\274\354\252\275\354\234\274\353\241\234 \353\257\270\354\204\270\354\232\224" };
+static const char* const lang_ko_f664[] = { "\354\231\274\354\252\275 \354\212\244\355\213\261\354\235\204 \354\234\204\353\241\234 \353\257\270\354\204\270\354\232\224" };
+static const char* const lang_ko_f665[] = { "\354\225\204\353\236\230 \353\262\204\355\212\274" };
+static const char* const lang_ko_f666[] = { "GBA DS \353\251\224\353\211\264\353\245\274 \354\227\254\353\212\224 \353\262\204\355\212\274 (Home, Menu \353\230\220\353\212\224 Function)" };
+static const char* const lang_ko_f667[] = { "\352\262\214\354\236\204" };
+static const char* const lang_ko_f668[] = { "\354\231\274\354\252\275 \353\262\204\355\212\274" };
+static const char* const lang_ko_f669[] = { "\354\231\274\354\252\275 \354\226\264\352\271\250 \353\262\204\355\212\274" };
+static const char* const lang_ko_f670[] = { "ROM \354\230\206\354\235\230 \355\214\250\354\271\230" };
+static const char* const lang_ko_f671[] = { "\354\230\244\353\245\270\354\252\275 \353\262\204\355\212\274" };
+static const char* const lang_ko_f672[] = { "\354\230\244\353\245\270\354\252\275 \354\226\264\352\271\250 \353\262\204\355\212\274" };
+static const char* const lang_ko_f673[] = { "\353\221\220 \353\262\210\354\247\270 \354\231\274\354\252\275 \354\226\264\352\271\250 \353\262\204\355\212\274" };
+static const char* const lang_ko_f674[] = { "\353\221\220 \353\262\210\354\247\270 \354\230\244\353\245\270\354\252\275 \354\226\264\352\271\250 \353\262\204\355\212\274" };
+static const char* const lang_ko_f675[] = { "\354\234\204 \353\262\204\355\212\274" };
+static const char* const lang_ko_f676[] = { "\354\240\200\354\236\245\355\225\230\354\247\200 \354\225\212\354\235\200 \354\247\204\355\226\211 \354\203\201\355\231\251\354\235\200 \354\202\254\353\235\274\354\247\221\353\213\210\353\213\244" };
+static const char* const lang_ko_f677[] = { "\355\214\250\354\271\230\354\231\200 \355\225\250\352\273\230" };
+static const char* const lang_ko_f678[] = { "%s\354\231\200(\352\263\274) \355\225\250\352\273\230" };
+static const char* const lang_ko_f679[] = { "\352\262\214\354\236\204\354\235\230 \353\213\244\353\245\270 \353\215\244\355\224\204\354\231\200 \355\225\250\352\273\230 (%s)" };
+static const char* const lang_ko_f680[] = { "\352\262\214\354\236\204\354\235\230 \353\213\244\353\245\270 \353\262\204\354\240\204\352\263\274 \355\225\250\352\273\230 (\353\213\244\353\245\270 \355\214\250\354\271\230 \353\230\220\353\212\224 \353\213\244\353\245\270 ROM)" };
+static const char* const lang_ko_f681[] = { "\353\263\200\352\262\275\353\220\230\354\247\200 \354\225\212\354\235\200 \352\262\214\354\236\204\352\263\274 \355\225\250\352\273\230 (%s)" };
+static const char* const lang_ko_f682[] = { "\355\214\250\354\271\230 \354\227\206\354\235\264" };
+static const char* const lang_ko_f683[] = { "\354\274\234\354\247\204 \355\214\250\354\271\230 \354\227\206\354\235\264" };
+static const char* const lang_ko_f684[] = { "\354\234\204\354\271\230\352\260\200 \354\240\200\354\236\245\353\220\230\354\226\264 \354\236\210\354\212\265\353\213\210\353\213\244" };
+static const char* const lang_ko_f685[] = { "\342\200\271" };
+static const char* const lang_ko_f686[] = { "\342\200\272" };
+static const I18nEntry lang_ko_entries[] = {
+	{ " (patch)", lang_ko_f0, 1 },
+	{ " Checking for a new version...", lang_ko_f1, 1 },
+	{ " It's the newest version.", lang_ko_f2, 1 },
+	{ " ms", lang_ko_f3, 1 },
+	{ " s", lang_ko_f4, 1 },
+	{ "\"Swipe up for quick menu\" at a game's start.", lang_ko_f5, 1 },
+	{ "%ca%d", lang_ko_f6, 1 },
+	{ "%d RetroArch state here", lang_ko_f7, 1 },
+	{ "%d file checked", lang_ko_f8, 1 },
+	{ "%d game found", lang_ko_f9, 1 },
+	{ "%d game found.", lang_ko_f10, 1 },
+	{ "%d of %d", lang_ko_f11, 1 },
+	{ "%d of %d set for %s, kept in controllers.txt beside GBA DS's save states. The line for it is in gba-ds.log too: send it in to have it built into GBA DS for this device.", lang_ko_f12, 1 },
+	{ "%d on", lang_ko_f13, 1 },
+	{ "%s", lang_ko_f14, 1 },
+	{ "%s %s. Choose another if RetroArch keeps its states somewhere else.", lang_ko_f15, 1 },
+	{ "%s (beside the ROM)", lang_ko_f16, 1 },
+	{ "%s as the hotkey button, with Start, R1, L1, X, Y and B", lang_ko_f17, 1 },
+	{ "%s has no button now", lang_ko_f18, 1 },
+	{ "%s is now Start + Select", lang_ko_f19, 1 },
+	{ "%s opens the menu: press another button", lang_ko_f20, 1 },
+	{ "%s v%s. Restarting...", lang_ko_f21, 1 },
+	{ "%s was %s's: that has no button now", lang_ko_f22, 1 },
+	{ "%s, %s", lang_ko_f23, 1 },
+	{ "%s, Select, Start or L3. Tap to keep it as it is", lang_ko_f24, 1 },
+	{ "%u of %u achievements unlocked", lang_ko_f25, 1 },
+	{ ", RetroArch", lang_ko_f26, 1 },
+	{ "1 minute", lang_ko_f27, 1 },
+	{ "10 s", lang_ko_f28, 1 },
+	{ "128 ms", lang_ko_f29, 1 },
+	{ "15 s", lang_ko_f30, 1 },
+	{ "192 ms", lang_ko_f31, 1 },
+	{ "2 minutes", lang_ko_f32, 1 },
+	{ "2x", lang_ko_f33, 1 },
+	{ "30 s", lang_ko_f34, 1 },
+	{ "32 ms", lang_ko_f35, 1 },
+	{ "3x", lang_ko_f36, 1 },
+	{ "4x", lang_ko_f37, 1 },
+	{ "5 minutes", lang_ko_f38, 1 },
+	{ "5x", lang_ko_f39, 1 },
+	{ "64 ms", lang_ko_f40, 1 },
+	{ "96 ms", lang_ko_f41, 1 },
+	{ "A (right) button", lang_ko_f42, 1 },
+	{ "A and B buttons", lang_ko_f43, 1 },
+	{ "A dark line under each row of pixels", lang_ko_f44, 1 },
+	{ "A game's save already next to it, or in the other type, is copied over the first time you play it. .srm is the type RetroArch uses: choose its saves folder too to share each game's save with it.", lang_ko_f45, 1 },
+	{ "A new version of GBA DS", lang_ko_f46, 1 },
+	{ "A pattern over every pixel, on both screens.", lang_ko_f47, 1 },
+	{ "A: the one lit above. Y: all games. X: undo this game's value", lang_ko_f48, 1 },
+	{ "ACHIEVEMENT UNLOCKED", lang_ko_f49, 1 },
+	{ "AM", lang_ko_f50, 1 },
+	{ "Achievements", lang_ko_f51, 1 },
+	{ "Add a note (optional): what happened, and what you expected to happen.", lang_ko_f52, 1 },
+	{ "Adds GBA DS to the emulators for Game Boy Advance games in EmulationStation. Pick it for one game (its Advanced Game Options > Emulator) or for all of them (the system's advanced settings). The other emulators keep working as before.", lang_ko_f53, 1 },
+	{ "All", lang_ko_f54, 1 },
+	{ "All %u achievements unlocked", lang_ko_f55, 1 },
+	{ "All games", lang_ko_f56, 1 },
+	{ "Already the value for all games", lang_ko_f57, 1 },
+	{ "Always", lang_ko_f58, 1 },
+	{ "Always on here", lang_ko_f59, 1 },
+	{ "Always on in this game: it needs it for full speed", lang_ko_f60, 1 },
+	{ "Always on, applied first (RetroArch's way: a patch named as the ROM). %s", lang_ko_f61, 1 },
+	{ "An xdelta made with compression, which GBA DS can't read: patch the ROM with it beforehand, or make it again without (xdelta3 -S none)", lang_ko_f62, 1 },
+	{ "Android's installer couldn't be reached", lang_ko_f63, 1 },
+	{ "Another emulator's", lang_ko_f64, 1 },
+	{ "Apr", lang_ko_f65, 1 },
+	{ "Are You Sure?", lang_ko_f66, 1 },
+	{ "Are you sure? A: switch it %s now and carry on from here. Y: not yet (more changes first). B: call it off", lang_ko_f67, 1 },
+	{ "Are you sure? A: use them now and carry on from here. B: call it off", lang_ko_f68, 1 },
+	{ "Are you sure? Delete them", lang_ko_f69, 1 },
+	{ "Are you sure? Reset settings", lang_ko_f70, 1 },
+	{ "Are you sure? Save your game first. A: restart %s it now. Y: not yet (more changes first). B: call it off", lang_ko_f71, 1 },
+	{ "Are you sure? Save your game first. A: restart now. B: call it off", lang_ko_f72, 1 },
+	{ "Are you sure? Touch it again to delete every game's own settings. Anything else cancels.", lang_ko_f73, 1 },
+	{ "Are you sure? Touch it again to put every setting back to its default. Anything else cancels.", lang_ko_f74, 1 },
+	{ "As fast as it goes", lang_ko_f75, 1 },
+	{ "As the game started", lang_ko_f76, 1 },
+	{ "Aug", lang_ko_f77, 1 },
+	{ "Auto", lang_ko_f78, 1 },
+	{ "Auto-Load: Off", lang_ko_f79, 1 },
+	{ "Auto-Load: On", lang_ko_f80, 1 },
+	{ "Auto-load", lang_ko_f81, 1 },
+	{ "Automatic", lang_ko_f82, 1 },
+	{ "Automatic checks: Off", lang_ko_f83, 1 },
+	{ "Automatic checks: On", lang_ko_f84, 1 },
+	{ "Automatic follows the system. Text that isn't translated yet stays in English.", lang_ko_f85, 1 },
+	{ "B (bottom) button", lang_ko_f86, 1 },
+	{ "Back", lang_ko_f87, 1 },
+	{ "Back online", lang_ko_f88, 1 },
+	{ "Back to %s and the buttons it started with", lang_ko_f89, 1 },
+	{ "BananaOS's systems list has no Game Boy Advance entry.", lang_ko_f90, 1 },
+	{ "Bezel logo", lang_ko_f91, 1 },
+	{ "Blue", lang_ko_f92, 1 },
+	{ "Blurry instead of sharp: usually leave off.", lang_ko_f93, 1 },
+	{ "Both screens", lang_ko_f94, 1 },
+	{ "Bottom screen", lang_ko_f95, 1 },
+	{ "Bottom screen brightness", lang_ko_f96, 1 },
+	{ "Bug Report", lang_ko_f97, 1 },
+	{ "Bug report saved in bug-reports", lang_ko_f98, 1 },
+	{ "Bug report saved in bug-reports.", lang_ko_f99, 1 },
+	{ "Buttons", lang_ko_f100, 1 },
+	{ "Buttons mapped", lang_ko_f101, 1 },
+	{ "Can't be read", lang_ko_f102, 1 },
+	{ "Can't be read: not a patch, or damaged", lang_ko_f103, 1 },
+	{ "Can't find the GBA DS folder.", lang_ko_f104, 1 },
+	{ "Can't reach GBA DS's folder, using %s for now: %s", lang_ko_f105, 1 },
+	{ "Can't rewind further", lang_ko_f106, 1 },
+	{ "Can't save files here: no states, logos or screenshots", lang_ko_f107, 1 },
+	{ "Can't save in the chosen folder, files not moved: %s", lang_ko_f108, 1 },
+	{ "Cancel", lang_ko_f109, 1 },
+	{ "Centered", lang_ko_f110, 1 },
+	{ "Changes some of the same bytes as %s, and goes over it there: they may not work together", lang_ko_f111, 1 },
+	{ "Cheats", lang_ko_f112, 1 },
+	{ "Check now", lang_ko_f113, 1 },
+	{ "Check ra_username and ra_password in gba-ds.cfg", lang_ko_f114, 1 },
+	{ "Check the account in EmulationStation's RetroAchievements settings", lang_ko_f115, 1 },
+	{ "Choose GBA DS folder", lang_ko_f116, 1 },
+	{ "Choose ROM folder", lang_ko_f117, 1 },
+	{ "Choose a folder in Android's file picker...", lang_ko_f118, 1 },
+	{ "Choose it again to close %s: %s", lang_ko_f119, 1 },
+	{ "Choose it again to restart: unsaved progress is lost", lang_ko_f120, 1 },
+	{ "Choose save folder", lang_ko_f121, 1 },
+	{ "Chosen folder is inside GBA DS's own, files not moved: %s", lang_ko_f122, 1 },
+	{ "Chosen folder not found, files not moved: %s", lang_ko_f123, 1 },
+	{ "Chosen here:", lang_ko_f124, 1 },
+	{ "Close GBA DS", lang_ko_f125, 1 },
+	{ "Close Game", lang_ko_f126, 1 },
+	{ "Closest to gap", lang_ko_f127, 1 },
+	{ "Closing a game saves where you are.", lang_ko_f128, 1 },
+	{ "Color", lang_ko_f129, 1 },
+	{ "Color Correction: Off", lang_ko_f130, 1 },
+	{ "Color Correction: On", lang_ko_f131, 1 },
+	{ "Color correction", lang_ko_f132, 1 },
+	{ "Colors as a Game Boy Advance's screen showed them.", lang_ko_f133, 1 },
+	{ "Confirm the update to v%s in Android's installer. Android closes GBA DS while it installs; open it again afterwards. If Android asks first, allow GBA DS to install apps.", lang_ko_f134, 1 },
+	{ "Connect a controller and try again.", lang_ko_f135, 1 },
+	{ "Controls", lang_ko_f136, 1 },
+	{ "Couldn't change %s.", lang_ko_f137, 1 },
+	{ "Couldn't change the files in %s/custom_systems: allow GBA DS All files access in Android's settings.", lang_ko_f138, 1 },
+	{ "Couldn't connect", lang_ko_f139, 1 },
+	{ "Couldn't find GBA DS's folder.", lang_ko_f140, 1 },
+	{ "Couldn't keep that choice.", lang_ko_f141, 1 },
+	{ "Couldn't load the achievements", lang_ko_f142, 1 },
+	{ "Couldn't load the game", lang_ko_f143, 1 },
+	{ "Couldn't move GBA DS's files, they stay in %s", lang_ko_f144, 1 },
+	{ "Couldn't open the file picker.", lang_ko_f145, 1 },
+	{ "Couldn't open the sign-in box.", lang_ko_f146, 1 },
+	{ "Couldn't remove the setting file.", lang_ko_f147, 1 },
+	{ "Couldn't save", lang_ko_f148, 1 },
+	{ "Couldn't save the bug report.", lang_ko_f149, 1 },
+	{ "Couldn't sign in as %s%s%s. Sign in to try again.", lang_ko_f150, 1 },
+	{ "Couldn't write %s.", lang_ko_f151, 1 },
+	{ "Couldn't write to %s.", lang_ko_f152, 1 },
+	{ "Custom", lang_ko_f153, 1 },
+	{ "Custom Logos: Do Not Use", lang_ko_f154, 1 },
+	{ "Custom Logos: Full Detail", lang_ko_f155, 1 },
+	{ "Custom Logos: Pixelated", lang_ko_f156, 1 },
+	{ "Custom logos", lang_ko_f157, 1 },
+	{ "D-pad", lang_ko_f158, 1 },
+	{ "D-pad down", lang_ko_f159, 1 },
+	{ "D-pad left", lang_ko_f160, 1 },
+	{ "D-pad right", lang_ko_f161, 1 },
+	{ "D-pad up", lang_ko_f162, 1 },
+	{ "Dark", lang_ko_f163, 1 },
+	{ "Darkens the bottom screen, in this app only: the device's own brightness is left alone (and this can't go above it).", lang_ko_f164, 1 },
+	{ "Darkens the top screen, in this app only: the device's own brightness is left alone (and this can't go above it).", lang_ko_f165, 1 },
+	{ "Dec", lang_ko_f166, 1 },
+	{ "Del", lang_ko_f167, 1 },
+	{ "Delete per-game settings", lang_ko_f168, 1 },
+	{ "Deleted the settings of %d games.", lang_ko_f169, 1 },
+	{ "Deleted the settings of 1 game.", lang_ko_f170, 1 },
+	{ "Display", lang_ko_f171, 1 },
+	{ "Done", lang_ko_f172, 1 },
+	{ "Done (No Note)", lang_ko_f173, 1 },
+	{ "Down", lang_ko_f174, 1 },
+	{ "Downloading", lang_ko_f175, 1 },
+	{ "ES-DE's folder wasn't found.", lang_ko_f176, 1 },
+	{ "Each pixel a little darker toward its edges", lang_ko_f177, 1 },
+	{ "Earn achievements in casual mode with your retroachievements.org account. GBA DS keeps a sign-in token, not your password.", lang_ko_f178, 1 },
+	{ "English", lang_ko_f179, 1 },
+	{ "Enter both your username and your password.", lang_ko_f180, 1 },
+	{ "Enter your account in the sign-in box...", lang_ko_f181, 1 },
+	{ "Every 0.5 s", lang_ko_f182, 1 },
+	{ "Every 1.5 s", lang_ko_f183, 1 },
+	{ "Every 3 s", lang_ko_f184, 1 },
+	{ "Every button was skipped, so nothing changed.", lang_ko_f185, 1 },
+	{ "Every second", lang_ko_f186, 1 },
+	{ "Fails", lang_ko_f187, 1 },
+	{ "Fast (20 a second)", lang_ko_f188, 1 },
+	{ "Fast Forward: %dx", lang_ko_f189, 1 },
+	{ "Fast Forward: Max", lang_ko_f190, 1 },
+	{ "Fast Forward: Off", lang_ko_f191, 1 },
+	{ "Fast forward", lang_ko_f192, 1 },
+	{ "Fast forwarding...", lang_ko_f193, 1 },
+	{ "Feb", lang_ko_f194, 1 },
+	{ "First run only. B: back", lang_ko_f195, 1 },
+	{ "Folders", lang_ko_f196, 1 },
+	{ "Folders, accounts, updates", lang_ko_f197, 1 },
+	{ "Follows how you hold the phone, and Android's own rotation lock.", lang_ko_f198, 1 },
+	{ "Frame Buffer: Always on here", lang_ko_f199, 1 },
+	{ "Frame Buffer: Off", lang_ko_f200, 1 },
+	{ "Frame Buffer: On", lang_ko_f201, 1 },
+	{ "Frame buffer", lang_ko_f202, 1 },
+	{ "Frames a second above the game, all the time.", lang_ko_f203, 1 },
+	{ "From RetroArch's settings:", lang_ko_f204, 1 },
+	{ "Full Width", lang_ko_f205, 1 },
+	{ "Full detail", lang_ko_f206, 1 },
+	{ "GBA", lang_ko_f207, 1 },
+	{ "GBA A", lang_ko_f208, 1 },
+	{ "GBA A on the right button, or on the bottom one.", lang_ko_f209, 1 },
+	{ "GBA B", lang_ko_f210, 1 },
+	{ "GBA DS Logo: Hide", lang_ko_f211, 1 },
+	{ "GBA DS Logo: Show", lang_ko_f212, 1 },
+	{ "GBA DS Settings", lang_ko_f213, 1 },
+	{ "GBA DS can't save files there: allow it All files access in Android's settings, or choose another folder.", lang_ko_f214, 1 },
+	{ "GBA DS in BananaOS's GBA list: Off", lang_ko_f215, 1 },
+	{ "GBA DS in BananaOS's GBA list: On", lang_ko_f216, 1 },
+	{ "GBA DS in ES-DE: Off", lang_ko_f217, 1 },
+	{ "GBA DS in ES-DE: On", lang_ko_f218, 1 },
+	{ "GBA DS in EmulationStation: Off", lang_ko_f219, 1 },
+	{ "GBA DS in EmulationStation: On", lang_ko_f220, 1 },
+	{ "GBA DS is now ES-DE's emulator for Game Boy Advance games. Quit ES-DE and open it again to see it.", lang_ko_f221, 1 },
+	{ "GBA DS is out of ES-DE's emulator list. Quit ES-DE and open it again to see it.", lang_ko_f222, 1 },
+	{ "GBA DS v%s is out (this is v%s). Update now to download it (%.1f MB) and install it: Android asks you to confirm. Your games, saves, states and settings are kept.", lang_ko_f223, 1 },
+	{ "GBA DS v%s is out (this is v%s). Update now to download it (%.1f MB) and restart into it; your games, saves, states and settings are kept.", lang_ko_f224, 1 },
+	{ "GBA DS's bezel, or your own PNGs, round the picture.", lang_ko_f225, 1 },
+	{ "GBA DS's files are kept there already.", lang_ko_f226, 1 },
+	{ "GBA DS's files go to %s the next time it starts: close GBA DS and open it again.", lang_ko_f227, 1 },
+	{ "GBA DS's own files (states, settings, cheats, overlays) are in %s, moving to %s at the next start.", lang_ko_f228, 1 },
+	{ "GBA DS's own files (states, settings, cheats, overlays) are in %s.", lang_ko_f229, 1 },
+	{ "GBA Down", lang_ko_f230, 1 },
+	{ "GBA L", lang_ko_f231, 1 },
+	{ "GBA Left", lang_ko_f232, 1 },
+	{ "GBA R", lang_ko_f233, 1 },
+	{ "GBA Right", lang_ko_f234, 1 },
+	{ "GBA Up", lang_ko_f235, 1 },
+	{ "Game", lang_ko_f236, 1 },
+	{ "Game below", lang_ko_f237, 1 },
+	{ "Game names", lang_ko_f238, 1 },
+	{ "Game on top", lang_ko_f239, 1 },
+	{ "Game restarted", lang_ko_f240, 1 },
+	{ "Game screen scale", lang_ko_f241, 1 },
+	{ "Games", lang_ko_f242, 1 },
+	{ "Games are read from %s (subfolders too). Saves (%s) are kept in %s.", lang_ko_f243, 1 },
+	{ "Games are read from %s (subfolders too). Saves (%s) are kept next to the games.", lang_ko_f244, 1 },
+	{ "Games picked in BananaOS's own Game Boy Advance list start in GBA DS when it has second-screen support for them. Restart BananaOS after switching this.", lang_ko_f245, 1 },
+	{ "Games shown", lang_ko_f246, 1 },
+	{ "Games without second-screen support play on one screen.", lang_ko_f247, 1 },
+	{ "Generated", lang_ko_f248, 1 },
+	{ "Green", lang_ko_f249, 1 },
+	{ "Held on its side: the two screens side by side. Either way round.", lang_ko_f250, 1 },
+	{ "Held upright: the two screens one above the other. Either way up.", lang_ko_f251, 1 },
+	{ "Hex Color", lang_ko_f252, 1 },
+	{ "Hold L2 to go back in time.", lang_ko_f253, 1 },
+	{ "Hold R2 to play faster.", lang_ko_f254, 1 },
+	{ "Home", lang_ko_f255, 1 },
+	{ "Hotkey button", lang_ko_f256, 1 },
+	{ "Hotkeys", lang_ko_f257, 1 },
+	{ "How dark the grid, scanlines and soft cells are.", lang_ko_f258, 1 },
+	{ "How far back it goes.", lang_ko_f259, 1 },
+	{ "How fast Turbo A and Turbo B press.", lang_ko_f260, 1 },
+	{ "How the game's picture fills its screen.", lang_ko_f261, 1 },
+	{ "How the map or logo fills its screen.", lang_ko_f262, 1 },
+	{ "In a game, hold the hotkey button and press another", lang_ko_f263, 1 },
+	{ "In patches/%s", lang_ko_f264, 1 },
+	{ "Inner Bezel Color", lang_ko_f265, 1 },
+	{ "Installed", lang_ko_f266, 1 },
+	{ "Installing", lang_ko_f267, 1 },
+	{ "Jan", lang_ko_f268, 1 },
+	{ "Jul", lang_ko_f269, 1 },
+	{ "Jun", lang_ko_f270, 1 },
+	{ "Keep device aspect ratios", lang_ko_f271, 1 },
+	{ "Keep device shapes", lang_ko_f272, 1 },
+	{ "Keep saves next to the games", lang_ko_f273, 1 },
+	{ "Kept as it was in %d s if nothing is pressed", lang_ko_f274, 1 },
+	{ "Kept for every game", lang_ko_f275, 1 },
+	{ "Known %s patch, tested: %s", lang_ko_f276, 1 },
+	{ "Known %s patch, untested: %s. The second screen may not work with it", lang_ko_f277, 1 },
+	{ "Known %s patch: %s, made for %s. This ROM is another version: it may break the game", lang_ko_f278, 1 },
+	{ "Known %s patch: %s, made for %s: it can't be switched on for this ROM", lang_ko_f279, 1 },
+	{ "Known romhack: %s, untested", lang_ko_f280, 1 },
+	{ "L button", lang_ko_f281, 1 },
+	{ "LCD Ghosting: Off", lang_ko_f282, 1 },
+	{ "LCD Ghosting: On", lang_ko_f283, 1 },
+	{ "LCD Grid", lang_ko_f284, 1 },
+	{ "LCD ghosting", lang_ko_f285, 1 },
+	{ "Language", lang_ko_f286, 1 },
+	{ "Last checked %s.", lang_ko_f287, 1 },
+	{ "Later", lang_ko_f288, 1 },
+	{ "Left", lang_ko_f289, 1 },
+	{ "Left out where it is: it's made for the unchanged ROM, so it has to be first (only one such patch can be on). Move it up with X", lang_ko_f290, 1 },
+	{ "Left stick as D-pad", lang_ko_f291, 1 },
+	{ "Left stick: left", lang_ko_f292, 1 },
+	{ "Left stick: up", lang_ko_f293, 1 },
+	{ "Let the System Decide", lang_ko_f294, 1 },
+	{ "Light", lang_ko_f295, 1 },
+	{ "Light/dark mode", lang_ko_f296, 1 },
+	{ "Like a GBA", lang_ko_f297, 1 },
+	{ "Lines between the pixels, like a GBA's screen", lang_ko_f298, 1 },
+	{ "Load State", lang_ko_f299, 1 },
+	{ "Load State %d", lang_ko_f300, 1 },
+	{ "Load failed", lang_ko_f301, 1 },
+	{ "Load failed.", lang_ko_f302, 1 },
+	{ "Loading games...", lang_ko_f303, 1 },
+	{ "Loading the achievements...", lang_ko_f304, 1 },
+	{ "Loading thumbnail...", lang_ko_f305, 1 },
+	{ "Made for another version of the game: it can't be switched on for this ROM", lang_ko_f306, 1 },
+	{ "Makes GBA DS the emulator for Game Boy Advance games in ES-DE. For a game it doesn't support, choose another in ES-DE (the game's metadata > Alternative emulator).", lang_ko_f307, 1 },
+	{ "Map", lang_ko_f308, 1 },
+	{ "Map Buttons", lang_ko_f309, 1 },
+	{ "Map buttons", lang_ko_f310, 1 },
+	{ "Map refresh", lang_ko_f311, 1 },
+	{ "Mar", lang_ko_f312, 1 },
+	{ "Match Display Rate: Off", lang_ko_f313, 1 },
+	{ "Match Display Rate: Off for now", lang_ko_f314, 1 },
+	{ "Match Display Rate: On", lang_ko_f315, 1 },
+	{ "Match aspect ratios", lang_ko_f316, 1 },
+	{ "Match display rate", lang_ko_f317, 1 },
+	{ "Match screen aspect ratios", lang_ko_f318, 1 },
+	{ "Match screen sizes and aspect ratios", lang_ko_f319, 1 },
+	{ "Match sizes and shapes", lang_ko_f320, 1 },
+	{ "Max: full speed, a warmer device and a shorter battery.", lang_ko_f321, 1 },
+	{ "May", lang_ko_f322, 1 },
+	{ "Medium (15 a second)", lang_ko_f323, 1 },
+	{ "Modified ROM: the second screen may not work", lang_ko_f324, 1 },
+	{ "Move", lang_ko_f325, 1 },
+	{ "Moving it: Up / Down or tap where it goes, then A (or tap it again). The one lower in the list is applied later", lang_ko_f326, 1 },
+	{ "Moving things leave a short trail, as on a GBA.", lang_ko_f327, 1 },
+	{ "NOTE: Unsupported games will play in RetroArch, but without BananaOS's own second screen (its game panel and companions).", lang_ko_f328, 1 },
+	{ "New", lang_ko_f329, 1 },
+	{ "No RetroArch states here", lang_ko_f330, 1 },
+	{ "No achievements for this ROM (MD5 %s)", lang_ko_f331, 1 },
+	{ "No cheats found (see Cheats in the wiki)", lang_ko_f332, 1 },
+	{ "No controller found", lang_ko_f333, 1 },
+	{ "No es_systems.cfg found.", lang_ko_f334, 1 },
+	{ "No folder chosen.", lang_ko_f335, 1 },
+	{ "No folders in this one", lang_ko_f336, 1 },
+	{ "No game has settings of its own.", lang_ko_f337, 1 },
+	{ "No games found", lang_ko_f338, 1 },
+	{ "No patches here yet", lang_ko_f339, 1 },
+	{ "No quick state saved yet.", lang_ko_f340, 1 },
+	{ "No supported games in", lang_ko_f341, 1 },
+	{ "None", lang_ko_f342, 1 },
+	{ "Not in the folder any more: it's left out", lang_ko_f343, 1 },
+	{ "Not resumed: RetroArch's automatic state is from another of its GBA cores. To share states, set RetroArch's GBA core to mGBA.", lang_ko_f344, 1 },
+	{ "Not used", lang_ko_f345, 1 },
+	{ "Nothing", lang_ko_f346, 1 },
+	{ "Nothing mapped", lang_ko_f347, 1 },
+	{ "Nothing saved in slot %d yet", lang_ko_f348, 1 },
+	{ "Nothing to report yet.", lang_ko_f349, 1 },
+	{ "Nov", lang_ko_f350, 1 },
+	{ "Now", lang_ko_f351, 1 },
+	{ "OK", lang_ko_f352, 1 },
+	{ "Oct", lang_ko_f353, 1 },
+	{ "Off", lang_ko_f354, 1 },
+	{ "Off for slower devices: the table on one screen. Close and restart GBA DS to apply.", lang_ko_f355, 1 },
+	{ "Off while a patch is on", lang_ko_f356, 1 },
+	{ "Off.", lang_ko_f357, 1 },
+	{ "Off. Restart BananaOS (Settings > System) for its menu to use it.", lang_ko_f358, 1 },
+	{ "Off. Restart EmulationStation to apply.", lang_ko_f359, 1 },
+	{ "Off: every game plays like an ordinary GBA game.", lang_ko_f360, 1 },
+	{ "Off: the left stick does nothing in games.", lang_ko_f361, 1 },
+	{ "Offline", lang_ko_f362, 1 },
+	{ "On", lang_ko_f363, 1 },
+	{ "On.", lang_ko_f364, 1 },
+	{ "On. Restart BananaOS (Settings > System) for its menu to use it.", lang_ko_f365, 1 },
+	{ "On. Restart EmulationStation to see it.", lang_ko_f366, 1 },
+	{ "Only games with a map screen are listed (show_all = 1 lists every one)", lang_ko_f367, 1 },
+	{ "Only one screen: nothing to move", lang_ko_f368, 1 },
+	{ "Only patches that are on have an order, and this is the only one", lang_ko_f369, 1 },
+	{ "Only when your two screens differ in shape. Experimental.", lang_ko_f370, 1 },
+	{ "Open quick menu", lang_ko_f371, 1 },
+	{ "Opens the bezel's own page, for whichever the game or all games have", lang_ko_f372, 1 },
+	{ "Orange", lang_ko_f373, 1 },
+	{ "Outer Bezel Color", lang_ko_f374, 1 },
+	{ "Overlay colors and logo", lang_ko_f375, 1 },
+	{ "Overlays", lang_ko_f376, 1 },
+	{ "Overlays on", lang_ko_f377, 1 },
+	{ "Overlays: Custom", lang_ko_f378, 1 },
+	{ "Overlays: Custom (in /overlays)", lang_ko_f379, 1 },
+	{ "Overlays: Generated", lang_ko_f380, 1 },
+	{ "Overlays: Off", lang_ko_f381, 1 },
+	{ "PM", lang_ko_f382, 1 },
+	{ "Patch not applied: %s can't be read", lang_ko_f383, 1 },
+	{ "Patch not applied: %s is for another ROM", lang_ko_f384, 1 },
+	{ "Patched, but a patch was left out: see Patches in the game's menu", lang_ko_f385, 1 },
+	{ "Patched: the second screen may not work", lang_ko_f386, 1 },
+	{ "Patches", lang_ko_f387, 1 },
+	{ "Patches changed", lang_ko_f388, 1 },
+	{ "Patches changed since the game started", lang_ko_f389, 1 },
+	{ "Patches changed: carrying on from where you were", lang_ko_f390, 1 },
+	{ "Pattern strength", lang_ko_f391, 1 },
+	{ "Paused", lang_ko_f392, 1 },
+	{ "Performance", lang_ko_f393, 1 },
+	{ "Performance: Let the System Decide", lang_ko_f394, 1 },
+	{ "Performance: Set to Max", lang_ko_f395, 1 },
+	{ "Pictures in the middle of their screens, or close together.", lang_ko_f396, 1 },
+	{ "Pinball two-screen view", lang_ko_f397, 1 },
+	{ "Pink", lang_ko_f398, 1 },
+	{ "Pinned: the bar stays up.", lang_ko_f399, 1 },
+	{ "Pixel Perfect", lang_ko_f400, 1 },
+	{ "Pixelated", lang_ko_f401, 1 },
+	{ "Placement, overlays", lang_ko_f402, 1 },
+	{ "Plain", lang_ko_f403, 1 },
+	{ "Play", lang_ko_f404, 1 },
+	{ "Playing without achievements this time", lang_ko_f405, 1 },
+	{ "Preparing the game...", lang_ko_f406, 1 },
+	{ "Press %s", lang_ko_f407, 1 },
+	{ "Press A or tap to close", lang_ko_f408, 1 },
+	{ "Press A to close", lang_ko_f409, 1 },
+	{ "Press a button", lang_ko_f410, 1 },
+	{ "Purple", lang_ko_f411, 1 },
+	{ "Push the stick: buttons don't count for this one.", lang_ko_f412, 1 },
+	{ "Put .ips, .ups, .bps or .xdelta files in %s", lang_ko_f413, 1 },
+	{ "Quick bar hint", lang_ko_f414, 1 },
+	{ "Quick load state", lang_ko_f415, 1 },
+	{ "Quick save state", lang_ko_f416, 1 },
+	{ "Quit", lang_ko_f417, 1 },
+	{ "R button", lang_ko_f418, 1 },
+	{ "RETROACHIEVEMENTS \302\267 CASUAL", lang_ko_f419, 1 },
+	{ "Raise it if the sound crackles.", lang_ko_f420, 1 },
+	{ "Red", lang_ko_f421, 1 },
+	{ "Red, green and blue stripes, gentle: for dim screens", lang_ko_f422, 1 },
+	{ "Red, green and blue stripes, like a GBA's screen", lang_ko_f423, 1 },
+	{ "Red, green and blue stripes, strong: for bright screens", lang_ko_f424, 1 },
+	{ "Reset", lang_ko_f425, 1 },
+	{ "Reset Bezels", lang_ko_f426, 1 },
+	{ "Reset settings to defaults", lang_ko_f427, 1 },
+	{ "Restart", lang_ko_f428, 1 },
+	{ "Restart Game", lang_ko_f429, 1 },
+	{ "Restart from the top row to play with it (or it's used from the next start)", lang_ko_f430, 1 },
+	{ "Restart from the top row to play with this order", lang_ko_f431, 1 },
+	{ "Restart required", lang_ko_f432, 1 },
+	{ "Resume", lang_ko_f433, 1 },
+	{ "Resumed. Tap or HOME for the menu", lang_ko_f434, 1 },
+	{ "RetroAchievements couldn't start", lang_ko_f435, 1 },
+	{ "RetroAchievements doesn't allow patched games", lang_ko_f436, 1 },
+	{ "RetroAchievements is off", lang_ko_f437, 1 },
+	{ "RetroAchievements: Off", lang_ko_f438, 1 },
+	{ "RetroAchievements: Sign In", lang_ko_f439, 1 },
+	{ "RetroAchievements: Sign Out", lang_ko_f440, 1 },
+	{ "RetroAchievements: Signing In...", lang_ko_f441, 1 },
+	{ "RetroArch's State Folder", lang_ko_f442, 1 },
+	{ "RetroArch's settings weren't found here: choose the folder where it keeps its save states.", lang_ko_f443, 1 },
+	{ "RetroArch's settings weren't found, so slots 0-9 and the automatic state are GBA DS's own again.", lang_ko_f444, 1 },
+	{ "RetroArch's state folder is found from its settings again: %s.", lang_ko_f445, 1 },
+	{ "Rewind", lang_ko_f446, 1 },
+	{ "Rewind length", lang_ko_f447, 1 },
+	{ "Rewind, fast forward", lang_ko_f448, 1 },
+	{ "Rewind: Off", lang_ko_f449, 1 },
+	{ "Rewind: On", lang_ko_f450, 1 },
+	{ "Rewinding...", lang_ko_f451, 1 },
+	{ "Right", lang_ko_f452, 1 },
+	{ "Romhack: %s%s", lang_ko_f453, 1 },
+	{ "Romhack: %s%s, untested", lang_ko_f454, 1 },
+	{ "Rotation: Auto", lang_ko_f455, 1 },
+	{ "Rotation: Landscape", lang_ko_f456, 1 },
+	{ "Rotation: Portrait", lang_ko_f457, 1 },
+	{ "Run at the display's rate: no small regular stutter.", lang_ko_f458, 1 },
+	{ "SNES", lang_ko_f459, 1 },
+	{ "Same as all games again", lang_ko_f460, 1 },
+	{ "Save State", lang_ko_f461, 1 },
+	{ "Save State %d", lang_ko_f462, 1 },
+	{ "Save States: GBA DS's Own", lang_ko_f463, 1 },
+	{ "Save States: Shared with RetroArch", lang_ko_f464, 1 },
+	{ "Save failed", lang_ko_f465, 1 },
+	{ "Save failed.", lang_ko_f466, 1 },
+	{ "Save files: .sav", lang_ko_f467, 1 },
+	{ "Save files: .srm (RetroArch's)", lang_ko_f468, 1 },
+	{ "Save on Quit: Off", lang_ko_f469, 1 },
+	{ "Save on Quit: On", lang_ko_f470, 1 },
+	{ "Save on quit", lang_ko_f471, 1 },
+	{ "Saved by another emulator: can't load it", lang_ko_f472, 1 },
+	{ "Saved for all games", lang_ko_f473, 1 },
+	{ "Saved for this game", lang_ko_f474, 1 },
+	{ "Saved for when a patch is on", lang_ko_f475, 1 },
+	{ "Saves will be kept next to the games.", lang_ko_f476, 1 },
+	{ "Saves will be kept there.", lang_ko_f477, 1 },
+	{ "Scale, shader, theme, color", lang_ko_f478, 1 },
+	{ "Scale: Full Width", lang_ko_f479, 1 },
+	{ "Scale: Pixel Perfect", lang_ko_f480, 1 },
+	{ "Scale: Stretch", lang_ko_f481, 1 },
+	{ "Scale: Zoom", lang_ko_f482, 1 },
+	{ "Scanlines", lang_ko_f483, 1 },
+	{ "Screen Placement: Centered", lang_ko_f484, 1 },
+	{ "Screen Placement: Closest to Gap", lang_ko_f485, 1 },
+	{ "Screen placement", lang_ko_f486, 1 },
+	{ "Screen shapes", lang_ko_f487, 1 },
+	{ "Screens", lang_ko_f488, 1 },
+	{ "Screenshot failed", lang_ko_f489, 1 },
+	{ "Screenshot saved", lang_ko_f490, 1 },
+	{ "Second screen", lang_ko_f491, 1 },
+	{ "Second screen scale", lang_ko_f492, 1 },
+	{ "Select", lang_ko_f493, 1 },
+	{ "Select or Start still reach the game when tapped on their own, L3 still opens the quick menu", lang_ko_f494, 1 },
+	{ "Sep", lang_ko_f495, 1 },
+	{ "Separate battery save", lang_ko_f496, 1 },
+	{ "Separate save states", lang_ko_f497, 1 },
+	{ "Set for now, but %s couldn't be written.", lang_ko_f498, 1 },
+	{ "Set to Max", lang_ko_f499, 1 },
+	{ "Sets the shortcuts: the hotkey button held with another.", lang_ko_f500, 1 },
+	{ "Sets which of this device's buttons does what.", lang_ko_f501, 1 },
+	{ "Settings", lang_ko_f502, 1 },
+	{ "Settings are back to their defaults.", lang_ko_f503, 1 },
+	{ "Shader", lang_ko_f504, 1 },
+	{ "Shader: LCD Grid", lang_ko_f505, 1 },
+	{ "Shader: Off", lang_ko_f506, 1 },
+	{ "Shader: Scanlines", lang_ko_f507, 1 },
+	{ "Shader: Soft Cells", lang_ko_f508, 1 },
+	{ "Shader: Subpixels", lang_ko_f509, 1 },
+	{ "Shader: Subpixels (Light)", lang_ko_f510, 1 },
+	{ "Shader: Subpixels (Strong)", lang_ko_f511, 1 },
+	{ "Shorter can make the sound crackle on a slow device.", lang_ko_f512, 1 },
+	{ "Show FPS", lang_ko_f513, 1 },
+	{ "Show FPS: Off", lang_ko_f514, 1 },
+	{ "Show FPS: On", lang_ko_f515, 1 },
+	{ "Sign in again in the game list's Settings", lang_ko_f516, 1 },
+	{ "Sign-in failed", lang_ko_f517, 1 },
+	{ "Signed in as %s. Achievements are earned in casual mode.", lang_ko_f518, 1 },
+	{ "Signed out of RetroAchievements.", lang_ko_f519, 1 },
+	{ "Signing in as %s...", lang_ko_f520, 1 },
+	{ "Single screen only", lang_ko_f521, 1 },
+	{ "Single screen only: plays normally", lang_ko_f522, 1 },
+	{ "Skip", lang_ko_f523, 1 },
+	{ "Skip this version", lang_ko_f524, 1 },
+	{ "Skipped in %d s if nothing is pressed", lang_ko_f525, 1 },
+	{ "Slot %d loaded", lang_ko_f526, 1 },
+	{ "Slot %d: %s", lang_ko_f527, 1 },
+	{ "Slot %d: %s %d, %d%s", lang_ko_f528, 1 },
+	{ "Slot %d: %s %d, %d:%02d %s%s", lang_ko_f529, 1 },
+	{ "Slot %d: Empty", lang_ko_f530, 1 },
+	{ "Slots 0-9 and the automatic state are GBA DS's own again. The states saved in RetroArch's folder stay there.", lang_ko_f531, 1 },
+	{ "Slots 0-9 and the automatic state are now RetroArch's. GBA DS's own states stay in its folder, for when this is switched back.", lang_ko_f532, 1 },
+	{ "Slots 0-9 and the automatic state are now shared with RetroArch, in %s.", lang_ko_f533, 1 },
+	{ "Slots 0-9 and the resume point are GBA DS's own. Shared, they're RetroArch's: %s.", lang_ko_f534, 1 },
+	{ "Slots 0-9 and the resume point are GBA DS's own. To share them, choose RetroArch's state folder.", lang_ko_f535, 1 },
+	{ "Slots 0-9 and the resume point are RetroArch's (its GBA core set to mGBA): %s.", lang_ko_f536, 1 },
+	{ "Slow (10 a second)", lang_ko_f537, 1 },
+	{ "Smooth scaling", lang_ko_f538, 1 },
+	{ "Smoother, one frame more input delay.", lang_ko_f539, 1 },
+	{ "Soft Cells", lang_ko_f540, 1 },
+	{ "Some files couldn't be moved, they're still in %s", lang_ko_f541, 1 },
+	{ "Sound delay", lang_ko_f542, 1 },
+	{ "Space", lang_ko_f543, 1 },
+	{ "Speed", lang_ko_f544, 1 },
+	{ "Speed and sound", lang_ko_f545, 1 },
+	{ "Start", lang_ko_f546, 1 },
+	{ "Starting a game picks up where you closed it.", lang_ko_f547, 1 },
+	{ "State loaded.", lang_ko_f548, 1 },
+	{ "State saved to slot %d", lang_ko_f549, 1 },
+	{ "State saved.", lang_ko_f550, 1 },
+	{ "Stick, buttons, hotkeys", lang_ko_f551, 1 },
+	{ "Stretch", lang_ko_f552, 1 },
+	{ "Submit a Bug Report", lang_ko_f553, 1 },
+	{ "Subpixels", lang_ko_f554, 1 },
+	{ "Subpixels (Light)", lang_ko_f555, 1 },
+	{ "Subpixels (Strong)", lang_ko_f556, 1 },
+	{ "Supported", lang_ko_f557, 1 },
+	{ "Supported games only", lang_ko_f558, 1 },
+	{ "Sure?", lang_ko_f559, 1 },
+	{ "Swap Screens", lang_ko_f560, 1 },
+	{ "Swap screens", lang_ko_f561, 1 },
+	{ "Swapped", lang_ko_f562, 1 },
+	{ "Swipe up for quick menu", lang_ko_f563, 1 },
+	{ "Switched off in gba-ds.cfg (retroachievements = 0).", lang_ko_f564, 1 },
+	{ "System", lang_ko_f565, 1 },
+	{ "Tags in a ROM's file name, like (USA) or (En,Fr,De).", lang_ko_f566, 1 },
+	{ "Take Screenshot", lang_ko_f567, 1 },
+	{ "Takes effect after you close and restart GBA DS", lang_ko_f568, 1 },
+	{ "Tap again to close GBA DS.", lang_ko_f569, 1 },
+	{ "Tap the screen or press HOME for the menu", lang_ko_f570, 1 },
+	{ "Tap the touchscreen to skip a button this device doesn't have", lang_ko_f571, 1 },
+	{ "Tap to set none", lang_ko_f572, 1 },
+	{ "Tap to skip a button this device doesn't have", lang_ko_f573, 1 },
+	{ "Teal", lang_ko_f574, 1 },
+	{ "Tested romhack: %s", lang_ko_f575, 1 },
+	{ "That one comes as a keyboard key here: it can't be mapped. Tap to skip.", lang_ko_f576, 1 },
+	{ "That one is already %s. Press another, or tap to skip.", lang_ko_f577, 1 },
+	{ "That's inside GBA DS's own folder: choose one outside it.", lang_ko_f578, 1 },
+	{ "That's the hotkey button: press another", lang_ko_f579, 1 },
+	{ "The GBA DS logo in the generated bezel.", lang_ko_f580, 1 },
+	{ "The game's pixels as they are", lang_ko_f581, 1 },
+	{ "The hotkey button can be %s, Select, Start or L3", lang_ko_f582, 1 },
+	{ "The map and the logo", lang_ko_f583, 1 },
+	{ "The menus' buttons: dark grey, or light grey like the web player's.", lang_ko_f584, 1 },
+	{ "The menus' color for what's selected, with a dark and a light version of each.", lang_ko_f585, 1 },
+	{ "The patches aren't as the game started: restart it to play with them (or they're used from the next start)", lang_ko_f586, 1 },
+	{ "The processor, memory and graphics run at full speed while GBA DS is open: the smoothest play, but the battery runs down faster and the device gets warmer.", lang_ko_f587, 1 },
+	{ "The system sets the speed, as for its other emulators. If games stutter or the sound breaks up, try Set to Max.", lang_ko_f588, 1 },
+	{ "This folder can't be opened", lang_ko_f589, 1 },
+	{ "This game", lang_ko_f590, 1 },
+	{ "This game has its own value. X, or going on past the last choice: same as all games", lang_ko_f591, 1 },
+	{ "This game has no achievements yet", lang_ko_f592, 1 },
+	{ "This is GBA DS v%s.", lang_ko_f593, 1 },
+	{ "This is v%s. Look for a new version, and download and install it.", lang_ko_f594, 1 },
+	{ "This state can't be read", lang_ko_f595, 1 },
+	{ "This state was saved %s: it may not work", lang_ko_f596, 1 },
+	{ "Together: %s", lang_ko_f597, 1 },
+	{ "Toggle selected shader", lang_ko_f598, 1 },
+	{ "Top screen", lang_ko_f599, 1 },
+	{ "Top screen brightness", lang_ko_f600, 1 },
+	{ "Touch or use the D-Pad", lang_ko_f601, 1 },
+	{ "Turbo A", lang_ko_f602, 1 },
+	{ "Turbo B", lang_ko_f603, 1 },
+	{ "Turbo speed", lang_ko_f604, 1 },
+	{ "Turns this ROM into another official release: %s", lang_ko_f605, 1 },
+	{ "Unexpected es_systems.cfg (see the log).", lang_ko_f606, 1 },
+	{ "Unknown version of this game", lang_ko_f607, 1 },
+	{ "Unlocked", lang_ko_f608, 1 },
+	{ "Unlocks sent", lang_ko_f609, 1 },
+	{ "Unlocks will be sent when the connection is back", lang_ko_f610, 1 },
+	{ "Unpinned: the bar hides after 5 seconds.", lang_ko_f611, 1 },
+	{ "Untested: the second screen may not work with it", lang_ko_f612, 1 },
+	{ "Up", lang_ko_f613, 1 },
+	{ "Up to %d patches can be on at once", lang_ko_f614, 1 },
+	{ "Up to %s", lang_ko_f615, 1 },
+	{ "Update now", lang_ko_f616, 1 },
+	{ "Updates", lang_ko_f617, 1 },
+	{ "Updates, integrations", lang_ko_f618, 1 },
+	{ "Use This Folder", lang_ko_f619, 1 },
+	{ "Used from the next time the game starts", lang_ko_f620, 1 },
+	{ "Volume %d%%", lang_ko_f621, 1 },
+	{ "What D-pad down gives the game.", lang_ko_f622, 1 },
+	{ "What D-pad left gives the game.", lang_ko_f623, 1 },
+	{ "What D-pad right gives the game.", lang_ko_f624, 1 },
+	{ "What D-pad up gives the game.", lang_ko_f625, 1 },
+	{ "What the L shoulder button gives the game.", lang_ko_f626, 1 },
+	{ "What the R shoulder button gives the game.", lang_ko_f627, 1 },
+	{ "What the bottom face button gives the game.", lang_ko_f628, 1 },
+	{ "What the left face button gives the game.", lang_ko_f629, 1 },
+	{ "What the right face button gives the game.", lang_ko_f630, 1 },
+	{ "What the top face button gives the game.", lang_ko_f631, 1 },
+	{ "Where games are read from, and the folder their saves are kept in.", lang_ko_f632, 1 },
+	{ "Where games are read from. Their saves are kept next to them.", lang_ko_f633, 1 },
+	{ "Which Screen: Both", lang_ko_f634, 1 },
+	{ "Which Screen: Bottom Only", lang_ko_f635, 1 },
+	{ "Which Screen: Top Only", lang_ko_f636, 1 },
+	{ "Which games, names, saving", lang_ko_f637, 1 },
+	{ "Which screen the game is on.", lang_ko_f638, 1 },
+	{ "Which screens have them.", lang_ko_f639, 1 },
+	{ "With Four buttons picked under Controls in the quick bar, the four-button layout replaces these.", lang_ko_f640, 1 },
+	{ "With SNES picked under Controls in the quick bar, the SNES layout replaces these in levels.", lang_ko_f641, 1 },
+	{ "With a patch on, the game keeps its own battery save (\"<game> + <patch>\"): off, it uses the original's", lang_ko_f642, 1 },
+	{ "With a patch on, the game keeps its own save states: off, it uses the original's (a state can come out garbled in the other)", lang_ko_f643, 1 },
+	{ "With automatic checks on, GBA DS looks for a new version once a day when the game list opens, and asks before downloading anything. Updates come from the releases on github.com/kyannon/gba-ds.", lang_ko_f644, 1 },
+	{ "With tags, like (USA)", lang_ko_f645, 1 },
+	{ "X (top) button", lang_ko_f646, 1 },
+	{ "Y (left) button", lang_ko_f647, 1 },
+	{ "Your own PNGs in gba-ds/overlays/. A screen without one gets the generated bezel in its default colors.", lang_ko_f648, 1 },
+	{ "Your own and scraped logos on the second screen.", lang_ko_f649, 1 },
+	{ "Your screens are the same shape: nothing to match", lang_ko_f650, 1 },
+	{ "Zoom", lang_ko_f651, 1 },
+	{ "color", lang_ko_f652, 1 },
+	{ "hex", lang_ko_f653, 1 },
+	{ "hue", lang_ko_f654, 1 },
+	{ "machine translated", lang_ko_f655, 1 },
+	{ "no save state yet!", lang_ko_f656, 1 },
+	{ "off", lang_ko_f657, 1 },
+	{ "on", lang_ko_f658, 1 },
+	{ "point", lang_ko_f659, 1 },
+	{ "points", lang_ko_f660, 1 },
+	{ "presets", lang_ko_f661, 1 },
+	{ "press the left stick in", lang_ko_f662, 1 },
+	{ "push the left stick left", lang_ko_f663, 1 },
+	{ "push the left stick up", lang_ko_f664, 1 },
+	{ "the bottom face button", lang_ko_f665, 1 },
+	{ "the button that opens GBA DS's menu (Home, Menu or Function)", lang_ko_f666, 1 },
+	{ "the game", lang_ko_f667, 1 },
+	{ "the left face button", lang_ko_f668, 1 },
+	{ "the left shoulder button", lang_ko_f669, 1 },
+	{ "the patch beside the ROM", lang_ko_f670, 1 },
+	{ "the right face button", lang_ko_f671, 1 },
+	{ "the right shoulder button", lang_ko_f672, 1 },
+	{ "the second left shoulder button", lang_ko_f673, 1 },
+	{ "the second right shoulder button", lang_ko_f674, 1 },
+	{ "the top face button", lang_ko_f675, 1 },
+	{ "unsaved progress is lost", lang_ko_f676, 1 },
+	{ "with", lang_ko_f677, 1 },
+	{ "with %s", lang_ko_f678, 1 },
+	{ "with another dump of the game (%s)", lang_ko_f679, 1 },
+	{ "with another version of the game (other patches, or another ROM)", lang_ko_f680, 1 },
+	{ "with the unchanged game (%s)", lang_ko_f681, 1 },
+	{ "without", lang_ko_f682, 1 },
+	{ "without the patches on", lang_ko_f683, 1 },
+	{ "your place is saved", lang_ko_f684, 1 },
+	{ "\342\200\271", lang_ko_f685, 1 },
+	{ "\342\200\272", lang_ko_f686, 1 },
+};
+
 static const char* const lang_pseudo_f0[] = { " (p\303\240t\303\247h) \302\267\302\267" };
 static const char* const lang_pseudo_f1[] = { " Ch\303\251\303\247k\303\256\303\261g f\303\265r \303\240 \303\261\303\251w v\303\251r\305\241\303\256\303\265\303\261... \302\267\302\267\302\267\302\267\302\267\302\267\302\267\302\267" };
 static const char* const lang_pseudo_f2[] = { " \303\216t'\305\241 th\303\251 \303\261\303\251w\303\251\305\241t v\303\251r\305\241\303\256\303\265\303\261. \302\267\302\267\302\267\302\267\302\267\302\267\302\267" };
@@ -5507,6 +9638,1383 @@ static const I18nEntry lang_pseudo_entries[] = {
 	{ "your place is saved", lang_pseudo_f684, 1 },
 	{ "\342\200\271", lang_pseudo_f685, 1 },
 	{ "\342\200\272", lang_pseudo_f686, 1 },
+};
+
+static const char* const lang_pt_f0[] = { " (patch)" };
+static const char* const lang_pt_f1[] = { " Procurando uma nova vers\303\243o..." };
+static const char* const lang_pt_f2[] = { " Esta \303\251 a vers\303\243o mais recente." };
+static const char* const lang_pt_f3[] = { " ms" };
+static const char* const lang_pt_f4[] = { " s" };
+static const char* const lang_pt_f5[] = { "\"Deslize para cima para o menu r\303\241pido\" ao iniciar um jogo." };
+static const char* const lang_pt_f6[] = { "%ca%d" };
+static const char* const lang_pt_f7[] = { "%d estado do RetroArch aqui", "%d estados do RetroArch aqui" };
+static const char* const lang_pt_f8[] = { "%d arquivo verificado", "%d arquivos verificados" };
+static const char* const lang_pt_f9[] = { "%d jogo encontrado", "%d jogos encontrados" };
+static const char* const lang_pt_f10[] = { "%d jogo encontrado.", "%d jogos encontrados." };
+static const char* const lang_pt_f11[] = { "%d de %d" };
+static const char* const lang_pt_f12[] = { "%d de %d definidos para %s, guardados em controllers.txt ao lado dos estados do GBA DS. A linha tamb\303\251m est\303\241 em gba-ds.log: envie-a para que seja inclu\303\255da no GBA DS para este dispositivo." };
+static const char* const lang_pt_f13[] = { "%d ativados" };
+static const char* const lang_pt_f14[] = { "%s" };
+static const char* const lang_pt_f15[] = { "%s %s. Escolha outra se o RetroArch guarda seus estados em outro lugar." };
+static const char* const lang_pt_f16[] = { "%s (ao lado da ROM)" };
+static const char* const lang_pt_f17[] = { "%s como bot\303\243o de atalho, com Start, R1, L1, X, Y e B" };
+static const char* const lang_pt_f18[] = { "%s ficou sem bot\303\243o" };
+static const char* const lang_pt_f19[] = { "%s agora \303\251 Start + Select" };
+static const char* const lang_pt_f20[] = { "%s abre o menu: pressione outro bot\303\243o" };
+static const char* const lang_pt_f21[] = { "%s v%s. Reiniciando..." };
+static const char* const lang_pt_f22[] = { "%s era de %s: agora n\303\243o tem bot\303\243o" };
+static const char* const lang_pt_f23[] = { "%s, %s" };
+static const char* const lang_pt_f24[] = { "%s, Select, Start ou L3. Toque para deixar como est\303\241" };
+static const char* const lang_pt_f25[] = { "%u de %u conquistas desbloqueadas" };
+static const char* const lang_pt_f26[] = { ", RetroArch" };
+static const char* const lang_pt_f27[] = { "1 minuto" };
+static const char* const lang_pt_f28[] = { "10 s" };
+static const char* const lang_pt_f29[] = { "128 ms" };
+static const char* const lang_pt_f30[] = { "15 s" };
+static const char* const lang_pt_f31[] = { "192 ms" };
+static const char* const lang_pt_f32[] = { "2 minutos" };
+static const char* const lang_pt_f33[] = { "2x" };
+static const char* const lang_pt_f34[] = { "30 s" };
+static const char* const lang_pt_f35[] = { "32 ms" };
+static const char* const lang_pt_f36[] = { "3x" };
+static const char* const lang_pt_f37[] = { "4x" };
+static const char* const lang_pt_f38[] = { "5 minutos" };
+static const char* const lang_pt_f39[] = { "5x" };
+static const char* const lang_pt_f40[] = { "64 ms" };
+static const char* const lang_pt_f41[] = { "96 ms" };
+static const char* const lang_pt_f42[] = { "Bot\303\243o A (direita)" };
+static const char* const lang_pt_f43[] = { "Bot\303\265es A e B" };
+static const char* const lang_pt_f44[] = { "Uma linha escura sob cada fileira de pixels" };
+static const char* const lang_pt_f45[] = { "Um save do jogo que j\303\241 esteja ao lado, ou do outro tipo, \303\251 copiado na primeira vez que voc\303\252 joga. .srm \303\251 o tipo usado pelo RetroArch: escolha tamb\303\251m a pasta de saves dele para compartilhar o de cada jogo." };
+static const char* const lang_pt_f46[] = { "Uma nova vers\303\243o do GBA DS" };
+static const char* const lang_pt_f47[] = { "Um padr\303\243o sobre cada pixel, nas duas telas." };
+static const char* const lang_pt_f48[] = { "A: o destacado acima. Y: todos os jogos. X: desfazer o valor deste jogo" };
+static const char* const lang_pt_f49[] = { "CONQUISTA DESBLOQUEADA" };
+static const char* const lang_pt_f50[] = { "AM" };
+static const char* const lang_pt_f51[] = { "Conquistas" };
+static const char* const lang_pt_f52[] = { "Adicione uma nota (opcional): o que aconteceu e o que voc\303\252 esperava que acontecesse." };
+static const char* const lang_pt_f53[] = { "Adiciona o GBA DS aos emuladores de jogos de Game Boy Advance no EmulationStation. Escolha-o para um jogo (Op\303\247\303\265es avan\303\247adas do jogo > Emulador) ou para todos (configura\303\247\303\265es avan\303\247adas do sistema). Os outros emuladores continuam funcionando como antes." };
+static const char* const lang_pt_f54[] = { "Todos" };
+static const char* const lang_pt_f55[] = { "Todas as %u conquistas desbloqueadas" };
+static const char* const lang_pt_f56[] = { "Todos os jogos" };
+static const char* const lang_pt_f57[] = { "J\303\241 \303\251 o valor de todos os jogos" };
+static const char* const lang_pt_f58[] = { "Sempre" };
+static const char* const lang_pt_f59[] = { "Sempre ativado aqui" };
+static const char* const lang_pt_f60[] = { "Sempre ativado neste jogo: ele precisa disso para rodar a toda velocidade" };
+static const char* const lang_pt_f61[] = { "Sempre ativado, aplicado primeiro (do jeito do RetroArch: um patch com o nome da ROM). %s" };
+static const char* const lang_pt_f62[] = { "Um xdelta feito com compress\303\243o, que o GBA DS n\303\243o consegue ler: aplique-o antes \303\240 ROM, ou refa\303\247a-o sem compress\303\243o (xdelta3 -S none)" };
+static const char* const lang_pt_f63[] = { "N\303\243o foi poss\303\255vel acessar o instalador do Android" };
+static const char* const lang_pt_f64[] = { "De outro emulador" };
+static const char* const lang_pt_f65[] = { "abr" };
+static const char* const lang_pt_f66[] = { "Tem certeza?" };
+static const char* const lang_pt_f67[] = { "Tem certeza? A: colocar em \"%s\" agora e continuar daqui. Y: ainda n\303\243o (mais mudan\303\247as primeiro). B: cancelar" };
+static const char* const lang_pt_f68[] = { "Tem certeza? A: us\303\241-los agora e continuar daqui. B: cancelar" };
+static const char* const lang_pt_f69[] = { "Tem certeza? Apag\303\241-los" };
+static const char* const lang_pt_f70[] = { "Tem certeza? Redefinir as configura\303\247\303\265es" };
+static const char* const lang_pt_f71[] = { "Tem certeza? Salve seu jogo antes. A: reiniciar agora, %s. Y: ainda n\303\243o (mais mudan\303\247as primeiro). B: cancelar" };
+static const char* const lang_pt_f72[] = { "Tem certeza? Salve seu jogo antes. A: reiniciar agora. B: cancelar" };
+static const char* const lang_pt_f73[] = { "Tem certeza? Toque novamente para apagar as configura\303\247\303\265es pr\303\263prias de cada jogo. Qualquer outra a\303\247\303\243o cancela." };
+static const char* const lang_pt_f74[] = { "Tem certeza? Toque novamente para voltar todas as configura\303\247\303\265es ao padr\303\243o. Qualquer outra a\303\247\303\243o cancela." };
+static const char* const lang_pt_f75[] = { "O mais r\303\241pido poss\303\255vel" };
+static const char* const lang_pt_f76[] = { "Como quando o jogo iniciou" };
+static const char* const lang_pt_f77[] = { "ago" };
+static const char* const lang_pt_f78[] = { "Auto" };
+static const char* const lang_pt_f79[] = { "Carregamento autom\303\241tico: N\303\243o" };
+static const char* const lang_pt_f80[] = { "Carregamento autom\303\241tico: Sim" };
+static const char* const lang_pt_f81[] = { "Carregamento autom\303\241tico" };
+static const char* const lang_pt_f82[] = { "Autom\303\241tico" };
+static const char* const lang_pt_f83[] = { "Verifica\303\247\303\243o autom\303\241tica: N\303\243o" };
+static const char* const lang_pt_f84[] = { "Verifica\303\247\303\243o autom\303\241tica: Sim" };
+static const char* const lang_pt_f85[] = { "Autom\303\241tico segue o idioma do sistema. O texto ainda n\303\243o traduzido continua em ingl\303\252s." };
+static const char* const lang_pt_f86[] = { "Bot\303\243o B (embaixo)" };
+static const char* const lang_pt_f87[] = { "Voltar" };
+static const char* const lang_pt_f88[] = { "De volta online" };
+static const char* const lang_pt_f89[] = { "Voltar a %s e aos bot\303\265es com que ele come\303\247ou" };
+static const char* const lang_pt_f90[] = { "A lista de sistemas do BananaOS n\303\243o tem uma entrada de Game Boy Advance." };
+static const char* const lang_pt_f91[] = { "Logo da moldura" };
+static const char* const lang_pt_f92[] = { "Azul" };
+static const char* const lang_pt_f93[] = { "Desfocado em vez de n\303\255tido: normalmente deixe desativado." };
+static const char* const lang_pt_f94[] = { "Ambas as telas" };
+static const char* const lang_pt_f95[] = { "Tela de baixo" };
+static const char* const lang_pt_f96[] = { "Brilho da tela de baixo" };
+static const char* const lang_pt_f97[] = { "Relat\303\263rio de bug" };
+static const char* const lang_pt_f98[] = { "Relat\303\263rio de bug salvo em bug-reports" };
+static const char* const lang_pt_f99[] = { "Relat\303\263rio de bug salvo em bug-reports." };
+static const char* const lang_pt_f100[] = { "Bot\303\265es" };
+static const char* const lang_pt_f101[] = { "Bot\303\265es mapeados" };
+static const char* const lang_pt_f102[] = { "N\303\243o pode ser lido" };
+static const char* const lang_pt_f103[] = { "N\303\243o pode ser lido: n\303\243o \303\251 um patch ou est\303\241 danificado" };
+static const char* const lang_pt_f104[] = { "N\303\243o foi poss\303\255vel encontrar a pasta do GBA DS." };
+static const char* const lang_pt_f105[] = { "N\303\243o foi poss\303\255vel acessar a pasta do GBA DS, usando %s por enquanto: %s" };
+static const char* const lang_pt_f106[] = { "N\303\243o \303\251 poss\303\255vel retroceder mais" };
+static const char* const lang_pt_f107[] = { "N\303\243o \303\251 poss\303\255vel salvar arquivos aqui: sem estados, logos ou capturas de tela" };
+static const char* const lang_pt_f108[] = { "N\303\243o \303\251 poss\303\255vel salvar na pasta escolhida, arquivos n\303\243o movidos: %s" };
+static const char* const lang_pt_f109[] = { "Cancelar" };
+static const char* const lang_pt_f110[] = { "Centralizado" };
+static const char* const lang_pt_f111[] = { "Altera alguns dos mesmos bytes de %s e os sobrescreve: podem n\303\243o funcionar juntos" };
+static const char* const lang_pt_f112[] = { "Cheats" };
+static const char* const lang_pt_f113[] = { "Verificar agora" };
+static const char* const lang_pt_f114[] = { "Verifique ra_username e ra_password em gba-ds.cfg" };
+static const char* const lang_pt_f115[] = { "Verifique a conta nas configura\303\247\303\265es do RetroAchievements do EmulationStation" };
+static const char* const lang_pt_f116[] = { "Escolher a pasta do GBA DS" };
+static const char* const lang_pt_f117[] = { "Escolher a pasta das ROMs" };
+static const char* const lang_pt_f118[] = { "Escolha uma pasta no seletor de arquivos do Android..." };
+static const char* const lang_pt_f119[] = { "Escolha de novo para fechar %s: %s" };
+static const char* const lang_pt_f120[] = { "Escolha de novo para reiniciar: o progresso n\303\243o salvo ser\303\241 perdido" };
+static const char* const lang_pt_f121[] = { "Escolher a pasta de saves" };
+static const char* const lang_pt_f122[] = { "A pasta escolhida est\303\241 dentro da pr\303\263pria pasta do GBA DS, arquivos n\303\243o movidos: %s" };
+static const char* const lang_pt_f123[] = { "Pasta escolhida n\303\243o encontrada, arquivos n\303\243o movidos: %s" };
+static const char* const lang_pt_f124[] = { "Escolhida aqui:" };
+static const char* const lang_pt_f125[] = { "Fechar o GBA DS" };
+static const char* const lang_pt_f126[] = { "Fechar jogo" };
+static const char* const lang_pt_f127[] = { "Mais perto do v\303\243o" };
+static const char* const lang_pt_f128[] = { "Fechar um jogo salva onde voc\303\252 est\303\241." };
+static const char* const lang_pt_f129[] = { "Cor" };
+static const char* const lang_pt_f130[] = { "Corre\303\247\303\243o de cor: N\303\243o" };
+static const char* const lang_pt_f131[] = { "Corre\303\247\303\243o de cor: Sim" };
+static const char* const lang_pt_f132[] = { "Corre\303\247\303\243o de cor" };
+static const char* const lang_pt_f133[] = { "Cores como a tela de um Game Boy Advance as mostrava." };
+static const char* const lang_pt_f134[] = { "Confirme a atualiza\303\247\303\243o para a v%s no instalador do Android. O Android fecha o GBA DS durante a instala\303\247\303\243o; abra-o de novo depois. Se o Android pedir permiss\303\243o antes, permita que o GBA DS instale aplicativos." };
+static const char* const lang_pt_f135[] = { "Conecte um controle e tente de novo." };
+static const char* const lang_pt_f136[] = { "Controles" };
+static const char* const lang_pt_f137[] = { "N\303\243o foi poss\303\255vel alterar %s." };
+static const char* const lang_pt_f138[] = { "N\303\243o foi poss\303\255vel alterar os arquivos em %s/custom_systems: permita ao GBA DS o acesso a todos os arquivos nas configura\303\247\303\265es do Android." };
+static const char* const lang_pt_f139[] = { "N\303\243o foi poss\303\255vel conectar" };
+static const char* const lang_pt_f140[] = { "N\303\243o foi poss\303\255vel encontrar a pasta do GBA DS." };
+static const char* const lang_pt_f141[] = { "N\303\243o foi poss\303\255vel manter essa escolha." };
+static const char* const lang_pt_f142[] = { "N\303\243o foi poss\303\255vel carregar as conquistas" };
+static const char* const lang_pt_f143[] = { "N\303\243o foi poss\303\255vel carregar o jogo" };
+static const char* const lang_pt_f144[] = { "N\303\243o foi poss\303\255vel mover os arquivos do GBA DS, eles continuam em %s" };
+static const char* const lang_pt_f145[] = { "N\303\243o foi poss\303\255vel abrir o seletor de arquivos." };
+static const char* const lang_pt_f146[] = { "N\303\243o foi poss\303\255vel abrir a caixa de login." };
+static const char* const lang_pt_f147[] = { "N\303\243o foi poss\303\255vel remover o arquivo de configura\303\247\303\265es." };
+static const char* const lang_pt_f148[] = { "N\303\243o foi poss\303\255vel salvar" };
+static const char* const lang_pt_f149[] = { "N\303\243o foi poss\303\255vel salvar o relat\303\263rio de bug." };
+static const char* const lang_pt_f150[] = { "N\303\243o foi poss\303\255vel entrar como %s%s%s. Entre para tentar de novo." };
+static const char* const lang_pt_f151[] = { "N\303\243o foi poss\303\255vel gravar %s." };
+static const char* const lang_pt_f152[] = { "N\303\243o foi poss\303\255vel gravar em %s." };
+static const char* const lang_pt_f153[] = { "Personalizado" };
+static const char* const lang_pt_f154[] = { "Logos personalizados: n\303\243o usar" };
+static const char* const lang_pt_f155[] = { "Logos personalizados: detalhe completo" };
+static const char* const lang_pt_f156[] = { "Logos personalizados: pixelados" };
+static const char* const lang_pt_f157[] = { "Logos personalizados" };
+static const char* const lang_pt_f158[] = { "Direcional" };
+static const char* const lang_pt_f159[] = { "Direcional para baixo" };
+static const char* const lang_pt_f160[] = { "Direcional para a esquerda" };
+static const char* const lang_pt_f161[] = { "Direcional para a direita" };
+static const char* const lang_pt_f162[] = { "Direcional para cima" };
+static const char* const lang_pt_f163[] = { "Escuro" };
+static const char* const lang_pt_f164[] = { "Escurece a tela de baixo, s\303\263 neste aplicativo: o brilho do pr\303\263prio dispositivo n\303\243o \303\251 alterado (e este valor n\303\243o pode ultrapass\303\241-lo)." };
+static const char* const lang_pt_f165[] = { "Escurece a tela de cima, s\303\263 neste aplicativo: o brilho do pr\303\263prio dispositivo n\303\243o \303\251 alterado (e este valor n\303\243o pode ultrapass\303\241-lo)." };
+static const char* const lang_pt_f166[] = { "dez" };
+static const char* const lang_pt_f167[] = { "Del" };
+static const char* const lang_pt_f168[] = { "Apagar configura\303\247\303\265es por jogo" };
+static const char* const lang_pt_f169[] = { "As configura\303\247\303\265es de %d jogos foram apagadas." };
+static const char* const lang_pt_f170[] = { "As configura\303\247\303\265es de 1 jogo foram apagadas." };
+static const char* const lang_pt_f171[] = { "Tela" };
+static const char* const lang_pt_f172[] = { "Pronto" };
+static const char* const lang_pt_f173[] = { "Pronto (sem nota)" };
+static const char* const lang_pt_f174[] = { "Baixo" };
+static const char* const lang_pt_f175[] = { "Baixando" };
+static const char* const lang_pt_f176[] = { "A pasta do ES-DE n\303\243o foi encontrada." };
+static const char* const lang_pt_f177[] = { "Cada pixel um pouco mais escuro perto das bordas" };
+static const char* const lang_pt_f178[] = { "Ganhe conquistas no modo casual com sua conta do retroachievements.org. O GBA DS guarda um token de login, n\303\243o a sua senha." };
+static const char* const lang_pt_f179[] = { "English" };
+static const char* const lang_pt_f180[] = { "Digite seu nome de usu\303\241rio e sua senha." };
+static const char* const lang_pt_f181[] = { "Digite sua conta na caixa de login..." };
+static const char* const lang_pt_f182[] = { "A cada 0,5 s" };
+static const char* const lang_pt_f183[] = { "A cada 1,5 s" };
+static const char* const lang_pt_f184[] = { "A cada 3 s" };
+static const char* const lang_pt_f185[] = { "Todos os bot\303\265es foram ignorados, ent\303\243o nada mudou." };
+static const char* const lang_pt_f186[] = { "A cada segundo" };
+static const char* const lang_pt_f187[] = { "Falham" };
+static const char* const lang_pt_f188[] = { "R\303\241pido (20 por segundo)" };
+static const char* const lang_pt_f189[] = { "Avan\303\247o r\303\241pido: %dx" };
+static const char* const lang_pt_f190[] = { "Avan\303\247o r\303\241pido: M\303\241x." };
+static const char* const lang_pt_f191[] = { "Avan\303\247o r\303\241pido: N\303\243o" };
+static const char* const lang_pt_f192[] = { "Avan\303\247o r\303\241pido" };
+static const char* const lang_pt_f193[] = { "Avan\303\247ando r\303\241pido..." };
+static const char* const lang_pt_f194[] = { "fev" };
+static const char* const lang_pt_f195[] = { "S\303\263 na primeira vez. B: voltar" };
+static const char* const lang_pt_f196[] = { "Pastas" };
+static const char* const lang_pt_f197[] = { "Pastas, contas, atualiza\303\247\303\265es" };
+static const char* const lang_pt_f198[] = { "Segue a forma como voc\303\252 segura o celular e o bloqueio de rota\303\247\303\243o do Android." };
+static const char* const lang_pt_f199[] = { "Frame buffer: sempre ativado aqui" };
+static const char* const lang_pt_f200[] = { "Frame buffer: N\303\243o" };
+static const char* const lang_pt_f201[] = { "Frame buffer: Sim" };
+static const char* const lang_pt_f202[] = { "Frame buffer" };
+static const char* const lang_pt_f203[] = { "Os quadros por segundo sobre o jogo, o tempo todo." };
+static const char* const lang_pt_f204[] = { "Das configura\303\247\303\265es do RetroArch:" };
+static const char* const lang_pt_f205[] = { "Largura total" };
+static const char* const lang_pt_f206[] = { "Detalhe completo" };
+static const char* const lang_pt_f207[] = { "GBA" };
+static const char* const lang_pt_f208[] = { "GBA A" };
+static const char* const lang_pt_f209[] = { "GBA A no bot\303\243o da direita, ou no de baixo." };
+static const char* const lang_pt_f210[] = { "GBA B" };
+static const char* const lang_pt_f211[] = { "Logo do GBA DS: Ocultar" };
+static const char* const lang_pt_f212[] = { "Logo do GBA DS: Mostrar" };
+static const char* const lang_pt_f213[] = { "Configura\303\247\303\265es do GBA DS" };
+static const char* const lang_pt_f214[] = { "O GBA DS n\303\243o consegue salvar arquivos ali: permita a ele o acesso a todos os arquivos nas configura\303\247\303\265es do Android, ou escolha outra pasta." };
+static const char* const lang_pt_f215[] = { "GBA DS na lista de GBA do BananaOS: N\303\243o" };
+static const char* const lang_pt_f216[] = { "GBA DS na lista de GBA do BananaOS: Sim" };
+static const char* const lang_pt_f217[] = { "GBA DS no ES-DE: N\303\243o" };
+static const char* const lang_pt_f218[] = { "GBA DS no ES-DE: Sim" };
+static const char* const lang_pt_f219[] = { "GBA DS no EmulationStation: N\303\243o" };
+static const char* const lang_pt_f220[] = { "GBA DS no EmulationStation: Sim" };
+static const char* const lang_pt_f221[] = { "O GBA DS agora \303\251 o emulador do ES-DE para jogos de Game Boy Advance. Saia do ES-DE e abra-o de novo para ver." };
+static const char* const lang_pt_f222[] = { "O GBA DS saiu da lista de emuladores do ES-DE. Saia do ES-DE e abra-o de novo para ver." };
+static const char* const lang_pt_f223[] = { "O GBA DS v%s foi lan\303\247ado (esta \303\251 a v%s). Escolha Atualizar agora para baix\303\241-lo (%.1f MB) e instal\303\241-lo: o Android pede confirma\303\247\303\243o. Seus jogos, saves, estados e configura\303\247\303\265es s\303\243o mantidos." };
+static const char* const lang_pt_f224[] = { "O GBA DS v%s foi lan\303\247ado (esta \303\251 a v%s). Escolha Atualizar agora para baix\303\241-lo (%.1f MB) e reiniciar nele; seus jogos, saves, estados e configura\303\247\303\265es s\303\243o mantidos." };
+static const char* const lang_pt_f225[] = { "A moldura do GBA DS, ou seus pr\303\263prios PNGs, em volta da imagem." };
+static const char* const lang_pt_f226[] = { "Os arquivos do GBA DS j\303\241 est\303\243o l\303\241." };
+static const char* const lang_pt_f227[] = { "Os arquivos do GBA DS ir\303\243o para %s na pr\303\263xima vez que ele iniciar: feche o GBA DS e abra-o de novo." };
+static const char* const lang_pt_f228[] = { "Os arquivos pr\303\263prios do GBA DS (estados, configura\303\247\303\265es, cheats, overlays) est\303\243o em %s e v\303\243o para %s na pr\303\263xima inicializa\303\247\303\243o." };
+static const char* const lang_pt_f229[] = { "Os arquivos pr\303\263prios do GBA DS (estados, configura\303\247\303\265es, cheats, overlays) est\303\243o em %s." };
+static const char* const lang_pt_f230[] = { "GBA Baixo" };
+static const char* const lang_pt_f231[] = { "GBA L" };
+static const char* const lang_pt_f232[] = { "GBA Esquerda" };
+static const char* const lang_pt_f233[] = { "GBA R" };
+static const char* const lang_pt_f234[] = { "GBA Direita" };
+static const char* const lang_pt_f235[] = { "GBA Cima" };
+static const char* const lang_pt_f236[] = { "Jogo" };
+static const char* const lang_pt_f237[] = { "Jogo embaixo" };
+static const char* const lang_pt_f238[] = { "Nomes dos jogos" };
+static const char* const lang_pt_f239[] = { "Jogo em cima" };
+static const char* const lang_pt_f240[] = { "Jogo reiniciado" };
+static const char* const lang_pt_f241[] = { "Escala da tela do jogo" };
+static const char* const lang_pt_f242[] = { "Jogos" };
+static const char* const lang_pt_f243[] = { "Os jogos s\303\243o lidos de %s (subpastas tamb\303\251m). Os saves (%s) ficam em %s." };
+static const char* const lang_pt_f244[] = { "Os jogos s\303\243o lidos de %s (subpastas tamb\303\251m). Os saves (%s) ficam ao lado dos jogos." };
+static const char* const lang_pt_f245[] = { "Os jogos escolhidos na lista de Game Boy Advance do pr\303\263prio BananaOS iniciam no GBA DS quando ele tem suporte \303\240 segunda tela para eles. Reinicie o BananaOS depois de mudar isto." };
+static const char* const lang_pt_f246[] = { "Jogos mostrados" };
+static const char* const lang_pt_f247[] = { "Os jogos sem suporte \303\240 segunda tela rodam em uma tela s\303\263." };
+static const char* const lang_pt_f248[] = { "Gerada" };
+static const char* const lang_pt_f249[] = { "Verde" };
+static const char* const lang_pt_f250[] = { "Segurado de lado: as duas telas lado a lado. De qualquer lado." };
+static const char* const lang_pt_f251[] = { "Segurado em p\303\251: as duas telas uma sobre a outra. De qualquer lado." };
+static const char* const lang_pt_f252[] = { "Cor hexadecimal" };
+static const char* const lang_pt_f253[] = { "Segure L2 para voltar no tempo." };
+static const char* const lang_pt_f254[] = { "Segure R2 para jogar mais r\303\241pido." };
+static const char* const lang_pt_f255[] = { "In\303\255cio" };
+static const char* const lang_pt_f256[] = { "Bot\303\243o de atalho" };
+static const char* const lang_pt_f257[] = { "Atalhos" };
+static const char* const lang_pt_f258[] = { "O quanto escuros s\303\243o a grade, as linhas de varredura e as c\303\251lulas suaves." };
+static const char* const lang_pt_f259[] = { "At\303\251 onde d\303\241 para voltar." };
+static const char* const lang_pt_f260[] = { "A velocidade com que Turbo A e Turbo B pressionam." };
+static const char* const lang_pt_f261[] = { "Como a imagem do jogo preenche a tela." };
+static const char* const lang_pt_f262[] = { "Como o mapa ou o logo preenche a tela." };
+static const char* const lang_pt_f263[] = { "Em um jogo, segure o bot\303\243o de atalho e pressione outro" };
+static const char* const lang_pt_f264[] = { "Em patches/%s" };
+static const char* const lang_pt_f265[] = { "Cor da moldura interna" };
+static const char* const lang_pt_f266[] = { "Instalada" };
+static const char* const lang_pt_f267[] = { "Instalando" };
+static const char* const lang_pt_f268[] = { "jan" };
+static const char* const lang_pt_f269[] = { "jul" };
+static const char* const lang_pt_f270[] = { "jun" };
+static const char* const lang_pt_f271[] = { "Manter as propor\303\247\303\265es do dispositivo" };
+static const char* const lang_pt_f272[] = { "Manter os formatos do dispositivo" };
+static const char* const lang_pt_f273[] = { "Manter os saves ao lado dos jogos" };
+static const char* const lang_pt_f274[] = { "Mantido como estava em %d s se nada for pressionado" };
+static const char* const lang_pt_f275[] = { "Mantido para todos os jogos" };
+static const char* const lang_pt_f276[] = { "Patch %s conhecido, testado: %s" };
+static const char* const lang_pt_f277[] = { "Patch %s conhecido, n\303\243o testado: %s. A segunda tela pode n\303\243o funcionar com ele" };
+static const char* const lang_pt_f278[] = { "Patch %s conhecido: %s, feito para %s. Esta ROM \303\251 outra vers\303\243o: ele pode quebrar o jogo" };
+static const char* const lang_pt_f279[] = { "Patch %s conhecido: %s, feito para %s: n\303\243o pode ser ativado para esta ROM" };
+static const char* const lang_pt_f280[] = { "Romhack conhecido: %s, n\303\243o testado" };
+static const char* const lang_pt_f281[] = { "Bot\303\243o L" };
+static const char* const lang_pt_f282[] = { "Ghosting do LCD: N\303\243o" };
+static const char* const lang_pt_f283[] = { "Ghosting do LCD: Sim" };
+static const char* const lang_pt_f284[] = { "Grade do LCD" };
+static const char* const lang_pt_f285[] = { "Ghosting do LCD" };
+static const char* const lang_pt_f286[] = { "Idioma" };
+static const char* const lang_pt_f287[] = { "\303\232ltima verifica\303\247\303\243o: %s." };
+static const char* const lang_pt_f288[] = { "Mais tarde" };
+static const char* const lang_pt_f289[] = { "Esquerda" };
+static const char* const lang_pt_f290[] = { "Deixado de fora onde est\303\241: foi feito para a ROM sem altera\303\247\303\265es, ent\303\243o precisa ser o primeiro (s\303\263 um patch assim pode estar ativado). Suba-o com X" };
+static const char* const lang_pt_f291[] = { "Anal\303\263gico esquerdo como direcional" };
+static const char* const lang_pt_f292[] = { "Anal\303\263gico esquerdo: esquerda" };
+static const char* const lang_pt_f293[] = { "Anal\303\263gico esquerdo: cima" };
+static const char* const lang_pt_f294[] = { "Deixar o sistema decidir" };
+static const char* const lang_pt_f295[] = { "Claro" };
+static const char* const lang_pt_f296[] = { "Modo claro/escuro" };
+static const char* const lang_pt_f297[] = { "Como um GBA" };
+static const char* const lang_pt_f298[] = { "Linhas entre os pixels, como na tela de um GBA" };
+static const char* const lang_pt_f299[] = { "Carregar estado" };
+static const char* const lang_pt_f300[] = { "Carregar estado %d" };
+static const char* const lang_pt_f301[] = { "Falha ao carregar" };
+static const char* const lang_pt_f302[] = { "Falha ao carregar." };
+static const char* const lang_pt_f303[] = { "Carregando jogos..." };
+static const char* const lang_pt_f304[] = { "Carregando as conquistas..." };
+static const char* const lang_pt_f305[] = { "Carregando miniatura..." };
+static const char* const lang_pt_f306[] = { "Feito para outra vers\303\243o do jogo: n\303\243o pode ser ativado para esta ROM" };
+static const char* const lang_pt_f307[] = { "Faz do GBA DS o emulador de jogos de Game Boy Advance no ES-DE. Para um jogo que ele n\303\243o suporta, escolha outro no ES-DE (metadados do jogo > Emulador alternativo)." };
+static const char* const lang_pt_f308[] = { "Mapa" };
+static const char* const lang_pt_f309[] = { "Mapear bot\303\265es" };
+static const char* const lang_pt_f310[] = { "Mapear bot\303\265es" };
+static const char* const lang_pt_f311[] = { "Atualiza\303\247\303\243o do mapa" };
+static const char* const lang_pt_f312[] = { "mar" };
+static const char* const lang_pt_f313[] = { "Igualar taxa de atualiza\303\247\303\243o: N\303\243o" };
+static const char* const lang_pt_f314[] = { "Igualar taxa de atualiza\303\247\303\243o: N\303\243o por ora" };
+static const char* const lang_pt_f315[] = { "Igualar taxa de atualiza\303\247\303\243o: Sim" };
+static const char* const lang_pt_f316[] = { "Igualar propor\303\247\303\265es" };
+static const char* const lang_pt_f317[] = { "Igualar taxa de atualiza\303\247\303\243o" };
+static const char* const lang_pt_f318[] = { "Igualar propor\303\247\303\265es das telas" };
+static const char* const lang_pt_f319[] = { "Igualar tamanhos e propor\303\247\303\265es das telas" };
+static const char* const lang_pt_f320[] = { "Igualar tamanhos e formatos" };
+static const char* const lang_pt_f321[] = { "M\303\241x.: velocidade total, um dispositivo mais quente e bateria mais curta." };
+static const char* const lang_pt_f322[] = { "mai" };
+static const char* const lang_pt_f323[] = { "M\303\251dia (15 por segundo)" };
+static const char* const lang_pt_f324[] = { "ROM modificada: a segunda tela pode n\303\243o funcionar" };
+static const char* const lang_pt_f325[] = { "Mover" };
+static const char* const lang_pt_f326[] = { "Movendo: Cima / Baixo ou toque onde ele vai, depois A (ou toque nele de novo). O que est\303\241 mais abaixo na lista \303\251 aplicado depois" };
+static const char* const lang_pt_f327[] = { "O que se move deixa um rastro curto, como num GBA." };
+static const char* const lang_pt_f328[] = { "NOTA: os jogos sem suporte rodar\303\243o no RetroArch, mas sem a segunda tela pr\303\263pria do BananaOS (seu painel de jogo e acompanhantes)." };
+static const char* const lang_pt_f329[] = { "Novo" };
+static const char* const lang_pt_f330[] = { "Nenhum estado do RetroArch aqui" };
+static const char* const lang_pt_f331[] = { "Nenhuma conquista para esta ROM (MD5 %s)" };
+static const char* const lang_pt_f332[] = { "Nenhum cheat encontrado (veja Cheats na wiki)" };
+static const char* const lang_pt_f333[] = { "Nenhum controle encontrado" };
+static const char* const lang_pt_f334[] = { "es_systems.cfg n\303\243o encontrado." };
+static const char* const lang_pt_f335[] = { "Nenhuma pasta escolhida." };
+static const char* const lang_pt_f336[] = { "Nenhuma pasta nesta" };
+static const char* const lang_pt_f337[] = { "Nenhum jogo tem configura\303\247\303\265es pr\303\263prias." };
+static const char* const lang_pt_f338[] = { "Nenhum jogo encontrado" };
+static const char* const lang_pt_f339[] = { "Ainda n\303\243o h\303\241 patches aqui" };
+static const char* const lang_pt_f340[] = { "Nenhum estado r\303\241pido salvo ainda." };
+static const char* const lang_pt_f341[] = { "Nenhum jogo suportado em" };
+static const char* const lang_pt_f342[] = { "Nenhum" };
+static const char* const lang_pt_f343[] = { "N\303\243o est\303\241 mais na pasta: fica de fora" };
+static const char* const lang_pt_f344[] = { "N\303\243o retomado: o estado autom\303\241tico do RetroArch \303\251 de outro dos seus n\303\272cleos GBA. Para compartilhar estados, defina o n\303\272cleo GBA do RetroArch como mGBA." };
+static const char* const lang_pt_f345[] = { "N\303\243o usado" };
+static const char* const lang_pt_f346[] = { "Nada" };
+static const char* const lang_pt_f347[] = { "Nada mapeado" };
+static const char* const lang_pt_f348[] = { "Nada salvo no slot %d ainda" };
+static const char* const lang_pt_f349[] = { "Nada a relatar ainda." };
+static const char* const lang_pt_f350[] = { "nov" };
+static const char* const lang_pt_f351[] = { "Agora" };
+static const char* const lang_pt_f352[] = { "OK" };
+static const char* const lang_pt_f353[] = { "out" };
+static const char* const lang_pt_f354[] = { "N\303\243o" };
+static const char* const lang_pt_f355[] = { "Desativado para dispositivos lentos: a mesa em uma tela s\303\263. Feche e reinicie o GBA DS para aplicar." };
+static const char* const lang_pt_f356[] = { "Desativado enquanto um patch est\303\241 ativado" };
+static const char* const lang_pt_f357[] = { "N\303\243o." };
+static const char* const lang_pt_f358[] = { "N\303\243o. Reinicie o BananaOS (Configura\303\247\303\265es > Sistema) para que o menu dele use isto." };
+static const char* const lang_pt_f359[] = { "N\303\243o. Reinicie o EmulationStation para aplicar." };
+static const char* const lang_pt_f360[] = { "N\303\243o: todo jogo roda como um jogo de GBA comum." };
+static const char* const lang_pt_f361[] = { "N\303\243o: o anal\303\263gico esquerdo n\303\243o faz nada nos jogos." };
+static const char* const lang_pt_f362[] = { "Offline" };
+static const char* const lang_pt_f363[] = { "Sim" };
+static const char* const lang_pt_f364[] = { "Sim." };
+static const char* const lang_pt_f365[] = { "Sim. Reinicie o BananaOS (Configura\303\247\303\265es > Sistema) para que o menu dele use isto." };
+static const char* const lang_pt_f366[] = { "Sim. Reinicie o EmulationStation para ver." };
+static const char* const lang_pt_f367[] = { "S\303\263 os jogos com tela de mapa s\303\243o listados (show_all = 1 lista todos)" };
+static const char* const lang_pt_f368[] = { "S\303\263 uma tela: nada para mover" };
+static const char* const lang_pt_f369[] = { "S\303\263 os patches ativados t\303\252m ordem, e este \303\251 o \303\272nico" };
+static const char* const lang_pt_f370[] = { "S\303\263 quando suas duas telas t\303\252m formatos diferentes. Experimental." };
+static const char* const lang_pt_f371[] = { "Abrir o menu r\303\241pido" };
+static const char* const lang_pt_f372[] = { "Abre a p\303\241gina pr\303\263pria da moldura, para a que o jogo ou todos os jogos t\303\252m" };
+static const char* const lang_pt_f373[] = { "Laranja" };
+static const char* const lang_pt_f374[] = { "Cor da moldura externa" };
+static const char* const lang_pt_f375[] = { "Cores e logo dos overlays" };
+static const char* const lang_pt_f376[] = { "Overlays" };
+static const char* const lang_pt_f377[] = { "Overlays ativados" };
+static const char* const lang_pt_f378[] = { "Overlays: personalizados" };
+static const char* const lang_pt_f379[] = { "Overlays: personalizados (em /overlays)" };
+static const char* const lang_pt_f380[] = { "Overlays: gerados" };
+static const char* const lang_pt_f381[] = { "Overlays: N\303\243o" };
+static const char* const lang_pt_f382[] = { "PM" };
+static const char* const lang_pt_f383[] = { "Patch n\303\243o aplicado: %s n\303\243o pode ser lido" };
+static const char* const lang_pt_f384[] = { "Patch n\303\243o aplicado: %s \303\251 para outra ROM" };
+static const char* const lang_pt_f385[] = { "Patch aplicado, mas um patch ficou de fora: veja Patches no menu do jogo" };
+static const char* const lang_pt_f386[] = { "Com patch: a segunda tela pode n\303\243o funcionar" };
+static const char* const lang_pt_f387[] = { "Patches" };
+static const char* const lang_pt_f388[] = { "Patches alterados" };
+static const char* const lang_pt_f389[] = { "Patches alterados desde que o jogo iniciou" };
+static const char* const lang_pt_f390[] = { "Patches alterados: continuando de onde voc\303\252 estava" };
+static const char* const lang_pt_f391[] = { "Intensidade do padr\303\243o" };
+static const char* const lang_pt_f392[] = { "Pausado" };
+static const char* const lang_pt_f393[] = { "Desempenho" };
+static const char* const lang_pt_f394[] = { "Desempenho: deixar o sistema decidir" };
+static const char* const lang_pt_f395[] = { "Desempenho: M\303\241x." };
+static const char* const lang_pt_f396[] = { "Imagens no meio das telas, ou juntas." };
+static const char* const lang_pt_f397[] = { "Vis\303\243o de duas telas do pinball" };
+static const char* const lang_pt_f398[] = { "Rosa" };
+static const char* const lang_pt_f399[] = { "Fixada: a barra fica vis\303\255vel." };
+static const char* const lang_pt_f400[] = { "Pixel perfeito" };
+static const char* const lang_pt_f401[] = { "Pixelado" };
+static const char* const lang_pt_f402[] = { "Posicionamento, overlays" };
+static const char* const lang_pt_f403[] = { "Simples" };
+static const char* const lang_pt_f404[] = { "Jogar" };
+static const char* const lang_pt_f405[] = { "Jogando sem conquistas desta vez" };
+static const char* const lang_pt_f406[] = { "Preparando o jogo..." };
+static const char* const lang_pt_f407[] = { "Pressione %s" };
+static const char* const lang_pt_f408[] = { "Pressione A ou toque para fechar" };
+static const char* const lang_pt_f409[] = { "Pressione A para fechar" };
+static const char* const lang_pt_f410[] = { "Pressione um bot\303\243o" };
+static const char* const lang_pt_f411[] = { "Roxo" };
+static const char* const lang_pt_f412[] = { "Empurre o anal\303\263gico: bot\303\265es n\303\243o valem para este." };
+static const char* const lang_pt_f413[] = { "Coloque arquivos .ips, .ups, .bps ou .xdelta em %s" };
+static const char* const lang_pt_f414[] = { "Dica da barra r\303\241pida" };
+static const char* const lang_pt_f415[] = { "Carregamento r\303\241pido de estado" };
+static const char* const lang_pt_f416[] = { "Salvamento r\303\241pido de estado" };
+static const char* const lang_pt_f417[] = { "Sair" };
+static const char* const lang_pt_f418[] = { "Bot\303\243o R" };
+static const char* const lang_pt_f419[] = { "O RetroAchievements est\303\241 desativado" };
+static const char* const lang_pt_f420[] = { "Aumente se o som estiver estalando." };
+static const char* const lang_pt_f421[] = { "Vermelho" };
+static const char* const lang_pt_f422[] = { "Listras vermelhas, verdes e azuis, suaves: para telas escuras" };
+static const char* const lang_pt_f423[] = { "Listras vermelhas, verdes e azuis, como a tela de um GBA" };
+static const char* const lang_pt_f424[] = { "Listras vermelhas, verdes e azuis, fortes: para telas brilhantes" };
+static const char* const lang_pt_f425[] = { "Redefinir" };
+static const char* const lang_pt_f426[] = { "Redefinir molduras" };
+static const char* const lang_pt_f427[] = { "Redefinir as configura\303\247\303\265es para o padr\303\243o" };
+static const char* const lang_pt_f428[] = { "Reiniciar" };
+static const char* const lang_pt_f429[] = { "Reiniciar o jogo" };
+static const char* const lang_pt_f430[] = { "Reinicie a partir da linha de cima para jogar com ele (ou ele \303\251 usado a partir da pr\303\263xima inicializa\303\247\303\243o)" };
+static const char* const lang_pt_f431[] = { "Reinicie a partir da linha de cima para jogar com esta ordem" };
+static const char* const lang_pt_f432[] = { "Rein\303\255cio necess\303\241rio" };
+static const char* const lang_pt_f433[] = { "Continuar" };
+static const char* const lang_pt_f434[] = { "Retomado. Toque ou HOME para o menu" };
+static const char* const lang_pt_f435[] = { "RetroAchievements couldn't start" };
+static const char* const lang_pt_f436[] = { "O RetroAchievements n\303\243o conseguiu iniciar" };
+static const char* const lang_pt_f437[] = { "O RetroAchievements n\303\243o permite jogos com patch" };
+static const char* const lang_pt_f438[] = { "RetroAchievements: N\303\243o" };
+static const char* const lang_pt_f439[] = { "RetroAchievements: entrar" };
+static const char* const lang_pt_f440[] = { "RetroAchievements: sair" };
+static const char* const lang_pt_f441[] = { "RetroAchievements: entrando..." };
+static const char* const lang_pt_f442[] = { "Pasta de estados do RetroArch" };
+static const char* const lang_pt_f443[] = { "As configura\303\247\303\265es do RetroArch n\303\243o foram encontradas aqui: escolha a pasta onde ele guarda seus estados." };
+static const char* const lang_pt_f444[] = { "As configura\303\247\303\265es do RetroArch n\303\243o foram encontradas, ent\303\243o os slots 0-9 e o estado autom\303\241tico voltam a ser do pr\303\263prio GBA DS." };
+static const char* const lang_pt_f445[] = { "A pasta de estados do RetroArch voltou a ser encontrada pelas configura\303\247\303\265es dele: %s." };
+static const char* const lang_pt_f446[] = { "Retroceder" };
+static const char* const lang_pt_f447[] = { "Dura\303\247\303\243o do retrocesso" };
+static const char* const lang_pt_f448[] = { "Retroceder, avan\303\247o r\303\241pido" };
+static const char* const lang_pt_f449[] = { "Retroceder: N\303\243o" };
+static const char* const lang_pt_f450[] = { "Retroceder: Sim" };
+static const char* const lang_pt_f451[] = { "Retrocedendo..." };
+static const char* const lang_pt_f452[] = { "Direita" };
+static const char* const lang_pt_f453[] = { "Romhack: %s%s" };
+static const char* const lang_pt_f454[] = { "Romhack: %s%s, n\303\243o testado" };
+static const char* const lang_pt_f455[] = { "Rota\303\247\303\243o: autom\303\241tica" };
+static const char* const lang_pt_f456[] = { "Rota\303\247\303\243o: paisagem" };
+static const char* const lang_pt_f457[] = { "Rota\303\247\303\243o: retrato" };
+static const char* const lang_pt_f458[] = { "Roda na taxa da tela: sem pequenos engasgos regulares." };
+static const char* const lang_pt_f459[] = { "SNES" };
+static const char* const lang_pt_f460[] = { "De volta igual a todos os jogos" };
+static const char* const lang_pt_f461[] = { "Salvar estado" };
+static const char* const lang_pt_f462[] = { "Salvar estado %d" };
+static const char* const lang_pt_f463[] = { "Estados: pr\303\263prios do GBA DS" };
+static const char* const lang_pt_f464[] = { "Estados: compartilhados com o RetroArch" };
+static const char* const lang_pt_f465[] = { "Falha ao salvar" };
+static const char* const lang_pt_f466[] = { "Falha ao salvar." };
+static const char* const lang_pt_f467[] = { "Arquivos de save: .sav" };
+static const char* const lang_pt_f468[] = { "Arquivos de save: .srm (do RetroArch)" };
+static const char* const lang_pt_f469[] = { "Salvar ao sair: N\303\243o" };
+static const char* const lang_pt_f470[] = { "Salvar ao sair: Sim" };
+static const char* const lang_pt_f471[] = { "Salvar ao sair" };
+static const char* const lang_pt_f472[] = { "Salvo por outro emulador: n\303\243o pode ser carregado" };
+static const char* const lang_pt_f473[] = { "Salvo para todos os jogos" };
+static const char* const lang_pt_f474[] = { "Salvo para este jogo" };
+static const char* const lang_pt_f475[] = { "Salvo para quando um patch est\303\241 ativado" };
+static const char* const lang_pt_f476[] = { "Os saves ficar\303\243o ao lado dos jogos." };
+static const char* const lang_pt_f477[] = { "Os saves ficar\303\243o l\303\241." };
+static const char* const lang_pt_f478[] = { "Escala, shader, tema, cor" };
+static const char* const lang_pt_f479[] = { "Escala: largura total" };
+static const char* const lang_pt_f480[] = { "Escala: pixel perfeito" };
+static const char* const lang_pt_f481[] = { "Escala: esticar" };
+static const char* const lang_pt_f482[] = { "Escala: zoom" };
+static const char* const lang_pt_f483[] = { "Linhas de varredura" };
+static const char* const lang_pt_f484[] = { "Posicionamento das telas: centralizado" };
+static const char* const lang_pt_f485[] = { "Posicionamento das telas: mais perto do v\303\243o" };
+static const char* const lang_pt_f486[] = { "Posicionamento das telas" };
+static const char* const lang_pt_f487[] = { "Formatos das telas" };
+static const char* const lang_pt_f488[] = { "Telas" };
+static const char* const lang_pt_f489[] = { "Falha na captura de tela" };
+static const char* const lang_pt_f490[] = { "Captura de tela salva" };
+static const char* const lang_pt_f491[] = { "Segunda tela" };
+static const char* const lang_pt_f492[] = { "Escala da segunda tela" };
+static const char* const lang_pt_f493[] = { "Select" };
+static const char* const lang_pt_f494[] = { "Select ou Start ainda chegam ao jogo quando tocados sozinhos, e L3 ainda abre o menu r\303\241pido" };
+static const char* const lang_pt_f495[] = { "set" };
+static const char* const lang_pt_f496[] = { "Save de bateria separado" };
+static const char* const lang_pt_f497[] = { "Estados separados" };
+static const char* const lang_pt_f498[] = { "Definido por ora, mas n\303\243o foi poss\303\255vel gravar %s." };
+static const char* const lang_pt_f499[] = { "Definir no m\303\241ximo" };
+static const char* const lang_pt_f500[] = { "Define os atalhos: o bot\303\243o de atalho segurado com outro." };
+static const char* const lang_pt_f501[] = { "Define o que cada bot\303\243o deste dispositivo faz." };
+static const char* const lang_pt_f502[] = { "Configura\303\247\303\265es" };
+static const char* const lang_pt_f503[] = { "As configura\303\247\303\265es voltaram ao padr\303\243o." };
+static const char* const lang_pt_f504[] = { "Shader" };
+static const char* const lang_pt_f505[] = { "Shader: grade LCD" };
+static const char* const lang_pt_f506[] = { "Shader: N\303\243o" };
+static const char* const lang_pt_f507[] = { "Shader: linhas de varredura" };
+static const char* const lang_pt_f508[] = { "Shader: c\303\251lulas suaves" };
+static const char* const lang_pt_f509[] = { "Shader: subpixels" };
+static const char* const lang_pt_f510[] = { "Shader: subpixels (leve)" };
+static const char* const lang_pt_f511[] = { "Shader: subpixels (forte)" };
+static const char* const lang_pt_f512[] = { "Menos pode fazer o som estalar em um dispositivo lento." };
+static const char* const lang_pt_f513[] = { "Mostrar FPS" };
+static const char* const lang_pt_f514[] = { "Mostrar FPS: N\303\243o" };
+static const char* const lang_pt_f515[] = { "Mostrar FPS: Sim" };
+static const char* const lang_pt_f516[] = { "Entre de novo nas Configura\303\247\303\265es da lista de jogos" };
+static const char* const lang_pt_f517[] = { "Falha ao entrar" };
+static const char* const lang_pt_f518[] = { "Conectado como %s. As conquistas s\303\243o ganhas no modo casual." };
+static const char* const lang_pt_f519[] = { "Saiu do RetroAchievements." };
+static const char* const lang_pt_f520[] = { "Entrando como %s..." };
+static const char* const lang_pt_f521[] = { "S\303\263 uma tela" };
+static const char* const lang_pt_f522[] = { "S\303\263 uma tela: joga normalmente" };
+static const char* const lang_pt_f523[] = { "Pular" };
+static const char* const lang_pt_f524[] = { "Pular esta vers\303\243o" };
+static const char* const lang_pt_f525[] = { "Pulado em %d s se nada for pressionado" };
+static const char* const lang_pt_f526[] = { "Slot %d carregado" };
+static const char* const lang_pt_f527[] = { "Slot %d: %s" };
+static const char* const lang_pt_f528[] = { "Slot %1$d: %3$d %2$s %4$d%5$s" };
+static const char* const lang_pt_f529[] = { "Slot %1$d: %3$d %2$s, %4$d:%5$02d %6$s%7$s" };
+static const char* const lang_pt_f530[] = { "Slot %d: vazio" };
+static const char* const lang_pt_f531[] = { "Os slots 0-9 e o estado autom\303\241tico voltam a ser do pr\303\263prio GBA DS. Os estados salvos na pasta do RetroArch ficam l\303\241." };
+static const char* const lang_pt_f532[] = { "Os slots 0-9 e o estado autom\303\241tico agora s\303\243o do RetroArch. Os estados pr\303\263prios do GBA DS ficam na pasta dele, para quando isto for revertido." };
+static const char* const lang_pt_f533[] = { "Os slots 0-9 e o estado autom\303\241tico agora s\303\243o compartilhados com o RetroArch, em %s." };
+static const char* const lang_pt_f534[] = { "Os slots 0-9 e o ponto de retomada s\303\243o do pr\303\263prio GBA DS. Compartilhados, s\303\243o do RetroArch: %s." };
+static const char* const lang_pt_f535[] = { "Os slots 0-9 e o ponto de retomada s\303\243o do pr\303\263prio GBA DS. Para compartilh\303\241-los, escolha a pasta de estados do RetroArch." };
+static const char* const lang_pt_f536[] = { "Os slots 0-9 e o ponto de retomada s\303\243o do RetroArch (o n\303\272cleo GBA dele definido como mGBA): %s." };
+static const char* const lang_pt_f537[] = { "Lenta (10 por segundo)" };
+static const char* const lang_pt_f538[] = { "Escala suave" };
+static const char* const lang_pt_f539[] = { "Mais suave, um quadro a mais de atraso de entrada." };
+static const char* const lang_pt_f540[] = { "C\303\251lulas suaves" };
+static const char* const lang_pt_f541[] = { "Alguns arquivos n\303\243o puderam ser movidos, continuam em %s" };
+static const char* const lang_pt_f542[] = { "Atraso do som" };
+static const char* const lang_pt_f543[] = { "Espa\303\247o" };
+static const char* const lang_pt_f544[] = { "Velocidade" };
+static const char* const lang_pt_f545[] = { "Velocidade e som" };
+static const char* const lang_pt_f546[] = { "Start" };
+static const char* const lang_pt_f547[] = { "Iniciar um jogo continua de onde voc\303\252 o fechou." };
+static const char* const lang_pt_f548[] = { "Estado carregado." };
+static const char* const lang_pt_f549[] = { "Estado salvo no slot %d" };
+static const char* const lang_pt_f550[] = { "Estado salvo." };
+static const char* const lang_pt_f551[] = { "Anal\303\263gico, bot\303\265es, atalhos" };
+static const char* const lang_pt_f552[] = { "Esticar" };
+static const char* const lang_pt_f553[] = { "Enviar um relat\303\263rio de bug" };
+static const char* const lang_pt_f554[] = { "Subpixels" };
+static const char* const lang_pt_f555[] = { "Subpixels (leve)" };
+static const char* const lang_pt_f556[] = { "Subpixels (forte)" };
+static const char* const lang_pt_f557[] = { "Suportado" };
+static const char* const lang_pt_f558[] = { "S\303\263 jogos suportados" };
+static const char* const lang_pt_f559[] = { "Certeza?" };
+static const char* const lang_pt_f560[] = { "Trocar as telas" };
+static const char* const lang_pt_f561[] = { "Trocar as telas" };
+static const char* const lang_pt_f562[] = { "Trocadas" };
+static const char* const lang_pt_f563[] = { "Deslize para cima para o menu r\303\241pido" };
+static const char* const lang_pt_f564[] = { "Desativado em gba-ds.cfg (retroachievements = 0)." };
+static const char* const lang_pt_f565[] = { "Sistema" };
+static const char* const lang_pt_f566[] = { "As tags no nome do arquivo de uma ROM, como (USA) ou (En,Fr,De)." };
+static const char* const lang_pt_f567[] = { "Tirar captura de tela" };
+static const char* const lang_pt_f568[] = { "Tem efeito depois de fechar e reiniciar o GBA DS" };
+static const char* const lang_pt_f569[] = { "Toque de novo para fechar o GBA DS." };
+static const char* const lang_pt_f570[] = { "Toque na tela ou pressione HOME para o menu" };
+static const char* const lang_pt_f571[] = { "Toque na tela sens\303\255vel ao toque para pular um bot\303\243o que este dispositivo n\303\243o tem" };
+static const char* const lang_pt_f572[] = { "Toque para n\303\243o definir nenhum" };
+static const char* const lang_pt_f573[] = { "Toque para pular um bot\303\243o que este dispositivo n\303\243o tem" };
+static const char* const lang_pt_f574[] = { "Azul-petr\303\263leo" };
+static const char* const lang_pt_f575[] = { "Romhack testado: %s" };
+static const char* const lang_pt_f576[] = { "Este chega aqui como uma tecla de teclado: n\303\243o pode ser mapeado. Toque para pular." };
+static const char* const lang_pt_f577[] = { "Este j\303\241 \303\251 %s. Pressione outro, ou toque para pular." };
+static const char* const lang_pt_f578[] = { "Isso est\303\241 dentro da pasta do GBA DS: escolha uma fora dela." };
+static const char* const lang_pt_f579[] = { "Esse \303\251 o bot\303\243o de atalho: pressione outro" };
+static const char* const lang_pt_f580[] = { "O logo do GBA DS na moldura gerada." };
+static const char* const lang_pt_f581[] = { "Os pixels do jogo como s\303\243o" };
+static const char* const lang_pt_f582[] = { "O bot\303\243o de atalho pode ser %s, Select, Start ou L3" };
+static const char* const lang_pt_f583[] = { "O mapa e o logo" };
+static const char* const lang_pt_f584[] = { "Os bot\303\265es dos menus: cinza-escuro, ou cinza-claro como o player web." };
+static const char* const lang_pt_f585[] = { "A cor dos menus para o que est\303\241 selecionado, com uma vers\303\243o escura e uma clara de cada." };
+static const char* const lang_pt_f586[] = { "Os patches n\303\243o s\303\243o os de quando o jogo iniciou: reinicie-o para jogar com eles (ou eles s\303\243o usados a partir da pr\303\263xima inicializa\303\247\303\243o)" };
+static const char* const lang_pt_f587[] = { "Processador, mem\303\263ria e gr\303\241ficos rodam a toda velocidade enquanto o GBA DS est\303\241 aberto: o jogo mais fluido, mas a bateria acaba mais r\303\241pido e o dispositivo esquenta mais." };
+static const char* const lang_pt_f588[] = { "O sistema define a velocidade, como para os outros emuladores dele. Se os jogos travarem ou o som falhar, tente Definir no m\303\241ximo." };
+static const char* const lang_pt_f589[] = { "Esta pasta n\303\243o pode ser aberta" };
+static const char* const lang_pt_f590[] = { "Este jogo" };
+static const char* const lang_pt_f591[] = { "Este jogo tem um valor pr\303\263prio. X, ou ir al\303\251m da \303\272ltima op\303\247\303\243o: igual a todos os jogos" };
+static const char* const lang_pt_f592[] = { "Este jogo ainda n\303\243o tem conquistas" };
+static const char* const lang_pt_f593[] = { "Este \303\251 o GBA DS v%s." };
+static const char* const lang_pt_f594[] = { "Esta \303\251 a v%s. Procura uma nova vers\303\243o, e a baixa e instala." };
+static const char* const lang_pt_f595[] = { "Este estado n\303\243o pode ser lido" };
+static const char* const lang_pt_f596[] = { "Este estado foi salvo %s: pode n\303\243o funcionar" };
+static const char* const lang_pt_f597[] = { "Juntos: %s" };
+static const char* const lang_pt_f598[] = { "Alternar o shader selecionado" };
+static const char* const lang_pt_f599[] = { "Tela de cima" };
+static const char* const lang_pt_f600[] = { "Brilho da tela de cima" };
+static const char* const lang_pt_f601[] = { "Toque ou use o direcional" };
+static const char* const lang_pt_f602[] = { "Turbo A" };
+static const char* const lang_pt_f603[] = { "Turbo B" };
+static const char* const lang_pt_f604[] = { "Velocidade do turbo" };
+static const char* const lang_pt_f605[] = { "Transforma esta ROM em outra vers\303\243o oficial: %s" };
+static const char* const lang_pt_f606[] = { "es_systems.cfg inesperado (veja o log)." };
+static const char* const lang_pt_f607[] = { "Vers\303\243o desconhecida deste jogo" };
+static const char* const lang_pt_f608[] = { "Desbloqueado" };
+static const char* const lang_pt_f609[] = { "Desbloqueios enviados" };
+static const char* const lang_pt_f610[] = { "Os desbloqueios ser\303\243o enviados quando a conex\303\243o voltar" };
+static const char* const lang_pt_f611[] = { "Solta: a barra se esconde ap\303\263s 5 segundos." };
+static const char* const lang_pt_f612[] = { "N\303\243o testado: a segunda tela pode n\303\243o funcionar com ele" };
+static const char* const lang_pt_f613[] = { "Cima" };
+static const char* const lang_pt_f614[] = { "At\303\251 %d patches podem estar ativados ao mesmo tempo" };
+static const char* const lang_pt_f615[] = { "At\303\251 %s" };
+static const char* const lang_pt_f616[] = { "Atualizar agora" };
+static const char* const lang_pt_f617[] = { "Atualiza\303\247\303\265es" };
+static const char* const lang_pt_f618[] = { "Atualiza\303\247\303\265es, integra\303\247\303\265es" };
+static const char* const lang_pt_f619[] = { "Usar esta pasta" };
+static const char* const lang_pt_f620[] = { "Usado a partir da pr\303\263xima vez que o jogo iniciar" };
+static const char* const lang_pt_f621[] = { "Volume %d%%" };
+static const char* const lang_pt_f622[] = { "O que o direcional para baixo d\303\241 ao jogo." };
+static const char* const lang_pt_f623[] = { "O que o direcional para a esquerda d\303\241 ao jogo." };
+static const char* const lang_pt_f624[] = { "O que o direcional para a direita d\303\241 ao jogo." };
+static const char* const lang_pt_f625[] = { "O que o direcional para cima d\303\241 ao jogo." };
+static const char* const lang_pt_f626[] = { "O que o bot\303\243o de ombro L d\303\241 ao jogo." };
+static const char* const lang_pt_f627[] = { "O que o bot\303\243o de ombro R d\303\241 ao jogo." };
+static const char* const lang_pt_f628[] = { "O que o bot\303\243o de baixo d\303\241 ao jogo." };
+static const char* const lang_pt_f629[] = { "O que o bot\303\243o da esquerda d\303\241 ao jogo." };
+static const char* const lang_pt_f630[] = { "O que o bot\303\243o da direita d\303\241 ao jogo." };
+static const char* const lang_pt_f631[] = { "O que o bot\303\243o de cima d\303\241 ao jogo." };
+static const char* const lang_pt_f632[] = { "De onde os jogos s\303\243o lidos, e a pasta onde seus saves ficam." };
+static const char* const lang_pt_f633[] = { "De onde os jogos s\303\243o lidos. Os saves ficam ao lado deles." };
+static const char* const lang_pt_f634[] = { "Qual tela: ambas" };
+static const char* const lang_pt_f635[] = { "Qual tela: s\303\263 a de baixo" };
+static const char* const lang_pt_f636[] = { "Qual tela: s\303\263 a de cima" };
+static const char* const lang_pt_f637[] = { "Quais jogos, nomes, salvamento" };
+static const char* const lang_pt_f638[] = { "Em qual tela o jogo fica." };
+static const char* const lang_pt_f639[] = { "Quais telas os t\303\252m." };
+static const char* const lang_pt_f640[] = { "Com Quatro bot\303\265es escolhido em Controles na barra r\303\241pida, o layout de quatro bot\303\265es substitui estes." };
+static const char* const lang_pt_f641[] = { "Com SNES escolhido em Controles na barra r\303\241pida, o layout de SNES substitui estes nas fases." };
+static const char* const lang_pt_f642[] = { "Com um patch ativado, o jogo guarda seu pr\303\263prio save de bateria (\"<jogo> + <patch>\"): desativado, usa o do original" };
+static const char* const lang_pt_f643[] = { "Com um patch ativado, o jogo guarda seus pr\303\263prios estados: desativado, usa os do original (um estado pode sair corrompido no outro)" };
+static const char* const lang_pt_f644[] = { "Com a verifica\303\247\303\243o autom\303\241tica ativada, o GBA DS procura uma nova vers\303\243o uma vez por dia ao abrir a lista de jogos e pergunta antes de baixar qualquer coisa. As atualiza\303\247\303\265es v\303\252m das vers\303\265es publicadas em github.com/kyannon/gba-ds." };
+static const char* const lang_pt_f645[] = { "Com tags, como (USA)" };
+static const char* const lang_pt_f646[] = { "Bot\303\243o X (cima)" };
+static const char* const lang_pt_f647[] = { "Bot\303\243o Y (esquerda)" };
+static const char* const lang_pt_f648[] = { "Seus pr\303\263prios PNGs em gba-ds/overlays/. Uma tela sem um recebe a moldura gerada em suas cores padr\303\243o." };
+static const char* const lang_pt_f649[] = { "Seus pr\303\263prios logos e os obtidos na segunda tela." };
+static const char* const lang_pt_f650[] = { "Suas telas t\303\252m o mesmo formato: nada para igualar" };
+static const char* const lang_pt_f651[] = { "Zoom" };
+static const char* const lang_pt_f652[] = { "cor" };
+static const char* const lang_pt_f653[] = { "hex" };
+static const char* const lang_pt_f654[] = { "matiz" };
+static const char* const lang_pt_f655[] = { "tradu\303\247\303\243o autom\303\241tica" };
+static const char* const lang_pt_f656[] = { "nenhum estado salvo ainda!" };
+static const char* const lang_pt_f657[] = { "desativado" };
+static const char* const lang_pt_f658[] = { "ativado" };
+static const char* const lang_pt_f659[] = { "ponto" };
+static const char* const lang_pt_f660[] = { "pontos" };
+static const char* const lang_pt_f661[] = { "predefini\303\247\303\265es" };
+static const char* const lang_pt_f662[] = { "pressione o anal\303\263gico esquerdo" };
+static const char* const lang_pt_f663[] = { "empurre o anal\303\263gico esquerdo para a esquerda" };
+static const char* const lang_pt_f664[] = { "empurre o anal\303\263gico esquerdo para cima" };
+static const char* const lang_pt_f665[] = { "o bot\303\243o de baixo" };
+static const char* const lang_pt_f666[] = { "o bot\303\243o que abre o menu do GBA DS (Home, Menu ou Function)" };
+static const char* const lang_pt_f667[] = { "o jogo" };
+static const char* const lang_pt_f668[] = { "o bot\303\243o da esquerda" };
+static const char* const lang_pt_f669[] = { "o bot\303\243o de ombro esquerdo" };
+static const char* const lang_pt_f670[] = { "o patch ao lado da ROM" };
+static const char* const lang_pt_f671[] = { "o bot\303\243o da direita" };
+static const char* const lang_pt_f672[] = { "o bot\303\243o de ombro direito" };
+static const char* const lang_pt_f673[] = { "o segundo bot\303\243o de ombro esquerdo" };
+static const char* const lang_pt_f674[] = { "o segundo bot\303\243o de ombro direito" };
+static const char* const lang_pt_f675[] = { "o bot\303\243o de cima" };
+static const char* const lang_pt_f676[] = { "o progresso n\303\243o salvo ser\303\241 perdido" };
+static const char* const lang_pt_f677[] = { "com o patch" };
+static const char* const lang_pt_f678[] = { "com %s" };
+static const char* const lang_pt_f679[] = { "com outro dump do jogo (%s)" };
+static const char* const lang_pt_f680[] = { "com outra vers\303\243o do jogo (outros patches, ou outra ROM)" };
+static const char* const lang_pt_f681[] = { "com o jogo sem altera\303\247\303\265es (%s)" };
+static const char* const lang_pt_f682[] = { "sem o patch" };
+static const char* const lang_pt_f683[] = { "sem os patches ativados" };
+static const char* const lang_pt_f684[] = { "sua posi\303\247\303\243o est\303\241 salva" };
+static const char* const lang_pt_f685[] = { "\342\200\271" };
+static const char* const lang_pt_f686[] = { "\342\200\272" };
+static const I18nEntry lang_pt_entries[] = {
+	{ " (patch)", lang_pt_f0, 1 },
+	{ " Checking for a new version...", lang_pt_f1, 1 },
+	{ " It's the newest version.", lang_pt_f2, 1 },
+	{ " ms", lang_pt_f3, 1 },
+	{ " s", lang_pt_f4, 1 },
+	{ "\"Swipe up for quick menu\" at a game's start.", lang_pt_f5, 1 },
+	{ "%ca%d", lang_pt_f6, 1 },
+	{ "%d RetroArch state here", lang_pt_f7, 2 },
+	{ "%d file checked", lang_pt_f8, 2 },
+	{ "%d game found", lang_pt_f9, 2 },
+	{ "%d game found.", lang_pt_f10, 2 },
+	{ "%d of %d", lang_pt_f11, 1 },
+	{ "%d of %d set for %s, kept in controllers.txt beside GBA DS's save states. The line for it is in gba-ds.log too: send it in to have it built into GBA DS for this device.", lang_pt_f12, 1 },
+	{ "%d on", lang_pt_f13, 1 },
+	{ "%s", lang_pt_f14, 1 },
+	{ "%s %s. Choose another if RetroArch keeps its states somewhere else.", lang_pt_f15, 1 },
+	{ "%s (beside the ROM)", lang_pt_f16, 1 },
+	{ "%s as the hotkey button, with Start, R1, L1, X, Y and B", lang_pt_f17, 1 },
+	{ "%s has no button now", lang_pt_f18, 1 },
+	{ "%s is now Start + Select", lang_pt_f19, 1 },
+	{ "%s opens the menu: press another button", lang_pt_f20, 1 },
+	{ "%s v%s. Restarting...", lang_pt_f21, 1 },
+	{ "%s was %s's: that has no button now", lang_pt_f22, 1 },
+	{ "%s, %s", lang_pt_f23, 1 },
+	{ "%s, Select, Start or L3. Tap to keep it as it is", lang_pt_f24, 1 },
+	{ "%u of %u achievements unlocked", lang_pt_f25, 1 },
+	{ ", RetroArch", lang_pt_f26, 1 },
+	{ "1 minute", lang_pt_f27, 1 },
+	{ "10 s", lang_pt_f28, 1 },
+	{ "128 ms", lang_pt_f29, 1 },
+	{ "15 s", lang_pt_f30, 1 },
+	{ "192 ms", lang_pt_f31, 1 },
+	{ "2 minutes", lang_pt_f32, 1 },
+	{ "2x", lang_pt_f33, 1 },
+	{ "30 s", lang_pt_f34, 1 },
+	{ "32 ms", lang_pt_f35, 1 },
+	{ "3x", lang_pt_f36, 1 },
+	{ "4x", lang_pt_f37, 1 },
+	{ "5 minutes", lang_pt_f38, 1 },
+	{ "5x", lang_pt_f39, 1 },
+	{ "64 ms", lang_pt_f40, 1 },
+	{ "96 ms", lang_pt_f41, 1 },
+	{ "A (right) button", lang_pt_f42, 1 },
+	{ "A and B buttons", lang_pt_f43, 1 },
+	{ "A dark line under each row of pixels", lang_pt_f44, 1 },
+	{ "A game's save already next to it, or in the other type, is copied over the first time you play it. .srm is the type RetroArch uses: choose its saves folder too to share each game's save with it.", lang_pt_f45, 1 },
+	{ "A new version of GBA DS", lang_pt_f46, 1 },
+	{ "A pattern over every pixel, on both screens.", lang_pt_f47, 1 },
+	{ "A: the one lit above. Y: all games. X: undo this game's value", lang_pt_f48, 1 },
+	{ "ACHIEVEMENT UNLOCKED", lang_pt_f49, 1 },
+	{ "AM", lang_pt_f50, 1 },
+	{ "Achievements", lang_pt_f51, 1 },
+	{ "Add a note (optional): what happened, and what you expected to happen.", lang_pt_f52, 1 },
+	{ "Adds GBA DS to the emulators for Game Boy Advance games in EmulationStation. Pick it for one game (its Advanced Game Options > Emulator) or for all of them (the system's advanced settings). The other emulators keep working as before.", lang_pt_f53, 1 },
+	{ "All", lang_pt_f54, 1 },
+	{ "All %u achievements unlocked", lang_pt_f55, 1 },
+	{ "All games", lang_pt_f56, 1 },
+	{ "Already the value for all games", lang_pt_f57, 1 },
+	{ "Always", lang_pt_f58, 1 },
+	{ "Always on here", lang_pt_f59, 1 },
+	{ "Always on in this game: it needs it for full speed", lang_pt_f60, 1 },
+	{ "Always on, applied first (RetroArch's way: a patch named as the ROM). %s", lang_pt_f61, 1 },
+	{ "An xdelta made with compression, which GBA DS can't read: patch the ROM with it beforehand, or make it again without (xdelta3 -S none)", lang_pt_f62, 1 },
+	{ "Android's installer couldn't be reached", lang_pt_f63, 1 },
+	{ "Another emulator's", lang_pt_f64, 1 },
+	{ "Apr", lang_pt_f65, 1 },
+	{ "Are You Sure?", lang_pt_f66, 1 },
+	{ "Are you sure? A: switch it %s now and carry on from here. Y: not yet (more changes first). B: call it off", lang_pt_f67, 1 },
+	{ "Are you sure? A: use them now and carry on from here. B: call it off", lang_pt_f68, 1 },
+	{ "Are you sure? Delete them", lang_pt_f69, 1 },
+	{ "Are you sure? Reset settings", lang_pt_f70, 1 },
+	{ "Are you sure? Save your game first. A: restart %s it now. Y: not yet (more changes first). B: call it off", lang_pt_f71, 1 },
+	{ "Are you sure? Save your game first. A: restart now. B: call it off", lang_pt_f72, 1 },
+	{ "Are you sure? Touch it again to delete every game's own settings. Anything else cancels.", lang_pt_f73, 1 },
+	{ "Are you sure? Touch it again to put every setting back to its default. Anything else cancels.", lang_pt_f74, 1 },
+	{ "As fast as it goes", lang_pt_f75, 1 },
+	{ "As the game started", lang_pt_f76, 1 },
+	{ "Aug", lang_pt_f77, 1 },
+	{ "Auto", lang_pt_f78, 1 },
+	{ "Auto-Load: Off", lang_pt_f79, 1 },
+	{ "Auto-Load: On", lang_pt_f80, 1 },
+	{ "Auto-load", lang_pt_f81, 1 },
+	{ "Automatic", lang_pt_f82, 1 },
+	{ "Automatic checks: Off", lang_pt_f83, 1 },
+	{ "Automatic checks: On", lang_pt_f84, 1 },
+	{ "Automatic follows the system. Text that isn't translated yet stays in English.", lang_pt_f85, 1 },
+	{ "B (bottom) button", lang_pt_f86, 1 },
+	{ "Back", lang_pt_f87, 1 },
+	{ "Back online", lang_pt_f88, 1 },
+	{ "Back to %s and the buttons it started with", lang_pt_f89, 1 },
+	{ "BananaOS's systems list has no Game Boy Advance entry.", lang_pt_f90, 1 },
+	{ "Bezel logo", lang_pt_f91, 1 },
+	{ "Blue", lang_pt_f92, 1 },
+	{ "Blurry instead of sharp: usually leave off.", lang_pt_f93, 1 },
+	{ "Both screens", lang_pt_f94, 1 },
+	{ "Bottom screen", lang_pt_f95, 1 },
+	{ "Bottom screen brightness", lang_pt_f96, 1 },
+	{ "Bug Report", lang_pt_f97, 1 },
+	{ "Bug report saved in bug-reports", lang_pt_f98, 1 },
+	{ "Bug report saved in bug-reports.", lang_pt_f99, 1 },
+	{ "Buttons", lang_pt_f100, 1 },
+	{ "Buttons mapped", lang_pt_f101, 1 },
+	{ "Can't be read", lang_pt_f102, 1 },
+	{ "Can't be read: not a patch, or damaged", lang_pt_f103, 1 },
+	{ "Can't find the GBA DS folder.", lang_pt_f104, 1 },
+	{ "Can't reach GBA DS's folder, using %s for now: %s", lang_pt_f105, 1 },
+	{ "Can't rewind further", lang_pt_f106, 1 },
+	{ "Can't save files here: no states, logos or screenshots", lang_pt_f107, 1 },
+	{ "Can't save in the chosen folder, files not moved: %s", lang_pt_f108, 1 },
+	{ "Cancel", lang_pt_f109, 1 },
+	{ "Centered", lang_pt_f110, 1 },
+	{ "Changes some of the same bytes as %s, and goes over it there: they may not work together", lang_pt_f111, 1 },
+	{ "Cheats", lang_pt_f112, 1 },
+	{ "Check now", lang_pt_f113, 1 },
+	{ "Check ra_username and ra_password in gba-ds.cfg", lang_pt_f114, 1 },
+	{ "Check the account in EmulationStation's RetroAchievements settings", lang_pt_f115, 1 },
+	{ "Choose GBA DS folder", lang_pt_f116, 1 },
+	{ "Choose ROM folder", lang_pt_f117, 1 },
+	{ "Choose a folder in Android's file picker...", lang_pt_f118, 1 },
+	{ "Choose it again to close %s: %s", lang_pt_f119, 1 },
+	{ "Choose it again to restart: unsaved progress is lost", lang_pt_f120, 1 },
+	{ "Choose save folder", lang_pt_f121, 1 },
+	{ "Chosen folder is inside GBA DS's own, files not moved: %s", lang_pt_f122, 1 },
+	{ "Chosen folder not found, files not moved: %s", lang_pt_f123, 1 },
+	{ "Chosen here:", lang_pt_f124, 1 },
+	{ "Close GBA DS", lang_pt_f125, 1 },
+	{ "Close Game", lang_pt_f126, 1 },
+	{ "Closest to gap", lang_pt_f127, 1 },
+	{ "Closing a game saves where you are.", lang_pt_f128, 1 },
+	{ "Color", lang_pt_f129, 1 },
+	{ "Color Correction: Off", lang_pt_f130, 1 },
+	{ "Color Correction: On", lang_pt_f131, 1 },
+	{ "Color correction", lang_pt_f132, 1 },
+	{ "Colors as a Game Boy Advance's screen showed them.", lang_pt_f133, 1 },
+	{ "Confirm the update to v%s in Android's installer. Android closes GBA DS while it installs; open it again afterwards. If Android asks first, allow GBA DS to install apps.", lang_pt_f134, 1 },
+	{ "Connect a controller and try again.", lang_pt_f135, 1 },
+	{ "Controls", lang_pt_f136, 1 },
+	{ "Couldn't change %s.", lang_pt_f137, 1 },
+	{ "Couldn't change the files in %s/custom_systems: allow GBA DS All files access in Android's settings.", lang_pt_f138, 1 },
+	{ "Couldn't connect", lang_pt_f139, 1 },
+	{ "Couldn't find GBA DS's folder.", lang_pt_f140, 1 },
+	{ "Couldn't keep that choice.", lang_pt_f141, 1 },
+	{ "Couldn't load the achievements", lang_pt_f142, 1 },
+	{ "Couldn't load the game", lang_pt_f143, 1 },
+	{ "Couldn't move GBA DS's files, they stay in %s", lang_pt_f144, 1 },
+	{ "Couldn't open the file picker.", lang_pt_f145, 1 },
+	{ "Couldn't open the sign-in box.", lang_pt_f146, 1 },
+	{ "Couldn't remove the setting file.", lang_pt_f147, 1 },
+	{ "Couldn't save", lang_pt_f148, 1 },
+	{ "Couldn't save the bug report.", lang_pt_f149, 1 },
+	{ "Couldn't sign in as %s%s%s. Sign in to try again.", lang_pt_f150, 1 },
+	{ "Couldn't write %s.", lang_pt_f151, 1 },
+	{ "Couldn't write to %s.", lang_pt_f152, 1 },
+	{ "Custom", lang_pt_f153, 1 },
+	{ "Custom Logos: Do Not Use", lang_pt_f154, 1 },
+	{ "Custom Logos: Full Detail", lang_pt_f155, 1 },
+	{ "Custom Logos: Pixelated", lang_pt_f156, 1 },
+	{ "Custom logos", lang_pt_f157, 1 },
+	{ "D-pad", lang_pt_f158, 1 },
+	{ "D-pad down", lang_pt_f159, 1 },
+	{ "D-pad left", lang_pt_f160, 1 },
+	{ "D-pad right", lang_pt_f161, 1 },
+	{ "D-pad up", lang_pt_f162, 1 },
+	{ "Dark", lang_pt_f163, 1 },
+	{ "Darkens the bottom screen, in this app only: the device's own brightness is left alone (and this can't go above it).", lang_pt_f164, 1 },
+	{ "Darkens the top screen, in this app only: the device's own brightness is left alone (and this can't go above it).", lang_pt_f165, 1 },
+	{ "Dec", lang_pt_f166, 1 },
+	{ "Del", lang_pt_f167, 1 },
+	{ "Delete per-game settings", lang_pt_f168, 1 },
+	{ "Deleted the settings of %d games.", lang_pt_f169, 1 },
+	{ "Deleted the settings of 1 game.", lang_pt_f170, 1 },
+	{ "Display", lang_pt_f171, 1 },
+	{ "Done", lang_pt_f172, 1 },
+	{ "Done (No Note)", lang_pt_f173, 1 },
+	{ "Down", lang_pt_f174, 1 },
+	{ "Downloading", lang_pt_f175, 1 },
+	{ "ES-DE's folder wasn't found.", lang_pt_f176, 1 },
+	{ "Each pixel a little darker toward its edges", lang_pt_f177, 1 },
+	{ "Earn achievements in casual mode with your retroachievements.org account. GBA DS keeps a sign-in token, not your password.", lang_pt_f178, 1 },
+	{ "English", lang_pt_f179, 1 },
+	{ "Enter both your username and your password.", lang_pt_f180, 1 },
+	{ "Enter your account in the sign-in box...", lang_pt_f181, 1 },
+	{ "Every 0.5 s", lang_pt_f182, 1 },
+	{ "Every 1.5 s", lang_pt_f183, 1 },
+	{ "Every 3 s", lang_pt_f184, 1 },
+	{ "Every button was skipped, so nothing changed.", lang_pt_f185, 1 },
+	{ "Every second", lang_pt_f186, 1 },
+	{ "Fails", lang_pt_f187, 1 },
+	{ "Fast (20 a second)", lang_pt_f188, 1 },
+	{ "Fast Forward: %dx", lang_pt_f189, 1 },
+	{ "Fast Forward: Max", lang_pt_f190, 1 },
+	{ "Fast Forward: Off", lang_pt_f191, 1 },
+	{ "Fast forward", lang_pt_f192, 1 },
+	{ "Fast forwarding...", lang_pt_f193, 1 },
+	{ "Feb", lang_pt_f194, 1 },
+	{ "First run only. B: back", lang_pt_f195, 1 },
+	{ "Folders", lang_pt_f196, 1 },
+	{ "Folders, accounts, updates", lang_pt_f197, 1 },
+	{ "Follows how you hold the phone, and Android's own rotation lock.", lang_pt_f198, 1 },
+	{ "Frame Buffer: Always on here", lang_pt_f199, 1 },
+	{ "Frame Buffer: Off", lang_pt_f200, 1 },
+	{ "Frame Buffer: On", lang_pt_f201, 1 },
+	{ "Frame buffer", lang_pt_f202, 1 },
+	{ "Frames a second above the game, all the time.", lang_pt_f203, 1 },
+	{ "From RetroArch's settings:", lang_pt_f204, 1 },
+	{ "Full Width", lang_pt_f205, 1 },
+	{ "Full detail", lang_pt_f206, 1 },
+	{ "GBA", lang_pt_f207, 1 },
+	{ "GBA A", lang_pt_f208, 1 },
+	{ "GBA A on the right button, or on the bottom one.", lang_pt_f209, 1 },
+	{ "GBA B", lang_pt_f210, 1 },
+	{ "GBA DS Logo: Hide", lang_pt_f211, 1 },
+	{ "GBA DS Logo: Show", lang_pt_f212, 1 },
+	{ "GBA DS Settings", lang_pt_f213, 1 },
+	{ "GBA DS can't save files there: allow it All files access in Android's settings, or choose another folder.", lang_pt_f214, 1 },
+	{ "GBA DS in BananaOS's GBA list: Off", lang_pt_f215, 1 },
+	{ "GBA DS in BananaOS's GBA list: On", lang_pt_f216, 1 },
+	{ "GBA DS in ES-DE: Off", lang_pt_f217, 1 },
+	{ "GBA DS in ES-DE: On", lang_pt_f218, 1 },
+	{ "GBA DS in EmulationStation: Off", lang_pt_f219, 1 },
+	{ "GBA DS in EmulationStation: On", lang_pt_f220, 1 },
+	{ "GBA DS is now ES-DE's emulator for Game Boy Advance games. Quit ES-DE and open it again to see it.", lang_pt_f221, 1 },
+	{ "GBA DS is out of ES-DE's emulator list. Quit ES-DE and open it again to see it.", lang_pt_f222, 1 },
+	{ "GBA DS v%s is out (this is v%s). Update now to download it (%.1f MB) and install it: Android asks you to confirm. Your games, saves, states and settings are kept.", lang_pt_f223, 1 },
+	{ "GBA DS v%s is out (this is v%s). Update now to download it (%.1f MB) and restart into it; your games, saves, states and settings are kept.", lang_pt_f224, 1 },
+	{ "GBA DS's bezel, or your own PNGs, round the picture.", lang_pt_f225, 1 },
+	{ "GBA DS's files are kept there already.", lang_pt_f226, 1 },
+	{ "GBA DS's files go to %s the next time it starts: close GBA DS and open it again.", lang_pt_f227, 1 },
+	{ "GBA DS's own files (states, settings, cheats, overlays) are in %s, moving to %s at the next start.", lang_pt_f228, 1 },
+	{ "GBA DS's own files (states, settings, cheats, overlays) are in %s.", lang_pt_f229, 1 },
+	{ "GBA Down", lang_pt_f230, 1 },
+	{ "GBA L", lang_pt_f231, 1 },
+	{ "GBA Left", lang_pt_f232, 1 },
+	{ "GBA R", lang_pt_f233, 1 },
+	{ "GBA Right", lang_pt_f234, 1 },
+	{ "GBA Up", lang_pt_f235, 1 },
+	{ "Game", lang_pt_f236, 1 },
+	{ "Game below", lang_pt_f237, 1 },
+	{ "Game names", lang_pt_f238, 1 },
+	{ "Game on top", lang_pt_f239, 1 },
+	{ "Game restarted", lang_pt_f240, 1 },
+	{ "Game screen scale", lang_pt_f241, 1 },
+	{ "Games", lang_pt_f242, 1 },
+	{ "Games are read from %s (subfolders too). Saves (%s) are kept in %s.", lang_pt_f243, 1 },
+	{ "Games are read from %s (subfolders too). Saves (%s) are kept next to the games.", lang_pt_f244, 1 },
+	{ "Games picked in BananaOS's own Game Boy Advance list start in GBA DS when it has second-screen support for them. Restart BananaOS after switching this.", lang_pt_f245, 1 },
+	{ "Games shown", lang_pt_f246, 1 },
+	{ "Games without second-screen support play on one screen.", lang_pt_f247, 1 },
+	{ "Generated", lang_pt_f248, 1 },
+	{ "Green", lang_pt_f249, 1 },
+	{ "Held on its side: the two screens side by side. Either way round.", lang_pt_f250, 1 },
+	{ "Held upright: the two screens one above the other. Either way up.", lang_pt_f251, 1 },
+	{ "Hex Color", lang_pt_f252, 1 },
+	{ "Hold L2 to go back in time.", lang_pt_f253, 1 },
+	{ "Hold R2 to play faster.", lang_pt_f254, 1 },
+	{ "Home", lang_pt_f255, 1 },
+	{ "Hotkey button", lang_pt_f256, 1 },
+	{ "Hotkeys", lang_pt_f257, 1 },
+	{ "How dark the grid, scanlines and soft cells are.", lang_pt_f258, 1 },
+	{ "How far back it goes.", lang_pt_f259, 1 },
+	{ "How fast Turbo A and Turbo B press.", lang_pt_f260, 1 },
+	{ "How the game's picture fills its screen.", lang_pt_f261, 1 },
+	{ "How the map or logo fills its screen.", lang_pt_f262, 1 },
+	{ "In a game, hold the hotkey button and press another", lang_pt_f263, 1 },
+	{ "In patches/%s", lang_pt_f264, 1 },
+	{ "Inner Bezel Color", lang_pt_f265, 1 },
+	{ "Installed", lang_pt_f266, 1 },
+	{ "Installing", lang_pt_f267, 1 },
+	{ "Jan", lang_pt_f268, 1 },
+	{ "Jul", lang_pt_f269, 1 },
+	{ "Jun", lang_pt_f270, 1 },
+	{ "Keep device aspect ratios", lang_pt_f271, 1 },
+	{ "Keep device shapes", lang_pt_f272, 1 },
+	{ "Keep saves next to the games", lang_pt_f273, 1 },
+	{ "Kept as it was in %d s if nothing is pressed", lang_pt_f274, 1 },
+	{ "Kept for every game", lang_pt_f275, 1 },
+	{ "Known %s patch, tested: %s", lang_pt_f276, 1 },
+	{ "Known %s patch, untested: %s. The second screen may not work with it", lang_pt_f277, 1 },
+	{ "Known %s patch: %s, made for %s. This ROM is another version: it may break the game", lang_pt_f278, 1 },
+	{ "Known %s patch: %s, made for %s: it can't be switched on for this ROM", lang_pt_f279, 1 },
+	{ "Known romhack: %s, untested", lang_pt_f280, 1 },
+	{ "L button", lang_pt_f281, 1 },
+	{ "LCD Ghosting: Off", lang_pt_f282, 1 },
+	{ "LCD Ghosting: On", lang_pt_f283, 1 },
+	{ "LCD Grid", lang_pt_f284, 1 },
+	{ "LCD ghosting", lang_pt_f285, 1 },
+	{ "Language", lang_pt_f286, 1 },
+	{ "Last checked %s.", lang_pt_f287, 1 },
+	{ "Later", lang_pt_f288, 1 },
+	{ "Left", lang_pt_f289, 1 },
+	{ "Left out where it is: it's made for the unchanged ROM, so it has to be first (only one such patch can be on). Move it up with X", lang_pt_f290, 1 },
+	{ "Left stick as D-pad", lang_pt_f291, 1 },
+	{ "Left stick: left", lang_pt_f292, 1 },
+	{ "Left stick: up", lang_pt_f293, 1 },
+	{ "Let the System Decide", lang_pt_f294, 1 },
+	{ "Light", lang_pt_f295, 1 },
+	{ "Light/dark mode", lang_pt_f296, 1 },
+	{ "Like a GBA", lang_pt_f297, 1 },
+	{ "Lines between the pixels, like a GBA's screen", lang_pt_f298, 1 },
+	{ "Load State", lang_pt_f299, 1 },
+	{ "Load State %d", lang_pt_f300, 1 },
+	{ "Load failed", lang_pt_f301, 1 },
+	{ "Load failed.", lang_pt_f302, 1 },
+	{ "Loading games...", lang_pt_f303, 1 },
+	{ "Loading the achievements...", lang_pt_f304, 1 },
+	{ "Loading thumbnail...", lang_pt_f305, 1 },
+	{ "Made for another version of the game: it can't be switched on for this ROM", lang_pt_f306, 1 },
+	{ "Makes GBA DS the emulator for Game Boy Advance games in ES-DE. For a game it doesn't support, choose another in ES-DE (the game's metadata > Alternative emulator).", lang_pt_f307, 1 },
+	{ "Map", lang_pt_f308, 1 },
+	{ "Map Buttons", lang_pt_f309, 1 },
+	{ "Map buttons", lang_pt_f310, 1 },
+	{ "Map refresh", lang_pt_f311, 1 },
+	{ "Mar", lang_pt_f312, 1 },
+	{ "Match Display Rate: Off", lang_pt_f313, 1 },
+	{ "Match Display Rate: Off for now", lang_pt_f314, 1 },
+	{ "Match Display Rate: On", lang_pt_f315, 1 },
+	{ "Match aspect ratios", lang_pt_f316, 1 },
+	{ "Match display rate", lang_pt_f317, 1 },
+	{ "Match screen aspect ratios", lang_pt_f318, 1 },
+	{ "Match screen sizes and aspect ratios", lang_pt_f319, 1 },
+	{ "Match sizes and shapes", lang_pt_f320, 1 },
+	{ "Max: full speed, a warmer device and a shorter battery.", lang_pt_f321, 1 },
+	{ "May", lang_pt_f322, 1 },
+	{ "Medium (15 a second)", lang_pt_f323, 1 },
+	{ "Modified ROM: the second screen may not work", lang_pt_f324, 1 },
+	{ "Move", lang_pt_f325, 1 },
+	{ "Moving it: Up / Down or tap where it goes, then A (or tap it again). The one lower in the list is applied later", lang_pt_f326, 1 },
+	{ "Moving things leave a short trail, as on a GBA.", lang_pt_f327, 1 },
+	{ "NOTE: Unsupported games will play in RetroArch, but without BananaOS's own second screen (its game panel and companions).", lang_pt_f328, 1 },
+	{ "New", lang_pt_f329, 1 },
+	{ "No RetroArch states here", lang_pt_f330, 1 },
+	{ "No achievements for this ROM (MD5 %s)", lang_pt_f331, 1 },
+	{ "No cheats found (see Cheats in the wiki)", lang_pt_f332, 1 },
+	{ "No controller found", lang_pt_f333, 1 },
+	{ "No es_systems.cfg found.", lang_pt_f334, 1 },
+	{ "No folder chosen.", lang_pt_f335, 1 },
+	{ "No folders in this one", lang_pt_f336, 1 },
+	{ "No game has settings of its own.", lang_pt_f337, 1 },
+	{ "No games found", lang_pt_f338, 1 },
+	{ "No patches here yet", lang_pt_f339, 1 },
+	{ "No quick state saved yet.", lang_pt_f340, 1 },
+	{ "No supported games in", lang_pt_f341, 1 },
+	{ "None", lang_pt_f342, 1 },
+	{ "Not in the folder any more: it's left out", lang_pt_f343, 1 },
+	{ "Not resumed: RetroArch's automatic state is from another of its GBA cores. To share states, set RetroArch's GBA core to mGBA.", lang_pt_f344, 1 },
+	{ "Not used", lang_pt_f345, 1 },
+	{ "Nothing", lang_pt_f346, 1 },
+	{ "Nothing mapped", lang_pt_f347, 1 },
+	{ "Nothing saved in slot %d yet", lang_pt_f348, 1 },
+	{ "Nothing to report yet.", lang_pt_f349, 1 },
+	{ "Nov", lang_pt_f350, 1 },
+	{ "Now", lang_pt_f351, 1 },
+	{ "OK", lang_pt_f352, 1 },
+	{ "Oct", lang_pt_f353, 1 },
+	{ "Off", lang_pt_f354, 1 },
+	{ "Off for slower devices: the table on one screen. Close and restart GBA DS to apply.", lang_pt_f355, 1 },
+	{ "Off while a patch is on", lang_pt_f356, 1 },
+	{ "Off.", lang_pt_f357, 1 },
+	{ "Off. Restart BananaOS (Settings > System) for its menu to use it.", lang_pt_f358, 1 },
+	{ "Off. Restart EmulationStation to apply.", lang_pt_f359, 1 },
+	{ "Off: every game plays like an ordinary GBA game.", lang_pt_f360, 1 },
+	{ "Off: the left stick does nothing in games.", lang_pt_f361, 1 },
+	{ "Offline", lang_pt_f362, 1 },
+	{ "On", lang_pt_f363, 1 },
+	{ "On.", lang_pt_f364, 1 },
+	{ "On. Restart BananaOS (Settings > System) for its menu to use it.", lang_pt_f365, 1 },
+	{ "On. Restart EmulationStation to see it.", lang_pt_f366, 1 },
+	{ "Only games with a map screen are listed (show_all = 1 lists every one)", lang_pt_f367, 1 },
+	{ "Only one screen: nothing to move", lang_pt_f368, 1 },
+	{ "Only patches that are on have an order, and this is the only one", lang_pt_f369, 1 },
+	{ "Only when your two screens differ in shape. Experimental.", lang_pt_f370, 1 },
+	{ "Open quick menu", lang_pt_f371, 1 },
+	{ "Opens the bezel's own page, for whichever the game or all games have", lang_pt_f372, 1 },
+	{ "Orange", lang_pt_f373, 1 },
+	{ "Outer Bezel Color", lang_pt_f374, 1 },
+	{ "Overlay colors and logo", lang_pt_f375, 1 },
+	{ "Overlays", lang_pt_f376, 1 },
+	{ "Overlays on", lang_pt_f377, 1 },
+	{ "Overlays: Custom", lang_pt_f378, 1 },
+	{ "Overlays: Custom (in /overlays)", lang_pt_f379, 1 },
+	{ "Overlays: Generated", lang_pt_f380, 1 },
+	{ "Overlays: Off", lang_pt_f381, 1 },
+	{ "PM", lang_pt_f382, 1 },
+	{ "Patch not applied: %s can't be read", lang_pt_f383, 1 },
+	{ "Patch not applied: %s is for another ROM", lang_pt_f384, 1 },
+	{ "Patched, but a patch was left out: see Patches in the game's menu", lang_pt_f385, 1 },
+	{ "Patched: the second screen may not work", lang_pt_f386, 1 },
+	{ "Patches", lang_pt_f387, 1 },
+	{ "Patches changed", lang_pt_f388, 1 },
+	{ "Patches changed since the game started", lang_pt_f389, 1 },
+	{ "Patches changed: carrying on from where you were", lang_pt_f390, 1 },
+	{ "Pattern strength", lang_pt_f391, 1 },
+	{ "Paused", lang_pt_f392, 1 },
+	{ "Performance", lang_pt_f393, 1 },
+	{ "Performance: Let the System Decide", lang_pt_f394, 1 },
+	{ "Performance: Set to Max", lang_pt_f395, 1 },
+	{ "Pictures in the middle of their screens, or close together.", lang_pt_f396, 1 },
+	{ "Pinball two-screen view", lang_pt_f397, 1 },
+	{ "Pink", lang_pt_f398, 1 },
+	{ "Pinned: the bar stays up.", lang_pt_f399, 1 },
+	{ "Pixel Perfect", lang_pt_f400, 1 },
+	{ "Pixelated", lang_pt_f401, 1 },
+	{ "Placement, overlays", lang_pt_f402, 1 },
+	{ "Plain", lang_pt_f403, 1 },
+	{ "Play", lang_pt_f404, 1 },
+	{ "Playing without achievements this time", lang_pt_f405, 1 },
+	{ "Preparing the game...", lang_pt_f406, 1 },
+	{ "Press %s", lang_pt_f407, 1 },
+	{ "Press A or tap to close", lang_pt_f408, 1 },
+	{ "Press A to close", lang_pt_f409, 1 },
+	{ "Press a button", lang_pt_f410, 1 },
+	{ "Purple", lang_pt_f411, 1 },
+	{ "Push the stick: buttons don't count for this one.", lang_pt_f412, 1 },
+	{ "Put .ips, .ups, .bps or .xdelta files in %s", lang_pt_f413, 1 },
+	{ "Quick bar hint", lang_pt_f414, 1 },
+	{ "Quick load state", lang_pt_f415, 1 },
+	{ "Quick save state", lang_pt_f416, 1 },
+	{ "Quit", lang_pt_f417, 1 },
+	{ "R button", lang_pt_f418, 1 },
+	{ "RETROACHIEVEMENTS \302\267 CASUAL", lang_pt_f419, 1 },
+	{ "Raise it if the sound crackles.", lang_pt_f420, 1 },
+	{ "Red", lang_pt_f421, 1 },
+	{ "Red, green and blue stripes, gentle: for dim screens", lang_pt_f422, 1 },
+	{ "Red, green and blue stripes, like a GBA's screen", lang_pt_f423, 1 },
+	{ "Red, green and blue stripes, strong: for bright screens", lang_pt_f424, 1 },
+	{ "Reset", lang_pt_f425, 1 },
+	{ "Reset Bezels", lang_pt_f426, 1 },
+	{ "Reset settings to defaults", lang_pt_f427, 1 },
+	{ "Restart", lang_pt_f428, 1 },
+	{ "Restart Game", lang_pt_f429, 1 },
+	{ "Restart from the top row to play with it (or it's used from the next start)", lang_pt_f430, 1 },
+	{ "Restart from the top row to play with this order", lang_pt_f431, 1 },
+	{ "Restart required", lang_pt_f432, 1 },
+	{ "Resume", lang_pt_f433, 1 },
+	{ "Resumed. Tap or HOME for the menu", lang_pt_f434, 1 },
+	{ "RetroAchievements couldn't start", lang_pt_f435, 1 },
+	{ "RetroAchievements doesn't allow patched games", lang_pt_f436, 1 },
+	{ "RetroAchievements is off", lang_pt_f437, 1 },
+	{ "RetroAchievements: Off", lang_pt_f438, 1 },
+	{ "RetroAchievements: Sign In", lang_pt_f439, 1 },
+	{ "RetroAchievements: Sign Out", lang_pt_f440, 1 },
+	{ "RetroAchievements: Signing In...", lang_pt_f441, 1 },
+	{ "RetroArch's State Folder", lang_pt_f442, 1 },
+	{ "RetroArch's settings weren't found here: choose the folder where it keeps its save states.", lang_pt_f443, 1 },
+	{ "RetroArch's settings weren't found, so slots 0-9 and the automatic state are GBA DS's own again.", lang_pt_f444, 1 },
+	{ "RetroArch's state folder is found from its settings again: %s.", lang_pt_f445, 1 },
+	{ "Rewind", lang_pt_f446, 1 },
+	{ "Rewind length", lang_pt_f447, 1 },
+	{ "Rewind, fast forward", lang_pt_f448, 1 },
+	{ "Rewind: Off", lang_pt_f449, 1 },
+	{ "Rewind: On", lang_pt_f450, 1 },
+	{ "Rewinding...", lang_pt_f451, 1 },
+	{ "Right", lang_pt_f452, 1 },
+	{ "Romhack: %s%s", lang_pt_f453, 1 },
+	{ "Romhack: %s%s, untested", lang_pt_f454, 1 },
+	{ "Rotation: Auto", lang_pt_f455, 1 },
+	{ "Rotation: Landscape", lang_pt_f456, 1 },
+	{ "Rotation: Portrait", lang_pt_f457, 1 },
+	{ "Run at the display's rate: no small regular stutter.", lang_pt_f458, 1 },
+	{ "SNES", lang_pt_f459, 1 },
+	{ "Same as all games again", lang_pt_f460, 1 },
+	{ "Save State", lang_pt_f461, 1 },
+	{ "Save State %d", lang_pt_f462, 1 },
+	{ "Save States: GBA DS's Own", lang_pt_f463, 1 },
+	{ "Save States: Shared with RetroArch", lang_pt_f464, 1 },
+	{ "Save failed", lang_pt_f465, 1 },
+	{ "Save failed.", lang_pt_f466, 1 },
+	{ "Save files: .sav", lang_pt_f467, 1 },
+	{ "Save files: .srm (RetroArch's)", lang_pt_f468, 1 },
+	{ "Save on Quit: Off", lang_pt_f469, 1 },
+	{ "Save on Quit: On", lang_pt_f470, 1 },
+	{ "Save on quit", lang_pt_f471, 1 },
+	{ "Saved by another emulator: can't load it", lang_pt_f472, 1 },
+	{ "Saved for all games", lang_pt_f473, 1 },
+	{ "Saved for this game", lang_pt_f474, 1 },
+	{ "Saved for when a patch is on", lang_pt_f475, 1 },
+	{ "Saves will be kept next to the games.", lang_pt_f476, 1 },
+	{ "Saves will be kept there.", lang_pt_f477, 1 },
+	{ "Scale, shader, theme, color", lang_pt_f478, 1 },
+	{ "Scale: Full Width", lang_pt_f479, 1 },
+	{ "Scale: Pixel Perfect", lang_pt_f480, 1 },
+	{ "Scale: Stretch", lang_pt_f481, 1 },
+	{ "Scale: Zoom", lang_pt_f482, 1 },
+	{ "Scanlines", lang_pt_f483, 1 },
+	{ "Screen Placement: Centered", lang_pt_f484, 1 },
+	{ "Screen Placement: Closest to Gap", lang_pt_f485, 1 },
+	{ "Screen placement", lang_pt_f486, 1 },
+	{ "Screen shapes", lang_pt_f487, 1 },
+	{ "Screens", lang_pt_f488, 1 },
+	{ "Screenshot failed", lang_pt_f489, 1 },
+	{ "Screenshot saved", lang_pt_f490, 1 },
+	{ "Second screen", lang_pt_f491, 1 },
+	{ "Second screen scale", lang_pt_f492, 1 },
+	{ "Select", lang_pt_f493, 1 },
+	{ "Select or Start still reach the game when tapped on their own, L3 still opens the quick menu", lang_pt_f494, 1 },
+	{ "Sep", lang_pt_f495, 1 },
+	{ "Separate battery save", lang_pt_f496, 1 },
+	{ "Separate save states", lang_pt_f497, 1 },
+	{ "Set for now, but %s couldn't be written.", lang_pt_f498, 1 },
+	{ "Set to Max", lang_pt_f499, 1 },
+	{ "Sets the shortcuts: the hotkey button held with another.", lang_pt_f500, 1 },
+	{ "Sets which of this device's buttons does what.", lang_pt_f501, 1 },
+	{ "Settings", lang_pt_f502, 1 },
+	{ "Settings are back to their defaults.", lang_pt_f503, 1 },
+	{ "Shader", lang_pt_f504, 1 },
+	{ "Shader: LCD Grid", lang_pt_f505, 1 },
+	{ "Shader: Off", lang_pt_f506, 1 },
+	{ "Shader: Scanlines", lang_pt_f507, 1 },
+	{ "Shader: Soft Cells", lang_pt_f508, 1 },
+	{ "Shader: Subpixels", lang_pt_f509, 1 },
+	{ "Shader: Subpixels (Light)", lang_pt_f510, 1 },
+	{ "Shader: Subpixels (Strong)", lang_pt_f511, 1 },
+	{ "Shorter can make the sound crackle on a slow device.", lang_pt_f512, 1 },
+	{ "Show FPS", lang_pt_f513, 1 },
+	{ "Show FPS: Off", lang_pt_f514, 1 },
+	{ "Show FPS: On", lang_pt_f515, 1 },
+	{ "Sign in again in the game list's Settings", lang_pt_f516, 1 },
+	{ "Sign-in failed", lang_pt_f517, 1 },
+	{ "Signed in as %s. Achievements are earned in casual mode.", lang_pt_f518, 1 },
+	{ "Signed out of RetroAchievements.", lang_pt_f519, 1 },
+	{ "Signing in as %s...", lang_pt_f520, 1 },
+	{ "Single screen only", lang_pt_f521, 1 },
+	{ "Single screen only: plays normally", lang_pt_f522, 1 },
+	{ "Skip", lang_pt_f523, 1 },
+	{ "Skip this version", lang_pt_f524, 1 },
+	{ "Skipped in %d s if nothing is pressed", lang_pt_f525, 1 },
+	{ "Slot %d loaded", lang_pt_f526, 1 },
+	{ "Slot %d: %s", lang_pt_f527, 1 },
+	{ "Slot %d: %s %d, %d%s", lang_pt_f528, 1 },
+	{ "Slot %d: %s %d, %d:%02d %s%s", lang_pt_f529, 1 },
+	{ "Slot %d: Empty", lang_pt_f530, 1 },
+	{ "Slots 0-9 and the automatic state are GBA DS's own again. The states saved in RetroArch's folder stay there.", lang_pt_f531, 1 },
+	{ "Slots 0-9 and the automatic state are now RetroArch's. GBA DS's own states stay in its folder, for when this is switched back.", lang_pt_f532, 1 },
+	{ "Slots 0-9 and the automatic state are now shared with RetroArch, in %s.", lang_pt_f533, 1 },
+	{ "Slots 0-9 and the resume point are GBA DS's own. Shared, they're RetroArch's: %s.", lang_pt_f534, 1 },
+	{ "Slots 0-9 and the resume point are GBA DS's own. To share them, choose RetroArch's state folder.", lang_pt_f535, 1 },
+	{ "Slots 0-9 and the resume point are RetroArch's (its GBA core set to mGBA): %s.", lang_pt_f536, 1 },
+	{ "Slow (10 a second)", lang_pt_f537, 1 },
+	{ "Smooth scaling", lang_pt_f538, 1 },
+	{ "Smoother, one frame more input delay.", lang_pt_f539, 1 },
+	{ "Soft Cells", lang_pt_f540, 1 },
+	{ "Some files couldn't be moved, they're still in %s", lang_pt_f541, 1 },
+	{ "Sound delay", lang_pt_f542, 1 },
+	{ "Space", lang_pt_f543, 1 },
+	{ "Speed", lang_pt_f544, 1 },
+	{ "Speed and sound", lang_pt_f545, 1 },
+	{ "Start", lang_pt_f546, 1 },
+	{ "Starting a game picks up where you closed it.", lang_pt_f547, 1 },
+	{ "State loaded.", lang_pt_f548, 1 },
+	{ "State saved to slot %d", lang_pt_f549, 1 },
+	{ "State saved.", lang_pt_f550, 1 },
+	{ "Stick, buttons, hotkeys", lang_pt_f551, 1 },
+	{ "Stretch", lang_pt_f552, 1 },
+	{ "Submit a Bug Report", lang_pt_f553, 1 },
+	{ "Subpixels", lang_pt_f554, 1 },
+	{ "Subpixels (Light)", lang_pt_f555, 1 },
+	{ "Subpixels (Strong)", lang_pt_f556, 1 },
+	{ "Supported", lang_pt_f557, 1 },
+	{ "Supported games only", lang_pt_f558, 1 },
+	{ "Sure?", lang_pt_f559, 1 },
+	{ "Swap Screens", lang_pt_f560, 1 },
+	{ "Swap screens", lang_pt_f561, 1 },
+	{ "Swapped", lang_pt_f562, 1 },
+	{ "Swipe up for quick menu", lang_pt_f563, 1 },
+	{ "Switched off in gba-ds.cfg (retroachievements = 0).", lang_pt_f564, 1 },
+	{ "System", lang_pt_f565, 1 },
+	{ "Tags in a ROM's file name, like (USA) or (En,Fr,De).", lang_pt_f566, 1 },
+	{ "Take Screenshot", lang_pt_f567, 1 },
+	{ "Takes effect after you close and restart GBA DS", lang_pt_f568, 1 },
+	{ "Tap again to close GBA DS.", lang_pt_f569, 1 },
+	{ "Tap the screen or press HOME for the menu", lang_pt_f570, 1 },
+	{ "Tap the touchscreen to skip a button this device doesn't have", lang_pt_f571, 1 },
+	{ "Tap to set none", lang_pt_f572, 1 },
+	{ "Tap to skip a button this device doesn't have", lang_pt_f573, 1 },
+	{ "Teal", lang_pt_f574, 1 },
+	{ "Tested romhack: %s", lang_pt_f575, 1 },
+	{ "That one comes as a keyboard key here: it can't be mapped. Tap to skip.", lang_pt_f576, 1 },
+	{ "That one is already %s. Press another, or tap to skip.", lang_pt_f577, 1 },
+	{ "That's inside GBA DS's own folder: choose one outside it.", lang_pt_f578, 1 },
+	{ "That's the hotkey button: press another", lang_pt_f579, 1 },
+	{ "The GBA DS logo in the generated bezel.", lang_pt_f580, 1 },
+	{ "The game's pixels as they are", lang_pt_f581, 1 },
+	{ "The hotkey button can be %s, Select, Start or L3", lang_pt_f582, 1 },
+	{ "The map and the logo", lang_pt_f583, 1 },
+	{ "The menus' buttons: dark grey, or light grey like the web player's.", lang_pt_f584, 1 },
+	{ "The menus' color for what's selected, with a dark and a light version of each.", lang_pt_f585, 1 },
+	{ "The patches aren't as the game started: restart it to play with them (or they're used from the next start)", lang_pt_f586, 1 },
+	{ "The processor, memory and graphics run at full speed while GBA DS is open: the smoothest play, but the battery runs down faster and the device gets warmer.", lang_pt_f587, 1 },
+	{ "The system sets the speed, as for its other emulators. If games stutter or the sound breaks up, try Set to Max.", lang_pt_f588, 1 },
+	{ "This folder can't be opened", lang_pt_f589, 1 },
+	{ "This game", lang_pt_f590, 1 },
+	{ "This game has its own value. X, or going on past the last choice: same as all games", lang_pt_f591, 1 },
+	{ "This game has no achievements yet", lang_pt_f592, 1 },
+	{ "This is GBA DS v%s.", lang_pt_f593, 1 },
+	{ "This is v%s. Look for a new version, and download and install it.", lang_pt_f594, 1 },
+	{ "This state can't be read", lang_pt_f595, 1 },
+	{ "This state was saved %s: it may not work", lang_pt_f596, 1 },
+	{ "Together: %s", lang_pt_f597, 1 },
+	{ "Toggle selected shader", lang_pt_f598, 1 },
+	{ "Top screen", lang_pt_f599, 1 },
+	{ "Top screen brightness", lang_pt_f600, 1 },
+	{ "Touch or use the D-Pad", lang_pt_f601, 1 },
+	{ "Turbo A", lang_pt_f602, 1 },
+	{ "Turbo B", lang_pt_f603, 1 },
+	{ "Turbo speed", lang_pt_f604, 1 },
+	{ "Turns this ROM into another official release: %s", lang_pt_f605, 1 },
+	{ "Unexpected es_systems.cfg (see the log).", lang_pt_f606, 1 },
+	{ "Unknown version of this game", lang_pt_f607, 1 },
+	{ "Unlocked", lang_pt_f608, 1 },
+	{ "Unlocks sent", lang_pt_f609, 1 },
+	{ "Unlocks will be sent when the connection is back", lang_pt_f610, 1 },
+	{ "Unpinned: the bar hides after 5 seconds.", lang_pt_f611, 1 },
+	{ "Untested: the second screen may not work with it", lang_pt_f612, 1 },
+	{ "Up", lang_pt_f613, 1 },
+	{ "Up to %d patches can be on at once", lang_pt_f614, 1 },
+	{ "Up to %s", lang_pt_f615, 1 },
+	{ "Update now", lang_pt_f616, 1 },
+	{ "Updates", lang_pt_f617, 1 },
+	{ "Updates, integrations", lang_pt_f618, 1 },
+	{ "Use This Folder", lang_pt_f619, 1 },
+	{ "Used from the next time the game starts", lang_pt_f620, 1 },
+	{ "Volume %d%%", lang_pt_f621, 1 },
+	{ "What D-pad down gives the game.", lang_pt_f622, 1 },
+	{ "What D-pad left gives the game.", lang_pt_f623, 1 },
+	{ "What D-pad right gives the game.", lang_pt_f624, 1 },
+	{ "What D-pad up gives the game.", lang_pt_f625, 1 },
+	{ "What the L shoulder button gives the game.", lang_pt_f626, 1 },
+	{ "What the R shoulder button gives the game.", lang_pt_f627, 1 },
+	{ "What the bottom face button gives the game.", lang_pt_f628, 1 },
+	{ "What the left face button gives the game.", lang_pt_f629, 1 },
+	{ "What the right face button gives the game.", lang_pt_f630, 1 },
+	{ "What the top face button gives the game.", lang_pt_f631, 1 },
+	{ "Where games are read from, and the folder their saves are kept in.", lang_pt_f632, 1 },
+	{ "Where games are read from. Their saves are kept next to them.", lang_pt_f633, 1 },
+	{ "Which Screen: Both", lang_pt_f634, 1 },
+	{ "Which Screen: Bottom Only", lang_pt_f635, 1 },
+	{ "Which Screen: Top Only", lang_pt_f636, 1 },
+	{ "Which games, names, saving", lang_pt_f637, 1 },
+	{ "Which screen the game is on.", lang_pt_f638, 1 },
+	{ "Which screens have them.", lang_pt_f639, 1 },
+	{ "With Four buttons picked under Controls in the quick bar, the four-button layout replaces these.", lang_pt_f640, 1 },
+	{ "With SNES picked under Controls in the quick bar, the SNES layout replaces these in levels.", lang_pt_f641, 1 },
+	{ "With a patch on, the game keeps its own battery save (\"<game> + <patch>\"): off, it uses the original's", lang_pt_f642, 1 },
+	{ "With a patch on, the game keeps its own save states: off, it uses the original's (a state can come out garbled in the other)", lang_pt_f643, 1 },
+	{ "With automatic checks on, GBA DS looks for a new version once a day when the game list opens, and asks before downloading anything. Updates come from the releases on github.com/kyannon/gba-ds.", lang_pt_f644, 1 },
+	{ "With tags, like (USA)", lang_pt_f645, 1 },
+	{ "X (top) button", lang_pt_f646, 1 },
+	{ "Y (left) button", lang_pt_f647, 1 },
+	{ "Your own PNGs in gba-ds/overlays/. A screen without one gets the generated bezel in its default colors.", lang_pt_f648, 1 },
+	{ "Your own and scraped logos on the second screen.", lang_pt_f649, 1 },
+	{ "Your screens are the same shape: nothing to match", lang_pt_f650, 1 },
+	{ "Zoom", lang_pt_f651, 1 },
+	{ "color", lang_pt_f652, 1 },
+	{ "hex", lang_pt_f653, 1 },
+	{ "hue", lang_pt_f654, 1 },
+	{ "machine translated", lang_pt_f655, 1 },
+	{ "no save state yet!", lang_pt_f656, 1 },
+	{ "off", lang_pt_f657, 1 },
+	{ "on", lang_pt_f658, 1 },
+	{ "point", lang_pt_f659, 1 },
+	{ "points", lang_pt_f660, 1 },
+	{ "presets", lang_pt_f661, 1 },
+	{ "press the left stick in", lang_pt_f662, 1 },
+	{ "push the left stick left", lang_pt_f663, 1 },
+	{ "push the left stick up", lang_pt_f664, 1 },
+	{ "the bottom face button", lang_pt_f665, 1 },
+	{ "the button that opens GBA DS's menu (Home, Menu or Function)", lang_pt_f666, 1 },
+	{ "the game", lang_pt_f667, 1 },
+	{ "the left face button", lang_pt_f668, 1 },
+	{ "the left shoulder button", lang_pt_f669, 1 },
+	{ "the patch beside the ROM", lang_pt_f670, 1 },
+	{ "the right face button", lang_pt_f671, 1 },
+	{ "the right shoulder button", lang_pt_f672, 1 },
+	{ "the second left shoulder button", lang_pt_f673, 1 },
+	{ "the second right shoulder button", lang_pt_f674, 1 },
+	{ "the top face button", lang_pt_f675, 1 },
+	{ "unsaved progress is lost", lang_pt_f676, 1 },
+	{ "with", lang_pt_f677, 1 },
+	{ "with %s", lang_pt_f678, 1 },
+	{ "with another dump of the game (%s)", lang_pt_f679, 1 },
+	{ "with another version of the game (other patches, or another ROM)", lang_pt_f680, 1 },
+	{ "with the unchanged game (%s)", lang_pt_f681, 1 },
+	{ "without", lang_pt_f682, 1 },
+	{ "without the patches on", lang_pt_f683, 1 },
+	{ "your place is saved", lang_pt_f684, 1 },
+	{ "\342\200\271", lang_pt_f685, 1 },
+	{ "\342\200\272", lang_pt_f686, 1 },
 };
 
 static const char* const lang_zh_CN_f0[] = { "\357\274\210\350\241\245\344\270\201\357\274\211" };
@@ -8266,9 +13774,13 @@ static const I18nEntry lang_zh_TW_entries[] = {
 const I18nLang i18nLangs[] = {
 	{ "de", "Deutsch", "", PL_ONE_OTHER, 0, 1, lang_de_entries, 687 },
 	{ "es", "Espa\303\261ol", "", PL_ONE_OTHER, 0, 1, lang_es_entries, 687 },
+	{ "fr", "Fran\303\247ais", "fr_FR fr_CA fr_BE fr_CH", PL_FRENCH, 0, 1, lang_fr_entries, 687 },
+	{ "it", "Italiano", "it_IT it_CH", PL_ONE_OTHER, 0, 1, lang_it_entries, 687 },
 	{ "ja", "\346\227\245\346\234\254\350\252\236", "ja_JP ja", PL_NONE, 3, 1, lang_ja_entries, 687 },
+	{ "ko", "\355\225\234\352\265\255\354\226\264", "ko_KR ko", PL_NONE, 4, 1, lang_ko_entries, 687 },
 	{ "pseudo", "Pseudo (testing)", "", PL_ONE_OTHER, 0, 3, lang_pseudo_entries, 687 },
+	{ "pt", "Portugu\303\252s", "pt_BR pt_PT", PL_FRENCH, 0, 1, lang_pt_entries, 687 },
 	{ "zh_CN", "\347\256\200\344\275\223\344\270\255\346\226\207", "zh_CN zh_SG zh_Hans zh", PL_NONE, 1, 1, lang_zh_CN_entries, 687 },
 	{ "zh_TW", "\347\271\201\351\253\224\344\270\255\346\226\207", "zh_TW zh_HK zh_MO zh_Hant", PL_NONE, 2, 1, lang_zh_TW_entries, 687 },
 };
-const int i18nLangCount = 6;
+const int i18nLangCount = 10;

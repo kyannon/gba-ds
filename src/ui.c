@@ -3006,9 +3006,17 @@ void ui_language_changed(void) {
 	} else if (script == SCRIPT_JP) { /* (Japanese shapes for the kanji, and the kana) */
 		tf_fallback_add(TF_BOLD, embeddedFonts[EMBEDDED_NOTO_JP_BOLD].ttf);
 		tf_fallback_add(TF_BODY, embeddedFonts[EMBEDDED_NOTO_JP_REGULAR].ttf);
+	} else if (script == SCRIPT_KO) {
+		tf_fallback_add(TF_BOLD, embeddedFonts[EMBEDDED_NOTO_KR_BOLD].ttf);
+		tf_fallback_add(TF_BODY, embeddedFonts[EMBEDDED_NOTO_KR_REGULAR].ttf);
 	}
 	tf_fallback_add(TF_BOLD, embeddedFonts[EMBEDDED_NOTO_SC_BOLD].ttf);
 	tf_fallback_add(TF_BODY, embeddedFonts[EMBEDDED_NOTO_SC_REGULAR].ttf);
+	/* (Korean's face last for the others: the Language list shows its name, 한국어) */
+	if (script != SCRIPT_KO) {
+		tf_fallback_add(TF_BOLD, embeddedFonts[EMBEDDED_NOTO_KR_BOLD].ttf);
+		tf_fallback_add(TF_BODY, embeddedFonts[EMBEDDED_NOTO_KR_REGULAR].ttf);
+	}
 }
 
 void ui_title_block(int screen, SDL_Rect area, const char* text, int capMax, SDL_Color c) {
