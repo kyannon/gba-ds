@@ -6322,11 +6322,11 @@ static const char* ff_compose(Emu* s, const void* state, uint32_t* out, int w, i
 #define FF6_REC 0x25
 #define FF6_PARTY 0x02001850
 #define FF6_MAP 0x02000082
-#define FF6_BATTLE 0x02000002
 #define FF6_BAT_HP 0x02003BF4
 #define FF6_BAT_MAXHP 0x02003C1C
 #define FF6_FLAGS 0x020011F6 /* bit 0: the corner minimap switched off (SELECT) */
 #define FF6_V_LOGO 0xF0000090 /* outside the game (FF6-2) or the party defeated (FF6-9) */
+#define FF6_V_BATTLE 0xF0000091 /* in a battle (FF6-7) */
 /* the world map's minimap (FF6-10): sixteen 16x16 sprites, tiles 512 to 590
  * in palette 5, in a 64x64 square at 168, 92; the marker is tile 768 */
 #define FF6_MM_X 168
@@ -6355,8 +6355,11 @@ static bool ff6_in_game(Emu* e) {
 	return emu_read8(e, FF6_ROSTER) == 0 && emu_read8(e, FF6_ROSTER + 8) != 0;
 }
 
+/* in a battle: the display registers a battle sets (FF6-7). (The halfword at
+ * 0x02000002 is 0 in battles, but stays 0 after the first one.) */
 static bool ff6_battle(Emu* e) {
-	return ff6_in_game(e) && emu_read16(e, FF6_BATTLE) == 0;
+	return ff6_in_game(e) && emu_io16(e, 0x00) == 0x1600 && emu_io16(e, 0x08) == 0x560C &&
+	       emu_io16(e, 0x0A) == 0x5408 && emu_io16(e, 0x0C) == 0x5A08;
 }
 
 /* the whole party down in a battle (FF6-9): every place that holds a
@@ -6374,6 +6377,7 @@ static bool ff6_defeated(Emu* e) {
 
 static uint32_t ff6_virt(Emu* e, uint32_t addr) {
 	if (addr == FF6_V_LOGO) return !ff6_in_game(e) || ff6_defeated(e);
+	if (addr == FF6_V_BATTLE) return ff6_battle(e);
 	return 0;
 }
 
@@ -9813,7 +9817,7 @@ static const MapProfile profiles[] = {
 		.live = { { FF6_V_LOGO, 0xFF, 0, 4 } },
 		.menu = { { FF6_V_LOGO, 0xFF, 1, 4 } },
 		/* another map, a battle over: taken again at once (FF6-4, FF6-7) */
-		.room = { { FF6_MAP, 0xFFFF, 0, 2 }, { FF6_BATTLE, 0xFFFF, 0, 2 } },
+		.room = { { FF6_MAP, 0xFFFF, 0, 2 }, { FF6_V_BATTLE, 0xFF, 0, 1 } },
 		/* the title's lettering (BG0): past the health warning (A), the logos
 		 * and the title's own animation */
 		.logo = { .steps = { { 0, 500 }, { K_A, 4 }, { 0, 1500 }, { K_A, 4 }, { 0, 300 } },

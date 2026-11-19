@@ -509,6 +509,110 @@
    ]
   },
   {
+   "id": "ff6-us-victory",
+   "rom": "BZ6E",
+   "state": "final-fantasy-vi-advance/us-wob.ss",
+   "desc": "a won battle's results (a bug report's state), the party kept while they show; the battle over and the world map back: the minimap (the battle byte at 0x02000002 stays 0 after a battle)",
+   "rules": [
+    "FF6-7",
+    "FF6-10"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:final-fantasy-vi-advance/us-wob-victory.ss"
+    ],
+    [
+     201,
+     "A"
+    ],
+    [
+     202,
+     "-"
+    ],
+    [
+     232,
+     "A"
+    ],
+    [
+     239,
+     "-"
+    ],
+    [
+     271,
+     "A"
+    ],
+    [
+     277,
+     "-"
+    ]
+   ],
+   "shots": {
+    "world": 150,
+    "results": 215,
+    "after": 700
+   },
+   "checks": [
+    {
+     "rule": "FF6-10",
+     "what": "the minimap before the battle",
+     "type": "pixels",
+     "shot": "world",
+     "probes": [
+      [
+       426,
+       194,
+       "FF0000"
+      ]
+     ]
+    },
+    {
+     "rule": "FF6-7",
+     "what": "the party while the results show",
+     "type": "not_pixels",
+     "shot": "results",
+     "probes": [
+      [
+       426,
+       194,
+       "FF0000"
+      ],
+      [
+       42,
+       74,
+       "303030"
+      ]
+     ]
+    },
+    {
+     "rule": "FF6-7",
+     "what": "the minimap's own dark square back once the battle is over",
+     "type": "pixels",
+     "shot": "after",
+     "probes": [
+      [
+       270,
+       142,
+       "232323"
+      ]
+     ]
+    },
+    {
+     "rule": "FF6-9",
+     "what": "not the logo",
+     "type": "not_pixels",
+     "shot": "after",
+     "probes": [
+      [
+       42,
+       74,
+       "303030"
+      ]
+     ]
+    }
+   ]
+  },
+  {
    "id": "ff6-us-battle-alone",
    "rom": "BZ6E",
    "state": "final-fantasy-vi-advance/us-wob-battle.ss",
