@@ -2,7 +2,11 @@
 
 ## v1.5.6 (not yet released)
 
-### New
+### New games
+- **Final Fantasy V Advance** (USA, Europe, Japan): on the world map and the airship, the second screen shows the game's own world map (the one R opens). Everywhere else it shows the party screen from START's menu: the four characters with their jobs, levels, HP and MP, where you are, the play time and the gil, with the big window going on where the list of commands would be. In a battle it shows the party as it was just before. On the title and the file screens, and after a game over, it shows the logo; in conversations, shops and scenes the last picture stays. Known: Europe's world map couldn't be tried (no save of it), and a party out with HP above 0 (turned to stone) isn't taken for a game over: the last picture stays.
+
+### Menus and interface
+- The pause menu's Game page now fits on the screen without scrolling: Cheats and Patches share a row, and so do Take Screenshot and Submit a Bug Report. Close Game and Close GBA DS are now double-height buttons side by side (Close GBA DS alone is full width when the game didn't start from the game list), with bigger text.
 - **The interface speaks more languages.** Settings > Games > Language (Automatic follows the system's language) switches the menus, game list, messages and the Android permission screen between English, Español, Deutsch, Français, Italiano, Português (Brasil), 日本語, 한국어, 简体中文 and 繁體中文. Everything is built into the zip and the APK, so there is nothing to download. The Chinese translations come from DokiOnjouji's pull request (#62); the other languages are machine translations to start with, marked "(machine translated)" in the Language list (said in the language in use) until a speaker has reviewed them. Anyone can improve or add a language: see the [Languages page](https://github.com/kyannon/gba-ds/wiki/Languages) on the wiki.
 - **Longer text fits.** Where a translation is longer than English, buttons and help lines shrink the text or break onto a second line instead of running over the edge.
 

@@ -18,6 +18,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | F-Zero: Maximum Velocity (F-Zero for Game Boy Advance in Japan) | `AFZE` (USA and Europe) `AFZJ` (China: `AFZC`) | the race HUD, with the course map twice as big | |
 | Final Fantasy I & II: Dawn of Souls (Final Fantasy I, II Advance in Japan) | `BFFE` `BFFP` `BFFJ` | the Enlarged Map on the world map, the party screen elsewhere and in battles (both games) | |
 | Final Fantasy Tactics Advance | `AFXE` `AFXP` `AFXJ` | in battles: the Status of the unit under the cursor, or the turn order and Laws; on the world map: today's Laws | |
+| Final Fantasy V Advance | `BZ5E` `BZ5P` `BZ5J` | the world map on the world map and the airship, the party screen elsewhere and in battles | |
 | Fire Emblem (Rekka no Ken in Japan) | `AE7E` `AE7X` (English, French, German) `AE7Y` (English, Spanish, Italian) `AE7J` | on the map: the status of the unit under the cursor | |
 | Fire Emblem: The Sacred Stones (Seima no Kouseki in Japan) | `BE8E` `BE8P` `BE8J` | on the map: the status of the unit under the cursor | |
 | Fire Emblem: Fuuin no Tsurugi (The Binding Blade) | `AFEJ` (Japan only) | on the map: the status of the unit under the cursor | FE6 Localization v1.2.1 (English) |
@@ -213,6 +214,10 @@ A new second screen since v1.3.2, replacing the earlier one (which moved the gam
 - All of it is brought up in the background on a silent copy of the game, as the other games' maps are; your game is never paused or touched, and the game screen stays exactly as the game draws it. It's taken again only with the battle map showing: while a unit picks where to move or what to hit, and in scenes, the last picture stays. On a turn that isn't yours (an enemy's, the judge's or a guest's), it shows the turn order and Laws as they were at the start of your last unit's turn.
 - **On the world map**, it shows the **Laws** window (what L opens there), as the game draws it, on the Status screen's checkerboard, without the map behind it, the L Law sign or the pointer: today's laws, taken again as soon as your clan arrives somewhere new, even with the place's menu up (a town's, or a mission's). The Laws window shows another day's laws while the map's pointer is on another place (the day your clan would get there), so the second screen only takes it with the pointer on your clan or between places; in a notice or while your clan travels, the last picture stays.
 - Once a battle is won (from the last enemy defeated through the closing scene), during story scenes on the battle map, and outside battles and the world map (the title, menus, a town's Pub or Shop), the second screen shows the logo.
+
+## Final Fantasy V Advance
+
+On the world map and the airship the second screen shows the game's own world map (the one R opens). Everywhere else (towns, castles, dungeons) it shows the party screen from START's menu: the four characters with their jobs, levels, HP and MP, where you are, the play time and the gil; where the list of commands would be, the big party window goes on, so there is no empty box. It follows you (taken again every few seconds and on every new map). In a battle it shows the party as it was just before (the HP and play time don't change until the battle's over). On the title and the file screens, and after a game over, it shows the logo; in conversations, shops and scenes the last picture stays.
 
 ## Fire Emblem
 

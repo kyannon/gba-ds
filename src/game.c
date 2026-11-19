@@ -1159,18 +1159,29 @@ static int menuItems[12], nMenuItems;
 static int itemRow[12], itemSide[12], nMenuRows;
 static bool half_item(int item) {
 	return item == M_RESUME || item == M_RESTART || item == M_SAVE || item == M_LOAD || item == M_AUTOSAVE || item == M_AUTOLOAD || item == M_REWIND || item == M_FF ||
-	       item == M_COLOR || item == M_GHOST;
+	       item == M_COLOR || item == M_GHOST || item == M_CHEATS || item == M_PATCHES || item == M_SHOT || item == M_BUG;
 }
-/* rows, sides and the row count for a page's items (two half items in a row share it) */
+/* Close Game and Close GBA DS are double height: two rows tall, side by side
+ * when both are there, else the one across the whole row */
+static bool tall_item(int item) {
+	return item == M_LIBRARY || item == M_EXIT;
+}
+static int item_span(int item) {
+	return tall_item(item) ? 2 : 1;
+}
+/* rows, sides and the row count for a page's items (two half items in a row share it; a tall one takes two rows) */
 static int layout_rows(const int* items, int n, int* row, int* side) {
 	int rows = 0;
 	for (int i = 0; i < n; ++i) {
-		if (half_item(items[i]) && i + 1 < n && half_item(items[i + 1])) {
-			row[i] = row[i + 1] = rows++;
+		bool both = i + 1 < n && ((half_item(items[i]) && half_item(items[i + 1])) || (tall_item(items[i]) && tall_item(items[i + 1])));
+		if (both) {
+			row[i] = row[i + 1] = rows;
+			rows += item_span(items[i]);
 			side[i] = 0, side[i + 1] = 1;
 			++i;
 		} else {
-			row[i] = rows++;
+			row[i] = rows;
+			rows += item_span(items[i]);
 			side[i] = -1;
 		}
 	}
@@ -1246,7 +1257,8 @@ static const char* const allLabels[] = {
 };
 /* the labels of the half-width buttons, which fit in half the width */
 static const char* const halfLabels[] = {
-	N_("Save State"), N_("Load State"), N_("Resume"), N_("Restart Game"), N_("Are You Sure?"),
+	N_("Save State"), N_("Load State"), "Save State 0", "Load State 0", N_("Resume"), N_("Restart Game"), N_("Are You Sure?"),
+	"Cheats", "Patches", N_("Take Screenshot"), N_("Submit a Bug Report"),
 };
 
 /* The pause menu's layout: buttons across the whole screen (a small margin
@@ -2210,17 +2222,17 @@ static void draw_patches(int scr) {
 /* a button page with more rows than ROW_VIS scrolls: itemTop is its first row shown */
 static int itemTop;
 static bool item_shown(int i) {
-	return itemRow[i] >= itemTop && itemRow[i] < itemTop + ROW_VIS;
+	return itemRow[i] >= itemTop && itemRow[i] + item_span(menuItems[i]) <= itemTop + ROW_VIS;
 }
 /* the selected button kept on screen */
 static void items_scroll_to_sel(void) {
 	if (itemRow[menuSel] < itemTop) itemTop = itemRow[menuSel];
-	if (itemRow[menuSel] >= itemTop + ROW_VIS) itemTop = itemRow[menuSel] - ROW_VIS + 1;
+	if (itemRow[menuSel] + item_span(menuItems[menuSel]) > itemTop + ROW_VIS) itemTop = itemRow[menuSel] + item_span(menuItems[menuSel]) - ROW_VIS;
 	itemTop = SDL_clamp(itemTop, 0, SDL_max(0, nMenuRows - ROW_VIS));
 }
 static SDL_Rect item_rect(int scr, int i) {
 	MenuGeom g = menu_geom(scr);
-	SDL_Rect r = { g.margin, g.top + (itemRow[i] - itemTop) * (g.h + g.gap), g.w, g.h };
+	SDL_Rect r = { g.margin, g.top + (itemRow[i] - itemTop) * (g.h + g.gap), g.w, g.h * item_span(menuItems[i]) + g.gap * (item_span(menuItems[i]) - 1) };
 	if (itemSide[i] >= 0) {
 		int hw = (g.w - g.gap) / 2;
 		r.x += itemSide[i] * (g.w - hw);
@@ -2887,10 +2899,12 @@ static void set_page(int page) {
 
 /* D-pad up / down: the row above or below (round at the ends), the same side of a split row */
 static void menu_move(int dir) {
-	int row = (itemRow[menuSel] + dir + nMenuRows) % nMenuRows, side = SDL_max(0, itemSide[menuSel]);
+	/* from the last row a tall button covers going down, the first going up */
+	int from = dir > 0 ? itemRow[menuSel] + item_span(menuItems[menuSel]) - 1 : itemRow[menuSel];
+	int row = (from + dir + nMenuRows) % nMenuRows, side = SDL_max(0, itemSide[menuSel]);
 	int to = -1;
 	for (int i = 0; i < nMenuItems; ++i) {
-		if (itemRow[i] != row) continue;
+		if (row < itemRow[i] || row >= itemRow[i] + item_span(menuItems[i])) continue;
 		if (to < 0 || itemSide[i] == side) to = i;
 	}
 	if (to >= 0) menuSel = to;
@@ -3831,7 +3845,15 @@ static void draw_menu(void) {
 			ui_label(scr, r.x + mg.pad, r.y + r.h / 2, cap, "\u2039", sel ? C_TEXT : C_DIS);
 			ui_label(scr, r.x + r.w - mg.pad, r.y + r.h / 2, cap, "\u203A", sel ? C_TEXT : C_DIS);
 		}
-		ui_label(scr, r.x + r.w / 2, r.y + r.h / 2, cap, label, en ? C_TEXT : C_DIS);
+		int lc = cap;
+		if (tall_item(menuItems[i])) {
+			/* double height: the text as big as the button and its widest label allow */
+			static const char* const tallLabels[] = { "Close Game", "Close GBA DS", "Are You Sure?" };
+			int widest = 1;
+			for (size_t k = 0; k < sizeof(tallLabels) / sizeof(*tallLabels); ++k) widest = SDL_max(widest, ui_label_width(scr, 100, tallLabels[k]));
+			lc = SDL_min(r.h * 2 / 5, (r.w - mg.pad * 2) * 100 / widest);
+		}
+		ui_label(scr, r.x + r.w / 2, r.y + r.h / 2, lc, label, en ? C_TEXT : C_DIS);
 	}
 	if (menuNote[0]) {
 		int lastRow = SDL_min(nMenuRows, ROW_VIS) - 1;
