@@ -304,7 +304,12 @@ def run_app(case, args, workdir):
     # another, so goldens made on a session's container failed on GitHub's runners
     env = dict(os.environ, SDL_VIDEODRIVER="offscreen", SDL_AUDIODRIVER="dummy", SDL_RENDER_DRIVER="software",
                GBADS_WINDOW="%dx%d" % (SCREEN_W, SCREEN_H * 2), GBADS_SYNC="1", GBADS_DEBUG="1",
-               GBADS_RTC_FIXED="1794934800")
+               GBADS_RTC_FIXED="1794934800",
+               # the cartridge clock above is 17:00 UTC; mGBA shows it in the machine's
+               # time zone, so a game that draws its clock (Boktai's, BT-8) read 12:00 on
+               # a session's container (New York) and 17:00 on GitHub's UTC runners: the
+               # zone is pinned (POSIX "EST5": five hours behind, no DST, no tzdata needed)
+               TZ="EST5")
     if not args.paced:
         # (as fast as it goes, drawing only the frames a screenshot or a
         # touch needs: the same pictures, in under half the time)
