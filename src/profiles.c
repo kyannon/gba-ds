@@ -8101,22 +8101,47 @@ static bool tmc_tab_up(Emu* s, bool quest) {
 	return emu_read8(s, TMC_SUB) == 7 && emu_read8(s, TMC_STEP) == 2 && (quest ? tab == 2 : (tab == 4 || tab == 5));
 }
 
-/* Quest Status (TMC-5): the name bar at the bottom names whichever item the
- * game's cursor is on, which the player can't use here: its text is blacked
- * out (the bar's inside, taking the black from a pixel the text never reaches) */
-static void tmc_black_name(uint32_t* img, int w, int h) {
-	if (w < 224 || h < 157) return;
-	const uint32_t black = img[150 * w + 20];
-	for (int y = 143; y <= 156; ++y)
-		for (int x = 16; x <= 223; ++x) img[y * w + x] = black;
+/* Link's head on the map blinks in the game; on the second screen it stays on
+ * (TMC-7). The game builds its sprite table in RAM (0x03000020, 128 entries:
+ * the table the next frame is drawn from, one frame ahead of the hardware's
+ * OAM); the head is tile 576 on the map of Hyrule, 544 on a dungeon's, palette
+ * 7. Called with the table as it is: if the head is in it, remember it (its
+ * place in the table and its attributes); if it's out and was seen, put it
+ * back there, the entries after it moved down one. */
+#define TMC_OAM_BUF 0x03000020
+typedef struct { bool seen; int idx; uint16_t a[3]; } TmcHead;
+static bool tmc_head_fix(Emu* s, TmcHead* h) {
+	uint16_t e[3];
+	int last = -1;
+	for (int i = 0; i < 128; ++i) {
+		const uint32_t at = TMC_OAM_BUF + (uint32_t) i * 8;
+		e[0] = emu_read16(s, at);
+		e[1] = emu_read16(s, at + 2);
+		e[2] = emu_read16(s, at + 4);
+		const unsigned tile = e[2] & 0x3FF, pal = e[2] >> 12;
+		if ((e[0] & 0x300) != 0x200) last = i;
+		if ((tile == 576 || tile == 544) && pal == 7 && (e[0] & 0x300) != 0x200) {
+			h->seen = true; h->idx = i; memcpy(h->a, e, sizeof e);
+			return true;
+		}
+	}
+	if (!h->seen || last < 0 || last >= 127) return false;
+	for (int i = last; i >= h->idx; --i) { /* make room, from the end */
+		const uint32_t from = TMC_OAM_BUF + (uint32_t) i * 8;
+		for (int k = 0; k < 4; ++k) emu_write16(s, from + 8 + (uint32_t) k * 2, emu_read16(s, from + (uint32_t) k * 2));
+	}
+	const uint32_t at = TMC_OAM_BUF + (uint32_t) h->idx * 8;
+	for (int k = 0; k < 3; ++k) emu_write16(s, at + (uint32_t) k * 2, h->a[k]);
+	return true;
 }
 
-/* The Map tab (TMC-3): the hidden copy is told to open its menu on the map,
- * then START (the tab the player last used is in the state, and the menu
- * opens on it), and the picture is taken from the idle menu, without the
- * tab arrows and the "Choose" prompt (TMC-5); then a loop of the frames the
- * marks blink through (TMC-7). Where the menu won't open: quick failures
- * (TMC-8), and without the map, TMC-4. */
+/* n frames, the last one drawn; on a map the head's put back before it */
+static void tmc_run(Emu* s, int n, bool map, TmcHead* h) {
+	if (n > 1) aw_run(s, 0, n - 1);
+	if (map) tmc_head_fix(s, h);
+	emu_frame(s, 0);
+}
+
 static const char* tmc_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
 	/* L and R's arrows (tiles 32 and 16, priority 1, at the sides, around
 	 * y 56); "Choose" and its button (tiles 256-300, priority 0, top right) */
@@ -8147,20 +8172,28 @@ static const char* tmc_compose(Emu* s, const void* state, uint32_t* const* out, 
 	if (!tmc_tab_up(s, quest)) return "map button did nothing";
 	if (emu_cancelled(s)) return "called off";
 	emu_hide_sprites(s, hide, quest ? 4 : 2);
-	aw_run(s, 0, 4);
+	/* Quest Status: BG0 holds only the name bar (of the item the cursor was
+	 * left on); without it the scroll drawn behind shows, whole (TMC-5) */
+	if (quest) emu_layers(s, 0x1E);
+	TmcHead head = { false, 0, { 0, 0, 0 } };
+	/* the head blinks: run until it's been seen, to know where it goes */
+	for (int f = 0; f < 90 && !quest && !head.seen; ++f) {
+		emu_frame_blind(s, 0);
+		tmc_head_fix(s, &head);
+	}
+	tmc_run(s, 4, !quest, &head);
 	int cw = w < GBA_W ? w : GBA_W, ch = h < GBA_H ? h : GBA_H;
 	for (int y = 0; y < ch; ++y) memcpy(&out[0][y * w], &s->fb[y * GBA_W], (size_t) cw * 4);
-	if (quest) tmc_black_name(out[0], w, h);
 	bool animated = false;
 	for (int i = 1; i < max; ++i) {
-		aw_run(s, 0, TMC_FRAME_STEP);
+		tmc_run(s, TMC_FRAME_STEP, !quest, &head);
 		if (!tmc_tab_up(s, quest)) break;
 		for (int y = 0; y < ch; ++y) memcpy(&out[i][y * w], &s->fb[y * GBA_W], (size_t) cw * 4);
-		if (quest) tmc_black_name(out[i], w, h);
 		if (memcmp(out[i], out[0], (size_t) w * h * 4)) animated = true;
 		*nOut = i + 1;
 	}
 	emu_hide_sprites(s, NULL, 0);
+	emu_layers(s, 0x1F);
 	if (emu_cancelled(s)) return "called off";
 	if (!animated) *nOut = 1;
 	return NULL;

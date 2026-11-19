@@ -19,6 +19,8 @@
     "d": 324,
     "e": 332,
     "f": 340,
+    "g": 348,
+    "h": 356,
     "start": 60,
     "end": 480
    },
@@ -52,6 +54,174 @@
       ]
      },
      "frac": 0.0005
+    },
+    {
+     "rule": "TMC-7",
+     "what": "Link's head stays on in every frame",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       409,
+       294,
+       427,
+       363
+      ]
+     },
+     "b": {
+      "shot": "b",
+      "rect": [
+       409,
+       294,
+       427,
+       363
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-7",
+     "what": "Link's head stays on in every frame",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       409,
+       294,
+       427,
+       363
+      ]
+     },
+     "b": {
+      "shot": "c",
+      "rect": [
+       409,
+       294,
+       427,
+       363
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-7",
+     "what": "Link's head stays on in every frame",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       409,
+       294,
+       427,
+       363
+      ]
+     },
+     "b": {
+      "shot": "d",
+      "rect": [
+       409,
+       294,
+       427,
+       363
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-7",
+     "what": "Link's head stays on in every frame",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       409,
+       294,
+       427,
+       363
+      ]
+     },
+     "b": {
+      "shot": "e",
+      "rect": [
+       409,
+       294,
+       427,
+       363
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-7",
+     "what": "Link's head stays on in every frame",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       409,
+       294,
+       427,
+       363
+      ]
+     },
+     "b": {
+      "shot": "f",
+      "rect": [
+       409,
+       294,
+       427,
+       363
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-7",
+     "what": "Link's head stays on in every frame",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       409,
+       294,
+       427,
+       363
+      ]
+     },
+     "b": {
+      "shot": "g",
+      "rect": [
+       409,
+       294,
+       427,
+       363
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-7",
+     "what": "Link's head stays on in every frame",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       409,
+       294,
+       427,
+       363
+      ]
+     },
+     "b": {
+      "shot": "h",
+      "rect": [
+       409,
+       294,
+       427,
+       363
+      ]
+     },
+     "frac": 0.0
     }
    ]
   },
@@ -72,6 +242,8 @@
     "d": 324,
     "e": 332,
     "f": 340,
+    "g": 348,
+    "h": 356,
     "start": 60,
     "end": 480
    },
@@ -105,6 +277,174 @@
       ]
      },
      "frac": 0.0005
+    },
+    {
+     "rule": "TMC-7",
+     "what": "Link's head stays on in every frame",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       102,
+       264,
+       171,
+       333
+      ]
+     },
+     "b": {
+      "shot": "b",
+      "rect": [
+       102,
+       264,
+       171,
+       333
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-7",
+     "what": "Link's head stays on in every frame",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       102,
+       264,
+       171,
+       333
+      ]
+     },
+     "b": {
+      "shot": "c",
+      "rect": [
+       102,
+       264,
+       171,
+       333
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-7",
+     "what": "Link's head stays on in every frame",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       102,
+       264,
+       171,
+       333
+      ]
+     },
+     "b": {
+      "shot": "d",
+      "rect": [
+       102,
+       264,
+       171,
+       333
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-7",
+     "what": "Link's head stays on in every frame",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       102,
+       264,
+       171,
+       333
+      ]
+     },
+     "b": {
+      "shot": "e",
+      "rect": [
+       102,
+       264,
+       171,
+       333
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-7",
+     "what": "Link's head stays on in every frame",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       102,
+       264,
+       171,
+       333
+      ]
+     },
+     "b": {
+      "shot": "f",
+      "rect": [
+       102,
+       264,
+       171,
+       333
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-7",
+     "what": "Link's head stays on in every frame",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       102,
+       264,
+       171,
+       333
+      ]
+     },
+     "b": {
+      "shot": "g",
+      "rect": [
+       102,
+       264,
+       171,
+       333
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-7",
+     "what": "Link's head stays on in every frame",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       102,
+       264,
+       171,
+       333
+      ]
+     },
+     "b": {
+      "shot": "h",
+      "rect": [
+       102,
+       264,
+       171,
+       333
+      ]
+     },
+     "frac": 0.0
     }
    ]
   },
