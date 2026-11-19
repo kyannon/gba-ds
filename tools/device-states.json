@@ -125,6 +125,31 @@
     "6": ["jp-title.ss", "Japan's title screen: the logo with ゼルダの伝説 and ふしぎのぼうし (TMC-9, TMC-10)"],
     "7": ["jp-file-select.ss", "Japan's file select: the logo (TMC-9)"]
    }
+  },
+  "breath-of-fire": {
+   "Breath of Fire (USA)": {
+    "1": ["us-overworld.ss", "Overworld, the party has the Map: START's world map with the cyan marker (BOF-3). Wait for the map, then load slot 6: the battle shows the party overview, not the map (BOF-5)"],
+    "2": ["us-map-open.ss", "START's map open on the game screen: the party overview, not the map twice (BOF-7)"],
+    "3": ["us-town.ss", "In a town, eight characters: the party overview (BOF-4)"],
+    "4": ["us-cave.ss", "In a cave: the party overview (BOF-4)"],
+    "5": ["us-menu.ss", "SELECT's menu open on the game screen: the party overview (BOF-7)"],
+    "6": ["us-battle.ss", "A battle: the party overview from before. Load slot 3 first (or slot 1, once the map is up), wait, then load this (BOF-5); on its own, with nothing taken yet: logo"],
+    "7": ["us-title.ss", "Title: the logo (BOF-1, BOF-2)"]
+   },
+   "Breath of Fire (Europe)": {
+    "1": ["eu-overworld-map.ss", "Overworld with the Map, level 99 party: the world map (BOF-3)"],
+    "2": ["eu-overworld.ss", "Overworld before the party has the Map: the party overview instead (BOF-3)"],
+    "3": ["eu-town.ss", "In a town: the party overview (BOF-4)"],
+    "4": ["eu-battle.ss", "Battle: logo; load slot 3 first and the overview stays (BOF-5)"]
+   },
+   "Breath of Fire - Ryuu no Senshi (Japan)": {
+    "1": ["jp-overworld.ss", "Overworld with the Map: the world map (BOF-3)"],
+    "2": ["jp-town.ss", "In a town: the party overview (BOF-4)"],
+    "3": ["jp-battle.ss", "Battle: logo; load slot 2 first and the overview stays (BOF-5)"]
+   },
+   "Breath of Fire (Europe) (En,Fr,De)": {
+    "1": ["fx-title.ss", "Title (this release's saves don't fit, so only the logo is tested): the logo (BOF-1)"]
+   }
   }
  }
 }

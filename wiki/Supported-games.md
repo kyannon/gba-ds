@@ -7,6 +7,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Baldur's Gate: Dark Alliance | `BGDE` `BGDP` | the area's map (made from the game's own screens), a red X where you are | |
 | Banjo-Kazooie: Grunty's Revenge | `BKZE` (USA and Europe) `BKZX` `BKZI` `BKZS` (no Japanese release) | the pause screen and the world's Totals, in turn, Banjo's health on both | |
 | Boktai: The Sun Is in Your Hand (Bokura no Taiyou in Japan) | `U3IE` `U3IP` `U3IJ` | the game's Map, with its clock and the sunrise and sunset times | |
+| Breath of Fire (Ryuu no Senshi in Japan) | `ABFE` `ABFP` `ABFJ` `ABFX` (Europe's English, French and German release) | the world map on the overworld, the party overview elsewhere and in battles | |
 | Castlevania: Aria of Sorrow | `A2CE` `A2CP` `A2CJ` | map | JonataGuitar's Recolor v1.02 and Symphony of the Colors (USA) |
 | Castlevania: Circle of the Moon | `AAME` `AAMP` `AAMJ` | map, with the completion rate | |
 | Castlevania: Harmony of Dissonance | `ACHE` `ACHP` `ACHJ` | map | Recolor by JonataGuitar and sorrow (USA) |
@@ -124,6 +125,16 @@ The USA, European and Japanese (Bokura no Taiyou) releases.
 - In conversations, scenes and the menus, the last Map stays. At the title, on the file menu and at the first start's set-up screens the second screen shows the logo: the title's lettering.
 - **The sun sensor:** the cartridge's solar sensor reads a fixed level, 6 of 10, so the sun gauge isn't empty. `solar_level` in `gba-ds.cfg` sets it from 0 (dark) to 10.
 - Known: the Europe and Japan releases were checked on their logos and by start-up only. Not tried yet: bosses, the Solar Station and the World map.
+
+## Breath of Fire
+
+The USA, European and Japanese (Ryuu no Senshi) releases, and Europe's English, French and German release.
+
+- **On the overworld** the second screen is the **world map** START opens (the cyan marker is where the party is), once the party has the Map item; it is taken from a hidden copy of the game about once a second, so your game isn't touched. Until the party has the Map, it shows the party overview instead.
+- **Everywhere else** (towns, caves, castles) it shows the first page of SELECT's menu as a **party overview**: the place, the gold, and each character's level, HP and AP, without the command list.
+- **In a battle** it shows the party overview from before the fight, also when the map was up as it began; the numbers on it are those from before the battle (the battle's own boxes on the game screen are live). This is one of the exceptions on the [Philosophy](https://github.com/kyannon/gba-ds/wiki/Philosophy) page.
+- With the menu, one of its pages or the map open on the game screen, the second screen shows the overview, not the same thing twice. On the title it shows the logo: the title's lettering. In conversations and shops the last picture stays.
+- Known: Europe's English, French and German release was tried at its title only (its saves are of another kind than the ones tested); cutscenes that share the title's screen mode may show the logo until they end; the battle's HP and AP boxes stay on the game screen.
 
 ## Castlevania: Aria of Sorrow, Harmony of Dissonance, Circle of the Moon
 
