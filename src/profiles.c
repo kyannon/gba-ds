@@ -8036,6 +8036,137 @@ static const char* smt_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	return err;
 }
 
+/* ---------------------------------------------------------------- Breath of Fire
+ *
+ * docs/games/breath-of-fire.md. On the overworld the second screen is the
+ * world map START opens there (BOF-3); everywhere else it's SELECT's menu
+ * as a party overview, without its command list (BOF-4); both opened on the
+ * hidden copy at every refresh. Battles, the title and its intro: the logo
+ * (BOF-2, BOF-5); where neither key opens anything the last picture stays
+ * (BOF-6). All four releases (ABFE, ABFP, ABFJ, ABFX) draw the same
+ * screens in the same places, so nothing here reads the game's memory:
+ * what the game is showing comes from the display's registers.
+ *   display (DISPCNT)  0x1200 the intro and title (BG1 and sprites), 0x1F00
+ *                      walking about and the menus, 0x3F00 a battle (window 0
+ *                      on too), 0x1401 the map (mode 1)
+ *   BG0CNT             0x4405 walking about, 0x0008 the menus (SELECT's
+ *                      pages, the file menu, shops)
+ */
+#define BOF_DISP_TITLE 0x1200
+#define BOF_DISP_FIELD 0x1F00
+#define BOF_DISP_BATTLE 0x3F00
+#define BOF_DISP_MAP 0x1401
+#define BOF_BG0_FIELD 0x4405
+#define BOF_BG0_MENU 0x0008
+/* 1 on the title and its intro and in a battle: the logo (BOF-2, BOF-5) */
+#define BOF_V_LOGO 0xF0000090
+/* which screen it is, for a quick refresh when it changes: 1 walking about,
+ * 2 a menu, 3 the map, 4 the title or a battle, 0 anything else (fades) */
+#define BOF_V_SCREEN 0xF0000091
+/* the party overview, faded in: the white of the frame between the place's
+ * window and the gold's (only the first page of SELECT's menu has it), and
+ * the frames of the command window and the top (x, y, 0xRRGGBB) */
+static const int bofParty[][3] = { { 160, 2, 0xFFF9E7 }, { 160, 4, 0xFFFFE7 }, { 160, 8, 0xFFFFEA },
+                                   { 159, 4, 0xF0D2AC }, { 48, 60, 0xFFF9E7 }, { 120, 0, 0xFFFFED } };
+/* the party window's left edge (the command list is to its left) */
+#define BOF_PARTY_X 47
+
+static uint32_t bof_virt(Emu* e, uint32_t addr) {
+	uint16_t disp = emu_io16(e, 0x00);
+	if (addr == BOF_V_LOGO) return disp == BOF_DISP_TITLE || disp == BOF_DISP_BATTLE;
+	if (addr != BOF_V_SCREEN) return 0;
+	if (disp == BOF_DISP_FIELD) return emu_io16(e, 0x08) == BOF_BG0_MENU ? 2 : emu_io16(e, 0x08) == BOF_BG0_FIELD ? 1 : 0;
+	return disp == BOF_DISP_MAP ? 3 : disp == BOF_DISP_TITLE || disp == BOF_DISP_BATTLE ? 4 : 0;
+}
+
+static bool bof_bright(Emu* s) {
+	for (int i = 0; i < GBA_W * GBA_H; ++i) {
+		uint32_t c = s->fb[i];
+		if ((c & 0xFF) > 0xC0 || ((c >> 8) & 0xFF) > 0xC0 || ((c >> 16) & 0xFF) > 0xC0) return true;
+	}
+	return false;
+}
+
+static bool bof_party_up(Emu* s) {
+	return emu_io16(s, 0x00) == BOF_DISP_FIELD && ff_probes(s, bofParty, sizeof(bofParty) / sizeof(*bofParty));
+}
+
+/* runs until the picture has been still for 3 looks 4 frames apart, up
+ * on the screen asked for (the map, or the party overview) and not black (the
+ * map fades out and in again as it opens); false if it never was */
+static bool bof_settled(Emu* s, bool map, int n) {
+	static uint32_t last[GBA_W * GBA_H];
+	int still = 0;
+	memset(last, 0, sizeof(last));
+	for (int f = 0; f < n && still < 3; f += 4) {
+		aw_run(s, 0, 4);
+		if (emu_cancelled(s)) return false;
+		bool up = map ? emu_io16(s, 0x00) == BOF_DISP_MAP : bof_party_up(s);
+		still = up && !memcmp(last, s->fb, sizeof(last)) && bof_bright(s) ? still + 1 : 0;
+		memcpy(last, s->fb, sizeof(last));
+	}
+	return still >= 3;
+}
+
+static const char* bof_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	emu_hide_sprites(s, NULL, 0);
+	emu_layers(s, 0x1F);
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	uint16_t disp = emu_io16(s, 0x00);
+	if (disp == BOF_DISP_TITLE || disp == BOF_DISP_BATTLE) return "not walking about";
+	/* the map open in the game: back to the field with B (BOF-7), which
+	 * fades out and in again */
+	bool wasMap = disp == BOF_DISP_MAP;
+	if (wasMap) {
+		aw_run(s, K_B, 4);
+		for (int f = 0; f < 240 && !(emu_io16(s, 0x00) == BOF_DISP_FIELD && emu_io16(s, 0x08) == BOF_BG0_FIELD); f += 2) aw_run(s, 0, 2);
+		if (emu_io16(s, 0x00) != BOF_DISP_FIELD) return "the map didn't close";
+		aw_run(s, 0, 10);
+	}
+	bool menuOpen = emu_io16(s, 0x00) == BOF_DISP_FIELD && emu_io16(s, 0x08) == BOF_BG0_MENU;
+	/* the world map: START, on the overworld (BOF-3); not with the map or
+	 * a menu open in the game (BOF-7) */
+	if (!wasMap && !menuOpen) {
+		aw_run(s, K_START, 4);
+		for (int f = 0; f < 90 && emu_io16(s, 0x00) != BOF_DISP_MAP; f += 2) aw_run(s, 0, 2);
+		if (emu_io16(s, 0x00) == BOF_DISP_MAP) {
+			if (!bof_settled(s, true, 300)) return "the map didn't settle";
+			for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+			return NULL;
+		}
+	}
+	if (emu_cancelled(s)) return "called off";
+	/* the party overview: SELECT's menu (B first, as often as it takes to
+	 * leave one of its pages or a conversation: BOF-6, BOF-7) */
+	bool up = bof_party_up(s);
+	if (!up && menuOpen) {
+		for (int f = 0; f < 150 && !up; f += 2) aw_run(s, 0, 2), up = bof_party_up(s);
+	}
+	for (int tries = 0, n = menuOpen ? 3 : 2; tries < n && !up; ++tries) {
+		if (tries) {
+			aw_run(s, K_B, 4);
+			aw_run(s, 0, 40);
+			up = bof_party_up(s);
+			if (up) break;
+		}
+		aw_run(s, K_SELECT, 4);
+		for (int f = 0; f < 150 && !up; f += 2) aw_run(s, 0, 2), up = bof_party_up(s);
+		if (emu_cancelled(s)) return "called off";
+	}
+	if (!up) return "the menu didn't open"; /* (BOF-6) */
+	if (!bof_settled(s, false, 120)) return "the menu didn't settle";
+	if (!bof_party_up(s)) return "the menu closed";
+	/* the party window alone (BOF-4), in the middle of the screen */
+	int cw = GBA_W - BOF_PARTY_X, left = (w - cw) / 2;
+	for (int y = 0; y < h; ++y) {
+		for (int x = 0; x < w; ++x) {
+			out[y * w + x] = y < GBA_H && x >= left && x < left + cw ? s->fb[y * GBA_W + BOF_PARTY_X + x - left] : 0xFF000000;
+		}
+	}
+	return NULL;
+}
+
 static const MapProfile profiles[] = {
 	{
 		.codes = { "A2CE" },
@@ -10686,6 +10817,27 @@ static const MapProfile profiles[] = {
 		                     { 0, 60 }, { K_START, 4 }, { 0, 200 } },
 		          .layer = 1, .maxY = 100 },
 	},
+	{
+		/* Breath of Fire (ABFE USA, ABFP Europe, ABFJ Japan, ABFX Europe in
+		 * English, French and German): the world map on the overworld, the
+		 * party overview elsewhere: see bof_compose
+		 * (docs/games/breath-of-fire.md) */
+		.codes = { "ABFE", "ABFP", "ABFJ" },
+		.title = "Breath of Fire",
+		.compose = bof_compose,
+		.virt = bof_virt,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* the title and its intro, and battles: the logo, the pictures
+		 * dropped, no captures (BOF-2, BOF-5) */
+		.live = { { BOF_V_LOGO, 0xFF, 0, 4 } },
+		.menu = { { BOF_V_LOGO, 0xFF, 1, 4 } },
+		/* another screen (the field back from a battle, a menu or the map
+		 * opened or left): taken again at once (BOF-5, BOF-7) */
+		.room = { { BOF_V_SCREEN, 0xFF, 0, 4 } },
+		/* the title's lettering, sprites above PRESS START (BOF-1) */
+		.logo = { .steps = { { 0, 1700 } }, .layers = 0x10, .maxY = 112 },
+	},
 };
 
 /* ---------------------------------------------------------------- regions
@@ -10726,6 +10878,16 @@ static void bk_lang(MapProfile* p) {
 	memset(p->logo.steps, 0, sizeof(p->logo.steps));
 	memcpy(p->logo.steps, steps, sizeof(steps));
 	bk_eu(p);
+}
+/* Breath of Fire in Europe's English, French and German release (ABFX): a
+ * language list (A: English) before the title, the same as the others (BOF-1) */
+static void bof_lang(MapProfile* p) {
+	/* the list takes no A until it has been up a while: press it a few times; then the
+	 * Ubi Soft and Capcom logos and the title's fade-in */
+	static const MacroStep steps[] = { { 0, 400 }, { K_A, 3 }, { 0, 25 }, { K_A, 3 }, { 0, 25 }, { K_A, 3 }, { 0, 25 },
+	                                   { K_A, 3 }, { 0, 25 }, { K_A, 3 }, { 0, 25 }, { K_A, 3 }, { 0, 1500 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
 }
 static void lang_menu(MapProfile* p) {
 	insert_steps(p->logo.steps, 24, 0, LANGUAGE_A, 2);
@@ -11183,6 +11345,8 @@ static const Variant variants[] = {
 	 * (bk_eu); Europe's English, French and German release asks for a
 	 * language first (BK-1) */
 	{ "BKZX", "BKZE", 0, bk_lang },
+	/* Breath of Fire: Europe's English, French and German release */
+	{ "ABFX", "ABFE", 0, bof_lang },
 	{ "BKZI", "BKZE", 0, bk_eu },
 	{ "BKZS", "BKZE", 0, bk_eu },
 	{ "ANXP", "ANXE", 0, nfo_eur },
