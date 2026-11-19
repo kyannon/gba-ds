@@ -46,6 +46,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Pokémon Pinball: Ruby & Sapphire | `BPPE` `BPPP` `BPPJ` (Japan: the original and Rev 1) | the table twice as tall over both screens, live, with the score bar | |
 | Rebelstar: Tactical Command | `BRLE` `BRLP` (no Japanese release) | in battles: the Status of the soldier under the cursor, or the mission's Objectives | |
 | River City Ransom EX (Downtown Nekketsu Monogatari EX in Japan) | `BDTE` `BDTJ` (no European release) | the Status screen, with the top bar moved off the game screen | |
+| Shin Megami Tensei | `AAUJ` (Japan only; Gymzatan's English translation v1.3b, with or without its font hack) | the game's automap, taller than the game draws it | Gymzatan's English v1.3b iOS Localized translation, with and without the font hack |
 | Sonic Advance | `ASOE` `ASOP` `ASOJ` | the zone card, with the rings, score, time and lives | |
 | Sonic Advance 2 | `A2NE` `A2NP` `A2NJ` | the zone card, with the rings, score, time and lives | |
 | Sonic Advance 3 | `B3SE` `B3SP` `B3SJ` | the act card, with the rings, time and lives; the hubs' keys and zone label | |
@@ -489,6 +490,10 @@ The USA release and the Japanese one (Downtown Nekketsu Monogatari EX).
 - At the Story / Manage Data menu, the title card and through a story's opening conversation, the second screen shows the logo.
 - With one screen (`layout = single`), the top bar stays where the game draws it.
 - Shops, restaurants and two players haven't been tried yet.
+
+## Shin Megami Tensei
+
+The Japanese release and Gymzatan's English translation (v1.3b, with or without its font hack). The second screen shows the game's automap, which you open with L, kept up to date as you walk and turn. The party panels at the bottom of the map screen are left off, so nothing is on both screens. Fights, menus and conversations keep the last map; the title and file lists show the logo. The map is taller than the game draws it: the second screen shows four scroll steps above and below the game's own window, over the game's own grid. Known issues: not tried in a new game's first dungeon or on floor changes outside the test save; one logo is kept for the Japanese game and the translation.
 
 ## Sonic Advance
 

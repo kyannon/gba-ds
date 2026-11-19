@@ -7,7 +7,7 @@
 | Mods | `AAUJ` English v1.3b iOS Localized (Gymzatan) `f74db49f` (tested), English v1.3b iOS Localized with the font hack (Gymzatan) `2050b471` (tested) |
 | Profile | `src/profiles.c`: the `AAUJ` entry (`smt_*`) |
 | Tests | `tests/regress/shin-megami-tensei.json` (`tools/regress.py shin-megami-tensei`) |
-| Status | working on the branch `game/shin-megami-tensei`, in test (not merged) |
+| Status | supported (merged into dev Nov 18, 2026, for v1.5.6; tested on the device) |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list shin-megami-tensei`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.
 
@@ -59,17 +59,3 @@ SMT-8 is an exception to the philosophy's use of the game's own graphics only, i
 | Area | `0x030044EC` / `0x03004C92` (differs per save: 0x23, 0x11, 0x1D) |
 | Save | SRAM, 32 KB (the owner's SharkPort file, `tools/sharkport.py`, no `--magic`) |
 | Boot | the Atlus logo and the opening play for about 2 000 frames; START skips them. L opens the map, B closes it, A the command bar, START the system menu |
-
-## For the merge
-
-Changelog line (under the open version):
-
-- **Shin Megami Tensei** (Japan), and Gymzatan's English translation (v1.3b iOS Localized, with or without the font hack), as patched ROMs or with the patches in the Patches menu: while you walk a dungeon the second screen shows the game's own automap (the floor, the compass and the floor's name), following each step and turn, and it stays up through fights, the command bar and menus; the title and file lists show the game's logo. Tried on the three floors of the test save; the first dungeon of a new game, towns and floor changes haven't been tried yet. The logo is made from whichever of the Japanese game and the translation you start first, and both then show that one.
-
-Wiki section for `Supported-games.md`:
-
-> **Shin Megami Tensei** (Japan; Gymzatan's English translation v1.3b, with or without its font hack). The second screen shows the game's automap, which you open with L, kept up to date as you walk and turn. The party panels at the bottom of the map screen are left off, so nothing is on both screens. Fights, menus and conversations keep the last map; the title and file lists show the logo. The map is taller than the game draws it: the second screen shows four scroll steps above and below the game's own window, over the game's own grid. Known issues: not tried in a new game's first dungeon or on floor changes outside the test save; one logo is kept for the Japanese game and the translation.
-
-Also for the merge: add SMT-8 to the Philosophy page's list of current exceptions ("an automap taller than the game's window, from the game's own scrolling, over its own grid"); the changelog line's first sentence says "the game's own automap", with the taller view in its second.
-
-Also for the merge: `docs/patches.md` already has the two patches; run `tools/make_dumps.py` after merging `dev` if a Releases row changed, and the README's game count goes up by one.

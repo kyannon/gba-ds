@@ -86,6 +86,7 @@ What this means in practice:
   - Mega Man Battle Network's maps of the net, which the game doesn't have, drawn from each area's own layout in the game's own tiles, with MegaMan's head marking where he is;
   - Mega Man Battle Network 2's status screen and money, and its maps of the net, as the first game's (the money box's HP line left out, the status below showing it);
   - Baldur's Gate: Dark Alliance's maps, made from the game's own screens by a copy of the game, and the red X from its quick slots marking where you are;
-  - Boktai's clock and sunrise and sunset times, three lines of the game's own from its ITEM page, kept on the Map at the top (on both screens when that page is open on the game screen), with the Map's title bar left out.
+  - Boktai's clock and sunrise and sunset times, three lines of the game's own from its ITEM page, kept on the Map at the top (on both screens when that page is open on the game screen), with the Map's title bar left out;
+  - Shin Megami Tensei's automap taller than the game's window, made from the game's own scrolling and drawn over its own grid, which is continued above and below it to fill the second screen.
 - **Optional where it can be.** Where an exception changes how the game plays or looks, there's a way back to the original: GBA is the default control layout, and `pinball_live = 0` turns off the pinball games' tall view.
 - **Scope is a feature.** Every change has to be built, tested on the real device and maintained by one person. A smaller, solid feature beats a bigger, fragile one, and that's often the honest answer to a feature request: not "never", but "not at the cost of everything else working".
