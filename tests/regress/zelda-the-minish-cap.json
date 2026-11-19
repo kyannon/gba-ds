@@ -1,0 +1,352 @@
+{
+ "game": "The Legend of Zelda: The Minish Cap",
+ "rules": "docs/games/zelda-the-minish-cap.md",
+ "cases": [
+  {
+   "id": "tmc-us-town",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-town.ss",
+   "desc": "Link in Hyrule Town: the map of Hyrule, the marks of the region",
+   "rules": [
+    "TMC-1",
+    "TMC-5",
+    "TMC-7"
+   ],
+   "shots": {
+    "a": 300,
+    "b": 308,
+    "c": 316,
+    "d": 324,
+    "e": 332,
+    "f": 340,
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "TMC-7",
+     "what": "the marks blink as the game's do",
+     "type": "differs",
+     "a": {
+      "shot": "a",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "b",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0005
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-dungeon",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-dungeon.ss",
+   "desc": "Deepwood Shrine: the dungeon map",
+   "rules": [
+    "TMC-2",
+    "TMC-5",
+    "TMC-7"
+   ],
+   "shots": {
+    "a": 300,
+    "b": 308,
+    "c": 316,
+    "d": 324,
+    "e": 332,
+    "f": 340,
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-2",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "TMC-7",
+     "what": "the marks blink as the game's do",
+     "type": "differs",
+     "a": {
+      "shot": "a",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "b",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0005
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-map-open",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-map-open.ss",
+   "desc": "the game's own Map tab open: the last picture stays (the game's own screen is never the second one)",
+   "rules": [
+    "TMC-8",
+    "TMC-11"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "tmc-us-items-menu",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-items-menu.ss",
+   "desc": "the Items tab open when the state was saved: nothing is captured while the game's menu is up, the logo stays",
+   "rules": [
+    "TMC-8"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-8",
+     "what": "no capture while the game's menu is open",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-last-tab-map",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-last-tab-map.ss",
+   "desc": "in play with the Map as the tab last used: the map is still taken from the Map tab, and the game's menu never opens on the player's screen",
+   "rules": [
+    "TMC-3",
+    "TMC-11"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-3",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-no-map",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-no-map.ss",
+   "desc": "before the Map item: the logo, nothing captured",
+   "rules": [
+    "TMC-4"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-4",
+     "what": "no map captured without the Map item",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-title",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-title.ss",
+   "desc": "the title screen: the logo",
+   "rules": [
+    "TMC-9"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-9",
+     "what": "no map captured on the title",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-file-select",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-file-select.ss",
+   "desc": "the file select: the logo",
+   "rules": [
+    "TMC-9"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-9",
+     "what": "no map captured at the file select",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-eu-town",
+   "rom": "BZMP",
+   "state": "zelda-the-minish-cap/eu-town.ss",
+   "desc": "Europe: Link in the overworld, the map of Hyrule",
+   "rules": [
+    "TMC-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-eu-dungeon",
+   "rom": "BZMP",
+   "state": "zelda-the-minish-cap/eu-dungeon.ss",
+   "desc": "Europe: Deepwood Shrine's map",
+   "rules": [
+    "TMC-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-2",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-jp-title",
+   "rom": "BZMJ",
+   "state": "zelda-the-minish-cap/jp-title.ss",
+   "desc": "Japan: the title screen, the logo",
+   "rules": [
+    "TMC-9"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-9",
+     "what": "no map captured on the title",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-jp-file-select",
+   "rom": "BZMJ",
+   "state": "zelda-the-minish-cap/jp-file-select.ss",
+   "desc": "Japan: the file select, the logo",
+   "rules": [
+    "TMC-9"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-9",
+     "what": "no map captured at the file select",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-logo-bzme",
+   "kind": "logo",
+   "rom": "BZME",
+   "desc": "BZME logo extraction",
+   "rules": [
+    "TMC-10"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "tmc-logo-bzmp",
+   "kind": "logo",
+   "rom": "BZMP",
+   "desc": "BZMP logo extraction",
+   "rules": [
+    "TMC-10"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "tmc-logo-bzmj",
+   "kind": "logo",
+   "rom": "BZMJ",
+   "desc": "BZMJ logo extraction",
+   "rules": [
+    "TMC-10"
+   ],
+   "golden": [
+    "logo"
+   ]
+  }
+ ]
+}

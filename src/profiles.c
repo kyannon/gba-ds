@@ -8036,6 +8036,125 @@ static const char* smt_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	return err;
 }
 
+/* ------------------------------------------- The Legend of Zelda: The Minish Cap
+ *
+ * docs/games/zelda-the-minish-cap.md. The second screen is the game's Map
+ * tab (START's menu, R twice from Items): the map of Hyrule, or a dungeon's
+ * map in a dungeon (TMC-1, TMC-2). The same addresses in all three releases
+ * (the decompilation's linker script, github.com/zeldaret/tmc):
+ *   TMC_TASK  gMain's task: 0 the title, 1 the file select, 2 the game, 3 a
+ *             game over, 4 the credits
+ *   TMC_SUB   its substate in the game: 2 walking about, 7 a menu open (the
+ *             menu is a subtask), 1 a room being loaded
+ *   TMC_TAB   the menu's tab, the one last used (kept between openings, so
+ *             it's set to the map before START): 1 Items, 2 Quest Status,
+ *             4 the map of Hyrule, 5 a dungeon's map
+ *   TMC_STEP  the menu's step: 2 open and idle (its fade-in done)
+ *   TMC_META  the area's flags: bit 0 the overworld, bit 2 a dungeon
+ *   TMC_MAPX / TMC_MAPY  Link's place on the map of Hyrule (pixels), only
+ *             updated outdoors; the region the map marks is a box of
+ *             gOverworldLocations on x >> 4, y >> 4
+ *   TMC_ITEM_MAP  ITEM_MAP, bits 6-7 of this inventory byte: no Map tab
+ *             without it */
+#define TMC_TASK 0x03001002
+#define TMC_SUB 0x03001004
+#define TMC_TAB 0x02034491
+#define TMC_STEP 0x020344A1
+#define TMC_AREA 0x03000BF4 /* area, room (bytes) */
+#define TMC_META 0x02033A90
+#define TMC_MAPX 0x030010C0
+#define TMC_MAPY 0x030010C2
+#define TMC_ITEM_MAP 0x02002B43
+#define TMC_V_LOGO 0xF00000C0  /* not in the game: the title, the file select, a game over, the credits (TMC-9) */
+#define TMC_V_PLACE 0xF00000C1 /* the region of Hyrule, or a dungeon's room (TMC-6) */
+#define TMC_FRAMES 16 /* the loop of frames recorded (the longest blink cycle is ~60 frames) */
+#define TMC_FRAME_STEP 4
+
+/* gOverworldLocations: the 17 regions of the map (the game takes the first
+ * box a place is in; x and y in 16-pixel units) */
+static const struct { uint8_t x0, y0, x1, y1; } tmc_regions[17] = {
+	{ 0, 0, 62, 74 },    { 0, 75, 62, 104 },   { 0, 105, 62, 164 },  { 0, 165, 62, 197 },
+	{ 63, 0, 92, 74 },   { 63, 75, 92, 134 },  { 63, 135, 92, 197 },
+	{ 93, 0, 155, 44 },  { 93, 45, 155, 94 },  { 93, 95, 155, 154 }, { 93, 155, 155, 197 },
+	{ 156, 0, 185, 74 }, { 156, 75, 200, 134 }, { 156, 135, 185, 197 },
+	{ 186, 0, 248, 62 }, { 186, 63, 248, 134 }, { 186, 135, 248, 197 },
+};
+
+static uint32_t tmc_virt(Emu* e, uint32_t addr) {
+	if (addr == TMC_V_LOGO) return emu_read8(e, TMC_TASK) != 2;
+	if (addr != TMC_V_PLACE) return 0;
+	/* a dungeon: its room (the floors are rooms too) */
+	if (emu_read8(e, TMC_META) & 4) return 0x10000 | emu_read16(e, TMC_AREA);
+	unsigned x = emu_read16(e, TMC_MAPX) >> 4, y = emu_read16(e, TMC_MAPY) >> 4;
+	for (int i = 0; i < 17; ++i) {
+		if (x >= tmc_regions[i].x0 && x <= tmc_regions[i].x1 && y >= tmc_regions[i].y0 && y <= tmc_regions[i].y1) return (uint32_t) i;
+	}
+	return 0xFF;
+}
+
+/* the menu open on a map tab and idle (its fade-in over) */
+static bool tmc_map_up(Emu* s) {
+	uint8_t tab = emu_read8(s, TMC_TAB);
+	return emu_read8(s, TMC_SUB) == 7 && emu_read8(s, TMC_STEP) == 2 && (tab == 4 || tab == 5);
+}
+
+/* The Map tab (TMC-3): the hidden copy is told to open its menu on the map,
+ * then START (the tab the player last used is in the state, and the menu
+ * opens on it), and the picture is taken from the idle menu, without the
+ * tab arrows and the "Choose" prompt (TMC-5); then a loop of the frames the
+ * marks blink through (TMC-7). Where the menu won't open: quick failures
+ * (TMC-8), and without the map, TMC-4. */
+static const char* tmc_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+	/* L and R's arrows (tiles 32 and 16, priority 1, at the sides, around
+	 * y 56); "Choose" and its button (tiles 256-300, priority 0, top right) */
+	static const SpriteRule hide[] = {
+		{ 0, 48, 239, 72, 16, 32, 1 },
+		{ 170, 0, 239, 24, 250, 300, 0 },
+	};
+	int max = *nOut < TMC_FRAMES ? *nOut : TMC_FRAMES;
+	*nOut = 1;
+	*step = TMC_FRAME_STEP;
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	if (emu_read8(s, TMC_TASK) != 2 || emu_read8(s, TMC_SUB) != 2) return "map button did nothing";
+	/* no Map tab without the map (TMC-4) */
+	if (((emu_read8(s, TMC_ITEM_MAP) >> 6) & 3) == 0) return "map button did nothing";
+	/* START, until the menu is up: it isn't taken during a fade or a
+	 * message, which may pass in a few frames */
+	for (int tries = 0; tries < 4 && !tmc_map_up(s); ++tries) {
+		emu_write8(s, TMC_TAB, 4);
+		aw_run(s, K_START, 4);
+		aw_run(s, 0, 4);
+		for (int f = 0; f < 50 && !tmc_map_up(s); ++f) emu_frame_blind(s, 0);
+	}
+	if (!tmc_map_up(s)) return "map button did nothing";
+	if (emu_cancelled(s)) return "called off";
+	emu_hide_sprites(s, hide, 2);
+	aw_run(s, 0, 4);
+	int cw = w < GBA_W ? w : GBA_W, ch = h < GBA_H ? h : GBA_H;
+	for (int y = 0; y < ch; ++y) memcpy(&out[0][y * w], &s->fb[y * GBA_W], (size_t) cw * 4);
+	bool animated = false;
+	for (int i = 1; i < max; ++i) {
+		aw_run(s, 0, TMC_FRAME_STEP);
+		if (!tmc_map_up(s)) break;
+		for (int y = 0; y < ch; ++y) memcpy(&out[i][y * w], &s->fb[y * GBA_W], (size_t) cw * 4);
+		if (memcmp(out[i], out[0], (size_t) w * h * 4)) animated = true;
+		*nOut = i + 1;
+	}
+	emu_hide_sprites(s, NULL, 0);
+	if (emu_cancelled(s)) return "called off";
+	if (!animated) *nOut = 1;
+	return NULL;
+}
+
+/* The Minish Cap in Japan: the lettering runs lower (the subtitle is
+ * Japanese, under the title), and there's no sword's pommel to cut away */
+static void tmc_jpn(MapProfile* p) {
+	p->listName = "Zelda no Densetsu - Fushigi no Boushi (Japan)";
+	p->logo.layers = 0x12; /* the lettering is on BG1, the subtitle and the bird sprites */
+	p->logo.maxY = 122;
+}
+
 static const MapProfile profiles[] = {
 	{
 		.codes = { "A2CE" },
@@ -8205,6 +8324,26 @@ static const MapProfile profiles[] = {
 		 * rates) in its frame where it shows most; the X marking the goal
 		 * fades red to white: at its reddest */
 		.animFrames = 8, .animStep = 4, .mapStill = true, .stillPick = STILL_RED,
+	},
+	{
+		/* the game's Map tab, taken from a hidden copy: the map of Hyrule, or
+		 * a dungeon's map; see tmc_compose (docs/games/zelda-the-minish-cap.md) */
+		.codes = { "BZME" },
+		.title = "The Legend of Zelda: The Minish Cap",
+		.composePages = tmc_compose,
+		.virt = tmc_virt,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* captures only while Link is in play (not on the title, in his
+		 * menu or while a room loads); the title, the file select, a game
+		 * over and the credits: the logo, the map forgotten (TMC-8, TMC-9) */
+		.live = { { TMC_V_LOGO, 0xFF, 0, 4 }, { TMC_SUB, 0xFF, 2, 1 } },
+		.menu = { { TMC_V_LOGO, 0xFF, 1, 4 } },
+		/* another region of Hyrule, another dungeon room or floor (TMC-6) */
+		.room = { { TMC_V_PLACE, 0xFFFFFFFF, 0, 4 } },
+		/* the title's lettering (sprites), above PRESS START and the
+		 * copyright line: without the sword and ribbon (BG2) */
+		.logo = { .wait = 900, .layers = 0x10, .maxY = 96 },
 	},
 	{
 		.codes = { "AVSE" },
@@ -11168,6 +11307,8 @@ static const Variant variants[] = {
 	{ "AMTJ", "AMTE", 0x34, NULL },
 	{ "AZLP", "AZLE", 0, zelda_eur },
 	{ "AZLJ", "AZLE", 0, zelda_jpn },
+	{ "BZMP", "BZME", 0, NULL },
+	{ "BZMJ", "BZME", 0, tmc_jpn },
 	{ "ATHJ", "ATHE", 0, thps2_jpn },
 	{ "AFXP", "AFXE", 0, ffta_eur },
 	{ "AFXJ", "AFXE", 0, ffta_jpn },
