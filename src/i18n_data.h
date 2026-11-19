@@ -4,15 +4,8 @@
 
 #include "i18n.h"
 
-/* the Settings > Language choices after Automatic and English: { code, autonym, 0 }.
- * The pseudo-language (accented, longer text, to show clipping and strings never marked
- * for translation) is only listed in -dev builds (the Makefile defines GBADS_I18N_PSEUDO). */
-#ifdef GBADS_I18N_PSEUDO
-#define I18N_PSEUDO_CHOICE { "pseudo", "Pseudo (testing)", 0 },
-#else
-#define I18N_PSEUDO_CHOICE
-#endif
-#define I18N_CHOICES I18N_PSEUDO_CHOICE \
+/* the Settings > System > Language choices after Automatic and English: { code, autonym, 0 }. */
+#define I18N_CHOICES \
 	{ "de", "Deutsch (machine translated)", 0 }, \
 	{ "es", "Espa\303\261ol (machine translated)", 0 }, \
 	{ "fr", "Fran\303\247ais (machine translated)", 0 }, \

@@ -10,9 +10,7 @@
 The .po files in assets/i18n/ are the source of truth. The app reads no files:
 `compile` turns them into tables in src/i18n_data.c (generated: regenerate it,
 never merge it by hand), which end up inside the zip and the APK with the rest
-of the binary. A "pseudo" language (accented, 35% longer) is made from the
-template at the same time, to show clipping and strings that were never marked
-for translation.
+of the binary.
 
 Strings reach the template three ways (all in src/*.c):
   - tr("..."), trc("context", "..."), trn("one", "other", n),
@@ -607,46 +605,6 @@ def check_lang(L, pot, problems, warnings):
     return dict(translated=translated, fuzzy=fuzzy, untranslated=len(pot) - translated - fuzzy, total=len(pot), missing=missing)
 
 
-# ------------------------------------------------------------------ pseudo
-
-ACCENT = dict(zip("AEIOUYaeiouycnsz", "ÀÉÎÕÜÝàéîõüýçñšž"))
-
-
-def pseudo_text(s):
-    """Accented, 35% longer, format specifiers and newlines untouched."""
-    out, i, letters = [], 0, 0
-    while i < len(s):
-        if s[i] == "%":
-            m = SPEC.match(s, i)
-            if m:
-                out.append(m.group(0)); i = m.end(); continue
-        if s[i] == "\n":
-            out.append(s[i]); i += 1; continue
-        c = ACCENT.get(s[i], s[i])
-        letters += c.isalpha()
-        out.append(c); i += 1
-    pad = int(round(letters * 0.35))
-    if pad and "\n" not in s:
-        out.append(" " + "·" * pad)
-    return "".join(out)
-
-
-def pseudo_lang(pot):
-    L = Lang()
-    L.code, L.autonym, L.script, L.status, L.aliases = "pseudo", "Pseudo (testing)", "latin", "test", []
-    L.rule, L.nplurals = "PL_ONE_OTHER", 2
-    L.entries = []
-    for key, m in pot.items():
-        e = PoEntry()
-        e.ctx, e.id, e.plural = key[0] or None, key[1], m.plural
-        if m.plural:
-            e.str = {0: pseudo_text(m.one), 1: pseudo_text(m.plural)}
-        else:
-            e.str = {0: pseudo_text(m.one)}
-        L.entries.append(e)
-    return L
-
-
 # ------------------------------------------------------------------ compile
 
 
@@ -676,15 +634,8 @@ def compile_c(langs, pot):
         "",
         "#include \"i18n.h\"",
         "",
-        "/* the Settings > Language choices after Automatic and English: { code, autonym, 0 }.",
-        " * The pseudo-language (accented, longer text, to show clipping and strings never marked",
-        " * for translation) is only listed in -dev builds (the Makefile defines GBADS_I18N_PSEUDO). */",
-        "#ifdef GBADS_I18N_PSEUDO",
-        "#define I18N_PSEUDO_CHOICE { \"pseudo\", \"Pseudo (testing)\", 0 },",
-        "#else",
-        "#define I18N_PSEUDO_CHOICE",
-        "#endif",
-        "#define I18N_CHOICES I18N_PSEUDO_CHOICE \\",
+        "/* the Settings > System > Language choices after Automatic and English: { code, autonym, 0 }. */",
+        "#define I18N_CHOICES \\",
     ]
     shown = [L for L in langs if L.status != "test"]
     for L in shown:
@@ -766,13 +717,12 @@ def do_compile():
     msgs, langs, problems = do_check()
     if problems:
         raise Err("fix the errors above first")
-    langs = langs + [pseudo_lang(msgs)]
     langs.sort(key=lambda L: L.code)
     c, h = compile_c(langs, msgs)
     for path, text in ((OUT_C, c), (OUT_H, h)):
         with open(path, "w", encoding="utf-8") as f:
             f.write(text)
-    print("wrote src/i18n_data.c and src/i18n_data.h (%d languages with pseudo)" % len(langs))
+    print("wrote src/i18n_data.c and src/i18n_data.h (%d languages)" % len(langs))
 
 
 def self_test():
@@ -785,7 +735,6 @@ def self_test():
     assert parse_c_string('"a" "b\\n" x', 0)[0] == "a" + "b\n"
     assert parse_c_string('"R \\xC2\\xB7 C \\303\\251 \\u2039 \\0"', 0)[0].startswith("R \u00b7 C \u00e9 \u2039 ")
     assert po_quote('a"b\n') == '"a\\"b\\n"'
-    assert pseudo_text("Open %s") == "Õpéñ %s ·", pseudo_text("Open %s")
     s = strip_comments('x = tr("a"); /* tr("b") */ // tr("c")\n')
     m = {}
     extract_source("t.c", s, m)

@@ -32,13 +32,9 @@ SIDE_DEF   += -DGBADS_SIDE_CODES='"$(SIDE_CODES)"'
 endif
 endif
 OPTFLAGS   ?= -O2 -g
-# the pseudo-language (i18n.h) is a choice in Settings only in -dev builds
-ifneq (,$(findstring -dev,$(VERSION)))
-I18N_DEF := -DGBADS_I18N_PSEUDO
-endif
 
 override CFLAGS := $(OPTFLAGS) -std=gnu11 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers \
-              -DGBADS_VERSION='"$(VERSION)"' $(SIDE_DEF) $(I18N_DEF) $(MGBA_DEFS) -I$(MGBA_SRC)/include -I$(MGBA_BUILD)/include -I$(SDL_PREFIX)/include/SDL2 -D_REENTRANT
+              -DGBADS_VERSION='"$(VERSION)"' $(SIDE_DEF) $(MGBA_DEFS) -I$(MGBA_SRC)/include -I$(MGBA_BUILD)/include -I$(SDL_PREFIX)/include/SDL2 -D_REENTRANT
 LDFLAGS    += -L$(SDL_PREFIX)/lib -Wl,-rpath-link,$(SDL_PREFIX)/lib
 # mGBA's bundled zlib (for .zip ROMs), when it was built with it
 ZLIB_A     := $(wildcard $(MGBA_BUILD)/zlib/libz.a)
