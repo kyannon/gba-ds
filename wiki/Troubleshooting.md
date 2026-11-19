@@ -4,7 +4,7 @@ Every run writes a log, replaced on the next run:
 - ROCKNIX: `/storage/roms/ports/gba-ds/gba-ds.log`, including the screen set-up (`screens.sh`) before and after.
 - Android: `GBA DS/gba-ds.log`, plus `GBA DS/launch.log` for what a frontend sent when it started GBA DS.
 
-When there's a problem, the log reports it every 5 seconds: audio underruns, slow frames (with what took the time) and how busy the background map capture was.
+When there's a problem, the log reports it every 5 seconds: audio underruns, slow frames (with what took the time) and how busy the background map capture was. While all is well it still writes that line every 30 seconds. It includes the lowest and highest level the sound queue reached and the Sound delay in use (the queue normally sits between half and one and a half times the delay).
 
 **More detail:** on ROCKNIX, add a line `export GBADS_DEBUG=1` near the top of `gba-ds/launch.sh` (after the `#!` line). The log then also records every button, key and touch (with raw joystick button numbers), map captures, control-scheme switches and HUD changes. Remove the line afterwards; the log grows quickly.
 
