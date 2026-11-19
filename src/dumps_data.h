@@ -252,6 +252,8 @@ static const KnownDump knownDumps[] = {
 	{ "BRLP", 0xe448c5d4, true, false, "Rebelstar - Tactical Command (Europe) (En,Fr,De,Es,It)" },
 	{ "BSKE", 0x1eac1f48, true, false, "Summon Night - Swordcraft Story 2 (USA)" },
 	{ "BSKJ", 0x8cd98f6f, true, false, "Summon Night - Craft Sword Monogatari 2 (Japan)" },
+	{ "BY7E", 0x584db6a6, true, false, "Yu-Gi-Oh! - 7 Trials to Glory - World Championship Tournament 2005 (USA) (En,Ja,Fr,De,Es,It)" },
+	{ "BYIJ", 0x6dcfb879, true, false, "Yu-Gi-Oh! Duel Monsters International 2 (Japan) (En,Ja)" },
 	{ "BZ4E", 0xfeeebde4, true, false, "Final Fantasy IV Advance (USA)" },
 	{ "BZ4J", 0x17036e02, true, false, "Final Fantasy IV Advance (Japan)" },
 	{ "BZ4J", 0x80f1133b, true, false, "Final Fantasy IV Advance (Japan) (Rev 1)" },

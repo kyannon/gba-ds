@@ -1,0 +1,247 @@
+{
+ "game": "yu-gi-oh-7-trials-to-glory",
+ "rules": "docs/games/yu-gi-oh-7-trials-to-glory.md",
+ "cases": [
+  {
+   "id": "ywc-logo-by7e",
+   "kind": "logo",
+   "rom": "BY7E",
+   "desc": "BY7E logo extraction",
+   "rules": [
+    "GEN-1",
+    "YWC-5"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "ywc-logo-byij",
+   "kind": "logo",
+   "rom": "BYIJ",
+   "desc": "BYIJ logo extraction (Japan: the logo only)",
+   "rules": [
+    "GEN-1",
+    "YWC-7"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "ywc-us-hand",
+   "rom": "BY7E",
+   "state": "yu-gi-oh-7-trials-to-glory/us-hand.ss",
+   "desc": "the player's turn, the cursor on Autonomous Action Unit in the hand: its Card View; UP to an empty field zone: it stays; the game screen as it is",
+   "rules": [
+    "YWC-1",
+    "YWC-3",
+    "YWC-6"
+   ],
+   "input": [
+    [
+     150,
+     "UP"
+    ],
+    [
+     154,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 100,
+    "empty": 300
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       186,
+       "424242"
+      ],
+      [
+       990,
+       466,
+       "424242"
+      ],
+      [
+       990,
+       586,
+       "424242"
+      ],
+      [
+       38,
+       146,
+       "000000"
+      ],
+      [
+       54,
+       702,
+       "A5A5A5"
+      ]
+     ],
+     "rule": "YWC-1",
+     "shot": "start",
+     "what": "Autonomous Action Unit's Card View"
+    },
+    {
+     "rule": "YWC-3",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "empty",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "the last card stays on an empty zone"
+    }
+   ]
+  },
+  {
+   "id": "ywc-us-deck-mode",
+   "rom": "BY7E",
+   "state": "yu-gi-oh-7-trials-to-glory/us-deck-mode.ss",
+   "desc": "Deck mode, the cursor on Blue-Eyes White Dragon: its Detail; DOWN to Summoned Skull: another card",
+   "rules": [
+    "YWC-2"
+   ],
+   "input": [
+    [
+     150,
+     "DOWN"
+    ],
+    [
+     154,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 100,
+    "down": 300
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       186,
+       "424242"
+      ],
+      [
+       990,
+       466,
+       "424242"
+      ],
+      [
+       990,
+       586,
+       "424242"
+      ],
+      [
+       38,
+       146,
+       "000000"
+      ],
+      [
+       54,
+       702,
+       "A5A5A5"
+      ]
+     ],
+     "rule": "YWC-2",
+     "shot": "start",
+     "what": "Blue-Eyes' Detail"
+    },
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       186,
+       "424242"
+      ],
+      [
+       990,
+       466,
+       "424242"
+      ],
+      [
+       990,
+       586,
+       "424242"
+      ],
+      [
+       38,
+       146,
+       "000000"
+      ],
+      [
+       54,
+       702,
+       "A5A5A5"
+      ]
+     ],
+     "rule": "YWC-2",
+     "shot": "down",
+     "what": "Summoned Skull's Detail"
+    },
+    {
+     "rule": "YWC-2",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "down",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "another card"
+    }
+   ]
+  },
+  {
+   "id": "ywc-us-draw-phase",
+   "rom": "BY7E",
+   "state": "yu-gi-oh-7-trials-to-glory/us-draw-phase.ss",
+   "desc": "the Draw Phase before drawing (A there draws a card, not Card View): nothing taken, the logo",
+   "rules": [
+    "YWC-3"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  }
+ ]
+}

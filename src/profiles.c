@@ -2737,6 +2737,101 @@ static const char* eds_compose_jp(Emu* s, const void* state, uint32_t* out, int 
 	return eds_compose_for(&edsJP, s, state, out, w, h);
 }
 
+/* ---------------------------------------------------------- Yu-Gi-Oh! 7 Trials to Glory
+ *
+ * The second screen (YWC-1 to YWC-3): the Card View (Detail) of the card
+ * under the player's cursor, opened on the hidden copy as Eternal Duelist
+ * Soul's is (eds_compose_for), from BG0CNT / BG1CNT alone: the duel
+ * field 0x4007 0x4206, Card View 0x0087 0x4104, the lists (Deck select,
+ * Deck mode, the banlist) 0x0004 0x0105. 0x03000330's high byte is 0x35
+ * while the field is up (free, or a card's commands open) and 0x20 with
+ * "End your turn?"; the info bar (its bottom rows) names the card in
+ * white. Where the hidden copy's A does something else, nothing is taken. */
+#define YW_V_LIVE 0xF0000050
+#define YW_V_IDLE 0xF0000051
+#define YW_V_ROOM 0xF0000052
+enum { YW_NONE, YW_FIELD, YW_VIEW, YW_LIST };
+static int yw_screen(Emu* e) {
+	uint16_t bg0 = emu_io16(e, 0x08), bg1 = emu_io16(e, 0x0A);
+	if (bg0 == 0x4007 && bg1 == 0x4206) return YW_FIELD;
+	if (bg0 == 0x0087 && bg1 == 0x4104) return YW_VIEW;
+	if (bg0 == 0x0004 && bg1 == 0x0105) return YW_LIST;
+	return YW_NONE;
+}
+static const Probe ywView[8] = {
+	{ 239, 30, 0x424242 }, { 239, 50, 0x424242 }, { 239, 70, 0x424242 }, { 239, 100, 0x424242 },
+	{ 239, 130, 0x424242 }, { 1, 20, 0x000000 }, { 1, 100, 0x000000 }, { 5, 159, 0xA5A5A5 },
+};
+static bool yw_view(Emu* s) {
+	return yw_screen(s) == YW_VIEW && som_probes(s, ywView, 8, 8, 8);
+}
+/* the info bar names a card: white pixels in its text */
+static bool yw_named(Emu* e) {
+	int white = 0;
+	for (int y = 151; y < 159; ++y)
+		for (int x = 2; x < 120; ++x) white += (e->fb[y * GBA_W + x] & 0xFFFFFF) == 0xFFFFFF;
+	return white >= 12;
+}
+static bool yw_field_up(Emu* e) {
+	return (emu_read16(e, 0x03000330) & 0xFF00) == 0x3500;
+}
+static uint32_t yw_virt(Emu* e, uint32_t addr) {
+	int sc = yw_screen(e);
+	if (addr == YW_V_LIVE) {
+		if (sc == YW_FIELD) return yw_field_up(e) && yw_named(e);
+		return sc != YW_NONE;
+	}
+	if (addr == YW_V_IDLE) return sc == YW_NONE;
+	if (addr == YW_V_ROOM) {
+		uint32_t k = (uint32_t) sc << 28;
+		if (sc == YW_FIELD) {
+			uint32_t h = 2166136261u;
+			for (int y = 151; y < 159; ++y)
+				for (int x = 2; x < 120; ++x) h = (h ^ (e->fb[y * GBA_W + x] & 0xFFFFFF)) * 16777619u;
+			k |= (h & 0x0FFFFFFF);
+		} else if (sc == YW_LIST) k |= emu_read8(e, 0x02026AB0);
+		return k;
+	}
+	return 0;
+}
+static bool yw_wait_view(Emu* s, int max) {
+	static uint32_t prev[GBA_W * GBA_H];
+	int still = 0;
+	for (int f = 0; f < max && !emu_cancelled(s); ++f) {
+		emu_frame(s, 0);
+		if (!yw_view(s)) {
+			still = 0;
+			continue;
+		}
+		still = still && !memcmp(prev, s->fb, sizeof(prev)) ? still + 1 : 1;
+		if (still >= 3) return true;
+		memcpy(prev, s->fb, sizeof(prev));
+	}
+	return false;
+}
+static const char* yw_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	int sc = yw_screen(s);
+	if (sc == YW_NONE) return "not a card screen";
+	if (sc != YW_VIEW) {
+		aw_run(s, 0, sc == YW_LIST ? 30 : 12); /* the cursor glides to its place (a list scrolls) */
+		if (sc == YW_FIELD && (!yw_field_up(s) || !yw_named(s))) return "map button did nothing";
+		/* A: the card's commands (Card View chosen), or the list's command
+		 * bar (Detail chosen); with them already up, A opens the page */
+		aw_tap(s, K_A, 1);
+		aw_run(s, 0, sc == YW_LIST ? 30 : 12);
+		if (!yw_view(s)) {
+			if (yw_screen(s) != sc) return "A did something else";
+			aw_tap(s, K_A, 1);
+		}
+	}
+	if (!yw_view(s) && !yw_wait_view(s, 60)) return "Card View didn't open";
+	if (emu_cancelled(s)) return "called off";
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+	return NULL;
+}
+
 /* ---------------------------------------------------------- Zoids: Legacy
  *
  * The second screen, from zl_compose on the hidden copy:
@@ -10535,6 +10630,30 @@ static const MapProfile profiles[] = {
 		/* the title's lettering (BG0), flame (BG1) and disc (BG2), above
 		 * New Game and the copyright line (EDS-7) */
 		.logo = { .wait = 900, .layers = 0x07, .maxY = 100 },
+	},
+	{
+		/* Yu-Gi-Oh! 7 Trials to Glory (USA): the Card View of the card under
+		 * the cursor, see yw_compose (YWC-1 to YWC-4) */
+		.codes = { "BY7E" },
+		.title = "Yu-Gi-Oh! 7 Trials to Glory",
+		.compose = yw_compose,
+		.virt = yw_virt,
+		.crop_w = GBA_W,
+		.crop_h = GBA_H,
+		.live = { { YW_V_LIVE, 0xFF, 1, 4 } },
+		.menu = { { YW_V_IDLE, 0xFF, 1, 4 } },
+		.room = { { YW_V_ROOM, 0, 0, 4 } },
+		/* the title's lettering and flame are sprites, over its hex-grid
+		 * background (BG layers 1 to 3), above New Game / Continue (BG0):
+		 * the sprites alone, once English is chosen on the Language
+		 * Selection of a first start (YWC-5) */
+		.logo = { .steps = { { 0, 700 }, { K_A, 4 }, { 0, 1100 } }, .layers = 0x10, .maxY = 112 },
+	},
+	{
+		/* Duel Monsters International 2 (Japan): the logo only (YWC-7) */
+		.codes = { "BYIJ" },
+		.title = "Yu-Gi-Oh! Duel Monsters International 2",
+		.logo = { .wait = 1700, .layers = 0x10, .maxY = 112 },
 	},
 	{
 		/* Zoids: Legacy (USA; Japan, Zoids Saga II: its addresses in
