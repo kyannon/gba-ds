@@ -1,4 +1,5 @@
 #include "mapper.h"
+#include "i18n.h"
 
 #include "ui.h"
 
@@ -26,24 +27,24 @@ typedef struct {
 } Step;
 
 static const Step steps[] = {
-	{ "dpup", "Up", "on the D-pad", false },
-	{ "dpdown", "Down", "on the D-pad", false },
-	{ "dpleft", "Left", "on the D-pad", false },
-	{ "dpright", "Right", "on the D-pad", false },
-	{ "b", "A", "the right face button", false },
-	{ "a", "B", "the bottom face button", false },
-	{ "x", "X", "the top face button", false },
-	{ "y", "Y", "the left face button", false },
-	{ "leftshoulder", "L", "the left shoulder button", false },
-	{ "rightshoulder", "R", "the right shoulder button", false },
-	{ "lefttrigger", "L2", "the second left shoulder button", false },
-	{ "righttrigger", "R2", "the second right shoulder button", false },
+	{ "dpup", N_("Up"), "on the D-pad", false },
+	{ "dpdown", N_("Down"), "on the D-pad", false },
+	{ "dpleft", N_("Left"), "on the D-pad", false },
+	{ "dpright", N_("Right"), "on the D-pad", false },
+	{ "b", "A", N_("the right face button"), false },
+	{ "a", "B", N_("the bottom face button"), false },
+	{ "x", "X", N_("the top face button"), false },
+	{ "y", "Y", N_("the left face button"), false },
+	{ "leftshoulder", "L", N_("the left shoulder button"), false },
+	{ "rightshoulder", "R", N_("the right shoulder button"), false },
+	{ "lefttrigger", "L2", N_("the second left shoulder button"), false },
+	{ "righttrigger", "R2", N_("the second right shoulder button"), false },
 	{ "back", "Select", "", false },
 	{ "start", "Start", "", false },
-	{ "guide", "Home", "the button that opens GBA DS's menu (Home, Menu or Function)", false },
-	{ "leftstick", "L3", "press the left stick in", false },
-	{ "lefty", "Left stick: up", "push the left stick up", true },
-	{ "leftx", "Left stick: left", "push the left stick left", true },
+	{ "guide", N_("Home"), N_("the button that opens GBA DS's menu (Home, Menu or Function)"), false },
+	{ "leftstick", "L3", N_("press the left stick in"), false },
+	{ "lefty", N_("Left stick: up"), N_("push the left stick up"), true },
+	{ "leftx", N_("Left stick: left"), N_("push the left stick left"), true },
 };
 #define N_STEPS ((int) (sizeof(steps) / sizeof(*steps)))
 
@@ -110,7 +111,7 @@ static void binding(const Step* st, const RawInput* r, char* out, size_t n) {
 		} else if (base < -16000 || base > 16000) {
 			snprintf(out, n, "a%d%s", r->index, r->value > base ? "" : "~"); /* a trigger, resting at one end */
 		} else {
-			snprintf(out, n, "%ca%d", r->value > 0 ? '+' : '-', r->index);
+			snprintf(out, n, tr("%ca%d"), r->value > 0 ? '+' : '-', r->index);
 		}
 	} else if (st->stick) {
 		return;
@@ -242,18 +243,18 @@ static void draw(int scr, const View_* v, bool touch) {
 	bool here = scr == ui_touch_screen();
 	int tw = r.w - px * 24;
 	if (v->noPad || v->done) {
-		const char* head = v->noPad ? "No controller found" : v->saved ? "Buttons mapped" : v->nothing ? "Nothing mapped" : "Couldn't save";
+		const char* head = v->noPad ? N_("No controller found"): v->saved ? N_("Buttons mapped"): v->nothing ? N_("Nothing mapped"): N_("Couldn't save");
 		ui_label(scr, r.w / 2, r.h / 2 - px * 20, px * 10, head, C_TEXT);
-		const char* body = v->noPad ? "Connect a controller and try again." : v->doneText;
+		const char* body = v->noPad ? N_("Connect a controller and try again."): v->doneText;
 		ui_font_wrap(scr, TF_BODY, px * 12, r.h / 2, tw, px * 5, body, C_DIM);
 		ui_font_text(scr, TF_BODY, r.w / 2, r.h - px * 14, px * 4, touch ? "Press A or tap to close" : "Press A to close", C_DIM, 0);
 		return;
 	}
 	char line[96];
-	snprintf(line, sizeof(line), "%d of %d", v->step + 1, N_STEPS);
+	snprintf(line, sizeof(line), tr("%d of %d"), v->step + 1, N_STEPS);
 	ui_font_text(scr, TF_BODY, r.w / 2, px * 26, px * 4, line, C_DIM, 0);
 	const Step* st = &steps[v->step];
-	snprintf(line, sizeof(line), st->stick ? "%s" : "Press %s", st->title);
+	snprintf(line, sizeof(line), st->stick ? "%s" : tr("Press %s"), st->title);
 	ui_label(scr, r.w / 2, r.h / 2 - px * 14, px * 14, line, C_TEXT);
 	if (st->hint[0]) ui_font_text(scr, TF_BODY, r.w / 2, r.h / 2 + px * 8, px * 5, st->hint, C_DIM, 0);
 	if (v->note) {
@@ -262,7 +263,7 @@ static void draw(int scr, const View_* v, bool touch) {
 		else ui_font_wrap(scr, TF_BODY, px * 12, r.h / 2 + px * 20, tw, px * 4, v->note, C_GOLD);
 	}
 	if (touch) {
-		const char* foot = here ? "Tap to skip a button this device doesn't have" : "Tap the touchscreen to skip a button this device doesn't have";
+		const char* foot = here ? N_("Tap to skip a button this device doesn't have"): N_("Tap the touchscreen to skip a button this device doesn't have");
 		ui_font_text(scr, TF_BODY, here ? px * 10 : r.w / 2, r.h - px * 16, px * 4, foot, C_DIM, here ? -1 : 0);
 		if (here) {
 			SDL_Rect c = cancel_rect(scr);
@@ -271,7 +272,7 @@ static void draw(int scr, const View_* v, bool touch) {
 		}
 	}
 	if (v->secondsLeft >= 0) {
-		snprintf(line, sizeof(line), "Skipped in %d s if nothing is pressed", v->secondsLeft);
+		snprintf(line, sizeof(line), tr("Skipped in %d s if nothing is pressed"), v->secondsLeft);
 		ui_font_text(scr, TF_BODY, r.w / 2, r.h - px * 16, px * 4, line, C_DIM, 0);
 	}
 }
@@ -340,14 +341,14 @@ void mapper_run(const Config* cfg) {
 							cancelled = finished = true;
 							break;
 						}
-						v.note = "That one comes as a keyboard key here: it can't be mapped. Tap to skip.";
+						v.note = N_("That one comes as a keyboard key here: it can't be mapped. Tap to skip.");
 						continue;
 					}
 					if (locked >= 0 && r.which != locked) continue;
 					char b[16];
 					binding(st, &r, b, sizeof(b));
 					if (!b[0]) {
-						if (st->stick && r.kind != 'a') v.note = "Push the stick: buttons don't count for this one.";
+						if (st->stick && r.kind != 'a') v.note = N_("Push the stick: buttons don't count for this one.");
 						continue;
 					}
 					int dup = -1;
@@ -355,7 +356,7 @@ void mapper_run(const Config* cfg) {
 						if (!strcmp(bind[i], b)) dup = i;
 					}
 					if (dup >= 0) {
-						snprintf(v.noteBuf, sizeof(v.noteBuf), "That one is already %s. Press another, or tap to skip.", steps[dup].title);
+						snprintf(v.noteBuf, sizeof(v.noteBuf), tr("That one is already %s. Press another, or tap to skip."), steps[dup].title);
 						v.note = v.noteBuf;
 						continue;
 					}
@@ -397,7 +398,7 @@ void mapper_run(const Config* cfg) {
 				SDL_Joystick* j = joy_of(locked);
 				if (!n || !j) {
 					v.nothing = true;
-					snprintf(v.doneText, sizeof(v.doneText), "Every button was skipped, so nothing changed.");
+					snprintf(v.doneText, sizeof(v.doneText), tr("Every button was skipped, so nothing changed."));
 					continue;
 				}
 				char guid[64], name[128];
@@ -426,11 +427,11 @@ void mapper_run(const Config* cfg) {
 				fprintf(stderr, "button mapping (%s):\n%s\n", comment, line);
 				if (v.saved) {
 					snprintf(v.doneText, sizeof(v.doneText),
-					         "%d of %d set for %s, kept in controllers.txt beside GBA DS's save states. "
-					         "The line for it is in gba-ds.log too: send it in to have it built into GBA DS for this device.",
+					         tr("%d of %d set for %s, kept in controllers.txt beside GBA DS's save states. "
+					         "The line for it is in gba-ds.log too: send it in to have it built into GBA DS for this device."),
 					         n, N_STEPS, name);
 				} else {
-					snprintf(v.doneText, sizeof(v.doneText), "Set for now, but %s couldn't be written.", path);
+					snprintf(v.doneText, sizeof(v.doneText), tr("Set for now, but %s couldn't be written."), path);
 				}
 			}
 		}

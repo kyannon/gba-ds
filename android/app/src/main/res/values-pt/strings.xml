@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Machine translated; see docs/I18N.md. app_name stays in values/. -->
+<resources>
+    <string name="files_title">Permitir acesso a todos os arquivos</string>
+    <string name="files_why">O GBA DS lê seus jogos da sua pasta de ROMs e guarda seus estados, capturas de tela, cheats e logos dos jogos em uma pasta \"GBA DS\" no seu armazenamento. O Android chama essa permissão de \"Acesso a todos os arquivos\".\n\nNa próxima tela, ative-a para o GBA DS e depois volte.</string>
+    <string name="files_open">Continuar</string>
+    <string name="files_not_now">Agora não</string>
+    <string name="need_files">O GBA DS precisa de \"Acesso a todos os arquivos\" para ler sua pasta de ROMs. Ative-o e depois volte.</string>
+</resources>

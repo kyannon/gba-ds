@@ -1,5 +1,6 @@
 /* UI text in Jost (TrueType, via stb_truetype): measuring and rasterizing
- * UTF-8 strings. ui.c turns the results into textures. */
+ * UTF-8 strings, from Jost and, for what Jost lacks, fallback faces. ui.c turns
+ * the results into textures. */
 #ifndef GBADS_TEXTFONT_H
 #define GBADS_TEXTFONT_H
 
@@ -7,6 +8,12 @@
 #include <stdint.h>
 
 enum { TF_BOLD, TF_BODY, TF_COUNT }; /* Jost Bold Italic, Jost Medium Italic */
+
+/* Faces to fall back on, after Jost, for characters Jost lacks (a script's font;
+ * ui.c sets them when the language changes). A face is the TTF's bytes, which must
+ * stay valid. At most three per style. */
+void tf_fallback_clear(void);
+bool tf_fallback_add(int font, const unsigned char* ttf);
 
 /* Advance width in pixels of text whose capital letters are capPx tall. */
 int tf_width(int font, int capPx, const char* text);
