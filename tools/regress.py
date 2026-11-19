@@ -303,7 +303,8 @@ def run_app(case, args, workdir):
     # its shadow, a dimmed map) came out a shade apart from one CPU or Mesa to
     # another, so goldens made on a session's container failed on GitHub's runners
     env = dict(os.environ, SDL_VIDEODRIVER="offscreen", SDL_AUDIODRIVER="dummy", SDL_RENDER_DRIVER="software",
-               GBADS_WINDOW="%dx%d" % (SCREEN_W, SCREEN_H * 2), GBADS_SYNC="1", GBADS_DEBUG="1")
+               GBADS_WINDOW="%dx%d" % (SCREEN_W, SCREEN_H * 2), GBADS_SYNC="1", GBADS_DEBUG="1",
+               GBADS_RTC_FIXED="1794934800")
     if not args.paced:
         # (as fast as it goes, drawing only the frames a screenshot or a
         # touch needs: the same pictures, in under half the time)

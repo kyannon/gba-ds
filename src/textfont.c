@@ -15,20 +15,65 @@
 #include <stdlib.h>
 #include <string.h>
 
-static stbtt_fontinfo fonts[TF_COUNT];
-static int capUnits[TF_COUNT]; /* height of "H" in font units */
+/* Each style (bold, body) is a chain of faces: Jost first, then the fallback
+ * faces the language's script needs (tf_fallback_*). Every character is drawn
+ * from the first face that has it, so Latin text (game titles, numbers) stays
+ * in Jost whatever the interface's language, and a script Jost lacks comes
+ * from its own font. A face is scaled by its own capital height, so the
+ * letters of two faces match; text sits on one baseline. */
+#define CHAIN_MAX 4
+typedef struct {
+	stbtt_fontinfo fi;
+	int capUnits; /* height of "H" in font units */
+} Face;
+static Face chain[TF_COUNT][CHAIN_MAX];
+static int chainLen[TF_COUNT];
 static bool ready[TF_COUNT];
 static pthread_once_t once = PTHREAD_ONCE_INIT;
+
+static bool face_init(Face* f, const unsigned char* ttf) {
+	int off = stbtt_GetFontOffsetForIndex(ttf, 0);
+	if (off < 0 || !stbtt_InitFont(&f->fi, ttf, off)) return false;
+	int x0, y0, x1, y1;
+	if (!stbtt_GetCodepointBox(&f->fi, 'H', &x0, &y0, &x1, &y1) || y1 <= 0) return false;
+	f->capUnits = y1;
+	return true;
+}
 
 static void init(void) {
 	for (int f = 0; f < TF_COUNT; ++f) {
 		const EmbeddedFont* e = &embeddedFonts[f == TF_BOLD ? EMBEDDED_JOST_BOLD_ITALIC : EMBEDDED_JOST_MEDIUM_ITALIC];
-		if (!stbtt_InitFont(&fonts[f], e->ttf, stbtt_GetFontOffsetForIndex(e->ttf, 0))) continue;
-		int x0, y0, x1, y1;
-		if (!stbtt_GetCodepointBox(&fonts[f], 'H', &x0, &y0, &x1, &y1) || y1 <= 0) continue;
-		capUnits[f] = y1;
+		if (!face_init(&chain[f][0], e->ttf)) continue;
+		chainLen[f] = 1;
 		ready[f] = true;
 	}
+}
+
+void tf_fallback_clear(void) {
+	pthread_once(&once, init);
+	for (int f = 0; f < TF_COUNT; ++f)
+		if (chainLen[f] > 1) chainLen[f] = 1;
+}
+
+bool tf_fallback_add(int font, const unsigned char* ttf) {
+	pthread_once(&once, init);
+	if (font < 0 || font >= TF_COUNT || !ready[font] || chainLen[font] >= CHAIN_MAX) return false;
+	if (!face_init(&chain[font][chainLen[font]], ttf)) return false;
+	++chainLen[font];
+	return true;
+}
+
+/* The face a character comes from and its glyph (Jost's .notdef when none has it). */
+static int pick(int font, int cp, int* glyph) {
+	for (int k = 0; k < chainLen[font]; ++k) {
+		int g = stbtt_FindGlyphIndex(&chain[font][k].fi, cp);
+		if (g) {
+			*glyph = g;
+			return k;
+		}
+	}
+	*glyph = 0;
+	return 0;
 }
 
 /* Next code point from UTF-8 (invalid bytes come out as themselves). */
@@ -44,24 +89,25 @@ static int next_cp(const char** s) {
 	return c;
 }
 
-static float scale_for(int font, int capPx) {
-	return (float) capPx / (float) capUnits[font];
+static float scale_for(const Face* f, int capPx) {
+	return (float) capPx / (float) f->capUnits;
 }
 
 int tf_width(int font, int capPx, const char* text) {
 	pthread_once(&once, init);
 	if (font < 0 || font >= TF_COUNT || !ready[font] || !text) return 0;
-	stbtt_fontinfo* fi = &fonts[font];
-	float sc = scale_for(font, capPx), x = 0;
-	int prev = 0;
+	float x = 0;
+	int prev = 0, prevFace = -1;
 	for (const char* p = text; *p;) {
-		int cp = next_cp(&p);
-		int g = stbtt_FindGlyphIndex(fi, cp);
-		if (prev) x += sc * stbtt_GetGlyphKernAdvance(fi, prev, g);
+		int cp = next_cp(&p), g;
+		int k = pick(font, cp, &g);
+		const Face* f = &chain[font][k];
+		float sc = scale_for(f, capPx);
+		if (prev && k == prevFace) x += sc * stbtt_GetGlyphKernAdvance(&f->fi, prev, g);
 		int adv, lsb;
-		stbtt_GetGlyphHMetrics(fi, g, &adv, &lsb);
+		stbtt_GetGlyphHMetrics(&f->fi, g, &adv, &lsb);
 		x += sc * adv;
-		prev = g;
+		prev = g, prevFace = k;
 	}
 	return (int) ceilf(x);
 }
@@ -70,23 +116,39 @@ bool tf_render(int font, int capPx, const char* text, TfBitmap* out) {
 	pthread_once(&once, init);
 	memset(out, 0, sizeof(*out));
 	if (font < 0 || font >= TF_COUNT || !ready[font] || !text || capPx <= 0) return false;
-	stbtt_fontinfo* fi = &fonts[font];
-	float sc = scale_for(font, capPx);
-	int ascent, descent, gap;
-	stbtt_GetFontVMetrics(fi, &ascent, &descent, &gap);
+	/* the rows the text needs: Jost's, or more where a fallback face reaches further */
+	float asc = 0, desc = 0;
+	{
+		bool used[CHAIN_MAX] = { true };
+		for (const char* p = text; *p;) {
+			int g;
+			used[pick(font, next_cp(&p), &g)] = true;
+		}
+		for (int k = 0; k < chainLen[font]; ++k) {
+			if (!used[k]) continue;
+			int a, d, gap;
+			stbtt_GetFontVMetrics(&chain[font][k].fi, &a, &d, &gap);
+			float sc = scale_for(&chain[font][k], capPx);
+			if (a * sc > asc) asc = a * sc;
+			if (-d * sc > desc) desc = -d * sc;
+		}
+	}
 	int pad = capPx / 2 + 2; /* room for italic overhang either side */
-	int base = (int) ceilf(ascent * sc) + 1;
-	int h = base + (int) ceilf(-descent * sc) + 2;
+	int base = (int) ceilf(asc) + 1;
+	int h = base + (int) ceilf(desc) + 2;
 	int w = tf_width(font, capPx, text) + pad * 2;
 	if (w <= pad * 2) w = pad * 2 + 1;
 	uint8_t* a = calloc((size_t) w * h, 1);
 	if (!a) return false;
 	float x = (float) pad;
-	int prev = 0;
+	int prev = 0, prevFace = -1;
 	for (const char* p = text; *p;) {
-		int cp = next_cp(&p);
-		int g = stbtt_FindGlyphIndex(fi, cp);
-		if (prev) x += sc * stbtt_GetGlyphKernAdvance(fi, prev, g);
+		int cp = next_cp(&p), g;
+		int k = pick(font, cp, &g);
+		const Face* f = &chain[font][k];
+		const stbtt_fontinfo* fi = &f->fi;
+		float sc = scale_for(f, capPx);
+		if (prev && k == prevFace) x += sc * stbtt_GetGlyphKernAdvance(fi, prev, g);
 		int adv, lsb;
 		stbtt_GetGlyphHMetrics(fi, g, &adv, &lsb);
 		int ix0, iy0, ix1, iy1;
@@ -112,7 +174,7 @@ bool tf_render(int font, int capPx, const char* text, TfBitmap* out) {
 			}
 		}
 		x += sc * adv;
-		prev = g;
+		prev = g, prevFace = k;
 	}
 	out->alpha = a;
 	out->w = w;

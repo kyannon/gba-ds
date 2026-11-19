@@ -1,0 +1,2079 @@
+# GBA DS: Chinese (Simplified). Translations from PR #62 (DokiOnjouji) with the strings it lacked added; not yet reviewed by a second speaker.
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: zh_CN\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-GBADS-Autonym: 简体中文\n"
+"X-GBADS-Script: han-sc\n"
+"X-GBADS-Status: machine\n"
+"X-GBADS-Locales: zh_CN zh_SG zh_Hans zh\n"
+
+msgid " (patch)"
+msgstr "（补丁）"
+
+msgid " Checking for a new version..."
+msgstr " 正在检查新版本…"
+
+msgid " It's the newest version."
+msgstr " 已是最新版本。"
+
+msgid " ms"
+msgstr " 毫秒"
+
+msgid " s"
+msgstr " 秒"
+
+msgid "\"Swipe up for quick menu\" at a game's start."
+msgstr "游戏开始时显示“上滑打开快捷菜单”。"
+
+msgid "%ca%d"
+msgstr "%ca%d"
+
+msgid "%d file checked"
+msgid_plural "%d files checked"
+msgstr[0] "已检查 %d 个文件"
+
+msgid "%d game found"
+msgid_plural "%d games found"
+msgstr[0] "找到 %d 个游戏"
+
+msgid "%d game found."
+msgid_plural "%d games found."
+msgstr[0] "找到 %d 个游戏。"
+
+msgid "%d of %d"
+msgstr "第 %d / %d 个"
+
+msgid "%d of %d set for %s, kept in controllers.txt beside GBA DS's save states. The line for it is in gba-ds.log too: send it in to have it built into GBA DS for this device."
+msgstr "%d/%d 个按键设置好了（%s），保存在 GBA DS 即时存档旁边的 controllers.txt 里。gba-ds.log 里也有对应的行：把它发过来，就能为这台设备把它内置到 GBA DS 里。"
+
+msgid "%d on"
+msgstr "已开 %d 项"
+
+msgid "%d RetroArch state here"
+msgid_plural "%d RetroArch states here"
+msgstr[0] "这里有 %d 个 RetroArch 即时存档"
+
+msgid "%s"
+msgstr "%s"
+
+msgid "%s %s. Choose another if RetroArch keeps its states somewhere else."
+msgstr "%s%s。如果 RetroArch 把状态存在别处，请另选。"
+
+msgid "%s (beside the ROM)"
+msgstr "%s（在 ROM 旁边）"
+
+msgid "%s as the hotkey button, with Start, R1, L1, X, Y and B"
+msgstr "用 %s 当热键键，配合 Start、R1、L1、X、Y 和 B"
+
+msgid "%s has no button now"
+msgstr "%s 现在没有按键"
+
+msgid "%s is now Start + Select"
+msgstr "%s 现在是 Start + Select"
+
+msgid "%s opens the menu: press another button"
+msgstr "%s 会打开菜单：请按另一个键"
+
+msgid "%s v%s. Restarting..."
+msgstr "%s v%s。正在重启…"
+
+msgid "%s was %s's: that has no button now"
+msgstr "%s 原来是 %s 的：它现在没有按键"
+
+msgid "%s, %s"
+msgstr "%s，%s"
+
+msgid "%s, Select, Start or L3. Tap to keep it as it is"
+msgstr "%s、Select、Start 或 L3。点击可保持原样"
+
+msgid "%u of %u achievements unlocked"
+msgstr "已解锁 %u / %u 个成就"
+
+msgid ", RetroArch"
+msgstr "，RetroArch"
+
+msgid "1 minute"
+msgstr "1 分钟"
+
+msgid "10 s"
+msgstr "10 秒"
+
+msgid "128 ms"
+msgstr "128 毫秒"
+
+msgid "15 s"
+msgstr "15 秒"
+
+msgid "192 ms"
+msgstr "192 毫秒"
+
+msgid "2 minutes"
+msgstr "2 分钟"
+
+msgid "2x"
+msgstr "2x"
+
+msgid "30 s"
+msgstr "30 秒"
+
+msgid "32 ms"
+msgstr "32 毫秒"
+
+msgid "3x"
+msgstr "3x"
+
+msgid "4x"
+msgstr "4x"
+
+msgid "5 minutes"
+msgstr "5 分钟"
+
+msgid "5x"
+msgstr "5x"
+
+msgid "64 ms"
+msgstr "64 毫秒"
+
+msgid "96 ms"
+msgstr "96 毫秒"
+
+msgid "A (right) button"
+msgstr "A（右）键"
+
+msgid "A and B buttons"
+msgstr "A 和 B 键"
+
+msgid "A dark line under each row of pixels"
+msgstr "每行像素下面有一条暗线"
+
+msgid "A game's save already next to it, or in the other type, is copied over the first time you play it. .srm is the type RetroArch uses: choose its saves folder too to share each game's save with it."
+msgstr "游戏旁边已有的存档，或是另一种格式的存档，会在第一次玩时复制过来。.srm 是 RetroArch 用的格式：把它的存档文件夹也选上，就能和它共享每个游戏的存档。"
+
+msgid "A new version of GBA DS"
+msgstr "GBA DS 有新版本"
+
+msgid "A pattern over every pixel, on both screens."
+msgstr "两块屏幕上盖住每个像素的图案。"
+
+msgid "A: the one lit above. Y: all games. X: undo this game's value"
+msgstr "A：选上方亮着的。Y：所有游戏。X：取消本游戏的值"
+
+msgid "ACHIEVEMENT UNLOCKED"
+msgstr "成就解锁"
+
+msgid "Achievements"
+msgstr "成就"
+
+msgid "Add a note (optional): what happened, and what you expected to happen."
+msgstr "加个说明（可选）：发生了什么，你原本期望怎样。"
+
+msgid "Adds GBA DS to the emulators for Game Boy Advance games in EmulationStation. Pick it for one game (its Advanced Game Options > Emulator) or for all of them (the system's advanced settings). The other emulators keep working as before."
+msgstr "在 EmulationStation 的 Game Boy Advance 模拟器里加入 GBA DS。可以给单个游戏选（它的高级游戏选项 > 模拟器），也可以给全部游戏选（系统的进阶设置）。其他模拟器照旧可用。"
+
+msgid "All"
+msgstr "全部"
+
+msgid "All %u achievements unlocked"
+msgstr "%u 个成就已全部解锁"
+
+msgid "All games"
+msgstr "所有游戏"
+
+msgid "Already the value for all games"
+msgstr "已经是所有游戏的值"
+
+msgid "Always"
+msgstr "总是"
+
+msgid "Always on here"
+msgstr "此处始终开启"
+
+msgid "Always on in this game: it needs it for full speed"
+msgstr "本游戏始终开启：全速运行需要它"
+
+msgid "Always on, applied first (RetroArch's way: a patch named as the ROM). %s"
+msgstr "总是启用，最先应用（RetroArch 的做法：与 ROM 同名的补丁）。%s"
+
+msgid "AM"
+msgstr "上午"
+
+msgid "An xdelta made with compression, which GBA DS can't read: patch the ROM with it beforehand, or make it again without (xdelta3 -S none)"
+msgstr "用压缩做的 xdelta，GBA DS 读不了：请先用它把 ROM 打好，或者重新做一个不压缩的（xdelta3 -S none）"
+
+msgid "Android's installer couldn't be reached"
+msgstr "无法连接 Android 的安装程序"
+
+msgid "Another emulator's"
+msgstr "其他模拟器的"
+
+msgid "Apr"
+msgstr "4月"
+
+msgid "Are You Sure?"
+msgstr "确定吗？"
+
+msgid "Are you sure? A: switch it %s now and carry on from here. Y: not yet (more changes first). B: call it off"
+msgstr "确定吗？A：现在%s它并从当前位置继续。Y：先不（还要改别的）。B：取消"
+
+msgid "Are you sure? A: use them now and carry on from here. B: call it off"
+msgstr "确定吗？A：现在就用并从当前位置继续。B：取消"
+
+msgid "Are you sure? Delete them"
+msgstr "确定吗？删除它们"
+
+msgid "Are you sure? Reset settings"
+msgstr "确定吗？恢复设置"
+
+msgid "Are you sure? Save your game first. A: restart %s it now. Y: not yet (more changes first). B: call it off"
+msgstr "确定吗？请先存档。A：现在%s它重新开始。Y：先不（还要改别的）。B：取消"
+
+msgid "Are you sure? Save your game first. A: restart now. B: call it off"
+msgstr "确定吗？请先存档。A：现在重新开始。B：取消"
+
+msgid "Are you sure? Touch it again to delete every game's own settings. Anything else cancels."
+msgstr "确定吗？再点一次即可删除每个游戏自己的设置，点其他地方则取消。"
+
+msgid "Are you sure? Touch it again to put every setting back to its default. Anything else cancels."
+msgstr "确定吗？再点一次即可把所有设置恢复默认，点其他地方则取消。"
+
+msgid "As fast as it goes"
+msgstr "尽可能快"
+
+msgid "As the game started"
+msgstr "与游戏开始时相同"
+
+msgid "Aug"
+msgstr "8月"
+
+msgid "Auto"
+msgstr "自动"
+
+msgid "Auto-load"
+msgstr "自动读取"
+
+msgid "Auto-Load: Off"
+msgstr "自动读取：关"
+
+msgid "Auto-Load: On"
+msgstr "自动读取：开"
+
+msgid "Automatic"
+msgstr "自动"
+
+msgid "Automatic checks: Off"
+msgstr "自动检查：关"
+
+msgid "Automatic checks: On"
+msgstr "自动检查：开"
+
+msgid "Automatic follows the system. Text that isn't translated yet stays in English."
+msgstr "“自动”跟随系统语言。尚未翻译的文字仍显示英文。"
+
+msgid "B (bottom) button"
+msgstr "B（下）键"
+
+msgid "Back"
+msgstr "返回"
+
+msgid "Back online"
+msgstr "已重新联网"
+
+msgid "Back to %s and the buttons it started with"
+msgstr "回到 %s 和它最初的按键"
+
+msgid "BananaOS's systems list has no Game Boy Advance entry."
+msgstr "BananaOS 的系统列表里没有 Game Boy Advance 这一项。"
+
+msgid "Bezel logo"
+msgstr "边框徽标"
+
+msgid "Blue"
+msgstr "蓝"
+
+msgid "Blurry instead of sharp: usually leave off."
+msgstr "模糊而不锐利：一般关掉。"
+
+msgid "Both screens"
+msgstr "两块屏幕"
+
+msgid "Bottom screen"
+msgstr "下屏"
+
+msgid "Bottom screen brightness"
+msgstr "下屏亮度"
+
+msgid "Bug Report"
+msgstr "错误报告"
+
+msgid "Bug report saved in bug-reports"
+msgstr "错误报告已保存到 bug-reports"
+
+msgid "Bug report saved in bug-reports."
+msgstr "错误报告已保存到 bug-reports。"
+
+msgid "Buttons"
+msgstr "按键"
+
+msgid "Buttons mapped"
+msgstr "按键已映射"
+
+msgid "Can't be read"
+msgstr "无法读取"
+
+msgid "Can't be read: not a patch, or damaged"
+msgstr "无法读取：不是补丁，或者已损坏"
+
+msgid "Can't find the GBA DS folder."
+msgstr "找不到 GBA DS 的文件夹。"
+
+msgid "Can't reach GBA DS's folder, using %s for now: %s"
+msgstr "无法访问 GBA DS 的文件夹，暂时使用 %s：%s"
+
+msgid "Can't rewind further"
+msgstr "不能再往前倒了"
+
+msgid "Can't save files here: no states, logos or screenshots"
+msgstr "无法在这里保存文件：没有状态、徽标和截图"
+
+msgid "Can't save in the chosen folder, files not moved: %s"
+msgstr "无法保存到所选文件夹，文件未移动：%s"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Centered"
+msgstr "居中"
+
+msgid "Changes some of the same bytes as %s, and goes over it there: they may not work together"
+msgstr "与 %s 改了同一批字节并覆盖它：两者可能无法一起用"
+
+msgid "Cheats"
+msgstr "金手指"
+
+msgid "Check now"
+msgstr "立即检查"
+
+msgid "Check ra_username and ra_password in gba-ds.cfg"
+msgstr "检查 gba-ds.cfg 里的 ra_username 和 ra_password"
+
+msgid "Check the account in EmulationStation's RetroAchievements settings"
+msgstr "检查 EmulationStation 的 RetroAchievements 设置里的账号"
+
+msgid "Choose a folder in Android's file picker..."
+msgstr "在 Android 的文件选择器里选一个文件夹…"
+
+msgid "Choose GBA DS folder"
+msgstr "选择 GBA DS 文件夹"
+
+msgid "Choose it again to close %s: %s"
+msgstr "再选一次关闭%s：%s"
+
+msgid "Choose it again to restart: unsaved progress is lost"
+msgstr "再选一次重新开始：未保存的进度会丢失"
+
+msgid "Choose ROM folder"
+msgstr "选择 ROM 文件夹"
+
+msgid "Choose save folder"
+msgstr "选择存档文件夹"
+
+msgid "Chosen folder is inside GBA DS's own, files not moved: %s"
+msgstr "所选文件夹在 GBA DS 自己的文件夹里面，文件未移动：%s"
+
+msgid "Chosen folder not found, files not moved: %s"
+msgstr "找不到所选文件夹，文件未移动：%s"
+
+msgid "Chosen here:"
+msgstr "在此选择："
+
+msgid "Close Game"
+msgstr "关闭游戏"
+
+msgid "Close GBA DS"
+msgstr "退出 GBA DS"
+
+msgid "Closest to gap"
+msgstr "靠近间隙"
+
+msgid "Closing a game saves where you are."
+msgstr "关闭游戏时会保存当前位置。"
+
+msgid "Color"
+msgstr "强调色"
+
+msgid "color"
+msgstr "颜色"
+
+msgid "Color correction"
+msgstr "颜色校正"
+
+msgid "Color Correction: Off"
+msgstr "颜色校正：关"
+
+msgid "Color Correction: On"
+msgstr "颜色校正：开"
+
+msgid "Colors as a Game Boy Advance's screen showed them."
+msgstr "按 Game Boy Advance 屏幕显示的颜色。"
+
+msgid "Confirm the update to v%s in Android's installer. Android closes GBA DS while it installs; open it again afterwards. If Android asks first, allow GBA DS to install apps."
+msgstr "在 Android 的安装程序里确认更新到 v%s。安装时 Android 会关闭 GBA DS，装完再打开它。如果 Android 先询问，请允许 GBA DS 安装应用。"
+
+msgid "Connect a controller and try again."
+msgstr "请连接控制器再试。"
+
+msgid "Controls"
+msgstr "控制"
+
+msgid "Couldn't change %s."
+msgstr "无法修改 %s。"
+
+msgid "Couldn't change the files in %s/custom_systems: allow GBA DS All files access in Android's settings."
+msgstr "无法修改 %s/custom_systems 里的文件：请在 Android 设置里给 GBA DS“所有文件访问权限”。"
+
+msgid "Couldn't connect"
+msgstr "无法连接"
+
+msgid "Couldn't find GBA DS's folder."
+msgstr "找不到 GBA DS 的文件夹。"
+
+msgid "Couldn't keep that choice."
+msgstr "无法保存这个选择。"
+
+msgid "Couldn't load the achievements"
+msgstr "无法载入成就"
+
+msgid "Couldn't load the game"
+msgstr "无法载入游戏"
+
+msgid "Couldn't move GBA DS's files, they stay in %s"
+msgstr "无法移动 GBA DS 的文件，它们仍在 %s"
+
+msgid "Couldn't open the file picker."
+msgstr "无法打开文件选择器。"
+
+msgid "Couldn't open the sign-in box."
+msgstr "无法打开登录框。"
+
+msgid "Couldn't remove the setting file."
+msgstr "无法删除设置文件。"
+
+msgid "Couldn't save"
+msgstr "无法保存"
+
+msgid "Couldn't save the bug report."
+msgstr "无法保存错误报告。"
+
+msgid "Couldn't sign in as %s%s%s. Sign in to try again."
+msgstr "无法以 %s%s%s 登录。请重新登录。"
+
+msgid "Couldn't write %s."
+msgstr "无法写入 %s。"
+
+msgid "Couldn't write to %s."
+msgstr "无法写入 %s。"
+
+msgid "Custom"
+msgstr "自定义"
+
+msgid "Custom logos"
+msgstr "自定义徽标"
+
+msgid "Custom Logos: Do Not Use"
+msgstr "自定义徽标：不使用"
+
+msgid "Custom Logos: Full Detail"
+msgstr "自定义徽标：完整细节"
+
+msgid "Custom Logos: Pixelated"
+msgstr "自定义徽标：像素化"
+
+msgid "D-pad"
+msgstr "十字键"
+
+msgid "D-pad down"
+msgstr "十字键 下"
+
+msgid "D-pad left"
+msgstr "十字键 左"
+
+msgid "D-pad right"
+msgstr "十字键 右"
+
+msgid "D-pad up"
+msgstr "十字键 上"
+
+msgid "Dark"
+msgstr "深色"
+
+msgid "Darkens the bottom screen, in this app only: the device's own brightness is left alone (and this can't go above it)."
+msgstr "只调暗本应用的下屏：不动机器本身的亮度（也不能超过它）。"
+
+msgid "Darkens the top screen, in this app only: the device's own brightness is left alone (and this can't go above it)."
+msgstr "只调暗本应用的上屏：不动机器本身的亮度（也不能超过它）。"
+
+msgid "Dec"
+msgstr "12月"
+
+msgid "Del"
+msgstr "删除"
+
+msgid "Delete per-game settings"
+msgstr "删除各游戏的设置"
+
+msgid "Deleted the settings of %d games."
+msgstr "已删除 %d 个游戏的设置。"
+
+msgid "Deleted the settings of 1 game."
+msgstr "已删除 1 个游戏的设置。"
+
+msgid "Display"
+msgstr "显示"
+
+msgid "Done"
+msgstr "完成"
+
+msgid "Done (No Note)"
+msgstr "完成（不写说明）"
+
+msgid "Down"
+msgstr "下"
+
+msgid "Downloading"
+msgstr "正在下载"
+
+msgid "Each pixel a little darker toward its edges"
+msgstr "每个像素越靠边越暗一点"
+
+msgid "Earn achievements in casual mode with your retroachievements.org account. GBA DS keeps a sign-in token, not your password."
+msgstr "用你的 retroachievements.org 账号在休闲模式下获得成就。GBA DS 只保存登录令牌，不保存密码。"
+
+msgid "English"
+msgstr "英语"
+
+msgid "Enter both your username and your password."
+msgstr "请输入用户名和密码。"
+
+msgid "Enter your account in the sign-in box..."
+msgstr "在登录框里输入你的账号…"
+
+msgid "ES-DE's folder wasn't found."
+msgstr "找不到 ES-DE 的文件夹。"
+
+msgid "Every 0.5 s"
+msgstr "每 0.5 秒"
+
+msgid "Every 1.5 s"
+msgstr "每 1.5 秒"
+
+msgid "Every 3 s"
+msgstr "每 3 秒"
+
+msgid "Every button was skipped, so nothing changed."
+msgstr "所有按键都被跳过了，什么都没改。"
+
+msgid "Every second"
+msgstr "每秒"
+
+msgid "Fails"
+msgstr "失败"
+
+msgid "Fast (20 a second)"
+msgstr "快（每秒 20 次）"
+
+msgid "Fast forward"
+msgstr "快进"
+
+msgid "Fast Forward: %dx"
+msgstr "快进：%dx"
+
+msgid "Fast Forward: Max"
+msgstr "快进：最快"
+
+msgid "Fast Forward: Off"
+msgstr "快进：关"
+
+msgid "Fast forwarding..."
+msgstr "快进中…"
+
+msgid "Feb"
+msgstr "2月"
+
+msgid "First run only. B: back"
+msgstr "只在第一次运行时。B：返回"
+
+msgid "Folders"
+msgstr "文件夹"
+
+msgid "Folders, accounts, updates"
+msgstr "文件夹、账户、更新"
+
+msgid "Follows how you hold the phone, and Android's own rotation lock."
+msgstr "跟随手机的握持方向和 Android 自带的旋转锁定。"
+
+msgid "Frame buffer"
+msgstr "帧缓冲"
+
+msgid "Frame Buffer: Always on here"
+msgstr "帧缓冲：此处始终开启"
+
+msgid "Frame Buffer: Off"
+msgstr "帧缓冲：关"
+
+msgid "Frame Buffer: On"
+msgstr "帧缓冲：开"
+
+msgid "Frames a second above the game, all the time."
+msgstr "游戏上方一直显示每秒帧数。"
+
+msgid "From RetroArch's settings:"
+msgstr "来自 RetroArch 的设置："
+
+msgid "Full detail"
+msgstr "完整细节"
+
+msgid "Full Width"
+msgstr "全宽"
+
+msgid "Game"
+msgstr "游戏"
+
+msgid "Game below"
+msgstr "游戏在下屏"
+
+msgid "Game names"
+msgstr "游戏名称"
+
+msgid "Game on top"
+msgstr "游戏在上屏"
+
+msgid "Game restarted"
+msgstr "游戏已重新开始"
+
+msgid "Game screen scale"
+msgstr "游戏画面缩放"
+
+msgid "Games"
+msgstr "游戏"
+
+msgid "Games are read from %s (subfolders too). Saves (%s) are kept in %s."
+msgstr "游戏从 %s 读取（含子文件夹）。存档（%s）保存在 %s。"
+
+msgid "Games are read from %s (subfolders too). Saves (%s) are kept next to the games."
+msgstr "游戏从 %s 读取（含子文件夹）。存档（%s）保存在游戏旁边。"
+
+msgid "Games picked in BananaOS's own Game Boy Advance list start in GBA DS when it has second-screen support for them. Restart BananaOS after switching this."
+msgstr "在 BananaOS 自己的 Game Boy Advance 列表里选中的游戏，只要 GBA DS 支持它的副屏，就用 GBA DS 启动。切换后请重启 BananaOS。"
+
+msgid "Games shown"
+msgstr "显示的游戏"
+
+msgid "Games without second-screen support play on one screen."
+msgstr "没有副屏支持的游戏只在单屏上玩。"
+
+msgid "GBA"
+msgstr "GBA"
+
+msgid "GBA A"
+msgstr "GBA A"
+
+msgid "GBA A on the right button, or on the bottom one."
+msgstr "GBA 的 A 在右键，还是在下键。"
+
+msgid "GBA B"
+msgstr "GBA B"
+
+msgid "GBA Down"
+msgstr "GBA 下"
+
+msgid "GBA DS can't save files there: allow it All files access in Android's settings, or choose another folder."
+msgstr "GBA DS 无法在那里保存文件：在 Android 设置里给它“所有文件访问权限”，或者另选一个文件夹。"
+
+msgid "GBA DS in BananaOS's GBA list: Off"
+msgstr "GBA DS 在 BananaOS 的 GBA 列表中：关"
+
+msgid "GBA DS in BananaOS's GBA list: On"
+msgstr "GBA DS 在 BananaOS 的 GBA 列表中：开"
+
+msgid "GBA DS in EmulationStation: Off"
+msgstr "GBA DS 在 EmulationStation 中：关"
+
+msgid "GBA DS in EmulationStation: On"
+msgstr "GBA DS 在 EmulationStation 中：开"
+
+msgid "GBA DS in ES-DE: Off"
+msgstr "GBA DS 在 ES-DE 中：关"
+
+msgid "GBA DS in ES-DE: On"
+msgstr "GBA DS 在 ES-DE 中：开"
+
+msgid "GBA DS is now ES-DE's emulator for Game Boy Advance games. Quit ES-DE and open it again to see it."
+msgstr "GBA DS 现在是 ES-DE 的 Game Boy Advance 模拟器。退出 ES-DE 再打开就能看到。"
+
+msgid "GBA DS is out of ES-DE's emulator list. Quit ES-DE and open it again to see it."
+msgstr "GBA DS 已从 ES-DE 的模拟器列表中移除。退出 ES-DE 再打开就能看到。"
+
+msgid "GBA DS Logo: Hide"
+msgstr "GBA DS 徽标：隐藏"
+
+msgid "GBA DS Logo: Show"
+msgstr "GBA DS 徽标：显示"
+
+msgid "GBA DS Settings"
+msgstr "GBA DS 设置"
+
+msgid "GBA DS v%s is out (this is v%s). Update now to download it (%.1f MB) and install it: Android asks you to confirm. Your games, saves, states and settings are kept."
+msgstr "GBA DS v%s 发布了（当前是 v%s）。现在更新会下载它（%.1f MB）并安装：Android 会让你确认。你的游戏、存档、状态和设置都保留。"
+
+msgid "GBA DS v%s is out (this is v%s). Update now to download it (%.1f MB) and restart into it; your games, saves, states and settings are kept."
+msgstr "GBA DS v%s 发布了（当前是 v%s）。现在更新会下载它（%.1f MB）并重启进入新版本；你的游戏、存档、状态和设置都保留。"
+
+msgid "GBA DS's bezel, or your own PNGs, round the picture."
+msgstr "画面周围的 GBA DS 边框，或你自己的 PNG。"
+
+msgid "GBA DS's files are kept there already."
+msgstr "GBA DS 的文件已经在那里了。"
+
+msgid "GBA DS's files go to %s the next time it starts: close GBA DS and open it again."
+msgstr "GBA DS 的文件下次启动时会移到 %s：请关闭 GBA DS 再打开。"
+
+msgid "GBA DS's own files (states, settings, cheats, overlays) are in %s, moving to %s at the next start."
+msgstr "GBA DS 自己的文件（即时存档、设置、金手指、覆盖层）在 %s，下次启动会移到 %s。"
+
+msgid "GBA DS's own files (states, settings, cheats, overlays) are in %s."
+msgstr "GBA DS 自己的文件（即时存档、设置、金手指、覆盖层）在 %s。"
+
+msgid "GBA L"
+msgstr "GBA L"
+
+msgid "GBA Left"
+msgstr "GBA 左"
+
+msgid "GBA R"
+msgstr "GBA R"
+
+msgid "GBA Right"
+msgstr "GBA 右"
+
+msgid "GBA Up"
+msgstr "GBA 上"
+
+msgid "Generated"
+msgstr "生成"
+
+msgid "Green"
+msgstr "绿"
+
+msgid "Held on its side: the two screens side by side. Either way round."
+msgstr "横持：两个屏幕左右并排，正反方向均可。"
+
+msgid "Held upright: the two screens one above the other. Either way up."
+msgstr "竖持：两个屏幕上下排列，正反方向均可。"
+
+msgid "hex"
+msgstr "十六进制"
+
+msgid "Hex Color"
+msgstr "十六进制颜色"
+
+msgid "Hold L2 to go back in time."
+msgstr "按住 L2 回到过去。"
+
+msgid "Hold R2 to play faster."
+msgstr "按住 R2 加快游戏。"
+
+msgid "Home"
+msgstr "Home"
+
+msgid "Hotkey button"
+msgstr "热键键"
+
+msgid "Hotkeys"
+msgstr "热键"
+
+msgid "How dark the grid, scanlines and soft cells are."
+msgstr "网格、扫描线和柔化格子的深浅。"
+
+msgid "How far back it goes."
+msgstr "能往回倒多久。"
+
+msgid "How fast Turbo A and Turbo B press."
+msgstr "A、B 连发按多快。"
+
+msgid "How the game's picture fills its screen."
+msgstr "游戏画面如何填满它那块屏幕。"
+
+msgid "How the map or logo fills its screen."
+msgstr "地图或徽标如何填满副屏。"
+
+msgid "hue"
+msgstr "色相"
+
+msgid "In a game, hold the hotkey button and press another"
+msgstr "游戏中按住热键键再按另一个键"
+
+msgid "In patches/%s"
+msgstr "在 patches/%s 中"
+
+msgid "Inner Bezel Color"
+msgstr "边框内色"
+
+msgid "Installed"
+msgstr "已安装"
+
+msgid "Installing"
+msgstr "正在安装"
+
+msgid "Jan"
+msgstr "1月"
+
+msgid "Jul"
+msgstr "7月"
+
+msgid "Jun"
+msgstr "6月"
+
+msgid "Keep device aspect ratios"
+msgstr "保持设备比例"
+
+msgid "Keep device shapes"
+msgstr "保持设备形状"
+
+msgid "Keep saves next to the games"
+msgstr "存档放在游戏旁边"
+
+msgid "Kept as it was in %d s if nothing is pressed"
+msgstr "%d 秒内没有按键就保持原样"
+
+msgid "Kept for every game"
+msgstr "对所有游戏都有效"
+
+msgid "Known %s patch, tested: %s"
+msgstr "已知 %s 补丁，已测试：%s"
+
+msgid "Known %s patch, untested: %s. The second screen may not work with it"
+msgstr "已知 %s 补丁，未测试：%s。副屏可能不起作用"
+
+msgid "Known %s patch: %s, made for %s. This ROM is another version: it may break the game"
+msgstr "已知 %s 补丁：%s，为 %s 制作。这个 ROM 是另一个版本：可能把游戏弄坏"
+
+msgid "Known %s patch: %s, made for %s: it can't be switched on for this ROM"
+msgstr "已知 %s 补丁：%s，为 %s 制作：不能给这个 ROM 开启"
+
+msgid "Known romhack: %s, untested"
+msgstr "已知改版：%s，未测试"
+
+msgid "L button"
+msgstr "L 键"
+
+msgid "Language"
+msgstr "语言"
+
+msgid "Last checked %s."
+msgstr "上次检查：%s。"
+
+msgid "Later"
+msgstr "稍后"
+
+msgid "LCD ghosting"
+msgstr "LCD 拖影"
+
+msgid "LCD Ghosting: Off"
+msgstr "LCD 拖影：关"
+
+msgid "LCD Ghosting: On"
+msgstr "LCD 拖影：开"
+
+msgid "LCD Grid"
+msgstr "LCD 网格"
+
+msgid "Left"
+msgstr "左"
+
+msgid "Left out where it is: it's made for the unchanged ROM, so it has to be first (only one such patch can be on). Move it up with X"
+msgstr "现在的位置会被跳过：它是给未改动的 ROM 做的，必须排第一（这种补丁只能开一个）。按 X 往上移"
+
+msgid "Left stick as D-pad"
+msgstr "左摇杆当十字键"
+
+msgid "Left stick: left"
+msgstr "左摇杆：左"
+
+msgid "Left stick: up"
+msgstr "左摇杆：上"
+
+msgid "Let the System Decide"
+msgstr "由系统决定"
+
+msgid "Light"
+msgstr "浅色"
+
+msgid "Light/dark mode"
+msgstr "浅色/深色模式"
+
+msgid "Like a GBA"
+msgstr "像 GBA"
+
+msgid "Lines between the pixels, like a GBA's screen"
+msgstr "像素之间有线条，像 GBA 的屏幕"
+
+msgid "Load failed"
+msgstr "读取失败"
+
+msgid "Load failed."
+msgstr "读取失败。"
+
+msgid "Load State"
+msgstr "读取状态"
+
+msgid "Load State %d"
+msgstr "读取状态 %d"
+
+msgid "Loading games..."
+msgstr "正在载入游戏…"
+
+msgid "Loading the achievements..."
+msgstr "正在载入成就…"
+
+msgid "Loading thumbnail..."
+msgstr "正在载入预览图…"
+
+msgid "Made for another version of the game: it can't be switched on for this ROM"
+msgstr "为另一个版本的游戏制作：不能给这个 ROM 开启"
+
+msgid "Makes GBA DS the emulator for Game Boy Advance games in ES-DE. For a game it doesn't support, choose another in ES-DE (the game's metadata > Alternative emulator)."
+msgstr "让 GBA DS 成为 ES-DE 中 Game Boy Advance 游戏的模拟器。遇到它不支持的游戏，在 ES-DE 里另选一个（游戏元数据 > 替代模拟器）。"
+
+msgid "Map"
+msgstr "地图"
+
+msgid "Map Buttons"
+msgstr "按键映射"
+
+msgid "Map buttons"
+msgstr "按键映射"
+
+msgid "Map refresh"
+msgstr "地图刷新"
+
+msgid "Mar"
+msgstr "3月"
+
+msgid "Match aspect ratios"
+msgstr "匹配比例"
+
+msgid "Match display rate"
+msgstr "匹配屏幕刷新率"
+
+msgid "Match Display Rate: Off"
+msgstr "匹配屏幕刷新率：关"
+
+msgid "Match Display Rate: Off for now"
+msgstr "匹配屏幕刷新率：暂时关"
+
+msgid "Match Display Rate: On"
+msgstr "匹配屏幕刷新率：开"
+
+msgid "Match screen aspect ratios"
+msgstr "匹配屏幕比例"
+
+msgid "Match screen sizes and aspect ratios"
+msgstr "匹配屏幕尺寸和比例"
+
+msgid "Match sizes and shapes"
+msgstr "匹配尺寸和形状"
+
+msgid "Max: full speed, a warmer device and a shorter battery."
+msgstr "最高：全速，机器更热、更费电。"
+
+msgid "May"
+msgstr "5月"
+
+msgid "Medium (15 a second)"
+msgstr "中（每秒 15 次）"
+
+msgid "Modified ROM: the second screen may not work"
+msgstr "修改过的 ROM：副屏可能不起作用"
+
+msgid "Move"
+msgstr "移动"
+
+msgid "Moving it: Up / Down or tap where it goes, then A (or tap it again). The one lower in the list is applied later"
+msgstr "移动：上/下或点它要去的位置，然后按 A（或再点一次）。列表里靠下的补丁后应用"
+
+msgid "Moving things leave a short trail, as on a GBA."
+msgstr "移动的东西留下短拖影，像 GBA 屏幕那样。"
+
+msgid "New"
+msgstr "新增"
+
+msgid "No achievements for this ROM (MD5 %s)"
+msgstr "这个 ROM 没有成就（MD5 %s）"
+
+msgid "No cheats found (see Cheats in the wiki)"
+msgstr "没有找到金手指（见 wiki 的金手指页）"
+
+msgid "No controller found"
+msgstr "没有找到控制器"
+
+msgid "No es_systems.cfg found."
+msgstr "没有找到 es_systems.cfg。"
+
+msgid "No folder chosen."
+msgstr "没有选择文件夹。"
+
+msgid "No folders in this one"
+msgstr "这个文件夹里没有子文件夹"
+
+msgid "No game has settings of its own."
+msgstr "没有游戏保存自己的设置。"
+
+msgid "No games found"
+msgstr "没有找到游戏"
+
+msgid "No patches here yet"
+msgstr "这里还没有补丁"
+
+msgid "No quick state saved yet."
+msgstr "还没有快速存档。"
+
+msgid "No RetroArch states here"
+msgstr "这里没有 RetroArch 即时存档"
+
+msgid "no save state yet!"
+msgstr "还没有即时存档！"
+
+msgid "No supported games in"
+msgstr "这里没有支持的游戏"
+
+msgid "None"
+msgstr "无"
+
+msgid "Not in the folder any more: it's left out"
+msgstr "已不在文件夹里：会被跳过"
+
+msgid "Not resumed: RetroArch's automatic state is from another of its GBA cores. To share states, set RetroArch's GBA core to mGBA."
+msgstr "未继续：RetroArch 的自动状态来自它的另一个 GBA 核心。要共享状态，请把 RetroArch 的 GBA 核心设为 mGBA。"
+
+msgid "Not used"
+msgstr "不使用"
+
+msgid "NOTE: Unsupported games will play in RetroArch, but without BananaOS's own second screen (its game panel and companions)."
+msgstr "注意：不支持的游戏会用 RetroArch 玩，但没有 BananaOS 自己的副屏（它的游戏面板和同伴界面）。"
+
+msgid "Nothing"
+msgstr "无"
+
+msgid "Nothing mapped"
+msgstr "没有映射任何按键"
+
+msgid "Nothing saved in slot %d yet"
+msgstr "%d 号状态还没有存档"
+
+msgid "Nothing to report yet."
+msgstr "暂时没有可报告的内容。"
+
+msgid "Nov"
+msgstr "11月"
+
+msgid "Now"
+msgstr "现在"
+
+msgid "Oct"
+msgstr "10月"
+
+msgid "Off"
+msgstr "关"
+
+msgid "off"
+msgstr "关"
+
+msgid "Off for slower devices: the table on one screen. Close and restart GBA DS to apply."
+msgstr "慢的机器可以关掉：球台只显示在一屏。关闭并重新启动 GBA DS 后生效。"
+
+msgid "Off while a patch is on"
+msgstr "启用补丁时关闭"
+
+msgid "Off."
+msgstr "已关闭。"
+
+msgid "Off. Restart BananaOS (Settings > System) for its menu to use it."
+msgstr "已关闭。重启 BananaOS（设置 > 系统）后它的菜单才会用上。"
+
+msgid "Off. Restart EmulationStation to apply."
+msgstr "已关闭。重启 EmulationStation 后生效。"
+
+msgid "Off: every game plays like an ordinary GBA game."
+msgstr "关：所有游戏都像普通 GBA 游戏一样玩。"
+
+msgid "Off: the left stick does nothing in games."
+msgstr "关：游戏中左摇杆不起作用。"
+
+msgid "Offline"
+msgstr "离线"
+
+msgid "OK"
+msgstr "好"
+
+msgid "On"
+msgstr "开"
+
+msgid "on"
+msgstr "开"
+
+msgid "On."
+msgstr "已开启。"
+
+msgid "On. Restart BananaOS (Settings > System) for its menu to use it."
+msgstr "已开启。重启 BananaOS（设置 > 系统）后它的菜单才会用上。"
+
+msgid "On. Restart EmulationStation to see it."
+msgstr "已开启。重启 EmulationStation 就能看到。"
+
+msgid "Only games with a map screen are listed (show_all = 1 lists every one)"
+msgstr "只列出有地图画面的游戏（show_all = 1 会列出全部）"
+
+msgid "Only one screen: nothing to move"
+msgstr "只有一块屏幕：无需移动"
+
+msgid "Only patches that are on have an order, and this is the only one"
+msgstr "只有开着的补丁才有顺序，而这是唯一一个"
+
+msgid "Only when your two screens differ in shape. Experimental."
+msgstr "只在两块屏幕形状不同时用。实验性功能。"
+
+msgid "Open quick menu"
+msgstr "打开快捷菜单"
+
+msgid "Opens the bezel's own page, for whichever the game or all games have"
+msgstr "打开边框自己的页面，针对本游戏或所有游戏当前用的那套"
+
+msgid "Orange"
+msgstr "橙"
+
+msgid "Outer Bezel Color"
+msgstr "边框外色"
+
+msgid "Overlay colors and logo"
+msgstr "覆盖层颜色和徽标"
+
+msgid "Overlays"
+msgstr "覆盖层"
+
+msgid "Overlays on"
+msgstr "覆盖层用于"
+
+msgid "Overlays: Custom"
+msgstr "覆盖层：自定义"
+
+msgid "Overlays: Custom (in /overlays)"
+msgstr "覆盖层：自定义（在 /overlays 中）"
+
+msgid "Overlays: Generated"
+msgstr "覆盖层：生成"
+
+msgid "Overlays: Off"
+msgstr "覆盖层：关"
+
+msgid "Patch not applied: %s can't be read"
+msgstr "补丁未应用：无法读取 %s"
+
+msgid "Patch not applied: %s is for another ROM"
+msgstr "补丁未应用：%s 是给另一个 ROM 的"
+
+msgid "Patched, but a patch was left out: see Patches in the game's menu"
+msgstr "已打补丁，但有一个补丁被跳过：见游戏菜单里的补丁"
+
+msgid "Patched: the second screen may not work"
+msgstr "已打补丁：副屏可能不起作用"
+
+msgid "Patches"
+msgstr "补丁"
+
+msgid "Patches changed"
+msgstr "补丁已改动"
+
+msgid "Patches changed since the game started"
+msgstr "游戏开始后补丁有改动"
+
+msgid "Patches changed: carrying on from where you were"
+msgstr "补丁已改动：从当前位置继续"
+
+msgid "Pattern strength"
+msgstr "图案强度"
+
+msgid "Paused"
+msgstr "已暂停"
+
+msgid "Performance"
+msgstr "性能"
+
+msgid "Performance: Let the System Decide"
+msgstr "性能：由系统决定"
+
+msgid "Performance: Set to Max"
+msgstr "性能：设为最高"
+
+msgid "Pictures in the middle of their screens, or close together."
+msgstr "画面在各自屏幕中间，或彼此靠近。"
+
+msgid "Pinball two-screen view"
+msgstr "弹珠台双屏视图"
+
+msgid "Pink"
+msgstr "粉"
+
+msgid "Pinned: the bar stays up."
+msgstr "已固定：快捷栏会一直显示。"
+
+msgid "Pixel Perfect"
+msgstr "像素精确"
+
+msgid "Pixelated"
+msgstr "像素化"
+
+msgid "Placement, overlays"
+msgstr "摆放、覆盖层"
+
+msgid "Plain"
+msgstr "简洁"
+
+msgid "Play"
+msgstr "开始"
+
+msgid "Playing without achievements this time"
+msgstr "这次玩的时候没有成就"
+
+msgid "PM"
+msgstr "下午"
+
+msgid "point"
+msgstr "分"
+
+msgid "points"
+msgstr "分"
+
+msgid "Preparing the game..."
+msgstr "正在准备游戏…"
+
+msgid "presets"
+msgstr "预设"
+
+msgid "Press %s"
+msgstr "请按 %s"
+
+msgid "Press a button"
+msgstr "请按键"
+
+msgid "Press A or tap to close"
+msgstr "按 A 或点击关闭"
+
+msgid "Press A to close"
+msgstr "按 A 关闭"
+
+msgid "press the left stick in"
+msgstr "把左摇杆按下去"
+
+msgid "Purple"
+msgstr "紫"
+
+msgid "push the left stick left"
+msgstr "把左摇杆往左推"
+
+msgid "push the left stick up"
+msgstr "把左摇杆往上推"
+
+msgid "Push the stick: buttons don't count for this one."
+msgstr "请推动摇杆：这一项不接受按键。"
+
+msgid "Put .ips, .ups, .bps or .xdelta files in %s"
+msgstr "把 .ips、.ups、.bps 或 .xdelta 文件放进 %s"
+
+msgid "Quick bar hint"
+msgstr "快捷栏提示"
+
+msgid "Quick load state"
+msgstr "快速读取状态"
+
+msgid "Quick save state"
+msgstr "快速保存状态"
+
+msgid "Quit"
+msgstr "退出"
+
+msgid "R button"
+msgstr "R 键"
+
+msgid "Raise it if the sound crackles."
+msgstr "声音有杂音就调高。"
+
+msgid "Red"
+msgstr "红"
+
+msgid "Red, green and blue stripes, gentle: for dim screens"
+msgstr "红绿蓝条纹，轻微：适合暗的屏幕"
+
+msgid "Red, green and blue stripes, like a GBA's screen"
+msgstr "红绿蓝条纹，像 GBA 的屏幕"
+
+msgid "Red, green and blue stripes, strong: for bright screens"
+msgstr "红绿蓝条纹，明显：适合亮的屏幕"
+
+msgid "Reset"
+msgstr "重置"
+
+msgid "Reset Bezels"
+msgstr "重置边框"
+
+msgid "Reset settings to defaults"
+msgstr "恢复默认设置"
+
+msgid "Restart"
+msgstr "重新开始"
+
+msgid "Restart from the top row to play with it (or it's used from the next start)"
+msgstr "从第一行重新开始才能用上它（否则从下次启动开始生效）"
+
+msgid "Restart from the top row to play with this order"
+msgstr "从第一行重新开始才会按这个顺序生效"
+
+msgid "Restart Game"
+msgstr "重新开始"
+
+msgid "Restart required"
+msgstr "需要重启"
+
+msgid "Resume"
+msgstr "继续"
+
+msgid "Resumed. Tap or HOME for the menu"
+msgstr "已继续。点屏幕或按 HOME 打开菜单"
+
+msgid "RetroAchievements couldn't start"
+msgstr "RetroAchievements 无法启动"
+
+msgid "RetroAchievements doesn't allow patched games"
+msgstr "RetroAchievements 不允许打过补丁的游戏"
+
+msgid "RetroAchievements is off"
+msgstr "RetroAchievements 已关闭"
+
+msgid "RETROACHIEVEMENTS · CASUAL"
+msgstr "成就 · 休闲模式"
+
+msgid "RetroAchievements: Off"
+msgstr "RetroAchievements：关"
+
+msgid "RetroAchievements: Sign In"
+msgstr "RetroAchievements：登录"
+
+msgid "RetroAchievements: Sign Out"
+msgstr "RetroAchievements：退出登录"
+
+msgid "RetroAchievements: Signing In..."
+msgstr "RetroAchievements：正在登录…"
+
+msgid "RetroArch's settings weren't found here: choose the folder where it keeps its save states."
+msgstr "这里没找到 RetroArch 的设置：请选择它保存即时存档的文件夹。"
+
+msgid "RetroArch's settings weren't found, so slots 0-9 and the automatic state are GBA DS's own again."
+msgstr "没找到 RetroArch 的设置，0-9 号位和自动状态又归 GBA DS 自己。"
+
+msgid "RetroArch's State Folder"
+msgstr "RetroArch 的状态文件夹"
+
+msgid "RetroArch's state folder is found from its settings again: %s."
+msgstr "又按 RetroArch 的设置找到了它的即时存档文件夹：%s。"
+
+msgid "Rewind"
+msgstr "倒带"
+
+msgid "Rewind length"
+msgstr "倒带时长"
+
+msgid "Rewind, fast forward"
+msgstr "倒带、快进"
+
+msgid "Rewind: Off"
+msgstr "倒带：关"
+
+msgid "Rewind: On"
+msgstr "倒带：开"
+
+msgid "Rewinding..."
+msgstr "正在倒带…"
+
+msgid "Right"
+msgstr "右"
+
+msgid "Romhack: %s%s"
+msgstr "改版：%s%s"
+
+msgid "Romhack: %s%s, untested"
+msgstr "改版：%s%s，未测试"
+
+msgid "Rotation: Auto"
+msgstr "旋转：自动"
+
+msgid "Rotation: Landscape"
+msgstr "旋转：横向"
+
+msgid "Rotation: Portrait"
+msgstr "旋转：纵向"
+
+msgid "Run at the display's rate: no small regular stutter."
+msgstr "按屏幕刷新率运行：没有规则的轻微卡顿。"
+
+msgid "Same as all games again"
+msgstr "已恢复为与所有游戏相同"
+
+msgid "Save failed"
+msgstr "保存失败"
+
+msgid "Save failed."
+msgstr "保存失败。"
+
+msgid "Save files: .sav"
+msgstr "存档格式：.sav"
+
+msgid "Save files: .srm (RetroArch's)"
+msgstr "存档格式：.srm（RetroArch 的）"
+
+msgid "Save on quit"
+msgstr "退出时保存"
+
+msgid "Save on Quit: Off"
+msgstr "退出时保存：关"
+
+msgid "Save on Quit: On"
+msgstr "退出时保存：开"
+
+msgid "Save State"
+msgstr "保存状态"
+
+msgid "Save State %d"
+msgstr "保存状态 %d"
+
+msgid "Save States: GBA DS's Own"
+msgstr "即时存档：GBA DS 自己的"
+
+msgid "Save States: Shared with RetroArch"
+msgstr "即时存档：与 RetroArch 共享"
+
+msgid "Saved by another emulator: can't load it"
+msgstr "由其他模拟器保存，无法读取"
+
+msgid "Saved for all games"
+msgstr "已保存给所有游戏"
+
+msgid "Saved for this game"
+msgstr "已保存给本游戏"
+
+msgid "Saved for when a patch is on"
+msgstr "已保存，开补丁时使用"
+
+msgid "Saves will be kept next to the games."
+msgstr "存档会保存在游戏旁边。"
+
+msgid "Saves will be kept there."
+msgstr "存档会保存在那里。"
+
+msgid "Scale, shader, theme, color"
+msgstr "缩放、滤镜、主题、颜色"
+
+msgid "Scale: Full Width"
+msgstr "缩放：全宽"
+
+msgid "Scale: Pixel Perfect"
+msgstr "缩放：像素精确"
+
+msgid "Scale: Stretch"
+msgstr "缩放：拉伸"
+
+msgid "Scale: Zoom"
+msgstr "缩放：放大"
+
+msgid "Scanlines"
+msgstr "扫描线"
+
+msgid "Screen placement"
+msgstr "屏幕位置"
+
+msgid "Screen Placement: Centered"
+msgstr "屏幕位置：居中"
+
+msgid "Screen Placement: Closest to Gap"
+msgstr "屏幕位置：靠近间隙"
+
+msgid "Screen shapes"
+msgstr "屏幕形状"
+
+msgid "Screens"
+msgstr "屏幕"
+
+msgid "Screenshot failed"
+msgstr "截图失败"
+
+msgid "Screenshot saved"
+msgstr "截图已保存"
+
+msgid "Second screen"
+msgstr "副屏"
+
+msgid "Second screen scale"
+msgstr "副屏缩放"
+
+msgid "Select"
+msgstr "Select"
+
+msgid "Select or Start still reach the game when tapped on their own, L3 still opens the quick menu"
+msgstr "单独按 Select 或 Start 仍会传给游戏，L3 仍会打开快捷菜单"
+
+msgid "Sep"
+msgstr "9月"
+
+msgid "Separate battery save"
+msgstr "独立电池存档"
+
+msgid "Separate save states"
+msgstr "独立即时存档"
+
+msgid "Set for now, but %s couldn't be written."
+msgstr "暂时可用，但无法写入 %s。"
+
+msgid "Set to Max"
+msgstr "设为最高"
+
+msgid "Sets the shortcuts: the hotkey button held with another."
+msgstr "设置快捷键：按住热键键再按另一个键。"
+
+msgid "Sets which of this device's buttons does what."
+msgstr "设置这台设备的按键各自做什么。"
+
+msgid "Settings"
+msgstr "设置"
+
+msgid "Settings are back to their defaults."
+msgstr "设置已恢复默认。"
+
+msgid "Shader"
+msgstr "画面滤镜"
+
+msgid "Shader: LCD Grid"
+msgstr "滤镜：LCD 网格"
+
+msgid "Shader: Off"
+msgstr "滤镜：关"
+
+msgid "Shader: Scanlines"
+msgstr "滤镜：扫描线"
+
+msgid "Shader: Soft Cells"
+msgstr "滤镜：柔化格子"
+
+msgid "Shader: Subpixels"
+msgstr "滤镜：子像素"
+
+msgid "Shader: Subpixels (Light)"
+msgstr "滤镜：子像素（轻）"
+
+msgid "Shader: Subpixels (Strong)"
+msgstr "滤镜：子像素（强）"
+
+msgid "Shorter can make the sound crackle on a slow device."
+msgstr "在慢的机器上调短可能让声音有杂音。"
+
+msgid "Show FPS"
+msgstr "显示帧率"
+
+msgid "Show FPS: Off"
+msgstr "显示帧率：关"
+
+msgid "Show FPS: On"
+msgstr "显示帧率：开"
+
+msgid "Sign in again in the game list's Settings"
+msgstr "在游戏列表的设置里重新登录"
+
+msgid "Sign-in failed"
+msgstr "登录失败"
+
+msgid "Signed in as %s. Achievements are earned in casual mode."
+msgstr "已登录为 %s。成就在休闲模式下获得。"
+
+msgid "Signed out of RetroAchievements."
+msgstr "已退出 RetroAchievements。"
+
+msgid "Signing in as %s..."
+msgstr "正在以 %s 登录…"
+
+msgid "Single screen only"
+msgstr "仅单屏"
+
+msgid "Single screen only: plays normally"
+msgstr "仅单屏：正常游玩"
+
+msgid "Skip"
+msgstr "跳过"
+
+msgid "Skip this version"
+msgstr "跳过这个版本"
+
+msgid "Skipped in %d s if nothing is pressed"
+msgstr "%d 秒内没有按键就跳过"
+
+msgid "Slot %d loaded"
+msgstr "已读取 %d 号状态"
+
+msgid "Slot %d: %s"
+msgstr "存档位 %d（%s）"
+
+msgid "Slot %d: %s %d, %d%s"
+msgstr "存档位 %d：%s%d日，%d年%s"
+
+msgid "Slot %d: %s %d, %d:%02d %s%s"
+msgstr "存档位 %d：%s%d日 %d:%02d %s%s"
+
+msgid "Slot %d: Empty"
+msgstr "存档位 %d：空"
+
+msgid "Slots 0-9 and the automatic state are GBA DS's own again. The states saved in RetroArch's folder stay there."
+msgstr "0-9 号位和自动状态又归 GBA DS 自己。存在 RetroArch 文件夹里的状态仍然留在那里。"
+
+msgid "Slots 0-9 and the automatic state are now RetroArch's. GBA DS's own states stay in its folder, for when this is switched back."
+msgstr "0-9 号位和自动状态现在归 RetroArch。GBA DS 自己的状态留在它的文件夹里，切回来时用。"
+
+msgid "Slots 0-9 and the automatic state are now shared with RetroArch, in %s."
+msgstr "0-9 号位和自动状态现在与 RetroArch 共享，在 %s。"
+
+msgid "Slots 0-9 and the resume point are GBA DS's own. Shared, they're RetroArch's: %s."
+msgstr "0-9 号位和继续点是 GBA DS 自己的。共享时用 RetroArch 的：%s。"
+
+msgid "Slots 0-9 and the resume point are GBA DS's own. To share them, choose RetroArch's state folder."
+msgstr "0-9 号位和继续点都是 GBA DS 自己的。要共享它们，请选择 RetroArch 的即时存档文件夹。"
+
+msgid "Slots 0-9 and the resume point are RetroArch's (its GBA core set to mGBA): %s."
+msgstr "0-9 号位和继续点是 RetroArch 的（它的 GBA 核心设为 mGBA）：%s。"
+
+msgid "Slow (10 a second)"
+msgstr "慢（每秒 10 次）"
+
+msgid "Smooth scaling"
+msgstr "平滑缩放"
+
+msgid "Smoother, one frame more input delay."
+msgstr "更平滑，但多一帧输入延迟。"
+
+msgid "SNES"
+msgstr "SNES"
+
+msgid "Soft Cells"
+msgstr "柔化格子"
+
+msgid "Some files couldn't be moved, they're still in %s"
+msgstr "部分文件无法移动，仍在 %s"
+
+msgid "Sound delay"
+msgstr "声音延迟"
+
+msgid "Space"
+msgstr "空格"
+
+msgid "Speed"
+msgstr "速度"
+
+msgid "Speed and sound"
+msgstr "速度和声音"
+
+msgid "Start"
+msgstr "Start"
+
+msgid "Starting a game picks up where you closed it."
+msgstr "启动游戏时从上次关闭的地方继续。"
+
+msgid "State loaded."
+msgstr "状态已读取。"
+
+msgid "State saved to slot %d"
+msgstr "已保存到 %d 号状态"
+
+msgid "State saved."
+msgstr "状态已保存。"
+
+msgid "Stick, buttons, hotkeys"
+msgstr "摇杆、按键、热键"
+
+msgid "Stretch"
+msgstr "拉伸"
+
+msgid "Submit a Bug Report"
+msgstr "提交错误报告"
+
+msgid "Subpixels"
+msgstr "子像素"
+
+msgid "Subpixels (Light)"
+msgstr "子像素（轻）"
+
+msgid "Subpixels (Strong)"
+msgstr "子像素（强）"
+
+msgid "Supported"
+msgstr "支持的"
+
+msgid "Supported games only"
+msgstr "仅支持的游戏"
+
+msgid "Sure?"
+msgstr "确定？"
+
+msgid "Swap Screens"
+msgstr "交换屏幕"
+
+msgid "Swap screens"
+msgstr "交换屏幕"
+
+msgid "Swapped"
+msgstr "交换"
+
+msgid "Swipe up for quick menu"
+msgstr "上滑打开快捷菜单"
+
+msgid "Switched off in gba-ds.cfg (retroachievements = 0)."
+msgstr "已在 gba-ds.cfg 中关闭（retroachievements = 0）。"
+
+msgid "System"
+msgstr "系统"
+
+msgid "Tags in a ROM's file name, like (USA) or (En,Fr,De)."
+msgstr "ROM 文件名里的标签，例如 (USA) 或 (En,Fr,De)。"
+
+msgid "Take Screenshot"
+msgstr "截图"
+
+msgid "Takes effect after you close and restart GBA DS"
+msgstr "关闭并重新启动 GBA DS 后生效"
+
+msgid "Tap again to close GBA DS."
+msgstr "再点一次退出 GBA DS。"
+
+msgid "Tap the screen or press HOME for the menu"
+msgstr "点屏幕或按 HOME 打开菜单"
+
+msgid "Tap the touchscreen to skip a button this device doesn't have"
+msgstr "点触摸屏可跳过这台设备上没有的按键"
+
+msgid "Tap to set none"
+msgstr "点击可设为无"
+
+msgid "Tap to skip a button this device doesn't have"
+msgstr "点击可跳过这台设备上没有的按键"
+
+msgid "Teal"
+msgstr "青"
+
+msgid "Tested romhack: %s"
+msgstr "测试过的改版：%s"
+
+msgid "That one comes as a keyboard key here: it can't be mapped. Tap to skip."
+msgstr "这个按键在此是键盘按键，无法映射。点按可跳过。"
+
+msgid "That one is already %s. Press another, or tap to skip."
+msgstr "那个已经是 %s 了。请按另一个，或点击跳过。"
+
+msgid "That's inside GBA DS's own folder: choose one outside it."
+msgstr "那在 GBA DS 自己的文件夹里面：请选一个外面的。"
+
+msgid "That's the hotkey button: press another"
+msgstr "那就是热键键：请按另一个"
+
+msgid "the bottom face button"
+msgstr "下面的主按键"
+
+msgid "the button that opens GBA DS's menu (Home, Menu or Function)"
+msgstr "打开 GBA DS 菜单的键（Home、Menu 或 Function）"
+
+msgid "the game"
+msgstr "游戏"
+
+msgid "The game's pixels as they are"
+msgstr "游戏画面原样显示"
+
+msgid "The GBA DS logo in the generated bezel."
+msgstr "生成的边框里的 GBA DS 徽标。"
+
+msgid "The hotkey button can be %s, Select, Start or L3"
+msgstr "热键键可以是 %s、Select、Start 或 L3"
+
+msgid "the left face button"
+msgstr "左边的主按键"
+
+msgid "the left shoulder button"
+msgstr "左肩键"
+
+msgid "The map and the logo"
+msgstr "地图和徽标"
+
+msgid "The menus' buttons: dark grey, or light grey like the web player's."
+msgstr "菜单按键：深灰，或像网页版那样的浅灰。"
+
+msgid "The menus' color for what's selected, with a dark and a light version of each."
+msgstr "菜单里选中项的颜色，每种都有深色和浅色两版。"
+
+msgid "the patch beside the ROM"
+msgstr "ROM 旁边的补丁"
+
+msgid "The patches aren't as the game started: restart it to play with them (or they're used from the next start)"
+msgstr "补丁与游戏开始时不同：重新开始才会用上它们（否则从下次启动开始生效）"
+
+msgid "The processor, memory and graphics run at full speed while GBA DS is open: the smoothest play, but the battery runs down faster and the device gets warmer."
+msgstr "GBA DS 打开时处理器、内存和图形都全速运行：最流畅，但更费电、机器更热。"
+
+msgid "the right face button"
+msgstr "右边的主按键"
+
+msgid "the right shoulder button"
+msgstr "右肩键"
+
+msgid "the second left shoulder button"
+msgstr "左边第二个肩键"
+
+msgid "the second right shoulder button"
+msgstr "右边第二个肩键"
+
+msgid "The system sets the speed, as for its other emulators. If games stutter or the sound breaks up, try Set to Max."
+msgstr "由系统决定速度，和它的其他模拟器一样。如果游戏卡顿或声音断断续续，可以试试“设为最高”。"
+
+msgid "the top face button"
+msgstr "上面的主按键"
+
+msgid "This folder can't be opened"
+msgstr "无法打开这个文件夹"
+
+msgid "This game"
+msgstr "本游戏"
+
+msgid "This game has its own value. X, or going on past the last choice: same as all games"
+msgstr "本游戏有自己的值。按 X 或越过最后一个选项：与所有游戏相同"
+
+msgid "This game has no achievements yet"
+msgstr "这个游戏还没有成就"
+
+msgid "This is GBA DS v%s."
+msgstr "这是 GBA DS v%s。"
+
+msgid "This is v%s. Look for a new version, and download and install it."
+msgstr "这是 v%s。可以查找新版本，然后下载并安装。"
+
+msgid "This state can't be read"
+msgstr "无法读取这个状态"
+
+msgid "This state was saved %s: it may not work"
+msgstr "这个状态是用%s保存的：可能无法使用"
+
+msgid "Together: %s"
+msgstr "一起：%s"
+
+msgid "Toggle selected shader"
+msgstr "切换所选滤镜"
+
+msgid "Top screen"
+msgstr "上屏"
+
+msgid "Top screen brightness"
+msgstr "上屏亮度"
+
+msgid "Touch or use the D-Pad"
+msgstr "触摸或用十字键"
+
+msgid "Turbo A"
+msgstr "连发 A"
+
+msgid "Turbo B"
+msgstr "连发 B"
+
+msgid "Turbo speed"
+msgstr "连发速度"
+
+msgid "Turns this ROM into another official release: %s"
+msgstr "把这个 ROM 变成另一个官方版本：%s"
+
+msgid "Unexpected es_systems.cfg (see the log)."
+msgstr "es_systems.cfg 的内容不对（见日志）。"
+
+msgid "Unknown version of this game"
+msgstr "这个游戏的版本未知"
+
+msgid "Unlocked"
+msgstr "已解锁"
+
+msgid "Unlocks sent"
+msgstr "解锁记录已发送"
+
+msgid "Unlocks will be sent when the connection is back"
+msgstr "恢复联网后将发送解锁记录"
+
+msgid "Unpinned: the bar hides after 5 seconds."
+msgstr "已取消固定：快捷栏 5 秒后隐藏。"
+
+msgid "unsaved progress is lost"
+msgstr "未保存的进度会丢失"
+
+msgid "Untested: the second screen may not work with it"
+msgstr "未测试：副屏可能不起作用"
+
+msgid "Up"
+msgstr "上"
+
+msgid "Up to %d patches can be on at once"
+msgstr "最多可同时开启 %d 个补丁"
+
+msgid "Up to %s"
+msgstr "上一级：%s"
+
+msgid "Update now"
+msgstr "现在更新"
+
+msgid "Updates"
+msgstr "更新"
+
+msgid "Updates, integrations"
+msgstr "更新、集成"
+
+msgid "Use This Folder"
+msgstr "用这个文件夹"
+
+msgid "Used from the next time the game starts"
+msgstr "下次游戏启动时使用"
+
+msgid "Volume %d%%"
+msgstr "音量 %d%%"
+
+msgid "What D-pad down gives the game."
+msgstr "十字键下给游戏什么。"
+
+msgid "What D-pad left gives the game."
+msgstr "十字键左给游戏什么。"
+
+msgid "What D-pad right gives the game."
+msgstr "十字键右给游戏什么。"
+
+msgid "What D-pad up gives the game."
+msgstr "十字键上给游戏什么。"
+
+msgid "What the bottom face button gives the game."
+msgstr "下键给游戏什么。"
+
+msgid "What the L shoulder button gives the game."
+msgstr "L 肩键给游戏什么。"
+
+msgid "What the left face button gives the game."
+msgstr "左键给游戏什么。"
+
+msgid "What the R shoulder button gives the game."
+msgstr "R 肩键给游戏什么。"
+
+msgid "What the right face button gives the game."
+msgstr "右面键给游戏什么。"
+
+msgid "What the top face button gives the game."
+msgstr "上键给游戏什么。"
+
+msgid "Where games are read from, and the folder their saves are kept in."
+msgstr "从哪里读取游戏，以及存档保存在哪个文件夹。"
+
+msgid "Where games are read from. Their saves are kept next to them."
+msgstr "从哪里读取游戏。存档保存在游戏旁边。"
+
+msgid "Which games, names, saving"
+msgstr "游戏、名称、存档"
+
+msgid "Which screen the game is on."
+msgstr "游戏在哪块屏幕上。"
+
+msgid "Which Screen: Both"
+msgstr "哪块屏幕：两块都"
+
+msgid "Which Screen: Bottom Only"
+msgstr "哪块屏幕：仅下屏"
+
+msgid "Which Screen: Top Only"
+msgstr "哪块屏幕：仅上屏"
+
+msgid "Which screens have them."
+msgstr "哪块屏幕有覆盖层。"
+
+msgid "with"
+msgstr "带"
+
+msgid "with %s"
+msgstr "%s"
+
+msgid "With a patch on, the game keeps its own battery save (\"<game> + <patch>\"): off, it uses the original's"
+msgstr "开着补丁时，游戏用自己独立的电池存档（“<game> + <patch>”）；关掉就用原版的"
+
+msgid "With a patch on, the game keeps its own save states: off, it uses the original's (a state can come out garbled in the other)"
+msgstr "开着补丁时，游戏用自己独立的即时存档；关掉就用原版的（两边混着用可能读取出错）"
+
+msgid "with another dump of the game (%s)"
+msgstr "这个游戏的另一个 dump（%s）"
+
+msgid "with another version of the game (other patches, or another ROM)"
+msgstr "另一个版本的游戏（其他补丁，或另一个 ROM）"
+
+msgid "With automatic checks on, GBA DS looks for a new version once a day when the game list opens, and asks before downloading anything. Updates come from the releases on github.com/kyannon/gba-ds."
+msgstr "开启自动检查后，GBA DS 每天在打开游戏列表时查找一次新版本，下载前会先询问。更新来自 github.com/kyannon/gba-ds 的发布页。"
+
+msgid "With Four buttons picked under Controls in the quick bar, the four-button layout replaces these."
+msgstr "在快捷栏的“控制”中选择“四键”后，四键布局会取代这些设置。"
+
+msgid "With SNES picked under Controls in the quick bar, the SNES layout replaces these in levels."
+msgstr "在快捷栏的“控制”中选择 SNES 后，关卡中会用 SNES 布局取代这些设置。"
+
+msgid "With tags, like (USA)"
+msgstr "带标签，如 (USA)"
+
+msgid "with the unchanged game (%s)"
+msgstr "未改动的游戏（%s）"
+
+msgid "without"
+msgstr "不带"
+
+msgid "without the patches on"
+msgstr "没开补丁的 ROM"
+
+msgid "X (top) button"
+msgstr "X（上）键"
+
+msgid "Y (left) button"
+msgstr "Y（左）键"
+
+msgid "Your own and scraped logos on the second screen."
+msgstr "副屏上显示你自己的或抓取来的徽标。"
+
+msgid "Your own PNGs in gba-ds/overlays/. A screen without one gets the generated bezel in its default colors."
+msgstr "你自己的 PNG 放在 gba-ds/overlays/。某块屏幕没有就用默认颜色的生成边框。"
+
+msgid "your place is saved"
+msgstr "当前位置已保存"
+
+msgid "Your screens are the same shape: nothing to match"
+msgstr "两块屏幕形状相同：无需匹配"
+
+msgid "Zoom"
+msgstr "放大"
+
+msgid "‹"
+msgstr "‹"
+
+msgid "›"
+msgstr "›"
+
+msgid "machine translated"
+msgstr "机器翻译"
+
+#, c-format
+msgid "Sound delay raised to %d ms: the sound kept breaking up"
+msgstr "声音延迟已提高到 %d 毫秒：声音一直断断续续"

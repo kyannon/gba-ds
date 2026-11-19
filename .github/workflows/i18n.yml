@@ -1,0 +1,43 @@
+# The translations (docs/I18N.md): the template and the generated tables must match
+# the source and the .po files, the .po files must check out, and the language and
+# font code must pass its tests. Nobody edits src/i18n_data.c by hand: it is made by
+# tools/i18n.py, so a difference here means someone forgot to run it.
+name: i18n
+
+on:
+  push:
+    paths:
+      - 'assets/i18n/**'
+      - 'src/**'
+      - 'tools/i18n.py'
+      - 'tools/test_i18n.c'
+      - 'Makefile'
+      - '.github/workflows/i18n.yml'
+  pull_request:
+    paths:
+      - 'assets/i18n/**'
+      - 'src/**'
+      - 'tools/i18n.py'
+      - 'tools/test_i18n.c'
+      - 'Makefile'
+      - '.github/workflows/i18n.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  i18n:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Self-test, check and regenerate
+        run: |
+          python3 tools/i18n.py test
+          python3 tools/i18n.py all
+          git diff --exit-code -- assets/i18n/gba-ds.pot src/i18n_data.c src/i18n_data.h ||
+            { echo "::error::run tools/i18n.py all and commit the result"; exit 1; }
+      - name: Language and font tests
+        run: |
+          sudo apt-get install -y --no-install-recommends fonts-dejavu-core
+          make test-i18n

@@ -174,6 +174,8 @@ SDL_Color ui_key_mid(int state);    /* about the key's colour (for cut-outs) */
  * align: -1 starts at x, 0 is centred on x, 1 ends at x. */
 void ui_font_text(int screen, int font, int x, int cy, int capPx, const char* text, SDL_Color c, int align);
 int ui_font_width(int font, int capPx, const char* text);
+/* the language changed (i18n_set): drop the old text's pictures and widths, set the script's fonts */
+void ui_language_changed(void);
 /* Word-wrapped to width, starting at the top-left x, y; returns the y below. */
 int ui_font_wrap(int screen, int font, int x, int y, int width, int capPx, const char* text, SDL_Color c);
 /* the same, flowing round a box on the right: the lines from narrowY down are only narrowW wide */

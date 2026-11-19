@@ -1,4 +1,5 @@
 #include "folderpick.h"
+#include "i18n.h"
 
 #include "ui.h"
 
@@ -69,7 +70,7 @@ static void load(View_* v, const char* path, const char* count, const char* sele
 	v->sel = 0, v->top = 0;
 	DIR* d = opendir(path);
 	if (!d) {
-		snprintf(v->note, sizeof(v->note), "This folder can't be opened");
+		snprintf(v->note, sizeof(v->note), tr("This folder can't be opened"));
 		return;
 	}
 	struct dirent* e;
@@ -134,7 +135,7 @@ static SDL_Rect btn_rect(int scr, const View_* v, int b) {
 	return (SDL_Rect) { m + slot * (bw + gap), (int) (px * 164), bw, (int) (px * 16) };
 }
 
-static void draw(int scr, const View_* v, const char* title, const char* countWhat, const char* autoLabel) {
+static void draw(int scr, const View_* v, const char* title, bool showCount, const char* autoLabel) {
 	SDL_Rect r = screens[scr].rect;
 	float px = ui_px(scr);
 	ui_fill(scr, (SDL_Rect) { 0, 0, r.w, r.h }, C_BG);
@@ -165,7 +166,7 @@ static void draw(int scr, const View_* v, const char* title, const char* countWh
 				*slash = 0;
 				parent = strrchr(tmp, '/') + 1;
 			}
-			snprintf(up, sizeof(up), "Up to %s", parent);
+			snprintf(up, sizeof(up), tr("Up to %s"), parent);
 			ui_font_text(scr, TF_BODY, b.x + px * 6, b.y + b.h / 2, px * 5, up, on ? C_TEXT : ink, -1);
 		} else {
 			ui_font_text(scr, TF_BOLD, b.x + px * 6, b.y + b.h / 2, px * 5, v->names[i - (v->up ? 1 : 0)], on ? C_TEXT : ink, -1);
@@ -186,9 +187,9 @@ static void draw(int scr, const View_* v, const char* title, const char* countWh
 	SDL_Color fc = C_DIM;
 	if (v->note[0]) {
 		snprintf(foot, sizeof(foot), "%s", v->note), fc = C_GOLD;
-	} else if (countWhat) {
-		if (v->counted) snprintf(foot, sizeof(foot), "%d %s%s here", v->counted, countWhat, v->counted == 1 ? "" : "s");
-		else snprintf(foot, sizeof(foot), "No %ss here", countWhat);
+	} else if (showCount) {
+		if (v->counted) snprintf(foot, sizeof(foot), trn("%d RetroArch state here", "%d RetroArch states here", v->counted), v->counted);
+		else snprintf(foot, sizeof(foot), "%s", tr("No RetroArch states here"));
 	} else {
 		foot[0] = 0;
 	}
@@ -211,7 +212,7 @@ static bool all_released(void) {
 	return true;
 }
 
-FolderPick folder_pick(const char* title, const char* start, const char* count, const char* countWhat, const char* autoLabel,
+FolderPick folder_pick(const char* title, const char* start, const char* count, bool showCount, const char* autoLabel,
                        char* out, size_t n) {
 	View_* v = calloc(1, sizeof(View_));
 	if (!v) return FOLDER_CANCEL;
@@ -322,7 +323,7 @@ FolderPick folder_pick(const char* title, const char* start, const char* count, 
 		}
 
 		ui_clear();
-		for (int s = 0; s < nScreens; ++s) draw(s, v, title, countWhat, autoLabel);
+		for (int s = 0; s < nScreens; ++s) draw(s, v, title, showCount, autoLabel);
 		ui_present();
 		SDL_Delay(15);
 	}

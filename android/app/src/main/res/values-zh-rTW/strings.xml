@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Machine translated; see docs/I18N.md. app_name stays in values/. -->
+<resources>
+    <string name="files_title">允許存取所有檔案</string>
+    <string name="files_why">GBA DS 會從你的 ROM 資料夾讀取遊戲，並把存檔狀態、螢幕截圖、密技和遊戲標誌儲存在儲存空間中的「GBA DS」資料夾裡。Android 把這項權限稱為「所有檔案的存取權」。\n\n在下一個畫面中，為 GBA DS 開啟它，然後返回。</string>
+    <string name="files_open">繼續</string>
+    <string name="files_not_now">稍後再說</string>
+    <string name="need_files">GBA DS 需要「所有檔案的存取權」才能讀取你的 ROM 資料夾。請開啟它，然後返回。</string>
+</resources>

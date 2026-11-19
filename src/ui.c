@@ -11,10 +11,12 @@ void ui_stick_dpad(bool on) {
 #include "brand.h"
 #include "font.h"
 #include "textfont.h"
+#include "fonts_data.h"
 #include "logo.h"
 #include "paths.h"
 #include "profiles.h"
 #include "emu.h"
+#include "i18n.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1392,6 +1394,8 @@ void ui_update_texture(SDL_Texture* t, const void* px, int pitch) {
 	++texVer[slot].v;
 }
 
+static void font_text_raw(int screen, int font, int x, int cy, int capPx, const char* text, SDL_Color c, int align);
+
 /* Retained views (Android: both screens). A view's draw calls are recorded
  * instead of drawn, and at ui_present they're replayed only if they differ
  * from that view's last frame (same calls, same texture contents), with a
@@ -1515,7 +1519,7 @@ static bool sw_render(int v) {
 		case OP_FILL: ui_fill(o->screen, o->r, o->col); break;
 		case OP_ROUND: ui_fill_round(o->screen, o->r, o->col, o->a); break;
 		case OP_TEXT: ui_text(o->screen, o->a, o->b, o->c, o->text, o->col); break;
-		case OP_LABEL: ui_font_text(o->screen, o->d & 15, o->a, o->b, o->c, o->text, o->col, (o->d >> 4) - 1); break;
+		case OP_LABEL: font_text_raw(o->screen, o->d & 15, o->a, o->b, o->c, o->text, o->col, (o->d >> 4) - 1); break;
 		case OP_CLIP: ui_clip(o->screen, &o->r); break;
 		case OP_NOCLIP: ui_clip(o->screen, NULL); break;
 		}
@@ -2598,7 +2602,7 @@ bool ui_screenshot_stacked(const char* pngPath) {
 void ui_osd(const char* fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
-	vsnprintf(osdText, sizeof(osdText), fmt, ap);
+	vsnprintf(osdText, sizeof(osdText), tr(fmt), ap);
 	va_end(ap);
 	osdUntil = ticks + 120;
 }
@@ -2606,7 +2610,7 @@ void ui_osd(const char* fmt, ...) {
 void ui_osd_long(const char* fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
-	vsnprintf(osdText, sizeof(osdText), fmt, ap);
+	vsnprintf(osdText, sizeof(osdText), tr(fmt), ap);
 	va_end(ap);
 	osdUntil = ticks + 300;
 }
@@ -2955,10 +2959,12 @@ static int text_width(int font, int capPx, const char* text) {
 }
 
 int ui_font_width(int font, int capPx, const char* text) {
-	return text_width(font, capPx, text);
+	return text_width(font, capPx, tr(text));
 }
 
-void ui_font_text(int screen, int font, int x, int cy, int capPx, const char* text, SDL_Color c, int align) {
+/* Text as it is: ui_font_text (what the interface says: translated) and
+ * ui_title_block (a game's title: the player's own) both end here. */
+static void font_text_raw(int screen, int font, int x, int cy, int capPx, const char* text, SDL_Color c, int align) {
 	if (!text || !text[0] || capPx <= 0) return;
 	c = key_text_color(screen, x, cy, c);
 	RECORD(screen, OP_LABEL) {
@@ -2978,6 +2984,41 @@ void ui_font_text(int screen, int font, int x, int cy, int capPx, const char* te
 	SDL_RenderCopy(views[s->view].ren, e->tex, NULL, &dst);
 }
 
+void ui_font_text(int screen, int font, int x, int cy, int capPx, const char* text, SDL_Color c, int align) {
+	font_text_raw(screen, font, x, cy, capPx, tr(text), c, align);
+}
+
+/* The language changed (i18n_set): the pictures and widths of the old text are
+ * dropped, and the fonts the new language's script needs are the fallbacks. */
+void ui_language_changed(void) {
+	text_cache_drop();
+	for (int i = 0; i < WIDTH_CACHE; ++i) {
+		free(widthCache[i].text);
+		memset(&widthCache[i], 0, sizeof(widthCache[i]));
+	}
+	tf_fallback_clear();
+	/* (Simplified Chinese is chained for every language, after Traditional's own: the Language list shows each
+	 * language's own name, and a game's name can have Chinese in it) */
+	int script = i18n_script();
+	if (script == SCRIPT_HAN_TC) {
+		tf_fallback_add(TF_BOLD, embeddedFonts[EMBEDDED_NOTO_TC_BOLD].ttf);
+		tf_fallback_add(TF_BODY, embeddedFonts[EMBEDDED_NOTO_TC_REGULAR].ttf);
+	} else if (script == SCRIPT_JP) { /* (Japanese shapes for the kanji, and the kana) */
+		tf_fallback_add(TF_BOLD, embeddedFonts[EMBEDDED_NOTO_JP_BOLD].ttf);
+		tf_fallback_add(TF_BODY, embeddedFonts[EMBEDDED_NOTO_JP_REGULAR].ttf);
+	} else if (script == SCRIPT_KO) {
+		tf_fallback_add(TF_BOLD, embeddedFonts[EMBEDDED_NOTO_KR_BOLD].ttf);
+		tf_fallback_add(TF_BODY, embeddedFonts[EMBEDDED_NOTO_KR_REGULAR].ttf);
+	}
+	tf_fallback_add(TF_BOLD, embeddedFonts[EMBEDDED_NOTO_SC_BOLD].ttf);
+	tf_fallback_add(TF_BODY, embeddedFonts[EMBEDDED_NOTO_SC_REGULAR].ttf);
+	/* (Korean's face last for the others: the Language list shows its name, 한국어) */
+	if (script != SCRIPT_KO) {
+		tf_fallback_add(TF_BOLD, embeddedFonts[EMBEDDED_NOTO_KR_BOLD].ttf);
+		tf_fallback_add(TF_BODY, embeddedFonts[EMBEDDED_NOTO_KR_REGULAR].ttf);
+	}
+}
+
 void ui_title_block(int screen, SDL_Rect area, const char* text, int capMax, SDL_Color c) {
 	if (!text || !text[0] || area.w <= 0 || area.h <= 0) return;
 	/* one line if it fits at a good size, else the break that leaves the
@@ -2988,7 +3029,7 @@ void ui_title_block(int screen, SDL_Rect area, const char* text, int capMax, SDL
 	for (int i = 1; one[i]; ++i) {
 		if (one[i] != ' ') continue;
 		snprintf(two[0], sizeof(two[0]), "%.*s", i, one);
-		int w = SDL_max(ui_font_width(TF_BOLD, 100, two[0]), ui_font_width(TF_BOLD, 100, one + i + 1));
+		int w = SDL_max(text_width(TF_BOLD, 100, two[0]), text_width(TF_BOLD, 100, one + i + 1));
 		if (best < 0 || w < bestW) best = i, bestW = w;
 	}
 	/* a subtitle after a colon goes on its own line */
@@ -2996,28 +3037,28 @@ void ui_title_block(int screen, SDL_Rect area, const char* text, int capMax, SDL
 	if (colon) {
 		best = (int) (colon - one) + 1;
 		snprintf(two[0], sizeof(two[0]), "%.*s", best, one);
-		bestW = SDL_max(ui_font_width(TF_BOLD, 100, two[0]), ui_font_width(TF_BOLD, 100, one + best + 1));
+		bestW = SDL_max(text_width(TF_BOLD, 100, two[0]), text_width(TF_BOLD, 100, one + best + 1));
 	}
-	int oneW = ui_font_width(TF_BOLD, 100, one);
+	int oneW = text_width(TF_BOLD, 100, one);
 	/* capitals at most capMax, a line's width at most the area's; two lines
 	 * need 3.2 capitals of height */
 	int capOne = SDL_min(capMax, SDL_min(area.w * 100 / SDL_max(1, oneW), area.h * 10 / 18));
 	int capTwo = best < 0 ? 0 : SDL_min(capMax, SDL_min(area.w * 100 / SDL_max(1, bestW), area.h * 10 / 32));
 	int cx = area.x + area.w / 2, cy = area.y + area.h / 2;
 	if (capOne >= capTwo * 9 / 10 || best < 0) {
-		ui_font_text(screen, TF_BOLD, cx, cy, capOne, one, c, 0);
+		font_text_raw(screen, TF_BOLD, cx, cy, capOne, one, c, 0);
 		return;
 	}
 	snprintf(two[0], sizeof(two[0]), "%.*s", best, one);
 	snprintf(two[1], sizeof(two[1]), "%s", one + best + 1);
 	int gap = capTwo * 8 / 10;
-	ui_font_text(screen, TF_BOLD, cx, cy - (capTwo + gap) / 2, capTwo, two[0], c, 0);
-	ui_font_text(screen, TF_BOLD, cx, cy + (capTwo + gap) / 2, capTwo, two[1], c, 0);
+	font_text_raw(screen, TF_BOLD, cx, cy - (capTwo + gap) / 2, capTwo, two[0], c, 0);
+	font_text_raw(screen, TF_BOLD, cx, cy + (capTwo + gap) / 2, capTwo, two[1], c, 0);
 }
 
 int ui_label_width(int screen, int capPx, const char* text) {
 	(void) screen;
-	return text_width(TF_BOLD, capPx, text);
+	return text_width(TF_BOLD, capPx, tr(text));
 }
 
 void ui_label(int screen, int cx, int cy, int capPx, const char* text, SDL_Color c) {
@@ -3028,18 +3069,67 @@ int ui_font_wrap(int screen, int font, int x, int y, int width, int capPx, const
 	return ui_font_wrap_around(screen, font, x, y, width, capPx, text, c, INT_MAX, width);
 }
 
+/* Line breaking: a Latin word is one piece, a Chinese character (with the closing punctuation that
+ * may not start a line after it, and an opening mark with the character it opens) is one piece. */
+static int utf8_cp(const char* p, int* len) {
+	unsigned char c = (unsigned char) p[0];
+	int n = c < 0x80 ? 1 : c < 0xE0 ? 2 : c < 0xF0 ? 3 : 4, cp = n == 1 ? c : c & (0xFF >> (n + 1));
+	for (int i = 1; i < n; ++i) {
+		if (!p[i]) { n = i; break; }
+		cp = cp << 6 | (p[i] & 0x3F);
+	}
+	*len = n;
+	return cp;
+}
+static bool cp_cjk(int cp) { return (cp >= 0x2E80 && cp <= 0xA4CF) || (cp >= 0xF900 && cp <= 0xFAFF) || (cp >= 0xFE30 && cp <= 0xFE4F) || (cp >= 0xFF00 && cp <= 0xFFEF); }
+static bool cp_no_start(int cp) { /* closing and sentence punctuation, which stays with the character before */
+	switch (cp) {
+		case 0x3001: case 0x3002: case 0xFF0C: case 0xFF0E: case 0xFF1A: case 0xFF1B: case 0xFF1F: case 0xFF01: case 0xFF09:
+		case 0x3009: case 0x300B: case 0x300D: case 0x300F: case 0x3011: case 0x2026: case 0x2014: case 0xFF05: case 0x30FC:
+		case 0x201D: case 0x2019: case 0x00B7: case 0x203A:
+		/* Japanese: the long-vowel mark, the middle dot and the small kana stay with the kana before them */
+		case 0x30FB: case 0x3041: case 0x3043: case 0x3045: case 0x3047: case 0x3049: case 0x3063: case 0x3083: case 0x3085:
+		case 0x3087: case 0x308E: case 0x30A1: case 0x30A3: case 0x30A5: case 0x30A7: case 0x30A9: case 0x30C3: case 0x30E3:
+		case 0x30E5: case 0x30E7: case 0x30EE: case 0x301C:
+			return true;
+	}
+	return false;
+}
+static bool cp_no_end(int cp) { /* opening marks, which stay with the character after */
+	return cp == 0xFF08 || cp == 0x3008 || cp == 0x300A || cp == 0x300C || cp == 0x300E || cp == 0x3010 || cp == 0x201C || cp == 0x2018;
+}
+static int piece_end(const char* p, int n) {
+	int len, cp = utf8_cp(p + n, &len);
+	int e = n;
+	if (cp_cjk(cp) || cp_no_end(cp)) {
+		e = n + len;
+		while (p[e]) { /* closing marks join; an opening mark needs the next character too */
+			int l2, c2 = utf8_cp(p + e, &l2);
+			if (cp_no_start(c2)) e += l2;
+			else if (cp_no_end(cp) && cp_cjk(c2) && e == n + len) { e += l2; cp = 0; }
+			else break;
+		}
+		return e;
+	}
+	while (p[e] && p[e] != ' ') {
+		int l2, c2 = utf8_cp(p + e, &l2);
+		if (e > n && cp_cjk(c2) && !cp_no_start(c2)) break; /* a Latin word ends where Chinese starts */
+		e += l2;
+	}
+	return e;
+}
+
 static int wrap_impl(int screen, int font, int x, int y, int width, int capPx, const char* text, SDL_Color c, int narrowY, int narrowW, bool draw) {
 	int lineH = capPx * 2, fullW = width;
 	char line[512];
-	const char* p = text;
+	const char* p = tr(text); /* (the lines below are drawn as they are) */
 	while (*p) {
 		/* a line whose box reaches the one on the right is narrower */
 		width = y + lineH > narrowY ? narrowW : fullW;
 		/* as many words as fit */
 		int n = 0, fit = 0;
 		while (p[n]) {
-			int e = n;
-			while (p[e] && p[e] != ' ') ++e;
+			int e = piece_end(p, n);
 			if (e >= (int) sizeof(line)) break;
 			memcpy(line, p, e);
 			line[e] = 0;
@@ -3050,7 +3140,7 @@ static int wrap_impl(int screen, int font, int x, int y, int width, int capPx, c
 		}
 		if (!fit) fit = n ? n : (int) strlen(p);
 		snprintf(line, sizeof(line), "%.*s", fit, p);
-		if (draw) ui_font_text(screen, font, x, y + capPx / 2, capPx, line, c, -1);
+		if (draw) font_text_raw(screen, font, x, y + capPx / 2, capPx, line, c, -1);
 		y += lineH;
 		p += fit;
 		while (*p == ' ') ++p;

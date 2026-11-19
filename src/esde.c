@@ -1,4 +1,5 @@
 #include "esde.h"
+#include "i18n.h"
 
 #include <dirent.h>
 #include <stdio.h>
@@ -422,7 +423,7 @@ bool esde_integration_on(void) {
 bool esde_integration_set(bool on, char* msg, size_t msgSize) {
 	const char* dir = esde_dir();
 	if (!dir) {
-		snprintf(msg, msgSize, "ES-DE's folder wasn't found.");
+		snprintf(msg, msgSize, tr("ES-DE's folder wasn't found."));
 		return false;
 	}
 	bool ok;
@@ -435,11 +436,11 @@ bool esde_integration_set(bool on, char* msg, size_t msgSize) {
 		if (ok) edit(dir, "es_find_rules.xml", rules_remove, false);
 	}
 	if (!ok)
-		snprintf(msg, msgSize, "Couldn't change the files in %s/custom_systems: allow GBA DS All files access in Android's settings.", dir);
+		snprintf(msg, msgSize, tr("Couldn't change the files in %s/custom_systems: allow GBA DS All files access in Android's settings."), dir);
 	else if (on)
-		snprintf(msg, msgSize, "GBA DS is now ES-DE's emulator for Game Boy Advance games. Quit ES-DE and open it again to see it.");
+		snprintf(msg, msgSize, tr("GBA DS is now ES-DE's emulator for Game Boy Advance games. Quit ES-DE and open it again to see it."));
 	else
-		snprintf(msg, msgSize, "GBA DS is out of ES-DE's emulator list. Quit ES-DE and open it again to see it.");
+		snprintf(msg, msgSize, tr("GBA DS is out of ES-DE's emulator list. Quit ES-DE and open it again to see it."));
 	return ok;
 }
 

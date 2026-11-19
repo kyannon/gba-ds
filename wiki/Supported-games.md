@@ -6,6 +6,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Advance Wars 2: Black Hole Rising (Game Boy Wars Advance 2 in Japan) | `AW2E` `AW2P` `BGWJ` (Japan: on Game Boy Wars Advance 1+2, with Advance Wars) | in battles: the intel of the unit under the cursor, or the battle intel | |
 | Baldur's Gate: Dark Alliance | `BGDE` `BGDP` | the area's map (made from the game's own screens), a red X where you are | |
 | Banjo-Kazooie: Grunty's Revenge | `BKZE` (USA and Europe) `BKZX` `BKZI` `BKZS` (no Japanese release) | the pause screen and the world's Totals, in turn, Banjo's health on both | |
+| Boktai: The Sun Is in Your Hand (Bokura no Taiyou in Japan) | `U3IE` `U3IP` `U3IJ` | the game's Map, with its clock and the sunrise and sunset times | |
 | Castlevania: Aria of Sorrow | `A2CE` `A2CP` `A2CJ` | map | JonataGuitar's Recolor v1.02 and Symphony of the Colors (USA) |
 | Castlevania: Circle of the Moon | `AAME` `AAMP` `AAMJ` | map, with the completion rate | |
 | Castlevania: Harmony of Dissonance | `ACHE` `ACHP` `ACHJ` | map | Recolor by JonataGuitar and sorrow (USA) |
@@ -17,7 +18,10 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | F-Zero: GP Legend (F-Zero: Falcon Densetsu in Japan) | `BFZE` `BFZP` `BFZJ` | the race HUD, with the course map twice as big | |
 | F-Zero: Maximum Velocity (F-Zero for Game Boy Advance in Japan) | `AFZE` (USA and Europe) `AFZJ` (China: `AFZC`) | the race HUD, with the course map twice as big | |
 | Final Fantasy I & II: Dawn of Souls (Final Fantasy I, II Advance in Japan) | `BFFE` `BFFP` `BFFJ` | the Enlarged Map on the world map, the party screen elsewhere and in battles (both games) | |
+| Final Fantasy IV Advance | `BZ4E` `BZ4P` `BZ4J` | the world map from Sight on the overworld, the party screen elsewhere and in battles | |
 | Final Fantasy Tactics Advance | `AFXE` `AFXP` `AFXJ` | in battles: the Status of the unit under the cursor, or the turn order and Laws; on the world map: today's Laws | |
+| Final Fantasy V Advance | `BZ5E` `BZ5P` `BZ5J` | the world map on the world map and the airship, the party screen elsewhere and in battles | |
+| Final Fantasy VI Advance | `BZ6E` `BZ6P` `BZ6J` | the minimap, twice as big, on the world map and the airship; the party screen elsewhere and in battles | |
 | Fire Emblem (Rekka no Ken in Japan) | `AE7E` `AE7X` (English, French, German) `AE7Y` (English, Spanish, Italian) `AE7J` | on the map: the status of the unit under the cursor | |
 | Fire Emblem: The Sacred Stones (Seima no Kouseki in Japan) | `BE8E` `BE8P` `BE8J` | on the map: the status of the unit under the cursor | |
 | Fire Emblem: Fuuin no Tsurugi (The Binding Blade) | `AFEJ` (Japan only) | on the map: the status of the unit under the cursor | FE6 Localization v1.2.1 (English) |
@@ -108,6 +112,16 @@ The USA and Europe release, Europe's English, French and German release, and the
 - Pausing in the game, and conversations and scenes, keep the last pictures on the second screen.
 - At the title, on the file screen and in the opening story, the second screen shows the logo: the title's lettering.
 - Not tried yet: the mini-games, the boss fights and Mumbo's transformations.
+
+## Boktai: The Sun Is in Your Hand
+
+The USA, European and Japanese (Bokura no Taiyou) releases.
+
+- **While you walk about,** the second screen shows the game's **Map** (the SELECT menu's Map page, without its title bar and button prompts), following Django. It is taken from a hidden copy of the game about once a second.
+- **At the top** it has the game's own **clock** (top left) and the **sunrise** and **sunset** times (top right), the lines the ITEM page shows (START there switches between them), looked at about every 30 seconds, so they can lag a little behind the game.
+- In conversations, scenes and the menus, the last Map stays. At the title, on the file menu and at the first start's set-up screens the second screen shows the logo: the title's lettering.
+- **The sun sensor:** the cartridge's solar sensor reads a fixed level, 6 of 10, so the sun gauge isn't empty. `solar_level` in `gba-ds.cfg` sets it from 0 (dark) to 10.
+- Known: the Europe and Japan releases were checked on their logos and by start-up only. Not tried yet: bosses, the Solar Station and the World map.
 
 ## Castlevania: Aria of Sorrow, Harmony of Dissonance, Circle of the Moon
 
@@ -213,6 +227,22 @@ A new second screen since v1.3.2, replacing the earlier one (which moved the gam
 - All of it is brought up in the background on a silent copy of the game, as the other games' maps are; your game is never paused or touched, and the game screen stays exactly as the game draws it. It's taken again only with the battle map showing: while a unit picks where to move or what to hit, and in scenes, the last picture stays. On a turn that isn't yours (an enemy's, the judge's or a guest's), it shows the turn order and Laws as they were at the start of your last unit's turn.
 - **On the world map**, it shows the **Laws** window (what L opens there), as the game draws it, on the Status screen's checkerboard, without the map behind it, the L Law sign or the pointer: today's laws, taken again as soon as your clan arrives somewhere new, even with the place's menu up (a town's, or a mission's). The Laws window shows another day's laws while the map's pointer is on another place (the day your clan would get there), so the second screen only takes it with the pointer on your clan or between places; in a notice or while your clan travels, the last picture stays.
 - Once a battle is won (from the last enemy defeated through the closing scene), during story scenes on the battle map, and outside battles and the world map (the title, menus, a town's Pub or Shop), the second screen shows the logo.
+
+## Final Fantasy IV Advance
+
+On the overworld the second screen shows the world map the Sight spell opens (the towns and a marker where the party is), without the windows around it. It works even when nobody has Sight: the map is made on a hidden copy of the game, where Rosa is put first in the party with Sight, so your own game isn't touched. Everywhere else (towns, castles, caves) it shows the party screen from START's menu without the command list: each character's portrait, level, class, HP and MP, the place, the play time and the gil. It follows you (taken again every few seconds and when you enter a new area or leave a battle). In a battle it shows the party screen from just before. On the title it shows the logo; in conversations, shops and scenes the last picture stays.
+
+Known: a save where Rosa's spells were never set up (not a normal game) shows the party screen on the overworld. After a game over the last picture stays until the title.
+
+## Final Fantasy V Advance
+
+On the world map and the airship the second screen shows the game's own world map (the one R opens). Everywhere else (towns, castles, dungeons) it shows the party screen from START's menu: the four characters with their jobs, levels, HP and MP, where you are, the play time and the gil; where the list of commands would be, the big party window goes on, so there is no empty box. It follows you (taken again every few seconds and on every new map). In a battle it shows the party as it was just before (the HP and play time don't change until the battle's over). On the title and the file screens, and after a game over, it shows the logo; in conversations, shops and scenes the last picture stays.
+
+## Final Fantasy VI Advance
+
+On the world map and the airship the second screen shows the game's own minimap (the small map the game draws in the corner of the game screen, which SELECT shows or hides) twice as big, on black. It follows the party's marker, shows whether or not SELECT has the corner minimap on, and is taken off the game screen's corner, so the same map isn't on both screens. Everywhere else (towns, dungeons) it shows the party screen from START's menu: the portraits, levels, HP and MP, where you are, and the play time, steps and gil, without the command list. In a battle the party screen from before the battle stays up (its HP and MP don't change during it), and the minimap comes back once the battle is over. On the title and after a game over (every character in the battle at 0 HP) it shows the logo.
+
+Known: the empty frame of START's command window stays on the party screen. Conversations and scenes keep the last picture. A party that's out in a way other than HP 0 (turned to stone) isn't noticed. The World of Ruin, the airship and the Europe and Japan world maps haven't been checked on the device.
 
 ## Fire Emblem
 

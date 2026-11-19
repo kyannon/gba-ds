@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Machine translated; see docs/I18N.md. app_name stays in values/. -->
+<resources>
+    <string name="files_title">すべてのファイルへのアクセスを許可</string>
+    <string name="files_why">GBA DS はROMフォルダからゲームを読み込み、セーブステート、スクリーンショット、チート、ゲームのロゴを、ストレージ内の「GBA DS」フォルダに保存します。Androidではこの権限を「すべてのファイルへのアクセス」と呼びます。\n\n次の画面でGBA DSに対してオンにして、戻ってきてください。</string>
+    <string name="files_open">続ける</string>
+    <string name="files_not_now">今はしない</string>
+    <string name="need_files">GBA DS がROMフォルダを読み込むには「すべてのファイルへのアクセス」が必要です。オンにして、戻ってきてください。</string>
+</resources>
