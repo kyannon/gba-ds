@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.5.6 (not yet released)
+## v1.5.6 (2026-11-19)
 
 ### New games
 - **Shin Megami Tensei** (Japan), and Gymzatan's English translation (v1.3b iOS Localized, with or without the font hack), as patched ROMs or with the patches in the Patches menu: while you walk a dungeon the second screen shows the game's own automap (the floor, the compass and the floor's name), following each step and turn, and it stays up through fights, the command bar and menus; the title and file lists show the game's logo. Tried on the three floors of the test save; the first dungeon of a new game, towns and floor changes haven't been tried yet. The logo is made from whichever of the Japanese game and the translation you start first, and both then show that one.
