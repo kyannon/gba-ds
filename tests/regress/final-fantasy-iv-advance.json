@@ -257,6 +257,200 @@
    ]
   },
   {
+   "id": "ff4-us-overworld",
+   "rom": "BZ4E",
+   "state": "final-fantasy-iv-advance/us-overworld.ss",
+   "desc": "USA: on the world map (Rosa is in the party but not first): the world map from Sight",
+   "rules": [
+    "FF4-8"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "FF4-8",
+     "what": "the map was taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF4-8",
+     "what": "the map's ocean fills its top left corner",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       262,
+       134,
+       "3184EF"
+      ]
+     ]
+    },
+    {
+     "rule": "FF4-8",
+     "what": "nothing but the map: black either side of it, no windows, no hand or prompts",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       100,
+       400,
+       "000000"
+      ],
+      [
+       900,
+       400,
+       "000000"
+      ],
+      [
+       100,
+       134,
+       "000000"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ff4-us-moon",
+   "rom": "BZ4E",
+   "state": "final-fantasy-iv-advance/us-moon.ss",
+   "desc": "USA: on the Moon's surface: its map from Sight",
+   "rules": [
+    "FF4-8"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "FF4-8",
+     "what": "the map was taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF4-8",
+     "what": "the Moon map's corner colour fills its top left corner",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       262,
+       134,
+       "7B7B6B"
+      ]
+     ]
+    },
+    {
+     "rule": "FF4-8",
+     "what": "nothing but the map: black either side of it, no windows, no hand or prompts",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       100,
+       400,
+       "000000"
+      ],
+      [
+       900,
+       400,
+       "000000"
+      ],
+      [
+       100,
+       134,
+       "000000"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ff4-us-cave",
+   "rom": "BZ4E",
+   "state": "final-fantasy-iv-advance/us-cave.ss",
+   "desc": "USA: in a cave, where Sight can't be cast: the party screen stays (FF4-3)",
+   "rules": [
+    "FF4-8",
+    "FF4-3"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "FF4-3",
+     "what": "the party screen was taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF4-3",
+     "what": "no command window: neither its lower frame nor the party window's right frame is there",
+     "type": "not_pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       642,
+       226,
+       "FFFFFF"
+      ],
+      [
+       834,
+       406,
+       "FFFFFF"
+      ]
+     ]
+    },
+    {
+     "rule": "FF4-3",
+     "what": "the party window's left frame and the location window's top frame are there",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       34,
+       226,
+       "FFFFFF"
+      ],
+      [
+       834,
+       418,
+       "FFFFFF"
+      ],
+      [
+       834,
+       422,
+       "CECECE"
+      ]
+     ]
+    },
+    {
+     "rule": "FF4-3",
+     "what": "the second screen isn't the logo's idle grey",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      980,
+      170
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
    "id": "ff4-us-lunar",
    "rom": "BZ4E",
    "state": "final-fantasy-iv-advance/us-lunar.ss",
@@ -760,76 +954,57 @@
    "id": "ff4-jp-field",
    "rom": "BZ4J",
    "state": "final-fantasy-iv-advance/jp-field.ss",
-   "desc": "Japan: on the world map near the start (Kain and Cecil, in Japanese): the party screen",
+   "desc": "Japan: on the world map near the start (Kain and Cecil, in Japanese, no Sight): the world map from Sight",
    "rules": [
-    "FF4-3"
+    "FF4-8"
    ],
    "shots": {
     "start": 150
    },
    "checks": [
     {
-     "rule": "FF4-3",
-     "what": "the party screen was taken",
+     "rule": "FF4-6",
+     "what": "the map was taken",
      "type": "log",
      "match": "map updated"
     },
     {
-     "rule": "FF4-3",
-     "what": "no command window: neither its lower frame nor the party window's right frame is there",
-     "type": "not_pixels",
-     "shot": "start",
-     "screen": "second",
-     "probes": [
-      [
-       642,
-       226,
-       "FFFFFF"
-      ],
-      [
-       834,
-       406,
-       "FFFFFF"
-      ]
-     ]
-    },
-    {
-     "rule": "FF4-3",
-     "what": "the party window's left frame and the location window's top frame are there",
+     "rule": "FF4-8",
+     "what": "the map's ocean fills its top left corner",
      "type": "pixels",
      "shot": "start",
      "screen": "second",
      "probes": [
       [
-       34,
-       226,
-       "FFFFFF"
-      ],
-      [
-       834,
-       418,
-       "FFFFFF"
-      ],
-      [
-       834,
-       422,
-       "CECECE"
+       262,
+       134,
+       "3184EF"
       ]
      ]
     },
     {
-     "rule": "FF4-3",
-     "what": "the second screen isn't the logo's idle grey",
-     "type": "not_uniform",
+     "rule": "FF4-8",
+     "what": "nothing but the map: black either side of it, no windows, no hand or prompts",
+     "type": "pixels",
      "shot": "start",
      "screen": "second",
-     "rect": [
-      40,
-      70,
-      980,
-      170
-     ],
-     "color": "303030"
+     "probes": [
+      [
+       100,
+       400,
+       "000000"
+      ],
+      [
+       900,
+       400,
+       "000000"
+      ],
+      [
+       100,
+       134,
+       "000000"
+      ]
+     ]
     }
    ]
   },
@@ -837,9 +1012,10 @@
    "id": "ff4-jp-menu",
    "rom": "BZ4J",
    "state": "final-fantasy-iv-advance/jp-menu.ss",
-   "desc": "Japan: START's menu open: the party screen",
+   "desc": "Japan: START's menu open on the world map: the world map, as walking about",
    "rules": [
-    "FF4-6"
+    "FF4-6",
+    "FF4-8"
    ],
    "shots": {
     "start": 300
@@ -847,66 +1023,47 @@
    "checks": [
     {
      "rule": "FF4-6",
-     "what": "the party screen was taken",
+     "what": "the map was taken",
      "type": "log",
      "match": "map updated"
     },
     {
-     "rule": "FF4-6",
-     "what": "no command window: neither its lower frame nor the party window's right frame is there",
-     "type": "not_pixels",
-     "shot": "start",
-     "screen": "second",
-     "probes": [
-      [
-       642,
-       226,
-       "FFFFFF"
-      ],
-      [
-       834,
-       406,
-       "FFFFFF"
-      ]
-     ]
-    },
-    {
-     "rule": "FF4-6",
-     "what": "the party window's left frame and the location window's top frame are there",
+     "rule": "FF4-8",
+     "what": "the map's ocean fills its top left corner",
      "type": "pixels",
      "shot": "start",
      "screen": "second",
      "probes": [
       [
-       34,
-       226,
-       "FFFFFF"
-      ],
-      [
-       834,
-       418,
-       "FFFFFF"
-      ],
-      [
-       834,
-       422,
-       "CECECE"
+       262,
+       134,
+       "3184EF"
       ]
      ]
     },
     {
-     "rule": "FF4-6",
-     "what": "the second screen isn't the logo's idle grey",
-     "type": "not_uniform",
+     "rule": "FF4-8",
+     "what": "nothing but the map: black either side of it, no windows, no hand or prompts",
+     "type": "pixels",
      "shot": "start",
      "screen": "second",
-     "rect": [
-      40,
-      70,
-      980,
-      170
-     ],
-     "color": "303030"
+     "probes": [
+      [
+       100,
+       400,
+       "000000"
+      ],
+      [
+       900,
+       400,
+       "000000"
+      ],
+      [
+       100,
+       134,
+       "000000"
+      ]
+     ]
     }
    ]
   },

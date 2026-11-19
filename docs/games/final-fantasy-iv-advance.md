@@ -30,13 +30,16 @@ The game has no map the second screen could show; making one would be drawing so
 
 **FF4-5. Conversations, shops and scenes.** Where START's menu can't be opened (conversations, a shop, an inn, scenes the story plays, the Load Game screen), the last picture stays; before the first, the logo. (The capture tries START up to four times, B between them, and gives up.)
 
-**FF4-6. The menu open in the game.** With START's menu, or one of its screens (Items, Magic, Equipment, Status, Order, Config...), open in the game, the second screen shows the same party screen as walking about: the hidden copy closes them first (B, as often as it takes).
+**FF4-6. The menu open in the game.** With START's menu, or one of its screens (Items, Magic, Equipment, Status, Order, Config...), open in the game, the second screen shows the same as walking about (the party screen, or on the overworld the map: FF4-8): the hidden copy closes them first (B, as often as it takes).
+
+**FF4-8. The world map.** On the overworld the second screen shows the world map the game draws for the Sight spell ("Switch Maps", Present Location): the bare map, the towns' dots and the marker for where the party is, without the windows, the hand or the A / B prompts. It shows even when nobody in the party knows Sight: on the hidden copy only, Rosa is put first in the party at level 99 with 800 MP, and START, Magic, Sight is played through. The player's game is never touched. Where Sight can't be cast (towns, dungeons, the Moon's caves) or the screen doesn't come up, the party screen (FF4-3) shows as before. Kept to the map's own 128x128 pixels, in the middle of the screen. Philosophy: it is a screen the game already draws (principle 3), only its own graphics (4); the marker is where you are, information and not a second cursor.
 
 **FF4-7. Game screen untouched.** Nothing leaves the game screen.
 
 ## Not covered yet
 
 - **Game over (known issue)**: the owner asked for the logo from the moment the party falls, as in Dawn of Souls (FF-13). It can't be told reliably: the game keeps its battle memory in a heap, so the party's HP is at a different address in each battle (seen at 0x020240B0 in one Europe battle and near 0x02024A2C in a USA one), and nothing else found tells a wipe. So the party stays through "The party was defeated." and the fade (a few seconds), then the title shows the logo (FF4-2). Case `ff4-eu-gameover`.
+- **The map needs Rosa's spell list (known issue)**: the hidden copy gives Rosa level 99 and 800 MP, which gives her Sight in the saves tried (all releases, checked on the world map in USA and Japan; the Europe and Japan Rev 1 addresses by their menus). A save whose Rosa has never been set up properly (the hacked two-character save, `ff4-us-field`) has no Sight in her list: the party screen shows there. The map is taken from the overworld only (the cave case `ff4-us-cave` keeps the party screen), each time the second screen is refreshed, so it costs the hidden copy about 500 frames per capture.
 - **Bosses, the airship and other vehicles, the Lunar Subterrane's rooms**: the same START menu works there; only some are in the cases.
 - **Japan, Rev 1**: the same profile (`BZ4J`); the cases check its logo and party screen.
 
@@ -48,6 +51,6 @@ All in the harness from a title state made in the app (the game's battery save g
 
 ## For the merge
 
-Changelog line (under the open version): *Added Final Fantasy IV Advance (USA, Europe, Japan): the second screen shows START's party screen (everyone's level, HP and MP, the place, play time and gil) and keeps it through battles.*
+Changelog line (under the open version): *Added Final Fantasy IV Advance (USA, Europe, Japan): the second screen shows the world map (the one Sight opens, with where you are, even before you have Sight) on the overworld, and START's party screen (everyone's level, HP and MP, the place, play time and gil) elsewhere, kept through battles.*
 
-Wiki (`Supported-games.md`): table row and a section, "Final Fantasy IV Advance": the second screen is the party screen from START's menu, without the command list, taken again when you enter a new area or leave a battle; in battles and conversations the last one stays; the title shows the game's logo. Known issues: after a game over the last party screen stays until the title.
+Wiki (`Supported-games.md`): table row and a section, "Final Fantasy IV Advance": the second screen is the world map from the Sight spell on the overworld (taken on a hidden copy of the game, so it works without Sight) and the party screen from START's menu elsewhere, without the command list, taken again when you enter a new area or leave a battle; in battles and conversations the last one stays; the title shows the game's logo. Known issues: a save where Rosa's spells were never set up shows the party screen on the overworld; after a game over the last party screen stays until the title.

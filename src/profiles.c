@@ -6305,8 +6305,9 @@ static const char* ff_compose(Emu* s, const void* state, uint32_t* out, int w, i
 
 /* ---------------------------------------------------------------- Final Fantasy IV Advance
  *
- * docs/games/final-fantasy-iv-advance.md. The game has no map screen: the
- * second screen is START's menu as a party screen (the party, the place,
+ * docs/games/final-fantasy-iv-advance.md. The overworld's map is the one
+ * Sight opens, made on the hidden copy with Rosa put in the party (FF4-8,
+ * ff4_map); elsewhere the second screen is START's menu as a party screen (the party, the place,
  * the play time and gil), taken on the hidden copy without its command
  * list (FF4-3); in a battle, scenes and conversations the last one stays
  * (FF4-4, FF4-5); the logo on the title (FF4-2). All three releases (BZ4E,
@@ -6372,6 +6373,55 @@ static void ff4_eur(MapProfile* p) {
 	memcpy(p->logo.steps, steps, sizeof(steps));
 }
 
+/* the "Switch Maps" screen Sight opens: its text window's lower frame at the
+ * top left and the list window's left frame (x, y, 0xRRGGBB) */
+static const int ff4MapUp[][3] = { { 128, 80, 0xFFFFFF }, { 129, 80, 0xCECECE }, { 130, 80, 0x212121 },
+                                   { 60, 21, 0xFFFFFF }, { 60, 22, 0xCECECE }, { 60, 23, 0x212121 } };
+/* its hand and its A / B prompts, right of the map (the map is 128 px wide) */
+static const SpriteRule ff4MapUi = { 128, -16, 240, 160, 0, 1023, -1, 0, 0, 0 };
+#define FF4_MAP_Y 27 /* the map's top row; it is 128 x 128 at x 0 */
+
+/* the world map from Sight, on the hidden copy (FF4-8): Rosa first in the
+ * party at level 99 with 800 MP (the party order table, and her record 0x12
+ * after it: level +11, MP +4, maximum MP +6; the table's place depends on
+ * the release), then START, Magic, Sight. Fills pic's 128 x 128 map at its
+ * top left; NULL when the screen came up, else why not */
+static const char* ff4_map(Emu* s, const void* state, uint32_t* pic) {
+	char region = (char) emu_read8(s, 0x080000AF);
+	uint32_t table = region == 'E' ? 0x020069E6 : region == 'P' ? 0x02006066 : emu_read8(s, 0x080000BC) ? 0x0200634E : 0x020069F6;
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	emu_write8(s, table, 2);
+	emu_write8(s, table + 0x12 + 0x48 * 2 + 11, 99);
+	emu_write16(s, table + 0x12 + 0x48 * 2 + 4, 800);
+	emu_write16(s, table + 0x12 + 0x48 * 2 + 6, 800);
+	const char* err = ff4_open_menu(s);
+	if (err) return err;
+	emu_hide_sprites(s, &ff4MapUi, 1);
+	static const struct { int key, wait; } path[] = { { K_DOWN, 25 }, { K_A, 40 }, { K_A, 40 }, { K_A, 40 }, { K_DOWN, 20 },
+	                                                 { K_RIGHT, 20 }, { K_A, 40 }, { K_A, 0 } };
+	for (size_t i = 0; i < sizeof(path) / sizeof(*path); ++i) {
+		aw_run(s, path[i].key, 8);
+		if (path[i].wait) aw_run(s, 0, path[i].wait);
+	}
+	bool up = false;
+	for (int f = 0; f < 150 && !up; f += 5) {
+		aw_run(s, 0, 5);
+		up = ff_probes(s, ff4MapUp, sizeof(ff4MapUp) / sizeof(*ff4MapUp));
+	}
+	if (emu_cancelled(s)) return "called off";
+	if (!up) return "no map"; /* Sight can't be cast here */
+	aw_run(s, 0, 20);
+	if (!ff_probes(s, ff4MapUp, sizeof(ff4MapUp) / sizeof(*ff4MapUp))) return "the map closed";
+	uint8_t* tmp = ff_tmp(s);
+	if (!tmp || !emu_state_save(s, tmp)) return "called off";
+	static uint32_t lay[GBA_W * GBA_H];
+	ff_draw_layers(s, tmp, 0x14, lay);
+	if (emu_cancelled(s)) return "called off";
+	for (int y = 0; y < 128; ++y) memcpy(&pic[y * 128], &lay[(y + FF4_MAP_Y) * GBA_W], 128 * sizeof(uint32_t));
+	return NULL;
+}
+
 static const char* ff4_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
 	static uint32_t pic[GBA_W * GBA_H];
 	emu_hide_sprites(s, NULL, 0);
@@ -6386,6 +6436,18 @@ static const char* ff4_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	uint8_t* tmp = ff_tmp(s);
 	if (!tmp || !emu_state_save(s, tmp)) return "called off";
 	ff_draw_layers(s, tmp, 0x11, pic);
+	if (emu_cancelled(s)) return "called off";
+	/* on the overworld, the map instead (FF4-8) */
+	static uint32_t map[128 * 128];
+	if (!ff4_map(s, state, map)) {
+		for (int y = 0; y < h; ++y) {
+			for (int x = 0; x < w; ++x) {
+				int mx = x - (w - 128) / 2, my = y - (h - 128) / 2;
+				out[y * w + x] = mx >= 0 && mx < 128 && my >= 0 && my < 128 ? (map[my * 128 + mx] | 0xFF000000) : 0xFF000000;
+			}
+		}
+		return NULL;
+	}
 	if (emu_cancelled(s)) return "called off";
 	for (int y = 0; y < h; ++y) {
 		for (int x = 0; x < w; ++x) out[y * w + x] = y < GBA_H && x < GBA_W ? pic[y * GBA_W + x] : 0xFF000000;
