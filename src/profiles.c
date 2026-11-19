@@ -7503,7 +7503,9 @@ static const PkFam* pk_fam(const Emu* e) {
 }
 static bool pk_is(Emu* s, const PkSig* g) {
 	if (!g->r[0]) return false;
-	return emu_io16(s, 0x00) == g->r[0] && emu_io16(s, 0x08) == g->r[1] && emu_io16(s, 0x0A) == g->r[2] &&
+	/* (DISPCNT without the window bits: the Town Map turns window 1 on for the
+	 * name of a place it labels, as Cinnabar's Pokémon Mansion) */
+	return (emu_io16(s, 0x00) & 0x1FFF) == (g->r[0] & 0x1FFF) && emu_io16(s, 0x08) == g->r[1] && emu_io16(s, 0x0A) == g->r[2] &&
 	       emu_io16(s, 0x0C) == g->r[3] && emu_io16(s, 0x0E) == g->r[4];
 }
 static bool pk_wait(Emu* s, const PkSig* g, int frames) {
@@ -7729,15 +7731,36 @@ static uint32_t pk_list_hash(Emu* s) {
 		for (int x = 96; x < 232; ++x) h = (h ^ (s->fb[y * GBA_W + x] & 0xFFFFFF)) * 16777619u;
 	return h;
 }
-#define PK_KEY_ROWS 10
+#define PK_KEY_ROWS 30 /* the Key Items pocket's most (FireRed, LeafGreen) */
 #define PK_MAP_EVERY 5 /* captures (about 15 s) between the map's */
+/* a hash of the Bag's description box (the bottom of the screen): it changes
+ * with the item the cursor is on */
+static uint32_t pk_desc_hash(Emu* s) {
+	uint32_t h = 2166136261u;
+	for (int y = 118; y < GBA_H; ++y)
+		for (int x = 0; x < GBA_W; ++x) h = (h ^ (s->fb[y * GBA_W + x] & 0xFFFFFF)) * 16777619u;
+	return h;
+}
+/* how many rows the Key Items list has: the cursor's moved down until the
+ * description stops changing (the list doesn't wrap). It's left on the last */
+static int pk_key_rows(Emu* s) {
+	int n = 1;
+	uint32_t prev = pk_desc_hash(s);
+	for (; n < PK_KEY_ROWS; ++n) {
+		pk_tap(s, K_DOWN);
+		uint32_t d = pk_desc_hash(s);
+		if (d == prev) break;
+		prev = d;
+	}
+	return n;
+}
 static const char* pk_town_map(Emu* s, const PkFam* f, const void* state, uint32_t* out, int w, int h) {
 	static int first, goodBag;
 	static bool noMapKnown;
 	static uint32_t noMapHash;
 	uint32_t listHash = 0;
-	for (int t = 0; t < PK_KEY_ROWS; ++t) {
-		int row = (first + t) % PK_KEY_ROWS;
+	int rows = PK_KEY_ROWS;
+	for (int t = 0; t < rows; ++t) {
 		const char* err;
 		if (pk_open(s, f, state, &f->bag, &goodBag, 60, &err) < 0) return err;
 		aw_run(s, 0, 90); /* (a romhack's Bag can take longer to take input) */
@@ -7745,7 +7768,7 @@ static const char* pk_town_map(Emu* s, const PkFam* f, const void* state, uint32
 		pk_tap(s, K_LEFT);
 		pk_tap(s, K_RIGHT);
 		aw_run(s, 0, 10);
-		for (int i = 0; i < PK_KEY_ROWS + 2; ++i) pk_tap(s, K_UP);
+		for (int i = 0; i < (t == 0 ? PK_KEY_ROWS : rows) + 2; ++i) pk_tap(s, K_UP);
 		if (t == 0) {
 			/* the Key Items list as it is: the same as when no Town Map was
 			 * found last time means still none, without the row-by-row
@@ -7755,7 +7778,12 @@ static const char* pk_town_map(Emu* s, const PkFam* f, const void* state, uint32
 			listHash = pk_list_hash(s);
 			if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: key items list %08X (last none: %d %08X)\n", listHash, noMapKnown, noMapHash);
 			if (noMapKnown && listHash == noMapHash) return "no Town Map in the Bag";
+			rows = pk_key_rows(s);
+			if (rows < 2) rows = 10; /* (no change seen: an empty pocket, or a Bag drawn another way: as before) */
+			if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: key items: %d rows\n", rows);
+			for (int i = 0; i < rows + 1; ++i) pk_tap(s, K_UP);
 		}
+		int row = (first + t) % rows;
 		for (int i = 0; i < row; ++i) pk_tap(s, K_DOWN);
 		pk_tap(s, K_A); /* its menu: USE first */
 		aw_run(s, 0, 10);

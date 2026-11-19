@@ -230,6 +230,7 @@ bool ui_logo_custom(const Config* c, const char* rom, const char* code);
 /* The extracted logo queued for extraction if it's needed and missing (a
  * scraped logo needs it too: it takes its size from it). */
 void ui_logo_queue(const Config* c, const char* rom, const char* code);
+void ui_game_prepare(const Config* c, const char* rom); /* before a game starts: what would freeze its first frames (a screen says so) */
 /* An RGBA32 picture resampled to w x h (averaged down; nearest pixel up). */
 SDL_Surface* ui_resample(const SDL_Surface* s, int w, int h);
 

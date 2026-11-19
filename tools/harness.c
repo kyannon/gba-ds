@@ -85,7 +85,8 @@ int main(int argc, char** argv) {
 		perror("script");
 		return 1;
 	}
-	if (!emu_open(&emu, argv[1], NULL, false)) {
+	/* HARNESS_SAVE=path: a battery save to run with (the file is written to as the game saves) */
+	if (!emu_open(&emu, argv[1], getenv("HARNESS_SAVE"), false)) {
 		return 1;
 	}
 	fprintf(stderr, "game code %s\n", emu.gameCode);

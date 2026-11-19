@@ -2527,6 +2527,35 @@ static SDL_Surface* sized_surface(const Config* c, const char* rom, const char* 
 	return SDL_DuplicateSurface(o);
 }
 
+/* A game about to start whose logo is its own file's (profile logoPerRom) needs the
+ * ROM file's checksum, which is read once and kept (romcrc.cache). Left to the first
+ * frames it froze the game for seconds (the whole file read and summed from the SD
+ * card), so it's done here, with a screen saying so, before the game starts. */
+void ui_game_prepare(const Config* c, const char* rom) {
+	uint8_t h[0xB0];
+	if (!rom || !emu_rom_header(rom, h, sizeof(h))) return;
+	char code[5];
+	memcpy(code, h + 0xAC, 4);
+	code[4] = 0;
+	const MapProfile* prof = profile_find(code);
+	if (!prof || !prof->logoPerRom || rom_file_crc(c, rom, false)) return;
+	if (!(getenv("GBADS_SYNC") && atoi(getenv("GBADS_SYNC")))) {
+		ui_events(); /* (keeps the system from thinking the app has hung) */
+		ui_clear();
+		for (int scr = 0; scr < nScreens; ++scr) {
+			SDL_Rect r = screens[scr].rect;
+			float px = ui_px(scr);
+			ui_fill(scr, (SDL_Rect) { 0, 0, r.w, r.h }, ui_accent_color(AC_BG));
+			ui_label(scr, r.w / 2, r.h / 2 - px * 6, px * 6, "Initializing game...", (SDL_Color) { 236, 236, 244, 255 });
+			ui_font_text(scr, TF_BODY, r.w / 2, r.h / 2 + px * 8, px * 4, tr("Only the first time for each game"), (SDL_Color) { 140, 140, 172, 255 }, 0);
+		}
+		ui_present();
+		ui_events();
+	}
+	fprintf(stderr, "initializing %s: reading the ROM for its checksum\n", rom);
+	rom_file_crc(c, rom, true);
+}
+
 void ui_logo_queue(const Config* c, const char* rom, const char* code) {
 	char path[1200];
 	snprintf(path, sizeof(path), "%s/logos", c->stateDir);

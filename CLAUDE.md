@@ -343,7 +343,7 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   `poke ADDR LEN VAL`, `io OFFSET N` (I/O registers), `dumpram NAME`, `layershot NAME` (each BG layer and
   OBJ alone), `map NAME` (run a map capture), `logo NAME`. It writes the
   game's battery save beside the ROM (`ROM.sav`): don't run it on the fixtures'
-  ROMs in place, or delete those `.sav` files after (never commit them).
+  ROMs in place, or delete those `.sav` files after (never commit them). `HARNESS_SAVE=PATH` runs it with that battery save instead (written to as the game saves; `tools/pokemon/saves.py state` uses it).
 - **Players' bug reports** (the quick bar's bug button or Extras > Submit
   a Bug Report, `bug-reports/*.zip`): `GAME-DATE-info.txt` (the player's note, typed on the keyboard that comes up after the button, if any; device, system,
   screens, settings, the second screen's state, the last 48 KB of the log

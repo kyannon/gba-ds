@@ -11,3 +11,5 @@ LeafGreen (USA): same as FireRed's but the save block 1 pointer (0x03005008) rea
 Ruby (USA): same addresses as Sapphire (party 0x03004360, count 0x03004350, flags at 0x02025734+0x1320).
 Emerald (USA): party 0x020244EC, count 0x020244E9. Save block 1 moves (pointer at 0x03005D8C: read it for each state); flags at SB1+0x1270, the system flags from 0x860 = SB1+0x137C: bit 0 Pokémon, 1 Pokédex, 2 Pokénav.
 Making a state for these without playing: the harness, `tap START` through the title, `tap A` through the intro (Ruby/Sapphire/Emerald start in the moving van: walk right then down to leave it, then `tap A` through Mom's lines until the player is in the house), then `pokes` / `poke` as above.
+
+- `saves.py`: real saves as test material: `info` (what a save holds), `clean` (an .sps / .gsv / 64 KB save as a 128 KB .sav with both slots valid), `frlg-jp` (an international FireRed / LeafGreen save the Japanese ROMs accept) and `state` (boots a ROM with a save to the overworld and saves a state). What carries across releases: "Real saves" in docs/games/pokemon.md.
