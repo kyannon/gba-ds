@@ -53,9 +53,18 @@ const char* i18n_code(void);        /* the language in use: "en" or a code */
 const I18nLang* i18n_lang(void);    /* NULL for English */
 int i18n_script(void);              /* SCRIPT_* of the language in use */
 
-const char* tr(const char* en);
-const char* trc(const char* ctx, const char* en);
-const char* trn(const char* one, const char* other, long n);
+/* format_arg: the result is a format string made from the argument, so
+ * snprintf(buf, n, tr("No formats here")) is checked like a literal (Android
+ * builds with -Werror=format-security) and tr("%d files") against its
+ * arguments, as gettext's _() is. */
+#if defined(__GNUC__) || defined(__clang__)
+#define I18N_FORMAT_ARG(...) __attribute__((format_arg(__VA_ARGS__)))
+#else
+#define I18N_FORMAT_ARG(...)
+#endif
+const char* tr(const char* en) I18N_FORMAT_ARG(1);
+const char* trc(const char* ctx, const char* en) I18N_FORMAT_ARG(2);
+const char* trn(const char* one, const char* other, long n) I18N_FORMAT_ARG(1) I18N_FORMAT_ARG(2);
 const char* trnc(const char* ctx, const char* one, const char* other, long n);
 
 /* markers for tools/i18n.py: the string is translated where it is drawn */
