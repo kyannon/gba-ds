@@ -175,6 +175,9 @@
     "TMC-5"
    ],
    "shots": {
+    "a": 150,
+    "b": 250,
+    "c": 350,
     "start": 60,
     "end": 480
    },
@@ -184,6 +187,54 @@
      "what": "a capture was shown",
      "type": "log",
      "match": "map updated"
+    },
+    {
+     "rule": "TMC-5",
+     "what": "Quest Status holds still (no prompt flickering at the top right)",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "b",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-5",
+     "what": "Quest Status holds still (no prompt flickering at the top right)",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "c",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0
     }
    ]
   },
@@ -196,6 +247,9 @@
     "TMC-4"
    ],
    "shots": {
+    "a": 150,
+    "b": 250,
+    "c": 350,
     "start": 60,
     "end": 480
    },
@@ -205,6 +259,54 @@
      "what": "a capture was shown",
      "type": "log",
      "match": "map updated"
+    },
+    {
+     "rule": "TMC-5",
+     "what": "Quest Status holds still (no prompt flickering at the top right)",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "b",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-5",
+     "what": "Quest Status holds still (no prompt flickering at the top right)",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "c",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0
     }
    ]
   },
@@ -301,6 +403,9 @@
     "TMC-4"
    ],
    "shots": {
+    "a": 150,
+    "b": 250,
+    "c": 350,
     "start": 60,
     "end": 480
    },
@@ -310,6 +415,54 @@
      "what": "a capture was shown",
      "type": "log",
      "match": "map updated"
+    },
+    {
+     "rule": "TMC-5",
+     "what": "Quest Status holds still (no prompt flickering at the top right)",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "b",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-5",
+     "what": "Quest Status holds still (no prompt flickering at the top right)",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "c",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0
     }
    ]
   },
@@ -322,6 +475,9 @@
     "TMC-4"
    ],
    "shots": {
+    "a": 150,
+    "b": 250,
+    "c": 350,
     "start": 60,
     "end": 480
    },
@@ -331,6 +487,54 @@
      "what": "a capture was shown",
      "type": "log",
      "match": "map updated"
+    },
+    {
+     "rule": "TMC-5",
+     "what": "Quest Status holds still (no prompt flickering at the top right)",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "b",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-5",
+     "what": "Quest Status holds still (no prompt flickering at the top right)",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "c",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0
     }
    ]
   },
@@ -386,6 +590,9 @@
     "TMC-4"
    ],
    "shots": {
+    "a": 150,
+    "b": 250,
+    "c": 350,
     "start": 60,
     "end": 480
    },
@@ -395,6 +602,54 @@
      "what": "a capture was shown",
      "type": "log",
      "match": "map updated"
+    },
+    {
+     "rule": "TMC-5",
+     "what": "Quest Status holds still (no prompt flickering at the top right)",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "b",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-5",
+     "what": "Quest Status holds still (no prompt flickering at the top right)",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "c",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0
     }
    ]
   },
@@ -407,6 +662,9 @@
     "TMC-4"
    ],
    "shots": {
+    "a": 150,
+    "b": 250,
+    "c": 350,
     "start": 60,
     "end": 480
    },
@@ -416,6 +674,54 @@
      "what": "a capture was shown",
      "type": "log",
      "match": "map updated"
+    },
+    {
+     "rule": "TMC-5",
+     "what": "Quest Status holds still (no prompt flickering at the top right)",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "b",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-5",
+     "what": "Quest Status holds still (no prompt flickering at the top right)",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "c",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0
     }
    ]
   },

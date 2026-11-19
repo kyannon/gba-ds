@@ -8101,6 +8101,16 @@ static bool tmc_tab_up(Emu* s, bool quest) {
 	return emu_read8(s, TMC_SUB) == 7 && emu_read8(s, TMC_STEP) == 2 && (quest ? tab == 2 : (tab == 4 || tab == 5));
 }
 
+/* Quest Status (TMC-5): the name bar at the bottom names whichever item the
+ * game's cursor is on, which the player can't use here: its text is blacked
+ * out (the bar's inside, taking the black from a pixel the text never reaches) */
+static void tmc_black_name(uint32_t* img, int w, int h) {
+	if (w < 224 || h < 157) return;
+	const uint32_t black = img[150 * w + 20];
+	for (int y = 143; y <= 156; ++y)
+		for (int x = 16; x <= 223; ++x) img[y * w + x] = black;
+}
+
 /* The Map tab (TMC-3): the hidden copy is told to open its menu on the map,
  * then START (the tab the player last used is in the state, and the menu
  * opens on it), and the picture is taken from the idle menu, without the
@@ -8112,7 +8122,7 @@ static const char* tmc_compose(Emu* s, const void* state, uint32_t* const* out, 
 	 * y 56); "Choose" and its button (tiles 256-300, priority 0, top right) */
 	static const SpriteRule hide[] = {
 		{ 0, 48, 239, 72, 16, 32, 1 },
-		{ 170, 0, 239, 24, 250, 300, 0 },
+		{ 160, -16, 239, 24, 250, 300, 0 }, /* it bobs, partly above the screen */
 		/* Quest Status only (TMC-4): the cursor's corners (tile 15) and
 		 * the SLEEP and SAVE buttons (tiles 704-752, along y 111) */
 		{ 30, 36, 80, 80, 15, 15, 2 },
@@ -8140,11 +8150,13 @@ static const char* tmc_compose(Emu* s, const void* state, uint32_t* const* out, 
 	aw_run(s, 0, 4);
 	int cw = w < GBA_W ? w : GBA_W, ch = h < GBA_H ? h : GBA_H;
 	for (int y = 0; y < ch; ++y) memcpy(&out[0][y * w], &s->fb[y * GBA_W], (size_t) cw * 4);
+	if (quest) tmc_black_name(out[0], w, h);
 	bool animated = false;
 	for (int i = 1; i < max; ++i) {
 		aw_run(s, 0, TMC_FRAME_STEP);
 		if (!tmc_tab_up(s, quest)) break;
 		for (int y = 0; y < ch; ++y) memcpy(&out[i][y * w], &s->fb[y * GBA_W], (size_t) cw * 4);
+		if (quest) tmc_black_name(out[i], w, h);
 		if (memcmp(out[i], out[0], (size_t) w * h * 4)) animated = true;
 		*nOut = i + 1;
 	}
