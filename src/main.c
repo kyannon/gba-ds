@@ -200,7 +200,7 @@ int main(int argc, char** argv) {
 	signal(SIGINT, on_signal);
 	signal(SIGHUP, on_signal);
 
-	/* the interface's language (Settings > Games > Language): before anything is drawn */
+	/* the interface's language (Settings > System > Language): before anything is drawn */
 	i18n_init(cfg.language);
 
 	if (!ui_init(&cfg, true)) return 1;

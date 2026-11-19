@@ -1137,8 +1137,18 @@ static int updatesSel;
 #define SETTINGS_MAX 8
 static int nRows = 1; /* rows shown (Back is row nRows) */
 /* (Hotkeys shares Map Buttons' line: the right half of it, under one text) */
-enum { ROW_BANANA, ROW_ES, ROW_MAP, ROW_HOTKEYS, ROW_UPDATES, ROW_FOLDERS, ROW_RA, ROW_ESDE, ROW_PERF, ROW_STATES, ROW_STATES_DIR, ROW_RESET, ROW_DELCFG, ROW_ROTATION };
+enum { ROW_BANANA, ROW_ES, ROW_MAP, ROW_HOTKEYS, ROW_UPDATES, ROW_FOLDERS, ROW_RA, ROW_ESDE, ROW_PERF, ROW_STATES, ROW_STATES_DIR, ROW_RESET, ROW_DELCFG, ROW_ROTATION, ROW_LANGUAGE };
 static int rowKind[SETTINGS_MAX];
+
+/* System's top row: the interface's language, stepped on each press (the setting is the one in config.c's table) */
+static const Setting* lang_setting(void) { return config_setting("language"); }
+static const char* lang_label(const Config* cfg) {
+	static char label[200];
+	char value[120];
+	config_setting_text(cfg, lang_setting(), value, sizeof(value));
+	snprintf(label, sizeof(label), "%s: %s", tr("Language"), value);
+	return label;
+}
 
 #ifdef __ANDROID__
 /* the row showing kind (0 if none) */
@@ -1155,6 +1165,7 @@ static void settings_rows(const Config* cfg) {
 	(void) cfg;
 	static const int android[] = { ROW_FOLDERS, ROW_RA };
 	nRows = 0;
+	rowKind[nRows++] = ROW_LANGUAGE;
 	rowKind[nRows++] = ROW_UPDATES;
 	/* ES-DE's folder found: GBA DS in its emulator list (esde.c) */
 	if (esde_present()) rowKind[nRows++] = ROW_ESDE;
@@ -1167,6 +1178,7 @@ static void settings_rows(const Config* cfg) {
 	rowKind[nRows++] = ROW_DELCFG;
 #else
 	nRows = 0;
+	rowKind[nRows++] = ROW_LANGUAGE;
 #ifdef GBADS_UPDATES
 	rowKind[nRows++] = ROW_UPDATES;
 #endif
@@ -1217,11 +1229,13 @@ static SettingsGeom settings_geom(int scr) {
 	g.px = ui_px(scr);
 	g.panel = set_panel(scr);
 	int slots = row_slot(nRows) , gaps = 0;
-	/* room before the first row after Updates, and before Reset */
+	/* room before the first row after the top ones (Language, Updates), and before Reset */
+	int top = 0;
+	while (top < nRows && (rowKind[top] == ROW_LANGUAGE || rowKind[top] == ROW_UPDATES)) ++top;
 	for (int i = 0; i < nRows; ++i) {
 		if (row_second(i)) continue;
 		int sl = row_slot(i);
-		if ((sl == 1 && rowKind[0] == ROW_UPDATES) || rowKind[i] == ROW_RESET) gaps |= 1 << sl;
+		if ((i == top && top > 0 && top < nRows) || rowKind[i] == ROW_RESET) gaps |= 1 << sl;
 	}
 	for (int i = 0; i < nRows; ++i) {
 		g.row[i] = set_row_gaps(scr, slots, row_slot(i), gaps), g.textY[i] = 0;
@@ -1316,7 +1330,7 @@ typedef struct {
 	const char* keys[20];
 } SetPage;
 static const SetPage setPages[SP_SYSTEM] = {
-	{ N_("Games"), N_("Which games, names, saving"), { "language", "show_all", "name_tags", "save_on_quit", "auto_load", "custom_logos", "quick_bar_hint" } },
+	{ N_("Games"), N_("Which games, names, saving"), { "show_all", "name_tags", "save_on_quit", "auto_load", "custom_logos", "quick_bar_hint" } },
 	{ N_("Display"), N_("Scale, shader, theme, color"), { "scale", "map_scale", "shader", "lcd_strength", "color_correction", "lcd_ghosting", "smooth", "theme", "accent" } },
 	{ "Screens", N_("Placement, overlays"), { "swap", "screen_match", "screen_placement", "overlays", "overlay_screens", "bezel_logo", "brightness_top", "brightness_bottom" } },
 	{ "Controls", N_("Stick, buttons, hotkeys"), { "left_stick_dpad", "ab_swap", "button_right", "button_bottom", "button_top", "button_left", "button_l", "button_r", "button_dpad_up", "button_dpad_down", "button_dpad_left", "button_dpad_right", "turbo_rate", "@map", "@hotkeys" } },
@@ -1702,7 +1716,8 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 	const char* labels[SETTINGS_MAX];
 	for (int i = 0; i < nRows; ++i) {
 		int k = rowKind[i];
-		labels[i] = k == ROW_ESDE    ? (esde_integration_on() ? N_("GBA DS in ES-DE: On"): N_("GBA DS in ES-DE: Off"))
+		labels[i] = k == ROW_LANGUAGE ? lang_label(cfg)
+		          : k == ROW_ESDE    ? (esde_integration_on() ? N_("GBA DS in ES-DE: On"): N_("GBA DS in ES-DE: Off"))
 		          : k == ROW_FOLDERS ? "Folders"
 		          : k == ROW_RA      ? raLabel
 		          : k == ROW_ROTATION ? (android_rotation_get() == 1 ? N_("Rotation: Portrait"): android_rotation_get() == 2 ? N_("Rotation: Landscape"): N_("Rotation: Auto"))
@@ -1716,6 +1731,9 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 	const char* text = NULL;
 	SDL_Color col = C_DIM;
 	switch (rowKind[sel]) {
+	case ROW_LANGUAGE:
+		text = N_("Automatic follows the system. Text that isn't translated yet stays in English.");
+		break;
 	case ROW_ESDE:
 		text = N_("Makes GBA DS the emulator for Game Boy Advance games in ES-DE. For a game it doesn't support, "
 		       "choose another in ES-DE (the game's metadata > Alternative emulator).");
@@ -1768,6 +1786,9 @@ static void settings_activate(Config* cfg, int row) {
 	}
 	confirmRow = -1;
 	switch (rowKind[row]) {
+	case ROW_LANGUAGE:
+		if (config_setting_step(cfg, lang_setting(), 1)) setting_changed(cfg, lang_setting());
+		return;
 	case ROW_ESDE:
 		esde_integration_set(!esde_integration_on(), settingsMsg, sizeof(settingsMsg));
 		return;
@@ -2122,7 +2143,8 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 	states_text(cfg, statesText, sizeof(statesText));
 	states_dir_text(cfg, statesDirText, sizeof(statesDirText));
 	for (int i = 0; i < nRows; ++i) {
-		labels[i] = rowKind[i] == ROW_BANANA ? (banana_integration_on() ? N_("GBA DS in BananaOS's GBA list: On"): N_("GBA DS in BananaOS's GBA list: Off"))
+		labels[i] = rowKind[i] == ROW_LANGUAGE ? lang_label(cfg)
+		          : rowKind[i] == ROW_BANANA ? (banana_integration_on() ? N_("GBA DS in BananaOS's GBA list: On"): N_("GBA DS in BananaOS's GBA list: Off"))
 		          : rowKind[i] == ROW_ES     ? (es_integration_on(cfg) ? N_("GBA DS in EmulationStation: On"): N_("GBA DS in EmulationStation: Off"))
 		          : rowKind[i] == ROW_RESET  ? (confirmRow == i ? N_("Are you sure? Reset settings"): N_("Reset settings to defaults"))
 		          : rowKind[i] == ROW_DELCFG ? (confirmRow == i ? N_("Are you sure? Delete them"): N_("Delete per-game settings"))
@@ -2134,7 +2156,8 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 	draw_settings_frame(scr, &g, sel, labels);
 	if (sel >= nRows) return;
 	int i = sel;
-	const char* text = rowKind[i] == ROW_BANANA
+	const char* text = rowKind[i] == ROW_LANGUAGE ? N_("Automatic follows the system. Text that isn't translated yet stays in English.")
+	                   : rowKind[i] == ROW_BANANA
 	                       ? N_("Games picked in BananaOS's own Game Boy Advance list start in GBA DS when it has "
 	                         "second-screen support for them. Restart BananaOS after switching this."): rowKind[i] == ROW_ES
 	                       ? N_("Adds GBA DS to the emulators for Game Boy Advance games in EmulationStation. Pick it for one game "
@@ -2167,7 +2190,9 @@ static void settings_activate(Config* cfg, int row) {
 		return;
 	}
 	confirmRow = -1;
-	if (rowKind[row] == ROW_UPDATES) updatesOpen = true, updatesNotice = false, updatesSel = 0;
+	if (rowKind[row] == ROW_LANGUAGE) {
+		if (config_setting_step(cfg, lang_setting(), 1)) setting_changed(cfg, lang_setting());
+	} else if (rowKind[row] == ROW_UPDATES) updatesOpen = true, updatesNotice = false, updatesSel = 0;
 	else if (rowKind[row] == ROW_BANANA) banana_integration_set(!banana_integration_on(), settingsMsg, sizeof(settingsMsg));
 	else if (rowKind[row] == ROW_ES) es_integration_set(cfg, !es_integration_on(cfg), settingsMsg, sizeof(settingsMsg));
 	else if (rowKind[row] == ROW_STATES) states_switch(cfg);

@@ -1,4 +1,4 @@
-GBA DS's menus, game list, messages and (on Android) its permission screen can be shown in your language. Choose it in **Settings > Games > Language**, or set `language` in `gba-ds.cfg` ([[Settings]]). **Automatic** follows the system's language and falls back to English.
+GBA DS's menus, game list, messages and (on Android) its permission screen can be shown in your language. Choose it in **Settings > System > Language**, or set `language` in `gba-ds.cfg` ([[Settings]]). **Automatic** follows the system's language and falls back to English.
 
 ## Languages
 

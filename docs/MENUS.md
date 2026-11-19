@@ -104,7 +104,7 @@ returns one step. B/Back and HOME work as now.
 | **Speed and sound** | Show FPS, Performance, Frame buffer, Match display rate, Rewind and its length, Fast forward and its speed, Sound delay |
 | **Second screen** | Map on/off, Map refresh, Pinball live view |
 | **Saves** | Save on quit, Auto-load, Save folder and type, GBA DS data folder |
-| **System** | RetroAchievements, Updates, EmulationStation / BananaOS list (as now) |
+| **System** | Language, RetroAchievements, Updates, EmulationStation / BananaOS list (as now) |
 
 The existing special screens (Map Buttons, Hotkeys, Updates, Folders,
 RetroAchievements, ES integration) are rows inside their category and
@@ -182,6 +182,6 @@ second line, always visible on the four settings tabs.
 
 ## System: reset and delete
 
-System's layout (library.c `settings_geom`, slots from `row_slot` / `row_second`): Updates; room; Save States | RetroArch's State Folder; the OS's integration row; room; Reset | Delete. Left / Right switch between the two on a row, Up / Down go by slot. Every Settings page's help text is wrapped beside Back and centred on its height (`set_notes`); BananaOS's long text raises Back a little.
+System's layout (library.c `settings_geom`, slots from `row_slot` / `row_second`): Language (each press steps to the next language); Updates; room; Save States | RetroArch's State Folder; the OS's integration row; room; Reset | Delete. Left / Right switch between the two on a row, Up / Down go by slot. Every Settings page's help text is wrapped beside Back and centred on its height (`set_notes`); BananaOS's long text raises Back a little.
 
 `Reset settings to defaults` (every key of the settings table removed from `prefs.cfg`, the in-memory values set from `config_defaults`, paths and other files untouched) and `Delete per-game settings` (every `*.cfg` in the state folder except prefs, library, hotkeys and update). Both use `confirmRow`: the first activation says "Are you sure?", the second acts; moving off the row or activating another cancels.
