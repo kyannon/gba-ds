@@ -33,6 +33,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Kingdom Hearts: Chain of Memories | `B8CE` `B8CP` `B8CJ` | the World Map; in battles, the logo | |
 | Lady Sia | `ALDE` `ALDP` (no Japanese release) | the pause screen as a status screen: lives, gems, villagers, the time, the ring and heart; the HUD off the game screen | |
 | The Legend of Zelda: A Link to the Past & Four Swords | `AZLE` `AZLP` `AZLJ` | world and dungeon maps | Voice removal (USA, Europe) |
+| The Legend of Zelda: The Minish Cap | `BZME` `BZMP` `BZMJ` | the map of Hyrule and dungeon maps (Quest Status before you have the map) | |
 | Mario Kart: Super Circuit (Mario Kart Advance in Japan) | `AMKE` `AMKP` `AMKJ` | the race HUD, results and podium | Better colors (USA, Europe) |
 | Mario & Luigi: Superstar Saga (Mario & Luigi RPG in Japan) | `A88E` `A88P` `A88J` | Bros. Info of the brother you're controlling; in battles, the boxes and meters | [Superstar Saga+](#mario--luigi-superstar-saga) v1.5 (100%; its 80% and 60% versions untested) |
 | Mario vs. Donkey Kong | `BM5E` `BM5P` `BM5J` | in levels: the HUD (lives, score, presents or TOY blocks, Mini-Marios, Donkey Kong's hits, time), and the level with its high score | |
@@ -345,6 +346,12 @@ The USA and European releases (one each, in English, French, German, Spanish, It
 - The map is shown still, with everything that blinks on it (the floor buttons, Link's and the goal's markers) showing at once; the X marking where to go is shown red.
 - Where L does nothing (houses, caves, dungeons without their map), the last map stays up, dimmed.
 - After Save and Quit, the second screen goes back to the logo.
+
+## The Legend of Zelda: The Minish Cap
+
+- The second screen is the game's own Map tab: the map of Hyrule with your region marked and named, in the open and under a roof; in a dungeon, the dungeon's map. It's taken from a hidden copy of the game each time you change region, room or floor and about every few seconds, so the game you play isn't touched.
+- The page arrows and the "Choose" prompt (which warps to a Wind Crest) aren't on it. The red marks round your region blink as in the game; Link's head stays on.
+- Until you have the map, it shows the game's Quest Status tab instead, without its cursor, the SLEEP and SAVE buttons or the name bar. On the title and file screens, after a game over and in the credits, it shows the logo. Where the game's menu won't open (conversations, cutscenes, boss entrances), the last picture stays.
 
 ## Mario Kart: Super Circuit
 
