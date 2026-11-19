@@ -3,7 +3,7 @@
  "games": {
   "final-fantasy-iv-advance": {
    "Final Fantasy IV Advance (USA)": {
-    "1": ["us-field.ss", "World map, two characters (hacked save, no Sight caster): party screen, no command list, no hand (FF4-3)"],
+    "1": ["us-field.ss", "World map, two characters (hacked save, no Sight caster): the Sight map, as in Japan (FF4-8)"],
     "2": ["us-overworld.ss", "World map with Rosa in the party: the Sight map, black either side (FF4-8)"],
     "3": ["us-moon.ss", "The Moon's surface: its map from Sight (FF4-8)"],
     "4": ["us-cave.ss", "A cave where Sight can't be cast: party screen (FF4-3)"],

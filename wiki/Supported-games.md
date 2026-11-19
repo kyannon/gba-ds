@@ -233,7 +233,7 @@ A new second screen since v1.3.2, replacing the earlier one (which moved the gam
 
 On the overworld the second screen shows the world map the Sight spell opens (the towns and a marker where the party is), without the windows around it. It works even when nobody has Sight: the map is made on a hidden copy of the game, where Rosa is put first in the party with Sight, so your own game isn't touched. Everywhere else (towns, castles, caves) it shows the party screen from START's menu without the command list: each character's portrait, level, class, HP and MP, the place, the play time and the gil. It follows you (taken again every few seconds and when you enter a new area or leave a battle). In a battle it shows the party screen from just before. On the title it shows the logo; in conversations, shops and scenes the last picture stays.
 
-Known: a save where Rosa's spells were never set up (not a normal game) shows the party screen on the overworld. After a game over the last picture stays until the title.
+Known: after a game over the last picture stays until the title.
 
 ## Final Fantasy V Advance
 

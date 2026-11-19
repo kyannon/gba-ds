@@ -182,77 +182,57 @@
    "id": "ff4-us-field",
    "rom": "BZ4E",
    "state": "final-fantasy-iv-advance/us-field.ss",
-   "desc": "USA: on the world map near the start, two characters (the hacked save): the party screen, no command list, no hand",
+   "desc": "USA: on the world map near the start, two characters (the hacked save, Rosa's spells listed by number): the world map from Sight, as in Japan",
    "rules": [
-    "FF4-3",
-    "FF4-7"
+    "FF4-8"
    ],
    "shots": {
     "start": 150
    },
    "checks": [
     {
-     "rule": "FF4-3",
-     "what": "the party screen was taken",
+     "rule": "FF4-8",
+     "what": "the map was taken",
      "type": "log",
      "match": "map updated"
     },
     {
-     "rule": "FF4-3",
-     "what": "no command window: neither its lower frame nor the party window's right frame is there",
-     "type": "not_pixels",
-     "shot": "start",
-     "screen": "second",
-     "probes": [
-      [
-       642,
-       226,
-       "FFFFFF"
-      ],
-      [
-       834,
-       406,
-       "FFFFFF"
-      ]
-     ]
-    },
-    {
-     "rule": "FF4-3",
-     "what": "the party window's left frame and the location window's top frame are there",
+     "rule": "FF4-8",
+     "what": "the map's ocean fills its top left corner",
      "type": "pixels",
      "shot": "start",
      "screen": "second",
      "probes": [
       [
-       34,
-       226,
-       "FFFFFF"
-      ],
-      [
-       834,
-       418,
-       "FFFFFF"
-      ],
-      [
-       834,
-       422,
-       "CECECE"
+       262,
+       134,
+       "3184EF"
       ]
      ]
     },
     {
-     "rule": "FF4-3",
-     "what": "the second screen isn't the logo's idle grey",
-     "type": "not_uniform",
+     "rule": "FF4-8",
+     "what": "nothing but the map: black either side of it, no windows, no hand or prompts",
+     "type": "pixels",
      "shot": "start",
      "screen": "second",
-     "rect": [
-      40,
-      70,
-      980,
-      170
-     ],
-     "color": "303030"
+     "probes": [
+      [
+       100,
+       400,
+       "000000"
+      ],
+      [
+       900,
+       400,
+       "000000"
+      ],
+      [
+       100,
+       134,
+       "000000"
+      ]
+     ]
     }
    ]
   },
@@ -531,10 +511,10 @@
    "id": "ff4-us-menu",
    "rom": "BZ4E",
    "state": "final-fantasy-iv-advance/us-menu.ss",
-   "desc": "USA: START's menu open in the game: the same party screen (the hidden copy closes it first)",
+   "desc": "USA: START's menu open on the world map: the world map, as walking about",
    "rules": [
     "FF4-6",
-    "FF4-3"
+    "FF4-8"
    ],
    "shots": {
     "start": 300
@@ -542,66 +522,47 @@
    "checks": [
     {
      "rule": "FF4-6",
-     "what": "the party screen was taken",
+     "what": "the map was taken",
      "type": "log",
      "match": "map updated"
     },
     {
-     "rule": "FF4-6",
-     "what": "no command window: neither its lower frame nor the party window's right frame is there",
-     "type": "not_pixels",
-     "shot": "start",
-     "screen": "second",
-     "probes": [
-      [
-       642,
-       226,
-       "FFFFFF"
-      ],
-      [
-       834,
-       406,
-       "FFFFFF"
-      ]
-     ]
-    },
-    {
-     "rule": "FF4-6",
-     "what": "the party window's left frame and the location window's top frame are there",
+     "rule": "FF4-8",
+     "what": "the map's ocean fills its top left corner",
      "type": "pixels",
      "shot": "start",
      "screen": "second",
      "probes": [
       [
-       34,
-       226,
-       "FFFFFF"
-      ],
-      [
-       834,
-       418,
-       "FFFFFF"
-      ],
-      [
-       834,
-       422,
-       "CECECE"
+       262,
+       134,
+       "3184EF"
       ]
      ]
     },
     {
-     "rule": "FF4-6",
-     "what": "the second screen isn't the logo's idle grey",
-     "type": "not_uniform",
+     "rule": "FF4-8",
+     "what": "nothing but the map: black either side of it, no windows, no hand or prompts",
+     "type": "pixels",
      "shot": "start",
      "screen": "second",
-     "rect": [
-      40,
-      70,
-      980,
-      170
-     ],
-     "color": "303030"
+     "probes": [
+      [
+       100,
+       400,
+       "000000"
+      ],
+      [
+       900,
+       400,
+       "000000"
+      ],
+      [
+       100,
+       134,
+       "000000"
+      ]
+     ]
     }
    ]
   },
@@ -643,7 +604,7 @@
    "id": "ff4-us-battle-kept",
    "rom": "BZ4E",
    "state": "final-fantasy-iv-advance/us-field.ss",
-   "desc": "USA: the party taken on the world map, then a battle starts: the party stays",
+   "desc": "USA: the map and the party taken on the world map, then a battle starts: the party screen stays",
    "rules": [
     "FF4-4"
    ],

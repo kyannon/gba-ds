@@ -6395,6 +6395,16 @@ static const char* ff4_map(Emu* s, uint32_t* pic) {
 	emu_write8(s, table + 0x12 + 0x48 * 2 + 11, 99);
 	emu_write16(s, table + 0x12 + 0x48 * 2 + 4, 800);
 	emu_write16(s, table + 0x12 + 0x48 * 2 + 6, 800);
+	/* her white magic list in the order the game starts with (Cure, Hold,
+	 * Scan, Slow, Sight), so that Sight is where the keys below land
+	 * whatever order this save has it in: a save that never had Rosa set up
+	 * (the hacked two-character one) lists the spells by number, with Sight
+	 * near the end. The lists (24 bytes each, from table + 0x3DE) are set
+	 * for every caster, as the one that is Rosa's isn't worked out */
+	static const uint8_t sightFirst[5] = { 0x0E, 0x01, 0x0D, 0x07, 0x17 };
+	for (int list = 0; list < 6; ++list) {
+		for (int i = 0; i < 5; ++i) emu_write8(s, table + 0x3DE + 0x18 * list + i, sightFirst[i]);
+	}
 	emu_hide_sprites(s, &ff4MapUi, 1);
 	static const struct { int key, wait; } path[] = { { K_DOWN, 16 }, { K_A, 26 }, { K_A, 26 }, { K_A, 26 }, { K_DOWN, 12 },
 	                                                 { K_RIGHT, 12 }, { K_A, 26 }, { K_A, 0 } };
