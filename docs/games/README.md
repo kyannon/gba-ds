@@ -59,6 +59,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Fire Emblem: Fuuin no Tsurugi (The Binding Blade)](fire-emblem-fuuin-no-tsurugi.md) | FE6 | `AFEJ` |
 | [Banjo-Kazooie: Grunty's Revenge](banjo-kazooie-gruntys-revenge.md) | BK | `BKZE` + 3 |
 | [Rebelstar: Tactical Command](rebelstar-tactical-command.md) | RS | `BRLE` + 1 |
+| [Shin Megami Tensei](shin-megami-tensei.md) | SMT | `AAUJ` |
 
 ## General rules
 
