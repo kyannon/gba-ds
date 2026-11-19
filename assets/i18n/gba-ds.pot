@@ -2315,7 +2315,7 @@ msgstr ""
 msgid "Sound delay"
 msgstr ""
 
-#: src/game.c:8946
+#: src/game.c:8947
 #, c-format
 msgid "Sound delay raised to %d ms: the sound kept breaking up"
 msgstr ""

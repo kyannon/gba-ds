@@ -8917,6 +8917,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		 * how often the background map capture was running. */
 		{
 			static int underruns, slow, captureBusy, dropped, n;
+			static int queueLo = 1 << 30, queueHi = -1, quietWindows; /* the queue's range this window (ms) */
 			static long preemptT0 = -1;
 			if (preemptT0 < 0) preemptT0 = thread_preemptions();
 			static Uint64 lastIter;
@@ -8953,6 +8954,11 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			} else {
 				dryQueueBefore = 1;
 			}
+			if (audio && frameCount > 120 && !ff && !rewinding) {
+				int qMs = queuedNow * 1000 / want.freq;
+				if (qMs < queueLo) queueLo = qMs;
+				if (qMs > queueHi) queueHi = qMs;
+			}
 			if (mc && mapcap_busy(mc)) ++captureBusy;
 			if (dropAudio && !ff) ++dropped; /* (the queue over 3x its target: this frame's sound thrown away, a gap) */
 			if (++n >= 300) {
@@ -8961,18 +8967,24 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 #else
 				const bool report = underruns || slow || dropped || stallCount || keptTotal || debug;
 #endif
-				if (report) {
+				/* (all well: the line still comes every 30 s, for the queue's range) */
+				bool show = report;
+				if (!show && audio && ++quietWindows >= 6) show = true;
+				if (show) quietWindows = 0;
+				if (show) {
 					double ms = 1000.0 / SDL_GetPerformanceFrequency() / n;
 					fprintf(stderr, "frame %llu: last 5 s: %.1f fps, %d audio underrun(s), %d slow frame(s), map capture busy %d%%, "
 					                "audio queue %d ms; per frame: emulating %.2f ms, drawing %.2f ms; game thread preempted %ld time(s)",
 					        (unsigned long long) frameCount, fps, underruns, slow, captureBusy * 100 / n,
 					        queuedNow * 1000 / want.freq, emuTicks * ms, drawTicks * ms, thread_preemptions() - preemptT0);
+					if (queueHi >= 0) fprintf(stderr, "; audio queue between %d and %d ms (sound delay %d ms)", queueLo, queueHi, audioMs);
 					if (stallCount) fprintf(stderr, "; %d stall(s) over %d ms, the longest %.0f ms", stallCount, STALL_MS, stallWorst);
 					if (dropped) fprintf(stderr, "; sound thrown away on %d frame(s) (queue too long)", dropped);
 					if (keptTotal) fprintf(stderr, "; %u frame(s) run while the screen held a frame up", keptTotal);
 					fputc('\n', stderr);
 				}
 				underruns = slow = captureBusy = dropped = n = 0;
+				queueLo = 1 << 30, queueHi = -1;
 				stallCount = stallLogged = 0, stallWorst = 0;
 				keptTotal = 0;
 				preemptT0 = thread_preemptions();

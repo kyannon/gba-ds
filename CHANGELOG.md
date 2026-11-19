@@ -22,6 +22,7 @@
 
 ### Fixes
 - **Sound delay raises itself when the sound keeps breaking up** (#61): if the sound runs dry three times within about ten seconds, GBA DS raises Sound delay one step (up to 192 ms) and says so on screen, and again if it keeps happening. It's for this run only: your own setting in Speed and sound isn't changed, and it isn't counted while fast-forwarding, rewinding or just back from the menu. This helps when the device slows down (a low battery on BananaOS did it for the report). `audio_auto = 0` in `gba-ds.cfg` turns it off. `gba-ds.log` records each step.
+- **`gba-ds.log` now shows how full the sound queue was** (#61): the every-5-seconds line says the lowest and highest level the queue reached and the Sound delay in use, and it's written every 30 seconds even when nothing is wrong, so a report from a game that sounds fine still shows where the queue sits.
 
 ## v1.5.5 (2026-11-18)
 
