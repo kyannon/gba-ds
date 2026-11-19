@@ -153,23 +153,23 @@
    "id": "ff6-us-world",
    "rom": "BZ6E",
    "state": "final-fantasy-vi-advance/us-wob.ss",
-   "desc": "the World of Balance, Gogo and Umaro (the owner's GameShark save): START's menu as the party screen, no command list, no hand",
+   "desc": "the World of Balance, Gogo and Umaro (the owner's GameShark save): the minimap twice as big on the second screen, the corner minimap off the game screen",
    "rules": [
-    "FF6-4",
-    "FF6-8"
+    "FF6-10",
+    "FF6-11"
    ],
    "shots": {
     "start": 90
    },
    "checks": [
     {
-     "rule": "FF6-4",
-     "what": "the party screen was taken",
+     "rule": "FF6-10",
+     "what": "the minimap was taken",
      "type": "log",
      "match": "map updated"
     },
     {
-     "rule": "FF6-4",
+     "rule": "FF6-10",
      "what": "not the logo",
      "type": "not_pixels",
      "shot": "start",
@@ -180,6 +180,33 @@
        "303030"
       ]
      ]
+    },
+    {
+     "rule": "FF6-10",
+     "what": "the party's marker on the second screen, twice as big",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       426,
+       194,
+       "FF0000"
+      ]
+     ]
+    },
+    {
+     "rule": "FF6-11",
+     "what": "no marker in the game screen's corner",
+     "type": "not_pixels",
+     "shot": "start",
+     "probes": [
+      [
+       790,
+       466,
+       "FF0000"
+      ]
+     ],
+     "screen": "game"
     }
    ]
   },
@@ -187,9 +214,10 @@
    "id": "ff6-us-menu-open",
    "rom": "BZ6E",
    "state": "final-fantasy-vi-advance/us-wob-menu.ss",
-   "desc": "START's menu open in the game: the same party screen",
+   "desc": "START's menu open in the game, on the world map: closed on the hidden copy, the minimap",
    "rules": [
-    "FF6-5"
+    "FF6-5",
+    "FF6-10"
    ],
    "shots": {
     "start": 90
@@ -197,9 +225,22 @@
    "checks": [
     {
      "rule": "FF6-5",
-     "what": "the party screen was taken",
+     "what": "the minimap was taken",
      "type": "log",
      "match": "map updated"
+    },
+    {
+     "rule": "FF6-10",
+     "what": "the party's marker on the second screen",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       426,
+       194,
+       "FF0000"
+      ]
+     ]
     }
    ]
   },
@@ -207,9 +248,10 @@
    "id": "ff6-us-items-open",
    "rom": "BZ6E",
    "state": "final-fantasy-vi-advance/us-wob-items.ss",
-   "desc": "the Items screen open in the game: closed on the hidden copy, the same party screen",
+   "desc": "the Items screen open in the game, on the world map: closed on the hidden copy, the minimap",
    "rules": [
-    "FF6-5"
+    "FF6-5",
+    "FF6-10"
    ],
    "shots": {
     "start": 90
@@ -217,9 +259,22 @@
    "checks": [
     {
      "rule": "FF6-5",
-     "what": "the party screen was taken",
+     "what": "the minimap was taken",
      "type": "log",
      "match": "map updated"
+    },
+    {
+     "rule": "FF6-10",
+     "what": "the party's marker on the second screen",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       426,
+       194,
+       "FF0000"
+      ]
+     ]
     }
    ]
   },
@@ -227,7 +282,7 @@
    "id": "ff6-us-scene-keeps",
    "rom": "BZ6E",
    "state": "final-fantasy-vi-advance/us-wob.ss",
-   "desc": "the party screen taken, then a scene loaded (a conversation: the menu doesn't open): the last picture stays",
+   "desc": "the minimap taken, then a scene loaded (a conversation: nothing opens): the last picture stays",
    "rules": [
     "FF6-6"
    ],
@@ -272,7 +327,7 @@
    "id": "ff6-us-battle-party",
    "rom": "BZ6E",
    "state": "final-fantasy-vi-advance/us-wob.ss",
-   "desc": "walking on the world map (the party kept), then a battle loaded: the party kept",
+   "desc": "walking on the world map (the minimap shown, the party kept), then a battle loaded: the party kept",
    "rules": [
     "FF6-7"
    ],
@@ -288,6 +343,19 @@
    },
    "checks": [
     {
+     "rule": "FF6-10",
+     "what": "the minimap before the battle",
+     "type": "pixels",
+     "shot": "world",
+     "probes": [
+      [
+       426,
+       194,
+       "FF0000"
+      ]
+     ]
+    },
+    {
      "rule": "FF6-7",
      "what": "the party, not the logo",
      "type": "not_pixels",
@@ -302,7 +370,121 @@
     },
     {
      "rule": "FF6-7",
-     "what": "the same picture as walking",
+     "what": "the party, not the minimap",
+     "type": "not_pixels",
+     "shot": "battle",
+     "probes": [
+      [
+       426,
+       194,
+       "FF0000"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ff6-us-minimap-off",
+   "rom": "BZ6E",
+   "state": "final-fantasy-vi-advance/us-wob-minimap-off.ss",
+   "desc": "the World of Balance with the corner minimap switched off (SELECT): shown on the second screen all the same, still off the game screen",
+   "rules": [
+    "FF6-10",
+    "FF6-11"
+   ],
+   "shots": {
+    "start": 90
+   },
+   "checks": [
+    {
+     "rule": "FF6-10",
+     "what": "the minimap was taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF6-10",
+     "what": "the party's marker on the second screen",
+     "type": "pixels",
+     "shot": "start",
+     "probes": [
+      [
+       426,
+       194,
+       "FF0000"
+      ]
+     ]
+    },
+    {
+     "rule": "FF6-11",
+     "what": "no marker in the game screen's corner",
+     "type": "not_pixels",
+     "shot": "start",
+     "probes": [
+      [
+       790,
+       466,
+       "FF0000"
+      ]
+     ],
+     "screen": "game"
+    }
+   ]
+  },
+  {
+   "id": "ff6-us-battle-over",
+   "rom": "BZ6E",
+   "state": "final-fantasy-vi-advance/us-wob.ss",
+   "desc": "the minimap, a battle (the party kept), the battle over (the world loaded again): the minimap back",
+   "rules": [
+    "FF6-7",
+    "FF6-10"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:final-fantasy-vi-advance/us-wob-battle.ss"
+    ],
+    [
+     500,
+     "LOAD:final-fantasy-vi-advance/us-wob.ss"
+    ]
+   ],
+   "shots": {
+    "world": 150,
+    "battle": 450,
+    "after": 800
+   },
+   "checks": [
+    {
+     "rule": "FF6-7",
+     "what": "the party in the battle",
+     "type": "not_pixels",
+     "shot": "battle",
+     "probes": [
+      [
+       426,
+       194,
+       "FF0000"
+      ]
+     ]
+    },
+    {
+     "rule": "FF6-10",
+     "what": "the minimap back after the battle",
+     "type": "pixels",
+     "shot": "after",
+     "probes": [
+      [
+       426,
+       194,
+       "FF0000"
+      ]
+     ]
+    },
+    {
+     "rule": "FF6-10",
+     "what": "the same picture as before the battle",
      "type": "same",
      "a": {
       "shot": "world",
@@ -314,7 +496,7 @@
       ]
      },
      "b": {
-      "shot": "battle",
+      "shot": "after",
       "rect": [
        32,
        64,
@@ -363,7 +545,7 @@
    "id": "ff6-us-wiped",
    "rom": "BZ6E",
    "state": "final-fantasy-vi-advance/us-wob.ss",
-   "desc": "the party kept on the world map, then a battle loaded with every character at 0 HP: the logo",
+   "desc": "the party kept on the world map (the minimap shown), then a battle loaded with every character at 0 HP: the logo",
    "rules": [
     "FF6-9",
     "FF6-7"
@@ -380,15 +562,15 @@
    },
    "checks": [
     {
-     "rule": "FF6-7",
-     "what": "the party before",
-     "type": "not_pixels",
+     "rule": "FF6-10",
+     "what": "the minimap before",
+     "type": "pixels",
      "shot": "world",
      "probes": [
       [
-       42,
-       74,
-       "303030"
+       426,
+       194,
+       "FF0000"
       ]
      ]
     },

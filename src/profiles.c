@@ -6325,16 +6325,29 @@ static const char* ff_compose(Emu* s, const void* state, uint32_t* out, int w, i
 #define FF6_BATTLE 0x02000002
 #define FF6_BAT_HP 0x02003BF4
 #define FF6_BAT_MAXHP 0x02003C1C
+#define FF6_FLAGS 0x020011F6 /* bit 0: the corner minimap switched off (SELECT) */
 #define FF6_V_LOGO 0xF0000090 /* outside the game (FF6-2) or the party defeated (FF6-9) */
+/* the world map's minimap (FF6-10): sixteen 16x16 sprites, tiles 512 to 590
+ * in palette 5, in a 64x64 square at 168, 92; the marker is tile 768 */
+#define FF6_MM_X 168
+#define FF6_MM_Y 92
+#define FF6_MM_SIZE 64
+#define FF6_MM_EVERY 4 /* on the world map, the party kept every 4th capture */
 /* the command list's tiles on BG0 (FF6-4): columns and rows */
 #define FF6_CMD_COL0 19
 #define FF6_CMD_COL1 29
 #define FF6_CMD_ROW1 9
 static const SpriteRule ff6MenuHand = { 136, -16, 200, 100, 0, 1023, -1, 0, 0, 0 };
+/* the minimap's sprites, off the game screen (FF6-11): the sixteen (16x16,
+ * priority 3), and the marker (16x16, priority 0) */
+#define FF6_HIDE_MINIMAP \
+	{ FF6_MM_X, FF6_MM_Y, FF6_MM_X + 48, FF6_MM_Y + 48, 512, 591, 3, 1u << 5, 0, 1u << 1 }, \
+	{ FF6_MM_X, FF6_MM_Y, FF6_MM_X + 48, FF6_MM_Y + 48, 768, 783, 0, 1u << 5, 0, 1u << 1 }
 /* the party kept for battles (FF6-7), the composer's own */
 static uint32_t ff6Party[GBA_W * GBA_H];
 static bool ff6PartyOk;
 static uint32_t ff6PartyId;
+static int ff6WorldTakes;
 
 /* in a game: the first character record is character 0, with a level
  * (0 before the title, 0xFF on it) */
@@ -6381,23 +6394,33 @@ static uint32_t ff6_party_id(Emu* s) {
 	return h;
 }
 
-static const char* ff6_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+/* the minimap's sprites all drawn (FF6-10) */
+static bool ff6_minimap_up(Emu* s) {
+	int n = 0;
+	for (int i = 0; i < 128; ++i) {
+		uint16_t a0 = emu_read16(s, 0x07000000 + i * 8), a1 = emu_read16(s, 0x07000002 + i * 8);
+		uint16_t a2 = emu_read16(s, 0x07000004 + i * 8);
+		if ((a0 & 0x0300) == 0x0200 || a2 >> 12 != 5 || (a2 & 0x3FF) < 512 || (a2 & 0x3FF) > 590) continue;
+		int x = a1 & 0x1FF, y = a0 & 0xFF;
+		if (x >= 256) x -= 512;
+		if (y >= 160) y -= 256;
+		if (x >= FF6_MM_X && x < FF6_MM_X + FF6_MM_SIZE && y >= FF6_MM_Y && y < FF6_MM_Y + FF6_MM_SIZE) ++n;
+	}
+	return n >= 16;
+}
+
+/* on the world maps (FF6-10) */
+static bool ff6_world(Emu* s) {
+	return emu_read16(s, FF6_MAP) <= 1;
+}
+
+/* the party kept for battles, taken on the hidden copy from the live state:
+ * START's menu without its command list (FF6-4, FF6-7) */
+static const char* ff6_party_take(Emu* s, const void* state) {
 	emu_hide_sprites(s, NULL, 0);
 	emu_layers(s, 0x1F);
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
-	if (!ff6_in_game(s)) {
-		ff6PartyOk = false;
-		return "not in a game"; /* (FF6-2) */
-	}
-	if (ff6_battle(s)) {
-		/* the party kept, if it's this party (FF6-7); else the last picture */
-		if (!ff6PartyOk || ff6PartyId != ff6_party_id(s)) return "a battle: no picture of this party kept";
-		for (int y = 0; y < h; ++y) {
-			for (int x = 0; x < w; ++x) out[y * w + x] = y < GBA_H && x < GBA_W ? ff6Party[y * GBA_W + x] : 0xFF000000;
-		}
-		return NULL;
-	}
 	/* START's menu brought up; from one of its screens, B first, as often as
 	 * it takes (FF6-5) */
 	emu_hide_sprites(s, &ff6MenuHand, 1);
@@ -6439,12 +6462,88 @@ static const char* ff6_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	}
 	ff6PartyId = ff6_party_id(s);
 	ff6PartyOk = true;
+	return NULL;
+}
+
+
+
+/* the world map's minimap, twice as big, in the middle of the second screen
+ * on black (FF6-10): the game's sprites alone, with START's menu or a screen
+ * closed first, and the corner minimap switched on if the player has it off */
+static const char* ff6_minimap_take(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	emu_hide_sprites(s, NULL, 0);
+	emu_layers(s, 0x10); /* (sprites alone) */
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	bool up = ff6_minimap_up(s);
+	for (int tries = 0; tries < 6 && !up; ++tries) {
+		if (tries) {
+			aw_run(s, K_B, 4);
+			aw_run(s, 0, 40);
+			if ((up = ff6_minimap_up(s))) break;
+		}
+		if (emu_read8(s, FF6_FLAGS) & 1) {
+			aw_run(s, K_SELECT, 4);
+			aw_run(s, 0, 20);
+			up = ff6_minimap_up(s);
+		}
+		if (emu_cancelled(s)) return "called off";
+	}
+	if (!up) return "no minimap";
+	aw_run(s, 0, 2);
+	if (!ff6_minimap_up(s)) return "the minimap closed";
+	if (emu_cancelled(s)) return "called off";
+	int ox = (w - 2 * FF6_MM_SIZE) / 2, oy = (h - 2 * FF6_MM_SIZE) / 2;
 	for (int y = 0; y < h; ++y) {
-		for (int x = 0; x < w; ++x) out[y * w + x] = y < GBA_H && x < GBA_W ? ff6Party[y * GBA_W + x] : 0xFF000000;
+		for (int x = 0; x < w; ++x) {
+			int sx = (x - ox) / 2 + FF6_MM_X, sy = (y - oy) / 2 + FF6_MM_Y;
+			bool in = x >= ox && y >= oy && x < ox + 2 * FF6_MM_SIZE && y < oy + 2 * FF6_MM_SIZE;
+			out[y * w + x] = in ? s->fb[sy * GBA_W + sx] : 0xFF000000;
+		}
 	}
 	return NULL;
 }
 
+static void ff6_party_out(uint32_t* out, int w, int h) {
+	for (int y = 0; y < h; ++y) {
+		for (int x = 0; x < w; ++x) out[y * w + x] = y < GBA_H && x < GBA_W ? ff6Party[y * GBA_W + x] : 0xFF000000;
+	}
+}
+
+static const char* ff6_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	emu_hide_sprites(s, NULL, 0);
+	emu_layers(s, 0x1F);
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	if (!ff6_in_game(s)) {
+		ff6PartyOk = false;
+		return "not in a game"; /* (FF6-2) */
+	}
+	if (ff6_battle(s)) {
+		/* the party kept, if it's this party (FF6-7); else the last picture */
+		if (!ff6PartyOk || ff6PartyId != ff6_party_id(s)) return "a battle: no picture of this party kept";
+		ff6_party_out(out, w, h);
+		return NULL;
+	}
+	if (ff6_world(s)) {
+		/* the minimap (FF6-10), and now and then the party kept for
+		 * battles (FF6-7); no minimap: the party screen */
+		bool due = !ff6PartyOk || ff6PartyId != ff6_party_id(s) || ++ff6WorldTakes >= FF6_MM_EVERY;
+		const char* err = ff6_minimap_take(s, state, out, w, h);
+		if (!err) {
+			if (due) {
+				ff6WorldTakes = 0;
+				ff6_party_take(s, state); /* (a failure keeps the one before) */
+			}
+			return emu_cancelled(s) ? "called off" : NULL;
+		}
+		if (emu_cancelled(s)) return "called off";
+	}
+	const char* perr = ff6_party_take(s, state);
+	if (perr) return perr;
+	ff6_party_out(out, w, h);
+	return NULL;
+}
 /* ---------------------------------------------------------------- Baldur's Gate: Dark Alliance
  *
  * docs/games/baldurs-gate-dark-alliance.md. The game has no map: GBA DS
@@ -9704,6 +9803,9 @@ static const MapProfile profiles[] = {
 		.title = "Final Fantasy VI Advance",
 		.compose = ff6_compose,
 		.virt = ff6_virt,
+		/* the corner minimap isn't drawn on the game screen: it's on the
+		 * second (FF6-10, FF6-11) */
+		.hideSprites = { FF6_HIDE_MINIMAP },
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
 		/* outside the game and after a game over: the logo, the pictures
