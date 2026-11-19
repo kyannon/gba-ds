@@ -8159,7 +8159,15 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	}
 	SDL_AudioStream* audioConv = NULL;
 	int convFrom = 0;
-	const int targetQueued = want.freq * cfg->audioLatency / 1000;
+	/* The sound delay in use: the setting, raised a step when the sound keeps
+	 * running dry (audio_auto; only for this run, the setting is left alone) */
+	int audioMs = cfg->audioLatency;
+	int targetQueued = want.freq * audioMs / 1000;
+	uint64_t audioQuietUntil = 0; /* no dry-queue counting before this frame: the sound was being started again */
+	uint64_t dryWindowStart = 0;
+	int dryQueueBefore = 1, dryEvents = 0;
+	/* testing only: GBADS_TEST_STARVE=1 throws away the sound of 20 frames in every 100 (after frame 200) */
+	const bool testStarve = getenv("GBADS_TEST_STARVE") && atoi(getenv("GBADS_TEST_STARVE"));
 
 	static int16_t samples[4096 * 2];
 	uint32_t lastRoomKey = 0;
@@ -8803,6 +8811,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			fpsFrames = 0;
 			pacedMisses = pacedMissSecs = 0; /* (the menu's time isn't the game's) */
 			forceMap = true;
+			audioQuietUntil = frameCount + 150; /* (the queue was cleared for the menu: refilling) */
 		}
 		wasMenu = menuOpen;
 
@@ -8915,6 +8924,35 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			if (lastIter && !ff && (nowT - lastIter) * 1000 / SDL_GetPerformanceFrequency() > 25) ++slow;
 			lastIter = nowT;
 			if (audio && frameCount > 120 && queuedNow == 0 && !ff) ++underruns;
+			/* The sound keeps running dry (a queue that had sound in it a frame ago and has
+			 * none now, three times in about 10 s): the sound delay goes up a step. Not while
+			 * fast-forwarding or rewinding, nor for 2.5 s after either or after the menu
+			 * (the queue is being filled again then). */
+			if (ff || rewinding || dropAudio) audioQuietUntil = frameCount + 150;
+			if (audio && cfg->audioAuto && frameCount > 120 && frameCount >= audioQuietUntil) {
+				if (queuedNow == 0 && dryQueueBefore > 0) {
+					if (!dryEvents || frameCount - dryWindowStart > 600) dryWindowStart = frameCount, dryEvents = 0;
+					if (++dryEvents >= 3) {
+						static const int steps[] = { 32, 64, 96, 128, 192 };
+						int to = audioMs;
+						for (size_t k = 0; k < sizeof(steps) / sizeof(steps[0]); ++k)
+							if (steps[k] > audioMs) { to = steps[k]; break; }
+						if (to != audioMs) {
+							fprintf(stderr, "frame %llu: the sound ran dry %d times in %.0f s: sound delay raised from %d to %d ms "
+							                "for this run (audio_auto = 0 turns this off)\n",
+							        (unsigned long long) frameCount, dryEvents, (double) (frameCount - dryWindowStart) / 60.0, audioMs, to);
+							audioMs = to;
+							targetQueued = want.freq * audioMs / 1000;
+							ui_osd_long("Sound delay raised to %d ms: the sound kept breaking up", audioMs);
+						}
+						dryEvents = 0;
+						audioQuietUntil = frameCount + 150; /* (the queue climbs to the new level first) */
+					}
+				}
+				dryQueueBefore = queuedNow;
+			} else {
+				dryQueueBefore = 1;
+			}
 			if (mc && mapcap_busy(mc)) ++captureBusy;
 			if (dropAudio && !ff) ++dropped; /* (the queue over 3x its target: this frame's sound thrown away, a gap) */
 			if (++n >= 300) {
@@ -8980,6 +9018,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			size_t got;
 			while ((got = emu_audio_read(&emu, samples, 4096)) > 0) {
 				if (!audio || dropAudio) continue;
+				if (testStarve && frameCount > 200 && frameCount % 100 >= 20 && frameCount % 100 < 40) continue;
 				if (thin > 1) {
 					size_t outN = 0;
 					for (size_t f = 0; f < got; ++f) {

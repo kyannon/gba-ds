@@ -47,6 +47,7 @@ void config_defaults(Config* c) {
 	c->mapInterval = 60;
 	c->sway = true;
 	c->audioLatency = 64;
+	c->audioAuto = true;
 	c->keepSound = true;
 	c->ffSpeed = 3;
 	c->fastForward = true;
@@ -156,6 +157,7 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	BOOL("match_display", matchDisplay)
 	BOOL("rewind", rewind)
 	BOOL("keep_sound", keepSound)
+	BOOL("audio_auto", audioAuto)
 	INT("rewind_seconds", rewindSeconds)
 	INT("map_interval", mapInterval)
 	BOOL("ab_swap", abSwap)
@@ -405,6 +407,7 @@ void config_usage(const char* argv0) {
 	        "  --show-fps\n"
 	        "  --no-sway              don't ask sway to span both outputs\n"
 	        "  --audio-latency=MS     (64)\n"
+	        "  --audio-auto=0|1       raise the sound delay when the sound keeps running dry (1)\n"
 	        "  --ff-speed=N|max       fast-forward multiplier (3)\n"
 	        "  --save-dir=DIR         battery saves (next to the ROM)\n"
 	        "  --state-dir=DIR        save states and thumbnails (<data folder>/states)\n"

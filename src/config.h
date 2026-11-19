@@ -65,6 +65,7 @@ typedef struct Config {
 	bool showFps;
 	bool sway;         /* ask sway to fullscreen the window across all outputs */
 	int audioLatency;  /* ms */
+	bool audioAuto;    /* raise the sound delay a step when the sound keeps running dry (game.c; the setting itself is left alone) */
 	bool keepSound;    /* the game and its sound go on while the system holds up a frame's present (game.c keeper) */
 	bool perfMax;      /* Linux: CPU, memory and GPU clocks held at their fastest while GBA DS runs (clocks.c); off: the system decides */
 	int ffSpeed;       /* fast-forward multiplier (the menu cycles FF_SPEED_MIN..MAX) */
