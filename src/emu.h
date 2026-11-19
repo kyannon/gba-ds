@@ -25,6 +25,9 @@ enum {
 
 struct mCore;
 
+/* the sunlight a cartridge's sun sensor reads (0-10; Boktai) */
+extern int emu_solar_level;
+
 /* A sprite to leave out when drawing (e.g. a HUD mini-map): matches when its
  * top-left corner is inside x0..x1 / y0..y1 (y may be negative), its tile
  * number is within tileMin..tileMax and its priority equals prio. */

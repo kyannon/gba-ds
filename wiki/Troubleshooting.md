@@ -32,7 +32,7 @@ If there's a `gba-ds-error.log` next to `GBA DS.sh` instead, the `gba-ds` folder
 
 ## Sound crackles
 
-- Raise `audio_latency` (default 64 ms) to 96 or 128.
+- Raise `audio_latency` (default 64 ms) to 96 or 128. GBA DS also does this itself, one step at a time, when the sound keeps breaking up (it says so on screen and in the log; `audio_auto = 0` turns that off). A low battery can slow a device down enough to need it (seen on BananaOS).
 - Set `map_interval = 180` in `gba-ds.cfg` (a map refresh every 3 seconds). Each map refresh runs a second copy of the game for a moment; on a slower device very short intervals crackle.
 - On the first run, the game list's thumbnails are still being made ("Loading thumbnail..."); starting a game waits only for its own, and the rest carry on when you're back in the game list.
 - **Frame Buffer** (pause menu → Display) smooths out occasional slow frames, at the cost of one frame of input delay.

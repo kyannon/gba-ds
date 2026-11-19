@@ -79,10 +79,12 @@ What this means in practice:
   - Dragon Ball Z: The Legacy of Goku's logo, whose Z is drawn again in the game's own colours where the title screen paints Goku's hair over it;
   - Dragon Ball Z: Buu's Fury's logo, each letter's black outline closed where the title screen leaves a gap;
   - a game's own window rearranged where there's no other way to show all of what it holds on one GBA screen, as the game would let the player see it by scrolling: its list split into columns, its heading bar or frame made wider from its own end and middle pieces, its own transparency kept over the background it sits on (Final Fantasy Tactics Advance's turn order in two columns, with the Laws below);
+  - Final Fantasy V Advance's party screen, the place of START's list of commands filled by the party window going on, from the game's own edges and gradient, instead of left black;
   - Final Fantasy Tactics Advance's Laws on the world map, on the Status screen's checkerboard, so they look as they do in a battle;
   - Mega Man Battle Network's status screen and money counter, from two of the PET's screens, in one frame edged with the counter's own orange border;
   - Mega Man Battle Network's maps of the net, which the game doesn't have, drawn from each area's own layout in the game's own tiles, with MegaMan's head marking where he is;
   - Mega Man Battle Network 2's status screen and money, and its maps of the net, as the first game's (the money box's HP line left out, the status below showing it);
-  - Baldur's Gate: Dark Alliance's maps, made from the game's own screens by a copy of the game, and the red X from its quick slots marking where you are.
+  - Baldur's Gate: Dark Alliance's maps, made from the game's own screens by a copy of the game, and the red X from its quick slots marking where you are;
+  - Boktai's clock and sunrise and sunset times, three lines of the game's own from its ITEM page, kept on the Map at the top (on both screens when that page is open on the game screen), with the Map's title bar left out.
 - **Optional where it can be.** Where an exception changes how the game plays or looks, there's a way back to the original: GBA is the default control layout, and `pinball_live = 0` turns off the pinball games' tall view.
 - **Scope is a feature.** Every change has to be built, tested on the real device and maintained by one person. A smaller, solid feature beats a bigger, fragile one, and that's often the honest answer to a feature request: not "never", but "not at the cost of everything else working".

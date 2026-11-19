@@ -6303,6 +6303,200 @@ static const char* ff_compose(Emu* s, const void* state, uint32_t* out, int w, i
 	return NULL;
 }
 
+/* ---------------------------------------------------------------- Final Fantasy V Advance
+ *
+ * docs/games/final-fantasy-v-advance.md. The game has no map screen: the
+ * second screen is the party screen, START's menu opened on the hidden copy
+ * without its command windows (FV-3, FV-4), kept for battles (FV-6, FV-7),
+ * the logo outside the game and after a game over (FV-2, FV-8). START's menu
+ * draws every window on BG0; the command windows (the top right) are left
+ * black in the picture. Words, in all three releases:
+ *   FFV_LOADED  0x02000924: the first character's pointer, 0 until a game
+ *               is loaded or started (title, Load Game screen)
+ *   FFV_BATTLE  0x02000EC0: non-zero from a battle's first frame to the end
+ *               of its results
+ *   FFV_SCREEN  (per release) what the game shows: 5 walking about, 7 START's
+ *               menu, 0x0C the world map (R opens it), 0x0A a battle
+ * Per release (FfvRegion): the party's records (character id, job at +8, +9,
+ * one every 0x64 bytes) and the battle's block of HP (HP, maximum HP, MP,
+ * maximum MP, 8 bytes a character). */
+typedef struct {
+	const char* code;
+	uint32_t party, hp, screen, room;
+} FfvRegion;
+static const FfvRegion ffvRegions[] = {
+	{ "BZ5E", 0x0200DAB4, 0x0201E1A0, 0x020096E0, 0x0200E2AE },
+	{ "BZ5P", 0x0200D868, 0x0201DF54, 0x02009464, 0x0200E062 },
+	{ "BZ5J", 0x0200DAB4, 0x0201E1A0, 0x020096E0, 0x0200E2AE },
+};
+#define FFV_SCREEN_MAP 0x0C /* the byte at `screen`: 5 walking about, 7 START's menu, 0x0C the world map, 0x0A a battle */
+#define FFV_LOADED 0x02000924
+#define FFV_BATTLE 0x02000EC0
+#define FFV_V_LOGO 0xF00000A0  /* outside the game (FV-2), or the party defeated (FV-8) */
+#define FFV_V_MAP 0xF00000A4   /* the map (FV-3) */
+#define FFV_V_BATTLE 0xF00000A8 /* a battle (FV-6) */
+#define FFV_CMD_X 152 /* START's menu: the command windows' place, top right (FV-3) */
+#define FFV_CMD_ROWS 88 /* (the rows above the location window) */
+#define FFV_WIN_X0 152 /* the commands' place: its left column, and the right edge's (x 236..239) */
+#define FFV_WIN_X1 239
+/* START's menu, up: its windows' frames (x, y, 0xRRGGBB) */
+static const int ffvMenu[][3] = { { 152, 10, 0xFFFFFF }, { 153, 10, 0xCECECE }, { 154, 10, 0x212121 },
+                                  { 152, 50, 0xFFFFFF }, { 237, 10, 0xFFFFFF }, { 190, 85, 0xFFFFFF },
+                                  { 190, 86, 0xCECECE }, { 152, 100, 0xFFFFFF }, { 237, 140, 0xFFFFFF },
+                                  { 1, 80, 0xCECECE }, { 2, 80, 0x212121 } };
+/* the hand cursor: tiles 900 and up */
+static const SpriteRule ffvHand = { -16, -16, 255, 255, 900, 1023, -1, 0, 0, 0 };
+static uint32_t ffvParty[GBA_W * GBA_H];
+static uint32_t ffvMap[GBA_W * GBA_H];
+static unsigned ffvTakes;
+static bool ffvPartyOk;
+static uint32_t ffvPartyId;
+
+static const FfvRegion* ffv_r(Emu* e) {
+	for (size_t i = 0; i < sizeof(ffvRegions) / sizeof(*ffvRegions); ++i) {
+		if (!strncmp(e->gameCode, ffvRegions[i].code, 4)) return &ffvRegions[i];
+	}
+	return &ffvRegions[0];
+}
+
+/* the whole party down in a battle: every HP 0 (FV-8) */
+static bool ffv_defeated(Emu* e) {
+	if (!emu_read32(e, FFV_BATTLE)) return false;
+	for (int c = 0; c < 4; ++c) {
+		uint32_t a = ffv_r(e)->hp + c * 8;
+		if (emu_read16(e, a) || !emu_read16(e, a + 2)) return false; /* (alive, or no character) */
+	}
+	return true;
+}
+
+static uint32_t ffv_virt(Emu* e, uint32_t addr) {
+	if (addr == FFV_V_LOGO) return !emu_read32(e, FFV_LOADED) || ffv_defeated(e);
+	if (addr == FFV_V_MAP) return emu_read16(e, ffv_r(e)->room);
+	if (addr == FFV_V_BATTLE) return emu_read32(e, FFV_BATTLE) != 0;
+	return 0;
+}
+
+static bool ffv_menu_up(Emu* s) {
+	for (size_t i = 0; i < sizeof(ffvMenu) / sizeof(*ffvMenu); ++i) {
+		if (!ff_is(s->fb[ffvMenu[i][1] * GBA_W + ffvMenu[i][0]], ffvMenu[i][2])) return false;
+	}
+	return true;
+}
+
+/* which party: the characters' ids and jobs (FV-7) */
+static uint32_t ffv_party_id(Emu* s) {
+	uint32_t h = 2166136261u;
+	for (int c = 0; c < 4; ++c) {
+		uint32_t a = ffv_r(s)->party + c * 0x64 + 8;
+		h = (h ^ emu_read8(s, a)) * 16777619u;
+		h = (h ^ emu_read8(s, a + 1)) * 16777619u;
+	}
+	return h;
+}
+
+/* START's menu brought up (from one of its screens, B first, as often as it
+ * takes: FV-4) and settled, its hand hidden */
+static const char* ffv_open_menu(Emu* s) {
+	emu_hide_sprites(s, &ffvHand, 1);
+	bool up = false;
+	for (int tries = 0; tries < 3 && !up; ++tries) {
+		if (tries) {
+			aw_run(s, K_B, 4);
+			aw_run(s, 0, 40);
+		}
+		aw_run(s, K_START, 4);
+		for (int f = 0; f < 90 && !up; f += 2) {
+			aw_run(s, 0, 2);
+			up = ffv_menu_up(s);
+		}
+	}
+	if (!up) return "the menu didn't open"; /* (FV-5) */
+	if (!ff_settle(s, 120)) return "the menu didn't settle";
+	if (!ffv_menu_up(s)) return "the menu closed";
+	if (emu_cancelled(s)) return "called off";
+	return NULL;
+}
+
+static uint8_t ffv_screen(Emu* s) { return emu_read8(s, ffv_r(s)->screen); }
+
+/* the party screen out of START's menu, up: the commands' place isn't a
+ * window of its own any more but the big party window going on (FV-10): its
+ * top edge carried across from the left, its right edge straight down, and
+ * the screen's own gradient inside (no frame between the party and the right) */
+static void ffv_party_take(Emu* s) {
+	for (int y = 0; y < GBA_H; ++y) {
+		for (int x = 0; x < GBA_W; ++x) {
+			uint32_t c = s->fb[y * GBA_W + x];
+			if (x >= FFV_WIN_X0 && x <= FFV_WIN_X1 && y < FFV_CMD_ROWS) {
+				bool corner = x > FFV_WIN_X1 - 4; /* the right edge: the game's own, straight down below its corner */
+				if (y < 4) c = corner ? c : s->fb[y * GBA_W + FFV_WIN_X0 - 2];
+				else c = corner ? s->fb[8 * GBA_W + x] : s->fb[y * GBA_W + 4];
+			}
+			ffvParty[y * GBA_W + x] = c | 0xFF000000;
+		}
+	}
+	ffvPartyId = ffv_party_id(s);
+	ffvPartyOk = true;
+}
+
+static void ffv_show(uint32_t* out, int w, int h, const uint32_t* pic) {
+	for (int y = 0; y < h; ++y) {
+		for (int x = 0; x < w; ++x) out[y * w + x] = y < GBA_H && x < GBA_W ? pic[y * GBA_W + x] : 0xFF000000;
+	}
+}
+
+static const char* ffv_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	emu_hide_sprites(s, NULL, 0);
+	emu_layers(s, 0x1F);
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	if (!emu_read32(s, FFV_LOADED)) return "not in a game"; /* (FV-2) */
+	if (emu_read32(s, FFV_BATTLE)) {
+		/* the party kept, if it's this party (FV-6, FV-7); else the last picture */
+		if (!ffvPartyOk || ffvPartyId != ffv_party_id(s)) return "a battle: no picture of this party kept";
+		ffv_show(out, w, h, ffvParty);
+		return NULL;
+	}
+	/* back to walking about from the menu or the map (FV-4) */
+	for (int i = 0; i < 4 && (ffv_menu_up(s) || ffv_screen(s) == FFV_SCREEN_MAP); ++i) {
+		aw_run(s, K_B, 4);
+		aw_run(s, 0, 40);
+	}
+	if (emu_cancelled(s)) return "called off";
+	/* the world map, where R opens it (FV-3): the game's own picture of it */
+	bool map = false;
+	for (int tries = 0; tries < 2 && ffv_screen(s) != FFV_SCREEN_MAP; ++tries) {
+		aw_run(s, 0, 30); /* (the menu or map just closed: the game takes a few frames to listen) */
+		aw_run(s, K_R, 4);
+		for (int f = 0; f < 60 && ffv_screen(s) != FFV_SCREEN_MAP; f += 2) aw_run(s, 0, 2);
+	}
+	if (ffv_screen(s) == FFV_SCREEN_MAP) {
+		aw_run(s, 0, 90);
+		if (ffv_screen(s) == FFV_SCREEN_MAP) {
+			for (int i = 0; i < GBA_W * GBA_H; ++i) ffvMap[i] = s->fb[i] | 0xFF000000;
+			map = true;
+		}
+		for (int i = 0; i < 3 && ffv_screen(s) == FFV_SCREEN_MAP; ++i) {
+			aw_run(s, K_B, 4);
+			aw_run(s, 0, 40);
+		}
+	}
+	if (emu_cancelled(s)) return "called off";
+	/* the party screen: taken when it's what is shown, and for battles (FV-6)
+	 * with the map: for a first capture, another party, and every fourth */
+	if (!map || !ffvPartyOk || ffvPartyId != ffv_party_id(s) || ffvTakes % 4 == 0) {
+		const char* err = ffv_open_menu(s);
+		if (err) {
+			if (!map) return err;
+		} else {
+			ffv_party_take(s);
+		}
+	}
+	++ffvTakes;
+	ffv_show(out, w, h, map ? ffvMap : ffvParty);
+	return NULL;
+}
+
 /* ------------------------------------------------- Final Fantasy VI Advance
  *
  * docs/games/final-fantasy-vi-advance.md. The game keeps the SNES version's
@@ -7060,6 +7254,169 @@ done:
 	free(spr);
 	free(back);
 	return err;
+}
+
+/* ---------------------------------------------- Boktai: The Sun Is in Your Hand
+ *
+ * Boktai's second screen (docs/games/boktai-the-sun-is-in-your-hand.md): the
+ * Map page of SELECT's menu, opened on the shadow core from the live state at
+ * every capture. The addresses (the USA release's):
+ *   BT_MENU (byte) 0 while playing, 1 while SELECT's menu is up, 2 while
+ *              START's pause menu is
+ *   BT_PAGE (byte) the menu's page: 0 Item, 1 Weapon, 2 Map (the menu opens
+ *              on the page last used, so the copy turns to the Map with L / R)
+ * The Map page's sprites: the L and R ends of its title and the A + up /
+ * down glyph beside the floor are button prompts, and the little arrows at
+ * the map's edges say it scrolls: all left out (BT-2).
+ */
+#define BT_MENU 0x02001B3A
+#define BT_PAGE 0x020034DC
+static const SpriteRule btPrompts[] = {
+	/* (by place and shape: the tiles and palette differ from area to area) */
+	/* the title bar, its L and R ends and tabs, all sprites over the Map's own
+	 * picture (BT-2): everything whose corner is in the top left */
+	{ 0, 0, 116, 12, 0, 1023, -1, 0, 0, 0 },
+	{ 188, 134, 196, 138, 0, 1023, -1, 0, 0, 0x2 },  /* the A + up / down glyph, its top (16x16) */
+	{ 188, 150, 196, 154, 0, 1023, -1, 0, 0, 0x10 }, /* and its foot (16x8) */
+	/* the arrows at the map's edges, which say it scrolls (8x8) */
+	{ 0, 64, 12, 80, 0, 1023, -1, 0, 0, 0x1 },
+	{ 216, 64, 232, 80, 0, 1023, -1, 0, 0, 0x1 },
+	{ 112, 4, 128, 16, 0, 1023, -1, 0, 0, 0x1 },
+	{ 112, 124, 128, 140, 0, 1023, -1, 0, 0, 0x1 },
+};
+static bool bt_map_up(Emu* s) {
+	return emu_read8(s, BT_MENU) == 1 && emu_read8(s, BT_PAGE) == 2;
+}
+/* BT-8. The ITEM page is page 0; its clock, and with START the sunrise and
+ * the sunset, are sprites in two colours only: the digits' and letters'
+ * brown and their pale yellow outline (nothing else in their band is
+ * either). */
+static bool bt_item_up(Emu* s) { return emu_read8(s, BT_MENU) == 1 && emu_read8(s, BT_PAGE) == 0; }
+#define BT_RGB(r, g, b) ((uint32_t) (b) << 16 | (uint32_t) (g) << 8 | (uint32_t) (r))
+#define BT_BAND_X0 0
+#define BT_BAND_X1 100 /* (the text box's ")" is beyond it) */
+#define BT_BAND_Y0 119
+#define BT_BAND_Y1 128
+#define BT_PAD 4 /* the space round the lines on the second screen */
+#define BT_REFRESH_MS 30000
+typedef struct BtCut {
+	int w, h;
+	uint32_t c[(BT_BAND_X1 - BT_BAND_X0 + 1) * (BT_BAND_Y1 - BT_BAND_Y0 + 1)];
+	uint8_t on[(BT_BAND_X1 - BT_BAND_X0 + 1) * (BT_BAND_Y1 - BT_BAND_Y0 + 1)];
+} BtCut;
+/* (kept from capture to capture: they change by the minute, so the hidden
+ * copy visits the ITEM page every BT_REFRESH_MS, not with every Map) */
+static BtCut btClock, btRise, btSet;
+static long btCutAt = -1;
+static long bt_ms(void) {
+	struct timespec ts;
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+	return (long) (ts.tv_sec * 1000L + ts.tv_nsec / 1000000L);
+}
+/* The glyph pixels in the band: false if there are fewer than minPix or
+ * they are narrower than minW (the clock is 39 wide, the others 88). */
+static bool bt_cut(const Emu* s, BtCut* o, int minPix, int minW) {
+	const uint32_t brown = BT_RGB(156, 66, 24), edge = BT_RGB(255, 255, 140);
+	int x0 = GBA_W, x1 = -1, y0 = GBA_H, y1 = -1, n = 0;
+	for (int y = BT_BAND_Y0; y <= BT_BAND_Y1; ++y) {
+		for (int x = BT_BAND_X0; x <= BT_BAND_X1; ++x) {
+			uint32_t c = s->fb[y * GBA_W + x] & 0xFFFFFF; /* (the fourth byte is unused) */
+			if (c != brown && c != edge) continue;
+			++n;
+			if (x < x0) x0 = x;
+			if (x > x1) x1 = x;
+			if (y < y0) y0 = y;
+			if (y > y1) y1 = y;
+		}
+	}
+	if (n < minPix || x1 - x0 + 1 < minW) return false;
+	o->w = x1 - x0 + 1;
+	o->h = y1 - y0 + 1;
+	memset(o->on, 0, sizeof(o->on));
+	for (int y = y0; y <= y1; ++y) {
+		for (int x = x0; x <= x1; ++x) {
+			uint32_t c = s->fb[y * GBA_W + x], k = c & 0xFFFFFF;
+			if (k == brown || k == edge) {
+				o->c[(y - y0) * o->w + (x - x0)] = c;
+				o->on[(y - y0) * o->w + (x - x0)] = 1;
+			}
+		}
+	}
+	return true;
+}
+static void bt_lay(const BtCut* o, uint32_t* out, int w, int h, int X, int Y) {
+	if (o->w <= 0) return;
+	for (int y = 0; y < o->h; ++y) {
+		for (int x = 0; x < o->w; ++x) {
+			int dx = X + x, dy = Y + y;
+			if (o->on[y * o->w + x] && dx >= 0 && dx < w && dy >= 0 && dy < h) out[dy * w + dx] = o->c[y * o->w + x];
+		}
+	}
+}
+/* The clock at the top left, the sunrise and the sunset stacked at the top
+ * right: BT_PAD from the left, the right and the top; the clock on the
+ * sunrise's line (the bottoms of their digits level). */
+static void bt_lines(uint32_t* out, int w, int h) {
+	int lineH = btRise.w > 0 ? btRise.h : btClock.h;
+	/* (the sunrise and the sunset keep the game's own columns: left-aligned
+	 * with each other, the wider one BT_PAD from the right edge) */
+	int blockW = btRise.w > btSet.w ? btRise.w : btSet.w;
+	bt_lay(&btClock, out, w, h, BT_PAD, BT_PAD + (lineH > btClock.h ? lineH - btClock.h : 0));
+	bt_lay(&btRise, out, w, h, w - BT_PAD - blockW, BT_PAD);
+	bt_lay(&btSet, out, w, h, w - BT_PAD - blockW, BT_PAD + (btRise.w > 0 ? btRise.h : btSet.h) + 1);
+}
+/* From the ITEM page's picture, then START (the sunrise), START (the sunset). */
+static void bt_visit_item(Emu* s) {
+	for (int tries = 0; tries < 2 && emu_read8(s, BT_PAGE) != 0; ++tries) {
+		aw_run(s, K_R, 3);
+		for (int f = 0; f < 30 && emu_read8(s, BT_PAGE) != 0; ++f) emu_frame_blind(s, 0);
+	}
+	if (!aw_settle(s, bt_item_up, 240)) return;
+	BtCut c;
+	if (bt_cut(s, &c, 40, 30) && c.w < 60) btClock = c;
+	/* (the two lines have a label as well: far more pixels than the clock) */
+	BtCut* to[2] = { &btRise, &btSet };
+	for (int i = 0; i < 2; ++i) {
+		aw_run(s, K_START, 3);
+		bool got = false;
+		for (int f = 0; f < 8 && !got; ++f) {
+			emu_frame(s, 0);
+			got = bt_cut(s, &c, 150, 70);
+		}
+		if (!got) return;
+		*to[i] = c;
+	}
+	btCutAt = bt_ms();
+}
+static const char* bt_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	if (emu_read8(s, BT_MENU) != 0) return "not playing";
+	emu_hide_sprites(s, btPrompts, sizeof(btPrompts) / sizeof(btPrompts[0]));
+	const char* err = NULL;
+	aw_run(s, K_SELECT, 3);
+	for (int f = 0; f < 60 && emu_read8(s, BT_MENU) != 1; ++f) emu_frame_blind(s, 0);
+	if (emu_read8(s, BT_MENU) != 1) {
+		err = "SELECT opened no menu";
+	} else {
+		/* (Item: L is the Map; Weapon: R is) */
+		for (int tries = 0; tries < 3 && emu_read8(s, BT_PAGE) != 2; ++tries) {
+			aw_run(s, emu_read8(s, BT_PAGE) == 0 ? K_L : K_R, 3);
+			for (int f = 0; f < 30 && emu_read8(s, BT_PAGE) != 2; ++f) emu_frame_blind(s, 0);
+		}
+		if (!aw_settle(s, bt_map_up, 240)) err = "the Map did not open";
+	}
+	if (err) {
+		emu_hide_sprites(s, NULL, 0);
+		return err;
+	}
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+	/* BT-8: the lines from the ITEM page beside the Map, now and then (the
+	 * prompts' rules off for it) */
+	emu_hide_sprites(s, NULL, 0);
+	if (btCutAt < 0 || bt_ms() - btCutAt >= BT_REFRESH_MS) bt_visit_item(s);
+	bt_lines(out, w, h);
+	return NULL;
 }
 
 /* ---------------------------------------------------------- Rebelstar: Tactical Command
@@ -9643,6 +10000,29 @@ static const MapProfile profiles[] = {
 		.logo = { .wait = 1000, .mask = &logoMaskER, .rev = 1 },
 	},
 	{
+		/* Final Fantasy VI Advance: walking about, START's menu as the party
+		 * screen: see ff6_compose (docs/games/final-fantasy-vi-advance.md) */
+		.codes = { "BZ6E" },
+		.title = "Final Fantasy VI Advance",
+		.compose = ff6_compose,
+		.virt = ff6_virt,
+		/* the corner minimap isn't drawn on the game screen: it's on the
+		 * second (FF6-10, FF6-11) */
+		.hideSprites = { FF6_HIDE_MINIMAP },
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* outside the game and after a game over: the logo, the pictures
+		 * dropped, no captures (FF6-2, FF6-9) */
+		.live = { { FF6_V_LOGO, 0xFF, 0, 4 } },
+		.menu = { { FF6_V_LOGO, 0xFF, 1, 4 } },
+		/* another map, a battle over: taken again at once (FF6-4, FF6-7) */
+		.room = { { FF6_MAP, 0xFFFF, 0, 2 }, { FF6_V_BATTLE, 0xFF, 0, 1 } },
+		/* the title's lettering (BG0): past the health warning (A), the logos
+		 * and the title's own animation */
+		.logo = { .steps = { { 0, 500 }, { K_A, 4 }, { 0, 1500 }, { K_A, 4 }, { 0, 300 } },
+		          .layers = 0x01, .maxY = 100, .lightEdgeClear = true },
+	},
+	{
 		/* the same for Europe: A on its language screen (English) first */
 		.codes = { "BENP" },
 		.title = "Eragon",
@@ -9782,6 +10162,32 @@ static const MapProfile profiles[] = {
 		.logo = { .steps = { { 0, 200 }, { K_A, 4 }, { 0, 400 }, { K_A, 4 }, { 0, 1800 } }, .layer = 3, .maxY = 160, .blackIsClear = true },
 	},
 	{
+		/* Boktai: The Sun Is in Your Hand (USA; the other releases are
+		 * variants): the Map page of SELECT's menu, see bt_compose */
+		.codes = { "U3IE" },
+		.title = "Boktai: The Sun Is in Your Hand",
+		.compose = bt_compose,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* captures only while playing: not in the menus, the pause or on
+		 * the title (BT-3) */
+		.live = { { BT_MENU, 0xFF, 0, 1 } },
+		/* back on the title or the file menu (0 there, 40 while in the game) */
+		.menu = { { 0x02001B38, 0xFF, 0, 1 } },
+		/* the title's lettering (BG3) and its banner (sprites), over the
+		 * sun, above its PUSH START line; the first start asks for the sensor and the
+		 * clock first (A through them, START to end), then the Konami
+		 * logos and the caution take until the title (BT-5) */
+		.logo = { .steps = { { 0, 600 }, { K_A, 3 }, { 0, 90 }, { K_A, 3 }, { 0, 90 }, { K_A, 3 }, { 0, 90 }, { K_A, 3 }, { 0, 90 },
+		                     { K_A, 3 }, { 0, 90 }, { K_A, 3 }, { 0, 90 }, { K_A, 3 }, { 0, 90 }, { K_A, 3 }, { 0, 90 },
+		                     { K_START, 3 }, { 0, 1100 } },
+		          .layers = 0x18, .maxY = 120,
+		          /* the tan and brown blends round the yellow outline (the
+		           * sun's colours dithered in) are clear, so the outline
+		           * is the edge (BT-5) */
+		          .edgeClear = { 0x8C634A, 0xC68C63, 0x7B524A, 0xDEA542 }, .rev = 1 },
+	},
+	{
 		/* Final Fantasy I & II: Dawn of Souls (two games, each with its
 		 * own memory): walking about, Final Fantasy's world map or START's
 		 * menu: see ff_compose */
@@ -9801,27 +10207,23 @@ static const MapProfile profiles[] = {
 		.logo = { .steps = { { 0, 1000 } }, .layers = 0x0A, .maxY = 130 },
 	},
 	{
-		/* Final Fantasy VI Advance: walking about, START's menu as the party
-		 * screen: see ff6_compose (docs/games/final-fantasy-vi-advance.md) */
-		.codes = { "BZ6E" },
-		.title = "Final Fantasy VI Advance",
-		.compose = ff6_compose,
-		.virt = ff6_virt,
-		/* the corner minimap isn't drawn on the game screen: it's on the
-		 * second (FF6-10, FF6-11) */
-		.hideSprites = { FF6_HIDE_MINIMAP },
+		/* Final Fantasy V Advance: the party screen, START's menu without
+		 * its commands: see ffv_compose
+		 * (docs/games/final-fantasy-v-advance.md) */
+		.codes = { "BZ5E" },
+		.title = "Final Fantasy V Advance",
+		.compose = ffv_compose,
+		.virt = ffv_virt,
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
-		/* outside the game and after a game over: the logo, the pictures
-		 * dropped, no captures (FF6-2, FF6-9) */
-		.live = { { FF6_V_LOGO, 0xFF, 0, 4 } },
-		.menu = { { FF6_V_LOGO, 0xFF, 1, 4 } },
-		/* another map, a battle over: taken again at once (FF6-4, FF6-7) */
-		.room = { { FF6_MAP, 0xFFFF, 0, 2 }, { FF6_V_BATTLE, 0xFF, 0, 1 } },
-		/* the title's lettering (BG0): past the health warning (A), the logos
-		 * and the title's own animation */
-		.logo = { .steps = { { 0, 500 }, { K_A, 4 }, { 0, 1500 }, { K_A, 4 }, { 0, 300 } },
-		          .layers = 0x01, .maxY = 100, .lightEdgeClear = true },
+		/* outside the game and at a game over: the logo, the pictures
+		 * dropped, no captures (FV-2, FV-8) */
+		.live = { { FFV_V_LOGO, 0xFF, 0, 4 } },
+		.menu = { { FFV_V_LOGO, 0xFF, 1, 4 } },
+		/* another map, a battle begun or over: taken again at once (FV-3, FV-6) */
+		.room = { { FFV_V_MAP, 0xFFFF, 0, 4 }, { FFV_V_BATTLE, 0xFF, 0, 4 } },
+		/* the title's lettering and dragon (BG2) on its white background */
+		.logo = { .steps = { { 0, 300 }, { K_A, 4 }, { 0, 1000 }, { K_A, 4 }, { 0, 300 } }, .layer = 2, .maxY = 110, .lightEdgeClear = true },
 	},
 	{
 		/* Rebelstar: Tactical Command (USA; Europe: below). In a battle, the
@@ -9917,6 +10319,12 @@ static void lang_menu(MapProfile* p) {
  * (BG2) and the katakana under it (BG3) (FF-1) */
 static void ff_eur(MapProfile* p) {
 	static const MacroStep steps[] = { { 0, 300 }, { K_A, 4 }, { 0, 1000 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+}
+/* Final Fantasy V Advance in Europe: the language menu first (A: English) */
+static void ffv_eur(MapProfile* p) {
+	static const MacroStep steps[] = { { 0, 300 }, { K_A, 4 }, { 0, 300 }, { K_A, 4 }, { 0, 1000 }, { K_A, 4 }, { 0, 300 } };
 	memset(p->logo.steps, 0, sizeof(p->logo.steps));
 	memcpy(p->logo.steps, steps, sizeof(steps));
 }
@@ -10316,6 +10724,9 @@ static void pp_eur(MapProfile* p) {
 
 static const Variant variants[] = {
 	{ "AGSD", "AGSE", 0, gs_ger },
+	/* Boktai: Europe and Japan (the USA release's addresses: bk_compose) */
+	{ "U3IP", "U3IE", 0, NULL },
+	{ "U3IJ", "U3IE", 0, NULL },
 	/* Golden Sun: The Lost Age's other releases */
 	{ "AGFD", "AGFE", 0, gs2_ger },
 	{ "AGFF", "AGFE", 0, gs2_fra },
@@ -10397,6 +10808,9 @@ static const Variant variants[] = {
 	/* (Final Fantasy I & II's addresses: FfRegion) */
 	{ "BFFP", "BFFE", 0, ff_eur },
 	{ "BFFJ", "BFFE", 0, ff_jpn },
+	/* (Final Fantasy V Advance's addresses: FfvRegion) */
+	{ "BZ5P", "BZ5E", 0, ffv_eur },
+	{ "BZ5J", "BZ5E", 0, NULL },
 	/* (Final Fantasy VI Advance's RAM: the same in every release) */
 	{ "BZ6P", "BZ6E", 0, ff6_eur },
 	{ "BZ6J", "BZ6E", 0, ff6_jpn },
