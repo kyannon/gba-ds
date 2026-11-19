@@ -7104,39 +7104,67 @@ static bool smt_px(const uint32_t* fb, int x, int y, uint32_t rgb) {
 	return abs(r - (int)((rgb >> 16) & 0xFF)) <= 8 && abs(g - (int)((rgb >> 8) & 0xFF)) <= 8 && abs(b - (int)(rgb & 0xFF)) <= 8;
 }
 
-/* L from the first-person view, and the map drawn to its last piece (the
- * floor's name box, about 52 frames) */
-static const char* smt_open(Emu* s, const void* state) {
+static void smt_layers(Emu* s, void* st, unsigned mask, uint32_t* dst);
+
+/* the picture's view (map, markers and backdrop) the same twice running, 8
+ * frames apart: drawn to the end, the markers at their places (they lagged
+ * a step behind the map when a press came in mid-step) */
+static bool smt_settle(Emu* s, void* st, uint32_t* a, uint32_t* b) {
+	int same = 0;
+	for (int f = 0; f < 30 && same < 2; ++f) {
+		for (int i = 0; i < 8; ++i) emu_frame_blind(s, 0);
+		smt_layers(s, st, 0x1C, f & 1 ? a : b);
+		if (f > 0 && !memcmp(a, b, (size_t)SMT_VIEW * GBA_W * sizeof(uint32_t))) ++same;
+		else same = 0;
+	}
+	return same >= 2;
+}
+
+/* L from the first-person view, and the map drawn to its last tile: the map
+ * layer (and the backdrop) the same twice running, 8 frames apart. (The game
+ * draws it over about 52 frames, later when the press came in mid-step, so a
+ * fixed wait gave half-drawn maps.) `st` is the state buffer, `a` and `b`
+ * two spare frames. */
+static const char* smt_open(Emu* s, const void* state, void* st, uint32_t* a, uint32_t* b) {
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame_blind(s, 0);
 	if (emu_read8(s, SMT_MODE) != 0x01) return "not walking";
+	/* a step or a turn still going on is let finish first (the copy gets no
+	 * keys): the position and facing the same for 20 frames. Opened mid-step
+	 * the markers moved between one piece and the next. */
+	{
+		uint32_t at = 0;
+		int still = 0;
+		for (int f = 0; f < 90 && still < 20; ++f) {
+			emu_frame_blind(s, 0);
+			uint32_t now = emu_read16(s, SMT_X) | (uint32_t)emu_read16(s, SMT_Y) << 16 | (uint32_t)emu_read8(s, SMT_FACING) << 8;
+			still = f > 0 && now == at ? still + 1 : 0;
+			at = now;
+		}
+		if (still < 20 || emu_read8(s, SMT_MODE) != 0x01) return "not standing still";
+	}
 	for (int i = 0; i < 4; ++i) emu_frame_blind(s, K_L);
 	/* nothing by 20 frames: no automap here (the first dungeon, before the
 	 * app; a town): a quick failure (SMT-4) */
 	int f = 0;
 	while (f < 20 && emu_read8(s, SMT_MODE) != 0x10) emu_frame_blind(s, 0), ++f;
 	if (emu_read8(s, SMT_MODE) != 0x10) return "map button did nothing";
-	for (f = 0; f < 52; ++f) emu_frame_blind(s, 0);
-	for (f = 0; f < 140; ++f) {
-		emu_frame(s, 0);
-		if (smt_px(s->fb, 216, 98, 0x73738C)) break;
-	}
-	if (f >= 140) return "map screen did not appear";
+	for (f = 0; f < 36; ++f) emu_frame_blind(s, 0);
+	if (!smt_settle(s, st, a, b)) return "map did not finish drawing";
+	emu_frame(s, 0);
+	if (!smt_px(s->fb, 216, 98, 0x73738C)) return "map screen did not appear";
 	return NULL;
 }
 
 /* one step of the scroll, key UP or DOWN: pressed until the game's counter
  * moves (a press during the last step's slide is lost), then 12 frames for
  * the slide to end; false at the end of the map's scroll */
-static bool smt_step(Emu* s, uint32_t key) {
+static bool smt_step(Emu* s, uint32_t key, void* st, uint32_t* a, uint32_t* b) {
 	int32_t before = smt_scroll(s);
 	for (int tries = 0; tries < 3; ++tries) {
 		for (int i = 0; i < 4; ++i) emu_frame_blind(s, key);
 		for (int i = 0; i < 24 && smt_scroll(s) == before; ++i) emu_frame_blind(s, 0);
-		if (smt_scroll(s) != before) {
-			for (int i = 0; i < 12; ++i) emu_frame_blind(s, 0);
-			return true;
-		}
+		if (smt_scroll(s) != before) return smt_settle(s, st, a, b);
 	}
 	return false;
 }
@@ -7157,23 +7185,24 @@ static const char* smt_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	const size_t n = (size_t)GBA_W * GBA_H;
 	if (w != GBA_W || h != SMT_H) return "wrong picture size";
 	void* st = malloc(emu_state_size(s));
-	uint32_t* fr = malloc((2 + 1 + 2 * SMT_STEPS) * n * sizeof(uint32_t));
+	uint32_t* fr = malloc((2 + 1 + 2 * SMT_STEPS + 2) * n * sizeof(uint32_t));
 	if (!st || !fr) { free(st); free(fr); return "out of memory"; }
 	uint32_t *full = fr, *back = fr + n, *views = fr + 2 * n; /* views[k]: shift[k] rows */
+	uint32_t *sa = fr + (3 + 2 * SMT_STEPS) * n, *sb = sa + n; /* spare */
 	int shift[1 + 2 * SMT_STEPS], nv = 0;
-	const char* err = smt_open(s, state);
+	const char* err = smt_open(s, state, st, sa, sb);
 	if (!err) {
 		int32_t c0 = smt_scroll(s);
 		smt_layers(s, st, 0x1F, full);
 		smt_layers(s, st, 0x08, back);
 		smt_layers(s, st, 0x1C, views), shift[nv++] = 0;
-		for (int k = 1; k <= SMT_STEPS && smt_step(s, K_UP); ++k) {
+		for (int k = 1; k <= SMT_STEPS && smt_step(s, K_UP, st, sa, sb); ++k) {
 			smt_layers(s, st, 0x1C, views + (size_t)nv * n);
 			shift[nv++] = 8 * (smt_scroll(s) - c0);
 		}
 		/* back to the start, and as far down */
-		if (!(err = smt_open(s, state))) {
-			for (int k = 1; k <= SMT_STEPS && smt_step(s, K_DOWN); ++k) {
+		if (!(err = smt_open(s, state, st, sa, sb))) {
+			for (int k = 1; k <= SMT_STEPS && smt_step(s, K_DOWN, st, sa, sb); ++k) {
 				smt_layers(s, st, 0x1C, views + (size_t)nv * n);
 				shift[nv++] = 8 * (smt_scroll(s) - c0);
 			}

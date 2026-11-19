@@ -771,6 +771,678 @@
      "frac": 0.97
     }
    ]
+  },
+  {
+   "id": "smt-fh-walk-north",
+   "rom": "AAUJ+en13b-font",
+   "state": "shin-megami-tensei/fh-wall-north.ss",
+   "save": "AAUJ.sav",
+   "desc": "walking north from a bug report's spot, the map recaptured every second: the same picture each time, nothing half drawn or doubled",
+   "rules": [
+    "SMT-3",
+    "SMT-8"
+   ],
+   "input": [
+    [
+     111,
+     "UP"
+    ],
+    [
+     119,
+     "-"
+    ],
+    [
+     169,
+     "UP"
+    ],
+    [
+     177,
+     "-"
+    ],
+    [
+     227,
+     "UP"
+    ],
+    [
+     235,
+     "-"
+    ],
+    [
+     285,
+     "UP"
+    ],
+    [
+     293,
+     "-"
+    ],
+    [
+     343,
+     "UP"
+    ],
+    [
+     351,
+     "-"
+    ],
+    [
+     401,
+     "UP"
+    ],
+    [
+     409,
+     "-"
+    ],
+    [
+     459,
+     "UP"
+    ],
+    [
+     467,
+     "-"
+    ],
+    [
+     517,
+     "UP"
+    ],
+    [
+     525,
+     "-"
+    ],
+    [
+     575,
+     "UP"
+    ],
+    [
+     583,
+     "-"
+    ],
+    [
+     633,
+     "UP"
+    ],
+    [
+     641,
+     "-"
+    ],
+    [
+     691,
+     "UP"
+    ],
+    [
+     699,
+     "-"
+    ],
+    [
+     749,
+     "UP"
+    ],
+    [
+     757,
+     "-"
+    ],
+    [
+     807,
+     "UP"
+    ],
+    [
+     815,
+     "-"
+    ],
+    [
+     865,
+     "UP"
+    ],
+    [
+     873,
+     "-"
+    ],
+    [
+     923,
+     "UP"
+    ],
+    [
+     931,
+     "-"
+    ],
+    [
+     981,
+     "UP"
+    ],
+    [
+     989,
+     "-"
+    ],
+    [
+     1039,
+     "UP"
+    ],
+    [
+     1047,
+     "-"
+    ],
+    [
+     1097,
+     "UP"
+    ],
+    [
+     1105,
+     "-"
+    ],
+    [
+     1155,
+     "UP"
+    ],
+    [
+     1163,
+     "-"
+    ],
+    [
+     1213,
+     "UP"
+    ],
+    [
+     1221,
+     "-"
+    ]
+   ],
+   "shots": {
+    "s02": 170,
+    "s03": 230,
+    "s04": 290,
+    "s05": 350,
+    "s06": 410,
+    "s07": 470,
+    "s08": 530,
+    "s09": 590,
+    "s10": 650,
+    "s11": 710,
+    "s12": 770,
+    "s13": 830,
+    "s14": 890,
+    "s15": 950,
+    "s16": 1010,
+    "s17": 1070,
+    "s18": 1130,
+    "s19": 1190,
+    "s20": 1250,
+    "s21": 1310
+   },
+   "checks": [
+    {
+     "rule": "SMT-3",
+     "what": "the map at s03 is the same as at s02",
+     "type": "same",
+     "a": {
+      "shot": "s02",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "s03",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    },
+    {
+     "rule": "SMT-3",
+     "what": "the map at s04 is the same as at s02",
+     "type": "same",
+     "a": {
+      "shot": "s02",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "s04",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    },
+    {
+     "rule": "SMT-3",
+     "what": "the map at s05 is the same as at s02",
+     "type": "same",
+     "a": {
+      "shot": "s02",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "s05",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    },
+    {
+     "rule": "SMT-3",
+     "what": "the map at s06 is the same as at s02",
+     "type": "same",
+     "a": {
+      "shot": "s02",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "s06",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    },
+    {
+     "rule": "SMT-3",
+     "what": "the map at s07 is the same as at s02",
+     "type": "same",
+     "a": {
+      "shot": "s02",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "s07",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    },
+    {
+     "rule": "SMT-3",
+     "what": "the map at s08 is the same as at s02",
+     "type": "same",
+     "a": {
+      "shot": "s02",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "s08",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    },
+    {
+     "rule": "SMT-3",
+     "what": "the map at s09 is the same as at s02",
+     "type": "same",
+     "a": {
+      "shot": "s02",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "s09",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    },
+    {
+     "rule": "SMT-3",
+     "what": "the map at s10 is the same as at s02",
+     "type": "same",
+     "a": {
+      "shot": "s02",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "s10",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    },
+    {
+     "rule": "SMT-3",
+     "what": "the map at s11 is the same as at s02",
+     "type": "same",
+     "a": {
+      "shot": "s02",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "s11",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    },
+    {
+     "rule": "SMT-3",
+     "what": "the map at s12 is the same as at s02",
+     "type": "same",
+     "a": {
+      "shot": "s02",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "s12",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    },
+    {
+     "rule": "SMT-3",
+     "what": "the map at s13 is the same as at s02",
+     "type": "same",
+     "a": {
+      "shot": "s02",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "s13",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    },
+    {
+     "rule": "SMT-3",
+     "what": "the map at s14 is the same as at s02",
+     "type": "same",
+     "a": {
+      "shot": "s02",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "s14",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    },
+    {
+     "rule": "SMT-3",
+     "what": "the map at s15 is the same as at s02",
+     "type": "same",
+     "a": {
+      "shot": "s02",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "s15",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    },
+    {
+     "rule": "SMT-3",
+     "what": "the map at s16 is the same as at s02",
+     "type": "same",
+     "a": {
+      "shot": "s02",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "s16",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    },
+    {
+     "rule": "SMT-3",
+     "what": "the map at s17 is the same as at s02",
+     "type": "same",
+     "a": {
+      "shot": "s02",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "s17",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    },
+    {
+     "rule": "SMT-3",
+     "what": "the map at s18 is the same as at s02",
+     "type": "same",
+     "a": {
+      "shot": "s02",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "s18",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    },
+    {
+     "rule": "SMT-3",
+     "what": "the map at s19 is the same as at s02",
+     "type": "same",
+     "a": {
+      "shot": "s02",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "s19",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    },
+    {
+     "rule": "SMT-3",
+     "what": "the map at s20 is the same as at s02",
+     "type": "same",
+     "a": {
+      "shot": "s02",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "s20",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    },
+    {
+     "rule": "SMT-3",
+     "what": "the map at s21 is the same as at s02",
+     "type": "same",
+     "a": {
+      "shot": "s02",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "s21",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    }
+   ]
   }
  ]
 }
