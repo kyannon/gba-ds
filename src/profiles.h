@@ -818,6 +818,7 @@ typedef struct MapProfile {
 	 * file, for copies of its own (Mega Man Battle Network's area maps on
 	 * the net, made by a third copy beside the game, MMBN-6) */
 	const uint32_t* (*liveView)(Emu* live, const char* rom);
+	int (*holdPage)(Emu* live); /* the page of the second screen to keep up while this says (>= 0) rather than turning (Pokémon: the Party in a battle), -1: turn as usual */
 	/* Instead of compose: several pictures (pages shown in turn, `*step`
 	 * emulated frames each); out[0..*n) on return, *n the most on the way in */
 	const char* (*composePages)(Emu* s, const void* state, uint32_t* const* out, int* n, int* step, int w, int h);

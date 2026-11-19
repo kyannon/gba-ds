@@ -7716,6 +7716,11 @@ static const char* pk_nav_map(Emu* s, const PkFam* f, const void* state, uint32_
  * until the map's registers come up (the copy is loaded afresh each time,
  * so whatever another item does is gone). The row that worked is the first
  * to try next time. */
+/* In a battle the game draws with the sprite window (DISPCNT bit 15), which
+ * nothing else in these games does: the Party stays up (PK-4) */
+static int pk_hold_page(Emu* live) {
+	return (emu_io16(live, 0) & 0x8000) ? 0 : -1;
+}
 /* a hash of the Bag's list (the right of the screen: the bag's own picture
  * on the left moves) */
 static uint32_t pk_list_hash(Emu* s) {
@@ -8497,6 +8502,7 @@ static const MapProfile profiles[] = {
 		.title = TITLE, \
 		.composePages = pk_pages, \
 		.virt = pk_virt, \
+		.holdPage = pk_hold_page, \
 		.interval = 180, \
 		.room = { { PK_VIRT, 0xFFFFFFFF, 0, 4 } }, \
 		.crop_w = GBA_W, \

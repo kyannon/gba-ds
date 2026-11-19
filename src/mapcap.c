@@ -849,6 +849,7 @@ void mapcap_destroy(MapCapture* mc) {
 	if (mc->running) {
 		pthread_mutex_lock(&mc->lock);
 		mc->running = false;
+		if (mc->busy) mc->cancel = true; /* (closing: a capture running isn't waited for: some take seconds) */
 		pthread_cond_signal(&mc->cond);
 		pthread_mutex_unlock(&mc->lock);
 		pthread_join(mc->thread, NULL);

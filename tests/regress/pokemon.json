@@ -530,6 +530,7 @@
    "desc": "Super MarioMon: the tutorial battle: the logo",
    "rules": [
     "PK-1",
+    "PK-4",
     "PK-8"
    ],
    "shots": {
@@ -648,9 +649,10 @@
    "id": "pk-mm-wild-battle",
    "rom": "BPEE+mariomon",
    "state": "pokemon/mm-wild-battle.ss",
-   "desc": "Super MarioMon: a wild battle: the Party kept",
+   "desc": "Super MarioMon: a wild battle: the Party stays up (PK-4)",
    "rules": [
     "PK-1",
+    "PK-4",
     "PK-8"
    ],
    "shots": {

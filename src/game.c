@@ -1071,6 +1071,11 @@ static uint64_t mapAnimStart;
  * frameCount (it once came from the game played before: frames[-1]) */
 static int map_anim_index(void) {
 	if (mapRes.nFrames < 1 || frameCount < mapAnimStart) return 0;
+	const MapProfile* hp = mc ? mapcap_profile(mc) : NULL;
+	if (hp && hp->holdPage) {
+		int hold = hp->holdPage(&emu); /* (a page kept up: Pokémon's Party in a battle) */
+		if (hold >= 0 && hold < mapRes.nFrames) return hold;
+	}
 	return (int) (((frameCount - mapAnimStart) / (uint64_t) SDL_max(1, mapRes.frameStep)) % (uint64_t) mapRes.nFrames);
 }
 static bool singleShowsMap;

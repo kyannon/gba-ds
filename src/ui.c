@@ -2209,35 +2209,85 @@ static bool file_there(const char* p) {
 	return f != NULL;
 }
 
-/* The ROM file's own CRC32 (read once per file; the game's logo is per file
- * for the games where romhacks share a code), 0 if it can't be read */
+/* The ROM file's own CRC32: the game's logo is per file for the games where
+ * romhacks share a code. Reading a whole ROM is slow (a list of fifty
+ * Pokémon ROMs read them all, again at every return to the list), so it's
+ * read only for a game whose logo is being shown (compute), kept for every
+ * file (path, size, date) in <state_dir>/romcrc.cache, and a prefetch for
+ * the others just waits until it's known. 0 if not known / not readable. */
 uint32_t doCrc32(const void* buf, size_t size);
-static uint32_t rom_file_crc(const char* rom) {
-	static struct { char path[600]; long long size, mtime; uint32_t crc; } seen[24];
-	static int next;
+typedef struct { char path[600]; long long size, mtime; uint32_t crc; } FileCrc;
+#define FILE_CRC_MAX 512
+static FileCrc fileCrc[FILE_CRC_MAX];
+static int nFileCrc;
+static bool fileCrcLoaded;
+static char fileCrcPath[1200];
+static void file_crc_load(const Config* c) {
+	if (fileCrcLoaded) return;
+	fileCrcLoaded = true;
+	snprintf(fileCrcPath, sizeof(fileCrcPath), "%s/romcrc.cache", c->stateDir);
+	FILE* f = fopen(fileCrcPath, "r");
+	if (!f) return;
+	char line[1400];
+	while (nFileCrc < FILE_CRC_MAX && fgets(line, sizeof(line), f)) {
+		FileCrc e;
+		unsigned crc;
+		int off = 0;
+		if (sscanf(line, "%lld %lld %x %n", &e.size, &e.mtime, &crc, &off) < 3 || !off) continue;
+		line[strcspn(line, "\r\n")] = 0;
+		snprintf(e.path, sizeof(e.path), "%s", line + off);
+		e.crc = crc;
+		fileCrc[nFileCrc++] = e;
+	}
+	fclose(f);
+}
+static uint32_t rom_file_crc(const Config* c, const char* rom, bool compute) {
 	struct stat st;
 	if (!rom || !*rom || stat(rom, &st)) return 0;
-	for (int i = 0; i < 24; ++i)
-		if (!strcmp(seen[i].path, rom) && seen[i].size == st.st_size && seen[i].mtime == st.st_mtime) return seen[i].crc;
+	file_crc_load(c);
+	for (int i = 0; i < nFileCrc; ++i)
+		if (fileCrc[i].size == st.st_size && fileCrc[i].mtime == st.st_mtime && !strcmp(fileCrc[i].path, rom)) return fileCrc[i].crc;
+	if (!compute) return 0;
 	size_t n = 0;
 	uint8_t* buf = emu_rom_read_all(rom, &n);
 	uint32_t crc = buf ? doCrc32(buf, n) : 0;
 	free(buf);
-	snprintf(seen[next].path, sizeof(seen[next].path), "%s", rom);
-	seen[next].size = st.st_size, seen[next].mtime = st.st_mtime, seen[next].crc = crc;
-	next = (next + 1) % 24;
+	if (!crc) return 0;
+	FileCrc e = { .size = st.st_size, .mtime = st.st_mtime, .crc = crc };
+	snprintf(e.path, sizeof(e.path), "%s", rom);
+	int at = nFileCrc < FILE_CRC_MAX ? nFileCrc++ : 0; /* (full: the oldest slot) */
+	for (int i = 0; i < nFileCrc; ++i)
+		if (!strcmp(fileCrc[i].path, rom)) at = i; /* (the file changed: its entry again) */
+	fileCrc[at] = e;
+	FILE* f = fopen(fileCrcPath, "w");
+	if (f) {
+		for (int i = 0; i < nFileCrc; ++i) fprintf(f, "%lld %lld %08X %s\n", fileCrc[i].size, fileCrc[i].mtime, fileCrc[i].crc, fileCrc[i].path);
+		fclose(f);
+	}
 	return crc;
 }
 
 /* The extracted logo's file (whether it exists yet or not): per code, or
- * (profile logoPerRom) per ROM file, so romhacks that share a game code each
- * get their own; a patched game is its base ROM file, so it has the base's. */
-static void extracted_path(const Config* c, const char* rom, const char* code, char* path, size_t n) {
+ * (profile logoPerRom) per ROM file, so romhacks that share a code each
+ * get their own; a patched game is its base ROM file, so it has the base's.
+ * False when the ROM file's checksum isn't known yet and isn't being asked
+ * for (compute): nothing to look for, or make, yet. */
+static bool extracted_path_for(const Config* c, const char* rom, const char* code, char* path, size_t n, bool compute) {
 	const MapProfile* prof = profile_find(code);
-	uint32_t crc = prof && prof->logoPerRom ? rom_file_crc(rom) : 0;
-	if (crc) snprintf(path, n, "%s/logos/%.4s-%08X.png", c->stateDir, code, crc);
-	else if (prof && prof->logo.rev) snprintf(path, n, "%s/logos/%.4s-r%d.png", c->stateDir, code, prof->logo.rev);
+	if (prof && prof->logoPerRom) {
+		uint32_t crc = rom_file_crc(c, rom, compute);
+		if (crc) {
+			snprintf(path, n, "%s/logos/%.4s-%08X.png", c->stateDir, code, crc);
+			return true;
+		}
+		if (!compute) return false;
+	}
+	if (prof && prof->logo.rev) snprintf(path, n, "%s/logos/%.4s-r%d.png", c->stateDir, code, prof->logo.rev);
 	else snprintf(path, n, "%s/logos/%.4s.png", c->stateDir, code);
+	return true;
+}
+static void extracted_path(const Config* c, const char* rom, const char* code, char* path, size_t n) {
+	extracted_path_for(c, rom, code, path, n, true);
 }
 
 /* The player's own logo for the game: <asset_dir>/logos/<CODE>.png|.bmp|.jpg|.webp. */
@@ -2481,7 +2531,7 @@ void ui_logo_queue(const Config* c, const char* rom, const char* code) {
 	char path[1200];
 	snprintf(path, sizeof(path), "%s/logos", c->stateDir);
 	mkdirs(path);
-	extracted_path(c, rom, code, path, sizeof(path));
+	if (!extracted_path_for(c, rom, code, path, sizeof(path), false)) return; /* (its checksum isn't known yet) */
 	if (!file_there(path)) logo_request(rom, code, path);
 }
 
