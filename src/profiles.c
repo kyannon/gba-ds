@@ -7467,6 +7467,7 @@ typedef struct {
 	/* the START menu's panel ends here (FireRed has a description box below it) */
 	int menuBottom;
 	int partyClean, partyFrom;
+	int partySide; /* a row above that where the box's bottom edge is: only the left of the boxes is cleaned (the stub of the message box), 0: none */
 	/* the map's button prompts: each is a box x0 to x1, y0 to y1, filled row
 	 * by row from the pixel at column fx of that row */
 	int mapClean[3][5];
@@ -7483,7 +7484,7 @@ static const PkFam pkRs = {
 	.party = { { 0x1F40, 0x1E06, 0x0703, 0x0F08, 0x0602 } },
 	.nav = { { 0x3F40, 0x1F01, 0x1B0C, 0x1D0A, 0x1C0B } },
 	.map = { { 0x1741, 0x1F01, 0x1B0C, 0xBC8A, 0x1C0B } },
-	.partyClean = 130, .partyFrom = 193, .menuBottom = 158,
+	.partyClean = 129, .partyFrom = 193, .partySide = 128, .menuBottom = 158,
 	.mapClean = { { 0, 118, 144, 159, 122 } },
 };
 /* Emerald: the Party is FireRed's screen, the Pokénav its own */
@@ -7642,9 +7643,23 @@ static const char* pk_menu_top(Emu* s, const PkFam* f, const void* state) {
 static void pk_go(Emu* s, int n) {
 	for (int i = 0; i < (n < 0 ? -n : n); ++i) pk_tap(s, n < 0 ? K_UP : pkNext);
 }
+/* What the capture has learned about the game it is running (the START menu's
+ * rows, where the Town Map is, the last map taken). All of it belongs to one
+ * ROM: pk_pages starts it again when another game's capture arrives, or a
+ * map from the game played before would be shown (and a search that found no
+ * Town Map there would be believed here). */
+static struct {
+	uint32_t rom;
+	bool known;
+	int partyRow, navGood, first, goodBag, tick, wait;
+	bool noMapKnown, have;
+	uint32_t noMapHash;
+	uint32_t keep[GBA_W * GBA_H];
+} pkMem;
 static const char* pk_party(Emu* s, const PkFam* f, const void* state, uint32_t* out, int w, int h) {
-	static int row = 1; /* POKéMON is the second entry once there's a Pokédex */
-	for (int t = 0; t < 2; ++t, row ^= 1) {
+	int* const prow = &pkMem.partyRow; /* POKéMON is the second entry once there's a Pokédex */
+	for (int t = 0; t < 2; ++t, *prow ^= 1) {
+		int row = *prow;
 		const char* err = pk_menu_top(s, f, state);
 		if (err) return err;
 		pk_go(s, row);
@@ -7656,6 +7671,9 @@ static const char* pk_party(Emu* s, const PkFam* f, const void* state, uint32_t*
 		pk_tap(s, K_UP);
 		aw_run(s, 0, 8);
 		for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+		if (f->partySide) {
+			for (int x = 0; x < 80 && x < w; ++x) out[f->partySide * w + x] = s->fb[f->partySide * GBA_W + 40];
+		}
 		/* the message box and CANCEL: the background's, taken from beside them */
 		for (int y = f->partyClean; y < h && y < GBA_H; ++y) {
 			for (int x = 0; x < w && x < GBA_W; ++x) out[y * w + x] = s->fb[y * GBA_W + f->partyFrom];
@@ -7702,13 +7720,21 @@ static void pk_map_copy(Emu* s, const PkFam* f, uint32_t* out, int w, int h) {
 }
 /* Ruby / Sapphire / Emerald: POKéNAV, whose first entry is the region map */
 static const char* pk_nav_map(Emu* s, const PkFam* f, const void* state, uint32_t* out, int w, int h) {
-	static int good;
+	int* const good = &pkMem.navGood;
 	const char* err;
-	if (pk_open(s, f, state, &f->nav, &good, 60, &err) < 0) return err;
+	if (pk_open(s, f, state, &f->nav, good, 60, &err) < 0) return err;
 	aw_run(s, 0, 30);
 	pk_tap(s, K_A); /* its first entry, the region map */
 	if (!pk_wait(s, &f->map, 120)) return "the map didn't open";
 	aw_run(s, 0, 40);
+	/* The map opens in the view the player left it in; the zoom view (BG2's
+	 * scale, 0x80 against the full view's 0x100) is switched to the full
+	 * view with A, which shows the whole region (PK-3). */
+	if (emu_io16(s, 0x20) < 0x100) {
+		pk_tap(s, K_A);
+		aw_run(s, 0, 60);
+		if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: zoom view -> full view: scale %04X\n", emu_io16(s, 0x20));
+	}
 	pk_map_copy(s, f, out, w, h);
 	return NULL;
 }
@@ -7755,14 +7781,11 @@ static int pk_key_rows(Emu* s) {
 	return n;
 }
 static const char* pk_town_map(Emu* s, const PkFam* f, const void* state, uint32_t* out, int w, int h) {
-	static int first, goodBag;
-	static bool noMapKnown;
-	static uint32_t noMapHash;
 	uint32_t listHash = 0;
 	int rows = PK_KEY_ROWS;
 	for (int t = 0; t < rows; ++t) {
 		const char* err;
-		if (pk_open(s, f, state, &f->bag, &goodBag, 60, &err) < 0) return err;
+		if (pk_open(s, f, state, &f->bag, &pkMem.goodBag, 60, &err) < 0) return err;
 		aw_run(s, 0, 90); /* (a romhack's Bag can take longer to take input) */
 		pk_tap(s, K_LEFT);
 		pk_tap(s, K_LEFT);
@@ -7776,14 +7799,14 @@ static const char* pk_town_map(Emu* s, const PkFam* f, const void* state, uint32
 			 * player has it) */
 			aw_run(s, 0, 20);
 			listHash = pk_list_hash(s);
-			if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: key items list %08X (last none: %d %08X)\n", listHash, noMapKnown, noMapHash);
-			if (noMapKnown && listHash == noMapHash) return "no Town Map in the Bag";
+			if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: key items list %08X (last none: %d %08X)\n", listHash, pkMem.noMapKnown, pkMem.noMapHash);
+			if (pkMem.noMapKnown && listHash == pkMem.noMapHash) return "no Town Map in the Bag";
 			rows = pk_key_rows(s);
 			if (rows < 2) rows = 10; /* (no change seen: an empty pocket, or a Bag drawn another way: as before) */
 			if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: key items: %d rows\n", rows);
 			for (int i = 0; i < rows + 1; ++i) pk_tap(s, K_UP);
 		}
-		int row = (first + t) % rows;
+		int row = (pkMem.first + t) % rows;
 		for (int i = 0; i < row; ++i) pk_tap(s, K_DOWN);
 		pk_tap(s, K_A); /* its menu: USE first */
 		aw_run(s, 0, 10);
@@ -7792,12 +7815,12 @@ static const char* pk_town_map(Emu* s, const PkFam* f, const void* state, uint32
 		if (!pk_wait(s, &f->map, 150)) continue;
 		aw_run(s, 0, 110); /* (the registers are right while it's still fading in from white) */
 		if (!pk_is(s, &f->map)) continue;
-		first = row;
-		noMapKnown = false;
+		pkMem.first = row;
+		pkMem.noMapKnown = false;
 		pk_map_copy(s, f, out, w, h);
 		return NULL;
 	}
-	if (!emu_cancelled(s)) noMapKnown = true, noMapHash = listHash;
+	if (!emu_cancelled(s)) pkMem.noMapKnown = true, pkMem.noMapHash = listHash;
 	return "no Town Map in the Bag";
 }
 static const char* pk_map(Emu* s, const PkFam* f, const void* state, uint32_t* out, int w, int h) {
@@ -7809,21 +7832,28 @@ static const char* pk_pages(Emu* s, const void* state, uint32_t* const* out, int
 	 * kept and taken again only now and then (where the player is changes
 	 * slowly); when there's none (before the Pokénav or the Town Map, or a
 	 * game that has none) it's not tried for a while. */
-	static uint32_t keep[GBA_W * GBA_H];
-	static bool have;
-	static int tick, wait;
 	const PkFam* f = pk_fam(s);
 	if (!f) return "not a Pokémon game this knows";
+	if (!pkMem.known || pkMem.rom != s->romCrc) {
+		memset(&pkMem, 0, sizeof(pkMem));
+		pkMem.partyRow = 1;
+		pkMem.known = true;
+		pkMem.rom = s->romCrc;
+	}
+	uint32_t* const keep = pkMem.keep;
+	bool* const have = &pkMem.have;
+	int* const tick = &pkMem.tick;
+	int* const wait = &pkMem.wait;
 	*step = 300; /* 5 seconds a page */
 	const char* err = pk_party(s, f, state, out[0], w, h);
 	if (err) return err; /* (no Party: no second screen to keep) */
 	int n = 1;
-	if (tick++ % (have ? PK_MAP_EVERY : 3) == 0) wait = 0; /* (looking for one is cheap now: the Key Items list is compared first) */
-	if (!wait && (tick % PK_MAP_EVERY == 1 || !have) && w == GBA_W && h == GBA_H) {
-		if (!pk_map(s, f, state, keep, GBA_W, GBA_H)) have = true;
-		else if (!emu_cancelled(s)) have = false, wait = 1; /* (a capture called off says nothing about the map) */
+	if ((*tick)++ % (*have ? PK_MAP_EVERY : 3) == 0) *wait = 0; /* (looking for one is cheap now: the Key Items list is compared first) */
+	if (!*wait && (*tick % PK_MAP_EVERY == 1 || !*have) && w == GBA_W && h == GBA_H) {
+		if (!pk_map(s, f, state, keep, GBA_W, GBA_H)) *have = true;
+		else if (!emu_cancelled(s)) *have = false, *wait = 1; /* (a capture called off says nothing about the map) */
 	}
-	if (have && *nOut >= 2 && w == GBA_W && h == GBA_H) memcpy(out[n++], keep, sizeof(keep));
+	if (*have && *nOut >= 2 && w == GBA_W && h == GBA_H) memcpy(out[n++], keep, sizeof(pkMem.keep));
 	*nOut = n;
 	return NULL;
 }
@@ -7871,6 +7901,8 @@ static void pk_scan(Emu* e) {
 }
 static uint32_t pk_virt(Emu* e, uint32_t addr) {
 	if (addr != PK_VIRT) return 0;
+	static uint32_t locRom;
+	if (locRom != e->romCrc) memset(&pkLoc, 0, sizeof(pkLoc)), locRom = e->romCrc; /* (another game: its party is elsewhere) */
 	/* (a record that stops checking out, or none yet: look again, at most
 	 * once a second) */
 	bool ok = pkLoc.have && pkLoc.n > 0;
