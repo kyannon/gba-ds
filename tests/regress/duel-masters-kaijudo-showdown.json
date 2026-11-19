@@ -1,0 +1,182 @@
+{
+ "game": "Duel Masters: Kaijudo Showdown",
+ "rules": "docs/games/duel-masters-kaijudo-showdown.md",
+ "cases": [
+  {
+   "id": "dmk-logo-bd6e",
+   "kind": "logo",
+   "rom": "BD6E",
+   "desc": "BD6E logo extraction",
+   "rules": [
+    "GEN-1",
+    "DMK-5"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "dmk-logo-bd6p",
+   "kind": "logo",
+   "rom": "BD6P",
+   "desc": "BD6P logo extraction",
+   "rules": [
+    "GEN-1",
+    "DMK-5",
+    "DMK-7"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "dmk-us-title",
+   "rom": "BD6E",
+   "state": "duel-masters-kaijudo-showdown/us-title.ss",
+   "desc": "the title screen: the logo on the second screen",
+   "rules": [
+    "DMK-4",
+    "DMK-6"
+   ],
+   "shots": {
+    "start": 90
+   }
+  },
+  {
+   "id": "dmk-us-hand-zyler",
+   "rom": "BD6E",
+   "state": "duel-masters-kaijudo-showdown/us-hand-zyler.ss",
+   "desc": "the player's turn, the cursor on Brawler Zyler in the hand: its Card Details, without the B Exit prompt",
+   "rules": [
+    "DMK-1",
+    "DMK-6"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       952,
+       132,
+       "000000"
+      ],
+      [
+       64,
+       424,
+       "000000"
+      ],
+      [
+       400,
+       608,
+       "000000"
+      ]
+     ],
+     "rule": "DMK-1",
+     "shot": "start",
+     "what": "Brawler Zyler's Card Details"
+    }
+   ]
+  },
+  {
+   "id": "dmk-us-hand-rothus",
+   "rom": "BD6E",
+   "state": "duel-masters-kaijudo-showdown/us-hand-rothus.ss",
+   "desc": "the cursor on Rothus, the Traveler in the hand: its Card Details",
+   "rules": [
+    "DMK-1"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       952,
+       132,
+       "000000"
+      ],
+      [
+       64,
+       424,
+       "000000"
+      ],
+      [
+       400,
+       608,
+       "000000"
+      ]
+     ],
+     "rule": "DMK-1",
+     "shot": "start",
+     "what": "Rothus's Card Details"
+    }
+   ]
+  },
+  {
+   "id": "dmk-us-decklist",
+   "rom": "BD6E",
+   "state": "duel-masters-kaijudo-showdown/us-decklist.ss",
+   "desc": "Deck Management's card list, the cursor on Roaring Great-Horn: its Card Details",
+   "rules": [
+    "DMK-2"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       952,
+       132,
+       "000000"
+      ],
+      [
+       64,
+       424,
+       "000000"
+      ],
+      [
+       400,
+       608,
+       "000000"
+      ]
+     ],
+     "rule": "DMK-2",
+     "shot": "start",
+     "what": "Roaring Great-Horn's Card Details"
+    }
+   ]
+  },
+  {
+   "id": "dmk-us-game-card-details",
+   "rom": "BD6E",
+   "state": "duel-masters-kaijudo-showdown/us-game-card-details.ss",
+   "desc": "the game's own Card Details open on the game screen: nothing twice, the second screen is not the page",
+   "rules": [
+    "DMK-3",
+    "DMK-6"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "type": "no_log",
+     "rule": "DMK-3",
+     "what": "no capture succeeded",
+     "match": "map capture: ok"
+    }
+   ]
+  }
+ ]
+}
