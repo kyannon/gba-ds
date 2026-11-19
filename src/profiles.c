@@ -6387,17 +6387,14 @@ static const SpriteRule ff4MapUi = { 128, -16, 240, 160, 0, 1023, -1, 0, 0, 0 };
  * after it: level +11, MP +4, maximum MP +6; the table's place depends on
  * the release), then START, Magic, Sight. Fills pic's 128 x 128 map at its
  * top left; NULL when the screen came up, else why not */
-static const char* ff4_map(Emu* s, const void* state, uint32_t* pic) {
+static const char* ff4_map(Emu* s, uint32_t* pic) {
 	char region = (char) emu_read8(s, 0x080000AF);
 	uint32_t table = region == 'E' ? 0x020069E6 : region == 'P' ? 0x02006066 : emu_read8(s, 0x080000BC) ? 0x0200634E : 0x020069F6;
-	if (!emu_state_load(s, state)) return "state load failed";
-	emu_frame(s, 0);
+	/* (the menu is up already: it reads the party when a character is picked) */
 	emu_write8(s, table, 2);
 	emu_write8(s, table + 0x12 + 0x48 * 2 + 11, 99);
 	emu_write16(s, table + 0x12 + 0x48 * 2 + 4, 800);
 	emu_write16(s, table + 0x12 + 0x48 * 2 + 6, 800);
-	const char* err = ff4_open_menu(s);
-	if (err) return err;
 	emu_hide_sprites(s, &ff4MapUi, 1);
 	static const struct { int key, wait; } path[] = { { K_DOWN, 16 }, { K_A, 26 }, { K_A, 26 }, { K_A, 26 }, { K_DOWN, 12 },
 	                                                 { K_RIGHT, 12 }, { K_A, 26 }, { K_A, 0 } };
@@ -6423,18 +6420,41 @@ static const char* ff4_map(Emu* s, const void* state, uint32_t* pic) {
 	return NULL;
 }
 
+/* the party screen last taken: shown in a battle (FF4-4) */
+static uint32_t ff4Party[GBA_W * GBA_H];
+static bool ff4HaveParty;
+
+static void ff4_put_party(uint32_t* out, int w, int h, const uint32_t* pic) {
+	for (int y = 0; y < h; ++y) {
+		for (int x = 0; x < w; ++x) out[y * w + x] = y < GBA_H && x < GBA_W ? pic[y * GBA_W + x] : 0xFF000000;
+	}
+}
+
 static const char* ff4_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
 	static uint32_t pic[GBA_W * GBA_H];
 	emu_hide_sprites(s, NULL, 0);
 	emu_layers(s, 0x1F);
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
-	/* a battle: the party kept stays (FF4-4) */
-	if (ff_probes(s, ff4Battle, sizeof(ff4Battle) / sizeof(*ff4Battle))) return "a battle";
-	/* on the overworld, the map (FF4-8), tried first: when it comes up the
-	 * party screen isn't needed */
+	/* a battle: the party from before it (FF4-4) */
+	if (ff_probes(s, ff4Battle, sizeof(ff4Battle) / sizeof(*ff4Battle))) {
+		if (!ff4HaveParty) return "a battle";
+		ff4_put_party(out, w, h, ff4Party);
+		return NULL;
+	}
+	const char* err = ff4_open_menu(s);
+	if (err) return err;
+	/* the party screen: the menu without the command list (BG1) (FF4-3),
+	 * kept for the battles */
+	uint8_t* tmp = ff_tmp(s);
+	if (!tmp || !emu_state_save(s, tmp)) return "called off";
+	ff_draw_layers(s, tmp, 0x11, pic);
+	if (emu_cancelled(s)) return "called off";
+	memcpy(ff4Party, pic, sizeof(ff4Party));
+	ff4HaveParty = true;
+	/* on the overworld, the map instead (FF4-8), from this same menu */
 	static uint32_t map[128 * 128];
-	if (!ff4_map(s, state, map)) {
+	if (!ff4_map(s, map)) {
 		for (int y = 0; y < h; ++y) {
 			for (int x = 0; x < w; ++x) {
 				int mx = x - (w - 128) / 2, my = y - (h - 128) / 2;
@@ -6444,20 +6464,7 @@ static const char* ff4_compose(Emu* s, const void* state, uint32_t* out, int w, 
 		return NULL;
 	}
 	if (emu_cancelled(s)) return "called off";
-	emu_hide_sprites(s, NULL, 0);
-	emu_layers(s, 0x1F);
-	if (!emu_state_load(s, state)) return "state load failed";
-	emu_frame(s, 0);
-	const char* err = ff4_open_menu(s);
-	if (err) return err;
-	/* the party screen: the menu without the command list (BG1) (FF4-3) */
-	uint8_t* tmp = ff_tmp(s);
-	if (!tmp || !emu_state_save(s, tmp)) return "called off";
-	ff_draw_layers(s, tmp, 0x11, pic);
-	if (emu_cancelled(s)) return "called off";
-	for (int y = 0; y < h; ++y) {
-		for (int x = 0; x < w; ++x) out[y * w + x] = y < GBA_H && x < GBA_W ? pic[y * GBA_W + x] : 0xFF000000;
-	}
+	ff4_put_party(out, w, h, pic);
 	return NULL;
 }
 
