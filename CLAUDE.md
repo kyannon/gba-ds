@@ -64,10 +64,10 @@ it lives here:
   changelog line and docs ready (the main session writes them; a game branch
   keeps them under "For the merge"). Then `dev` is merged into the branch,
   the cases run, and the branch is merged into `dev` in one step. Nothing is
-  committed on `dev` itself except those merges: not "just a small fix", not
-  the release commit (it goes on `release/vX.Y.Z` and is merged by
-  fast-forward, so `main` can move to that same commit) and not the bump to
-  the next `-dev`. Never leave `dev` half-done: it has to build and be
+  committed on `dev` itself except those merges: not "just a small fix". The
+  two exceptions (the owner's decision, Nov 19, 2026) are the release process's
+  own commits, made directly on `dev`: the release commit ("Release vX.Y.Z")
+  and the bump to the next `-dev` after it. Never leave `dev` half-done: it has to build and be
   releasable at every commit. A branch is not kept going after its merge (the
   owner deletes it). `main` only moves at
   release time, fast-forwarded to the release commit. The owner creates
@@ -116,8 +116,7 @@ it lives here:
   SHA-256" annotation, readable from the run page or the public API:
   check-runs/<job id>/annotations) and send them with the zip.
   Then bump `dev` to the next `-dev` version with an empty changelog
-  section. (The release commit and the bump are made on a branch too and
-  merged into `dev` by fast-forward: see Branches.)
+  section. (Both are direct commits on `dev`: see Branches.)
   **The full regression suite runs once per release, when the owner asks to
   cut it,** and nowhere else (see "Regression tests" below). Dispatch it on
   `dev` ("Run workflow", full) on the last commit before the release commit:
