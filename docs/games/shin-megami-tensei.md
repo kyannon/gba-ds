@@ -39,7 +39,7 @@ Asked what the game would have put on a second GBA screen: it is a dungeon crawl
 
 ## Exceptions
 
-SMT-8 is an exception to the philosophy's use of the game's own graphics only, in the narrowest sense (the backdrop's pattern continued from the game's own rows, and the game's scrolling used to show more of the map than its window): the owner's request, to fill the second screen instead of leaving it part empty. It costs the hidden copy about 260 frames of running per capture instead of 70. There's no setting to turn it off yet.
+SMT-8 is an exception to the philosophy's use of the game's own graphics only, in the narrowest sense (the backdrop's pattern continued from the game's own rows, and the game's scrolling used to show more of the map than its window): the owner's request, to fill the second screen instead of leaving it part empty. It costs the hidden copy about 300 frames of running per capture instead of 70. There's no setting to turn it off yet.
 
 ## Not covered yet
 

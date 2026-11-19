@@ -7106,13 +7106,15 @@ static bool smt_px(const uint32_t* fb, int x, int y, uint32_t rgb) {
 
 static void smt_layers(Emu* s, void* st, unsigned mask, uint32_t* dst);
 
-/* the picture's view (map, markers and backdrop) the same twice running, 8
- * frames apart: drawn to the end, the markers at their places (they lagged
- * a step behind the map when a press came in mid-step) */
-static bool smt_settle(Emu* s, void* st, uint32_t* a, uint32_t* b) {
+/* the picture's view (map, markers and backdrop) the same twice running,
+ * `gap` frames apart, after `wait` frames in which it can't be done yet:
+ * drawn to the end, the markers at their places (they lagged a step behind
+ * the map when a press came in mid-step) */
+static bool smt_settle(Emu* s, void* st, uint32_t* a, uint32_t* b, int wait, int gap) {
 	int same = 0;
-	for (int f = 0; f < 30 && same < 2; ++f) {
-		for (int i = 0; i < 8; ++i) emu_frame_blind(s, 0);
+	for (int i = 0; i < wait; ++i) emu_frame_blind(s, 0);
+	for (int f = 0; f < 40 && same < 2; ++f) {
+		if (f) for (int i = 0; i < gap; ++i) emu_frame_blind(s, 0);
 		smt_layers(s, st, 0x1C, f & 1 ? a : b);
 		if (f > 0 && !memcmp(a, b, (size_t)SMT_VIEW * GBA_W * sizeof(uint32_t))) ++same;
 		else same = 0;
@@ -7149,8 +7151,7 @@ static const char* smt_open(Emu* s, const void* state, void* st, uint32_t* a, ui
 	int f = 0;
 	while (f < 20 && emu_read8(s, SMT_MODE) != 0x10) emu_frame_blind(s, 0), ++f;
 	if (emu_read8(s, SMT_MODE) != 0x10) return "map button did nothing";
-	for (f = 0; f < 36; ++f) emu_frame_blind(s, 0);
-	if (!smt_settle(s, st, a, b)) return "map did not finish drawing";
+	if (!smt_settle(s, st, a, b, 36, 4)) return "map did not finish drawing";
 	emu_frame(s, 0);
 	if (!smt_px(s->fb, 216, 98, 0x73738C)) return "map screen did not appear";
 	return NULL;
@@ -7164,7 +7165,7 @@ static bool smt_step(Emu* s, uint32_t key, void* st, uint32_t* a, uint32_t* b) {
 	for (int tries = 0; tries < 3; ++tries) {
 		for (int i = 0; i < 4; ++i) emu_frame_blind(s, key);
 		for (int i = 0; i < 24 && smt_scroll(s) == before; ++i) emu_frame_blind(s, 0);
-		if (smt_scroll(s) != before) return smt_settle(s, st, a, b);
+		if (smt_scroll(s) != before) return smt_settle(s, st, a, b, 10, 3);
 	}
 	return false;
 }
@@ -7184,15 +7185,16 @@ static void smt_layers(Emu* s, void* st, unsigned mask, uint32_t* dst) {
 static const char* smt_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
 	const size_t n = (size_t)GBA_W * GBA_H;
 	if (w != GBA_W || h != SMT_H) return "wrong picture size";
-	void* st = malloc(emu_state_size(s));
+	void* st = malloc(emu_state_size(s)), *opened = malloc(emu_state_size(s));
 	uint32_t* fr = malloc((2 + 1 + 2 * SMT_STEPS + 2) * n * sizeof(uint32_t));
-	if (!st || !fr) { free(st); free(fr); return "out of memory"; }
+	if (!st || !opened || !fr) { free(st); free(opened); free(fr); return "out of memory"; }
 	uint32_t *full = fr, *back = fr + n, *views = fr + 2 * n; /* views[k]: shift[k] rows */
 	uint32_t *sa = fr + (3 + 2 * SMT_STEPS) * n, *sb = sa + n; /* spare */
 	int shift[1 + 2 * SMT_STEPS], nv = 0;
 	const char* err = smt_open(s, state, st, sa, sb);
 	if (!err) {
 		int32_t c0 = smt_scroll(s);
+		emu_state_save(s, opened); /* the map as it opened, for the way down */
 		smt_layers(s, st, 0x1F, full);
 		smt_layers(s, st, 0x08, back);
 		smt_layers(s, st, 0x1C, views), shift[nv++] = 0;
@@ -7201,11 +7203,10 @@ static const char* smt_compose(Emu* s, const void* state, uint32_t* out, int w, 
 			shift[nv++] = 8 * (smt_scroll(s) - c0);
 		}
 		/* back to the start, and as far down */
-		if (!(err = smt_open(s, state, st, sa, sb))) {
-			for (int k = 1; k <= SMT_STEPS && smt_step(s, K_DOWN, st, sa, sb); ++k) {
-				smt_layers(s, st, 0x1C, views + (size_t)nv * n);
-				shift[nv++] = 8 * (smt_scroll(s) - c0);
-			}
+		if (!emu_state_load(s, opened)) err = "state load failed";
+		for (int k = 1; !err && k <= SMT_STEPS && smt_step(s, K_DOWN, st, sa, sb); ++k) {
+			smt_layers(s, st, 0x1C, views + (size_t)nv * n);
+			shift[nv++] = 8 * (smt_scroll(s) - c0);
 		}
 	}
 	if (!err && emu_cancelled(s)) err = "cancelled";
@@ -7253,6 +7254,7 @@ static const char* smt_compose(Emu* s, const void* state, uint32_t* out, int w, 
 		for (int r = 0; r < SMT_H - SMT_AREA_H; ++r) memcpy(&out[(SMT_AREA_H + r) * w], &full[(SMT_VIEW + 2 + r) * GBA_W], GBA_W * sizeof(uint32_t));
 	}
 	free(st);
+	free(opened);
 	free(fr);
 	return err;
 }
