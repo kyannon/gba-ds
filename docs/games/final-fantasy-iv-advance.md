@@ -48,9 +48,3 @@ The game has no map the second screen could show; making one would be drawing so
 Europe's battle (a Gold Dragon in the Lunar Subterrane) was reached by walking the corridor away from the save pad in the harness: the pad's own room has no encounters.
 
 All in the harness from a title state made in the app (the game's battery save goes in the state): the game's Load Game, then the data slot. USA: the GameFAQs saves "AK FF4 Saves Volume I" (slot 1 near the start on the world map, 2 characters; slot 2 in the Lunar Subterrane, 5 characters, in the green window colour). Europe: a GameFAQs save in the Lunar Subterrane B7 at level 99. Japan: a save at the start. The saves work in every release: the Europe one loaded in the Japanese ROM gives the Japanese menu late in the game. (The two `.duc` files in the owner's upload are Nintendo DS saves, for Final Fantasy IV DS: not used.)
-
-## For the merge
-
-Changelog line (under the open version): *Added Final Fantasy IV Advance (USA, Europe, Japan): the second screen shows the world map (the one Sight opens, with where you are, even before you have Sight) on the overworld, and START's party screen (everyone's level, HP and MP, the place, play time and gil) elsewhere, kept through battles.*
-
-Wiki (`Supported-games.md`): table row and a section, "Final Fantasy IV Advance": the second screen is the world map from the Sight spell on the overworld (taken on a hidden copy of the game, so it works without Sight) and the party screen from START's menu elsewhere, without the command list, taken again when you enter a new area or leave a battle; in battles and conversations the last one stays; the title shows the game's logo. Known issues: a save where Rosa's spells were never set up shows the party screen on the overworld; after a game over the last party screen stays until the title.

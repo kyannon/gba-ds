@@ -1,0 +1,2079 @@
+# GBA DS: Japanese (machine translation, not yet reviewed).
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: ja\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-GBADS-Autonym: 日本語\n"
+"X-GBADS-Script: jp\n"
+"X-GBADS-Status: machine\n"
+"X-GBADS-Locales: ja_JP ja\n"
+
+msgid " (patch)"
+msgstr " (パッチ)"
+
+msgid " Checking for a new version..."
+msgstr " 新しいバージョンを確認中..."
+
+msgid " It's the newest version."
+msgstr " 最新バージョンです。"
+
+msgid " ms"
+msgstr " ms"
+
+msgid " s"
+msgstr " s"
+
+msgid "\"Swipe up for quick menu\" at a game's start."
+msgstr "ゲーム開始時の「上にスワイプでクイックメニュー」。"
+
+msgid "%ca%d"
+msgstr "%ca%d"
+
+msgid "%d file checked"
+msgid_plural "%d files checked"
+msgstr[0] "%d 個のファイルを確認"
+
+msgid "%d game found"
+msgid_plural "%d games found"
+msgstr[0] "%d 個のゲームを検出"
+
+msgid "%d game found."
+msgid_plural "%d games found."
+msgstr[0] "%d 個のゲームを検出。"
+
+msgid "%d of %d"
+msgstr "%d / %d"
+
+msgid "%d of %d set for %s, kept in controllers.txt beside GBA DS's save states. The line for it is in gba-ds.log too: send it in to have it built into GBA DS for this device."
+msgstr "%2$d 個中 %1$d 個を %3$s に設定しました。GBA DS のステートの隣にある controllers.txt に保存されています。その行は gba-ds.log にもあります。この端末用に GBA DS へ組み込むため、送ってください。"
+
+msgid "%d on"
+msgstr "%d 個オン"
+
+msgid "%d RetroArch state here"
+msgid_plural "%d RetroArch states here"
+msgstr[0] "ここに RetroArch のステートが %d 個"
+
+msgid "%s"
+msgstr "%s"
+
+msgid "%s %s. Choose another if RetroArch keeps its states somewhere else."
+msgstr "%s %s。RetroArch がステートを別の場所に保存している場合は、別のフォルダを選んでください。"
+
+msgid "%s (beside the ROM)"
+msgstr "%s (ROM の隣)"
+
+msgid "%s as the hotkey button, with Start, R1, L1, X, Y and B"
+msgstr "%s をホットキーボタンにする (Start、R1、L1、X、Y、B と組み合わせ)"
+
+msgid "%s has no button now"
+msgstr "%s にボタンが割り当てられていません"
+
+msgid "%s is now Start + Select"
+msgstr "%s は Start + Select になりました"
+
+msgid "%s opens the menu: press another button"
+msgstr "%s でメニューを開きます。別のボタンを押してください"
+
+msgid "%s v%s. Restarting..."
+msgstr "%s v%s。再起動中..."
+
+msgid "%s was %s's: that has no button now"
+msgstr "%s は %s のものでした。ボタンが割り当てられていません"
+
+msgid "%s, %s"
+msgstr "%s、%s"
+
+msgid "%s, Select, Start or L3. Tap to keep it as it is"
+msgstr "%s、Select、Start、L3。タップするとそのままにします"
+
+msgid "%u of %u achievements unlocked"
+msgstr "実績 %u / %u 解除済み"
+
+msgid ", RetroArch"
+msgstr "、RetroArch"
+
+msgid "1 minute"
+msgstr "1 分"
+
+msgid "10 s"
+msgstr "10 s"
+
+msgid "128 ms"
+msgstr "128 ms"
+
+msgid "15 s"
+msgstr "15 s"
+
+msgid "192 ms"
+msgstr "192 ms"
+
+msgid "2 minutes"
+msgstr "2 分"
+
+msgid "2x"
+msgstr "2x"
+
+msgid "30 s"
+msgstr "30 s"
+
+msgid "32 ms"
+msgstr "32 ms"
+
+msgid "3x"
+msgstr "3x"
+
+msgid "4x"
+msgstr "4x"
+
+msgid "5 minutes"
+msgstr "5 分"
+
+msgid "5x"
+msgstr "5x"
+
+msgid "64 ms"
+msgstr "64 ms"
+
+msgid "96 ms"
+msgstr "96 ms"
+
+msgid "A (right) button"
+msgstr "A ボタン (右)"
+
+msgid "A and B buttons"
+msgstr "A ボタンと B ボタン"
+
+msgid "A dark line under each row of pixels"
+msgstr "ピクセルの各行の下に暗い線"
+
+msgid "A game's save already next to it, or in the other type, is copied over the first time you play it. .srm is the type RetroArch uses: choose its saves folder too to share each game's save with it."
+msgstr "ゲームのセーブがすでに隣にある場合や別の形式の場合は、初回プレイ時にコピーされます。.srm は RetroArch の形式です。RetroArch のセーブフォルダも選ぶと、各ゲームのセーブを共有できます。"
+
+msgid "A new version of GBA DS"
+msgstr "GBA DS の新バージョン"
+
+msgid "A pattern over every pixel, on both screens."
+msgstr "すべてのピクセルに模様を重ねます (両方の画面)。"
+
+msgid "A: the one lit above. Y: all games. X: undo this game's value"
+msgstr "A: 上で選択中の値。Y: すべてのゲーム。X: このゲームの値を元に戻す"
+
+msgid "ACHIEVEMENT UNLOCKED"
+msgstr "実績を解除しました"
+
+msgid "Achievements"
+msgstr "実績"
+
+msgid "Add a note (optional): what happened, and what you expected to happen."
+msgstr "メモを追加 (任意): 何が起きたか、どうなるはずだったか。"
+
+msgid "Adds GBA DS to the emulators for Game Boy Advance games in EmulationStation. Pick it for one game (its Advanced Game Options > Emulator) or for all of them (the system's advanced settings). The other emulators keep working as before."
+msgstr "EmulationStation のゲームボーイアドバンス用エミュレータに GBA DS を追加します。1 本のゲーム (詳細ゲームオプション > エミュレータ) またはすべてのゲーム (システムの詳細設定) で選べます。ほかのエミュレータはこれまでどおり使えます。"
+
+msgid "All"
+msgstr "すべて"
+
+msgid "All %u achievements unlocked"
+msgstr "%u 個の実績をすべて解除"
+
+msgid "All games"
+msgstr "すべてのゲーム"
+
+msgid "Already the value for all games"
+msgstr "すべてのゲームの値と同じです"
+
+msgid "Always"
+msgstr "常にオン"
+
+msgid "Always on here"
+msgstr "ここでは常にオン"
+
+msgid "Always on in this game: it needs it for full speed"
+msgstr "このゲームでは常にオン: フルスピードに必要です"
+
+msgid "Always on, applied first (RetroArch's way: a patch named as the ROM). %s"
+msgstr "常にオンで、最初に適用されます (RetroArch 方式: ROM と同名のパッチ)。%s"
+
+msgid "AM"
+msgstr "午前"
+
+msgid "An xdelta made with compression, which GBA DS can't read: patch the ROM with it beforehand, or make it again without (xdelta3 -S none)"
+msgstr "圧縮付きの xdelta は GBA DS では読み込めません。先に ROM へパッチを当てるか、圧縮なしで作り直してください (xdelta3 -S none)"
+
+msgid "Android's installer couldn't be reached"
+msgstr "Android のインストーラーに接続できませんでした"
+
+msgid "Another emulator's"
+msgstr "別のエミュレータの"
+
+msgid "Apr"
+msgstr "4月"
+
+msgid "Are You Sure?"
+msgstr "よろしいですか？"
+
+msgid "Are you sure? A: switch it %s now and carry on from here. Y: not yet (more changes first). B: call it off"
+msgstr "よろしいですか？ A: 今すぐ %s にしてここから続ける。Y: まだしない (ほかにも変更する)。B: 取り消す"
+
+msgid "Are you sure? A: use them now and carry on from here. B: call it off"
+msgstr "よろしいですか？ A: 今すぐ使ってここから続ける。B: 取り消す"
+
+msgid "Are you sure? Delete them"
+msgstr "よろしいですか？ 削除する"
+
+msgid "Are you sure? Reset settings"
+msgstr "よろしいですか？ 設定をリセット"
+
+msgid "Are you sure? Save your game first. A: restart %s it now. Y: not yet (more changes first). B: call it off"
+msgstr "よろしいですか？ 先にゲームをセーブしてください。A: 今すぐ%sで再起動。Y: まだしない (ほかにも変更する)。B: 取り消す"
+
+msgid "Are you sure? Save your game first. A: restart now. B: call it off"
+msgstr "よろしいですか？ 先にゲームをセーブしてください。A: 今すぐ再起動。B: 取り消す"
+
+msgid "Are you sure? Touch it again to delete every game's own settings. Anything else cancels."
+msgstr "よろしいですか？ もう一度タッチすると、ゲームごとの設定をすべて削除します。それ以外は取り消します。"
+
+msgid "Are you sure? Touch it again to put every setting back to its default. Anything else cancels."
+msgstr "よろしいですか？ もう一度タッチすると、すべての設定を初期値に戻します。それ以外は取り消します。"
+
+msgid "As fast as it goes"
+msgstr "可能な限り速く"
+
+msgid "As the game started"
+msgstr "ゲーム開始時のまま"
+
+msgid "Aug"
+msgstr "8月"
+
+msgid "Auto"
+msgstr "自動"
+
+msgid "Auto-load"
+msgstr "自動ロード"
+
+msgid "Auto-Load: Off"
+msgstr "自動ロード: オフ"
+
+msgid "Auto-Load: On"
+msgstr "自動ロード: オン"
+
+msgid "Automatic"
+msgstr "自動"
+
+msgid "Automatic checks: Off"
+msgstr "自動チェック: オフ"
+
+msgid "Automatic checks: On"
+msgstr "自動チェック: オン"
+
+msgid "Automatic follows the system. Text that isn't translated yet stays in English."
+msgstr "「自動」はシステムの言語に従います。まだ翻訳されていない文章は英語のままです。"
+
+msgid "B (bottom) button"
+msgstr "B ボタン (下)"
+
+msgid "Back"
+msgstr "戻る"
+
+msgid "Back online"
+msgstr "オンラインに復帰"
+
+msgid "Back to %s and the buttons it started with"
+msgstr "%s と、開始時のボタンに戻す"
+
+msgid "BananaOS's systems list has no Game Boy Advance entry."
+msgstr "BananaOS のシステム一覧にゲームボーイアドバンスの項目がありません。"
+
+msgid "Bezel logo"
+msgstr "ベゼルのロゴ"
+
+msgid "Blue"
+msgstr "青"
+
+msgid "Blurry instead of sharp: usually leave off."
+msgstr "シャープではなくぼやけます。通常はオフのままで。"
+
+msgid "Both screens"
+msgstr "両方の画面"
+
+msgid "Bottom screen"
+msgstr "下画面"
+
+msgid "Bottom screen brightness"
+msgstr "下画面の明るさ"
+
+msgid "Bug Report"
+msgstr "バグ報告"
+
+msgid "Bug report saved in bug-reports"
+msgstr "バグ報告を bug-reports に保存しました"
+
+msgid "Bug report saved in bug-reports."
+msgstr "バグ報告を bug-reports に保存しました。"
+
+msgid "Buttons"
+msgstr "ボタン"
+
+msgid "Buttons mapped"
+msgstr "ボタンを割り当てました"
+
+msgid "Can't be read"
+msgstr "読み込めません"
+
+msgid "Can't be read: not a patch, or damaged"
+msgstr "読み込めません: パッチではないか、破損しています"
+
+msgid "Can't find the GBA DS folder."
+msgstr "GBA DS のフォルダが見つかりません。"
+
+msgid "Can't reach GBA DS's folder, using %s for now: %s"
+msgstr "GBA DS のフォルダにアクセスできないため、当面 %s を使います: %s"
+
+msgid "Can't rewind further"
+msgstr "これ以上巻き戻せません"
+
+msgid "Can't save files here: no states, logos or screenshots"
+msgstr "ここにはファイルを保存できません: ステート、ロゴ、スクリーンショットなし"
+
+msgid "Can't save in the chosen folder, files not moved: %s"
+msgstr "選択したフォルダに保存できないため、ファイルは移動していません: %s"
+
+msgid "Cancel"
+msgstr "キャンセル"
+
+msgid "Centered"
+msgstr "中央"
+
+msgid "Changes some of the same bytes as %s, and goes over it there: they may not work together"
+msgstr "%s と同じバイトを一部変更し、その部分を上書きします。一緒に使えない可能性があります"
+
+msgid "Cheats"
+msgstr "チート"
+
+msgid "Check now"
+msgstr "今すぐ確認"
+
+msgid "Check ra_username and ra_password in gba-ds.cfg"
+msgstr "gba-ds.cfg の ra_username と ra_password を確認してください"
+
+msgid "Check the account in EmulationStation's RetroAchievements settings"
+msgstr "EmulationStation の RetroAchievements 設定でアカウントを確認してください"
+
+msgid "Choose a folder in Android's file picker..."
+msgstr "Android のファイルピッカーでフォルダを選択..."
+
+msgid "Choose GBA DS folder"
+msgstr "GBA DS のフォルダを選択"
+
+msgid "Choose it again to close %s: %s"
+msgstr "もう一度選ぶと %s を閉じます: %s"
+
+msgid "Choose it again to restart: unsaved progress is lost"
+msgstr "もう一度選ぶと再起動します。未セーブの進行は失われます"
+
+msgid "Choose ROM folder"
+msgstr "ROM フォルダを選択"
+
+msgid "Choose save folder"
+msgstr "セーブフォルダを選択"
+
+msgid "Chosen folder is inside GBA DS's own, files not moved: %s"
+msgstr "選択したフォルダは GBA DS 自身のフォルダ内にあるため、ファイルは移動していません: %s"
+
+msgid "Chosen folder not found, files not moved: %s"
+msgstr "選択したフォルダが見つからないため、ファイルは移動していません: %s"
+
+msgid "Chosen here:"
+msgstr "ここで選択:"
+
+msgid "Close Game"
+msgstr "ゲームを終了"
+
+msgid "Close GBA DS"
+msgstr "GBA DS を終了"
+
+msgid "Closest to gap"
+msgstr "隙間に寄せる"
+
+msgid "Closing a game saves where you are."
+msgstr "ゲームを閉じると現在位置がセーブされます。"
+
+msgid "Color"
+msgstr "色"
+
+msgid "color"
+msgstr "色"
+
+msgid "Color correction"
+msgstr "色補正"
+
+msgid "Color Correction: Off"
+msgstr "色補正: オフ"
+
+msgid "Color Correction: On"
+msgstr "色補正: オン"
+
+msgid "Colors as a Game Boy Advance's screen showed them."
+msgstr "ゲームボーイアドバンスの画面に近い色合い。"
+
+msgid "Confirm the update to v%s in Android's installer. Android closes GBA DS while it installs; open it again afterwards. If Android asks first, allow GBA DS to install apps."
+msgstr "Android のインストーラーで v%s への更新を確認してください。インストール中は Android が GBA DS を終了します。完了後にもう一度開いてください。Android が先に確認してきた場合は、GBA DS にアプリのインストールを許可してください。"
+
+msgid "Connect a controller and try again."
+msgstr "コントローラーを接続してもう一度お試しください。"
+
+msgid "Controls"
+msgstr "操作"
+
+msgid "Couldn't change %s."
+msgstr "%s を変更できませんでした。"
+
+msgid "Couldn't change the files in %s/custom_systems: allow GBA DS All files access in Android's settings."
+msgstr "%s/custom_systems のファイルを変更できませんでした。Android の設定で GBA DS にすべてのファイルへのアクセスを許可してください。"
+
+msgid "Couldn't connect"
+msgstr "接続できませんでした"
+
+msgid "Couldn't find GBA DS's folder."
+msgstr "GBA DS のフォルダが見つかりませんでした。"
+
+msgid "Couldn't keep that choice."
+msgstr "その選択を保持できませんでした。"
+
+msgid "Couldn't load the achievements"
+msgstr "実績を読み込めませんでした"
+
+msgid "Couldn't load the game"
+msgstr "ゲームを読み込めませんでした"
+
+msgid "Couldn't move GBA DS's files, they stay in %s"
+msgstr "GBA DS のファイルを移動できませんでした。%s に残っています"
+
+msgid "Couldn't open the file picker."
+msgstr "ファイルピッカーを開けませんでした。"
+
+msgid "Couldn't open the sign-in box."
+msgstr "サインインのボックスを開けませんでした。"
+
+msgid "Couldn't remove the setting file."
+msgstr "設定ファイルを削除できませんでした。"
+
+msgid "Couldn't save"
+msgstr "セーブできませんでした"
+
+msgid "Couldn't save the bug report."
+msgstr "バグ報告を保存できませんでした。"
+
+msgid "Couldn't sign in as %s%s%s. Sign in to try again."
+msgstr "%s%s%s としてサインインできませんでした。もう一度サインインしてください。"
+
+msgid "Couldn't write %s."
+msgstr "%s に書き込めませんでした。"
+
+msgid "Couldn't write to %s."
+msgstr "%s に書き込めませんでした。"
+
+msgid "Custom"
+msgstr "カスタム"
+
+msgid "Custom logos"
+msgstr "カスタムロゴ"
+
+msgid "Custom Logos: Do Not Use"
+msgstr "カスタムロゴ: 使わない"
+
+msgid "Custom Logos: Full Detail"
+msgstr "カスタムロゴ: 高精細"
+
+msgid "Custom Logos: Pixelated"
+msgstr "カスタムロゴ: ドット"
+
+msgid "D-pad"
+msgstr "十字キー"
+
+msgid "D-pad down"
+msgstr "十字キー 下"
+
+msgid "D-pad left"
+msgstr "十字キー 左"
+
+msgid "D-pad right"
+msgstr "十字キー 右"
+
+msgid "D-pad up"
+msgstr "十字キー 上"
+
+msgid "Dark"
+msgstr "ダーク"
+
+msgid "Darkens the bottom screen, in this app only: the device's own brightness is left alone (and this can't go above it)."
+msgstr "下画面を暗くします (このアプリ内のみ)。端末本体の明るさはそのままで、それを超えることはできません。"
+
+msgid "Darkens the top screen, in this app only: the device's own brightness is left alone (and this can't go above it)."
+msgstr "上画面を暗くします (このアプリ内のみ)。端末本体の明るさはそのままで、それを超えることはできません。"
+
+msgid "Dec"
+msgstr "12月"
+
+msgid "Del"
+msgstr "削除"
+
+msgid "Delete per-game settings"
+msgstr "ゲームごとの設定を削除"
+
+msgid "Deleted the settings of %d games."
+msgstr "%d 本のゲームの設定を削除しました。"
+
+msgid "Deleted the settings of 1 game."
+msgstr "1 本のゲームの設定を削除しました。"
+
+msgid "Display"
+msgstr "表示"
+
+msgid "Done"
+msgstr "完了"
+
+msgid "Done (No Note)"
+msgstr "完了 (メモなし)"
+
+msgid "Down"
+msgstr "下"
+
+msgid "Downloading"
+msgstr "ダウンロード中"
+
+msgid "Each pixel a little darker toward its edges"
+msgstr "縁に向かって各ピクセルを少し暗く"
+
+msgid "Earn achievements in casual mode with your retroachievements.org account. GBA DS keeps a sign-in token, not your password."
+msgstr "retroachievements.org のアカウントでカジュアルモードの実績を獲得できます。GBA DS が保持するのはサインイン用トークンで、パスワードではありません。"
+
+msgid "English"
+msgstr "English"
+
+msgid "Enter both your username and your password."
+msgstr "ユーザー名とパスワードの両方を入力してください。"
+
+msgid "Enter your account in the sign-in box..."
+msgstr "サインインのボックスでアカウントを入力..."
+
+msgid "ES-DE's folder wasn't found."
+msgstr "ES-DE のフォルダが見つかりませんでした。"
+
+msgid "Every 0.5 s"
+msgstr "0.5 秒ごと"
+
+msgid "Every 1.5 s"
+msgstr "1.5 秒ごと"
+
+msgid "Every 3 s"
+msgstr "3 秒ごと"
+
+msgid "Every button was skipped, so nothing changed."
+msgstr "すべてのボタンをスキップしたため、何も変わりませんでした。"
+
+msgid "Every second"
+msgstr "1 秒ごと"
+
+msgid "Fails"
+msgstr "失敗"
+
+msgid "Fast (20 a second)"
+msgstr "速い (毎秒 20 回)"
+
+msgid "Fast forward"
+msgstr "早送り"
+
+msgid "Fast Forward: %dx"
+msgstr "早送り: %dx"
+
+msgid "Fast Forward: Max"
+msgstr "早送り: 最大"
+
+msgid "Fast Forward: Off"
+msgstr "早送り: オフ"
+
+msgid "Fast forwarding..."
+msgstr "早送り中..."
+
+msgid "Feb"
+msgstr "2月"
+
+msgid "First run only. B: back"
+msgstr "初回のみ。B: 戻る"
+
+msgid "Folders"
+msgstr "フォルダ"
+
+msgid "Folders, accounts, updates"
+msgstr "フォルダ、アカウント、更新"
+
+msgid "Follows how you hold the phone, and Android's own rotation lock."
+msgstr "端末の持ち方と Android の回転ロックに従います。"
+
+msgid "Frame buffer"
+msgstr "フレームバッファ"
+
+msgid "Frame Buffer: Always on here"
+msgstr "フレームバッファ: ここでは常にオン"
+
+msgid "Frame Buffer: Off"
+msgstr "フレームバッファ: オフ"
+
+msgid "Frame Buffer: On"
+msgstr "フレームバッファ: オン"
+
+msgid "Frames a second above the game, all the time."
+msgstr "ゲームの上に常にフレームレートを表示します。"
+
+msgid "From RetroArch's settings:"
+msgstr "RetroArch の設定から:"
+
+msgid "Full detail"
+msgstr "高精細"
+
+msgid "Full Width"
+msgstr "幅いっぱい"
+
+msgid "Game"
+msgstr "ゲーム"
+
+msgid "Game below"
+msgstr "ゲームを下に"
+
+msgid "Game names"
+msgstr "ゲーム名"
+
+msgid "Game on top"
+msgstr "ゲームを上に"
+
+msgid "Game restarted"
+msgstr "ゲームを再起動しました"
+
+msgid "Game screen scale"
+msgstr "ゲーム画面の拡大率"
+
+msgid "Games"
+msgstr "ゲーム"
+
+msgid "Games are read from %s (subfolders too). Saves (%s) are kept in %s."
+msgstr "ゲームは %s から読み込みます (サブフォルダも対象)。セーブ (%s) は %s に保存されます。"
+
+msgid "Games are read from %s (subfolders too). Saves (%s) are kept next to the games."
+msgstr "ゲームは %s から読み込みます (サブフォルダも対象)。セーブ (%s) はゲームの隣に保存されます。"
+
+msgid "Games picked in BananaOS's own Game Boy Advance list start in GBA DS when it has second-screen support for them. Restart BananaOS after switching this."
+msgstr "BananaOS のゲームボーイアドバンス一覧で選んだゲームは、GBA DS が 2 画面に対応していれば GBA DS で起動します。切り替えたら BananaOS を再起動してください。"
+
+msgid "Games shown"
+msgstr "表示するゲーム"
+
+msgid "Games without second-screen support play on one screen."
+msgstr "2 画面に対応していないゲームは 1 画面で動作します。"
+
+msgid "GBA"
+msgstr "GBA"
+
+msgid "GBA A"
+msgstr "GBA A"
+
+msgid "GBA A on the right button, or on the bottom one."
+msgstr "GBA の A を右ボタンに、または下ボタンに。"
+
+msgid "GBA B"
+msgstr "GBA B"
+
+msgid "GBA Down"
+msgstr "GBA 下"
+
+msgid "GBA DS can't save files there: allow it All files access in Android's settings, or choose another folder."
+msgstr "GBA DS はそこにファイルを保存できません。Android の設定ですべてのファイルへのアクセスを許可するか、別のフォルダを選んでください。"
+
+msgid "GBA DS in BananaOS's GBA list: Off"
+msgstr "BananaOS の GBA 一覧で GBA DS: オフ"
+
+msgid "GBA DS in BananaOS's GBA list: On"
+msgstr "BananaOS の GBA 一覧で GBA DS: オン"
+
+msgid "GBA DS in EmulationStation: Off"
+msgstr "EmulationStation で GBA DS: オフ"
+
+msgid "GBA DS in EmulationStation: On"
+msgstr "EmulationStation で GBA DS: オン"
+
+msgid "GBA DS in ES-DE: Off"
+msgstr "ES-DE で GBA DS: オフ"
+
+msgid "GBA DS in ES-DE: On"
+msgstr "ES-DE で GBA DS: オン"
+
+msgid "GBA DS is now ES-DE's emulator for Game Boy Advance games. Quit ES-DE and open it again to see it."
+msgstr "GBA DS が ES-DE のゲームボーイアドバンス用エミュレータになりました。反映するには ES-DE を終了してもう一度開いてください。"
+
+msgid "GBA DS is out of ES-DE's emulator list. Quit ES-DE and open it again to see it."
+msgstr "GBA DS が ES-DE のエミュレータ一覧から外れました。反映するには ES-DE を終了してもう一度開いてください。"
+
+msgid "GBA DS Logo: Hide"
+msgstr "GBA DS ロゴ: 非表示"
+
+msgid "GBA DS Logo: Show"
+msgstr "GBA DS ロゴ: 表示"
+
+msgid "GBA DS Settings"
+msgstr "GBA DS 設定"
+
+msgid "GBA DS v%s is out (this is v%s). Update now to download it (%.1f MB) and install it: Android asks you to confirm. Your games, saves, states and settings are kept."
+msgstr "GBA DS v%s が公開されています (現在は v%s)。「今すぐ更新」でダウンロード (%.1f MB) してインストールします。Android が確認を求めます。ゲーム、セーブ、ステート、設定は保持されます。"
+
+msgid "GBA DS v%s is out (this is v%s). Update now to download it (%.1f MB) and restart into it; your games, saves, states and settings are kept."
+msgstr "GBA DS v%s が公開されています (現在は v%s)。「今すぐ更新」でダウンロード (%.1f MB) して再起動します。ゲーム、セーブ、ステート、設定は保持されます。"
+
+msgid "GBA DS's bezel, or your own PNGs, round the picture."
+msgstr "GBA DS のベゼル、または独自の PNG を画面の周りに表示します。"
+
+msgid "GBA DS's files are kept there already."
+msgstr "GBA DS のファイルはすでにそこにあります。"
+
+msgid "GBA DS's files go to %s the next time it starts: close GBA DS and open it again."
+msgstr "GBA DS のファイルは次回起動時に %s へ移動します。GBA DS を終了してもう一度開いてください。"
+
+msgid "GBA DS's own files (states, settings, cheats, overlays) are in %s, moving to %s at the next start."
+msgstr "GBA DS 自身のファイル (ステート、設定、チート、オーバーレイ) は %s にあり、次回起動時に %s へ移動します。"
+
+msgid "GBA DS's own files (states, settings, cheats, overlays) are in %s."
+msgstr "GBA DS 自身のファイル (ステート、設定、チート、オーバーレイ) は %s にあります。"
+
+msgid "GBA L"
+msgstr "GBA L"
+
+msgid "GBA Left"
+msgstr "GBA 左"
+
+msgid "GBA R"
+msgstr "GBA R"
+
+msgid "GBA Right"
+msgstr "GBA 右"
+
+msgid "GBA Up"
+msgstr "GBA 上"
+
+msgid "Generated"
+msgstr "自動生成"
+
+msgid "Green"
+msgstr "緑"
+
+msgid "Held on its side: the two screens side by side. Either way round."
+msgstr "横向きに持つ: 2 つの画面が左右に並びます。上下どちら向きでも可。"
+
+msgid "Held upright: the two screens one above the other. Either way up."
+msgstr "縦向きに持つ: 2 つの画面が上下に並びます。上下どちら向きでも可。"
+
+msgid "hex"
+msgstr "hex"
+
+msgid "Hex Color"
+msgstr "16 進カラー"
+
+msgid "Hold L2 to go back in time."
+msgstr "L2 を押し続けると時間を巻き戻します。"
+
+msgid "Hold R2 to play faster."
+msgstr "R2 を押し続けるとゲームが速くなります。"
+
+msgid "Home"
+msgstr "ホーム"
+
+msgid "Hotkey button"
+msgstr "ホットキーボタン"
+
+msgid "Hotkeys"
+msgstr "ホットキー"
+
+msgid "How dark the grid, scanlines and soft cells are."
+msgstr "グリッド、走査線、ソフトセルの濃さ。"
+
+msgid "How far back it goes."
+msgstr "どこまで戻れるか。"
+
+msgid "How fast Turbo A and Turbo B press."
+msgstr "ターボ A とターボ B の連打の速さ。"
+
+msgid "How the game's picture fills its screen."
+msgstr "ゲーム画面を画面いっぱいに表示する方法。"
+
+msgid "How the map or logo fills its screen."
+msgstr "マップまたはロゴを画面いっぱいに表示する方法。"
+
+msgid "hue"
+msgstr "色相"
+
+msgid "In a game, hold the hotkey button and press another"
+msgstr "ゲーム中にホットキーボタンを押したまま別のボタンを押す"
+
+msgid "In patches/%s"
+msgstr "patches/%s 内"
+
+msgid "Inner Bezel Color"
+msgstr "ベゼル内側の色"
+
+msgid "Installed"
+msgstr "インストール済み"
+
+msgid "Installing"
+msgstr "インストール中"
+
+msgid "Jan"
+msgstr "1月"
+
+msgid "Jul"
+msgstr "7月"
+
+msgid "Jun"
+msgstr "6月"
+
+msgid "Keep device aspect ratios"
+msgstr "端末の縦横比を維持"
+
+msgid "Keep device shapes"
+msgstr "端末の形を維持"
+
+msgid "Keep saves next to the games"
+msgstr "セーブをゲームの隣に保存"
+
+msgid "Kept as it was in %d s if nothing is pressed"
+msgstr "何も押さなければ %d 秒後に元に戻ります"
+
+msgid "Kept for every game"
+msgstr "すべてのゲームで保持"
+
+msgid "Known %s patch, tested: %s"
+msgstr "既知の %s パッチ、動作確認済み: %s"
+
+msgid "Known %s patch, untested: %s. The second screen may not work with it"
+msgstr "既知の %s パッチ、未確認: %s。2 画面目が動かない場合があります"
+
+msgid "Known %s patch: %s, made for %s. This ROM is another version: it may break the game"
+msgstr "既知の %s パッチ: %s (%s 用)。この ROM は別のバージョンです。ゲームが壊れる可能性があります"
+
+msgid "Known %s patch: %s, made for %s: it can't be switched on for this ROM"
+msgstr "既知の %s パッチ: %s (%s 用)。この ROM では有効にできません"
+
+msgid "Known romhack: %s, untested"
+msgstr "既知の ROM ハック: %s、未確認"
+
+msgid "L button"
+msgstr "L ボタン"
+
+msgid "Language"
+msgstr "言語"
+
+msgid "Last checked %s."
+msgstr "最終確認: %s。"
+
+msgid "Later"
+msgstr "あとで"
+
+msgid "LCD ghosting"
+msgstr "LCD ゴースト"
+
+msgid "LCD Ghosting: Off"
+msgstr "LCD ゴースト: オフ"
+
+msgid "LCD Ghosting: On"
+msgstr "LCD ゴースト: オン"
+
+msgid "LCD Grid"
+msgstr "LCD グリッド"
+
+msgid "Left"
+msgstr "左"
+
+msgid "Left out where it is: it's made for the unchanged ROM, so it has to be first (only one such patch can be on). Move it up with X"
+msgstr "現状のまま外しています。元の ROM 用に作られているため最初に適用する必要があります (そのようなパッチは 1 つだけオンにできます)。X で上へ移動してください"
+
+msgid "Left stick as D-pad"
+msgstr "左スティックを十字キーに"
+
+msgid "Left stick: left"
+msgstr "左スティック: 左"
+
+msgid "Left stick: up"
+msgstr "左スティック: 上"
+
+msgid "Let the System Decide"
+msgstr "システムに任せる"
+
+msgid "Light"
+msgstr "ライト"
+
+msgid "Light/dark mode"
+msgstr "ライト / ダークモード"
+
+msgid "Like a GBA"
+msgstr "GBA 風"
+
+msgid "Lines between the pixels, like a GBA's screen"
+msgstr "ピクセルの間に線を入れ、GBA の画面のように"
+
+msgid "Load failed"
+msgstr "ロード失敗"
+
+msgid "Load failed."
+msgstr "ロードに失敗しました。"
+
+msgid "Load State"
+msgstr "ステートをロード"
+
+msgid "Load State %d"
+msgstr "ステート %d をロード"
+
+msgid "Loading games..."
+msgstr "ゲームを読み込み中..."
+
+msgid "Loading the achievements..."
+msgstr "実績を読み込み中..."
+
+msgid "Loading thumbnail..."
+msgstr "サムネイルを読み込み中..."
+
+msgid "machine translated"
+msgstr "機械翻訳"
+
+msgid "Made for another version of the game: it can't be switched on for this ROM"
+msgstr "ゲームの別バージョン用に作られており、この ROM では有効にできません"
+
+msgid "Makes GBA DS the emulator for Game Boy Advance games in ES-DE. For a game it doesn't support, choose another in ES-DE (the game's metadata > Alternative emulator)."
+msgstr "GBA DS を ES-DE のゲームボーイアドバンス用エミュレータにします。非対応のゲームは ES-DE (ゲームのメタデータ > 代替エミュレータ) で別のものを選んでください。"
+
+msgid "Map"
+msgstr "マップ"
+
+msgid "Map Buttons"
+msgstr "ボタン割り当て"
+
+msgid "Map buttons"
+msgstr "ボタン割り当て"
+
+msgid "Map refresh"
+msgstr "マップの更新"
+
+msgid "Mar"
+msgstr "3月"
+
+msgid "Match aspect ratios"
+msgstr "縦横比を合わせる"
+
+msgid "Match display rate"
+msgstr "表示レートに合わせる"
+
+msgid "Match Display Rate: Off"
+msgstr "表示レートに合わせる: オフ"
+
+msgid "Match Display Rate: Off for now"
+msgstr "表示レートに合わせる: 今はオフ"
+
+msgid "Match Display Rate: On"
+msgstr "表示レートに合わせる: オン"
+
+msgid "Match screen aspect ratios"
+msgstr "画面の縦横比を合わせる"
+
+msgid "Match screen sizes and aspect ratios"
+msgstr "画面のサイズと縦横比を合わせる"
+
+msgid "Match sizes and shapes"
+msgstr "サイズと形を合わせる"
+
+msgid "Max: full speed, a warmer device and a shorter battery."
+msgstr "最大: フルスピード。端末は熱くなり、バッテリーの持ちは短くなります。"
+
+msgid "May"
+msgstr "5月"
+
+msgid "Medium (15 a second)"
+msgstr "普通 (毎秒 15 回)"
+
+msgid "Modified ROM: the second screen may not work"
+msgstr "改造 ROM: 2 画面目が動かない場合があります"
+
+msgid "Move"
+msgstr "移動"
+
+msgid "Moving it: Up / Down or tap where it goes, then A (or tap it again). The one lower in the list is applied later"
+msgstr "移動中: 上 / 下 または移動先をタップし、A (もう一度タップでも可)。リストで下にあるものが後から適用されます"
+
+msgid "Moving things leave a short trail, as on a GBA."
+msgstr "動くものが GBA のように短い残像を残します。"
+
+msgid "New"
+msgstr "新規"
+
+msgid "No achievements for this ROM (MD5 %s)"
+msgstr "この ROM には実績がありません (MD5 %s)"
+
+msgid "No cheats found (see Cheats in the wiki)"
+msgstr "チートが見つかりません (Wiki の「チート」を参照)"
+
+msgid "No controller found"
+msgstr "コントローラーが見つかりません"
+
+msgid "No es_systems.cfg found."
+msgstr "es_systems.cfg が見つかりません。"
+
+msgid "No folder chosen."
+msgstr "フォルダが選択されていません。"
+
+msgid "No folders in this one"
+msgstr "この中にフォルダはありません"
+
+msgid "No game has settings of its own."
+msgstr "独自の設定を持つゲームはありません。"
+
+msgid "No games found"
+msgstr "ゲームが見つかりません"
+
+msgid "No patches here yet"
+msgstr "パッチはまだありません"
+
+msgid "No quick state saved yet."
+msgstr "クイックステートはまだセーブされていません。"
+
+msgid "No RetroArch states here"
+msgstr "ここに RetroArch のステートはありません"
+
+msgid "no save state yet!"
+msgstr "セーブしたステートがありません！"
+
+msgid "No supported games in"
+msgstr "対応ゲームがありません:"
+
+msgid "None"
+msgstr "なし"
+
+msgid "Not in the folder any more: it's left out"
+msgstr "フォルダ内にもうありません。外しています"
+
+msgid "Not resumed: RetroArch's automatic state is from another of its GBA cores. To share states, set RetroArch's GBA core to mGBA."
+msgstr "再開しませんでした。RetroArch のオートステートは別の GBA コアのものです。ステートを共有するには、RetroArch の GBA コアを mGBA にしてください。"
+
+msgid "Not used"
+msgstr "未使用"
+
+msgid "NOTE: Unsupported games will play in RetroArch, but without BananaOS's own second screen (its game panel and companions)."
+msgstr "注意: 非対応ゲームは RetroArch で動作しますが、BananaOS 独自の 2 画面目 (ゲームパネルとコンパニオン) は使えません。"
+
+msgid "Nothing"
+msgstr "なし"
+
+msgid "Nothing mapped"
+msgstr "未割り当て"
+
+msgid "Nothing saved in slot %d yet"
+msgstr "スロット %d にはまだ何もセーブされていません"
+
+msgid "Nothing to report yet."
+msgstr "まだ報告することはありません。"
+
+msgid "Nov"
+msgstr "11月"
+
+msgid "Now"
+msgstr "今すぐ"
+
+msgid "Oct"
+msgstr "10月"
+
+msgid "Off"
+msgstr "オフ"
+
+msgid "off"
+msgstr "オフ"
+
+msgid "Off for slower devices: the table on one screen. Close and restart GBA DS to apply."
+msgstr "低速な端末向けにオフ: テーブルを 1 画面に表示します。反映するには GBA DS を終了して再起動してください。"
+
+msgid "Off while a patch is on"
+msgstr "パッチがオンの間はオフ"
+
+msgid "Off."
+msgstr "オフ。"
+
+msgid "Off. Restart BananaOS (Settings > System) for its menu to use it."
+msgstr "オフ。BananaOS のメニューに反映するには再起動してください (設定 > システム)。"
+
+msgid "Off. Restart EmulationStation to apply."
+msgstr "オフ。反映するには EmulationStation を再起動してください。"
+
+msgid "Off: every game plays like an ordinary GBA game."
+msgstr "オフ: すべてのゲームが通常の GBA ゲームとして動作します。"
+
+msgid "Off: the left stick does nothing in games."
+msgstr "オフ: ゲーム中、左スティックは何もしません。"
+
+msgid "Offline"
+msgstr "オフライン"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "On"
+msgstr "オン"
+
+msgid "on"
+msgstr "オン"
+
+msgid "On."
+msgstr "オン。"
+
+msgid "On. Restart BananaOS (Settings > System) for its menu to use it."
+msgstr "オン。BananaOS のメニューに反映するには再起動してください (設定 > システム)。"
+
+msgid "On. Restart EmulationStation to see it."
+msgstr "オン。表示するには EmulationStation を再起動してください。"
+
+msgid "Only games with a map screen are listed (show_all = 1 lists every one)"
+msgstr "マップ画面のあるゲームのみ表示します (show_all = 1 ですべて表示)"
+
+msgid "Only one screen: nothing to move"
+msgstr "画面が 1 つだけなので移動するものはありません"
+
+msgid "Only patches that are on have an order, and this is the only one"
+msgstr "オンのパッチだけが順序を持ちます。これが唯一のパッチです"
+
+msgid "Only when your two screens differ in shape. Experimental."
+msgstr "2 つの画面の形が異なる場合のみ。実験的機能。"
+
+msgid "Open quick menu"
+msgstr "クイックメニューを開く"
+
+msgid "Opens the bezel's own page, for whichever the game or all games have"
+msgstr "ゲームまたはすべてのゲームが使うベゼル自身のページを開きます"
+
+msgid "Orange"
+msgstr "オレンジ"
+
+msgid "Outer Bezel Color"
+msgstr "ベゼル外側の色"
+
+msgid "Overlay colors and logo"
+msgstr "オーバーレイの色とロゴ"
+
+msgid "Overlays"
+msgstr "オーバーレイ"
+
+msgid "Overlays on"
+msgstr "オーバーレイ: オン"
+
+msgid "Overlays: Custom"
+msgstr "オーバーレイ: カスタム"
+
+msgid "Overlays: Custom (in /overlays)"
+msgstr "オーバーレイ: カスタム (/overlays 内)"
+
+msgid "Overlays: Generated"
+msgstr "オーバーレイ: 自動生成"
+
+msgid "Overlays: Off"
+msgstr "オーバーレイ: オフ"
+
+msgid "Patch not applied: %s can't be read"
+msgstr "パッチを適用しませんでした: %s を読み込めません"
+
+msgid "Patch not applied: %s is for another ROM"
+msgstr "パッチを適用しませんでした: %s は別の ROM 用です"
+
+msgid "Patched, but a patch was left out: see Patches in the game's menu"
+msgstr "パッチを適用しましたが、一部のパッチは外されています。ゲームメニューの「パッチ」を参照"
+
+msgid "Patched: the second screen may not work"
+msgstr "パッチ適用済み: 2 画面目が動かない場合があります"
+
+msgid "Patches"
+msgstr "パッチ"
+
+msgid "Patches changed"
+msgstr "パッチが変更されました"
+
+msgid "Patches changed since the game started"
+msgstr "ゲーム開始後にパッチが変更されました"
+
+msgid "Patches changed: carrying on from where you were"
+msgstr "パッチが変更されました: 現在位置から続けます"
+
+msgid "Pattern strength"
+msgstr "パターンの強さ"
+
+msgid "Paused"
+msgstr "一時停止中"
+
+msgid "Performance"
+msgstr "パフォーマンス"
+
+msgid "Performance: Let the System Decide"
+msgstr "パフォーマンス: システムに任せる"
+
+msgid "Performance: Set to Max"
+msgstr "パフォーマンス: 最大"
+
+msgid "Pictures in the middle of their screens, or close together."
+msgstr "画面の中央に、または寄せて表示します。"
+
+msgid "Pinball two-screen view"
+msgstr "ピンボール 2 画面表示"
+
+msgid "Pink"
+msgstr "ピンク"
+
+msgid "Pinned: the bar stays up."
+msgstr "固定: バーを表示したままにします。"
+
+msgid "Pixel Perfect"
+msgstr "ピクセル等倍"
+
+msgid "Pixelated"
+msgstr "ドット"
+
+msgid "Placement, overlays"
+msgstr "配置、オーバーレイ"
+
+msgid "Plain"
+msgstr "シンプル"
+
+msgid "Play"
+msgstr "プレイ"
+
+msgid "Playing without achievements this time"
+msgstr "今回は実績なしでプレイします"
+
+msgid "PM"
+msgstr "午後"
+
+msgid "point"
+msgstr "ポイント"
+
+msgid "points"
+msgstr "ポイント"
+
+msgid "Preparing the game..."
+msgstr "ゲームを準備中..."
+
+msgid "presets"
+msgstr "プリセット"
+
+msgid "Press %s"
+msgstr "%s を押してください"
+
+msgid "Press a button"
+msgstr "ボタンを押してください"
+
+msgid "Press A or tap to close"
+msgstr "A を押すかタップして閉じる"
+
+msgid "Press A to close"
+msgstr "A で閉じる"
+
+msgid "press the left stick in"
+msgstr "左スティックを押し込む"
+
+msgid "Purple"
+msgstr "パープル"
+
+msgid "push the left stick left"
+msgstr "左スティックを左に倒す"
+
+msgid "push the left stick up"
+msgstr "左スティックを上に倒す"
+
+msgid "Push the stick: buttons don't count for this one."
+msgstr "スティックを倒してください: この項目ではボタンは使えません。"
+
+msgid "Put .ips, .ups, .bps or .xdelta files in %s"
+msgstr ".ips、.ups、.bps、.xdelta ファイルを %s に置いてください"
+
+msgid "Quick bar hint"
+msgstr "クイックバーのヒント"
+
+msgid "Quick load state"
+msgstr "クイックロード"
+
+msgid "Quick save state"
+msgstr "クイックセーブ"
+
+msgid "Quit"
+msgstr "終了"
+
+msgid "R button"
+msgstr "R ボタン"
+
+msgid "Raise it if the sound crackles."
+msgstr "音が途切れる場合は上げてください。"
+
+msgid "Red"
+msgstr "赤"
+
+msgid "Red, green and blue stripes, gentle: for dim screens"
+msgstr "赤・緑・青のストライプ (弱め): 暗い画面向け"
+
+msgid "Red, green and blue stripes, like a GBA's screen"
+msgstr "赤・緑・青のストライプ: GBA の画面のように"
+
+msgid "Red, green and blue stripes, strong: for bright screens"
+msgstr "赤・緑・青のストライプ (強め): 明るい画面向け"
+
+msgid "Reset"
+msgstr "リセット"
+
+msgid "Reset Bezels"
+msgstr "ベゼルをリセット"
+
+msgid "Reset settings to defaults"
+msgstr "設定を初期値に戻す"
+
+msgid "Restart"
+msgstr "再起動"
+
+msgid "Restart from the top row to play with it (or it's used from the next start)"
+msgstr "一番上の行から再起動して使います (または次回起動時から使われます)"
+
+msgid "Restart from the top row to play with this order"
+msgstr "この順序で遊ぶには一番上の行から再起動してください"
+
+msgid "Restart Game"
+msgstr "ゲームを再起動"
+
+msgid "Restart required"
+msgstr "再起動が必要です"
+
+msgid "Resume"
+msgstr "再開"
+
+msgid "Resumed. Tap or HOME for the menu"
+msgstr "再開しました。メニューはタップまたは HOME"
+
+msgid "RetroAchievements couldn't start"
+msgstr "RetroAchievements couldn't start"
+
+msgid "RetroAchievements doesn't allow patched games"
+msgstr "RetroAchievements を開始できませんでした"
+
+msgid "RetroAchievements is off"
+msgstr "RetroAchievements はパッチ適用済みのゲームを許可していません"
+
+msgid "RETROACHIEVEMENTS · CASUAL"
+msgstr "RetroAchievements はオフです"
+
+msgid "RetroAchievements: Off"
+msgstr "RetroAchievements: オフ"
+
+msgid "RetroAchievements: Sign In"
+msgstr "RetroAchievements: サインイン"
+
+msgid "RetroAchievements: Sign Out"
+msgstr "RetroAchievements: サインアウト"
+
+msgid "RetroAchievements: Signing In..."
+msgstr "RetroAchievements: サインイン中..."
+
+msgid "RetroArch's settings weren't found here: choose the folder where it keeps its save states."
+msgstr "RetroArch の設定がここにありません。ステートの保存先フォルダを選んでください。"
+
+msgid "RetroArch's settings weren't found, so slots 0-9 and the automatic state are GBA DS's own again."
+msgstr "RetroArch の設定が見つからないため、スロット 0〜9 とオートステートは GBA DS 独自のものに戻ります。"
+
+msgid "RetroArch's State Folder"
+msgstr "RetroArch のステートフォルダ"
+
+msgid "RetroArch's state folder is found from its settings again: %s."
+msgstr "RetroArch のステートフォルダを設定から再び検出しました: %s。"
+
+msgid "Rewind"
+msgstr "巻き戻し"
+
+msgid "Rewind length"
+msgstr "巻き戻しの長さ"
+
+msgid "Rewind, fast forward"
+msgstr "巻き戻し、早送り"
+
+msgid "Rewind: Off"
+msgstr "巻き戻し: オフ"
+
+msgid "Rewind: On"
+msgstr "巻き戻し: オン"
+
+msgid "Rewinding..."
+msgstr "巻き戻し中..."
+
+msgid "Right"
+msgstr "右"
+
+msgid "Romhack: %s%s"
+msgstr "ROM ハック: %s%s"
+
+msgid "Romhack: %s%s, untested"
+msgstr "ROM ハック: %s%s、未確認"
+
+msgid "Rotation: Auto"
+msgstr "画面の向き: 自動"
+
+msgid "Rotation: Landscape"
+msgstr "画面の向き: 横"
+
+msgid "Rotation: Portrait"
+msgstr "画面の向き: 縦"
+
+msgid "Run at the display's rate: no small regular stutter."
+msgstr "表示レートで動作します。定期的な小さなカクつきがなくなります。"
+
+msgid "Same as all games again"
+msgstr "すべてのゲームと同じに戻しました"
+
+msgid "Save failed"
+msgstr "セーブ失敗"
+
+msgid "Save failed."
+msgstr "セーブに失敗しました。"
+
+msgid "Save files: .sav"
+msgstr "セーブファイル: .sav"
+
+msgid "Save files: .srm (RetroArch's)"
+msgstr "セーブファイル: .srm (RetroArch 形式)"
+
+msgid "Save on quit"
+msgstr "終了時にセーブ"
+
+msgid "Save on Quit: Off"
+msgstr "終了時にセーブ: オフ"
+
+msgid "Save on Quit: On"
+msgstr "終了時にセーブ: オン"
+
+msgid "Save State"
+msgstr "ステートをセーブ"
+
+msgid "Save State %d"
+msgstr "ステート %d をセーブ"
+
+msgid "Save States: GBA DS's Own"
+msgstr "ステート: GBA DS 独自"
+
+msgid "Save States: Shared with RetroArch"
+msgstr "ステート: RetroArch と共有"
+
+msgid "Saved by another emulator: can't load it"
+msgstr "別のエミュレータでセーブされたためロードできません"
+
+msgid "Saved for all games"
+msgstr "すべてのゲーム用に保存しました"
+
+msgid "Saved for this game"
+msgstr "このゲーム用に保存しました"
+
+msgid "Saved for when a patch is on"
+msgstr "パッチがオンのとき用に保存しました"
+
+msgid "Saves will be kept next to the games."
+msgstr "セーブはゲームの隣に保存されます。"
+
+msgid "Saves will be kept there."
+msgstr "セーブはそこに保存されます。"
+
+msgid "Scale, shader, theme, color"
+msgstr "拡大率、シェーダー、テーマ、色"
+
+msgid "Scale: Full Width"
+msgstr "拡大: 幅いっぱい"
+
+msgid "Scale: Pixel Perfect"
+msgstr "拡大: ピクセル等倍"
+
+msgid "Scale: Stretch"
+msgstr "拡大: 引き伸ばし"
+
+msgid "Scale: Zoom"
+msgstr "拡大: ズーム"
+
+msgid "Scanlines"
+msgstr "走査線"
+
+msgid "Screen placement"
+msgstr "画面の配置"
+
+msgid "Screen Placement: Centered"
+msgstr "画面の配置: 中央"
+
+msgid "Screen Placement: Closest to Gap"
+msgstr "画面の配置: 隙間に寄せる"
+
+msgid "Screen shapes"
+msgstr "画面の形"
+
+msgid "Screens"
+msgstr "画面"
+
+msgid "Screenshot failed"
+msgstr "スクリーンショットに失敗しました"
+
+msgid "Screenshot saved"
+msgstr "スクリーンショットを保存しました"
+
+msgid "Second screen"
+msgstr "2 画面目"
+
+msgid "Second screen scale"
+msgstr "2 画面目の拡大率"
+
+msgid "Select"
+msgstr "Select"
+
+msgid "Select or Start still reach the game when tapped on their own, L3 still opens the quick menu"
+msgstr "Select や Start は単独でタップするとゲームに届き、L3 はクイックメニューを開きます"
+
+msgid "Sep"
+msgstr "9月"
+
+msgid "Separate battery save"
+msgstr "セーブデータを別にする"
+
+msgid "Separate save states"
+msgstr "ステートを別にする"
+
+msgid "Set for now, but %s couldn't be written."
+msgstr "一時的に設定しましたが、%s に書き込めませんでした。"
+
+msgid "Set to Max"
+msgstr "最大にする"
+
+msgid "Sets the shortcuts: the hotkey button held with another."
+msgstr "ショートカットを設定します: ホットキーボタンを押しながら別のボタン。"
+
+msgid "Sets which of this device's buttons does what."
+msgstr "この端末のどのボタンが何をするかを設定します。"
+
+msgid "Settings"
+msgstr "設定"
+
+msgid "Settings are back to their defaults."
+msgstr "設定を初期値に戻しました。"
+
+msgid "Shader"
+msgstr "シェーダー"
+
+msgid "Shader: LCD Grid"
+msgstr "シェーダー: LCD グリッド"
+
+msgid "Shader: Off"
+msgstr "シェーダー: オフ"
+
+msgid "Shader: Scanlines"
+msgstr "シェーダー: 走査線"
+
+msgid "Shader: Soft Cells"
+msgstr "シェーダー: ソフトセル"
+
+msgid "Shader: Subpixels"
+msgstr "シェーダー: サブピクセル"
+
+msgid "Shader: Subpixels (Light)"
+msgstr "シェーダー: サブピクセル (弱)"
+
+msgid "Shader: Subpixels (Strong)"
+msgstr "シェーダー: サブピクセル (強)"
+
+msgid "Shorter can make the sound crackle on a slow device."
+msgstr "短くすると、低速な端末で音が途切れることがあります。"
+
+msgid "Show FPS"
+msgstr "FPS を表示"
+
+msgid "Show FPS: Off"
+msgstr "FPS を表示: オフ"
+
+msgid "Show FPS: On"
+msgstr "FPS を表示: オン"
+
+msgid "Sign in again in the game list's Settings"
+msgstr "ゲームリストの設定でもう一度サインインしてください"
+
+msgid "Sign-in failed"
+msgstr "サインインに失敗しました"
+
+msgid "Signed in as %s. Achievements are earned in casual mode."
+msgstr "%s としてサインインしました。実績はカジュアルモードで獲得されます。"
+
+msgid "Signed out of RetroAchievements."
+msgstr "RetroAchievements からサインアウトしました。"
+
+msgid "Signing in as %s..."
+msgstr "%s としてサインイン中..."
+
+msgid "Single screen only"
+msgstr "1 画面のみ"
+
+msgid "Single screen only: plays normally"
+msgstr "1 画面のみ: 通常どおりプレイできます"
+
+msgid "Skip"
+msgstr "スキップ"
+
+msgid "Skip this version"
+msgstr "このバージョンをスキップ"
+
+msgid "Skipped in %d s if nothing is pressed"
+msgstr "何も押さなければ %d 秒後にスキップします"
+
+msgid "Slot %d loaded"
+msgstr "スロット %d をロードしました"
+
+msgid "Slot %d: %s"
+msgstr "スロット %d: %s"
+
+msgid "Slot %d: %s %d, %d%s"
+msgstr "スロット %1$d: %4$d年%2$s%3$d日%5$s"
+
+msgid "Slot %d: %s %d, %d:%02d %s%s"
+msgstr "スロット %1$d: %2$s%3$d日 %6$s%4$d:%5$02d%7$s"
+
+msgid "Slot %d: Empty"
+msgstr "スロット %d: 空"
+
+msgid "Slots 0-9 and the automatic state are GBA DS's own again. The states saved in RetroArch's folder stay there."
+msgstr "スロット 0〜9 とオートステートは GBA DS 独自のものに戻りました。RetroArch のフォルダにセーブしたステートはそのまま残ります。"
+
+msgid "Slots 0-9 and the automatic state are now RetroArch's. GBA DS's own states stay in its folder, for when this is switched back."
+msgstr "スロット 0〜9 とオートステートは RetroArch のものになりました。GBA DS 独自のステートはフォルダに残り、元に戻したときに使われます。"
+
+msgid "Slots 0-9 and the automatic state are now shared with RetroArch, in %s."
+msgstr "スロット 0〜9 とオートステートを %s で RetroArch と共有しました。"
+
+msgid "Slots 0-9 and the resume point are GBA DS's own. Shared, they're RetroArch's: %s."
+msgstr "スロット 0〜9 と再開ポイントは GBA DS 独自のものです。共有すると RetroArch のものになります: %s。"
+
+msgid "Slots 0-9 and the resume point are GBA DS's own. To share them, choose RetroArch's state folder."
+msgstr "スロット 0〜9 と再開ポイントは GBA DS 独自のものです。共有するには RetroArch のステートフォルダを選んでください。"
+
+msgid "Slots 0-9 and the resume point are RetroArch's (its GBA core set to mGBA): %s."
+msgstr "スロット 0〜9 と再開ポイントは RetroArch のもの (GBA コアは mGBA) です: %s。"
+
+msgid "Slow (10 a second)"
+msgstr "遅い (毎秒 10 回)"
+
+msgid "Smooth scaling"
+msgstr "スムーズな拡大"
+
+msgid "Smoother, one frame more input delay."
+msgstr "よりなめらかになりますが、入力遅延が 1 フレーム増えます。"
+
+msgid "SNES"
+msgstr "SNES"
+
+msgid "Soft Cells"
+msgstr "ソフトセル"
+
+msgid "Some files couldn't be moved, they're still in %s"
+msgstr "一部のファイルを移動できませんでした。%s に残っています"
+
+msgid "Sound delay"
+msgstr "サウンド遅延"
+
+msgid "Space"
+msgstr "スペース"
+
+msgid "Speed"
+msgstr "速度"
+
+msgid "Speed and sound"
+msgstr "速度とサウンド"
+
+msgid "Start"
+msgstr "Start"
+
+msgid "Starting a game picks up where you closed it."
+msgstr "ゲームを起動すると、前回閉じた場所から再開します。"
+
+msgid "State loaded."
+msgstr "ステートをロードしました。"
+
+msgid "State saved to slot %d"
+msgstr "ステートをスロット %d にセーブしました"
+
+msgid "State saved."
+msgstr "ステートをセーブしました。"
+
+msgid "Stick, buttons, hotkeys"
+msgstr "スティック、ボタン、ホットキー"
+
+msgid "Stretch"
+msgstr "引き伸ばし"
+
+msgid "Submit a Bug Report"
+msgstr "バグ報告を送信"
+
+msgid "Subpixels"
+msgstr "サブピクセル"
+
+msgid "Subpixels (Light)"
+msgstr "サブピクセル (弱)"
+
+msgid "Subpixels (Strong)"
+msgstr "サブピクセル (強)"
+
+msgid "Supported"
+msgstr "対応"
+
+msgid "Supported games only"
+msgstr "対応ゲームのみ"
+
+msgid "Sure?"
+msgstr "よろしいですか？"
+
+msgid "Swap Screens"
+msgstr "画面を入れ替え"
+
+msgid "Swap screens"
+msgstr "画面を入れ替え"
+
+msgid "Swapped"
+msgstr "入れ替えました"
+
+msgid "Swipe up for quick menu"
+msgstr "上にスワイプでクイックメニュー"
+
+msgid "Switched off in gba-ds.cfg (retroachievements = 0)."
+msgstr "gba-ds.cfg でオフになっています (retroachievements = 0)。"
+
+msgid "System"
+msgstr "システム"
+
+msgid "Tags in a ROM's file name, like (USA) or (En,Fr,De)."
+msgstr "ROM のファイル名にあるタグ。(USA) や (En,Fr,De) など。"
+
+msgid "Take Screenshot"
+msgstr "スクリーンショットを撮る"
+
+msgid "Takes effect after you close and restart GBA DS"
+msgstr "GBA DS を終了して再起動すると反映されます"
+
+msgid "Tap again to close GBA DS."
+msgstr "もう一度タップすると GBA DS を終了します。"
+
+msgid "Tap the screen or press HOME for the menu"
+msgstr "画面をタップするか HOME でメニュー"
+
+msgid "Tap the touchscreen to skip a button this device doesn't have"
+msgstr "タッチスクリーンをタップすると、この端末にないボタンをスキップします"
+
+msgid "Tap to set none"
+msgstr "タップして割り当てなし"
+
+msgid "Tap to skip a button this device doesn't have"
+msgstr "タップして、この端末にないボタンをスキップ"
+
+msgid "Teal"
+msgstr "ティール"
+
+msgid "Tested romhack: %s"
+msgstr "動作確認済みの ROM ハック: %s"
+
+msgid "That one comes as a keyboard key here: it can't be mapped. Tap to skip."
+msgstr "これはここではキーボードのキーとして届くため、割り当てられません。タップでスキップ。"
+
+msgid "That one is already %s. Press another, or tap to skip."
+msgstr "それはすでに %s です。別のボタンを押すか、タップでスキップ。"
+
+msgid "That's inside GBA DS's own folder: choose one outside it."
+msgstr "それは GBA DS 自身のフォルダ内です。外のフォルダを選んでください。"
+
+msgid "That's the hotkey button: press another"
+msgstr "それはホットキーボタンです。別のボタンを押してください"
+
+msgid "the bottom face button"
+msgstr "下のフェイスボタン"
+
+msgid "the button that opens GBA DS's menu (Home, Menu or Function)"
+msgstr "GBA DS のメニューを開くボタン (Home、Menu、Function)"
+
+msgid "the game"
+msgstr "ゲーム"
+
+msgid "The game's pixels as they are"
+msgstr "ゲームのピクセルをそのまま"
+
+msgid "The GBA DS logo in the generated bezel."
+msgstr "生成されたベゼルに GBA DS ロゴを入れます。"
+
+msgid "The hotkey button can be %s, Select, Start or L3"
+msgstr "ホットキーボタンは %s、Select、Start、L3 にできます"
+
+msgid "the left face button"
+msgstr "左のフェイスボタン"
+
+msgid "the left shoulder button"
+msgstr "左のショルダーボタン"
+
+msgid "The map and the logo"
+msgstr "マップとロゴ"
+
+msgid "The menus' buttons: dark grey, or light grey like the web player's."
+msgstr "メニューのボタン: ダークグレー、またはウェブプレイヤーのようなライトグレー。"
+
+msgid "The menus' color for what's selected, with a dark and a light version of each."
+msgstr "選択中の項目のメニュー色。それぞれ濃い版と薄い版があります。"
+
+msgid "the patch beside the ROM"
+msgstr "ROM の隣にあるパッチ"
+
+msgid "The patches aren't as the game started: restart it to play with them (or they're used from the next start)"
+msgstr "パッチがゲーム開始時と異なります。再起動して使ってください (または次回起動時から使われます)"
+
+msgid "The processor, memory and graphics run at full speed while GBA DS is open: the smoothest play, but the battery runs down faster and the device gets warmer."
+msgstr "GBA DS を開いている間、プロセッサ、メモリ、グラフィックスがフルスピードで動作します。最もなめらかですが、バッテリーの消耗が早く、端末も熱くなります。"
+
+msgid "the right face button"
+msgstr "右のフェイスボタン"
+
+msgid "the right shoulder button"
+msgstr "右のショルダーボタン"
+
+msgid "the second left shoulder button"
+msgstr "2 つ目の左ショルダーボタン"
+
+msgid "the second right shoulder button"
+msgstr "2 つ目の右ショルダーボタン"
+
+msgid "The system sets the speed, as for its other emulators. If games stutter or the sound breaks up, try Set to Max."
+msgstr "ほかのエミュレータと同様に、システムが速度を決めます。ゲームがカクつく、または音が途切れる場合は「最大にする」を試してください。"
+
+msgid "the top face button"
+msgstr "上のフェイスボタン"
+
+msgid "This folder can't be opened"
+msgstr "このフォルダは開けません"
+
+msgid "This game"
+msgstr "このゲーム"
+
+msgid "This game has its own value. X, or going on past the last choice: same as all games"
+msgstr "このゲームには独自の値があります。X、または最後の選択肢の先へ進むと、すべてのゲームと同じになります"
+
+msgid "This game has no achievements yet"
+msgstr "このゲームにはまだ実績がありません"
+
+msgid "This is GBA DS v%s."
+msgstr "GBA DS v%s です。"
+
+msgid "This is v%s. Look for a new version, and download and install it."
+msgstr "v%s です。新しいバージョンを確認し、ダウンロードしてインストールします。"
+
+msgid "This state can't be read"
+msgstr "このステートは読み込めません"
+
+msgid "This state was saved %s: it may not work"
+msgstr "このステートは %s にセーブされました。動作しない可能性があります"
+
+msgid "Together: %s"
+msgstr "同時: %s"
+
+msgid "Toggle selected shader"
+msgstr "選択中のシェーダーを切り替え"
+
+msgid "Top screen"
+msgstr "上画面"
+
+msgid "Top screen brightness"
+msgstr "上画面の明るさ"
+
+msgid "Touch or use the D-Pad"
+msgstr "タッチまたは十字キーを使用"
+
+msgid "Turbo A"
+msgstr "Turbo A"
+
+msgid "Turbo B"
+msgstr "Turbo B"
+
+msgid "Turbo speed"
+msgstr "ターボ速度"
+
+msgid "Turns this ROM into another official release: %s"
+msgstr "この ROM を別の公式リリースにします: %s"
+
+msgid "Unexpected es_systems.cfg (see the log)."
+msgstr "想定外の es_systems.cfg (ログを参照)。"
+
+msgid "Unknown version of this game"
+msgstr "このゲームの不明なバージョン"
+
+msgid "Unlocked"
+msgstr "解除済み"
+
+msgid "Unlocks sent"
+msgstr "解除を送信しました"
+
+msgid "Unlocks will be sent when the connection is back"
+msgstr "接続が戻ったら解除を送信します"
+
+msgid "Unpinned: the bar hides after 5 seconds."
+msgstr "固定解除: バーは 5 秒後に隠れます。"
+
+msgid "unsaved progress is lost"
+msgstr "未セーブの進行は失われます"
+
+msgid "Untested: the second screen may not work with it"
+msgstr "未確認: 2 画面目が動かない場合があります"
+
+msgid "Up"
+msgstr "上"
+
+msgid "Up to %d patches can be on at once"
+msgstr "同時にオンにできるパッチは最大 %d 個です"
+
+msgid "Up to %s"
+msgstr "最大 %s"
+
+msgid "Update now"
+msgstr "今すぐ更新"
+
+msgid "Updates"
+msgstr "更新"
+
+msgid "Updates, integrations"
+msgstr "更新、連携"
+
+msgid "Use This Folder"
+msgstr "このフォルダを使う"
+
+msgid "Used from the next time the game starts"
+msgstr "次にゲームを起動したときから使われます"
+
+msgid "Volume %d%%"
+msgstr "音量 %d%%"
+
+msgid "What D-pad down gives the game."
+msgstr "十字キー下がゲームに渡す内容。"
+
+msgid "What D-pad left gives the game."
+msgstr "十字キー左がゲームに渡す内容。"
+
+msgid "What D-pad right gives the game."
+msgstr "十字キー右がゲームに渡す内容。"
+
+msgid "What D-pad up gives the game."
+msgstr "十字キー上がゲームに渡す内容。"
+
+msgid "What the bottom face button gives the game."
+msgstr "下のフェイスボタンがゲームに渡す内容。"
+
+msgid "What the L shoulder button gives the game."
+msgstr "L ショルダーボタンがゲームに渡す内容。"
+
+msgid "What the left face button gives the game."
+msgstr "左のフェイスボタンがゲームに渡す内容。"
+
+msgid "What the R shoulder button gives the game."
+msgstr "R ショルダーボタンがゲームに渡す内容。"
+
+msgid "What the right face button gives the game."
+msgstr "右のフェイスボタンがゲームに渡す内容。"
+
+msgid "What the top face button gives the game."
+msgstr "上のフェイスボタンがゲームに渡す内容。"
+
+msgid "Where games are read from, and the folder their saves are kept in."
+msgstr "ゲームの読み込み元と、セーブの保存先フォルダ。"
+
+msgid "Where games are read from. Their saves are kept next to them."
+msgstr "ゲームの読み込み元。セーブはゲームの隣に保存されます。"
+
+msgid "Which games, names, saving"
+msgstr "表示するゲーム、名前、セーブ"
+
+msgid "Which screen the game is on."
+msgstr "ゲームを表示する画面。"
+
+msgid "Which Screen: Both"
+msgstr "表示画面: 両方"
+
+msgid "Which Screen: Bottom Only"
+msgstr "表示画面: 下のみ"
+
+msgid "Which Screen: Top Only"
+msgstr "表示画面: 上のみ"
+
+msgid "Which screens have them."
+msgstr "それらを持つ画面。"
+
+msgid "with"
+msgstr "パッチあり"
+
+msgid "with %s"
+msgstr "%s あり"
+
+msgid "With a patch on, the game keeps its own battery save (\"<game> + <patch>\"): off, it uses the original's"
+msgstr "パッチがオンのとき、ゲームは独自のバッテリーセーブ (「<ゲーム> + <パッチ>」) を使います。オフでは元のものを使います"
+
+msgid "With a patch on, the game keeps its own save states: off, it uses the original's (a state can come out garbled in the other)"
+msgstr "パッチがオンのとき、ゲームは独自のステートを使います。オフでは元のものを使います (もう一方でステートが文字化けすることがあります)"
+
+msgid "with another dump of the game (%s)"
+msgstr "ゲームの別のダンプ (%s) あり"
+
+msgid "with another version of the game (other patches, or another ROM)"
+msgstr "ゲームの別のバージョン (別のパッチや別の ROM) あり"
+
+msgid "With automatic checks on, GBA DS looks for a new version once a day when the game list opens, and asks before downloading anything. Updates come from the releases on github.com/kyannon/gba-ds."
+msgstr "自動チェックがオンの場合、GBA DS はゲームリストを開くときに 1 日 1 回新しいバージョンを確認し、ダウンロードする前に確認を求めます。更新は github.com/kyannon/gba-ds のリリースから取得します。"
+
+msgid "With Four buttons picked under Controls in the quick bar, the four-button layout replaces these."
+msgstr "クイックバーの「操作」で 4 ボタンを選ぶと、4 ボタン配置がこれらに置き換わります。"
+
+msgid "With SNES picked under Controls in the quick bar, the SNES layout replaces these in levels."
+msgstr "クイックバーの「操作」で SNES を選ぶと、ステージ中は SNES 配置がこれらに置き換わります。"
+
+msgid "With tags, like (USA)"
+msgstr "タグあり (例: (USA))"
+
+msgid "with the unchanged game (%s)"
+msgstr "変更なしのゲーム (%s) あり"
+
+msgid "without"
+msgstr "パッチなし"
+
+msgid "without the patches on"
+msgstr "オンのパッチなし"
+
+msgid "X (top) button"
+msgstr "X ボタン (上)"
+
+msgid "Y (left) button"
+msgstr "Y ボタン (左)"
+
+msgid "Your own and scraped logos on the second screen."
+msgstr "独自のロゴと取得したロゴを 2 画面目に表示します。"
+
+msgid "Your own PNGs in gba-ds/overlays/. A screen without one gets the generated bezel in its default colors."
+msgstr "gba-ds/overlays/ 内の独自の PNG。PNG のない画面には、既定の色で生成したベゼルを使います。"
+
+msgid "your place is saved"
+msgstr "現在位置はセーブされています"
+
+msgid "Your screens are the same shape: nothing to match"
+msgstr "2 つの画面は同じ形です。合わせるものはありません"
+
+msgid "Zoom"
+msgstr "ズーム"
+
+msgid "‹"
+msgstr "‹"
+
+msgid "›"
+msgstr "›"
+
+#, c-format
+msgid "Sound delay raised to %d ms: the sound kept breaking up"
+msgstr "音の遅延を %d ms に上げました：音が途切れ続けたためです"

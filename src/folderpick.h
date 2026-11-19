@@ -16,10 +16,10 @@ typedef enum {
 
 /* title: the screen's heading; start: where it opens (the nearest folder
  * of it that exists, else home); count: a file name ending counted in the
- * folder shown, to say how many there are ("<n> of countWhat here"), or
- * NULL; autoLabel: a third button's text (the setting's automatic value),
+ * folder shown, to say how many there are ("<n> RetroArch states here"; the
+ * game list's one use), or none; autoLabel: a third button's text (the setting's automatic value),
  * or NULL for none. */
-FolderPick folder_pick(const char* title, const char* start, const char* count, const char* countWhat, const char* autoLabel,
+FolderPick folder_pick(const char* title, const char* start, const char* count, bool showCount, const char* autoLabel,
                        char* out, size_t n);
 
 #endif
