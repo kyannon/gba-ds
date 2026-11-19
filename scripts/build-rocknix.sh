@@ -129,6 +129,22 @@ if [[ $VERSION == *-dev ]]; then
 		echo "web build failed (build/web.log): the zip has no web/gba-ds.wasm"
 	fi
 fi
+# The final dev build before a release carries test save states for the new
+# games (tools/make_device_states.py makes the folder): GBADS_DEVICE_STATES=DIR
+# copies its files into states/ (dev versions only; CLAUDE.md, "Final dev build").
+if [ -n "${GBADS_DEVICE_STATES:-}" ]; then
+	if [[ $VERSION != *-dev ]]; then
+		echo "GBADS_DEVICE_STATES: test states go only into -dev builds (VERSION is $VERSION)" >&2
+		exit 1
+	fi
+	if ! ls "$GBADS_DEVICE_STATES"/*.state > /dev/null 2>&1; then
+		echo "GBADS_DEVICE_STATES: no .state files in $GBADS_DEVICE_STATES (run tools/make_device_states.py)" >&2
+		exit 1
+	fi
+	mkdir -p "$PKG/states"
+	cp "$GBADS_DEVICE_STATES"/*.state "$GBADS_DEVICE_STATES"/TEST-STATES.txt "$PKG/states/"
+	echo "test states: $(ls "$PKG/states"/*.state | wc -l) in states/"
+fi
 chmod +x "$PKG"/*.sh "$PKG/gba-ds" "$ROOT/build/pkg/$ENTRY.sh"
 if [ -n "$SIDE" ]; then
 	rm -f "$ROOT"/dist/gba-ds-*-"$SIDE"-linux-aarch64.zip
