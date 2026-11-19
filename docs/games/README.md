@@ -20,6 +20,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Final Fantasy Tactics Advance](final-fantasy-tactics-advance.md) | FT | `AFXE` + 2 |
 | [Final Fantasy I & II: Dawn of Souls](final-fantasy-1-2-dawn-of-souls.md) | FF | `BFFE` + 2 |
 | [Final Fantasy V Advance](final-fantasy-v-advance.md) | FV | `BZ5E` + 2 |
+| [Final Fantasy VI Advance](final-fantasy-vi-advance.md) | FF6 | `BZ6E` + 2 |
 | [Advance Wars](advance-wars.md) | AW | `AWRE` + 1 |
 | [Advance Wars 2: Black Hole Rising](advance-wars-2.md) | AW2 | `AW2E` + 1 |
 | [Game Boy Wars Advance 1+2](game-boy-wars-advance-1-2.md) | GBW | `BGWJ` |

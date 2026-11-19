@@ -6497,6 +6497,251 @@ static const char* ffv_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	return NULL;
 }
 
+/* ------------------------------------------------- Final Fantasy VI Advance
+ *
+ * docs/games/final-fantasy-vi-advance.md. The game keeps the SNES version's
+ * memory layout in EWRAM (SNES WRAM address + 0x02000000), the same in all
+ * three releases:
+ *   0x1600  16 character records of 0x25 bytes: the character's number (0
+ *           in the first record in a game), +2 the name (6 bytes), +8 the
+ *           level, +9 HP, +0xB maximum HP (16 bits, the top two bits flags)
+ *   0x1850  the party each character is in, by number (bits 0-2)
+ *   0x82    the map's number (a halfword)
+ *   0x02    a halfword: 0xFFFF outside battles, 0 in one
+ *   0x3BF4  the party's HP in a battle, four halfwords, one a place; 0x3C1C
+ *           their maximum HP (0: nobody there)
+ * START's menu is told by the display registers' values it sets (DISPCNT
+ * and the first three BG controls). */
+#define FF6_ROSTER 0x02001600
+#define FF6_REC 0x25
+#define FF6_PARTY 0x02001850
+#define FF6_MAP 0x02000082
+#define FF6_BAT_HP 0x02003BF4
+#define FF6_BAT_MAXHP 0x02003C1C
+#define FF6_FLAGS 0x020011F6 /* bit 0: the corner minimap switched off (SELECT) */
+#define FF6_V_LOGO 0xF0000090 /* outside the game (FF6-2) or the party defeated (FF6-9) */
+#define FF6_V_BATTLE 0xF0000091 /* in a battle (FF6-7) */
+/* the world map's minimap (FF6-10): sixteen 16x16 sprites, tiles 512 to 590
+ * in palette 5, in a 64x64 square at 168, 92; the marker is tile 768 */
+#define FF6_MM_X 168
+#define FF6_MM_Y 92
+#define FF6_MM_SIZE 64
+#define FF6_MM_EVERY 4 /* on the world map, the party kept every 4th capture */
+/* the command list's tiles on BG0 (FF6-4): columns and rows */
+#define FF6_CMD_COL0 19
+#define FF6_CMD_COL1 29
+#define FF6_CMD_ROW1 9
+static const SpriteRule ff6MenuHand = { 136, -16, 200, 100, 0, 1023, -1, 0, 0, 0 };
+/* the minimap's sprites, off the game screen (FF6-11): the sixteen (16x16,
+ * priority 3), and the marker (16x16, priority 0) */
+#define FF6_HIDE_MINIMAP \
+	{ FF6_MM_X, FF6_MM_Y, FF6_MM_X + 48, FF6_MM_Y + 48, 512, 591, 3, 1u << 5, 0, 1u << 1 }, \
+	{ FF6_MM_X, FF6_MM_Y, FF6_MM_X + 48, FF6_MM_Y + 48, 768, 783, 0, 1u << 5, 0, 1u << 1 }
+/* the party kept for battles (FF6-7), the composer's own */
+static uint32_t ff6Party[GBA_W * GBA_H];
+static bool ff6PartyOk;
+static uint32_t ff6PartyId;
+static int ff6WorldTakes;
+
+/* in a game: the first character record is character 0, with a level
+ * (0 before the title, 0xFF on it) */
+static bool ff6_in_game(Emu* e) {
+	return emu_read8(e, FF6_ROSTER) == 0 && emu_read8(e, FF6_ROSTER + 8) != 0;
+}
+
+/* in a battle: the display registers a battle sets (FF6-7). (The halfword at
+ * 0x02000002 is 0 in battles, but stays 0 after the first one.) */
+static bool ff6_battle(Emu* e) {
+	return ff6_in_game(e) && emu_io16(e, 0x00) == 0x1600 && emu_io16(e, 0x08) == 0x560C &&
+	       emu_io16(e, 0x0A) == 0x5408 && emu_io16(e, 0x0C) == 0x5A08;
+}
+
+/* the whole party down in a battle (FF6-9): every place that holds a
+ * character at 0 HP */
+static bool ff6_defeated(Emu* e) {
+	if (!ff6_battle(e)) return false;
+	bool any = false;
+	for (int i = 0; i < 4; ++i) {
+		if (!emu_read16(e, FF6_BAT_MAXHP + i * 2)) continue;
+		any = true;
+		if (emu_read16(e, FF6_BAT_HP + i * 2)) return false;
+	}
+	return any;
+}
+
+static uint32_t ff6_virt(Emu* e, uint32_t addr) {
+	if (addr == FF6_V_LOGO) return !ff6_in_game(e) || ff6_defeated(e);
+	if (addr == FF6_V_BATTLE) return ff6_battle(e);
+	return 0;
+}
+
+/* START's menu up: the registers its screen sets */
+static bool ff6_menu_up(Emu* s) {
+	return emu_io16(s, 0x00) == 0x1540 && emu_io16(s, 0x08) == 0x0F49 && emu_io16(s, 0x0A) == 0x0E4E &&
+	       emu_io16(s, 0x0C) == 0x0D43;
+}
+
+/* which party: the records' character numbers, names and parties, which a
+ * battle doesn't change (FF6-7) */
+static uint32_t ff6_party_id(Emu* s) {
+	uint32_t h = 2166136261u;
+	for (int c = 0; c < 16; ++c) {
+		for (int i = 0; i < 8; ++i) h = (h ^ emu_read8(s, FF6_ROSTER + c * FF6_REC + i)) * 16777619u;
+		h = (h ^ (emu_read8(s, FF6_PARTY + c) & 7)) * 16777619u;
+	}
+	return h;
+}
+
+/* the minimap's sprites all drawn (FF6-10) */
+static bool ff6_minimap_up(Emu* s) {
+	int n = 0;
+	for (int i = 0; i < 128; ++i) {
+		uint16_t a0 = emu_read16(s, 0x07000000 + i * 8), a1 = emu_read16(s, 0x07000002 + i * 8);
+		uint16_t a2 = emu_read16(s, 0x07000004 + i * 8);
+		if ((a0 & 0x0300) == 0x0200 || a2 >> 12 != 5 || (a2 & 0x3FF) < 512 || (a2 & 0x3FF) > 590) continue;
+		int x = a1 & 0x1FF, y = a0 & 0xFF;
+		if (x >= 256) x -= 512;
+		if (y >= 160) y -= 256;
+		if (x >= FF6_MM_X && x < FF6_MM_X + FF6_MM_SIZE && y >= FF6_MM_Y && y < FF6_MM_Y + FF6_MM_SIZE) ++n;
+	}
+	return n >= 16;
+}
+
+/* on the world maps (FF6-10) */
+static bool ff6_world(Emu* s) {
+	return emu_read16(s, FF6_MAP) <= 1;
+}
+
+/* the party kept for battles, taken on the hidden copy from the live state:
+ * START's menu without its command list (FF6-4, FF6-7) */
+static const char* ff6_party_take(Emu* s, const void* state) {
+	emu_hide_sprites(s, NULL, 0);
+	emu_layers(s, 0x1F);
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	/* START's menu brought up; from one of its screens, B first, as often as
+	 * it takes (FF6-5) */
+	emu_hide_sprites(s, &ff6MenuHand, 1);
+	bool up = ff6_menu_up(s);
+	for (int tries = 0; tries < 6 && !up; ++tries) {
+		if (tries) {
+			aw_run(s, K_B, 4);
+			aw_run(s, 0, 40);
+			if ((up = ff6_menu_up(s))) break;
+		}
+		aw_run(s, K_START, 4);
+		for (int f = 0; f < 90 && !up; f += 2) {
+			aw_run(s, 0, 2);
+			up = ff6_menu_up(s);
+		}
+	}
+	if (!up) return "the menu didn't open"; /* (FF6-6) */
+	/* settled: still for 3 looks 4 frames apart */
+	static uint32_t last[GBA_W * GBA_H];
+	int still = 0;
+	memset(last, 0, sizeof(last));
+	for (int f = 0; f < 120 && still < 3; f += 4) {
+		aw_run(s, 0, 4);
+		still = !memcmp(last, s->fb, sizeof(last)) ? still + 1 : 0;
+		memcpy(last, s->fb, sizeof(last));
+	}
+	if (still < 3) return "the menu didn't settle";
+	if (!ff6_menu_up(s)) return "the menu closed";
+	if (emu_cancelled(s)) return "called off";
+	/* the command list's tiles cleared on the hidden copy (FF6-4) */
+	uint32_t map = 0x06000000 + ((emu_io16(s, 0x08) >> 8) & 31) * 0x800;
+	for (int r = 0; r <= FF6_CMD_ROW1; ++r) {
+		for (int c = FF6_CMD_COL0; c <= FF6_CMD_COL1; ++c) emu_write16(s, map + (r * 32 + c) * 2, 0);
+	}
+	emu_frame(s, 0);
+	if (emu_cancelled(s)) return "called off";
+	for (int y = 0; y < GBA_H; ++y) {
+		for (int x = 0; x < GBA_W; ++x) ff6Party[y * GBA_W + x] = s->fb[y * GBA_W + x];
+	}
+	ff6PartyId = ff6_party_id(s);
+	ff6PartyOk = true;
+	return NULL;
+}
+
+
+
+/* the world map's minimap, twice as big, in the middle of the second screen
+ * on black (FF6-10): the game's sprites alone, with START's menu or a screen
+ * closed first, and the corner minimap switched on if the player has it off */
+static const char* ff6_minimap_take(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	emu_hide_sprites(s, NULL, 0);
+	emu_layers(s, 0x10); /* (sprites alone) */
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	bool up = ff6_minimap_up(s);
+	for (int tries = 0; tries < 6 && !up; ++tries) {
+		if (tries) {
+			aw_run(s, K_B, 4);
+			aw_run(s, 0, 40);
+			if ((up = ff6_minimap_up(s))) break;
+		}
+		if (emu_read8(s, FF6_FLAGS) & 1) {
+			aw_run(s, K_SELECT, 4);
+			aw_run(s, 0, 20);
+			up = ff6_minimap_up(s);
+		}
+		if (emu_cancelled(s)) return "called off";
+	}
+	if (!up) return "no minimap";
+	aw_run(s, 0, 2);
+	if (!ff6_minimap_up(s)) return "the minimap closed";
+	if (emu_cancelled(s)) return "called off";
+	int ox = (w - 2 * FF6_MM_SIZE) / 2, oy = (h - 2 * FF6_MM_SIZE) / 2;
+	for (int y = 0; y < h; ++y) {
+		for (int x = 0; x < w; ++x) {
+			int sx = (x - ox) / 2 + FF6_MM_X, sy = (y - oy) / 2 + FF6_MM_Y;
+			bool in = x >= ox && y >= oy && x < ox + 2 * FF6_MM_SIZE && y < oy + 2 * FF6_MM_SIZE;
+			out[y * w + x] = in ? s->fb[sy * GBA_W + sx] : 0xFF000000;
+		}
+	}
+	return NULL;
+}
+
+static void ff6_party_out(uint32_t* out, int w, int h) {
+	for (int y = 0; y < h; ++y) {
+		for (int x = 0; x < w; ++x) out[y * w + x] = y < GBA_H && x < GBA_W ? ff6Party[y * GBA_W + x] : 0xFF000000;
+	}
+}
+
+static const char* ff6_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	emu_hide_sprites(s, NULL, 0);
+	emu_layers(s, 0x1F);
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	if (!ff6_in_game(s)) {
+		ff6PartyOk = false;
+		return "not in a game"; /* (FF6-2) */
+	}
+	if (ff6_battle(s)) {
+		/* the party kept, if it's this party (FF6-7); else the last picture */
+		if (!ff6PartyOk || ff6PartyId != ff6_party_id(s)) return "a battle: no picture of this party kept";
+		ff6_party_out(out, w, h);
+		return NULL;
+	}
+	if (ff6_world(s)) {
+		/* the minimap (FF6-10), and now and then the party kept for
+		 * battles (FF6-7); no minimap: the party screen */
+		bool due = !ff6PartyOk || ff6PartyId != ff6_party_id(s) || ++ff6WorldTakes >= FF6_MM_EVERY;
+		const char* err = ff6_minimap_take(s, state, out, w, h);
+		if (!err) {
+			if (due) {
+				ff6WorldTakes = 0;
+				ff6_party_take(s, state); /* (a failure keeps the one before) */
+			}
+			return emu_cancelled(s) ? "called off" : NULL;
+		}
+		if (emu_cancelled(s)) return "called off";
+	}
+	const char* perr = ff6_party_take(s, state);
+	if (perr) return perr;
+	ff6_party_out(out, w, h);
+	return NULL;
+}
 /* ---------------------------------------------------------------- Baldur's Gate: Dark Alliance
  *
  * docs/games/baldurs-gate-dark-alliance.md. The game has no map: GBA DS
@@ -9755,6 +10000,29 @@ static const MapProfile profiles[] = {
 		.logo = { .wait = 1000, .mask = &logoMaskER, .rev = 1 },
 	},
 	{
+		/* Final Fantasy VI Advance: walking about, START's menu as the party
+		 * screen: see ff6_compose (docs/games/final-fantasy-vi-advance.md) */
+		.codes = { "BZ6E" },
+		.title = "Final Fantasy VI Advance",
+		.compose = ff6_compose,
+		.virt = ff6_virt,
+		/* the corner minimap isn't drawn on the game screen: it's on the
+		 * second (FF6-10, FF6-11) */
+		.hideSprites = { FF6_HIDE_MINIMAP },
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* outside the game and after a game over: the logo, the pictures
+		 * dropped, no captures (FF6-2, FF6-9) */
+		.live = { { FF6_V_LOGO, 0xFF, 0, 4 } },
+		.menu = { { FF6_V_LOGO, 0xFF, 1, 4 } },
+		/* another map, a battle over: taken again at once (FF6-4, FF6-7) */
+		.room = { { FF6_MAP, 0xFFFF, 0, 2 }, { FF6_V_BATTLE, 0xFF, 0, 1 } },
+		/* the title's lettering (BG0): past the health warning (A), the logos
+		 * and the title's own animation */
+		.logo = { .steps = { { 0, 500 }, { K_A, 4 }, { 0, 1500 }, { K_A, 4 }, { 0, 300 } },
+		          .layers = 0x01, .maxY = 100, .lightEdgeClear = true },
+	},
+	{
 		/* the same for Europe: A on its language screen (English) first */
 		.codes = { "BENP" },
 		.title = "Eragon",
@@ -10062,6 +10330,19 @@ static void ffv_eur(MapProfile* p) {
 }
 static void ff_jpn(MapProfile* p) {
 	p->logo.layers = 0x0E;
+}
+
+/* Final Fantasy VI Advance in Europe: a language screen (A: English) before
+ * the health warning */
+static void ff6_eur(MapProfile* p) {
+	static const MacroStep steps[] = { { 0, 400 }, { K_A, 4 }, { 0, 400 }, { K_A, 4 }, { 0, 1500 }, { K_A, 4 }, { 0, 300 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+}
+
+/* in Japan the title's copyright line starts at row 99 */
+static void ff6_jpn(MapProfile* p) {
+	p->logo.maxY = 97;
 }
 
 /* Super Mario Advance 3 in Europe: the language menu (A: English), then
@@ -10530,6 +10811,9 @@ static const Variant variants[] = {
 	/* (Final Fantasy V Advance's addresses: FfvRegion) */
 	{ "BZ5P", "BZ5E", 0, ffv_eur },
 	{ "BZ5J", "BZ5E", 0, NULL },
+	/* (Final Fantasy VI Advance's RAM: the same in every release) */
+	{ "BZ6P", "BZ6E", 0, ff6_eur },
+	{ "BZ6J", "BZ6E", 0, ff6_jpn },
 	{ "AM2P", "AE2E", 0, NULL },
 	{ "AE2J", "AE2E", 0, mmbn2_jpn },
 	/* (Pokémon Pinball's cheats: its state moved, so the memory shift is only

@@ -20,6 +20,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Final Fantasy I & II: Dawn of Souls (Final Fantasy I, II Advance in Japan) | `BFFE` `BFFP` `BFFJ` | the Enlarged Map on the world map, the party screen elsewhere and in battles (both games) | |
 | Final Fantasy Tactics Advance | `AFXE` `AFXP` `AFXJ` | in battles: the Status of the unit under the cursor, or the turn order and Laws; on the world map: today's Laws | |
 | Final Fantasy V Advance | `BZ5E` `BZ5P` `BZ5J` | the world map on the world map and the airship, the party screen elsewhere and in battles | |
+| Final Fantasy VI Advance | `BZ6E` `BZ6P` `BZ6J` | the minimap, twice as big, on the world map and the airship; the party screen elsewhere and in battles | |
 | Fire Emblem (Rekka no Ken in Japan) | `AE7E` `AE7X` (English, French, German) `AE7Y` (English, Spanish, Italian) `AE7J` | on the map: the status of the unit under the cursor | |
 | Fire Emblem: The Sacred Stones (Seima no Kouseki in Japan) | `BE8E` `BE8P` `BE8J` | on the map: the status of the unit under the cursor | |
 | Fire Emblem: Fuuin no Tsurugi (The Binding Blade) | `AFEJ` (Japan only) | on the map: the status of the unit under the cursor | FE6 Localization v1.2.1 (English) |
@@ -229,6 +230,12 @@ A new second screen since v1.3.2, replacing the earlier one (which moved the gam
 ## Final Fantasy V Advance
 
 On the world map and the airship the second screen shows the game's own world map (the one R opens). Everywhere else (towns, castles, dungeons) it shows the party screen from START's menu: the four characters with their jobs, levels, HP and MP, where you are, the play time and the gil; where the list of commands would be, the big party window goes on, so there is no empty box. It follows you (taken again every few seconds and on every new map). In a battle it shows the party as it was just before (the HP and play time don't change until the battle's over). On the title and the file screens, and after a game over, it shows the logo; in conversations, shops and scenes the last picture stays.
+
+## Final Fantasy VI Advance
+
+On the world map and the airship the second screen shows the game's own minimap (the small map the game draws in the corner of the game screen, which SELECT shows or hides) twice as big, on black. It follows the party's marker, shows whether or not SELECT has the corner minimap on, and is taken off the game screen's corner, so the same map isn't on both screens. Everywhere else (towns, dungeons) it shows the party screen from START's menu: the portraits, levels, HP and MP, where you are, and the play time, steps and gil, without the command list. In a battle the party screen from before the battle stays up (its HP and MP don't change during it), and the minimap comes back once the battle is over. On the title and after a game over (every character in the battle at 0 HP) it shows the logo.
+
+Known: the empty frame of START's command window stays on the party screen. Conversations and scenes keep the last picture. A party that's out in a way other than HP 0 (turned to stone) isn't noticed. The World of Ruin, the airship and the Europe and Japan world maps haven't been checked on the device.
 
 ## Fire Emblem
 
