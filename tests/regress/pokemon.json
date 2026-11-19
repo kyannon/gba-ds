@@ -734,6 +734,137 @@
      "frac": 0.5
     }
    ]
+  },
+  {
+   "id": "pk-lg-rev1-center-no-map",
+   "rom": "BPGE+rev1",
+   "state": "pokemon/lg-center-no-map.ss",
+   "desc": "LeafGreen (Rev 1), early game in a Pok\u00e9mon Center, no Town Map yet: the Party, kept fresh, no long map search again and again",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-6"
+   ],
+   "shots": {
+    "party": 300,
+    "later": 1500
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "the Party, still",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the long search for a Town Map runs once, not every few seconds",
+     "type": "no_log",
+     "match": "(?s)capture: \\d+ ms, (?:[3-9]\\d{3}|\\d{5,}) frames.*capture: \\d+ ms, (?:[3-9]\\d{3}|\\d{5,}) frames"
+    }
+   ]
+  },
+  {
+   "id": "pk-lg-rev1-map-given",
+   "rom": "BPGE+rev1",
+   "state": "pokemon/lg-given-map.ss",
+   "desc": "LeafGreen (Rev 1), the Town Map being handed over: the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 400
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "pk-lg-rev1-with-map",
+   "rom": "BPGE+rev1",
+   "state": "pokemon/lg-with-map.ss",
+   "desc": "LeafGreen (Rev 1), outside with the Town Map: the map is up within seconds",
+   "rules": [
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 400
+   },
+   "checks": [
+    {
+     "rule": "PK-3",
+     "what": "the map",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
   }
  ]
 }

@@ -9164,7 +9164,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			}
 			/* quick "no map here" failures (A Link to the Past indoors) cost little
 			 * and are expected, so they don't back off */
-			bool cheapFail = why && !strcmp(why, "map button did nothing");
+			bool cheapFail = why && !strncmp(why, "map button did nothing", 22); /* (Pokémon's menu failures say why in brackets) */
 			/* (a profile's own interval, when it's quicker: Swordcraft Story) */
 			const MapProfile* ip = mapcap_profile(mc);
 			int every = ip && ip->interval > 0 && ip->interval < cfg->mapInterval ? ip->interval : cfg->mapInterval;

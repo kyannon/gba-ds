@@ -7611,9 +7611,9 @@ static const char* pk_menu_try(Emu* s, const PkFam* f) {
 		int m = bar ? pk_moved_h(s, before) : pk_moved(s, before, f->menuBottom);
 		if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: next %d -> %d (io %04X %04X)\n", i, m, emu_io16(s, 0), emu_io16(s, 8));
 		if (m == 2) return NULL;
-		if (m == 0) return "the menu's cursor didn't move";
+		if (m == 0) return "map button did nothing (the menu's cursor didn't move)"; /* (quick to retry: game.c) */
 	}
-	return "the menu's cursor never wrapped";
+	return "map button did nothing (the menu's cursor never wrapped)";
 }
 /* the player's own Party screen or START menu may be up: the hidden copy
  * backs out of it (B) and opens its own (PK-6) */
@@ -7625,7 +7625,7 @@ static const char* pk_menu_top(Emu* s, const PkFam* f, const void* state) {
 		aw_run(s, 0, 24);
 	}
 	const char* err = pk_menu_try(s, f);
-	if (err && !strcmp(err, "the menu's cursor didn't move")) {
+	if (err && strstr(err, "cursor didn't move")) {
 		/* (START closed a menu that was already up) */
 		for (int i = 0; i < 2; ++i) {
 			pk_tap(s, K_B);
@@ -7716,10 +7716,21 @@ static const char* pk_nav_map(Emu* s, const PkFam* f, const void* state, uint32_
  * until the map's registers come up (the copy is loaded afresh each time,
  * so whatever another item does is gone). The row that worked is the first
  * to try next time. */
+/* a hash of the Bag's list (the right of the screen: the bag's own picture
+ * on the left moves) */
+static uint32_t pk_list_hash(Emu* s) {
+	uint32_t h = 2166136261u;
+	for (int y = 0; y < 120; ++y)
+		for (int x = 96; x < 232; ++x) h = (h ^ (s->fb[y * GBA_W + x] & 0xFFFFFF)) * 16777619u;
+	return h;
+}
 #define PK_KEY_ROWS 10
 #define PK_MAP_EVERY 5 /* captures (about 15 s) between the map's */
 static const char* pk_town_map(Emu* s, const PkFam* f, const void* state, uint32_t* out, int w, int h) {
 	static int first, goodBag;
+	static bool noMapKnown;
+	static uint32_t noMapHash;
+	uint32_t listHash = 0;
 	for (int t = 0; t < PK_KEY_ROWS; ++t) {
 		int row = (first + t) % PK_KEY_ROWS;
 		const char* err;
@@ -7730,6 +7741,16 @@ static const char* pk_town_map(Emu* s, const PkFam* f, const void* state, uint32
 		pk_tap(s, K_RIGHT);
 		aw_run(s, 0, 10);
 		for (int i = 0; i < PK_KEY_ROWS + 2; ++i) pk_tap(s, K_UP);
+		if (t == 0) {
+			/* the Key Items list as it is: the same as when no Town Map was
+			 * found last time means still none, without the row-by-row
+			 * search (seconds of frames, taken again and again until the
+			 * player has it) */
+			aw_run(s, 0, 20);
+			listHash = pk_list_hash(s);
+			if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: key items list %08X (last none: %d %08X)\n", listHash, noMapKnown, noMapHash);
+			if (noMapKnown && listHash == noMapHash) return "no Town Map in the Bag";
+		}
 		for (int i = 0; i < row; ++i) pk_tap(s, K_DOWN);
 		pk_tap(s, K_A); /* its menu: USE first */
 		aw_run(s, 0, 10);
@@ -7739,9 +7760,11 @@ static const char* pk_town_map(Emu* s, const PkFam* f, const void* state, uint32
 		aw_run(s, 0, 110); /* (the registers are right while it's still fading in from white) */
 		if (!pk_is(s, &f->map)) continue;
 		first = row;
+		noMapKnown = false;
 		pk_map_copy(s, f, out, w, h);
 		return NULL;
 	}
+	if (!emu_cancelled(s)) noMapKnown = true, noMapHash = listHash;
 	return "no Town Map in the Bag";
 }
 static const char* pk_map(Emu* s, const PkFam* f, const void* state, uint32_t* out, int w, int h) {
@@ -7762,7 +7785,7 @@ static const char* pk_pages(Emu* s, const void* state, uint32_t* const* out, int
 	const char* err = pk_party(s, f, state, out[0], w, h);
 	if (err) return err; /* (no Party: no second screen to keep) */
 	int n = 1;
-	if (tick++ % PK_MAP_EVERY == 0) wait = 0;
+	if (tick++ % (have ? PK_MAP_EVERY : 3) == 0) wait = 0; /* (looking for one is cheap now: the Key Items list is compared first) */
 	if (!wait && (tick % PK_MAP_EVERY == 1 || !have) && w == GBA_W && h == GBA_H) {
 		if (!pk_map(s, f, state, keep, GBA_W, GBA_H)) have = true;
 		else if (!emu_cancelled(s)) have = false, wait = 1; /* (a capture called off says nothing about the map) */
