@@ -534,6 +534,26 @@
     "b": 420
    },
    "checks": []
+  },
+  {
+   "id": "bof-us-battle-from-map",
+   "rom": "ABFE",
+   "state": "breath-of-fire/us-overworld.ss",
+   "desc": "a battle starts with the world map on the second screen: the party overview, not the map",
+   "rules": [
+    "BOF-5"
+   ],
+   "input": [
+    [
+     400,
+     "LOAD:breath-of-fire/us-battle.ss"
+    ]
+   ],
+   "shots": {
+    "a": 380,
+    "b": 600
+   },
+   "checks": []
   }
  ]
 }

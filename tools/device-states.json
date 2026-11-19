@@ -295,7 +295,7 @@
    "Breath of Fire (USA)": {
     "1": [
      "us-overworld.ss",
-     "Overworld, the party has the Map: START's world map with the cyan marker (BOF-3)"
+     "Overworld, the party has the Map: START's world map with the cyan marker (BOF-3). Wait for the map, then load slot 6: the battle shows the party overview, not the map (BOF-5)"
     ],
     "2": [
      "us-map-open.ss",
@@ -315,7 +315,7 @@
     ],
     "6": [
      "us-battle.ss",
-     "A battle loaded straight in: logo. Load slot 3 first, wait for the overview, then load this: the overview stays (BOF-5)"
+     "A battle: the party overview from before. Load slot 3 first (or slot 1, once the map is up), wait, then load this (BOF-5); on its own, with nothing taken yet: logo"
     ],
     "7": [
      "us-title.ss",

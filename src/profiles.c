@@ -8071,11 +8071,29 @@ static const int bofParty[][3] = { { 160, 2, 0xFFF9E7 }, { 160, 4, 0xFFFFE7 }, {
 /* the party window's left edge (the command list is to its left) */
 #define BOF_PARTY_X 47
 
+/* the last party overview taken (BOF-5): a battle shows it, as the overview can't
+ * be opened there, and the map's capture takes one too */
+static struct { uint32_t* px; int w, h; volatile bool ok; } bofKept;
+static void bof_keep(const uint32_t* out, int w, int h) {
+	if (!bofKept.px || bofKept.w != w || bofKept.h != h) {
+		bofKept.ok = false;
+		free(bofKept.px);
+		bofKept.px = malloc((size_t)w * h * sizeof(uint32_t));
+		bofKept.w = w, bofKept.h = h;
+	}
+	if (!bofKept.px) return;
+	memcpy(bofKept.px, out, (size_t)w * h * sizeof(uint32_t));
+	bofKept.ok = true;
+}
+
 static uint32_t bof_virt(Emu* e, uint32_t addr) {
 	uint16_t disp = emu_io16(e, 0x00);
-	/* 1: the logo; 2: a battle, nothing taken and nothing dropped, so the picture
-	 * from before stays (BOF-5) */
-	if (addr == BOF_V_LOGO) return disp == BOF_DISP_TITLE ? 1 : disp == BOF_DISP_BATTLE ? 2 : 0;
+	/* the logo on the title, which also forgets the party overview kept for battles
+	 * (BOF-5); a battle is taken like the field (the kept overview) */
+	if (addr == BOF_V_LOGO) {
+		if (disp == BOF_DISP_TITLE) bofKept.ok = false;
+		return disp == BOF_DISP_TITLE;
+	}
 	if (addr != BOF_V_SCREEN) return 0;
 	if (disp == BOF_DISP_FIELD) return emu_io16(e, 0x08) == BOF_BG0_MENU ? 2 : emu_io16(e, 0x08) == BOF_BG0_FIELD ? 1 : 0;
 	return disp == BOF_DISP_MAP ? 3 : disp == BOF_DISP_TITLE || disp == BOF_DISP_BATTLE ? 4 : 0;
@@ -8110,37 +8128,9 @@ static bool bof_settled(Emu* s, bool map, int n) {
 	return still >= 3;
 }
 
-static const char* bof_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
-	emu_hide_sprites(s, NULL, 0);
-	emu_layers(s, 0x1F);
-	if (!emu_state_load(s, state)) return "state load failed";
-	emu_frame(s, 0);
-	uint16_t disp = emu_io16(s, 0x00);
-	if (disp == BOF_DISP_TITLE || disp == BOF_DISP_BATTLE) return "not walking about";
-	/* the map open in the game: back to the field with B (BOF-7), which
-	 * fades out and in again */
-	bool wasMap = disp == BOF_DISP_MAP;
-	if (wasMap) {
-		aw_run(s, K_B, 4);
-		for (int f = 0; f < 240 && !(emu_io16(s, 0x00) == BOF_DISP_FIELD && emu_io16(s, 0x08) == BOF_BG0_FIELD); f += 2) aw_run(s, 0, 2);
-		if (emu_io16(s, 0x00) != BOF_DISP_FIELD) return "the map didn't close";
-		aw_run(s, 0, 10);
-	}
-	bool menuOpen = emu_io16(s, 0x00) == BOF_DISP_FIELD && emu_io16(s, 0x08) == BOF_BG0_MENU;
-	/* the world map: START, on the overworld (BOF-3); not with the map or
-	 * a menu open in the game (BOF-7) */
-	if (!wasMap && !menuOpen) {
-		aw_run(s, K_START, 4);
-		for (int f = 0; f < 90 && emu_io16(s, 0x00) != BOF_DISP_MAP; f += 2) aw_run(s, 0, 2);
-		if (emu_io16(s, 0x00) == BOF_DISP_MAP) {
-			if (!bof_settled(s, true, 300)) return "the map didn't settle";
-			for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
-			return NULL;
-		}
-	}
-	if (emu_cancelled(s)) return "called off";
-	/* the party overview: SELECT's menu (B first, as often as it takes to
-	 * leave one of its pages or a conversation: BOF-6, BOF-7) */
+/* the party overview, from SELECT's menu (B first, as often as it takes to leave one
+ * of its pages or a conversation: BOF-6, BOF-7) */
+static const char* bof_party(Emu* s, bool menuOpen, uint32_t* out, int w, int h) {
 	bool up = bof_party_up(s);
 	if (!up && menuOpen) {
 		for (int f = 0; f < 150 && !up; f += 2) aw_run(s, 0, 2), up = bof_party_up(s);
@@ -8166,7 +8156,62 @@ static const char* bof_compose(Emu* s, const void* state, uint32_t* out, int w, 
 			out[y * w + x] = y < GBA_H && x >= left && x < left + cw ? s->fb[y * GBA_W + BOF_PARTY_X + x - left] : 0xFF000000;
 		}
 	}
+	bof_keep(out, w, h);
 	return NULL;
+}
+
+
+static const char* bof_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	emu_hide_sprites(s, NULL, 0);
+	emu_layers(s, 0x1F);
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	uint16_t disp = emu_io16(s, 0x00);
+	if (disp == BOF_DISP_TITLE) return "not walking about";
+	/* a battle: the overview kept from before it (BOF-5) */
+	if (disp == BOF_DISP_BATTLE) {
+		if (!bofKept.ok || bofKept.w != w || bofKept.h != h) return "no party overview yet";
+		memcpy(out, bofKept.px, (size_t)w * h * sizeof(uint32_t));
+		return NULL;
+	}
+	/* the map open in the game: back to the field with B (BOF-7), which
+	 * fades out and in again */
+	bool wasMap = disp == BOF_DISP_MAP;
+	if (wasMap) {
+		aw_run(s, K_B, 4);
+		for (int f = 0; f < 240 && !(emu_io16(s, 0x00) == BOF_DISP_FIELD && emu_io16(s, 0x08) == BOF_BG0_FIELD); f += 2) aw_run(s, 0, 2);
+		if (emu_io16(s, 0x00) != BOF_DISP_FIELD) return "the map didn't close";
+		aw_run(s, 0, 10);
+	}
+	bool menuOpen = emu_io16(s, 0x00) == BOF_DISP_FIELD && emu_io16(s, 0x08) == BOF_BG0_MENU;
+	/* the world map: START, on the overworld (BOF-3); not with the map or
+	 * a menu open in the game (BOF-7) */
+	if (!wasMap && !menuOpen) {
+		aw_run(s, K_START, 4);
+		for (int f = 0; f < 90 && emu_io16(s, 0x00) != BOF_DISP_MAP; f += 2) aw_run(s, 0, 2);
+		if (emu_io16(s, 0x00) == BOF_DISP_MAP) {
+			if (!bof_settled(s, true, 300)) return "the map didn't settle";
+			for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+			/* and the overview, for a battle that starts while the map is up
+			 * (BOF-5): B, then SELECT; the map stays as it is if it fails */
+			static uint32_t* scratch;
+			static int scratchN;
+			if (scratchN < w * h) {
+				free(scratch);
+				scratch = malloc((size_t)w * h * sizeof(uint32_t));
+				scratchN = scratch ? w * h : 0;
+			}
+			aw_run(s, K_B, 4);
+			for (int f = 0; f < 240 && !(emu_io16(s, 0x00) == BOF_DISP_FIELD && emu_io16(s, 0x08) == BOF_BG0_FIELD); f += 2) aw_run(s, 0, 2);
+			if (scratch && !emu_cancelled(s) && emu_io16(s, 0x00) == BOF_DISP_FIELD) {
+				aw_run(s, 0, 10);
+				bof_party(s, false, scratch, w, h);
+			}
+			return NULL;
+		}
+	}
+	if (emu_cancelled(s)) return "called off";
+	return bof_party(s, menuOpen, out, w, h);
 }
 
 static const MapProfile profiles[] = {
@@ -10831,7 +10876,7 @@ static const MapProfile profiles[] = {
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
 		/* the title and its intro: the logo, the pictures dropped, no captures
-		 * (BOF-2); battles: no captures, the picture stays (BOF-5) */
+		 * (BOF-2); battles are taken like the rest: the overview kept (BOF-5) */
 		.live = { { BOF_V_LOGO, 0xFF, 0, 4 } },
 		.menu = { { BOF_V_LOGO, 0xFF, 1, 4 } },
 		/* another screen (the field back from a battle, a menu or the map
