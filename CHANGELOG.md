@@ -2,6 +2,10 @@
 
 ## v1.5.7 (not yet released)
 
+### Fixes
+- **Web player: the sound comes back after the quick menu** (#67): it used to stay silent after closing the menu until the page was reloaded.
+- **Web player: settings you change are kept** (#67): a setting changed in the menu and then followed by a reload, or leaving the page, within a few seconds was lost; it's now kept at once.
+
 ## v1.5.6 (2026-11-19)
 
 ### New games

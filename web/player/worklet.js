@@ -60,8 +60,11 @@ class GbadsRing {
     } else if (this.n + this.asked < this.target / 2) {
       this.ask(this.target - this.n - this.asked);
     }
-    // dry for a second (the game paused, say): what was asked for may be lost, ask again
-    if (this.n === 0) { if ((this.dry += L.length) >= this.outRate) { this.dry = 0; this.asked = 0; this.ask(this.target); } }
+    // not playing for a second (the game paused, say): what was asked for may be lost, ask again.
+    // (Not "n === 0": playing stops with one frame left, so a ring that ran dry in the quick menu
+    // held that frame for good, never asked again, and the worker, hearing no ask, threw the
+    // sound away once the game went on: silence until the page was reloaded.)
+    if (!this.started) { if ((this.dry += L.length) >= this.outRate) { this.dry = 0; this.asked = 0; this.ask(this.target); } }
     else this.dry = 0;
   }
 }
