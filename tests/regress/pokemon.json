@@ -462,6 +462,278 @@
      "match": "map updated"
     }
    ]
+  },
+  {
+   "id": "pk-mm-title",
+   "rom": "BPEE+mariomon",
+   "state": "pokemon/mm-title.ss",
+   "desc": "Super MarioMon: the title, the logo",
+   "rules": [
+    "PK-1",
+    "PK-8"
+   ],
+   "shots": {
+    "end": 300
+   },
+   "checks": [
+    {
+     "rule": "PK-1",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "pk-mm-bedroom",
+   "rom": "BPEE+mariomon",
+   "state": "pokemon/mm-bedroom.ss",
+   "desc": "Super MarioMon: first control, in the bedroom: the logo",
+   "rules": [
+    "PK-1",
+    "PK-8"
+   ],
+   "shots": {
+    "end": 300
+   },
+   "checks": [
+    {
+     "rule": "PK-1",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "pk-mm-tutorial-battle",
+   "rom": "BPEE+mariomon",
+   "state": "pokemon/mm-tutorial-battle.ss",
+   "desc": "Super MarioMon: the tutorial battle: the logo",
+   "rules": [
+    "PK-1",
+    "PK-8"
+   ],
+   "shots": {
+    "end": 420
+   },
+   "checks": [
+    {
+     "rule": "PK-1",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "pk-mm-first-capture",
+   "rom": "BPEE+mariomon",
+   "state": "pokemon/mm-first-capture.ss",
+   "desc": "Super MarioMon: first control with a capture: the Party",
+   "rules": [
+    "PK-2",
+    "PK-8"
+   ],
+   "shots": {
+    "party": 300
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "a Party picture, not the logo",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "pk-mm-capture-menu",
+   "rom": "BPEE+mariomon",
+   "state": "pokemon/mm-capture-menu.ss",
+   "desc": "Super MarioMon: the Captures screen up on the game screen: the Party, taken after backing out of it",
+   "rules": [
+    "PK-2",
+    "PK-6",
+    "PK-8"
+   ],
+   "shots": {
+    "party": 420
+   },
+   "checks": [
+    {
+     "rule": "PK-6",
+     "what": "a Party picture, not the logo",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "pk-mm-capture-menu-after",
+   "rom": "BPEE+mariomon",
+   "state": "pokemon/mm-capture-menu-after.ss",
+   "desc": "Super MarioMon: the Captures screen, a moment later: the Party kept",
+   "rules": [
+    "PK-2",
+    "PK-8"
+   ],
+   "shots": {
+    "party": 300
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "a Party picture, not the logo",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "pk-mm-wild-battle",
+   "rom": "BPEE+mariomon",
+   "state": "pokemon/mm-wild-battle.ss",
+   "desc": "Super MarioMon: a wild battle: the Party kept",
+   "rules": [
+    "PK-1",
+    "PK-8"
+   ],
+   "shots": {
+    "party": 420
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "a Party picture, not the logo",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "pk-rogueex-party-up",
+   "rom": "BPEE+rogueex",
+   "state": "pokemon/rogueex-party-up.ss",
+   "desc": "Emerald Rogue EX: the Party screen up on the game screen: the Party, no map",
+   "rules": [
+    "PK-2",
+    "PK-6",
+    "PK-8"
+   ],
+   "shots": {
+    "party": 420
+   },
+   "checks": [
+    {
+     "rule": "PK-6",
+     "what": "a Party picture, not the logo",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "pk-rogueex-dialogue",
+   "rom": "BPEE+rogueex",
+   "state": "pokemon/rogueex-dialogue.ss",
+   "desc": "Emerald Rogue EX: in a conversation before any Party picture: the logo",
+   "rules": [
+    "PK-1",
+    "PK-8"
+   ],
+   "shots": {
+    "end": 300
+   },
+   "checks": [
+    {
+     "rule": "PK-1",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
   }
  ]
 }

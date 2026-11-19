@@ -7577,10 +7577,20 @@ static void pk_tap(Emu* s, uint32_t key) {
 }
 static void pk_keep(Emu* s, uint32_t* to) { memcpy(to, s->fb, GBA_W * GBA_H * sizeof(uint32_t)); }
 /* START pressed on the hidden copy, the menu up, its cursor on the first entry */
-static const char* pk_menu_top(Emu* s, const PkFam* f, const void* state) {
+static const char* pk_menu_try(Emu* s, const PkFam* f) {
 	static uint32_t before[GBA_W * GBA_H];
-	if (!emu_state_load(s, state)) return "state load failed";
-	emu_frame(s, 0);
+	{ /* the player's START menu already up (its panel's white): B puts it away */
+		int white = 0;
+		for (int y = 4; y < 100; ++y)
+			for (int x = 172; x < 236; ++x) {
+				uint32_t c = s->fb[y * GBA_W + x];
+				white += (c & 0xFF) >= 0xF0 && ((c >> 8) & 0xFF) >= 0xF0 && ((c >> 16) & 0xFF) >= 0xF0;
+			}
+		if (white >= 1200) {
+			pk_tap(s, K_B);
+			aw_run(s, 0, 24);
+		}
+	}
 	pk_keep(s, before);
 	pk_tap(s, K_START);
 	bool up = false;
@@ -7604,6 +7614,26 @@ static const char* pk_menu_top(Emu* s, const PkFam* f, const void* state) {
 		if (m == 0) return "the menu's cursor didn't move";
 	}
 	return "the menu's cursor never wrapped";
+}
+/* the player's own Party screen or START menu may be up: the hidden copy
+ * backs out of it (B) and opens its own (PK-6) */
+static const char* pk_menu_top(Emu* s, const PkFam* f, const void* state) {
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	for (int i = 0; i < 4 && pk_is(s, &f->party); ++i) {
+		pk_tap(s, K_B);
+		aw_run(s, 0, 24);
+	}
+	const char* err = pk_menu_try(s, f);
+	if (err && !strcmp(err, "the menu's cursor didn't move")) {
+		/* (START closed a menu that was already up) */
+		for (int i = 0; i < 2; ++i) {
+			pk_tap(s, K_B);
+			aw_run(s, 0, 20);
+		}
+		err = pk_menu_try(s, f);
+	}
+	return err;
 }
 /* from the first entry: n entries down (n > 0), or from the end up (n < 0:
  * -1 is the last) */

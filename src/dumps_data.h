@@ -375,6 +375,8 @@ static const KnownDump knownDumps[] = {
 	{ "AZLP", 0x72e519b7, true, true, "Voice removal v0.1" },
 	{ "BMXE", 0x4c0e3216, true, true, "Color improvement v2" },
 	{ "BMXE", 0x70409097, true, true, "Color improvement v1" },
+	{ "BPEE", 0x0aa91114, true, true, "Super MarioMon 1.5.1" },
+	{ "BPEE", 0x4cc15b8d, true, true, "Emerald Rogue EX 2.1.1" },
 	{ "BPEE", 0x6ce0ea9f, false, true, "Theta Emerald EX" },
 	{ "BPEE", 0x7b6e6fb9, false, true, "Flora Sky" },
 	{ "BPEE", 0xfda9453b, false, true, "Glazed 9.1.0" },
