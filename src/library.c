@@ -864,6 +864,34 @@ static SDL_Rect settings_button(int scr) {
 	return (SDL_Rect) { r.w - w - px * 4, (px * 20 - h) / 2, w, h };
 }
 
+/* A centred label that fits maxW x maxH: shrunk first; when that would be much smaller than cap and the text has a space, on two lines (as large as fits). Longer translations (French's "Touch or use the D-Pad", "Supported") need it. */
+static void label_fit(int scr, int cx, int cy, int cap, int maxW, int maxH, const char* text) {
+	int w = ui_label_width(scr, cap, text), one = cap;
+	if (w > maxW && w > 0) one = (int) ((long long) cap * maxW / w);
+	const char* sp = NULL;
+	if (one < cap * 75 / 100) {
+		size_t n = strlen(text), best = n;
+		for (size_t i = 1; i + 1 < n; ++i)
+			if (text[i] == ' ' && (best == n || labs((long) i - (long) n / 2) < labs((long) best - (long) n / 2))) best = i;
+		if (best < n) sp = text + best;
+	}
+	if (!sp) {
+		ui_label(scr, cx, cy, SDL_max(one, cap * 45 / 100), text, C_TEXT);
+		return;
+	}
+	char a[160], b[160];
+	size_t la = (size_t) (sp - text);
+	snprintf(a, sizeof a, "%.*s", (int) SDL_min(la, sizeof a - 1), text);
+	snprintf(b, sizeof b, "%s", sp + 1);
+	int wa = ui_label_width(scr, cap, a), wb = ui_label_width(scr, cap, b), wm = SDL_max(wa, wb), two = cap;
+	if (wm > maxW && wm > 0) two = (int) ((long long) cap * maxW / wm);
+	two = SDL_min(two, maxH * 24 / 100); /* two lines, each a cap high, with a gap, in the button */
+	two = SDL_max(two, cap * 45 / 100);
+	if (two < one) two = one;
+	ui_label(scr, cx, cy - two * 9 / 10, two, a, C_TEXT);
+	ui_label(scr, cx, cy + two * 9 / 10, two, b, C_TEXT);
+}
+
 /* left of Settings: "Supported" (games with a second screen) or "All" (every GBA game) */
 static SDL_Rect games_button(int scr) {
 	SDL_Rect sb = settings_button(scr);
@@ -912,7 +940,7 @@ static void draw_games_button(const Config* cfg, int scr) {
 	SDL_Rect b = games_button(scr);
 	float px = ui_px(scr);
 	ui_key(scr, b, px * 3, KEY_PLAIN);
-	ui_label(scr, b.x + b.w / 2, b.y + b.h / 2, px * 5, cfg->showAll ? "All" : "Supported", C_TEXT);
+	label_fit(scr, b.x + b.w / 2, b.y + b.h / 2, px * 5, b.w - px * 2, b.h, cfg->showAll ? tr("All") : tr("Supported"));
 }
 
 /* Four squares (in the list: switch to the grid) or three lines (in the
@@ -1085,13 +1113,13 @@ static void draw_list(Config* cfg, int scr, int sel, int scroll) {
 		fit_text(line, sizeof(line), TF_BOLD, px * 4, storageMsg, theme_button(scr).x - px * 8);
 		ui_font_text(scr, TF_BOLD, theme_button(scr).x / 2, g.headerH / 2, px * 4, line, C_GOLD, 0);
 	} else {
-		ui_label(scr, theme_button(scr).x / 2, g.headerH / 2, px * 5, "Touch or use the D-Pad", C_TEXT);
+		label_fit(scr, theme_button(scr).x / 2, g.headerH / 2, px * 5, theme_button(scr).x - px * 8, g.headerH, tr("Touch or use the D-Pad"));
 	}
 	draw_theme_button(scr);
 	draw_view_button(scr);
 	draw_games_button(cfg, scr);
 	ui_key(scr, sb, px * 3, KEY_PLAIN);
-	ui_label(scr, sb.x + sb.w / 2, sb.y + sb.h / 2, px * 5, "Settings", C_TEXT);
+	label_fit(scr, sb.x + sb.w / 2, sb.y + sb.h / 2, px * 5, sb.w - px * 4, sb.h, tr("Settings"));
 }
 
 /* ------------------------------------------------------------ settings */
