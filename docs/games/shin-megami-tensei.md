@@ -25,7 +25,7 @@ Asked what the game would have put on a second GBA screen: it is a dungeon crawl
 
 **SMT-2. The map.** While walking about in the first-person view (a dungeon, a building, a town street), the second screen is the game's automap (L), as the game draws it: the explored floor, the party's marker (a green arrow showing which way you face) and the compass at the top right, with the floor's name in the box under it. The party's portraits and bars at the bottom of the game's screen aren't part of it (the game screen has them: nothing is on both, GEN-2). The map is at the game's own size (GEN-5), filling the second screen's width; its height is SMT-8's.
 
-**SMT-8. The map, taller than the game draws it (exception).** The game's automap shows a window of 88 rows of the floor, and the second screen is taller than that, so the window is made taller: the game's own view with the map above and below it as far as the game's own scrolling shows it (the automap scrolls with UP and DOWN while it's open: the hidden copy scrolls up 5 steps of 8 rows and down 5, and the pieces are put together), 165 rows in all, the compass at the top right and the floor's name box under the map, 180 rows in total (4:3). Past the pieces the game's scrolling gives, and where a floor is small, the game's own blue grid and the grey bars at its sides go on as the game draws them: its top 8 rows repeated above, its bottom 8 repeated below. Nothing is drawn that the game doesn't draw. The party's marker stays in the view's middle part wherever the game puts it. The game screen is as SMT-6.
+**SMT-8. The map, taller than the game's window of it (exception).** The game's automap shows a window of 88 rows of the floor, and the second screen is 160 rows tall, so the window is made taller: the game's own view with the map above and below it as far as the game's own scrolling shows it (the automap scrolls with UP and DOWN while it's open: the hidden copy scrolls up 4 steps of 8 rows and down 4, and the pieces are put together), 145 rows in all, with the compass's box at the top right and the floor's name box under the map (15 rows): a 240x160 picture, so the overlay's window (GEN-5) never covers any of it. Past the pieces the game's scrolling gives, and where a floor is small, the game's own blue grid and the grey bars at its sides go on as the game draws them: its top 8 rows repeated above, its bottom 8 repeated below. Nothing is drawn that the game doesn't draw. The compass and the floor's name stay where they are however the map moves, whole and in view. The game screen is as SMT-6.
 
 **SMT-3. It follows you.** A step, a turn on the spot or a change of floor takes a new map as soon as it has held for 3 frames (GEN-6); the arrow turns with you.
 
@@ -39,7 +39,7 @@ Asked what the game would have put on a second GBA screen: it is a dungeon crawl
 
 ## Exceptions
 
-SMT-8 is an exception to the philosophy's GBA screen (a GBA's second screen would be 240x160) and its use of the game's own graphics only in the narrowest sense (the backdrop's pattern continued from the game's own rows): the owner's request, to fill the second screen instead of leaving it half empty. It costs the hidden copy about 330 frames of running per capture instead of 70. There's no setting to turn it off yet.
+SMT-8 is an exception to the philosophy's use of the game's own graphics only, in the narrowest sense (the backdrop's pattern continued from the game's own rows, and the game's scrolling used to show more of the map than its window): the owner's request, to fill the second screen instead of leaving it part empty. It costs the hidden copy about 260 frames of running per capture instead of 70. There's no setting to turn it off yet.
 
 ## Not covered yet
 
@@ -47,7 +47,7 @@ SMT-8 is an exception to the philosophy's GBA screen (a GBA's second screen woul
 - **Floor changes** are followed by the position bytes and the area byte, but only walked in the three save files' floors; stairs and teleporters elsewhere haven't been tried.
 - **Conversations, shops and name entry** aren't covered by a case; they're expected to keep the last map (SMT-4), with the name entry on the logo (SMT-5).
 - **The logo** is made from whichever of the Japanese ROM and the translation you start first (the lettering differs), and both then show that one.
-- **Floors bigger than the pieces.** The map above and below the game's window is five scroll steps (40 rows) each way; a floor taller than that is cut there, as the game's own window would be.
+- **Floors bigger than the pieces.** The map above and below the game's window is four scroll steps (32 rows) each way; a floor taller than that is cut there, as the game's own window would be.
 - **Fights on the translation** have no case (the Japanese fight's steps led to a different encounter there); the fight is on the game screen only in either.
 
 ## Facts found so far (for sessions)
@@ -68,8 +68,8 @@ Changelog line (under the open version):
 
 Wiki section for `Supported-games.md`:
 
-> **Shin Megami Tensei** (Japan; Gymzatan's English translation v1.3b, with or without its font hack). The second screen shows the game's automap, which you open with L, kept up to date as you walk and turn. The party panels at the bottom of the map screen are left off, so nothing is on both screens. Fights, menus and conversations keep the last map; the title and file lists show the logo. The map is taller than the game draws it: the second screen shows five scroll steps above and below the game's own window, over the game's own grid. Known issues: not tried in a new game's first dungeon or on floor changes outside the test save; one logo is kept for the Japanese game and the translation.
+> **Shin Megami Tensei** (Japan; Gymzatan's English translation v1.3b, with or without its font hack). The second screen shows the game's automap, which you open with L, kept up to date as you walk and turn. The party panels at the bottom of the map screen are left off, so nothing is on both screens. Fights, menus and conversations keep the last map; the title and file lists show the logo. The map is taller than the game draws it: the second screen shows four scroll steps above and below the game's own window, over the game's own grid. Known issues: not tried in a new game's first dungeon or on floor changes outside the test save; one logo is kept for the Japanese game and the translation.
 
-Also for the merge: add SMT-8 to the Philosophy page's list of current exceptions ("an automap taller than the game's window, from the game's own scrolling"); the changelog line's first sentence says "the game's own automap", with the taller view in its second.
+Also for the merge: add SMT-8 to the Philosophy page's list of current exceptions ("an automap taller than the game's window, from the game's own scrolling, over its own grid"); the changelog line's first sentence says "the game's own automap", with the taller view in its second.
 
 Also for the merge: `docs/patches.md` already has the two patches; run `tools/make_dumps.py` after merging `dev` if a Releases row changed, and the README's game count goes up by one.

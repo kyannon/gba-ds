@@ -7079,7 +7079,7 @@ static const char* rs_compose_eur(Emu* s, const void* state, uint32_t* const* ou
  * each; signed, 32 bits) */
 #define SMT_SCROLL 0x0200BFCC
 
-/* The second screen is the automap taller than the game draws it: its view
+/* The second screen is the automap taller than the game's window of it: its view
  * (rows 0-87 of the screen, between the side bars) scrolled with the game's
  * own UP and DOWN on the hidden copy, the pieces put together by the
  * counter above, over the game's own backdrop (SMT-8).
@@ -7089,11 +7089,11 @@ static const char* rs_compose_eur(Emu* s, const void* state, uint32_t* const* ou
  * bar, sprites the map's markers (the party, the doors...) and all the text.
  * So a view with the layers BG2, BG3 and sprites on, minus the backdrop
  * (BG3 alone), is the map and its markers, nothing else. */
-#define SMT_H      180  /* the picture's rows: 4:3 at 240 wide */
+#define SMT_H      160  /* the picture's rows: a GBA screen, as the overlay's window is */
 #define SMT_VIEW   88   /* the game's view: rows 0..87 */
-#define SMT_AREA_H 165  /* the picture's map part; the floor's name bar under it */
-#define SMT_ABOVE  39   /* rows above the game's own view (80 rows more to share with below) */
-#define SMT_STEPS  5
+#define SMT_AREA_H 145  /* the picture's map part; the floor's name bar (15 rows) under it */
+#define SMT_ABOVE  29   /* rows above the game's own view (57 more to share with below) */
+#define SMT_STEPS  4
 
 static int32_t smt_scroll(Emu* s) { return (int32_t)emu_read32(s, SMT_SCROLL); }
 
@@ -7211,7 +7211,7 @@ static const char* smt_compose(Emu* s, const void* state, uint32_t* out, int w, 
 						int r = cy * 8 + y, t = r - shift[k] + SMT_ABOVE;
 						if (t < 0 || t >= SMT_AREA_H) continue;
 						for (int x = cx * 8; x < cx * 8 + 8; ++x) {
-							if (x >= 180 && x < 226 && r < 46) continue;
+							if (x >= 182 && x < 223 && r >= 3 && r < 42) continue;
 							uint32_t c = v[r * GBA_W + x];
 							if (c != back[r * GBA_W + x]) out[t * w + x] = c;
 						}
@@ -7220,7 +7220,7 @@ static const char* smt_compose(Emu* s, const void* state, uint32_t* out, int w, 
 			}
 		}
 		/* the compass, at the top; the floor's name under the map */
-		for (int r = 0; r < 46; ++r) memcpy(&out[r * w + 180], &full[r * GBA_W + 180], 46 * sizeof(uint32_t));
+		for (int r = 4; r <= 40; ++r) memcpy(&out[r * w + 183], &full[r * GBA_W + 183], 39 * sizeof(uint32_t)); /* its box, exactly */
 		for (int r = 0; r < SMT_H - SMT_AREA_H; ++r) memcpy(&out[(SMT_AREA_H + r) * w], &full[(SMT_VIEW + 2 + r) * GBA_W], GBA_W * sizeof(uint32_t));
 	}
 	free(st);
