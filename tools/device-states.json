@@ -98,6 +98,33 @@
     "8": ["en-shibuya.ss", "English v1.3b, Shibuya (SMT-7)"],
     "9": ["fh-cathedral.ss", "English v1.3b with the font hack (BPS then IPS both on in Patches) (SMT-7)"]
    }
+  },
+  "zelda-the-minish-cap": {
+   "Legend of Zelda, The - The Minish Cap (USA)": {
+    "1": ["us-town.ss", "Hyrule Town, with the Map: the map of Hyrule, the red marks round the town, its name in the bar; no L/R arrows, no \"Choose\" (TMC-1, TMC-5)"],
+    "2": ["us-dungeon.ss", "Deepwood Shrine: the dungeon map with floors, Link's head, icons (TMC-2)"],
+    "3": ["us-no-map.ss", "Hyrule Town before the Map item: Quest Status, no cursor, no SLEEP or SAVE (TMC-4, TMC-5)"],
+    "4": ["us-no-map-dungeon.ss", "Deepwood Shrine before the Map item: Quest Status (TMC-4)"],
+    "5": ["us-last-tab-map.ss", "Hyrule Town, the Map was the menu's last tab: the map, and START on the game screen opens the game's own menu as usual (TMC-3)"],
+    "6": ["us-items-menu.ss", "The game's Items tab open: nothing is taken, the logo (or the last picture) stays (TMC-8)"],
+    "7": ["us-title.ss", "The title screen: the logo (TMC-9)"],
+    "8": ["us-file-select.ss", "The file select: the logo (TMC-9)"]
+   },
+   "Legend of Zelda, The - The Minish Cap (Europe) (En,Fr,De,Es,It)": {
+    "1": ["eu-town.ss", "Europe, with the Map: the map of Hyrule (TMC-1)"],
+    "2": ["eu-dungeon.ss", "Europe, Deepwood Shrine: the dungeon map (TMC-2)"],
+    "3": ["eu-no-map.ss", "Europe before the Map item: Quest Status (TMC-4)"],
+    "4": ["eu-no-map-dungeon.ss", "Europe, a dungeon before the Map item: Quest Status (TMC-4)"]
+   },
+   "Zelda no Densetsu - Fushigi no Boushi (Japan)": {
+    "1": ["jp-town.ss", "Japan, with the Map: the map of Hyrule, in Japanese (TMC-1)"],
+    "2": ["jp-dungeon.ss", "Japan, Deepwood Shrine: the dungeon map (TMC-2)"],
+    "3": ["jp-no-map.ss", "Japan before the Map item: Quest Status (コレクト) (TMC-4)"],
+    "4": ["jp-no-map-dungeon.ss", "Japan, a dungeon before the Map item: Quest Status (TMC-4)"],
+    "5": ["jp-early-house.ss", "Japan, Link's house at the start of a new game: the menu won't open yet, the logo stays (TMC-8)"],
+    "6": ["jp-title.ss", "Japan's title screen: the logo with ゼルダの伝説 and ふしぎのぼうし (TMC-9, TMC-10)"],
+    "7": ["jp-file-select.ss", "Japan's file select: the logo (TMC-9)"]
+   }
   }
  }
 }

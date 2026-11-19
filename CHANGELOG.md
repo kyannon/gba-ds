@@ -2,6 +2,9 @@
 
 ## v1.5.7 (not yet released)
 
+### New games
+- **The Legend of Zelda: The Minish Cap** (USA, Europe, Japan): the second screen shows the game's own Map tab, taken from a hidden copy as you play: the map of Hyrule with the region you are in marked and named, in the open and under a roof, and in a dungeon the dungeon's map with its floors, chests and boss mark, without the page arrows and the "Choose" prompt. Link's head stays on instead of blinking. Before you have the map it shows the game's Quest Status tab instead, without its cursor, the SLEEP and SAVE buttons or the name bar. On the title, the file screen, after a game over and in the credits it shows the logo; in conversations and cutscenes, where the game's menu won't open, the last picture stays. Tried on the device from states late in the game (USA and Europe from end-game saves, Japan from a new game with that save's data copied in); the first hours of a new game and the Minish world haven't been looked at yet.
+
 ### Fixes
 - **Web player: the sound comes back after the quick menu** (#67): it used to stay silent after closing the menu until the page was reloaded.
 - **Web player: settings you change are kept** (#67): a setting changed in the menu and then followed by a reload, or leaving the page, within a few seconds was lost; it's now kept at once.

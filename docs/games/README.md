@@ -10,6 +10,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Metroid: Zero Mission](metroid-zero-mission.md) | MZM | `BMXE` + 2 |
 | [Metroid Fusion](metroid-fusion.md) | MF | `AMTE` + 2 |
 | [The Legend of Zelda: A Link to the Past & Four Swords](zelda-a-link-to-the-past.md) | LTTP | `AZLE` + 2 |
+| [The Legend of Zelda: The Minish Cap](zelda-the-minish-cap.md) | TMC | `BZME` + 2 |
 | [Tony Hawk's Pro Skater 2](tony-hawks-pro-skater-2.md) | TH2 | `ATHE` + 3 |
 | [Mario Kart: Super Circuit](mario-kart-super-circuit.md) | MK | `AMKE` + 2 |
 | [Tony Hawk's Pro Skater 3](tony-hawks-pro-skater-3.md) | TH3 | `AT3E` + 2 |
