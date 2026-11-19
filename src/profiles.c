@@ -8073,7 +8073,9 @@ static const int bofParty[][3] = { { 160, 2, 0xFFF9E7 }, { 160, 4, 0xFFFFE7 }, {
 
 static uint32_t bof_virt(Emu* e, uint32_t addr) {
 	uint16_t disp = emu_io16(e, 0x00);
-	if (addr == BOF_V_LOGO) return disp == BOF_DISP_TITLE || disp == BOF_DISP_BATTLE;
+	/* 1: the logo; 2: a battle, nothing taken and nothing dropped, so the picture
+	 * from before stays (BOF-5) */
+	if (addr == BOF_V_LOGO) return disp == BOF_DISP_TITLE ? 1 : disp == BOF_DISP_BATTLE ? 2 : 0;
 	if (addr != BOF_V_SCREEN) return 0;
 	if (disp == BOF_DISP_FIELD) return emu_io16(e, 0x08) == BOF_BG0_MENU ? 2 : emu_io16(e, 0x08) == BOF_BG0_FIELD ? 1 : 0;
 	return disp == BOF_DISP_MAP ? 3 : disp == BOF_DISP_TITLE || disp == BOF_DISP_BATTLE ? 4 : 0;
@@ -10828,8 +10830,8 @@ static const MapProfile profiles[] = {
 		.virt = bof_virt,
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
-		/* the title and its intro, and battles: the logo, the pictures
-		 * dropped, no captures (BOF-2, BOF-5) */
+		/* the title and its intro: the logo, the pictures dropped, no captures
+		 * (BOF-2); battles: no captures, the picture stays (BOF-5) */
 		.live = { { BOF_V_LOGO, 0xFF, 0, 4 } },
 		.menu = { { BOF_V_LOGO, 0xFF, 1, 4 } },
 		/* another screen (the field back from a battle, a menu or the map

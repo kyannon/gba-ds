@@ -60,9 +60,8 @@
    "id": "bof-us-battle",
    "rom": "ABFE",
    "state": "breath-of-fire/us-battle.ss",
-   "desc": "in a battle: the logo (us)",
+   "desc": "in a battle: with no picture yet, the logo (us)",
    "rules": [
-    "BOF-1",
     "BOF-5"
    ],
    "shots": {
@@ -143,9 +142,8 @@
    "id": "bof-eu-battle",
    "rom": "ABFP",
    "state": "breath-of-fire/eu-battle.ss",
-   "desc": "in a battle: the logo (eu)",
+   "desc": "in a battle: with no picture yet, the logo (eu)",
    "rules": [
-    "BOF-1",
     "BOF-5"
    ],
    "shots": {
@@ -226,9 +224,8 @@
    "id": "bof-jp-battle",
    "rom": "ABFJ",
    "state": "breath-of-fire/jp-battle.ss",
-   "desc": "in a battle: the logo (jp)",
+   "desc": "in a battle: with no picture yet, the logo (jp)",
    "rules": [
-    "BOF-1",
     "BOF-5"
    ],
    "shots": {
@@ -516,6 +513,26 @@
    "rules": [
     "BOF-1"
    ],
+   "checks": []
+  },
+  {
+   "id": "bof-us-battle-keeps",
+   "rom": "ABFE",
+   "state": "breath-of-fire/us-town.ss",
+   "desc": "a battle starts after a town: the party overview from the town stays (not the logo)",
+   "rules": [
+    "BOF-5"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:breath-of-fire/us-battle.ss"
+    ]
+   ],
+   "shots": {
+    "a": 240,
+    "b": 420
+   },
    "checks": []
   }
  ]
