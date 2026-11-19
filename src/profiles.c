@@ -6344,7 +6344,8 @@ static bool ff4_menu_up(Emu* s) {
  * hand hidden */
 static const char* ff4_open_menu(Emu* s) {
 	emu_hide_sprites(s, &ff4MenuHand, 1);
-	bool up = false;
+	/* (already up, as in a state saved with the menu open: START would close it) */
+	bool up = ff4_menu_up(s);
 	for (int tries = 0; tries < 4 && !up; ++tries) {
 		if (tries) {
 			aw_run(s, K_B, 4);
@@ -6398,8 +6399,8 @@ static const char* ff4_map(Emu* s, const void* state, uint32_t* pic) {
 	const char* err = ff4_open_menu(s);
 	if (err) return err;
 	emu_hide_sprites(s, &ff4MapUi, 1);
-	static const struct { int key, wait; } path[] = { { K_DOWN, 25 }, { K_A, 40 }, { K_A, 40 }, { K_A, 40 }, { K_DOWN, 20 },
-	                                                 { K_RIGHT, 20 }, { K_A, 40 }, { K_A, 0 } };
+	static const struct { int key, wait; } path[] = { { K_DOWN, 16 }, { K_A, 26 }, { K_A, 26 }, { K_A, 26 }, { K_DOWN, 12 },
+	                                                 { K_RIGHT, 12 }, { K_A, 26 }, { K_A, 0 } };
 	for (size_t i = 0; i < sizeof(path) / sizeof(*path); ++i) {
 		aw_run(s, path[i].key, 8);
 		if (path[i].wait) aw_run(s, 0, path[i].wait);
@@ -6430,14 +6431,8 @@ static const char* ff4_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	emu_frame(s, 0);
 	/* a battle: the party kept stays (FF4-4) */
 	if (ff_probes(s, ff4Battle, sizeof(ff4Battle) / sizeof(*ff4Battle))) return "a battle";
-	const char* err = ff4_open_menu(s);
-	if (err) return err;
-	/* the party screen: the menu without the command list (BG1) (FF4-3) */
-	uint8_t* tmp = ff_tmp(s);
-	if (!tmp || !emu_state_save(s, tmp)) return "called off";
-	ff_draw_layers(s, tmp, 0x11, pic);
-	if (emu_cancelled(s)) return "called off";
-	/* on the overworld, the map instead (FF4-8) */
+	/* on the overworld, the map (FF4-8), tried first: when it comes up the
+	 * party screen isn't needed */
 	static uint32_t map[128 * 128];
 	if (!ff4_map(s, state, map)) {
 		for (int y = 0; y < h; ++y) {
@@ -6448,6 +6443,17 @@ static const char* ff4_compose(Emu* s, const void* state, uint32_t* out, int w, 
 		}
 		return NULL;
 	}
+	if (emu_cancelled(s)) return "called off";
+	emu_hide_sprites(s, NULL, 0);
+	emu_layers(s, 0x1F);
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	const char* err = ff4_open_menu(s);
+	if (err) return err;
+	/* the party screen: the menu without the command list (BG1) (FF4-3) */
+	uint8_t* tmp = ff_tmp(s);
+	if (!tmp || !emu_state_save(s, tmp)) return "called off";
+	ff_draw_layers(s, tmp, 0x11, pic);
 	if (emu_cancelled(s)) return "called off";
 	for (int y = 0; y < h; ++y) {
 		for (int x = 0; x < w; ++x) out[y * w + x] = y < GBA_H && x < GBA_W ? pic[y * GBA_W + x] : 0xFF000000;
