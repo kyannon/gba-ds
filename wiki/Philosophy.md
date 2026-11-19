@@ -79,6 +79,7 @@ What this means in practice:
   - Dragon Ball Z: The Legacy of Goku's logo, whose Z is drawn again in the game's own colours where the title screen paints Goku's hair over it;
   - Dragon Ball Z: Buu's Fury's logo, each letter's black outline closed where the title screen leaves a gap;
   - a game's own window rearranged where there's no other way to show all of what it holds on one GBA screen, as the game would let the player see it by scrolling: its list split into columns, its heading bar or frame made wider from its own end and middle pieces, its own transparency kept over the background it sits on (Final Fantasy Tactics Advance's turn order in two columns, with the Laws below);
+  - Final Fantasy V Advance's party screen, the place of START's list of commands filled by the party window going on, from the game's own edges and gradient, instead of left black;
   - Final Fantasy Tactics Advance's Laws on the world map, on the Status screen's checkerboard, so they look as they do in a battle;
   - Mega Man Battle Network's status screen and money counter, from two of the PET's screens, in one frame edged with the counter's own orange border;
   - Mega Man Battle Network's maps of the net, which the game doesn't have, drawn from each area's own layout in the game's own tiles, with MegaMan's head marking where he is;
