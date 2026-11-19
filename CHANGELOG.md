@@ -3,6 +3,9 @@
 ## v1.5.6 (not yet released)
 
 ### New games
+- **Boktai: The Sun Is in Your Hand** (USA, Europe, Japan: Bokura no Taiyou): the second screen shows the game's own Map (the SELECT menu's Map page, without its title bar and button prompts) while you walk about, following Django, with the game's own clock at the top left and the sunrise and sunset times (the ones START shows on the ITEM page) at the top right, looked at about every 30 seconds. In conversations and menus the last Map stays; the title, the file menu and the first start show the logo, the title's lettering. The cartridge's sun sensor reads a fixed level (6 of 10; `solar_level` in `gba-ds.cfg` sets 0 to 10) so the sun gauge isn't empty. Only the USA release was played through; Europe and Japan are checked on their logos and by start-up. Not tried yet: bosses, the Solar Station and the World map.
+
+### New games
 - **Final Fantasy V Advance** (USA, Europe, Japan): on the world map and the airship, the second screen shows the game's own world map (the one R opens). Everywhere else it shows the party screen from START's menu: the four characters with their jobs, levels, HP and MP, where you are, the play time and the gil, with the big window going on where the list of commands would be. In a battle it shows the party as it was just before. On the title and the file screens, and after a game over, it shows the logo; in conversations, shops and scenes the last picture stays. Known: Europe's world map couldn't be tried (no save of it), and a party out with HP above 0 (turned to stone) isn't taken for a game over: the last picture stays.
 
 ### Menus and interface

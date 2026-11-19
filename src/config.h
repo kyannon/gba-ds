@@ -56,6 +56,7 @@ typedef struct Config {
 	bool fastForward;  /* hold R2 to fast-forward */
 	bool matchDisplay; /* run at the display's refresh rate (if close to the GBA's) instead of 59.73 Hz */
 	int mapInterval;   /* frames between periodic map refreshes */
+	int solarLevel;    /* the sunlight a sun sensor (Boktai) reads, 0-10 */
 	bool abSwap;       /* GBA A on the bottom face button instead of the right one */
 	char hotkey[16];   /* home | select | start | l3 (older names: guide = home, back = select) */
 	char hotkeyBtn[HK_COUNT][8]; /* each hotkey action's button (hotkey_quit ...), or none */

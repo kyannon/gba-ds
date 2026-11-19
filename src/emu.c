@@ -306,6 +306,32 @@ uint8_t* emu_rom_read_played(const char* path, size_t* size, int* patch, char* p
 	return rom;
 }
 
+/* The game cartridge's sun sensor (Boktai): there's none on the device, so
+ * the sunlight the games are given is a setting (solar_level, 0-10, as
+ * mGBA's own levels). Every core reads it: the game, the hidden copies, the
+ * logo's. */
+int emu_solar_level = 6;
+static void lux_sample(struct GBALuminanceSource* lux) {
+	(void) lux;
+}
+static uint8_t lux_read(struct GBALuminanceSource* lux) {
+	(void) lux;
+	int level = emu_solar_level < 0 ? 0 : emu_solar_level > 10 ? 10 : emu_solar_level;
+	int value = 0x16 + (level > 0 ? GBA_LUX_LEVELS[level - 1] : 0);
+	return (uint8_t) (0xFF - value);
+}
+/* (testing: GBADS_RTC_FIXED=<unix seconds> holds the cartridge clock still, for games
+ * that look at the time of day: Boktai's areas change with it. A state carries its
+ * clock's setting, so this is applied again after each load.) */
+static void rtc_pin(Emu* e) {
+	const char* t = getenv("GBADS_RTC_FIXED");
+	if (!t) return;
+	e->core->rtc.override = RTC_FIXED;
+	e->core->rtc.value = atoll(t) * 1000;
+}
+
+static struct GBALuminanceSource luxSource = { .sample = lux_sample, .readLuminance = lux_read };
+
 bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	memset(e, 0, sizeof(*e));
 	mLogSetDefaultLogger(&quietLogger);
@@ -325,6 +351,10 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 
 	e->fb = calloc(GBA_W * GBA_H, sizeof(uint32_t));
 	e->core->setVideoBuffer(e->core, (mColor*) e->fb, GBA_W);
+	e->core->setPeripheral(e->core, mPERIPH_GBA_LUMINANCE, &luxSource);
+	/* (testing: GBADS_RTC_FIXED=<unix seconds> holds the cartridge clock still, for games
+	 * that look at the time of day: Boktai's areas change with it) */
+	rtc_pin(e);
 	e->audio = audio;
 	if (audio) {
 		e->core->setAudioBufferSize(e->core, 2048);
@@ -429,6 +459,7 @@ bool emu_state_save(Emu* e, void* buf) {
 
 bool emu_state_load(Emu* e, const void* buf) {
 	bool ok = e->core->loadState(e->core, buf);
+	rtc_pin(e);
 	split_resync(e);
 	return ok;
 }
@@ -679,6 +710,7 @@ bool emu_state_load_file(Emu* e, const char* path) {
 		struct VFile* vf = VFileFromConstMemory(b, n);
 		if (vf) {
 			ok = mCoreLoadStateNamed(e->core, vf, SAVESTATE_RTC);
+			rtc_pin(e);
 			vf->close(vf);
 		}
 		split_resync(e);

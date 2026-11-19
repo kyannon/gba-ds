@@ -6,6 +6,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Advance Wars 2: Black Hole Rising (Game Boy Wars Advance 2 in Japan) | `AW2E` `AW2P` `BGWJ` (Japan: on Game Boy Wars Advance 1+2, with Advance Wars) | in battles: the intel of the unit under the cursor, or the battle intel | |
 | Baldur's Gate: Dark Alliance | `BGDE` `BGDP` | the area's map (made from the game's own screens), a red X where you are | |
 | Banjo-Kazooie: Grunty's Revenge | `BKZE` (USA and Europe) `BKZX` `BKZI` `BKZS` (no Japanese release) | the pause screen and the world's Totals, in turn, Banjo's health on both | |
+| Boktai: The Sun Is in Your Hand (Bokura no Taiyou in Japan) | `U3IE` `U3IP` `U3IJ` | the game's Map, with its clock and the sunrise and sunset times | |
 | Castlevania: Aria of Sorrow | `A2CE` `A2CP` `A2CJ` | map | JonataGuitar's Recolor v1.02 and Symphony of the Colors (USA) |
 | Castlevania: Circle of the Moon | `AAME` `AAMP` `AAMJ` | map, with the completion rate | |
 | Castlevania: Harmony of Dissonance | `ACHE` `ACHP` `ACHJ` | map | Recolor by JonataGuitar and sorrow (USA) |
@@ -109,6 +110,16 @@ The USA and Europe release, Europe's English, French and German release, and the
 - Pausing in the game, and conversations and scenes, keep the last pictures on the second screen.
 - At the title, on the file screen and in the opening story, the second screen shows the logo: the title's lettering.
 - Not tried yet: the mini-games, the boss fights and Mumbo's transformations.
+
+## Boktai: The Sun Is in Your Hand
+
+The USA, European and Japanese (Bokura no Taiyou) releases.
+
+- **While you walk about,** the second screen shows the game's **Map** (the SELECT menu's Map page, without its title bar and button prompts), following Django. It is taken from a hidden copy of the game about once a second.
+- **At the top** it has the game's own **clock** (top left) and the **sunrise** and **sunset** times (top right), the lines the ITEM page shows (START there switches between them), looked at about every 30 seconds, so they can lag a little behind the game.
+- In conversations, scenes and the menus, the last Map stays. At the title, on the file menu and at the first start's set-up screens the second screen shows the logo: the title's lettering.
+- **The sun sensor:** the cartridge's solar sensor reads a fixed level, 6 of 10, so the sun gauge isn't empty. `solar_level` in `gba-ds.cfg` sets it from 0 (dark) to 10.
+- Known: the Europe and Japan releases were checked on their logos and by start-up only. Not tried yet: bosses, the Solar Station and the World map.
 
 ## Castlevania: Aria of Sorrow, Harmony of Dissonance, Circle of the Moon
 
