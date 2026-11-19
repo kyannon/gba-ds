@@ -8084,18 +8084,21 @@ static uint32_t tmc_virt(Emu* e, uint32_t addr) {
 	if (addr == TMC_V_LOGO) return emu_read8(e, TMC_TASK) != 2;
 	if (addr != TMC_V_PLACE) return 0;
 	/* a dungeon: its room (the floors are rooms too) */
-	if (emu_read8(e, TMC_META) & 4) return 0x10000 | emu_read16(e, TMC_AREA);
+	/* before the map (TMC-4) the key says so: getting it takes a new picture */
+	uint32_t noMap = ((emu_read8(e, TMC_ITEM_MAP) >> 6) & 3) == 0 ? 0x20000 : 0;
+	if (emu_read8(e, TMC_META) & 4) return noMap | 0x10000 | emu_read16(e, TMC_AREA);
 	unsigned x = emu_read16(e, TMC_MAPX) >> 4, y = emu_read16(e, TMC_MAPY) >> 4;
 	for (int i = 0; i < 17; ++i) {
-		if (x >= tmc_regions[i].x0 && x <= tmc_regions[i].x1 && y >= tmc_regions[i].y0 && y <= tmc_regions[i].y1) return (uint32_t) i;
+		if (x >= tmc_regions[i].x0 && x <= tmc_regions[i].x1 && y >= tmc_regions[i].y0 && y <= tmc_regions[i].y1) return noMap | (uint32_t) i;
 	}
-	return 0xFF;
+	return noMap | 0xFF;
 }
 
-/* the menu open on a map tab and idle (its fade-in over) */
-static bool tmc_map_up(Emu* s) {
+/* the menu open on the wanted tab (a map's, or Quest Status before the
+ * map) and idle (its fade-in over) */
+static bool tmc_tab_up(Emu* s, bool quest) {
 	uint8_t tab = emu_read8(s, TMC_TAB);
-	return emu_read8(s, TMC_SUB) == 7 && emu_read8(s, TMC_STEP) == 2 && (tab == 4 || tab == 5);
+	return emu_read8(s, TMC_SUB) == 7 && emu_read8(s, TMC_STEP) == 2 && (quest ? tab == 2 : (tab == 4 || tab == 5));
 }
 
 /* The Map tab (TMC-3): the hidden copy is told to open its menu on the map,
@@ -8110,6 +8113,10 @@ static const char* tmc_compose(Emu* s, const void* state, uint32_t* const* out, 
 	static const SpriteRule hide[] = {
 		{ 0, 48, 239, 72, 16, 32, 1 },
 		{ 170, 0, 239, 24, 250, 300, 0 },
+		/* Quest Status only (TMC-4): the cursor's corners (tile 15) and
+		 * the SLEEP and SAVE buttons (tiles 704-752, along y 111) */
+		{ 30, 36, 80, 80, 15, 15, 2 },
+		{ 115, 108, 236, 134, 704, 752, 2 },
 	};
 	int max = *nOut < TMC_FRAMES ? *nOut : TMC_FRAMES;
 	*nOut = 1;
@@ -8117,26 +8124,26 @@ static const char* tmc_compose(Emu* s, const void* state, uint32_t* const* out, 
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
 	if (emu_read8(s, TMC_TASK) != 2 || emu_read8(s, TMC_SUB) != 2) return "map button did nothing";
-	/* no Map tab without the map (TMC-4) */
-	if (((emu_read8(s, TMC_ITEM_MAP) >> 6) & 3) == 0) return "map button did nothing";
+	/* no Map tab without the map: Quest Status instead (TMC-4) */
+	const bool quest = ((emu_read8(s, TMC_ITEM_MAP) >> 6) & 3) == 0;
 	/* START, until the menu is up: it isn't taken during a fade or a
 	 * message, which may pass in a few frames */
-	for (int tries = 0; tries < 4 && !tmc_map_up(s); ++tries) {
-		emu_write8(s, TMC_TAB, 4);
+	for (int tries = 0; tries < 4 && !tmc_tab_up(s, quest); ++tries) {
+		emu_write8(s, TMC_TAB, quest ? 2 : 4);
 		aw_run(s, K_START, 4);
 		aw_run(s, 0, 4);
-		for (int f = 0; f < 50 && !tmc_map_up(s); ++f) emu_frame_blind(s, 0);
+		for (int f = 0; f < 50 && !tmc_tab_up(s, quest); ++f) emu_frame_blind(s, 0);
 	}
-	if (!tmc_map_up(s)) return "map button did nothing";
+	if (!tmc_tab_up(s, quest)) return "map button did nothing";
 	if (emu_cancelled(s)) return "called off";
-	emu_hide_sprites(s, hide, 2);
+	emu_hide_sprites(s, hide, quest ? 4 : 2);
 	aw_run(s, 0, 4);
 	int cw = w < GBA_W ? w : GBA_W, ch = h < GBA_H ? h : GBA_H;
 	for (int y = 0; y < ch; ++y) memcpy(&out[0][y * w], &s->fb[y * GBA_W], (size_t) cw * 4);
 	bool animated = false;
 	for (int i = 1; i < max; ++i) {
 		aw_run(s, 0, TMC_FRAME_STEP);
-		if (!tmc_map_up(s)) break;
+		if (!tmc_tab_up(s, quest)) break;
 		for (int y = 0; y < ch; ++y) memcpy(&out[i][y * w], &s->fb[y * GBA_W], (size_t) cw * 4);
 		if (memcmp(out[i], out[0], (size_t) w * h * 4)) animated = true;
 		*nOut = i + 1;

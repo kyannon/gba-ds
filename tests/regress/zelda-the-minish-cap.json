@@ -169,7 +169,29 @@
    "id": "tmc-us-no-map",
    "rom": "BZME",
    "state": "zelda-the-minish-cap/us-no-map.ss",
-   "desc": "before the Map item: the logo, nothing captured",
+   "desc": "before the Map item: Quest Status (no cursor, no SLEEP or SAVE)",
+   "rules": [
+    "TMC-4",
+    "TMC-5"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-4",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-no-map-dungeon",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-no-map-dungeon.ss",
+   "desc": "Deepwood Shrine before the Map item: Quest Status",
    "rules": [
     "TMC-4"
    ],
@@ -180,8 +202,8 @@
    "checks": [
     {
      "rule": "TMC-4",
-     "what": "no map captured without the Map item",
-     "type": "no_log",
+     "what": "a capture was shown",
+     "type": "log",
      "match": "map updated"
     }
    ]
@@ -266,6 +288,154 @@
      "rule": "TMC-2",
      "what": "a capture was shown",
      "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-eu-no-map",
+   "rom": "BZMP",
+   "state": "zelda-the-minish-cap/eu-no-map.ss",
+   "desc": "Europe: before the Map item, Quest Status",
+   "rules": [
+    "TMC-4"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-4",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-eu-no-map-dungeon",
+   "rom": "BZMP",
+   "state": "zelda-the-minish-cap/eu-no-map-dungeon.ss",
+   "desc": "Europe: a dungeon before the Map item, Quest Status",
+   "rules": [
+    "TMC-4"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-4",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-jp-town",
+   "rom": "BZMJ",
+   "state": "zelda-the-minish-cap/jp-town.ss",
+   "desc": "Japan: Hyrule Town, the map of Hyrule in Japanese",
+   "rules": [
+    "TMC-1",
+    "TMC-5"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-jp-dungeon",
+   "rom": "BZMJ",
+   "state": "zelda-the-minish-cap/jp-dungeon.ss",
+   "desc": "Japan: Deepwood Shrine, the dungeon's map",
+   "rules": [
+    "TMC-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-2",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-jp-no-map",
+   "rom": "BZMJ",
+   "state": "zelda-the-minish-cap/jp-no-map.ss",
+   "desc": "Japan: before the Map item, Quest Status",
+   "rules": [
+    "TMC-4"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-4",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-jp-no-map-dungeon",
+   "rom": "BZMJ",
+   "state": "zelda-the-minish-cap/jp-no-map-dungeon.ss",
+   "desc": "Japan: a dungeon before the Map item, Quest Status",
+   "rules": [
+    "TMC-4"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-4",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-jp-early-house",
+   "rom": "BZMJ",
+   "state": "zelda-the-minish-cap/jp-early-house.ss",
+   "desc": "Japan: a new game's first minutes, Link's house: the menu won't open yet, the logo stays",
+   "rules": [
+    "TMC-8"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-8",
+     "what": "nothing captured where the menu won't open",
+     "type": "no_log",
      "match": "map updated"
     }
    ]
