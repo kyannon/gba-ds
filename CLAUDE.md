@@ -53,9 +53,23 @@ it lives here:
 
 ## Conventions
 
-- **Branches:** ROCKNIX and shared work goes to `dev`; Android work to
-  `android`; a new game to its own `game/<slug>` branch (see "More than one
-  session" below). `main` only moves at
+- **Branches: all work is done on a branch of its own and merged into `dev`
+  only when it is complete** (the owner's rule, Nov 18, 2026), whether it is
+  game-specific or not: a new game or work on one on `game/<slug>` (see "More
+  than one session" below); ROCKNIX and shared work, an issue's fix, a docs or
+  tooling change, a test build's preparation on a topic branch named for it
+  (`issue-61`, `menu-brightness`, `release/v1.5.6-final-dev-build`), cut from
+  the latest `dev` and pushed; Android work on `android`. Complete means:
+  built and tried, its own cases (and any shared code's) passing, its
+  changelog line and docs ready (the main session writes them; a game branch
+  keeps them under "For the merge"). Then `dev` is merged into the branch,
+  the cases run, and the branch is merged into `dev` in one step. Nothing is
+  committed on `dev` itself except those merges: not "just a small fix". The
+  two exceptions (the owner's decision, Nov 19, 2026) are the release process's
+  own commits, made directly on `dev`: the release commit ("Release vX.Y.Z")
+  and the bump to the next `-dev` after it. Never leave `dev` half-done: it has to build and be
+  releasable at every commit. A branch is not kept going after its merge (the
+  owner deletes it). `main` only moves at
   release time, fast-forwarded to the release commit. The owner creates
   GitHub releases and tags by hand (sessions get HTTP 403 on releases and
   can't push tags).
@@ -102,7 +116,7 @@ it lives here:
   SHA-256" annotation, readable from the run page or the public API:
   check-runs/<job id>/annotations) and send them with the zip.
   Then bump `dev` to the next `-dev` version with an empty changelog
-  section.
+  section. (Both are direct commits on `dev`: see Branches.)
   **The full regression suite runs once per release, when the owner asks to
   cut it,** and nowhere else (see "Regression tests" below). Dispatch it on
   `dev` ("Run workflow", full) on the last commit before the release commit:
@@ -117,6 +131,46 @@ it lives here:
 - Test builds for the device: `dist/gba-ds-vX.Y.Z-dev-linux-aarch64.zip`,
   sent to the owner after each change; Android test APKs are the artifacts
   of the workflow runs on `android` / `dev` (link the run).
+- **Final dev build** (the last test zip before a release; the owner asks
+  for it once the release's games and changes are all merged): a checklist of
+  what to confirm on the device, and a zip that carries the test save states.
+  1. **Wait for everything to be in `dev`**: every `game/*` branch and topic
+     branch the owner means for this release merged, and no session still
+     pushing (`git fetch`, then watch `origin/dev` and the recent branches
+     for a few quiet minutes; ask the owner when it isn't clear). Check an
+     open pull request's follow-up work has landed too. Then `dev` is the
+     build.
+  2. **The checklist**, in the owner's words "a checklist-based description of
+     game rules, major changes and known issues that can or should be checked
+     one last time on device", not the release changelog: for each game in the
+     release (`CHANGELOG.md`'s New games), a box for each rule's picture per
+     release/region, named by the state slot that shows it, with the game's
+     known issues listed as "expect" lines; then the interface and shared
+     changes, quick checks that older games still work, and what to send
+     back. The model: `claude/v1.5.6-checklist.md` in the project. Written
+     from `docs/games/<game>.md` and the changelog, never from memory.
+  3. **The states**: `tools/device-states.json` lists, per game and release
+     (No-Intro name, checked against `src/dumps_data.h`), slots 1 to 9 ->
+     fixture state in `gba-ds-tests/states/<game>/` and what to check. Add the
+     release's games (and any state the owner asked for during a game's
+     branch, from State Saver), a state for every rule and every region the
+     fixtures have; say in the checklist where a region has none.
+     `tools/make_device_states.py [--games a,b]` makes `build/device-states/`
+     (`<name>.slotN.state` and `TEST-STATES.txt`, stopping on a missing
+     fixture or a name that isn't a dump); `GBADS_DEVICE_STATES=build/device-states
+     GBADS_WEB_WORK=<scratch>/wasm scripts/build-rocknix.sh` puts them in the
+     zip's `states/` folder (dev versions only). They replace those slot
+     files on the owner's install; say so, and that a state shows only when
+     the ROM file is named as the game is.
+  4. **Tests**: as for any test build, the cases the changes can affect
+     (`tools/regress.py --changed BASE`, BASE the commit of the last build
+     the owner tested; when shared code changed it picks every game, so run
+     the new games' own cases locally and let GitHub run the rest) and the
+     new games' cases; load one baked state in the app headless and look at
+     the second screen. The full suite is still the release's.
+  5. **Send** the zip, its SHA-256, the checklist (as a file) and a few lines:
+     the commit built, what the tests ran, what is not covered (a region
+     without states, goldens missing), and the slot files it replaces.
 
 ## More than one session
 

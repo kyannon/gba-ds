@@ -2,6 +2,7 @@
 #ifdef GBADS_RA
 
 #include "ra.h"
+#include "i18n.h"
 #include "paths.h"
 #include "textfont.h"
 #include "ui.h"
@@ -500,6 +501,7 @@ static void popup_pop(void) {
 static char listStatus[300];
 
 static void note(const char* title, const char* desc) {
+	title = tr(title), desc = tr(desc); /* (the app's own messages; the game's and the server's words stay as they come) */
 	popup_add(POP_NOTE, "RETROACHIEVEMENTS", title, desc, 0, NULL);
 	snprintf(listStatus, sizeof(listStatus), "%s. %s", title, desc);
 }
@@ -757,7 +759,7 @@ static void load_done(int result, const char* error, rc_client_t* c, void* ud) {
 		fprintf(stderr, "ra: game not loaded (%s)\n", error && *error ? error : rc_error_str(result));
 		if (result == RC_NO_GAME_LOADED) {
 			char desc[120];
-			snprintf(desc, sizeof(desc), "No achievements for this ROM (MD5 %s)", gameHash);
+			snprintf(desc, sizeof(desc), tr("No achievements for this ROM (MD5 %s)"), gameHash);
 			note("Unknown version of this game", desc);
 		} else {
 			note("Couldn't load the achievements", error && *error ? error : rc_error_str(result));
@@ -776,13 +778,13 @@ static void load_done(int result, const char* error, rc_client_t* c, void* ud) {
 	        sum.num_unlocked_achievements, sum.num_core_achievements, sum.points_unlocked, sum.points_core);
 	char desc[200];
 	if (!sum.num_core_achievements) {
-		snprintf(desc, sizeof(desc), "This game has no achievements yet");
+		snprintf(desc, sizeof(desc), tr("This game has no achievements yet"));
 	} else if (sum.num_unlocked_achievements == sum.num_core_achievements) {
-		snprintf(desc, sizeof(desc), "All %u achievements unlocked", sum.num_core_achievements);
+		snprintf(desc, sizeof(desc), tr("All %u achievements unlocked"), sum.num_core_achievements);
 	} else {
-		snprintf(desc, sizeof(desc), "%u of %u achievements unlocked", sum.num_unlocked_achievements, sum.num_core_achievements);
+		snprintf(desc, sizeof(desc), tr("%u of %u achievements unlocked"), sum.num_unlocked_achievements, sum.num_core_achievements);
 	}
-	popup_add(POP_GAME, "RETROACHIEVEMENTS \xC2\xB7 CASUAL", g ? g->title : "", desc, 0, g ? g->badge_url : NULL);
+	popup_add(POP_GAME, tr("RETROACHIEVEMENTS \xC2\xB7 CASUAL"), g ? g->title : "", desc, 0, g ? g->badge_url : NULL);
 	/* the badges, so popups have them right away */
 	rc_client_achievement_list_t* list =
 	    rc_client_create_achievement_list(client, RC_CLIENT_ACHIEVEMENT_CATEGORY_CORE, RC_CLIENT_ACHIEVEMENT_LIST_GROUPING_LOCK_STATE);
@@ -815,7 +817,7 @@ static void on_event(const rc_client_event_t* ev, rc_client_t* c) {
 			break;
 		}
 		fprintf(stderr, "ra: unlocked \"%s\" (%u points)\n", a->title, a->points);
-		popup_add(POP_UNLOCK, "ACHIEVEMENT UNLOCKED", a->title, a->description, (int) a->points, a->badge_url);
+		popup_add(POP_UNLOCK, tr("ACHIEVEMENT UNLOCKED"), a->title, a->description, (int) a->points, a->badge_url);
 		break;
 	}
 	case RC_CLIENT_EVENT_GAME_COMPLETED: {
@@ -823,7 +825,7 @@ static void on_event(const rc_client_event_t* ev, rc_client_t* c) {
 		rc_client_user_game_summary_t sum;
 		rc_client_get_user_game_summary(client, &sum);
 		char desc[120];
-		snprintf(desc, sizeof(desc), "All %u achievements unlocked", sum.num_core_achievements);
+		snprintf(desc, sizeof(desc), tr("All %u achievements unlocked"), sum.num_core_achievements);
 		popup_add(POP_DONE, "GAME COMPLETED", g ? g->title : "", desc, 0, g ? g->badge_url : NULL);
 		break;
 	}
@@ -956,7 +958,7 @@ void ra_sign_in(const char* user, const char* password) {
 	if (raOff || !cfg || loginState == LOGIN_BUSY) return;
 	lastError[0] = 0;
 	if (!client_setup()) {
-		snprintf(lastError, sizeof(lastError), "RetroAchievements couldn't start");
+		snprintf(lastError, sizeof(lastError), tr("RetroAchievements couldn't start"));
 		loginState = LOGIN_FAILED;
 		return;
 	}
@@ -1009,7 +1011,7 @@ void ra_game_start(Emu* e, const char* romPath) {
 	gameWanted = true;
 	pendingProgress[0] = 0;
 	nPopups = 0;
-	snprintf(listStatus, sizeof(listStatus), "Loading the achievements...");
+	snprintf(listStatus, sizeof(listStatus), tr("Loading the achievements..."));
 	/* the RetroAchievements hash of a GBA game: MD5 of the whole ROM */
 	size_t size = 0;
 	uint8_t* rom = emu_rom_read_all(romPath, &size);
@@ -1195,7 +1197,7 @@ void ra_list_draw(int s, SDL_Rect a) {
 	float px = ui_px(s);
 	SDL_Rect sr = screens[s].rect;
 	if (!client || !gameLoaded || !achList) {
-		const char* msg = !client ? "RetroAchievements is off" : listStatus[0] ? listStatus : "Loading the achievements...";
+		const char* msg = !client ? N_("RetroAchievements is off"): listStatus[0] ? listStatus : N_("Loading the achievements...");
 		ui_font_wrap(s, TF_BODY, a.x + px * 6, a.y + a.h / 3, a.w - px * 12, px * 5, msg, P_DIM);
 		return;
 	}
@@ -1204,7 +1206,7 @@ void ra_list_draw(int s, SDL_Rect a) {
 	rc_client_get_user_game_summary(client, &sum);
 	char line[400];
 	if (!sum.num_core_achievements) {
-		snprintf(line, sizeof(line), "This game has no achievements yet");
+		snprintf(line, sizeof(line), tr("This game has no achievements yet"));
 	} else {
 		snprintf(line, sizeof(line), "%u of %u unlocked \xC2\xB7 %u of %u points \xC2\xB7 casual", sum.num_unlocked_achievements,
 		         sum.num_core_achievements, sum.points_unlocked, sum.points_core);
@@ -1266,7 +1268,7 @@ void ra_list_draw(int s, SDL_Rect a) {
 		int rx = box.x + box.w - px * 5;
 		snprintf(line, sizeof(line), "%u", ach->points);
 		ui_font_text(s, TF_BOLD, rx, box.y + px * 13 / 2, px * 6, line, ach->unlocked ? P_GOLD : P_DIM, 1);
-		const char* sub = ach->unlocked ? "Unlocked" : ach->measured_progress[0] ? ach->measured_progress : ach->points == 1 ? "point" : "points";
+		const char* sub = ach->unlocked ? N_("Unlocked"): ach->measured_progress[0] ? ach->measured_progress : ach->points == 1 ? N_("point"): N_("points");
 		ui_font_text(s, TF_BODY, rx, box.y + px * 14, px * 3, sub,
 		             ach->unlocked ? (SDL_Color) { 120, 210, 150, 255 } : P_DIM, 1);
 		y += h;

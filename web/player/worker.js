@@ -20,7 +20,14 @@ self.addEventListener("unhandledrejection", (e) => {
   const r = e.reason;
   post({ t: "exit", code: -1, error: r && (r.stack || r.message) || String(r) });
 });
-const log = (line) => post({ t: "log", line });
+const log = (line) => {
+  post({ t: "log", line });
+  // a setting the menu just wrote (the app logs it after writing): kept now, not at the next 4 s tick,
+  // so leaving or reloading the page right after changing it doesn't lose it
+  if (line.startsWith("setting: ")) syncSoon();
+};
+let syncTimer = 0;
+function syncSoon() { if (!syncTimer) syncTimer = setTimeout(() => { syncTimer = 0; if (h) syncFiles(); }, 150); }
 
 /* ------------------------------------------------------------ video */
 function glInit(canvas) {

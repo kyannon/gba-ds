@@ -1523,6 +1523,14 @@
      "-"
     ],
     [
+     78,
+     "DOWN"
+    ],
+    [
+     82,
+     "-"
+    ],
+    [
      100,
      "DOWN"
     ],
@@ -1532,8 +1540,8 @@
     ]
    ],
    "shots": {
-    "system": 96,
-    "system-folder": 130
+    "system-language": 96,
+    "system-folder-language": 130
    },
    "golden_mask": [
     [

@@ -1,0 +1,1469 @@
+{
+ "game": "Final Fantasy IV Advance",
+ "rules": "docs/games/final-fantasy-iv-advance.md",
+ "cases": [
+  {
+   "id": "ff4-logo",
+   "kind": "logo",
+   "rom": "BZ4E",
+   "desc": "the title art, FINAL FANTASY IV lettering and ADVANCE bar",
+   "rules": [
+    "FF4-1"
+   ],
+   "checks": []
+  },
+  {
+   "id": "ff4-logo-eu",
+   "kind": "logo",
+   "rom": "BZ4P",
+   "desc": "the same in Europe, past the language screen",
+   "rules": [
+    "FF4-1"
+   ],
+   "checks": []
+  },
+  {
+   "id": "ff4-logo-jp",
+   "kind": "logo",
+   "rom": "BZ4J",
+   "desc": "Japan: the same with the katakana line under the bar",
+   "rules": [
+    "FF4-1"
+   ],
+   "checks": []
+  },
+  {
+   "id": "ff4-logo-jr",
+   "kind": "logo",
+   "rom": "BZ4J+rev1",
+   "desc": "Japan Rev 1: the same",
+   "rules": [
+    "FF4-1"
+   ],
+   "checks": []
+  },
+  {
+   "id": "ff4-us-title",
+   "rom": "BZ4E",
+   "state": "final-fantasy-iv-advance/us-title.ss",
+   "desc": "USA: the title menu from a start: the logo, no captures",
+   "rules": [
+    "FF4-2"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "FF4-2",
+     "what": "the logo alone on the idle grey",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      980,
+      170
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "FF4-2",
+     "what": "no capture tried",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ff4-eu-title",
+   "rom": "BZ4P",
+   "state": "final-fantasy-iv-advance/eu-title.ss",
+   "desc": "Europe: the title menu from a start: the logo, no captures",
+   "rules": [
+    "FF4-2"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "FF4-2",
+     "what": "the logo alone on the idle grey",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      980,
+      170
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "FF4-2",
+     "what": "no capture tried",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ff4-jp-title",
+   "rom": "BZ4J",
+   "state": "final-fantasy-iv-advance/jp-title.ss",
+   "desc": "Japan: the title menu from a start: the logo, no captures",
+   "rules": [
+    "FF4-2"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "FF4-2",
+     "what": "the logo alone on the idle grey",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      980,
+      170
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "FF4-2",
+     "what": "no capture tried",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ff4-jr-title",
+   "rom": "BZ4J+rev1",
+   "state": "final-fantasy-iv-advance/jr-title.ss",
+   "desc": "Japan Rev 1: the title menu from a start: the logo, no captures",
+   "rules": [
+    "FF4-2"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "FF4-2",
+     "what": "the logo alone on the idle grey",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      980,
+      170
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "FF4-2",
+     "what": "no capture tried",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ff4-us-field",
+   "rom": "BZ4E",
+   "state": "final-fantasy-iv-advance/us-field.ss",
+   "desc": "USA: on the world map near the start, two characters (the hacked save, Rosa's spells listed by number): the world map from Sight, as in Japan",
+   "rules": [
+    "FF4-8"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "FF4-8",
+     "what": "the map was taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF4-8",
+     "what": "the map's ocean fills its top left corner",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       262,
+       134,
+       "3184EF"
+      ]
+     ]
+    },
+    {
+     "rule": "FF4-8",
+     "what": "nothing but the map: black either side of it, no windows, no hand or prompts",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       100,
+       400,
+       "000000"
+      ],
+      [
+       900,
+       400,
+       "000000"
+      ],
+      [
+       100,
+       134,
+       "000000"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ff4-us-overworld",
+   "rom": "BZ4E",
+   "state": "final-fantasy-iv-advance/us-overworld.ss",
+   "desc": "USA: on the world map (Rosa is in the party but not first): the world map from Sight",
+   "rules": [
+    "FF4-8"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "FF4-8",
+     "what": "the map was taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF4-8",
+     "what": "the map's ocean fills its top left corner",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       262,
+       134,
+       "3184EF"
+      ]
+     ]
+    },
+    {
+     "rule": "FF4-8",
+     "what": "nothing but the map: black either side of it, no windows, no hand or prompts",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       100,
+       400,
+       "000000"
+      ],
+      [
+       900,
+       400,
+       "000000"
+      ],
+      [
+       100,
+       134,
+       "000000"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ff4-us-moon",
+   "rom": "BZ4E",
+   "state": "final-fantasy-iv-advance/us-moon.ss",
+   "desc": "USA: on the Moon's surface: its map from Sight",
+   "rules": [
+    "FF4-8"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "FF4-8",
+     "what": "the map was taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF4-8",
+     "what": "the Moon map's corner colour fills its top left corner",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       262,
+       134,
+       "7B7B6B"
+      ]
+     ]
+    },
+    {
+     "rule": "FF4-8",
+     "what": "nothing but the map: black either side of it, no windows, no hand or prompts",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       100,
+       400,
+       "000000"
+      ],
+      [
+       900,
+       400,
+       "000000"
+      ],
+      [
+       100,
+       134,
+       "000000"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ff4-us-cave",
+   "rom": "BZ4E",
+   "state": "final-fantasy-iv-advance/us-cave.ss",
+   "desc": "USA: in a cave, where Sight can't be cast: the party screen stays (FF4-3)",
+   "rules": [
+    "FF4-8",
+    "FF4-3"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "FF4-3",
+     "what": "the party screen was taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF4-3",
+     "what": "no command window: neither its lower frame nor the party window's right frame is there",
+     "type": "not_pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       642,
+       226,
+       "FFFFFF"
+      ],
+      [
+       834,
+       406,
+       "FFFFFF"
+      ]
+     ]
+    },
+    {
+     "rule": "FF4-3",
+     "what": "the party window's left frame and the location window's top frame are there",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       34,
+       226,
+       "FFFFFF"
+      ],
+      [
+       834,
+       418,
+       "FFFFFF"
+      ],
+      [
+       834,
+       422,
+       "CECECE"
+      ]
+     ]
+    },
+    {
+     "rule": "FF4-3",
+     "what": "the second screen isn't the logo's idle grey",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      980,
+      170
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ff4-us-lunar",
+   "rom": "BZ4E",
+   "state": "final-fantasy-iv-advance/us-lunar.ss",
+   "desc": "USA: the Lunar Subterrane with five characters in the green window colour: the party screen in the game's own colour",
+   "rules": [
+    "FF4-3"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "FF4-3",
+     "what": "the party screen was taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF4-3",
+     "what": "no command window: neither its lower frame nor the party window's right frame is there",
+     "type": "not_pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       642,
+       226,
+       "FFFFFF"
+      ],
+      [
+       834,
+       406,
+       "FFFFFF"
+      ]
+     ]
+    },
+    {
+     "rule": "FF4-3",
+     "what": "the party window's left frame and the location window's top frame are there",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       34,
+       226,
+       "FFFFFF"
+      ],
+      [
+       834,
+       418,
+       "FFFFFF"
+      ],
+      [
+       834,
+       422,
+       "CECECE"
+      ]
+     ]
+    },
+    {
+     "rule": "FF4-3",
+     "what": "the second screen isn't the logo's idle grey",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      980,
+      170
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ff4-us-menu",
+   "rom": "BZ4E",
+   "state": "final-fantasy-iv-advance/us-menu.ss",
+   "desc": "USA: START's menu open on the world map: the world map, as walking about",
+   "rules": [
+    "FF4-6",
+    "FF4-8"
+   ],
+   "shots": {
+    "start": 300
+   },
+   "checks": [
+    {
+     "rule": "FF4-6",
+     "what": "the map was taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF4-8",
+     "what": "the map's ocean fills its top left corner",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       262,
+       134,
+       "3184EF"
+      ]
+     ]
+    },
+    {
+     "rule": "FF4-8",
+     "what": "nothing but the map: black either side of it, no windows, no hand or prompts",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       100,
+       400,
+       "000000"
+      ],
+      [
+       900,
+       400,
+       "000000"
+      ],
+      [
+       100,
+       134,
+       "000000"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ff4-us-battle",
+   "rom": "BZ4E",
+   "state": "final-fantasy-iv-advance/us-battle.ss",
+   "desc": "USA: a battle with goblins loaded straight away: no picture yet, so the logo",
+   "rules": [
+    "FF4-4"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "FF4-4",
+     "what": "the logo alone on the idle grey",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      980,
+      170
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "FF4-4",
+     "what": "no capture tried",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ff4-us-battle-kept",
+   "rom": "BZ4E",
+   "state": "final-fantasy-iv-advance/us-field.ss",
+   "desc": "USA: the map and the party taken on the world map, then a battle starts: the party screen stays",
+   "rules": [
+    "FF4-4"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:final-fantasy-iv-advance/us-battle.ss"
+    ]
+   ],
+   "shots": {
+    "start": 150,
+    "battle": 400
+   },
+   "checks": [
+    {
+     "rule": "FF4-4",
+     "what": "the party screen was taken before",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF4-4",
+     "what": "still the party in the battle (not the logo)",
+     "type": "not_uniform",
+     "shot": "battle",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      980,
+      170
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ff4-eu-late",
+   "rom": "BZ4P",
+   "state": "final-fantasy-iv-advance/eu-late.ss",
+   "desc": "Europe: the Lunar Subterrane B7, five characters at level 99 (a GameFAQs save): the party screen",
+   "rules": [
+    "FF4-3"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "FF4-3",
+     "what": "the party screen was taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF4-3",
+     "what": "no command window: neither its lower frame nor the party window's right frame is there",
+     "type": "not_pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       642,
+       226,
+       "FFFFFF"
+      ],
+      [
+       834,
+       406,
+       "FFFFFF"
+      ]
+     ]
+    },
+    {
+     "rule": "FF4-3",
+     "what": "the party window's left frame and the location window's top frame are there",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       34,
+       226,
+       "FFFFFF"
+      ],
+      [
+       834,
+       418,
+       "FFFFFF"
+      ],
+      [
+       834,
+       422,
+       "CECECE"
+      ]
+     ]
+    },
+    {
+     "rule": "FF4-3",
+     "what": "the second screen isn't the logo's idle grey",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      980,
+      170
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ff4-eu-late-menu",
+   "rom": "BZ4P",
+   "state": "final-fantasy-iv-advance/eu-late-menu.ss",
+   "desc": "Europe: START's menu open in the game: the party screen",
+   "rules": [
+    "FF4-6"
+   ],
+   "shots": {
+    "start": 300
+   },
+   "checks": [
+    {
+     "rule": "FF4-6",
+     "what": "the party screen was taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF4-6",
+     "what": "no command window: neither its lower frame nor the party window's right frame is there",
+     "type": "not_pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       642,
+       226,
+       "FFFFFF"
+      ],
+      [
+       834,
+       406,
+       "FFFFFF"
+      ]
+     ]
+    },
+    {
+     "rule": "FF4-6",
+     "what": "the party window's left frame and the location window's top frame are there",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       34,
+       226,
+       "FFFFFF"
+      ],
+      [
+       834,
+       418,
+       "FFFFFF"
+      ],
+      [
+       834,
+       422,
+       "CECECE"
+      ]
+     ]
+    },
+    {
+     "rule": "FF4-6",
+     "what": "the second screen isn't the logo's idle grey",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      980,
+      170
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ff4-eu-dialogue",
+   "rom": "BZ4P",
+   "state": "final-fantasy-iv-advance/eu-dialogue.ss",
+   "desc": "Europe: a message box open (the save point's), loaded straight away: nothing opens, so the logo",
+   "rules": [
+    "FF4-5"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "FF4-5",
+     "what": "the logo alone on the idle grey",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      980,
+      170
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "FF4-5",
+     "what": "no capture tried",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ff4-eu-dialogue-kept",
+   "rom": "BZ4P",
+   "state": "final-fantasy-iv-advance/eu-late.ss",
+   "desc": "Europe: the party taken, then the message box: the party stays",
+   "rules": [
+    "FF4-5"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:final-fantasy-iv-advance/eu-dialogue.ss"
+    ]
+   ],
+   "shots": {
+    "start": 150,
+    "talk": 400
+   },
+   "checks": [
+    {
+     "rule": "FF4-5",
+     "what": "the party screen was taken before",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF4-5",
+     "what": "still the party at the message box",
+     "type": "not_uniform",
+     "shot": "talk",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      980,
+      170
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ff4-eu-title-after",
+   "rom": "BZ4P",
+   "state": "final-fantasy-iv-advance/eu-late.ss",
+   "desc": "Europe: the party taken, then back to the title: the party is dropped, the logo",
+   "rules": [
+    "FF4-2"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:final-fantasy-iv-advance/eu-title.ss"
+    ]
+   ],
+   "shots": {
+    "start": 150,
+    "title": 400
+   },
+   "checks": [
+    {
+     "rule": "FF4-2",
+     "what": "the party screen was taken before",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF4-2",
+     "what": "the logo alone at the title",
+     "type": "uniform",
+     "shot": "title",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      980,
+      170
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ff4-jp-field",
+   "rom": "BZ4J",
+   "state": "final-fantasy-iv-advance/jp-field.ss",
+   "desc": "Japan: on the world map near the start (Kain and Cecil, in Japanese, no Sight): the world map from Sight",
+   "rules": [
+    "FF4-8"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "FF4-6",
+     "what": "the map was taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF4-8",
+     "what": "the map's ocean fills its top left corner",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       262,
+       134,
+       "3184EF"
+      ]
+     ]
+    },
+    {
+     "rule": "FF4-8",
+     "what": "nothing but the map: black either side of it, no windows, no hand or prompts",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       100,
+       400,
+       "000000"
+      ],
+      [
+       900,
+       400,
+       "000000"
+      ],
+      [
+       100,
+       134,
+       "000000"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ff4-jp-menu",
+   "rom": "BZ4J",
+   "state": "final-fantasy-iv-advance/jp-menu.ss",
+   "desc": "Japan: START's menu open on the world map: the world map, as walking about",
+   "rules": [
+    "FF4-6",
+    "FF4-8"
+   ],
+   "shots": {
+    "start": 300
+   },
+   "checks": [
+    {
+     "rule": "FF4-6",
+     "what": "the map was taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF4-8",
+     "what": "the map's ocean fills its top left corner",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       262,
+       134,
+       "3184EF"
+      ]
+     ]
+    },
+    {
+     "rule": "FF4-8",
+     "what": "nothing but the map: black either side of it, no windows, no hand or prompts",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       100,
+       400,
+       "000000"
+      ],
+      [
+       900,
+       400,
+       "000000"
+      ],
+      [
+       100,
+       134,
+       "000000"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ff4-jp-battle",
+   "rom": "BZ4J",
+   "state": "final-fantasy-iv-advance/jp-battle.ss",
+   "desc": "Japan: a battle loaded straight away: the logo",
+   "rules": [
+    "FF4-4"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "FF4-4",
+     "what": "the logo alone on the idle grey",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      980,
+      170
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "FF4-4",
+     "what": "no capture tried",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ff4-jp-battle-kept",
+   "rom": "BZ4J",
+   "state": "final-fantasy-iv-advance/jp-field.ss",
+   "desc": "Japan: the party taken, then a battle: the party stays",
+   "rules": [
+    "FF4-4"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:final-fantasy-iv-advance/jp-battle.ss"
+    ]
+   ],
+   "shots": {
+    "start": 150,
+    "battle": 400
+   },
+   "checks": [
+    {
+     "rule": "FF4-4",
+     "what": "the party screen was taken before",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF4-4",
+     "what": "still the party in the battle",
+     "type": "not_uniform",
+     "shot": "battle",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      980,
+      170
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ff4-eu-battle",
+   "rom": "BZ4P",
+   "state": "final-fantasy-iv-advance/eu-battle.ss",
+   "desc": "Europe: a battle with the Gold Dragon loaded straight away: no picture yet, so the logo",
+   "rules": [
+    "FF4-4"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "FF4-4",
+     "what": "the logo alone on the idle grey",
+     "type": "uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      980,
+      170
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "FF4-4",
+     "what": "no capture tried",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "ff4-eu-battle-kept",
+   "rom": "BZ4P",
+   "state": "final-fantasy-iv-advance/eu-late.ss",
+   "desc": "Europe: the late party taken in the Lunar Subterrane, then a battle starts: the party stays",
+   "rules": [
+    "FF4-4"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:final-fantasy-iv-advance/eu-battle.ss"
+    ]
+   ],
+   "shots": {
+    "start": 150,
+    "battle": 400
+   },
+   "checks": [
+    {
+     "rule": "FF4-4",
+     "what": "the party screen was taken before",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF4-4",
+     "what": "still the party in the battle (not the logo)",
+     "type": "not_uniform",
+     "shot": "battle",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      980,
+      170
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ff4-eu-gameover",
+   "rom": "BZ4P",
+   "state": "final-fantasy-iv-advance/eu-late.ss",
+   "desc": "Europe: the party taken, then every character falls: the party stays through \"The party was defeated.\" and the fade, then the title shows the logo",
+   "rules": [
+    "FF4-4",
+    "FF4-2"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:final-fantasy-iv-advance/eu-defeated.ss"
+    ]
+   ],
+   "shots": {
+    "message": 260,
+    "title": 1500
+   },
+   "checks": [
+    {
+     "rule": "FF4-4",
+     "what": "the party screen was taken before",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF4-4",
+     "what": "still the party at the defeat message (not the logo)",
+     "type": "not_uniform",
+     "shot": "message",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      980,
+      170
+     ],
+     "color": "303030"
+    },
+    {
+     "rule": "FF4-2",
+     "what": "the title after the game over: the logo alone",
+     "type": "uniform",
+     "shot": "title",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      980,
+      170
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ff4-jp-late",
+   "rom": "BZ4J",
+   "state": "final-fantasy-iv-advance/jp-late.ss",
+   "desc": "Japan: the Europe save in the Japanese ROM, five characters at level 99: the party screen in Japanese",
+   "rules": [
+    "FF4-3"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "FF4-3",
+     "what": "the party screen was taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF4-3",
+     "what": "no command window: neither its lower frame nor the party window's right frame is there",
+     "type": "not_pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       642,
+       226,
+       "FFFFFF"
+      ],
+      [
+       834,
+       406,
+       "FFFFFF"
+      ]
+     ]
+    },
+    {
+     "rule": "FF4-3",
+     "what": "the party window's left frame and the location window's top frame are there",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       34,
+       226,
+       "FFFFFF"
+      ],
+      [
+       834,
+       418,
+       "FFFFFF"
+      ],
+      [
+       834,
+       422,
+       "CECECE"
+      ]
+     ]
+    },
+    {
+     "rule": "FF4-3",
+     "what": "the second screen isn't the logo's idle grey",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      980,
+      170
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ff4-jr-late",
+   "rom": "BZ4J+rev1",
+   "state": "final-fantasy-iv-advance/jr-late.ss",
+   "desc": "Japan Rev 1: the same late party",
+   "rules": [
+    "FF4-3"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "FF4-3",
+     "what": "the party screen was taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF4-3",
+     "what": "no command window: neither its lower frame nor the party window's right frame is there",
+     "type": "not_pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       642,
+       226,
+       "FFFFFF"
+      ],
+      [
+       834,
+       406,
+       "FFFFFF"
+      ]
+     ]
+    },
+    {
+     "rule": "FF4-3",
+     "what": "the party window's left frame and the location window's top frame are there",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       34,
+       226,
+       "FFFFFF"
+      ],
+      [
+       834,
+       418,
+       "FFFFFF"
+      ],
+      [
+       834,
+       422,
+       "CECECE"
+      ]
+     ]
+    },
+    {
+     "rule": "FF4-3",
+     "what": "the second screen isn't the logo's idle grey",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      980,
+      170
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ff4-jr-late-menu",
+   "rom": "BZ4J+rev1",
+   "state": "final-fantasy-iv-advance/jr-late-menu.ss",
+   "desc": "Japan Rev 1: START's menu open",
+   "rules": [
+    "FF4-6"
+   ],
+   "shots": {
+    "start": 300
+   },
+   "checks": [
+    {
+     "rule": "FF4-6",
+     "what": "the party screen was taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "FF4-6",
+     "what": "no command window: neither its lower frame nor the party window's right frame is there",
+     "type": "not_pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       642,
+       226,
+       "FFFFFF"
+      ],
+      [
+       834,
+       406,
+       "FFFFFF"
+      ]
+     ]
+    },
+    {
+     "rule": "FF4-6",
+     "what": "the party window's left frame and the location window's top frame are there",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       34,
+       226,
+       "FFFFFF"
+      ],
+      [
+       834,
+       418,
+       "FFFFFF"
+      ],
+      [
+       834,
+       422,
+       "CECECE"
+      ]
+     ]
+    },
+    {
+     "rule": "FF4-6",
+     "what": "the second screen isn't the logo's idle grey",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      40,
+      70,
+      980,
+      170
+     ],
+     "color": "303030"
+    }
+   ]
+  }
+ ]
+}

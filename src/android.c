@@ -6,6 +6,7 @@
 #endif
 
 #include "android.h"
+#include "i18n.h"
 #include "clocks.h"
 #include "emu.h"
 #include "paths.h"
@@ -432,7 +433,7 @@ bool android_install_apk(const char* path, char* err, size_t errSize) {
 	if ((*env)->ExceptionCheck(env)) {
 		(*env)->ExceptionClear(env);
 		ok = false;
-		if (err) snprintf(err, errSize, "Android's installer couldn't be reached");
+		if (err) snprintf(err, errSize, tr("Android's installer couldn't be reached"));
 	}
 	(*env)->DeleteLocalRef(env, cls);
 	(*env)->DeleteLocalRef(env, activity);

@@ -13,6 +13,7 @@
 - [[Supported games]]
 - [[Overlays]]
 - [[Settings]]
+- [[Languages]]
 - [[Troubleshooting]]
 - [[Philosophy]]
 

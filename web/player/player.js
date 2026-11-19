@@ -891,7 +891,11 @@ document.addEventListener("visibilitychange", () => {
   if (document.hidden && S.pauseHidden && !P.paused) setPaused(true, true);
   else if (!document.hidden && P.autoPaused) setPaused(false);
 });
-window.addEventListener("pagehide", () => { if (P.worker) P.worker.postMessage({ t: "sync" }); });
+// (a page being closed or reloaded may not live to get the files back from the worker: they are asked
+// for as soon as the page is hidden, which comes first, and the worker also sends a setting at once)
+const syncNow = () => { if (P.worker) P.worker.postMessage({ t: "sync" }); };
+window.addEventListener("pagehide", syncNow);
+document.addEventListener("visibilitychange", () => { if (document.hidden) syncNow(); });
 
 /* ================================================================ the start screen */
 function showSlots() {

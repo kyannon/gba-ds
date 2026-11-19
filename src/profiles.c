@@ -6303,6 +6303,620 @@ static const char* ff_compose(Emu* s, const void* state, uint32_t* out, int w, i
 	return NULL;
 }
 
+/* ---------------------------------------------------------------- Final Fantasy IV Advance
+ *
+ * docs/games/final-fantasy-iv-advance.md. The overworld's map is the one
+ * Sight opens, made on the hidden copy with Rosa put in the party (FF4-8,
+ * ff4_map); elsewhere the second screen is START's menu as a party screen (the party, the place,
+ * the play time and gil), taken on the hidden copy without its command
+ * list (FF4-3); in a battle, scenes and conversations the last one stays
+ * (FF4-4, FF4-5); the logo on the title (FF4-2). All three releases (BZ4E,
+ * BZ4P, BZ4J in both revisions) draw the same windows in the same places.
+ *   FF4_V_LOGO  1 while the title is up: the title is video mode 1, the
+ *               game's other screens modes 0 and 2
+ */
+#define FF4_V_LOGO 0xF0000090
+/* START's menu, faded in: the command window's lower frame and the party
+ * window's right one (x, y, 0xRRGGBB); the Load Game screen has the same
+ * windows, told apart by its title window's lower frame at ff4LoadFrame */
+static const int ff4Menu[][3] = { { 200, 85, 0xFFFFFF }, { 200, 86, 0xCECECE }, { 200, 87, 0x212121 },
+                                  { 200, 88, 0xFFFFFF }, { 200, 90, 0x212121 }, { 152, 40, 0xFFFFFF },
+                                  { 153, 40, 0xCECECE }, { 154, 40, 0x212121 } };
+static const int ff4LoadFrame[2] = { 225, 21 };
+/* a battle: its bottom windows' frames */
+static const int ff4Battle[][3] = { { 100, 112, 0xFFFFFF }, { 100, 113, 0xCECECE }, { 100, 114, 0x212121 },
+                                    { 200, 112, 0xFFFFFF }, { 200, 113, 0xCECECE }, { 200, 114, 0x212121 } };
+/* the hand at the menu's command list */
+static const SpriteRule ff4MenuHand = { 136, -16, 200, 100, 0, 1023, -1, 0, 0, 0 };
+
+static uint32_t ff4_virt(Emu* e, uint32_t addr) {
+	if (addr == FF4_V_LOGO) return (emu_io16(e, 0) & 7) == 1; /* (FF4-2) */
+	return 0;
+}
+
+static bool ff4_menu_up(Emu* s) {
+	if (!ff_probes(s, ff4Menu, sizeof(ff4Menu) / sizeof(*ff4Menu))) return false;
+	return !ff_is(s->fb[ff4LoadFrame[1] * GBA_W + ff4LoadFrame[0]], 0xFFFFFF);
+}
+
+/* START's menu brought up on the hidden copy (B first, as often as it
+ * takes to leave one of its screens, a dialogue: FF4-5) and settled, its
+ * hand hidden */
+static const char* ff4_open_menu(Emu* s) {
+	emu_hide_sprites(s, &ff4MenuHand, 1);
+	/* (already up, as in a state saved with the menu open: START would close it) */
+	bool up = ff4_menu_up(s);
+	for (int tries = 0; tries < 4 && !up; ++tries) {
+		if (tries) {
+			aw_run(s, K_B, 4);
+			aw_run(s, 0, 40);
+		}
+		aw_run(s, K_START, 4);
+		for (int f = 0; f < 90 && !up; f += 2) {
+			aw_run(s, 0, 2);
+			up = ff4_menu_up(s);
+		}
+	}
+	if (!up) return "the menu didn't open"; /* (FF4-5) */
+	if (!ff_settle(s, 120)) return "the menu didn't settle";
+	if (!ff4_menu_up(s)) return "the menu closed";
+	if (emu_cancelled(s)) return "called off";
+	return NULL;
+}
+
+/* Final Fantasy IV Advance in Europe: the language screen first (A:
+ * English), then the health warning, both logos and the intro to skip with
+ * START (FF4-1) */
+static void ff4_eur(MapProfile* p) {
+	static const MacroStep steps[] = { { 0, 200 }, { K_A, 4 }, { 0, 146 }, { K_START, 4 }, { 0, 146 }, { K_START, 4 }, { 0, 146 },
+	                                   { K_START, 4 }, { 0, 146 }, { K_START, 4 }, { 0, 400 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+}
+
+/* the "Switch Maps" screen Sight opens: its text window's lower frame at the
+ * top left and the list window's left frame (x, y, 0xRRGGBB) */
+static const int ff4MapUp[][3] = { { 128, 80, 0xFFFFFF }, { 129, 80, 0xCECECE }, { 130, 80, 0x212121 },
+                                   { 60, 21, 0xFFFFFF }, { 60, 22, 0xCECECE }, { 60, 23, 0x212121 } };
+/* its hand and its A / B prompts, right of the map (the map is 128 px wide) */
+static const SpriteRule ff4MapUi = { 128, -16, 240, 160, 0, 1023, -1, 0, 0, 0 };
+#define FF4_MAP_Y 27 /* the map's top row; it is 128 x 128 at x 0 */
+
+/* the world map from Sight, on the hidden copy (FF4-8): Rosa first in the
+ * party at level 99 with 800 MP (the party order table, and her record 0x12
+ * after it: level +11, MP +4, maximum MP +6; the table's place depends on
+ * the release), then START, Magic, Sight. Fills pic's 128 x 128 map at its
+ * top left; NULL when the screen came up, else why not */
+static const char* ff4_map(Emu* s, uint32_t* pic) {
+	char region = (char) emu_read8(s, 0x080000AF);
+	uint32_t table = region == 'E' ? 0x020069E6 : region == 'P' ? 0x02006066 : emu_read8(s, 0x080000BC) ? 0x0200634E : 0x020069F6;
+	/* (the menu is up already: it reads the party when a character is picked) */
+	emu_write8(s, table, 2);
+	emu_write8(s, table + 0x12 + 0x48 * 2 + 11, 99);
+	emu_write16(s, table + 0x12 + 0x48 * 2 + 4, 800);
+	emu_write16(s, table + 0x12 + 0x48 * 2 + 6, 800);
+	/* her white magic list in the order the game starts with (Cure, Hold,
+	 * Scan, Slow, Sight), so that Sight is where the keys below land
+	 * whatever order this save has it in: a save that never had Rosa set up
+	 * (the hacked two-character one) lists the spells by number, with Sight
+	 * near the end. The lists (24 bytes each, from table + 0x3DE) are set
+	 * for every caster, as the one that is Rosa's isn't worked out */
+	static const uint8_t sightFirst[5] = { 0x0E, 0x01, 0x0D, 0x07, 0x17 };
+	for (int list = 0; list < 6; ++list) {
+		for (int i = 0; i < 5; ++i) emu_write8(s, table + 0x3DE + 0x18 * list + i, sightFirst[i]);
+	}
+	emu_hide_sprites(s, &ff4MapUi, 1);
+	static const struct { int key, wait; } path[] = { { K_DOWN, 16 }, { K_A, 26 }, { K_A, 26 }, { K_A, 26 }, { K_DOWN, 12 },
+	                                                 { K_RIGHT, 12 }, { K_A, 26 }, { K_A, 0 } };
+	for (size_t i = 0; i < sizeof(path) / sizeof(*path); ++i) {
+		aw_run(s, path[i].key, 8);
+		if (path[i].wait) aw_run(s, 0, path[i].wait);
+	}
+	bool up = false;
+	for (int f = 0; f < 150 && !up; f += 5) {
+		aw_run(s, 0, 5);
+		up = ff_probes(s, ff4MapUp, sizeof(ff4MapUp) / sizeof(*ff4MapUp));
+	}
+	if (emu_cancelled(s)) return "called off";
+	if (!up) return "no map"; /* Sight can't be cast here */
+	aw_run(s, 0, 20);
+	if (!ff_probes(s, ff4MapUp, sizeof(ff4MapUp) / sizeof(*ff4MapUp))) return "the map closed";
+	uint8_t* tmp = ff_tmp(s);
+	if (!tmp || !emu_state_save(s, tmp)) return "called off";
+	static uint32_t lay[GBA_W * GBA_H];
+	ff_draw_layers(s, tmp, 0x14, lay);
+	if (emu_cancelled(s)) return "called off";
+	for (int y = 0; y < 128; ++y) memcpy(&pic[y * 128], &lay[(y + FF4_MAP_Y) * GBA_W], 128 * sizeof(uint32_t));
+	return NULL;
+}
+
+/* the party screen last taken: shown in a battle (FF4-4) */
+static uint32_t ff4Party[GBA_W * GBA_H];
+static bool ff4HaveParty;
+
+static void ff4_put_party(uint32_t* out, int w, int h, const uint32_t* pic) {
+	for (int y = 0; y < h; ++y) {
+		for (int x = 0; x < w; ++x) out[y * w + x] = y < GBA_H && x < GBA_W ? pic[y * GBA_W + x] : 0xFF000000;
+	}
+}
+
+static const char* ff4_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	static uint32_t pic[GBA_W * GBA_H];
+	emu_hide_sprites(s, NULL, 0);
+	emu_layers(s, 0x1F);
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	/* a battle: the party from before it (FF4-4) */
+	if (ff_probes(s, ff4Battle, sizeof(ff4Battle) / sizeof(*ff4Battle))) {
+		if (!ff4HaveParty) return "a battle";
+		ff4_put_party(out, w, h, ff4Party);
+		return NULL;
+	}
+	const char* err = ff4_open_menu(s);
+	if (err) return err;
+	/* the party screen: the menu without the command list (BG1) (FF4-3),
+	 * kept for the battles */
+	uint8_t* tmp = ff_tmp(s);
+	if (!tmp || !emu_state_save(s, tmp)) return "called off";
+	ff_draw_layers(s, tmp, 0x11, pic);
+	if (emu_cancelled(s)) return "called off";
+	memcpy(ff4Party, pic, sizeof(ff4Party));
+	ff4HaveParty = true;
+	/* on the overworld, the map instead (FF4-8), from this same menu */
+	static uint32_t map[128 * 128];
+	if (!ff4_map(s, map)) {
+		for (int y = 0; y < h; ++y) {
+			for (int x = 0; x < w; ++x) {
+				int mx = x - (w - 128) / 2, my = y - (h - 128) / 2;
+				out[y * w + x] = mx >= 0 && mx < 128 && my >= 0 && my < 128 ? (map[my * 128 + mx] | 0xFF000000) : 0xFF000000;
+			}
+		}
+		return NULL;
+	}
+	if (emu_cancelled(s)) return "called off";
+	ff4_put_party(out, w, h, pic);
+	return NULL;
+}
+
+/* ---------------------------------------------------------------- Final Fantasy V Advance
+ *
+ * docs/games/final-fantasy-v-advance.md. The game has no map screen: the
+ * second screen is the party screen, START's menu opened on the hidden copy
+ * without its command windows (FV-3, FV-4), kept for battles (FV-6, FV-7),
+ * the logo outside the game and after a game over (FV-2, FV-8). START's menu
+ * draws every window on BG0; the command windows (the top right) are left
+ * black in the picture. Words, in all three releases:
+ *   FFV_LOADED  0x02000924: the first character's pointer, 0 until a game
+ *               is loaded or started (title, Load Game screen)
+ *   FFV_BATTLE  0x02000EC0: non-zero from a battle's first frame to the end
+ *               of its results
+ *   FFV_SCREEN  (per release) what the game shows: 5 walking about, 7 START's
+ *               menu, 0x0C the world map (R opens it), 0x0A a battle
+ * Per release (FfvRegion): the party's records (character id, job at +8, +9,
+ * one every 0x64 bytes) and the battle's block of HP (HP, maximum HP, MP,
+ * maximum MP, 8 bytes a character). */
+typedef struct {
+	const char* code;
+	uint32_t party, hp, screen, room;
+} FfvRegion;
+static const FfvRegion ffvRegions[] = {
+	{ "BZ5E", 0x0200DAB4, 0x0201E1A0, 0x020096E0, 0x0200E2AE },
+	{ "BZ5P", 0x0200D868, 0x0201DF54, 0x02009464, 0x0200E062 },
+	{ "BZ5J", 0x0200DAB4, 0x0201E1A0, 0x020096E0, 0x0200E2AE },
+};
+#define FFV_SCREEN_MAP 0x0C /* the byte at `screen`: 5 walking about, 7 START's menu, 0x0C the world map, 0x0A a battle */
+#define FFV_LOADED 0x02000924
+#define FFV_BATTLE 0x02000EC0
+#define FFV_V_LOGO 0xF00000A0  /* outside the game (FV-2), or the party defeated (FV-8) */
+#define FFV_V_MAP 0xF00000A4   /* the map (FV-3) */
+#define FFV_V_BATTLE 0xF00000A8 /* a battle (FV-6) */
+#define FFV_CMD_X 152 /* START's menu: the command windows' place, top right (FV-3) */
+#define FFV_CMD_ROWS 88 /* (the rows above the location window) */
+#define FFV_WIN_X0 152 /* the commands' place: its left column, and the right edge's (x 236..239) */
+#define FFV_WIN_X1 239
+/* START's menu, up: its windows' frames (x, y, 0xRRGGBB) */
+static const int ffvMenu[][3] = { { 152, 10, 0xFFFFFF }, { 153, 10, 0xCECECE }, { 154, 10, 0x212121 },
+                                  { 152, 50, 0xFFFFFF }, { 237, 10, 0xFFFFFF }, { 190, 85, 0xFFFFFF },
+                                  { 190, 86, 0xCECECE }, { 152, 100, 0xFFFFFF }, { 237, 140, 0xFFFFFF },
+                                  { 1, 80, 0xCECECE }, { 2, 80, 0x212121 } };
+/* the hand cursor: tiles 900 and up */
+static const SpriteRule ffvHand = { -16, -16, 255, 255, 900, 1023, -1, 0, 0, 0 };
+static uint32_t ffvParty[GBA_W * GBA_H];
+static uint32_t ffvMap[GBA_W * GBA_H];
+static unsigned ffvTakes;
+static bool ffvPartyOk;
+static uint32_t ffvPartyId;
+
+static const FfvRegion* ffv_r(Emu* e) {
+	for (size_t i = 0; i < sizeof(ffvRegions) / sizeof(*ffvRegions); ++i) {
+		if (!strncmp(e->gameCode, ffvRegions[i].code, 4)) return &ffvRegions[i];
+	}
+	return &ffvRegions[0];
+}
+
+/* the whole party down in a battle: every HP 0 (FV-8) */
+static bool ffv_defeated(Emu* e) {
+	if (!emu_read32(e, FFV_BATTLE)) return false;
+	for (int c = 0; c < 4; ++c) {
+		uint32_t a = ffv_r(e)->hp + c * 8;
+		if (emu_read16(e, a) || !emu_read16(e, a + 2)) return false; /* (alive, or no character) */
+	}
+	return true;
+}
+
+static uint32_t ffv_virt(Emu* e, uint32_t addr) {
+	if (addr == FFV_V_LOGO) return !emu_read32(e, FFV_LOADED) || ffv_defeated(e);
+	if (addr == FFV_V_MAP) return emu_read16(e, ffv_r(e)->room);
+	if (addr == FFV_V_BATTLE) return emu_read32(e, FFV_BATTLE) != 0;
+	return 0;
+}
+
+static bool ffv_menu_up(Emu* s) {
+	for (size_t i = 0; i < sizeof(ffvMenu) / sizeof(*ffvMenu); ++i) {
+		if (!ff_is(s->fb[ffvMenu[i][1] * GBA_W + ffvMenu[i][0]], ffvMenu[i][2])) return false;
+	}
+	return true;
+}
+
+/* which party: the characters' ids and jobs (FV-7) */
+static uint32_t ffv_party_id(Emu* s) {
+	uint32_t h = 2166136261u;
+	for (int c = 0; c < 4; ++c) {
+		uint32_t a = ffv_r(s)->party + c * 0x64 + 8;
+		h = (h ^ emu_read8(s, a)) * 16777619u;
+		h = (h ^ emu_read8(s, a + 1)) * 16777619u;
+	}
+	return h;
+}
+
+/* START's menu brought up (from one of its screens, B first, as often as it
+ * takes: FV-4) and settled, its hand hidden */
+static const char* ffv_open_menu(Emu* s) {
+	emu_hide_sprites(s, &ffvHand, 1);
+	bool up = false;
+	for (int tries = 0; tries < 3 && !up; ++tries) {
+		if (tries) {
+			aw_run(s, K_B, 4);
+			aw_run(s, 0, 40);
+		}
+		aw_run(s, K_START, 4);
+		for (int f = 0; f < 90 && !up; f += 2) {
+			aw_run(s, 0, 2);
+			up = ffv_menu_up(s);
+		}
+	}
+	if (!up) return "the menu didn't open"; /* (FV-5) */
+	if (!ff_settle(s, 120)) return "the menu didn't settle";
+	if (!ffv_menu_up(s)) return "the menu closed";
+	if (emu_cancelled(s)) return "called off";
+	return NULL;
+}
+
+static uint8_t ffv_screen(Emu* s) { return emu_read8(s, ffv_r(s)->screen); }
+
+/* the party screen out of START's menu, up: the commands' place isn't a
+ * window of its own any more but the big party window going on (FV-10): its
+ * top edge carried across from the left, its right edge straight down, and
+ * the screen's own gradient inside (no frame between the party and the right) */
+static void ffv_party_take(Emu* s) {
+	for (int y = 0; y < GBA_H; ++y) {
+		for (int x = 0; x < GBA_W; ++x) {
+			uint32_t c = s->fb[y * GBA_W + x];
+			if (x >= FFV_WIN_X0 && x <= FFV_WIN_X1 && y < FFV_CMD_ROWS) {
+				bool corner = x > FFV_WIN_X1 - 4; /* the right edge: the game's own, straight down below its corner */
+				if (y < 4) c = corner ? c : s->fb[y * GBA_W + FFV_WIN_X0 - 2];
+				else c = corner ? s->fb[8 * GBA_W + x] : s->fb[y * GBA_W + 4];
+			}
+			ffvParty[y * GBA_W + x] = c | 0xFF000000;
+		}
+	}
+	ffvPartyId = ffv_party_id(s);
+	ffvPartyOk = true;
+}
+
+static void ffv_show(uint32_t* out, int w, int h, const uint32_t* pic) {
+	for (int y = 0; y < h; ++y) {
+		for (int x = 0; x < w; ++x) out[y * w + x] = y < GBA_H && x < GBA_W ? pic[y * GBA_W + x] : 0xFF000000;
+	}
+}
+
+static const char* ffv_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	emu_hide_sprites(s, NULL, 0);
+	emu_layers(s, 0x1F);
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	if (!emu_read32(s, FFV_LOADED)) return "not in a game"; /* (FV-2) */
+	if (emu_read32(s, FFV_BATTLE)) {
+		/* the party kept, if it's this party (FV-6, FV-7); else the last picture */
+		if (!ffvPartyOk || ffvPartyId != ffv_party_id(s)) return "a battle: no picture of this party kept";
+		ffv_show(out, w, h, ffvParty);
+		return NULL;
+	}
+	/* back to walking about from the menu or the map (FV-4) */
+	for (int i = 0; i < 4 && (ffv_menu_up(s) || ffv_screen(s) == FFV_SCREEN_MAP); ++i) {
+		aw_run(s, K_B, 4);
+		aw_run(s, 0, 40);
+	}
+	if (emu_cancelled(s)) return "called off";
+	/* the world map, where R opens it (FV-3): the game's own picture of it */
+	bool map = false;
+	for (int tries = 0; tries < 2 && ffv_screen(s) != FFV_SCREEN_MAP; ++tries) {
+		aw_run(s, 0, 30); /* (the menu or map just closed: the game takes a few frames to listen) */
+		aw_run(s, K_R, 4);
+		for (int f = 0; f < 60 && ffv_screen(s) != FFV_SCREEN_MAP; f += 2) aw_run(s, 0, 2);
+	}
+	if (ffv_screen(s) == FFV_SCREEN_MAP) {
+		aw_run(s, 0, 90);
+		if (ffv_screen(s) == FFV_SCREEN_MAP) {
+			for (int i = 0; i < GBA_W * GBA_H; ++i) ffvMap[i] = s->fb[i] | 0xFF000000;
+			map = true;
+		}
+		for (int i = 0; i < 3 && ffv_screen(s) == FFV_SCREEN_MAP; ++i) {
+			aw_run(s, K_B, 4);
+			aw_run(s, 0, 40);
+		}
+	}
+	if (emu_cancelled(s)) return "called off";
+	/* the party screen: taken when it's what is shown, and for battles (FV-6)
+	 * with the map: for a first capture, another party, and every fourth */
+	if (!map || !ffvPartyOk || ffvPartyId != ffv_party_id(s) || ffvTakes % 4 == 0) {
+		const char* err = ffv_open_menu(s);
+		if (err) {
+			if (!map) return err;
+		} else {
+			ffv_party_take(s);
+		}
+	}
+	++ffvTakes;
+	ffv_show(out, w, h, map ? ffvMap : ffvParty);
+	return NULL;
+}
+
+/* ------------------------------------------------- Final Fantasy VI Advance
+ *
+ * docs/games/final-fantasy-vi-advance.md. The game keeps the SNES version's
+ * memory layout in EWRAM (SNES WRAM address + 0x02000000), the same in all
+ * three releases:
+ *   0x1600  16 character records of 0x25 bytes: the character's number (0
+ *           in the first record in a game), +2 the name (6 bytes), +8 the
+ *           level, +9 HP, +0xB maximum HP (16 bits, the top two bits flags)
+ *   0x1850  the party each character is in, by number (bits 0-2)
+ *   0x82    the map's number (a halfword)
+ *   0x02    a halfword: 0xFFFF outside battles, 0 in one
+ *   0x3BF4  the party's HP in a battle, four halfwords, one a place; 0x3C1C
+ *           their maximum HP (0: nobody there)
+ * START's menu is told by the display registers' values it sets (DISPCNT
+ * and the first three BG controls). */
+#define FF6_ROSTER 0x02001600
+#define FF6_REC 0x25
+#define FF6_PARTY 0x02001850
+#define FF6_MAP 0x02000082
+#define FF6_BAT_HP 0x02003BF4
+#define FF6_BAT_MAXHP 0x02003C1C
+#define FF6_FLAGS 0x020011F6 /* bit 0: the corner minimap switched off (SELECT) */
+#define FF6_V_LOGO 0xF0000090 /* outside the game (FF6-2) or the party defeated (FF6-9) */
+#define FF6_V_BATTLE 0xF0000091 /* in a battle (FF6-7) */
+/* the world map's minimap (FF6-10): sixteen 16x16 sprites, tiles 512 to 590
+ * in palette 5, in a 64x64 square at 168, 92; the marker is tile 768 */
+#define FF6_MM_X 168
+#define FF6_MM_Y 92
+#define FF6_MM_SIZE 64
+#define FF6_MM_EVERY 4 /* on the world map, the party kept every 4th capture */
+/* the command list's tiles on BG0 (FF6-4): columns and rows */
+#define FF6_CMD_COL0 19
+#define FF6_CMD_COL1 29
+#define FF6_CMD_ROW1 9
+static const SpriteRule ff6MenuHand = { 136, -16, 200, 100, 0, 1023, -1, 0, 0, 0 };
+/* the minimap's sprites, off the game screen (FF6-11): the sixteen (16x16,
+ * priority 3), and the marker (16x16, priority 0) */
+#define FF6_HIDE_MINIMAP \
+	{ FF6_MM_X, FF6_MM_Y, FF6_MM_X + 48, FF6_MM_Y + 48, 512, 591, 3, 1u << 5, 0, 1u << 1 }, \
+	{ FF6_MM_X, FF6_MM_Y, FF6_MM_X + 48, FF6_MM_Y + 48, 768, 783, 0, 1u << 5, 0, 1u << 1 }
+/* the party kept for battles (FF6-7), the composer's own */
+static uint32_t ff6Party[GBA_W * GBA_H];
+static bool ff6PartyOk;
+static uint32_t ff6PartyId;
+static int ff6WorldTakes;
+
+/* in a game: the first character record is character 0, with a level
+ * (0 before the title, 0xFF on it) */
+static bool ff6_in_game(Emu* e) {
+	return emu_read8(e, FF6_ROSTER) == 0 && emu_read8(e, FF6_ROSTER + 8) != 0;
+}
+
+/* in a battle: the display registers a battle sets (FF6-7). (The halfword at
+ * 0x02000002 is 0 in battles, but stays 0 after the first one.) */
+static bool ff6_battle(Emu* e) {
+	return ff6_in_game(e) && emu_io16(e, 0x00) == 0x1600 && emu_io16(e, 0x08) == 0x560C &&
+	       emu_io16(e, 0x0A) == 0x5408 && emu_io16(e, 0x0C) == 0x5A08;
+}
+
+/* the whole party down in a battle (FF6-9): every place that holds a
+ * character at 0 HP */
+static bool ff6_defeated(Emu* e) {
+	if (!ff6_battle(e)) return false;
+	bool any = false;
+	for (int i = 0; i < 4; ++i) {
+		if (!emu_read16(e, FF6_BAT_MAXHP + i * 2)) continue;
+		any = true;
+		if (emu_read16(e, FF6_BAT_HP + i * 2)) return false;
+	}
+	return any;
+}
+
+static uint32_t ff6_virt(Emu* e, uint32_t addr) {
+	if (addr == FF6_V_LOGO) return !ff6_in_game(e) || ff6_defeated(e);
+	if (addr == FF6_V_BATTLE) return ff6_battle(e);
+	return 0;
+}
+
+/* START's menu up: the registers its screen sets */
+static bool ff6_menu_up(Emu* s) {
+	return emu_io16(s, 0x00) == 0x1540 && emu_io16(s, 0x08) == 0x0F49 && emu_io16(s, 0x0A) == 0x0E4E &&
+	       emu_io16(s, 0x0C) == 0x0D43;
+}
+
+/* which party: the records' character numbers, names and parties, which a
+ * battle doesn't change (FF6-7) */
+static uint32_t ff6_party_id(Emu* s) {
+	uint32_t h = 2166136261u;
+	for (int c = 0; c < 16; ++c) {
+		for (int i = 0; i < 8; ++i) h = (h ^ emu_read8(s, FF6_ROSTER + c * FF6_REC + i)) * 16777619u;
+		h = (h ^ (emu_read8(s, FF6_PARTY + c) & 7)) * 16777619u;
+	}
+	return h;
+}
+
+/* the minimap's sprites all drawn (FF6-10) */
+static bool ff6_minimap_up(Emu* s) {
+	int n = 0;
+	for (int i = 0; i < 128; ++i) {
+		uint16_t a0 = emu_read16(s, 0x07000000 + i * 8), a1 = emu_read16(s, 0x07000002 + i * 8);
+		uint16_t a2 = emu_read16(s, 0x07000004 + i * 8);
+		if ((a0 & 0x0300) == 0x0200 || a2 >> 12 != 5 || (a2 & 0x3FF) < 512 || (a2 & 0x3FF) > 590) continue;
+		int x = a1 & 0x1FF, y = a0 & 0xFF;
+		if (x >= 256) x -= 512;
+		if (y >= 160) y -= 256;
+		if (x >= FF6_MM_X && x < FF6_MM_X + FF6_MM_SIZE && y >= FF6_MM_Y && y < FF6_MM_Y + FF6_MM_SIZE) ++n;
+	}
+	return n >= 16;
+}
+
+/* on the world maps (FF6-10) */
+static bool ff6_world(Emu* s) {
+	return emu_read16(s, FF6_MAP) <= 1;
+}
+
+/* the party kept for battles, taken on the hidden copy from the live state:
+ * START's menu without its command list (FF6-4, FF6-7) */
+static const char* ff6_party_take(Emu* s, const void* state) {
+	emu_hide_sprites(s, NULL, 0);
+	emu_layers(s, 0x1F);
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	/* START's menu brought up; from one of its screens, B first, as often as
+	 * it takes (FF6-5) */
+	emu_hide_sprites(s, &ff6MenuHand, 1);
+	bool up = ff6_menu_up(s);
+	for (int tries = 0; tries < 6 && !up; ++tries) {
+		if (tries) {
+			aw_run(s, K_B, 4);
+			aw_run(s, 0, 40);
+			if ((up = ff6_menu_up(s))) break;
+		}
+		aw_run(s, K_START, 4);
+		for (int f = 0; f < 90 && !up; f += 2) {
+			aw_run(s, 0, 2);
+			up = ff6_menu_up(s);
+		}
+	}
+	if (!up) return "the menu didn't open"; /* (FF6-6) */
+	/* settled: still for 3 looks 4 frames apart */
+	static uint32_t last[GBA_W * GBA_H];
+	int still = 0;
+	memset(last, 0, sizeof(last));
+	for (int f = 0; f < 120 && still < 3; f += 4) {
+		aw_run(s, 0, 4);
+		still = !memcmp(last, s->fb, sizeof(last)) ? still + 1 : 0;
+		memcpy(last, s->fb, sizeof(last));
+	}
+	if (still < 3) return "the menu didn't settle";
+	if (!ff6_menu_up(s)) return "the menu closed";
+	if (emu_cancelled(s)) return "called off";
+	/* the command list's tiles cleared on the hidden copy (FF6-4) */
+	uint32_t map = 0x06000000 + ((emu_io16(s, 0x08) >> 8) & 31) * 0x800;
+	for (int r = 0; r <= FF6_CMD_ROW1; ++r) {
+		for (int c = FF6_CMD_COL0; c <= FF6_CMD_COL1; ++c) emu_write16(s, map + (r * 32 + c) * 2, 0);
+	}
+	emu_frame(s, 0);
+	if (emu_cancelled(s)) return "called off";
+	for (int y = 0; y < GBA_H; ++y) {
+		for (int x = 0; x < GBA_W; ++x) ff6Party[y * GBA_W + x] = s->fb[y * GBA_W + x];
+	}
+	ff6PartyId = ff6_party_id(s);
+	ff6PartyOk = true;
+	return NULL;
+}
+
+
+
+/* the world map's minimap, twice as big, in the middle of the second screen
+ * on black (FF6-10): the game's sprites alone, with START's menu or a screen
+ * closed first, and the corner minimap switched on if the player has it off */
+static const char* ff6_minimap_take(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	emu_hide_sprites(s, NULL, 0);
+	emu_layers(s, 0x10); /* (sprites alone) */
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	bool up = ff6_minimap_up(s);
+	for (int tries = 0; tries < 6 && !up; ++tries) {
+		if (tries) {
+			aw_run(s, K_B, 4);
+			aw_run(s, 0, 40);
+			if ((up = ff6_minimap_up(s))) break;
+		}
+		if (emu_read8(s, FF6_FLAGS) & 1) {
+			aw_run(s, K_SELECT, 4);
+			aw_run(s, 0, 20);
+			up = ff6_minimap_up(s);
+		}
+		if (emu_cancelled(s)) return "called off";
+	}
+	if (!up) return "no minimap";
+	aw_run(s, 0, 2);
+	if (!ff6_minimap_up(s)) return "the minimap closed";
+	if (emu_cancelled(s)) return "called off";
+	int ox = (w - 2 * FF6_MM_SIZE) / 2, oy = (h - 2 * FF6_MM_SIZE) / 2;
+	for (int y = 0; y < h; ++y) {
+		for (int x = 0; x < w; ++x) {
+			int sx = (x - ox) / 2 + FF6_MM_X, sy = (y - oy) / 2 + FF6_MM_Y;
+			bool in = x >= ox && y >= oy && x < ox + 2 * FF6_MM_SIZE && y < oy + 2 * FF6_MM_SIZE;
+			out[y * w + x] = in ? s->fb[sy * GBA_W + sx] : 0xFF000000;
+		}
+	}
+	return NULL;
+}
+
+static void ff6_party_out(uint32_t* out, int w, int h) {
+	for (int y = 0; y < h; ++y) {
+		for (int x = 0; x < w; ++x) out[y * w + x] = y < GBA_H && x < GBA_W ? ff6Party[y * GBA_W + x] : 0xFF000000;
+	}
+}
+
+static const char* ff6_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	emu_hide_sprites(s, NULL, 0);
+	emu_layers(s, 0x1F);
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	if (!ff6_in_game(s)) {
+		ff6PartyOk = false;
+		return "not in a game"; /* (FF6-2) */
+	}
+	if (ff6_battle(s)) {
+		/* the party kept, if it's this party (FF6-7); else the last picture */
+		if (!ff6PartyOk || ff6PartyId != ff6_party_id(s)) return "a battle: no picture of this party kept";
+		ff6_party_out(out, w, h);
+		return NULL;
+	}
+	if (ff6_world(s)) {
+		/* the minimap (FF6-10), and now and then the party kept for
+		 * battles (FF6-7); no minimap: the party screen */
+		bool due = !ff6PartyOk || ff6PartyId != ff6_party_id(s) || ++ff6WorldTakes >= FF6_MM_EVERY;
+		const char* err = ff6_minimap_take(s, state, out, w, h);
+		if (!err) {
+			if (due) {
+				ff6WorldTakes = 0;
+				ff6_party_take(s, state); /* (a failure keeps the one before) */
+			}
+			return emu_cancelled(s) ? "called off" : NULL;
+		}
+		if (emu_cancelled(s)) return "called off";
+	}
+	const char* perr = ff6_party_take(s, state);
+	if (perr) return perr;
+	ff6_party_out(out, w, h);
+	return NULL;
+}
 /* ---------------------------------------------------------------- Baldur's Gate: Dark Alliance
  *
  * docs/games/baldurs-gate-dark-alliance.md. The game has no map: GBA DS
@@ -7216,6 +7830,170 @@ static const LogoFor pkLogos[] = {
 	{ 0x41D07817, "Pokemon Light Platinum", { .steps = PK_S4, .wait = 100, .layers = 0x14, .maxY = 118, .rev = 1 } },
 };
 
+
+/* ---------------------------------------------- Boktai: The Sun Is in Your Hand
+ *
+ * Boktai's second screen (docs/games/boktai-the-sun-is-in-your-hand.md): the
+ * Map page of SELECT's menu, opened on the shadow core from the live state at
+ * every capture. The addresses (the USA release's):
+ *   BT_MENU (byte) 0 while playing, 1 while SELECT's menu is up, 2 while
+ *              START's pause menu is
+ *   BT_PAGE (byte) the menu's page: 0 Item, 1 Weapon, 2 Map (the menu opens
+ *              on the page last used, so the copy turns to the Map with L / R)
+ * The Map page's sprites: the L and R ends of its title and the A + up /
+ * down glyph beside the floor are button prompts, and the little arrows at
+ * the map's edges say it scrolls: all left out (BT-2).
+ */
+#define BT_MENU 0x02001B3A
+#define BT_PAGE 0x020034DC
+static const SpriteRule btPrompts[] = {
+	/* (by place and shape: the tiles and palette differ from area to area) */
+	/* the title bar, its L and R ends and tabs, all sprites over the Map's own
+	 * picture (BT-2): everything whose corner is in the top left */
+	{ 0, 0, 116, 12, 0, 1023, -1, 0, 0, 0 },
+	{ 188, 134, 196, 138, 0, 1023, -1, 0, 0, 0x2 },  /* the A + up / down glyph, its top (16x16) */
+	{ 188, 150, 196, 154, 0, 1023, -1, 0, 0, 0x10 }, /* and its foot (16x8) */
+	/* the arrows at the map's edges, which say it scrolls (8x8) */
+	{ 0, 64, 12, 80, 0, 1023, -1, 0, 0, 0x1 },
+	{ 216, 64, 232, 80, 0, 1023, -1, 0, 0, 0x1 },
+	{ 112, 4, 128, 16, 0, 1023, -1, 0, 0, 0x1 },
+	{ 112, 124, 128, 140, 0, 1023, -1, 0, 0, 0x1 },
+};
+static bool bt_map_up(Emu* s) {
+	return emu_read8(s, BT_MENU) == 1 && emu_read8(s, BT_PAGE) == 2;
+}
+/* BT-8. The ITEM page is page 0; its clock, and with START the sunrise and
+ * the sunset, are sprites in two colours only: the digits' and letters'
+ * brown and their pale yellow outline (nothing else in their band is
+ * either). */
+static bool bt_item_up(Emu* s) { return emu_read8(s, BT_MENU) == 1 && emu_read8(s, BT_PAGE) == 0; }
+#define BT_RGB(r, g, b) ((uint32_t) (b) << 16 | (uint32_t) (g) << 8 | (uint32_t) (r))
+#define BT_BAND_X0 0
+#define BT_BAND_X1 100 /* (the text box's ")" is beyond it) */
+#define BT_BAND_Y0 119
+#define BT_BAND_Y1 128
+#define BT_PAD 4 /* the space round the lines on the second screen */
+#define BT_REFRESH_MS 30000
+typedef struct BtCut {
+	int w, h;
+	uint32_t c[(BT_BAND_X1 - BT_BAND_X0 + 1) * (BT_BAND_Y1 - BT_BAND_Y0 + 1)];
+	uint8_t on[(BT_BAND_X1 - BT_BAND_X0 + 1) * (BT_BAND_Y1 - BT_BAND_Y0 + 1)];
+} BtCut;
+/* (kept from capture to capture: they change by the minute, so the hidden
+ * copy visits the ITEM page every BT_REFRESH_MS, not with every Map) */
+static BtCut btClock, btRise, btSet;
+static long btCutAt = -1;
+static long bt_ms(void) {
+	struct timespec ts;
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+	return (long) (ts.tv_sec * 1000L + ts.tv_nsec / 1000000L);
+}
+/* The glyph pixels in the band: false if there are fewer than minPix or
+ * they are narrower than minW (the clock is 39 wide, the others 88). */
+static bool bt_cut(const Emu* s, BtCut* o, int minPix, int minW) {
+	const uint32_t brown = BT_RGB(156, 66, 24), edge = BT_RGB(255, 255, 140);
+	int x0 = GBA_W, x1 = -1, y0 = GBA_H, y1 = -1, n = 0;
+	for (int y = BT_BAND_Y0; y <= BT_BAND_Y1; ++y) {
+		for (int x = BT_BAND_X0; x <= BT_BAND_X1; ++x) {
+			uint32_t c = s->fb[y * GBA_W + x] & 0xFFFFFF; /* (the fourth byte is unused) */
+			if (c != brown && c != edge) continue;
+			++n;
+			if (x < x0) x0 = x;
+			if (x > x1) x1 = x;
+			if (y < y0) y0 = y;
+			if (y > y1) y1 = y;
+		}
+	}
+	if (n < minPix || x1 - x0 + 1 < minW) return false;
+	o->w = x1 - x0 + 1;
+	o->h = y1 - y0 + 1;
+	memset(o->on, 0, sizeof(o->on));
+	for (int y = y0; y <= y1; ++y) {
+		for (int x = x0; x <= x1; ++x) {
+			uint32_t c = s->fb[y * GBA_W + x], k = c & 0xFFFFFF;
+			if (k == brown || k == edge) {
+				o->c[(y - y0) * o->w + (x - x0)] = c;
+				o->on[(y - y0) * o->w + (x - x0)] = 1;
+			}
+		}
+	}
+	return true;
+}
+static void bt_lay(const BtCut* o, uint32_t* out, int w, int h, int X, int Y) {
+	if (o->w <= 0) return;
+	for (int y = 0; y < o->h; ++y) {
+		for (int x = 0; x < o->w; ++x) {
+			int dx = X + x, dy = Y + y;
+			if (o->on[y * o->w + x] && dx >= 0 && dx < w && dy >= 0 && dy < h) out[dy * w + dx] = o->c[y * o->w + x];
+		}
+	}
+}
+/* The clock at the top left, the sunrise and the sunset stacked at the top
+ * right: BT_PAD from the left, the right and the top; the clock on the
+ * sunrise's line (the bottoms of their digits level). */
+static void bt_lines(uint32_t* out, int w, int h) {
+	int lineH = btRise.w > 0 ? btRise.h : btClock.h;
+	/* (the sunrise and the sunset keep the game's own columns: left-aligned
+	 * with each other, the wider one BT_PAD from the right edge) */
+	int blockW = btRise.w > btSet.w ? btRise.w : btSet.w;
+	bt_lay(&btClock, out, w, h, BT_PAD, BT_PAD + (lineH > btClock.h ? lineH - btClock.h : 0));
+	bt_lay(&btRise, out, w, h, w - BT_PAD - blockW, BT_PAD);
+	bt_lay(&btSet, out, w, h, w - BT_PAD - blockW, BT_PAD + (btRise.w > 0 ? btRise.h : btSet.h) + 1);
+}
+/* From the ITEM page's picture, then START (the sunrise), START (the sunset). */
+static void bt_visit_item(Emu* s) {
+	for (int tries = 0; tries < 2 && emu_read8(s, BT_PAGE) != 0; ++tries) {
+		aw_run(s, K_R, 3);
+		for (int f = 0; f < 30 && emu_read8(s, BT_PAGE) != 0; ++f) emu_frame_blind(s, 0);
+	}
+	if (!aw_settle(s, bt_item_up, 240)) return;
+	BtCut c;
+	if (bt_cut(s, &c, 40, 30) && c.w < 60) btClock = c;
+	/* (the two lines have a label as well: far more pixels than the clock) */
+	BtCut* to[2] = { &btRise, &btSet };
+	for (int i = 0; i < 2; ++i) {
+		aw_run(s, K_START, 3);
+		bool got = false;
+		for (int f = 0; f < 8 && !got; ++f) {
+			emu_frame(s, 0);
+			got = bt_cut(s, &c, 150, 70);
+		}
+		if (!got) return;
+		*to[i] = c;
+	}
+	btCutAt = bt_ms();
+}
+static const char* bt_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	if (emu_read8(s, BT_MENU) != 0) return "not playing";
+	emu_hide_sprites(s, btPrompts, sizeof(btPrompts) / sizeof(btPrompts[0]));
+	const char* err = NULL;
+	aw_run(s, K_SELECT, 3);
+	for (int f = 0; f < 60 && emu_read8(s, BT_MENU) != 1; ++f) emu_frame_blind(s, 0);
+	if (emu_read8(s, BT_MENU) != 1) {
+		err = "SELECT opened no menu";
+	} else {
+		/* (Item: L is the Map; Weapon: R is) */
+		for (int tries = 0; tries < 3 && emu_read8(s, BT_PAGE) != 2; ++tries) {
+			aw_run(s, emu_read8(s, BT_PAGE) == 0 ? K_L : K_R, 3);
+			for (int f = 0; f < 30 && emu_read8(s, BT_PAGE) != 2; ++f) emu_frame_blind(s, 0);
+		}
+		if (!aw_settle(s, bt_map_up, 240)) err = "the Map did not open";
+	}
+	if (err) {
+		emu_hide_sprites(s, NULL, 0);
+		return err;
+	}
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+	/* BT-8: the lines from the ITEM page beside the Map, now and then (the
+	 * prompts' rules off for it) */
+	emu_hide_sprites(s, NULL, 0);
+	if (btCutAt < 0 || bt_ms() - btCutAt >= BT_REFRESH_MS) bt_visit_item(s);
+	bt_lines(out, w, h);
+	return NULL;
+}
+
 /* ---------------------------------------------------------- Rebelstar: Tactical Command
  *
  * In a battle, with the field cursor free (the player's turn, no menu), the
@@ -7463,6 +8241,199 @@ static const char* rs_compose(Emu* s, const void* state, uint32_t* const* out, i
 }
 static const char* rs_compose_eur(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
 	return rs_compose_for(&rsEur, s, state, out, nOut, step, w, h);
+}
+
+/* Shin Megami Tensei (Japan, and Gymzatan's translation of it): the game's
+ * mode byte (0 title and file lists, 1 walking, 0xA the command bar and START
+ * menu, 0x10 the map, 0x15 a fight, 0x19 the name entry), the party's place
+ * (x, y; the facing 0 N, 1 E, 2 S, 3 W) and the area's number */
+#define SMT_MODE   0x03004470
+#define SMT_FACING 0x03004472
+#define SMT_X      0x03004482
+#define SMT_Y      0x03004484
+#define SMT_AREA   0x030044EC
+/* the automap's scroll: steps from where it opened (UP +1, DOWN -1, 8 rows
+ * each; signed, 32 bits) */
+#define SMT_SCROLL 0x0200BFCC
+
+/* The second screen is the automap taller than the game's window of it: its view
+ * (rows 0-87 of the screen, between the side bars) scrolled with the game's
+ * own UP and DOWN on the hidden copy, the pieces put together by the
+ * counter above, over the game's own backdrop (SMT-8).
+ *
+ * The screen's layers: BG3 the backdrop (blue grid, side bars, the party's
+ * panels), BG2 the map itself, BG1 the compass's box, BG0 the floor's name
+ * bar, sprites the map's markers (the party, the doors...) and all the text.
+ * So a view with the layers BG2, BG3 and sprites on, minus the backdrop
+ * (BG3 alone), is the map and its markers, nothing else. */
+#define SMT_H      160  /* the picture's rows: a GBA screen, as the overlay's window is */
+#define SMT_VIEW   88   /* the game's view: rows 0..87 */
+#define SMT_AREA_H 145  /* the picture's map part; the floor's name bar (15 rows) under it */
+#define SMT_ABOVE  29   /* rows above the game's own view (57 more to share with below) */
+#define SMT_STEPS  4
+
+static int32_t smt_scroll(Emu* s) { return (int32_t)emu_read32(s, SMT_SCROLL); }
+
+/* the pixel at (x, y) is this colour (0xRRGGBB), give or take */
+static bool smt_px(const uint32_t* fb, int x, int y, uint32_t rgb) {
+	uint32_t c = fb[y * GBA_W + x];
+	int r = c & 0xFF, g = (c >> 8) & 0xFF, b = (c >> 16) & 0xFF;
+	return abs(r - (int)((rgb >> 16) & 0xFF)) <= 8 && abs(g - (int)((rgb >> 8) & 0xFF)) <= 8 && abs(b - (int)(rgb & 0xFF)) <= 8;
+}
+
+static void smt_layers(Emu* s, void* st, unsigned mask, uint32_t* dst);
+
+/* the picture's view (map, markers and backdrop) the same twice running,
+ * `gap` frames apart, after `wait` frames in which it can't be done yet:
+ * drawn to the end, the markers at their places (they lagged a step behind
+ * the map when a press came in mid-step) */
+static bool smt_settle(Emu* s, void* st, uint32_t* a, uint32_t* b, int wait, int gap) {
+	int same = 0;
+	for (int i = 0; i < wait; ++i) emu_frame_blind(s, 0);
+	for (int f = 0; f < 40 && same < 2; ++f) {
+		if (f) for (int i = 0; i < gap; ++i) emu_frame_blind(s, 0);
+		smt_layers(s, st, 0x1C, f & 1 ? a : b);
+		if (f > 0 && !memcmp(a, b, (size_t)SMT_VIEW * GBA_W * sizeof(uint32_t))) ++same;
+		else same = 0;
+	}
+	return same >= 2;
+}
+
+/* L from the first-person view, and the map drawn to its last tile: the map
+ * layer (and the backdrop) the same twice running, 8 frames apart. (The game
+ * draws it over about 52 frames, later when the press came in mid-step, so a
+ * fixed wait gave half-drawn maps.) `st` is the state buffer, `a` and `b`
+ * two spare frames. */
+static const char* smt_open(Emu* s, const void* state, void* st, uint32_t* a, uint32_t* b) {
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame_blind(s, 0);
+	if (emu_read8(s, SMT_MODE) != 0x01) return "not walking";
+	/* a step or a turn still going on is let finish first (the copy gets no
+	 * keys): the position and facing the same for 20 frames. Opened mid-step
+	 * the markers moved between one piece and the next. */
+	{
+		uint32_t at = 0;
+		int still = 0;
+		for (int f = 0; f < 90 && still < 20; ++f) {
+			emu_frame_blind(s, 0);
+			uint32_t now = emu_read16(s, SMT_X) | (uint32_t)emu_read16(s, SMT_Y) << 16 | (uint32_t)emu_read8(s, SMT_FACING) << 8;
+			still = f > 0 && now == at ? still + 1 : 0;
+			at = now;
+		}
+		if (still < 20 || emu_read8(s, SMT_MODE) != 0x01) return "not standing still";
+	}
+	for (int i = 0; i < 4; ++i) emu_frame_blind(s, K_L);
+	/* nothing by 20 frames: no automap here (the first dungeon, before the
+	 * app; a town): a quick failure (SMT-4) */
+	int f = 0;
+	while (f < 20 && emu_read8(s, SMT_MODE) != 0x10) emu_frame_blind(s, 0), ++f;
+	if (emu_read8(s, SMT_MODE) != 0x10) return "map button did nothing";
+	if (!smt_settle(s, st, a, b, 36, 4)) return "map did not finish drawing";
+	emu_frame(s, 0);
+	if (!smt_px(s->fb, 216, 98, 0x73738C)) return "map screen did not appear";
+	return NULL;
+}
+
+/* one step of the scroll, key UP or DOWN: pressed until the game's counter
+ * moves (a press during the last step's slide is lost), then 12 frames for
+ * the slide to end; false at the end of the map's scroll */
+static bool smt_step(Emu* s, uint32_t key, void* st, uint32_t* a, uint32_t* b) {
+	int32_t before = smt_scroll(s);
+	for (int tries = 0; tries < 3; ++tries) {
+		for (int i = 0; i < 4; ++i) emu_frame_blind(s, key);
+		for (int i = 0; i < 24 && smt_scroll(s) == before; ++i) emu_frame_blind(s, 0);
+		if (smt_scroll(s) != before) return smt_settle(s, st, a, b, 10, 3);
+	}
+	return false;
+}
+
+/* what the screen shows with only the layers in `mask` drawn, from the state
+ * as it is (taken and put back) */
+static void smt_layers(Emu* s, void* st, unsigned mask, uint32_t* dst) {
+	emu_state_save(s, st);
+	emu_layers(s, mask);
+	emu_state_load(s, st);
+	emu_frame(s, 0);
+	memcpy(dst, s->fb, (size_t)GBA_W * GBA_H * sizeof(uint32_t));
+	emu_layers(s, 0x1F);
+	emu_state_load(s, st);
+}
+
+static const char* smt_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	const size_t n = (size_t)GBA_W * GBA_H;
+	if (w != GBA_W || h != SMT_H) return "wrong picture size";
+	void* st = malloc(emu_state_size(s)), *opened = malloc(emu_state_size(s));
+	uint32_t* fr = malloc((2 + 1 + 2 * SMT_STEPS + 2) * n * sizeof(uint32_t));
+	if (!st || !opened || !fr) { free(st); free(opened); free(fr); return "out of memory"; }
+	uint32_t *full = fr, *back = fr + n, *views = fr + 2 * n; /* views[k]: shift[k] rows */
+	uint32_t *sa = fr + (3 + 2 * SMT_STEPS) * n, *sb = sa + n; /* spare */
+	int shift[1 + 2 * SMT_STEPS], nv = 0;
+	const char* err = smt_open(s, state, st, sa, sb);
+	if (!err) {
+		int32_t c0 = smt_scroll(s);
+		emu_state_save(s, opened); /* the map as it opened, for the way down */
+		smt_layers(s, st, 0x1F, full);
+		smt_layers(s, st, 0x08, back);
+		smt_layers(s, st, 0x1C, views), shift[nv++] = 0;
+		for (int k = 1; k <= SMT_STEPS && smt_step(s, K_UP, st, sa, sb); ++k) {
+			smt_layers(s, st, 0x1C, views + (size_t)nv * n);
+			shift[nv++] = 8 * (smt_scroll(s) - c0);
+		}
+		/* back to the start, and as far down */
+		if (!emu_state_load(s, opened)) err = "state load failed";
+		for (int k = 1; !err && k <= SMT_STEPS && smt_step(s, K_DOWN, st, sa, sb); ++k) {
+			smt_layers(s, st, 0x1C, views + (size_t)nv * n);
+			shift[nv++] = 8 * (smt_scroll(s) - c0);
+		}
+	}
+	if (!err && emu_cancelled(s)) err = "cancelled";
+	if (!err) {
+		/* the backdrop: the game's own rows 0-87, and past them its top band
+		 * (rows 0-7, the grid's cells are 8 rows) repeated above and its
+		 * bottom band (rows 80-87) repeated below */
+		for (int t = 0; t < SMT_AREA_H; ++t) {
+			int r = t - SMT_ABOVE;
+			if (r < 0) r = ((r % 8) + 8) % 8;
+			else if (r >= SMT_VIEW) r = 80 + (r - SMT_VIEW) % 8;
+			memcpy(&out[t * w], &back[r * GBA_W], GBA_W * sizeof(uint32_t));
+		}
+		/* the map, and its markers: the 8x8 tiles of each view with a pixel
+		 * that isn't blue-dominant (the map's greens and teals, the markers),
+		 * where they differ from the backdrop. The map layer's empty tiles are
+		 * the backdrop's own grid, wrapped round from other rows, in shades
+		 * all blue-dominant. The compass's corner is left to the compass. */
+		for (int k = 0; k < nv; ++k) {
+			const uint32_t* v = views + (size_t)k * n;
+			for (int cy = 0; cy < SMT_VIEW / 8; ++cy) {
+				for (int cx = 0; cx < GBA_W / 8; ++cx) {
+					bool map = false;
+					for (int y = 0; y < 8 && !map; ++y) {
+						for (int x = 0; x < 8; ++x) {
+							uint32_t c = v[(cy * 8 + y) * GBA_W + cx * 8 + x];
+							if (((c >> 8) & 0xFF) >= ((c >> 16) & 0xFF) && c != back[(cy * 8 + y) * GBA_W + cx * 8 + x]) { map = true; break; }
+						}
+					}
+					if (!map) continue;
+					for (int y = 0; y < 8; ++y) {
+						int r = cy * 8 + y, t = r - shift[k] + SMT_ABOVE;
+						if (t < 0 || t >= SMT_AREA_H) continue;
+						for (int x = cx * 8; x < cx * 8 + 8; ++x) {
+							if (x >= 182 && x < 223 && r >= 3 && r < 42) continue;
+							uint32_t c = v[r * GBA_W + x];
+							if (c != back[r * GBA_W + x]) out[t * w + x] = c;
+						}
+					}
+				}
+			}
+		}
+		/* the compass, at the top; the floor's name under the map */
+		for (int r = 4; r <= 40; ++r) memcpy(&out[r * w + 183], &full[r * GBA_W + 183], 39 * sizeof(uint32_t)); /* its box, exactly */
+		for (int r = 0; r < SMT_H - SMT_AREA_H; ++r) memcpy(&out[(SMT_AREA_H + r) * w], &full[(SMT_VIEW + 2 + r) * GBA_W], GBA_W * sizeof(uint32_t));
+	}
+	free(st);
+	free(opened);
+	free(fr);
+	return err;
 }
 
 static const MapProfile profiles[] = {
@@ -9821,6 +10792,29 @@ static const MapProfile profiles[] = {
 		.logo = { .wait = 1000, .mask = &logoMaskER, .rev = 1 },
 	},
 	{
+		/* Final Fantasy VI Advance: walking about, START's menu as the party
+		 * screen: see ff6_compose (docs/games/final-fantasy-vi-advance.md) */
+		.codes = { "BZ6E" },
+		.title = "Final Fantasy VI Advance",
+		.compose = ff6_compose,
+		.virt = ff6_virt,
+		/* the corner minimap isn't drawn on the game screen: it's on the
+		 * second (FF6-10, FF6-11) */
+		.hideSprites = { FF6_HIDE_MINIMAP },
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* outside the game and after a game over: the logo, the pictures
+		 * dropped, no captures (FF6-2, FF6-9) */
+		.live = { { FF6_V_LOGO, 0xFF, 0, 4 } },
+		.menu = { { FF6_V_LOGO, 0xFF, 1, 4 } },
+		/* another map, a battle over: taken again at once (FF6-4, FF6-7) */
+		.room = { { FF6_MAP, 0xFFFF, 0, 2 }, { FF6_V_BATTLE, 0xFF, 0, 1 } },
+		/* the title's lettering (BG0): past the health warning (A), the logos
+		 * and the title's own animation */
+		.logo = { .steps = { { 0, 500 }, { K_A, 4 }, { 0, 1500 }, { K_A, 4 }, { 0, 300 } },
+		          .layers = 0x01, .maxY = 100, .lightEdgeClear = true },
+	},
+	{
 		/* the same for Europe: A on its language screen (English) first */
 		.codes = { "BENP" },
 		.title = "Eragon",
@@ -9960,6 +10954,32 @@ static const MapProfile profiles[] = {
 		.logo = { .steps = { { 0, 200 }, { K_A, 4 }, { 0, 400 }, { K_A, 4 }, { 0, 1800 } }, .layer = 3, .maxY = 160, .blackIsClear = true },
 	},
 	{
+		/* Boktai: The Sun Is in Your Hand (USA; the other releases are
+		 * variants): the Map page of SELECT's menu, see bt_compose */
+		.codes = { "U3IE" },
+		.title = "Boktai: The Sun Is in Your Hand",
+		.compose = bt_compose,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* captures only while playing: not in the menus, the pause or on
+		 * the title (BT-3) */
+		.live = { { BT_MENU, 0xFF, 0, 1 } },
+		/* back on the title or the file menu (0 there, 40 while in the game) */
+		.menu = { { 0x02001B38, 0xFF, 0, 1 } },
+		/* the title's lettering (BG3) and its banner (sprites), over the
+		 * sun, above its PUSH START line; the first start asks for the sensor and the
+		 * clock first (A through them, START to end), then the Konami
+		 * logos and the caution take until the title (BT-5) */
+		.logo = { .steps = { { 0, 600 }, { K_A, 3 }, { 0, 90 }, { K_A, 3 }, { 0, 90 }, { K_A, 3 }, { 0, 90 }, { K_A, 3 }, { 0, 90 },
+		                     { K_A, 3 }, { 0, 90 }, { K_A, 3 }, { 0, 90 }, { K_A, 3 }, { 0, 90 }, { K_A, 3 }, { 0, 90 },
+		                     { K_START, 3 }, { 0, 1100 } },
+		          .layers = 0x18, .maxY = 120,
+		          /* the tan and brown blends round the yellow outline (the
+		           * sun's colours dithered in) are clear, so the outline
+		           * is the edge (BT-5) */
+		          .edgeClear = { 0x8C634A, 0xC68C63, 0x7B524A, 0xDEA542 }, .rev = 1 },
+	},
+	{
 		/* Final Fantasy I & II: Dawn of Souls (two games, each with its
 		 * own memory): walking about, Final Fantasy's world map or START's
 		 * menu: see ff_compose */
@@ -9977,6 +10997,41 @@ static const MapProfile profiles[] = {
 		.room = { { FF_V_MAP, 0xFF, 0, 4 }, { FF_BATTLE, 0xFF, 0, 1 } },
 		/* the title's lettering (BG1) and DAWN OF SOULS bar (BG3) */
 		.logo = { .steps = { { 0, 1000 } }, .layers = 0x0A, .maxY = 130 },
+	},
+	{
+		/* Final Fantasy IV Advance (BZ4E; BZ4P, BZ4J below): START's menu
+		 * as a party screen: see ff4_compose */
+		.codes = { "BZ4E" },
+		.title = "Final Fantasy IV Advance",
+		.compose = ff4_compose,
+		.virt = ff4_virt,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* the title: the logo, the pictures dropped, no captures (FF4-2) */
+		.live = { { FF4_V_LOGO, 0xFF, 0, 4 } },
+		.menu = { { FF4_V_LOGO, 0xFF, 1, 4 } },
+		/* the title's art and lettering (BG2) */
+		.logo = { .steps = { { 0, 200 }, { K_START, 4 }, { 0, 146 }, { K_START, 4 }, { 0, 146 }, { K_START, 4 }, { 0, 146 },
+		                     { K_START, 4 }, { 0, 400 } }, .layers = 0x04, .maxY = 110, .lightEdgeClear = true },
+	},
+	{
+		/* Final Fantasy V Advance: the party screen, START's menu without
+		 * its commands: see ffv_compose
+		 * (docs/games/final-fantasy-v-advance.md) */
+		.codes = { "BZ5E" },
+		.title = "Final Fantasy V Advance",
+		.compose = ffv_compose,
+		.virt = ffv_virt,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* outside the game and at a game over: the logo, the pictures
+		 * dropped, no captures (FV-2, FV-8) */
+		.live = { { FFV_V_LOGO, 0xFF, 0, 4 } },
+		.menu = { { FFV_V_LOGO, 0xFF, 1, 4 } },
+		/* another map, a battle begun or over: taken again at once (FV-3, FV-6) */
+		.room = { { FFV_V_MAP, 0xFFFF, 0, 4 }, { FFV_V_BATTLE, 0xFF, 0, 4 } },
+		/* the title's lettering and dragon (BG2) on its white background */
+		.logo = { .steps = { { 0, 300 }, { K_A, 4 }, { 0, 1000 }, { K_A, 4 }, { 0, 300 } }, .layer = 2, .maxY = 110, .lightEdgeClear = true },
 	},
 	{
 		/* Rebelstar: Tactical Command (USA; Europe: below). In a battle, the
@@ -10022,6 +11077,38 @@ static const MapProfile profiles[] = {
 		/* the same title picture, past the language list (A: English;
 		 * without a battery save it comes first) */
 		.logo = { .steps = { { 0, 60 }, { K_A, 4 }, { 0, 400 } }, .mask = &logoMaskRS, .rev = 1 },
+	},
+	{
+		/* Shin Megami Tensei (Japan; played in English with Gymzatan's
+		 * translation, the same addresses): the automap, L in the
+		 * first-person view (docs/games/shin-megami-tensei.md). The game's
+		 * mode byte: 0 title and file lists, 1 walking, 0xA the command bar
+		 * and START menu, 0x10 the map, 0x15 a fight, 0x19 the name entry. */
+		.codes = { "AAUJ" },
+		.title = "Shin Megami Tensei",
+		.open = { { K_L, 4 } },
+		/* the map draws itself in steps with pauses between them, the floor's
+		 * name box last, about 52 frames after L: the probe at its right
+		 * end is the last piece (SMT-2) */
+		.settleMax = 200, .openWithin = 140, .stableFrames = 4, .maxDiff = 700,
+		/* the map's part of the screen: the grid, the compass and the floor's
+		 * name; the party's panels under it stay on the game screen (SMT-2) */
+		.crop_x = 0, .crop_y = 0, .crop_w = 240, .crop_h = SMT_H,
+		.compose = smt_compose,
+		.probes = { { 10, 3, 0x31316B }, { 10, 60, 0x42429C }, { 212, 6, 0x492BE7 }, { 205, 10, 0xE74200 },
+		            { 216, 98, 0x73738C }, { 232, 60, 0x292929 } },
+		.tolerance = 8,
+		.mem = { { SMT_MODE, 0xFF, 0x10, 1 } },
+		/* only while walking about (SMT-4); the title and file lists: the
+		 * logo, the map dropped (SMT-5) */
+		.live = { { SMT_MODE, 0xFF, 0x01, 1 } },
+		.menu = { { SMT_MODE, 0xFF, 0x00, 1 } },
+		/* a step, a turn, another floor: a new map at once (SMT-3) */
+		.room = { { SMT_X, 0, 0, 1 }, { SMT_Y, 0, 0, 1 }, { SMT_FACING, 0, 0, 1 }, { SMT_AREA, 0, 0, 1 } },
+		/* the title's lettering, BG1 above the menu (SMT-1) */
+		.logo = { .steps = { { 0, 300 }, { K_START, 4 }, { 0, 60 }, { K_START, 4 }, { 0, 60 }, { K_START, 4 },
+		                     { 0, 60 }, { K_START, 4 }, { 0, 200 } },
+		          .layer = 1, .maxY = 100 },
 	},
 };
 
@@ -10075,8 +11162,27 @@ static void ff_eur(MapProfile* p) {
 	memset(p->logo.steps, 0, sizeof(p->logo.steps));
 	memcpy(p->logo.steps, steps, sizeof(steps));
 }
+/* Final Fantasy V Advance in Europe: the language menu first (A: English) */
+static void ffv_eur(MapProfile* p) {
+	static const MacroStep steps[] = { { 0, 300 }, { K_A, 4 }, { 0, 300 }, { K_A, 4 }, { 0, 1000 }, { K_A, 4 }, { 0, 300 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+}
 static void ff_jpn(MapProfile* p) {
 	p->logo.layers = 0x0E;
+}
+
+/* Final Fantasy VI Advance in Europe: a language screen (A: English) before
+ * the health warning */
+static void ff6_eur(MapProfile* p) {
+	static const MacroStep steps[] = { { 0, 400 }, { K_A, 4 }, { 0, 400 }, { K_A, 4 }, { 0, 1500 }, { K_A, 4 }, { 0, 300 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+}
+
+/* in Japan the title's copyright line starts at row 99 */
+static void ff6_jpn(MapProfile* p) {
+	p->logo.maxY = 97;
 }
 
 /* Super Mario Advance 3 in Europe: the language menu (A: English), then
@@ -10458,6 +11564,9 @@ static void pp_eur(MapProfile* p) {
 
 static const Variant variants[] = {
 	{ "AGSD", "AGSE", 0, gs_ger },
+	/* Boktai: Europe and Japan (the USA release's addresses: bk_compose) */
+	{ "U3IP", "U3IE", 0, NULL },
+	{ "U3IJ", "U3IE", 0, NULL },
 	/* Golden Sun: The Lost Age's other releases */
 	{ "AGFD", "AGFE", 0, gs2_ger },
 	{ "AGFF", "AGFE", 0, gs2_fra },
@@ -10539,6 +11648,15 @@ static const Variant variants[] = {
 	/* (Final Fantasy I & II's addresses: FfRegion) */
 	{ "BFFP", "BFFE", 0, ff_eur },
 	{ "BFFJ", "BFFE", 0, ff_jpn },
+	/* (Final Fantasy IV Advance: the same addresses and windows in every release) */
+	{ "BZ4P", "BZ4E", 0, ff4_eur },
+	{ "BZ4J", "BZ4E", 0, NULL },
+	/* (Final Fantasy V Advance's addresses: FfvRegion) */
+	{ "BZ5P", "BZ5E", 0, ffv_eur },
+	{ "BZ5J", "BZ5E", 0, NULL },
+	/* (Final Fantasy VI Advance's RAM: the same in every release) */
+	{ "BZ6P", "BZ6E", 0, ff6_eur },
+	{ "BZ6J", "BZ6E", 0, ff6_jpn },
 	{ "AM2P", "AE2E", 0, NULL },
 	{ "AE2J", "AE2E", 0, mmbn2_jpn },
 	/* (Pokémon Pinball's cheats: its state moved, so the memory shift is only

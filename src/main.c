@@ -18,6 +18,7 @@
 #include "ra.h"
 #include "update.h"
 #include "clocks.h"
+#include "i18n.h"
 #ifdef __wasi__
 #include "mapcap.h"
 #endif
@@ -169,6 +170,7 @@ int main(int argc, char** argv) {
 	snprintf(path, sizeof(path), "%s/hotkeys.cfg", cfg.stateDir);
 	config_load_file(&cfg, path);
 	config_parse_args(&cfg, argc, argv);
+	emu_solar_level = cfg.solarLevel; /* (the sun sensor's reading, Boktai) */
 	if (cfg.overlayMode == OVM_LEGACY) {
 		/* overlays = top / both... from before v1.5 (the player's PNGs, which
 		 * had no bezel to fall back on): Custom if overlays/ has any, else
@@ -199,7 +201,11 @@ int main(int argc, char** argv) {
 	signal(SIGINT, on_signal);
 	signal(SIGHUP, on_signal);
 
+	/* the interface's language (Settings > System > Language): before anything is drawn */
+	i18n_init(cfg.language);
+
 	if (!ui_init(&cfg, true)) return 1;
+	ui_language_changed(); /* (the fonts the language's script needs) */
 	ui_accent(cfg.accent);
 	ui_theme(cfg.lightTheme);
 	ui_brightness(cfg.brightTop, cfg.brightBottom);
