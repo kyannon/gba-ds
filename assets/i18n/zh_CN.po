@@ -2073,3 +2073,7 @@ msgstr "›"
 
 msgid "machine translated"
 msgstr "机器翻译"
+
+#, c-format
+msgid "Sound delay raised to %d ms: the sound kept breaking up"
+msgstr "声音延迟已提高到 %d 毫秒：声音一直断断续续"

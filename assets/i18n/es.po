@@ -2076,3 +2076,7 @@ msgstr "›"
 
 msgid "machine translated"
 msgstr "traducción automática"
+
+#, c-format
+msgid "Sound delay raised to %d ms: the sound kept breaking up"
+msgstr "Retardo del sonido subido a %d ms: el sonido se cortaba"

@@ -2077,3 +2077,7 @@ msgstr "‹"
 
 msgid "›"
 msgstr "›"
+
+#, c-format
+msgid "Sound delay raised to %d ms: the sound kept breaking up"
+msgstr "Atraso do som aumentado para %d ms: o som continuava falhando"

@@ -2073,3 +2073,7 @@ msgstr "‹"
 
 msgid "›"
 msgstr "›"
+
+#, c-format
+msgid "Sound delay raised to %d ms: the sound kept breaking up"
+msgstr "소리 지연을 %d ms로 올렸습니다: 소리가 계속 끊겼습니다"
