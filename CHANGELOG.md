@@ -18,7 +18,7 @@
 
 ### Known issues
 - Translations are machine-made and not yet reviewed by native speakers: expect awkward wording. Text that isn't translated yet stays in English.
-- Only the characters used by the translations are built into the Chinese, Japanese and Korean fonts, so game or file names written in those scripts still draw as boxes.
+- Game and folder names written in Chinese draw in every language (the bold Chinese fonts hold the whole GB2312 and Big5 character sets: DokiOnjouji's idea, from #62), but Japanese and Korean names only have the characters the translations use, so a rarer kanji or Hangul syllable in a name can still draw as a box. Paths and a few captions use the smaller regular fonts and can too.
 - Game names, file paths, RetroAchievements' own text and the log stay as they are.
 
 ### Fixes

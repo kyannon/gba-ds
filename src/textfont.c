@@ -1,5 +1,6 @@
 #include "textfont.h"
 #include "fonts_data.h"
+#include "i18n.h" /* SCRIPT_* */
 
 #pragma GCC diagnostic ignored "-Wunused-function" /* stb_truetype has many we don't call */
 #pragma GCC diagnostic push
@@ -21,7 +22,7 @@
  * in Jost whatever the interface's language, and a script Jost lacks comes
  * from its own font. A face is scaled by its own capital height, so the
  * letters of two faces match; text sits on one baseline. */
-#define CHAIN_MAX 4
+#define CHAIN_MAX 6 /* Jost, the language's own face, then the last resorts (ui.c ui_language_changed) */
 typedef struct {
 	stbtt_fontinfo fi;
 	int capUnits; /* height of "H" in font units */
@@ -74,6 +75,37 @@ static int pick(int font, int cp, int* glyph) {
 	}
 	*glyph = 0;
 	return 0;
+}
+
+/* The language's own script face goes first (Japanese shapes for the kanji,
+ * Traditional's forms, Korean). After it come the others as last resorts, in
+ * every language, because a game's or folder's name is the player's own and
+ * can be in any script (and the Language list shows each language's own
+ * name): Simplified Chinese, Traditional, Japanese (kana, and kanji Chinese
+ * lacks), Korean (Hangul). The Chinese bold faces carry whole character sets
+ * (tools/make_zh_font.py), the others the characters the catalogues use. */
+void tf_fallback_for_script(int script) {
+	static const int order[] = { EMBEDDED_NOTO_SC_BOLD, EMBEDDED_NOTO_TC_BOLD, EMBEDDED_NOTO_JP_BOLD, EMBEDDED_NOTO_KR_BOLD };
+	int first = script == SCRIPT_HAN_TC ? EMBEDDED_NOTO_TC_BOLD : script == SCRIPT_JP ? EMBEDDED_NOTO_JP_BOLD
+	          : script == SCRIPT_KO ? EMBEDDED_NOTO_KR_BOLD : -1;
+	tf_fallback_clear();
+	if (first >= 0) { /* (each _REGULAR face follows its _BOLD one in the enum) */
+		tf_fallback_add(TF_BOLD, embeddedFonts[first].ttf);
+		tf_fallback_add(TF_BODY, embeddedFonts[first + 1].ttf);
+	}
+	for (size_t i = 0; i < sizeof(order) / sizeof(order[0]); ++i) {
+		if (order[i] == first) continue;
+		tf_fallback_add(TF_BOLD, embeddedFonts[order[i]].ttf);
+		tf_fallback_add(TF_BODY, embeddedFonts[order[i] + 1].ttf);
+	}
+}
+
+bool tf_has_codepoint(int font, unsigned cp) {
+	pthread_once(&once, init);
+	if (font < 0 || font >= TF_COUNT || !ready[font]) return false;
+	int g;
+	pick(font, (int) cp, &g);
+	return g != 0;
 }
 
 /* Next code point from UTF-8 (invalid bytes come out as themselves). */

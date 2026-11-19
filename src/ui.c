@@ -2996,27 +2996,7 @@ void ui_language_changed(void) {
 		free(widthCache[i].text);
 		memset(&widthCache[i], 0, sizeof(widthCache[i]));
 	}
-	tf_fallback_clear();
-	/* (Simplified Chinese is chained for every language, after Traditional's own: the Language list shows each
-	 * language's own name, and a game's name can have Chinese in it) */
-	int script = i18n_script();
-	if (script == SCRIPT_HAN_TC) {
-		tf_fallback_add(TF_BOLD, embeddedFonts[EMBEDDED_NOTO_TC_BOLD].ttf);
-		tf_fallback_add(TF_BODY, embeddedFonts[EMBEDDED_NOTO_TC_REGULAR].ttf);
-	} else if (script == SCRIPT_JP) { /* (Japanese shapes for the kanji, and the kana) */
-		tf_fallback_add(TF_BOLD, embeddedFonts[EMBEDDED_NOTO_JP_BOLD].ttf);
-		tf_fallback_add(TF_BODY, embeddedFonts[EMBEDDED_NOTO_JP_REGULAR].ttf);
-	} else if (script == SCRIPT_KO) {
-		tf_fallback_add(TF_BOLD, embeddedFonts[EMBEDDED_NOTO_KR_BOLD].ttf);
-		tf_fallback_add(TF_BODY, embeddedFonts[EMBEDDED_NOTO_KR_REGULAR].ttf);
-	}
-	tf_fallback_add(TF_BOLD, embeddedFonts[EMBEDDED_NOTO_SC_BOLD].ttf);
-	tf_fallback_add(TF_BODY, embeddedFonts[EMBEDDED_NOTO_SC_REGULAR].ttf);
-	/* (Korean's face last for the others: the Language list shows its name, 한국어) */
-	if (script != SCRIPT_KO) {
-		tf_fallback_add(TF_BOLD, embeddedFonts[EMBEDDED_NOTO_KR_BOLD].ttf);
-		tf_fallback_add(TF_BODY, embeddedFonts[EMBEDDED_NOTO_KR_REGULAR].ttf);
-	}
+	tf_fallback_for_script(i18n_script());
 }
 
 void ui_title_block(int screen, SDL_Rect area, const char* text, int capMax, SDL_Color c) {

@@ -219,10 +219,42 @@ static void test_fallback(const char* ttfPath) {
 	/* a fallback past the limit is refused, not a crash */
 	int added = 0;
 	for (int i = 0; i < 6; ++i) added += tf_fallback_add(TF_BODY, ttf);
-	CHECK(added == 3);
+	CHECK(added == 5); /* (CHAIN_MAX 6: Jost and five) */
 	tf_fallback_clear();
 	CHECK(!tf_fallback_add(TF_BODY, (const unsigned char*) "not a font"));
 	tf_free(&latinBefore), tf_free(&greekBefore), tf_free(&greekAfter), tf_free(&latinAfter), tf_free(&mixed);
+}
+
+/* Players' own game and folder names, in any script: every character has a glyph whatever the interface's
+ * language is (the bold faces carry GB2312's and Big5's whole sets), so none draws as a box. */
+static void test_names(void) {
+	static const char* const names[] = {
+		"\347\201\253\347\204\260\347\272\271\347\253\240 \351\223\240\347\224\262\347\232\204\345\221\274\345\224\244", /* 火焰纹章 铠甲的呼唤 (Simplified) */
+		"F-Zero \345\267\205\345\263\260\344\271\213\346\210\260", /* F-Zero 巅峰之战 (巅 is not in the catalogue) */
+		"\351\230\277\346\213\211\344\270\201", /* 阿拉丁 */
+		"\351\216\247\347\224\262\347\232\204\345\221\274\345\226\232", /* 鎧甲的呼喚 (Traditional) */
+		"\343\203\235\343\202\261\343\203\242\343\203\263 \343\201\202\343\201\204", /* ポケモン あい (kana) */
+		"\355\225\234\352\265\255\354\226\264", /* 한국어 */
+	};
+	static const int scripts[] = { SCRIPT_LATIN, SCRIPT_HAN_SC, SCRIPT_HAN_TC, SCRIPT_JP, SCRIPT_KO };
+	for (size_t si = 0; si < sizeof(scripts) / sizeof(scripts[0]); ++si) {
+		tf_fallback_for_script(scripts[si]);
+		for (size_t n = 0; n < sizeof(names) / sizeof(names[0]); ++n) {
+			int missing = 0;
+			for (const char* p = names[n]; *p;) {
+				unsigned char c = (unsigned char) *p;
+				int len = c >= 0xF0 ? 4 : c >= 0xE0 ? 3 : c >= 0xC0 ? 2 : 1;
+				unsigned cp = len == 1 ? c : c & (0x7F >> len);
+				for (int k = 1; k < len; ++k) cp = (cp << 6) | ((unsigned char) p[k] & 0x3F);
+				p += len;
+				if (!tf_has_codepoint(TF_BOLD, cp)) ++missing;
+			}
+			if (missing) printf("script %d, name %zu: %d characters would be boxes\n", scripts[si], n, missing);
+			CHECK(missing == 0);
+		}
+	}
+	tf_fallback_clear();
+	CHECK(!tf_has_codepoint(TF_BOLD, 0x5DC5)); /* 巅 with Jost alone: a box */
 }
 
 int main(int argc, char** argv) {
@@ -230,6 +262,7 @@ int main(int argc, char** argv) {
 	test_lookup();
 	test_auto();
 	test_fallback(argc > 1 ? argv[1] : NULL);
+	test_names();
 	printf(fails ? "%d failed\n" : "all passed\n", fails);
 	return fails ? 1 : 0;
 }

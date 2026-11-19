@@ -41,9 +41,9 @@ BASE += "…–—‘’“”•·‹›«»°±×÷≤≥→←↑↓"
 BASE += "，。、；：？！“”‘’（）【】《》「」『』〈〉～￥·—…％＋－×÷＝＃＠"
 
 FAMILIES = [
-    {"name": "Simplified", "source": "NotoSansSC[wght].ttf", "po": "zh_CN.po",
+    {"name": "Simplified", "source": "NotoSansSC[wght].ttf", "po": "zh_CN.po", "names": "gb2312_all",
      "out": {400: "NotoSansSC-Regular-subset.ttf", 700: "NotoSansSC-Bold-subset.ttf"}},
-    {"name": "Traditional", "source": "NotoSansTC[wght].ttf", "po": "zh_TW.po",
+    {"name": "Traditional", "source": "NotoSansTC[wght].ttf", "po": "zh_TW.po", "names": "big5_all",
      "out": {400: "NotoSansTC-Regular-subset.ttf", 700: "NotoSansTC-Bold-subset.ttf"}},
     # Japanese: all of hiragana and katakana too (they're few), so a new kana never needs a new subset
     {"name": "Japanese", "source": "NotoSansJP[wght].ttf", "po": "ja.po",
@@ -53,6 +53,31 @@ FAMILIES = [
     {"name": "Korean", "source": "NotoSansKR[wght].ttf", "po": "ko.po",
      "out": {400: "NotoSansKR-Regular-subset.ttf", 700: "NotoSansKR-Bold-subset.ttf"}},
 ]
+
+
+def gb2312_all():
+    """GB2312's hanzi, both levels: 6,763 characters (rows B0-F7)."""
+    out = set()
+    for row in range(0xB0, 0xF8):
+        for col in range(0xA1, 0xFF):
+            try:
+                out.add(bytes([row, col]).decode("gb2312"))
+            except UnicodeDecodeError:
+                pass
+    return out
+
+
+def big5_all():
+    """Big5's hanzi, both levels: 13,147 characters (rows A4-C6 and C9-F9)."""
+    out = set()
+    for first, last in ((0xA4, 0xC6), (0xC9, 0xF9)):
+        for row in range(first, last + 1):
+            for col in list(range(0x40, 0x7F)) + list(range(0xA1, 0xFF)):
+                try:
+                    out.add(bytes([row, col]).decode("big5"))
+                except UnicodeDecodeError:
+                    pass
+    return out
 
 
 def translations(po):
@@ -86,11 +111,14 @@ def main():
                 hdr, _ = i18n.parse_po(os.path.join(I18N, fn))
                 autonyms |= set(hdr.get("X-GBADS-Autonym", ""))
         wanted = sorted(chars | set(BASE) | set(family.get("extra", "")) | {c for c in autonyms if ord(c) > 0x7F})
+        names = globals()[family["names"]]() if "names" in family else set()
         print(f"{family['name']}: {count} strings, {len(chars)} Chinese characters")
         for weight, name in family["out"].items():
             font = TTFont(source)
             font = instantiateVariableFont(font, {"wght": weight}, inplace=False, updateFontNames=True)
             cmap = font.getBestCmap()
+            # (the bold face also draws the game list's names: the whole common set, less what the font lacks)
+            keep = wanted + sorted(c for c in names if weight == 700 and ord(c) in cmap and c not in wanted)
             # (an autonym's character the font lacks, like 简 in Traditional, comes from the other face in the chain)
             wanted = [c for c in wanted if c not in autonyms or c in chars or c in BASE or ord(c) in cmap]
             missing = [c for c in wanted if ord(c) not in cmap]
@@ -107,14 +135,14 @@ def main():
             opts.recalc_bounds = False
             opts.drop_tables += ["DSIG"]
             sub = subset.Subsetter(options=opts)
-            sub.populate(unicodes=[ord(c) for c in wanted])
+            sub.populate(unicodes=[ord(c) for c in keep])
             sub.subset(font)
             # the same bytes every run (a save would stamp the time into head)
             font.recalcTimestamp = False
             font["head"].created = font["head"].modified = 0
             out = os.path.join(FONTS, name)
             font.save(out, reorderTables=True)
-            print(f"  {name}: {len(wanted)} characters, {os.path.getsize(out) / 1024:.0f} KB")
+            print(f"  {name}: {len(keep)} characters, {os.path.getsize(out) / 1024:.0f} KB")
     if failed:
         print("nothing written for the families that failed: fix that first")
         return 1
