@@ -46,11 +46,11 @@ FAMILIES = [
     {"name": "Traditional", "source": "NotoSansTC[wght].ttf", "po": "zh_TW.po", "names": "big5_all",
      "out": {400: "NotoSansTC-Regular-subset.ttf", 700: "NotoSansTC-Bold-subset.ttf"}},
     # Japanese: all of hiragana and katakana too (they're few), so a new kana never needs a new subset
-    {"name": "Japanese", "source": "NotoSansJP[wght].ttf", "po": "ja.po",
+    {"name": "Japanese", "source": "NotoSansJP[wght].ttf", "po": "ja.po", "names": "jis_missing_from_chinese",
      "extra": "".join(chr(c) for c in list(range(0x3041, 0x3097)) + list(range(0x30A1, 0x30FD))),
      "out": {400: "NotoSansJP-Regular-subset.ttf", 700: "NotoSansJP-Bold-subset.ttf"}},
     # Korean: the Hangul the catalogue uses (and the name 한국어, which every other language's Language list draws from this face)
-    {"name": "Korean", "source": "NotoSansKR[wght].ttf", "po": "ko.po",
+    {"name": "Korean", "source": "NotoSansKR[wght].ttf", "po": "ko.po", "names": "ks_hangul",
      "out": {400: "NotoSansKR-Regular-subset.ttf", 700: "NotoSansKR-Bold-subset.ttf"}},
 ]
 
@@ -77,6 +77,32 @@ def big5_all():
                     out.add(bytes([row, col]).decode("big5"))
                 except UnicodeDecodeError:
                     pass
+    return out
+
+
+def jis_missing_from_chinese():
+    """JIS X 0208's kanji (6,355) that neither GB2312 nor Big5 has: the ~850 shinjitai and
+    Japan-only forms (続, 竜, 峠...). The rest of a Japanese name's kanji draw from the Chinese
+    faces, which every language chains after its own."""
+    out = set()
+    for row in range(0xB0, 0xF5):
+        for col in range(0xA1, 0xFF):
+            try:
+                out.add(bytes([row, col]).decode("euc_jp"))
+            except UnicodeDecodeError:
+                pass
+    return out - gb2312_all() - big5_all()
+
+
+def ks_hangul():
+    """KS X 1001's Hangul: the 2,350 syllables Korean uses in practice (rows B0-C8)."""
+    out = set()
+    for row in range(0xB0, 0xC9):
+        for col in range(0xA1, 0xFF):
+            try:
+                out.add(bytes([row, col]).decode("euc_kr"))
+            except UnicodeDecodeError:
+                pass
     return out
 
 

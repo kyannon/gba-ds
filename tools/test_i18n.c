@@ -218,8 +218,8 @@ static void test_fallback(const char* ttfPath) {
 	CHECK(tf_width(TF_BODY, 40, greek) == wGreekBefore);
 	/* a fallback past the limit is refused, not a crash */
 	int added = 0;
-	for (int i = 0; i < 6; ++i) added += tf_fallback_add(TF_BODY, ttf);
-	CHECK(added == 5); /* (CHAIN_MAX 6: Jost and five) */
+	for (int i = 0; i < 11; ++i) added += tf_fallback_add(TF_BODY, ttf);
+	CHECK(added == 9); /* (CHAIN_MAX 10: Jost and nine) */
 	tf_fallback_clear();
 	CHECK(!tf_fallback_add(TF_BODY, (const unsigned char*) "not a font"));
 	tf_free(&latinBefore), tf_free(&greekBefore), tf_free(&greekAfter), tf_free(&latinAfter), tf_free(&mixed);
@@ -235,6 +235,8 @@ static void test_names(void) {
 		"\351\216\247\347\224\262\347\232\204\345\221\274\345\226\232", /* 鎧甲的呼喚 (Traditional) */
 		"\343\203\235\343\202\261\343\203\242\343\203\263 \343\201\202\343\201\204", /* ポケモン あい (kana) */
 		"\355\225\234\352\265\255\354\226\264", /* 한국어 */
+		"\353\240\210\354\235\264\354\203\267 \355\226\211\353\263\265", /* 레이샷 행복 (syllables the translations don't use) */
+		"\347\266\232\343\201\215 \347\253\234\343\201\256\345\255\220", /* 続き 竜の子 (kanji GB2312 and Big5 lack) */
 	};
 	static const int scripts[] = { SCRIPT_LATIN, SCRIPT_HAN_SC, SCRIPT_HAN_TC, SCRIPT_JP, SCRIPT_KO };
 	for (size_t si = 0; si < sizeof(scripts) / sizeof(scripts[0]); ++si) {
@@ -248,6 +250,7 @@ static void test_names(void) {
 				for (int k = 1; k < len; ++k) cp = (cp << 6) | ((unsigned char) p[k] & 0x3F);
 				p += len;
 				if (!tf_has_codepoint(TF_BOLD, cp)) ++missing;
+				if (!tf_has_codepoint(TF_BODY, cp)) ++missing; /* paths: the regular weight */
 			}
 			if (missing) printf("script %d, name %zu: %d characters would be boxes\n", scripts[si], n, missing);
 			CHECK(missing == 0);

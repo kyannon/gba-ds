@@ -10,7 +10,7 @@ GBA DS's menus, game list, messages and (on Android) its permission screen can b
 
 A machine-translated language says so in the Language list ("(machine translated)", in that language). It stays that way until a native speaker has gone through it. Wording that sounds odd, or is simply wrong, is likely: please report or fix it.
 
-What isn't translated: game names, file names and paths, RetroAchievements' own text, the log and bug reports. Text that doesn't have a translation yet shows in English, so a half-finished language still works. Game and folder names written in Chinese draw in every language (the bold fonts hold the common Simplified and Traditional characters), but the Japanese and Korean fonts hold only the characters the translations use, so a rarer kanji or Hangul syllable in a name can show as a box.
+What isn't translated: game names, file names and paths, RetroAchievements' own text, the log and bug reports. Text that doesn't have a translation yet shows in English, so a half-finished language still works. Game and folder names in Chinese, Japanese or Korean draw in every language, paths included: the bold fonts hold the common Simplified and Traditional characters, Japan's extra kanji and the everyday Hangul syllables (paths draw the characters the translations don't use in the bold weight). A very rare kanji, hanja or Hangul syllable can still show as a box.
 
 ## Fixing or adding a language
 

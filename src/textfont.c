@@ -22,7 +22,7 @@
  * in Jost whatever the interface's language, and a script Jost lacks comes
  * from its own font. A face is scaled by its own capital height, so the
  * letters of two faces match; text sits on one baseline. */
-#define CHAIN_MAX 6 /* Jost, the language's own face, then the last resorts (ui.c ui_language_changed) */
+#define CHAIN_MAX 10 /* Jost, then tf_fallback_for_script's: up to four regular and four bold script faces */
 typedef struct {
 	stbtt_fontinfo fi;
 	int capUnits; /* height of "H" in font units */
@@ -98,6 +98,11 @@ void tf_fallback_for_script(int script) {
 		tf_fallback_add(TF_BOLD, embeddedFonts[order[i]].ttf);
 		tf_fallback_add(TF_BODY, embeddedFonts[order[i] + 1].ttf);
 	}
+	/* The regular faces hold only what the catalogues use; the bold ones hold the whole name sets. Text in the
+	 * regular weight that isn't the catalogue's (a path with a Chinese folder name) draws from them, a heavier
+	 * stroke for those characters rather than a box. */
+	for (size_t i = 0; i < sizeof(order) / sizeof(order[0]); ++i)
+		tf_fallback_add(TF_BODY, embeddedFonts[order[i]].ttf);
 }
 
 bool tf_has_codepoint(int font, unsigned cp) {
