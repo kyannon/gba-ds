@@ -3512,6 +3512,165 @@
      "match": "map updated"
     }
    ]
+  },
+  {
+   "id": "pk-fuligin",
+   "rom": "BPRE+fuligin",
+   "state": "pokemon/mods/BPRE+fuligin.ss",
+   "desc": "Pokémon Fuligin: the owner's own play state from the device (Nov 20, 2026): the Party on the second screen, still there 700 frames later (the state has no Town Map to show)",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-7"
+   ],
+   "shots": {
+    "party": 100,
+    "later": 800
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "still the Party, not the logo's grey, once the pages would have turned",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-saiph",
+   "rom": "BPRE+saiph",
+   "state": "pokemon/mods/BPRE+saiph.ss",
+   "desc": "Pokémon Saiph: the owner's own play state from the device (Nov 19, 2026): the Party, and only the Party 700 frames later (a known issue: no map for this hack)",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-7"
+   ],
+   "shots": {
+    "party": 100,
+    "later": 800
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "still the Party, not the logo's grey, once the pages would have turned",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-florasky",
+   "rom": "BPEE+florasky",
+   "state": "pokemon/mods/BPEE+florasky.ss",
+   "desc": "Pokémon Flora Sky: a mid-game state made from the owner's save: the Party, still there 700 frames later",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-7"
+   ],
+   "shots": {
+    "party": 100,
+    "later": 800
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "still the Party, not the logo's grey, once the pages would have turned",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
   }
  ]
 }
