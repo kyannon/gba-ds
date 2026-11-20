@@ -9,6 +9,9 @@
 - **Yu-Gi-Oh! Ultimate Masters: World Championship Tournament 2006** (USA and Europe): the second screen shows the game's own **Card View** of the card under your cursor (its picture, name, type and text), in duels (your hand, your cards and the opponent's face-up ones) and in Deck Edit. Where there's nothing to look at (an empty zone, a pile, a face-down card of the opponent's, a phase or an attack playing out), the last card stays; on the title, menus and conversations, and through the opponent's turn, the logo. The Japanese release isn't supported yet, a duel's card lists and Link Battle haven't been tried.
 - **Duel Masters: Kaijudo Showdown** (USA and Europe): in a duel and in Deck Management, the second screen shows the game's own **Card Details** of the card under your cursor (its picture, race, power, cost and text), without the "B Exit" prompt; where no card opens (the opponent's turn, the field's 3D view, an empty slot) the last card stays, and the title's logo shows elsewhere. Known issue: only the practice duel's screens were tried; the Duel Room and the tournaments' duels use the same screens but weren't reached.
 
+### Menus and interface
+- **A three-column logo view in the game list.** The list/grid button and **X** now go round three views: the list of names, two columns of logos, and three columns of smaller logos (more games on screen). It's chosen and remembered like the other two (`library_view = grid3`).
+
 ### Fixes
 - **Web player: the sound comes back after the quick menu** (#67): it used to stay silent after closing the menu until the page was reloaded.
 - **Web player: settings you change are kept** (#67): a setting changed in the menu and then followed by a reload, or leaving the page, within a few seconds was lost; it's now kept at once.
