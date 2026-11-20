@@ -7652,7 +7652,7 @@ static struct {
 	uint32_t rom;
 	bool known;
 	int partyRow, navGood, first, goodBag, tick, wait;
-	bool noMapKnown, have;
+	bool noMapKnown, have, partySent;
 	uint32_t noMapHash;
 	uint32_t keep[GBA_W * GBA_H];
 } pkMem;
@@ -7780,9 +7780,46 @@ static int pk_key_rows(Emu* s) {
 	}
 	return n;
 }
+/* Where the Town Map is in the Key Items list, from the game's own memory
+ * rather than a row-by-row search of the Bag (seconds of frames on a slow
+ * device, and the second screen shows only the logo meanwhile): the pocket is
+ * 30 slots of (item, quantity) halfwords, the Town Map is item 361, and what
+ * follows it is the Poké Balls pocket. A guess only (a romhack may keep its
+ * Bag otherwise): the search starts at this row and goes on from there if the
+ * screen that opens isn't the map. -1: not found. */
+static uint32_t pk_rd32(const uint8_t* m, size_t i);
+static int pk_key_hint(Emu* s) {
+	size_t size = 0;
+	const uint8_t* m = emu_memory(s, 2, &size);
+	if (!m) return -1;
+	for (size_t i = 0; i + 4 <= size; i += 4) {
+		if ((pk_rd32(m, i) & 0xFFFF) != 361) continue; /* (the quantities are scrambled with a key: only the item ids are read) */
+		for (int k = 0; k < 30 && (size_t) k * 4 <= i; ++k) {
+			size_t base = i - (size_t) k * 4;
+			if (base + 43 * 4 > size) continue;
+			bool ok = true, gap = false;
+			for (int j = 0; j < 30 && ok; ++j) { /* a run of items, then empty slots */
+				unsigned id = pk_rd32(m, base + j * 4) & 0xFFFF;
+				if (!id) gap = true;
+				else if (gap || id > 0x1FF) ok = false;
+			}
+			bool gapB = false;
+			for (int j = 30; j < 43 && ok; ++j) { /* the Poké Balls: ids 1 to 12, then empty */
+				unsigned id = pk_rd32(m, base + j * 4) & 0xFFFF;
+				if (!id) gapB = true;
+				else if (gapB || id > 12) ok = false;
+			}
+			if (ok && (pk_rd32(m, base + k * 4) & 0xFFFF) == 361) return k;
+		}
+	}
+	return -1;
+}
 static const char* pk_town_map(Emu* s, const PkFam* f, const void* state, uint32_t* out, int w, int h) {
 	uint32_t listHash = 0;
 	int rows = PK_KEY_ROWS;
+	int hint = pk_key_hint(s);
+	if (hint >= 0) pkMem.first = hint;
+	if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: Town Map row from memory: %d\n", hint);
 	for (int t = 0; t < rows; ++t) {
 		const char* err;
 		if (pk_open(s, f, state, &f->bag, &pkMem.goodBag, 60, &err) < 0) return err;
@@ -7848,6 +7885,13 @@ static const char* pk_pages(Emu* s, const void* state, uint32_t* const* out, int
 	const char* err = pk_party(s, f, state, out[0], w, h);
 	if (err) return err; /* (no Party: no second screen to keep) */
 	int n = 1;
+	if (!pkMem.partySent) {
+		/* the Party first, at once: the map's first look can take a Bag's worth
+		 * of searching, and the second screen would be the logo till it's done */
+		pkMem.partySent = true;
+		*nOut = 1;
+		return NULL;
+	}
 	if ((*tick)++ % (*have ? PK_MAP_EVERY : 3) == 0) *wait = 0; /* (looking for one is cheap now: the Key Items list is compared first) */
 	if (!*wait && (*tick % PK_MAP_EVERY == 1 || !*have) && w == GBA_W && h == GBA_H) {
 		if (!pk_map(s, f, state, keep, GBA_W, GBA_H)) *have = true;
