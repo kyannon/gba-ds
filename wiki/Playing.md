@@ -124,7 +124,8 @@ From these, what you did can be played back exactly, frame by frame. So when som
 | L3 (press the left stick) | Quick bar (as swiping up; again to put it away) |
 | R2 (hold) | Fast-forward (default 3×; Fast Forward in Extras sets the speed or turns it off). HOME + R2 too |
 | HOME + R1 / L1 | Quick save / load state (the same state as the quick bar's buttons) |
-| HOME + Start | Quit |
+| HOME + Start | Close GBA DS |
+| HOME + A | Close the game (back to the game list) |
 | HOME + X | Quick bar (it shows the FPS too) |
 | HOME + Y | Swap screens |
 | HOME + B | Toggle the selected shader (off, and back on) |
@@ -136,11 +137,11 @@ If HOME doesn't open the menu on your device, see `home_button` in [[Settings]];
 The HOME + button shortcuts above are hotkeys: hold the hotkey button, then press the other one. To change them, open **Settings** in the game list and open **Controls** and choose **Hotkeys** (under Map buttons):
 
 - **Hotkey button**: HOME (the default), SELECT, START or L3. With SELECT or START, the button still reaches the game when you tap it on its own; with L3, a tap on its own still opens the quick bar. HOME opens the menu whichever is the hotkey.
-- **Quit**, **Quick save state**, **Quick load state**, **Open quick menu** (the quick bar), **Swap screens** and **Toggle selected shader** (off, and back on to the one picked in the pause menu's Shader): the button for each.
+- **Close emulator** (closes GBA DS), **Close game** (back to the game list), **Quick save state**, **Quick load state**, **Open quick menu** (the quick bar), **Swap screens** and **Toggle selected shader** (off, and back on to the one picked in the pause menu's Shader): the button for each.
 
 Pick a row (tap it, or the D-pad and A), then press the button you want for it. Tapping the touchscreen instead gives a shortcut no button (or keeps the hotkey button as it was). A button already used by another shortcut moves to the new one, and the other is left without. **Reset** goes back to HOME and the buttons above; **Done** (or B) keeps your choices for every game, in `states/hotkeys.cfg`. They can also be set in `gba-ds.cfg` (see the Buttons section of [[Settings]]), but once you've used Hotkeys in Settings, its choices win until you delete `hotkeys.cfg`. On Android, HOME is the BACK button (Android keeps HOME for itself), and Hotkeys calls it Back.
 
-With START as the hotkey, quitting is START + SELECT. With SELECT or START as the hotkey, the buttons you've given to shortcuts don't reach the game while the hotkey is held; the others do. If `menu_combo = select+start` is on too, SELECT + START opens the menu rather than doing a hotkey.
+When GBA DS was started straight into a game, by a launcher or a frontend such as EmulationStation, there is no game list to go back to: **Close game** then closes GBA DS too, so both shortcuts do the same. With START as the hotkey, closing GBA DS is START + SELECT. With SELECT or START as the hotkey, the buttons you've given to shortcuts don't reach the game while the hotkey is held; the others do. If `menu_combo = select+start` is on too, SELECT + START opens the menu rather than doing a hotkey.
 
 ## Performance
 

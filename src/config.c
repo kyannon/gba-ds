@@ -10,8 +10,8 @@
 #include <strings.h>
 
 const char* const shaderNames[SH_COUNT] = { N_("off"), "grid", "scanlines", "soft", "subpixels-light", "subpixels", "subpixels-strong" };
-const char* const hotkeyNames[HK_COUNT] = { "quit", "save_state", "load_state", "quick_menu", "swap_screens", "shader" };
-static const char* const hotkeyDefaults[HK_COUNT] = { "start", "r", "l", "x", "y", "b" };
+const char* const hotkeyNames[HK_COUNT] = { "quit", "close_game", "save_state", "load_state", "quick_menu", "swap_screens", "shader" };
+static const char* const hotkeyDefaults[HK_COUNT] = { "start", "a", "r", "l", "x", "y", "b" };
 
 void config_defaults(Config* c) {
 	memset(c, 0, sizeof(*c));
@@ -403,7 +403,7 @@ void config_usage(const char* argv0) {
 	        "  --map-interval=N       frames between map refreshes (90)\n"
 	        "  --ab-swap              GBA A on the bottom face button\n"
 	        "  --hotkey=home|select|start|l3   the hotkey button, held with another for a shortcut\n"
-	        "  --hotkey-quit=BUTTON (and -save-state, -load-state, -quick-menu, -swap-screens, -shader)\n"
+	        "  --hotkey-quit=BUTTON (and -close-game, -save-state, -load-state, -quick-menu, -swap-screens, -shader)\n"
 	        "                         each shortcut's button (a, b, x, y, l, r, l2, r2, select,\n"
 	        "                         start, l3, up, down, left, right) or none\n"
 	        "  --menu-combo=select+start|none   buttons that open the menu together (none)\n"

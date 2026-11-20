@@ -18,7 +18,7 @@ const char* const hotkeyBtnNames[B_COUNT] = { "a", "b", "x", "y", "start", "sele
 #endif
 static const char* const btnTitles[B_COUNT] = { "A", "B", "X", "Y", "Start", "Select", HOME_TITLE, "L1", "R1", "L2", "R2", "L3",
 	                                            N_("Up"), N_("Down"), N_("Left"), N_("Right")};
-static const char* const actionTitles[HK_COUNT] = { "Quit", N_("Quick save state"), N_("Quick load state"), N_("Open quick menu"), N_("Swap screens"),
+static const char* const actionTitles[HK_COUNT] = { N_("Close emulator"), N_("Close game"), N_("Quick save state"), N_("Quick load state"), N_("Open quick menu"), N_("Swap screens"),
                                                     N_("Toggle selected shader")};
 
 static int btn_by_name(const char* s) {
@@ -84,9 +84,9 @@ static SDL_Rect row_rect(int scr, int row) {
 	int m = px * 10, w = r.w - m * 2;
 	if (row >= R_RESET) {
 		int bw = (w - px * 8) / 2;
-		return (SDL_Rect) { m + (row == R_DONE ? bw + px * 8 : 0), (int) (px * 164), bw, (int) (px * 16) };
+		return (SDL_Rect) { m + (row == R_DONE ? bw + px * 8 : 0), (int) (px * 160), bw, (int) (px * 16) };
 	}
-	return (SDL_Rect) { m, (int) (px * (34 + row * 16)), w, (int) (px * 13) };
+	return (SDL_Rect) { m, (int) (px * (33 + row * 14)), w, (int) (px * 12) };
 }
 
 static void draw(int scr, const View_* v) {
@@ -136,7 +136,7 @@ static void draw(int scr, const View_* v) {
 	} else if (v->sel == R_DONE) {
 		foot = N_("Kept for every game");
 	}
-	if (foot) ui_font_text(scr, TF_BODY, r.w / 2, px * 154, px * 4, foot, fc, 0);
+	if (foot) ui_font_text(scr, TF_BODY, r.w / 2, px * 151, px * 4, foot, fc, 0);
 }
 
 static bool all_released(void) {

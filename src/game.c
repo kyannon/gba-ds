@@ -8835,6 +8835,9 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 				if (debug) fprintf(stderr, "hotkey: %s\n", hotkeyNames[i]);
 				switch (i) {
 				case HK_QUIT: exitTo = GAME_QUIT_APP, done = true; break;
+				/* (Close game: back to the game list; started straight into a
+				 * game, by a launcher or --rom, there is none: it closes GBA DS) */
+				case HK_GAME: exitTo = fromLibrary ? GAME_TO_LIBRARY : GAME_QUIT_APP, done = true; break;
 				/* (the quick state, as the quick bar's buttons) */
 				case HK_SAVE: ui_osd(state_save(gp.quick) ? "State saved." : "Save failed."); break;
 				case HK_LOAD:
