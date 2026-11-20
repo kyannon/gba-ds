@@ -14,7 +14,7 @@ extern void web_sleep(unsigned ms) __attribute__((import_module("env"), import_n
 #include "bezel.h"
 #include "ra.h"
 #include "textfont.h"
-#include "font.h"
+#include "pixfont.h"
 #include "logo.h"
 #include <ctype.h>
 #include <dirent.h>
@@ -2639,7 +2639,7 @@ static const char* const icon_exit[] = {
  * FPS); the buttons, across the whole width; a line for messages. All of it in
  * GBA pixels (the *_g functions: 240x160, the second screen's picture), drawn
  * into a canvas of that size (below) and scaled up with the picture. */
-enum { BAR_M = 4, BAR_STATUS_H = 14, BAR_BUTTONS_H = 22, BAR_MSG_H = 13, BAR_PICK_H = 24 };
+enum { BAR_M = 4, BAR_STATUS_H = 14, BAR_BUTTONS_H = 22, BAR_MSG_H = 19, BAR_PICK_H = 24 };
 static int bar_pick_h(void) {
 	return ctlProf ? BAR_PICK_H : 0;
 }
@@ -2812,33 +2812,10 @@ static int cv_text(int cx, int cy, int cap, const char* text, SDL_Color c, int m
 			if (e->b.alpha[y * e->b.w + x] > 90) cv_put(x0 + x, y0 + y, c);
 	return w;
 }
-/* Pixel fonts, as a GBA game's own: the app's 5x7 (font.c, capitals) and a 3x5 of the same
- * kind (below) for the small text. Whatever has a letter they lack (other
- * scripts and accents) is drawn in Jost, thresholded, as above. */
-static const struct { char c; uint8_t r[5]; } font35[] = {
-	{ 'A', { 2, 5, 7, 5, 5 } }, { 'B', { 6, 5, 6, 5, 6 } }, { 'C', { 3, 4, 4, 4, 3 } }, { 'D', { 6, 5, 5, 5, 6 } },
-	{ 'E', { 7, 4, 6, 4, 7 } }, { 'F', { 7, 4, 6, 4, 4 } }, { 'G', { 3, 4, 5, 5, 3 } }, { 'H', { 5, 5, 7, 5, 5 } },
-	{ 'I', { 7, 2, 2, 2, 7 } }, { 'J', { 1, 1, 1, 5, 2 } }, { 'K', { 5, 5, 6, 5, 5 } }, { 'L', { 4, 4, 4, 4, 7 } },
-	{ 'M', { 5, 7, 7, 5, 5 } }, { 'N', { 6, 5, 5, 5, 5 } }, { 'O', { 2, 5, 5, 5, 2 } }, { 'P', { 6, 5, 6, 4, 4 } },
-	{ 'Q', { 2, 5, 5, 7, 3 } }, { 'R', { 6, 5, 6, 5, 5 } }, { 'S', { 3, 4, 2, 1, 6 } }, { 'T', { 7, 2, 2, 2, 2 } },
-	{ 'U', { 5, 5, 5, 5, 7 } }, { 'V', { 5, 5, 5, 5, 2 } }, { 'W', { 5, 5, 7, 7, 5 } }, { 'X', { 5, 5, 2, 5, 5 } },
-	{ 'Y', { 5, 5, 2, 2, 2 } }, { 'Z', { 7, 1, 2, 4, 7 } },
-	{ '0', { 7, 5, 5, 5, 7 } }, { '1', { 2, 6, 2, 2, 7 } }, { '2', { 6, 1, 2, 4, 7 } }, { '3', { 6, 1, 2, 1, 6 } },
-	{ '4', { 5, 5, 7, 1, 1 } }, { '5', { 7, 4, 6, 1, 6 } }, { '6', { 3, 4, 7, 5, 7 } }, { '7', { 7, 1, 2, 2, 2 } },
-	{ '8', { 7, 5, 7, 5, 7 } }, { '9', { 7, 5, 7, 1, 6 } },
-	{ '.', { 0, 0, 0, 0, 2 } }, { ',', { 0, 0, 0, 2, 4 } }, { ':', { 0, 2, 0, 2, 0 } }, { ';', { 0, 2, 0, 2, 4 } },
-	{ '!', { 2, 2, 2, 0, 2 } }, { '?', { 6, 1, 2, 0, 2 } }, { '\'', { 2, 2, 0, 0, 0 } }, { '-', { 0, 0, 7, 0, 0 } },
-	{ '+', { 0, 2, 7, 2, 0 } }, { '%', { 5, 1, 2, 4, 5 } }, { '/', { 1, 1, 2, 4, 4 } }, { '(', { 2, 4, 4, 4, 2 } },
-	{ ')', { 2, 1, 1, 1, 2 } }, { '"', { 5, 5, 0, 0, 0 } }, { '_', { 0, 0, 0, 0, 7 } }, { '=', { 0, 7, 0, 7, 0 } },
-};
-static const uint8_t* font35_glyph(char c) {
-	static const uint8_t blank[5] = { 0 };
-	if (c >= 'a' && c <= 'z') c -= 'a' - 'A';
-	for (unsigned i = 0; i < sizeof(font35) / sizeof(*font35); ++i)
-		if (font35[i].c == c) return font35[i].r;
-	return blank;
-}
-/* the text as plain ASCII for a pixel font (an em dash as a hyphen), or false if it has anything else */
+/* Text in GBA DS's pixel font (pixfont.h: Jost's forms, one pixel thick, in two
+ * sizes). What has a letter it lacks (other scripts, accents) is drawn in Jost,
+ * thresholded, as above. */
+/* the text as plain ASCII for the pixel font (an em dash as a hyphen), or false if it has anything else */
 static bool cv_ascii(const char* t, char* out, size_t n) {
 	size_t k = 0;
 	for (const unsigned char* p = (const unsigned char*) t; *p && k + 1 < n; ++p) {
@@ -2849,62 +2826,63 @@ static bool cv_ascii(const char* t, char* out, size_t n) {
 	out[k] = 0;
 	return true;
 }
-/* big: the 5x7 (6 pixels to a letter), else the 3x5 (4 to a letter) */
-static int cv_pix_width(const char* a, bool big) {
-	int n = (int) strlen(a);
-	return n ? n * (big ? 6 : 4) - 1 : 0;
-}
-static void cv_pix_draw(int x0, int y0, const char* a, bool big, SDL_Color c) {
-	for (int i = 0; a[i]; ++i, x0 += big ? 6 : 4) {
-		if (big) {
-			const uint8_t* g = font_glyph(a[i]);
-			for (int y = 0; y < 7; ++y)
-				for (int x = 0; x < 5; ++x)
-					if (g[y] >> (4 - x) & 1) cv_put(x0 + x, y0 + y, c);
-		} else {
-			const uint8_t* g = font35_glyph(a[i]);
-			for (int y = 0; y < 5; ++y)
-				for (int x = 0; x < 3; ++x)
-					if (g[y] >> (2 - x) & 1) cv_put(x0 + x, y0 + y, c);
+static void cv_pix_draw(int x0, int y0, const PixFont* f, const char* a, SDL_Color c) {
+	for (; *a; ++a) {
+		unsigned char ch = (unsigned char) *a;
+		if (ch == ' ') {
+			x0 += f->space;
+			continue;
 		}
+		const PixGlyph* g = &f->g[ch - 32];
+		for (int y = 0; y < f->height; ++y)
+			for (int x = 0; x < g->w; ++x)
+				if (g->row[y] >> (g->w - 1 - x) & 1) cv_put(x0 + x, y0 + y, c);
+		x0 += g->w + 1;
 	}
 }
-/* centred on cx, its middle on cy; the 5x7 if big and it fits maxW, else the 3x5; false if it needed Jost (drawn so) */
+/* centred on cx, the capitals centred on cy; the large font if big and it fits maxW, else the small */
 static void cv_label(int cx, int cy, bool big, const char* text, SDL_Color c, int maxW) {
 	const char* t = tr(text);
 	char a[160];
-	if (!cv_ascii(t, a, sizeof(a))) {
-		cv_text(cx, cy, big ? 7 : 5, t, c, maxW);
+	const PixFont* f = big ? &pixfont_large : &pixfont_small;
+	if (!cv_ascii(t, a, sizeof(a)) || !pixfont_has(&pixfont_small, a)) {
+		cv_text(cx, cy, f->cap, t, c, maxW);
 		return;
 	}
-	if (big && maxW > 0 && cv_pix_width(a, true) > maxW) big = false;
-	int w = cv_pix_width(a, big);
-	cv_pix_draw(cx - w / 2, cy - (big ? 3 : 2), a, big, c);
+	if (big && maxW > 0 && pixfont_width(f, a) > maxW) f = &pixfont_small;
+	cv_pix_draw(cx - pixfont_width(f, a) / 2, cy - f->cap / 2, f, a, c);
 }
-/* the message line: one line of 3x5 if it fits, else two, broken at the space nearest the middle (and cut with ".." if it still doesn't) */
+/* the message line: one line of the small font if it fits, else two, broken at the space that
+ * makes the lines most alike (and cut with ".." if one still doesn't fit) */
 static void cv_message(SDL_Rect area, const char* msg, SDL_Color c) {
+	const PixFont* f = &pixfont_small;
 	const char* t = tr(msg);
 	int cx = area.x + area.w / 2, cy = area.y + area.h / 2;
 	char a[200];
-	if (!cv_ascii(t, a, sizeof(a))) {
-		cv_text(cx, cy, 5, t, c, area.w);
+	if (!cv_ascii(t, a, sizeof(a)) || !pixfont_has(f, a)) {
+		cv_text(cx, cy, f->cap, t, c, area.w);
 		return;
 	}
-	if (cv_pix_width(a, false) <= area.w) {
-		cv_label(cx, cy, false, a, c, 0);
+	if (pixfont_width(f, a) <= area.w) {
+		cv_pix_draw(cx - pixfont_width(f, a) / 2, cy - f->cap / 2, f, a, c);
 		return;
 	}
-	int mid = (int) strlen(a) / 2, best = -1;
-	for (int i = 1; a[i]; ++i)
-		if (a[i] == ' ' && (best < 0 || abs(i - mid) < abs(best - mid))) best = i;
+	int best = -1, bestW = 1 << 30, n = (int) strlen(a);
+	for (int i = 1; i < n; ++i) {
+		if (a[i] != ' ') continue;
+		char left[200];
+		snprintf(left, sizeof(left), "%.*s", i, a);
+		int w = SDL_max(pixfont_width(f, left), pixfont_width(f, a + i + 1));
+		if (w < bestW) bestW = w, best = i;
+	}
 	char one[200], two[200];
-	snprintf(one, sizeof(one), "%.*s", best < 0 ? (int) strlen(a) : best, a);
+	snprintf(one, sizeof(one), "%.*s", best < 0 ? n : best, a);
 	snprintf(two, sizeof(two), "%s", best < 0 ? "" : a + best + 1);
 	char* lines[2] = { one, two };
+	int top = cy - f->height;
 	for (int i = 0; i < 2; ++i) {
-		int maxN = (area.w + 1) / 4;
-		if ((int) strlen(lines[i]) > maxN) strcpy(lines[i] + maxN - 2, "..");
-		if (lines[i][0]) cv_label(cx, cy + (i ? 3 : -3), false, lines[i], c, 0);
+		while (strlen(lines[i]) > 3 && pixfont_width(f, lines[i]) > area.w) strcpy(lines[i] + strlen(lines[i]) - 3, "..");
+		cv_pix_draw(cx - pixfont_width(f, lines[i]) / 2, top + i * f->height, f, lines[i], c);
 	}
 }
 
@@ -3085,7 +3063,7 @@ static void draw_bar(void) {
 	const char* msg = ui_osd_text();
 	if (msg) {
 		SDL_Rect last = bar_button_g(0);
-		cv_message((SDL_Rect) { b.x + 4, last.y + last.h + 2, b.w - 8, BAR_MSG_H - 2 }, msg, G_TEXT);
+		cv_message((SDL_Rect) { b.x + 4, last.y + last.h + 2, b.w - 8, BAR_MSG_H - 3 }, msg, G_TEXT);
 	}
 	/* up to the screen: one texture per view, made again for a new renderer; drawn in the picture's place, nearest */
 	for (int v = 0; v < nViews; ++v) {
@@ -5694,7 +5672,7 @@ static CtlGeom ctl_geom_g(void) {
 	g.cap = 6;
 	char ca[64];
 	const char* ct = tr("Controls");
-	int lw = cv_ascii(ct, ca, sizeof(ca)) ? cv_pix_width(ca, true) : tf_width(TF_BOLD, 7, ct);
+	int lw = cv_ascii(ct, ca, sizeof(ca)) && pixfont_has(&pixfont_small, ca) ? pixfont_width(&pixfont_large, ca) : tf_width(TF_BOLD, pixfont_large.cap, ct);
 	int n = ctl_tiles();
 	int total = lw + gap * 3 + tw * n + gap * (n - 1);
 	int x = b.x + (b.w - total) / 2;
