@@ -763,6 +763,231 @@
     "BOF2-1"
    ],
    "checks": []
+  },
+  {
+   "id": "bof2-us-world",
+   "rom": "AB2E",
+   "state": "breath-of-fire-ii/us-world.ss",
+   "desc": "the overworld: the party overview (us)",
+   "rules": [
+    "BOF2-3"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-3",
+     "what": "the party overview is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "BOF2-3",
+     "what": "black either side of the picture",
+     "type": "pixels",
+     "shot": "a",
+     "screen": "second",
+     "probes": [
+      [
+       20,
+       400,
+       "000000"
+      ],
+      [
+       1004,
+       400,
+       "000000"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bof2-us-worldmap",
+   "rom": "AB2E",
+   "state": "breath-of-fire-ii/us-worldmap.ss",
+   "desc": "START's world map open in the game: the party overview, not the map (us)",
+   "rules": [
+    "BOF2-5"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-5",
+     "what": "the party overview is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof2-eu-world",
+   "rom": "AB2P",
+   "state": "breath-of-fire-ii/eu-world.ss",
+   "desc": "the overworld: the party overview (eu)",
+   "rules": [
+    "BOF2-3"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-3",
+     "what": "the party overview is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "BOF2-3",
+     "what": "black either side of the picture",
+     "type": "pixels",
+     "shot": "a",
+     "screen": "second",
+     "probes": [
+      [
+       20,
+       400,
+       "000000"
+      ],
+      [
+       1004,
+       400,
+       "000000"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bof2-eu-worldmap",
+   "rom": "AB2P",
+   "state": "breath-of-fire-ii/eu-worldmap.ss",
+   "desc": "START's world map open in the game: the party overview, not the map (eu)",
+   "rules": [
+    "BOF2-5"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-5",
+     "what": "the party overview is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof2-jp-world",
+   "rom": "AB2J",
+   "state": "breath-of-fire-ii/jp-world.ss",
+   "desc": "the overworld: the party overview (jp)",
+   "rules": [
+    "BOF2-3"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-3",
+     "what": "the party overview is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "BOF2-3",
+     "what": "black either side of the picture",
+     "type": "pixels",
+     "shot": "a",
+     "screen": "second",
+     "probes": [
+      [
+       20,
+       400,
+       "000000"
+      ],
+      [
+       1004,
+       400,
+       "000000"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bof2-jp-worldmap",
+   "rom": "AB2J",
+   "state": "breath-of-fire-ii/jp-worldmap.ss",
+   "desc": "START's world map open in the game: the party overview, not the map (jp)",
+   "rules": [
+    "BOF2-5"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-5",
+     "what": "the party overview is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
   }
  ]
 }

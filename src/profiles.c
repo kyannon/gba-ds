@@ -8224,11 +8224,13 @@ static const char* bof_compose(Emu* s, const void* state, uint32_t* out, int w, 
  * so nothing here reads the game's memory: what the game is showing comes from the
  * background layers' control registers (the display register changes with the map).
  *   BG0CNT  0x1C03 the title, its demo and the intro's story text, 0x4405 walking
- *           about (and a conversation), 0x0008 the camp menu and its pages (and
+ *           about (and a conversation, and START's world map), 0x4205 the overworld, 0x0008 the camp menu and its pages (and
  *           the file menu and the set-up screens), 0x020C a battle
  */
 #define BOF2_BG0_TITLE 0x1C03
 #define BOF2_BG0_FIELD 0x4405
+/* the overworld: the same menu opens there (BOF2-3) */
+#define BOF2_BG0_WORLD 0x4205
 #define BOF2_BG0_MENU 0x0008
 #define BOF2_BG0_BATTLE 0x020C
 /* 1 on the title (BOF2-2) */
@@ -8267,7 +8269,7 @@ static uint32_t bof2_virt(Emu* e, uint32_t addr) {
 		return bg0 == BOF2_BG0_TITLE;
 	}
 	if (addr != BOF2_V_SCREEN) return 0;
-	return bg0 == BOF2_BG0_FIELD ? 1 : bg0 == BOF2_BG0_MENU ? 2 : bg0 == BOF2_BG0_BATTLE ? 3 : bg0 == BOF2_BG0_TITLE ? 4 : 0;
+	return bg0 == BOF2_BG0_FIELD || bg0 == BOF2_BG0_WORLD ? 1 : bg0 == BOF2_BG0_MENU ? 2 : bg0 == BOF2_BG0_BATTLE ? 3 : bg0 == BOF2_BG0_TITLE ? 4 : 0;
 }
 
 static bool bof2_party_up(Emu* s) {
@@ -8338,7 +8340,7 @@ static const char* bof2_compose(Emu* s, const void* state, uint32_t* out, int w,
 	}
 	/* walking about, or a menu (BOF2-3, BOF2-6); the title, the intro and the like
 	 * (BOF2-2) press nothing */
-	if (bg0 != BOF2_BG0_FIELD && bg0 != BOF2_BG0_MENU) return "not walking about";
+	if (bg0 != BOF2_BG0_FIELD && bg0 != BOF2_BG0_WORLD && bg0 != BOF2_BG0_MENU) return "not walking about";
 	return bof2_party(s, bg0 == BOF2_BG0_MENU, out, w, h);
 }
 
