@@ -7470,14 +7470,16 @@ typedef struct {
 	int partySide; /* a row above that where the box's bottom edge is: only the left of the boxes is cleaned (the stub of the message box), 0: none */
 	/* the map's button prompts: each is a box x0 to x1, y0 to y1, filled row
 	 * by row from the pixel at column fx of that row */
-	int mapClean[3][5];
+	int mapClean[4][5];
 } PkFam;
 static const PkFam pkFrlg = {
 	.party = { { 0x1740, 0x1F01, 0x1E02, 0x5C00, 0x0000 } },
 	.bag = { { 0x3340, 0x1F00, 0x1E0D, 0x0000, 0x0000 } },
 	.map = { { 0x3B40, 0x1E02, 0x0F07, 0x0000, 0x1F0C } }, /* the Town Map */
 	.partyClean = 130, .partyFrom = 182, .menuBottom = 112,
-	.mapClean = { { 130, 205, 0, 14, 100 },     /* the move prompt on the blue strip (longer in other languages) */
+	.mapClean = { { 130, 239, 0, 10, 100 },     /* the move prompt on the blue strip (longer in other languages), and the end of its GUIDE text on the right */
+	              { 130, 205, 11, 14, 100 },
+	              { 206, 239, 11, 11, 100 },
 	              { 194, 214, 131, 149, 192 } }, /* the exit button */
 };
 static const PkFam pkRs = {
@@ -7707,7 +7709,7 @@ static int pk_open(Emu* s, const PkFam* f, const void* state, const PkSig* sig, 
 }
 /* the clean-ups, then the picture */
 static void pk_map_clean(Emu* s, const PkFam* f, uint32_t* out, int w, int h) {
-	for (int k = 0; k < 3; ++k) {
+	for (int k = 0; k < 4; ++k) {
 		const int* c = f->mapClean[k];
 		for (int y = c[2]; y <= c[3] && y < h; ++y) {
 			for (int x = c[0]; x <= c[1] && x < w; ++x) out[y * w + x] = s->fb[y * GBA_W + c[4]];

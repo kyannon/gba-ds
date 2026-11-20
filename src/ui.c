@@ -2538,7 +2538,15 @@ void ui_game_prepare(const Config* c, const char* rom) {
 	memcpy(code, h + 0xAC, 4);
 	code[4] = 0;
 	const MapProfile* prof = profile_find(code);
-	if (!prof || !prof->logoPerRom || rom_file_crc(c, rom, false)) return;
+	if (!prof || !prof->logoPerRom) return;
+	/* what the first start of a ROM file has to do: sum the file (above), and
+	 * extract its logo (a hidden copy of the game run to its title screen: seconds
+	 * of CPU on the device, which, done beside the running game, froze it) */
+	bool needCrc = !rom_file_crc(c, rom, false);
+	char logoFile[1200] = "";
+	bool needLogo = false;
+	if (!needCrc && ui_logo_source(c, rom, code, logoFile, sizeof(logoFile)) == LOGO_EXTRACTED) needLogo = !file_there(logoFile);
+	if (!needCrc && !needLogo) return;
 	if (!(getenv("GBADS_SYNC") && atoi(getenv("GBADS_SYNC")))) {
 		ui_events(); /* (keeps the system from thinking the app has hung) */
 		ui_clear();
@@ -2552,8 +2560,18 @@ void ui_game_prepare(const Config* c, const char* rom) {
 		ui_present();
 		ui_events();
 	}
-	fprintf(stderr, "initializing %s: reading the ROM for its checksum\n", rom);
-	rom_file_crc(c, rom, true);
+	if (needCrc) {
+		fprintf(stderr, "initializing %s: reading the ROM for its checksum\n", rom);
+		rom_file_crc(c, rom, true);
+		if (ui_logo_source(c, rom, code, logoFile, sizeof(logoFile)) == LOGO_EXTRACTED) needLogo = !file_there(logoFile);
+	}
+	if (needLogo && logoFile[0]) {
+		char dir[1200];
+		snprintf(dir, sizeof(dir), "%s/logos", c->stateDir);
+		mkdirs(dir);
+		fprintf(stderr, "initializing %s: extracting its logo\n", rom);
+		logo_extract(rom, code, logoFile);
+	}
 }
 
 void ui_logo_queue(const Config* c, const char* rom, const char* code) {
