@@ -52,7 +52,6 @@ Not done: the duel's other views (the field as a 3D scene, the zones of the oppo
 
 - Only the practice duel's turns were played through to write these rules (the game's other duels use the same screens); the Duel Room and the tournaments' duels were not reached.
 - A card that changes under a cursor that hasn't moved shows at the next refresh, about a second later.
-- The logo has a thin dark stray line under the "D" of the lettering's left side (a sprite of the title that the extraction can't tell apart).
 - The opponent's turn, the field's 3D view and the zone views other than the hand were tried only while writing the rules; a card the cursor is on there shows when SELECT opens it, otherwise the last card stays (DMK-3).
 - Link battles and trading haven't been tried (they need a second GBA); Trade's and the shops' card lists aren't followed.
 
