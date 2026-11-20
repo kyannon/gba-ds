@@ -242,6 +242,134 @@
     "start": 100
    },
    "checks": []
+  },
+  {
+   "id": "ywc-us-commands",
+   "rom": "BY7E",
+   "state": "yu-gi-oh-7-trials-to-glory/us-commands.ss",
+   "desc": "a hand card's commands already open (Set, Card View): its Card View, A alone opens it on the hidden copy",
+   "rules": [
+    "YWC-1"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": [
+    {
+     "rule": "YWC-1",
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       186,
+       "424242"
+      ],
+      [
+       990,
+       466,
+       "424242"
+      ],
+      [
+       990,
+       586,
+       "424242"
+      ],
+      [
+       38,
+       146,
+       "000000"
+      ],
+      [
+       54,
+       702,
+       "A5A5A5"
+      ]
+     ],
+     "shot": "start",
+     "what": "Card View"
+    }
+   ]
+  },
+  {
+   "id": "ywc-us-empty-zone",
+   "rom": "BY7E",
+   "state": "yu-gi-oh-7-trials-to-glory/us-empty-zone.ss",
+   "desc": "the cursor on an empty field zone, no card seen yet: the logo",
+   "rules": [
+    "YWC-3"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-us-end-menu",
+   "rom": "BY7E",
+   "state": "yu-gi-oh-7-trials-to-glory/us-end-menu.ss",
+   "desc": "'End your turn?' up: not the player's free cursor, so no capture: the logo",
+   "rules": [
+    "YWC-3"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-us-deck-select",
+   "rom": "BY7E",
+   "state": "yu-gi-oh-7-trials-to-glory/us-deck-select.ss",
+   "desc": "the Deck select list: A, A opens Deck mode, not a card: nothing taken, the logo",
+   "rules": [
+    "YWC-3",
+    "YWC-4"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-us-town",
+   "rom": "BY7E",
+   "state": "yu-gi-oh-7-trials-to-glory/us-town.ss",
+   "desc": "the town: the logo",
+   "rules": [
+    "YWC-4"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-us-title",
+   "rom": "BY7E",
+   "state": "yu-gi-oh-7-trials-to-glory/us-title.ss",
+   "desc": "the title: the logo",
+   "rules": [
+    "YWC-4",
+    "YWC-5"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-jp-title",
+   "rom": "BYIJ",
+   "state": "yu-gi-oh-7-trials-to-glory/jp-title.ss",
+   "desc": "Japan's title: the logo",
+   "rules": [
+    "YWC-7"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
   }
  ]
 }

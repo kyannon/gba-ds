@@ -2822,8 +2822,10 @@ static const char* yw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 		aw_tap(s, K_A, 1);
 		aw_run(s, 0, sc == YW_LIST ? 30 : 12);
 		if (!yw_view(s)) {
-			if (yw_screen(s) != sc) return "A did something else";
-			aw_tap(s, K_A, 1);
+			/* still the same screen: the command bar is up, A takes Card View /
+			 * Detail; another: the page is fading in (or A did something else,
+			 * which yw_wait_view gives up on) */
+			if (yw_screen(s) == sc) aw_tap(s, K_A, 1);
 		}
 	}
 	if (!yw_view(s) && !yw_wait_view(s, 60)) return "Card View didn't open";
