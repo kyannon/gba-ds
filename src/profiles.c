@@ -8794,6 +8794,227 @@ static const char* bof_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	return bof_party(s, menuOpen, out, w, h);
 }
 
+/* ---------------------------------------------------------------- Breath of Fire II
+ *
+ * docs/games/breath-of-fire-ii.md. The second screen is SELECT's menu as a
+ * party overview, without its command list (BOF2-3), opened on the hidden copy at
+ * every refresh. Battles: the last overview taken (BOF2-4); the title and its intro:
+ * the logo (BOF2-2); where SELECT opens nothing the last picture stays (BOF2-5).
+ * The three releases (AB2E, AB2P, AB2J) draw the same screens in the same places,
+ * so nothing here reads the game's memory: what the game is showing comes from the
+ * background layers' control registers (the display register changes with the map).
+ *   BG0CNT  0x1C03 the title, its demo and the intro's story text, 0x4405 walking
+ *           about (and a conversation, and START's world map), 0x4205 the overworld, 0x0008 the camp menu and its pages (and
+ *           the file menu and the set-up screens), 0x020C a battle
+ */
+#define BOF2_BG0_TITLE 0x1C03
+#define BOF2_BG0_FIELD 0x4405
+/* the overworld: the same menu opens there (BOF2-3) */
+#define BOF2_BG0_WORLD 0x4205
+#define BOF2_BG0_MENU 0x0008
+#define BOF2_BG0_BATTLE 0x020C
+/* 1 on the title (BOF2-2) */
+/* BG3CNT: the world map START opens (BOF2-3); walking about has 0x4207 */
+#define BOF2_BG3_MAP 0x4204
+#define BOF2_V_LOGO 0xF0000090
+/* which screen it is, for a quick refresh when it changes: 1 walking about, 2 a menu,
+ * 3 a battle, 4 the title, 5 the overworld, 6 the world map
+ * open in the game, 0 anything else (fades, the intro) */
+#define BOF2_V_SCREEN 0xF0000091
+/* the party overview, faded in: the frame of the zenny's window at the top (x, y,
+ * 0xRRGGBB), which only the first page of the menu has */
+static const int bof2Party[][3] = { { 159, 4, 0xB7A5B9 }, { 159, 8, 0xD0B0B4 }, { 159, 12, 0xD0B0B4 },
+                                    { 160, 4, 0xF5F2F6 }, { 160, 8, 0xFFFEF5 }, { 160, 10, 0xFFFFFB } };
+/* the party window's left edge (the command list is to its left) */
+#define BOF2_PARTY_X 48
+
+/* the last party overview taken (BOF2-4): a battle shows it, as the overview can't be
+ * opened there */
+static struct { uint32_t* px; int w, h; volatile bool ok; } bof2Kept;
+static void bof2_keep(const uint32_t* out, int w, int h) {
+	if (!bof2Kept.px || bof2Kept.w != w || bof2Kept.h != h) {
+		bof2Kept.ok = false;
+		free(bof2Kept.px);
+		bof2Kept.px = malloc((size_t)w * h * sizeof(uint32_t));
+		bof2Kept.w = w, bof2Kept.h = h;
+	}
+	if (!bof2Kept.px) return;
+	memcpy(bof2Kept.px, out, (size_t)w * h * sizeof(uint32_t));
+	bof2Kept.ok = true;
+}
+
+static uint32_t bof2_virt(Emu* e, uint32_t addr) {
+	uint16_t bg0 = emu_io16(e, 0x08);
+	/* the logo on the title, which also forgets the party overview kept for battles
+	 * (BOF2-4) */
+	if (addr == BOF2_V_LOGO) {
+		if (bg0 == BOF2_BG0_TITLE) bof2Kept.ok = false;
+		return bg0 == BOF2_BG0_TITLE;
+	}
+	if (addr != BOF2_V_SCREEN) return 0;
+	if (bg0 == BOF2_BG0_FIELD) return emu_io16(e, 0x0E) == BOF2_BG3_MAP ? 6 : 1;
+	return bg0 == BOF2_BG0_WORLD ? 5 : bg0 == BOF2_BG0_MENU ? 2 : bg0 == BOF2_BG0_BATTLE ? 3 : bg0 == BOF2_BG0_TITLE ? 4 : 0;
+}
+
+static bool bof2_party_up(Emu* s) {
+	return emu_io16(s, 0x08) == BOF2_BG0_MENU && ff_probes(s, bof2Party, sizeof(bof2Party) / sizeof(*bof2Party));
+}
+
+/* runs until the picture has been still for 3 looks 4 frames apart, with the overview up
+ * and not black (the menu fades in); false if it never was */
+static bool bof2_settled(Emu* s, int n) {
+	/* only the party window is compared: the icon above the command list moves */
+	static uint32_t last[GBA_W * GBA_H];
+	int still = 0;
+	memset(last, 0, sizeof(last));
+	for (int f = 0; f < n && still < 3; f += 4) {
+		aw_run(s, 0, 4);
+		if (emu_cancelled(s)) return false;
+		bool same = true;
+		for (int y = 0; y < GBA_H && same; ++y) same = !memcmp(last + y * GBA_W + BOF2_PARTY_X, s->fb + y * GBA_W + BOF2_PARTY_X, (GBA_W - BOF2_PARTY_X) * sizeof(uint32_t));
+		still = bof2_party_up(s) && same && bof_bright(s) ? still + 1 : 0;
+		memcpy(last, s->fb, sizeof(last));
+	}
+	return still >= 3;
+}
+
+/* the world map START opens on the overworld: up when BG3 has the map's setup; it fades in
+ * (the top left corner, sea, stops changing) and then only its marker pulses and the towns
+ * twinkle */
+static bool bof2_map_up(Emu* s) {
+	return emu_io16(s, 0x0E) == BOF2_BG3_MAP;
+}
+
+/* the marker (a dark disc) grows and shrinks over about 24 frames; its pixels are the
+ * darker ones the map otherwise has none of */
+static int bof2_dark(const uint32_t* fb) {
+	int n = 0;
+	for (int i = 0; i < GBA_W * GBA_H; ++i) {
+		uint32_t c = fb[i];
+		uint32_t a = c & 0xFF, b = (c >> 8) & 0xFF, d = (c >> 16) & 0xFF;
+		uint32_t mx = a > b ? a : b;
+		if (d > mx) mx = d;
+		n += mx < 0x80 && mx > 0x20;
+	}
+	return n;
+}
+
+/* the map once faded in, with the marker at its largest over a cycle (BOF2-3): into out
+ * (w by h, the game's 240 by 160); false if it never faded in */
+static bool bof2_map_take(Emu* s, uint32_t* out, int w, int h) {
+	static uint32_t best[GBA_W * GBA_H];
+	uint32_t corner = 0;
+	int still = 0;
+	for (int f = 0; f < 300 && still < 3; f += 4) {
+		aw_run(s, 0, 4);
+		if (emu_cancelled(s)) return false;
+		still = bof2_map_up(s) && s->fb[0] == corner && corner != 0xFF000000 ? still + 1 : 0;
+		corner = s->fb[0];
+	}
+	if (still < 3) return false;
+	int bestDark = -1;
+	for (int f = 0; f < 40; f += 4) {
+		aw_run(s, 0, 4);
+		if (emu_cancelled(s) || !bof2_map_up(s)) return false;
+		int d = bof2_dark(s->fb);
+		if (d > bestDark) bestDark = d, memcpy(best, s->fb, sizeof(best));
+	}
+	for (int y = 0; y < h; ++y) {
+		for (int x = 0; x < w; ++x) out[y * w + x] = y < GBA_H && x < GBA_W ? best[y * GBA_W + x] : 0xFF000000;
+	}
+	return true;
+}
+
+/* the party overview, from SELECT's menu (B first, as often as it takes to leave one of its
+ * pages or a conversation: BOF2-5, BOF2-6) */
+static const char* bof2_party(Emu* s, bool menuOpen, uint32_t* out, int w, int h) {
+	bool up = bof2_party_up(s);
+	if (!up && menuOpen) {
+		for (int f = 0; f < 150 && !up; f += 2) aw_run(s, 0, 2), up = bof2_party_up(s);
+	}
+	for (int tries = 0, n = menuOpen ? 3 : 2; tries < n && !up; ++tries) {
+		if (tries) {
+			aw_run(s, K_B, 4);
+			aw_run(s, 0, 40);
+			up = bof2_party_up(s);
+			if (up) break;
+		}
+		aw_run(s, K_SELECT, 4);
+		for (int f = 0; f < 150 && !up; f += 2) aw_run(s, 0, 2), up = bof2_party_up(s);
+		if (emu_cancelled(s)) return "called off";
+	}
+	if (!up) return "the menu didn't open"; /* (BOF2-5) */
+	if (!bof2_settled(s, 120)) return "the menu didn't settle";
+	if (!bof2_party_up(s)) return "the menu closed";
+	/* the party window alone (BOF2-3), in the middle of the screen */
+	int cw = GBA_W - BOF2_PARTY_X, left = (w - cw) / 2;
+	for (int y = 0; y < h; ++y) {
+		for (int x = 0; x < w; ++x) {
+			out[y * w + x] = y < GBA_H && x >= left && x < left + cw ? s->fb[y * GBA_W + BOF2_PARTY_X + x - left] : 0xFF000000;
+		}
+	}
+	bof2_keep(out, w, h);
+	return NULL;
+}
+
+static const char* bof2_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	emu_hide_sprites(s, NULL, 0);
+	emu_layers(s, 0x1F);
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	uint16_t bg0 = emu_io16(s, 0x08);
+	/* a battle: the overview kept from before it (BOF2-4) */
+	if (bg0 == BOF2_BG0_BATTLE) {
+		if (!bof2Kept.ok || bof2Kept.w != w || bof2Kept.h != h) return "no party overview yet";
+		memcpy(out, bof2Kept.px, (size_t)w * h * sizeof(uint32_t));
+		return NULL;
+	}
+	/* the title, the intro and the like (BOF2-2) press nothing */
+	if (bg0 != BOF2_BG0_FIELD && bg0 != BOF2_BG0_WORLD && bg0 != BOF2_BG0_MENU) return "not walking about";
+	/* the world map open in the game: back to the field with B (BOF2-6), which fades out
+	 * and in again, then the overview as for a menu */
+	if (bg0 == BOF2_BG0_FIELD && bof2_map_up(s)) {
+		aw_run(s, K_B, 4);
+		for (int f = 0; f < 240 && bof2_map_up(s); f += 2) aw_run(s, 0, 2);
+		if (bof2_map_up(s)) return "the map didn't close";
+		for (int f = 0; f < 240 && emu_io16(s, 0x08) != BOF2_BG0_FIELD && emu_io16(s, 0x08) != BOF2_BG0_WORLD; f += 2) aw_run(s, 0, 2);
+		aw_run(s, 0, 10);
+		bg0 = emu_io16(s, 0x08);
+		return bof2_party(s, false, out, w, h);
+	}
+	/* the overworld: the world map, START (BOF2-3), where the game opens it; where it opens
+	 * nothing, or in the camp menu, the overview */
+	if (bg0 == BOF2_BG0_WORLD) {
+		/* the game ignores START between two steps of the party's walk: the copy gets no
+		 * keys, so it finishes the step first */
+		aw_run(s, 0, 24);
+		aw_run(s, K_START, 4);
+		for (int f = 0; f < 150 && !bof2_map_up(s); f += 2) aw_run(s, 0, 2);
+		if (bof2_map_up(s)) {
+			if (!bof2_map_take(s, out, w, h)) return emu_cancelled(s) ? "called off" : "the map didn't settle";
+			/* and the overview, for a battle that starts while the map is up (BOF2-4): B,
+			 * then SELECT; the map stays as it is if it fails */
+			static uint32_t* scratch;
+			static int scratchN;
+			if (scratchN < w * h) {
+				free(scratch);
+				scratch = malloc((size_t)w * h * sizeof(uint32_t));
+				scratchN = scratch ? w * h : 0;
+			}
+			aw_run(s, K_B, 4);
+			for (int f = 0; f < 240 && bof2_map_up(s); f += 2) aw_run(s, 0, 2);
+			for (int f = 0; f < 240 && emu_io16(s, 0x08) != BOF2_BG0_WORLD; f += 2) aw_run(s, 0, 2);
+			if (scratch && !emu_cancelled(s) && emu_io16(s, 0x08) == BOF2_BG0_WORLD) {
+				aw_run(s, 0, 10);
+				bof2_party(s, false, scratch, w, h);
+			}
+			return NULL;
+		}
+		if (emu_cancelled(s)) return "called off";
+	}
+	return bof2_party(s, bg0 == BOF2_BG0_MENU, out, w, h);
+}
+
 /* ------------------------------------------- The Legend of Zelda: The Minish Cap
  *
  * docs/games/zelda-the-minish-cap.md. The second screen is the game's Map
@@ -11736,6 +11957,25 @@ static const MapProfile profiles[] = {
 		/* the title's lettering, sprites above PRESS START (BOF-1) */
 		.logo = { .steps = { { 0, 1700 } }, .layers = 0x10, .maxY = 112 },
 	},
+	{
+		/* Breath of Fire II (AB2E USA, AB2P Europe, AB2J Japan): the party overview
+		 * from SELECT's menu: see bof2_compose (docs/games/breath-of-fire-ii.md) */
+		.codes = { "AB2E", "AB2P" },
+		.title = "Breath of Fire II",
+		.compose = bof2_compose,
+		.virt = bof2_virt,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* the title, its demo and the intro: the logo, the pictures dropped, no captures
+		 * (BOF2-2); battles are taken like the rest: the overview kept (BOF2-4) */
+		.live = { { BOF2_V_LOGO, 0xFF, 0, 4 } },
+		.menu = { { BOF2_V_LOGO, 0xFF, 1, 4 } },
+		/* another screen (the field back from a battle, a menu opened or left): taken again at
+		 * once (BOF2-4, BOF2-6) */
+		.room = { { BOF2_V_SCREEN, 0xFF, 0, 4 } },
+		/* the title's lettering, the sprites, above the copyright lines (BOF2-1) */
+		.logo = { .steps = { { 0, 1500 } }, .layers = 0x10, .maxY = 120 },
+	},
 };
 
 /* ---------------------------------------------------------------- regions
@@ -11786,6 +12026,14 @@ static void bof_lang(MapProfile* p) {
 	                                   { K_A, 3 }, { 0, 25 }, { K_A, 3 }, { 0, 25 }, { K_A, 3 }, { 0, 1500 } };
 	memset(p->logo.steps, 0, sizeof(p->logo.steps));
 	memcpy(p->logo.steps, steps, sizeof(steps));
+}
+/* Breath of Fire II in Japan: the story text first, the title only after it; its lettering
+ * is sprites and BG3 (the small BREATH OF FIRE and the (R)), above the copyright (BOF2-1) */
+static void bof2_jp(MapProfile* p) {
+	static const MacroStep steps[] = { { 0, 4100 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+	p->logo.layers = 0x18;
 }
 static void lang_menu(MapProfile* p) {
 	insert_steps(p->logo.steps, 24, 0, LANGUAGE_A, 2);
@@ -12278,6 +12526,8 @@ static const Variant variants[] = {
 	{ "BKZX", "BKZE", 0, bk_lang },
 	/* Breath of Fire: Europe's English, French and German release */
 	{ "ABFX", "ABFE", 0, bof_lang },
+	/* Breath of Fire II in Japan: a long story text before the title (BOF2-1) */
+	{ "AB2J", "AB2E", 0, bof2_jp },
 	{ "BKZI", "BKZE", 0, bk_eu },
 	{ "BKZS", "BKZE", 0, bk_eu },
 	{ "ANXP", "ANXE", 0, nfo_eur },

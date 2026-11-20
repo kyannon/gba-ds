@@ -1,0 +1,1187 @@
+{
+ "game": "Breath of Fire II",
+ "rules": "docs/games/breath-of-fire-ii.md",
+ "cases": [
+  {
+   "id": "bof2-us-field",
+   "rom": "AB2E",
+   "state": "breath-of-fire-ii/us-field.ss",
+   "desc": "walking about: the party overview (us)",
+   "rules": [
+    "BOF2-3",
+    "BOF2-7"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-3",
+     "what": "the party overview is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "BOF2-3",
+     "what": "black either side of the picture",
+     "type": "pixels",
+     "shot": "a",
+     "screen": "second",
+     "probes": [
+      [
+       20,
+       400,
+       "000000"
+      ],
+      [
+       1004,
+       400,
+       "000000"
+      ]
+     ]
+    },
+    {
+     "rule": "BOF2-7",
+     "what": "the game screen shows no overlay of ours",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "bof2-us-dialogue",
+   "rom": "AB2E",
+   "state": "breath-of-fire-ii/us-dialogue.ss",
+   "desc": "a conversation up: the party overview (us)",
+   "rules": [
+    "BOF2-3"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-3",
+     "what": "the party overview is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof2-us-menu-open",
+   "rom": "AB2E",
+   "state": "breath-of-fire-ii/us-menu.ss",
+   "desc": "the camp menu open in the game: the party overview, once (us)",
+   "rules": [
+    "BOF2-6"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-6",
+     "what": "the party overview is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof2-us-menu-page",
+   "rom": "AB2E",
+   "state": "breath-of-fire-ii/us-menuitem.ss",
+   "desc": "a menu page open (Item): the party overview, not the page (us)",
+   "rules": [
+    "BOF2-6"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-6",
+     "what": "the party overview is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof2-us-battle",
+   "rom": "AB2E",
+   "state": "breath-of-fire-ii/us-battle.ss",
+   "desc": "in a battle with no picture yet: the logo (us)",
+   "rules": [
+    "BOF2-4"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-4",
+     "what": "the logo is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof2-us-battle-keeps",
+   "rom": "AB2E",
+   "state": "breath-of-fire-ii/us-field.ss",
+   "desc": "a battle starts after walking about: the overview stays (us)",
+   "rules": [
+    "BOF2-4"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:breath-of-fire-ii/us-battle.ss"
+    ]
+   ],
+   "shots": {
+    "a": 240,
+    "b": 420
+   },
+   "checks": []
+  },
+  {
+   "id": "bof2-us-title",
+   "rom": "AB2E",
+   "state": "breath-of-fire-ii/us-title.ss",
+   "desc": "the title: the logo (us)",
+   "rules": [
+    "BOF2-1",
+    "BOF2-2"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-2",
+     "what": "the logo is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof2-us-filemenu",
+   "rom": "AB2E",
+   "state": "breath-of-fire-ii/us-filemenu.ss",
+   "desc": "the file menu: the logo (us)",
+   "rules": [
+    "BOF2-2",
+    "BOF2-5"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-2",
+     "what": "the logo is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof2-us-logo",
+   "kind": "logo",
+   "rom": "AB2E",
+   "desc": "the title lettering",
+   "rules": [
+    "BOF2-1"
+   ],
+   "checks": []
+  },
+  {
+   "id": "bof2-eu-field",
+   "rom": "AB2P",
+   "state": "breath-of-fire-ii/eu-field.ss",
+   "desc": "walking about: the party overview (eu)",
+   "rules": [
+    "BOF2-3",
+    "BOF2-7"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-3",
+     "what": "the party overview is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "BOF2-3",
+     "what": "black either side of the picture",
+     "type": "pixels",
+     "shot": "a",
+     "screen": "second",
+     "probes": [
+      [
+       20,
+       400,
+       "000000"
+      ],
+      [
+       1004,
+       400,
+       "000000"
+      ]
+     ]
+    },
+    {
+     "rule": "BOF2-7",
+     "what": "the game screen shows no overlay of ours",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "bof2-eu-dialogue",
+   "rom": "AB2P",
+   "state": "breath-of-fire-ii/eu-dialogue.ss",
+   "desc": "a conversation up: the party overview (eu)",
+   "rules": [
+    "BOF2-3"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-3",
+     "what": "the party overview is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof2-eu-menu-open",
+   "rom": "AB2P",
+   "state": "breath-of-fire-ii/eu-menu.ss",
+   "desc": "the camp menu open in the game: the party overview, once (eu)",
+   "rules": [
+    "BOF2-6"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-6",
+     "what": "the party overview is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof2-eu-menu-page",
+   "rom": "AB2P",
+   "state": "breath-of-fire-ii/eu-menuitem.ss",
+   "desc": "a menu page open (Item): the party overview, not the page (eu)",
+   "rules": [
+    "BOF2-6"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-6",
+     "what": "the party overview is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof2-eu-battle",
+   "rom": "AB2P",
+   "state": "breath-of-fire-ii/eu-battle.ss",
+   "desc": "in a battle with no picture yet: the logo (eu)",
+   "rules": [
+    "BOF2-4"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-4",
+     "what": "the logo is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof2-eu-battle-keeps",
+   "rom": "AB2P",
+   "state": "breath-of-fire-ii/eu-field.ss",
+   "desc": "a battle starts after walking about: the overview stays (eu)",
+   "rules": [
+    "BOF2-4"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:breath-of-fire-ii/eu-battle.ss"
+    ]
+   ],
+   "shots": {
+    "a": 240,
+    "b": 420
+   },
+   "checks": []
+  },
+  {
+   "id": "bof2-eu-title",
+   "rom": "AB2P",
+   "state": "breath-of-fire-ii/eu-title.ss",
+   "desc": "the title: the logo (eu)",
+   "rules": [
+    "BOF2-1",
+    "BOF2-2"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-2",
+     "what": "the logo is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof2-eu-filemenu",
+   "rom": "AB2P",
+   "state": "breath-of-fire-ii/eu-filemenu.ss",
+   "desc": "the file menu: the logo (eu)",
+   "rules": [
+    "BOF2-2",
+    "BOF2-5"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-2",
+     "what": "the logo is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof2-eu-logo",
+   "kind": "logo",
+   "rom": "AB2P",
+   "desc": "the title lettering",
+   "rules": [
+    "BOF2-1"
+   ],
+   "checks": []
+  },
+  {
+   "id": "bof2-jp-field",
+   "rom": "AB2J",
+   "state": "breath-of-fire-ii/jp-field.ss",
+   "desc": "walking about: the party overview (jp)",
+   "rules": [
+    "BOF2-3",
+    "BOF2-7"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-3",
+     "what": "the party overview is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "BOF2-3",
+     "what": "black either side of the picture",
+     "type": "pixels",
+     "shot": "a",
+     "screen": "second",
+     "probes": [
+      [
+       20,
+       400,
+       "000000"
+      ],
+      [
+       1004,
+       400,
+       "000000"
+      ]
+     ]
+    },
+    {
+     "rule": "BOF2-7",
+     "what": "the game screen shows no overlay of ours",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "bof2-jp-dialogue",
+   "rom": "AB2J",
+   "state": "breath-of-fire-ii/jp-dialogue.ss",
+   "desc": "a conversation up: the party overview (jp)",
+   "rules": [
+    "BOF2-3"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-3",
+     "what": "the party overview is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof2-jp-menu-open",
+   "rom": "AB2J",
+   "state": "breath-of-fire-ii/jp-menu.ss",
+   "desc": "the camp menu open in the game: the party overview, once (jp)",
+   "rules": [
+    "BOF2-6"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-6",
+     "what": "the party overview is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof2-jp-menu-page",
+   "rom": "AB2J",
+   "state": "breath-of-fire-ii/jp-menuitem.ss",
+   "desc": "a menu page open (Item): the party overview, not the page (jp)",
+   "rules": [
+    "BOF2-6"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-6",
+     "what": "the party overview is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof2-jp-battle",
+   "rom": "AB2J",
+   "state": "breath-of-fire-ii/jp-battle.ss",
+   "desc": "in a battle with no picture yet: the logo (jp)",
+   "rules": [
+    "BOF2-4"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-4",
+     "what": "the logo is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof2-jp-battle-keeps",
+   "rom": "AB2J",
+   "state": "breath-of-fire-ii/jp-field.ss",
+   "desc": "a battle starts after walking about: the overview stays (jp)",
+   "rules": [
+    "BOF2-4"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:breath-of-fire-ii/jp-battle.ss"
+    ]
+   ],
+   "shots": {
+    "a": 240,
+    "b": 420
+   },
+   "checks": []
+  },
+  {
+   "id": "bof2-jp-title",
+   "rom": "AB2J",
+   "state": "breath-of-fire-ii/jp-title.ss",
+   "desc": "the title: the logo (jp)",
+   "rules": [
+    "BOF2-1",
+    "BOF2-2"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-2",
+     "what": "the logo is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof2-jp-filemenu",
+   "rom": "AB2J",
+   "state": "breath-of-fire-ii/jp-filemenu.ss",
+   "desc": "the file menu: the logo (jp)",
+   "rules": [
+    "BOF2-2",
+    "BOF2-5"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-2",
+     "what": "the logo is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof2-jp-logo",
+   "kind": "logo",
+   "rom": "AB2J",
+   "desc": "the title lettering",
+   "rules": [
+    "BOF2-1"
+   ],
+   "checks": []
+  },
+  {
+   "id": "bof2-us-world",
+   "rom": "AB2E",
+   "state": "breath-of-fire-ii/us-world.ss",
+   "desc": "the overworld: the world map (us)",
+   "rules": [
+    "BOF2-3"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-3",
+     "what": "the world map START opens is shown",
+     "type": "pixels",
+     "shot": "a",
+     "screen": "second",
+     "probes": [
+      [
+       50,
+       100,
+       "73A5C6"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bof2-us-worldmap",
+   "rom": "AB2E",
+   "state": "breath-of-fire-ii/us-worldmap.ss",
+   "desc": "START's world map open in the game: the party overview, not the map (us)",
+   "rules": [
+    "BOF2-5"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-5",
+     "what": "the party overview is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof2-eu-world",
+   "rom": "AB2P",
+   "state": "breath-of-fire-ii/eu-world.ss",
+   "desc": "the overworld: the world map (eu)",
+   "rules": [
+    "BOF2-3"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-3",
+     "what": "the world map START opens is shown",
+     "type": "pixels",
+     "shot": "a",
+     "screen": "second",
+     "probes": [
+      [
+       50,
+       100,
+       "73A5C6"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bof2-eu-worldmap",
+   "rom": "AB2P",
+   "state": "breath-of-fire-ii/eu-worldmap.ss",
+   "desc": "START's world map open in the game: the party overview, not the map (eu)",
+   "rules": [
+    "BOF2-5"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-5",
+     "what": "the party overview is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof2-jp-world",
+   "rom": "AB2J",
+   "state": "breath-of-fire-ii/jp-world.ss",
+   "desc": "the overworld: the world map (jp)",
+   "rules": [
+    "BOF2-3"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-3",
+     "what": "the world map START opens is shown",
+     "type": "pixels",
+     "shot": "a",
+     "screen": "second",
+     "probes": [
+      [
+       50,
+       100,
+       "73A5C6"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bof2-jp-worldmap",
+   "rom": "AB2J",
+   "state": "breath-of-fire-ii/jp-worldmap.ss",
+   "desc": "START's world map open in the game: the party overview, not the map (jp)",
+   "rules": [
+    "BOF2-5"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF2-5",
+     "what": "the party overview is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof2-us-town-edge",
+   "rom": "AB2E",
+   "state": "breath-of-fire-ii/us-town-edge.ss",
+   "desc": "a player's bug report: the overworld one step south of a town: the world map",
+   "rules": [
+    "BOF2-3"
+   ],
+   "shots": {
+    "a": 300
+   },
+   "checks": [
+    {
+     "rule": "BOF2-3",
+     "what": "the world map is shown",
+     "type": "pixels",
+     "shot": "a",
+     "screen": "second",
+     "probes": [
+      [
+       50,
+       100,
+       "73A5C6"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bof2-us-enter-town",
+   "rom": "AB2E",
+   "state": "breath-of-fire-ii/us-town-edge.ss",
+   "desc": "walking north into the town: the party overview once inside",
+   "rules": [
+    "BOF2-3"
+   ],
+   "input": [
+    [
+     0,
+     "UP"
+    ],
+    [
+     120,
+     "-"
+    ]
+   ],
+   "shots": {
+    "b": 600
+   },
+   "checks": [
+    {
+     "rule": "BOF2-3",
+     "what": "the party overview inside the town",
+     "type": "pixels",
+     "shot": "b",
+     "screen": "second",
+     "probes": [
+      [
+       50,
+       100,
+       "000000"
+      ],
+      [
+       512,
+       400,
+       "56A3D5"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bof2-us-exit-town",
+   "rom": "AB2E",
+   "state": "breath-of-fire-ii/us-town.ss",
+   "desc": "walking out of the town: the party overview, then the world map once on the overworld",
+   "rules": [
+    "BOF2-3"
+   ],
+   "input": [
+    [
+     0,
+     "DOWN"
+    ],
+    [
+     160,
+     "-"
+    ]
+   ],
+   "shots": {
+    "a": 120,
+    "b": 700
+   },
+   "checks": [
+    {
+     "rule": "BOF2-3",
+     "what": "the party overview in the town",
+     "type": "pixels",
+     "shot": "a",
+     "screen": "second",
+     "probes": [
+      [
+       50,
+       100,
+       "000000"
+      ],
+      [
+       512,
+       400,
+       "56A3D5"
+      ]
+     ]
+    },
+    {
+     "rule": "BOF2-3",
+     "what": "the world map back on the overworld",
+     "type": "pixels",
+     "shot": "b",
+     "screen": "second",
+     "probes": [
+      [
+       50,
+       100,
+       "73A5C6"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bof2-us-world-battle-keeps",
+   "rom": "AB2E",
+   "state": "breath-of-fire-ii/us-world.ss",
+   "desc": "a battle starts on the overworld: the overview taken for it stays",
+   "rules": [
+    "BOF2-4"
+   ],
+   "input": [
+    [
+     300,
+     "LOAD:breath-of-fire-ii/us-battle.ss"
+    ]
+   ],
+   "shots": {
+    "a": 270,
+    "b": 600
+   },
+   "checks": [
+    {
+     "rule": "BOF2-3",
+     "what": "the map before the battle",
+     "type": "pixels",
+     "shot": "a",
+     "screen": "second",
+     "probes": [
+      [
+       50,
+       100,
+       "73A5C6"
+      ]
+     ]
+    },
+    {
+     "rule": "BOF2-4",
+     "what": "the party overview in the battle",
+     "type": "pixels",
+     "shot": "b",
+     "screen": "second",
+     "probes": [
+      [
+       50,
+       100,
+       "000000"
+      ],
+      [
+       512,
+       400,
+       "56A3D5"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bof2-us-world-walk",
+   "rom": "AB2E",
+   "state": "breath-of-fire-ii/us-world.ss",
+   "desc": "walking about on the overworld: the world map stays, not the overview, whatever step the party is in when it is taken again",
+   "rules": [
+    "BOF2-3"
+   ],
+   "input": [
+    [
+     0,
+     "RIGHT"
+    ],
+    [
+     200,
+     "-"
+    ]
+   ],
+   "shots": {
+    "a": 90,
+    "b": 150,
+    "c": 330
+   },
+   "checks": [
+    {
+     "rule": "BOF2-3",
+     "what": "the world map while walking",
+     "type": "pixels",
+     "shot": "a",
+     "screen": "second",
+     "probes": [
+      [
+       50,
+       100,
+       "73A5C6"
+      ]
+     ]
+    },
+    {
+     "rule": "BOF2-3",
+     "what": "the world map while walking",
+     "type": "pixels",
+     "shot": "b",
+     "screen": "second",
+     "probes": [
+      [
+       50,
+       100,
+       "73A5C6"
+      ]
+     ]
+    },
+    {
+     "rule": "BOF2-3",
+     "what": "the world map once stopped",
+     "type": "pixels",
+     "shot": "c",
+     "screen": "second",
+     "probes": [
+      [
+       50,
+       100,
+       "73A5C6"
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

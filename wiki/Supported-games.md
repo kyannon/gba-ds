@@ -8,6 +8,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Banjo-Kazooie: Grunty's Revenge | `BKZE` (USA and Europe) `BKZX` `BKZI` `BKZS` (no Japanese release) | the pause screen and the world's Totals, in turn, Banjo's health on both | |
 | Boktai: The Sun Is in Your Hand (Bokura no Taiyou in Japan) | `U3IE` `U3IP` `U3IJ` | the game's Map, with its clock and the sunrise and sunset times | |
 | Breath of Fire (Ryuu no Senshi in Japan) | `ABFE` `ABFP` `ABFJ` `ABFX` (Europe's English, French and German release) | the world map on the overworld, the party overview elsewhere and in battles | |
+| Breath of Fire II (Shimei no Ko in Japan) | `AB2E` `AB2P` `AB2J` | the world map on the overworld, the party overview elsewhere and in battles | |
 | Castlevania: Aria of Sorrow | `A2CE` `A2CP` `A2CJ` | map | JonataGuitar's Recolor v1.02 and Symphony of the Colors (USA) |
 | Castlevania: Circle of the Moon | `AAME` `AAMP` `AAMJ` | map, with the completion rate | |
 | Castlevania: Harmony of Dissonance | `ACHE` `ACHP` `ACHJ` | map | Recolor by JonataGuitar and sorrow (USA) |
@@ -139,6 +140,15 @@ The USA, European and Japanese (Ryuu no Senshi) releases, and Europe's English, 
 - **In a battle** it shows the party overview from before the fight, also when the map was up as it began; the numbers on it are those from before the battle (the battle's own boxes on the game screen are live). This is one of the exceptions on the [Philosophy](https://github.com/kyannon/gba-ds/wiki/Philosophy) page.
 - With the menu, one of its pages or the map open on the game screen, the second screen shows the overview, not the same thing twice. On the title it shows the logo: the title's lettering. In conversations and shops the last picture stays.
 - Known: Europe's English, French and German release was tried at its title only (its saves are of another kind than the ones tested); cutscenes that share the title's screen mode may show the logo until they end; the battle's HP and AP boxes stay on the game screen.
+
+## Breath of Fire II
+
+The USA, European and Japanese (Shimei no Ko) releases.
+
+- **On the overworld** the second screen is the **world map** START opens (the dark disc is where the party is); it is taken from a hidden copy of the game about once a second, so your game isn't touched.
+- **Everywhere else** (towns, dungeons, castles) it shows the first page of SELECT's menu as a **party overview**: the place's name and the zenny, and each fighter's level, HP, AP and experience, without the command list.
+- **In a battle** it shows the party overview from before the fight, also when the map was up as it began; the numbers on it are those from before the battle (the battle's own boxes on the game screen are live). This is one of the exceptions on the [Philosophy](https://github.com/kyannon/gba-ds/wiki/Philosophy) page.
+- With the menu, one of its pages or the map open on the game screen, the second screen shows the overview, not the same thing twice. On the title and file menu it shows the logo: the title's lettering. In conversations and shops the last picture stays.
 
 ## Castlevania: Aria of Sorrow, Harmony of Dissonance, Circle of the Moon
 
