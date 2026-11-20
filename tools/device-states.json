@@ -445,95 +445,173 @@
     ]
    }
   },
+  "yu-gi-oh-ultimate-masters-world-championship-tournament-2006": {
+   "Yu-Gi-Oh! - Ultimate Masters - World Championship Tournament 2006 (USA) (En,Ja,Fr,De,Es,It)": {
+    "1": [
+     "us-main-menu.ss",
+     "Main menu, the cursor on Deck Edit: the logo, idle (UM6-4, UM6-6). Same for the title screen; the Europe release asks for a language first"
+    ],
+    "2": [
+     "us-draw-phase.ss",
+     "A duel's first turn, Draw Phase, the cursor on your Deck with the Draw prompt: the logo, idle, nothing to show yet (UM6-3, UM6-5). Press A to draw: the cursor goes to a card in your hand and its Card View comes up (UM6-1)"
+    ],
+    "3": [
+     "us-hand.ss",
+     "A duel, your Main Phase, the cursor free on a card in your hand: its Card View. Move LEFT / RIGHT along the hand: it follows (UM6-1)"
+    ],
+    "4": [
+     "us-monster.ss",
+     "The cursor on your face-up monster: its Card View. Press UP into an empty zone: the last Card View stays; press RIGHT along the row (UM6-1, UM6-3)"
+    ],
+    "5": [
+     "us-set-card.ss",
+     "The cursor on a card you set in your Magic and Trap row: its Card View, face-down card too (UM6-1)"
+    ],
+    "6": [
+     "us-phase-menu.ss",
+     "The phase menu open (B): the last Card View stays, no prompt copied (UM6-3). Pick End Phase / EP: the End Phase banner, the last Card View stays, then the opponent's turn (UM6-3, UM6-5)"
+    ],
+    "7": [
+     "us-opp-turn.ss",
+     "The opponent's turn under way: the logo, idle; the cursor isn't yours. Wait for your Draw Phase: the logo until the cursor is on a card (UM6-5)"
+    ],
+    "8": [
+     "us-duel-over.ss",
+     "Load slot 3, then this: the opponent's life points are 0 (the duel is won): the logo, idle, the last Card View forgotten (UM6-4). Let the game carry on to the Duel Results: still the logo"
+    ],
+    "9": [
+     "us-deck-grid.ss",
+     "Deck Edit, the card grid, the cursor on a card: its Card View (UM6-2). SELECT: the list, still a Card View. UP onto the top bar's tabs: the last Card View stays (UM6-3). A, A on a card: the game's Card View, taken as it is (UM6-2)"
+    ]
+   },
+   "Yu-Gi-Oh! - Ultimate Masters Edition - World Championship Tournament 2006 (Europe) (En,Ja,Fr,De,Es,It)": {
+    "1": [
+     "eu-dev-main-menu.ss",
+     "Main menu, the cursor on Deck Edit: the logo, idle (UM6-4, UM6-6). Same for the title screen; the Europe release asks for a language first"
+    ],
+    "2": [
+     "eu-dev-draw-phase.ss",
+     "A duel's first turn, Draw Phase, the game's own Card View of the drawn card open: that Card View as it is (UM6-1, UM6-3). B, then the cursor on your hand: it follows (UM6-1)"
+    ],
+    "3": [
+     "eu-dev-hand.ss",
+     "A duel, your Main Phase, the cursor free on a card in your hand: its Card View. Move LEFT / RIGHT along the hand: it follows (UM6-1)"
+    ],
+    "4": [
+     "eu-dev-monster.ss",
+     "The cursor on your face-up monster: its Card View. Press UP into an empty zone: the last Card View stays; press RIGHT along the row (UM6-1, UM6-3)"
+    ],
+    "5": [
+     "eu-dev-set-card.ss",
+     "The cursor on a card you set in your Magic and Trap row: its Card View, face-down card too (UM6-1)"
+    ],
+    "6": [
+     "eu-dev-phase-menu.ss",
+     "The phase menu open (B): the last Card View stays, no prompt copied (UM6-3). Pick End Phase / EP: the End Phase banner, the last Card View stays, then the opponent's turn (UM6-3, UM6-5)"
+    ],
+    "7": [
+     "eu-dev-opp-turn.ss",
+     "The opponent's turn under way: the logo, idle; the cursor isn't yours. Wait for your Draw Phase: the logo until the cursor is on a card (UM6-5)"
+    ],
+    "8": [
+     "eu-dev-duel-over.ss",
+     "Load slot 3, then this: the opponent's life points are 0 (the duel is won): the logo, idle, the last Card View forgotten (UM6-4). Let the game carry on to the Duel Results: still the logo"
+    ],
+    "9": [
+     "eu-dev-deck-grid.ss",
+     "Deck Edit, the card grid, the cursor on a card: its Card View (UM6-2). SELECT: the list, still a Card View. UP onto the top bar's tabs: the last Card View stays (UM6-3). A, A on a card: the game's Card View, taken as it is (UM6-2)"
+    ]
+   }
+  },
   "yu-gi-oh-world-championship-tournament-2004": {
    "Yu-Gi-Oh! - World Championship Tournament 2004 (USA) (En,Ja,Fr,De,Es,It)": {
     "1": [
      "us-hand.ss",
-     "Duel, main phase, cursor on a hand card: its Card View. LEFT / RIGHT: another card. UP to the Magic & Trap row and the monster rows, over empty zones, then the Deck pile: the last card stays (WCT-1, WCT-5, WCT-8)"
+     "Duel, main phase, cursor on a hand card: its Card View. LEFT / RIGHT: another card. UP to the Magic & Trap row and the monster rows, over empty zones, then the Deck pile: the last card stays (UM6-1, WCT-5, WCT-8)"
     ],
     "2": [
      "us-graveyard.ss",
-     "Your Graveyard's list open (one card, Pot of Greed): its Card View (WCT-2). B closes it: the last card stays (WCT-5)"
+     "Your Graveyard's list open (one card, Pot of Greed): its Card View (UM6-2). B closes it: the last card stays (UM6-5)"
     ],
     "3": [
      "us-deck-edit.ss",
-     "Deck Edit, list open on a card: Card View. UP / DOWN: another card each time. Don't press L / R (they change the deck) (WCT-3)"
+     "Deck Edit, list open on a card: Card View. UP / DOWN: another card each time. Don't press L / R (they change the deck) (UM6-3)"
     ],
     "4": [
      "us-booster-packs.ss",
-     "You Win, booster pack choice: the logo at half strength, no card (WCT-6)"
+     "You Win, booster pack choice: the logo at half strength, no card (UM6-6)"
     ],
     "5": [
      "us-cards-won.ss",
-     "Cards won list: Card View of the card under the cursor. UP / DOWN: another card (WCT-4)"
+     "Cards won list: Card View of the card under the cursor. UP / DOWN: another card (UM6-4)"
     ],
     "6": [
      "us-hand.ss",
-     "The same duel as slot 1, for the turn handover: press B, then YES. The logo from the question until the opponent's turn is over and your cursor is back on a card (WCT-9)"
+     "The same duel as slot 1, for the turn handover: press B, then YES. The logo from the question until the opponent's turn is over and your cursor is back on a card (UM6-9)"
     ],
     "7": [
      "us-title.ss",
-     "Title screen: this release's own logo, at half strength (WCT-6, WCT-7)"
+     "Title screen: this release's own logo, at half strength (UM6-6, WCT-7)"
     ]
    },
    "Yu-Gi-Oh! - World Championship Tournament 2004 (Europe) (En,Ja,Fr,De,Es,It)": {
     "1": [
      "eu-hand.ss",
-     "Duel, main phase, cursor on a hand card: its Card View. LEFT / RIGHT: another card. UP to the Magic & Trap row and the monster rows, over empty zones, then the Deck pile: the last card stays (WCT-1, WCT-5, WCT-8)"
+     "Duel, main phase, cursor on a hand card: its Card View. LEFT / RIGHT: another card. UP to the Magic & Trap row and the monster rows, over empty zones, then the Deck pile: the last card stays (UM6-1, WCT-5, WCT-8)"
     ],
     "2": [
      "eu-graveyard.ss",
-     "Your Graveyard's list open (one card, Pot of Greed): its Card View (WCT-2). B closes it: the last card stays (WCT-5)"
+     "Your Graveyard's list open (one card, Pot of Greed): its Card View (UM6-2). B closes it: the last card stays (UM6-5)"
     ],
     "3": [
      "eu-deck-edit.ss",
-     "Deck Edit, list open on a card: Card View. UP / DOWN: another card each time. Don't press L / R (they change the deck) (WCT-3)"
+     "Deck Edit, list open on a card: Card View. UP / DOWN: another card each time. Don't press L / R (they change the deck) (UM6-3)"
     ],
     "4": [
      "eu-booster-packs.ss",
-     "You Win, booster pack choice: the logo at half strength, no card (WCT-6)"
+     "You Win, booster pack choice: the logo at half strength, no card (UM6-6)"
     ],
     "5": [
      "eu-cards-won.ss",
-     "Cards won list: Card View of the card under the cursor. UP / DOWN: another card (WCT-4)"
+     "Cards won list: Card View of the card under the cursor. UP / DOWN: another card (UM6-4)"
     ],
     "6": [
      "eu-hand.ss",
-     "The same duel as slot 1, for the turn handover: press B, then YES. The logo from the question until the opponent's turn is over and your cursor is back on a card (WCT-9)"
+     "The same duel as slot 1, for the turn handover: press B, then YES. The logo from the question until the opponent's turn is over and your cursor is back on a card (UM6-9)"
     ],
     "7": [
      "eu-title.ss",
-     "Title screen: this release's own logo, at half strength (WCT-6, WCT-7)"
+     "Title screen: this release's own logo, at half strength (UM6-6, WCT-7)"
     ]
    },
    "Yu-Gi-Oh! Duel Monsters Expert 3 (Japan) (En,Ja,Fr,De,Es,It)": {
     "1": [
      "jp-hand.ss",
-     "Duel, main phase, cursor on a hand card: its Card View. LEFT / RIGHT: another card. UP to the Magic & Trap row and the monster rows, over empty zones, then the Deck pile: the last card stays (WCT-1, WCT-5, WCT-8)"
+     "Duel, main phase, cursor on a hand card: its Card View. LEFT / RIGHT: another card. UP to the Magic & Trap row and the monster rows, over empty zones, then the Deck pile: the last card stays (UM6-1, WCT-5, WCT-8)"
     ],
     "2": [
      "jp-graveyard.ss",
-     "Your Graveyard's list open (one card, Pot of Greed): its Card View (WCT-2). B closes it: the last card stays (WCT-5)"
+     "Your Graveyard's list open (one card, Pot of Greed): its Card View (UM6-2). B closes it: the last card stays (UM6-5)"
     ],
     "3": [
      "jp-deck-edit.ss",
-     "Deck Edit, list open on a card: Card View. UP / DOWN: another card each time. Don't press L / R (they change the deck) (WCT-3)"
+     "Deck Edit, list open on a card: Card View. UP / DOWN: another card each time. Don't press L / R (they change the deck) (UM6-3)"
     ],
     "4": [
      "jp-booster-packs.ss",
-     "You Win, booster pack choice: the logo at half strength, no card (WCT-6)"
+     "You Win, booster pack choice: the logo at half strength, no card (UM6-6)"
     ],
     "5": [
      "jp-cards-won.ss",
-     "Cards won list: Card View of the card under the cursor. UP / DOWN: another card (WCT-4)"
+     "Cards won list: Card View of the card under the cursor. UP / DOWN: another card (UM6-4)"
     ],
     "6": [
      "jp-hand.ss",
-     "The same duel as slot 1, for the turn handover: press B, then YES. The logo from the question until the opponent's turn is over and your cursor is back on a card (WCT-9)"
+     "The same duel as slot 1, for the turn handover: press B, then YES. The logo from the question until the opponent's turn is over and your cursor is back on a card (UM6-9)"
     ],
     "7": [
      "jp-title.ss",
-     "Title screen: this release's own logo, at half strength (WCT-6, WCT-7)"
+     "Title screen: this release's own logo, at half strength (UM6-6, WCT-7)"
     ]
    }
   }

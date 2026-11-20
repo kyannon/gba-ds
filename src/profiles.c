@@ -2917,6 +2917,173 @@ static const char* wct_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	return NULL;
 }
 
+/* ------------------------------ Yu-Gi-Oh! Ultimate Masters: World Championship Tournament 2006
+ *
+ * The second screen (UM6-1 to UM6-5): the Card View of the card under the
+ * player's cursor, as for The Eternal Duelist Soul (eds_compose above): the
+ * game's own full-screen page for a card, opened on the shadow core from the
+ * live state at every capture. On the duel field A (the card's commands, Card
+ * View first and chosen) then A; in Deck Edit A (its command bar, Detail
+ * first) then A. With Card View already open in the game it's taken as it is.
+ * It's checked by its fixed pixels and taken once it has faded in and held
+ * still.
+ *
+ * Which screen is up: BG0CNT and BG1CNT (the duel field 0x1F08 0x1E09; Deck
+ * Edit's grid, list, command bar and Card View 0x1C0A 0x1D09), Card View by
+ * its pixels (the dark olive text panel and the black round the card:
+ * um6View), wherever it's opened. In a duel: the life points 0x0201C4E0
+ * (the player's) and 0x0201CD48 (the opponent's) are both non-zero; the
+ * opponent's turn 0x0201BCC1 bit 7; the field cursor 0x02023340 (zone, bit 7
+ * the opponent's side) and 0x02023341 (column); the field's info bar names
+ * the card under the cursor in blue (the player's) or red (the opponent's).
+ * Deck Edit's cursor is a sprite (palette 10, tile 924): at y 44 and below on
+ * a card, above it on the tabs. */
+#define UM6_V_LIVE 0xF0000050 /* a card's under a cursor (or in Card View): taken */
+#define UM6_V_IDLE 0xF0000051 /* out of the duels and Deck Edit, or the opponent's turn: the logo */
+#define UM6_V_ROOM 0xF0000052 /* the screen and where its cursor is */
+enum { UM6_NONE, UM6_FIELD, UM6_DECK, UM6_VIEW };
+static const Probe um6View[8] = {
+	/* the text panel's dark olive (the same for every kind of card), the black
+	 * left of the card's frame and between the card and its text */
+	{ 239, 60, 0x423918 }, { 239, 80, 0x423918 }, { 239, 100, 0x423918 }, { 239, 120, 0x423918 },
+	{ 0, 143, 0x000000 }, { 110, 24, 0x000000 }, { 0, 30, 0x000000 }, { 2, 45, 0x000000 }
+};
+static int um6_screen(Emu* e) {
+	if (som_probes(e, um6View, 8, 8, 8)) return UM6_VIEW;
+	uint16_t bg0 = emu_io16(e, 0x08), bg1 = emu_io16(e, 0x0A);
+	if (bg0 == 0x1F08 && bg1 == 0x1E09) return UM6_FIELD;
+	if (bg0 == 0x1C0A && bg1 == 0x1D09) return UM6_DECK;
+	return UM6_NONE;
+}
+static bool um6_in_duel(Emu* e) {
+	return emu_read16(e, 0x0201C4E0) && emu_read16(e, 0x0201CD48);
+}
+static bool um6_opp_turn(Emu* e) {
+	return um6_in_duel(e) && (emu_read8(e, 0x0201BCC1) & 0x80);
+}
+/* the field's info bar names a card (not a pile: its count is cyan; not an
+ * empty zone or a face-down card of the opponent's: nothing) */
+static bool um6_named(Emu* e) {
+	int n = 0;
+	for (int y = 146; y < 160; ++y)
+		for (int x = 0; x < GBA_W; ++x) {
+			uint32_t c = e->fb[y * GBA_W + x] & 0xFFFFFF;
+			n += c == 0xFF0000 || c == 0x0000FF; /* (the fb is ABGR: red and blue swap, both are counted) */
+		}
+	return n >= 20;
+}
+/* Deck Edit's cursor: its y (0 when none is up); a sprite of palette 10 and
+ * tile 924, 32x32 over a card, 16x16 on the tabs. Its place goes with its x. */
+static int um6_deck_cursor(Emu* e, int* x) {
+	for (int i = 0; i < 128; ++i) {
+		uint16_t a0 = emu_read16(e, 0x07000000 + i * 8), a1 = emu_read16(e, 0x07000002 + i * 8),
+		         a2 = emu_read16(e, 0x07000004 + i * 8);
+		if ((a0 & 0x0300) == 0x0200) continue; /* hidden */
+		if ((a2 & 0x3FF) == 924 && (a2 >> 12) == 10) {
+			if (x) *x = a1 & 0x1FF;
+			return (a0 & 0xFF) ? (a0 & 0xFF) : 1;
+		}
+	}
+	return 0;
+}
+static uint32_t um6_virt(Emu* e, uint32_t addr) {
+	int sc = um6_screen(e);
+	if (addr == UM6_V_LIVE) {
+		if (sc == UM6_VIEW) return 1;
+		if (sc == UM6_DECK) return um6_deck_cursor(e, NULL) >= 40;
+		if (sc != UM6_FIELD || !um6_in_duel(e) || um6_opp_turn(e) || !um6_named(e)) return 0;
+		/* a monster, a Magic or Trap card or a card in the hand (not the
+		 * opponent's hand); not a pile (A opens its list, or draws) */
+		uint8_t at = emu_read8(e, 0x02023340), zone = at & 0x7F;
+		return zone == 0 || zone == 5 || (zone == 0x0B && !(at & 0x80));
+	}
+	/* out of the duels and Deck Edit (the field too, once its duel is decided),
+	 * and through the opponent's turn: anything but a Card View opened in it
+	 * (UM6-4, UM6-5) */
+	if (addr == UM6_V_IDLE)
+		return ((sc == UM6_NONE || sc == UM6_FIELD) && !um6_in_duel(e)) || (sc != UM6_VIEW && um6_opp_turn(e));
+	if (addr == UM6_V_ROOM) {
+		uint32_t k = (uint32_t) sc << 28;
+		if (sc == UM6_FIELD) k |= (uint32_t) emu_read8(e, 0x02023340) << 8 | emu_read8(e, 0x02023341);
+		else if (sc == UM6_DECK) {
+			int x = 0, y = um6_deck_cursor(e, &x);
+			k |= (uint32_t) y << 12 | (x & 0xFFF);
+		}
+		return k;
+	}
+	return 0;
+}
+/* On the field: runs frames until the card's commands are up (the magnifier,
+ * tile 448, with the chosen command's name's two sprites, tiles 520 and 524);
+ * false if they don't come (A chose a target, or the cursor isn't free) */
+static bool um6_wait_commands(Emu* s, int max) {
+	for (int f = 0; f < max && !emu_cancelled(s); ++f) {
+		emu_frame(s, 0);
+		bool glass = false, name = false;
+		for (int i = 0; i < 128; ++i) {
+			uint16_t a0 = emu_read16(s, 0x07000000 + i * 8), a2 = emu_read16(s, 0x07000004 + i * 8);
+			if ((a0 & 0x0300) == 0x0200) continue; /* hidden */
+			glass |= (a2 & 0x3FF) == 448;
+			name |= (a2 & 0x3FF) == 520;
+		}
+		if (glass && name) return true;
+	}
+	return false;
+}
+/* runs frames until Card View is up and has held still for 3 (its fade-in
+ * done) */
+static bool um6_wait_view(Emu* s, int max) {
+	static uint32_t prev[GBA_W * GBA_H];
+	int still = 0;
+	for (int f = 0; f < max && !emu_cancelled(s); ++f) {
+		emu_frame(s, 0);
+		if (um6_screen(s) != UM6_VIEW) {
+			still = 0;
+			continue;
+		}
+		still = still && !memcmp(prev, s->fb, sizeof(prev)) ? still + 1 : 1;
+		if (still >= 3) return true;
+		memcpy(prev, s->fb, sizeof(prev));
+	}
+	return false;
+}
+static const char* um6_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	int sc = um6_screen(s);
+	if (sc == UM6_NONE) return "not a card screen";
+	if (sc != UM6_VIEW) {
+		/* (after a moment: the cursor glides to its place, and A on the way
+		 * does nothing) */
+		aw_run(s, 0, 12);
+		if (sc == UM6_FIELD) {
+			/* the info bar names the cursor's card once it's there; none,
+			 * nothing taken, and no slowing down of the next tries */
+			if (!um6_named(s)) return "map button did nothing";
+			/* A: the card's commands, Card View first and chosen, told by their
+			 * sprites. Where none come, A chose a target or the cursor wasn't
+			 * free (a banner, a question): nothing taken (UM6-3). */
+			aw_tap(s, K_A, 1);
+			if (!um6_wait_commands(s, 20)) return "map button did nothing";
+			aw_run(s, 0, 16); /* (the bar takes a few frames to take A) */
+			aw_tap(s, K_A, 1);
+		} else {
+			/* Deck Edit: on a card A brings up the command bar, Detail chosen;
+			 * on a tab or a menu it brings up something else, and no Card View
+			 * follows */
+			if (um6_deck_cursor(s, NULL) < 40) return "map button did nothing";
+			aw_tap(s, K_A, 1);
+			aw_run(s, 0, 8);
+			if (um6_screen(s) == UM6_VIEW) return "A did something else";
+			aw_tap(s, K_A, 1);
+		}
+	}
+	if (um6_screen(s) != UM6_VIEW && !um6_wait_view(s, 120)) return "Card View didn't open";
+	if (emu_cancelled(s)) return "called off";
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+	return NULL;
+}
+
 /* ---------------------------------------------------------- Zoids: Legacy
  *
  * The second screen, from zl_compose on the hidden copy:
@@ -10738,6 +10905,25 @@ static const MapProfile profiles[] = {
 		.logo = { .steps = { { 0, 700 }, { K_A, 4 }, { 0, 300 } }, .layers = 0x05, .maxY = 115 },
 	},
 	{
+		/* Yu-Gi-Oh! Ultimate Masters: World Championship Tournament 2006
+		 * (USA; Europe, Ultimate Masters Edition): the Card View of the card
+		 * under the cursor, see um6_compose (UM6-1 to UM6-5) */
+		.codes = { "BY6E" },
+		.title = "Yu-Gi-Oh! Ultimate Masters: World Championship Tournament 2006",
+		.compose = um6_compose,
+		.virt = um6_virt,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		.live = { { UM6_V_LIVE, 0xFF, 1, 4 } },
+		/* out of the duels and Deck Edit, and through the opponent's turn:
+		 * the logo, the card forgotten (UM6-4, UM6-5) */
+		.menu = { { UM6_V_IDLE, 0xFF, 1, 4 } },
+		.room = { { UM6_V_ROOM, 0, 0, 4 } },
+		/* the title's emblem (BG0), above New Game and the copyright line
+		 * (UM6-6) */
+		.logo = { .wait = 700, .layers = 0x01, .maxY = 120 },
+	},
+	{
 		/* Zoids: Legacy (USA; Japan, Zoids Saga II: its addresses in
 		 * zlRegions). Walking about, in a town, on the world or in a
 		 * dungeon, the map screen (ZL-1); battles and the past the logo
@@ -11749,7 +11935,19 @@ static void pp_eur(MapProfile* p) {
 	memcpy(p->logo.steps, steps, sizeof(steps));
 }
 
+/* Yu-Gi-Oh! Ultimate Masters in Europe (BY6P): the language menu first
+ * (A: English, once it is up, not before: the Konami logo takes no A), then
+ * the title as the USA release's. Its duel and Deck Edit screens are the
+ * same layout (UM6-6). */
+static void um6_eur(MapProfile* p) {
+	static const MacroStep steps[] = { { 0, 620 }, { K_A, 4 }, { 0, 700 } };
+	p->logo.wait = 0;
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+}
+
 static const Variant variants[] = {
+	{ "BY6P", "BY6E", 0, um6_eur },
 	{ "AGSD", "AGSE", 0, gs_ger },
 	/* Boktai: Europe and Japan (the USA release's addresses: bk_compose) */
 	{ "U3IP", "U3IE", 0, NULL },

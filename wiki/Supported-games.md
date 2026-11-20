@@ -68,6 +68,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Wario Land 4 (Wario Land Advance in Japan) | `AWAE` (USA and Europe) `AWAJ` | in levels: the pause screen, with the hearts, money, coins and the treasures found; in boss fights: the HUD | Color palette enhancement 1.1 (USA and Europe) |
 | Yu-Gi-Oh! The Eternal Duelist Soul (Yu-Gi-Oh! Duel Monsters 5 Expert 1 in Japan) | `AY5E` `AY5J` | Card View of the card under the cursor | |
 | Yu-Gi-Oh! World Championship Tournament 2004 (Yu-Gi-Oh! Duel Monsters Expert 3 in Japan) | `BYWE` `BYWP` `BY3J` | Card View of the card under the cursor | |
+| Yu-Gi-Oh! Ultimate Masters: World Championship Tournament 2006 | `BY6E` `BY6P` | Card View of the card under the cursor | |
 | Zoids: Legacy (Zoids Saga II in Japan) | `AZ2E` `AZ2J` (no European release) | the map screen; in battles, the Status of the Zoid choosing | |
 
 The codes are what `<CODE>` means in logo and overlay file names (see [Playing](Playing#logos) and [[Overlays]]).
@@ -690,6 +691,17 @@ The USA and Europe releases and the Japanese one (Yu-Gi-Oh! Duel Monsters Expert
 - Where there's nothing to look at (an empty zone, a pile, a face-down card of the opponent's), the last card stays. While you choose which monster to attack, the last card stays too.
 - **When you end your turn,** the second screen shows the logo, through the opponent's turn, until your cursor is on a card again.
 - On the title screen, the menus, and from the moment a duel is won or lost, the second screen shows the logo.
+
+## Yu-Gi-Oh! Ultimate Masters: World Championship Tournament 2006
+
+The USA and Europe releases. Tried on the device in both releases, in Free Duel and Campaign duels and in Deck Edit; Link Battle hasn't been tried.
+
+- **In a duel,** the second screen shows the **Card View** of the card under your cursor: its picture, name, type and text, as the game shows it when you choose Card View. Your hand, your cards on the field and the opponent's face-up cards; it follows the cursor as you move it, in every phase of your turn. It's brought up in the background on a silent copy of the game; your game is never paused or touched.
+- **In Deck Edit,** the same: the card under the cursor.
+- Where there's nothing to look at (an empty zone, a pile, a face-down card of the opponent's, a phase or an attack playing out, a question the game asks), the last card stays.
+- **When the opponent's turn begins,** the second screen shows the logo, through their turn, until your cursor is on a card again.
+- On the title screen, the menus and the conversations, and from the moment a duel is won or lost, the second screen shows the logo.
+- Known issues: a duel's card lists (the Graveyard...) keep the last card; the Japanese release isn't supported yet.
 
 ## Zoids: Legacy
 

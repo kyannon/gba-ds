@@ -1,0 +1,1197 @@
+{
+ "game": "Yu-Gi-Oh! Ultimate Masters: World Championship Tournament 2006",
+ "rules": "docs/games/yu-gi-oh-ultimate-masters-world-championship-tournament-2006.md",
+ "cases": [
+  {
+   "id": "um6-logo-by6e",
+   "kind": "logo",
+   "rom": "BY6E",
+   "desc": "BY6E logo extraction",
+   "rules": [
+    "GEN-1",
+    "UM6-6"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "um6-logo-by6p",
+   "kind": "logo",
+   "rom": "BY6P",
+   "desc": "BY6P logo extraction",
+   "rules": [
+    "GEN-1",
+    "UM6-6"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "um6-us-hand",
+   "rom": "BY6E",
+   "state": "yu-gi-oh-ultimate-masters-world-championship-tournament-2006/us-hand.ss",
+   "desc": "the player's main phase, the cursor on Elemental Hero Necroshade in the hand: its Card View; LEFT to Heart of the Underdog: its Card View; UP to an empty Magic & Trap zone: Heart of the Underdog stays; the game screen as it is",
+   "rules": [
+    "UM6-1",
+    "UM6-3",
+    "UM6-7"
+   ],
+   "input": [
+    [
+     150,
+     "LEFT"
+    ],
+    [
+     154,
+     "-"
+    ],
+    [
+     300,
+     "UP"
+    ],
+    [
+     304,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 90,
+    "left": 250,
+    "empty": 420
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       306,
+       "423918"
+      ],
+      [
+       990,
+       466,
+       "423918"
+      ],
+      [
+       482,
+       466,
+       "423918"
+      ],
+      [
+       34,
+       638,
+       "000000"
+      ],
+      [
+       474,
+       162,
+       "000000"
+      ]
+     ],
+     "rule": "UM6-1",
+     "shot": "start",
+     "what": "Necroshade's Card View"
+    },
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       306,
+       "423918"
+      ],
+      [
+       990,
+       466,
+       "423918"
+      ],
+      [
+       482,
+       466,
+       "423918"
+      ],
+      [
+       34,
+       638,
+       "000000"
+      ],
+      [
+       474,
+       162,
+       "000000"
+      ]
+     ],
+     "rule": "UM6-1",
+     "shot": "left",
+     "what": "Heart of the Underdog's Card View"
+    },
+    {
+     "rule": "UM6-1",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "left",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "another card"
+    },
+    {
+     "rule": "UM6-3",
+     "type": "same",
+     "a": {
+      "shot": "left",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "empty",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "the last card stays on an empty zone"
+    },
+    {
+     "rule": "UM6-3",
+     "type": "no_log",
+     "match": "frame (3[0-9][0-9]|4[01][0-9]): map capture failed.*Card View"
+    }
+   ]
+  },
+  {
+   "id": "um6-us-monster",
+   "rom": "BY6E",
+   "state": "yu-gi-oh-ultimate-masters-world-championship-tournament-2006/us-monster.ss",
+   "desc": "the cursor on the player's face-up Wroughtweiler: its Card View; RIGHT to an empty zone: it stays",
+   "rules": [
+    "UM6-1",
+    "UM6-3"
+   ],
+   "input": [
+    [
+     150,
+     "RIGHT"
+    ],
+    [
+     154,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 90,
+    "empty": 260
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       306,
+       "423918"
+      ],
+      [
+       990,
+       466,
+       "423918"
+      ],
+      [
+       482,
+       466,
+       "423918"
+      ],
+      [
+       34,
+       638,
+       "000000"
+      ],
+      [
+       474,
+       162,
+       "000000"
+      ]
+     ],
+     "rule": "UM6-1",
+     "shot": "start",
+     "what": "Wroughtweiler's Card View"
+    },
+    {
+     "rule": "UM6-3",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "empty",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "stays on the empty zone"
+    }
+   ]
+  },
+  {
+   "id": "um6-us-set-card",
+   "rom": "BY6E",
+   "state": "yu-gi-oh-ultimate-masters-world-championship-tournament-2006/us-set-card.ss",
+   "desc": "the cursor on the player's face-down Lightning Vortex: its Card View",
+   "rules": [
+    "UM6-1"
+   ],
+   "shots": {
+    "start": 90
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       306,
+       "423918"
+      ],
+      [
+       990,
+       466,
+       "423918"
+      ],
+      [
+       482,
+       466,
+       "423918"
+      ],
+      [
+       34,
+       638,
+       "000000"
+      ],
+      [
+       474,
+       162,
+       "000000"
+      ]
+     ],
+     "rule": "UM6-1",
+     "shot": "start",
+     "what": "Lightning Vortex's Card View"
+    }
+   ]
+  },
+  {
+   "id": "um6-us-view-open",
+   "rom": "BY6E",
+   "state": "yu-gi-oh-ultimate-masters-world-championship-tournament-2006/us-view-open.ss",
+   "desc": "Card View open in the game (from the hand's commands): taken as it is",
+   "rules": [
+    "UM6-1"
+   ],
+   "shots": {
+    "start": 90
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       306,
+       "423918"
+      ],
+      [
+       990,
+       466,
+       "423918"
+      ],
+      [
+       482,
+       466,
+       "423918"
+      ],
+      [
+       34,
+       638,
+       "000000"
+      ],
+      [
+       474,
+       162,
+       "000000"
+      ]
+     ],
+     "rule": "UM6-1",
+     "shot": "start",
+     "what": "Necroshade's Card View as the game shows it"
+    }
+   ]
+  },
+  {
+   "id": "um6-us-phase-menu",
+   "rom": "BY6E",
+   "state": "yu-gi-oh-ultimate-masters-world-championship-tournament-2006/us-hand.ss",
+   "desc": "a card shown, then (loaded) the phase menu open: that Card View stays",
+   "rules": [
+    "UM6-1",
+    "UM6-3"
+   ],
+   "input": [
+    [
+     150,
+     "LOAD:yu-gi-oh-ultimate-masters-world-championship-tournament-2006/us-phase-menu.ss"
+    ]
+   ],
+   "shots": {
+    "card": 90,
+    "menu": 300
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       306,
+       "423918"
+      ],
+      [
+       990,
+       466,
+       "423918"
+      ],
+      [
+       482,
+       466,
+       "423918"
+      ],
+      [
+       34,
+       638,
+       "000000"
+      ],
+      [
+       474,
+       162,
+       "000000"
+      ]
+     ],
+     "rule": "UM6-1",
+     "shot": "card",
+     "what": "the hand's card"
+    },
+    {
+     "rule": "UM6-3",
+     "type": "same",
+     "a": {
+      "shot": "card",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "menu",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "a Card View stays with the phase menu open"
+    }
+   ]
+  },
+  {
+   "id": "um6-us-draw-phase",
+   "rom": "BY6E",
+   "state": "yu-gi-oh-ultimate-masters-world-championship-tournament-2006/us-draw-phase.ss",
+   "desc": "the Draw Phase, the cursor on the Deck, before any card was shown: the logo, nothing tried",
+   "rules": [
+    "UM6-3",
+    "UM6-5"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "UM6-3",
+     "shot": "start",
+     "what": "the logo before the first card"
+    },
+    {
+     "rule": "UM6-3",
+     "what": "nothing tried on the Deck",
+     "type": "no_log",
+     "match": "map (updated|capture failed)"
+    }
+   ]
+  },
+  {
+   "id": "um6-us-opponent-turn",
+   "rom": "BY6E",
+   "state": "yu-gi-oh-ultimate-masters-world-championship-tournament-2006/us-hand.ss",
+   "desc": "a card shown, then the opponent attacking in their turn (loaded): the logo, the card forgotten",
+   "rules": [
+    "UM6-1",
+    "UM6-5"
+   ],
+   "input": [
+    [
+     120,
+     "LOAD:yu-gi-oh-ultimate-masters-world-championship-tournament-2006/us-opp-attack.ss"
+    ]
+   ],
+   "shots": {
+    "start": 90,
+    "attack": 300
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       306,
+       "423918"
+      ],
+      [
+       990,
+       466,
+       "423918"
+      ],
+      [
+       482,
+       466,
+       "423918"
+      ],
+      [
+       34,
+       638,
+       "000000"
+      ],
+      [
+       474,
+       162,
+       "000000"
+      ]
+     ],
+     "rule": "UM6-1",
+     "shot": "start",
+     "what": "the hand's card"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "UM6-5",
+     "shot": "attack",
+     "what": "the logo in the opponent's attack"
+    },
+    {
+     "rule": "UM6-5",
+     "what": "nothing taken in the opponent's turn",
+     "type": "no_log",
+     "match": "frame ([2-9][0-9][0-9]): map updated"
+    }
+   ]
+  },
+  {
+   "id": "um6-us-end-turn",
+   "rom": "BY6E",
+   "state": "yu-gi-oh-ultimate-masters-world-championship-tournament-2006/us-hand.ss",
+   "desc": "a card shown; B opens the phase menu: it stays; RIGHT twice to End Phase, A: the End Phase's banner, the card still there, then the logo through the opponent's turn",
+   "rules": [
+    "UM6-3",
+    "UM6-5"
+   ],
+   "input": [
+    [
+     150,
+     "B"
+    ],
+    [
+     154,
+     "-"
+    ],
+    [
+     200,
+     "RIGHT"
+    ],
+    [
+     204,
+     "-"
+    ],
+    [
+     230,
+     "RIGHT"
+    ],
+    [
+     234,
+     "-"
+    ],
+    [
+     260,
+     "A"
+    ],
+    [
+     264,
+     "-"
+    ]
+   ],
+   "shots": {
+    "card": 90,
+    "menu": 190,
+    "banner": 330,
+    "opponent": 800
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       306,
+       "423918"
+      ],
+      [
+       990,
+       466,
+       "423918"
+      ],
+      [
+       482,
+       466,
+       "423918"
+      ],
+      [
+       34,
+       638,
+       "000000"
+      ],
+      [
+       474,
+       162,
+       "000000"
+      ]
+     ],
+     "rule": "UM6-1",
+     "shot": "card",
+     "what": "the hand's card"
+    },
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       306,
+       "423918"
+      ],
+      [
+       990,
+       466,
+       "423918"
+      ],
+      [
+       482,
+       466,
+       "423918"
+      ],
+      [
+       34,
+       638,
+       "000000"
+      ],
+      [
+       474,
+       162,
+       "000000"
+      ]
+     ],
+     "rule": "UM6-3",
+     "shot": "menu",
+     "what": "a Card View stays with the phase menu open"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "UM6-5",
+     "shot": "opponent",
+     "what": "the logo in the opponent's turn"
+    }
+   ]
+  },
+  {
+   "id": "um6-us-duel-over",
+   "rom": "BY6E",
+   "state": "yu-gi-oh-ultimate-masters-world-championship-tournament-2006/us-hand.ss",
+   "desc": "a card shown, then the duel decided (loaded: the opponent's life points 0): the logo",
+   "rules": [
+    "UM6-1",
+    "UM6-4"
+   ],
+   "input": [
+    [
+     120,
+     "LOAD:yu-gi-oh-ultimate-masters-world-championship-tournament-2006/us-duel-over.ss"
+    ]
+   ],
+   "shots": {
+    "start": 90,
+    "over": 300
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       306,
+       "423918"
+      ],
+      [
+       990,
+       466,
+       "423918"
+      ],
+      [
+       482,
+       466,
+       "423918"
+      ],
+      [
+       34,
+       638,
+       "000000"
+      ],
+      [
+       474,
+       162,
+       "000000"
+      ]
+     ],
+     "rule": "UM6-1",
+     "shot": "start",
+     "what": "the hand's card"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "UM6-4",
+     "shot": "over",
+     "what": "the logo after the duel"
+    }
+   ]
+  },
+  {
+   "id": "um6-us-main-menu",
+   "rom": "BY6E",
+   "state": "yu-gi-oh-ultimate-masters-world-championship-tournament-2006/us-main-menu.ss",
+   "desc": "the main menu: the logo, nothing tried",
+   "rules": [
+    "UM6-4"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "UM6-4",
+     "shot": "start",
+     "what": "the logo"
+    },
+    {
+     "rule": "UM6-4",
+     "what": "nothing tried",
+     "type": "no_log",
+     "match": "map (updated|capture failed)"
+    }
+   ]
+  },
+  {
+   "id": "um6-us-deck-grid",
+   "rom": "BY6E",
+   "state": "yu-gi-oh-ultimate-masters-world-championship-tournament-2006/us-deck-grid.ss",
+   "desc": "Deck Edit's grid, the cursor on Elemental Hero Avian: its Card View; DOWN to the card below: its Card View",
+   "rules": [
+    "UM6-2"
+   ],
+   "input": [
+    [
+     180,
+     "DOWN"
+    ],
+    [
+     184,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 120,
+    "right": 300
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       306,
+       "423918"
+      ],
+      [
+       990,
+       466,
+       "423918"
+      ],
+      [
+       482,
+       466,
+       "423918"
+      ],
+      [
+       34,
+       638,
+       "000000"
+      ],
+      [
+       474,
+       162,
+       "000000"
+      ]
+     ],
+     "rule": "UM6-2",
+     "shot": "start",
+     "what": "Elemental Hero Avian's Card View"
+    },
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       306,
+       "423918"
+      ],
+      [
+       990,
+       466,
+       "423918"
+      ],
+      [
+       482,
+       466,
+       "423918"
+      ],
+      [
+       34,
+       638,
+       "000000"
+      ],
+      [
+       474,
+       162,
+       "000000"
+      ]
+     ],
+     "rule": "UM6-2",
+     "shot": "right",
+     "what": "the next card's"
+    },
+    {
+     "rule": "UM6-2",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "right",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "another card"
+    }
+   ]
+  },
+  {
+   "id": "um6-us-deck-list",
+   "rom": "BY6E",
+   "state": "yu-gi-oh-ultimate-masters-world-championship-tournament-2006/us-deck-list.ss",
+   "desc": "Deck Edit's list (SELECT), the cursor on Elemental Hero Avian: its Card View; DOWN to the next card: its Card View",
+   "rules": [
+    "UM6-2"
+   ],
+   "input": [
+    [
+     180,
+     "DOWN"
+    ],
+    [
+     184,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 120,
+    "down": 300
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       306,
+       "423918"
+      ],
+      [
+       990,
+       466,
+       "423918"
+      ],
+      [
+       482,
+       466,
+       "423918"
+      ],
+      [
+       34,
+       638,
+       "000000"
+      ],
+      [
+       474,
+       162,
+       "000000"
+      ]
+     ],
+     "rule": "UM6-2",
+     "shot": "start",
+     "what": "Elemental Hero Avian's Card View"
+    },
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       306,
+       "423918"
+      ],
+      [
+       990,
+       466,
+       "423918"
+      ],
+      [
+       482,
+       466,
+       "423918"
+      ],
+      [
+       34,
+       638,
+       "000000"
+      ],
+      [
+       474,
+       162,
+       "000000"
+      ]
+     ],
+     "rule": "UM6-2",
+     "shot": "down",
+     "what": "the next card's"
+    },
+    {
+     "rule": "UM6-2",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "down",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "another card"
+    }
+   ]
+  },
+  {
+   "id": "um6-us-deck-tab",
+   "rom": "BY6E",
+   "state": "yu-gi-oh-ultimate-masters-world-championship-tournament-2006/us-deck-tab.ss",
+   "desc": "Deck Edit, the cursor on a tab: the logo, nothing tried",
+   "rules": [
+    "UM6-3"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "UM6-3",
+     "shot": "start",
+     "what": "the logo before the first card"
+    },
+    {
+     "rule": "UM6-3",
+     "what": "nothing tried on a tab",
+     "type": "no_log",
+     "match": "map (updated|capture failed)"
+    }
+   ]
+  },
+  {
+   "id": "um6-us-deck-view",
+   "rom": "BY6E",
+   "state": "yu-gi-oh-ultimate-masters-world-championship-tournament-2006/us-deck-view.ss",
+   "desc": "Card View open in Deck Edit: taken as it is",
+   "rules": [
+    "UM6-2"
+   ],
+   "shots": {
+    "start": 90
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       306,
+       "423918"
+      ],
+      [
+       990,
+       466,
+       "423918"
+      ],
+      [
+       482,
+       466,
+       "423918"
+      ],
+      [
+       34,
+       638,
+       "000000"
+      ],
+      [
+       474,
+       162,
+       "000000"
+      ]
+     ],
+     "rule": "UM6-2",
+     "shot": "start",
+     "what": "Card View as the game shows it"
+    }
+   ]
+  },
+  {
+   "id": "um6-eu-hand",
+   "rom": "BY6P",
+   "state": "yu-gi-oh-ultimate-masters-world-championship-tournament-2006/eu-hand.ss",
+   "desc": "Europe: the cursor on a card in the hand: its Card View",
+   "rules": [
+    "UM6-1"
+   ],
+   "shots": {
+    "start": 90
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       306,
+       "423918"
+      ],
+      [
+       990,
+       466,
+       "423918"
+      ],
+      [
+       482,
+       466,
+       "423918"
+      ],
+      [
+       34,
+       638,
+       "000000"
+      ],
+      [
+       474,
+       162,
+       "000000"
+      ]
+     ],
+     "rule": "UM6-1",
+     "shot": "start",
+     "what": "the hand's card"
+    }
+   ]
+  },
+  {
+   "id": "um6-eu-main-menu",
+   "rom": "BY6P",
+   "state": "yu-gi-oh-ultimate-masters-world-championship-tournament-2006/eu-main-menu.ss",
+   "desc": "Europe: the main menu: the logo",
+   "rules": [
+    "UM6-4"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5,
+     "rule": "UM6-4",
+     "shot": "start",
+     "what": "the logo"
+    }
+   ]
+  }
+ ]
+}
