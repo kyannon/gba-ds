@@ -5690,20 +5690,20 @@ typedef struct {
 static CtlGeom ctl_geom_g(void) {
 	CtlGeom g;
 	SDL_Rect b = bar_rect_g();
-	int t = BAR_PICK_H - 4, gap = 3;
+	int t = BAR_PICK_H - 4, tw = 32, gap = 3; /* (tiles tw wide, t high) */
 	g.cap = 6;
 	char ca[64];
 	const char* ct = tr("Controls");
 	int lw = cv_ascii(ct, ca, sizeof(ca)) ? cv_pix_width(ca, true) : tf_width(TF_BOLD, 7, ct);
 	int n = ctl_tiles();
-	int total = lw + gap * 3 + t * n + gap * (n - 1);
+	int total = lw + gap * 3 + tw * n + gap * (n - 1);
 	int x = b.x + (b.w - total) / 2;
 	int y = b.y + 4;
 	g.all = (SDL_Rect) { x - gap, y - 1, total + gap * 2, t + 2 };
 	g.labelX = x + lw / 2;
 	g.labelY = y + t / 2;
 	x += lw + gap * 3;
-	for (int i = 0; i < 3; ++i) g.tile[i] = (SDL_Rect) { x + i * (t + gap), y, i < n ? t : 0, i < n ? t : 0 };
+	for (int i = 0; i < 3; ++i) g.tile[i] = (SDL_Rect) { x + i * (tw + gap), y, i < n ? tw : 0, i < n ? t : 0 };
 	return g;
 }
 /* (on screen s, for taps) */
@@ -5718,8 +5718,8 @@ static CtlGeom ctl_geom(int s) {
 static void ctl_tile_art(int kind, SDL_Rect t, SDL_Color ink) {
 	float cx = t.x + t.w / 2.0f, cy = t.y + t.h / 2.0f;
 	if (kind == CTL_GBA) {
-		cv_rect((SDL_Rect) { t.x + 3, t.y + 4, 5, 2 }, ink);
-		cv_rect((SDL_Rect) { t.x + t.w - 8, t.y + 4, 5, 2 }, ink);
+		cv_rect((SDL_Rect) { (int) cx - 9, t.y + 4, 5, 2 }, ink);
+		cv_rect((SDL_Rect) { (int) cx + 4, t.y + 4, 5, 2 }, ink);
 		cv_disc(cx - 3.5f, cy + 3.5f, 2.5f, ink);
 		cv_disc(cx + 3.5f, cy + 1.5f, 2.5f, ink);
 	} else {
@@ -5741,9 +5741,9 @@ static void ctl_draw(void) {
 		bool inUse = !sel && ctlMode == CTL_AUTO && i == active;
 		cv_key(t, sel ? KEY_SEL : inUse ? KEY_LIT : KEY_PLAIN);
 		SDL_Color tink = inUse ? (SDL_Color) { 20, 16, 36, 255 } : sel ? G_TEXT : ui_key_ink();
-		if (ctl_snes()) cv_label(t.x + t.w / 2, t.y + t.h / 2, false, i == CTL_GBA ? "GBA" : "SNES", tink, 0);
+		if (ctl_snes()) cv_label(t.x + t.w / 2, t.y + t.h / 2, true, i == CTL_GBA ? "GBA" : "SNES", tink, t.w - 4);
 		else if (i == CTL_GBA || i == CTL_FOUR) ctl_tile_art(i, t, tink);
-		else cv_label(t.x + t.w / 2, t.y + t.h / 2, false, "Auto", tink, 0);
+		else cv_label(t.x + t.w / 2, t.y + t.h / 2, true, "Auto", tink, t.w - 4);
 	}
 }
 
