@@ -47,6 +47,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | MOTHER 3 | `A3UJ` (Japan only) | walking about: the area map where R opens one, else the Status screen, each party member in turn | Translations into English (v1.3, v1.3a), Brazilian Portuguese, Italian, German, Simplified Chinese, Polish, French, Catalan (v1.0, v1.0.2) and Dutch; MusicTheorist's HQ audio mix (Japanese and English) |
 | Muppet Pinball Mayhem | `AMWE` `AMWP` (no Japanese release) | the table twice as tall over both screens, live, with the score bar | |
 | Ninja Five-O (Ninja Cop in Europe) | `ANXE` `ANXP` (no Japanese release) | in stages: the HUD (bars, score or time, the boss's bar, the shuriken's level, keys and hostages) | |
+| Pokémon FireRed, LeafGreen, Ruby, Sapphire and Emerald (every language) | `BPRE` `BPGE` `BPRJ` `BPGJ` `BPRD` `BPGD` `BPRF` `BPGF` `BPRI` `BPGI` `BPRS` `BPGS` (FireRed, LeafGreen) · `AXVE` `AXPE` `AXVJ` `AXPJ` `AXVD` `AXPD` `AXVF` `AXPF` `AXVI` `AXPI` `AXVS` `AXPS` (Ruby, Sapphire) · `BPEE` `BPEJ` `BPED` `BPEF` `BPEI` `BPES` (Emerald) | the Party and the region map, in turn; only the Party in a battle | Radical Red 4.1, Unbound 2.1.1.1, Gaia, Saiph, Fuligin, Light Platinum, Flora Sky, Glazed 9.1.0, Theta Emerald EX 1; Super MarioMon 1.5.1 and Emerald Rogue EX 2.1.1 (their own ROMs, not patches) |
 | Pokémon Pinball: Ruby & Sapphire | `BPPE` `BPPP` `BPPJ` (Japan: the original and Rev 1) | the table twice as tall over both screens, live, with the score bar | |
 | Rebelstar: Tactical Command | `BRLE` `BRLP` (no Japanese release) | in battles: the Status of the soldier under the cursor, or the mission's Objectives | |
 | River City Ransom EX (Downtown Nekketsu Monogatari EX in Japan) | `BDTE` `BDTJ` (no European release) | the Status screen, with the top bar moved off the game screen | |
@@ -499,6 +500,22 @@ The game has no status screen of its own, so in a stage its HUD is moved off the
 - With one screen (`layout = single`), the HUD stays where the game draws it.
 
 Known issues: the end of a stage (the red door), a boss's defeat, a mission's end and the ending haven't been tried yet.
+
+## Pokémon FireRed, LeafGreen, Ruby, Sapphire and Emerald
+
+Every release in every language (English, Japanese, German, French, Italian and Spanish), with their revisions, and the romhacks in the table above. A save from one language works on every other language of the same game; see the save notes below.
+
+- **The Party.** With Pokémon in your party, the second screen shows the game's own Party screen, filling the screen: all six Pokémon with their HP bars, levels, status and held items, with no Pokémon lit and without the game's prompt and CANCEL button. It is taken again within a second or two of anything changing (HP, status, level), and it stays through scenes and fights.
+- **The map.** After the Party it shows the region map the game draws: the Town Map in FireRed and LeafGreen, the Pokénav's map in Ruby, Sapphire and Emerald, always the full view, with your place marked. It appears once you have it (the Town Map or the Pokénav), within seconds of getting it, and is taken again about every 15 seconds, so the marker can lag behind when you've just walked into a new town.
+- **Turning pages.** With both, the screen turns between them every 5 seconds. **In a battle it stays on the Party.**
+- **The logo.** On the title, in a new game before your first Pokémon and in the intro, the second screen shows the game's title logo (taken from your own ROM file's title screen, so a romhack has its own).
+- Your game screen is never touched: the START menu, the Bag, scenes and fights stay where the game draws them.
+- **Each game has its own map.** Starting another Pokémon game, or loading its save state, never shows the map of the game you played before.
+- **Romhacks** built on these games show the Party and the map the same way, as ROMs of their own or as patches (Extras > Patches). Super MarioMon and Emerald Rogue EX are rebuilt from Emerald's source: the Party and, in Rogue EX, its map; Super MarioMon shows only the Party.
+- **The first start of a ROM file** may show an "Initializing game..." screen for a second while its checksum is read and its logo made. A game with RetroAchievements shows "Loading achievements..." for a few seconds first.
+- Known issues: **Saiph and Super MarioMon show only the Party, no map.** Gaia's Party screen has black bars of its own (seen on a PC, not re-checked on the device). The map's marker can lag a few seconds. A battle's own party screen isn't shown (the Party stays as it was before the battle).
+- **Saves:** a Ruby save works on Sapphire and the other way round, and so do FireRed and LeafGreen; an Emerald save doesn't work on Ruby or Sapphire. Japanese FireRed and LeafGreen need a Japanese-format save to load one made elsewhere. Romhacks take the saves of the game they are built on (Fuligin: FireRed or LeafGreen saves; Flora Sky: Emerald saves).
+- Not tried yet: the Japanese Rev 1 FireRed and LeafGreen releases, the Pokémon Box and debug dumps, the Switch Online dumps and any Korean release.
 
 ## Pokémon Pinball: Ruby & Sapphire
 
